@@ -133,11 +133,11 @@ var ir = function (t) {
   // 6. Indicador de carga: se quita cuando el módulo deja de pedir datos (como mucho, 8 segundos)
   const sec = $('v-' + t); if (!sec || ES_MEDICO()) return;
   sec.classList.add('cargando');
-  const t0 = Date.now(); let quietos = 0;
+  const t0 = performance.now(); let quietos = 0;
   const w = setInterval(() => {
     if (TAB !== t) { clearInterval(w); sec.classList.remove('cargando'); return; }
     quietos = PEND === 0 ? quietos + 1 : 0;
-    if ((quietos >= 3 && Date.now() - t0 > 300) || Date.now() - t0 > 8000) { clearInterval(w); requestAnimationFrame(() => sec.classList.remove('cargando')); }
+    if ((quietos >= 3 && performance.now() - t0 > 300) || performance.now() - t0 > 8000) { clearInterval(w); requestAnimationFrame(() => sec.classList.remove('cargando')); }
   }, 80);
 };
 
@@ -6624,7 +6624,8 @@ function programarVisitas(items, t0) {
     for (const it of pend) {
       const lleg = llegadaA(it, pos, t, !seq.length);
       const ini = inicioPosible(it, lleg, dura);
-      if (ini == null || ini + dura > tope) continue;
+      // Tiene que dar tiempo a terminar la visita Y volver a casa antes de «Vuelta como tarde»
+      if (ini == null || ini + dura + minutosEntre(it.xy, [sal.lat, sal.lon]) > tope) continue;
       // No elegir algo que haga llegar tarde a la próxima cita con hora fijada
       if (it.fija == null && fijas.length) {
         const f = fijas[0];
@@ -6642,7 +6643,7 @@ function programarVisitas(items, t0) {
     const v = it.ventanas;
     fuera.push({ it, motivo: it.fija != null ? 'no llegas a la hora fijada'
       : v && v.every(([, b]) => b <= t) ? `su consulta (${txtVentanas(v)}) ya habrá acabado`
-      : 'no cabe antes de tu hora tope' });
+      : 'no da tiempo a volver antes de tu hora de vuelta' });
   });
   return { seq, fuera, fin: t + minutosEntre(pos, [sal.lat, sal.lon]) };
 }
@@ -6675,16 +6676,29 @@ async function construirPlan(conXY, rutaId, btn, opts) {
     return;
   }
 
-  const meds = await conHorarios(conXY);
+  const todos = await conHorarios(conXY);
+  // Médicos con una cita ya planificada (desde hoy): no se proponen; se muestran aparte como «ya citados»
+  const citas = await citasPlanificadasMias();
+  const citados = todos.filter(m => citas[m.id]).map(m => ({ m, fecha: citas[m.id] }));
+  const meds = todos.filter(m => !citas[m.id]);
   const items = meds.map(m => ({ id: m.id, ref: m, xy: m.lat != null && m.lon != null ? [+m.lat, +m.lon] : null,
     ventanas: ventanasDe(m.dias, fecha), fija: null }));
   const { seq, fuera, fin } = programarVisitas(items, t0);
 
+  // Todos los médicos de la ruta ya tienen cita: se dice así y se ofrece ir a la agenda
+  if (!meds.length && citados.length) {
+    const op = await elegirOpcion('Ya están todos citados',
+      `${citados.length === 1 ? 'El médico de esta ruta ya tiene' : `Los ${citados.length} médicos de esta ruta ya tienen`} una cita planificada en tu agenda.`,
+      [{ k: 'no', t: 'Cerrar', cls: 'sec' }, { k: 'agenda', t: 'Ver mi agenda' }]);
+    if (op === 'agenda') { AG_MODO = 'semana'; AG_FECHA = citados.map(x => x.fecha).sort()[0]; ir('agenda'); }
+    return;
+  }
   if (!seq.length) {
     const noDia = fuera.filter(f => f.motivo === 'no pasa consulta este día').length;
     const op = await elegirOpcion('No cabe ninguna visita',
       (noDia === fuera.length ? `Ninguno de estos ${fuera.length} médicos pasa consulta el ${fechaLarga(new Date(fecha + 'T00:00:00'))}.`
-        : `Con tu horario (${cfg.salida}–${cfg.tope}) y las horas de consulta no da tiempo a ninguna visita.`),
+        : `Con tu horario (${cfg.salida}–${cfg.tope}) y las horas de consulta no da tiempo a ninguna visita.`)
+        + (citados.length ? `\n\nAdemás, ${citados.length} ${citados.length === 1 ? 'ya tiene' : 'ya tienen'} una cita planificada y no se proponen.` : ''),
       [{ k: 'no', t: 'Cancelar', cls: 'sec' }, { k: 'horario', t: '⚙ Cambiar horario', cls: 'sec' }].concat(opts.manana ? [] : [{ k: 'manana', t: 'Probar para mañana' }]));
     if (op === 'horario') abrirHorarioPlan();
     if (op === 'manana') construirPlan(conXY, rutaId, btn, { manana: true });
@@ -6700,7 +6714,7 @@ async function construirPlan(conXY, rutaId, btn, opts) {
     else paradas.push({ centro: m.centro_nombre || 'Consulta privada', municipio: m.municipio, dir: m.direccion,
       xy: s.it.xy, medicos: [m], llegada: s.ini, fin: s.fin });
   });
-  PLAN = { rutaId, salida: sal, paradas, fin, fecha, inicio: t0, fuera: fuera.map(f => ({ m: f.it.ref, motivo: f.motivo })) };
+  PLAN = { rutaId, salida: sal, paradas, fin, fecha, inicio: t0, fuera: fuera.map(f => ({ m: f.it.ref, motivo: f.motivo })), citados };
   if (TAB !== 'rutas') ir('rutas');
   pintarPlan();
   setTimeout(() => $('rplan') && $('rplan').scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
@@ -12728,10 +12742,10 @@ function congelar(sec) {
   Object.assign(c.style, { position: 'absolute', left: (r.left + scrollX) + 'px', top: (r.top + scrollY) + 'px', width: r.width + 'px', margin: 0, pointerEvents: 'none', zIndex: 40, background: 'var(--bg, #F3F8FC)' });
   document.body.appendChild(c);
   sec.style.minHeight = r.height + 'px';
-  const t0 = Date.now(); let quietos = 0;
+  const t0 = performance.now(); let quietos = 0;
   const w = setInterval(() => {
     quietos = PEND === 0 ? quietos + 1 : 0;
-    if ((quietos >= 2 && Date.now() - t0 > 60) || Date.now() - t0 > 1500) { clearInterval(w); c.remove(); requestAnimationFrame(() => { sec.style.minHeight = ''; }); }
+    if ((quietos >= 2 && performance.now() - t0 > 60) || performance.now() - t0 > 1500) { clearInterval(w); c.remove(); requestAnimationFrame(() => { sec.style.minHeight = ''; }); }
   }, 40);
 }
 document.addEventListener('click', e => {
@@ -13034,8 +13048,8 @@ ventanaCargando = async function (fn) { const d = $('dlg'); d.classList.add('car
 // Carga dentro de una tarjeta (paginación, cambios de página): mismo criterio
 function cargaLocal(el) {
   if (!el) return; el.classList.add('cargandolocal');
-  const t0 = Date.now(); let quietos = 0;
-  const w = setInterval(() => { quietos = PEND === 0 ? quietos + 1 : 0; if ((quietos >= 3 && Date.now() - t0 > 80) || Date.now() - t0 > 4000) { clearInterval(w); el.classList.remove('cargandolocal'); } }, 40);
+  const t0 = performance.now(); let quietos = 0;
+  const w = setInterval(() => { quietos = PEND === 0 ? quietos + 1 : 0; if ((quietos >= 3 && performance.now() - t0 > 80) || performance.now() - t0 > 4000) { clearInterval(w); el.classList.remove('cargandolocal'); } }, 40);
 }
 document.addEventListener('click', e => { const b = e.target.closest('main .pag button:not(:disabled)'); if (b) cargaLocal(b.closest('.card') || b.closest('.pag').parentElement); }, true);
 document.addEventListener('change', e => { if (e.target.closest('main .pag select')) cargaLocal(e.target.closest('.card') || e.target.closest('.pag').parentElement); }, true);
@@ -13047,10 +13061,10 @@ congelar = function (sec) {
   c.classList.add('congelada'); c.classList.remove('cargando', 'cargando-pend', 'cargamin');
   Object.assign(c.style, { position: 'absolute', left: (r.left + scrollX) + 'px', top: (r.top + scrollY) + 'px', width: r.width + 'px', margin: 0, pointerEvents: 'none', zIndex: 40, background: 'var(--bg, #F3F8FC)' });
   document.body.appendChild(c); sec.style.minHeight = r.height + 'px';
-  let ultimo = Date.now(); const mo = new MutationObserver(() => { ultimo = Date.now(); }); mo.observe(sec, { childList: true, subtree: true });
-  const t0 = Date.now();
+  let ultimo = performance.now(); const mo = new MutationObserver(() => { ultimo = performance.now(); }); mo.observe(sec, { childList: true, subtree: true });
+  const t0 = performance.now();
   const w = setInterval(() => {
-    if ((PEND === 0 && Date.now() - ultimo > 120 && Date.now() - t0 > 100) || Date.now() - t0 > 2500) {
+    if ((PEND === 0 && performance.now() - ultimo > 120 && performance.now() - t0 > 100) || performance.now() - t0 > 2500) {
       clearInterval(w); mo.disconnect(); c.remove(); requestAnimationFrame(() => { sec.style.minHeight = ''; });
     }
   }, 40);
@@ -13513,13 +13527,13 @@ nombreEnTextos(document.body);
 // 1. Todas las consultas a la base de datos, cuenten desde donde se hagan (también las que no pasan por los atajos)
 let RED_PEND = 0;
 // Contador en la salida a la red (lo llama el envío de peticiones del cliente de la base de datos)
-window.__redIni = () => { RED_PEND++; const m = Date.now() + Math.random() / 1000; RED_EN_CURSO.add(m); return m; };
-window.__redFin = m => { if (RED_EN_CURSO.delete(m)) { RED_PEND--; RED_ULTIMO_FIN = Date.now(); } };
+window.__redIni = () => { RED_PEND++; const m = performance.now() + Math.random() / 1000; RED_EN_CURSO.add(m); return m; };
+window.__redFin = m => { if (RED_EN_CURSO.delete(m)) { RED_PEND--; RED_ULTIMO_FIN = performance.now(); } };
 const RED_EN_CURSO = new Set();   // momento de inicio de cada consulta en curso
 let RED_ULTIMO_FIN = 0;   // cuándo terminó la última consulta
 // Cuentan todas las consultas en curso, también las precargas lanzadas poco antes de entrar (Analítica las aprovecha);
 // solo se ignoran las que llevan más de 3 s en marcha (un refresco de fondo colgado no debe bloquear la pantalla)
-const pendientesDesde = t0 => { let n = 0; RED_EN_CURSO.forEach(t => { if (t >= t0 - 3000) n++; }); return n; };
+const pendientesDesde = t0 => { const lim = performance.now() - (Date.now() - t0) - 3000; let n = 0; RED_EN_CURSO.forEach(t => { if (t >= lim) n++; }); return n; };
 (function () {
   let p = Object.getPrototypeOf(db.from('perfiles').select('id'));
   while (p && !Object.prototype.hasOwnProperty.call(p, 'then')) p = Object.getPrototypeOf(p);
@@ -13536,20 +13550,22 @@ const pendientesDesde = t0 => { let n = 0; RED_EN_CURSO.forEach(t => { if (t >= 
 // 2. «Estable»: sin consultas pendientes y sin cambios en el elemento durante 120 ms (como mucho, el tiempo indicado)
 function estable(el, max = 4000, desde) {
   return new Promise(res => {
-    const t0 = desde || Date.now() - 5; let ultimo = t0, fin = false;
+    // Las esperas se miden con el cronómetro interno del navegador (siempre avanza; el reloj puede saltar)
+    const t0 = desde || Date.now() - 5, p0 = performance.now(); let ultimo = p0 - 5, fin = false;
     // Cuentan los cambios dentro del elemento (no los de su propia clase, que son los del mecanismo de carga)
-    const mo = new MutationObserver(ms => { if (ms.some(m => m.target !== el)) ultimo = Date.now(); });
+    const mo = new MutationObserver(ms => { if (ms.some(m => m.target !== el)) ultimo = performance.now(); });
     mo.observe(el, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'style'] });
     const listo = () => { if (fin) return; fin = true; mo.disconnect(); res(); };
     // Pantalla ya cargada: si al terminar la tarea actual no hay consultas ni cambios, se muestra al momento
     // Una pantalla con esqueletos de carga (recuadros «Cargando…») todavía no está lista
     const conEsqueletos = () => !!el.querySelector('.skel, .ksk, .cargandolocal');
-    setTimeout(() => { if (pendientesDesde(t0) === 0 && ultimo <= t0 && !conEsqueletos()) listo(); }, 0);
+    setTimeout(() => { if (pendientesDesde(t0) === 0 && ultimo <= p0 && !conEsqueletos()) listo(); }, 0);
     const w = setInterval(() => {
       if (fin) { clearInterval(w); return; }
       // Solo las consultas lanzadas desde que empezó (las que ya estaban en curso, como la campana, no cuentan)
       // …y con un respiro de 120 ms desde el último cambio y desde la última consulta terminada (las encadenadas no se toman por el final)
-      if ((pendientesDesde(t0) === 0 && Date.now() - Math.max(ultimo, RED_ULTIMO_FIN) >= 120 && !conEsqueletos()) || Date.now() - t0 > max) { clearInterval(w); listo(); }
+      const ya = performance.now();
+      if ((pendientesDesde(t0) === 0 && ya - Math.max(ultimo, RED_ULTIMO_FIN) >= 120 && !conEsqueletos()) || ya - p0 > max) { clearInterval(w); listo(); }
     }, 30);
   });
 }
@@ -13879,6 +13895,74 @@ new MutationObserver(botonDisenoPDF).observe($('v-facturacion'), { childList: tr
     } catch (e) {}
   }, true);
 })();
+
+
+/* ============================================================
+   v2.64.0 · Planificador: sin médicos ya citados y dentro de tu
+   hora de vuelta · Agenda: «Empezar ruta» y «Ruta completa»
+   ============================================================ */
+
+// Mis citas planificadas desde hoy: médico → primera fecha
+async function citasPlanificadasMias() {
+  try {
+    const { data } = await db.from('agenda').select('medico_id,fecha').eq('usuario_id', PERFIL.id)
+      .eq('estado', 'Planificada').gte('fecha', hoyISO()).order('fecha').limit(2000);
+    const r = {}; (data || []).forEach(c => { if (!r[c.medico_id]) r[c.medico_id] = c.fecha; }); return r;
+  } catch (e) { return {}; }
+}
+// El plan muestra aparte a los médicos que ya tienen cita
+pintarPlan = (orig => function (...a) {
+  const r = orig.apply(this, a);
+  const box = $('rplan');
+  if (box && PLAN && PLAN.citados && PLAN.citados.length && !box.querySelector('.plancitados')) {
+    box.insertAdjacentHTML('beforeend', `<div class="plancitados"><h3>Ya citados · ${PLAN.citados.length}</h3>
+      <p class="sm">No se proponen en este plan porque ya tienen una cita planificada en tu agenda.</p>
+      <div class="lista">${PLAN.citados.map(x => `<div class="item" style="cursor:default"><span class="ic">📅</span><span class="txt"><b>${esc(x.m.nombre)}</b>
+        <span class="sm">Cita el ${esc(fechaLarga(new Date(x.fecha + 'T12:00:00')))}${x.m.municipio ? ' · ' + esc(x.m.municipio) : ''}</span></span></div>`).join('')}</div></div>`);
+  }
+  return r;
+})(pintarPlan);
+
+// Agenda del día: paradas abiertas en orden (se preparan al pintar para abrir la navegación al pulsar)
+let TD_PARADAS = [];
+async function prepararParadas(fecha) {
+  // «Tu día» ya tiene sus citas (de la persona y en el orden de la ruta): se usan tal cual
+  TD_PARADAS = (typeof TD_CITAS !== 'undefined' && Array.isArray(TD_CITAS) ? TD_CITAS : []).filter(c => CITA_ABIERTA.includes(c.estado) && xyCita(c));
+  pintarBotonesRuta(fecha);
+}
+function rutaCompletaURL() {
+  const sal = salidaUsuario(), casa = sal && sal.lat != null ? [sal.lat, sal.lon] : null;
+  const xy = TD_PARADAS.map(xyCita);
+  if (!xy.length) return null;
+  // Google Maps admite la ruta completa: todas las paradas en orden y la vuelta a casa como destino
+  if (navActual() === 'google' || !['waze', 'apple'].includes(navActual())) return casa ? enlaceNav(casa, xy.slice(0, 9)) : enlaceNav(xy[xy.length - 1], xy.slice(0, -1).slice(0, 9));
+  return enlaceNav(xy[0]);   // Waze y Apple Maps solo admiten un destino: la primera parada
+}
+function pintarBotonesRuta(fecha) {
+  const cont = document.querySelector('#agcuerpo .tdhead > .acts');
+  if (!cont) return;
+  const emp = $('tdempezar');
+  if (emp && !emp.dataset.v264) {
+    emp.dataset.v264 = '1'; emp.textContent = '▶ Empezar ruta';
+    emp.title = 'Inicia la jornada y abre la navegación hacia la primera parada';
+    emp.onclick = () => {
+      const primera = TD_PARADAS[0];
+      if (primera) window.open(enlaceNav(xyCita(primera)), '_blank', 'noopener');   // al momento del clic (si no, el navegador la bloquea)
+      empezarJornada();
+    };
+  }
+  let rc = $('tdrutacompleta');
+  const pasado = fecha < hoyISO();
+  if (!pasado && TD_PARADAS.length && agUid() === PERFIL.id) {
+    if (!rc) { cont.insertAdjacentHTML('afterbegin', `<button class="btn sec" id="tdrutacompleta" type="button" title="Abre todas las paradas del día en el navegador, en orden">${svgIco(ICON_NOM.map)} Ruta completa</button>`); rc = $('tdrutacompleta'); }
+    rc.onclick = () => { const u = rutaCompletaURL(); if (u) window.open(u, '_blank', 'noopener'); };
+  } else if (rc) rc.remove();
+}
+cargarAgenda = (orig => async function (...a) {
+  const r = await orig.apply(this, a);
+  if (TAB === 'agenda' && AG_MODO === 'dia') await prepararParadas(AG_FECHA);
+  return r;
+})(cargarAgenda);
 
 
 // Barra inferior del móvil y barra de «Entrar como» desde el primer momento
