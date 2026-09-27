@@ -43,7 +43,9 @@ let PERFIL = null, TAB = 'inicio';
 const F = { q: '', prov: '', muni: '', esp: '', est: '', urg: false, orden: 'nombre', pagina: 0, total: 0 };
 const PASO = 50;
 
-const hoyISO = () => new Date().toISOString().slice(0, 10);
+// Fechas SIEMPRE en hora local (España): convertir a hora universal restaba un día de 00:00 a 02:00
+const isoLocal = d => { const x = new Date(d.getTime() - d.getTimezoneOffset() * 60000); return x.toISOString().slice(0, 10); };
+const hoyISO = () => isoLocal(new Date());
 let fechaLarga = d => d.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
 const fechaCorta = s => { const d = new Date(s + 'T00:00:00'); return d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }); };
 const iniciales = n => String(n || '').split(/\s+/).slice(0, 2).map(x => x[0] || '').join('').toUpperCase();
@@ -822,8 +824,8 @@ setInterval(vaciarCola, 60000);
 
 let AG_MODO = 'dia', AG_FECHA = null;
 
-const isoMas = (iso, n) => { const d = new Date(iso + 'T00:00:00'); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10); };
-const lunesDe = iso => { const d = new Date(iso + 'T00:00:00'); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return d.toISOString().slice(0, 10); };
+const isoMas = (iso, n) => { const d = new Date(iso + 'T12:00:00'); d.setDate(d.getDate() + n); return isoLocal(d); };
+const lunesDe = iso => { const d = new Date(iso + 'T12:00:00'); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return isoLocal(d); };
 const EST_COL = { Planificada: 'var(--navy)', Visitada: 'var(--ok)', Pendiente: 'var(--warn)', Reprogramada: 'var(--sky)', Descartada: 'var(--muted)' };
 
 /* Agenda: pinta la vista base (día, semana o mes) y le añade, en orden, lo que antes eran 8 capas separadas. */
@@ -5762,7 +5764,7 @@ function bloqueTotales(t) {
 let ULTIMO_PLAN = null;
 const siguienteLaborable = () => {
   const d = new Date(); do { d.setDate(d.getDate() + 1); } while (d.getDay() === 0 || d.getDay() === 6);
-  return d.toISOString().slice(0, 10);
+  return isoLocal(d);
 };
 
 
@@ -10867,7 +10869,7 @@ async function pintarUsuarios2() {
           <span class="usrchips"><span class="pill p-est">${esc(u.rol)}</span>${u.activo ? '' : '<span class="pill p-anu">Desactivado</span>'}
             ${u.rol === 'Medico' ? `<span class="pill p-per">${esc(u.medico || 'Sin ficha')}</span>` : `<span class="sm">${mods.length} módulos</span>`}</span></span>
         <span class="usrdat">${u.rol !== 'Medico' ? `<span><b>${num(u.cartera)}</b> en cartera</span><span><b>${num(u.visitas_mes)}</b> visitas mes</span>` : ''}
-          <span class="sm">${reciente ? 'Activo ' + fechaCorta(reciente.toISOString().slice(0, 10)) : 'Sin actividad'}</span></span></button>`;
+          <span class="sm">${reciente ? 'Activo ' + fechaCorta(isoLocal(reciente)) : 'Sin actividad'}</span></span></button>`;
     }).join('') || '<div class="vacio">Nadie con estos filtros.</div>';
     $('usrl').querySelectorAll('[data-usr]').forEach(b => b.onclick = () => detalleUsuario(todos.find(u => u.id === b.dataset.usr)));
   };
