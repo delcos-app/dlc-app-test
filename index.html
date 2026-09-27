@@ -1110,6 +1110,418 @@ body.masabierto .bnav{border-top-color:transparent;box-shadow:none}
 
 .vfswitch{position:relative}
 .vfswitch input{position:absolute;left:0;top:0;width:1px;height:1px;opacity:0;pointer-events:none;margin:0}
+
+/* v2.45.0 · correo, firma y copias */
+.firmaed{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:18px;align-items:start}
+.firmaprev{border:1px solid var(--line);border-radius:14px;padding:16px;background:#fff;font-size:13.5px;line-height:1.5;color:var(--ink)}
+.fprevfirma{display:flex;gap:12px;align-items:flex-start;border-top:1px solid var(--line);padding-top:12px;font-size:12.5px;color:var(--muted)}
+.fprevfirma img{width:52px;height:52px;border-radius:50%;object-fit:cover}
+.fprevaviso{font-size:10.5px;color:var(--muted);margin:12px 0 0}
+.copiaest{display:flex;flex-direction:column;gap:2px;padding:12px 14px;border-radius:12px;margin-top:10px}
+.copiaest.bien{background:#E4F4EC}.copiaest.mal{background:#FFF4E5}
+@media (max-width:760px){.firmaed{grid-template-columns:1fr}}
+
+/* v2.45.1 · recuperación de contraseña en pantalla limpia */
+html.recuperando body > *:not(#recupera):not(script):not(style){display:none!important}
+#recupera{position:fixed;inset:0;z-index:5000;display:grid;place-items:center;padding:20px;background:url('./fondo.jpg') left top/cover no-repeat,#F3F8FC}
+#recupera .lbox{width:min(400px,100%);display:flex;flex-direction:column;text-align:left}
+#recupera .lbox img{height:84px;width:84px;border-radius:50%;margin:0 auto 12px;object-fit:cover;display:block}
+#recupera h1{text-align:center;font-size:22px;margin:0 0 4px}#recupera .lbox > p.sm:first-of-type{text-align:center}
+
+/* v2.45.2 · contraseñas y acceso */
+.clavemed{margin:6px 0 2px}
+.clavebar{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
+.clavebar i{height:6px;border-radius:4px;background:#E3EAF1;transition:background .2s}
+.clavetxt{display:block;font-size:12px;font-weight:700;margin-top:4px;min-height:14px}
+.clavereq{list-style:none;padding:0;margin:4px 0 0;display:grid;grid-template-columns:1fr 1fr;gap:2px 10px;font-size:11.5px;color:var(--muted)}
+.clavereq li::before{content:"○ ";color:#B7C4D1}
+.clavereq li.ok{color:var(--ok)}.clavereq li.ok::before{content:"✓ ";color:var(--ok)}
+.clavecoin{min-height:16px;margin-top:4px;font-weight:600}
+.btn:disabled{opacity:.45;cursor:not-allowed;box-shadow:none;filter:none}
+input:-webkit-autofill{animation-name:autorelleno;animation-duration:1ms}
+@keyframes autorelleno{from{opacity:1}to{opacity:1}}
+#lmsg{min-height:18px}
+
+/* v2.45.3 · Correo y firma alineado y con errores por campo */
+#cfgcuerpo .cfgpanel > p.sm,#cfgcuerpo .cfgpanel > h2 + p.sm{padding:0!important;margin:2px 0 12px!important}
+#cfgcuerpo .cfgpanel h2{padding:0 0 4px!important}
+.firmaed .g2:has(#flogo){align-items:end}
+.firmaed .g2:has(#flogo) > div:last-child{display:flex;align-items:flex-end;height:100%}
+.firmaed .vfswitch{margin:0!important;min-height:44px;align-items:center}
+.conerr{border-color:var(--dang)!important;box-shadow:0 0 0 3px rgba(194,65,65,.12)!important}
+.campoerr{display:block;color:var(--dang);font-size:12px;font-weight:600;margin-top:4px}
+#comsg{min-height:18px}
+
+/* v2.45.4 · carga en botones y emails comprobados */
+@keyframes girobtn{to{transform:rotate(360deg)}}
+.btn.btncarga{opacity:.85;cursor:progress}
+.btn .giro{display:inline-block;width:14px;height:14px;margin-right:8px;vertical-align:-2px;border-radius:50%;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;animation:girobtn .7s linear infinite}
+.btn.sec .giro{border-color:rgba(21,82,143,.25);border-top-color:var(--sky)}
+.emailw{position:relative;display:block}
+.emailw input{padding-right:38px}
+.emailico{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-weight:800;font-size:15px;pointer-events:none}
+.emailw.ok input{border-color:#7ED3AE}.emailw.ok .emailico{color:var(--ok)}
+.emailw.mal input{border-color:#E8A0A0}.emailw.mal .emailico{color:var(--dang)}
+.errtec{display:block;margin-top:4px;font-size:11.5px;color:var(--muted);font-family:ui-monospace,Menlo,monospace;word-break:break-word}
+
+/* v2.45.5 · iconos de línea (Lucide) */
+.icw{display:inline-flex;align-items:center;justify-content:center;line-height:1;vertical-align:-0.16em}
+.icw svg{width:1.1em;height:1.1em;flex:0 0 auto}
+nav.main .navico{display:inline-flex;margin-right:7px;vertical-align:-3px;opacity:.75}
+nav.main .navico svg{width:17px;height:17px}
+nav.main button[aria-selected=true] .navico{opacity:1}
+.bnav .icw svg{width:22px;height:22px}
+.bmasgrid .icw svg{width:22px;height:22px}
+.bmasgrid button span{color:var(--navy)}
+.cfgg .ci{color:var(--sky);display:inline-flex;justify-content:center}
+.cfgg .ci .icw svg{width:19px;height:19px}
+.ai{display:inline-grid;place-items:center;padding:0}
+.ai svg{width:11px;height:11px}
+.kico{opacity:.35!important;color:var(--sky)}
+.kico .icw svg{width:20px;height:20px}
+.mancard .mci,.manpaso .mpi{color:var(--sky)}
+.mancard .mci .icw svg,.manpaso .mpi .icw svg{width:26px;height:26px}
+.vfico .icw svg{width:30px;height:30px}
+.almc .ic .icw svg,.notit .ic .icw svg{width:22px;height:22px;color:var(--sky)}
+.item .ic .icw svg{width:18px;height:18px}
+.mattipos b .icw,.opgrid .icw,.opico .icw{color:var(--sky)}
+.opico i.no .icw{color:var(--muted)}
+
+/* v2.46.0 · avisos arriba a la izquierda, iconos, configuración por bloques */
+.ico{width:1.1em;height:1.1em;flex:0 0 auto;vertical-align:-0.16em}
+.bmasgrid button span .ico,.bmasgrid .ico{width:22px;height:22px}
+.mpmods .ico{width:14px;height:14px;margin-right:2px;color:var(--sky)}
+#umenu .ico,[data-u] .ico{width:16px;height:16px;margin-right:6px;color:var(--sky)}
+#dircalidad .ico{margin-right:4px;color:var(--sky)}
+@keyframes avisoEntra{from{transform:translateX(-120%);opacity:0}to{transform:none;opacity:1}}
+.toast{left:16px!important;right:auto!important;top:calc(16px + env(safe-area-inset-top,0px))!important;bottom:auto!important;transform:none!important;
+  z-index:6000!important;border-radius:14px!important;max-width:min(420px,calc(100vw - 32px));animation:avisoEntra .28s cubic-bezier(.2,.8,.2,1)}
+.upd{position:fixed!important;left:16px!important;right:auto!important;top:calc(16px + env(safe-area-inset-top,0px))!important;bottom:auto!important;transform:none!important;
+  z-index:6001!important;animation:avisoEntra .28s cubic-bezier(.2,.8,.2,1)}
+.cfgsubs{display:flex;gap:4px;padding:4px;margin:0 0 12px;background:#fff;border:1px solid var(--line);border-radius:14px;width:max-content;max-width:100%;overflow-x:auto}
+.cfgsubs button{border:0;background:none;border-radius:10px;padding:8px 14px;font:inherit;font-weight:650;font-size:13.5px;color:var(--muted);cursor:pointer;white-space:nowrap}
+.cfgsubs button.on{background:var(--grad);color:#fff;box-shadow:0 4px 12px rgba(21,82,143,.2)}
+.cfgg .ci .ico{width:19px;height:19px}
+.pill.p-plan{background:#F3E8FF;color:#6B21A8;display:inline-flex;align-items:center;gap:4px;font-size:11px}
+.pill.p-plan .ico{width:12px;height:12px}
+.planup{text-align:left}.planupico{width:48px;height:48px;border-radius:14px;background:#F3E8FF;color:#6B21A8;display:grid;place-items:center;margin-bottom:8px}
+.planupico .ico{width:24px;height:24px}
+.notacc{display:block;font-size:12px;color:var(--sky);font-weight:600;margin-top:2px}
+.cfgvolver.visible{display:inline-flex;border:0;background:none;color:var(--sky);font:inherit;font-weight:700;padding:0 0 8px;cursor:pointer}
+nav.main [data-t="seguimiento"]{display:none!important}
+
+/* v2.46.1 */
+.cfgcarga{display:flex;align-items:center;gap:10px;padding:28px 20px;color:var(--muted);font-weight:600}
+.cfgcarga .giro{display:inline-block;width:18px;height:18px;border-radius:50%;border:2px solid rgba(21,82,143,.2);border-top-color:var(--sky);animation:girobtn .7s linear infinite}
+.mketqbox{margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}
+.permtabla{display:grid;grid-template-columns:1fr 1fr;gap:6px 12px}
+.permfila{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 10px;border-radius:10px;background:#F6FAFD;min-width:0}
+.permfila.no{background:#FAFBFC;color:var(--muted)}
+.permmod{display:flex;align-items:center;gap:6px;font-weight:600;font-size:13.5px;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.permmod .ico{width:15px;height:15px;color:var(--ok)}.permfila.no .permmod .ico{color:#B7C4D1}
+.permniv{font-size:11.5px;font-weight:700;border-radius:999px;padding:2px 9px;white-space:nowrap}
+.permniv.nv0{background:#EEF1F4;color:var(--muted)}.permniv.nv1{background:#EAF5FC;color:var(--sky)}.permniv.nv2{background:#E4F4EC;color:var(--ok)}.permniv.nv3{background:#FFF4E5;color:#B45309}
+#dbody .blk + .blk{margin-top:10px}
+.usracc{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.usracc .btn{justify-content:center}
+.matadd{display:grid!important;grid-template-columns:1fr auto auto;gap:10px;align-items:center}
+.matadd .opt{display:flex!important;align-items:center;gap:8px;margin:0!important;padding:0 14px!important;min-height:44px;border:1px solid var(--line);border-radius:12px;background:#fff;white-space:nowrap;font-size:13.5px;font-weight:600;color:var(--ink)}
+.matadd .opt input{width:18px;height:18px;margin:0}
+.matadd > *{height:46px!important;min-height:46px!important;box-sizing:border-box;margin:0!important}
+.matfila{grid-template-columns:1fr auto auto;gap:14px;padding:10px 14px}
+.matfila .vfswitch.mini{min-width:96px;justify-content:flex-end}
+@media (max-width:760px){.permtabla,.usracc{grid-template-columns:1fr}.matadd{grid-template-columns:1fr 1fr}.matadd input:not([type=checkbox]){grid-column:1/-1}}
+
+/* v2.52.0 · ancho completo, avisos a la derecha, listas completas, errores */
+@media (min-width:1100px){.top,nav.main .in,main{max-width:none!important;padding-left:clamp(18px,2.2vw,40px)!important;padding-right:clamp(18px,2.2vw,40px)!important}}
+@keyframes avisoDer{from{transform:translateX(120%);opacity:0}to{transform:none;opacity:1}}
+.toast,.upd{left:auto!important;right:16px!important;animation:avisoDer .28s cubic-bezier(.2,.8,.2,1)!important}
+@media (max-width:760px){.toast,.upd{left:12px!important;right:12px!important}}
+.extra{display:none!important}
+.vermas{display:block;width:100%;border:0;background:none;color:var(--sky);font:inherit;font-weight:700;font-size:13px;padding:8px 10px;text-align:left;cursor:pointer}
+.vermas:hover{text-decoration:underline}
+.icobtn{display:inline-grid!important;place-items:center;width:40px;min-width:40px;padding:0!important;margin-left:auto}
+.icobtn .ico{width:18px;height:18px}
+#dirtools .ico,#nuevoBtn .ico,#caldup .ico,#erdesc .ico{margin-right:4px}
+.errlista{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+.errfila{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:start;padding:10px 12px;border:1px solid var(--line);border-left-width:4px;border-radius:10px;background:#fff}
+.errfila.e-error{border-left-color:var(--dang)}.errfila.e-api{border-left-color:#D97706}.errfila.e-reporte{border-left-color:var(--sky)}
+.errmsg{font-family:ui-monospace,Menlo,monospace;font-size:12px;margin-top:4px;word-break:break-word;color:var(--ink)}
+.errfila select{width:auto;min-height:34px;font-size:13px}
+.segs{display:inline-flex;gap:4px;padding:4px;border:1px solid var(--line);border-radius:12px;background:#fff}
+.segs button{border:0;background:none;border-radius:9px;padding:7px 12px;font:inherit;font-weight:650;color:var(--muted);cursor:pointer}
+.segs button.on{background:var(--grad);color:#fff}
+section.cargando-pend{}
+
+/* v2.53.0 · filtros y columnas, páginas propias, plan */
+.htpanel{display:grid;gap:14px;margin:0 0 14px;padding:16px 18px;border:1px solid var(--line);border-radius:16px;background:#fff;box-shadow:var(--sh)}
+.htpropios{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end}
+.htpropios:empty{display:none}
+.htpropios > *{flex:0 1 auto;min-width:160px}
+.htbloque h4{margin:0 0 6px;font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+.htfacetas{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px}
+.htfacetas label{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--muted);font-weight:600}
+.htcols{display:flex;flex-wrap:wrap;gap:4px 14px}
+.htcols .opt{margin:0;font-size:13px}
+.httexto{max-width:420px}
+.htbtn .htn{margin-left:6px;min-width:18px;height:18px;border-radius:9px;background:var(--sky);color:#fff;font-size:11px;display:none;place-items:center;padding:0 5px}
+.htbtn.conf .htn{display:inline-grid}
+.htbtn .ico{margin-right:4px}
+.htno{display:none!important}
+.htfuera{display:none!important}
+.pagtabs{margin-bottom:14px}
+.planhero{display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap;align-items:center;padding:28px 30px;border-radius:22px;background:var(--grad);color:#fff;margin-bottom:22px;box-shadow:0 18px 40px rgba(21,82,143,.25)}
+.planhero h1{color:#fff;margin:2px 0 6px;font-size:34px}.planhero p{margin:0;opacity:.9;max-width:520px}
+.planeti{font-size:12px;text-transform:uppercase;letter-spacing:.08em;opacity:.8}
+.planheronum{min-width:260px;display:flex;flex-direction:column;gap:6px}.planheronum b{font-size:30px}.planheronum b span{font-size:18px;opacity:.75}
+.planheronum .barra{background:rgba(255,255,255,.25)}.planheronum .barra i{background:#fff}.planheronum .sm{color:#fff;opacity:.85}
+.plantit{margin:6px 0 12px;font-size:20px;color:var(--navy)}
+.plancinta.actualc{left:auto;right:16px;background:var(--navy)}
+.planmat{width:100%;border-collapse:collapse;font-size:14px;min-width:760px}
+.planmat th{padding:14px 12px;text-align:center;color:var(--navy);background:#F2F8FD}.planmat th:first-child,.planmat td:first-child{text-align:left}
+.planmat td{padding:12px;border-top:1px solid var(--line);text-align:center}.planmat td .sm{display:block}
+.planmat .act{background:rgba(46,134,201,.07)}.planmat .si{color:var(--ok);font-weight:800;font-size:17px}.planmat .no{color:#B7C4D1}
+
+@media (max-width:760px){.htbtn .htl{display:none}.htbtn{padding:0 12px!important}.htbtn .ico{margin:0}.saludo .acts{flex-wrap:wrap;max-width:100%}.htpanel{padding:12px}}
+
+/* v2.54.0 · sin saltos por la barra de desplazamiento, botón a la derecha, panel lateral, IVA */
+html{overflow-y:scroll;scrollbar-gutter:stable}
+.htacts{margin-left:auto}
+.saludo .acts .htbtn{order:99}
+.tools .htpropios.lat{display:flex;flex-direction:column;gap:10px;margin:6px 0 14px}
+.tools .htpropios.lat > *{min-width:0;width:100%}
+.tools .htpropios.lat .filtros,.tools .htpropios.lat > div{display:flex;flex-direction:column;gap:8px}
+.tools .htauto{display:flex;flex-direction:column;gap:14px}
+.tools .htfacetas{grid-template-columns:1fr}
+.tools .httexto{max-width:none}
+.congelada{overflow:hidden}
+.ivasel{width:100%}
+
+/* v2.55.0 · dos anchos: datos (todo el ancho) y lectura */
+.saludo .fecha,main p.sm,.cfgpanel > p.sm,.manhero p,.htpanel p{max-width:90ch}
+@media (min-width:1100px){
+  /* Formularios y ajustes: ancho de lectura (salvo apartados con tablas o rejillas) */
+  #cfgcuerpo:not(:has(.dgrid,table,.usrlista,.errlista,.planes,.rolmat,.planmat,.htpanel,.conprevia)),
+  .pagcuerpo:not(:has(.dgrid,table,.usrlista,.errlista,.planes,.planmat,.conprevia)),
+  #fcuerpo:not(:has(.dgrid,table,.conprevia)){max-width:1120px}
+  .conprevia{display:grid;grid-template-columns:minmax(0,760px) minmax(320px,1fr);gap:20px;align-items:start}
+  .conprevia > .card{margin:0!important}
+  .previa{position:sticky;top:130px;max-width:560px}
+  .manbusca,.manbusca input{max-width:480px}
+  .filtros.filbusca{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end}
+  .filtros.filbusca > :first-child{flex:0 1 480px;max-width:480px}
+  /* Ajustes pequeños en rejilla */
+  .pagcuerpo:not(:has(.conprevia,.planes)){display:grid;grid-template-columns:repeat(auto-fill,minmax(480px,1fr));gap:12px;align-items:start}
+  .pagcuerpo > .card{margin:0!important}
+  #admcuerpo .lista{display:grid;grid-template-columns:repeat(auto-fill,minmax(440px,1fr));gap:6px}
+  /* Agenda: día a la izquierda, sugerencias y pendientes a la derecha */
+  .agdos{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(360px,1fr);gap:16px;align-items:start}
+  .agder > *{margin-top:0!important}.agder{display:flex;flex-direction:column;gap:12px}
+  /* Manual con índice */
+  .manindice{grid-column:1;grid-row:1 / span 40;position:sticky;top:130px;display:flex;flex-direction:column;gap:2px;padding:14px;border-radius:14px;background:#fff;border:1px solid var(--line)}
+  .manindice b{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:6px}
+  .manindice a{color:var(--navy);text-decoration:none;padding:6px 8px;border-radius:8px;font-size:13.5px}.manindice a:hover{background:var(--sky-soft)}
+}
+.plan .manlist,.cfgpanel .manlist{columns:auto 320px;column-gap:28px}
+/* Vistas previas */
+.previat{margin:0 0 6px}
+.facprev{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px;font-size:12.5px;box-shadow:var(--sh)}
+.fpcab{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:start;padding-bottom:12px;border-bottom:2px solid var(--navy)}
+.fpcab img{width:44px;height:44px;border-radius:50%;object-fit:cover}.fpcab b{display:block;color:var(--navy);font-size:14px}.fpcab span{display:block;color:var(--muted)}
+.fpnum{text-align:right}.fpnum b{color:var(--navy);letter-spacing:.08em}
+.fplineas{padding:12px 0;border-bottom:1px solid var(--line)}.fplineas div{display:flex;justify-content:space-between}
+.fppie{padding-top:10px;color:var(--muted);font-size:11.5px}
+#mkprev2{display:flex;flex-direction:column;gap:12px}
+.mkcab{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:14px;background:#fff;border:1px solid var(--line)}
+.mkcab img{width:32px;height:32px;border-radius:50%;object-fit:cover}.mkbus{flex:1;height:30px;border-radius:9px;background:var(--bg);color:var(--muted);font-size:12px;display:flex;align-items:center;padding:0 10px}
+.mkav{width:30px;height:30px;border-radius:50%;background:var(--navy);color:#fff;display:grid;place-items:center;font-size:11px;font-weight:700}
+.mklogin{display:flex;flex-direction:column;align-items:center;gap:6px;padding:22px;border-radius:18px;background:url('./fondo.jpg') center/cover;border:1px solid var(--line)}
+.mklogin img{width:56px;height:56px;border-radius:50%;object-fit:cover;background:#fff}.mklogin b{color:var(--navy);font-size:16px}.mklogin span{font-size:11.5px;color:var(--muted)}
+.mklogin i{display:block;width:80%;height:26px;border-radius:8px;background:#fff;border:1px solid var(--line)}.mklogin em{font-style:normal;width:80%;text-align:center;padding:6px;border-radius:8px;background:var(--grad);color:#fff;font-weight:700;font-size:12px}
+/* Filtros activos al lado del buscador */
+.htchips{display:flex;flex-wrap:wrap;gap:6px;align-items:center;flex:1 1 auto}
+.htchip{display:inline-flex;align-items:center;gap:6px;border:1px solid #CFE4F4;background:var(--sky-soft);color:var(--navy);border-radius:999px;padding:5px 10px;font:inherit;font-size:12.5px;font-weight:600;cursor:pointer}
+.htchip span{opacity:.6}.htchip:hover span{opacity:1}
+/* Segundo panel lateral (columnas) */
+.t2volver{display:inline-flex;border:0;background:none;color:var(--sky);font:inherit;font-weight:700;padding:0 0 10px;cursor:pointer}
+.tools2{z-index:1202!important;box-shadow:-12px 0 30px rgba(11,58,102,.12)}
+.toolsfondo{position:fixed;inset:0;background:rgba(11,58,102,.18);z-index:1190}
+.tools{z-index:1200}
+.t2cols{display:flex;flex-direction:column;gap:2px;margin-top:10px}.t2cols .opt{padding:8px 4px;border-bottom:1px solid var(--line);margin:0}
+.t2abrir{width:100%;justify-content:space-between!important;display:flex!important}
+/* Tablas: todas con el mismo aspecto */
+.thead{background:linear-gradient(180deg,#F2F8FD,#EAF4FB)!important;color:var(--navy-2)!important;font-size:11.5px!important;letter-spacing:.05em!important}
+.thead .tcell{padding:9px 16px!important}.trow .tcell{padding:10px 16px!important;font-size:13.5px}
+.trow:hover,.dgrid .dr:hover{background:#F6FAFD}
+.dgrid .dr > .num,.dgrid .dr > [data-num]{text-align:right;font-variant-numeric:tabular-nums}
+/* Agenda y listas largas: completas, sin paginación, con desplazamiento dentro de su tarjeta */
+.lista > .extra{display:flex!important}
+.vermas{display:none!important}
+.card .lista:has(> .item:nth-child(12)){max-height:520px;overflow:auto;overscroll-behavior:contain}
+/* Botones de cabecera: mismo tamaño y separación */
+.saludo .acts{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+.saludo .acts > .btn,.saludo .acts > select{min-height:40px;margin:0!important}
+
+/* v2.56.0 · indicador de carga con retraso de 120 ms y mínimo visible */
+@keyframes cargaOculta{to{visibility:hidden}}
+@keyframes cargaAparece{from{opacity:0}to{opacity:1}}
+@keyframes cargaAlto{to{min-height:40vh}}
+main > section.cargando{min-height:0;animation:cargaAlto 1ms linear 120ms forwards}
+main > section.cargando > *{visibility:visible;animation:cargaOculta 1ms linear 120ms forwards}
+main > section.cargando::after{opacity:0;animation:cargaAparece .15s ease 120ms forwards}
+.cargandolocal{position:relative}
+.cargandolocal::after{content:"";position:absolute;inset:0;z-index:5;border-radius:inherit;opacity:0;animation:cargaAparece .15s ease 120ms forwards;
+  background:rgba(255,255,255,.65) radial-gradient(circle at center,transparent 0 16px,transparent 17px) center/40px 40px no-repeat}
+.cargandolocal::before{content:"";position:absolute;left:50%;top:50%;width:34px;height:34px;margin:-17px 0 0 -17px;z-index:6;border-radius:50%;border:3px solid rgba(21,82,143,.18);border-top-color:var(--sky);opacity:0;animation:cargaAparece .15s ease 120ms forwards,girobtn .8s linear infinite}
+/* KPIs: el icono no se solapa con el texto */
+.kpi{padding-bottom:38px!important}
+/* Tablas: selector de «Mostrar» y anchos ajustables */
+.pag select{min-width:84px!important;padding:4px 32px 4px 12px!important;background-position:right 10px center!important}
+.dgrid .dh > .conres{position:relative}
+.colres{position:absolute;right:0;top:0;bottom:0;width:10px;cursor:col-resize;z-index:2}
+.colres::after{content:"";position:absolute;left:6px;top:25%;bottom:25%;width:2px;border-radius:2px;background:#C9D9E8;opacity:0;transition:opacity .15s}
+.dgrid .dh:hover .colres::after{opacity:1}
+/* Campos de formulario */
+.numw{min-width:124px}.numw input{min-width:48px;text-align:center}
+textarea{min-height:96px;resize:vertical}
+#mini.ancha{width:min(620px,94vw)!important;max-width:none}
+#mini.ancha textarea{min-height:150px;width:100%}
+.filepick{display:grid;grid-template-columns:52px 1fr auto;gap:12px;align-items:center;padding:10px 12px;border:1px dashed #BFD6EA;border-radius:14px;background:var(--sky-soft)}
+.fpmini{width:52px;height:52px;border-radius:12px;background:#fff;display:grid;place-items:center;color:var(--sky);overflow:hidden;border:1px solid var(--line)}
+.fpmini img{width:100%;height:100%;object-fit:cover}.fpmini .ico{width:22px;height:22px}
+.fptx{min-width:0}.fptx b{display:block;color:var(--navy);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.filepick .btn .ico{margin-right:4px}
+/* Cuentas: filtros y mapa a la derecha */
+#dirtools.aderecha{margin-left:auto!important}
+#mapaBtn.icobtn{margin-left:8px!important}
+/* Facturación y Analítica */
+.subnav [data-faccfg] .ico{margin-right:4px}
+.faccfgsub{margin:-4px 0 14px}
+:has(> #anper){align-items:flex-start!important}
+#anper{flex:0 1 280px;max-width:320px}
+/* Manual sin índice */
+.manindice{display:none!important}
+.iniact span{margin-left:4px;font-weight:600}
+
+/* v2.57.0 · criterio único de pantallas, ventanas y componentes */
+/* Barra de cada tabla: buscar a la izquierda, filtros y columnas a la derecha */
+.tbarra{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line)}
+.tbarra:empty{display:none}
+.filtros.conbtn,.tbarra.conbtn{display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap}
+.htbtn.aderecha{margin-left:auto!important}
+/* Botones redondos de la cabecera de Inicio: todos iguales */
+.iniact.icoredondo{width:40px;min-width:40px;height:40px;padding:0!important;display:inline-grid!important;place-items:center;border-radius:12px}
+.iniact.icoredondo span{display:none}
+/* Ventanas: tres tamaños según su contenido */
+@media (min-width:761px){#dlg{width:min(720px,94vw);max-width:none}
+#dlg.amplia{width:min(980px,96vw);max-width:none}
+#dlg.pequena{width:min(560px,94vw);max-width:none}}
+#dlg.amplia .g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.pilavolver{display:inline-flex;align-items:center;gap:6px;border:0;background:none;color:var(--sky);font:inherit;font-weight:700;padding:0 0 10px;cursor:pointer}
+.pilavolver .ico{width:16px;height:16px}
+/* Notas de varias líneas ocupando todo el ancho del formulario */
+.notaamplia{width:100%;min-height:84px}
+.ocupatodo{grid-column:1 / -1}
+/* Mi perfil: pantalla completa en dos columnas */
+@media (min-width:1100px){
+  .pagcuerpo.perfil2{display:grid!important;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:16px;align-items:start;max-width:none!important}
+  .pagcuerpo.perfil2 > #miperfil{grid-row:1 / span 3}
+  .pagcuerpo.perfil2 > .card{margin:0!important}
+  /* Empresa y Datos fiscales: formulario y vista previa a partes iguales, a todo el ancho */
+  .conprevia{grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important}
+  .previa{max-width:none!important}
+  .pagcuerpo:has(.conprevia),#cfgcuerpo:has(.conprevia),#fcuerpo:has(.conprevia){max-width:none!important;display:block!important}
+}
+.perfseg h2 .ico{margin-right:6px;color:var(--sky)}
+.perfsegf{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}
+.perfsegf div{display:flex;flex-direction:column;gap:2px;padding:10px 12px;border-radius:12px;background:var(--sky-soft)}
+.perfsegf b{color:var(--navy);word-break:break-all}
+.perfseg .btn .ico{margin-right:4px}
+/* Plan: cómo funciona y preguntas frecuentes */
+.pasosplan{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:20px}
+.pasoplan{position:relative;display:flex;flex-direction:column;gap:6px;padding:20px 18px;border-radius:18px;background:#fff;border:1px solid var(--line);box-shadow:var(--sh)}
+.pasonum{position:absolute;top:14px;right:16px;font-size:34px;font-weight:800;color:#E3EEF7;line-height:1}
+.pasoico{width:44px;height:44px;border-radius:12px;background:var(--grad);color:#fff;display:grid;place-items:center}
+.pasoico .ico{width:22px;height:22px}.pasoplan b{color:var(--navy);font-size:15px;margin-top:4px}.pasoplan p{margin:0;color:var(--muted);font-size:13px;line-height:1.45}
+.faqplan{padding:6px 18px!important;margin-bottom:14px}
+.faqplan details{border-bottom:1px solid var(--line)}.faqplan details:last-child{border-bottom:0}
+.faqplan summary{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:14px 0;cursor:pointer;font-weight:700;color:var(--navy);list-style:none}
+.faqplan summary::-webkit-details-marker{display:none}.faqplan summary .ico{transition:transform .2s;color:var(--muted)}
+.faqplan details[open] summary .ico{transform:rotate(180deg)}.faqplan details p{margin:0 0 14px;color:var(--muted);line-height:1.5}
+/* Reportar un problema */
+.rpgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 20px;margin:6px 0 10px}
+.rpchips{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.rpchips button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:7px 12px;font:inherit;font-size:13px;font-weight:600;color:var(--ink);cursor:pointer}
+.rpchips button.on{background:var(--grad);border-color:transparent;color:#fff}
+.rptec{margin-top:10px}.rptec summary{cursor:pointer;color:var(--sky);font-weight:600;font-size:13px}
+@media (max-width:760px){.rpgrid,.perfsegf{grid-template-columns:1fr}}
+/* Analítica: ventas por canal */
+.donut{display:flex;gap:22px;align-items:center;flex-wrap:wrap;padding:6px 0}
+.donutley{display:flex;flex-direction:column;gap:8px;flex:1;min-width:180px}
+.donutley div{display:grid;grid-template-columns:12px 1fr auto 44px;gap:10px;align-items:center;font-size:13.5px}
+.donutley i{width:12px;height:12px;border-radius:4px}.donutley .sm{text-align:right}
+
+/* v2.58.0 · formularios de dos columnas con separación entre filas */
+.g2,.g3{row-gap:10px}
+
+/* v2.60.0 · revelado atómico */
+main > section.cargando > *{visibility:visible!important;animation:none!important}
+main > section.cargando::after{display:none!important}
+main > section.cargando{animation:none!important;min-height:0!important}
+main > section.preparando{position:relative;min-height:50vh}
+main > section.preparando > *,dialog > .preparando > *{visibility:hidden!important}
+main > section.preparando::after,dialog > .preparando::after{content:"";position:absolute;left:50%;top:160px;width:38px;height:38px;margin-left:-19px;border-radius:50%;
+  border:3px solid rgba(21,82,143,.18);border-top-color:var(--sky);opacity:0;animation:cargaAparece .15s ease 150ms forwards,girobtn .8s linear infinite}
+dialog > .preparando{position:relative;min-height:120px}
+dialog > .preparando::after{top:40%}
+/* En Configuración no se ve la tarjeta de perfil (es de Mi perfil) */
+#v-config #miperfil{display:none!important}
+
+#v-directorio .panel .ai,#v-directorio #thead .ai,#dircab .ai{display:none!important}
+
+/* v2.61.0 · cambio de pestaña con respuesta inmediata */
+.congelada.atenuada > :not(.barraprog){opacity:.55;transition:opacity .12s ease}
+.barraprog{position:absolute;left:0;right:0;top:0;height:3px;overflow:hidden;border-radius:3px;z-index:2;background:rgba(46,134,201,.12)}
+.barraprog i{position:absolute;top:0;bottom:0;width:35%;background:var(--sky);border-radius:3px;animation:barraprog 0.9s ease-in-out infinite}
+@keyframes barraprog{0%{left:-35%}100%{left:100%}}
+main > section.preparando::after,dialog > .preparando::after{animation:cargaAparece .2s ease 60ms forwards,girobtn .8s linear infinite!important}
+/* Ayudas breves con enlace al manual */
+.aipop{max-width:min(380px,92vw)!important;max-height:min(60vh,420px);overflow:auto}
+.aiman{display:block;margin-top:10px;padding-top:8px;border-top:1px solid var(--line);color:var(--sky);font-weight:700;font-size:13px;text-decoration:none}
+/* Manual: buscador hasta la derecha */
+.manhero{display:flex;gap:28px;align-items:center}
+.manhero > div:first-child{flex:0 1 auto}
+.manbusca{flex:1 1 auto!important;max-width:none!important}
+.manbusca input{max-width:none!important;width:100%}
+/* Analítica: la fecha del periodo no descuadra los filtros */
+:has(> #anper){align-items:flex-end!important}
+#anper{position:relative}
+#anper > .sm,#anper > .anrango,#anper > small{position:absolute;left:2px;top:calc(100% + 3px);white-space:nowrap;margin:0}
+/* Facturación: toda la pantalla; acciones de la tabla junto a «Filtros y columnas» */
+#v-facturacion #fcuerpo,#v-facturacion #fcuerpo > .card{max-width:none!important}
+.tbacc{margin-left:auto}
+.tbacc + .htbtn.aderecha{margin-left:8px!important}
+/* Diseño del PDF */
+.pdfcfg{display:grid;grid-template-columns:minmax(300px,1fr) minmax(0,1.1fr);gap:18px;align-items:start}
+.pdfops{display:flex;flex-direction:column;gap:6px;max-height:68vh;overflow:auto;padding-right:6px}
+.pdfops h4{margin:12px 0 2px;font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.pdfops h4:first-child{margin-top:0}.pdfops .opt{margin:2px 0}.pdfops input[type=color]{width:64px;height:38px;padding:2px;border-radius:10px}
+.pcols{display:flex;flex-wrap:wrap;gap:4px 14px}
+.pdfprev{position:sticky;top:0}.pdfprev iframe{width:100%;height:68vh;border:1px solid var(--line);border-radius:12px;background:#fff}
+@media (max-width:900px){.pdfcfg{grid-template-columns:1fr}.pdfprev iframe{height:60vh}}
+
+/* El rango de fechas del periodo va debajo sin descuadrar la fila de filtros */
+.filtros > div:has(> .perrango){position:relative}
+.filtros .perrango{position:absolute;left:2px;top:100%;margin-top:3px!important;white-space:nowrap}
+.filtros:has(.perrango){padding-bottom:22px}
+.tbarra > .ai,.filtros.conbtn > .ai{align-self:center}
+
+/* v2.62.0 · acceso, aviso de la agenda y barra de progreso */
+.lrecordar{display:flex;align-items:center;gap:8px;margin:10px 0 4px;font-size:13.5px;color:var(--muted)}
+.avisoh.sinsalida{margin:0 0 14px!important;padding:12px 16px!important;border-radius:14px!important;gap:12px}
+.avisoh.sinsalida span{flex:1 1 280px;line-height:1.45}
+@media (max-width:760px){.avisoh.sinsalida{margin:0 0 12px!important;padding:12px!important}.avisoh.sinsalida .btn{width:100%}}
+.barraprog{left:0;right:0}
 </style>
 </head>
 <body>
@@ -1150,7 +1562,7 @@ body.masabierto .bnav{border-top-color:transparent;box-shadow:none}
       <button data-t="inicio" aria-selected="true">Inicio</button>
       <button data-t="agenda" aria-selected="false">Agenda</button>
       <button data-t="rutas" aria-selected="false">Rutas</button>
-      <button data-t="directorio" aria-selected="false">Directorio</button>
+      <button data-t="directorio" aria-selected="false">Médicos</button>
       <button data-t="pacientes" aria-selected="false">Clientes</button>
       <button data-t="productos" aria-selected="false">Productos</button>
       <button data-t="seguimiento" aria-selected="false">Calidad del dato</button>
@@ -1237,13 +1649,13 @@ body.masabierto .bnav{border-top-color:transparent;box-shadow:none}
   <button data-t="inicio"><span>◉</span>Inicio</button>
   <button data-t="agenda"><span>▤</span>Agenda</button>
   <button data-t="rutas"><span>➤</span>Rutas</button>
-  <button data-t="directorio"><span>☰</span>Directorio</button>
+  <button data-t="directorio"><span>☰</span>Médicos</button>
   <button data-t="seguimiento"><span>✓</span>Segui.</button>
 </nav>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.44.0"></script>
+<script src="./app.js?v=2.62.0"></script>
 </body>
 </html>
