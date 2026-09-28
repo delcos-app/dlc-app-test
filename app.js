@@ -230,19 +230,27 @@ $('chips').addEventListener('click', e => {
 
 /* ---------------- directorio ---------------- */
 
+let BUSQ_N = 0;   // solo cuenta la última búsqueda: las anteriores se descartan aunque respondan después
 async function buscar(reiniciar) {
   if (typeof MODO_MAPA !== 'undefined' && MODO_MAPA && reiniciar) setTimeout(() => pintarMapa(), 10);
   if (reiniciar) F.pagina = 0;
+  const yo = ++BUSQ_N;
   cargando($('lista'), 'Buscando ' + etiquetaContactos().toLowerCase() + '…');
   $('cuenta').textContent = 'Buscando…';
   const t0 = performance.now();
-
-  const { data, error } = await db.rpc('buscar_medicos', {
+  const params = {
     q: F.q || null, f_provincia: F.prov || null, f_municipio: F.muni || null,
     f_estado: F.est || null, f_especialidad: F.esp || null, f_area: null,
     f_urgentes: F.urg, f_mios: false, f_sin_visitar: false, f_comercial: F.com || null,
     orden: F.orden, lim: tamPagina(), desplaz: F.pagina * tamPagina()
-  });
+  };
+  let { data, error } = await db.rpc('buscar_medicos', params);
+  if (yo !== BUSQ_N) return;   // ya hay una búsqueda más reciente
+  // Si falla (móvil que vuelve del segundo plano, cobertura), se reintenta una vez al momento antes de avisar
+  if (error || !data) {
+    ({ data, error } = await db.rpc('buscar_medicos', params));
+    if (yo !== BUSQ_N) return;
+  }
 
   if (error || !data) {
     $('cuenta').textContent = '';
@@ -426,7 +434,7 @@ async function pintarFichaBase(id) {
       ${c.telefono ? `<div class="sm">Teléfono: ${esc(c.telefono)}</div>` : ''}
       <div class="dias" style="margin-top:8px">${dias.map(k => `<span class="${(c.dias || {})[k] ? 'on' : ''}">${k}</span>`).join('')}</div>
       ${dias.filter(k => (c.dias || {})[k]).map(k => `<div class="sm">${k}: ${esc(c.dias[k])}</div>`).join('')}
-      ${c.lat ? `<div class="sm" style="margin-top:6px"><a href="${enlaceNav([c.lat, c.lon])}" target="_blank" rel="noopener">Cómo llegar</a></div>` : ''}
+      ${c.lat ? `<div class="sm" style="margin-top:6px"><button class="lnk" type="button" data-nav="${navAttr([c.lat, c.lon])}">Cómo llegar</button></div>` : ''}
     </div>`).join('')}
     <div class="blk"><h3>Visitas</h3>
       ${vis.length ? vis.slice(0, 10).map(v => `<div style="padding:7px 0;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:10px;align-items:flex-start">
@@ -1171,8 +1179,10 @@ function pintarPlanBase() {
   if (!PLAN) { $('rplan').innerHTML = ''; return; }
   const total = PLAN.paradas.reduce((n, p) => n + p.medicos.length, 0);
   const ultima = PLAN.paradas[PLAN.paradas.length - 1];
-  const enlace = enlaceNav(navActual() === 'google' && PLAN.salida.lat != null ? [PLAN.salida.lat, PLAN.salida.lon] : ultima.xy,
-    navActual() === 'google' ? PLAN.paradas.map(p => p.xy) : null);
+  // Ruta completa: todas las paradas y la vuelta a la salida (o termina en la última parada si no hay salida con ubicación)
+  const conCasa = PLAN.salida.lat != null;
+  const rutaDest = conCasa ? [PLAN.salida.lat, PLAN.salida.lon] : ultima.xy;
+  const rutaParadas = conCasa ? PLAN.paradas.map(p => p.xy) : PLAN.paradas.slice(0, -1).map(p => p.xy);
 
   $('rplan').innerHTML = `<div class="card">
     <h2>${PLAN.fecha && PLAN.fecha !== hoyISO() ? 'Plan para el ' + fechaLarga(new Date(PLAN.fecha + 'T00:00:00')) : 'Plan de hoy'}<span class="n">${total} ${total === 1 ? 'médico' : 'médicos'}</span></h2>
@@ -1183,12 +1193,12 @@ function pintarPlanBase() {
       <span class="tx"><b>${esc(p.centro)}</b>
         <span class="sm">${hm(p.llegada)}–${hm(p.fin)} · ${esc([p.dir, p.municipio].filter(Boolean).join(', '))} · ${p.medicos.length} ${p.medicos.length === 1 ? 'médico' : 'médicos'}</span>
         <span class="sm">${p.medicos.map(m => esc(m.nombre)).join(' · ')}</span></span>
-      <span class="acts" style="margin:0"><a class="btn sec" href="${enlaceNav(p.xy)}" target="_blank" rel="noopener">Ir</a></span>
+      <span class="acts" style="margin:0"><button class="btn sec" type="button" data-nav="${navAttr(p.xy)}">Ir</button></span>
     </div>`).join('')}</div>
     <div id="planmapa" style="height:0;margin:0 16px;border-radius:12px;overflow:hidden"></div>
     <div class="acts" style="padding:12px 16px 16px">
       <button class="btn sec" id="planver">Ver la ruta en el mapa</button>
-      <a class="btn" href="${enlace}" target="_blank" rel="noopener">Abrir en ${esc((NAVEGADORES.find(n => n[0] === navActual()) || [])[1] || 'el mapa')}</a>
+      <button class="btn" type="button" data-nav="${navAttr(rutaDest, rutaParadas)}">Abrir la ruta en el navegador</button>
       <button class="btn sec" id="planag">Guardar en mi agenda</button>
       ${!PLAN.fecha || PLAN.fecha === hoyISO() ? '<button class="btn" id="planempezar">▶ Empezar ruta</button>' : ''}
       <button class="btn sec" id="plancerrar">Cerrar</button>
@@ -1323,9 +1333,6 @@ function pintarPrefsBase() {
       ${caja('salida', s, 'Punto de salida', 'Dónde empiezas el día')}
       ${caja('llegada', l, 'Punto de llegada', 'Déjalo vacío para volver al punto de salida')}
     </div>
-    <div class="card" style="padding:16px;margin-top:14px"><h2 style="padding:0">Navegación</h2>
-      <p class="sm" style="padding:0">Con qué app se abren las rutas y los "cómo llegar".</p>
-      <div style="max-width:260px;margin-top:8px">${selectorNav()}</div></div>
     ${bloquePlantillas()}
     <div class="acts" style="justify-content:flex-end"><button class="btn" id="pfguardar">Guardar preferencias</button></div>`;
   if ($('navsel')) $('navsel').onchange = e => cambiarNavegador(e.target.value);
@@ -2675,8 +2682,7 @@ const PLANCFG = () => Object.assign({ salida: '09:00', visita: 15, tope: '18:00'
 const NAVEGADORES = [['google', 'Google Maps'], ['apple', 'Apple Maps'], ['waze', 'Waze']];
 const navActual = () => (PERFIL.preferencias || {}).navegador || 'google';
 
-function enlaceNav(destino, paradas) {
-  const n = navActual();
+function enlaceNav(destino, paradas, n = 'google') {
   const d = Array.isArray(destino) ? destino.join(',') : destino;
   if (n === 'waze') return 'https://waze.com/ul?ll=' + encodeURIComponent(d) + '&navigate=yes';
   if (n === 'apple') return 'https://maps.apple.com/?daddr=' + encodeURIComponent(d) + '&dirflg=d';
@@ -2692,6 +2698,23 @@ async function cambiarNavegador(n) {
   if (PLAN) pintarPlan();
 }
 
+// Cada navegación pregunta con qué app abrirla (Google Maps admite la ruta con todas sus paradas)
+const navAttr = (d, p) => esc(JSON.stringify({ d, p: p && p.length ? p : null }));
+async function navegarA(destino, paradas) {
+  if (!destino) { toast('Esta parada no tiene ubicación', true); return; }
+  const varias = paradas && paradas.length;
+  const op = await elegirOpcion('¿Con qué app quieres navegar?',
+    varias ? 'Google Maps abre la ruta completa con todas las paradas. Waze y Apple Maps solo admiten un destino: abrirán la primera parada.' : '',
+    [{ k: 'google', t: 'Google Maps' }, { k: 'waze', t: 'Waze', cls: 'sec' }, { k: 'apple', t: 'Apple Maps', cls: 'sec' }, { k: 'no', t: 'Cancelar', cls: 'sec' }]);
+  if (!op || op === 'no') return;
+  const url = op === 'google' ? enlaceNav(destino, paradas, 'google') : enlaceNav(varias ? paradas[0] : destino, null, op);
+  window.open(url, '_blank', 'noopener');
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-nav]'); if (!b) return;
+  e.preventDefault();
+  try { const v = JSON.parse(b.dataset.nav); navegarA(v.d, v.p); } catch (x) { /* dato de navegación no válido */ }
+});
 const selectorNav = () => `<select id="navsel" title="Navegador de mapas" style="max-width:160px">${
   NAVEGADORES.map(([v, t]) => `<option value="${v}" ${navActual() === v ? 'selected' : ''}>${t}</option>`).join('')}</select>`;
 
@@ -2903,7 +2926,6 @@ async function editorRuta(id) {
         </div>
         <div class="g2">
           <div><label for="cest">Estado comercial</label><select id="cest">${sel(op.estados, g.estado)}</select></div>
-          <div><label for="cnav">Navegación de esta ruta</label>${selectorNav()}</div>
         </div>
         <div class="g2">
           <div><label for="csv">Sin visitar hace más de (días)</label><input id="csv" type="number" min="1" max="365" value="${g.sinVisita || ''}"></div>
@@ -4232,7 +4254,7 @@ const AYUDA = {
     'Las descargas están en «⋮».']],
   config: ['Configuración', 'Ajustes de tu cuenta y de la plataforma.', [
     'Preferencias de salida y llegada: se usan para calcular las rutas.',
-    'Navegador de mapas preferido.',
+    'Al pulsar «Cómo llegar» o abrir una ruta, eliges en ese momento con qué app navegar (Google Maps, Waze o Apple Maps).',
     'Plantillas del resumen semanal.',
     'Clasificadores: las opciones que aparecen al registrar visitas y en las fichas.']],
   admin: ['Administración', 'Usuarios, permisos y control.', [
@@ -6190,8 +6212,10 @@ async function pintarRutaBarra() {
   const citas = await citasDelDia(hoyISO());
   const hechas = citas.filter(c => c.estado === 'Visitada' || c.estado === 'No estaba').length;
   const total = citas.filter(c => !['Descartada', 'Aplazada'].includes(c.estado)).length;
-  el.innerHTML = `<span>● <b>Jornada en curso</b> · <span class="rt">${durTxt(Date.now() - j.inicio)}</span> · ${hechas} de ${total} hechas</span>
-    <span class="acts" style="margin:0"><button class="btn sec" id="rbver">Ver mi día</button><button class="btn dang" id="rbfin">Terminar</button></span>`;
+  el.innerHTML = `<span class="rbtx">● <b class="rblargo">Jornada en curso · </b><span class="rt">${durTxt(Date.now() - j.inicio)}</span> · ${hechas}<span class="rblargo"> de </span><span class="rbcorto">/</span>${total}<span class="rblargo"> hechas</span></span>
+    <span class="acts" style="margin:0"><button class="btn sec" id="rbver">Mi día</button><button class="btn dang" id="rbfin">Terminar</button></span>`;
+  // El contenido de la página empieza justo debajo del banner, mida lo que mida
+  requestAnimationFrame(() => document.documentElement.style.setProperty('--rbh', el.offsetHeight + 'px'));
   $('rbver').onclick = () => { AG_MODO = 'dia'; AG_FECHA = hoyISO(); ir('agenda'); };
   $('rbfin').onclick = terminarJornada;
 }
@@ -6279,7 +6303,7 @@ async function pintarTuDia() {
             <span class="tdord">
               <button class="kmv" data-td="sube|${c.id}" aria-label="Subir" ${idxAb <= 0 ? 'disabled' : ''}>${ICO.arriba}</button>
               <button class="kmv" data-td="baja|${c.id}" aria-label="Bajar" ${idxAb >= abiertas - 1 ? 'disabled' : ''}>${ICO.abajo}</button></span>` : ''}
-          ${abierta ? `<button class="btn" data-td="visita|${c.id}">Registrar visita</button>` : ''}
+          ${abierta ? `<button class="btn tdreg" data-td="visita|${c.id}" aria-label="Registrar visita" title="Registrar visita"><span class="tdreg-t">Registrar visita</span><span class="tdreg-i">+</span></button>` : ''}
           ${c.estado === 'No estaba' && !pasado ? `<button class="btn sec" data-td="nueva|${c.id}">Nueva cita</button>` : ''}
           <button class="btn sec tdmas" data-td="mas|${c.id}" aria-label="Más acciones">⋯</button>
         </span></div>`;
@@ -6335,7 +6359,7 @@ document.addEventListener('scroll', () => document.querySelectorAll('.tdmenu').f
 async function accionCita(k, c) {
   const refrescar = () => { cargarAgenda(); cargarInicio(); pintarRutaBarra(); };
   if (k === 'ficha') return abrirFicha(c.medico_id);
-  if (k === 'llegar') return window.open(enlaceNav(xyCita(c)), '_blank', 'noopener');
+  if (k === 'llegar') return navegarA(xyCita(c));
   if (k === 'hora') return cambiarHoraCita(c.id, c.hora || '');
   if (k === 'confirmar' || k === 'desconfirmar' || k === 'descartar') {
     const estado = k === 'confirmar' ? 'Confirmada' : k === 'desconfirmar' ? 'Planificada' : 'Descartada';
@@ -11966,7 +11990,7 @@ function arbolConfig() {
     ['Tu cuenta', [
       { k: 'perfil', ic: 'user', t: 'Mi perfil', d: 'Tus datos, idioma y qué abrir al entrar', r: pintarPerfil },
       { k: 'notif', ic: 'bell', t: 'Notificaciones', d: 'Qué avisos quieres recibir', r: pintarNotif },
-      { k: 'rutas', ic: 'route', t: 'Rutas', d: 'Salida y llegada, horario y navegación', sub: [['salida', 'Salida y llegada', () => pintarPrefsParte('rutas')], ['horario', 'Horario', () => panelDeVentana(abrirHorarioPlan)]] },
+      { k: 'rutas', ic: 'route', t: 'Rutas', d: 'Salida y llegada, y horario', sub: [['salida', 'Salida y llegada', () => pintarPrefsParte('rutas')], ['horario', 'Horario', () => panelDeVentana(abrirHorarioPlan)]] },
       { k: 'inicio', ic: 'house', t: 'Inicio y mensajes', d: 'Indicadores de Inicio y resumen semanal', sub: [['kpis', 'Indicadores', () => panelDeVentana(abrirKpis)], ['mensajes', 'Mensajes', () => pintarPrefsParte('mensajes')]] }]],
     ['Equipo', admin ? [
       { k: 'equipo', ic: 'users', t: 'Usuarios y roles', d: 'Personas, permisos y roles', sub: [['usuarios', 'Usuarios', pintarUsuarios2], ['roles', 'Roles y permisos', pintarRoles]] },
@@ -13024,11 +13048,13 @@ function pintarActualizado() {
     acts.insertAdjacentHTML('beforeend', `<button class="btn sec iniact" id="iniact" type="button" title="Actualizar los datos">${svgIco(ICON_NOM['refresh-cw'])}<span></span></button>`);
     b = $('iniact'); b.onclick = () => { delete CACHE_MOD.inicio; conCarga(b, 'Actualizando…', () => cargarInicio()); };
   }
+  requestAnimationFrame(() => document.body.classList.add('inilisto'));
   const c = CACHE_MOD.inicio; if (!c) return;
   const m = Math.floor((Date.now() - c.t) / 60000);
   b.querySelector('span').textContent = m < 1 ? ' Actualizado ahora' : ` Actualizado hace ${m} min`;
 }
 setInterval(() => { if (TAB === 'inicio') pintarActualizado(); }, 60000);
+setTimeout(() => document.body.classList.add('inilisto'), 6000);   // red de seguridad: los botones de Inicio nunca quedan ocultos
 
 /* ---------------- 3. Indicador de carga: aparece a partir de 120 ms y dura al menos 350 ms ---------------- */
 
@@ -13902,11 +13928,11 @@ new MutationObserver(botonDisenoPDF).observe($('v-facturacion'), { childList: tr
    hora de vuelta · Agenda: «Empezar ruta» y «Ruta completa»
    ============================================================ */
 
-// Mis citas planificadas desde hoy: médico → primera fecha
+// Mis citas pendientes (planificadas o confirmadas) desde hoy: médico → primera fecha
 async function citasPlanificadasMias() {
   try {
     const { data } = await db.from('agenda').select('medico_id,fecha').eq('usuario_id', PERFIL.id)
-      .eq('estado', 'Planificada').gte('fecha', hoyISO()).order('fecha').limit(2000);
+      .in('estado', ['Planificada', 'Confirmada']).gte('fecha', hoyISO()).order('fecha').limit(2000);
     const r = {}; (data || []).forEach(c => { if (!r[c.medico_id]) r[c.medico_id] = c.fecha; }); return r;
   } catch (e) { return {}; }
 }
@@ -13930,13 +13956,12 @@ async function prepararParadas(fecha) {
   TD_PARADAS = (typeof TD_CITAS !== 'undefined' && Array.isArray(TD_CITAS) ? TD_CITAS : []).filter(c => CITA_ABIERTA.includes(c.estado) && xyCita(c));
   pintarBotonesRuta(fecha);
 }
-function rutaCompletaURL() {
+function rutaCompleta() {
   const sal = salidaUsuario(), casa = sal && sal.lat != null ? [sal.lat, sal.lon] : null;
   const xy = TD_PARADAS.map(xyCita);
-  if (!xy.length) return null;
-  // Google Maps admite la ruta completa: todas las paradas en orden y la vuelta a casa como destino
-  if (navActual() === 'google' || !['waze', 'apple'].includes(navActual())) return casa ? enlaceNav(casa, xy.slice(0, 9)) : enlaceNav(xy[xy.length - 1], xy.slice(0, -1).slice(0, 9));
-  return enlaceNav(xy[0]);   // Waze y Apple Maps solo admiten un destino: la primera parada
+  if (!xy.length) return;
+  // Todas las paradas en orden y la vuelta a casa como destino (Google Maps admite hasta 9 paradas intermedias)
+  return casa ? navegarA(casa, xy.slice(0, 9)) : navegarA(xy[xy.length - 1], xy.slice(0, -1).slice(0, 9));
 }
 function pintarBotonesRuta(fecha) {
   const cont = document.querySelector('#agcuerpo .tdhead > .acts');
@@ -13945,17 +13970,17 @@ function pintarBotonesRuta(fecha) {
   if (emp && !emp.dataset.v264) {
     emp.dataset.v264 = '1'; emp.textContent = '▶ Empezar ruta';
     emp.title = 'Inicia la jornada y abre la navegación hacia la primera parada';
-    emp.onclick = () => {
+    emp.onclick = async () => {
       const primera = TD_PARADAS[0];
-      if (primera) window.open(enlaceNav(xyCita(primera)), '_blank', 'noopener');   // al momento del clic (si no, el navegador la bloquea)
-      empezarJornada();
+      await empezarJornada();
+      if (primera) navegarA(xyCita(primera));
     };
   }
   let rc = $('tdrutacompleta');
   const pasado = fecha < hoyISO();
   if (!pasado && TD_PARADAS.length && agUid() === PERFIL.id) {
     if (!rc) { cont.insertAdjacentHTML('afterbegin', `<button class="btn sec" id="tdrutacompleta" type="button" title="Abre todas las paradas del día en el navegador, en orden">${svgIco(ICON_NOM.map)} Ruta completa</button>`); rc = $('tdrutacompleta'); }
-    rc.onclick = () => { const u = rutaCompletaURL(); if (u) window.open(u, '_blank', 'noopener'); };
+    rc.onclick = () => rutaCompleta();
   } else if (rc) rc.remove();
 }
 cargarAgenda = (orig => async function (...a) {

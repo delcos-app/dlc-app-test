@@ -1529,7 +1529,7 @@ main > section.preparando::after,dialog > .preparando::after{animation:cargaApar
 #tdrutacompleta .ico{margin-right:4px}
 @media (max-width:760px){#tdrutacompleta,#tdempezar,#tdterminar{flex:1 1 100%}}
 
-/* v2.65.0 · Importar datos */
+/* v2.66.0 · Importar datos */
 .cfgnav [data-cfg] .ci{flex:none}   /* el icono no se encoge aunque la descripción sea larga */
 .impcaja{max-width:none}
 .imppasos{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 16px}
@@ -1557,6 +1557,37 @@ main > section.preparando::after,dialog > .preparando::after{animation:cargaApar
 .campospers h3{margin:0 0 8px;font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
 .cpgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px}.cpgrid div{display:flex;flex-direction:column}.cpgrid b{color:var(--navy)}
 @media (max-width:760px){.impcol{grid-template-columns:1fr}.impflecha{display:none}}
+
+/* v2.66.0 · Agenda en móvil, banner de jornada, cabecera de Inicio y navegación */
+.tdreg-i{display:none}
+button.lnk{background:none;border:0;padding:0;color:var(--sky);font:inherit;font-weight:600;cursor:pointer;text-decoration:underline}
+body.conruta{padding-top:var(--rbh,46px)}
+body.conruta header{top:var(--rbh,46px)}
+.rutabar{padding-top:calc(8px + env(safe-area-inset-top,0px))}
+.rbcorto{display:none}
+/* Los botones de la cabecera de Inicio ocupan su sitio pero no se ven hasta que Inicio está colocado */
+body:not(.inilisto) #v-inicio .saludo .acts{visibility:hidden}
+@media (max-width:760px){
+  .rutabar{flex-wrap:nowrap;gap:8px;padding:6px 10px;padding-top:calc(6px + env(safe-area-inset-top,0px));font-size:13px}
+  .rutabar .rbtx{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+  .rutabar .rblargo{display:none}.rutabar .rbcorto{display:inline}
+  .rutabar .acts{flex:none;gap:6px}.rutabar .btn{min-height:30px;padding:4px 10px;font-size:12px}
+  /* Cada cita: hora · datos completos · columna de acciones */
+  .tdlista .tdit{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:start;padding:12px 10px}
+  .tdlista .tdit .tdnum{display:none}
+  .tdlista .tdit .tdh{margin-top:2px;min-width:52px;font-size:13px}
+  .tdlista .tdit .tx{min-width:0}
+  .tdlista .tdit .tx b{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.25}
+  .tdlista .tdit .tx .sm{white-space:normal;overflow:visible;text-overflow:clip}
+  .tdlista .tdit .tdacts{display:flex;flex-direction:column;align-items:center;gap:6px}
+  .tdlista .tdit .tdreg{width:42px;height:42px;min-height:42px;padding:0;border-radius:50%;font-size:24px;line-height:1}
+  .tdlista .tdit .tdreg-t{display:none}.tdlista .tdit .tdreg-i{display:block;font-size:28px;font-weight:600;line-height:1;margin-top:-2px}
+  /* Estado, origen y nota: como mucho dos líneas (la nota completa está en la ficha) */
+  .tdlista .tdit .tx > span.sm:nth-of-type(2){display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .tdlista .tdit .tdaviso{display:flex;gap:4px;align-items:flex-start}
+  .tdlista .tdit .tdmas{width:42px;min-height:34px;padding:0}
+  .tdlista .tdit .tdord{display:flex;gap:4px}.tdlista .tdit .tdord .kmv{width:19px;height:22px}
+}
 </style>
 </head>
 <body>
@@ -1691,6 +1722,6 @@ main > section.preparando::after,dialog > .preparando::after{animation:cargaApar
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.65.0"></script>
+<script src="./app.js?v=2.66.0"></script>
 </body>
 </html>
