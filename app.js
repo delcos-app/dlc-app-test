@@ -657,7 +657,10 @@ function consHTML(c, i) {
   // Los datos del centro van en campos ocultos: los rellena el selector de centros (buscar, «Estoy aquí» o centro nuevo)
   const h = (f, v) => `<input type="hidden" data-cf="${i}|${f}" value="${esc(v == null ? '' : v)}">`;
   return `<div class="cons" data-cons="${i}" ${c.lat ? `data-lat="${c.lat}"` : ""}>
-    ${i > 0 ? `<button type="button" class="quitar" data-quitar="${i}">Quitar</button>` : ''}
+    <span class="consbar"><span class="consprio">Principal</span>
+      <button type="button" class="kmv" data-cmov="-1" title="Subir (más prioridad)" aria-label="Subir">↑</button>
+      <button type="button" class="kmv" data-cmov="1" title="Bajar (menos prioridad)" aria-label="Bajar">↓</button>
+      <button type="button" class="quitar" data-quitar="${i}">Quitar</button></span>
     <input type="hidden" data-cid="${i}" value="${esc(c.id || '')}">
     ${h('centro_id', c.centro_id)}${h('centro_nombre', c.centro_nombre)}${h('municipio', c.municipio)}${h('provincia', c.provincia)}
     ${h('direccion', c.direccion)}${h('cp', c.cp)}${h('lat', c.lat)}${h('lon', c.lon)}
@@ -681,7 +684,7 @@ async function abrirEditor(id, tipo) {
     `<option ${v === x.valor ? 'selected' : ''}>${esc(x.valor)}</option>`).join('');
 
   $('dbody').innerHTML = `
-    <div class="fh"><div><h2>${id ? 'Editar ficha' : esCentro ? 'Nuevo centro' : `${TT('medico', 's', 'nuevo', 'C', 'l')}`}</h2>
+    <div class="fh"><div><h2>${id ? 'Editar ficha' : esCentro ? 'Nuevo centro' : esc(fichaNueva().nueva)}</h2>
       <div class="sm">${id ? esc(m.nombre) : esCentro ? 'Clínica, hospital o centro médico' : 'Profesional con sus consultas'}</div></div>
       <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
     <label for="en">${esCentro ? 'Nombre del centro' : 'Apellidos, Nombre'}</label>
@@ -705,13 +708,24 @@ async function abrirEditor(id, tipo) {
       <button class="btn" id="eguardar">${id ? 'Guardar cambios' : 'Crear'}</button>
     </div>`;
 
+  // v2.75.0: cualquier consulta se puede quitar y ordenar; la primera es la principal
+  const sigIdx = () => 1 + Math.max(-1, ...[...$('econs').children].map(b => +b.dataset.cons || 0));
   $('eadd').onclick = () => {
-    const i = $('econs').children.length;
-    $('econs').insertAdjacentHTML('beforeend', consHTML({}, i));
+    $('econs').insertAdjacentHTML('beforeend', consHTML({}, sigIdx()));
   };
   $('econs').onclick = e => {
     const q = e.target.closest('[data-quitar]');
-    if (q) q.closest('.cons').remove();
+    if (q) {
+      q.closest('.cons').remove();
+      if (!$('econs').children.length) $('econs').insertAdjacentHTML('beforeend', consHTML({}, sigIdx()));
+      return;
+    }
+    const mv = e.target.closest('[data-cmov]');
+    if (mv) {
+      const box = mv.closest('.cons');
+      if (mv.dataset.cmov === '-1' && box.previousElementSibling) box.parentElement.insertBefore(box, box.previousElementSibling);
+      else if (mv.dataset.cmov === '1' && box.nextElementSibling) box.parentElement.insertBefore(box.nextElementSibling, box);
+    }
   };
 
   const recoger = () => {
@@ -821,6 +835,11 @@ $('dlg2').addEventListener('click', e => {
   else if (e.target.closest('[data-cerrar2]')) $('dlg2').close();
 });
 
+/* v2.75.0 · Cómo se llama una ficha nueva: el vocabulario del cliente o, si no lo ha cambiado, «cuenta» */
+function fichaNueva() {
+  if (TERMINOS && TERMINOS.medico && TERMINOS.medico.s) return { nombre: TT('medico', 's', '', 'l', 'C'), nueva: TT('medico', 's', 'nuevo', 'C', 'l') };
+  return { nombre: 'Cuenta', nueva: 'Nueva cuenta' };
+}
 $('nuevoBtn').addEventListener('click', () => {
   if (!puedeCrear()) { toast('No tienes permiso para crear fichas', true); return; }
   $('dbody').innerHTML = `
@@ -828,7 +847,7 @@ $('nuevoBtn').addEventListener('click', () => {
       <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
     <div class="opciones" style="margin-top:10px">
       <button class="opt ${puedeCrearTipo('Persona') ? '' : 'hide'}" data-crear="Persona" style="flex-direction:column;align-items:flex-start;gap:4px;padding:16px">
-        <b style="font-size:16px;color:var(--navy)">${TT('medico', 's', '', 'l', 'C')}</b><span class="sm">Profesional con sus consultas y horarios</span></button>
+        <b style="font-size:16px;color:var(--navy)">${esc(fichaNueva().nombre)}</b><span class="sm">Profesional con sus consultas y horarios</span></button>
       <button class="opt ${puedeCrearTipo('Centro') ? '' : 'hide'}" data-crear="Centro" style="flex-direction:column;align-items:flex-start;gap:4px;padding:16px">
         <b style="font-size:16px;color:var(--navy)">Centro</b><span class="sm">Clínica, hospital o centro médico</span></button>
     </div>`;
@@ -1402,14 +1421,8 @@ function pintarPrefsBase() {
       ${caja('salida', s, 'Punto de salida', 'Dónde empiezas el día')}
       ${caja('llegada', l, 'Punto de llegada', 'Déjalo vacío para volver al punto de salida')}
     </div>
-    ${bloquePlantillas()}
     <div class="acts" style="justify-content:flex-end"><button class="btn" id="pfguardar">Guardar preferencias</button></div>`;
   if ($('navsel')) $('navsel').onchange = e => cambiarNavegador(e.target.value);
-  if ($('tplok')) $('tplok').onclick = guardarPlantillas;
-  if ($('tplreset')) $('tplreset').onclick = () => {
-    $('tplwa').value = TPL_DEF.wa; $('tplas').value = TPL_DEF.asunto; $('tplem').value = TPL_DEF.email;
-    toast('Plantillas por defecto puestas: pulsa Guardar');
-  };
 
   $('cfgcuerpo').querySelectorAll('[data-pg]').forEach(b => b.onclick = async () => {
     const k = b.dataset.pg, dir = $('cfgcuerpo').querySelector(`[data-pd="${k}"]`).value.trim();
@@ -2341,7 +2354,6 @@ document.addEventListener('pointerup', () => { if (ARR) { ARR = null; document.b
 $('cercaBtn').addEventListener('click', e => cercaDeMi(e.target));
 $('dupBtn').addEventListener('click', () => ir('duplicados'));
 $('dirtools').addEventListener('click', () => abrirHerramientas('directorio'));
-$('compartirBtn').addEventListener('click', compartirSemana);
 
 
 
@@ -3363,6 +3375,9 @@ function abrirHerramientas(contexto) {
     <label>Municipio</label><select data-tf="muni">${optFiltro(OPF.municipios, F.muni, 'Todos los municipios')}</select>
     <label>Especialidad</label><select data-tf="esp">${optFiltro(OPF.especialidades, F.esp, 'Todas las especialidades')}</select>
     <label>Estado comercial</label><select data-tf="est">${optFiltro(OPF.estados, F.est, 'Todos los estados')}</select>
+    <label>Reporting</label><select data-tf="rep"><option value="">Todos</option><option value="con" ${F.rep === 'con' ? 'selected' : ''}>Con reporting</option><option value="sin" ${F.rep === 'sin' ? 'selected' : ''}>Sin reporting</option></select>
+    ${VE_TODO() && $('fcom') ? `<label>Comercial</label><select data-tf="com">${$('fcom').innerHTML}</select>` : ''}
+    <div class="tfcampos">${camposFiltros('medico', F.campos, 'tfcp')}</div>
     <label>Ordenar por</label><select data-tf="orden">
       <option value="nombre" ${F.orden === 'nombre' ? 'selected' : ''}>Nombre</option>
       <option value="urgentes" ${F.orden === 'urgentes' ? 'selected' : ''}>Urgentes primero</option>
@@ -3385,8 +3400,11 @@ function abrirHerramientas(contexto) {
     else F[k] = s.value;
     buscar(true);
   });
+  if (d.querySelector('[data-tf="com"]')) d.querySelector('[data-tf="com"]').value = F.com || '';
+  camposFiltrosActivar(d, F.campos, () => buscar(true));
   if ($('tlimpiar')) $('tlimpiar').onclick = () => {
-    Object.assign(F, { q: '', prov: '', muni: '', esp: '', est: '', urg: false, orden: 'nombre', com: '' });
+    Object.assign(F, { q: '', prov: '', muni: '', esp: '', est: '', urg: false, orden: 'nombre', com: '', rep: '', campos: {} });
+    if ($('frep')) $('frep').value = '';
     if ($('fcom')) $('fcom').value = '';
     $('q').value = ''; buscar(true); d.classList.remove('abierto');
   };
@@ -3624,99 +3642,6 @@ async function revisarPendientes() {
    DLC OS 2.0 · Entrega 16 · Bloque D: Inicio y configuración
    ============================================================ */
 
-/* ---------------- plantillas de mensajes ---------------- */
-
-const TPL_DEF = {
-  wa: `*Resumen de la semana* ({semana})
-
-✅ ${TT('visita', 'p', '', 'l', 'C')}: *{visitas}* a {medicos} ${TT('medico', 'p', '', 'l', 'l')}
-{resultados}
-📦 Muestras entregadas: *{muestras}*
-📈 Unidades atribuidas: *{unidades}*
-
-*Interesados o prescriben*
-{interesados}
-
-*Próximas acciones*
-{proximas}`,
-  asunto: 'Resumen semanal ({semana})',
-  email: `Hola,
-
-Te paso el resumen de la semana ({semana}):
-
-- ${TT('visita', 'p', '', 'l', 'C', 'realizado')}: {visitas}, a {medicos} ${TT('medico', 'p', '', 'l', 'l')}
-{resultados}
-- Muestras entregadas: {muestras}
-- Unidades atribuidas: {unidades}
-
-Interesados o prescriben:
-{interesados}
-
-Próximas acciones (7 días):
-{proximas}
-
-Un saludo,
-{nombre}`
-};
-const TPL = () => Object.assign({}, TPL_DEF, (PERFIL.preferencias || {}).plantillas || {});
-const rellenar = (t, v) => String(t || '').replace(/\{(\w+)\}/g, (m, k) => v[k] != null ? v[k] : m);
-
-async function variablesSemana() {
-  const { data } = await db.rpc('resumen_semana', {});
-  if (!data) return null;
-  return {
-    semana: 'del ' + fechaCorta(data.desde) + ' al ' + fechaCorta(data.hasta),
-    visitas: num(data.visitas), medicos: num(data.medicos), muestras: num(data.muestras),
-    unidades: num(data.unidades), nombre: PERFIL.nombre,
-    resultados: (data.resultados || []).map(r => `· ${r.resultado}: ${r.n}`).join('\n') || `· Sin ${TT('visita', 'p', '', 'l', 'l', 'registrado')}`,
-    interesados: (data.interesados || []).map(i => `· ${i.nombre}${i.especialidad ? ' (' + i.especialidad + ')' : ''}`).join('\n') || '· Ninguno esta semana',
-    proximas: (data.proximas || []).map(p => `· ${fechaCorta(p.proxima_fecha)} ${p.nombre}: ${p.proxima_accion || 'seguimiento'}`).join('\n') || '· Sin acciones programadas'
-  };
-}
-
-let CANAL = 'wa';
-async function compartirSemana() {
-  cargando($('dbody'), 'Preparando el resumen…');
-  $('dlg').showModal();
-  const v = await variablesSemana();
-  if (!v) { $('dbody').innerHTML = '<div class="vacio">No se ha podido preparar el resumen.</div>'; return; }
-
-  const pinta = () => {
-    const t = TPL();
-    $('dbody').innerHTML = `
-      <div class="fh"><div><h2>Compartir la semana</h2>
-        <div class="sm">Edítalo antes de enviarlo. Las plantillas se cambian en Configuración → Mis preferencias</div></div>
-        <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-      <div class="subnav" style="margin:6px 0 10px">
-        <button data-canal="wa" aria-pressed="${CANAL === 'wa'}">WhatsApp</button>
-        <button data-canal="email" aria-pressed="${CANAL === 'email'}">Email</button></div>
-      ${CANAL === 'email' ? `<div class="g2">
-        <div><label for="shto">Para</label><input id="shto" type="email" value="${esc(localStorage.getItem('dlc-shto') || '')}"></div>
-        <div><label for="shsub">Asunto</label><input id="shsub" value="${esc(rellenar(t.asunto, v))}"></div></div>` : ''}
-      <label for="shtxt">Mensaje</label>
-      <textarea id="shtxt" rows="14" style="font:13.5px/1.5 ui-monospace,Menlo,Consolas,monospace">${esc(rellenar(CANAL === 'email' ? t.email : t.wa, v))}</textarea>
-      <div class="acts" style="justify-content:flex-end">
-        <button class="btn sec" id="shcopy">Copiar</button>
-        <button class="btn" id="shsend">${CANAL === 'email' ? 'Abrir el correo' : 'Abrir WhatsApp'}</button></div>`;
-
-    $('dbody').querySelectorAll('[data-canal]').forEach(b => b.onclick = () => { CANAL = b.dataset.canal; pinta(); });
-    $('shcopy').onclick = async () => {
-      const txt = (CANAL === 'email' ? $('shsub').value + '\n\n' : '') + $('shtxt').value;
-      try { await navigator.clipboard.writeText(txt); toast('Copiado'); }
-      catch (e) { $('shtxt').select(); toast('Selecciona y copia'); }
-    };
-    $('shsend').onclick = () => {
-      if (CANAL === 'email') {
-        const to = $('shto').value.trim();
-        localStorage.setItem('dlc-shto', to);
-        location.href = 'mailto:' + encodeURIComponent(to) + '?subject=' + encodeURIComponent($('shsub').value) +
-          '&body=' + encodeURIComponent($('shtxt').value);
-      } else window.open('https://wa.me/?text=' + encodeURIComponent($('shtxt').value), '_blank', 'noopener');
-    };
-  };
-  pinta();
-}
-
 /* ---------------- recomendaciones y pendientes en Inicio ---------------- */
 
 async function tarjetasRuta() {
@@ -3760,33 +3685,6 @@ async function tarjetasRuta() {
   if (cp && cp.querySelector('[data-ir-agenda]')) cp.querySelector('[data-ir-agenda]').onclick = () => ir('agenda');
 }
 
-/* ---------------- plantillas en preferencias ---------------- */
-
-function bloquePlantillas() {
-  const t = TPL();
-  return `<div class="card" style="padding:16px;margin-top:14px">
-    <div class="dayhead2"><div><h2 style="padding:0">Mensajes del resumen semanal</h2>
-      <p class="sm" style="padding:0">Variables: {semana} {visitas} {medicos} {muestras} {unidades} {resultados} {interesados} {proximas} {nombre}</p></div>
-      <button class="btn sec" id="tplreset">Restaurar por defecto</button></div>
-    <div class="g2" style="margin-top:10px">
-      <div><label for="tplwa">WhatsApp</label><textarea id="tplwa" rows="12">${esc(t.wa)}</textarea></div>
-      <div><label for="tplas">Email · asunto</label><input id="tplas" value="${esc(t.asunto)}">
-        <label for="tplem">Email · mensaje</label><textarea id="tplem" rows="9">${esc(t.email)}</textarea></div>
-    </div>
-    <div class="acts" style="justify-content:flex-end"><button class="btn" id="tplok">Guardar plantillas</button></div>
-  </div>`;
-}
-
-async function guardarPlantillas(ev) {
-  ev.target.disabled = true; ev.target.textContent = 'Guardando…';
-  const plantillas = { wa: $('tplwa').value, asunto: $('tplas').value, email: $('tplem').value };
-  const prefs = Object.assign({}, PERFIL.preferencias || {}, { plantillas });
-  const { data, error } = await db.rpc('guardar_preferencias', { p: prefs });
-  ev.target.disabled = false; ev.target.textContent = 'Guardar plantillas';
-  if (error) { toast('No se ha podido guardar: ' + error.message, true); return; }
-  PERFIL.preferencias = data || prefs;
-  toast('Plantillas guardadas');
-}
 
 
 
@@ -3901,7 +3799,7 @@ const RPC_TTL = {                 // segundos
   panel_inicio: 60, propuestas_rutas: 120, comision_periodo: 120, resumen_duplicados: 600,
   agenda_rango: 60, agenda_mes: 60, pendientes_ruta: 60, rutas_visibles: 120,
   buscar_medicos: 60, buscar_global: 60, opciones_filtros: 600, mapa_medicos: 120,
-  ficha_medico: 30, seguimiento_lista: 60, resumen_seguimiento: 120, resumen_semana: 120,
+  ficha_medico: 30, seguimiento_lista: 60, resumen_seguimiento: 120,
   catalogo: 900, catalogos_todos: 900, productos_lista: 600, usuarios_lista: 300,
   esquemas_lista: 300, liquidaciones_lista: 120, pedidos_lista: 60, contactos_lista: 60,
   analitica_tabla: 120, analitica_unidades: 120, cartera_usuario: 60, duplicados_pendientes: 30
@@ -4279,8 +4177,7 @@ const AYUDA_KPI = {
 
 const AYUDA = {
   inicio: ['Tu inicio', 'El resumen de tu día.', [`Pulsa un indicador para ver la lista de ${TT('medico', 'p', '', 'l', 'l')} que cuenta.`,
-    'Con «⚙ Personalizar indicadores» eliges cuáles ver y en qué orden, y añades filtros guardados.',
-    '«Compartir la semana» prepara un resumen para WhatsApp o email con tus plantillas.']],
+    'Con «⚙ Personalizar indicadores» eliges cuáles ver y en qué orden, y añades filtros guardados.']],
   ini_agenda: ['Tu agenda de hoy', 'Citas de hoy ordenadas por hora. En verde, las ya visitadas.',
     ['Para añadir citas, ve a Agenda o planifica una ruta.', `Pulsa ${TT('medico', 's', 'un', 'l', 'l')} para abrir su ficha y registrar ${TT('visita', 's', 'el', 'l', 'l')}.`]],
   ini_acciones: ['Próximas acciones', `La próxima acción que quedó apuntada en la ${TT('visita', 's', 'ultimo', 'l', 'l')} de cada ${TT('medico', 's', '', 'l', 'l')}, para los próximos 7 días.`,
@@ -4332,7 +4229,6 @@ const AYUDA = {
   config: ['Configuración', 'Ajustes de tu cuenta y de la plataforma.', [
     'Preferencias de salida y llegada: se usan para calcular las rutas.',
     'Al pulsar «Cómo llegar» o abrir una ruta, eliges en ese momento con qué app navegar (Google Maps, Waze o Apple Maps).',
-    'Plantillas del resumen semanal.',
     `Clasificadores: las opciones que aparecen al registrar ${TT('visita', 'p', '', 'l', 'l')} y en las fichas.`]],
   admin: ['Administración', 'Usuarios, permisos y control.', [
     'Permisos por área: <b>Ver</b>, <b>Editar</b> o <b>Completo</b>. Se aplican en la base de datos, no solo en la pantalla.',
@@ -4892,6 +4788,8 @@ async function editorPedido(pedido) {
 
     const guardar = async (estado, btn) => {
       if (!lineas.some(l => l.producto_id)) { toast('Añade al menos un producto', true); return; }
+      const cps = camposLeer($('dbody'));
+      if (cps && cps.falta.length) { toast(`Rellena «${cps.falta[0]}»`, true); return; }
       if (estado === 'Confirmado' && !await preguntar('Una vez validado, el pedido cuenta en métricas y comisiones y ya no se puede editar ni eliminar: solo anular.',
         { titulo: '¿Validar el pedido?', ok: 'Validar' })) return;
       btn.disabled = true; const txt = btn.textContent; btn.textContent = 'Guardando…';
@@ -4913,6 +4811,7 @@ async function editorPedido(pedido) {
           : 'No se ha podido guardar: ' + ((error && error.message) || 'sin permiso'), true);
         return;
       }
+      if (cps && !(await camposGuardar(cps, (r && r.id) || (ped && ped.id)))) return;
       $('dlg').close();
       toast(estado === 'Borrador' ? 'Borrador guardado' : (medico ? 'Pedido validado y atribuido' : 'Pedido validado · pendiente de atribuir'));
       if (TAB === 'ventas') cargarVentas();
@@ -4921,7 +4820,18 @@ async function editorPedido(pedido) {
     };
     $('pborr').onclick = e => guardar('Borrador', e.target);
     $('pvalid').onclick = e => guardar('Confirmado', e.target);
+    // Campos personalizados del pedido: se conservan al repintar
+    if ((CAMPOS.pedido || []).some(c => c.en_ficha) && $('pnota')) {
+      const poner = () => { if ($('dbody').querySelector('.cpersform')) return;
+        $('pnota').insertAdjacentHTML('afterend', camposHTML('pedido', cpPed));
+        $('dbody').querySelector('.cpersform').addEventListener('input', e => { const i = e.target.closest('[data-cpk]'); if (i) cpPed[i.dataset.cpk] = i.value; });
+        $('dbody').querySelector('.cpersform').addEventListener('change', e => { const i = e.target.closest('[data-cpk]'); if (i) cpPed[i.dataset.cpk] = i.value; }); };
+      if (cpPed) poner();
+      else if (ped && ped.id) db.from('pedidos').select('clasificadores').eq('id', ped.id).maybeSingle().then(({ data }) => { cpPed = Object.assign({}, (data && data.clasificadores) || {}); poner(); });
+      else { cpPed = {}; poner(); }
+    }
   };
+  let cpPed = null;
   pinta();
   $('dlg').showModal();
 }
@@ -6270,7 +6180,7 @@ Object.assign(AYUDA, {
     'El importe es sin IVA y con el descuento de cada línea.',
     'Los datos no se pueden descargar: se consultan solo dentro de la plataforma.']]
 });
-AYUDA.inicio[2].splice(1, 1, 'El icono ⚙ junto a «Compartir la semana» abre los indicadores: el ojo los muestra u oculta y las flechas cambian el orden.');
+AYUDA.inicio[2].splice(1, 1, 'El icono ⚙ junto al saludo abre los indicadores: el ojo los muestra u oculta y las flechas cambian el orden.');
 AYUDA.ventas[2].push('Arriba tienes los totales del periodo (solo pedidos validados) y al final de la tabla, la suma.');
 
 
@@ -6406,7 +6316,7 @@ async function pintarTuDia() {
         <span class="tx"><b>${c.urgente ? '<span class="pill p-urg">Urgente</span> ' : ''}${esc(c.nombre)}</b>
           <span class="sm">${esc([c.centro_nombre, c.municipio].filter(Boolean).join(' · ') || 'Sin centro')}${!xyCita(c) && abierta ? ' · <span style="color:var(--warn)">sin ubicación</span>' : ''}</span>
           <span class="sm">${pillCita(c.estado)}${c.origen ? ' · ' + esc(c.origen) : ''}${c.nota ? ' · ' + esc(c.nota) : ''}</span>
-          ${abierta && TD_INFO[c.id] && TD_INFO[c.id].aviso ? `<span class="sm tdaviso">⚠ ${esc(TD_INFO[c.id].aviso)}</span>`
+          ${abierta && TD_INFO[c.id] && TD_INFO[c.id].aviso ? `<span class="sm tdaviso"><i aria-hidden="true">⚠</i><span>${esc(TD_INFO[c.id].aviso)}</span></span>`
             : abierta && TD_INFO[c.id] && TD_INFO[c.id].ventanas && TD_INFO[c.id].ventanas.length ? `<span class="sm tdvent">Consulta ${esc(txtVentanas(TD_INFO[c.id].ventanas))}${TD_INFO[c.id].espera ? ` · esperas ${TD_INFO[c.id].espera} min` : ''}</span>` : ''}</span>
         <span class="acts tdacts" style="margin:0">
           ${abierta && !pasado ? `
@@ -6878,9 +6788,10 @@ function estimarDia(citas, fecha) {
     const info = { ventanas: it.ventanas };
     if (ini == null) {
       ini = it.fija != null ? Math.max(lleg, it.fija) : lleg;
-      info.aviso = it.fija != null ? 'llegarías tarde a la hora fijada'
-        : it.ventanas && !it.ventanas.length ? 'ese día no pasa consulta'
-        : `fuera de su horario de consulta (${txtVentanas(it.ventanas)})`;
+      // v2.75.0: el aviso dice por qué, con las horas
+      info.aviso = it.fija != null ? `Llegarías hacia las ${hm(lleg)} y la cita es a las ${hm(it.fija)}`
+        : it.ventanas && !it.ventanas.length ? 'Ese día no pasa consulta'
+        : `Fuera de su horario de consulta (${txtVentanas(it.ventanas)})`;
     } else if (ini > lleg + 5 && it.ventanas) info.espera = ini - lleg;
     est[c.id] = ini;
     TD_INFO[c.id] = info;
@@ -7607,6 +7518,7 @@ async function pintarPacientes() {
           <option value="sin" ${PAC.pedidos === 'sin' ? 'selected' : ''}>Sin pedidos</option></select></div>
         <div><label for="pacmun">Población</label><select id="pacmun"><option value="">Todas</option>
           ${(munis || []).map(x => `<option value="${esc(x.v)}" ${PAC.municipio === x.v ? 'selected' : ''}>${esc(x.v)} (${x.n})</option>`).join('')}</select></div>
+        ${camposFiltros('cliente', PAC.campos = PAC.campos || {}, 'pfcp')}
         ${PAC.medico ? `<div><label>${TT('medico', 's', '', 'l', 'C')}</label><div style="min-height:44px;display:flex;align-items:center"><button class="chip" id="pacmedx">${esc(PAC.medicoNombre)} ✕</button></div></div>` : ''}
       </div>
       <div class="cuenta" id="paccuenta">Cargando…</div>
@@ -7618,6 +7530,7 @@ async function pintarPacientes() {
   $('pactipo').onchange = e => { PAC.tipo = e.target.value; PAC.pagina = 0; listaPacientes(); };
   $('pacped').onchange = e => { PAC.pedidos = e.target.value; PAC.pagina = 0; listaPacientes(); };
   $('pacmun').onchange = e => { PAC.municipio = e.target.value; PAC.pagina = 0; listaPacientes(); };
+  camposFiltrosActivar($('vcuerpo'), PAC.campos, () => { PAC.pagina = 0; listaPacientes(); });
   if ($('pacmedx')) $('pacmedx').onclick = () => { PAC.medico = null; PAC.medicoNombre = ''; PAC.pagina = 0; pintarPacientes(); };
   listaPacientes();
 }
@@ -7626,22 +7539,26 @@ async function listaPacientes() {
   cargando($('paclista'), 'Buscando clientes…');
   const { data, error } = await db.rpc('pacientes_lista', { q: PAC.q || null, p_medico: PAC.medico,
     lim: tamPagina(), desplaz: PAC.pagina * tamPagina(), p_tipo: PAC.tipo || null, p_pedidos: PAC.pedidos || null,
-    p_municipio: PAC.municipio || null });
+    p_municipio: PAC.municipio || null, ...(Object.keys(PAC.campos || {}).length ? { f_campos: PAC.campos } : {}) });
   if (error) { $('paccuenta').textContent = 'No se ha podido cargar: ' + error.message; $('paclista').innerHTML = ''; return; }
   $('paccuenta').innerHTML = `<b>${num(data.total)}</b> ${data.total === 1 ? 'cliente' : 'clientes'}`;
   const f = data.filas || [];
   const v = x => x ? esc(x) : '<span class="vac">—</span>';
+  const cpCols = (CAMPOS.cliente || []).filter(c => c.en_tabla);
   $('paclista').innerHTML = f.length ? `<div class="dgrid-wrap"><div class="dgrid pacs">
     <div class="dh"><span>Cliente</span><span>Tipo</span><span>DNI / CIF</span><span>Teléfono</span><span>Email</span><span>Población</span>
-      <span>${TT('medico', 's', '', 'l', 'C')}</span><span>Comercial</span><span class="num">Pedidos</span><span class="num">Uds.</span><span>Último pedido</span></div>
+      <span>${TT('medico', 's', '', 'l', 'C')}</span><span>Comercial</span><span class="num">Pedidos</span><span class="num">Uds.</span><span>Último pedido</span>${cpCols.map(c => `<span>${esc(c.nombre)}</span>`).join('')}</div>
     ${f.map(x => `<button class="dr" data-pac="${x.id}">
       <span><b>${esc(x.nombre)}</b></span>
       <span><span class="pill ${x.tipo === 'Empresa' ? 'p-emp' : 'p-per'}">${x.tipo === 'Empresa' ? 'Empresa' : `${TT('paciente', 's', '', 'l', 'C')}`}</span></span>
       <span>${v(x.nif)}</span><span>${v(x.telefono || x.movil)}</span><span class="corta">${v(x.email)}</span><span>${v(x.municipio)}</span>
       <span class="corta">${x.medico ? esc(x.medico) : '<span class="vac">Sin asignar</span>'}</span><span>${v(x.comercial)}</span>
       <span class="num">${num(x.pedidos)}</span><span class="num"><b>${num(x.unidades)}</b></span>
-      <span>${x.ultimo_pedido ? fechaCorta(x.ultimo_pedido) : '<span class="vac">—</span>'}</span>
+      <span>${x.ultimo_pedido ? fechaCorta(x.ultimo_pedido) : '<span class="vac">—</span>'}</span>${cpCols.map(c => `<span>${v(campoTexto(c, (x.clasificadores || {})[c.clave]))}</span>`).join('')}
     </button>`).join('')}</div></div>` : '<div class="vacio">Ningún cliente con estos filtros.</div>';
+  // Columnas de campos personalizados: se añaden a la rejilla
+  const rej = $('paclista').querySelector('.dgrid.pacs');
+  if (rej && cpCols.length) { const cs = getComputedStyle(rej); rej.style.setProperty('--cols', cs.getPropertyValue('--cols').trim() + ' 130px'.repeat(cpCols.length)); rej.style.minWidth = (parseInt(cs.minWidth) || 1080) + 140 * cpCols.length + 'px'; }
   $('paclista').querySelectorAll('[data-pac]').forEach(b => b.onclick = () => fichaPaciente(b.dataset.pac));
   paginador($('pacpag'), data.total, PAC.pagina, p => { PAC.pagina = p; listaPacientes(); }, () => { PAC.pagina = 0; listaPacientes(); });
 }
@@ -7779,8 +7696,8 @@ const nivelDe = a => puede('administrar') ? 3 : ((PERFIL.areas || {})[a] || 0);
 
 const MANUAL = [
   { id: 'inicio', t: 'Inicio', a: 'H', para: 'El resumen de tu día y de tu semana: indicadores, alertas, tu agenda de hoy y lo que conviene hacer.',
-    hacer: [[1, 'Ver tus indicadores, tu semana, tus ventas del mes y las alertas'], [1, 'Personalizar qué indicadores ves (icono ⚙)'], [1, 'Compartir el resumen de la semana por WhatsApp o email']],
-    config: ['Indicadores visibles y su orden (⚙ junto a «Compartir la semana»)'] },
+    hacer: [[1, 'Ver tus indicadores, tu semana, tus ventas del mes y las alertas'], [1, 'Personalizar qué indicadores ves (icono ⚙)']],
+    config: ['Indicadores visibles y su orden (⚙ junto al saludo)'] },
   { id: 'agenda', t: 'Agenda y «Tu día»', a: 'G', para: `Tus citas por día, semana o mes. La vista de día es tu ruta: orden, horas estimadas y registro de ${TT('visita', 'p', '', 'l', 'l')}.`,
     hacer: [[1, 'Ver tu agenda'], [2, 'Crear, mover, aplazar, confirmar o descartar citas'], [2, 'Ordenar tu día por cercanía y empezar la jornada'], [2, 'Planificar la semana y bloquear días'],
       [3, 'Ver la agenda de otra persona y el cumplimiento del equipo (administración y televenta)']],
@@ -10182,9 +10099,6 @@ async function vistazoHoy() {
   const acts = sal.querySelector('.acts');
   if (acts && !acts.dataset.ico) {
     acts.dataset.ico = '1'; acts.classList.add('icoacts');
-    const cb = $('compartirBtn');
-    if (cb) { cb.innerHTML = '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>';
-      cb.classList.add('icoonly'); cb.title = 'Compartir la semana'; cb.setAttribute('aria-label', 'Compartir la semana'); }
   }
   let v = $('vistazo');
   if (!v) { sal.firstElementChild.insertAdjacentHTML('beforeend', '<div id="vistazo" class="vistazo"></div>'); v = $('vistazo'); }
@@ -10270,29 +10184,6 @@ document.addEventListener('click', e => {
   if ($('alq')) $('alq').oninput = () => { pag = 0; pinta(); };
   pinta(); $('dlg').showModal();
 }, true);
-
-/* ---------------- compartir la semana: con el menú del sistema ---------------- */
-
-async function enviarPorWhatsapp(texto) {
-  if (navigator.share) {
-    try { await navigator.share({ text: texto }); toast('Elige WhatsApp y el contacto o grupo'); return; }
-    catch (e) { if (e && e.name === 'AbortError') return; }
-  }
-  // Sin menú del sistema: se abre WhatsApp en la misma ventana (sin dejar una pantalla en blanco)
-  location.href = 'https://wa.me/?text=' + encodeURIComponent(texto);
-}
-document.addEventListener('click', e => {
-  const b = e.target.closest('#shsend'); if (!b || !$('shtxt') || $('shto')) return;
-  e.preventDefault(); e.stopImmediatePropagation();
-  enviarPorWhatsapp($('shtxt').value);
-}, true);
-new MutationObserver(() => {
-  const b = $('shsend');
-  if (b && !$('shto') && !b.dataset.wa) {
-    b.dataset.wa = '1'; b.textContent = 'Enviar por WhatsApp…';
-    b.closest('.acts').insertAdjacentHTML('beforebegin', '<p class="sm" style="margin:8px 0 0">Se abre el menú para compartir: elige WhatsApp y después el contacto o el grupo. Si prefieres, cópialo y pégalo tú.</p>');
-  }
-}).observe(document.body, { childList: true, subtree: true });
 
 /* ---------------- asignar comercial: solo perfiles de tipo Comercial ---------------- */
 
@@ -11293,21 +11184,15 @@ async function pintarPrefsPerfil() {
 }
 // Al entrar, se abre el módulo elegido
 
-/* ---------------- Rutas y desplazamientos · Mensajes ---------------- */
+/* ---------------- Rutas y desplazamientos ---------------- */
 
 async function pintarPrefsParte(parte) {
   await pintarPrefs();
   const c = $('cfgcuerpo'); if (!c) return;
   if ($('miperfil')) $('miperfil').remove();
-  const tpl = $('tplok') ? $('tplok').closest('.card, .blk, div[id]') : null;
-  const plantillas = tpl && tpl.closest('#cfgcuerpo > *');
   if (parte === 'rutas') {
-    if (plantillas) plantillas.remove();
     c.querySelectorAll(':scope > p.sm').forEach(p => p.remove());
     c.insertAdjacentHTML('afterbegin', '<div class="card cfgpanel"><h2 style="padding:0 0 4px">Rutas y desplazamientos</h2><p class="sm">Desde dónde sales, dónde terminas y con qué app se abre la navegación. El horario de las rutas está en su propio apartado.</p></div>');
-  } else {
-    [...c.children].forEach(x => { if (x !== plantillas) x.remove(); });
-    c.insertAdjacentHTML('afterbegin', '<div class="card cfgpanel"><h2 style="padding:0 0 4px">Mensajes</h2><p class="sm">Plantillas del resumen semanal que envías por WhatsApp o email. Las variables entre llaves se rellenan solas.</p></div>');
   }
 }
 
@@ -12096,7 +11981,7 @@ function arbolConfig() {
       { k: 'perfil', ic: 'user', t: 'Mi perfil', d: 'Tus datos, idioma y qué abrir al entrar', r: pintarPerfil },
       { k: 'notif', ic: 'bell', t: 'Notificaciones', d: 'Qué avisos quieres recibir', r: pintarNotif },
       { k: 'rutas', ic: 'route', t: 'Rutas', d: 'Salida y llegada, y horario', sub: [['salida', 'Salida y llegada', () => pintarPrefsParte('rutas')], ['horario', 'Horario', () => panelDeVentana(abrirHorarioPlan)]] },
-      { k: 'inicio', ic: 'house', t: 'Inicio y mensajes', d: 'Indicadores de Inicio y resumen semanal', sub: [['kpis', 'Indicadores', () => panelDeVentana(abrirKpis)], ['mensajes', 'Mensajes', () => pintarPrefsParte('mensajes')]] }]],
+      { k: 'inicio', ic: 'house', t: 'Inicio', d: 'Indicadores de Inicio', sub: [['kpis', 'Indicadores', () => panelDeVentana(abrirKpis)]] }]],
     ['Equipo', admin ? [
       { k: 'equipo', ic: 'users', t: 'Usuarios y roles', d: 'Personas, permisos y roles', sub: [['usuarios', 'Usuarios', pintarUsuarios2], ['roles', 'Roles y permisos', pintarRoles]] },
       { k: 'cartera', ic: 'compass', t: `Cartera y ${TT('visita', 'p', '', 'l', 'l')}`, d: `Reglas de cartera y frecuencia de ${TT('visita', 's', '', 'l', 'l')}`, sub: [['reglas', 'Reglas de cartera', () => panelDeVentana(editorReglasCartera)], ['frec', `Frecuencia de ${TT('visita', 's', '', 'l', 'l')}`, () => panelDeVentana(editorFrecuencia)]] },
@@ -12114,7 +11999,7 @@ function arbolConfig() {
   ].filter(g => g[1].length);
 }
 // Nombres anteriores de cada apartado → dónde está ahora
-const CFG_ANTES = { prefs: ['perfil'], horario: ['rutas', 'horario'], kpis: ['inicio', 'kpis'], mensajes: ['inicio', 'mensajes'], usuarios: ['equipo', 'usuarios'],
+const CFG_ANTES = { prefs: ['perfil'], horario: ['rutas', 'horario'], kpis: ['inicio', 'kpis'], usuarios: ['equipo', 'usuarios'],
   roles: ['equipo', 'roles'], reglas: ['cartera', 'reglas'], frec: ['cartera', 'frec'], accesos: ['seguridad', 'accesos'], auditoria: ['seguridad', 'auditoria'],
   alm: ['stock', 'alm'], mues: ['stock', 'mues'], fiscal: ['fact', 'fiscal'], series: ['fact', 'series'], vf: ['fact', 'vf'] };
 async function cargarConfig() {
@@ -13336,7 +13221,9 @@ new MutationObserver(() => { if (TAB === 'directorio') barraCuentas(); }).observ
 const FAC_CONFIG = [['empresa', 'Datos fiscales'], ['series', 'Series y numeración'], ['verifactu', 'VeriFactu'], ['registro', 'Registro']];
 let FAC_ULTIMA = 'empresa';
 function subnavFacturacion() {
-  const nav = document.querySelector('#v-facturacion .subnav'); if (!nav) return;
+  // v2.75.0: durante el revelado atómico hay una copia congelada de la pantalla; el submenú va en la real
+  const real = sel => [...document.querySelectorAll('#v-facturacion ' + sel)].find(x => !x.closest('.congelada'));
+  const nav = real('.subnav'); if (!nav) return;
   const enConfig = FAC_CONFIG.some(x => x[0] === FSEC);
   if (enConfig) FAC_ULTIMA = FSEC;
   nav.querySelectorAll('[data-fsec]').forEach(b => { if (FAC_CONFIG.some(x => x[0] === b.dataset.fsec)) b.classList.add('hide'); });
@@ -13345,13 +13232,15 @@ function subnavFacturacion() {
     nav.querySelector('[data-faccfg]').onclick = () => { FSEC = FAC_ULTIMA; cargarFacturacion(); };
   }
   nav.querySelector('[data-faccfg]').setAttribute('aria-pressed', String(enConfig));
-  let sub = document.querySelector('#v-facturacion .faccfgsub');
+  let sub = real('.faccfgsub');
+  if (sub && sub.previousElementSibling !== nav) { sub.remove(); sub = null; }
   if (enConfig && !sub) {
     nav.insertAdjacentHTML('afterend', `<div class="cfgsubs faccfgsub">${FAC_CONFIG.map(([k, t]) => `<button data-fsub="${k}" class="${k === FSEC ? 'on' : ''}">${t}</button>`).join('')}</div>`);
     document.querySelectorAll('#v-facturacion [data-fsub]').forEach(b => b.onclick = () => { FSEC = b.dataset.fsub; cargarFacturacion(); });
   } else if (!enConfig && sub) sub.remove();
 }
 new MutationObserver(() => { if (TAB === 'facturacion') subnavFacturacion(); }).observe($('v-facturacion'), { childList: true, subtree: true });
+cargarFacturacion = (orig => async function (...a) { const r = await orig.apply(this, a); requestAnimationFrame(() => { if (TAB === 'facturacion') subnavFacturacion(); }); return r; })(cargarFacturacion);
 
 /* ---------------- 8. KPIs ---------------- */
 
@@ -13385,7 +13274,9 @@ ordenarBotones = function (sec) {
   // Cabecera: secundarios y la acción principal siempre la última
   sec.querySelectorAll('.saludo .acts').forEach(acts => {
     const bs = [...acts.children].filter(b => b.matches('button, a.btn, select'));
-    const peso = b => (b.matches('.btn:not(.sec)') && !b.classList.contains('icobtn') && !b.classList.contains('iniact')) ? 3 : b.matches('select') ? 0 : 1;
+    // v2.75.0: los selectores de vista (Día, Semana, Mes, Equipo…) no son la acción principal aunque estén marcados: no se mueven
+    const vista = b => b.dataset && b.dataset.ag && b.dataset.ag !== 'nueva';
+    const peso = b => (b.matches('.btn:not(.sec)') && !b.classList.contains('icobtn') && !b.classList.contains('iniact') && !vista(b)) ? 3 : b.matches('select') ? 0 : 1;
     const orden = [...bs].sort((a, c) => peso(a) - peso(c));
     if (orden.some((b, i) => b !== bs[i])) orden.forEach(b => acts.appendChild(b));
   });
@@ -14434,8 +14325,8 @@ arbolConfig = (orig => function () {
    Configuración → Catálogos, y la plataforma genera los formularios,
    las columnas y los filtros. Los valores se guardan con guardar_campos().
    ============================================================ */
-const CAMPOS = { medico: [], cliente: [], producto: [] };
-const CAMPO_TABLA = { medico: 'medicos', cliente: 'contactos', producto: 'productos' };
+const CAMPOS = { medico: [], cliente: [], producto: [], pedido: [] };
+const CAMPO_TABLA = { medico: 'medicos', cliente: 'contactos', producto: 'productos', pedido: 'pedidos' };
 const TIPOS_CAMPO = [['lista', 'Lista de valores'], ['texto', 'Texto'], ['numero', 'Número'], ['fecha', 'Fecha'], ['si_no', 'Sí / No']];
 async function cargarCampos() {
   const ambs = Object.keys(CAMPOS);
@@ -14489,6 +14380,22 @@ async function camposInsertar(raiz, amb, id, antesDe) {
   if (raiz.querySelector('.cpersform') || !raiz.isConnected) return;
   const ref = antesDe && antesDe.isConnected ? antesDe : null;
   if (ref) ref.insertAdjacentHTML('beforebegin', camposHTML(amb, v)); else raiz.insertAdjacentHTML('beforeend', camposHTML(amb, v));
+}
+// Filtros generados (listas y sí/no) para una zona de filtros; al cambiar, actualiza «estado» y llama a «alCambiar»
+function camposFiltros(amb, estado, pref) {
+  return (CAMPOS[amb] || []).filter(c => c.en_filtro && ['lista', 'si_no'].includes(c.tipo)).map((c, i) => {
+    const ops = c.tipo === 'si_no' ? [['true', 'Sí'], ['false', 'No']] : (c.valores || []).map(x => [x, x]);
+    const act = estado[c.clave] == null ? '' : String(estado[c.clave]);
+    return `<div class="fcpers"><label for="${pref}${i}">${esc(c.nombre)}</label><select id="${pref}${i}" data-fcp="${esc(c.clave)}" data-fcpt="${c.tipo}">
+      <option value="">Todos</option>${ops.map(([v, t]) => `<option value="${esc(v)}" ${act === v ? 'selected' : ''}>${esc(t)}</option>`).join('')}</select></div>`;
+  }).join('');
+}
+function camposFiltrosActivar(zona, estado, alCambiar) {
+  zona.querySelectorAll('[data-fcp]').forEach(sel => sel.onchange = () => {
+    const k = sel.dataset.fcp;
+    if (!sel.value) delete estado[k]; else estado[k] = sel.dataset.fcpt === 'si_no' ? sel.value === 'true' : sel.value;
+    alCambiar();
+  });
 }
 // Directorio: columnas y filtros generados
 function camposEnDirectorio() {
@@ -14728,3 +14635,6 @@ arrancar();
   const h = document.querySelector('#c-ultimas h2'); if (h) h.textContent = `Últimas ${TT('visita', 'p', '', 'l', 'l')}`;
   const o = document.querySelector('option[value="reciente"]'); if (o) o.textContent = `${TT('visita', 's', '', 'l', 'C')} más reciente`;
 })();
+
+/* v2.74.0 · El detalle del pedido muestra sus campos personalizados */
+verPedido = (orig => async function (id, ...a) { const r = await orig.call(this, id, ...a); if (id) setTimeout(() => bloqueCampos('pedidos', id, $('dbody')), 150); return r; })(verPedido);

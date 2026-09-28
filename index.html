@@ -162,7 +162,15 @@ dialog::backdrop{background:rgba(14,47,82,.4)}
 .qk{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
 .qk button{border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:5px 11px;font-size:12.5px;font-weight:600;color:var(--navy);cursor:pointer}
 .cons{border:1px solid var(--line);border-radius:12px;padding:12px;margin-top:10px;position:relative}
-.cons .quitar{position:absolute;right:10px;top:8px;border:0;background:none;color:var(--dang);cursor:pointer;font-weight:700}
+.cons .quitar{border:0;background:none;color:var(--dang);cursor:pointer;font-weight:700}
+/* v2.75.0 · Consultas: la primera es la principal; se ordenan y se quitan todas */
+.cons .consbar{position:absolute;right:10px;top:6px;display:flex;gap:6px;align-items:center}
+.cons .consbar .kmv{width:26px;height:26px;min-height:0;padding:0;border:1px solid var(--line);border-radius:7px;background:var(--panel);cursor:pointer}
+.cons .consprio{display:none;font-size:11.5px;font-weight:700;color:var(--navy);background:var(--sky-soft);border-radius:999px;padding:2px 8px}
+#econs > .cons:first-child .consprio{display:inline}
+#econs > .cons:first-child [data-cmov="-1"],#econs > .cons:last-child [data-cmov="1"]{visibility:hidden}
+/* v2.75.0 · Agenda: Día, Semana y Mes con el mismo ancho, marcados o no */
+.saludo .acts [data-ag="dia"],.saludo .acts [data-ag="semana"],.saludo .acts [data-ag="mes"]{min-width:88px}
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--navy);color:#fff;padding:11px 18px;border-radius:999px;font-weight:600;z-index:90;box-shadow:0 10px 30px rgba(10,20,30,.25);font-size:14px}
 .toast.err{background:var(--dang)}
 .dupbox{border:1px solid var(--warn);background:var(--warn-bg);border-radius:12px;padding:12px;margin-top:12px}
@@ -1595,7 +1603,9 @@ body:not(.inilisto) #v-inicio .saludo .acts{visibility:hidden}
   .tdlista .tdit .tdreg-t{display:none}.tdlista .tdit .tdreg-i{display:block;font-size:28px;font-weight:600;line-height:1;margin-top:-2px}
   /* Estado, origen y nota: como mucho dos líneas (la nota completa está en la ficha) */
   .tdlista .tdit .tx > span.sm:nth-of-type(2){display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-  .tdlista .tdit .tdaviso{display:flex;gap:4px;align-items:flex-start}
+  .tdlista .tdit .tdaviso{display:flex;gap:5px;align-items:baseline;flex-wrap:nowrap}
+  .tdlista .tdit .tdaviso > i{font-style:normal;flex:none}
+  .tdlista .tdit .tdaviso > span{flex:1;min-width:0}
   .tdlista .tdit .tdmas{width:42px;min-height:34px;padding:0}
   .tdlista .tdit .tdord{display:flex;gap:4px}.tdlista .tdit .tdord .kmv{width:19px;height:22px}
 }
@@ -1684,7 +1694,7 @@ body:not(.inilisto) #v-inicio .saludo .acts{visibility:hidden}
     <section id="v-inicio">
       <div class="saludo">
         <div><h1 id="hola">Hola</h1><div class="fecha" id="hoyfecha"></div></div>
-        <div class="acts" style="margin:0"><button class="btn sec icoonly" data-k="cfgkpis" title="Personalizar indicadores" aria-label="Personalizar indicadores"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button><button class="btn sec" id="compartirBtn">Compartir la semana</button></div>
+        <div class="acts" style="margin:0"><button class="btn sec icoonly" data-k="cfgkpis" title="Personalizar indicadores" aria-label="Personalizar indicadores"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button></div>
       </div>
       <div class="kpis" id="kpis"><div class="kpi ksk"><div class="skel" style="width:40%;height:24px;margin:2px 0 8px"></div><div class="skel" style="width:75%;margin:0"></div></div><div class="kpi ksk"><div class="skel" style="width:40%;height:24px;margin:2px 0 8px"></div><div class="skel" style="width:75%;margin:0"></div></div><div class="kpi ksk"><div class="skel" style="width:40%;height:24px;margin:2px 0 8px"></div><div class="skel" style="width:75%;margin:0"></div></div><div class="kpi ksk"><div class="skel" style="width:40%;height:24px;margin:2px 0 8px"></div><div class="skel" style="width:75%;margin:0"></div></div><div class="kpi ksk"><div class="skel" style="width:40%;height:24px;margin:2px 0 8px"></div><div class="skel" style="width:75%;margin:0"></div></div><div class="kpi ksk"><div class="skel" style="width:40%;height:24px;margin:2px 0 8px"></div><div class="skel" style="width:75%;margin:0"></div></div></div>
       <div class="cols">
@@ -1765,6 +1775,6 @@ body:not(.inilisto) #v-inicio .saludo .acts{visibility:hidden}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.73.0"></script>
+<script src="./app.js?v=2.75.0"></script>
 </body>
 </html>
