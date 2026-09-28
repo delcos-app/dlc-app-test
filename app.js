@@ -52,13 +52,28 @@ const rolPuede = (r, c) => { const d = rolDef(r); return !!(d && (d.capacidades 
 const rolesNombres = () => ROLES_DEF.map(x => x.nombre);
 const rolCon = c => (ROLES_DEF.find(x => (x.capacidades || []).includes(c)) || {}).nombre || '';
 const rolPorDefecto = () => (ROLES_DEF.find(x => x.por_defecto) || ROLES_DEF.find(x => !(x.capacidades || []).includes('administrar')) || {}).nombre || '';
+/* v2.70.0 · Estados comerciales como catálogo: el código conoce su papel (inicial, avance, interes, positivo, negativo), no su nombre */
+const ESTKEY = 'dlc-estados';
+let ESTADOS_DEF = [];
+try { ESTADOS_DEF = JSON.parse(localStorage.getItem(ESTKEY) || '[]') || []; } catch (e) { ESTADOS_DEF = []; }
+const estados = () => ESTADOS_DEF.map(x => x.valor);
+const estadoPapel = p => (ESTADOS_DEF.find(x => x.papel === p) || {}).valor || '';
+const papelEstado = v => (ESTADOS_DEF.find(x => x.valor === v) || {}).papel || '';
+const COL_PAPEL = { inicial: '#0E2F52', avance: '#2B6CB0', interes: '#B7791F', positivo: '#12805C', negativo: '#9B2C2C' };
+const colEstado = v => COL_PAPEL[papelEstado(v)] || '';
 async function cargarRoles() {
-  const { data, error } = await db.from('roles').select('nombre,orden,color,plantilla,por_defecto,roles_capacidades(capacidad)').order('orden').order('nombre');
+  const [{ data, error }, { data: est, error: e2 }] = await Promise.all([
+    db.from('roles').select('nombre,orden,color,plantilla,por_defecto,roles_capacidades(capacidad)').order('orden').order('nombre'),
+    db.rpc('catalogo_papel', { p_papel: 'estado_comercial' })]);
+  if (!e2 && Array.isArray(est)) {
+    ESTADOS_DEF = est.map(x => ({ valor: x.valor, papel: x.papel || '' }));
+    try { localStorage.setItem(ESTKEY, JSON.stringify(ESTADOS_DEF)); } catch (e) {}
+  }
   if (error || !data) return false;
   ROLES_DEF = data.map(r => ({ nombre: r.nombre, orden: r.orden, color: r.color, plantilla: r.plantilla || {}, por_defecto: !!r.por_defecto,
     capacidades: (r.roles_capacidades || []).map(x => x.capacidad) }));
   try { localStorage.setItem(ROLKEY, JSON.stringify(ROLES_DEF)); } catch (e) {}
-  return true;
+  return !e2;
 }
 const F = { q: '', prov: '', muni: '', esp: '', est: '', urg: false, orden: 'nombre', pagina: 0, total: 0 };
 const PASO = 50;
@@ -183,8 +198,8 @@ $('v-inicio').addEventListener('click', e => {
     if (k.dataset.k === 'dups') { ir('duplicados'); return; }
     Object.assign(F, { q: '', prov: '', muni: '', esp: '', est: '', urg: false, orden: 'nombre' });
     if (k.dataset.k === 'urgentes') { F.urg = true; F.orden = 'urgentes'; }
-    if (k.dataset.k === 'interesados') F.est = 'Interesado';
-    if (k.dataset.k === 'sin_contactar') F.est = 'Sin contactar';
+    if (k.dataset.k === 'interesados') F.est = estadoPapel('interes');
+    if (k.dataset.k === 'sin_contactar') F.est = estadoPapel('inicial');
     $('q').value = ''; $('fest').value = F.est;
     ir('directorio'); buscar(true);
     return;
@@ -443,7 +458,7 @@ async function pintarFichaBase(id) {
     </div>` : ''}
     <div class="blk"><h3>Estado</h3>
       <div>${puedeEditar()
-        ? `<select data-estado="${m.id}" style="max-width:240px">${ESTADOS.map(x => `<option ${x === m.estado_comercial ? 'selected' : ''}>${x}</option>`).join('')}</select>`
+        ? `<select data-estado="${m.id}" style="max-width:240px">${estados().map(x => `<option ${x === m.estado_comercial ? 'selected' : ''}>${esc(x)}</option>`).join('')}</select>`
         : `<span class="pill p-est">${esc(m.estado_comercial)}</span>`}${m.prioridad ? ' <span class="sm">· ' + esc(m.prioridad) + '</span>' : ''}</div>
       ${m.urgente && m.urgente_motivo ? `<div class="sm" style="margin-top:6px">Urgente: ${esc(m.urgente_motivo)}</div>` : ''}
       ${m.cuando_visitar ? `<div class="sm" style="margin-top:6px">Cuándo visitar: ${esc(m.cuando_visitar)}</div>` : ''}
@@ -483,8 +498,8 @@ if ('serviceWorker' in navigator) {
    DLC OS 2.0 · Entrega 3: registrar visitas, editar fichas y altas
    ============================================================ */
 
-const CAT = { RESULTADO: [], ESPECIALIDAD: [], AREA: [], MOTIVO_URGENCIA: [], FORMA_PAGO: [] };
-const ESTADOS = ['Sin contactar', 'Presentado', 'Interesado', 'Prescribe', 'No interesado'];
+// Catálogos por su papel en la plataforma (clasificadores.papel), nunca por la clave que les ponga cada cliente
+const CAT = { resultado_visita: [], especialidad: [], area: [], motivo_urgencia: [], forma_pago: [] };
 const DIAS = ['L', 'M', 'X', 'J', 'V'];
 const DIAN = { L: 'Lunes', M: 'Martes', X: 'Miércoles', J: 'Jueves', V: 'Viernes' };
 const HM = ['09:00-13:00', '09:30-13:30', '10:00-14:00', '08:00-15:00'];
@@ -506,7 +521,7 @@ function toast(msg, err) {
 
 async function cargarCatalogos() {
   const claves = Object.keys(CAT);
-  const res = await Promise.all(claves.map(k => db.rpc('catalogo', { p_clave: k })));
+  const res = await Promise.all(claves.map(k => db.rpc('catalogo_papel', { p_papel: k })));
   claves.forEach((k, i) => { CAT[k] = res[i].data || []; });
 }
 
@@ -622,7 +637,7 @@ function consHTML(c, i) {
 }
 
 async function abrirEditor(id, tipo) {
-  let m = { tipo: tipo || 'Persona', estado_comercial: 'Sin contactar' }, cons = [{}];
+  let m = { tipo: tipo || 'Persona', estado_comercial: estadoPapel('inicial') }, cons = [{}];
   if (id) {
     const { data, error } = await db.rpc('ficha_medico', { p_id: id });
     if (error) { toast('No se ha podido abrir: ' + error.message, true); return; }
@@ -639,8 +654,8 @@ async function abrirEditor(id, tipo) {
     <label for="en">${esCentro ? 'Nombre del centro' : 'Apellidos, Nombre'}</label>
     <input id="en" value="${esc(m.nombre || '')}" placeholder="${esCentro ? 'CLÍNICA SANT JORDI' : 'GARCIA LOPEZ, ANA'}" autocapitalize="characters">
     ${esCentro ? '' : `<div class="g2">
-      <div><label for="ee">Especialidad</label><select id="ee">${opts(CAT.ESPECIALIDAD, m.especialidad)}</select></div>
-      <div><label for="ea">Área</label><select id="ea">${opts(CAT.AREA, m.area)}</select></div></div>`}
+      <div><label for="ee">Especialidad</label><select id="ee">${opts(CAT.especialidad, m.especialidad)}</select></div>
+      <div><label for="ea">Área</label><select id="ea">${opts(CAT.area, m.area)}</select></div></div>`}
     <div class="g2">
       <div><label for="et">Teléfono</label><input id="et" value="${esc(m.telefono || '')}" inputmode="tel"></div>
       <div><label for="em">Email</label><input id="em" type="email" value="${esc(m.email || '')}"></div>
@@ -736,7 +751,7 @@ async function alternarUrgente(id, esUrgente, nombre) {
   let motivo = null;
   if (!esUrgente) {
     motivo = await pedirTexto('Motivo (opcional). Puedes escribirlo o elegir uno:', '',
-      { titulo: 'Marcar como urgente', ok: 'Marcar urgente', opciones: CAT.MOTIVO_URGENCIA.map(x => x.valor) });
+      { titulo: 'Marcar como urgente', ok: 'Marcar urgente', opciones: CAT.motivo_urgencia.map(x => x.valor) });
     if (motivo === null) return;
   }
   const { error } = await db.from('medicos')
@@ -2015,10 +2030,6 @@ document.addEventListener('click', async e => {
    ============================================================ */
 
 let MAPA = null, CAPA = null, MODO_MAPA = false, CAPA_RUTA = null;
-const COL_ESTADO = {
-  'Sin contactar': '#0E2F52', 'Presentado': '#2B6CB0', 'Interesado': '#B7791F',
-  'Prescribe': '#12805C', 'No interesado': '#9B2C2C'
-};
 
 /* ---------------- barra inferior en móvil ---------------- */
 
@@ -2062,7 +2073,7 @@ async function pintarMapa() {
 
   const puntos = data || [];
   puntos.forEach(m => {
-    const col = m.urgente && !m.ultima_visita ? '#D97706' : (COL_ESTADO[m.estado] || '#0E2F52');
+    const col = m.urgente && !m.ultima_visita ? '#D97706' : (colEstado(m.estado) || '#0E2F52');
     L.circleMarker([m.lat, m.lon], {
       radius: m.urgente ? 7 : 5, color: '#fff', weight: 1.5, fillColor: col, fillOpacity: .92
     }).addTo(CAPA).bindPopup(
@@ -2076,7 +2087,7 @@ async function pintarMapa() {
 
   $('mapleg').innerHTML =
     `<span><i style="background:#D97706"></i>Urgente sin visitar</span>` +
-    Object.entries(COL_ESTADO).map(([k, c]) => `<span><i style="background:${c}"></i>${k}</span>`).join('') +
+    ESTADOS_DEF.map(x => `<span><i style="background:${colEstado(x.valor) || '#0E2F52'}"></i>${esc(x.valor)}</span>`).join('') +
     `<span style="margin-left:auto"><b>${num(puntos.length)}</b> con ubicación de ${num(F.total)} encontrados</span>`;
 }
 
@@ -3072,7 +3083,7 @@ let CERCA = null;
 /* ---------------- editar y borrar visitas ---------------- */
 
 async function editarVisita(v, medicoId) {
-  const pos = CAT.RESULTADO.filter(r => r.extra !== 'neg'), neg = CAT.RESULTADO.filter(r => r.extra === 'neg');
+  const pos = CAT.resultado_visita.filter(r => r.extra !== 'neg'), neg = CAT.resultado_visita.filter(r => r.extra === 'neg');
   const marcados = v.resultados || [];
   $('dbody').innerHTML = `
     <div class="fh"><div><h2>Editar visita</h2><div class="sm">Registrada el ${fechaCorta(v.fecha)}</div></div>
@@ -3417,14 +3428,15 @@ function abrirClasificador(id) {
       <div class="lista">${(c.valores || []).map(v => `<div class="item" style="cursor:default">
         <span class="ic">${v.activo ? '●' : '○'}</span>
         <span class="tx"><b style="${v.activo ? '' : 'opacity:.5;text-decoration:line-through'}">${esc(v.valor)}</b>
-          ${v.extra ? `<span class="sm">${v.extra === 'neg' ? 'sin visita' : 'visita realizada'}</span>` : ''}</span>
+          ${v.extra ? `<span class="sm">${v.extra === 'neg' ? 'sin visita' : 'visita realizada'}${v.destino ? ' · pasa a ' + esc(v.destino) : ''}</span>` : ''}</span>
         ${puedeEditar ? `<span class="acts" style="margin:0">
           <button class="btn sec" data-vren="${v.id}|${esc(v.valor)}">Renombrar</button>
           <button class="btn sec" data-vtog="${v.id}|${v.activo ? 0 : 1}">${v.activo ? 'Desactivar' : 'Activar'}</button>
           ${completo ? `<button class="btn sec dang" data-vdel="${v.id}">Eliminar</button>` : ''}</span>` : ''}
       </div>`).join('') || '<div class="vacio">Sin valores todavía.</div>'}</div>
       ${puedeEditar ? `<div class="acts"><input id="cvnew" placeholder="Nuevo valor" style="flex:1;min-width:160px">
-        ${c.clave === 'RESULTADO' ? `<select id="cvextra" style="max-width:170px"><option value="pos">Visita realizada</option><option value="neg">Sin visita</option></select>` : ''}
+        ${c.papel === 'resultado_visita' ? `<select id="cvextra" style="max-width:170px"><option value="pos">Visita realizada</option><option value="neg">Sin visita</option></select>
+          <select id="cvdest" style="max-width:190px" title="Estado al que pasa la ficha con este resultado"><option value="">No cambia el estado</option>${estados().map(x => `<option value="${esc(x)}">Pasa a ${esc(x)}</option>`).join('')}</select>` : ''}
         <button class="btn" id="cvadd">Añadir</button></div>` : ''}
       ${completo && !c.sistema ? `<div class="acts" style="justify-content:flex-end;border-top:1px solid var(--line);padding-top:12px">
         <button class="btn sec dang" id="cdel">Eliminar clasificador</button></div>` : ''}`;
@@ -3439,7 +3451,7 @@ function abrirClasificador(id) {
     if ($('cvadd')) $('cvadd').onclick = async () => {
       const v = $('cvnew').value.trim(); if (!v) return;
       const { error } = await db.rpc('guardar_valor', { p: { clasificador_id: id, valor: v,
-        extra: $('cvextra') ? $('cvextra').value : null } });
+        extra: $('cvextra') ? $('cvextra').value : null, destino: $('cvdest') ? $('cvdest').value : null } });
       if (error) { toast('No se ha podido añadir', true); return; }
       toast('Valor añadido'); recarga();
     };
@@ -4447,7 +4459,7 @@ async function arrancar() {
   try { guardado = JSON.parse(localStorage.getItem(PKEY) || 'null'); } catch (e) {}
   // v2.69.0: el perfil guardado solo sirve si ya trae sus capacidades y están los roles (si no, se espera al de la red)
   if (guardado && !Array.isArray(guardado.capacidades)) guardado = null;
-  if (guardado && ROLES_DEF.length && localStorage.getItem('dlc-os-sesion') && !APP_VISIBLE) {
+  if (guardado && ROLES_DEF.length && ESTADOS_DEF.length && localStorage.getItem('dlc-os-sesion') && !APP_VISIBLE) {
     mostrarApp(guardado);
     marca('app visible con el perfil guardado');
   }
@@ -4473,7 +4485,7 @@ async function arrancar() {
     return;
   }
   try { localStorage.setItem(PKEY, JSON.stringify(perfil)); } catch (e) {}
-  if (!(await rolesListos) && !ROLES_DEF.length) await cargarRoles().catch(() => false);
+  if (!(await rolesListos) && !(ROLES_DEF.length && ESTADOS_DEF.length)) await cargarRoles().catch(() => false);
   const cambio = !guardado || JSON.stringify(guardado) !== JSON.stringify(perfil);
   if (!APP_VISIBLE) mostrarApp(perfil);
   else if (cambio) { mostrarApp(perfil); if (TAB === 'inicio') cargarInicio(); }
@@ -4754,7 +4766,7 @@ async function editorPedido(pedido) {
       <div class="acts" style="margin-top:0"><button type="button" class="btn sec" id="plmas">+ Añadir línea</button></div>
       <div class="g2">
         <div><label for="ppago">Forma de pago</label><select id="ppago"><option value=""></option>
-          ${(CAT.FORMA_PAGO || []).map(x => `<option ${form.forma_pago === x.valor ? 'selected' : ''}>${esc(x.valor)}</option>`).join('')}</select></div>
+          ${(CAT.forma_pago || []).map(x => `<option ${form.forma_pago === x.valor ? 'selected' : ''}>${esc(x.valor)}</option>`).join('')}</select></div>
         <div><label for="pdto">Descuento general</label>
           <div style="display:flex;gap:6px"><input id="pdto" type="number" min="0" step="0.01" value="${esc(form.descuento)}">
             <select id="pdtot" style="max-width:110px"><option value="porcentaje">%</option>
@@ -6416,7 +6428,7 @@ async function accionCita(k, c) {
     toast('Aplazada al ' + fechaCorta(f)); refrescar(); return;
   }
   if (k === 'noestaba') {
-    const neg = (CAT.RESULTADO || []).filter(x => x.extra === 'neg');
+    const neg = (CAT.resultado_visita || []).filter(x => x.extra === 'neg');
     if (!neg.length) { toast('Falta un resultado negativo en Configuración → Clasificadores', true); return; }
     let res = neg[0].valor;
     if (neg.length > 1) {
@@ -7225,7 +7237,8 @@ async function pintarEquipo() {
 
 async function editorFrecuencia() {
   await cargarAjustes();
-  const f = Object.assign({ 'Sin contactar': 60, 'Presentado': 30, 'Interesado': 15, 'Prescribe': 30, 'No interesado': 0 }, AJUSTES.frecuencia || {});
+  const REC = { inicial: 60, avance: 30, interes: 15, positivo: 30, negativo: 0 };
+  const f = Object.assign(Object.fromEntries(ESTADOS_DEF.map(x => [x.valor, REC[x.papel] || 0])), AJUSTES.frecuencia || {});
   $('dbody').innerHTML = `
     <div class="fh"><div><h2>Frecuencia objetivo de visita</h2>
       <div class="sm">Cada cuántos días hay que visitar a un médico según su estado. 0 = no se exige.</div></div>
@@ -7284,7 +7297,8 @@ Object.assign(RPC_TTL, { clasificadores_visita: 300, municipios_clientes: 300 })
 
 /* ---------------- registrar visita con datos ---------------- */
 
-const detTxt = v => (v.detalles || []).filter(d => !(d.clasificador === 'RESULTADO' && /muestra/i.test(d.valor)))
+const esMuestras = d => (CAT.resultado_visita || []).some(x => x.valor === d.valor && x.papel === 'muestras');
+const detTxt = v => (v.detalles || []).filter(d => !esMuestras(d))
   .map(d => d.valor + (d.dato ? ' (' + d.dato + ')' : '')).join(', ');
 
 function campoDato(v, k, valor) {
@@ -7317,12 +7331,12 @@ async function abrirVisitaBase(id) {
   if (error) { toast('No se ha podido abrir: ' + error.message, true); return; }
   const m = data.medico, cons = data.consultas || [];
   const grupos = (clas || []).filter(c => (c.valores || []).length);
-  const res = grupos.find(c => c.clave === 'RESULTADO') || { clave: 'RESULTADO', nombre: 'Resultado', valores: CAT.RESULTADO || [] };
-  const otros = grupos.filter(c => c.clave !== 'RESULTADO');
+  const res = grupos.find(c => c.papel === 'resultado_visita') || { clave: '', papel: 'resultado_visita', nombre: 'Resultado', valores: CAT.resultado_visita || [] };
+  const otros = grupos.filter(c => c !== res);
   const idx = {};   // clave del botón → { clasificador, valor }
   const boton = (c, v, neg) => {
     const k = c.clave + '::' + v.valor; idx[k] = { c: c.clave, v };
-    return `<span class="optw"><button type="button" class="opt ${neg ? 'neg' : ''}" data-vk="${esc(k)}" ${c.clave === 'RESULTADO' ? `data-res="${esc(v.valor)}"` : ''} ${neg ? 'data-neg="1"' : ''} aria-pressed="false">
+    return `<span class="optw"><button type="button" class="opt ${neg ? 'neg' : ''}" data-vk="${esc(k)}" ${c === res ? `data-res="${esc(v.valor)}"` : ''} ${neg ? 'data-neg="1"' : ''} aria-pressed="false">
       <span class="mk"></span>${esc(v.valor)}${v.dato_tipo ? ' <span class="datom">+ dato</span>' : ''}</button>
       ${v.dato_tipo ? `<span class="datobox hide" data-box="${esc(k)}">${campoDato(v, k)}</span>` : ''}</span>`;
   };
@@ -7353,7 +7367,7 @@ async function abrirVisitaBase(id) {
 
   $('dbody').querySelectorAll('[data-vk]').forEach(b => b.onclick = () => {
     const k = b.dataset.vk, info = idx[k], on = b.getAttribute('aria-pressed') === 'true';
-    if (info.c === 'RESULTADO') {
+    if (info.c === res.clave) {
       const esNeg = b.dataset.neg === '1';
       $('dbody').querySelectorAll('[data-res]').forEach(x => {
         if ((esNeg || x.dataset.neg === '1') && x !== b) {
@@ -7369,7 +7383,7 @@ async function abrirVisitaBase(id) {
 
   $('vguardar').onclick = async ev => {
     const marcados = [...$('dbody').querySelectorAll('[data-vk][aria-pressed=true]')].map(b => b.dataset.vk);
-    const resultados = marcados.filter(k => idx[k].c === 'RESULTADO').map(k => idx[k].v.valor);
+    const resultados = marcados.filter(k => idx[k].c === res.clave).map(k => idx[k].v.valor);
     if (!resultados.length) { toast('Elige al menos un resultado', true); return; }
     const detalles = marcados.map(k => {
       const el = $('dbody').querySelector(`[data-dato="${CSS.escape(k)}"]`);
@@ -7429,7 +7443,7 @@ abrirClasificador = (orig => function (id) {
   orig(id);
   const c = CATS.find(x => x.id === id);
   const permitido = puede('administrar') || ((PERFIL.areas || {}).K || 0) >= 2;
-  if (!c || !permitido || !['visita'].includes(c.ambito) && c.clave !== 'RESULTADO') return;
+  if (!c || !permitido || !['visita'].includes(c.ambito) && c.papel !== 'resultado_visita') return;
   // Cada vez que se repinta la ventana, se añaden los botones de dato
   const decorar = () => {
     const items = $('dbody').querySelectorAll('.lista > .item');
@@ -8132,7 +8146,7 @@ async function pintarResumenAnalitica() {
     const meses = mesesEntre(desde, hasta);
     const serie = {}; (act.serie || []).forEach(s => serie[s.mes] = s);
     const vis = {}; actv.forEach(s => vis[s.mes] = s);
-    const orden = ['Sin contactar', 'Presentado', 'Interesado', 'Prescribe'];
+    const orden = ESTADOS_DEF.filter(x => x.papel !== 'negativo').map(x => x.valor), negEst = estadoPapel('negativo');
     const embTot = orden.reduce((n, k) => n + (+emb[k] || 0), 0);
     $('angraf').innerHTML = `
       <div class="card ancard ancha"><h2>Evolución de las ventas</h2>
@@ -8150,7 +8164,7 @@ async function pintarResumenAnalitica() {
         ${embTot ? `<div class="embudo">${orden.map((k, i) => { const v = +emb[k] || 0, ant2 = i ? (+emb[orden[i - 1]] || 0) : 0;
           return `<div class="emb"><span class="embn">${esc(k)}</span><span class="embb"><i style="width:${Math.max(3, v / embTot * 100)}%"></i></span><b>${num(v)}</b>
             ${i ? `<span class="sm">${ant2 ? pct(v, ant2 + v) + '% avanza' : ''}</span>` : '<span class="sm"></span>'}</div>`; }).join('')}
-          ${emb['No interesado'] ? `<div class="sm" style="margin-top:6px">No interesados: ${num(emb['No interesado'])}</div>` : ''}</div>`
+          ${negEst && emb[negEst] ? `<div class="sm" style="margin-top:6px">${esc(negEst)}: ${num(emb[negEst])}</div>` : ''}</div>`
           : vacioGrafico('Verás cuántos médicos hay en cada estado comercial.')}
         <p class="leer"><b>Cómo leerlo:</b> cuántos médicos hay en cada estado. El porcentaje indica qué parte ha pasado a ese estado respecto al anterior. El objetivo es que la barra de «Prescribe» crezca.</p></div>
       <div class="card ancard ancha"><h2>Actividad y resultados</h2>
@@ -8747,7 +8761,7 @@ function cobroFactura(f, pendiente) {
       <button class="x" data-cerrar2 aria-label="Cerrar">✕</button></div>
     <div class="g2"><div><label for="cbi">Importe (€)</label><input id="cbi" type="number" step="0.01" value="${pendiente}"></div>
       <div><label for="cbf">Fecha</label><input id="cbf" type="date" value="${hoyISO()}"></div></div>
-    <div class="g2"><div><label for="cbp">Forma de pago</label><select id="cbp">${(CAT.FORMA_PAGO || []).map(x => `<option ${x.valor === f.forma_pago ? 'selected' : ''}>${esc(x.valor)}</option>`).join('')}</select></div>
+    <div class="g2"><div><label for="cbp">Forma de pago</label><select id="cbp">${(CAT.forma_pago || []).map(x => `<option ${x.valor === f.forma_pago ? 'selected' : ''}>${esc(x.valor)}</option>`).join('')}</select></div>
       <div><label for="cbn">Nota</label><input id="cbn" placeholder="Opcional"></div></div>
     <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar2>Cancelar</button><button class="btn" id="cbok">Registrar</button></div>`;
   $('dlg2').showModal();
@@ -8906,7 +8920,7 @@ async function pintarEmpresa() {
     <label for="em_pie">Pie de factura</label><textarea id="em_pie" rows="2" placeholder="Condiciones, protección de datos…">${esc(e.pie || '')}</textarea>
     <h2 style="padding:18px 0 8px">Al emitir</h2>
     <div class="g2"><div><label for="fcv">Días hasta el vencimiento</label><input id="fcv" type="number" min="0" value="${+c.vencimiento_dias || 0}"></div>
-      <div><label for="fcf">Forma de pago si el pedido no la indica</label><select id="fcf"><option value="">—</option>${(CAT.FORMA_PAGO || []).map(x => `<option ${x.valor === c.forma_pago ? 'selected' : ''}>${esc(x.valor)}</option>`).join('')}</select></div></div>
+      <div><label for="fcf">Forma de pago si el pedido no la indica</label><select id="fcf"><option value="">—</option>${(CAT.forma_pago || []).map(x => `<option ${x.valor === c.forma_pago ? 'selected' : ''}>${esc(x.valor)}</option>`).join('')}</select></div></div>
     <label class="opt" style="margin-top:10px"><input type="checkbox" id="fce" ${c.emitir_al_validar ? 'checked' : ''}>
       <span><b>Emitir la factura automáticamente al validar un pedido</b><br><span class="sm">Si no, se emite a mano desde el pedido con «Emitir factura».</span></span></label>
     <div class="acts" style="justify-content:flex-end"><button class="btn" id="emok">Guardar</button></div></div>`;
@@ -9221,8 +9235,8 @@ async function pintarOperativa() {
 
 
 async function catLlamadas() {
-  for (const k of ['MOTIVO_LLAMADA', 'RESULTADO_LLAMADA']) {
-    if (!(CAT[k] || []).length) { const { data } = await db.rpc('catalogo', { p_clave: k }); CAT[k] = data || []; }
+  for (const k of ['motivo_llamada', 'resultado_llamada']) {
+    if (!(CAT[k] || []).length) { const { data } = await db.rpc('catalogo_papel', { p_papel: k }); CAT[k] = data || []; }
   }
 }
 async function pintarLlamadas() {
@@ -9230,7 +9244,7 @@ async function pintarLlamadas() {
   $('vcuerpo').innerHTML = `<div class="panel">
     <div class="filtros"><div id="llper"></div>
       <div><label for="llq">Buscar</label><input id="llq" type="search" placeholder="Nombre, teléfono o médico"></div>
-      <div><label for="llfres">Resultado</label><select id="llfres"><option value="">Todos</option>${(CAT.RESULTADO_LLAMADA || []).map(x => `<option>${esc(x.valor)}</option>`).join('')}</select></div></div>
+      <div><label for="llfres">Resultado</label><select id="llfres"><option value="">Todos</option>${(CAT.resultado_llamada || []).map(x => `<option>${esc(x.valor)}</option>`).join('')}</select></div></div>
     <div class="kpis vtot" id="lltot"></div>
     <div class="angrid" id="llres2" style="margin:0 0 14px"></div>
     <div id="lllista"></div></div>`;
@@ -10351,8 +10365,8 @@ async function editorLlamada(l, previa) {
       <div id="llcli"></div></div>
     <div class="llpaso"><span class="lln">2</span><b>Médico que lo recomienda</b><div id="llmed"></div>
       <div class="sm" style="margin-top:4px">Si no está en la base, escribe su nombre: se guarda igualmente para las métricas.</div></div>
-    <div class="llpaso"><span class="lln">3</span><b>Motivo</b><div class="chipsw" id="llmot">${chips('MOTIVO_LLAMADA', l.motivo, 'data-lm')}</div></div>
-    <div class="llpaso"><span class="lln">4</span><b>Resultado</b><div class="chipsw" id="llres">${chips('RESULTADO_LLAMADA', l.resultado, 'data-lr')}</div>
+    <div class="llpaso"><span class="lln">3</span><b>Motivo</b><div class="chipsw" id="llmot">${chips('motivo_llamada', l.motivo, 'data-lm')}</div></div>
+    <div class="llpaso"><span class="lln">4</span><b>Resultado</b><div class="chipsw" id="llres">${chips('resultado_llamada', l.resultado, 'data-lr')}</div>
       <div id="llseg" class="${!l.resultado || l.resultado === 'Pedido hecho' ? 'hide' : ''}">
         <div class="sm" style="margin:8px 0 4px">¿Cuándo volver a llamar?</div>
         <div class="chipsw">${[['Mañana', 1], ['En 3 días', 3], ['En una semana', 7], ['En un mes', 30]].map(([t, d]) => `<button type="button" class="chipsel" data-ld="${d}">${t}</button>`).join('')}</div>
@@ -11239,8 +11253,8 @@ async function pintarMaterial() {
   await Promise.all([cargarAjustes(), cargarProductos()]);
   const m = Object.assign({ producto_id: null, restar_stock: false }, AJUSTES.muestras || {});
   const { data: clas } = await db.rpc('clasificadores_visita');
-  const mat = (clas || []).find(c => c.clave === 'MATERIAL');
-  const { data: cid } = await db.from('clasificadores').select('id').eq('clave', 'MATERIAL').maybeSingle();
+  const mat = (clas || []).find(c => c.papel === 'material_visita');
+  const { data: cid } = await db.from('clasificadores').select('id').eq('papel', 'material_visita').maybeSingle();
   const { data: vals } = cid ? await db.from('valores_clasificador').select('id,valor,activo,dato_tipo').eq('clasificador_id', cid.id).order('orden') : { data: [] };
   $('cfgcuerpo').innerHTML = `
     <div class="card cfgpanel"><h2 style="padding:0 0 4px">Material de visita</h2>
