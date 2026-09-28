@@ -107,7 +107,7 @@ async function cargarRoles() {
   try { localStorage.setItem(ROLKEY, JSON.stringify(ROLES_DEF)); } catch (e) {}
   return !e2;
 }
-const F = { q: '', prov: '', muni: '', esp: '', est: '', urg: false, orden: 'nombre', pagina: 0, total: 0 };
+const F = { q: '', prov: '', muni: '', esp: '', est: '', urg: false, orden: 'nombre', pagina: 0, total: 0, campos: {} };
 const PASO = 50;
 
 // Fechas SIEMPRE en hora local (España): convertir a hora universal restaba un día de 00:00 a 02:00
@@ -310,7 +310,8 @@ async function buscar(reiniciar) {
     q: F.q || null, f_provincia: F.prov || null, f_municipio: F.muni || null,
     f_estado: F.est || null, f_especialidad: F.esp || null, f_area: null,
     f_urgentes: F.urg, f_mios: false, f_sin_visitar: false, f_comercial: F.com || null, f_reporting: F.rep || null,
-    orden: F.orden, lim: tamPagina(), desplaz: F.pagina * tamPagina()
+    orden: F.orden, lim: tamPagina(), desplaz: F.pagina * tamPagina(),
+    ...(Object.keys(F.campos || {}).length ? { f_campos: F.campos } : {})
   };
   let { data, error } = await db.rpc('buscar_medicos', params);
   if (yo !== BUSQ_N) return;   // ya hay una búsqueda más reciente
@@ -555,6 +556,7 @@ async function cargarCatalogos() {
   const claves = Object.keys(CAT);
   const res = await Promise.all(claves.map(k => db.rpc('catalogo_papel', { p_papel: k })));
   claves.forEach((k, i) => { CAT[k] = res[i].data || []; });
+  cargarCampos().catch(() => {});
 }
 
 /* ---------------- selector de días ---------------- */
@@ -696,6 +698,7 @@ async function abrirEditor(id, tipo) {
     <label for="ecv">Cuándo visitar</label><input id="ecv" value="${esc(m.cuando_visitar || '')}" placeholder="p. ej. martes por la mañana">
     ${esCentro ? '' : `<label class="chksr"><input type="checkbox" id="esr" ${m.sin_reporting ? 'checked' : ''}><span><b>Sin reporting</b><span class="sm">Solo ${TT('visita', 's', '', 'l', 'l')} presencial: no quiere informes ni feedback. Se puede filtrar en ${esc(etiquetaContactos())} y en Analítica.</span></span></label>`}
     <label for="eno">Nota</label><textarea id="eno" rows="3">${esc(m.nota || '')}</textarea>
+    ${camposHTML('medico', m.clasificadores)}
     <div id="econs">${cons.map(consHTML).join('')}</div>
     <div class="acts"><button type="button" class="btn sec" id="eadd">+ Añadir consulta</button></div>
     <div id="edup"></div>
@@ -740,6 +743,8 @@ async function abrirEditor(id, tipo) {
   $('eguardar').onclick = async ev => {
     const p = recoger();
     if (!p.nombre || p.nombre.length < 3) { toast('Escribe el nombre', true); return; }
+    const cps = camposLeer($('dbody'));
+    if (cps && cps.falta.length) { toast(`Rellena «${cps.falta[0]}»`, true); return; }
     if (!id && !esCentro && p.nombre.indexOf(',') < 0) { toast('Escribe el nombre como APELLIDOS, NOMBRE', true); return; }
 
     if (!id && !avisado) {
@@ -762,6 +767,7 @@ async function abrirEditor(id, tipo) {
     const { data, error } = await db.rpc('guardar_medico', { p });
     ev.target.disabled = false; ev.target.textContent = id ? 'Guardar cambios' : 'Crear';
     if (error) { toast('No se ha podido guardar: ' + error.message, true); return; }
+    if (cps && !(await camposGuardar(cps, (data && data.medico && data.medico.id) || id))) return;
     $('dlg').close();
     toast(id ? 'Ficha guardada' : 'Creado correctamente');
     buscar(true); cargarInicio();
@@ -3446,6 +3452,15 @@ async function pintarCatalogos() {
   if ($('cnuevo')) $('cnuevo').onclick = () => nuevoClasificador();
 }
 
+/* v2.72.0 · Un clasificador de ficha, cliente o producto sin papel es un campo personalizado: tipo y dónde se ve */
+function cajaCampo(c, completo) {
+  if (c.papel || !CAMPO_TABLA[c.ambito]) return '';
+  const t = c.tipo_campo || 'lista', chk = (k, txt) => `<label class="chk"><input type="checkbox" id="cfc_${k}" ${c[k] ? 'checked' : ''} ${completo ? '' : 'disabled'}> ${txt}</label>`;
+  return `<div class="cfcampo"><h3>Campo personalizado</h3>
+    <div class="g2"><div><label for="cfctipo">Tipo</label><select id="cfctipo" ${completo ? '' : 'disabled'}>${TIPOS_CAMPO.map(([k, n]) => `<option value="${k}" ${k === t ? 'selected' : ''}>${n}</option>`).join('')}</select></div>
+      <div class="cfchks">${chk('obligatorio', 'Obligatorio')}${chk('solo_lectura', 'Solo lectura')}${chk('en_ficha', 'En la ficha')}${chk('en_tabla', 'Columna en la tabla')}${chk('en_filtro', 'Filtro (listas y sí/no)')}</div></div>
+    ${completo ? '<div class="acts" style="justify-content:flex-end"><button class="btn sec" id="cfcok">Guardar campo</button></div>' : ''}</div>`;
+}
 function abrirClasificador(id) {
   const c = CATS.find(x => x.id === id); if (!c) return;
   const puedeEditar = puede('administrar') || ((PERFIL.areas || {}).K || 0) >= 2;
@@ -3457,7 +3472,8 @@ function abrirClasificador(id) {
         <div class="sm">Grupo ${esc(c.grupo || 'General')} · se usa en ${esc(c.ambito === 'pedido' ? 'pedidos' : c.ambito === 'visita' ? 'visitas' : `fichas de ${TT('medico', 's', '', 'l', 'l')}`)}
         ${puedeEditar ? '' : ' · <b>solo lectura</b>'}</div></div>
         <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-      <div class="lista">${(c.valores || []).map(v => `<div class="item" style="cursor:default">
+      ${cajaCampo(c, completo)}
+      <div class="lista ${!c.papel && CAMPO_TABLA[c.ambito] && (c.tipo_campo || 'lista') !== 'lista' ? 'hide' : ''}">${(c.valores || []).map(v => `<div class="item" style="cursor:default">
         <span class="ic">${v.activo ? '●' : '○'}</span>
         <span class="tx"><b style="${v.activo ? '' : 'opacity:.5;text-decoration:line-through'}">${esc(v.valor)}</b>
           ${v.extra ? `<span class="sm">${v.extra === 'neg' ? `sin ${TT('visita', 's', '', 'l', 'l')}` : `${TT('visita', 's', '', 'l', 'l', 'realizado')}`}${v.destino ? ' · pasa a ' + esc(v.destino) : ''}</span>` : ''}</span>
@@ -3473,6 +3489,13 @@ function abrirClasificador(id) {
       ${completo && !c.sistema ? `<div class="acts" style="justify-content:flex-end;border-top:1px solid var(--line);padding-top:12px">
         <button class="btn sec dang" id="cdel">Eliminar clasificador</button></div>` : ''}`;
 
+    if ($('cfcok')) $('cfcok').onclick = async () => {
+      const v = { tipo: $('cfctipo').value };
+      ['obligatorio', 'solo_lectura', 'en_ficha', 'en_tabla', 'en_filtro'].forEach(k => { v[k] = $('cfc_' + k).checked; });
+      const { data: r, error } = await db.rpc('configurar_campo', { p_id: id, p: v });
+      if (error || !r || !r.ok) { toast('No se ha podido guardar el campo', true); return; }
+      toast('Campo guardado'); recarga(); cargarCampos().catch(() => {});
+    };
     const recarga = async () => {
       const { data } = await db.rpc('catalogos_todos');
       CATS = data || [];
@@ -3535,7 +3558,9 @@ function nuevoClasificador() {
         <div><label for="nca">¿Dónde se usa?</label><select id="nca">
           <option value="medico">En la ficha ${TT('medico', 's', 'del', 'l', 'l')}</option>
           <option value="visita">Al registrar ${TT('visita', 's', 'un', 'l', 'l')}</option>
-          <option value="pedido">En los pedidos</option></select></div>
+          <option value="pedido">En los pedidos</option>
+          <option value="cliente">En la ficha ${TT('paciente', 's', 'del', 'l', 'l')}</option>
+          <option value="producto">En la ficha del producto</option></select></div>
         <div><label for="ncd">Descripción</label><input id="ncd" placeholder="Para qué sirve"></div>
       </div>
       <label>Valores</label>
@@ -5138,8 +5163,11 @@ function editorProducto(p) {
     const f = e.target.files[0]; if (!f) return;
     $('prfprev').style.backgroundImage = `url('${URL.createObjectURL(f)}')`; $('prfprev').textContent = '';
   };
+  camposInsertar($('dbody'), 'producto', p.id, $('prok') && $('prok').closest('.acts'));
   $('prok').onclick = async ev => {
     if (!$('prn').value.trim()) { toast('Escribe el nombre', true); return; }
+    const cps = camposLeer($('dbody'));
+    if (cps && cps.falta.length) { toast(`Rellena «${cps.falta[0]}»`, true); return; }
     ev.target.disabled = true; ev.target.textContent = 'Guardando…';
     let foto_url;
     const f = $('prfoto').files && $('prfoto').files[0];
@@ -5156,6 +5184,7 @@ function editorProducto(p) {
       ...(foto_url ? { foto_url } : {}), ...($('pract') ? { activo: $('pract').checked } : {}) } });
     ev.target.disabled = false; ev.target.textContent = p.id ? 'Guardar' : 'Crear producto';
     if (error || (r && r.ok === false)) { toast('No se ha podido guardar: ' + ((error && error.message) || (r && r.error) || ''), true); return; }
+    if (cps && !(await camposGuardar(cps, (r && r.id) || p.id))) return;
     $('dlg').close(); toast(p.id ? 'Producto guardado' : 'Producto creado');
     await cargarProductos(); if (TAB === 'productos') pintarProductos();
   };
@@ -5546,8 +5575,11 @@ function editorContacto(c, alGuardar) {
     if ($('konif').value) revisaDoc();
   });
   $('kocancel').onclick = () => $('dlg2').close();
+  camposInsertar($('dlg2body'), 'cliente', c.id, $('kook') && $('kook').closest('.acts'));
   $('kook').onclick = async ev => {
     if (!$('konom').value.trim()) { toast('Escribe el nombre', true); return; }
+    const cps = camposLeer($('dlg2'));
+    if (cps && cps.falta.length) { toast(`Rellena «${cps.falta[0]}»`, true); return; }
     const doc = revisaDoc();
     if (!doc.ok) { toast(tipo === 'Empresa' ? 'Revisa el CIF' : 'Revisa el DNI o NIE', true); return; }
     ev.target.disabled = true; ev.target.textContent = 'Guardando…';
@@ -5560,6 +5592,7 @@ function editorContacto(c, alGuardar) {
     }});
     ev.target.disabled = false; ev.target.textContent = c.id ? 'Guardar' : `Crear ${TT('paciente', 's', '', 'l', 'l')}`;
     if (error || (r && r.ok === false)) { toast('No se ha podido guardar', true); return; }
+    if (cps && !(await camposGuardar(cps, (r && r.contacto && r.contacto.id) || c.id))) return;
     $('dlg2').close(); toast(c.id ? `${TT('paciente', 's', '', 'l', 'C', 'guardado')}` : `${TT('paciente', 's', '', 'l', 'C', 'creado')}`);
     const res = Object.assign({}, r.contacto, medico ? { medico: medico.nombre, medico_codigo: medico.codigo } : {});
     if (alGuardar) alGuardar(res);
@@ -5605,6 +5638,7 @@ function celda(m, k) {
   if (k === 'estado_comercial') return `<span class="pill p-est">${esc(m.estado_comercial)}</span>`;
   if (k === 'ultima_visita') return `<span class="sm">${m.ultima_visita ? fechaCorta(m.ultima_visita) : '—'}</span>`;
   if (k === 'telefono') return `<span class="sm">${esc(m.telefono || m.consulta_telefono || '')}</span>`;
+  if (k.startsWith('cp:')) { const cl = k.slice(3); return `<span class="sm">${esc(campoTexto((CAMPOS.medico || []).find(x => x.clave === cl), (m.clasificadores || {})[cl]))}</span>`; }
   if (k === 'comerciales') {
     const c = m.comerciales || [];
     return `<span class="comchips">${c.length ? c.map(x => `<span>${esc(String(x.nombre).split(' ')[0])}</span>`).join('') : '<span class="sin">Sin asignar</span>'}</span>`;
@@ -14395,11 +14429,101 @@ arbolConfig = (orig => function () {
   return g;
 })(arbolConfig);
 
+
+/* ============================================================
+   v2.72.0 · Motor de campos personalizados (fase 2 de la auditoría)
+   Cada cliente define sus campos (tipo, obligatorio, dónde se ven) en
+   Configuración → Catálogos, y la plataforma genera los formularios,
+   las columnas y los filtros. Los valores se guardan con guardar_campos().
+   ============================================================ */
+const CAMPOS = { medico: [], cliente: [], producto: [] };
+const CAMPO_TABLA = { medico: 'medicos', cliente: 'contactos', producto: 'productos' };
+const TIPOS_CAMPO = [['lista', 'Lista de valores'], ['texto', 'Texto'], ['numero', 'Número'], ['fecha', 'Fecha'], ['si_no', 'Sí / No']];
+async function cargarCampos() {
+  const ambs = Object.keys(CAMPOS);
+  const r = await Promise.all(ambs.map(a => db.rpc('campos_de', { p_ambito: a })));
+  ambs.forEach((a, i) => { if (!r[i].error) CAMPOS[a] = r[i].data || []; });
+  camposEnDirectorio();
+}
+const campoTexto = (c, v) => v == null || v === '' ? '' : c && c.tipo === 'si_no' ? (v === true || v === 'true' ? 'Sí' : 'No')
+  : c && c.tipo === 'fecha' ? fechaCorta(String(v)) : c && c.tipo === 'numero' ? String(v).replace('.', ',') : String(v);
+function campoInput(c, v) {
+  const a = `data-cpk="${esc(c.clave)}" ${c.solo_lectura ? 'disabled' : ''}`;
+  const val = v == null ? '' : v;
+  if (c.tipo === 'lista') return `<select ${a}><option value=""></option>${(c.valores || []).concat(val && !(c.valores || []).includes(val) ? [val] : [])
+    .map(x => `<option ${x === val ? 'selected' : ''}>${esc(x)}</option>`).join('')}</select>`;
+  if (c.tipo === 'si_no') return `<select ${a}><option value=""></option><option value="true" ${val === true ? 'selected' : ''}>Sí</option><option value="false" ${val === false ? 'selected' : ''}>No</option></select>`;
+  if (c.tipo === 'fecha') return `<input type="date" ${a} value="${esc(String(val))}">`;
+  if (c.tipo === 'numero') return `<input type="text" inputmode="decimal" ${a} value="${esc(String(val).replace('.', ','))}">`;
+  return `<input ${a} value="${esc(String(val))}" maxlength="500">`;
+}
+function camposHTML(amb, valores) {
+  const l = (CAMPOS[amb] || []).filter(c => c.en_ficha);
+  if (!l.length) return '';
+  return `<div class="cpersform" data-cpamb="${amb}"><h3>Campos personalizados</h3><div class="g2">${l.map(c =>
+    `<div><label>${esc(c.nombre)}${c.obligatorio ? ' <span class="cpob">*</span>' : ''}</label>${campoInput(c, (valores || {})[c.clave])}</div>`).join('')}</div></div>`;
+}
+// Lee los campos del formulario. Devuelve null si no hay campos; { falta } si falta un obligatorio.
+function camposLeer(raiz) {
+  const b = raiz && raiz.querySelector('.cpersform'); if (!b) return null;
+  const amb = b.dataset.cpamb, v = {}, falta = [];
+  b.querySelectorAll('[data-cpk]:not([disabled])').forEach(i => {
+    const c = (CAMPOS[amb] || []).find(x => x.clave === i.dataset.cpk); v[i.dataset.cpk] = i.value.trim();
+    if (c && c.obligatorio && !i.value.trim()) falta.push(c.nombre);
+  });
+  return { amb, valores: v, falta };
+}
+async function camposGuardar(leido, id) {
+  if (!leido || !id || !Object.keys(leido.valores).length) return true;
+  const { data, error } = await db.rpc('guardar_campos', { p_ambito: leido.amb, p_id: id, p_valores: leido.valores });
+  if (!error && data && data.ok) return true;
+  const e = (data && data.errores || [])[0];
+  const c = e && (CAMPOS[leido.amb] || []).find(x => x.clave === e.campo);
+  toast(e ? `Revisa «${c ? c.nombre : e.campo}»: ${{ obligatorio: 'es obligatorio', numero: 'tiene que ser un número', fecha: 'no es una fecha válida', lista: 'no es un valor de la lista', si_no: 'tiene que ser sí o no', solo_lectura: 'no se puede cambiar', desconocido: 'ya no existe' }[e.error] || e.error}`
+    : 'No se han podido guardar los campos personalizados', true);
+  return false;
+}
+// Inserta el bloque en un formulario ya pintado, con los valores actuales de la ficha
+async function camposInsertar(raiz, amb, id, antesDe) {
+  if (!raiz || !(CAMPOS[amb] || []).some(c => c.en_ficha) || raiz.querySelector('.cpersform')) return;
+  let v = {};
+  if (id) { const { data } = await db.from(CAMPO_TABLA[amb]).select('clasificadores').eq('id', id).maybeSingle(); v = (data && data.clasificadores) || {}; }
+  if (raiz.querySelector('.cpersform') || !raiz.isConnected) return;
+  const ref = antesDe && antesDe.isConnected ? antesDe : null;
+  if (ref) ref.insertAdjacentHTML('beforebegin', camposHTML(amb, v)); else raiz.insertAdjacentHTML('beforeend', camposHTML(amb, v));
+}
+// Directorio: columnas y filtros generados
+function camposEnDirectorio() {
+  (CAMPOS.medico || []).filter(c => c.en_tabla).forEach(c => { if (!COLS.some(x => x.k === 'cp:' + c.clave)) COLS.push({ k: 'cp:' + c.clave, t: c.nombre, w: 150 }); });
+  const zona = document.querySelector('#v-directorio .filtros'), ord = $('forden');
+  if (!zona || !ord) return;
+  zona.querySelectorAll('.fcpers').forEach(x => x.remove());
+  (CAMPOS.medico || []).filter(c => c.en_filtro && ['lista', 'si_no'].includes(c.tipo)).forEach((c, i) => {
+    const ops = c.tipo === 'si_no' ? [['true', 'Sí'], ['false', 'No']] : (c.valores || []).map(x => [x, x]);
+    const act = F.campos[c.clave] == null ? '' : String(F.campos[c.clave]);
+    ord.closest('div').insertAdjacentHTML('beforebegin', `<div class="fcpers"><label for="fcp${i}">${esc(c.nombre)}</label><select id="fcp${i}" data-fcp="${esc(c.clave)}" data-fcpt="${c.tipo}">
+      <option value="">Todos</option>${ops.map(([v, t]) => `<option value="${esc(v)}" ${act === v ? 'selected' : ''}>${esc(t)}</option>`).join('')}</select></div>`);
+  });
+  zona.querySelectorAll('[data-fcp]').forEach(sel => sel.onchange = () => {
+    const k = sel.dataset.fcp;
+    if (!sel.value) delete F.campos[k]; else F.campos[k] = sel.dataset.fcpt === 'si_no' ? sel.value === 'true' : sel.value;
+    buscar(true);
+  });
+}
+
 /* ---------- campos personalizados en las fichas ---------- */
 async function bloqueCampos(tabla, id, cont) {
   if (!cont || !id || cont.querySelector('.campospers')) return;
   const { data } = await db.from(tabla).select('clasificadores').eq('id', id).maybeSingle();
   const c = (data && data.clasificadores) || {}; const ks = Object.keys(c).filter(k => c[k] !== '' && c[k] != null);
+  const amb = Object.keys(CAMPO_TABLA).find(a => CAMPO_TABLA[a] === tabla), defs = CAMPOS[amb] || [];
+  if (defs.length && ks.length) {
+    if (cont.querySelector('.campospers')) return;
+    const orden = defs.filter(d => ks.includes(d.clave)).concat(ks.filter(k => !defs.some(d => d.clave === k)).map(k => ({ clave: k, nombre: k.replace(/_/g, ' ').toLowerCase().replace(/^./, x => x.toUpperCase()) })));
+    cont.insertAdjacentHTML('beforeend', `<div class="campospers"><h3>Campos personalizados</h3><div class="cpgrid">${orden.map(d =>
+      `<div><span class="sm">${esc(d.nombre)}</span><b>${esc(campoTexto(d, c[d.clave]))}</b></div>`).join('')}</div></div>`);
+    return;
+  }
   if (!ks.length || cont.querySelector('.campospers')) return;
   cont.insertAdjacentHTML('beforeend', `<div class="campospers"><h3>Campos personalizados</h3><div class="cpgrid">${ks.map(k => `<div><span class="sm">${esc(k.replace(/_/g, ' ').toLowerCase().replace(/^./, x => x.toUpperCase()))}</span><b>${esc(typeof c[k] === 'object' ? JSON.stringify(c[k]) : c[k])}</b></div>`).join('')}</div></div>`);
 }
