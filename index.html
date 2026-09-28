@@ -1529,7 +1529,7 @@ main > section.preparando::after,dialog > .preparando::after{animation:cargaApar
 #tdrutacompleta .ico{margin-right:4px}
 @media (max-width:760px){#tdrutacompleta,#tdempezar,#tdterminar{flex:1 1 100%}}
 
-/* v2.66.0 · Importar datos */
+/* v2.67.0 · Importar datos */
 .cfgnav [data-cfg] .ci{flex:none}   /* el icono no se encoge aunque la descripción sea larga */
 .impcaja{max-width:none}
 .imppasos{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 16px}
@@ -1558,7 +1558,7 @@ main > section.preparando::after,dialog > .preparando::after{animation:cargaApar
 .cpgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px}.cpgrid div{display:flex;flex-direction:column}.cpgrid b{color:var(--navy)}
 @media (max-width:760px){.impcol{grid-template-columns:1fr}.impflecha{display:none}}
 
-/* v2.66.0 · Agenda en móvil, banner de jornada, cabecera de Inicio y navegación */
+/* v2.67.0 · Agenda en móvil, banner de jornada, cabecera de Inicio y navegación */
 .tdreg-i{display:none}
 button.lnk{background:none;border:0;padding:0;color:var(--sky);font:inherit;font-weight:600;cursor:pointer;text-decoration:underline}
 body.conruta{padding-top:var(--rbh,46px)}
@@ -1588,6 +1588,21 @@ body:not(.inilisto) #v-inicio .saludo .acts{visibility:hidden}
   .tdlista .tdit .tdmas{width:42px;min-height:34px;padding:0}
   .tdlista .tdit .tdord{display:flex;gap:4px}.tdlista .tdit .tdord .kmv{width:19px;height:22px}
 }
+
+/* v2.67.0 · Selector de centros */
+.cenpick{margin-top:4px}
+.cpcard{display:flex;flex-direction:column;gap:3px;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:#F6FAFD}
+.cpcab{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.cpcab b{color:var(--navy)}
+.cpres{display:flex;flex-direction:column;gap:4px;margin-top:6px;max-height:280px;overflow:auto}
+.cpitem{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:#fff;cursor:pointer;font:inherit}
+.cpitem:hover{border-color:var(--sky)}.cpitem b{color:var(--navy)}
+.cpitem.cpnuevo{color:var(--sky);font-weight:600;border-style:dashed}
+.cpaviso{color:var(--navy);font-weight:600;padding:2px}
+.cpform{padding:12px 14px;border:1px solid var(--sky);border-radius:14px;background:#fff}
+.cpformcab{display:flex;flex-direction:column;gap:2px;margin-bottom:6px}.cpformcab b{color:var(--navy)}
+.cpubi{margin:8px 0}
+.cphor{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px;margin-bottom:6px}
+.cphor div{display:flex;flex-direction:column}.cphor span{font-size:12px;color:var(--muted)}
 </style>
 </head>
 <body>
@@ -1722,6 +1737,6 @@ body:not(.inilisto) #v-inicio .saludo .acts{visibility:hidden}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.66.0"></script>
+<script src="./app.js?v=2.67.0"></script>
 </body>
 </html>
