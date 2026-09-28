@@ -492,9 +492,8 @@ async function pintarFichaBase(id) {
     <div class="blk"><h3>Estado</h3>
       <div>${puedeEditar()
         ? `<select data-estado="${m.id}" style="max-width:240px">${estados().map(x => `<option ${x === m.estado_comercial ? 'selected' : ''}>${esc(x)}</option>`).join('')}</select>`
-        : `<span class="pill p-est">${esc(m.estado_comercial)}</span>`}${m.prioridad ? ' <span class="sm">· ' + esc(m.prioridad) + '</span>' : ''}</div>
+        : `<span class="pill p-est">${esc(m.estado_comercial)}</span>`}</div>
       ${m.urgente && m.urgente_motivo ? `<div class="sm" style="margin-top:6px">Urgente: ${esc(m.urgente_motivo)}</div>` : ''}
-      ${m.cuando_visitar ? `<div class="sm" style="margin-top:6px">Cuándo visitar: ${esc(m.cuando_visitar)}</div>` : ''}
       ${com.length ? `<div class="sm" style="margin-top:6px">Comercial: ${com.map(esc).join(', ')}</div>` : ''}
       ${m.telefono ? `<div class="sm" style="margin-top:6px">Teléfono: ${esc(m.telefono)}</div>` : ''}
     </div>
@@ -695,7 +694,6 @@ async function abrirEditor(id, tipo) {
       <div><label for="em">Email</label><input id="em" type="email" value="${esc(m.email || '')}"></div>
     </div>
     <label for="ect">Contacto (secretaría, teléfono, email)</label><input id="ect" value="${esc(m.contacto || '')}">
-    <label for="ecv">Cuándo visitar</label><input id="ecv" value="${esc(m.cuando_visitar || '')}" placeholder="p. ej. martes por la mañana">
     ${esCentro ? '' : `<label class="chksr"><input type="checkbox" id="esr" ${m.sin_reporting ? 'checked' : ''}><span><b>Sin reporting</b><span class="sm">Solo ${TT('visita', 's', '', 'l', 'l')} presencial: no quiere informes ni feedback. Se puede filtrar en ${esc(etiquetaContactos())} y en Analítica.</span></span></label>`}
     <label for="eno">Nota</label><textarea id="eno" rows="3">${esc(m.nota || '')}</textarea>
     ${camposHTML('medico', m.clasificadores)}
@@ -733,7 +731,7 @@ async function abrirEditor(id, tipo) {
       especialidad: esCentro ? '' : ($('ee') || {}).value || '',
       area: esCentro ? '' : ($('ea') || {}).value || '',
       telefono: $('et').value.trim(), email: $('em').value.trim(),
-      contacto: $('ect').value.trim(), cuando_visitar: $('ecv').value.trim(),
+      contacto: $('ect').value.trim(),
       nota: $('eno').value.trim(), estado_comercial: m.estado_comercial, consultas,
       sin_reporting: $('esr') ? $('esr').checked : !!m.sin_reporting
     };
@@ -14455,7 +14453,7 @@ function campoInput(c, v) {
   if (c.tipo === 'si_no') return `<select ${a}><option value=""></option><option value="true" ${val === true ? 'selected' : ''}>Sí</option><option value="false" ${val === false ? 'selected' : ''}>No</option></select>`;
   if (c.tipo === 'fecha') return `<input type="date" ${a} value="${esc(String(val))}">`;
   if (c.tipo === 'numero') return `<input type="text" inputmode="decimal" ${a} value="${esc(String(val).replace('.', ','))}">`;
-  return `<input ${a} value="${esc(String(val))}" maxlength="500">`;
+  return `<input ${a} value="${esc(String(val))}" maxlength="500" placeholder="${esc(c.descripcion || '')}">`;
 }
 function camposHTML(amb, valores) {
   const l = (CAMPOS[amb] || []).filter(c => c.en_ficha);
