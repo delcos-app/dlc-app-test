@@ -40,6 +40,26 @@ const db = window.supabase.createClient(CFG.url, CFG.anon, {
 });
 
 let PERFIL = null, TAB = 'inicio';
+
+/* v2.69.0 · Permisos por capacidad. El código pregunta qué puede hacer una persona (puede('administrar')),
+   nunca cómo se llama su rol: los roles y sus capacidades son datos de cada cliente (tablas roles y roles_capacidades). */
+const ROLKEY = 'dlc-roles';
+let ROLES_DEF = [];
+try { ROLES_DEF = JSON.parse(localStorage.getItem(ROLKEY) || '[]') || []; } catch (e) { ROLES_DEF = []; }
+const puede = c => !!(PERFIL && (PERFIL.capacidades || []).includes(c));
+const rolDef = r => ROLES_DEF.find(x => x.nombre === r) || null;
+const rolPuede = (r, c) => { const d = rolDef(r); return !!(d && (d.capacidades || []).includes(c)); };
+const rolesNombres = () => ROLES_DEF.map(x => x.nombre);
+const rolCon = c => (ROLES_DEF.find(x => (x.capacidades || []).includes(c)) || {}).nombre || '';
+const rolPorDefecto = () => (ROLES_DEF.find(x => x.por_defecto) || ROLES_DEF.find(x => !(x.capacidades || []).includes('administrar')) || {}).nombre || '';
+async function cargarRoles() {
+  const { data, error } = await db.from('roles').select('nombre,orden,color,plantilla,por_defecto,roles_capacidades(capacidad)').order('orden').order('nombre');
+  if (error || !data) return false;
+  ROLES_DEF = data.map(r => ({ nombre: r.nombre, orden: r.orden, color: r.color, plantilla: r.plantilla || {}, por_defecto: !!r.por_defecto,
+    capacidades: (r.roles_capacidades || []).map(x => x.capacidad) }));
+  try { localStorage.setItem(ROLKEY, JSON.stringify(ROLES_DEF)); } catch (e) {}
+  return true;
+}
 const F = { q: '', prov: '', muni: '', esp: '', est: '', urg: false, orden: 'nombre', pagina: 0, total: 0 };
 const PASO = 50;
 
@@ -312,7 +332,7 @@ async function abrirFicha(id, ...r) {
 // Ficha · Comercial asignado (administración) y pacientes que vienen de este prescriptor
 async function fichaComercialYPacientes(id) {
   if (FICHA_ID !== id || !$('fbody').querySelector('.fh')) return;
-  const esAdmin = PERFIL.rol === 'Administrador';
+  const esAdmin = puede('administrar');
   if (esAdmin) {
     $('fbody').insertAdjacentHTML('beforeend', `<div class="blk" id="fcomblk"><h3>Comercial asignado</h3>
       <div style="display:flex;gap:8px"><select id="fcomsel" style="flex:1"><option>Cargando…</option></select>
@@ -320,7 +340,7 @@ async function fichaComercialYPacientes(id) {
       <div class="sm" style="margin-top:6px">Las ventas nuevas se atribuyen al comercial asignado en ese momento. Las anteriores no cambian.</div></div>`);
     const [{ data: us }, { data: act }] = await Promise.all([db.rpc('usuarios_lista'), RPC_ORIG('comercial_de_medico', { p_medico: id })]);
     if (FICHA_ID !== id || !$('fcomsel')) return;
-    $('fcomsel').innerHTML = '<option value="">Sin comercial</option>' + (us || []).filter(u => u.activo && (u.rol === 'Comercial' || (act && act.id === u.id)))
+    $('fcomsel').innerHTML = '<option value="">Sin comercial</option>' + (us || []).filter(u => u.activo && (rolPuede(u.rol, 'cartera') || (act && act.id === u.id)))
       .map(u => `<option value="${u.id}" ${act && act.id === u.id ? 'selected' : ''}>${esc(u.nombre)} · ${esc(u.rol)}</option>`).join('');
     $('fcomok').onclick = async ev => {
       ev.target.disabled = true;
@@ -384,7 +404,7 @@ async function fichaUnidades(id) {
 
 // Ficha · Acceso del médico a la plataforma (administración)
 async function fichaAcceso(id) {
-  if (PERFIL.rol !== 'Administrador' || FICHA_ID !== id || !$('fbody') || $('facceso')) return;
+  if (!puede('administrar') || FICHA_ID !== id || !$('fbody') || $('facceso')) return;
   const { data: us } = await RPC_ORIG('usuarios_resumen', {});
   const ya = (us || []).find(u => u.medico_id === id);
   $('fbody').insertAdjacentHTML('beforeend', `<div class="blk" id="facceso"><h3>Acceso a la plataforma</h3>
@@ -471,11 +491,11 @@ const HM = ['09:00-13:00', '09:30-13:30', '10:00-14:00', '08:00-15:00'];
 const HT = ['15:00-19:00', '16:00-19:00', '16:00-20:00', '17:00-20:00'];
 let FICHA_ID = null;
 
-const puedeEditar = () => PERFIL && (PERFIL.rol === 'Administrador' || ((PERFIL.areas || {}).M || 0) >= 2);
-const puedeEditarTipo = t => PERFIL && (PERFIL.rol === 'Administrador' || ((PERFIL.areas || {})[t === 'Centro' ? 'C' : 'M'] || 0) >= 2);
-const puedeCrearTipo = t => PERFIL && (PERFIL.rol === 'Administrador' || ((PERFIL.areas || {})[t === 'Centro' ? 'C' : 'M'] || 0) >= 3);
+const puedeEditar = () => PERFIL && (puede('administrar') || ((PERFIL.areas || {}).M || 0) >= 2);
+const puedeEditarTipo = t => PERFIL && (puede('administrar') || ((PERFIL.areas || {})[t === 'Centro' ? 'C' : 'M'] || 0) >= 2);
+const puedeCrearTipo = t => PERFIL && (puede('administrar') || ((PERFIL.areas || {})[t === 'Centro' ? 'C' : 'M'] || 0) >= 3);
 const puedeCrear = () => puedeCrearTipo('Persona') || puedeCrearTipo('Centro');
-const puedeRegistrar = () => PERFIL && (PERFIL.rol === 'Administrador' || ((PERFIL.areas || {}).S || 0) >= 2);
+const puedeRegistrar = () => PERFIL && (puede('administrar') || ((PERFIL.areas || {}).S || 0) >= 2);
 
 let tToast;
 function toast(msg, err) {
@@ -964,7 +984,7 @@ async function pintarAgendaBase() {
         <div class="item" style="cursor:default">
           <span class="ic" style="background:${EST_COL[c.estado]}20;color:${EST_COL[c.estado]}">${c.hora ? esc(c.hora).slice(0, 5) : '·'}</span>
           <span class="tx"><b>${c.urgente ? '<span class="pill p-urg">Urgente</span> ' : ''}${esc(c.nombre)}</b>
-            <span class="sm">${esc(c.centro_nombre || '')} · <b style="color:${EST_COL[c.estado]}">${esc(c.estado)}</b>${PERFIL.rol === 'Administrador' && c.usuario ? ' · ' + esc(c.usuario) : ''}</span></span>
+            <span class="sm">${esc(c.centro_nombre || '')} · <b style="color:${EST_COL[c.estado]}">${esc(c.estado)}</b>${puede('administrar') && c.usuario ? ' · ' + esc(c.usuario) : ''}</span></span>
           <span class="acts" style="margin:0">
             <button class="btn sec" data-cita="ficha|${c.medico_id}">Ficha</button>
             ${c.estado !== 'Visitada' ? `<button class="btn sec" data-cita="visita|${c.medico_id}">Registrar</button>
@@ -1251,8 +1271,7 @@ document.addEventListener('click', async e => {
 let CFG_SEC = 'prefs', ADM_SEC = 'usuarios', USUARIOS = [], CATS = [];
 const AREAS = [['H', 'Inicio'], ['G', 'Agenda'], ['R', 'Rutas'], ['M', 'Médicos'], ['C', 'Centros'], ['S', 'Visitas'], ['V', 'Ventas y pacientes'], ['K', 'Configuración']];
 const NIVELES = ['Sin acceso', 'Ver', 'Editar', 'Completo'];
-const ROLES = ['Administrador', 'Dirección', 'Comercial', 'Televenta', 'Solo consulta', 'Medico'];
-const puedeCatalogos = () => PERFIL && (PERFIL.rol === 'Administrador' || ((PERFIL.areas || {}).K || 0) >= 2);
+const puedeCatalogos = () => PERFIL && (puede('administrar') || ((PERFIL.areas || {}).K || 0) >= 2);
 
 /* ---------------- configuración ---------------- */
 
@@ -1434,7 +1453,7 @@ async function cargarAdmin() {
         <button class="btn sec" data-uver="${u.id}">Ver cartera</button>
         <button class="btn sec" data-ucart="${u.id}">Asignar</button>
         <button class="btn sec" data-upass="${u.id}">Contraseña</button>
-        ${puedeSuplantar() && u.id !== PERFIL.id && u.rol !== 'Administrador' && u.activo ? `<button class="btn sec" data-ucomo="${u.id}" title="Ver la plataforma exactamente como esta persona">👤 Entrar como</button>` : ''}</span></div>`).join('')}</div>`;
+        ${puedeSuplantar() && u.id !== PERFIL.id && !rolPuede(u.rol, 'administrar') && u.activo ? `<button class="btn sec" data-ucomo="${u.id}" title="Ver la plataforma exactamente como esta persona">👤 Entrar como</button>` : ''}</span></div>`).join('')}</div>`;
 
   ($('admcuerpo') || document.createElement('div')).querySelectorAll('[data-uedit]').forEach(b => b.onclick = () => editarUsuario(b.dataset.uedit));
   ($('admcuerpo') || document.createElement('div')).querySelectorAll('[data-ucart]').forEach(b => b.onclick = () => asignarCartera(b.dataset.ucart));
@@ -1475,7 +1494,7 @@ async function usuarioComisionYZona(id) {
     if ((h || []).length && $('uchist')) $('uchist').innerHTML = 'Historial: ' + h.map(x => `${esc(x.esquema)} desde ${fechaCorta(x.desde)}${x.hasta ? ' hasta ' + fechaCorta(x.hasta) : ''}`).join(' · ');
   }
   // Zona, solo para comerciales
-  if (u.rol === 'Comercial' && !$('uzonas')) {
+  if (rolPuede(u.rol, 'cartera') && !$('uzonas')) {
     const html = await bloqueZonas(u);
     const ref = $('ucomzona') || $('dbody').querySelector('.acts:last-of-type');
     if (ref && $('dlg').open) ref.insertAdjacentHTML('beforebegin', html);
@@ -1495,7 +1514,7 @@ async function usuarioComisionYZona(id) {
 // Editar usuario · Ficha de médico vinculada (usuarios con rol Medico)
 async function usuarioFichaMedico(id) {
   const u = (USUARIOS || []).find(x => x.id === id);
-  if (!u || u.rol !== 'Medico' || !$('dlg').open || $('umedw')) return;
+  if (!u || !rolPuede(u.rol, 'portal_prescriptor') || !$('dlg').open || $('umedw')) return;
   const { data: pf } = await db.from('perfiles').select('medico_id').eq('id', id).single();
   let medico = null;
   if (pf && pf.medico_id) { const { data: fm } = await db.rpc('ficha_medico', { p_id: pf.medico_id }); if (fm && fm.medico) medico = { id: fm.medico.id, nombre: fm.medico.nombre }; }
@@ -1538,7 +1557,7 @@ function pintarUsuarioBase(id) {
       <div><label for="uu">Usuario</label><input id="uu" value="${esc(u.usuario)}"></div>
     </div>
     <div class="g2">
-      <div><label for="ur">Rol</label><select id="ur">${ROLES.map(r => `<option ${r === u.rol ? 'selected' : ''}>${r}</option>`).join('')}</select></div>
+      <div><label for="ur">Rol</label><select id="ur">${rolesNombres().map(r => `<option ${r === u.rol ? 'selected' : ''}>${esc(r)}</option>`).join('')}</select></div>
       <div><label for="ua">Estado</label><select id="ua">
         <option value="1" ${u.activo ? 'selected' : ''}>Activo</option>
         <option value="0" ${u.activo ? '' : 'selected'}>Desactivado</option></select></div>
@@ -1553,15 +1572,7 @@ function pintarUsuarioBase(id) {
     </div>`;
 
   $('ur').onchange = () => {
-    const presetBase = {
-      'Administrador': { H: 3, G: 3, R: 3, M: 3, C: 3, S: 3, V: 3, L: 3, P: 3, F: 3, A: 3, E: 1, Q: 3, K: 3, U: 3 },
-      'Comercial': { H: 2, G: 2, R: 2, M: 2, C: 2, S: 2, V: 0, L: 0, P: 0, F: 0, A: 0, E: 0, Q: 0, K: 0, U: 0 },
-      'Televenta': { H: 2, G: 1, R: 1, M: 2, C: 2, S: 1, V: 3, L: 3, P: 1, F: 2, A: 1, E: 1, Q: 1, K: 0, U: 0 },
-      'Dirección': { H: 2, G: 2, R: 1, M: 1, C: 1, S: 1, V: 1, L: 1, P: 1, F: 1, A: 1, E: 1, Q: 1, K: 1, U: 0 },
-      'Solo consulta': { H: 1, G: 1, R: 1, M: 1, C: 1, S: 1, V: 1, L: 1, P: 1, F: 0, A: 1, E: 0, Q: 1, K: 0, U: 0 },
-      'Medico': { H: 1, G: 0, R: 0, M: 0, C: 0, S: 0, V: 0, L: 0, P: 0, F: 0, A: 0, E: 0, Q: 0, K: 0, U: 0 }
-    };
-    const preset = Object.assign({}, presetBase[$('ur').value] || {}, (AJUSTES.roles || {})[$('ur').value] || {});
+    const preset = Object.assign({}, (rolDef($('ur').value) || {}).plantilla || {}, (AJUSTES.roles || {})[$('ur').value] || {});
     AREAS.forEach(([k]) => { const s = $('dbody').querySelector(`[data-area="${k}"]`); if (s) s.value = String(preset[k] || 0); });
   };
 
@@ -1594,7 +1605,7 @@ function pintarUsuarioBase(id) {
 /* Nuevo usuario: la ventana base, el límite del plan y el alta de médicos, y el resumen al crear (antes eran 3 capas). */
 function nuevoUsuario(pre) {
   const act = planDe(PLAN_ACTUAL.plan), maxU = act.incluidos + (+PLAN_ACTUAL.bloques_extra || 0) * act.bloque[0];
-  const activos = (USUARIOS || []).filter(u => u.activo && u.rol !== 'Medico').length;
+  const activos = (USUARIOS || []).filter(u => u.activo && !rolPuede(u.rol, 'portal_prescriptor')).length;
   nuevoUsuarioBase();
   nuevoUsuarioPlanYMedico(pre, act, maxU, activos);
   nuevoUsuarioResumen(pre);
@@ -1614,15 +1625,15 @@ function nuevoUsuarioPlanYMedico(pre, act, maxU, activos) {
     const { data: f } = await db.rpc('ficha_medico', { p_id: m.id });
     if (f && f.medico) { if (!$('nn').value) $('nn').value = f.medico.nombre; if (!$('ne').value && f.medico.email) $('ne').value = f.medico.email; }
   } });
-  const ver = () => $('nmedw').classList.toggle('hide', $('nr').value !== 'Medico');
+  const ver = () => $('nmedw').classList.toggle('hide', !rolPuede($('nr').value, 'portal_prescriptor'));
   $('nr').addEventListener('change', ver);
-  if (pre && pre.medico) { $('nr').value = 'Medico'; $('nn').value = pre.nombre || ''; $('ne').value = pre.email || ''; ver(); }
+  if (pre && pre.medico) { $('nr').value = rolCon('portal_prescriptor'); $('nn').value = pre.nombre || ''; $('ne').value = pre.email || ''; ver(); }
   const crear = $('ncrear').onclick;
   $('ncrear').onclick = async ev => {
-    if ($('nr').value !== 'Medico' && activos >= maxU) { toast(`Tu plan ${act.nombre} permite ${maxU} usuarios. Añade un bloque en Configuración → Plan.`, true); return; }
-    if ($('nr').value === 'Medico' && !medico) { toast('Elige el médico del directorio', true); return; }
+    if (!rolPuede($('nr').value, 'portal_prescriptor') && activos >= maxU) { toast(`Tu plan ${act.nombre} permite ${maxU} usuarios. Añade un bloque en Configuración → Plan.`, true); return; }
+    if (rolPuede($('nr').value, 'portal_prescriptor') && !medico) { toast('Elige el médico del directorio', true); return; }
     await crear(ev);
-    if ($('nr').value === 'Medico' && medico && /Usuario creado/.test($('nmsg').textContent)) {
+    if (rolPuede($('nr').value, 'portal_prescriptor') && medico && /Usuario creado/.test($('nmsg').textContent)) {
       const { data: u } = await db.from('perfiles').select('id').eq('email', $('ne').value.trim()).single();
       if (u) { await db.rpc('vincular_medico', { p_usuario: u.id, p_medico: medico.id }); $('nmsg').insertAdjacentHTML('beforeend', ` Vinculado a <b>${esc(medico.nombre)}</b>.`); }
     }
@@ -1663,7 +1674,7 @@ function nuevoUsuarioBase() {
       <div><label for="ne">Correo</label><input id="ne" type="email" placeholder="nombre@empresa.com"></div>
     </div>
     <div class="g2">
-      <div><label for="nr">Rol</label><select id="nr">${ROLES.map(r => `<option ${r === 'Comercial' ? 'selected' : ''}>${r}</option>`).join('')}</select></div>
+      <div><label for="nr">Rol</label><select id="nr">${rolesNombres().map(r => `<option ${r === rolPorDefecto() ? 'selected' : ''}>${esc(r)}</option>`).join('')}</select></div>
       <div><label for="np">Contraseña temporal</label><input id="np" value="Tmp-${Math.random().toString(36).slice(2, 8)}"></div>
     </div>
     <div class="acts" style="justify-content:flex-end">
@@ -2294,8 +2305,8 @@ $('compartirBtn').addEventListener('click', compartirSemana);
 let PRODUCTOS = [], PEDIDOS = [], SIN_ATRIB = [];
 const AN = { dim: 'medico', desde: '', hasta: '', canal: '', producto: '' };
 // Crear o cambiar pedidos y pacientes: administración y televenta (el comercial solo consulta lo suyo)
-const puedeVentas = () => PERFIL && (PERFIL.rol === 'Administrador' || (((PERFIL.areas || {}).V || 0) >= 2 && PERFIL.rol === 'Televenta'));
-const veVentas = () => PERFIL && (PERFIL.rol === 'Administrador' || ((PERFIL.areas || {}).V || 0) >= 1 || PERFIL.rol === 'Comercial');
+const puedeVentas = () => PERFIL && (puede('administrar') || (((PERFIL.areas || {}).V || 0) >= 2 && puede('televenta')));
+const veVentas = () => PERFIL && (puede('administrar') || ((PERFIL.areas || {}).V || 0) >= 1 || puede('cartera'));
 
 
 /* ---------------- pedidos ---------------- */
@@ -2780,7 +2791,7 @@ async function listaRutas() {
       <span class="acts" style="margin:0">
         <button class="btn" data-ruta="${r.id}">Planificar</button>
         <button class="btn sec" data-rver="${r.id}">Ver médicos</button>
-        ${r.mia || PERFIL.rol === 'Administrador' ? `<button class="btn sec" data-redit="${r.id}">Editar</button>
+        ${r.mia || puede('administrar') ? `<button class="btn sec" data-redit="${r.id}">Editar</button>
           <button class="btn sec" data-rdup="${r.id}">Duplicar</button>
           <button class="btn sec" data-rdel="${r.id}">Eliminar</button>` : ''}</span></div>`).join('')}</div></div>`;
 
@@ -2997,7 +3008,7 @@ async function editorRuta(id) {
       ev.target.disabled = true; ev.target.textContent = 'Guardando…';
       const { error } = await db.rpc('guardar_ruta', { p: {
         id: id || null, nombre: $('rn').value.trim(), tipo: $('rt').value, desde: $('rd').value,
-        visible_para: PERFIL.rol === 'Administrador' ? '*' : '',
+        visible_para: puede('administrar') ? '*' : '',
         codigos: modo === 'lista' ? codigos : [],
         reglas: modo === 'crit' ? ($('dbody').__reglas ? $('dbody').__reglas() : {}) : null
       }});
@@ -3357,8 +3368,8 @@ async function pintarCatalogos() {
   cargando($('cfgcuerpo'), 'Cargando los clasificadores…');
   const { data } = await db.rpc('catalogos_todos');
   CATS = data || [];
-  const puedeEditar = PERFIL.rol === 'Administrador' || ((PERFIL.areas || {}).K || 0) >= 2;
-  const completo = PERFIL.rol === 'Administrador' || ((PERFIL.areas || {}).K || 0) >= 3;
+  const puedeEditar = puede('administrar') || ((PERFIL.areas || {}).K || 0) >= 2;
+  const completo = puede('administrar') || ((PERFIL.areas || {}).K || 0) >= 3;
 
   const grupos = {};
   CATS.forEach(c => (grupos[c.grupo || 'General'] = grupos[c.grupo || 'General'] || []).push(c));
@@ -3394,8 +3405,8 @@ async function pintarCatalogos() {
 
 function abrirClasificador(id) {
   const c = CATS.find(x => x.id === id); if (!c) return;
-  const puedeEditar = PERFIL.rol === 'Administrador' || ((PERFIL.areas || {}).K || 0) >= 2;
-  const completo = PERFIL.rol === 'Administrador' || ((PERFIL.areas || {}).K || 0) >= 3;
+  const puedeEditar = puede('administrar') || ((PERFIL.areas || {}).K || 0) >= 2;
+  const completo = puede('administrar') || ((PERFIL.areas || {}).K || 0) >= 3;
 
   const pinta = () => {
     $('dbody').innerHTML = `
@@ -4040,20 +4051,20 @@ let DUP_PEND = [], DUP_PARES = [], DUP_ACTUAL = null;
 
 async function cargarDuplicados() {
   const v = $('v-duplicados');
-  const puede = PERFIL.rol === 'Administrador' || ((PERFIL.areas || {}).M || 0) >= 3;
+  const permitido = puede('administrar') || ((PERFIL.areas || {}).M || 0) >= 3;
   v.innerHTML = `
     <div class="saludo"><div><h1>Duplicados</h1>
       <div class="fecha">Revisa fichas repetidas y unifícalas sin perder la lista</div></div>
       <div class="acts" style="margin:0">
         <button class="btn sec" id="dvolver">← Volver</button>
         <button class="btn sec" id="dbuscar">Volver a buscar parecidos</button></div></div>
-    ${puede ? `<div class="dupgrid">
+    ${permitido ? `<div class="dupgrid">
       <div><div class="card" id="dpendc"></div><div class="card" id="dparc"></div></div>
       <div class="card dupcmp" id="dcmp"><div class="vacio">Pulsa <b>Comparar</b> en una pareja para revisarla aquí.
         La lista sigue a la izquierda: al terminar, pasas a la siguiente.</div></div>
     </div>` : '<div class="card"><div class="vacio">Solo administración puede unificar fichas.</div></div>'}`;
   $('dvolver').onclick = () => ir(TAB_ANTERIOR && TAB_ANTERIOR !== 'duplicados' ? TAB_ANTERIOR : 'directorio');
-  if (!puede) { $('dbuscar').classList.add('hide'); return; }
+  if (!permitido) { $('dbuscar').classList.add('hide'); return; }
   $('dbuscar').onclick = () => { invalidarCache(); listasDuplicados(); };
   listasDuplicados();
 }
@@ -4366,7 +4377,7 @@ function mostrarApp(perfil) {
   $('hola').textContent = (h < 13 ? 'Buenos días' : h < 20 ? 'Buenas tardes' : 'Buenas noches') + ', ' + String(p.nombre).split(' ')[0];
   $('hoyfecha').textContent = fechaLarga(new Date()).replace(/^./, c => c.toUpperCase());
   $('nuevoBtn').classList.toggle('hide', !puedeCrear());
-  $('dupBtn').classList.toggle('hide', p.rol !== 'Administrador');
+  $('dupBtn').classList.toggle('hide', !puede('administrar'));
   document.querySelectorAll('#nav [data-t="ventas"], #nav [data-t="pacientes"], #nav [data-t="productos"]').forEach(b => b.classList.toggle('hide', !veVentas()));
   if (!APP_VISIBLE) {
     APP_VISIBLE = true;
@@ -4391,8 +4402,8 @@ function mostrarApp(perfil) {
   aplicarPermisosMenu();
 
   // 6. Médicos con acceso: solo ven su informe
-  document.body.classList.toggle('modo-medico', p.rol === 'Medico');
-  if (p.rol === 'Medico') {
+  document.body.classList.toggle('modo-medico', puede('portal_prescriptor'));
+  if (puede('portal_prescriptor')) {
     document.querySelectorAll('nav.main [data-t]').forEach(b => b.classList.add('hide'));
     let bi = document.querySelector('nav.main [data-t="informe"]');
     if (!bi) { document.querySelector('nav.main .in').insertAdjacentHTML('afterbegin', '<button data-t="informe" aria-selected="true">Mi informe</button>'); bi = document.querySelector('nav.main [data-t="informe"]'); }
@@ -4406,14 +4417,14 @@ function mostrarApp(perfil) {
   // 7. Menú de usuario y marca de la empresa
   document.querySelectorAll('[data-u="adm"]').forEach(b => b.classList.add('hide'));
   aplicarMarca();
-  const admin = p.rol === 'Administrador';
+  const admin = puede('administrar');
   const pl = document.querySelector('[data-u="plan"]'); if (pl) pl.classList.toggle('hide', !admin);
   const em = document.querySelector('[data-u="empresa"]'); if (em) em.classList.toggle('hide', !admin);
 
   // 8. Notificaciones, módulo de inicio preferido y resumen del día
   setTimeout(refrescarCampana, 800);
   if (primera && pref.inicio && pref.inicio !== 'inicio' && puedeModulo(pref.inicio)) setTimeout(() => ir(pref.inicio), 50);
-  if (p.rol !== 'Medico') setTimeout(() => Promise.resolve(RPC_ORIG('avisos_del_dia', {})).then(r => { if (r && r.data && r.data.nuevo) refrescarCampana(); }, () => {}), 1500);
+  if (!puede('portal_prescriptor')) setTimeout(() => Promise.resolve(RPC_ORIG('avisos_del_dia', {})).then(r => { if (r && r.data && r.data.nuevo) refrescarCampana(); }, () => {}), 1500);
 
   // 9. Traducción, iconos y orden del menú
   if (MAPA_I18N) traducir(document.body);
@@ -4434,7 +4445,9 @@ async function arrancar() {
   marca('inicio del arranque');
   let guardado = null;
   try { guardado = JSON.parse(localStorage.getItem(PKEY) || 'null'); } catch (e) {}
-  if (guardado && localStorage.getItem('dlc-os-sesion') && !APP_VISIBLE) {
+  // v2.69.0: el perfil guardado solo sirve si ya trae sus capacidades y están los roles (si no, se espera al de la red)
+  if (guardado && !Array.isArray(guardado.capacidades)) guardado = null;
+  if (guardado && ROLES_DEF.length && localStorage.getItem('dlc-os-sesion') && !APP_VISIBLE) {
     mostrarApp(guardado);
     marca('app visible con el perfil guardado');
   }
@@ -4443,11 +4456,12 @@ async function arrancar() {
   marca('sesión comprobada');
   if (!session) { localStorage.removeItem(PKEY); mostrarLogin(); return; }
 
-  let { data: perfil, error } = await db.from('perfiles').select('*').eq('id', session.user.id).single();
+  const rolesListos = cargarRoles().catch(() => false);
+  let { data: perfil, error } = await db.from('perfiles').select('*,capacidades').eq('id', session.user.id).single();
   // Un fallo de conexión no cierra la sesión: se reintenta y, si sigue fallando, se entra con el perfil guardado
   for (let i = 0; i < 2 && error && error.code !== 'PGRST116'; i++) {
     await new Promise(r => setTimeout(r, 1500));
-    ({ data: perfil, error } = await db.from('perfiles').select('*').eq('id', session.user.id).single());
+    ({ data: perfil, error } = await db.from('perfiles').select('*,capacidades').eq('id', session.user.id).single());
   }
   if (error && error.code !== 'PGRST116' && guardado) { perfil = guardado; error = null; }
   marca('perfil recibido');
@@ -4459,6 +4473,7 @@ async function arrancar() {
     return;
   }
   try { localStorage.setItem(PKEY, JSON.stringify(perfil)); } catch (e) {}
+  if (!(await rolesListos) && !ROLES_DEF.length) await cargarRoles().catch(() => false);
   const cambio = !guardado || JSON.stringify(guardado) !== JSON.stringify(perfil);
   if (!APP_VISIBLE) mostrarApp(perfil);
   else if (cambio) { mostrarApp(perfil); if (TAB === 'inicio') cargarInicio(); }
@@ -4584,7 +4599,7 @@ async function pintarInicioBase() {
   const sec = $('v-inicio');
   sec.classList.remove('ini-cargando');
   if (!$('inialerta')) sec.querySelector('.saludo').insertAdjacentHTML('afterend', '<div id="inialerta"></div>');
-  const esAdmin = PERFIL.rol === 'Administrador';
+  const esAdmin = puede('administrar');
   const cfg = kpiConfig().filter(x => x.on);
 
   // Cada bloque se pinta en cuanto llegan sus datos; mientras, se ve su esqueleto.
@@ -4880,15 +4895,15 @@ async function pedidoFacturas(id) {
 
 // Ver pedido · Operativa: pago, paquete, emails
 async function pedidoOperativa(id) {
-  if (!$('dlg').open || !(VE_TODO() || PERFIL.rol === 'Administrador')) return;
+  if (!$('dlg').open || !(VE_TODO() || puede('administrar'))) return;
   const { data } = await RPC_ORIG('pedido_detalle', { p_id: id });
   const p = data && data.pedido; if (!p || p.estado !== 'Confirmado' || $('pdops')) return;
   await cargarAjustes();
   const cli = data.contacto || {}, total = +((data.totales || {}).total || 0);
-  const puede = VE_TODO() && nivelDe2('V') >= 2;
+  const permitido = VE_TODO() && nivelDe2('V') >= 2;
   const acts = $('dbody').querySelector('.acts:last-of-type');
   acts.insertAdjacentHTML('beforebegin', `<div class="blk" id="pdops"><h3>Operativa</h3>
-    ${OPS.map(([k, t]) => `<label class="opchk ${opHecho(p, k) ? 'on' : ''}"><input type="checkbox" data-op="${k}" ${opHecho(p, k) ? 'checked' : ''} ${puede ? '' : 'disabled'}>
+    ${OPS.map(([k, t]) => `<label class="opchk ${opHecho(p, k) ? 'on' : ''}"><input type="checkbox" data-op="${k}" ${opHecho(p, k) ? 'checked' : ''} ${permitido ? '' : 'disabled'}>
       <span>${esc(t)}${k === 'pago' && p.forma_pago ? ` <span class="sm">· ${esc(p.forma_pago)}${/reembolso/i.test(p.forma_pago) ? ' (se cobra al entregar)' : ''}</span>` : ''}</span></label>`).join('')}
     <div class="acts" style="margin:6px 0 0">
       ${cli.email ? `<a class="btn sec" id="pdmailpago" data-ped="${id}" href="mailto:${esc(cli.email)}?subject=${encodeURIComponent('Datos para el pago de tu pedido ' + (p.numero || ''))}&body=${encodeURIComponent(textoEmailPago(p, total, cli.nombre))}">✉️ Preparar email con los datos de pago</a>` : '<span class="sm">El cliente no tiene email en su ficha.</span>'}
@@ -4991,12 +5006,12 @@ async function fichaPaciente(id) {
   if (!data || !data.contacto) { $('fbody').innerHTML = '<div class="vacio">No se ha encontrado el paciente.</div>'; return; }
   const c = data.contacto, m = data.medico, ped = data.pedidos || [];
   const validos = ped.filter(p => p.estado !== 'Anulado' && p.estado !== 'Borrador');
-  const puede = puedeVentas();
+  const permitido = puedeVentas();
 
   $('fbody').innerHTML = `
     <div class="fh"><div><h2>${esc(c.nombre)}</h2><div class="sm">Paciente${c.nif ? ' · NIF ' + esc(c.nif) : ''}</div></div>
       <button class="x" id="fpx" aria-label="Cerrar">✕</button></div>
-    ${puede ? `<div class="acts"><button class="btn" id="fpnped">+ Nuevo pedido</button>
+    ${permitido ? `<div class="acts"><button class="btn" id="fpnped">+ Nuevo pedido</button>
       <button class="btn sec" id="fpedit">Editar datos</button></div>` : ''}
     <div class="kpis" style="margin:10px 0 0;grid-template-columns:repeat(3,1fr)">
       <div class="kpi"><b>${num(validos.length)}</b><span>pedidos</span></div>
@@ -5007,7 +5022,7 @@ async function fichaPaciente(id) {
           <span class="sm"> · código ${esc(m.codigo)}${m.especialidad ? ' · ' + esc(m.especialidad) : ''}</span></div>
         <div class="sm">${m.comercial ? 'Comercial: ' + esc(m.comercial) : 'Sin comercial asignado'}</div>`
         : '<div class="sm">Sin médico asignado. Las unidades de este paciente no se atribuyen a nadie hasta que lo asignes.</div>'}
-      ${puede ? `<label>${m ? 'Cambiar de médico' : 'Asignar médico'}</label><div id="fpsel"></div>
+      ${permitido ? `<label>${m ? 'Cambiar de médico' : 'Asignar médico'}</label><div id="fpsel"></div>
         ${m ? '<div class="acts"><button class="btn sec" id="fpmedquitar">Quitar médico</button></div>' : ''}` : ''}
     </div>
     <div class="blk"><h3>Contacto</h3>
@@ -5041,7 +5056,7 @@ async function fichaPaciente(id) {
 
 
 function editorProducto(p) {
-  const esAdmin = PERFIL.rol === 'Administrador';
+  const esAdmin = puede('administrar');
   p = p || { iva: 10, activo: true, unidades_envase: 1 };
   const ro = esAdmin ? '' : 'disabled';
   $('dbody').innerHTML = `
@@ -5200,7 +5215,7 @@ ANCLAS_AYUDA.push(['#agsug > h2', 'agenda']);
    cambios sin guardar y protección de datos
    ============================================================ */
 
-const VE_TODO = () => PERFIL && ['Administrador', 'Dirección', 'Televenta'].includes(PERFIL.rol);
+const VE_TODO = () => puede('ver_todo');
 
 /* ---------------- fechas y horas: todo el campo abre el selector ---------------- */
 
@@ -5525,7 +5540,7 @@ let COMS = [];
 async function cargarComerciales() {
   const { data } = await db.from('perfiles').select('id,nombre,rol,activo').order('nombre');
   // Solo quien lleva cartera o agenda comercial (no Dirección, Solo consulta ni médicos)
-  COMS = (data || []).filter(u => u.activo && !['Medico', 'Dirección', 'Solo consulta'].includes(u.rol));
+  COMS = (data || []).filter(u => u.activo && rolPuede(u.rol, 'equipo_comercial'));
   $('fcom').innerHTML = '<option value="">Todos</option><option value="ninguno">Sin comercial</option>' +
     COMS.map(u => `<option value="${u.id}" ${F.com === u.id ? 'selected' : ''}>${esc(u.nombre)}</option>`).join('');
 }
@@ -5582,7 +5597,7 @@ function aplicarFiltroGuardado(f) {
 
 abrirEditor = (orig => async function (id, tipo) {
   await orig(id, tipo);
-  if (!id || PERFIL.rol !== 'Administrador' || !$('eguardar')) return;
+  if (!id || !puede('administrar') || !$('eguardar')) return;
   const acts = $('eguardar').closest('.acts');
   acts.insertAdjacentHTML('beforebegin', `<label for="ecom">Comercial asignado</label>
     <select id="ecom"><option>Cargando…</option></select>
@@ -5590,7 +5605,7 @@ abrirEditor = (orig => async function (id, tipo) {
   if (!COMS.length) await cargarComerciales();
   const { data: act } = await RPC_ORIG('comercial_de_medico', { p_medico: id });
   const antes = act ? act.id : '';
-  $('ecom').innerHTML = '<option value="">Sin comercial</option>' + COMS.filter(u => u.rol === 'Comercial' || u.id === antes).map(u =>
+  $('ecom').innerHTML = '<option value="">Sin comercial</option>' + COMS.filter(u => rolPuede(u.rol, 'cartera') || u.id === antes).map(u =>
     `<option value="${u.id}" ${u.id === antes ? 'selected' : ''}>${esc(u.nombre)} · ${esc(u.rol)}</option>`).join('');
   $('eguardar').addEventListener('click', async () => {
     const ahora = $('ecom') ? $('ecom').value : antes;
@@ -6122,7 +6137,7 @@ async function pintarAuditoria() {
 function abrirKpis() {
   let D = kpiConfig().slice();
   KPI_CAT.forEach(k => { if (!D.some(x => x.id === k.id)) D.push({ id: k.id, on: false, t: '' }); });
-  const esAdmin = PERFIL.rol === 'Administrador';
+  const esAdmin = puede('administrar');
   const pinta = () => {
     $('dbody').innerHTML = `
       <div class="fh"><div><h2>Indicadores de Inicio</h2>
@@ -6561,7 +6576,7 @@ function pintarFranjaPruebas() {
     f.innerHTML = '<b>ENTORNO DE PRUEBAS SIN CONFIGURAR</b> · Falta pegar la Project URL y la clave anon de pruebas en config.js';
     return;
   }
-  const admin = PERFIL && PERFIL.rol === 'Administrador';
+  const admin = PERFIL && puede('administrar');
   f.innerHTML = `<span><b>ENTORNO DE PRUEBAS</b> · Nada de lo que hagas aquí afecta a los datos reales
       <button class="ai" data-ayuda="pruebas" aria-label="Qué es el entorno de pruebas">i</button>
       <span class="prpunto" id="prpunto"></span></span>
@@ -6902,7 +6917,7 @@ function prefsActivas() { return (TAB === 'agenda' && AG_VISTA && AG_VISTA.prefe
 function agUid() { return AG_VISTA ? AG_VISTA.id : PERFIL.id; }
 function agUsuarioFiltro() {
   if (TAB === 'agenda' && AG_VISTA) return AG_VISTA.id;
-  return PERFIL.rol === 'Administrador' ? null : PERFIL.id;
+  return puede('administrar') ? null : PERFIL.id;
 }
 
 async function verAgendaDe(id) {
@@ -7173,7 +7188,7 @@ async function guardarBorradorSemana(btn) {
 
 async function pintarEquipo() {
   $('agcuerpo').innerHTML = `<div class="semhead"><h2 style="padding:0">Equipo y cumplimiento</h2>
-      ${PERFIL.rol === 'Administrador' ? '<button class="btn sec" id="eqfrec">⚙ Frecuencia objetivo</button>' : ''}</div>
+      ${puede('administrar') ? '<button class="btn sec" id="eqfrec">⚙ Frecuencia objetivo</button>' : ''}</div>
     <div class="filtros" style="border:0;padding:4px 16px 10px"><div id="eqper"></div></div>
     <div id="eqtabla"></div>`;
   if ($('agpend')) $('agpend').innerHTML = '';
@@ -7413,8 +7428,8 @@ function editorDato(v, alGuardar) {
 abrirClasificador = (orig => function (id) {
   orig(id);
   const c = CATS.find(x => x.id === id);
-  const puede = PERFIL.rol === 'Administrador' || ((PERFIL.areas || {}).K || 0) >= 2;
-  if (!c || !puede || !['visita'].includes(c.ambito) && c.clave !== 'RESULTADO') return;
+  const permitido = puede('administrar') || ((PERFIL.areas || {}).K || 0) >= 2;
+  if (!c || !permitido || !['visita'].includes(c.ambito) && c.clave !== 'RESULTADO') return;
   // Cada vez que se repinta la ventana, se añaden los botones de dato
   const decorar = () => {
     const items = $('dbody').querySelectorAll('.lista > .item');
@@ -7619,7 +7634,7 @@ function pintarBnav() {
 
 const SKEY = 'dlc-suplantador';
 const suplantando = () => { try { return JSON.parse(localStorage.getItem(SKEY) || 'null'); } catch (e) { return null; } };
-const puedeSuplantar = () => PERFIL && (PERFIL.rol === 'Administrador' || ((PERFIL.areas || {}).U || 0) >= 3) && !suplantando();
+const puedeSuplantar = () => PERFIL && (puede('administrar') || ((PERFIL.areas || {}).U || 0) >= 3) && !suplantando();
 
 function limpiarDatosLocales() {
   try { Object.keys(localStorage).filter(k => /^dlc-(rc-|perfil|jornada-)/.test(k)).forEach(k => localStorage.removeItem(k)); } catch (e) {}
@@ -7682,7 +7697,7 @@ AREAS.push(['U', 'Entrar como otro usuario']);
 /* ---------------- manual de uso ---------------- */
 
 const NIVEL_TXT = ['Sin acceso', 'Ver', 'Editar', 'Completo'];
-const nivelDe = a => PERFIL.rol === 'Administrador' ? 3 : ((PERFIL.areas || {})[a] || 0);
+const nivelDe = a => puede('administrar') ? 3 : ((PERFIL.areas || {})[a] || 0);
 
 const MANUAL = [
   { id: 'inicio', t: 'Inicio', a: 'H', para: 'El resumen de tu día y de tu semana: indicadores, alertas, tu agenda de hoy y lo que conviene hacer.',
@@ -7753,7 +7768,7 @@ async function editorReglasCartera() {
 pintarEquipo = (orig => async function () {
   await orig();
   const h = $('agcuerpo').querySelector('.semhead');
-  if (h && PERFIL.rol === 'Administrador' && !$('eqcart')) {
+  if (h && puede('administrar') && !$('eqcart')) {
     h.insertAdjacentHTML('beforeend', '<button class="btn sec" id="eqcart">⚙ Reglas de cartera</button>');
     $('eqcart').onclick = editorReglasCartera;
   }
@@ -7803,7 +7818,7 @@ citaRepetida = (orig => async function (medicoId, fecha) {
 
 let PSEC = 'productos';
 async function cargarProductosModulo() {
-  const esAdmin = PERFIL.rol === 'Administrador';
+  const esAdmin = puede('administrar');
   vaciarModulos('v-productos');
   $('v-productos').innerHTML = `
     <div class="saludo"><div><h1>Productos</h1><div class="fecha">Catálogo de productos y servicios, con precios sin IVA y con IVA</div></div>
@@ -7817,7 +7832,7 @@ async function cargarProductosModulo() {
 }
 
 async function pintarProductos() {
-  const esAdmin = PERFIL.rol === 'Administrador';
+  const esAdmin = puede('administrar');
   cargando($('vcuerpo'), 'Cargando productos…');
   const { data } = await RPC_ORIG('productos_lista', { p_todos: esAdmin });
   const l = (data || []).filter(p => (p.tipo || 'producto') === 'producto');
@@ -7836,7 +7851,7 @@ async function pintarProductos() {
 }
 
 async function pintarServicios() {
-  const esAdmin = PERFIL.rol === 'Administrador';
+  const esAdmin = puede('administrar');
   cargando($('vcuerpo'), 'Cargando servicios…');
   const { data } = await RPC_ORIG('productos_lista', { p_todos: esAdmin });
   const l = (data || []).filter(p => p.tipo === 'servicio');
@@ -7854,7 +7869,7 @@ async function pintarServicios() {
 }
 
 function editorServicio(s) {
-  const esAdmin = PERFIL.rol === 'Administrador';
+  const esAdmin = puede('administrar');
   s = s || { iva: 21, activo: true };
   const ro = esAdmin ? '' : 'disabled';
   $('dbody').innerHTML = `
@@ -8175,7 +8190,7 @@ AYUDA.analitica[2].unshift('<b>Resumen</b>: indicadores con la comparación fren
 
 Object.assign(RPC_TTL, { stock_resumen: 30, compras_lista: 30, proveedores_lista: 60, almacenes_lista: 60, alertas_stock: 60 });
 
-const puedeCompras = () => PERFIL && (PERFIL.rol === 'Administrador' || ((PERFIL.areas || {}).V || 0) >= 3);
+const puedeCompras = () => PERFIL && (puede('administrar') || ((PERFIL.areas || {}).V || 0) >= 3);
 let PEDSEC = 'ventas', PROVEEDORES = [], ALMACENES = [];
 async function cargarProveedores() { const { data } = await db.rpc('proveedores_lista'); PROVEEDORES = data || []; }
 async function cargarAlmacenes() { const { data } = await db.rpc('almacenes_lista'); ALMACENES = data || []; }
@@ -8581,7 +8596,7 @@ MANUAL.forEach(s => { if (s.id === 'ventas') { s.t = 'Pedidos, Clientes y Produc
 
 Object.assign(RPC_TTL, { facturas_lista: 20, series_lista: 60, eventos_facturacion_lista: 20 });
 let FSEC = 'facturas';
-const puedeFacturar = () => PERFIL && (PERFIL.rol === 'Administrador' || (VE_TODO() && ((PERFIL.areas || {}).V || 0) >= 2));
+const puedeFacturar = () => PERFIL && (puede('administrar') || (VE_TODO() && ((PERFIL.areas || {}).V || 0) >= 2));
 const pillCobro = e => `<span class="pill ${e === 'Cobrada' ? 'p-est' : e === 'Vencida' ? 'p-anu' : 'p-bor'}">${esc(e)}</span>`;
 
 /* ---------------- navegación ---------------- */
@@ -8590,7 +8605,7 @@ const pillCobro = e => `<span class="pill ${e === 'Cobrada' ? 'p-est' : e === 'V
 /* ---------------- módulo ---------------- */
 
 async function cargarFacturacion() {
-  const admin = PERFIL.rol === 'Administrador';
+  const admin = puede('administrar');
   const secs = [['facturas', 'Facturas'], ['series', 'Series y numeración']].concat(admin ? [['empresa', 'Datos fiscales'], ['verifactu', 'VeriFactu'], ['registro', 'Registro']] : []);
   if (!secs.some(s => s[0] === FSEC)) FSEC = 'facturas';
   $('v-facturacion').innerHTML = `
@@ -8703,7 +8718,7 @@ async function verFacturaBase(id) {
     <div class="blk"><h3>Cobros</h3>
       ${cob.length ? cob.map(c => `<div class="sm" style="display:flex;justify-content:space-between;gap:8px;padding:4px 0">
         <span>${fechaCorta(c.fecha)} · ${esc(c.forma_pago || '')}${c.nota ? ' · ' + esc(c.nota) : ''}</span><b>${eurI(c.importe)}</b>
-        ${PERFIL.rol === 'Administrador' ? `<button class="kcfg" data-bcob="${c.id}">Quitar</button>` : ''}</div>`).join('') : '<div class="sm">Sin cobros registrados.</div>'}
+        ${puede('administrar') ? `<button class="kcfg" data-bcob="${c.id}">Quitar</button>` : ''}</div>`).join('') : '<div class="sm">Sin cobros registrados.</div>'}
       ${pendiente ? `<div class="sm" style="margin-top:4px">Pendiente: <b>${eurI(pendiente)}</b></div>` : ''}</div>
     ${f.huella ? `<div class="blk"><h3>Registro de facturación</h3><div class="sm mono">Huella: ${esc(f.huella.slice(0, 32))}…</div>
       <div class="sm">VeriFactu: ${esc((f.verifactu || {}).estado || 'No aplica')}</div></div>` : ''}
@@ -8824,7 +8839,7 @@ function imprimirFactura(f, vf, rectificaNum) {
 async function pintarSeries() {
   cargando($('fcuerpo'), 'Cargando series…');
   const { data } = await RPC_ORIG('series_lista', {});
-  const l = data || [], admin = PERFIL.rol === 'Administrador';
+  const l = data || [], admin = puede('administrar');
   $('fcuerpo').innerHTML = `<div class="panel">
     <div class="cuenta">Cada serie numera sus facturas de forma correlativa. Para continuar la numeración de otro programa, pon en «Siguiente número» el que toca.
       ${admin ? '<button class="btn sec" id="sernueva" style="margin-left:8px">+ Nueva serie</button>' : ''}</div>
@@ -8840,7 +8855,7 @@ async function pintarSeries() {
 }
 
 function editorSerie(s) {
-  const admin = PERFIL.rol === 'Administrador', ro = admin ? '' : 'disabled';
+  const admin = puede('administrar'), ro = admin ? '' : 'disabled';
   s = s || { codigo: '', nombre: '', tipo: 'ordinaria', formato: '{S}{AA}{NNNN}', siguiente: 1, anio: +hoyISO().slice(0, 4), reinicio_anual: true };
   $('dbody').innerHTML = `
     <div class="fh"><div><h2>${s.id ? 'Serie ' + esc(s.codigo) : 'Nueva serie'}</h2><div class="sm">Próximo número: <b id="serprev"></b></div></div>
@@ -9086,7 +9101,7 @@ Object.assign(RPC_TTL, { operativa_pendiente: 20, llamadas_lista: 20, llamadas_r
   AREAS.splice(i + 1, 0, ['L', 'Clientes'], ['P', 'Productos y stock'], ['F', 'Facturación'], ['A', 'Analítica'],
     ['E', 'Importes de ventas'], ['Q', 'Calidad del dato']);
 })();
-const nivelDe2 = a => !PERFIL ? 0 : PERFIL.rol === 'Administrador' ? 3 : +((PERFIL.areas || {})[a] || 0);
+const nivelDe2 = a => !PERFIL ? 0 : puede('administrar') ? 3 : +((PERFIL.areas || {})[a] || 0);
 const verImportes = () => nivelDe2('E') >= 1;
 
 // Qué permiso abre cada módulo
@@ -9142,7 +9157,7 @@ const KPI_CATEGORIA = {
 const KPI_PERMISO = { importe_mes: ['E', 1], borradores: ['V', 1], dups: ['Q', 1], sin_horario: ['M', 1] };
 function kpiPermitido(c) {
   if (!c) return false;
-  if (c.admin && PERFIL.rol !== 'Administrador') return false;
+  if (c.admin && !puede('administrar')) return false;
   const r = KPI_PERMISO[c.id];
   return !r || nivelDe2(r[0]) >= r[1];
 }
@@ -9541,10 +9556,10 @@ pintarEmpresa = (orig => async function () {
 const ICONOS_MANUAL = { roles: '👥', inicio: '🏠', agenda: '📅', rutas: '🧭', directorio: '🩺', centros: '🏥', visitas: '📝', ventas: '🛒',
   config: '⚙️', admin: '🛡️', facturacion: '🧾', permisos: '🔐' };
 const PRIMEROS_PASOS = {
-  Comercial: [['📍', 'Configura tu punto de salida', 'Configuración → Preferencias. Con él se calculan las horas de tus rutas.', 'config'],
+  cartera: [['📍', 'Configura tu punto de salida', 'Configuración → Preferencias. Con él se calculan las horas de tus rutas.', 'config'],
     ['📅', 'Planifica tu semana', 'Agenda → Semana → «Planificar la semana». Reparte a tus médicos por días.', 'agenda'],
     ['▶', 'Empieza la jornada', 'Agenda → Tu día → «Empezar jornada» y registra cada visita al terminarla.', 'agenda']],
-  Televenta: [['🛒', 'Crea y valida pedidos', 'Pedidos → Ventas → «+ Nuevo pedido». Al validarlo sale del stock.', 'ventas'],
+  televenta: [['🛒', 'Crea y valida pedidos', 'Pedidos → Ventas → «+ Nuevo pedido». Al validarlo sale del stock.', 'ventas'],
     ['📞', 'Registra cada llamada', 'Pedidos → Llamadas. Aunque no acabe en pedido: así se ve por qué.', 'ventas'],
     ['✅', 'Cierra la operativa', 'Valida el pago, prepara el paquete y envía la factura desde el pedido.', 'ventas']],
   default: [['🏠', 'Revisa Inicio', 'Indicadores, alertas y tu semana de un vistazo.', 'inicio'],
@@ -9593,7 +9608,7 @@ async function cargarManualPaso2() {
   v.onclick = e => {
     const m = e.target.closest('[data-mira]'); if (!m) return;
     const i = [...v.querySelectorAll('.manpaso')].indexOf(m.closest('.manpaso'));
-    const pasos = PRIMEROS_PASOS[PERFIL.rol] || PRIMEROS_PASOS.default;
+    const pasos = PRIMEROS_PASOS[['cartera', 'televenta'].find(c => puede(c))] || PRIMEROS_PASOS.default;
     if (i >= 0 && pasos[i]) infoManual(null, pasos[i]);
   };
   v.querySelectorAll('.mancard').forEach(c => c.onclick = () => infoManual(c.dataset.mansec));
@@ -9613,10 +9628,10 @@ async function cargarManualPaso3() {
 
 async function cargarManualBase() {
   const v = $('v-manual');
-  const accesoTxt = s => s.a ? NIVEL_TXT[nivelDe2(s.a)] : (PERFIL.rol === 'Administrador' ? 'Completo' : '—');
-  const nivelSec = s => s.a ? nivelDe2(s.a) : (PERFIL.rol === 'Administrador' ? 3 : (s.id === 'roles' || s.id === 'permisos') ? 1 : 0);
+  const accesoTxt = s => s.a ? NIVEL_TXT[nivelDe2(s.a)] : (puede('administrar') ? 'Completo' : '—');
+  const nivelSec = s => s.a ? nivelDe2(s.a) : (puede('administrar') ? 3 : (s.id === 'roles' || s.id === 'permisos') ? 1 : 0);
   const modulos = Object.keys(MODULO_AREA).filter(puedeModulo).length;
-  const pasos = PRIMEROS_PASOS[PERFIL.rol] || PRIMEROS_PASOS.default;
+  const pasos = PRIMEROS_PASOS[['cartera', 'televenta'].find(c => puede(c))] || PRIMEROS_PASOS.default;
   v.innerHTML = `
     <div class="manhero">
       <div><h1>Manual de uso</h1><p>Todo lo que puedes hacer en la plataforma, explicado para tu perfil.</p>
@@ -9839,9 +9854,9 @@ if (EN_PRUEBAS) {
   pintarFranjaPruebas = (orig => async function () {
     orig();
     const b = $('prreset'); if (!b) return;
-    const { data: puede, error } = await RPC_ORIG('pruebas_puede_restablecer', {});
+    const { data: permitido, error } = await RPC_ORIG('pruebas_puede_restablecer', {});
     if (error) return;               // proyecto sin el ajuste: se mantiene como estaba
-    if (!puede) { b.remove(); return; }
+    if (!permitido) { b.remove(); return; }
     b.onclick = async () => {
       const txt = await pedirTexto('Se borrará todo lo creado o cambiado en pruebas y los datos quedarán como se copiaron de producción.\n\nEscribe VOLVER para confirmar.', '', { titulo: '¿Volver a los datos de partida?', ok: 'Volver a los datos de partida' });
       if (txt === null) return;
@@ -9856,7 +9871,7 @@ if (EN_PRUEBAS) {
 
 /* ---------------- espacio del médico ---------------- */
 
-const ES_MEDICO = () => PERFIL && PERFIL.rol === 'Medico';
+const ES_MEDICO = () => puede('portal_prescriptor');
 
 async function cargarInforme() {
   const v = $('v-informe');
@@ -10460,7 +10475,7 @@ async function personasEsquema(id) {
   if (!COMS.length) await cargarComerciales();
   const pinta = async () => {
     const { data } = await db.rpc('asignaciones_esquema_lista');
-    const l = (data || []).filter(x => x.esquema_id === id), hoy = hoyISO(), admin = PERFIL.rol === 'Administrador';
+    const l = (data || []).filter(x => x.esquema_id === id), hoy = hoyISO(), admin = puede('administrar');
     if (!$('esqlista')) return;
     $('esqlista').innerHTML = `${l.length ? `<div class="esqfilas">${l.map(x => {
       const est = x.vigente ? ['Vigente', 'p-est'] : x.desde > hoy ? ['Programado', 'p-per'] : ['Terminado', 'p-anu'];
@@ -10470,7 +10485,7 @@ async function personasEsquema(id) {
         ${admin && x.vigente ? `<button type="button" class="kcfg" data-efin="${x.usuario_id}">Terminar hoy</button>` : ''}
         ${admin && x.desde > hoy ? `<button type="button" class="kcfg" data-equi="${x.usuario_id}" data-edesde="${x.desde}">Anular</button>` : ''}</div>`;
     }).join('')}</div>` : '<p class="sm">Nadie cobra todavía con este esquema.</p>'}
-    ${admin ? `<div class="esqadd"><select id="eap"><option value="">Añadir persona…</option>${COMS.filter(u => ['Comercial', 'Televenta'].includes(u.rol)).map(u => `<option value="${u.id}">${esc(u.nombre)}</option>`).join('')}</select>
+    ${admin ? `<div class="esqadd"><select id="eap"><option value="">Añadir persona…</option>${COMS.filter(u => rolPuede(u.rol, 'cobrar_comision')).map(u => `<option value="${u.id}">${esc(u.nombre)}</option>`).join('')}</select>
       <select id="eadm"><option value="hoy">desde hoy</option><option value="todo">todo su histórico</option><option value="fecha">desde una fecha…</option></select>
       <span id="eadfw" class="hide"><input id="eadf" type="date" value="${hoy}"></span>
       <button type="button" class="btn sec" id="eaok">Asignar</button></div>
@@ -10633,7 +10648,7 @@ function infoManual(id, paso) {
     if ($('mangoir')) $('mangoir').onclick = () => { $('dlg').close(); if (m === 'config') CFG_SEC = 'prefs'; ir(m); };
     return;
   }
-  const n = s.a ? nivelDe2(s.a) : (PERFIL.rol === 'Administrador' ? 3 : 1);
+  const n = s.a ? nivelDe2(s.a) : (puede('administrar') ? 3 : 1);
   const ay = AYUDA[id === 'visitas' ? 'agenda' : id === 'centros' ? 'directorio' : id] || null;
   const destino = MODULO_AREA[id] || ['manual', 'config'].includes(id) ? id : null;
   const cfg = CFG_DE_MODULO[id];
@@ -10642,7 +10657,7 @@ function infoManual(id, paso) {
     ${ay && ay[2] && ay[2].length ? `<h3 class="mansub">Cómo funciona</h3><ul class="manlist">${ay[2].map(x => `<li><span>•</span><span>${x}</span></li>`).join('')}</ul>` : ''}
     ${s.config.length ? `<h3 class="mansub">Dónde se configura</h3><div class="mancfg">${s.config.map(x => `<span>⚙ ${esc(x)}</span>`).join('')}</div>` : ''}
     <div class="acts" style="justify-content:flex-end;flex-wrap:wrap;margin-top:14px"><button class="btn sec" data-cerrar>Cerrar</button>
-      ${cfg && (PERFIL.rol === 'Administrador' || ['horario', 'kpis', 'prefs'].includes(cfg)) ? `<button class="btn sec" id="manircfg">Ir a su configuración</button>` : ''}
+      ${cfg && (puede('administrar') || ['horario', 'kpis', 'prefs'].includes(cfg)) ? `<button class="btn sec" id="manircfg">Ir a su configuración</button>` : ''}
       ${destino && destino !== 'manual' && (destino === 'config' || puedeModulo(destino)) ? `<button class="btn" id="manirmod">Abrir ${esc(s.t)}</button>` : ''}</div>`;
   $('dlg').showModal();
   if ($('manirmod')) $('manirmod').onclick = () => { $('dlg').close(); ir(destino); };
@@ -10860,7 +10875,7 @@ function avisoPlan(mod) {
     <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
     <p>Está disponible desde el plan <b>${esc(p ? p.nombre : 'Premium')}</b>${p ? ` (${eurI(p.precio)}/mes, ${p.incluidos} usuarios incluidos)` : ''}.</p>
     ${p ? `<ul class="manlist">${p.ventajas.map(v => `<li><span>✓</span><span>${esc(v)}</span></li>`).join('')}</ul>` : ''}
-    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>Ahora no</button>${PERFIL.rol === 'Administrador' ? '<button class="btn" id="vplan">Ver planes</button>' : ''}</div>`;
+    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>Ahora no</button>${puede('administrar') ? '<button class="btn" id="vplan">Ver planes</button>' : ''}</div>`;
   $('dlg').showModal();
   if ($('vplan')) $('vplan').onclick = () => { $('dlg').close(); CFG_SEC = 'plan'; ir('config'); };
 }
@@ -10909,7 +10924,7 @@ async function pintarUsuarios2() {
   const { data } = await RPC_ORIG('usuarios_resumen', {});
   const todos = data || []; USUARIOS = todos.map(u => Object.assign({ medicos: u.cartera, visitas: u.visitas_mes }, u));
   const act = planDe(PLAN_ACTUAL.plan), maxU = act.incluidos + (+PLAN_ACTUAL.bloques_extra || 0) * act.bloque[0];
-  const activos = todos.filter(u => u.activo && u.rol !== 'Medico');
+  const activos = todos.filter(u => u.activo && !rolPuede(u.rol, 'portal_prescriptor'));
   const hace30 = Date.now() - 30 * 864e5;
   const inactivos = activos.filter(u => !u.ultima_actividad || new Date(u.ultima_actividad).getTime() < hace30).length;
   const porRol = {}; activos.forEach(u => porRol[u.rol] = (porRol[u.rol] || 0) + 1);
@@ -10918,14 +10933,14 @@ async function pintarUsuarios2() {
     const l = todos.filter(u => (!q || (u.nombre + ' ' + (u.email || '')).toLowerCase().includes(q)) && (!USR_F.rol || u.rol === USR_F.rol)
       && (USR_F.est === 'todos' || (USR_F.est === 'activos' ? u.activo : !u.activo)));
     $('usrl').innerHTML = l.map(u => {
-      const mods = Object.keys(MODULO_AREA).filter(m => u.rol === 'Administrador' || +((u.areas || {})[MODULO_AREA[m]] || 0) >= 1);
+      const mods = Object.keys(MODULO_AREA).filter(m => rolPuede(u.rol, 'administrar') || +((u.areas || {})[MODULO_AREA[m]] || 0) >= 1);
       const reciente = u.ultima_actividad ? new Date(u.ultima_actividad) : null;
       return `<button class="usrcard ${u.activo ? '' : 'off'}" data-usr="${u.id}">
-        <span class="usrav" style="background:${u.rol === 'Administrador' ? 'var(--grad)' : u.rol === 'Medico' ? 'linear-gradient(135deg,#0F6E4C,#12805C)' : u.rol === 'Televenta' ? 'linear-gradient(135deg,#7C3AED,#A855F7)' : 'linear-gradient(135deg,#1E6FB8,#5BB4E5)'}">${esc(iniciales(u.nombre))}</span>
+        <span class="usrav" style="background:${esc((rolDef(u.rol) || {}).color || 'linear-gradient(135deg,#1E6FB8,#5BB4E5)')}">${esc(iniciales(u.nombre))}</span>
         <span class="usrtx"><b>${esc(u.nombre)}</b><span class="sm">${esc(u.email || '')}</span>
           <span class="usrchips"><span class="pill p-est">${esc(u.rol)}</span>${u.activo ? '' : '<span class="pill p-anu">Desactivado</span>'}
-            ${u.rol === 'Medico' ? `<span class="pill p-per">${esc(u.medico || 'Sin ficha')}</span>` : `<span class="sm">${mods.length} módulos</span>`}</span></span>
-        <span class="usrdat">${u.rol !== 'Medico' ? `<span><b>${num(u.cartera)}</b> en cartera</span><span><b>${num(u.visitas_mes)}</b> visitas mes</span>` : ''}
+            ${rolPuede(u.rol, 'portal_prescriptor') ? `<span class="pill p-per">${esc(u.medico || 'Sin ficha')}</span>` : `<span class="sm">${mods.length} módulos</span>`}</span></span>
+        <span class="usrdat">${!rolPuede(u.rol, 'portal_prescriptor') ? `<span><b>${num(u.cartera)}</b> en cartera</span><span><b>${num(u.visitas_mes)}</b> visitas mes</span>` : ''}
           <span class="sm">${reciente ? 'Activo ' + fechaCorta(isoLocal(reciente)) : 'Sin actividad'}</span></span></button>`;
     }).join('') || '<div class="vacio">Nadie con estos filtros.</div>';
     $('usrl').querySelectorAll('[data-usr]').forEach(b => b.onclick = () => detalleUsuario(todos.find(u => u.id === b.dataset.usr)));
@@ -10935,10 +10950,10 @@ async function pintarUsuarios2() {
       <div class="kpi"><b>${num(activos.length)} / ${num(maxU)}</b><span>usuarios del plan ${esc(act.nombre)}</span></div>
       ${Object.entries(porRol).map(([r, n]) => `<div class="kpi"><b>${num(n)}</b><span>${esc(r)}</span></div>`).join('')}
       <div class="kpi ${inactivos ? 'warn' : 'ok'}"><b>${num(inactivos)}</b><span>sin actividad en 30 días</span></div>
-      <div class="kpi"><b>${num(todos.filter(u => u.rol === 'Medico' && u.activo).length)}</b><span>médicos con acceso</span></div></div>
+      <div class="kpi"><b>${num(todos.filter(u => rolPuede(u.rol, 'portal_prescriptor') && u.activo).length)}</b><span>médicos con acceso</span></div></div>
     <div class="card" style="padding:14px 16px">
       <div class="usrbar"><input id="usrq" type="search" placeholder="Buscar por nombre o email" value="${esc(USR_F.q)}">
-        <select id="usrrol"><option value="">Todos los roles</option>${ROLES.map(r => `<option ${USR_F.rol === r ? 'selected' : ''}>${r}</option>`).join('')}</select>
+        <select id="usrrol"><option value="">Todos los roles</option>${rolesNombres().map(r => `<option ${USR_F.rol === r ? 'selected' : ''}>${esc(r)}</option>`).join('')}</select>
         <select id="usrest"><option value="activos" ${USR_F.est === 'activos' ? 'selected' : ''}>Activos</option><option value="inactivos" ${USR_F.est === 'inactivos' ? 'selected' : ''}>Desactivados</option><option value="todos" ${USR_F.est === 'todos' ? 'selected' : ''}>Todos</option></select>
         <button class="btn" id="usrnuevo">+ Nuevo usuario</button></div>
       <div id="usrl" class="usrlista"></div></div></div>`;
@@ -10951,27 +10966,20 @@ async function pintarUsuarios2() {
 
 /* ---------------- Roles y permisos ---------------- */
 
-const ROLES_BASE = {
-  'Administrador': { H: 3, G: 3, R: 3, M: 3, C: 3, S: 3, V: 3, L: 3, P: 3, F: 3, A: 3, E: 1, Q: 3, K: 3, U: 3 },
-  'Dirección': { H: 2, G: 2, R: 1, M: 1, C: 1, S: 1, V: 1, L: 1, P: 1, F: 1, A: 1, E: 1, Q: 1, K: 1, U: 0 },
-  'Comercial': { H: 2, G: 2, R: 2, M: 2, C: 2, S: 2, V: 0, L: 0, P: 0, F: 0, A: 0, E: 0, Q: 0, K: 0, U: 0 },
-  'Televenta': { H: 2, G: 1, R: 1, M: 2, C: 2, S: 1, V: 3, L: 3, P: 1, F: 2, A: 1, E: 1, Q: 1, K: 0, U: 0 },
-  'Solo consulta': { H: 1, G: 1, R: 1, M: 1, C: 1, S: 1, V: 1, L: 1, P: 1, F: 0, A: 1, E: 0, Q: 1, K: 0, U: 0 }
-};
 const QUE_ABRE = { H: 'Inicio: indicadores, alertas y resumen', G: 'Agenda, citas y «Tu día»', R: 'Rutas y planificador', M: 'Médicos, centros y sus fichas',
   C: 'Centros y sus datos', S: 'Registro de visitas', V: 'Pedidos: ventas, compras y llamadas', L: 'Clientes (pacientes y empresas)', P: 'Productos, servicios y stock',
   F: 'Facturación, cobros y rectificativas', A: 'Analítica y rankings', E: 'Importes en euros (si no, solo unidades)', Q: 'Calidad del dato y duplicados',
   K: 'Clasificadores y listas de valores', U: 'Entrar como otra persona' };
-const plantillaRol = r => Object.assign({}, ROLES_BASE[r] || {}, (AJUSTES.roles || {})[r] || {});
+const plantillaRol = r => Object.assign({}, (rolDef(r) || {}).plantilla || {}, (AJUSTES.roles || {})[r] || {});
 async function pintarRoles() {
   await cargarAjustes();
-  const roles = Object.keys(ROLES_BASE);
+  const roles = rolesNombres().filter(r => !rolPuede(r, 'portal_prescriptor'));
   $('cfgcuerpo').innerHTML = `<div class="card cfgpanel"><h2 style="padding:0 0 4px">Roles y permisos</h2>
     <p class="sm">Cada rol tiene una plantilla de permisos que se aplica al dar de alta a una persona o al cambiarle el rol. Después se puede ajustar persona a persona en Usuarios. Los médicos con acceso solo ven su informe.</p>
     <div class="nivleg">${NIVEL_TXT.map((t, i) => `<span class="nv${i}"><b>${esc(t)}</b>${['No ve el módulo ni aparece en el menú', 'Lo ve, pero no cambia nada', 'Crea y edita lo suyo', 'Todo, incluido borrar y configurar'][i]}</span>`).join('')}</div>
     <div class="dgrid-wrap"><table class="rolmat"><thead><tr><th>Permiso</th>${roles.map(r => `<th>${esc(r)}</th>`).join('')}</tr></thead>
       <tbody>${AREAS.map(([k, n]) => `<tr><td><b>${esc(n)}</b><span class="sm">${esc(QUE_ABRE[k] || '')}</span></td>
-        ${roles.map(r => `<td><select data-rol="${esc(r)}" data-ar="${k}" class="nvsel" ${r === 'Administrador' ? 'disabled' : ''}>${NIVEL_TXT.map((t, i) => `<option value="${i}" ${+(plantillaRol(r)[k] || 0) === i ? 'selected' : ''}>${esc(t)}</option>`).join('')}</select></td>`).join('')}</tr>`).join('')}</tbody></table></div>
+        ${roles.map(r => `<td><select data-rol="${esc(r)}" data-ar="${k}" class="nvsel" ${rolPuede(r, 'administrar') ? 'disabled' : ''}>${NIVEL_TXT.map((t, i) => `<option value="${i}" ${+(plantillaRol(r)[k] || 0) === i ? 'selected' : ''}>${esc(t)}</option>`).join('')}</select></td>`).join('')}</tr>`).join('')}</tbody></table></div>
     <div class="acts" style="justify-content:flex-end;flex-wrap:wrap"><button class="btn sec" id="rolrest">Volver a los valores recomendados</button><button class="btn" id="rolok">Guardar plantillas</button></div></div>`;
   const colorea = () => $('cfgcuerpo').querySelectorAll('.nvsel').forEach(s => s.className = 'nvsel nv' + s.value);
   $('cfgcuerpo').addEventListener('change', colorea); colorea();
@@ -11024,13 +11032,13 @@ abrirMasMovil = (orig => function () {
 /* ---------------- notificaciones ---------------- */
 
 const TIPOS_NOTIF = [
-  ['pauta', '💊', 'Pautas a mi nombre', 'Cada vez que se registra una pauta con tu nombre', ['Medico']],
-  ['venta_cartera', '🛒', 'Ventas de mi cartera', 'Cuando se valida una venta de un médico que llevas', ['Comercial']],
-  ['cartera', '🩺', 'Cambios en mi cartera', 'Cuando te asignan médicos nuevos', ['Comercial']],
-  ['cruce', '🔁', 'Visitas de otros a mi cartera', 'Cuando otra persona visita a un médico que llevas', ['Comercial']],
-  ['pedido_validado', '📦', 'Pedidos validados', 'Cada pedido que se valida (menos los tuyos)', ['Administrador', 'Dirección', 'Televenta']]
+  ['pauta', '💊', 'Pautas a mi nombre', 'Cada vez que se registra una pauta con tu nombre'],
+  ['venta_cartera', '🛒', 'Ventas de mi cartera', 'Cuando se valida una venta de un médico que llevas'],
+  ['cartera', '🩺', 'Cambios en mi cartera', 'Cuando te asignan médicos nuevos'],
+  ['cruce', '🔁', 'Visitas de otros a mi cartera', 'Cuando otra persona visita a un médico que llevas'],
+  ['pedido_validado', '📦', 'Pedidos validados', 'Cada pedido que se valida (menos los tuyos)']
 ];
-const tiposDeMiRol = () => TIPOS_NOTIF.filter(t => t[4].includes(PERFIL.rol));
+const tiposDeMiRol = () => TIPOS_NOTIF.filter(t => puede('aviso_' + t[0]));
 let NOTIF_N = 0;
 async function refrescarCampana() {
   if (!PERFIL || document.body.classList.contains('sin-sesion')) return;
@@ -11268,7 +11276,7 @@ async function pintarMaterial() {
 async function pintarAlmacenes2() {
   await cargarAlmacenes(); if (!COMS.length) await cargarComerciales();
   const { data: st } = await RPC_ORIG('stock_resumen', {});
-  const sinMaletin = COMS.filter(u => u.rol === 'Comercial' && !ALMACENES.some(a => a.usuario_id === u.id));
+  const sinMaletin = COMS.filter(u => rolPuede(u.rol, 'almacen_propio') && !ALMACENES.some(a => a.usuario_id === u.id));
   $('cfgcuerpo').innerHTML = `
     <div class="card cfgpanel"><h2 style="padding:0 0 4px">Almacenes</h2>
       <p class="sm">Dónde está físicamente tu stock. Cada unidad está en un almacén y en un lote, así sabes qué hay, dónde y cuándo caduca.</p>
@@ -11279,7 +11287,7 @@ async function pintarAlmacenes2() {
         <b>${esc(a.nombre)}</b><span class="sm">${a.tipo === 'central' ? 'Almacén central' : 'Maletín de ' + esc(a.usuario || '—')}${a.activo ? '' : ' · inactivo'}</span>
         <span class="almu"><b>${num(a.unidades || 0)}</b> unidades</span></div>`).join('')}</div>
       ${sinMaletin.length ? `<div class="avisoh" style="margin-top:12px"><span>${sinMaletin.length === 1 ? esc(sinMaletin[0].nombre) + ' no tiene' : sinMaletin.length + ' comerciales no tienen'} maletín: sus muestras saldrán del almacén central.</span></div>` : ''}
-      <div class="matadd" style="margin-top:12px"><select id="almu">${COMS.filter(u => u.rol === 'Comercial').map(u => `<option value="${u.id}">${esc(u.nombre)}</option>`).join('')}</select>
+      <div class="matadd" style="margin-top:12px"><select id="almu">${COMS.filter(u => rolPuede(u.rol, 'almacen_propio')).map(u => `<option value="${u.id}">${esc(u.nombre)}</option>`).join('')}</select>
         <button class="btn sec" id="almok">Crear maletín</button></div>
       <p class="sm" style="margin-top:8px">Para pasar unidades del central a un maletín: Productos → Stock → abre el producto → «Traspasar».${Array.isArray(st) && st.length ? '' : ''}</p></div>`;
   $('almok').onclick = async () => {
@@ -11344,21 +11352,21 @@ pintarPlan2 = (orig => async function () {
 /* ---------------- notificaciones ampliadas ---------------- */
 
 TIPOS_NOTIF.push(
-  ['citas_hoy', '📅', 'Mis citas de hoy', 'Al empezar el día, cuántas citas tienes', ['Comercial', 'Administrador', 'Dirección', 'Televenta']],
-  ['sin_visitar', '⏳', 'Médicos sin visitar', 'Los lunes, médicos de tu cartera con más de 60 días sin visita', ['Comercial']],
-  ['cliente_nuevo', '🧑‍⚕️', 'Pacientes nuevos de mi cartera', 'Cuando se da de alta un cliente que viene de un médico tuyo', ['Comercial']],
-  ['pago_recibido', '💳', 'Pagos de mis pedidos', 'Cuando se valida el pago de un pedido que creaste', ['Comercial', 'Televenta', 'Administrador']],
-  ['borrador_nuevo', '✏️', 'Pedidos en borrador', 'Cuando alguien deja un pedido pendiente de validar', ['Administrador', 'Televenta']],
-  ['seguimientos_hoy', '📞', 'Llamadas de seguimiento', 'Al empezar el día, las llamadas que tocan hoy', ['Administrador', 'Televenta']],
-  ['pagos_pendientes', '⌛', 'Pagos pendientes', 'Al empezar el día, pedidos con el pago pendiente hace más de una semana', ['Administrador', 'Televenta']],
-  ['facturas_vencidas', '🧾', 'Facturas vencidas', 'Al empezar el día, facturas vencidas sin cobrar', ['Administrador', 'Dirección', 'Televenta']],
-  ['stock_minimo', '📉', 'Stock bajo', 'Cuando un producto baja de su stock mínimo', ['Administrador', 'Dirección']],
-  ['lotes_caducan', '⚠️', 'Lotes que caducan', 'Al empezar el día, lotes que caducan en 30 días', ['Administrador', 'Dirección']],
-  ['compra_recibida', '🚚', 'Mercancía recibida', 'Cuando se registra la recepción de una compra', ['Administrador', 'Dirección']],
-  ['rectificativa', '↩️', 'Facturas rectificativas', 'Cada rectificativa que se emite', ['Administrador', 'Dirección']],
-  ['duplicado', '🧩', 'Posibles duplicados', 'Cuando una ficha se marca como posible duplicado', ['Administrador']],
-  ['usuario_nuevo', '👤', 'Usuarios nuevos', 'Cuando se da de alta una persona', ['Administrador']],
-  ['esquema', '€', 'Mi comisión', 'Cuando te asignan un esquema de comisión', ['Comercial', 'Televenta', 'Dirección']]);
+  ['citas_hoy', '📅', 'Mis citas de hoy', 'Al empezar el día, cuántas citas tienes'],
+  ['sin_visitar', '⏳', 'Médicos sin visitar', 'Los lunes, médicos de tu cartera con más de 60 días sin visita'],
+  ['cliente_nuevo', '🧑‍⚕️', 'Pacientes nuevos de mi cartera', 'Cuando se da de alta un cliente que viene de un médico tuyo'],
+  ['pago_recibido', '💳', 'Pagos de mis pedidos', 'Cuando se valida el pago de un pedido que creaste'],
+  ['borrador_nuevo', '✏️', 'Pedidos en borrador', 'Cuando alguien deja un pedido pendiente de validar'],
+  ['seguimientos_hoy', '📞', 'Llamadas de seguimiento', 'Al empezar el día, las llamadas que tocan hoy'],
+  ['pagos_pendientes', '⌛', 'Pagos pendientes', 'Al empezar el día, pedidos con el pago pendiente hace más de una semana'],
+  ['facturas_vencidas', '🧾', 'Facturas vencidas', 'Al empezar el día, facturas vencidas sin cobrar'],
+  ['stock_minimo', '📉', 'Stock bajo', 'Cuando un producto baja de su stock mínimo'],
+  ['lotes_caducan', '⚠️', 'Lotes que caducan', 'Al empezar el día, lotes que caducan en 30 días'],
+  ['compra_recibida', '🚚', 'Mercancía recibida', 'Cuando se registra la recepción de una compra'],
+  ['rectificativa', '↩️', 'Facturas rectificativas', 'Cada rectificativa que se emite'],
+  ['duplicado', '🧩', 'Posibles duplicados', 'Cuando una ficha se marca como posible duplicado'],
+  ['usuario_nuevo', '👤', 'Usuarios nuevos', 'Cuando se da de alta una persona'],
+  ['esquema', '€', 'Mi comisión', 'Cuando te asignan un esquema de comisión']);
 irEnlace = (orig => function (e) {
   const [t] = String(e || '').split(':');
   if (t === 'agenda') { AG_MODO = 'dia'; AG_FECHA = hoyISO(); ir('agenda'); }
@@ -12004,7 +12012,7 @@ function botonCalidad() {
 let CFG_SUB = null;
 const fac = fn => () => { $('cfgcuerpo').innerHTML = '<div id="fcuerpo"></div>'; fn(); };
 function arbolConfig() {
-  const admin = PERFIL.rol === 'Administrador';
+  const admin = puede('administrar');
   return [
     ['Tu cuenta', [
       { k: 'perfil', ic: 'user', t: 'Mi perfil', d: 'Tus datos, idioma y qué abrir al entrar', r: pintarPerfil },
@@ -12063,7 +12071,7 @@ async function cargarConfig() {
       $('cfgcuerpo').innerHTML = `<div class="card cfgpanel planup"><div class="planupico">${svgIco(ICON_NOM.lock)}</div><h2>${esc(it.t)} está en el plan ${esc(p ? p.nombre : 'Premium')}</h2>
         <p class="sm">Tu plan ${esc(planDe(PLAN_ACTUAL.plan).nombre)} no lo incluye. ${p ? `Con ${esc(p.nombre)} (${eurI(p.precio)}/mes) tienes:` : ''}</p>
         ${p ? `<ul class="manlist">${p.ventajas.map(v => `<li><span>✓</span><span>${esc(v)}</span></li>`).join('')}</ul>` : ''}
-        ${PERFIL.rol === 'Administrador' ? '<div class="acts"><button class="btn" id="planver">Ver planes</button></div>' : ''}</div>`;
+        ${puede('administrar') ? '<div class="acts"><button class="btn" id="planver">Ver planes</button></div>' : ''}</div>`;
       if ($('planver')) $('planver').onclick = () => abrir('plan', null, true);
     } else {
       const r = it.sub ? it.sub.find(s => s[0] === CFG_SUB)[2] : it.r;
@@ -12226,8 +12234,8 @@ pintarMarca = (orig => async function () {
 function detalleUsuario(u) {
   const nombres = { inicio: 'Inicio', agenda: 'Agenda', rutas: 'Rutas', directorio: etiquetaContactos(), ventas: 'Pedidos', pacientes: 'Clientes', productos: 'Productos', facturacion: 'Facturación', analitica: 'Analítica', seguimiento: 'Calidad del dato' };
   const orden = ['inicio', 'agenda', 'rutas', 'directorio', 'ventas', 'pacientes', 'productos', 'facturacion', 'analitica', 'seguimiento'];
-  const nivel = m => u.rol === 'Administrador' ? 3 : +((u.areas || {})[MODULO_AREA[m]] || 0);
-  const importes = u.rol === 'Administrador' || +((u.areas || {}).E || 0) >= 1;
+  const nivel = m => rolPuede(u.rol, 'administrar') ? 3 : +((u.areas || {})[MODULO_AREA[m]] || 0);
+  const importes = rolPuede(u.rol, 'administrar') || +((u.areas || {}).E || 0) >= 1;
   $('dbody').innerHTML = `<div class="fh"><div class="usrcab"><span class="usrav grande">${esc(iniciales(u.nombre))}</span>
       <div><h2>${esc(u.nombre)}</h2><div class="sm">${esc(u.email || '')}</div>
         <div class="usrchips"><span class="pill p-est">${esc(u.rol)}</span>${u.activo ? '' : '<span class="pill p-anu">Desactivado</span>'}</div></div></div>
@@ -12236,15 +12244,15 @@ function detalleUsuario(u) {
       <div class="permtabla">${orden.filter(m => m in MODULO_AREA).map(m => { const n = nivel(m); return `<div class="permfila ${n ? '' : 'no'}">
         <span class="permmod">${svgIco(ICON_NOM[n ? 'check' : 'minus'])}${esc(nombres[m])}</span><span class="permniv nv${n}">${esc(NIVEL_TXT[n])}</span></div>`; }).join('')}</div>
       <div class="sm" style="margin-top:8px">${importes ? 'Ve los importes de las ventas.' : 'En ventas solo ve unidades, no importes.'}</div></div>
-    <div class="blk"><h3>Actividad</h3>${u.rol === 'Medico' ? `<p class="sm">Vinculado a <b>${esc(u.medico || 'ninguna ficha')}</b>.</p>` : `
+    <div class="blk"><h3>Actividad</h3>${rolPuede(u.rol, 'portal_prescriptor') ? `<p class="sm">Vinculado a <b>${esc(u.medico || 'ninguna ficha')}</b>.</p>` : `
       <div class="uper" style="grid-template-columns:repeat(2,1fr)"><div><b>${num(u.cartera)}</b><span>en cartera</span></div><div><b>${num(u.visitas_mes)}</b><span>visitas este mes</span></div></div>
       ${u.zonas && u.zonas.length ? `<div class="sm">Zona: ${esc(u.zonas.map(z => z.charAt(0) + z.slice(1).toLowerCase()).join(', '))}</div>` : ''}`}
       <div class="sm" style="margin-top:6px">Última actividad: ${u.ultima_actividad ? new Date(u.ultima_actividad).toLocaleString('es-ES', { dateStyle: 'medium', timeStyle: 'short' }) : 'ninguna registrada'}</div></div>
     <div class="usracc">
       <button class="btn" data-uacc="editar">✏️ Editar rol, permisos y zona</button>
-      ${u.rol !== 'Medico' ? '<button class="btn sec" data-uacc="cartera">🩺 Asignar cartera</button>' : ''}
+      ${!rolPuede(u.rol, 'portal_prescriptor') ? '<button class="btn sec" data-uacc="cartera">🩺 Asignar cartera</button>' : ''}
       <button class="btn sec" data-uacc="pass">🔑 Enviar cambio de contraseña</button>
-      ${typeof puedeSuplantar === 'function' && puedeSuplantar() && u.id !== PERFIL.id && u.rol !== 'Administrador' && u.activo ? '<button class="btn sec" data-uacc="como">👤 Entrar como esta persona</button>' : ''}</div>`;
+      ${typeof puedeSuplantar === 'function' && puedeSuplantar() && u.id !== PERFIL.id && !rolPuede(u.rol, 'administrar') && u.activo ? '<button class="btn sec" data-uacc="como">👤 Entrar como esta persona</button>' : ''}</div>`;
   $('dlg').showModal();
   $('dbody').querySelectorAll('[data-uacc]').forEach(b => b.onclick = () => {
     const a = b.dataset.uacc;
@@ -12426,7 +12434,7 @@ abrirHerramientas = (orig => function (ctx, ...r) {
 cargarSeguimiento = (orig => async function () {
   await orig();
   const acts = document.querySelector('#v-seguimiento .saludo .acts') || (document.querySelector('#v-seguimiento .saludo') && document.querySelector('#v-seguimiento .saludo').appendChild(Object.assign(document.createElement('div'), { className: 'acts' })));
-  if (acts && PERFIL.rol === 'Administrador' && !$('caldup')) {
+  if (acts && puede('administrar') && !$('caldup')) {
     acts.insertAdjacentHTML('beforeend', `<button class="btn sec" id="caldup">${svgIco(ICON_NOM.copy)} Duplicados</button>`);
     $('caldup').onclick = () => ir('duplicados');
   }
@@ -12609,7 +12617,7 @@ new MutationObserver(() => {
 
 let MED_ACCESO = null;
 async function cargarAccesoMedicos() {
-  if (!(PERFIL && (PERFIL.rol === 'Administrador' || VE_TODO()))) { MED_ACCESO = {}; return; }
+  if (!(PERFIL && (puede('administrar') || VE_TODO()))) { MED_ACCESO = {}; return; }
   const { data } = await RPC_ORIG('medicos_con_acceso', {});
   MED_ACCESO = {}; (data || []).forEach(x => { MED_ACCESO[x.medico_id] = x; });
 }
@@ -12631,7 +12639,7 @@ const PAGINAS = {
 let PAG_TAB = {};
 function cargarPagina(t) {
   const P = PAGINAS[t];
-  if (P.admin && PERFIL.rol !== 'Administrador') { ir('inicio'); return; }
+  if (P.admin && !puede('administrar')) { ir('inicio'); return; }
   let sec = $('v-' + t);
   if (!sec) { document.querySelector('main').insertAdjacentHTML('beforeend', `<section id="v-${t}"></section>`); sec = $('v-' + t); }
   // Solo puede haber un contenedor de contenido a la vez: Configuración y las otras páginas se vacían (se repintan al volver)
@@ -13918,7 +13926,7 @@ async function disenoPDF() {
 }
 // Botón en Facturas (administración)
 function botonDisenoPDF() {
-  if (TAB !== 'facturacion' || FSEC !== 'facturas' || !PERFIL || PERFIL.rol !== 'Administrador' || $('fpdfbtn')) return;
+  if (TAB !== 'facturacion' || FSEC !== 'facturas' || !PERFIL || !puede('administrar') || $('fpdfbtn')) return;
   const acts = document.querySelector('#v-facturacion .saludo .acts'); if (!acts) return;
   acts.insertAdjacentHTML('afterbegin', `<button class="btn sec" id="fpdfbtn" type="button">${svgIco(ICON_NOM.file)} Diseño del PDF</button>`);
   $('fpdfbtn').onclick = () => disenoPDF();
@@ -14317,7 +14325,7 @@ async function pintarImportaciones() {
 // Configuración → Datos → Importar datos (administración)
 arbolConfig = (orig => function () {
   const g = orig();
-  if (PERFIL.rol !== 'Administrador') return g;
+  if (!puede('administrar')) return g;
   const datos = g.find(x => x[0] === 'Datos');
   const item = { k: 'importar', ic: 'file-spreadsheet', t: 'Importar datos', d: 'Clientes, productos, prescriptores y ventas desde Excel o CSV',
     sub: [['nueva', 'Nueva importación', pintarImportar], ['historial', 'Importaciones', pintarImportaciones]] };
