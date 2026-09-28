@@ -1529,7 +1529,7 @@ main > section.preparando::after,dialog > .preparando::after{animation:cargaApar
 #tdrutacompleta .ico{margin-right:4px}
 @media (max-width:760px){#tdrutacompleta,#tdempezar,#tdterminar{flex:1 1 100%}}
 
-/* v2.67.0 · Importar datos */
+/* v2.68.0 · Importar datos */
 .cfgnav [data-cfg] .ci{flex:none}   /* el icono no se encoge aunque la descripción sea larga */
 .impcaja{max-width:none}
 .imppasos{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 16px}
@@ -1558,7 +1558,7 @@ main > section.preparando::after,dialog > .preparando::after{animation:cargaApar
 .cpgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px}.cpgrid div{display:flex;flex-direction:column}.cpgrid b{color:var(--navy)}
 @media (max-width:760px){.impcol{grid-template-columns:1fr}.impflecha{display:none}}
 
-/* v2.67.0 · Agenda en móvil, banner de jornada, cabecera de Inicio y navegación */
+/* v2.68.0 · Agenda en móvil, banner de jornada, cabecera de Inicio y navegación */
 .tdreg-i{display:none}
 button.lnk{background:none;border:0;padding:0;color:var(--sky);font:inherit;font-weight:600;cursor:pointer;text-decoration:underline}
 body.conruta{padding-top:var(--rbh,46px)}
@@ -1589,7 +1589,7 @@ body:not(.inilisto) #v-inicio .saludo .acts{visibility:hidden}
   .tdlista .tdit .tdord{display:flex;gap:4px}.tdlista .tdit .tdord .kmv{width:19px;height:22px}
 }
 
-/* v2.67.0 · Selector de centros */
+/* v2.68.0 · Selector de centros */
 .cenpick{margin-top:4px}
 .cpcard{display:flex;flex-direction:column;gap:3px;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:#F6FAFD}
 .cpcab{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.cpcab b{color:var(--navy)}
@@ -1603,6 +1603,22 @@ body:not(.inilisto) #v-inicio .saludo .acts{visibility:hidden}
 .cpubi{margin:8px 0}
 .cphor{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px;margin-bottom:6px}
 .cphor div{display:flex;flex-direction:column}.cphor span{font-size:12px;color:var(--muted)}
+
+/* v2.68.0 · Sin reporting y sugerencias en los centros del día */
+.pill.p-sr{background:#EEF0F6;color:#4B5675;border:1px solid #D5DAE6}
+.chksr{display:flex;gap:10px;align-items:flex-start;margin:12px 0;padding:10px 12px;border:1px solid var(--line);border-radius:12px;cursor:pointer}
+.chksr input{margin-top:3px;width:18px;height:18px;flex:none}.chksr > span{display:flex;flex-direction:column;gap:2px}
+.sgcen{margin:8px 0 12px;padding:10px 12px;border:1px solid var(--line);border-radius:14px;background:#F6FAFD}
+.sgcencab{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:6px}.sgcencab b{color:var(--navy)}
+.sgfalta{color:var(--warn)}
+#agsug .tx .sm b,#agsug .tx .sm .sgfalta{display:inline}
+@media (max-width:760px){
+  /* Sugerencias: nombre y datos a todo lo ancho, botones en una fila debajo */
+  #agsug .item{display:grid;grid-template-columns:auto minmax(0,1fr);gap:6px 10px;align-items:start}
+  #agsug .item .tx b,#agsug .item .tx .sm{white-space:normal;overflow:visible;text-overflow:clip}
+  #agsug .item > .acts{grid-column:2;justify-content:flex-start;flex-wrap:wrap;gap:6px}
+  #agsug .item > .acts .btn{min-height:34px;padding:4px 12px}
+}
 </style>
 </head>
 <body>
@@ -1681,6 +1697,7 @@ body:not(.inilisto) #v-inicio .saludo .acts{visibility:hidden}
           <div><label for="fprov">Provincia</label><select id="fprov"></select></div>
           <div><label for="fmuni">Municipio</label><select id="fmuni"></select></div>
           <div><label for="fesp">Especialidad</label><select id="fesp"></select></div>
+          <div><label for="frep">Reporting</label><select id="frep"><option value="">Todos</option><option value="con">Con reporting</option><option value="sin">Sin reporting</option></select></div>
           <div><label for="fest">Estado comercial</label><select id="fest"></select></div>
           <div id="fcomwrap" class="hide"><label for="fcom">Comercial</label><select id="fcom"></select></div>
           <div><label for="forden">Ordenar por</label>
@@ -1737,6 +1754,6 @@ body:not(.inilisto) #v-inicio .saludo .acts{visibility:hidden}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.67.0"></script>
+<script src="./app.js?v=2.68.0"></script>
 </body>
 </html>

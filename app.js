@@ -205,6 +205,7 @@ $('q').addEventListener('input', e => {
 $('fprov').addEventListener('change', e => { F.prov = e.target.value; F.muni = ''; cargarFiltros(true); buscar(true); });
 $('fmuni').addEventListener('change', e => { F.muni = e.target.value; buscar(true); });
 $('fesp').addEventListener('change', e => { F.esp = e.target.value; buscar(true); });
+$('frep').addEventListener('change', e => { F.rep = e.target.value; buscar(true); });
 $('fest').addEventListener('change', e => { F.est = e.target.value; buscar(true); });
 $('forden').addEventListener('change', e => { F.orden = e.target.value; buscar(true); });
 
@@ -241,7 +242,7 @@ async function buscar(reiniciar) {
   const params = {
     q: F.q || null, f_provincia: F.prov || null, f_municipio: F.muni || null,
     f_estado: F.est || null, f_especialidad: F.esp || null, f_area: null,
-    f_urgentes: F.urg, f_mios: false, f_sin_visitar: false, f_comercial: F.com || null,
+    f_urgentes: F.urg, f_mios: false, f_sin_visitar: false, f_comercial: F.com || null, f_reporting: F.rep || null,
     orden: F.orden, lim: tamPagina(), desplaz: F.pagina * tamPagina()
   };
   let { data, error } = await db.rpc('buscar_medicos', params);
@@ -278,7 +279,7 @@ async function buscar(reiniciar) {
 function fila(m) {
   const d = m.dias || {};
   return `<button class="fila" data-id="${m.id}">
-    <span><span class="nm">${m.urgente ? '<span class="pill p-urg">Urgente</span> ' : ''}${esc(m.nombre)}</span>
+    <span><span class="nm">${m.urgente ? '<span class="pill p-urg">Urgente</span> ' : ''}${m.sin_reporting ? '<span class="pill p-sr" title="Solo visita presencial: sin informes ni feedback">Sin reporting</span> ' : ''}${esc(m.nombre)}</span>
       <span class="sm">${esc(m.especialidad || 'Sin especialidad')}</span></span>
     <span class="c2"><span class="nm" style="font-size:13.5px">${esc(m.centro_nombre || 'Consulta privada')}</span>
       <span class="sm">${esc([m.municipio, m.provincia].filter(Boolean).join(' · '))}</span></span>
@@ -410,7 +411,7 @@ async function pintarFichaBase(id) {
 
   $('fbody').innerHTML = `${rf.cache ? '<div class="cacheaviso">Sin conexión · ficha guardada en este dispositivo</div>' : ''}
     <div class="fh">
-      <div><h2>${m.urgente ? '<span class="pill p-urg">Urgente</span> ' : ''}${esc(m.nombre)}</h2>
+      <div><h2>${m.urgente ? '<span class="pill p-urg">Urgente</span> ' : ''}${m.sin_reporting ? '<span class="pill p-sr" title="Solo visita presencial: sin informes ni feedback">Sin reporting</span> ' : ''}${esc(m.nombre)}</h2>
         <div class="sm">${esc(m.especialidad || '')}${m.area ? ' · ' + esc(m.area) : ''} · código ${esc(m.codigo)}</div></div>
       <button class="x" id="fx" aria-label="Cerrar">✕</button>
     </div>
@@ -626,6 +627,7 @@ async function abrirEditor(id, tipo) {
     </div>
     <label for="ect">Contacto (secretaría, teléfono, email)</label><input id="ect" value="${esc(m.contacto || '')}">
     <label for="ecv">Cuándo visitar</label><input id="ecv" value="${esc(m.cuando_visitar || '')}" placeholder="p. ej. martes por la mañana">
+    ${esCentro ? '' : `<label class="chksr"><input type="checkbox" id="esr" ${m.sin_reporting ? 'checked' : ''}><span><b>Sin reporting</b><span class="sm">Solo visita presencial: no quiere informes ni feedback. Se puede filtrar en ${esc(etiquetaContactos())} y en Analítica.</span></span></label>`}
     <label for="eno">Nota</label><textarea id="eno" rows="3">${esc(m.nota || '')}</textarea>
     <div id="econs">${cons.map(consHTML).join('')}</div>
     <div class="acts"><button type="button" class="btn sec" id="eadd">+ Añadir consulta</button></div>
@@ -662,7 +664,8 @@ async function abrirEditor(id, tipo) {
       area: esCentro ? '' : ($('ea') || {}).value || '',
       telefono: $('et').value.trim(), email: $('em').value.trim(),
       contacto: $('ect').value.trim(), cuando_visitar: $('ecv').value.trim(),
-      nota: $('eno').value.trim(), estado_comercial: m.estado_comercial, consultas
+      nota: $('eno').value.trim(), estado_comercial: m.estado_comercial, consultas,
+      sin_reporting: $('esr') ? $('esr').checked : !!m.sin_reporting
     };
   };
 
@@ -1811,7 +1814,7 @@ async function listaSeguimiento(reinicia) {
     $('slista').innerHTML = '';
     $('slista').insertAdjacentHTML('beforeend', filas.map(m => `
     <button class="fila" data-id="${m.id}">
-      <span><span class="nm">${m.urgente ? '<span class="pill p-urg">Urgente</span> ' : ''}${esc(m.nombre)}</span>
+      <span><span class="nm">${m.urgente ? '<span class="pill p-urg">Urgente</span> ' : ''}${m.sin_reporting ? '<span class="pill p-sr" title="Solo visita presencial: sin informes ni feedback">Sin reporting</span> ' : ''}${esc(m.nombre)}</span>
         <span class="sm">${esc(m.especialidad || '')} · ${esc(m.centro_nombre || '')} ${esc(m.municipio || '')}</span></span>
       <span class="c2"><span class="sm">${m.ultima_visita ? 'Última: <b>' + fechaCorta(m.ultima_visita) + '</b> · ' + esc(m.ultimo_resultado || '') : 'Sin visitar'}</span>
         <span class="sm">${m.n_visitas} visitas${m.muestras ? ' · ' + m.muestras + ' muestras' : ''}</span></span>
@@ -5115,6 +5118,9 @@ async function sugerenciasAgenda() {
     rpcCache('agenda_rango', { p_desde: fecha, p_hasta: fecha, p_usuario: agUsuarioFiltro() }, 'agenda-' + fecha),
     db.rpc('toca_visitar', { p_usuario: agUid() === PERFIL.id && VE_TODO() ? null : agUid(), lim: 60 })
   ]);
+  let cen = [];
+  try { ({ data: cen } = await RPC_ORIG('sugerencias_centros', { p_fecha: fecha, p_usuario: agUid() === PERFIL.id ? null : agUid() })); } catch (e) { cen = []; }
+  if (!$('agsug') || AG_FECHA !== fecha) return;
   if (!$('agsug') || AG_FECHA !== fecha) return;
   const conCita = new Set((ya || []).map(c => c.medico_id));
   const libre = l => (l || []).filter(m => !conCita.has(m.id || m.medico_id));
@@ -5127,8 +5133,22 @@ async function sugerenciasAgenda() {
     ['interesados', 'Interesados sin visita en 20 días', libre(pr && pr.interesados)]
   ].filter(g => g && g[2].length);
 
+  const centros = cen || [];
   $('agsug').innerHTML = `<h2>${esHoy ? 'Sugerencias para hoy' : 'Sugerencias para ' + fechaCorta(fecha)}</h2>
     <p class="sm">Médicos que conviene ver. Añádelos a la agenda o planifica una ruta con ellos.</p>
+    ${centros.length ? `<h3>En tus centros de este día</h3>
+      <p class="sm">Aprovecha que estás allí: médicos del mismo centro o a menos de 200 m. Visítalos o pregunta en recepción los datos que faltan.</p>
+      ${centros.map(g => `<div class="sgcen"><div class="sgcencab">📍 <b>${esc(g.centro_nombre || 'Centro')}</b>${g.municipio ? ` <span class="sm">${esc(g.municipio)}</span>` : ''}
+          ${g.centro_sin_horario ? '<span class="pill p-warn" title="Pregunta el horario en recepción y añádelo desde la ficha de un médico del centro">Falta el horario del centro</span>' : ''}</div>
+        <div class="lista">${(g.medicos || []).map((m, i) => `<div class="item ${i >= 4 ? 'extra' : ''}" style="cursor:default">
+          <span class="ic ${m.visitar ? 'w' : ''}" title="${m.visitar ? 'Conviene visitarlo' : 'Faltan datos en su ficha'}">${m.visitar ? '★' : '✎'}</span>
+          <span class="tx"><b>${m.sin_reporting ? '<span class="pill p-sr">Sin reporting</span> ' : ''}${esc(m.nombre)}</b>
+            <span class="sm">${esc([m.especialidad, m.metros > 30 ? `a ${m.metros} m · ${m.centro || ''}` : ''].filter(Boolean).join(' · '))}</span>
+            <span class="sm">${m.visitar ? `<b>${esc(m.visitar)}</b>` : ''}${m.falta && m.falta.length ? `${m.visitar ? ' · ' : ''}<span class="sgfalta">Falta: ${esc(m.falta.join(', '))}</span>` : ''}</span></span>
+          <span class="acts" style="margin:0"><button class="btn sec" data-sgf="${m.id}">Ficha</button>
+            ${m.falta && m.falta.length ? `<button class="btn sec" data-sged="${m.id}">Completar</button>` : ''}
+            ${m.visitar ? `<button class="btn sec" data-sgc="${m.id}">+ Cita</button>` : ''}</span></div>`).join('')}
+          ${(g.medicos || []).length > 4 ? `<button class="vermas" type="button" data-vermas>Ver los ${num(g.medicos.length - 4)} restantes</button>` : ''}</div></div>`).join('')}` : ''}
     ${grupos.map(([k, t, l]) => `<h3>${esc(t)} <span>${l.some(m => m.lat) && k !== 'acciones'
         ? `<button class="btn sec" data-sgruta="${k}">Planificar ruta</button>` : ''}</span></h3>
       <div class="lista">${l.map((m, i) => `<div class="item ${i >= 5 ? 'extra' : ''}" style="cursor:default">
@@ -5137,7 +5157,8 @@ async function sugerenciasAgenda() {
         <span class="acts" style="margin:0"><button class="btn sec" data-sgf="${m.id}">Ficha</button>
           <button class="btn sec" data-sgc="${m.id}">+ Cita</button></span></div>`).join('')}
         ${l.length > 5 ? `<button class="vermas" type="button" data-vermas>Ver los ${num(l.length - 5)} restantes</button>` : ''}</div>`).join('')
-      || '<div class="vacio">No hay sugerencias: tu agenda está al día.</div>'}`;
+      || (centros.length ? '' : '<div class="vacio">No hay sugerencias: tu agenda está al día.</div>')}`;
+  $('agsug').querySelectorAll('[data-sged]').forEach(b => b.onclick = () => abrirEditor(b.dataset.sged));
   $('agsug').querySelectorAll('[data-sgf]').forEach(b => b.onclick = () => abrirFicha(b.dataset.sgf));
   $('agsug').querySelectorAll('[data-sgc]').forEach(b => b.onclick = () => nuevaCita(b.dataset.sgc, fecha));
   $('agsug').querySelectorAll('[data-sgruta]').forEach(b => b.onclick = async e => {
@@ -5519,7 +5540,7 @@ function colsConfig() {
   return g.filter(x => x.k !== 'comerciales' || VE_TODO());
 }
 function celda(m, k) {
-  if (k === 'nombre') return `<span class="nm">${m.urgente ? '<span class="pill p-urg">Urgente</span> ' : ''}${esc(m.nombre)}</span>`;
+  if (k === 'nombre') return `<span class="nm">${m.urgente ? '<span class="pill p-urg">Urgente</span> ' : ''}${m.sin_reporting ? '<span class="pill p-sr" title="Solo visita presencial: sin informes ni feedback">Sin reporting</span> ' : ''}${esc(m.nombre)}</span>`;
   if (k === 'dias') return `<span class="dias">${['L', 'M', 'X', 'J', 'V'].map(d =>
     `<span class="${(m.dias || {})[d] ? 'on' : ''}" title="${esc((m.dias || {})[d] || '')}">${d}</span>`).join('')}</span>`;
   if (k === 'estado_comercial') return `<span class="pill p-est">${esc(m.estado_comercial)}</span>`;
@@ -5979,6 +6000,8 @@ async function cargarAnalitica() {
           <option value="centro">Venta a centro</option></select></div>
         <div><label for="aprod">Producto</label><select id="aprod"><option value="">Todos</option>
           ${PRODUCTOS.map(p => `<option value="${p.id}">${esc(p.nombre)}</option>`).join('')}</select></div>
+        <div><label for="arep">Reporting</label><select id="arep"><option value="">Todos los médicos</option>
+          <option value="con">Con reporting</option><option value="sin">Sin reporting</option></select></div>
         ${VE_TODO() ? `<div><label for="acom">Comercial</label><select id="acom"><option value="">Todos</option>
           ${COMS.map(u => `<option value="${u.id}">${esc(u.nombre)}</option>`).join('')}</select></div>` : ''}
         <div style="grid-column:span 2"><label>Médico</label><div id="amed"></div></div>
@@ -5996,7 +6019,7 @@ async function cargarAnalitica() {
   montarPeriodo($('aper'), { id: 'analitica', valor: 'anio', alCambiar: () => { sinc(); refrescarAnalitica(); } });
   sinc();
   selectorMedico($('amed'), { valor: AN_MED, placeholder: 'Todos · busca un médico para ver sus ventas', alElegir: m => { AN_MED = m; refrescarAnalitica(); } });
-  ['adim', 'acanal', 'amedida', 'aprod', 'acom'].forEach(id => { if ($(id)) $(id).onchange = refrescarAnalitica; });
+  ['adim', 'acanal', 'amedida', 'aprod', 'acom', 'arep'].forEach(id => { if ($(id)) $(id).onchange = refrescarAnalitica; });
   $('v-analitica').querySelectorAll('[data-avista]').forEach(b => b.onclick = () => {
     const tabla = b.dataset.avista === 'tabla';
     $('v-analitica').querySelectorAll('[data-avista]').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
@@ -6019,11 +6042,11 @@ async function pintarAnalitica() {
   const { data, error } = await db.rpc('analitica_v2', {
     p_dim: dim, p_desde: r.desde, p_hasta: r.hasta, p_canal: $('acanal').value || null,
     p_medico: AN_MED ? AN_MED.id : null, p_comercial: ($('acom') && $('acom').value) || null,
-    p_producto: $('aprod').value || null, lim: 100 });
+    p_producto: $('aprod').value || null, lim: 100, p_reporting: ($('arep') && $('arep').value) || null });
   if (error) { $('atabla').innerHTML = `<div class="vacio">No se ha podido calcular: ${esc(error.message)}</div>`; $('atot').innerHTML = ''; return; }
   const t = data.totales || {}, filas = (data.filas || []).slice().sort((a, b) => (+b[medida] || 0) - (+a[medida] || 0));
   const quien = [AN_MED ? AN_MED.nombre : '', $('acom') && $('acom').value ? $('acom').selectedOptions[0].textContent : '',
-    $('aprod').value ? $('aprod').selectedOptions[0].textContent : ''].filter(Boolean).join(' · ');
+    $('aprod').value ? $('aprod').selectedOptions[0].textContent : '', $('arep') && $('arep').value ? $('arep').selectedOptions[0].textContent : ''].filter(Boolean).join(' · ');
   $('atot').innerHTML = `
     <div class="kpi"><b>${num(t.unidades)}</b><span>Unidades${quien ? ' · ' + esc(quien) : ''}</span></div>
     <div class="kpi ok"><b>${eurI(t.importe)}</b><span>Importe sin IVA</span></div>
@@ -9022,7 +9045,7 @@ function pintarCerca() {
   $('lista').innerHTML = vista.length ? vista.map(m => `<button class="trow" data-id="${m.id}" style="padding:10px 14px;gap:12px">
       <span class="tcell" style="width:70px;min-width:70px"><b style="color:var(--navy)">${m.km} km</b></span>
       <span class="tcell" style="flex:1;width:auto">
-        <span class="nm">${m.urgente ? '<span class="pill p-urg">Urgente</span> ' : ''}${esc(m.nombre)}</span>
+        <span class="nm">${m.urgente ? '<span class="pill p-urg">Urgente</span> ' : ''}${m.sin_reporting ? '<span class="pill p-sr" title="Solo visita presencial: sin informes ni feedback">Sin reporting</span> ' : ''}${esc(m.nombre)}</span>
         <span class="sm">${esc(m.especialidad || '')} · ${esc(m.centro_nombre || '')} ${esc(m.municipio || '')}</span></span>
       <span class="tcell cercaest"><span class="pill p-est">${esc(m.estado_comercial)}</span></span>
     </button>`).join('') : '<div class="vacio">No hay médicos con ubicación a menos de 10 km.</div>';
@@ -14479,6 +14502,24 @@ new MutationObserver(() => {
     if (cp && !cp.dataset.listo) { cp.dataset.listo = '1'; pintarCentroSel(box, i); }
   });
 }).observe(document.body, { childList: true, subtree: true });
+
+// Médico «sin reporting»: la ventana de visita no ofrece los resultados de reporting
+abrirVisita = (orig => async function (id, ...a) {
+  const r = await orig.call(this, id, ...a);
+  try {
+    const { data } = await db.from('medicos').select('sin_reporting').eq('id', id).maybeSingle();
+    const d = $('dlg');
+    if (data && data.sin_reporting && d && d.open) {
+      let n = 0;
+      d.querySelectorAll('.chips button, [data-res], .chip').forEach(b => { if (/reporting/i.test(b.textContent)) { b.style.display = 'none'; n++; } });
+      if (n && !d.querySelector('.srnota')) {
+        const ch = d.querySelector('.chips, [data-res]'); const cont = ch && (ch.classList.contains('chips') ? ch : ch.parentElement);
+        if (cont) cont.insertAdjacentHTML('afterend', '<p class="sm srnota">Este médico no quiere reporting: solo visita presencial.</p>');
+      }
+    }
+  } catch (e) { /* si no se puede comprobar, la ventana queda como siempre */ }
+  return r;
+})(abrirVisita);
 
 
 // Barra inferior del móvil y barra de «Entrar como» desde el primer momento
