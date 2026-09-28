@@ -1528,6 +1528,35 @@ main > section.preparando::after,dialog > .preparando::after{animation:cargaApar
 .plancitados h3{margin:0 0 4px;font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--navy)}
 #tdrutacompleta .ico{margin-right:4px}
 @media (max-width:760px){#tdrutacompleta,#tdempezar,#tdterminar{flex:1 1 100%}}
+
+/* v2.65.0 · Importar datos */
+.cfgnav [data-cfg] .ci{flex:none}   /* el icono no se encoge aunque la descripción sea larga */
+.impcaja{max-width:none}
+.imppasos{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 16px}
+.imppasos span{display:inline-flex;align-items:center;gap:8px;padding:6px 12px 6px 6px;border-radius:999px;background:var(--bg);color:var(--muted);font-size:13px;font-weight:600}
+.imppasos b{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;background:#fff;border:1px solid var(--line);font-size:12px}
+.imppasos .actual{background:var(--sky-soft);color:var(--navy)}.imppasos .actual b{background:var(--grad);color:#fff;border-color:transparent}
+.imppasos .hecho{color:var(--ok)}.imppasos .hecho b{background:var(--ok);color:#fff;border-color:transparent}.imppasos .ico{width:14px;height:14px}
+.imptipos{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px;margin-top:12px}
+.imptipo{display:flex;flex-direction:column;gap:6px;align-items:flex-start;text-align:left;padding:18px;border:1px solid var(--line);border-radius:16px;background:#fff;cursor:pointer;font:inherit;transition:border-color .15s,box-shadow .15s}
+.imptipo:hover{border-color:var(--sky);box-shadow:var(--sh)}.imptipo b{color:var(--navy);font-size:15px}
+.imptic{width:42px;height:42px;border-radius:12px;background:var(--grad);color:#fff;display:grid;place-items:center}.imptic .ico{width:21px;height:21px}
+.impzona{display:flex;flex-direction:column;align-items:center;gap:8px;padding:36px 20px;margin:12px 0;border:2px dashed #BFD6EA;border-radius:18px;background:var(--sky-soft);cursor:pointer;text-align:center;color:var(--navy)}
+.impzona .ico{width:40px;height:40px;color:var(--sky)}.impzona.sobre{border-color:var(--sky);background:#E3F1FB}.impzona.leyendo{opacity:.7;cursor:progress}
+.impmapa{display:flex;flex-direction:column;gap:6px;margin-top:12px}
+.impcol{display:grid;grid-template-columns:minmax(0,1fr) 24px minmax(220px,340px);gap:12px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:#fff}
+.impcol b{display:block;color:var(--navy)}.impcol .sm{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.impcol.ignorada{background:var(--bg);opacity:.75}.impflecha{color:var(--muted);text-align:center}
+.impres{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin:12px 0}
+.impres div{padding:14px;border-radius:14px;background:var(--bg);display:flex;flex-direction:column;gap:2px}
+.impres b{font-size:24px;color:var(--navy)}.impres .ok b{color:var(--ok)}.impres .mal b{color:var(--dang)}
+.impbarra{height:8px;border-radius:8px;background:var(--bg);overflow:hidden;margin-top:12px}.impbarra i{display:block;height:100%;background:var(--grad);transition:width .2s}
+.imperr{margin:8px 0}.imperr summary{cursor:pointer;color:var(--dang);font-weight:600}.imperr div{max-height:260px;overflow:auto;font-size:13px;display:flex;flex-direction:column;gap:4px;margin-top:6px}
+.impfin{width:56px;height:56px;margin:4px auto 8px;border-radius:50%;background:var(--ok);color:#fff;display:grid;place-items:center}.impfin .ico{width:28px;height:28px}
+.campospers{margin:14px 0 4px;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:#F6FAFD}
+.campospers h3{margin:0 0 8px;font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.cpgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px}.cpgrid div{display:flex;flex-direction:column}.cpgrid b{color:var(--navy)}
+@media (max-width:760px){.impcol{grid-template-columns:1fr}.impflecha{display:none}}
 </style>
 </head>
 <body>
@@ -1662,6 +1691,6 @@ main > section.preparando::after,dialog > .preparando::after{animation:cargaApar
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.64.0"></script>
+<script src="./app.js?v=2.65.0"></script>
 </body>
 </html>
