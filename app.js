@@ -1987,7 +1987,7 @@ function pintarDuplicados() {
 
 const CAMPOS_UNI = [['nombre', 'Nombre'], ['especialidad', 'Especialidad'], ['area', 'Área'],
   ['telefono', 'Teléfono'], ['email', 'Email'], ['contacto', 'Contacto'], ['nota', 'Nota'],
-  ['estado_comercial', 'Estado comercial'], ['cuando_visitar', 'Cuándo visitar']];
+  ['estado_comercial', 'Estado comercial']];
 
 async function compararFichas(idA, idB) {
   const [{ data: A }, { data: B }] = await Promise.all([
