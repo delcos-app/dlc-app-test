@@ -791,7 +791,7 @@ async function abrirEditor(id, tipo) {
 /* ---------------- acciones desde la ficha ---------------- */
 
 async function cambiarEstado(id, estado) {
-  const { error } = await db.from('medicos').update({ estado_comercial: estado }).eq('id', id);
+  const { error } = await db.from('cuentas').update({ estado_comercial: estado }).eq('id', id);
   if (error) { toast('No se ha podido cambiar: ' + error.message, true); return; }
   toast('Estado: ' + estado);
   buscar(true); cargarInicio();
@@ -804,7 +804,7 @@ async function alternarUrgente(id, esUrgente, nombre) {
       { titulo: 'Marcar como urgente', ok: 'Marcar urgente', opciones: CAT.motivo_urgencia.map(x => x.valor) });
     if (motivo === null) return;
   }
-  const { error } = await db.from('medicos')
+  const { error } = await db.from('cuentas')
     .update({ urgente: !esUrgente, urgente_motivo: esUrgente ? null : (motivo || 'Marcado desde la app') })
     .eq('id', id);
   if (error) { toast('No se ha podido cambiar: ' + error.message, true); return; }
@@ -6107,8 +6107,8 @@ async function pintarAnalitica() {
 
 async function pintarAuditoria() {
   cargando($('admcuerpo'), 'Cargando la auditoría…');
-  const nombreEnt = { medicos: `${TT('medico', 's', '', 'l', 'C')}`, consultas: 'Consulta', visitas: `${TT('visita', 's', '', 'l', 'C')}`, agenda: 'Cita', rutas: 'Ruta',
-    asignaciones: 'Cartera', pedidos: 'Pedido', perfiles: 'Usuario', productos: 'Producto', contactos: `${TT('paciente', 's', '', 'l', 'C')}` };
+  const nombreEnt = { cuentas: `${TT('medico', 's', '', 'l', 'C')}`, ubicaciones: 'Consulta', actividades: `${TT('visita', 's', '', 'l', 'C')}`, atribuciones: 'Cartera', agenda: 'Cita', rutas: 'Ruta',
+    pedidos: 'Pedido', perfiles: 'Usuario', productos: 'Producto', contactos: `${TT('paciente', 's', '', 'l', 'C')}` };
   const { data: us } = await db.rpc('usuarios_lista');
   const usuarios = (us || []).slice().sort((x, y) => String(x.nombre).localeCompare(String(y.nombre), 'es'));
   ($('admcuerpo') || document.createElement('div')).innerHTML = `<h2>Auditoría<span class="n" id="audn">…</span></h2>
@@ -10401,7 +10401,7 @@ async function editorLlamada(l, previa) {
           || ($('lcq').value.trim().length > 1 ? '<div class="sm" style="padding:6px">No existe: usa «Cliente nuevo».</div>' : '');
         $('lcres').querySelectorAll('[data-lcid]').forEach(b => b.onclick = async () => {
           const x = r.find(y => y.id === b.dataset.lcid); cliente = { id: x.id, nombre: x.nombre, tel: x.movil || x.telefono };
-          if (x.medico_id && !medico) { const { data: m } = await db.from('medicos').select('id,nombre').eq('id', x.medico_id).single(); if (m) { medico = m; pintaMed(); } }
+          if (x.medico_id && !medico) { const { data: m } = await db.from('cuentas').select('id,nombre').eq('id', x.medico_id).single(); if (m) { medico = m; pintaMed(); } }
           pintaCli();
         });
       }, 250); };
@@ -14373,7 +14373,7 @@ arbolConfig = (orig => function () {
    las columnas y los filtros. Los valores se guardan con guardar_campos().
    ============================================================ */
 const CAMPOS = { medico: [], cliente: [], producto: [], pedido: [] };
-const CAMPO_TABLA = { medico: 'medicos', cliente: 'contactos', producto: 'productos', pedido: 'pedidos' };
+const CAMPO_TABLA = { medico: 'cuentas', cliente: 'contactos', producto: 'productos', pedido: 'pedidos' };
 const TIPOS_CAMPO = [['lista', 'Lista de valores'], ['texto', 'Texto'], ['numero', 'Número'], ['fecha', 'Fecha'], ['si_no', 'Sí / No']];
 async function cargarCampos() {
   const ambs = Object.keys(CAMPOS);
@@ -14481,7 +14481,7 @@ async function bloqueCampos(tabla, id, cont) {
 }
 fichaPaciente = (orig => async function (id, ...a) { const r = await orig.call(this, id, ...a); bloqueCampos('contactos', id, $('ficha') && ($('ficha').querySelector('.fbody, #fbody') || $('ficha').firstElementChild)); return r; })(fichaPaciente);
 editorProducto = (orig => function (p, ...a) { const r = orig.call(this, p, ...a); if (p && p.id) setTimeout(() => bloqueCampos('productos', p.id, $('dbody')), 150); return r; })(editorProducto);
-abrirFicha = (orig => async function (id, ...a) { const r = await orig.call(this, id, ...a); bloqueCampos('medicos', id, $('ficha') && ($('ficha').querySelector('.fbody, #fbody') || $('ficha').firstElementChild)); return r; })(abrirFicha);
+abrirFicha = (orig => async function (id, ...a) { const r = await orig.call(this, id, ...a); bloqueCampos('cuentas', id, $('ficha') && ($('ficha').querySelector('.fbody, #fbody') || $('ficha').firstElementChild)); return r; })(abrirFicha);
 
 
 /* ============================================================
@@ -14653,7 +14653,7 @@ new MutationObserver(() => {
 abrirVisita = (orig => async function (id, ...a) {
   const r = await orig.call(this, id, ...a);
   try {
-    const { data } = await db.from('medicos').select('sin_reporting').eq('id', id).maybeSingle();
+    const { data } = await db.from('cuentas').select('sin_reporting').eq('id', id).maybeSingle();
     const d = $('dlg');
     if (data && data.sin_reporting && d && d.open) {
       let n = 0;
