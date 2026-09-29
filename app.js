@@ -313,11 +313,11 @@ async function buscar(reiniciar) {
     orden: F.orden, lim: tamPagina(), desplaz: F.pagina * tamPagina(),
     ...(Object.keys(F.campos || {}).length ? { f_campos: F.campos } : {})
   };
-  let { data, error } = await db.rpc('buscar_medicos', params);
+  let { data, error } = await db.rpc('buscar_cuentas', params);
   if (yo !== BUSQ_N) return;   // ya hay una búsqueda más reciente
   // Si falla (móvil que vuelve del segundo plano, cobertura), se reintenta una vez al momento antes de avisar
   if (error || !data) {
-    ({ data, error } = await db.rpc('buscar_medicos', params));
+    ({ data, error } = await db.rpc('buscar_cuentas', params));
     if (yo !== BUSQ_N) return;
   }
 
@@ -386,20 +386,20 @@ async function fichaComercialYPacientes(id) {
       <div style="display:flex;gap:8px"><select id="fcomsel" style="flex:1"><option>Cargando…</option></select>
         <button class="btn sec" id="fcomok">Guardar</button></div>
       <div class="sm" style="margin-top:6px">Las ventas nuevas se atribuyen al comercial asignado en ese momento. Las anteriores no cambian.</div></div>`);
-    const [{ data: us }, { data: act }] = await Promise.all([db.rpc('usuarios_lista'), RPC_ORIG('comercial_de_medico', { p_medico: id })]);
+    const [{ data: us }, { data: act }] = await Promise.all([db.rpc('usuarios_lista'), RPC_ORIG('responsable_de_cuenta', { p_medico: id })]);
     if (FICHA_ID !== id || !$('fcomsel')) return;
     $('fcomsel').innerHTML = '<option value="">Sin comercial</option>' + (us || []).filter(u => u.activo && (rolPuede(u.rol, 'cartera') || (act && act.id === u.id)))
       .map(u => `<option value="${u.id}" ${act && act.id === u.id ? 'selected' : ''}>${esc(u.nombre)} · ${esc(u.rol)}</option>`).join('');
     $('fcomok').onclick = async ev => {
       ev.target.disabled = true;
-      const { data: r, error } = await db.rpc('asignar_comercial_medico', { p_medico: id, p_usuario: $('fcomsel').value || null });
+      const { data: r, error } = await db.rpc('asignar_responsable_cuenta', { p_medico: id, p_usuario: $('fcomsel').value || null });
       ev.target.disabled = false;
       if (error || (r && r.ok === false)) { toast('No se ha podido asignar', true); return; }
       toast('Comercial asignado'); abrirFicha(id);
     };
   }
   if (esAdmin || ((PERFIL.areas || {}).V || 0) >= 1) {
-    const { data } = await db.rpc('pacientes_lista', { q: null, p_medico: id, lim: 5, desplaz: 0 });
+    const { data } = await db.rpc('clientes_lista', { q: null, p_medico: id, lim: 5, desplaz: 0 });
     if (FICHA_ID !== id || !data || !data.total) return;
     $('fbody').insertAdjacentHTML('beforeend', `<div class="blk"><h3>${TT('paciente', 'p', '', 'l', 'C')}<span class="n" style="margin-left:6px">${num(data.total)}</span></h3>
       ${data.filas.map(x => `<button class="item" data-fmpac="${x.id}" style="padding:7px 4px"><span class="tx"><b>${esc(x.nombre)}</b>
@@ -438,7 +438,7 @@ async function fichaMaterialVisitas(id) {
 // Ficha · Unidades pautadas por periodo y evolución de los últimos 12 meses
 async function fichaUnidades(id) {
   if (FICHA_ID !== id || !$('fbody') || $('fundades')) return;
-  const { data: u } = await RPC_ORIG('unidades_medico', { p_medico: id });
+  const { data: u } = await RPC_ORIG('unidades_cuenta', { p_medico: id });
   if (!u || FICHA_ID !== id || $('fundades')) return;
   const max = Math.max(1, ...(u.meses || []).map(m => m.unidades));
   const bloque = `<div class="blk" id="fundades"><h3>Unidades pautadas</h3>
@@ -460,7 +460,7 @@ async function fichaAcceso(id) {
       : `<p class="sm">Puede tener acceso a su informe de prescripción y recibir un aviso con cada pauta a su nombre. No verá importes ni datos de ${TT('paciente', 'p', '', 'l', 'l')}.</p>
          <button class="btn sec" id="fdaracc">Dar acceso</button>`}</div>`);
   if ($('fdaracc')) $('fdaracc').onclick = async () => {
-    const { data: f } = await db.rpc('ficha_medico', { p_id: id });
+    const { data: f } = await db.rpc('ficha_cuenta', { p_id: id });
     $('ficha').close(); nuevoUsuario({ medico: { id, nombre: f.medico.nombre }, nombre: f.medico.nombre, email: f.medico.email || '' });
   };
 }
@@ -470,7 +470,7 @@ async function pintarFichaBase(id) {
   FICHA_ID = id;
   $('fbody').innerHTML = '<div class="skel" style="width:50%"></div><div class="skel"></div><div class="skel" style="width:80%"></div>';
   $('ficha').showModal();
-  const rf = await rpcCache('ficha_medico', { p_id: id }, 'ficha-' + id);
+  const rf = await rpcCache('ficha_cuenta', { p_id: id }, 'ficha-' + id);
   const data = rf.data;
   if (!data || !data.medico) { $('fbody').innerHTML = '<p class="sm">Sin conexión y sin copia guardada de esta ficha.</p>'; return; }
 
@@ -675,7 +675,7 @@ function consHTML(c, i) {
 async function abrirEditor(id, tipo) {
   let m = { tipo: tipo || 'Persona', estado_comercial: estadoPapel('inicial') }, cons = [{}];
   if (id) {
-    const { data, error } = await db.rpc('ficha_medico', { p_id: id });
+    const { data, error } = await db.rpc('ficha_cuenta', { p_id: id });
     if (error) { toast('No se ha podido abrir: ' + error.message, true); return; }
     m = data.medico; cons = (data.consultas || []).length ? data.consultas : [{}];
   }
@@ -776,7 +776,7 @@ async function abrirEditor(id, tipo) {
     }
 
     ev.target.disabled = true; ev.target.textContent = 'Guardando…';
-    const { data, error } = await db.rpc('guardar_medico', { p });
+    const { data, error } = await db.rpc('guardar_cuenta', { p });
     ev.target.disabled = false; ev.target.textContent = id ? 'Guardar cambios' : 'Crear';
     if (error) { toast('No se ha podido guardar: ' + error.message, true); return; }
     if (cps && !(await camposGuardar(cps, (data && data.medico && data.medico.id) || id))) return;
@@ -1159,7 +1159,7 @@ const hm = m => String(Math.floor(m / 60) % 24).padStart(2, '0') + ':' + String(
 
 async function planificar(rutaId, btn) {
   const orig = btn.textContent; btn.disabled = true; btn.textContent = 'Calculando…';
-  const { data, error } = await db.rpc('medicos_de_ruta', { p_id: rutaId });
+  const { data, error } = await db.rpc('cuentas_de_ruta', { p_id: rutaId });
   btn.disabled = false; btn.textContent = orig;
   if (error) { toast('No se ha podido planificar: ' + error.message, true); return; }
   const conXY = (data || []).filter(m => m.lat && m.lon);
@@ -1594,7 +1594,7 @@ async function usuarioFichaMedico(id) {
   if (!u || !rolPuede(u.rol, 'portal_prescriptor') || !$('dlg').open || $('umedw')) return;
   const { data: pf } = await db.from('perfiles').select('medico_id').eq('id', id).single();
   let medico = null;
-  if (pf && pf.medico_id) { const { data: fm } = await db.rpc('ficha_medico', { p_id: pf.medico_id }); if (fm && fm.medico) medico = { id: fm.medico.id, nombre: fm.medico.nombre }; }
+  if (pf && pf.medico_id) { const { data: fm } = await db.rpc('ficha_cuenta', { p_id: pf.medico_id }); if (fm && fm.medico) medico = { id: fm.medico.id, nombre: fm.medico.nombre }; }
   const ref = $('dbody').querySelector('.acts:last-of-type');
   ref.insertAdjacentHTML('beforebegin', `<div class="blk" id="umedw"><h3>Ficha de ${TT('medico', 's', '', 'l', 'l')} vinculada</h3>
     <p class="sm">Este usuario verá solo el informe de ${TT('medico', 's', 'este', 'l', 'l')} y recibirá un aviso con cada pauta a su nombre. Sin importes ni datos de ${TT('paciente', 'p', '', 'l', 'l')}.</p>
@@ -1602,12 +1602,12 @@ async function usuarioFichaMedico(id) {
     ${medico ? `<button class="btn sec" id="umedver">Ver su informe</button>` : ''}</div></div>`);
   selectorMedico($('umedsel'), { valor: medico, placeholder: 'Busca su ficha', alElegir: m => { medico = m; } });
   $('umedok').onclick = async () => {
-    const { data: r, error } = await db.rpc('vincular_medico', { p_usuario: id, p_medico: medico ? medico.id : null });
+    const { data: r, error } = await db.rpc('vincular_cuenta', { p_usuario: id, p_medico: medico ? medico.id : null });
     if (error || (r && r.ok === false)) { toast('No se ha podido guardar', true); return; }
     toast(medico ? 'Vinculado con ' + medico.nombre : 'Vínculo quitado');
   };
   if ($('umedver')) $('umedver').onclick = async () => {
-    const { data: d } = await RPC_ORIG('informe_medico', { p_medico: medico.id });
+    const { data: d } = await RPC_ORIG('informe_cuenta', { p_medico: medico.id });
     toast(`${medico.nombre}: ${num(d.unidades)} unidades, ${num(d.pautas)} pautas este año${d.posicion ? ' · Nº ' + d.posicion : ''}`);
   };
 }
@@ -1699,7 +1699,7 @@ function nuevoUsuarioPlanYMedico(pre, act, maxU, activos) {
   let medico = pre && pre.medico ? pre.medico : null;
   selectorMedico($('nmed'), { valor: medico, placeholder: `Busca ${TT('medico', 's', 'al', 'l', 'l')}`, alElegir: async m => {
     medico = m;
-    const { data: f } = await db.rpc('ficha_medico', { p_id: m.id });
+    const { data: f } = await db.rpc('ficha_cuenta', { p_id: m.id });
     if (f && f.medico) { if (!$('nn').value) $('nn').value = f.medico.nombre; if (!$('ne').value && f.medico.email) $('ne').value = f.medico.email; }
   } });
   const ver = () => $('nmedw').classList.toggle('hide', !rolPuede($('nr').value, 'portal_prescriptor'));
@@ -1712,7 +1712,7 @@ function nuevoUsuarioPlanYMedico(pre, act, maxU, activos) {
     await crear(ev);
     if (rolPuede($('nr').value, 'portal_prescriptor') && medico && /Usuario creado/.test($('nmsg').textContent)) {
       const { data: u } = await db.from('perfiles').select('id').eq('email', $('ne').value.trim()).single();
-      if (u) { await db.rpc('vincular_medico', { p_usuario: u.id, p_medico: medico.id }); $('nmsg').insertAdjacentHTML('beforeend', ` Vinculado a <b>${esc(medico.nombre)}</b>.`); }
+      if (u) { await db.rpc('vincular_cuenta', { p_usuario: u.id, p_medico: medico.id }); $('nmsg').insertAdjacentHTML('beforeend', ` Vinculado a <b>${esc(medico.nombre)}</b>.`); }
     }
     if (TAB === 'config' && CFG_SEC === 'usuarios') pintarUsuarios2();
   };
@@ -1991,7 +1991,7 @@ const CAMPOS_UNI = [['nombre', 'Nombre'], ['especialidad', 'Especialidad'], ['ar
 
 async function compararFichas(idA, idB) {
   const [{ data: A }, { data: B }] = await Promise.all([
-    db.rpc('ficha_medico', { p_id: idA }), db.rpc('ficha_medico', { p_id: idB })
+    db.rpc('ficha_cuenta', { p_id: idA }), db.rpc('ficha_cuenta', { p_id: idB })
   ]);
   const a = A.medico, b = B.medico;
   if (a.id === b.id) { toast('Es la misma ficha', true); return; }
@@ -2028,7 +2028,7 @@ async function compararFichas(idA, idB) {
       const desaparece = queda === a.id ? b.id : a.id;
       if (!await preguntar(`Desaparece la ficha de ${queda === a.id ? b.nombre : a.nombre}.\nNo se puede deshacer desde la app.`, { titulo: '¿Unificar fichas?', ok: 'Unificar', peligro: true })) return;
       ev.target.disabled = true; ev.target.textContent = 'Unificando…';
-      const { data: r, error } = await db.rpc('unificar_medicos', { p: { queda, va: desaparece, campos: eleccion } });
+      const { data: r, error } = await db.rpc('unificar_cuentas', { p: { queda, va: desaparece, campos: eleccion } });
       ev.target.disabled = false; ev.target.textContent = 'Unificar';
       if (error || (r && r.ok === false)) { toast('No se ha podido unificar', true); return; }
       toast('Fichas unificadas');
@@ -2119,7 +2119,7 @@ async function pintarMapa() {
   if (!window.L) { $('mapleg').textContent = 'El mapa necesita conexión.'; return; }
   $('mapleg').textContent = 'Cargando puntos…';
 
-  const { data, error } = await db.rpc('mapa_medicos', {
+  const { data, error } = await db.rpc('mapa_cuentas', {
     q: F.q || null, f_provincia: F.prov || null, f_municipio: F.muni || null,
     f_estado: F.est || null, f_especialidad: F.esp || null, f_urgentes: !!F.urg
   });
@@ -2228,7 +2228,7 @@ async function guardarKpis(lista) {
 
 /** Cuenta los médicos de un filtro guardado. */
 async function contarFiltro(f) {
-  const { data } = await db.rpc('buscar_medicos', {
+  const { data } = await db.rpc('buscar_cuentas', {
     q: f.q || null, f_provincia: f.prov || null, f_municipio: f.muni || null,
     f_estado: f.est || null, f_especialidad: f.esp || null, f_area: null,
     f_urgentes: !!f.urg, f_mios: false, f_sin_visitar: !!f.sin, orden: 'nombre', lim: 1, desplaz: 0, f_comercial: f.com || null
@@ -2405,7 +2405,7 @@ async function pintarSinAtribuir() {
 }
 
 async function atribuir(lineaId, texto) {
-  const { data } = await db.rpc('resolver_medico', { p_texto: texto || '' });
+  const { data } = await db.rpc('resolver_cuenta', { p_texto: texto || '' });
   const cand = data || [];
   $('dbody').innerHTML = `
     <div class="fh"><div><h2>Atribuir a ${TT('medico', 's', 'un', 'l', 'l')}</h2><div class="sm">Texto del pedido: ${esc(texto || '(vacío)')}</div></div>
@@ -2430,7 +2430,7 @@ async function atribuir(lineaId, texto) {
   $('abusca').oninput = e => {
     clearTimeout(t);
     t = setTimeout(async () => {
-      const { data: d2 } = await db.rpc('resolver_medico', { p_texto: e.target.value });
+      const { data: d2 } = await db.rpc('resolver_cuenta', { p_texto: e.target.value });
       pintar(d2 || []);
     }, 300);
   };
@@ -2902,7 +2902,7 @@ async function verMedicosRuta(id) {
   const r = RUTAS.find(x => x.id === id);
   $('dbody').innerHTML = '<div class="skel"></div><div class="skel" style="width:60%"></div>';
   $('dlg').showModal();
-  const { data } = await db.rpc('medicos_de_ruta', { p_id: id });
+  const { data } = await db.rpc('cuentas_de_ruta', { p_id: id });
   const lista = data || [];
   $('dbody').innerHTML = `
     <div class="fh"><div><h2>${esc(r.nombre)}</h2>
@@ -2973,7 +2973,7 @@ async function editorRuta(id) {
 
   db.rpc('opciones_filtros', {}).then(({ data }) => { if (data) { op = data; if (modo === 'crit') pinta(); } });
   if (codigos.length) {
-    db.rpc('medicos_por_ids', { p_ids: codigos }).then(({ data }) => { medicos = data || []; pinta(); });
+    db.rpc('cuentas_por_ids', { p_ids: codigos }).then(({ data }) => { medicos = data || []; pinta(); });
   }
 
   const sel = (lista, v) => '<option value=""></option>' + (lista || []).map(o =>
@@ -3042,7 +3042,7 @@ async function editorRuta(id) {
       let t;
       const buscarMed = async q => {
         if (q.length < 2) { $('rres').innerHTML = ''; return; }
-        const { data } = await db.rpc('buscar_medicos', { q, f_provincia: null, f_municipio: null, f_estado: null,
+        const { data } = await db.rpc('buscar_cuentas', { q, f_provincia: null, f_municipio: null, f_estado: null,
           f_especialidad: null, f_area: null, f_urgentes: false, f_mios: false, f_sin_visitar: false,
           orden: 'nombre', lim: 8, desplaz: 0 });
         const res = (data && data.filas || []).filter(m => !codigos.includes(m.id));
@@ -3183,7 +3183,7 @@ async function editarVisita(v, medicoId) {
   $('evok').onclick = async ev => {
     const res = [...$('dbody').querySelectorAll('[data-res][aria-pressed=true]')].map(b => b.dataset.res);
     ev.target.disabled = true; ev.target.textContent = 'Guardando…';
-    const { data: r, error } = await db.rpc('actualizar_visita', { p: {
+    const { data: r, error } = await db.rpc('actualizar_actividad', { p: {
       id: v.id, fecha: $('evf').value, resultados: res, muestras: +$('evm').value || 0,
       nota: $('evn').value.trim(), proxima_accion: $('evpa').value.trim(), proxima_fecha: $('evpf').value || ''
     }});
@@ -3195,7 +3195,7 @@ async function editarVisita(v, medicoId) {
   $('evborrar').onclick = async () => {
     if (!await preguntar(`${TT('visita', 's', 'el', 'C', 'l')} desaparece del historial ${TT('medico', 's', 'del', 'l', 'l')}.\nQueda constancia en la auditoría.`,
       { titulo: `¿Borrar ${TT('visita', 's', 'el', 'l', 'l')}?`, ok: 'Borrar', peligro: true })) return;
-    const { data: r, error } = await db.rpc('borrar_visita', { p_id: v.id });
+    const { data: r, error } = await db.rpc('borrar_actividad', { p_id: v.id });
     if (error || (r && r.ok === false)) { toast('No se ha podido borrar', true); return; }
     $('dlg').close(); toast(`${TT('visita', 's', '', 'l', 'C', 'borrado')}`); abrirFicha(medicoId); cargarInicio();
   };
@@ -3208,7 +3208,7 @@ async function cercaDeMi(btn) {
   if (!navigator.geolocation) { toast('Este dispositivo no tiene ubicación', true); return; }
   btn.disabled = true; btn.textContent = 'Localizando…';
   navigator.geolocation.getCurrentPosition(async p => {
-    const { data, error } = await db.rpc('medicos_cerca', {
+    const { data, error } = await db.rpc('cuentas_cerca', {
       p_lat: p.coords.latitude, p_lon: p.coords.longitude, p_km: 10, lim: 100
     });
     btn.disabled = false; btn.textContent = 'Cerca de mí';
@@ -3819,13 +3819,13 @@ const FROM_ORIG = db.from.bind(db);
 const RPC_TTL = {                 // segundos
   panel_inicio: 60, propuestas_rutas: 120, comision_periodo: 120, resumen_duplicados: 600,
   agenda_rango: 60, agenda_mes: 60, pendientes_ruta: 60, rutas_visibles: 120,
-  buscar_medicos: 60, buscar_global: 60, opciones_filtros: 600, mapa_medicos: 120,
-  ficha_medico: 30, seguimiento_lista: 60, resumen_seguimiento: 120,
+  buscar_cuentas: 60, buscar_global: 60, opciones_filtros: 600, mapa_cuentas: 120,
+  ficha_cuenta: 30, seguimiento_lista: 60, resumen_seguimiento: 120,
   catalogo: 900, catalogos_todos: 900, productos_lista: 600, usuarios_lista: 300,
   esquemas_lista: 300, liquidaciones_lista: 120, pedidos_lista: 60, contactos_lista: 60,
   analitica_tabla: 120, analitica_unidades: 120, cartera_usuario: 60, duplicados_pendientes: 30
 };
-const RPC_ESCRITURA = /^(actualizar_|anular_|aplazar_|asignar_|recibir_|movimiento_|atribuir_|borrar_|crear_|estado_cita|guardar_|liquidar|ordenar_|perfil_nuevo|quitar_|registrar_visita|resolver_accion|tocar|unificar_|descartar_)/;
+const RPC_ESCRITURA = /^(actualizar_|anular_|aplazar_|asignar_|recibir_|movimiento_|atribuir_|borrar_|crear_|estado_cita|guardar_|liquidar|ordenar_|perfil_nuevo|quitar_|registrar_actividad|registrar_visita|resolver_accion|tocar|unificar_|descartar_)/;
 
 const RC = new Map(), RC_VUELO = new Map();
 let RC_EPOCA = 0;
@@ -4122,7 +4122,7 @@ function panelDupVacio(msg) {
 async function compararEn(el, idA, idB) {
   cargando(el, 'Cargando las dos fichas…');
   const [{ data: A }, { data: B }] = await Promise.all([
-    db.rpc('ficha_medico', { p_id: idA }), db.rpc('ficha_medico', { p_id: idB })
+    db.rpc('ficha_cuenta', { p_id: idA }), db.rpc('ficha_cuenta', { p_id: idB })
   ]);
   if (!A || !B || !A.medico || !B.medico) { el.innerHTML = '<div class="vacio">Alguna de las dos fichas ya no existe.</div>'; return; }
   const a = A.medico, b = B.medico;
@@ -4167,7 +4167,7 @@ async function compararEn(el, idA, idB) {
       if (!await preguntar(`Desaparece la ficha de ${queda === a.id ? b.nombre : a.nombre}.\nNo se puede deshacer desde la app.`,
         { titulo: '¿Unificar fichas?', ok: 'Unificar', peligro: true })) return;
       ev.target.disabled = true; ev.target.textContent = 'Unificando…';
-      const { data: r, error } = await db.rpc('unificar_medicos', { p: { queda, va: desaparece, campos: eleccion } });
+      const { data: r, error } = await db.rpc('unificar_cuentas', { p: { queda, va: desaparece, campos: eleccion } });
       if (error || (r && r.ok === false)) { ev.target.disabled = false; ev.target.textContent = 'Unificar'; toast('No se ha podido unificar', true); return; }
       toast('Fichas unificadas');
       DUP_PARES = DUP_PARES.filter(p => p.a_id !== desaparece && p.b_id !== desaparece);
@@ -4309,7 +4309,7 @@ document.addEventListener('click', e => {
    pedidos con IVA y borrador, productos, pacientes y agenda
    ============================================================ */
 
-Object.assign(RPC_TTL, { pacientes_lista: 30, comercial_de_medico: 60 });
+Object.assign(RPC_TTL, { clientes_lista: 30, responsable_de_cuenta: 60 });
 
 /* ---------------- arranque: la app aparece al momento ----------------
    Si hay sesión guardada, se muestra la app con el último perfil conocido y se comprueba
@@ -4496,7 +4496,7 @@ async function inicioResumenSemanaYVentas() {
     esTop ? Promise.all([db.rpc('alertas_cruce', { p_dias: 30 }), puedeCompras() || VE_TODO() ? db.rpc('alertas_stock') : Promise.resolve({ data: [] })])
       .then(([a, b]) => (a.data || []).concat(b.data || [])) : Promise.resolve([]),
     esTop ? db.rpc('supervision_equipo', { p_desde: desde, p_hasta: isoMas(desde, 6) }).then(r => r.data || []) : Promise.resolve([]),
-    db.rpc('toca_visitar', { p_usuario: PERFIL.id, lim: 300 }).then(r => (r.data || []).length)
+    db.rpc('toca_actividad', { p_usuario: PERFIL.id, lim: 300 }).then(r => (r.data || []).length)
   ]);
   if (TAB !== 'inicio' || !$('iniextra')) return;
   const pasadas = sem.filter(c => c.fecha < hoy && !['Descartada'].includes(c.estado));
@@ -5041,7 +5041,7 @@ async function fichaPaciente(id) {
   if ($('fpnped')) $('fpnped').onclick = () => editorPedido({ contacto: Object.assign({}, c, m ? { medico: m.nombre, medico_codigo: m.codigo } : {}) });
   if ($('fpedit')) $('fpedit').onclick = () => editorContacto(c, () => fichaPaciente(id));
   const asignar = async medicoId => {
-    const { data: r, error } = await db.rpc('asignar_medico_paciente', { p_contacto: id, p_medico: medicoId });
+    const { data: r, error } = await db.rpc('asignar_cuenta_cliente', { p_contacto: id, p_medico: medicoId });
     if (error || (r && r.ok === false)) { toast('No se ha podido guardar', true); return; }
     toast(medicoId ? `${TT('medico', 's', '', 'l', 'C', 'asignado')}` : `${TT('medico', 's', '', 'l', 'C', 'quitado')}`); fichaPaciente(id);
     if (TAB === 'pacientes') listaPacientes();
@@ -5133,7 +5133,7 @@ async function sugerenciasAgenda() {
     db.rpc('propuestas_rutas', { lim: 40 }),
     rpcCache('panel_inicio', { lim: 6 }, 'inicio').then(r => ({ data: r.data })),
     rpcCache('agenda_rango', { p_desde: fecha, p_hasta: fecha, p_usuario: agUsuarioFiltro() }, 'agenda-' + fecha),
-    db.rpc('toca_visitar', { p_usuario: agUid() === PERFIL.id && VE_TODO() ? null : agUid(), lim: 60 })
+    db.rpc('toca_actividad', { p_usuario: agUid() === PERFIL.id && VE_TODO() ? null : agUid(), lim: 60 })
   ]);
   let cen = [];
   try { ({ data: cen } = await RPC_ORIG('sugerencias_centros', { p_fecha: fecha, p_usuario: agUid() === PERFIL.id ? null : agUid() })); } catch (e) { cen = []; }
@@ -5291,7 +5291,7 @@ function selectorMedico(el, o) {
     const listaMedicos = async (titulo, params) => {
       caja.classList.add('buscando');
       sug.innerHTML = `<div class="gload"><span class="spin"></span>Buscando ${TT('medico', 'p', '', 'l', 'l')}…</div>`; sug.classList.remove('hide');
-      const { data } = await db.rpc('buscar_medicos', Object.assign({ q: null, f_provincia: null, f_municipio: null, f_estado: null,
+      const { data } = await db.rpc('buscar_cuentas', Object.assign({ q: null, f_provincia: null, f_municipio: null, f_estado: null,
         f_especialidad: null, f_area: null, f_urgentes: false, f_mios: false, f_sin_visitar: false, orden: 'nombre', lim: 30, desplaz: 0 }, params));
       caja.classList.remove('buscando');
       const f = (data && data.filas) || [];
@@ -5391,7 +5391,7 @@ function selectorPaciente(el, o) {
 async function nuevaCita(medicoId, fecha) {
   let elegido = null;
   if (medicoId) {
-    const { data } = await db.rpc('ficha_medico', { p_id: medicoId });
+    const { data } = await db.rpc('ficha_cuenta', { p_id: medicoId });
     const m = data && data.medico, c = data && (data.consultas || [])[0];
     if (m) elegido = Object.assign({}, m, { centro_nombre: c ? c.centro_nombre : '', municipio: c ? c.municipio : '' });
   }
@@ -5610,14 +5610,14 @@ abrirEditor = (orig => async function (id, tipo) {
     <select id="ecom"><option>Cargando…</option></select>
     <div class="sm" style="margin-top:4px">Las ventas nuevas se atribuyen al comercial asignado en ese momento.</div>`);
   if (!COMS.length) await cargarComerciales();
-  const { data: act } = await RPC_ORIG('comercial_de_medico', { p_medico: id });
+  const { data: act } = await RPC_ORIG('responsable_de_cuenta', { p_medico: id });
   const antes = act ? act.id : '';
   $('ecom').innerHTML = '<option value="">Sin comercial</option>' + COMS.filter(u => rolPuede(u.rol, 'cartera') || u.id === antes).map(u =>
     `<option value="${u.id}" ${u.id === antes ? 'selected' : ''}>${esc(u.nombre)} · ${esc(u.rol)}</option>`).join('');
   $('eguardar').addEventListener('click', async () => {
     const ahora = $('ecom') ? $('ecom').value : antes;
     if (ahora === antes) return;
-    const { data: r } = await db.rpc('asignar_comercial_medico', { p_medico: id, p_usuario: ahora || null });
+    const { data: r } = await db.rpc('asignar_responsable_cuenta', { p_medico: id, p_usuario: ahora || null });
     if (r && r.ok === false) toast('No se ha podido cambiar el comercial', true);
   });
 })(abrirEditor);
@@ -5657,7 +5657,7 @@ async function asignarCartera(id) {
   };
   const pinta = async () => {
     cargando($('alista'), `Buscando ${TT('medico', 'p', '', 'l', 'l')}…`);
-    const { data } = await db.rpc('buscar_medicos', Object.assign({ q: null, f_area: null, f_mios: false, f_sin_visitar: false,
+    const { data } = await db.rpc('buscar_cuentas', Object.assign({ q: null, f_area: null, f_mios: false, f_sin_visitar: false,
       orden: 'nombre', lim: 50, desplaz: pagina * 50 }, filtros()));
     total = data ? data.total : 0;
     const f = (data && data.filas) || [];
@@ -6430,7 +6430,7 @@ async function accionCita(k, c) {
       if (!op) return;
       res = neg[+op.slice(1)].valor;
     }
-    const { error } = await db.rpc('registrar_visita', { p: { medico_id: c.medico_id, fecha: c.fecha, resultados: [res],
+    const { error } = await db.rpc('registrar_actividad', { p: { medico_id: c.medico_id, fecha: c.fecha, resultados: [res],
       op_id: 'v-' + c.medico_id + '-' + Date.now() } });
     if (error) { toast('No se ha podido guardar: ' + error.message, true); return; }
     toast('Anotado: ' + res);
@@ -6716,7 +6716,7 @@ function programarVisitas(items, t0) {
 async function conHorarios(lista) {
   const faltan = lista.filter(m => !('dias' in m)).map(m => m.id);
   if (!faltan.length) return lista;
-  const { data } = await db.rpc('horarios_medicos', { p_ids: faltan });
+  const { data } = await db.rpc('horarios_cuentas', { p_ids: faltan });
   const por = {}; (data || []).forEach(h => por[h.id] = h);
   return lista.map(m => por[m.id] ? Object.assign({}, m, { dias: por[m.id].dias || {} }) : m);
 }
@@ -7128,8 +7128,8 @@ async function planificarSemana(desde, dias, bloq, porDia) {
     const max = +$('spmax').value || null;
     ev.target.disabled = true; ev.target.textContent = 'Calculando…';
     let lista = [];
-    if (fuente === 'toca') lista = (await db.rpc('toca_visitar', { p_usuario: agUid() === PERFIL.id && VE_TODO() ? null : agUid(), lim: 300 })).data || [];
-    else if (fuente.startsWith('ruta:')) lista = (await db.rpc('medicos_de_ruta', { p_id: fuente.slice(5) })).data || [];
+    if (fuente === 'toca') lista = (await db.rpc('toca_actividad', { p_usuario: agUid() === PERFIL.id && VE_TODO() ? null : agUid(), lim: 300 })).data || [];
+    else if (fuente.startsWith('ruta:')) lista = (await db.rpc('cuentas_de_ruta', { p_id: fuente.slice(5) })).data || [];
     else lista = ((await db.rpc('propuestas_rutas', { lim: 200 })).data || {})[fuente] || [];
     // Fuera los que ya tienen cita abierta
     const { data: futuras } = await RPC_ORIG('agenda_rango', { p_desde: hoyISO(), p_hasta: isoMas(hoyISO(), 60), p_usuario: agUid() });
@@ -7138,7 +7138,7 @@ async function planificarSemana(desde, dias, bloq, porDia) {
     // Aviso de visita reciente: fuera los que se han visto hace poco
     const av = avisoRevisita(); let recientes = [];
     if (av.on && lista.length) {
-      const { data: rv } = await db.rpc('visitas_recientes', { p_ids: lista.map(m => m.id), p_desde: isoMas(hoyISO(), -av.dias), p_hasta: hoyISO() });
+      const { data: rv } = await db.rpc('actividades_recientes', { p_ids: lista.map(m => m.id), p_desde: isoMas(hoyISO(), -av.dias), p_hasta: hoyISO() });
       const vistos = {}; (rv || []).filter(x => x.tipo === 'visita').forEach(x => { if (!vistos[x.medico_id] || x.fecha > vistos[x.medico_id].fecha) vistos[x.medico_id] = x; });
       recientes = lista.filter(m => vistos[m.id]).map(m => ({ m, motivo: `visitado el ${fechaCorta(vistos[m.id].fecha)}${vistos[m.id].usuario ? ' (' + vistos[m.id].usuario + ')' : ''}` }));
       lista = lista.filter(m => !vistos[m.id]);
@@ -7294,7 +7294,7 @@ document.addEventListener('click', e => {
 /* ---------------- aviso: falta el horario de consulta ---------------- */
 
 async function faltaHorario(id) {
-  const { data } = await db.rpc('ficha_medico', { p_id: id });
+  const { data } = await db.rpc('ficha_cuenta', { p_id: id });
   const cons = (data && data.consultas) || [];
   return data && data.medico && data.medico.tipo !== 'Centro' && !cons.some(c => c.dias && Object.keys(c.dias).some(k => c.dias[k]));
 }
@@ -7315,7 +7315,7 @@ AYUDA.agenda[2].push(
    lateral, mapa del plan y aviso de cita repetida
    ============================================================ */
 
-Object.assign(RPC_TTL, { clasificadores_visita: 300, municipios_clientes: 300 });
+Object.assign(RPC_TTL, { clasificadores_actividad: 300, municipios_clientes: 300 });
 
 /* ---------------- registrar visita con datos ---------------- */
 
@@ -7349,7 +7349,7 @@ async function visitaAvisoHorario(id) {
 
 /* Parte base; abrirVisita le añade el resto */
 async function abrirVisitaBase(id) {
-  const [{ data, error }, { data: clas }] = await Promise.all([db.rpc('ficha_medico', { p_id: id }), db.rpc('clasificadores_visita')]);
+  const [{ data, error }, { data: clas }] = await Promise.all([db.rpc('ficha_cuenta', { p_id: id }), db.rpc('clasificadores_actividad')]);
   if (error) { toast('No se ha podido abrir: ' + error.message, true); return; }
   const m = data.medico, cons = data.consultas || [];
   const grupos = (clas || []).filter(c => (c.valores || []).length);
@@ -7413,7 +7413,7 @@ async function abrirVisitaBase(id) {
       return Object.assign({ clasificador: idx[k].c, valor: idx[k].v.valor }, d ? { dato: d } : {});
     });
     ev.target.disabled = true; ev.target.textContent = 'Guardando…';
-    const { data: r, error: err } = await db.rpc('registrar_visita', { p: {
+    const { data: r, error: err } = await db.rpc('registrar_actividad', { p: {
       medico_id: id, consulta_id: $('vc').value || null, fecha: $('vf').value,
       resultados, detalles, nota: $('vn').value.trim(),
       proxima_accion: $('vpa').value.trim(), proxima_fecha: $('vpf').value || null,
@@ -7584,7 +7584,7 @@ async function pintarPacientes() {
 
 async function listaPacientes() {
   cargando($('paclista'), 'Buscando clientes…');
-  const { data, error } = await db.rpc('pacientes_lista', { q: PAC.q || null, p_medico: PAC.medico,
+  const { data, error } = await db.rpc('clientes_lista', { q: PAC.q || null, p_medico: PAC.medico,
     lim: tamPagina(), desplaz: PAC.pagina * tamPagina(), p_tipo: PAC.tipo || null, p_pedidos: PAC.pedidos || null,
     p_municipio: PAC.municipio || null, ...(Object.keys(PAC.campos || {}).length ? { f_campos: PAC.campos } : {}) });
   if (error) { $('paccuenta').textContent = 'No se ha podido cargar: ' + error.message; $('paclista').innerHTML = ''; return; }
@@ -7649,7 +7649,7 @@ AYUDA.agenda[2].push(`Si añades una cita a ${TT('medico', 's', 'un', 'l', 'l')}
    de visita reciente, servicios, inicio de Rutas y un Inicio con más valor
    ============================================================ */
 
-Object.assign(RPC_TTL, { alertas_mias: 60, alertas_cruce: 120, visitas_recientes: 30 });
+Object.assign(RPC_TTL, { alertas_mias: 60, alertas_cruce: 120, actividades_recientes: 30 });
 let SERVICIOS = [];
 
 async function cargarProductos() {
@@ -7832,7 +7832,7 @@ async function guardarAvisoRevisita(v) {
 /** Visitas o citas de estos médicos cerca de la fecha (sin contar ese mismo día). */
 async function recientesDe(ids, fecha) {
   const a = avisoRevisita(); if (!a.on || !ids.length) return {};
-  const { data } = await db.rpc('visitas_recientes', { p_ids: ids, p_desde: isoMas(fecha, -(a.dias - 1)), p_hasta: isoMas(fecha, a.dias - 1) });
+  const { data } = await db.rpc('actividades_recientes', { p_ids: ids, p_desde: isoMas(fecha, -(a.dias - 1)), p_hasta: isoMas(fecha, a.dias - 1) });
   const por = {};
   (data || []).filter(x => x.fecha !== fecha).forEach(x => (por[x.medico_id] = por[x.medico_id] || []).push(x));
   return por;
@@ -9734,7 +9734,7 @@ AYUDA.ventas[2].push('El listado va por páginas y se guarda en el dispositivo: 
    pruebas solo para la persona responsable
    ============================================================ */
 
-Object.assign(RPC_TTL, { informe_medico: 60, mis_notificaciones: 20, asignaciones_esquema_lista: 30 });
+Object.assign(RPC_TTL, { informe_cuenta: 60, mis_notificaciones: 20, asignaciones_esquema_lista: 30 });
 
 /* ---------------- selectores propios: fecha, hora y número ---------------- */
 
@@ -9922,7 +9922,7 @@ async function cargarInforme() {
     <div id="mdcuerpo"><div class="card">${skelCard('Cargando tu informe…')}</div></div>`;
   const pinta = async () => {
     const r = $('mdper').__rango();
-    const { data: d } = await RPC_ORIG('informe_medico', { p_desde: r.desde, p_hasta: r.hasta });
+    const { data: d } = await RPC_ORIG('informe_cuenta', { p_desde: r.desde, p_hasta: r.hasta });
     if (!d || !d.ok) { $('mdcuerpo').innerHTML = `<div class="card"><div class="vacio">Tu usuario todavía no está vinculado a tu ficha de ${TT('medico', 's', '', 'l', 'l')}. Avisa a la empresa para activarlo.</div></div>`; return; }
     $('mdnom').textContent = d.medico.nombre; $('mdesp').textContent = d.medico.especialidad || '';
     const top = d.posicion && d.posicion <= 3 ? 'Top 3' : d.posicion && d.posicion <= 5 ? 'Top 5' : d.posicion && d.posicion <= 10 ? 'Top 10' : null;
@@ -10013,7 +10013,7 @@ let NAV_CTRL = new AbortController(), NAV_GEN = 0;
 const TURNOS = {};
 const pedirTurno = k => (TURNOS[k] = (TURNOS[k] || 0) + 1);
 const esMiTurno = (k, t) => TURNOS[k] === t;
-const SOLO_ULTIMA = new Set(['pedidos_pagina', 'facturas_lista', 'llamadas_lista', 'pacientes_lista', 'analitica_tabla', 'compras_lista', 'stock_resumen']);
+const SOLO_ULTIMA = new Set(['pedidos_pagina', 'facturas_lista', 'llamadas_lista', 'clientes_lista', 'analitica_tabla', 'compras_lista', 'stock_resumen']);
 const RPC_V2361 = db.rpc;
 db.rpc = function (fn, params, opts) {
   const b = RPC_V2361.call(db, fn, params, opts);
@@ -11248,7 +11248,7 @@ async function pintarPrefsParte(parte) {
 async function pintarMaterial() {
   await Promise.all([cargarAjustes(), cargarProductos()]);
   const m = Object.assign({ producto_id: null, restar_stock: false }, AJUSTES.muestras || {});
-  const { data: clas } = await db.rpc('clasificadores_visita');
+  const { data: clas } = await db.rpc('clasificadores_actividad');
   const mat = (clas || []).find(c => c.papel === 'material_visita');
   const { data: cid } = await db.from('clasificadores').select('id').eq('papel', 'material_visita').maybeSingle();
   const { data: vals } = cid ? await db.from('valores_clasificador').select('id,valor,activo,dato_tipo').eq('clasificador_id', cid.id).order('orden') : { data: [] };
@@ -12644,7 +12644,7 @@ new MutationObserver(() => {
 let MED_ACCESO = null;
 async function cargarAccesoMedicos() {
   if (!(PERFIL && (puede('administrar') || VE_TODO()))) { MED_ACCESO = {}; return; }
-  const { data } = await RPC_ORIG('medicos_con_acceso', {});
+  const { data } = await RPC_ORIG('cuentas_con_acceso', {});
   MED_ACCESO = {}; (data || []).forEach(x => { MED_ACCESO[x.medico_id] = x; });
 }
 COLS.push({ k: 'acceso', t: 'Acceso a la plataforma', w: 170 });
