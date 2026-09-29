@@ -2395,9 +2395,9 @@ async function pintarSinAtribuir() {
     <p class="sm">No hemos podido identificar ${TT('medico', 's', 'al', 'l', 'l')}. Asígnalo y las métricas se corrigen solas.</p>
     <div class="lista">${SIN_ATRIB.map(l => `<div class="item" style="cursor:default">
       <span class="ic w">?</span>
-      <span class="tx"><b>${esc(l.medico_texto || 'Sin indicar')}</b>
+      <span class="tx"><b>${esc(l.cuenta_texto || 'Sin indicar')}</b>
         <span class="sm">${fechaCorta(l.fecha)} · ${num(l.unidades)} uds. · ${esc(l.producto || '')} · ${esc(l.contacto || '')}</span></span>
-      <span class="acts" style="margin:0"><button class="btn sec" data-atr="${l.id}|${esc(l.medico_texto || '')}">Atribuir</button></span>
+      <span class="acts" style="margin:0"><button class="btn sec" data-atr="${l.id}|${esc(l.cuenta_texto || '')}">Atribuir</button></span>
     </div>`).join('')}</div>`;
   $('cardsinatr').querySelectorAll('[data-atr]').forEach(b => b.onclick = () => {
     const [id, texto] = b.dataset.atr.split('|'); atribuir(id, texto);
@@ -4695,7 +4695,7 @@ async function editorPedido(pedido) {
   // Datos del formulario que se conservan al repintar
   const form = { fecha: ped ? ped.fecha : hoyISO(), canal: ped ? ped.canal : 'paciente', forma_pago: ped ? ped.forma_pago : '',
     descuento: ped ? (ped.descuento || 0) : 0, descuento_tipo: ped ? ped.descuento_tipo : 'porcentaje', nota: ped ? ped.nota || '' : '',
-    medico_texto: ped ? ped.medico_texto || '' : '',
+    cuenta_texto: ped ? ped.cuenta_texto || '' : '',
     servicio_id: ped ? (ped.envio ? (ped.servicio_id || ((SERVICIOS[0] || {}).id) || '') : '') : ((SERVICIOS.find(x => x.por_defecto && x.activo) || {}).id || ''),
     envio: ped ? !!ped.envio : !!SERVICIOS.find(x => x.por_defecto && x.activo),
     envio_iva: ped && ped.envio ? +ped.envio_iva : +((SERVICIOS.find(x => x.por_defecto && x.activo) || {}).iva ?? 21),
@@ -4705,7 +4705,7 @@ async function editorPedido(pedido) {
     Object.assign(form, { fecha: $('pfecha').value, canal: $('pcan').value, forma_pago: $('ppago').value,
       descuento: $('pdto').value, descuento_tipo: $('pdtot').value, nota: $('pnota').value,
       envio: $('penv').checked, envio_con: +$('penvi').value || 0, envio_iva: +$('penvv').value || 0, servicio_id: $('pserv').value,
-      medico_texto: $('pselmed') ? ($('pselmed').__texto || '') : form.medico_texto });
+      cuenta_texto: $('pselmed') ? ($('pselmed').__texto || '') : form.cuenta_texto });
   };
 
   const pinta = () => {
@@ -4798,7 +4798,7 @@ async function editorPedido(pedido) {
     desglose();
 
     const montarMed = () => {
-      $('pselmed').__texto = medico ? '' : form.medico_texto;
+      $('pselmed').__texto = medico ? '' : form.cuenta_texto;
       selectorMedico($('pselmed'), { valor: medico, placeholder: 'Nombre, código, centro o municipio', alElegir: m => { medico = m; } });
     };
     selectorPaciente($('pselpac'), { valor: contacto, alElegir: c => {
@@ -4817,7 +4817,7 @@ async function editorPedido(pedido) {
       const { data: r, error } = await db.rpc('guardar_pedido', { p: {
         id: ped ? ped.id : null, estado,
         fecha: $('pfecha').value, canal: $('pcan').value,
-        cuenta_id: medico ? medico.id : null, medico_texto: medico ? '' : ($('pselmed').__texto || '').trim(),
+        cuenta_id: medico ? medico.id : null, cuenta_texto: medico ? '' : ($('pselmed').__texto || '').trim(),
         contacto_id: contacto ? contacto.id : null, nota: $('pnota').value.trim(),
         forma_pago: $('ppago').value || null,
         descuento: +$('pdto').value || 0, descuento_tipo: $('pdtot').value,
@@ -4971,7 +4971,7 @@ async function verPedidoBase(id) {
     e.target.disabled = true;
     const { data: r, error: er } = await db.rpc('guardar_pedido', { p: {
       id, estado: 'Confirmado', fecha: p.fecha, canal: p.canal, contacto_id: p.contacto_id, centro_id: p.centro_id,
-      cuenta_id: data.medico ? data.medico.id : null, medico_texto: p.medico_texto, nota: p.nota, forma_pago: p.forma_pago,
+      cuenta_id: data.medico ? data.medico.id : null, cuenta_texto: p.cuenta_texto, nota: p.nota, forma_pago: p.forma_pago,
       descuento: p.descuento || 0, descuento_tipo: p.descuento_tipo,
       envio: !!p.envio, envio_con_iva: p.envio ? r2(+p.envio_base * (1 + (+p.envio_iva || 0) / 100)) : 0, envio_iva: p.envio_iva, servicio_id: p.servicio_id,
       lineas: l.map(x => ({ producto_id: x.producto_id, unidades: x.unidades, importe: x.importe, descuento: x.descuento, iva: x.iva })) } });
@@ -7414,7 +7414,7 @@ async function abrirVisitaBase(id) {
     });
     ev.target.disabled = true; ev.target.textContent = 'Guardando…';
     const { data: r, error: err } = await db.rpc('registrar_actividad', { p: {
-      cuenta_id: id, consulta_id: $('vc').value || null, fecha: $('vf').value,
+      cuenta_id: id, ubicacion_id: $('vc').value || null, fecha: $('vf').value,
       resultados, detalles, nota: $('vn').value.trim(),
       proxima_accion: $('vpa').value.trim(), proxima_fecha: $('vpf').value || null,
       op_id: 'v-' + id + '-' + Date.now()
@@ -9297,7 +9297,7 @@ async function pintarLlamadas() {
     $('lllista').innerHTML = lista.length ? `<div class="dgrid-wrap"><div class="dgrid llam">
       <div class="dh"><span>Fecha</span><span>Quién llama</span><span>${TT('medico', 's', '', 'l', 'C')}</span><span>Motivo</span><span>Resultado</span><span>Próximo paso</span><span>Atendió</span></div>
       ${lvis.map(x => `<button class="dr" data-ll="${x.id}"><span>${new Date(x.fecha).toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' })}<span class="sm">${esc(x.direccion || '')}</span></span>
-        <span><b>${esc(x.nombre || x.cliente || '—')}</b><span class="sm">${esc(x.telefono || '')}</span></span><span class="corta">${esc(x.medico || x.medico_texto || '—')}</span>
+        <span><b>${esc(x.nombre || x.cliente || '—')}</b><span class="sm">${esc(x.telefono || '')}</span></span><span class="corta">${esc(x.medico || x.cuenta_texto || '—')}</span>
         <span class="sm">${esc(x.motivo || '—')}</span><span>${esc(x.resultado || '—')}${x.pedido ? `<span class="sm">Pedido ${esc(x.pedido)}</span>` : ''}</span>
         <span class="sm">${x.proxima_fecha ? fechaCorta(x.proxima_fecha) + ' · ' : ''}${esc(x.proxima_accion || '')}</span><span class="sm">${esc(x.usuario || '')}</span></button>`).join('')}</div></div>`
       : '<div class="vacio">Sin llamadas en este periodo. Regístralas con «+ Registrar llamada», aunque no acaben en pedido: así se puede analizar por qué.</div>';
@@ -9387,7 +9387,7 @@ async function listaPedidos() {
       <span class="num">Uds.</span>${imp ? '<span class="num">Base</span><span class="num">Total</span>' : ''}<span>Estado</span><span>Operativa</span></div>
     ${PEDIDOS.map(p => `<button class="dr" data-ped="${p.id}" style="${p.estado === 'Anulado' ? 'opacity:.55' : ''}">
       <span>${fechaCorta(p.fecha)}${p.factura || p.numero ? `<span class="sm">${esc(p.factura || p.numero)}</span>` : ''}</span>
-      <span><b>${esc(p.contacto || p.centro || p.medico_texto || '—')}</b><span class="sm">${p.canal === 'centro' ? 'Venta a centro' : 'Recomendación'}${p.forma_pago ? ' · ' + esc(p.forma_pago) : ''}</span></span>
+      <span><b>${esc(p.contacto || p.centro || p.cuenta_texto || '—')}</b><span class="sm">${p.canal === 'centro' ? 'Venta a centro' : 'Recomendación'}${p.forma_pago ? ' · ' + esc(p.forma_pago) : ''}</span></span>
       <span class="corta">${p.medico ? esc(p.medico) : '<span class="vac">Sin atribuir</span>'}</span>
       <span>${p.comercial ? esc(p.comercial) : '<span class="vac">—</span>'}</span>
       <span class="sm corta">${esc(p.productos || '')}</span><span class="num">${num(p.unidades)}</span>
@@ -10407,7 +10407,7 @@ async function editorLlamada(l, previa) {
       }, 250); };
     }
   };
-  const pintaMed = () => { $('llmed').innerHTML = ''; $('llmed').__texto = medico ? '' : (l.medico_texto || ''); selectorMedico($('llmed'), { valor: medico, placeholder: 'Nombre, código, centro o municipio', alElegir: m => { medico = m; } }); };
+  const pintaMed = () => { $('llmed').innerHTML = ''; $('llmed').__texto = medico ? '' : (l.cuenta_texto || ''); selectorMedico($('llmed'), { valor: medico, placeholder: 'Nombre, código, centro o municipio', alElegir: m => { medico = m; } }); };
   pintaCli(); pintaMed();
   $('dbody').querySelectorAll('[data-lmodo]').forEach(b => b.onclick = () => { nuevo = b.dataset.lmodo === 'nuevo'; if (!nuevo) cliente = null;
     $('dbody').querySelectorAll('[data-lmodo]').forEach(x => x.classList.toggle('on', x === b)); pintaCli(); });
@@ -10427,7 +10427,7 @@ async function editorLlamada(l, previa) {
     const { data: r, error } = await db.rpc('guardar_llamada', { p: { id: l.id || null, fecha: $('llf').value ? new Date($('llf').value).toISOString() : null,
       direccion: $('lld').value, nombre: datosNuevo ? datosNuevo.nombre : (cliente ? cliente.nombre : l.nombre || ''), telefono: datosNuevo ? datosNuevo.telefono : (cliente ? cliente.tel || '' : l.telefono || ''),
       contacto_id: cliente ? cliente.id : null, cliente_nuevo: conPedido ? datosNuevo : null, cuenta_id: medico ? medico.id : null,
-      medico_texto: medico ? '' : ($('llmed').__texto || '').trim(), motivo, resultado: conPedido ? (resultado || 'Pedido hecho') : resultado,
+      cuenta_texto: medico ? '' : ($('llmed').__texto || '').trim(), motivo, resultado: conPedido ? (resultado || 'Pedido hecho') : resultado,
       proxima_accion: $('llpa') ? $('llpa').value.trim() : '', proxima_fecha: resultado && resultado !== 'Pedido hecho' && !conPedido ? ($('llpf').value || '') : '',
       nota: $('llno').value.trim(), pedido_id: l.pedido_id || null, llamada_origen: previa ? previa.id : null } });
     if (error || (r && r.ok === false)) { toast('No se ha podido guardar' + (error ? ': ' + error.message : ''), true); return null; }
