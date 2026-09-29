@@ -326,7 +326,7 @@ body.conruta{padding-top:46px}
 .pvent{font-size:11.5px;color:var(--muted);background:var(--bg);border-radius:6px;padding:1px 6px;margin-left:4px}
 .planfuera{margin:4px 16px 0;border:1px dashed var(--warn);border-radius:12px;background:var(--warn-bg)}
 .planfuera h3{margin:0;padding:10px 12px 0;font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--warn)}
-.tdaviso{color:var(--warn)!important;font-weight:650}
+.tdaviso{color:var(--warn)!important;font-weight:650;display:block;white-space:normal!important}
 .tdvent{color:var(--muted)}
 .reprog .item{align-items:center}
 .reprog input[type=checkbox]{width:18px;height:18px;min-height:0;flex:0 0 auto}
@@ -569,7 +569,11 @@ body.conruta{padding-top:46px}
 .tdlista .tdit:hover{background:var(--sky-soft)}
 .tdlista .tdit.cerrada{opacity:.62}
 .tdnum{width:20px;text-align:center;color:var(--muted);font-size:12px;font-weight:650;flex:0 0 auto}
-.tdh{min-width:52px;width:auto;padding:0 6px;font-size:12.5px;font-weight:700}
+/* v2.77.1 · La hora va junto al nombre, no ocupa una columna */
+.tdlista .tdit .tx b .tdh{display:inline-block!important;width:auto!important}
+.tdlista .tdit .tx > b{align-items:center}
+.tdlista .tdit .tx b .pill{display:inline-block!important}
+.tdh{display:inline-block;min-width:0;width:auto;padding:1px 7px;margin-right:6px;border-radius:999px;font-size:12.5px;font-weight:700;line-height:1.5;vertical-align:1px}
 .tdacts{flex-wrap:nowrap;align-items:center}
 .tdord{display:flex;gap:3px}
 .tdmas{min-width:40px;padding:0 10px;font-size:18px;line-height:1}
@@ -1595,9 +1599,8 @@ body:not(.inilisto) #v-inicio .saludo .acts{visibility:hidden}
   .rutabar .rblargo{display:none}.rutabar .rbcorto{display:inline}
   .rutabar .acts{flex:none;gap:6px}.rutabar .btn{min-height:30px;padding:4px 10px;font-size:12px}
   /* Cada cita: hora · datos completos · columna de acciones */
-  .tdlista .tdit{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:start;padding:12px 10px}
+  .tdlista .tdit{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:start;padding:12px 10px}
   .tdlista .tdit .tdnum{display:none}
-  .tdlista .tdit .tdh{margin-top:2px;min-width:52px;font-size:13px}
   .tdlista .tdit .tx{min-width:0}
   .tdlista .tdit .tx b{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.25}
   .tdlista .tdit .tx .sm{white-space:normal;overflow:visible;text-overflow:clip}
@@ -1606,9 +1609,7 @@ body:not(.inilisto) #v-inicio .saludo .acts{visibility:hidden}
   .tdlista .tdit .tdreg-t{display:none}.tdlista .tdit .tdreg-i{display:block;font-size:28px;font-weight:600;line-height:1;margin-top:-2px}
   /* Estado, origen y nota: como mucho dos líneas (la nota completa está en la ficha) */
   .tdlista .tdit .tx > span.sm:nth-of-type(2){display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-  .tdlista .tdit .tdaviso{display:flex;gap:5px;align-items:baseline;flex-wrap:nowrap}
-  .tdlista .tdit .tdaviso > i{font-style:normal;flex:none}
-  .tdlista .tdit .tdaviso > span{flex:1;min-width:0}
+  .tdlista .tdit .tdaviso{display:block;white-space:normal!important;overflow:visible!important;text-overflow:clip!important}
   .tdlista .tdit .tdmas{width:42px;min-height:34px;padding:0}
   .tdlista .tdit .tdord{display:flex;gap:4px}.tdlista .tdit .tdord .kmv{width:19px;height:22px}
 }
@@ -1778,6 +1779,6 @@ body:not(.inilisto) #v-inicio .saludo .acts{visibility:hidden}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.77.0"></script>
+<script src="./app.js?v=2.77.1"></script>
 </body>
 </html>

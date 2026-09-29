@@ -6333,11 +6333,10 @@ async function pintarTuDia() {
       const idxAb = mias.filter(x => CITA_ABIERTA.includes(x.estado)).indexOf(c);
       return `<div class="item tdit ${abierta ? '' : 'cerrada'}" data-tdf="${c.medico_id}" role="button" tabindex="0">
         <span class="tdnum">${i + 1}</span>
-        <span class="ic tdh" title="${c.hora ? 'Hora fijada' : 'Hora estimada según el orden'}" style="background:${EST_COL[c.estado]}1f;color:${EST_COL[c.estado]}">${hora}</span>
-        <span class="tx"><b>${c.urgente ? '<span class="pill p-urg">Urgente</span> ' : ''}${esc(c.nombre)}</b>
+        <span class="tx"><b><span class="tdh" title="${c.hora ? 'Hora fijada' : 'Hora estimada según el orden'}" style="background:${EST_COL[c.estado]}1f;color:${EST_COL[c.estado]}">${hora}</span>${c.urgente ? '<span class="pill p-urg">Urgente</span> ' : ''}${esc(c.nombre)}</b>
           <span class="sm">${esc([c.centro_nombre, c.municipio].filter(Boolean).join(' · ') || 'Sin centro')}${!xyCita(c) && abierta ? ' · <span style="color:var(--warn)">sin ubicación</span>' : ''}</span>
           <span class="sm">${pillCita(c.estado)}${c.origen ? ' · ' + esc(c.origen) : ''}${c.nota ? ' · ' + esc(c.nota) : ''}</span>
-          ${abierta && TD_INFO[c.id] && TD_INFO[c.id].aviso ? `<span class="sm tdaviso"><i aria-hidden="true">⚠</i><span>${esc(TD_INFO[c.id].aviso)}</span></span>`
+          ${abierta && TD_INFO[c.id] && TD_INFO[c.id].aviso ? `<span class="sm tdaviso">${esc(TD_INFO[c.id].aviso)}</span>`
             : abierta && TD_INFO[c.id] && TD_INFO[c.id].ventanas && TD_INFO[c.id].ventanas.length ? `<span class="sm tdvent">Consulta ${esc(txtVentanas(TD_INFO[c.id].ventanas))}${TD_INFO[c.id].espera ? ` · esperas ${TD_INFO[c.id].espera} min` : ''}</span>` : ''}</span>
         <span class="acts tdacts" style="margin:0">
           ${abierta && !pasado ? `
@@ -6814,7 +6813,12 @@ function estimarDiaBase(citas, fecha) {
     if (!CITA_ABIERTA.includes(c.estado)) { if (xy) pos = xy; return; }
     const it = { xy, ventanas: ventanasDe(c.dias, fecha), fija: minHora(c.hora) };
     let lleg = t;
-    if (xy) { const mismo = !primera && pos[0] === xy[0] && pos[1] === xy[1]; lleg = t + (mismo ? 0 : minutosEntre(pos, xy) + cfg.parada); pos = xy; }
+    if (primera && !cfg.conSalida) {
+      // v2.77.1: sin salida planificada no se sabe a qué hora sales de casa: se llega a la primera cita a su hora
+      const ya = fecha === hoyISO() ? Math.ceil(minAhora / 5) * 5 : 0;
+      lleg = it.fija != null ? Math.max(it.fija, ya) : t;
+      if (xy) pos = xy;
+    } else if (xy) { const mismo = !primera && pos[0] === xy[0] && pos[1] === xy[1]; lleg = t + (mismo ? 0 : minutosEntre(pos, xy) + cfg.parada); pos = xy; }
     primera = false;
     let ini = inicioPosible(it, lleg, dura);
     const info = { ventanas: it.ventanas };
