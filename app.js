@@ -680,7 +680,7 @@ async function abrirEditor(id, tipo) {
     m = data.medico; cons = (data.consultas || []).length ? data.consultas : [{}];
   }
   const esCentro = m.tipo === 'Centro';
-  const opts = (lista, v) => `<option value=""></option>` + lista.map(x =>
+  const opts = (lista, v) => (lista || []).some(x => x.padre) ? optsGrupos(lista, v) : `<option value=""></option>` + lista.map(x =>
     `<option ${v === x.valor ? 'selected' : ''}>${esc(x.valor)}</option>`).join('');
 
   $('dbody').innerHTML = `
@@ -839,6 +839,19 @@ $('dlg2').addEventListener('click', e => {
 function fichaNueva() {
   if (TERMINOS && TERMINOS.medico && TERMINOS.medico.s) return { nombre: TT('medico', 's', '', 'l', 'C'), nueva: TT('medico', 's', 'nuevo', 'C', 'l') };
   return { nombre: 'Cuenta', nueva: 'Nueva cuenta' };
+}
+/* v2.77.0 · Valores con categoría (p. ej. Traumatología › Columna): el selector los agrupa */
+function optsGrupos(lista, v) {
+  const hijos = {}; lista.forEach(x => { if (x.padre) (hijos[x.padre] = hijos[x.padre] || []).push(x); });
+  const op = x => `<option value="${esc(x.valor)}" ${v === x.valor ? 'selected' : ''}>${esc(x.valor)}</option>`;
+  let h = '<option value=""></option>';
+  if (v && !lista.some(x => x.valor === v)) h += `<option selected>${esc(v)}</option>`;
+  lista.filter(x => !x.padre).forEach(x => {
+    h += hijos[x.valor] ? `<optgroup label="${esc(x.valor)}">${op(x)}${hijos[x.valor].map(op).join('')}</optgroup>` : op(x);
+  });
+  // Subcategorías cuya categoría ya no está en la lista
+  Object.keys(hijos).filter(p => !lista.some(x => !x.padre && x.valor === p)).forEach(p => { h += `<optgroup label="${esc(p)}">${hijos[p].map(op).join('')}</optgroup>`; });
+  return h;
 }
 $('nuevoBtn').addEventListener('click', () => {
   if (!puedeCrear()) { toast('No tienes permiso para crear fichas', true); return; }
@@ -2743,8 +2756,15 @@ async function panelComisionUsuario(u) {
    ============================================================ */
 
 let RSEC = 'mis', PROPUESTAS = null;
-const PLANCFG = () => Object.assign({ salida: '09:00', visita: 15, tope: '18:00', parada: 10 },
-  prefsActivas().plan || {});
+/* v2.76.0 · La salida y la vuelta son de cada ruta (o del día planificado), no un ajuste general.
+   HOR = horario del plan en curso; sin él se estima desde las 9:00 (o desde ahora) y no hay hora de vuelta. */
+let HOR = null;
+const TIEMPOS = () => { const p = prefsActivas().plan || {}; return { visita: +p.visita || 15, parada: p.parada != null && p.parada !== '' ? +p.parada : 10 }; };
+const PLANCFG = () => Object.assign({}, TIEMPOS(), { salida: (HOR && HOR.salida) || '09:00', tope: (HOR && HOR.vuelta) || '23:59',
+  conSalida: !!(HOR && HOR.salida), conTope: !!(HOR && HOR.vuelta) });
+function conHor(h, fn) { const prev = HOR; HOR = h && (h.salida || h.vuelta) ? h : null; try { return fn(); } finally { HOR = prev; } }
+const horDeCitas = l => { const c = (l || []).find(x => x && (x.salida || x.vuelta)); return c ? { salida: c.salida || null, vuelta: c.vuelta || null } : null; };
+const horDeRuta = id => { const r = (RUTAS || []).find(x => x.id === id); return r && (r.salida || r.vuelta) ? { salida: r.salida || null, vuelta: r.vuelta || null } : null; };
 
 /* ---------------- navegador de mapas ---------------- */
 
@@ -2803,12 +2823,12 @@ async function cargarRutasPaso1() {
 async function cargarRutasPaso2() {
   const acts = $('v-rutas').querySelector('.saludo .acts');
   if (acts && !$('rhorario')) {
-    acts.insertAdjacentHTML('afterbegin', `<button class="btn sec" id="rhorario" title="Hora de salida, hora tope y minutos por ${TT('visita', 's', '', 'l', 'l')}">⚙ Horario de rutas</button>`);
+    acts.insertAdjacentHTML('afterbegin', `<button class="btn sec" id="rhorario" title="Minutos por ${TT('visita', 's', '', 'l', 'l')} y por parada">⚙ Tiempos de ${TT('visita', 's', '', 'l', 'l')}</button>`);
     $('rhorario').onclick = abrirHorarioPlan;
   }
   const c = PLANCFG();
   const sub = $('v-rutas').querySelector('.saludo .fecha');
-  if (sub) sub.textContent = `Crea, edita y planifica tus rutas · Horario ${c.salida}–${c.tope}, ${c.visita} min por ${TT('medico', 's', '', 'l', 'l')}`;
+  if (sub) sub.textContent = `Crea, edita y planifica tus rutas · ${c.visita} min por ${TT('medico', 's', '', 'l', 'l')}`;
 }
 
 async function cargarRutasBase() {
@@ -2943,8 +2963,8 @@ async function editorRuta(id) {
   let codigos = r && r.codigos ? r.codigos.slice() : [];
   let medicos = [];
   let busca = '';
-  let cab = { nombre: r ? r.nombre : '', tipo: r ? r.tipo : 'Normal', desde: (r && r.desde) || hoyISO() };
-  const leerCab = () => { if ($('rn')) cab = { nombre: $('rn').value, tipo: $('rt').value, desde: $('rd').value }; };
+  let cab = { nombre: r ? r.nombre : '', tipo: r ? r.tipo : 'Normal', desde: (r && r.desde) || hoyISO(), salida: (r && r.salida) || '', vuelta: (r && r.vuelta) || '' };
+  const leerCab = () => { if ($('rn')) cab = { nombre: $('rn').value, tipo: $('rt').value, desde: $('rd').value, salida: ($('rsal') || {}).value || '', vuelta: ($('rvue') || {}).value || '' }; };
   let op = { provincias: [], municipios: [], centros: [], especialidades: [], estados: [] };
   const g = Object.assign({}, (r && r.reglas) || {});
 
@@ -2971,6 +2991,8 @@ async function editorRuta(id) {
           <option ${cab.tipo !== 'Urgente' ? 'selected' : ''}>Normal</option>
           <option ${cab.tipo === 'Urgente' ? 'selected' : ''}>Urgente</option></select></div>
         <div><label for="rd">Contar ${TT('visita', 'p', '', 'l', 'l')} desde</label><input id="rd" type="date" value="${esc(cab.desde)}"></div>
+        <div><label for="rsal">Hora de salida</label><input id="rsal" type="time" value="${esc(cab.salida || '')}"></div>
+        <div><label for="rvue">Vuelta como tarde</label><input id="rvue" type="time" value="${esc(cab.vuelta || '')}"></div>
       </div>
       <label>Cómo se eligen ${TT('medico', 'p', 'el', 'l', 'l')}</label>
       <div class="subnav" style="margin:6px 0 10px">
@@ -3067,6 +3089,7 @@ async function editorRuta(id) {
       ev.target.disabled = true; ev.target.textContent = 'Guardando…';
       const { error } = await db.rpc('guardar_ruta', { p: {
         id: id || null, nombre: $('rn').value.trim(), tipo: $('rt').value, desde: $('rd').value,
+        salida: ($('rsal') || {}).value || '', vuelta: ($('rvue') || {}).value || '',
         visible_para: puede('administrar') ? '*' : '',
         codigos: modo === 'lista' ? codigos : [],
         reglas: modo === 'crit' ? ($('dbody').__reglas ? $('dbody').__reglas() : {}) : null
@@ -3091,22 +3114,18 @@ async function planDesdeLista(lista, nombre, btn) {
 function abrirHorarioPlan() {
   const c = PLANCFG();
   $('dbody').innerHTML = `
-    <div class="fh"><div><h2>Horario del plan</h2><div class="sm">Se guarda en tus preferencias</div></div>
+    <div class="fh"><div><h2>Tiempos de ${TT('visita', 's', '', 'l', 'l')}</h2><div class="sm">Se guardan en tus preferencias. La hora de salida y la de vuelta se ponen en cada ruta.</div></div>
       <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-    <div class="g2">
-      <div><label for="hsal">Hora de salida</label><input id="hsal" type="time" value="${c.salida}"></div>
-      <div><label for="htop">Vuelta como tarde</label><input id="htop" type="time" value="${c.tope}"></div>
-    </div>
     <div class="g2">
       <div><label for="hvis">Minutos por ${TT('medico', 's', '', 'l', 'l')}</label><input id="hvis" type="number" min="5" max="60" value="${c.visita}"></div>
       <div><label for="hpar">Minutos fijos por parada</label><input id="hpar" type="number" min="0" max="40" value="${c.parada}"></div>
     </div>
     <div class="acts" style="justify-content:flex-end">
       <button class="btn sec" data-cerrar>Cancelar</button>
-      <button class="btn" id="hok">Guardar y recalcular</button></div>`;
+      <button class="btn" id="hok">Guardar</button></div>`;
   $('hok').onclick = async ev => {
     ev.target.disabled = true;
-    const plan = { salida: $('hsal').value, tope: $('htop').value, visita: +$('hvis').value || 15, parada: +$('hpar').value || 10 };
+    const plan = { visita: +$('hvis').value || 15, parada: $('hpar').value === '' ? 10 : +$('hpar').value };
     const prefs = Object.assign({}, PERFIL.preferencias || {}, { plan });
     const { data } = await db.rpc('guardar_preferencias', { p: prefs });
     PERFIL.preferencias = data || prefs;
@@ -3489,7 +3508,7 @@ function abrirClasificador(id) {
         ${puedeEditar ? '' : ' · <b>solo lectura</b>'}</div></div>
         <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
       ${cajaCampo(c, completo)}
-      <div class="lista ${!c.papel && CAMPO_TABLA[c.ambito] && (c.tipo_campo || 'lista') !== 'lista' ? 'hide' : ''}">${(c.valores || []).map(v => `<div class="item" style="cursor:default">
+      <div class="lista ${!c.papel && CAMPO_TABLA[c.ambito] && (c.tipo_campo || 'lista') !== 'lista' ? 'hide' : ''}">${(c.valores || []).map(v => `<div class="item ${v.padre ? 'vsub' : ''}" style="cursor:default">
         <span class="ic">${v.activo ? '●' : '○'}</span>
         <span class="tx"><b style="${v.activo ? '' : 'opacity:.5;text-decoration:line-through'}">${esc(v.valor)}</b>
           ${v.extra ? `<span class="sm">${v.extra === 'neg' ? `sin ${TT('visita', 's', '', 'l', 'l')}` : `${TT('visita', 's', '', 'l', 'l', 'realizado')}`}${v.destino ? ' · pasa a ' + esc(v.destino) : ''}</span>` : ''}</span>
@@ -3501,6 +3520,7 @@ function abrirClasificador(id) {
       ${puedeEditar ? `<div class="acts"><input id="cvnew" placeholder="Nuevo valor" style="flex:1;min-width:160px">
         ${c.papel === 'resultado_visita' ? `<select id="cvextra" style="max-width:170px"><option value="pos">${TT('visita', 's', '', 'l', 'C', 'realizado')}</option><option value="neg">Sin ${TT('visita', 's', '', 'l', 'l')}</option></select>
           <select id="cvdest" style="max-width:190px" title="Estado al que pasa la ficha con este resultado"><option value="">No cambia el estado</option>${estados().map(x => `<option value="${esc(x)}">Pasa a ${esc(x)}</option>`).join('')}</select>` : ''}
+        ${(c.valores || []).some(v => v.padre) ? `<select id="cvpadre" style="max-width:210px" title="Categoría del valor"><option value="">Sin categoría (es una categoría)</option>${(c.valores || []).filter(v => !v.padre).map(v => `<option value="${esc(v.valor)}">Dentro de ${esc(v.valor)}</option>`).join('')}</select>` : ''}
         <button class="btn" id="cvadd">Añadir</button></div>` : ''}
       ${completo && !c.sistema ? `<div class="acts" style="justify-content:flex-end;border-top:1px solid var(--line);padding-top:12px">
         <button class="btn sec dang" id="cdel">Eliminar clasificador</button></div>` : ''}`;
@@ -3522,7 +3542,8 @@ function abrirClasificador(id) {
     if ($('cvadd')) $('cvadd').onclick = async () => {
       const v = $('cvnew').value.trim(); if (!v) return;
       const { error } = await db.rpc('guardar_valor', { p: { clasificador_id: id, valor: v,
-        extra: $('cvextra') ? $('cvextra').value : null, destino: $('cvdest') ? $('cvdest').value : null } });
+        extra: $('cvextra') ? $('cvextra').value : null, destino: $('cvdest') ? $('cvdest').value : null,
+        ...($('cvpadre') && $('cvpadre').value ? { padre: $('cvpadre').value, valor: v.startsWith($('cvpadre').value + ' · ') ? v : $('cvpadre').value + ' · ' + v } : {}) } });
       if (error) { toast('No se ha podido añadir', true); return; }
       toast('Valor añadido'); recarga();
     };
@@ -4201,7 +4222,7 @@ const AYUDA = {
   rutas: ['Rutas', 'Crea rutas y conviértelas en el plan del día.', [
     `<b>Lista fija</b>: tú eliges ${TT('medico', 'p', 'el', 'l', 'l')}. <b>Por criterios</b>: se rellena sola con los filtros (municipio, estado, días de consulta…).`,
     '<b>Propuestas automáticas</b>: las mismas listas que ves en Inicio.',
-    `El plan ordena las paradas por cercanía y calcula horas con tu horario: salida, minutos por ${TT('visita', 's', '', 'l', 'l')}, hora tope y minutos entre paradas.`,
+    `El plan ordena las paradas por cercanía y calcula horas con la salida y la vuelta de la ruta, y los minutos por ${TT('visita', 's', '', 'l', 'l')} y entre paradas.`,
     'El navegador (Google Maps, Apple Maps o Waze) se elige en el plan o en Configuración.',
     'Al empezar la ruta aparece la barra verde con el tiempo en curso.',
     `Solo entran ${TT('medico', 'p', '', 'l', 'l')} con ubicación. Completar la dirección y los días de consulta mejora mucho las rutas.`]],
@@ -5812,8 +5833,8 @@ const siguienteLaborable = () => {
 /* ---------------- ayudas ---------------- */
 
 AYUDA.rutas[2].splice(1, 1,
-  'El plan ordena las paradas por cercanía y calcula las horas con tu horario. Si ya ha pasado tu hora de salida, empieza a contar desde ahora; si ya ha pasado tu hora tope, te propone planificar para mañana.',
-  `<b>⚙ Horario de rutas</b> (arriba a la derecha) cambia la hora de salida, la hora tope y los minutos por ${TT('medico', 's', '', 'l', 'l')} y por parada.`);
+  'El plan ordena las paradas por cercanía y calcula las horas con la salida y la vuelta de la ruta (se ponen al crearla o editarla). Si ya ha pasado la hora de salida, empieza a contar desde ahora; si ya ha pasado la de vuelta, te propone planificar para mañana.',
+  `<b>⚙ Tiempos de ${TT('visita', 's', '', 'l', 'l')}</b> (arriba a la derecha) cambia los minutos por ${TT('medico', 's', '', 'l', 'l')} y por parada.`);
 AYUDA.productos[2].push('<b>⚙ Envío</b> fija el importe del envío que se propone en los pedidos y si se marca por defecto.');
 AYUDA.ventas[2].push('Si marcas <b>Incluir envío</b>, el importe (con IVA) se suma al total con su propio IVA. No lleva descuento ni cuenta como unidades.');
 
@@ -6296,7 +6317,7 @@ async function pintarTuDia() {
           <span><b style="color:var(--ok)">${n(['Visitada'])}</b> visitadas</span>
           ${n(['No estaba']) ? `<span><b style="color:var(--warn)">${n(['No estaba'])}</b> no estaban</span>` : ''}
           <span><b>${abiertas}</b> por hacer</span>
-          ${abiertas && !pasado ? `<span>Fin estimado <b style="color:${pasaTope ? 'var(--warn)' : 'var(--navy)'}">${hm(fin)}</b>${pasaTope ? ' · pasa de tu hora tope' : ''}</span>` : ''}
+          ${abiertas && !pasado ? `<span>Fin estimado <b style="color:${pasaTope ? 'var(--warn)' : 'var(--navy)'}">${hm(fin)}</b>${pasaTope ? ' · pasa de la hora de vuelta' : ''}</span>` : ''}
         </div></div>
       <div class="acts" style="margin:0">
         ${!pasado && conSitio > 1 ? '<button class="btn sec" id="tdordenar" title="Ordena las citas abiertas para recorrer menos kilómetros. Las que tienen hora fija se respetan.">Ordenar por cercanía</button>' : ''}
@@ -6483,6 +6504,7 @@ async function planAAgenda(plan) {
     if (ya) { ids.push(ya.id); continue; }
     const { data: r, error } = await db.rpc('guardar_cita', { p: { medico_id: m.id, fecha, hora: null, centro_nombre: centro,
       estado: 'Planificada', origen: 'Ruta' + (typeof plan.rutaId === 'string' && plan.rutaId.length > 20 ? '' : ''), orden: ++orden, nota: nota || null,
+      salida: (plan.horario || {}).salida || null, vuelta: (plan.horario || {}).vuelta || null,
       op_id: 'c-' + m.id + '-' + fecha } });
     if (error || !r || !r.ok) { toast('No se ha podido guardar alguna cita', true); return null; }
     ids.push(r.id);
@@ -6536,7 +6558,7 @@ Object.assign(AYUDA, {
     `<b>Lista fija</b>: tú eliges ${TT('medico', 'p', 'el', 'l', 'l')}. <b>Por criterios</b>: se rellena sola con los filtros.`,
     'Al planificar ves el orden y las horas estimadas. <b>Guardar en mi agenda</b> crea las citas de ese día; <b>Pasar a mi agenda y empezar</b> además inicia la jornada.',
     'Durante la jornada todo se hace desde <b>Agenda → Tu día</b>.',
-    `<b>⚙ Horario de rutas</b> cambia la salida, la hora tope y los minutos por ${TT('medico', 's', '', 'l', 'l')} y por parada.`,
+    `La salida y la vuelta son de cada ruta (y del planificador semanal); <b>⚙ Tiempos de ${TT('visita', 's', '', 'l', 'l')}</b> cambia los minutos por ${TT('medico', 's', '', 'l', 'l')} y por parada.`,
     `Solo entran ${TT('medico', 'p', '', 'l', 'l')} con ubicación. Completar la dirección y los días de consulta mejora mucho las rutas.`]]
 });
 
@@ -6705,6 +6727,7 @@ async function conHorarios(lista) {
 async function construirPlan(conXY, rutaId, btn, opts) {
   opts = opts || {};
   ULTIMO_PLAN = { conXY, rutaId, opts };
+  HOR = opts.horario !== undefined ? opts.horario : horDeRuta(rutaId);
   const cfg = PLANCFG(), sal = salidaUsuario();
   const fecha = opts.manana ? siguienteLaborable() : hoyISO();
   const ahora = new Date(), minAhora = ahora.getHours() * 60 + ahora.getMinutes();
@@ -6712,10 +6735,11 @@ async function construirPlan(conXY, rutaId, btn, opts) {
   const t0 = opts.manana ? salidaCfg : Math.max(salidaCfg, Math.ceil(minAhora / 5) * 5);
 
   if (t0 >= tope) {
-    const op = await elegirOpcion('Ya ha pasado tu horario de ruta de hoy',
-      `Tu horario es de ${cfg.salida} a ${cfg.tope} y ahora son las ${hm(minAhora)}.\n\nPuedes planificar la ruta para el ${fechaLarga(new Date(siguienteLaborable() + 'T00:00:00'))} o cambiar tu horario.`,
-      [{ k: 'no', t: 'Cancelar', cls: 'sec' }, { k: 'horario', t: '⚙ Cambiar horario', cls: 'sec' }, { k: 'manana', t: 'Planificar para mañana' }]);
-    if (op === 'horario') abrirHorarioPlan();
+    const esRuta = !!(RUTAS || []).find(x => x.id === rutaId);
+    const op = await elegirOpcion('Ya ha pasado la hora de vuelta de esta ruta',
+      `Esta ruta sale a las ${cfg.salida} y vuelve como tarde a las ${cfg.tope}, y ahora son las ${hm(minAhora)}.\n\nPuedes planificarla para el ${fechaLarga(new Date(siguienteLaborable() + 'T00:00:00'))}${esRuta ? ' o cambiar el horario de la ruta' : ''}.`,
+      [{ k: 'no', t: 'Cancelar', cls: 'sec' }].concat(esRuta ? [{ k: 'horario', t: 'Cambiar el horario de la ruta', cls: 'sec' }] : []).concat([{ k: 'manana', t: 'Planificar para mañana' }]));
+    if (op === 'horario') editorRuta(rutaId);
     if (op === 'manana') construirPlan(conXY, rutaId, btn, { manana: true });
     return;
   }
@@ -6741,10 +6765,12 @@ async function construirPlan(conXY, rutaId, btn, opts) {
     const noDia = fuera.filter(f => f.motivo === 'no pasa consulta este día').length;
     const op = await elegirOpcion(`No cabe ${TT('visita', 's', 'ningun', 'l', 'l')}`,
       (noDia === fuera.length ? `Ninguno de estos ${fuera.length} ${TT('medico', 'p', '', 'l', 'l')} pasa consulta el ${fechaLarga(new Date(fecha + 'T00:00:00'))}.`
-        : `Con tu horario (${cfg.salida}–${cfg.tope}) y las horas de consulta no da tiempo a ${TT('visita', 's', 'ningun', 'l', 'l')}.`)
+        : cfg.conTope ? `Con el horario de la ruta (${cfg.salida}–${cfg.tope}) y las horas de consulta no da tiempo a ${TT('visita', 's', 'ningun', 'l', 'l')}.`
+        : `Con las horas de consulta no da tiempo a ${TT('visita', 's', 'ningun', 'l', 'l')}.`)
         + (citados.length ? `\n\nAdemás, ${citados.length} ${citados.length === 1 ? 'ya tiene' : 'ya tienen'} una cita planificada y no se proponen.` : ''),
-      [{ k: 'no', t: 'Cancelar', cls: 'sec' }, { k: 'horario', t: '⚙ Cambiar horario', cls: 'sec' }].concat(opts.manana ? [] : [{ k: 'manana', t: 'Probar para mañana' }]));
-    if (op === 'horario') abrirHorarioPlan();
+      [{ k: 'no', t: 'Cancelar', cls: 'sec' }].concat(cfg.conTope && (RUTAS || []).find(x => x.id === rutaId) ? [{ k: 'horario', t: 'Cambiar el horario de la ruta', cls: 'sec' }] : [])
+        .concat(opts.manana ? [] : [{ k: 'manana', t: 'Probar para mañana' }]));
+    if (op === 'horario') editorRuta(rutaId);
     if (op === 'manana') construirPlan(conXY, rutaId, btn, { manana: true });
     return;
   }
@@ -6758,7 +6784,7 @@ async function construirPlan(conXY, rutaId, btn, opts) {
     else paradas.push({ centro: m.centro_nombre || 'Consulta privada', municipio: m.municipio, dir: m.direccion,
       xy: s.it.xy, medicos: [m], llegada: s.ini, fin: s.fin });
   });
-  PLAN = { rutaId, salida: sal, paradas, fin, fecha, inicio: t0, fuera: fuera.map(f => ({ m: f.it.ref, motivo: f.motivo })), citados };
+  PLAN = { rutaId, salida: sal, paradas, fin, fecha, inicio: t0, fuera: fuera.map(f => ({ m: f.it.ref, motivo: f.motivo })), citados, horario: HOR };
   if (TAB !== 'rutas') ir('rutas');
   pintarPlan();
   setTimeout(() => $('rplan') && $('rplan').scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
@@ -6770,6 +6796,12 @@ async function construirPlan(conXY, rutaId, btn, opts) {
 let TD_INFO = {};
 
 function estimarDia(citas, fecha) {
+  const h = horDeCitas(citas);
+  const r = conHor(h, () => estimarDiaBase(citas, fecha));
+  if (!h || !h.vuelta) r.tope = Infinity;   // sin hora de vuelta planificada no hay aviso
+  return r;
+}
+function estimarDiaBase(citas, fecha) {
   const cfg = PLANCFG(), sal = salidaUsuario(), dura = cfg.visita;
   const ahora = new Date(), minAhora = ahora.getHours() * 60 + ahora.getMinutes();
   let t = minHora(cfg.salida);
@@ -6800,7 +6832,8 @@ function estimarDia(citas, fecha) {
   return { est, fin: t + minutosEntre(pos, [sal.lat, sal.lon]), tope: minHora(cfg.tope) };
 }
 
-function ordenarPorCercania(citas) {
+function ordenarPorCercania(citas) { return conHor(horDeCitas(citas), () => ordenarPorCercaniaBase(citas)); }
+function ordenarPorCercaniaBase(citas) {
   const fecha = (citas[0] && citas[0].fecha) || AG_FECHA;
   const cfg = PLANCFG(), ahora = new Date(), minAhora = ahora.getHours() * 60 + ahora.getMinutes();
   let t0 = minHora(cfg.salida);
@@ -6989,8 +7022,8 @@ async function pintarSemanaAgenda() {
         const abiertas = mias.filter(c => CITA_ABIERTA.includes(c.estado));
         let carga = '';
         if ((abiertas.length || nuevas.length) && f >= hoyISO()) {
-          const { fin, tope } = estimarDia(mias.concat(nuevas.map(n => Object.assign({ estado: 'Planificada' }, n.cita))), f);
-          carga = `<span class="semcarga ${fin > tope ? 'pasa' : ''}" title="Hora de fin estimada${fin > tope ? ': pasa de la hora tope ' + cfg.tope : ''}">~${hm(fin)}</span>`;
+          const { fin, tope } = estimarDia(mias.concat(nuevas.map(n => Object.assign({ estado: 'Planificada' }, (SEM_BORRADOR && SEM_BORRADOR.horario) || {}, n.cita))), f);
+          carga = `<span class="semcarga ${fin > tope ? 'pasa' : ''}" title="Hora de fin estimada${fin > tope ? ': pasa de la hora de vuelta ' + hm(tope) : ''}">~${hm(fin)}</span>`;
         }
         return `<div class="mesdia semdia ${f === hoyISO() ? 'hoy' : ''} ${d.getDay() === 0 || d.getDay() === 6 ? 'finde' : ''} ${bloq[f] ? 'bloq' : ''}" data-semdia="${f}" role="button" tabindex="0">
           <div class="semcab"><b>${d.getDate()}</b>${todas.length ? `<span class="mespunto">${hechas}/${todas.length}</span>` : ''}${carga}
@@ -7075,8 +7108,10 @@ async function planificarSemana(desde, dias, bloq, porDia) {
         ${DIAN[LETRA_DIA(f)].slice(0, 3)} ${new Date(f + 'T12:00:00').getDate()}${bloq[f] ? ' · bloqueado' : f < hoyISO() ? ' · pasado' : ''}</label>`;
     }).join('')}</div>
     <div class="g2">
-      <div><label for="spmax">Máximo de ${TT('visita', 'p', '', 'l', 'l', 'nuevo')} por día</label><input id="spmax" type="number" min="1" max="30" placeholder="Hasta la hora tope"></div>
-      <div><label>Horario</label><div class="sm" style="padding-top:12px">${esc(PLANCFG().salida)}–${esc(PLANCFG().tope)} · ${PLANCFG().visita} min por ${TT('medico', 's', '', 'l', 'l')}</div></div>
+      <div><label for="spmax">Máximo de ${TT('visita', 'p', '', 'l', 'l', 'nuevo')} por día</label><input id="spmax" type="number" min="1" max="30" placeholder="Hasta la hora de vuelta"></div>
+      <div><label for="spsal">Hora de salida</label><input id="spsal" type="time" value="${esc((prefsActivas().plan_semana || {}).salida || '')}"></div>
+      <div><label for="spvue">Vuelta como tarde</label><input id="spvue" type="time" value="${esc((prefsActivas().plan_semana || {}).vuelta || '')}"></div>
+      <div><label>Tiempos</label><div class="sm" style="padding-top:12px">${TIEMPOS().visita} min por ${TT('medico', 's', '', 'l', 'l')} · sin hora de vuelta, sin límite</div></div>
     </div>
     <p class="sm">Las citas que ya hay en la agenda se respetan y cuentan para el tiempo de cada día. No se proponen ${TT('medico', 'p', '', 'l', 'l')} que ya tienen una cita abierta.</p>
     <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>Cancelar</button>
@@ -7104,7 +7139,14 @@ async function planificarSemana(desde, dias, bloq, porDia) {
       recientes = lista.filter(m => vistos[m.id]).map(m => ({ m, motivo: `visitado el ${fechaCorta(vistos[m.id].fecha)}${vistos[m.id].usuario ? ' (' + vistos[m.id].usuario + ')' : ''}` }));
       lista = lista.filter(m => !vistos[m.id]);
     }
-    SEM_BORRADOR = repartirSemana(lista, usar, porDia, max, desde);
+    // v2.76.0: el horario es el de esta planificación (se recuerda como el último usado)
+    const hs = { salida: ($('spsal') || {}).value || null, vuelta: ($('spvue') || {}).value || null };
+    if (JSON.stringify(hs) !== JSON.stringify(prefsActivas().plan_semana || {})) {
+      const prefs = Object.assign({}, PERFIL.preferencias || {}, { plan_semana: hs });
+      db.rpc('guardar_preferencias', { p: prefs }).then(({ data }) => { PERFIL.preferencias = data || prefs; }, () => {});
+    }
+    SEM_BORRADOR = conHor(hs, () => repartirSemana(lista, usar, porDia, max, desde));
+    SEM_BORRADOR.horario = hs.salida || hs.vuelta ? hs : null;
     SEM_BORRADOR.sinDia = SEM_BORRADOR.sinDia.concat(recientes);
     ev.target.disabled = false; ev.target.textContent = 'Proponer reparto';
     $('dlg').close();
@@ -7161,7 +7203,8 @@ async function guardarBorradorSemana(btn) {
       if (x.existente) { ids.push(x.existente.id); continue; }
       const { data: r } = await db.rpc('guardar_cita', { p: { medico_id: x.m.id, fecha: f, hora: null,
         centro_nombre: x.m.centro_nombre || null, estado: 'Planificada', origen: 'Planificador semanal',
-        usuario_id: b.uid !== PERFIL.id ? b.uid : null, op_id: 'ps-' + x.m.id + '-' + f } });
+        usuario_id: b.uid !== PERFIL.id ? b.uid : null, op_id: 'ps-' + x.m.id + '-' + f,
+        salida: (b.horario || {}).salida || null, vuelta: (b.horario || {}).vuelta || null } });
       if (r && r.ok) { ids.push(r.id); n++; }
     }
     if (ids.length) await db.rpc('ordenar_citas', { p_ids: ids });
@@ -7257,7 +7300,7 @@ async function faltaHorario(id) {
 /* ---------------- ayudas ---------------- */
 
 AYUDA.agenda[2].push(
-  'En la <b>semana</b>: la hora con «~» junto al día es el fin estimado (en naranja si pasa de tu hora tope). Arrastra una cita a otro día para moverla. El menú «⋯» de cada día permite añadir una cita o <b>bloquear el día</b> (vacaciones, formación…).',
+  'En la <b>semana</b>: la hora con «~» junto al día es el fin estimado (en naranja si pasa de la hora de vuelta con la que se planificó). Arrastra una cita a otro día para moverla. El menú «⋯» de cada día permite añadir una cita o <b>bloquear el día</b> (vacaciones, formación…).',
   `<b>Planificar la semana</b> reparte ${TT('medico', 'p', '', 'l', 'l')} entre los días libres: a quien le toca ${TT('visita', 's', '', 'l', 'l')}, urgentes, interesados, nunca visitados o una de tus rutas. Cada uno cae un día que pasa consulta y agrupado por zona. Revisa la propuesta y pulsa <b>Guardar en la agenda</b>.`,
   'Administración y televenta pueden ver la agenda de otra persona con el selector de arriba, planificarle la semana y ver el <b>cumplimiento del equipo</b> con el botón «Equipo».');
 
@@ -7701,10 +7744,10 @@ const MANUAL = [
   { id: 'agenda', t: 'Agenda y «Tu día»', a: 'G', para: `Tus citas por día, semana o mes. La vista de día es tu ruta: orden, horas estimadas y registro de ${TT('visita', 'p', '', 'l', 'l')}.`,
     hacer: [[1, 'Ver tu agenda'], [2, 'Crear, mover, aplazar, confirmar o descartar citas'], [2, 'Ordenar tu día por cercanía y empezar la jornada'], [2, 'Planificar la semana y bloquear días'],
       [3, 'Ver la agenda de otra persona y el cumplimiento del equipo (administración y televenta)']],
-    config: [`Horario de rutas: salida, hora tope y minutos por ${TT('visita', 's', '', 'l', 'l')} (Rutas → ⚙ Horario de rutas)`, `Aviso de ${TT('visita', 's', '', 'l', 'l')} reciente (Configuración → Preferencias)`, 'Frecuencia objetivo por estado (Agenda → Equipo, administración)'] },
+    config: [`Salida y vuelta: en cada ruta y en «Planificar la semana»; minutos por ${TT('visita', 's', '', 'l', 'l')} en Rutas → ⚙ Tiempos de ${TT('visita', 's', '', 'l', 'l')}`, `Aviso de ${TT('visita', 's', '', 'l', 'l')} reciente (Configuración → Preferencias)`, 'Frecuencia objetivo por estado (Agenda → Equipo, administración)'] },
   { id: 'rutas', t: 'Rutas', a: 'R', para: `Plantillas de ${TT('medico', 'p', '', 'l', 'l')} para llenar tu agenda: listas fijas o por criterios, y propuestas automáticas.`,
     hacer: [[1, 'Ver tus rutas y las propuestas'], [2, 'Crear y editar rutas, planificarlas y pasarlas a tu agenda']],
-    config: ['Punto de salida y llegada (Configuración → Preferencias)', 'Horario de rutas (⚙ Horario de rutas)'] },
+    config: ['Punto de salida y llegada (Configuración → Preferencias)', `Salida y vuelta de cada ruta (al crearla o editarla) y tiempos de ${TT('visita', 's', '', 'l', 'l')} (⚙ Tiempos de ${TT('visita', 's', '', 'l', 'l')})`] },
   { id: 'directorio', t: `${TT('medico', 'p', '', 'l', 'C')}`, a: 'M', para: `Todos ${TT('medico', 'p', 'el', 'l', 'l')} que puedes ver: tu cartera o toda la base si eres de administración o televenta.`,
     hacer: [[1, 'Buscar, filtrar y ver fichas'], [2, 'Editar fichas y horarios de consulta'], [3, `Dar de alta ${TT('medico', 'p', '', 'l', 'l', 'nuevo')}`], [3, 'Unificar duplicados (administración)']],
     config: ['Columnas visibles (⋯ → Elegir columnas)', 'Filtros guardados como indicadores de Inicio'] },
@@ -9024,7 +9067,7 @@ abrirHorarioPlan = (orig => function () {
   orig();
   const ayuda = {
     hsal: `A qué hora sales. La ${TT('visita', 's', 'primer', 'l', 'l')} se calcula desde aquí o desde ahora, si esa hora ya ha pasado.`,
-    htop: `Hora tope para volver. No se planifican ${TT('visita', 'p', '', 'l', 'l')} que te hagan volver más tarde; si el día se pasa, se marca en naranja.`,
+    htop: `Hora de vuelta de la ruta. No se planifican ${TT('visita', 'p', '', 'l', 'l')} que te hagan volver más tarde; si el día se pasa, se marca en naranja.`,
     hvis: `Lo que dura de media cada ${TT('visita', 's', '', 'l', 'l')} con ${TT('medico', 's', 'un', 'l', 'l')}, dentro de la consulta.`,
     hpar: `Tiempo extra cada vez que llegas a un sitio nuevo: aparcar, entrar, esperar en recepción. Si ves a varios ${TT('medico', 'p', '', 'l', 'l')} en el mismo centro, se cuenta una sola vez.`
   };
@@ -11980,7 +12023,7 @@ function arbolConfig() {
     ['Tu cuenta', [
       { k: 'perfil', ic: 'user', t: 'Mi perfil', d: 'Tus datos, idioma y qué abrir al entrar', r: pintarPerfil },
       { k: 'notif', ic: 'bell', t: 'Notificaciones', d: 'Qué avisos quieres recibir', r: pintarNotif },
-      { k: 'rutas', ic: 'route', t: 'Rutas', d: 'Salida y llegada, y horario', sub: [['salida', 'Salida y llegada', () => pintarPrefsParte('rutas')], ['horario', 'Horario', () => panelDeVentana(abrirHorarioPlan)]] },
+      { k: 'rutas', ic: 'route', t: 'Rutas', d: `Punto de salida y llegada, y tiempos de ${TT('visita', 's', '', 'l', 'l')}`, sub: [['salida', 'Salida y llegada', () => pintarPrefsParte('rutas')], ['horario', `Tiempos de ${TT('visita', 's', '', 'l', 'l')}`, () => panelDeVentana(abrirHorarioPlan)]] },
       { k: 'inicio', ic: 'house', t: 'Inicio', d: 'Indicadores de Inicio', sub: [['kpis', 'Indicadores', () => panelDeVentana(abrirKpis)]] }]],
     ['Equipo', admin ? [
       { k: 'equipo', ic: 'users', t: 'Usuarios y roles', d: 'Personas, permisos y roles', sub: [['usuarios', 'Usuarios', pintarUsuarios2], ['roles', 'Roles y permisos', pintarRoles]] },

@@ -171,6 +171,9 @@ dialog::backdrop{background:rgba(14,47,82,.4)}
 #econs > .cons:first-child [data-cmov="-1"],#econs > .cons:last-child [data-cmov="1"]{visibility:hidden}
 /* v2.75.0 · Agenda: Día, Semana y Mes con el mismo ancho, marcados o no */
 .saludo .acts [data-ag="dia"],.saludo .acts [data-ag="semana"],.saludo .acts [data-ag="mes"]{min-width:88px}
+/* v2.77.0 · Subcategorías en los catálogos */
+.lista .item.vsub{padding-left:30px}
+.lista .item.vsub .ic{opacity:.5}
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--navy);color:#fff;padding:11px 18px;border-radius:999px;font-weight:600;z-index:90;box-shadow:0 10px 30px rgba(10,20,30,.25);font-size:14px}
 .toast.err{background:var(--dang)}
 .dupbox{border:1px solid var(--warn);background:var(--warn-bg);border-radius:12px;padding:12px;margin-top:12px}
@@ -1775,6 +1778,6 @@ body:not(.inilisto) #v-inicio .saludo .acts{visibility:hidden}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.75.0"></script>
+<script src="./app.js?v=2.77.0"></script>
 </body>
 </html>
