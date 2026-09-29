@@ -454,7 +454,7 @@ async function fichaUnidades(id) {
 async function fichaAcceso(id) {
   if (!puede('administrar') || FICHA_ID !== id || !$('fbody') || $('facceso')) return;
   const { data: us } = await RPC_ORIG('usuarios_resumen', {});
-  const ya = (us || []).find(u => u.medico_id === id);
+  const ya = (us || []).find(u => u.cuenta_id === id);
   $('fbody').insertAdjacentHTML('beforeend', `<div class="blk" id="facceso"><h3>Acceso a la plataforma</h3>
     ${ya ? `<p class="sm">Tiene acceso como <b>${esc(ya.email || '')}</b>${ya.activo ? '' : ' (desactivado)'}: ve su informe y recibe un aviso con cada pauta.</p>`
       : `<p class="sm">Puede tener acceso a su informe de prescripción y recibir un aviso con cada pauta a su nombre. No verá importes ni datos de ${TT('paciente', 'p', '', 'l', 'l')}.</p>
@@ -1069,8 +1069,8 @@ async function pintarAgendaBase() {
           <span class="tx"><b>${c.urgente ? '<span class="pill p-urg">Urgente</span> ' : ''}${esc(c.nombre)}</b>
             <span class="sm">${esc(c.centro_nombre || '')} · <b style="color:${EST_COL[c.estado]}">${esc(c.estado)}</b>${puede('administrar') && c.usuario ? ' · ' + esc(c.usuario) : ''}</span></span>
           <span class="acts" style="margin:0">
-            <button class="btn sec" data-cita="ficha|${c.medico_id}">Ficha</button>
-            ${c.estado !== 'Visitada' ? `<button class="btn sec" data-cita="visita|${c.medico_id}">Registrar</button>
+            <button class="btn sec" data-cita="ficha|${c.cuenta_id}">Ficha</button>
+            ${c.estado !== 'Visitada' ? `<button class="btn sec" data-cita="visita|${c.cuenta_id}">Registrar</button>
               <button class="btn sec" data-cita="hora|${c.id}|${esc(c.hora || '')}">Hora</button>
               <button class="btn sec" data-cita="repro|${c.id}">Mover</button>
               <button class="btn sec" data-cita="desc|${c.id}">Descartar</button>
@@ -1316,7 +1316,7 @@ function pintarPlanBase() {
     for (const p of PLAN.paradas) {
       for (const m of p.medicos) {
         await escribir('guardar_cita', { p: {
-          medico_id: m.id, fecha: PLAN.fecha || hoyISO(), hora: hm(p.llegada), centro_nombre: p.centro,
+          cuenta_id: m.id, fecha: PLAN.fecha || hoyISO(), hora: hm(p.llegada), centro_nombre: p.centro,
           estado: 'Planificada', origen: 'Plan del día',
           op_id: 'c-' + m.id + '-' + (PLAN.fecha || hoyISO())
         }});
@@ -1337,7 +1337,7 @@ document.addEventListener('click', async e => {
   const f = await pedirFecha('¿Qué día quieres visitarle?', hoyISO(), { titulo: 'Añadir a mi agenda', ok: 'Añadir' });
   if (!f) return;
   const r = await escribir('guardar_cita', { p: {
-    medico_id: b.dataset.agendar, fecha: f, estado: 'Planificada', origen: 'Ficha',
+    cuenta_id: b.dataset.agendar, fecha: f, estado: 'Planificada', origen: 'Ficha',
     op_id: 'c-' + b.dataset.agendar + '-' + f
   }});
   if (r.error) { toast('No se ha podido: ' + r.error.message, true); return; }
@@ -1592,9 +1592,9 @@ async function usuarioComisionYZona(id) {
 async function usuarioFichaMedico(id) {
   const u = (USUARIOS || []).find(x => x.id === id);
   if (!u || !rolPuede(u.rol, 'portal_prescriptor') || !$('dlg').open || $('umedw')) return;
-  const { data: pf } = await db.from('perfiles').select('medico_id').eq('id', id).single();
+  const { data: pf } = await db.from('perfiles').select('cuenta_id').eq('id', id).single();
   let medico = null;
-  if (pf && pf.medico_id) { const { data: fm } = await db.rpc('ficha_cuenta', { p_id: pf.medico_id }); if (fm && fm.medico) medico = { id: fm.medico.id, nombre: fm.medico.nombre }; }
+  if (pf && pf.cuenta_id) { const { data: fm } = await db.rpc('ficha_cuenta', { p_id: pf.cuenta_id }); if (fm && fm.medico) medico = { id: fm.medico.id, nombre: fm.medico.nombre }; }
   const ref = $('dbody').querySelector('.acts:last-of-type');
   ref.insertAdjacentHTML('beforebegin', `<div class="blk" id="umedw"><h3>Ficha de ${TT('medico', 's', '', 'l', 'l')} vinculada</h3>
     <p class="sm">Este usuario verá solo el informe de ${TT('medico', 's', 'este', 'l', 'l')} y recibirá un aviso con cada pauta a su nombre. Sin importes ni datos de ${TT('paciente', 'p', '', 'l', 'l')}.</p>
@@ -4630,21 +4630,21 @@ async function pintarInicioBase() {
   });
 
   tarjeta($('c-agenda'), 'Tu agenda de hoy', data.agenda_hoy.length,
-    data.agenda_hoy.map(a => itemHTML(a.medico_id, a.hora ? esc(a.hora).slice(0, 5) : '·',
+    data.agenda_hoy.map(a => itemHTML(a.cuenta_id, a.hora ? esc(a.hora).slice(0, 5) : '·',
       a.estado === 'Visitada' ? 'o' : '', a.nombre,
       `${esc(a.centro_nombre || '')} · <b style="color:${a.estado === 'Visitada' ? 'var(--ok)' : 'var(--navy)'}">${esc(a.estado)}</b>`)),
     '', 'No tienes citas para hoy. En Agenda tienes sugerencias para el día.');
   tarjeta($('c-acciones'), 'Próximas acciones', data.acciones.length,
-    data.acciones.map(a => itemHTML(a.medico_id, '↻', a.proxima_fecha < hoyISO() ? 'w' : '', a.nombre,
+    data.acciones.map(a => itemHTML(a.cuenta_id, '↻', a.proxima_fecha < hoyISO() ? 'w' : '', a.nombre,
       `<b style="color:${a.proxima_fecha < hoyISO() ? 'var(--warn)' : 'var(--navy)'}">${fechaCorta(a.proxima_fecha)}</b> · ${esc(a.proxima_accion || 'Seguimiento')}`)),
     '', 'Sin acciones pendientes en los próximos 7 días.');
   tarjeta($('c-urgentes'), 'Urgentes sin visitar', k.urgentes,
-    data.urgentes.map(u => itemHTML(u.medico_id, '!', 'w', u.nombre,
+    data.urgentes.map(u => itemHTML(u.cuenta_id, '!', 'w', u.nombre,
       `${esc(u.especialidad || '')} · ${esc(u.centro_nombre || u.municipio || '')}`)),
     k.urgentes > 6 ? `<button class="verlo" data-k="urgentes">Ver los ${num(k.urgentes)} urgentes</button>` : '',
     'Todos los urgentes están visitados.');
   tarjeta($('c-ultimas'), `${TT('visita', 'p', 'ultimo', 'C', 'l')}`, null,
-    data.ultimas_visitas.map(v => itemHTML(v.medico_id, '✓', 'o', v.nombre,
+    data.ultimas_visitas.map(v => itemHTML(v.cuenta_id, '✓', 'o', v.nombre,
       `${fechaCorta(v.fecha)} · ${esc((v.resultados || []).join(' + ') || 'Sin resultado')}`)),
     '', `Todavía no hay ${TT('visita', 'p', '', 'l', 'l', 'registrado')}.`);
   ponerAyudas();
@@ -4687,9 +4687,9 @@ async function editorPedido(pedido) {
         manual: prod(l.producto_id).precio == null || r2(prod(l.producto_id).precio * l.unidades) !== r2(l.importe) }))
     : [{ producto_id: productoPorDefecto(), unidades: 1, descuento: 0 }];
   let medico = pedido && pedido.medico ? pedido.medico
-    : (pedido && pedido.lineas && pedido.lineas[0] && pedido.lineas[0].medico_id ? { id: pedido.lineas[0].medico_id, nombre: pedido.lineas[0].medico } : null);
+    : (pedido && pedido.lineas && pedido.lineas[0] && pedido.lineas[0].cuenta_id ? { id: pedido.lineas[0].cuenta_id, nombre: pedido.lineas[0].medico } : null);
   let contacto = pedido && pedido.contacto ? pedido.contacto : null;
-  if (!medico && contacto && contacto.medico_id) medico = { id: contacto.medico_id, nombre: contacto.medico || `${TT('medico', 's', '', 'l', 'C')} ${TT('paciente', 's', 'del', 'l', 'l')}`, codigo: contacto.medico_codigo || '' };
+  if (!medico && contacto && contacto.cuenta_id) medico = { id: contacto.cuenta_id, nombre: contacto.medico || `${TT('medico', 's', '', 'l', 'C')} ${TT('paciente', 's', 'del', 'l', 'l')}`, codigo: contacto.medico_codigo || '' };
   const autoImporte = l => { const p = prod(l.producto_id); if (!l.manual && p.precio != null) l.importe = r2(p.precio * (+l.unidades || 0)); if (l.iva == null || !l.manualIva) l.iva = p.iva != null ? +p.iva : l.iva; };
   lineas.forEach(l => { if (l.importe == null) autoImporte(l); if (l.iva == null) l.iva = prod(l.producto_id).iva || 0; });
   // Datos del formulario que se conservan al repintar
@@ -4803,7 +4803,7 @@ async function editorPedido(pedido) {
     };
     selectorPaciente($('pselpac'), { valor: contacto, alElegir: c => {
       contacto = c;
-      if (c && !medico && c.medico_id) { medico = { id: c.medico_id, nombre: c.medico, codigo: c.medico_codigo }; montarMed(); }
+      if (c && !medico && c.cuenta_id) { medico = { id: c.cuenta_id, nombre: c.medico, codigo: c.medico_codigo }; montarMed(); }
     } });
     montarMed();
 
@@ -4817,7 +4817,7 @@ async function editorPedido(pedido) {
       const { data: r, error } = await db.rpc('guardar_pedido', { p: {
         id: ped ? ped.id : null, estado,
         fecha: $('pfecha').value, canal: $('pcan').value,
-        medico_id: medico ? medico.id : null, medico_texto: medico ? '' : ($('pselmed').__texto || '').trim(),
+        cuenta_id: medico ? medico.id : null, medico_texto: medico ? '' : ($('pselmed').__texto || '').trim(),
         contacto_id: contacto ? contacto.id : null, nota: $('pnota').value.trim(),
         forma_pago: $('ppago').value || null,
         descuento: +$('pdto').value || 0, descuento_tipo: $('pdtot').value,
@@ -4971,7 +4971,7 @@ async function verPedidoBase(id) {
     e.target.disabled = true;
     const { data: r, error: er } = await db.rpc('guardar_pedido', { p: {
       id, estado: 'Confirmado', fecha: p.fecha, canal: p.canal, contacto_id: p.contacto_id, centro_id: p.centro_id,
-      medico_id: data.medico ? data.medico.id : null, medico_texto: p.medico_texto, nota: p.nota, forma_pago: p.forma_pago,
+      cuenta_id: data.medico ? data.medico.id : null, medico_texto: p.medico_texto, nota: p.nota, forma_pago: p.forma_pago,
       descuento: p.descuento || 0, descuento_tipo: p.descuento_tipo,
       envio: !!p.envio, envio_con_iva: p.envio ? r2(+p.envio_base * (1 + (+p.envio_iva || 0) / 100)) : 0, envio_iva: p.envio_iva, servicio_id: p.servicio_id,
       lineas: l.map(x => ({ producto_id: x.producto_id, unidades: x.unidades, importe: x.importe, descuento: x.descuento, iva: x.iva })) } });
@@ -5139,12 +5139,12 @@ async function sugerenciasAgenda() {
   try { ({ data: cen } = await RPC_ORIG('sugerencias_centros', { p_fecha: fecha, p_usuario: agUid() === PERFIL.id ? null : agUid() })); } catch (e) { cen = []; }
   if (!$('agsug') || AG_FECHA !== fecha) return;
   if (!$('agsug') || AG_FECHA !== fecha) return;
-  const conCita = new Set((ya || []).map(c => c.medico_id));
-  const libre = l => (l || []).filter(m => !conCita.has(m.id || m.medico_id));
+  const conCita = new Set((ya || []).map(c => c.cuenta_id));
+  const libre = l => (l || []).filter(m => !conCita.has(m.id || m.cuenta_id));
   const acciones = libre((pi && pi.acciones) || []).filter(a => a.proxima_fecha <= fecha);
   const grupos = [
     esHoy ? ['hoy', 'Pasan consulta hoy y hace más de 14 días que no se visitan', libre(pr && pr.hoy)] : null,
-    ['acciones', 'Acciones pendientes para este día o atrasadas', acciones.map(a => ({ id: a.medico_id, nombre: a.nombre, especialidad: a.especialidad, extra: (a.proxima_accion || 'Seguimiento') + ' · ' + fechaCorta(a.proxima_fecha) }))],
+    ['acciones', 'Acciones pendientes para este día o atrasadas', acciones.map(a => ({ id: a.cuenta_id, nombre: a.nombre, especialidad: a.especialidad, extra: (a.proxima_accion || 'Seguimiento') + ' · ' + fechaCorta(a.proxima_fecha) }))],
     ['toca', `Les toca ${TT('visita', 's', '', 'l', 'l')} según su frecuencia objetivo`, libre(toca).map(m => Object.assign({}, m, { extra: [m.estado_comercial, m.dias_sin_visita != null ? m.dias_sin_visita + ` días sin ${TT('visita', 's', '', 'l', 'l')}` : 'nunca visitado', m.municipio].filter(Boolean).join(' · ') }))],
     ['urgentes', 'Urgentes sin visitar', libre(pr && pr.urgentes)],
     ['interesados', `Interesados sin ${TT('visita', 's', '', 'l', 'l')} en 20 días`, libre(pr && pr.interesados)]
@@ -5414,7 +5414,7 @@ async function nuevaCita(medicoId, fecha) {
     if (!decision) return;
     ev.target.disabled = true;
     const r = await escribir('guardar_cita', { p: {
-      medico_id: elegido.id, fecha: $('ncf').value, hora: $('nch').value || null,
+      cuenta_id: elegido.id, fecha: $('ncf').value, hora: $('nch').value || null,
       centro_nombre: elegido.centro_nombre || elegido.centro || null, estado: 'Planificada', origen: 'Agenda',
       usuario_id: TAB === 'agenda' && AG_VISTA ? AG_VISTA.id : null,
       nota: $('ncn').value.trim(), op_id: 'c-' + elegido.id + '-' + $('ncf').value + '-' + Date.now()
@@ -5451,7 +5451,7 @@ function validarDoc(v, tipo) {
 function editorContacto(c, alGuardar) {
   c = c || {};
   let tipo = c.tipo || 'Persona';
-  let medico = c.medico_id ? { id: c.medico_id, nombre: c.medico || `${TT('medico', 's', '', 'l', 'C', 'asignado')}`, codigo: c.medico_codigo || '' } : null;
+  let medico = c.cuenta_id ? { id: c.cuenta_id, nombre: c.medico || `${TT('medico', 's', '', 'l', 'C', 'asignado')}`, codigo: c.medico_codigo || '' } : null;
   $('dlg2body').innerHTML = `
     <div class="fh"><div><h2>${c.id ? `Editar ${TT('paciente', 's', '', 'l', 'l')}` : `${TT('paciente', 's', 'nuevo', 'C', 'l')}`}</h2>
       <div class="sm">Datos de entrega y facturación</div></div>
@@ -5517,7 +5517,7 @@ function editorContacto(c, alGuardar) {
       direccion: $('kodir').value.trim(), cp: $('kocp').value.trim(), municipio: $('komun').value.trim(),
       provincia: $('kopro').value.trim(), telefono: $('kotel').value.trim(), movil: $('komov').value.trim(),
       email: $('komail').value.trim(), empresa: tipo === 'Empresa' ? '' : $('koemp').value.trim(), nota: $('konota').value.trim(),
-      medico_id: medico ? medico.id : null
+      cuenta_id: medico ? medico.id : null
     }});
     ev.target.disabled = false; ev.target.textContent = c.id ? 'Guardar' : `Crear ${TT('paciente', 's', '', 'l', 'l')}`;
     if (error || (r && r.ok === false)) { toast('No se ha podido guardar', true); return; }
@@ -6331,7 +6331,7 @@ async function pintarTuDia() {
       const abierta = CITA_ABIERTA.includes(c.estado);
       const hora = c.hora ? esc(String(c.hora).slice(0, 5)) : (abierta && est[c.id] != null && !pasado ? '~' + hm(est[c.id]) : '·');
       const idxAb = mias.filter(x => CITA_ABIERTA.includes(x.estado)).indexOf(c);
-      return `<div class="item tdit ${abierta ? '' : 'cerrada'}" data-tdf="${c.medico_id}" role="button" tabindex="0">
+      return `<div class="item tdit ${abierta ? '' : 'cerrada'}" data-tdf="${c.cuenta_id}" role="button" tabindex="0">
         <span class="tdnum">${i + 1}</span>
         <span class="tx"><b><span class="tdh" title="${c.hora ? 'Hora fijada' : 'Hora estimada según el orden'}" style="background:${EST_COL[c.estado]}1f;color:${EST_COL[c.estado]}">${hora}</span>${c.urgente ? '<span class="pill p-urg">Urgente</span> ' : ''}${esc(c.nombre)}</b>
           <span class="sm">${esc([c.centro_nombre, c.municipio].filter(Boolean).join(' · ') || 'Sin centro')}${!xyCita(c) && abierta ? ' · <span style="color:var(--warn)">sin ubicación</span>' : ''}</span>
@@ -6398,7 +6398,7 @@ document.addEventListener('scroll', () => document.querySelectorAll('.tdmenu').f
 
 async function accionCita(k, c) {
   const refrescar = () => { cargarAgenda(); cargarInicio(); pintarRutaBarra(); };
-  if (k === 'ficha') return abrirFicha(c.medico_id);
+  if (k === 'ficha') return abrirFicha(c.cuenta_id);
   if (k === 'llegar') return navegarA(xyCita(c));
   if (k === 'hora') return cambiarHoraCita(c.id, c.hora || '');
   if (k === 'confirmar' || k === 'desconfirmar' || k === 'descartar') {
@@ -6430,8 +6430,8 @@ async function accionCita(k, c) {
       if (!op) return;
       res = neg[+op.slice(1)].valor;
     }
-    const { error } = await db.rpc('registrar_actividad', { p: { medico_id: c.medico_id, fecha: c.fecha, resultados: [res],
-      op_id: 'v-' + c.medico_id + '-' + Date.now() } });
+    const { error } = await db.rpc('registrar_actividad', { p: { cuenta_id: c.cuenta_id, fecha: c.fecha, resultados: [res],
+      op_id: 'v-' + c.cuenta_id + '-' + Date.now() } });
     if (error) { toast('No se ha podido guardar: ' + error.message, true); return; }
     toast('Anotado: ' + res);
     refrescar();
@@ -6447,7 +6447,7 @@ async function nuevaFechaTrasNoEstaba(c) {
   if (!op) return;
   let f = prop;
   if (op === 'otra') { f = await pedirFecha('¿Qué día?', prop, { titulo: 'Nueva cita', ok: 'Crear cita' }); if (!f) return; }
-  const { data: r, error } = await db.rpc('guardar_cita', { p: { medico_id: c.medico_id, fecha: f, centro_nombre: c.centro_nombre,
+  const { data: r, error } = await db.rpc('guardar_cita', { p: { cuenta_id: c.cuenta_id, fecha: f, centro_nombre: c.centro_nombre,
     estado: 'Planificada', origen: 'No estaba el ' + fechaCorta(c.fecha), op_id: 'ne-' + c.id + '-' + f } });
   if (error || (r && r.ok === false)) { toast('No se ha podido crear la cita', true); return; }
   toast('Nueva cita el ' + fechaCorta(f)); cargarAgenda();
@@ -6461,7 +6461,7 @@ document.addEventListener('click', async e => {
   const c = TD_CITAS.find(x => x.id === id);
   if (!c) return;
   if (acc === 'mas') return menuCita(b, c);
-  if (acc === 'visita') return abrirVisita(c.medico_id);
+  if (acc === 'visita') return abrirVisita(c.cuenta_id);
   if (acc === 'nueva') return nuevaFechaTrasNoEstaba(c);
   if (acc === 'sube' || acc === 'baja') {
     const ab = TD_CITAS.filter(x => CITA_ABIERTA.includes(x.estado)), i = ab.indexOf(c), j = acc === 'sube' ? i - 1 : i + 1;
@@ -6499,9 +6499,9 @@ async function planAAgenda(plan) {
   const ids = [];
   let orden = existentes.length;
   for (const { m, centro, nota } of meds) {
-    const ya = existentes.find(c => c.medico_id === m.id && CITA_ABIERTA.includes(c.estado));
+    const ya = existentes.find(c => c.cuenta_id === m.id && CITA_ABIERTA.includes(c.estado));
     if (ya) { ids.push(ya.id); continue; }
-    const { data: r, error } = await db.rpc('guardar_cita', { p: { medico_id: m.id, fecha, hora: null, centro_nombre: centro,
+    const { data: r, error } = await db.rpc('guardar_cita', { p: { cuenta_id: m.id, fecha, hora: null, centro_nombre: centro,
       estado: 'Planificada', origen: 'Ruta' + (typeof plan.rutaId === 'string' && plan.rutaId.length > 20 ? '' : ''), orden: ++orden, nota: nota || null,
       salida: (plan.horario || {}).salida || null, vuelta: (plan.horario || {}).vuelta || null,
       op_id: 'c-' + m.id + '-' + fecha } });
@@ -6855,11 +6855,11 @@ function ordenarPorCercaniaBase(citas) {
 
 async function reprogramarCitas(citas, titulo, texto) {
   if (!citas.length) return false;
-  const conH = await conHorarios(citas.map(c => Object.assign({ id: c.medico_id }, 'dias' in c ? { dias: c.dias } : {})));
+  const conH = await conHorarios(citas.map(c => Object.assign({ id: c.cuenta_id }, 'dias' in c ? { dias: c.dias } : {})));
   const dias = {}; conH.forEach(h => dias[h.id] = h.dias || {});
   const base = hoyISO();
-  const filas = citas.map(c => ({ c, fecha: proximoDiaConsulta(dias[c.medico_id], c.fecha > base ? c.fecha : base),
-    horario: Object.keys(dias[c.medico_id] || {}).filter(k => (dias[c.medico_id] || {})[k]).join(' ') }));
+  const filas = citas.map(c => ({ c, fecha: proximoDiaConsulta(dias[c.cuenta_id], c.fecha > base ? c.fecha : base),
+    horario: Object.keys(dias[c.cuenta_id] || {}).filter(k => (dias[c.cuenta_id] || {})[k]).join(' ') }));
   return new Promise(res => {
     $('dbody').innerHTML = `
       <div class="fh"><div><h2>${esc(titulo)}</h2><div class="sm">${esc(texto)}</div></div>
@@ -7035,7 +7035,7 @@ async function pintarSemanaAgenda() {
           ${bloq[f] ? `<span class="sembloq">🚫 ${esc(bloq[f])}</span>` : ''}
           <div class="semcitas">${todas.slice(0, 9).map(c => {
             const mover = c.usuario_id === uid && CITA_ABIERTA.includes(c.estado) && c.fecha >= hoyISO();
-            return `<span class="semcita" data-semficha="${c.medico_id}" ${mover ? `draggable="true" data-semcid="${c.id}"` : ''}
+            return `<span class="semcita" data-semficha="${c.cuenta_id}" ${mover ? `draggable="true" data-semcid="${c.id}"` : ''}
               title="${esc(c.nombre)} · ${esc(c.estado)}${mover ? ' · arrástrala a otro día para moverla' : ''}" style="border-left-color:${EST_COL[c.estado] || 'var(--muted)'}">
               ${c.hora ? `<i>${esc(String(c.hora).slice(0, 5))}</i>` : ''}${esc(String(c.nombre).split(',')[0])}${c.usuario_id !== uid && c.usuario ? ` <em>${esc(iniciales(c.usuario))}</em>` : ''}</span>`;
           }).join('')}
@@ -7133,13 +7133,13 @@ async function planificarSemana(desde, dias, bloq, porDia) {
     else lista = ((await db.rpc('propuestas_rutas', { lim: 200 })).data || {})[fuente] || [];
     // Fuera los que ya tienen cita abierta
     const { data: futuras } = await RPC_ORIG('agenda_rango', { p_desde: hoyISO(), p_hasta: isoMas(hoyISO(), 60), p_usuario: agUid() });
-    const conCita = new Set((futuras || []).filter(c => CITA_ABIERTA.includes(c.estado)).map(c => c.medico_id));
+    const conCita = new Set((futuras || []).filter(c => CITA_ABIERTA.includes(c.estado)).map(c => c.cuenta_id));
     lista = await conHorarios(lista.filter(m => !conCita.has(m.id)));
     // Aviso de visita reciente: fuera los que se han visto hace poco
     const av = avisoRevisita(); let recientes = [];
     if (av.on && lista.length) {
       const { data: rv } = await db.rpc('actividades_recientes', { p_ids: lista.map(m => m.id), p_desde: isoMas(hoyISO(), -av.dias), p_hasta: hoyISO() });
-      const vistos = {}; (rv || []).filter(x => x.tipo === 'visita').forEach(x => { if (!vistos[x.medico_id] || x.fecha > vistos[x.medico_id].fecha) vistos[x.medico_id] = x; });
+      const vistos = {}; (rv || []).filter(x => x.tipo === 'visita').forEach(x => { if (!vistos[x.cuenta_id] || x.fecha > vistos[x.cuenta_id].fecha) vistos[x.cuenta_id] = x; });
       recientes = lista.filter(m => vistos[m.id]).map(m => ({ m, motivo: `visitado el ${fechaCorta(vistos[m.id].fecha)}${vistos[m.id].usuario ? ' (' + vistos[m.id].usuario + ')' : ''}` }));
       lista = lista.filter(m => !vistos[m.id]);
     }
@@ -7205,7 +7205,7 @@ async function guardarBorradorSemana(btn) {
     const ids = [];
     for (const x of b.orden[f]) {
       if (x.existente) { ids.push(x.existente.id); continue; }
-      const { data: r } = await db.rpc('guardar_cita', { p: { medico_id: x.m.id, fecha: f, hora: null,
+      const { data: r } = await db.rpc('guardar_cita', { p: { cuenta_id: x.m.id, fecha: f, hora: null,
         centro_nombre: x.m.centro_nombre || null, estado: 'Planificada', origen: 'Planificador semanal',
         usuario_id: b.uid !== PERFIL.id ? b.uid : null, op_id: 'ps-' + x.m.id + '-' + f,
         salida: (b.horario || {}).salida || null, vuelta: (b.horario || {}).vuelta || null } });
@@ -7414,7 +7414,7 @@ async function abrirVisitaBase(id) {
     });
     ev.target.disabled = true; ev.target.textContent = 'Guardando…';
     const { data: r, error: err } = await db.rpc('registrar_actividad', { p: {
-      medico_id: id, consulta_id: $('vc').value || null, fecha: $('vf').value,
+      cuenta_id: id, consulta_id: $('vc').value || null, fecha: $('vf').value,
       resultados, detalles, nota: $('vn').value.trim(),
       proxima_accion: $('vpa').value.trim(), proxima_fecha: $('vpf').value || null,
       op_id: 'v-' + id + '-' + Date.now()
@@ -7617,7 +7617,7 @@ document.querySelectorAll('#nav [data-t="pacientes"]').forEach(b => b.textConten
 async function citaRepetida(medicoId, fecha) {
   const uid = TAB === 'agenda' && AG_VISTA ? AG_VISTA.id : PERFIL.id;
   const { data } = await RPC_ORIG('agenda_rango', { p_desde: fecha, p_hasta: fecha, p_usuario: uid });
-  const ya = (data || []).find(c => c.medico_id === medicoId && CITA_ABIERTA.includes(c.estado));
+  const ya = (data || []).find(c => c.cuenta_id === medicoId && CITA_ABIERTA.includes(c.estado));
   if (!ya) return 'nueva';
   const op = await elegirOpcion('Ya tiene una cita ese día',
     `${ya.nombre}\n${fechaLarga(new Date(fecha + 'T00:00:00'))}${ya.hora ? ' a las ' + String(ya.hora).slice(0, 5) : ''} · ${ya.estado}${ya.origen ? ' · ' + ya.origen : ''}\n\n¿Qué quieres hacer?`,
@@ -7834,7 +7834,7 @@ async function recientesDe(ids, fecha) {
   const a = avisoRevisita(); if (!a.on || !ids.length) return {};
   const { data } = await db.rpc('actividades_recientes', { p_ids: ids, p_desde: isoMas(fecha, -(a.dias - 1)), p_hasta: isoMas(fecha, a.dias - 1) });
   const por = {};
-  (data || []).filter(x => x.fecha !== fecha).forEach(x => (por[x.medico_id] = por[x.medico_id] || []).push(x));
+  (data || []).filter(x => x.fecha !== fecha).forEach(x => (por[x.cuenta_id] = por[x.cuenta_id] || []).push(x));
   return por;
 }
 const txtReciente = l => l.map(x => `${x.tipo === 'visita' ? 'visitado' : 'cita'} el ${fechaCorta(x.fecha)}${x.usuario ? ' (' + x.usuario + ')' : ''}`).join(', ');
@@ -10346,7 +10346,7 @@ colocarPop = (orig => function (pop, ref) {
 async function buscarClientes(q) {
   const t = q.trim().replace(/[,()]/g, ' ');
   if (t.length < 2) return [];
-  const { data } = await db.from('contactos').select('id,nombre,telefono,movil,email,nif,medico_id')
+  const { data } = await db.from('contactos').select('id,nombre,telefono,movil,email,nif,cuenta_id')
     .or(`nombre.ilike.%${t}%,telefono.ilike.%${t}%,movil.ilike.%${t}%,nif.ilike.%${t}%`).limit(8);
   return data || [];
 }
@@ -10355,7 +10355,7 @@ async function editorLlamada(l, previa) {
   await catLlamadas();
   l = l || { direccion: 'Entrante', fecha: new Date().toISOString() };
   let cliente = l.contacto_id ? { id: l.contacto_id, nombre: l.cliente || l.nombre } : null, nuevo = !cliente && !l.id;
-  let medico = l.medico_id ? { id: l.medico_id, nombre: l.medico } : null;
+  let medico = l.cuenta_id ? { id: l.cuenta_id, nombre: l.medico } : null;
   const f = new Date(l.fecha), local = new Date(f.getTime() - f.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
   const chips = (cat, v, attr) => (CAT[cat] || []).map(x => `<button type="button" class="chipsel ${x.valor === v ? 'on' : ''} ${x.extra === 'neg' ? 'neg' : x.extra === 'pos' ? 'pos' : ''}" ${attr}="${esc(x.valor)}">${esc(x.valor)}</button>`).join('');
   $('dbody').innerHTML = `
@@ -10401,7 +10401,7 @@ async function editorLlamada(l, previa) {
           || ($('lcq').value.trim().length > 1 ? '<div class="sm" style="padding:6px">No existe: usa «Cliente nuevo».</div>' : '');
         $('lcres').querySelectorAll('[data-lcid]').forEach(b => b.onclick = async () => {
           const x = r.find(y => y.id === b.dataset.lcid); cliente = { id: x.id, nombre: x.nombre, tel: x.movil || x.telefono };
-          if (x.medico_id && !medico) { const { data: m } = await db.from('cuentas').select('id,nombre').eq('id', x.medico_id).single(); if (m) { medico = m; pintaMed(); } }
+          if (x.cuenta_id && !medico) { const { data: m } = await db.from('cuentas').select('id,nombre').eq('id', x.cuenta_id).single(); if (m) { medico = m; pintaMed(); } }
           pintaCli();
         });
       }, 250); };
@@ -10426,7 +10426,7 @@ async function editorLlamada(l, previa) {
     if (conPedido && !cliente && !(datosNuevo && datosNuevo.nombre)) { toast('Indica el cliente: búscalo o escribe su nombre', true); return null; }
     const { data: r, error } = await db.rpc('guardar_llamada', { p: { id: l.id || null, fecha: $('llf').value ? new Date($('llf').value).toISOString() : null,
       direccion: $('lld').value, nombre: datosNuevo ? datosNuevo.nombre : (cliente ? cliente.nombre : l.nombre || ''), telefono: datosNuevo ? datosNuevo.telefono : (cliente ? cliente.tel || '' : l.telefono || ''),
-      contacto_id: cliente ? cliente.id : null, cliente_nuevo: conPedido ? datosNuevo : null, medico_id: medico ? medico.id : null,
+      contacto_id: cliente ? cliente.id : null, cliente_nuevo: conPedido ? datosNuevo : null, cuenta_id: medico ? medico.id : null,
       medico_texto: medico ? '' : ($('llmed').__texto || '').trim(), motivo, resultado: conPedido ? (resultado || 'Pedido hecho') : resultado,
       proxima_accion: $('llpa') ? $('llpa').value.trim() : '', proxima_fecha: resultado && resultado !== 'Pedido hecho' && !conPedido ? ($('llpf').value || '') : '',
       nota: $('llno').value.trim(), pedido_id: l.pedido_id || null, llamada_origen: previa ? previa.id : null } });
@@ -10438,7 +10438,7 @@ async function editorLlamada(l, previa) {
     const r = await guardar(true); if (!r) return;
     LLAMADA_PEND = r.id;
     let cli = null;
-    if (r.contacto_id) { const { data: c } = await db.from('contactos').select('id,nombre,nif,email,telefono,movil,medico_id').eq('id', r.contacto_id).single(); cli = c; }
+    if (r.contacto_id) { const { data: c } = await db.from('contactos').select('id,nombre,nif,email,telefono,movil,cuenta_id').eq('id', r.contacto_id).single(); cli = c; }
     $('dlg').close();
     await editorPedido({ contacto: cli ? Object.assign(cli, { medico: medico ? medico.nombre : '' }) : null, medico: medico ? { id: medico.id, nombre: medico.nombre } : null });
   };
@@ -10460,7 +10460,7 @@ pintarLlamadas = (orig => async function () {
         <span class="acts" style="margin:0;flex-wrap:nowrap">${(x.tel_cliente || x.telefono) ? `<a class="btn sec" href="tel:${esc(x.tel_cliente || x.telefono)}">Llamar</a>` : ''}
           <button class="btn" data-llseg="${x.id}">Registrar</button><button class="btn sec" data-llok="${x.id}" title="Ya no hace falta">✓</button></span></div>`).join('')}</div></div>`);
     $('llsegs').querySelectorAll('[data-llseg]').forEach(b => b.onclick = () => { const x = l.find(y => y.id === b.dataset.llseg);
-      editorLlamada({ direccion: 'Saliente', fecha: new Date().toISOString(), contacto_id: x.contacto_id, cliente: x.cliente, nombre: x.nombre, telefono: x.telefono, medico_id: x.medico_id, medico: x.medico, motivo: 'Seguimiento de televenta' }, x); });
+      editorLlamada({ direccion: 'Saliente', fecha: new Date().toISOString(), contacto_id: x.contacto_id, cliente: x.cliente, nombre: x.nombre, telefono: x.telefono, cuenta_id: x.cuenta_id, medico: x.medico, motivo: 'Seguimiento de televenta' }, x); });
     $('llsegs').querySelectorAll('[data-llok]').forEach(b => b.onclick = async () => { await db.rpc('marcar_seguimiento', { p_id: b.dataset.llok, p_hecho: true }); toast('Seguimiento cerrado'); pintarLlamadas(); });
   }
   // Se espera a que la pestaña termine de pintar su análisis para añadir el resto
@@ -12645,7 +12645,7 @@ let MED_ACCESO = null;
 async function cargarAccesoMedicos() {
   if (!(PERFIL && (puede('administrar') || VE_TODO()))) { MED_ACCESO = {}; return; }
   const { data } = await RPC_ORIG('cuentas_con_acceso', {});
-  MED_ACCESO = {}; (data || []).forEach(x => { MED_ACCESO[x.medico_id] = x; });
+  MED_ACCESO = {}; (data || []).forEach(x => { MED_ACCESO[x.cuenta_id] = x; });
 }
 COLS.push({ k: 'acceso', t: 'Acceso a la plataforma', w: 170 });
 celda = (orig => function (m, k) {
@@ -13990,9 +13990,9 @@ new MutationObserver(botonDisenoPDF).observe($('v-facturacion'), { childList: tr
 // Mis citas pendientes (planificadas o confirmadas) desde hoy: médico → primera fecha
 async function citasPlanificadasMias() {
   try {
-    const { data } = await db.from('agenda').select('medico_id,fecha').eq('usuario_id', PERFIL.id)
+    const { data } = await db.from('agenda').select('cuenta_id,fecha').eq('usuario_id', PERFIL.id)
       .in('estado', ['Planificada', 'Confirmada']).gte('fecha', hoyISO()).order('fecha').limit(2000);
-    const r = {}; (data || []).forEach(c => { if (!r[c.medico_id]) r[c.medico_id] = c.fecha; }); return r;
+    const r = {}; (data || []).forEach(c => { if (!r[c.cuenta_id]) r[c.cuenta_id] = c.fecha; }); return r;
   } catch (e) { return {}; }
 }
 // El plan muestra aparte a los médicos que ya tienen cita
