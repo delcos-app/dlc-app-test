@@ -14685,3 +14685,4 @@ arrancar();
 
 /* v2.74.0 · El detalle del pedido muestra sus campos personalizados */
 verPedido = (orig => async function (id, ...a) { const r = await orig.call(this, id, ...a); if (id) setTimeout(() => bloqueCampos('pedidos', id, $('dbody')), 150); return r; })(verPedido);
+
