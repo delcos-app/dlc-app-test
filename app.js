@@ -697,7 +697,7 @@ async function abrirEditor(id, tipo) {
       <div><label for="em">Email</label><input id="em" type="email" value="${esc(m.email || '')}"></div>
     </div>
     <label for="ect">Contacto (secretaría, teléfono, email)</label><input id="ect" value="${esc(m.contacto || '')}">
-    ${esCentro ? '' : `<label class="chksr"><input type="checkbox" id="esr" ${m.sin_reporting ? 'checked' : ''}><span><b>Sin reporting</b><span class="sm">Solo ${TT('visita', 's', '', 'l', 'l')} presencial: no quiere informes ni feedback. Se puede filtrar en ${esc(etiquetaContactos())} y en Analítica.</span></span></label>`}
+    ${esCentro ? '' : `<label class="chksr"><input type="checkbox" id="esr" ${m.sin_reporting ? 'checked' : ''}><span><b>Sin reporting</b><span class="sm">Solo ${TT('visita', 's', '', 'l', 'l')} presencial: no quiere informes ni feedback.</span></span></label>`}
     <label for="eno">Nota</label><textarea id="eno" rows="3">${esc(m.nota || '')}</textarea>
     ${camposHTML('medico', m.clasificadores)}
     <div id="econs">${cons.map(consHTML).join('')}</div>
@@ -1763,6 +1763,12 @@ function nuevoUsuarioBase() {
     const email = $('ne').value.trim(), pass = $('np').value, nombre = $('nn').value.trim();
     if (!email || !nombre || pass.length < 6) { toast('Completa nombre, correo y contraseña', true); return; }
     ev.target.disabled = true; ev.target.textContent = 'Creando…';
+    // v2.86.0: la invitación coloca a la persona en tu organización y con su rol al registrarse
+    const { data: inv, error: einv } = await db.rpc('crear_invitacion', { p_email: email, p_rol: $('nr').value });
+    if (einv || !inv || !inv.ok) {
+      ev.target.disabled = false; ev.target.textContent = 'Crear usuario';
+      $('nmsg').innerHTML = `<span style="color:var(--dang)">No se ha podido invitar: ${esc((einv && einv.message) || (inv && inv.error) || '')}</span>`; return;
+    }
     // Cliente aparte para no tocar tu sesión actual
     const tmp = window.supabase.createClient(CFG.url, CFG.anon, { auth: { persistSession: false, autoRefreshToken: false } });
     const { data, error } = await tmp.auth.signUp({
@@ -3514,6 +3520,7 @@ function abrirClasificador(id) {
           ${v.extra ? `<span class="sm">${v.extra === 'neg' ? `sin ${TT('visita', 's', '', 'l', 'l')}` : `${TT('visita', 's', '', 'l', 'l', 'realizado')}`}${v.destino ? ' · pasa a ' + esc(v.destino) : ''}</span>` : ''}</span>
         ${puedeEditar ? `<span class="acts" style="margin:0">
           <button class="btn sec" data-vren="${v.id}|${esc(v.valor)}">Renombrar</button>
+          ${c.papel === 'resultado_visita' ? `<select data-vdest="${v.id}" title="Estado al que pasa la ficha con este resultado" style="max-width:170px"><option value="">No cambia el estado</option>${estados().map(x => `<option value="${esc(x)}" ${v.destino === x ? 'selected' : ''}>Pasa a ${esc(x)}</option>`).join('')}</select>` : ''}
           <button class="btn sec" data-vtog="${v.id}|${v.activo ? 0 : 1}">${v.activo ? 'Desactivar' : 'Activar'}</button>
           ${completo ? `<button class="btn sec dang" data-vdel="${v.id}">Eliminar</button>` : ''}</span>` : ''}
       </div>`).join('') || '<div class="vacio">Sin valores todavía.</div>'}</div>
@@ -3558,6 +3565,12 @@ function abrirClasificador(id) {
       if (!nuevo) return;
       await db.rpc('guardar_valor', { p: { id: vid, valor: nuevo } });
       toast('Renombrado'); recarga();
+    });
+    // v2.87.0: el estado al que lleva cada resultado se puede cambiar en cualquier momento
+    $('dbody').querySelectorAll('[data-vdest]').forEach(sel => sel.onchange = async () => {
+      const { data: r, error } = await db.rpc('guardar_valor', { p: { id: sel.dataset.vdest, destino: sel.value } });
+      if (error || (r && r.ok === false)) { toast('No se ha podido cambiar', true); return; }
+      toast(sel.value ? `Ahora pasa a ${sel.value}` : 'Ya no cambia el estado');
     });
     $('dbody').querySelectorAll('[data-vdel]').forEach(b => b.onclick = async () => {
       if (!await preguntar(`Las fichas y ${TT('visita', 'p', '', 'l', 'l')} que ya lo usan lo conservan, pero dejará de aparecer.`,
@@ -4241,7 +4254,7 @@ const AYUDA = {
   ventas: ['Ventas', 'Pedidos y unidades atribuidas.', [
     `La venta a ${TT('paciente', 's', '', 'l', 'l')} se atribuye ${TT('medico', 's', 'al', 'l', 'l', 'indicado')} y al comercial que lo tenía asignado en ese momento.`,
     `La venta a centro con descuento no cuenta como prescripción de ${TT('medico', 's', 'ningun', 'l', 'l')}.`,
-    `Si un pedido no tiene ${TT('medico', 's', '', 'l', 'l', 'reconocido')}, queda en la bandeja «sin atribuir» para asignarlo a mano.`,
+    `Si un pedido no tiene ${TT('medico', 's', '', 'l', 'l', 'reconocido')}, se puede encontrar filtrando la lista de pedidos para asignarlo a mano.`,
     'Solo televenta y administración crean o cambian pedidos.']],
   analitica: ['Analítica', 'Unidades o importe agrupados como elijas.', [
     `Elige la dimensión: ${TT('medico', 's', '', 'l', 'l')}, comercial, producto, municipio, mes o canal.`,
@@ -5194,7 +5207,7 @@ Object.assign(AYUDA, {
     'Los importes van sin IVA; el IVA de cada producto se suma aparte y se ve el total.',
     `La venta a ${TT('paciente', 's', '', 'l', 'l')} se atribuye ${TT('medico', 's', 'al', 'l', 'l', 'indicado')} y al comercial que lo tenía asignado en ese momento.`,
     `La venta a centro con descuento no cuenta como prescripción de ${TT('medico', 's', 'ningun', 'l', 'l')}.`,
-    `Si un pedido no tiene ${TT('medico', 's', '', 'l', 'l', 'reconocido')}, queda en «sin atribuir» para asignarlo a mano.`]],
+    `Si un pedido no tiene ${TT('medico', 's', '', 'l', 'l', 'reconocido')}, se puede encontrar filtrando la lista de pedidos para asignarlo a mano.`]],
   pacientes: [`${TT('paciente', 'p', '', 'l', 'C')}`, `Las personas que compran por recomendación de ${TT('medico', 's', 'un', 'l', 'l')}.`, [
     `Cada ${TT('paciente', 's', '', 'l', 'l')} puede tener un <b>${TT('medico', 's', '', 'l', 'l')} que lo trata</b>: se asigna solo con su primer pedido o a mano desde su ficha.`,
     `Desde la ficha ves sus pedidos, unidades e importe, y creas un pedido nuevo con ${TT('medico', 's', 'el', 'l', 'l')} ya puesto.`,
@@ -5974,7 +5987,6 @@ async function cargarVentasBase() {
     <div class="saludo"><div><h1>Ventas</h1><div class="fecha">Pedidos, unidades e importes</div></div>
       <div class="acts" style="margin:0">${puedeVentas() ? '<button class="btn" id="pednuevo">+ Nuevo pedido</button>' : ''}</div></div>
     <div id="vcuerpo">
-      <div class="card" id="cardsinatr"></div>
       <div class="panel">
         <div class="filtros">
           <div id="pper"></div>
@@ -7423,6 +7435,17 @@ async function abrirVisitaBase(id) {
     if (err) { toast('No se ha podido guardar: ' + err.message, true); return; }
     $('dlg').close();
     toast(`${TT('visita', 's', '', 'l', 'C', 'registrado')}` + (r && r.estado ? ' · estado: ' + r.estado : ''));
+    // v2.87.0: si estaba marcada como urgente y la visita se ha hecho, se pregunta si se quita la marca
+    const hecha = marcados.some(k => idx[k].c === res.clave && idx[k].v.extra !== 'neg');
+    if (m.urgente && hecha) {
+      const op = await elegirOpcion('Estaba marcada como urgente',
+        `${m.nombre}${m.urgente_motivo ? ' · ' + m.urgente_motivo : ''}\n\n¿Quitas la marca de urgente ahora que ya la has visitado?`,
+        [{ k: 'dejar', t: 'La dejo', cls: 'sec' }, { k: 'quitar', t: 'Quitar urgente' }]);
+      if (op === 'quitar') {
+        const { error: e2 } = await db.from('cuentas').update({ urgente: false, urgente_motivo: null }).eq('id', id);
+        toast(e2 ? 'No se ha podido quitar la marca' : 'Ya no está marcada como urgente', !!e2);
+      }
+    }
     cargarInicio();
     if (FICHA_ID === id) abrirFicha(id);
   };
@@ -9197,9 +9220,17 @@ const KPI_CATEGORIA = {
   nuevos_presc: 'Ventas (unidades)', activos_90: 'Ventas (unidades)', conversion: 'Cartera', importe_mes: 'Ventas (importes)', borradores: 'Pedidos'
 };
 const KPI_PERMISO = { importe_mes: ['E', 1], borradores: ['V', 1], dups: ['Q', 1], sin_horario: ['M', 1] };
+/* v2.87.0 · Cada indicador pertenece a un módulo: solo lo ve quien tiene acceso a ese módulo */
+const KPI_MOD = {
+  citas: 'agenda', visitas_sem: 'agenda', visitas_mes: 'agenda', visitas_7d: 'agenda', citas_7d: 'agenda', muestras_mes: 'agenda', material_mes: 'agenda',
+  urgentes: 'directorio', interesados: 'directorio', sin_contactar: 'directorio', cartera: 'directorio', dups: 'directorio', sin_visita_60: 'directorio', sin_horario: 'directorio',
+  uds_mes: 'ventas', importe_mes: 'ventas', prescriptores: 'ventas', nuevos_presc: 'ventas', activos_90: 'ventas', borradores: 'ventas',
+  conversion: 'analitica'
+};
 function kpiPermitido(c) {
   if (!c) return false;
   if (c.admin && !puede('administrar')) return false;
+  if (KPI_MOD[c.id] && !puedeModulo(KPI_MOD[c.id])) return false;
   const r = KPI_PERMISO[c.id];
   return !r || nivelDe2(r[0]) >= r[1];
 }
@@ -10041,6 +10072,9 @@ new MutationObserver(ms => {
 (function () {
   if (!$('seldlg')) document.body.insertAdjacentHTML('beforeend', '<dialog id="seldlg" class="seldlg"></dialog>');
   const d = $('seldlg');
+  // v2.87.0: en móvil, el «clic fantasma» que sigue al toque (~300 ms) no debe cerrar el calendario ni elegir un día:
+  // durante el primer medio segundo tras abrirse se ignora cualquier toque
+  d.addEventListener('click', e => { if (d.__abierto && Date.now() - d.__abierto < 500) { e.stopPropagation(); e.preventDefault(); } }, true);
   d.addEventListener('click', e => { if (e.target === d) cerrarSelector(); });
   d.addEventListener('cancel', e => { e.preventDefault(); cerrarSelector(); });
 })();
@@ -10337,7 +10371,9 @@ let LLAMADA_PEND = null;
 
 colocarPop = (orig => function (pop, ref) {
   const d = $('seldlg');
-  d.style.right = 'auto'; d.style.bottom = 'auto';
+  // v2.87.0: en móvil es una hoja pegada abajo (su estilo ya la coloca); junto al campo solo en escritorio
+  if (ES_MOVIL()) { d.style.right = ''; d.style.bottom = ''; } else { d.style.right = 'auto'; d.style.bottom = 'auto'; }
+  if (!d.open) d.__abierto = Date.now();
   orig(pop, ref);
 })(colocarPop);
 
@@ -11099,12 +11135,29 @@ function panelNotificacionesBase(l) {
       <span class="ic">${ico(x.tipo)}</span><span class="tx"><b>${esc(x.titulo)}</b><span class="sm">${esc(x.cuerpo || '')}</span>
       <span class="sm">${new Date(x.creado_en).toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' })}</span></span></button>`).join('') || '<div class="vacio">No tienes notificaciones.</div>'}</div>
     <div class="acts" style="justify-content:space-between;flex-wrap:wrap"><button class="btn sec" id="notcfg">⚙ Elegir qué notificaciones recibo</button>
-      ${NOTIF_N ? '<button class="btn sec" id="notleer">Marcar todas como leídas</button>' : ''}</div>`;
+      <span class="acts" style="margin:0;flex-wrap:wrap">
+        ${NOTIF_N ? '<button class="btn sec" id="notleer">Marcar todas como leídas</button>' : ''}
+        ${l.some(x => x.leida_en) ? '<button class="btn sec" id="notlimpiar">Borrar las leídas</button>' : ''}
+        ${l.length ? '<button class="btn sec dang" id="notvaciar">Vaciar todas</button>' : ''}</span></div>`;
   $('dlg').showModal();
   $('dbody').querySelectorAll('[data-nid]').forEach(b => b.onclick = async () => {
     await db.rpc('leer_notificacion', { p_id: b.dataset.nid }); $('dlg').close(); irEnlace(b.dataset.nen); refrescarCampana();
   });
   if ($('notleer')) $('notleer').onclick = async () => { await db.rpc('leer_notificaciones'); $('dlg').close(); refrescarCampana(); };
+  // v2.87.0: limpiar las notificaciones propias (las leídas o todas)
+  const borrarNotif = async soloLeidas => {
+    let q = db.from('notificaciones').delete().eq('usuario_id', PERFIL.id);
+    if (soloLeidas) q = q.not('leida_en', 'is', null);
+    const { error } = await q;
+    if (error) { toast('No se han podido borrar', true); return; }
+    toast(soloLeidas ? 'Notificaciones leídas borradas' : 'Notificaciones vaciadas');
+    $('dlg').close(); refrescarCampana();
+  };
+  if ($('notlimpiar')) $('notlimpiar').onclick = () => borrarNotif(true);
+  if ($('notvaciar')) $('notvaciar').onclick = async () => {
+    const op = await elegirOpcion('Vaciar notificaciones', 'Se borran todas tus notificaciones, también las que no has leído.', [{ k: 'no', t: 'Cancelar', cls: 'sec' }, { k: 'si', t: 'Vaciar' }]);
+    if (op === 'si') borrarNotif(false);
+  };
   $('notcfg').onclick = () => { $('dlg').close(); CFG_SEC = 'notif'; ir('config'); };
 }
 setInterval(refrescarCampana, 60000);
@@ -12038,11 +12091,13 @@ function arbolConfig() {
       ...(puedeCatalogos() ? [{ k: 'cat', ic: 'tag', t: 'Clasificadores', d: 'Listas de valores: especialidades, motivos…', r: () => { $('cfgcuerpo').innerHTML = ''; pintarCatalogos(); } }] : []),
       ...(admin || nivelDe2('P') >= 3 ? [{ k: 'stock', ic: 'warehouse', t: 'Stock y material', d: `Almacenes y material de ${TT('visita', 's', '', 'l', 'l')}`, mod: 'productos', sub: [['alm', 'Almacenes', pintarAlmacenes2], ['mues', `Material de ${TT('visita', 's', '', 'l', 'l')}`, pintarMaterial]] }] : [])]],
     ['Facturación', admin ? [
-      { k: 'fact', ic: 'receipt', t: 'Facturación', d: 'Datos fiscales, series y VeriFactu', mod: 'facturacion', sub: [['fiscal', 'Datos fiscales', fac(pintarEmpresa)], ['series', 'Series', fac(pintarSeries)], ['vf', 'VeriFactu', fac(pintarVerifactu)]] }] : []],
+      { k: 'fact', ic: 'receipt', t: 'Facturación', d: 'Datos fiscales, series y VeriFactu', mod: 'facturacion', sub: [['fiscal', 'Datos fiscales', fac(pintarEmpresa)], ['series', 'Series', fac(pintarSeries)], ['vf', 'VeriFactu', fac(pintarVerifactu)], ['pdf', 'Diseño del PDF', () => disenoPDF()]] }] : []],
     ['Empresa', admin ? [
       { k: 'marca', ic: 'palette', t: 'Marca y logo', d: 'Nombre de la plataforma y logo', r: pintarMarca },
       { k: 'correo', ic: 'mail', t: 'Correo y firma', d: 'Cuenta de envío y firma', r: pintarCorreo },
-      { k: 'copias', ic: 'save', t: 'Copias de seguridad', d: 'Descarga todos los datos', r: pintarCopias }] : []]
+      { k: 'copias', ic: 'save', t: 'Copias de seguridad', d: 'Descarga todos los datos', r: pintarCopias }] : []],
+    ['Plataforma', puede('gestionar_plataforma') ? [
+      { k: 'orgs', ic: 'building', t: 'Organizaciones', d: 'Empresas de la plataforma y alta de nuevas', r: pintarOrganizaciones }] : []]
   ].filter(g => g[1].length);
 }
 // Nombres anteriores de cada apartado → dónde está ahora
@@ -12278,7 +12333,8 @@ function detalleUsuario(u) {
       <button class="btn" data-uacc="editar">✏️ Editar rol, permisos y zona</button>
       ${!rolPuede(u.rol, 'portal_prescriptor') ? '<button class="btn sec" data-uacc="cartera">🩺 Asignar cartera</button>' : ''}
       <button class="btn sec" data-uacc="pass">🔑 Enviar cambio de contraseña</button>
-      ${typeof puedeSuplantar === 'function' && puedeSuplantar() && u.id !== PERFIL.id && !rolPuede(u.rol, 'administrar') && u.activo ? '<button class="btn sec" data-uacc="como">👤 Entrar como esta persona</button>' : ''}</div>`;
+      ${typeof puedeSuplantar === 'function' && puedeSuplantar() && u.id !== PERFIL.id && !rolPuede(u.rol, 'administrar') && u.activo ? '<button class="btn sec" data-uacc="como">👤 Entrar como esta persona</button>' : ''}
+      ${puede('administrar') && u.id !== PERFIL.id ? '<button class="btn sec dang" data-uacc="borrar">🗑 Borrar usuario</button>' : ''}</div>`;
   $('dlg').showModal();
   $('dbody').querySelectorAll('[data-uacc]').forEach(b => b.onclick = () => {
     const a = b.dataset.uacc;
@@ -12286,8 +12342,35 @@ function detalleUsuario(u) {
     if (a === 'cartera') { $('dlg').close(); asignarCartera(u.id); }
     if (a === 'pass') { $('dlg').close(); restablecerPassword(u); }
     if (a === 'como') { $('dlg').close(); entrarComo(u.id); }
+    if (a === 'borrar') { $('dlg').close(); borrarUsuario(u); }
   });
 };
+
+/* v2.87.0 · Borrar un usuario por completo (administración). Pedidos, facturas, cobros y auditoría se conservan siempre. */
+function borrarUsuario(u) {
+  $('dbody').innerHTML = `<div class="fh"><div><h2>Borrar a ${esc(u.nombre || u.email || '')}</h2><div class="sm">${esc(u.email || '')}</div></div>
+      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
+    <p>Se borran su usuario y su acceso, sus notificaciones y avisos, y sus citas pendientes. Su cartera queda libre para asignarla a otra persona.</p>
+    <label class="chk" style="display:flex;gap:8px;align-items:flex-start;margin:10px 0"><input type="checkbox" id="bucon" style="margin-top:3px">
+      <span>Borrar también su actividad: ${TT('visita', 'p', '', 'l', 'l')}, llamadas, citas pasadas y rutas propias.<br><span class="sm">Pensado para usuarios de prueba. Si era alguien del equipo, déjalo sin marcar para conservar el historial.</span></span></label>
+    <p class="sm">Nunca se borran pedidos, facturas, cobros, comisiones liquidadas ni el registro de cambios. No se puede deshacer.</p>
+    <label for="buconf">Escribe BORRAR para confirmar</label><input id="buconf" autocomplete="off">
+    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>Cancelar</button><button class="btn dang" id="buok">Borrar usuario</button></div>`;
+  $('dlg').showModal();
+  $('buok').onclick = async ev => {
+    if ($('buconf').value.trim().toUpperCase() !== 'BORRAR') { toast('Escribe BORRAR para confirmar', true); return; }
+    ev.target.disabled = true;
+    const { data: r, error } = await db.rpc('borrar_usuario', { p_id: u.id, p_con_actividad: $('bucon').checked });
+    ev.target.disabled = false;
+    if (error || !r || !r.ok) {
+      const txt = { permiso: 'Solo administración puede borrar usuarios', uno_mismo: 'No puedes borrarte a ti', ultimo_admin: 'Es el último administrador: da antes ese rol a otra persona', no_existe: 'Ese usuario ya no existe' }[(r && r.error) || ''] || (error && error.message) || '';
+      toast('No se ha podido borrar: ' + txt, true); return;
+    }
+    $('dlg').close();
+    toast(String(r.acceso || '').startsWith('no_borrado') ? 'Usuario borrado (su acceso queda sin perfil: ya no puede usar la plataforma)' : 'Usuario borrado');
+    if (typeof cargarAdmin === 'function') cargarAdmin();
+  };
+}
 
 
 /* ============================================================
@@ -12606,6 +12689,8 @@ function htContador(sec) {
 function htPreparar(sec) {
   const id = sec.id.replace('v-', '');
   if (id === 'directorio') { const f = sec.querySelector('.panel > .filtros'); if (f) f.classList.add('hide'); return; }
+  // v2.87.0: en la configuración de facturación no hay tablas que filtrar
+  if (id === 'facturacion' && typeof FSEC !== 'undefined' && FSEC !== 'facturas') return;
   const g = sec.querySelector('.dgrid'), propios = HT_FILTROS[id] ? document.querySelector(HT_FILTROS[id]) : null;
   if (!g && !propios) return;
   let panel = sec.querySelector('.htpanel');
@@ -13283,6 +13368,10 @@ function subnavFacturacion() {
   if (sub && sub.previousElementSibling !== nav) { sub.remove(); sub = null; }
   if (enConfig && !sub) {
     nav.insertAdjacentHTML('afterend', `<div class="cfgsubs faccfgsub">${FAC_CONFIG.map(([k, t]) => `<button data-fsub="${k}" class="${k === FSEC ? 'on' : ''}">${t}</button>`).join('')}</div>`);
+    // v2.87.0: «Diseño del PDF» se abre desde la configuración de facturación
+    sub = real('.faccfgsub');
+    if (sub && puede('administrar') && !sub.querySelector('[data-fpdf]')) sub.insertAdjacentHTML('beforeend', '<button data-fpdf="1">Diseño del PDF</button>');
+    const bp = sub && sub.querySelector('[data-fpdf]'); if (bp) bp.onclick = () => disenoPDF();
     document.querySelectorAll('#v-facturacion [data-fsub]').forEach(b => b.onclick = () => { FSEC = b.dataset.fsub; cargarFacturacion(); });
   } else if (!enConfig && sub) sub.remove();
 }
@@ -13958,6 +14047,7 @@ async function disenoPDF() {
 }
 // Botón en Facturas (administración)
 function botonDisenoPDF() {
+  return;   // v2.87.0: el diseño del PDF está en la configuración de facturación, no en Facturas
   if (TAB !== 'facturacion' || FSEC !== 'facturas' || !PERFIL || !puede('administrar') || $('fpdfbtn')) return;
   const acts = document.querySelector('#v-facturacion .saludo .acts'); if (!acts) return;
   acts.insertAdjacentHTML('afterbegin', `<button class="btn sec" id="fpdfbtn" type="button">${svgIco(ICON_NOM.file)} Diseño del PDF</button>`);
@@ -14686,3 +14776,54 @@ arrancar();
 /* v2.74.0 · El detalle del pedido muestra sus campos personalizados */
 verPedido = (orig => async function (id, ...a) { const r = await orig.call(this, id, ...a); if (id) setTimeout(() => bloqueCampos('pedidos', id, $('dbody')), 150); return r; })(verPedido);
 
+
+/* ============================================================
+   v2.86.0 · Organizaciones de la plataforma (fase 4): alta de empresas nuevas
+   Solo quien tiene la capacidad «gestionar_plataforma» (el Administrador de la
+   organización principal). Cada organización nace con sus roles, catálogos,
+   series y ajustes, y su administrador queda invitado.
+   ============================================================ */
+async function pintarOrganizaciones() {
+  const c = $('cfgcuerpo'); if (!c) return;
+  c.innerHTML = '<div class="card"><div class="sm">Cargando…</div></div>';
+  const { data, error } = await db.rpc('organizaciones_lista');
+  const l = Array.isArray(data) ? data : [];
+  c.innerHTML = `<div class="card"><div class="fh"><div><h2>Organizaciones</h2>
+      <div class="sm">Cada empresa trabaja aislada, con sus datos, sus usuarios, su numeración y su configuración.</div></div>
+      <button class="btn" id="orgnueva">+ Nueva organización</button></div>
+    ${error ? `<div class="vacio">No se han podido cargar: ${esc(error.message)}</div>` : `<div class="lista">${l.map(o => `<div class="item" style="cursor:default">
+      <span class="tx"><b>${esc(o.nombre)}</b><span class="sm">${esc(o.nif || 'Sin NIF')} · plan ${esc(o.plan || '—')} · ${num(o.usuarios)} usuarios · ${num(o.cuentas)} cuentas${o.pendiente ? ' · pendiente de registro: ' + esc(o.pendiente) : ''}</span></span>
+      <span class="sm">${o.creado_en ? fechaCorta(String(o.creado_en).slice(0, 10)) : ''}</span></div>`).join('')}</div>`}</div>`;
+  $('orgnueva').onclick = () => {
+    $('dbody').innerHTML = `<div class="fh"><div><h2>Nueva organización</h2><div class="sm">Nace con los roles, catálogos, series y ajustes de partida de la plataforma</div></div>
+        <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
+      <div class="g2"><div><label for="onom">Nombre de la empresa</label><input id="onom"></div>
+        <div><label for="onif">NIF</label><input id="onif"></div>
+        <div><label for="oplan">Plan</label><select id="oplan"><option value="base">Base</option><option value="profesional" selected>Profesional</option><option value="premium">Premium</option></select></div></div>
+      <h3 style="margin-top:14px">Su administrador</h3>
+      <div class="g2"><div><label for="oanom">Nombre</label><input id="oanom"></div>
+        <div><label for="oamail">Correo</label><input id="oamail" type="email"></div>
+        <div><label for="oapass">Contraseña temporal</label><input id="oapass" value="Tmp-${Math.random().toString(36).slice(2, 8)}"></div></div>
+      <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>Cancelar</button><button class="btn" id="ocrear">Crear organización</button></div>
+      <div id="omsg" class="sm" style="margin-top:10px"></div>`;
+    $('ocrear').onclick = async ev => {
+      const nombre = $('onom').value.trim(), email = $('oamail').value.trim(), pass = $('oapass').value, anom = $('oanom').value.trim();
+      if (!nombre || !email || !anom || pass.length < 6) { toast('Completa el nombre, el administrador, su correo y la contraseña', true); return; }
+      ev.target.disabled = true; ev.target.textContent = 'Creando…';
+      const { data: r, error: e1 } = await db.rpc('crear_organizacion', { p: { nombre, nif: $('onif').value.trim(), plan: $('oplan').value, email_admin: email } });
+      if (e1 || !r || !r.ok) {
+        ev.target.disabled = false; ev.target.textContent = 'Crear organización';
+        const txt = { permiso: 'No tienes permiso', nombre: 'Falta el nombre', email: 'El correo no es válido', email_existe: 'Ese correo ya tiene usuario' }[(r && r.error) || ''] || (e1 && e1.message) || '';
+        $('omsg').innerHTML = `<span style="color:var(--dang)">No se ha podido crear: ${esc(txt)}</span>`; return;
+      }
+      // Su administrador se registra: la invitación le coloca en la organización nueva
+      const tmp = window.supabase.createClient(CFG.url, CFG.anon, { auth: { persistSession: false, autoRefreshToken: false } });
+      const { error: e2 } = await tmp.auth.signUp({ email, password: pass, options: { data: { nombre: anom, usuario: email.split('@')[0] } } });
+      ev.target.disabled = false; ev.target.textContent = 'Crear organización';
+      $('omsg').innerHTML = e2 ? `<span style="color:var(--dang)">Organización creada, pero no su usuario: ${esc(e2.message)}. Queda invitado: puede registrarse con ese correo.</span>`
+        : `<b style="color:var(--ok)">Organización creada.</b> Usuario de ${esc(email)} con contraseña temporal <b>${esc(pass)}</b>. Pásasela y que la cambie al entrar.`;
+      pintarOrganizaciones();
+    };
+    $('dlg').showModal();
+  };
+}
