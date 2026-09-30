@@ -1,6 +1,6 @@
 /* DLC OS 2.0 · Service worker: la app se pide primero a la red (siempre la última versión)
    y solo se usa la copia guardada si no hay conexión. Nunca guarda datos. */
-const CACHE = 'dlc-os-2.87.0';
+const CACHE = 'dlc-os-2.88.0';
 const FILES = ['./', './index.html', './app.js?v=2.87.0', './config.js', './manifest.webmanifest',
                './logo-app.png', './icon-192.png', './icon-512.png', './apple-touch-180.png'];
 

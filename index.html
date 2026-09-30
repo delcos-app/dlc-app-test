@@ -1368,6 +1368,14 @@ html{overflow-y:scroll;scrollbar-gutter:stable}
 .htchips{display:flex;flex-wrap:wrap;gap:6px;align-items:center;flex:1 1 auto}
 .htchip{display:inline-flex;align-items:center;gap:6px;border:1px solid #CFE4F4;background:var(--sky-soft);color:var(--navy);border-radius:999px;padding:5px 10px;font:inherit;font-size:12.5px;font-weight:600;cursor:pointer}
 .htchip span{opacity:.6}.htchip:hover span{opacity:1}
+/* v2.88.0 · Sección «Clasificadores» de «Filtros y columnas» */
+.htchips2:empty{display:none}
+.clascampo{display:flex;flex-direction:column;gap:4px;margin:0 0 10px}
+.clascab{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.clascab>label:first-child{margin:0}
+.clascol{display:inline-flex!important;align-items:center;gap:5px;margin:0!important;font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;white-space:nowrap}
+.clascol input{width:auto;min-height:0;margin:0}
+.clasrango{display:grid;grid-template-columns:1fr 1fr;gap:6px}
 /* Segundo panel lateral (columnas) */
 .t2volver{display:inline-flex;border:0;background:none;color:var(--sky);font:inherit;font-weight:700;padding:0 0 10px;cursor:pointer}
 .tools2{z-index:1202!important;box-shadow:-12px 0 30px rgba(11,58,102,.12)}
@@ -1779,6 +1787,6 @@ body:not(.inilisto) #v-inicio .saludo .acts{visibility:hidden}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.87.0"></script>
+<script src="./app.js?v=2.88.0"></script>
 </body>
 </html>
