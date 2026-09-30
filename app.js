@@ -10996,7 +10996,7 @@ async function pintarUsuarios2() {
       const mods = Object.keys(MODULO_AREA).filter(m => rolPuede(u.rol, 'administrar') || +((u.areas || {})[MODULO_AREA[m]] || 0) >= 1);
       const reciente = u.ultima_actividad ? new Date(u.ultima_actividad) : null;
       return `<button class="usrcard ${u.activo ? '' : 'off'}" data-usr="${u.id}">
-        <span class="usrav" style="background:${esc((rolDef(u.rol) || {}).color || 'linear-gradient(135deg,#1E6FB8,#5BB4E5)')}">${esc(iniciales(u.nombre))}</span>
+        <span class="usrav" style="background:${esc((rolDef(u.rol) || {}).color || '#17457A')}">${esc(iniciales(u.nombre))}</span>
         <span class="usrtx"><b>${esc(u.nombre)}</b><span class="sm">${esc(u.email || '')}</span>
           <span class="usrchips"><span class="pill p-est">${esc(u.rol)}</span>${u.activo ? '' : '<span class="pill p-anu">Desactivado</span>'}
             ${rolPuede(u.rol, 'portal_prescriptor') ? `<span class="pill p-per">${esc(u.medico || 'Sin ficha')}</span>` : `<span class="sm">${mods.length} módulos</span>`}</span></span>
