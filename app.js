@@ -373,6 +373,8 @@ async function abrirFicha(id, ...r) {
     await fichaAvisoHorario(id);
     await fichaMaterialVisitas(id);
     await fichaUnidades(id);
+    // v2.96.0: si no hay ventas que enseñar (o no hay permiso para verlas), la sección no aparece
+    if ($('fventas') && !$('fventasc').children.length) $('fventas').remove();
   } finally { clearTimeout(limite); requestAnimationFrame(() => d.classList.remove('cargando')); }
   await fichaAcceso(id);
 }
@@ -401,7 +403,7 @@ async function fichaComercialYPacientes(id) {
   if (esAdmin || ((PERFIL.areas || {}).V || 0) >= 1) {
     const { data } = await db.rpc('clientes_lista', { q: null, p_medico: id, lim: 5, desplaz: 0 });
     if (FICHA_ID !== id || !data || !data.total) return;
-    $('fbody').insertAdjacentHTML('beforeend', `<div class="blk"><h3>${TT('paciente', 'p', '', 'l', 'C')}<span class="n" style="margin-left:6px">${num(data.total)}</span></h3>
+    ($('fventasc') || $('fbody')).insertAdjacentHTML('beforeend', `<div class="blk"><h3>${TT('paciente', 'p', '', 'l', 'C')}<span class="n" style="margin-left:6px">${num(data.total)}</span></h3>
       ${data.filas.map(x => `<button class="item" data-fmpac="${x.id}" style="padding:7px 4px"><span class="tx"><b>${esc(x.nombre)}</b>
         <span class="sm">${num(x.unidades)} uds. · ${num(x.pedidos)} pedidos${x.ultimo_pedido ? ' · último ' + fechaCorta(x.ultimo_pedido) : ''}</span></span></button>`).join('')}
       ${data.total > 5 ? `<button class="verlo" id="fmpactodos" style="border-radius:8px;margin-top:6px">Ver los ${num(data.total)} ${TT('paciente', 'p', '', 'l', 'l')}</button>` : ''}</div>`);
@@ -446,8 +448,10 @@ async function fichaUnidades(id) {
       .map(([t, v]) => `<div><b>${num(v)}</b><span>${t}</span></div>`).join('')}</div>
     <div class="spark" title="Últimos 12 meses">${(u.meses || []).map(m => `<i style="height:${Math.round(m.unidades / max * 100)}%" title="${periodoTxt(m.mes)}: ${num(m.unidades)}"></i>`).join('')}</div>
     <div class="sm">${u.total ? `${num(u.pautas)} pautas · última el ${fechaCorta(u.ultima)} · barras: últimos 12 meses` : 'Todavía sin pautas registradas.'}</div></div>`;
-  const ref = $('fbody').querySelector('.blk:nth-of-type(2)') || $('fbody').lastElementChild;
-  ref.insertAdjacentHTML('beforebegin', bloque);
+  // v2.96.0: las ventas van en su sección plegada, al final de la ficha
+  const zona = $('fventasc');
+  if (zona) zona.insertAdjacentHTML('afterbegin', bloque);
+  else ($('fbody').querySelector('.blk:nth-of-type(2)') || $('fbody').lastElementChild).insertAdjacentHTML('beforebegin', bloque);
 }
 
 // Ficha · Acceso del médico a la plataforma (administración)
@@ -489,16 +493,17 @@ async function pintarFichaBase(id) {
       ${puedeEditarTipo(m.tipo) ? `<button class="btn ${m.urgente ? 'sec' : 'warn'}" data-act="urgente" data-id="${m.id}" data-urg="${m.urgente ? 1 : 0}">${m.urgente ? 'Quitar urgente' : 'Marcar urgente'}</button>` : ''}
       <button class="btn sec" data-agendar="${m.id}">+ Añadir a mi agenda</button>
     </div>` : ''}
+    ${fichaVisitaHTML(m, cons, vis)}
     <div class="blk"><h3>Estado</h3>
       <div>${puedeEditar()
         ? `<select data-estado="${m.id}" style="max-width:240px">${estados().map(x => `<option ${x === m.estado_comercial ? 'selected' : ''}>${esc(x)}</option>`).join('')}</select>`
         : `<span class="pill p-est">${esc(m.estado_comercial)}</span>`}</div>
-      ${m.urgente && m.urgente_motivo ? `<div class="sm" style="margin-top:6px">Urgente: ${esc(m.urgente_motivo)}</div>` : ''}
       ${com.length ? `<div class="sm" style="margin-top:6px">Comercial: ${com.map(esc).join(', ')}</div>` : ''}
-      ${m.telefono ? `<div class="sm" style="margin-top:6px">Teléfono: ${esc(m.telefono)}</div>` : ''}
     </div>
-    ${cons.map(c => `<div class="blk"><h3>${esc(c.centro_nombre || 'Consulta privada')}</h3>
+    ${cons.filter(c => c !== consultaDeLaVisita(cons)).map(c => `<div class="blk"><h3>${esc(c.centro_nombre || 'Consulta privada')}</h3>
       <div>${esc([c.direccion, c.cp, c.municipio].filter(Boolean).join(', ')) || '<span class="sm">Sin dirección</span>'}</div>
+      ${c.planta || c.sala ? `<div class="sm">${esc([c.planta, c.sala].filter(Boolean).join(' · '))}</div>` : ''}
+      ${c.indicaciones ? `<div class="sm">${esc(c.indicaciones)}</div>` : ''}
       ${c.telefono ? `<div class="sm">Teléfono: ${esc(c.telefono)}</div>` : ''}
       <div class="dias" style="margin-top:8px">${dias.map(k => `<span class="${(c.dias || {})[k] ? 'on' : ''}">${k}</span>`).join('')}</div>
       ${dias.filter(k => (c.dias || {})[k]).map(k => `<div class="sm">${k}: ${esc(c.dias[k])}</div>`).join('')}
@@ -512,10 +517,57 @@ async function pintarFichaBase(id) {
           ${v.proxima_fecha ? `<div class="sm">Próxima: ${fechaCorta(v.proxima_fecha)} · ${esc(v.proxima_accion || '')}</div>` : ''}</span>
         ${puedeRegistrar() ? `<button class="btn sec" data-editv='${esc(JSON.stringify(v))}' style="min-height:30px;padding:5px 9px;font-size:12.5px">Editar</button>` : ''}
       </div>`).join('') : `<div class="sm">Todavía no hay ${TT('visita', 'p', '', 'l', 'l', 'registrado')}.</div>`}</div>
-    ${m.nota ? `<div class="blk"><h3>Nota</h3><div>${esc(m.nota)}</div></div>` : ''}
-    ${m.contacto ? `<div class="blk"><h3>Contacto</h3><div>${esc(m.contacto)}</div></div>` : ''}`;
+    <div id="fzcampos"></div>
+    <details class="blk fventas" id="fventas"><summary>Ventas y ${TT('paciente', 'p', '', 'l', 'l')}</summary><div id="fventasc"></div></details>`;
   $('fx').onclick = () => $('ficha').close();
   $('fbody').querySelectorAll('[data-editv]').forEach(b => b.onclick = () => editarVisita(JSON.parse(b.dataset.editv), id));
+}
+
+/* v2.96.0 · «Para la visita»: lo que hace falta al llegar, arriba del todo.
+   Dónde (centro, planta, sala, cómo llegar), cuándo (su horario de hoy y el del centro), cómo entrar,
+   lo que quedó pendiente en la última visita, las notas y a quién llamar. Las ventas van al final. */
+// La consulta de la visita: la que tiene consulta hoy; si ninguna, la principal
+function consultaDeLaVisita(cons) {
+  const hoy = hoyLetra();
+  return (cons || []).find(c => (c.dias || {})[hoy]) || (cons || [])[0] || null;
+}
+function fichaVisitaHTML(m, cons, vis) {
+  const fila = (ico, html, cls) => `<div class="fvfila ${cls || ''}"><span class="fvico">${svgIco(ICON_NOM[ico] || '')}</span><div>${html}</div></div>`;
+  const c = consultaDeLaVisita(cons), hoy = hoyLetra(), filas = [];
+  const NOMDIA = { L: 'lunes', M: 'martes', X: 'miércoles', J: 'jueves', V: 'viernes', S: 'sábado', D: 'domingo' };
+  if (m.urgente) filas.push(fila('circle-alert', `<b>Urgente</b>${m.urgente_motivo ? ': ' + esc(m.urgente_motivo) : ''}`, 'fvurg'));
+  if (c) {
+    const donde = [c.planta, c.sala].filter(Boolean).map(esc).join(' · ');
+    filas.push(fila('building-2', `<b>${esc(c.centro_nombre || 'Consulta privada')}</b>${donde ? `<span class="fvdonde">${donde}</span>` : ''}
+      <div class="sm">${esc([c.direccion, [c.cp, c.municipio].filter(Boolean).join(' ')].filter(Boolean).join(', ')) || 'Sin dirección'}</div>
+      ${c.lat ? `<button class="btn sec fvbtn" type="button" data-nav="${navAttr([c.lat, c.lon])}">${svgIco(ICON_NOM['map-pin'])} Cómo llegar</button>` : ''}`));
+    // Cuándo: su horario de hoy en esta consulta (o el próximo día que pasa consulta) y el horario del centro
+    const d = c.dias || {}, orden = 'LMXJVSD', h = d[hoy];
+    const prox = h ? null : [...orden.slice(orden.indexOf(hoy) + 1), ...orden.slice(0, orden.indexOf(hoy) + 1)].find(k => d[k]);
+    const cen = (c.horario_centro || {})[hoy];
+    filas.push(fila('clock', `${h ? `<b>Hoy pasa consulta: ${esc(h)}</b>` : prox ? `Hoy no pasa consulta aquí · el ${NOMDIA[prox]}: ${esc(d[prox])}` : 'Sin horario de consulta'}
+      ${cen ? `<div class="sm">Centro abierto hoy: ${esc(cen)}</div>` : ''}
+      <div class="dias fvdias">${['L', 'M', 'X', 'J', 'V'].map(k => `<span class="${d[k] ? 'on' : ''} ${k === hoy ? 'hoy' : ''}" title="${esc(d[k] || '')}">${k}</span>`).join('')}</div>`));
+    if (c.indicaciones) filas.push(fila('info', `<b>Cómo llegar dentro:</b> ${esc(c.indicaciones)}`, 'fvind'));
+  } else filas.push(fila('building-2', '<span class="sm">Sin consulta registrada: añádela en «Editar ficha».</span>'));
+  // Lo último que pasó y lo que quedó pendiente
+  const ult = (vis || [])[0];
+  if (ult) {
+    const mat = detTxt(ult);
+    filas.push(fila('notebook-pen', `<b>Última ${TT('visita', 's', '', 'l', 'l')}: ${fechaCorta(ult.fecha)}</b> · ${esc((ult.resultados || []).join(' + ') || 'Sin resultado')}
+      ${ult.nota ? `<div class="sm">${esc(ult.nota)}</div>` : ''}${mat ? `<div class="sm">Material: ${esc(mat)}</div>` : ''}`));
+  }
+  const pend = (vis || []).find(v => v.proxima_accion || v.proxima_fecha);
+  if (pend) {
+    const f = pend.proxima_fecha, hoyIso = hoyISO();
+    const est = !f ? '' : f < hoyIso ? '<span class="pill p-bor">Atrasada</span>' : f === hoyIso ? '<span class="pill p-est">Hoy</span>' : '';
+    filas.push(fila('clipboard-list', `<b>Pendiente:</b> ${esc(pend.proxima_accion || 'Volver a ' + TT('visita', 's', '', 'l', 'l'))}${f ? ` · ${fechaCorta(f)}` : ''} ${est}`));
+  }
+  if (m.nota) filas.push(fila('message-circle', `<b>Notas:</b> ${esc(m.nota)}`));
+  const tels = [m.telefono, c && c.telefono].filter(Boolean).filter((x, i, a) => a.indexOf(x) === i);
+  if (tels.length || m.contacto) filas.push(fila('phone', `${tels.map(t => `<a href="tel:${esc(t.replace(/\s+/g, ''))}"><b>${esc(t)}</b></a>`).join(' · ')}
+    ${m.contacto ? `<div class="sm">${esc(m.contacto)}</div>` : ''}`));
+  return `<section class="fvis" aria-label="Para la ${TT('visita', 's', '', 'l', 'l')}"><h3>Para la ${TT('visita', 's', '', 'l', 'l')}</h3>${filas.join('')}</section>`;
 }
 
 $('ficha').addEventListener('click', e => { if (e.target.id === 'ficha') $('ficha').close(); });
@@ -666,6 +718,11 @@ function consHTML(c, i) {
     ${h('direccion', c.direccion)}${h('cp', c.cp)}${h('lat', c.lat)}${h('lon', c.lon)}
     <label>Centro</label><div class="cenpick" data-cp="${i}"></div>
     <div class="g2" style="margin-top:10px">
+      <div><label>Planta</label><input data-cf="${i}|planta" value="${esc(c.planta || '')}" maxlength="60" placeholder="p. ej. 2.ª planta"></div>
+      <div><label>Sala o consulta</label><input data-cf="${i}|sala" value="${esc(c.sala || '')}" maxlength="60" placeholder="p. ej. Consulta 14"></div>
+    </div>
+    <label>Indicaciones para llegar</label><input data-cf="${i}|indicaciones" value="${esc(c.indicaciones || '')}" maxlength="300" placeholder="p. ej. Entrar por la puerta B y preguntar en recepción">
+    <div class="g2" style="margin-top:10px">
       <div><label>Teléfono de la consulta</label><input data-cf="${i}|telefono" value="${esc(c.telefono || '')}" inputmode="tel" placeholder="Si es distinto del del centro"></div><div></div>
     </div>
     <label>Días y horario de ${TT('visita', 's', '', 'l', 'l')}</label>${dpHTML(c.dias || {}, i)}
@@ -736,7 +793,8 @@ async function abrirEditor(id, tipo) {
         id: (box.querySelector(`[data-cid="${i}"]`) || {}).value || null, centro_id: g('centro_id') || null,
         centro_nombre: g('centro_nombre').toUpperCase(), municipio: g('municipio').toUpperCase(),
         provincia: g('provincia').toUpperCase(), direccion: g('direccion'), cp: g('cp'),
-        telefono: g('telefono'), dias: dpLeer(box, i), lat: g('lat') || null, lon: g('lon') || null
+        telefono: g('telefono'), dias: dpLeer(box, i), lat: g('lat') || null, lon: g('lon') || null,
+        planta: g('planta').trim(), sala: g('sala').trim(), indicaciones: g('indicaciones').trim()
       };
     });
     return {
@@ -14586,7 +14644,7 @@ async function bloqueCampos(tabla, id, cont) {
 }
 fichaPaciente = (orig => async function (id, ...a) { const r = await orig.call(this, id, ...a); bloqueCampos('contactos', id, $('ficha') && ($('ficha').querySelector('.fbody, #fbody') || $('ficha').firstElementChild)); return r; })(fichaPaciente);
 editorProducto = (orig => function (p, ...a) { const r = orig.call(this, p, ...a); if (p && p.id) setTimeout(() => bloqueCampos('productos', p.id, $('dbody')), 150); return r; })(editorProducto);
-abrirFicha = (orig => async function (id, ...a) { const r = await orig.call(this, id, ...a); bloqueCampos('cuentas', id, $('ficha') && ($('ficha').querySelector('.fbody, #fbody') || $('ficha').firstElementChild)); return r; })(abrirFicha);
+abrirFicha = (orig => async function (id, ...a) { const r = await orig.call(this, id, ...a); bloqueCampos('cuentas', id, $('fzcampos') || ($('ficha') && ($('ficha').querySelector('.fbody, #fbody') || $('ficha').firstElementChild))); return r; })(abrirFicha);
 
 
 /* ============================================================
@@ -14946,10 +15004,18 @@ htChips = (orig => function (sec) {
 // (Productos al filtrar o guardar), el botón desaparecía con ella. Se vuelve a crear si falta.
 htPreparar = (orig => function (sec) {
   const acts = sec.querySelector('.saludo .acts');
+  // v2.96.0: en Clientes, Pedidos y Productos el panel existe aunque la lista salga vacía (un periodo sin datos o
+  // un filtro de Clasificadores que no deja nada): sin él no se podría cambiar el filtro que la ha vaciado
+  const ref = sec.querySelector('.subnav') || sec.querySelector('.saludo');
+  if (!sec.querySelector('.htpanel') && !sec.querySelector('.dgrid') && clasPantalla(sec) && ref && acts) {
+    ref.insertAdjacentHTML('afterend', '<div class="htpanel hide"><div class="htpropios"></div><div class="htauto"></div></div>');
+  }
   if (sec.querySelector('.htpanel') && !sec.querySelector('.htbtn') && acts) {
     acts.insertAdjacentHTML('afterbegin', `<button class="btn sec htbtn" type="button" title="Filtros y columnas" aria-label="Filtros y columnas">${svgIco(ICON_NOM['sliders-horizontal'])}<span class="htl"> Filtros y columnas</span><span class="htn"></span></button>`);
   }
-  return orig(sec);
+  const r = orig(sec);
+  if (!sec.querySelector('.dgrid') && clasPantalla(sec)) htContador(sec);
+  return r;
 })(htPreparar);
 // «Elegir columnas» no repite las columnas de los campos: se eligen en Clasificadores
 panelColumnas = (orig => function (titulo, cols, alCambiar) {
@@ -15022,6 +15088,16 @@ function resaltarBusqueda(texto, q) {
   return html + esc(s.slice(ult));
 }
 if (AYUDA.directorio) AYUDA.directorio[2].push('El <b>buscador</b> no necesita el nombre exacto: busca palabra a palabra, sin acentos y en cualquier orden («ped lo» encuentra «López, Pedro») y perdona una letra equivocada. Primero salen los que coinciden en más palabras.');
+
+
+/* ============================================================
+   v2.96.0 · Ficha pensada para la visita
+   Arriba, «Para la visita»: dónde (centro, planta, sala, cómo llegar), cuándo
+   (su horario de hoy y el del centro), cómo entrar, lo pendiente de la última
+   visita, las notas y a quién llamar. Las ventas, plegadas al final.
+   Iconos del catálogo del sistema de diseño (Lucide).
+   ============================================================ */
+Object.assign(ICON_NOM, {"building-2":"<path d=\"M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z\"></path> <path d=\"M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2\"></path> <path d=\"M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2\"></path> <path d=\"M10 6h4\"></path> <path d=\"M10 10h4\"></path> <path d=\"M10 14h4\"></path> <path d=\"M10 18h4\"></path>","map-pin":"<path d=\"M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0\"></path> <circle cx=\"12\" cy=\"10\" r=\"3\"></circle>","clock":"<circle cx=\"12\" cy=\"12\" r=\"10\"></circle> <polyline points=\"12 6 12 12 16 14\"></polyline>","notebook-pen":"<path d=\"M13.4 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7.4\"></path> <path d=\"M2 6h4\"></path> <path d=\"M2 10h4\"></path> <path d=\"M2 14h4\"></path> <path d=\"M2 18h4\"></path> <path d=\"M21.378 5.626a1 1 0 1 0-3.004-3.004l-5.01 5.012a2 2 0 0 0-.506.854l-.837 2.87a.5.5 0 0 0 .62.62l2.87-.837a2 2 0 0 0 .854-.506z\"></path>","clipboard-list":"<rect width=\"8\" height=\"4\" x=\"8\" y=\"2\" rx=\"1\" ry=\"1\"></rect> <path d=\"M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2\"></path> <path d=\"M12 11h4\"></path> <path d=\"M12 16h4\"></path> <path d=\"M8 11h.01\"></path> <path d=\"M8 16h.01\"></path>","phone":"<path d=\"M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z\"></path>","circle-alert":"<circle cx=\"12\" cy=\"12\" r=\"10\"></circle> <line x1=\"12\" x2=\"12\" y1=\"8\" y2=\"12\"></line> <line x1=\"12\" x2=\"12.01\" y1=\"16\" y2=\"16\"></line>","message-circle":"<path d=\"M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z\"></path>"});
 
 
 // Barra inferior del móvil y barra de «Entrar como» desde el primer momento
