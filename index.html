@@ -1371,6 +1371,8 @@ html{overflow-y:scroll;scrollbar-gutter:stable}
 .clascol{display:inline-flex!important;align-items:center;gap:5px;margin:0!important;font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;white-space:nowrap}
 .clascol input{width:auto;min-height:0;margin:0}
 .clasrango{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+/* v2.94.0 · Buscador: la parte que coincide, resaltada (como en el manual) */
+.gsug mark{background:#FFF1B8;color:inherit;border-radius:3px;padding:0 1px}
 /* Segundo panel lateral (columnas) */
 .t2volver{display:inline-flex;border:0;background:none;color:var(--sky);font:inherit;font-weight:700;padding:0 0 10px;cursor:pointer}
 .tools2{z-index:1202!important;box-shadow:-12px 0 30px rgba(11,58,102,.12)}
@@ -1912,6 +1914,6 @@ dialog[open]::backdrop{animation:uiFunde var(--t-medio) linear}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.93.0"></script>
+<script src="./app.js?v=2.94.0"></script>
 </body>
 </html>

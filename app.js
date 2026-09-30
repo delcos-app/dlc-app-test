@@ -3314,11 +3314,11 @@ $('q').addEventListener('input', e => {
     if (!m.length && !c.length && !me.length) { $('gsug').innerHTML = `<div class="gload">Sin resultados para «${esc(q)}».</div>`; return; }
     $('gsug').innerHTML =
       (m.length ? `<div class="gsh">Municipios</div>` + m.map(x => `<button data-gm="${esc(x.valor)}">
-        <span class="gic">📍</span><span><b>${esc(x.valor)}</b><span class="sm">${num(x.n)} ${TT('medico', 'p', '', 'l', 'l')}</span></span></button>`).join('') : '') +
+        <span class="gic">📍</span><span><b>${resaltarBusqueda(x.valor, q)}</b><span class="sm">${num(x.n)} ${TT('medico', 'p', '', 'l', 'l')}</span></span></button>`).join('') : '') +
       (c.length ? `<div class="gsh">Centros</div>` + c.map(x => `<button data-gc="${esc(x.valor)}">
-        <span class="gic">🏥</span><span><b>${esc(x.valor)}</b><span class="sm">${esc(x.municipio || '')} · ${num(x.n)} ${TT('medico', 'p', '', 'l', 'l')}</span></span></button>`).join('') : '') +
+        <span class="gic">🏥</span><span><b>${resaltarBusqueda(x.valor, q)}</b><span class="sm">${esc(x.municipio || '')} · ${num(x.n)} ${TT('medico', 'p', '', 'l', 'l')}</span></span></button>`).join('') : '') +
       (me.length ? `<div class="gsh">${TT('medico', 'p', '', 'l', 'C')}${m.length || c.length ? ' que pasan consulta allí o coinciden' : ''}</div>` + me.map(x => `<button data-gme="${x.id}">
-        <span class="gic">${x.urgente ? '❗' : '👤'}</span><span><b>${esc(x.nombre)}</b>
+        <span class="gic">${x.urgente ? '❗' : '👤'}</span><span><b>${resaltarBusqueda(x.nombre, q)}</b>
         <span class="sm">${esc(x.especialidad || '')} · ${esc(x.centro_nombre || '')} ${esc(x.municipio || '')}</span></span></button>`).join('') : '');
     $('gsug').classList.remove('hide');
   }, 250);
@@ -5331,11 +5331,11 @@ function selectorMedico(el, o) {
         if (!mu.length && !ce.length && !me.length) { sug.innerHTML = `<div class="gload">Sin resultados para «${esc(q)}».</div>`; return; }
         sug.innerHTML =
           (mu.length ? '<div class="gsh">Municipios</div>' + mu.map((x, i) => `<button type="button" data-pmu="${i}"><span class="gic">📍</span>
-            <span><b>${esc(x.valor)}</b><span class="sm">${num(x.n)} ${TT('medico', 'p', '', 'l', 'l')} · ver la lista</span></span></button>`).join('') : '') +
+            <span><b>${resaltarBusqueda(x.valor, q)}</b><span class="sm">${num(x.n)} ${TT('medico', 'p', '', 'l', 'l')} · ver la lista</span></span></button>`).join('') : '') +
           (ce.length ? '<div class="gsh">Centros</div>' + ce.map((x, i) => `<button type="button" data-pce="${i}"><span class="gic">🏥</span>
-            <span><b>${esc(x.valor)}</b><span class="sm">${esc(x.municipio || '')} · ${num(x.n)} ${TT('medico', 'p', '', 'l', 'l')} · ver la lista</span></span></button>`).join('') : '') +
+            <span><b>${resaltarBusqueda(x.valor, q)}</b><span class="sm">${esc(x.municipio || '')} · ${num(x.n)} ${TT('medico', 'p', '', 'l', 'l')} · ver la lista</span></span></button>`).join('') : '') +
           (me.length ? `<div class="gsh">${TT('medico', 'p', '', 'l', 'C')}</div>` + me.map((x, i) => `<button type="button" data-pme="${i}"><span class="gic">${x.urgente ? '❗' : '👤'}</span>
-            <span><b>${esc(x.nombre)}</b><span class="sm">${esc([x.especialidad, x.centro_nombre, x.municipio].filter(Boolean).join(' · '))}</span></span></button>`).join('') : '');
+            <span><b>${resaltarBusqueda(x.nombre, q)}</b><span class="sm">${esc([x.especialidad, x.centro_nombre, x.municipio].filter(Boolean).join(' · '))}</span></span></button>`).join('') : '');
         sug.querySelectorAll('[data-pmu]').forEach(b => b.onclick = () => listaMedicos(mu[+b.dataset.pmu].valor, { f_municipio: mu[+b.dataset.pmu].valor }));
         sug.querySelectorAll('[data-pce]').forEach(b => b.onclick = () => listaMedicos(ce[+b.dataset.pce].valor, { q: ce[+b.dataset.pce].valor }));
         sug.querySelectorAll('[data-pme]').forEach(b => b.onclick = () => elegir(me[+b.dataset.pme]));
@@ -14992,6 +14992,35 @@ $('chips').addEventListener('click', e => {
 // Los filtros de siempre ya están en la sección Clasificadores
 camposFiltros = () => '';
 ['directorio', 'pacientes', 'ventas', 'productos'].forEach(k => { if (AYUDA[k]) AYUDA[k][2].push('En <b>Filtros y columnas → Clasificadores</b> filtras por los campos propios de esta pantalla y eliges cuáles ver como columna. Con pocos valores se eligen de una lista; con muchos, se escribe y se busca.'); });
+
+/* ============================================================
+   v2.94.0 · Buscador inteligente
+   La base de datos busca palabra a palabra (sin acentos, en cualquier orden,
+   por el principio de cada palabra y con una letra de margen) y ordena por
+   relevancia. Aquí se resalta en los resultados la parte que coincide.
+   ============================================================ */
+function resaltarBusqueda(texto, q) {
+  const s = String(texto == null ? '' : texto);
+  // Las más largas primero: si «pe» y «pedro» coinciden, se marca «pedro»
+  const tks = [...new Set(clasNorm(q).split(/[^\p{L}\p{N}]+/u).filter(Boolean))].sort((a, b) => b.length - a.length);
+  if (!tks.length) return esc(s);
+  let html = '', ult = 0;
+  for (const m of s.matchAll(/[\p{L}\p{N}]+/gu)) {
+    const w = clasNorm(m[0]);
+    if (w.length !== m[0].length) continue;   // si al quitar acentos cambia el largo, no se marca (no se descuadra)
+    let ini = -1, largo = 0;
+    for (const tk of tks) {
+      if (w.startsWith(tk)) { ini = 0; largo = tk.length; break; }
+      if (ini < 0 && tk.length >= 3 && w.indexOf(tk) > 0) { ini = w.indexOf(tk); largo = tk.length; }
+    }
+    if (ini < 0) continue;
+    const a = m.index + ini;
+    html += esc(s.slice(ult, a)) + '<mark>' + esc(s.slice(a, a + largo)) + '</mark>';
+    ult = a + largo;
+  }
+  return html + esc(s.slice(ult));
+}
+if (AYUDA.directorio) AYUDA.directorio[2].push('El <b>buscador</b> no necesita el nombre exacto: busca palabra a palabra, sin acentos y en cualquier orden («ped lo» encuentra «López, Pedro») y perdona una letra equivocada. Primero salen los que coinciden en más palabras.');
 
 
 // Barra inferior del móvil y barra de «Entrar como» desde el primer momento
