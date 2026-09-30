@@ -1820,6 +1820,22 @@ dialog[open]::backdrop{animation:uiFunde var(--t-medio) linear}
   .fab:active{transform:scale(var(--pulsa))}
 }
 @media (prefers-reduced-motion: reduce){.segm button,.segs button,.chipsel,.fab{transition:none!important}.fab:active{transform:none}}
+
+/* ============================================================
+   v2.97.0 · Biblioteca de interfaz: etiquetas de estado
+   Punto de color delante, 12,5 px en negrita y el color según el papel
+   del estado: positivo o normal en azul suave, atención en ámbar oscuro,
+   urgente o error en rojo, anulado o sin valor comercial en gris.
+   Siempre con palabra: el color solo refuerza.
+   ============================================================ */
+:root{--warn:#8A4B0B; --warn-bg:#FDF1E1; --ok-bg:#E3F4EC; --neutro:#4A5868; --neutro-s:#EEF1F4}
+.pill{font-size:12.5px;font-weight:600;line-height:1.3;padding:3px 10px;border-radius:999px;white-space:nowrap}
+.pill::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:currentColor;margin-right:6px;vertical-align:1px}
+.p-est,.p-per,.pill.p-plan{background:var(--sky-soft);color:var(--navy)}
+.p-urg{background:var(--peligro-s);color:var(--peligro)}
+.p-warn,.p-bor{background:var(--warn-bg);color:var(--warn)}
+.p-anu,.p-emp,.pill.p-sr{background:var(--neutro-s);color:var(--neutro);border:0}
+.pill.p-plan::before{content:none}
 </style>
 </head>
 <body>
@@ -1956,6 +1972,6 @@ dialog[open]::backdrop{animation:uiFunde var(--t-medio) linear}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.96.0"></script>
+<script src="./app.js?v=2.97.0"></script>
 </body>
 </html>

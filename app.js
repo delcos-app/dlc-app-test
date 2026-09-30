@@ -81,7 +81,8 @@ try { ESTADOS_DEF = JSON.parse(localStorage.getItem(ESTKEY) || '[]') || []; } ca
 const estados = () => ESTADOS_DEF.map(x => x.valor);
 const estadoPapel = p => (ESTADOS_DEF.find(x => x.papel === p) || {}).valor || '';
 const papelEstado = v => (ESTADOS_DEF.find(x => x.valor === v) || {}).papel || '';
-const COL_PAPEL = { inicial: '#0E2F52', avance: '#2B6CB0', interes: '#B7791F', positivo: '#12805C', negativo: '#9B2C2C' };
+// v2.97.0: colores del sistema de diseño por papel (pendiente ámbar, avance azul, interés marino, positivo verde, negativo gris)
+const COL_PAPEL = { inicial: '#8A4B0B', avance: '#3F82C0', interes: '#17457A', positivo: '#0E6B4C', negativo: '#4A5868' };
 const colEstado = v => COL_PAPEL[papelEstado(v)] || '';
 async function cargarRoles() {
   const [{ data, error }, { data: est, error: e2 }, voc] = await Promise.all([
