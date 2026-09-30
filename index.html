@@ -1541,8 +1541,8 @@ main > section.preparando::after,dialog > .preparando::after{animation:cargaApar
 
 /* El rango de fechas del periodo va debajo sin descuadrar la fila de filtros */
 .filtros > div:has(> .perrango){position:relative}
-.filtros .perrango{position:absolute;left:2px;top:100%;margin-top:3px!important;white-space:nowrap}
-.filtros:has(.perrango){padding-bottom:22px}
+/* v2.93.0: las fechas del periodo van en la línea de «Periodo», a la derecha (debajo se montaban sobre la fila siguiente) */
+.filtros .perrango{position:absolute;top:0;right:2px;left:auto;margin:0!important;white-space:nowrap;font-size:12.5px;line-height:1.5}
 .tbarra > .ai,.filtros.conbtn > .ai{align-self:center}
 
 /* v2.63.0 · acceso, aviso de la agenda y barra de progreso */
@@ -1912,6 +1912,6 @@ dialog[open]::backdrop{animation:uiFunde var(--t-medio) linear}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.92.0"></script>
+<script src="./app.js?v=2.93.0"></script>
 </body>
 </html>
