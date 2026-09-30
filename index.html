@@ -14,6 +14,10 @@
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <link rel="apple-touch-icon" href="./apple-touch-180.png">
+<link rel="icon" type="image/svg+xml" href="./favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=Source+Sans+3:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
 <style>
 html{color-scheme:light only}
 :root{
@@ -1652,6 +1656,34 @@ body:not(.inilisto) #v-inicio .saludo .acts{visibility:hidden}
   #agsug .item > .acts{grid-column:2;justify-content:flex-start;flex-wrap:wrap;gap:6px}
   #agsug .item > .acts .btn{min-height:34px;padding:4px 12px}
 }
+
+/* ============================================================
+   v2.89.0 · Marca de la plataforma (dirección A · Continuidad)
+   Tinta y marino más profundos, azul intermedio, celeste de la órbita.
+   Títulos en Manrope y texto en Source Sans 3, con cifras de ancho fijo.
+   ============================================================ */
+:root{
+  --navy:#17457A; --navy-2:#123A66; --sky:#3F82C0; --sky-soft:#E4EFFA; --celeste:#7CC3EC; --hielo:#F2F7FC;
+  --bg:#F2F7FC; --ink:#0B2540; --muted:#4A617A; --line:#D8E4EF;
+  --sh:0 1px 2px rgba(11,37,64,.04), 0 10px 30px rgba(23,69,122,.08);
+  --grad:linear-gradient(135deg,#0B2540 0%,#17457A 50%,#3F82C0 100%);
+  --grad-suave:linear-gradient(135deg,#E4EFFA 0%,#F7FBFE 55%,#FFFFFF 100%);
+  --f-texto:"Source Sans 3",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --f-titulo:Manrope,"Source Sans 3",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  font-family:var(--f-texto);
+}
+html,body{background:#F2F7FC;font-size:15.5px}
+h1,h2,h3,.lbox h1,.saludo h1,.kpi b,.fh h2,.card h2,dialog h2,dialog h3{font-family:var(--f-titulo);letter-spacing:-.015em}
+h1,h2{font-weight:800}
+.sm{font-size:13px}
+.kpi b,.dgrid,.num,.importe,td{font-variant-numeric:tabular-nums}
+.btn{font-weight:600}
+input:focus,select:focus,textarea:focus{box-shadow:0 0 0 4px rgba(124,195,236,.3)}
+/* Firma de la plataforma en el acceso: discreta, bajo la marca de cada empresa */
+.firmaplat{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:14px;font-size:12px;color:var(--muted)}
+.firmaplat svg{width:14px;height:14px;flex:none}
+.firmaplat b{font-family:var(--f-titulo);font-weight:800;color:var(--ink);letter-spacing:-.02em}
+.firmaplat b span{font-weight:600;color:var(--sky)}
 </style>
 </head>
 <body>
@@ -1669,6 +1701,7 @@ body:not(.inilisto) #v-inicio .saludo .acts{visibility:hidden}
     <input id="lp" type="password" autocomplete="current-password" required>
     <button class="btn block" id="lbtn">Entrar</button>
     <div class="msg" id="lmsg"></div>
+    <div class="firmaplat"><svg viewBox="0 0 44 44" aria-hidden="true"><circle cx="20" cy="24" r="16" fill="#17457A"/><circle cx="35" cy="9" r="6" fill="#7CC3EC"/></svg>funciona con <b>dlc<span>os</span></b></div>
   </form>
 </section>
 
@@ -1787,6 +1820,6 @@ body:not(.inilisto) #v-inicio .saludo .acts{visibility:hidden}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.88.0"></script>
+<script src="./app.js?v=2.89.0"></script>
 </body>
 </html>
