@@ -2957,7 +2957,7 @@ async function duplicarRuta(id) {
   if (!nombre) return;
   const { error } = await db.rpc('guardar_ruta', { p: {
     nombre, tipo: r.tipo, desde: hoyISO(), nota: r.nota,
-    codigos: r.codigos || [], reglas: r.reglas || null, visible_para: r.visible_para || ''
+    codigos: r.codigos || [], centros: r.centros || [], reglas: r.reglas || null, visible_para: r.visible_para || ''
   }});
   if (error) { toast('No se ha podido duplicar: ' + error.message, true); return; }
   toast('Ruta duplicada'); cargarRutas();
@@ -3028,6 +3028,8 @@ async function editorRuta(id) {
   let codigos = r && r.codigos ? r.codigos.slice() : [];
   let medicos = [];
   let busca = '';
+  // v2.98.0: centros de la ruta; sus médicos se planifican en ese centro
+  let centrosR = [], buscaCen = '';
   let cab = { nombre: r ? r.nombre : '', tipo: r ? r.tipo : 'Normal', desde: (r && r.desde) || hoyISO(), salida: (r && r.salida) || '', vuelta: (r && r.vuelta) || '' };
   const leerCab = () => { if ($('rn')) cab = { nombre: $('rn').value, tipo: $('rt').value, desde: $('rd').value, salida: ($('rsal') || {}).value || '', vuelta: ($('rvue') || {}).value || '' }; };
   let op = { provincias: [], municipios: [], centros: [], especialidades: [], estados: [] };
@@ -3038,7 +3040,14 @@ async function editorRuta(id) {
 
   db.rpc('opciones_filtros', {}).then(({ data }) => { if (data) { op = data; if (modo === 'crit') pinta(); } });
   if (codigos.length) {
-    db.rpc('cuentas_por_ids', { p_ids: codigos }).then(({ data }) => { medicos = data || []; pinta(); });
+    // v2.98.0: con cuentas_de_ruta cada médico sabe en qué centro de la ruta está
+    (id && !(r && r.dinamica) ? db.rpc('cuentas_de_ruta', { p_id: id }) : db.rpc('cuentas_por_ids', { p_ids: codigos }))
+      .then(({ data }) => { medicos = (data || []).filter(m => codigos.includes(m.id)); pinta(); });
+  }
+  if (r && (r.centros || []).length) {
+    db.from('centros').select('id,nombre,municipio').in('id', r.centros).then(({ data }) => {
+      centrosR = r.centros.map(c => (data || []).find(x => x.id === c)).filter(Boolean); pinta();
+    });
   }
 
   const sel = (lista, v) => '<option value=""></option>' + (lista || []).map(o =>
@@ -3065,9 +3074,10 @@ async function editorRuta(id) {
         <button type="button" data-rm="crit" aria-pressed="${modo === 'crit'}">Por criterios</button></div>
 
       ${modo === 'lista' ? `
-        <div class="chips">${medicos.map(m => `<span class="chip">${esc(m.nombre)}
-          <button type="button" data-rq="${m.id}" style="border:0;background:none;color:var(--dang);cursor:pointer;font-weight:700">✕</button></span>`).join('')
-          || `<span class="sm">Todavía no has añadido ${TT('medico', 'p', '', 'l', 'l')}.</span>`}</div>
+        ${rutaCentrosHTML(centrosR, medicos)}
+        <label for="rbuscacen">Añadir un centro</label>
+        <input id="rbuscacen" value="${esc(buscaCen)}" placeholder="Busca el centro: se añaden todos sus ${TT('medico', 'p', '', 'l', 'l')}" autocomplete="off">
+        <div id="rrescen" class="lista"></div>
         <label for="rbusca">Añadir ${TT('medico', 'p', '', 'l', 'l')}</label>
         <input id="rbusca" value="${esc(busca)}" placeholder="Busca por nombre, centro o municipio" autocomplete="off">
         <div id="rres" class="lista"></div>`
@@ -3100,8 +3110,44 @@ async function editorRuta(id) {
     $('dbody').querySelectorAll('[data-rq]').forEach(b => b.onclick = () => {
       codigos = codigos.filter(c => c !== b.dataset.rq);
       medicos = medicos.filter(m => m.id !== b.dataset.rq);
+      // v2.98.0: un centro sin médicos ya no pinta nada en la ruta
+      centrosR = centrosR.filter(c => medicos.some(m => m.centro_ruta === c.id));
       pinta();
     });
+    $('dbody').querySelectorAll('[data-rqc]').forEach(b => b.onclick = () => {
+      const fuera = medicos.filter(m => m.centro_ruta === b.dataset.rqc).map(m => m.id);
+      codigos = codigos.filter(c => !fuera.includes(c)); medicos = medicos.filter(m => !fuera.includes(m.id));
+      centrosR = centrosR.filter(c => c.id !== b.dataset.rqc);
+      pinta();
+    });
+    if ($('rbuscacen')) {
+      let tc;
+      const buscarCen = async q => {
+        if (q.length < 2) { $('rrescen').innerHTML = ''; return; }
+        const { data } = await RPC_ORIG('buscar_centros', { p_q: q, p_lat: null, p_lon: null, p_radio: 400, p_lim: 8 });
+        if (!$('rrescen')) return;
+        const res = (data || []).filter(c => !centrosR.some(x => x.id === c.id));
+        $('rrescen').innerHTML = res.map((c, i) => `<button class="item" type="button" data-raddc="${i}"><span class="ic">+</span>
+          <span class="tx"><b>${esc(c.nombre)}</b><span class="sm">${esc([c.direccion, c.municipio].filter(Boolean).join(' · '))}${c.medicos ? ` · ${num(c.medicos)} ${TT('medico', c.medicos === 1 ? 's' : 'p', '', 'l', 'l')}` : ''}</span></span></button>`).join('')
+          || '<div class="vacio">Ningún centro con ese nombre.</div>';
+        $('rrescen').querySelectorAll('[data-raddc]').forEach(b => b.onclick = async () => {
+          const c = res[+b.dataset.raddc];
+          b.disabled = true;
+          const { data: meds, error } = await db.rpc('cuentas_de_centro', { p_centro: c.id });
+          if (error) { toast('No se ha podido añadir el centro: ' + error.message, true); b.disabled = false; return; }
+          // Todos sus médicos; los que ya estaban en la ruta pasan a este centro
+          const lista = meds || [];
+          lista.forEach(m => { const ya = medicos.find(x => x.id === m.id); if (ya) ya.centro_ruta = c.id; else { codigos.push(m.id); medicos.push(m); } });
+          if (lista.length) centrosR.push({ id: c.id, nombre: c.nombre, municipio: c.municipio });
+          buscaCen = '';
+          toast(lista.length ? `${num(lista.length)} ${TT('medico', lista.length === 1 ? 's' : 'p', '', 'l', 'l')} de ${c.nombre} añadidos: quita los que no vayas a ver`
+            : `${c.nombre} no tiene ${TT('medico', 'p', '', 'l', 'l')} en la base`, !lista.length);
+          pinta();
+        });
+      };
+      $('rbuscacen').oninput = e => { buscaCen = e.target.value; clearTimeout(tc); tc = setTimeout(() => buscarCen(e.target.value.trim()), 300); };
+      if (buscaCen) buscarCen(buscaCen);
+    }
 
     if (modo === 'lista') {
       let t;
@@ -3157,6 +3203,7 @@ async function editorRuta(id) {
         salida: ($('rsal') || {}).value || '', vuelta: ($('rvue') || {}).value || '',
         visible_para: puede('administrar') ? '*' : '',
         codigos: modo === 'lista' ? codigos : [],
+        centros: modo === 'lista' ? centrosR.map(c => c.id) : [],
         reglas: modo === 'crit' ? ($('dbody').__reglas ? $('dbody').__reglas() : {}) : null
       }});
       ev.target.disabled = false; ev.target.textContent = id ? 'Guardar' : 'Crear ruta';
@@ -15099,6 +15146,29 @@ if (AYUDA.directorio) AYUDA.directorio[2].push('El <b>buscador</b> no necesita e
    Iconos del catálogo del sistema de diseño (Lucide).
    ============================================================ */
 Object.assign(ICON_NOM, {"building-2":"<path d=\"M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z\"></path> <path d=\"M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2\"></path> <path d=\"M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2\"></path> <path d=\"M10 6h4\"></path> <path d=\"M10 10h4\"></path> <path d=\"M10 14h4\"></path> <path d=\"M10 18h4\"></path>","map-pin":"<path d=\"M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0\"></path> <circle cx=\"12\" cy=\"10\" r=\"3\"></circle>","clock":"<circle cx=\"12\" cy=\"12\" r=\"10\"></circle> <polyline points=\"12 6 12 12 16 14\"></polyline>","notebook-pen":"<path d=\"M13.4 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7.4\"></path> <path d=\"M2 6h4\"></path> <path d=\"M2 10h4\"></path> <path d=\"M2 14h4\"></path> <path d=\"M2 18h4\"></path> <path d=\"M21.378 5.626a1 1 0 1 0-3.004-3.004l-5.01 5.012a2 2 0 0 0-.506.854l-.837 2.87a.5.5 0 0 0 .62.62l2.87-.837a2 2 0 0 0 .854-.506z\"></path>","clipboard-list":"<rect width=\"8\" height=\"4\" x=\"8\" y=\"2\" rx=\"1\" ry=\"1\"></rect> <path d=\"M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2\"></path> <path d=\"M12 11h4\"></path> <path d=\"M12 16h4\"></path> <path d=\"M8 11h.01\"></path> <path d=\"M8 16h.01\"></path>","phone":"<path d=\"M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z\"></path>","circle-alert":"<circle cx=\"12\" cy=\"12\" r=\"10\"></circle> <line x1=\"12\" x2=\"12\" y1=\"8\" y2=\"12\"></line> <line x1=\"12\" x2=\"12.01\" y1=\"16\" y2=\"16\"></line>","message-circle":"<path d=\"M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z\"></path>"});
+
+
+/* ============================================================
+   v2.98.0 · Centros en las rutas
+   En el editor de rutas, «Añadir un centro» añade todos sus médicos (se quitan
+   los que no se van a ver). La ruta guarda sus centros y cada médico se
+   planifica en ese centro aunque pase consulta también en otros.
+   ============================================================ */
+function rutaCentrosHTML(centros, medicos) {
+  const chip = m => `<span class="chip">${esc(m.nombre)}
+    <button type="button" data-rq="${m.id}" aria-label="Quitar ${esc(m.nombre)}" style="border:0;background:none;color:var(--dang);cursor:pointer;font-weight:700">✕</button></span>`;
+  if (!medicos.length) return `<div class="chips"><span class="sm">Todavía no has añadido ${TT('medico', 'p', '', 'l', 'l')}.</span></div>`;
+  const grupos = centros.map(c => {
+    const ms = medicos.filter(m => m.centro_ruta === c.id);
+    return `<div class="rcentro"><div class="rcentrocab"><span class="rcentronom">${svgIco(ICON_NOM['building-2'])}<b>${esc(c.nombre)}</b>
+        <span class="sm">${esc(c.municipio || '')}${c.municipio ? ' · ' : ''}${num(ms.length)} ${TT('medico', ms.length === 1 ? 's' : 'p', '', 'l', 'l')}</span></span>
+      <button type="button" class="lnk" data-rqc="${c.id}">Quitar el centro</button></div>
+      <div class="chips">${ms.map(chip).join('')}</div></div>`;
+  }).join('');
+  const sueltos = medicos.filter(m => !centros.some(c => c.id === m.centro_ruta));
+  return grupos + (sueltos.length ? `${centros.length ? `<div class="sm rcentrootros">Otros ${TT('medico', 'p', '', 'l', 'l')}</div>` : ''}<div class="chips">${sueltos.map(chip).join('')}</div>` : '');
+}
+if (AYUDA.rutas) AYUDA.rutas[2].push(`Con <b>Añadir un centro</b> entran todos sus ${TT('medico', 'p', '', 'l', 'l')}: quita los que no vayas a ver. En el plan, los de un mismo centro forman una sola parada y se les planifica en ese centro aunque pasen consulta en otros.`);
 
 
 // Barra inferior del móvil y barra de «Entrar como» desde el primer momento
