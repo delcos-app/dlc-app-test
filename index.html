@@ -1778,6 +1778,30 @@ dialog[open]::backdrop{animation:uiFunde var(--t-medio) linear}
   main > section.llega > *,dialog[open],dialog[open]::backdrop,.toast,.upd{animation:none!important}
   .vfswitch .sw,.vfswitch .sw::after,.opfila{transition:none!important}
 }
+
+/* ============================================================
+   v2.95.0 · Biblioteca de interfaz: selector segmentado y botón flotante
+   Segmentado: la opción elegida en blanco con sombra suave sobre fondo hielo
+   (ya no en azul relleno). Botón flotante del móvil: redondo, icono «+» de
+   la biblioteca, sombra de lo que flota y respuesta al pulsar.
+   ============================================================ */
+.segm,.segs{background:var(--hielo);border:1px solid var(--line);border-radius:10px;padding:3px;gap:2px}
+.segm button,.segs button{border-radius:8px;font-weight:600;color:var(--muted);
+  transition:background-color var(--t-rapido) var(--ease-sal),color var(--t-rapido) var(--ease-sal),box-shadow var(--t-rapido) var(--ease-sal)}
+.segm button:hover,.segs button:hover{color:var(--navy)}
+.segm button.on,.segs button.on{background:#FFFFFF;color:var(--navy);box-shadow:var(--sh)}
+.segm button:focus-visible,.segs button:focus-visible{outline:none;box-shadow:var(--foco)}
+.chipsel{transition:background-color var(--t-rapido) var(--ease-sal),border-color var(--t-rapido) var(--ease-sal)}
+.chipsel:hover{border-color:var(--sky)}
+.chipsel:focus-visible{outline:none;box-shadow:var(--foco)}
+@media (max-width:760px){
+  .fab{border-radius:999px!important;box-shadow:var(--sombra-2)!important;display:grid!important;place-items:center;
+    transition:background-color var(--t-rapido) var(--ease-sal),transform var(--t-rapido) var(--ease-sal)}
+  .fab svg{width:24px;height:24px}
+  .fab:hover{background:var(--navy-2)}
+  .fab:active{transform:scale(var(--pulsa))}
+}
+@media (prefers-reduced-motion: reduce){.segm button,.segs button,.chipsel,.fab{transition:none!important}.fab:active{transform:none}}
 </style>
 </head>
 <body>
@@ -1914,6 +1938,6 @@ dialog[open]::backdrop{animation:uiFunde var(--t-medio) linear}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.94.0"></script>
+<script src="./app.js?v=2.95.0"></script>
 </body>
 </html>

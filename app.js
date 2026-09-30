@@ -10127,7 +10127,8 @@ function ordenarCabeceraMovil(sec) {
   const principal = hijos.find(b => b.tagName === 'BUTTON' && !b.classList.contains('sec') && /^\s*\+/.test(b.textContent));
   if (principal) {
     principal.classList.add('fab'); principal.setAttribute('aria-label', principal.textContent.replace('+', '').trim());
-    principal.dataset.txt = principal.textContent.replace('+', '').trim(); principal.textContent = '+';
+    // v2.95.0: el «+» es el icono de la biblioteca, no un carácter
+    principal.dataset.txt = principal.textContent.replace('+', '').trim(); principal.innerHTML = svgIco(ICON_NOM.plus);
     sec.appendChild(principal);
   }
   // Agenda: modos en un selector segmentado y la navegación junto a la fecha
