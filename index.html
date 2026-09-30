@@ -1684,6 +1684,46 @@ h1,h2{font-weight:800}
 .firmaplat svg{width:14px;height:14px;flex:none}
 .firmaplat b{font-family:var(--f-titulo);font-weight:800;color:var(--ink);letter-spacing:-.02em}
 .firmaplat b span{font-weight:600;color:var(--sky)}
+
+/* ============================================================
+   v2.91.0 · Biblioteca de interfaz, fase 2: buscador con icono,
+   barra del móvil con píldora, pestañas, tarjetas, tablas, ventanas
+   y avisos con los estados de la biblioteca
+   ============================================================ */
+/* Buscador: lupa de trazo en lugar del símbolo ⌕ */
+.gsearch::before{content:"";width:18px;height:18px;left:12px;font-size:0;background:var(--muted);
+  -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E") center/contain no-repeat;
+  mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E") center/contain no-repeat}
+.gsearch input{padding-left:40px}
+/* Menú principal */
+nav.main button{transition:background-color var(--t-rapido) var(--ease-sal),color var(--t-rapido) var(--ease-sal)}
+/* Barra inferior del móvil: la sección activa lleva una píldora detrás del icono */
+.bnav button{gap:4px;padding:6px 4px 8px;font-size:12px;min-height:56px;transition:color var(--t-rapido) var(--ease-sal)}
+.bnav button > span:first-child{display:inline-flex;align-items:center;justify-content:center;width:56px;height:30px;border-radius:999px;
+  transition:background-color var(--t-medio) var(--ease-sal)}
+.bnav button[aria-selected=true] > span:first-child{background:var(--sky-soft)}
+/* Pestañas y selectores de sección */
+.subnav button{transition:background-color var(--t-rapido) var(--ease-sal),border-color var(--t-rapido) var(--ease-sal),color var(--t-rapido) var(--ease-sal)}
+.subnav button:hover{background:var(--hielo);border-color:var(--sky)}
+.subnav button[aria-pressed=true]:hover{background:var(--navy-2);border-color:transparent}
+/* Tarjetas: las que abren algo se elevan al pasar por encima */
+.card{border-radius:16px}
+.kpi.click{transition:transform var(--t-medio) var(--ease-sal),box-shadow var(--t-medio) var(--ease-sal),border-color var(--t-rapido) var(--ease-sal)}
+.kpi.click:hover{transform:translateY(-2px);border-color:#B7CCE0;box-shadow:var(--sombra-2)}
+.kpi.click:active{transform:scale(.99)}
+/* Tablas */
+.dgrid .dr{transition:background-color var(--t-rapido) var(--ease-sal)}
+.dgrid .dr:hover{background:var(--hielo)}
+/* Ventanas: sin el marco negro del navegador al abrirse; botón de cerrar discreto */
+dialog:focus,dialog:focus-visible{outline:none}
+.x{background:transparent;color:var(--muted);border-radius:8px;transition:background-color var(--t-rapido) var(--ease-sal),color var(--t-rapido) var(--ease-sal)}
+.x:hover{background:var(--sky-soft);color:var(--navy)}
+/* Avisos */
+.toast{background:var(--ink);border-radius:12px!important;box-shadow:var(--sombra-3)}
+.toast.err{background:var(--peligro)}
+/* Foco visible con el tabulador en todo lo que se pulsa */
+nav.main button:focus-visible,.subnav button:focus-visible,.bnav button:focus-visible,.kpi.click:focus-visible,.x:focus-visible{outline:none;box-shadow:var(--foco)}
+@media (prefers-reduced-motion: reduce){nav.main button,.bnav button,.bnav button > span:first-child,.subnav button,.kpi.click,.dgrid .dr,.x{transition:none!important}.kpi.click:hover,.kpi.click:active{transform:none}}
 </style>
 </head>
 <body>
@@ -1820,6 +1860,6 @@ h1,h2{font-weight:800}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.90.0"></script>
+<script src="./app.js?v=2.91.0"></script>
 </body>
 </html>
