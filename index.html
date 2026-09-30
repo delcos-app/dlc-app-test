@@ -1724,6 +1724,58 @@ dialog:focus,dialog:focus-visible{outline:none}
 /* Foco visible con el tabulador en todo lo que se pulsa */
 nav.main button:focus-visible,.subnav button:focus-visible,.bnav button:focus-visible,.kpi.click:focus-visible,.x:focus-visible{outline:none;box-shadow:var(--foco)}
 @media (prefers-reduced-motion: reduce){nav.main button,.bnav button,.bnav button > span:first-child,.subnav button,.kpi.click,.dgrid .dr,.x{transition:none!important}.kpi.click:hover,.kpi.click:active{transform:none}}
+/* ============================================================
+   v2.92.0 · Biblioteca de interfaz, fase 3: movimiento sobrio y Inicio
+   Cargador de órbita en todas las esperas, pantallas que llegan enteras con
+   un fundido corto (sin cascada: el revelado es atómico), ventanas que suben y crecen un 2 %,
+   avisos que bajan, interruptores con rebote suave. Inicio con cabecera
+   abierta, indicadores con caja de icono y operativa en filas.
+   ============================================================ */
+:root{--sube:6px;
+  --orbita:radial-gradient(circle at 50% 50%,var(--navy) 0 27%,transparent 28%),radial-gradient(circle at 50% 13%,var(--celeste) 0 12%,transparent 13%);
+  --orbita-blanca:radial-gradient(circle at 50% 50%,#FFFFFF 0 27%,transparent 28%),radial-gradient(circle at 50% 13%,var(--celeste) 0 12%,transparent 13%)}
+/* Cargador de órbita: la esfera queda quieta y el satélite gira */
+.spin{border:0!important;border-radius:0!important;background:var(--orbita);animation:gira .9s linear infinite}
+.btn .giro{border:0!important;border-radius:0!important;background:var(--orbita-blanca);animation:girobtn .9s linear infinite}
+.btn.sec .giro{background:var(--orbita)}
+.cfgcarga .giro{border:0!important;border-radius:0!important;background:var(--orbita)}
+.cargandolocal::before{border:0!important;border-radius:0!important;background:var(--orbita)}
+main > section.preparando::after,dialog > .preparando::after{border:0!important;border-radius:0!important;background:var(--orbita)}
+/* Llegar a una pantalla: toda a la vez, con un fundido corto (revelado atómico) */
+@keyframes uiFunde{from{opacity:0}to{opacity:1}}
+main > section.llega > *{animation:uiFunde var(--t-lento) var(--ease-sal)}
+/* Ventanas: el fondo se oscurece y la ventana sube y crece un 2 % */
+@keyframes uiVentana{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:none}}
+dialog[open]{animation:uiVentana var(--t-medio) var(--ease-sal)}
+dialog[open]::backdrop{animation:uiFunde var(--t-medio) linear}
+/* Avisos: bajan un poco y aparecen */
+@keyframes avisoEntra{from{transform:translateY(-10px);opacity:0}to{transform:none;opacity:1}}
+.toast,.upd{animation-duration:var(--t-medio)!important}
+/* Interruptores: la bolita llega con un rebote suave */
+.vfswitch .sw{transition:background-color var(--t-medio) var(--ease-sal)}
+.vfswitch .sw::after{transition:left var(--t-medio) cubic-bezier(.34,1.4,.64,1)}
+.vfswitch input:focus-visible + .sw{box-shadow:var(--foco)}
+/* Inicio: cabecera abierta, sin tarjeta */
+#v-inicio .saludo{background:transparent;border:0;box-shadow:none;border-radius:0;padding:4px 110px 6px 0;overflow:visible}
+#v-inicio .saludo h1{font-size:30px}
+@media (max-width:760px){#v-inicio .saludo{padding:2px 100px 4px 0}#v-inicio .saludo h1{font-size:24px}}
+/* Indicadores: icono en su caja */
+.kico{right:12px;bottom:12px;width:32px;height:32px;border-radius:10px;background:var(--sky-soft);color:var(--navy)!important;display:grid;place-items:center;opacity:1!important;font-size:16px}
+.kico .icw svg{width:18px;height:18px}
+/* Operativa de pedidos en filas que llevan a Pedidos */
+.opfilas{display:flex;flex-direction:column;padding:0 8px 10px}
+.opfila{display:flex;align-items:center;gap:14px;min-height:48px;padding:0 10px;border:0;border-radius:10px;background:none;cursor:pointer;font:inherit;color:var(--ink);text-align:left;
+  transition:background-color var(--t-rapido) var(--ease-sal)}
+.opfila:hover{background:var(--hielo)}
+.opfila:focus-visible{outline:none;box-shadow:var(--foco)}
+.opfila b{font-family:var(--f-titulo);font-weight:800;font-size:20px;min-width:40px;color:var(--navy);font-variant-numeric:tabular-nums}
+.opfila b.aviso{color:var(--warn)}
+.opfila span{flex:1}
+.opfila svg{width:18px;height:18px;color:var(--sky);flex:none}
+@media (prefers-reduced-motion: reduce){
+  main > section.llega > *,dialog[open],dialog[open]::backdrop,.toast,.upd{animation:none!important}
+  .vfswitch .sw,.vfswitch .sw::after,.opfila{transition:none!important}
+}
 </style>
 </head>
 <body>
@@ -1860,6 +1912,6 @@ nav.main button:focus-visible,.subnav button:focus-visible,.bnav button:focus-vi
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.91.0"></script>
+<script src="./app.js?v=2.92.0"></script>
 </body>
 </html>

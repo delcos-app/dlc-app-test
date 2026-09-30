@@ -4562,11 +4562,10 @@ async function inicioOperativaPedidos() {
   const d = data || {}, n = k => (d[k] || []).length;
   if (!(n('pago') + n('paquete') + n('email_factura') + n('email_pago')) || $('iniops')) return;
   $('iniextra').insertAdjacentHTML('afterbegin', `<div class="card" id="iniops"><h2>Operativa de pedidos</h2>
-    <div class="minis"><div><b style="${n('pago') ? 'color:var(--warn)' : ''}">${num(n('pago'))}</b><span>pagos por validar</span></div>
-      <div><b>${num(n('paquete'))}</b><span>paquetes por preparar</span></div>
-      <div><b>${num(n('email_factura') + n('email_pago'))}</b><span>emails por enviar</span></div></div>
-    <div class="acts" style="padding:0 16px 14px"><button class="btn sec" id="iniopsver">Ver en Pedidos</button></div></div>`);
-  $('iniopsver').onclick = () => { PEDSEC = 'ventas'; ir('ventas'); };
+    <div class="opfilas">${[[n('pago'), 'pagos por validar', n('pago') ? 'aviso' : ''], [n('paquete'), 'paquetes por preparar', ''],
+      [n('email_factura') + n('email_pago'), 'emails por enviar', '']].map(([v, t, c]) =>
+      `<button class="opfila" data-opver><b class="${c}">${num(v)}</b><span>${t}</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></button>`).join('')}</div></div>`);
+  $('iniops').querySelectorAll('[data-opver]').forEach(b => b.onclick = () => { PEDSEC = 'ventas'; ir('ventas'); });
 }
 
 async function inicioVistazoEIndicadores() {
@@ -10219,7 +10218,8 @@ function indicadoresCompletos() {
   cards.forEach((k, i) => {
     const c = cfg[i]; if (!c || k.dataset.comp) return;
     k.dataset.comp = '1';
-    k.insertAdjacentHTML('afterbegin', `<span class="kico" aria-hidden="true">${KPI_ICO[c.id] || '•'}</span>`);
+    // v2.92.0: los indicadores sin icono propio (por ejemplo, los de una zona) no llevan caja de icono vacía
+    if (KPI_ICO[c.id]) k.insertAdjacentHTML('afterbegin', `<span class="kico" aria-hidden="true">${KPI_ICO[c.id]}</span>`);
     if (KPI_TXT[c.id]) k.insertAdjacentHTML('beforeend', `<em class="kdesc">${esc(KPI_TXT[c.id])}</em>`);
   });
 }
@@ -13757,7 +13757,13 @@ let REVELADO = 0;
 function revelar(el, max, desde) {
   if (!el) return; const turno = ++REVELADO;
   el.classList.add('preparando');
-  estable(el, max, desde).then(() => { if (turno === REVELADO || !el.matches('main > section')) el.classList.remove('preparando'); });
+  estable(el, max, desde).then(() => { if (turno === REVELADO || !el.matches('main > section')) { el.classList.remove('preparando'); llegar(el); } });
+}
+// v2.92.0: la pantalla recién revelada llega con un fundido corto (las repintadas posteriores no se animan)
+function llegar(el) {
+  if (!el || !el.matches('main > section')) return;
+  el.classList.remove('llega'); void el.offsetWidth; el.classList.add('llega');
+  clearTimeout(el._llega); el._llega = setTimeout(() => el.classList.remove('llega'), 700);
 }
 ir = (orig => function (t) {
   const t0 = Date.now() - 2;
