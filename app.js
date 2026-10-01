@@ -4542,7 +4542,10 @@ function mostrarApp(perfil) {
 
   // 8. Notificaciones, módulo de inicio preferido y resumen del día
   setTimeout(refrescarCampana, 800);
-  if (primera && pref.inicio && pref.inicio !== 'inicio' && puedeModulo(pref.inicio)) setTimeout(() => ir(pref.inicio), 50);
+  // v2.111.0: tras F5 se vuelve a la pantalla en la que se estaba (Ctrl+F5 entra de cero, por el inicio)
+  const f5 = primera ? pantallaTrasF5() : null;
+  if (f5) setTimeout(() => volverTrasF5(f5), 50);
+  else if (primera && pref.inicio && pref.inicio !== 'inicio' && puedeModulo(pref.inicio)) setTimeout(() => ir(pref.inicio), 50);
   if (!puede('portal_prescriptor')) setTimeout(() => Promise.resolve(RPC_ORIG('avisos_del_dia', {})).then(r => { if (r && r.data && r.data.nuevo) refrescarCampana(); }, () => {}), 1500);
 
   // 9. Traducción, iconos y orden del menú
@@ -15619,4 +15622,81 @@ async function fichaAccesoCartera(id) {
     ev.target.remove(); $('faccmail').disabled = true; MED_ACCESO = null;
     $('faccmsg').innerHTML = `<b style="color:var(--ok)">Acceso creado.</b> Contraseña temporal: <b>${esc(pass)}</b>. Pásasela y que la cambie al entrar.`;
   };
+}
+
+/* v2.111.0 · Teclado en escritorio.
+   1. Buscadores: con las flechas se recorren los resultados (el desplegable de sugerencias o, en los buscadores que filtran
+      una lista o una tabla, sus filas) e Intro abre el marcado. El elemento marcado lleva la clase .activo.
+   2. F5 (o Ctrl+R) recarga la app y vuelve a la pantalla en la que se estaba; Ctrl+F5 (o Ctrl+Mayús+R) entra de cero. */
+const TECLA_LISTAS = '.gsug, .cpres, .lista, .dgrid, [role=listbox], table';
+const teclaVisible = x => x.offsetParent !== null && !x.classList.contains('hide');
+function teclaLista(inp) {
+  const caja = inp.closest('.gsearch, .picker, .cpbus');
+  if (caja) return caja.querySelector('.gsug, .cpres');
+  // Lo primero con resultados que haya después del buscador, en su ventana o en su pantalla
+  const zona = inp.closest('dialog, section, .card') || document.body;
+  return [...zona.querySelectorAll(TECLA_LISTAS)].find(l => (inp.compareDocumentPosition(l) & Node.DOCUMENT_POSITION_FOLLOWING)
+    && !l.closest('.hide') && teclaItems(l).length) || null;
+}
+function teclaItems(l) {
+  const xs = l.matches('table') ? [...l.querySelectorAll(':scope > tbody > tr')]
+    : l.matches('.dgrid') ? [...l.querySelectorAll(':scope > .dr')]
+    : l.matches('.lista') ? [...l.children]
+    : [...l.querySelectorAll('button, [role=option], a[href]')];
+  return xs.filter(x => teclaVisible(x) && !x.matches('.gsh, .gload, .vacio, [disabled]'));
+}
+// Solo los buscadores: los de tipo búsqueda y los campos con su lista de resultados justo debajo
+const esBuscador = i => i && i.matches && i.matches('input') && !i.list && (i.type === 'search' || (!!i.nextElementSibling && i.nextElementSibling.matches('.gsug, .cpres, .lista, [role=listbox]')));
+function teclaActivar(x) {
+  const b = x.matches('button, a[href], [role=option], tr, .dr') ? x : (x.querySelector('button, a[href], [data-inificha]') || x);
+  b.click();
+}
+document.addEventListener('keydown', e => {
+  if (!['ArrowDown', 'ArrowUp', 'Enter'].includes(e.key) || e.altKey || e.ctrlKey || e.metaKey || !esBuscador(e.target)) return;
+  const l = teclaLista(e.target); if (!l) return;
+  const its = teclaItems(l); if (!its.length) return;
+  let i = its.findIndex(x => x.classList.contains('activo'));
+  if (e.key === 'Enter') {
+    if (i < 0) return;
+    e.preventDefault(); e.stopImmediatePropagation(); teclaActivar(its[i]); return;
+  }
+  e.preventDefault();
+  its.forEach(x => { x.classList.remove('activo'); x.removeAttribute('aria-selected'); });
+  i = e.key === 'ArrowDown' ? (i + 1) % its.length : (i <= 0 ? its.length - 1 : i - 1);
+  its[i].classList.add('activo'); its[i].setAttribute('aria-selected', 'true'); its[i].scrollIntoView({ block: 'nearest' });
+}, true);
+// Al escribir de nuevo, la marca se quita (los resultados cambian); con el ratón, la marca sigue al puntero
+document.addEventListener('input', e => {
+  if (!esBuscador(e.target)) return;
+  const l = teclaLista(e.target); if (l) l.querySelectorAll('.activo').forEach(x => { x.classList.remove('activo'); x.removeAttribute('aria-selected'); });
+}, true);
+document.addEventListener('mouseover', e => {
+  const l = e.target.closest && e.target.closest('.gsug, .cpres'); if (!l) return;
+  const x = teclaItems(l).find(y => y.contains(e.target)); if (!x || x.classList.contains('activo')) return;
+  l.querySelectorAll('.activo').forEach(y => { y.classList.remove('activo'); y.removeAttribute('aria-selected'); });
+  x.classList.add('activo');
+});
+
+// La clave va escrita en cada sitio: el arranque lee la pantalla guardada antes de que se evalúe el final de este archivo
+document.addEventListener('keydown', e => {
+  const f5 = e.key === 'F5', r = (e.ctrlKey || e.metaKey) && (e.key === 'r' || e.key === 'R');
+  if (!f5 && !r) return;
+  const completa = f5 ? (e.ctrlKey || e.shiftKey) : e.shiftKey;
+  try {
+    if (completa || !PERFIL) sessionStorage.removeItem('dlc-f5');
+    else sessionStorage.setItem('dlc-f5', JSON.stringify({ t: TAB, c: CFG_SEC, s: CFG_SUB, p: PAG_TAB, h: Date.now() }));
+  } catch (x) {}
+  // La recarga la hace el navegador (en Ctrl+F5, sin caché)
+});
+function pantallaTrasF5() {
+  let v = null;
+  try { v = JSON.parse(sessionStorage.getItem('dlc-f5') || 'null'); sessionStorage.removeItem('dlc-f5'); } catch (x) { v = null; }
+  // Solo si se acaba de pulsar (una recarga horas después, o desde el botón del navegador, entra por el inicio)
+  return v && v.t && Date.now() - (v.h || 0) < 60000 ? v : null;
+}
+function volverTrasF5(v) {
+  if (v.c) CFG_SEC = v.c;
+  if (v.s) CFG_SUB = v.s;
+  if (v.p) Object.assign(PAG_TAB, v.p);
+  if (['config', 'perfil', 'empresa', 'plan'].includes(v.t) || puedeModulo(v.t)) ir(v.t);
 }
