@@ -2017,6 +2017,15 @@ main > section > .panel,main > section > .card{max-width:100%}
 .saludo .acts:empty{display:none}
 /* Cabecera y barra del móvil sólidas: no se transparenta lo que pasa por debajo al desplazarse */
 header,.bnav{background:#FFFFFF!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+/* ============================================================
+   v2.108.0 · Gráficos de dos series en dos gráficos alineados (sin dos escalas en un eje)
+   ============================================================ */
+.grafdos{display:flex;flex-direction:column;gap:2px}
+.graftit{display:flex;align-items:center;gap:8px;margin:6px 0 0 34px;font:600 13px var(--f-texto);color:var(--muted)}
+.graftit i{width:10px;height:10px;border-radius:3px;flex:none}
+.graftit .c1{background:var(--sky)}.graftit .c2{background:var(--navy)}
+/* Los dos gráficos, al mismo ancho: así los meses de arriba y de abajo quedan en la misma vertical */
+.grafdos .grafico{display:block;width:100%!important;height:auto!important;max-width:none!important;max-height:none!important}
 </style>
 </head>
 <body>
@@ -2153,6 +2162,6 @@ header,.bnav{background:#FFFFFF!important;-webkit-backdrop-filter:none!important
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.107.0"></script>
+<script src="./app.js?v=2.108.0"></script>
 </body>
 </html>

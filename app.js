@@ -8236,20 +8236,38 @@ function mesesEntre(d, h) {
 }
 
 function svgBarras(meses, a, b, etiquetas) {
-  // a: barras (unidades), b: línea opcional (importe). El ancho se adapta a la pantalla y el alto es fijo.
-  const caja = $('angraf'), W = Math.max(420, Math.min(1400, ((caja && caja.clientWidth) || 700) - 40)), H = 230, P = 34, n = meses.length || 1, bw = Math.max(6, (W - P * 2) / n * .62);
-  const maxA = Math.max(1, ...a), maxB = Math.max(1, ...(b || [0]));
+  // v2.108.0: con dos series ya no se mezclan dos escalas en un mismo eje: se dibujan dos gráficos pequeños,
+  // uno encima del otro, con los mismos meses alineados (arriba barras, abajo línea), cada uno con su escala y su título.
+  const caja = $('angraf'), W = Math.max(420, Math.min(1400, ((caja && caja.clientWidth) || 700) - 40)), P = 34, n = meses.length || 1;
   const x = i => P + (W - P * 2) * (i + .5) / n;
-  const ya = v => H - 26 - (H - 50) * v / maxA, yb = v => H - 26 - (H - 50) * v / maxB;
-  return `<svg viewBox="0 0 ${W} ${H}" class="grafico" role="img" aria-label="${esc(etiquetas[0])} por mes">
-    <line x1="${P}" y1="${H - 26}" x2="${W - P}" y2="${H - 26}" class="eje"/>
-    ${a.map((v, i) => `<g><rect x="${x(i) - bw / 2}" y="${ya(v)}" width="${bw}" height="${H - 26 - ya(v)}" rx="4" class="barra1"><title>${mesTxt(meses[i])}: ${num(v)} ${etiquetas[0]}</title></rect>
-      ${v ? `<text x="${x(i)}" y="${ya(v) - 5}" class="val">${num(v)}</text>` : ''}
-      <text x="${x(i)}" y="${H - 8}" class="lab">${mesTxt(meses[i])}</text></g>`).join('')}
-    ${b ? `<polyline points="${b.map((v, i) => `${x(i)},${yb(v)}`).join(' ')}" class="linea2"/>
-      ${b.map((v, i) => `<circle cx="${x(i)}" cy="${yb(v)}" r="3.5" class="punto2"><title>${mesTxt(meses[i])}: ${eurI(v)}</title></circle>`).join('')}` : ''}
-  </svg>
-  <div class="leyenda"><span><i class="c1"></i>${esc(etiquetas[0])}</span>${b ? `<span><i class="c2"></i>${esc(etiquetas[1])}</span>` : ''}</div>`;
+  const esEur = t => /importe|euros|€/i.test(t || '');
+  const fmt = (v, t) => esEur(t) ? eurI(v) : num(v);
+  const barras = (serie, etq, H, conMeses) => {
+    const max = Math.max(1, ...serie), base = H - (conMeses ? 26 : 10), y = v => base - (base - 22) * v / max, bw = Math.max(6, (W - P * 2) / n * .62);
+    return `<svg viewBox="0 0 ${W} ${H}" class="grafico" role="img" aria-label="${esc(etq)} por mes">
+      <line x1="${P}" y1="${base}" x2="${W - P}" y2="${base}" class="eje"/>
+      ${serie.map((v, i) => `<g><rect x="${x(i) - bw / 2}" y="${y(v)}" width="${bw}" height="${base - y(v)}" rx="4" class="barra1"><title>${mesTxt(meses[i])}: ${fmt(v, etq)} ${esEur(etq) ? '' : esc(etq.toLowerCase())}</title></rect>
+        ${v ? `<text x="${x(i)}" y="${y(v) - 5}" class="val">${fmt(v, etq)}</text>` : ''}
+        ${conMeses ? `<text x="${x(i)}" y="${H - 8}" class="lab">${mesTxt(meses[i])}</text>` : ''}</g>`).join('')}
+    </svg>`;
+  };
+  if (!b) return barras(a, etiquetas[0], 230, true);
+  const linea = (serie, etq, H) => {
+    const max = Math.max(1, ...serie), base = H - 26, y = v => base - (base - 22) * v / max;
+    // Etiqueta solo en el máximo y en el último mes con dato
+    const ultimo = serie.reduce((k, v, i) => v ? i : k, -1), imax = serie.indexOf(Math.max(...serie));
+    return `<svg viewBox="0 0 ${W} ${H}" class="grafico" role="img" aria-label="${esc(etq)} por mes">
+      <line x1="${P}" y1="${base}" x2="${W - P}" y2="${base}" class="eje"/>
+      <polyline points="${serie.map((v, i) => `${x(i)},${y(v)}`).join(' ')}" class="linea2"/>
+      ${serie.map((v, i) => `<circle cx="${x(i)}" cy="${y(v)}" r="4" class="punto2"><title>${mesTxt(meses[i])}: ${fmt(v, etq)}</title></circle>
+        ${v && (i === imax || i === ultimo) ? `<text x="${x(i)}" y="${y(v) - 9}" class="val">${fmt(v, etq)}</text>` : ''}
+        <text x="${x(i)}" y="${H - 8}" class="lab">${mesTxt(meses[i])}</text>`).join('')}
+    </svg>`;
+  };
+  return `<div class="grafdos">
+    <div class="grafuno"><div class="graftit"><i class="c1"></i>${esc(etiquetas[0])}</div>${barras(a, etiquetas[0], 150, false)}</div>
+    <div class="grafuno"><div class="graftit"><i class="c2"></i>${esc(etiquetas[1])}</div>${linea(b, etiquetas[1], 170)}</div>
+  </div>`;
 }
 
 function svgDonut(items) {
@@ -8313,7 +8331,7 @@ async function pintarResumenAnalitica() {
       <div class="card ancard ancha"><h2>Evolución de las ventas</h2>
         ${(t.unidades || 0) ? svgBarras(meses, meses.map(m => (serie[m] || {}).unidades || 0), verImportes() ? meses.map(m => +((serie[m] || {}).importe || 0)) : null, ['Unidades', 'Importe sin IVA'])
           : vacioGrafico('Cuando haya pedidos validados verás aquí las unidades (barras) y el importe (línea) de cada mes.')}
-        <p class="leer"><b>Cómo leerlo:</b> cada barra son las unidades vendidas en el mes y la línea, el importe. Si la línea sube más que las barras, se vende a mejor precio (menos descuento o productos de más valor).</p></div>
+        <p class="leer"><b>Cómo leerlo:</b> arriba, las unidades vendidas cada mes; abajo, el importe, con los mismos meses alineados. Si el importe crece más que las unidades, se vende a mejor precio (menos descuento o productos de más valor).</p></div>
       <div class="card ancard"><h2>Reparto por producto</h2>
         ${(act.por_producto || []).length ? svgDonut((act.por_producto || []).slice(0, 6).map(x => ({ n: x.nombre, v: x.unidades })))
           : vacioGrafico('Verás qué parte de las unidades corresponde a cada producto.')}
