@@ -1875,6 +1875,43 @@ dialog[open]::backdrop{animation:uiFunde var(--t-medio) linear}
 .alerta2.media .an{background:var(--warn);color:#FFFFFF}
 /* Franja del entorno de pruebas: color liso, sin rayas */
 #franjapruebas{background:var(--warn)}
+
+/* ============================================================
+   v2.100.0 · Biblioteca de interfaz, cierre de la marca: ayudas,
+   pantallas vacías, esqueletos de carga, casillas, contadores y avatares
+   ============================================================ */
+/* Ayuda: icono «info» de trazo en azul (antes una «i» dentro de un círculo) */
+.ai{width:18px;height:18px;border:0;border-radius:50%;background:transparent;color:var(--sky);font-size:0;opacity:1;transform:none;
+  transition:background-color var(--t-rapido) var(--ease-sal),color var(--t-rapido) var(--ease-sal)}
+.ai svg{width:16px;height:16px}
+.ai:hover{background:var(--sky-soft);color:var(--navy);transform:none}
+.ai:focus-visible{outline:none;box-shadow:var(--foco)}
+#franjapruebas .ai{background:transparent;border:0;color:#FFFFFF}
+/* La ventanita de ayuda: tarjeta blanca con su título, como en el sistema de diseño */
+.aipop{background:#FFFFFF;color:var(--ink);border:1px solid var(--line);border-radius:12px;box-shadow:var(--sombra-3);font-size:14px;padding:12px 14px;
+  animation:uiFunde var(--t-medio) var(--ease-sal)}
+.aipop > b:first-child{font-family:var(--f-titulo);font-weight:800;font-size:14.5px;color:var(--ink)}
+.aipop a,.aiman{color:var(--navy)}
+/* Pantallas y listas vacías: centradas, con su icono en una caja redonda */
+.vacio{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;padding:24px 16px;color:var(--muted);font-size:14.5px}
+.vacio::before{content:"";width:40px;height:40px;border-radius:50%;flex:none;
+  background:var(--sky-soft) var(--ico-vacio) center/20px no-repeat}
+.gsug .vacio,.selpop .vacio,.dr .vacio,td .vacio,.vacio.sinico{display:block;padding:12px 16px;font-size:13.5px}
+.gsug .vacio::before,.selpop .vacio::before,.dr .vacio::before,td .vacio::before,.vacio.sinico::before{content:none}
+:root{--ico-vacio:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2317457A' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='22 12 16 12 14 15 10 15 8 12 2 12'/%3E%3Cpath d='M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z'/%3E%3C/svg%3E")}
+/* Gráficos sin datos: fondo liso, sin rayas */
+.gvacio{background:var(--hielo);border-radius:12px}
+.gvacio span:first-child{color:var(--sky)}
+/* Esqueletos de carga con los tonos del sistema */
+.skel{background:linear-gradient(90deg,#E9F0F6 0%,#F5F9FC 50%,#E9F0F6 100%);background-size:200% 100%;animation-duration:1.3s;border-radius:8px}
+/* Casillas y opciones marcadas en el color de actuar */
+input[type=checkbox],input[type=radio]{accent-color:var(--navy)}
+/* Contadores: rojo solo para avisos sin leer; el resto, neutros */
+.mdavisos .nb2{background:var(--peligro);min-width:20px;height:20px;display:inline-grid;place-items:center;font-size:12px;padding:0 6px;font-variant-numeric:tabular-nums}
+.card>h2 .n{font-size:12px;background:var(--sky-soft);color:var(--navy);padding:2px 8px;font-variant-numeric:tabular-nums}
+/* Avatares: iniciales en la letra de títulos */
+.av,.usrav,.mpav{font-family:var(--f-titulo);font-weight:700}
+@media (prefers-reduced-motion: reduce){.ai,.aipop{transition:none!important;animation:none!important}}
 </style>
 </head>
 <body>
@@ -2011,6 +2048,6 @@ dialog[open]::backdrop{animation:uiFunde var(--t-medio) linear}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.99.0"></script>
+<script src="./app.js?v=2.100.0"></script>
 </body>
 </html>
