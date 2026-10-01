@@ -116,7 +116,11 @@ const isoLocal = d => { const x = new Date(d.getTime() - d.getTimezoneOffset() *
 const hoyISO = () => isoLocal(new Date());
 let fechaLarga = d => d.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
 const fechaCorta = s => { const d = new Date(s + 'T00:00:00'); return d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }); };
-const iniciales = n => String(n || '').split(/\s+/).slice(0, 2).map(x => x[0] || '').join('').toUpperCase();
+// Nombre sin tratamiento delante («Dr. Gonzalo Serrano» → Gonzalo, iniciales GS)
+const TRATAMIENTO = /^(dr|dra|d|dña|dª|sr|sra|srta|prof|profa|lic|ldo|lda)\.?$/i;
+const partesNombre = n => { const p = String(n || '').trim().split(/\s+/); while (p.length > 1 && TRATAMIENTO.test(p[0])) p.shift(); return p; };
+const nombrePila = n => partesNombre(n)[0] || '';
+const iniciales = n => partesNombre(n).slice(0, 2).map(x => x[0] || '').join('').toUpperCase();
 const num = n => Number(n || 0).toLocaleString('es');
 
 /* ---------------- acceso ---------------- */
@@ -1835,7 +1839,7 @@ function nuevoUsuarioResumen(pre) {
     const vinc = ($('nmsg').textContent.match(/Vinculado a (.+)\./) || [])[1];
     delete $('dlg').dataset.sucio;
     const url = location.origin + location.pathname;
-    const texto = `Hola ${datos.nombre.split(' ')[0]}, ya tienes acceso a ${nombreApp()}.\nEntra en ${url}\nUsuario: ${datos.email}\nContraseña temporal: ${datos.pass}\nCámbiala al entrar (Configuración → Mi perfil).`;
+    const texto = `Hola ${nombrePila(datos.nombre)}, ya tienes acceso a ${nombreApp()}.\nEntra en ${url}\nUsuario: ${datos.email}\nContraseña temporal: ${datos.pass}\nCámbiala al entrar (Configuración → Mi perfil).`;
     $('dbody').innerHTML = `<div class="fh"><div><h2>✓ Usuario creado</h2><div class="sm">Pásale estos datos para que entre</div></div><button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
       <div class="usrok"><div><span>Nombre</span><b>${esc(datos.nombre)}</b></div><div><span>Rol</span><b>${esc(datos.rol)}</b></div>
         <div><span>Usuario</span><b>${esc(datos.email)}</b></div><div><span>Contraseña temporal</span><b class="mono">${esc(datos.pass)}</b></div>
@@ -4520,11 +4524,11 @@ function mostrarApp(perfil) {
   $('login').classList.add('hide');
   $('app').classList.remove('hide');
   $('av').textContent = iniciales(p.nombre);
-  $('uname').textContent = String(p.nombre).split(' ')[0];
+  $('uname').textContent = nombrePila(p.nombre);
   $('umnom').textContent = p.nombre;
   $('umrol').textContent = p.rol + ' · ' + p.email;
   const h = new Date().getHours();
-  $('hola').textContent = (h < 13 ? 'Buenos días' : h < 20 ? 'Buenas tardes' : 'Buenas noches') + ', ' + String(p.nombre).split(' ')[0];
+  $('hola').textContent = (h < 13 ? 'Buenos días' : h < 20 ? 'Buenas tardes' : 'Buenas noches') + ', ' + nombrePila(p.nombre);
   $('hoyfecha').textContent = fechaLarga(new Date()).replace(/^./, c => c.toUpperCase());
   $('nuevoBtn').classList.toggle('hide', !puedeCrear());
   $('dupBtn').classList.toggle('hide', !puede('administrar'));
@@ -5759,7 +5763,7 @@ function celda(m, k) {
   if (k.startsWith('cp:')) { const cl = k.slice(3); return `<span class="sm">${esc(campoTexto((CAMPOS.medico || []).find(x => x.clave === cl), (m.clasificadores || {})[cl]))}</span>`; }
   if (k === 'comerciales') {
     const c = m.comerciales || [];
-    return `<span class="comchips">${c.length ? c.map(x => `<span>${esc(String(x.nombre).split(' ')[0])}</span>`).join('') : '<span class="sin">Sin asignar</span>'}</span>`;
+    return `<span class="comchips">${c.length ? c.map(x => `<span>${esc(nombrePila(x.nombre))}</span>`).join('') : '<span class="sin">Sin asignar</span>'}</span>`;
   }
   return `<span class="sm">${esc(m[k] || '')}</span>`;
 }
@@ -5853,7 +5857,7 @@ async function asignarCartera(id) {
     $('alista').innerHTML = `<div class="carsel">${f.map(m => `<label class="item" style="cursor:pointer;margin:0">
         <input type="checkbox" data-am="${m.id}" ${fuera.has(m.id) ? '' : 'checked'}>
         <span class="tx"><b>${esc(m.nombre)}</b><span class="sm">${esc([m.especialidad, m.centro_nombre, m.municipio].filter(Boolean).join(' · '))}</span></span>
-        <span class="comchips">${(m.comerciales || []).map(x => `<span>${esc(String(x.nombre).split(' ')[0])}</span>`).join('') || '<span class="sin">Sin asignar</span>'}</span>
+        <span class="comchips">${(m.comerciales || []).map(x => `<span>${esc(nombrePila(x.nombre))}</span>`).join('') || '<span class="sin">Sin asignar</span>'}</span>
       </label>`).join('') || `<div class="vacio">${TT('medico', 's', 'ningun', 'C', 'l')} con estos filtros.</div>`}</div><div id="apag"></div>`;
     $('alista').querySelectorAll('[data-am]').forEach(c => c.onchange = () => { if (c.checked) fuera.delete(c.dataset.am); else fuera.add(c.dataset.am); cuenta(); });
     $('apag').innerHTML = total > 50 ? pagHTML(total, pagina, 50).replace(/<span class="ptam">[\s\S]*?<\/span><\/div>$/, '</div>') : '';
@@ -7883,7 +7887,7 @@ function limpiarDatosLocales() {
 async function entrarComo(id) {
   const u = (USUARIOS || []).find(x => x.id === id) || { nombre: 'esta persona' };
   if (!await preguntar(`Verás la plataforma exactamente como ${u.nombre}: su menú, sus permisos, su cartera y sus datos.\n\nLo que hagas quedará a su nombre, y la entrada queda anotada en la auditoría. Para volver, pulsa «Volver a mi sesión» en la barra morada.`,
-    { titulo: `¿Entrar como ${u.nombre}?`, ok: 'Entrar como ' + String(u.nombre).split(' ')[0] })) return;
+    { titulo: `¿Entrar como ${u.nombre}?`, ok: 'Entrar como ' + nombrePila(u.nombre) })) return;
   pantallaCarga('Entrando como ' + u.nombre + '…');
   const { data: { session } } = await db.auth.getSession();
   if (!session) return;
@@ -7923,7 +7927,7 @@ function pintarBarraSuplantacion() {
   if (!s) { if (b) b.remove(); return; }
   if (!b) { document.body.insertAdjacentHTML('afterbegin', '<div id="barrasup"></div>'); b = $('barrasup'); }
   b.innerHTML = `<span>👤 <b>Estás dentro como ${esc(PERFIL ? PERFIL.nombre : s.como)}</b>${PERFIL ? ' · ' + esc(PERFIL.rol) : ''} · Ves lo mismo que esa persona y lo que hagas queda a su nombre</span>
-    <button class="btn" id="supvolver">↩ Volver a mi sesión (${esc(String(s.nombre).split(' ')[0])})</button>`;
+    <button class="btn" id="supvolver">↩ Volver a mi sesión (${esc(nombrePila(s.nombre))})</button>`;
   $('supvolver').onclick = volverAMiSesion;
 }
 
@@ -8223,7 +8227,7 @@ const quitarCarga = () => { const o = $('cargatotal'); if (o) o.classList.add('h
 
 volverAMiSesion = (orig => async function () {
   const s = suplantando();
-  pantallaCarga('Volviendo a tu sesión' + (s ? ', ' + String(s.nombre).split(' ')[0] : '') + '…');
+  pantallaCarga('Volviendo a tu sesión' + (s ? ', ' + nombrePila(s.nombre) : '') + '…');
   await orig();
 })(volverAMiSesion);
 
@@ -9468,7 +9472,7 @@ const opHecho = (p, k) => k === 'pago' ? p.pago_estado === 'Cobrado' : !!p[OPS.f
 
 function textoEmailPago(p, total, cliente) {
   const e = AJUSTES.empresa || {};
-  return `Hola${cliente ? ' ' + String(cliente).split(' ')[0] : ''}:\n\nGracias por tu pedido${p.numero ? ' ' + p.numero : ''}. Para completarlo, haz una transferencia con estos datos:\n\n` +
+  return `Hola${cliente ? ' ' + nombrePila(cliente) : ''}:\n\nGracias por tu pedido${p.numero ? ' ' + p.numero : ''}. Para completarlo, haz una transferencia con estos datos:\n\n` +
     `Importe: ${eurI(total || 0)}\nBeneficiario: ${e.razon_social || nombreApp()}\nIBAN: ${e.iban || '(añade el IBAN en Facturación → Datos fiscales)'}\nConcepto: ${p.numero || 'Pedido'} ${cliente || ''}\n\n` +
     `En cuanto recibamos el pago preparamos el envío.\n\nUn saludo,\n${e.razon_social || nombreApp()}${e.telefono ? '\n' + e.telefono : ''}`;
 }
@@ -9769,7 +9773,7 @@ async function descargarFacturaPDF(f, rn) {
 async function enviarFacturaEmail(f, rn) {
   await cargarAjustes();
   const e = AJUSTES.empresa || {}, c = f.cliente || {};
-  const saludo = c.nombre ? String(c.nombre).split(' ')[0] : '';
+  const saludo = c.nombre ? nombrePila(c.nombre) : '';
   $('dlg2body').innerHTML = `
     <div class="fh"><div><h2>Enviar ${esc(f.numero)} por email</h2><div class="sm">La factura va adjunta en PDF</div></div>
       <button class="x" data-cerrar2 aria-label="Cerrar">✕</button></div>
@@ -11432,7 +11436,7 @@ function pintarPerfilPaso2() {
       const [a, b] = await Promise.all([db.rpc('guardar_preferencias', { p: prefs }), db.from('perfiles').update({ nombre }).eq('id', PERFIL.id)]);
       if (a.error) { toast('No se ha podido guardar', true); return; }
       PERFIL.preferencias = a.data || prefs;
-      if (!b.error) { PERFIL.nombre = nombre; $('uname').textContent = nombre.split(' ')[0]; $('av').textContent = iniciales(nombre); }
+      if (!b.error) { PERFIL.nombre = nombre; $('uname').textContent = nombrePila(nombre); $('av').textContent = iniciales(nombre); }
       toast('Datos guardados');
     };
   }
@@ -11477,7 +11481,7 @@ function pintarPerfilBase() {
     const prefs = Object.assign({}, pr, { telefono: $('pft').value.trim(), inicio: $('pfi').value });
     const [a, b] = await Promise.all([db.rpc('guardar_preferencias', { p: prefs }), db.from('perfiles').update({ nombre }).eq('id', PERFIL.id)]);
     if (a.error) { toast('No se ha podido guardar', true); return; }
-    PERFIL.preferencias = a.data || prefs; if (!b.error) { PERFIL.nombre = nombre; $('uname').textContent = nombre.split(' ')[0]; $('av').textContent = iniciales(nombre); }
+    PERFIL.preferencias = a.data || prefs; if (!b.error) { PERFIL.nombre = nombre; $('uname').textContent = nombrePila(nombre); $('av').textContent = iniciales(nombre); }
     toast('Datos guardados');
   };
   $('pfpok').onclick = async () => {

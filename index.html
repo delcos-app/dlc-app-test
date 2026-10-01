@@ -2119,6 +2119,13 @@ dialog > #dbody > .acts:last-child,dialog > #dlg2body > .acts:last-child{positio
   #calidad .kpis:has(> :nth-child(6):last-child),#segkpis:has(> :nth-child(6):last-child){grid-template-columns:repeat(6,minmax(0,1fr))}
   #calidad .kpis:has(> :nth-child(7):last-child),#segkpis:has(> :nth-child(7):last-child){grid-template-columns:repeat(7,minmax(0,1fr))}
 }
+/* ============================================================
+   v2.116.0 · Banda de botones de las ventanas a todo el ancho en el móvil
+   ============================================================ */
+/* Una regla antigua del móvil («dialog *{max-width:100%}») recortaba la cabecera y la botonera fijas de la v2.112.0
+   (sus márgenes negativos las llevan de borde a borde): quedaba un hueco blanco a la derecha */
+@media (max-width:760px){dialog > #dbody > .fh:first-child,dialog > #dlg2body > .fh:first-child,
+  dialog > #dbody > .acts:last-child,dialog > #dlg2body > .acts:last-child{max-width:none}}
 </style>
 </head>
 <body>
@@ -2255,6 +2262,6 @@ dialog > #dbody > .acts:last-child,dialog > #dlg2body > .acts:last-child{positio
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.115.0"></script>
+<script src="./app.js?v=2.116.0"></script>
 </body>
 </html>
