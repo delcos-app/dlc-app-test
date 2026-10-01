@@ -471,11 +471,13 @@ const UDS_SERIES = [['semana', 'Semana'], ['mes', 'Mes'], ['anio', 'Año']];
 let UDS_SERIE = (() => { try { const v = localStorage.getItem('dlc-uds-serie'); return ['semana', 'mes', 'anio'].includes(v) ? v : 'mes'; } catch (e) { return 'mes'; } })();
 const leyendaUnidades = k => ({ semana: 'barras: últimas 12 semanas', mes: 'barras: últimos 12 meses', anio: 'barras: últimos 5 años' })[k];
 function sparkUnidades(u, k) {
-  const s = k === 'semana' ? (u.semanas || []).map(x => [x.unidades, 'Semana del ' + fechaCorta(x.semana)])
-    : k === 'anio' ? (u.anios || []).map(x => [x.unidades, x.anio])
-    : (u.meses || []).map(x => [x.unidades, periodoTxt(x.mes)]);
+  const s = k === 'semana' ? (u.semanas || []).map(x => [x.unidades, 'Semana del ' + fechaCorta(x.semana), fechaCorta(x.semana)])
+    : k === 'anio' ? (u.anios || []).map(x => [x.unidades, x.anio, x.anio])
+    : (u.meses || []).map(x => [x.unidades, periodoTxt(x.mes), periodoTxt(x.mes)]);
   const max = Math.max(1, ...s.map(x => x[0]));
-  return s.map(([n, t]) => `<i style="height:${Math.round(n / max * 100)}%" title="${esc(t)}: ${num(n)}"></i>`).join('');
+  // v2.118.0: barra vacía como línea de base, la del periodo actual resaltada y las fechas de los extremos debajo
+  // (las fechas van como atributo de la primera y la última barra: el gráfico solo tiene barras)
+  return s.map(([n, t, c], i) => `<i class="${n ? '' : 'cero'}${i === s.length - 1 ? ' actual' : ''}" style="height:${Math.round(n / max * 100)}%" title="${esc(t)}: ${num(n)}"${i === 0 ? ` data-ini="${esc(c)}"` : ''}${i === s.length - 1 ? ` data-fin="${esc(c)}"` : ''}></i>`).join('');
 }
 
 // v2.113.0 · Ficha · Cuántos clientes tiene (vinculados o que han comprado con ella). Solo números: también lo ve el comercial
