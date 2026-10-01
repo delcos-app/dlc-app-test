@@ -10971,7 +10971,8 @@ function aplicarMarca() {
   const g = document.querySelector('#girar span:last-child'); if (g) g.textContent = n + ' se usa en vertical.';
 }
 aplicarMarca();
-Promise.resolve(RPC_ORIG('marca_publica', {})).then(r => {
+// v2.103.0: la marca del dominio desde el que se abre (con varias empresas, cada una la suya)
+Promise.resolve(RPC_ORIG('marca_publica', { p_dominio: location.hostname })).then(r => {
   if (r && r.data) { MARCA = Object.assign({}, MARCA, r.data); try { localStorage.setItem('app-marca', JSON.stringify(MARCA)); } catch (e) {} aplicarMarca(); }
 }, () => {});
 // El logo de la empresa también en las facturas
@@ -15248,8 +15249,23 @@ async function pintarOrganizaciones() {
       <div class="sm">Cada empresa trabaja aislada, con sus datos, sus usuarios, su numeración y su configuración.</div></div>
       <button class="btn" id="orgnueva">+ Nueva organización</button></div>
     ${error ? `<div class="vacio">No se han podido cargar: ${esc(error.message)}</div>` : `<div class="lista">${l.map(o => `<div class="item" style="cursor:default">
-      <span class="tx"><b>${esc(o.nombre)}</b><span class="sm">${esc(o.nif || 'Sin NIF')} · plan ${esc(o.plan || '—')} · ${num(o.usuarios)} usuarios · ${num(o.cuentas)} cuentas${o.pendiente ? ' · pendiente de registro: ' + esc(o.pendiente) : ''}</span></span>
-      <span class="sm">${o.creado_en ? fechaCorta(String(o.creado_en).slice(0, 10)) : ''}</span></div>`).join('')}</div>`}</div>`;
+      <span class="tx"><b>${esc(o.nombre)}</b><span class="sm">${esc(o.nif || 'Sin NIF')} · plan ${esc(o.plan || '—')} · ${num(o.usuarios)} usuarios · ${num(o.cuentas)} cuentas${o.pendiente ? ' · pendiente de registro: ' + esc(o.pendiente) : ''}</span>
+        <span class="sm">${(o.dominios || []).length ? 'Dominios: ' + o.dominios.map(esc).join(', ') : 'Sin dominio propio: su pantalla de acceso muestra la marca principal'}</span></span>
+      <span class="acts" style="margin:0"><span class="sm">${o.creado_en ? fechaCorta(String(o.creado_en).slice(0, 10)) : ''}</span>
+        <button class="btn sec" type="button" data-orgdom="${o.id}">Dominios</button></span></div>`).join('')}</div>`}</div>`;
+  // v2.103.0: los dominios de cada organización deciden la marca de su pantalla de acceso
+  c.querySelectorAll('[data-orgdom]').forEach(b => b.onclick = async () => {
+    const o = l.find(x => x.id === b.dataset.orgdom); if (!o) return;
+    const txt = await pedirTexto(`Dominios desde los que se entra a ${o.nombre}, separados por comas (p. ej. app.empresa.com). Su pantalla de acceso mostrará su nombre y su logo. Déjalo vacío para quitar todos.`,
+      (o.dominios || []).join(', '), { titulo: 'Dominios de la organización', ok: 'Guardar' });
+    if (txt === null) return;
+    const { data: r, error: e } = await db.rpc('guardar_dominios_organizacion', { p_id: o.id, p_dominios: txt.split(/[,;\s]+/).filter(Boolean) });
+    if (e || !r || !r.ok) {
+      toast((r && { permiso: 'No tienes permiso', dominio: `«${r.dominio}» no es un dominio válido`, en_uso: `Ese dominio ya es de ${r.organizacion}`, no_existe: 'La organización ya no existe' }[r.error]) || 'No se han podido guardar los dominios' + (e ? ': ' + e.message : ''), true);
+      return;
+    }
+    toast(r.dominios.length ? 'Dominios guardados' : 'Dominios quitados'); pintarOrganizaciones();
+  });
   $('orgnueva').onclick = () => {
     $('dbody').innerHTML = `<div class="fh"><div><h2>Nueva organización</h2><div class="sm">Nace con los roles, catálogos, series y ajustes de partida de la plataforma</div></div>
         <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
