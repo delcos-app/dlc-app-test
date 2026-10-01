@@ -4867,13 +4867,17 @@ async function editorPedido(pedido) {
     servicio_id: ped ? (ped.envio ? (ped.servicio_id || ((SERVICIOS[0] || {}).id) || '') : '') : ((SERVICIOS.find(x => x.por_defecto && x.activo) || {}).id || ''),
     envio: ped ? !!ped.envio : !!SERVICIOS.find(x => x.por_defecto && x.activo),
     envio_iva: ped && ped.envio ? +ped.envio_iva : +((SERVICIOS.find(x => x.por_defecto && x.activo) || {}).iva ?? 21),
-    envio_con: ped && ped.envio ? r2(+ped.envio_base * (1 + (+ped.envio_iva || 0) / 100)) : +((SERVICIOS.find(x => x.por_defecto && x.activo) || {}).pvp || 0) };
+    envio_con: ped && ped.envio ? r2(+ped.envio_base * (1 + (+ped.envio_iva || 0) / 100)) : +((SERVICIOS.find(x => x.por_defecto && x.activo) || {}).pvp || 0),
+    // v2.115.0: origen (web o no) y referencia del pago
+    origen: ped && ped.origen === 'web' ? 'web' : 'manual', pago_referencia: ped ? ped.pago_referencia || '' : '' };
+  const justifs = [];   // v2.115.0: justificantes elegidos, se suben al guardar
   const leerForm = () => {
     if (!$('pfecha')) return;
     Object.assign(form, { fecha: $('pfecha').value, canal: $('pcan').value, forma_pago: $('ppago').value,
       descuento: $('pdto').value, descuento_tipo: $('pdtot').value, nota: $('pnota').value,
       envio: $('penv').checked, envio_con: +$('penvi').value || 0, envio_iva: +$('penvv').value || 0, servicio_id: $('pserv').value,
-      cuenta_texto: $('pselmed') ? ($('pselmed').__texto || '') : form.cuenta_texto });
+      cuenta_texto: $('pselmed') ? ($('pselmed').__texto || '') : form.cuenta_texto,
+      origen: $('porig') ? $('porig').value : form.origen, pago_referencia: $('pref') ? $('pref').value : form.pago_referencia });
   };
 
   const pinta = () => {
@@ -4888,6 +4892,9 @@ async function editorPedido(pedido) {
           <option value="paciente" ${form.canal !== 'centro' ? 'selected' : ''}>Recomendación a ${TT('paciente', 's', '', 'l', 'l')}</option>
           <option value="centro" ${form.canal === 'centro' ? 'selected' : ''}>Venta a centro (con descuento)</option></select></div>
       </div>
+      <div class="g2"><div><label for="porig">Origen</label><select id="porig">
+          <option value="manual">Comercial, teléfono o correo</option>
+          <option value="web" ${form.origen === 'web' ? 'selected' : ''}>Pedido por la web</option></select></div><div></div></div>
       <div id="zonapac" class="${form.canal === 'centro' ? 'hide' : ''}">
         <label>${TT('paciente', 's', '', 'l', 'C')}</label><div id="pselpac"></div>
         <label>${TT('medico', 's', '', 'l', 'C')} que lo recomienda</label><div id="pselmed"></div>
@@ -4911,6 +4918,11 @@ async function editorPedido(pedido) {
           <div style="display:flex;gap:6px"><input id="pdto" type="number" min="0" step="0.01" value="${esc(form.descuento)}">
             <select id="pdtot" style="max-width:110px"><option value="porcentaje">%</option>
               <option value="importe" ${form.descuento_tipo === 'importe' ? 'selected' : ''}>€</option></select></div></div>
+      </div>
+      <div id="ppagox" class="g2 ${form.forma_pago ? '' : 'hide'}">
+        <div><label for="pref">Referencia del pago</label><input id="pref" value="${esc(form.pago_referencia)}" placeholder="Código de la transferencia, bizum…"></div>
+        <div><label>Justificante (foto o PDF)</label><label class="btn sec" style="display:inline-flex">📎 Adjuntar<input id="pjus" type="file" accept="image/*,application/pdf" data-fp="1" hidden></label>
+          <div class="sm" id="pjusl">${justifs.map((j, i) => `<span class="jusp">📎 ${esc(j.nombre)} <button type="button" class="lnk" data-jx="${i}" aria-label="Quitar ${esc(j.nombre)}">quitar</button></span>`).join(' ')}</div></div>
       </div>
       <div class="envbox">
         <label for="pserv" style="margin-top:0">Servicio</label>
@@ -4956,6 +4968,13 @@ async function editorPedido(pedido) {
     $('plmas').onclick = () => { lineas.push({ producto_id: productoPorDefecto(), unidades: 1, descuento: 0 }); autoImporte(lineas[lineas.length - 1]); pinta(); };
     $('plineas').querySelectorAll('[data-lx]').forEach(b => b.onclick = () => { lineas.splice(+b.dataset.lx, 1); pinta(); });
     $('pcan').onchange = () => $('zonapac').classList.toggle('hide', $('pcan').value === 'centro');
+    $('ppago').onchange = () => $('ppagox').classList.toggle('hide', !$('ppago').value);
+    $('pjus').onchange = async e => {
+      const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+      const j = await leerJustificante(f); if (!j) return;
+      justifs.push(j); pinta();
+    };
+    $('dbody').querySelectorAll('[data-jx]').forEach(b => b.onclick = () => { justifs.splice(+b.dataset.jx, 1); pinta(); });
     ['pdto', 'pdtot', 'penv', 'penvi', 'penvv'].forEach(id => $(id).oninput = $(id).onchange = desglose);
     $('pserv').onchange = () => {
       const sv = SERVICIOS.find(x => x.id === $('pserv').value);
@@ -4987,7 +5006,7 @@ async function editorPedido(pedido) {
         fecha: $('pfecha').value, canal: $('pcan').value,
         cuenta_id: medico ? medico.id : null, cuenta_texto: medico ? '' : ($('pselmed').__texto || '').trim(),
         contacto_id: contacto ? contacto.id : null, nota: $('pnota').value.trim(),
-        forma_pago: $('ppago').value || null,
+        forma_pago: $('ppago').value || null, origen: $('porig').value, pago_referencia: $('ppago').value ? $('pref').value.trim() : '',
         descuento: +$('pdto').value || 0, descuento_tipo: $('pdtot').value,
         envio: $('penv').checked, envio_con_iva: +$('penvi').value || 0, envio_iva: +$('penvv').value || 0, servicio_id: $('pserv').value || null,
         lineas: lineas.filter(l => l.producto_id).map(l => ({ producto_id: l.producto_id, unidades: l.unidades || 1,
@@ -5001,6 +5020,7 @@ async function editorPedido(pedido) {
         return;
       }
       if (cps && !(await camposGuardar(cps, (r && r.id) || (ped && ped.id)))) return;
+      if (justifs.length && !(await subirJustificantes((r && r.id) || (ped && ped.id), justifs))) return;
       $('dlg').close();
       toast(estado === 'Borrador' ? 'Borrador guardado' : (medico ? 'Pedido validado y atribuido' : 'Pedido validado · pendiente de atribuir'));
       if (TAB === 'ventas') cargarVentas();
@@ -5039,6 +5059,7 @@ async function verPedido(id) {
     await verPedidoBase(id);
     await pedidoFacturas(id);
     await pedidoOperativa(id);
+    await pedidoPago(id);
   });
 }
 
@@ -9576,8 +9597,15 @@ async function listaPedidos() {
       <option value="">Todo</option><option value="pago">Pago por validar</option><option value="paquete">Paquete por preparar</option><option value="email">Factura por enviar</option></select></div>`);
     $('popf').onchange = () => { PEDPAG = 0; listaPedidos(); };
   }
+  // v2.115.0: origen del pedido (web o el resto)
+  if (!$('porigf') && $('popf')) {
+    $('popf').closest('div').insertAdjacentHTML('afterend', `<div><label for="porigf">Origen</label><select id="porigf">
+      <option value="">Todos</option><option value="web">Por la web</option><option value="otros">Comercial, teléfono o correo</option></select></div>`);
+    $('porigf').onchange = () => { PEDPAG = 0; listaPedidos(); };
+  }
   const params = { p_desde: r.desde, p_hasta: r.hasta, p_canal: $('pcanal').value || null, q: ($('pq') && $('pq').value.trim()) || null,
     p_estado: $('pestado').value || null, p_operativa: ($('popf') && $('popf').value) || null, lim: tamPagina(), desplaz: PEDPAG * tamPagina(),
+    ...(($('porigf') && $('porigf').value) ? { p_origen: $('porigf').value } : {}),
     ...(Object.keys(PEDF).length ? { f_campos: PEDF } : {}) };
   const clave = 'pedidos-' + JSON.stringify(params);
   if (!$('pedlista').querySelector('.dgrid')) cargando($('pedlista'), 'Cargando pedidos…');
@@ -9589,6 +9617,7 @@ async function listaPedidos() {
   $('ptotales').innerHTML = `
     <div class="kpi"><b>${num(s.pedidos || 0)}</b><span>Pedidos validados${s.borradores ? ` · ${s.borradores} en borrador` : ''}</span></div>
     <div class="kpi"><b>${num(s.unidades || 0)}</b><span>Unidades</span></div>
+    ${s.web_pedidos != null ? `<div class="kpi" id="pkweb"><b>${num(s.web_pedidos || 0)}</b><span>Por la web${imp && s.web_base != null ? ` · ${eurI(s.web_base || 0)} sin IVA` : ''}</span></div>` : ''}
     ${imp ? `<div class="kpi"><b>${eurI(s.base || 0)}</b><span>Base sin IVA</span></div>
     <div class="kpi"><b>${eurI(s.iva || 0)}</b><span>IVA</span></div>
     <div class="kpi ok"><b>${eurI(s.total || 0)}</b><span>Total con IVA</span></div>` : ''}`;
@@ -9600,7 +9629,7 @@ async function listaPedidos() {
       <span class="num">Uds.</span>${imp ? '<span class="num">Base</span><span class="num">Total</span>' : ''}<span>Estado</span><span>Operativa</span>${clasCabeceras(cpCols)}</div>
     ${PEDIDOS.map(p => `<button class="dr" data-ped="${p.id}" style="${p.estado === 'Anulado' ? 'opacity:.55' : ''}">
       <span>${fechaCorta(p.fecha)}${p.factura || p.numero ? `<span class="sm">${esc(p.factura || p.numero)}</span>` : ''}</span>
-      <span><b>${esc(p.contacto || p.centro || p.cuenta_texto || '—')}</b><span class="sm">${p.canal === 'centro' ? 'Venta a centro' : 'Recomendación'}${p.forma_pago ? ' · ' + esc(p.forma_pago) : ''}</span></span>
+      <span><b>${esc(p.contacto || p.centro || p.cuenta_texto || '—')}</b><span class="sm">${p.canal === 'centro' ? 'Venta a centro' : 'Recomendación'}${p.origen === 'web' ? ' · <span class="pweb">Web</span>' : ''}${p.forma_pago ? ' · ' + esc(p.forma_pago) : ''}${p.justificante ? ' · <span title="Con justificante de pago">📎</span>' : ''}</span></span>
       <span class="corta">${p.medico ? esc(p.medico) : '<span class="vac">Sin atribuir</span>'}</span>
       <span>${p.comercial ? esc(p.comercial) : '<span class="vac">—</span>'}</span>
       <span class="sm corta">${esc(p.productos || '')}</span><span class="num">${num(p.unidades)}</span>
@@ -15778,3 +15807,84 @@ function agruparAgendaEscritorio() {
   }
 }
 new MutationObserver(agruparAgendaEscritorio).observe(document.querySelector('main'), { childList: true, subtree: true });
+
+/* v2.115.0 · Justificante del pago: una foto (se reduce a 1600 px en JPEG antes de subirla) o un PDF de hasta 3 MB,
+   guardado en la tabla pedidos_justificantes. Lo ve quien ve el pedido. */
+const JUSTIF_MAX = 3000000;
+const aBase64 = blob => new Promise((ok, mal) => { const fr = new FileReader(); fr.onload = () => ok(String(fr.result).split(',')[1] || ''); fr.onerror = mal; fr.readAsDataURL(blob); });
+async function leerJustificante(f) {
+  try {
+    if (f.type === 'application/pdf') {
+      if (f.size > JUSTIF_MAX) { toast('El PDF pesa más de 3 MB: haz una foto del justificante o reduce el PDF', true); return null; }
+      return { nombre: f.name, tipo: f.type, tamano: f.size, datos: await aBase64(f) };
+    }
+    if (!/^image\//.test(f.type)) { toast('Adjunta una foto o un PDF', true); return null; }
+    const url = URL.createObjectURL(f);
+    const img = await new Promise((ok, mal) => { const i = new Image(); i.onload = () => ok(i); i.onerror = mal; i.src = url; });
+    const k = Math.min(1, 1600 / Math.max(img.naturalWidth, img.naturalHeight));
+    const c = document.createElement('canvas'); c.width = Math.round(img.naturalWidth * k); c.height = Math.round(img.naturalHeight * k);
+    c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(url);
+    const blob = await new Promise(ok => c.toBlob(ok, 'image/jpeg', 0.82));
+    if (!blob || blob.size > JUSTIF_MAX) { toast('No se ha podido preparar la foto', true); return null; }
+    return { nombre: f.name.replace(/\.[^.]+$/, '') + '.jpg', tipo: 'image/jpeg', tamano: blob.size, datos: await aBase64(blob) };
+  } catch (e) { toast('No se ha podido leer el archivo', true); return null; }
+}
+async function subirJustificantes(pedido, lista) {
+  // El pedido ya está guardado: si falla la subida se avisa, pero no se repite el guardado
+  for (const j of lista) {
+    const { error } = await db.from('pedidos_justificantes').insert({ pedido_id: pedido, nombre: j.nombre, tipo: j.tipo, tamano: j.tamano, datos: j.datos });
+    if (error) { toast('El pedido se ha guardado, pero no se ha podido subir «' + j.nombre + '». Añádelo desde el pedido.', true); return true; }
+  }
+  return true;
+}
+async function verJustificante(id) {
+  const { data, error } = await db.from('pedidos_justificantes').select('nombre,tipo,datos').eq('id', id).single();
+  if (error || !data) { toast('No se ha podido abrir el justificante', true); return; }
+  const bin = atob(data.datos), u8 = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
+  const url = URL.createObjectURL(new Blob([u8], { type: data.tipo }));
+  const w = window.open(url, '_blank');
+  if (!w) { const a = document.createElement('a'); a.href = url; a.download = data.nombre; a.click(); }
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
+}
+
+// Ver pedido · Pago: origen, referencia (editable por quien lleva la operativa) y justificantes (añadir, ver y quitar)
+async function pedidoPago(id) {
+  if (!$('dlg').open || $('pdpago')) return;
+  const [{ data }, { data: js }] = await Promise.all([RPC_ORIG('pedido_detalle', { p_id: id }),
+    db.from('pedidos_justificantes').select('id,nombre,tipo,tamano,creado_por,creado_en').eq('pedido_id', id).order('creado_en')]);
+  const p = data && data.pedido; if (!p || !$('dlg').open || $('pdpago')) return;
+  const edita = puede('administrar') || (VE_TODO() && nivelDe2('V') >= 2);
+  const acts = $('dbody').querySelector('.acts:last-of-type'); if (!acts) return;
+  const ref = $('pdops') || acts;
+  ref.insertAdjacentHTML('beforebegin', `<div class="blk" id="pdpago"><h3>Pago</h3>
+    ${p.origen === 'web' ? '<p class="sm"><span class="pill p-est">Pedido por la web</span></p>' : ''}
+    ${edita ? `<div class="g2"><div><label for="pdref">Referencia del pago</label><input id="pdref" value="${esc(p.pago_referencia || '')}" placeholder="Código de la transferencia, bizum…"></div>
+        <div style="align-self:end"><button type="button" class="btn sec" id="pdrefok">Guardar referencia</button></div></div>`
+      : `<p class="sm">Referencia: ${p.pago_referencia ? `<b>${esc(p.pago_referencia)}</b>` : 'sin referencia'}</p>`}
+    <div class="lista" id="pdjus">${(js || []).map(j => `<div class="item"><span class="tx"><b>📎 ${esc(j.nombre)}</b><span class="sm">${fechaCorta(String(j.creado_en).slice(0, 10))} · ${num(Math.round(j.tamano / 1024))} KB</span></span>
+      <button type="button" class="btn sec" data-jver="${j.id}">Ver</button>${j.creado_por === PERFIL.id || puede('administrar') ? `<button type="button" class="btn sec" data-jdel="${j.id}" aria-label="Quitar ${esc(j.nombre)}">Quitar</button>` : ''}</div>`).join('')
+      || '<div class="sm">Sin justificante.</div>'}</div>
+    <label class="btn sec" style="margin-top:8px;display:inline-flex">📎 Añadir justificante<input type="file" id="pdjusf" accept="image/*,application/pdf" data-fp="1" hidden></label></div>`);
+  const repinta = () => { const b = $('pdpago'); if (b) b.remove(); pedidoPago(id); };
+  if ($('pdrefok')) $('pdrefok').onclick = async ev => {
+    ev.target.disabled = true;
+    const { data: r, error } = await db.rpc('guardar_referencia_pago', { p_pedido: id, p_referencia: $('pdref').value });
+    ev.target.disabled = false;
+    toast(error || (r && r.ok === false) ? 'No se ha podido guardar la referencia' : 'Referencia guardada', !!(error || (r && r.ok === false)));
+  };
+  $('pdjusf').onchange = async e => {
+    const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+    const j = await leerJustificante(f); if (!j) return;
+    const { error } = await db.from('pedidos_justificantes').insert({ pedido_id: id, nombre: j.nombre, tipo: j.tipo, tamano: j.tamano, datos: j.datos });
+    if (error) { toast('No se ha podido subir el justificante', true); return; }
+    toast('Justificante añadido'); repinta();
+  };
+  $('pdpago').querySelectorAll('[data-jver]').forEach(b => b.onclick = () => verJustificante(b.dataset.jver));
+  $('pdpago').querySelectorAll('[data-jdel]').forEach(b => b.onclick = async () => {
+    if (!await preguntar('¿Quitar este justificante del pedido?', { titulo: 'Quitar justificante', ok: 'Quitar' })) return;
+    const { error } = await db.from('pedidos_justificantes').delete().eq('id', b.dataset.jdel);
+    if (error) { toast('No se ha podido quitar', true); return; }
+    toast('Justificante quitado'); repinta();
+  });
+}
