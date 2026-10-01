@@ -374,6 +374,7 @@ async function abrirFicha(id, ...r) {
     await fichaAvisoHorario(id);
     await fichaMaterialVisitas(id);
     await fichaUnidades(id);
+    await fichaClientes(id);
     // v2.96.0: si no hay ventas que enseñar (o no hay permiso para verlas), la sección no aparece
     if ($('fventas') && !$('fventasc').children.length) $('fventas').remove();
   } finally { clearTimeout(limite); requestAnimationFrame(() => d.classList.remove('cargando')); }
@@ -443,16 +444,46 @@ async function fichaUnidades(id) {
   if (FICHA_ID !== id || !$('fbody') || $('fundades')) return;
   const { data: u } = await RPC_ORIG('unidades_cuenta', { p_medico: id });
   if (!u || FICHA_ID !== id || $('fundades')) return;
-  const max = Math.max(1, ...(u.meses || []).map(m => m.unidades));
   const bloque = `<div class="blk" id="fundades"><h3>Unidades pautadas</h3>
     <div class="uper">${[['Hoy', u.hoy], ['Semana', u.semana], ['Mes', u.mes], ['Trimestre', u.trimestre], ['Año', u.anio], ['Total', u.total]]
       .map(([t, v]) => `<div><b>${num(v)}</b><span>${t}</span></div>`).join('')}</div>
-    <div class="spark" title="Últimos 12 meses">${(u.meses || []).map(m => `<i style="height:${Math.round(m.unidades / max * 100)}%" title="${periodoTxt(m.mes)}: ${num(m.unidades)}"></i>`).join('')}</div>
-    <div class="sm">${u.total ? `${num(u.pautas)} pautas · última el ${fechaCorta(u.ultima)} · barras: últimos 12 meses` : 'Todavía sin pautas registradas.'}</div></div>`;
+    ${u.total ? `<div class="segs" id="fuserie" role="group" aria-label="Evolución">${UDS_SERIES.map(([k, t]) => `<button type="button" data-us="${k}" class="${k === UDS_SERIE ? 'on' : ''}">${t}</button>`).join('')}</div>` : ''}
+    <div class="spark" id="fuspark">${sparkUnidades(u, UDS_SERIE)}</div>
+    <div class="sm">${u.total ? `${num(u.pautas)} pautas · última el ${fechaCorta(u.ultima)} · <span id="fusley">${leyendaUnidades(UDS_SERIE)}</span>` : 'Todavía sin pautas registradas.'}</div></div>`;
   // v2.96.0: las ventas van en su sección plegada, al final de la ficha
   const zona = $('fventasc');
   if (zona) zona.insertAdjacentHTML('afterbegin', bloque);
   else ($('fbody').querySelector('.blk:nth-of-type(2)') || $('fbody').lastElementChild).insertAdjacentHTML('beforebegin', bloque);
+  // v2.113.0: semana, mes o año (se recuerda la última elegida)
+  $('fbody').querySelectorAll('#fuserie [data-us]').forEach(b => b.onclick = () => {
+    UDS_SERIE = b.dataset.us; try { localStorage.setItem('dlc-uds-serie', UDS_SERIE); } catch (e) {}
+    $('fbody').querySelectorAll('#fuserie [data-us]').forEach(x => x.classList.toggle('on', x === b));
+    $('fuspark').innerHTML = sparkUnidades(u, UDS_SERIE); $('fusley').textContent = leyendaUnidades(UDS_SERIE);
+  });
+}
+
+// v2.113.0 · Unidades de la ficha por semana (12), mes (12) o año (5)
+const UDS_SERIES = [['semana', 'Semana'], ['mes', 'Mes'], ['anio', 'Año']];
+let UDS_SERIE = (() => { try { const v = localStorage.getItem('dlc-uds-serie'); return ['semana', 'mes', 'anio'].includes(v) ? v : 'mes'; } catch (e) { return 'mes'; } })();
+const leyendaUnidades = k => ({ semana: 'barras: últimas 12 semanas', mes: 'barras: últimos 12 meses', anio: 'barras: últimos 5 años' })[k];
+function sparkUnidades(u, k) {
+  const s = k === 'semana' ? (u.semanas || []).map(x => [x.unidades, 'Semana del ' + fechaCorta(x.semana)])
+    : k === 'anio' ? (u.anios || []).map(x => [x.unidades, x.anio])
+    : (u.meses || []).map(x => [x.unidades, periodoTxt(x.mes)]);
+  const max = Math.max(1, ...s.map(x => x[0]));
+  return s.map(([n, t]) => `<i style="height:${Math.round(n / max * 100)}%" title="${esc(t)}: ${num(n)}"></i>`).join('');
+}
+
+// v2.113.0 · Ficha · Cuántos clientes tiene (vinculados o que han comprado con ella). Solo números: también lo ve el comercial
+async function fichaClientes(id) {
+  if (FICHA_ID !== id || !$('fventasc') || $('fclientes')) return;
+  const { data: c } = await RPC_ORIG('clientes_de_cuenta', { p_cuenta: id });
+  if (!c || !c.ok || FICHA_ID !== id || !$('fventasc') || $('fclientes')) return;
+  const bloque = `<div class="blk" id="fclientes"><h3>${TT('paciente', 'p', '', 'l', 'C')} asociados</h3>
+    <div class="uper">${[['Asociados', c.total], ['Con pedidos', c.con_pedido], ['Sin pedidos', c.sin_pedido]].map(([t, v]) => `<div><b>${num(v)}</b><span>${t}</span></div>`).join('')}</div>
+    ${c.total ? '' : `<div class="sm">Todavía no tiene ${TT('paciente', 'p', '', 'l', 'l')} asociados.</div>`}</div>`;
+  const u = $('fundades');
+  if (u) u.insertAdjacentHTML('afterend', bloque); else $('fventasc').insertAdjacentHTML('afterbegin', bloque);
 }
 
 // Ficha · Acceso del médico a la plataforma (administración)
@@ -521,7 +552,7 @@ async function pintarFichaBase(id) {
         ${puedeRegistrar() ? `<button class="btn sec" data-editv='${esc(JSON.stringify(v))}' style="min-height:30px;padding:5px 9px;font-size:12.5px">Editar</button>` : ''}
       </div>`).join('') : `<div class="sm">Todavía no hay ${TT('visita', 'p', '', 'l', 'l', 'registrado')}.</div>`}</div>
     <div id="fzcampos"></div>
-    <details class="blk fventas" id="fventas"><summary>Ventas y ${TT('paciente', 'p', '', 'l', 'l')}</summary><div id="fventasc"></div></details>`;
+    <section class="blk fventas" id="fventas"><h3>Ventas y ${TT('paciente', 'p', '', 'l', 'l')}</h3><div id="fventasc"></div></section>`;
   $('fx').onclick = () => $('ficha').close();
   $('fbody').querySelectorAll('[data-editv]').forEach(b => b.onclick = () => editarVisita(JSON.parse(b.dataset.editv), id));
 }
