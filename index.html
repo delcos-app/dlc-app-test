@@ -2060,6 +2060,25 @@ header,.bnav{background:#FFFFFF!important;-webkit-backdrop-filter:none!important
 @media (max-width:760px){#facceso .g2{grid-template-columns:1fr}#facceso .g2 .btn{width:100%}}
 @media (max-width:760px){.rolmat th,.rolmat td{padding:10px 8px}.rolmat th{white-space:normal;font-size:11px;line-height:1.2}.rolmat{min-width:0!important;width:auto}.rolmat td:first-child{min-width:150px;max-width:170px}.rolmat td .sm{font-size:12px}}
 @media (prefers-reduced-motion: reduce){.rolmat tbody tr{transition:none}}
+/* ============================================================
+   v2.112.0 · Ventanas: cabecera y botonera siempre a la vista
+   ============================================================ */
+/* En las ventanas largas (altas, pedidos, fichas de usuario) el título y la X se quedan arriba y los botones de
+   guardar o cancelar abajo, sobre una banda clara con línea; la cabecera solo marca la línea al desplazar */
+dialog > #dbody > .fh:first-child,dialog > #dlg2body > .fh:first-child{position:sticky;top:0;z-index:5;background:#FFFFFF;
+  margin:-22px -22px 6px;padding:18px 22px 12px;box-shadow:0 1px 0 transparent;transition:box-shadow var(--t-rapido) var(--ease-sal)}
+dialog.desplazada > .fbox > .fh:first-child{box-shadow:0 1px 0 var(--line)}
+dialog > #dbody > .acts:last-child,dialog > #dlg2body > .acts:last-child{position:sticky;bottom:0;z-index:5;background:var(--hielo);
+  margin:18px -22px -22px;padding:12px 22px 14px;border-top:1px solid var(--line)}
+@media (max-width:760px){
+  #dbody,#dlg2body{overflow-x:clip!important}
+  dialog > #dbody > .fh:first-child,dialog > #dlg2body > .fh:first-child{margin:-16px -16px 6px;padding:12px 16px 10px}
+  dialog > #dbody > .acts:last-child,dialog > #dlg2body > .acts:last-child{margin:16px -16px -16px;padding:10px 16px calc(12px + env(safe-area-inset-bottom,0px))}
+}
+@media (prefers-reduced-motion: reduce){dialog > #dbody > .fh:first-child,dialog > #dlg2body > .fh:first-child{transition:none}}
+/* Fila activa de las tablas (flechas del teclado, v2.111.0): igual que al pasar el ratón, con el anillo de foco */
+.dgrid .dr.activo,tbody tr.activo{background:var(--hielo);box-shadow:inset 0 0 0 2px var(--sky)}
+.rolmat tbody tr.activo td:first-child{background:var(--hielo)}
 </style>
 </head>
 <body>
@@ -2196,6 +2215,6 @@ header,.bnav{background:#FFFFFF!important;-webkit-backdrop-filter:none!important
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.111.0"></script>
+<script src="./app.js?v=2.112.0"></script>
 </body>
 </html>

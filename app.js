@@ -15700,3 +15700,25 @@ function volverTrasF5(v) {
   if (v.p) Object.assign(PAG_TAB, v.p);
   if (['config', 'perfil', 'empresa', 'plan'].includes(v.t) || puedeModulo(v.t)) ir(v.t);
 }
+
+// v2.112.0 · Ventanas: al abrir, el foco no se queda en la X (se veía un recuadro de foco sin haber usado el teclado)
+// y, al desplazar una ventana larga, la cabecera muestra una línea de separación
+(() => {
+  const sinFocoX = d => {
+    d.classList.remove('desplazada');
+    const a = document.activeElement;
+    if (a && a.classList && a.classList.contains('x') && d.contains(a)) {
+      if (!d.hasAttribute('tabindex')) d.setAttribute('tabindex', '-1');
+      d.focus({ preventScroll: true });
+    }
+  };
+  const abrir = HTMLDialogElement.prototype.showModal;
+  HTMLDialogElement.prototype.showModal = function () { abrir.apply(this, arguments); sinFocoX(this); };
+  // #dlg tiene su propia apertura (paneles de Configuración): se envuelve también
+  const dl = $('dlg'), propia = dl.showModal;
+  dl.showModal = function () { propia.apply(this, arguments); if (this.open) sinFocoX(this); };
+  document.addEventListener('scroll', e => {
+    const d = e.target;
+    if (d && d.tagName === 'DIALOG') d.classList.toggle('desplazada', d.scrollTop > 4);
+  }, true);
+})();
