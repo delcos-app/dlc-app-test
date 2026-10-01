@@ -2026,6 +2026,40 @@ header,.bnav{background:#FFFFFF!important;-webkit-backdrop-filter:none!important
 .graftit .c1{background:var(--sky)}.graftit .c2{background:var(--navy)}
 /* Los dos gráficos, al mismo ancho: así los meses de arriba y de abajo quedan en la misma vertical */
 .grafdos .grafico{display:block;width:100%!important;height:auto!important;max-width:none!important;max-height:none!important}
+/* ============================================================
+   v2.110.0 · Tablas de permisos por rol y acceso a la plataforma desde la ficha
+   ============================================================ */
+/* Tablas de permisos (módulos y capacidades): cabecera clara, la columna del permiso fija al desplazarse,
+   casillas centradas en el azul de actuar y la fila resaltada al pasar el ratón */
+.rolmat{font-size:14px}
+.dgrid-wrap:has(> .rolmat){border:1px solid var(--line);border-radius:12px;background:#FFFFFF}
+.rolmat th{background:var(--hielo);color:var(--muted);font:700 12px var(--f-texto);letter-spacing:.04em;text-transform:uppercase;
+  padding:11px 12px;border-bottom:1px solid var(--line);text-align:center;white-space:nowrap}
+.rolmat th:first-child{text-align:left}
+.rolmat td{padding:10px 12px;border-top:1px solid #EDF2F7;text-align:center}
+.rolmat td:first-child{text-align:left;min-width:220px}
+.rolmat td b{color:var(--ink);font-weight:600}
+.rolmat td .sm{margin-top:2px;line-height:1.35}
+.rolmat tbody tr{transition:background-color var(--t-rapido) var(--ease-sal)}
+.rolmat tbody tr:hover{background:var(--hielo)}
+.rolmat tbody tr:first-child td{border-top:0}
+.rolmat input[type=checkbox]{width:20px;height:20px;margin:0;accent-color:var(--navy);cursor:pointer}
+.rolmat th:first-child,.rolmat td:first-child{position:sticky;left:0;z-index:1;background:#FFFFFF}
+.rolmat th:first-child{background:var(--hielo);z-index:2}
+.rolmat tbody tr:hover td:first-child{background:var(--hielo)}
+#rolperm .dgrid-wrap{margin-top:10px}
+#rolperm .acts{margin-top:14px}
+/* Acceso a la plataforma (ficha): correo y botón en una fila, alineados; el estado «tiene acceso» como banda verde */
+#facceso .g2{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:end;margin-top:8px}
+#facceso .g2 > div:last-child{align-self:end}
+#facceso .g2 .btn{min-height:44px}
+#facceso > p.sm:first-of-type:not(:has(+ .g2)){position:relative;display:block;padding:10px 14px 10px 42px;border-radius:12px;background:var(--ok-bg);color:#0A4D37;font-size:14px;line-height:1.45}
+#facceso > p.sm:first-of-type:not(:has(+ .g2))::before{content:"";position:absolute;left:14px;top:12px;width:18px;height:18px;background:var(--ok);
+  -webkit-mask:var(--ico-ok) center/contain no-repeat;mask:var(--ico-ok) center/contain no-repeat}
+#faccmsg:not(:empty){margin-top:8px}
+@media (max-width:760px){#facceso .g2{grid-template-columns:1fr}#facceso .g2 .btn{width:100%}}
+@media (max-width:760px){.rolmat th,.rolmat td{padding:10px 8px}.rolmat th{white-space:normal;font-size:11px;line-height:1.2}.rolmat{min-width:0!important;width:auto}.rolmat td:first-child{min-width:150px;max-width:170px}.rolmat td .sm{font-size:12px}}
+@media (prefers-reduced-motion: reduce){.rolmat tbody tr{transition:none}}
 </style>
 </head>
 <body>
@@ -2162,6 +2196,6 @@ header,.bnav{background:#FFFFFF!important;-webkit-backdrop-filter:none!important
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.109.0"></script>
+<script src="./app.js?v=2.110.0"></script>
 </body>
 </html>
