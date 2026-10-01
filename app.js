@@ -457,6 +457,8 @@ async function fichaUnidades(id) {
 
 // Ficha · Acceso del médico a la plataforma (administración)
 async function fichaAcceso(id) {
+  // v2.109.0: quien tiene «Dar acceso a fichas de su cartera» lo hace desde la ficha, sin pasar por Usuarios
+  if (!puede('administrar') && puede('dar_acceso_cuentas')) return fichaAccesoCartera(id);
   if (!puede('administrar') || FICHA_ID !== id || !$('fbody') || $('facceso')) return;
   const { data: us } = await RPC_ORIG('usuarios_resumen', {});
   const ya = (us || []).find(u => u.cuenta_id === id);
@@ -1413,7 +1415,8 @@ document.addEventListener('click', async e => {
 let CFG_SEC = 'prefs', ADM_SEC = 'usuarios', USUARIOS = [], CATS = [];
 const AREAS = [['H', 'Inicio'], ['G', 'Agenda'], ['R', 'Rutas'], ['M', `${TT('medico', 'p', '', 'l', 'C')}`], ['C', 'Centros'], ['S', `${TT('visita', 'p', '', 'l', 'C')}`], ['V', `Ventas y ${TT('paciente', 'p', '', 'l', 'l')}`], ['K', 'Configuración']];
 const NIVELES = ['Sin acceso', 'Ver', 'Editar', 'Completo'];
-const puedeCatalogos = () => PERFIL && (puede('administrar') || ((PERFIL.areas || {}).K || 0) >= 2);
+// v2.109.0: los clasificadores son un permiso del rol (antes, administrar o nivel 2 en Configuración)
+const puedeCatalogos = () => PERFIL && puede('gestionar_clasificadores');
 
 /* ---------------- configuración ---------------- */
 
@@ -1629,19 +1632,25 @@ async function usuarioComisionYZona(id) {
     const { data: h } = await RPC_ORIG('historial_esquemas', { p_usuario: id });
     if ((h || []).length && $('uchist')) $('uchist').innerHTML = 'Historial: ' + h.map(x => `${esc(x.esquema)} desde ${fechaCorta(x.desde)}${x.hasta ? ' hasta ' + fechaCorta(x.hasta) : ''}`).join(' · ');
   }
-  // Zona, solo para comerciales
-  if (rolPuede(u.rol, 'cartera') && !$('uzonas')) {
+  // Zona, solo para comerciales. v2.109.0: según el rol elegido en la ventana (si se cambia a uno con cartera, aparece; si no, se oculta)
+  if ($('ur') && !$('ur').dataset.zona) {
+    $('ur').dataset.zona = '1';
+    $('ur').addEventListener('change', () => { const z = $('uzonas'); if (z) z.classList.toggle('hide', !rolPuede($('ur').value, 'cartera')); else usuarioComisionYZona(id); });
+  }
+  if (rolPuede($('ur') ? $('ur').value : u.rol, 'cartera') && !$('uzonas')) {
     const html = await bloqueZonas(u);
     const ref = $('ucomzona') || $('dbody').querySelector('.acts:last-of-type');
-    if (ref && $('dlg').open) ref.insertAdjacentHTML('beforebegin', html);
+    if (ref && $('dlg').open && !$('uzonas')) ref.insertAdjacentHTML('beforebegin', html);
+    if ($('uzonas')) $('uzonas').dataset.orig = zonasMarcadas().join('|');
     $('dbody').querySelectorAll('[data-zcc]').forEach(c => c.onchange = () =>
       $('dbody').querySelectorAll(`[data-zpc="${CSS.escape(c.dataset.zcc)}"]`).forEach(x => x.checked = c.checked));
     if ($('uzok')) $('uzok').onclick = async ev => {
-      const zonas = [...$('dbody').querySelectorAll('[data-zp]:checked')].map(x => x.dataset.zp);
+      const zonas = zonasMarcadas();
       ev.target.disabled = true;
       const { data: r, error } = await db.rpc('asignar_zona', { p_usuario: id, p_zonas: zonas });
       ev.target.disabled = false;
       if (error || (r && r.ok === false)) { toast('No se ha podido guardar la zona', true); return; }
+      $('uzonas').dataset.orig = zonas.join('|');
       toast(`Zona guardada · ${num(r.asignados)} ${TT('medico', 'p', '', 'l', 'l', 'nuevo')} en su cartera${r.en_otra_cartera ? ` · ${num(r.en_otra_cartera)} de su zona están en otra cartera` : ''}`);
     };
   }
@@ -1733,7 +1742,14 @@ function pintarUsuarioBase(id) {
       }
       await db.from('perfiles').update({ comision_ver: $('uverc').value }).eq('id', id);
     }
-    $('dlg').close(); toast('Usuario guardado'); cargarAdmin();
+    // v2.109.0: la zona marcada se guarda también con «Guardar» (antes solo con su propio botón y se perdía)
+    let extra = '';
+    if ($('uzonas') && !$('uzonas').classList.contains('hide') && zonasMarcadas().join('|') !== ($('uzonas').dataset.orig || '')) {
+      const { data: z, error: ez } = await db.rpc('asignar_zona', { p_usuario: id, p_zonas: zonasMarcadas() });
+      if (ez || (z && z.ok === false)) { toast('Usuario guardado, pero no se ha podido guardar la zona', true); return; }
+      extra = ` · zona guardada, ${num(z.asignados)} ${TT('medico', 'p', '', 'l', 'l', 'nuevo')} en su cartera`;
+    }
+    $('dlg').close(); toast('Usuario guardado' + extra); cargarAdmin();
   };
   $('dlg').showModal();
 }
@@ -9366,6 +9382,7 @@ function kpiPermitido(c) {
 /* ---------------- zonas de cada comercial ---------------- */
 
 let PROV_CCAA = null;
+const zonasMarcadas = () => [...$('dbody').querySelectorAll('#uzonas [data-zp]:checked')].map(x => x.dataset.zp).sort();
 async function bloqueZonas(u) {
   if (!PROV_CCAA) {
     const [{ data: pc }, { data: rz }] = await Promise.all([db.from('provincias_ccaa').select('provincia,comunidad'), db.rpc('zonas_resumen')]);
@@ -9379,7 +9396,7 @@ async function bloqueZonas(u) {
   return `<div class="blk" id="uzonas"><h3>Zona de trabajo</h3>
     <p class="sm">Marca las provincias de su zona. Al guardar, ${TT('medico', 'p', 'el', 'l', 'l')} de esas provincias que no tengan comercial entran en su cartera, y los que se den de alta después entran solos. Solo verá ${TT('medico', 'p', 'el', 'l', 'l')} de su cartera.</p>
     <div class="zonas">${Object.keys(PROV_CCAA).sort().map(cc => {
-      const ps = PROV_CCAA[cc].filter((x, i, a) => a.findIndex(y => y.n === x.n && bonito(y.p).slice(0, 4) === bonito(x.p).slice(0, 4)) === i || x.n);
+      const ps = PROV_CCAA[cc].filter((x, i, a) => a.findIndex(y => y.n === x.n && bonito(y.p).slice(0, 4) === bonito(x.p).slice(0, 4)) === i || x.n || sel.has(x.p));
       return `<details ${ps.some(x => sel.has(x.p)) ? 'open' : ''}><summary><label onclick="event.stopPropagation()"><input type="checkbox" data-zcc="${esc(cc)}" ${ps.every(x => sel.has(x.p)) ? 'checked' : ''}> ${esc(cc)}</label>
         <span class="sm">${num(ps.reduce((n, x) => n + x.n, 0))} ${TT('medico', 'p', '', 'l', 'l')}</span></summary>
         <div class="zprov">${ps.map(x => `<label><input type="checkbox" data-zp="${esc(x.p)}" data-zpc="${esc(cc)}" ${sel.has(x.p) ? 'checked' : ''}> ${esc(bonito(x.p))} <span class="sm">${num(x.n)}</span></label>`).join('')}</div></details>`;
@@ -12866,7 +12883,7 @@ new MutationObserver(() => {
 
 let MED_ACCESO = null;
 async function cargarAccesoMedicos() {
-  if (!(PERFIL && (puede('administrar') || VE_TODO()))) { MED_ACCESO = {}; return; }
+  if (!(PERFIL && (puede('administrar') || VE_TODO() || puede('dar_acceso_cuentas')))) { MED_ACCESO = {}; return; }
   const { data } = await RPC_ORIG('cuentas_con_acceso', {});
   MED_ACCESO = {}; (data || []).forEach(x => { MED_ACCESO[x.cuenta_id] = x; });
 }
@@ -14591,7 +14608,8 @@ async function pintarImportaciones() {
 // Configuración → Datos → Importar datos (administración)
 arbolConfig = (orig => function () {
   const g = orig();
-  if (!puede('administrar')) return g;
+  // v2.109.0: con el permiso «Importar datos» del rol (antes, solo administración)
+  if (!puede('importar_datos')) return g;
   const datos = g.find(x => x[0] === 'Datos');
   const item = { k: 'importar', ic: 'file-spreadsheet', t: 'Importar datos', d: `Clientes, productos, ${etiquetaContactos().toLowerCase()} y ventas desde Excel o CSV`,
     sub: [['nueva', 'Nueva importación', pintarImportar], ['historial', 'Importaciones', pintarImportaciones]] };
@@ -15524,3 +15542,81 @@ document.addEventListener('change', e => {
   if (i.min !== '' && n < +i.min) n = +i.min; if (i.max !== '' && n > +i.max) n = +i.max;
   if (n !== +i.value) { i.value = n; i.dispatchEvent(new Event('input', { bubbles: true })); }
 }, true);
+
+/* v2.109.0 · Las ventanas no muestran lo escrito en otras ocasiones. El navegador sugería, por ejemplo, la nota del pedido
+   anterior al crear uno nuevo: los campos de las ventanas y de las pantallas no guardan historial (salvo los que lo piden). */
+function sinHistorial(raiz) {
+  (raiz || document).querySelectorAll('input:not([autocomplete]):not([type=checkbox]):not([type=radio]):not([type=file]):not([type=hidden]), textarea:not([autocomplete])')
+    .forEach(i => i.setAttribute('autocomplete', 'off'));
+}
+// Una pasada por fotograma como mucho, aunque la pantalla cambie muchas veces seguidas
+let sinHistorialPend = false;
+const sinHistorialLuego = () => { if (sinHistorialPend) return; sinHistorialPend = true; requestAnimationFrame(() => { sinHistorialPend = false; sinHistorial(document.body); }); };
+new MutationObserver(sinHistorialLuego).observe(document.body, { childList: true, subtree: true });
+sinHistorial(document.body);
+
+/* v2.109.0 · Permisos propios en los roles: importar, clasificadores y dar acceso.
+   Configuración → Usuarios y roles → Roles tiene debajo de las plantillas la tabla «Permisos» (las capacidades del grupo
+   «Permisos»; el resto de capacidades no se cambian desde aquí). Quien tiene «Dar acceso a fichas de su cartera» da acceso
+   al portal desde la ficha, sin pasar por Usuarios: se crea la invitación ligada a la ficha y después el usuario. */
+pintarRoles = (orig => async function (...a) {
+  await orig(...a);
+  if (!puede('administrar') || !$('cfgcuerpo')) return;
+  const { data: caps } = await db.from('capacidades').select('clave,nombre,descripcion,orden').eq('grupo', 'Permisos').order('orden');
+  if (!(caps || []).length || !$('cfgcuerpo') || $('rolperm')) return;
+  const roles = rolesNombres().filter(r => !rolPuede(r, 'portal_prescriptor'));
+  $('cfgcuerpo').insertAdjacentHTML('beforeend', `<div class="card cfgpanel" id="rolperm"><h2 style="padding:0 0 4px">Permisos</h2>
+    <p class="sm">Lo que puede hacer cada rol además de sus módulos. Se aplica a todas las personas del rol al guardar.</p>
+    <div class="dgrid-wrap"><table class="rolmat"><thead><tr><th>Permiso</th>${roles.map(r => `<th>${esc(r)}</th>`).join('')}</tr></thead>
+      <tbody>${caps.map(c => `<tr><td><b>${esc(c.nombre)}</b><span class="sm">${esc(c.descripcion || '')}</span></td>
+        ${roles.map(r => `<td><input type="checkbox" data-prol="${esc(r)}" data-pcap="${esc(c.clave)}" aria-label="${esc(c.nombre)} · ${esc(r)}" ${rolPuede(r, c.clave) ? 'checked' : ''}></td>`).join('')}</tr>`).join('')}</tbody></table></div>
+    <div class="acts" style="justify-content:flex-end"><button class="btn" id="rolpermok">Guardar permisos</button></div></div>`);
+  $('rolpermok').onclick = async ev => {
+    ev.target.disabled = true;
+    let fallo = false;
+    for (const r of roles) {
+      const lista = [...$('rolperm').querySelectorAll(`[data-prol="${CSS.escape(r)}"]:checked`)].map(x => x.dataset.pcap);
+      const { data: x, error } = await db.rpc('guardar_permisos_rol', { p_rol: r, p_permisos: lista });
+      if (error || (x && x.ok === false)) fallo = true;
+    }
+    ev.target.disabled = false;
+    await cargarRoles();
+    const { data: yo } = await db.from('perfiles').select('capacidades').eq('id', PERFIL.id).single();
+    if (yo && Array.isArray(yo.capacidades)) PERFIL.capacidades = yo.capacidades;
+    toast(fallo ? 'No se han podido guardar todos los permisos' : 'Permisos guardados', fallo);
+  };
+})(pintarRoles);
+
+async function fichaAccesoCartera(id) {
+  if (FICHA_ID !== id || !$('fbody') || $('facceso')) return;
+  const [{ data: acc }, { data: mia }, rf] = await Promise.all([
+    RPC_ORIG('cuentas_con_acceso', {}),
+    VE_TODO() ? Promise.resolve({ data: [1] }) : db.from('atribuciones').select('cuenta_id').eq('cuenta_id', id).eq('usuario_id', PERFIL.id).is('hasta', null).limit(1),
+    rpcCache('ficha_cuenta', { p_id: id }, 'ficha-' + id)]);
+  const ya = (acc || []).find(x => x.cuenta_id === id), m = (rf && rf.data && rf.data.medico) || {};
+  // Solo en las fichas de su cartera (o en todas si ve todo)
+  if ((!ya && !(mia || []).length) || FICHA_ID !== id || $('facceso')) return;
+  $('fbody').insertAdjacentHTML('beforeend', `<div class="blk" id="facceso"><h3>Acceso a la plataforma</h3>
+    ${ya ? `<p class="sm">Tiene acceso${ya.email ? ` como <b>${esc(ya.email)}</b>` : ''}${ya.activo ? '' : ' (desactivado)'}: ve su informe y recibe un aviso con cada pauta.</p>`
+      : `<p class="sm">Puede tener acceso a su informe y recibir un aviso con cada pauta a su nombre. No verá importes ni datos de ${TT('paciente', 'p', '', 'l', 'l')}.</p>
+         <div class="g2"><div><label for="faccmail">Correo</label><input id="faccmail" type="email" value="${esc(m.email || '')}" placeholder="nombre@correo.com"></div>
+         <div style="align-self:end"><button class="btn sec" id="fdaracc">Dar acceso</button></div></div><div class="sm" id="faccmsg"></div>`}</div>`);
+  if (!$('fdaracc')) return;
+  $('fdaracc').onclick = async ev => {
+    const email = $('faccmail').value.trim();
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { toast('Escribe un correo válido', true); return; }
+    ev.target.disabled = true;
+    const { data: r, error } = await db.rpc('dar_acceso_cuenta', { p_cuenta: id, p_email: email });
+    const motivo = { permiso: 'Tu rol no puede dar acceso', cartera: `Solo puedes dar acceso a ${TT('medico', 'p', '', 'l', 'l')} de tu cartera`,
+      ya_tiene: 'Esta ficha ya tiene acceso', correo_en_uso: 'Ese correo ya es de otro usuario', email: 'El correo no es válido',
+      sin_rol_portal: 'No hay ningún rol con acceso al portal: créalo en Configuración → Roles' };
+    if (error || !r || !r.ok) { ev.target.disabled = false; toast(motivo[(r && r.error) || ''] || 'No se ha podido dar acceso', true); return; }
+    const pass = 'Tmp-' + Math.random().toString(36).slice(2, 8);
+    const tmp = window.supabase.createClient(CFG.url, CFG.anon, { auth: { persistSession: false, autoRefreshToken: false } });
+    const { error: e2 } = await tmp.auth.signUp({ email, password: pass, options: { data: { nombre: m.nombre || email.split('@')[0], usuario: email.split('@')[0] } } });
+    ev.target.disabled = false;
+    if (e2) { toast('No se ha podido crear el acceso: ' + e2.message, true); return; }
+    ev.target.remove(); $('faccmail').disabled = true; MED_ACCESO = null;
+    $('faccmsg').innerHTML = `<b style="color:var(--ok)">Acceso creado.</b> Contraseña temporal: <b>${esc(pass)}</b>. Pásasela y que la cambie al entrar.`;
+  };
+}
