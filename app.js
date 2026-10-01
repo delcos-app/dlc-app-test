@@ -4726,8 +4726,8 @@ async function pintarInicioBase() {
   avisoDup();
   if (esAdmin) db.rpc('resumen_duplicados').then(r => { DUP_RES = r.data || null; avisoDup(); }).catch(() => {});
 
-  const kpi = (n, t, cls, accion, ayuda) =>
-    `<div class="kpi ${cls || ''} ${accion ? 'click' : ''}" ${accion ? `data-k="${accion}"` : ''}>
+  const kpi = (n, t, cls, accion, ayuda, id) =>
+    `<div class="kpi ${cls || ''} ${accion ? 'click' : ''}" ${accion ? `data-k="${accion}"` : ''} ${id ? `data-kid="${id}"` : ''}>
        ${ayuda ? `<button class="ai" data-ayuda-txt="${esc(ayuda)}" data-ayuda-tit="${esc(t)}" aria-label="Qué es">i</button>` : ''}
        <b>${typeof n === 'string' ? n : num(n)}</b><span>${esc(t.charAt(0).toUpperCase() + t.slice(1))}</span></div>`;
 
@@ -4737,7 +4737,7 @@ async function pintarInicioBase() {
         <b class="cont"><span class="spin" style="width:18px;height:18px;border-width:2px;display:inline-block"></span></b><span>${esc(x.t || textoFiltro(x.filtro))}</span></div>`;
     const c = KPI_CAT.find(y => y.id === x.id);
     if (!kpiPermitido(c)) return '';
-    return kpi(c.v(k), x.t || c.t, c.cls ? c.cls(k) : '', c.h, AYUDA_KPI[c.id]);
+    return kpi(c.v(k), x.t || c.t, c.cls ? c.cls(k) : '', c.h, AYUDA_KPI[c.id], c.id);
   }).join('');
   if (res.cache) avisoCache($('kpis'), res.fecha);
   cfg.forEach((x, i) => {
@@ -10320,10 +10320,11 @@ const KPI_TXT = { citas: 'Visitadas de las citas de hoy', urgentes: `${TT('medic
   sin_visita_60: 'Hace más de 60 días', sin_horario: 'Sin días de consulta', muestras_mes: 'Entregadas este mes', material_mes: 'Entregado este mes',
   citas_7d: 'Programadas los próximos 7 días', visitas_7d: 'En los últimos 7 días' };
 function indicadoresCompletos() {
-  const cfg = kpiConfig().filter(c => c.on);
+  // v2.104.0: cada tarjeta lleva su indicador (data-kid). Antes se emparejaban por posición y, al quitar los que
+  // la persona no puede ver, las siguientes tomaban el subtítulo y el icono de otra
   const cards = [...document.querySelectorAll('#kpis .kpi')];
-  cards.forEach((k, i) => {
-    const c = cfg[i]; if (!c || k.dataset.comp) return;
+  cards.forEach(k => {
+    const c = k.dataset.kid ? { id: k.dataset.kid } : null; if (!c || k.dataset.comp) return;
     k.dataset.comp = '1';
     // v2.92.0: los indicadores sin icono propio (por ejemplo, los de una zona) no llevan caja de icono vacía
     if (KPI_ICO[c.id]) k.insertAdjacentHTML('afterbegin', `<span class="kico" aria-hidden="true">${KPI_ICO[c.id]}</span>`);
