@@ -2992,7 +2992,7 @@ async function listaPropuestas() {
     ['hoy', '📅', `Pasan consulta ${dn}`, `Con día de consulta conocido y sin ${TT('visita', 's', '', 'l', 'l')} reciente`],
     ['pendientes', '⏳', 'Pendientes de rutas anteriores', 'Planificados y no visitados'],
     ['urgentes', '❗', 'Urgentes sin visitar', 'Marcados como urgentes'],
-    ['interesados', '🔥', `Interesados sin ${TT('visita', 's', '', 'l', 'l')} en 20 días`, 'Para no perder el interés'],
+    ['interesados', '🔥', `${TT('medico', 'p', '', 'l', 'C', 'interesado')} sin ${TT('visita', 's', '', 'l', 'l')} en 20 días`, 'Para no perder el interés'],
     ['sin_visitar', '🆕', 'Sin visitar nunca', `${TT('visita', 'p', 'primer', 'C', 'l')}, agrupados por zona`]
   ].filter(([k]) => (data[k] || []).length);
 
@@ -3794,7 +3794,7 @@ async function tarjetasRuta() {
   const bloques = [
     ['hoy', '📅', `Pasan consulta ${dn}`],
     ['urgentes', '❗', 'Urgentes sin visitar'],
-    ['interesados', '🔥', `Interesados sin ${TT('visita', 's', '', 'l', 'l')} en 20 días`],
+    ['interesados', '🔥', `${TT('medico', 'p', '', 'l', 'C', 'interesado')} sin ${TT('visita', 's', '', 'l', 'l')} en 20 días`],
     ['sin_visitar', '🆕', 'Sin visitar nunca']
   ].filter(([k]) => (data[k] || []).length);
 
@@ -4308,7 +4308,7 @@ const AYUDA_KPI = {
   urgentes: `${TT('medico', 'p', '', 'l', 'C', 'marcado')} como urgentes que todavía no tienen ${TT('visita', 's', 'ningun', 'l', 'l')}. Pulsa para verlos en el Directorio.`,
   visitas_sem: `${TT('visita', 'p', '', 'l', 'C', 'registrado')} desde el lunes de esta semana.`,
   visitas_mes: `${TT('visita', 'p', '', 'l', 'C', 'registrado')} desde el día 1 de este mes.`,
-  interesados: `${TT('medico', 'p', '', 'l', 'C')} en estado «Interesado». El siguiente paso es conseguir la primera pauta. Pulsa para verlos.`,
+  interesados: `${TT('medico', 'p', '', 'l', 'C')} en estado «${estadoPapel('interes') || 'interés'}». El siguiente paso es conseguir la primera pauta. Pulsa para verlos.`,
   sin_contactar: `${TT('medico', 'p', '', 'l', 'C')} a los que todavía no se ha presentado el producto. Pulsa para verlos.`,
   cartera: `${TT('medico', 'p', '', 'l', 'C')} que puedes ver: tu cartera asignada o, si eres de administración o televenta, toda la base.`,
   dups: 'Fichas marcadas como posible duplicado al darlas de alta. Pulsa para revisarlas y unificarlas.',
@@ -4327,7 +4327,7 @@ const AYUDA = {
   ini_ultimas: [`${TT('visita', 'p', 'ultimo', 'C', 'l')}`, `${TT('visita', 'p', 'el', 'C', 'l', 'registrado')} más recientes, con su resultado.`, []],
   ini_recom: ['Recomendaciones de rutas', 'Listas calculadas cada día con tus datos. Al pulsar una, se planifica la ruta del día.',
     ['«Pasan consulta hoy»: tienen consulta este día de la semana y no se visitan desde hace más de 14 días.',
-     `«Interesados»: en estado Interesado y sin ${TT('visita', 's', '', 'l', 'l')} en 20 días.`,
+     `«${TT('medico', 'p', '', 'l', 'C', 'interesado')}»: en estado «${estadoPapel('interes') || 'interés'}» y sin ${TT('visita', 's', '', 'l', 'l')} en 20 días.`,
      `Solo entran ${TT('medico', 'p', '', 'l', 'l')} con ubicación: completar direcciones mejora las propuestas.`]],
   ini_pend: ['Pendientes de rutas anteriores', 'Citas que planificaste y quedaron sin visitar.',
     ['Desde Agenda puedes moverlas a hoy, cambiarlas de fecha o descartarlas.']],
@@ -4359,7 +4359,7 @@ const AYUDA = {
     'Las descargas están en «⋮».']],
   ventas: ['Ventas', 'Pedidos y unidades atribuidas.', [
     `La venta a ${TT('paciente', 's', '', 'l', 'l')} se atribuye ${TT('medico', 's', 'al', 'l', 'l', 'indicado')} y al comercial que lo tenía asignado en ese momento.`,
-    `La venta a centro con descuento no cuenta como prescripción de ${TT('medico', 's', 'ningun', 'l', 'l')}.`,
+    `La venta a centro con descuento no se atribuye a ${TT('medico', 's', 'ningun', 'l', 'l')}.`,
     `Si un pedido no tiene ${TT('medico', 's', '', 'l', 'l', 'reconocido')}, se puede encontrar filtrando la lista de pedidos para asignarlo a mano.`,
     'Solo televenta y administración crean o cambian pedidos.']],
   analitica: ['Analítica', 'Unidades o importe agrupados como elijas.', [
@@ -4635,7 +4635,7 @@ async function inicioResumenSemanaYVentas() {
     <div class="card"><h2>Ventas del mes</h2>
       <div class="minis"><div><b>${num(v1.unidades || 0)}</b><span>unidades ${delta(+v1.unidades || 0, +v0.unidades || 0)}</span></div>
         ${verImportes() ? `<div><b>${eurI(v1.importe || 0)}</b><span>sin IVA ${delta(+v1.importe || 0, +v0.importe || 0)}</span></div>` : ''}
-        <div><b>${num(v1.medicos || 0)}</b><span>${TT('medico', 'p', '', 'l', 'l')} que prescriben</span></div></div>
+        <div><b>${num(v1.medicos || 0)}</b><span>${TT('medico', 'p', '', 'l', 'l')} con ventas</span></div></div>
       <p class="sm" style="padding:0 16px 14px">Comparado con los mismos días del mes anterior (${num(v0.unidades || 0)} unidades).</p></div>
     <div class="card"><h2>Alertas<span class="n">${alertas.reduce((n, a) => n + a.n, 0)}</span></h2>
       ${alertas.length ? `<div class="lista">${alertas.map((a, i) => `<details class="alerta2 ${a.gravedad || ''}">
@@ -5265,7 +5265,7 @@ async function sugerenciasAgenda() {
     ['acciones', 'Acciones pendientes para este día o atrasadas', acciones.map(a => ({ id: a.cuenta_id, nombre: a.nombre, especialidad: a.especialidad, extra: (a.proxima_accion || 'Seguimiento') + ' · ' + fechaCorta(a.proxima_fecha) }))],
     ['toca', `Les toca ${TT('visita', 's', '', 'l', 'l')} según su frecuencia objetivo`, libre(toca).map(m => Object.assign({}, m, { extra: [m.estado_comercial, m.dias_sin_visita != null ? m.dias_sin_visita + ` días sin ${TT('visita', 's', '', 'l', 'l')}` : 'nunca visitado', m.municipio].filter(Boolean).join(' · ') }))],
     ['urgentes', 'Urgentes sin visitar', libre(pr && pr.urgentes)],
-    ['interesados', `Interesados sin ${TT('visita', 's', '', 'l', 'l')} en 20 días`, libre(pr && pr.interesados)]
+    ['interesados', `${TT('medico', 'p', '', 'l', 'C', 'interesado')} sin ${TT('visita', 's', '', 'l', 'l')} en 20 días`, libre(pr && pr.interesados)]
   ].filter(g => g && g[2].length);
 
   const centros = cen || [];
@@ -5311,7 +5311,7 @@ Object.assign(AYUDA, {
     'Los pedidos se guardan como <b>borrador</b> (editable y se puede eliminar; no cuenta en métricas) o se <b>validan</b> (cuenta en métricas y comisiones; solo se puede anular).',
     'Los importes van sin IVA; el IVA de cada producto se suma aparte y se ve el total.',
     `La venta a ${TT('paciente', 's', '', 'l', 'l')} se atribuye ${TT('medico', 's', 'al', 'l', 'l', 'indicado')} y al comercial que lo tenía asignado en ese momento.`,
-    `La venta a centro con descuento no cuenta como prescripción de ${TT('medico', 's', 'ningun', 'l', 'l')}.`,
+    `La venta a centro con descuento no se atribuye a ${TT('medico', 's', 'ningun', 'l', 'l')}.`,
     `Si un pedido no tiene ${TT('medico', 's', '', 'l', 'l', 'reconocido')}, se puede encontrar filtrando la lista de pedidos para asignarlo a mano.`]],
   pacientes: [`${TT('paciente', 'p', '', 'l', 'C')}`, `Las personas que compran por recomendación de ${TT('medico', 's', 'un', 'l', 'l')}.`, [
     `Cada ${TT('paciente', 's', '', 'l', 'l')} puede tener un <b>${TT('medico', 's', '', 'l', 'l')} que lo trata</b>: se asigna solo con su primer pedido o a mano desde su ficha.`,
@@ -5878,7 +5878,7 @@ Object.assign(AYUDA, {
     'Los pedidos se guardan como <b>borrador</b> (editable y se puede eliminar; no cuenta en métricas) o se <b>validan</b> (cuenta en métricas y comisiones; solo se puede anular).',
     'Importes sin IVA; el IVA de cada producto se suma aparte.',
     `La venta a ${TT('paciente', 's', '', 'l', 'l')} se atribuye ${TT('medico', 's', 'al', 'l', 'l', 'indicado')} y al comercial que lo tenía asignado en ese momento.`,
-    `La venta a centro con descuento no cuenta como prescripción de ${TT('medico', 's', 'ningun', 'l', 'l')}.`]]
+    `La venta a centro con descuento no se atribuye a ${TT('medico', 's', 'ningun', 'l', 'l')}.`]]
 });
 ANCLAS_AYUDA.push(['#v-pacientes .saludo h1', 'pacientes'], ['#v-productos .saludo h1', 'productos'], ['#renc .card > h2', 'rutas']);
 
@@ -6190,7 +6190,7 @@ async function pintarAnalitica() {
     <div class="kpi"><b>${num(t.unidades)}</b><span>Unidades${quien ? ' · ' + esc(quien) : ''}</span></div>
     <div class="kpi ok"><b>${eurI(t.importe)}</b><span>Importe sin IVA</span></div>
     <div class="kpi"><b>${num(t.pedidos)}</b><span>Pedidos</span></div>
-    <div class="kpi"><b>${num(t.medicos)}</b><span>${TT('medico', 'p', '', 'l', 'C')} que prescriben</span></div>`;
+    <div class="kpi"><b>${num(t.medicos)}</b><span>${TT('medico', 'p', '', 'l', 'C')} con ventas</span></div>`;
   const pp = data.por_producto || [];
   $('aprods').innerHTML = pp.length > 1 || (pp.length === 1 && dim !== 'producto') ? `<div class="dgrid-wrap"><div class="dgrid aprod">
     <div class="dh"><span>Por producto</span><span class="num">Unidades</span><span class="num">% uds.</span><span class="num">Importe</span></div>
@@ -7218,7 +7218,7 @@ async function planificarSemana(desde, dias, bloq, porDia) {
     <select id="spfuente">
       <option value="toca">A quien le toca ${TT('visita', 's', '', 'l', 'l')} (según su frecuencia objetivo)</option>
       <option value="urgentes">Urgentes sin visitar</option>
-      <option value="interesados">Interesados sin ${TT('visita', 's', '', 'l', 'l')} en 20 días</option>
+      <option value="interesados">${TT('medico', 'p', '', 'l', 'C', 'interesado')} sin ${TT('visita', 's', '', 'l', 'l')} en 20 días</option>
       <option value="sin_visitar">Nunca visitados</option>
       ${misRutas.map(x => `<option value="ruta:${x.id}">Ruta: ${esc(x.nombre)}</option>`).join('')}
     </select>
@@ -8087,7 +8087,7 @@ async function resumenRutas() {
   const abiertas = citasHoy.filter(c => CITA_ABIERTA.includes(c.estado)).length;
   const hechas = citasHoy.filter(c => c.estado === 'Visitada').length;
   const grupos = [['hoy', '📅', 'Pasan consulta hoy', 'y no se visitan desde hace 14 días'], ['urgentes', '❗', 'Urgentes sin visitar', ''],
-    ['interesados', '🔥', `Interesados sin ${TT('visita', 's', '', 'l', 'l')} en 20 días`, ''], ['sin_visitar', '🆕', 'Nunca visitados', 'con ubicación']];
+    ['interesados', '🔥', `${TT('medico', 'p', '', 'l', 'C', 'interesado')} sin ${TT('visita', 's', '', 'l', 'l')} en 20 días`, ''], ['sin_visitar', '🆕', `Nunca visitad${terminoDe('medico').g === 'f' ? 'a' : 'o'}s`, 'con ubicación']];
   PROPUESTAS = pr || {};
   $('rcuerpo').innerHTML = `
     <div class="rgrid">
@@ -8184,9 +8184,9 @@ KPI_CAT.push(
   { id: 'uds_mes', t: 'unidades vendidas este mes', v: k => k.uds_mes, cls: k => k.uds_mes >= k.uds_mes_ant ? 'ok' : 'warn', h: 'x-analitica' },
   { id: 'importe_mes', t: 'ventas del mes sin IVA', v: k => eurI(k.importe_mes || 0).replace(',00', ''), h: 'x-analitica' },
   { id: 'prescriptores', t: `${TT('medico', 'p', '', 'l', 'l')} que han vendido este mes`, v: k => k.prescriptores_mes, h: 'x-analitica' },
-  { id: 'nuevos_presc', t: 'nuevos prescriptores este mes', v: k => k.nuevos_prescriptores, cls: k => k.nuevos_prescriptores ? 'ok' : '' },
+  { id: 'nuevos_presc', t: `${TT('medico', 'p', '', 'l', 'l')} con su primera venta este mes`, v: k => k.nuevos_prescriptores, cls: k => k.nuevos_prescriptores ? 'ok' : '' },
   { id: 'activos_90', t: `${TT('medico', 'p', '', 'l', 'l')} con ventas en 90 días`, v: k => k.activos_90 },
-  { id: 'conversion', t: 'del embudo ya prescribe', v: k => pct(k.prescriben, k.en_embudo) + '%' },
+  { id: 'conversion', get t() { return `del embudo ya en «${estadoPapel('positivo') || 'positivo'}»`; }, v: k => pct(k.prescriben, k.en_embudo) + '%' },
   { id: 'visitas_7d', t: `${TT('visita', 'p', '', 'l', 'l')} en los últimos 7 días`, v: k => k.visitas_7d },
   { id: 'citas_7d', t: 'citas tuyas en los próximos 7 días', v: k => k.citas_7d, h: 'x-semana' },
   { id: 'muestras_mes', t: 'muestras entregadas este mes', v: k => k.muestras_mes },
@@ -8200,8 +8200,8 @@ Object.assign(AYUDA_KPI, {
   importe_mes: 'Importe sin IVA de los pedidos validados este mes (con el descuento de cada línea).',
   prescriptores: `${TT('medico', 'p', '', 'l', 'C', 'distinto')} a los que se ha atribuido alguna venta este mes.`,
   nuevos_presc: `${TT('medico', 'p', '', 'l', 'C')} cuya primera venta atribuida ha sido este mes: el mejor indicador de captación.`,
-  activos_90: `${TT('medico', 'p', '', 'l', 'C')} con alguna venta atribuida en los últimos 90 días: tu base de prescriptores activos.`,
-  conversion: `${TT('medico', 'p', 'del', 'C', 'l')} ya presentados, interesados o prescriptores, qué parte prescribe. Mide cómo avanza el embudo.`,
+  activos_90: `${TT('medico', 'p', '', 'l', 'C')} con alguna venta atribuida en los últimos 90 días: tu base activa.`,
+  conversion: `${TT('medico', 'p', 'del', 'C', 'l')} que ya han avanzado en el embudo, qué parte ha llegado al estado final positivo. Mide cómo avanza el embudo.`,
   visitas_7d: `${TT('visita', 'p', '', 'l', 'C', 'registrado')} en los últimos siete días, contando hoy.`,
   citas_7d: 'Tus citas abiertas de hoy a los próximos seis días. Pulsa para ver tu semana.',
   muestras_mes: `Muestras entregadas en ${TT('visita', 'p', 'el', 'l', 'l')} de este mes.`,
@@ -8300,7 +8300,7 @@ async function pintarResumenAnalitica() {
       (verImportes() ? kpi(eurI(t.importe || 0), 'Ventas sin IVA', 'Importe sin IVA de los pedidos validados, con el descuento de cada línea.', d(+t.importe || 0, +ant.importe || 0)) : '') +
       kpi(num(t.pedidos || 0), 'Pedidos', 'Pedidos validados en el periodo.', d(+t.pedidos || 0, +ant.pedidos || 0)) +
       (verImportes() ? kpi(t.pedidos ? eurI(t.importe / t.pedidos) : '—', 'Ticket medio', 'Importe medio de cada pedido: ventas sin IVA entre número de pedidos.') : '') +
-      kpi(num(t.medicos || 0), `${TT('medico', 'p', '', 'l', 'C')} que prescriben`, `${TT('medico', 'p', '', 'l', 'C', 'distinto')} con alguna venta atribuida en el periodo.`, d(+t.medicos || 0, +ant.medicos || 0)) +
+      kpi(num(t.medicos || 0), `${TT('medico', 'p', '', 'l', 'C')} con ventas`, `${TT('medico', 'p', '', 'l', 'C', 'distinto')} con alguna venta atribuida en el periodo.`, d(+t.medicos || 0, +ant.medicos || 0)) +
       kpi(visitas ? (Math.round((t.unidades || 0) / visitas * 10) / 10).toString().replace('.', ',') : '—', `Unidades por ${TT('visita', 's', '', 'l', 'l')}`, `Unidades vendidas entre ${TT('visita', 'p', '', 'l', 'l', 'registrado')} en el periodo. Indica cuánto rinde cada ${TT('visita', 's', '', 'l', 'l')}.`);
 
     const meses = mesesEntre(desde, hasta);
@@ -8317,7 +8317,7 @@ async function pintarResumenAnalitica() {
         ${(act.por_producto || []).length ? svgDonut((act.por_producto || []).slice(0, 6).map(x => ({ n: x.nombre, v: x.unidades })))
           : vacioGrafico('Verás qué parte de las unidades corresponde a cada producto.')}
         <p class="leer"><b>Cómo leerlo:</b> el porcentaje de unidades de cada producto en el periodo. Sirve para ver de qué depende la facturación.</p></div>
-      <div class="card ancard"><h2>${TT('medico', 'p', '', 'l', 'C')} que más prescriben</h2>
+      <div class="card ancard"><h2>${TT('medico', 'p', '', 'l', 'C')} con más ventas</h2>
         ${med.filter(x => x.clave !== 'sin').length ? barrasH(med.filter(x => x.clave !== 'sin').map(x => ({ n: x.nombre, v: x.unidades })), num) : vacioGrafico(`Aparecerán los 10 ${TT('medico', 'p', '', 'l', 'l')} con más unidades atribuidas.`)}
         <p class="leer"><b>Cómo leerlo:</b> los diez ${TT('medico', 'p', '', 'l', 'l')} con más unidades atribuidas. Son los que conviene cuidar: ${TT('visita', 'p', '', 'l', 'l')} frecuentes, material y seguimiento.</p></div>
       <div class="card ancard"><h2>Embudo comercial</h2>
@@ -8326,7 +8326,7 @@ async function pintarResumenAnalitica() {
             ${i ? `<span class="sm">${ant2 ? pct(v, ant2 + v) + '% avanza' : ''}</span>` : '<span class="sm"></span>'}</div>`; }).join('')}
           ${negEst && emb[negEst] ? `<div class="sm" style="margin-top:6px">${esc(negEst)}: ${num(emb[negEst])}</div>` : ''}</div>`
           : vacioGrafico(`Verás cuántos ${TT('medico', 'p', '', 'l', 'l')} hay en cada estado comercial.`)}
-        <p class="leer"><b>Cómo leerlo:</b> cuántos ${TT('medico', 'p', '', 'l', 'l')} hay en cada estado. El porcentaje indica qué parte ha pasado a ese estado respecto al anterior. El objetivo es que la barra de «Prescribe» crezca.</p></div>
+        <p class="leer"><b>Cómo leerlo:</b> cuántos ${TT('medico', 'p', '', 'l', 'l')} hay en cada estado. El porcentaje indica qué parte ha pasado a ese estado respecto al anterior. El objetivo es que la barra de «${esc(estadoPapel('positivo') || 'positivo')}» crezca.</p></div>
       <div class="card ancard ancha"><h2>Actividad y resultados</h2>
         ${actv.length || (t.unidades || 0) ? svgBarras(meses, meses.map(m => (vis[m] || {}).visitas || 0), meses.map(m => (serie[m] || {}).unidades || 0), [`${TT('visita', 'p', '', 'l', 'C')}`, 'Unidades vendidas'])
           : vacioGrafico(`Verás ${TT('visita', 'p', 'el', 'l', 'l')} de cada mes junto a las unidades vendidas.`)}
@@ -8757,7 +8757,7 @@ Object.assign(AYUDA, {
     '<b>Ventas</b>: pedidos de clientes. En borrador no cuentan; al validarlos cuentan en métricas y comisiones y <b>salen del stock</b>, primero del lote que caduca antes.',
     '<b>Compras</b>: pedidos a proveedores. Borrador → Enviado → En tránsito → Recibido. Al recibir se anota cada lote con su caducidad y entra en el stock.',
     '<b>Proveedores</b>: datos, plazo de entrega y cuenta contable. El plazo se usa para avisar de cuándo hay que pedir.',
-    `La venta a ${TT('paciente', 's', '', 'l', 'l')} se atribuye ${TT('medico', 's', 'al', 'l', 'l', 'indicado')} y a su comercial; la venta a centro no cuenta como prescripción.`]]
+    `La venta a ${TT('paciente', 's', '', 'l', 'l')} se atribuye ${TT('medico', 's', 'al', 'l', 'l', 'indicado')} y a su comercial; la venta a centro no se atribuye a nadie.`]]
 });
 AYUDA.productos[2].push('<b>Stock y lotes</b>: stock por almacén y lote, caducidades, cobertura según el ritmo de venta, trazabilidad de cada lote (a qué clientes llegó), entradas, ajustes y traspasos a los maletines.');
 MANUAL.forEach(s => { if (s.id === 'ventas') { s.t = 'Pedidos, Clientes y Productos'; s.para = 'Pedidos de venta y de compra, proveedores, clientes, productos, servicios y stock por lotes.'; s.hacer.push([3, 'Crear pedidos de compra, recibir mercancía por lotes, ajustar stock y gestionar proveedores y almacenes']); } });
@@ -10078,7 +10078,7 @@ async function cargarInforme() {
         <div class="kpi"><b>${num(d.pautas)}</b><span>pautas (pedidos)</span></div>
         <div class="kpi"><b>${num(d.pacientes)}</b><span>${TT('paciente', 'p', '', 'l', 'l')}</span></div>
         <div class="kpi"><b>${num(d.repiten)}</b><span>${TT('paciente', 'p', '', 'l', 'l')} que repiten</span></div>
-        <div class="kpi ${top ? 'ok' : ''}"><b>${top ? '🏆 ' + top : d.posicion ? 'Nº ' + d.posicion : '—'}</b><span>${d.posicion ? `de ${num(d.prescriptores)} prescriptores` : 'sin pautas en el periodo'}</span></div>
+        <div class="kpi ${top ? 'ok' : ''}"><b>${top ? '🏆 ' + top : d.posicion ? 'Nº ' + d.posicion : '—'}</b><span>${d.posicion ? `de ${num(d.prescriptores)} ${TT('medico', 'p', '', 'l', 'l')}` : 'sin pautas en el periodo'}</span></div>
       </div>
       <div class="angrid">
         <div class="card ancard ancha"><h2>Tus pautas mes a mes</h2>
@@ -10313,10 +10313,11 @@ async function vistazoHoy() {
 const KPI_ICO = { citas: '📅', urgentes: '⚠️', visitas_sem: '📝', visitas_mes: '🗓️', interesados: '✨', sin_contactar: '📇', cartera: '🩺', dups: '🧩',
   sin_visita_60: '⏳', sin_horario: '🕘', uds_mes: '📦', prescriptores: '💊', nuevos_presc: '🌱', activos_90: '🔁', conversion: '📈',
   importe_mes: '€', borradores: '✏️', muestras_mes: '🎁', material_mes: '📚', citas_7d: '📆', visitas_7d: '🧭' };
+// v2.105.0: los subtítulos que dependen del vocabulario o del nombre de un estado se calculan al pintarlos (get)
 const KPI_TXT = { citas: 'Visitadas de las citas de hoy', urgentes: `${TT('medico', 'p', '', 'l', 'C', 'marcado')} urgentes sin ${TT('visita', 's', '', 'l', 'l')}`, visitas_sem: 'Registradas de lunes a hoy',
-  visitas_mes: 'Registradas en el mes', interesados: 'En estado «Interesado»', sin_contactar: `Todavía sin ${TT('visita', 's', 'primer', 'l', 'l')}`, cartera: 'Asignados a ti',
+  visitas_mes: 'Registradas en el mes', get interesados() { return `En estado «${estadoPapel('interes') || 'interés'}»`; }, sin_contactar: `Todavía sin ${TT('visita', 's', 'primer', 'l', 'l')}`, get cartera() { return `Asignad${terminoDe('medico').g === 'f' ? 'a' : 'o'}s a ti`; },
   dups: 'Fichas por revisar', uds_mes: 'Cajas validadas en el mes', prescriptores: 'Con alguna venta este mes', nuevos_presc: 'Primera venta este mes',
-  activos_90: 'Con ventas en 90 días', conversion: 'Visitados que ya prescriben', importe_mes: 'Base sin IVA del mes', borradores: 'Pedidos sin validar',
+  activos_90: 'Con ventas en 90 días', get conversion() { return `Visitad${terminoDe('medico').g === 'f' ? 'a' : 'o'}s ya en «${estadoPapel('positivo') || 'positivo'}»`; }, importe_mes: 'Base sin IVA del mes', borradores: 'Pedidos sin validar',
   sin_visita_60: 'Hace más de 60 días', sin_horario: 'Sin días de consulta', muestras_mes: 'Entregadas este mes', material_mes: 'Entregado este mes',
   citas_7d: 'Programadas los próximos 7 días', visitas_7d: 'En los últimos 7 días' };
 function indicadoresCompletos() {
@@ -10339,7 +10340,7 @@ const EXPLICA_ALERTA = [
   [/más de una cartera/i, `El mismo ${TT('medico', 's', '', 'l', 'l')} aparece en la cartera de varias personas.`, 'Deja una sola persona desde Administración → Usuarios → Asignar.'],
   [/otra cartera|otro comercial/i, `Un comercial ha visitado ${TT('medico', 'p', '', 'l', 'l')} que lleva otra persona.`, `Revisa si hay que cambiar la cartera o coordinar ${TT('visita', 'p', 'el', 'l', 'l')}.`],
   [/dos personas|14 días/i, `Dos personas han visitado al mismo ${TT('medico', 's', '', 'l', 'l')} en pocos días.`, `Coordina quién lo lleva para no repetir ${TT('visita', 'p', '', 'l', 'l')}.`],
-  [/sin médico|sin atribuir/i, `Pedidos validados que no tienen ${TT('medico', 's', '', 'l', 'l')}: no cuentan como prescripción.`, `Ábrelos y asigna ${TT('medico', 's', 'el', 'l', 'l')} que lo recomendó.`],
+  [/sin médico|sin atribuir/i, `Pedidos validados que no tienen ${TT('medico', 's', '', 'l', 'l')}: no se atribuyen a nadie.`, `Ábrelos y asigna ${TT('medico', 's', 'el', 'l', 'l')} que lo recomendó.`],
   [/stock|caduc/i, 'Productos con pocas unidades o lotes próximos a caducar.', 'Revisa el stock y prepara un pedido de compra.'],
   [/compra|recepci/i, 'Pedidos de compra pendientes de recibir.', 'Registra la recepción cuando llegue la mercancía.']
 ];
@@ -11020,7 +11021,7 @@ const PLANES = [
   { id: 'profesional', nombre: 'Profesional', precio: 349, incluidos: 10, bloque: [5, 149], medicos: 0,
     para: 'Equipos que venden y quieren medir resultados',
     modulos: ['inicio', 'agenda', 'rutas', 'directorio', 'seguimiento', 'ventas', 'pacientes', 'productos', 'analitica'],
-    ventajas: ['Todo lo de Esencial', 'Pedidos, clientes y registro de llamadas', 'Productos y stock por lotes', 'Analítica y ranking de prescriptores', 'Comisiones por tramos'] },
+    ventajas: ['Todo lo de Esencial', 'Pedidos, clientes y registro de llamadas', 'Productos y stock por lotes', `Analítica y ranking de ${TT('medico', 'p', '', 'l', 'l')}`, 'Comisiones por tramos'] },
   { id: 'avanzado', nombre: 'Avanzado', precio: 649, incluidos: 20, bloque: [10, 249], medicos: 50,
     para: 'Empresas con facturación propia y varios equipos',
     modulos: ['inicio', 'agenda', 'rutas', 'directorio', 'seguimiento', 'ventas', 'pacientes', 'productos', 'analitica', 'facturacion'],
@@ -12335,7 +12336,8 @@ db.rpc = (orig => function (fn, params, opts) {
 /* ---------------- nombre del módulo de contactos ---------------- */
 
 const ETIQUETAS = ['Prescriptores', 'Cuentas', `${TT('medico', 'p', '', 'l', 'C')}`, 'Contactos', 'Clientes potenciales', 'Puntos de venta'];
-const etiquetaContactos = () => ((AJUSTES.marca || {}).etiqueta || 'Prescriptores');
+// v2.105.0: sin etiqueta propia, el nombre sale del vocabulario de la empresa («Farmacias», «Contactos»…); con el vocabulario por defecto, «Prescriptores»
+const etiquetaContactos = () => ((AJUSTES.marca || {}).etiqueta || ((TERMINOS.medico || {}).p ? TT('medico', 'p', '', 'l', 'C') : 'Prescriptores'));
 function aplicarEtiqueta() {
   const n = etiquetaContactos();
   document.querySelectorAll('nav.main [data-t="directorio"], #bnav [data-t="directorio"], .bmasgrid [data-bm="directorio"]').forEach(b => {
@@ -12903,9 +12905,9 @@ document.addEventListener('click', e => {
 // Plan y suscripción: página comercial con lo que aporta cada plan y cada módulo
 const MOD_PLAN = [
   ['agenda', 'Agenda y «Tu día»', `Citas, ${TT('visita', 'p', '', 'l', 'l')} y el plan de cada jornada`], ['rutas', 'Rutas', 'Rutas optimizadas y planificación semanal'],
-  ['directorio', 'Prescriptores', `Directorio de ${TT('medico', 'p', '', 'l', 'l')}, centros y fichas`], ['seguimiento', 'Calidad del dato', 'Duplicados y datos que faltan'],
+  ['directorio', etiquetaContactos(), `Directorio de ${TT('medico', 'p', '', 'l', 'l')}, centros y fichas`], ['seguimiento', 'Calidad del dato', 'Duplicados y datos que faltan'],
   ['ventas', 'Pedidos y llamadas', 'Ventas, compras, proveedores y televenta'], ['pacientes', 'Clientes', `${TT('paciente', 'p', '', 'l', 'C')} y empresas con su historial`],
-  ['productos', 'Productos y stock', 'Catálogo, lotes, caducidades y almacenes'], ['analitica', 'Analítica', 'Ventas, ranking de prescriptores y comisiones'],
+  ['productos', 'Productos y stock', 'Catálogo, lotes, caducidades y almacenes'], ['analitica', 'Analítica', `Ventas, ranking de ${TT('medico', 'p', '', 'l', 'l')} y comisiones`],
   ['facturacion', 'Facturación', 'Facturas con VeriFactu, cobros y rectificativas']];
 async function pintarPaginaPlan() {
   const { data } = await RPC_ORIG('plan_uso', {});
@@ -14572,7 +14574,7 @@ arbolConfig = (orig => function () {
   const g = orig();
   if (!puede('administrar')) return g;
   const datos = g.find(x => x[0] === 'Datos');
-  const item = { k: 'importar', ic: 'file-spreadsheet', t: 'Importar datos', d: 'Clientes, productos, prescriptores y ventas desde Excel o CSV',
+  const item = { k: 'importar', ic: 'file-spreadsheet', t: 'Importar datos', d: `Clientes, productos, ${etiquetaContactos().toLowerCase()} y ventas desde Excel o CSV`,
     sub: [['nueva', 'Nueva importación', pintarImportar], ['historial', 'Importaciones', pintarImportaciones]] };
   if (datos) { if (!datos[1].some(x => x.k === 'importar')) datos[1].push(item); } else g.push(['Datos', [item]]);
   return g;
