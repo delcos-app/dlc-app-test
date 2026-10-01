@@ -15171,6 +15171,49 @@ function rutaCentrosHTML(centros, medicos) {
 if (AYUDA.rutas) AYUDA.rutas[2].push(`Con <b>Añadir un centro</b> entran todos sus ${TT('medico', 'p', '', 'l', 'l')}: quita los que no vayas a ver. En el plan, los de un mismo centro forman una sola parada y se les planifica en ese centro aunque pasen consulta en otros.`);
 
 
+/* ============================================================
+   v2.102.0 · «Tu día» por centros
+   Las citas seguidas en un mismo centro se agrupan bajo el centro (como las
+   paradas del plan). Y la ficha abierta desde una cita muestra en «Para la
+   visita» la consulta de ESE centro. (El SQL 79 pone la base en hora de España.)
+   ============================================================ */
+let FICHA_CENTRO = null;   // centro de la cita desde la que se abre la ficha
+// La consulta de la visita: la del centro de la cita; si no, la que tiene consulta hoy; si no, la principal
+consultaDeLaVisita = (orig => function (cons) {
+  const pref = FICHA_CENTRO ? clasNorm(FICHA_CENTRO) : '';
+  return (pref && (cons || []).find(c => clasNorm(c.centro_nombre) === pref)) || orig(cons);
+})(consultaDeLaVisita);
+abrirFicha = (orig => async function (...a) { try { return await orig.apply(this, a); } finally { FICHA_CENTRO = null; } })(abrirFicha);
+accionCita = (orig => function (k, c, ...r) { if (k === 'ficha') FICHA_CENTRO = c.centro_nombre || null; return orig(k, c, ...r); })(accionCita);
+// Al pulsar una cita de «Tu día» (antes de que se abra su ficha) se recuerda su centro
+document.addEventListener('click', e => {
+  const it = e.target.closest('.tdlista [data-tdf]'); if (!it || e.target.closest('button, a, .tdmenu')) return;
+  const c = (TD_CITAS || [])[[...it.parentElement.querySelectorAll(':scope > [data-tdf]')].indexOf(it)];
+  FICHA_CENTRO = c && c.cuenta_id === it.dataset.tdf ? c.centro_nombre || null : null;
+}, true);
+pintarTuDia = (orig => async function (...a) {
+  const r = await orig.apply(this, a);
+  const lista = $('agcuerpo') && $('agcuerpo').querySelector('.tdlista'); if (!lista) return r;
+  const items = [...lista.querySelectorAll(':scope > [data-tdf]')], citas = TD_CITAS || [];
+  if (items.length !== citas.length) return r;
+  // Tramos de citas seguidas con el mismo centro (al menos dos)
+  let i = 0;
+  while (i < citas.length) {
+    const cen = citas[i].centro_nombre ? clasNorm(citas[i].centro_nombre) : '';
+    let j = i + 1;
+    while (cen && j < citas.length && clasNorm(citas[j].centro_nombre || '') === cen) j++;
+    if (cen && j - i > 1) {
+      const c = citas[i], n = j - i;
+      items[i].insertAdjacentHTML('beforebegin', `<div class="tdcentro">${svgIco(ICON_NOM['building-2'])}<b>${esc(c.centro_nombre)}</b>
+        <span class="sm">${esc(c.municipio || '')}${c.municipio ? ' · ' : ''}${n} citas</span></div>`);
+      for (let k = i; k < j; k++) items[k].classList.add('tdengrupo');
+    }
+    i = j;
+  }
+  return r;
+})(pintarTuDia);
+
+
 // Barra inferior del móvil y barra de «Entrar como» desde el primer momento
 pintarBnav();
 

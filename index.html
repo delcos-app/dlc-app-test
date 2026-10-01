@@ -1397,6 +1397,12 @@ html{overflow-y:scroll;scrollbar-gutter:stable}
 .rcentronom{display:flex;align-items:center;gap:8px;min-width:0}.rcentronom .ico{width:18px;height:18px;color:var(--sky);flex:none}
 .rcentro .chips{margin-top:8px}
 .rcentrootros{margin:10px 0 4px;font-weight:600;color:var(--muted)}
+/* v2.102.0 · «Tu día»: las citas seguidas en un centro, bajo el centro */
+.tdcentro{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:12px 4px 6px;color:var(--navy);font-size:14px}
+.tdcentro .ico{width:18px;height:18px;color:var(--sky);flex:none}
+.tdcentro .sm{color:var(--muted)}
+.tdlista .tdit.tdengrupo{margin-left:14px}
+@media (max-width:640px){.tdlista .tdit.tdengrupo{margin-left:8px}}
 /* Segundo panel lateral (columnas) */
 .t2volver{display:inline-flex;border:0;background:none;color:var(--sky);font:inherit;font-weight:700;padding:0 0 10px;cursor:pointer}
 .tools2{z-index:1202!important;box-shadow:-12px 0 30px rgba(11,58,102,.12)}
@@ -2091,6 +2097,6 @@ input[type=checkbox],input[type=radio]{accent-color:var(--navy)}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.101.0"></script>
+<script src="./app.js?v=2.102.0"></script>
 </body>
 </html>
