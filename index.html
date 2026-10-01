@@ -2243,6 +2243,11 @@ a.btn{text-decoration:none}
   .planmat th:first-child,.planmat td:first-child{position:sticky;left:0;z-index:1;background:#FFFFFF;min-width:170px;padding-left:16px;box-shadow:1px 0 0 var(--line)}
   .planmat th:first-child{background:var(--hielo)}
 }
+/* v2.121.0 · Ventanas integradas (escritorio): dentro de Configuración y de las páginas propias, la ventana ocupa el área de contenido
+   en lugar de flotar sobre la pantalla. Funcional; el diseño fino, de la sesión de Branding. */
+dialog.encajada{position:absolute;inset:auto;margin:0;max-width:none;max-height:none;transform:none;z-index:40;box-shadow:none;border:1px solid var(--line,#E3E9F0);border-radius:14px}
+dialog.encajada::backdrop{display:none}
+.con-ventana > *{visibility:hidden}
 </style>
 </head>
 <body>
@@ -2379,6 +2384,6 @@ a.btn{text-decoration:none}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.120.0"></script>
+<script src="./app.js?v=2.121.0"></script>
 </body>
 </html>

@@ -13022,6 +13022,7 @@ const PAGINAS = {
 let PAG_TAB = {};
 function cargarPagina(t) {
   const P = PAGINAS[t];
+  if (P.permiso && !P.permiso()) { ir('inicio'); return; }   // v2.121.0: páginas con su propio permiso (Organización)
   if (P.admin && !puede('administrar')) { ir('inicio'); return; }
   let sec = $('v-' + t);
   if (!sec) { document.querySelector('main').insertAdjacentHTML('beforeend', `<section id="v-${t}"></section>`); sec = $('v-' + t); }
@@ -15996,7 +15997,7 @@ pintarPaginaPlan = async function () {
   // v2.120.0: «incluido» y «no incluido» como icono y raya suave, con su texto para lectores de pantalla
   const celda = (p, v) => `<td class="${p.id === act.id ? 'act' : ''}">${v === '✓' ? `<span class="si" role="img" aria-label="Incluido">${svgIco(ICON_NOM.check)}</span>`
     : v === '—' ? '<span class="no" role="img" aria-label="No incluido">—</span>' : v}</td>`;
-  cont.innerHTML = `<div class="saludo"><div><h1>Plan y suscripción</h1><div class="fecha">Precio por usuario y mes, IVA no incluido. Con pago anual pagas 10 meses de 12.</div></div></div>
+  cont.innerHTML = `${TAB === 'organizacion' ? '<p class="sm">Precio por usuario y mes, IVA no incluido. Con pago anual pagas 10 meses de 12.</p>' : '<div class="saludo"><div><h1>Plan y suscripción</h1><div class="fecha">Precio por usuario y mes, IVA no incluido. Con pago anual pagas 10 meses de 12.</div></div></div>'}
     <div class="card" id="planact"><h2>Tu plan: ${esc(act.nombre)}</h2>
       ${pl.estado === 'prueba' ? `<div class="banda-aviso">Estás en la prueba gratuita hasta el <b>${fechaCorta(pl.prueba_hasta)}</b>. Sin permanencia: si no sigues, te llevas tus datos.</div>` : ''}
       <div class="kpis">
@@ -16167,3 +16168,106 @@ async function llamadaAltaGuardar(ll, x, est) {
   if (error || (r && r.ok === false)) { toast('No se ha podido guardar la llamada' + (error ? ': ' + error.message : ''), true); return null; }
   return r.id;
 }
+
+
+/* v2.121.0 · Página «Organización» (menú de usuario, arriba): marca, correo, copias, plan y facturación de la empresa, solo para el
+   Propietario (configurar_organizacion) y el Administrador de la plataforma (gestionar_plataforma). Empresa y Plan pasan a ser
+   pestañas suyas; Configuración se queda con lo del día a día. Y en escritorio, las ventanas de Configuración y de estas páginas
+   se abren dentro del área de contenido, no por encima. */
+// Las pestañas de facturación usan #fcuerpo, como el módulo Facturación: su pantalla se vacía para no tener dos (se rehace al volver)
+const facOrg = fn => () => { const v = $('v-facturacion'); if (v) v.innerHTML = ''; fac(fn)(); };
+const puedeOrganizacion = () => puede('configurar_organizacion') || puede('gestionar_plataforma');
+PAGINAS.organizacion = {
+  t: 'Organización', d: 'Marca, correo, copias de seguridad, plan y facturación de la empresa', permiso: puedeOrganizacion,
+  get tabs() {
+    const fact = planIncluye('facturacion');
+    return [['marca', 'Marca y logo', () => pintarMarca()], ['correo', 'Correo y firma', () => pintarCorreo()], ['copias', 'Copias de seguridad', () => pintarCopias()],
+      ['plan', 'Plan y suscripción', () => pintarPaginaPlan()],
+      ...(fact ? [['fiscal', 'Datos fiscales', facOrg(pintarEmpresa)], ['series', 'Series', facOrg(pintarSeries)], ['vf', 'VeriFactu', facOrg(pintarVerifactu)], ['pdf', 'Diseño del PDF', () => disenoPDF()]] : []),
+      ...(puede('gestionar_plataforma') ? [['orgs', 'Organizaciones', () => pintarOrganizaciones()]] : [])];
+  }
+};
+// Empresa y Plan (y los apartados de Configuración que se han movido) llevan a su pestaña de Organización
+const ORG_DESDE = { marca: 'marca', correo: 'correo', copias: 'copias', __empresa: 'marca', empresa: 'marca', plan: 'plan', fact: 'fiscal', fiscal: 'fiscal',
+  series: 'series', vf: 'vf', pdf: 'pdf', orgs: 'orgs' };
+const IR_V2121 = ir;
+ir = function (t, ...a) {
+  if (t === 'empresa') { PAG_TAB.organizacion = PAG_TAB.empresa || 'marca'; t = 'organizacion'; }
+  else if (t === 'plan') { PAG_TAB.organizacion = 'plan'; t = 'organizacion'; }
+  else if (t === 'config' && ORG_DESDE[CFG_SEC]) { PAG_TAB.organizacion = ORG_DESDE[CFG_SUB] || ORG_DESDE[CFG_SEC]; CFG_SEC = 'rutas'; t = 'organizacion'; }
+  if (t === 'organizacion' && !puedeOrganizacion()) t = 'inicio';
+  return IR_V2121(t, ...a);
+};
+// Configuración, sin lo que ahora está en Organización
+arbolConfig = (orig => function () {
+  return orig().map(([g, l]) => [g, l.filter(x => !['fact', 'marca', 'correo', 'copias', 'orgs'].includes(x.k))]).filter(g => g[1].length);
+})(arbolConfig);
+// Menú de usuario: una sola entrada «Organización» en lugar de Empresa y Plan
+function menuOrganizacion() {
+  const plan = document.querySelector('[data-u="plan"]'), emp = document.querySelector('[data-u="empresa"]');
+  if (!document.querySelector('[data-u="organizacion"]') && (emp || plan))
+    (emp || plan).insertAdjacentHTML('beforebegin', `<button data-u="organizacion" class="hide">${svgIco(ICON_NOM.building)} Organización</button>`);
+  [plan, emp].forEach(b => b && b.classList.add('hide'));
+  const o = document.querySelector('[data-u="organizacion"]'); if (o) o.classList.toggle('hide', !puedeOrganizacion());
+}
+mostrarApp = (orig => function (...a) { const r = orig(...a); menuOrganizacion(); return r; })(mostrarApp);
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-u="organizacion"]'); if (!b) return;
+  e.stopImmediatePropagation(); e.preventDefault();
+  document.querySelectorAll('.umenu, #umenu').forEach(m => m.classList.add('hide'));
+  ir('organizacion');
+}, true);
+
+// Ventanas integradas: en escritorio, dentro de Configuración y de las páginas propias, una ventana ocupa el área de contenido
+// (sin fondo oscuro ni ventana flotante); al cerrarla vuelve el apartado. En el móvil las ventanas ya ocupan la pantalla.
+const ENCAJE_MIN = 900;
+function areaEncaje() {
+  if (innerWidth < ENCAJE_MIN) return null;
+  if (TAB === 'config') return $('cfgcuerpo-hub') || $('cfgcuerpo');
+  if (PAGINAS[TAB]) return document.querySelector(`#v-${TAB} .pagcuerpo`) || $('cfgcuerpo');
+  return null;
+}
+function colocarEncajada(d, area) {
+  const r = area.getBoundingClientRect();
+  Object.assign(d.style, { top: (r.top + scrollY) + 'px', left: (r.left + scrollX) + 'px', width: r.width + 'px' });
+  area.style.minHeight = d.offsetHeight + 'px';
+}
+['dlg', 'dlg2'].forEach(id => {
+  const d = $(id); if (!d) return;
+  const modal = d.showModal.bind(d);
+  d.showModal = function () {
+    const area = areaEncaje();
+    if (!area) return modal();
+    if (d.open) return;
+    d.classList.add('encajada'); d.__area = area;
+    area.classList.add('con-ventana');
+    d.show(); colocarEncajada(d, area);
+    if (!d.__ro) { d.__ro = new ResizeObserver(() => { if (d.open && d.__area) colocarEncajada(d, d.__area); }); d.__ro.observe(d); }
+    // Al abrir, el navegador lleva la vista al primer campo: se vuelve arriba del área para ver su cabecera
+    const tapa = () => Math.max(0, ...['body > header', 'header', '.top', 'nav.main'].map(q => { const e = document.querySelector(q); return e && getComputedStyle(e).position.match(/fixed|sticky/) ? e.getBoundingClientRect().bottom : 0; }));
+    const arriba = () => scrollTo({ top: Math.max(0, area.getBoundingClientRect().top + scrollY - tapa() - 12) });
+    arriba(); requestAnimationFrame(arriba);
+    const f = d.querySelector('input:not([type=hidden]), select, textarea'); if (f) setTimeout(() => { f.focus({ preventScroll: true }); arriba(); }, 30);
+  };
+  d.addEventListener('close', () => {
+    if (!d.classList.contains('encajada')) return;
+    d.classList.remove('encajada'); d.removeAttribute('style');
+    const area = d.__area; d.__area = null;
+    // El apartado vuelve a verse si ya no queda ninguna otra ventana encajada encima de él
+    if (area && !document.querySelector('dialog.encajada[open]')) { area.classList.remove('con-ventana'); area.style.minHeight = ''; }
+  });
+});
+const cerrarEncajadas = () => ['dlg2', 'dlg'].forEach(id => { const d = $(id); if (d && d.open && d.classList.contains('encajada')) d.close(); });
+// Escape cierra la de arriba; cambiar de apartado, de pestaña o de pantalla las cierra
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+  const d = ['dlg2', 'dlg'].map(id => $(id)).find(x => x && x.open && x.classList.contains('encajada'));
+  if (d) { e.preventDefault(); d.close(); }
+});
+document.addEventListener('click', e => { if (e.target.closest('.cfgnav [data-cfg], .pagtabs [data-ptab], #cfgsubs button, nav.main [data-t], #bnav [data-t], [data-u]')) cerrarEncajadas(); }, true);
+const IR_ENCAJE = ir;
+ir = function (...a) { cerrarEncajadas(); return IR_ENCAJE(...a); };
+addEventListener('resize', () => ['dlg', 'dlg2'].forEach(id => { const d = $(id); if (d && d.open && d.__area) { if (innerWidth < ENCAJE_MIN) d.close(); else colocarEncajada(d, d.__area); } }));
+// Si la app ya estaba a la vista al cargar este bloque (arranque con el perfil guardado), el menú se ajusta igualmente
+if (typeof PERFIL !== 'undefined' && PERFIL) menuOrganizacion();
+cargarAjustes = (orig => async function (...a) { const r = await orig(...a); if (PERFIL) menuOrganizacion(); return r; })(cargarAjustes);
