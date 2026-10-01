@@ -15753,3 +15753,28 @@ function volverTrasF5(v) {
     if (d && d.tagName === 'DIALOG') d.classList.toggle('desplazada', d.scrollTop > 4);
   }, true);
 })();
+
+// v2.114.0 · Agenda en escritorio: Día, Semana y Mes como selector segmentado y ‹ Hoy › en un solo bloque,
+// igual que en el móvil. Los botones conservan data-ag (el clic sigue igual); el orden lo pone la hoja de estilos
+function agruparAgendaEscritorio() {
+  if (ES_MOVIL() || TAB !== 'agenda') return;
+  const acts = document.querySelector('#v-agenda > .saludo .acts');
+  if (!acts || acts.querySelector(':scope > .agmodos')) return;
+  const hijos = [...acts.children];
+  const modos = hijos.filter(b => ['dia', 'semana', 'mes'].includes(b.dataset.ag));
+  const nav = hijos.filter(b => ['ant', 'hoy', 'sig'].includes(b.dataset.ag));
+  if (nav.length) {
+    const g = document.createElement('div'); g.className = 'agnav'; g.setAttribute('role', 'group'); g.setAttribute('aria-label', 'Moverse por la agenda');
+    nav.forEach(b => { b.classList.remove('btn', 'sec'); g.appendChild(b); });
+    const ant = g.querySelector('[data-ag=ant]'), sig = g.querySelector('[data-ag=sig]');
+    if (ant) { ant.innerHTML = svgIco('<path d="m15 18-6-6 6-6" />'); ant.setAttribute('aria-label', 'Anterior'); ant.title = 'Anterior'; }
+    if (sig) { sig.innerHTML = svgIco('<path d="m9 18 6-6-6-6" />'); sig.setAttribute('aria-label', 'Siguiente'); sig.title = 'Siguiente'; }
+    acts.appendChild(g);
+  }
+  if (modos.length) {
+    const g = document.createElement('div'); g.className = 'segs agmodos'; g.setAttribute('role', 'group'); g.setAttribute('aria-label', 'Vista');
+    modos.forEach(b => { b.classList.remove('btn'); b.classList.toggle('on', b.dataset.ag === AG_MODO); g.appendChild(b); });
+    acts.appendChild(g);
+  }
+}
+new MutationObserver(agruparAgendaEscritorio).observe(document.querySelector('main'), { childList: true, subtree: true });

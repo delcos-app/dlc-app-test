@@ -2079,6 +2079,46 @@ dialog > #dbody > .acts:last-child,dialog > #dlg2body > .acts:last-child{positio
 /* Fila activa de las tablas (flechas del teclado, v2.111.0): igual que al pasar el ratón, con el anillo de foco */
 .dgrid .dr.activo,tbody tr.activo{background:var(--hielo);box-shadow:inset 0 0 0 2px var(--sky)}
 .rolmat tbody tr.activo td:first-child{background:var(--hielo)}
+/* ============================================================
+   v2.114.0 · Agenda en escritorio: barra agrupada
+   ============================================================ */
+/* Orden: de quién es la agenda, Equipo, ‹ Hoy ›, Día/Semana/Mes y la acción principal al final */
+#v-agenda > .saludo .acts{align-items:center}
+#v-agenda > .saludo .acts > #agvista{order:1}
+#v-agenda > .saludo .acts > [data-ag=equipo]{order:2}
+#v-agenda > .saludo .acts > .agnav{order:3}
+#v-agenda > .saludo .acts > .agmodos{order:4}
+#v-agenda > .saludo .acts > [data-ag=nueva]{order:5;margin-left:4px}
+/* ‹ Hoy ›: un bloque con divisiones finas */
+.agnav{display:inline-flex;align-items:stretch;height:40px;border:1px solid var(--line-f);border-radius:10px;background:#FFFFFF;overflow:hidden}
+.agnav button{border:0;background:none;font:inherit;font-weight:650;font-size:14px;color:var(--navy);cursor:pointer;padding:0 14px;
+  transition:background-color var(--t-rapido) var(--ease-sal)}
+.agnav [data-ag=ant],.agnav [data-ag=sig]{width:40px;padding:0;display:grid;place-items:center}
+.agnav [data-ag=hoy]{border-left:1px solid var(--line);border-right:1px solid var(--line)}
+.agnav button .ico{width:18px;height:18px}
+.agnav button:hover{background:var(--hielo)}
+.agnav button:active{background:var(--sky-soft)}
+.agnav button:focus-visible{outline:none;box-shadow:inset var(--foco)}
+/* Día/Semana/Mes: selector segmentado de la biblioteca, a la misma altura que los botones */
+.agmodos{height:40px;align-items:stretch;margin:0}
+.agmodos button{min-width:76px!important;padding:0 14px}
+/* En «Equipo» ninguna vista queda marcada (la app pone .sec a Semana) */
+.agmodos button.sec.on{background:none;box-shadow:none;color:var(--muted)}
+/* Meses a la vista (en «Mes»): el primero por la izquierda, para que los demás botones no se muevan al cambiar de vista */
+#v-agenda > .saludo .acts > #agmeses{order:0;height:40px;min-width:118px;padding-right:36px}
+@media (prefers-reduced-motion: reduce){.agnav button{transition:none}}
+/* Calidad del dato: las cifras se reparten en filas iguales, sin una tarjeta suelta en la última fila */
+@media (min-width:761px){
+  #calidad .kpis,#segkpis{grid-template-columns:repeat(4,minmax(0,1fr))}
+  #calidad .kpis:has(> :nth-child(5):last-child),#segkpis:has(> :nth-child(5):last-child),
+  #calidad .kpis:has(> :nth-child(10):last-child),#segkpis:has(> :nth-child(10):last-child){grid-template-columns:repeat(5,minmax(0,1fr))}
+  #calidad .kpis:has(> :nth-child(6):last-child),#segkpis:has(> :nth-child(6):last-child),
+  #calidad .kpis:has(> :nth-child(9):last-child),#segkpis:has(> :nth-child(9):last-child){grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media (min-width:1200px){
+  #calidad .kpis:has(> :nth-child(6):last-child),#segkpis:has(> :nth-child(6):last-child){grid-template-columns:repeat(6,minmax(0,1fr))}
+  #calidad .kpis:has(> :nth-child(7):last-child),#segkpis:has(> :nth-child(7):last-child){grid-template-columns:repeat(7,minmax(0,1fr))}
+}
 </style>
 </head>
 <body>
@@ -2215,6 +2255,6 @@ dialog > #dbody > .acts:last-child,dialog > #dlg2body > .acts:last-child{positio
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.113.0"></script>
+<script src="./app.js?v=2.114.0"></script>
 </body>
 </html>
