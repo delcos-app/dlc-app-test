@@ -1791,7 +1791,7 @@ function pintarUsuarioBase(id) {
 
 /* Nuevo usuario: la ventana base, el límite del plan y el alta de médicos, y el resumen al crear (antes eran 3 capas). */
 function nuevoUsuario(pre) {
-  const act = planDe(PLAN_ACTUAL.plan), maxU = act.incluidos + (+PLAN_ACTUAL.bloques_extra || 0) * act.bloque[0];
+  const act = planDe(PLAN_ACTUAL.plan), maxU = usuariosContratados();
   const activos = (USUARIOS || []).filter(u => u.activo && !rolPuede(u.rol, 'portal_prescriptor')).length;
   nuevoUsuarioBase();
   nuevoUsuarioPlanYMedico(pre, act, maxU, activos);
@@ -4623,9 +4623,14 @@ async function arrancar() {
   if (error && error.code !== 'PGRST116' && guardado) { perfil = guardado; error = null; }
   marca('perfil recibido');
   if (error || !perfil || !perfil.activo) {
+    // v2.117.0: si su empresa está bloqueada (prueba terminada o desactivada), se dice eso
+    const { data: acc } = await Promise.resolve(RPC_ORIG('acceso_organizacion', {})).catch(() => ({ data: null }));
     localStorage.removeItem(PKEY);
     await db.auth.signOut();
-    mostrarLogin(perfil && !perfil.activo ? 'Tu usuario está desactivado.'
+    mostrarLogin(acc && acc.bloqueada ? (acc.motivo === 'prueba_terminada'
+        ? `La prueba de ${acc.organizacion} terminó el ${fechaCorta(acc.prueba_hasta)}. Tus datos se conservan: escríbenos para seguir.`
+        : `${acc.organizacion} está desactivada. Tus datos se conservan: escríbenos para volver a activarla.`)
+      : perfil && !perfil.activo ? 'Tu usuario está desactivado.'
       : 'Tu usuario no tiene perfil en la plataforma. Avisa a administración.');
     return;
   }
@@ -7878,7 +7883,8 @@ function pintarBnav() {
 
 const SKEY = 'dlc-suplantador';
 const suplantando = () => { try { return JSON.parse(localStorage.getItem(SKEY) || 'null'); } catch (e) { return null; } };
-const puedeSuplantar = () => PERFIL && (puede('administrar') || ((PERFIL.areas || {}).U || 0) >= 3) && !suplantando();
+// v2.117.0: «Entrar como otro usuario» es del plan A medida
+const puedeSuplantar = () => PERFIL && (puede('administrar') || ((PERFIL.areas || {}).U || 0) >= 3) && !suplantando() && PLAN_ACTUAL.plan === 'medida';
 
 function limpiarDatosLocales() {
   try { Object.keys(localStorage).filter(k => /^dlc-(rc-|perfil|jornada-)/.test(k)).forEach(k => localStorage.removeItem(k)); } catch (e) {}
@@ -11134,7 +11140,7 @@ const PLANES = [
     modulos: ['inicio', 'agenda', 'rutas', 'directorio', 'seguimiento', 'ventas', 'pacientes', 'productos', 'analitica', 'facturacion'],
     ventajas: ['Todo lo de Avanzado', `Espacio ${TT('medico', 's', 'del', 'l', 'l')} sin límite`, 'Entrar como otro usuario y auditoría completa', 'Puesta en marcha y migración de datos incluidas', 'Soporte prioritario'] }
 ];
-let PLAN_ACTUAL = { plan: 'premium' };
+let PLAN_ACTUAL = { plan: 'medida' };   // v2.117.0: hasta que llega el de la base, el completo
 const planDe = id => PLANES.find(p => p.id === id) || PLANES[3];
 const planIncluye = mod => !(mod in MODULO_AREA) || planDe(PLAN_ACTUAL.plan).modulos.includes(mod);
 const planMinimo = mod => PLANES.find(p => p.modulos.includes(mod));
@@ -11146,7 +11152,7 @@ function avisoPlan(mod) {
   const p = planMinimo(mod), n = (document.querySelector(`nav.main [data-t="${mod}"]`) || {}).textContent || mod;
   $('dbody').innerHTML = `<div class="fh"><div><h2>🔒 ${esc(n.replace('🔒', '').trim())}</h2><div class="sm">No está incluido en tu plan ${esc(planDe(PLAN_ACTUAL.plan).nombre)}</div></div>
     <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-    <p>Está disponible desde el plan <b>${esc(p ? p.nombre : 'Premium')}</b>${p ? ` (${eurI(p.precio)}/mes, ${p.incluidos} usuarios incluidos)` : ''}.</p>
+    <p>Está disponible desde el plan <b>${esc(p ? p.nombre : 'A medida')}</b>${p ? ` (${precioPlan(p)})` : ''}.</p>
     ${p ? `<ul class="manlist">${p.ventajas.map(v => `<li><span>✓</span><span>${esc(v)}</span></li>`).join('')}</ul>` : ''}
     <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>Ahora no</button>${puede('administrar') ? '<button class="btn" id="vplan">Ver planes</button>' : ''}</div>`;
   $('dlg').showModal();
@@ -11196,7 +11202,7 @@ let USR_F = { q: '', rol: '', est: 'activos' };
 async function pintarUsuarios2() {
   const { data } = await RPC_ORIG('usuarios_resumen', {});
   const todos = data || []; USUARIOS = todos.map(u => Object.assign({ medicos: u.cartera, visitas: u.visitas_mes }, u));
-  const act = planDe(PLAN_ACTUAL.plan), maxU = act.incluidos + (+PLAN_ACTUAL.bloques_extra || 0) * act.bloque[0];
+  const act = planDe(PLAN_ACTUAL.plan), maxU = usuariosContratados();
   const activos = todos.filter(u => u.activo && !rolPuede(u.rol, 'portal_prescriptor'));
   const hace30 = Date.now() - 30 * 864e5;
   const inactivos = activos.filter(u => !u.ultima_actividad || new Date(u.ultima_actividad).getTime() < hace30).length;
@@ -12354,8 +12360,8 @@ async function cargarConfig() {
     // Apartado de un módulo que no incluye el plan: se explica en lugar de mostrarlo
     if (it.mod && !planIncluye(it.mod)) {
       const p = planMinimo(it.mod);
-      $('cfgcuerpo').innerHTML = `<div class="card cfgpanel planup"><div class="planupico">${svgIco(ICON_NOM.lock)}</div><h2>${esc(it.t)} está en el plan ${esc(p ? p.nombre : 'Premium')}</h2>
-        <p class="sm">Tu plan ${esc(planDe(PLAN_ACTUAL.plan).nombre)} no lo incluye. ${p ? `Con ${esc(p.nombre)} (${eurI(p.precio)}/mes) tienes:` : ''}</p>
+      $('cfgcuerpo').innerHTML = `<div class="card cfgpanel planup"><div class="planupico">${svgIco(ICON_NOM.lock)}</div><h2>${esc(it.t)} está en el plan ${esc(p ? p.nombre : 'A medida')}</h2>
+        <p class="sm">Tu plan ${esc(planDe(PLAN_ACTUAL.plan).nombre)} no lo incluye. ${p ? `Con ${esc(p.nombre)} (${precioPlan(p)}) tienes:` : ''}</p>
         ${p ? `<ul class="manlist">${p.ventajas.map(v => `<li><span>✓</span><span>${esc(v)}</span></li>`).join('')}</ul>` : ''}
         ${puede('administrar') ? '<div class="acts"><button class="btn" id="planver">Ver planes</button></div>' : ''}</div>`;
       if ($('planver')) $('planver').onclick = () => abrir('plan', null, true);
@@ -15356,10 +15362,14 @@ async function pintarOrganizaciones() {
       <div class="sm">Cada empresa trabaja aislada, con sus datos, sus usuarios, su numeración y su configuración.</div></div>
       <button class="btn" id="orgnueva">+ Nueva organización</button></div>
     ${error ? `<div class="vacio">No se han podido cargar: ${esc(error.message)}</div>` : `<div class="lista">${l.map(o => `<div class="item" style="cursor:default">
-      <span class="tx"><b>${esc(o.nombre)}</b><span class="sm">${esc(o.nif || 'Sin NIF')} · plan ${esc(o.plan || '—')} · ${num(o.usuarios)} usuarios · ${num(o.cuentas)} cuentas${o.pendiente ? ' · pendiente de registro: ' + esc(o.pendiente) : ''}</span>
+      <span class="tx"><b>${esc(o.nombre)}</b>${orgEstado(o)}<span class="sm">${esc(o.nif || 'Sin NIF')} · ${esc(orgPlanTxt(o))} · ${num(o.usuarios)} usuarios · ${num(o.cuentas)} cuentas${o.pendiente ? ' · pendiente de registro: ' + esc(o.pendiente) : ''}</span>
         <span class="sm">${(o.dominios || []).length ? 'Dominios: ' + o.dominios.map(esc).join(', ') : 'Sin dominio propio: su pantalla de acceso muestra la marca principal'}</span></span>
       <span class="acts" style="margin:0"><span class="sm">${o.creado_en ? fechaCorta(String(o.creado_en).slice(0, 10)) : ''}</span>
-        <button class="btn sec" type="button" data-orgdom="${o.id}">Dominios</button></span></div>`).join('')}</div>`}</div>`;
+        <button class="btn sec" type="button" data-orgdom="${o.id}">Dominios</button>
+        <button class="btn sec" type="button" data-orgplan="${o.id}">Plan</button>
+        <button class="btn sec" type="button" data-orgexp="${o.id}">Descargar datos</button>
+        ${!o.principal && (((o.plan_datos || {}).estado === 'prueba') || !o.activa) ? `<button class="btn sec" type="button" data-orgdel="${o.id}">Borrar empresa</button>` : ''}</span></div>`).join('')}</div>`}</div>`;
+  orgAcciones(c, l);
   // v2.103.0: los dominios de cada organización deciden la marca de su pantalla de acceso
   c.querySelectorAll('[data-orgdom]').forEach(b => b.onclick = async () => {
     const o = l.find(x => x.id === b.dataset.orgdom); if (!o) return;
@@ -15378,7 +15388,10 @@ async function pintarOrganizaciones() {
         <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
       <div class="g2"><div><label for="onom">Nombre de la empresa</label><input id="onom"></div>
         <div><label for="onif">NIF</label><input id="onif"></div>
-        <div><label for="oplan">Plan</label><select id="oplan"><option value="base">Base</option><option value="profesional" selected>Profesional</option><option value="premium">Premium</option></select></div></div>
+        <div><label for="oplan">Plan</label><select id="oplan">${PLANES.map(p => `<option value="${p.id}" ${p.id === 'empresa' ? 'selected' : ''}>${esc(p.nombre)}</option>`).join('')}</select></div>
+        <div><label for="ousu">Usuarios contratados</label><input id="ousu" type="number" min="3" value="3"></div>
+        <div><label for="opago">Pago</label><select id="opago"><option value="mensual">Mensual</option><option value="anual">Anual</option></select></div>
+        <div><label class="chk"><input type="checkbox" id="oprueba" checked> Empresa de prueba (30 días)</label></div></div>
       <h3 style="margin-top:14px">Su administrador</h3>
       <div class="g2"><div><label for="oanom">Nombre</label><input id="oanom"></div>
         <div><label for="oamail">Correo</label><input id="oamail" type="email"></div>
@@ -15389,7 +15402,8 @@ async function pintarOrganizaciones() {
       const nombre = $('onom').value.trim(), email = $('oamail').value.trim(), pass = $('oapass').value, anom = $('oanom').value.trim();
       if (!nombre || !email || !anom || pass.length < 6) { toast('Completa el nombre, el administrador, su correo y la contraseña', true); return; }
       ev.target.disabled = true; ev.target.textContent = 'Creando…';
-      const { data: r, error: e1 } = await db.rpc('crear_organizacion', { p: { nombre, nif: $('onif').value.trim(), plan: $('oplan').value, email_admin: email } });
+      const { data: r, error: e1 } = await db.rpc('crear_organizacion', { p: { nombre, nif: $('onif').value.trim(), plan: $('oplan').value, usuarios: +$('ousu').value || 3, pago: $('opago').value,
+        prueba_dias: $('oprueba').checked ? 30 : 0, email_admin: email } });
       if (e1 || !r || !r.ok) {
         ev.target.disabled = false; ev.target.textContent = 'Crear organización';
         const txt = { permiso: 'No tienes permiso', nombre: 'Falta el nombre', email: 'El correo no es válido', email_existe: 'Ese correo ya tiene usuario' }[(r && r.error) || ''] || (e1 && e1.message) || '';
@@ -15892,3 +15906,157 @@ async function pedidoPago(id) {
     toast('Justificante quitado'); repinta();
   });
 }
+
+
+/* v2.117.0 · Planes por usuario: Campo, Comercial, Empresa y A medida (precio por usuario y mes, IVA no incluido; con pago anual
+   se pagan 10 meses de 12). Mínimo 3 usuarios salvo A medida; se añaden o quitan cuando se quiera. El plan de cada empresa
+   (ajustes.plan: plan, usuarios contratados, pago, estado y, en prueba, prueba_hasta) solo se cambia desde la plataforma. */
+PLANES.splice(0, PLANES.length,
+  { id: 'campo', nombre: 'Campo', precio: 29, anual: 24, minimo: 3, incluidos: 3, bloque: [1, 29], medicos: 0,
+    para: `Equipos que salen a ver ${TT('medico', 'p', '', 'l', 'l')} cada día`,
+    modulos: ['inicio', 'agenda', 'rutas', 'directorio', 'seguimiento'],
+    ventajas: [`Cartera de ${TT('medico', 'p', '', 'l', 'l')} y centros`, `Agenda, «Tu día» y registro de ${TT('visita', 'p', '', 'l', 'l')}`,
+      'Rutas y planificación semanal', 'Muestras y material', 'Calidad del dato y duplicados'] },
+  // El nombre del plan va entre comillas dobles: no es el rol «Comercial» (la prueba de literales busca roles escritos a mano)
+  { id: 'comercial', nombre: "Comercial", precio: 42, anual: 35, minimo: 3, incluidos: 3, bloque: [1, 42], medicos: 0,
+    para: 'Equipos que venden y quieren medir resultados',
+    modulos: ['inicio', 'agenda', 'rutas', 'directorio', 'seguimiento', 'ventas', 'pacientes', 'productos', 'analitica'],
+    ventajas: ['Todo lo de Campo', 'Pedidos, televenta y clientes', 'Productos y stock por lotes', `Analítica de ventas y ${TT('visita', 'p', '', 'l', 'l')}`, 'Comisiones por tramos'] },
+  { id: 'empresa', nombre: 'Empresa', precio: 59, anual: 49, minimo: 3, incluidos: 3, bloque: [1, 59], medicos: 50,
+    para: 'Empresas con facturación propia y varios equipos',
+    modulos: ['inicio', 'agenda', 'rutas', 'directorio', 'seguimiento', 'ventas', 'pacientes', 'productos', 'analitica', 'facturacion'],
+    ventajas: ['Todo lo de Comercial', 'Facturación con VeriFactu y cobros', 'Compras, proveedores y trazabilidad', 'Zonas, supervisión del equipo y auditoría',
+      `Espacio ${TT('medico', 's', 'del', 'l', 'l')} (hasta 50)`] },
+  { id: 'medida', nombre: 'A medida', precio: null, anual: null, minimo: 50, incluidos: 50, bloque: [1, 0], medicos: null, presupuesto: true,
+    para: 'Redes comerciales grandes, desde 50 usuarios',
+    modulos: ['inicio', 'agenda', 'rutas', 'directorio', 'seguimiento', 'ventas', 'pacientes', 'productos', 'analitica', 'facturacion'],
+    ventajas: ['Todo lo de Empresa', 'Migración de datos', 'Conexión con su programa de gestión', `Espacio ${TT('medico', 's', 'del', 'l', 'l')} sin límite`,
+      'Entrar como otro usuario', 'Soporte prioritario'] });
+const PUESTA_EN_MARCHA = 490;
+const precioPlan = p => p.presupuesto ? 'presupuesto a medida' : `${eurI(p.precio)} por usuario al mes, ${eurI(p.anual)} con pago anual`;
+// Usuarios contratados (A medida o sin dato: sin límite)
+const usuariosContratados = () => PLAN_ACTUAL.plan === 'medida' || PLAN_ACTUAL.usuarios == null ? Infinity : +PLAN_ACTUAL.usuarios;
+
+// Plan y suscripción: tu plan (usuarios contratados, pago, prueba), los cuatro planes y la comparativa por módulos
+pintarPaginaPlan = async function () {
+  const { data } = await RPC_ORIG('plan_uso', {});
+  const d = data || {}, pl = d.plan || {}; if (pl.plan) PLAN_ACTUAL = pl;
+  const act = planDe(pl.plan), contr = usuariosContratados(), usados = +d.usuarios || 0, anual = pl.pago === 'anual';
+  const pct = contr === Infinity ? 0 : Math.min(100, Math.round(usados / contr * 100));
+  // Con pago anual se pagan 10 meses de 12: la cuota mensual equivalente es precio × 10 / 12
+  const cuota = act.presupuesto || contr === Infinity ? null : contr * (anual ? act.precio * 10 / 12 : act.precio);
+  const mailto = asunto => 'mailto:?subject=' + encodeURIComponent(asunto + ' · ' + ((AJUSTES.marca || {}).nombre || ''));
+  const cont = $('cfgcuerpo'); if (!cont) return;
+  const celda = (p, v) => `<td class="${p.id === act.id ? 'act' : ''}">${v}</td>`;
+  cont.innerHTML = `<div class="saludo"><div><h1>Plan y suscripción</h1><div class="fecha">Precio por usuario y mes, IVA no incluido. Con pago anual pagas 10 meses de 12.</div></div></div>
+    <div class="card" id="planact"><h2>Tu plan: ${esc(act.nombre)}</h2>
+      ${pl.estado === 'prueba' ? `<div class="banda-aviso">Estás en la prueba gratuita hasta el <b>${fechaCorta(pl.prueba_hasta)}</b>. Sin permanencia: si no sigues, te llevas tus datos.</div>` : ''}
+      <div class="kpis">
+        <div class="kpi"><b>${contr === Infinity ? 'Sin límite' : num(contr)}</b><span>Usuarios contratados</span></div>
+        <div class="kpi"><b>${num(usados)}</b><span>Usuarios en uso</span></div>
+        <div class="kpi"><b>${act.presupuesto ? 'A medida' : anual ? 'Anual' : 'Mensual'}</b><span>Pago</span></div>
+        ${cuota != null ? `<div class="kpi"><b>${eurI(cuota)}</b><span>Al mes, sin IVA</span></div>` : ''}
+        ${act.medicos !== 0 ? `<div class="kpi"><b>${num(d.medicos || 0)}${act.medicos ? ' / ' + act.medicos : ''}</b><span>${TT('medico', 'p', '', 'l', 'C')} con acceso</span></div>` : ''}
+      </div>
+      ${contr !== Infinity ? `<div class="barrauso" title="${num(usados)} de ${num(contr)}"><i style="width:${pct}%"></i></div>` : ''}
+      <div class="acts"><a class="btn sec" href="${mailto('Cambiar el número de usuarios')}">Añadir o quitar usuarios</a></div></div>
+    <div class="planes">${PLANES.map(p => `<div class="plan ${p.id === act.id ? 'actual' : ''} ${p.id === 'comercial' ? 'dest' : ''}" data-plan="${p.id}">
+      <h3>${esc(p.nombre)}</h3><div class="sm">${esc(p.para)}</div>
+      <div class="precio">${p.presupuesto ? '<b>A medida</b> <span class="sm">Presupuesto · desde 50 usuarios</span>'
+        : `<b>${eurI(p.precio)}</b> <span class="sm">por usuario al mes · ${eurI(p.anual)} con pago anual (${eurI(p.precio * 10)} al año)</span>`}</div>
+      <ul class="manlist">${p.ventajas.map(v => `<li><span>✓</span><span>${esc(v)}</span></li>`).join('')}</ul>
+      ${p.id === act.id ? '<button class="btn sec" disabled>Tu plan actual</button>'
+        : `<a class="btn ${p.id === 'comercial' ? '' : 'sec'}" href="${mailto(p.presupuesto ? 'Presupuesto del plan A medida' : 'Cambiar al plan ' + p.nombre)}">${p.presupuesto ? 'Pedir presupuesto' : 'Cambiar a ' + esc(p.nombre)}</a>`}</div>`).join('')}</div>
+    <div class="card" id="plancond"><h2>Condiciones</h2><ul class="manlist">
+      <li><span>✓</span><span>Mínimo 3 usuarios en Campo, Comercial y Empresa. Añades o quitas usuarios cuando quieras.</span></li>
+      <li><span>✓</span><span>Puesta en marcha (importar tus Excel, configurar la empresa y formar al equipo): incluida con pago anual; con pago mensual, ${eurI(PUESTA_EN_MARCHA)} una sola vez.</span></li>
+      <li><span>✓</span><span>Prueba de 30 días con tus propios datos, sin permanencia. Si no sigues, te llevas tus datos.</span></li>
+      <li><span>✓</span><span>Desarrollos y configuraciones a medida: presupuesto según lo que necesites.</span></li></ul></div>
+    <div class="card"><h2>Qué incluye cada plan</h2><div class="dgrid-wrap"><table class="planmat"><thead><tr><th>Módulo</th>${PLANES.map(p => `<th class="${p.id === act.id ? 'act' : ''}">${esc(p.nombre)}</th>`).join('')}</tr></thead>
+      <tbody>${MOD_PLAN.map(([m, n, desc]) => `<tr><td><b>${esc(n)}</b><span class="sm">${esc(desc)}</span></td>${PLANES.map(p => celda(p, p.modulos.includes(m) ? '✓' : '—')).join('')}</tr>`).join('')}
+        <tr><td><b>Espacio ${TT('medico', 's', 'del', 'l', 'l')}</b><span class="sm">Su informe y sus avisos</span></td>${PLANES.map(p => celda(p, p.medicos === 0 ? '—' : p.medicos ? 'Hasta ' + p.medicos : 'Sin límite')).join('')}</tr>
+        <tr><td><b>Entrar como otro usuario</b><span class="sm">Ver la plataforma como la ve otra persona</span></td>${PLANES.map(p => celda(p, p.id === 'medida' ? '✓' : '—')).join('')}</tr>
+        <tr><td><b>Precio por usuario</b><span class="sm">Al mes, IVA no incluido</span></td>${PLANES.map(p => celda(p, p.presupuesto ? 'A medida' : eurI(p.precio) + ' · ' + eurI(p.anual) + ' anual')).join('')}</tr>
+      </tbody></table></div></div>`;
+};
+
+
+// v2.117.0 · Organizaciones: plan de cada empresa, estado (prueba, terminada, desactivada), descargar sus datos y borrar las de prueba
+function orgPlanTxt(o) {
+  const pd = o.plan_datos || {}, p = planDe(pd.plan || o.plan);
+  return `plan ${p.nombre}${pd.plan === 'medida' || pd.usuarios == null ? '' : ` · ${num(pd.usuarios)} contratados`}${pd.pago === 'anual' ? ' · anual' : pd.plan === 'medida' ? '' : ' · mensual'}`;
+}
+function orgEstado(o) {
+  const pd = o.plan_datos || {};
+  if (o.bloqueada === 'desactivada') return '<span class="pill p-anu">Desactivada</span> ';
+  if (o.bloqueada === 'prueba_terminada') return `<span class="pill p-warn">Prueba terminada el ${fechaCorta(pd.prueba_hasta)}</span> `;
+  if (pd.estado === 'prueba') return `<span class="pill p-est">Prueba hasta el ${fechaCorta(pd.prueba_hasta)}</span> `;
+  return '';
+}
+function orgAcciones(c, l) {
+  const de = id => l.find(x => x.id === id);
+  // Plan: el de pago o una prueba (con su fecha de fin)
+  c.querySelectorAll('[data-orgplan]').forEach(b => b.onclick = () => {
+    const o = de(b.dataset.orgplan); if (!o) return;
+    const pd = o.plan_datos || {}, fin = pd.prueba_hasta || new Date(Date.now() + 30 * 864e5).toISOString().slice(0, 10);
+    $('dbody').innerHTML = `<div class="fh"><div><h2>Plan de ${esc(o.nombre)}</h2><div class="sm">Solo la plataforma cambia el plan de una empresa</div></div>
+        <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
+      <div class="g2"><div><label for="opplan">Plan</label><select id="opplan">${PLANES.map(p => `<option value="${p.id}" ${p.id === (pd.plan || o.plan) ? 'selected' : ''}>${esc(p.nombre)}</option>`).join('')}</select></div>
+        <div><label for="opusu">Usuarios contratados</label><input id="opusu" type="number" min="3" value="${esc(pd.usuarios == null ? '' : pd.usuarios)}" placeholder="Sin límite"></div>
+        <div><label for="oppago">Pago</label><select id="oppago"><option value="mensual">Mensual</option><option value="anual" ${pd.pago === 'anual' ? 'selected' : ''}>Anual</option></select></div>
+        <div><label for="opest">Estado</label><select id="opest"><option value="activo">De pago</option><option value="prueba" ${pd.estado === 'prueba' ? 'selected' : ''}>Prueba</option></select></div>
+        <div id="opfinw" class="${pd.estado === 'prueba' ? '' : 'hide'}"><label for="opfin">Prueba hasta</label><input id="opfin" type="date" value="${esc(fin)}"></div></div>
+      <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>Cancelar</button><button class="btn" id="opok">Guardar plan</button></div>`;
+    $('opest').onchange = () => $('opfinw').classList.toggle('hide', $('opest').value !== 'prueba');
+    $('opok').onclick = async ev => {
+      ev.target.disabled = true;
+      const { data: r, error } = await db.rpc('guardar_plan_organizacion', { p_org: o.id, p: { plan: $('opplan').value, usuarios: $('opusu').value === '' ? null : +$('opusu').value,
+        pago: $('oppago').value, estado: $('opest').value, prueba_hasta: $('opest').value === 'prueba' ? $('opfin').value : null } });
+      ev.target.disabled = false;
+      if (error || !r || !r.ok) {
+        toast(({ permiso: 'No tienes permiso', minimo: 'Mínimo 3 usuarios (salvo A medida)', prueba_hasta: 'Falta la fecha de fin de la prueba', plan: 'Plan no válido' })[(r && r.error) || ''] || 'No se ha podido guardar', true);
+        return;
+      }
+      $('dlg').close(); toast('Plan guardado'); pintarOrganizaciones();
+    };
+    $('dlg').showModal();
+  });
+  // Descargar todos sus datos (para entregárselos si deja la prueba)
+  c.querySelectorAll('[data-orgexp]').forEach(b => b.onclick = async () => {
+    const o = de(b.dataset.orgexp); if (!o) return;
+    b.disabled = true; const t = b.textContent; b.textContent = 'Preparando…';
+    const { data, error } = await RPC_ORIG('exportar_organizacion', { p_org: o.id });
+    b.disabled = false; b.textContent = t;
+    if (error || !data) { toast('No se han podido descargar sus datos', true); return; }
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 1)], { type: 'application/json' }));
+    a.download = `datos_${o.nombre.replace(/[^\p{L}\p{N}]+/gu, '_')}_${hoyISO()}.json`; a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 60000);
+    toast('Datos descargados');
+  });
+  // Borrar una empresa de prueba o desactivada (nunca con facturas): hay que escribir su nombre
+  c.querySelectorAll('[data-orgdel]').forEach(b => b.onclick = async () => {
+    const o = de(b.dataset.orgdel); if (!o) return;
+    if (o.facturas) { toast(`${o.nombre} tiene facturas emitidas: no se puede borrar (VeriFactu). Desactívala en su lugar.`, true); return; }
+    const txt = await pedirTexto(`Se borrarán ${o.nombre} y todos sus datos (${num(o.usuarios)} usuarios, ${num(o.cuentas)} cuentas, pedidos, agenda…). No se puede deshacer: descarga antes sus datos si hay que entregárselos. Escribe su nombre para confirmarlo.`,
+      '', { titulo: 'Borrar empresa', ok: 'Borrar' });
+    if (txt === null) return;
+    if (txt.trim() !== o.nombre) { toast('El nombre no coincide: no se ha borrado nada', true); return; }
+    const { data: r, error } = await db.rpc('borrar_organizacion', { p_org: o.id });
+    if (error || !r || !r.ok) {
+      toast(({ permiso: 'No tienes permiso', principal: 'La organización principal no se puede borrar', activa: 'Solo se borran empresas de prueba o desactivadas',
+        facturas: 'Tiene facturas emitidas: no se puede borrar' })[(r && r.error) || ''] || ('No se ha podido borrar' + (error ? ': ' + error.message : '')), true);
+      return;
+    }
+    toast(`${o.nombre} borrada` + (String(r.acceso || '').startsWith('no_borrado') ? '. Borra sus usuarios en Supabase → Authentication.' : ''));
+    pintarOrganizaciones();
+  });
+}
+
+// v2.117.0 · Al ir a una pantalla que no es una página propia (Perfil, Empresa, Plan), esas páginas se vacían: así nunca hay dos
+// contenedores #cfgcuerpo a la vez (pasaba al ir de «Plan y suscripción» a Configuración)
+const IR_V2117 = ir;
+ir = function (t, ...a) {
+  if (!(t in PAGINAS)) Object.keys(PAGINAS).forEach(o => { const v = $('v-' + o); if (v) v.innerHTML = ''; });
+  return IR_V2117(t, ...a);
+};
