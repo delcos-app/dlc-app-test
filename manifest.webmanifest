@@ -1,6 +1,6 @@
 {
-  "name": "Plataforma",
-  "short_name": "Plataforma",
+  "name": "delcos",
+  "short_name": "delcos",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

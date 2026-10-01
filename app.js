@@ -2200,7 +2200,7 @@ async function pintarMapa() {
 
   const puntos = data || [];
   puntos.forEach(m => {
-    const col = m.urgente && !m.ultima_visita ? '#D97706' : (colEstado(m.estado) || '#0E2F52');
+    const col = m.urgente && !m.ultima_visita ? '#B42318' : (colEstado(m.estado) || '#6B7F95');
     L.circleMarker([m.lat, m.lon], {
       radius: m.urgente ? 7 : 5, color: '#fff', weight: 1.5, fillColor: col, fillOpacity: .92
     }).addTo(CAPA).bindPopup(
@@ -2213,8 +2213,8 @@ async function pintarMapa() {
   setTimeout(() => MAPA.invalidateSize(), 60);
 
   $('mapleg').innerHTML =
-    `<span><i style="background:#D97706"></i>Urgente sin visitar</span>` +
-    ESTADOS_DEF.map(x => `<span><i style="background:${colEstado(x.valor) || '#0E2F52'}"></i>${esc(x.valor)}</span>`).join('') +
+    `<span><i style="background:#B42318"></i>Urgente sin visitar</span>` +
+    ESTADOS_DEF.map(x => `<span><i style="background:${colEstado(x.valor) || '#6B7F95'}"></i>${esc(x.valor)}</span>`).join('') +
     `<span style="margin-left:auto"><b>${num(puntos.length)}</b> con ubicación de ${num(F.total)} encontrados</span>`;
 }
 
@@ -2230,11 +2230,11 @@ function mapaDelPlan() {
     const m = L.map('planmapa').setView(centro, 10);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' }).addTo(m);
     const pin = (xy, txt, col) => L.marker(xy, { icon: L.divIcon({ className: 'mpin', html: `<span style="background:${col}">${txt}</span>`, iconSize: [24, 24], iconAnchor: [12, 12] }) }).addTo(m);
-    if (conSal) pin([PLAN.salida.lat, PLAN.salida.lon], 'S', '#12805C').bindPopup('Salida · ' + esc(PLAN.salida.nombre));
-    PLAN.paradas.forEach((p, i) => pin(p.xy, String(i + 1), '#0E2F52')
+    if (conSal) pin([PLAN.salida.lat, PLAN.salida.lon], 'S', '#0E6B4C').bindPopup('Salida · ' + esc(PLAN.salida.nombre));
+    PLAN.paradas.forEach((p, i) => pin(p.xy, String(i + 1), '#17457A')
       .bindPopup(`<b>${i + 1}. ${esc(p.centro)}</b><br>${hm(p.llegada)}–${hm(p.fin)}<br>${p.medicos.map(x => esc(x.nombre)).join('<br>')}`));
     const linea = conSal ? [[PLAN.salida.lat, PLAN.salida.lon]].concat(PLAN.paradas.map(p => p.xy), [[PLAN.salida.lat, PLAN.salida.lon]]) : PLAN.paradas.map(p => p.xy);
-    L.polyline(linea, { color: '#2B6CB0', weight: 3, dashArray: '6 6' }).addTo(m);
+    L.polyline(linea, { color: '#17457A', weight: 3, dashArray: '6 6' }).addTo(m);
     m.fitBounds(linea, { padding: [30, 30] });
     setTimeout(() => m.invalidateSize(), 60);
   }
@@ -8254,7 +8254,8 @@ function svgBarras(meses, a, b, etiquetas) {
 
 function svgDonut(items) {
   const tot = items.reduce((n, x) => n + x.v, 0) || 1, R = 70, C = 2 * Math.PI * R;
-  const col = ['#0E2F52', '#2B6CB0', '#63A4E0', '#12805C', '#C2610F', '#8B5CF6', '#94A3B8'];
+  // v2.107.0: paleta de gráficos de la marca (validada para daltonismo); el gris, para el resto
+  const col = ['#3F82C0', '#E0762B', '#1BAF7A', '#6E5BC4', '#E0A400', '#D9618C', '#94A3B8'];
   let acc = 0;
   return `<div class="donutw"><svg viewBox="0 0 200 200" class="donut" role="img" aria-label="Reparto por producto">
     <circle cx="100" cy="100" r="${R}" class="fondo"/>
@@ -13760,7 +13761,7 @@ async function graficoCanal() {
     <p class="leer"><b>Cómo leerlo:</b> qué parte de las unidades llega por recomendación de ${TT('medico', 's', 'un', 'l', 'l')} y qué parte por venta directa a un centro.</p></div>`);
   const { data } = await RPC_ORIG('analitica_tabla', { p_dim: 'canal', p_medida: 'unidades' });
   const filas = (data && data.filas) || [], tot = filas.reduce((s, f) => s + (+f.total || 0), 0);
-  const cols = ['#15528F', '#5BB4E5', '#0F6E4C', '#D97706'];
+  const cols = ['#3F82C0', '#E0762B', '#1BAF7A', '#6E5BC4'];   // v2.107.0: paleta de gráficos de la marca
   let ang = 0;
   const arcos = filas.map((f, i) => { const v = (+f.total || 0) / (tot || 1), a0 = ang, a1 = ang + v * 2 * Math.PI; ang = a1;
     const p = t => [80 + 60 * Math.sin(t), 80 - 60 * Math.cos(t)], [x0, y0] = p(a0), [x1, y1] = p(a1 - 0.0001);
