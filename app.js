@@ -5648,8 +5648,10 @@ function validarDoc(v, tipo) {
 
 /* ---------------- alta y edición de paciente ---------------- */
 
-function editorContacto(c, alGuardar) {
-  c = c || {};
+function editorContacto(c, alGuardar, op) {
+  c = c || {}; op = op || {};
+  // v2.119.0: en un cliente nuevo, desplegable «Registro de llamada» (abierto si se viene de registrar una llamada)
+  const conLlamada = !c.id;
   let tipo = c.tipo || 'Persona';
   let medico = c.cuenta_id ? { id: c.cuenta_id, nombre: c.medico || `${TT('medico', 's', '', 'l', 'C', 'asignado')}`, codigo: c.medico_codigo || '' } : null;
   $('dlg2body').innerHTML = `
@@ -5683,9 +5685,11 @@ function editorContacto(c, alGuardar) {
       <div id="koempw" class="${tipo === 'Empresa' ? 'hide' : ''}"><label for="koemp">Empresa (si factura a una)</label><input id="koemp" value="${esc(c.empresa || '')}"></div>
     </div>
     <label for="konota">Nota</label><input id="konota" value="${esc(c.nota || '')}">
-    <div class="acts" style="justify-content:flex-end">
+    ${conLlamada ? llamadaAltaHTML(op.llamada) : ''}
+    <div class="acts" style="justify-content:flex-end;flex-wrap:wrap">
       <button class="btn sec" id="kocancel">Cancelar</button>
-      <button class="btn" id="kook">${c.id ? 'Guardar' : `Crear ${TT('paciente', 's', '', 'l', 'l')}`}</button></div>`;
+      <button class="btn ${conLlamada && op.llamada ? 'sec' : ''}" id="kook">${c.id ? 'Guardar' : `Crear ${TT('paciente', 's', '', 'l', 'l')}`}</button>
+      ${conLlamada && op.llamada ? '<button class="btn" id="kopedido">🛒 Crear y hacer pedido</button>' : ''}</div>`;
 
   selectorMedico($('kosel'), { valor: medico, alElegir: m => { medico = m; } });
   const revisaDoc = () => {
@@ -5705,8 +5709,10 @@ function editorContacto(c, alGuardar) {
   });
   $('kocancel').onclick = () => $('dlg2').close();
   camposInsertar($('dlg2body'), 'cliente', c.id, $('kook') && $('kook').closest('.acts'));
-  $('kook').onclick = async ev => {
+  if (conLlamada) llamadaAltaActivar(() => medico, op.llamada);
+  const crear = async (ev, conPedido) => {
     if (!$('konom').value.trim()) { toast('Escribe el nombre', true); return; }
+    const ll = conLlamada ? llamadaAltaLeer() : null;
     const cps = camposLeer($('dlg2'));
     if (cps && cps.falta.length) { toast(`Rellena «${cps.falta[0]}»`, true); return; }
     const doc = revisaDoc();
@@ -5719,13 +5725,40 @@ function editorContacto(c, alGuardar) {
       email: $('komail').value.trim(), empresa: tipo === 'Empresa' ? '' : $('koemp').value.trim(), nota: $('konota').value.trim(),
       cuenta_id: medico ? medico.id : null
     }});
-    ev.target.disabled = false; ev.target.textContent = c.id ? 'Guardar' : `Crear ${TT('paciente', 's', '', 'l', 'l')}`;
+    ev.target.disabled = false; ev.target.textContent = c.id ? 'Guardar' : conPedido ? '🛒 Crear y hacer pedido' : `Crear ${TT('paciente', 's', '', 'l', 'l')}`;
     if (error || (r && r.ok === false)) { toast('No se ha podido guardar', true); return; }
     if (cps && !(await camposGuardar(cps, (r && r.contacto && r.contacto.id) || c.id))) return;
     $('dlg2').close(); toast(c.id ? `${TT('paciente', 's', '', 'l', 'C', 'guardado')}` : `${TT('paciente', 's', '', 'l', 'C', 'creado')}`);
     const res = Object.assign({}, r.contacto, medico ? { medico: medico.nombre, medico_codigo: medico.codigo } : {});
+    // v2.119.0: la llamada queda registrada con el cliente recién creado (si se ha apuntado algo o se viene de una llamada)
+    let lid = null;
+    if (ll && (conPedido || ll.motivo || ll.resultado || ll.nota || op.llamada)) lid = await llamadaAltaGuardar(ll, { contacto_id: res.id, nombre: res.nombre,
+      telefono: res.movil || res.telefono || '', medico, resultado: conPedido ? (ll.resultado || 'Pedido hecho') : ll.resultado }, op.llamada);
+    if (conPedido) {
+      if (lid) LLAMADA_PEND = lid;
+      await editorPedido({ contacto: res, medico: medico ? { id: medico.id, nombre: medico.nombre } : null });
+      return;
+    }
     if (alGuardar) alGuardar(res);
     if (TAB === 'pacientes') listaPacientes();
+    if (lid && TAB === 'ventas' && PEDSEC === 'llamadas') pintarLlamadas();
+  };
+  $('kook').onclick = ev => crear(ev, false);
+  if ($('kopedido')) $('kopedido').onclick = ev => crear(ev, true);
+  // «No compra»: solo la llamada, sin crear el cliente, con lo apuntado de él
+  if ($('kosolo')) $('kosolo').onclick = async ev => {
+    const ll = llamadaAltaLeer();
+    const nombre = $('konom').value.trim(), telefono = $('komov').value.trim() || $('kotel').value.trim();
+    if (!nombre && !telefono) { toast('Apunta al menos su nombre o su teléfono', true); return; }
+    ev.target.disabled = true;
+    const datos = { tipo, nif: $('konif').value.trim(), email: $('komail').value.trim(), direccion: $('kodir').value.trim(), cp: $('kocp').value.trim(),
+      municipio: $('komun').value.trim(), provincia: $('kopro').value.trim(), empresa: $('koemp').value.trim(), nota: $('konota').value.trim() };
+    Object.keys(datos).forEach(k => { if (!datos[k]) delete datos[k]; });
+    const lid = await llamadaAltaGuardar(ll, { contacto_id: null, nombre, telefono, medico, resultado: ll.resultado, datos }, op.llamada);
+    ev.target.disabled = false;
+    if (!lid) return;
+    $('dlg2').close(); toast('Llamada registrada (sin crear cliente)');
+    if (TAB === 'ventas' && PEDSEC === 'llamadas') pintarLlamadas();
   };
   $('dlg2').showModal();
 }
@@ -10649,10 +10682,10 @@ async function editorLlamada(l, previa) {
   const pintaCli = () => {
     const c = $('llcli');
     if (nuevo) {
-      c.innerHTML = `<div class="g2"><div><input id="lcn" placeholder="Nombre y apellidos" value="${esc(l.nombre || '')}"></div>
-        <div><input id="lct" placeholder="Teléfono" inputmode="tel" value="${esc(l.telefono || '')}"></div></div>
-        <div class="g2"><div><input id="lce" type="email" placeholder="Email (para la factura)"></div><div><input id="lcd" placeholder="DNI (opcional)"></div></div>
-        <div class="sm">Si hace el pedido, se da de alta como cliente con su ${TT('medico', 's', '', 'l', 'l')}.</div>`;
+      // v2.119.0: un cliente nuevo se rellena siempre en su ficha completa (antes, cuatro campos y un cliente a medias)
+      c.innerHTML = `<button type="button" class="btn" id="llalta">Rellenar los datos del cliente nuevo</button>
+        <div class="sm" style="margin-top:6px">Se abre su ficha completa con esta llamada: si compra, queda dado de alta con todos sus datos; si no, se guarda solo la llamada con lo apuntado.</div>`;
+      $('llalta').onclick = () => aAltaCompleta();
     } else if (cliente) {
       c.innerHTML = `<div class="clisel"><span><b>${esc(cliente.nombre)}</b><span class="sm">${esc(cliente.tel || cliente.telefono || '')}</span></span><button type="button" class="btn sec" id="lccambia">Cambiar</button></div>`;
       $('lccambia').onclick = () => { cliente = null; pintaCli(); };
@@ -10685,7 +10718,16 @@ async function editorLlamada(l, previa) {
     $('llres').querySelectorAll('[data-lr]').forEach(x => x.classList.toggle('on', x.dataset.lr === resultado));
     $('llseg').classList.toggle('hide', !resultado || resultado === 'Pedido hecho');
   };
+  // Pasa a la ficha completa del cliente nuevo con lo ya marcado en la llamada
+  const aAltaCompleta = () => {
+    const est = { motivo, resultado, nota: $('llno').value.trim(), direccion: $('lld').value, fecha: $('llf').value ? new Date($('llf').value).toISOString() : null,
+      proxima_fecha: $('llpf') ? $('llpf').value : '', proxima_accion: $('llpa') ? $('llpa').value.trim() : '', previa: previa ? previa.id : null, id: l.id || null,
+      cuenta_texto: medico ? '' : ($('llmed').__texto || '').trim() };
+    $('dlg').close();
+    editorContacto(medico ? { cuenta_id: medico.id, medico: medico.nombre } : {}, null, { llamada: est });
+  };
   const guardar = async conPedido => {
+    if (conPedido && nuevo) { aAltaCompleta(); return null; }
     const datosNuevo = nuevo && $('lcn') ? { nombre: $('lcn').value.trim(), telefono: $('lct').value.trim(), email: $('lce').value.trim(), nif: $('lcd').value.trim() } : null;
     if (conPedido && !cliente && !(datosNuevo && datosNuevo.nombre)) { toast('Indica el cliente: búscalo o escribe su nombre', true); return null; }
     const { data: r, error } = await db.rpc('guardar_llamada', { p: { id: l.id || null, fecha: $('llf').value ? new Date($('llf').value).toISOString() : null,
@@ -13016,7 +13058,7 @@ document.addEventListener('click', e => {
 // Plan y suscripción: página comercial con lo que aporta cada plan y cada módulo
 const MOD_PLAN = [
   ['agenda', 'Agenda y «Tu día»', `Citas, ${TT('visita', 'p', '', 'l', 'l')} y el plan de cada jornada`], ['rutas', 'Rutas', 'Rutas optimizadas y planificación semanal'],
-  ['directorio', etiquetaContactos(), `Directorio de ${TT('medico', 'p', '', 'l', 'l')}, centros y fichas`], ['seguimiento', 'Calidad del dato', 'Duplicados y datos que faltan'],
+  ['directorio', etiquetaContactos(), `${TT('medico', 'p', '', 'l', 'C')}, centros y fichas`], ['seguimiento', 'Calidad del dato', 'Duplicados y datos que faltan'],
   ['ventas', 'Pedidos y llamadas', 'Ventas, compras, proveedores y televenta'], ['pacientes', 'Clientes', `${TT('paciente', 'p', '', 'l', 'C')} y empresas con su historial`],
   ['productos', 'Productos y stock', 'Catálogo, lotes, caducidades y almacenes'], ['analitica', 'Analítica', `Ventas, ranking de ${TT('medico', 'p', '', 'l', 'l')} y comisiones`],
   ['facturacion', 'Facturación', 'Facturas con VeriFactu, cobros y rectificativas']];
@@ -15932,8 +15974,8 @@ PLANES.splice(0, PLANES.length,
   { id: 'medida', nombre: 'A medida', precio: null, anual: null, minimo: 50, incluidos: 50, bloque: [1, 0], medicos: null, presupuesto: true,
     para: 'Redes comerciales grandes, desde 50 usuarios',
     modulos: ['inicio', 'agenda', 'rutas', 'directorio', 'seguimiento', 'ventas', 'pacientes', 'productos', 'analitica', 'facturacion'],
-    ventajas: ['Todo lo de Empresa', 'Migración de datos', 'Conexión con su programa de gestión', `Espacio ${TT('medico', 's', 'del', 'l', 'l')} sin límite`,
-      'Entrar como otro usuario', 'Soporte prioritario'] });
+    ventajas: ['Todo lo de Empresa', 'Migración de datos', 'Conexión con tu programa de gestión', `Espacio ${TT('medico', 's', 'del', 'l', 'l')} sin límite`,
+      'Ver la plataforma como cada persona de tu equipo, para ayudarla', 'Soporte prioritario'] });
 const PUESTA_EN_MARCHA = 490;
 const precioPlan = p => p.presupuesto ? 'presupuesto a medida' : `${eurI(p.precio)} por usuario al mes, ${eurI(p.anual)} con pago anual`;
 // Usuarios contratados (A medida o sin dato: sin límite)
@@ -15949,6 +15991,8 @@ pintarPaginaPlan = async function () {
   const cuota = act.presupuesto || contr === Infinity ? null : contr * (anual ? act.precio * 10 / 12 : act.precio);
   const mailto = asunto => 'mailto:?subject=' + encodeURIComponent(asunto + ' · ' + ((AJUSTES.marca || {}).nombre || ''));
   const cont = $('cfgcuerpo'); if (!cont) return;
+  // El plan que se destaca es el siguiente al tuyo (con A medida, ninguno)
+  const siguiente = PLANES[PLANES.indexOf(act) + 1] || null;
   const celda = (p, v) => `<td class="${p.id === act.id ? 'act' : ''}">${v}</td>`;
   cont.innerHTML = `<div class="saludo"><div><h1>Plan y suscripción</h1><div class="fecha">Precio por usuario y mes, IVA no incluido. Con pago anual pagas 10 meses de 12.</div></div></div>
     <div class="card" id="planact"><h2>Tu plan: ${esc(act.nombre)}</h2>
@@ -15961,14 +16005,15 @@ pintarPaginaPlan = async function () {
         ${act.medicos !== 0 ? `<div class="kpi"><b>${num(d.medicos || 0)}${act.medicos ? ' / ' + act.medicos : ''}</b><span>${TT('medico', 'p', '', 'l', 'C')} con acceso</span></div>` : ''}
       </div>
       ${contr !== Infinity ? `<div class="barrauso" title="${num(usados)} de ${num(contr)}"><i style="width:${pct}%"></i></div>` : ''}
+      ${contr !== Infinity && usados > contr ? `<div class="banda-aviso" id="plansobre">Tienes ${usados - contr === 1 ? '1 usuario' : num(usados - contr) + ' usuarios'} más de ${num(contr)} contratados. Añádelos a tu plan o desactiva los que ya no usen la plataforma.</div>` : ''}
       <div class="acts"><a class="btn sec" href="${mailto('Cambiar el número de usuarios')}">Añadir o quitar usuarios</a></div></div>
-    <div class="planes">${PLANES.map(p => `<div class="plan ${p.id === act.id ? 'actual' : ''} ${p.id === 'comercial' ? 'dest' : ''}" data-plan="${p.id}">
+    <div class="planes">${PLANES.map(p => `<div class="plan ${p.id === act.id ? 'actual' : ''} ${p === siguiente ? 'dest' : ''}" data-plan="${p.id}">
       <h3>${esc(p.nombre)}</h3><div class="sm">${esc(p.para)}</div>
       <div class="precio">${p.presupuesto ? '<b>A medida</b> <span class="sm">Presupuesto · desde 50 usuarios</span>'
         : `<b>${eurI(p.precio)}</b> <span class="sm">por usuario al mes · ${eurI(p.anual)} con pago anual (${eurI(p.precio * 10)} al año)</span>`}</div>
       <ul class="manlist">${p.ventajas.map(v => `<li><span>✓</span><span>${esc(v)}</span></li>`).join('')}</ul>
       ${p.id === act.id ? '<button class="btn sec" disabled>Tu plan actual</button>'
-        : `<a class="btn ${p.id === 'comercial' ? '' : 'sec'}" href="${mailto(p.presupuesto ? 'Presupuesto del plan A medida' : 'Cambiar al plan ' + p.nombre)}">${p.presupuesto ? 'Pedir presupuesto' : 'Cambiar a ' + esc(p.nombre)}</a>`}</div>`).join('')}</div>
+        : `<a class="btn ${p === siguiente ? '' : 'sec'}" href="${mailto(p.presupuesto ? 'Presupuesto del plan A medida' : 'Cambiar al plan ' + p.nombre)}">${p.presupuesto ? 'Pedir presupuesto' : 'Cambiar a ' + esc(p.nombre)}</a>`}</div>`).join('')}</div>
     <div class="card" id="plancond"><h2>Condiciones</h2><ul class="manlist">
       <li><span>✓</span><span>Mínimo 3 usuarios en Campo, Comercial y Empresa. Añades o quitas usuarios cuando quieras.</span></li>
       <li><span>✓</span><span>Puesta en marcha (importar tus Excel, configurar la empresa y formar al equipo): incluida con pago anual; con pago mensual, ${eurI(PUESTA_EN_MARCHA)} una sola vez.</span></li>
@@ -15977,7 +16022,7 @@ pintarPaginaPlan = async function () {
     <div class="card"><h2>Qué incluye cada plan</h2><div class="dgrid-wrap"><table class="planmat"><thead><tr><th>Módulo</th>${PLANES.map(p => `<th class="${p.id === act.id ? 'act' : ''}">${esc(p.nombre)}</th>`).join('')}</tr></thead>
       <tbody>${MOD_PLAN.map(([m, n, desc]) => `<tr><td><b>${esc(n)}</b><span class="sm">${esc(desc)}</span></td>${PLANES.map(p => celda(p, p.modulos.includes(m) ? '✓' : '—')).join('')}</tr>`).join('')}
         <tr><td><b>Espacio ${TT('medico', 's', 'del', 'l', 'l')}</b><span class="sm">Su informe y sus avisos</span></td>${PLANES.map(p => celda(p, p.medicos === 0 ? '—' : p.medicos ? 'Hasta ' + p.medicos : 'Sin límite')).join('')}</tr>
-        <tr><td><b>Entrar como otro usuario</b><span class="sm">Ver la plataforma como la ve otra persona</span></td>${PLANES.map(p => celda(p, p.id === 'medida' ? '✓' : '—')).join('')}</tr>
+        <tr><td><b>Ver la plataforma como cada persona</b><span class="sm">De tu equipo, para ayudarla</span></td>${PLANES.map(p => celda(p, p.id === 'medida' ? '✓' : '—')).join('')}</tr>
         <tr><td><b>Precio por usuario</b><span class="sm">Al mes, IVA no incluido</span></td>${PLANES.map(p => celda(p, p.presupuesto ? 'A medida' : eurI(p.precio) + ' · ' + eurI(p.anual) + ' anual')).join('')}</tr>
       </tbody></table></div></div>`;
 };
@@ -16062,3 +16107,61 @@ ir = function (t, ...a) {
   if (!(t in PAGINAS)) Object.keys(PAGINAS).forEach(o => { const v = $('v-' + o); if (v) v.innerHTML = ''; });
   return IR_V2117(t, ...a);
 };
+
+
+/* v2.119.0 · Registro de llamada dentro del alta de cliente. El cliente nuevo de una llamada se da de alta siempre con la ficha
+   completa; su desplegable «Registro de llamada» guarda la llamada con el cliente o, si no compra, solo la llamada (sin cliente) con
+   lo apuntado de él en llamadas.datos (población, provincia, email…), para las métricas. */
+function llamadaAltaHTML(est) {
+  est = est || {};
+  return `<details class="blk kollam" id="kollam" ${est.motivo !== undefined ? 'open' : ''}><summary>Registro de llamada</summary>
+    <div class="sm">Si llama y no compra, guarda solo la llamada: no se crea el cliente, pero quedan sus datos para las métricas.</div>
+    <label>Motivo</label><div class="chipsw" id="kolmot"></div>
+    <label>Resultado</label><div class="chipsw" id="kolres"></div>
+    <div id="kolseg" class="${!est.resultado || est.resultado === 'Pedido hecho' ? 'hide' : ''}">
+      <div class="sm" style="margin:8px 0 4px">¿Cuándo volver a llamar?</div>
+      <div class="chipsw">${[['Mañana', 1], ['En 3 días', 3], ['En una semana', 7], ['En un mes', 30]].map(([t, d]) => `<button type="button" class="chipsel" data-kold="${d}">${t}</button>`).join('')}</div>
+      <div class="g2" style="margin-top:6px"><div><input id="kolpf" type="date" value="${esc(est.proxima_fecha || '')}" aria-label="Volver a llamar el"></div>
+        <div><input id="kolpa" value="${esc(est.proxima_accion || '')}" placeholder="p. ej. Enviarle el precio por WhatsApp" aria-label="Qué hacer"></div></div></div>
+    <div class="g2"><div><label for="kold">Tipo</label><select id="kold"><option ${est.direccion !== 'Saliente' ? 'selected' : ''}>Entrante</option><option ${est.direccion === 'Saliente' ? 'selected' : ''}>Saliente</option></select></div>
+      <div><label for="kolno">Nota de la llamada</label><input id="kolno" value="${esc(est.nota || '')}"></div></div>
+    <div class="acts" style="margin-top:8px"><button type="button" class="btn sec" id="kosolo">No compra: guardar solo la llamada</button></div>
+  </details>`;
+}
+let LL_ALTA = { motivo: '', resultado: '' };
+function llamadaAltaActivar(getMedico, est) {
+  est = est || {};
+  LL_ALTA = { motivo: est.motivo || '', resultado: est.resultado || '' };
+  catLlamadas().then(() => {
+    if (!$('kolmot')) return;
+    const chips = (cat, v, attr) => (CAT[cat] || []).map(x => `<button type="button" class="chipsel ${x.valor === v ? 'on' : ''} ${x.extra === 'neg' ? 'neg' : x.extra === 'pos' ? 'pos' : ''}" ${attr}="${esc(x.valor)}">${esc(x.valor)}</button>`).join('');
+    $('kolmot').innerHTML = chips('motivo_llamada', LL_ALTA.motivo, 'data-kom');
+    $('kolres').innerHTML = chips('resultado_llamada', LL_ALTA.resultado, 'data-kor');
+  });
+  $('kollam').onclick = e => {
+    const m = e.target.closest('[data-kom]'), r = e.target.closest('[data-kor]'), d = e.target.closest('[data-kold]');
+    if (m) { LL_ALTA.motivo = LL_ALTA.motivo === m.dataset.kom ? '' : m.dataset.kom; $('kolmot').querySelectorAll('[data-kom]').forEach(x => x.classList.toggle('on', x.dataset.kom === LL_ALTA.motivo)); }
+    if (r) {
+      LL_ALTA.resultado = LL_ALTA.resultado === r.dataset.kor ? '' : r.dataset.kor;
+      $('kolres').querySelectorAll('[data-kor]').forEach(x => x.classList.toggle('on', x.dataset.kor === LL_ALTA.resultado));
+      $('kolseg').classList.toggle('hide', !LL_ALTA.resultado || LL_ALTA.resultado === 'Pedido hecho');
+    }
+    if (d) { const f = new Date(); f.setDate(f.getDate() + +d.dataset.kold); $('kolpf').value = fechaLocal(f); $('kollam').querySelectorAll('[data-kold]').forEach(x => x.classList.toggle('on', x === d)); }
+  };
+}
+function llamadaAltaLeer() {
+  if (!$('kollam')) return null;
+  return { motivo: LL_ALTA.motivo, resultado: LL_ALTA.resultado, direccion: $('kold').value, nota: $('kolno').value.trim(),
+    proxima_fecha: $('kolpf').value, proxima_accion: $('kolpa').value.trim() };
+}
+async function llamadaAltaGuardar(ll, x, est) {
+  est = est || {};
+  const seguir = x.resultado && x.resultado !== 'Pedido hecho';
+  const { data: r, error } = await db.rpc('guardar_llamada', { p: { id: est.id || null, fecha: est.fecha || null, direccion: ll.direccion,
+    nombre: x.nombre || '', telefono: x.telefono || '', contacto_id: x.contacto_id || null, cliente_nuevo: null,
+    cuenta_id: x.medico ? x.medico.id : null, cuenta_texto: x.medico ? '' : (est.cuenta_texto || ''), motivo: ll.motivo, resultado: x.resultado || '',
+    proxima_accion: seguir ? ll.proxima_accion : '', proxima_fecha: seguir ? ll.proxima_fecha : '', nota: ll.nota,
+    pedido_id: null, llamada_origen: est.previa || null, ...(x.datos && Object.keys(x.datos).length ? { datos: x.datos } : {}) } });
+  if (error || (r && r.ok === false)) { toast('No se ha podido guardar la llamada' + (error ? ': ' + error.message : ''), true); return null; }
+  return r.id;
+}
