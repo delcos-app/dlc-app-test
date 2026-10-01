@@ -15993,7 +15993,9 @@ pintarPaginaPlan = async function () {
   const cont = $('cfgcuerpo'); if (!cont) return;
   // El plan que se destaca es el siguiente al tuyo (con A medida, ninguno)
   const siguiente = PLANES[PLANES.indexOf(act) + 1] || null;
-  const celda = (p, v) => `<td class="${p.id === act.id ? 'act' : ''}">${v}</td>`;
+  // v2.120.0: «incluido» y «no incluido» como icono y raya suave, con su texto para lectores de pantalla
+  const celda = (p, v) => `<td class="${p.id === act.id ? 'act' : ''}">${v === '✓' ? `<span class="si" role="img" aria-label="Incluido">${svgIco(ICON_NOM.check)}</span>`
+    : v === '—' ? '<span class="no" role="img" aria-label="No incluido">—</span>' : v}</td>`;
   cont.innerHTML = `<div class="saludo"><div><h1>Plan y suscripción</h1><div class="fecha">Precio por usuario y mes, IVA no incluido. Con pago anual pagas 10 meses de 12.</div></div></div>
     <div class="card" id="planact"><h2>Tu plan: ${esc(act.nombre)}</h2>
       ${pl.estado === 'prueba' ? `<div class="banda-aviso">Estás en la prueba gratuita hasta el <b>${fechaCorta(pl.prueba_hasta)}</b>. Sin permanencia: si no sigues, te llevas tus datos.</div>` : ''}
