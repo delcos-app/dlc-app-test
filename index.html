@@ -2638,6 +2638,63 @@ label.chk > span{display:flex;flex-direction:column;gap:3px;min-width:0;line-hei
 #operativa .fh{display:flex;justify-content:space-between;align-items:center;gap:10px}
 .opit{display:flex;align-items:center;gap:6px}.opit .tx{flex:1;min-width:0;text-align:left;background:none;border:0;padding:0;cursor:pointer}
 .opit .opx{flex:0 0 auto}
+/* ============================================================
+   v2.140.0 · Filtros en la cabecera, Personalizar menú y repasos
+   ============================================================ */
+/* «Filtros y columnas» en la cabecera (escritorio): misma altura que la acción principal y el último por la derecha */
+@media (min-width:900px){
+  .saludo > .acts.htacts{flex-wrap:nowrap;align-items:center}
+  .saludo > .acts.htacts > .htbtn,#dircab .acts > #dirtools{white-space:nowrap}
+  #dircab .acts > .ai-hueco{display:none!important}
+}
+/* Actualizar de Inicio: al pulsarlo gira el icono, sin texto */
+.icogira svg{animation:giroIco .8s linear infinite}
+.icogira{opacity:1!important;cursor:progress}
+@keyframes giroIco{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion: reduce){.icogira svg{animation-duration:2s}}
+/* Duplicados: guía de la tarjeta de la derecha con título y texto (antes la negrita partía la frase en tres líneas) */
+.vacio.vguia{gap:6px}
+.vacio.vguia > b{font:700 15px var(--f-titulo);color:var(--ink)}
+.vacio.vguia > span{max-width:380px;line-height:1.5}
+/* Personalizar menú: tarjetas por bloque, asa para arrastrar, icono de la sección e interruptor; vista previa en vivo */
+#mlpanel.mlp2{width:360px;max-height:calc(100vh - 32px);padding:0;overflow:hidden}
+.mlp2 .mlph{flex-direction:row;align-items:flex-start;justify-content:space-between;gap:12px;padding:16px 14px 12px 18px}
+.mlp2 .mlph > div{display:flex;flex-direction:column;gap:3px}
+.mlp2 .mlph .sm{line-height:1.45}
+.mlp2 .mlph .x{flex:none;margin:-4px -2px 0 0}
+.mlp2 .mlpl{display:flex;flex-direction:column;gap:10px;padding:12px 12px 14px;background:var(--hielo)}
+.mlp2 .mlpg{position:relative;padding:4px 6px 6px;border:1px solid var(--line)!important;border-radius:14px;background:#FFFFFF;
+  transition:opacity var(--t-rapido) var(--ease-sal)}
+.mlp2 .mlpgh{display:flex;align-items:center;gap:6px;padding:4px 4px 2px 0}
+.mlp2 .mlpgh b{flex:1;font:700 11.5px var(--f-texto);letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.mlp2 .mlpcnt{font-size:12px;color:#7A8CA0;padding-right:6px}
+.mlp2 .mlpis{display:flex;flex-direction:column;gap:2px}
+.mlp2 .mlpi{display:flex;align-items:center;gap:8px;min-height:42px;padding:0 6px 0 0;border-radius:10px;cursor:default;position:relative;
+  transition:background-color var(--t-rapido) var(--ease-sal),opacity var(--t-rapido) var(--ease-sal)}
+.mlp2 .mlpi:hover{background:var(--hielo)}
+.mlp2 .mlpico{display:grid;place-items:center;width:30px;height:30px;flex:none;border-radius:8px;background:var(--sky-soft);color:var(--navy)}
+.mlp2 .mlpico svg{width:16px;height:16px}
+.mlp2 .mlpn{flex:1;min-width:0;font-size:14px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mlp2 .mlpi.off .mlpico{background:#EEF2F6;color:#94A3B8}
+.mlp2 .mlpi.off .mlpn{color:#8597AB;font-weight:500}
+.mlp2 .mlpi > .vfswitch{margin:0;flex:0 0 auto;width:auto!important;display:inline-flex}
+.mlp2 .mlpi > .mlpn{display:block;flex:1 1 auto}
+.mlp2 .mlpasa{flex:none;display:grid;place-items:center;width:24px;height:32px;padding:0;border:0;border-radius:6px;background:none;color:#A6B4C3;cursor:grab;touch-action:none}
+.mlp2 .mlpasa svg{width:16px;height:16px}
+.mlp2 .mlpasa:hover{color:var(--navy);background:var(--sky-soft)}
+.mlp2 .mlpasa:active{cursor:grabbing}
+.mlp2 .mlpasa:focus-visible{outline:none;box-shadow:var(--foco)}
+.mlp2 .arrastrando{opacity:.4}
+.mlp2 .soltar-antes::before,.mlp2 .soltar-despues::after{content:"";position:absolute;left:8px;right:8px;height:3px;border-radius:3px;background:var(--sky);pointer-events:none}
+.mlp2 .soltar-antes::before{top:-2px}
+.mlp2 .soltar-despues::after{bottom:-2px}
+.mlp2 .mlpg.soltar-antes::before{top:-7px}
+.mlp2 .mlpg.soltar-despues::after{bottom:-7px}
+.mlp2 .mlpacts{align-items:center;border-radius:0}
+.mlp2 .mlpdef{display:inline-flex;align-items:center;gap:6px;border-color:transparent;background:none;color:var(--muted)}
+.mlp2 .mlpdef:hover{color:var(--navy);background:#FFFFFF}
+.mlp2 .mlpdef svg{width:15px;height:15px}
+@media (prefers-reduced-motion: reduce){.mlp2 .mlpg,.mlp2 .mlpi{transition:none}}
 </style>
 </head>
 <body>
@@ -2774,6 +2831,6 @@ label.chk > span{display:flex;flex-direction:column;gap:3px;min-width:0;line-hei
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.139.0"></script>
+<script src="./app.js?v=2.140.0"></script>
 </body>
 </html>

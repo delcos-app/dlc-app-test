@@ -4221,8 +4221,7 @@ async function cargarDuplicados() {
         <button class="btn sec" id="dbuscar">Volver a buscar parecidos</button></div></div>
     ${permitido ? `<div class="dupgrid">
       <div><div class="card" id="dpendc"></div><div class="card" id="dparc"></div></div>
-      <div class="card dupcmp" id="dcmp"><div class="vacio">Pulsa <b>Comparar</b> en una pareja para revisarla aquí.
-        La lista sigue a la izquierda: al terminar, pasas a la siguiente.</div></div>
+      <div class="card dupcmp" id="dcmp"><div class="vacio vguia"><b>Elige una pareja para revisarla</b><span>Pulsa «Comparar» en la lista de la izquierda y aquí verás las dos fichas lado a lado. Al terminar, pasas a la siguiente.</span></div></div>
     </div>` : '<div class="card"><div class="vacio">Solo administración puede unificar fichas.</div></div>'}`;
   $('dvolver').onclick = () => ir(TAB_ANTERIOR && TAB_ANTERIOR !== 'duplicados' ? TAB_ANTERIOR : 'directorio');
   if (!permitido) { $('dbuscar').classList.add('hide'); return; }
@@ -17482,3 +17481,174 @@ async function configurarAvisosPedidos(oblig) {
     $('dlg').close(); toast('Avisos guardados'); pintarOperativa();
   };
 }
+/* v2.140.0 · «Filtros y columnas» en la cabecera de cada pantalla, en la misma fila que la acción principal («+ Nueva venta»,
+   «+ Nuevo producto»…), a su derecha (decisión de Eric, 3/10/2026: misma posición en todas las
+   pantallas). Va el último por la derecha, para caer siempre en el mismo sitio aunque cambie la acción principal o no la haya. Antes iba en la barra de la tabla
+   (v2.57.0) y en cada pantalla caía en un sitio distinto. */
+ordenarBotones = function (sec) {
+  // Cabecera: secundarios → acción principal → «Filtros y columnas» (el último: el mismo sitio en todas las pantallas)
+  sec.querySelectorAll('.saludo .acts, #dircab .acts').forEach(acts => {
+    const bs = [...acts.children].filter(b => b.matches('button, a.btn, select'));
+    const vista = b => b.dataset && b.dataset.ag && b.dataset.ag !== 'nueva';
+    const peso = b => (b.classList.contains('htbtn') || b.id === 'dirtools') ? 4
+      : (b.matches('.btn:not(.sec)') && !b.classList.contains('icobtn') && !b.classList.contains('iniact') && !vista(b)) ? 3 : b.matches('select') ? 0 : 1;
+    const orden = [...bs].sort((a, c) => peso(a) - peso(c));
+    if (orden.some((b, i) => b !== bs[i])) orden.forEach(b => acts.appendChild(b));
+    const dt = acts.querySelector(':scope > #dirtools'), h = acts.querySelector(':scope > .ai-hueco');
+    if (dt && h && h.nextElementSibling !== dt) acts.insertBefore(h, dt);
+    acts.querySelectorAll(':scope > .ai-dir').forEach(x => x.remove());
+  });
+};
+const BARRA_TABLA_V257 = barraTabla;
+barraTabla = function (sec) {
+  // En el móvil sigue en la barra de la tabla, como hasta ahora (la cabecera del móvil no tiene sitio a la derecha)
+  if (innerWidth < 900) return BARRA_TABLA_V257(sec);
+  const b = sec.querySelector('.htbtn'), sal = sec.querySelector('.saludo');
+  if (b && sal) {
+    let acts = sal.querySelector(':scope > .acts');
+    if (!acts) { sal.insertAdjacentHTML('beforeend', '<div class="acts htacts"></div>'); acts = sal.querySelector(':scope > .acts'); }
+    if (!acts.classList.contains('htacts')) acts.classList.add('htacts');
+    if (b.parentElement !== acts) {
+      const antes = b.parentElement; b.classList.remove('aderecha'); acts.appendChild(b);
+      if (antes && antes.classList.contains('tbarra') && !antes.children.length && !antes.textContent.trim()) antes.remove();
+      else if (antes && antes.classList.contains('conbtn')) antes.classList.remove('conbtn');
+    }
+  }
+  // Prescriptores: su «Filtros y columnas» (#dirtools) también va junto a «Crear nuevo»
+  const dt = sec.id === 'v-directorio' && $('dirtools'), dacts = document.querySelector('#dircab .acts');
+  if (dt && dacts && dt.parentElement !== dacts) {
+    dt.classList.remove('aderecha');
+    // La ayuda «i» de la barra se pone delante de #dirtools si no hay ya una: un hueco oculto evita que aparezca en la cabecera
+    dacts.insertAdjacentHTML('beforeend', '<span class="ai ai-hueco hide" aria-hidden="true"></span>');
+    dacts.appendChild(dt);
+  }
+};
+
+// v2.140.0 · Botones de solo icono (Actualizar de Inicio): al pulsarlos gira el icono y no aparece ningún texto (antes salía
+// «Actualizando…» dentro del botón redondo)
+conCarga = (orig => async function (btn, texto, fn) {
+  if (!btn || !(btn.id === 'iniact' || btn.classList.contains('icoredondo') || btn.classList.contains('icobtn'))) return orig(btn, texto, fn);
+  if (btn.dataset.cargando) return;
+  btn.dataset.cargando = '1'; btn.disabled = true; btn.classList.add('icogira'); btn.setAttribute('aria-busy', 'true');
+  try { return await fn(); } finally { btn.disabled = false; btn.classList.remove('icogira'); btn.removeAttribute('aria-busy'); delete btn.dataset.cargando; }
+})(conCarga);
+
+/* v2.140.0 · «Personalizar menú» rehecho (petición de Eric: la selección se veía «de 2010»). Cada bloque y cada sección se arrastran
+   por su asa para ordenarlos (también con el teclado: asa con el foco y flechas ↑ ↓); cada sección tiene un interruptor como los de
+   Notificaciones; el menú de la izquierda cambia en vivo mientras se toca y solo se guarda con «Guardar» (cerrar o Escape lo deja
+   como estaba). */
+Object.assign(ICON_NOM, {
+  'grip-vertical': '<circle cx="9" cy="5" r="1" /> <circle cx="9" cy="12" r="1" /> <circle cx="9" cy="19" r="1" /> <circle cx="15" cy="5" r="1" /> <circle cx="15" cy="12" r="1" /> <circle cx="15" cy="19" r="1" />',
+  'rotate-ccw': '<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /> <path d="M3 3v5h5" />'
+});
+menuPersonalizar = function () {
+  let caja = $('mlpanel'); if (caja) { if (caja.__cerrar) caja.__cerrar(); else caja.remove(); return; }
+  const prefs0 = PERFIL.preferencias, p = menuPrefs();
+  const estado = { orden: menuGrupos().filter(g => g.id !== 'otros').map(g => g.id), items: {}, ocultos: [...(p.ocultos || [])] };
+  menuGrupos().forEach(g => { estado.items[g.id] = [...g.items]; });
+  const boton = k => document.querySelector(`#nav button[data-t="${k}"]`);
+  const nombre = k => { const b = boton(k); return b ? (b.dataset.tip || (b.querySelector('.mllab') || b).textContent.trim()) : ''; };
+  const icono = k => { const b = boton(k), s = b && b.querySelector('svg'); return s ? s.outerHTML : ''; };
+  const disponible = k => { const b = boton(k); return !!b && k !== 'seguimiento' && !b.classList.contains('hide') && (b.classList.contains('mloculto') || getComputedStyle(b).display !== 'none'); };
+  const tit = id => (MENU_GRUPOS.find(x => x.id === id) || { t: 'Otros' }).t;
+  const bloques = () => estado.orden.filter(id => (estado.items[id] || []).some(disponible));
+  // Vista previa: el menú se monta con lo que hay en el panel; al cerrar sin guardar vuelve a lo guardado
+  const previa = () => {
+    PERFIL.preferencias = Object.assign({}, prefs0 || {}, { menu: { orden: [...estado.orden], items: JSON.parse(JSON.stringify(estado.items)), ocultos: [...estado.ocultos] } });
+    MENU_FIRMA = ''; montarMenuLateral();
+  };
+  let guardado = false;
+  const fuera = ev => { if (!ev.target.closest('#mlpanel, #mlpers')) cerrar(); };
+  const tecla = ev => { if (ev.key === 'Escape') { ev.preventDefault(); ev.stopPropagation(); cerrar(); } };
+  const cerrar = () => {
+    const c = $('mlpanel'); if (!c) return;
+    c.remove(); document.removeEventListener('click', fuera, true); document.removeEventListener('keydown', tecla, true);
+    if (!guardado) { PERFIL.preferencias = prefs0; MENU_FIRMA = ''; montarMenuLateral(); }
+    const b = $('mlpers'); if (b) b.focus();
+  };
+  document.body.insertAdjacentHTML('beforeend', '<div id="mlpanel" class="mlp2" role="dialog" aria-label="Personalizar menú"></div>');
+  caja = $('mlpanel'); caja.__cerrar = cerrar;
+  const asa = (txt, attrs) => `<button type="button" class="mlpasa" ${attrs} aria-label="Mover ${esc(txt)} (flechas arriba y abajo)" title="Arrastra para ordenar">${svgIco(ICON_NOM['grip-vertical'])}</button>`;
+  const pinta = foco => {
+    caja.innerHTML = `<div class="mlph"><div><b>Personalizar menú</b><span class="sm">Arrastra para ordenar y elige qué secciones ves. Solo cambia tu menú.</span></div>
+        <button type="button" class="x" id="mlpx" aria-label="Cerrar">✕</button></div>
+      <div class="mlpl">${bloques().map(id => {
+        const its = estado.items[id].filter(disponible), vis = its.filter(k => !estado.ocultos.includes(k)).length;
+        return `<section class="mlpg" data-g="${id}">
+          <div class="mlpgh">${asa('el bloque ' + tit(id), `data-ag="${id}"`)}<b>${esc(tit(id))}</b><span class="mlpcnt">${vis} de ${its.length}</span></div>
+          <div class="mlpis">${its.map(k => { const on = !estado.ocultos.includes(k);
+            return `<div class="mlpi${on ? '' : ' off'}" data-k="${k}" data-g="${id}">${asa(nombre(k), `data-ak="${k}" data-g="${id}"`)}
+              <span class="mlpico">${icono(k)}</span><span class="mlpn">${esc(nombre(k))}</span>
+              <label class="vfswitch mini"><input type="checkbox" role="switch" data-vk="${k}" ${on ? 'checked' : ''} aria-label="Ver ${esc(nombre(k))} en el menú"><span class="sw"></span></label></div>`; }).join('')}</div></section>`; }).join('')}</div>
+      <div class="mlpacts"><button type="button" class="btn sec mlpdef" id="mlpdef">${svgIco(ICON_NOM['rotate-ccw'])} Restablecer</button><button type="button" class="btn" id="mlpok">Guardar</button></div>`;
+    if (foco) { const f = caja.querySelector(foco); if (f) f.focus(); }
+  };
+  // Mover un bloque entre bloques, o una sección dentro de su bloque
+  const moverBloque = (id, destino, antes) => {
+    if (id === destino) return; const o = estado.orden.filter(x => x !== id), i = o.indexOf(destino); o.splice(antes ? i : i + 1, 0, id); estado.orden = o;
+  };
+  const moverItem = (g, k, destino, antes) => {
+    if (k === destino) return; const l = estado.items[g].filter(x => x !== k), i = l.indexOf(destino); l.splice(antes ? i : i + 1, 0, k); estado.items[g] = l;
+  };
+  pinta(); previa();
+  caja.addEventListener('click', async e => {
+    if (e.target.closest('#mlpx')) { cerrar(); return; }
+    if (e.target.closest('#mlpdef')) { estado.orden = MENU_GRUPOS.map(x => x.id); MENU_GRUPOS.forEach(x => { estado.items[x.id] = [...x.items]; }); estado.ocultos = []; pinta(); previa(); return; }
+    const ok = e.target.closest('#mlpok');
+    if (ok) {
+      const prefs = Object.assign({}, prefs0 || {}, { menu: { orden: estado.orden, items: estado.items, ocultos: estado.ocultos } });
+      ok.disabled = true;
+      const { data, error } = await db.rpc('guardar_preferencias', { p: prefs });
+      ok.disabled = false;
+      if (error) { toast('No se ha podido guardar el menú', true); return; }
+      PERFIL.preferencias = data || prefs; guardado = true; cerrar(); MENU_FIRMA = ''; montarMenuLateral(); toast('Menú guardado');
+    }
+  });
+  caja.addEventListener('change', e => {
+    const v = e.target.closest('[data-vk]'); if (!v) return; const k = v.dataset.vk;
+    estado.ocultos = v.checked ? estado.ocultos.filter(x => x !== k) : [...new Set([...estado.ocultos, k])];
+    const fila = v.closest('.mlpi'); fila.classList.toggle('off', !v.checked);
+    const g = fila.closest('.mlpg'), its = estado.items[g.dataset.g].filter(disponible);
+    g.querySelector('.mlpcnt').textContent = `${its.filter(x => !estado.ocultos.includes(x)).length} de ${its.length}`;
+    previa();
+  });
+  // Teclado: con el foco en un asa, ↑ ↓ mueven
+  caja.addEventListener('keydown', e => {
+    const a = e.target.closest('.mlpasa'); if (!a || (e.key !== 'ArrowUp' && e.key !== 'ArrowDown')) return;
+    e.preventDefault(); const d = e.key === 'ArrowUp' ? -1 : 1;
+    if (a.dataset.ag) { const bs = bloques(), i = bs.indexOf(a.dataset.ag), o = bs[i + d]; if (!o) return; moverBloque(a.dataset.ag, o, d < 0); pinta(`[data-ag="${a.dataset.ag}"]`); }
+    else { const g = a.dataset.g, its = estado.items[g].filter(disponible), i = its.indexOf(a.dataset.ak), o = its[i + d]; if (!o) return; moverItem(g, a.dataset.ak, o, d < 0); pinta(`[data-ak="${a.dataset.ak}"]`); }
+    previa();
+  });
+  // Arrastrar y soltar, solo desde el asa: al pulsarla, su fila (o su bloque) pasa a ser arrastrable
+  let arr = null;
+  caja.addEventListener('pointerdown', e => {
+    caja.querySelectorAll('[draggable="true"]').forEach(x => x.removeAttribute('draggable'));
+    const a = e.target.closest('.mlpasa'); if (!a) return;
+    const el = a.dataset.ag ? a.closest('.mlpg') : a.closest('.mlpi'); if (el) el.setAttribute('draggable', 'true');
+  });
+  caja.addEventListener('dragstart', e => {
+    const el = e.target.closest('[draggable="true"]'); if (!el) { e.preventDefault(); return; }
+    arr = el.classList.contains('mlpi') ? { tipo: 'i', k: el.dataset.k, g: el.dataset.g, el } : { tipo: 'g', g: el.dataset.g, el };
+    e.dataTransfer.effectAllowed = 'move'; try { e.dataTransfer.setData('text/plain', arr.k || arr.g); } catch (er) {}
+    requestAnimationFrame(() => { if (arr) arr.el.classList.add('arrastrando'); });
+  });
+  const limpiar = () => caja.querySelectorAll('.soltar-antes, .soltar-despues').forEach(x => x.classList.remove('soltar-antes', 'soltar-despues'));
+  caja.addEventListener('dragover', e => {
+    if (!arr) return;
+    const dest = arr.tipo === 'i' ? e.target.closest(`.mlpi[data-g="${arr.g}"]`) : e.target.closest('.mlpg');
+    limpiar(); if (!dest || dest === arr.el) return;
+    e.preventDefault(); const r = dest.getBoundingClientRect();
+    dest.classList.add(e.clientY < r.top + r.height / 2 ? 'soltar-antes' : 'soltar-despues');
+  });
+  caja.addEventListener('drop', e => {
+    if (!arr) return; e.preventDefault();
+    const dest = caja.querySelector('.soltar-antes, .soltar-despues'); if (!dest) return;
+    const antes = dest.classList.contains('soltar-antes');
+    if (arr.tipo === 'i') moverItem(arr.g, arr.k, dest.dataset.k, antes); else moverBloque(arr.g, dest.dataset.g, antes);
+    arr = null; pinta(); previa();
+  });
+  caja.addEventListener('dragend', () => { arr = null; limpiar(); caja.querySelectorAll('.arrastrando').forEach(x => x.classList.remove('arrastrando')); });
+  setTimeout(() => { document.addEventListener('click', fuera, true); document.addEventListener('keydown', tecla, true); }, 0);
+  const f = caja.querySelector('.mlpasa'); if (f) f.focus();
+};
