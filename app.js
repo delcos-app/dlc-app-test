@@ -14329,7 +14329,9 @@ async function disenoPDF() {
     c.onclick = () => disenoPDF();
   } else if (TAB === 'organizacion' && PAG_TAB.organizacion === 'pdf') {
     // v2.124.0: en el móvil el diseño es una ventana; al cerrarla, la pestaña no se queda vacía con el cargador girando
+    $('dlg').dataset.depagina = '1';   // v2.136.0: se cierra al cambiar de pantalla
     $('dlg').addEventListener('close', () => {
+      delete $('dlg').dataset.depagina;
       const area = document.querySelector('#v-organizacion .pagcuerpo');
       if (!area || TAB !== 'organizacion' || PAG_TAB.organizacion !== 'pdf') return;
       area.innerHTML = `<div class="card cfgpanel"><h2>Diseño del PDF de la factura</h2><p class="sm">Logo, colores, columnas y pie de las facturas, con vista previa.</p>
@@ -17252,3 +17254,7 @@ document.addEventListener('input', e => {
 // v2.135.0 · Menú lateral: «Configuración» (pie del menú) se marca como sección activa cuando se está en Configuración
 function menuMarcarPie() { const b = $('mlcfg'); if (b) b.classList.toggle('activo', TAB === 'config'); }
 ir = (orig => function (...a) { const r = orig.apply(this, a); menuMarcarPie(); setTimeout(menuMarcarPie, 0); return r; })(ir);
+
+// v2.136.0 · Al cambiar de pantalla se cierra lo que va «en la página» (Diseño del PDF): en el móvil es una ventana y seguía
+// abierta encima de la pantalla siguiente (Usuarios, Panel delcos…)
+ir = (orig => function (...a) { const d = $('dlg'); if (d && d.open && (d.dataset.fija || d.dataset.depagina)) d.close(); return orig.apply(this, a); })(ir);

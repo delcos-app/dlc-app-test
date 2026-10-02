@@ -2592,6 +2592,22 @@ label.chk > span{display:flex;flex-direction:column;gap:3px;min-width:0;line-hei
   body.menulat .mlitem.activo .ico{opacity:1}
   body.menulat .mlitem.activo::before{content:"";position:absolute;left:-12px;top:9px;bottom:9px;width:3px;border-radius:0 3px 3px 0;background:var(--navy)}
 }
+/* ============================================================
+   v2.136.0 · Repaso del móvil
+   ============================================================ */
+/* Configuración → Rutas: punto de salida y de llegada uno debajo del otro (en dos columnas los campos se cortaban); elegir
+   imagen o archivo con el botón debajo (el texto se cortaba); pedido de compra con el producto en su fila y unidades y coste
+   debajo, cada uno con su ancho. */
+@media (max-width:760px){
+  #cfgcuerpo .cols[style*="1fr 1fr"]{grid-template-columns:1fr!important}
+  .filepick{grid-template-columns:44px 1fr;row-gap:10px}
+  .filepick .fpmini{width:44px;height:44px}
+  .filepick > .btn{grid-column:1 / -1;width:100%}
+  .fptx b{white-space:normal}
+  .lin .lrow.cprow{grid-template-columns:1fr 1fr;row-gap:10px}
+  .lin .lrow.cprow > :first-child{grid-column:1 / -1}
+  .lin .lrow.cprow > div:empty{display:none}
+}
 </style>
 </head>
 <body>
@@ -2728,6 +2744,6 @@ label.chk > span{display:flex;flex-direction:column;gap:3px;min-width:0;line-hei
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.135.0"></script>
+<script src="./app.js?v=2.136.0"></script>
 </body>
 </html>
