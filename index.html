@@ -2574,6 +2574,24 @@ label.chk > span{display:flex;flex-direction:column;gap:3px;min-width:0;line-hei
 #dbody > label.chk > span > .sm{color:var(--muted)}
 #dbody > .fh + label.chk{margin-top:4px}
 @media (prefers-reduced-motion: reduce){#ctprods > .ctlin,#fprodc .lista > label.item,#dbody > label.chk{transition:none}}
+/* ============================================================
+   v2.135.0 · Menú lateral: candado y Configuración activa
+   ============================================================ */
+/* El candado de las secciones que no entran en el plan es un icono de trazo (antes un emoji): al final de la fila con el menú
+   desplegado y, plegado, como insignia en la esquina del icono (antes empujaba el icono fuera del centro). «Configuración», en el
+   pie, se marca como las demás secciones cuando se está en ella. */
+:root{--ico-lock:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='4' y='11' width='16' height='10' rx='2'/%3E%3Cpath d='M8 11V7a4 4 0 0 1 8 0v4'/%3E%3C/svg%3E")}
+@media (min-width:900px){
+  body.menulat nav.main .in button[data-t] .cand{flex:none;width:13px;height:13px;margin:0 0 0 auto;font-size:0;color:transparent;background:#7A8CA0;
+    -webkit-mask:var(--ico-lock) center / contain no-repeat;mask:var(--ico-lock) center / contain no-repeat}
+  body.menulat.menupleg nav.main .in button[data-t] .cand{position:absolute;top:7px;left:calc(50% + 6px);width:11px;height:11px;margin:0;
+    box-shadow:none;background:#7A8CA0}
+  body.menulat nav.main .in button[data-t].bloq{opacity:1;color:#8597AB}
+  body.menulat nav.main .in button[data-t].bloq .navico{opacity:.55}
+  body.menulat .mlitem.activo{background:var(--sky-soft);color:var(--navy)}
+  body.menulat .mlitem.activo .ico{opacity:1}
+  body.menulat .mlitem.activo::before{content:"";position:absolute;left:-12px;top:9px;bottom:9px;width:3px;border-radius:0 3px 3px 0;background:var(--navy)}
+}
 </style>
 </head>
 <body>
@@ -2710,6 +2728,6 @@ label.chk > span{display:flex;flex-direction:column;gap:3px;min-width:0;line-hei
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.134.0"></script>
+<script src="./app.js?v=2.135.0"></script>
 </body>
 </html>

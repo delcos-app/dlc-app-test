@@ -17066,7 +17066,9 @@ function montarMenuLateral() {
   const inn = $('nav'); if (!inn) return;
   // Con una sola sección (portal del médico o del centro) no hace falta barra lateral: se queda la cabecera de siempre
   const visibles = [...inn.querySelectorAll('button[data-t]')].filter(b => !b.classList.contains('hide') && b.dataset.t !== 'seguimiento' && b.style.display !== 'none' && (b.classList.contains('mloculto') || getComputedStyle(b).display !== 'none' || document.body.classList.contains('menulat')));
-  const lat = menuEscritorio() && typeof PERFIL !== 'undefined' && !!PERFIL && visibles.length > 1;
+  // v2.135.0: el portal nunca lleva barra lateral (al arrancar veía un instante dos secciones y la montaba)
+  const portal = (() => { try { return ES_MEDICO(); } catch (e) { return false; } })();
+  const lat = menuEscritorio() && typeof PERFIL !== 'undefined' && !!PERFIL && !portal && visibles.length > 1;
   document.body.classList.toggle('menulat', lat);
   if (!lat) return;
   document.body.classList.toggle('menupleg', menuPlegado());
@@ -17246,3 +17248,7 @@ document.addEventListener('input', e => {
   const i = e.target.closest && e.target.closest('#ctprods [data-ctp]'); if (!i) return;
   const f = i.closest('.ctlin'); if (f) f.classList.toggle('con', (+i.value || 0) > 0);
 });
+
+// v2.135.0 · Menú lateral: «Configuración» (pie del menú) se marca como sección activa cuando se está en Configuración
+function menuMarcarPie() { const b = $('mlcfg'); if (b) b.classList.toggle('activo', TAB === 'config'); }
+ir = (orig => function (...a) { const r = orig.apply(this, a); menuMarcarPie(); setTimeout(menuMarcarPie, 0); return r; })(ir);
