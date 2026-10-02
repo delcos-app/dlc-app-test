@@ -14309,6 +14309,13 @@ async function disenoPDF() {
     <div class="acts" style="justify-content:space-between"><button class="btn sec" id="pdfdef" type="button">Volver al diseño original</button>
       <div style="display:flex;gap:8px"><button class="btn sec" data-cerrar>Cancelar</button><button class="btn" id="pdfok">Guardar diseño</button></div></div>`;
   $('dlg').classList.add('amplia'); if (!$('dlg').open) $('dlg').showModal();
+  // v2.122.0: integrado en su pestaña (ordenador): sin cerrar, «Descartar cambios» vuelve a lo guardado y al guardar se queda
+  const enPagina = $('dlg').classList.contains('encajada');
+  if (enPagina) {
+    $('dbody').querySelector('.fh .x').remove();
+    const c = $('dbody').querySelector('.acts [data-cerrar]'); c.removeAttribute('data-cerrar'); c.textContent = 'Descartar cambios';
+    c.onclick = () => disenoPDF();
+  }
   let T = null;
   const pinta = () => { clearTimeout(T); T = setTimeout(async () => { const d = await facturaPDF(facturaEjemplo(), '', C); const u = d.output('bloburl'); $('pdfif').src = u + '#toolbar=0&navpanes=0&view=FitH'; }, 250); };
   $('dbody').querySelectorAll('[data-pk]').forEach(g => g.querySelectorAll('button').forEach(b => b.onclick = () => { C[g.dataset.pk] = b.dataset.v; g.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); pinta(); }));
@@ -14320,7 +14327,7 @@ async function disenoPDF() {
   $('pdfok').onclick = () => conCarga($('pdfok'), 'Guardando…', async () => {
     const { data: r, error } = await db.rpc('guardar_ajuste', { p_clave: 'factura_pdf', p_valor: C });
     if (error || !r || !r.ok) { toast('No se ha podido guardar el diseño', true); return; }
-    AJUSTES.factura_pdf = JSON.parse(JSON.stringify(C)); delete $('dlg').dataset.sucio; $('dlg').close(); toast('Diseño del PDF guardado');
+    AJUSTES.factura_pdf = JSON.parse(JSON.stringify(C)); delete $('dlg').dataset.sucio; if (!enPagina) $('dlg').close(); toast('Diseño del PDF guardado');
   });
   pinta();
 }
@@ -16227,10 +16234,14 @@ function areaEncaje() {
   if (PAGINAS[TAB]) return document.querySelector(`#v-${TAB} .pagcuerpo`) || $('cfgcuerpo');
   return null;
 }
+// v2.122.0: la ventana va EN la página, en el sitio del apartado (antes flotaba encima con posición absoluta y su propio desplazamiento).
+// Se devuelve a <body> antes de cerrarse, para que los repintados del apartado no se la lleven por delante.
 function colocarEncajada(d, area) {
-  const r = area.getBoundingClientRect();
-  Object.assign(d.style, { top: (r.top + scrollY) + 'px', left: (r.left + scrollX) + 'px', width: r.width + 'px' });
-  area.style.minHeight = d.offsetHeight + 'px';
+  const cab = Math.max(0, ...['header', '.top', 'nav.main'].map(q => { const e = document.querySelector(q); return e && getComputedStyle(e).position.match(/fixed|sticky/) ? e.getBoundingClientRect().bottom : 0; }));
+  document.documentElement.style.setProperty('--alto-cab', cab + 'px');
+}
+function devolverEncajada(d) {
+  if (d.__casa && d.parentNode !== d.__casa) d.__casa.appendChild(d);
 }
 ['dlg', 'dlg2'].forEach(id => {
   const d = $(id); if (!d) return;
@@ -16239,17 +16250,23 @@ function colocarEncajada(d, area) {
     const area = areaEncaje();
     if (!area) return modal();
     if (d.open) return;
-    d.classList.add('encajada'); d.__area = area;
+    d.classList.add('encajada'); d.__area = area; d.__casa = d.__casa || d.parentNode;
+    area.parentNode.insertBefore(d, area);
     area.classList.add('con-ventana');
     d.show(); colocarEncajada(d, area);
-    if (!d.__ro) { d.__ro = new ResizeObserver(() => { if (d.open && d.__area) colocarEncajada(d, d.__area); }); d.__ro.observe(d); }
     // Al abrir, el navegador lleva la vista al primer campo: se vuelve arriba del área para ver su cabecera
     const tapa = () => Math.max(0, ...['body > header', 'header', '.top', 'nav.main'].map(q => { const e = document.querySelector(q); return e && getComputedStyle(e).position.match(/fixed|sticky/) ? e.getBoundingClientRect().bottom : 0; }));
-    const arriba = () => scrollTo({ top: Math.max(0, area.getBoundingClientRect().top + scrollY - tapa() - 12) });
+    // v2.122.0: la ventana ocupa el sitio del apartado; solo se desplaza la página si su cabecera queda por encima de la vista
+    const arriba = () => { const t = d.getBoundingClientRect().top; if (t < tapa()) scrollTo({ top: Math.max(0, t + scrollY - tapa() - 12) }); };
     arriba(); requestAnimationFrame(arriba);
     const f = d.querySelector('input:not([type=hidden]), select, textarea'); if (f) setTimeout(() => { f.focus({ preventScroll: true }); arriba(); }, 30);
   };
+  const cerrar = d.close;
+  d.close = function () { devolverEncajada(d); return cerrar.apply(this, arguments); };
+  // Si un repintado borra el apartado con la ventana dentro, se recupera (cerrada) en <body>
+  new MutationObserver(() => { if (d.__casa && !d.isConnected) { d.__casa.appendChild(d); if (d.open) d.close(); } }).observe(document.body, { childList: true, subtree: true });
   d.addEventListener('close', () => {
+    devolverEncajada(d);
     if (!d.classList.contains('encajada')) return;
     d.classList.remove('encajada'); d.removeAttribute('style');
     const area = d.__area; d.__area = null;

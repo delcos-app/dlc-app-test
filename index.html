@@ -2248,6 +2248,48 @@ a.btn{text-decoration:none}
 dialog.encajada{position:absolute;inset:auto;margin:0;max-width:none;max-height:none;transform:none;z-index:40;box-shadow:none;border:1px solid var(--line,#E3E9F0);border-radius:14px}
 dialog.encajada::backdrop{display:none}
 .con-ventana > *{visibility:hidden}
+/* ============================================================
+   v2.122.0 · Registro de llamada dentro del alta de cliente
+   ============================================================ */
+/* El desplegable es un panel claro con su icono de llamada y una flecha que gira, como los demás desplegables de la marca */
+:root{--ico-tel:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M13.83 16.57a1 1 0 0 0 1.21-.3l.36-.47A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.47.35a1 1 0 0 0-.29 1.23 14 14 0 0 0 6.39 6.39'/%3E%3C/svg%3E");
+  --ico-chevron:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")}
+#kollam{background:var(--hielo);border:1px solid var(--line);border-radius:12px;padding:0 16px;margin-top:16px}
+#kollam[open]{padding-bottom:14px}
+#kollam > summary{max-width:none;list-style:none;display:flex;align-items:center;gap:10px;margin:0 -16px;padding:13px 16px;min-height:48px;cursor:pointer;
+  font:700 15px var(--f-titulo);letter-spacing:-.01em;color:var(--ink);text-transform:none;border-radius:12px}
+#kollam > summary::-webkit-details-marker{display:none}
+#kollam > summary::before{content:"";flex:none;width:18px;height:18px;background:var(--navy);-webkit-mask:var(--ico-tel) center/contain no-repeat;mask:var(--ico-tel) center/contain no-repeat}
+#kollam > summary::after{content:"";flex:none;margin-left:auto;width:18px;height:18px;background:var(--muted);-webkit-mask:var(--ico-chevron) center/contain no-repeat;mask:var(--ico-chevron) center/contain no-repeat;
+  transition:transform var(--t-medio) var(--ease-sal)}
+#kollam[open] > summary::after{transform:rotate(180deg)}
+#kollam[open] > summary{border-bottom:1px solid var(--line);border-radius:12px 12px 0 0;margin-bottom:12px}
+#kollam > summary:hover{background:var(--sky-soft)}
+#kollam > summary:focus-visible{outline:none;box-shadow:var(--foco)}
+#kollam > .sm:first-of-type{color:var(--muted);margin-bottom:6px}
+#kollam > label{margin-top:12px}
+#kollam .chipsw{display:flex;flex-wrap:wrap;gap:6px}
+#kollam .chipsel:not(.on){background:#FFFFFF}
+#kolseg > .sm:first-child{font-size:13px;font-weight:600;color:var(--ink);margin:14px 0 6px!important}
+#kollam > .acts{margin-top:14px!important}
+@media (max-width:760px){#kosolo{width:100%}}
+@media (prefers-reduced-motion: reduce){#kollam > summary::after{transition:none}}
+/* ============================================================
+   v2.122.0 · Configuración y Organización: lo que se edita forma parte de la página
+   ============================================================ */
+/* En el ordenador, la ventana de un apartado se coloca en la página en su lugar (no flota encima): sin fondo oscuro, sin
+   desplazamiento propio y con la cabecera y la botonera fijas mientras se recorre */
+dialog.encajada{position:static;inset:auto;display:block;width:100%!important;max-width:none!important;max-height:none;margin:0 0 16px;padding:0;overflow:visible;
+  background:#FFFFFF;border:1px solid var(--line);border-radius:16px;box-shadow:var(--sh);animation:uiFunde var(--t-medio) linear}
+dialog.encajada > .fbox{overflow:visible;max-height:none}
+dialog.encajada > #dbody > .fh:first-child,dialog.encajada > #dlg2body > .fh:first-child{top:var(--alto-cab,0px);border-radius:16px 16px 0 0}
+dialog.encajada > #dbody > .acts:last-child,dialog.encajada > #dlg2body > .acts:last-child{border-radius:0 0 16px 16px}
+.con-ventana{display:none!important}
+/* Diseño del PDF dentro de su pestaña: la vista previa acompaña al recorrer las opciones */
+dialog.encajada .pdfprev{top:calc(var(--alto-cab,0px) + 76px)}
+dialog.encajada .pdfprev iframe{height:calc(100vh - var(--alto-cab,0px) - 190px);min-height:480px}
+/* Operativa de pedidos: al abrir una lista, las demás columnas no se estiran vacías */
+.opgrid{align-items:start}
 </style>
 </head>
 <body>
@@ -2384,6 +2426,6 @@ dialog.encajada::backdrop{display:none}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.121.0"></script>
+<script src="./app.js?v=2.122.0"></script>
 </body>
 </html>
