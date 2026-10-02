@@ -17186,3 +17186,57 @@ if ($('nav')) new MutationObserver(menuRehacer).observe($('nav'), { childList: t
 addEventListener('resize', menuRehacer);
 if ($('app')) new MutationObserver(menuRehacer).observe($('app'), { attributes: true, attributeFilter: ['class'] });
 menuRehacer();
+
+
+/* v2.133.0 · Entorno de pruebas: «Traer los datos de producción». Junto a «Volver a los datos de partida» (y para quien puede
+   usarlo), pide a la función «refrescar-pruebas» de Supabase que lance el proceso de GitHub que copia los datos actuales de
+   producción (solo los lee) y los deja como nuevos datos de partida. La franja enseña en qué punto está y recarga al terminar. */
+const MOTIVO_REFRESCO = { permiso: 'Solo la administración puede traer los datos de producción', responsable: 'Solo la persona responsable del entorno de pruebas puede hacerlo',
+  en_marcha: 'Ya se están copiando los datos de producción', github: 'No se ha podido lanzar la copia en GitHub', no_es_pruebas: 'Esto solo funciona en el entorno de pruebas' };
+let REFRESCO_VIGILA = null;
+async function estadoRefresco(recargarAlAcabar) {
+  const { data: e } = await RPC_ORIG_FROM('entorno_pruebas').select('*').eq('id', 1).single();
+  const el = $('prrefresco'); if (!el || !e) return null;
+  const fmt = x => new Date(x).toLocaleString('es', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+  const enMarcha = ['pedido', 'copiando'].includes(e.refresco_estado);
+  el.textContent = enMarcha ? `· Copiando los datos de producción (${e.refresco_estado === 'pedido' ? 'empezando' : 'en marcha'}): tarda unos minutos`
+    : e.refresco_estado === 'error' ? '· La última copia de producción falló' + (e.refresco_error ? ': ' + e.refresco_error : '')
+    : e.refresco_error ? '· ' + e.refresco_error : '';
+  el.classList.toggle('falta', e.refresco_estado === 'error');
+  if ($('prtraer')) $('prtraer').disabled = enMarcha;
+  if (enMarcha && !REFRESCO_VIGILA) REFRESCO_VIGILA = setInterval(async () => {
+    const x = await estadoRefresco(true);
+    if (x && !['pedido', 'copiando'].includes(x.refresco_estado)) {
+      clearInterval(REFRESCO_VIGILA); REFRESCO_VIGILA = null;
+      if (x.refresco_estado === 'ok') { toast('Datos de producción copiados'); limpiarDatosLocales(); setTimeout(() => location.reload(), 800); }
+      else toast('La copia de producción ha fallado', true);
+    }
+  }, 20000);
+  return e;
+}
+if (EN_PRUEBAS) {
+  pintarFranjaPruebas = (orig => async function () {
+    await orig();
+    await new Promise(r => setTimeout(r, 120));
+    const b = $('prreset'); if (!b || $('prtraer')) return;   // sin «Volver…» (no es responsable) tampoco puede traer datos
+    b.insertAdjacentHTML('beforebegin', '<button class="btn sec" id="prtraer" title="Copia aquí los datos actuales de producción y los deja como nuevos datos de partida">⇣ Traer los datos de producción</button>');
+    const p = $('prpunto'); if (p && !$('prrefresco')) p.insertAdjacentHTML('afterend', ' <span class="prpunto" id="prrefresco"></span>');
+    estadoRefresco();
+    $('prtraer').onclick = async ev => {
+      if (!await preguntar('Se copiarán aquí los datos actuales de producción (producción no se toca) y pasarán a ser los nuevos datos de partida. Todo lo hecho en pruebas se perderá. Tarda unos minutos; puedes seguir usando la app mientras tanto.',
+        { titulo: '¿Traer los datos de producción?', ok: 'Sí, traerlos', peligro: true })) return;
+      ev.target.disabled = true;
+      const { data: r, error } = await db.functions.invoke('refrescar-pruebas', { body: {} });
+      let res = r;
+      if (error && error.context && typeof error.context.json === 'function') { try { res = await error.context.json(); } catch (e) {} }
+      if (!res || !res.ok) {
+        ev.target.disabled = false;
+        toast((res && MOTIVO_REFRESCO[res.motivo]) || 'No se ha podido lanzar la copia' + (error && !res ? ': falta la función «refrescar-pruebas» en Supabase' : ''), true);
+        return;
+      }
+      toast('Copia de producción en marcha: tarda unos minutos');
+      estadoRefresco();
+    };
+  })(pintarFranjaPruebas);
+  if ($('prreset')) pintarFranjaPruebas();
+}
