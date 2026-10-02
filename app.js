@@ -10247,6 +10247,7 @@ async function cargarInforme() {
   };
   montarPeriodo($('mdper'), { id: 'informe', valor: 'anio', alCambiar: pinta });
   pinta();
+  portalMedico();   // v2.126.0
 }
 
 async function pintarAvisos() {
@@ -16381,7 +16382,7 @@ abrirFicha = (orig => async function (id, ...a) { const r = await orig.call(this
    3 cómo termina (pedido o motivo de no compra y cuándo volver a llamar). Con el extra «Oportunidades» de la organización, cada venta
    queda registrada con su día y hora, lo que quería y cuánto, se cierre con pedido o no; sin él, el recorrido lleva al pedido. */
 function hayOportunidades() { return ((typeof PLAN_ACTUAL !== 'undefined' && PLAN_ACTUAL && PLAN_ACTUAL.extras) || []).includes('oportunidades'); }
-function extraNombre(k) { return { oportunidades: 'Oportunidades' }[k] || k; }
+function extraNombre(k) { return { oportunidades: 'Oportunidades', portal: 'Portal' }[k] || k; }
 async function catOportunidades() {
   await catLlamadas();
   if (!(CAT.origen_oportunidad || []).length) { const { data } = await db.rpc('catalogo_papel', { p_papel: 'origen_oportunidad' }); CAT.origen_oportunidad = data || []; }
@@ -16684,10 +16685,12 @@ function orgExtras(c, l) {
         <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
       <label class="chk"><input type="checkbox" id="oxopor" ${act.includes('oportunidades') ? 'checked' : ''}> <span><b>Oportunidades</b>
         <span class="sm">Registro de cada venta, se cierre con pedido o no: día y hora, qué producto y cuántas unidades quería, quién lo recomienda y cómo llegó, con sus métricas.</span></span></label>
+      <label class="chk"><input type="checkbox" id="oxport" ${act.includes('portal') ? 'checked' : ''}> <span><b>Portal ${TT('medico', 's', 'del', 'l', 'l')}</b>
+        <span class="sm">En su informe, la constancia de sus ${TT('paciente', 'p', '', 'l', 'l')} (solo cifras), pedir material y escribir dudas a su comercial.</span></span></label>
       <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>Cancelar</button><button class="btn" id="oxok">Guardar</button></div>`;
     $('dlg').showModal();
     $('oxok').onclick = async () => {
-      const { data: r, error } = await db.rpc('guardar_extras_organizacion', { p_org: o.id, p_extras: $('oxopor').checked ? ['oportunidades'] : [] });
+      const { data: r, error } = await db.rpc('guardar_extras_organizacion', { p_org: o.id, p_extras: [$('oxopor').checked && 'oportunidades', $('oxport').checked && 'portal'].filter(Boolean) });
       if (error || !r || !r.ok) { toast('No se han podido guardar los extras' + (error ? ': ' + error.message : ''), true); return; }
       $('dlg').close(); toast('Extras guardados');
       const { data: u } = await RPC_ORIG('plan_uso', {}); if (u && u.plan) PLAN_ACTUAL = u.plan;   // por si es la propia
@@ -16695,3 +16698,159 @@ function orgExtras(c, l) {
     };
   });
 }
+
+
+/* v2.126.0 · Portal del médico (extra «Portal» de la organización). En «Mi informe», además: la constancia de sus pacientes solo en
+   cifras (sin ninguna fila por paciente), pedir material de lo que la empresa permite y escribir dudas a su comercial. En la ficha,
+   quien la lleva entrega el material y contesta. En Configuración → Portal del médico, qué material se puede pedir y cuánto. */
+function hayExtra(k) { return ((typeof PLAN_ACTUAL !== 'undefined' && PLAN_ACTUAL && PLAN_ACTUAL.extras) || []).includes(k); }
+const MOTIVO_PORTAL = { permiso: 'No tienes permiso', extra: 'Tu empresa no tiene el portal activado', material: 'Ese material ya no se puede pedir',
+  cantidad: 'Esa cantidad supera el máximo', vacio: 'Escribe el mensaje', cerrada: 'Ya estaba cerrado', no_existe: 'Ya no existe' };
+const motivoPortal = r => MOTIVO_PORTAL[(r && r.motivo) || ''] || 'No se ha podido hacer';
+const horaCorta = f => new Date(f).toLocaleString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+const pillMaterial = e => `<span class="pill ${e === 'Pendiente' ? 'p-warn' : e === 'Entregado' ? 'p-est' : 'p-anu'}">${esc(e)}</span>`;
+
+// Mensajes: el hilo de una ficha (el médico ve los suyos; quien lleva la ficha, los de esa ficha)
+function hiloMensajes(l, yoMedico) {
+  return l.length ? `<div class="hilo">${l.map(x => `<div class="msj ${x.del_portal === yoMedico ? 'mio' : 'suyo'}"><div>${esc(x.texto)}</div>
+      <span class="sm">${x.del_portal ? TT('medico', 's', '', 'l', 'C') : 'Equipo'} · ${horaCorta(x.creado_en)}</span></div>`).join('')}</div>`
+    : '<div class="sm">Todavía no hay mensajes.</div>';
+}
+
+// ——— Lado del médico ———
+async function portalMedico() {
+  // Al arrancar, «Mi informe» se pinta antes de leerse el final de este archivo y antes de tener el plan: se espera a los dos
+  try { void MOTIVO_PORTAL; void PLAN_ACTUAL; } catch (e) { setTimeout(portalMedico, 300); return; }
+  if (!('estado' in PLAN_ACTUAL)) { const { data } = await RPC_ORIG('plan_uso', {}); if (data && data.plan) PLAN_ACTUAL = data.plan; }
+  if (!ES_MEDICO() || !hayExtra('portal') || !$('v-informe')) return;
+  let caja = $('mdportal');
+  if (!caja) { $('v-informe').insertAdjacentHTML('beforeend', '<div id="mdportal" class="angrid"></div>'); caja = $('mdportal'); }
+  const [{ data: c }, { data: perm }, { data: sols }, { data: msgs }] = await Promise.all([
+    RPC_ORIG('constancia_pacientes', { p_meses: 12 }), RPC_ORIG('portal_material_permitido', {}),
+    db.from('solicitudes_material').select('id,material,cantidad,nota,estado,creado_en,cerrado_en').order('creado_en', { ascending: false }).limit(20),
+    db.from('mensajes_cuenta').select('id,texto,del_portal,creado_en,leido_en').order('creado_en', { ascending: true }).limit(200)]);
+  if (!$('mdportal')) return;
+  const pac = TT('paciente', 'p', '', 'l', 'l'), k = c || {};
+  const pct = (a, b) => b ? Math.round(a / b * 100) + '%' : '—';
+  const constancia = !k.ok ? '<div class="sm">No disponible.</div>' : k.pocos
+    ? `<p class="sm" style="padding:0 16px">En los últimos ${num(k.meses || 12)} meses han empezado ${num(k.empezaron)} ${pac}. A partir de ${num(k.minimo || 5)} verás aquí su constancia (con menos no se muestra, para que nadie pueda reconocerlos).</p>`
+    : `<div class="minis cons">
+        <div><b>${num(k.empezaron)}</b><span>empezaron</span></div>
+        <div><b>${pct(k.repiten, k.empezaron)}</b><span>repiten (${num(k.repiten)})</span></div>
+        <div><b>${k.dias_entre ? num(k.dias_entre) + ' días' : '—'}</b><span>entre pedidos</span></div>
+        <div><b>${num(k.dejaron)}</b><span>lo dejaron tras el primero</span></div>
+        <div><b>${num(k.sin_pedir)}</b><span>llevan más de 60 días sin pedir</span></div></div>
+      ${(k.por_producto || []).length ? barrasH(k.por_producto.map(x => ({ n: x.producto, v: Math.round(x.repiten / x.pacientes * 100) })), v => v + '% repiten') : ''}`;
+  const lp = Array.isArray(perm) ? perm : [];
+  const ls = sols || [], lm = msgs || [];
+  caja.innerHTML = `
+    <div class="card ancard ancha" id="mdcons"><h2>Constancia de tus ${pac}</h2>${constancia}
+      <p class="leer">Últimos 12 meses, ${pac} que empezaron contigo. Solo cifras: nunca se muestra ningún ${TT('paciente', 's', '', 'l', 'l')}.</p></div>
+    <div class="card ancard" id="mdmat"><h2>Pedir material</h2>
+      ${lp.length ? `<div class="g2"><div><label for="mdmatm">Material</label><select id="mdmatm">${lp.map(x => `<option value="${esc(x.valor)}" data-max="${x.max}">${esc(x.valor)}</option>`).join('')}</select></div>
+        <div><label for="mdmatn">Cantidad</label><input id="mdmatn" type="number" min="1" max="${lp[0].max}" value="1"></div></div>
+        <label for="mdmatt">Nota para tu comercial</label><input id="mdmatt" placeholder="Opcional">
+        <div class="acts" style="margin:8px 0 0;justify-content:flex-start"><button type="button" class="btn" id="mdmatok">Pedir</button></div>`
+      : '<p class="sm" style="padding:0 16px">Tu empresa todavía no ofrece material para pedir.</p>'}
+      ${ls.length ? `<div class="lista" id="mdmatl">${ls.map(x => `<div class="item" style="cursor:default"><span class="tx"><b>${num(x.cantidad)} × ${esc(x.material)}</b>
+          <span class="sm">${horaCorta(x.creado_en)}${x.nota ? ' · ' + esc(x.nota) : ''}</span></span>${pillMaterial(x.estado)}
+          ${x.estado === 'Pendiente' ? `<button type="button" class="btn sec" data-mdanu="${x.id}">Anular</button>` : ''}</div>`).join('')}</div>` : ''}</div>
+    <div class="card ancard" id="mdmsg"><h2>Dudas a tu comercial</h2>
+      <div id="mdhilo">${hiloMensajes(lm, true)}</div>
+      <textarea id="mdmsgt" rows="2" placeholder="Escribe tu duda" aria-label="Tu mensaje"></textarea>
+      <div class="acts" style="margin:8px 0 0;justify-content:flex-start"><button type="button" class="btn" id="mdmsgok">Enviar</button></div></div>`;
+  if ($('mdmatm')) $('mdmatm').onchange = () => { const m = +$('mdmatm').selectedOptions[0].dataset.max; $('mdmatn').max = m; if (+$('mdmatn').value > m) $('mdmatn').value = m; };
+  if ($('mdmatok')) $('mdmatok').onclick = async ev => {
+    ev.target.disabled = true;
+    const { data: r } = await db.rpc('pedir_material', { p_material: $('mdmatm').value, p_cantidad: +$('mdmatn').value || 0, p_nota: $('mdmatt').value.trim() || null });
+    ev.target.disabled = false;
+    if (!r || !r.ok) { toast(r && r.motivo === 'cantidad' ? `Como máximo ${num(r.max)}` : motivoPortal(r), true); return; }
+    toast('Pedido enviado a tu comercial'); portalMedico();
+  };
+  caja.querySelectorAll('[data-mdanu]').forEach(b => b.onclick = async () => {
+    const { data: r } = await db.rpc('cerrar_material', { p_id: b.dataset.mdanu, p_estado: 'Anulado' });
+    if (!r || !r.ok) { toast(motivoPortal(r), true); return; }
+    toast('Pedido de material anulado'); portalMedico();
+  });
+  $('mdmsgok').onclick = async ev => {
+    const t = $('mdmsgt').value.trim(); if (!t) { toast('Escribe el mensaje', true); return; }
+    ev.target.disabled = true;
+    const { data: r } = await db.rpc('enviar_mensaje_cuenta', { p_cuenta: null, p_texto: t });
+    ev.target.disabled = false;
+    if (!r || !r.ok) { toast(motivoPortal(r), true); return; }
+    toast('Mensaje enviado'); portalMedico();
+  };
+  if (lm.some(x => !x.del_portal && !x.leido_en)) RPC_ORIG('leer_mensajes_cuenta', { p_cuenta: null });
+}
+
+// ——— Lado de quien lleva la ficha ———
+async function fichaPortal(id) {
+  if (ES_MEDICO() || !hayExtra('portal') || FICHA_ID !== id || !$('fbody') || $('fportal')) return;
+  const [{ data: sols }, { data: msgs }, { data: acc }] = await Promise.all([
+    db.from('solicitudes_material').select('id,material,cantidad,nota,estado,creado_en,cerrado_en').eq('cuenta_id', id).order('creado_en', { ascending: false }).limit(10),
+    db.from('mensajes_cuenta').select('id,texto,del_portal,creado_en,leido_en').eq('cuenta_id', id).order('creado_en', { ascending: true }).limit(200),
+    db.from('perfiles').select('id').eq('cuenta_id', id).eq('activo', true).limit(1)]);
+  if (FICHA_ID !== id || !$('fbody') || $('fportal')) return;
+  const ls = sols || [], lm = msgs || [], pend = ls.filter(x => x.estado === 'Pendiente'), sinLeer = lm.filter(x => x.del_portal && !x.leido_en).length;
+  if (!ls.length && !lm.length && !(acc || []).length) return;   // sin portal ni actividad: no se ocupa sitio
+  const html = `<section class="blk" id="fportal"><h3>Portal ${TT('medico', 's', 'del', 'l', 'l')}${pend.length ? ` <span class="pill p-warn">${num(pend.length)} material por entregar</span>` : ''}${sinLeer ? ` <span class="pill p-urg">${num(sinLeer)} sin leer</span>` : ''}</h3>
+    ${ls.length ? `<div class="lista">${ls.map(x => `<div class="item" style="cursor:default"><span class="tx"><b>${num(x.cantidad)} × ${esc(x.material)}</b>
+        <span class="sm">Pedido el ${horaCorta(x.creado_en)}${x.nota ? ' · ' + esc(x.nota) : ''}</span></span>${pillMaterial(x.estado)}
+        ${x.estado === 'Pendiente' ? `<button type="button" class="btn" data-fpent="${x.id}">Entregado</button>` : ''}</div>`).join('')}</div>` : ''}
+    <div class="fpmsg"><b class="sm">Mensajes</b><div id="fphilo">${hiloMensajes(lm, false)}</div>
+      <div class="fpresp"><input id="fpmsgt" placeholder="Contestar" aria-label="Contestar"><button type="button" class="btn sec" id="fpmsgok">Enviar</button></div></div></section>`;
+  const vis = $('fbody').querySelector('section.fvis');
+  if (vis) vis.insertAdjacentHTML('afterend', html); else $('fbody').insertAdjacentHTML('beforeend', html);
+  const rehacer = () => { const b = $('fportal'); if (b) b.remove(); fichaPortal(id); };
+  $('fportal').querySelectorAll('[data-fpent]').forEach(b => b.onclick = async () => {
+    const { data: r } = await db.rpc('cerrar_material', { p_id: b.dataset.fpent, p_estado: 'Entregado' });
+    if (!r || !r.ok) { toast(motivoPortal(r), true); return; }
+    toast('Material entregado: se le avisa'); rehacer();
+  });
+  $('fpmsgok').onclick = async ev => {
+    const t = $('fpmsgt').value.trim(); if (!t) { toast('Escribe el mensaje', true); return; }
+    ev.target.disabled = true;
+    const { data: r } = await db.rpc('enviar_mensaje_cuenta', { p_cuenta: id, p_texto: t });
+    ev.target.disabled = false;
+    if (!r || !r.ok) { toast(motivoPortal(r), true); return; }
+    toast('Mensaje enviado'); rehacer();
+  };
+  if (sinLeer) RPC_ORIG('leer_mensajes_cuenta', { p_cuenta: id });
+}
+abrirFicha = (orig => async function (id, ...a) { const r = await orig.call(this, id, ...a); fichaPortal(id); return r; })(abrirFicha);
+
+// ——— Configuración: qué material se puede pedir y cuánto ———
+async function pintarCfgPortal() {
+  const c = $('cfgcuerpo'); if (!c) return;
+  c.innerHTML = `<div class="card">${skelCard('Cargando…')}</div>`;
+  const [{ data: cat }, { data: perm }, { data: aj }] = await Promise.all([
+    db.rpc('catalogo_papel', { p_papel: 'material_visita' }), RPC_ORIG('portal_material_permitido', {}),
+    db.from('ajustes').select('valor').eq('clave', 'portal').maybeSingle()]);
+  if (!$('cfgcuerpo')) return;
+  const l = cat || [], p = Array.isArray(perm) ? perm : [], conAjuste = !!(aj && aj.valor && aj.valor.material);
+  const de = v => p.find(x => x.valor === v);
+  c.innerHTML = `<div class="card"><div class="fh"><div><h2>Portal ${TT('medico', 's', 'del', 'l', 'l')}</h2>
+      <div class="sm">Qué material pueden pedir ${TT('medico', 'p', 'el', 'l', 'l')} desde su portal y cuánto como máximo cada vez. Les llega a su comercial.</div></div></div>
+    ${l.length ? `<div class="lista" id="cfpmat">${l.map(x => { const d = de(x.valor); return `<label class="item" style="cursor:default">
+        <input type="checkbox" data-cfpm="${esc(x.valor)}" ${d ? 'checked' : ''}> <span class="tx"><b>${esc(x.valor)}</b></span>
+        <span class="sm">Máximo</span> <input type="number" min="1" max="1000" value="${d ? d.max : 20}" data-cfpx="${esc(x.valor)}" style="max-width:110px" aria-label="Máximo de ${esc(x.valor)}"></label>`; }).join('')}</div>
+      ${conAjuste ? '' : '<p class="sm" style="padding:0 16px">Ahora mismo se puede pedir todo el material, hasta 20 de cada. Guarda para decidirlo tú.</p>'}
+      <div class="acts" style="justify-content:flex-end"><button class="btn" id="cfpok">Guardar</button></div>`
+      : '<div class="vacio">No hay material en el catálogo «Material comercial entregado». Añádelo en Clasificadores.</div>'}</div>`;
+  if ($('cfpok')) $('cfpok').onclick = async () => {
+    const material = [...c.querySelectorAll('[data-cfpm]')].filter(x => x.checked)
+      .map(x => ({ valor: x.dataset.cfpm, max: Math.max(1, Math.min(1000, +c.querySelector(`[data-cfpx="${CSS.escape(x.dataset.cfpm)}"]`).value || 20)) }));
+    const { data: r, error } = await db.rpc('guardar_ajuste', { p_clave: 'portal', p_valor: { material } });
+    if (error || (r && r.ok === false)) { toast('No se ha podido guardar', true); return; }
+    toast('Guardado'); pintarCfgPortal();
+  };
+}
+arbolConfig = (orig => function () {
+  const g = orig();
+  if (puede('administrar') && hayExtra('portal')) {
+    const it = { k: 'portal', ic: 'stethoscope', t: `Portal ${TT('medico', 's', 'del', 'l', 'l')}`, d: 'Material que pueden pedir', r: pintarCfgPortal };
+    const datos = g.find(x => x[0] === 'Datos');
+    if (datos) datos[1].push(it); else g.push(['Datos', [it]]);
+  }
+  return g;
+})(arbolConfig);

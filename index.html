@@ -2310,6 +2310,15 @@ dialog.encajada .pdfprev iframe{height:calc(100vh - var(--alto-cab,0px) - 190px)
 .nvfin .btn.on{background:var(--warn-bg);border-color:var(--warn)}
 .dgrid.llam.opor{--cols:110px minmax(140px,1.1fr) minmax(150px,1.3fr) minmax(120px,1fr) 140px minmax(120px,1fr) 100px}
 @media (max-width:600px){.nvlin{grid-template-columns:minmax(0,1fr) 124px 40px}.nvlin .nvimp{display:none}}
+/* v2.126.0 · Portal del médico (maquetación básica; el diseño, de Branding) */
+.hilo{display:flex;flex-direction:column;gap:6px;max-height:320px;overflow-y:auto;padding:4px 0}
+.msj{max-width:85%;padding:8px 12px;border-radius:12px;background:var(--sky-soft);border:1px solid var(--line)}
+.msj.mio{align-self:flex-end;background:var(--navy);color:#fff;border-color:var(--navy)}
+.msj.mio .sm{color:rgba(255,255,255,.8)}
+.msj .sm{display:block;margin-top:2px}
+.fpresp{display:flex;gap:8px;margin-top:6px}.fpresp input{flex:1;min-width:0}
+.minis.cons{flex-wrap:wrap}
+#mdportal{margin-top:14px}
 </style>
 </head>
 <body>
@@ -2446,6 +2455,6 @@ dialog.encajada .pdfprev iframe{height:calc(100vh - var(--alto-cab,0px) - 190px)
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.125.0"></script>
+<script src="./app.js?v=2.126.0"></script>
 </body>
 </html>
