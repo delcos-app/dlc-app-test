@@ -4744,13 +4744,13 @@ async function inicioVistazoEIndicadores() {
 }
 
 async function inicioLlamadasHoy() {
-  if (TAB !== 'inicio' || !VE_TODO() || !$('iniextra') || $('inillam')) return;
+  if (TAB !== 'inicio' || !VE_TODO() || !hayOportunidades() || !$('iniextra') || $('inillam')) return;
   const { data } = await RPC_ORIG('llamadas_seguimiento', {});
   const hoy = hoyISO(), pend = (data || []).filter(x => x.proxima_fecha <= hoy);
   if (!pend.length || $('inillam')) return;
-  $('iniextra').insertAdjacentHTML('afterbegin', `<div class="card" id="inillam"><h2>Llamadas para hoy<span class="n">${pend.length}</span></h2>
+  $('iniextra').insertAdjacentHTML('afterbegin', `<div class="card" id="inillam"><h2>Volver a llamar hoy<span class="n">${pend.length}</span></h2>
     <p class="sm" style="padding:0 16px">Clientes a los que quedaste en volver a llamar${pend.some(x => x.proxima_fecha < hoy) ? ', algunas atrasadas' : ''}.</p>
-    <div class="acts" style="padding:0 16px 14px"><button class="btn sec" id="inillamver">Ver llamadas</button></div></div>`);
+    <div class="acts" style="padding:0 16px 14px"><button class="btn sec" id="inillamver">Ver oportunidades</button></div></div>`);
   $('inillamver').onclick = () => { PEDSEC = 'llamadas'; ir('ventas'); };
 }
 
@@ -4880,7 +4880,7 @@ async function editorPedido(pedido) {
     envio_iva: ped && ped.envio ? +ped.envio_iva : +((SERVICIOS.find(x => x.por_defecto && x.activo) || {}).iva ?? 21),
     envio_con: ped && ped.envio ? r2(+ped.envio_base * (1 + (+ped.envio_iva || 0) / 100)) : +((SERVICIOS.find(x => x.por_defecto && x.activo) || {}).pvp || 0),
     // v2.115.0: origen (web o no) y referencia del pago
-    origen: ped && ped.origen === 'web' ? 'web' : 'manual', pago_referencia: ped ? ped.pago_referencia || '' : '' };
+    origen: (ped || pedido || {}).origen === 'web' ? 'web' : 'manual', pago_referencia: ped ? ped.pago_referencia || '' : '' };
   const justifs = [];   // v2.115.0: justificantes elegidos, se suben al guardar
   const leerForm = () => {
     if (!$('pfecha')) return;
@@ -5238,7 +5238,7 @@ async function fichaPaciente(id) {
   $('fbody').querySelectorAll('[data-fpped]').forEach(b => b.onclick = () => verPedido(b.dataset.fpped));
   const bm = $('fbody').querySelector('[data-fpmed]');
   if (bm) bm.onclick = () => { FICHA_PAC = null; abrirFicha(bm.dataset.fpmed); };
-  if ($('fpnped')) $('fpnped').onclick = () => editorPedido({ contacto: Object.assign({}, c, m ? { medico: m.nombre, medico_codigo: m.codigo } : {}) });
+  if ($('fpnped')) $('fpnped').onclick = () => nuevaVenta({ contacto: Object.assign({}, c, m ? { medico: m.nombre, medico_codigo: m.codigo } : {}), medico: m ? { id: m.id, nombre: m.nombre } : null });
   if ($('fpedit')) $('fpedit').onclick = () => editorContacto(c, () => fichaPaciente(id));
   const asignar = async medicoId => {
     const { data: r, error } = await db.rpc('asignar_cuenta_cliente', { p_contacto: id, p_medico: medicoId });
@@ -5651,7 +5651,7 @@ function validarDoc(v, tipo) {
 function editorContacto(c, alGuardar, op) {
   c = c || {}; op = op || {};
   // v2.119.0: en un cliente nuevo, desplegable «Registro de llamada» (abierto si se viene de registrar una llamada)
-  const conLlamada = !c.id;
+  const conLlamada = !c.id && !!op.llamada;   // v2.125.0: solo si se viene de una llamada antigua; el recorrido es «Nueva venta»
   let tipo = c.tipo || 'Persona';
   let medico = c.cuenta_id ? { id: c.cuenta_id, nombre: c.medico || `${TT('medico', 's', '', 'l', 'C', 'asignado')}`, codigo: c.medico_codigo || '' } : null;
   $('dlg2body').innerHTML = `
@@ -6176,22 +6176,24 @@ async function pedidosSecciones() {
 async function pedidosLlamadas(sec) {
   PEDSEC = sec;
   const sub = $('pedsub');
-  if (sub && VE_TODO() && !sub.querySelector('[data-pedsec="llamadas"]')) {
-    sub.insertAdjacentHTML('beforeend', `<button data-pedsec="llamadas" aria-pressed="${PEDSEC === 'llamadas'}">Llamadas</button>`);
+  if (PEDSEC === 'llamadas' && !hayOportunidades()) PEDSEC = 'ventas';
+  if (sub && VE_TODO() && hayOportunidades() && !sub.querySelector('[data-pedsec="llamadas"]')) {
+    sub.insertAdjacentHTML('beforeend', `<button data-pedsec="llamadas" aria-pressed="${PEDSEC === 'llamadas'}">Oportunidades</button>`);
     sub.querySelector('[data-pedsec="llamadas"]').onclick = () => { PEDSEC = 'llamadas'; cargarVentas(); };
   }
   if (sub) sub.querySelectorAll('[data-pedsec]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.pedsec === PEDSEC)));
   if (PEDSEC === 'ventas' && VE_TODO()) pintarOperativa();
   if (PEDSEC === 'llamadas') {
     const acts = $('v-ventas').querySelector('.saludo .acts');
-    acts.innerHTML = '<button class="btn" id="llnueva">+ Registrar llamada</button>';
-    $('llnueva').onclick = () => editorLlamada(null);
+    acts.innerHTML = '<button class="btn" id="llnueva">+ Nueva venta</button>';
+    $('llnueva').onclick = () => nuevaVenta();
     pintarLlamadas();
   }
 }
 
 // Pedidos · Botón «Registrar llamada» en Ventas
 async function pedidosBotonLlamada() {
+  return;   // v2.125.0: «+ Nueva venta» une llamada y pedido
   if (!VE_TODO() || PEDSEC !== 'ventas') return;
   const acts = $('v-ventas').querySelector('.saludo .acts');
   if (acts && !$('pedllam')) {
@@ -6205,7 +6207,7 @@ async function cargarVentasBase() {
   vaciarModulos('v-ventas');
   $('v-ventas').innerHTML = `
     <div class="saludo"><div><h1>Ventas</h1><div class="fecha">Pedidos, unidades e importes</div></div>
-      <div class="acts" style="margin:0">${puedeVentas() ? '<button class="btn" id="pednuevo">+ Nuevo pedido</button>' : ''}</div></div>
+      <div class="acts" style="margin:0">${puedeVentas() ? '<button class="btn" id="pednuevo">+ Nueva venta</button>' : ''}</div></div>
     <div id="vcuerpo">
       <div class="panel">
         <div class="filtros">
@@ -6222,7 +6224,7 @@ async function cargarVentasBase() {
         <div id="pedlista"></div>
       </div>
     </div>`;
-  if ($('pednuevo')) $('pednuevo').onclick = () => editorPedido();
+  if ($('pednuevo')) $('pednuevo').onclick = () => nuevaVenta();   // v2.125.0: cliente, interés y cierre en un recorrido
   montarPeriodo($('pper'), { id: 'ventas', valor: 'mes', alCambiar: listaPedidos });
   ['pcanal', 'pestado'].forEach(id => $(id).onchange = listaPedidos);
   let tq; $('pq').oninput = () => { clearTimeout(tq); tq = setTimeout(listaPedidos, 350); };
@@ -8517,6 +8519,7 @@ const pillCompra = e => `<span class="pill ${e === 'Recibido' ? 'p-est' : e === 
 async function pintarCompras() {
   cargando($('vcuerpo'), 'Cargando compras…');
   const { data, error } = await db.rpc('compras_lista');
+  if (PEDSEC !== 'compras') return;   // v2.125.0: si mientras tanto se ha ido a otra pestaña (Oportunidades se monta sobre Compras), no se pisa
   if (error) { $('vcuerpo').innerHTML = `<div class="vacio">${esc(error.message)}</div>`; return; }
   const l = data || [];
   const abiertas = l.filter(c => ['Enviado', 'En tránsito', 'Recibido parcial'].includes(c.estado));
@@ -9893,8 +9896,8 @@ const PRIMEROS_PASOS = {
   cartera: [['📍', 'Configura tu punto de salida', 'Configuración → Preferencias. Con él se calculan las horas de tus rutas.', 'config'],
     ['📅', 'Planifica tu semana', `Agenda → Semana → «Planificar la semana». Reparte a tus ${TT('medico', 'p', '', 'l', 'l')} por días.`, 'agenda'],
     ['▶', 'Empieza la jornada', `Agenda → Tu día → «Empezar jornada» y registra cada ${TT('visita', 's', '', 'l', 'l')} al terminarla.`, 'agenda']],
-  televenta: [['🛒', 'Crea y valida pedidos', 'Pedidos → Ventas → «+ Nuevo pedido». Al validarlo sale del stock.', 'ventas'],
-    ['📞', 'Registra cada llamada', 'Pedidos → Llamadas. Aunque no acabe en pedido: así se ve por qué.', 'ventas'],
+  televenta: [['🛒', 'Crea y valida pedidos', 'Pedidos → Ventas → «+ Nueva venta»: cliente, qué quiere y pedido. Al validarlo sale del stock.', 'ventas'],
+    ['📞', 'Cierra cada venta', '«+ Nueva venta» queda en Pedidos → Oportunidades aunque no acabe en pedido: así se ve por qué.', 'ventas'],
     ['✅', 'Cierra la operativa', 'Valida el pago, prepara el paquete y envía la factura desde el pedido.', 'ventas']],
   default: [['🏠', 'Revisa Inicio', 'Indicadores, alertas y tu semana de un vistazo.', 'inicio'],
     ['👥', 'Mira el equipo', 'Agenda → Equipo: cumplimiento de cada persona.', 'agenda'],
@@ -11774,7 +11777,7 @@ const I18N = [
   ['Estado', 'Status', 'Status', 'Statut', 'Stato'], ['Visitas', 'Visits', 'Besuche', 'Visites', 'Visite'], ['Comercial asignado', 'Assigned rep', 'Zuständiger Vertreter', 'Commercial assigné', 'Agente assegnato'],
   ['Unidades pautadas', 'Units prescribed', 'Verordnete Einheiten', 'Unités prescrites', 'Unità prescritte'], ['Empezar jornada', 'Start day', 'Tag beginnen', 'Commencer la journée', 'Inizia la giornata'],
   ['Ordenar por cercanía', 'Sort by distance', 'Nach Entfernung sortieren', 'Trier par proximité', 'Ordina per vicinanza'], ['Ventas', 'Sales', 'Verkäufe', 'Ventes', 'Vendite'],
-  ['Compras', 'Purchases', 'Einkäufe', 'Achats', 'Acquisti'], ['Proveedores', 'Suppliers', 'Lieferanten', 'Fournisseurs', 'Fornitori'], ['Llamadas', 'Calls', 'Anrufe', 'Appels', 'Chiamate'],
+  ['Compras', 'Purchases', 'Einkäufe', 'Achats', 'Acquisti'], ['Proveedores', 'Suppliers', 'Lieferanten', 'Fournisseurs', 'Fornitori'], ['Llamadas', 'Calls', 'Anrufe', 'Appels', 'Chiamate'], ['Oportunidades', 'Opportunities', 'Verkaufschancen', 'Opportunités', 'Opportunità'], ['+ Nueva venta', '+ New sale', '+ Neuer Verkauf', '+ Nouvelle vente', '+ Nuova vendita'],
   ['Resumen', 'Summary', 'Übersicht', 'Résumé', 'Riepilogo'], ['Explorar', 'Explore', 'Erkunden', 'Explorer', 'Esplora'], ['Facturas', 'Invoices', 'Rechnungen', 'Factures', 'Fatture'],
   ['Mis rutas', 'My routes', 'Meine Routen', 'Mes itinéraires', 'I miei percorsi'], ['Propuestas automáticas', 'Suggested routes', 'Vorgeschlagene Routen', 'Itinéraires proposés', 'Percorsi suggeriti'],
   ['Todos los módulos', 'All modules', 'Alle Module', 'Tous les modules', 'Tutti i moduli'], ['Gira el móvil', 'Rotate your phone', 'Handy drehen', 'Tournez votre téléphone', 'Ruota il telefono'],
@@ -12456,7 +12459,7 @@ const EXPLICA_NOTIF = {
   cliente_nuevo: [`Cuando se da de alta ${TT('paciente', 's', 'un', 'l', 'l')} que viene de ${TT('medico', 's', 'un', 'l', 'l')} de tu cartera.`, `Señal de que ${TT('medico', 's', 'el', 'l', 'l')} está recomendando.`],
   pago_recibido: ['Cuando se confirma el pago de un pedido que creaste.', 'Ya se puede preparar el envío.'],
   borrador_nuevo: ['Cuando alguien deja un pedido pendiente de validar.', 'Revísalo y valídalo para que salga el pedido.'],
-  seguimientos_hoy: ['Al empezar el día, las llamadas de seguimiento que tocan o están atrasadas.', 'Están en Pedidos → Llamadas.'],
+  seguimientos_hoy: ['Al empezar el día, las llamadas de seguimiento que tocan o están atrasadas.', 'Están en Pedidos → Oportunidades.'],
   pagos_pendientes: ['Al empezar el día, pedidos con el pago pendiente hace más de una semana.', 'Reclama el pago o envía los datos de transferencia.'],
   facturas_vencidas: ['Al empezar el día, facturas vencidas sin cobrar.', 'Revisa los cobros en Facturación.'],
   stock_minimo: ['Cuando un producto baja de su stock mínimo.', 'Prepara un pedido de compra al proveedor.'],
@@ -15428,14 +15431,15 @@ async function pintarOrganizaciones() {
       <div class="sm">Cada empresa trabaja aislada, con sus datos, sus usuarios, su numeración y su configuración.</div></div>
       <button class="btn" id="orgnueva">+ Nueva organización</button></div>
     ${error ? `<div class="vacio">No se han podido cargar: ${esc(error.message)}</div>` : `<div class="lista">${l.map(o => `<div class="item" style="cursor:default">
-      <span class="tx"><b>${esc(o.nombre)}</b>${orgEstado(o)}<span class="sm">${esc(o.nif || 'Sin NIF')} · ${esc(orgPlanTxt(o))} · ${num(o.usuarios)} usuarios · ${num(o.cuentas)} cuentas${o.pendiente ? ' · pendiente de registro: ' + esc(o.pendiente) : ''}</span>
+      <span class="tx"><b>${esc(o.nombre)}</b>${orgEstado(o)}<span class="sm">${esc(o.nif || 'Sin NIF')} · ${esc(orgPlanTxt(o))}${((o.plan_datos || {}).extras || []).length ? ' + ' + o.plan_datos.extras.map(extraNombre).join(', ') : ''} · ${num(o.usuarios)} usuarios · ${num(o.cuentas)} cuentas${o.pendiente ? ' · pendiente de registro: ' + esc(o.pendiente) : ''}</span>
         <span class="sm">${(o.dominios || []).length ? 'Dominios: ' + o.dominios.map(esc).join(', ') : 'Sin dominio propio: su pantalla de acceso muestra la marca principal'}</span></span>
       <span class="acts" style="margin:0"><span class="sm">${o.creado_en ? fechaCorta(String(o.creado_en).slice(0, 10)) : ''}</span>
         <button class="btn sec" type="button" data-orgdom="${o.id}">Dominios</button>
+        <button class="btn sec" type="button" data-orgext="${o.id}">Extras</button>
         <button class="btn sec" type="button" data-orgplan="${o.id}">Plan</button>
         <button class="btn sec" type="button" data-orgexp="${o.id}">Descargar datos</button>
         ${!o.principal && (((o.plan_datos || {}).estado === 'prueba') || !o.activa) ? `<button class="btn sec" type="button" data-orgdel="${o.id}">Borrar empresa</button>` : ''}</span></div>`).join('')}</div>`}</div>`;
-  orgAcciones(c, l);
+  orgAcciones(c, l); orgExtras(c, l);
   // v2.103.0: los dominios de cada organización deciden la marca de su pantalla de acceso
   c.querySelectorAll('[data-orgdom]').forEach(b => b.onclick = async () => {
     const o = l.find(x => x.id === b.dataset.orgdom); if (!o) return;
@@ -16370,3 +16374,324 @@ async function fichaHistorial(id) {
   $('fhist').querySelectorAll('[data-fhx]').forEach(b => b.onclick = () => deshacerUno(+b.dataset.fhx, () => abrirFicha(id)));
 }
 abrirFicha = (orig => async function (id, ...a) { const r = await orig.call(this, id, ...a); fichaHistorial(id); return r; })(abrirFicha);
+
+
+/* v2.125.0 · Nueva venta y Oportunidades. Un solo recorrido para vender (antes «Registrar llamada» y «+ Nuevo pedido» por separado):
+   1 cliente (buscar o ficha nueva, con lo que ya sabemos de él), 2 qué quiere (productos y unidades, quién lo recomienda, cómo llegó),
+   3 cómo termina (pedido o motivo de no compra y cuándo volver a llamar). Con el extra «Oportunidades» de la organización, cada venta
+   queda registrada con su día y hora, lo que quería y cuánto, se cierre con pedido o no; sin él, el recorrido lleva al pedido. */
+function hayOportunidades() { return ((typeof PLAN_ACTUAL !== 'undefined' && PLAN_ACTUAL && PLAN_ACTUAL.extras) || []).includes('oportunidades'); }
+function extraNombre(k) { return { oportunidades: 'Oportunidades' }[k] || k; }
+async function catOportunidades() {
+  await catLlamadas();
+  if (!(CAT.origen_oportunidad || []).length) { const { data } = await db.rpc('catalogo_papel', { p_papel: 'origen_oportunidad' }); CAT.origen_oportunidad = data || []; }
+}
+const NV_DIAS = [['Mañana', 1], ['En 3 días', 3], ['En una semana', 7], ['En un mes', 30]];
+const nvLinea = (pid, u) => { const p = PRODUCTOS.find(x => x.id === pid) || {}; return p.precio != null ? r2(p.precio * (1 + (+p.iva || 0) / 100) * (+u || 0)) : 0; };
+
+// l: oportunidad existente o datos de partida ({ contacto, medico, interes, origen… }); previa: la oportunidad a la que se hace seguimiento
+async function editorOportunidad(l, previa) {
+  if (!PRODUCTOS.length) await cargarProductos();
+  const reg = hayOportunidades();
+  if (reg) await catOportunidades();
+  l = Object.assign({ fecha: new Date().toISOString() }, l || {});
+  if (!l.fecha) l.fecha = new Date().toISOString();
+  const cerrada = !!l.pedido_id;
+  let cliente = l.contacto ? l.contacto : l.contacto_id ? { id: l.contacto_id, nombre: l.cliente || l.nombre, movil: l.tel_cliente || l.telefono } : null;
+  let medico = l.medico && typeof l.medico === 'object' ? l.medico : l.cuenta_id ? { id: l.cuenta_id, nombre: l.medico } : null;
+  if (!medico && cliente && cliente.cuenta_id) medico = { id: cliente.cuenta_id, nombre: cliente.medico || TT('medico', 's', '', 'l', 'C') };
+  let lineas = (l.interes || []).map(x => ({ producto_id: x.producto_id, unidades: x.unidades }));
+  if (!lineas.length) lineas = [{ producto_id: productoPorDefecto(), unidades: 1 }];
+  let origen = l.origen || (previa ? 'Llamada saliente' : ((CAT.origen_oportunidad || [])[0] || {}).valor || '');
+  let motivo = l.motivo || '', resultado = l.resultado || '', noCompra = !!(l.id && l.resultado && l.resultado !== 'Pedido hecho');
+  const f = new Date(l.fecha), local = new Date(f.getTime() - f.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+  const chips = (lista, v, attr) => lista.map(x => `<button type="button" class="chipsel ${x.valor === v ? 'on' : ''} ${x.extra === 'neg' ? 'neg' : x.extra === 'pos' ? 'pos' : ''}" ${attr}="${esc(x.valor)}">${esc(x.valor)}</button>`).join('');
+  const titulo = l.id ? (cerrada ? 'Venta cerrada' : 'Oportunidad') : previa ? 'Volver a llamar' : 'Nueva venta';
+  $('dbody').innerHTML = `
+    <div class="fh"><div><h2>${titulo}</h2>
+      <div class="sm">${previa ? 'Seguimiento de ' + esc(previa.cliente || previa.nombre || '') : reg ? 'Cliente, qué quiere y cómo termina: queda registrado aunque no compre' : 'Busca el cliente o crea su ficha y haz el pedido'}</div></div>
+      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
+    <div class="llpaso" id="nvp1"><span class="lln">1</span><b>Cliente</b><div id="nvcli"></div><div id="nvctx" class="nvctx"></div></div>
+    ${reg ? `<div class="llpaso" id="nvp2"><span class="lln">2</span><b>Qué quiere</b>
+      <div id="nvint"></div>
+      <label>${TT('medico', 's', '', 'l', 'C')} o centro que lo recomienda</label><div id="nvmed"></div>
+      <div class="sm" style="margin-top:4px">Si no está en la base, escribe su nombre: se guarda igualmente para las métricas.</div>
+      <label>Cómo llegó</label><div class="chipsw" id="nvori">${chips(CAT.origen_oportunidad || [], origen, 'data-nvo')}</div>
+      <label>Motivo</label><div class="chipsw" id="nvmot">${chips(CAT.motivo_llamada || [], motivo, 'data-nvm')}</div>
+      <details class="llmas"><summary>Más detalles</summary>
+        <div class="g2"><div><label for="nvf">Fecha y hora</label><input id="nvf" type="datetime-local" value="${local}"></div>
+          <div><label for="nvno">Nota</label><input id="nvno" value="${esc(l.nota || '')}"></div></div></details></div>` : ''}
+    <div class="llpaso" id="nvp3"><span class="lln">${reg ? 3 : 2}</span><b>Cómo termina</b>
+      ${cerrada ? `<div class="banda-ok">Cerrada con el pedido ${esc(l.pedido || '')}.</div>`
+        : `<div class="acts nvfin" style="margin:6px 0 0;justify-content:flex-start">
+          <button type="button" class="btn" id="nvped">🛒 Hacer el pedido</button>
+          ${reg ? `<button type="button" class="btn sec ${noCompra ? 'on' : ''}" id="nvno2">No compra</button>` : ''}</div>`}
+      ${reg && !cerrada ? `<div id="nvnoz" class="${noCompra ? '' : 'hide'}">
+        <label>Por qué no compra</label><div class="chipsw" id="nvres">${chips((CAT.resultado_llamada || []).filter(x => x.extra !== 'pos' && x.valor !== 'Pedido hecho'), resultado, 'data-nvr')}</div>
+        <div class="sm" style="margin:8px 0 4px">¿Cuándo volver a llamar?</div>
+        <div class="chipsw">${NV_DIAS.map(([t, d]) => `<button type="button" class="chipsel" data-nvd="${d}">${t}</button>`).join('')}</div>
+        <div class="g2" style="margin-top:6px"><div><input id="nvpf" type="date" value="${esc(l.proxima_fecha || '')}" aria-label="Volver a llamar el"></div>
+          <div><input id="nvpa" value="${esc(l.proxima_accion || '')}" placeholder="p. ej. Enviarle el precio por WhatsApp" aria-label="Qué hacer"></div></div>
+        <div id="nvperd" class="sm" style="margin-top:6px"></div>
+        <div class="acts" style="margin:8px 0 0;justify-content:flex-start"><button type="button" class="btn" id="nvnook">Guardar sin pedido</button></div></div>` : ''}
+    </div>
+    <div class="acts" style="justify-content:flex-end;flex-wrap:wrap"><button class="btn sec" data-cerrar>Cerrar</button>
+      ${reg && (cerrada || l.id) ? '<button class="btn sec" id="nvguar">Guardar cambios</button>' : ''}</div>`;
+  $('dlg').showModal();
+  const q = () => ($('nvq') ? $('nvq').value.trim() : '');
+
+  // 1 · Cliente: buscar, crear ficha o lo que ya sabemos de él
+  const pintaCli = () => {
+    const c = $('nvcli');
+    if (cliente) {
+      c.innerHTML = `<div class="clisel"><span><b>${esc(cliente.nombre || '')}</b><span class="sm">${esc([cliente.movil || cliente.telefono || cliente.tel, cliente.nif].filter(Boolean).join(' · '))}</span></span>
+        ${cerrada ? '' : '<button type="button" class="btn sec" id="nvcamb">Cambiar</button>'}</div>`;
+      if ($('nvcamb')) $('nvcamb').onclick = () => { cliente = null; $('nvctx').innerHTML = ''; pintaCli(); };
+      contexto();
+      return;
+    }
+    c.innerHTML = `<input id="nvq" type="search" placeholder="Nombre, teléfono o DNI" autocomplete="off" value="${esc(l.id ? (l.nombre || l.telefono || '') : '')}"><div class="lista" id="nvres1"></div>
+      <div class="acts" style="margin:6px 0 0;justify-content:flex-start"><button type="button" class="btn sec" id="nvalta">+ Crear ficha nueva</button>
+        ${l.id || previa ? '' : '<button type="button" class="lnk" id="nvsin">Pedido sin cliente (venta a centro)</button>'}</div>
+      ${reg ? '<div class="sm" style="margin-top:4px">Si no compra y no quiere ficha, basta con escribir aquí su nombre o su teléfono.</div>' : ''}`;
+    let tq;
+    $('nvq').oninput = () => { clearTimeout(tq); tq = setTimeout(async () => {
+      const r = await buscarClientes(q());
+      if (!$('nvres1')) return;
+      $('nvres1').innerHTML = r.map(x => `<button type="button" class="item" data-nvc="${x.id}"><span class="tx"><b>${esc(x.nombre)}</b><span class="sm">${esc([x.movil || x.telefono, x.nif].filter(Boolean).join(' · '))}</span></span></button>`).join('')
+        || (q().length > 1 ? '<div class="sm" style="padding:6px">No está: crea su ficha con «+ Crear ficha nueva».</div>' : '');
+      $('nvres1').querySelectorAll('[data-nvc]').forEach(b => b.onclick = () => elegir(r.find(y => y.id === b.dataset.nvc)));
+    }, 250); };
+    $('nvalta').onclick = () => {
+      const t = q(), tel = /^[+\d\s]{6,}$/.test(t);
+      editorContacto({ nombre: tel ? '' : t, movil: tel ? t : '', cuenta_id: medico ? medico.id : null, medico: medico ? medico.nombre : '' }, res => elegir(res));
+    };
+    if ($('nvsin')) $('nvsin').onclick = () => { $('dlg').close(); editorPedido(); };
+  };
+  const elegir = async x => {
+    if (!x) return;
+    cliente = x;
+    if (x.cuenta_id && !medico) {
+      const { data: m } = await db.from('cuentas').select('id,nombre').eq('id', x.cuenta_id).maybeSingle();
+      if (m) { medico = m; if ($('nvmed')) pintaMed(); }
+    }
+    pintaCli();
+  };
+  // Lo que ya sabemos del cliente: último pedido (para repetirlo), cuántos lleva y si quedamos en llamarle
+  const contexto = async () => {
+    const id = cliente && cliente.id; if (!id) return;
+    const [{ data: peds0 }, segs] = await Promise.all([
+      db.from('pedidos').select('id,numero,fecha,estado').eq('contacto_id', id).neq('estado', 'Anulado').order('fecha', { ascending: false }).limit(20),
+      reg ? db.from('llamadas').select('id,fecha,resultado,proxima_fecha,proxima_accion,seguimiento_hecho_en,pedido_id').eq('contacto_id', id).order('fecha', { ascending: false }).limit(5) : Promise.resolve({ data: [] })]);
+    // Las líneas, aparte (sin depender de la relación entre tablas)
+    const { data: lin } = (peds0 || []).length ? await db.from('lineas_pedido').select('pedido_id,producto_id,unidades,importe,iva').in('pedido_id', peds0.map(x => x.id)) : { data: [] };
+    const peds = (peds0 || []).map(x => Object.assign({}, x, { lineas_pedido: (lin || []).filter(y => y.pedido_id === x.id) }));
+    if (!cliente || cliente.id !== id || !$('nvctx')) return;
+    const p = peds || [], u = p[0], pend = ((segs && segs.data) || []).find(s => s.proxima_fecha && !s.seguimiento_hecho_en && !s.pedido_id && s.id !== l.id);
+    const tot = x => (x.lineas_pedido || []).reduce((s, y) => s + (+y.importe || 0) * (1 + (+y.iva || 0) / 100), 0);
+    const nom = pid => (PRODUCTOS.find(z => z.id === pid) || {}).nombre || 'Producto';
+    $('nvctx').innerHTML = !p.length && !pend ? '<span class="sm">Cliente sin pedidos todavía.</span>' : `
+      ${u ? `<div class="nvult"><span><b>Último pedido</b> · ${fechaCorta(String(u.fecha).slice(0, 10))} · ${esc((u.lineas_pedido || []).map(y => `${nom(y.producto_id)} × ${num(y.unidades)}`).join(', '))} · ${eurI(tot(u))}</span>
+        ${reg && !cerrada ? '<button type="button" class="btn sec" id="nvrep">Repetir</button>' : ''}</div>` : ''}
+      ${p.length ? `<span class="sm">${num(p.length)}${p.length === 20 ? ' o más' : ''} pedidos · ${eurI(p.reduce((s, x) => s + tot(x), 0))} en total</span>` : ''}
+      ${pend ? `<div class="banda-aviso">Quedaste en llamarle el ${fechaCorta(pend.proxima_fecha)}${pend.proxima_accion ? ': ' + esc(pend.proxima_accion) : ''} (${esc(pend.resultado || '')}).</div>` : ''}`;
+    if ($('nvrep')) $('nvrep').onclick = () => { lineas = (u.lineas_pedido || []).map(y => ({ producto_id: y.producto_id, unidades: +y.unidades || 1 })); pintaInt(); toast('Interés con lo del último pedido'); };
+  };
+
+  // 2 · Qué quiere
+  const pintaInt = () => {
+    if (!$('nvint')) return;
+    const prods = PRODUCTOS.filter(p => p.tipo !== 'servicio' && p.estado !== 'En pausa' && p.estado !== 'Descatalogado');
+    $('nvint').innerHTML = lineas.map((x, i) => `<div class="nvlin" data-nvi="${i}">
+        <select data-nvf="producto_id" aria-label="Producto">${prods.map(p => `<option value="${p.id}" ${p.id === x.producto_id ? 'selected' : ''}>${esc(p.nombre)}</option>`).join('')
+          || '<option value="">Sin productos</option>'}</select>
+        <input data-nvf="unidades" type="number" min="1" step="1" value="${esc(x.unidades)}" aria-label="Unidades">
+        <span class="nvimp">${eurI(nvLinea(x.producto_id, x.unidades))}</span>
+        ${lineas.length > 1 ? `<button type="button" class="btn sec" data-nvx="${i}" aria-label="Quitar">✕</button>` : '<span></span>'}</div>`).join('') +
+      `<div class="nvtot"><button type="button" class="lnk" id="nvmas">+ Otro producto</button><span>Iría a comprar <b id="nvtotv">${eurI(totalInt())}</b></span></div>`;
+    $('nvint').querySelectorAll('[data-nvi]').forEach(row => {
+      const i = +row.dataset.nvi;
+      row.querySelectorAll('[data-nvf]').forEach(inp => inp.oninput = inp.onchange = () => {
+        lineas[i][inp.dataset.nvf] = inp.dataset.nvf === 'unidades' ? Math.max(0, +inp.value || 0) : inp.value;
+        row.querySelector('.nvimp').textContent = eurI(nvLinea(lineas[i].producto_id, lineas[i].unidades));
+        $('nvtotv').textContent = eurI(totalInt()); perdida();
+      });
+    });
+    $('nvint').querySelectorAll('[data-nvx]').forEach(b => b.onclick = () => { lineas.splice(+b.dataset.nvx, 1); pintaInt(); });
+    $('nvmas').onclick = () => { lineas.push({ producto_id: productoPorDefecto(), unidades: 1 }); pintaInt(); };
+    perdida();
+  };
+  const totalInt = () => lineas.reduce((s, x) => s + nvLinea(x.producto_id, x.unidades), 0);
+  const perdida = () => { if ($('nvperd')) $('nvperd').innerHTML = totalInt() ? `Sin pedido se quedan sin vender <b>${eurI(totalInt())}</b>.` : ''; };
+  const pintaMed = () => {
+    $('nvmed').innerHTML = ''; $('nvmed').__texto = medico ? '' : (l.cuenta_texto || '');
+    selectorMedico($('nvmed'), { valor: medico, placeholder: 'Nombre, código, centro o municipio', alElegir: m => { medico = m; } });
+  };
+  pintaCli();
+  if (reg) {
+    pintaInt(); pintaMed();
+    $('nvori').onclick = e => { const b = e.target.closest('[data-nvo]'); if (!b) return; origen = origen === b.dataset.nvo ? '' : b.dataset.nvo; $('nvori').querySelectorAll('[data-nvo]').forEach(x => x.classList.toggle('on', x.dataset.nvo === origen)); };
+    $('nvmot').onclick = e => { const b = e.target.closest('[data-nvm]'); if (!b) return; motivo = motivo === b.dataset.nvm ? '' : b.dataset.nvm; $('nvmot').querySelectorAll('[data-nvm]').forEach(x => x.classList.toggle('on', x.dataset.nvm === motivo)); };
+  }
+  if ($('nvnoz')) $('nvnoz').onclick = e => {
+    const d = e.target.closest('[data-nvd]');
+    if (d) { const f2 = new Date(); f2.setDate(f2.getDate() + +d.dataset.nvd); $('nvpf').value = fechaLocal(f2); $('nvnoz').querySelectorAll('[data-nvd]').forEach(x => x.classList.toggle('on', x === d)); return; }
+    const b = e.target.closest('[data-nvr]'); if (!b) return;
+    resultado = resultado === b.dataset.nvr ? '' : b.dataset.nvr;
+    $('nvres').querySelectorAll('[data-nvr]').forEach(x => x.classList.toggle('on', x.dataset.nvr === resultado));
+  };
+  if ($('nvno2')) $('nvno2').onclick = () => { noCompra = !noCompra; $('nvno2').classList.toggle('on', noCompra); $('nvnoz').classList.toggle('hide', !noCompra); };
+
+  // Guarda la oportunidad; resultado vacío = sigue abierta (el pedido la cierra al guardarse)
+  const guardar = async res => {
+    const t = q(), tel = /^[+\d\s]{6,}$/.test(t);
+    const nombre = cliente ? cliente.nombre : (tel ? '' : t) || l.nombre || '', telefono = cliente ? (cliente.movil || cliente.telefono || cliente.tel || '') : (tel ? t : l.telefono || '');
+    const conSeg = res && res !== 'Pedido hecho';
+    const { data: r, error } = await db.rpc('guardar_llamada', { p: { id: l.id || null, fecha: $('nvf') && $('nvf').value ? new Date($('nvf').value).toISOString() : l.fecha,
+      nombre, telefono, contacto_id: cliente ? cliente.id : null, cuenta_id: medico ? medico.id : null,
+      cuenta_texto: medico ? '' : (($('nvmed') || {}).__texto || '').trim(), origen, motivo, resultado: res || '',
+      proxima_fecha: conSeg && $('nvpf') ? $('nvpf').value : '', proxima_accion: conSeg && $('nvpa') ? $('nvpa').value.trim() : '',
+      nota: $('nvno') ? $('nvno').value.trim() : (l.nota || ''), pedido_id: l.pedido_id || null, llamada_origen: previa ? previa.id : (l.llamada_origen || null),
+      interes: lineas.filter(x => x.producto_id && +x.unidades > 0).map(x => ({ producto_id: x.producto_id, unidades: +x.unidades })) } });
+    if (error || !r || r.ok === false) { toast('No se ha podido guardar' + (error ? ': ' + error.message : r && r.motivo === 'extra' ? ': tu organización no tiene el registro de oportunidades' : ''), true); return null; }
+    return r;
+  };
+  const refrescar = () => { if (TAB === 'ventas' && PEDSEC === 'llamadas') pintarLlamadas(); };
+  if ($('nvped')) $('nvped').onclick = async ev => {
+    if (!cliente) { toast('Busca el cliente o crea su ficha para hacer el pedido', true); return; }
+    ev.target.disabled = true;
+    let r = null;
+    if (reg) { r = await guardar(''); if (!r) { ev.target.disabled = false; return; } }
+    const { data: c } = await db.from('contactos').select('id,nombre,nif,email,telefono,movil,cuenta_id').eq('id', cliente.id).maybeSingle();
+    $('dlg').close(); refrescar();
+    if (r) LLAMADA_PEND = r.id;
+    const ls = reg ? lineas.filter(x => x.producto_id && +x.unidades > 0).map(x => { const p = PRODUCTOS.find(y => y.id === x.producto_id) || {};
+      return { producto_id: x.producto_id, unidades: +x.unidades, importe: p.precio != null ? r2(p.precio * x.unidades) : null }; }) : [];
+    await editorPedido({ contacto: Object.assign(c || cliente, { medico: medico ? medico.nombre : '' }), medico: medico ? { id: medico.id, nombre: medico.nombre } : null,
+      lineas: ls.length ? ls : undefined, origen: /web/i.test(origen) ? 'web' : undefined });
+  };
+  if ($('nvnook')) $('nvnook').onclick = async ev => {
+    if (!resultado) { toast('Marca por qué no compra', true); return; }
+    if (!cliente && !q() && !l.nombre && !l.telefono) { toast('Apunta al menos su nombre o su teléfono', true); return; }
+    ev.target.disabled = true;
+    const r = await guardar(resultado);
+    ev.target.disabled = false;
+    if (!r) return;
+    $('dlg').close(); toast('Oportunidad guardada sin pedido'); refrescar();
+  };
+  if ($('nvguar')) $('nvguar').onclick = async () => {
+    const r = await guardar(cerrada ? (l.resultado || 'Pedido hecho') : noCompra ? resultado : '');
+    if (!r) return;
+    $('dlg').close(); toast('Oportunidad guardada'); refrescar();
+  };
+}
+function nuevaVenta(pre) { return editorOportunidad(pre || null); }
+editorLlamada = editorOportunidad;
+
+// Pestaña «Oportunidades» (antes «Llamadas»): volver a llamar, métricas y lista
+const NV_DIA_TXT = ['', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+pintarLlamadas = async function () {
+  await catOportunidades();
+  $('vcuerpo').innerHTML = `<div class="panel">
+    <div id="llsegz"></div>
+    <div class="filtros"><div id="llper"></div>
+      <div><label for="llq">Buscar</label><input id="llq" type="search" placeholder="Cliente, teléfono o ${TT('medico', 's', '', 'l', 'l')}"></div>
+      <div><label for="llfres">Resultado</label><select id="llfres"><option value="">Todos</option><option>Sin cerrar</option>${(CAT.resultado_llamada || []).map(x => `<option>${esc(x.valor)}</option>`).join('')}</select></div></div>
+    <div class="kpis vtot" id="lltot"></div>
+    <div class="angrid" id="llres2" style="margin:0 0 14px"></div>
+    <div id="lllista"></div></div>`;
+  let tq;
+  const segs = async () => {
+    const { data: seg } = await RPC_ORIG('llamadas_seguimiento', {});
+    const l = seg || [], hoy = hoyISO();
+    if (!$('llsegz')) return;
+    $('llsegz').innerHTML = !l.length ? '' : `<div class="card" id="llsegs"><h2>Volver a llamar<span class="n">${l.length}</span></h2>
+      <p class="sm" style="padding:0 16px">Clientes que no compraron y a los que quedaste en volver a llamar.</p>
+      <div class="lista">${l.slice(0, 20).map(x => `<div class="item" style="cursor:default">
+        <span class="ic" style="${x.proxima_fecha < hoy ? 'background:#FDECEC;color:var(--dang)' : x.proxima_fecha === hoy ? 'background:#FFF4E5;color:var(--warn)' : ''}">📞</span>
+        <span class="tx"><b>${esc(x.cliente || x.nombre || 'Sin nombre')}</b>
+          <span class="sm">${x.proxima_fecha < hoy ? '<b style="color:var(--dang)">Atrasada · </b>' : x.proxima_fecha === hoy ? '<b style="color:var(--warn)">Hoy · </b>' : fechaCorta(x.proxima_fecha) + ' · '}${esc(x.resultado || '')}${x.proxima_accion ? ' · ' + esc(x.proxima_accion) : ''}${x.medico ? ' · de ' + esc(x.medico) : ''}</span></span>
+        <span class="acts" style="margin:0;flex-wrap:nowrap">${(x.tel_cliente || x.telefono) ? `<a class="btn sec" href="tel:${esc(x.tel_cliente || x.telefono)}">Llamar</a>` : ''}
+          <button class="btn" data-llseg="${x.id}">Registrar</button><button class="btn sec" data-llok="${x.id}" title="Ya no hace falta">✓</button></span></div>`).join('')}</div></div>`;
+    $('llsegz').querySelectorAll('[data-llseg]').forEach(b => b.onclick = async () => {
+      const x = l.find(y => y.id === b.dataset.llseg);
+      const { data: an } = await db.from('llamadas').select('interes').eq('id', x.id).maybeSingle();
+      editorOportunidad({ contacto_id: x.contacto_id, cliente: x.cliente, nombre: x.nombre, telefono: x.telefono, tel_cliente: x.tel_cliente, cuenta_id: x.cuenta_id, medico: x.medico,
+        motivo: 'Seguimiento de televenta', origen: 'Llamada saliente', interes: (an && an.interes) || [] }, x);
+    });
+    $('llsegz').querySelectorAll('[data-llok]').forEach(b => b.onclick = async () => { await db.rpc('marcar_seguimiento', { p_id: b.dataset.llok, p_hecho: true }); toast('Seguimiento cerrado'); segs(); });
+  };
+  const pinta = async () => {
+    const r = $('llper').__rango();
+    const [{ data: l }, { data: s }] = await Promise.all([
+      db.rpc('llamadas_lista', { p_desde: r.desde, p_hasta: r.hasta, q: $('llq').value.trim() || null, p_resultado: $('llfres').value || null }),
+      db.rpc('llamadas_resumen', { p_desde: r.desde, p_hasta: r.hasta })]);
+    if (!$('lllista')) return;
+    const res = s || {}, lista = l || [], cerradas = (res.total || 0) - (res.sin_cerrar || 0);
+    $('lltot').innerHTML = `<div class="kpi"><b>${num(res.total || 0)}</b><span>Oportunidades</span></div>
+      <div class="kpi"><b>${num(res.con_pedido || 0)}</b><span>Acaban en pedido</span></div>
+      <div class="kpi"><b>${cerradas ? Math.round((res.con_pedido || 0) / cerradas * 100) + '%' : '—'}</b><span>Conversión</span></div>
+      <div class="kpi"><b>${eurI(res.importe_ganado || 0)}</b><span>Vendido</span></div>
+      <div class="kpi"><b>${eurI(res.importe_perdido || 0)}</b><span>Sin vender</span></div>
+      <div class="kpi"><b>${num(res.sin_cerrar || 0)}</b><span>Sin cerrar</span></div>`;
+    const ratio = (x, i, max) => `<div class="bh"><span class="bhn">${esc(x.n)}</span><span class="bhb"><i style="width:${Math.max(3, x.t / max * 100)}%"></i></span><b>${num(x.p)}/${num(x.t)}</b></div>`;
+    const barrasR = items => { const max = Math.max(1, ...items.map(x => x.t)); return `<div class="barrash">${items.map((x, i) => ratio(x, i, max)).join('')}</div>`; };
+    const card = (id, t, cuerpo, leer) => `<div class="card ancard" id="${id}"><h2>${t}</h2>${cuerpo}<p class="leer">${leer}</p></div>`;
+    $('llres2').innerHTML =
+      card('llgprod', 'Qué piden', (res.por_producto || []).length ? barrasR(res.por_producto.map(x => ({ n: x.producto, p: +x.unidades_ganadas || 0, t: +x.unidades || 0 })))
+        : vacioGrafico('Apunta qué producto y cuántas unidades quiere cada cliente.'),
+        '<b>Cómo leerlo:</b> unidades vendidas sobre las que pidieron. Mucha diferencia en un producto señala precio, stock o argumentario.') +
+      card('llgres', 'Cómo terminan', (res.por_resultado || []).length ? barrasH(res.por_resultado.map(x => ({ n: x.resultado, v: x.n })), num) : vacioGrafico('Aparecerá con las primeras oportunidades.'),
+        '<b>Cómo leerlo:</b> si pesan «El precio no le convence» o «Solo quería información», conviene revisar el argumentario o las condiciones.') +
+      card('llghora', 'A qué hora', (res.por_hora || []).length ? barrasR(res.por_hora.map(x => ({ n: `${String(x.hora).padStart(2, '0')}:00`, p: x.pedidos, t: x.n }))) : vacioGrafico('Verás en qué horas llegan y cuáles venden más.'),
+        '<b>Para qué sirve:</b> poner más gente al teléfono en las horas con más oportunidades.') +
+      card('llgdia', 'Qué día', (res.por_dia || []).length ? barrasR(res.por_dia.map(x => ({ n: NV_DIA_TXT[x.dia] || '', p: x.pedidos, t: x.n }))) : vacioGrafico('Verás qué días de la semana llegan más.'),
+        '<b>Cómo leerlo:</b> pedidos sobre oportunidades de cada día de la semana.') +
+      card('llgori', 'Cómo llegan', (res.por_origen || []).length ? barrasR(res.por_origen.map(x => ({ n: x.origen, p: x.pedidos, t: x.n }))) : vacioGrafico('Marca en cada venta cómo llegó el cliente.'),
+        '<b>Cómo leerlo:</b> pedidos sobre oportunidades por canal: dónde merece la pena invertir.') +
+      card('llgmed', `Quién los recomienda`, (res.por_medico || []).length ? barrasR(res.por_medico.map(x => ({ n: x.medico, p: x.pedidos, t: x.n }))) : vacioGrafico(`Verás qué ${TT('medico', 'p', '', 'l', 'l')} y centros mandan clientes.`),
+        `<b>Cómo leerlo:</b> ${TT('medico', 's', 'un', 'C', 'l')} con muchas oportunidades y pocos pedidos es una oportunidad de seguimiento.`) +
+      card('llcom', `Por comercial ${TT('medico', 's', 'del', 'l', 'l')}`, (res.por_comercial || []).length ? barrasR(res.por_comercial.map(x => ({ n: x.comercial, p: x.pedidos, t: x.n }))) : vacioGrafico('Aparecerá con oportunidades recomendadas.'),
+        `<b>Cómo leerlo:</b> el volumen que genera el trabajo de cada zona.`);
+    const tamL = tamPagina(); LLPAG = Math.min(LLPAG, Math.max(0, Math.ceil(lista.length / tamL) - 1));
+    const lvis = lista.slice(LLPAG * tamL, LLPAG * tamL + tamL);
+    const interes = x => (x.interes || []).map(y => `${y.producto} × ${num(y.unidades)}`).join(', ');
+    $('lllista').innerHTML = lista.length ? `<div class="dgrid-wrap"><div class="dgrid llam opor">
+      <div class="dh"><span>Fecha</span><span>Cliente</span><span>Qué quiere</span><span>Recomienda</span><span>Cómo termina</span><span>Próximo paso</span><span>Atendió</span></div>
+      ${lvis.map(x => `<button class="dr" data-ll="${x.id}"><span>${new Date(x.fecha).toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' })}<span class="sm">${esc(x.origen || x.direccion || '')}</span></span>
+        <span><b>${esc(x.cliente || x.nombre || '—')}</b><span class="sm">${esc(x.tel_cliente || x.telefono || '')}</span></span>
+        <span class="corta">${esc(interes(x) || '—')}${x.importe_estimado ? `<span class="sm">${eurI(x.importe_estimado)}</span>` : ''}</span>
+        <span class="corta">${esc(x.medico || x.cuenta_texto || '—')}</span>
+        <span>${x.pedido_id || x.resultado ? esc(x.resultado || 'Pedido hecho') : '<span class="pill p-warn">Sin cerrar</span>'}${x.pedido ? `<span class="sm">Pedido ${esc(x.pedido)}</span>` : ''}</span>
+        <span class="sm">${x.proxima_fecha ? fechaCorta(x.proxima_fecha) + ' · ' : ''}${esc(x.proxima_accion || '')}</span><span class="sm">${esc(x.usuario || '')}</span></button>`).join('')}</div></div>`
+      : '<div class="vacio">Sin oportunidades en este periodo. Empieza con «+ Nueva venta»: queda registrada aunque no acabe en pedido.</div>';
+    $('lllista').querySelectorAll('[data-ll]').forEach(b => b.onclick = () => editorOportunidad(lista.find(x => x.id === b.dataset.ll)));
+    $('lllista').insertAdjacentHTML('beforeend', '<div id="llpag"></div>');
+    paginador($('llpag'), lista.length, LLPAG, p => { LLPAG = p; pinta(); }, () => { LLPAG = 0; pinta(); });
+  };
+  montarPeriodo($('llper'), { id: 'llamadas', valor: 'mes', alCambiar: pinta });
+  $('llq').oninput = () => { clearTimeout(tq); tq = setTimeout(pinta, 300); };
+  $('llfres').onchange = pinta;
+  segs(); pinta();
+};
+
+// Organizaciones: los extras de cada empresa (los activa la plataforma)
+function orgExtras(c, l) {
+  c.querySelectorAll('[data-orgext]').forEach(b => b.onclick = () => {
+    const o = l.find(x => x.id === b.dataset.orgext); if (!o) return;
+    const act = (o.plan_datos || {}).extras || [];
+    $('dbody').innerHTML = `<div class="fh"><div><h2>Extras de ${esc(o.nombre)}</h2><div class="sm">Lo que tiene contratado aparte de su plan</div></div>
+        <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
+      <label class="chk"><input type="checkbox" id="oxopor" ${act.includes('oportunidades') ? 'checked' : ''}> <span><b>Oportunidades</b>
+        <span class="sm">Registro de cada venta, se cierre con pedido o no: día y hora, qué producto y cuántas unidades quería, quién lo recomienda y cómo llegó, con sus métricas.</span></span></label>
+      <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>Cancelar</button><button class="btn" id="oxok">Guardar</button></div>`;
+    $('dlg').showModal();
+    $('oxok').onclick = async () => {
+      const { data: r, error } = await db.rpc('guardar_extras_organizacion', { p_org: o.id, p_extras: $('oxopor').checked ? ['oportunidades'] : [] });
+      if (error || !r || !r.ok) { toast('No se han podido guardar los extras' + (error ? ': ' + error.message : ''), true); return; }
+      $('dlg').close(); toast('Extras guardados');
+      const { data: u } = await RPC_ORIG('plan_uso', {}); if (u && u.plan) PLAN_ACTUAL = u.plan;   // por si es la propia
+      pintarOrganizaciones();
+    };
+  });
+}

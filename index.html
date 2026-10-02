@@ -2300,6 +2300,16 @@ dialog.encajada .pdfprev iframe{height:calc(100vh - var(--alto-cab,0px) - 190px)
 #v-organizacion .vfgrid{grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
 #v-organizacion .vfcard select{width:100%;min-width:0;text-overflow:ellipsis}
 #v-organizacion .vfcard{min-width:0}
+/* v2.125.0 · Nueva venta y Oportunidades (maquetación básica; el diseño, de Branding) */
+.nvctx{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.nvctx:empty{display:none}
+.nvult{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.nvlin{display:grid;grid-template-columns:minmax(0,1fr) 128px 90px 40px;gap:8px;align-items:center;margin-bottom:6px}
+.nvimp{text-align:right;font-variant-numeric:tabular-nums}
+.nvtot{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:4px}
+.nvfin .btn.on{background:var(--warn-bg);border-color:var(--warn)}
+.dgrid.llam.opor{--cols:110px minmax(140px,1.1fr) minmax(150px,1.3fr) minmax(120px,1fr) 140px minmax(120px,1fr) 100px}
+@media (max-width:600px){.nvlin{grid-template-columns:minmax(0,1fr) 124px 40px}.nvlin .nvimp{display:none}}
 </style>
 </head>
 <body>
@@ -2436,6 +2446,6 @@ dialog.encajada .pdfprev iframe{height:calc(100vh - var(--alto-cab,0px) - 190px)
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.124.0"></script>
+<script src="./app.js?v=2.125.0"></script>
 </body>
 </html>
