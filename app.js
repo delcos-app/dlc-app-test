@@ -16271,6 +16271,9 @@ function devolverEncajada(d) {
   d.showModal = function () {
     const area = areaEncaje();
     if (!area) return modal();
+    // v2.129.0: los apartados que se pintan en la propia página (#dbody como panel) no abren ventana: antes quedaba abierta una
+    // ventana vacía de 46 px (la barra blanca) que seguía abierta al cambiar de pantalla
+    if (d.id === 'dlg' && typeof PANEL_ACTIVO !== 'undefined' && PANEL_ACTIVO && PANEL_ACTIVO.tipo === 'dbody') return;
     if (d.open) return;
     d.classList.add('encajada'); d.__area = area; d.__casa = d.__casa || d.parentNode;
     area.parentNode.insertBefore(d, area);

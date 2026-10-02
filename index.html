@@ -2417,6 +2417,21 @@ dialog.encajada .pdfprev iframe{height:calc(100vh - var(--alto-cab,0px) - 190px)
 #zonapac.escentro .solopac,#zonapac:not(.escentro) .solocen{display:none}
 .ctlin input[type=number]{max-width:110px}
 #ctcuerpo{margin-top:14px}
+/* ============================================================
+   v2.129.0 · Configuración y Organización: anchos coherentes
+   ============================================================ */
+/* Criterio (petición de Eric): todas las cajas ocupan el mismo ancho, el de la zona de contenido (antes unas llegaban al
+   borde y otras se paraban en 1.120 px), y dentro ningún campo ni selector va de punta a punta: tienen el ancho de lo que
+   se escribe en ellos. Las tablas, listas y rejillas siguen a todo el ancho. En el móvil no cambia nada. */
+@media (min-width:1100px){
+  #cfgcuerpo,.pagcuerpo,#fcuerpo{max-width:none!important}
+  :is(#cfgcuerpo,.pagcuerpo,dialog.encajada) :is(input:not([type=checkbox]):not([type=radio]):not([type=color]):not([type=range]),select):not(.numw *):not(.selw *){max-width:440px}
+  :is(#cfgcuerpo,.pagcuerpo,dialog.encajada) textarea{max-width:720px}
+  /* Campos con selector propio de fecha o número: su caja tampoco se estira */
+  :is(#cfgcuerpo,.pagcuerpo,dialog.encajada) .selw{max-width:440px}
+  /* En una tabla, una fila de filtros o junto a un botón, el campo se adapta a su sitio */
+  :is(#cfgcuerpo,.pagcuerpo,dialog.encajada) :is(td,th,.dgrid,.filtros,.tbarra,.fpresp) :is(input,select){max-width:none}
+}
 </style>
 </head>
 <body>
@@ -2553,6 +2568,6 @@ dialog.encajada .pdfprev iframe{height:calc(100vh - var(--alto-cab,0px) - 190px)
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.128.0"></script>
+<script src="./app.js?v=2.129.0"></script>
 </body>
 </html>
