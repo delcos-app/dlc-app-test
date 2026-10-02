@@ -2612,6 +2612,27 @@ label.chk > span{display:flex;flex-direction:column;gap:3px;min-width:0;line-hei
 #franjapruebas{display:none!important}
 .indpruebas{flex:0 0 auto;align-self:center;margin-left:8px;padding:2px 10px;border-radius:999px;background:#FEF3E2;color:#B45309;border:1px solid #F5C77E;font-size:11.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;line-height:1.6;cursor:pointer}
 .indpruebas:hover{background:#FDE7C4}
+/* ============================================================
+   v2.138.0 · Pastilla «Pruebas» en el menú lateral
+   ============================================================ */
+@media (min-width:900px){
+  body.menulat .mlmarca{position:relative}
+  body.menulat nav.main .mlmarca .indpruebas{flex:none;margin-left:auto;align-self:center;width:auto;height:auto;min-height:0;padding:2px 8px;border:1px solid #F5C77E;border-radius:999px;background:#FEF3E2;color:#B45309;font:700 10.5px var(--f-texto);letter-spacing:.04em;text-transform:uppercase;cursor:pointer}
+  body.menulat nav.main .mlmarca .indpruebas:hover{background:#FDE7C4}
+  body.menulat.menupleg nav.main .mlmarca .indpruebas{position:absolute;top:-2px;left:calc(50% + 10px);width:12px;height:12px;min-width:0;margin:0;padding:0;
+    border:2px solid #FFFFFF;border-radius:50%;background:#E0A400;font-size:0;color:transparent;overflow:hidden}
+}
+/* Tramos de comisión: cabecera con lo que es cada número (antes «0 · 100 · 1» sin explicar) y, en el móvil, los tres en una fila
+   sin los botones − y + (no cabían y se apilaban sin etiqueta) */
+.trcab{display:grid;grid-template-columns:1fr 1fr 1fr 40px;gap:12px;margin:2px 0 6px;font-size:12px;font-weight:700;color:var(--muted)}
+#etramos > .g2{align-items:center}
+@media (max-width:760px){
+  .trcab,#etramos > .g2{grid-template-columns:1fr 1fr 1fr 36px!important;gap:6px!important}
+  #etramos > .g2 .numw .nb{display:none}
+  #etramos > .g2 > *{min-width:0;width:100%}
+  #etramos > .g2 > input{text-align:center}
+  #etramos > .g2 > .btn{width:36px;padding:0}
+}
 </style>
 </head>
 <body>
@@ -2748,6 +2769,6 @@ label.chk > span{display:flex;flex-direction:column;gap:3px;min-width:0;line-hei
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.137.0"></script>
+<script src="./app.js?v=2.138.0"></script>
 </body>
 </html>

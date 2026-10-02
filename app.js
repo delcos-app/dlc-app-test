@@ -2803,6 +2803,7 @@ function editorEsquema(id) {
         ${fijo ? `<div><label for="efijo">Euros por unidad</label><input id="efijo" type="number" step="0.01" min="0" value="${fijoVal}"></div>` : '<div></div>'}
       </div>
       ${fijo ? '' : `<label>Tramos <span class="sm">· deja vacío el "hasta" del último</span></label>
+      <div class="trcab" aria-hidden="true"><span>Desde (uds.)</span><span>Hasta (uds.)</span><span>€ por unidad</span></div>
       <div id="etramos">${tramos.map((t, i) => `<div class="g2" style="margin-bottom:8px;grid-template-columns:1fr 1fr 1fr auto">
         <input data-td="${i}" type="number" min="0" value="${t.desde_u}" placeholder="Desde">
         <input data-th="${i}" type="number" min="0" value="${t.hasta_u == null ? '' : t.hasta_u}" placeholder="Hasta">
@@ -17332,3 +17333,16 @@ if (EN_PRUEBAS) {
   };
   pintarFranjaPruebas();
 }
+
+// v2.138.0 · Pastilla «Pruebas» en el menú lateral: junto a la marca (desplegado) o como punto sobre el logo (plegado); sin menú
+// lateral vuelve a la cabecera, detrás del logo
+function colocarIndPruebas() {
+  const p = $('indpruebas'); if (!p) return;
+  const marca = document.body.classList.contains('menulat') && document.querySelector('nav.main .mlmarca');
+  const casa = marca || document.querySelector('.top .logo');
+  if (!casa) return;
+  if (marca) { if (p.parentNode !== marca) marca.appendChild(p); }
+  else if (p.previousElementSibling !== casa) casa.insertAdjacentElement('afterend', p);
+}
+montarMenuLateral = (orig => function (...a) { const r = orig.apply(this, a); colocarIndPruebas(); return r; })(montarMenuLateral);
+colocarIndPruebas();
