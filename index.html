@@ -2319,6 +2319,100 @@ dialog.encajada .pdfprev iframe{height:calc(100vh - var(--alto-cab,0px) - 190px)
 .fpresp{display:flex;gap:8px;margin-top:6px}.fpresp input{flex:1;min-width:0}
 .minis.cons{flex-wrap:wrap}
 #mdportal{margin-top:14px}
+/* ============================================================
+   v2.127.0 · Nueva venta y Oportunidades con el sistema de diseño
+   ============================================================ */
+/* Nueva venta: los tres pasos unidos por un hilo vertical, con su número en marino y el título en Manrope */
+#dbody .llpaso{padding:14px 0 16px 44px;border-bottom:0}
+#dbody .llpaso + .llpaso{border-top:1px solid var(--line)}
+#dbody .llpaso::before{content:"";position:absolute;left:13px;top:44px;bottom:-14px;width:2px;background:var(--line);border-radius:2px}
+#dbody .llpaso:last-of-type::before{display:none}
+#dbody .llpaso .lln{left:0;top:13px;width:28px;height:28px;background:var(--navy);font:800 13px var(--f-titulo);box-shadow:0 0 0 4px #FFFFFF}
+#dbody .llpaso > b{font:800 16px var(--f-titulo);letter-spacing:-.01em;color:var(--ink);margin:3px 0 12px}
+#dbody .llpaso > label{margin-top:12px}
+#dbody .llpaso .chipsw{display:flex;flex-wrap:wrap;gap:6px}
+/* Cliente elegido y lo que ya sabemos de él */
+.clisel{background:var(--hielo);border-color:var(--line)}
+.clisel b{color:var(--ink)}
+#nvctx:not(:empty){padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:#FFFFFF;gap:8px}
+.nvult{font-size:14px}
+/* Qué quiere: líneas alineadas y el importe estimado como total de la marca */
+.nvlin{margin-bottom:8px}
+.nvimp{font-family:var(--f-titulo);font-weight:700;color:var(--ink)}
+.nvtot{padding:10px 12px;margin-top:8px;border-radius:10px;background:var(--hielo);font-size:14px;color:var(--muted)}
+.nvtot b{font-family:var(--f-titulo);font-weight:800;font-size:17px;color:var(--ink);font-variant-numeric:tabular-nums}
+/* Enlaces de acción de la ventana sin subrayar (subrayado al pasar el ratón) */
+#dlg #nvp1 a,#dlg #nvp1 button.lnk,#dlg #nvint button.lnk,#dlg #nvint a{text-decoration:none;font-weight:600;color:var(--navy)}
+#dlg #nvp1 a:hover,#dlg #nvp1 button.lnk:hover,#dlg #nvint button.lnk:hover,#dlg #nvint a:hover{text-decoration:underline}
+/* «Más detalles» con la flecha de la marca */
+#dlg details.llmas > summary{list-style:none;display:inline-flex;align-items:center;gap:6px;margin-top:12px;color:var(--navy);font-weight:600;font-size:14px;cursor:pointer}
+#dlg details.llmas > summary::-webkit-details-marker{display:none}
+#dlg details.llmas > summary::after{content:"";width:16px;height:16px;background:currentColor;-webkit-mask:var(--ico-chevron) center/contain no-repeat;mask:var(--ico-chevron) center/contain no-repeat;
+  transition:transform var(--t-medio) var(--ease-sal)}
+#dlg details.llmas[open] > summary::after{transform:rotate(180deg)}
+/* Cómo termina: «No compra» elegido en ámbar con su borde; el bloque de no compra como panel claro */
+.nvfin{gap:8px!important}
+.nvfin .btn{min-height:44px}
+.nvfin .btn.on{background:var(--warn-bg)!important;border-color:var(--warn)!important;color:var(--warn)!important}
+#nvnoz:not(.hide){margin-top:12px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--hielo)}
+#nvnoz > .sm:nth-of-type(1){font-size:13px;font-weight:600;color:var(--ink);margin:14px 0 6px!important}
+#nvnoz .chipsel:not(.on){background:#FFFFFF}
+#nvperd:not(:empty){color:var(--warn);font-weight:600}
+@media (max-width:760px){.nvfin .btn{flex:1 1 0}#nvnook{width:100%}}
+/* Oportunidades: «Volver a llamar» con acciones del mismo tamaño; sin datos en el periodo, solo el aviso (no siete gráficos vacíos) */
+#llsegs .btn{min-height:36px}
+#llsegs [data-llok]{font-size:0;width:36px;padding:0;display:inline-grid;place-items:center}
+#llsegs [data-llok]::before{content:"";width:16px;height:16px;background:var(--navy);-webkit-mask:var(--ico-check) center/contain no-repeat;mask:var(--ico-check) center/contain no-repeat}
+#llres2:not(:has(.barrash)){display:none!important}
+/* Barras «ganadas de total»: el total en azul suave y la parte que acaba en pedido en azul */
+.bh.bhr{grid-template-columns:minmax(0,1.2fr) minmax(0,1fr) 64px}
+.bh.bhr .bhb{background:transparent}
+.bh.bhr .bhb > i{background:var(--sky-soft);position:relative;overflow:hidden}
+.bh.bhr .bhb > i > em{display:block;height:100%;background:var(--sky);border-radius:6px}
+.bh.bhr b{font-family:var(--f-titulo);font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums}
+.bh.bhr b span{font-weight:600;color:var(--muted)}
+.barrash .bh{font-size:13px}
+.barrash .bhb{height:14px}
+/* ---- Portal del médico ---- */
+/* «Mi informe»: las tarjetas de material y mensajes con su margen interior (los campos tocaban el borde) */
+#mdportal .ancard > :not(h2):not(.barrash):not(.minis){margin-left:16px;margin-right:16px}
+#mdportal .ancard > .leer{margin-left:0;margin-right:0}
+#mdportal .ancard{padding-bottom:16px}
+#mdportal .ancard > label{margin-top:12px}
+#mdmat .acts,#mdmsg .acts{margin-top:12px!important}
+#mdmsgt{width:100%;min-height:76px}
+/* Constancia: cifras en tarjetas claras con la cifra en Manrope */
+.minis.cons{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;padding:0 16px;margin:4px 0 10px}
+.minis.cons > div{background:var(--hielo);border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:2px}
+.minis.cons b{font:800 20px var(--f-titulo);color:var(--ink);font-variant-numeric:tabular-nums}
+.minis.cons span{font-size:12.5px;color:var(--muted)}
+/* Material pedido: filas con su estado a la derecha */
+#mdmatl{display:flex;flex-direction:column;gap:6px;margin-top:14px}
+#mdmatl .item,#fportal .lista .item{display:flex;align-items:center;gap:10px;padding:8px 10px 8px 12px;border:1px solid var(--line);border-radius:10px;background:#FFFFFF}
+#mdmatl .item .tx,#fportal .lista .item .tx{flex:1;min-width:0;display:flex;flex-direction:column}
+#mdmatl .item .btn,#fportal .lista .item .btn{min-height:34px;padding:0 12px;font-size:13.5px}
+/* Conversación: burbujas de la marca (las mías en marino a la derecha, las del otro en blanco con borde) */
+.hilo{gap:8px;max-height:340px;padding:6px 2px}
+.msj{max-width:82%;padding:9px 13px;border-radius:14px 14px 14px 4px;background:#FFFFFF;border:1px solid var(--line);font-size:14.5px;line-height:1.45;color:var(--ink)}
+.msj.mio{border-radius:14px 14px 4px 14px;background:var(--navy);border-color:var(--navy);color:#FFFFFF}
+.msj .sm{font-size:12px;color:var(--muted)}
+.msj.mio .sm{color:rgba(255,255,255,.78)}
+#mdhilo,#fphilo{background:var(--hielo);border:1px solid var(--line);border-radius:12px;padding:8px 10px;margin-bottom:10px}
+#mdhilo > .sm:only-child,#fphilo > .sm:only-child{display:block;padding:6px 2px;color:var(--muted)}
+/* Ficha · Portal: título con sus avisos y la respuesta en una fila */
+#fportal .fpmsg{margin-top:12px}
+#fportal .fpmsg > b.sm{display:block;font-size:13px;font-weight:600;color:var(--ink);margin-bottom:6px}
+#fportal .lista{display:flex;flex-direction:column;gap:6px}
+.fpresp{gap:8px}.fpresp input{min-height:44px}.fpresp .btn{min-height:44px}
+/* Configuración · Portal: cada material en una fila (casilla, nombre y máximo); antes la casilla se estiraba y tapaba el nombre */
+#cfpmat{display:flex;flex-direction:column;gap:6px;padding:0 4px}
+#cfpmat > .item{display:flex!important;align-items:center;gap:12px;padding:8px 12px;border:1px solid var(--line);border-radius:12px;background:#FFFFFF}
+#cfpmat > .item > input[type=checkbox]{flex:none;width:20px!important;height:20px!important;min-height:0;margin:0;padding:0;accent-color:var(--navy)}
+#cfpmat > .item > .tx{flex:1;min-width:0}
+#cfpmat > .item > .tx b{font-weight:600;color:var(--ink)}
+#cfpmat > .item > .sm{flex:none;color:var(--muted)}
+#cfpmat > .item > .numw,#cfpmat > .item > input[type=number]{flex:none;width:140px;max-width:140px}
+@media (max-width:760px){#cfpmat > .item{flex-wrap:wrap}#cfpmat > .item > .tx{flex:1 1 calc(100% - 40px)}#cfpmat > .item > .sm{margin-left:32px}}
 </style>
 </head>
 <body>
@@ -2455,6 +2549,6 @@ dialog.encajada .pdfprev iframe{height:calc(100vh - var(--alto-cab,0px) - 190px)
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.126.0"></script>
+<script src="./app.js?v=2.127.0"></script>
 </body>
 </html>

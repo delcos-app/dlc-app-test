@@ -16635,7 +16635,8 @@ pintarLlamadas = async function () {
       <div class="kpi"><b>${eurI(res.importe_ganado || 0)}</b><span>Vendido</span></div>
       <div class="kpi"><b>${eurI(res.importe_perdido || 0)}</b><span>Sin vender</span></div>
       <div class="kpi"><b>${num(res.sin_cerrar || 0)}</b><span>Sin cerrar</span></div>`;
-    const ratio = (x, i, max) => `<div class="bh"><span class="bhn">${esc(x.n)}</span><span class="bhb"><i style="width:${Math.max(3, x.t / max * 100)}%"></i></span><b>${num(x.p)}/${num(x.t)}</b></div>`;
+    // v2.127.0: la barra es el total (azul suave) y dentro, en azul, la parte que acaba en pedido; el texto dice «ganadas de total»
+    const ratio = (x, i, max) => `<div class="bh bhr"><span class="bhn">${esc(x.n)}</span><span class="bhb" title="${num(x.p)} de ${num(x.t)} acaban en pedido"><i style="width:${Math.max(3, x.t / max * 100)}%"><em style="width:${x.t ? Math.round(x.p / x.t * 100) : 0}%"></em></i></span><b>${num(x.p)}<span>/${num(x.t)}</span></b></div>`;
     const barrasR = items => { const max = Math.max(1, ...items.map(x => x.t)); return `<div class="barrash">${items.map((x, i) => ratio(x, i, max)).join('')}</div>`; };
     const card = (id, t, cuerpo, leer) => `<div class="card ancard" id="${id}"><h2>${t}</h2>${cuerpo}<p class="leer">${leer}</p></div>`;
     $('llres2').innerHTML =
