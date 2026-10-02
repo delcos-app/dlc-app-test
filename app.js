@@ -497,15 +497,17 @@ async function fichaAcceso(id) {
   // v2.109.0: quien tiene «Dar acceso a fichas de su cartera» lo hace desde la ficha, sin pasar por Usuarios
   if (!puede('administrar') && puede('dar_acceso_cuentas')) return fichaAccesoCartera(id);
   if (!puede('administrar') || FICHA_ID !== id || !$('fbody') || $('facceso')) return;
-  const { data: us } = await RPC_ORIG('usuarios_resumen', {});
-  const ya = (us || []).find(u => u.cuenta_id === id);
+  const [{ data: us }, rfm] = await Promise.all([RPC_ORIG('usuarios_resumen', {}), rpcCache('ficha_cuenta', { p_id: id }, 'ficha-' + id)]);
+  const ya = (us || []).find(u => u.cuenta_id === id), m = (rfm && rfm.data && rfm.data.medico) || {};   // v2.128.0: m.tipo (centro o no)
   $('fbody').insertAdjacentHTML('beforeend', `<div class="blk" id="facceso"><h3>Acceso a la plataforma</h3>
-    ${ya ? `<p class="sm">Tiene acceso como <b>${esc(ya.email || '')}</b>${ya.activo ? '' : ' (desactivado)'}: ve su informe y recibe un aviso con cada pauta.</p>`
+    ${ya ? `<p class="sm">Tiene acceso como <b>${esc(ya.email || '')}</b>${ya.activo ? '' : ' (desactivado)'}: ${m.tipo === 'Centro' ? 'pide la reposición de sus productos, material y escribe a su comercial' : 've su informe y recibe un aviso con cada pauta'}.</p>`
+      : m.tipo === 'Centro' ? `<p class="sm">Puede tener acceso para pedir la reposición de los productos que le des de alta, pedir material y escribir a su comercial.</p>
+         <button class="btn sec" id="fdaracc">Dar acceso</button>`
       : `<p class="sm">Puede tener acceso a su informe de prescripción y recibir un aviso con cada pauta a su nombre. No verá importes ni datos de ${TT('paciente', 'p', '', 'l', 'l')}.</p>
          <button class="btn sec" id="fdaracc">Dar acceso</button>`}</div>`);
   if ($('fdaracc')) $('fdaracc').onclick = async () => {
     const { data: f } = await db.rpc('ficha_cuenta', { p_id: id });
-    $('ficha').close(); nuevoUsuario({ medico: { id, nombre: f.medico.nombre }, nombre: f.medico.nombre, email: f.medico.email || '' });
+    $('ficha').close(); nuevoUsuario({ medico: { id, nombre: f.medico.nombre }, nombre: f.medico.nombre, email: f.medico.email || '', centro: f.medico.tipo === 'Centro' });
   };
 }
 
@@ -1816,7 +1818,7 @@ function nuevoUsuarioPlanYMedico(pre, act, maxU, activos) {
   } });
   const ver = () => $('nmedw').classList.toggle('hide', !rolPuede($('nr').value, 'portal_prescriptor'));
   $('nr').addEventListener('change', ver);
-  if (pre && pre.medico) { $('nr').value = rolCon('portal_prescriptor'); $('nn').value = pre.nombre || ''; $('ne').value = pre.email || ''; ver(); }
+  if (pre && pre.medico) { $('nr').value = (pre.centro && rolCon('portal_centro')) || rolesNombres().find(r => rolPuede(r, 'portal_prescriptor') && !rolPuede(r, 'portal_centro')) || rolCon('portal_prescriptor'); $('nn').value = pre.nombre || ''; $('ne').value = pre.email || ''; ver(); }
   const crear = $('ncrear').onclick;
   $('ncrear').onclick = async ev => {
     if (!rolPuede($('nr').value, 'portal_prescriptor') && activos >= maxU) { toast(`Tu plan ${act.nombre} permite ${maxU} usuarios. Añade un bloque en Configuración → Plan.`, true); return; }
@@ -4562,7 +4564,7 @@ function mostrarApp(perfil) {
   if (puede('portal_prescriptor')) {
     document.querySelectorAll('nav.main [data-t]').forEach(b => b.classList.add('hide'));
     let bi = document.querySelector('nav.main [data-t="informe"]');
-    if (!bi) { document.querySelector('nav.main .in').insertAdjacentHTML('afterbegin', '<button data-t="informe" aria-selected="true">Mi informe</button>'); bi = document.querySelector('nav.main [data-t="informe"]'); }
+    if (!bi) { document.querySelector('nav.main .in').insertAdjacentHTML('afterbegin', `<button data-t="informe" aria-selected="true">${puede('portal_centro') ? 'Mi centro' : 'Mi informe'}</button>`); bi = document.querySelector('nav.main [data-t="informe"]'); }
     bi.classList.remove('hide');
     if (!$('mdavisos')) $('ubtn').insertAdjacentHTML('beforebegin', '<button class="mdavisos" id="mdavisos" aria-label="Avisos"></button>');
     pintarAvisos();
@@ -4880,7 +4882,7 @@ async function editorPedido(pedido) {
     envio_iva: ped && ped.envio ? +ped.envio_iva : +((SERVICIOS.find(x => x.por_defecto && x.activo) || {}).iva ?? 21),
     envio_con: ped && ped.envio ? r2(+ped.envio_base * (1 + (+ped.envio_iva || 0) / 100)) : +((SERVICIOS.find(x => x.por_defecto && x.activo) || {}).pvp || 0),
     // v2.115.0: origen (web o no) y referencia del pago
-    origen: (ped || pedido || {}).origen === 'web' ? 'web' : 'manual', pago_referencia: ped ? ped.pago_referencia || '' : '' };
+    origen: ['web', 'portal'].includes((ped || pedido || {}).origen) ? (ped || pedido).origen : 'manual', pago_referencia: ped ? ped.pago_referencia || '' : '' };
   const justifs = [];   // v2.115.0: justificantes elegidos, se suben al guardar
   const leerForm = () => {
     if (!$('pfecha')) return;
@@ -4905,11 +4907,11 @@ async function editorPedido(pedido) {
       </div>
       <div class="g2"><div><label for="porig">Origen</label><select id="porig">
           <option value="manual">Comercial, teléfono o correo</option>
-          <option value="web" ${form.origen === 'web' ? 'selected' : ''}>Pedido por la web</option></select></div><div></div></div>
-      <div id="zonapac" class="${form.canal === 'centro' ? 'hide' : ''}">
-        <label>${TT('paciente', 's', '', 'l', 'C')}</label><div id="pselpac"></div>
-        <label>${TT('medico', 's', '', 'l', 'C')} que lo recomienda</label><div id="pselmed"></div>
-        <div class="sm" style="margin-top:4px">Si no lo encuentras, deja el nombre escrito: el pedido quedará pendiente de atribuir.</div>
+          <option value="web" ${form.origen === 'web' ? 'selected' : ''}>Pedido por la web</option>${form.origen === 'portal' ? '<option value="portal" selected>Portal del centro</option>' : ''}</select></div><div></div></div>
+      <div id="zonapac" class="${form.canal === 'centro' ? 'escentro' : ''}">
+        <label class="solopac">${TT('paciente', 's', '', 'l', 'C')}</label><div id="pselpac" class="solopac"></div>
+        <label><span class="solopac">${TT('medico', 's', '', 'l', 'C')} que lo recomienda</span><span class="solocen">Centro que compra</span></label><div id="pselmed"></div>
+        <div class="sm" style="margin-top:4px"><span class="solopac">Si no lo encuentras, deja el nombre escrito: el pedido quedará pendiente de atribuir.</span><span class="solocen">Elige su ficha (de tipo centro): las unidades cuentan para el centro y su comercial.</span></div>
       </div>
       <label>Líneas</label>
       <div id="plineas">${lineas.map((l, i) => `<div class="lin" data-li="${i}">
@@ -4978,7 +4980,7 @@ async function editorPedido(pedido) {
     };
     $('plmas').onclick = () => { lineas.push({ producto_id: productoPorDefecto(), unidades: 1, descuento: 0 }); autoImporte(lineas[lineas.length - 1]); pinta(); };
     $('plineas').querySelectorAll('[data-lx]').forEach(b => b.onclick = () => { lineas.splice(+b.dataset.lx, 1); pinta(); });
-    $('pcan').onchange = () => $('zonapac').classList.toggle('hide', $('pcan').value === 'centro');
+    $('pcan').onchange = () => $('zonapac').classList.toggle('escentro', $('pcan').value === 'centro');
     $('ppago').onchange = () => $('ppagox').classList.toggle('hide', !$('ppago').value);
     $('pjus').onchange = async e => {
       const f = e.target.files[0]; e.target.value = ''; if (!f) return;
@@ -9681,7 +9683,7 @@ async function listaPedidos() {
       <span class="num">Uds.</span>${imp ? '<span class="num">Base</span><span class="num">Total</span>' : ''}<span>Estado</span><span>Operativa</span>${clasCabeceras(cpCols)}</div>
     ${PEDIDOS.map(p => `<button class="dr" data-ped="${p.id}" style="${p.estado === 'Anulado' ? 'opacity:.55' : ''}">
       <span>${fechaCorta(p.fecha)}${p.factura || p.numero ? `<span class="sm">${esc(p.factura || p.numero)}</span>` : ''}</span>
-      <span><b>${esc(p.contacto || p.centro || p.cuenta_texto || '—')}</b><span class="sm">${p.canal === 'centro' ? 'Venta a centro' : 'Recomendación'}${p.origen === 'web' ? ' · <span class="pweb">Web</span>' : ''}${p.forma_pago ? ' · ' + esc(p.forma_pago) : ''}${p.justificante ? ' · <span title="Con justificante de pago">📎</span>' : ''}</span></span>
+      <span><b>${esc(p.contacto || p.centro || p.cuenta_texto || '—')}</b><span class="sm">${p.canal === 'centro' ? 'Venta a centro' : 'Recomendación'}${p.origen === 'web' ? ' · <span class="pweb">Web</span>' : p.origen === 'portal' ? ' · <span class="pweb">Portal</span>' : ''}${p.forma_pago ? ' · ' + esc(p.forma_pago) : ''}${p.justificante ? ' · <span title="Con justificante de pago">📎</span>' : ''}</span></span>
       <span class="corta">${p.medico ? esc(p.medico) : '<span class="vac">Sin atribuir</span>'}</span>
       <span>${p.comercial ? esc(p.comercial) : '<span class="vac">—</span>'}</span>
       <span class="sm corta">${esc(p.productos || '')}</span><span class="num">${num(p.unidades)}</span>
@@ -10211,6 +10213,7 @@ if (EN_PRUEBAS) {
 const ES_MEDICO = () => puede('portal_prescriptor');
 
 async function cargarInforme() {
+  if (puede('portal_centro')) return cargarCentro();   // v2.128.0: el portal del centro
   const v = $('v-informe');
   v.innerHTML = `<div class="medhero"><div><div class="sm" style="color:rgba(255,255,255,.8)">Tu informe de prescripción</div><h1 id="mdnom">…</h1><div id="mdesp" class="sm" style="color:rgba(255,255,255,.85)"></div></div>
       <div class="medper"><div id="mdper"></div></div></div>
@@ -10266,7 +10269,7 @@ async function pintarAvisos() {
 }
 
 if (typeof pintarBnav === 'function') pintarBnav = (orig => function () {
-  if (ES_MEDICO()) { const b = $('bnav'); if (b) b.innerHTML = '<button data-t="informe" aria-selected="true"><span>◉</span>Mi informe</button>'; if (b) b.firstChild.onclick = () => ir('informe'); return; }
+  if (ES_MEDICO()) { const b = $('bnav'); if (b) b.innerHTML = `<button data-t="informe" aria-selected="true"><span>◉</span>${puede('portal_centro') ? 'Mi centro' : 'Mi informe'}</button>`; if (b) b.firstChild.onclick = () => ir('informe'); return; }
   orig();
 })(pintarBnav);
 
@@ -11741,7 +11744,7 @@ const I18N = [
   ['Médicos', 'Doctors', 'Ärzte', 'Médecins', 'Medici'], ['Directorio', 'Doctors', 'Ärzte', 'Médecins', 'Medici'], ['Clientes', 'Customers', 'Kunden', 'Clients', 'Clienti'], ['Productos', 'Products', 'Produkte', 'Produits', 'Prodotti'],
   ['Calidad del dato', 'Data quality', 'Datenqualität', 'Qualité des données', 'Qualità dei dati'], ['Pedidos', 'Orders', 'Bestellungen', 'Commandes', 'Ordini'],
   ['Analítica', 'Analytics', 'Analysen', 'Analyses', 'Analisi'], ['Facturación', 'Invoicing', 'Rechnungen', 'Facturation', 'Fatturazione'], ['Más', 'More', 'Mehr', 'Plus', 'Altro'],
-  ['Mi informe', 'My report', 'Mein Bericht', 'Mon rapport', 'Il mio report'], ['Configuración', 'Settings', 'Einstellungen', 'Paramètres', 'Impostazioni'],
+  ['Mi informe', 'My report', 'Mein Bericht', 'Mon rapport', 'Il mio report'], ['Mi centro', 'My centre', 'Mein Zentrum', 'Mon centre', 'Il mio centro'], ['Configuración', 'Settings', 'Einstellungen', 'Paramètres', 'Impostazioni'],
   ['Manual de uso', 'User guide', 'Handbuch', 'Guide d’utilisation', 'Manuale'], ['Cerrar sesión', 'Sign out', 'Abmelden', 'Se déconnecter', 'Esci'],
   ['Cambiar contraseña', 'Change password', 'Passwort ändern', 'Changer le mot de passe', 'Cambia password'],
   ['Guardar', 'Save', 'Speichern', 'Enregistrer', 'Salva'], ['Cancelar', 'Cancel', 'Abbrechen', 'Annuler', 'Annulla'], ['Cerrar', 'Close', 'Schließen', 'Fermer', 'Chiudi'],
@@ -15749,8 +15752,8 @@ async function fichaAccesoCartera(id) {
   // Solo en las fichas de su cartera (o en todas si ve todo)
   if ((!ya && !(mia || []).length) || FICHA_ID !== id || $('facceso')) return;
   $('fbody').insertAdjacentHTML('beforeend', `<div class="blk" id="facceso"><h3>Acceso a la plataforma</h3>
-    ${ya ? `<p class="sm">Tiene acceso${ya.email ? ` como <b>${esc(ya.email)}</b>` : ''}${ya.activo ? '' : ' (desactivado)'}: ve su informe y recibe un aviso con cada pauta.</p>`
-      : `<p class="sm">Puede tener acceso a su informe y recibir un aviso con cada pauta a su nombre. No verá importes ni datos de ${TT('paciente', 'p', '', 'l', 'l')}.</p>
+    ${ya ? `<p class="sm">Tiene acceso${ya.email ? ` como <b>${esc(ya.email)}</b>` : ''}${ya.activo ? '' : ' (desactivado)'}: ${m.tipo === 'Centro' ? 'pide la reposición de sus productos, material y escribe a su comercial' : 've su informe y recibe un aviso con cada pauta'}.</p>`
+      : `<p class="sm">${m.tipo === 'Centro' ? 'Puede tener acceso para pedir la reposición de los productos que le des de alta, pedir material y escribir a su comercial.' : `Puede tener acceso a su informe y recibir un aviso con cada pauta a su nombre. No verá importes ni datos de ${TT('paciente', 'p', '', 'l', 'l')}.`}</p>
          <div class="g2"><div><label for="faccmail">Correo</label><input id="faccmail" type="email" value="${esc(m.email || '')}" placeholder="nombre@correo.com"></div>
          <div style="align-self:end"><button class="btn sec" id="fdaracc">Dar acceso</button></div></div><div class="sm" id="faccmsg"></div>`}</div>`);
   if (!$('fdaracc')) return;
@@ -16727,7 +16730,7 @@ async function portalMedico() {
   let caja = $('mdportal');
   if (!caja) { $('v-informe').insertAdjacentHTML('beforeend', '<div id="mdportal" class="angrid"></div>'); caja = $('mdportal'); }
   const [{ data: c }, { data: perm }, { data: sols }, { data: msgs }] = await Promise.all([
-    RPC_ORIG('constancia_pacientes', { p_meses: 12 }), RPC_ORIG('portal_material_permitido', {}),
+    puede('portal_centro') ? Promise.resolve({ data: null }) : RPC_ORIG('constancia_pacientes', { p_meses: 12 }), RPC_ORIG('portal_material_permitido', {}),
     db.from('solicitudes_material').select('id,material,cantidad,nota,estado,creado_en,cerrado_en').order('creado_en', { ascending: false }).limit(20),
     db.from('mensajes_cuenta').select('id,texto,del_portal,creado_en,leido_en').order('creado_en', { ascending: true }).limit(200)]);
   if (!$('mdportal')) return;
@@ -16760,6 +16763,7 @@ async function portalMedico() {
       <div id="mdhilo">${hiloMensajes(lm, true)}</div>
       <textarea id="mdmsgt" rows="2" placeholder="Escribe tu duda" aria-label="Tu mensaje"></textarea>
       <div class="acts" style="margin:8px 0 0;justify-content:flex-start"><button type="button" class="btn" id="mdmsgok">Enviar</button></div></div>`;
+  if (puede('portal_centro') && $('mdcons')) $('mdcons').remove();
   if ($('mdmatm')) $('mdmatm').onchange = () => { const m = +$('mdmatm').selectedOptions[0].dataset.max; $('mdmatn').max = m; if (+$('mdmatn').value > m) $('mdmatn').value = m; };
   if ($('mdmatok')) $('mdmatok').onclick = async ev => {
     ev.target.disabled = true;
@@ -16794,7 +16798,7 @@ async function fichaPortal(id) {
   if (FICHA_ID !== id || !$('fbody') || $('fportal')) return;
   const ls = sols || [], lm = msgs || [], pend = ls.filter(x => x.estado === 'Pendiente'), sinLeer = lm.filter(x => x.del_portal && !x.leido_en).length;
   if (!ls.length && !lm.length && !(acc || []).length) return;   // sin portal ni actividad: no se ocupa sitio
-  const html = `<section class="blk" id="fportal"><h3>Portal ${TT('medico', 's', 'del', 'l', 'l')}${pend.length ? ` <span class="pill p-warn">${num(pend.length)} material por entregar</span>` : ''}${sinLeer ? ` <span class="pill p-urg">${num(sinLeer)} sin leer</span>` : ''}</h3>
+  const html = `<section class="blk" id="fportal"><h3>Portal${pend.length ? ` <span class="pill p-warn">${num(pend.length)} material por entregar</span>` : ''}${sinLeer ? ` <span class="pill p-urg">${num(sinLeer)} sin leer</span>` : ''}</h3>
     ${ls.length ? `<div class="lista">${ls.map(x => `<div class="item" style="cursor:default"><span class="tx"><b>${num(x.cantidad)} × ${esc(x.material)}</b>
         <span class="sm">Pedido el ${horaCorta(x.creado_en)}${x.nota ? ' · ' + esc(x.nota) : ''}</span></span>${pillMaterial(x.estado)}
         ${x.estado === 'Pendiente' ? `<button type="button" class="btn" data-fpent="${x.id}">Entregado</button>` : ''}</div>`).join('')}</div>` : ''}
@@ -16855,3 +16859,91 @@ arbolConfig = (orig => function () {
   }
   return g;
 })(arbolConfig);
+
+
+/* v2.128.0 · Portal del centro (parte del extra «Portal»). Un centro (ficha de tipo Centro) con acceso entra en «Mi centro»: pide la
+   reposición de los productos que tiene dados de alta, al precio que le pone su comercial; el pedido llega como borrador para validar.
+   Ve sus pedidos y lo comprado, pide material y escribe a su comercial (lo mismo que el médico). En la ficha del centro, «Productos
+   del centro». */
+async function cargarCentro() {
+  const v = $('v-informe');
+  v.innerHTML = `<div class="medhero"><div><div class="sm" style="color:rgba(255,255,255,.8)">Tu centro</div><h1 id="ctnom">…</h1>
+      <div class="sm" style="color:rgba(255,255,255,.85)">Pide la reposición de tus productos y sigue tus pedidos</div></div></div>
+    <div id="ctcuerpo" class="angrid"><div class="card">${skelCard('Cargando…')}</div></div>`;
+  pintarCentro();
+}
+async function pintarCentro() {
+  // Al arrancar, esto se pinta antes de leerse el final de este archivo: se espera a que esté
+  try { void MOTIVO_PORTAL; void NOMBRE_ESTADO_CENTRO; } catch (e) { setTimeout(pintarCentro, 300); return; }
+  if (!$('ctcuerpo')) return;
+  const [{ data: prods }, { data: mp }] = await Promise.all([RPC_ORIG('productos_portal', {}), RPC_ORIG('mis_pedidos_portal', {})]);
+  if (!$('ctcuerpo')) return;
+  if (mp && mp.nombre) $('ctnom').textContent = mp.nombre;
+  const lp = Array.isArray(prods) ? prods : [], peds = (mp && mp.pedidos) || [], pp = (mp && mp.por_producto) || [];
+  const conIva = x => r2((+x.precio || 0) * (1 + (+x.iva || 0) / 100));
+  $('ctcuerpo').innerHTML = `
+    <div class="card ancard ancha" id="ctped"><h2>Pedir reposición</h2>
+      ${lp.length ? `<div class="lista" id="ctprods">${lp.map(x => `<div class="item ctlin" style="cursor:default"><span class="tx"><b>${esc(x.nombre)}</b>
+          <span class="sm">${eurI(conIva(x))} con IVA${x.propio ? ' · tu precio' : ''}</span></span>
+          <input type="number" min="0" max="1000" step="1" value="0" data-ctp="${x.producto_id}" data-ctpr="${conIva(x)}" aria-label="Unidades de ${esc(x.nombre)}"></div>`).join('')}</div>
+        <label for="ctnota">Nota</label><input id="ctnota" placeholder="Opcional: horario de entrega, persona de contacto…">
+        <div class="nvtot"><span>Total <b id="cttot">${eurI(0)}</b> con IVA</span><button type="button" class="btn" id="ctok">Enviar pedido</button></div>
+        <p class="leer">Tu comercial lo revisa y lo valida; aquí verás cuándo está validado y preparado.</p>`
+        : '<p class="sm" style="padding:0 16px">Todavía no tienes productos para pedir. Tu comercial te los dará de alta.</p>'}</div>
+    <div class="card ancard" id="ctlista"><h2>Tus pedidos</h2>
+      ${peds.length ? `<div class="lista">${peds.map(p => `<div class="item" style="cursor:default"><span class="tx">
+          <b>${p.numero ? esc(p.numero) + ' · ' : ''}${fechaCorta(String(p.fecha).slice(0, 10))}</b>
+          <span class="sm">${esc((p.lineas || []).map(l => `${l.producto} × ${num(l.unidades)}`).join(', '))}${p.total != null ? ' · ' + eurI(p.total) : ''}</span></span>
+          <span class="pill ${NOMBRE_ESTADO_CENTRO[p.estado] || ''}">${esc(p.estado)}</span></div>`).join('')}</div>` : '<div class="sm" style="padding:0 16px">Todavía no hay pedidos.</div>'}</div>
+    <div class="card ancard" id="ctcompra"><h2>Lo que has comprado</h2>
+      ${pp.length ? barrasH(pp.map(x => ({ n: x.producto, v: x.unidades })), v => num(v) + ' uds.') : vacioGrafico('Aparecerá cuando tengas pedidos validados.')}
+      <p class="leer">Unidades de los últimos 12 meses, por producto.</p></div>`;
+  const total = () => [...$('ctcuerpo').querySelectorAll('[data-ctp]')].reduce((s, i) => s + (Math.max(0, +i.value || 0)) * (+i.dataset.ctpr || 0), 0);
+  $('ctcuerpo').querySelectorAll('[data-ctp]').forEach(i => i.oninput = i.onchange = () => { $('cttot').textContent = eurI(total()); });
+  if ($('ctok')) $('ctok').onclick = async ev => {
+    const lineas = [...$('ctcuerpo').querySelectorAll('[data-ctp]')].map(i => ({ producto_id: i.dataset.ctp, unidades: Math.floor(+i.value || 0) })).filter(x => x.unidades > 0);
+    if (!lineas.length) { toast('Pon las unidades de algún producto', true); return; }
+    ev.target.disabled = true;
+    const { data: r } = await db.rpc('pedido_portal', { p_lineas: lineas, p_nota: $('ctnota').value.trim() || null });
+    ev.target.disabled = false;
+    if (!r || !r.ok) { toast(r && r.motivo === 'vacio' ? 'Pon las unidades de algún producto' : motivoPortal(r), true); return; }
+    toast('Pedido enviado: tu comercial lo validará'); pintarCentro();
+  };
+  portalMedico();
+}
+const NOMBRE_ESTADO_CENTRO = { 'Pendiente de validar': 'p-warn', Validado: 'p-est', Preparado: 'p-per', Anulado: 'p-anu' };
+
+// Ficha de un centro: qué productos puede pedir y a qué precio (sin IVA; vacío = tarifa)
+async function fichaProductosCentro(id) {
+  if (ES_MEDICO() || !hayExtra('portal') || FICHA_ID !== id || !$('fbody') || $('fprodc')) return;
+  const rf = await rpcCache('ficha_cuenta', { p_id: id }, 'ficha-' + id);
+  const m = (rf && rf.data && rf.data.medico) || {};
+  if (m.tipo !== 'Centro' || FICHA_ID !== id || $('fprodc')) return;
+  if (!PRODUCTOS.length) await cargarProductos();
+  const { data: act } = await db.from('productos_cuenta').select('producto_id,precio').eq('cuenta_id', id);
+  if (FICHA_ID !== id || $('fprodc')) return;
+  const sel = {}; (act || []).forEach(x => sel[x.producto_id] = x);
+  const lista = PRODUCTOS.filter(p => p.tipo !== 'servicio' && (p.estado || 'Activo') === 'Activo');
+  const html = `<section class="blk" id="fprodc"><h3>Productos del centro <span class="n">${num((act || []).length)}</span></h3>
+    <p class="sm">Lo que puede pedir desde su portal. Precio sin IVA; si lo dejas vacío, el de tarifa.</p>
+    <div class="lista">${lista.map(p => `<label class="item" style="cursor:default"><input type="checkbox" data-fpcp="${p.id}" ${sel[p.id] ? 'checked' : ''}>
+        <span class="tx"><b>${esc(p.nombre)}</b><span class="sm">Tarifa ${p.precio != null ? eurI(p.precio) : '—'} sin IVA</span></span>
+        <input type="number" min="0" step="0.01" data-fpcx="${p.id}" value="${sel[p.id] && sel[p.id].precio != null ? +sel[p.id].precio : ''}" placeholder="Tarifa" style="max-width:120px" aria-label="Precio de ${esc(p.nombre)} para el centro"></label>`).join('')
+      || '<div class="sm">No hay productos activos.</div>'}</div>
+    <div class="acts" style="margin:8px 0 0;justify-content:flex-end"><button type="button" class="btn sec" id="fpcok">Guardar productos</button></div></section>`;
+  const tras = $('fportal') || $('fbody').querySelector('section.fvis');
+  if (tras) tras.insertAdjacentHTML('afterend', html); else $('fbody').insertAdjacentHTML('beforeend', html);
+  $('fpcok').onclick = async ev => {
+    const items = [...$('fprodc').querySelectorAll('[data-fpcp]')].filter(x => x.checked).map(x => {
+      const v = $('fprodc').querySelector(`[data-fpcx="${x.dataset.fpcp}"]`).value;
+      return { producto_id: x.dataset.fpcp, precio: v === '' ? null : Math.max(0, +v) };
+    });
+    ev.target.disabled = true;
+    const { data: r } = await db.rpc('guardar_productos_cuenta', { p_cuenta: id, p_items: items });
+    ev.target.disabled = false;
+    if (!r || !r.ok) { toast(motivoPortal(r), true); return; }
+    toast(`Productos del centro guardados (${num(r.productos)})`);
+    const b = $('fprodc'); if (b) b.remove(); fichaProductosCentro(id);
+  };
+}
+abrirFicha = (orig => async function (id, ...a) { const r = await orig.call(this, id, ...a); fichaProductosCentro(id); return r; })(abrirFicha);
