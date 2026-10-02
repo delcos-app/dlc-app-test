@@ -17346,3 +17346,139 @@ function colocarIndPruebas() {
 }
 montarMenuLateral = (orig => function (...a) { const r = orig.apply(this, a); colocarIndPruebas(); return r; })(montarMenuLateral);
 colocarIndPruebas();
+
+
+/* v2.139.0 · Arreglos rápidos de la lista de Eric (3/10/2026):
+   - Menú «⋯» de la cita: solo gestionar la cita (hora, aplazar, confirmar, descartar); lo del registro va en «Registrar».
+   - Pedidos, Oportunidades, Compras y Proveedores, cada uno con su entrada en el menú (antes, pestañas dentro de Pedidos).
+   - «Por hacer» de pedidos: título que dice algo, cada persona elige qué avisos ve y descarta los sueltos; la administración puede
+     fijar por rol los que son obligatorios (no se ocultan ni se descartan). */
+
+// Menú «⋯» de la cita
+menuCita = function (boton, c) {
+  document.querySelectorAll('.tdmenu').forEach(m => m.remove());
+  const abierta = CITA_ABIERTA.includes(c.estado);
+  const ops = [
+    abierta ? ['hora', c.hora ? 'Cambiar la hora' : 'Fijar una hora', ''] : null,
+    abierta ? ['aplazar', 'Aplazar a otro día', 'Queda como aplazada y se crea la cita nueva'] : null,
+    abierta && c.estado === 'Planificada' ? ['confirmar', 'Marcar como confirmada', 'Ya has hablado con la consulta'] : null,
+    abierta && c.estado === 'Confirmada' ? ['desconfirmar', 'Quitar la confirmación', ''] : null,
+    abierta ? ['descartar', 'Descartar la cita', 'Ya no hace falta ir'] : null
+  ].filter(Boolean);
+  if (!ops.length) { toast('Esta cita ya está cerrada'); return; }
+  const m = document.createElement('div');
+  m.className = 'tdmenu'; m.__t = Date.now();
+  m.innerHTML = ops.map(([k, t, s]) => `<button data-tdop="${k}" class="${k === 'descartar' ? 'peligro' : ''}"><b>${esc(t)}</b>${s ? `<span>${esc(s)}</span>` : ''}</button>`).join('');
+  document.body.appendChild(m);
+  const r = boton.getBoundingClientRect();
+  m.style.top = Math.min(window.innerHeight - m.offsetHeight - 10, r.bottom + 6) + 'px';
+  m.style.left = Math.max(10, Math.min(window.innerWidth - m.offsetWidth - 10, r.right - m.offsetWidth)) + 'px';
+  m.querySelectorAll('[data-tdop]').forEach(b => b.onclick = () => { m.remove(); accionCita(b.dataset.tdop, c); });
+};
+
+// Pedidos, Oportunidades, Compras y Proveedores: cada uno su entrada en el menú (por dentro, el mismo módulo con su sección)
+const ALIAS_PEDIDOS = { oportunidades: 'llamadas', compras: 'compras', proveedores: 'proveedores' };
+const TITULO_PEDSEC = { ventas: ['Pedidos', 'Pedidos de tus clientes, con sus unidades e importes'], llamadas: ['Oportunidades', 'Cada venta, se cierre con pedido o no, y por qué'],
+  compras: ['Compras', 'Pedidos a proveedores y mercancía en camino'], proveedores: ['Proveedores', 'A quién compras y en qué condiciones'] };
+let IR_DESDE_MENU = false;
+document.addEventListener('click', e => {
+  if (e.target.closest('nav.main [data-t], #bnav [data-t], [data-bm]')) { IR_DESDE_MENU = true; setTimeout(() => { IR_DESDE_MENU = false; }, 0); }
+}, true);
+function marcarPedsec() {
+  if (TAB !== 'ventas') return;
+  const alias = Object.keys(ALIAS_PEDIDOS).find(k => ALIAS_PEDIDOS[k] === PEDSEC) || 'ventas';
+  document.querySelectorAll('nav.main [data-t], #bnav [data-t]').forEach(x => x.setAttribute('aria-selected', String(x.dataset.t === alias)));
+}
+ir = (orig => function (t, ...a) {
+  if (t in ALIAS_PEDIDOS) { PEDSEC = ALIAS_PEDIDOS[t]; const r = orig.call(this, 'ventas', ...a); marcarPedsec(); return r; }
+  if (t === 'ventas' && IR_DESDE_MENU) PEDSEC = 'ventas';   // «Pedidos» del menú siempre abre los pedidos
+  const r = orig.call(this, t, ...a);
+  if (t === 'ventas') marcarPedsec();
+  return r;
+})(ir);
+cargarVentas = (orig => async function (...a) {
+  const r = await orig.apply(this, a);
+  const v = $('v-ventas'), [t, d] = TITULO_PEDSEC[PEDSEC] || TITULO_PEDSEC.ventas;
+  const h = v && v.querySelector('.saludo h1'); if (h && h.firstChild) h.firstChild.textContent = t;
+  const f = v && v.querySelector('.saludo .fecha'); if (f) f.textContent = d;
+  marcarPedsec();
+  return r;
+})(cargarVentas);
+function menuPedidos2139() {
+  const nav = document.querySelector('nav.main .in'); if (!nav || ES_MEDICO()) return;
+  const ped = nav.querySelector('[data-t="ventas"]'); if (!ped) return;
+  const ve = !ped.classList.contains('hide') && puedeModulo('ventas');
+  let tras = ped;
+  [['oportunidades', 'Oportunidades', ve && VE_TODO() && hayOportunidades()], ['compras', 'Compras', ve], ['proveedores', 'Proveedores', ve]].forEach(([t, txt, vis]) => {
+    let b = nav.querySelector(`[data-t="${t}"]`);
+    if (!b) { tras.insertAdjacentHTML('afterend', `<button data-t="${t}" aria-selected="false">${txt}</button>`); b = nav.querySelector(`[data-t="${t}"]`); }
+    b.classList.toggle('hide', !vis);
+    if (!b.closest('.mlbs')) tras = b;   // con el menú lateral, cada uno va en su bloque
+  });
+}
+// Los botones se crean antes de que el menú lateral reparta los bloques (y se vuelve a mirar su permiso después)
+aplicarPermisosMenu = (orig => function (...a) { try { menuPedidos2139(); } catch (e) {} const r = orig.apply(this, a); menuPedidos2139(); return r; })(aplicarPermisosMenu);
+Object.assign(ICO_NAV, { oportunidades: 'phone', compras: 'clipboard-list', proveedores: 'building' });
+(() => { const g = MENU_GRUPOS.find(x => x.id === 'ventas'); if (!g) return; ['proveedores', 'compras', 'oportunidades'].forEach(k => { if (!g.items.includes(k)) g.items.splice(g.items.indexOf('ventas') + 1, 0, k); }); })();
+setTimeout(() => { try { menuPedidos2139(); } catch (e) {} }, 0);
+
+// «Por hacer» de pedidos, configurable
+const AVISOS_PED = [['pago', 'Pagos por validar', '💳'], ['paquete', 'Paquetes por preparar', '📦'], ['email_factura', 'Facturas por enviar', '🧾'], ['email_pago', 'Datos de pago por enviar', '✉️']];
+async function guardarPrefsAvisos(avisos) {
+  const prefs = Object.assign({}, (PERFIL && PERFIL.preferencias) || {}, { avisos_pedidos: avisos });
+  const { data, error } = await db.rpc('guardar_preferencias', { p: prefs });
+  if (error) { toast('No se ha podido guardar', true); return false; }
+  PERFIL.preferencias = data || prefs; return true;
+}
+pintarOperativa = async function () {
+  let c = $('operativa');
+  if (!c) { const ref = $('vcuerpo'); if (!ref) return; ref.insertAdjacentHTML('beforebegin', '<div class="card" id="operativa"></div>'); c = $('operativa'); }
+  const [{ data }, { data: aj }, { data: desc }] = await Promise.all([RPC_ORIG('operativa_pendiente', {}),
+    db.from('ajustes').select('valor').eq('clave', 'avisos_pedidos').maybeSingle(), RPC_ORIG('mis_alertas_descartadas', {})]);
+  if (!$('operativa')) return;
+  const d = data || {}, oblig = (((aj && aj.valor) || {}).obligatorios || {})[PERFIL.rol] || [];
+  const pref = ((PERFIL.preferencias || {}).avisos_pedidos) || {};
+  const fuera = new Set((desc || []).map(x => x.clave));
+  const vis = AVISOS_PED.filter(([k]) => oblig.includes(k) || pref[k] !== false);
+  const de = k => (d[k] || []).filter(p => oblig.includes(k) || !fuera.has(`op:${k}:${p.id}`));
+  const tot = vis.reduce((n, [k]) => n + de(k).length, 0);
+  c.innerHTML = `<div class="fh"><h2>${tot ? `${num(tot)} ${tot === 1 ? 'aviso' : 'avisos'} de pedidos` : 'Pedidos al día'}</h2>
+      <button type="button" class="btn sec" id="opcfg" aria-label="Elegir qué avisos ver" title="Elegir qué avisos ver">${svgIco(ICON_NOM.settings || '')}</button></div>
+    ${!vis.length ? '<div class="sm" style="padding:0 16px 12px">Has ocultado todos los avisos de pedidos. Vuelve a elegirlos con el engranaje.</div>'
+      : tot ? `<div class="opgrid">${vis.map(([k, t, ic]) => `<details class="opcol"><summary><b>${num(de(k).length)}</b> ${ic} ${t}</summary>
+        <div class="lista">${de(k).slice(0, 30).map(p => `<div class="item opit" style="padding:6px 8px"><button type="button" class="tx" data-opped="${p.id}"><b>${esc(p.cliente)}</b>
+          <span class="sm">${esc(p.numero || 'Sin número')} · ${fechaCorta(p.fecha)}${verImportes() ? ' · ' + eurI(p.total || 0) : ''}${p.forma_pago ? ' · ' + esc(p.forma_pago) : ''}</span></button>
+          ${oblig.includes(k) ? '' : `<button type="button" class="x opx" data-opx="${k}|${p.id}" aria-label="Quitar este aviso" title="Quitar este aviso">✕</button>`}</div>`).join('') || '<div class="sm">Nada pendiente.</div>'}</div></details>`).join('')}</div>`
+      : '<div class="vacio" style="padding:10px 16px">Nada pendiente: pagos validados, paquetes preparados y correos enviados.</div>'}`;
+  c.querySelectorAll('[data-opped]').forEach(b => b.onclick = () => verPedido(b.dataset.opped));
+  c.querySelectorAll('[data-opx]').forEach(b => b.onclick = async () => {
+    const [k, id] = b.dataset.opx.split('|'), p = (d[k] || []).find(x => x.id === id) || {};
+    await db.rpc('descartar_alerta', { p_clave: `op:${k}:${id}`, p_dias: null, p_titulo: (AVISOS_PED.find(x => x[0] === k) || [])[1] || 'Aviso de pedido', p_detalle: `${p.cliente || ''} · ${p.numero || ''}` });
+    pintarOperativa();
+  });
+  $('opcfg').onclick = () => configurarAvisosPedidos(oblig);
+};
+async function configurarAvisosPedidos(oblig) {
+  const pref = ((PERFIL.preferencias || {}).avisos_pedidos) || {}, admin = puede('administrar');
+  const { data: aj } = admin ? await db.from('ajustes').select('valor').eq('clave', 'avisos_pedidos').maybeSingle() : { data: null };
+  const fij = ((aj && aj.valor) || {}).obligatorios || {}, roles = admin ? rolesNombres().filter(r => !rolPuede(r, 'portal_prescriptor')) : [];
+  $('dbody').innerHTML = `<div class="fh"><div><h2>Avisos de pedidos</h2><div class="sm">Qué avisos quieres ver arriba en Pedidos</div></div>
+      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
+    <div class="lista">${AVISOS_PED.map(([k, t, ic]) => `<label class="item" style="cursor:default"><input type="checkbox" data-avp="${k}" ${oblig.includes(k) || pref[k] !== false ? 'checked' : ''} ${oblig.includes(k) ? 'disabled' : ''}>
+        <span class="tx"><b>${ic} ${t}</b>${oblig.includes(k) ? '<span class="sm">Obligatorio para tu rol</span>' : ''}</span></label>`).join('')}</div>
+    ${admin ? `<h3 style="margin:14px 0 4px">Obligatorios por rol</h3><p class="sm">Los marcados no se pueden ocultar ni quitar.</p>
+      <div class="dgrid-wrap"><table class="tabla avrol"><thead><tr><th>Rol</th>${AVISOS_PED.map(([, t]) => `<th>${t}</th>`).join('')}</tr></thead>
+        <tbody>${roles.map(r => `<tr><td>${esc(r)}</td>${AVISOS_PED.map(([k]) => `<td style="text-align:center"><input type="checkbox" data-avr="${esc(r)}|${k}" ${(fij[r] || []).includes(k) ? 'checked' : ''} aria-label="${esc(r)}: obligatorio"></td>`).join('')}</tr>`).join('')}</tbody></table></div>` : ''}
+    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>Cancelar</button><button class="btn" id="avpok">Guardar</button></div>`;
+  $('dlg').showModal();
+  $('avpok').onclick = async () => {
+    const av = {}; $('dbody').querySelectorAll('[data-avp]').forEach(x => { if (!x.disabled) av[x.dataset.avp] = x.checked; });
+    if (!await guardarPrefsAvisos(av)) return;
+    if (admin) {
+      const ob = {}; $('dbody').querySelectorAll('[data-avr]:checked').forEach(x => { const [r, k] = x.dataset.avr.split('|'); (ob[r] = ob[r] || []).push(k); });
+      const { data: r, error } = await db.rpc('guardar_ajuste', { p_clave: 'avisos_pedidos', p_valor: { obligatorios: ob } });
+      if (error || (r && r.ok === false)) { toast('No se han podido guardar los obligatorios', true); return; }
+    }
+    $('dlg').close(); toast('Avisos guardados'); pintarOperativa();
+  };
+}
