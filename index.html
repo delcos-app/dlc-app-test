@@ -2432,6 +2432,10 @@ dialog.encajada .pdfprev iframe{height:calc(100vh - var(--alto-cab,0px) - 190px)
   /* En una tabla, una fila de filtros o junto a un botón, el campo se adapta a su sitio */
   :is(#cfgcuerpo,.pagcuerpo,dialog.encajada) :is(td,th,.dgrid,.filtros,.tbarra,.fpresp) :is(input,select){max-width:none}
 }
+/* v2.131.0 · Franja «Estás viendo X» del panel de delcos (maquetación básica; el diseño, de Branding) */
+:root{--alto-franja:0px}
+.orgvista{position:sticky;top:0;z-index:1200;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px var(--margen,16px);background:#FEF3E2;color:#7A2E0E;border-bottom:1px solid #F5C77E;font-size:14px}
+.con-vista .top{top:var(--alto-franja)}
 </style>
 </head>
 <body>
@@ -2568,6 +2572,6 @@ dialog.encajada .pdfprev iframe{height:calc(100vh - var(--alto-cab,0px) - 190px)
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.129.0"></script>
+<script src="./app.js?v=2.131.0"></script>
 </body>
 </html>

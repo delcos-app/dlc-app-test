@@ -15440,10 +15440,13 @@ async function pintarOrganizaciones() {
       <span class="acts" style="margin:0"><span class="sm">${o.creado_en ? fechaCorta(String(o.creado_en).slice(0, 10)) : ''}</span>
         <button class="btn sec" type="button" data-orgdom="${o.id}">Dominios</button>
         <button class="btn sec" type="button" data-orgext="${o.id}">Extras</button>
+        <button class="btn ${o.id === (VISTA_ORG || {}).id ? 'sec' : ''}" type="button" data-orgver="${o.id}">${o.id === (VISTA_ORG || {}).id ? 'Estás dentro' : 'Entrar'}</button>
         <button class="btn sec" type="button" data-orgplan="${o.id}">Plan</button>
         <button class="btn sec" type="button" data-orgexp="${o.id}">Descargar datos</button>
         ${!o.principal && (((o.plan_datos || {}).estado === 'prueba') || !o.activa) ? `<button class="btn sec" type="button" data-orgdel="${o.id}">Borrar empresa</button>` : ''}</span></div>`).join('')}</div>`}</div>`;
   orgAcciones(c, l); orgExtras(c, l);
+  // v2.131.0: entrar en la organización para verla tal cual
+  c.querySelectorAll('[data-orgver]').forEach(b => b.onclick = () => { const o = l.find(x => x.id === b.dataset.orgver); if (o && o.id !== (VISTA_ORG || {}).id) entrarEnOrganizacion(o); });
   // v2.103.0: los dominios de cada organización deciden la marca de su pantalla de acceso
   c.querySelectorAll('[data-orgdom]').forEach(b => b.onclick = async () => {
     const o = l.find(x => x.id === b.dataset.orgdom); if (!o) return;
@@ -16950,3 +16953,80 @@ async function fichaProductosCentro(id) {
   };
 }
 abrirFicha = (orig => async function (id, ...a) { const r = await orig.call(this, id, ...a); fichaProductosCentro(id); return r; })(abrirFicha);
+
+
+/* v2.131.0 · Usuarios y roles con página propia; panel de delcos (solo quien gestiona la plataforma): organizaciones, accesos y
+   auditoría, y «Entrar» en cualquier organización para verla tal cual (franja «Estás viendo X · Salir»). Configuración se queda con
+   lo del día a día, con Inicio primero. */
+PAGINAS.usuarios = { t: 'Usuarios y roles', d: 'Personas de tu equipo, sus roles y sus permisos', admin: true,
+  tabs: [['usuarios', 'Usuarios', () => pintarUsuarios2()], ['roles', 'Roles y permisos', () => pintarRoles()]] };
+PAGINAS.delcos = { t: 'Panel delcos', d: 'Clientes de la plataforma, accesos y registro de cambios', permiso: () => puede('gestionar_plataforma'),
+  tabs: [['orgs', 'Organizaciones', () => pintarOrganizaciones()], ['accesos', 'Accesos', () => panelDeModulo('accesos')],
+         ['auditoria', 'Auditoría', () => panelDeModulo('auditoria')]] };
+// Organización (de cada empresa) ya no lleva la lista de organizaciones: está en el panel de delcos
+(() => {
+  const g = Object.getOwnPropertyDescriptor(PAGINAS.organizacion, 'tabs').get;
+  Object.defineProperty(PAGINAS.organizacion, 'tabs', { get() { return g.call(this).filter(x => x[0] !== 'orgs'); }, configurable: true });
+})();
+// Configuración: Inicio primero; Usuarios y roles, y Seguridad y registro, ya no están aquí
+arbolConfig = (orig => function () {
+  const g = orig().map(([n, l]) => [n, l.filter(x => !['equipo', 'seguridad', 'orgs'].includes(x.k))]).filter(x => x[1].length);
+  for (const grupo of g) {
+    const i = grupo[1].findIndex(x => x.k === 'inicio');
+    if (i >= 0) { const [it] = grupo[1].splice(i, 1); g[0][1].unshift(it); break; }
+  }
+  return g;
+})(arbolConfig);
+// Lo que antes se abría en Configuración lleva a su página
+ir = (orig => function (t, ...a) {
+  if (t === 'config' && CFG_SEC === 'equipo') { PAG_TAB.usuarios = CFG_SUB === 'roles' ? 'roles' : 'usuarios'; CFG_SEC = 'inicio'; CFG_SUB = null; t = 'usuarios'; }
+  if (t === 'config' && CFG_SEC === 'seguridad' && puede('gestionar_plataforma')) { PAG_TAB.delcos = CFG_SUB === 'accesos' ? 'accesos' : 'auditoria'; CFG_SEC = 'inicio'; CFG_SUB = null; t = 'delcos'; }
+  if (t === 'config' && CFG_SEC === 'orgs' && puede('gestionar_plataforma')) { PAG_TAB.delcos = 'orgs'; CFG_SEC = 'inicio'; t = 'delcos'; }
+  return orig.call(this, t, ...a);
+})(ir);
+
+// Menú: «Usuarios y roles» (quien administra) y «Panel delcos» (quien gestiona la plataforma)
+function menuPaginas2131() {
+  const nav = document.querySelector('nav.main .in'); if (!nav || ES_MEDICO()) return;
+  const pon = (t, txt, ve) => {
+    let b = nav.querySelector(`[data-t="${t}"]`);
+    if (!b && ve) { nav.insertAdjacentHTML('beforeend', `<button data-t="${t}" aria-selected="false">${txt}</button>`); b = nav.querySelector(`[data-t="${t}"]`); }
+    if (b) { b.classList.toggle('hide', !ve); if (b !== nav.lastElementChild) nav.appendChild(b); }   // al final (el menú lateral los pone en su grupo)
+  };
+  pon('usuarios', 'Usuarios y roles', puede('administrar'));
+  pon('delcos', 'Panel delcos', puede('gestionar_plataforma'));
+}
+aplicarPermisosMenu = (orig => function (...a) { const r = orig.apply(this, a); menuPaginas2131(); franjaVista(); return r; })(aplicarPermisosMenu);
+
+// Franja «Estás viendo X · Salir» cuando el Administrador de delcos está dentro de otra organización
+let VISTA_ORG = null;
+async function franjaVista() {
+  if (!PERFIL || !puede('gestionar_plataforma')) { quitarFranja(); return; }
+  const { data } = await RPC_ORIG('vista_organizacion', {});
+  VISTA_ORG = data || null;
+  if (!VISTA_ORG) { quitarFranja(); return; }
+  let f = $('orgvista');
+  if (!f) { document.body.insertAdjacentHTML('afterbegin', '<div id="orgvista" class="orgvista" role="status"></div>'); f = $('orgvista'); }
+  f.innerHTML = `<span>Estás viendo <b>${esc(VISTA_ORG.nombre)}</b>${VISTA_ORG.bloqueada ? ` <span class="pill p-warn">${VISTA_ORG.bloqueada === 'desactivada' ? 'desactivada' : 'prueba terminada'}</span>` : ''} tal cual la ve esa empresa. Lo que hagas queda en su registro.</span>
+    <button type="button" class="btn sec" id="orgvistasal">Salir</button>`;
+  document.body.classList.add('con-vista');
+  document.documentElement.style.setProperty('--alto-franja', f.offsetHeight + 'px');
+  $('orgvistasal').onclick = async ev => {
+    ev.target.disabled = true;
+    const { data: r } = await db.rpc('salir_organizacion', {});
+    if (!r || !r.ok) { ev.target.disabled = false; toast('No se ha podido salir', true); return; }
+    location.reload();
+  };
+}
+function quitarFranja() {
+  const f = $('orgvista'); if (f) f.remove();
+  document.body.classList.remove('con-vista'); document.documentElement.style.setProperty('--alto-franja', '0px');
+}
+async function entrarEnOrganizacion(o) {
+  if (!await preguntar(`Vas a ver la plataforma como ${o.nombre}: sus datos, su configuración y su plan. Lo que cambies se guarda en su empresa y queda registrado. Para volver, «Salir» en la franja de arriba.`, { titulo: 'Entrar en ' + o.nombre, ok: 'Entrar' })) return;
+  const { data: r } = await db.rpc('entrar_organizacion', { p_org: o.id });
+  if (!r || !r.ok) { toast(r && r.motivo === 'permiso' ? 'Solo el Administrador de delcos puede entrar' : 'No se ha podido entrar', true); return; }
+  try { sessionStorage.removeItem('dlc-f5'); } catch (e) {}
+  location.reload();
+}
+setTimeout(() => { try { menuPaginas2131(); franjaVista(); } catch (e) {} }, 0);
