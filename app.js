@@ -17258,3 +17258,77 @@ ir = (orig => function (...a) { const r = orig.apply(this, a); menuMarcarPie(); 
 // v2.136.0 · Al cambiar de pantalla se cierra lo que va «en la página» (Diseño del PDF): en el móvil es una ventana y seguía
 // abierta encima de la pantalla siguiente (Usuarios, Panel delcos…)
 ir = (orig => function (...a) { const d = $('dlg'); if (d && d.open && (d.dataset.fija || d.dataset.depagina)) d.close(); return orig.apply(this, a); })(ir);
+
+
+/* v2.137.0 · Entorno de pruebas sin franja (petición de Eric: tapaba la cabecera y no hace falta algo tan grande). Junto al logo, un
+   indicador pequeño «Pruebas»; los botones «Traer los datos de producción» y «Volver a los datos de partida», con sus fechas y el
+   estado de la copia, pasan a Organización → Entorno de pruebas. */
+async function volverDatosPartida() {
+  if (!await preguntar('Se borrará todo lo creado o cambiado en el entorno de pruebas y los datos volverán a como se copiaron de producción. No se puede deshacer.',
+    { titulo: '¿Volver a los datos de partida?', ok: 'Sí, volver', peligro: true })) return;
+  pantallaCarga('Volviendo a los datos de partida…');
+  let { data: r, error } = await RPC_ORIG('pruebas_resetear_responsable', { p_confirmacion: 'RESTABLECER' });
+  if (error && /pruebas_resetear_responsable|PGRST202|not find/i.test(error.message || '')) ({ data: r, error } = await RPC_ORIG('pruebas_resetear', { p_confirmacion: 'RESTABLECER' }));
+  if (error || !r || !r.ok) {
+    quitarCarga();
+    toast(r && r.error === 'permiso' ? 'Solo la persona responsable del entorno puede hacerlo' : r && r.error === 'sin_maestro' ? 'Faltan los datos de partida' : 'No se ha podido: ' + ((error && error.message) || (r && r.error) || ''), true);
+    return;
+  }
+  limpiarDatosLocales(); location.reload();
+}
+async function traerProduccion(ev) {
+  if (!await preguntar('Se copiarán aquí los datos actuales de producción (producción no se toca) y pasarán a ser los nuevos datos de partida. Todo lo hecho en pruebas se perderá. Tarda unos minutos; puedes seguir usando la app mientras tanto.',
+    { titulo: '¿Traer los datos de producción?', ok: 'Sí, traerlos', peligro: true })) return;
+  if (ev && ev.target) ev.target.disabled = true;
+  const { data: r, error } = await db.functions.invoke('refrescar-pruebas', { body: {} });
+  let res = r;
+  if (error && error.context && typeof error.context.json === 'function') { try { res = await error.context.json(); } catch (e) {} }
+  if (!res || !res.ok) {
+    if (ev && ev.target) ev.target.disabled = false;
+    toast((res && MOTIVO_REFRESCO[res.motivo]) || 'No se ha podido lanzar la copia' + (error && !res ? ': falta la función «refrescar-pruebas» en Supabase' : ''), true);
+    return;
+  }
+  toast('Copia de producción en marcha: tarda unos minutos');
+  estadoRefresco();
+}
+async function pintarCfgPruebas() {
+  const c = $('cfgcuerpo'); if (!c) return;
+  c.innerHTML = `<div class="card">${skelCard('Cargando…')}</div>`;
+  const [{ data: e }, { data: puedeR, error: eR }] = await Promise.all([
+    RPC_ORIG_FROM('entorno_pruebas').select('*').eq('id', 1).maybeSingle(), RPC_ORIG('pruebas_puede_restablecer', {})]);
+  if (!$('cfgcuerpo')) return;
+  const fmt = x => x ? new Date(x).toLocaleString('es', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
+  const permitido = puede('administrar') && (eR ? true : puedeR === true);
+  c.innerHTML = `<div class="card" id="cfpruebas"><div class="fh"><div><h2>Entorno de pruebas</h2>
+      <div class="sm">Una copia completa de la plataforma con su propia base de datos: nada de lo que hagas aquí afecta a los datos reales.</div></div></div>
+    <div class="minis">
+      <div><b>${fmt(e && e.maestro_guardado_en)}</b><span>Datos de partida (copia de producción)</span></div>
+      <div><b>${fmt(e && e.ultimo_reset)}</b><span>Última vuelta a los datos de partida</span></div></div>
+    <div class="sm" id="prrefresco" style="padding:0 16px"></div>
+    ${permitido ? `<div class="acts" style="justify-content:flex-start;flex-wrap:wrap">
+        <button type="button" class="btn" id="prtraer">⇣ Traer los datos de producción</button>
+        <button type="button" class="btn sec" id="prreset">↺ Volver a los datos de partida</button></div>
+      <p class="leer"><b>Traer los datos de producción</b> copia aquí los datos de hoy (producción solo se lee) y pasan a ser los nuevos datos de partida.
+        <b>Volver a los datos de partida</b> deshace todo lo hecho en pruebas desde la última copia. En los dos casos se pierde lo hecho en pruebas.</p>`
+      : '<p class="sm" style="padding:0 16px">Solo la persona responsable del entorno de pruebas puede traer los datos de producción o volver a los datos de partida.</p>'}</div>`;
+  if ($('prtraer')) $('prtraer').onclick = traerProduccion;
+  if ($('prreset')) $('prreset').onclick = volverDatosPartida;
+  estadoRefresco();
+}
+(() => {
+  const g = Object.getOwnPropertyDescriptor(PAGINAS.organizacion, 'tabs').get;
+  Object.defineProperty(PAGINAS.organizacion, 'tabs', { get() { const t = g.call(this); return EN_PRUEBAS ? [...t, ['pruebas', 'Entorno de pruebas', () => pintarCfgPruebas()]] : t; }, configurable: true });
+})();
+if (EN_PRUEBAS) {
+  pintarFranjaPruebas = function () {
+    const f = $('franjapruebas'); if (f) f.remove();
+    const logo = document.querySelector('.top .logo');
+    if (!logo || $('indpruebas')) return;
+    logo.insertAdjacentHTML('afterend', '<button type="button" id="indpruebas" class="indpruebas" title="Entorno de pruebas: nada de lo que hagas aquí afecta a los datos reales">Pruebas</button>');
+    $('indpruebas').onclick = () => {
+      if (puedeOrganizacion()) { PAG_TAB.organizacion = 'pruebas'; ir('organizacion'); }
+      else toast('Entorno de pruebas: nada de lo que hagas aquí afecta a los datos reales');
+    };
+  };
+  pintarFranjaPruebas();
+}
