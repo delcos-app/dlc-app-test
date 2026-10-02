@@ -16262,7 +16262,8 @@ function areaEncaje() {
 // v2.122.0: la ventana va EN la página, en el sitio del apartado (antes flotaba encima con posición absoluta y su propio desplazamiento).
 // Se devuelve a <body> antes de cerrarse, para que los repintados del apartado no se la lleven por delante.
 function colocarEncajada(d, area) {
-  const cab = Math.max(0, ...['header', '.top', 'nav.main'].map(q => { const e = document.querySelector(q); return e && getComputedStyle(e).position.match(/fixed|sticky/) ? e.getBoundingClientRect().bottom : 0; }));
+  // v2.134.0: con el menú lateral, nav.main ocupa toda la altura y no es cabecera (daba el alto de la pantalla)
+  const cab = Math.max(0, ...['header', '.top', document.body.classList.contains('menulat') ? '' : 'nav.main'].filter(Boolean).map(q => { const e = document.querySelector(q); return e && getComputedStyle(e).position.match(/fixed|sticky/) ? e.getBoundingClientRect().bottom : 0; }));
   document.documentElement.style.setProperty('--alto-cab', cab + 'px');
 }
 function devolverEncajada(d) {
@@ -17240,3 +17241,8 @@ if (EN_PRUEBAS) {
   })(pintarFranjaPruebas);
   if ($('prreset')) pintarFranjaPruebas();
 }
+/* v2.134.0 · Portal del centro (diseño): en «Pedir reposición», la fila de un producto con unidades se marca en azul suave */
+document.addEventListener('input', e => {
+  const i = e.target.closest && e.target.closest('#ctprods [data-ctp]'); if (!i) return;
+  const f = i.closest('.ctlin'); if (f) f.classList.toggle('con', (+i.value || 0) > 0);
+});

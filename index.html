@@ -2512,6 +2512,68 @@ dialog.encajada .pdfprev iframe{height:calc(100vh - var(--alto-cab,0px) - 190px)
   .mlpacts{display:flex;justify-content:space-between;gap:8px;padding:12px 16px;border-top:1px solid var(--line);background:var(--hielo);border-radius:0 0 16px 16px}
 }
 @media (prefers-reduced-motion: reduce){body.menulat #app,body.menulat nav.main,body.menulat .mlplegar,#mltip,#mlpanel{transition:none!important;animation:none!important}}
+/* ============================================================
+   v2.134.0 · Portal del centro, productos del centro y extras
+   ============================================================ */
+/* Mi centro: los productos en una lista con filas (nombre y precio a la izquierda, unidades a la derecha); la fila con unidades
+   se marca. Nota, total y botones dentro del margen de la tarjeta; los pedidos, en filas con su estado. */
+#ctcuerpo .ancard{padding-bottom:16px}
+#ctcuerpo .ancard > :not(h2):not(.barrash):not(.leer){margin-left:16px;margin-right:16px}
+#ctprods{display:flex;flex-direction:column;gap:0;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#FFFFFF}
+#ctprods > .ctlin{display:flex;align-items:center;gap:16px;min-height:64px;margin:0;padding:10px 12px 10px 16px;border:0;border-bottom:1px solid var(--line);border-radius:0;background:#FFFFFF;
+  transition:background-color var(--t-rapido) var(--ease-sal)}
+#ctprods > .ctlin:last-child{border-bottom:0}
+#ctprods > .ctlin.con{background:var(--sky-soft)}
+#ctprods > .ctlin .tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+#ctprods > .ctlin .tx b{font-weight:600;color:var(--ink)}
+#ctprods > .ctlin .tx .sm{white-space:normal;overflow:visible;color:var(--muted)}
+#ctprods > .ctlin .numw{flex:none;width:148px}
+#ctprods > .ctlin .numw input{max-width:none}
+#ctped > label[for=ctnota]{margin-top:14px}
+#ctnota{width:calc(100% - 32px);max-width:720px}
+#ctped .nvtot{margin-top:14px;border-radius:12px}
+#ctped > .leer{margin-top:8px}
+:is(#ctcuerpo,#mdportal) .ancard > h2 + :not(.barrash){margin-top:8px}
+#ctlista .lista{display:flex;flex-direction:column;gap:6px;padding:0}
+#ctlista .lista > .item{display:flex;align-items:center;gap:12px;padding:10px 12px 10px 14px;border:1px solid var(--line);border-radius:12px;background:#FFFFFF}
+#ctlista .lista > .item .tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+#ctlista .lista > .item .tx .sm{white-space:normal}
+#ctlista .lista > .item .pill{flex:none}
+/* Pedir material y dudas (portal del médico y del centro): los campos ya no se salen por la derecha y los botones van dentro */
+#mdportal .ancard > :is(input,textarea,select,.selw,.numw){width:calc(100% - 32px)!important;max-width:none}
+#mdportal .ancard > .acts{margin:12px 16px 0!important}
+#mdportal .ancard > .g2{gap:12px}
+@media (max-width:760px){
+  #ctprods > .ctlin{gap:12px;padding:10px 10px 10px 14px}
+  #ctprods > .ctlin .numw{width:128px}
+  #ctnota{max-width:none}
+  #ctped .nvtot{flex-wrap:wrap;gap:10px}
+}
+/* Ficha del centro · Productos del centro: cada producto en una fila (casilla, nombre con su tarifa y precio para el centro);
+   antes la casilla se estiraba y tapaba el nombre */
+#fprodc .lista{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+#fprodc .lista > label.item{display:flex!important;align-items:center;gap:12px;min-height:56px;padding:8px 10px 8px 12px;border:1px solid var(--line);border-radius:12px;
+  background:#FFFFFF;cursor:pointer;transition:background-color var(--t-rapido) var(--ease-sal),border-color var(--t-rapido) var(--ease-sal)}
+#fprodc .lista > label.item:hover{border-color:var(--line-f)}
+#fprodc .lista > label.item:has(> input[type=checkbox]:checked){background:var(--sky-soft);border-color:#C9DDF1}
+#fprodc .lista > label.item > input[type=checkbox]{flex:none;width:20px!important;height:20px!important;min-height:0!important;margin:0;padding:0;accent-color:var(--navy)}
+#fprodc .lista > label.item > .tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+#fprodc .lista > label.item > .tx b{font-weight:600;color:var(--ink)}
+#fprodc .lista > label.item > :is(.numw,input[type=number]){flex:none;width:136px!important;max-width:136px!important}
+#fprodc .lista > label.item:not(:has(> input[type=checkbox]:checked)) > :is(.numw,input[type=number]){opacity:.55}
+/* Casillas con texto (label.chk): casilla de 20 px y el texto al lado. En «Extras» de Organizaciones cada extra es una opción
+   con borde que se marca al activarla (antes la casilla ocupaba todo el ancho y el texto quedaba debajo) */
+label.chk{display:flex;align-items:flex-start;gap:12px;cursor:pointer}
+label.chk > input[type=checkbox]{flex:none;width:20px!important;height:20px!important;min-height:0!important;margin:2px 0 0;padding:0;accent-color:var(--navy)}
+label.chk > span{display:flex;flex-direction:column;gap:3px;min-width:0;line-height:1.45}
+#dbody > label.chk{margin:0 0 10px;padding:14px 16px;border:1px solid var(--line);border-radius:12px;background:#FFFFFF;
+  transition:background-color var(--t-rapido) var(--ease-sal),border-color var(--t-rapido) var(--ease-sal)}
+#dbody > label.chk:hover{border-color:var(--line-f)}
+#dbody > label.chk:has(> input:checked){background:var(--sky-soft);border-color:#C9DDF1}
+#dbody > label.chk > span > b{font:700 15px var(--f-titulo);color:var(--ink)}
+#dbody > label.chk > span > .sm{color:var(--muted)}
+#dbody > .fh + label.chk{margin-top:4px}
+@media (prefers-reduced-motion: reduce){#ctprods > .ctlin,#fprodc .lista > label.item,#dbody > label.chk{transition:none}}
 </style>
 </head>
 <body>
@@ -2648,6 +2710,6 @@ dialog.encajada .pdfprev iframe{height:calc(100vh - var(--alto-cab,0px) - 190px)
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.133.0"></script>
+<script src="./app.js?v=2.134.0"></script>
 </body>
 </html>
