@@ -2290,6 +2290,16 @@ dialog.encajada .pdfprev{top:calc(var(--alto-cab,0px) + 76px)}
 dialog.encajada .pdfprev iframe{height:calc(100vh - var(--alto-cab,0px) - 190px);min-height:480px}
 /* Operativa de pedidos: al abrir una lista, las demás columnas no se estiran vacías */
 .opgrid{align-items:start}
+/* ============================================================
+   v2.124.0 · Organización: apartados a todo el ancho
+   ============================================================ */
+/* La zona de contenido de las páginas propias es una rejilla de dos columnas: un apartado de un solo bloque (Copias, Series,
+   VeriFactu…) ocupaba solo la izquierda y dejaba la mitad derecha vacía */
+.pagcuerpo > :only-child{grid-column:1 / -1}
+/* VeriFactu: los pasos en fila y las dos tarjetas con aire; el selector de entorno no corta su texto */
+#v-organizacion .vfgrid{grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
+#v-organizacion .vfcard select{width:100%;min-width:0;text-overflow:ellipsis}
+#v-organizacion .vfcard{min-width:0}
 </style>
 </head>
 <body>
@@ -2426,6 +2436,6 @@ dialog.encajada .pdfprev iframe{height:calc(100vh - var(--alto-cab,0px) - 190px)
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.123.0"></script>
+<script src="./app.js?v=2.124.0"></script>
 </body>
 </html>

@@ -14316,9 +14316,19 @@ async function disenoPDF() {
   // v2.122.0: integrado en su pestaña (ordenador): sin cerrar, «Descartar cambios» vuelve a lo guardado y al guardar se queda
   const enPagina = $('dlg').classList.contains('encajada');
   if (enPagina) {
+    $('dlg').dataset.fija = '1';
     $('dbody').querySelector('.fh .x').remove();
     const c = $('dbody').querySelector('.acts [data-cerrar]'); c.removeAttribute('data-cerrar'); c.textContent = 'Descartar cambios';
     c.onclick = () => disenoPDF();
+  } else if (TAB === 'organizacion' && PAG_TAB.organizacion === 'pdf') {
+    // v2.124.0: en el móvil el diseño es una ventana; al cerrarla, la pestaña no se queda vacía con el cargador girando
+    $('dlg').addEventListener('close', () => {
+      const area = document.querySelector('#v-organizacion .pagcuerpo');
+      if (!area || TAB !== 'organizacion' || PAG_TAB.organizacion !== 'pdf') return;
+      area.innerHTML = `<div class="card cfgpanel"><h2>Diseño del PDF de la factura</h2><p class="sm">Logo, colores, columnas y pie de las facturas, con vista previa.</p>
+        <div class="acts"><button class="btn" id="pdfabrir" type="button">Abrir el diseño del PDF</button></div></div>`;
+      $('pdfabrir').onclick = () => disenoPDF();
+    }, { once: true });
   }
   let T = null;
   const pinta = () => { clearTimeout(T); T = setTimeout(async () => { const d = await facturaPDF(facturaEjemplo(), '', C); const u = d.output('bloburl'); $('pdfif').src = u + '#toolbar=0&navpanes=0&view=FitH'; }, 250); };
@@ -16270,7 +16280,7 @@ function devolverEncajada(d) {
   // Si un repintado borra el apartado con la ventana dentro, se recupera (cerrada) en <body>
   new MutationObserver(() => { if (d.__casa && !d.isConnected) { d.__casa.appendChild(d); if (d.open) d.close(); } }).observe(document.body, { childList: true, subtree: true });
   d.addEventListener('close', () => {
-    devolverEncajada(d);
+    devolverEncajada(d); delete d.dataset.fija;
     if (!d.classList.contains('encajada')) return;
     d.classList.remove('encajada'); d.removeAttribute('style');
     const area = d.__area; d.__area = null;
@@ -16283,7 +16293,8 @@ const cerrarEncajadas = () => ['dlg2', 'dlg'].forEach(id => { const d = $(id); i
 document.addEventListener('keydown', e => {
   if (e.key !== 'Escape') return;
   const d = ['dlg2', 'dlg'].map(id => $(id)).find(x => x && x.open && x.classList.contains('encajada'));
-  if (d) { e.preventDefault(); d.close(); }
+  // v2.124.0: lo que forma parte de la página (el diseño del PDF en su pestaña) no se cierra con Escape
+  if (d && !d.dataset.fija) { e.preventDefault(); d.close(); }
 });
 document.addEventListener('click', e => { if (e.target.closest('.cfgnav [data-cfg], .pagtabs [data-ptab], #cfgsubs button, nav.main [data-t], #bnav [data-t], [data-u]')) cerrarEncajadas(); }, true);
 const IR_ENCAJE = ir;
