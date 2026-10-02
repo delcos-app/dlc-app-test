@@ -2436,6 +2436,82 @@ dialog.encajada .pdfprev iframe{height:calc(100vh - var(--alto-cab,0px) - 190px)
 :root{--alto-franja:0px}
 .orgvista{position:sticky;top:0;z-index:1200;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px var(--margen,16px);background:#FEF3E2;color:#7A2E0E;border-bottom:1px solid #F5C77E;font-size:14px}
 .con-vista .top{top:var(--alto-franja)}
+/* ============================================================
+   v2.132.0 · Menú lateral de escritorio
+   ============================================================ */
+/* Barra a la izquierda agrupada por áreas (Tu día, Cartera, Ventas, Resultados, Equipo y, aparte, Plataforma). Desplegada mide
+   252 px; plegada, 76 px con solo iconos y el nombre al pasar el ratón. La sección activa, en azul suave con una barra marino.
+   Deja sitio arriba a la franja «Estás viendo…» (--alto-franja). Solo en escritorio; el móvil sigue con su barra inferior. */
+@media (min-width:900px){
+  body.menulat{--anchomenu:252px}
+  body.menulat.menupleg{--anchomenu:76px}
+  body.menulat #app{padding-left:var(--anchomenu);transition:padding-left var(--t-medio) var(--ease-sal)}
+  body.menulat header{position:sticky;top:var(--alto-franja,0px);z-index:30}
+  body.menulat header .logo{display:none!important}
+  body.menulat nav.main{position:fixed!important;left:0;top:var(--alto-franja,0px);bottom:0;width:var(--anchomenu);z-index:45;margin:0;
+    background:#FFFFFF!important;border:0!important;border-right:1px solid var(--line)!important;box-shadow:none!important;
+    overflow:hidden auto;overscroll-behavior:contain;transition:width var(--t-medio) var(--ease-sal)}
+  body.menulat nav.main .in{display:flex!important;flex-direction:column;gap:2px;min-height:100%;max-width:none!important;margin:0!important;
+    padding:16px 12px 12px!important;overflow:visible!important}
+  body.menulat .mlmarca{display:flex;align-items:center;gap:10px;min-height:44px;padding:0 6px 12px}
+  body.menulat .mlmarca img{width:36px;height:36px;border-radius:50%;flex:none;object-fit:cover}
+  body.menulat .mlmarca b{font:800 15px var(--f-titulo);letter-spacing:-.01em;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  body.menulat .mlgrupo{margin-top:10px}
+  body.menulat .mlgrupo.vacio{display:none}
+  body.menulat .mlgrupo.fijo{margin-top:14px;padding-top:10px;border-top:1px solid var(--line)}
+  body.menulat .mltit{font:700 11px var(--f-texto);letter-spacing:.07em;text-transform:uppercase;color:#7A8CA0;padding:6px 10px;white-space:nowrap;overflow:hidden}
+  body.menulat .mlbs{display:flex;flex-direction:column;gap:2px}
+  body.menulat nav.main .in button[data-t],body.menulat .mlitem{position:relative;display:flex!important;align-items:center;gap:12px;width:100%;height:40px;
+    margin:0!important;padding:0 10px!important;border:0;border-radius:10px;background:none;color:#3B5168;font:600 14.5px var(--f-texto);
+    text-align:left;white-space:nowrap;cursor:pointer;transition:background-color var(--t-rapido) var(--ease-sal),color var(--t-rapido) var(--ease-sal)}
+  body.menulat nav.main .in button[data-t].hide,body.menulat nav.main .in button[data-t].mloculto,body.menulat nav.main .in .mlitem.hide,
+  body.menulat nav.main .in button[data-t="seguimiento"]{display:none!important}
+  body.menulat nav.main .in button[data-t]::after{display:none!important}
+  body.menulat nav.main .in button[data-t] .navico,body.menulat .mlitem .ico{margin:0!important;opacity:.8;flex:none;width:18px;height:18px}
+  body.menulat nav.main .in button[data-t] .navico svg{width:18px;height:18px}
+  body.menulat nav.main .mllab{overflow:hidden;text-overflow:ellipsis}
+  body.menulat nav.main .in button[data-t]:hover,body.menulat .mlitem:hover{background:var(--hielo);color:var(--navy)}
+  body.menulat nav.main .in button[data-t]:active,body.menulat .mlitem:active{background:var(--sky-soft)}
+  body.menulat nav.main .in button[data-t][aria-selected=true]{background:var(--sky-soft);color:var(--navy)}
+  body.menulat nav.main .in button[data-t][aria-selected=true] .navico{opacity:1}
+  body.menulat nav.main .in button[data-t][aria-selected=true]::before{content:"";position:absolute;left:-12px;top:9px;bottom:9px;width:3px;border-radius:0 3px 3px 0;background:var(--navy)}
+  body.menulat nav.main .in button[data-t]:focus-visible,body.menulat .mlitem:focus-visible,body.menulat .mlplegar:focus-visible{outline:none;box-shadow:var(--foco)}
+  body.menulat .mlpie{margin-top:auto;padding-top:12px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:2px}
+  body.menulat .mlplegar{align-self:flex-end;width:36px;height:36px;margin-top:4px;display:grid;place-items:center;border:0;border-radius:10px;background:none;color:var(--muted);cursor:pointer;
+    transition:background-color var(--t-rapido) var(--ease-sal),transform var(--t-medio) var(--ease-sal)}
+  body.menulat .mlplegar:hover{background:var(--hielo);color:var(--navy)}
+  body.menulat .mlplegar .ico{width:18px;height:18px}
+  /* Plegada: solo iconos, centrados, y separadores finos entre bloques */
+  body.menulat.menupleg nav.main .mllab,body.menulat.menupleg .mltit{display:none!important}
+  body.menulat.menupleg .mlmarca{justify-content:center;padding:0 0 12px}
+  body.menulat.menupleg .mlgrupo{margin-top:8px;padding-top:8px;border-top:1px solid var(--line)}
+  body.menulat.menupleg .mlgrupo:first-of-type{border-top:0}
+  body.menulat.menupleg nav.main .in button[data-t],body.menulat.menupleg .mlitem{justify-content:center;padding:0!important}
+  body.menulat.menupleg .mlplegar{align-self:center;transform:scaleX(-1)}
+  #mltip{position:fixed;z-index:60;transform:translateY(-50%);padding:6px 10px;border-radius:8px;background:var(--ink);color:#FFFFFF;font:600 13px var(--f-texto);
+    white-space:nowrap;pointer-events:none;opacity:0;transition:opacity var(--t-rapido) var(--ease-sal)}
+  #mltip.ver{opacity:1}
+  /* Personalizar menú: panel junto a la barra */
+  #mlpanel{position:fixed;z-index:60;left:calc(var(--anchomenu,252px) + 12px);bottom:16px;width:340px;max-height:calc(100vh - 32px);display:flex;flex-direction:column;
+    background:#FFFFFF;border:1px solid var(--line);border-radius:16px;box-shadow:var(--sombra-3);animation:uiVentana var(--t-medio) var(--ease-sal)}
+  .mlph{padding:16px 16px 10px;display:flex;flex-direction:column;gap:2px;border-bottom:1px solid var(--line)}
+  .mlph b{font:800 16px var(--f-titulo);color:var(--ink)}
+  .mlpl{overflow:auto;padding:8px 10px}
+  .mlpg{padding:6px 0;border-bottom:1px solid #EDF2F7}.mlpg:last-child{border-bottom:0}
+  .mlpgh{display:flex;align-items:center;justify-content:space-between;padding:4px 6px}
+  .mlpgh b{font:700 11.5px var(--f-texto);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+  .mlpi{display:flex;align-items:center;gap:10px;min-height:38px;padding:0 6px;border-radius:8px;font-size:14px;color:var(--ink);cursor:pointer}
+  .mlpi:hover{background:var(--hielo)}
+  .mlpi input{width:18px;height:18px;margin:0;accent-color:var(--navy);flex:none}
+  .mlpi .mlpn{flex:1}
+  .mlpflechas{display:inline-flex;gap:2px}
+  .mlpflechas button{width:28px;height:28px;display:grid;place-items:center;border:0;border-radius:6px;background:none;color:var(--muted);cursor:pointer}
+  .mlpflechas button:hover:not(:disabled){background:var(--sky-soft);color:var(--navy)}
+  .mlpflechas button:disabled{opacity:.3;cursor:default}
+  .mlpflechas .ico{width:16px;height:16px}
+  .mlpacts{display:flex;justify-content:space-between;gap:8px;padding:12px 16px;border-top:1px solid var(--line);background:var(--hielo);border-radius:0 0 16px 16px}
+}
+@media (prefers-reduced-motion: reduce){body.menulat #app,body.menulat nav.main,body.menulat .mlplegar,#mltip,#mlpanel{transition:none!important;animation:none!important}}
 </style>
 </head>
 <body>
@@ -2572,6 +2648,6 @@ dialog.encajada .pdfprev iframe{height:calc(100vh - var(--alto-cab,0px) - 190px)
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.131.0"></script>
+<script src="./app.js?v=2.132.0"></script>
 </body>
 </html>

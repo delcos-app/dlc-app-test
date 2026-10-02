@@ -16991,7 +16991,7 @@ function menuPaginas2131() {
   const pon = (t, txt, ve) => {
     let b = nav.querySelector(`[data-t="${t}"]`);
     if (!b && ve) { nav.insertAdjacentHTML('beforeend', `<button data-t="${t}" aria-selected="false">${txt}</button>`); b = nav.querySelector(`[data-t="${t}"]`); }
-    if (b) { b.classList.toggle('hide', !ve); if (b !== nav.lastElementChild) nav.appendChild(b); }   // al final (el menú lateral los pone en su grupo)
+    if (b) { b.classList.toggle('hide', !ve); if (!b.closest('.mlbs') && b !== nav.lastElementChild) nav.appendChild(b); }   // v2.132.0: si ya está en su bloque del menú lateral, se queda
   };
   pon('usuarios', 'Usuarios y roles', puede('administrar'));
   pon('delcos', 'Panel delcos', puede('gestionar_plataforma'));
@@ -17030,3 +17030,159 @@ async function entrarEnOrganizacion(o) {
   location.reload();
 }
 setTimeout(() => { try { menuPaginas2131(); franjaVista(); } catch (e) {} }, 0);
+/* ---------------- v2.132.0 · Menú lateral de escritorio (elegido por Eric: barra a la izquierda, agrupada por áreas) ----------------
+   Los botones siguen siendo los de siempre (nav.main #nav [data-t]): aquí solo se reparten en bloques, se pliega la barra a iconos
+   (por defecto en pantallas de menos de 1440 px; se recuerda en el dispositivo) y cada persona ordena los bloques y oculta secciones
+   («Personalizar menú», guardado en preferencias.menu). Solo en escritorio (≥ 900 px); el móvil sigue con su barra inferior.
+   Un botón nuevo en #nav que no esté en ningún bloque sale en «Otros». «Plataforma» (panel de delcos) va siempre al final, fijo. */
+const MENU_GRUPOS = [
+  { id: 'dia', t: 'Tu día', items: ['inicio', 'agenda', 'rutas'] },
+  { id: 'cartera', t: 'Cartera', items: ['directorio', 'pacientes', 'seguimiento'] },
+  { id: 'ventas', t: 'Ventas', items: ['ventas', 'productos', 'facturacion'] },
+  { id: 'resultados', t: 'Resultados', items: ['analitica', 'informe'] },
+  { id: 'equipo', t: 'Equipo', items: ['usuarios'] }];
+const MENU_FIJO = { id: 'plataforma', t: 'Plataforma', items: ['delcos'] };
+const MENU_PLEGAR_BAJO = 1440;
+// Iconos de las secciones nuevas (v2.131.0): Usuarios y roles con la llave de accesos y el panel de delcos con el escudo
+Object.assign(ICO_NAV, { usuarios: 'key-round', delcos: 'shield' });
+const ICO_SUBIR = '<path d="m18 15-6-6-6 6"/>';
+const ICO_PLEGAR = '<rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/><path d="m16 15-3-3 3-3"/>';
+const menuPrefs = () => ((typeof PERFIL !== 'undefined' && PERFIL && PERFIL.preferencias) || {}).menu || {};
+function menuGrupos() {
+  const p = menuPrefs(), conocidos = new Set([...MENU_GRUPOS.flatMap(g => g.items), ...MENU_FIJO.items]);
+  const gs = MENU_GRUPOS.map(g => ({ id: g.id, t: g.t, items: [...g.items] }));
+  gs.forEach(g => { const o = (p.items || {})[g.id]; if (Array.isArray(o)) g.items = [...o.filter(k => g.items.includes(k)), ...g.items.filter(k => !o.includes(k))]; });
+  const orden = Array.isArray(p.orden) ? p.orden : [];
+  gs.sort((a, b) => ((orden.indexOf(a.id) + 1) || 99) - ((orden.indexOf(b.id) + 1) || 99));
+  const otros = [...document.querySelectorAll('#nav button[data-t]')].map(b => b.dataset.t).filter(k => !conocidos.has(k));
+  if (otros.length) gs.push({ id: 'otros', t: 'Otros', items: otros });
+  return gs;
+}
+const menuEscritorio = () => innerWidth >= 900;
+const menuPlegado = () => { try { const v = localStorage.getItem('dlc-menu-plegado'); if (v === '1' || v === '0') return v === '1'; } catch (e) {} return innerWidth < MENU_PLEGAR_BAJO; };
+let MENU_FIRMA = '';
+function montarMenuLateral() {
+  const inn = $('nav'); if (!inn) return;
+  // Con una sola sección (portal del médico o del centro) no hace falta barra lateral: se queda la cabecera de siempre
+  const visibles = [...inn.querySelectorAll('button[data-t]')].filter(b => !b.classList.contains('hide') && b.dataset.t !== 'seguimiento' && b.style.display !== 'none' && (b.classList.contains('mloculto') || getComputedStyle(b).display !== 'none' || document.body.classList.contains('menulat')));
+  const lat = menuEscritorio() && typeof PERFIL !== 'undefined' && !!PERFIL && visibles.length > 1;
+  document.body.classList.toggle('menulat', lat);
+  if (!lat) return;
+  document.body.classList.toggle('menupleg', menuPlegado());
+  const ocultos = menuPrefs().ocultos || [];
+  const botones = [...inn.querySelectorAll('button[data-t]')];
+  // Firma: si no ha cambiado nada (botones, permisos, preferencias), no se rehace (evita bucles con el observador)
+  const firma = botones.map(b => b.dataset.t + (b.classList.contains('hide') ? '-' : '+') + b.textContent.trim()).join('|') + JSON.stringify(menuPrefs()) + document.body.classList.contains('menupleg');
+  if (firma === MENU_FIRMA && inn.querySelector('.mlmarca')) return;
+  MENU_FIRMA = firma;
+  if (!inn.querySelector('.mlmarca')) {
+    const logo = (document.querySelector('header .logo') || {}).src || './logo-app.png';
+    inn.insertAdjacentHTML('afterbegin', `<div class="mlmarca"><img src="${esc(logo)}" alt=""><b class="mllab"></b></div>`);
+  }
+  const marca = (typeof AJUSTES !== 'undefined' && AJUSTES && AJUSTES.marca) || {};
+  inn.querySelector('.mlmarca b').textContent = marca.nombre || document.title || '';
+  const grupos = [...menuGrupos(), MENU_FIJO];
+  grupos.forEach(g => {
+    let c = inn.querySelector(`.mlgrupo[data-g="${g.id}"]`);
+    if (!c) {
+      inn.insertAdjacentHTML('beforeend', `<div class="mlgrupo${g === MENU_FIJO ? ' fijo' : ''}" data-g="${g.id}"><div class="mltit">${esc(g.t)}</div><div class="mlbs"></div></div>`);
+      c = inn.querySelector(`.mlgrupo[data-g="${g.id}"]`);
+    }
+    inn.appendChild(c);
+    const bs = c.querySelector('.mlbs');
+    g.items.forEach(k => { const b = inn.querySelector(`button[data-t="${k}"]`); if (b) bs.appendChild(b); });
+  });
+  botones.forEach(b => {
+    b.classList.toggle('mloculto', ocultos.includes(b.dataset.t) && !MENU_FIJO.items.includes(b.dataset.t));
+    // El texto va en su propia etiqueta (se oculta al plegar) y el nombre sirve de aviso al pasar el ratón
+    const t = [...b.childNodes].filter(n => n.nodeType === 3 && n.textContent.trim());
+    if (t.length) {
+      const txt = t.map(n => n.textContent).join('').trim(); t.forEach(n => n.remove());
+      const l = b.querySelector('.mllab'); if (l) l.textContent = txt; else b.insertAdjacentHTML('beforeend', `<span class="mllab">${esc(txt)}</span>`);
+    }
+    b.dataset.tip = (b.querySelector('.mllab') || b).textContent.trim();
+  });
+  inn.querySelectorAll('.mlgrupo').forEach(g => g.classList.toggle('vacio', ![...g.querySelectorAll('button[data-t]')]
+    .some(b => !b.classList.contains('hide') && !b.classList.contains('mloculto') && b.dataset.t !== 'seguimiento' && getComputedStyle(b).display !== 'none')));
+  if (!inn.querySelector('.mlpie')) {
+    inn.insertAdjacentHTML('beforeend', `<div class="mlpie">
+      <button type="button" class="mlitem" id="mlcfg" data-tip="Configuración">${svgIco(ICON_NOM.settings)}<span class="mllab">Configuración</span></button>
+      <button type="button" class="mlitem" id="mlpers" data-tip="Personalizar menú">${svgIco(ICON_NOM['sliders-horizontal'])}<span class="mllab">Personalizar menú</span></button>
+      <button type="button" class="mlplegar" id="mlplegar" aria-label="Plegar o desplegar el menú">${svgIco(ICO_PLEGAR)}</button></div>`);
+    $('mlcfg').onclick = () => ir('config');
+    $('mlpers').onclick = e => { e.stopPropagation(); menuPersonalizar(); };
+    $('mlplegar').onclick = () => {
+      const p = !document.body.classList.contains('menupleg');
+      try { localStorage.setItem('dlc-menu-plegado', p ? '1' : '0'); } catch (e) {}
+      document.body.classList.toggle('menupleg', p); menuTip(null); MENU_FIRMA = ''; montarMenuLateral();
+    };
+  }
+  inn.appendChild(inn.querySelector('.mlpie'));
+  const cfg = document.querySelector('#umenu [data-u="cfg"]');
+  $('mlcfg').classList.toggle('hide', !cfg || cfg.classList.contains('hide'));
+  $('mlplegar').dataset.tip = document.body.classList.contains('menupleg') ? 'Desplegar el menú' : 'Plegar el menú';
+}
+// Aviso con el nombre al pasar el ratón por un icono (barra plegada)
+function menuTip(b) {
+  let t = $('mltip');
+  if (!b || !document.body.classList.contains('menupleg') || !document.body.classList.contains('menulat')) { if (t) t.classList.remove('ver'); return; }
+  if (!t) { document.body.insertAdjacentHTML('beforeend', '<div id="mltip" role="tooltip"></div>'); t = $('mltip'); }
+  const r = b.getBoundingClientRect();
+  t.textContent = b.dataset.tip || ''; t.style.top = (r.top + r.height / 2) + 'px'; t.style.left = (r.right + 10) + 'px'; t.classList.add('ver');
+}
+document.addEventListener('mouseover', e => { const b = e.target.closest && e.target.closest('nav.main [data-tip]'); menuTip(b || null); });
+// Personalizar: ordenar los bloques y las secciones de cada bloque, y elegir cuáles se ven
+function menuPersonalizar() {
+  let caja = $('mlpanel'); if (caja) { caja.remove(); return; }
+  const p = menuPrefs(), estado = { orden: menuGrupos().filter(g => g.id !== 'otros').map(g => g.id), items: {}, ocultos: [...(p.ocultos || [])] };
+  menuGrupos().forEach(g => { estado.items[g.id] = [...g.items]; });
+  const boton = k => document.querySelector(`#nav button[data-t="${k}"]`);
+  const nombre = k => { const b = boton(k); return b ? (b.dataset.tip || b.textContent.trim()) : ''; };
+  const disponible = k => { const b = boton(k); return !!b && k !== 'seguimiento' && !b.classList.contains('hide') && (b.classList.contains('mloculto') || getComputedStyle(b).display !== 'none'); };
+  document.body.insertAdjacentHTML('beforeend', '<div id="mlpanel" role="dialog" aria-label="Personalizar menú"></div>');
+  caja = $('mlpanel');
+  const flechas = (attr, val, i, n, txt) => `<span class="mlpflechas">
+    <button type="button" ${attr}="${val}" data-d="-1" aria-label="Subir ${txt}" ${i ? '' : 'disabled'}>${svgIco(ICO_SUBIR)}</button>
+    <button type="button" ${attr}="${val}" data-d="1" aria-label="Bajar ${txt}" ${i < n - 1 ? '' : 'disabled'}>${svgIco(ICON_NOM['chevron-down'])}</button></span>`;
+  const pinta = () => {
+    const tit = id => (MENU_GRUPOS.find(x => x.id === id) || { t: 'Otros' }).t;
+    const bloques = estado.orden.filter(id => (estado.items[id] || []).some(disponible));
+    caja.innerHTML = `<div class="mlph"><b>Personalizar menú</b><span class="sm">Ordena los bloques y elige qué secciones ves. Solo cambia tu menú.</span></div>
+      <div class="mlpl">${bloques.map((id, i) => { const its = estado.items[id].filter(disponible);
+        return `<div class="mlpg"><div class="mlpgh"><b>${esc(tit(id))}</b>${flechas('data-gm', id, i, bloques.length, 'el bloque')}</div>
+          ${its.map((k, j) => `<label class="mlpi"><input type="checkbox" data-vk="${k}" ${estado.ocultos.includes(k) ? '' : 'checked'}><span class="mlpn">${esc(nombre(k))}</span>${flechas('data-im', id + '|' + k, j, its.length, nombre(k))}</label>`).join('')}</div>`; }).join('')}</div>
+      <div class="mlpacts"><button type="button" class="btn sec" id="mlpdef">Restablecer</button><button type="button" class="btn" id="mlpok">Guardar</button></div>`;
+  };
+  pinta();
+  caja.addEventListener('click', async e => {
+    e.stopPropagation();
+    const gm = e.target.closest('[data-gm]'), im = e.target.closest('[data-im]');
+    if (gm) {
+      const bloques = estado.orden.filter(id => (estado.items[id] || []).some(disponible)), i = bloques.indexOf(gm.dataset.gm), otro = bloques[i + +gm.dataset.d];
+      const a = estado.orden.indexOf(gm.dataset.gm), b = estado.orden.indexOf(otro); [estado.orden[a], estado.orden[b]] = [estado.orden[b], estado.orden[a]]; pinta(); return;
+    }
+    if (im) {
+      e.preventDefault();
+      const [gid, k] = im.dataset.im.split('|'), vis = estado.items[gid].filter(disponible), i = vis.indexOf(k), otro = vis[i + +im.dataset.d], l = estado.items[gid];
+      const a = l.indexOf(k), b = l.indexOf(otro); [l[a], l[b]] = [l[b], l[a]]; pinta(); return;
+    }
+    if (e.target.id === 'mlpdef') { estado.orden = MENU_GRUPOS.map(x => x.id); MENU_GRUPOS.forEach(x => { estado.items[x.id] = [...x.items]; }); estado.ocultos = []; pinta(); return; }
+    if (e.target.id === 'mlpok') {
+      const prefs = Object.assign({}, PERFIL.preferencias || {}, { menu: { orden: estado.orden, items: estado.items, ocultos: estado.ocultos } });
+      const { data, error } = await db.rpc('guardar_preferencias', { p: prefs });
+      if (error) { toast('No se ha podido guardar el menú', true); return; }
+      PERFIL.preferencias = data || prefs; caja.remove(); MENU_FIRMA = ''; montarMenuLateral(); toast('Menú guardado');
+    }
+  });
+  caja.addEventListener('change', e => { const v = e.target.closest('[data-vk]'); if (!v) return; const k = v.dataset.vk; estado.ocultos = v.checked ? estado.ocultos.filter(x => x !== k) : [...new Set([...estado.ocultos, k])]; });
+  setTimeout(() => document.addEventListener('click', function fuera(ev) {
+    if (!ev.target.closest('#mlpanel, #mlpers')) { const c = $('mlpanel'); if (c) c.remove(); document.removeEventListener('click', fuera); }
+  }), 0);
+}
+// Se monta al arrancar y se rehace si cambian los botones (permisos, módulos, portal), el tamaño de la pantalla o la sesión
+let MENU_RAF = 0;
+const menuRehacer = () => { if (MENU_RAF) return; MENU_RAF = requestAnimationFrame(() => { MENU_RAF = 0; montarMenuLateral(); }); };
+if ($('nav')) new MutationObserver(menuRehacer).observe($('nav'), { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
+addEventListener('resize', menuRehacer);
+if ($('app')) new MutationObserver(menuRehacer).observe($('app'), { attributes: true, attributeFilter: ['class'] });
+menuRehacer();
