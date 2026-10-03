@@ -2951,6 +2951,25 @@ label.chk > span{display:flex;flex-direction:column;gap:3px;min-width:0;line-hei
    v2.150.0 · Agenda: al elegir un día solo cambia «Tu día»
    ============================================================ */
 #agcuerpo.agcargando{opacity:.55;transition:opacity var(--t-rapido) var(--ease-sal)}
+/* ============================================================
+   v2.151.0 · Analítica: cifra protagonista
+   ============================================================ */
+/* Resumen de Analítica (opción C elegida por Eric):  4 columnas iguales, título pequeño en mayúsculas arriba, cifra grande y comparación en una pastilla */
+.ankgrid{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:12px;align-items:stretch}
+.ankpi{display:flex;flex-direction:column;min-height:132px;padding:16px 18px;border-radius:16px}
+.ankcab{display:flex;align-items:flex-start;gap:4px}
+.anktit{flex:1;min-width:0;font:700 11px var(--f-texto);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);line-height:1.35}
+.ankcab .ai,.ankcab .ankcfg{opacity:.4;flex:none}
+.ankval{font:800 30px var(--f-titulo);color:var(--ink);margin:auto 0 6px;letter-spacing:-.01em}
+.ankdel{align-self:flex-start;font-size:11.5px;padding:2px 8px;border-radius:999px;background:var(--hielo);color:var(--muted)}
+@media (max-width:1100px){.ankgrid{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+/* Explorar datos: las cifras en la franja fina, como en Pedidos */
+#atot.kpis{display:flex!important;flex-wrap:wrap;gap:0;margin:0;padding:10px 16px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:var(--hielo)}
+#atot.kpis > .kpi{display:flex!important;align-items:baseline;gap:6px;min-height:0;height:auto;margin:0;padding:2px 16px!important;border:0;border-left:1px solid var(--line);border-radius:0;background:none;box-shadow:none}
+#atot.kpis > .kpi:first-child{padding-left:0!important;border-left:0}
+#atot.kpis > .kpi > b{font:800 16px var(--f-titulo);color:var(--ink)}
+#atot.kpis > .kpi > span{font-size:12.5px;color:var(--muted)}
+@media (max-width:760px){#atot.kpis > .kpi{flex:1 1 45%;border-left:0;padding:2px 8px!important}}
 </style>
 </head>
 <body>
@@ -3087,6 +3106,6 @@ label.chk > span{display:flex;flex-direction:column;gap:3px;min-width:0;line-hei
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.150.0"></script>
+<script src="./app.js?v=2.151.0"></script>
 </body>
 </html>
