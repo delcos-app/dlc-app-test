@@ -18617,3 +18617,53 @@ irEnlace = (orig => function (e) {
 // v2.154.0 · Iconos del menú «Más» del móvil (y de «Tus módulos» en Mi perfil): las secciones añadidas después (Oportunidades, Compras,
 // Proveedores, Usuarios y roles, Panel delcos) no llegaban a ICO_MOD y salían con un punto
 Object.keys(ICO_NAV).forEach(k => { if (ICON_NOM[ICO_NAV[k]]) ICO_MOD[k] = svgIco(ICON_NOM[ICO_NAV[k]]); });
+
+/* v2.157.0 · Plan y suscripción al día con la oferta publicada en delcos.app: frase de cada plan, comparativa con todos los módulos
+   actuales (los nuevos: Nueva venta, Pedidos web y pagos, Notificaciones, Historial, Indicadores por áreas…). Solo cambia lo que se enseña: qué abre cada plan sigue en PLANES.modulos. */
+(() => {
+  const para = { campo: 'Para equipos que visitan y quieren ordenar su cartera', comercial: 'Para equipos que venden y quieren medir resultados',
+    empresa: 'Para empresas que facturan y llevan su almacén', medida: 'Para redes de más de 50 personas o con necesidades propias' };
+  PLANES.forEach(p => { if (para[p.id]) p.para = para[p.id]; });
+})();
+// Filas de la comparativa: [nombre, detalle, planes que lo incluyen]
+const PLAN_FILAS = () => {
+  const T = ['campo', 'comercial', 'empresa', 'medida'], C = ['comercial', 'empresa', 'medida'], E = ['empresa', 'medida'], M = ['medida'];
+  const med = TT('medico', 'p', '', 'l', 'l'), vis = TT('visita', 'p', '', 'l', 'l'), pac = TT('paciente', 'p', '', 'l', 'l');
+  return [
+    ['Campo', null],
+    [`Cartera de ${med} y centros`, 'Fichas con su historial, horarios, estado comercial y tus campos', T],
+    [`Agenda, «Tu día» y registro de ${vis}`, 'Tu día, tu semana y tu mes en una pantalla, con sugerencias', T],
+    ['Rutas y planificación semanal', 'Rutas propuestas cada mañana, a tu agenda con un clic', T],
+    ['Muestras y material', `Lo que entregas en cada ${TT('visita', 's', '', 'l', 'l')}, por almacén`, T],
+    ['Calidad del dato y duplicados', 'Qué le falta a cada ficha y fichas repetidas, para unirlas', T],
+    ['Notificaciones', 'Por día y con su acción; cada persona elige qué y cuándo', T],
+    ['Usuarios, roles y permisos', 'Cada persona ve lo suyo y ordena su propio menú', T],
+    ['Importar datos', 'Desde Excel o CSV, con vista previa', T],
+    ['Venta', null],
+    ['Pedidos, televenta y clientes', `Nueva venta: llamada y pedido en un paso; ${pac} y empresas con su historial`, C],
+    ['Pedidos web y pagos', 'Lo que entra por tu web, con referencia y justificante del pago', C],
+    ['Productos y stock por lotes', 'Catálogo, lotes, caducidades y almacenes', C],
+    ['Analítica', 'Indicadores por áreas comparados con el periodo anterior, y explorar tus datos', C],
+    ['Comisiones por tramos', 'Esquemas y liquidaciones de cada mes', C],
+    ['Oficina', null],
+    ['Facturación con VeriFactu y cobros', 'Series, rectificativas y el registro de cada factura', E],
+    ['Compras, proveedores y trazabilidad', 'Lo enviado, lo que está en camino y lo recibido', E],
+    ['Zonas, supervisión del equipo y auditoría', 'Historial de cambios de cada ficha, con deshacer', E],
+    ['Servicio', null],
+    ['Migración de tus datos', 'Y conexión con tu programa de gestión', M],
+    ['Soporte prioritario', null, M]
+  ];
+};
+pintarPaginaPlan = (orig => async function (...a) {
+  const r = await orig.apply(this, a);
+  const t = document.querySelector('#cfgcuerpo .planmat'); if (!t) return r;
+  const act = planDe((PLAN_ACTUAL || {}).plan);
+  const celda = (p, v) => `<td class="${p.id === act.id ? 'act' : ''}">${v === true ? `<span class="si" role="img" aria-label="Incluido">${svgIco(ICON_NOM.check)}</span>`
+    : v === false ? '<span class="no" role="img" aria-label="No incluido">—</span>' : v}</td>`;
+  const filas = PLAN_FILAS().map(([n, d, pl]) => pl === null || pl === undefined && d === null
+    ? `<tr class="plangrupo"><td colspan="${PLANES.length + 1}">${esc(n)}</td></tr>`
+    : `<tr><td><b>${esc(n)}</b>${d ? `<span class="sm">${esc(d)}</span>` : ''}</td>${PLANES.map(p => celda(p, pl.includes(p.id))).join('')}</tr>`).join('');
+  const extra = [...t.querySelectorAll('tbody tr')].filter(tr => /Espacio|Ver la plataforma|Precio por usuario/.test(tr.textContent)).map(tr => tr.outerHTML).join('');
+  t.querySelector('tbody').innerHTML = filas + extra;
+  return r;
+})(pintarPaginaPlan);
