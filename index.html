@@ -2741,6 +2741,33 @@ label.chk > span{display:flex;flex-direction:column;gap:3px;min-width:0;line-hei
 @media (max-width:899px){
   .saludo .acts.chips.htacts{flex-wrap:wrap;overflow:visible;row-gap:8px}
 }
+/* v2.141.0 · Agenda en una sola pantalla: métricas, hoy, semana y mes (maquetación básica; el diseño, de Branding) */
+/* v2.143.0 · Agenda en una sola pantalla: métricas, hoy, semana y mes (maquetación básica; el diseño, de Branding) */
+.agunida .agmodos,.agunida .agnav,.agunida [data-ag="ant"],.agunida [data-ag="sig"],.agunida [data-ag="hoy"],.agunida [data-ag="dia"],.agunida [data-ag="semana"],.agunida [data-ag="mes"],.agunida #agmeses{display:none!important}
+.agmet{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:0 0 12px}
+.agm{display:flex;flex-direction:column;gap:1px;padding:8px 12px;border:1px solid var(--line);border-radius:12px;background:#fff;min-width:0}
+.agmt{font-size:11.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+.agmv{font-size:14px}.agmv b{font-size:18px;color:var(--navy)}
+.agms{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.agsemmes{display:grid;grid-template-columns:minmax(0,2fr) minmax(260px,1fr);gap:14px;margin-top:14px;align-items:start}
+.agsemmes .fh{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.agsemgrid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;padding:0 12px 12px}
+.agsd{display:flex;flex-direction:column;gap:4px;min-width:0;padding:6px;border-radius:10px;background:#F2F7FC}
+.agsd.hoy{box-shadow:inset 0 0 0 2px var(--navy)}.agsd.pasado{opacity:.72}
+.agsdh{display:flex;justify-content:space-between;gap:4px;background:none;border:0;padding:0;cursor:pointer;font-size:13px;color:inherit}
+.agsc{display:block;text-align:left;font-size:12px;background:#fff;border:0;border-left:3px solid var(--c);border-radius:6px;padding:3px 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;color:inherit}
+.agsc i{font-style:normal;color:var(--muted)}
+.agsmas{font-size:12px;background:none;border:0;color:#3F82C0;cursor:pointer;text-align:left;padding:0}
+.agsv{color:var(--muted);font-size:12px}
+.agmesgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;padding:0 12px 12px}
+.agmd{font-size:11px;color:var(--muted);text-align:center}
+.agmc{aspect-ratio:1;border:0;border-radius:8px;background:#F2F7FC;cursor:pointer;font-size:13px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:inherit}
+.agmc.hoy{box-shadow:inset 0 0 0 2px var(--navy)}.agmc.pasado{opacity:.6}.agmc.con{background:#E3EEF9}
+.agpt{font-style:normal;font-size:10px;font-weight:700;color:#fff;background:var(--navy);border-radius:999px;padding:0 5px;line-height:15px}
+.agpop{position:fixed;z-index:1500;background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:0 12px 32px rgba(11,37,64,.18);padding:10px;max-height:70vh;overflow:auto}
+.agpoph{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:4px}
+@media (max-width:1100px){.agsemmes{grid-template-columns:1fr}}
+@media (max-width:760px){.agmet{grid-template-columns:repeat(2,minmax(0,1fr))}.agsemgrid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -2877,6 +2904,6 @@ label.chk > span{display:flex;flex-direction:column;gap:3px;min-width:0;line-hei
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.142.0"></script>
+<script src="./app.js?v=2.143.0"></script>
 </body>
 </html>

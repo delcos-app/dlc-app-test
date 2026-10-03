@@ -6587,7 +6587,7 @@ async function pintarTuDia() {
           ${c.estado === 'No estaba' && !pasado ? `<button class="btn sec" data-td="nueva|${c.id}">Nueva cita</button>` : ''}
           <button class="btn sec tdmas" data-td="mas|${c.id}" aria-label="Más acciones">⋯</button>
         </span></div>`;
-    }).join('')}</div>` : `<div class="vacio">${esHoy ? 'No tienes citas hoy. Planifica una ruta en Rutas o mira las sugerencias de abajo.' : 'Sin citas este día.'}</div>`}
+    }).join('')}</div>` : `<div class="vacio">${esHoy ? 'No tienes citas hoy. Planifica una ruta en Rutas o cita a alguien de las sugerencias.' : 'Sin citas este día.'}</div>`}
     ${otras.length ? `<h3 class="tdotros">Citas de otras personas · ${otras.length}</h3>
       <div class="lista">${otras.map(c => `<div class="item" style="cursor:default"><span class="ic">${c.hora ? esc(String(c.hora).slice(0, 5)) : '·'}</span>
         <span class="tx"><b>${esc(c.nombre)}</b><span class="sm">${esc(c.usuario || '')} · ${pillCita(c.estado)}</span></span></div>`).join('')}</div>` : ''}`;
@@ -17651,3 +17651,127 @@ menuPersonalizar = function () {
   setTimeout(() => { document.addEventListener('click', fuera, true); document.addEventListener('keydown', tecla, true); }, 0);
   const f = caja.querySelector('.mlpasa'); if (f) f.focus();
 };
+
+
+/* v2.143.0 · Agenda en una sola pantalla (decisión de Eric, 3/10/2026): sin flechas ni Día/Semana/Mes. Arriba, una línea fina con
+   cuatro métricas; luego Hoy («Tu día») con las sugerencias al lado; debajo, la semana en curso en 7 columnas y el mes con puntos.
+   Al pulsar un día se ven sus citas ahí mismo (sin cambiar de pantalla). La semana detallada (arrastrar, planificar, bloquear días)
+   sigue a un clic con «Planificar la semana», y vuelve con «Agenda de hoy». */
+const AG_DIAS_TXT = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
+const agUnida = () => TAB === 'agenda' && AG_MODO === 'dia' && AG_FECHA === hoyISO();
+ir = (orig => function (t, ...a) {
+  if (t === 'agenda' && IR_DESDE_MENU) { AG_MODO = 'dia'; AG_FECHA = hoyISO(); }   // la Agenda del menú abre siempre hoy
+  return orig.call(this, t, ...a);
+})(ir);
+cargarAgenda = (orig => async function (...a) {
+  const r = await orig.apply(this, a);
+  const v = $('v-agenda'); if (!v || TAB !== 'agenda') return r;
+  const unida = agUnida();
+  v.classList.toggle('agunida', unida);
+  if (!unida) {
+    // Semana o mes detallados: vuelta a la agenda de hoy
+    const acts = v.querySelector('.saludo .acts');
+    if (acts && !$('agvolver') && AG_MODO !== 'equipo') {
+      acts.insertAdjacentHTML('afterbegin', '<button class="btn sec" id="agvolver" type="button">← Agenda de hoy</button>');
+      $('agvolver').onclick = () => { AG_MODO = 'dia'; AG_FECHA = hoyISO(); cargarAgenda(); };
+    }
+    return r;
+  }
+  if ($('agtit')) $('agtit').textContent = 'Hoy · ' + fechaLarga(new Date(AG_FECHA + 'T00:00:00'));
+  // Hoy y las sugerencias, uno al lado del otro desde 1100 px (la vista de día de antes lo hacía desde 1400)
+  if (innerWidth >= 1100 && !document.querySelector('#v-agenda .agdos')) {
+    const cuerpo = $('agcuerpo'), lado = [$('agsug'), $('agpend')].filter(Boolean);
+    if (cuerpo && lado.length) {
+      const w = document.createElement('div'); w.className = 'agdos';
+      const izq = document.createElement('div'); izq.className = 'agizq';
+      const der = document.createElement('div'); der.className = 'agder';
+      cuerpo.parentNode.insertBefore(w, cuerpo); izq.appendChild(cuerpo); w.appendChild(izq); w.appendChild(der); lado.forEach(x => der.appendChild(x));
+    }
+  }
+  agMetricas();
+  await agSemanaMes();
+  return r;
+})(cargarAgenda);
+
+async function agMetricas() {
+  const v = $('v-agenda'); if (!v) return;
+  let m = $('agmet');
+  if (!m) { const s = v.querySelector('.saludo'); if (!s) return; s.insertAdjacentHTML('afterend', '<div class="agmet" id="agmet" aria-label="Tus números"></div>'); m = $('agmet'); }
+  const { data: d } = await RPC_ORIG('agenda_metricas', { p_usuario: AG_VISTA ? AG_VISTA.id : null });
+  if (!$('agmet') || !d) return;
+  const n1 = x => num(x == null ? 0 : x), dec = x => (x == null ? '0' : String(x).replace('.', ','));
+  const h = d.hoy || {}, s = d.semana || {}, c = d.cierres || {}, p = d.pendientes || {};
+  m.innerHTML = [
+    ['Hoy', `<b>${n1(h.visitadas)}</b> de ${n1(h.citas)} citas`, `media ${dec(d.media_dia)} visitas/día`],
+    ['Semana', `<b>${n1(s.visitas)}</b> visitas`, `media ${dec(s.media)}/semana`],
+    ['Cierres con éxito', `<b>${n1(c.hoy)}</b> hoy`, `media ${dec(c.media_dia)}/día`],
+    ['Pendientes', `<b>${n1((p.urgentes || 0) + (p.sin_visita || 0))}</b> por visitar`, `${n1(p.urgentes)} urgentes · ${n1(p.sin_visita)} sin visita en 60 días`]
+  ].map(([t, a, b]) => `<div class="agm"><span class="agmt">${t}</span><span class="agmv">${a}</span><span class="agms">${b}</span></div>`).join('');
+}
+
+async function agSemanaMes() {
+  if (!agUnida()) return;
+  const hoy = hoyISO(), lun = lunesDe(hoy), dom = isoMas(lun, 6), mes = hoy.slice(0, 7);
+  const ini = mes + '-01', fin = isoMas(fechaLocal(new Date(new Date(ini + 'T12:00:00').getFullYear(), new Date(ini + 'T12:00:00').getMonth() + 1, 1)), -1);
+  const desde = lun < ini ? lun : ini, hasta = dom > fin ? dom : fin;
+  const { data } = await rpcCache('agenda_rango', { p_desde: desde, p_hasta: hasta, p_usuario: agUsuarioFiltro() }, 'agenda-unida-' + desde + '-' + hasta);
+  if (!agUnida()) return;
+  const porDia = {};
+  (data || []).filter(x => !['Descartada', 'Aplazada'].includes(x.estado)).forEach(x => { (porDia[x.fecha] = porDia[x.fecha] || []).push(x); });
+  Object.values(porDia).forEach(l => l.sort((a, b) => String(a.hora || '99').localeCompare(String(b.hora || '99'))));
+  const hora = x => x.hora ? String(x.hora).slice(0, 5) : '';
+  const corto = n => String(n || '').replace(/^(Dra?\.|Sra?\.|D\.)\s*/i, '');
+  // Semana en curso
+  const semana = Array.from({ length: 7 }, (_, i) => isoMas(lun, i));
+  const semHTML = `<div class="card agsem" id="agsemana"><div class="fh"><h2>Esta semana <span class="sm">${fechaCorta(lun)} – ${fechaCorta(dom)}</span></h2>
+      <button type="button" class="btn sec" id="agplansem">Planificar la semana</button></div>
+    <div class="agsemgrid">${semana.map((f, i) => { const l = porDia[f] || [], hechas = l.filter(x => x.estado === 'Visitada').length;
+      return `<div class="agsd ${f === hoy ? 'hoy' : ''} ${f < hoy ? 'pasado' : ''}" data-agdia="${f}">
+        <button type="button" class="agsdh" data-agdia="${f}"><b>${AG_DIAS_TXT[i]} ${+f.slice(8)}</b>${l.length ? `<span>${hechas}/${l.length}</span>` : ''}</button>
+        ${l.slice(0, 4).map(x => `<button type="button" class="agsc" data-agficha="${x.cuenta_id}" style="--c:${EST_COL[x.estado] || '#6B7F95'}">${hora(x) ? `<i>${hora(x)}</i> ` : ''}${esc(corto(x.nombre))}</button>`).join('')}
+        ${l.length > 4 ? `<button type="button" class="agsmas" data-agdia="${f}">+${l.length - 4} más</button>` : ''}
+        ${!l.length ? '<span class="agsv">—</span>' : ''}</div>`; }).join('')}</div></div>`;
+  // Mes con puntos
+  const d1 = new Date(ini + 'T12:00:00'), hueco = (d1.getDay() + 6) % 7, nd = +fin.slice(8);
+  const celdas = Array(hueco).fill('').concat(Array.from({ length: nd }, (_, i) => `${mes}-${String(i + 1).padStart(2, '0')}`));
+  const mesHTML = `<div class="card agmes" id="agmes"><div class="fh"><h2>${periodoTxt(mes).replace(/^./, c => c.toUpperCase())}</h2></div>
+    <div class="agmesgrid">${AG_DIAS_TXT.map(x => `<span class="agmd">${x}</span>`).join('')}${celdas.map(f => {
+      if (!f) return '<span></span>';
+      const l = porDia[f] || [];
+      return `<button type="button" class="agmc ${f === hoy ? 'hoy' : ''} ${f < hoy ? 'pasado' : ''} ${l.length ? 'con' : ''}" data-agdia="${f}" aria-label="${fechaCorta(f)}: ${l.length} citas">
+        <span>${+f.slice(8)}</span>${l.length ? `<i class="agpt">${l.length > 9 ? '9+' : l.length}</i>` : ''}</button>`; }).join('')}</div></div>`;
+  ['agsemana', 'agmes', 'agsemmes'].forEach(id => { const x = $(id); if (x) x.remove(); });
+  const html = `<div class="agsemmes" id="agsemmes">${semHTML}${mesHTML}</div>`;
+  const dos = document.querySelector('#v-agenda .agdos');
+  if (dos) dos.insertAdjacentHTML('afterend', html);
+  else if ($('agcuerpo')) $('agcuerpo').insertAdjacentHTML('afterend', html);
+  else return;
+  $('agplansem').onclick = () => { AG_MODO = 'semana'; AG_FECHA = hoy; cargarAgenda(); };
+  const cont = $('agsemmes');
+  cont.querySelectorAll('[data-agficha]').forEach(b => b.onclick = ev => { ev.stopPropagation(); abrirFicha(b.dataset.agficha); });
+  cont.querySelectorAll('button[data-agdia]').forEach(b => b.onclick = ev => { ev.stopPropagation(); agVerDia(b.dataset.agdia, porDia[b.dataset.agdia] || [], b); });
+}
+
+// Las citas de un día, ahí mismo
+function agVerDia(f, l, ancla) {
+  document.querySelectorAll('.agpop').forEach(x => x.remove());
+  const p = document.createElement('div'); p.className = 'agpop'; p.__t = Date.now();
+  p.innerHTML = `<div class="agpoph"><b>${esc(fechaLarga(new Date(f + 'T00:00:00')).replace(/^./, c => c.toUpperCase()))}</b>
+      <button type="button" class="x" aria-label="Cerrar">✕</button></div>
+    ${l.length ? `<div class="lista">${l.map(x => `<button type="button" class="item" data-agficha="${x.cuenta_id}"><span class="ic" style="background:${EST_COL[x.estado] || '#6B7F95'}1f;color:${EST_COL[x.estado] || '#6B7F95'}">${x.hora ? esc(String(x.hora).slice(0, 5)) : '·'}</span>
+        <span class="tx"><b>${esc(x.nombre)}</b><span class="sm">${esc([x.centro_nombre, x.municipio].filter(Boolean).join(' · '))} · ${esc(x.estado)}</span></span></button>`).join('')}</div>`
+      : '<div class="sm" style="padding:8px 4px">Sin citas.</div>'}
+    ${f >= hoyISO() ? `<div class="acts" style="margin:6px 0 0;justify-content:flex-end"><button type="button" class="btn sec" data-agnueva="${f}">+ Cita este día</button></div>` : ''}`;
+  document.body.appendChild(p);
+  const r = ancla.getBoundingClientRect(), w = Math.min(360, innerWidth - 20);
+  p.style.width = w + 'px';
+  p.style.left = Math.max(10, Math.min(innerWidth - w - 10, r.left)) + 'px';
+  p.style.top = Math.max(10, Math.min(innerHeight - p.offsetHeight - 10, r.bottom + 6)) + 'px';
+  p.querySelector('.x').onclick = () => p.remove();
+  p.querySelectorAll('[data-agficha]').forEach(b => b.onclick = () => { p.remove(); abrirFicha(b.dataset.agficha); });
+  const nb = p.querySelector('[data-agnueva]'); if (nb) nb.onclick = () => { p.remove(); nuevaCita(null, nb.dataset.agnueva); };
+}
+document.addEventListener('pointerdown', e => { if (!e.target.closest('.agpop, [data-agdia]')) document.querySelectorAll('.agpop').forEach(x => x.remove()); }, true);
+
+// v2.143.0: en Pedidos y Oportunidades los filtros pasan dentro de «Filtros y columnas» (a la vista queda solo el buscador)
+HT_FILTROS.ventas = "#v-ventas .filtros";
