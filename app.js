@@ -18068,15 +18068,24 @@ cargarRutasPaso2 = (orig => async function (...a) {
 /* v2.146.0 · Agenda: al pulsar un día de la semana o del mes, «Tu día» pasa a ese día (petición de Eric: antes se abría un desplegable).
    El título de «Tu día» es la fecha elegida y al lado está «Volver a hoy»; el día elegido queda marcado en la semana y en el mes.
    Las cifras de arriba, la semana y el mes siguen siendo los de hoy. */
-agVerDia = function (f) {
+// v2.150.0: al elegir un día solo se repintan «Tu día» y sus sugerencias (antes se recargaba toda la Agenda); las cifras, la semana
+// y el mes no cambian. Si la Agenda no está en su vista de una pantalla, se carga entera como antes.
+agVerDia = async function (f) {
   document.querySelectorAll('.agpop').forEach(x => x.remove());
   if (!f) return;
-  AG_MODO = 'dia'; AG_FECHA = f;
-  cargarAgenda().then(() => {
-    const c = $('agcuerpo'); if (!c) return;
-    const top = c.getBoundingClientRect().top;
-    if (top < 80 || top > innerHeight * 0.6) scrollTo({ top: scrollY + top - 90, behavior: 'smooth' });
-  });
+  const v = $('v-agenda'), c = $('agcuerpo');
+  if (!v || !c || !v.classList.contains('agunida') || AG_MODO !== 'dia') { AG_MODO = 'dia'; AG_FECHA = f; return cargarAgenda(); }
+  AG_FECHA = f;
+  agMarcarDia();
+  c.classList.add('agcargando');
+  const sug = $('agsug');
+  if (f >= hoyISO()) { if (sug) sug.style.display = ''; sugerenciasAgenda(); } else if (sug) sug.style.display = 'none';
+  try { await pintarTuDia(); } finally { if ($('agcuerpo')) $('agcuerpo').classList.remove('agcargando'); }
+  if (AG_FECHA !== f) return;
+  agMarcarDia(); agDiaVacio();
+  const cc = $('agcuerpo'); if (!cc) return;
+  const top = cc.getBoundingClientRect().top;
+  if (top < 80 || top > innerHeight * 0.6) scrollTo({ top: scrollY + top - 90, behavior: 'smooth' });
 };
 function agMarcarDia() {
   const v = $('v-agenda'); if (!v || !v.classList.contains('agunida')) return;
