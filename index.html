@@ -2768,6 +2768,84 @@ label.chk > span{display:flex;flex-direction:column;gap:3px;min-width:0;line-hei
 .agpoph{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:4px}
 @media (max-width:1100px){.agsemmes{grid-template-columns:1fr}}
 @media (max-width:760px){.agmet{grid-template-columns:repeat(2,minmax(0,1fr))}.agsemgrid{grid-template-columns:1fr}}
+/* ============================================================
+   v2.144.0 · Acción principal de las páginas y Agenda (diseño)
+   ============================================================ */
+/* «+ Nuevo usuario» y «+ Nueva organización» en la cabecera (como «+ Nueva venta»); en el móvil, debajo del título y a la izquierda,
+   igual que en el resto de pantallas */
+@media (max-width:899px){
+  .saludo > .acts.htacts{justify-content:flex-start}
+}
+/* Agenda (decisión de Eric, 3/10/2026): a la izquierda la semana en una franja, «Tu día» y debajo «Sugerencias de hoy» (con su hueco
+   aunque no haya datos); a la derecha el calendario del mes, fijo al bajar. En el móvil, todo en una columna en ese orden. Se hace solo
+   con CSS: los envoltorios (.agdos, .agizq, .agder, .agsemmes) dejan de contar y cada bloque se coloca en la rejilla de la pantalla. */
+#v-agenda.agunida{display:flex;flex-direction:column}
+#v-agenda.agunida > .agdos,#v-agenda.agunida .agizq,#v-agenda.agunida .agder,#v-agenda.agunida > .agsemmes{display:contents}
+#v-agenda.agunida > .saludo{order:0}
+#v-agenda.agunida > #agmet{order:1}
+#v-agenda.agunida #agsemana{order:2}
+#v-agenda.agunida #agcuerpo{order:3}
+#v-agenda.agunida #agsug{order:4}
+#v-agenda.agunida #agpend{order:5}
+#v-agenda.agunida #agmes{order:6}
+#v-agenda.agunida :is(#agsemana,#agcuerpo,#agsug,#agpend,#agmes){margin:0 0 12px!important}
+#v-agenda.agunida #agpend:empty{display:none}
+#v-agenda.agunida #agsug{min-height:220px}
+@media (min-width:1100px){
+  #v-agenda.agunida{display:grid;grid-template-columns:minmax(0,1fr) minmax(320px,380px);column-gap:16px;align-items:start}
+  #v-agenda.agunida > *{grid-column:1 / -1}
+  #v-agenda.agunida :is(#agsemana,#agcuerpo,#agsug,#agpend){grid-column:1}
+  #v-agenda.agunida #agmes{grid-column:2;grid-row:3 / span 4;align-self:start;position:sticky;top:84px}
+}
+/* Métricas: cifra protagonista */
+#agmet{gap:10px;margin:0 0 14px}
+#agmet .agm{padding:12px 14px;gap:2px;border-radius:14px}
+#agmet .agmt{font:700 11px var(--f-texto);letter-spacing:.06em;color:var(--muted)}
+#agmet .agmv{font-size:13.5px;color:var(--muted)}
+#agmet .agmv b{font:800 22px var(--f-titulo);color:var(--ink);margin-right:2px}
+/* Cabeceras de semana y mes, con aire (no tenían padding) */
+:is(#agsemana,#agmes) > .fh{padding:14px 14px 10px 16px;margin:0;flex-wrap:wrap;row-gap:8px}
+:is(#agsemana,#agmes) > .fh h2{margin:0;font:800 15px var(--f-titulo);color:var(--ink);display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+:is(#agsemana,#agmes) > .fh h2 .sm{font:500 12.5px var(--f-texto);color:var(--muted)}
+#agplansem{min-height:34px;padding:0 12px;font-size:13px;white-space:nowrap}
+/* La semana, rediseñada: una franja de 7 días; cada día con su fecha, cuántas hechas de cuántas y un punto por cita (del color de
+   su estado). Al pulsar un día se abren sus citas. */
+#agsemana .agsemgrid{grid-template-columns:repeat(7,minmax(0,1fr))!important;gap:6px;padding:0 12px 12px}
+#agsemana .agsd{display:flex;flex-direction:row;flex-wrap:wrap;justify-content:center;align-content:flex-start;gap:4px;min-height:74px;padding:8px 4px;
+  border:1px solid transparent;border-radius:12px;background:var(--hielo);opacity:1;cursor:pointer;transition:background-color var(--t-rapido) var(--ease-sal)}
+#agsemana .agsd:hover{background:var(--sky-soft)}
+#agsemana .agsd.pasado{opacity:.6}
+#agsemana .agsd.hoy{background:#FFFFFF;border-color:var(--navy);box-shadow:none}
+#agsemana .agsdh{flex:0 0 100%;display:flex;flex-direction:column;align-items:center;gap:1px;width:100%;padding:0;font-size:12px;color:var(--muted)}
+#agsemana .agsdh b{font:700 13px var(--f-texto);color:var(--ink);white-space:nowrap}
+#agsemana .agsd.hoy .agsdh b{color:var(--navy)}
+#agsemana .agsdh span{font-size:11.5px}
+#agsemana .agsc{width:8px;height:8px;min-height:0;padding:0;margin:0;border:0;border-radius:50%;background:var(--c);font-size:0;line-height:0;overflow:hidden}
+#agsemana .agsmas,#agsemana .agsv{flex:0 0 100%;text-align:center;font-size:11.5px}
+#agsemana .agsv{color:#A6B4C3}
+/* El mes: números limpios, días con citas en azul suave con su número de citas, hoy en marino */
+#agmes .agmesgrid{gap:4px;padding:0 12px 14px}
+#agmes .agmd{font:700 11px var(--f-texto);color:var(--muted);padding-bottom:2px}
+#agmes .agmc{position:relative;border-radius:10px;background:transparent;font:600 13px var(--f-texto);color:var(--ink);opacity:1;
+  transition:background-color var(--t-rapido) var(--ease-sal)}
+#agmes .agmc:hover{background:var(--hielo)}
+#agmes .agmc.pasado{color:#94A3B8}
+#agmes .agmc.con{background:var(--sky-soft)}
+#agmes .agmc.hoy{background:var(--navy);color:#FFFFFF;box-shadow:none}
+#agmes .agpt{font-size:9.5px;line-height:14px;padding:0 4px}
+#agmes .agmc.hoy .agpt{background:#FFFFFF;color:var(--navy)}
+@media (max-width:760px){
+  #agsemana .agsemgrid{gap:4px;padding:0 8px 10px}
+  #agsemana .agsd{min-height:64px;padding:6px 2px;gap:3px}
+  #agsemana .agsc{width:7px;height:7px}
+  #agsemana .agsdh b{font-size:12px}
+  #agmet .agmv b{font-size:19px}
+  /* Sugerencias: las filas «extra» (.lista > .extra las ponía en flex) bajan los botones como las demás */
+  #agsug .lista > .item.extra{display:grid!important}
+}
+/* El antiguo selector Día/Semana/Mes del móvil se quedaba como una barra vacía */
+#v-agenda.agunida > .segm,#v-agenda.agunida > .agnavm{display:none!important}
+@media (prefers-reduced-motion: reduce){#agsemana .agsd,#agmes .agmc{transition:none}}
 </style>
 </head>
 <body>
@@ -2904,6 +2982,6 @@ label.chk > span{display:flex;flex-direction:column;gap:3px;min-width:0;line-hei
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.143.0"></script>
+<script src="./app.js?v=2.144.0"></script>
 </body>
 </html>

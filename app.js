@@ -17775,3 +17775,21 @@ document.addEventListener('pointerdown', e => { if (!e.target.closest('.agpop, [
 
 // v2.143.0: en Pedidos y Oportunidades los filtros pasan dentro de «Filtros y columnas» (a la vista queda solo el buscador)
 HT_FILTROS.ventas = "#v-ventas .filtros";
+/* v2.144.0 · Páginas propias: la acción principal («+ Nuevo usuario», «+ Nueva organización») sube a la derecha de la cabecera, como
+   «+ Nueva venta» en el resto de pantallas (regla de Eric: misma posición en todas). Antes iba dentro de la tarjeta, junto al buscador. */
+const ACCION_PAGINA = ['usrnuevo', 'orgnueva'];
+function subirAccionPagina() {
+  if (typeof PAGINAS === 'undefined' || !PAGINAS[TAB]) return;
+  const sec = $('v-' + TAB), sal = sec && sec.querySelector(':scope > .saludo'); if (!sal) return;
+  ACCION_PAGINA.forEach(id => {
+    const b = $(id); if (!b || !sec.contains(b) || b.closest('.saludo')) return;
+    let acts = sal.querySelector(':scope > .acts');
+    if (!acts) { sal.insertAdjacentHTML('beforeend', '<div class="acts htacts"></div>'); acts = sal.querySelector(':scope > .acts'); }
+    acts.appendChild(b);
+  });
+}
+let ACCION_PAG_PEND = false;
+new MutationObserver(() => {
+  if (ACCION_PAG_PEND) return; ACCION_PAG_PEND = true;
+  queueMicrotask(() => { ACCION_PAG_PEND = false; subirAccionPagina(); });
+}).observe(document.querySelector('main'), { childList: true, subtree: true });
