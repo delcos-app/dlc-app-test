@@ -2994,6 +2994,25 @@ label.chk > span{display:flex;flex-direction:column;gap:3px;min-width:0;line-hei
 .nottab td:first-child b{display:block}
 .nottab .notarea th{background:var(--hielo,#F2F7FC);font-family:Manrope,system-ui,sans-serif;font-size:12.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--navy,#17457A)}
 @media(max-width:620px){.nottab thead th:not(:first-child),.nottab td:not(:first-child){width:74px;font-size:12px}.nottab th,.nottab td{padding:8px 6px}}
+/* ============================================================
+   v2.153.0 · Notificaciones: bandeja limpia
+   ============================================================ */
+/* Opción A elegida por Eric: sin fondo gris, icono en un círculo suave, barra azul en lo no leído, hora a la derecha y acciones en píldora */
+.notlista2{padding:0 12px}
+.notdia{margin:14px 6px 6px}
+.notit2{position:relative;display:grid;grid-template-columns:36px minmax(0,1fr);gap:12px;padding:12px 12px 12px 14px;border-top:0;border-radius:12px;background:none}
+.notit2 + .notit2{margin-top:2px}
+.notit2.nuevo{background:none}
+.notit2.nuevo::before{content:"";position:absolute;left:0;top:12px;bottom:12px;width:3px;border-radius:3px;background:var(--sky)}
+.notit2.nuevo .tx > b::before{display:none}
+.notit2 .ic{display:grid;place-items:center;width:36px;height:36px;border-radius:50%;background:var(--sky-soft);font-size:16px}
+.notit2:not(.nuevo) .ic{background:#EEF2F6;filter:grayscale(.4)}
+.notit2 .tx{position:relative;padding-right:56px}
+.notit2 .tx > b{font-weight:700;color:var(--ink)}
+.notit2:not(.nuevo) .tx > b{font-weight:600;color:#3B5168}
+.notcuando{position:absolute;right:0;top:1px;font-size:12px}
+.notacts .btn{min-height:30px;padding:0 10px;font-size:12.5px;border-radius:999px}
+.notacts .btn.sec{background:none;border-color:var(--line)}
 </style>
 </head>
 <body>
@@ -3130,6 +3149,6 @@ label.chk > span{display:flex;flex-direction:column;gap:3px;min-width:0;line-hei
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.152.0"></script>
+<script src="./app.js?v=2.153.0"></script>
 </body>
 </html>
