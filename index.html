@@ -2898,6 +2898,34 @@ label.chk > span{display:flex;flex-direction:column;gap:3px;min-width:0;line-hei
 #agcuerpo > .vacio.vlinea{flex-direction:row;justify-content:center;align-items:center;gap:10px;padding:14px 16px 18px;font-size:14px;text-align:left}
 #agcuerpo > .vacio.vlinea::before{width:30px;height:30px;flex:none}
 #agcuerpo .tdhead .tdstats.hide{display:none!important}
+/* v2.148.0 · Analítica: indicadores por áreas con engranaje; filtros del Resumen y de Explorar en «Filtros y columnas» */
+#v-analitica.an-res .htpropios [data-anp="explorar"],#v-analitica.an-exp .htpropios [data-anp="resumen"],#tools[data-ansec="resumen"] .htpropios [data-anp="explorar"],#tools[data-ansec="explorar"] .htpropios [data-anp="resumen"]{display:none}
+#v-analitica.an-exp #anpers{display:none}
+.anresumen{margin:0 0 12px}
+.anarea{margin:0 0 18px}
+.anarea > h3{font-family:Manrope,system-ui,sans-serif;font-size:13px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin:0 0 8px}
+.ankgrid{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(190px,1fr))}
+.ankpi{background:var(--panel,#fff);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.ankcab{display:flex;align-items:center;gap:6px}
+.anktit{flex:1;min-width:0;font-size:13.5px;color:var(--muted);font-weight:600}
+.ankcfg{border:0;background:none;padding:4px;border-radius:8px;cursor:pointer;color:var(--muted);display:inline-grid;place-items:center}
+.ankcfg:hover{background:var(--sky-soft,#EAF3FB);color:var(--navy,#17457A)}
+.ankcfg .ico{width:16px;height:16px}
+.ankval{font-family:Manrope,system-ui,sans-serif;font-size:24px;line-height:1.15;color:var(--ink,#0B2540)}
+.ankval.txt{font-size:16px}
+.ankdel{font-size:13px;font-weight:650}
+.ankdel.up{color:#0E6B4C}.ankdel.down{color:#B42318}.ankdel.neutro,.ankdel.igual{color:var(--muted)}
+.ankdel .sm{font-weight:400}
+.ankfil{align-self:flex-start;font-size:12px;background:var(--hielo,#F2F7FC);border-radius:999px;padding:2px 8px;color:var(--navy,#17457A)}
+.ankpop{position:fixed;z-index:130;background:var(--panel,#fff);border:1px solid var(--line);border-radius:12px;box-shadow:0 14px 34px rgba(10,20,30,.18);padding:12px 14px;display:flex;flex-direction:column;gap:4px}
+.ankpop label{margin-top:6px}
+.ankpop input,.ankpop select{width:100%}
+.ankpop .ankacts{margin:10px 0 0;justify-content:flex-end;flex-wrap:wrap}
+.anvista{display:flex;gap:12px;flex-wrap:wrap;padding:12px 14px 0}
+.anvista > div{min-width:180px}
+.anpers .anpf{display:flex;align-items:center;gap:12px;padding:8px 0;border-top:1px solid var(--line);cursor:pointer}
+.anpers .anpf .tx{flex:1;display:flex;flex-direction:column;min-width:0}
+@media(max-width:620px){.ankgrid{grid-template-columns:1fr 1fr;gap:8px}.ankpi{padding:10px 12px}.ankval{font-size:20px}.ankdel .sm{display:block}}
 </style>
 </head>
 <body>
@@ -3034,6 +3062,6 @@ label.chk > span{display:flex;flex-direction:column;gap:3px;min-width:0;line-hei
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.147.0"></script>
+<script src="./app.js?v=2.148.0"></script>
 </body>
 </html>
