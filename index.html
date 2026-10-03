@@ -2846,6 +2846,37 @@ label.chk > span{display:flex;flex-direction:column;gap:3px;min-width:0;line-hei
 /* El antiguo selector Día/Semana/Mes del móvil se quedaba como una barra vacía */
 #v-agenda.agunida > .segm,#v-agenda.agunida > .agnavm{display:none!important}
 @media (prefers-reduced-motion: reduce){#agsemana .agsd,#agmes .agmc{transition:none}}
+/* v2.145.0 · Rutas en una sola pantalla: propuestas del día a la izquierda y mis rutas a la derecha */
+.rgrid2{display:grid;gap:16px;grid-template-columns:1fr;align-items:start}
+@media(min-width:1100px){.rgrid2{grid-template-columns:minmax(0,1fr) 360px}}
+.rgrid2 > .card{margin:0}
+.rprops > .fh,.rmis > .fh{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;padding:14px 16px 6px}
+.rprops > .fh h2,.rmis > .fh h2{padding:0;margin:0}
+.rprops > .fh .sm{margin-top:2px}
+.rmis > .fh h2 .n{margin-left:8px}
+.rprop{display:grid;grid-template-columns:132px minmax(0,1fr);grid-template-areas:"croq tx" "croq acts" "lista lista";column-gap:16px;row-gap:8px;padding:14px 16px;border-top:1px solid var(--line)}
+.rpcroq{grid-area:croq;background:var(--hielo,#F2F7FC);border-radius:10px;display:flex;align-items:center;justify-content:center;align-self:start}
+.rptx{grid-area:tx;display:flex;flex-direction:column;gap:4px;min-width:0}
+.rpzona{font-family:Manrope,system-ui,sans-serif;font-size:16px;display:flex;align-items:center;gap:8px}
+.rpnum{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:#17457A;color:#fff;font-size:12px;flex:none}
+.rpmot{display:flex;flex-wrap:wrap;gap:6px}
+.rpporque{color:#0E6B4C}
+.rpacts{grid-area:acts;margin:0;flex-wrap:wrap}
+.rplista{grid-area:lista;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.rpit{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"n x" "s x" "m x";gap:2px 10px;padding:9px 12px;border-top:1px solid var(--line)}
+.rpit:first-child{border-top:0}
+.rpit .lnkmed{grid-area:n;justify-self:start;text-align:left}
+.rpit .sm{grid-area:s}
+.rpit .rpmot{grid-area:m}
+.rpit .rpquitar{grid-area:x;align-self:center}
+.rmis .rmit .tx{min-width:0}
+.rmis .rmit .acts{flex-wrap:nowrap}
+.rmis .rguia{padding:4px 16px 16px}
+@media(max-width:620px){
+  .rprop{grid-template-columns:1fr;grid-template-areas:"tx" "croq" "acts" "lista"}
+  .rpcroq{justify-self:stretch}
+  .rpacts .btn{flex:1 1 auto}
+}
 </style>
 </head>
 <body>
@@ -2982,6 +3013,6 @@ label.chk > span{display:flex;flex-direction:column;gap:3px;min-width:0;line-hei
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.144.0"></script>
+<script src="./app.js?v=2.145.0"></script>
 </body>
 </html>
