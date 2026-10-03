@@ -6670,7 +6670,7 @@ async function accionCita(k, c) {
       if (!op) return;
       res = neg[+op.slice(1)].valor;
     }
-    const { error } = await db.rpc('registrar_actividad', { p: { cuenta_id: c.cuenta_id, fecha: c.fecha, resultados: [res],
+    const { error } = await escribirRpc('registrar_actividad', { p: { cuenta_id: c.cuenta_id, fecha: c.fecha, resultados: [res],
       op_id: 'v-' + c.cuenta_id + '-' + Date.now() } });
     if (error) { toast('No se ha podido guardar: ' + error.message, true); return; }
     toast('Anotado: ' + res);
@@ -7653,7 +7653,7 @@ async function abrirVisitaBase(id) {
       return Object.assign({ clasificador: idx[k].c, valor: idx[k].v.valor }, d ? { dato: d } : {});
     });
     ev.target.disabled = true; ev.target.textContent = 'Guardando…';
-    const { data: r, error: err } = await db.rpc('registrar_actividad', { p: {
+    const { data: r, error: err } = await escribirRpc('registrar_actividad', { p: {
       cuenta_id: id, ubicacion_id: $('vc').value || null, fecha: $('vf').value,
       resultados, detalles, nota: $('vn').value.trim(),
       proxima_accion: $('vpa').value.trim(), proxima_fecha: $('vpf').value || null,
@@ -18702,3 +18702,83 @@ document.addEventListener('click', e => {
     if (s && /aparte de su plan/.test(s.textContent)) s.textContent = 'Además de lo que incluye su plan (Oportunidades desde Comercial; el portal desde Empresa)';
   }, 0);
 }, true);
+
+
+/* v2.159.0 · Correcciones del registro de errores (pruebas, 3/10/2026) y un sitio para revisarlo.
+   - «showModal: The dialog is already open as a non-modal dialog» (Pedidos): una ventana encajada en una página propia seguía
+     abierta al ir a otra pantalla y abrir otra ventana; ahora se cierra antes de abrirla como ventana normal.
+   - «Cannot read properties of null (reading 'classList')» (Analítica): un filtro que cambiaba cuando la tabla de Explorar ya no
+     estaba en pantalla (los filtros viven en el panel lateral); ahora no hace nada fuera de Analítica.
+   - Duplicados (Inicio y pantalla Duplicados) sin esperas: lo resuelve el SQL 100 (parejas guardadas).
+   - Panel delcos → «Errores»: los errores agrupados (cuántas veces, a cuántas personas, en qué versiones), con su estado por grupo;
+     al darlos por resueltos, si vuelven en una versión igual o posterior se reabren solos (SQL 100). */
+['dlg', 'dlg2'].forEach(id => {
+  const d = $(id); if (!d) return;
+  const prev = d.showModal;
+  d.showModal = function (...a) {
+    try { if (this.open && !this.matches(':modal') && !(typeof areaEncaje === 'function' && areaEncaje())) this.close(); } catch (e) {}
+    return prev.apply(this, a);
+  };
+});
+refrescarAnalitica = (orig => function (...a) {
+  if (TAB !== 'analitica' || !$('atabla') || !$('atabla2')) return;
+  return orig.apply(this, a);
+})(refrescarAnalitica);
+
+async function pintarErroresDelcos() {
+  const c = $('cfgcuerpo'); if (!c) return;
+  const f = window.__ERRG || { estado: 'abiertos', dias: 15 };
+  c.innerHTML = `<div class="card cfgpanel"><div class="skel" style="width:40%"></div><div class="skel"></div></div>`;
+  const { data, error } = await RPC_ORIG('errores_resumen', { p_dias: f.dias });
+  if (!$('cfgcuerpo')) return;
+  const todos = error ? [] : (data || []);
+  const l = todos.filter(x => f.estado === 'todos' || (f.estado === 'abiertos' ? x.estado !== 'Resuelto' : x.estado === 'Resuelto'));
+  const nom = { error: 'Error de programa', api: 'Error de base de datos' };
+  const fecha = v => new Date(v).toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' });
+  c.innerHTML = `<div class="card cfgpanel errgrupos"><h2 style="padding:0 0 4px">Errores de la plataforma</h2>
+    <p class="sm">Los errores iguales van juntos. Al marcar un grupo como resuelto queda apuntada la versión; si vuelve a salir en esa versión o en una
+      posterior, se reabre solo. «Descargar» guarda el archivo para quien da soporte técnico.</p>
+    ${error ? `<div class="banda-peligro">No se ha podido leer el registro: ${esc(error.message)}</div>` : ''}
+    <div class="usrbar"><select id="egest"><option value="abiertos" ${f.estado === 'abiertos' ? 'selected' : ''}>Sin resolver</option>
+        <option value="resueltos" ${f.estado === 'resueltos' ? 'selected' : ''}>Resueltos</option><option value="todos" ${f.estado === 'todos' ? 'selected' : ''}>Todos</option></select>
+      <select id="egdias">${[7, 15, 30, 90].map(n => `<option value="${n}" ${f.dias === n ? 'selected' : ''}>Últimos ${n} días</option>`).join('')}</select>
+      <button class="btn sec" id="egdesc">${svgIco(ICON_NOM.download)} Descargar</button></div>
+    <div class="errlista">${l.map((x, i) => `<div class="errfila e-${x.tipo}">
+        <div><b>${esc(nom[x.tipo] || x.tipo)}</b> <span class="sm">· ${esc(x.pantalla || '—')} · ${num(x.veces)} ${x.veces === 1 ? 'vez' : 'veces'} · ${num(x.personas)} ${x.personas === 1 ? 'persona' : 'personas'}
+          · última ${fecha(x.ultima)}${x.resuelto_en_version ? ' · resuelto en ' + esc(x.resuelto_en_version) : ''}</span>
+          <div class="errmsg">${esc(x.mensaje)}</div>
+          <details class="errdet"><summary class="sm">Versiones y detalle técnico</summary><div class="sm">Versiones: ${esc(x.versiones || '—')} · primera ${fecha(x.primera)}</div>
+            <pre>${esc(JSON.stringify(x.detalle || {}, null, 1))}</pre></details></div>
+        <select data-egh="${i}" aria-label="Estado del grupo">${['Nuevo', 'Revisado', 'Resuelto'].map(e => `<option ${x.estado === e ? 'selected' : ''}>${e}</option>`).join('')}</select></div>`).join('')
+      || `<div class="vacio">${f.estado === 'abiertos' ? 'No hay errores sin resolver en este periodo.' : 'Sin errores con estos filtros.'}</div>`}</div></div>`;
+  $('egest').onchange = $('egdias').onchange = () => { window.__ERRG = { estado: $('egest').value, dias: +$('egdias').value }; pintarErroresDelcos(); };
+  c.querySelectorAll('[data-egh]').forEach(s => s.onchange = async () => {
+    const x = l[+s.dataset.egh];
+    const { data: r } = await RPC_ORIG('marcar_errores_huella', { p_huella: x.huella, p_estado: s.value });
+    toast(r && r.ok ? (s.value === 'Resuelto' ? 'Grupo resuelto: si vuelve a salir, se reabre solo' : 'Estado actualizado') : 'No se ha podido cambiar', !(r && r.ok));
+    if (r && r.ok) pintarErroresDelcos();
+  });
+  $('egdesc').onclick = () => {
+    const b = new Blob([JSON.stringify({ generado: new Date().toISOString(), version: VERSION_APP, errores: todos }, null, 1)], { type: 'application/json' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = `errores_${hoyISO()}.json`; a.click();
+  };
+}
+if (PAGINAS.delcos && !PAGINAS.delcos.tabs.some(t => t[0] === 'errores')) PAGINAS.delcos.tabs.push(['errores', 'Errores', () => pintarErroresDelcos()]);
+// Producción (3/10/2026): en el iPhone, sin cobertura, Safari da «Load failed» o «Fetch is aborted». Eso no es un fallo de la plataforma:
+// no se apunta en el registro de errores, y la visita (registrar_actividad, que no se duplica gracias a su op_id) se guarda en la cola
+// del dispositivo y se envía al recuperar la conexión, en lugar de pedir que se repita.
+function esErrorRed(e) { return /failed to fetch|load failed|networkerror|network request failed|aborterror|fetch is aborted|internet connection|err_internet|err_network/i.test(String((e && (e.message || e)) || '')); }
+registrarError = (orig => function (tipo, mensaje, detalle) {
+  if (tipo === 'api' && esErrorRed(mensaje)) return;
+  return orig.call(this, tipo, mensaje, detalle);
+})(registrarError);
+async function escribirRpc(fn, payload) {
+  const r = await db.rpc(fn, payload);
+  if (r && r.error && esErrorRed(r.error)) {
+    colaGuardar(colaLeer().concat([{ fn, payload, etiqueta: TT('visita', 's', '', 'l', 'C'), t: Date.now() }]));
+    pintarConexion();
+    setTimeout(() => toast('Sin conexión: queda guardado en este dispositivo y se enviará al recuperarla'), 1500);
+    return { data: { encolada: true }, error: null };
+  }
+  return r;
+}
