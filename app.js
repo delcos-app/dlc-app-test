@@ -18642,6 +18642,7 @@ const PLAN_FILAS = () => {
     ['Venta', null],
     ['Pedidos, televenta y clientes', `Nueva venta: llamada y pedido en un paso; ${pac} y empresas con su historial`, C],
     ['Pedidos web y pagos', 'Lo que entra por tu web, con referencia y justificante del pago', C],
+    ['Oportunidades', 'Cada venta, se cierre o no, con sus métricas', C],   // v2.158.0: incluida desde Comercial
     ['Productos y stock por lotes', 'Catálogo, lotes, caducidades y almacenes', C],
     ['Analítica', 'Indicadores por áreas comparados con el periodo anterior, y explorar tus datos', C],
     ['Comisiones por tramos', 'Esquemas y liquidaciones de cada mes', C],
@@ -18667,3 +18668,37 @@ pintarPaginaPlan = (orig => async function (...a) {
   t.querySelector('tbody').innerHTML = filas + extra;
   return r;
 })(pintarPaginaPlan);
+
+
+/* v2.158.0 · Oportunidades y el portal entran en los planes (decisión de Eric, 3/10/2026; los precios no cambian). Oportunidades en
+   Comercial, Empresa y A medida; el portal del profesional y del centro en Empresa (hasta 50) y A medida (sin límite). El plan los
+   activa y el botón «Extras» del panel delcos queda para excepciones (tiene_extra, SQL 99, hace lo mismo en la base). */
+const PLAN_EXTRAS = { oportunidades: ['comercial', 'empresa', 'medida'], portal: ['empresa', 'medida'] };
+hayExtra = function (k) {
+  const p = (typeof PLAN_ACTUAL !== 'undefined' && PLAN_ACTUAL) || {};
+  return (p.extras || []).includes(k) || (PLAN_EXTRAS[k] || []).includes(p.plan);
+};
+hayOportunidades = function () { return hayExtra('oportunidades'); };
+(() => {
+  const portal = `Portal ${TT('medico', 's', 'del', 'l', 'l')} y del centro`;
+  const pl = id => PLANES.find(p => p.id === id) || { ventajas: [] };
+  pl('comercial').ventajas.push('Oportunidades: cada venta, se cierre o no');
+  const emp = pl('empresa').ventajas, med = pl('medida').ventajas;
+  const iE = emp.findIndex(v => /^Espacio /.test(v)); if (iE >= 0) emp[iE] = portal + ' (hasta 50)'; else emp.push(portal + ' (hasta 50)');
+  const iM = med.findIndex(v => /^Espacio /.test(v)); if (iM >= 0) med[iM] = portal + ', sin límite'; else med.push(portal + ', sin límite');
+})();
+// Comparativa de «Plan y suscripción»: la fila del espacio del profesional pasa a ser la del portal (Oportunidades va en PLAN_FILAS)
+pintarPaginaPlan = (orig => async function (...a) {
+  const r = await orig.apply(this, a);
+  const fp = [...document.querySelectorAll('.planmat tbody tr')].find(tr => /Su informe y sus avisos/.test(tr.textContent));
+  if (fp) fp.querySelector('td').innerHTML = `<b>Portal ${TT('medico', 's', 'del', 'l', 'l')} y del centro</b><span class="sm">Informe, constancia, material, mensajes y pedidos del centro</span>`;
+  return r;
+})(pintarPaginaPlan);
+// Organizaciones → Extras: ahora son excepciones a lo que incluye el plan
+document.addEventListener('click', e => {
+  if (!e.target.closest('[data-orgext]')) return;
+  setTimeout(() => {
+    const s = $('dbody') && $('dbody').querySelector('.fh .sm');
+    if (s && /aparte de su plan/.test(s.textContent)) s.textContent = 'Además de lo que incluye su plan (Oportunidades desde Comercial; el portal desde Empresa)';
+  }, 0);
+}, true);
