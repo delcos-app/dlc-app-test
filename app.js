@@ -18208,7 +18208,7 @@ function anDelta(k, a, b, comp) {
   const txt = comp === 'anio' ? 'vs el año pasado' : 'vs periodo anterior';
   if (a == null || b == null || (+b === 0 && k.fmt !== 'pct')) return `<span class="sm">sin datos ${comp === 'anio' ? 'del año pasado' : 'del periodo anterior'}</span>`;
   const dif = k.fmt === 'pct' ? +a - +b : (+a - +b) / Math.abs(+b) * 100;
-  if (Math.abs(dif) < 0.05) return `<span class="ankdel igual">= <span class="sm">${txt}</span></span>`;
+  if (Math.abs(dif) < 0.05) return `<span class="ankdel igual">Igual que ${comp === 'anio' ? 'el año pasado' : 'el periodo anterior'}</span>`;
   const bien = k.sube == null ? null : (dif > 0) === k.sube;
   const val = k.fmt === 'pct' ? String(Math.round(Math.abs(dif) * 10) / 10).replace('.', ',') + ' pt' : Math.round(Math.abs(dif)) + ' %';
   return `<span class="ankdel ${bien == null ? 'neutro' : bien ? 'up' : 'down'}">${dif > 0 ? '▲' : '▼'} ${val} <span class="sm">${txt}</span></span>`;
@@ -18441,3 +18441,175 @@ cargarAnalitica = (orig => async function () {
   v.querySelectorAll('[data-ansec]').forEach(b => b.addEventListener('click', () => setTimeout(anPestana, 0)));
   anPestana();
 })(cargarAnalitica);
+
+
+/* v2.152.0 · Notificaciones útiles (decisiones de Eric, 3/10/2026: bandeja con acciones, avisos nuevos y tabla compacta).
+   Bandeja: agrupada por Hoy / Ayer / Esta semana / Antes, filtro por área y en cada aviso su acción directa (Llamar, Nueva venta,
+   Ver ficha, Citar, Registrar, Ver pedido…) más «Posponer a mañana». Ajustes: una fila por aviso con «Al momento» y «En el resumen
+   del día» (excluyentes; ninguna = no recibirlo) y «Silenciar» con horario y fines de semana. Todo lo guarda notificar_datos (SQL 97). */
+TIPOS_NOTIF.push(
+  ['reponer', '🔄', 'Toca reponer', 'Un cliente que compra con regularidad ha pasado su intervalo habitual'],
+  ['caida_ventas', '↘️', 'Caída de ventas', `${TT('medico', 's', 'un', 'l', 'C')} de tu cartera baja más de un 40 % sus ventas este mes`],
+  ['visita_sin_registrar', '📝', 'Citas sin registrar', `Citas de los últimos 3 días sin ${TT('visita', 's', '', 'l', 'l')} registrada`],
+  ['pedido_portal', '🏥', 'Pedidos del portal', 'Cuando un centro pide desde el portal']
+);
+const NOTIF_AREAS = [
+  ['ventas', 'Ventas', ['reponer', 'caida_ventas', 'pedido_portal', 'venta_cartera', 'pauta', 'pedido_validado', 'pago_recibido', 'borrador_nuevo', 'cliente_nuevo']],
+  ['cartera', 'Cartera y agenda', ['citas_hoy', 'visita_sin_registrar', 'seguimientos_hoy', 'sin_visitar', 'cartera', 'cruce', 'duplicado', 'portal']],
+  ['cobros', 'Cobros y stock', ['pagos_pendientes', 'facturas_vencidas', 'stock_minimo', 'lotes_caducan', 'compra_recibida', 'rectificativa']],
+  ['equipo', 'Equipo', ['usuario_nuevo', 'esquema']]
+];
+// Los que se preparan al empezar el día: solo tienen «en el resumen»
+const NOTIF_DIARIOS = ['citas_hoy', 'seguimientos_hoy', 'pagos_pendientes', 'facturas_vencidas', 'lotes_caducan', 'sin_visitar', 'reponer', 'caida_ventas', 'visita_sin_registrar'];
+const notifArea = t => (NOTIF_AREAS.find(a => a[2].includes(t)) || ['otros'])[0];
+let NOTIF_LISTA = [], NOTIF_FILTRO = '';
+
+// Acciones de cada aviso: [texto, función, principal]
+function notifAcciones(x) {
+  const d = x.datos || {}, [t, id] = String(x.enlace || '').split(':'), out = [];
+  if (x.tipo === 'reponer') {
+    if (d.telefono) out.push(['Llamar', () => { location.href = 'tel:' + String(d.telefono).replace(/\s+/g, ''); }, true]);
+    out.push(['Nueva venta', () => nuevaVenta({ contacto_id: d.contacto_id || id, cliente: d.nombre, telefono: d.telefono }), !d.telefono]);
+  } else if (x.tipo === 'caida_ventas') {
+    out.push(['Ver ficha', () => abrirFicha(d.cuenta_id || id), true], ['Citar', () => nuevaCita(d.cuenta_id || id)]);
+  } else if (x.tipo === 'visita_sin_registrar') {
+    out.push([`Registrar ${TT('visita', 's', '', 'l', 'l')}`, () => abrirVisita(d.cuenta_id), true], ['Ver ficha', () => abrirFicha(d.cuenta_id)]);
+  } else if (t === 'pedido' && id) out.push(['Ver pedido', () => verPedido(id), true]);
+  else if (t === 'ficha' && id) out.push(['Ver ficha', () => abrirFicha(id), true]);
+  else if (x.enlace) out.push(['Abrir', () => irEnlace(x.enlace), true]);
+  return out;
+}
+
+function notifDia(f) {
+  const d = new Date(f), hoy = new Date(); hoy.setHours(0, 0, 0, 0);
+  const dif = Math.round((hoy - new Date(d.getFullYear(), d.getMonth(), d.getDate())) / 864e5);
+  return dif <= 0 ? 'Hoy' : dif === 1 ? 'Ayer' : dif < 7 ? 'Esta semana' : 'Antes';
+}
+
+function notifPintar() {
+  const l = NOTIF_LISTA, ico = t => (TIPOS_NOTIF.find(x => x[0] === t) || [])[1] || '🔔';
+  const areas = NOTIF_AREAS.filter(a => l.some(x => notifArea(x.tipo) === a[0]));
+  if (NOTIF_FILTRO && !areas.some(a => a[0] === NOTIF_FILTRO)) NOTIF_FILTRO = '';
+  const vis = l.filter(x => !NOTIF_FILTRO || notifArea(x.tipo) === NOTIF_FILTRO);
+  let dia = '';
+  $('dbody').innerHTML = `<div class="fh"><div><h2>Notificaciones</h2><div class="sm">${NOTIF_N ? NOTIF_N + ' sin leer' : 'Estás al día'}</div></div>
+      <span class="acts" style="margin:0"><button type="button" class="icobtn notcfgb" id="notcfg" title="Elegir qué recibo y cuándo" aria-label="Elegir qué recibo y cuándo">${svgIco(ICON_NOM.settings)}</button>
+      <button class="x" data-cerrar aria-label="Cerrar">✕</button></span></div>
+    ${areas.length > 1 ? `<div class="segs notfil" role="group" aria-label="Filtrar">${[['', 'Todas']].concat(areas.map(a => [a[0], a[1]])).map(([k, t]) =>
+      `<button type="button" data-nfil="${k}" class="${NOTIF_FILTRO === k ? 'on' : ''}" aria-pressed="${NOTIF_FILTRO === k}">${esc(t)}</button>`).join('')}</div>` : ''}
+    <div class="notlista2">${vis.map((x, i) => {
+      const g = notifDia(x.visible_desde || x.creado_en), cab = g !== dia ? `<h3 class="notdia">${g}</h3>` : ''; dia = g;
+      const acc = notifAcciones(x), cuando = new Date(x.visible_desde || x.creado_en);
+      return `${cab}<div class="notit2 ${x.leida_en ? '' : 'nuevo'}" data-nidx="${l.indexOf(x)}">
+        <span class="ic" aria-hidden="true">${ico(x.tipo)}</span>
+        <div class="tx"><b>${esc(x.titulo)}</b>${x.cuerpo ? `<span class="sm">${esc(x.cuerpo)}</span>` : ''}
+          <span class="sm notcuando">${g === 'Hoy' || g === 'Ayer' ? cuando.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) : cuando.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}${x.resumen ? ' · del resumen del día' : ''}</span>
+          <div class="notacts">${acc.map(([t, , p], j) => `<button type="button" class="btn ${p ? '' : 'sec'}" data-nacc="${j}">${esc(t)}</button>`).join('')}
+            <button type="button" class="btn sec" data-npos>Posponer a mañana</button></div></div></div>`; }).join('')
+      || `<div class="vacio">${NOTIF_FILTRO ? 'No hay avisos de esta área.' : 'No tienes notificaciones.'}</div>`}</div>
+    <div class="acts" style="justify-content:flex-end;flex-wrap:wrap">
+      ${NOTIF_N ? '<button class="btn sec" id="notleer">Marcar todas como leídas</button>' : ''}
+      ${l.some(x => x.leida_en) ? '<button class="btn sec" id="notlimpiar">Borrar las leídas</button>' : ''}
+      ${l.length ? '<button class="btn sec dang" id="notvaciar">Vaciar todas</button>' : ''}</div>`;
+  const cerrarYRefrescar = () => { $('dlg').close(); refrescarCampana(); };
+  $('dbody').querySelectorAll('[data-nfil]').forEach(b => b.onclick = () => { NOTIF_FILTRO = b.dataset.nfil; notifPintar(); });
+  $('dbody').querySelectorAll('.notit2').forEach(el => {
+    const x = l[+el.dataset.nidx], acc = notifAcciones(x);
+    el.querySelectorAll('[data-nacc]').forEach(b => b.onclick = async e => {
+      e.stopPropagation();
+      await db.rpc('leer_notificacion', { p_id: x.id });
+      cerrarYRefrescar(); acc[+b.dataset.nacc][1]();
+    });
+    el.querySelector('[data-npos]').onclick = async e => {
+      e.stopPropagation();
+      const { data } = await db.rpc('posponer_notificacion', { p_id: x.id });
+      if (!data || !data.ok) { toast('No se ha podido posponer', true); return; }
+      NOTIF_LISTA = l.filter(y => y !== x); if (!x.leida_en) NOTIF_N = Math.max(0, NOTIF_N - 1);
+      toast('Te lo volvemos a enseñar mañana'); notifPintar(); refrescarCampana();
+    };
+    // Pulsar el aviso (fuera de los botones) hace su acción principal
+    el.onclick = async () => {
+      await db.rpc('leer_notificacion', { p_id: x.id });
+      cerrarYRefrescar(); if (acc.length) (acc.find(a => a[2]) || acc[0])[1]();
+    };
+  });
+  if ($('notleer')) $('notleer').onclick = async () => { await db.rpc('leer_notificaciones'); cerrarYRefrescar(); };
+  const borrarNotif = async soloLeidas => {
+    let q = db.from('notificaciones').delete().eq('usuario_id', PERFIL.id);
+    if (soloLeidas) q = q.not('leida_en', 'is', null);
+    const { error } = await q;
+    if (error) { toast('No se han podido borrar', true); return; }
+    toast(soloLeidas ? 'Notificaciones leídas borradas' : 'Notificaciones vaciadas'); cerrarYRefrescar();
+  };
+  if ($('notlimpiar')) $('notlimpiar').onclick = () => borrarNotif(true);
+  if ($('notvaciar')) $('notvaciar').onclick = async () => {
+    const op = await elegirOpcion('Vaciar notificaciones', 'Se borran todas tus notificaciones, también las que no has leído.', [{ k: 'no', t: 'Cancelar', cls: 'sec' }, { k: 'si', t: 'Vaciar' }]);
+    if (op === 'si') borrarNotif(false);
+  };
+  $('notcfg').onclick = () => { $('dlg').close(); CFG_SEC = 'notif'; window.__CFG_DIRECTO = true; ir('config'); };
+}
+panelNotificaciones = function (l) {
+  NOTIF_LISTA = l || [];
+  notifPintar();
+  if (!$('dlg').open) $('dlg').showModal();
+};
+
+// Ajustes: tabla compacta (al momento / en el resumen del día) y silencio
+async function notifGuardarPrefs(cambio, ok) {
+  const prefs = Object.assign({}, PERFIL.preferencias || {}, cambio);
+  const { data, error } = await db.rpc('guardar_preferencias', { p: prefs });
+  if (error) { toast('No se ha podido guardar', true); return false; }
+  PERFIL.preferencias = data || prefs; if (ok) toast(ok); return true;
+}
+function notifModo(k) {
+  const v = ((PERFIL.preferencias || {}).notif || {})[k], diario = NOTIF_DIARIOS.includes(k);
+  if (v === false) return 'no';
+  if (v && typeof v === 'object') { if (v.m === false && v.r) return 'r'; if (v.m === false) return 'no'; }
+  return diario ? 'r' : 'm';
+}
+pintarNotif = function () {
+  const tipos = tiposDeMiRol(), s = (PERFIL.preferencias || {}).notif_silencio || {};
+  const filas = NOTIF_AREAS.map(([a, t, ks]) => [t, tipos.filter(x => ks.includes(x[0]))]).filter(([, l]) => l.length);
+  const sueltos = tipos.filter(x => !NOTIF_AREAS.some(a => a[2].includes(x[0])));
+  if (sueltos.length) filas.push(['Otros', sueltos]);
+  $('cfgcuerpo').innerHTML = `<div class="card cfgpanel notcfg2"><h2 style="padding:0 0 4px">Notificaciones</h2>
+    <p class="sm">Te llegan a la campana de arriba. Elige para cada aviso si lo quieres al momento o en el resumen de cada mañana; sin marcar ninguna, no lo recibes.</p>
+    ${tipos.length ? `<div class="notsil"><label class="chk"><input type="checkbox" id="nsil" ${s.activo ? 'checked' : ''}> Silenciar de</label>
+        <input type="time" id="nsild" value="${esc(s.desde || '20:00')}" aria-label="Desde"> a <input type="time" id="nsilh" value="${esc(s.hasta || '08:00')}" aria-label="Hasta">
+        <label class="chk"><input type="checkbox" id="nsilf" ${s.finde !== false ? 'checked' : ''}> y los fines de semana</label>
+        <span class="sm">Lo que llegue en ese tiempo lo verás al terminar el silencio.</span></div>
+      <div class="dgrid-wrap"><table class="nottab"><thead><tr><th>Aviso</th><th>Al momento</th><th>En el resumen del día</th></tr></thead>
+      <tbody>${filas.map(([t, l]) => `<tr class="notarea"><th colspan="3">${esc(t)}</th></tr>${l.map(([k, ic, tt, d]) => {
+        const m = notifModo(k), diario = NOTIF_DIARIOS.includes(k);
+        return `<tr><td><b>${ic} ${esc(tt)}</b><span class="sm">${esc(d)}</span></td>
+          <td>${diario ? '<span class="sm" title="Se prepara al empezar el día">—</span>' : `<input type="checkbox" data-ntm="${k}" ${m === 'm' ? 'checked' : ''} aria-label="${esc(tt)}: al momento">`}</td>
+          <td><input type="checkbox" data-ntr="${k}" ${m === 'r' ? 'checked' : ''} aria-label="${esc(tt)}: en el resumen del día"></td></tr>`; }).join('')}`).join('')}</tbody></table></div>`
+      : '<div class="vacio">Tu perfil no tiene notificaciones disponibles todavía.</div>'}</div>`;
+  const guardarTipo = async k => {
+    const m = $('cfgcuerpo').querySelector(`[data-ntm="${k}"]`), r = $('cfgcuerpo').querySelector(`[data-ntr="${k}"]`);
+    const notif = Object.assign({}, (PERFIL.preferencias || {}).notif || {});
+    const diario = NOTIF_DIARIOS.includes(k), om = m ? m.checked : false, or = r.checked;
+    if (diario ? or : (om && !or)) delete notif[k];          // lo de siempre: no hace falta guardarlo
+    else notif[k] = { m: om, r: or };
+    await notifGuardarPrefs({ notif }, om || or ? 'Guardado' : 'No lo recibirás');
+  };
+  $('cfgcuerpo').querySelectorAll('[data-ntm]').forEach(c => c.onchange = () => {
+    if (c.checked) { const r = $('cfgcuerpo').querySelector(`[data-ntr="${c.dataset.ntm}"]`); if (r) r.checked = false; }
+    guardarTipo(c.dataset.ntm);
+  });
+  $('cfgcuerpo').querySelectorAll('[data-ntr]').forEach(c => c.onchange = () => {
+    if (c.checked) { const m = $('cfgcuerpo').querySelector(`[data-ntm="${c.dataset.ntr}"]`); if (m) m.checked = false; }
+    guardarTipo(c.dataset.ntr);
+  });
+  const guardarSil = () => notifGuardarPrefs({ notif_silencio: { activo: $('nsil').checked, desde: $('nsild').value || '20:00', hasta: $('nsilh').value || '08:00', finde: $('nsilf').checked } },
+    $('nsil').checked ? 'Silencio guardado' : 'Sin silencio');
+  ['nsil', 'nsild', 'nsilh', 'nsilf'].forEach(id => { if ($(id)) $(id).onchange = guardarSil; });
+};
+
+// Enlaces nuevos de los avisos
+irEnlace = (orig => function (e) {
+  const [t, id] = String(e || '').split(':');
+  if (t === 'cliente' && id) return nuevaVenta({ contacto_id: id });
+  if (t === 'cita') { AG_MODO = 'dia'; AG_FECHA = hoyISO(); return ir('agenda'); }
+  return orig(e);
+})(irEnlace);

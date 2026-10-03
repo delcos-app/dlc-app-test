@@ -2970,6 +2970,30 @@ label.chk > span{display:flex;flex-direction:column;gap:3px;min-width:0;line-hei
 #atot.kpis > .kpi > b{font:800 16px var(--f-titulo);color:var(--ink)}
 #atot.kpis > .kpi > span{font-size:12.5px;color:var(--muted)}
 @media (max-width:760px){#atot.kpis > .kpi{flex:1 1 45%;border-left:0;padding:2px 8px!important}}
+/* v2.152.0 · Notificaciones: bandeja con acciones y tabla de ajustes */
+.notfil{margin:0 16px 8px;flex-wrap:wrap}
+.notlista2{display:flex;flex-direction:column;padding:0 16px}
+.notdia{font-family:Manrope,system-ui,sans-serif;font-size:12.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin:12px 0 4px}
+.notit2{display:flex;gap:12px;padding:10px 8px;border-radius:10px;cursor:pointer;border-top:1px solid var(--line)}
+.notit2:hover{background:var(--sky-soft,#EAF3FB)}
+.notit2.nuevo{background:var(--hielo,#F2F7FC)}
+.notit2.nuevo .tx > b::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:#3F82C0;margin-right:6px;vertical-align:middle}
+.notit2 .ic{font-size:18px;line-height:1.4;flex:none}
+.notit2 .tx{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}
+.notcuando{color:var(--muted)}
+.notacts{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.notacts .btn{min-height:32px;padding:4px 12px;font-size:13px}
+.notcfgb .ico{width:18px;height:18px}
+.notsil{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:8px 0 14px}
+.notsil input[type=time]{width:110px}
+.notsil .sm{flex-basis:100%}
+.nottab{width:100%;border-collapse:collapse}
+.nottab th,.nottab td{padding:8px 10px;border-top:1px solid var(--line);text-align:left;vertical-align:top}
+.nottab thead th{font-size:12.5px;color:var(--muted);font-weight:650;border-top:0}
+.nottab thead th:not(:first-child),.nottab td:not(:first-child){text-align:center;width:130px}
+.nottab td:first-child b{display:block}
+.nottab .notarea th{background:var(--hielo,#F2F7FC);font-family:Manrope,system-ui,sans-serif;font-size:12.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--navy,#17457A)}
+@media(max-width:620px){.nottab thead th:not(:first-child),.nottab td:not(:first-child){width:74px;font-size:12px}.nottab th,.nottab td{padding:8px 6px}}
 </style>
 </head>
 <body>
@@ -3106,6 +3130,6 @@ label.chk > span{display:flex;flex-direction:column;gap:3px;min-width:0;line-hei
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.151.0"></script>
+<script src="./app.js?v=2.152.0"></script>
 </body>
 </html>
