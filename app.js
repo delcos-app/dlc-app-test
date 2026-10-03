@@ -868,7 +868,7 @@ async function abrirEditor(id, tipo) {
         avisado = true;
         $('edup').innerHTML = `<div class="dupbox"><b>Puede que ya exista</b>
           <div class="sm">Si es la misma persona, cancela y abre su ficha. Si no lo es, vuelve a pulsar Crear.</div>
-          ${altos.map(d => `<div class="l"><span><b>${esc(d.nombre)}</b><br><span class="sm">${esc(d.especialidad || '')} · ${esc(d.centro || '')} · ${esc(d.municipio || '')}</span></span>
+          ${altos.map(d => `<div class="l"><span><b>${esc(d.nombre)}</b><br><span class="sm">${[d.especialidad, d.centro, d.municipio].filter(Boolean).map(esc).join(' · ')}</span></span>
             <span><b>${d.pct}%</b></span></div>`).join('')}</div>`;
         $('eguardar').textContent = 'Crear de todos modos';
         return;
