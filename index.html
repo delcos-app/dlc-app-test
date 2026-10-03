@@ -2892,6 +2892,12 @@ label.chk > span{display:flex;flex-direction:column;gap:3px;min-width:0;line-hei
 #agsemana .agsd.sel .agsc{box-shadow:0 0 0 1.5px #FFFFFF}
 #agmes .agmc.sel{background:var(--sky);color:#FFFFFF;opacity:1}
 #agmes .agmc.sel .agpt{background:#FFFFFF;color:var(--navy)}
+/* ============================================================
+   v2.147.0 · Agenda: «Tu día» sin citas, en una línea
+   ============================================================ */
+#agcuerpo > .vacio.vlinea{flex-direction:row;justify-content:center;align-items:center;gap:10px;padding:14px 16px 18px;font-size:14px;text-align:left}
+#agcuerpo > .vacio.vlinea::before{width:30px;height:30px;flex:none}
+#agcuerpo .tdhead .tdstats.hide{display:none!important}
 </style>
 </head>
 <body>
@@ -3028,6 +3034,6 @@ label.chk > span{display:flex;flex-direction:column;gap:3px;min-width:0;line-hei
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.146.0"></script>
+<script src="./app.js?v=2.147.0"></script>
 </body>
 </html>

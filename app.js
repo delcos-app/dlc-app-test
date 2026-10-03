@@ -18096,3 +18096,16 @@ function agMarcarDia() {
   caja.classList.add('agtitdia');
 }
 cargarAgenda = (orig => async function (...a) { const r = await orig.apply(this, a); agMarcarDia(); return r; })(cargarAgenda);
+
+/* v2.147.0 · Agenda: «Tu día» sin citas (petición de Eric). Sin contadores a cero; en un día pasado, «No tuviste citas este día.» (no se
+   puede añadir nada); el mensaje, compacto: icono y frase en una línea, centrado. */
+function agDiaVacio() {
+  const c = $('agcuerpo'); if (!c || TAB !== 'agenda') return;
+  const v = c.querySelector(':scope > .vacio'), st = c.querySelector('.tdhead .tdstats');
+  const sinCitas = !!v && !c.querySelector('.tdlista');
+  if (st) st.classList.toggle('hide', sinCitas);
+  if (!v) return;
+  v.classList.add('vlinea');
+  if (AG_FECHA < hoyISO()) v.textContent = 'No tuviste citas este día.';
+}
+cargarAgenda = (orig => async function (...a) { const r = await orig.apply(this, a); agDiaVacio(); return r; })(cargarAgenda);
