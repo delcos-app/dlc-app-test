@@ -18746,7 +18746,7 @@ async function pintarErroresDelcos() {
       <button class="btn sec" id="egdesc">${svgIco(ICON_NOM.download)} Descargar</button></div>
     <div class="errlista">${l.map((x, i) => `<div class="errfila e-${x.tipo}">
         <div><b>${esc(nom[x.tipo] || x.tipo)}</b> <span class="sm">· ${esc(x.pantalla || '—')} · ${num(x.veces)} ${x.veces === 1 ? 'vez' : 'veces'} · ${num(x.personas)} ${x.personas === 1 ? 'persona' : 'personas'}
-          · última ${fecha(x.ultima)}${x.resuelto_en_version ? ' · resuelto en ' + esc(x.resuelto_en_version) : ''}</span>
+          · última ${fecha(x.ultima)}${x.resuelto_en_version ? (x.resuelto_auto ? ' · resuelto solo en ' : ' · resuelto en ') + esc(x.resuelto_en_version) : ''}</span>
           <div class="errmsg">${esc(x.mensaje)}</div>
           <details class="errdet"><summary class="sm">Versiones y detalle técnico</summary><div class="sm">Versiones: ${esc(x.versiones || '—')} · primera ${fecha(x.primera)}</div>
             <pre>${esc(JSON.stringify(x.detalle || {}, null, 1))}</pre></details></div>
@@ -18783,3 +18783,16 @@ async function escribirRpc(fn, payload) {
   }
   return r;
 }
+
+/* v2.161.0 · Los errores corregidos se dan por resueltos solos (petición de Eric, 3/10/2026). Al abrirse, la app avisa una vez de su
+   versión (version_en_uso, SQL 101): así se sabe desde cuándo se usa cada versión en cada empresa, y los errores que no han vuelto a
+   salir con una versión más nueva en 2 días quedan resueltos solos (si vuelven en esa versión o en otra posterior, se reabren). */
+(function avisarVersionEnUso() {
+  let intentos = 0;
+  const t = setInterval(() => {
+    if (typeof PERFIL !== 'undefined' && PERFIL && !document.body.classList.contains('sin-sesion') && typeof RPC_ORIG === 'function') {
+      clearInterval(t);
+      Promise.resolve(RPC_ORIG('version_en_uso', { p_version: VERSION_APP })).then(() => {}, () => {});
+    } else if (++intentos > 90) clearInterval(t);
+  }, 2000);
+})();
