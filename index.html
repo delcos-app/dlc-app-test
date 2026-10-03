@@ -2926,6 +2926,27 @@ label.chk > span{display:flex;flex-direction:column;gap:3px;min-width:0;line-hei
 .anpers .anpf{display:flex;align-items:center;gap:12px;padding:8px 0;border-top:1px solid var(--line);cursor:pointer}
 .anpers .anpf .tx{flex:1;display:flex;flex-direction:column;min-width:0}
 @media(max-width:620px){.ankgrid{grid-template-columns:1fr 1fr;gap:8px}.ankpi{padding:10px 12px}.ankval{font-size:20px}.ankdel .sm{display:block}}
+/* ============================================================
+   v2.149.0 · Rutas: propuestas como tarjeta con croquis
+   ============================================================ */
+/* Rutas · propuestas como tarjeta con croquis (opción A elegida por Eric): croquis grande en azul a la izquierda, número y zona como
+   título y los tres botones en columna a la derecha; en el móvil, croquis arriba y botones en una fila sin partir el texto */
+.rprop{grid-template-columns:176px minmax(0,1fr) 168px;grid-template-areas:"croq tx acts" "lista lista lista";align-items:center;column-gap:20px;padding:18px}
+.rpcroq{width:176px;height:118px;background:var(--sky-soft);border-radius:14px;align-self:center}
+.rpcroq svg{width:100%;height:100%}
+.rpcroq polyline{stroke:#3F82C0;stroke-opacity:1;stroke-width:2.5}
+.rpzona{display:flex;align-items:center;gap:10px;font:800 18px var(--f-titulo);color:var(--ink)}
+.rpnum{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--navy);color:#FFFFFF;font:800 13px var(--f-titulo)}
+.rptx > .sm:first-of-type{font-size:13.5px;color:var(--muted)}
+.rpacts{flex-direction:column;align-items:stretch;gap:6px;align-self:center}
+.rpacts .btn{width:100%;min-height:38px;justify-content:center}
+@media (max-width:1099px){.rprop{grid-template-columns:150px minmax(0,1fr);grid-template-areas:"croq tx" "acts acts" "lista lista"}.rpcroq{width:150px;height:104px}.rpacts{flex-direction:row}.rpacts .btn{flex:1 1 0;width:auto}}
+@media (max-width:760px){
+  .rprop{grid-template-columns:1fr;grid-template-areas:"croq" "tx" "acts" "lista";padding:16px}
+  .rpcroq{width:100%;height:110px}
+  .rpacts{flex-direction:row;gap:6px}
+  .rpacts .btn{flex:1 1 0;min-width:0;padding:0 6px;font-size:13px;white-space:nowrap}
+}
 </style>
 </head>
 <body>
@@ -3062,6 +3083,6 @@ label.chk > span{display:flex;flex-direction:column;gap:3px;min-width:0;line-hei
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.148.0"></script>
+<script src="./app.js?v=2.149.0"></script>
 </body>
 </html>
