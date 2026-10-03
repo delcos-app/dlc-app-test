@@ -2877,6 +2877,21 @@ label.chk > span{display:flex;flex-direction:column;gap:3px;min-width:0;line-hei
   .rpcroq{justify-self:stretch}
   .rpacts .btn{flex:1 1 auto}
 }
+/* ============================================================
+   v2.146.0 · Agenda: «Tu día» con el día elegido (opción C)
+   ============================================================ */
+/* Al pulsar un día de la semana o del mes, «Tu día» muestra ese día: título con la fecha y píldora «← Volver a hoy» al lado; el día
+   elegido, relleno en azul (opción C elegida por Eric). */
+#agcuerpo .tdhead > div:first-child.agtitdia{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}
+#agcuerpo .tdhead > div:first-child.agtitdia > .tdstats{flex:0 0 100%}
+#agahoy{min-height:30px;padding:0 12px 0 10px;font-size:12.5px;border-radius:999px;background:var(--sky-soft);border-color:transparent;color:var(--navy)}
+#agahoy::before{content:"←";margin-right:5px}
+#agahoy:hover{background:#D6E6F6}
+#agsemana .agsd.sel{background:var(--sky);border-color:var(--sky);opacity:1}
+#agsemana .agsd.sel .agsdh b,#agsemana .agsd.sel .agsdh span,#agsemana .agsd.sel .agsv,#agsemana .agsd.sel .agsmas{color:#FFFFFF}
+#agsemana .agsd.sel .agsc{box-shadow:0 0 0 1.5px #FFFFFF}
+#agmes .agmc.sel{background:var(--sky);color:#FFFFFF;opacity:1}
+#agmes .agmc.sel .agpt{background:#FFFFFF;color:var(--navy)}
 </style>
 </head>
 <body>
@@ -3013,6 +3028,6 @@ label.chk > span{display:flex;flex-direction:column;gap:3px;min-width:0;line-hei
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.145.0"></script>
+<script src="./app.js?v=2.146.0"></script>
 </body>
 </html>

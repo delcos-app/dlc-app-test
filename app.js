@@ -17658,7 +17658,7 @@ menuPersonalizar = function () {
    Al pulsar un día se ven sus citas ahí mismo (sin cambiar de pantalla). La semana detallada (arrastrar, planificar, bloquear días)
    sigue a un clic con «Planificar la semana», y vuelve con «Agenda de hoy». */
 const AG_DIAS_TXT = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
-const agUnida = () => TAB === 'agenda' && AG_MODO === 'dia' && AG_FECHA === hoyISO();
+const agUnida = () => TAB === 'agenda' && AG_MODO === 'dia';   // v2.146.0: también con otro día elegido (antes solo hoy)
 ir = (orig => function (t, ...a) {
   if (t === 'agenda' && IR_DESDE_MENU) { AG_MODO = 'dia'; AG_FECHA = hoyISO(); }   // la Agenda del menú abre siempre hoy
   return orig.call(this, t, ...a);
@@ -18064,3 +18064,35 @@ cargarRutasPaso2 = (orig => async function (...a) {
   }
   return r;
 })(cargarRutasPaso2);
+
+/* v2.146.0 · Agenda: al pulsar un día de la semana o del mes, «Tu día» pasa a ese día (petición de Eric: antes se abría un desplegable).
+   El título de «Tu día» es la fecha elegida y al lado está «Volver a hoy»; el día elegido queda marcado en la semana y en el mes.
+   Las cifras de arriba, la semana y el mes siguen siendo los de hoy. */
+agVerDia = function (f) {
+  document.querySelectorAll('.agpop').forEach(x => x.remove());
+  if (!f) return;
+  AG_MODO = 'dia'; AG_FECHA = f;
+  cargarAgenda().then(() => {
+    const c = $('agcuerpo'); if (!c) return;
+    const top = c.getBoundingClientRect().top;
+    if (top < 80 || top > innerHeight * 0.6) scrollTo({ top: scrollY + top - 90, behavior: 'smooth' });
+  });
+};
+function agMarcarDia() {
+  const v = $('v-agenda'); if (!v || !v.classList.contains('agunida')) return;
+  const hoy = hoyISO(), otro = AG_FECHA !== hoy;
+  v.querySelectorAll('#agsemmes [data-agdia].sel').forEach(x => x.classList.remove('sel'));
+  if (otro) v.querySelectorAll(`#agsemana .agsd[data-agdia="${AG_FECHA}"], #agmes .agmc[data-agdia="${AG_FECHA}"]`).forEach(x => x.classList.add('sel'));
+  if ($('agtit')) $('agtit').textContent = 'Hoy · ' + fechaLarga(new Date(hoy + 'T00:00:00'));
+  const h = v.querySelector('#agcuerpo .tdhead h2'); if (!h) return;
+  const caja = h.parentElement;
+  let b = $('agahoy');
+  if (!otro) { if (b) b.remove(); return; }
+  h.textContent = fechaLarga(new Date(AG_FECHA + 'T00:00:00')).replace(/^./, c => c.toUpperCase());
+  if (!b) {
+    h.insertAdjacentHTML('afterend', '<button type="button" class="btn sec" id="agahoy">Volver a hoy</button>');
+    b = $('agahoy'); b.onclick = () => agVerDia(hoyISO());
+  }
+  caja.classList.add('agtitdia');
+}
+cargarAgenda = (orig => async function (...a) { const r = await orig.apply(this, a); agMarcarDia(); return r; })(cargarAgenda);
