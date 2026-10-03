@@ -2707,19 +2707,19 @@ label.chk > span{display:flex;flex-direction:column;gap:3px;min-width:0;line-hei
 #operativa .opgrid{padding:0 18px 16px;gap:10px}
 #operativa > .sm{padding:0 18px 14px!important}
 /* Indicadores de Pedidos: una franja fina de cifras encima de la tabla (antes seis tarjetas grandes empujaban la tabla hacia abajo) */
-#ptotales.kpis{display:flex!important;flex-wrap:wrap;gap:0;margin:0;padding:10px 16px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:var(--hielo)}
-#ptotales.kpis > .kpi{display:flex!important;align-items:baseline;gap:6px;min-height:0;height:auto;margin:0;padding:2px 16px!important;border:0;border-left:1px solid var(--line);border-radius:0;
+:is(#ptotales,#lltot,#vcuerpo > .panel > .kpis.vtot:not([id])).kpis{display:flex!important;flex-wrap:wrap;gap:0;margin:0;padding:10px 16px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:var(--hielo)}
+:is(#ptotales,#lltot,#vcuerpo > .panel > .kpis.vtot:not([id])).kpis > .kpi{display:flex!important;align-items:baseline;gap:6px;min-height:0;height:auto;margin:0;padding:2px 16px!important;border:0;border-left:1px solid var(--line);border-radius:0;
   background:none;box-shadow:none;transform:none}
-#ptotales.kpis > .kpi:first-child{padding-left:0!important;border-left:0}
-#ptotales.kpis > .kpi:hover{transform:none;box-shadow:none}
-#ptotales.kpis > .kpi > b{font:800 16px var(--f-titulo);color:var(--ink);margin:0}
-#ptotales.kpis > .kpi.ok > b{color:var(--ok)}
-#ptotales.kpis > .kpi > span{font-size:12.5px;color:var(--muted);margin:0}
-#ptotales.kpis > .kpi .ai,#ptotales.kpis > .kpi .kico{display:none}
+:is(#ptotales,#lltot,#vcuerpo > .panel > .kpis.vtot:not([id])).kpis > .kpi:first-child{padding-left:0!important;border-left:0}
+:is(#ptotales,#lltot,#vcuerpo > .panel > .kpis.vtot:not([id])).kpis > .kpi:hover{transform:none;box-shadow:none}
+:is(#ptotales,#lltot,#vcuerpo > .panel > .kpis.vtot:not([id])).kpis > .kpi > b{font:800 16px var(--f-titulo);color:var(--ink);margin:0}
+:is(#ptotales,#lltot,#vcuerpo > .panel > .kpis.vtot:not([id])).kpis > .kpi.ok > b{color:var(--ok)}
+:is(#ptotales,#lltot,#vcuerpo > .panel > .kpis.vtot:not([id])).kpis > .kpi > span{font-size:12.5px;color:var(--muted);margin:0}
+:is(#ptotales,#lltot,#vcuerpo > .panel > .kpis.vtot:not([id])).kpis > .kpi .ai,:is(#ptotales,#lltot,#vcuerpo > .panel > .kpis.vtot:not([id])).kpis > .kpi .kico{display:none}
 @media (max-width:760px){
-  #ptotales.kpis{padding:8px 12px;row-gap:6px}
-  #ptotales.kpis > .kpi{flex:1 1 45%;padding:2px 10px;border-left:0}
-  #ptotales.kpis > .kpi:first-child{padding-left:10px!important}
+  :is(#ptotales,#lltot,#vcuerpo > .panel > .kpis.vtot:not([id])).kpis{padding:8px 12px;row-gap:6px}
+  :is(#ptotales,#lltot,#vcuerpo > .panel > .kpis.vtot:not([id])).kpis > .kpi{flex:1 1 45%;padding:2px 10px;border-left:0}
+  :is(#ptotales,#lltot,#vcuerpo > .panel > .kpis.vtot:not([id])).kpis > .kpi:first-child{padding-left:10px!important}
 }
 /* Roles y permisos: las dos tablas una debajo de la otra, a todo el ancho y con el mismo aspecto (lado a lado se cortaban las
    columnas de los roles y los desplegables, y la página se desplazaba hacia los lados) */
@@ -2733,6 +2733,14 @@ label.chk > span{display:flex;flex-direction:column;gap:3px;min-width:0;line-hei
    parecía cargarse desordenada); son barras neutras hasta que llega cada bloque */
 #v-inicio .cols .card:has(> .skel) > h2{width:38%;height:14px;margin:2px 0 14px;border-radius:6px;background:#E8EEF5;color:transparent!important;overflow:hidden}
 #v-inicio .cols .card:has(> .skel) > h2 *{display:none}
+/* ============================================================
+   v2.142.0 · Filtros en la cabecera también en el móvil
+   ============================================================ */
+/* En el móvil los botones de la cabecera bajan de línea si no caben (antes se desplazaban de lado y «Filtros y columnas» quedaba
+   cortado en Stock y lotes); los indicadores de Compras y Oportunidades usan la misma franja fina que Pedidos (v2.141.0) */
+@media (max-width:899px){
+  .saludo .acts.chips.htacts{flex-wrap:wrap;overflow:visible;row-gap:8px}
+}
 </style>
 </head>
 <body>
@@ -2869,6 +2877,6 @@ label.chk > span{display:flex;flex-direction:column;gap:3px;min-width:0;line-hei
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.141.0"></script>
+<script src="./app.js?v=2.142.0"></script>
 </body>
 </html>

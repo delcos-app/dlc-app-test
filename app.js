@@ -17501,8 +17501,7 @@ ordenarBotones = function (sec) {
 };
 const BARRA_TABLA_V257 = barraTabla;
 barraTabla = function (sec) {
-  // En el móvil sigue en la barra de la tabla, como hasta ahora (la cabecera del móvil no tiene sitio a la derecha)
-  if (innerWidth < 900) return BARRA_TABLA_V257(sec);
+  // v2.142.0: también en el móvil (antes quedaba una fila casi vacía solo para el botón en Compras, Proveedores, Productos…)
   const b = sec.querySelector('.htbtn'), sal = sec.querySelector('.saludo');
   if (b && sal) {
     let acts = sal.querySelector(':scope > .acts');
@@ -17514,8 +17513,8 @@ barraTabla = function (sec) {
       else if (antes && antes.classList.contains('conbtn')) antes.classList.remove('conbtn');
     }
   }
-  // Prescriptores: su «Filtros y columnas» (#dirtools) también va junto a «Crear nuevo»
-  const dt = sec.id === 'v-directorio' && $('dirtools'), dacts = document.querySelector('#dircab .acts');
+  // Prescriptores: su «Filtros y columnas» (#dirtools) también va junto a «Crear nuevo» (en el móvil se queda junto a «Cerca de mí»)
+  const dt = sec.id === 'v-directorio' && innerWidth >= 900 && $('dirtools'), dacts = document.querySelector('#dircab .acts');
   if (dt && dacts && dt.parentElement !== dacts) {
     dt.classList.remove('aderecha');
     // La ayuda «i» de la barra se pone delante de #dirtools si no hay ya una: un hueco oculto evita que aparezca en la cabecera
