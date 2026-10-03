@@ -6362,6 +6362,7 @@ async function pintarAuditoria() {
     const r = $('audper').__rango();
     const { data } = await RPC_ORIG('auditoria_lista', { p_entidad: $('aent').value || null, p_usuario: $('ausr').value || null,
       p_desde: r.desde, lim: 500 });
+    if (!$('audn') || !$('audlista')) return;   // v2.160.0: se cambió de pestaña mientras cargaba (error del registro de pruebas)
     const l = (data || []).filter(a => !r.hasta || String(a.creado_en).slice(0, 10) <= r.hasta);
     $('audn').textContent = num(l.length) + (l.length === 500 ? '+' : '');
     $('audlista').innerHTML = l.map(a => `<div class="item" style="cursor:default">
