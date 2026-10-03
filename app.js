@@ -18613,3 +18613,7 @@ irEnlace = (orig => function (e) {
   if (t === 'cita') { AG_MODO = 'dia'; AG_FECHA = hoyISO(); return ir('agenda'); }
   return orig(e);
 })(irEnlace);
+
+// v2.154.0 · Iconos del menú «Más» del móvil (y de «Tus módulos» en Mi perfil): las secciones añadidas después (Oportunidades, Compras,
+// Proveedores, Usuarios y roles, Panel delcos) no llegaban a ICO_MOD y salían con un punto
+Object.keys(ICO_NAV).forEach(k => { if (ICON_NOM[ICO_NAV[k]]) ICO_MOD[k] = svgIco(ICON_NOM[ICO_NAV[k]]); });
