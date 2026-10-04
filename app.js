@@ -11141,7 +11141,8 @@ function aplicarMarca() {
 }
 aplicarMarca();
 // v2.103.0: la marca del dominio desde el que se abre (con varias empresas, cada una la suya)
-Promise.resolve(RPC_ORIG('marca_publica', { p_dominio: location.hostname })).then(r => {
+// v2.170.0: quien vuelve de darse de alta (?alta=ok) ve la marca de delcos, aunque la dirección sea la de otra empresa
+Promise.resolve(RPC_ORIG('marca_publica', { p_dominio: /[?&]alta=ok/.test(location.search) ? null : location.hostname })).then(r => {
   if (r && r.data) { MARCA = Object.assign({}, MARCA, r.data); try { localStorage.setItem('app-marca', JSON.stringify(MARCA)); } catch (e) {} aplicarMarca(); }
 }, () => {});
 // El logo de la empresa también en las facturas
