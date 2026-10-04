@@ -1256,7 +1256,10 @@ function km(a, b) {
   const s = Math.sin(dLat / 2) ** 2 + Math.cos(a[0] * r) * Math.cos(b[0] * r) * Math.sin(dLon / 2) ** 2;
   return 2 * R * Math.asin(Math.sqrt(s));
 }
-const minutosEntre = (a, b) => (!a || !b || a[0] == null || b[0] == null) ? 0 : Math.max(6, Math.round(km(a, b) / 40 * 60) + 5);
+// v2.175.0 (decisión de Eric: autopista a 120 km/h): los primeros 30 km en línea recta a 40 km/h (ciudad) y lo que pase de 30 km a 100 km/h en línea
+// recta (la carretera es ~1,2 veces más larga: unos 120 km/h por autopista); antes, todo a 40
+const minutosEntre = (a, b) => { if (!a || !b || a[0] == null || b[0] == null) return 0; const d = km(a, b);
+  return Math.max(6, Math.round(Math.min(d, 30) / 40 * 60 + Math.max(d - 30, 0) / 100 * 60) + 5); };
 const hm = m => String(Math.floor(m / 60) % 24).padStart(2, '0') + ':' + String(Math.round(m) % 60).padStart(2, '0');
 
 async function planificar(rutaId, btn) {
@@ -19930,3 +19933,72 @@ pintarTuDia = (orig => async function (...a) {
   } catch (e) {}
   return r;
 })(pintarTuDia);
+
+/* v2.175.0 · Con pago anual, la tarjeta de la cuota enseña lo que se cobra (repaso de Web delcos): «2950 € · Al año, sin IVA · 3569,50 € con IVA»,
+   igual que el aviso del recibo (antes, el equivalente mensual). */
+pintarProximoRecibo = (orig => function (...a) {
+  const c = $('cfgcuerpo'), pl = PLAN_ACTUAL || {};
+  if (c && pl.pago === 'anual' && pl.plan !== 'medida') c.querySelectorAll('#planact .kpi').forEach(k => {
+    const sp = k.querySelector(':scope > span'), b = k.querySelector(':scope > b');
+    if (!sp || !b || sp.textContent.trim() !== 'Al mes, sin IVA') return;
+    const p = planDe(pl.plan), base = Math.max(+pl.usuarios || 0, p.minimo || 3) * p.precio * 10;
+    b.textContent = eurW(base); sp.textContent = 'Al año, sin IVA';
+    const iv = k.querySelector('.kpiiva'); if (iv) iv.remove();
+    k.insertAdjacentHTML('beforeend', `<span class="sm kpiiva">${eurW(base + ivaDe(base))} con IVA</span>`);
+  });
+  return orig.apply(this, a);
+})(pintarProximoRecibo);
+
+/* v2.175.0 · Avisos de «Tu día» que ayudan (aviso de Eric: «Llegarías hacia las 06:26 y la cita es a las 10:30» preparando el lunes). Si con el orden
+   actual el día no cabe en la jornada (acaba después de la hora de vuelta o, sin ella, de las 21:00), un solo aviso arriba dice qué hacer («Ordenar
+   por cercanía» o pasar citas a otro día) y se quitan los avisos sueltos de hora y horario, que en ese caso no dicen nada útil; las horas estimadas
+   que caen fuera de la jornada salen como «—». Los de ubicación lejana se quedan. Y en el móvil, volver a pulsar «⋯» cierra su menú. */
+pintarTuDia = (orig => async function (...a) {
+  const r = await orig.apply(this, a);
+  try {
+    const lista = document.querySelector('#agcuerpo .tdlista'), e = lista && TD_CITAS ? estimarDia(TD_CITAS, AG_FECHA) : null;
+    const viejo = $('tdnocabe'); if (viejo) viejo.remove();
+    if (!lista || !e || AG_FECHA < hoyISO()) return r;
+    const limite = isFinite(e.tope) ? e.tope : 21 * 60;
+    const conAviso = Object.values(TD_INFO).filter(i => i.aviso && !i.lejos).length;
+    if (!(e.fin > limite) && conAviso < 3) return r;
+    const noCabe = e.fin > limite;
+    const fuera = Object.values(TD_INFO).filter(i => i.llegada != null && i.llegada >= limite).length;
+    const finTxt = e.fin >= 24 * 60 ? `pasada la medianoche (hacia las ${hm(e.fin)} del día siguiente)` : `hacia las ${hm(e.fin)}`;
+    lista.classList.add('tdnocabe');
+    lista.insertAdjacentHTML('beforebegin', `<div class="banda-aviso" id="tdnocabe">${noCabe ? `<b>Este día no cabe en una jornada.</b> Con este orden acabarías ${finTxt}${fuera ? ` y ${fuera === 1 ? 'una cita queda' : fuera + ' citas quedan'} fuera de la jornada` : ''}.` : `<b>El orden de las citas no encaja con sus horas:</b> ${conAviso} no llegan a su hora o a su horario de consulta.`}
+      Antes de mirar cada cita: ${$('tdordenar') ? '<button type="button" class="btn sec" id="tdnocord">Ordenar por cercanía</button> o ' : ''}pasa a otro día las citas de la zona más lejana (⋯ → Aplazar).</div>`);
+    if ($('tdnocord')) $('tdnocord').onclick = () => $('tdordenar') && $('tdordenar').click();
+    lista.querySelectorAll('.tdit').forEach(it => {
+      const id = (it.querySelector('[data-td]') || { dataset: {} }).dataset.td, k = id ? id.split('|')[1] : null, inf = k && TD_INFO[k];
+      if (!inf) return;
+      const av = it.querySelector('.tdaviso'); if (av && !inf.lejos) av.remove();
+      const h = it.querySelector('.tdh'); if (h && /^~/.test(h.textContent) && inf.llegada >= limite) { h.textContent = '—'; h.title = 'Con este orden, fuera de la jornada'; }
+    });
+  } catch (err) {}
+  return r;
+})(pintarTuDia);
+// Cita con hora fija que el orden deja tarde: el aviso dice qué hacer, y la «i» habla del orden (no del horario de consulta)
+estimarDiaBase = (orig => function (citas, fecha) {
+  const r = orig.call(this, citas, fecha);
+  Object.values(TD_INFO).forEach(i => { if (i.aviso && /^Llegarías hacia/.test(i.aviso) && !/súbela/.test(i.aviso)) { i.orden = true; i.aviso += ': súbela en la lista u ordena por cercanía'; } });
+  return r;
+})(estimarDiaBase);
+explicarAviso = (orig => function (inf) {
+  if (inf.orden && !inf.lejos) return 'La cita tiene hora fija, pero está colocada después de otras sin hora: siguiendo el orden de la lista no llegarías a tiempo. Súbela con las flechas hasta su sitio o pulsa «Ordenar por cercanía», que respeta las horas fijas. Es solo un aviso: la cita se guarda igual.';
+  return orig.call(this, inf);
+})(explicarAviso);
+// «⋯»: pulsar el mismo botón con su menú abierto lo cierra (antes lo volvía a abrir)
+let TDM_BOTON = null;
+document.addEventListener('click', e => {
+  const b = e.target.closest('button'), m = document.querySelector('.tdmenu');
+  if (b && m && m.__de === b) { m.remove(); e.stopImmediatePropagation(); e.preventDefault(); return; }
+  TDM_BOTON = b;
+}, true);
+new MutationObserver(ms => ms.forEach(x => x.addedNodes.forEach(n => { if (n.classList && n.classList.contains('tdmenu')) n.__de = TDM_BOTON; })))
+  .observe(document.body, { childList: true });
+// Hora y fecha en el móvil (aviso de Eric: «se abre el propio y el nativo»): en pantallas táctiles el toque lo recoge el envoltorio (.selw), que abre el
+// selector de delcos, y el campo no toma el foco (iOS abría su rueda al enfocarlo, también al abrirse una ventana con el campo dentro)
+document.addEventListener('focusin', e => {
+  if (e.target && e.target.matches && e.target.matches('.selw input') && window.matchMedia && matchMedia('(pointer: coarse)').matches) e.target.blur();
+}, true);
