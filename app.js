@@ -19828,3 +19828,105 @@ function pintarProximoRecibo() {
   el.dataset.origen = s && s.total != null ? 'stripe' : 'calculo';
 }
 pintarPaginaPlan = (orig => async function (...a) { const r = await orig.apply(this, a); try { pintarProximoRecibo(); } catch (e) {} return r; })(pintarPaginaPlan);
+
+/* v2.174.0 · Recibo con IVA como en la web (repaso de Web delcos): fecha larga («el 3 de noviembre»), importes enteros sin decimales (490 €), sin la
+   línea «Próximo recibo el …» que repetía la fecha y, bajo la cuota «Al mes, sin IVA», lo mismo con IVA. */
+const eurW = n => { const s = eur(n); return Math.round(+n * 100) % 100 === 0 ? s.replace(/,00(?=\s?€)/, '') : s; };
+const fechaDiaMes = f => f ? new Date(String(f).slice(0, 10) + 'T12:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'long' }) : '';
+pintarProximoRecibo = function () {
+  const c = $('cfgcuerpo'), pl = PLAN_ACTUAL || {}, h = c && c.querySelector('#planact h2');
+  if (!h) return;
+  // La cuota del plan, también con IVA
+  c.querySelectorAll('#planact .kpi').forEach(k => {
+    const sp = k.querySelector(':scope > span'), b = k.querySelector(':scope > b');
+    if (!sp || !b || sp.textContent.trim() !== 'Al mes, sin IVA' || k.querySelector('.kpiiva')) return;
+    const v = parseFloat(b.textContent.replace(/[^\d,]/g, '').replace(',', '.'));
+    if (v > 0) k.insertAdjacentHTML('beforeend', `<span class="sm kpiiva">${eurW(v + ivaDe(v))} con IVA</span>`);
+  });
+  if (!pl.stripe_suscripcion || pl.plan === 'medida' || pl.baja_al_final || pl.estado === 'cancelada') return;
+  const k = reciboCalculado(pl), s = PAGO_PROXIMO;
+  const fecha = (s && s.fecha) || pl.periodo_fin, total = s && s.total != null ? s.total : k.primero;
+  const cada = k.anual ? 'al año' : 'al mes';
+  const txt = pl.en_prueba
+    ? `Hoy no pagas nada. El <b>${fechaDiaMes(fecha)}</b> llega el primer recibo: <b>${eurW(total)} con IVA</b>${k.puesta ? `, que incluye la puesta en marcha (${eurW(k.puesta)} + IVA, una sola vez)` : k.anual ? ' (la puesta en marcha va incluida)' : ''}.
+       Después, ${eurW(k.despues)} ${cada} con IVA. Si te das de baja antes, no pagas nada.`
+    : `Próximo recibo: <b>${eurW(total)} con IVA</b>${fecha ? `, el <b>${fechaDiaMes(fecha)}</b>` : ''}.`;
+  let el = $('pgrecibo');
+  if (!el) {
+    const prueba = $('pgprueba');
+    if (prueba) { prueba.id = 'pgrecibo'; el = prueba; } else { h.insertAdjacentHTML('afterend', '<div class="banda-info" id="pgrecibo"></div>'); el = $('pgrecibo'); }
+  }
+  el.innerHTML = txt;
+  el.dataset.origen = s && s.total != null ? 'stripe' : 'calculo';
+  // La fecha ya la dice el aviso: fuera la línea suelta «Próximo recibo el …»
+  c.querySelectorAll('#planact > p.sm').forEach(p => { if (/^Próximo recibo el /.test(p.textContent.trim())) p.remove(); });
+};
+
+/* v2.174.0 · Agenda (avisos de Eric, gestionando el lunes desde el domingo):
+   - «Añadir a mi agenda» de la ficha propone el día que se está viendo en la Agenda (antes, siempre hoy) y la cita aparece al momento (antes solo
+     se refrescaba Inicio y había que pulsar F5).
+   - El aviso naranja de «Tu día» explica por qué sale: el horario de consulta de la ficha, la hora a la que llegarías y cómo quitarlo (al pasar el
+     ratón y con la «i»). Si una parada queda a más de 4 h de la anterior, el aviso dice que revises su ubicación (una dirección mal situada lo
+     descuadra todo), y un fin estimado pasada la medianoche ya no sale como «06:27». */
+document.addEventListener('click', async e => {
+  const b = e.target.closest('[data-agendar]');
+  if (!b) return;
+  e.stopImmediatePropagation(); e.preventDefault();
+  const dia = TAB === 'agenda' && AG_FECHA && AG_FECHA >= hoyISO() ? AG_FECHA : hoyISO();
+  const f = await pedirFecha('¿Qué día quieres visitarle?', dia, { titulo: 'Añadir a mi agenda', ok: 'Añadir' });
+  if (!f) return;
+  const r = await escribir('guardar_cita', { p: {
+    cuenta_id: b.dataset.agendar, fecha: f, estado: 'Planificada', origen: 'Ficha',
+    op_id: 'c-' + b.dataset.agendar + '-' + f
+  }});
+  if (r.error) { toast('No se ha podido: ' + r.error.message, true); return; }
+  toast('Añadido a tu agenda el ' + fechaDiaMes(f));
+  if (TAB === 'agenda') cargarAgenda();
+  cargarInicio();
+}, true);
+
+let EST_ULT = null;
+estimarDiaBase = (orig => function (citas, fecha) {
+  const r = orig.call(this, citas, fecha);
+  try {
+    const sal = salidaUsuario();
+    let pos = sal && sal.lat != null ? [+sal.lat, +sal.lon] : null;
+    (citas || []).forEach(c => {
+      const xy = xyCita(c), inf = TD_INFO[c.id];
+      if (inf) { inf.llegada = r.est[c.id]; inf.fecha = fecha; }
+      if (xy && pos && inf && CITA_ABIERTA.includes(c.estado) && minutosEntre(pos, xy) > 240)
+        inf.lejos = Math.round(km(pos, xy));
+      if (xy) pos = xy;
+    });
+  } catch (e) {}
+  EST_ULT = r;
+  return r;
+})(estimarDiaBase);
+const DIA_NOMBRE = f => new Date(String(f).slice(0, 10) + 'T12:00:00').toLocaleDateString('es-ES', { weekday: 'long' });
+function explicarAviso(inf) {
+  const quien = TT('medico', 's', 'el', 'l', 'l');
+  if (inf.lejos) return `Esta parada queda a unos ${num(inf.lejos)} km de la anterior (o de tu punto de salida), así que la hora estimada se va muy tarde. Suele ser una dirección mal situada: revisa la ubicación en su ficha o tu punto de salida en Mi perfil.`;
+  const v = inf.ventanas && inf.ventanas.length ? txtVentanas(inf.ventanas) : '';
+  const dia = inf.fecha ? DIA_NOMBRE(inf.fecha) : 'ese día';
+  if (inf.ventanas && !inf.ventanas.length) return `Según su ficha, ${quien} no pasa consulta los ${dia}. Si sí pasa, añade ese día en «Horario de consulta» de su ficha.`;
+  return `Según su ficha, ${quien} pasa consulta los ${dia} de ${v}${inf.llegada != null ? `, y siguiendo el orden de tu día llegarías hacia las ${hm(inf.llegada)}` : ''}. Para quitar el aviso: pon una hora a la cita, cámbiala de orden o corrige el horario en su ficha. Es solo un aviso: la cita se guarda igual.`;
+}
+pintarTuDia = (orig => async function (...a) {
+  const r = await orig.apply(this, a);
+  try {
+    document.querySelectorAll('.tdlista .tdit').forEach(it => {
+      const av = it.querySelector('.tdaviso'); if (!av || av.dataset.expl) return;
+      const id = (it.querySelector('[data-td]') || { dataset: {} }).dataset.td; const k = id ? id.split('|')[1] : null;
+      const inf = k && TD_INFO[k]; if (!inf) return;
+      if (inf.lejos) av.textContent = `Ubicación a ${num(inf.lejos)} km de la parada anterior: revisa la dirección`;
+      const t = explicarAviso(inf);
+      av.dataset.expl = '1'; av.title = t;
+      av.insertAdjacentHTML('beforeend', ` <button type="button" class="tdavi" aria-label="Por qué sale este aviso">i</button>`);
+      av.querySelector('.tdavi').onclick = ev => { ev.stopPropagation(); appVentana({ titulo: 'Por qué sale este aviso', msg: t, ok: 'Entendido', cancel: false }); };
+    });
+    if (EST_ULT && EST_ULT.fin >= 24 * 60) document.querySelectorAll('#agcuerpo .tdstats span, .tdstats span').forEach(s => {
+      if (/^Fin estimado/.test(s.textContent.trim()) && !s.dataset.dia) { s.dataset.dia = '1'; s.insertAdjacentHTML('beforeend', ' <span class="sm">(día siguiente: revisa los avisos)</span>'); }
+    });
+  } catch (e) {}
+  return r;
+})(pintarTuDia);

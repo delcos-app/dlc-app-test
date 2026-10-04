@@ -3114,6 +3114,9 @@ html.cambiando-org #bootsplash,html.cambiando-org #bootsplash.hide{display:grid!
 @keyframes tdmovida{0%,35%{background:color-mix(in srgb,#3F82C0 14%,transparent);box-shadow:inset 3px 0 0 #3F82C0}100%{background:transparent;box-shadow:inset 3px 0 0 transparent}}
 @media (prefers-reduced-motion:reduce){.tdlista .tdit.tdmovida{animation:none}}
 @media (max-width:760px){.pdtabla thead{display:none}.pdtabla tr{display:block;border-bottom:1px solid var(--line);padding:8px 0}.pdtabla td{display:block;border:0;padding:3px 0}.pdtabla td.num{text-align:left}}
+/* v2.174.0 · cuota con IVA bajo «Al mes, sin IVA» */
+#planact .kpi .kpiiva{display:block;font-size:12.5px;color:var(--muted);margin-top:2px}
+.tdaviso{cursor:help}.tdavi{display:inline-grid;place-items:center;width:18px;height:18px;margin-left:4px;padding:0;border-radius:50%;border:1px solid currentColor;background:transparent;color:inherit;font:600 11px/1 Manrope,sans-serif;cursor:pointer;vertical-align:middle}
 </style>
 </head>
 <body>
@@ -3252,6 +3255,6 @@ try{var co=sessionStorage.getItem('dlc-cambio-org');if(co!==null||localStorage.g
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.173.0"></script>
+<script src="./app.js?v=2.174.0"></script>
 </body>
 </html>
