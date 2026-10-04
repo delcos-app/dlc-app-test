@@ -15446,7 +15446,7 @@ async function pintarOrganizaciones() {
       <button class="btn" id="orgnueva">+ Nueva organización</button></div>
     ${error ? `<div class="vacio">No se han podido cargar: ${esc(error.message)}</div>` : `<div class="lista">${l.map(o => `<div class="item" style="cursor:default">
       <span class="tx"><b>${esc(o.nombre)}</b>${orgEstado(o)}<span class="sm">${esc(o.nif || 'Sin NIF')} · ${esc(orgPlanTxt(o))}${((o.plan_datos || {}).extras || []).length ? ' + ' + o.plan_datos.extras.map(extraNombre).join(', ') : ''} · ${num(o.usuarios)} usuarios · ${num(o.cuentas)} cuentas${o.pendiente ? ' · pendiente de registro: ' + esc(o.pendiente) : ''}</span>
-        <span class="sm">${(o.dominios || []).length ? 'Dominios: ' + o.dominios.map(esc).join(', ') : 'Sin dominio propio: su pantalla de acceso muestra la marca principal'}</span></span>
+        <span class="sm">${(o.dominios || []).length ? 'Dominios: ' + o.dominios.map(esc).join(', ') : 'Sin dominio propio: su pantalla de acceso muestra la marca de delcos'}</span></span>
       <span class="acts" style="margin:0"><span class="sm">${o.creado_en ? fechaCorta(String(o.creado_en).slice(0, 10)) : ''}</span>
         <button class="btn sec" type="button" data-orgdom="${o.id}">Dominios</button>
         <button class="btn sec" type="button" data-orgext="${o.id}">Extras</button>
@@ -19493,3 +19493,78 @@ pagoAviso = (orig => function (...a) {
   $('pruebaver').onclick = () => ir('plan');
   return r;
 })(pagoAviso);
+
+/* v2.171.0 · Panel delcos fuera de las empresas (decisión de Eric, 4/10/2026). El equipo de delcos entra con su propio usuario, que vive en
+   la organización de plataforma (SQL 107); allí la app enseña SOLO el Panel delcos, con su menú: Clientes, Solicitudes, Errores, Accesos,
+   Auditoría, Equipo delcos y Plantilla (roles y catálogos que reciben las empresas nuevas). Para ayudar a una empresa, «Entrar» desde
+   Clientes (la app normal de esa empresa, con la franja «Estás viendo…») y «Salir» vuelve al panel. plan_uso dice si es la de plataforma. */
+let MODO_PLATAFORMA = false;
+const PANEL_SECCIONES = [['pd-orgs', 'orgs', 'Clientes', 'building-2'], ['pd-solicitudes', 'solicitudes', 'Solicitudes', 'mail'],
+  ['pd-errores', 'errores', 'Errores', 'bug'], ['pd-accesos', 'accesos', 'Accesos', 'lock-keyhole'], ['pd-auditoria', 'auditoria', 'Auditoría', 'history'],
+  ['pd-equipo', 'equipo', 'Equipo delcos', 'users'], ['pd-plantilla', 'plantilla', 'Plantilla', 'clipboard-list']];
+// Pestañas propias del panel en modo plataforma: el equipo (los usuarios de la de plataforma) y la plantilla de las empresas nuevas
+(() => {
+  const base = PAGINAS.delcos.tabs;
+  Object.defineProperty(PAGINAS.delcos, 'tabs', { configurable: true, get() {
+    return MODO_PLATAFORMA ? [...base, ['equipo', 'Equipo delcos', () => pintarUsuarios2()], ['plantilla', 'Plantilla', () => pintarPlantillaDelcos()]] : base;
+  } });
+})();
+async function pintarPlantillaDelcos(sub) {
+  const c = $('cfgcuerpo'); if (!c) return;
+  if (!sub) {
+    c.innerHTML = `<div class="card cfgpanel"><h2 style="padding:0 0 4px">Plantilla de las empresas nuevas</h2>
+      <p class="sm">Lo que recibe cada empresa al darse de alta (desde la web o desde Clientes). Cambiarlo aquí no toca a las empresas que ya existen.</p>
+      <div class="acts" style="justify-content:flex-start"><button type="button" class="btn sec" data-plsub="roles">Roles y permisos</button>
+        <button type="button" class="btn sec" data-plsub="cat">Catálogos y estados</button></div></div>`;
+    c.querySelectorAll('[data-plsub]').forEach(b => b.onclick = () => pintarPlantillaDelcos(b.dataset.plsub));
+    return;
+  }
+  // Los editores de siempre, sobre la organización de plataforma (que es la plantilla)
+  if (sub === 'roles') await pintarRoles(); else { c.innerHTML = ''; await pintarCatalogos(); }
+  const c2 = $('cfgcuerpo'); if (!c2 || $('plaviso')) return;
+  c2.insertAdjacentHTML('afterbegin', `<div class="banda-info" id="plaviso">Estás cambiando la <b>plantilla de las empresas nuevas</b>.
+    <button type="button" class="btn sec" id="plvolver">Volver a la plantilla</button></div>`);
+  $('plvolver').onclick = () => pintarPlantillaDelcos();
+}
+// Menú: en modo plataforma, solo las secciones del panel (como botones del menú de siempre, ocultos fuera de él)
+(() => {
+  const nav = $('nav'); if (!nav) return;
+  PANEL_SECCIONES.forEach(([t, , txt, ico]) => {
+    if (!nav.querySelector(`[data-t="${t}"]`)) nav.insertAdjacentHTML('beforeend', `<button data-t="${t}" aria-selected="false" class="hide pdsec">${esc(txt)}</button>`);
+    ICO_NAV[t] = ico;
+  });
+  MENU_GRUPOS.push({ id: 'panel', t: 'Panel delcos', items: PANEL_SECCIONES.map(s => s[0]) });
+})();
+ir = (orig => function (t, ...a) {
+  const s = PANEL_SECCIONES.find(x => x[0] === t);
+  if (s) { PAG_TAB.delcos = s[1]; const r = orig.call(this, 'delcos', ...a); marcarPanel(); return r; }
+  // En modo plataforma no hay módulos de empresa: todo lleva al panel (salvo Configuración y el perfil)
+  if (MODO_PLATAFORMA && !['delcos', 'config', 'perfil', 'manual'].includes(t)) { const r = orig.call(this, 'delcos', ...a); marcarPanel(); return r; }
+  const r = orig.call(this, t, ...a); if (t === 'delcos') marcarPanel(); return r;
+})(ir);
+function marcarPanel() {
+  const tab = PAG_TAB.delcos || 'orgs';
+  document.querySelectorAll('nav.main [data-t]').forEach(b => { if (b.classList.contains('pdsec') || b.dataset.t === 'delcos') b.setAttribute('aria-selected', String(b.dataset.t === 'pd-' + tab)); });
+}
+function aplicarModoPlataforma() {
+  document.body.classList.toggle('modo-plataforma', MODO_PLATAFORMA);
+  document.querySelectorAll('#nav [data-t]').forEach(b => {
+    const pd = b.classList.contains('pdsec');
+    if (MODO_PLATAFORMA) b.classList.toggle('hide', !pd);
+    else if (pd) b.classList.add('hide');
+  });
+  if (MODO_PLATAFORMA) document.querySelectorAll('[data-u="organizacion"], [data-u="plan"], [data-u="empresa"]').forEach(b => b.classList.add('hide'));
+  try { MENU_FIRMA = ''; montarMenuLateral(); } catch (e) {}
+}
+aplicarPermisosMenu = (orig => function (...a) { const r = orig.apply(this, a); try { aplicarModoPlataforma(); } catch (e) {} return r; })(aplicarPermisosMenu);
+// Se sabe al entrar (plan_uso): en la de plataforma, a Clientes
+pagoCargarEstado = (orig => async function (...a) {
+  const antes = MODO_PLATAFORMA;
+  const r = await orig.apply(this, a);
+  MODO_PLATAFORMA = !!(PAGO_ESTADO && PAGO_ESTADO.plataforma);
+  if (MODO_PLATAFORMA !== antes) {
+    aplicarModoPlataforma();
+    if (MODO_PLATAFORMA && TAB !== 'delcos' && TAB !== 'config') ir('pd-orgs');
+  }
+  return r;
+})(pagoCargarEstado);
