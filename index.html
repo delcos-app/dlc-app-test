@@ -3070,6 +3070,14 @@ body.facsolo #pvemitir,body.facsolo #fvrect{display:none!important}
 .bienpaso .bienn{flex:none;width:28px;height:28px;border-radius:50%;background:var(--navy);color:#fff;display:grid;place-items:center;font-weight:700;font-family:Manrope,sans-serif}
 .bienpaso b{display:block}
 #pgprueba{margin:8px 0}
+/* v2.169.0 · Datos de facturación en Plan y suscripción y aviso del final de la prueba */
+#pgdatos{margin-top:14px}
+#pgdatos .pgdlista{display:grid;gap:0;margin:8px 0 4px}
+#pgdatos .pgdfila{display:flex;justify-content:space-between;gap:16px;padding:9px 0;border-top:1px solid var(--line);font-size:14.5px}
+#pgdatos .pgdfila span{color:var(--muted,#5B6B7F)}
+#pgdatos .pgdfila b{text-align:right;font-weight:600}
+#pgdatos .pgdfila.falta b{color:var(--warn,#B54708)}
+#pruebaaviso .btn{margin-left:8px}
 </style>
 </head>
 <body>
@@ -3206,6 +3214,6 @@ body.facsolo #pvemitir,body.facsolo #fvrect{display:none!important}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.168.0"></script>
+<script src="./app.js?v=2.169.0"></script>
 </body>
 </html>

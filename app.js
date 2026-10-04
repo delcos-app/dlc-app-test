@@ -19452,3 +19452,43 @@ pintarPaginaPlan = (orig => async function (...a) {
       hasta entonces no se cobra nada. Ese día se pasará el primer recibo, salvo que te des de baja antes.</div>`);
   return r;
 })(pintarPaginaPlan);
+
+/* v2.169.0 · Datos de facturación bien antes del primer recibo (petición de Eric: «¿quién garantiza que después de la prueba los datos están
+   bien?»). En «Plan y suscripción», con suscripción de Stripe, los datos con los que se factura (razón social, NIF, correo y dirección, de la
+   función «pagos», acción datos) y «Corregir datos» (portal de Stripe); lo que falta, marcado. Durante la prueba, en los 7 últimos días, aviso
+   arriba para revisarlos. El alta se hace en la web (www.delcos.app/empezar.html): el empezar.html del panel lleva allí. */
+const diasHasta = f => f ? Math.round((Date.parse(String(f).slice(0, 10)) - Date.parse(hoyISO())) / 864e5) : null;   // días de calendario
+pintarPaginaPlan = (orig => async function (...a) {
+  const r = await orig.apply(this, a);
+  const c = $('cfgcuerpo'), pl = PLAN_ACTUAL || {};
+  if (!c || !c.querySelector('#planact') || !pl.stripe_cliente || !puedeOrganizacion() || $('pgdatos')) return r;
+  c.querySelector('#planact').insertAdjacentHTML('afterend', `<div class="card cfgpanel" id="pgdatos"><h2 style="padding:0 0 4px">Datos de facturación</h2>
+    <p class="sm">Con estos datos se hacen tus recibos y facturas. ${pl.en_prueba ? `Revísalos antes del ${fechaCorta(pl.periodo_fin)}, cuando se pasa el primer recibo.` : ''}</p>
+    <div class="pgdlista"><div class="skel"></div></div>
+    <div class="acts"><button type="button" class="btn sec" id="pgdcorr">Corregir datos</button></div></div>`);
+  $('pgdcorr').onclick = ev => pagoPortal(ev.target);
+  // Sin avisos si falla (se ve «Falta» y se puede corregir igual)
+  const d = await db.functions.invoke('pagos', { body: { accion: 'datos' } }).then(x => x.data, () => null).catch(() => null);
+  const l = c.querySelector('#pgdatos .pgdlista'); if (!l) return r;
+  if (!d || !d.ok) { l.innerHTML = '<p class="sm">No se han podido leer ahora. Puedes verlos y cambiarlos con «Corregir datos».</p>'; return r; }
+  const x = d.datos || {};
+  const filas = [['Razón social', x.nombre], ['NIF o CIF', x.nif], ['Correo para los recibos', x.email], ['Dirección fiscal', x.direccion]];
+  const faltan = filas.filter(f => !f[1]).length;
+  l.innerHTML = filas.map(([k, v]) => `<div class="pgdfila${v ? '' : ' falta'}"><span>${esc(k)}</span><b>${v ? esc(v) : 'Falta'}</b></div>`).join('')
+    + (faltan ? `<div class="banda-aviso" style="margin-top:8px">Faltan datos para poder facturarte: complétalos con «Corregir datos».</div>` : '');
+  return r;
+})(pintarPaginaPlan);
+// En los 7 últimos días de la prueba, aviso arriba (no tapa los de impago o solo lectura)
+pagoAviso = (orig => function (...a) {
+  const r = orig.apply(this, a);
+  const pl = (PAGO_ESTADO || {}).plan || PLAN_ACTUAL || {}, n = diasHasta(pl.periodo_fin);
+  let el = $('pruebaaviso');
+  const ver = pl.en_prueba && !pl.baja_al_final && n != null && n >= 0 && n <= 7 && !$('pagoaviso') && puedeOrganizacion();
+  if (!ver) { if (el) el.remove(); return r; }
+  const main = document.querySelector('main'); if (!main) return r;
+  if (!el) { main.insertAdjacentHTML('afterbegin', '<div id="pruebaaviso" class="banda-info" role="status"></div>'); el = $('pruebaaviso'); }
+  el.innerHTML = `Tu prueba termina ${n === 0 ? 'hoy' : n === 1 ? 'mañana' : `en ${n} días`} (${fechaCorta(pl.periodo_fin)}): ese día se pasa el primer recibo.
+    Revisa que tus datos de facturación están bien. <button type="button" class="btn sec" id="pruebaver">Revisar mis datos</button>`;
+  $('pruebaver').onclick = () => ir('plan');
+  return r;
+})(pagoAviso);

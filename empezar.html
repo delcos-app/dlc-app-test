@@ -4,186 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Empieza con delcos</title>
-<meta name="description" content="Pon en marcha delcos en tu empresa: 30 días de prueba, sin compromiso.">
-<link rel="icon" href="favicon.svg" type="image/svg+xml">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=Source+Sans+3:wght@400;500;600;700&display=swap">
-<!-- v2.168.0 · Alta de una empresa sin ayuda: elige plan, deja la tarjeta en Stripe (30 días sin cobrar) y recibe el correo para entrar.
-     Llama a la función de Supabase «alta» del entorno en el que se abre (config.js). Es también el modelo para el formulario de delcos.app. -->
-<style>
-:root{--tinta:#0B2540;--marino:#17457A;--azul:#3F82C0;--celeste:#7CC3EC;--hielo:#F2F7FC;--linea:#D9E3EE;--gris:#5B6B7F;--ok:#0E6B4C;--mal:#B42318;--blanco:#fff}
-*{box-sizing:border-box}
-html,body{margin:0}
-body{background:var(--hielo);color:var(--tinta);font:16px/1.5 'Source Sans 3',system-ui,sans-serif}
-h1,h2,h3,.marca b{font-family:Manrope,system-ui,sans-serif;letter-spacing:-.01em}
-a{color:var(--marino)}
-.cab{display:flex;align-items:center;justify-content:space-between;max-width:1120px;margin:0 auto;padding:18px 16px}
-.marca{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--tinta)}
-.marca img{width:32px;height:32px}
-.marca b{font-size:22px;font-weight:800}
-.cab .sm a{font-weight:600;text-decoration:none}
-.todo{max-width:1120px;margin:0 auto;padding:8px 16px 48px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.35fr);gap:32px;align-items:start}
-.lado h1{font-size:38px;line-height:1.1;margin:18px 0 12px}
-.lado p{color:var(--gris);font-size:17px;margin:0 0 18px}
-.lado ul{list-style:none;margin:0;padding:0;display:grid;gap:12px}
-.lado li{display:flex;gap:12px;align-items:flex-start}
-.lado li i{flex:none;width:26px;height:26px;border-radius:50%;background:#E3EEF9;display:grid;place-items:center;color:var(--marino);font-style:normal;font-weight:700;font-size:14px}
-.lado li b{display:block}
-.lado li span{color:var(--gris);font-size:15px}
-.caja{background:var(--blanco);border:1px solid var(--linea);border-radius:18px;padding:26px;box-shadow:0 10px 30px rgba(11,37,64,.06)}
-.caja h2{font-size:18px;margin:0 0 12px}
-.caja section+section{margin-top:22px;padding-top:20px;border-top:1px solid var(--linea)}
-.planes{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-.plan{position:relative;text-align:left;border:1.5px solid var(--linea);border-radius:14px;background:#fff;padding:14px;cursor:pointer;font:inherit;color:inherit}
-.plan b{font-family:Manrope,sans-serif;font-size:16px;display:block}
-.plan .pr{font-family:Manrope,sans-serif;font-weight:800;font-size:22px;color:var(--marino)}
-.plan .pr small{font:500 12.5px 'Source Sans 3',sans-serif;color:var(--gris)}
-.plan p{margin:6px 0 0;font-size:13.5px;color:var(--gris);line-height:1.35}
-.plan.on{border-color:var(--marino);background:#F5F9FD;box-shadow:0 0 0 3px rgba(63,130,192,.15)}
-.plan:focus-visible,.seg button:focus-visible,input:focus-visible,.boton:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(63,130,192,.35)}
-.fila{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end;margin-top:14px}
-label{display:block;font-weight:600;font-size:14px;margin:0 0 6px}
-.seg{display:inline-flex;background:var(--hielo);border:1px solid var(--linea);border-radius:12px;padding:3px}
-.seg button{border:0;background:none;font:600 14px 'Source Sans 3',sans-serif;color:var(--gris);padding:8px 14px;border-radius:9px;cursor:pointer}
-.seg button.on{background:#fff;color:var(--marino);box-shadow:0 1px 3px rgba(11,37,64,.12)}
-.num{display:inline-flex;align-items:center;border:1px solid var(--linea);border-radius:12px;overflow:hidden;background:#fff}
-.num button{width:40px;height:42px;border:0;background:var(--hielo);font-size:20px;color:var(--marino);cursor:pointer}
-.num input{width:64px;height:42px;border:0;text-align:center;font:600 16px 'Source Sans 3',sans-serif;color:var(--tinta);-moz-appearance:textfield}
-.num input::-webkit-inner-spin-button{-webkit-appearance:none}
-.resumen{margin-top:16px;background:var(--hielo);border-radius:12px;padding:12px 14px;display:grid;gap:4px;font-size:15px}
-.resumen div{display:flex;justify-content:space-between;gap:12px}
-.resumen .hoy{font-family:Manrope,sans-serif;font-weight:800;font-size:17px;color:var(--ok)}
-.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-input[type=text],input[type=email],input[type=tel]{width:100%;height:44px;border:1px solid var(--linea);border-radius:10px;padding:0 12px;font:16px 'Source Sans 3',sans-serif;color:var(--tinta);background:#fff}
-input.mal{border-color:var(--mal)}
-.err{color:var(--mal);font-size:13.5px;min-height:18px;margin-top:4px}
-.chk{display:flex;gap:10px;align-items:flex-start;font-weight:400;font-size:14.5px;color:var(--tinta)}
-.chk input{width:18px;height:18px;margin-top:2px;accent-color:var(--marino);flex:none}
-.trampa{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
-.boton{width:100%;height:52px;margin-top:14px;border:0;border-radius:12px;background:var(--marino);color:#fff;font:700 17px Manrope,sans-serif;cursor:pointer}
-.boton:hover{background:#123a66}
-.boton[disabled]{opacity:.6;cursor:progress}
-.nota{color:var(--gris);font-size:13.5px;text-align:center;margin:10px 0 0}
-.aviso{border-radius:12px;padding:12px 14px;margin-bottom:16px;font-size:15px}
-.aviso.info{background:#E3EEF9;color:var(--marino)}
-.aviso.mal{background:#FDECEA;color:var(--mal)}
-.medida{font-size:14px;color:var(--gris);margin-top:10px}
-.pie{max-width:1120px;margin:0 auto;padding:0 16px 32px;color:var(--gris);font-size:13.5px;display:flex;gap:16px;flex-wrap:wrap}
-@media (max-width:900px){.todo{grid-template-columns:1fr}.lado h1{font-size:30px}}
-@media (max-width:620px){.planes{grid-template-columns:1fr}.g2{grid-template-columns:1fr}.caja{padding:18px}}
-</style>
-</head>
-<body>
-<header class="cab">
-  <a class="marca" href="https://www.delcos.app/"><img src="favicon.svg" alt=""><b>delcos</b></a>
-  <span class="sm">¿Ya tienes cuenta? <a href="./">Entrar</a></span>
-</header>
-<main class="todo">
-  <div class="lado">
-    <h1>Pon delcos en marcha en tu empresa</h1>
-    <p>En cinco minutos, sin llamadas ni esperas. Pruébalo 30 días con tus propios datos.</p>
-    <ul>
-      <li><i>1</i><div><b>Elige plan y equipo</b><span>Lo puedes cambiar cuando quieras desde la plataforma.</span></div></li>
-      <li><i>2</i><div><b>Deja tu tarjeta</b><span>No se cobra nada durante 30 días. Si no te convence, te das de baja y no pagas nada.</span></div></li>
-      <li><i>3</i><div><b>Entra y empieza</b><span>Te llega un correo para crear tu contraseña. Dentro, te guiamos para traer tus datos e invitar al equipo.</span></div></li>
-    </ul>
-  </div>
-  <form class="caja" id="alta" novalidate autocomplete="on">
-    <div id="avisos"></div>
-    <section>
-      <h2>Tu plan</h2>
-      <div class="planes" id="planes" role="radiogroup" aria-label="Plan"></div>
-      <div class="fila">
-        <div><label>Pago</label><div class="seg" id="pago" role="group" aria-label="Pago">
-          <button type="button" data-pago="mensual" class="on" aria-pressed="true">Mensual</button>
-          <button type="button" data-pago="anual" aria-pressed="false">Anual · 2 meses gratis</button></div></div>
-        <div><label for="usuarios">Usuarios</label><div class="num"><button type="button" data-n="-1" aria-label="Uno menos">−</button>
-          <input id="usuarios" type="number" inputmode="numeric" min="3" max="49" value="3"><button type="button" data-n="1" aria-label="Uno más">+</button></div></div>
-      </div>
-      <div class="medida">¿Más de 49 usuarios o algo a tu medida? <a href="https://www.delcos.app/dudas.html?tipo=Precios">Pide tu plan A medida</a>.</div>
-      <div class="resumen" id="resumen"></div>
-    </section>
-    <section>
-      <h2>Tus datos</h2>
-      <div class="g2">
-        <div><label for="empresa">Empresa</label><input id="empresa" type="text" autocomplete="organization" required><div class="err" data-err="empresa"></div></div>
-        <div><label for="nif">NIF de la empresa <span style="font-weight:400;color:var(--gris)">(opcional)</span></label><input id="nif" type="text" autocomplete="off"><div class="err"></div></div>
-        <div><label for="nombre">Tu nombre y apellidos</label><input id="nombre" type="text" autocomplete="name" required><div class="err" data-err="nombre"></div></div>
-        <div><label for="telefono">Teléfono <span style="font-weight:400;color:var(--gris)">(opcional)</span></label><input id="telefono" type="tel" autocomplete="tel"><div class="err"></div></div>
-      </div>
-      <label for="email" style="margin-top:4px">Correo de trabajo</label><input id="email" type="email" autocomplete="email" required>
-      <div class="err" data-err="email"></div>
-      <div class="trampa" aria-hidden="true"><label for="web">Web</label><input id="web" type="text" tabindex="-1" autocomplete="off"></div>
-      <label class="chk"><input type="checkbox" id="acepta"><span>Acepto las <a href="https://www.delcos.app/aviso-legal.html" target="_blank" rel="noopener">condiciones</a>
-        y la <a href="https://www.delcos.app/privacidad.html" target="_blank" rel="noopener">política de privacidad</a> de delcos.</span></label>
-      <div class="err" data-err="acepta"></div>
-      <button class="boton" id="enviar" type="submit">Empezar la prueba gratis</button>
-      <p class="nota">Te llevamos a la página segura de Stripe. Hoy no se cobra nada.</p>
-    </section>
-  </form>
-</main>
-<footer class="pie"><span>delcos · Delcoslab S.L.</span><a href="https://www.delcos.app/aviso-legal.html">Aviso legal</a><a href="https://www.delcos.app/privacidad.html">Privacidad</a></footer>
-<script src="config.js"></script>
+<!-- v2.169.0 · El alta de empresas se hace en la web de delcos (decisión de Eric): esta dirección lleva allí, con el plan y el pago que traiga.
+     Desde el entorno de pruebas (apptest), al alta de pruebas (?pruebas=1). -->
+<meta name="robots" content="noindex">
 <script>
 (function () {
-  const $ = id => document.getElementById(id);
-  const PLANES = [
-    { id: 'campo', nombre: 'Campo', mes: 29, para: 'Equipos que salen a visitar cada día: cartera, agenda, rutas y visitas.' },
-    { id: 'comercial', nombre: 'Comercial', mes: 42, para: 'Además, pedidos, clientes, productos, analítica y comisiones.' },
-    { id: 'empresa', nombre: 'Empresa', mes: 59, para: 'Además, facturación con VeriFactu, compras, almacén y portal.' }];
-  const PUESTA = 490, IVA = 0.21, t0 = Date.now();
-  const q = new URLSearchParams(location.search);
-  const est = { plan: PLANES.some(p => p.id === q.get('plan')) ? q.get('plan') : 'comercial', pago: q.get('pago') === 'anual' ? 'anual' : 'mensual' };
-  const eur = n => { const d = Number.isInteger(Math.round(n * 100) / 100) ? 0 : 2; return n.toLocaleString('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: d, maximumFractionDigits: d }); };
-  const fin = new Date(Date.now() + 30 * 864e5).toLocaleDateString('es-ES', { day: 'numeric', month: 'long' });
-  const aviso = (t, tipo) => { $('avisos').innerHTML = t ? `<div class="aviso ${tipo || 'mal'}" role="alert">${t}</div>` : ''; };
-  if (q.get('alta') === 'cancelada') aviso('Has salido del pago sin terminar. No se ha cobrado nada: puedes intentarlo de nuevo cuando quieras.', 'info');
-  function pinta() {
-    $('planes').innerHTML = PLANES.map(p => `<button type="button" class="plan ${est.plan === p.id ? 'on' : ''}" role="radio" aria-checked="${est.plan === p.id}" data-plan="${p.id}">
-      <b>${p.nombre}</b><span class="pr">${eur(est.pago === 'anual' ? Math.round(p.mes * 10 / 12) : p.mes)}<small> /usuario y mes</small></span><p>${p.para}</p></button>`).join('');
-    document.querySelectorAll('[data-pago]').forEach(b => { b.classList.toggle('on', b.dataset.pago === est.pago); b.setAttribute('aria-pressed', String(b.dataset.pago === est.pago)); });
-    const p = PLANES.find(x => x.id === est.plan), u = usuarios(), anual = est.pago === 'anual';
-    const base = anual ? p.mes * 10 * u : p.mes * u, puesta = anual ? 0 : PUESTA;
-    $('resumen').innerHTML = `<div class="hoy"><span>Hoy</span><span>0 €</span></div>
-      <div><span>Desde el ${fin}: ${u} × ${eur(anual ? p.mes * 10 : p.mes)} ${anual ? 'al año' : 'al mes'} + IVA</span><b>${eur(base * (1 + IVA))}</b></div>
-      ${puesta ? `<div><span>Puesta en marcha (una vez, con el primer recibo) + IVA</span><b>${eur(puesta * (1 + IVA))}</b></div>` : '<div><span>Puesta en marcha</span><b>Incluida</b></div>'}`;
-  }
-  const usuarios = () => Math.min(49, Math.max(3, Math.floor(+$('usuarios').value || 3)));
-  $('planes').addEventListener('click', e => { const b = e.target.closest('[data-plan]'); if (b) { est.plan = b.dataset.plan; pinta(); } });
-  $('pago').addEventListener('click', e => { const b = e.target.closest('[data-pago]'); if (b) { est.pago = b.dataset.pago; pinta(); } });
-  document.querySelectorAll('[data-n]').forEach(b => b.onclick = () => { $('usuarios').value = Math.min(49, Math.max(3, usuarios() + +b.dataset.n)); pinta(); });
-  $('usuarios').onchange = () => { $('usuarios').value = usuarios(); pinta(); };
-  pinta();
-  const ERR = { empresa: 'Escribe el nombre de tu empresa.', nombre: 'Escribe tu nombre.', email: 'Revisa el correo.',
-    email_existe: 'Ese correo ya tiene acceso a delcos. Entra con él o usa otro.', acepta: 'Para seguir, acepta las condiciones.',
-    usuarios: 'Entre 3 y 49 usuarios.', demasiadas: 'Has hecho muchos intentos seguidos. Espera un rato y vuelve a probar.',
-    robot: 'No hemos podido comprobar el formulario. Vuelve a intentarlo.', configuracion: 'El alta no está disponible ahora mismo. Escríbenos y te ayudamos.' };
-  const marca = (campo, t) => { const e = document.querySelector(`[data-err="${campo}"]`); if (e) e.textContent = t || ''; const i = $(campo); if (i && i.type !== 'checkbox') i.classList.toggle('mal', !!t); };
-  $('alta').onsubmit = async e => {
-    e.preventDefault(); aviso('');
-    ['empresa', 'nombre', 'email', 'acepta'].forEach(c => marca(c, ''));
-    const d = { empresa: $('empresa').value.trim(), nif: $('nif').value.trim(), nombre: $('nombre').value.trim(), email: $('email').value.trim(),
-      telefono: $('telefono').value.trim(), plan: est.plan, pago: est.pago, usuarios: usuarios(), acepta: $('acepta').checked,
-      web: $('web').value, t: Date.now() - t0, volver: location.origin + location.pathname };
-    let mal = false;
-    if (!d.empresa) { marca('empresa', ERR.empresa); mal = true; }
-    if (!d.nombre) { marca('nombre', ERR.nombre); mal = true; }
-    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(d.email)) { marca('email', ERR.email); mal = true; }
-    if (!d.acepta) { marca('acepta', ERR.acepta); mal = true; }
-    if (mal) return;
-    const b = $('enviar'); b.disabled = true; b.textContent = 'Preparando tu alta…';
-    try {
-      const cfg = window.DLC_CONFIG || {};
-      const r = await fetch(cfg.url + '/functions/v1/alta', { method: 'POST', headers: { 'Content-Type': 'application/json', apikey: cfg.anon }, body: JSON.stringify(d) });
-      const res = await r.json().catch(() => ({}));
-      if (res.ok && res.url) { location.href = res.url; return; }
-      if (res.campo) marca(res.campo, ERR[res.error] || ERR[res.campo]);
-      else aviso(ERR[res.error] || 'No se ha podido empezar el alta. Vuelve a intentarlo en un momento.');
-    } catch (x) { aviso('No hay conexión. Revisa internet y vuelve a intentarlo.'); }
-    b.disabled = false; b.textContent = 'Empezar la prueba gratis';
-  };
+  var q = new URLSearchParams(location.search), pruebas = /^apptest\./i.test(location.hostname);
+  if (pruebas) q.set('pruebas', '1');
+  var s = q.toString();
+  location.replace('https://www.delcos.app/empezar.html' + (s ? '?' + s : ''));
 })();
 </script>
+</head>
+<body style="font-family:system-ui,sans-serif;color:#0B2540;padding:24px">
+<p>Te llevamos a <a href="https://www.delcos.app/empezar.html">www.delcos.app/empezar.html</a> para poner delcos en marcha.</p>
 </body>
 </html>
