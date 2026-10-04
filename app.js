@@ -18989,3 +18989,52 @@ pintarPaginaPlan = (orig => async function (...a) {
   return r;
 })(pintarPaginaPlan);
 setTimeout(() => { try { candadoSecciones(); } catch (e) {} }, 0);
+
+/* v2.164.0 · Lo que no entra en el plan no sale en el menú (petición de Eric): al bajar de plan, los módulos con candado se quitan
+   solos del menú lateral y del «Más» del móvil, y en «Personalizar menú» salen con candado y el interruptor apagado y sin poder
+   encenderlo. No se toca lo que cada uno eligió: al volver a un plan que los incluye, reaparecen como estaban. */
+const fueraDePlan = b => !!b && b.classList.contains('bloq');
+const PLAN_NOMBRE = () => { try { return planDe(PLAN_ACTUAL.plan).nombre; } catch (e) { return ''; } };
+montarMenuLateral = (orig => function (...a) {
+  const r = orig.apply(this, a);
+  if (!document.body.classList.contains('menulat')) return r;
+  const inn = $('nav'); if (!inn) return r;
+  // (solo se toca la clase si cambia: el observador del menú vuelve a llamar aquí con cada cambio de clase)
+  const ocultos = menuPrefs().ocultos || [];
+  inn.querySelectorAll('button[data-t]').forEach(b => {
+    if (fueraDePlan(b)) { if (!b.classList.contains('mlplan')) b.classList.add('mlplan'); if (!b.classList.contains('mloculto')) b.classList.add('mloculto'); }
+    else if (b.classList.contains('mlplan')) { b.classList.remove('mlplan'); if (!ocultos.includes(b.dataset.t)) b.classList.remove('mloculto'); }
+  });
+  inn.querySelectorAll('.mlgrupo').forEach(g => g.classList.toggle('vacio', ![...g.querySelectorAll('button[data-t]')]
+    .some(b => !b.classList.contains('hide') && !b.classList.contains('mloculto') && b.dataset.t !== 'seguimiento' && getComputedStyle(b).display !== 'none')));
+  return r;
+})(montarMenuLateral);
+abrirMasMovil = (orig => function (...a) {
+  const r = orig.apply(this, a);
+  document.querySelectorAll('.bmasgrid [data-bm].bloq').forEach(b => b.remove());
+  return r;
+})(abrirMasMovil);
+// «Personalizar menú»: candado, interruptor apagado y bloqueado, y la cuenta «N de M» sin lo que no entra
+function personalizarCandados() {
+  const caja = $('mlpanel'); if (!caja) return;
+  caja.querySelectorAll('.mlpi[data-k]').forEach(f => {
+    const b = document.querySelector(`#nav button[data-t="${f.dataset.k}"]`); if (!fueraDePlan(b)) return;
+    f.classList.add('off', 'fueraplan'); f.title = `No está incluido en tu plan ${PLAN_NOMBRE()}`;
+    const v = f.querySelector('[data-vk]'); if (v) { v.checked = false; v.disabled = true; }
+    if (!f.querySelector('.mlpcand')) f.querySelector('.mlpn').insertAdjacentHTML('afterend', `<span class="mlpcand" aria-label="No incluido en tu plan"></span>`);
+  });
+  caja.querySelectorAll('.mlpg').forEach(g => {
+    const fs = [...g.querySelectorAll('.mlpi[data-k]')], c = g.querySelector('.mlpcnt');
+    if (c) c.textContent = `${fs.filter(f => !f.classList.contains('off')).length} de ${fs.filter(f => !f.classList.contains('fueraplan')).length}`;
+  });
+}
+menuPersonalizar = (orig => function (...a) {
+  const r = orig.apply(this, a);
+  const caja = $('mlpanel');
+  if (caja && !caja.__candados) {
+    caja.__candados = true; personalizarCandados();
+    new MutationObserver(() => personalizarCandados()).observe(caja, { childList: true });
+    caja.addEventListener('change', () => personalizarCandados());
+  }
+  return r;
+})(menuPersonalizar);

@@ -3027,6 +3027,10 @@ label.chk > span{display:flex;flex-direction:column;gap:3px;min-width:0;line-hei
 .pgres .pgtot b{font-size:18px}
 #pagoaviso{margin:0 0 12px}
 #pagoaviso .btn{margin-left:8px}
+/* v2.164.0 · «Personalizar menú»: lo que no entra en el plan, con candado e interruptor apagado */
+.mlp2 .mlpi.fueraplan .mlpasa{visibility:hidden}
+.mlp2 .mlpi.fueraplan .vfswitch{opacity:.45;pointer-events:none}
+.mlp2 .mlpcand{flex:none;width:13px;height:13px;background:#7A8CA0;-webkit-mask:var(--ico-lock) center / contain no-repeat;mask:var(--ico-lock) center / contain no-repeat}
 </style>
 </head>
 <body>
@@ -3163,6 +3167,6 @@ label.chk > span{display:flex;flex-direction:column;gap:3px;min-width:0;line-hei
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.163.0"></script>
+<script src="./app.js?v=2.164.0"></script>
 </body>
 </html>
