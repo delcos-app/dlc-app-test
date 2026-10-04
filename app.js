@@ -11198,7 +11198,8 @@ const PLANES = [
 ];
 let PLAN_ACTUAL = { plan: 'medida' };   // v2.117.0: hasta que llega el de la base, el completo
 const planDe = id => PLANES.find(p => p.id === id) || PLANES[3];
-const planIncluye = mod => !(mod in MODULO_AREA) || planDe(PLAN_ACTUAL.plan).modulos.includes(mod);
+// v2.165.0: sin Facturación en el plan pero con facturas, se entra en solo consulta (facConsulta, al final)
+const planIncluye = mod => !(mod in MODULO_AREA) || planDe(PLAN_ACTUAL.plan).modulos.includes(mod) || (mod === 'facturacion' && facConsulta());
 const planMinimo = mod => PLANES.find(p => p.modulos.includes(mod));
 Promise.resolve(RPC_ORIG('plan_uso', {})).then(r => { if (r && r.data && r.data.plan) { PLAN_ACTUAL = r.data.plan; if (PERFIL) aplicarPermisosMenu(); } }, () => {});
 
@@ -19038,3 +19039,162 @@ menuPersonalizar = (orig => function (...a) {
   }
   return r;
 })(menuPersonalizar);
+
+/* v2.165.0 · Bajar de plan con orden (decisiones de Eric, 4/10/2026):
+   - A medida: no se baja desde la app; lo hace delcos desde su panel y no antes de la fecha de compromiso del contrato.
+   - Las bajadas (plan menor, menos usuarios o de anual a mensual) se programan para el final del periodo pagado; las subidas, al momento.
+     Antes de confirmar se enseña lo que se deja de tener. «Plan y suscripción» dice el cambio previsto (con «Anular el cambio») y la baja pedida.
+   - Sin Facturación en el plan pero con facturas emitidas: Facturación en solo consulta (verlas y descargarlas, no emitir; la base lo impide). */
+function facConsulta() {
+  try { return !!(PAGO_ESTADO && PAGO_ESTADO.facturas) && !['empresa', 'medida'].includes((PLAN_ACTUAL || {}).plan); } catch (e) { return false; }
+}
+const facSinPlan = () => { try { return !['empresa', 'medida'].includes((PLAN_ACTUAL || {}).plan); } catch (e) { return false; } };
+function marcarFacPlan() {
+  document.body.classList.toggle('facsolo', facSinPlan());
+  try { aplicarPermisosMenu(); } catch (e) {}
+}
+pagoCargarEstado = (orig => async function (...a) { const r = await orig.apply(this, a); marcarFacPlan(); return r; })(pagoCargarEstado);
+// En solo consulta, la pantalla lo dice arriba y Organización no enseña lo de emitir (datos fiscales, series, VeriFactu, PDF)
+cargarFacturacion = (orig => async function (...a) {
+  const r = await orig.apply(this, a);
+  const v = $('v-facturacion');
+  if (v && facConsulta() && !v.querySelector('#facconsulta')) {
+    const sub = v.querySelector('.subnav');
+    if (sub) sub.insertAdjacentHTML('afterend', `<div id="facconsulta" class="banda-info">Tu plan ${esc(planDe(PLAN_ACTUAL.plan).nombre)} no incluye Facturación:
+      puedes consultar y descargar las facturas que ya emitiste y registrar sus cobros, pero no emitir nuevas.</div>`);
+  }
+  return r;
+})(cargarFacturacion);
+(() => {
+  const d = Object.getOwnPropertyDescriptor(PAGINAS.organizacion, 'tabs'); if (!d || !d.get) return;
+  Object.defineProperty(PAGINAS.organizacion, 'tabs', { configurable: true, get() {
+    const t = d.get.call(this);
+    return facConsulta() ? t.filter(x => !['fiscal', 'series', 'vf', 'pdf'].includes(x[0])) : t;
+  } });
+})();
+
+// Lo que se deja de tener al pasar de un plan a otro (para avisar antes)
+function perdidasPlan(de, a, datos) {
+  const pd = planDe(de), pa = planDe(a), extras = (datos && datos.extras) || [], l = [];
+  if (de === a) return l;
+  const nombreMod = m => (MOD_PLAN.find(x => x[0] === m) || [m, m])[1];
+  pd.modulos.filter(m => !pa.modulos.includes(m) && m in MODULO_AREA).forEach(m => l.push(m === 'facturacion'
+    ? `Facturación: ${datos && datos.facturas ? 'tus facturas quedan en solo consulta (verlas, descargarlas y cobrarlas, no emitir nuevas)' : 'no podrás emitir facturas'}` : nombreMod(m)));
+  Object.keys(PLAN_SECCIONES).forEach(s => { if (PLAN_SECCIONES[s].includes(de) && !PLAN_SECCIONES[s].includes(a)) l.push(TITULO_PEDSEC[s] ? TITULO_PEDSEC[s][0] : s); });
+  Object.keys(PLAN_EXTRAS).forEach(x => {
+    if (!PLAN_EXTRAS[x].includes(de) || PLAN_EXTRAS[x].includes(a) || extras.includes(x)) return;
+    if (x === 'oportunidades') l.push('Oportunidades');
+    if (x === 'portal') l.push(`Portal ${TT('medico', 's', 'del', 'l', 'l')} y del centro${datos && +datos.medicos ? ` (${num(datos.medicos)} con acceso lo perderán)` : ''}`);
+  });
+  if (de === 'medida' && a === 'empresa' && datos && +datos.medicos > 50) l.push(`Portal: el plan Empresa admite hasta 50 accesos y ahora hay ${num(datos.medicos)}`);
+  if (de === 'medida') l.push('Ver la plataforma como cada persona de tu equipo', 'Soporte prioritario');
+  return l;
+}
+const rangoPlan = k => ['campo', 'comercial', 'empresa', 'medida'].indexOf(k);
+// Igual que la función «pagos»: plan menor, menos usuarios o de anual a mensual
+const esBajada = (de, a) => rangoPlan(a.plan) < rangoPlan(de.plan)
+  || (rangoPlan(a.plan) === rangoPlan(de.plan) && (+a.usuarios < +de.usuarios || (de.pago === 'anual' && a.pago === 'mensual')));
+
+// Ventana de contratar o cambiar (la de la v2.162.0, con la bajada al final del periodo y lo que se pierde)
+elegirPago = function (planIni) {
+  const pl = PLAN_ACTUAL || {}, conSus = !!pl.stripe_suscripcion, usados = +((PAGO_ESTADO || {}).usuarios || 0);
+  if (pl.plan === 'medida') { toast('Con el plan A medida, los cambios se hacen con delcos'); return; }
+  const est = { plan: PAGO_PLANES.includes(planIni) ? planIni : (PAGO_PLANES.includes(pl.plan) ? pl.plan : 'comercial'),
+    pago: pl.pago === 'anual' ? 'anual' : 'mensual', usuarios: Math.max(3, usados, +pl.usuarios || 0) };
+  const actual = { plan: pl.plan, pago: pl.pago === 'anual' ? 'anual' : 'mensual', usuarios: +pl.usuarios || 0 };
+  const pinta = () => {
+    const p = planDe(est.plan), anual = est.pago === 'anual';
+    const base = anual ? p.precio * 10 * est.usuarios : p.precio * est.usuarios;
+    const puesta = !anual && !conSus ? PUESTA_EN_MARCHA : 0;
+    const iva = Math.round((base + puesta) * 21) / 100;
+    const baja = conSus && esBajada(actual, est), fin = pl.periodo_fin ? fechaCorta(pl.periodo_fin) : 'el final del periodo pagado';
+    const pierde = conSus ? perdidasPlan(pl.plan, est.plan, Object.assign({}, PAGO_ESTADO || {}, { extras: pl.extras })) : [];
+    $('dbody').innerHTML = `<div class="fh"><div><h2>${conSus ? 'Cambiar la suscripción' : 'Contratar delcos'}</h2>
+        <div class="sm">Precios por usuario, IVA no incluido. ${!conSus ? 'El pago se hace en la página segura de Stripe.' : baja ? '' : 'El cambio se aplica ya y se prorratea en el próximo recibo.'}</div></div>
+        <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
+      <label>Plan</label><div class="segs pgplan" role="group">${PAGO_PLANES.map(k => `<button type="button" data-pgp="${k}" class="${est.plan === k ? 'on' : ''}" aria-pressed="${est.plan === k}">${esc(planDe(k).nombre)} · ${eurI(planDe(k).precio)}</button>`).join('')}</div>
+      <label style="margin-top:12px">Pago</label><div class="segs" role="group">
+        <button type="button" data-pga="mensual" class="${anual ? '' : 'on'}" aria-pressed="${!anual}">Mensual</button>
+        <button type="button" data-pga="anual" class="${anual ? 'on' : ''}" aria-pressed="${anual}">Anual · pagas 10 meses de 12</button></div>
+      <label for="pgusu" style="margin-top:12px">Usuarios</label><input id="pgusu" type="number" min="${Math.max(3, usados)}" value="${est.usuarios}" class="numw">
+      <span class="sm">${usados ? `Ahora usáis ${num(usados)}. ` : ''}Mínimo ${Math.max(3, usados)}.</span>
+      ${baja ? `<div class="banda-aviso" id="pgbaja">El cambio se aplicará el <b>${esc(fin)}</b>, al acabar lo que ya has pagado. Hasta entonces sigues con
+        ${esc(planDe(pl.plan).nombre)}${pierde.length ? ` y después dejarás de tener:<ul id="pgpierde">${pierde.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : '.'}</div>` : ''}
+      <div class="pgres">
+        <div><span>${num(est.usuarios)} × ${eurI(anual ? p.precio * 10 : p.precio)} ${anual ? 'al año' : 'al mes'}</span><b>${eurI(base)}</b></div>
+        ${puesta ? `<div><span>Puesta en marcha (una vez; incluida con pago anual)</span><b>${eurI(puesta)}</b></div>` : ''}
+        <div><span>IVA 21 %</span><b>${eurI(iva)}</b></div>
+        <div class="pgtot"><span>${!conSus ? 'Primer cobro' : baja ? 'Importe desde el ' + esc(fin) : 'Nuevo importe'}</span><b>${eurI(base + puesta + iva)}</b></div></div>
+      <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>Cancelar</button>
+        <button class="btn" id="pgok">${!conSus ? 'Ir al pago seguro' : baja ? 'Programar el cambio' : 'Confirmar el cambio'}</button></div>`;
+    $('dbody').querySelectorAll('[data-pgp]').forEach(b => b.onclick = () => { est.plan = b.dataset.pgp; pinta(); });
+    $('dbody').querySelectorAll('[data-pga]').forEach(b => b.onclick = () => { est.pago = b.dataset.pga; pinta(); });
+    $('pgusu').onchange = () => { est.usuarios = Math.max(3, usados, Math.floor(+$('pgusu').value || 0)); pinta(); };
+    $('pgok').onclick = async ev => {
+      const d = await pagoLlamar({ accion: conSus ? 'cambiar' : 'checkout', plan: est.plan, pago: est.pago, usuarios: est.usuarios }, ev.target);
+      if (!d) return;
+      if (d.url) { location.href = d.url; return; }
+      $('dlg').close();
+      if (d.previsto) { toast(`Cambio programado para el ${fechaCorta(d.previsto)}`); await pagoCargarEstado(); if (TAB === 'plan' || TAB === 'organizacion') ir(TAB); return; }
+      toast('Cambio hecho: en unos segundos verás el plan nuevo'); pagoEsperarActivo();
+    };
+  };
+  pinta(); $('dlg').showModal();
+};
+
+// «Plan y suscripción»: cambio previsto (con «Anular el cambio»), baja pedida y compromiso de A medida
+pintarPaginaPlan = (orig => async function (...a) {
+  const r = await orig.apply(this, a);
+  const c = $('cfgcuerpo'), pl = PLAN_ACTUAL || {}, h = c && c.querySelector('#planact h2'); if (!h) return r;
+  const cp = pl.cambio_previsto;
+  if (cp && cp.plan) h.insertAdjacentHTML('afterend', `<div class="banda-info" id="pgprevisto">El <b>${fechaCorta(cp.desde)}</b> pasarás al plan
+    <b>${esc(planDe(cp.plan).nombre)}</b> con ${num(cp.usuarios)} usuarios y pago ${cp.pago === 'anual' ? 'anual' : 'mensual'}.
+    ${puedeOrganizacion() ? '<button type="button" class="btn sec" id="pganular">Anular el cambio</button>' : ''}</div>`);
+  if (pl.baja_al_final && pl.estado === 'activo') h.insertAdjacentHTML('afterend', `<div class="banda-aviso" id="pgbajafin">Has pedido la baja: puedes usar la plataforma
+    hasta el <b>${fechaCorta(pl.periodo_fin)}</b>. Si quieres seguir, entra en «Gestionar el pago» y renueva la suscripción.</div>`);
+  if (pl.plan === 'medida' && pl.compromiso_hasta) h.insertAdjacentHTML('afterend', `<p class="sm" id="pgcomp">Contrato A medida hasta el ${fechaCorta(pl.compromiso_hasta)}. Para cambiarlo, habla con delcos.</p>`);
+  if ($('pganular')) $('pganular').onclick = async ev => {
+    const d = await pagoLlamar({ accion: 'anular_cambio' }, ev.target); if (!d) return;
+    toast('Cambio anulado: sigues con tu plan'); await pagoCargarEstado(); ir(TAB);
+  };
+  return r;
+})(pintarPaginaPlan);
+
+// Panel delcos → Organizaciones → Plan: fecha de compromiso (A medida), lo que pierde al bajar y aviso si paga con Stripe
+orgAcciones = (orig => function (c, l) {
+  const r = orig.apply(this, arguments);
+  c.querySelectorAll('[data-orgplan]').forEach(b => {
+    const f = b.onclick; if (!f || b.__p2165) return; b.__p2165 = true;
+    b.onclick = (...x) => {
+      f.apply(b, x);
+      const o = l.find(y => y.id === b.dataset.orgplan); if (!o || !$('opplan')) return;
+      const pd = o.plan_datos || {}, de = pd.plan || o.plan;
+      $('opest').closest('.g2').insertAdjacentHTML('beforeend', `<div id="opcompw"><label for="opcomp">Compromiso hasta (A medida)</label>
+        <input id="opcomp" type="date" value="${esc(pd.compromiso_hasta || '')}"><span class="sm">Antes de esa fecha no se puede bajar de A medida.</span></div>`);
+      $('opest').closest('.g2').insertAdjacentHTML('afterend', `${pd.stripe_suscripcion ? '<div class="banda-aviso" id="opstripe">Esta empresa paga con Stripe: este cambio no se pasa a Stripe. Para que cuadre el cobro, cámbialo también allí.</div>' : ''}<div id="opperd"></div>`);
+      const pinta = () => {
+        $('opcompw').classList.toggle('hide', $('opplan').value !== 'medida');
+        const p = perdidasPlan(de, $('opplan').value, { extras: pd.extras || [], facturas: +o.facturas > 0 });
+        const bloq = de === 'medida' && $('opplan').value !== 'medida' && pd.compromiso_hasta && pd.compromiso_hasta > hoyISO();
+        $('opperd').innerHTML = bloq ? `<div class="banda-peligro">Tiene compromiso A medida hasta el ${fechaCorta(pd.compromiso_hasta)}: no se puede bajar antes.</div>`
+          : rangoPlan($('opplan').value) < rangoPlan(de) && p.length ? `<div class="banda-aviso">Al pasar a ${esc(planDe($('opplan').value).nombre)} dejará de tener:<ul>${p.map(x => `<li>${esc(x)}</li>`).join('')}</ul></div>` : '';
+      };
+      $('opplan').addEventListener('change', pinta); pinta();
+      $('opok').onclick = async ev => {
+        ev.target.disabled = true;
+        const p = { plan: $('opplan').value, usuarios: $('opusu').value === '' ? null : +$('opusu').value, pago: $('oppago').value, estado: $('opest').value,
+          prueba_hasta: $('opest').value === 'prueba' ? $('opfin').value : null };
+        if (p.plan === 'medida') p.compromiso_hasta = $('opcomp').value || null;
+        const { data: res, error } = await db.rpc('guardar_plan_organizacion', { p_org: o.id, p });
+        ev.target.disabled = false;
+        if (error || !res || !res.ok) {
+          toast(({ permiso: 'No tienes permiso', minimo: 'Mínimo 3 usuarios (salvo A medida)', prueba_hasta: 'Falta la fecha de fin de la prueba', plan: 'Plan no válido',
+            compromiso: `Tiene compromiso A medida hasta el ${fechaCorta(res && res.hasta)}` })[(res && res.error) || ''] || 'No se ha podido guardar', true);
+          return;
+        }
+        $('dlg').close(); toast('Plan guardado'); pintarOrganizaciones();
+      };
+    };
+  });
+  return r;
+})(orgAcciones);

@@ -3031,6 +3031,11 @@ label.chk > span{display:flex;flex-direction:column;gap:3px;min-width:0;line-hei
 .mlp2 .mlpi.fueraplan .mlpasa{visibility:hidden}
 .mlp2 .mlpi.fueraplan .vfswitch{opacity:.45;pointer-events:none}
 .mlp2 .mlpcand{flex:none;width:13px;height:13px;background:#7A8CA0;-webkit-mask:var(--ico-lock) center / contain no-repeat;mask:var(--ico-lock) center / contain no-repeat}
+/* v2.165.0 · Sin Facturación en el plan: no se emite ni se rectifica (la base tampoco lo deja); bajada de plan */
+body.facsolo #pvemitir,body.facsolo #fvrect{display:none!important}
+#pgbaja ul,#opperd ul{margin:6px 0 0 18px;padding:0}
+#pgbaja li,#opperd li{margin:2px 0}
+#pgprevisto .btn{margin-left:8px}
 </style>
 </head>
 <body>
@@ -3167,6 +3172,6 @@ label.chk > span{display:flex;flex-direction:column;gap:3px;min-width:0;line-hei
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.164.0"></script>
+<script src="./app.js?v=2.165.0"></script>
 </body>
 </html>
