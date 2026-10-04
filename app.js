@@ -19239,3 +19239,153 @@ pintarPaginaPlan = (orig => async function (...a) {
   };
   return r;
 })(pintarPaginaPlan);
+
+/* v2.167.0 · Al volver de Stripe (pago, baja o el portal) se abre «Plan y suscripción», no Inicio (petición de Eric). Stripe vuelve a
+   …/?pago=…#plan o a …/#plan: la primera pantalla tras entrar es la del plan. */
+let PAGO_IR_PLAN = location.hash === '#plan' || new URLSearchParams(location.search).has('pago');
+const pagoAlPlan = () => {
+  PAGO_IR_PLAN = false;
+  try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
+};
+ir = (orig => function (t, ...a) {
+  if (PAGO_IR_PLAN && PERFIL) { pagoAlPlan(); if (!ES_MEDICO() && puedeOrganizacion()) t = 'plan'; }
+  return orig.call(this, t, ...a);
+})(ir);
+// Si la app ya había entrado antes de llegar aquí, se va ahora
+if (PAGO_IR_PLAN && typeof PERFIL !== 'undefined' && PERFIL) setTimeout(() => { if (PAGO_IR_PLAN) ir('plan'); }, 0);
+setTimeout(() => { PAGO_IR_PLAN = false; }, 30000);
+
+/* v2.167.0 · «Pedir presupuesto» dentro de delcos (petición de Eric: nada de abrir el correo ni llevar al cliente fuera). Un formulario con
+   la imagen de la plataforma: el contacto ya relleno, qué buscan (opciones que se marcan, sin cerrar nada: siempre hay «Cuéntanos con tus
+   palabras»), tamaño, cuándo y cómo prefieren que les contactemos. Se guarda (pedir_presupuesto, SQL 104), delcos recibe un aviso al
+   momento y la empresa ve en «Plan y suscripción» en qué punto está. Con A medida, el mismo formulario sirve para hablar del contrato.
+   En el panel de delcos, pestaña «Solicitudes» con su estado y una nota. */
+const PRESU_NECESITA = [
+  ['usuarios', 'Más de 50 usuarios'], ['migracion', 'Migrar nuestros datos'], ['conexion', 'Conectar con nuestro programa (ERP, CRM, contabilidad…)'],
+  ['portal', 'Portal para muchos profesionales o centros'], ['desarrollo', 'Algo hecho a nuestra medida'], ['formacion', 'Formación del equipo'],
+  ['soporte', 'Soporte prioritario'], ['otro', 'Otra cosa']];
+const PRESU_CUANDO = ['Lo antes posible', 'Este trimestre', 'Más adelante', 'Solo me estoy informando'];
+const PRESU_ESTADO = { 'Nueva': 'Recibida', 'En curso': 'En curso', 'Cerrada': 'Atendida' };
+function pedirPresupuesto(tipo) {
+  tipo = tipo === 'contrato' ? 'contrato' : 'presupuesto';
+  const est = { contacto: 'correo' }, usados = +((PAGO_ESTADO || {}).usuarios || 0), med = +((PAGO_ESTADO || {}).medicos || 0);
+  const tit = tipo === 'contrato' ? 'Hablar de tu contrato A medida' : 'Pide tu plan A medida';
+  $('dbody').innerHTML = `<div class="fh"><div><h2>${tit}</h2>
+      <div class="sm">Cuéntanos qué necesitáis y te respondemos en un día laborable. No te comprometes a nada.</div></div>
+      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
+    <div class="presu">
+      <section><h3>Qué buscáis <span class="sm">(marca lo que encaje; no hace falta acertar)</span></h3>
+        <div class="presuops">${PRESU_NECESITA.map(([k, t]) => `<label class="presuop"><input type="checkbox" value="${k}"><span>${esc(t)}</span></label>`).join('')}</div>
+        <div id="presuprogw" class="hide"><label for="presuprog">¿Con qué programa?</label><input id="presuprog" placeholder="Por ejemplo: Holded, Sage, A3, Salesforce…"></div>
+        <label for="presumsg">Cuéntanos con tus palabras</label>
+        <textarea id="presumsg" rows="4" placeholder="Qué queréis conseguir, cómo trabajáis hoy, qué os falta… Todo nos ayuda a proponeros lo mejor."></textarea></section>
+      <section><h3>Vuestro equipo</h3>
+        <div class="g2"><div><label for="presuusu">Usuarios aproximados</label><input id="presuusu" type="number" min="1" class="numw" value="${Math.max(50, usados)}">
+            <span class="sm">Ahora sois ${num(usados)}.</span></div>
+          <div><label for="presumed">${TT('medico', 'p', '', 'l', 'C')} o centros con portal</label><input id="presumed" type="number" min="0" class="numw" value="${med || ''}" placeholder="Opcional"></div>
+          <div><label for="presucuando">¿Cuándo os gustaría empezar?</label><select id="presucuando">${PRESU_CUANDO.map(x => `<option>${esc(x)}</option>`).join('')}</select></div></div></section>
+      <section><h3>Cómo te contactamos</h3>
+        <div class="g2"><div><label for="presunom">Nombre</label><input id="presunom" value="${esc(PERFIL.nombre || '')}"></div>
+          <div><label for="presumail">Correo</label><input id="presumail" type="email" value="${esc(PERFIL.email || '')}"></div>
+          <div><label for="presutel">Teléfono</label><input id="presutel" type="tel" placeholder="Opcional" value="${esc(PERFIL.telefono || '')}"></div>
+          <div><label for="presuhora">Mejor momento</label><input id="presuhora" placeholder="Por ejemplo: mañanas de 9 a 13"></div></div>
+        <label>Prefieres</label><div class="segs" role="group" id="presucont">${[['correo', 'Correo'], ['llamada', 'Llamada'], ['video', 'Videollamada']]
+          .map(([k, t]) => `<button type="button" data-pc="${k}" class="${k === 'correo' ? 'on' : ''}" aria-pressed="${k === 'correo'}">${t}</button>`).join('')}</div></section>
+    </div>
+    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>Cancelar</button><button class="btn" id="presuok">Enviar solicitud</button></div>`;
+  const ops = () => [...$('dbody').querySelectorAll('.presuop input:checked')].map(x => x.value);
+  $('dbody').querySelectorAll('.presuop input').forEach(x => x.onchange = () => {
+    x.closest('.presuop').classList.toggle('on', x.checked);
+    $('presuprogw').classList.toggle('hide', !ops().includes('conexion'));
+  });
+  $('dbody').querySelectorAll('[data-pc]').forEach(b => b.onclick = () => {
+    est.contacto = b.dataset.pc; $('dbody').querySelectorAll('[data-pc]').forEach(x => { x.classList.toggle('on', x === b); x.setAttribute('aria-pressed', String(x === b)); });
+  });
+  $('presuok').onclick = async ev => {
+    const necesita = ops(), mensaje = $('presumsg').value.trim();
+    if (!necesita.length && !mensaje) { toast('Marca qué buscáis o cuéntanoslo con tus palabras', true); $('presumsg').focus(); return; }
+    if (!$('presumail').value.trim() && !$('presutel').value.trim()) { toast('Déjanos un correo o un teléfono para contestarte', true); return; }
+    const datos = { necesita, necesita_txt: necesita.map(k => (PRESU_NECESITA.find(x => x[0] === k) || [k, k])[1]), programa: $('presuprog').value.trim() || null,
+      mensaje, usuarios: +$('presuusu').value || null, portal: +$('presumed').value || null, cuando: $('presucuando').value,
+      nombre: $('presunom').value.trim(), correo: $('presumail').value.trim(), telefono: $('presutel').value.trim() || null,
+      horario: $('presuhora').value.trim() || null, contacto: est.contacto, plan_actual: (PLAN_ACTUAL || {}).plan || null };
+    ev.target.disabled = true;
+    const { data: r, error } = await RPC_ORIG('pedir_presupuesto', { p: { tipo, datos } });
+    ev.target.disabled = false;
+    if (error || !r || !r.ok) {
+      toast(({ demasiadas: 'Ya nos has enviado varias hoy: te contestamos enseguida', vacia: 'Cuéntanos qué buscáis', permiso: 'No puedes enviar solicitudes' })[(r && r.error) || ''] || 'No se ha podido enviar', true);
+      return;
+    }
+    $('dbody').innerHTML = `<div class="fh"><div><h2>Solicitud enviada</h2></div><button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
+      <div class="presuok"><div class="presuokic">${svgIco(ICON_NOM.check)}</div>
+        <p><b>Gracias, ${esc(nombrePila(datos.nombre || PERFIL.nombre || ''))}.</b> Ya la tenemos: te ${est.contacto === 'correo' ? 'escribimos' : est.contacto === 'llamada' ? 'llamamos' : 'proponemos una videollamada'}
+          en un día laborable${datos.correo ? ` (${esc(datos.correo)})` : ''}.</p>
+        <p class="sm">Puedes ver en qué punto está en Plan y suscripción.</p></div>
+      <div class="acts" style="justify-content:flex-end"><button class="btn" data-cerrar>Entendido</button></div>`;
+    $('dlg').addEventListener('close', () => { if (TAB === 'plan' || TAB === 'organizacion') ir(TAB); }, { once: true });
+  };
+  $('dlg').showModal();
+}
+// «Plan y suscripción»: botones al formulario (en lugar de correos) y la última solicitud con su estado
+pintarPaginaPlan = (orig => async function (...a) {
+  const r = await orig.apply(this, a);
+  const c = $('cfgcuerpo'); if (!c || !c.querySelector('#planact')) return r;
+  const pl = PLAN_ACTUAL || {};
+  c.querySelectorAll('a[href^="mailto"]').forEach(x => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = x.className;
+    b.textContent = x.closest('.plan[data-plan="medida"]') ? 'Pedir presupuesto' : 'Hablar con delcos';
+    b.dataset.presu = x.closest('.plan[data-plan="medida"]') && pl.plan !== 'medida' ? 'presupuesto' : 'contrato';
+    x.replaceWith(b);
+  });
+  const comp = $('pgcomp');
+  if (pl.plan === 'medida' && !c.querySelector('[data-presu]') && !puede('gestionar_plataforma')) {
+    const acts = c.querySelector('#planact .acts');
+    if (acts) acts.insertAdjacentHTML('beforeend', '<button type="button" class="btn sec" data-presu="contrato">Hablar con delcos</button>');
+  }
+  if (comp) comp.textContent = comp.textContent.replace(' Para cambiarlo, habla con delcos.', '');
+  c.querySelectorAll('[data-presu]').forEach(b => b.onclick = () => pedirPresupuesto(b.dataset.presu));
+  try {
+    const { data } = await db.from('solicitudes_plan').select('creado_en,estado,tipo').order('creado_en', { ascending: false }).limit(1);
+    const s = (data || [])[0], h = c.querySelector('#planact h2');
+    if (s && h && !$('presuest') && (s.estado !== 'Cerrada' || Date.now() - new Date(s.creado_en) < 30 * 864e5))
+      h.insertAdjacentHTML('afterend', `<div class="banda-info" id="presuest">Tu solicitud ${s.tipo === 'contrato' ? 'sobre el contrato' : 'de presupuesto'} del
+        ${fechaCorta(s.creado_en.slice(0, 10))}: <b>${esc(PRESU_ESTADO[s.estado] || s.estado)}</b>.${s.estado === 'Nueva' ? ' Te contestamos en un día laborable.' : ''}</div>`);
+  } catch (e) {}
+  return r;
+})(pintarPaginaPlan);
+
+// Panel delcos → Solicitudes
+async function pintarSolicitudesPlan() {
+  const c = $('cfgcuerpo'); if (!c) return;
+  c.innerHTML = `<div class="card cfgpanel"><div class="skel" style="width:40%"></div><div class="skel"></div></div>`;
+  const { data, error } = await RPC_ORIG('solicitudes_plan_lista', {});
+  if (!$('cfgcuerpo')) return;
+  const l = error ? [] : (data || []);
+  const f = v => new Date(v).toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' });
+  const cont = { correo: 'Por correo', llamada: 'Por teléfono', video: 'Videollamada' };
+  c.innerHTML = `<div class="card cfgpanel"><h2 style="padding:0 0 4px">Solicitudes de las empresas</h2>
+    <p class="sm">Presupuestos A medida y conversaciones sobre el contrato. Llegan también como aviso. Cambia el estado cuando las atiendas: la empresa lo ve en su Plan.</p>
+    ${error ? `<div class="banda-peligro">No se han podido leer: ${esc(error.message)}</div>` : ''}
+    <div class="presulista">${l.map((s, i) => { const d = s.datos || {};
+      return `<div class="presufila${s.estado === 'Cerrada' ? ' cerrada' : ''}">
+        <div class="presucab"><b>${esc(s.organizacion)}</b> <span class="pill p-est">${esc(planDe(s.plan).nombre)}</span>
+          <span class="pill ${s.estado === 'Nueva' ? 'p-warn' : s.estado === 'En curso' ? 'p-est' : 'p-anu'}">${esc(s.estado)}</span>
+          <span class="sm">${s.tipo === 'contrato' ? 'Contrato A medida' : 'Presupuesto A medida'} · ${f(s.creado_en)}</span></div>
+        ${(d.necesita_txt || []).length ? `<div class="chips">${d.necesita_txt.map(x => `<span class="chip">${esc(x)}</span>`).join('')}</div>` : ''}
+        ${d.programa ? `<div class="sm">Programa: <b>${esc(d.programa)}</b></div>` : ''}
+        ${d.mensaje ? `<p class="presumsg">${esc(d.mensaje)}</p>` : ''}
+        <div class="sm">${d.usuarios ? num(d.usuarios) + ' usuarios' : ''}${d.portal ? ' · ' + num(d.portal) + ' con portal' : ''}${d.cuando ? ' · ' + esc(d.cuando) : ''}</div>
+        <div class="sm">${esc(d.nombre || s.persona || '')}${d.correo ? ` · <a href="mailto:${esc(d.correo)}">${esc(d.correo)}</a>` : ''}${d.telefono ? ` · <a href="tel:${esc(d.telefono)}">${esc(d.telefono)}</a>` : ''}
+          · ${esc(cont[d.contacto] || '')}${d.horario ? ' (' + esc(d.horario) + ')' : ''}</div>
+        <div class="presuges"><select data-psest="${i}" aria-label="Estado">${['Nueva', 'En curso', 'Cerrada'].map(e => `<option ${s.estado === e ? 'selected' : ''}>${e}</option>`).join('')}</select>
+          <input data-psnota="${i}" placeholder="Nota interna (qué se ha hablado, próximos pasos…)" value="${esc(s.nota || '')}">
+          <button type="button" class="btn sec" data-psok="${i}">Guardar</button></div></div>`; }).join('')
+      || '<div class="vacio">Todavía no ha llegado ninguna solicitud.</div>'}</div></div>`;
+  c.querySelectorAll('[data-psok]').forEach(b => b.onclick = async () => {
+    const i = +b.dataset.psok, s = l[i];
+    const { data: r } = await RPC_ORIG('marcar_solicitud_plan', { p_id: s.id, p_estado: c.querySelector(`[data-psest="${i}"]`).value, p_nota: c.querySelector(`[data-psnota="${i}"]`).value });
+    toast(r && r.ok ? 'Solicitud actualizada' : 'No se ha podido guardar', !(r && r.ok));
+    if (r && r.ok) pintarSolicitudesPlan();
+  });
+}
+if (PAGINAS.delcos && !PAGINAS.delcos.tabs.some(t => t[0] === 'solicitudes')) PAGINAS.delcos.tabs.splice(1, 0, ['solicitudes', 'Solicitudes', () => pintarSolicitudesPlan()]);

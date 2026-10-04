@@ -3038,6 +3038,31 @@ body.facsolo #pvemitir,body.facsolo #fvrect{display:none!important}
 #pgprevisto .btn{margin-left:8px}
 /* v2.166.0 · «Darme de baja» y «Seguir con la suscripción» */
 #pgbajafin .btn{margin-left:8px}
+/* v2.167.0 · Pedir presupuesto dentro de delcos y bandeja de solicitudes del panel */
+.presu section{padding:14px 0;border-top:1px solid var(--line)}
+.presu section:first-child{border-top:0;padding-top:4px}
+.presu h3{margin:0 0 10px;font-size:15px}
+.presu h3 .sm{font-weight:400}
+.presuops{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px;margin-bottom:12px}
+.presuop{display:flex;align-items:center;gap:10px;min-height:44px;padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;cursor:pointer;font-size:14px;color:var(--ink)}
+.presuop input{width:18px;height:18px;margin:0;flex:none;accent-color:var(--navy)}
+.presuop.on{border-color:var(--azul,#3F82C0);background:var(--sky-soft)}
+.presu textarea{width:100%;max-width:none}
+#presuprogw{margin-bottom:10px}
+.presuok{display:grid;justify-items:center;text-align:center;padding:12px 0 4px}
+.presuokic{display:grid;place-items:center;width:52px;height:52px;border-radius:50%;background:var(--sky-soft);color:var(--navy);margin-bottom:6px}
+.presuokic svg{width:26px;height:26px}
+#presuest{margin:8px 0}
+.presulista{display:grid;gap:10px}
+.presufila{border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:grid;gap:6px;background:#fff}
+.presufila.cerrada{opacity:.7}
+.presucab{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.presumsg{margin:0;white-space:pre-wrap;background:var(--hielo);border-radius:8px;padding:8px 10px}
+.presuges{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:4px}
+.presuges input{flex:1 1 260px;max-width:none}
+.presu .presuop{margin:0}
+.presuges select{width:auto;min-width:140px;flex:0 0 auto}
+@media (max-width:760px){.presuops{grid-template-columns:1fr;gap:6px}}
 </style>
 </head>
 <body>
@@ -3174,6 +3199,6 @@ body.facsolo #pvemitir,body.facsolo #fvrect{display:none!important}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.166.0"></script>
+<script src="./app.js?v=2.167.0"></script>
 </body>
 </html>
