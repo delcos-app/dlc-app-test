@@ -3093,11 +3093,34 @@ body.modo-plataforma .gsearch,body.modo-plataforma #bnav,body.modo-plataforma #b
 /* v2.172.0 · Dentro de una empresa (franja «Estás viendo…»), el equipo de delcos la ve tal cual: sin el apartado Panel delcos (se vuelve con «Salir») */
 body.con-vista nav.main [data-t="delcos"],body.con-vista .mlgrupo[data-g="plataforma"],body.con-vista .bmasgrid [data-bm="delcos"]{display:none!important}
 .tdlista .tdit .tx > span.sm:nth-of-type(2){display:flex;align-items:center;gap:4px;flex-wrap:wrap;-webkit-line-clamp:unset}
+/* v2.173.0 · Panel delcos: sin pestañas repetidas con el menú lateral, cifras, tablas y altas; cambio de organización tapado; cita movida */
+body.modo-plataforma.menulat #v-delcos .pagtabs{display:none}
+html.cambiando-org #bootsplash,html.cambiando-org #bootsplash.hide{display:grid!important;z-index:1000}
+.pdkpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:0 0 16px}
+.pdkpi{background:var(--hielo);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.pdkpi b{font-family:Manrope,sans-serif;font-size:22px;font-weight:700;color:var(--ink,#0B2540);line-height:1.2}
+.pdkpi span{font-size:13px;color:var(--muted)}
+.pdkpi.mal b{color:#B42318}.pdkpi.aviso b{color:#B54708}
+#pdcobf{margin:0 0 12px;flex-wrap:wrap}
+.pdtabla{width:100%;border-collapse:collapse;font-size:14px}
+.pdtabla th{text-align:left;font-weight:600;font-size:12.5px;color:var(--muted);padding:8px 10px;border-bottom:1px solid var(--line);background:var(--hielo)}
+.pdtabla td{padding:10px;border-bottom:1px solid var(--line);vertical-align:top}
+.pdtabla td.num{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.pdtabla .pill{margin-bottom:2px}
+.pdh3{font-family:Manrope,sans-serif;font-size:15px;font-weight:700;margin:18px 0 8px}
+.pdalta,.pdver{border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:0 0 8px;display:flex;flex-direction:column;gap:4px}
+.pdaltacab,.pdvercab{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.tdlista .tdit.tdmovida{animation:tdmovida 1.2s ease-out}
+@keyframes tdmovida{0%,35%{background:color-mix(in srgb,#3F82C0 14%,transparent);box-shadow:inset 3px 0 0 #3F82C0}100%{background:transparent;box-shadow:inset 3px 0 0 transparent}}
+@media (prefers-reduced-motion:reduce){.tdlista .tdit.tdmovida{animation:none}}
+@media (max-width:760px){.pdtabla thead{display:none}.pdtabla tr{display:block;border-bottom:1px solid var(--line);padding:8px 0}.pdtabla td{display:block;border:0;padding:3px 0}.pdtabla td.num{text-align:left}}
 </style>
 </head>
 <body>
 
 <div id="bootsplash" class="cargador"><img src="./logo-app.png" alt="" style="height:44px;width:44px;border-radius:50%"><span class="spin"></span><span class="sm">Abriendo delcos…</span></div>
+<script>/* v2.173.0: al cambiar de organización (o en el panel de delcos) la app se abre tapada hasta tener lo suyo */
+try{var co=sessionStorage.getItem('dlc-cambio-org');if(co!==null||localStorage.getItem('dlc-modo')==='plataforma'){document.documentElement.classList.add('cambiando-org');if(co){var s=document.querySelector('#bootsplash .sm');if(s)s.textContent='Abriendo '+co+'…';}}}catch(e){}</script>
 
 <section id="login" class="hide">
   <form class="lbox" id="lform">
@@ -3229,6 +3252,6 @@ body.con-vista nav.main [data-t="delcos"],body.con-vista .mlgrupo[data-g="plataf
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.172.0"></script>
+<script src="./app.js?v=2.173.0"></script>
 </body>
 </html>

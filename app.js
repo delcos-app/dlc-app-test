@@ -19594,3 +19594,237 @@ async function moverCitaLocal(orden, id, acc) {
   if (b) b.focus({ preventScroll: true });
   if (!(await guardarOrden(orden))) cargarAgenda();
 }
+
+/* v2.173.0 · Panel delcos completo (SQL 108): Cobros y suscripciones, Altas desde la web y Estado de la plataforma, en el menú del panel.
+   Con el menú lateral, el panel ya no repite sus apartados como pestañas (aviso de Eric): el título dice dónde estás. Al entrar en una
+   empresa o salir de ella la app se recarga tapada («Abriendo …») hasta tener el menú, la marca y la pantalla de esa organización, para
+   que no se vea ni un instante lo de la otra. En «Tu día», la cita que se sube o se baja se desliza a su sitio y queda marcada un momento. */
+PANEL_SECCIONES.splice(1, 0, ['pd-cobros', 'cobros', 'Cobros y suscripciones', 'credit-card'], ['pd-altas', 'altas', 'Altas desde la web', 'rocket']);
+PANEL_SECCIONES.splice(5, 0, ['pd-estado', 'estado', 'Estado de la plataforma', 'shield-check']);
+const PANEL_DESC = { orgs: 'Las empresas que usan delcos: plan, dominios, extras y entrar a ayudarlas', cobros: 'Quién paga, quién está en prueba y qué recibos vienen',
+  altas: 'Empresas que se han dado de alta desde www.delcos.app', solicitudes: 'Presupuestos A medida y conversaciones sobre el contrato',
+  errores: 'Errores de la plataforma agrupados, de todas las empresas', estado: 'Versiones en uso, SQL aplicado y cifras generales',
+  accesos: 'Entradas y salidas de la plataforma', auditoria: 'Cambios hechos en el panel', equipo: 'Las personas de delcos con acceso al panel',
+  plantilla: 'Roles y catálogos que recibe cada empresa nueva' };
+(() => {
+  const nav = $('nav'); if (!nav) return;
+  PANEL_SECCIONES.forEach(([t, , txt, ico]) => {
+    if (!nav.querySelector(`[data-t="${t}"]`)) nav.insertAdjacentHTML('beforeend', `<button data-t="${t}" aria-selected="false" class="hide pdsec">${esc(txt)}</button>`);
+    ICO_NAV[t] = ico;
+  });
+  const g = MENU_GRUPOS.find(x => x.id === 'panel'); if (g) g.items = PANEL_SECCIONES.map(s => s[0]);
+  // Las pestañas del panel siguen el mismo orden que el menú (en el móvil son su navegación)
+  const desc = Object.getOwnPropertyDescriptor(PAGINAS.delcos, 'tabs');
+  Object.defineProperty(PAGINAS.delcos, 'tabs', { configurable: true, get() {
+    const base = desc.get ? desc.get.call(this) : desc.value;
+    if (!MODO_PLATAFORMA) return base;
+    const extra = { cobros: () => pintarCobrosDelcos(), altas: () => pintarAltasDelcos(), estado: () => pintarEstadoDelcos() };
+    return PANEL_SECCIONES.map(([, k, n]) => { const b = base.find(x => x[0] === k); return b ? [k, n, b[2]] : extra[k] ? [k, n, extra[k]] : null; }).filter(Boolean);
+  } });
+})();
+cargarPagina = (orig => function (t, ...a) {
+  const r = orig.call(this, t, ...a);
+  if (t === 'delcos' && MODO_PLATAFORMA) {
+    const sec = $('v-delcos'), tab = PAG_TAB.delcos || 'orgs', s = PANEL_SECCIONES.find(x => x[1] === tab);
+    if (sec && s) { const h = sec.querySelector('.saludo h1'), d = sec.querySelector('.saludo .fecha'); if (h) h.textContent = s[2]; if (d) d.textContent = PANEL_DESC[tab] || ''; }
+  }
+  return r;
+})(cargarPagina);
+
+const pdFecha = v => v ? new Date(String(v).length === 10 ? v + 'T12:00:00' : v).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
+const pdHace = v => { if (!v) return '—'; const m = Math.round((Date.now() - new Date(v)) / 60000);
+  return m < 60 ? `hace ${Math.max(1, m)} min` : m < 1440 ? `hace ${Math.round(m / 60)} h` : `hace ${Math.round(m / 1440)} días`; };
+const pdKpis = l => `<div class="pdkpis">${l.map(([v, t, cls]) => `<div class="pdkpi${cls ? ' ' + cls : ''}"><b>${v}</b><span>${esc(t)}</span></div>`).join('')}</div>`;
+const pdEsqueleto = () => `<div class="card cfgpanel"><div class="pdkpis">${'<div class="pdkpi"><div class="skel" style="width:50%"></div><div class="skel" style="width:70%"></div></div>'.repeat(4)}</div><div class="skel"></div><div class="skel" style="width:80%"></div></div>`;
+
+// ---- Cobros y suscripciones: el estado de pago de cada empresa (de ajustes.plan, que mantiene el aviso de Stripe)
+function pdCobroEstado(o) {
+  const p = o.plan_datos || {};
+  if (o.bloqueada) return ['Bloqueada', 'p-anu', o.bloqueada === 'desactivada' ? 'Desactivada' : 'Prueba terminada'];
+  if (p.estado === 'cancelada') return ['Cancelada', 'p-anu', p.periodo_fin ? 'Acceso hasta el ' + pdFecha(p.periodo_fin) : ''];
+  if (p.estado === 'impago') { const d = p.impago_desde ? Math.round((Date.now() - new Date(p.impago_desde + 'T12:00:00')) / 864e5) : 0;
+    return ['Impago', 'p-urg', d >= 14 ? 'Solo lectura desde hace ' + (d - 14) + ' días' : 'Le quedan ' + (14 - d) + ' días de gracia']; }
+  if (p.en_prueba || p.estado === 'prueba') return ['En prueba', 'p-warn', (p.prueba_hasta || p.periodo_fin) ? 'Hasta el ' + pdFecha(p.prueba_hasta || p.periodo_fin) : ''];
+  if (!p.stripe_suscripcion) return [p.plan === 'medida' ? 'A medida' : 'Sin suscripción', 'p-per', p.plan === 'medida' ? 'Contrato con delcos' : 'Sin pago con tarjeta'];
+  return ['Al día', 'p-est', p.periodo_fin ? 'Próximo recibo: ' + pdFecha(p.periodo_fin) : ''];
+}
+function pdMensual(p) {
+  if (!p || !p.stripe_suscripcion || p.estado === 'cancelada' || p.plan === 'medida') return 0;
+  const pl = planDe(p.plan), u = Math.max(+p.usuarios || 0, pl.minimo || 3);
+  return (p.pago === 'anual' ? (pl.anual || pl.precio) : pl.precio) * u;
+}
+async function pintarCobrosDelcos() {
+  const c = $('cfgcuerpo'); if (!c) return;
+  c.innerHTML = pdEsqueleto();
+  const { data, error } = await RPC_ORIG('organizaciones_lista', {});
+  if (!$('cfgcuerpo') || PAG_TAB.delcos !== 'cobros') return;
+  const l = error ? [] : (data || []);
+  const est = l.map(o => ({ o, p: o.plan_datos || {}, e: pdCobroEstado(o) }));
+  const cuenta = n => est.filter(x => x.e[0] === n).length;
+  const mrr = est.filter(x => x.e[0] === 'Al día').reduce((t, x) => t + pdMensual(x.p), 0);
+  const stripe = id => `https://dashboard.stripe.com/${EN_PRUEBAS ? 'test/' : ''}customers/${encodeURIComponent(id)}`;
+  let filtro = 'todas';
+  const pinta = () => {
+    const f = est.filter(x => filtro === 'todas' || (filtro === 'atencion' ? ['Impago', 'Bloqueada'].includes(x.e[0]) || x.p.baja_al_final || x.p.cambio_previsto : x.e[0] === filtro));
+    $('pdcobl').innerHTML = f.length ? `<div class="tablawrap"><table class="pdtabla"><thead><tr><th>Empresa</th><th>Plan</th><th>Estado</th><th>Al mes</th><th>Pendiente</th><th></th></tr></thead><tbody>
+      ${f.map(({ o, p, e }) => { const avisos = [p.baja_al_final ? 'Se da de baja al final del periodo' : '', p.cambio_previsto ? 'Cambio previsto a ' + planDe(p.cambio_previsto.plan || p.plan).nombre + (p.cambio_previsto.usuarios ? ' · ' + p.cambio_previsto.usuarios + ' usuarios' : '') + (p.cambio_previsto.desde ? ' el ' + pdFecha(p.cambio_previsto.desde) : '') : '', p.compromiso_hasta ? 'Compromiso hasta el ' + pdFecha(p.compromiso_hasta) : ''].filter(Boolean);
+        return `<tr><td><b>${esc(o.nombre)}</b><div class="sm">${o.usuarios} usuarios activos${p.origen === 'web' ? ' · alta desde la web' : ''}</div></td>
+          <td>${esc(planDe(p.plan).nombre)}<div class="sm">${p.plan === 'medida' ? '' : (p.usuarios ? p.usuarios + ' contratados · ' : '') + (p.pago === 'anual' ? 'anual' : 'mensual')}</div></td>
+          <td><span class="pill ${e[1]}">${e[0]}</span><div class="sm">${esc(e[2])}</div></td>
+          <td class="num">${pdMensual(p) ? eur(pdMensual(p)) : '—'}</td>
+          <td>${avisos.map(a => `<div class="sm">${esc(a)}</div>`).join('') || '<span class="sm">—</span>'}</td>
+          <td>${p.stripe_cliente ? `<a class="btn sec" href="${stripe(p.stripe_cliente)}" target="_blank" rel="noopener">Ver en Stripe</a>` : ''}</td></tr>`; }).join('')}</tbody></table></div>`
+      : '<div class="vacio">No hay empresas en este grupo.</div>';
+  };
+  c.innerHTML = `<div class="card cfgpanel">
+    ${error ? `<div class="banda-peligro">No se han podido leer: ${esc(error.message)}</div>` : ''}
+    ${pdKpis([[cuenta('Al día'), 'al día'], [cuenta('En prueba'), 'en prueba'], [cuenta('Impago'), 'con impago', cuenta('Impago') ? 'mal' : ''],
+      [est.filter(x => x.p.baja_al_final).length, 'se dan de baja'], [eur(mrr), 'cobro mensual estimado (sin IVA)']])}
+    <div class="segs" id="pdcobf">${[['todas', 'Todas'], ['atencion', 'Requieren atención'], ['Al día', 'Al día'], ['En prueba', 'En prueba'], ['Impago', 'Impago']]
+      .map(([k, n]) => `<button type="button" data-pdf="${esc(k)}" class="${k === filtro ? 'on' : ''}">${n}</button>`).join('')}</div>
+    <div id="pdcobl"></div>
+    <p class="sm">El estado llega solo desde Stripe con cada cobro. Las devoluciones y los datos de la tarjeta se miran en Stripe.</p></div>`;
+  c.querySelectorAll('[data-pdf]').forEach(b => b.onclick = () => { filtro = b.dataset.pdf; c.querySelectorAll('[data-pdf]').forEach(x => x.classList.toggle('on', x === b)); pinta(); });
+  pinta();
+}
+
+// ---- Altas desde la web: completadas (con su empresa y si ya ha entrado) y a medias (empezaron el pago y no lo terminaron)
+async function pintarAltasDelcos() {
+  const c = $('cfgcuerpo'); if (!c) return;
+  c.innerHTML = pdEsqueleto();
+  const { data, error } = await RPC_ORIG('altas_lista', {});
+  if (!$('cfgcuerpo') || PAG_TAB.delcos !== 'altas') return;
+  const l = error ? [] : (data || []);
+  const hechas = l.filter(a => a.estado === 'completada'), medias = l.filter(a => a.estado !== 'completada');
+  const sem = l.filter(a => Date.now() - new Date(a.creado_en) < 7 * 864e5);
+  const fila = a => { const d = a.datos || {};
+    const est = a.estado !== 'completada' ? ['A medias', 'p-warn', 'No terminó el pago · ' + pdHace(a.creado_en)]
+      : a.entro ? ['Dentro', 'p-est', 'Ya ha entrado en delcos'] : ['Invitada', 'p-per', a.invitado_en ? 'Invitación enviada ' + pdHace(a.invitado_en) : 'Falta la invitación'];
+    return `<div class="pdalta"><div class="pdaltacab"><b>${esc(a.organizacion || d.empresa || 'Sin nombre')}</b> <span class="pill ${est[1]}">${est[0]}</span>
+        <span class="pill p-per">${esc(planDe(d.plan).nombre)} · ${d.usuarios || 3} usuarios · ${d.pago === 'anual' ? 'anual' : 'mensual'}</span></div>
+      <div class="sm">${esc(d.nombre || '')}${d.email ? ` · <a href="mailto:${esc(d.email)}">${esc(d.email)}</a>` : ''}${d.telefono ? ` · <a href="tel:${esc(d.telefono)}">${esc(d.telefono)}</a>` : ''}${d.nif ? ' · ' + esc(d.nif) : ''}</div>
+      <div class="sm">${esc(est[2])} · empezó el ${pdFecha(a.creado_en)}</div></div>`; };
+  c.innerHTML = `<div class="card cfgpanel">
+    ${error ? `<div class="banda-peligro">No se han podido leer: ${esc(error.message)}</div>` : ''}
+    ${pdKpis([[hechas.length, 'completadas (90 días)'], [hechas.filter(a => a.entro).length, 'ya han entrado'], [medias.length, 'a medias (7 días)', medias.length ? 'aviso' : ''], [sem.length, 'esta semana']])}
+    ${medias.length ? `<h3 class="pdh3">A medias</h3><p class="sm">Rellenaron el formulario pero no terminaron de poner la tarjeta. Puede valer la pena escribirles. Se borran solas a los 7 días.</p>${medias.map(fila).join('')}` : ''}
+    <h3 class="pdh3">Completadas</h3>${hechas.map(fila).join('') || '<div class="vacio">Todavía no hay altas completadas desde la web.</div>'}</div>`;
+}
+
+// ---- Estado de la plataforma: SQL aplicado, versión publicada y versiones que usa cada empresa
+async function pintarEstadoDelcos() {
+  const c = $('cfgcuerpo'); if (!c) return;
+  c.innerHTML = pdEsqueleto();
+  const { data, error } = await RPC_ORIG('estado_plataforma', {});
+  if (!$('cfgcuerpo') || PAG_TAB.delcos !== 'estado') return;
+  const e = (!error && data) || {}, emp = e.empresas || {}, sql = e.sql || [], ver = e.versiones || [];
+  const ult = sql[0] || {};
+  const porVer = {}; ver.forEach(v => { (porVer[v.version] = porVer[v.version] || []).push(v); });
+  const versiones = Object.keys(porVer).sort((a, b) => b.localeCompare(a, 'es', { numeric: true }));
+  c.innerHTML = `<div class="card cfgpanel">
+    ${error ? `<div class="banda-peligro">No se ha podido leer: ${esc(error.message)}</div>` : ''}
+    ${pdKpis([[esc('v' + VERSION_APP), 'versión de esta app'], [ult.numero ? 'SQL ' + ult.numero : '—', ult.version_app ? 'base en ' + ult.version_app : 'base'],
+      [num(emp.activas || 0) + ' / ' + num(emp.total || 0), 'empresas activas'], [num(e.usuarios || 0), 'usuarios activos' + (e.portal ? ' · ' + num(e.portal) + ' del portal' : '')],
+      [num(e.errores || 0), 'errores sin resolver (15 días)', e.errores ? 'aviso' : '']])}
+    <h3 class="pdh3">Versiones en uso (30 días)</h3>
+    ${versiones.length ? versiones.map(v => `<div class="pdver"><div class="pdvercab"><b>v${esc(v.replace(/^v/, ''))}</b>${v.replace(/^v/, '') === VERSION_APP ? ' <span class="pill p-est">la actual</span>' : ' <span class="pill p-warn">anterior</span>'}
+        <span class="sm">${porVer[v].length} ${porVer[v].length === 1 ? 'empresa' : 'empresas'}</span></div>
+      <div class="sm">${porVer[v].map(x => `${esc(x.organizacion)} (${pdHace(x.ultima_vez)})`).join(' · ')}</div></div>`).join('')
+      : '<div class="vacio">Ninguna empresa ha abierto la app en los últimos 30 días.</div>'}
+    <h3 class="pdh3">Últimos SQL aplicados en esta base</h3>
+    <div class="tablawrap"><table class="pdtabla"><thead><tr><th>SQL</th><th>Versión</th><th>Qué cambia</th><th>Aplicado</th></tr></thead><tbody>
+      ${sql.map(s => `<tr><td class="num">${s.numero}</td><td>${esc(s.version_app || '')}</td><td class="sm">${esc(s.descripcion || '')}</td><td class="sm">${pdFecha(s.aplicado_en)}</td></tr>`).join('')}</tbody></table></div>
+    <p class="sm">Esto es la base de ${EN_PRUEBAS ? '<b>pruebas</b>' : '<b>producción</b>'}. La de ${EN_PRUEBAS ? 'producción' : 'pruebas'} se mira desde su propio panel.</p></div>`;
+}
+
+// ---- Cambiar de organización sin heredar nada: la recarga va tapada hasta tener el menú, la marca y la pantalla de la organización nueva
+function prepararCambioOrg(destino) {
+  try { sessionStorage.setItem('dlc-cambio-org', destino || ''); sessionStorage.removeItem('dlc-f5'); localStorage.removeItem('app-marca'); } catch (e) {}
+}
+entrarEnOrganizacion = async function (o) {
+  if (!await preguntar(`Vas a ver la plataforma como ${o.nombre}: sus datos, su configuración y su plan. Lo que cambies se guarda en su empresa y queda registrado. Para volver, «Salir» en la franja de arriba.`, { titulo: 'Entrar en ' + o.nombre, ok: 'Entrar' })) return;
+  const { data: r } = await db.rpc('entrar_organizacion', { p_org: o.id });
+  if (!r || !r.ok) { toast(r && r.motivo === 'permiso' ? 'Solo el Administrador de delcos puede entrar' : 'No se ha podido entrar', true); return; }
+  prepararCambioOrg(o.nombre);
+  location.reload();
+};
+document.addEventListener('click', ev => { if (ev.target.closest('#orgvistasal')) prepararCambioOrg('Panel delcos'); }, true);
+(function terminarCambioOrg() {
+  let destino = null; try { destino = sessionStorage.getItem('dlc-cambio-org'); } catch (e) {}
+  const html = document.documentElement;
+  if (destino === null && !html.classList.contains('cambiando-org')) return;
+  const fin = () => { html.classList.remove('cambiando-org'); try { sessionStorage.removeItem('dlc-cambio-org'); } catch (e) {} };
+  const tope = setTimeout(fin, 9000);
+  let n = 0;
+  const t = setInterval(async () => {
+    if (++n > 80) { clearInterval(t); return; }
+    if (!(typeof PERFIL !== 'undefined' && PERFIL && !document.body.classList.contains('sin-sesion') && typeof RPC_ORIG === 'function')) {
+      if (!$('login').classList.contains('hide')) { clearInterval(t); clearTimeout(tope); fin(); }
+      return;
+    }
+    clearInterval(t);
+    try { await pagoCargarEstado(); } catch (e) {}
+    try { await franjaVista(); } catch (e) {}
+    try { aplicarModoPlataforma(); } catch (e) {}
+    if (MODO_PLATAFORMA && TAB !== 'delcos') ir('pd-orgs');
+    // Se espera a que la pantalla haya revelado sus datos (como mucho 3 s)
+    for (let i = 0; i < 30; i++) { await new Promise(r => setTimeout(r, 100)); if (!document.querySelector('main > section.preparando, main > section.cargando')) break; }
+    clearTimeout(tope); fin();
+  }, 60);
+})();
+try { const m = () => { try { localStorage.setItem('dlc-modo', MODO_PLATAFORMA ? 'plataforma' : 'empresa'); } catch (e) {} };
+  aplicarModoPlataforma = (orig => function (...a) { const r = orig.apply(this, a); m(); return r; })(aplicarModoPlataforma); } catch (e) {}
+
+// ---- «Tu día»: la cita movida se desliza a su sitio (FLIP) y queda resaltada un momento
+moverCitaLocal = (orig => async function (orden, id, acc) {
+  const idDe = it => { const b = it.querySelector('[data-td]'); return b ? b.dataset.td.split('|')[1] : null; };
+  const antes = new Map();
+  document.querySelectorAll('.tdlista .tdit').forEach(it => { const k = idDe(it); if (k) antes.set(k, it.getBoundingClientRect().top); });
+  const r = await orig.call(this, orden, id, acc);
+  const quieto = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  document.querySelectorAll('.tdlista .tdit').forEach(it => {
+    const k = idDe(it); if (!k) return;
+    if (String(k) === String(id)) { it.classList.remove('tdmovida'); void it.offsetWidth; it.classList.add('tdmovida'); setTimeout(() => it.classList.remove('tdmovida'), 1300); }
+    const y0 = antes.get(k); if (quieto || y0 == null || !it.animate) return;
+    const dy = y0 - it.getBoundingClientRect().top;
+    if (Math.abs(dy) > 1) it.animate([{ transform: `translateY(${dy}px)` }, { transform: 'none' }], { duration: 260, easing: 'cubic-bezier(.2,.7,.2,1)' });
+  });
+  return r;
+})(moverCitaLocal);
+
+/* v2.173.0 · El próximo recibo con IVA en «Plan y suscripción» (petición de Eric por la sesión de la web: que la web, Stripe y la app digan lo mismo).
+   Durante la prueba: hoy 0 €, el primer recibo con IVA (con la puesta en marcha si el pago es mensual) y lo que viene después; fuera de ella, el
+   próximo recibo y su fecha. Se pinta al momento con la misma cuenta que la web (IVA = redondeo de base × 21 / 100) y, si la función «pagos»
+   devuelve el recibo de Stripe (acción datos, campo proximo), se cambia por ese (lleva descuentos y lo ya apuntado). */
+let PAGO_PROXIMO = null;
+db.functions.invoke = (orig => async function (fn, op, ...a) {
+  const r = await orig.call(this, fn, op, ...a);
+  try { if (fn === 'pagos' && op && op.body && op.body.accion === 'datos' && r && r.data && r.data.ok) { PAGO_PROXIMO = r.data.proximo || null; pintarProximoRecibo(); } } catch (e) {}
+  return r;
+})(db.functions.invoke.bind(db.functions));
+const ivaDe = x => Math.round(x * 21) / 100;
+function reciboCalculado(pl) {
+  const p = planDe(pl.plan), u = Math.max(+pl.usuarios || 0, p.minimo || 3), anual = pl.pago === 'anual';
+  const cuota = u * p.precio * (anual ? 10 : 1);
+  const puesta = pl.en_prueba && !anual ? PUESTA_EN_MARCHA : 0;
+  return { primero: cuota + puesta + ivaDe(cuota + puesta), despues: cuota + ivaDe(cuota), puesta, anual };
+}
+function pintarProximoRecibo() {
+  const c = $('cfgcuerpo'), pl = PLAN_ACTUAL || {}, h = c && c.querySelector('#planact h2');
+  if (!h || !pl.stripe_suscripcion || pl.plan === 'medida' || pl.baja_al_final || pl.estado === 'cancelada') return;
+  const k = reciboCalculado(pl), s = PAGO_PROXIMO;
+  const fecha = (s && s.fecha) || pl.periodo_fin, total = s && s.total != null ? s.total : k.primero;
+  const cada = k.anual ? 'al año' : 'al mes';
+  const txt = pl.en_prueba
+    ? `Hoy no pagas nada. El <b>${fechaCorta(fecha)}</b> llega el primer recibo: <b>${eur(total)} con IVA</b>${k.puesta ? `, que incluye la puesta en marcha (${eur(k.puesta)} + IVA, una sola vez)` : k.anual ? ' (la puesta en marcha va incluida)' : ''}.
+       Después, ${eur(k.despues)} ${cada} con IVA. Si te das de baja antes, no pagas nada.`
+    : `Próximo recibo: <b>${eur(total)} con IVA</b>${fecha ? `, el <b>${fechaCorta(fecha)}</b>` : ''}.`;
+  let el = $('pgrecibo');
+  if (!el) {
+    const prueba = $('pgprueba');
+    if (prueba) { prueba.id = 'pgrecibo'; el = prueba; } else { h.insertAdjacentHTML('afterend', '<div class="banda-info" id="pgrecibo"></div>'); el = $('pgrecibo'); }
+  }
+  el.innerHTML = txt;
+  el.dataset.origen = s && s.total != null ? 'stripe' : 'calculo';
+}
+pintarPaginaPlan = (orig => async function (...a) { const r = await orig.apply(this, a); try { pintarProximoRecibo(); } catch (e) {} return r; })(pintarPaginaPlan);
