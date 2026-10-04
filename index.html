@@ -3082,6 +3082,17 @@ body.facsolo #pvemitir,body.facsolo #fvrect{display:none!important}
 body.modo-plataforma .saludo .acts .htbtn{display:none}
 body.modo-plataforma .gsearch,body.modo-plataforma #bnav,body.modo-plataforma #bmasbtn{display:none!important}
 #plaviso .btn{margin-left:8px}
+/* v2.172.0 · «Tu día» alineado: la hora con el nombre y el estado con la nota en la misma línea; el grupo de un centro, con una barra (sin mover la fila) */
+.tdlista .tdit .tx > b{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.tdlista .tdit .tx > b .tdh,.tdlista .tdit .tx > b .pill{margin:0;vertical-align:baseline;flex:none}
+.tdlista .tdit .tx > .sm{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.tdlista .tdit .tx > .sm .pill{margin:0;vertical-align:baseline}
+.tdlista .tdit.tdengrupo{margin-left:0;box-shadow:inset 3px 0 0 var(--sky-soft)}
+@media (max-width:640px){.tdlista .tdit.tdengrupo{margin-left:0}}
+.tdcentro{padding-left:10px}
+/* v2.172.0 · Dentro de una empresa (franja «Estás viendo…»), el equipo de delcos la ve tal cual: sin el apartado Panel delcos (se vuelve con «Salir») */
+body.con-vista nav.main [data-t="delcos"],body.con-vista .mlgrupo[data-g="plataforma"],body.con-vista .bmasgrid [data-bm="delcos"]{display:none!important}
+.tdlista .tdit .tx > span.sm:nth-of-type(2){display:flex;align-items:center;gap:4px;flex-wrap:wrap;-webkit-line-clamp:unset}
 </style>
 </head>
 <body>
@@ -3218,6 +3229,6 @@ body.modo-plataforma .gsearch,body.modo-plataforma #bnav,body.modo-plataforma #b
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.171.0"></script>
+<script src="./app.js?v=2.172.0"></script>
 </body>
 </html>

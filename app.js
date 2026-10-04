@@ -6458,7 +6458,7 @@ AYUDA.ventas[2].push('Arriba tienes los totales del periodo (solo pedidos valida
 const CITA_ABIERTA = ['Planificada', 'Confirmada'];
 Object.assign(EST_COL, { Planificada: 'var(--navy)', Confirmada: 'var(--sky)', Visitada: 'var(--ok)',
   'No estaba': 'var(--warn)', Aplazada: 'var(--muted)', Descartada: 'var(--muted)' });
-const pillCita = e => `<span class="pill cest" style="background:${EST_COL[e] || 'var(--muted)'}1f;color:${EST_COL[e] || 'var(--muted)'}">${esc(e)}</span>`;
+const pillCita = e => `<span class="pill cest" style="background:color-mix(in srgb, ${EST_COL[e] || 'var(--muted)'} 12%, transparent);color:${EST_COL[e] || 'var(--muted)'}">${esc(e)}</span>`;
 
 // La ruta en curso de versiones anteriores se sustituye por la jornada
 try { Object.keys(localStorage).filter(k => k.startsWith('dlc-ruta-')).forEach(k => localStorage.removeItem(k)); } catch (e) {}
@@ -6576,7 +6576,7 @@ async function pintarTuDia() {
       const idxAb = mias.filter(x => CITA_ABIERTA.includes(x.estado)).indexOf(c);
       return `<div class="item tdit ${abierta ? '' : 'cerrada'}" data-tdf="${c.cuenta_id}" role="button" tabindex="0">
         <span class="tdnum">${i + 1}</span>
-        <span class="tx"><b><span class="tdh" title="${c.hora ? 'Hora fijada' : 'Hora estimada según el orden'}" style="background:${EST_COL[c.estado]}1f;color:${EST_COL[c.estado]}">${hora}</span>${c.urgente ? '<span class="pill p-urg">Urgente</span> ' : ''}${esc(c.nombre)}</b>
+        <span class="tx"><b><span class="tdh" title="${c.hora ? 'Hora fijada' : 'Hora estimada según el orden'}" style="background:color-mix(in srgb, ${EST_COL[c.estado] || 'var(--muted)'} 12%, transparent);color:${EST_COL[c.estado]}">${hora}</span>${c.urgente ? '<span class="pill p-urg">Urgente</span> ' : ''}${esc(c.nombre)}</b>
           <span class="sm">${esc([c.centro_nombre, c.municipio].filter(Boolean).join(' · ') || 'Sin centro')}${!xyCita(c) && abierta ? ' · <span style="color:var(--warn)">sin ubicación</span>' : ''}</span>
           <span class="sm">${pillCita(c.estado)}${c.origen ? ' · ' + esc(c.origen) : ''}${c.nota ? ' · ' + esc(c.nota) : ''}</span>
           ${abierta && TD_INFO[c.id] && TD_INFO[c.id].aviso ? `<span class="sm tdaviso">${esc(TD_INFO[c.id].aviso)}</span>`
@@ -6711,7 +6711,7 @@ document.addEventListener('click', async e => {
     if (j < 0 || j >= ab.length) return;
     [ab[i], ab[j]] = [ab[j], ab[i]];
     const orden = TD_CITAS.filter(x => !CITA_ABIERTA.includes(x.estado)).concat(ab);
-    if (await guardarOrden(orden)) cargarAgenda();
+    moverCitaLocal(orden, c.id, acc);
   }
 });
 
@@ -17766,7 +17766,7 @@ function agVerDia(f, l, ancla) {
   const p = document.createElement('div'); p.className = 'agpop'; p.__t = Date.now();
   p.innerHTML = `<div class="agpoph"><b>${esc(fechaLarga(new Date(f + 'T00:00:00')).replace(/^./, c => c.toUpperCase()))}</b>
       <button type="button" class="x" aria-label="Cerrar">✕</button></div>
-    ${l.length ? `<div class="lista">${l.map(x => `<button type="button" class="item" data-agficha="${x.cuenta_id}"><span class="ic" style="background:${EST_COL[x.estado] || '#6B7F95'}1f;color:${EST_COL[x.estado] || '#6B7F95'}">${x.hora ? esc(String(x.hora).slice(0, 5)) : '·'}</span>
+    ${l.length ? `<div class="lista">${l.map(x => `<button type="button" class="item" data-agficha="${x.cuenta_id}"><span class="ic" style="background:color-mix(in srgb, ${EST_COL[x.estado] || '#6B7F95'} 12%, transparent);color:${EST_COL[x.estado] || '#6B7F95'}">${x.hora ? esc(String(x.hora).slice(0, 5)) : '·'}</span>
         <span class="tx"><b>${esc(x.nombre)}</b><span class="sm">${esc([x.centro_nombre, x.municipio].filter(Boolean).join(' · '))} · ${esc(x.estado)}</span></span></button>`).join('')}</div>`
       : '<div class="sm" style="padding:8px 4px">Sin citas.</div>'}
     ${f >= hoyISO() ? `<div class="acts" style="margin:6px 0 0;justify-content:flex-end"><button type="button" class="btn sec" data-agnueva="${f}">+ Cita este día</button></div>` : ''}`;
@@ -19568,3 +19568,29 @@ pagoCargarEstado = (orig => async function (...a) {
   }
   return r;
 })(pagoCargarEstado);
+
+/* v2.172.0 · «Tu día»: subir o bajar una cita la mueve al momento, sin recargar la agenda (aviso de Eric: antes se recargaban métricas,
+   semana, mes y sugerencias). La lista se repinta con el orden nuevo a partir de lo que ya hay (agenda_rango no se vuelve a pedir) y el orden
+   se guarda por detrás; si no se puede guardar, vuelve a lo guardado. El foco se queda en la flecha de la cita movida. */
+let TD_ULTIMO = null, TD_PRESET = null;
+rpcCache = (orig => async function (fn, params, clave) {
+  if (fn === 'agenda_rango' && TD_PRESET && params && params.p_desde === TD_PRESET.fecha && params.p_hasta === TD_PRESET.fecha) {
+    const d = TD_PRESET.data; TD_PRESET = null; return { data: d, cache: false };
+  }
+  const r = await orig.call(this, fn, params, clave);
+  if (fn === 'agenda_rango' && params && params.p_desde === params.p_hasta && r && r.data) TD_ULTIMO = { fecha: params.p_desde, data: r.data };
+  return r;
+})(rpcCache);
+async function moverCitaLocal(orden, id, acc) {
+  const u = TD_ULTIMO && TD_ULTIMO.fecha === AG_FECHA ? TD_ULTIMO.data : null;
+  if (!u) { if (await guardarOrden(orden)) cargarAgenda(); return; }
+  const ids = new Set(orden.map(c => c.id));
+  TD_PRESET = { fecha: AG_FECHA, data: [...orden, ...u.filter(c => !ids.has(c.id))] };
+  TD_ULTIMO = { fecha: AG_FECHA, data: TD_PRESET.data };
+  const y = window.scrollY;
+  await pintarTuDia();
+  window.scrollTo({ top: y });
+  const b = document.querySelector(`.tdlista [data-td="${acc}|${id}"]:not([disabled])`) || document.querySelector(`.tdlista [data-td$="|${id}"]`);
+  if (b) b.focus({ preventScroll: true });
+  if (!(await guardarOrden(orden))) cargarAgenda();
+}
