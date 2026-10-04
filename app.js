@@ -18796,3 +18796,152 @@ async function escribirRpc(fn, payload) {
     } else if (++intentos > 90) clearInterval(t);
   }, 2000);
 })();
+
+
+/* v2.162.0 · Suscripciones y pagos con Stripe (decisiones de Eric, 4/10/2026). «Plan y suscripción» ya no manda correos: «Contratar»
+   abre el pago seguro de Stripe (tarjeta o domiciliación), «Cambiar a…» y «Añadir o quitar usuarios» cambian la suscripción con
+   prorrateo y «Gestionar el pago» abre el portal de Stripe (tarjeta, recibos, cancelar). Todo pasa por la función de Supabase
+   «pagos»; Stripe avisa a «stripe-webhook» y la base (aplicar_suscripcion, SQL 102) activa o cambia el plan. Si un cobro falla, aviso
+   arriba durante 14 días y después la empresa queda en solo lectura (la base no deja crear, cambiar ni borrar) hasta que pague. */
+const PAGO_PLANES = ['campo', 'comercial', 'empresa'];
+let PAGO_ESTADO = null;   // la respuesta de plan_uso (plan, usuarios, solo_lectura)
+
+async function pagoLlamar(cuerpo, boton) {
+  if (boton) { boton.disabled = true; boton.dataset.txt = boton.textContent; boton.textContent = 'Abriendo…'; }
+  try {
+    const { data, error } = await db.functions.invoke('pagos', { body: cuerpo });
+    let d = data;
+    if (error) { try { d = await error.context.json(); } catch (e) { d = { ok: false, error: error.message }; } }
+    if (!d || !d.ok) { toast('No se ha podido: ' + ((d && d.error) || 'error del pago'), true); return null; }
+    return d;
+  } finally { if (boton) { boton.disabled = false; boton.textContent = boton.dataset.txt; } }
+}
+
+// Ventana para elegir plan, forma de pago y usuarios, con el total
+function elegirPago(planIni) {
+  const pl = PLAN_ACTUAL || {}, conSus = !!pl.stripe_suscripcion, usados = +((PAGO_ESTADO || {}).usuarios || 0);
+  const est = { plan: PAGO_PLANES.includes(planIni) ? planIni : (PAGO_PLANES.includes(pl.plan) ? pl.plan : 'comercial'),
+    pago: pl.pago === 'anual' ? 'anual' : 'mensual', usuarios: Math.max(3, usados, +pl.usuarios || 0) };
+  const pinta = () => {
+    const p = planDe(est.plan), anual = est.pago === 'anual';
+    const base = anual ? p.precio * 10 * est.usuarios : p.precio * est.usuarios;
+    const puesta = !anual && !conSus ? PUESTA_EN_MARCHA : 0;
+    const iva = Math.round((base + puesta) * 21) / 100;
+    $('dbody').innerHTML = `<div class="fh"><div><h2>${conSus ? 'Cambiar la suscripción' : 'Contratar delcos'}</h2>
+        <div class="sm">Precios por usuario, IVA no incluido. ${conSus ? 'El cambio se prorratea en el próximo recibo.' : 'El pago se hace en la página segura de Stripe.'}</div></div>
+        <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
+      <label>Plan</label><div class="segs pgplan" role="group">${PAGO_PLANES.map(k => `<button type="button" data-pgp="${k}" class="${est.plan === k ? 'on' : ''}" aria-pressed="${est.plan === k}">${esc(planDe(k).nombre)} · ${eurI(planDe(k).precio)}</button>`).join('')}</div>
+      <label style="margin-top:12px">Pago</label><div class="segs" role="group">
+        <button type="button" data-pga="mensual" class="${anual ? '' : 'on'}" aria-pressed="${!anual}">Mensual</button>
+        <button type="button" data-pga="anual" class="${anual ? 'on' : ''}" aria-pressed="${anual}">Anual · pagas 10 meses de 12</button></div>
+      <label for="pgusu" style="margin-top:12px">Usuarios</label><input id="pgusu" type="number" min="${Math.max(3, usados)}" value="${est.usuarios}" class="numw">
+      <span class="sm">${usados ? `Ahora usáis ${num(usados)}. ` : ''}Mínimo ${Math.max(3, usados)}.</span>
+      <div class="pgres">
+        <div><span>${num(est.usuarios)} × ${eurI(anual ? p.precio * 10 : p.precio)} ${anual ? 'al año' : 'al mes'}</span><b>${eurI(base)}</b></div>
+        ${puesta ? `<div><span>Puesta en marcha (una vez; incluida con pago anual)</span><b>${eurI(puesta)}</b></div>` : ''}
+        <div><span>IVA 21 %</span><b>${eurI(iva)}</b></div>
+        <div class="pgtot"><span>${conSus ? 'Nuevo importe' : 'Primer cobro'}</span><b>${eurI(base + puesta + iva)}</b></div></div>
+      <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>Cancelar</button>
+        <button class="btn" id="pgok">${conSus ? 'Confirmar el cambio' : 'Ir al pago seguro'}</button></div>`;
+    $('dbody').querySelectorAll('[data-pgp]').forEach(b => b.onclick = () => { est.plan = b.dataset.pgp; pinta(); });
+    $('dbody').querySelectorAll('[data-pga]').forEach(b => b.onclick = () => { est.pago = b.dataset.pga; pinta(); });
+    $('pgusu').onchange = () => { est.usuarios = Math.max(3, usados, Math.floor(+$('pgusu').value || 0)); pinta(); };
+    $('pgok').onclick = async ev => {
+      const d = await pagoLlamar({ accion: conSus ? 'cambiar' : 'checkout', plan: est.plan, pago: est.pago, usuarios: est.usuarios }, ev.target);
+      if (!d) return;
+      if (d.url) { location.href = d.url; return; }
+      $('dlg').close(); toast('Cambio hecho: en unos segundos verás el plan nuevo'); pagoEsperarActivo();
+    };
+  };
+  pinta(); $('dlg').showModal();
+}
+async function pagoPortal(boton) { const d = await pagoLlamar({ accion: 'portal' }, boton); if (d && d.url) location.href = d.url; }
+
+// «Plan y suscripción»: los botones reales en lugar de correos
+pintarPaginaPlan = (orig => async function (...a) {
+  const r = await orig.apply(this, a);
+  const c = $('cfgcuerpo'); if (!c) return r;
+  const pl = PLAN_ACTUAL || {}, conSus = !!pl.stripe_suscripcion, puedePagar = puedeOrganizacion();
+  c.querySelectorAll('.plan[data-plan]').forEach(card => {
+    const k = card.dataset.plan, a2 = card.querySelector('a.btn[href^="mailto"]');
+    if (!a2 || !PAGO_PLANES.includes(k)) return;
+    if (!puedePagar) { a2.remove(); return; }
+    const b = document.createElement('button'); b.type = 'button'; b.className = a2.className; b.dataset.pgplan = k;
+    b.textContent = conSus ? 'Cambiar a ' + planDe(k).nombre : 'Contratar ' + planDe(k).nombre;
+    a2.replaceWith(b); b.onclick = () => elegirPago(k);
+  });
+  const acts = c.querySelector('#planact .acts');
+  if (acts) {
+    const usu = acts.querySelector('a.btn[href^="mailto"]'); if (usu) usu.remove();
+    if (puedePagar && pl.plan !== 'medida') acts.insertAdjacentHTML('beforeend', conSus
+      ? '<button type="button" class="btn sec" id="pgusu2">Añadir o quitar usuarios</button><button type="button" class="btn sec" id="pgportal">Gestionar el pago</button>'
+      : '<button type="button" class="btn" id="pgelegir">Elegir plan y pagar</button>');
+    if ($('pgusu2')) $('pgusu2').onclick = () => elegirPago(pl.plan);
+    if ($('pgportal')) $('pgportal').onclick = ev => pagoPortal(ev.target);
+    if ($('pgelegir')) $('pgelegir').onclick = () => elegirPago();
+  }
+  const act = c.querySelector('#planact h2');
+  if (act && pl.estado === 'impago') act.insertAdjacentHTML('afterend', `<div class="banda-peligro">No hemos podido cobrar el último recibo${pl.impago_desde ? ' (desde el ' + fechaCorta(pl.impago_desde) + ')' : ''}.
+    Actualiza el método de pago con «Gestionar el pago»; si en 14 días no se puede cobrar, la cuenta queda en solo lectura.</div>`);
+  if (act && pl.estado === 'cancelada') act.insertAdjacentHTML('afterend', `<div class="banda-aviso">Suscripción cancelada: puedes usar la plataforma hasta el
+    <b>${fechaCorta(pl.periodo_fin)}</b> y descargar tus datos. Para seguir, vuelve a contratar.</div>`);
+  if (act && conSus && pl.periodo_fin && pl.estado === 'activo') act.insertAdjacentHTML('afterend', `<p class="sm">Próximo recibo el ${fechaCorta(pl.periodo_fin)}.</p>`);
+  return r;
+})(pintarPaginaPlan);
+
+// Aviso arriba si hay un cobro pendiente o la cuenta está en solo lectura
+function pagoAviso() {
+  const e = PAGO_ESTADO || {}, pl = e.plan || {}; let el = $('pagoaviso');
+  const msg = e.solo_lectura ? 'Tu empresa está en <b>solo lectura</b> porque hay un pago pendiente. Puedes consultar y exportar; para volver a trabajar, actualiza el pago.'
+    : pl.estado === 'impago' ? 'No hemos podido cobrar tu suscripción. Actualiza el método de pago antes de 14 días para no quedarte en solo lectura.' : '';
+  if (!msg) { if (el) el.remove(); return; }
+  const main = document.querySelector('main'); if (!main) return;
+  if (!el) { main.insertAdjacentHTML('afterbegin', '<div id="pagoaviso" class="banda-peligro" role="alert"></div>'); el = $('pagoaviso'); }
+  el.innerHTML = msg + (puedeOrganizacion() ? ' <button type="button" class="btn sec" id="pgavbtn">Gestionar el pago</button>' : ' Avisa a quien gestiona la cuenta de tu empresa.');
+  if ($('pgavbtn')) $('pgavbtn').onclick = ev => pagoPortal(ev.target);
+}
+async function pagoCargarEstado() {
+  const { data } = await RPC_ORIG('plan_uso', {});
+  if (!data) return;
+  PAGO_ESTADO = data; if (data.plan && data.plan.plan) PLAN_ACTUAL = data.plan;
+  pagoAviso();
+}
+// Al volver de Stripe: se espera a que llegue el aviso y el plan quede activo
+async function pagoEsperarActivo() {
+  for (let i = 0; i < 20; i++) {
+    await new Promise(r => setTimeout(r, 3000));
+    await pagoCargarEstado();
+    const pl = PLAN_ACTUAL || {};
+    if (pl.stripe_suscripcion && pl.estado === 'activo') { toast('Suscripción activa: plan ' + planDe(pl.plan).nombre); if (TAB === 'plan' || TAB === 'organizacion') ir(TAB); return; }
+  }
+  toast('El pago está hecho; la suscripción aparecerá en unos minutos');
+}
+(function pagoArranque() {
+  let n = 0;
+  const t = setInterval(() => {
+    if (typeof PERFIL !== 'undefined' && PERFIL && !document.body.classList.contains('sin-sesion') && typeof RPC_ORIG === 'function') {
+      clearInterval(t);
+      const q = new URLSearchParams(location.search), res = q.get('pago');
+      if (res) { history.replaceState(null, '', location.pathname + location.hash); }
+      if (res === 'ok') { toast('Pago recibido: activando tu suscripción…'); pagoEsperarActivo(); }
+      else if (res === 'cancelado') toast('Has salido del pago sin completarlo');
+      pagoCargarEstado();
+    } else if (++n > 90) clearInterval(t);
+  }, 1500);
+})();
+// En solo lectura, los fallos al guardar se explican (y no cuentan como errores de la plataforma)
+toast = (orig => function (msg, err) {
+  if (err && PAGO_ESTADO && PAGO_ESTADO.solo_lectura) msg = 'Tu empresa está en solo lectura hasta que se actualice el pago (Plan y suscripción)';
+  return orig.call(this, msg, err);
+})(toast);
+registrarError = (orig => function (tipo, mensaje, detalle) {
+  if (PAGO_ESTADO && PAGO_ESTADO.solo_lectura && /row-level security|violates row-level/i.test(String(mensaje))) return;
+  return orig.call(this, tipo, mensaje, detalle);
+})(registrarError);
+// Organizaciones (panel delcos): impago y cancelada a la vista
+orgEstado = (orig => function (o) {
+  const pd = o.plan_datos || {};
+  if (o.bloqueada === 'cancelada') return '<span class="pill p-anu">Cancelada</span> ';
+  if (pd.estado === 'impago') return `<span class="pill p-urg">Impago desde el ${fechaCorta(pd.impago_desde)}</span> `;
+  return orig(o) + (pd.stripe_suscripcion ? '<span class="pill p-est">Stripe</span> ' : '');
+})(orgEstado);

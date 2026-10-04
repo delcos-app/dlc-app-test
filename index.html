@@ -3018,6 +3018,15 @@ label.chk > span{display:flex;flex-direction:column;gap:3px;min-width:0;line-hei
    ============================================================ */
 .planmat tr.plangrupo td{padding:14px 12px 6px;background:none;font:700 11px var(--f-texto);letter-spacing:.07em;text-transform:uppercase;color:var(--muted);text-align:left;border-top:0}
 .planmat tr.plangrupo:hover{background:none}
+/* v2.162.0 · Pagos: resumen de la ventana de contratar */
+.pgplan{flex-wrap:wrap}
+.pgres{margin:14px 0 4px;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.pgres > div{display:flex;justify-content:space-between;gap:12px;padding:9px 14px;border-top:1px solid var(--line)}
+.pgres > div:first-child{border-top:0}
+.pgres .pgtot{background:var(--hielo,#F2F7FC);font-family:Manrope,system-ui,sans-serif}
+.pgres .pgtot b{font-size:18px}
+#pagoaviso{margin:0 0 12px}
+#pagoaviso .btn{margin-left:8px}
 </style>
 </head>
 <body>
@@ -3154,6 +3163,6 @@ label.chk > span{display:flex;flex-direction:column;gap:3px;min-width:0;line-hei
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.161.0"></script>
+<script src="./app.js?v=2.162.0"></script>
 </body>
 </html>
