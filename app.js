@@ -19198,3 +19198,44 @@ orgAcciones = (orig => function (c, l) {
   });
   return r;
 })(orgAcciones);
+
+/* v2.166.0 · «Darme de baja» en Plan y suscripción (petición de Eric): abre directamente la pantalla de cancelar de Stripe y, al confirmar,
+   vuelve sola a delcos (?pago=baja) con el aviso de hasta cuándo se puede usar. Con la baja pedida, «Seguir con la suscripción» la deshace. */
+const PAGO_VUELTA_BAJA = new URLSearchParams(location.search).get('pago') === 'baja';   // se lee antes de que el arranque limpie la dirección
+async function pagoEsperarBaja() {
+  for (let i = 0; i < 15; i++) {
+    await pagoCargarEstado();
+    const pl = PLAN_ACTUAL || {};
+    if (pl.baja_al_final || pl.estado === 'cancelada') {
+      toast(`Baja registrada: puedes usar delcos hasta el ${fechaCorta(pl.periodo_fin)}`);
+      if (TAB === 'plan' || TAB === 'organizacion') ir(TAB); return;
+    }
+    await new Promise(r => setTimeout(r, 2000));
+  }
+  toast('Baja pedida: en unos minutos lo verás en Plan y suscripción');
+}
+if (PAGO_VUELTA_BAJA) {
+  let n = 0;
+  const t = setInterval(() => {
+    if (typeof PERFIL !== 'undefined' && PERFIL && !document.body.classList.contains('sin-sesion')) { clearInterval(t); pagoEsperarBaja(); }
+    else if (++n > 90) clearInterval(t);
+  }, 1500);
+}
+pintarPaginaPlan = (orig => async function (...a) {
+  const r = await orig.apply(this, a);
+  const c = $('cfgcuerpo'), pl = PLAN_ACTUAL || {}; if (!c || !puedeOrganizacion() || !pl.stripe_suscripcion) return r;
+  const acts = c.querySelector('#planact .acts');
+  if (acts && pl.estado === 'activo' && !pl.baja_al_final && !$('pgdarbaja'))
+    acts.insertAdjacentHTML('beforeend', '<button type="button" class="btn sec" id="pgdarbaja">Darme de baja</button>');
+  const bf = $('pgbajafin');
+  if (bf) {
+    bf.innerHTML = `Has pedido la baja: puedes usar la plataforma hasta el <b>${fechaCorta(pl.periodo_fin)}</b>.
+      <button type="button" class="btn sec" id="pgseguir">Seguir con la suscripción</button>`;
+  }
+  if ($('pgdarbaja')) $('pgdarbaja').onclick = async ev => { const d = await pagoLlamar({ accion: 'baja' }, ev.target); if (d && d.url) location.href = d.url; };
+  if ($('pgseguir')) $('pgseguir').onclick = async ev => {
+    const d = await pagoLlamar({ accion: 'reanudar' }, ev.target); if (!d) return;
+    toast('Seguimos: tu suscripción continúa'); await pagoCargarEstado(); ir(TAB);
+  };
+  return r;
+})(pintarPaginaPlan);
