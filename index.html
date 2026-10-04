@@ -3063,6 +3063,13 @@ body.facsolo #pvemitir,body.facsolo #fvrect{display:none!important}
 .presu .presuop{margin:0}
 .presuges select{width:auto;min-width:140px;flex:0 0 auto}
 @media (max-width:760px){.presuops{grid-template-columns:1fr;gap:6px}}
+/* v2.168.0 · Bienvenida tras el alta desde la web */
+.bienpasos{display:grid;gap:10px;margin:8px 0 12px}
+.bienpaso{display:flex;gap:12px;align-items:flex-start;text-align:left;border:1px solid var(--line);border-radius:12px;background:#fff;padding:12px 14px;cursor:pointer;font:inherit;color:var(--ink)}
+.bienpaso:hover{background:var(--hielo)}
+.bienpaso .bienn{flex:none;width:28px;height:28px;border-radius:50%;background:var(--navy);color:#fff;display:grid;place-items:center;font-weight:700;font-family:Manrope,sans-serif}
+.bienpaso b{display:block}
+#pgprueba{margin:8px 0}
 </style>
 </head>
 <body>
@@ -3199,6 +3206,6 @@ body.facsolo #pvemitir,body.facsolo #fvrect{display:none!important}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.167.0"></script>
+<script src="./app.js?v=2.168.0"></script>
 </body>
 </html>

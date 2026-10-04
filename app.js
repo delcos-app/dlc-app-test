@@ -15,7 +15,9 @@ const $ = id => document.getElementById(id);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const CFG = window.DLC_CONFIG;
 // Enlace del correo de recuperación: se detecta antes de que se procese, para no arrancar la app con esa sesión
-const RECUPERACION_URL = /(^#|&)type=recovery(&|$)/.test(location.hash);
+// v2.168.0: también el enlace de bienvenida (invitación) de quien se da de alta desde la web: primero crea su contraseña
+const INVITACION_URL = /(^#|&)type=invite(&|$)/.test(location.hash);
+const RECUPERACION_URL = /(^#|&)type=(recovery|invite)(&|$)/.test(location.hash);
 const ENLACE_CADUCADO = /(^#|&)error_code=/.test(location.hash) || /(^#|&)error=access_denied/.test(location.hash);
 /* Sesión: si al entrar se desmarcó «Mantener la sesión iniciada», al cerrar el navegador hay que volver a entrar */
 try { if (localStorage.getItem('dlc-no-recordar') && !/(^|; )dlc-sesion-viva=1/.test(document.cookie)) localStorage.removeItem('dlc-os-sesion'); } catch (e) {}
@@ -11236,7 +11238,7 @@ async function pintarPlan2() {
         : `<button class="btn ${p.id === 'avanzado' ? '' : 'sec'}" data-contratar="${p.id}">${PLANES.indexOf(p) > PLANES.indexOf(act) ? 'Mejorar a ' : 'Cambiar a '}${esc(p.nombre)}</button>`}
     </div>`).join('')}</div>
     <div class="card cfgpanel"><h3 style="margin-top:0">Cómo funciona</h3><ul class="manlist">
-      <li><span>💳</span><span>Pago mensual con tarjeta o domiciliación. Con pago anual, dos meses gratis.</span></li>
+      <li><span>💳</span><span>Pago mensual con tarjeta. Con pago anual, dos meses gratis.</span></li>
       <li><span>👥</span><span>Cada plan incluye un número de usuarios; si el equipo crece, se añaden bloques de usuarios sin cambiar de plan.</span></li>
       <li><span>🩺</span><span>${TT('medico', 'p', 'el', 'C', 'l')} con acceso a su informe no cuentan como usuarios.</span></li>
       <li><span>🔄</span><span>Se puede cambiar de plan en cualquier momento; el cambio se aplica al confirmarse el pago.</span></li></ul>
@@ -11691,7 +11693,7 @@ pintarPlan2 = (orig => async function () {
   const b = $('plbloque'); if (b) b.textContent = b.textContent.replace(/Añadir un bloque de 1 usuarios \((.+)\)/, 'Añadir un usuario extra ($1)');
   c.querySelectorAll('.manlist li span:last-child').forEach(li => {
     if (/bloques de usuarios/.test(li.textContent)) li.textContent = 'Cada plan incluye usuarios; si el equipo crece, se añaden usuarios sueltos sin cambiar de plan.';
-    if (/dos meses gratis/.test(li.textContent)) li.textContent = 'Pago mensual con tarjeta o domiciliación, sin permanencia.';
+    if (/dos meses gratis/.test(li.textContent)) li.textContent = 'Pago mensual con tarjeta, sin permanencia.';
   });
   const act = c.querySelector('.planact .sm'); if (act) act.textContent = act.textContent.replace(/ \+ (\d+) bloques? de 1/, ' + $1 extra');
 })(pintarPlan2);
@@ -12086,12 +12088,13 @@ function pantallaRecuperacion() {
   if ($('recupera')) return;
   document.body.insertAdjacentHTML('beforeend', `<section id="recupera"><form class="lbox" id="rform" autocomplete="off">
       <img src="${esc(MARCA.logo || 'logo-app.png')}" alt="">
-      <h1>Nueva contraseña</h1><p class="sm">Elige una contraseña de al menos 8 caracteres.</p>
+      ${INVITACION_URL ? `<h1>Te damos la bienvenida</h1><p class="sm">Tu empresa ya está en delcos. Crea tu contraseña (al menos 8 caracteres) para entrar.</p>`
+        : `<h1>Nueva contraseña</h1><p class="sm">Elige una contraseña de al menos 8 caracteres.</p>`}
       <label for="rp1">Contraseña nueva</label><input id="rp1" type="password" autocomplete="new-password" required>
       <label for="rp2">Repítela</label><input id="rp2" type="password" autocomplete="new-password" required>
       <p class="sm" id="rmsg" style="min-height:18px;margin:8px 0 0"></p>
       <button class="btn" id="rok" type="submit" style="width:100%;margin-top:10px">Guardar contraseña</button>
-      <button class="btn sec" id="rcancel" type="button" style="width:100%;margin-top:8px">Cancelar</button></form></section>`);
+      ${INVITACION_URL ? '' : '<button class="btn sec" id="rcancel" type="button" style="width:100%;margin-top:8px">Cancelar</button>'}</form></section>`);
   const salir = async (params) => {
     try { await db.auth.signOut(); } catch (e) {}
     try { limpiarDatosLocales(); localStorage.removeItem('dlc-os-sesion'); } catch (e) {}
@@ -12111,9 +12114,11 @@ function pantallaRecuperacion() {
         ? 'El enlace ha caducado. Pide otro con «He olvidado la contraseña».' : 'No se ha podido cambiar: ' + error.message;
       return;
     }
+    // v2.168.0: en la bienvenida se entra directamente (la sesión del enlace ya es suya)
+    if (INVITACION_URL) { location.replace(location.origin + location.pathname + '?bienvenida=1'); return; }
     await salir('?clave=cambiada');
   };
-  $('rcancel').onclick = () => salir('');
+  if ($('rcancel')) $('rcancel').onclick = () => salir('');
 }
 // Con el enlace de recuperación la plataforma no arranca ni se pinta
 arrancar = (orig => async function (...a) { if (RECUPERANDO) { pantallaRecuperacion(); return; } return orig.apply(this, a); })(arrancar);
@@ -13100,7 +13105,7 @@ async function pintarPaginaPlan() {
         <tr><td><b>Usuarios incluidos</b></td>${PLANES.map(p => `<td class="${p.id === act.id ? 'act' : ''}"><b>${p.incluidos}</b></td>`).join('')}</tr>
         <tr><td><b>${TT('medico', 'p', '', 'l', 'C')} con acceso a su informe</b></td>${PLANES.map(p => `<td class="${p.id === act.id ? 'act' : ''}">${p.medicos === null ? 'Sin límite' : p.medicos ? p.medicos : '—'}</td>`).join('')}</tr></tbody></table></div></div>
     <div class="card cfgpanel"><h3 style="margin-top:0">Cómo funciona</h3><ul class="manlist">
-      <li><span>💳</span><span>Pago mensual con tarjeta o domiciliación, sin permanencia.</span></li>
+      <li><span>💳</span><span>Pago mensual con tarjeta, sin permanencia.</span></li>
       <li><span>👥</span><span>Si el equipo crece, se añaden usuarios sueltos sin cambiar de plan.</span></li>
       <li><span>🩺</span><span>${TT('medico', 'p', 'el', 'C', 'l')} con acceso a su informe no cuentan como usuarios.</span></li>
       <li><span>🔄</span><span>El cambio de plan se aplica en cuanto se confirma el pago.</span></li></ul>
@@ -13857,7 +13862,7 @@ pintarPaginaPlan = (orig => async function () {
   viejo.outerHTML = `<h2 class="plantit">Cómo funciona</h2>
     <div class="pasosplan">
       ${[['mouse-pointer-click', 'Eliges tu plan', 'Según los módulos que necesitas. Puedes empezar por uno pequeño y crecer después.'],
-         ['credit-card', 'Pagas de forma segura', 'Con tarjeta o domiciliación, cada mes y sin permanencia. Recibes la factura por correo.'],
+         ['credit-card', 'Pagas de forma segura', 'Con tarjeta, cada mes y sin permanencia. Recibes la factura por correo.'],
          ['zap', 'Se activa al momento', 'En cuanto se confirma el pago, los módulos del plan se desbloquean para todo tu equipo.'],
          ['users', 'Creces cuando quieras', `Añade usuarios sueltos (${eurI(act.bloque[1])}/mes cada uno) o cambia de plan. ${TT('medico', 'p', 'el', 'C', 'l')} con acceso a su informe no cuentan.`]]
         .map(([ic, t, d], i) => `<div class="pasoplan"><span class="pasonum">${i + 1}</span><span class="pasoico">${svgIco(ICON_NOM[ic])}</span><b>${t}</b><p>${d}</p></div>`).join('')}
@@ -18800,7 +18805,7 @@ async function escribirRpc(fn, payload) {
 
 
 /* v2.162.0 · Suscripciones y pagos con Stripe (decisiones de Eric, 4/10/2026). «Plan y suscripción» ya no manda correos: «Contratar»
-   abre el pago seguro de Stripe (tarjeta o domiciliación), «Cambiar a…» y «Añadir o quitar usuarios» cambian la suscripción con
+   abre el pago seguro de Stripe (tarjeta), «Cambiar a…» y «Añadir o quitar usuarios» cambian la suscripción con
    prorrateo y «Gestionar el pago» abre el portal de Stripe (tarjeta, recibos, cancelar). Todo pasa por la función de Supabase
    «pagos»; Stripe avisa a «stripe-webhook» y la base (aplicar_suscripcion, SQL 102) activa o cambia el plan. Si un cobro falla, aviso
    arriba durante 14 días y después la empresa queda en solo lectura (la base no deja crear, cambiar ni borrar) hasta que pague. */
@@ -19389,3 +19394,61 @@ async function pintarSolicitudesPlan() {
   });
 }
 if (PAGINAS.delcos && !PAGINAS.delcos.tabs.some(t => t[0] === 'solicitudes')) PAGINAS.delcos.tabs.splice(1, 0, ['solicitudes', 'Solicitudes', () => pintarSolicitudesPlan()]);
+
+/* v2.168.0 · Alta de empresas desde la web (decisiones de Eric: prueba de 30 días con tarjeta, formulario en delcos.app). Quien vuelve de
+   Stripe (?alta=ok) ve en el acceso que le llega un correo; el enlace de ese correo (invitación) le pide crear su contraseña y entra directo
+   (?bienvenida=1) con una bienvenida y los primeros pasos. «Plan y suscripción» dice hasta cuándo dura la prueba y qué se cobrará después. */
+(function altaAvisos() {
+  const q = new URLSearchParams(location.search);
+  if (q.get('alta') === 'ok') {
+    history.replaceState(null, '', location.pathname + location.hash);
+    setTimeout(() => {
+      const m = $('lmsg');
+      if (m && !(typeof PERFIL !== 'undefined' && PERFIL)) {
+        m.style.color = 'var(--ok)';
+        m.textContent = '¡Listo! Estamos creando tu empresa. En unos minutos te llegará un correo para crear tu contraseña y entrar (mira también en correo no deseado).';
+      } else toast('Alta recibida: tu empresa estará lista en unos minutos');
+    }, 400);
+  }
+  if (q.get('bienvenida') === '1') {
+    history.replaceState(null, '', location.pathname);
+    let n = 0;
+    const t = setInterval(() => {
+      if (typeof PERFIL !== 'undefined' && PERFIL && !document.body.classList.contains('sin-sesion') && typeof RPC_ORIG === 'function') { clearInterval(t); setTimeout(bienvenidaAlta, 900); }
+      else if (++n > 60) clearInterval(t);
+    }, 1000);
+  }
+})();
+async function bienvenidaAlta() {
+  try { await pagoCargarEstado(); } catch (e) {}
+  const pl = PLAN_ACTUAL || {};
+  const pasos = [
+    ['importar', 'Trae tus datos', `Sube tu Excel de ${TT('medico', 'p', '', 'l', 'l')}, centros o clientes y los ordenamos por ti.`],
+    ['equipo', 'Invita a tu equipo', 'Da acceso a las personas que van a usar delcos, cada una con su rol.'],
+    ['marca', 'Pon tu marca', 'Tu logotipo y tu nombre en la plataforma y en los documentos.']];
+  $('dbody').innerHTML = `<div class="fh"><div><h2>Te damos la bienvenida a delcos</h2>
+      <div class="sm">${esc(nombreApp())} ya está en marcha${pl.en_prueba && pl.periodo_fin ? ` · prueba gratis hasta el ${fechaCorta(pl.periodo_fin)}` : ''}</div></div>
+      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
+    <p>Tres pasos para empezar con buen pie (los puedes hacer cuando quieras):</p>
+    <div class="bienpasos">${pasos.map(([k, t, d], i) => `<button type="button" class="bienpaso" data-bien="${k}"><span class="bienn">${i + 1}</span>
+      <span><b>${esc(t)}</b><span class="sm">${esc(d)}</span></span></button>`).join('')}</div>
+    ${pl.en_prueba ? `<p class="sm">Durante la prueba no se cobra nada. Si decides no seguir, date de baja en Organización → Plan y suscripción antes del ${fechaCorta(pl.periodo_fin)}.</p>` : ''}
+    <div class="acts" style="justify-content:flex-end"><button class="btn" data-cerrar>Empezar</button></div>`;
+  $('dbody').querySelectorAll('[data-bien]').forEach(b => b.onclick = () => {
+    $('dlg').close();
+    const k = b.dataset.bien;
+    if (k === 'importar') { CFG_SEC = 'importar'; ir('config'); }
+    else if (k === 'equipo') ir('usuarios');
+    else ir('organizacion');
+  });
+  $('dlg').showModal();
+}
+// «Plan y suscripción»: periodo de prueba de Stripe
+pintarPaginaPlan = (orig => async function (...a) {
+  const r = await orig.apply(this, a);
+  const c = $('cfgcuerpo'), pl = PLAN_ACTUAL || {}, h = c && c.querySelector('#planact h2');
+  if (h && pl.en_prueba && pl.periodo_fin && !$('pgprueba') && !pl.baja_al_final)
+    h.insertAdjacentHTML('afterend', `<div class="banda-info" id="pgprueba">Estás en el periodo de prueba hasta el <b>${fechaCorta(pl.periodo_fin)}</b>:
+      hasta entonces no se cobra nada. Ese día se pasará el primer recibo, salvo que te des de baja antes.</div>`);
+  return r;
+})(pintarPaginaPlan);
