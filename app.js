@@ -11922,8 +11922,9 @@ document.addEventListener('click', async e => {
     if (bus) {
       const q = [v('direccion'), v('cp'), v('municipio'), v('provincia'), 'España'].filter(Boolean).join(', ');
       if (!v('direccion') && !v('municipio')) { toast('Escribe la dirección o el municipio', true); return; }
-      const r = await geocodificar(q);
+      const r = await geocodificar(q, { direccion: v('direccion'), municipio: v('municipio'), cp: v('cp') });
       if (!r) { toast('No se ha encontrado esa dirección. Prueba con calle, número y municipio.', true); return; }
+      if (r.fuera) { toast(`Esa dirección sale en ${r.fuera}, no en ${v('municipio')}: revísala (no se ha guardado el punto)`, true); return; }
       rellenarDireccion(box, i, r.address); marcarUbicado(box, i, +r.lat, +r.lon, r.display_name.split(',').slice(0, 3).join(','));
       toast('Ubicado');
     } else {
@@ -15028,9 +15029,10 @@ function formCentro(box, i, c, aviso) {
     const q = [val('d'), val('c'), val('m'), val('p'), 'España'].filter(Boolean).join(', ');
     if (!val('d') && !val('m')) { toast('Escribe la dirección o la población', true); return; }
     e.target.textContent = 'Buscando…';
-    const r = await geocodificar(q).catch(() => null);
+    const r = await geocodificar(q, { direccion: val('d'), municipio: val('m'), cp: val('c') }).catch(() => null);
     e.target.textContent = '🔎 Buscar la dirección en el mapa';
     if (!r) { toast('No se ha encontrado esa dirección. Prueba con calle, número y población.', true); return; }
+    if (r.fuera) { toast(`Esa dirección sale en ${r.fuera}, no en ${val('m')}: revísala`, true); return; }
     lat = +r.lat; lon = +r.lon;
     const a = r.address || {};
     if (!val('c') && a.postcode) $(k + 'c').value = a.postcode;
@@ -20359,8 +20361,8 @@ function editarCentroFicha(c) {
     ev.target.disabled = true;
     let lat = c.lat, lon = c.lon;
     if (cambioDir && (v('ecd') || v('ecm'))) {
-      const g = await geocodificar([v('ecd'), v('ecc'), v('ecm'), v('ecp'), 'España'].filter(Boolean).join(', ')).catch(() => null);
-      if (g) { lat = +g.lat; lon = +g.lon; }
+      const g = await geocodificar([v('ecd'), v('ecc'), v('ecm'), v('ecp'), 'España'].filter(Boolean).join(', '), { direccion: v('ecd'), municipio: v('ecm'), cp: v('ecc') }).catch(() => null);
+      if (g && !g.fuera) { lat = +g.lat; lon = +g.lon; } else if (g && g.fuera) toast(`La dirección sale en ${g.fuera}, no en ${v('ecm')}: se guarda sin mover el punto del mapa`, true);
     }
     const { data: r, error } = await RPC_ORIG('guardar_centro', { p: { id: c.id, nombre: v('ecn'), telefono: v('ect'), direccion: v('ecd'), cp: v('ecc'),
       municipio: v('ecm'), provincia: v('ecp'), lat, lon, horario } });
@@ -20620,3 +20622,70 @@ function decorarResultados() {
   new MutationObserver(() => { if (caja.querySelector('[data-vdest]:not([data-vend])')) { caja.querySelectorAll('[data-vdest]').forEach(s => s.dataset.vend = '1'); decorarResultados(); } })
     .observe(caja, { childList: true, subtree: true });
 })();
+
+/* v2.180.0 · Direcciones bien situadas (aviso de Eric: el Dr. Margalet, en Barcelona, salía en Marbella).
+   - geocodificar(q, o): busca solo en España y, si se le da el municipio (o.municipio), solo vale un resultado de ese municipio; si el texto libre no
+     lo encuentra, prueba con calle, municipio y código postal por separado. Si solo aparece en otro sitio, devuelve ese resultado con `fuera` (el
+     municipio donde sale) y quien llama no guarda el punto.
+   - «Calidad del dato»: «Direcciones que no cuadran» (SQL 114, ubicaciones_dudosas): consultas a más de 50 km del resto de su municipio, con
+     «Volver a situar» (busca de nuevo con el municipio y guarda el punto si cuadra) y «Ficha». */
+const normGeo = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().replace(/[^A-Z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
+geocodificar = async function (q, o = {}) {
+  const base = 'https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=5&countrycodes=es&';
+  const pide = async qs => { try { const r = await fetch(base + qs); return r.ok ? await r.json() : []; } catch (e) { return []; } };
+  const muni = normGeo(o.municipio);
+  const lugar = x => { const a = (x && x.address) || {}; return a.city || a.town || a.village || a.municipality || a.suburb || a.county || ''; };
+  const cuadra = x => {
+    if (!muni) return true;
+    const a = (x && x.address) || {};
+    return [a.city, a.town, a.village, a.municipality, a.city_district, a.county].some(c => { const n = normGeo(c); return n && (n === muni || n.includes(muni) || muni.includes(n)); });
+  };
+  let l = await pide('q=' + encodeURIComponent(q));
+  let r = l.find(cuadra);
+  if (!r && muni && o.direccion) {
+    const l2 = await pide(`street=${encodeURIComponent(o.direccion)}&city=${encodeURIComponent(o.municipio)}${o.cp ? '&postalcode=' + encodeURIComponent(o.cp) : ''}`);
+    r = l2.find(cuadra); if (!l.length) l = l2;
+  }
+  if (r) return r;
+  if (muni && l.length) return Object.assign({}, l[0], { fuera: lugar(l[0]) || 'otro sitio' });
+  return l[0] || null;
+};
+
+cargarSeguimientoPaso1 = (orig => async function (...a) {
+  const r = await orig.apply(this, a);
+  try { await pintarDireccionesDudosas(); } catch (e) {}
+  return r;
+})(cargarSeguimientoPaso1);
+async function pintarDireccionesDudosas() {
+  const cal = $('calidad'); if (!cal || $('caldirs')) return;
+  const { data, error } = await db.rpc('ubicaciones_dudosas', {});
+  if (error || !$('calidad') || $('caldirs')) return;
+  const l = data || [];
+  if (!l.length) return;
+  cal.insertAdjacentHTML('afterend', `<div class="card" id="caldirs">
+    <div class="fh"><div><h2>Direcciones que no cuadran · ${num(l.length)}</h2>
+      <div class="sm">El punto del mapa de estas consultas está lejos de su municipio: «Cómo llegar», las rutas y la agenda las sitúan mal.</div></div></div>
+    <div class="lista">${l.map(u => `<div class="item cdir" data-cdir="${u.id}" style="cursor:default">
+      <span class="tx"><b>${esc(u.nombre)}</b>
+        <span class="sm">${esc([u.centro_nombre, u.direccion, [u.cp, u.municipio].filter(Boolean).join(' ')].filter(Boolean).join(' · ') || 'Sin dirección')}</span>
+        <span class="sm cdirkm">${u.km != null ? `El punto está a ${num(u.km)} km de ${esc(u.municipio)}` : 'El punto está fuera de España'}</span></span>
+      <span class="acts" style="margin:0">
+        <button type="button" class="btn sec" data-cdirf="${u.cuenta_id}">Ficha</button>
+        ${u.direccion || u.municipio ? `<button type="button" class="btn" data-cdirg="${u.id}">Volver a situar</button>` : ''}</span></div>`).join('')}</div></div>`);
+  const caja = $('caldirs');
+  caja.querySelectorAll('[data-cdirf]').forEach(b => b.onclick = () => abrirFicha(b.dataset.cdirf));
+  caja.querySelectorAll('[data-cdirg]').forEach(b => b.onclick = async () => {
+    const u = l.find(x => x.id === b.dataset.cdirg); if (!u) return;
+    const txt = b.textContent; b.disabled = true; b.textContent = 'Buscando…';
+    const g = await geocodificar([u.direccion, u.cp, u.municipio, u.provincia, 'España'].filter(Boolean).join(', '), { direccion: u.direccion, municipio: u.municipio, cp: u.cp });
+    b.disabled = false; b.textContent = txt;
+    if (!g) { toast('No se encuentra esa dirección: corrígela en la ficha', true); return; }
+    if (g.fuera) { toast(`Esa dirección sale en ${g.fuera}, no en ${u.municipio}: corrígela en la ficha`, true); return; }
+    const { error: e } = await db.from('ubicaciones').update({ lat: +g.lat, lon: +g.lon }).eq('id', u.id);
+    if (e) { toast('No se ha podido guardar: ' + e.message, true); return; }
+    toast(`${u.nombre}: situado en ${u.municipio}`);
+    const fila = caja.querySelector(`[data-cdir="${u.id}"]`); if (fila) fila.remove();
+    const h = caja.querySelector('h2'), quedan = caja.querySelectorAll('.cdir').length;
+    if (!quedan) caja.remove(); else if (h) h.textContent = `Direcciones que no cuadran · ${num(quedan)}`;
+  });
+}
