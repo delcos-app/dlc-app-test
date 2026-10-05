@@ -20002,3 +20002,264 @@ new MutationObserver(ms => ms.forEach(x => x.addedNodes.forEach(n => { if (n.cla
 document.addEventListener('focusin', e => {
   if (e.target && e.target.matches && e.target.matches('.selw input') && window.matchMedia && matchMedia('(pointer: coarse)').matches) e.target.blur();
 }, true);
+
+/* v2.176.0 · Agenda y móvil (lista de Eric del 5/10/2026):
+   1. Deslizar hacia abajo arriba del todo recarga la pantalla (en pantallas táctiles), con el cargador de delcos.
+   2. El mes de la Agenda se puede mover a otros meses y años (‹ ›, «Hoy» y el título abre meses y años).
+   3. Una sola ventana de cita (también desde «Añadir a mi agenda» de la ficha): profesional, día, hora, centro (si tiene varios) y notas.
+   4. Al pulsar una cita de «Tu día» se abre su detalle (cuándo, dónde, horario, estado y notas que se pueden cambiar) con las acciones.
+   5. El horario de consulta mira todos sus centros (SQL 110, otros_dias): si el de la cita no pasa consulta ese día pero otro sí, se usa ese.
+   6. En el móvil, en «Esta semana», toda la celda del día abre ese día (antes cada nombre llevaba a su ficha).
+   7. En el móvil, «Mover a otro día» y las demás fechas ya no abren el calendario del teléfono antes que el de delcos. */
+
+// ---- 5. Horario de consulta en todos sus centros
+function centroConConsulta(c, fecha) {
+  const v = ventanasDe(c.dias, fecha);
+  if (!v || v.length) return null;   // sin horario en ese centro (no se sabe) o con consulta ese día: nada que cambiar
+  return (c.otros_dias || []).find(o => o && o.lugar !== c.centro_nombre && (w => w && w.length)(ventanasDe(o.dias, fecha))) || null;
+}
+estimarDiaBase = (orig => function (citas, fecha) {
+  const otro = {};
+  const cs = (citas || []).map(c => { const o = centroConConsulta(c, fecha); if (!o) return c; otro[c.id] = o; return Object.assign({}, c, { dias: o.dias }); });
+  const r = orig.call(this, cs, fecha);
+  Object.keys(otro).forEach(id => { if (TD_INFO[id]) TD_INFO[id].otroCentro = otro[id].lugar; });
+  return r;
+})(estimarDiaBase);
+explicarAviso = (orig => function (inf) {
+  const t = orig.call(this, inf);
+  return inf.otroCentro ? t.replace('Según su ficha,', `Ese día pasa consulta en ${inf.otroCentro} (no en el centro de la cita). Según su ficha,`) : t;
+})(explicarAviso);
+
+// ---- 3. Una sola ventana de cita, con centro y notas
+nuevaCita = async function (medicoId, fecha, op = {}) {
+  let elegido = null, consultas = [];
+  const traer = async id => { const { data } = await db.rpc('ficha_cuenta', { p_id: id }); consultas = (data && data.consultas) || []; return data; };
+  if (medicoId) { const data = await traer(medicoId); if (data && data.medico) elegido = data.medico; }
+  const dia = fecha || (TAB === 'agenda' && AG_FECHA && AG_FECHA >= hoyISO() ? AG_FECHA : hoyISO());
+  $('dbody').innerHTML = `
+    <div class="fh"><div><h2>Nueva cita</h2><div class="sm">Se añade a tu agenda</div></div>
+      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
+    <label>${TT('medico', 's', '', 'l', 'C')}</label><div id="ncsel"></div>
+    <div class="g2">
+      <div><label for="ncf">Día</label><input id="ncf" type="date" value="${esc(dia)}"></div>
+      <div><label for="nch">Hora <span class="sm">(opcional)</span></label><input id="nch" type="time"></div>
+    </div>
+    <div id="nccw"></div>
+    <label for="ncn">Notas</label><textarea id="ncn" rows="3" placeholder="p. ej. quedamos en el bar de enfrente, llevar el reporting…"></textarea>
+    <div class="acts" style="justify-content:flex-end">
+      <button class="btn sec" data-cerrar>Cancelar</button>
+      <button class="btn" id="ncok">Añadir a la agenda</button></div>`;
+  const pintarCentros = () => {
+    const w = $('nccw'); if (!w) return;
+    const l = consultas.filter(x => x && x.centro_nombre);
+    if (l.length < 2) { w.innerHTML = ''; return; }
+    const pref = (typeof FICHA_CENTRO !== 'undefined' && FICHA_CENTRO) || (l.find(x => x.principal) || l[0]).centro_nombre;
+    w.innerHTML = `<label for="ncc">Centro</label><select id="ncc">${l.map(x => `<option value="${esc(x.centro_nombre)}" ${x.centro_nombre === pref ? 'selected' : ''}>${esc([x.centro_nombre, x.municipio].filter(Boolean).join(' · '))}</option>`).join('')}</select>`;
+  };
+  pintarCentros();
+  selectorMedico($('ncsel'), { valor: elegido, alElegir: async m => { elegido = m; await traer(m.id); pintarCentros(); } });
+  $('ncok').onclick = async ev => {
+    if (!elegido) { toast(`Elige ${TT('medico', 's', 'un', 'l', 'l')}`, true); return; }
+    const f = $('ncf').value;
+    const decision = await citaRepetida(elegido.id, f);
+    if (!decision) return;
+    const c0 = consultas.find(x => x && x.principal) || consultas[0] || {};
+    const centro = ($('ncc') && $('ncc').value) || c0.centro_nombre || elegido.centro_nombre || elegido.centro || null;
+    ev.target.disabled = true;
+    const r = await escribir('guardar_cita', { p: {
+      cuenta_id: elegido.id, fecha: f, hora: $('nch').value || null, centro_nombre: centro, estado: 'Planificada',
+      origen: op.origen || (TAB === 'agenda' ? 'Agenda' : 'Ficha'), usuario_id: TAB === 'agenda' && AG_VISTA ? AG_VISTA.id : null,
+      nota: $('ncn').value.trim(), op_id: 'c-' + elegido.id + '-' + f + '-' + Date.now()
+    }});
+    ev.target.disabled = false;
+    if (r.error) { toast('No se ha podido: ' + r.error.message, true); return; }
+    $('dlg').close(); toast('Cita añadida el ' + fechaDiaMes(f)); if (TAB === 'agenda') cargarAgenda(); cargarInicio();
+  };
+  $('dlg').classList.add('pequena');
+  $('dlg').showModal();
+};
+// «Añadir a mi agenda» de la ficha abre la misma ventana (antes solo pedía el día). Va en la fase de captura de window, antes que la de la v2.174.0.
+window.addEventListener('click', e => {
+  const b = e.target.closest && e.target.closest('[data-agendar]');
+  if (!b) return;
+  e.stopImmediatePropagation(); e.stopPropagation(); e.preventDefault();
+  nuevaCita(b.dataset.agendar, null, { origen: 'Ficha' });
+}, true);
+
+// ---- 4. Detalle de la cita al pulsarla en «Tu día»
+function citaDeItem(it) {
+  const b = it && it.querySelector('[data-td]'); const id = b ? b.dataset.td.split('|')[1] : null;
+  return id ? (TD_CITAS || []).find(x => x.id === id) : null;
+}
+function verCita(c) {
+  const inf = TD_INFO[c.id] || {}, abierta = CITA_ABIERTA.includes(c.estado);
+  const hora = c.hora ? String(c.hora).slice(0, 5) : (abierta && inf.llegada != null && inf.llegada < 24 * 60 ? `hacia las ${hm(inf.llegada)} (estimada)` : 'sin hora');
+  const donde = [c.centro_nombre, c.direccion, c.municipio].filter(Boolean).join(' · ');
+  const v = inf.ventanas || ventanasDe(c.dias, c.fecha);
+  const horario = v && v.length ? `${inf.otroCentro ? 'En ' + inf.otroCentro + ': ' : ''}${txtVentanas(v)}` : v && !v.length ? 'Ese día no pasa consulta' : '';
+  $('dbody').innerHTML = `
+    <div class="fh"><div><h2>${esc(c.nombre)}</h2>${c.especialidad ? `<div class="sm">${esc(c.especialidad)}</div>` : ''}</div>
+      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
+    <div class="vcdatos">
+      <div class="vcfila"><span>Cuándo</span><b>${esc(fechaLarga(new Date(c.fecha + 'T12:00:00')).replace(/^./, x => x.toUpperCase()))} · ${esc(hora)}</b></div>
+      <div class="vcfila"><span>Dónde</span><b>${esc(donde || 'Sin centro')}</b></div>
+      ${horario ? `<div class="vcfila"><span>Consulta</span><b>${esc(horario)}</b></div>` : ''}
+      <div class="vcfila"><span>Estado</span><b>${pillCita(c.estado)}${c.origen ? ` <span class="sm">· ${esc(c.origen)}</span>` : ''}</b></div>
+    </div>
+    ${abierta && inf.aviso ? `<div class="banda-aviso" style="margin:0 0 12px">${esc(inf.aviso)}</div>` : ''}
+    <label for="vcnota">Notas de la cita</label>
+    <textarea id="vcnota" rows="3" placeholder="p. ej. quedamos en el bar de enfrente, llevar el reporting…">${esc(c.nota || '')}</textarea>
+    <div class="vcacts">
+      <button type="button" class="btn sec" id="vcficha">Ver ficha</button>
+      ${xyCita(c) ? '<button type="button" class="btn sec" id="vcllegar">Cómo llegar</button>' : ''}
+      ${abierta ? '<button type="button" class="btn sec" id="vchora">Cambiar hora</button><button type="button" class="btn sec" id="vcmover">Mover a otro día</button>' : ''}
+    </div>
+    <div class="acts" style="justify-content:flex-end">
+      <button type="button" class="btn sec" id="vcok" disabled>Guardar notas</button>
+      ${abierta ? `<button type="button" class="btn" id="vcreg">Registrar ${TT('visita', 's', '', 'l', 'l')}</button>` : ''}</div>`;
+  const cerrar = () => $('dlg').close();
+  const nota = $('vcnota');
+  nota.oninput = () => { $('vcok').disabled = nota.value.trim() === (c.nota || '').trim(); };
+  $('vcok').onclick = async ev => {
+    ev.target.disabled = true;
+    const v2 = nota.value.trim();
+    const { error } = await db.from('agenda').update({ nota: v2 || null }).eq('id', c.id);
+    if (error) { ev.target.disabled = false; toast('No se ha podido guardar: ' + error.message, true); return; }
+    c.nota = v2; cerrar(); toast('Notas guardadas'); pintarTuDia();
+  };
+  $('vcficha').onclick = () => { cerrar(); FICHA_CENTRO = c.centro_nombre || null; abrirFicha(c.cuenta_id); };
+  if ($('vcllegar')) $('vcllegar').onclick = () => accionCita('llegar', c);
+  if ($('vchora')) $('vchora').onclick = () => { cerrar(); accionCita('hora', c); };
+  if ($('vcmover')) $('vcmover').onclick = () => { cerrar(); accionCita('aplazar', c); };
+  if ($('vcreg')) $('vcreg').onclick = () => { cerrar(); abrirVisita(c.cuenta_id); };
+  $('dlg').classList.add('pequena');
+  $('dlg').showModal();
+}
+window.addEventListener('click', e => {
+  const it = e.target.closest && e.target.closest('.tdlista [data-tdf]');
+  if (!it || e.target.closest('button, a, .tdmenu, input, textarea, select')) return;
+  const c = citaDeItem(it); if (!c) return;
+  e.stopImmediatePropagation(); e.stopPropagation(); e.preventDefault();
+  verCita(c);
+}, true);
+window.addEventListener('keydown', e => {
+  if (e.key !== 'Enter') return;
+  const it = e.target.closest && e.target.closest('.tdlista [data-tdf]');
+  if (!it || e.target !== it) return;
+  const c = citaDeItem(it); if (!c) return;
+  e.stopImmediatePropagation(); e.preventDefault(); verCita(c);
+}, true);
+
+// ---- 2. El mes de la Agenda, en cualquier mes y año
+let AG_MES = null;
+async function agPintarMes(mes) {
+  const caja = $('agmes'); if (!caja) return;
+  const hoy = hoyISO(), actual = hoy.slice(0, 7);
+  mes = mes || actual; AG_MES = mes;
+  const ini = mes + '-01', d1 = new Date(ini + 'T12:00:00');
+  const fin = isoMas(fechaLocal(new Date(d1.getFullYear(), d1.getMonth() + 1, 1)), -1);
+  let porDia = {};
+  if ((caja.dataset.mes || actual) !== mes) {
+    const { data } = await rpcCache('agenda_rango', { p_desde: ini, p_hasta: fin, p_usuario: agUsuarioFiltro() }, 'agenda-mes-' + mes);
+    (data || []).filter(x => !['Descartada', 'Aplazada'].includes(x.estado)).forEach(x => { porDia[x.fecha] = (porDia[x.fecha] || 0) + 1; });
+    if (AG_MES !== mes || !$('agmes')) return;
+    $('agmes').dataset.mes = mes;
+    const hueco = (d1.getDay() + 6) % 7, nd = +fin.slice(8);
+    const celdas = Array(hueco).fill('').concat(Array.from({ length: nd }, (_, i) => `${mes}-${String(i + 1).padStart(2, '0')}`));
+    $('agmes').querySelector('.agmesgrid').innerHTML = AG_DIAS_TXT.map(x => `<span class="agmd">${x}</span>`).join('') + celdas.map(f => {
+      if (!f) return '<span></span>';
+      const n = porDia[f] || 0;
+      return `<button type="button" class="agmc ${f === hoy ? 'hoy' : ''} ${f < hoy ? 'pasado' : ''} ${n ? 'con' : ''}" data-agdia="${f}" aria-label="${fechaCorta(f)}: ${n} citas">
+        <span>${+f.slice(8)}</span>${n ? `<i class="agpt">${n > 9 ? '9+' : n}</i>` : ''}</button>`; }).join('');
+  }
+  const fh = $('agmes').querySelector('.fh');
+  fh.classList.add('agmesh');
+  fh.innerHTML = `<button type="button" class="kmv agmnav" data-agm="-1" aria-label="Mes anterior">‹</button>
+    <button type="button" class="agmtit" id="agmtit" aria-label="Elegir mes y año">${esc(periodoTxt(mes).replace(/^./, c => c.toUpperCase()))}</button>
+    <button type="button" class="kmv agmnav" data-agm="1" aria-label="Mes siguiente">›</button>
+    ${mes !== actual ? '<button type="button" class="btn sec agmhoy" id="agmhoy">Hoy</button>' : ''}`;
+  const mover = n => { const d = new Date(ini + 'T12:00:00'); d.setMonth(d.getMonth() + n); agPintarMes(fechaLocal(d).slice(0, 7)); };
+  fh.querySelectorAll('[data-agm]').forEach(b => b.onclick = ev => { ev.stopPropagation(); mover(+b.dataset.agm); });
+  if ($('agmhoy')) $('agmhoy').onclick = ev => { ev.stopPropagation(); agPintarMes(actual); };
+  $('agmtit').onclick = ev => { ev.stopPropagation(); agElegirMes(mes, ev.currentTarget); };
+  $('agmes').querySelectorAll('.agmc[data-agdia]').forEach(b => {
+    b.classList.toggle('sel', b.dataset.agdia === AG_FECHA && AG_FECHA !== hoy);
+    b.onclick = ev => { ev.stopPropagation(); agVerDia(b.dataset.agdia); };
+  });
+}
+function agElegirMes(mes, ancla) {
+  document.querySelectorAll('.agmpop').forEach(x => x.remove());
+  let anio = +mes.slice(0, 4);
+  const p = document.createElement('div'); p.className = 'agmpop';
+  const nombres = Array.from({ length: 12 }, (_, i) => new Date(2026, i, 15).toLocaleDateString('es-ES', { month: 'short' }).replace('.', ''));
+  const pinta = () => {
+    p.innerHTML = `<div class="agmpoph"><button type="button" class="kmv" data-an="-1" aria-label="Año anterior">‹</button><b>${anio}</b>
+      <button type="button" class="kmv" data-an="1" aria-label="Año siguiente">›</button></div>
+      <div class="agmpopg">${nombres.map((n, i) => { const k = `${anio}-${String(i + 1).padStart(2, '0')}`;
+        return `<button type="button" data-mk="${k}" class="${k === mes ? 'on' : ''}">${n}</button>`; }).join('')}</div>`;
+    p.querySelectorAll('[data-an]').forEach(b => b.onclick = ev => { ev.stopPropagation(); anio += +b.dataset.an; pinta(); });
+    p.querySelectorAll('[data-mk]').forEach(b => b.onclick = ev => { ev.stopPropagation(); p.remove(); agPintarMes(b.dataset.mk); });
+  };
+  pinta();
+  document.body.appendChild(p);
+  const r = ancla.getBoundingClientRect(), w = Math.min(280, innerWidth - 20);
+  p.style.width = w + 'px';
+  p.style.left = Math.max(10, Math.min(innerWidth - w - 10, r.left + r.width / 2 - w / 2)) + 'px';
+  p.style.top = Math.min(innerHeight - p.offsetHeight - 10, r.bottom + 6) + 'px';
+}
+document.addEventListener('pointerdown', e => { if (!e.target.closest('.agmpop, #agmtit')) document.querySelectorAll('.agmpop').forEach(x => x.remove()); }, true);
+agSemanaMes = (orig => async function (...a) {
+  const r = await orig.apply(this, a);
+  try { if ($('agmes')) await agPintarMes(AG_MES || hoyISO().slice(0, 7)); } catch (e) {}
+  return r;
+})(agSemanaMes);
+
+// ---- 6. «Esta semana»: toda la celda abre el día (en el móvil, también al tocar un nombre)
+window.addEventListener('click', e => {
+  const cel = e.target.closest && e.target.closest('#agsemana .agsd[data-agdia]');
+  if (!cel) return;
+  const movil = window.matchMedia && matchMedia('(max-width: 760px)').matches;
+  if (e.target.closest('.agsc') && !movil) return;   // en el escritorio, el nombre sigue llevando a su ficha
+  e.stopImmediatePropagation(); e.stopPropagation(); e.preventDefault();
+  agVerDia(cel.dataset.agdia);
+}, true);
+
+// ---- 7. Fechas y horas en el móvil: el campo se prepara antes de abrir la ventana (así el teléfono no abre su calendario)
+(() => {
+  const d = $('mini'); if (!d || !d.showModal) return;
+  const orig = d.showModal.bind(d);
+  d.showModal = function () { try { mejorarCampos(d); } catch (e) {} return orig(); };
+})();
+document.addEventListener('focusin', e => {
+  const i = e.target;
+  if (!i || !i.matches || !i.matches('input[type=date], input[type=time]') || i.closest('.selpop')) return;
+  if (!(window.matchMedia && matchMedia('(pointer: coarse)').matches)) return;
+  if (!i.closest('.selw')) { try { mejorarCampos(i.parentNode); } catch (err) {} }
+  i.blur();
+}, true);
+
+// ---- 1. Deslizar para recargar (pantallas táctiles)
+(() => {
+  if (!('ontouchstart' in window)) return;
+  let y0 = null, d = 0, cargando = false;
+  const ind = () => { let x = $('ptr'); if (!x) { document.body.insertAdjacentHTML('beforeend', '<div id="ptr" aria-hidden="true"><span class="ptrc"></span></div>'); x = $('ptr'); } return x; };
+  const bloqueado = t => {
+    if (window.scrollY > 0 || document.querySelector('dialog[open]') || document.body.classList.contains('sin-sesion') || cargando) return true;
+    if (t.closest('.leaflet-container, .tdmenu, .agpop, .agmpop, .selpop, #mlpanel')) return true;
+    for (let n = t; n && n !== document.body; n = n.parentElement) if (n.scrollTop > 0) return true;
+    return false;
+  };
+  const mostrar = v => { const x = ind(); x.style.transform = `translate(-50%, ${Math.min(v, 90) - 50}px)`; x.style.opacity = Math.min(1, v / 70); x.classList.toggle('listo', v > 80); };
+  const quitar = () => { const x = $('ptr'); if (x) { x.style.transform = 'translate(-50%, -60px)'; x.style.opacity = 0; x.classList.remove('listo', 'gira'); } };
+  addEventListener('touchstart', e => { y0 = e.touches.length === 1 && !bloqueado(e.target) ? e.touches[0].clientY : null; d = 0; }, { passive: true });
+  addEventListener('touchmove', e => { if (y0 == null) return; d = e.touches[0].clientY - y0; if (d <= 0 || window.scrollY > 0) { quitar(); return; } mostrar(d * 0.6); }, { passive: true });
+  addEventListener('touchend', async () => {
+    if (y0 == null) return; y0 = null;
+    if (d * 0.6 <= 80) { quitar(); return; }
+    cargando = true; const x = ind(); x.classList.add('gira'); mostrar(80);
+    const t0 = Date.now();
+    try { if (TAB === 'agenda') await cargarAgenda(); else await ir(TAB); } catch (e) {}
+    await new Promise(r => setTimeout(r, Math.max(0, 600 - (Date.now() - t0))));
+    cargando = false; quitar();
+  });
+})();

@@ -3120,6 +3120,30 @@ html.cambiando-org #bootsplash,html.cambiando-org #bootsplash.hide{display:grid!
 /* v2.175.0 · día que no cabe */
 @media (pointer: coarse){.selw input{pointer-events:none}}
 #tdnocabe{margin:0 0 10px}#tdnocabe .btn{margin:0 4px;padding:4px 10px;min-height:0;font-size:13px}
+/* v2.176.0 · Detalle de la cita, mes navegable, deslizar para recargar */
+.vcdatos{display:grid;gap:8px;margin:0 0 14px}
+.vcfila{display:grid;grid-template-columns:84px minmax(0,1fr);gap:10px;font-size:14.5px;align-items:baseline}
+.vcfila>span{color:var(--muted);font-size:13px}
+.vcfila>b{font-weight:600}
+.vcacts{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 4px}
+.agmesh{display:flex;align-items:center;gap:6px}
+.agmesh .agmtit{flex:1;background:none;border:0;padding:4px 6px;border-radius:8px;font:700 16px/1.2 Manrope,sans-serif;color:var(--ink,#0B2540);text-align:left;cursor:pointer}
+.agmesh .agmtit:hover{background:var(--hielo)}
+.agmesh .agmnav{width:32px;height:32px;font-size:18px}
+.agmesh .agmhoy{padding:4px 10px;min-height:0;font-size:13px}
+.agmpop{position:fixed;z-index:60;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 10px 30px rgba(11,37,64,.14);padding:10px}
+.agmpoph{display:flex;align-items:center;justify-content:space-between;margin:0 0 8px}
+.agmpoph b{font:700 15px Manrope,sans-serif}
+.agmpopg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.agmpopg button{border:1px solid var(--line);background:#fff;border-radius:8px;padding:8px 4px;font-size:14px;cursor:pointer;text-transform:capitalize}
+.agmpopg button.on{background:var(--navy,#17457A);color:#fff;border-color:transparent}
+#agsemana .agsd{cursor:pointer}
+#ptr{position:fixed;top:0;left:50%;z-index:300;width:40px;height:40px;border-radius:50%;background:#fff;box-shadow:0 4px 14px rgba(11,37,64,.18);display:grid;place-items:center;transform:translate(-50%,-60px);opacity:0;transition:transform .15s,opacity .15s;pointer-events:none}
+#ptr .ptrc{width:18px;height:18px;border-radius:50%;border:2.5px solid #7CC3EC;border-top-color:#17457A}
+#ptr.listo .ptrc{border-color:#17457A}
+#ptr.gira .ptrc{border-color:#7CC3EC;border-top-color:#17457A;animation:ptrgira .8s linear infinite}
+@keyframes ptrgira{to{transform:rotate(360deg)}}
+@media (pointer: coarse){html,body{overscroll-behavior-y:contain}}
 </style>
 </head>
 <body>
@@ -3258,6 +3282,6 @@ try{var co=sessionStorage.getItem('dlc-cambio-org');if(co!==null||localStorage.g
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.175.0"></script>
+<script src="./app.js?v=2.176.0"></script>
 </body>
 </html>
