@@ -2988,24 +2988,7 @@ async function cargarRutasPaso2() {
   if (sub) sub.textContent = `Crea, edita y planifica tus rutas · ${c.visita} min por ${TT('medico', 's', '', 'l', 'l')}`;
 }
 
-async function cargarRutasBase() {
-  $('v-rutas').innerHTML = `
-    <div class="saludo"><div><h1>Rutas</h1><div class="fecha">Crea, edita y planifica tus rutas</div></div>
-      <div class="acts" style="margin:0"><button class="btn" id="rnueva">+ Nueva ruta</button></div></div>
-    <div class="subnav">
-      <button data-rs="inicio" aria-pressed="${RSEC === 'inicio'}">Resumen</button>
-      <button data-rs="mis" aria-pressed="${RSEC === 'mis'}">Mis rutas</button>
-      <button data-rs="prop" aria-pressed="${RSEC === 'prop'}">Propuestas automáticas</button>
-    </div>
-    <div id="rcuerpo"><div class="card"><div class="skel"></div><div class="skel" style="width:60%"></div></div></div>
-    <div id="rplan"></div>`;
-
-  $('rnueva').onclick = () => editorRuta(null);
-  $('v-rutas').querySelectorAll('[data-rs]').forEach(b => b.onclick = () => { RSEC = b.dataset.rs; cargarRutas(); });
-
-  if (RSEC === 'inicio') await resumenRutas(); else if (RSEC === 'mis') await listaRutas(); else await listaPropuestas();
-  if (PLAN) pintarPlan();
-}
+// (v2.183.0: aquí iba la primera versión de cargarRutasBase; se redefine entera más abajo)
 
 async function listaRutas() {
   const { data, error } = await db.rpc('rutas_visibles');
@@ -5096,12 +5079,7 @@ async function editorPedido(pedido) {
 
 /* ---------------- detalle de pedido ---------------- */
 
-/* Ventana principal en espera: muestra el indicador de carga mientras se prepara su contenido. */
-async function ventanaCargando(fn) {
-  const d = $('dlg'); d.classList.add('cargando');
-  const limite = setTimeout(() => d.classList.remove('cargando'), 8000);
-  try { return await fn(); } finally { clearTimeout(limite); requestAnimationFrame(() => d.classList.remove('cargando')); }
-}
+// (v2.183.0: aquí iba la primera versión de ventanaCargando; se redefine entera más abajo)
 /* Ver pedido: la ventana base, sus facturas (o emitirla) y la operativa (antes eran 4 capas). */
 async function verPedido(id) {
   return ventanaCargando(async () => {
@@ -6643,30 +6621,7 @@ async function pintarTuDia() {
   });
 }
 
-/* Menú «⋯» de cada cita */
-function menuCita(boton, c) {
-  document.querySelectorAll('.tdmenu').forEach(m => m.remove());
-  const abierta = CITA_ABIERTA.includes(c.estado), futura = c.fecha >= hoyISO();
-  const ops = [
-    abierta && c.estado === 'Planificada' ? ['confirmar', 'Marcar como confirmada', 'Ya has hablado con la consulta'] : null,
-    abierta && c.estado === 'Confirmada' ? ['desconfirmar', 'Quitar la confirmación', ''] : null,
-    abierta ? ['noestaba', 'No estaba', 'Lo anota en su historial y te propone otra fecha'] : null,
-    abierta ? ['hora', c.hora ? 'Cambiar la hora' : 'Fijar una hora', ''] : null,
-    abierta ? ['aplazar', 'Aplazar a otro día', 'Queda como aplazada y se crea la cita nueva'] : null,
-    xyCita(c) ? ['llegar', 'Cómo llegar', ''] : null,
-    ['ficha', 'Ver ficha', ''],
-    abierta ? ['descartar', 'Descartar', 'Ya no hace falta ir'] : null,
-    futura && c.estado !== 'Visitada' ? ['borrar', 'Borrar la cita', 'Desaparece de la agenda'] : null
-  ].filter(Boolean);
-  const m = document.createElement('div');
-  m.className = 'tdmenu'; m.__t = Date.now();
-  m.innerHTML = ops.map(([k, t, s]) => `<button data-tdop="${k}" class="${k === 'borrar' || k === 'descartar' ? 'peligro' : ''}"><b>${esc(t)}</b>${s ? `<span>${esc(s)}</span>` : ''}</button>`).join('');
-  document.body.appendChild(m);
-  const r = boton.getBoundingClientRect();
-  m.style.top = Math.min(window.innerHeight - m.offsetHeight - 10, r.bottom + 6) + 'px';
-  m.style.left = Math.max(10, Math.min(window.innerWidth - m.offsetWidth - 10, r.right - m.offsetWidth)) + 'px';
-  m.querySelectorAll('[data-tdop]').forEach(b => b.onclick = () => { m.remove(); accionCita(b.dataset.tdop, c); });
-}
+// (v2.183.0: aquí iba la primera versión de menuCita; se redefine entera más abajo)
 document.addEventListener('pointerdown', e => {
   if (!e.target.closest('.tdmenu, .tdmas')) document.querySelectorAll('.tdmenu').forEach(m => m.remove());
 }, true);
@@ -8451,70 +8406,7 @@ function barrasH(items, fmt) {
 
 const vacioGrafico = t => `<div class="gvacio"><span>📊</span><b>Aún no hay datos para este gráfico</b><span class="sm">${esc(t)}</span></div>`;
 
-async function pintarResumenAnalitica() {
-  const cuerpo = $('anres');
-  cuerpo.innerHTML = `<div class="filtros" style="border:0;padding:0 0 12px"><div id="anper"></div></div>
-    <div class="kpis vtot" id="ankpis">${Array.from({ length: 6 }, () => '<div class="kpi ksk"><div class="skel" style="width:40%;height:24px;margin:2px 0 8px"></div><div class="skel" style="width:70%;margin:0"></div></div>').join('')}</div>
-    <div class="angrid" id="angraf"></div>`;
-  const pinta = async () => {
-    const r = $('anper').__rango();
-    const hasta = r.hasta || hoyISO(), desde = r.desde || isoMas(hasta, -364);
-    const dias = Math.round((new Date(hasta) - new Date(desde)) / 864e5) + 1;
-    const antH = isoMas(desde, -1), antD = isoMas(antH, -(dias - 1));
-    $('angraf').innerHTML = Array.from({ length: 4 }, () => `<div class="card">${skelCard('Cargando…')}</div>`).join('');
-    const [act, ant, med, actv, emb] = await Promise.all([
-      db.rpc('analitica_v2', { p_dim: 'producto', p_desde: desde, p_hasta: hasta, lim: 20 }).then(x => x.data || {}),
-      db.rpc('analitica_v2', { p_dim: 'producto', p_desde: antD, p_hasta: antH, lim: 5 }).then(x => (x.data || {}).totales || {}),
-      db.rpc('analitica_v2', { p_dim: 'medico', p_desde: desde, p_hasta: hasta, lim: 10 }).then(x => (x.data || {}).filas || []),
-      db.rpc('actividad_mensual', { p_desde: desde, p_hasta: hasta }).then(x => x.data || []),
-      db.rpc('embudo_comercial').then(x => x.data || {})
-    ]);
-    const t = act.totales || {};
-    const d = (a, b) => !b ? '<span class="sm">sin datos del periodo anterior</span>'
-      : `<span class="delta ${a >= b ? 'up' : 'down'}">${a >= b ? '▲' : '▼'} ${Math.abs(Math.round((a - b) / b * 100))}%</span> <span class="sm">vs periodo anterior</span>`;
-    const kpi = (v, tit, ayuda, extra) => `<div class="kpi"><button class="ai" data-ayuda-txt="${esc(ayuda)}" data-ayuda-tit="${esc(tit)}" aria-label="Qué es">i</button>
-      <b>${v}</b><span>${esc(tit)}</span>${extra ? `<span class="kx">${extra}</span>` : ''}</div>`;
-    const visitas = actv.reduce((n, x) => n + x.visitas, 0);
-    $('ankpis').innerHTML =
-      kpi(num(t.unidades || 0), 'Unidades vendidas', 'Unidades de pedidos validados en el periodo.', d(+t.unidades || 0, +ant.unidades || 0)) +
-      (verImportes() ? kpi(eurI(t.importe || 0), 'Ventas sin IVA', 'Importe sin IVA de los pedidos validados, con el descuento de cada línea.', d(+t.importe || 0, +ant.importe || 0)) : '') +
-      kpi(num(t.pedidos || 0), 'Pedidos', 'Pedidos validados en el periodo.', d(+t.pedidos || 0, +ant.pedidos || 0)) +
-      (verImportes() ? kpi(t.pedidos ? eurI(t.importe / t.pedidos) : '—', 'Ticket medio', 'Importe medio de cada pedido: ventas sin IVA entre número de pedidos.') : '') +
-      kpi(num(t.medicos || 0), `${TT('medico', 'p', '', 'l', 'C')} con ventas`, `${TT('medico', 'p', '', 'l', 'C', 'distinto')} con alguna venta atribuida en el periodo.`, d(+t.medicos || 0, +ant.medicos || 0)) +
-      kpi(visitas ? (Math.round((t.unidades || 0) / visitas * 10) / 10).toString().replace('.', ',') : '—', `Unidades por ${TT('visita', 's', '', 'l', 'l')}`, `Unidades vendidas entre ${TT('visita', 'p', '', 'l', 'l', 'registrado')} en el periodo. Indica cuánto rinde cada ${TT('visita', 's', '', 'l', 'l')}.`);
-
-    const meses = mesesEntre(desde, hasta);
-    const serie = {}; (act.serie || []).forEach(s => serie[s.mes] = s);
-    const vis = {}; actv.forEach(s => vis[s.mes] = s);
-    const orden = ESTADOS_DEF.filter(x => x.papel !== 'negativo').map(x => x.valor), negEst = estadoPapel('negativo');
-    const embTot = orden.reduce((n, k) => n + (+emb[k] || 0), 0);
-    $('angraf').innerHTML = `
-      <div class="card ancard ancha"><h2>Evolución de las ventas</h2>
-        ${(t.unidades || 0) ? svgBarras(meses, meses.map(m => (serie[m] || {}).unidades || 0), verImportes() ? meses.map(m => +((serie[m] || {}).importe || 0)) : null, ['Unidades', 'Importe sin IVA'])
-          : vacioGrafico('Cuando haya pedidos validados verás aquí las unidades (barras) y el importe (línea) de cada mes.')}
-        <p class="leer"><b>Cómo leerlo:</b> arriba, las unidades vendidas cada mes; abajo, el importe, con los mismos meses alineados. Si el importe crece más que las unidades, se vende a mejor precio (menos descuento o productos de más valor).</p></div>
-      <div class="card ancard"><h2>Reparto por producto</h2>
-        ${(act.por_producto || []).length ? svgDonut((act.por_producto || []).slice(0, 6).map(x => ({ n: x.nombre, v: x.unidades })))
-          : vacioGrafico('Verás qué parte de las unidades corresponde a cada producto.')}
-        <p class="leer"><b>Cómo leerlo:</b> el porcentaje de unidades de cada producto en el periodo. Sirve para ver de qué depende la facturación.</p></div>
-      <div class="card ancard"><h2>${TT('medico', 'p', '', 'l', 'C')} con más ventas</h2>
-        ${med.filter(x => x.clave !== 'sin').length ? barrasH(med.filter(x => x.clave !== 'sin').map(x => ({ n: x.nombre, v: x.unidades })), num) : vacioGrafico(`Aparecerán los 10 ${TT('medico', 'p', '', 'l', 'l')} con más unidades atribuidas.`)}
-        <p class="leer"><b>Cómo leerlo:</b> los diez ${TT('medico', 'p', '', 'l', 'l')} con más unidades atribuidas. Son los que conviene cuidar: ${TT('visita', 'p', '', 'l', 'l')} frecuentes, material y seguimiento.</p></div>
-      <div class="card ancard"><h2>Embudo comercial</h2>
-        ${embTot ? `<div class="embudo">${orden.map((k, i) => { const v = +emb[k] || 0, ant2 = i ? (+emb[orden[i - 1]] || 0) : 0;
-          return `<div class="emb"><span class="embn">${esc(k)}</span><span class="embb"><i style="width:${Math.max(3, v / embTot * 100)}%"></i></span><b>${num(v)}</b>
-            ${i ? `<span class="sm">${ant2 ? pct(v, ant2 + v) + '% avanza' : ''}</span>` : '<span class="sm"></span>'}</div>`; }).join('')}
-          ${negEst && emb[negEst] ? `<div class="sm" style="margin-top:6px">${esc(negEst)}: ${num(emb[negEst])}</div>` : ''}</div>`
-          : vacioGrafico(`Verás cuántos ${TT('medico', 'p', '', 'l', 'l')} hay en cada estado comercial.`)}
-        <p class="leer"><b>Cómo leerlo:</b> cuántos ${TT('medico', 'p', '', 'l', 'l')} hay en cada estado. El porcentaje indica qué parte ha pasado a ese estado respecto al anterior. El objetivo es que la barra de «${esc(estadoPapel('positivo') || 'positivo')}» crezca.</p></div>
-      <div class="card ancard ancha"><h2>Actividad y resultados</h2>
-        ${actv.length || (t.unidades || 0) ? svgBarras(meses, meses.map(m => (vis[m] || {}).visitas || 0), meses.map(m => (serie[m] || {}).unidades || 0), [`${TT('visita', 'p', '', 'l', 'C')}`, 'Unidades vendidas'])
-          : vacioGrafico(`Verás ${TT('visita', 'p', 'el', 'l', 'l')} de cada mes junto a las unidades vendidas.`)}
-        <p class="leer"><b>Cómo leerlo:</b> las barras son ${TT('visita', 'p', 'el', 'l', 'l', 'registrado')} y la línea, las unidades vendidas. Si ${TT('visita', 'p', 'el', 'l', 'l')} suben y las ventas no, conviene revisar a quién se visita y con qué mensaje.</p></div>`;
-  };
-  montarPeriodo($('anper'), { id: 'analitica-resumen', valor: 'anio', alCambiar: pinta });
-  pinta();
-}
+// (v2.183.0: aquí iba la primera versión de pintarResumenAnalitica; se redefine entera más abajo)
 
 cargarAnalitica = (orig => async function () {
   await orig();
@@ -9279,38 +9171,7 @@ async function pintarEmpresa() {
 
 /* ---------------- VeriFactu (solo administración) ---------------- */
 
-async function pintarVerifactu() {
-  await cargarAjustes();
-  const v = Object.assign({ activo: false, modalidad: 'verifactu', entorno: 'pruebas' }, AJUSTES.verifactu || {});
-  const { data: cad } = await RPC_ORIG('verificar_cadena', {});
-  $('fcuerpo').innerHTML = `<div class="card" style="padding:16px 18px">
-    <div class="manh"><h2 style="padding:0">VeriFactu</h2><span class="pill ${v.activo ? 'p-est' : 'p-anu'}">${v.activo ? 'Activado' : 'Desactivado'}</span></div>
-    <p>Sistema de la Ley Antifraude (Real Decreto 1007/2023). Mientras esté desactivado, la app ya prepara cada factura como exige el reglamento, pero no muestra el QR ni la envía a Hacienda.</p>
-    <h3>Ya preparado en cada factura</h3>
-    <ul class="manlist"><li>✓ Numeración correlativa por serie, sin huecos</li><li>✓ Facturas inalterables: no se pueden modificar ni borrar; se corrigen con rectificativas</li>
-      <li>✓ Huella encadenada de cada factura con la anterior (${num((cad || {}).facturas || 0)} facturas · ${(cad || {}).rotas ? `<b style="color:var(--danger)">${num(cad.rotas)} eslabones rotos desde ${esc(cad.primera_rota)}</b>` : 'cadena íntegra'})</li>
-      <li>✓ Dirección de verificación para el código QR</li><li>✓ Registro de eventos del sistema (pestaña Registro)</li></ul>
-    <h3>Pendiente para el envío a Hacienda</h3>
-    <ul class="manlist"><li>🔒 Certificado digital de la empresa y conexión con los servicios de la AEAT. Se configurará cuando se decida activar VeriFactu.</li></ul>
-    <h3>Configuración</h3>
-    <label class="opt"><input type="checkbox" id="vfa" ${v.activo ? 'checked' : ''}>
-      <span><b>Activar VeriFactu</b><br><span class="sm">Las facturas nuevas llevarán el QR y la leyenda «VERI*FACTU» y quedarán pendientes de envío a la AEAT.</span></span></label>
-    <div class="g2"><div><label for="vfm">Modalidad</label><select id="vfm"><option value="verifactu" ${v.modalidad === 'verifactu' ? 'selected' : ''}>VeriFactu (envío de cada factura)</option>
-        <option value="no_verifactu" ${v.modalidad === 'no_verifactu' ? 'selected' : ''}>No VeriFactu (registro firmado, sin envío)</option></select></div>
-      <div><label for="vfe">Entorno</label><select id="vfe"><option value="pruebas" ${v.entorno === 'pruebas' ? 'selected' : ''}>Pruebas de la AEAT</option>
-        <option value="produccion" ${v.entorno === 'produccion' ? 'selected' : ''}>Producción</option></select></div></div>
-    <div class="acts" style="justify-content:flex-end"><button class="btn" id="vfok">Guardar</button></div></div>`;
-  $('vfok').onclick = async () => {
-    const nuevo = { activo: $('vfa').checked, modalidad: $('vfm').value, entorno: $('vfe').value };
-    if (nuevo.activo !== v.activo && !await preguntar(nuevo.activo
-      ? 'Las facturas que se emitan a partir de ahora llevarán el QR y la leyenda VERI*FACTU. El envío a la AEAT necesitará el certificado de la empresa.'
-      : 'Las facturas nuevas dejarán de llevar el QR y la leyenda VERI*FACTU. Las ya emitidas no cambian.',
-      { titulo: nuevo.activo ? '¿Activar VeriFactu?' : '¿Desactivar VeriFactu?', ok: nuevo.activo ? 'Activar' : 'Desactivar' })) return;
-    const { error } = await db.rpc('guardar_ajuste', { p_clave: 'verifactu', p_valor: nuevo });
-    if (error) { toast('No se ha podido guardar', true); return; }
-    AJUSTES.verifactu = nuevo; toast('Guardado · queda anotado en el registro'); pintarVerifactu();
-  };
-}
+// (v2.183.0: aquí iba la primera versión de pintarVerifactu; se redefine entera más abajo)
 
 async function pintarRegistro() {
   cargando($('fcuerpo'), 'Cargando el registro…');
@@ -9565,21 +9426,7 @@ function textoEmailPago(p, total, cliente) {
 }
 
 
-async function pintarOperativa() {
-  let c = $('operativa');
-  if (!c) { const ref = $('vcuerpo'); if (!ref) return; ref.insertAdjacentHTML('beforebegin', '<div class="card" id="operativa"></div>'); c = $('operativa'); }
-  const { data } = await RPC_ORIG('operativa_pendiente', {});
-  const d = data || {};
-  const tot = ['pago', 'paquete', 'email_factura', 'email_pago'].reduce((n, k) => n + (d[k] || []).length, 0);
-  if (!$('operativa')) return;
-  c.innerHTML = `<h2>Por hacer en los pedidos<span class="n">${tot}</span></h2>
-    ${tot ? `<div class="opgrid">${[['pago', '💳 Pagos por validar'], ['paquete', '📦 Paquetes por preparar'], ['email_factura', '🧾 Facturas por enviar'], ['email_pago', '✉️ Datos de pago por enviar']].map(([k, t]) =>
-      `<details class="opcol"><summary><b>${num((d[k] || []).length)}</b> ${t}</summary>
-        <div class="lista">${(d[k] || []).slice(0, 30).map(p => `<button class="item" data-opped="${p.id}" style="padding:6px 8px"><span class="tx"><b>${esc(p.cliente)}</b>
-          <span class="sm">${esc(p.numero || 'Sin número')} · ${fechaCorta(p.fecha)}${verImportes() ? ' · ' + eurI(p.total || 0) : ''}${p.forma_pago ? ' · ' + esc(p.forma_pago) : ''}</span></span></button>`).join('') || '<div class="sm" style="padding:6px">Nada pendiente</div>'}</div></details>`).join('')}</div>`
-      : '<div class="vacio" style="padding:10px 16px">Todo al día: pagos validados, paquetes preparados y emails enviados.</div>'}`;
-  c.querySelectorAll('[data-opped]').forEach(b => b.onclick = () => verPedido(b.dataset.opped));
-}
+// (v2.183.0: aquí iba la primera versión de pintarOperativa; se redefine entera más abajo)
 
 /* ---------------- Pedidos: pestaña «Llamadas» ---------------- */
 
@@ -9765,91 +9612,7 @@ async function cargarQR() {
   return window.qrcode;
 }
 
-async function facturaPDF(f, rectificaNum) {
-  const JsPDF = await cargarJsPDF();
-  if (!PRODUCTOS.length) await cargarProductos();
-  const doc = new JsPDF({ unit: 'mm', format: 'a4' });
-  const e = f.emisor || {}, c = f.cliente || {};
-  const gris = [110, 118, 126], negro = [28, 39, 51], claro = [238, 240, 242];
-  const eur = v => (Math.round((+v || 0) * 100) / 100).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '€';
-  const fecha = x => x ? x.split('-').reverse().join('/') : '';
-  // Logo en su círculo
-  const logo = await logoData();
-  if (logo && LOGO_CIRC) doc.addImage(logo, 'PNG', 17, 19, 34, 34);
-  else { doc.setFillColor(236, 240, 245); doc.circle(34, 36, 15, 'F'); if (logo) doc.addImage(logo, 'PNG', 22.5, 31.5, 23, 9.2); }
-  // Título y número
-  doc.setFont('helvetica', 'normal'); doc.setTextColor(...negro); doc.setFontSize(f.rectifica_id ? 22 : 28);
-  doc.text(f.rectifica_id ? 'FACTURA RECTIFICATIVA' : 'FACTURA', 192, 36, { align: 'right' });
-  doc.setFontSize(14); doc.setTextColor(...gris); doc.text(f.numero, 192, 44, { align: 'right' });
-  // Fechas y referencia
-  doc.setFontSize(9.5); let y = 70;
-  const fila = (etq, val, x, yy) => { doc.setTextColor(...gris); doc.text(etq, x, yy); doc.setTextColor(...negro); doc.text(val || '', x + doc.getTextWidth(etq) + 1.2, yy); };
-  fila('Fecha:', fecha(f.fecha), 18, y);
-  fila('Fecha vencimiento:', f.rectifica_id ? '' : fecha(f.vencimiento), 18, y + 4.6);
-  const dirCli = [c.direccion, [c.municipio, c.cp ? '(' + c.cp + ')' : '', c.provincia, c.pais].filter(Boolean).join(', ').replace(', (', ' (')].filter(Boolean);
-  if (dirCli.length) { fila('Ref:', dirCli[0], 18, y + 13.8); if (dirCli[1]) { doc.setTextColor(...negro); doc.text(dirCli[1], 18, y + 18.4); } }
-  if (f.rectifica_id) { doc.setTextColor(...gris); doc.text('Rectifica la factura ' + (rectificaNum || '') + (f.motivo_rectificacion ? ' · ' + f.motivo_rectificacion : ''), 18, y + 25, { maxWidth: 80 }); }
-  // Cliente
-  doc.setFont('helvetica', 'bold'); doc.setTextColor(...negro); doc.text(c.nombre || '', 110, y);
-  doc.setFont('helvetica', 'normal');
-  [c.nif, ...dirCli, c.email].filter(Boolean).forEach((t, i) => doc.text(String(t), 110, y + 4.6 * (i + 1)));
-  // Tabla
-  y = 104;
-  const col = { con: 46, pre: 110, uds: 138, sub: 162, iva: 173, tot: 192 };
-  doc.setFillColor(...claro); doc.rect(42, y, 150, 11, 'F'); doc.rect(18, y, 22.5, 11, 'F');
-  doc.setFont('helvetica', 'bold'); doc.setFontSize(8.8); doc.setTextColor(...negro);
-  doc.text('CONCEPTO', col.con, y + 7); doc.text('PRECIO', col.pre, y + 7, { align: 'right' }); doc.text('UNIDADES', col.uds, y + 7, { align: 'right' });
-  doc.text('SUBTOTAL', col.sub, y + 7, { align: 'right' }); doc.text('IVA', col.iva, y + 7, { align: 'right' }); doc.text('TOTAL', col.tot, y + 7, { align: 'right' });
-  doc.setFont('helvetica', 'normal'); doc.setFontSize(9.5); y += 11;
-  for (const l of f.lineas) {
-    const p = PRODUCTOS.find(x => x.nombre && l.descripcion && l.descripcion.toLowerCase().startsWith(x.nombre.toLowerCase()));
-    const img = p && p.foto_url ? await imagenData(p.foto_url) : null;
-    const alto = img ? 20 : 11;
-    if (y + alto > 250) { doc.addPage(); y = 20; }
-    if (img) { try { doc.addImage(img, 20, y + 3, 18, 13); } catch (er) {} }
-    const lineasDesc = doc.splitTextToSize(l.descripcion || '', col.pre - col.con - 22);
-    doc.text(lineasDesc, col.con, y + 7);
-    doc.text(eur(l.precio), col.pre, y + 7, { align: 'right' }); doc.text(String(l.unidades), col.uds, y + 7, { align: 'right' });
-    doc.text(eur(l.base), col.sub, y + 7, { align: 'right' }); doc.text((+l.iva || 0) + '%', col.iva, y + 7, { align: 'right' });
-    doc.text(eur((+l.base || 0) * (1 + (+l.iva || 0) / 100)), col.tot, y + 7, { align: 'right' });
-    y += Math.max(alto, 5 + lineasDesc.length * 4.6);
-    doc.setDrawColor(226, 230, 234); doc.line(18, y, 192, y);
-  }
-  // Totales
-  y += 10; doc.setFontSize(9.5);
-  const tot = (etq, val, negrita) => { doc.setTextColor(...gris); doc.text(etq, 150, y, { align: 'right' }); doc.setTextColor(...negro);
-    doc.setFont('helvetica', negrita ? 'bold' : 'normal'); doc.text(val, 190, y, { align: 'right' }); doc.setFont('helvetica', 'normal'); y += 7; };
-  tot('Base imponible', eur(f.base));
-  (f.desglose_iva || []).filter(d => +d.cuota).forEach(d => tot('IVA ' + d.iva + '%', eur(d.cuota)));
-  if (!(f.desglose_iva || []).some(d => +d.cuota)) tot('IVA', eur(0));
-  doc.setFillColor(...claro); doc.rect(152, y - 5, 40, 9, 'F'); tot('Total', eur(f.total), true);
-  // Forma de pago
-  y += 4;
-  if (f.forma_pago) { doc.setTextColor(...gris); doc.text('Forma de pago: ', 18, y); doc.setTextColor(...negro); doc.text(f.forma_pago + (/transfer/i.test(f.forma_pago) && e.iban ? ' · IBAN ' + e.iban : ''), 18 + doc.getTextWidth('Forma de pago: '), y); }
-  // QR VeriFactu, si está activo
-  if ((f.verifactu || {}).activo && f.qr_url) {
-    try {
-      const QR = await cargarQR(), q = QR(0, 'M'); q.addData(f.qr_url); q.make();
-      const n = q.getModuleCount(), tam = 26 / n, x0 = 18, y0 = 238;
-      doc.setFillColor(0, 0, 0);
-      for (let r = 0; r < n; r++) for (let k = 0; k < n; k++) if (q.isDark(r, k)) doc.rect(x0 + k * tam, y0 + r * tam, tam, tam, 'F');
-      doc.setFontSize(8.5); doc.setTextColor(...negro); doc.setFont('helvetica', 'bold'); doc.text('VERI*FACTU', 48, y0 + 10);
-      doc.setFont('helvetica', 'normal'); doc.setTextColor(...gris); doc.text('Factura verificable en la sede electrónica de la AEAT', 48, y0 + 15);
-    } catch (er) {}
-  }
-  // Pie
-  const pies = doc.getNumberOfPages();
-  for (let i = 1; i <= pies; i++) {
-    doc.setPage(i); doc.setDrawColor(226, 230, 234); doc.line(18, 276, 192, 276);
-    doc.setFontSize(8.3); doc.setTextColor(...gris);
-    doc.text(`${e.razon_social || nombreApp()} | NIF: ${e.nif || ''} | ${[e.direccion, [e.cp, e.municipio].filter(Boolean).join(' '), e.pais || 'España'].filter(Boolean).join(', ')}`, 105, 281, { align: 'center' });
-    if (e.telefono) doc.text('Atención al cliente: ' + e.telefono, 105, 285, { align: 'center' });
-    doc.text(e.web || '', 105, 289, { align: 'center' });
-    if (e.pie) doc.text(doc.splitTextToSize(e.pie, 170), 105, 293, { align: 'center' });
-    doc.text(i + '/' + pies, 192, 289, { align: 'right' });
-  }
-  return doc;
-}
+// (v2.183.0: aquí iba la primera versión de facturaPDF; se redefine entera más abajo)
 const nombrePDF = f => `${f.numero}_${String((f.cliente || {}).nombre || 'cliente').replace(/[^\p{L}\p{N} ]/gu, '').trim().replace(/\s+/g, '_')}.pdf`;
 
 async function descargarFacturaPDF(f, rn) {
@@ -10078,58 +9841,9 @@ let SELPOP = null, LOGO_CIRC = false;
 const capaSelector = inp => inp.closest('dialog[open]') || [...document.querySelectorAll('dialog[open]')].pop() || document.body;
 function emitir(inp) { inp.dispatchEvent(new Event('input', { bubbles: true })); inp.dispatchEvent(new Event('change', { bubbles: true })); }
 
-function abrirCalendario(inp) {
-  cerrarSelector();
-  let ver = inp.value ? new Date(inp.value + 'T12:00:00') : new Date();
-  const min = inp.min || null, max = inp.max || null;
-  const pop = document.createElement('div'); pop.className = 'selpop cal'; SELPOP = pop; pop.__t = Date.now();
-  const pinta = () => {
-    const y = ver.getFullYear(), m = ver.getMonth(), primero = new Date(y, m, 1), hueco = (primero.getDay() + 6) % 7, dias = new Date(y, m + 1, 0).getDate();
-    const hoy = hoyISO();
-    let celdas = '';
-    for (let i = 0; i < hueco; i++) celdas += '<span></span>';
-    for (let d = 1; d <= dias; d++) {
-      const f = `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-      const fuera = (min && f < min) || (max && f > max);
-      celdas += `<button type="button" data-cd="${f}" class="${f === inp.value ? 'sel' : ''} ${f === hoy ? 'hoy' : ''}" ${fuera ? 'disabled' : ''}>${d}</button>`;
-    }
-    pop.innerHTML = `<div class="calh"><button type="button" data-cm="-1" aria-label="Mes anterior">‹</button><b>${MESES_L[m]} ${y}</b><button type="button" data-cm="1" aria-label="Mes siguiente">›</button></div>
-      <div class="calg">${['L', 'M', 'X', 'J', 'V', 'S', 'D'].map(x => `<i>${x}</i>`).join('')}${celdas}</div>
-      <div class="calp"><button type="button" data-cq="hoy">Hoy</button>${inp.required ? '' : '<button type="button" data-cq="borrar">Borrar</button>'}</div>`;
-    colocarPop(pop, inp.closest('.selw') || inp);
-  };
-  pop.addEventListener('pointerdown', () => { pop.__t = Date.now(); });
-  pop.addEventListener('click', e => {
-    e.stopPropagation();
-    const d = e.target.closest('[data-cd]'), mv = e.target.closest('[data-cm]'), q = e.target.closest('[data-cq]');
-    if (d) { inp.value = d.dataset.cd; emitir(inp); cerrarSelector(); }
-    if (mv) { ver = new Date(ver.getFullYear(), ver.getMonth() + +mv.dataset.cm, 1); pinta(); }
-    if (q) { inp.value = q.dataset.cq === 'hoy' ? hoyISO() : ''; emitir(inp); cerrarSelector(); }
-  });
-  $('seldlg') ? $('seldlg').appendChild(pop) : capaSelector(inp).appendChild(pop); pinta();
-}
+// (v2.183.0: aquí iba la primera versión de abrirCalendario; se redefine entera más abajo)
 
-function abrirReloj(inp) {
-  cerrarSelector();
-  const [h0, m0] = (inp.value || '09:00').split(':').map(Number);
-  let h = isNaN(h0) ? 9 : h0, m = isNaN(m0) ? 0 : m0;
-  const pop = document.createElement('div'); pop.className = 'selpop reloj'; SELPOP = pop; pop.__t = Date.now();
-  const pinta = () => {
-    pop.innerHTML = `<div class="rjh"><b>${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}</b></div>
-      <div class="rjt">Hora</div><div class="rjg">${Array.from({ length: 24 }, (_, i) => `<button type="button" data-rh="${i}" class="${i === h ? 'sel' : ''}">${String(i).padStart(2, '0')}</button>`).join('')}</div>
-      <div class="rjt">Minutos</div><div class="rjg m">${[0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55].map(i => `<button type="button" data-rm="${i}" class="${i === m ? 'sel' : ''}">${String(i).padStart(2, '0')}</button>`).join('')}</div>
-      <div class="calp"><button type="button" data-rq="ok" class="okb">Aceptar</button>${inp.required ? '' : '<button type="button" data-rq="borrar">Borrar</button>'}</div>`;
-    colocarPop(pop, inp.closest('.selw') || inp);
-  };
-  pop.addEventListener('click', e => {
-    e.stopPropagation();
-    const a = e.target.closest('[data-rh]'), b = e.target.closest('[data-rm]'), q = e.target.closest('[data-rq]');
-    if (a) { h = +a.dataset.rh; pinta(); }
-    if (b) { m = +b.dataset.rm; pinta(); }
-    if (q) { inp.value = q.dataset.rq === 'ok' ? `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}` : ''; emitir(inp); cerrarSelector(); }
-  });
-  $('seldlg') ? $('seldlg').appendChild(pop) : capaSelector(inp).appendChild(pop); pinta();
-}
+// (v2.183.0: aquí iba la primera versión de abrirReloj; se redefine entera más abajo)
 
 function valorVisible(inp) {
   const w = inp.closest('.selw'), sp = w && w.querySelector('.selval'); if (!sp) return;
@@ -10646,18 +10360,8 @@ Object.assign(RPC_TTL, { llamadas_seguimiento: 20 });
 
 /* ---------------- pedidos: producto habitual y líneas siempre con su producto ---------------- */
 
-function productoPorDefecto() {
-  const lista = PRODUCTOS.filter(p => p.tipo !== 'servicio');
-  const hab = localStorage.getItem('dlc-prod-habitual');
-  return (lista.find(p => p.id === hab) || lista[0] || {}).id || '';
-}
-function opcionesProducto(id, nombre) {
-  const lista = PRODUCTOS.filter(p => p.tipo !== 'servicio' || p.id === id);
-  const falta = id && !lista.some(p => p.id === id);
-  return (falta ? `<option value="${id}" selected>${esc(nombre || 'Producto del pedido')}</option>` : '') +
-    lista.map(p => `<option value="${p.id}" ${p.id === id ? 'selected' : ''}>${esc(p.nombre)}</option>`).join('')
-    || '<option value="">Sin productos: créalos primero</option>';
-}
+// (v2.183.0: aquí iba la primera versión de productoPorDefecto; se redefine entera más abajo)
+// (v2.183.0: aquí iba la primera versión de opcionesProducto; se redefine entera más abajo)
 // Se recuerda el producto del último pedido guardado para proponerlo en el siguiente
 const RPC_V2370 = db.rpc;
 db.rpc = function (fn, params, opts) {
@@ -11429,12 +11133,7 @@ function irEnlace(e) {
   if (t === 'ficha' && id) abrirFicha(id); else if (t === 'pedido' && id) verPedido(id);
   else if (t === 'informe') ir('informe'); else if (t === 'directorio') ir('directorio');
 }
-/* panelNotificaciones: la parte base y, en orden, cada paso que se le añade (antes eran 2 capas separadas). */
-function panelNotificaciones(l) {
-  panelNotificacionesBase(l);
-  panelNotificacionesPaso1(l);
-  panelNotificacionesPaso2(l);
-}
+// (v2.183.0: aquí iba la primera versión de panelNotificaciones; se redefine entera más abajo)
 
 function panelNotificacionesPaso1(l) {
   const b = $('notcfg');
@@ -12785,21 +12484,7 @@ db.rpc = (orig => function (fn, params, opts) {
   sal.insertAdjacentHTML('beforebegin', `<button data-u="reportar">${svgIco(ICON_NOM.bug)} Reportar un problema</button>`);
   document.addEventListener('click', e => { if (e.target.closest('[data-u="reportar"]')) reportarProblema(); });
 })();
-function reportarProblema() {
-  $('dbody').innerHTML = `<div class="fh"><div><h2>Reportar un problema</h2><div class="sm">Cuéntanos qué ha pasado. Se adjuntan automáticamente la pantalla y los datos técnicos.</div></div>
-    <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-    <label for="rpt">¿Qué ha pasado?</label><textarea id="rpt" rows="5" placeholder="Qué intentabas hacer, qué esperabas y qué ha ocurrido"></textarea>
-    <div class="sm" style="margin-top:6px">Pantalla: <b>${esc(TAB)}</b> · Versión ${esc(VERSION_APP)} · ${ERRORES_SESION.length} errores técnicos registrados en esta sesión</div>
-    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>Cancelar</button><button class="btn" id="rptok" disabled>Enviar</button></div>`;
-  $('dlg').showModal();
-  $('rpt').oninput = () => { $('rptok').disabled = $('rpt').value.trim().length < 5; };
-  $('rptok').onclick = () => conCarga($('rptok'), 'Enviando…', async () => {
-    const { data, error } = await RPC_ORIG('registrar_error', { p: { tipo: 'reporte', mensaje: $('rpt').value.trim(), pantalla: TAB, version: VERSION_APP, navegador: navigator.userAgent,
-      detalle: { errores_sesion: ERRORES_SESION, ancho: innerWidth, alto: innerHeight } } });
-    if (error || !data || !data.ok) { toast('No se ha podido enviar', true); return; }
-    delete $('dlg').dataset.sucio; $('dlg').close(); toast('Gracias: el problema queda registrado');
-  });
-}
+// (v2.183.0: aquí iba la primera versión de reportarProblema; se redefine entera más abajo)
 // Configuración → Seguridad y registro → Errores (administración)
 async function pintarErrores() {
   const f = window.__ERRF || { tipo: '', estado: 'Nuevo' };
@@ -13220,23 +12905,7 @@ new MutationObserver(() => {
 
 /* ---------------- sin parpadeo al cambiar de pestaña ---------------- */
 
-// Al cambiar de pestaña dentro de un módulo, la vista anterior se queda fija encima (como una imagen)
-// hasta que la nueva tiene sus datos; entonces se cambian de golpe
-function congelar(sec) {
-  if (!sec || sec.classList.contains('hide') || document.querySelector('.congelada')) return;
-  const r = sec.getBoundingClientRect(); if (r.height < 40) return;
-  const c = sec.cloneNode(true); c.removeAttribute('id');
-  c.querySelectorAll('[id]').forEach(e => e.removeAttribute('id'));
-  c.classList.add('congelada'); c.classList.remove('cargando', 'cargando-pend');
-  Object.assign(c.style, { position: 'absolute', left: (r.left + scrollX) + 'px', top: (r.top + scrollY) + 'px', width: r.width + 'px', margin: 0, pointerEvents: 'none', zIndex: 40, background: 'var(--bg, #F3F8FC)' });
-  document.body.appendChild(c);
-  sec.style.minHeight = r.height + 'px';
-  const t0 = performance.now(); let quietos = 0;
-  const w = setInterval(() => {
-    quietos = PEND === 0 ? quietos + 1 : 0;
-    if ((quietos >= 2 && performance.now() - t0 > 60) || performance.now() - t0 > 1500) { clearInterval(w); c.remove(); requestAnimationFrame(() => { sec.style.minHeight = ''; }); }
-  }, 40);
-}
+// (v2.183.0: aquí iba la primera versión de congelar; se redefine entera más abajo)
 document.addEventListener('click', e => {
   const b = e.target.closest('main .subnav button, main [data-pedsec], main [data-psec], main [data-fsec], main [data-ansec], main [data-avista], main [data-ag="dia"], main [data-ag="semana"], main [data-ag="mes"], main [data-ag="equipo"], main [data-ag="ant"], main [data-ag="sig"], main [data-ag="hoy"]');
   if (!b || b.getAttribute('aria-pressed') === 'true') return;
@@ -13288,15 +12957,7 @@ htAplicarColumnas = (orig => function (g) {
 
 /* ---------------- botones de cabecera: siempre en el mismo orden ---------------- */
 
-// Secundarios → «Filtros y columnas» → acción principal (siempre la última, a la derecha)
-function ordenarBotones(sec) {
-  sec.querySelectorAll('.saludo .acts').forEach(acts => {
-    const bs = [...acts.children].filter(b => b.matches('button, a.btn, select'));
-    const peso = b => b.classList.contains('htbtn') ? 2 : (b.matches('.btn:not(.sec)') && !b.classList.contains('icobtn')) ? 3 : b.matches('select') ? 0 : 1;
-    const orden = [...bs].sort((a, b) => peso(a) - peso(b));
-    if (orden.some((b, i) => b !== bs[i])) orden.forEach(b => acts.appendChild(b));
-  });
-}
+// (v2.183.0: aquí iba la primera versión de ordenarBotones; se redefine entera más abajo)
 
 /* ---------------- columnas en un segundo panel lateral ---------------- */
 
@@ -14887,24 +14548,7 @@ function camposFiltrosActivar(zona, estado, alCambiar) {
     alCambiar();
   });
 }
-// Directorio: columnas y filtros generados
-function camposEnDirectorio() {
-  (CAMPOS.medico || []).filter(c => c.en_tabla).forEach(c => { if (!COLS.some(x => x.k === 'cp:' + c.clave)) COLS.push({ k: 'cp:' + c.clave, t: c.nombre, w: 150 }); });
-  const zona = document.querySelector('#v-directorio .filtros'), ord = $('forden');
-  if (!zona || !ord) return;
-  zona.querySelectorAll('.fcpers').forEach(x => x.remove());
-  (CAMPOS.medico || []).filter(c => c.en_filtro && ['lista', 'si_no'].includes(c.tipo)).forEach((c, i) => {
-    const ops = c.tipo === 'si_no' ? [['true', 'Sí'], ['false', 'No']] : (c.valores || []).map(x => [x, x]);
-    const act = F.campos[c.clave] == null ? '' : String(F.campos[c.clave]);
-    ord.closest('div').insertAdjacentHTML('beforebegin', `<div class="fcpers"><label for="fcp${i}">${esc(c.nombre)}</label><select id="fcp${i}" data-fcp="${esc(c.clave)}" data-fcpt="${c.tipo}">
-      <option value="">Todos</option>${ops.map(([v, t]) => `<option value="${esc(v)}" ${act === v ? 'selected' : ''}>${esc(t)}</option>`).join('')}</select></div>`);
-  });
-  zona.querySelectorAll('[data-fcp]').forEach(sel => sel.onchange = () => {
-    const k = sel.dataset.fcp;
-    if (!sel.value) delete F.campos[k]; else F.campos[k] = sel.dataset.fcpt === 'si_no' ? sel.value === 'true' : sel.value;
-    buscar(true);
-  });
-}
+// (v2.183.0: aquí iba la primera versión de camposEnDirectorio; se redefine entera más abajo)
 
 /* ---------- campos personalizados en las fichas ---------- */
 async function bloqueCampos(tabla, id, cont) {
@@ -17069,13 +16713,7 @@ function quitarFranja() {
   const f = $('orgvista'); if (f) f.remove();
   document.body.classList.remove('con-vista'); document.documentElement.style.setProperty('--alto-franja', '0px');
 }
-async function entrarEnOrganizacion(o) {
-  if (!await preguntar(`Vas a ver la plataforma como ${o.nombre}: sus datos, su configuración y su plan. Lo que cambies se guarda en su empresa y queda registrado. Para volver, «Salir» en la franja de arriba.`, { titulo: 'Entrar en ' + o.nombre, ok: 'Entrar' })) return;
-  const { data: r } = await db.rpc('entrar_organizacion', { p_org: o.id });
-  if (!r || !r.ok) { toast(r && r.motivo === 'permiso' ? 'Solo el Administrador de delcos puede entrar' : 'No se ha podido entrar', true); return; }
-  try { sessionStorage.removeItem('dlc-f5'); } catch (e) {}
-  location.reload();
-}
+// (v2.183.0: aquí iba la primera versión de entrarEnOrganizacion; se redefine entera más abajo)
 setTimeout(() => { try { menuPaginas2131(); franjaVista(); } catch (e) {} }, 0);
 /* ---------------- v2.132.0 · Menú lateral de escritorio (elegido por Eric: barra a la izquierda, agrupada por áreas) ----------------
    Los botones siguen siendo los de siempre (nav.main #nav [data-t]): aquí solo se reparten en bloques, se pliega la barra a iconos
@@ -17180,54 +16818,7 @@ function menuTip(b) {
   t.textContent = b.dataset.tip || ''; t.style.top = (r.top + r.height / 2) + 'px'; t.style.left = (r.right + 10) + 'px'; t.classList.add('ver');
 }
 document.addEventListener('mouseover', e => { const b = e.target.closest && e.target.closest('nav.main [data-tip]'); menuTip(b || null); });
-// Personalizar: ordenar los bloques y las secciones de cada bloque, y elegir cuáles se ven
-function menuPersonalizar() {
-  let caja = $('mlpanel'); if (caja) { caja.remove(); return; }
-  const p = menuPrefs(), estado = { orden: menuGrupos().filter(g => g.id !== 'otros').map(g => g.id), items: {}, ocultos: [...(p.ocultos || [])] };
-  menuGrupos().forEach(g => { estado.items[g.id] = [...g.items]; });
-  const boton = k => document.querySelector(`#nav button[data-t="${k}"]`);
-  const nombre = k => { const b = boton(k); return b ? (b.dataset.tip || b.textContent.trim()) : ''; };
-  const disponible = k => { const b = boton(k); return !!b && k !== 'seguimiento' && !b.classList.contains('hide') && (b.classList.contains('mloculto') || getComputedStyle(b).display !== 'none'); };
-  document.body.insertAdjacentHTML('beforeend', '<div id="mlpanel" role="dialog" aria-label="Personalizar menú"></div>');
-  caja = $('mlpanel');
-  const flechas = (attr, val, i, n, txt) => `<span class="mlpflechas">
-    <button type="button" ${attr}="${val}" data-d="-1" aria-label="Subir ${txt}" ${i ? '' : 'disabled'}>${svgIco(ICO_SUBIR)}</button>
-    <button type="button" ${attr}="${val}" data-d="1" aria-label="Bajar ${txt}" ${i < n - 1 ? '' : 'disabled'}>${svgIco(ICON_NOM['chevron-down'])}</button></span>`;
-  const pinta = () => {
-    const tit = id => (MENU_GRUPOS.find(x => x.id === id) || { t: 'Otros' }).t;
-    const bloques = estado.orden.filter(id => (estado.items[id] || []).some(disponible));
-    caja.innerHTML = `<div class="mlph"><b>Personalizar menú</b><span class="sm">Ordena los bloques y elige qué secciones ves. Solo cambia tu menú.</span></div>
-      <div class="mlpl">${bloques.map((id, i) => { const its = estado.items[id].filter(disponible);
-        return `<div class="mlpg"><div class="mlpgh"><b>${esc(tit(id))}</b>${flechas('data-gm', id, i, bloques.length, 'el bloque')}</div>
-          ${its.map((k, j) => `<label class="mlpi"><input type="checkbox" data-vk="${k}" ${estado.ocultos.includes(k) ? '' : 'checked'}><span class="mlpn">${esc(nombre(k))}</span>${flechas('data-im', id + '|' + k, j, its.length, nombre(k))}</label>`).join('')}</div>`; }).join('')}</div>
-      <div class="mlpacts"><button type="button" class="btn sec" id="mlpdef">Restablecer</button><button type="button" class="btn" id="mlpok">Guardar</button></div>`;
-  };
-  pinta();
-  caja.addEventListener('click', async e => {
-    e.stopPropagation();
-    const gm = e.target.closest('[data-gm]'), im = e.target.closest('[data-im]');
-    if (gm) {
-      const bloques = estado.orden.filter(id => (estado.items[id] || []).some(disponible)), i = bloques.indexOf(gm.dataset.gm), otro = bloques[i + +gm.dataset.d];
-      const a = estado.orden.indexOf(gm.dataset.gm), b = estado.orden.indexOf(otro); [estado.orden[a], estado.orden[b]] = [estado.orden[b], estado.orden[a]]; pinta(); return;
-    }
-    if (im) {
-      e.preventDefault();
-      const [gid, k] = im.dataset.im.split('|'), vis = estado.items[gid].filter(disponible), i = vis.indexOf(k), otro = vis[i + +im.dataset.d], l = estado.items[gid];
-      const a = l.indexOf(k), b = l.indexOf(otro); [l[a], l[b]] = [l[b], l[a]]; pinta(); return;
-    }
-    if (e.target.id === 'mlpdef') { estado.orden = MENU_GRUPOS.map(x => x.id); MENU_GRUPOS.forEach(x => { estado.items[x.id] = [...x.items]; }); estado.ocultos = []; pinta(); return; }
-    if (e.target.id === 'mlpok') {
-      const prefs = Object.assign({}, PERFIL.preferencias || {}, { menu: { orden: estado.orden, items: estado.items, ocultos: estado.ocultos } });
-      const { data, error } = await db.rpc('guardar_preferencias', { p: prefs });
-      if (error) { toast('No se ha podido guardar el menú', true); return; }
-      PERFIL.preferencias = data || prefs; caja.remove(); MENU_FIRMA = ''; montarMenuLateral(); toast('Menú guardado');
-    }
-  });
-  caja.addEventListener('change', e => { const v = e.target.closest('[data-vk]'); if (!v) return; const k = v.dataset.vk; estado.ocultos = v.checked ? estado.ocultos.filter(x => x !== k) : [...new Set([...estado.ocultos, k])]; });
-  setTimeout(() => document.addEventListener('click', function fuera(ev) {
-    if (!ev.target.closest('#mlpanel, #mlpers')) { const c = $('mlpanel'); if (c) c.remove(); document.removeEventListener('click', fuera); }
-  }), 0);
-}
+// (v2.183.0: aquí iba la primera versión de menuPersonalizar; se redefine entera más abajo)
 // Se monta al arrancar y se rehace si cambian los botones (permisos, módulos, portal), el tamaño de la pantalla o la sesión
 let MENU_RAF = 0;
 const menuRehacer = () => { if (MENU_RAF) return; MENU_RAF = requestAnimationFrame(() => { MENU_RAF = 0; montarMenuLateral(); }); };
@@ -17796,25 +17387,7 @@ async function agSemanaMes() {
   cont.querySelectorAll('button[data-agdia]').forEach(b => b.onclick = ev => { ev.stopPropagation(); agVerDia(b.dataset.agdia, porDia[b.dataset.agdia] || [], b); });
 }
 
-// Las citas de un día, ahí mismo
-function agVerDia(f, l, ancla) {
-  document.querySelectorAll('.agpop').forEach(x => x.remove());
-  const p = document.createElement('div'); p.className = 'agpop'; p.__t = Date.now();
-  p.innerHTML = `<div class="agpoph"><b>${esc(fechaLarga(new Date(f + 'T00:00:00')).replace(/^./, c => c.toUpperCase()))}</b>
-      <button type="button" class="x" aria-label="Cerrar">✕</button></div>
-    ${l.length ? `<div class="lista">${l.map(x => `<button type="button" class="item" data-agficha="${x.cuenta_id}"><span class="ic" style="background:color-mix(in srgb, ${EST_COL[x.estado] || '#6B7F95'} 12%, transparent);color:${EST_COL[x.estado] || '#6B7F95'}">${x.hora ? esc(String(x.hora).slice(0, 5)) : '·'}</span>
-        <span class="tx"><b>${esc(x.nombre)}</b><span class="sm">${esc([x.centro_nombre, x.municipio].filter(Boolean).join(' · '))} · ${esc(x.estado)}</span></span></button>`).join('')}</div>`
-      : '<div class="sm" style="padding:8px 4px">Sin citas.</div>'}
-    ${f >= hoyISO() ? `<div class="acts" style="margin:6px 0 0;justify-content:flex-end"><button type="button" class="btn sec" data-agnueva="${f}">+ Cita este día</button></div>` : ''}`;
-  document.body.appendChild(p);
-  const r = ancla.getBoundingClientRect(), w = Math.min(360, innerWidth - 20);
-  p.style.width = w + 'px';
-  p.style.left = Math.max(10, Math.min(innerWidth - w - 10, r.left)) + 'px';
-  p.style.top = Math.max(10, Math.min(innerHeight - p.offsetHeight - 10, r.bottom + 6)) + 'px';
-  p.querySelector('.x').onclick = () => p.remove();
-  p.querySelectorAll('[data-agficha]').forEach(b => b.onclick = () => { p.remove(); abrirFicha(b.dataset.agficha); });
-  const nb = p.querySelector('[data-agnueva]'); if (nb) nb.onclick = () => { p.remove(); nuevaCita(null, nb.dataset.agnueva); };
-}
+// (v2.183.0: aquí iba la primera versión de agVerDia; se redefine entera más abajo)
 document.addEventListener('pointerdown', e => { if (!e.target.closest('.agpop, [data-agdia]')) document.querySelectorAll('.agpop').forEach(x => x.remove()); }, true);
 
 // v2.143.0: en Pedidos y Oportunidades los filtros pasan dentro de «Filtros y columnas» (a la vista queda solo el buscador)
@@ -18860,44 +18433,7 @@ async function pagoLlamar(cuerpo, boton) {
   } finally { if (boton) { boton.disabled = false; boton.textContent = boton.dataset.txt; } }
 }
 
-// Ventana para elegir plan, forma de pago y usuarios, con el total
-function elegirPago(planIni) {
-  const pl = PLAN_ACTUAL || {}, conSus = !!pl.stripe_suscripcion, usados = +((PAGO_ESTADO || {}).usuarios || 0);
-  const est = { plan: PAGO_PLANES.includes(planIni) ? planIni : (PAGO_PLANES.includes(pl.plan) ? pl.plan : 'comercial'),
-    pago: pl.pago === 'anual' ? 'anual' : 'mensual', usuarios: Math.max(3, usados, +pl.usuarios || 0) };
-  const pinta = () => {
-    const p = planDe(est.plan), anual = est.pago === 'anual';
-    const base = anual ? p.precio * 10 * est.usuarios : p.precio * est.usuarios;
-    const puesta = !anual && !conSus ? PUESTA_EN_MARCHA : 0;
-    const iva = Math.round((base + puesta) * 21) / 100;
-    $('dbody').innerHTML = `<div class="fh"><div><h2>${conSus ? 'Cambiar la suscripción' : 'Contratar delcos'}</h2>
-        <div class="sm">Precios por usuario, IVA no incluido. ${conSus ? 'El cambio se prorratea en el próximo recibo.' : 'El pago se hace en la página segura de Stripe.'}</div></div>
-        <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-      <label>Plan</label><div class="segs pgplan" role="group">${PAGO_PLANES.map(k => `<button type="button" data-pgp="${k}" class="${est.plan === k ? 'on' : ''}" aria-pressed="${est.plan === k}">${esc(planDe(k).nombre)} · ${eurI(planDe(k).precio)}</button>`).join('')}</div>
-      <label style="margin-top:12px">Pago</label><div class="segs" role="group">
-        <button type="button" data-pga="mensual" class="${anual ? '' : 'on'}" aria-pressed="${!anual}">Mensual</button>
-        <button type="button" data-pga="anual" class="${anual ? 'on' : ''}" aria-pressed="${anual}">Anual · pagas 10 meses de 12</button></div>
-      <label for="pgusu" style="margin-top:12px">Usuarios</label><input id="pgusu" type="number" min="${Math.max(3, usados)}" value="${est.usuarios}" class="numw">
-      <span class="sm">${usados ? `Ahora usáis ${num(usados)}. ` : ''}Mínimo ${Math.max(3, usados)}.</span>
-      <div class="pgres">
-        <div><span>${num(est.usuarios)} × ${eurI(anual ? p.precio * 10 : p.precio)} ${anual ? 'al año' : 'al mes'}</span><b>${eurI(base)}</b></div>
-        ${puesta ? `<div><span>Puesta en marcha (una vez; incluida con pago anual)</span><b>${eurI(puesta)}</b></div>` : ''}
-        <div><span>IVA 21 %</span><b>${eurI(iva)}</b></div>
-        <div class="pgtot"><span>${conSus ? 'Nuevo importe' : 'Primer cobro'}</span><b>${eurI(base + puesta + iva)}</b></div></div>
-      <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>Cancelar</button>
-        <button class="btn" id="pgok">${conSus ? 'Confirmar el cambio' : 'Ir al pago seguro'}</button></div>`;
-    $('dbody').querySelectorAll('[data-pgp]').forEach(b => b.onclick = () => { est.plan = b.dataset.pgp; pinta(); });
-    $('dbody').querySelectorAll('[data-pga]').forEach(b => b.onclick = () => { est.pago = b.dataset.pga; pinta(); });
-    $('pgusu').onchange = () => { est.usuarios = Math.max(3, usados, Math.floor(+$('pgusu').value || 0)); pinta(); };
-    $('pgok').onclick = async ev => {
-      const d = await pagoLlamar({ accion: conSus ? 'cambiar' : 'checkout', plan: est.plan, pago: est.pago, usuarios: est.usuarios }, ev.target);
-      if (!d) return;
-      if (d.url) { location.href = d.url; return; }
-      $('dlg').close(); toast('Cambio hecho: en unos segundos verás el plan nuevo'); pagoEsperarActivo();
-    };
-  };
-  pinta(); $('dlg').showModal();
-}
+// (v2.183.0: aquí iba la primera versión de elegirPago; se redefine entera más abajo)
 async function pagoPortal(boton) { const d = await pagoLlamar({ accion: 'portal' }, boton); if (d && d.url) location.href = d.url; }
 
 // «Plan y suscripción»: los botones reales en lugar de correos
@@ -19845,24 +19381,7 @@ function reciboCalculado(pl) {
   const puesta = pl.en_prueba && !anual ? PUESTA_EN_MARCHA : 0;
   return { primero: cuota + puesta + ivaDe(cuota + puesta), despues: cuota + ivaDe(cuota), puesta, anual };
 }
-function pintarProximoRecibo() {
-  const c = $('cfgcuerpo'), pl = PLAN_ACTUAL || {}, h = c && c.querySelector('#planact h2');
-  if (!h || !pl.stripe_suscripcion || pl.plan === 'medida' || pl.baja_al_final || pl.estado === 'cancelada') return;
-  const k = reciboCalculado(pl), s = PAGO_PROXIMO;
-  const fecha = (s && s.fecha) || pl.periodo_fin, total = s && s.total != null ? s.total : k.primero;
-  const cada = k.anual ? 'al año' : 'al mes';
-  const txt = pl.en_prueba
-    ? `Hoy no pagas nada. El <b>${fechaCorta(fecha)}</b> llega el primer recibo: <b>${eur(total)} con IVA</b>${k.puesta ? `, que incluye la puesta en marcha (${eur(k.puesta)} + IVA, una sola vez)` : k.anual ? ' (la puesta en marcha va incluida)' : ''}.
-       Después, ${eur(k.despues)} ${cada} con IVA. Si te das de baja antes, no pagas nada.`
-    : `Próximo recibo: <b>${eur(total)} con IVA</b>${fecha ? `, el <b>${fechaCorta(fecha)}</b>` : ''}.`;
-  let el = $('pgrecibo');
-  if (!el) {
-    const prueba = $('pgprueba');
-    if (prueba) { prueba.id = 'pgrecibo'; el = prueba; } else { h.insertAdjacentHTML('afterend', '<div class="banda-info" id="pgrecibo"></div>'); el = $('pgrecibo'); }
-  }
-  el.innerHTML = txt;
-  el.dataset.origen = s && s.total != null ? 'stripe' : 'calculo';
-}
+// (v2.183.0: aquí iba la primera versión de pintarProximoRecibo; se redefine entera más abajo)
 pintarPaginaPlan = (orig => async function (...a) { const r = await orig.apply(this, a); try { pintarProximoRecibo(); } catch (e) {} return r; })(pintarPaginaPlan);
 
 /* v2.174.0 · Recibo con IVA como en la web (repaso de Web delcos): fecha larga («el 3 de noviembre»), importes enteros sin decimales (490 €), sin la
