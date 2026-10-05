@@ -6613,7 +6613,7 @@ async function pintarTuDia() {
   if ($('tdordenar')) $('tdordenar').onclick = async () => {
     const nuevo = ordenarPorCercania(mias);
     const nf = ordenarPorCercania.fuera || 0;
-    if (await guardarOrden(nuevo)) { toast(nf ? `Ordenadas · ${nf} no caben en su horario o en el tuyo y quedan al final` : 'Citas ordenadas por cercanía'); cargarAgenda(); }
+    if (await guardarOrden(nuevo)) { toast(nf ? `Ordenadas · ${nf} no caben en su horario o en el tuyo y quedan al final` : 'Citas ordenadas por cercanía'); repintarDiaSuave(); }
   };
   $('agcuerpo').querySelectorAll('[data-tdf]').forEach(el => {
     const abrir = e => { if (e.target.closest('button, a, .tdmenu')) return; abrirFicha(el.dataset.tdf); };
@@ -6629,7 +6629,7 @@ document.addEventListener('pointerdown', e => {
 document.addEventListener('scroll', () => document.querySelectorAll('.tdmenu').forEach(m => { if (Date.now() - (m.__t || 0) > 400) m.remove(); }), true);
 
 async function accionCita(k, c) {
-  const refrescar = () => { cargarAgenda(); cargarInicio(); pintarRutaBarra(); };
+  const refrescar = () => agRefrescoQuieto(c.id);
   if (k === 'ficha') return abrirFicha(c.cuenta_id);
   if (k === 'llegar') return navegarA(xyCita(c));
   if (k === 'hora') return cambiarHoraCita(c.id, c.hora || '');
@@ -6682,7 +6682,7 @@ async function nuevaFechaTrasNoEstaba(c) {
   const { data: r, error } = await db.rpc('guardar_cita', { p: { cuenta_id: c.cuenta_id, fecha: f, centro_nombre: c.centro_nombre,
     estado: 'Planificada', origen: 'No estaba el ' + fechaCorta(c.fecha), op_id: 'ne-' + c.id + '-' + f } });
   if (error || (r && r.ok === false)) { toast('No se ha podido crear la cita', true); return; }
-  toast('Nueva cita el ' + fechaCorta(f)); cargarAgenda();
+  toast('Nueva cita el ' + fechaCorta(f)); agRefrescoQuieto();
 }
 
 document.addEventListener('click', async e => {
@@ -6707,7 +6707,7 @@ document.addEventListener('click', async e => {
 // La vista de día de la agenda es «Tu día»
 
 // Al cerrar una visita o una cita, se refresca el día
-$('dlg').addEventListener('close', () => { if (TAB === 'agenda') setTimeout(() => { cargarAgenda(); pintarRutaBarra(); }, 350); });
+$('dlg').addEventListener('close', () => { if (TAB === 'agenda' && agCambiosEnVentana()) setTimeout(() => agRefrescoQuieto(), 350); });
 
 // En la semana, «Mover» ahora aplaza (antes dejaba la cita en un estado que ya no existía)
 document.addEventListener('click', async e => {
@@ -19436,8 +19436,7 @@ document.addEventListener('click', async e => {
   }});
   if (r.error) { toast('No se ha podido: ' + r.error.message, true); return; }
   toast('Añadido a tu agenda el ' + fechaDiaMes(f));
-  if (TAB === 'agenda') cargarAgenda();
-  cargarInicio();
+  if (TAB === 'agenda') agRefrescoQuieto(); else cargarInicio();
 }, true);
 
 let EST_ULT = null;
@@ -19625,7 +19624,7 @@ nuevaCita = async function (medicoId, fecha, op = {}) {
     }});
     ev.target.disabled = false;
     if (r.error) { toast('No se ha podido: ' + r.error.message, true); return; }
-    $('dlg').close(); toast('Cita añadida el ' + fechaDiaMes(f)); if (TAB === 'agenda') cargarAgenda(); cargarInicio();
+    $('dlg').close(); toast('Cita añadida el ' + fechaDiaMes(f)); if (TAB === 'agenda') agRefrescoQuieto(); else cargarInicio();
   };
   $('dlg').classList.add('pequena');
   $('dlg').showModal();
@@ -19677,7 +19676,7 @@ function verCita(c) {
     const v2 = nota.value.trim();
     const { error } = await db.from('agenda').update({ nota: v2 || null }).eq('id', c.id);
     if (error) { ev.target.disabled = false; toast('No se ha podido guardar: ' + error.message, true); return; }
-    c.nota = v2; cerrar(); toast('Notas guardadas'); pintarTuDia();
+    c.nota = v2; cerrar(); toast('Notas guardadas'); agRefrescoQuieto(c.id, { cifras: false });
   };
   $('vcficha').onclick = () => { cerrar(); FICHA_CENTRO = c.centro_nombre || null; abrirFicha(c.cuenta_id); };
   if ($('vcllegar')) $('vcllegar').onclick = () => accionCita('llegar', c);
@@ -20291,7 +20290,7 @@ accionCita = (orig => async function (k, c) {
   const { data: r, error } = await db.rpc('reabrir_cita', { p_id: c.id });
   if (error || !r || r.ok === false) { toast(r && r.error === 'pasada' ? 'Solo se pueden volver a planificar citas de hoy en adelante' : 'No se ha podido volver a planificar', true); return; }
   toast(r.quitada ? 'Vuelve a estar planificada (se quita la del ' + fechaCorta(r.quitada) + ')' : 'Vuelve a estar planificada');
-  cargarAgenda(); cargarInicio(); pintarRutaBarra();
+  agRefrescoQuieto(c.id);
 })(accionCita);
 verCita = (orig => function (c) {
   const r = orig.call(this, c);
@@ -20315,3 +20314,82 @@ function sinSelectorDelSistema(raiz) {
 }
 mejorarCampos = (orig => function (raiz) { const r = orig(raiz); try { sinSelectorDelSistema(raiz || document); } catch (e) {} return r; })(mejorarCampos);
 sinSelectorDelSistema(document);
+
+/* v2.186.0 · Editar una cita no rehace la Agenda (aviso de Eric: al editar una cita se movía todo el panel). Antes, cerrar cualquier ventana en la
+   Agenda (detalle de la cita, notas, tareas) y cada cambio de la cita (hora, confirmar, aplazar, descartar…) volvían a cargar la pantalla entera:
+   métricas, semana, mes, sugerencias y «Tu día». Ahora:
+   - Solo se repinta «Tu día» con lo que ya hay (o con los datos nuevos de ese día) y cada cita que cambia de sitio se desliza hasta él (FLIP),
+     quedando resaltada; la página no salta ni cambia de tamaño mientras se repinta.
+   - Al cambiar la hora, la cita se coloca por su hora entre las demás y ese orden se guarda.
+   - Las métricas, la semana y el mes solo cambian sus cifras (sin animación ni recarga) cuando cambia el estado o el día de una cita.
+   - Cerrar una ventana solo refresca si dentro se ha guardado algo con la base (p. ej. registrar la visita). */
+let AGQ_T = null, AGQ_ID = null, DLG_EPOCA = 0;
+new MutationObserver(() => { if ($('dlg').open) DLG_EPOCA = RC_EPOCA; }).observe($('dlg'), { attributes: true, attributeFilter: ['open'] });
+function agCambiosEnVentana() { return RC_EPOCA !== DLG_EPOCA; }
+function agOlvidarAgenda() { for (const k of [...RC.keys()]) if (k.startsWith('agenda_')) { RC.delete(k); RC_VUELO.delete(k); } }
+function tdIdDe(it) { const b = it.querySelector('[data-td]'); return b ? b.dataset.td.split('|')[1] : null; }
+
+// Repinta «Tu día» sin saltos: las citas que cambian de sitio se deslizan y la tocada queda resaltada un momento
+async function repintarDiaSuave(id, data) {
+  agOlvidarAgenda();
+  if (data) { TD_PRESET = { fecha: AG_FECHA, data }; TD_ULTIMO = { fecha: AG_FECHA, data }; }
+  const antes = new Map();
+  document.querySelectorAll('.tdlista .tdit').forEach(it => { const k = tdIdDe(it); if (k) antes.set(k, it.getBoundingClientRect().top); });
+  const cuerpo = $('agcuerpo'), alto = cuerpo ? cuerpo.offsetHeight : 0, y = window.scrollY;
+  if (cuerpo) cuerpo.style.minHeight = alto + 'px';           // mientras se repinta, la caja no encoge
+  try { await pintarTuDia(); } finally { if ($('agcuerpo')) $('agcuerpo').style.minHeight = ''; }
+  window.scrollTo({ top: y });
+  const quieto = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  document.querySelectorAll('.tdlista .tdit').forEach(it => {
+    const k = tdIdDe(it); if (!k) return;
+    if (id && String(k) === String(id)) { it.classList.remove('tdmovida'); void it.offsetWidth; it.classList.add('tdmovida'); setTimeout(() => it.classList.remove('tdmovida'), 1300); }
+    const y0 = antes.get(k); if (quieto || y0 == null || !it.animate) return;
+    const dy = y0 - it.getBoundingClientRect().top;
+    if (Math.abs(dy) > 1) it.animate([{ transform: `translateY(${dy}px)` }, { transform: 'none' }], { duration: 320, easing: 'cubic-bezier(.2,.7,.2,1)' });
+  });
+}
+// Métricas, semana y mes: solo cambian sus cifras
+function agCifrasQuietas() {
+  agMetricas();
+  const s = $('agsemana'); if (s && s.querySelector('.agsemgrid')) { s.dataset.sem = AG_SEMANA || lunesDe(hoyISO()); agPintarSemana(AG_SEMANA || lunesDe(hoyISO())); }
+  const m = $('agmes'); if (m) { m.dataset.mes = '-'; agPintarMes(AG_MES); }
+}
+// Lo que antes era «cargar la agenda entera» tras un cambio: en la vista del día, solo lo que cambia
+function agRefrescoQuieto(id, o = {}) {
+  if (TAB !== 'agenda' || !agUnida() || !$('agcuerpo')) { cargarAgenda(); cargarInicio(); pintarRutaBarra(); return; }
+  DLG_EPOCA = RC_EPOCA;                                       // lo guardado ya se refleja aquí: cerrar la ventana no vuelve a refrescar
+  if (id) AGQ_ID = id;
+  clearTimeout(AGQ_T);
+  AGQ_T = setTimeout(async () => {
+    const i = AGQ_ID; AGQ_ID = null;
+    await repintarDiaSuave(i);
+    if (o.cifras !== false) agCifrasQuietas();
+    pintarRutaBarra();
+  }, 40);
+}
+
+// Cambiar la hora: la cita se coloca por su hora entre las demás (y se guarda ese orden)
+cambiarHoraCita = async function (id, hora) {
+  const h = await appVentana({ titulo: 'Hora de la cita', ok: 'Guardar', campo: { valor: hora || '', tipo: 'time' } });
+  if (h === null) return;
+  const { error } = await db.from('agenda').update({ hora: h || null }).eq('id', id);
+  if (error) { toast('No se ha podido: ' + error.message, true); return; }
+  toast('Hora actualizada');
+  const u = TD_ULTIMO && TD_ULTIMO.fecha === AG_FECHA ? TD_ULTIMO.data : null;
+  if (TAB !== 'agenda' || !agUnida() || !u || !u.some(c => c.id === id)) { agRefrescoQuieto(id, { cifras: false }); return; }
+  const data = u.map(c => c.id === id ? Object.assign({}, c, { hora: h || null }) : c);
+  const mia = c => c.usuario_id === agUid(), abierta = c => mia(c) && CITA_ABIERTA.includes(c.estado);
+  const ab = data.filter(abierta), yo = ab.find(c => c.id === id);
+  let orden = ab;
+  if (yo && h) {
+    const hh = c => c.hora ? String(c.hora).slice(0, 5) : null;
+    const resto = ab.filter(c => c.id !== id);
+    let i = resto.findIndex(c => hh(c) && hh(c) > h);
+    if (i < 0) { i = 0; resto.forEach((c, k) => { if (hh(c) && hh(c) <= h) i = k + 1; }); }
+    resto.splice(i, 0, yo); orden = resto;
+  }
+  const cambia = orden.some((c, k) => c.id !== ab[k].id);
+  const nueva = cambia ? [...data.filter(c => mia(c) && !abierta(c)), ...orden, ...data.filter(c => !mia(c))] : data;
+  await repintarDiaSuave(id, nueva);
+  if (cambia && !(await guardarOrden(orden))) agRefrescoQuieto(id);
+};
