@@ -20393,3 +20393,14 @@ cambiarHoraCita = async function (id, hora) {
   await repintarDiaSuave(id, nueva);
   if (cambia && !(await guardarOrden(orden))) agRefrescoQuieto(id);
 };
+
+/* v2.187.0 · Avisos de la esquina (petición de Eric): entran deslizándose también cuando uno sustituye a otro que sigue a la vista (antes el
+   nuevo solo cambiaba el texto) y se van desvaneciéndose (.sale, 260 ms) en vez de desaparecer de golpe. */
+toast = (orig => function (msg, err) {
+  const r = orig.call(this, msg, err), v = $('toast');
+  if (!v) return r;
+  const t = v.cloneNode(true); t.classList.remove('sale'); v.replaceWith(t);   // un nodo nuevo vuelve a hacer la entrada aunque el anterior siga a la vista
+  clearTimeout(tToast);
+  tToast = setTimeout(() => { t.classList.add('sale'); tToast = setTimeout(() => { t.classList.add('hide'); t.classList.remove('sale'); }, 260); }, 3200);
+  return r;
+})(toast);
