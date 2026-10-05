@@ -20377,3 +20377,189 @@ window.addEventListener('click', e => {
   $('gsug').classList.add('hide'); if ($('q')) $('q').value = '';
   fichaCentro(b.dataset.gcid);
 }, true);
+
+/* v2.178.0 · Agenda ágil (lista de Eric del 5/10/2026):
+   1. «Esta semana» se mueve a otras semanas con ‹ › y, en el móvil, deslizando el dedo (con animación). Al ir a un día de otra semana, la franja
+      pasa a esa semana.
+   2. En la cabecera del día: ‹ día anterior, elegir fecha (el calendario de delcos) y día siguiente ›, sin entrar en «Planificar la semana».
+   3. Tareas propias (SQL 112, tabla tareas): «+ Tarea» apunta en el día una tarea o nota con hora, sin cliente; se marcan como hechas, se editan
+      y se borran. Solo las ve quien las apunta.
+   4. Borrar y descartar (decisión de Eric: las dos): en el detalle de la cita, «Descartar» (no se hará; queda en el historial) y «Borrar»
+      (fue un error: desaparece; solo de hoy en adelante y si no se ha hecho). */
+
+// ---- 1. La franja de la semana, en cualquier semana
+let AG_SEMANA = null;
+async function agPintarSemana(lun, dir) {
+  const caja = $('agsemana'); if (!caja) return;
+  const hoy = hoyISO(), actual = lunesDe(hoy);
+  lun = lun || actual; AG_SEMANA = lun;
+  const dom = isoMas(lun, 6);
+  const grid = caja.querySelector('.agsemgrid');
+  const cab = caja.querySelector('.fh h2');
+  if (cab) cab.innerHTML = `${lun === actual ? 'Esta semana' : lun === isoMas(actual, 7) ? 'La semana que viene' : lun === isoMas(actual, -7) ? 'La semana pasada' : 'Semana'} <span class="sm">${fechaCorta(lun)} – ${fechaCorta(dom)}</span>`;
+  const fh = caja.querySelector('.fh');
+  if (fh && !fh.querySelector('.agsemnav')) {
+    fh.insertAdjacentHTML('beforeend', `<span class="agsemnav"><button type="button" class="kmv" data-agsw="-1" aria-label="Semana anterior">‹</button>
+      <button type="button" class="kmv" data-agsw="1" aria-label="Semana siguiente">›</button></span>`);
+    fh.querySelectorAll('[data-agsw]').forEach(b => b.onclick = ev => { ev.stopPropagation(); agPintarSemana(isoMas(AG_SEMANA || actual, 7 * +b.dataset.agsw), +b.dataset.agsw); });
+  }
+  if (!grid) return;
+  const marcar = () => grid.querySelectorAll('.agsd[data-agdia]').forEach(d => d.classList.toggle('sel', d.dataset.agdia === AG_FECHA && AG_FECHA !== hoy));
+  if (!dir && lun === actual && !caja.dataset.sem) { marcar(); return; }   // la de esta semana ya está pintada
+  const { data } = await rpcCache('agenda_rango', { p_desde: lun, p_hasta: dom, p_usuario: agUsuarioFiltro() }, 'agenda-sem-' + lun);
+  if (AG_SEMANA !== lun || !$('agsemana')) return;
+  const porDia = {};
+  (data || []).filter(x => !['Descartada', 'Aplazada'].includes(x.estado)).forEach(x => { (porDia[x.fecha] = porDia[x.fecha] || []).push(x); });
+  Object.values(porDia).forEach(l => l.sort((a, b) => String(a.hora || '99').localeCompare(String(b.hora || '99'))));
+  const hora = x => x.hora ? String(x.hora).slice(0, 5) : '';
+  const corto = n => String(n || '').replace(/^(Dra?\.|Sra?\.|D\.)\s*/i, '');
+  const html = Array.from({ length: 7 }, (_, i) => isoMas(lun, i)).map((f, i) => { const l = porDia[f] || [], hechas = l.filter(x => x.estado === 'Visitada').length;
+    return `<div class="agsd ${f === hoy ? 'hoy' : ''} ${f < hoy ? 'pasado' : ''}" data-agdia="${f}">
+      <button type="button" class="agsdh" data-agdia="${f}"><b>${AG_DIAS_TXT[i]} ${+f.slice(8)}</b>${l.length ? `<span>${hechas}/${l.length}</span>` : ''}</button>
+      ${l.slice(0, 4).map(x => `<button type="button" class="agsc" data-agficha="${x.cuenta_id}" style="--c:${EST_COL[x.estado] || '#6B7F95'}">${hora(x) ? `<i>${hora(x)}</i> ` : ''}${esc(corto(x.nombre))}</button>`).join('')}
+      ${l.length > 4 ? `<button type="button" class="agsmas" data-agdia="${f}">+${l.length - 4} más</button>` : ''}
+      ${!l.length ? '<span class="agsv">—</span>' : ''}</div>`; }).join('');
+  const quieto = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (dir && grid.animate && !quieto) await grid.animate([{ transform: 'none', opacity: 1 }, { transform: `translateX(${-dir * 28}%)`, opacity: 0 }], { duration: 140, easing: 'ease-in' }).finished.catch(() => {});
+  grid.innerHTML = html; caja.dataset.sem = lun;
+  grid.querySelectorAll('[data-agficha]').forEach(b => b.onclick = ev => { ev.stopPropagation(); abrirFicha(b.dataset.agficha); });
+  grid.querySelectorAll('button[data-agdia]').forEach(b => b.onclick = ev => { ev.stopPropagation(); agVerDia(b.dataset.agdia); });
+  marcar();
+  if (dir && grid.animate && !quieto) grid.animate([{ transform: `translateX(${dir * 28}%)`, opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 200, easing: 'cubic-bezier(.2,.7,.2,1)' });
+}
+// Deslizar el dedo sobre la franja: semana anterior o siguiente
+(() => {
+  let x0 = null, y0 = null;
+  document.addEventListener('touchstart', e => { const g = e.target.closest && e.target.closest('#agsemana .agsemgrid'); if (!g || e.touches.length !== 1) { x0 = null; return; } x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; }, { passive: true });
+  document.addEventListener('touchend', e => {
+    if (x0 == null) return;
+    const t = e.changedTouches[0], dx = t.clientX - x0, dy = t.clientY - y0; x0 = null;
+    if (Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+    const dir = dx < 0 ? 1 : -1;
+    agPintarSemana(isoMas(AG_SEMANA || lunesDe(hoyISO()), 7 * dir), dir);
+    const g = document.querySelector('#agsemana .agsemgrid'); if (g) { g.__swipe = Date.now(); }
+  }, { passive: true });
+  // El toque que termina un deslizamiento no abre el día
+  window.addEventListener('click', e => { const g = e.target.closest && e.target.closest('#agsemana .agsemgrid'); if (g && g.__swipe && Date.now() - g.__swipe < 400) { e.stopImmediatePropagation(); e.preventDefault(); } }, true);
+})();
+agSemanaMes = (orig => async function (...a) {
+  const r = await orig.apply(this, a);
+  try { if ($('agsemana')) await agPintarSemana(AG_SEMANA || lunesDe(hoyISO()), 0); } catch (e) {}
+  return r;
+})(agSemanaMes);
+agVerDia = (orig => async function (f, ...a) {
+  const r = await orig.call(this, f, ...a);
+  try {
+    const lun = lunesDe(f);
+    if ($('agsemana')) { if (lun !== (AG_SEMANA || lunesDe(hoyISO()))) agPintarSemana(lun, lun > (AG_SEMANA || lun) ? 1 : -1); else agPintarSemana(lun, 0); }
+  } catch (e) {}
+  return r;
+})(agVerDia);
+
+// ---- 2 y 3. Cabecera del día: moverse de día y apuntar tareas
+// Se guardan las del día en memoria: mover una cita repinta el día sin volver a pedirlas (solo se piden al cambiar de día, recargar o editarlas)
+let TAREAS_DIA = null;
+async function tareasDelDia(f) {
+  if (AG_VISTA && AG_VISTA.id !== PERFIL.id) return null;   // las tareas son de cada uno: en la agenda de otra persona no se ven
+  if (TAREAS_DIA && TAREAS_DIA.f === f) return TAREAS_DIA.l;
+  const { data, error } = await db.from('tareas').select('*').eq('fecha', f).order('hora', { ascending: true, nullsFirst: false }).order('creado_en');
+  if (error) return null;
+  TAREAS_DIA = { f, l: data || [] };
+  return TAREAS_DIA.l;
+}
+cargarAgenda = (orig => function (...a) { TAREAS_DIA = null; return orig.apply(this, a); })(cargarAgenda);
+function editarTarea(t, fecha) {
+  t = t || {};
+  $('dbody').innerHTML = `
+    <div class="fh"><div><h2>${t.id ? 'Tarea' : 'Nueva tarea'}</h2><div class="sm">Una nota o tarea tuya para ese día, sin cliente</div></div>
+      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
+    <label for="tat">Qué hay que hacer</label><input id="tat" value="${esc(t.titulo || '')}" placeholder="p. ej. Llamar al almacén, reunión de equipo…" maxlength="160">
+    <div class="g2">
+      <div><label for="taf">Día</label><input id="taf" type="date" value="${esc(t.fecha || fecha || hoyISO())}"></div>
+      <div><label for="tah">Hora <span class="sm">(opcional)</span></label><input id="tah" type="time" value="${esc(t.hora ? String(t.hora).slice(0, 5) : '')}"></div>
+    </div>
+    <label for="tan">Notas</label><textarea id="tan" rows="3">${esc(t.nota || '')}</textarea>
+    <div class="acts" style="justify-content:space-between">
+      ${t.id ? '<button type="button" class="btn sec peligro" id="taborrar">Borrar</button>' : '<span></span>'}
+      <span style="display:flex;gap:8px"><button type="button" class="btn sec" data-cerrar>Cancelar</button><button type="button" class="btn" id="taok">${t.id ? 'Guardar' : 'Añadir'}</button></span></div>`;
+  $('taok').onclick = async ev => {
+    const titulo = $('tat').value.trim(); if (!titulo) { toast('Escribe qué hay que hacer', true); $('tat').focus(); return; }
+    const fila = { titulo, fecha: $('taf').value || hoyISO(), hora: $('tah').value || null, nota: $('tan').value.trim() || null, modificado_en: new Date().toISOString() };
+    ev.target.disabled = true;
+    const { error } = t.id ? await db.from('tareas').update(fila).eq('id', t.id) : await db.from('tareas').insert(fila);
+    ev.target.disabled = false;
+    if (error) { toast('No se ha podido guardar: ' + error.message, true); return; }
+    $('dlg').close(); toast(t.id ? 'Tarea guardada' : 'Tarea añadida el ' + fechaDiaMes(fila.fecha)); TAREAS_DIA = null; pintarTuDia();
+  };
+  if ($('taborrar')) $('taborrar').onclick = async () => {
+    if (!await preguntar('La tarea desaparece.', { titulo: '¿Borrar la tarea?', ok: 'Borrar', peligro: true })) return;
+    const { error } = await db.from('tareas').delete().eq('id', t.id);
+    if (error) { toast('No se ha podido borrar', true); return; }
+    $('dlg').close(); toast('Tarea borrada'); TAREAS_DIA = null; pintarTuDia();
+  };
+  $('dlg').classList.add('pequena');
+  $('dlg').showModal();
+}
+pintarTuDia = (orig => async function (...a) {
+  const r = await orig.apply(this, a);
+  try {
+    const cuerpo = $('agcuerpo'), head = cuerpo && cuerpo.querySelector('.tdhead');
+    if (!head || !agUnida()) return r;
+    const f = AG_FECHA, h2 = head.querySelector('h2');
+    // Moverse de día sin salir de la pantalla
+    if (h2 && !head.querySelector('.tdnav')) {
+      h2.insertAdjacentHTML('afterend', `<span class="tdnav">
+        <button type="button" class="kmv" data-tdd="-1" aria-label="Día anterior">‹</button>
+        <span class="tdnavf"><button type="button" class="btn sec" id="tdelegir">Elegir día</button><input type="date" id="tdelegirf" data-sel="1" tabindex="-1" aria-hidden="true"></span>
+        <button type="button" class="kmv" data-tdd="1" aria-label="Día siguiente">›</button></span>`);
+      head.querySelectorAll('[data-tdd]').forEach(b => b.onclick = () => agVerDia(isoMas(AG_FECHA, +b.dataset.tdd)));
+      const inp = $('tdelegirf');
+      $('tdelegir').onclick = ev => { ev.stopPropagation(); inp.value = AG_FECHA; abrirCalendario(inp); };
+      inp.addEventListener('change', () => { if (inp.value && inp.value !== AG_FECHA) agVerDia(inp.value); });
+    }
+    // Tareas propias del día
+    const propia = !AG_VISTA || AG_VISTA.id === PERFIL.id;
+    const acts = head.querySelector('.acts');
+    if (propia && acts && !$('tdtarea')) {
+      acts.insertAdjacentHTML('afterbegin', '<button type="button" class="btn sec" id="tdtarea">+ Tarea</button>');
+      $('tdtarea').onclick = () => editarTarea(null, AG_FECHA);
+    }
+    const l = propia ? await tareasDelDia(f) : null;
+    if (AG_FECHA !== f || !$('agcuerpo')) return r;
+    const vieja = $('tdtareas'); if (vieja) vieja.remove();
+    if (l && l.length) {
+      const sitio = $('tdnocabe') || cuerpo.querySelector('.tdlista') || cuerpo.querySelector('.vacio');
+      const html = `<div class="tdtareas" id="tdtareas"><div class="tdtcab">Tareas y notas · ${l.length}</div>${l.map(t => `
+        <div class="tdtarea ${t.hecha ? 'hecha' : ''}" data-tarea="${t.id}">
+          <label class="tdtchk"><input type="checkbox" data-tacheck="${t.id}" ${t.hecha ? 'checked' : ''} aria-label="Hecha"></label>
+          <span class="tdth">${t.hora ? esc(String(t.hora).slice(0, 5)) : '·'}</span>
+          <span class="tdttx"><b>${esc(t.titulo)}</b>${t.nota ? `<span class="sm">${esc(t.nota)}</span>` : ''}</span></div>`).join('')}</div>`;
+      if (sitio) sitio.insertAdjacentHTML('beforebegin', html); else cuerpo.insertAdjacentHTML('beforeend', html);
+      $('tdtareas').querySelectorAll('[data-tacheck]').forEach(c => c.onchange = async ev => {
+        ev.stopPropagation();
+        const { error } = await db.from('tareas').update({ hecha: c.checked, modificado_en: new Date().toISOString() }).eq('id', c.dataset.tacheck);
+        if (error) { toast('No se ha podido guardar', true); c.checked = !c.checked; return; }
+        c.closest('.tdtarea').classList.toggle('hecha', c.checked); TAREAS_DIA = null;
+      });
+      $('tdtareas').querySelectorAll('.tdtarea').forEach(d => d.onclick = ev => { if (ev.target.closest('.tdtchk')) return; editarTarea(l.find(x => x.id === d.dataset.tarea)); });
+    }
+  } catch (e) {}
+  return r;
+})(pintarTuDia);
+
+// ---- 4. Borrar y descartar en el detalle de la cita
+verCita = (orig => function (c) {
+  const r = orig.call(this, c);
+  try {
+    const abierta = CITA_ABIERTA.includes(c.estado), borrable = abierta && c.fecha >= hoyISO();
+    const caja = $('dbody') && $('dbody').querySelector('.vcacts');
+    if (caja && abierta) {
+      caja.insertAdjacentHTML('afterend', `<div class="vcfin">
+        <button type="button" class="lnk" id="vcdescartar">Descartar la cita</button><span class="sm">No se hará: queda en el historial.</span>
+        ${borrable ? '<button type="button" class="lnk peligro" id="vcborrar">Borrar la cita</button><span class="sm">Fue un error: desaparece sin dejar rastro.</span>' : ''}</div>`);
+      $('vcdescartar').onclick = () => { $('dlg').close(); accionCita('descartar', c); };
+      if ($('vcborrar')) $('vcborrar').onclick = () => { $('dlg').close(); accionCita('borrar', c); };
+    }
+  } catch (e) {}
+  return r;
+})(verCita);

@@ -3154,6 +3154,27 @@ html.cambiando-org #bootsplash,html.cambiando-org #bootsplash.hide{display:grid!
 .fclista .acts{flex-wrap:wrap;justify-content:flex-end}
 .fclista .fcquitar{color:var(--dang,#B42318)}
 @media (max-width:760px){.fclista .item{flex-direction:column;align-items:stretch}.fclista .acts{justify-content:flex-start}}
+/* v2.178.0 · Semana y día navegables, tareas propias, borrar y descartar */
+.agsemnav{display:inline-flex;gap:4px;margin-left:auto}
+#agsemana .fh{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+#agsemana .agsemnav .kmv{width:32px;height:32px;font-size:18px}
+#agsemana .agsemgrid{touch-action:pan-y}
+.tdnav{display:inline-flex;align-items:center;gap:4px;margin:4px 0 0}
+.tdnav .kmv{width:32px;height:32px;font-size:18px}
+.tdnavf{position:relative;display:inline-block}
+.tdnavf .btn{padding:4px 10px;min-height:32px;font-size:13px}
+.tdnavf input{position:absolute;left:0;bottom:0;width:1px;height:1px;opacity:0;pointer-events:none;border:0;padding:0}
+.tdtareas{border:1px solid var(--line);border-radius:12px;padding:6px 10px;margin:0 0 12px;background:var(--hielo)}
+.tdtcab{font-size:12.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;margin:4px 2px 2px}
+.tdtarea{display:grid;grid-template-columns:28px 52px minmax(0,1fr);align-items:center;gap:6px;padding:6px 2px;min-height:0;border-top:1px solid var(--line);cursor:pointer}
+.tdtcab + .tdtarea{border-top:0}.tdtchk{margin:0;padding:0;display:flex;align-items:center}.tdtarea label{margin:0}
+.tdtarea .tdth{font:600 13px Manrope,sans-serif;color:var(--navy,#17457A)}
+.tdtarea .tdttx{display:flex;flex-direction:column;gap:1px;min-width:0}
+.tdtarea.hecha .tdttx b{text-decoration:line-through;color:var(--muted)}
+.tdtchk input{width:20px;height:20px}
+.vcfin{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;align-items:baseline;margin:10px 0 4px;padding:10px 0 0;border-top:1px solid var(--line)}
+.vcfin .lnk{justify-self:start;font-size:14px}
+.vcfin .lnk.peligro{color:var(--dang,#B42318)}
 </style>
 </head>
 <body>
@@ -3292,6 +3313,6 @@ try{var co=sessionStorage.getItem('dlc-cambio-org');if(co!==null||localStorage.g
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.177.0"></script>
+<script src="./app.js?v=2.178.0"></script>
 </body>
 </html>
