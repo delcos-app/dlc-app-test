@@ -6651,7 +6651,7 @@ async function accionCita(k, c) {
     if (!f) return;
     const { data: r, error } = await db.rpc('aplazar_cita', { p_id: c.id, p_fecha: f, p_hora: null, p_origen: 'Aplazada' });
     if (error || (r && r.ok === false)) { toast('No se ha podido aplazar', true); return; }
-    toast('Aplazada al ' + fechaCorta(f)); refrescar(); return;
+    toast(r && r.ya ? 'Ya tenía una cita ese día' : r && r.mismo_dia ? 'Sigue en el mismo día' : r && r.reabierta ? 'Vuelve a su cita del ' + fechaCorta(f) : 'Aplazada al ' + fechaCorta(f)); refrescar(); return;
   }
   if (k === 'noestaba') {
     const neg = (CAT.resultado_visita || []).filter(x => x.extra === 'neg');
@@ -20268,3 +20268,50 @@ async function comprobarVersion() {
 }
 document.addEventListener('visibilitychange', () => { if (!document.hidden) comprobarVersion(); });
 setInterval(comprobarVersion, 10 * 60 * 1000);
+
+/* v2.185.0 · Citas aplazadas sin duplicar y fechas en el móvil (avisos de Eric):
+   1. Una cita aplazada o descartada de hoy en adelante tiene en «⋯» (y en su detalle) «Volver a planificarla» (reabrir_cita, SQL 116: vuelve a
+      Planificada y quita la cita que se creó al aplazarla). Volver a poner una cita ese día reutiliza la aplazada (aplazar_cita y guardar_cita).
+   2. En pantallas táctiles los campos de fecha y hora son `inert`: no pueden tomar el foco, así que iOS ya no abre su rueda (lo hacía cuando la
+      ventana enfocaba el campo al abrirse y cuando el calendario de delcos le devolvía el foco al elegir el día). El toque lo recoge el envoltorio. */
+menuCita = (orig => function (boton, c) {
+  if (CITA_ABIERTA.includes(c.estado) || !['Aplazada', 'Descartada'].includes(c.estado) || c.fecha < hoyISO()) return orig.call(this, boton, c);
+  document.querySelectorAll('.tdmenu').forEach(m => m.remove());
+  const m = document.createElement('div');
+  m.className = 'tdmenu'; m.__t = Date.now();
+  m.innerHTML = `<button data-tdop="rehacer"><b>Volver a planificarla</b><span>Vuelve a este día${c.estado === 'Aplazada' ? '; si la pasaste a otro, esa se quita' : ''}</span></button>`;
+  document.body.appendChild(m);
+  const r = boton.getBoundingClientRect();
+  m.style.top = Math.min(window.innerHeight - m.offsetHeight - 10, r.bottom + 6) + 'px';
+  m.style.left = Math.max(10, Math.min(window.innerWidth - m.offsetWidth - 10, r.right - m.offsetWidth)) + 'px';
+  m.querySelector('[data-tdop]').onclick = () => { m.remove(); accionCita('rehacer', c); };
+})(menuCita);
+accionCita = (orig => async function (k, c) {
+  if (k !== 'rehacer') return orig.call(this, k, c);
+  const { data: r, error } = await db.rpc('reabrir_cita', { p_id: c.id });
+  if (error || !r || r.ok === false) { toast(r && r.error === 'pasada' ? 'Solo se pueden volver a planificar citas de hoy en adelante' : 'No se ha podido volver a planificar', true); return; }
+  toast(r.quitada ? 'Vuelve a estar planificada (se quita la del ' + fechaCorta(r.quitada) + ')' : 'Vuelve a estar planificada');
+  cargarAgenda(); cargarInicio(); pintarRutaBarra();
+})(accionCita);
+verCita = (orig => function (c) {
+  const r = orig.call(this, c);
+  try {
+    const caja = $('dbody') && $('dbody').querySelector('.vcacts');
+    if (caja && ['Aplazada', 'Descartada'].includes(c.estado) && c.fecha >= hoyISO()) {
+      caja.insertAdjacentHTML('beforeend', '<button type="button" class="btn sec" id="vcrehacer">Volver a planificarla</button>');
+      $('vcrehacer').onclick = () => { $('dlg').close(); accionCita('rehacer', c); };
+    }
+  } catch (e) {}
+  return r;
+})(verCita);
+
+// Fechas y horas en pantallas táctiles: sin foco, sin selector del sistema
+const PANTALLA_TACTIL = !!(window.matchMedia && matchMedia('(pointer: coarse)').matches);
+function sinSelectorDelSistema(raiz) {
+  if (!PANTALLA_TACTIL || !raiz || !raiz.querySelectorAll) return;
+  const l = [...raiz.querySelectorAll('input')];
+  if (raiz.matches && raiz.matches('input')) l.push(raiz);
+  l.forEach(i => { if (/^(date|time|month|datetime-local)$/.test(i.type) && !i.closest('.selpop')) i.inert = true; });
+}
+mejorarCampos = (orig => function (raiz) { const r = orig(raiz); try { sinSelectorDelSistema(raiz || document); } catch (e) {} return r; })(mejorarCampos);
+sinSelectorDelSistema(document);
