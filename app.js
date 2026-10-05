@@ -22,6 +22,37 @@ const ENLACE_CADUCADO = /(^#|&)error_code=/.test(location.hash) || /(^#|&)error=
 /* Sesión: si al entrar se desmarcó «Mantener la sesión iniciada», al cerrar el navegador hay que volver a entrar */
 try { if (localStorage.getItem('dlc-no-recordar') && !/(^|; )dlc-sesion-viva=1/.test(document.cookie)) localStorage.removeItem('dlc-os-sesion'); } catch (e) {}
 
+/* v2.181.0 · Nombres neutros en las respuestas de la base (decisión de Eric: dos versiones). Desde la v2.182.0 (SQL 116) estas funciones
+   responden con nombres neutros (cuenta, ubicaciones, actividades…) en lugar de los de DLC (medico, consultas, visitas…). La app sigue usando
+   por dentro los de siempre: al recibir la respuesta de una de ellas, cada clave nueva se copia también con su nombre antiguo (si no viene ya).
+   Con la base todavía en los nombres antiguos no hace nada. Para una función nueva que use estos nombres, añadirla a FN_NEUTRAS. */
+const CLAVES_NEUTRAS = { cuenta: 'medico', cuentas: 'medicos', ubicaciones: 'consultas', actividades: 'visitas', cuenta_codigo: 'medico_codigo',
+  clientes: 'pacientes', ultima_actividad: 'ultima_visita', actividades_mes: 'visitas_mes', actividades_semana: 'visitas_semana',
+  ubicacion_telefono: 'consulta_telefono', dias_con_actividad: 'dias_con_visitas', dias_sin_actividad: 'dias_sin_visita',
+  cuentas_visitadas: 'medicos_visitados', n_ubicaciones: 'n_consultas', n_actividades: 'n_visitas', por_cuenta: 'por_medico',
+  ultimas_actividades: 'ultimas_visitas', actividades_dia: 'visitas_dia', actividades_total: 'visitas_total' };
+const FN_NEUTRAS = new Set(['actividad_mensual', 'agenda_metricas', 'analitica_kpis', 'analitica_kpis_periodo', 'analitica_v2', 'buscar_centros', 'buscar_cuentas',
+  'buscar_global', 'cartera_usuario', 'clientes_lista', 'constancia_pacientes', 'contacto_detalle', 'contactos_lista', 'ficha_centro', 'ficha_cuenta', 'guardar_cuenta',
+  'importar_lote', 'informe_cuenta', 'llamadas_lista', 'llamadas_resumen', 'llamadas_seguimiento', 'panel_inicio', 'pedido_detalle', 'pedidos_lista',
+  'pedidos_pagina', 'pedidos_pagina_base', 'plan_uso', 'resumen_inicio', 'resumen_seguimiento', 'rutas_candidatos', 'seguimiento_lista',
+  'sugerencias_centros', 'supervision_equipo', 'toca_actividad', 'trazabilidad_lote', 'usuarios_lista', 'usuarios_resumen', 'zonas_resumen']);
+const RE_NEUTRAS = new RegExp('"(' + Object.keys(CLAVES_NEUTRAS).join('|') + ')"\\s*:');
+function copiarClavesAntiguas(x) {
+  if (Array.isArray(x)) { x.forEach(copiarClavesAntiguas); return; }
+  if (!x || typeof x !== 'object') return;
+  for (const k of Object.keys(x)) { copiarClavesAntiguas(x[k]); const v = CLAVES_NEUTRAS[k]; if (v && !(v in x)) x[v] = x[k]; }
+}
+async function respuestaConClavesAntiguas(url, r) {
+  const m = /\/rest\/v1\/rpc\/([a-z0-9_]+)/.exec(String(url));
+  if (!m || !FN_NEUTRAS.has(m[1]) || !r.ok) return r;
+  const t = await r.clone().text();
+  if (!RE_NEUTRAS.test(t)) return r;
+  let j; try { j = JSON.parse(t); } catch (e) { return r; }
+  copiarClavesAntiguas(j);
+  const h = new Headers(r.headers); h.delete('content-length');
+  return new Response(JSON.stringify(j), { status: r.status, statusText: r.statusText, headers: h });
+}
+
 const db = window.supabase.createClient(CFG.url, CFG.anon, {
   auth: { persistSession: true, autoRefreshToken: true, storageKey: 'dlc-os-sesion',
     // Bloqueo dentro de la pestaña: evita esperas largas cuando hay otra pestaña de la app abierta.
@@ -37,7 +68,7 @@ const db = window.supabase.createClient(CFG.url, CFG.anon, {
     if (o.signal) { if (o.signal.aborted) ctl.abort(); else o.signal.addEventListener('abort', () => ctl.abort()); }
     // Aquí pasan TODAS las peticiones reales: es donde se cuentan las pendientes (para mostrar cada pantalla entera)
     const marca = window.__redIni ? window.__redIni() : null;
-    return fetch(url, Object.assign({}, o, { signal: ctl.signal })).finally(() => { clearTimeout(t); if (marca && window.__redFin) window.__redFin(marca); });
+    return fetch(url, Object.assign({}, o, { signal: ctl.signal })).then(r => respuestaConClavesAntiguas(url, r)).finally(() => { clearTimeout(t); if (marca && window.__redFin) window.__redFin(marca); });
   } }
 });
 
