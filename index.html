@@ -3144,6 +3144,16 @@ html.cambiando-org #bootsplash,html.cambiando-org #bootsplash.hide{display:grid!
 #ptr.gira .ptrc{border-color:#7CC3EC;border-top-color:#17457A;animation:ptrgira .8s linear infinite}
 @keyframes ptrgira{to{transform:rotate(360deg)}}
 @media (pointer: coarse){html,body{overscroll-behavior-y:contain}}
+/* v2.177.0 · Ficha de centro */
+.fcacts{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
+.fcprocab{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:16px 0 8px}
+.fcprocab h3{margin:0;font:700 15px/1.3 Manrope,sans-serif}
+#fcsel:not(:empty){margin:0 0 10px}
+.fclista .item{cursor:default;align-items:center}
+.fclista .item .tx{display:flex;flex-direction:column;gap:2px;min-width:0}
+.fclista .acts{flex-wrap:wrap;justify-content:flex-end}
+.fclista .fcquitar{color:var(--dang,#B42318)}
+@media (max-width:760px){.fclista .item{flex-direction:column;align-items:stretch}.fclista .acts{justify-content:flex-start}}
 </style>
 </head>
 <body>
@@ -3282,6 +3292,6 @@ try{var co=sessionStorage.getItem('dlc-cambio-org');if(co!==null||localStorage.g
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.176.0"></script>
+<script src="./app.js?v=2.177.0"></script>
 </body>
 </html>

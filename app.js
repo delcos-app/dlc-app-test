@@ -3482,7 +3482,7 @@ $('q').addEventListener('input', e => {
     $('gsug').innerHTML =
       (m.length ? `<div class="gsh">Municipios</div>` + m.map(x => `<button data-gm="${esc(x.valor)}">
         <span class="gic">📍</span><span><b>${resaltarBusqueda(x.valor, q)}</b><span class="sm">${num(x.n)} ${TT('medico', 'p', '', 'l', 'l')}</span></span></button>`).join('') : '') +
-      (c.length ? `<div class="gsh">Centros</div>` + c.map(x => `<button data-gc="${esc(x.valor)}">
+      (c.length ? `<div class="gsh">Centros</div>` + c.map(x => `<button data-gc="${esc(x.valor)}"${x.id ? ` data-gcid="${x.id}"` : ''}>
         <span class="gic">🏥</span><span><b>${resaltarBusqueda(x.valor, q)}</b><span class="sm">${esc(x.municipio || '')} · ${num(x.n)} ${TT('medico', 'p', '', 'l', 'l')}</span></span></button>`).join('') : '') +
       (me.length ? `<div class="gsh">${TT('medico', 'p', '', 'l', 'C')}${m.length || c.length ? ' que pasan consulta allí o coinciden' : ''}</div>` + me.map(x => `<button data-gme="${x.id}">
         <span class="gic">${x.urgente ? '❗' : '👤'}</span><span><b>${resaltarBusqueda(x.nombre, q)}</b>
@@ -20263,3 +20263,117 @@ document.addEventListener('focusin', e => {
     cargando = false; quitar();
   });
 })();
+
+/* v2.177.0 · Ficha de centro (decisión de Eric, 5/10/2026): los centros dados de alta salen en el buscador (SQL 111, buscar_global con id) y al
+   pulsarlos se abre su ficha: dirección, teléfono, cómo llegar, horario y la lista de profesionales que pasan consulta allí (ficha_centro), con
+   «+ Añadir» (centro_anadir_profesional: enlaza o crea su consulta en el centro), y en cada uno Ficha, «+ Cita» en ese centro y «Quitar»
+   (centro_quitar_profesional: quita esa consulta de su ficha). «Editar centro» corrige sus datos y su horario (guardar_centro). */
+const HOR_TXT = h => DIAS_SEM.filter(([d]) => h && h[d]).map(([d, n]) => `${n} ${h[d]}`).join(' · ');
+async function fichaCentro(id) {
+  const dlg = $('dlg');
+  dlg.classList.remove('pequena');
+  $('dbody').innerHTML = `<div class="fh"><div><h2>Centro</h2></div><button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
+    <div class="skel" style="width:60%"></div><div class="skel"></div><div class="skel" style="width:80%"></div>`;
+  if (!dlg.open) dlg.showModal();
+  const { data, error } = await db.rpc('ficha_centro', { p_id: id });
+  if (!dlg.open) return;
+  if (error || !data || !data.datos) {
+    $('dbody').innerHTML = `<div class="fh"><div><h2>Centro</h2></div><button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
+      <div class="banda-peligro">No se ha podido abrir el centro${error ? ': ' + esc(error.message) : ''}.</div>`;
+    return;
+  }
+  const c = data.datos, l = data.profesionales || [];
+  const dir = [c.direccion, [c.cp, c.municipio].filter(Boolean).join(' '), c.provincia].filter(Boolean).join(', ');
+  const hor = HOR_TXT(c.horario);
+  const quien = TT('medico', 'p', '', 'l', 'C');
+  $('dbody').innerHTML = `
+    <div class="fh"><div><h2>${esc(c.nombre)}</h2><div class="sm">${esc(dir || 'Sin dirección')}</div></div>
+      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
+    <div class="fcacts">
+      ${c.telefono ? `<a class="btn sec" href="tel:${esc(c.telefono)}">Llamar · ${esc(c.telefono)}</a>` : ''}
+      ${c.lat != null ? '<button type="button" class="btn sec" id="fcllegar">Cómo llegar</button>' : ''}
+      ${data.puede_editar ? '<button type="button" class="btn sec" id="fceditar">Editar centro</button>' : ''}
+    </div>
+    ${hor ? `<div class="vcdatos"><div class="vcfila"><span>Horario</span><b>${esc(hor)}</b></div></div>` : ''}
+    <div class="fcprocab"><h3>${esc(quien)} · ${num(l.length)}</h3>${data.puede_fichas ? '<button type="button" class="btn" id="fcanadir">+ Añadir</button>' : ''}</div>
+    <div id="fcsel"></div>
+    ${l.length ? `<div class="lista fclista">${l.map(m => {
+      const donde = [m.planta ? 'Planta ' + m.planta : '', m.sala ? 'Sala ' + m.sala : ''].filter(Boolean).join(' · ');
+      const dias = HOR_TXT(m.dias);
+      return `<div class="item fcpro">
+        <span class="tx"><b>${m.urgente ? '❗ ' : ''}${esc(m.nombre)}</b>
+          <span class="sm">${esc([m.especialidad, donde].filter(Boolean).join(' · ') || '—')}</span>
+          ${dias ? `<span class="sm">Consulta: ${esc(dias)}</span>` : ''}</span>
+        <span class="acts" style="margin:0">
+          <button type="button" class="btn sec" data-fcf="${m.id}">Ficha</button>
+          <button type="button" class="btn sec" data-fcc="${m.id}">+ Cita</button>
+          ${data.puede_fichas ? `<button type="button" class="btn sec fcquitar" data-fcq="${m.id}" aria-label="Quitar a ${esc(m.nombre)} del centro">Quitar</button>` : ''}
+        </span></div>`; }).join('')}</div>`
+      : `<div class="vacio">Todavía no hay ${esc(quien.toLowerCase())} en este centro.${data.puede_fichas ? ' Añádelos con «+ Añadir».' : ''}</div>`}`;
+  if ($('fcllegar')) $('fcllegar').onclick = () => navegarA([+c.lat, +c.lon]);
+  if ($('fceditar')) $('fceditar').onclick = () => editarCentroFicha(c);
+  if ($('fcanadir')) $('fcanadir').onclick = () => {
+    $('fcanadir').disabled = true;
+    selectorMedico($('fcsel'), { alElegir: async m => {
+      if (!m) return;
+      const { data: r, error: e } = await db.rpc('centro_anadir_profesional', { p_centro: c.id, p_cuenta: m.id });
+      if (e || !r || !r.ok) { toast(r && r.error === 'permiso' ? `No puedes cambiar la ficha de ${m.nombre}` : 'No se ha podido añadir', true); fichaCentro(c.id); return; }
+      toast(r.ya ? `${m.nombre} ya estaba en el centro: queda enlazado` : `${m.nombre} añadido a ${c.nombre}`);
+      fichaCentro(c.id);
+    } });
+    const i = $('fcsel').querySelector('input'); if (i) i.focus();
+  };
+  $('dbody').querySelectorAll('[data-fcf]').forEach(b => b.onclick = () => { dlg.close(); FICHA_CENTRO = c.nombre; abrirFicha(b.dataset.fcf); });
+  $('dbody').querySelectorAll('[data-fcc]').forEach(b => b.onclick = () => { FICHA_CENTRO = c.nombre; nuevaCita(b.dataset.fcc); });
+  $('dbody').querySelectorAll('[data-fcq]').forEach(b => b.onclick = async () => {
+    const m = l.find(x => x.id === b.dataset.fcq); if (!m) return;
+    const unica = +m.consultas <= 1;
+    if (!await preguntar(`Se quita a ${m.nombre} de ${c.nombre}: esta consulta desaparece de su ficha.${unica ? ' Era su única consulta: su ficha se queda sin centro.' : ''}`,
+      { titulo: '¿Quitar del centro?', ok: 'Quitar', peligro: true })) return;
+    const { data: r, error: e } = await db.rpc('centro_quitar_profesional', { p_centro: c.id, p_cuenta: m.id });
+    if (e || !r || !r.ok) { toast(r && r.error === 'permiso' ? `No puedes cambiar la ficha de ${m.nombre}` : 'No se ha podido quitar', true); return; }
+    toast(`${m.nombre} ya no está en ${c.nombre}`);
+    fichaCentro(c.id);
+  });
+}
+function editarCentroFicha(c) {
+  const h = c.horario || {};
+  $('dbody').innerHTML = `
+    <div class="fh"><div><h2>Editar centro</h2><div class="sm">Los cambios se pasan a las consultas enlazadas a este centro</div></div>
+      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
+    <div class="g2"><div><label for="ecn">Nombre del centro</label><input id="ecn" value="${esc(c.nombre || '')}"></div>
+      <div><label for="ect">Teléfono</label><input id="ect" value="${esc(c.telefono || '')}" inputmode="tel"></div></div>
+    <div class="g2"><div><label for="ecd">Dirección</label><input id="ecd" value="${esc(c.direccion || '')}"></div>
+      <div><label for="ecc">Código postal</label><input id="ecc" value="${esc(c.cp || '')}" inputmode="numeric"></div></div>
+    <div class="g2"><div><label for="ecm">Población</label><input id="ecm" value="${esc(c.municipio || '')}"></div>
+      <div><label for="ecp">Provincia</label><input id="ecp" value="${esc(c.provincia || '')}"></div></div>
+    <label>Horario de apertura</label>
+    <div class="cphor">${DIAS_SEM.map(([d, n]) => `<div><span>${n}</span><input data-ech="${d}" value="${esc(h[d] || '')}" placeholder="${d === 'D' ? 'Cerrado' : '8:00-20:00'}"></div>`).join('')}</div>
+    <div class="acts" style="justify-content:flex-end"><button type="button" class="btn sec" id="ecvolver">Volver</button><button type="button" class="btn" id="ecok">Guardar cambios</button></div>`;
+  $('ecvolver').onclick = () => fichaCentro(c.id);
+  $('ecok').onclick = async ev => {
+    const v = k => $(k).value.trim();
+    if (!v('ecn')) { toast('Escribe el nombre del centro', true); return; }
+    const horario = {}; $('dbody').querySelectorAll('[data-ech]').forEach(x => { if (x.value.trim()) horario[x.dataset.ech] = x.value.trim(); });
+    const cambioDir = v('ecd') !== (c.direccion || '') || v('ecm') !== (c.municipio || '') || v('ecc') !== (c.cp || '');
+    ev.target.disabled = true;
+    let lat = c.lat, lon = c.lon;
+    if (cambioDir && (v('ecd') || v('ecm'))) {
+      const g = await geocodificar([v('ecd'), v('ecc'), v('ecm'), v('ecp'), 'España'].filter(Boolean).join(', ')).catch(() => null);
+      if (g) { lat = +g.lat; lon = +g.lon; }
+    }
+    const { data: r, error } = await RPC_ORIG('guardar_centro', { p: { id: c.id, nombre: v('ecn'), telefono: v('ect'), direccion: v('ecd'), cp: v('ecc'),
+      municipio: v('ecm'), provincia: v('ecp'), lat, lon, horario } });
+    ev.target.disabled = false;
+    if (error || !r || !r.ok) { toast((r && r.error) || 'No se ha podido guardar', true); return; }
+    toast('Centro guardado'); fichaCentro(c.id);
+  };
+}
+// Buscador de arriba: un centro dado de alta abre su ficha
+window.addEventListener('click', e => {
+  const b = e.target.closest && e.target.closest('[data-gcid]');
+  if (!b) return;
+  e.stopImmediatePropagation(); e.stopPropagation(); e.preventDefault();
+  $('gsug').classList.add('hide'); if ($('q')) $('q').value = '';
+  fichaCentro(b.dataset.gcid);
+}, true);
