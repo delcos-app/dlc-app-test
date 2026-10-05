@@ -3175,6 +3175,15 @@ html.cambiando-org #bootsplash,html.cambiando-org #bootsplash.hide{display:grid!
 .vcfin{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;align-items:baseline;margin:10px 0 4px;padding:10px 0 0;border-top:1px solid var(--line)}
 .vcfin .lnk{justify-self:start;font-size:14px}
 .vcfin .lnk.peligro{color:var(--dang,#B42318)}
+/* v2.179.0 · Resultados según el estado */
+#dbody .lista .item:has(> .acts [data-vren]){flex-wrap:wrap;align-items:center;row-gap:8px}
+#dbody .lista .item:has(> .acts [data-vren]) > .tx{flex:1 1 220px;min-width:180px}
+#dbody .lista .item:has(> .acts [data-vren]) > .acts{flex:1 1 100%;flex-wrap:wrap;justify-content:flex-start;gap:6px;padding-left:44px}
+#dbody:not(.vertodos) .optw[data-oculto]{display:none}
+#vtodos{margin:8px 0 0;font-size:13.5px}
+.venbox{border:1px solid var(--line);border-radius:12px;background:var(--hielo);padding:10px 12px;margin:0 0 8px}
+.venbox .chips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 0}
+.venbox .chip.on{background:var(--navy,#17457A);color:#fff;border-color:transparent}
 </style>
 </head>
 <body>
@@ -3313,6 +3322,6 @@ try{var co=sessionStorage.getItem('dlc-cambio-org');if(co!==null||localStorage.g
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.178.0"></script>
+<script src="./app.js?v=2.179.0"></script>
 </body>
 </html>

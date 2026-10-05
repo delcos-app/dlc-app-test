@@ -7595,7 +7595,7 @@ async function visitaAvisoHorario(id) {
 
 /* Parte base; abrirVisita le añade el resto */
 async function abrirVisitaBase(id) {
-  const [{ data, error }, { data: clas }] = await Promise.all([db.rpc('ficha_cuenta', { p_id: id }), db.rpc('clasificadores_actividad')]);
+  const [{ data, error }, { data: clas }] = await Promise.all([db.rpc('ficha_cuenta', { p_id: id }), db.rpc('clasificadores_actividad', { p_cuenta: id })]);   // v2.179.0: con la ficha, marca los resultados que no tocan en su estado
   if (error) { toast('No se ha podido abrir: ' + error.message, true); return; }
   const m = data.medico, cons = data.consultas || [];
   const grupos = (clas || []).filter(c => (c.valores || []).length);
@@ -7604,7 +7604,7 @@ async function abrirVisitaBase(id) {
   const idx = {};   // clave del botón → { clasificador, valor }
   const boton = (c, v, neg) => {
     const k = c.clave + '::' + v.valor; idx[k] = { c: c.clave, v };
-    return `<span class="optw"><button type="button" class="opt ${neg ? 'neg' : ''}" data-vk="${esc(k)}" ${c === res ? `data-res="${esc(v.valor)}"` : ''} ${neg ? 'data-neg="1"' : ''} aria-pressed="false">
+    return `<span class="optw"${v.oculto ? ' data-oculto="1"' : ''}><button type="button" class="opt ${neg ? 'neg' : ''}" data-vk="${esc(k)}" ${c === res ? `data-res="${esc(v.valor)}"` : ''} ${neg ? 'data-neg="1"' : ''} aria-pressed="false">
       <span class="mk"></span>${esc(v.valor)}${v.dato_tipo ? ' <span class="datom">+ dato</span>' : ''}</button>
       ${v.dato_tipo ? `<span class="datobox hide" data-box="${esc(k)}">${campoDato(v, k)}</span>` : ''}</span>`;
   };
@@ -20563,3 +20563,60 @@ verCita = (orig => function (c) {
   } catch (e) {}
   return r;
 })(verCita);
+
+/* v2.179.0 · Resultados de visita según el estado de la ficha (decisión de Eric, SQL 113): al registrar una visita solo salen los resultados
+   que tocan en el estado de esa ficha (clasificadores_actividad con p_cuenta marca «oculto» los demás); «Ver todos» los enseña igualmente.
+   En Configuración, cada resultado lleva «En todos los estados» / «Solo en: …» para elegir en qué estados aparece (guardar_valor, en_estados). */
+abrirVisitaBase = (orig => async function (id, ...r) {
+  if ($('dbody')) $('dbody').classList.remove('vertodos');
+  const res = await orig.call(this, id, ...r);
+  try {
+    const caja = $('dbody'); if (!caja) return res;
+    const ocultos = caja.querySelectorAll('.optw[data-oculto]');
+    if (ocultos.length && !$('vtodos')) {
+      const ult = [...caja.querySelectorAll('.opciones')].filter(o => o.querySelector('[data-res]')).pop();
+      if (ult) ult.insertAdjacentHTML('afterend', `<button type="button" class="lnk" id="vtodos">Ver ${ocultos.length === 1 ? 'el resultado' : `los ${ocultos.length} resultados`} de otros estados</button>`);
+      $('vtodos').onclick = () => { caja.classList.add('vertodos'); $('vtodos').remove(); };
+    }
+  } catch (e) {}
+  return res;
+})(abrirVisitaBase);
+
+// Configuración → el catálogo de resultados: en qué estados aparece cada uno
+function enEstadosTxt(l) { return l && l.length ? 'Solo en: ' + l.join(', ') : 'En todos los estados'; }
+function decorarResultados() {
+  const caja = $('dbody'); if (!caja) return;
+  caja.querySelectorAll('[data-vdest]').forEach(sel => {
+    const item = sel.closest('.item'); if (!item || item.querySelector('[data-ven]')) return;
+    const vid = sel.dataset.vdest;
+    const v = (CATS || []).flatMap(c => c.valores || []).find(x => x.id === vid); if (!v) return;
+    sel.insertAdjacentHTML('afterend', `<button type="button" class="btn sec" data-ven="${vid}" title="En qué estados de la ficha aparece este resultado">${esc(enEstadosTxt(v.en_estados))}</button>`);
+    item.querySelector('[data-ven]').onclick = () => {
+      const abierta = item.nextElementSibling && item.nextElementSibling.classList.contains('venbox');
+      caja.querySelectorAll('.venbox').forEach(x => x.remove());
+      if (abierta) return;
+      const marcados = new Set(v.en_estados || []);
+      item.insertAdjacentHTML('afterend', `<div class="venbox"><span class="sm">«${esc(v.valor)}» aparece al registrar ${TT('visita', 's', 'el', 'l', 'l')} de las fichas en estos estados (sin marcar ninguno, en todos):</span>
+        <div class="chips">${estados().map(e => `<button type="button" class="chip ${marcados.has(e) ? 'on' : ''}" data-vene="${esc(e)}" aria-pressed="${marcados.has(e)}">${esc(e)}</button>`).join('')}</div>
+        <div class="acts" style="justify-content:flex-end;margin:6px 0 0"><button type="button" class="btn sec" data-vencerrar>Cancelar</button><button type="button" class="btn" data-venok>Guardar</button></div></div>`);
+      const box = item.nextElementSibling;
+      box.querySelectorAll('[data-vene]').forEach(b => b.onclick = () => { const on = b.getAttribute('aria-pressed') !== 'true'; b.setAttribute('aria-pressed', String(on)); b.classList.toggle('on', on); });
+      box.querySelector('[data-vencerrar]').onclick = () => box.remove();
+      box.querySelector('[data-venok]').onclick = async ev => {
+        const l = [...box.querySelectorAll('[data-vene][aria-pressed="true"]')].map(b => b.dataset.vene);
+        ev.target.disabled = true;
+        const { data: r, error } = await db.rpc('guardar_valor', { p: { id: vid, en_estados: l.length === estados().length ? [] : l } });
+        ev.target.disabled = false;
+        if (error || (r && r.ok === false)) { toast('No se ha podido guardar', true); return; }
+        v.en_estados = l.length && l.length < estados().length ? l : null;
+        item.querySelector('[data-ven]').textContent = enEstadosTxt(v.en_estados);
+        box.remove(); toast(v.en_estados ? `«${v.valor}» solo sale en: ${l.join(', ')}` : `«${v.valor}» sale en todos los estados`);
+      };
+    };
+  });
+}
+(() => {
+  const caja = $('dbody'); if (!caja || !window.MutationObserver) return;
+  new MutationObserver(() => { if (caja.querySelector('[data-vdest]:not([data-vend])')) { caja.querySelectorAll('[data-vdest]').forEach(s => s.dataset.vend = '1'); decorarResultados(); } })
+    .observe(caja, { childList: true, subtree: true });
+})();
