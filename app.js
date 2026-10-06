@@ -20404,3 +20404,83 @@ toast = (orig => function (msg, err) {
   tToast = setTimeout(() => { t.classList.add('sale'); tToast = setTimeout(() => { t.classList.add('hide'); t.classList.remove('sale'); }, 260); }, 3200);
   return r;
 })(toast);
+
+/* v2.189.0 · La consulta privada tiene su propia ficha (aviso de Eric: al elegir «Consulta privada (sin centro)» no se podía poner ni la dirección:
+   esos datos de la consulta solo los rellenaba un centro). Ahora una consulta sin centro cuyo nombre empieza por «Consulta privada» se ve como tal
+   (no como «Sin enlazar») y tiene «Editar la consulta» / «Añadir la dirección»: dirección, código postal, población, provincia y su punto en el mapa
+   (buscando la dirección o con «Estoy aquí»). Planta, sala, indicaciones, teléfono y horario siguen debajo, como en cualquier consulta.
+   Se guarda con la ficha (en la consulta del profesional; no crea un centro compartido). */
+const esConsultaPrivada = c => !(c && c.id) && /^consulta privada/i.test(String((c && c.nombre) || '').trim());
+tarjetaCentro = (orig => function (c, enlazado) {
+  if (enlazado || !esConsultaPrivada(c)) return orig.call(this, c, enlazado);
+  const dir = [c.direccion, [c.cp, c.municipio].filter(Boolean).join(' ')].filter(Boolean).join(' · ');
+  return `<div class="cpcard cppriv"><div class="cpcab"><b>Consulta privada</b><span class="pill p-est">Sin centro</span></div>
+    <span class="sm">${esc(dir || 'Sin dirección todavía')}</span>
+    ${c.lat ? '' : `<span class="sm" style="color:var(--warn)">${dir ? 'Sin ubicación: no saldrá en rutas ni en el mapa' : 'Añade la dirección para que salga en rutas y en el mapa'}</span>`}
+    <div class="acts" style="margin:8px 0 0;flex-wrap:wrap">
+      ${c.lat ? `<button type="button" class="btn sec" data-nav="${navAttr([+c.lat, +c.lon])}">Cómo llegar</button>` : ''}
+      <button type="button" class="btn ${dir ? 'sec' : ''}" data-cpeditar>${dir ? 'Editar la consulta' : 'Añadir la dirección'}</button>
+      <button type="button" class="btn sec" data-cpcambiar>Cambiar</button></div></div>`;
+})(tarjetaCentro);
+formCentro = (orig => function (box, i, c, aviso) {
+  if (c && (c.privada || esConsultaPrivada(c))) return formPrivada(box, i);
+  return orig.call(this, box, i, c, aviso);
+})(formCentro);
+
+function formPrivada(box, i) {
+  const cont = box.querySelector(`[data-cp="${i}"]`); if (!cont) return;
+  const v = f => ((cpCampo(box, i, f) || {}).value || '').trim(), k = 'pv' + i + '_';
+  let lat = v('lat') ? +v('lat') : null, lon = v('lon') ? +v('lon') : null;
+  const dirAntes = [v('direccion'), v('cp'), v('municipio')].join('|');
+  let situada = false;                                         // se ha situado en el mapa desde que se abrió el formulario
+  cont.innerHTML = `<div class="cpform cppriv">
+    <div class="cpformcab"><b>Consulta privada</b><span class="sm">Dónde pasa consulta (en su casa, un despacho…). Se guarda con la ficha.</span></div>
+    <div class="g2"><div><label for="${k}d">Dirección</label><input id="${k}d" value="${esc(v('direccion'))}" placeholder="Calle, número, piso"></div>
+      <div><label for="${k}c">Código postal</label><input id="${k}c" value="${esc(v('cp'))}" inputmode="numeric"></div></div>
+    <div class="g2"><div><label for="${k}m">Población</label><input id="${k}m" value="${esc(v('municipio'))}"></div>
+      <div><label for="${k}p">Provincia</label><input id="${k}p" value="${esc(v('provincia'))}"></div></div>
+    <div class="cpubi sm">${lat ? '<b style="color:var(--ok)">✓ Ubicada</b>' : 'Sin ubicación todavía'}
+      <button type="button" class="lnk" data-pvgeo>🔎 Buscar la dirección en el mapa</button> <button type="button" class="lnk" data-pvaqui>📍 Estoy aquí</button></div>
+    <div class="acts" style="justify-content:flex-end;margin:10px 0 0"><button type="button" class="btn sec" data-pvcancel>Cancelar</button><button type="button" class="btn" data-pvok>Guardar</button></div></div>`;
+  const val = x => $(k + x).value.trim();
+  const ubicada = t => { const u = cont.querySelector('.cpubi'); u.firstChild.replaceWith(Object.assign(document.createElement('b'), { style: 'color:var(--ok)', textContent: '✓ Ubicada ' + (t || '') })); };
+  const rellenar = a => {
+    if (!a) return;
+    if (!val('d') && a.road) $(k + 'd').value = [a.road, a.house_number].filter(Boolean).join(', ');
+    if (!val('c') && a.postcode) $(k + 'c').value = a.postcode;
+    if (!val('m')) $(k + 'm').value = (a.city || a.town || a.village || a.municipality || '').toUpperCase();
+    if (!val('p')) $(k + 'p').value = (a.province || a.state_district || a.county || a.state || '').toUpperCase();
+  };
+  const buscar = async (silencio) => {
+    if (!val('d') && !val('m')) { if (!silencio) toast('Escribe la dirección o la población', true); return false; }
+    const q = [val('d'), val('c'), val('m'), val('p'), 'España'].filter(Boolean).join(', ');
+    const r = await geocodificar(q, { direccion: val('d'), municipio: val('m'), cp: val('c') }).catch(() => null);
+    if (!r) { if (!silencio) toast('No se ha encontrado esa dirección. Prueba con calle, número y población.', true); return false; }
+    if (r.fuera) { toast(`Esa dirección sale en ${r.fuera}, no en ${val('m')}: revísala (no se ha guardado el punto)`, true); return false; }
+    lat = +r.lat; lon = +r.lon; situada = true; rellenar(r.address); ubicada(); return true;
+  };
+  cont.querySelector('[data-pvgeo]').onclick = async e => { const t = e.target.textContent; e.target.textContent = 'Buscando…'; await buscar(); e.target.textContent = t; };
+  cont.querySelector('[data-pvaqui]').onclick = async e => {
+    if (!navigator.geolocation) { toast('Este dispositivo no da la ubicación', true); return; }
+    const t = e.target.textContent; e.target.textContent = 'Localizando…';
+    try {
+      const pos = await new Promise((ok, ko) => navigator.geolocation.getCurrentPosition(ok, ko, { enableHighAccuracy: true, timeout: 12000, maximumAge: 30000 }));
+      lat = +pos.coords.latitude.toFixed(6); lon = +pos.coords.longitude.toFixed(6); situada = true;
+      const inv = await geoInversa(lat, lon); rellenar(inv && inv.address); ubicada('con tu ubicación: revisa la dirección');
+    } catch (err) { toast('No se ha podido obtener tu ubicación: revisa el permiso de ubicación del navegador', true); }
+    finally { e.target.textContent = t; }
+  };
+  cont.querySelector('[data-pvcancel]').onclick = () => pintarCentroSel(box, i);
+  cont.querySelector('[data-pvok]').onclick = async ev => {
+    if (!val('d') && !val('m')) { toast('Escribe al menos la población', true); $(k + 'm').focus(); return; }
+    // Si la dirección ha cambiado y no se ha vuelto a situar, se busca en el mapa (si no se encuentra, se guarda sin punto)
+    if ([val('d'), val('c'), val('m')].join('|') !== dirAntes && !situada) {
+      ev.target.disabled = true; const ok = await buscar(true); ev.target.disabled = false;
+      if (!ok) { lat = null; lon = null; }
+    }
+    cpPoner(box, i, { nombre: 'CONSULTA PRIVADA', direccion: val('d'), cp: val('c'), municipio: val('m').toUpperCase(), provincia: val('p').toUpperCase(), lat, lon });
+    pintarCentroSel(box, i);
+    toast(lat != null ? 'Consulta privada lista: se guarda con la ficha' : 'Dirección puesta, sin punto en el mapa: se guarda con la ficha');
+  };
+  $(k + (v('direccion') ? 'd' : 'm')).focus();
+}
