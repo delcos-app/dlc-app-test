@@ -3245,6 +3245,23 @@ html.cambiando-org #bootsplash,html.cambiando-org #bootsplash.hide{display:grid!
 .trtabla thead th{border-top:0;background:var(--hielo,#F2F7FC);font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
 .trtabla tfoot td{font-weight:700}
 @media (max-width:760px){.evasf{grid-template-columns:minmax(0,1fr) auto}.evasf select{grid-column:1/-1;grid-row:2}.evasf .x{grid-column:2;grid-row:1}.evimp{grid-template-columns:repeat(2,minmax(0,1fr))}}
+/* v2.196.0 · Material en depósito */
+.depacts{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 12px}
+.depbox{display:grid;gap:10px;border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:12px;background:var(--hielo,#F2F7FC)}
+.depitems{display:grid;gap:8px}
+.depitems label{display:grid;grid-template-columns:minmax(0,1fr) 110px;gap:10px;align-items:center;margin:0}
+.deptab{border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:10px}
+.deph,.depf{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr) 90px 60px;gap:10px;padding:9px 12px;align-items:center}
+.deph{background:var(--hielo,#F2F7FC);font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.depf{border-top:1px solid var(--line)}
+.depf b{text-align:right}
+.depcad{color:var(--warn);font-weight:700}
+.depmov summary{cursor:pointer;font-weight:600;padding:6px 0}
+.depmf{display:grid;grid-template-columns:70px 80px minmax(0,1fr) 50px;gap:8px;padding:6px 0;border-top:1px solid var(--line);font-size:14px}
+.depmf .sm{grid-column:3/-1}
+.depaviso{margin-bottom:12px}
+.depav{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+@media (max-width:760px){.deph,.depf{grid-template-columns:minmax(0,1fr) 70px 50px}.deph span:nth-child(2),.depf span:nth-child(2){display:none}.depitems label{grid-template-columns:minmax(0,1fr) 90px}}
 </style>
 </head>
 <body>
@@ -3383,6 +3400,6 @@ try{var co=sessionStorage.getItem('dlc-cambio-org');if(co!==null||localStorage.g
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.195.0"></script>
+<script src="./app.js?v=2.196.0"></script>
 </body>
 </html>

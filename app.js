@@ -8787,8 +8787,8 @@ async function editorAlmacenes() {
     $('dbody').innerHTML = `
       <div class="fh"><div><h2>Almacenes</h2><div class="sm">El central y, si quieres, un «maletín» por comercial para sus muestras</div></div>
         <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-      <div class="lista">${ALMACENES.map(a => `<div class="item" style="cursor:default"><span class="ic">${a.tipo === 'central' ? '🏢' : '💼'}</span>
-        <span class="tx"><b>${esc(a.nombre)}</b><span class="sm">${a.tipo === 'central' ? 'Almacén central' : 'Maletín de ' + esc(a.usuario || '—')} · ${num(a.unidades)} uds${a.activo ? '' : ' · inactivo'}</span></span></div>`).join('')}</div>
+      <div class="lista">${ALMACENES.map(a => `<div class="item" style="cursor:default"><span class="ic">${a.tipo === 'central' ? '🏢' : a.tipo === 'deposito' ? '🏢' : '💼'}</span>
+        <span class="tx"><b>${esc(a.nombre)}</b><span class="sm">${a.tipo === 'central' ? 'Almacén central' : a.tipo === 'deposito' ? 'Depósito en un centro' : 'Maletín de ' + esc(a.usuario || '—')} · ${num(a.unidades)} uds${a.activo ? '' : ' · inactivo'}</span></span></div>`).join('')}</div>
       <h3 style="margin-top:14px">Nuevo maletín de comercial</h3>
       <div class="g2"><div><label for="almu">Comercial</label><select id="almu">${COMS.map(u => `<option value="${u.id}">${esc(u.nombre)}</option>`).join('')}</select></div>
         <div><label>&nbsp;</label><button class="btn" id="almok">Crear maletín</button></div></div>
@@ -11366,8 +11366,8 @@ async function pintarAlmacenes2() {
       <div class="mattipos"><div><b>🏢 Almacén central</b><span>Donde entra la mercancía al recibir las compras y de donde salen los pedidos.</span></div>
         <div><b>💼 Maletín de comercial</b><span>Las muestras que lleva cada comercial. Se reponen traspasando desde el central y se descuentan al registrar ${TT('visita', 'p', '', 'l', 'l')}.</span></div></div></div>
     <div class="card cfgpanel"><h2 style="padding:0 0 8px">Tus almacenes</h2>
-      <div class="almgrid">${ALMACENES.map(a => `<div class="almc"><span class="ic">${a.tipo === 'central' ? '🏢' : '💼'}</span>
-        <b>${esc(a.nombre)}</b><span class="sm">${a.tipo === 'central' ? 'Almacén central' : 'Maletín de ' + esc(a.usuario || '—')}${a.activo ? '' : ' · inactivo'}</span>
+      <div class="almgrid">${ALMACENES.map(a => `<div class="almc"><span class="ic">${a.tipo === 'central' ? '🏢' : a.tipo === 'deposito' ? '🏢' : '💼'}</span>
+        <b>${esc(a.nombre)}</b><span class="sm">${a.tipo === 'central' ? 'Almacén central' : a.tipo === 'deposito' ? 'Depósito en un centro' : 'Maletín de ' + esc(a.usuario || '—')}${a.activo ? '' : ' · inactivo'}</span>
         <span class="almu"><b>${num(a.unidades || 0)}</b> unidades</span></div>`).join('')}</div>
       ${sinMaletin.length ? `<div class="avisoh" style="margin-top:12px"><span>${sinMaletin.length === 1 ? esc(sinMaletin[0].nombre) + ' no tiene' : sinMaletin.length + ' comerciales no tienen'} maletín: sus muestras saldrán del almacén central.</span></div>` : ''}
       <div class="matadd" style="margin-top:12px"><select id="almu">${COMS.filter(u => rolPuede(u.rol, 'almacen_propio')).map(u => `<option value="${u.id}">${esc(u.nombre)}</option>`).join('')}</select>
@@ -20879,7 +20879,7 @@ function menuEventos() {
 aplicarPermisosMenu = (orig => function (...a) { try { menuEventos(); } catch (e) {} const r = orig.apply(this, a); try { menuEventos(); } catch (e) {} return r; })(aplicarPermisosMenu);
 const verTransparencia = () => puede('administrar') || VE_TODO();
 PAGINAS.eventos = { t: 'Eventos', permiso: () => !ES_MEDICO() && puedeModulo('directorio') && planIncluyeSeccion('eventos') };
-Object.defineProperty(PAGINAS.eventos, 'd', { get: () => `Talleres, cursos y congresos con sus asistentes, y lo que se da a cada ${TT('medico', 's', '', 'l', 'l')}` });
+Object.defineProperty(PAGINAS.eventos, 'd', { get: () => 'Talleres, cursos y congresos con sus asistentes, inscripciones y gastos' });
 Object.defineProperty(PAGINAS.eventos, 'tabs', { get: () => [['lista', 'Eventos', () => pintarEventos()]].concat(verTransparencia() ? [['transparencia', 'Transparencia', () => pintarTransparencia()]] : []) });
 
 async function pintarEventos() {
@@ -20947,8 +20947,8 @@ async function verEvento(id) {
         <select data-asest aria-label="Estado">${EV_ESTADOS.map(s => `<option ${s === a.estado ? 'selected' : ''}>${s}</option>`).join('')}</select>
         <button type="button" class="x" data-asq aria-label="Quitar">✕</button>
         <div class="evimp">${EV_CONCEPTOS.map(([k, t]) => `<label><span>${t}</span><input type="number" min="0" step="0.01" data-asimp="${k}" value="${+a[k] ? +a[k] : ''}" placeholder="0"></label>`).join('')}</div></div>`).join('') : '<div class="vacio vlinea">Todavía no hay asistentes: añade los invitados.</div>'}</div>
-    <div class="evpie"><span>Total dado en este evento</span><b id="evtotal">${eur(tot())}</b></div>
-    <p class="sm">Lo que se da a cada ${TT('medico', 's', '', 'l', 'l')} (inscripción, viaje y alojamiento, comidas y honorarios) sale en el informe anual de transparencia. Las comidas no deberían pasar de ${EV_COMIDA_MAX} € por persona.</p>
+    <div class="evpie"><span>Gastos de este evento</span><b id="evtotal">${eur(tot())}</b></div>
+    <p class="sm">Las inscripciones y gastos de cada asistente (inscripción, viaje y alojamiento, comidas y honorarios) salen en el informe anual de transparencia. Las comidas no deberían pasar de ${EV_COMIDA_MAX} € por persona.</p>
     <div class="acts" style="justify-content:flex-end">${edita ? '<button type="button" class="btn sec" id="eveditar">Editar evento</button>' : ''}<button type="button" class="btn" data-cerrar>Hecho</button></div>`;
   if (!$('dlg').open) $('dlg').showModal();
   if ($('eveditar')) $('eveditar').onclick = () => editarEvento(e);
@@ -20997,11 +20997,11 @@ async function pintarTransparencia(anio) {
   const suma = k => l.reduce((s, x) => s + (+x[k] || 0), 0);
   caja.innerHTML = `<div class="evpag"><div class="evcab"><label for="trano">Año</label><select id="trano">${[actual, actual - 1, actual - 2, actual - 3].map(y => `<option ${y === anio ? 'selected' : ''}>${y}</option>`).join('')}</select>
       ${l.length ? '<button type="button" class="btn sec" id="trcsv">Descargar (CSV)</button>' : ''}</div>
-    <p class="sm">Lo dado en eventos a cada ${TT('medico', 's', '', 'l', 'l')} durante el año, por concepto (las asistencias marcadas «No asistió» no cuentan). Es la base del informe anual de transparencia de los códigos de Farmaindustria y Fenin: revísalo con vuestro responsable de cumplimiento antes de publicarlo.</p>
+    <p class="sm">Los gastos de eventos de cada ${TT('medico', 's', '', 'l', 'l')} durante el año, por concepto (las asistencias marcadas «No asistió» no cuentan). Es la base del informe anual de transparencia de los códigos de Farmaindustria y Fenin: revísalo con vuestro responsable de cumplimiento antes de publicarlo.</p>
     ${l.length ? `<div class="dgrid-wrap"><table class="trtabla"><thead><tr><th>${TT('medico', 's', '', 'l', 'C')}</th><th>Eventos</th>${EV_CONCEPTOS.map(([, t]) => `<th>${t}</th>`).join('')}<th>Total</th></tr></thead>
       <tbody>${l.map(x => `<tr><td><b>${esc(x.nombre)}</b>${x.especialidad ? `<span class="sm"> · ${esc(x.especialidad)}</span>` : ''}</td><td>${x.eventos}</td>${EV_CONCEPTOS.map(([k]) => `<td>${eur(+x[k] || 0)}</td>`).join('')}<td><b>${eur(+x.total || 0)}</b></td></tr>`).join('')}</tbody>
       <tfoot><tr><td>Total</td><td></td>${EV_CONCEPTOS.map(([k]) => `<td>${eur(suma(k))}</td>`).join('')}<td><b>${eur(suma('total'))}</b></td></tr></tfoot></table></div>`
-      : `<div class="vacio vlinea">En ${anio} no hay nada apuntado a ningún ${TT('medico', 's', '', 'l', 'l')}.</div>`}</div>`;
+      : `<div class="vacio vlinea">En ${anio} no hay gastos de eventos apuntados.</div>`}</div>`;
   $('trano').onchange = e => pintarTransparencia(+e.target.value);
   if ($('trcsv')) $('trcsv').onclick = () => {
     const q = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"', n = v => String(+v || 0).replace('.', ',');
@@ -21027,3 +21027,116 @@ abrirFicha = (orig => async function (id, ...a) {
   return r;
 })(abrirFicha);
 try { menuEventos(); } catch (e) {}
+
+/* v2.196.0 · Material en depósito en el cliente (segunda tanda del estudio por sectores, SQL 122). Decisiones de Eric: solo en fichas de tipo
+   Centro; lo usado se sabe por recuento o apuntando cada uso; lo usado crea un pedido en borrador y se propone reponerlo.
+   - Ficha de un centro: bloque «Material en depósito» (unidades y productos) con «Abrir el depósito» o «Dejar material en depósito».
+   - Ventana del depósito: lo que hay por lote y caducidad (aviso si caduca en menos de 60 días), lo usado en 90 días y los últimos
+     movimientos; «Reponer» (de tu maletín o del almacén central), «Apuntar uso» (con referencia, sin datos del paciente) y «Recuento».
+     Lo usado deja un pedido en borrador del centro («Ver el pedido») y ofrece «Reponer lo usado». */
+let DEP = null;   // { cuenta, nombre, estado }
+const depCaducaPronto = f => f && f <= isoMas(hoyISO(), 60);
+async function verDeposito(cuenta, nombre, aviso) {
+  const { data: e, error } = await db.rpc('deposito_estado', { p_cuenta: cuenta });
+  if (error || !e || e.ok === false) { toast(e && e.error === 'permiso' ? 'No puedes ver el depósito de este centro' : 'No se ha podido abrir el depósito', true); return; }
+  DEP = { cuenta, nombre, estado: e };
+  if (!PRODUCTOS.length) await cargarProductos();
+  const l = (e.lineas || []).filter(x => x.unidades > 0), tot = l.reduce((s, x) => s + x.unidades, 0);
+  const tipoMov = { traspaso_entrada: 'Repuesto', traspaso_salida: 'Sale', consumo_deposito: 'Usado', ajuste: 'Ajuste' };
+  $('dbody').innerHTML = `<div class="fh"><div><h2>Depósito · ${esc(nombre)}</h2><div class="sm">${tot ? `${num(tot)} unidades de ${(z => z === 1 ? '1 producto' : z + ' productos')(new Set(l.map(x => x.producto_id)).size)}` : 'Sin material ahora mismo'} · sigue siendo vuestro hasta que se usa</div></div>
+      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
+    ${aviso || ''}
+    <div class="depacts"><button type="button" class="btn" data-dep="reponer">Reponer</button><button type="button" class="btn sec" data-dep="consumo" ${l.length ? '' : 'disabled'}>Apuntar uso</button>
+      <button type="button" class="btn sec" data-dep="recuento" ${l.length ? '' : 'disabled'}>Recuento</button></div>
+    <div id="depform"></div>
+    ${l.length ? `<div class="deptab"><div class="deph"><span>Producto</span><span>Lote</span><span>Caduca</span><span>Uds</span></div>${l.map(x => `<div class="depf"><span>${esc(x.nombre)}</span>
+      <span>${esc(x.numero_lote || 'Sin lote')}</span><span class="${depCaducaPronto(x.caducidad) ? 'depcad' : ''}">${x.caducidad ? fechaCorta(x.caducidad) : '—'}</span><b>${num(x.unidades)}</b></div>`).join('')}</div>`
+      : '<div class="vacio vlinea">El depósito está vacío: repón para dejar material.</div>'}
+    ${(e.usado_90 || []).length ? `<p class="sm">Usado en los últimos 90 días: ${e.usado_90.map(x => `${esc(x.nombre)} ${num(x.unidades)}`).join(' · ')}</p>` : ''}
+    ${(e.movimientos || []).length ? `<details class="depmov"><summary>Últimos movimientos</summary>${e.movimientos.map(m => `<div class="depmf"><span>${fechaCorta(String(m.fecha).slice(0, 10))}</span>
+      <span>${tipoMov[m.tipo] || esc(m.tipo)}</span><span>${esc(m.nombre)}${m.numero_lote ? ' · ' + esc(m.numero_lote) : ''}</span><b>${m.unidades > 0 ? '+' : ''}${num(m.unidades)}</b>
+      <span class="sm">${esc(String(m.nota || '').replace(/\s*\[[^\]]*\]$/, ''))}</span></div>`).join('')}</details>` : ''}
+    <div class="acts" style="justify-content:flex-end"><button type="button" class="btn sec" data-cerrar>Cerrar</button></div>`;
+  if (!$('dlg').open) $('dlg').showModal();
+  $('dbody').querySelectorAll('[data-dep]').forEach(b => b.onclick = () => formDeposito(b.dataset.dep));
+}
+
+function formDeposito(acc) {
+  const f = $('depform'), l = (DEP.estado.lineas || []).filter(x => x.unidades > 0);
+  const prods = PRODUCTOS.filter(p => p.activo !== false && (p.estado || 'Activo') !== 'Descatalogado');
+  if (acc === 'reponer') {
+    f.innerHTML = `<div class="depbox"><b>Reponer el depósito</b>
+      <div class="segs" id="depori" role="group" aria-label="De dónde sale"><button type="button" data-o="maletin" class="on" aria-pressed="true">De mi maletín</button><button type="button" data-o="central" aria-pressed="false">Del almacén central</button></div>
+      <div class="depitems">${prods.map(p => `<label><span>${esc(p.nombre)}</span><input type="number" min="0" step="1" data-dprod="${p.id}" placeholder="0" aria-label="Unidades de ${esc(p.nombre)}"></label>`).join('')}</div>
+      <div class="acts" style="justify-content:flex-end"><button type="button" class="btn sec" id="depcanc">Cancelar</button><button type="button" class="btn" id="depok">Reponer</button></div></div>`;
+    f.querySelectorAll('[data-o]').forEach(b => b.onclick = () => f.querySelectorAll('[data-o]').forEach(x => { x.classList.toggle('on', x === b); x.setAttribute('aria-pressed', String(x === b)); }));
+  } else if (acc === 'consumo') {
+    f.innerHTML = `<div class="depbox"><b>Apuntar lo usado</b>
+      <div class="depitems">${l.map((x, i) => `<label><span>${esc(x.nombre)} <span class="sm">· ${esc(x.numero_lote || 'sin lote')} · quedan ${num(x.unidades)}</span></span>
+        <input type="number" min="0" max="${x.unidades}" step="1" data-dlin="${i}" placeholder="0" aria-label="Usadas de ${esc(x.nombre)}"></label>`).join('')}</div>
+      <label for="depref">Referencia</label><input id="depref" maxlength="120" placeholder="p. ej. Cirugía del martes, quirófano 2 (sin datos del paciente)">
+      <div class="acts" style="justify-content:flex-end"><button type="button" class="btn sec" id="depcanc">Cancelar</button><button type="button" class="btn" id="depok">Apuntar</button></div></div>`;
+  } else {
+    f.innerHTML = `<div class="depbox"><b>Recuento</b><span class="sm">Escribe lo que hay ahora; lo que falte se apunta como usado.</span>
+      <div class="depitems">${l.map((x, i) => `<label><span>${esc(x.nombre)} <span class="sm">· ${esc(x.numero_lote || 'sin lote')} · había ${num(x.unidades)}</span></span>
+        <input type="number" min="0" step="1" data-dcnt="${i}" value="${x.unidades}" aria-label="Contadas de ${esc(x.nombre)}"></label>`).join('')}</div>
+      <div class="acts" style="justify-content:flex-end"><button type="button" class="btn sec" id="depcanc">Cancelar</button><button type="button" class="btn" id="depok">Guardar recuento</button></div></div>`;
+  }
+  $('depcanc').onclick = () => { f.innerHTML = ''; };
+  $('depok').onclick = async ev => {
+    const op = 'd' + Date.now();
+    let p;
+    if (acc === 'reponer') {
+      const items = [...f.querySelectorAll('[data-dprod]')].map(i => ({ producto_id: i.dataset.dprod, unidades: Math.max(0, Math.floor(+i.value || 0)) })).filter(x => x.unidades > 0);
+      if (!items.length) { toast('Escribe cuántas unidades repones', true); return; }
+      p = { cuenta_id: DEP.cuenta, accion: 'reponer', origen: f.querySelector('#depori .on').dataset.o, items, op_id: op };
+    } else if (acc === 'consumo') {
+      const items = [...f.querySelectorAll('[data-dlin]')].map(i => { const x = l[+i.dataset.dlin]; return { producto_id: x.producto_id, lote_id: x.lote_id, unidades: Math.max(0, Math.floor(+i.value || 0)), max: x.unidades }; }).filter(x => x.unidades > 0);
+      if (!items.length) { toast('Escribe lo que se ha usado', true); return; }
+      if (items.some(x => x.unidades > x.max)) { toast('No se puede usar más de lo que hay en el depósito', true); return; }
+      p = { cuenta_id: DEP.cuenta, accion: 'consumo', items, referencia: $('depref').value.trim(), op_id: op };
+    } else {
+      const items = [...f.querySelectorAll('[data-dcnt]')].map(i => { const x = l[+i.dataset.dcnt]; return { producto_id: x.producto_id, lote_id: x.lote_id, contadas: Math.max(0, Math.floor(+i.value || 0)) }; });
+      p = { cuenta_id: DEP.cuenta, accion: 'recuento', items, op_id: op };
+    }
+    ev.target.disabled = true;
+    const { data: r, error } = await db.rpc('deposito_mover', { p });
+    ev.target.disabled = false;
+    if (error || !r || r.ok === false) { toast(r && r.error === 'sin_origen' ? 'No hay almacén del que sacar el material' : r && r.error === 'permiso' ? 'No puedes mover el depósito de este centro' : 'No se ha podido guardar', true); return; }
+    const usado = r.usado || [];
+    let aviso = '';
+    if (acc === 'reponer') toast('Depósito repuesto');
+    else if (!usado.length) toast('Recuento guardado: no falta nada');
+    else {
+      toast('Apuntado lo usado');
+      aviso = `<div class="banda-ok depaviso">Usado: ${usado.map(x => `${esc(x.nombre)} ${num(x.unidades)}`).join(' · ')}. Queda un pedido en borrador del centro para validarlo.
+        <span class="depav"><button type="button" class="btn sec" id="depverped">Ver el pedido</button><button type="button" class="btn" id="depreponer">Reponer lo usado</button></span></div>`;
+    }
+    await verDeposito(DEP.cuenta, DEP.nombre, aviso);
+    if ($('depverped') && r.pedido_id) $('depverped').onclick = () => verPedido(r.pedido_id);
+    if ($('depreponer')) $('depreponer').onclick = async b => {
+      b.target.disabled = true;
+      const { data: r2 } = await db.rpc('deposito_mover', { p: { cuenta_id: DEP.cuenta, accion: 'reponer', items: usado.map(x => ({ producto_id: x.producto_id, unidades: x.unidades })), op_id: 'r' + Date.now() } });
+      if (!r2 || r2.ok === false) { b.target.disabled = false; toast(r2 && r2.error === 'sin_origen' ? 'No hay almacén del que sacar el material' : 'No se ha podido reponer', true); return; }
+      toast('Repuesto lo usado'); verDeposito(DEP.cuenta, DEP.nombre);
+    };
+  };
+}
+
+// Ficha de un centro: su depósito
+abrirFicha = (orig => async function (id, ...a) {
+  const r = await orig.call(this, id, ...a);
+  try {
+    if (!$('fzcampos') || $('fdeposito')) return r;
+    const { data: c } = await db.from('cuentas').select('tipo,nombre').eq('id', id).maybeSingle();
+    if (!c || c.tipo !== 'Centro') return r;
+    const { data: e } = await db.rpc('deposito_estado', { p_cuenta: id });
+    if (!e || e.ok === false || !$('fzcampos') || $('fdeposito') || FICHA_ID !== id) return r;
+    const l = (e.lineas || []).filter(x => x.unidades > 0), tot = l.reduce((s, x) => s + x.unidades, 0), cad = l.filter(x => depCaducaPronto(x.caducidad)).length;
+    $('fzcampos').insertAdjacentHTML('beforebegin', `<div class="blk" id="fdeposito"><h3>Material en depósito</h3>
+      <p class="sm">${e.existe && tot ? `${num(tot)} unidades de ${(z => z === 1 ? '1 producto' : z + ' productos')(new Set(l.map(x => x.producto_id)).size)}${cad ? ` · <b style="color:var(--warn)">${cad === 1 ? '1 lote caduca' : cad + ' lotes caducan'} en menos de 60 días</b>` : ''}` : 'Sin material en depósito.'}</p>
+      <button type="button" class="btn sec" id="fdepabrir">${e.existe ? 'Abrir el depósito' : 'Dejar material en depósito'}</button></div>`);
+    $('fdepabrir').onclick = () => { $('ficha').close(); verDeposito(id, c.nombre); };
+  } catch (e) {}
+  return r;
+})(abrirFicha);
