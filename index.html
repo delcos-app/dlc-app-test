@@ -3308,6 +3308,24 @@ html.cambiando-org #bootsplash,html.cambiando-org #bootsplash.hide{display:grid!
 .cobfal .lista{margin-top:6px}
 .cobok{margin:0}
 .vprodtx{margin-top:2px}
+/* v2.199.0 · Cirugías */
+.cirpag{display:grid;gap:14px}
+.cirbloque{margin:0}
+.cirrow{display:flex;align-items:center;gap:14px;text-align:left;width:100%}
+.cirf{display:flex;flex-direction:column;min-width:64px}
+.cirrow .tx{flex:1;min-width:0;display:flex;flex-direction:column}
+.cirest{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.cirdat{display:grid;grid-template-columns:110px minmax(0,1fr);gap:6px 12px;margin:6px 0 12px;font-size:14.5px}
+.cirdat > span{color:var(--muted)}
+.cirdat b{font-weight:600}
+.cirdet summary{list-style:none;display:inline-flex;margin-bottom:10px}
+.cirdet summary::-webkit-details-marker{display:none}
+.cirlin{display:grid;gap:10px}
+.cirl label{display:grid;grid-template-columns:minmax(0,1fr) 100px;gap:10px;align-items:center;margin:0}
+.cirser{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:6px;margin-top:6px}
+.deph.cirh,.depf.cirh{grid-template-columns:minmax(0,2fr) minmax(0,1fr) minmax(0,1.4fr) 50px}
+@media (max-width:760px){.cirrow{flex-wrap:wrap}.cirest{width:100%;justify-content:flex-start}.cirdat{grid-template-columns:90px minmax(0,1fr)}.cirl label{grid-template-columns:minmax(0,1fr) 80px}
+  .deph.cirh,.depf.cirh{grid-template-columns:minmax(0,1fr) minmax(0,1fr) 40px}.deph.cirh span:nth-child(2),.depf.cirh span:nth-child(2){display:none}}
 </style>
 </head>
 <body>
@@ -3446,6 +3464,6 @@ try{var co=sessionStorage.getItem('dlc-cambio-org');if(co!==null||localStorage.g
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.198.0"></script>
+<script src="./app.js?v=2.199.0"></script>
 </body>
 </html>
