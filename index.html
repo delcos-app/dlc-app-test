@@ -3223,6 +3223,28 @@ html.cambiando-org #bootsplash,html.cambiando-org #bootsplash.hide{display:grid!
 .pdist{display:grid;gap:8px;margin-top:10px}
 .pdist #pddat{display:grid;gap:6px}
 .pdist #pddat.hide{display:none}
+/* v2.195.0 · Eventos y transparencia */
+.evpag{grid-column:1/-1;min-width:0}
+.evcab{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.evcab label{margin:0}
+.evbloque{margin-bottom:14px}
+.evrow{display:flex;justify-content:space-between;gap:12px;align-items:center;width:100%;text-align:left}
+.evtot{font:700 15px Manrope,sans-serif;color:var(--navy,#17457A);white-space:nowrap}
+.evascab{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:12px}
+.evas{display:grid;gap:10px;margin-top:8px}
+.evasf{display:grid;grid-template-columns:minmax(0,1.2fr) 150px auto;gap:8px 12px;align-items:start;border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.evasn{display:flex;flex-direction:column;min-width:0}
+.evimp{grid-column:1/-1;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.evimp label{margin:0;display:flex;flex-direction:column;gap:3px;font-size:12.5px;color:var(--muted)}
+.evimp label.evaviso input{border-color:var(--warn);background:var(--warn-bg)}
+.evpie{display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding:10px 12px;background:var(--hielo,#F2F7FC);border-radius:10px}
+.evpie b{font:800 18px Manrope,sans-serif;color:var(--navy,#17457A)}
+.trtabla{width:100%;border-collapse:collapse;font-size:14.5px}
+.trtabla th,.trtabla td{padding:9px 10px;border-top:1px solid var(--line);text-align:right;white-space:nowrap}
+.trtabla th:first-child,.trtabla td:first-child{text-align:left;white-space:normal}
+.trtabla thead th{border-top:0;background:var(--hielo,#F2F7FC);font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.trtabla tfoot td{font-weight:700}
+@media (max-width:760px){.evasf{grid-template-columns:minmax(0,1fr) auto}.evasf select{grid-column:1/-1;grid-row:2}.evasf .x{grid-column:2;grid-row:1}.evimp{grid-template-columns:repeat(2,minmax(0,1fr))}}
 </style>
 </head>
 <body>
@@ -3361,6 +3383,6 @@ try{var co=sessionStorage.getItem('dlc-cambio-org');if(co!==null||localStorage.g
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.194.0"></script>
+<script src="./app.js?v=2.195.0"></script>
 </body>
 </html>
