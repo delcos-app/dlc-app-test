@@ -17678,10 +17678,11 @@ cargarRutasPaso2 = (orig => async function (...a) {
   const sub = $('v-rutas') && $('v-rutas').querySelector('.saludo .fecha');
   if (sub && !jornadaActiva()) {
     const citas = await citasDelDia(hoyISO());
+    if (!sub.isConnected) return r;   // v2.202.0: la pantalla se repintó o se salió de ella mientras se leían las citas
     const hechas = citas.filter(c => c.estado === 'Visitada').length, abiertas = citas.filter(c => CITA_ABIERTA.includes(c.estado)).length;
     const txt = hechas + abiertas ? `Hoy tienes ${hechas + abiertas} ${hechas + abiertas === 1 ? 'cita' : 'citas'}: ${hechas} ${hechas === 1 ? 'visitada' : 'visitadas'} y ${abiertas} por hacer` : 'Hoy no tienes citas';
     sub.innerHTML = `${esc(txt)} · <button type="button" class="kcfg" id="rverdia">Ver mi día</button>`;
-    $('rverdia').onclick = () => { AG_MODO = 'dia'; AG_FECHA = hoyISO(); ir('agenda'); };
+    sub.querySelector('#rverdia').onclick = () => { AG_MODO = 'dia'; AG_FECHA = hoyISO(); ir('agenda'); };
   }
   return r;
 })(cargarRutasPaso2);
