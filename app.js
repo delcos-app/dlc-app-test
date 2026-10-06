@@ -2834,7 +2834,7 @@ function editorEsquema(id) {
       <div class="g2">
         <div><label for="ecan">Canal</label><select id="ecan">
           <option value="">Todos</option>
-          <option value="paciente" ${e && e.canal === 'paciente' ? 'selected' : ''}>Solo recomendación</option>
+          <option value="paciente" ${e && e.canal === 'paciente' ? 'selected' : ''}>Solo venta ${TT('paciente', 's', 'al', 'l', 'l')}</option>
           <option value="centro" ${e && e.canal === 'centro' ? 'selected' : ''}>Solo venta a centro</option></select></div>
         ${fijo ? `<div><label for="efijo">Euros por unidad</label><input id="efijo" type="number" step="0.01" min="0" value="${fijoVal}"></div>` : '<div></div>'}
       </div>
@@ -3873,7 +3873,7 @@ async function tarjetasRuta() {
     ['sin_visitar', '🆕', 'Sin visitar nunca']
   ].filter(([k]) => (data[k] || []).length);
 
-  cr.innerHTML = bloques.length ? `<h2>Recomendaciones de rutas</h2>
+  cr.innerHTML = bloques.length ? `<h2>Rutas sugeridas</h2>
     <p class="sm">Calculadas con tus datos de hoy. Al pulsar, se planifica la ruta.</p>
     <div class="lista">${bloques.map(([k, ic, t]) => `<button class="item" data-recruta="${k}">
       <span class="ic">${ic}</span><span class="tx"><b>${t}</b>
@@ -4399,7 +4399,7 @@ const AYUDA = {
   ini_urgentes: ['Urgentes sin visitar', `${TT('medico', 'p', '', 'l', 'C', 'marcado')} como urgentes que aún no tienen ${TT('visita', 's', 'ningun', 'l', 'l')}.`,
     ['El motivo de urgencia se ve en su ficha.', 'Desde Rutas puedes planificar una ruta solo con urgentes.']],
   ini_ultimas: [`${TT('visita', 'p', 'ultimo', 'C', 'l')}`, `${TT('visita', 'p', 'el', 'C', 'l', 'registrado')} más recientes, con su resultado.`, []],
-  ini_recom: ['Recomendaciones de rutas', 'Listas calculadas cada día con tus datos. Al pulsar una, se planifica la ruta del día.',
+  ini_recom: ['Rutas sugeridas', 'Listas calculadas cada día con tus datos. Al pulsar una, se planifica la ruta del día.',
     ['«Pasan consulta hoy»: tienen consulta este día de la semana y no se visitan desde hace más de 14 días.',
      `«${TT('medico', 'p', '', 'l', 'C', 'interesado')}»: en estado «${estadoPapel('interes') || 'interés'}» y sin ${TT('visita', 's', '', 'l', 'l')} en 20 días.`,
      `Solo entran ${TT('medico', 'p', '', 'l', 'l')} con ubicación: completar direcciones mejora las propuestas.`]],
@@ -4921,7 +4921,7 @@ async function editorPedido(pedido) {
       <div class="g2">
         <div><label for="pfecha">Fecha</label><input id="pfecha" type="date" value="${esc(form.fecha)}"></div>
         <div><label for="pcan">Canal</label><select id="pcan">
-          <option value="paciente" ${form.canal !== 'centro' ? 'selected' : ''}>Recomendación a ${TT('paciente', 's', '', 'l', 'l')}</option>
+          <option value="paciente" ${form.canal !== 'centro' ? 'selected' : ''}>Venta ${TT('paciente', 's', 'al', 'l', 'l')}</option>
           <option value="centro" ${form.canal === 'centro' ? 'selected' : ''}>Venta a centro (con descuento)</option></select></div>
       </div>
       <div class="g2"><div><label for="porig">Origen</label><select id="porig">
@@ -4929,7 +4929,7 @@ async function editorPedido(pedido) {
           <option value="web" ${form.origen === 'web' ? 'selected' : ''}>Pedido por la web</option>${form.origen === 'portal' ? '<option value="portal" selected>Portal del centro</option>' : ''}</select></div><div></div></div>
       <div id="zonapac" class="${form.canal === 'centro' ? 'escentro' : ''}">
         <label class="solopac">${TT('paciente', 's', '', 'l', 'C')}</label><div id="pselpac" class="solopac"></div>
-        <label><span class="solopac">${TT('medico', 's', '', 'l', 'C')} que lo recomienda</span><span class="solocen">Centro que compra</span></label><div id="pselmed"></div>
+        <label><span class="solopac">${TT('medico', 's', '', 'l', 'C')} de referencia</span><span class="solocen">Centro que compra</span></label><div id="pselmed"></div>
         <div class="sm" style="margin-top:4px"><span class="solopac">Si no lo encuentras, deja el nombre escrito: el pedido quedará pendiente de atribuir.</span><span class="solocen">Elige su ficha (de tipo centro): las unidades cuentan para el centro y su comercial.</span></div>
       </div>
       <label>Líneas</label>
@@ -5150,7 +5150,7 @@ async function verPedidoBase(id) {
 
   $('dbody').innerHTML = `
     <div class="fh"><div><h2>Pedido ${esc(p.numero || '')} ${pillEstado(p.estado)}</h2>
-      <div class="sm">${fechaCorta(p.fecha)} · ${p.canal === 'centro' ? 'Venta a centro' : `Recomendación a ${TT('paciente', 's', '', 'l', 'l')}`}${p.forma_pago ? ' · ' + esc(p.forma_pago) : ''}</div></div>
+      <div class="sm">${fechaCorta(p.fecha)} · ${p.canal === 'centro' ? 'Venta a centro' : `Venta ${TT('paciente', 's', 'al', 'l', 'l')}`}${p.forma_pago ? ' · ' + esc(p.forma_pago) : ''}</div></div>
       <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
     ${bor ? '<div class="cacheaviso" style="margin-top:10px">Borrador: todavía no cuenta en métricas ni en comisiones.</div>' : ''}
     ${c ? `<div class="blk"><h3>${TT('paciente', 's', '', 'l', 'C')}</h3><div><b>${esc(c.nombre)}</b></div>
@@ -5411,7 +5411,7 @@ Object.assign(AYUDA, {
     `La venta a ${TT('paciente', 's', '', 'l', 'l')} se atribuye ${TT('medico', 's', 'al', 'l', 'l', 'indicado')} y al comercial que lo tenía asignado en ese momento.`,
     `La venta a centro con descuento no se atribuye a ${TT('medico', 's', 'ningun', 'l', 'l')}.`,
     `Si un pedido no tiene ${TT('medico', 's', '', 'l', 'l', 'reconocido')}, se puede encontrar filtrando la lista de pedidos para asignarlo a mano.`]],
-  pacientes: [`${TT('paciente', 'p', '', 'l', 'C')}`, `Las personas que compran por recomendación de ${TT('medico', 's', 'un', 'l', 'l')}.`, [
+  pacientes: [`${TT('paciente', 'p', '', 'l', 'C')}`, `Las personas que compran con ${TT('medico', 's', 'un', 'l', 'l')} de referencia.`, [
     `Cada ${TT('paciente', 's', '', 'l', 'l')} puede tener un <b>${TT('medico', 's', '', 'l', 'l')} que lo trata</b>: se asigna solo con su primer pedido o a mano desde su ficha.`,
     `Desde la ficha ves sus pedidos, unidades e importe, y creas un pedido nuevo con ${TT('medico', 's', 'el', 'l', 'l')} ya puesto.`,
     `En la ficha de ${TT('medico', 's', 'un', 'l', 'l')} verás sus ${TT('paciente', 'p', '', 'l', 'l')}.`]],
@@ -5998,7 +5998,7 @@ Object.assign(AYUDA, {
     `Al pulsar <b>Empezar ruta</b> verás la lista de paradas con el botón <b>Registrar ${TT('visita', 's', '', 'l', 'l')}</b> en cada ${TT('medico', 's', '', 'l', 'l')}. «Cómo llegar» abre el navegador solo cuando tú lo pides.`,
     '<b>Pausar</b> guarda los pendientes para seguir otro día; al reanudar se recalculan orden y horas.',
     `Solo entran ${TT('medico', 'p', '', 'l', 'l')} con ubicación. Completar la dirección y los días de consulta mejora mucho las rutas.`]],
-  pacientes: [`${TT('paciente', 'p', '', 'l', 'C')}`, `Las personas que compran por recomendación de ${TT('medico', 's', 'un', 'l', 'l')}.`, [
+  pacientes: [`${TT('paciente', 'p', '', 'l', 'C')}`, `Las personas que compran con ${TT('medico', 's', 'un', 'l', 'l')} de referencia.`, [
     `Cada ${TT('paciente', 's', '', 'l', 'l')} tiene un <b>${TT('medico', 's', '', 'l', 'l')} que lo trata</b>: se elige al darlo de alta o se asigna solo con su primer pedido.`,
     'Para una persona se pide el DNI o NIE; para una empresa, el CIF. La app comprueba que la letra o el control sean correctos.',
     `Desde la ficha ves sus pedidos y creas uno nuevo con ${TT('medico', 's', 'el', 'l', 'l')} ya puesto.`]],
@@ -6229,7 +6229,7 @@ async function cargarVentasBase() {
         <div class="filtros">
           <div id="pper"></div>
           <div><label for="pcanal">Canal</label><select id="pcanal">
-            <option value="">Todos</option><option value="paciente">Recomendación a ${TT('paciente', 's', '', 'l', 'l')}</option>
+            <option value="">Todos</option><option value="paciente">Venta ${TT('paciente', 's', 'al', 'l', 'l')}</option>
             <option value="centro">Venta a centro</option></select></div>
           <div><label for="pestado">Estado</label><select id="pestado">
             <option value="">Todos</option><option value="Confirmado">Validados</option>
@@ -6268,7 +6268,7 @@ async function cargarAnalitica() {
         <div><label for="amedida">Ordenar por</label><select id="amedida">
           <option value="unidades">Unidades</option><option value="importe">Importe</option></select></div>
         <div><label for="acanal">Canal</label><select id="acanal">
-          <option value="">Todos</option><option value="paciente">Recomendación</option>
+          <option value="">Todos</option><option value="paciente">Venta ${TT('paciente', 's', 'al', 'l', 'l')}</option>
           <option value="centro">Venta a centro</option></select></div>
         <div><label for="aprod">Producto</label><select id="aprod"><option value="">Todos</option>
           ${PRODUCTOS.map(p => `<option value="${p.id}">${esc(p.nombre)}</option>`).join('')}</select></div>
@@ -7875,7 +7875,7 @@ async function citaRepetida(medicoId, fecha) {
 /* ---------------- ayudas ---------------- */
 
 Object.assign(AYUDA, {
-  pacientes: ['Clientes', `${TT('paciente', 'p', '', 'l', 'C')} (personas) y empresas que compran por recomendación de ${TT('medico', 's', 'un', 'l', 'l')}.`, [
+  pacientes: ['Clientes', `${TT('paciente', 'p', '', 'l', 'C')} (personas) y empresas que compran con ${TT('medico', 's', 'un', 'l', 'l')} de referencia.`, [
     `La columna <b>Tipo</b> distingue ${TT('paciente', 'p', '', 'l', 'l')} y empresas. Filtra por tipo, si tienen pedidos o por población.`,
     `Cada cliente tiene un <b>${TT('medico', 's', '', 'l', 'l')} que lo trata</b>: se elige al darlo de alta o se asigna solo con su primer pedido.`,
     'A una persona se le pide DNI o NIE; a una empresa, el CIF.']]
@@ -9567,7 +9567,7 @@ async function listaPedidos() {
       <span class="num">Uds.</span>${imp ? '<span class="num">Base</span><span class="num">Total</span>' : ''}<span>Estado</span><span>Operativa</span>${clasCabeceras(cpCols)}</div>
     ${PEDIDOS.map(p => `<button class="dr" data-ped="${p.id}" style="${p.estado === 'Anulado' ? 'opacity:.55' : ''}">
       <span>${fechaCorta(p.fecha)}${p.factura || p.numero ? `<span class="sm">${esc(p.factura || p.numero)}</span>` : ''}</span>
-      <span><b>${esc(p.contacto || p.centro || p.cuenta_texto || '—')}</b><span class="sm">${p.canal === 'centro' ? 'Venta a centro' : 'Recomendación'}${p.origen === 'web' ? ' · <span class="pweb">Web</span>' : p.origen === 'portal' ? ' · <span class="pweb">Portal</span>' : ''}${p.forma_pago ? ' · ' + esc(p.forma_pago) : ''}${p.justificante ? ' · <span title="Con justificante de pago">📎</span>' : ''}</span></span>
+      <span><b>${esc(p.contacto || p.centro || p.cuenta_texto || '—')}</b><span class="sm">${p.canal === 'centro' ? 'Venta a centro' : 'Venta ' + TT('paciente', 's', 'al', 'l', 'l')}${p.origen === 'web' ? ' · <span class="pweb">Web</span>' : p.origen === 'portal' ? ' · <span class="pweb">Portal</span>' : ''}${p.forma_pago ? ' · ' + esc(p.forma_pago) : ''}${p.justificante ? ' · <span title="Con justificante de pago">📎</span>' : ''}</span></span>
       <span class="corta">${p.medico ? esc(p.medico) : '<span class="vac">Sin atribuir</span>'}</span>
       <span>${p.comercial ? esc(p.comercial) : '<span class="vac">—</span>'}</span>
       <span class="sm corta">${esc(p.productos || '')}</span><span class="num">${num(p.unidades)}</span>
@@ -10246,7 +10246,7 @@ const EXPLICA_ALERTA = [
   [/más de una cartera/i, `El mismo ${TT('medico', 's', '', 'l', 'l')} aparece en la cartera de varias personas.`, 'Deja una sola persona desde Administración → Usuarios → Asignar.'],
   [/otra cartera|otro comercial/i, `Un comercial ha visitado ${TT('medico', 'p', '', 'l', 'l')} que lleva otra persona.`, `Revisa si hay que cambiar la cartera o coordinar ${TT('visita', 'p', 'el', 'l', 'l')}.`],
   [/dos personas|14 días/i, `Dos personas han visitado al mismo ${TT('medico', 's', '', 'l', 'l')} en pocos días.`, `Coordina quién lo lleva para no repetir ${TT('visita', 'p', '', 'l', 'l')}.`],
-  [/sin médico|sin atribuir/i, `Pedidos validados que no tienen ${TT('medico', 's', '', 'l', 'l')}: no se atribuyen a nadie.`, `Ábrelos y asigna ${TT('medico', 's', 'el', 'l', 'l')} que lo recomendó.`],
+  [/sin médico|sin atribuir/i, `Pedidos validados que no tienen ${TT('medico', 's', '', 'l', 'l')}: no se atribuyen a nadie.`, `Ábrelos y asigna su ${TT('medico', 's', '', 'l', 'l')} de referencia.`],
   [/stock|caduc/i, 'Productos con pocas unidades o lotes próximos a caducar.', 'Revisa el stock y prepara un pedido de compra.'],
   [/compra|recepci/i, 'Pedidos de compra pendientes de recibir.', 'Registra la recepción cuando llegue la mercancía.']
 ];
@@ -10414,7 +10414,7 @@ async function editorLlamada(l, previa) {
     <div class="llpaso"><span class="lln">1</span><b>Quién llama</b>
       <div class="segm2"><button type="button" data-lmodo="exist" class="${nuevo ? '' : 'on'}">Cliente existente</button><button type="button" data-lmodo="nuevo" class="${nuevo ? 'on' : ''}">Cliente nuevo</button></div>
       <div id="llcli"></div></div>
-    <div class="llpaso"><span class="lln">2</span><b>${TT('medico', 's', '', 'l', 'C')} que lo recomienda</b><div id="llmed"></div>
+    <div class="llpaso"><span class="lln">2</span><b>${TT('medico', 's', '', 'l', 'C')} de referencia</b><div id="llmed"></div>
       <div class="sm" style="margin-top:4px">Si no está en la base, escribe su nombre: se guarda igualmente para las métricas.</div></div>
     <div class="llpaso"><span class="lln">3</span><b>Motivo</b><div class="chipsw" id="llmot">${chips('motivo_llamada', l.motivo, 'data-lm')}</div></div>
     <div class="llpaso"><span class="lln">4</span><b>Resultado</b><div class="chipsw" id="llres">${chips('resultado_llamada', l.resultado, 'data-lr')}</div>
@@ -11057,11 +11057,11 @@ async function pintarRoles() {
     <div class="dgrid-wrap"><table class="rolmat"><thead><tr><th>Permiso</th>${roles.map(r => `<th>${esc(r)}</th>`).join('')}</tr></thead>
       <tbody>${AREAS.map(([k, n]) => `<tr><td><b>${esc(n)}</b><span class="sm">${esc(QUE_ABRE[k] || '')}</span></td>
         ${roles.map(r => `<td><select data-rol="${esc(r)}" data-ar="${k}" class="nvsel" ${rolPuede(r, 'administrar') ? 'disabled' : ''}>${NIVEL_TXT.map((t, i) => `<option value="${i}" ${+(plantillaRol(r)[k] || 0) === i ? 'selected' : ''}>${esc(t)}</option>`).join('')}</select></td>`).join('')}</tr>`).join('')}</tbody></table></div>
-    <div class="acts" style="justify-content:flex-end;flex-wrap:wrap"><button class="btn sec" id="rolrest">Volver a los valores recomendados</button><button class="btn" id="rolok">Guardar plantillas</button></div></div>`;
+    <div class="acts" style="justify-content:flex-end;flex-wrap:wrap"><button class="btn sec" id="rolrest">Volver a los valores de partida</button><button class="btn" id="rolok">Guardar plantillas</button></div></div>`;
   const colorea = () => $('cfgcuerpo').querySelectorAll('.nvsel').forEach(s => s.className = 'nvsel nv' + s.value);
   $('cfgcuerpo').addEventListener('change', colorea); colorea();
   const leer = () => { const o = {}; $('cfgcuerpo').querySelectorAll('[data-rol]:not([disabled])').forEach(s => { (o[s.dataset.rol] = o[s.dataset.rol] || {})[s.dataset.ar] = +s.value; }); return o; };
-  $('rolrest').onclick = async () => { await db.rpc('guardar_ajuste', { p_clave: 'roles', p_valor: {} }); AJUSTES.roles = {}; toast('Valores recomendados'); pintarRoles(); };
+  $('rolrest').onclick = async () => { await db.rpc('guardar_ajuste', { p_clave: 'roles', p_valor: {} }); AJUSTES.roles = {}; toast('Valores de partida'); pintarRoles(); };
   $('rolok').onclick = async () => {
     const v = leer(); const { error } = await db.rpc('guardar_ajuste', { p_clave: 'roles', p_valor: v });
     if (error) { toast('No se ha podido guardar', true); return; }
@@ -11329,7 +11329,7 @@ async function pintarMaterial() {
     <div class="card cfgpanel"><h2 style="padding:0 0 4px">Material de ${TT('visita', 's', '', 'l', 'l')}</h2>
       <p class="sm">Todo lo que un comercial puede dejar en ${TT('visita', 's', 'un', 'l', 'l')}. Al registrar ${TT('visita', 's', 'el', 'l', 'l')} se marca qué se entregó y cuánto, y queda en la ficha ${TT('medico', 's', 'del', 'l', 'l')} y en Analítica (material por comercial, por ${TT('medico', 's', '', 'l', 'l')} y por mes).</p>
       <div class="mattipos"><div><b>💊 Muestras de producto</b><span>Unidades de un producto del catálogo. Pueden descontarse del stock.</span></div>
-        <div><b>📚 Material promocional</b><span>Dípticos, talonarios de recomendación, flyers, tarjetas… Se cuentan, pero no descuentan stock.</span></div></div></div>
+        <div><b>📚 Material promocional</b><span>Dípticos, talonarios, flyers, tarjetas… Se cuentan, pero no descuentan stock.</span></div></div></div>
     <div class="card cfgpanel"><h2 style="padding:0 0 4px">💊 Muestras de producto</h2>
       <div class="g2"><div><label for="muprod">Producto que se entrega como muestra</label><select id="muprod"><option value="">— Ninguno —</option>${PRODUCTOS.filter(p => p.tipo !== 'servicio').map(p => `<option value="${p.id}" ${p.id === m.producto_id ? 'selected' : ''}>${esc(p.nombre)}</option>`).join('')}</select></div><div></div></div>
       <label class="vfswitch" style="margin-top:10px"><input type="checkbox" id="murest" ${m.restar_stock ? 'checked' : ''}><span class="sw"></span>
@@ -11791,7 +11791,7 @@ async function pintarCopias() {
     <div class="copiaest ${dias == null || dias > 7 ? 'mal' : 'bien'}"><b>${ultima ? 'Última copia: ' + ultima.toLocaleString('es-ES', { dateStyle: 'long', timeStyle: 'short' }) : 'Todavía no se ha hecho ninguna copia'}</b>
       <span>${dias == null ? 'Haz la primera ahora.' : dias > 7 ? `Hace ${dias} días: conviene hacer una nueva.` : 'Al día.'}</span></div>
     <div class="acts" style="margin:12px 0 0"><button class="btn" id="copok">⬇ Descargar copia completa</button></div>
-    <h3 class="mansub">Recomendaciones</h3><ul class="manlist">
+    <h3 class="mansub">Consejos</h3><ul class="manlist">
       <li><span>📅</span><span>Haz una copia cada semana y guárdala fuera del ordenador (unidad externa o nube de la empresa).</span></li>
       <li><span>🔐</span><span>El archivo contiene datos personales: guárdalo en un sitio con acceso restringido.</span></li>
       <li><span>🤖</span><span>Si quieres que se haga sola cada día, hay una copia automática gratuita con GitHub (pídela a quien te da soporte técnico).</span></li></ul></div>`;
@@ -12202,7 +12202,7 @@ const EXPLICA_NOTIF = {
   pedido_validado: ['Cada pedido que valida otra persona del equipo.', 'Prepara el envío, valida el pago o emite la factura.'],
   citas_hoy: ['Al empezar el día, cuántas citas tienes.', 'Abre «Tu día» para empezar la jornada.'],
   sin_visitar: [`Cada lunes, ${TT('medico', 'p', 'el', 'l', 'l')} de tu cartera que llevan más de 60 días sin ${TT('visita', 's', '', 'l', 'l')}.`, 'Tenlos en cuenta al planificar la semana.'],
-  cliente_nuevo: [`Cuando se da de alta ${TT('paciente', 's', 'un', 'l', 'l')} que viene de ${TT('medico', 's', 'un', 'l', 'l')} de tu cartera.`, `Señal de que ${TT('medico', 's', 'el', 'l', 'l')} está recomendando.`],
+  cliente_nuevo: [`Cuando se da de alta ${TT('paciente', 's', 'un', 'l', 'l')} que viene de ${TT('medico', 's', 'un', 'l', 'l')} de tu cartera.`, `Señal de actividad en su consulta.`],
   pago_recibido: ['Cuando se confirma el pago de un pedido que creaste.', 'Ya se puede preparar el envío.'],
   borrador_nuevo: ['Cuando alguien deja un pedido pendiente de validar.', 'Revísalo y valídalo para que salga el pedido.'],
   seguimientos_hoy: ['Al empezar el día, las llamadas de seguimiento que tocan o están atrasadas.', 'Están en Pedidos → Oportunidades.'],
@@ -13626,7 +13626,7 @@ async function graficoCanal() {
   const emb = [...document.querySelectorAll('#v-analitica .ancard')].find(c => /Embudo comercial/.test(c.querySelector('h2') ? c.querySelector('h2').textContent : ''));
   if (!emb || $('ancanal')) return;
   emb.insertAdjacentHTML('afterend', `<div class="card ancard" id="ancanal"><h2>Ventas por canal</h2><div class="cargandolocal" style="min-height:160px"></div>
-    <p class="leer"><b>Cómo leerlo:</b> qué parte de las unidades llega por recomendación de ${TT('medico', 's', 'un', 'l', 'l')} y qué parte por venta directa a un centro.</p></div>`);
+    <p class="leer"><b>Cómo leerlo:</b> qué parte de las unidades llega con ${TT('medico', 's', 'un', 'l', 'l')} de referencia y qué parte por venta directa a un centro.</p></div>`);
   const { data } = await RPC_ORIG('analitica_tabla', { p_dim: 'canal', p_medida: 'unidades' });
   const filas = (data && data.filas) || [], tot = filas.reduce((s, f) => s + (+f.total || 0), 0);
   const cols = ['#3F82C0', '#E0762B', '#1BAF7A', '#6E5BC4'];   // v2.107.0: paleta de gráficos de la marca
@@ -14176,7 +14176,7 @@ const IMP_CAMPOS = {
     ['pais', 'País', 0, ['pais', 'country']],
     ['empresa', 'Empresa', 0, ['empresa', 'company', 'compania']],
     ['tipo', 'Tipo (Persona o Empresa)', 0, ['tipo', 'tipo cliente', 'tipo de cliente']],
-    ['medico', `${TT('medico', 's', '', 'l', 'C')} que lo recomienda`, 0, ['medico', 'prescriptor', 'doctor', 'recomendado por']],
+    ['medico', `${TT('medico', 's', '', 'l', 'C')} de referencia`, 0, ['medico', 'prescriptor', 'doctor', 'recomendado por']],
     ['nota', 'Notas', 0, ['notas', 'nota', 'observaciones', 'comentarios']]],
   productos: [
     ['nombre', 'Nombre', 1, ['nombre', 'producto', 'articulo', 'name', 'descripcion corta']],
@@ -16078,7 +16078,7 @@ abrirFicha = (orig => async function (id, ...a) { const r = await orig.call(this
 
 
 /* v2.125.0 · Nueva venta y Oportunidades. Un solo recorrido para vender (antes «Registrar llamada» y «+ Nuevo pedido» por separado):
-   1 cliente (buscar o ficha nueva, con lo que ya sabemos de él), 2 qué quiere (productos y unidades, quién lo recomienda, cómo llegó),
+   1 cliente (buscar o ficha nueva, con lo que ya sabemos de él), 2 qué quiere (productos y unidades, médico de referencia, cómo llegó),
    3 cómo termina (pedido o motivo de no compra y cuándo volver a llamar). Con el extra «Oportunidades» de la organización, cada venta
    queda registrada con su día y hora, lo que quería y cuánto, se cierre con pedido o no; sin él, el recorrido lleva al pedido. */
 function hayOportunidades() { return ((typeof PLAN_ACTUAL !== 'undefined' && PLAN_ACTUAL && PLAN_ACTUAL.extras) || []).includes('oportunidades'); }
@@ -16115,7 +16115,7 @@ async function editorOportunidad(l, previa) {
     <div class="llpaso" id="nvp1"><span class="lln">1</span><b>Cliente</b><div id="nvcli"></div><div id="nvctx" class="nvctx"></div></div>
     ${reg ? `<div class="llpaso" id="nvp2"><span class="lln">2</span><b>Qué quiere</b>
       <div id="nvint"></div>
-      <label>${TT('medico', 's', '', 'l', 'C')} o centro que lo recomienda</label><div id="nvmed"></div>
+      <label>${TT('medico', 's', '', 'l', 'C')} o centro de referencia</label><div id="nvmed"></div>
       <div class="sm" style="margin-top:4px">Si no está en la base, escribe su nombre: se guarda igualmente para las métricas.</div>
       <label>Cómo llegó</label><div class="chipsw" id="nvori">${chips(CAT.origen_oportunidad || [], origen, 'data-nvo')}</div>
       <label>Motivo</label><div class="chipsw" id="nvmot">${chips(CAT.motivo_llamada || [], motivo, 'data-nvm')}</div>
@@ -16351,15 +16351,15 @@ pintarLlamadas = async function () {
         '<b>Cómo leerlo:</b> pedidos sobre oportunidades de cada día de la semana.') +
       card('llgori', 'Cómo llegan', (res.por_origen || []).length ? barrasR(res.por_origen.map(x => ({ n: x.origen, p: x.pedidos, t: x.n }))) : vacioGrafico('Marca en cada venta cómo llegó el cliente.'),
         '<b>Cómo leerlo:</b> pedidos sobre oportunidades por canal: dónde merece la pena invertir.') +
-      card('llgmed', `Quién los recomienda`, (res.por_medico || []).length ? barrasR(res.por_medico.map(x => ({ n: x.medico, p: x.pedidos, t: x.n }))) : vacioGrafico(`Verás qué ${TT('medico', 'p', '', 'l', 'l')} y centros mandan clientes.`),
+      card('llgmed', `Por ${TT('medico', 's', '', 'l', 'l')} de referencia`, (res.por_medico || []).length ? barrasR(res.por_medico.map(x => ({ n: x.medico, p: x.pedidos, t: x.n }))) : vacioGrafico(`Verás qué ${TT('medico', 'p', '', 'l', 'l')} y centros mandan clientes.`),
         `<b>Cómo leerlo:</b> ${TT('medico', 's', 'un', 'C', 'l')} con muchas oportunidades y pocos pedidos es una oportunidad de seguimiento.`) +
-      card('llcom', `Por comercial ${TT('medico', 's', 'del', 'l', 'l')}`, (res.por_comercial || []).length ? barrasR(res.por_comercial.map(x => ({ n: x.comercial, p: x.pedidos, t: x.n }))) : vacioGrafico('Aparecerá con oportunidades recomendadas.'),
+      card('llcom', `Por comercial ${TT('medico', 's', 'del', 'l', 'l')}`, (res.por_comercial || []).length ? barrasR(res.por_comercial.map(x => ({ n: x.comercial, p: x.pedidos, t: x.n }))) : vacioGrafico(`Aparecerá cuando las oportunidades tengan ${TT('medico', 's', '', 'l', 'l')} de referencia.`),
         `<b>Cómo leerlo:</b> el volumen que genera el trabajo de cada zona.`);
     const tamL = tamPagina(); LLPAG = Math.min(LLPAG, Math.max(0, Math.ceil(lista.length / tamL) - 1));
     const lvis = lista.slice(LLPAG * tamL, LLPAG * tamL + tamL);
     const interes = x => (x.interes || []).map(y => `${y.producto} × ${num(y.unidades)}`).join(', ');
     $('lllista').innerHTML = lista.length ? `<div class="dgrid-wrap"><div class="dgrid llam opor">
-      <div class="dh"><span>Fecha</span><span>Cliente</span><span>Qué quiere</span><span>Recomienda</span><span>Cómo termina</span><span>Próximo paso</span><span>Atendió</span></div>
+      <div class="dh"><span>Fecha</span><span>Cliente</span><span>Qué quiere</span><span>${TT('medico', 's', '', 'l', 'C')}</span><span>Cómo termina</span><span>Próximo paso</span><span>Atendió</span></div>
       ${lvis.map(x => `<button class="dr" data-ll="${x.id}"><span>${new Date(x.fecha).toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' })}<span class="sm">${esc(x.origen || x.direccion || '')}</span></span>
         <span><b>${esc(x.cliente || x.nombre || '—')}</b><span class="sm">${esc(x.tel_cliente || x.telefono || '')}</span></span>
         <span class="corta">${esc(interes(x) || '—')}${x.importe_estimado ? `<span class="sm">${eurI(x.importe_estimado)}</span>` : ''}</span>
@@ -16385,7 +16385,7 @@ function orgExtras(c, l) {
     $('dbody').innerHTML = `<div class="fh"><div><h2>Extras de ${esc(o.nombre)}</h2><div class="sm">Lo que tiene contratado aparte de su plan</div></div>
         <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
       <label class="chk"><input type="checkbox" id="oxopor" ${act.includes('oportunidades') ? 'checked' : ''}> <span><b>Oportunidades</b>
-        <span class="sm">Registro de cada venta, se cierre con pedido o no: día y hora, qué producto y cuántas unidades quería, quién lo recomienda y cómo llegó, con sus métricas.</span></span></label>
+        <span class="sm">Registro de cada venta, se cierre con pedido o no: día y hora, qué producto y cuántas unidades quería, su ${TT('medico', 's', '', 'l', 'l')} de referencia y cómo llegó, con sus métricas.</span></span></label>
       <label class="chk"><input type="checkbox" id="oxport" ${act.includes('portal') ? 'checked' : ''}> <span><b>Portal ${TT('medico', 's', 'del', 'l', 'l')}</b>
         <span class="sm">En su informe, la constancia de sus ${TT('paciente', 'p', '', 'l', 'l')} (solo cifras), pedir material y escribir dudas a su comercial.</span></span></label>
       <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>Cancelar</button><button class="btn" id="oxok">Guardar</button></div>`;
@@ -20847,3 +20847,8 @@ verPedido = (orig => async function (id, ...a) {
   } catch (e) {}
   return r;
 })(verPedido);
+
+/* v2.194.0 · Sin «recomendación» en los textos (decisión de Eric, 6/10/2026: puede leerse como una contrapartida con los profesionales).
+   El canal del pedido «Recomendación a paciente» pasa a «Venta al paciente» (frente a «Venta a centro»), y «… que lo recomienda» /
+   «Quién los recomienda» pasan a «… de referencia», con el vocabulario de cada empresa; «Recomendaciones de rutas» pasa a «Rutas
+   sugeridas». Cambiado en su sitio (reemplazos2194). Las demos (sql/demo/generar_demos.py) usan «Activo» y «Visita con pedido». */
