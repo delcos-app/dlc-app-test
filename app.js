@@ -585,8 +585,8 @@ async function pintarFichaBase(id) {
       ${c.lat ? `<div class="sm" style="margin-top:6px"><button class="lnk" type="button" data-nav="${navAttr([c.lat, c.lon])}">Cómo llegar</button></div>` : ''}
     </div>`).join('')}
     <div class="blk"><h3>${TT('visita', 'p', '', 'l', 'C')}</h3>
-      ${vis.length ? vis.slice(0, 10).map(v => `<div style="padding:7px 0;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:10px;align-items:flex-start">
-        <span><b>${fechaCorta(v.fecha)}</b> · ${esc((v.resultados || []).join(' + ') || 'Sin resultado')}
+      ${vis.length ? vis.slice(0, 10).map(v => `<div data-vrow="${v.id}" style="padding:7px 0;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:10px;align-items:flex-start">
+        <span><b>${fechaCorta(v.fecha)}</b>${v.modo === 'telefono' ? ' · Por teléfono' : v.modo === 'video' ? ' · Por videollamada' : ''} · ${esc((v.resultados || []).join(' + ') || 'Sin resultado')}
           ${v.muestras ? ` · ${v.muestras} muestras` : ''}
           ${v.nota ? `<div class="sm">${esc(v.nota)}</div>` : ''}
           ${v.proxima_fecha ? `<div class="sm">Próxima: ${fechaCorta(v.proxima_fecha)} · ${esc(v.proxima_accion || '')}</div>` : ''}</span>
@@ -20510,4 +20510,117 @@ async function moverTarea(id, dir) {
   if (b) b.focus({ preventScroll: true });
   const { data: r, error } = await db.rpc('ordenar_tareas', { p_ids: nuevo.map(t => t.id) });
   if (error || (r && r.ok === false)) { toast('No se ha podido guardar el orden', true); TAREAS_DIA = null; agRefrescoQuieto(null, { cifras: false }); }
+}
+
+/* v2.191.0 · Visita a distancia y fotos de la visita (primera tanda del estudio por sectores, SQL 118).
+   - Al registrar una visita se elige cómo fue: Presencial (por defecto), Por teléfono o Por videollamada (actividades.modo). En el historial
+     de la ficha, las que no son presenciales lo dicen.
+   - Fotos de la visita (lineal, exposición, material colocado…): se reducen a 1600 px en JPEG como los justificantes y se guardan en
+     actividad_fotos al registrar la visita. Sin conexión la visita se guarda igual y las fotos se añaden después desde su historial
+     («📷 Fotos»), donde también se ven y se borran. */
+const MODOS_VISITA = [['presencial', 'Presencial'], ['telefono', 'Teléfono'], ['video', 'Videollamada']];
+const FOTOS_VISITA_MAX = 6;
+let VISITA_ACTUAL = null;   // { id, modo, fotos } de la ventana «Registrar visita» abierta
+
+async function leerFotoVisita(f) {
+  if (!/^image\//.test(f.type)) { toast('Elige una foto', true); return null; }
+  return leerJustificante(f);
+}
+function pintarFotosVisita(caja, fotos, quitar) {
+  caja.innerHTML = fotos.map((f, i) => `<span class="vfoto"><img alt="Foto ${i + 1}" src="data:${f.tipo};base64,${f.datos}">
+    ${quitar ? `<button type="button" class="vfquitar" data-vfq="${i}" aria-label="Quitar la foto">✕</button>` : ''}</span>`).join('');
+  if (quitar) caja.querySelectorAll('[data-vfq]').forEach(b => b.onclick = () => quitar(+b.dataset.vfq));
+}
+
+abrirVisitaBase = (orig => async function (id, ...r) {
+  const res = await orig.call(this, id, ...r);
+  const d = $('dbody'), g = d && $('vguardar') && d.querySelector('.g2');
+  if (!g || $('vmodo')) return res;
+  VISITA_ACTUAL = { id, modo: 'presencial', fotos: [] };
+  g.insertAdjacentHTML('afterend', `<label>Cómo fue</label>
+    <div class="segs" id="vmodo" role="group" aria-label="Cómo fue">${MODOS_VISITA.map(([k, t]) => `<button type="button" data-vmodo="${k}" class="${k === 'presencial' ? 'on' : ''}" aria-pressed="${k === 'presencial'}">${t}</button>`).join('')}</div>`);
+  d.querySelectorAll('[data-vmodo]').forEach(b => b.onclick = () => {
+    if (!VISITA_ACTUAL) return;
+    VISITA_ACTUAL.modo = b.dataset.vmodo;
+    d.querySelectorAll('[data-vmodo]').forEach(x => { x.classList.toggle('on', x === b); x.setAttribute('aria-pressed', String(x === b)); });
+  });
+  const nota = $('vn');
+  if (nota) nota.insertAdjacentHTML('afterend', `<div class="vfotosw"><label class="btn sec" id="vfotobtn" style="display:inline-flex">${svgIco(ICON_NOM.camera)} Añadir foto<input type="file" id="vfotof" accept="image/*" data-fp="1" hidden multiple></label>
+    <span class="sm">Lineal, exposición, material colocado… (hasta ${FOTOS_VISITA_MAX})</span><div class="vfotos" id="vfotos"></div></div>`);
+  const pintar = () => pintarFotosVisita($('vfotos'), VISITA_ACTUAL ? VISITA_ACTUAL.fotos : [], i => { VISITA_ACTUAL.fotos.splice(i, 1); pintar(); });
+  if ($('vfotof')) $('vfotof').onchange = async e => {
+    for (const f of [...e.target.files]) {
+      if (!VISITA_ACTUAL) break;
+      if (VISITA_ACTUAL.fotos.length >= FOTOS_VISITA_MAX) { toast(`Como mucho ${FOTOS_VISITA_MAX} fotos por ${TT('visita', 's', '', 'l', 'l')}`, true); break; }
+      const j = await leerFotoVisita(f); if (j) VISITA_ACTUAL.fotos.push(j);
+    }
+    e.target.value = ''; pintar();
+  };
+  return res;
+})(abrirVisitaBase);
+$('dlg').addEventListener('close', () => { setTimeout(() => { if (!$('dlg').open) VISITA_ACTUAL = null; }, 0); });
+
+async function subirFotosVisita(actividad, fotos) {
+  for (const f of fotos) {
+    const { error } = await db.from('actividad_fotos').insert({ actividad_id: actividad, nombre: f.nombre, tipo: f.tipo, tamano: f.tamano, datos: f.datos });
+    if (error) { toast(`${TT('visita', 's', '', 'l', 'C', 'guardado')}, pero no se ha podido subir una foto: añádela desde su historial`, true); return false; }
+  }
+  return true;
+}
+escribirRpc = (orig => async function (fn, payload, ...a) {
+  const va = VISITA_ACTUAL;
+  if (fn !== 'registrar_actividad' || !va || !payload || !payload.p || payload.p.cuenta_id !== va.id) return orig.call(this, fn, payload, ...a);
+  payload.p.modo = va.modo;
+  VISITA_ACTUAL = null;
+  const r = await orig.call(this, fn, payload, ...a);
+  if (va.fotos.length && r && !r.error) {
+    if (r.data && r.data.id) subirFotosVisita(r.data.id, va.fotos);
+    else setTimeout(() => toast('Sin conexión: las fotos no se han guardado. Añádelas desde su historial cuando vuelva la conexión', true), 2600);
+  }
+  return r;
+})(escribirRpc);
+
+// Historial de la ficha: cuántas fotos tiene cada visita y la ventana para verlas, añadir o borrar
+abrirFicha = (orig => async function (id, ...a) {
+  const r = await orig.call(this, id, ...a);
+  try {
+    const filas = [...document.querySelectorAll('#fbody [data-vrow]')];
+    if (filas.length) {
+      const { data } = await db.from('actividad_fotos').select('actividad_id').in('actividad_id', filas.map(f => f.dataset.vrow));
+      const n = {}; (data || []).forEach(x => { n[x.actividad_id] = (n[x.actividad_id] || 0) + 1; });
+      filas.forEach(f => {
+        if (f.querySelector('[data-vfotos]')) return;
+        const k = n[f.dataset.vrow] || 0, sitio = f.querySelector('span');
+        if (sitio && (k || f.querySelector('[data-editv]'))) sitio.insertAdjacentHTML('beforeend', `<div><button type="button" class="lnk vfotoslnk" data-vfotos="${f.dataset.vrow}">${svgIco(ICON_NOM.camera)} ${k ? (k === 1 ? '1 foto' : k + ' fotos') : 'Añadir fotos'}</button></div>`);
+      });
+      document.querySelectorAll('#fbody [data-vfotos]').forEach(b => b.onclick = () => verFotosVisita(b.dataset.vfotos, id));
+    }
+  } catch (e) {}
+  return r;
+})(abrirFicha);
+
+async function verFotosVisita(actividad, cuenta) {
+  const { data, error } = await db.from('actividad_fotos').select('id,nombre,tipo,datos,creado_por').eq('actividad_id', actividad).order('creado_en');
+  if (error) { toast('No se han podido abrir las fotos', true); return; }
+  const l = data || [];
+  $('dlg2body').innerHTML = `<div class="fh"><div><h2>Fotos de ${TT('visita', 's', 'el', 'l', 'l')}</h2><div class="sm">${l.length ? (l.length === 1 ? '1 foto' : l.length + ' fotos') : 'Todavía no hay fotos'}</div></div>
+      <button class="x" data-cerrar2 aria-label="Cerrar">✕</button></div>
+    <div class="vfotos grande">${l.map(f => `<span class="vfoto"><img alt="${esc(f.nombre || 'Foto')}" src="data:${esc(f.tipo)};base64,${f.datos}">
+      ${f.creado_por === PERFIL.id || puede('administrar') ? `<button type="button" class="vfquitar" data-vfdel="${f.id}" aria-label="Borrar la foto">✕</button>` : ''}</span>`).join('')}</div>
+    <div class="acts" style="justify-content:flex-end"><label class="btn sec" style="display:inline-flex">${svgIco(ICON_NOM.camera)} Añadir foto<input type="file" id="vfmas" accept="image/*" data-fp="1" hidden multiple></label>
+      <button type="button" class="btn" data-cerrar2>Hecho</button></div>`;
+  $('dlg2body').querySelectorAll('[data-vfdel]').forEach(b => b.onclick = async () => {
+    if (!await preguntar('La foto desaparece de ' + TT('visita', 's', 'este', 'l', 'l') + '.', { titulo: '¿Borrar la foto?', ok: 'Borrar', peligro: true })) return;
+    const { error: e2 } = await db.from('actividad_fotos').delete().eq('id', b.dataset.vfdel);
+    if (e2) { toast('No se ha podido borrar', true); return; }
+    toast('Foto borrada'); verFotosVisita(actividad, cuenta); if (FICHA_ID === cuenta) abrirFicha(cuenta);
+  });
+  $('vfmas').onchange = async e => {
+    const nuevas = [];
+    for (const f of [...e.target.files].slice(0, Math.max(0, FOTOS_VISITA_MAX - l.length))) { const j = await leerFotoVisita(f); if (j) nuevas.push(j); }
+    if (e.target.files.length > FOTOS_VISITA_MAX - l.length) toast(`Como mucho ${FOTOS_VISITA_MAX} fotos por ${TT('visita', 's', '', 'l', 'l')}`, true);
+    if (!nuevas.length) return;
+    if (await subirFotosVisita(actividad, nuevas)) { toast(nuevas.length === 1 ? 'Foto añadida' : 'Fotos añadidas'); verFotosVisita(actividad, cuenta); if (FICHA_ID === cuenta) abrirFicha(cuenta); }
+  };
+  if (!$('dlg2').open) $('dlg2').showModal();
 }
