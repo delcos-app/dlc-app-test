@@ -3296,6 +3296,18 @@ html.cambiando-org #bootsplash,html.cambiando-org #bootsplash.hide{display:grid!
 .cicobj label{display:grid;grid-template-columns:auto minmax(0,1fr) 100px;gap:10px;align-items:center;margin:0}
 .cictab td.cicaviso{color:var(--warn);font-weight:700}
 @media (max-width:760px){.cicres{grid-template-columns:minmax(0,1fr)}.cicrow{flex-wrap:wrap}.cicrow .tx{flex-basis:calc(100% - 50px)}.cicacc,.cicacc input[type=search],.cicacc select{width:100%;min-width:0}}
+/* v2.198.0 · Cobertura por producto */
+.cobgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px}
+.cobcard{margin:0;padding:14px 16px;display:grid;gap:10px;align-content:start}
+.cobcab{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.cobcab h2{margin:0;padding:0}
+.cobtot{font:800 22px Manrope,sans-serif;color:var(--navy,#17457A)}
+.cobf{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center}
+.cobn{white-space:nowrap;font-size:14px}
+.cobfal summary{cursor:pointer;font-weight:600;padding:4px 0}
+.cobfal .lista{margin-top:6px}
+.cobok{margin:0}
+.vprodtx{margin-top:2px}
 </style>
 </head>
 <body>
@@ -3434,6 +3446,6 @@ try{var co=sessionStorage.getItem('dlc-cambio-org');if(co!==null||localStorage.g
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.197.0"></script>
+<script src="./app.js?v=2.198.0"></script>
 </body>
 </html>

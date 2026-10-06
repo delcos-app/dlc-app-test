@@ -21165,7 +21165,7 @@ aplicarPermisosMenu = (orig => function (...a) { try { menuCiclo(); } catch (e) 
 PAGINAS.ciclo = { permiso: () => !ES_MEDICO() && puedeModulo('agenda') };
 Object.defineProperty(PAGINAS.ciclo, 't', { get: () => `Ciclo de ${TT('visita', 'p', '', 'l', 'l')}` });
 Object.defineProperty(PAGINAS.ciclo, 'd', { get: () => `${TT('medico', 'p', '', 'l', 'C')} en A, B y C, y las ${TT('visita', 'p', '', 'l', 'l')} que le tocan a cada uno en cada ciclo` });
-Object.defineProperty(PAGINAS.ciclo, 'tabs', { get: () => [['ciclo', 'Este ciclo', () => pintarCiclo()], ['clasificar', 'Clasificar', () => pintarClasificar()]].concat(VE_TODO() ? [['equipo', 'Equipo', () => pintarCicloEquipo()]] : []) });
+Object.defineProperty(PAGINAS.ciclo, 'tabs', { get: () => [['ciclo', 'Este ciclo', () => pintarCiclo()], ['cobertura', 'Por producto', () => pintarCobertura()], ['clasificar', 'Clasificar', () => pintarClasificar()]].concat(VE_TODO() ? [['equipo', 'Equipo', () => pintarCicloEquipo()]] : []) });
 const cicUsuario = () => VE_TODO() ? (CIC_DE || null) : PERFIL.id;
 async function cicSelectorDe() {
   if (!VE_TODO()) return '';
@@ -21303,3 +21303,105 @@ abrirFicha = (orig => async function (id, ...a) {
 $('dlg').addEventListener('close', () => { if (TAB === 'ciclo' && $('cfgcuerpo')) setTimeout(() => { if (!$('dlg').open && TAB === 'ciclo') (PAGINAS.ciclo.tabs.find(x => x[0] === (PAG_TAB.ciclo || 'ciclo')) || PAGINAS.ciclo.tabs[0])[2](); }, 300); });
 $('ficha').addEventListener('close', () => { if (TAB === 'ciclo' && $('cfgcuerpo')) setTimeout(() => { if (!$('ficha').open && TAB === 'ciclo') (PAGINAS.ciclo.tabs.find(x => x[0] === (PAG_TAB.ciclo || 'ciclo')) || PAGINAS.ciclo.tabs[0])[2](); }, 300); });
 try { menuCiclo(); } catch (e) {}
+/* v2.198.0 · Cobertura por producto en el ciclo (segunda tanda, «Panel y ciclos», SQL 124). Decisiones de Eric: la cobertura mide los
+   productos presentados en las visitas, y solo salen los que la administración marca como «Se promociona en las visitas».
+   - Producto: casilla «Se promociona en las visitas».
+   - Registrar visita: «Productos presentados» (los que se promocionan); el historial de la ficha dice qué se presentó.
+   - Ciclo de visitas → «Por producto»: por cada producto, cuántos de A, B y C lo han oído este ciclo y a quiénes les falta (con «+ Cita»). */
+let PROMO_PRODS = null;   // [{ id, nombre }] de los productos que se promocionan (última lista leída)
+async function productosPromocionados() {
+  try {
+    const { data, error } = await db.from('productos').select('id,nombre,estado').eq('promocionado', true).order('nombre');
+    if (!error) PROMO_PRODS = (data || []).filter(p => (p.estado || 'Activo') !== 'Descatalogado').map(p => ({ id: p.id, nombre: p.nombre }));
+  } catch (e) {}
+  return PROMO_PRODS || [];
+}
+editorProducto = (orig => function (p, ...r) {
+  const x = orig.call(this, p, ...r);
+  setTimeout(async () => {
+    if (!puede('administrar') || !$('dbody') || !$('prok') || $('prpromo') || !p || !p.id) return;
+    const ref = $('dbody').querySelector('.acts:last-of-type'); if (!ref) return;
+    const { data: m } = await db.from('productos').select('promocionado').eq('id', p.id).maybeSingle();
+    if (!$('dbody') || $('prpromo') || !m) return;
+    ref.insertAdjacentHTML('beforebegin', `<div class="blk" id="prpromo"><h3>Promoción</h3>
+      <label class="opt"><input type="checkbox" id="prpromoc" ${m.promocionado ? 'checked' : ''}> Se promociona en las ${TT('visita', 'p', '', 'l', 'l')}</label>
+      <p class="sm">Sale en «Registrar ${TT('visita', 's', '', 'l', 'l')}» para marcarlo como presentado, y en la cobertura por producto del ciclo.</p></div>`);
+    $('prpromoc').onchange = async e => {
+      const { error } = await db.from('productos').update({ promocionado: e.target.checked }).eq('id', p.id);
+      toast(error ? 'No se ha podido guardar: ' + error.message : (e.target.checked ? 'Se promociona en las ' + TT('visita', 'p', '', 'l', 'l') : 'Ya no se promociona'), !!error);
+      if (!error) PROMO_PRODS = null;
+    };
+  }, 140);
+  return x;
+})(editorProducto);
+
+abrirVisitaBase = (orig => async function (id, ...r) {
+  const res = await orig.call(this, id, ...r);
+  try {
+    const d = $('dbody'), ancla = $('vmodo');
+    if (!d || !ancla || $('vprods') || !VISITA_ACTUAL || VISITA_ACTUAL.id !== id) return res;
+    const l = await productosPromocionados();
+    if (!l.length || !$('vmodo') || $('vprods') || !VISITA_ACTUAL || VISITA_ACTUAL.id !== id) return res;
+    VISITA_ACTUAL.productos = [];
+    ancla.insertAdjacentHTML('afterend', `<label>Productos presentados</label>
+      <div class="opciones" id="vprods">${l.map(p => `<button type="button" class="opt" data-vprod="${p.id}" aria-pressed="false"><span class="mk"></span>${esc(p.nombre)}</button>`).join('')}</div>`);
+    d.querySelectorAll('[data-vprod]').forEach(b => b.onclick = () => {
+      if (!VISITA_ACTUAL) return;
+      const on = b.getAttribute('aria-pressed') !== 'true'; b.setAttribute('aria-pressed', String(on));
+      VISITA_ACTUAL.productos = [...d.querySelectorAll('[data-vprod][aria-pressed=true]')].map(x => x.dataset.vprod);
+    });
+  } catch (e) {}
+  return res;
+})(abrirVisitaBase);
+escribirRpc = (orig => async function (fn, payload, ...a) {
+  const va = VISITA_ACTUAL;
+  if (fn === 'registrar_actividad' && va && va.productos && payload && payload.p && payload.p.cuenta_id === va.id) payload.p.productos = va.productos.slice();
+  return orig.call(this, fn, payload, ...a);
+})(escribirRpc);
+
+// Historial de la ficha: qué productos se presentaron en cada visita
+abrirFicha = (orig => async function (id, ...a) {
+  const r = await orig.call(this, id, ...a);
+  try {
+    const filas = [...document.querySelectorAll('#fbody [data-vrow]')];
+    if (!filas.length || document.querySelector('#fbody .vprodtx')) return r;
+    const { data } = await db.from('actividades').select('id,productos').in('id', filas.map(f => f.dataset.vrow));
+    const ids = [...new Set((data || []).flatMap(x => x.productos || []))];
+    if (!ids.length || FICHA_ID !== id) return r;
+    const { data: ps } = await db.from('productos').select('id,nombre').in('id', ids);
+    const nom = Object.fromEntries((ps || []).map(p => [p.id, p.nombre]));
+    (data || []).forEach(x => {
+      const f = document.querySelector(`#fbody [data-vrow="${x.id}"]`), sitio = f && f.querySelector('span');
+      const n = (x.productos || []).map(k => nom[k]).filter(Boolean);
+      if (sitio && n.length && !f.querySelector('.vprodtx')) sitio.insertAdjacentHTML('beforeend', `<div class="sm vprodtx">Presentado: ${n.map(esc).join(', ')}</div>`);
+    });
+  } catch (e) {}
+  return r;
+})(abrirFicha);
+
+// Ciclo de visitas → «Por producto»
+async function pintarCobertura() {
+  const caja = $('cfgcuerpo'); if (!caja) return;
+  const [{ data: d, error }, sel] = await Promise.all([db.rpc('ciclo_cobertura', { p_usuario: cicUsuario() }), cicSelectorDe()]);
+  if (!$('cfgcuerpo') || TAB !== 'ciclo') return;
+  if (error || !d) { caja.innerHTML = '<div class="vacio">No se ha podido cargar la cobertura.</div>'; return; }
+  const l = d.productos || [];
+  const fila = (k, x) => { const p = x.cuentas ? Math.round(x.presentado / x.cuentas * 100) : 0;
+    return `<div class="cobf">${cicPill(k)}<span class="cicbar"><i style="width:${p}%"></i></span><span class="cobn"><b>${num(x.presentado)} de ${num(x.cuentas)}</b> · ${p}%</span></div>`; };
+  caja.innerHTML = `<div class="cicpag"><div class="ciccab"><div><b>${esc(cicNombre(d.meses).replace(/^./, c => c.toUpperCase()))} del ${fechaCorta(d.desde)} al ${fechaCorta(d.hasta)}</b>
+      <span class="sm">Cuántos ${TT('medico', 'p', '', 'l', 'l')} de cada clase han oído hablar de cada producto en sus ${TT('visita', 'p', '', 'l', 'l')} de este ${cicNombre(d.meses)}</span></div>
+      <span class="cicacc">${sel}</span></div>
+    ${!l.length ? `<div class="vacio">Ningún producto se promociona todavía.${puede('administrar') ? ' Márcalo en Productos: abre el producto y activa «Se promociona en las ' + TT('visita', 'p', '', 'l', 'l') + '».' : ''}</div>`
+    : !d.cuentas ? `<div class="vacio">Todavía no hay ${TT('medico', 'p', '', 'l', 'l')} en A, B o C: la cobertura se mide sobre los clasificados. <button type="button" class="btn sec" id="cobclas">Clasificar</button></div>`
+    : `<div class="cobgrid">${l.map(p => { const tot = (p.clases || []).reduce((s, x) => ({ c: s.c + x.cuentas, p: s.p + x.presentado }), { c: 0, p: 0 });
+        return `<section class="card cobcard"><div class="cobcab"><h2>${esc(p.nombre)}</h2><span class="cobtot">${tot.c ? Math.round(tot.p / tot.c * 100) : 0}%</span></div>
+          ${(p.clases || []).map(x => fila(x.clase, x)).join('')}
+          ${(p.faltan || []).length ? `<details class="cobfal"><summary>A quién le falta${tot.c - tot.p > (p.faltan || []).length ? ` (los ${p.faltan.length} primeros de ${num(tot.c - tot.p)})` : ` (${num(p.faltan.length)})`}</summary>
+            <div class="lista">${p.faltan.map(m => `<div class="item cicrow">${cicPill(m.clase)}<span class="tx"><button type="button" class="lnk" data-cfi="${m.id}"><b>${esc(m.nombre)}</b></button>
+              <span class="sm">${esc([m.especialidad, m.municipio].filter(Boolean).join(' · '))}</span></span><button type="button" class="btn sec" data-ccita="${m.id}">+ Cita</button></div>`).join('')}</div></details>`
+            : '<div class="banda-ok cobok">Todos lo han oído este ' + cicNombre(d.meses) + '.</div>'}</section>`; }).join('')}</div>`}</div>`;
+  if ($('cicde')) $('cicde').onchange = e => { CIC_DE = e.target.value; pintarCobertura(); };
+  if ($('cobclas')) $('cobclas').onclick = () => { CIC_CLF = 'sin'; cicIrA('clasificar'); };
+  caja.querySelectorAll('[data-cfi]').forEach(b => b.onclick = () => abrirFicha(b.dataset.cfi));
+  caja.querySelectorAll('[data-ccita]').forEach(b => b.onclick = () => nuevaCita(b.dataset.ccita));
+}
