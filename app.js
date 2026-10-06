@@ -18273,6 +18273,10 @@ const PLAN_FILAS = () => {
     ['Oficina', null],
     ['Facturación con VeriFactu y cobros', 'Series, rectificativas y el registro de cada factura', E],
     ['Compras, proveedores y trazabilidad', 'Lo enviado, lo que está en camino y lo recibido', E],
+    ['Material en depósito', 'Lo que tienes en cada centro, lo usado y su reposición', E],   // v2.201.0
+    ['Cirugías con lote y número de serie', 'Programación, lo usado por unidad, pedido y reposición en 48 horas', E],   // v2.201.0
+    ['Concursos y contratos', 'Pliegos, lotes adjudicados y precios de contrato en los pedidos', E],   // v2.201.0
+    ['Parque instalado', 'Equipos con su número de serie, contrato, garantía y revisiones', E],   // v2.201.0
     ['Zonas, supervisión del equipo y auditoría', 'Historial de cambios de cada ficha, con deshacer', E],
     ['Servicio', null],
     ['Migración de tus datos', 'Y conexión con tu programa de gestión', M],
@@ -21134,7 +21138,7 @@ function formDeposito(acc) {
 abrirFicha = (orig => async function (id, ...a) {
   const r = await orig.call(this, id, ...a);
   try {
-    if (!$('fzcampos') || $('fdeposito')) return r;
+    if (!$('fzcampos') || $('fdeposito') || !planIncluyeSeccion('deposito')) return r;
     const { data: c } = await db.from('cuentas').select('tipo,nombre').eq('id', id).maybeSingle();
     if (!c || c.tipo !== 'Centro') return r;
     const { data: e } = await db.rpc('deposito_estado', { p_cuenta: id });
@@ -21592,7 +21596,7 @@ irEnlace = (orig => function (e) {
 abrirFicha = (orig => async function (id, ...a) {
   const r = await orig.call(this, id, ...a);
   try {
-    if (ES_MEDICO() || !$('fzcampos') || $('fcirugias')) return r;
+    if (ES_MEDICO() || !$('fzcampos') || $('fcirugias') || !planIncluyeSeccion('cirugias')) return r;
     const { data: l } = await db.from('cirugias').select('id,fecha,procedimiento,estado').or(`cirujano_id.eq.${id},hospital_id.eq.${id}`).order('fecha', { ascending: false }).limit(5);
     if (!(l || []).length || !$('fzcampos') || $('fcirugias') || FICHA_ID !== id) return r;
     $('fzcampos').insertAdjacentHTML('beforebegin', `<div class="blk" id="fcirugias"><h3>Cirugías</h3>
@@ -21817,7 +21821,7 @@ irEnlace = (orig => function (e) {
 abrirFicha = (orig => async function (id, ...a) {
   const r = await orig.call(this, id, ...a);
   try {
-    if (ES_MEDICO() || !$('fzcampos') || $('fconcursos')) return r;
+    if (ES_MEDICO() || !$('fzcampos') || $('fconcursos') || !planIncluyeSeccion('concursos')) return r;
     const { data: l } = await db.from('concursos').select('id,titulo,estado,fin,prorroga_hasta').eq('cuenta_id', id).in('estado', ['En estudio', 'Oferta enviada', 'Adjudicado']).order('creado_en', { ascending: false }).limit(6);
     if (!(l || []).length || !$('fzcampos') || $('fconcursos') || FICHA_ID !== id) return r;
     $('fzcampos').insertAdjacentHTML('beforebegin', `<div class="blk" id="fconcursos"><h3>Concursos</h3>
@@ -21840,3 +21844,244 @@ async function cargarPreciosContrato(cuenta) {
   return JSON.stringify(precios) !== antes;
 }
 const conPrecioContrato = p => { const x = p && p.id && PED_PRECIOS.precios[p.id]; return x ? Object.assign({}, p, { precio: +x.precio, contrato: x.concurso }) : p; };
+/* v2.201.0 · Parque instalado (última pieza de la tercera tanda del estudio por sectores, SQL 127). Decisiones de Eric: los equipos se dan de
+   alta a mano en la ficha o al servir un pedido de un producto «equipo», con su número de serie; los avisos de vencimiento usan los días de la empresa.
+   - Producto: «Es un equipo» y «Revisión cada N meses».
+   - Menú «Parque instalado» (en «Ventas»): revisiones que tocan en 30 días, contratos y garantías que vencen, y todos los equipos (buscador).
+   - Ventana del equipo: datos, contrato o garantía, revisiones (con «Apuntar revisión» y «Programar en la agenda») y retirarlo.
+   - Ficha: «Equipos instalados» con «+ Equipo». Pedido validado con productos «equipo»: «Dar de alta los equipos» con su número de serie.
+   Además (decisión de Eric en Web delcos): Cirugías, Material en depósito, Concursos y Parque instalado, en los planes Empresa y A medida. */
+Object.assign(PLAN_SECCIONES, { cirugias: ['empresa', 'medida'], deposito: ['empresa', 'medida'], concursos: ['empresa', 'medida'], parque: ['empresa', 'medida'] });
+['cirugias', 'concursos'].forEach(k => { const o = PAGINAS[k].permiso; PAGINAS[k].permiso = () => o() && planIncluyeSeccion(k); });
+const EQ_CONTRATOS = ['Venta', 'Alquiler', 'Cesión'];
+const EQ_REV = ['Preventiva', 'Correctiva', 'Instalación'];
+const eqVence = e => e.contrato !== 'Venta' ? e.contrato_fin : e.garantia_hasta;
+const eqDias = f => f ? Math.round((new Date(f + 'T12:00:00') - new Date(hoyISO() + 'T12:00:00')) / 864e5) : null;
+const eqRevPill = e => { const d = eqDias(e.proxima_revision); if (e.estado === 'Retirado') return '<span class="pill p-anu">Retirado</span>';
+  return d == null ? '' : d < 0 ? `<span class="pill p-urg">Revisión pasada (${fechaCorta(e.proxima_revision)})</span>` : d <= 30 ? `<span class="pill p-warn">Revisar el ${fechaCorta(e.proxima_revision)}</span>` : `<span class="pill p-per">Próxima revisión ${fechaCorta(e.proxima_revision)}</span>`; };
+const eqVencePill = e => { const f = eqVence(e), d = eqDias(f); if (d == null || e.estado === 'Retirado') return '';
+  const que = e.contrato !== 'Venta' ? 'Contrato' : 'Garantía';
+  return d < 0 ? `<span class="pill p-anu">${que} vencido</span>` : d <= Math.max(...CON_AVISOS, 0) ? `<span class="pill p-urg">${que}: ${d === 0 ? 'vence hoy' : `vence en ${num(d)} ${d === 1 ? 'día' : 'días'}`}</span>` : ''; };
+Object.assign(ICON_NOM, { monitor: '<rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/>' });
+ICO_NAV.parque = 'monitor'; ICO_MOD.parque = svgIco(ICON_NOM.monitor);
+(() => { const g = MENU_GRUPOS.find(x => x.id === 'ventas'); if (g && !g.items.includes('parque')) g.items.splice(g.items.indexOf('concursos') + 1, 0, 'parque'); })();
+function menuParque() {
+  const nav = document.querySelector('nav.main .in'); if (!nav) return;
+  let b = nav.querySelector('[data-t="parque"]');
+  if (!b) { const tras = nav.querySelector('[data-t="concursos"]') || nav.querySelector('[data-t="ventas"]'); if (!tras) return; tras.insertAdjacentHTML('afterend', '<button data-t="parque" aria-selected="false">Parque instalado</button>'); b = nav.querySelector('[data-t="parque"]'); }
+  b.classList.toggle('hide', !!(ES_MEDICO() || !puedeModulo('ventas')));
+}
+aplicarPermisosMenu = (orig => function (...a) { try { menuParque(); } catch (e) {} const r = orig.apply(this, a); try { menuParque(); } catch (e) {} return r; })(aplicarPermisosMenu);
+PAGINAS.parque = { t: 'Parque instalado', permiso: () => !ES_MEDICO() && puedeModulo('ventas') && planIncluyeSeccion('parque'), tabs: [['lista', 'Equipos', () => pintarParque()]] };
+Object.defineProperty(PAGINAS.parque, 'd', { get: () => 'Equipos instalados con su número de serie, contrato, garantía y revisiones' });
+let EQ_Q = '';
+
+async function pintarParque() {
+  const caja = $('cfgcuerpo'); if (!caja) return;
+  const [{ data, error }, { data: aj }] = await Promise.all([
+    db.from('equipos').select('id,serie,ubicacion,instalado,contrato,contrato_fin,garantia_hasta,proxima_revision,estado,cuenta_id,cuentas(nombre),productos(nombre)').order('creado_en', { ascending: false }).limit(500),
+    db.from('ajustes').select('valor').eq('clave', 'avisos_vencimiento').maybeSingle()]);
+  if (!$('cfgcuerpo') || TAB !== 'parque') return;
+  if (error) { caja.innerHTML = '<div class="vacio">No se ha podido cargar el parque instalado.</div>'; return; }
+  if (aj && aj.valor && Array.isArray(aj.valor.dias)) CON_AVISOS = aj.valor.dias.map(Number).filter(n => n > 0);
+  const l = data || [], act = l.filter(e => e.estado === 'Instalado'), hoy30 = isoMas(hoyISO(), 30), tope = Math.max(...CON_AVISOS, 0);
+  const rev = act.filter(e => e.proxima_revision && e.proxima_revision <= hoy30).sort((a, b) => a.proxima_revision.localeCompare(b.proxima_revision));
+  const ven = act.filter(e => { const d = eqDias(eqVence(e)); return d != null && d <= tope; }).sort((a, b) => String(eqVence(a)).localeCompare(String(eqVence(b))));
+  const qn = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+  const todos = l.filter(e => !EQ_Q || qn([e.serie, (e.productos || {}).nombre, (e.cuentas || {}).nombre, e.ubicacion].join(' ')).includes(qn(EQ_Q)));
+  const fila = e => `<button type="button" class="item conrow" data-eq="${e.id}"><span class="tx"><b>${esc((e.productos || {}).nombre || 'Equipo')}</b>
+      <span class="sm">${esc([e.serie ? 'nº ' + e.serie : '', (e.cuentas || {}).nombre, e.ubicacion, e.contrato].filter(Boolean).join(' · '))} · desde el ${fechaCorta(e.instalado)}</span></span>
+    <span class="cirest">${eqRevPill(e)}${eqVencePill(e)}</span></button>`;
+  const bloque = (t, l2, vacio) => `<section class="card cirbloque"><h2>${t}</h2>${l2.length ? `<div class="lista">${l2.map(fila).join('')}</div>` : `<div class="vacio vlinea">${vacio}</div>`}</section>`;
+  const yaQ = $('eqq') && document.activeElement === $('eqq');
+  caja.innerHTML = `<div class="cirpag"><div class="evcab"><button type="button" class="btn" id="eqnuevo">+ Equipo</button></div>
+    ${rev.length ? bloque('Revisiones en los próximos 30 días', rev, '') : ''}
+    ${ven.length ? bloque('Contratos y garantías que vencen', ven, '') : ''}
+    <section class="card cirbloque"><div class="cicbcab"><h2>Todos los equipos · ${num(l.length)}</h2><input id="eqq" type="search" placeholder="Nº de serie, equipo, centro…" value="${esc(EQ_Q)}" aria-label="Buscar un equipo"></div>
+      ${todos.length ? `<div class="lista">${todos.map(fila).join('')}</div>` : `<div class="vacio vlinea">${l.length ? 'Ningún equipo con esa búsqueda.' : 'Todavía no hay equipos instalados: dalos de alta aquí, en la ficha del centro o al validar el pedido de un producto «equipo».'}</div>`}</section></div>`;
+  $('eqnuevo').onclick = () => editarEquipo(null);
+  let t = null;
+  $('eqq').oninput = e => { clearTimeout(t); t = setTimeout(() => { EQ_Q = e.target.value.trim(); pintarParque(); }, 300); };
+  if (yaQ) { const i = $('eqq'); i.focus(); i.setSelectionRange(i.value.length, i.value.length); }
+  caja.querySelectorAll('[data-eq]').forEach(b => b.onclick = () => verEquipo(b.dataset.eq));
+}
+
+async function editarEquipo(e, cuenta) {
+  if (!PRODUCTOS.length) await cargarProductos();
+  const { data: pe } = await db.from('productos').select('id,nombre,es_equipo,revision_meses').order('nombre');
+  const lista = (pe || []).sort((a, b) => (b.es_equipo - a.es_equipo) || String(a.nombre).localeCompare(String(b.nombre)));
+  const x = e || { instalado: hoyISO(), contrato: 'Venta', producto_id: (lista.find(p => p.es_equipo) || {}).id, revision_meses: (lista.find(p => p.es_equipo) || {}).revision_meses || 0 };
+  $('dbody').innerHTML = `<div class="fh"><div><h2>${e ? 'Cambiar el equipo' : 'Nuevo equipo'}</h2><div class="sm">Dónde está instalado, su número de serie y sus condiciones</div></div>
+      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
+    <label>Dónde está</label><div id="eqcta"></div>
+    <div class="g2"><div><label for="eqp">Equipo</label><select id="eqp">${lista.map(p => `<option value="${p.id}" data-rm="${p.revision_meses || 0}" ${p.id === x.producto_id ? 'selected' : ''}>${esc(p.nombre)}${p.es_equipo ? '' : ' (no marcado como equipo)'}</option>`).join('')}</select></div>
+      <div><label for="eqs">Nº de serie o UDI</label><input id="eqs" value="${esc(x.serie || '')}" maxlength="120"></div></div>
+    <div class="g2"><div><label for="equ">Ubicación</label><input id="equ" value="${esc(x.ubicacion || '')}" placeholder="p. ej. Quirófano 2, planta 3"></div>
+      <div><label for="eqi">Instalado el</label><input id="eqi" type="date" value="${esc(x.instalado || '')}"></div></div>
+    <div class="g2"><div><label for="eqc">Contrato</label><select id="eqc">${EQ_CONTRATOS.map(k => `<option ${k === x.contrato ? 'selected' : ''}>${k}</option>`).join('')}</select></div>
+      <div id="eqcfw"><label for="eqcf">Fin del contrato</label><input id="eqcf" type="date" value="${esc(x.contrato_fin || '')}"></div></div>
+    <div class="g2"><div><label for="eqg">Garantía hasta</label><input id="eqg" type="date" value="${esc(x.garantia_hasta || '')}"></div>
+      <div><label for="eqr">Revisión cada (meses; 0 = sin revisiones)</label><input id="eqr" type="number" min="0" max="120" step="1" value="${+x.revision_meses || 0}"></div></div>
+    <label for="eqn">Nota</label><textarea id="eqn" rows="2">${esc(x.nota || '')}</textarea>
+    <div class="acts" style="justify-content:flex-end">${e && e.estado === 'Instalado' ? '<button type="button" class="btn sec peligro" id="eqretirar">Retirar</button>' : ''}
+      <button type="button" class="btn sec" data-cerrar>Cancelar</button><button type="button" class="btn" id="eqok">${e ? 'Guardar' : 'Dar de alta'}</button></div>`;
+  if (!$('dlg').open) $('dlg').showModal();
+  let cta = e ? { id: e.cuenta_id, nombre: (e.cuentas || {}).nombre || '' } : cuenta || null;
+  selectorMedico($('eqcta'), { valor: cta, placeholder: 'Busca el hospital o la clínica', alElegir: m => { cta = m; } });
+  const verFin = () => $('eqcfw').classList.toggle('hide', $('eqc').value === 'Venta');
+  verFin(); $('eqc').onchange = verFin;
+  $('eqp').onchange = () => { if (!e) $('eqr').value = $('eqp').selectedOptions[0].dataset.rm || 0; };
+  const fallo = er => toast(/row-level|policy/i.test(er.message) ? 'No puedes cambiar los equipos de esta ficha' : 'No se ha podido guardar: ' + er.message, true);
+  $('eqok').onclick = async ev => {
+    if (!cta || !$('eqp').value) { toast('Elige dónde está y qué equipo es', true); return; }
+    const fila = { cuenta_id: cta.id, producto_id: $('eqp').value, serie: $('eqs').value.trim() || null, ubicacion: $('equ').value.trim() || null,
+      instalado: $('eqi').value || hoyISO(), contrato: $('eqc').value, contrato_fin: $('eqc').value === 'Venta' ? null : ($('eqcf').value || null),
+      garantia_hasta: $('eqg').value || null, revision_meses: Math.min(120, Math.max(0, Math.floor(+$('eqr').value || 0))), nota: $('eqn').value.trim() || null };
+    ev.target.disabled = true;
+    const r = e ? await db.from('equipos').update(fila).eq('id', e.id).select('id').single() : await db.from('equipos').insert(fila).select('id').single();
+    ev.target.disabled = false;
+    if (r.error) { fallo(r.error); return; }
+    toast(e ? 'Equipo guardado' : 'Equipo dado de alta'); invalidarCache(); verEquipo(r.data.id);
+  };
+  if ($('eqretirar')) $('eqretirar').onclick = async () => {
+    if (!await preguntar('Queda en el historial como retirado: ya no avisa de revisiones ni vencimientos.', { titulo: '¿Retirar el equipo?', ok: 'Retirar', peligro: true })) return;
+    const { error } = await db.from('equipos').update({ estado: 'Retirado' }).eq('id', e.id);
+    if (error) { fallo(error); return; }
+    toast('Equipo retirado'); verEquipo(e.id);
+  };
+}
+
+async function verEquipo(id) {
+  const [{ data: e, error }, { data: rv }] = await Promise.all([
+    db.from('equipos').select('*,cuentas(nombre),productos(nombre)').eq('id', id).maybeSingle(),
+    db.from('equipo_revisiones').select('id,fecha,tipo,nota,hecha_por').eq('equipo_id', id).order('fecha', { ascending: false }).limit(50)]);
+  if (error || !e) { toast('No se ha encontrado el equipo', true); return; }
+  const vence = eqVence(e);
+  $('dbody').innerHTML = `<div class="fh"><div><h2>${esc((e.productos || {}).nombre || 'Equipo')}</h2><div class="sm">${e.serie ? 'Nº de serie ' + esc(e.serie) + ' · ' : ''}${esc((e.cuentas || {}).nombre || '')}</div></div>
+      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
+    <div class="cirdat"><span>Dónde</span><b><button type="button" class="lnk" data-cfi="${e.cuenta_id}">${esc((e.cuentas || {}).nombre || '')}</button>${e.ubicacion ? ' · ' + esc(e.ubicacion) : ''}</b>
+      <span>Instalado</span><b>${esc(fechaLarga(new Date(e.instalado + 'T12:00:00')))}</b>
+      <span>Contrato</span><b>${esc(e.contrato)}${e.contrato !== 'Venta' && e.contrato_fin ? ' hasta el ' + fechaCorta(e.contrato_fin) : ''}</b>
+      ${e.garantia_hasta ? `<span>Garantía</span><b>hasta el ${fechaCorta(e.garantia_hasta)}</b>` : ''}
+      <span>Revisiones</span><b>${e.revision_meses ? `cada ${e.revision_meses} ${e.revision_meses === 1 ? 'mes' : 'meses'}` : 'sin revisiones periódicas'}</b>
+      <span>Estado</span><b>${eqRevPill(e)} ${eqVencePill(e)}${e.estado === 'Instalado' && !e.proxima_revision && !vence ? '<span class="pill p-est">Instalado</span>' : ''}</b></div>
+    ${e.nota ? `<p class="sm">${esc(e.nota)}</p>` : ''}
+    <div class="evascab"><h3>Revisiones · ${(rv || []).length}</h3>${e.estado === 'Instalado' ? '<button type="button" class="btn sec" id="eqrevmas">Apuntar revisión</button>' : ''}</div>
+    <div id="eqrevf"></div>
+    ${(rv || []).length ? `<div class="lista">${rv.map(x => `<div class="fmrow"><span><b>${fechaCorta(x.fecha)}</b> · ${esc(x.tipo)}${x.nota ? `<span class="sm"> · ${esc(x.nota)}</span>` : ''}</span><button type="button" class="x" data-rvq="${x.id}" aria-label="Borrar la revisión">✕</button></div>`).join('')}</div>`
+      : '<div class="vacio vlinea">Todavía no hay revisiones apuntadas.</div>'}
+    <div class="acts" style="justify-content:flex-end">${e.estado === 'Instalado' && e.revision_meses ? '<button type="button" class="btn sec" id="eqagenda">Programar en la agenda</button>' : ''}
+      <button type="button" class="btn sec" id="eqeditar">Cambiar</button><button type="button" class="btn" data-cerrar>Hecho</button></div>`;
+  if (!$('dlg').open) $('dlg').showModal();
+  const fallo = er => toast(/row-level|policy/i.test(er.message) ? 'No puedes cambiar los equipos de esta ficha' : 'No se ha podido guardar: ' + er.message, true);
+  $('dbody').querySelectorAll('[data-cfi]').forEach(b => b.onclick = () => { $('dlg').close(); abrirFicha(b.dataset.cfi); });
+  $('eqeditar').onclick = () => editarEquipo(e);
+  if ($('eqagenda')) $('eqagenda').onclick = () => nuevaCita(e.cuenta_id, e.proxima_revision && e.proxima_revision > hoyISO() ? e.proxima_revision : hoyISO());
+  if ($('eqrevmas')) $('eqrevmas').onclick = () => {
+    $('eqrevf').innerHTML = `<div class="depbox"><div class="cong3"><div><label for="eqrf">Fecha</label><input id="eqrf" type="date" value="${hoyISO()}"></div>
+        <div><label for="eqrt">Tipo</label><select id="eqrt">${EQ_REV.map(k => `<option>${k}</option>`).join('')}</select></div>
+        <div><label for="eqrn">Nota</label><input id="eqrn" maxlength="300" placeholder="Qué se hizo"></div></div>
+      <div class="acts" style="justify-content:flex-end"><button type="button" class="btn sec" id="eqrcanc">Cancelar</button><button type="button" class="btn" id="eqrok">Apuntar</button></div></div>`;
+    $('eqrcanc').onclick = () => { $('eqrevf').innerHTML = ''; };
+    $('eqrok').onclick = async ev => {
+      ev.target.disabled = true;
+      const { error: er } = await db.from('equipo_revisiones').insert({ equipo_id: id, fecha: $('eqrf').value || hoyISO(), tipo: $('eqrt').value, nota: $('eqrn').value.trim() || null });
+      ev.target.disabled = false;
+      if (er) { fallo(er); return; }
+      toast('Revisión apuntada'); verEquipo(id);
+    };
+  };
+  $('dbody').querySelectorAll('[data-rvq]').forEach(b => b.onclick = async () => {
+    if (!await preguntar('La revisión desaparece del historial del equipo.', { titulo: '¿Borrar la revisión?', ok: 'Borrar', peligro: true })) return;
+    const { error: er } = await db.from('equipo_revisiones').delete().eq('id', b.dataset.rvq);
+    if (er) { fallo(er); return; }
+    verEquipo(id);
+  });
+}
+$('dlg').addEventListener('close', () => { if (TAB === 'parque' && $('cfgcuerpo')) setTimeout(() => { if (!$('dlg').open && TAB === 'parque') pintarParque(); }, 300); });
+
+irEnlace = (orig => function (e) {
+  const [t, id] = String(e || '').split(':');
+  if (t === 'equipo' && id) { verEquipo(id); return; }
+  return orig.call(this, e);
+})(irEnlace);
+
+// Producto: es un equipo y cada cuánto se revisa
+editorProducto = (orig => function (p, ...r) {
+  const x = orig.call(this, p, ...r);
+  setTimeout(async () => {
+    if (!puede('administrar') || !planIncluyeSeccion('parque') || !$('dbody') || !$('prok') || $('prequipo') || !p || !p.id) return;
+    const ref = $('dbody').querySelector('.acts:last-of-type'); if (!ref) return;
+    const { data: m } = await db.from('productos').select('es_equipo,revision_meses').eq('id', p.id).maybeSingle();
+    if (!$('dbody') || $('prequipo') || !m) return;
+    ref.insertAdjacentHTML('beforebegin', `<div class="blk" id="prequipo"><h3>Equipo</h3>
+      <label class="opt"><input type="checkbox" id="preqc" ${m.es_equipo ? 'checked' : ''}> Es un equipo: se instala con su número de serie</label>
+      <div class="${m.es_equipo ? '' : 'hide'}" id="preqd"><label for="preqr">Revisión cada (meses; 0 = sin revisiones)</label><input id="preqr" type="number" min="0" max="120" step="1" value="${+m.revision_meses || 0}" style="max-width:140px"></div>
+      <p class="sm">Al validar un pedido con este producto se pide el número de serie de cada unidad y queda en el parque instalado del cliente.</p></div>`);
+    const guardar = async () => {
+      $('preqd').classList.toggle('hide', !$('preqc').checked);
+      const { error } = await db.from('productos').update({ es_equipo: $('preqc').checked, revision_meses: Math.min(120, Math.max(0, Math.floor(+$('preqr').value || 0))) }).eq('id', p.id);
+      toast(error ? 'No se ha podido guardar: ' + error.message : 'Equipo: guardado', !!error);
+    };
+    $('preqc').onchange = guardar; $('preqr').onchange = guardar;
+  }, 160);
+  return x;
+})(editorProducto);
+
+// Ficha: equipos instalados
+abrirFicha = (orig => async function (id, ...a) {
+  const r = await orig.call(this, id, ...a);
+  try {
+    if (ES_MEDICO() || !planIncluyeSeccion('parque') || !$('fzcampos') || $('fequipos')) return r;
+    const { data: l } = await db.from('equipos').select('id,serie,ubicacion,estado,contrato,contrato_fin,garantia_hasta,proxima_revision,productos(nombre)').eq('cuenta_id', id).eq('estado', 'Instalado').order('instalado', { ascending: false }).limit(20);
+    if (!$('fzcampos') || $('fequipos') || FICHA_ID !== id) return r;
+    const { data: c } = await db.from('cuentas').select('tipo,nombre').eq('id', id).maybeSingle();
+    if (!(l || []).length && (!c || c.tipo !== 'Centro')) return r;
+    if (!$('fzcampos') || $('fequipos') || FICHA_ID !== id) return r;
+    $('fzcampos').insertAdjacentHTML('beforebegin', `<div class="blk" id="fequipos"><h3>Equipos instalados${(l || []).length ? ` <span class="n">${l.length}</span>` : ''}</h3>
+      ${(l || []).map(x => `<div class="fmrow"><span><button type="button" class="lnk" data-feq="${x.id}">${esc((x.productos || {}).nombre || 'Equipo')}</button><span class="sm">${x.serie ? ' · nº ' + esc(x.serie) : ''}${x.ubicacion ? ' · ' + esc(x.ubicacion) : ''}</span></span>${eqRevPill(x)}</div>`).join('') || '<p class="sm">Sin equipos instalados.</p>'}
+      <button type="button" class="btn sec" id="feqmas">+ Equipo</button></div>`);
+    $('fequipos').querySelectorAll('[data-feq]').forEach(b => b.onclick = () => { $('ficha').close(); verEquipo(b.dataset.feq); });
+    $('feqmas').onclick = () => { $('ficha').close(); editarEquipo(null, { id, nombre: (c || {}).nombre || '' }); };
+  } catch (e) {}
+  return r;
+})(abrirFicha);
+
+// Pedido validado con productos «equipo»: dar de alta los equipos con su número de serie
+verPedido = (orig => async function (id, ...a) {
+  const r = await orig.call(this, id, ...a);
+  try {
+    if (!$('dlg').open || $('pdequipos') || !planIncluyeSeccion('parque')) return r;
+    const { data: p } = await db.from('pedidos').select('estado').eq('id', id).maybeSingle();
+    if (!p || p.estado !== 'Confirmado') return r;
+    const { data: pend } = await db.rpc('equipos_pendientes_pedido', { p_pedido: id });
+    const l = (pend || []).filter(x => x.faltan > 0);
+    if (!l.length || !$('dlg').open || $('pdequipos')) return r;
+    const sitio = $('pddist') || $('pdpago') || $('dbody').querySelector('.acts:last-of-type'); if (!sitio) return r;
+    const n = l.reduce((s, x) => s + x.faltan, 0);
+    sitio.insertAdjacentHTML('beforebegin', `<div class="blk" id="pdequipos"><h3>Equipos</h3>
+      <div class="banda-aviso">${n === 1 ? 'Falta dar de alta 1 equipo' : `Faltan por dar de alta ${n} equipos`} de este pedido en el parque instalado. <button type="button" class="btn sec" id="pdeqalta">Dar de alta los equipos</button></div>
+      <div id="pdeqf"></div></div>`);
+    $('pdeqalta').onclick = () => {
+      $('pdeqf').innerHTML = `<div class="depbox"><span class="sm">Escribe el número de serie o UDI de cada unidad.</span>
+        ${l.map((x, i) => `<div><b>${esc(x.nombre)}</b> <span class="sm">· ${esc(x.cuenta || '')}</span><div class="cirser">${Array.from({ length: Math.min(x.faltan, 30) }, (_, j) => `<input data-pqs="${i}" maxlength="120" placeholder="Nº de serie de la unidad ${j + 1}" aria-label="Número de serie de la unidad ${j + 1} de ${esc(x.nombre)}">`).join('')}</div></div>`).join('')}
+        <div class="g2"><div><label for="pdeqi">Instalado el</label><input id="pdeqi" type="date" value="${hoyISO()}"></div><div><label for="pdequ">Ubicación</label><input id="pdequ" placeholder="p. ej. Quirófano 2"></div></div>
+        <div class="acts" style="justify-content:flex-end"><button type="button" class="btn" id="pdeqok">Dar de alta</button></div></div>`;
+      $('pdeqok').onclick = async ev => {
+        const filas = [];
+        l.forEach((x, i) => $('pdeqf').querySelectorAll(`[data-pqs="${i}"]`).forEach(inp => {
+          if (!inp.value.trim() || !x.cuenta_id) return;
+          filas.push({ cuenta_id: x.cuenta_id, producto_id: x.producto_id, serie: inp.value.trim(), instalado: $('pdeqi').value || hoyISO(), ubicacion: $('pdequ').value.trim() || null, revision_meses: +x.revision_meses || 0, pedido_id: id });
+        }));
+        if (!filas.length) { toast(l.some(x => !x.cuenta_id) ? 'El pedido no tiene ficha: da de alta los equipos desde la ficha del centro' : 'Escribe al menos un número de serie', true); return; }
+        ev.target.disabled = true;
+        const { error } = await db.from('equipos').insert(filas);
+        ev.target.disabled = false;
+        if (error) { toast(/row-level|policy/i.test(error.message) ? 'No puedes dar de alta equipos de esta ficha' : 'No se ha podido guardar: ' + error.message, true); return; }
+        toast(filas.length === 1 ? 'Equipo dado de alta' : `${filas.length} equipos dados de alta`); verPedido(id);
+      };
+    };
+  } catch (e) {}
+  return r;
+})(verPedido);
+try { menuParque(); candadoSecciones(); } catch (e) {}
