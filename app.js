@@ -22165,3 +22165,37 @@ aplicarPermisosMenu = (orig => function (...a) {
   try { const q = $('q'); if (q && /^Buscar /.test(q.placeholder)) q.placeholder = `Buscar ${TT('medico', 's', '', 'l', 'l')}, centro o municipio`; } catch (e) {}
   return r;
 })(aplicarPermisosMenu);
+/* v2.204.0 · Manual nuevo: un libro aparte en manual/ (decisiones de Eric: se abre desde la app, fotos y vídeos de la empresa de demostración,
+   con el vocabulario de cada empresa, y por capítulos; el primero, «Tu día»).
+   - «Manual de uso» abre el libro en otra pestaña; antes deja en el navegador las palabras de la empresa (médico, visita, paciente) y su nombre.
+   - Cada pantalla lleva un «?» junto al título que abre el manual en su capítulo (los que aún no están escritos abren la portada).
+   - El portal del profesional sigue con su manual de siempre hasta que tenga capítulo. */
+const MANUAL_ANCLA = { inicio: 'inicio', agenda: 'agenda', rutas: 'rutas', ciclo: 'visita', cirugias: 'visita', directorio: 'cartera', seguimiento: 'cartera',
+  duplicados: 'cartera', eventos: 'cartera', pacientes: 'ventas', ventas: 'ventas', concursos: 'ventas', parque: 'ventas', productos: 'oficina',
+  facturacion: 'oficina', analitica: 'oficina', config: 'configuracion', perfil: 'configuracion', empresa: 'configuracion', plan: 'configuracion', usuarios: 'configuracion' };
+function abrirManual(ancla) {
+  try {
+    localStorage.setItem('delcos-manual', JSON.stringify({ empresa: nombreApp(),
+      terminos: Object.fromEntries(Object.keys(TERM_DEF).map(k => [k, terminoDe(k)])) }));
+  } catch (e) {}
+  const url = 'manual/index.html' + (ancla ? '#' + ancla : '');
+  const w = window.open(url, '_blank');   // sin «noopener»: con él el navegador devuelve null aunque abra la pestaña
+  if (w) { try { w.opener = window; } catch (e) {} } else location.href = url;
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest('#manbtn'); if (!b || ES_MEDICO()) return;
+  e.stopImmediatePropagation(); e.preventDefault();
+  document.querySelectorAll('.umenu, #umenu').forEach(m => m.classList.add('hide'));
+  abrirManual(MANUAL_ANCLA[TAB] || '');
+}, true);
+function ponerAyudaManual() {
+  if (ES_MEDICO()) return;
+  const v = $('v-' + TAB); const h = v && v.querySelector('.saludo h1'); if (!h || h.querySelector('.manq')) return;
+  h.insertAdjacentHTML('beforeend', `<button type="button" class="manq" title="Abrir el manual de esta pantalla" aria-label="Abrir el manual de esta pantalla"></button>`);
+  h.querySelector('.manq').onclick = ev => { ev.stopPropagation(); abrirManual(MANUAL_ANCLA[TAB] || ''); };
+}
+ir = (orig => function (...a) {
+  const r = orig.apply(this, a);
+  [400, 1200, 2500].forEach(ms => setTimeout(() => { try { ponerAyudaManual(); } catch (e) {} }, ms));
+  return r;
+})(ir);

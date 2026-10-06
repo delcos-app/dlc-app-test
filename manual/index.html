@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Manual de delcos</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&display=swap">
+<link rel="stylesheet" href="manual.css?v=2">
+</head>
+<body>
+<a class="saltar" href="#lectura">Ir al contenido</a>
+<header class="barra">
+  <button type="button" class="menu" id="abrirIndice" aria-controls="indice" aria-expanded="false" aria-label="Índice">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+  <a class="marca" href="#portada"><svg viewBox="0 0 44 44" aria-hidden="true"><circle cx="20" cy="24" r="16" fill="#17457A"/><circle cx="35" cy="9" r="6" fill="#7CC3EC"/></svg>
+    <span>delcos <b>· manual</b></span></a>
+  <div class="buscar"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+    <input id="buscar" type="search" placeholder="Busca: aplazar, ruta, indicadores…" autocomplete="off" aria-label="Buscar en el manual">
+    <div class="resultados" id="resultados" hidden></div></div>
+  <a class="volver" id="volverApp" href="../index.html">Volver a la app</a>
+</header>
+<div class="libro">
+  <nav class="indice" id="indice" aria-label="Índice del manual"></nav>
+  <main id="lectura" tabindex="-1"></main>
+</div>
+<div class="visor" id="visor" hidden><button type="button" class="cerrar" id="cerrarVisor" aria-label="Cerrar">✕</button><img id="visorImg" alt=""><p id="visorPie"></p></div>
+<script src="capitulos.js?v=2"></script>
+<script src="manual.js?v=2"></script>
+</body>
+</html>

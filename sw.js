@@ -1,7 +1,7 @@
 /* DLC OS 2.0 · Service worker: la app se pide primero a la red (siempre la última versión)
    y solo se usa la copia guardada si no hay conexión. Nunca guarda datos. */
-const CACHE = 'dlc-os-2.203.0';
-const FILES = ['./', './index.html', './app.js?v=2.203.0', './config.js', './manifest.webmanifest',
+const CACHE = 'dlc-os-2.204.0';
+const FILES = ['./', './index.html', './app.js?v=2.204.0', './config.js', './manifest.webmanifest',
                './logo-app.png', './icon-192.png', './icon-512.png', './apple-touch-180.png', './favicon.svg'];
 
 self.addEventListener('install', e => {
@@ -13,6 +13,7 @@ self.addEventListener('activate', e => {
 self.addEventListener('fetch', e => {
   const u = new URL(e.request.url);
   if (e.request.method !== 'GET' || u.origin !== location.origin) return;   // datos y CDN: siempre a la red
+  if (u.pathname.includes('/manual/')) return;   // v2.204.0: el manual (fotos y vídeos) va siempre a la red y no se guarda
   e.respondWith(
     fetch(e.request, { cache: 'no-cache' }).then(r => {
       if (r && r.ok) { const copia = r.clone(); caches.open(CACHE).then(c => c.put(e.request, copia)); }
