@@ -12108,7 +12108,7 @@ function arbolConfig() {
       { k: 'inicio', ic: 'house', t: 'Inicio', d: 'Indicadores de Inicio', sub: [['kpis', 'Indicadores', () => panelDeVentana(abrirKpis)]] }]],
     ['Equipo', admin ? [
       { k: 'equipo', ic: 'users', t: 'Usuarios y roles', d: 'Personas, permisos y roles', sub: [['usuarios', 'Usuarios', pintarUsuarios2], ['roles', 'Roles y permisos', pintarRoles]] },
-      { k: 'cartera', ic: 'compass', t: `Cartera y ${TT('visita', 'p', '', 'l', 'l')}`, d: `Reglas de cartera y frecuencia de ${TT('visita', 's', '', 'l', 'l')}`, sub: [['reglas', 'Reglas de cartera', () => panelDeVentana(editorReglasCartera)], ['frec', `Frecuencia de ${TT('visita', 's', '', 'l', 'l')}`, () => panelDeVentana(editorFrecuencia)]] },
+      { k: 'cartera', ic: 'compass', t: `Cartera y ${TT('visita', 'p', '', 'l', 'l')}`, d: `Reglas de cartera y frecuencia de ${TT('visita', 's', '', 'l', 'l')}`, sub: [['reglas', 'Reglas de cartera', () => panelDeVentana(editorReglasCartera)], ['frec', `Frecuencia de ${TT('visita', 's', '', 'l', 'l')}`, () => panelDeVentana(editorFrecuencia)], ['ciclo', 'Ciclo A/B/C', () => panelDeVentana(editorCiclo)]] },
       { k: 'comis', ic: 'euro', t: 'Comisiones', d: 'Esquemas y quién cobra con cada uno', mod: 'ventas', r: () => panelDeModulo('comisiones') },
       { k: 'seguridad', ic: 'lock-keyhole', t: 'Seguridad y registro', d: 'Accesos y cambios registrados', sub: [['accesos', 'Accesos', () => panelDeModulo('accesos')], ['auditoria', 'Auditoría', () => panelDeModulo('auditoria')]] }] : []],
     ['Datos', [
@@ -21140,3 +21140,166 @@ abrirFicha = (orig => async function (id, ...a) {
   } catch (e) {}
   return r;
 })(abrirFicha);
+/* v2.197.0 · Ciclo de visitas con clasificación A/B/C (segunda tanda del estudio por sectores, SQL 123). Decisiones de Eric: cada ficha en A,
+   B o C, cada clase con sus visitas por ciclo y el ciclo configurable (de partida, trimestral: A = 3, B = 2, C = 1).
+   - Menú «Ciclo de visitas» (en «Tu día»): «Este ciclo» (cómo va cada clase y a quién le faltan visitas, con «+ Cita»), «Clasificar»
+     (A, B o C en cada ficha, con sus visitas de los últimos 12 meses como ayuda) y, para quien ve todo el equipo, «Equipo».
+   - Ficha: en el bloque «Estado», la clase (A, B, C; pulsar la marcada la quita) y las visitas de este ciclo.
+   - Configuración → Cartera y visitas → «Ciclo A/B/C» (administración): duración del ciclo y visitas de cada clase. */
+const CIC_CLASES = ['A', 'B', 'C'];
+const cicNombre = m => ({ 1: 'mes', 2: 'bimestre', 3: 'trimestre', 4: 'cuatrimestre', 6: 'semestre', 12: 'año' })[m] || 'ciclo';
+const cicVis = n => `${n} ${TT('visita', n === 1 ? 's' : 'p', '', 'l', 'l')}`;
+const cicPill = k => k ? `<span class="cicl c${k}">${k}</span>` : '<span class="cicl csin">—</span>';
+const cicSegs = (id, k, dis) => `<span class="segs cicsegs" role="group" aria-label="Clase">${CIC_CLASES.map(x => `<button type="button" data-ccl="${id}|${x}" class="${x === k ? 'on' : ''}" aria-pressed="${x === k}" ${dis ? 'disabled' : ''}>${x}</button>`).join('')}</span>`;
+let CIC_DE = '', CIC_FIL = '', CIC_CLF = 'sin', CIC_Q = '';
+Object.assign(ICON_NOM, { target: '<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>' });
+ICO_NAV.ciclo = 'target'; ICO_MOD.ciclo = svgIco(ICON_NOM.target);
+(() => { const g = MENU_GRUPOS.find(x => x.id === 'dia'); if (g && !g.items.includes('ciclo')) g.items.push('ciclo'); })();
+function menuCiclo() {
+  const nav = document.querySelector('nav.main .in'); if (!nav) return;
+  let b = nav.querySelector('[data-t="ciclo"]');
+  if (!b) { const tras = nav.querySelector('[data-t="rutas"]') || nav.querySelector('[data-t="agenda"]'); if (!tras) return; tras.insertAdjacentHTML('afterend', `<button data-t="ciclo" aria-selected="false">Ciclo de ${TT('visita', 'p', '', 'l', 'l')}</button>`); b = nav.querySelector('[data-t="ciclo"]'); }
+  b.classList.toggle('hide', !!(ES_MEDICO() || !puedeModulo('agenda')));
+}
+aplicarPermisosMenu = (orig => function (...a) { try { menuCiclo(); } catch (e) {} const r = orig.apply(this, a); try { menuCiclo(); } catch (e) {} return r; })(aplicarPermisosMenu);
+PAGINAS.ciclo = { permiso: () => !ES_MEDICO() && puedeModulo('agenda') };
+Object.defineProperty(PAGINAS.ciclo, 't', { get: () => `Ciclo de ${TT('visita', 'p', '', 'l', 'l')}` });
+Object.defineProperty(PAGINAS.ciclo, 'd', { get: () => `${TT('medico', 'p', '', 'l', 'C')} en A, B y C, y las ${TT('visita', 'p', '', 'l', 'l')} que le tocan a cada uno en cada ciclo` });
+Object.defineProperty(PAGINAS.ciclo, 'tabs', { get: () => [['ciclo', 'Este ciclo', () => pintarCiclo()], ['clasificar', 'Clasificar', () => pintarClasificar()]].concat(VE_TODO() ? [['equipo', 'Equipo', () => pintarCicloEquipo()]] : []) });
+const cicUsuario = () => VE_TODO() ? (CIC_DE || null) : PERFIL.id;
+async function cicSelectorDe() {
+  if (!VE_TODO()) return '';
+  if (!COMS.length) { try { await cargarComerciales(); } catch (e) {} }
+  return `<select id="cicde" aria-label="De quién"><option value="">Todo el equipo</option>${COMS.map(u => `<option value="${u.id}" ${CIC_DE === u.id ? 'selected' : ''}>${esc(u.nombre)}</option>`).join('')}</select>`;
+}
+const cicIrA = tab => { PAG_TAB.ciclo = tab; cargarPagina('ciclo'); };
+
+async function pintarCiclo() {
+  const caja = $('cfgcuerpo'); if (!caja) return;
+  const [{ data: d, error }, sel] = await Promise.all([db.rpc('ciclo_cuentas', { p_usuario: cicUsuario() }), cicSelectorDe()]);
+  if (!$('cfgcuerpo') || TAB !== 'ciclo') return;
+  if (error || !d) { caja.innerHTML = '<div class="vacio">No se ha podido cargar el ciclo.</div>'; return; }
+  const res = Object.fromEntries((d.resumen || []).map(x => [x.clase, x])), obj = d.objetivo || {};
+  const clasif = (d.resumen || []).reduce((s, x) => s + x.cuentas, 0);
+  const pend = (d.pendientes || []).filter(p => !CIC_FIL || p.clase === CIC_FIL);
+  const tarjeta = k => { const x = res[k] || { cuentas: 0, al_dia: 0, hechas: 0, objetivo: 0 }, p = x.objetivo ? Math.round(x.hechas / x.objetivo * 100) : 0;
+    return `<div class="card cicc">${cicPill(k)}<div class="cicct"><b>${x.cuentas ? `${num(x.al_dia)} de ${num(x.cuentas)} al día` : `Ninguno en ${k}`}</b>
+      <span class="sm">${cicVis(obj[k] || 0)} cada ${cicNombre(d.meses)}</span></div>
+      ${x.cuentas ? `<div class="cicbar"><i style="width:${p}%"></i></div><span class="sm">${num(x.hechas)} de ${cicVis(x.objetivo)} hechas · ${p}%</span>` : ''}</div>`; };
+  caja.innerHTML = `<div class="cicpag"><div class="ciccab"><div><b>${esc(cicNombre(d.meses).replace(/^./, c => c.toUpperCase()))} del ${fechaCorta(d.desde)} al ${fechaCorta(d.hasta)}</b>
+      <span class="sm">${d.quedan_dias === 1 ? 'Queda 1 día' : `Quedan ${num(d.quedan_dias)} días`} · cuentan todas las ${TT('visita', 'p', '', 'l', 'l')} registradas, también por teléfono o videollamada</span></div>
+      <span class="cicacc">${sel}${puede('administrar') ? '<button type="button" class="btn sec" id="cicajustar">Ajustar el ciclo</button>' : ''}</span></div>
+    ${d.sin_clase ? `<div class="banda-aviso cicsin">${d.sin_clase === 1 ? `1 ${TT('medico', 's', '', 'l', 'l')} sin clasificar` : `${num(d.sin_clase)} ${TT('medico', 'p', '', 'l', 'l')} sin clasificar`}: sin clase no cuentan en el ciclo.
+      <button type="button" class="btn sec" id="cicirclas">Clasificar</button></div>` : ''}
+    ${clasif ? `<div class="cicres">${CIC_CLASES.map(tarjeta).join('')}</div>
+    <section class="card cicbloque"><div class="cicbcab"><h2>Les faltan ${TT('visita', 'p', '', 'l', 'l')} este ${cicNombre(d.meses)}</h2>
+        <span class="segs" id="cicfil" role="group" aria-label="Clase">${[['', 'Todas']].concat(CIC_CLASES.map(k => [k, k])).map(([k, t]) => `<button type="button" data-cf="${k}" class="${k === CIC_FIL ? 'on' : ''}" aria-pressed="${k === CIC_FIL}">${t}</button>`).join('')}</span></div>
+      ${pend.length ? `<div class="lista">${pend.map(p => `<div class="item cicrow">${cicPill(p.clase)}
+        <span class="tx"><button type="button" class="lnk" data-cfi="${p.id}"><b>${esc(p.nombre)}</b></button>
+          <span class="sm">${esc([p.especialidad, p.municipio].filter(Boolean).join(' · '))}${p.ultima_visita ? ` · última ${TT('visita', 's', '', 'l', 'l')} ${fechaCorta(p.ultima_visita)}` : ` · sin ${TT('visita', 'p', '', 'l', 'l')}`}</span></span>
+        <span class="cicfal"><b>${p.hechas} de ${p.objetivo}</b><span class="sm">${p.faltan === 1 ? 'falta 1' : `faltan ${p.faltan}`}</span></span>
+        ${p.proxima_cita ? `<span class="pill p-per">Cita el ${fechaCorta(p.proxima_cita)}</span>` : `<button type="button" class="btn sec" data-ccita="${p.id}">+ Cita</button>`}</div>`).join('')}</div>`
+        : `<div class="vacio vlinea">${CIC_FIL ? `En ${CIC_FIL} no le falta ${TT('visita', 's', '', 'l', 'l')} a nadie.` : `Todos al día este ${cicNombre(d.meses)}.`}</div>`}</section>`
+    : `<div class="vacio">Todavía no hay ${TT('medico', 'p', '', 'l', 'l')} en A, B o C. Empieza por «Clasificar»: A para los más importantes, B para los intermedios y C para el resto.</div>`}</div>`;
+  if ($('cicde')) $('cicde').onchange = e => { CIC_DE = e.target.value; pintarCiclo(); };
+  if ($('cicajustar')) $('cicajustar').onclick = () => editorCiclo();
+  if ($('cicirclas')) $('cicirclas').onclick = () => { CIC_CLF = 'sin'; cicIrA('clasificar'); };
+  caja.querySelectorAll('#cicfil [data-cf]').forEach(b => b.onclick = () => { CIC_FIL = b.dataset.cf; pintarCiclo(); });
+  caja.querySelectorAll('[data-cfi]').forEach(b => b.onclick = () => abrirFicha(b.dataset.cfi));
+  caja.querySelectorAll('[data-ccita]').forEach(b => b.onclick = () => nuevaCita(b.dataset.ccita));
+}
+
+async function pintarClasificar() {
+  const caja = $('cfgcuerpo'); if (!caja) return;
+  const [{ data: l, error }, sel] = await Promise.all([db.rpc('cuentas_para_clasificar', { p_usuario: cicUsuario(), p_filtro: CIC_CLF, p_q: CIC_Q || null }), cicSelectorDe()]);
+  if (!$('cfgcuerpo') || TAB !== 'ciclo') return;
+  if (error) { caja.innerHTML = '<div class="vacio">No se han podido cargar las fichas.</div>'; return; }
+  const filas = l || [], fil = [['sin', 'Sin clasificar']].concat(CIC_CLASES.map(k => [k, k]), [['todas', 'Todas']]);
+  const yaQ = $('cicq') && document.activeElement === $('cicq');
+  caja.innerHTML = `<div class="cicpag"><div class="ciccab"><span class="segs" id="cicclf" role="group" aria-label="Mostrar">${fil.map(([k, t]) => `<button type="button" data-cl="${k}" class="${k === CIC_CLF ? 'on' : ''}" aria-pressed="${k === CIC_CLF}">${t}</button>`).join('')}</span>
+      <span class="cicacc"><input id="cicq" type="search" placeholder="Buscar por nombre, especialidad o municipio" value="${esc(CIC_Q)}" aria-label="Buscar">${sel}</span></div>
+    <p class="sm">Pulsa A, B o C en cada ${TT('medico', 's', '', 'l', 'l')}: <b>A</b> para los más importantes, <b>B</b> para los intermedios y <b>C</b> para el resto. Pulsar la letra marcada la quita. Las ${TT('visita', 'p', '', 'l', 'l')} de los últimos 12 meses ayudan a decidir.</p>
+    ${filas.length ? `<section class="card cicbloque"><div class="lista">${filas.map(m => `<div class="item cicrow" data-cfila="${m.id}">
+        <span class="tx"><button type="button" class="lnk" data-cfi="${m.id}"><b>${esc(m.nombre)}</b></button>
+          <span class="sm">${esc([m.especialidad, m.municipio, m.estado_comercial].filter(Boolean).join(' · '))}</span></span>
+        <span class="cicfal"><b>${num(m.actividades_12m)}</b><span class="sm">en 12 meses</span></span>
+        ${cicSegs(m.id, m.clase)}</div>`).join('')}</div></section>${filas.length >= 300 ? '<p class="sm">Se ven las 300 primeras: busca para encontrar el resto.</p>' : ''}`
+      : `<div class="vacio vlinea">${CIC_CLF === 'sin' && !CIC_Q ? `Todos están clasificados.` : 'No hay ninguno con este filtro.'}</div>`}</div>`;
+  caja.querySelectorAll('#cicclf [data-cl]').forEach(b => b.onclick = () => { CIC_CLF = b.dataset.cl; pintarClasificar(); });
+  let t = null;
+  $('cicq').oninput = e => { clearTimeout(t); t = setTimeout(() => { CIC_Q = e.target.value.trim(); pintarClasificar(); }, 350); };
+  if (yaQ) { const i = $('cicq'); i.focus(); i.setSelectionRange(i.value.length, i.value.length); }
+  if ($('cicde')) $('cicde').onchange = e => { CIC_DE = e.target.value; pintarClasificar(); };
+  caja.querySelectorAll('[data-cfi]').forEach(b => b.onclick = () => abrirFicha(b.dataset.cfi));
+}
+
+// A, B o C en cualquier sitio (página «Clasificar» y ficha): pulsar la marcada la quita
+document.addEventListener('click', async e => {
+  const b = e.target.closest('[data-ccl]'); if (!b || b.disabled) return;
+  const [id, k] = b.dataset.ccl.split('|'), grupo = b.closest('.cicsegs'), nueva = b.classList.contains('on') ? null : k;
+  grupo.querySelectorAll('button').forEach(x => x.disabled = true);
+  const { data: r, error } = await db.rpc('clasificar_cuentas', { p_ids: [id], p_clase: nueva });
+  grupo.querySelectorAll('button').forEach(x => { x.disabled = false; });
+  if (error || !r || r.ok === false) { toast(r && r.error === 'permiso' ? 'No puedes cambiar la clase de esta ficha' : 'No se ha podido guardar', true); return; }
+  grupo.querySelectorAll('button').forEach(x => { const on = x.dataset.ccl === id + '|' + nueva; x.classList.toggle('on', on); x.setAttribute('aria-pressed', String(on)); });
+  invalidarCache();
+  if (grupo.closest('#fciclo')) cicFicha(id);
+}, true);
+
+async function editorCiclo() {
+  await cargarAjustes();
+  const c = Object.assign({ meses: 3, A: 3, B: 2, C: 1 }, AJUSTES.ciclo_visitas || {});
+  $('dbody').innerHTML = `<div class="fh"><div><h2>Ciclo de ${TT('visita', 'p', '', 'l', 'l')} A/B/C</h2>
+      <div class="sm">Cuántas ${TT('visita', 'p', '', 'l', 'l')} necesita cada clase en cada ciclo. El ciclo va por el calendario: con un trimestre, de enero a marzo, de abril a junio…</div></div>
+      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
+    <label for="cicmeses">Duración del ciclo</label><select id="cicmeses">${[[1, 'Un mes'], [2, 'Dos meses'], [3, 'Un trimestre'], [4, 'Cuatro meses'], [6, 'Un semestre'], [12, 'Un año']].map(([m, t]) => `<option value="${m}" ${+c.meses === m ? 'selected' : ''}>${t}</option>`).join('')}</select>
+    <div class="cicobj">${CIC_CLASES.map(k => `<label>${cicPill(k)}<span>${TT('visita', 'p', '', 'l', 'C')} por ciclo</span><input type="number" min="0" max="31" step="1" data-cobj="${k}" value="${Math.max(0, +c[k] || 0)}" aria-label="${TT('visita', 'p', '', 'l', 'C')} de la clase ${k}"></label>`).join('')}</div>
+    <p class="sm">Con 0, esa clase no pide ${TT('visita', 'p', '', 'l', 'l')}. Cambiarlo no borra nada: solo cambia lo que se cuenta.</p>
+    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>Cancelar</button><button class="btn" id="cicok">Guardar</button></div>`;
+  if (!$('dlg').open) $('dlg').showModal();
+  $('cicok').onclick = async () => {
+    const v = { meses: +$('cicmeses').value || 3 };
+    $('dbody').querySelectorAll('[data-cobj]').forEach(i => v[i.dataset.cobj] = Math.min(31, Math.max(0, Math.floor(+i.value || 0))));
+    const { data: r, error } = await db.rpc('guardar_ajuste', { p_clave: 'ciclo_visitas', p_valor: v });
+    if (error || (r && r.ok === false)) { toast('No se ha podido guardar', true); return; }
+    AJUSTES.ciclo_visitas = v; $('dlg').close(); toast('Ciclo guardado'); invalidarCache();
+  };
+}
+
+async function pintarCicloEquipo() {
+  const caja = $('cfgcuerpo'); if (!caja) return;
+  const [{ data: l }, { data: d }] = await Promise.all([db.rpc('ciclo_equipo'), db.rpc('ciclo_rango')]);
+  if (!$('cfgcuerpo') || TAB !== 'ciclo') return;
+  const f = l || [], rg = (d || [])[0];
+  caja.innerHTML = `<div class="cicpag">${rg ? `<p class="sm">${esc(cicNombre(rg.meses).replace(/^./, c => c.toUpperCase()))} del ${fechaCorta(rg.desde)} al ${fechaCorta(rg.hasta)} · A ${cicVis(rg.obj_a)}, B ${rg.obj_b} y C ${rg.obj_c} por ${TT('medico', 's', '', 'l', 'l')}.</p>` : ''}
+    ${f.length ? `<div class="card cicbloque"><div class="dgrid-wrap"><table class="trtabla cictab"><thead><tr><th>Persona</th><th>Cartera</th><th>A</th><th>B</th><th>C</th><th>Sin clase</th><th>Al día</th><th>${TT('visita', 'p', '', 'l', 'C')} del ciclo</th></tr></thead>
+      <tbody>${f.map(x => { const cl = x.a + x.b + x.c, p = x.objetivo ? Math.round(x.hechas / x.objetivo * 100) : null;
+        return `<tr><td><button type="button" class="lnk" data-cde="${x.id}"><b>${esc(x.nombre)}</b></button><span class="sm"> · ${esc(x.rol)}</span></td><td>${num(x.cartera)}</td><td>${num(x.a)}</td><td>${num(x.b)}</td><td>${num(x.c)}</td>
+          <td class="${x.sin_clase ? 'cicaviso' : ''}">${num(x.sin_clase)}</td><td>${cl ? `${num(x.al_dia)} de ${num(cl)}` : '—'}</td>
+          <td>${p == null ? '—' : `<span class="cicbarc"><span class="cicbar"><i style="width:${p}%"></i></span>${num(x.hechas)} de ${num(x.objetivo)} · ${p}%</span>`}</td></tr>`; }).join('')}</tbody></table></div></div>
+      <p class="sm">Cada ${TT('medico', 's', '', 'l', 'l')} cuenta hasta las ${TT('visita', 'p', '', 'l', 'l')} de su clase (si tiene más, no compensan las que faltan en otro). Pulsa una persona para ver su ciclo.</p>`
+      : '<div class="vacio">Nadie del equipo tiene cartera asignada.</div>'}</div>`;
+  caja.querySelectorAll('[data-cde]').forEach(b => b.onclick = () => { CIC_DE = b.dataset.cde; cicIrA('ciclo'); });
+}
+
+// Ficha: la clase y las visitas del ciclo, en el bloque «Estado»
+async function cicFicha(id) {
+  const { data: c } = await db.rpc('ciclo_de_cuenta', { p_id: id });
+  const box = $('fciclo'); if (!c || !box || FICHA_ID !== id) return;
+  box.innerHTML = `<span class="sm cicfl">Clase</span>${puedeEditar() ? cicSegs(id, c.clase) : cicPill(c.clase)}
+    <span class="sm">${c.clase ? (c.objetivo ? `${c.hechas} de ${cicVis(c.objetivo)} este ${cicNombre(c.meses)}` : `${cicVis(c.hechas)} este ${cicNombre(c.meses)} · su clase no pide ${TT('visita', 'p', '', 'l', 'l')}`) : `Sin clasificar · ${cicVis(c.hechas)} este ${cicNombre(c.meses)}`}</span>`;
+}
+abrirFicha = (orig => async function (id, ...a) {
+  const r = await orig.call(this, id, ...a);
+  try {
+    if (ES_MEDICO() || $('fciclo') || FICHA_ID !== id) return r;
+    const est = [...$('fbody').querySelectorAll('.blk > h3')].find(h => h.textContent.trim() === 'Estado');
+    if (!est) return r;
+    est.parentElement.insertAdjacentHTML('beforeend', '<div class="fciclo" id="fciclo"></div>');
+    await cicFicha(id);
+  } catch (e) {}
+  return r;
+})(abrirFicha);
+$('dlg').addEventListener('close', () => { if (TAB === 'ciclo' && $('cfgcuerpo')) setTimeout(() => { if (!$('dlg').open && TAB === 'ciclo') (PAGINAS.ciclo.tabs.find(x => x[0] === (PAG_TAB.ciclo || 'ciclo')) || PAGINAS.ciclo.tabs[0])[2](); }, 300); });
+$('ficha').addEventListener('close', () => { if (TAB === 'ciclo' && $('cfgcuerpo')) setTimeout(() => { if (!$('ficha').open && TAB === 'ciclo') (PAGINAS.ciclo.tabs.find(x => x[0] === (PAG_TAB.ciclo || 'ciclo')) || PAGINAS.ciclo.tabs[0])[2](); }, 300); });
+try { menuCiclo(); } catch (e) {}

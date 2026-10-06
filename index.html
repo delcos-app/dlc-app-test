@@ -3262,6 +3262,40 @@ html.cambiando-org #bootsplash,html.cambiando-org #bootsplash.hide{display:grid!
 .depaviso{margin-bottom:12px}
 .depav{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
 @media (max-width:760px){.deph,.depf{grid-template-columns:minmax(0,1fr) 70px 50px}.deph span:nth-child(2),.depf span:nth-child(2){display:none}.depitems label{grid-template-columns:minmax(0,1fr) 90px}}
+/* v2.197.0 · Ciclo de visitas A/B/C */
+.cicpag{display:grid;gap:14px}
+.ciccab{display:flex;justify-content:space-between;align-items:center;gap:10px 14px;flex-wrap:wrap}
+.ciccab > div{display:flex;flex-direction:column;gap:2px}
+.cicacc{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.cicacc input[type=search]{width:auto;min-width:300px}
+.cicacc select{width:auto;min-width:200px}
+.cicl{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:9px;font:800 14px Manrope,sans-serif;flex:none}
+.cicl.cA{background:var(--navy,#17457A);color:#fff}
+.cicl.cB{background:var(--sky,#3F82C0);color:#fff}
+.cicl.cC{background:var(--hielo,#F2F7FC);color:var(--navy,#17457A);border:1px solid var(--line)}
+.cicl.csin{background:none;color:var(--muted);border:1px dashed var(--line)}
+.cicres{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.cicc{display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px 12px;align-items:center;margin:0;padding:14px 16px}
+.cicc .cicbar,.cicc > .sm{grid-column:1/-1}
+.cicct{display:flex;flex-direction:column;gap:2px}
+.cicbar{display:block;height:8px;background:var(--line);border-radius:6px;overflow:hidden}
+.cicbar i{display:block;height:100%;background:var(--sky)}
+.cicbarc{display:inline-flex;align-items:center;gap:8px;white-space:nowrap}
+.cicbarc .cicbar{width:90px}
+.cicsin{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.cicbloque{margin:0}
+.cicbcab{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.cicbcab h2{margin:0}
+.cicrow{display:flex;align-items:center;gap:12px}
+.cicrow .tx{flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start}
+.cicfal{display:flex;flex-direction:column;align-items:flex-end;text-align:right;min-width:74px}
+.cicsegs button{min-width:38px;padding:6px 10px}
+.fciclo{display:flex;align-items:center;gap:8px 10px;flex-wrap:wrap;margin-top:10px}
+.cicfl{font-weight:600}
+.cicobj{display:grid;gap:8px;margin:10px 0}
+.cicobj label{display:grid;grid-template-columns:auto minmax(0,1fr) 100px;gap:10px;align-items:center;margin:0}
+.cictab td.cicaviso{color:var(--warn);font-weight:700}
+@media (max-width:760px){.cicres{grid-template-columns:minmax(0,1fr)}.cicrow{flex-wrap:wrap}.cicrow .tx{flex-basis:calc(100% - 50px)}.cicacc,.cicacc input[type=search],.cicacc select{width:100%;min-width:0}}
 </style>
 </head>
 <body>
@@ -3400,6 +3434,6 @@ try{var co=sessionStorage.getItem('dlc-cambio-org');if(co!==null||localStorage.g
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.196.0"></script>
+<script src="./app.js?v=2.197.0"></script>
 </body>
 </html>
