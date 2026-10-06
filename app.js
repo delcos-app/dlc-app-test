@@ -20624,3 +20624,123 @@ async function verFotosVisita(actividad, cuenta) {
   };
   if (!$('dlg2').open) $('dlg2').showModal();
 }
+
+/* v2.192.0 · Muestras con control legal (primera tanda del estudio por sectores, SQL 119; RD 1416/1994, art. 16).
+   - Producto: «Muestra con control legal» con fecha de autorización (se pueden dar los 2 años siguientes) y máximo por profesional y año.
+   - Registrar visita: si la empresa tiene productos regulados, bloque «Muestras de medicamento» con lo que queda este año para ese
+     profesional; si se entrega alguna, pide la firma (con el dedo o el ratón) y el nombre de quien firma. Se comprueba antes de guardar
+     la visita; después, registrar_muestras guarda todo o nada (también desde la cola sin conexión, enlazada por el op_id de la visita).
+   - Ficha: «Muestras este año» con lo entregado y lo que queda de cada producto regulado. */
+const MUESTRA_ERR = { firma: 'Falta la firma de quien recibe las muestras', profesional: 'Las muestras solo se entregan a profesionales, no a un centro',
+  plazo: 'Ese producto ya no se puede dar como muestra (han pasado 2 años desde su autorización)', limite: 'Se pasa del máximo de muestras de este año',
+  permiso: 'No puedes registrar muestras de esta ficha', producto: 'Producto no encontrado', no_existe: 'Ficha no encontrada' };
+const muestraError = r => (MUESTRA_ERR[r && r.error] || 'No se han podido guardar las muestras') +
+  (r && r.error === 'limite' ? ` (${r.producto}: quedan ${r.quedan} de ${r.max})` : r && r.error === 'plazo' ? ` (${r.producto})` : '');
+
+// Producto: datos de la muestra regulada (solo administración; se guardan al cambiarlos)
+editorProducto = (orig => function (p, ...r) {
+  const x = orig.call(this, p, ...r);
+  setTimeout(async () => {
+    if (!puede('administrar') || !$('dbody') || !$('prok') || $('prmuestra')) return;
+    const ref = $('dbody').querySelector('.acts:last-of-type'); if (!ref) return;
+    if (!p || !p.id) { ref.insertAdjacentHTML('beforebegin', '<div class="blk" id="prmuestra"><h3>Muestras con control legal</h3><p class="sm">Guarda el producto y vuelve a abrirlo para marcarlo como muestra con control legal.</p></div>'); return; }
+    const { data: m } = await db.from('productos').select('muestra_regulada,muestra_desde,muestra_max').eq('id', p.id).maybeSingle();
+    if (!$('dbody') || $('prmuestra')) return;
+    const d = m || {};
+    ref.insertAdjacentHTML('beforebegin', `<div class="blk" id="prmuestra"><h3>Muestras con control legal</h3>
+      <label class="opt"><input type="checkbox" id="prmreg" ${d.muestra_regulada ? 'checked' : ''}> Es un medicamento: sus muestras llevan firma y límite</label>
+      <div class="g2 ${d.muestra_regulada ? '' : 'hide'}" id="prmdat">
+        <div><label for="prmdesde">Autorizado el</label><input id="prmdesde" type="date" value="${esc(d.muestra_desde || '')}"></div>
+        <div><label for="prmmax">Máximo por profesional y año</label><input id="prmmax" type="number" min="1" max="10" step="1" value="${d.muestra_max || 10}"></div></div>
+      <p class="sm">La ley permite como mucho 10 muestras por medicamento, profesional y año, durante los 2 años siguientes a su autorización, y con la solicitud firmada.</p></div>`);
+    const guardar = async () => {
+      const reg = $('prmreg').checked, max = Math.min(10, Math.max(1, +$('prmmax').value || 10));
+      $('prmdat').classList.toggle('hide', !reg);
+      const { error } = await db.from('productos').update({ muestra_regulada: reg, muestra_desde: $('prmdesde').value || null, muestra_max: max }).eq('id', p.id);
+      toast(error ? 'No se ha podido guardar: ' + error.message : 'Muestras: guardado', !!error);
+    };
+    ['prmreg', 'prmdesde', 'prmmax'].forEach(k => $(k).addEventListener('change', guardar));
+  }, 120);
+  return x;
+})(editorProducto);
+
+// Firma con el dedo o el ratón
+function padFirma(canvas) {
+  const ctx = canvas.getContext('2d'); let dib = false, hay = false, ult = null;
+  const ajustar = () => { const r = canvas.getBoundingClientRect(), k = window.devicePixelRatio || 1; canvas.width = r.width * k; canvas.height = r.height * k; ctx.scale(k, k); ctx.lineWidth = 2.2; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = '#0B2540'; hay = false; };
+  const pt = e => { const r = canvas.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; };
+  canvas.addEventListener('pointerdown', e => { e.preventDefault(); canvas.setPointerCapture(e.pointerId); dib = true; ult = pt(e); });
+  canvas.addEventListener('pointermove', e => { if (!dib) return; const p = pt(e); ctx.beginPath(); ctx.moveTo(ult.x, ult.y); ctx.lineTo(p.x, p.y); ctx.stroke(); ult = p; hay = true; });
+  ['pointerup', 'pointercancel', 'pointerleave'].forEach(t => canvas.addEventListener(t, () => { dib = false; }));
+  requestAnimationFrame(ajustar);
+  return { borrar: ajustar, vacia: () => !hay, imagen: () => (hay ? canvas.toDataURL('image/png').split(',')[1] : null), marcar: () => { hay = true; } };
+}
+
+abrirVisitaBase = (orig => async function (id, ...r) {
+  const res = await orig.call(this, id, ...r);
+  const d = $('dbody'), nota = $('vn');
+  if (!d || !nota || !$('vguardar') || $('vmuestras') || !VISITA_ACTUAL || VISITA_ACTUAL.id !== id) return res;
+  const { data: l } = await db.rpc('muestras_de_cuenta', { p_cuenta: id });
+  if (!Array.isArray(l) || !l.length || !$('vn') || $('vmuestras')) return res;
+  const nombre = (d.querySelector('.fh .sm') || {}).textContent || '';
+  const lab = nota.previousElementSibling && nota.previousElementSibling.tagName === 'LABEL' ? nota.previousElementSibling : nota;
+  lab.insertAdjacentHTML('beforebegin', `<div class="vmuestras" id="vmuestras"><label>Muestras de medicamento</label>
+    ${l.map(x => `<div class="vmrow ${x.en_plazo && x.quedan ? '' : 'agotada'}"><span><b>${esc(x.nombre)}</b><span class="sm">${!x.en_plazo ? 'Ya no se puede dar: el plazo acabó el ' + fechaCorta(x.hasta)
+      : `Quedan ${x.quedan} de ${x.max} este año${x.hasta ? ' · hasta el ' + fechaCorta(x.hasta) : ''}`}</span></span>
+      <input type="number" min="0" max="${x.en_plazo ? x.quedan : 0}" step="1" value="0" data-vmprod="${x.producto_id}" aria-label="Muestras de ${esc(x.nombre)}" ${x.en_plazo && x.quedan ? '' : 'disabled'}></div>`).join('')}
+    <div class="vmfirma hide" id="vmfirma"><label>Firma de quien las recibe <span class="sm">· solicitud de muestras con fecha de hoy</span></label>
+      <canvas id="vmcanvas" aria-label="Espacio para firmar"></canvas>
+      <div class="vmfpie"><input id="vmfirmante" value="${esc(nombre)}" aria-label="Nombre de quien firma" placeholder="Nombre de quien firma"><button type="button" class="lnk" id="vmborrar">Borrar la firma</button></div></div></div>`);
+  let pad = null;
+  const items = () => [...d.querySelectorAll('[data-vmprod]')].map(i => ({ producto_id: i.dataset.vmprod, unidades: Math.max(0, Math.floor(+i.value || 0)), max: +i.max })).filter(x => x.unidades > 0);
+  const ver = () => { const hay = items().length > 0; $('vmfirma').classList.toggle('hide', !hay); if (hay && !pad) pad = padFirma($('vmcanvas')); };
+  d.querySelectorAll('[data-vmprod]').forEach(i => i.addEventListener('input', ver));
+  $('vmborrar').onclick = () => pad && pad.borrar();
+  VISITA_ACTUAL.muestras = {
+    items, firmante: () => $('vmfirmante') ? $('vmfirmante').value.trim() : '', firma: () => (pad ? pad.imagen() : null),
+    validar: () => {
+      const it = items();
+      if (!it.length) return null;
+      const pasa = it.find(x => x.unidades > x.max);
+      if (pasa) return 'Se pasa del máximo de muestras de este año';
+      if (!pad || pad.vacia()) return 'Falta la firma de quien recibe las muestras';
+      return null;
+    }
+  };
+  return res;
+})(abrirVisitaBase);
+// Antes de guardar la visita se comprueban las muestras (si algo falla, no se guarda nada)
+document.addEventListener('click', e => {
+  const b = e.target.closest && e.target.closest('#vguardar');
+  if (!b || !VISITA_ACTUAL || !VISITA_ACTUAL.muestras) return;
+  const msg = VISITA_ACTUAL.muestras.validar();
+  if (msg) { e.stopImmediatePropagation(); e.preventDefault(); toast(msg, true); }
+}, true);
+escribirRpc = (orig => async function (fn, payload, ...a) {
+  const va = VISITA_ACTUAL;
+  if (fn !== 'registrar_actividad' || !va || !va.muestras || !payload || !payload.p || payload.p.cuenta_id !== va.id) return orig.call(this, fn, payload, ...a);
+  const items = va.muestras.items().map(x => ({ producto_id: x.producto_id, unidades: x.unidades }));
+  const firma = va.muestras.firma(), firmante = va.muestras.firmante();
+  const r = await orig.call(this, fn, payload, ...a);
+  if (items.length && r && !r.error) {
+    const pm = { cuenta_id: payload.p.cuenta_id, fecha: payload.p.fecha, items, firma, firmante, op_id: 'm-' + payload.p.op_id,
+      ...(r.data && r.data.id ? { actividad_id: r.data.id } : { actividad_op: payload.p.op_id }) };
+    const rm = await orig.call(this, 'registrar_muestras', { p: pm });
+    if (rm && !rm.error && rm.data && rm.data.ok === false) setTimeout(() => toast(`${TT('visita', 's', '', 'l', 'C', 'guardado')}, pero las muestras no: ${muestraError(rm.data)}`, true), 2600);
+    else if (rm && rm.error) setTimeout(() => toast(`${TT('visita', 's', '', 'l', 'C', 'guardado')}, pero las muestras no se han podido guardar`, true), 2600);
+  }
+  return r;
+})(escribirRpc);
+
+// Ficha: lo entregado este año de cada producto regulado
+abrirFicha = (orig => async function (id, ...a) {
+  const r = await orig.call(this, id, ...a);
+  try {
+    const sitio = $('fzcampos'); if (!sitio || $('fmuestras')) return r;
+    const { data: l } = await db.rpc('muestras_de_cuenta', { p_cuenta: id });
+    if (!Array.isArray(l) || !l.length || !$('fzcampos') || $('fmuestras') || FICHA_ID !== id) return r;
+    $('fzcampos').insertAdjacentHTML('beforebegin', `<div class="blk" id="fmuestras"><h3>Muestras este año</h3>
+      ${l.map(x => `<div class="fmrow"><span>${esc(x.nombre)}</span><b>${x.entregadas} de ${x.max}</b>${!x.en_plazo ? '<span class="pill p-anu">Fuera de plazo</span>' : !x.quedan ? '<span class="pill p-warn">Sin muestras este año</span>' : ''}</div>`).join('')}</div>`);
+  } catch (e) {}
+  return r;
+})(abrirFicha);
