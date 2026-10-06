@@ -9195,7 +9195,7 @@ async function emitirFacturaPedido(pedidoId) {
     { titulo: '¿Emitir la factura?', ok: 'Emitir factura' })) return null;
   const { data: r, error } = await db.rpc('emitir_factura', { p_pedido: pedidoId });
   if (error || (r && r.ok === false)) {
-    toast(r && r.error === 'ya_facturado' ? 'Este pedido ya tiene la factura ' + r.numero : r && r.error === 'no_validado' ? 'Solo se facturan pedidos validados' : 'No se ha podido emitir: ' + ((error && error.message) || (r && r.error)), true);
+    toast(r && r.error === 'ya_facturado' ? 'Este pedido ya tiene la factura ' + r.numero : r && r.error === 'no_validado' ? 'Solo se facturan pedidos validados' : r && r.error === 'distribuidor' ? 'Este pedido lo factura el distribuidor' : 'No se ha podido emitir: ' + ((error && error.message) || (r && r.error)), true);
     return null;
   }
   toast('Factura ' + r.numero + ' emitida');
@@ -20744,3 +20744,106 @@ abrirFicha = (orig => async function (id, ...a) {
   } catch (e) {}
   return r;
 })(abrirFicha);
+
+/* v2.193.0 · Pedido a través del distribuidor (primera tanda del estudio por sectores, SQL 120; decisiones de Eric: quién factura se elige
+   en cada pedido, el pedido del distribuidor no saca stock de nuestro almacén y le llega por correo).
+   - Editor del pedido: «Lo sirve» Nosotros / Un distribuidor; con distribuidor, cuál, el código del cliente en él y «Lo factura el
+     distribuidor». La administración añade distribuidores desde ahí mismo («+ Nuevo distribuidor»).
+   - Ver pedido: bloque «Distribuidor» con «Preparar correo al distribuidor» (el correo de la persona, con las líneas y el código del
+     cliente, como los de factura y pago) que deja apuntado que se ha enviado; si lo factura el distribuidor, no se ofrece «Emitir factura». */
+let DISTRIBUIDORES = null, PED_DIST = null;
+async function cargarDistribuidores(forzar) {
+  if (DISTRIBUIDORES && !forzar) return DISTRIBUIDORES;
+  const { data } = await db.from('distribuidores').select('id,nombre,email,telefono,activo').order('nombre');
+  DISTRIBUIDORES = (data || []).filter(d => d.activo);
+  return DISTRIBUIDORES;
+}
+editorPedido = (orig => async function (pedido, ...a) {
+  const ped = pedido && pedido.pedido ? pedido.pedido : null;
+  PED_DIST = { on: !!(ped && ped.distribuidor_id), id: (ped && ped.distribuidor_id) || '', codigo: (ped && ped.distribuidor_codigo) || '',
+    factura: ped && ped.distribuidor_id ? !!ped.factura_distribuidor : true };
+  await cargarDistribuidores().catch(() => []);
+  return orig.call(this, pedido, ...a);
+})(editorPedido);
+function pintarBloqueDistribuidor() {
+  const o = $('porig'), fila = o && o.closest('.g2');
+  if (!fila || $('pdist') || !PED_DIST) return;
+  const l = DISTRIBUIDORES || [], admin = puede('administrar');
+  if (PED_DIST.on && !PED_DIST.id && l.length) PED_DIST.id = l[0].id;
+  fila.insertAdjacentHTML('afterend', `<div class="pdist" id="pdist"><label>Lo sirve</label>
+    <div class="segs" id="pdsirve" role="group" aria-label="Lo sirve"><button type="button" data-ds="0" class="${PED_DIST.on ? '' : 'on'}" aria-pressed="${!PED_DIST.on}">Nosotros</button>
+      <button type="button" data-ds="1" class="${PED_DIST.on ? 'on' : ''}" aria-pressed="${PED_DIST.on}">Un distribuidor</button></div>
+    <div id="pddat" class="${PED_DIST.on ? '' : 'hide'}">
+      ${l.length ? `<div class="g2"><div><label for="pdsel">Distribuidor</label><select id="pdsel">${l.map(d => `<option value="${d.id}" ${d.id === PED_DIST.id ? 'selected' : ''}>${esc(d.nombre)}</option>`).join('')}</select></div>
+        <div><label for="pdcod">Código del cliente en el distribuidor</label><input id="pdcod" value="${esc(PED_DIST.codigo)}" placeholder="Si lo tiene"></div></div>
+        <label class="opt"><input type="checkbox" id="pdfac" ${PED_DIST.factura ? 'checked' : ''}> Lo factura el distribuidor <span class="sm">· no se emite factura nuestra</span></label>`
+      : `<p class="sm">Todavía no hay distribuidores.${admin ? '' : ' Pide a administración que los añada.'}</p>`}
+      ${admin ? '<button type="button" class="lnk" id="pdnuevo">+ Nuevo distribuidor</button>' : ''}
+      <p class="sm">Un pedido que sirve el distribuidor no descuenta stock de vuestro almacén.</p></div></div>`);
+  $('pdist').querySelectorAll('[data-ds]').forEach(b => b.onclick = () => {
+    PED_DIST.on = b.dataset.ds === '1';
+    if (PED_DIST.on && !PED_DIST.id && l.length) PED_DIST.id = l[0].id;
+    $('pdist').querySelectorAll('[data-ds]').forEach(x => { x.classList.toggle('on', x === b); x.setAttribute('aria-pressed', String(x === b)); });
+    $('pddat').classList.toggle('hide', !PED_DIST.on);
+  });
+  if ($('pdsel')) $('pdsel').onchange = e => { PED_DIST.id = e.target.value; };
+  if ($('pdcod')) $('pdcod').oninput = e => { PED_DIST.codigo = e.target.value; };
+  if ($('pdfac')) $('pdfac').onchange = e => { PED_DIST.factura = e.target.checked; };
+  if ($('pdnuevo')) $('pdnuevo').onclick = () => nuevoDistribuidor();
+}
+new MutationObserver(() => { if ($('porig') && !$('pdist')) pintarBloqueDistribuidor(); }).observe($('dbody'), { childList: true, subtree: true });
+
+async function nuevoDistribuidor() {
+  $('dlg2body').innerHTML = `<div class="fh"><div><h2>Nuevo distribuidor</h2><div class="sm">Mayorista o depósito que sirve pedidos a vuestros clientes</div></div>
+      <button class="x" data-cerrar2 aria-label="Cerrar">✕</button></div>
+    <label for="dsn">Nombre</label><input id="dsn" placeholder="p. ej. Cofares">
+    <div class="g2"><div><label for="dse">Correo para pedidos</label><input id="dse" type="email"></div><div><label for="dst">Teléfono</label><input id="dst" inputmode="tel"></div></div>
+    <div class="acts" style="justify-content:flex-end"><button type="button" class="btn sec" data-cerrar2>Cancelar</button><button type="button" class="btn" id="dsok">Añadir</button></div>`;
+  $('dlg2').showModal();
+  $('dsok').onclick = async () => {
+    const nombre = $('dsn').value.trim(); if (!nombre) { toast('Escribe el nombre', true); return; }
+    const { data, error } = await db.from('distribuidores').insert({ nombre, email: $('dse').value.trim() || null, telefono: $('dst').value.trim() || null }).select('id').single();
+    if (error) { toast('No se ha podido añadir: ' + error.message, true); return; }
+    $('dlg2').close(); toast('Distribuidor añadido');
+    await cargarDistribuidores(true);
+    if (PED_DIST) { PED_DIST.on = true; PED_DIST.id = data.id; }
+    const b = $('pdist'); if (b) { b.remove(); pintarBloqueDistribuidor(); }
+  };
+}
+
+// Al guardar el pedido desde su editor, va también quién lo sirve
+db.rpc = (orig => function (fn, params, ...a) {
+  if (fn === 'guardar_pedido' && params && params.p && $('pdist') && PED_DIST) {
+    const on = PED_DIST.on && !!PED_DIST.id;
+    Object.assign(params.p, { distribuidor_id: on ? PED_DIST.id : '', distribuidor_codigo: on ? PED_DIST.codigo : '', factura_distribuidor: on && PED_DIST.factura });
+  }
+  return orig.call(this, fn, params, ...a);
+})(db.rpc);
+
+// Ver pedido: distribuidor, correo para él y sin «Emitir factura» si factura él
+verPedido = (orig => async function (id, ...a) {
+  const r = await orig.call(this, id, ...a);
+  try {
+    if (!$('dlg').open || $('pddist')) return r;
+    const { data } = await RPC_ORIG('pedido_detalle', { p_id: id });
+    const p = data && data.pedido; if (!p || !p.distribuidor_id || !$('dlg').open || $('pddist')) return r;
+    const d = (await cargarDistribuidores()).find(x => x.id === p.distribuidor_id) || (await cargarDistribuidores(true)).find(x => x.id === p.distribuidor_id) || { nombre: 'Distribuidor' };
+    if (p.factura_distribuidor && $('pvemitir')) $('pvemitir').remove();
+    const cli = data.contacto || {}, l = data.lineas || [];
+    const cuerpo = [`Pedido ${p.numero || ''} de ${nombreApp()}`, '', `Cliente: ${cli.nombre || p.cuenta_texto || ''}${p.distribuidor_codigo ? ' · código ' + p.distribuidor_codigo : ''}`,
+      cli.direccion ? `Dirección: ${[cli.direccion, cli.cp, cli.municipio].filter(Boolean).join(', ')}` : '', '',
+      ...l.map(x => `- ${x.unidades} × ${x.producto || x.nombre || ''}`), '', p.factura_distribuidor ? 'Lo factura el distribuidor.' : 'Lo factura ' + nombreApp() + '.',
+      p.nota ? '\nNota: ' + p.nota : ''].filter(x => x !== null).join('\n');
+    const asunto = `Pedido ${p.numero || ''} · ${cli.nombre || p.cuenta_texto || ''}`;
+    const sitio = $('pdpago') || $('dbody').querySelector('.acts:last-of-type'); if (!sitio) return r;
+    sitio.insertAdjacentHTML('beforebegin', `<div class="blk" id="pddist"><h3>Distribuidor</h3>
+      <p>Lo sirve <b>${esc(d.nombre)}</b>${p.distribuidor_codigo ? ` · código del cliente <b>${esc(p.distribuidor_codigo)}</b>` : ''} · ${p.factura_distribuidor ? 'lo factura el distribuidor' : 'lo facturamos nosotros'}</p>
+      ${p.estado === 'Confirmado' ? `<div class="acts" style="justify-content:flex-start;margin-top:6px">${d.email ? `<a class="btn sec" id="pdmaild" href="mailto:${esc(d.email)}?subject=${encodeURIComponent(asunto)}&body=${encodeURIComponent(cuerpo)}">Preparar correo al distribuidor</a>` : '<span class="sm">El distribuidor no tiene correo: añádelo en sus datos.</span>'}
+        <span class="sm" id="pdmailest">${p.transfer_enviado_en ? 'Correo preparado el ' + fechaCorta(String(p.transfer_enviado_en).slice(0, 10)) : 'Correo sin preparar'}</span></div>` : '<p class="sm">Al validarlo podrás preparar el correo al distribuidor.</p>'}</div>`);
+    if ($('pdmaild')) $('pdmaild').addEventListener('click', async () => {
+      const { data: m } = await db.rpc('marcar_transfer_enviado', { p_id: id });
+      if (m && m.ok && $('pdmailest')) $('pdmailest').textContent = 'Correo preparado el ' + fechaCorta(hoyISO());
+    });
+  } catch (e) {}
+  return r;
+})(verPedido);
