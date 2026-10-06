@@ -20013,7 +20013,7 @@ let TAREAS_DIA = null;
 async function tareasDelDia(f) {
   if (AG_VISTA && AG_VISTA.id !== PERFIL.id) return null;   // las tareas son de cada uno: en la agenda de otra persona no se ven
   if (TAREAS_DIA && TAREAS_DIA.f === f) return TAREAS_DIA.l;
-  const { data, error } = await db.from('tareas').select('*').eq('fecha', f).order('hora', { ascending: true, nullsFirst: false }).order('creado_en');
+  const { data, error } = await db.from('tareas').select('*').eq('fecha', f).order('orden', { ascending: true, nullsFirst: false }).order('hora', { ascending: true, nullsFirst: false }).order('creado_en');
   if (error) return null;
   TAREAS_DIA = { f, l: data || [] };
   return TAREAS_DIA.l;
@@ -20083,8 +20083,9 @@ pintarTuDia = (orig => async function (...a) {
       const html = `<div class="tdtareas" id="tdtareas"><div class="tdtcab">Tareas y notas · ${l.length}</div>${l.map(t => `
         <div class="tdtarea ${t.hecha ? 'hecha' : ''}" data-tarea="${t.id}">
           <label class="tdtchk"><input type="checkbox" data-tacheck="${t.id}" ${t.hecha ? 'checked' : ''} aria-label="Hecha"></label>
-          <span class="tdth">${t.hora ? esc(String(t.hora).slice(0, 5)) : '·'}</span>
-          <span class="tdttx"><b>${esc(t.titulo)}</b>${t.nota ? `<span class="sm">${esc(t.nota)}</span>` : ''}</span></div>`).join('')}</div>`;
+          <span class="tdth">${t.hora ? esc(String(t.hora).slice(0, 5)) : ''}</span>
+          <span class="tdttx"><b>${esc(t.titulo)}</b>${t.nota ? `<span class="sm">${esc(t.nota)}</span>` : ''}</span>
+          ${l.length > 1 ? `<span class="tdtmov"><button type="button" class="kmv" data-tamov="-1|${t.id}" aria-label="Subir la tarea" ${l[0] === t ? 'disabled' : ''}>↑</button><button type="button" class="kmv" data-tamov="1|${t.id}" aria-label="Bajar la tarea" ${l[l.length - 1] === t ? 'disabled' : ''}>↓</button></span>` : ''}</div>`).join('')}</div>`;
       if (sitio) sitio.insertAdjacentHTML('beforebegin', html); else cuerpo.insertAdjacentHTML('beforeend', html);
       $('tdtareas').querySelectorAll('[data-tacheck]').forEach(c => c.onchange = async ev => {
         ev.stopPropagation();
@@ -20092,7 +20093,8 @@ pintarTuDia = (orig => async function (...a) {
         if (error) { toast('No se ha podido guardar', true); c.checked = !c.checked; return; }
         c.closest('.tdtarea').classList.toggle('hecha', c.checked); TAREAS_DIA = null;
       });
-      $('tdtareas').querySelectorAll('.tdtarea').forEach(d => d.onclick = ev => { if (ev.target.closest('.tdtchk')) return; editarTarea(l.find(x => x.id === d.dataset.tarea)); });
+      $('tdtareas').querySelectorAll('.tdtarea').forEach(d => d.onclick = ev => { if (ev.target.closest('.tdtchk, .tdtmov')) return; editarTarea(l.find(x => x.id === d.dataset.tarea)); });
+      $('tdtareas').querySelectorAll('[data-tamov]').forEach(b => b.onclick = ev => { ev.stopPropagation(); const [dir, id] = b.dataset.tamov.split('|'); moverTarea(id, +dir); });
     }
   } catch (e) {}
   return r;
@@ -20483,4 +20485,29 @@ function formPrivada(box, i) {
     toast(lat != null ? 'Consulta privada lista: se guarda con la ficha' : 'Dirección puesta, sin punto en el mapa: se guarda con la ficha');
   };
   $(k + (v('direccion') ? 'd' : 'm')).focus();
+}
+
+/* v2.190.0 · Tareas en el orden de cada uno (petición de Eric): flechas ↑ ↓ en cada tarea (con más de una) que la suben o la bajan al momento,
+   deslizándose a su sitio como las citas, y guardan el orden por detrás (ordenar_tareas, SQL 117; tareasDelDia ordena por orden, hora y alta).
+   Sin hora, la tarea ya no enseña el puntito «·» junto a la casilla. */
+async function moverTarea(id, dir) {
+  const l = TAREAS_DIA && TAREAS_DIA.f === AG_FECHA ? TAREAS_DIA.l : null; if (!l) return;
+  const i = l.findIndex(t => t.id === id), j = i + dir; if (i < 0 || j < 0 || j >= l.length) return;
+  const nuevo = l.slice(); [nuevo[i], nuevo[j]] = [nuevo[j], nuevo[i]];
+  nuevo.forEach((t, k) => { t.orden = k + 1; });
+  TAREAS_DIA = { f: AG_FECHA, l: nuevo };
+  const antes = new Map();
+  document.querySelectorAll('#tdtareas .tdtarea').forEach(d => antes.set(d.dataset.tarea, d.getBoundingClientRect().top));
+  await repintarDiaSuave(null, TD_ULTIMO && TD_ULTIMO.fecha === AG_FECHA ? TD_ULTIMO.data : undefined);
+  const quieto = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  document.querySelectorAll('#tdtareas .tdtarea').forEach(d => {
+    if (d.dataset.tarea === id) { d.classList.remove('tdmovida'); void d.offsetWidth; d.classList.add('tdmovida'); setTimeout(() => d.classList.remove('tdmovida'), 1300); }
+    const y0 = antes.get(d.dataset.tarea); if (quieto || y0 == null || !d.animate) return;
+    const dy = y0 - d.getBoundingClientRect().top;
+    if (Math.abs(dy) > 1) d.animate([{ transform: `translateY(${dy}px)` }, { transform: 'none' }], { duration: 320, easing: 'cubic-bezier(.2,.7,.2,1)' });
+  });
+  const b = document.querySelector(`#tdtareas [data-tamov="${dir}|${id}"]:not([disabled])`) || document.querySelector(`#tdtareas [data-tamov$="|${id}"]:not([disabled])`);
+  if (b) b.focus({ preventScroll: true });
+  const { data: r, error } = await db.rpc('ordenar_tareas', { p_ids: nuevo.map(t => t.id) });
+  if (error || (r && r.ok === false)) { toast('No se ha podido guardar el orden', true); TAREAS_DIA = null; agRefrescoQuieto(null, { cifras: false }); }
 }
