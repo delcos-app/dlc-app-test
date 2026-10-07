@@ -22173,7 +22173,7 @@ aplicarPermisosMenu = (orig => function (...a) {
    - El portal del profesional sigue con su manual de siempre hasta que tenga capítulo. */
 const MANUAL_ANCLA = { inicio: 'inicio', agenda: 'agenda', rutas: 'rutas', ciclo: 'ciclo', cirugias: 'cirugias', directorio: 'directorio', seguimiento: 'calidad',
   duplicados: 'duplicados', eventos: 'eventos', pacientes: 'clientes', ventas: 'pedidos', oportunidades: 'oportunidades', compras: 'compras', proveedores: 'proveedores', concursos: 'concursos', parque: 'parque', productos: 'productos',
-  facturacion: 'facturacion', analitica: 'analitica', config: 'configuracion', perfil: 'configuracion', empresa: 'configuracion', plan: 'configuracion', usuarios: 'configuracion' };
+  facturacion: 'facturacion', analitica: 'analitica', config: 'ajustes', perfil: 'perfil', empresa: 'organizacion', plan: 'plan', organizacion: 'organizacion', usuarios: 'usuarios' };
 function abrirManual(ancla) {
   try {
     localStorage.setItem('delcos-manual', JSON.stringify({ empresa: nombreApp(),
@@ -22212,3 +22212,6 @@ ir = (orig => function (...a) {
 
 /* v2.208.0 · Manual: capítulo «Oficina y resultados». El «?» de Productos, Facturación y Analítica lleva a su sección
    (MANUAL_ANCLA, editado en su sitio). */
+
+/* v2.209.0 · Manual: capítulo «Configuración y cuenta» (el último). El «?» de Configuración, Mi perfil, Organización y Usuarios y roles
+   lleva a su sección (MANUAL_ANCLA, editado en su sitio). */
