@@ -22171,8 +22171,8 @@ aplicarPermisosMenu = (orig => function (...a) {
    - «Manual de uso» abre el libro en otra pestaña; antes deja en el navegador las palabras de la empresa (médico, visita, paciente) y su nombre.
    - Cada pantalla lleva un «?» junto al título que abre el manual en su capítulo (los que aún no están escritos abren la portada).
    - El portal del profesional sigue con su manual de siempre hasta que tenga capítulo. */
-const MANUAL_ANCLA = { inicio: 'inicio', agenda: 'agenda', rutas: 'rutas', ciclo: 'ciclo', cirugias: 'cirugias', directorio: 'cartera', seguimiento: 'cartera',
-  duplicados: 'cartera', eventos: 'cartera', pacientes: 'ventas', ventas: 'ventas', concursos: 'ventas', parque: 'ventas', productos: 'oficina',
+const MANUAL_ANCLA = { inicio: 'inicio', agenda: 'agenda', rutas: 'rutas', ciclo: 'ciclo', cirugias: 'cirugias', directorio: 'directorio', seguimiento: 'calidad',
+  duplicados: 'duplicados', eventos: 'eventos', pacientes: 'ventas', ventas: 'ventas', concursos: 'ventas', parque: 'ventas', productos: 'oficina',
   facturacion: 'oficina', analitica: 'oficina', config: 'configuracion', perfil: 'configuracion', empresa: 'configuracion', plan: 'configuracion', usuarios: 'configuracion' };
 function abrirManual(ancla) {
   try {
@@ -22203,3 +22203,6 @@ ir = (orig => function (...a) {
 
 /* v2.205.0 · Manual: capítulo «La visita y lo común». El «?» de Ciclo de visitas y de Cirugías lleva a su sección del capítulo
    (MANUAL_ANCLA, editado en su sitio), y el material de cada visita ya no repite los resultados sin dato (detTxt, editado en su sitio). */
+
+/* v2.206.0 · Manual: capítulo «Cartera». El «?» del directorio, Calidad del dato, Duplicados y Eventos lleva a su sección
+   (MANUAL_ANCLA, editado en su sitio). */
