@@ -7556,7 +7556,8 @@ Object.assign(RPC_TTL, { clasificadores_actividad: 300, municipios_clientes: 300
 /* ---------------- registrar visita con datos ---------------- */
 
 const esMuestras = d => (CAT.resultado_visita || []).some(x => x.valor === d.valor && x.papel === 'muestras');
-const detTxt = v => (v.detalles || []).filter(d => !esMuestras(d))
+// v2.205.0: los resultados sin dato ya salen en la línea de la visita; no son material
+const detTxt = v => (v.detalles || []).filter(d => !esMuestras(d) && !(!d.dato && (v.resultados || []).includes(d.valor)))
   .map(d => d.valor + (d.dato ? ' (' + d.dato + ')' : '')).join(', ');
 
 function campoDato(v, k, valor) {
@@ -22170,7 +22171,7 @@ aplicarPermisosMenu = (orig => function (...a) {
    - «Manual de uso» abre el libro en otra pestaña; antes deja en el navegador las palabras de la empresa (médico, visita, paciente) y su nombre.
    - Cada pantalla lleva un «?» junto al título que abre el manual en su capítulo (los que aún no están escritos abren la portada).
    - El portal del profesional sigue con su manual de siempre hasta que tenga capítulo. */
-const MANUAL_ANCLA = { inicio: 'inicio', agenda: 'agenda', rutas: 'rutas', ciclo: 'visita', cirugias: 'visita', directorio: 'cartera', seguimiento: 'cartera',
+const MANUAL_ANCLA = { inicio: 'inicio', agenda: 'agenda', rutas: 'rutas', ciclo: 'ciclo', cirugias: 'cirugias', directorio: 'cartera', seguimiento: 'cartera',
   duplicados: 'cartera', eventos: 'cartera', pacientes: 'ventas', ventas: 'ventas', concursos: 'ventas', parque: 'ventas', productos: 'oficina',
   facturacion: 'oficina', analitica: 'oficina', config: 'configuracion', perfil: 'configuracion', empresa: 'configuracion', plan: 'configuracion', usuarios: 'configuracion' };
 function abrirManual(ancla) {
@@ -22199,3 +22200,6 @@ ir = (orig => function (...a) {
   [400, 1200, 2500].forEach(ms => setTimeout(() => { try { ponerAyudaManual(); } catch (e) {} }, ms));
   return r;
 })(ir);
+
+/* v2.205.0 · Manual: capítulo «La visita y lo común». El «?» de Ciclo de visitas y de Cirugías lleva a su sección del capítulo
+   (MANUAL_ANCLA, editado en su sitio), y el material de cada visita ya no repite los resultados sin dato (detTxt, editado en su sitio). */

@@ -16,12 +16,14 @@
   } catch (e) { TER = BASE; }
   const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
   // {medico} {medicos} {Medico} {un medico} {al medico} {el medico} {los medicos}… y lo mismo con visita y paciente
-  const vocab = html => html.replace(/\{(un |una |el |la |al |a la |los |las |del |de la )?([MmVvPp])(edico|isita|aciente)(s?)\}/g, (m, art, ini, resto, pl) => {
+  // (con el artículo en mayúscula, {La visita}, sale al principio de frase: «La visita», «El contacto»…)
+  const vocab = html => html.replace(/\{([uU]n |[uU]na |[eE]l |[lL]a |[aA]l |[aA] la |[lL]os |[lL]as |[dD]el |[dD]e la )?([MmVvPp])(edico|isita|aciente)(s?)\}/g, (m, art, ini, resto, pl) => {
     const clave = (ini.toLowerCase() + resto), t = TER[clave] || BASE[clave]; if (!t) return m;
     let w = pl ? t.p : t.s; const f = t.g === 'f';
     let a = '';
     if (art) {
-      const x = art.trim();
+      if (art[0] !== art[0].toLowerCase()) ini = ini.toUpperCase();
+      const x = art.trim().toLowerCase();
       a = ({ un: f ? 'una ' : 'un ', una: f ? 'una ' : 'un ', el: f ? 'la ' : 'el ', la: f ? 'la ' : 'el ', al: f ? 'a la ' : 'al ', 'a la': f ? 'a la ' : 'al ',
              los: f ? 'las ' : 'los ', las: f ? 'las ' : 'los ', del: f ? 'de la ' : 'del ', 'de la': f ? 'de la ' : 'del ' })[x] || art;
     }
