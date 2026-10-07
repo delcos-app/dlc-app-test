@@ -9277,10 +9277,10 @@ function pintarCerca() {
   const l = CERCA.lista, tam = tamPagina(), pag = CERCA.pagina || 0;
   const vista = l.slice(pag * tam, pag * tam + tam);
   $('thead').innerHTML = '';
-  $('cuenta').innerHTML = `<b>${num(l.length)}</b> ${l.length === 1 ? 'médico' : 'médicos'} a menos de 10 km de ti
+  $('cuenta').innerHTML = `<b>${num(l.length)}</b> ${TT('medico', l.length === 1 ? 's' : 'p', '', 'l', 'l')} a menos de 10 km de ti
     <button class="kcfg" id="cercacerrar" style="margin-left:10px">Volver a la búsqueda</button>`;
   $('lista').innerHTML = vista.length ? vista.map(m => `<button class="trow" data-id="${m.id}" style="padding:10px 14px;gap:12px">
-      <span class="tcell" style="width:70px;min-width:70px"><b style="color:var(--navy)">${m.km} km</b></span>
+      <span class="tcell cercakm"><b style="color:var(--navy)">${String(m.km).replace('.', ',')} km</b></span>
       <span class="tcell" style="flex:1;width:auto">
         <span class="nm">${m.urgente ? '<span class="pill p-urg">Urgente</span> ' : ''}${m.sin_reporting ? `<span class="pill p-sr" title="Solo ${TT('visita', 's', '', 'l', 'l')} presencial: sin informes ni feedback">Sin reporting</span> ` : ''}${esc(m.nombre)}</span>
         <span class="sm">${esc(m.especialidad || '')} · ${esc(m.centro_nombre || '')} ${esc(m.municipio || '')}</span></span>
@@ -12256,7 +12256,8 @@ function aplicarEtiqueta() {
     [...b.childNodes].forEach(x => { if (x.nodeType === 3 && x.nodeValue.trim()) x.nodeValue = n; });
     const l = b.querySelector('b, em, small, .lb'); if (l && !l.querySelector('svg')) l.textContent = n;
   });
-  const h = document.querySelector('#dircab h1'); if (h) h.textContent = n;
+  const h = document.querySelector('#dircab h1');
+  if (h) { const tn = [...h.childNodes].find(x => x.nodeType === 3 && x.nodeValue.trim()); if (tn) tn.nodeValue = n; else h.insertAdjacentText('afterbegin', n); }
   const v = $('calvolver'); if (v) v.textContent = '‹ ' + n;
 }
 cargarAjustes = (orig => async function () { await orig(); aplicarEtiqueta(); })(cargarAjustes);
@@ -22215,3 +22216,12 @@ ir = (orig => function (...a) {
 
 /* v2.209.0 · Manual: capítulo «Configuración y cuenta» (el último). El «?» de Configuración, Mi perfil, Organización y Usuarios y roles
    lleva a su sección (MANUAL_ANCLA, editado en su sitio). */
+
+/* v2.210.0 · Detalles vistos al grabar el manual.
+   - El título del directorio usa siempre el nombre del módulo (antes salía «Médicos» si la cabecera se pintaba después de aplicarEtiqueta, editada en su sitio).
+   - «Cerca de mí»: la distancia entera y el vocabulario de la empresa (pintarCerca, editada en su sitio); cobertura por producto y «Rectificar» en el estilo. */
+ir = (orig => function (...a) {
+  const r = orig.apply(this, a);
+  if (a[0] === 'directorio') [0, 300, 1200].forEach(ms => setTimeout(() => { try { aplicarEtiqueta(); } catch (e) {} }, ms));
+  return r;
+})(ir);
