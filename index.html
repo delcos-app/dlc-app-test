@@ -3352,6 +3352,10 @@ html.cambiando-org #bootsplash,html.cambiando-org #bootsplash.hide{display:grid!
 .cobcab h2{min-width:0;overflow-wrap:anywhere}
 .cobtot{flex:none;white-space:nowrap}
 .opt input[type=radio]{width:18px;height:18px;min-height:0;margin:0;flex:none;padding:0}
+
+/* v2.211.0 · El manual dentro de la app */
+.manlibro{display:block;width:100%;height:calc(100vh - 200px);height:calc(100dvh - 200px);min-height:460px;border:1px solid var(--line);border-radius:14px;background:#fff}
+@media (max-width:899px){.manlibro{height:calc(100dvh - 270px);min-height:420px;border-radius:12px}}
 </style>
 </head>
 <body>
@@ -3490,6 +3494,6 @@ try{var co=sessionStorage.getItem('dlc-cambio-org');if(co!==null||localStorage.g
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.210.0"></script>
+<script src="./app.js?v=2.211.0"></script>
 </body>
 </html>

@@ -103,3 +103,6 @@ kbd, .boton { font: 700 14px var(--f-titulo); border: 1px solid var(--linea); bo
 @media (max-width: 520px) { .volver { font-size: 0; padding: 0; width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center }
   .volver::before { content: '←'; font-size: 20px } }
 @media (prefers-reduced-motion: reduce) { .indice { transition: none } html { scroll-behavior: auto } }
+
+/* Dentro de la app: sin la marca ni el botón de volver (la app ya tiene su cabecera) */
+.enapp .volver, .enapp .marca { display: none !important }

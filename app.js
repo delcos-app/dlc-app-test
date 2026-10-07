@@ -22225,3 +22225,33 @@ ir = (orig => function (...a) {
   if (a[0] === 'directorio') [0, 300, 1200].forEach(ms => setTimeout(() => { try { aplicarEtiqueta(); } catch (e) {} }, ms));
   return r;
 })(ir);
+
+/* v2.211.0 · El manual, dentro de la app (decisión de Eric, opción B: sin abrir otra pestaña y con el mismo peso).
+   - «Manual de uso» y el «?» de cada pantalla llevan a la pantalla «manual», que enseña el libro (manual/index.html?app=1) en un marco a todo el
+     ancho; el libro solo se descarga al abrirlo, capítulo a capítulo. Si ya se está en el manual, el «?» solo mueve el libro a su sección.
+   - El portal del médico sigue con su manual de siempre (cargarManual original).
+   - window.MANUAL_ULTIMA guarda la última dirección pedida (la usan las pruebas). */
+let MANUAL_DESTINO = '';
+function guardarVocabManual() {
+  try {
+    localStorage.setItem('delcos-manual', JSON.stringify({ empresa: nombreApp(),
+      terminos: Object.fromEntries(Object.keys(TERM_DEF).map(k => [k, terminoDe(k)])) }));
+  } catch (e) {}
+}
+abrirManual = function (ancla) {
+  guardarVocabManual();
+  MANUAL_DESTINO = ancla || '';
+  window.MANUAL_ULTIMA = 'manual/index.html' + (ancla ? '#' + ancla : '');
+  const f = $('manlibro');
+  if (TAB === 'manual' && f) { try { f.contentWindow.location.hash = ancla || 'portada'; } catch (e) {} return; }
+  ir('manual');
+};
+cargarManual = (orig => async function (...a) {
+  if (ES_MEDICO()) return orig.apply(this, a);
+  const v = $('v-manual'); if (!v) return;
+  guardarVocabManual();
+  const url = 'manual/index.html?app=1' + (MANUAL_DESTINO ? '#' + MANUAL_DESTINO : ''); MANUAL_DESTINO = '';
+  v.innerHTML = `<div class="saludo"><div><h1>Manual de uso</h1><div class="fecha">Todo lo que puedes hacer con delcos, paso a paso, con fotos y vídeos</div></div></div>
+    <iframe id="manlibro" class="manlibro" title="Manual de uso" src="${url}"></iframe>`;
+})(cargarManual);
+ponerAyudaManual = (orig => function () { if (TAB === 'manual') return; return orig.apply(this, arguments); })(ponerAyudaManual);

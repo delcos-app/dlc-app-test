@@ -3,6 +3,8 @@
 (function () {
   'use strict';
   const $ = id => document.getElementById(id);
+  // Dentro de la app (?app=1) el libro va en un marco: sin la marca ni «Volver a la app»
+  if (/[?&]app=1/.test(location.search)) document.documentElement.classList.add('enapp');
   const CAPS = (window.MANUAL && window.MANUAL.capitulos) || [];
   const HTML = {};   // id del capítulo → HTML ya con el vocabulario
 
@@ -66,7 +68,9 @@
       ACTUAL = c.id; pintarIndice(c); medios();
     }
     const destino = ancla && ancla !== c.id ? document.getElementById(ancla) : null;
-    if (destino) destino.scrollIntoView(); else window.scrollTo(0, 0);
+    // dentro de la app, scrollIntoView movería también la pantalla de la app: se desplaza solo el libro
+    if (destino) { if (document.documentElement.classList.contains('enapp')) window.scrollTo(0, destino.getBoundingClientRect().top + window.scrollY - 72); else destino.scrollIntoView(); }
+    else window.scrollTo(0, 0);
     marcar(ancla || c.id);
   }
   window.addEventListener('hashchange', () => { ir(location.hash.slice(1)); cerrarIndice(); });
