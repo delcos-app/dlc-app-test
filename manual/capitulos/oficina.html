@@ -1,0 +1,182 @@
+<span class="eti">Capítulo 5</span>
+<h1>Oficina y resultados</h1>
+<p class="entrada">La trastienda: el catálogo de productos, el stock con sus lotes y caducidades, el material que dejáis en depósito, la facturación con VeriFactu, las comisiones del equipo y la analítica para saber cómo va todo.</p>
+<div class="mapa">
+  <a href="#productos"><b>Productos y servicios</b><span>Catálogo, precios con y sin IVA, estados</span></a>
+  <a href="#stock"><b>Stock y lotes</b><span>Cobertura, caducidades, entradas, traspasos y trazabilidad</span></a>
+  <a href="#deposito"><b>Material en depósito</b><span>Lo que dejáis en un centro hasta que se usa</span></a>
+  <a href="#facturacion"><b>Facturación</b><span>Facturas, cobros, rectificativas, VeriFactu y el PDF</span></a>
+  <a href="#comisiones"><b>Comisiones</b><span>Esquemas, tramos y liquidaciones</span></a>
+  <a href="#analitica"><b>Analítica</b><span>Indicadores, gráficos y explorar las ventas</span></a>
+</div>
+
+<!-- ============================== PRODUCTOS ============================== -->
+<h2 id="productos">Productos y servicios</h2>
+<div class="donde"><span><b>Dónde:</b> menú, bloque «Ventas» → «Productos»; en el móvil, en «Más»</span><span><b>Quién:</b> desde el plan Comercial; solo la administración crea y cambia productos (el resto los ve en solo lectura)</span></div>
+<figure><img src="media/oficina/productos.webp" alt="Lista de productos" loading="lazy"><figcaption>Tres pestañas: Productos, Servicios y Stock y lotes.</figcaption></figure>
+<p>La lista enseña la foto, el nombre y la presentación, la referencia, el precio sin IVA, el IVA, el precio con IVA y el estado, además de los campos propios de tu empresa que se hayan marcado como columna. «Filtros y columnas» filtra por esos campos.</p>
+
+<h3 id="producto">El producto por dentro</h3>
+<figure class="estrecha"><img src="media/oficina/producto.webp" alt="Ventana de un producto" loading="lazy"></figure>
+<dl class="defs">
+  <dt>Datos</dt><dd>Foto, nombre, presentación («Caja de 30 sobres»), referencia, código de barras, unidades por envase y <b>coste sin IVA</b> (sirve para el margen de Analítica, el valor del stock y como coste propuesto en las compras).</dd>
+  <dt>Precio</dt><dd>Escribe el precio <b>sin IVA o con IVA</b>: el otro se calcula solo. El IVA es 21, 10, 4 o 0 %.</dd>
+  <dt>Estado</dt><dd><span class="p conf">Activo</span>, <b>En pausa</b> (no aparece al hacer pedidos, pero conserva su stock) o <b>Descatalogado</b> (deja de venderse). Los pedidos antiguos lo conservan con su estado entre paréntesis.</dd>
+  <dt>Muestras con control legal</dt><dd>Para medicamentos: firma y límite legal (lo explicamos en <a href="#visita-muestras">La {visita} y lo común</a>).</dd>
+  <dt>Promoción</dt><dd>«Se promociona en las {visitas}»: sale para marcarlo como presentado y en la cobertura del ciclo.</dd>
+  <dt>Equipo</dt><dd>«Es un equipo»: al validar un pedido se pide el número de serie de cada unidad (ver <a href="#parque">Parque instalado</a>).</dd>
+</dl>
+<p>Estado, muestras, promoción y equipo se guardan solos al cambiarlos, y solo salen en productos ya creados: crea el producto y vuelve a abrirlo.</p>
+
+<h3 id="servicios">Servicios</h3>
+<p>Lo que se cobra aparte en un pedido, como el envío o los portes urgentes: nombre, precio sin y con IVA, el IVA y si se propone de entrada en los pedidos nuevos. Un servicio va con su propio IVA, no lleva descuento y no cuenta como unidades. En la factura sale como una línea aparte.</p>
+<figure class="estrecha"><img src="media/oficina/servicio.webp" alt="Ventana de un servicio" loading="lazy"></figure>
+
+<!-- ============================== STOCK ============================== -->
+<h2 id="stock">Stock y lotes</h2>
+<div class="donde"><span><b>Dónde:</b> Productos → «Stock y lotes»; también desde las alertas de stock de Inicio</span><span><b>Quién:</b> lo ve quien tiene el permiso de productos; mover stock, la administración o quien tiene el permiso de pedidos más alto</span></div>
+<figure><img src="media/oficina/stock.webp" alt="Stock y lotes" loading="lazy"></figure>
+<p>El stock se calcula con todas las entradas y salidas: compras, ventas validadas, muestras, ajustes y traspasos. Las ventas salen primero del lote que caduca antes. Por cada producto:</p>
+<dl class="defs">
+  <dt>Stock y por almacén</dt><dd>El total y cuánto hay en el central, en cada maletín y en cada depósito («Central: 120 · Maletín Ana: 8»). El material en depósito sigue siendo vuestro.</dd>
+  <dt>Próxima caducidad</dt><dd>En naranja si es en 90 días o menos; en rojo si ya pasó.</dd>
+  <dt>Cobertura</dt><dd>Para cuántos días hay, al ritmo de ventas y muestras de los últimos 90 días, y cuánto tarda el proveedor.</dd>
+  <dt>En camino</dt><dd>Lo pendiente de las compras abiertas y cuándo llega.</dd>
+  <dt>Estado</dt><dd><span class="p gris">Sin stock</span>, <b>Bajo mínimo</b>, <b>Pedir ya</b> (lo que queda no llega a cubrir el plazo del proveedor más dos semanas y no hay nada en camino) o <span class="p vis">Correcto</span>.</dd>
+</dl>
+
+<h3 id="stock-producto">El stock de un producto</h3>
+<p>Al pulsar un producto ves sus <b>lotes</b>, cada uno con sus unidades, su caducidad y fabricación, el almacén y el proveedor. Arriba, el <b>stock mínimo</b> (para el aviso) y el <b>proveedor habitual</b>. En cada lote:</p>
+<dl class="defs">
+  <dt>Trazabilidad</dt><dd>Todas las entradas y salidas de ese lote: fechas, movimientos, unidades, a qué cliente y con qué {medico}. Ante una alerta sanitaria, aquí sabes a quién llegó.</dd>
+  <dt>Ajustar</dt><dd>Suma o resta unidades (recuento, rotura, caducado…) con su motivo.</dd>
+  <dt>Traspasar</dt><dd>Mueve unidades a otro almacén, por ejemplo al maletín de un comercial.</dd>
+</dl>
+<div class="tabla" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px">
+  <figure style="margin:0"><img src="media/oficina/stock-producto.webp" alt="Stock de un producto con sus lotes" loading="lazy"><figcaption>Los lotes de un producto.</figcaption></figure>
+  <figure style="margin:0"><img src="media/oficina/trazabilidad.webp" alt="Trazabilidad de un lote" loading="lazy"><figcaption>La trazabilidad de un lote.</figcaption></figure>
+</div>
+<figure class="video"><video src="media/oficina/v-traspaso.webm" aria-label="Vídeo: traspasar unidades al maletín de un comercial"></video><figcaption>Del almacén central al maletín de una comercial.</figcaption></figure>
+<p><b>+ Entrada de stock</b> sirve para el stock inicial o una entrada sin pedido de compra: producto, almacén, número de lote (obligatorio), proveedor, caducidad, fabricación, unidades y nota. Si el lote ya existe, se suma a él. Lo normal, en todo caso, es que la mercancía entre al <a href="#compra-recibir">recibir una compra</a>.</p>
+<figure class="estrecha"><img src="media/oficina/entrada-stock.webp" alt="Entrada de stock" loading="lazy"></figure>
+
+<h3 id="almacenes">Almacenes y maletines</h3>
+<p>Además del <b>almacén central</b>, cada comercial puede tener su <b>maletín</b> con las muestras que lleva. Se crean en Stock y lotes → «Almacenes» o en Configuración → Stock y material → Almacenes, eligiendo a la persona. Si las muestras restan stock, salen del maletín de quien registra {la visita} (o del central si no tiene). Los depósitos en centros se crean solos la primera vez que se deja material.</p>
+<figure class="estrecha"><img src="media/oficina/almacenes.webp" alt="Almacenes" loading="lazy"></figure>
+<p>En <b>Configuración → Stock y material → Material de visita</b> eliges el producto que se entrega como muestra y si se descuenta del stock, y el <b>material promocional</b> (dípticos, talonarios, pósteres…): si pide cantidad y si está visible en las {visitas}. El material promocional se cuenta, pero no descuenta stock.</p>
+<figure class="estrecha"><img src="media/oficina/material-visita.webp" alt="Material de visita" loading="lazy"></figure>
+
+<!-- ============================== DEPÓSITO ============================== -->
+<h2 id="deposito">Material en depósito</h2>
+<div class="donde"><span><b>Dónde:</b> en la ficha de un centro (ficha de tipo Centro), bloque «Material en depósito»</span><span><b>Quién:</b> planes Empresa y A medida; con el permiso de pedidos</span></div>
+<p>Material vuestro que dejáis en un hospital o una clínica y que sigue siendo vuestro <b>hasta que se usa</b>. El bloque de la ficha dice cuántas unidades hay y avisa de los lotes que caducan en menos de 60 días; <b>Abrir el depósito</b> enseña el detalle.</p>
+<figure class="estrecha"><img src="media/oficina/deposito.webp" alt="Depósito en un hospital" loading="lazy"></figure>
+<dl class="defs">
+  <dt>Reponer</dt><dd>Desde tu maletín o del almacén central, por lote y caducidad.</dd>
+  <dt>Apuntar uso</dt><dd>Lo que se ha usado de cada lote, con una referencia («Cirugía del martes, quirófano 2»), nunca datos del paciente.</dd>
+  <dt>Recuento</dt><dd>Escribe lo que hay ahora; lo que falte se apunta como usado.</dd>
+</dl>
+<p>Lo usado crea un <b>pedido en borrador</b> del centro (con el precio de contrato si lo hay) para validarlo, y te ofrece <b>Reponer lo usado</b>. Al validar ese pedido no se vuelve a restar stock: ya salió al depósito.</p>
+<figure class="video"><video src="media/oficina/v-deposito.webm" aria-label="Vídeo: recuento del depósito"></video><figcaption>Un recuento con faltas: queda el pedido y se repone.</figcaption></figure>
+
+<!-- ============================== FACTURACIÓN ============================== -->
+<h2 id="facturacion">Facturación</h2>
+<div class="donde"><span><b>Dónde:</b> menú, bloque «Ventas» → «Facturación»</span><span><b>Quién:</b> planes Empresa y A medida; quien ve todo el equipo y tiene el permiso de facturación</span></div>
+<figure><img src="media/oficina/facturas.webp" alt="Lista de facturas" loading="lazy"></figure>
+<p>Las facturas se emiten desde los pedidos validados. La lista tiene el periodo, un buscador por número, cliente o NIF, y el filtro de cobro (pendiente, vencida, cobrada). Arriba, lo facturado, la base, el IVA, lo pendiente de cobro y lo vencido. Las rectificativas restan.</p>
+
+<h3 id="factura">La factura por dentro</h3>
+<figure><img src="media/oficina/factura.webp" alt="Una factura" loading="lazy"></figure>
+<p>El cliente y el emisor, las líneas, el desglose por tipo de IVA y el total, los cobros y el <b>registro de facturación</b> (su huella encadenada y su estado de VeriFactu). Abajo: <b>Ver pedido</b>, <b>Rectificar</b>, <b>Registrar cobro</b>, <b>Ver</b> (el PDF), <b>PDF</b> (descargarlo) y <b>Enviar por email</b>.</p>
+<div class="nota aviso"><p><b>Una factura emitida no se puede cambiar ni borrar.</b> Lo exige la ley. Si hay un error, se corrige con una <b>rectificativa</b>. Los datos del emisor y del cliente se quedan como estaban al emitirla.</p></div>
+<dl class="defs">
+  <dt>Registrar cobro</dt><dd>Importe (propone lo pendiente), fecha, forma de pago y nota. Nunca más de lo pendiente. Solo la administración puede quitar un cobro.</dd>
+  <dt>Rectificar</dt><dd>Toda la factura o solo algunas unidades, con su motivo. Se emite una rectificativa en negativo y la original no se toca. Si la rectificas entera, puedes anular también el pedido (las unidades vuelven al stock).</dd>
+  <dt>Enviar por email</dt><dd>Con el PDF adjunto y un mensaje propuesto. Si vuestro correo aún no está conectado, puedes compartir o descargar el PDF y marcar que ya la has enviado.</dd>
+</dl>
+<div class="tabla" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px">
+  <figure style="margin:0"><img src="media/oficina/factura-cobro.webp" alt="Registrar cobro" loading="lazy"><figcaption>Registrar cobro.</figcaption></figure>
+  <figure style="margin:0"><img src="media/oficina/factura-email.webp" alt="Enviar por email" loading="lazy"><figcaption>Enviar por email.</figcaption></figure>
+</div>
+<figure class="video"><video src="media/oficina/v-rectificar.webm" aria-label="Vídeo: emitir una rectificativa"></video><figcaption>Rectificar una unidad de una factura.</figcaption></figure>
+<p>Para emitir, en un pedido validado: <b>Emitir factura</b>. Te avisa si el cliente no tiene DNI o CIF. Si tu empresa lo tiene activado, la factura se emite sola al validar el pedido. El vencimiento es la fecha más los días configurados (15 de partida).</p>
+
+<h3 id="facturacion-config">Configuración de la facturación</h3>
+<p>La administración tiene, en Facturación → <b>Configuración</b> (y en Organización):</p>
+<dl class="defs">
+  <dt>Datos fiscales</dt><dd>Razón social y NIF (obligatorios), dirección, teléfono, email, web, IBAN, datos registrales y pie de factura, con una vista previa de la cabecera. Y al emitir: los días hasta el vencimiento, la forma de pago por defecto y <b>emitir la factura al validar un pedido</b>.</dd>
+  <dt>Series y numeración</dt><dd>Cada serie numera de forma correlativa: facturas, rectificativas y simplificadas. El formato (el código de la serie, el año con dos o cuatro cifras y el número con las cifras que quieras: por ejemplo, F260408) y el <b>siguiente número</b>, para seguir con la numeración de otro programa. Puede volver a 1 cada año.</dd>
+  <dt>VeriFactu</dt><dd>El registro encadenado de cada factura ya funciona. Al activar VeriFactu, las facturas nuevas llevan el código QR y la leyenda «VERI*FACTU». El envío automático a Hacienda llegará más adelante (necesita el certificado digital de la empresa).</dd>
+  <dt>Registro</dt><dd>Todo lo que pasa en la facturación: emisiones, rectificaciones, cobros, cambios de configuración y descargas.</dd>
+  <dt>Diseño del PDF</dt><dd>El logotipo (sí o no, lado y tamaño), el color, la tipografía, el título, qué datos y columnas salen y el pie, con una vista previa real. Las facturas ya emitidas se descargan con el diseño que haya en ese momento: el contenido no cambia, solo la presentación.</dd>
+</dl>
+<div class="tabla" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px">
+  <figure style="margin:0"><img src="media/oficina/fact-datos.webp" alt="Datos fiscales" loading="lazy"><figcaption>Datos fiscales.</figcaption></figure>
+  <figure style="margin:0"><img src="media/oficina/fact-verifactu.webp" alt="VeriFactu" loading="lazy"><figcaption>VeriFactu.</figcaption></figure>
+</div>
+<figure class="video"><video src="media/oficina/v-diseno.webm" aria-label="Vídeo: diseño del PDF"></video><figcaption>Cambiar el logotipo de lado y la tipografía, con la vista previa.</figcaption></figure>
+<div class="nota"><p><b>Si tu plan deja de incluir Facturación</b>, puedes seguir consultando y descargando las facturas que ya emitiste y registrar sus cobros, pero no emitir nuevas.</p></div>
+
+<!-- ============================== COMISIONES ============================== -->
+<h2 id="comisiones">Comisiones</h2>
+<div class="donde"><span><b>Dónde:</b> Configuración → Equipo → «Comisiones»</span><span><b>Quién:</b> la administración, desde el plan Comercial</span></div>
+<figure class="estrecha"><img src="media/oficina/comisiones.webp" alt="Esquemas y liquidaciones" loading="lazy"></figure>
+<p>Un <b>esquema</b> dice cómo cobra una persona:</p>
+<dl class="defs">
+  <dt>Se cuenta por</dt><dd>La <b>cartera</b> del comercial (todo lo que se vende de sus {medicos}) o las <b>ventas que cierra</b> (televenta).</dd>
+  <dt>Cálculo</dt><dd><b>Tramo alcanzado a todo el volumen</b> (el tramo al que llegas se aplica a todas las unidades del periodo), <b>por tramos</b> (cada unidad a su tramo) o un <b>importe fijo por unidad</b>.</dd>
+  <dt>Canal</dt><dd>Todo, solo venta al {paciente} o solo venta a centro.</dd>
+  <dt>Quién cobra con él</dt><dd>Cada persona desde una fecha (desde hoy, todo su histórico o una fecha). «Terminar hoy» deja de aplicarlo desde mañana. Una vez guardada, la asignación no se cambia.</dd>
+</dl>
+<figure class="estrecha"><img src="media/oficina/esquema.webp" alt="Editar esquema" loading="lazy"></figure>
+<h3 id="liquidaciones">Liquidar el mes</h3>
+<ol class="pasos">
+  <li>Elige el mes y pulsa <span class="boton">Calcular el periodo</span>.</li>
+  <li>Revisa cada persona: unidades e importe.</li>
+  <li><b>Aprobar</b> la deja congelada; cuando se pague, <b>Marcar pagada</b>.</li>
+</ol>
+<figure class="video"><video src="media/oficina/v-liquidar.webm" aria-label="Vídeo: liquidar comisiones"></video></figure>
+<p>Solo cuentan los pedidos validados, con el esquema vigente en ese mes. Las liquidaciones cerradas no cambian aunque luego se reasigne con fecha pasada, y nunca se borran. Cada persona ve en Inicio su comisión del mes y cuánto le falta para el siguiente tramo, si la administración le deja verlo (en su usuario: «Qué ve esa persona»: nada, solo sus unidades, o unidades e importe).</p>
+
+<!-- ============================== ANALÍTICA ============================== -->
+<h2 id="analitica">Analítica</h2>
+<div class="donde"><span><b>Dónde:</b> menú, bloque «Resultados» → «Analítica»</span><span><b>Quién:</b> con el permiso de analítica, desde el plan Comercial; cada uno ve las cifras de lo que puede ver, y los euros, solo con el permiso de importes</span></div>
+<figure><img src="media/oficina/analitica.webp" alt="Analítica, resumen" loading="lazy"></figure>
+<h3 id="analitica-resumen">Resumen</h3>
+<p>Cómo va cada área frente al periodo anterior (o al mismo del año pasado). El periodo y la comparación se cambian en «Cambiar». Cada indicador dice su valor y si mejora (en verde) o empeora (en rojo); la «i» explica qué cuenta.</p>
+<dl class="defs">
+  <dt>Ventas</dt><dd>Ventas sin IVA, unidades, pedidos, ticket medio, ventas por la web, margen bruto y el peso de los 10 primeros {medicos}.</dd>
+  <dt>Clientes</dt><dd>Los que compran, los nuevos, los que repiten, los perdidos (compraron en el último año y llevan más de 90 días sin comprar) y el valor por cliente.</dd>
+  <dt>Equipo y {visitas}</dt><dd>{Visitas}, {visitas} por día, citas cumplidas, cobertura de la cartera, conversión {visita} → venta y {medicos} activados.</dd>
+  <dt>Oportunidades, cobros, stock y compras</dt><dd>Si tu empresa y tu permiso los incluyen.</dd>
+</dl>
+<p>El engranaje de cada indicador lo filtra (por comercial, producto, canal o municipio), lo <b>duplica</b> con otro filtro o lo oculta. <b>Personalizar</b> elige cuáles ves. Todo es tuyo: no cambia lo que ven los demás.</p>
+<figure class="video"><video src="media/oficina/v-analitica.webm" aria-label="Vídeo: filtrar y duplicar un indicador"></video><figcaption>«Ventas sin IVA» de un solo producto, como indicador nuevo.</figcaption></figure>
+<p>Debajo, los <b>gráficos</b>: evolución de las ventas, reparto por producto, {medicos} con más ventas, el embudo comercial, ventas por canal y actividad y resultados, cada uno con «Cómo leerlo».</p>
+<figure><img src="media/oficina/analitica-graficos.webp" alt="Gráficos de analítica" loading="lazy"></figure>
+<h3 id="explorar">Explorar datos</h3>
+<p>Las ventas validadas vistas por {medico}, comercial, producto, municipio, mes o canal, ordenadas por unidades o importe, con filtros de periodo, canal, producto, reporting, comercial y {medico}. Dos vistas: el <b>ranking</b> (con el peso de cada uno) y la <b>tabla por meses</b> (un mapa de calor: cuanto más azul, más alto).</p>
+<figure><img src="media/oficina/explorar.webp" alt="Explorar datos" loading="lazy"></figure>
+<figure class="video"><video src="media/oficina/v-explorar.webm" aria-label="Vídeo: explorar las ventas por producto y por meses"></video></figure>
+<div class="nota"><p><b>Los datos no se descargan.</b> Para protegerlos, la analítica se consulta solo dentro de delcos.</p></div>
+
+<!-- ============================== AJUSTES Y PREGUNTAS ============================== -->
+<h2 id="oficina-ajustes">Lo que se configura</h2>
+<dl class="defs">
+  <dt>Productos y servicios</dt><dd>(Administración) Precios, IVA, coste, estado, servicio por defecto, stock mínimo y proveedor habitual.</dd>
+  <dt>Configuración → Stock y material</dt><dd>Almacenes y maletines, el producto de las muestras, si las muestras restan stock y el material promocional.</dd>
+  <dt>Facturación → Configuración</dt><dd>Datos fiscales, series, VeriFactu y diseño del PDF.</dd>
+  <dt>Configuración → Equipo → Comisiones</dt><dd>Esquemas y liquidaciones; y en cada usuario, qué ve de su comisión.</dd>
+</dl>
+
+<h2 id="oficina-preguntas">Preguntas frecuentes</h2>
+<h4>Me he equivocado en una factura.</h4>
+<p>Emite una rectificativa desde la factura: toda o solo algunas unidades. La original no se toca.</p>
+<h4>Un producto no sale al hacer un pedido.</h4>
+<p>Está en pausa o descatalogado. Cámbialo a Activo en su ficha.</p>
+<h4>El stock dice «Pedir ya» pero hay unidades.</h4>
+<p>Lo que queda no llega a cubrir lo que tarda el proveedor más dos semanas, y no hay nada en camino. Haz el pedido de compra.</p>
+<h4>¿Por qué el material del depósito sigue contando como stock?</h4>
+<p>Porque sigue siendo vuestro hasta que se usa. Sale del stock al apuntar el uso o el recuento.</p>
+<h4>La analítica de una persona no coincide con la mía.</h4>
+<p>Cada uno ve las cifras de lo que puede ver (su cartera o todo el equipo) y con sus propios filtros e indicadores.</p>

@@ -22172,8 +22172,8 @@ aplicarPermisosMenu = (orig => function (...a) {
    - Cada pantalla lleva un «?» junto al título que abre el manual en su capítulo (los que aún no están escritos abren la portada).
    - El portal del profesional sigue con su manual de siempre hasta que tenga capítulo. */
 const MANUAL_ANCLA = { inicio: 'inicio', agenda: 'agenda', rutas: 'rutas', ciclo: 'ciclo', cirugias: 'cirugias', directorio: 'directorio', seguimiento: 'calidad',
-  duplicados: 'duplicados', eventos: 'eventos', pacientes: 'clientes', ventas: 'pedidos', oportunidades: 'oportunidades', compras: 'compras', proveedores: 'proveedores', concursos: 'concursos', parque: 'parque', productos: 'oficina',
-  facturacion: 'oficina', analitica: 'oficina', config: 'configuracion', perfil: 'configuracion', empresa: 'configuracion', plan: 'configuracion', usuarios: 'configuracion' };
+  duplicados: 'duplicados', eventos: 'eventos', pacientes: 'clientes', ventas: 'pedidos', oportunidades: 'oportunidades', compras: 'compras', proveedores: 'proveedores', concursos: 'concursos', parque: 'parque', productos: 'productos',
+  facturacion: 'facturacion', analitica: 'analitica', config: 'configuracion', perfil: 'configuracion', empresa: 'configuracion', plan: 'configuracion', usuarios: 'configuracion' };
 function abrirManual(ancla) {
   try {
     localStorage.setItem('delcos-manual', JSON.stringify({ empresa: nombreApp(),
@@ -22209,3 +22209,6 @@ ir = (orig => function (...a) {
 
 /* v2.207.0 · Manual: capítulo «Ventas». El «?» de Pedidos (y Oportunidades, Compras y Proveedores), Clientes, Concursos y Parque instalado
    lleva a su sección (MANUAL_ANCLA, editado en su sitio). */
+
+/* v2.208.0 · Manual: capítulo «Oficina y resultados». El «?» de Productos, Facturación y Analítica lleva a su sección
+   (MANUAL_ANCLA, editado en su sitio). */
