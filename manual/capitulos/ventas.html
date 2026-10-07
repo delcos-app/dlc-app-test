@@ -1,0 +1,203 @@
+<span class="eti">Capítulo 4</span>
+<h1>Ventas</h1>
+<p class="entrada">Todo lo que va del primer «me interesa» al pedido servido: la venta por teléfono y las oportunidades que no acaban en pedido, los pedidos y su operativa (pago, paquete, factura), los clientes, las compras a proveedores, los concursos públicos y el parque de equipos instalados.</p>
+<div class="mapa">
+  <a href="#pedidos"><b>Pedidos</b><span>La lista, los avisos y los filtros</span></a>
+  <a href="#nueva-venta"><b>Nueva venta</b><span>Del cliente al pedido, o «no compra»</span></a>
+  <a href="#pedido-editor"><b>El pedido</b><span>Líneas, pago, servicio, distribuidor y validar</span></a>
+  <a href="#pedido-ver"><b>Ver un pedido</b><span>Operativa, pago, factura y anular</span></a>
+  <a href="#oportunidades"><b>Oportunidades</b><span>Cada venta y por qué, con «Volver a llamar»</span></a>
+  <a href="#clientes"><b>Clientes</b><span>La lista, la ficha y el alta</span></a>
+  <a href="#compras"><b>Compras y proveedores</b><span>Pedidos de compra y recibir la mercancía</span></a>
+  <a href="#concursos"><b>Concursos</b><span>Lotes, contratos y precios de concurso</span></a>
+  <a href="#parque"><b>Parque instalado</b><span>Equipos, contratos, garantías y revisiones</span></a>
+</div>
+<div class="nota"><p><b>Dónde está cada cosa.</b> En el menú, el bloque «Ventas» tiene Pedidos, Concursos, Parque instalado, Oportunidades, Compras y Proveedores. Clientes está en «Cartera». En el móvil, todo esto está en «Más». Lo que ve cada persona depende de su permiso y del plan: Pedidos, Clientes y Oportunidades desde el plan Comercial; Compras, Proveedores, Concursos y Parque, en los planes Empresa y A medida.</p></div>
+
+<!-- ============================== PEDIDOS ============================== -->
+<h2 id="pedidos">Pedidos</h2>
+<div class="donde"><span><b>Dónde:</b> menú, bloque «Ventas» → «Pedidos»</span><span><b>Quién:</b> con el permiso de pedidos; cada comercial ve los pedidos de sus {medicos}, y quien ve todo el equipo, todos</span></div>
+<figure><img src="media/ventas/pedidos.webp" alt="Lista de pedidos" loading="lazy"><figcaption>Pedidos vistos por la dirección: los avisos arriba, los indicadores y la tabla.</figcaption></figure>
+<dl class="defs">
+  <dt>Arriba</dt><dd><b>+ Nueva venta</b> (si puedes crear pedidos) y <b>Filtros y columnas</b>, con un número si hay filtros puestos.</dd>
+  <dt>Buscador</dt><dd>Por {medico}, {paciente} o número de pedido.</dd>
+  <dt>Indicadores</dt><dd>Pedidos validados (y cuántos en borrador), unidades, cuántos llegaron por la web y, si puedes ver importes, base sin IVA, IVA y total con IVA. Solo cuentan los <b>validados</b>.</dd>
+  <dt>La tabla</dt><dd>Fecha (y número de factura o de pedido), cliente (con «Venta al {paciente}» o «Venta a centro», la marca <b>Web</b> o <b>Portal</b> y la forma de pago), {medico} de referencia (o «Sin atribuir»), comercial, productos, unidades, importes, estado (<span class="p conf">Validado</span>, <span class="p plan">Borrador</span> o <span class="p gris">Anulado</span>) y la <b>operativa</b>.</dd>
+  <dt>Operativa</dt><dd>Tres iconos en los validados: el pago, el paquete y la factura enviada. En color, hecho; en gris, pendiente. Al pasar el ratón lo dice («Pago pendiente · Paquete por preparar»).</dd>
+</dl>
+<p>Sin permiso para ver importes no se ve ningún euro en toda la pantalla, solo unidades. Pulsa una fila para <a href="#pedido-ver">ver el pedido</a>.</p>
+
+<h3 id="pedidos-avisos">Avisos de pedidos</h3>
+<p>Quien ve todo el equipo tiene arriba una tarjeta con lo pendiente, en cuatro grupos que se despliegan:</p>
+<figure><img src="media/ventas/pedidos-avisos.webp" alt="Avisos de pedidos" loading="lazy"></figure>
+<dl class="defs">
+  <dt>Pagos por validar</dt><dd>Pedidos validados con el pago pendiente.</dd>
+  <dt>Paquetes por preparar</dt><dd>Validados sin «Paquete preparado».</dd>
+  <dt>Facturas por enviar</dt><dd>Con factura emitida y sin «Email con la factura enviado».</dd>
+  <dt>Datos de pago por enviar</dt><dd>Transferencias pendientes a las que aún no se ha enviado el correo con los datos de pago.</dd>
+</dl>
+<p>Pulsa un pedido para abrirlo; la ✕ quita ese aviso solo para ti. El engranaje elige qué grupos ves; la administración puede hacer algunos <b>obligatorios por rol</b> (salen marcados y no se pueden ocultar).</p>
+
+<h3 id="pedidos-filtros">Filtros y columnas</h3>
+<figure class="estrecha"><img src="media/ventas/pedidos-filtros.webp" alt="Filtros de pedidos" loading="lazy"></figure>
+<dl class="defs">
+  <dt>Periodo</dt><dd>Todo, hoy, ayer, esta semana, últimos 7 días, mes actual (de entrada), mes anterior, trimestre, año o unas fechas. Se recuerda en tu dispositivo.</dd>
+  <dt>Canal, estado, operativa y origen</dt><dd>Venta al {paciente} o a centro; validados, borradores o anulados; pago por validar, paquete por preparar o factura por enviar; por la web, desde el portal del centro o por el comercial, teléfono o correo.</dd>
+  <dt>Clasificadores</dt><dd>Los campos propios de los pedidos de tu empresa.</dd>
+  <dt>Buscar en la tabla, filtrar por columna y columnas</dt><dd>Afinan lo que ya se ve en la página y eligen qué columnas enseñar.</dd>
+</dl>
+<figure class="movil"><img src="media/ventas/pedidos-movil.webp" alt="Pedidos en el móvil" loading="lazy"><figcaption>En el móvil, con el botón redondo para una nueva venta.</figcaption></figure>
+
+<!-- ============================== NUEVA VENTA ============================== -->
+<h2 id="nueva-venta">Nueva venta</h2>
+<div class="donde"><span><b>Dónde:</b> «+ Nueva venta» en Pedidos y en Oportunidades; «+ Nuevo pedido» en la ficha de un cliente; el aviso «Toca reponer»</span><span><b>Quién:</b> quien puede crear pedidos</span></div>
+<p>Una venta en tres pasos, pensada para el teléfono. Lo bueno es que <b>queda registrada aunque no compre</b>: así sabes qué se pide, qué no se vende y por qué.</p>
+<figure class="video"><video src="media/ventas/v-nueva-venta.webm" aria-label="Vídeo: una venta por teléfono"></video><figcaption>Buscar al cliente, repetir su último pedido, hacer el pedido y validarlo.</figcaption></figure>
+<ol class="pasos">
+  <li><b>Cliente:</b> escribe su nombre, teléfono o DNI y elígelo, o pulsa <b>+ Crear ficha nueva</b>. Debajo verás <b>lo que ya sabemos</b>: su último pedido con el botón <b>Repetir</b>, cuántos pedidos lleva y, si quedaste en llamarle, cuándo y por qué. «Pedido sin cliente (venta a centro)» va directo al pedido.</li>
+  <li><b>Qué quiere:</b> los productos y las unidades (con lo que «iría a comprar»), {el medico} o centro de referencia (si no está en la base, escribe su nombre: cuenta igual para las métricas), <b>cómo llegó</b> (llamada entrante, saliente, web, WhatsApp, correo, presencial) y el <b>motivo</b>. En «Más detalles», la fecha y una nota.</li>
+  <li><b>Cómo termina:</b> <span class="boton">Hacer el pedido</span> o <span class="boton">No compra</span>.</li>
+</ol>
+<figure class="estrecha"><img src="media/ventas/nueva-venta.webp" alt="Nueva venta con el cliente elegido" loading="lazy"><figcaption>Con el cliente elegido: su último pedido y «Repetir».</figcaption></figure>
+
+<h3 id="no-compra">Cuando no compra</h3>
+<p>Pulsa <b>No compra</b>, marca <b>por qué</b> (pagará más tarde, solo quería información, el precio no le convence…), elige <b>cuándo volver a llamar</b> (mañana, en 3 días, en una semana, en un mes o una fecha) y <b>qué hacer</b> («Enviarle el precio por WhatsApp»). delcos te dice cuánto se queda sin vender. <span class="boton">Guardar sin pedido</span> lo apunta y saldrá en «Volver a llamar» ese día. Basta con su nombre o su teléfono: no hace falta crearle ficha.</p>
+<div class="tabla" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px">
+  <figure style="margin:0"><img src="media/ventas/nueva-venta-no-compra.webp" alt="No compra" loading="lazy"><figcaption>Por qué no compra y cuándo volver a llamar.</figcaption></figure>
+  <figure class="video" style="margin:0"><video src="media/ventas/v-no-compra.webm" aria-label="Vídeo: guardar una venta sin pedido"></video><figcaption>Guardar sin pedido.</figcaption></figure>
+</div>
+
+<!-- ============================== EDITOR ============================== -->
+<h2 id="pedido-editor">El pedido</h2>
+<p>«Hacer el pedido» abre el pedido con el cliente, {el medico} y los productos ya puestos. Los importes se escriben <b>con IVA</b>: la base y el IVA se calculan solos.</p>
+<figure><img src="media/ventas/editor-pedido.webp" alt="Nuevo pedido" loading="lazy"></figure>
+<dl class="defs">
+  <dt>Fecha y canal</dt><dd>«Venta al {paciente}» o «Venta a centro (con descuento)».</dd>
+  <dt>Origen</dt><dd>Comercial, teléfono o correo; o pedido por la web. Si llegó del portal de un centro, lo dice.</dd>
+  <dt>Lo sirve</dt><dd>Nosotros o <b>un distribuidor</b>: con distribuidor, su código de cliente y si factura él («no se emite factura nuestra»). Un pedido que sirve el distribuidor no resta stock de vuestro almacén. La administración puede añadir distribuidores desde aquí.</dd>
+  <dt>{Paciente} y {medico} de referencia</dt><dd>En venta al {paciente}, su tarjeta (con aviso si no tiene dirección de entrega) y {el medico}; si no está en la base, deja el nombre escrito: el pedido quedará «sin atribuir». En venta a centro, la ficha del centro que compra.</dd>
+  <dt>Líneas</dt><dd>Producto (solo los activos), unidades, importe con IVA y % de descuento. Debajo, la base, el IVA y el precio por unidad. Si el producto tiene <b>precio de concurso</b> para esa ficha, se pone solo y lo marca.</dd>
+  <dt>Forma de pago y descuento general</dt><dd>Al elegir la forma de pago aparecen la <b>referencia del pago</b> y <b>Adjuntar</b> el justificante (foto o PDF de hasta 3 MB).</dd>
+  <dt>Servicio</dt><dd>Por ejemplo, el envío a domicilio, con su importe y su IVA. No lleva descuento ni cuenta como unidades.</dd>
+  <dt>Totales, nota y campos propios</dt><dd>Unidades, base, una fila por cada tipo de IVA y el total.</dd>
+</dl>
+<p>Abajo: <b>Guardar borrador</b> (no cuenta todavía) o <b>Guardar y validar</b>, que pregunta antes:</p>
+<figure class="estrecha"><img src="media/ventas/validar-pregunta.webp" alt="¿Validar el pedido?" loading="lazy"></figure>
+<p>Al validar, el pedido cuenta en las métricas y las comisiones: se atribuye a {el medico} y al comercial que lo lleva <b>en ese momento</b>, y el stock sale del almacén central empezando por el lote que caduca antes. Si tu empresa emite la factura al validar, se emite sola. Un pedido validado ya no se edita: solo se anula.</p>
+<div class="nota"><p>Si cambias a mano el importe de una línea, ya no se recalcula al cambiar las unidades. Pulsar dos veces o repetir sin conexión nunca duplica un pedido.</p></div>
+
+<!-- ============================== VER PEDIDO ============================== -->
+<h2 id="pedido-ver">Ver un pedido</h2>
+<div class="tabla" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px">
+  <figure style="margin:0"><img src="media/ventas/pedido-validado.webp" alt="Pedido validado" loading="lazy"><figcaption>Un pedido validado.</figcaption></figure>
+  <figure style="margin:0"><img src="media/ventas/pedido-borrador.webp" alt="Pedido en borrador" loading="lazy"><figcaption>Un borrador: todavía no cuenta.</figcaption></figure>
+</div>
+<p>Arriba, el número, el estado, la fecha, el canal y la forma de pago. Debajo, el {paciente} (con «Ver ficha del {paciente}»), {el medico} y su comercial, las líneas con sus totales, la nota y los campos propios. Y además:</p>
+<dl class="defs">
+  <dt>Operativa</dt><dd>(Quien ve todo el equipo) Casillas <b>Pago recibido</b>, <b>Paquete preparado</b>, <b>Email con la factura enviado</b> y <b>Email con los datos de pago enviado</b>. Al marcar el pago de un pedido ya facturado, se anota el cobro en la factura. «Preparar email con los datos de pago» escribe el correo con el importe, el IBAN y el concepto.</dd>
+  <dt>Pago</dt><dd>La referencia del pago y los justificantes («Añadir justificante», «Ver», «Quitar»).</dd>
+  <dt>Distribuidor</dt><dd>Si lo sirve uno: quién factura y, ya validado, «Preparar correo al distribuidor» con todo el pedido.</dd>
+  <dt>Equipos</dt><dd>Si lleva productos que son equipos: «Dar de alta los equipos» (ver <a href="#parque">Parque instalado</a>).</dd>
+</dl>
+<p>Los botones de abajo cambian según el estado: en un borrador, <b>Eliminar borrador</b>, <b>Editar</b> y <b>Validar pedido</b>; en uno validado, <b>Emitir factura</b> (o el número de la factura, que la abre) y <b>Anular pedido</b>, que pide un motivo y lo deja en la auditoría. Un pedido con factura no se anula sin más: la factura se corrige antes con una rectificativa.</p>
+<figure class="video"><video src="media/ventas/v-operativa.webm" aria-label="Vídeo: pago, paquete y factura"></video><figcaption>Desde un aviso: marcar el pago y el paquete, y emitir la factura.</figcaption></figure>
+<div class="nota"><p><b>Pedidos que nacen solos.</b> Un centro con portal pide su reposición y llega como <b>borrador</b> con la marca «Portal»; lo usado del material en depósito y de una cirugía también crea un borrador. Se validan como cualquier otro.</p></div>
+
+<!-- ============================== OPORTUNIDADES ============================== -->
+<h2 id="oportunidades">Oportunidades</h2>
+<div class="donde"><span><b>Dónde:</b> menú, bloque «Ventas» → «Oportunidades»</span><span><b>Quién:</b> quien ve todo el equipo, desde el plan Comercial</span></div>
+<p>Cada venta que se atiende, acabe o no en pedido, y por qué. Sirve para no perder a nadie y para saber qué se pide, cuándo y cómo llega.</p>
+<figure><img src="media/ventas/oportunidades.webp" alt="Oportunidades" loading="lazy"></figure>
+<dl class="defs">
+  <dt>Volver a llamar</dt><dd>Los clientes que no compraron y a los que quedaste en llamar: en rojo los atrasados, en naranja los de hoy. <b>Llamar</b> marca el número, <b>Registrar</b> abre la venta con todo lo que se sabía, y la marca de visto la cierra si ya no hace falta.</dd>
+  <dt>Indicadores</dt><dd>Oportunidades, cuántas acaban en pedido, la conversión, lo vendido, lo que quedó sin vender y las que siguen sin cerrar.</dd>
+  <dt>Gráficos</dt><dd>Qué piden (y cuánto se acaba vendiendo), cómo terminan, a qué hora y qué día, cómo llegan, por {medico} de referencia y por comercial. Cada uno con «Cómo leerlo».</dd>
+  <dt>La tabla</dt><dd>Fecha, cliente, qué quiere, {medico}, cómo terminó, el próximo paso y quién atendió. Pulsa una para abrirla.</dd>
+</dl>
+<div class="tabla" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px">
+  <figure style="margin:0"><img src="media/ventas/volver-a-llamar.webp" alt="Volver a llamar" loading="lazy"><figcaption>Volver a llamar.</figcaption></figure>
+  <figure style="margin:0"><img src="media/ventas/oportunidades-graficos.webp" alt="Gráficos de oportunidades" loading="lazy"><figcaption>Los gráficos.</figcaption></figure>
+</div>
+
+<!-- ============================== CLIENTES ============================== -->
+<h2 id="clientes">Clientes</h2>
+<div class="donde"><span><b>Dónde:</b> menú, bloque «Cartera» → «Clientes»</span><span><b>Quién:</b> con el permiso de clientes, desde el plan Comercial; el comercial ve los clientes de sus {medicos}</span></div>
+<p>{Los pacientes} y empresas que compran: con qué {medico} y su historial. Busca por nombre, teléfono, email, DNI o CIF; en «Filtros y columnas», por tipo (personas o empresas), con o sin pedidos y población.</p>
+<figure><img src="media/ventas/clientes.webp" alt="Lista de clientes" loading="lazy"></figure>
+<h3 id="cliente-ficha">La ficha del cliente</h3>
+<p>Sus pedidos, unidades e importe; <b>+ Nuevo pedido</b> (abre la venta con el cliente puesto) y <b>Editar datos</b>; el <b>{medico} que lo trata</b>, con «Cambiar de {medico}» o «Quitar {medico}» (cambiarlo afecta a las ventas nuevas: sin {medico}, sus unidades no se atribuyen a nadie); su contacto y el historial de pedidos.</p>
+<figure class="estrecha"><img src="media/ventas/cliente-ficha.webp" alt="Ficha del cliente" loading="lazy"></figure>
+<h3 id="cliente-alta">Alta de un cliente</h3>
+<p><b>Persona</b> o <b>Empresa</b>; nombre (o razón social), DNI o NIE (o CIF), {el medico} que lo trata, la dirección de entrega, teléfonos, email y, para una persona, la empresa a la que factura. delcos comprueba la letra del DNI y el control del CIF mientras escribes.</p>
+<figure class="estrecha"><img src="media/ventas/cliente-alta.webp" alt="Nuevo cliente" loading="lazy"></figure>
+
+<!-- ============================== COMPRAS ============================== -->
+<h2 id="compras">Compras y proveedores</h2>
+<div class="donde"><span><b>Dónde:</b> menú, bloque «Ventas» → «Compras» y «Proveedores»</span><span><b>Quién:</b> planes Empresa y A medida; crear y cambiar, la administración o quien tenga el permiso de pedidos más alto</span></div>
+<figure><img src="media/ventas/compras.webp" alt="Compras" loading="lazy"><figcaption>Pedidos de compra en curso, unidades en camino, retrasos y lo comprado este año.</figcaption></figure>
+<p>Cada pedido de compra pasa por <span class="p plan">Borrador</span>, <b>Enviado</b>, <b>En tránsito</b>, <b>Recibido parcial</b> y <span class="p vis">Recibido</span> (o Cancelado). <b>+ Nuevo pedido de compra</b> pide el proveedor, la fecha, la llegada prevista (se propone con el plazo del proveedor), los productos con unidades y coste sin IVA, los portes y una nota.</p>
+<figure><img src="media/ventas/compra.webp" alt="Pedido de compra" loading="lazy"></figure>
+<h3 id="compra-recibir">Recibir la mercancía</h3>
+<p><b>Recibir mercancía</b> pide, por cada producto, las unidades, el <b>número de lote</b>, la caducidad, la fecha de fabricación y el almacén. Si llega en varios lotes, «+ Otro lote de este producto». Sin caducidad te avisa: sin ella no se pueden ordenar las salidas ni avisar antes de que caduque. El stock entra al momento.</p>
+<figure class="video"><video src="media/ventas/v-recibir.webm" aria-label="Vídeo: recibir la mercancía"></video></figure>
+<h3 id="proveedores">Proveedores</h3>
+<p>A quién compras y en qué condiciones: nombre, NIF, contacto, dirección, el <b>plazo de entrega habitual</b> (sirve para proponer la llegada y para avisar en el stock de cuándo pedir), la forma de pago, las condiciones y la cuenta contable.</p>
+<figure class="estrecha"><img src="media/ventas/proveedor.webp" alt="Ficha de proveedor" loading="lazy"></figure>
+
+<!-- ============================== CONCURSOS ============================== -->
+<h2 id="concursos">Concursos</h2>
+<div class="donde"><span><b>Dónde:</b> menú, bloque «Ventas» → «Concursos»</span><span><b>Quién:</b> planes Empresa y A medida; cada concurso lo ve quien ve todo, quien lleva la ficha, su responsable o quien lo creó</span></div>
+<p>Las licitaciones de hospitales y organismos, con sus lotes y, si se ganan, los <b>precios del contrato</b>, que se ponen solos en los pedidos de esa ficha mientras el contrato está en vigor.</p>
+<figure><img src="media/ventas/concursos.webp" alt="Concursos en marcha" loading="lazy"></figure>
+<dl class="defs">
+  <dt>En marcha</dt><dd>En estudio y con oferta enviada, por fecha límite. «Presentar hasta el…» se pone en rojo si ya pasó.</dd>
+  <dt>Contratos</dt><dd>Los adjudicados, por vencimiento: «Vence en 75 días», «Vence hoy», «Vencido» o «Sin fecha de fin».</dd>
+  <dt>Cerrados</dt><dd>Perdidos y desiertos.</dd>
+</dl>
+<p><b>+ Nuevo concurso</b> pide el título, a quién se vende (la ficha del hospital u organismo), el expediente, el organismo, las fechas, el importe de licitación y el responsable.</p>
+<h3 id="concurso-ventana">El concurso por dentro</h3>
+<figure><img src="media/ventas/concurso.webp" alt="Concurso adjudicado con sus lotes" loading="lazy"></figure>
+<p>Todo se guarda al cambiarlo. El <b>estado</b> (en estudio, oferta enviada, adjudicado, perdido, desierto); si está adjudicado, las fechas del contrato y de la prórroga. Los <b>lotes</b>, cada uno con su estado (pendiente, ganado o perdido), los importes y, si se pierde, quién se lo llevó; y dentro de cada lote, los productos con su <b>precio sin IVA</b> y unidades.</p>
+<figure class="video"><video src="media/ventas/v-concurso.webm" aria-label="Vídeo: adjudicar un concurso"></video><figcaption>Pasarlo a adjudicado y marcar el lote como ganado.</figcaption></figure>
+<div class="nota"><p><b>Qué precio se aplica.</b> El de los lotes <b>ganados</b> de concursos <b>adjudicados</b> y en vigor. Si un producto está en varios contratos, manda el que vence más tarde. En el pedido sale la marca «Precio de concurso». También lo usan los pedidos del depósito y de las cirugías.</p></div>
+<p>La administración elige en <b>Avisos de vencimiento</b> cuántos días antes avisar (de partida, 90 y 30). El aviso llega a quien lleva la ficha, al responsable y a la administración, una vez por plazo. Los mismos días valen para los equipos.</p>
+<figure class="estrecha"><img src="media/ventas/concurso-avisos.webp" alt="Avisos de vencimiento" loading="lazy"></figure>
+
+<!-- ============================== PARQUE ============================== -->
+<h2 id="parque">Parque instalado</h2>
+<div class="donde"><span><b>Dónde:</b> menú, bloque «Ventas» → «Parque instalado»; también en la ficha del centro y desde el pedido</span><span><b>Quién:</b> planes Empresa y A medida</span></div>
+<p>Los equipos que tenéis instalados en vuestros clientes, con su número de serie, contrato, garantía y revisiones.</p>
+<figure><img src="media/ventas/parque.webp" alt="Parque instalado" loading="lazy"></figure>
+<p>Arriba, las <b>revisiones de los próximos 30 días</b> y los <b>contratos y garantías que vencen</b>; debajo, todos los equipos con un buscador por número de serie, equipo o centro. Cada uno con sus marcas: «Revisar el…», «Revisión pasada», «Garantía: vence en N días», «Retirado»…</p>
+<h3 id="equipo">El equipo por dentro</h3>
+<figure><img src="media/ventas/equipo.webp" alt="Ventana del equipo" loading="lazy"></figure>
+<p>Dónde está (el centro y la ubicación), cuándo se instaló, el contrato (venta, alquiler o cesión), la garantía, cada cuántos meses se revisa y el historial de <b>revisiones</b> (preventiva, correctiva o instalación). <b>Apuntar revisión</b> la añade y recalcula sola la próxima. <b>Programar en la agenda</b> crea la cita de la próxima revisión.</p>
+<figure class="video"><video src="media/ventas/v-revision.webm" aria-label="Vídeo: apuntar una revisión"></video></figure>
+<dl class="defs">
+  <dt>Dar de alta un equipo</dt><dd>«+ Equipo» (aquí o en la ficha del centro): dónde está, qué equipo, número de serie o UDI, ubicación, fecha de instalación, contrato, garantía y cada cuántos meses se revisa. «Retirar» lo deja en el historial y deja de avisar.</dd>
+  <dt>Desde el pedido</dt><dd>Al validar un pedido con productos marcados como equipo, el pedido avisa de que faltan por dar de alta y deja apuntar el número de serie de cada unidad.</dd>
+  <dt>En el producto</dt><dd>(Administración) «Es un equipo: se instala con su número de serie» y cada cuántos meses se revisa.</dd>
+</dl>
+<figure class="estrecha"><img src="media/ventas/equipo-nuevo.webp" alt="Nuevo equipo" loading="lazy"></figure>
+
+<!-- ============================== AJUSTES Y PREGUNTAS ============================== -->
+<h2 id="ventas-ajustes">Lo que se configura</h2>
+<dl class="defs">
+  <dt>Configuración → Clasificadores</dt><dd>(Administración) Formas de pago, motivos y resultados de las llamadas, «Cómo llegó» y los campos propios de pedidos y clientes.</dd>
+  <dt>Productos</dt><dd>Precios, IVA, servicios (como el envío), si es un equipo y su revisión.</dd>
+  <dt>Facturación → Datos fiscales</dt><dd>Emitir la factura al validar y el IBAN para el correo de pago.</dd>
+  <dt>Usuarios y roles</dt><dd>Quién puede crear pedidos, ver importes, comprar, ver todo el equipo y qué avisos de pedidos son obligatorios.</dd>
+  <dt>Concursos → Avisos de vencimiento</dt><dd>Los días de aviso de contratos y equipos.</dd>
+</dl>
+
+<h2 id="ventas-preguntas">Preguntas frecuentes</h2>
+<h4>He validado un pedido con un error.</h4>
+<p>Un pedido validado no se edita: anúlalo (con su motivo) y haz uno nuevo. Si ya tenía factura, primero hay que corregirla con una rectificativa.</p>
+<h4>Un pedido sale «Sin atribuir».</h4>
+<p>{El medico} de referencia no estaba en la base y se escribió solo su nombre. Las unidades no cuentan para nadie: antes de validar, elige su ficha en el pedido.</p>
+<h4>No veo euros en Pedidos.</h4>
+<p>Tu rol no tiene el permiso de ver importes. Pídeselo a la administración si lo necesitas.</p>
+<h4>¿Por qué no sale el precio de concurso?</h4>
+<p>Revisa que el concurso esté adjudicado, el lote marcado como ganado, el producto dentro del lote y el contrato en vigor en la fecha del pedido.</p>
+<h4>No veo Compras, Concursos ni Parque instalado.</h4>
+<p>Están en los planes Empresa y A medida.</p>
