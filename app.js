@@ -22654,3 +22654,29 @@ function pulirCfg() {
 }
 new MutationObserver(() => { if (TAB === 'config') requestAnimationFrame(pulirCfg); })
   .observe(document.getElementById('v-config'), { childList: true, subtree: true });
+
+/* v2.217.0 · Equipo, Facturación y Datos (tercera versión del rediseño de Configuración).
+   - pulirCfg se aplica ya a todos los apartados: fuera las tarjetas que solo presentan y los títulos repetidos.
+   - Usuarios: las cifras (plan, cada rol, sin actividad, con acceso al portal) en una línea; pulsar un rol filtra la lista por él.
+   - Las casillas sueltas (Cartera exclusiva, Emitir la factura al validar…) sin el recuadro de más. */
+pulirCfg = (orig => function () {
+  if (TAB !== 'config' || !CFG_KEY) return;
+  if (!CFG_PULIR.includes(CFG_KEY)) CFG_PULIR.push(CFG_KEY);
+  orig();
+  const c = $('cfgcuerpo'); if (!c) return;
+  if (CFG_KEY === 'usuarios') {
+    const k = c.querySelector('.cfgpanel > .kpis.vtot:not([data-pul])');
+    if (k) {
+      k.dataset.pul = '1'; k.classList.add('usrres');
+      const roles = rolesNombres();
+      k.querySelectorAll('.kpi').forEach(x => {
+        const r = (x.querySelector('span') || {}).textContent || '';
+        if (!roles.includes(r.trim())) return;
+        x.classList.add('usrresrol'); x.setAttribute('role', 'button'); x.tabIndex = 0; x.title = 'Ver solo ' + r.trim();
+        const filtra = () => { const s = $('usrrol'); if (!s) return; s.value = s.value === r.trim() ? '' : r.trim(); s.dispatchEvent(new Event('change', { bubbles: true }));
+          k.querySelectorAll('.usrresrol').forEach(y => y.classList.toggle('on', y === x && !!s.value)); };
+        x.onclick = filtra; x.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); filtra(); } };
+      });
+    }
+  }
+})(pulirCfg);

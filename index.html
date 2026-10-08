@@ -3446,6 +3446,18 @@ input[type=checkbox]:not(.vfswitch input):focus-visible{outline:none;box-shadow:
   #mkvoccard .mkvocf label{display:block}
   #v-config .firmaed > div:last-child{position:static}
 }
+
+/* v2.217.0 · Equipo, Facturación y Datos */
+#v-config .numw{width:136px;flex:none}
+#v-config .cicobj label{grid-template-columns:auto minmax(0,1fr) 136px}
+#v-config .cfgpanel .opt:has(> input[type=checkbox]){border:0!important;background:none!important;box-shadow:none!important;padding:10px 0!important}
+#v-config .usrres{display:flex!important;flex-wrap:wrap;gap:6px 8px;background:none!important;border:0!important;padding:0!important;margin:0 0 14px!important}
+#v-config .usrres .kpi{display:inline-flex;align-items:baseline;gap:6px;padding:7px 12px!important;border:1px solid var(--line);border-radius:999px;background:#fff;min-height:0;box-shadow:none}
+#v-config .usrres .kpi b{font-size:15px!important;line-height:1}#v-config .usrres .kpi span{font-size:13px;color:var(--muted)}
+#v-config .usrres .kpi.warn b{color:#B26B00}
+#v-config .usrres .usrresrol{cursor:pointer}#v-config .usrres .usrresrol:hover{border-color:var(--navy)}
+#v-config .usrres .usrresrol.on{background:var(--hielo);border-color:var(--navy)}
+#v-config .usrres .usrresrol:focus-visible{outline:none;box-shadow:var(--foco)}
 </style>
 </head>
 <body>
@@ -3584,6 +3596,6 @@ try{var co=sessionStorage.getItem('dlc-cambio-org');if(co!==null||localStorage.g
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.216.0"></script>
+<script src="./app.js?v=2.217.0"></script>
 </body>
 </html>
