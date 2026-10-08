@@ -3467,6 +3467,117 @@ input[type=checkbox]:not(.vfswitch input):focus-visible{outline:none;box-shadow:
 #v-config .rolmat td{padding:8px 8px}
 #v-config .rolmat select{width:116px;min-width:0;max-width:none!important;min-height:34px;padding:4px 26px 4px 9px;font-size:13px;background-position:right 8px center}
 #v-config .rolmat .selw{max-width:none}
+
+/* v2.219.0 · Agenda con tarjetas y cinta de 14 días */
+#v-agenda.agcinta #agmet,#v-agenda.agcinta #agsemana{display:none!important}
+#v-agenda.agcinta #agmes{display:none!important}
+#v-agenda.agcinta #agmes.pop{display:block!important;position:fixed!important;z-index:60;width:min(380px,calc(100vw - 32px));margin:0!important;box-shadow:0 18px 40px rgba(11,37,64,.18)}
+#v-agenda.agcinta #agcinta{order:2}
+#v-agenda.agcinta .tdnav{display:none}
+/* Desde 1100 px: Tu día a la izquierda y Sugerencias y Pendientes a la derecha (hasta que llegue el mapa) */
+@media (min-width:1100px){
+  #v-agenda.agunida.agcinta{grid-template-columns:minmax(0,1.6fr) minmax(340px,1fr)}
+  #v-agenda.agunida.agcinta > *,#v-agenda.agunida.agcinta #agcinta{grid-column:1 / -1}
+  #v-agenda.agunida.agcinta #agcuerpo{grid-column:1;grid-row:span 3}
+  #v-agenda.agunida.agcinta :is(#agsug,#agpend){grid-column:2}
+}
+/* Pastillas */
+.aghud{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:0 auto 0 28px}
+.aghud .agp{display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 12px;border:1px solid var(--line);border-radius:999px;background:var(--panel);font-size:13px;color:var(--muted);white-space:nowrap;line-height:1}
+.aghud .agp b{font:800 15px var(--f-titulo);color:var(--navy)}
+.aghud .agp.av b{color:#B26B00}
+.aghud .agp[data-agp]{cursor:pointer}.aghud .agp[data-agp]:hover{border-color:#9DB8D6}
+/* Cinta */
+.cinta{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:12px 14px 10px;margin:0 0 12px}
+.ccab{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 8px}
+.cinta .cnav{display:flex;align-items:center;gap:4px}
+.cinta .cnav .kmv{width:34px;height:34px;font-size:17px;border-radius:10px}
+.cinta .cmesb{border:0;background:none;font:800 16px var(--f-titulo);color:var(--navy);cursor:pointer;padding:6px 8px;border-radius:8px;min-height:0;min-width:170px;white-space:nowrap}
+.cinta .cmesb:hover{background:var(--hielo)}.cinta .cmesb span{font-size:12px;color:var(--muted)}
+.cley{display:flex;gap:14px;font-size:12px;color:var(--muted);margin-left:auto}
+.cley i,.cpts i{display:inline-block;width:7px;height:7px;min-width:0;min-height:0;padding:0;border:0;border-radius:50%;flex:none}
+.cley i{margin-right:6px}
+.cinta i.ch{background:var(--ok)}.cinta i.cp{background:var(--navy)}.cinta i.cx{background:#E08A00}
+.cinta .btn.chico{min-height:34px;padding:0 12px;font-size:13px;border-radius:10px}
+.cinta #cplan{display:inline-flex;align-items:center;gap:6px}.cinta #cplan svg{width:15px;height:15px}
+.csems{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
+.csem{min-width:0}.csem + .csem{border-left:1px solid var(--line);padding-left:16px}
+.csemt{display:block;font:700 11px var(--f-titulo);letter-spacing:.08em;text-transform:uppercase;color:#8A9BB0;margin:0 0 4px 6px}
+.c7{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:2px}
+.cdia{display:flex;flex-direction:column;align-items:center;gap:5px;padding:7px 2px 9px;border-radius:12px;border:1px solid transparent;background:none;cursor:pointer;font:inherit;color:var(--ink);min-width:0;min-height:0}
+.cdia:hover{background:var(--hielo)}
+.cdia .dn{font:700 11px var(--f-titulo);letter-spacing:.06em;color:#8A9BB0}
+.cdia .dd{font:800 17px/1 var(--f-titulo);color:var(--navy);padding:3px 7px;border-radius:8px;min-width:30px;text-align:center}
+.cdia.hoy .dd{background:var(--navy);color:#FFFFFF}
+.cdia.sel{border-color:var(--navy);background:var(--hielo)}
+.cdia.finde{opacity:.5}
+.cpts{display:flex;gap:2px;justify-content:center;align-items:center;flex-wrap:wrap;min-height:7px;max-width:48px}
+.cpts b{display:block;width:12px;height:2px;border-radius:1px;background:var(--line)}
+.cpts em{font-style:normal;font-size:10px;line-height:7px;color:var(--muted)}
+/* Tarjetas de Tu día */
+.tdlista.tdoculta{display:none!important}
+.tdesc{display:grid;gap:12px;margin:4px 0 12px}
+.tdu{display:block;padding:16px 18px 14px;border:1px solid var(--line);border-radius:14px;background:var(--panel);cursor:pointer;transition:border-color .15s,box-shadow .15s}
+.tdu:hover{border-color:#9DB8D6;box-shadow:0 6px 16px rgba(11,37,64,.08)}
+.tdu:focus-visible{outline:2px solid var(--sky);outline-offset:2px}
+.tdu.sig{border:1.5px solid var(--navy)}
+.tdu.hecha{background:var(--hielo)}
+.tdu-cab{display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:12px;align-items:start}
+.tdu-av{position:relative;width:44px;height:44px;border-radius:50%;background:var(--hielo);color:var(--navy);display:grid;place-items:center;font:800 15px var(--f-titulo)}
+.tdu.sig .tdu-av{background:var(--navy);color:#FFFFFF}
+.tdu.hecha .tdu-av{background:#E5F4EC;color:var(--ok)}
+.tdu-av .n{position:absolute;right:-4px;bottom:-4px;width:20px;height:20px;border-radius:50%;background:var(--panel);border:1.5px solid var(--navy);color:var(--navy);font:800 11px var(--f-titulo);display:grid;place-items:center}
+.tdu-tit{min-width:0}
+.tdu-sig{display:inline-flex;align-items:center;gap:6px;font:800 11px var(--f-titulo);letter-spacing:.08em;text-transform:uppercase;color:var(--navy);margin:0 0 3px}
+.tdu-sig i{width:8px;height:8px;border-radius:50%;background:var(--sky);box-shadow:0 0 0 4px rgba(124,195,236,.3)}
+.tdu-nom{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.tdu-nb{font:800 16px/1.25 var(--f-titulo);color:var(--navy);text-decoration:underline transparent;text-underline-offset:3px;transition:text-decoration-color .15s}
+.tdu:hover .tdu-nb{text-decoration-color:currentColor}
+.tdu-k{font:800 11px var(--f-titulo);padding:2px 7px;border-radius:6px;background:var(--hielo);color:var(--navy)}
+.tdu-k.A{background:var(--navy);color:#FFFFFF}
+.tdu-sub{display:block;font-size:13px;color:var(--muted);margin-top:3px;line-height:1.3}
+.tdu-hora{display:flex;flex-direction:column;align-items:flex-end;gap:4px;padding-top:2px;text-align:right;white-space:nowrap}
+.tdu-hora .h{font:800 20px/1 var(--f-titulo);color:var(--navy);font-variant-numeric:tabular-nums}
+.tdu-cu{font-size:12.5px;color:var(--muted)}.tdu.sig .tdu-cu{color:var(--navy);font-weight:700}
+.tdu-niv{display:flex;align-items:center;gap:12px;margin:12px 0 0 56px}
+.tdu-barra{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:3px;width:150px;flex:none}
+.tdu-barra i{height:6px;border-radius:3px;background:#E3EBF3}.tdu-barra i.on{background:var(--navy)}
+.tdu-barra i.obj{background:#CFE8F7;box-shadow:inset 0 0 0 1px var(--sky)}
+.tdu-nt{font-size:13px;color:var(--muted)}.tdu-nt b{color:var(--navy)}
+.tdu-dat{list-style:none;margin:10px 0 0 56px;padding:0;display:grid;gap:5px}
+.tdu-dat li{display:grid;grid-template-columns:16px minmax(0,1fr);gap:8px;align-items:start;font-size:13.5px;line-height:1.35;color:#2B4762}
+.tdu-dat svg{width:16px;height:16px;color:#8A9BB0;margin-top:1px}
+.tdu-dat li.toca{color:var(--navy);font-weight:700}.tdu-dat li.toca svg{color:var(--navy)}
+.tdu-dat li.av{color:#8A5300}.tdu-dat li.av svg{color:#C98A00}
+.tdu-pie{display:flex;align-items:center;gap:8px;margin:14px 0 0 56px;padding-top:12px;border-top:1px solid var(--line)}
+.tdu-est{display:flex;align-items:center;gap:6px;min-width:0;flex-wrap:wrap}.tdu-est .sm{margin:0}
+.tdu-ops{display:flex;gap:6px;margin-left:auto}
+.tdu-ops .kmv{width:36px;height:36px;border-radius:10px}
+.tdu-ops .kmv svg{width:16px;height:16px}
+.tdu-ops .kmv:disabled{opacity:.35;cursor:default}
+.tdu-reg{min-height:40px;padding:0 18px;font-size:14px;border-radius:10px;white-space:nowrap}
+@media (max-width:899px){
+  #v-agenda.agcinta > .saludo{flex-wrap:wrap}
+  .aghud{margin:10px 0 0;width:100%;order:3;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .aghud .agp{justify-content:space-between;width:100%}
+  .ccab{gap:8px}.cley{display:none}
+  .cinta .cnav{flex:1;min-width:0}
+  .cinta .cmesb{min-width:0;font-size:15px;padding:6px 4px}
+  .cinta #cplan span{display:none}.cinta #cplan{width:38px;padding:0;justify-content:center;margin-left:auto}
+  .csems{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:0;scrollbar-width:none}
+  .csems::-webkit-scrollbar{display:none}
+  .csem{flex:0 0 100%;scroll-snap-align:start}
+  .csem + .csem{border-left:0;padding-left:0}
+  #v-agenda.agcinta .tdhead .acts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;width:100%}
+  #v-agenda.agcinta .tdhead .acts .btn{min-height:42px;height:auto;padding:4px 6px;font-size:13px;line-height:1.15;white-space:normal;text-align:center;width:auto;justify-content:center}
+  #v-agenda.agcinta .tdhead .acts :is(#tdempezar,#tdterminar,#tdrepro){grid-column:1 / -1;order:-1;min-height:44px;font-size:15px}
+  .tdu{padding:14px 14px 12px}
+  .tdu-cab{grid-template-columns:40px minmax(0,1fr) auto;gap:10px}
+  .tdu-av{width:40px;height:40px}
+  .tdu-niv,.tdu-dat,.tdu-pie{margin-left:0}
+  .tdu-pie{flex-wrap:wrap}
+  .tdu-reg{flex:1 1 100%;order:3;min-height:44px}
+}
 </style>
 </head>
 <body>
@@ -3605,6 +3716,6 @@ try{var co=sessionStorage.getItem('dlc-cambio-org');if(co!==null||localStorage.g
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.218.0"></script>
+<script src="./app.js?v=2.219.0"></script>
 </body>
 </html>

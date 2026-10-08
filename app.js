@@ -22688,3 +22688,193 @@ htPreparar = (orig => function (sec, ...r) {
   if (sec && sec.id === 'v-config') { sec.querySelectorAll('.htbtn, .htpanel').forEach(x => x.remove()); return; }
   return orig.call(this, sec, ...r);
 })(htPreparar);
+
+/* v2.219.0 · Agenda con tarjetas y cinta de 14 días (decisión de Eric, prototipo «versión D»).
+   - Las cifras pasan a pastillas junto al título (#aghud, leídas de #agmet, que queda oculto).
+   - La semana y el mes se sustituyen por una cinta de 14 días (.cinta): un punto por cita (hecha, por hacer, sin cerrar),
+     ‹ › de semana en semana, «Hoy» para volver, el mes completo al pulsar su nombre (#agmes flotando) y «Planificar la semana».
+   - Tu día a todo el ancho: cada cita es una tarjeta (.tdu) con el nivel de la ficha y adónde llevarla, la clase, la anterior
+     y lo que se apuntó para esta (SQL 131: estado_comercial, clase y anterior en agenda_rango), el horario y los avisos.
+     Las tarjetas se construyen desde la lista de siempre (.tdlista, que queda oculta): heredan su hora estimada, sus avisos
+     y sus botones (los mismos data-td, que atiende el mismo listener).
+   - En el móvil: cifras en 2 × 2, la cinta semana a semana (deslizando), «Registrar» a todo el ancho. */
+const citaAnulada = e => EST_COL[e] === 'var(--muted)';
+const agConCinta = () => TAB === 'agenda' && AG_MODO === 'dia' && !!$('v-agenda');
+let CINTA_INI = null;
+const lunesCinta = f => { const d = new Date(f + 'T12:00:00'); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return isoLocal(d); };
+const diasMas = (f, n) => { const d = new Date(f + 'T12:00:00'); d.setDate(d.getDate() + n); return isoLocal(d); };
+const SVA = d => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + d + '</svg>';
+const ICU = {
+  toca: '<path d="M4 22V4a1 1 0 0 1 1-1h12l-2.5 4.5L17 12H5"/>',
+  reloj: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  puerta: '<path d="M3 21h18"/><path d="M6 21V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v17"/><path d="M14 12h.01"/>',
+  aviso: '<path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/>',
+  nota: '<path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z"/>',
+  mas: '<circle cx="5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="19" cy="12" r="1.3"/>',
+  plan: '<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18M12 14v4M10 16h4"/>'
+};
+
+// Pastillas con las cifras (de #agmet, que se sigue pintando igual)
+function agPastillas() {
+  const v = $('v-agenda'), m = $('agmet'); if (!v || !m || !agConCinta()) return;
+  const sal = v.querySelector(':scope > .saludo'); if (!sal) return;
+  const ms = [...m.querySelectorAll('.agm')]; if (!ms.length) return;
+  const html = ms.map((x, k) => {
+    const t = (x.querySelector('.agmt') || {}).textContent || '', b = (x.querySelector('.agmv b') || {}).textContent || '';
+    let de = k === 0 ? ((x.querySelector('.agmv') || {}).textContent || '').match(/de\s+([\d.]+)/) : null;
+    // «Hoy», con las mismas citas que Tu día cuando se ve hoy
+    let bv = b;
+    if (k === 0 && AG_FECHA === hoyISO() && Array.isArray(TD_CITAS) && TD_ULTIMO && TD_ULTIMO.fecha === AG_FECHA) {
+      const act = TD_CITAS.filter(c => !citaAnulada(c.estado));
+      bv = String(act.filter(c => !CITA_ABIERTA.includes(c.estado)).length); de = [null, String(act.length)];
+    }
+    const tit = [((x.querySelector('.agmv') || {}).textContent || '').trim(), ((x.querySelector('.agms') || {}).textContent || '').trim()].filter(Boolean).join(' · ');
+    const nom = k === 2 ? 'Cierres' : t;
+    return `<span class="agp ${k === 3 ? 'av' : ''}" title="${esc(tit)}" ${k === 3 ? 'data-agp="pend" role="button" tabindex="0"' : ''}>${esc(nom)} <b>${esc(bv)}${de ? '/' + esc(de[1]) : ''}</b></span>`;
+  }).join('');
+  let h = $('aghud');
+  if (!h) { const ref = sal.firstElementChild; if (!ref) return; ref.insertAdjacentHTML('afterend', '<div class="aghud" id="aghud" aria-label="Tus números"></div>'); h = $('aghud'); }
+  h.innerHTML = html;
+  const p = h.querySelector('[data-agp="pend"]');
+  if (p) p.onclick = p.onkeydown = e => { if (e.type === 'keydown' && e.key !== 'Enter') return; const d = $('agpend'); d && d.scrollIntoView({ behavior: 'smooth', block: 'start' }); };
+}
+agMetricas = (orig => async function (...a) { const r = await orig.apply(this, a); agPastillas(); return r; })(agMetricas);
+
+// La cinta de 14 días
+async function agCinta() {
+  const v = $('v-agenda'); if (!v || !agConCinta() || !$('agcuerpo')) return;
+  const hoy = hoyISO();
+  if (!CINTA_INI) CINTA_INI = lunesCinta(AG_FECHA || hoy);
+  const ini = CINTA_INI, fin = diasMas(ini, 13);
+  const { data } = await rpcCache('agenda_rango', { p_desde: ini, p_hasta: fin, p_usuario: agUid() }, 'agenda-cinta-' + agUid() + '-' + ini);
+  if (!agConCinta() || CINTA_INI !== ini || !$('agcuerpo')) return;
+  const por = {};
+  (data || []).filter(c => c.usuario_id === agUid() && !citaAnulada(c.estado)).forEach(c => { (por[c.fecha] = por[c.fecha] || []).push(c); });
+  const dn = ['D', 'L', 'M', 'X', 'J', 'V', 'S'];
+  const semTxt = l => {
+    const dd = Math.round((new Date(l + 'T12:00:00') - new Date(lunesCinta(hoy) + 'T12:00:00')) / 864e5 / 7);
+    if (dd === 0) return 'Esta semana'; if (dd === 1) return 'La semana que viene'; if (dd === -1) return 'La semana pasada';
+    const d0 = new Date(l + 'T12:00:00'); return 'Semana del ' + d0.getDate() + ' de ' + d0.toLocaleDateString('es-ES', { month: 'long' });
+  };
+  const dia = f => {
+    const l = por[f] || [], d = new Date(f + 'T12:00:00');
+    const tipo = c => !CITA_ABIERTA.includes(c.estado) ? 'ch' : f < hoy ? 'cx' : 'cp';
+    const pts = l.slice(0, 6).map(c => `<i class="${tipo(c)}"></i>`).join('') + (l.length > 6 ? `<em>+${l.length - 6}</em>` : '');
+    const n = `${l.length} ${l.length === 1 ? 'cita' : 'citas'}`;
+    return `<button type="button" class="cdia ${f === hoy ? 'hoy' : ''} ${f === AG_FECHA ? 'sel' : ''} ${[0, 6].includes(d.getDay()) ? 'finde' : ''}" data-cf="${f}" aria-label="${esc(fechaLarga(d))}: ${n}" title="${n}">
+      <span class="dn">${dn[d.getDay()]}</span><span class="dd">${d.getDate()}</span><span class="cpts">${pts || '<b></b>'}</span></button>`;
+  };
+  const mes = new Date(diasMas(ini, 3) + 'T12:00:00').toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
+  const html = `<div class="cinta" id="agcinta" data-ini="${ini}"><div class="ccab">
+      <div class="cnav"><button type="button" class="kmv" data-cm="-7" aria-label="Semana anterior" title="Semana anterior">‹</button><button type="button" id="cmesb" class="cmesb" aria-expanded="false" title="Ver el mes">${esc(mes.charAt(0).toUpperCase() + mes.slice(1))} <span aria-hidden="true">▾</span></button><button type="button" class="kmv" data-cm="7" aria-label="Semana siguiente" title="Semana siguiente">›</button>${ini !== lunesCinta(hoy) ? '<button type="button" class="btn sec chico" id="choy">Hoy</button>' : ''}</div>
+      <div class="cley" aria-hidden="true"><span><i class="ch"></i>Hecha</span><span><i class="cp"></i>Por hacer</span><span><i class="cx"></i>Sin cerrar</span></div>
+      <button type="button" class="btn sec chico" id="cplan" title="Planificar la semana">${SVA(ICU.plan)}<span>Planificar la semana</span></button></div>
+    <div class="csems">${[0, 7].map(o => `<div class="csem"><span class="csemt">${semTxt(diasMas(ini, o))}</span><div class="c7">${Array.from({ length: 7 }, (_, k) => dia(diasMas(ini, o + k))).join('')}</div></div>`).join('')}</div></div>`;
+  const vieja = $('agcinta');
+  if (vieja) vieja.outerHTML = html; else $('agcuerpo').insertAdjacentHTML('beforebegin', html);
+  const c = $('agcinta');
+  c.querySelectorAll('[data-cf]').forEach(b => b.onclick = () => { cerrarMesCinta(); c.querySelectorAll('.cdia').forEach(x => x.classList.toggle('sel', x === b)); agVerDia(b.dataset.cf); });
+  c.querySelectorAll('[data-cm]').forEach(b => b.onclick = () => { CINTA_INI = diasMas(CINTA_INI, +b.dataset.cm); agCinta(); });
+  if ($('choy')) $('choy').onclick = () => { CINTA_INI = lunesCinta(hoy); agCinta(); agVerDia(hoy); };
+  $('cmesb').onclick = e => { e.stopPropagation(); const m = $('agmes'); if (!m) return; const ab = !m.classList.contains('pop'); m.classList.toggle('pop', ab); $('cmesb').setAttribute('aria-expanded', String(ab));
+    // El mes se abre bajo su botón (en el móvil, centrado)
+    if (ab) { const r = $('cmesb').getBoundingClientRect(), w = Math.min(380, innerWidth - 32); m.style.top = Math.round(r.bottom + 8) + 'px'; m.style.left = Math.round(Math.max(16, Math.min(r.left, innerWidth - w - 16))) + 'px'; m.style.bottom = 'auto'; m.style.right = 'auto'; } };
+  $('cplan').onclick = () => { const p = $('agplansem'); p && p.click(); };
+  // En el móvil, la cinta se abre en la semana del día elegido
+  const sems = c.querySelector('.csems'); if (sems && AG_FECHA >= diasMas(ini, 7)) sems.scrollLeft = sems.scrollWidth;
+}
+function cerrarMesCinta() { const m = $('agmes'); if (m) m.classList.remove('pop'); if ($('cmesb')) $('cmesb').setAttribute('aria-expanded', 'false'); }
+document.addEventListener('click', e => { const m = $('agmes'); if (m && m.classList.contains('pop') && !e.target.closest('#agmes, #cmesb, .agmpop, .agpop')) cerrarMesCinta(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrarMesCinta(); });
+
+// Al elegir un día (en la cinta, el mes o la ficha), la cinta va a su semana
+agVerDia = (orig => async function (f, ...a) {
+  cerrarMesCinta();
+  const fuera = f && (!CINTA_INI || f < CINTA_INI || f > diasMas(CINTA_INI, 13));
+  if (fuera) CINTA_INI = lunesCinta(f);
+  const r = await orig.call(this, f, ...a);
+  // La cinta marca el día que se ve (y, si era de otra quincena, se vuelve a pintar en su semana)
+  if (agConCinta() && AG_FECHA === f) {
+    const c = $('agcinta');
+    if (fuera || !c || c.dataset.ini !== CINTA_INI) agCinta(); else c.querySelectorAll('.cdia').forEach(x => x.classList.toggle('sel', x.dataset.cf === f));
+  }
+  return r;
+})(agVerDia);
+cargarAgenda = (orig => async function (...a) {
+  const r = await orig.apply(this, a);
+  const v = $('v-agenda');
+  if (v) v.classList.toggle('agcinta', agConCinta());
+  if (agConCinta()) { agPastillas(); await agCinta(); } else { CINTA_INI = null; }
+  return r;
+})(cargarAgenda);
+agCifrasQuietas = (orig => function (...a) { const r = orig.apply(this, a); if (agConCinta()) agCinta(); return r; })(agCifrasQuietas);
+
+// Las tarjetas de Tu día, desde la lista de siempre
+function tarjetasTuDia() {
+  const cuerpo = $('agcuerpo'), lista = cuerpo && cuerpo.querySelector('.tdlista');
+  if (!lista || !agConCinta()) return;
+  const viejas = cuerpo.querySelector('.tdesc'); if (viejas) viejas.remove();
+  const fecha = AG_FECHA, hoy = hoyISO(), esHoy = fecha === hoy;
+  const ahora = (() => { const d = new Date(); return d.getHours() * 60 + d.getMinutes(); })();
+  const escala = ESTADOS_DEF.filter(x => x.papel !== 'negativo');
+  const vis = TT('visita', 's', '', 'l', 'l');
+  const filas = [...lista.querySelectorAll('.tdit')];
+  const datos = filas.map((it, i) => {
+    const b = it.querySelector('[data-td]'), id = b ? b.dataset.td.split('|')[1] : null;
+    const c = (TD_CITAS || []).find(x => x.id === id); if (!c) return null;
+    const htx = ((it.querySelector('.tdh') || {}).textContent || '').trim();
+    const m = htx.match(/(\d{1,2}):(\d{2})/);
+    return { c, it, i, htx, min: m ? +m[1] * 60 + +m[2] : null };
+  }).filter(Boolean);
+  const abiertas = datos.filter(d => CITA_ABIERTA.includes(d.c.estado));
+  const sig = esHoy ? (abiertas.find(d => d.min == null || d.min + 15 >= ahora) || null) : null;
+  const dias = f => Math.max(0, Math.round((new Date(hoy + 'T12:00:00') - new Date(String(f).slice(0, 10) + 'T12:00:00')) / 864e5));
+  const card = d => {
+    const { c, it } = d, ab = CITA_ABIERTA.includes(c.estado), info = TD_INFO[c.id] || {}, ant = c.anterior || null;
+    const nivel = escala.findIndex(x => x.valor === c.estado_comercial);
+    const obj = nivel >= 0 ? escala[nivel + 1] : null;
+    const falta = d.min != null ? d.min - ahora : null;
+    const aviso = ((it.querySelector('.tdaviso') || {}).textContent || '').trim();
+    const vent = ((it.querySelector('.tdvent') || {}).textContent || '').trim();
+    const lineas = [
+      ant && ant.proxima_accion ? ['toca', 'toca', `Toca: ${esc(ant.proxima_accion)}`] : null,
+      c.anterior !== undefined ? ['reloj', '', ant ? `Última ${vis} hace ${dias(ant.fecha)} ${dias(ant.fecha) === 1 ? 'día' : 'días'}` : `Primera ${vis}`] : null,
+      vent ? ['puerta', '', esc(vent)] : null,
+      ab && aviso ? ['aviso', 'av', esc(aviso)] : null,
+      ab && !xyCita(c) ? ['aviso', 'av', 'Sin ubicación'] : null,
+      c.nota ? ['nota', '', esc(c.nota)] : null
+    ].filter(Boolean);
+    const cuando = !ab ? '' : d === sig && falta != null && falta > 0 ? `en ${falta >= 60 ? Math.floor(falta / 60) + ' h ' : ''}${falta % 60} min` : d.htx.startsWith('~') ? 'Hora estimada' : '';
+    const bt = k => it.querySelector(`[data-td="${k}|${c.id}"]`);
+    const sube = bt('sube'), baja = bt('baja'), reg = bt('visita'), nueva = bt('nueva');
+    return `<article class="tdu ${d === sig ? 'sig' : ''} ${ab ? '' : 'hecha'}" data-tdu="${c.id}" tabindex="0" aria-label="${esc(c.nombre)}">
+      <div class="tdu-cab">
+        <div class="tdu-av" aria-hidden="true">${esc(iniciales(c.nombre))}<span class="n">${d.i + 1}</span></div>
+        <div class="tdu-tit">${d === sig ? '<span class="tdu-sig"><i></i>Siguiente</span>' : ''}
+          <div class="tdu-nom"><b class="tdu-nb" title="Ver la cita">${esc(c.nombre)}</b>${c.clase ? `<span class="tdu-k ${esc(c.clase)}" title="Clase ${esc(c.clase)}">${esc(c.clase)}</span>` : ''}${(it.querySelector('.p-urg') || {}).outerHTML || ''}</div>
+          <span class="tdu-sub">${esc([c.centro_nombre, c.municipio].filter(Boolean).join(' · ') || '')}</span></div>
+        <div class="tdu-hora"><span class="h">${esc(d.htx || '·')}</span>${cuando ? `<span class="tdu-cu">${cuando}</span>` : ''}</div>
+      </div>
+      ${escala.length && nivel >= 0 ? `<div class="tdu-niv"><div class="tdu-barra" title="${esc(escala.map(x => x.valor).join(' → '))}">${escala.map((x, k) => `<i class="${k <= nivel ? 'on' : k === nivel + 1 ? 'obj' : ''}"></i>`).join('')}</div>
+        <span class="tdu-nt"><b>${esc(c.estado_comercial)}</b>${obj ? ` → ${esc(obj.valor)}` : ' · mantener'}</span></div>` : ''}
+      ${lineas.length ? `<ul class="tdu-dat">${lineas.map(([ic, cl, t]) => `<li class="${cl}">${SVA(ICU[ic])}<span>${t}</span></li>`).join('')}</ul>` : ''}
+      <div class="tdu-pie"><span class="tdu-est">${pillCita(c.estado)}<span class="sm">${textoOrigenCita(c)}</span></span>
+        <span class="tdu-ops">${sube ? `<button class="kmv" type="button" data-td="sube|${c.id}" aria-label="Subir en el orden" title="Subir en el orden" ${sube.disabled ? 'disabled' : ''}>${ICO.arriba}</button>` : ''}${baja ? `<button class="kmv" type="button" data-td="baja|${c.id}" aria-label="Bajar en el orden" title="Bajar en el orden" ${baja.disabled ? 'disabled' : ''}>${ICO.abajo}</button>` : ''}<button class="kmv" type="button" data-td="mas|${c.id}" aria-label="Más acciones" title="Más acciones">${SVA(ICU.mas)}</button></span>
+        ${nueva ? `<button class="btn sec tdu-reg" type="button" data-td="nueva|${c.id}">Nueva cita</button>` : ''}
+        ${reg ? `<button class="btn ${d === sig ? '' : 'sec'} tdu-reg" type="button" data-td="visita|${c.id}">Registrar ${vis}</button>` : ''}</div>
+    </article>`;
+  };
+  lista.insertAdjacentHTML('beforebegin', `<div class="tdesc" aria-label="Citas del día">${datos.map(card).join('')}</div>`);
+  lista.classList.add('tdoculta');
+  agPastillas();
+}
+pintarTuDia = (orig => async function (...a) { const r = await orig.apply(this, a); tarjetasTuDia(); return r; })(pintarTuDia);
+// Pulsar la tarjeta (fuera de sus botones) abre la cita, como la fila de antes
+document.addEventListener('click', e => {
+  const t = e.target.closest('.tdu'); if (!t || e.target.closest('button, a, input, select')) return;
+  const c = (TD_CITAS || []).find(x => x.id === t.dataset.tdu); if (c) verCita(c);
+});
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Enter' || !e.target.matches || !e.target.matches('.tdu')) return;
+  const c = (TD_CITAS || []).find(x => x.id === e.target.dataset.tdu); if (c) verCita(c);
+});
