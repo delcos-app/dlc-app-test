@@ -322,6 +322,8 @@ function pintarChips() {
   if (F.esp) c.push(['esp', F.esp]);
   if (F.est) c.push(['est', F.est]);
   if (F.urg) c.push(['urg', 'Solo urgentes']);
+  if (F.mios) c.push(['mios', 'De mi cartera']);
+  if (F.sin) c.push(['sin', 'Sin visitar nunca']);
   $('chips').innerHTML = c.map(([k, t]) => `<button class="chip" data-x="${k}">${esc(t)} ✕</button>`).join('');
 }
 
@@ -330,6 +332,7 @@ $('chips').addEventListener('click', e => {
   const k = b.dataset.x;
   if (k === 'q') { F.q = ''; $('q').value = ''; }
   else if (k === 'urg') F.urg = false;
+  else if (k === 'mios' || k === 'sin') F[k] = false;
   else { F[k] = ''; $('f' + k).value = ''; if (k === 'prov') { F.muni = ''; cargarFiltros(true); } }
   buscar(true);
 });
@@ -347,7 +350,7 @@ async function buscar(reiniciar) {
   const params = {
     q: F.q || null, f_provincia: F.prov || null, f_municipio: F.muni || null,
     f_estado: F.est || null, f_especialidad: F.esp || null, f_area: null,
-    f_urgentes: F.urg, f_mios: false, f_sin_visitar: false, f_comercial: F.com || null, f_reporting: F.rep || null,
+    f_urgentes: F.urg, f_mios: !!F.mios, f_sin_visitar: !!F.sin, f_comercial: F.com || null, f_reporting: F.rep || null,
     orden: F.orden, lim: tamPagina(), desplaz: F.pagina * tamPagina(),
     ...(Object.keys(F.campos || {}).length ? { f_campos: F.campos } : {})
   };
@@ -2387,7 +2390,7 @@ async function contarFiltro(f) {
   const { data } = await db.rpc('buscar_cuentas', {
     q: f.q || null, f_provincia: f.prov || null, f_municipio: f.muni || null,
     f_estado: f.est || null, f_especialidad: f.esp || null, f_area: null,
-    f_urgentes: !!f.urg, f_mios: false, f_sin_visitar: !!f.sin, orden: 'nombre', lim: 1, desplaz: 0, f_comercial: f.com || null
+    f_urgentes: !!f.urg, f_mios: !!f.mios, f_sin_visitar: !!f.sin, orden: 'nombre', lim: 1, desplaz: 0, f_comercial: f.com || null
   });
   return data ? data.total : 0;
 }
@@ -3583,6 +3586,8 @@ function abrirHerramientas(contexto) {
     <label>Estado comercial</label><select data-tf="est">${optFiltro(OPF.estados, F.est, 'Todos los estados')}</select>
     <label>Reporting</label><select data-tf="rep"><option value="">Todos</option><option value="con" ${F.rep === 'con' ? 'selected' : ''}>Con reporting</option><option value="sin" ${F.rep === 'sin' ? 'selected' : ''}>Sin reporting</option></select>
     ${VE_TODO() && $('fcom') ? `<label>Comercial</label><select data-tf="com">${$('fcom').innerHTML}</select>` : ''}
+    <label class="opt" style="margin-top:10px"><input type="checkbox" data-tfc="mios" ${F.mios ? 'checked' : ''}> Solo ${TT('medico', 'p', 'el', 'l', 'l')} de mi cartera</label>
+    <label class="opt"><input type="checkbox" data-tfc="sin" ${F.sin ? 'checked' : ''}> Sin visitar nunca</label>
     <div class="tfcampos">${camposFiltros('medico', F.campos, 'tfcp')}</div>
     <label>Ordenar por</label><select data-tf="orden">
       <option value="nombre" ${F.orden === 'nombre' ? 'selected' : ''}>Nombre</option>
@@ -3608,8 +3613,9 @@ function abrirHerramientas(contexto) {
   });
   if (d.querySelector('[data-tf="com"]')) d.querySelector('[data-tf="com"]').value = F.com || '';
   camposFiltrosActivar(d, F.campos, () => buscar(true));
+  d.querySelectorAll('[data-tfc]').forEach(c => c.onchange = () => { F[c.dataset.tfc] = c.checked; buscar(true); });
   if ($('tlimpiar')) $('tlimpiar').onclick = () => {
-    Object.assign(F, { q: '', prov: '', muni: '', esp: '', est: '', urg: false, orden: 'nombre', com: '', rep: '', campos: {} });
+    Object.assign(F, { q: '', prov: '', muni: '', esp: '', est: '', urg: false, mios: false, sin: false, orden: 'nombre', com: '', rep: '', campos: {} });
     if ($('frep')) $('frep').value = '';
     if ($('fcom')) $('fcom').value = '';
     $('q').value = ''; buscar(true); d.classList.remove('abierto');
@@ -5832,11 +5838,14 @@ function filtroActual() {
   const f = {};
   ['q', 'prov', 'muni', 'esp', 'est', 'com'].forEach(k => { if (F[k]) f[k] = F[k]; });
   if (F.urg) f.urg = true;
+  if (F.mios) f.mios = true;
+  if (F.sin) f.sin = true;
   return f;
 }
 function textoFiltro(f) {
   const p = [];
   if (f.urg) p.push('urgentes');
+  if (f.mios) p.push('de mi cartera');
   if (f.sin) p.push('sin visitar');
   if (f.est) p.push(f.est);
   if (f.esp) p.push(f.esp);
@@ -5846,10 +5855,12 @@ function textoFiltro(f) {
   return p.length ? p.join(' · ') : `Todos ${TT('medico', 'p', 'el', 'l', 'l')}`;
 }
 function aplicarFiltroGuardado(f) {
-  Object.assign(F, { q: '', prov: '', muni: '', esp: '', est: '', com: '', urg: false, orden: 'nombre', pagina: 0 });
+  Object.assign(F, { q: '', prov: '', muni: '', esp: '', est: '', com: '', urg: false, mios: false, sin: false, orden: 'nombre', pagina: 0 });
   if (f.q) { F.q = f.q; $('q').value = f.q; }
   ['prov', 'muni', 'esp', 'est', 'com'].forEach(k => { if (f[k]) { F[k] = f[k]; const s = $('f' + k); if (s) s.value = f[k]; } });
   if (f.urg) F.urg = true;
+  if (f.mios) F.mios = true;
+  if (f.sin) F.sin = true;
   ir('directorio'); buscar(true);
 }
 
@@ -22255,3 +22266,49 @@ cargarManual = (orig => async function (...a) {
     <iframe id="manlibro" class="manlibro" title="Manual de uso" src="${url}"></iframe>`;
 })(cargarManual);
 ponerAyudaManual = (orig => function () { if (TAB === 'manual') return; return orig.apply(this, arguments); })(ponerAyudaManual);
+
+/* v2.212.0 · Decisiones de la auditoría (1).
+   - Pedidos: la tarjeta «Pedidos sin atribuir» vuelve a la pestaña Ventas (la pantalla nueva ya no tenía su hueco) para quien
+     puede atribuir (administración o nivel 2 en Pedidos, como atribuir_linea).
+   - Editar usuario: «Qué ve esa persona» de la comisión sale aparte (usuarioComisionInfo ocultaba la fila entera con el esquema).
+   - Duplicados: el botón de Calidad del dato y el indicador de Inicio, también para quien tiene nivel 3 en fichas (como la página). */
+const puedeDuplicados = () => puede('administrar') || ((PERFIL && PERFIL.areas) || {}).M >= 3;
+const puedeAtribuir = () => puede('administrar') || nivelDe2('V') >= 2;
+pintarSinAtribuir = (orig => async function (...a) {
+  const r = await orig.apply(this, a);
+  const c = $('cardsinatr'); if (c) c.classList.toggle('hide', !c.innerHTML.trim());
+  return r;
+})(pintarSinAtribuir);
+cargarVentas = (orig => async function (...a) {
+  const r = await orig.apply(this, a);
+  const cuerpo = $('vcuerpo');
+  if (PEDSEC === 'ventas' && cuerpo && puedeAtribuir() && !$('cardsinatr')) {
+    cuerpo.insertAdjacentHTML('afterbegin', '<div class="card hide" id="cardsinatr"></div>');
+    pintarSinAtribuir();
+  }
+  return r;
+})(cargarVentas);
+usuarioComisionInfo = (orig => async function (...a) {
+  const r = await orig.apply(this, a);
+  const s = $('uverc'), info = $('ucominfo');
+  if (s && info && !$('uvercw')) {
+    const w = s.parentElement; w.id = 'uvercw';
+    const l = w.querySelector('label'); if (l) l.classList.remove('sm');
+    w.insertAdjacentHTML('beforeend', '<div class="sm">Lo que ve en Inicio de su comisión: nada, solo sus unidades o también el importe.</div>');
+    info.insertAdjacentElement('afterend', w);
+  }
+  return r;
+})(usuarioComisionInfo);
+kpiPermitido = (orig => function (c) {
+  if (c && c.id === 'dups') return puedeDuplicados() && orig(Object.assign({}, c, { admin: false }));
+  return orig(c);
+})(kpiPermitido);
+cargarSeguimiento = (orig => async function (...a) {
+  const r = await orig.apply(this, a);
+  const acts = document.querySelector('#v-seguimiento .saludo .acts');
+  if (acts && puedeDuplicados() && !$('caldup')) {
+    acts.insertAdjacentHTML('beforeend', `<button class="btn sec" id="caldup">${svgIco(ICON_NOM.copy)} Duplicados</button>`);
+    $('caldup').onclick = () => ir('duplicados');
+  }
+  return r;
+})(cargarSeguimiento);
