@@ -3360,6 +3360,65 @@ html.cambiando-org #bootsplash,html.cambiando-org #bootsplash.hide{display:grid!
 /* v2.212.0 · Pedidos sin atribuir y «Qué ve esa persona» */
 #cardsinatr{margin:0 0 14px}
 #uvercw{margin:10px 0 4px}#uvercw select{max-width:320px}
+
+/* v2.215.0 · Piezas de la marca: casillas de 18 px con el marino (en toda la app) e interruptores en marino */
+input[type=checkbox]:not(.vfswitch input){appearance:none;-webkit-appearance:none;width:18px!important;height:18px!important;min-height:0!important;min-width:0!important;
+  padding:0!important;margin:0;flex:none!important;border:1.5px solid #9DB3C9;border-radius:5px;background:#FFFFFF;display:inline-grid;place-content:center;
+  cursor:pointer;vertical-align:middle;box-shadow:none;transition:background-color .12s,border-color .12s}
+input[type=checkbox]:not(.vfswitch input):hover{border-color:var(--navy)}
+input[type=checkbox]:not(.vfswitch input):checked{background:var(--navy);border-color:var(--navy)}
+input[type=checkbox]:not(.vfswitch input):checked::after{content:'';width:9px;height:5px;border-left:2px solid #fff;border-bottom:2px solid #fff;transform:translateY(-1px) rotate(-45deg)}
+input[type=checkbox]:not(.vfswitch input):indeterminate{background:var(--navy);border-color:var(--navy)}
+input[type=checkbox]:not(.vfswitch input):indeterminate::after{content:'';width:9px;height:2px;background:#fff}
+input[type=checkbox]:not(.vfswitch input):disabled{opacity:.45;cursor:default}
+input[type=checkbox]:not(.vfswitch input):focus-visible{outline:none;box-shadow:var(--foco)}
+.vfswitch input:checked + .sw{background:var(--navy)}
+/* v2.215.0 · Configuración en un solo sitio: índice y página */
+.cfu{display:grid;grid-template-columns:252px minmax(0,1fr);gap:28px;align-items:start}
+.cfuidx{position:sticky;top:88px;max-height:calc(100vh - 100px);overflow:auto;padding:2px 4px 16px 4px;scrollbar-width:thin}
+.cfubusca{position:relative;margin:0 0 6px}.cfubusca svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:var(--muted);pointer-events:none}
+.cfubusca input{min-height:38px!important;padding:7px 10px 7px 33px!important;font-size:14px;border-radius:10px;max-width:none!important}
+.cfuidx h4{font:700 11px var(--f-titulo);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:16px 10px 4px}
+.cfuidx [data-ck],.cfuidx .cfipad{display:flex;align-items:center;gap:10px;width:100%;border:0;background:none;text-align:left;font:inherit;font-size:14px;font-weight:600;
+  color:var(--ink);padding:7px 10px;border-radius:8px;position:relative;min-height:0}
+.cfuidx [data-ck]{cursor:pointer}.cfuidx [data-ck]:hover{background:var(--hielo)}
+.cfuidx [data-ck] svg,.cfuidx .cfipad svg{width:16px;height:16px;color:var(--muted);flex:none}
+.cfuidx [data-ck].on{background:var(--hielo);color:var(--navy)}.cfuidx [data-ck].on svg{color:var(--navy)}
+.cfuidx [data-ck].on::before{content:'';position:absolute;left:-4px;top:7px;bottom:7px;width:3px;border-radius:3px;background:var(--navy)}
+.cfuidx [data-ck].sub{padding-left:36px;font-weight:500;font-size:13.5px}
+.cfuidx [data-ck] .pill{margin-left:auto}
+.cfupt{width:8px;height:8px;border-radius:50%;background:#E08A00;flex:none;margin-left:auto}
+.cfusin{font-size:13.5px;color:var(--muted);padding:10px}
+.cfucab{margin:0 0 14px}.cfucab .miga{font-size:12.5px;color:var(--muted);font-weight:600}.cfucab h2{margin:2px 0;font-size:24px;color:var(--navy)}
+.cfucab p{margin:0;color:var(--muted);font-size:14px}
+.cfupend{display:flex;align-items:center;gap:10px;background:#FFF4DC;color:#7A4E00;border-radius:10px;padding:10px 14px;margin:0 0 14px;font-size:14px;font-weight:600}
+.cfupend .cfupt{margin:0}
+/* Mis datos: la tarjeta de la persona y los bloques en dos columnas, como tenía su página */
+#v-config .cfu #miperfil{display:block!important}
+@media (min-width:1100px){#v-config #cfgcuerpo.perfil2{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:16px;align-items:start}
+  #v-config #cfgcuerpo.perfil2 > #miperfil{grid-row:1 / span 3}#v-config #cfgcuerpo.perfil2 > .card{margin:0!important}}
+.cfuvolver{display:none;border:0;background:none;color:var(--azul,#3F82C0);font:inherit;font-weight:600;padding:0;margin:0 0 10px;cursor:pointer;min-height:0}
+/* Filas de ajuste y Notificaciones */
+.ajfila{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;align-items:center;padding:14px 0;border-bottom:1px solid var(--line)}
+.ajfila:last-child{border-bottom:0}.ajfila b{display:block;color:var(--navy);font-size:15px}.ajfila .sm{display:block;margin-top:2px}
+.ajctl{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.ajctl input[type=time]{width:112px;min-height:38px;padding:6px 10px}
+.ajctl .vfswitch{margin:0 6px 0 0}
+.ntffin{display:inline-flex;align-items:center;gap:8px;margin-left:6px;font-size:14px;font-weight:600;color:var(--ink);cursor:pointer}
+.ntf h3.ntfarea{font:700 11px var(--f-titulo);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:22px 0 2px;padding:0}
+.ntfrow{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:12px;align-items:center;padding:11px 0;border-bottom:1px solid var(--line)}
+.ntfrow:last-child{border-bottom:0}
+.ntfrow .ntfic{display:grid;place-items:center;width:28px;height:28px;border-radius:8px;background:var(--hielo);color:var(--navy)}.ntfrow .ntfic svg{width:15px;height:15px}
+.ntfrow b{color:var(--navy);font-size:14.5px}.ntfrow .sm{display:block}
+.ntfseg button{padding:6px 11px;font-size:13px}
+.ntfres{display:flex;gap:18px;flex-wrap:wrap;margin:0 0 4px;color:var(--muted);font-size:13.5px}.ntfres b{color:var(--navy)}
+@media (max-width:899px){
+  .cfu{grid-template-columns:1fr;gap:12px}.cfu.det .cfuidx{display:none}.cfu:not(.det) .cfupag{display:none}
+  .cfuidx{position:static;max-height:none;overflow:visible}.cfuidx [data-ck]{padding:11px 10px;font-size:15px}.cfuidx [data-ck].sub{padding-left:36px}
+  .cfuvolver{display:inline-flex}.cfucab h2{font-size:22px}
+  .ntfrow{grid-template-columns:28px minmax(0,1fr)}.ntfrow .ntfseg{grid-column:1 / -1;justify-self:start}
+  .ajfila{grid-template-columns:1fr}.ajctl{justify-content:flex-start}
+}
 </style>
 </head>
 <body>
@@ -3498,6 +3557,6 @@ try{var co=sessionStorage.getItem('dlc-cambio-org');if(co!==null||localStorage.g
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.214.0"></script>
+<script src="./app.js?v=2.215.0"></script>
 </body>
 </html>

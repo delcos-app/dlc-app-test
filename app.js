@@ -13553,7 +13553,7 @@ verPedidoBase = (orig => async function (...a) {
 pintarPerfil = (orig => function () {
   orig();
   // El contenedor de la página (no el provisional que se usa mientras se prepara la tarjeta de la persona)
-  const c = document.querySelector('#v-perfil .pagcuerpo'); if (!c || c.querySelector('.perfseg')) return;
+  const c = document.querySelector('#v-perfil .pagcuerpo') || (TAB === 'config' ? document.querySelector('#v-config #cfgcuerpo-real, #v-config #cfgcuerpo') : null); if (!c || c.querySelector('.perfseg')) return;
   c.classList.add('perfil2');
   c.insertAdjacentHTML('beforeend', `<div class="card cfgpanel perfseg"><h2 style="padding:0 0 4px">${svgIco(ICON_NOM.shield)} Seguridad y sesión</h2>
     <p class="sm">Para cambiar la contraseña te enviamos un enlace a tu correo. Así nadie puede cambiarla desde un dispositivo que hayas dejado abierto.</p>
@@ -14049,13 +14049,13 @@ async function disenoPDF() {
     $('dbody').querySelector('.fh .x').remove();
     const c = $('dbody').querySelector('.acts [data-cerrar]'); c.removeAttribute('data-cerrar'); c.textContent = 'Descartar cambios';
     c.onclick = () => disenoPDF();
-  } else if (TAB === 'organizacion' && PAG_TAB.organizacion === 'pdf') {
+  } else if ((TAB === 'organizacion' && PAG_TAB.organizacion === 'pdf') || (TAB === 'config' && CFG_KEY === 'o.pdf')) {
     // v2.124.0: en el móvil el diseño es una ventana; al cerrarla, la pestaña no se queda vacía con el cargador girando
     $('dlg').dataset.depagina = '1';   // v2.136.0: se cierra al cambiar de pantalla
     $('dlg').addEventListener('close', () => {
       delete $('dlg').dataset.depagina;
-      const area = document.querySelector('#v-organizacion .pagcuerpo');
-      if (!area || TAB !== 'organizacion' || PAG_TAB.organizacion !== 'pdf') return;
+      const area = document.querySelector('#v-organizacion .pagcuerpo') || (TAB === 'config' ? $('cfgcuerpo') : null);
+      if (!area || !((TAB === 'organizacion' && PAG_TAB.organizacion === 'pdf') || (TAB === 'config' && CFG_KEY === 'o.pdf'))) return;
       area.innerHTML = `<div class="card cfgpanel"><h2>Diseño del PDF de la factura</h2><p class="sm">Logo, colores, columnas y pie de las facturas, con vista previa.</p>
         <div class="acts"><button class="btn" id="pdfabrir" type="button">Abrir el diseño del PDF</button></div></div>`;
       $('pdfabrir').onclick = () => disenoPDF();
@@ -15737,7 +15737,7 @@ pintarPaginaPlan = async function () {
   // v2.120.0: «incluido» y «no incluido» como icono y raya suave, con su texto para lectores de pantalla
   const celda = (p, v) => `<td class="${p.id === act.id ? 'act' : ''}">${v === '✓' ? `<span class="si" role="img" aria-label="Incluido">${svgIco(ICON_NOM.check)}</span>`
     : v === '—' ? '<span class="no" role="img" aria-label="No incluido">—</span>' : v}</td>`;
-  cont.innerHTML = `${TAB === 'organizacion' ? '<p class="sm">Precio por usuario y mes, IVA no incluido. Con pago anual pagas 10 meses de 12.</p>' : '<div class="saludo"><div><h1>Plan y suscripción</h1><div class="fecha">Precio por usuario y mes, IVA no incluido. Con pago anual pagas 10 meses de 12.</div></div></div>'}
+  cont.innerHTML = `${TAB === 'organizacion' || TAB === 'config' ? '<p class="sm">Precio por usuario y mes, IVA no incluido. Con pago anual pagas 10 meses de 12.</p>' : '<div class="saludo"><div><h1>Plan y suscripción</h1><div class="fecha">Precio por usuario y mes, IVA no incluido. Con pago anual pagas 10 meses de 12.</div></div></div>'}
     <div class="card" id="planact"><h2>Tu plan: ${esc(act.nombre)}</h2>
       ${pl.estado === 'prueba' ? `<div class="banda-aviso">Estás en la prueba gratuita hasta el <b>${fechaCorta(pl.prueba_hasta)}</b>. Sin permanencia: si no sigues, te llevas tus datos.</div>` : ''}
       <div class="kpis">
@@ -16019,7 +16019,7 @@ document.addEventListener('keydown', e => {
   // v2.124.0: lo que forma parte de la página (el diseño del PDF en su pestaña) no se cierra con Escape
   if (d && !d.dataset.fija) { e.preventDefault(); d.close(); }
 });
-document.addEventListener('click', e => { if (e.target.closest('.cfgnav [data-cfg], .pagtabs [data-ptab], #cfgsubs button, nav.main [data-t], #bnav [data-t], [data-u]')) cerrarEncajadas(); }, true);
+document.addEventListener('click', e => { if (e.target.closest('.cfgnav [data-cfg], .cfuidx [data-ck], .pagtabs [data-ptab], #cfgsubs button, nav.main [data-t], #bnav [data-t], [data-u]')) cerrarEncajadas(); }, true);
 const IR_ENCAJE = ir;
 ir = function (...a) { cerrarEncajadas(); return IR_ENCAJE(...a); };
 addEventListener('resize', () => ['dlg', 'dlg2'].forEach(id => { const d = $(id); if (d && d.open && d.__area) { if (innerWidth < ENCAJE_MIN) d.close(); else colocarEncajada(d, d.__area); } }));
@@ -18517,7 +18517,7 @@ async function pagoEsperarActivo() {
     await new Promise(r => setTimeout(r, 3000));
     await pagoCargarEstado();
     const pl = PLAN_ACTUAL || {};
-    if (pl.stripe_suscripcion && pl.estado === 'activo') { toast('Suscripción activa: plan ' + planDe(pl.plan).nombre); if (TAB === 'plan' || TAB === 'organizacion') ir(TAB); return; }
+    if (pl.stripe_suscripcion && pl.estado === 'activo') { toast('Suscripción activa: plan ' + planDe(pl.plan).nombre); if (TAB === 'plan' || TAB === 'organizacion' || TAB === 'config') ir(TAB); return; }
   }
   toast('El pago está hecho; la suscripción aparecerá en unos minutos');
 }
@@ -18739,7 +18739,7 @@ elegirPago = function (planIni) {
       if (!d) return;
       if (d.url) { location.href = d.url; return; }
       $('dlg').close();
-      if (d.previsto) { toast(`Cambio programado para el ${fechaCorta(d.previsto)}`); await pagoCargarEstado(); if (TAB === 'plan' || TAB === 'organizacion') ir(TAB); return; }
+      if (d.previsto) { toast(`Cambio programado para el ${fechaCorta(d.previsto)}`); await pagoCargarEstado(); if (TAB === 'plan' || TAB === 'organizacion' || TAB === 'config') ir(TAB); return; }
       toast('Cambio hecho: en unos segundos verás el plan nuevo'); pagoEsperarActivo();
     };
   };
@@ -18812,7 +18812,7 @@ async function pagoEsperarBaja() {
     const pl = PLAN_ACTUAL || {};
     if (pl.baja_al_final || pl.estado === 'cancelada') {
       toast(`Baja registrada: puedes usar delcos hasta el ${fechaCorta(pl.periodo_fin)}`);
-      if (TAB === 'plan' || TAB === 'organizacion') ir(TAB); return;
+      if (TAB === 'plan' || TAB === 'organizacion' || TAB === 'config') ir(TAB); return;
     }
     await new Promise(r => setTimeout(r, 2000));
   }
@@ -18926,7 +18926,7 @@ function pedirPresupuesto(tipo) {
           en un día laborable${datos.correo ? ` (${esc(datos.correo)})` : ''}.</p>
         <p class="sm">Puedes ver en qué punto está en Plan y suscripción.</p></div>
       <div class="acts" style="justify-content:flex-end"><button class="btn" data-cerrar>Entendido</button></div>`;
-    $('dlg').addEventListener('close', () => { if (TAB === 'plan' || TAB === 'organizacion') ir(TAB); }, { once: true });
+    $('dlg').addEventListener('close', () => { if (TAB === 'plan' || TAB === 'organizacion' || TAB === 'config') ir(TAB); }, { once: true });
   };
   $('dlg').showModal();
 }
@@ -22138,6 +22138,7 @@ irEnlace = (orig => function (e) {
 
 cargarAdmin = (orig => async function (...a) {
   if (TAB === 'usuarios' && PAGINAS.usuarios) { cargarPagina('usuarios'); return; }
+  if (TAB === 'config' && ['usuarios', 'roles'].includes(CFG_KEY)) { cargarConfig(); return; }
   if (!$('v-admin')) return;
   return orig.apply(this, a);
 })(cargarAdmin);
@@ -22385,3 +22386,193 @@ cargarManual = (orig => async function (...a) {
   window.MANUAL_ULTIMA = url;
   location.href = url;
 })(cargarManual);
+
+/* v2.215.0 · Configuración en un solo sitio (decisión de Eric: propuesta A con los avisos de B; https://claude.ai/artifact/HW1gHEaYPuG3kbCpd2RnzZ).
+   - Mi perfil, Configuración, Organización y Usuarios y roles son una sola pantalla: índice a la izquierda (Tu cuenta, Equipo, Empresa,
+     Facturación, Datos; los subapartados son entradas del índice, sin pestañas dentro) y el apartado a la derecha. Cada persona ve solo
+     lo que le toca. ir('perfil' | 'organizacion' | 'usuarios' | 'empresa' | 'plan') y CFG_SEC/CFG_SUB de antes llevan a su entrada (CFG_KEY).
+   - Buscador del índice por nombre y palabras clave (Intro abre el primero); se abre en el último apartado usado; punto naranja en lo
+     pendiente (punto de salida, correo sin configurar, copia de seguridad antigua).
+   - En el móvil, el índice es una lista y cada apartado se abre con «‹ Configuración».
+   - Piezas de la marca en toda la app: casillas de 18 px con el marino, interruptores en marino.
+   - Notificaciones: cada aviso con «Al momento · En el resumen · No», el resumen arriba y el silencio en una fila. */
+var CFG_KEY = '';
+const CFG_VIEJO = { prefs: 'rutas.salida', perfil: 'datos', datos: 'datos', notif: 'notif', horario: 'rutas.horario', kpis: 'inicio.kpis', usuarios: 'usuarios',
+  roles: 'roles', equipo: 'usuarios', reglas: 'cartera.reglas', frec: 'cartera.frec', accesos: 'seguridad.accesos', auditoria: 'seguridad.auditoria',
+  alm: 'stock.alm', mues: 'stock.mues', marca: 'o.marca', __empresa: 'o.marca', empresa: 'o.marca', correo: 'o.correo', copias: 'o.copias', plan: 'o.plan',
+  fact: 'o.fiscal', fiscal: 'o.fiscal', series: 'o.series', vf: 'o.vf', pdf: 'o.pdf', orgs: 'o.orgs' };
+const CFG_CLAVES = { datos: 'nombre teléfono idioma perfil contraseña sesión cerrar', notif: 'avisos campana silencio resumen',
+  'rutas.salida': 'salida llegada casa oficina navegar google maps waze', 'rutas.horario': 'tiempos minutos duración parada',
+  'inicio.kpis': 'indicadores kpi inicio', usuarios: 'personas equipo alta invitar cartera zona', roles: 'permisos capacidades',
+  comis: 'comisiones esquemas tramos', 'o.marca': 'logo nombre vocabulario términos palabras', 'o.correo': 'smtp firma remitente email correo',
+  'o.plan': 'suscripción pago tarjeta usuarios precio', 'o.copias': 'copia seguridad descargar exportar', 'o.fiscal': 'nif razón social dirección',
+  'o.series': 'numeración factura', 'o.vf': 'verifactu hacienda', 'o.pdf': 'factura diseño logo colores', cat: 'clasificadores listas valores especialidades motivos',
+  portal: 'portal material pedir' };
+function claveCfgVieja(sec, sub) {
+  if (!sec || sec === '__cfg') return '';
+  if (sec === 'equipo') return sub === 'roles' ? 'roles' : 'usuarios';
+  if (sub) return sec + '.' + sub;
+  return CFG_VIEJO[sec] || sec;
+}
+function arbolCfgUnico() {
+  const admin = puede('administrar'), org = puedeOrganizacion();
+  const cfg = arbolConfig(), todos = cfg.flatMap(g => g[1]), de = k => todos.find(x => x.k === k);
+  const hojas = it => {
+    if (!it) return [];
+    if (!it.sub) return [{ k: it.k, t: it.t, ic: it.ic, d: it.d, r: it.r, mod: it.mod }];
+    if (it.sub.length === 1) return [{ k: it.k + '.' + it.sub[0][0], t: it.k === 'inicio' ? 'Indicadores de Inicio' : it.t, ic: it.ic, d: it.d, r: it.sub[0][2], mod: it.mod }];
+    return [{ k: it.k, t: it.t, ic: it.ic, d: it.d, mod: it.mod, hijos: it.sub.map(([s, t, r]) => ({ k: it.k + '.' + s, t, r })) }];
+  };
+  const ot = org && PAGINAS.organizacion ? Object.fromEntries(PAGINAS.organizacion.tabs.map(([k, t, r]) => [k, { t, r }])) : {};
+  const o = (k, ic, d, t) => ot[k] ? [{ k: 'o.' + k, t: t || ot[k].t, ic, d, r: ot[k].r }] : [];
+  const pt = Object.fromEntries((PAGINAS.perfil ? PAGINAS.perfil.tabs : []).map(([k, t, r]) => [k, r]));
+  return [
+    ['Tu cuenta', [
+      { k: 'datos', t: 'Mis datos', ic: 'user', d: 'Nombre, teléfono, idioma, qué abrir al entrar y contraseña', r: pt.datos || (() => pintarPerfil()) },
+      { k: 'notif', t: 'Notificaciones', ic: 'bell', d: 'Qué avisos te llegan y cuándo', r: () => pintarNotif() },
+      ...hojas(de('rutas')), ...hojas(de('inicio'))]],
+    ['Equipo', admin ? [
+      { k: 'usuarios', t: 'Usuarios', ic: 'users', d: 'Personas del equipo, su rol, su cartera y su comisión', r: () => pintarUsuarios2() },
+      { k: 'roles', t: 'Roles y permisos', ic: 'lock-keyhole', d: 'Qué puede ver y hacer cada rol', r: () => pintarRoles() },
+      ...hojas(de('cartera')), ...hojas(de('comis')), ...hojas(de('seguridad'))] : []],
+    ['Empresa', [...o('marca', 'palette', 'Nombre, logo y cómo llamáis a cada cosa', 'Marca y vocabulario'), ...o('correo', 'mail', 'Cuenta de envío y firma de los correos'),
+      ...o('plan', 'credit-card', 'Tu plan, los usuarios y los pagos'), ...o('copias', 'save', 'Descarga de todos los datos de la empresa'),
+      ...o('orgs', 'building', 'Empresas de la plataforma')]],
+    ['Facturación', [...o('fiscal', 'receipt', 'Razón social, NIF y dirección'), ...o('series', 'receipt', 'Numeración de las facturas'),
+      ...o('vf', 'receipt', 'Huella y QR de cada factura'), ...o('pdf', 'receipt', 'Cómo se ve la factura en PDF')]],
+    ['Datos', (cfg.find(g => g[0] === 'Datos') || [, []])[1].flatMap(hojas)]
+  ].filter(g => g[1].length);
+}
+const hojasCfg = arbol => arbol.flatMap(([gr, l]) => l.flatMap(it => it.hijos
+  ? it.hijos.map(h => ({ k: h.k, t: h.t, r: h.r, gr, ic: it.ic, padre: it.t, d: '', mod: it.mod })) : [Object.assign({ gr }, it)]));
+let CFG_PEND = { t: 0, l: {} };
+async function pendientesCfg() {
+  if (Date.now() - CFG_PEND.t < 60000) return CFG_PEND.l;
+  const l = {};
+  try { if (!prefsActivas().salida && puedeModulo('agenda')) l['rutas.salida'] = 'Sin punto de salida: las horas del día salen sin el primer trayecto'; } catch (e) {}
+  if (puedeOrganizacion()) {
+    try { const { data: c } = await RPC_ORIG('correo_config', {}); if (!c || !c.host) l['o.correo'] = 'Sin configurar: los correos de la empresa no salen'; } catch (e) {}
+    try {
+      const { data: au } = await db.from('auditoria').select('creado_en').eq('accion', 'Copia de seguridad').order('creado_en', { ascending: false }).limit(1);
+      const d = au && au[0] ? Math.floor((Date.now() - new Date(au[0].creado_en)) / 864e5) : null;
+      if (d == null) l['o.copias'] = 'Todavía no hay ninguna copia'; else if (d > 7) l['o.copias'] = `La última copia es de hace ${d} días`;
+    } catch (e) {}
+  }
+  CFG_PEND = { t: Date.now(), l };
+  return l;
+}
+const LUPA_CFG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>';
+let CFG_DETALLE = false;
+cargarConfig = async function () {
+  if (typeof salirPanel === 'function') salirPanel();
+  const arbol = arbolCfgUnico(), hojas = hojasCfg(arbol);
+  let ult = ''; try { ult = localStorage.getItem('delcos-cfg') || ''; } catch (e) {}
+  const pedida = CFG_KEY || ult;
+  const it = hojas.find(x => x.k === pedida) || hojas.find(x => x.k.startsWith(pedida + '.')) || hojas[0];
+  if (!it) return;
+  CFG_KEY = it.k; try { localStorage.setItem('delcos-cfg', it.k); } catch (e) {}
+  const movil = ES_MOVIL();
+  const ind = arbol.map(([gr, l]) => `<h4>${esc(gr)}</h4>${l.map(x => x.hijos
+    ? `<div class="cfipad">${svgIco(ICON_NOM[x.ic] || '')}<span>${esc(x.t)}</span></div>${x.hijos.map(h => `<button type="button" class="sub${h.k === it.k ? ' on' : ''}" data-ck="${h.k}"><span>${esc(h.t)}</span></button>`).join('')}`
+    : `<button type="button" class="${x.k === it.k ? 'on' : ''}" data-ck="${x.k}">${svgIco(ICON_NOM[x.ic] || '')}<span>${esc(x.t)}</span>${x.mod && !planIncluye(x.mod) ? `<span class="pill p-plan">${esc(planMinimo(x.mod) ? planMinimo(x.mod).nombre : 'Plan')}</span>` : ''}</button>`).join('')}`).join('');
+  $('v-config').innerHTML = `<div class="saludo"><div><h1>Configuración</h1><div class="fecha">Tu cuenta${arbol.length > 1 ? ', tu equipo y tu empresa, en un solo sitio' : ' y tus preferencias'}</div></div></div>
+    <div class="cfu${movil && CFG_DETALLE ? ' det' : ''}">
+      <nav class="cfuidx" aria-label="Apartados de configuración"><div class="cfubusca">${LUPA_CFG}<input id="cfubus" type="search" placeholder="Buscar un ajuste" autocomplete="off" aria-label="Buscar un ajuste"></div>
+        <div id="cfulista">${ind}</div><div class="cfusin hide" id="cfusin">Ningún ajuste con esas palabras</div></nav>
+      <section class="cfupag"><button type="button" class="cfuvolver" id="cfuvolver">‹ Configuración</button>
+        <div class="cfucab"><div class="miga">${esc(it.gr)}${it.padre ? ' · ' + esc(it.padre) : ''}</div><h2>${esc(it.t)}</h2>${it.d ? `<p>${esc(it.d)}</p>` : ''}</div>
+        <div class="cfupend hide" id="cfupend"></div>
+        <div id="cfgcuerpo-hub"><div id="cfgcuerpo"></div></div></section></div>`;
+  const v = $('v-config');
+  v.querySelectorAll('[data-ck]').forEach(b => b.onclick = () => { CFG_KEY = b.dataset.ck; CFG_DETALLE = true; cargarConfig(); if (ES_MOVIL()) scrollTo(0, 0); });
+  $('cfuvolver').onclick = () => { CFG_DETALLE = false; v.querySelector('.cfu').classList.remove('det'); scrollTo(0, 0); };
+  // Buscador: por nombre, apartado y palabras clave; Intro abre el primero
+  const busca = $('cfubus');
+  busca.oninput = () => {
+    const q = impNorm(busca.value.trim());
+    let vis = 0;
+    v.querySelectorAll('#cfulista [data-ck]').forEach(b => {
+      const h = hojas.find(x => x.k === b.dataset.ck) || {};
+      const txt = impNorm([h.t, h.padre, h.gr, h.d, CFG_CLAVES[h.k] || CFG_CLAVES[(h.k || '').split('.')[0]] || ''].join(' '));
+      const ok = !q || q.split(/\s+/).every(p => txt.includes(p)); b.classList.toggle('hide', !ok); if (ok) vis++;
+    });
+    v.querySelectorAll('#cfulista h4, #cfulista .cfipad').forEach(e => {
+      let s = e.nextElementSibling, alguno = false;
+      while (s && (e.tagName === 'H4' ? s.tagName !== 'H4' : s.classList.contains('sub'))) { if (s.matches('[data-ck]:not(.hide)')) alguno = true; s = s.nextElementSibling; }
+      e.classList.toggle('hide', !!q && !alguno);
+    });
+    $('cfusin').classList.toggle('hide', vis > 0);
+  };
+  busca.onkeydown = e => { if (e.key === 'Enter') { const b = v.querySelector('#cfulista [data-ck]:not(.hide)'); if (b) { e.preventDefault(); b.click(); } } };
+  // Lo pendiente: punto en el índice y aviso en el apartado
+  pendientesCfg().then(l => {
+    if (!$('cfulista')) return;
+    Object.entries(l).forEach(([k, t]) => { const b = v.querySelector(`#cfulista [data-ck="${k}"]`); if (b && !b.querySelector('.cfupt')) { b.insertAdjacentHTML('beforeend', '<span class="cfupt"></span>'); b.title = t; } });
+    if (l[CFG_KEY] && $('cfupend')) { $('cfupend').innerHTML = `<span class="cfupt"></span>${esc(l[CFG_KEY])}`; $('cfupend').classList.remove('hide'); }
+  });
+  // El apartado (o, si el plan no lo incluye, qué plan lo trae)
+  if (it.mod && !planIncluye(it.mod)) {
+    const p = planMinimo(it.mod);
+    $('cfgcuerpo').innerHTML = `<div class="card cfgpanel planup"><div class="planupico">${svgIco(ICON_NOM.lock)}</div><h2>${esc(it.padre || it.t)} está en el plan ${esc(p ? p.nombre : 'A medida')}</h2>
+      <p class="sm">Tu plan ${esc(planDe(PLAN_ACTUAL.plan).nombre)} no lo incluye.</p>${puedeOrganizacion() ? '<div class="acts"><button class="btn" id="planver">Ver planes</button></div>' : ''}</div>`;
+    if ($('planver')) $('planver').onclick = () => { CFG_KEY = 'o.plan'; cargarConfig(); };
+  } else Promise.resolve().then(it.r);
+};
+// Cualquier camino a los ajustes lleva a su entrada de Configuración
+ir = (orig => function (t, ...r) {
+  let k = null;
+  // Accesos, auditoría y organizaciones siguen en el Panel delcos
+  if (t === 'config' && ['seguridad', 'orgs'].includes(CFG_SEC)) return orig.call(this, t, ...r);
+  if (t === 'config') k = claveCfgVieja(CFG_SEC, CFG_SUB);
+  else if (t === 'perfil') k = PAG_TAB.perfil === 'notif' ? 'notif' : 'datos';
+  else if (t === 'organizacion' || t === 'empresa') k = 'o.' + (PAG_TAB[t] || 'marca');
+  else if (t === 'plan') k = 'o.plan';
+  else if (t === 'usuarios') k = PAG_TAB.usuarios === 'roles' ? 'roles' : 'usuarios';
+  if (k === null) return orig.call(this, t, ...r);
+  if (k) { CFG_KEY = k; CFG_DETALLE = true; } else if (IR_DESDE_MENU_CFG) CFG_DETALLE = false;
+  if (t !== 'config') { PAG_TAB.perfil = PAG_TAB.organizacion = PAG_TAB.empresa = PAG_TAB.usuarios = undefined; }
+  CFG_SEC = '__cfg'; CFG_SUB = null; IR_DESDE_MENU_CFG = false;
+  return orig.call(this, 'config', ...r);
+})(ir);
+var IR_DESDE_MENU_CFG = false;
+document.addEventListener('click', e => { if (e.target.closest('nav.main [data-t="config"], #bnav [data-t="config"], [data-u="cfg"]')) { CFG_SEC = '__cfg'; IR_DESDE_MENU_CFG = true; } }, true);
+// El «?» del manual lleva al capítulo del apartado abierto
+Object.defineProperty(MANUAL_ANCLA, 'config', { configurable: true, enumerable: true, get: () => {
+  const k = CFG_KEY || '';
+  return ['datos', 'notif'].includes(k) ? 'perfil' : k === 'o.plan' ? 'plan' : k.startsWith('o.') ? 'organizacion' : ['usuarios', 'roles'].includes(k) ? 'usuarios' : 'ajustes';
+} });
+
+// Notificaciones: cada aviso con «Al momento · En el resumen · No»
+pintarNotif = function () {
+  const tipos = tiposDeMiRol(), s = (PERFIL.preferencias || {}).notif_silencio || {};
+  const filas = NOTIF_AREAS.map(([, t, ks]) => [t, tipos.filter(x => ks.includes(x[0]))]).filter(([, l]) => l.length);
+  const sueltos = tipos.filter(x => !NOTIF_AREAS.some(ar => ar[2].includes(x[0])));
+  if (sueltos.length) filas.push(['Otros', sueltos]);
+  const modo = k => { const m = notifModo(k); return m === 'm' || m === 'r' ? m : 'n'; };
+  const resumen = () => { const c = { m: 0, r: 0, n: 0 }; tipos.forEach(([k]) => c[modo(k)]++);
+    return `<span><b>${c.m}</b> al momento</span><span><b>${c.r}</b> en el resumen de la mañana</span><span><b>${c.n}</b> desactivados</span>`; };
+  $('cfgcuerpo').innerHTML = tipos.length ? `<div class="card cfgpanel ntf">
+    <div class="ntfres" id="ntfres">${resumen()}</div>
+    <div class="ajfila"><div><b>Horas de silencio</b><span class="sm">Lo que llegue en ese tiempo lo verás al terminar el silencio.</span></div>
+      <div class="ajctl"><label class="vfswitch mini" title="Silenciar"><input type="checkbox" id="nsil" ${s.activo ? 'checked' : ''} aria-label="Silenciar"><span class="sw"></span></label>
+        <input type="time" id="nsild" value="${esc(s.desde || '20:00')}" aria-label="Desde"> a <input type="time" id="nsilh" value="${esc(s.hasta || '08:00')}" aria-label="Hasta">
+        <label class="ntffin"><input type="checkbox" id="nsilf" ${s.finde !== false ? 'checked' : ''}> Fines de semana</label></div></div>
+    ${filas.map(([t, l]) => `<h3 class="ntfarea">${esc(t)}</h3>${l.map(([k, ic, tt, d]) => {
+      const m = modo(k), diario = NOTIF_DIARIOS.includes(k);
+      return `<div class="ntfrow"><span class="ntfic">${ic}</span><div><b>${esc(tt)}</b><span class="sm">${esc(d)}</span></div>
+        <div class="segs ntfseg" role="group" aria-label="${esc(tt)}" data-nk="${k}">${diario ? '' : `<button type="button" data-v="m" class="${m === 'm' ? 'on' : ''}" aria-pressed="${m === 'm'}">Al momento</button>`}<button type="button" data-v="r" class="${m === 'r' ? 'on' : ''}" aria-pressed="${m === 'r'}">En el resumen</button><button type="button" data-v="n" class="${m === 'n' ? 'on' : ''}" aria-pressed="${m === 'n'}">No</button></div></div>`; }).join('')}`).join('')}
+  </div>` : '<div class="card cfgpanel"><div class="vacio">Tu perfil no tiene notificaciones disponibles todavía.</div></div>';
+  $('cfgcuerpo').querySelectorAll('.ntfseg button').forEach(b => b.onclick = async () => {
+    const g = b.closest('.ntfseg'), k = g.dataset.nk, v = b.dataset.v;
+    if (b.classList.contains('on')) return;
+    g.querySelectorAll('button').forEach(x => { x.classList.toggle('on', x === b); x.setAttribute('aria-pressed', String(x === b)); });
+    const notif = Object.assign({}, (PERFIL.preferencias || {}).notif || {});
+    const diario = NOTIF_DIARIOS.includes(k), om = v === 'm', or = v === 'r';
+    if (diario ? or : (om && !or)) delete notif[k]; else notif[k] = { m: om, r: or };
+    await notifGuardarPrefs({ notif }, v === 'n' ? 'No lo recibirás' : v === 'm' ? 'Te llegará al momento' : 'Irá en el resumen de la mañana');
+    if ($('ntfres')) $('ntfres').innerHTML = resumen();
+  });
+  const guardarSil = () => notifGuardarPrefs({ notif_silencio: { activo: $('nsil').checked, desde: $('nsild').value || '20:00', hasta: $('nsilh').value || '08:00', finde: $('nsilf').checked } },
+    $('nsil').checked ? 'Silencio guardado' : 'Sin silencio');
+  ['nsil', 'nsild', 'nsilh', 'nsilf'].forEach(id => { if ($(id)) $(id).onchange = guardarSil; });
+};
