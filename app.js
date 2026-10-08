@@ -22680,3 +22680,11 @@ pulirCfg = (orig => function () {
     }
   }
 })(pulirCfg);
+
+/* v2.218.0 · Roles y Series (lo que quedaba del rediseño de Configuración).
+   - «Filtros y columnas» no se engancha a Configuración (salía suelto en la cabecera al abrir Series).
+   - Roles y permisos: la columna del permiso queda fija al desplazarse a los lados y los desplegables son más estrechos (estilo). */
+htPreparar = (orig => function (sec, ...r) {
+  if (sec && sec.id === 'v-config') { sec.querySelectorAll('.htbtn, .htpanel').forEach(x => x.remove()); return; }
+  return orig.call(this, sec, ...r);
+})(htPreparar);

@@ -3458,6 +3458,15 @@ input[type=checkbox]:not(.vfswitch input):focus-visible{outline:none;box-shadow:
 #v-config .usrres .usrresrol{cursor:pointer}#v-config .usrres .usrresrol:hover{border-color:var(--navy)}
 #v-config .usrres .usrresrol.on{background:var(--hielo);border-color:var(--navy)}
 #v-config .usrres .usrresrol:focus-visible{outline:none;box-shadow:var(--foco)}
+
+/* v2.218.0 · Roles y Series */
+#v-config .dgrid-wrap:has(> .rolmat){overflow-x:auto}
+#v-config .rolmat{min-width:0}
+#v-config .rolmat th:first-child,#v-config .rolmat td:first-child{position:sticky;left:0;z-index:1;background:#FFFFFF;box-shadow:1px 0 0 var(--line);min-width:200px;max-width:240px}
+#v-config .rolmat th:first-child{background:var(--hielo);z-index:2}
+#v-config .rolmat td{padding:8px 8px}
+#v-config .rolmat select{width:116px;min-width:0;max-width:none!important;min-height:34px;padding:4px 26px 4px 9px;font-size:13px;background-position:right 8px center}
+#v-config .rolmat .selw{max-width:none}
 </style>
 </head>
 <body>
@@ -3596,6 +3605,6 @@ try{var co=sessionStorage.getItem('dlc-cambio-org');if(co!==null||localStorage.g
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.217.0"></script>
+<script src="./app.js?v=2.218.0"></script>
 </body>
 </html>
