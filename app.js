@@ -6605,7 +6605,7 @@ async function pintarTuDia() {
         <span class="tdnum">${i + 1}</span>
         <span class="tx"><b><span class="tdh" title="${c.hora ? 'Hora fijada' : 'Hora estimada según el orden'}" style="background:color-mix(in srgb, ${EST_COL[c.estado] || 'var(--muted)'} 12%, transparent);color:${EST_COL[c.estado]}">${hora}</span>${c.urgente ? '<span class="pill p-urg">Urgente</span> ' : ''}${esc(c.nombre)}</b>
           <span class="sm">${esc([c.centro_nombre, c.municipio].filter(Boolean).join(' · ') || 'Sin centro')}${!xyCita(c) && abierta ? ' · <span style="color:var(--warn)">sin ubicación</span>' : ''}</span>
-          <span class="sm">${pillCita(c.estado)}${c.origen ? ' · ' + esc(c.origen) : ''}${c.nota ? ' · ' + esc(c.nota) : ''}</span>
+          <span class="sm">${pillCita(c.estado)}${textoOrigenCita(c)}${c.nota ? ' · ' + esc(c.nota) : ''}</span>
           ${abierta && TD_INFO[c.id] && TD_INFO[c.id].aviso ? `<span class="sm tdaviso">${esc(TD_INFO[c.id].aviso)}</span>`
             : abierta && TD_INFO[c.id] && TD_INFO[c.id].ventanas && TD_INFO[c.id].ventanas.length ? `<span class="sm tdvent">Consulta ${esc(txtVentanas(TD_INFO[c.id].ventanas))}${TD_INFO[c.id].espera ? ` · esperas ${TD_INFO[c.id].espera} min` : ''}</span>` : ''}</span>
         <span class="acts tdacts" style="margin:0">
@@ -19681,7 +19681,7 @@ function verCita(c) {
       <div class="vcfila"><span>Cuándo</span><b>${esc(fechaLarga(new Date(c.fecha + 'T12:00:00')).replace(/^./, x => x.toUpperCase()))} · ${esc(hora)}</b></div>
       <div class="vcfila"><span>Dónde</span><b>${esc(donde || 'Sin centro')}</b></div>
       ${horario ? `<div class="vcfila"><span>Consulta</span><b>${esc(horario)}</b></div>` : ''}
-      <div class="vcfila"><span>Estado</span><b>${pillCita(c.estado)}${c.origen ? ` <span class="sm">· ${esc(c.origen)}</span>` : ''}</b></div>
+      <div class="vcfila"><span>Estado</span><b>${pillCita(c.estado)}${textoOrigenCita(c) ? ` <span class="sm">${textoOrigenCita(c)}</span>` : ''}</b></div>
     </div>
     ${abierta && inf.aviso ? `<div class="banda-aviso" style="margin:0 0 12px">${esc(inf.aviso)}</div>` : ''}
     <label for="vcnota">Notas de la cita</label>
@@ -22312,3 +22312,39 @@ cargarSeguimiento = (orig => async function (...a) {
   }
   return r;
 })(cargarSeguimiento);
+
+/* v2.213.0 · Citas aplazadas: adónde fueron y de dónde vienen (petición de Eric; SQL 129).
+   - La cita que queda «Aplazada» dice adónde se movió (siguiendo la cadena si se volvió a aplazar) y cómo está allí si ya se cerró.
+   - La nueva hereda la anterior: de qué día viene y cómo se citó la primera vez (Ruta, Ficha…), en lugar de «Aplazada».
+   - Si vuelve a un día en que estaba aplazada, la base la reactiva y se ve como las demás (aplazar_cita y reabrir_cita).
+   - En la ventana de la cita, botones para ir al día al que se movió o del que viene. */
+function diaCita(f) {
+  const d = new Date(f + 'T12:00:00');
+  return d.toLocaleDateString('es-ES', { weekday: 'long' }) + ' ' + d.getDate() + '/' + (d.getMonth() + 1);
+}
+function textoOrigenCita(c) {
+  const p = [];
+  if (c.estado === 'Aplazada' && c.aplazada_a_fecha) {
+    const fin = c.aplazada_a_estado && !CITA_ABIERTA.includes(c.aplazada_a_estado) && c.aplazada_a_estado !== 'Aplazada' ? ' (' + c.aplazada_a_estado.toLowerCase() + ')' : '';
+    p.push('movida al ' + diaCita(c.aplazada_a_fecha) + fin);
+  }
+  if (c.aplazada_de_fecha) {
+    p.push('viene del ' + diaCita(c.aplazada_de_fecha));
+    if (c.origen_inicial && !['Aplazada', 'Reprogramada'].includes(c.origen_inicial)) p.push(c.origen_inicial);
+  } else if (c.origen && !(c.estado === 'Aplazada' && c.aplazada_a_fecha && c.origen === 'Aplazada')) p.push(c.origen);
+  return p.length ? ' · ' + esc(p.join(' · ')) : '';
+}
+verCita = (orig => function (c, ...r) {
+  const x = orig.call(this, c, ...r);
+  const acts = $('dbody') && $('dbody').querySelector('.vcacts');
+  if (acts && c) {
+    const ir = (f, txt, id) => {
+      if (!f || f === c.fecha || $(id)) return;
+      acts.insertAdjacentHTML('beforeend', `<button type="button" class="btn sec" id="${id}">${esc(txt)}</button>`);
+      $(id).onclick = () => { $('dlg').close(); AG_MODO = 'dia'; agVerDia(f); };
+    };
+    if (c.estado === 'Aplazada') ir(c.aplazada_a_fecha, 'Ir al ' + (c.aplazada_a_fecha ? diaCita(c.aplazada_a_fecha) : ''), 'vcirdest');
+    ir(c.aplazada_de_fecha, 'Ver el ' + (c.aplazada_de_fecha ? diaCita(c.aplazada_de_fecha) : ''), 'vcirorig');
+  }
+  return x;
+})(verCita);
