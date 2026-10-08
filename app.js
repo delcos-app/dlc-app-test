@@ -22576,3 +22576,81 @@ pintarNotif = function () {
     $('nsil').checked ? 'Silencio guardado' : 'Sin silencio');
   ['nsil', 'nsild', 'nsilh', 'nsilf'].forEach(id => { if ($(id)) $(id).onchange = guardarSil; });
 };
+
+/* v2.216.0 · Tu cuenta y Empresa en filas de ajuste (segunda versión del rediseño de Configuración).
+   pulirCfg() se aplica al contenido de cada apartado mientras se pinta (MutationObserver de #cfgcuerpo), sin tocar cómo guarda cada uno:
+   - Las tarjetas que solo presentan el apartado desaparecen y su texto pasa a la cabecera; el título repetido de la primera tarjeta se oculta.
+   - Tiempos de visita y el aviso de Salida y llegada: filas de ajuste con el número compacto a la derecha.
+   - Marca y vocabulario: el vocabulario, en su propia tarjeta como tabla (singular, plural y género por fila), con el nombre del módulo.
+   - Correo y firma: arriba, el estado del correo y «Enviar un correo de prueba»; la vista previa de la firma acompaña al desplazarse.
+   - Copias de seguridad: el estado y «Descargar copia completa» en la misma fila. */
+const CFG_PULIR = ['datos', 'rutas.salida', 'rutas.horario', 'inicio.kpis', 'o.marca', 'o.correo', 'o.plan', 'o.copias'];
+function pulirCfg() {
+  const c = $('cfgcuerpo'); if (!c || TAB !== 'config' || !CFG_PULIR.includes(CFG_KEY)) return;
+  const cab = document.querySelector('.cfucab'), titulo = impNorm((cab && cab.querySelector('h2') || {}).textContent || '');
+  // Tarjetas que solo presentan el apartado (título y texto): el texto pasa a la cabecera
+  c.querySelectorAll(':scope > .card:not([data-pul])').forEach(card => {
+    card.dataset.pul = '1';
+    const h = card.querySelector(':scope > h2');
+    if (h && impNorm(h.textContent) === titulo) h.classList.add('cfudup');
+    const kids = [...card.children];
+    if (kids.length && kids.every(k => k.matches('h2, p'))) {
+      const txt = [...card.querySelectorAll(':scope > p')].map(p => p.textContent.trim()).join(' ');
+      if (cab && txt) { let p = cab.querySelector('p'); if (!p) { p = document.createElement('p'); cab.appendChild(p); } p.textContent = txt; }
+      card.remove();
+    }
+  });
+  // El primer título que repite el del apartado, fuera (esté donde esté)
+  const rep = [...c.querySelectorAll('h2:not(.cfudup)')].find(h => impNorm(h.textContent) === titulo); if (rep) rep.classList.add('cfudup');
+  // Tiempos de visita y aviso de visita reciente: filas de ajuste con el número a la derecha
+  if (['rutas.horario', 'rutas.salida'].includes(CFG_KEY)) {
+    c.querySelectorAll('.g2 > div:not([data-pul])').forEach(d => {
+      const n = d.querySelector(':scope > .numw'); if (!n) return;
+      d.dataset.pul = '1'; d.classList.add('ajfila', 'ajnum');
+      const izq = document.createElement('div'); izq.className = 'ajtxt';
+      [...d.children].filter(x => x !== n).forEach(x => izq.appendChild(x));
+      d.prepend(izq);
+      d.parentElement.classList.add('ajlista');
+    });
+    const av = $('pfaviso');
+    if (av && !av.dataset.pul) { av.dataset.pul = '1'; av.classList.add('card', 'cfgpanel'); }
+  }
+  // Marca y vocabulario: el vocabulario en su tarjeta, como tabla
+  if (CFG_KEY === 'o.marca') {
+    const voc = c.querySelector('.mkvoc'), etq = c.querySelector('.mketqbox');
+    if (voc && !$('mkvoccard')) {
+      c.insertAdjacentHTML('beforeend', `<div class="card cfgpanel" id="mkvoccard"><h2 style="padding:0 0 4px">Cómo se llama cada cosa</h2>
+        <p class="sm">El nombre del módulo y las palabras de todos los textos de la plataforma. En blanco, se usa el nombre de siempre.</p>
+        <div id="mkvochueco"></div><div class="acts" style="justify-content:flex-end"><button type="button" class="btn" id="mkvocok">Guardar</button></div></div>`);
+      const hueco = $('mkvochueco');
+      if (etq) hueco.appendChild(etq);
+      hueco.appendChild(voc);
+      voc.querySelectorAll(':scope > label, :scope > .sm').forEach(x => x.remove());
+      voc.insertAdjacentHTML('afterbegin', '<div class="mkvocf mkvoccab" aria-hidden="true"><span></span><span>Singular</span><span>Plural</span><span>Género</span></div>');
+      voc.querySelectorAll('.mkvocf[data-term]').forEach(f => {
+        const l = f.querySelector('label'); const nom = l ? l.textContent.replace(/\s*·\s*singular\s*$/i, '').trim() : f.dataset.term;
+        f.insertAdjacentHTML('afterbegin', `<b class="mkvocn">${esc(nom)}</b>`);
+        f.querySelectorAll('[data-tf]').forEach(i => { const lb = { s: 'singular', p: 'plural', g: 'género' }[i.dataset.tf]; i.setAttribute('aria-label', nom + ' · ' + lb); });
+      });
+      $('mkvocok').onclick = () => $('mkok') && $('mkok').click();
+    }
+  }
+  // Correo y firma: estado y prueba arriba
+  if (CFG_KEY === 'o.correo' && $('coprueba') && !$('costado')) {
+    const host = (($('cohost') || {}).value || '').trim();
+    const prim = c.querySelector(':scope > .card');
+    if (prim) prim.insertAdjacentHTML('beforebegin', `<div class="card cfgpanel" id="costado"><div class="ajfila"><div><b>${host ? 'Correo conectado' : 'Correo sin configurar'}</b>
+      <span class="sm">${host ? 'Las facturas, los datos de pago y los resúmenes salen desde ' + esc((($('coemail') || {}).value || host).trim()) + '.' : 'Rellena la cuenta de envío: hasta entonces, los correos de la empresa no salen.'}</span></div>
+      <div class="ajctl"><button type="button" class="btn sec" id="copruebaarriba">Enviar un correo de prueba</button></div></div></div>`);
+    if ($('copruebaarriba')) $('copruebaarriba').onclick = () => { $('coprueba').scrollIntoView({ block: 'center', behavior: 'smooth' }); $('coprueba').click(); };
+  }
+  // Correo y Copias enseñan su propio estado: fuera el aviso de arriba, que diría lo mismo
+  if (['o.correo', 'o.copias'].includes(CFG_KEY) && $('cfupend')) $('cfupend').classList.add('hide');
+  // Copias: estado y botón en la misma fila
+  if (CFG_KEY === 'o.copias') {
+    const est = c.querySelector('.copiaest'), b = $('copok');
+    if (est && b && !est.contains(b)) { const acts = b.closest('.acts'); est.classList.add('copiafila'); const t = document.createElement('div'); [...est.children].forEach(x => t.appendChild(x)); est.append(t, b); if (acts && !acts.children.length) acts.remove(); }
+  }
+}
+new MutationObserver(() => { if (TAB === 'config') requestAnimationFrame(pulirCfg); })
+  .observe(document.getElementById('v-config'), { childList: true, subtree: true });

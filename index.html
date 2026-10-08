@@ -3419,6 +3419,33 @@ input[type=checkbox]:not(.vfswitch input):focus-visible{outline:none;box-shadow:
   .ntfrow{grid-template-columns:28px minmax(0,1fr)}.ntfrow .ntfseg{grid-column:1 / -1;justify-self:start}
   .ajfila{grid-template-columns:1fr}.ajctl{justify-content:flex-start}
 }
+
+/* v2.216.0 · Tu cuenta y Empresa en filas de ajuste */
+#v-config .cfudup{display:none}
+#v-config .numw{max-width:136px!important;min-width:0}#v-config .numw input{min-height:38px;padding:6px 4px}
+#v-config .numw .nb{width:36px;font-size:16px}
+#v-config .g2.ajlista{display:block}
+#v-config .ajnum{padding:12px 0}#v-config .ajnum .ajtxt label{display:block;margin:0;color:var(--navy);font-weight:700;font-size:15px}
+#v-config .ajnum .ajtxt .sm{margin-top:2px}
+#v-config #pfaviso{padding:16px 20px}#v-config #pfaviso h3{margin:0 0 6px}
+#v-config #pfaviso .opt{border:0;background:none;padding:6px 0;box-shadow:none}
+#v-config input[type=color]{width:64px!important;height:40px!important;padding:3px!important;border-radius:10px;cursor:pointer}
+#v-config .firmaed > div:last-child{position:sticky;top:96px;align-self:start}
+#v-config #costado{padding:6px 20px}
+#v-config .copiaest.copiafila{flex-direction:row;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+#v-config .copiaest.copiafila > div{display:flex;flex-direction:column;gap:2px}
+#mkvoccard .mketqbox{margin:6px 0 14px}#mkvoccard .mketqbox .g2{max-width:620px}
+#mkvoccard .mkvocf{display:grid!important;grid-template-columns:minmax(0,1.4fr) repeat(2,minmax(0,1fr)) minmax(0,1.1fr);gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line);margin:0}
+#mkvoccard .mkvocf:last-child{border-bottom:0}
+#mkvoccard .mkvocf > div{min-width:0}#mkvoccard .mkvocf label{display:none}
+#mkvoccard .mkvocf input,#mkvoccard .mkvocf select{max-width:none!important;min-height:40px}
+#mkvoccard .mkvoccab{font:700 11px var(--f-titulo);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:0 0 4px}
+#mkvoccard .mkvocn{color:var(--navy);font-size:14.5px}
+@media (max-width:899px){
+  #mkvoccard .mkvocf{grid-template-columns:1fr 1fr}#mkvoccard .mkvocn{grid-column:1 / -1}#mkvoccard .mkvoccab{display:none}
+  #mkvoccard .mkvocf label{display:block}
+  #v-config .firmaed > div:last-child{position:static}
+}
 </style>
 </head>
 <body>
@@ -3557,6 +3584,6 @@ try{var co=sessionStorage.getItem('dlc-cambio-org');if(co!==null||localStorage.g
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.215.0"></script>
+<script src="./app.js?v=2.216.0"></script>
 </body>
 </html>
