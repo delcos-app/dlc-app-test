@@ -1027,7 +1027,7 @@ function pintarConexion() {
 /** Ejecuta una escritura; si no hay conexión, la guarda y la reenvía después. */
 async function escribir(fn, payload, etiqueta) {
   if (!navigator.onLine) {
-    colaGuardar(colaLeer().concat([{ fn, payload, etiqueta, t: Date.now() }]));
+    colaGuardar(colaLeer().concat([{ fn, payload: marcarSinConexion(fn, payload), etiqueta, t: Date.now() }]));
     pintarConexion();
     toast('Sin conexión: se enviará al recuperarla');
     return { offline: true };
@@ -1035,7 +1035,7 @@ async function escribir(fn, payload, etiqueta) {
   const { data, error } = await db.rpc(fn, payload);
   if (error) {
     if (String(error.message || '').match(/fetch|network|Failed/i)) {
-      colaGuardar(colaLeer().concat([{ fn, payload, etiqueta, t: Date.now() }]));
+      colaGuardar(colaLeer().concat([{ fn, payload: marcarSinConexion(fn, payload), etiqueta, t: Date.now() }]));
       pintarConexion();
       toast('Guardado en este dispositivo: se enviará luego');
       return { offline: true };
@@ -6613,7 +6613,7 @@ async function pintarTuDia() {
             <span class="tdord">
               <button class="kmv" data-td="sube|${c.id}" aria-label="Subir" ${idxAb <= 0 ? 'disabled' : ''}>${ICO.arriba}</button>
               <button class="kmv" data-td="baja|${c.id}" aria-label="Bajar" ${idxAb >= abiertas - 1 ? 'disabled' : ''}>${ICO.abajo}</button></span>` : ''}
-          ${abierta ? `<button class="btn tdreg" data-td="visita|${c.id}" aria-label="Registrar ${TT('visita', 's', '', 'l', 'l')}" title="Registrar ${TT('visita', 's', '', 'l', 'l')}"><span class="tdreg-t">Registrar ${TT('visita', 's', '', 'l', 'l')}</span><span class="tdreg-i">+</span></button>` : ''}
+          ${abierta && puedeRegistrarEnDia(c.fecha) ? `<button class="btn tdreg" data-td="visita|${c.id}" aria-label="Registrar ${TT('visita', 's', '', 'l', 'l')}" title="Registrar ${TT('visita', 's', '', 'l', 'l')}"><span class="tdreg-t">Registrar ${TT('visita', 's', '', 'l', 'l')}</span><span class="tdreg-i">+</span></button>` : ''}
           ${c.estado === 'No estaba' && !pasado ? `<button class="btn sec" data-td="nueva|${c.id}">Nueva cita</button>` : ''}
           <button class="btn sec tdmas" data-td="mas|${c.id}" aria-label="Más acciones">⋯</button>
         </span></div>`;
@@ -6708,7 +6708,7 @@ document.addEventListener('click', async e => {
   const c = TD_CITAS.find(x => x.id === id);
   if (!c) return;
   if (acc === 'mas') return menuCita(b, c);
-  if (acc === 'visita') return abrirVisita(c.cuenta_id);
+  if (acc === 'visita') { if (!puedeRegistrarEnDia(c.fecha)) return; VISITA_FECHA = c.fecha; return abrirVisita(c.cuenta_id); }
   if (acc === 'nueva') return nuevaFechaTrasNoEstaba(c);
   if (acc === 'sube' || acc === 'baja') {
     const ab = TD_CITAS.filter(x => CITA_ABIERTA.includes(x.estado)), i = ab.indexOf(c), j = acc === 'sube' ? i - 1 : i + 1;
@@ -19693,7 +19693,7 @@ function verCita(c) {
     </div>
     <div class="acts" style="justify-content:flex-end">
       <button type="button" class="btn sec" id="vcok" disabled>Guardar notas</button>
-      ${abierta ? `<button type="button" class="btn" id="vcreg">Registrar ${TT('visita', 's', '', 'l', 'l')}</button>` : ''}</div>`;
+      ${abierta && puedeRegistrarEnDia(c.fecha) ? `<button type="button" class="btn" id="vcreg">Registrar ${TT('visita', 's', '', 'l', 'l')}</button>` : ''}</div>`;
   const cerrar = () => $('dlg').close();
   const nota = $('vcnota');
   nota.oninput = () => { $('vcok').disabled = nota.value.trim() === (c.nota || '').trim(); };
@@ -19708,7 +19708,7 @@ function verCita(c) {
   if ($('vcllegar')) $('vcllegar').onclick = () => accionCita('llegar', c);
   if ($('vchora')) $('vchora').onclick = () => { cerrar(); accionCita('hora', c); };
   if ($('vcmover')) $('vcmover').onclick = () => { cerrar(); accionCita('aplazar', c); };
-  if ($('vcreg')) $('vcreg').onclick = () => { cerrar(); abrirVisita(c.cuenta_id); };
+  if ($('vcreg')) $('vcreg').onclick = () => { cerrar(); VISITA_FECHA = c.fecha; abrirVisita(c.cuenta_id); };
   $('dlg').classList.add('pequena');
   $('dlg').showModal();
 }
@@ -22348,3 +22348,40 @@ verCita = (orig => function (c, ...r) {
   }
   return x;
 })(verCita);
+
+/* v2.214.0 · Visita del día, resultados que hacen avanzar y manual en el iPhone (peticiones de Eric; SQL 130).
+   - Una visita se registra el día de la cita: «Registrar» sale en las citas de hoy; en las de días pasados, solo con el permiso
+     visita_fecha_pasada (y entonces la visita lleva la fecha de la cita); en las futuras, nunca. En la ventana de la visita, la
+     fecha no pasa de hoy y, sin el permiso, queda fija en hoy. La base lo comprueba también (registrar_actividad).
+   - Lo guardado sin conexión lleva sin_conexion: al enviarlo otro día no se rechaza por la fecha.
+   - Los resultados que no hacen avanzar la ficha los oculta la base (clasificadores_actividad).
+   - Manual: en el iPhone y el iPad el libro dentro de un marco sale en blanco con la app instalada; allí se abre a pantalla
+     completa, con «Volver a la app». */
+var VISITA_FECHA = '';
+function puedeRegistrarEnDia(f) {
+  const h = hoyISO();
+  return !f || f === h || (f < h && puede('visita_fecha_pasada'));
+}
+function marcarSinConexion(fn, payload) {
+  if (fn !== 'registrar_actividad' || !payload || !payload.p) return payload;
+  return Object.assign({}, payload, { p: Object.assign({}, payload.p, { sin_conexion: true }) });
+}
+abrirVisitaBase = (orig => async function (...r) {
+  const fecha = VISITA_FECHA; VISITA_FECHA = '';
+  const x = await orig.apply(this, r);
+  const vf = $('vf');
+  if (vf) {
+    vf.max = hoyISO();
+    if (!puede('visita_fecha_pasada')) { vf.value = hoyISO(); vf.min = hoyISO(); vf.disabled = true; vf.title = 'La visita se registra el mismo día'; }
+    else if (fecha && fecha <= hoyISO()) vf.value = fecha;
+  }
+  return x;
+})(abrirVisitaBase);
+const ES_IOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+cargarManual = (orig => async function (...a) {
+  if (!ES_IOS || ES_MEDICO()) return orig.apply(this, a);
+  guardarVocabManual();
+  const url = 'manual/index.html' + (MANUAL_DESTINO ? '#' + MANUAL_DESTINO : ''); MANUAL_DESTINO = '';
+  window.MANUAL_ULTIMA = url;
+  location.href = url;
+})(cargarManual);
