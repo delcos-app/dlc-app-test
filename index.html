@@ -3702,6 +3702,17 @@ input.campodup{border-color:#E08A00!important;box-shadow:0 0 0 3px rgba(224,138,
 #umenu [data-u="manual"]{order:5;margin-top:4px;border-top:1px solid var(--line);border-radius:0 0 9px 9px;padding-top:12px}
 #umenu [data-u="reportar"]{order:6}
 #umenu [data-u="salir"]{order:8;margin-top:4px;border-top:1px solid var(--line);border-radius:0 0 9px 9px;padding-top:12px}
+
+/* v2.227.0 · Ordenar por columna y filtros por tipo */
+.dgrid > .dh > .htord, #thead .th.htord{cursor:pointer;user-select:none}
+.dgrid > .dh > .htord:hover, #thead .th.htord:hover{color:var(--navy)}
+.dgrid > .dh > .ord-asc::after, .dgrid > .dh > .ord-desc::after, #thead .th.ord-asc::after, #thead .th.ord-desc::after{content:'▲';font-size:9px;margin-left:5px;color:var(--azul,#3F82C0);vertical-align:1px}
+.dgrid > .dh > .ord-desc::after, #thead .th.ord-desc::after{content:'▼'}
+.dgrid > .dh > .ord-asc, .dgrid > .dh > .ord-desc, #thead .th.ord-asc, #thead .th.ord-desc{color:var(--navy)}
+.htcolf .htrango{display:flex;flex-direction:column;gap:4px}
+.htcolf .htrango > span{font-size:13px;color:var(--mut)}
+.htcolf .htrango > div{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.htcolf .htrango input{min-width:0}
 </style>
 </head>
 <body>
@@ -3840,6 +3851,6 @@ try{var co=sessionStorage.getItem('dlc-cambio-org');if(co!==null||localStorage.g
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.226.0"></script>
+<script src="./app.js?v=2.227.0"></script>
 </body>
 </html>

@@ -23232,3 +23232,190 @@ editarTarea = (orig => function (t, fecha) {
 })(editarTarea);
 
 pintarSinAtribuir = async function () { const c = $('cardsinatr'); if (c) c.remove(); };
+
+/* v2.227.0 · Ordenar cualquier tabla por su columna y filtros por columna según su tipo (lista de Eric del 9/10/2026).
+   - Pulsar el nombre de una columna ordena (▲), volver a pulsar invierte (▼) y una tercera vez quita el orden. Se recuerda por tabla.
+   - Las tablas que se cargan por páginas se ordenan en la base para que valga para todas las páginas (SQL 135): Profesionales
+     (buscar_cuentas: orden), Pedidos (pedidos_pagina: p_orden) y Clientes (clientes_lista: p_orden). El resto, en la pantalla.
+   - «Filtros y columnas»: cada columna con el filtro de su tipo: texto («contiene»), número (desde/hasta) o fecha (desde/hasta, y nada si la
+     pantalla ya tiene su «Periodo»). Fuera los desplegables inventados con lo que se ve: las listas de valores fijos son las de Clasificadores
+     (su apartado propio). Tampoco se repiten columnas que la pantalla ya filtra con lo suyo (Estado, Canal…). */
+const htNorm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\s+/g, ' ').trim();
+const HT_ORDEN = {};   // por tabla: { i, dir: 1 | -1, k }
+try { Object.assign(HT_ORDEN, JSON.parse(localStorage.getItem('delcos-orden') || '{}')); } catch (e) {}
+const htGuardarOrden = () => { try { localStorage.setItem('delcos-orden', JSON.stringify(HT_ORDEN)); } catch (e) {} };
+const MESES_CORTOS = { ene: 1, feb: 2, mar: 3, abr: 4, may: 5, jun: 6, jul: 7, ago: 8, sep: 9, sept: 9, oct: 10, nov: 11, dic: 12 };
+// Valor de una celda para ordenar o filtrar: { n: número } | { f: 'AAAA-MM-DD' } | { t: texto } | {} vacía
+function htValor(txt) {
+  const s = String(txt || '').replace(/\s+/g, ' ').trim();
+  if (!s || s === '—' || s === '-') return {};
+  let m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
+  if (m) return { f: `${m[3].length === 2 ? '20' + m[3] : m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}` };
+  m = s.match(/^(\d{4})-(\d{2})-(\d{2})/); if (m) return { f: m[0] };
+  m = s.toLowerCase().match(/^(?:[a-záéíóú]{3,4}\.? )?(\d{1,2}) (ene|feb|mar|abr|may|jun|jul|ago|sept?|oct|nov|dic)[a-z.]*(?: (\d{4}))?/);
+  if (m) { const y = m[3] || String(new Date().getFullYear()); return { f: `${y}-${String(MESES_CORTOS[m[2]]).padStart(2, '0')}-${m[1].padStart(2, '0')}` }; }
+  m = s.match(/^[-−]?\s?\d{1,3}(?:\.\d{3})*(?:,\d+)?\s*(?:€|%|uds?\.?|h|min|km)?$/i) || s.match(/^[-−]?\d+(?:[.,]\d+)?\s*(?:€|%|uds?\.?|h|min|km)?$/i);
+  if (m) { const n = parseFloat(s.replace(/[−]/, '-').replace(/[^\d,.-]/g, '').replace(/\.(?=\d{3}(\D|$))/g, '').replace(',', '.')); if (!isNaN(n)) return { n }; }
+  return { t: s.toLowerCase() };
+}
+function htComparar(a, b) {
+  const va = htValor(a), vb = htValor(b);
+  const vacia = x => !('n' in x) && !('f' in x) && !('t' in x);
+  if (vacia(va) || vacia(vb)) return vacia(va) - vacia(vb);
+  if ('n' in va && 'n' in vb) return va.n - vb.n;
+  if ('f' in va && 'f' in vb) return va.f < vb.f ? -1 : va.f > vb.f ? 1 : 0;
+  return String(va.t ?? va.n ?? va.f).localeCompare(String(vb.t ?? vb.n ?? vb.f), 'es', { numeric: true, sensitivity: 'base' });
+}
+// Tablas que se ordenan en la base: qué clave usa cada columna (por su posición o su nombre)
+const ORD_SRV = {
+  peds2: (i, n) => i === 2 ? 'profesional' : ({ Fecha: 'fecha', Cliente: 'cliente', Comercial: 'comercial', 'Uds.': 'unidades', Base: 'base', Total: 'total', Estado: 'estado' })[n] || null,
+  pacs: (i, n) => i === 6 ? 'profesional' : ({ Cliente: 'nombre', Tipo: 'tipo', 'DNI / CIF': 'nif', Email: 'email', 'Población': 'municipio', Comercial: 'comercial', Pedidos: 'pedidos', 'Uds.': 'unidades', 'Último pedido': 'ultimo' })[n] || null
+};
+const ORD_DIR = { nombre: 'nombre', especialidad: 'especialidad', centro_nombre: 'lugar', municipio: 'municipio', ultima_visita: 'reciente', estado_comercial: 'estado' };
+const htCeldaNoOrdenable = n => !n || /^(operativa|acciones?|productos)$/i.test(n);
+const htNoFiltrable = n => !n || /^(operativa|acciones?)$/i.test(n);
+function htMarcarCabecera(g) {
+  const tipo = htTipo(g), o = HT_ORDEN[tipo], cab = g.querySelector(':scope > .dh'); if (!cab) return;
+  [...cab.children].forEach((c, i) => {
+    const n = c.textContent.trim(), srv = ORD_SRV[tipo], ok = srv ? !!srv(i, n) : !htCeldaNoOrdenable(n);
+    c.classList.toggle('htord', ok);
+    c.classList.toggle('ord-asc', !!o && o.i === i && o.dir === 1);
+    c.classList.toggle('ord-desc', !!o && o.i === i && o.dir === -1);
+    if (ok) { c.setAttribute('role', 'button'); c.title = 'Ordenar por esta columna'; }
+  });
+}
+function htOrdenarFilas(g) {
+  const tipo = htTipo(g), o = HT_ORDEN[tipo]; htMarcarCabecera(g);
+  if (!o || ORD_SRV[tipo]) return;
+  const cab = g.querySelector(':scope > .dh'); if (!cab) return;
+  const filas = [...g.querySelectorAll(':scope > .dr')];
+  if (!filas.length) return;
+  filas.forEach((f, k) => { if (f.dataset.htpos == null) f.dataset.htpos = k; });
+  const orden = [...filas].sort((a, b) => o.dir * htComparar((a.children[o.i] || {}).textContent, (b.children[o.i] || {}).textContent) || (+a.dataset.htpos - +b.dataset.htpos));
+  if (orden.some((f, k) => f !== filas[k])) { let ref = cab; orden.forEach(f => { ref.after(f); ref = f; }); }
+}
+function htQuitarOrden(g) {
+  const filas = [...g.querySelectorAll(':scope > .dr')];
+  if (filas.some(f => f.dataset.htpos == null)) return;
+  let ref = g.querySelector(':scope > .dh');
+  [...filas].sort((a, b) => +a.dataset.htpos - +b.dataset.htpos).forEach(f => { ref.after(f); ref = f; });
+}
+// Pulsar una cabecera: asc → desc → sin orden
+document.addEventListener('click', e => {
+  const c = e.target.closest('.dgrid > .dh > *'); if (!c || e.target.closest('input, button, select, .res')) return;
+  const g = c.closest('.dgrid'), tipo = htTipo(g), i = [...c.parentElement.children].indexOf(c), n = c.textContent.trim();
+  const srv = ORD_SRV[tipo]; const k = srv ? srv(i, n) : null;
+  if (srv ? !k : htCeldaNoOrdenable(n)) return;
+  const o = HT_ORDEN[tipo];
+  if (!o || o.i !== i) HT_ORDEN[tipo] = { i, dir: 1, k }; else if (o.dir === 1) o.dir = -1; else delete HT_ORDEN[tipo];
+  htGuardarOrden();
+  if (srv) {
+    if (tipo === 'peds2' && typeof listaPedidos === 'function') { PEDPAG = 0; listaPedidos(); }
+    if (tipo === 'pacs' && typeof listaPacientes === 'function') { PAC.pagina = 0; listaPacientes(); }
+    htMarcarCabecera(g); return;
+  }
+  if (HT_ORDEN[tipo]) htOrdenarFilas(g); else { htQuitarOrden(g); htMarcarCabecera(g); }
+});
+// El orden de las tablas de la base viaja con la consulta
+db.rpc = (orig => function (fn, args, ...r) {
+  const o = fn === 'pedidos_pagina' ? HT_ORDEN.peds2 : fn === 'clientes_lista' ? HT_ORDEN.pacs : null;
+  if (o && o.k && args && !('p_orden' in args) && (fn !== 'clientes_lista' || args.lim > 5)) args = Object.assign({}, args, { p_orden: o.k + (o.dir === -1 ? ':desc' : ':asc') });
+  return orig.call(this, fn, args, ...r);
+})(db.rpc);
+// La memoria de resultados de Pedidos distingue el orden
+rpcCache = (orig => function (fn, params, clave, ...r) {
+  const o = fn === 'pedidos_pagina' ? HT_ORDEN.peds2 : null;
+  return orig.call(this, fn, params, o && clave ? clave + '|orden:' + o.k + o.dir : clave, ...r);
+})(rpcCache);
+// Profesionales: su cabecera es propia y el orden va en F.orden (buscar_cuentas)
+cabeceraTabla = (orig => function (...a) {
+  const r = orig.apply(this, a);
+  const cfg = colsConfig().filter(c => c.on), cab = $('thead'); if (!cab) return r;
+  const [k, dir] = String(F.orden || '').split(':');
+  [...cab.querySelectorAll('.th')].forEach((th, i) => {
+    const c = cfg[i]; if (!c || !ORD_DIR[c.k]) return;
+    th.dataset.ordk = c.k; th.classList.add('htord'); th.title = 'Ordenar por esta columna';
+    const actual = ORD_DIR[c.k] === k && !(k === 'nombre' && !dir) && !(k === 'reciente' && !dir);
+    th.classList.toggle('ord-asc', actual && dir !== 'desc');
+    th.classList.toggle('ord-desc', actual && dir === 'desc');
+  });
+  return r;
+})(cabeceraTabla);
+document.addEventListener('click', e => {
+  const th = e.target.closest('#thead .th[data-ordk]'); if (!th || e.target.closest('.res')) return;
+  const k = ORD_DIR[th.dataset.ordk], [ak, ad] = String(F.orden || '').split(':');
+  F.orden = ak === k && ad === 'asc' ? k + ':desc' : ak === k && ad === 'desc' ? 'nombre' : k + ':asc';
+  if ($('forden') && [...$('forden').options].some(x => x.value === F.orden)) $('forden').value = F.orden;
+  buscar(true); cabeceraTabla();
+});
+
+// Filtros por columna según el tipo de dato
+function htTipoColumna(vals) {
+  const v = vals.map(htValor).filter(x => Object.keys(x).length);
+  if (!v.length) return 'texto';
+  if (v.every(x => 'f' in x)) return 'fecha';
+  if (v.every(x => 'n' in x)) return 'numero';
+  return 'texto';
+}
+htPintarPanel = (orig => function (sec) {
+  orig.call(this, sec);
+  // El panel se abre al lado (#tools) y allí van también los filtros propios de la pantalla
+  const lateral = typeof htLateralAbierto === 'function' && htLateralAbierto(), panel = lateral ? $('tools') : sec.querySelector('.htpanel'), g = sec.querySelector('.dgrid');
+  if (!panel || !g || !panel.querySelector('.htauto')) return;
+  const tipo = htTipo(g), st = HT_ESTADO[tipo] = HT_ESTADO[tipo] || { texto: '', facetas: {} };
+  st.rangos = st.rangos || {};
+  const zona = panel.querySelector('.htauto'), bloque = zona.querySelector('.htfacetas') && zona.querySelector('.htfacetas').closest('.htbloque');
+  const propias = [...panel.querySelectorAll('.htpropios label, .htpropios h4, .htpropios .lab')].map(x => htNorm(x.textContent));
+  const hayPeriodo = propias.some(t => /periodo|fecha/.test(t));
+  const cab = [...(g.querySelector(':scope > .dh') || { children: [] }).children].map(c => c.textContent.trim());
+  const filas = [...g.querySelectorAll(':scope > .dr')];
+  const cols = cab.map((nombre, i) => {
+    if (htNoFiltrable(nombre) || propias.includes(htNorm(nombre))) return null;
+    const t = htTipoColumna(filas.map(f => (f.children[i] || {}).textContent || ''));
+    if (t === 'fecha' && hayPeriodo) return null;
+    return { i, nombre, t };
+  }).filter(Boolean);
+  const html = cols.length ? `<div class="htbloque htcolf"><h4>Filtrar por columna</h4><div class="htfacetas">${cols.map(c => c.t === 'texto'
+      ? `<label><span>${esc(c.nombre)}</span><input type="search" data-htt="${c.i}" value="${esc(st.facetas[c.i] || '')}" placeholder="Contiene…"></label>`
+      : `<div class="htrango"><span>${esc(c.nombre)}</span><div><input type="${c.t === 'fecha' ? 'date' : 'number'}" data-htd="${c.i}" data-htk="${c.t}" value="${esc((st.rangos[c.i] || {}).d || '')}" aria-label="${esc(c.nombre)} desde" placeholder="Desde">
+          <input type="${c.t === 'fecha' ? 'date' : 'number'}" data-hth="${c.i}" data-htk="${c.t}" value="${esc((st.rangos[c.i] || {}).h || '')}" aria-label="${esc(c.nombre)} hasta" placeholder="Hasta"></div></div>`).join('')}</div></div>` : '';
+  const antesDe = [...zona.querySelectorAll('.htbloque')].find(b => b.querySelector('[data-htc], .t2abrir')) || zona.querySelector('.acts');
+  if (bloque) bloque.outerHTML = html; else if (html) { if (antesDe) antesDe.insertAdjacentHTML('beforebegin', html); else zona.insertAdjacentHTML('beforeend', html); }
+  // Los filtros de antes (desplegable con un valor exacto) pasan a «contiene»
+  Object.keys(st.facetas).forEach(i => { if (!cols.some(c => c.i === +i && c.t === 'texto')) delete st.facetas[i]; });
+  zona.querySelectorAll('[data-htt]').forEach(inp => inp.oninput = () => { st.facetas[inp.dataset.htt] = inp.value; htAplicarFiltros(g); htContador(sec); });
+  zona.querySelectorAll('[data-htd], [data-hth]').forEach(inp => inp.oninput = inp.onchange = () => {
+    const i = inp.dataset.htd || inp.dataset.hth, r = st.rangos[i] = st.rangos[i] || {};
+    r.k = inp.dataset.htk; if (inp.dataset.htd) r.d = inp.value; else r.h = inp.value;
+    htAplicarFiltros(g); htContador(sec);
+  });
+  const limpiar = zona.querySelector('[data-htlimpiar]');
+  if (limpiar) { const v = limpiar.onclick; limpiar.onclick = () => { st.rangos = {}; v && v(); }; }
+  if (typeof mejorarCampos === 'function') try { mejorarCampos(zona); } catch (e) {}
+})(htPintarPanel);
+htAplicarFiltros = function (g) {
+  const st = HT_ESTADO[htTipo(g)] || { texto: '', facetas: {} };
+  const t = htNorm(st.texto || ''), fac = Object.entries(st.facetas || {}).filter(([, v]) => v), ran = Object.entries(st.rangos || {}).filter(([, r]) => r.d || r.h);
+  g.querySelectorAll(':scope > .dr').forEach(f => {
+    const celdas = [...f.children];
+    const ok = (!t || htNorm(f.textContent).includes(t))
+      && fac.every(([i, v]) => celdas[i] && htNorm(celdas[i].textContent).includes(htNorm(v)))
+      && ran.every(([i, r]) => {
+        const v = htValor(celdas[i] && celdas[i].textContent), x = r.k === 'fecha' ? v.f : v.n;
+        if (x == null) return false;
+        const d = r.k === 'fecha' ? r.d : (r.d === '' || r.d == null ? null : +r.d), h = r.k === 'fecha' ? r.h : (r.h === '' || r.h == null ? null : +r.h);
+        return (d == null || d === '' || x >= d) && (h == null || h === '' || x <= h);
+      });
+    f.classList.toggle('htfuera', !ok);
+  });
+};
+htActivos = (orig => function (sec) {
+  const g = sec.querySelector('.dgrid'), st = g ? HT_ESTADO[htTipo(g)] || {} : {};
+  return orig.call(this, sec) + Object.values(st.rangos || {}).filter(r => r.d || r.h).length;
+})(htActivos);
+// Al pintarse una tabla (datos nuevos o «Ver más»), se aplica su orden y se marcan las cabeceras
+htPreparar = (orig => function (sec, ...r) {
+  const x = orig.call(this, sec, ...r);
+  sec.querySelectorAll('.dgrid').forEach(g => { const n = g.querySelectorAll(':scope > .dr').length; if (g.dataset.htn != n) { g.dataset.htn = n; htOrdenarFilas(g); } });
+  return x;
+})(htPreparar);
