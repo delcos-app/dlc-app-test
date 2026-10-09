@@ -9,7 +9,7 @@
   const HTML = {};   // id del capítulo → HTML ya con el vocabulario
 
   // ---------- Vocabulario de la empresa (lo deja la app en el navegador al abrir el manual) ----------
-  const BASE = { medico: { s: 'médico', p: 'médicos', g: 'm' }, visita: { s: 'visita', p: 'visitas', g: 'f' }, paciente: { s: 'paciente', p: 'pacientes', g: 'm' } };
+  const BASE = { medico: { s: 'profesional', p: 'profesionales', g: 'm' }, visita: { s: 'visita', p: 'visitas', g: 'f' }, paciente: { s: 'cliente', p: 'clientes', g: 'm' } };
   let TER = BASE, EMPRESA = '';
   try {
     const d = JSON.parse(localStorage.getItem('delcos-manual') || '{}');

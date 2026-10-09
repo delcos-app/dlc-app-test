@@ -77,7 +77,8 @@ let PERFIL = null, TAB = 'inicio';
 /* v2.71.0 · Diccionario de términos. Los textos no escriben «médico», «paciente» ni «visita»: los piden a TT(),
    que los saca del vocabulario de cada cliente (ajuste «terminos») con su plural, su género y el artículo que concuerda.
    TT(término, 's'|'p', determinante, mayúsculas del determinante, mayúsculas del nombre[, adjetivo en masculino singular]) · 'l' minúscula, 'C' inicial, 'U' todo. */
-const TERM_DEF = { medico: { s: 'médico', p: 'médicos', g: 'm' }, paciente: { s: 'paciente', p: 'pacientes', g: 'm' }, visita: { s: 'visita', p: 'visitas', g: 'f' } };
+// v2.224.0: palabras de partida genéricas (antes «médico» y «paciente»: DLC las tiene como vocabulario propio desde el SQL 133)
+const TERM_DEF = { medico: { s: 'profesional', p: 'profesionales', g: 'm' }, paciente: { s: 'cliente', p: 'clientes', g: 'm' }, visita: { s: 'visita', p: 'visitas', g: 'f' } };
 const TERM_DET = { el: ['el', 'los', 'la', 'las'], un: ['un', 'unos', 'una', 'unas'], del: ['del', 'de los', 'de la', 'de las'], al: ['al', 'a los', 'a la', 'a las'],
   este: ['este', 'estos', 'esta', 'estas'], ningun: ['ningún', 'ningunos', 'ninguna', 'ningunas'], otro: ['otro', 'otros', 'otra', 'otras'],
   nuevo: ['nuevo', 'nuevos', 'nueva', 'nuevas'], primer: ['primer', 'primeros', 'primera', 'primeras'], ultimo: ['último', 'últimos', 'última', 'últimas'],
@@ -457,12 +458,12 @@ async function fichaComercialYPacientes(id) {
   }
 }
 
-// Ficha · Aviso si falta su horario de consulta
+// Ficha · Aviso si falta su horario de atención
 async function fichaAvisoHorario(id) {
   if (FICHA_ID !== id || !$('fbody').querySelector('.fh')) return;
   if (!await faltaHorario(id) || FICHA_ID !== id || $('fhorario')) return;
   $('fbody').querySelector('.fh').insertAdjacentHTML('afterend', `<div class="avisoh" id="fhorario">
-    <span>⚠ <b>Falta su horario de consulta.</b> Sin él, las rutas y el planificador no saben qué días y horas pasa consulta.</span>
+    <span>⚠ <b>Falta su horario de atención.</b> Sin él, las rutas y el planificador no saben qué días y horas atiende.</span>
     ${puedeEditar() ? '<button class="btn sec" id="fhcompletar">Completar horario</button>' : ''}</div>`);
   if ($('fhcompletar')) $('fhcompletar').onclick = () => abrirEditor(id);
 }
@@ -484,7 +485,7 @@ async function fichaUnidades(id) {
   if (FICHA_ID !== id || !$('fbody') || $('fundades')) return;
   const { data: u } = await RPC_ORIG('unidades_cuenta', { p_medico: id });
   if (!u || FICHA_ID !== id || $('fundades')) return;
-  const bloque = `<div class="blk" id="fundades"><h3>Unidades pautadas</h3>
+  const bloque = `<div class="blk" id="fundades"><h3>Unidades atribuidas</h3>
     <div class="uper">${[['Hoy', u.hoy], ['Semana', u.semana], ['Mes', u.mes], ['Trimestre', u.trimestre], ['Año', u.anio], ['Total', u.total]]
       .map(([t, v]) => `<div><b>${num(v)}</b><span>${t}</span></div>`).join('')}</div>
     ${u.total ? `<div class="segs" id="fuserie" role="group" aria-label="Evolución">${UDS_SERIES.map(([k, t]) => `<button type="button" data-us="${k}" class="${k === UDS_SERIE ? 'on' : ''}">${t}</button>`).join('')}</div>` : ''}
@@ -539,7 +540,7 @@ async function fichaAcceso(id) {
     ${ya ? `<p class="sm">Tiene acceso como <b>${esc(ya.email || '')}</b>${ya.activo ? '' : ' (desactivado)'}: ${m.tipo === 'Centro' ? 'pide la reposición de sus productos, material y escribe a su comercial' : 've su informe y recibe un aviso con cada pauta'}.</p>`
       : m.tipo === 'Centro' ? `<p class="sm">Puede tener acceso para pedir la reposición de los productos que le des de alta, pedir material y escribir a su comercial.</p>
          <button class="btn sec" id="fdaracc">Dar acceso</button>`
-      : `<p class="sm">Puede tener acceso a su informe de prescripción y recibir un aviso con cada pauta a su nombre. No verá importes ni datos de ${TT('paciente', 'p', '', 'l', 'l')}.</p>
+      : `<p class="sm">Puede tener acceso a su informe de ventas atribuidas y recibir un aviso con cada venta a su nombre. No verá importes ni datos de ${TT('paciente', 'p', '', 'l', 'l')}.</p>
          <button class="btn sec" id="fdaracc">Dar acceso</button>`}</div>`);
   if ($('fdaracc')) $('fdaracc').onclick = async () => {
     const { data: f } = await db.rpc('ficha_cuenta', { p_id: id });
@@ -619,11 +620,11 @@ function fichaVisitaHTML(m, cons, vis) {
     filas.push(fila('building-2', `<b>${esc(c.centro_nombre || 'Consulta privada')}</b>${donde ? `<span class="fvdonde">${donde}</span>` : ''}
       <div class="sm">${esc([c.direccion, [c.cp, c.municipio].filter(Boolean).join(' ')].filter(Boolean).join(', ')) || 'Sin dirección'}</div>
       ${c.lat ? `<button class="btn sec fvbtn" type="button" data-nav="${navAttr([c.lat, c.lon])}">${svgIco(ICON_NOM['map-pin'])} Cómo llegar</button>` : ''}`));
-    // Cuándo: su horario de hoy en esta consulta (o el próximo día que pasa consulta) y el horario del centro
+    // Cuándo: su horario de hoy en esta consulta (o el próximo día que atiende) y el horario del centro
     const d = c.dias || {}, orden = 'LMXJVSD', h = d[hoy];
     const prox = h ? null : [...orden.slice(orden.indexOf(hoy) + 1), ...orden.slice(0, orden.indexOf(hoy) + 1)].find(k => d[k]);
     const cen = (c.horario_centro || {})[hoy];
-    filas.push(fila('clock', `${h ? `<b>Hoy pasa consulta: ${esc(h)}</b>` : prox ? `Hoy no pasa consulta aquí · el ${NOMDIA[prox]}: ${esc(d[prox])}` : 'Sin horario de consulta'}
+    filas.push(fila('clock', `${h ? `<b>Hoy atiende: ${esc(h)}</b>` : prox ? `Hoy no atiende aquí · el ${NOMDIA[prox]}: ${esc(d[prox])}` : 'Sin horario de atención'}
       ${cen ? `<div class="sm">Centro abierto hoy: ${esc(cen)}</div>` : ''}
       <div class="dias fvdias">${['L', 'M', 'X', 'J', 'V'].map(k => `<span class="${d[k] ? 'on' : ''} ${k === hoy ? 'hoy' : ''}" title="${esc(d[k] || '')}">${k}</span>`).join('')}</div>`));
     if (c.indicaciones) filas.push(fila('info', `<b>Cómo llegar dentro:</b> ${esc(c.indicaciones)}`, 'fvind'));
@@ -820,7 +821,7 @@ async function abrirEditor(id, tipo) {
 
   $('dbody').innerHTML = `
     <div class="fh"><div><h2>${id ? 'Editar ficha' : esCentro ? 'Nuevo centro' : esc(fichaNueva().nueva)}</h2>
-      <div class="sm">${id ? esc(m.nombre) : esCentro ? 'Clínica, hospital o centro médico' : 'Profesional con sus consultas'}</div></div>
+      <div class="sm">${id ? esc(m.nombre) : esCentro ? 'Clínica, hospital, empresa o tienda' : `${TT('medico', 's', '', 'l', 'C')} con sus centros`}</div></div>
       <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
     <label for="en">${esCentro ? 'Nombre del centro' : 'Apellidos, Nombre'}</label>
     <input id="en" value="${esc(m.nombre || '')}" placeholder="${esCentro ? 'CLÍNICA SANT JORDI' : 'GARCIA LOPEZ, ANA'}" autocapitalize="characters">
@@ -996,9 +997,9 @@ $('nuevoBtn').addEventListener('click', () => {
       <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
     <div class="opciones" style="margin-top:10px">
       <button class="opt ${puedeCrearTipo('Persona') ? '' : 'hide'}" data-crear="Persona" style="flex-direction:column;align-items:flex-start;gap:4px;padding:16px">
-        <b style="font-size:16px;color:var(--navy)">${esc(fichaNueva().nombre)}</b><span class="sm">Profesional con sus consultas y horarios</span></button>
+        <b style="font-size:16px;color:var(--navy)">${esc(fichaNueva().nombre)}</b><span class="sm">${TT('medico', 's', '', 'l', 'C')} con sus centros y horarios</span></button>
       <button class="opt ${puedeCrearTipo('Centro') ? '' : 'hide'}" data-crear="Centro" style="flex-direction:column;align-items:flex-start;gap:4px;padding:16px">
-        <b style="font-size:16px;color:var(--navy)">Centro</b><span class="sm">Clínica, hospital o centro médico</span></button>
+        <b style="font-size:16px;color:var(--navy)">Centro</b><span class="sm">Clínica, hospital, empresa o tienda</span></button>
     </div>`;
   $('dbody').querySelectorAll('[data-crear]').forEach(b => b.onclick = () => abrirEditor(null, b.dataset.crear));
   $('dlg').showModal();
@@ -1426,13 +1427,13 @@ function pintarPlanBase() {
   const rutaParadas = conCasa ? PLAN.paradas.map(p => p.xy) : PLAN.paradas.slice(0, -1).map(p => p.xy);
 
   $('rplan').innerHTML = `<div class="card">
-    <h2>${PLAN.fecha && PLAN.fecha !== hoyISO() ? 'Plan para el ' + fechaLarga(new Date(PLAN.fecha + 'T00:00:00')) : 'Plan de hoy'}<span class="n">${total} ${total === 1 ? 'médico' : 'médicos'}</span></h2>
+    <h2>${PLAN.fecha && PLAN.fecha !== hoyISO() ? 'Plan para el ' + fechaLarga(new Date(PLAN.fecha + 'T00:00:00')) : 'Plan de hoy'}<span class="n">${total} ${TT('medico', total === 1 ? 's' : 'p', '', 'l', 'l')}</span></h2>
     <p class="sm">Salida de ${esc(PLAN.salida.nombre)} a las ${PLAN.inicio != null ? hm(PLAN.inicio) : PLANCFG().salida} · ${PLAN.paradas.length} ${PLAN.paradas.length === 1 ? 'parada' : 'paradas'} ·
       vuelta sobre las ${hm(PLAN.fin)} · <button class="kcfg" id="planhora">⚙ Cambiar horario</button></p>
     <div class="lista">${PLAN.paradas.map((p, i) => `<div class="item" style="cursor:default">
       <span class="ic">${i + 1}</span>
       <span class="tx"><b>${esc(p.centro)}</b>
-        <span class="sm">${hm(p.llegada)}–${hm(p.fin)} · ${esc([p.dir, p.municipio].filter(Boolean).join(', '))} · ${p.medicos.length} ${p.medicos.length === 1 ? 'médico' : 'médicos'}</span>
+        <span class="sm">${hm(p.llegada)}–${hm(p.fin)} · ${esc([p.dir, p.municipio].filter(Boolean).join(', '))} · ${p.medicos.length} ${TT('medico', p.medicos.length === 1 ? 's' : 'p', '', 'l', 'l')}</span>
         <span class="sm">${p.medicos.map(m => esc(m.nombre)).join(' · ')}</span></span>
       <span class="acts" style="margin:0"><button class="btn sec" type="button" data-nav="${navAttr(p.xy)}">Ir</button></span>
     </div>`).join('')}</div>
@@ -1972,7 +1973,7 @@ async function cargarSeguimientoPaso1() {
     <div class="barra" style="margin:8px 16px 10px"><i style="width:${pct(q.completas, q.total)}%"></i></div>
     <div class="kpis" style="padding:0 16px 10px">
       ${item(q.sin_ubicacion, 'sin ubicación', 'Sin coordenadas en ninguna consulta: no entran en rutas ni en el mapa.')}
-      ${item(q.sin_horario, 'sin horario de consulta', 'Sin días ni horas de consulta: las rutas no pueden ajustarse a su horario.')}
+      ${item(q.sin_horario, 'sin horario de atención', 'Sin días ni horas de atención: las rutas no pueden ajustarse a su horario.')}
       ${item(q.sin_especialidad, 'sin especialidad', 'Sin especialidad en la ficha: no se pueden filtrar ni analizar por especialidad.')}
       ${item(q.sin_contacto, 'sin teléfono ni email', `No hay forma de contactar con ellos fuera ${TT('visita', 's', 'del', 'l', 'l')}.`)}
       ${item(q.sin_provincia, 'sin provincia', 'Sin provincia no se pueden asignar por zona a un comercial.')}
@@ -2040,7 +2041,7 @@ async function cargarSeguimientoBase() {
        <div class="kpi"><b>${num(r.visitas_total)}</b><span>${TT('visita', 'p', '', 'l', 'l', 'registrado')}</span></div>
        <div class="kpi"><b>${num(r.muestras_total)}</b><span>muestras entregadas</span></div>
        <div class="kpi"><b>${pct(r.con_direccion, r.total)}</b><span>fichas con dirección</span></div>
-       <div class="kpi"><b>${pct(r.con_dias, r.total)}</b><span>con días de consulta</span></div>`;
+       <div class="kpi"><b>${pct(r.con_dias, r.total)}</b><span>con días de atención</span></div>`;
   }
   listaSeguimiento(true);
 }
@@ -3067,7 +3068,7 @@ async function listaPropuestas() {
   PROPUESTAS = data;
   const dn = { L: 'lunes', M: 'martes', X: 'miércoles', J: 'jueves', V: 'viernes' }[data.dia] || 'hoy';
   const bloques = [
-    ['hoy', '📅', `Pasan consulta ${dn}`, `Con día de consulta conocido y sin ${TT('visita', 's', '', 'l', 'l')} reciente`],
+    ['hoy', '📅', `Atienden ${dn}`, `Con día de atención conocido y sin ${TT('visita', 's', '', 'l', 'l')} reciente`],
     ['pendientes', '⏳', 'Pendientes de rutas anteriores', 'Planificados y no visitados'],
     ['urgentes', '❗', 'Urgentes sin visitar', 'Marcados como urgentes'],
     ['interesados', '🔥', `${TT('medico', 'p', '', 'l', 'C', 'interesado')} sin ${TT('visita', 's', '', 'l', 'l')} en 20 días`, 'Para no perder el interés'],
@@ -3173,7 +3174,7 @@ async function editorRuta(id) {
         </div>
         <div class="g2">
           <div><label for="csv">Sin visitar hace más de (días)</label><input id="csv" type="number" min="1" max="365" value="${g.sinVisita || ''}"></div>
-          <div><label for="cdia">Pasan consulta</label><select id="cdia"><option value=""></option>
+          <div><label for="cdia">Atienden</label><select id="cdia"><option value=""></option>
             ${DIAS.map(k => `<option value="${k}" ${g.dia === k ? 'selected' : ''}>${DIAN[k]}</option>`).join('')}</select></div>
         </div>
         <label class="opt" style="margin-top:10px"><input type="checkbox" id="curg" ${g.urgentes ? 'checked' : ''}> Solo urgentes</label>
@@ -3501,7 +3502,7 @@ $('q').addEventListener('input', e => {
         <span class="gic">📍</span><span><b>${resaltarBusqueda(x.valor, q)}</b><span class="sm">${num(x.n)} ${TT('medico', 'p', '', 'l', 'l')}</span></span></button>`).join('') : '') +
       (c.length ? `<div class="gsh">Centros</div>` + c.map(x => `<button data-gc="${esc(x.valor)}"${x.id ? ` data-gcid="${x.id}"` : ''}>
         <span class="gic">🏥</span><span><b>${resaltarBusqueda(x.valor, q)}</b><span class="sm">${esc(x.municipio || '')} · ${num(x.n)} ${TT('medico', 'p', '', 'l', 'l')}</span></span></button>`).join('') : '') +
-      (me.length ? `<div class="gsh">${TT('medico', 'p', '', 'l', 'C')}${m.length || c.length ? ' que pasan consulta allí o coinciden' : ''}</div>` + me.map(x => `<button data-gme="${x.id}">
+      (me.length ? `<div class="gsh">${TT('medico', 'p', '', 'l', 'C')}${m.length || c.length ? ' que atienden allí o coinciden' : ''}</div>` + me.map(x => `<button data-gme="${x.id}">
         <span class="gic">${x.urgente ? '❗' : '👤'}</span><span><b>${resaltarBusqueda(x.nombre, q)}</b>
         <span class="sm">${esc(x.especialidad || '')} · ${esc(x.centro_nombre || '')} ${esc(x.municipio || '')}</span></span></button>`).join('') : '');
     $('gsug').classList.remove('hide');
@@ -3873,7 +3874,7 @@ async function tarjetasRuta() {
   PROPUESTAS = data;
   const dn = { L: 'lunes', M: 'martes', X: 'miércoles', J: 'jueves', V: 'viernes' }[data.dia] || 'hoy';
   const bloques = [
-    ['hoy', '📅', `Pasan consulta ${dn}`],
+    ['hoy', '📅', `Atienden ${dn}`],
     ['urgentes', '❗', 'Urgentes sin visitar'],
     ['interesados', '🔥', `${TT('medico', 'p', '', 'l', 'C', 'interesado')} sin ${TT('visita', 's', '', 'l', 'l')} en 20 días`],
     ['sin_visitar', '🆕', 'Sin visitar nunca']
@@ -4406,7 +4407,7 @@ const AYUDA = {
     ['El motivo de urgencia se ve en su ficha.', 'Desde Rutas puedes planificar una ruta solo con urgentes.']],
   ini_ultimas: [`${TT('visita', 'p', 'ultimo', 'C', 'l')}`, `${TT('visita', 'p', 'el', 'C', 'l', 'registrado')} más recientes, con su resultado.`, []],
   ini_recom: ['Rutas sugeridas', 'Listas calculadas cada día con tus datos. Al pulsar una, se planifica la ruta del día.',
-    ['«Pasan consulta hoy»: tienen consulta este día de la semana y no se visitan desde hace más de 14 días.',
+    ['«Atienden hoy»: tienen consulta este día de la semana y no se visitan desde hace más de 14 días.',
      `«${TT('medico', 'p', '', 'l', 'C', 'interesado')}»: en estado «${estadoPapel('interes') || 'interés'}» y sin ${TT('visita', 's', '', 'l', 'l')} en 20 días.`,
      `Solo entran ${TT('medico', 'p', '', 'l', 'l')} con ubicación: completar direcciones mejora las propuestas.`]],
   ini_pend: ['Pendientes de rutas anteriores', 'Citas que planificaste y quedaron sin visitar.',
@@ -4419,12 +4420,12 @@ const AYUDA = {
     `Al registrar ${TT('visita', 's', 'el', 'l', 'l')} desde la ficha, la cita pasa a «Visitada».`,
     'Abajo verás los pendientes de rutas anteriores para recolocarlos.']],
   rutas: ['Rutas', 'Crea rutas y conviértelas en el plan del día.', [
-    `<b>Lista fija</b>: tú eliges ${TT('medico', 'p', 'el', 'l', 'l')}. <b>Por criterios</b>: se rellena sola con los filtros (municipio, estado, días de consulta…).`,
+    `<b>Lista fija</b>: tú eliges ${TT('medico', 'p', 'el', 'l', 'l')}. <b>Por criterios</b>: se rellena sola con los filtros (municipio, estado, días de atención…).`,
     '<b>Propuestas automáticas</b>: las mismas listas que ves en Inicio.',
     `El plan ordena las paradas por cercanía y calcula horas con la salida y la vuelta de la ruta, y los minutos por ${TT('visita', 's', '', 'l', 'l')} y entre paradas.`,
     'El navegador (Google Maps, Apple Maps o Waze) se elige en el plan o en Configuración.',
     'Al empezar la ruta aparece la barra verde con el tiempo en curso.',
-    `Solo entran ${TT('medico', 'p', '', 'l', 'l')} con ubicación. Completar la dirección y los días de consulta mejora mucho las rutas.`]],
+    `Solo entran ${TT('medico', 'p', '', 'l', 'l')} con ubicación. Completar la dirección y los días de atención mejora mucho las rutas.`]],
   directorio: ['Directorio', `Todos ${TT('medico', 'p', 'el', 'l', 'l')} que puedes ver.`, [
     'El buscador de arriba filtra por nombre, centro o municipio.',
     `El municipio y la provincia cuentan todas las consultas ${TT('medico', 's', 'del', 'l', 'l')}, no solo la principal.`,
@@ -5369,7 +5370,7 @@ async function sugerenciasAgenda() {
   const libre = l => (l || []).filter(m => !conCita.has(m.id || m.cuenta_id));
   const acciones = libre((pi && pi.acciones) || []).filter(a => a.proxima_fecha <= fecha);
   const grupos = [
-    esHoy ? ['hoy', 'Pasan consulta hoy y hace más de 14 días que no se visitan', libre(pr && pr.hoy)] : null,
+    esHoy ? ['hoy', 'Atienden hoy y hace más de 14 días que no se visitan', libre(pr && pr.hoy)] : null,
     ['acciones', 'Acciones pendientes para este día o atrasadas', acciones.map(a => ({ id: a.cuenta_id, nombre: a.nombre, especialidad: a.especialidad, extra: (a.proxima_accion || 'Seguimiento') + ' · ' + fechaCorta(a.proxima_fecha) }))],
     ['toca', `Les toca ${TT('visita', 's', '', 'l', 'l')} según su frecuencia objetivo`, libre(toca).map(m => Object.assign({}, m, { extra: [m.estado_comercial, m.dias_sin_visita != null ? m.dias_sin_visita + ` días sin ${TT('visita', 's', '', 'l', 'l')}` : 'nunca visitado', m.municipio].filter(Boolean).join(' · ') }))],
     ['urgentes', 'Urgentes sin visitar', libre(pr && pr.urgentes)],
@@ -5432,7 +5433,7 @@ Object.assign(AYUDA, {
     `«+ Nueva cita» crea una cita con ${TT('medico', 's', 'un', 'l', 'l')}.`,
     'En cada cita puedes cambiar la hora, moverla o descartarla.',
     `Al registrar ${TT('visita', 's', 'el', 'l', 'l')} desde la ficha, la cita pasa a «Visitada».`,
-    'En la vista de día verás <b>sugerencias</b>: quién pasa consulta ese día, acciones pendientes, urgentes e interesados.']]
+    'En la vista de día verás <b>sugerencias</b>: quién atiende ese día, acciones pendientes, urgentes e interesados.']]
 });
 ANCLAS_AYUDA.push(['#agsug > h2', 'agenda']);
 
@@ -6012,7 +6013,7 @@ Object.assign(AYUDA, {
     'El plan ordena las paradas por cercanía y calcula las horas con tu horario. Si ya ha pasado tu hora de salida, empieza a contar desde ahora.',
     `Al pulsar <b>Empezar ruta</b> verás la lista de paradas con el botón <b>Registrar ${TT('visita', 's', '', 'l', 'l')}</b> en cada ${TT('medico', 's', '', 'l', 'l')}. «Cómo llegar» abre el navegador solo cuando tú lo pides.`,
     '<b>Pausar</b> guarda los pendientes para seguir otro día; al reanudar se recalculan orden y horas.',
-    `Solo entran ${TT('medico', 'p', '', 'l', 'l')} con ubicación. Completar la dirección y los días de consulta mejora mucho las rutas.`]],
+    `Solo entran ${TT('medico', 'p', '', 'l', 'l')} con ubicación. Completar la dirección y los días de atención mejora mucho las rutas.`]],
   pacientes: [`${TT('paciente', 'p', '', 'l', 'C')}`, `Las personas que compran con ${TT('medico', 's', 'un', 'l', 'l')} de referencia.`, [
     `Cada ${TT('paciente', 's', '', 'l', 'l')} tiene un <b>${TT('medico', 's', '', 'l', 'l')} que lo trata</b>: se elige al darlo de alta o se asigna solo con su primer pedido.`,
     'Para una persona se pide el DNI o NIE; para una empresa, el CIF. La app comprueba que la letra o el control sean correctos.',
@@ -6689,7 +6690,7 @@ async function accionCita(k, c) {
 
 async function nuevaFechaTrasNoEstaba(c) {
   const prop = proximoDiaConsulta(c.dias, c.fecha);
-  const op = await elegirOpcion('¿Le buscamos otro día?', `${c.nombre}\n\nEl próximo día que pasa consulta es el ${fechaLarga(new Date(prop + 'T00:00:00'))}.`,
+  const op = await elegirOpcion('¿Le buscamos otro día?', `${c.nombre}\n\nEl próximo día que atiende es el ${fechaLarga(new Date(prop + 'T00:00:00'))}.`,
     [{ k: 'no', t: 'Ahora no', cls: 'sec' }, { k: 'otra', t: 'Elegir otra fecha', cls: 'sec' }, { k: 'prop', t: 'Cita el ' + fechaCorta(prop) }]);
   if (!op) return;
   let f = prop;
@@ -6797,7 +6798,7 @@ Object.assign(AYUDA, {
     'La hora con «~» es una estimación según el orden, tu horario y los desplazamientos. Una hora sin «~» es una hora fijada.',
     `<b>Empezar jornada</b> activa la barra verde. Registra cada ${TT('visita', 's', '', 'l', 'l')} al terminarla: la cita pasa a <b>Visitada</b>.`,
     'Estados: <b>Planificada</b> y <b>Confirmada</b> (abiertas); <b>Visitada</b>, <b>No estaba</b>, <b>Aplazada</b> y <b>Descartada</b> (cerradas).',
-    '<b>No estaba</b> lo anota en su historial y te propone el próximo día que pasa consulta.',
+    '<b>No estaba</b> lo anota en su historial y te propone el próximo día que atiende.',
     '<b>Aplazar</b> deja la cita como aplazada y crea la nueva, así se ve el cumplimiento real.',
     'Las citas abiertas de días anteriores aparecen abajo para moverlas a hoy.']],
   rutas: ['Rutas', 'Plantillas para llenar tu agenda.', [
@@ -6805,7 +6806,7 @@ Object.assign(AYUDA, {
     'Al planificar ves el orden y las horas estimadas. <b>Guardar en mi agenda</b> crea las citas de ese día; <b>Pasar a mi agenda y empezar</b> además inicia la jornada.',
     'Durante la jornada todo se hace desde <b>Agenda → Tu día</b>.',
     `La salida y la vuelta son de cada ruta (y del planificador semanal); <b>⚙ Tiempos de ${TT('visita', 's', '', 'l', 'l')}</b> cambia los minutos por ${TT('medico', 's', '', 'l', 'l')} y por parada.`,
-    `Solo entran ${TT('medico', 'p', '', 'l', 'l')} con ubicación. Completar la dirección y los días de consulta mejora mucho las rutas.`]]
+    `Solo entran ${TT('medico', 'p', '', 'l', 'l')} con ubicación. Completar la dirección y los días de atención mejora mucho las rutas.`]]
 });
 
 
@@ -6875,18 +6876,18 @@ if (EN_PRUEBAS) {
 
 /* ============================================================
    DLC OS 2.0 · v2.25.0 · Rutas y Agenda, bloque 2:
-   horario de consulta en la planificación, reprogramación de lo
+   horario de atención en la planificación, reprogramación de lo
    no visitado y semana en cuadrícula
    ============================================================ */
 
-/* ---------------- horarios de consulta ---------------- */
+/* ---------------- horarios de atención ---------------- */
 
 const LETRA_DIA = f => 'DLMXJVS'[new Date(f + 'T12:00:00').getDay()];
 const txtMin = m => hm(m);
 
 /**
  * Franjas de consulta de un médico en una fecha, en minutos.
- * null → no sabemos su horario (sin restricción) · [] → ese día no pasa consulta · [[ini, fin], …]
+ * null → no sabemos su horario (sin restricción) · [] → ese día no atiende · [[ini, fin], …]
  */
 function ventanasDe(dias, fecha) {
   const d = dias || {};
@@ -6922,7 +6923,7 @@ function programarVisitas(items, t0) {
   const seq = [], fuera = [];
   let pend = [];
   items.forEach(it => {
-    if (it.ventanas && !it.ventanas.length) fuera.push({ it, motivo: 'no pasa consulta este día' });
+    if (it.ventanas && !it.ventanas.length) fuera.push({ it, motivo: 'no atiende este día' });
     else if (!it.xy) fuera.push({ it, motivo: 'sin ubicación' });
     else pend.push(it);
   });
@@ -7008,11 +7009,11 @@ async function construirPlan(conXY, rutaId, btn, opts) {
     return;
   }
   if (!seq.length) {
-    const noDia = fuera.filter(f => f.motivo === 'no pasa consulta este día').length;
+    const noDia = fuera.filter(f => f.motivo === 'no atiende este día').length;
     const op = await elegirOpcion(`No cabe ${TT('visita', 's', 'ningun', 'l', 'l')}`,
-      (noDia === fuera.length ? `Ninguno de estos ${fuera.length} ${TT('medico', 'p', '', 'l', 'l')} pasa consulta el ${fechaLarga(new Date(fecha + 'T00:00:00'))}.`
-        : cfg.conTope ? `Con el horario de la ruta (${cfg.salida}–${cfg.tope}) y las horas de consulta no da tiempo a ${TT('visita', 's', 'ningun', 'l', 'l')}.`
-        : `Con las horas de consulta no da tiempo a ${TT('visita', 's', 'ningun', 'l', 'l')}.`)
+      (noDia === fuera.length ? `Ninguno de estos ${fuera.length} ${TT('medico', 'p', '', 'l', 'l')} atiende el ${fechaLarga(new Date(fecha + 'T00:00:00'))}.`
+        : cfg.conTope ? `Con el horario de la ruta (${cfg.salida}–${cfg.tope}) y las horas de atención no da tiempo a ${TT('visita', 's', 'ningun', 'l', 'l')}.`
+        : `Con las horas de atención no da tiempo a ${TT('visita', 's', 'ningun', 'l', 'l')}.`)
         + (citados.length ? `\n\nAdemás, ${citados.length} ${citados.length === 1 ? 'ya tiene' : 'ya tienen'} una cita planificada y no se proponen.` : ''),
       [{ k: 'no', t: 'Cancelar', cls: 'sec' }].concat(cfg.conTope && (RUTAS || []).find(x => x.id === rutaId) ? [{ k: 'horario', t: 'Cambiar el horario de la ruta', cls: 'sec' }] : [])
         .concat(opts.manana ? [] : [{ k: 'manana', t: 'Probar para mañana' }]));
@@ -7073,8 +7074,8 @@ function estimarDiaBase(citas, fecha) {
       ini = it.fija != null ? Math.max(lleg, it.fija) : lleg;
       // v2.75.0: el aviso dice por qué, con las horas
       info.aviso = it.fija != null ? `Llegarías hacia las ${hm(lleg)} y la cita es a las ${hm(it.fija)}`
-        : it.ventanas && !it.ventanas.length ? 'Ese día no pasa consulta'
-        : `Fuera de su horario de consulta (${txtVentanas(it.ventanas)})`;
+        : it.ventanas && !it.ventanas.length ? 'Ese día no atiende'
+        : `Fuera de su horario de atención (${txtVentanas(it.ventanas)})`;
     } else if (ini > lleg + 5 && it.ventanas) info.espera = ini - lleg;
     est[c.id] = ini;
     TD_INFO[c.id] = info;
@@ -7111,12 +7112,12 @@ async function reprogramarCitas(citas, titulo, texto) {
     $('dbody').innerHTML = `
       <div class="fh"><div><h2>${esc(titulo)}</h2><div class="sm">${esc(texto)}</div></div>
         <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-      <p class="sm">Te propongo el próximo día que cada ${TT('medico', 's', '', 'l', 'l')} pasa consulta. Cambia la fecha si quieres o desmarca los que no quieras mover.</p>
+      <p class="sm">Te propongo el próximo día que cada ${TT('medico', 's', '', 'l', 'l')} atiende. Cambia la fecha si quieres o desmarca los que no quieras mover.</p>
       <div class="lista reprog" data-nosucio>${filas.map((f, i) => `<div class="item" style="cursor:default">
         <input type="checkbox" data-rpi="${i}" checked aria-label="Mover">
         <span class="tx"><b>${esc(f.c.nombre)}</b>
           <span class="sm">${esc([f.c.centro_nombre, f.c.municipio].filter(Boolean).join(' · '))}${f.c.fecha < base ? ' · era el ' + fechaCorta(f.c.fecha) : ''}</span>
-          <span class="sm">${f.horario ? 'Pasa consulta: ' + esc(f.horario) : 'Sin días de consulta conocidos'}</span></span>
+          <span class="sm">${f.horario ? 'Atiende: ' + esc(f.horario) : 'Sin días de atención conocidos'}</span></span>
         <input type="date" data-rpf="${i}" value="${f.fecha}" min="${base}"></div>`).join('')}</div>
       <div class="acts" style="justify-content:flex-end">
         <button class="btn sec" id="rpno">Dejarlas como están</button>
@@ -7167,18 +7168,18 @@ async function terminarJornada() {
 /* ---------------- ayudas ---------------- */
 
 AYUDA.agenda[2].splice(1, 1,
-  `La hora con «~» es una estimación según el orden, tu horario, los desplazamientos y el <b>horario de consulta</b> de cada ${TT('medico', 's', '', 'l', 'l')}: si llegas antes de que abra, cuenta la espera. Una hora sin «~» es una hora fijada.`,
-  `Si una cita queda fuera del horario de consulta ${TT('medico', 's', 'del', 'l', 'l')}, se marca en naranja. <b>Ordenar por cercanía</b> tiene en cuenta esos horarios.`);
-AYUDA.agenda[2].push(`Al <b>terminar la jornada</b>, lo no visitado se puede mover de golpe al próximo día que cada ${TT('medico', 's', '', 'l', 'l')} pasa consulta. Lo mismo con los pendientes de días anteriores.`,
+  `La hora con «~» es una estimación según el orden, tu horario, los desplazamientos y el <b>horario de atención</b> de cada ${TT('medico', 's', '', 'l', 'l')}: si llegas antes de que abra, cuenta la espera. Una hora sin «~» es una hora fijada.`,
+  `Si una cita queda fuera del horario de atención ${TT('medico', 's', 'del', 'l', 'l')}, se marca en naranja. <b>Ordenar por cercanía</b> tiene en cuenta esos horarios.`);
+AYUDA.agenda[2].push(`Al <b>terminar la jornada</b>, lo no visitado se puede mover de golpe al próximo día que cada ${TT('medico', 's', '', 'l', 'l')} atiende. Lo mismo con los pendientes de días anteriores.`,
   `La vista de <b>semana</b> muestra los siete días en cuadrícula: pulsa un día para verlo, ${TT('medico', 's', 'un', 'l', 'l')} para abrir su ficha o «+» para añadir una cita.`);
 AYUDA.rutas[2].splice(1, 1,
-  `El plan respeta los <b>días y horas de consulta</b> de cada ${TT('medico', 's', '', 'l', 'l')} (los de su ficha): no te lo propone un día que no pasa consulta ni fuera de su horario. Los que no caben aparecen en «Se quedan fuera» con el motivo.`);
+  `El plan respeta los <b>días y horas de atención</b> de cada ${TT('medico', 's', '', 'l', 'l')} (los de su ficha): no te lo propone un día que no atiende ni fuera de su horario. Los que no caben aparecen en «Se quedan fuera» con el motivo.`);
 
 
 /* ============================================================
    DLC OS 2.0 · v2.26.0 · Rutas y Agenda, bloques 3 y 4:
    planificador semanal, días bloqueados, frecuencia objetivo,
-   supervisión del equipo y aviso de horario de consulta
+   supervisión del equipo y aviso de horario de atención
    ============================================================ */
 
 /* ---------------- qué agenda se está viendo ---------------- */
@@ -7321,7 +7322,7 @@ async function pintarSemanaAgenda() {
       const avisos = [];
       if (bloq[destino]) avisos.push(`ese día está bloqueado (${bloq[destino]})`);
       const v = ventanasDe(c.dias, destino);
-      if (v && !v.length) avisos.push('ese día no pasa consulta');
+      if (v && !v.length) avisos.push('ese día no atiende');
       if (avisos.length && !await preguntar(`${c.nombre}: ${avisos.join(' y ')}.`, { titulo: '¿Moverla igualmente?', ok: 'Mover' })) return;
       const { data: rr, error } = await db.rpc('estado_cita', { p_id: id, p_estado: c.estado, p_fecha: destino });
       if (error || (rr && rr.ok === false)) { toast('No se ha podido mover', true); return; }
@@ -7439,7 +7440,7 @@ function repartirSemana(lista, usar, porDia, max, desde) {
   out.total = usar.reduce((n, f) => n + out.dias[f].length, 0);
   pend.forEach(p => {
     const algun = usar.some(g => { const v = ventanasDe(p.m.dias, g); return !(v && !v.length); });
-    sinDia.push({ m: p.m, motivo: algun ? 'no cabe en los días elegidos' : 'no pasa consulta ninguno de los días elegidos' });
+    sinDia.push({ m: p.m, motivo: algun ? 'no cabe en los días elegidos' : 'no atiende ninguno de los días elegidos' });
   });
   return out;
 }
@@ -7538,7 +7539,7 @@ document.addEventListener('click', e => {
 
 // Al salir de la agenda se vuelve a la propia
 
-/* ---------------- aviso: falta el horario de consulta ---------------- */
+/* ---------------- aviso: falta el horario de atención ---------------- */
 
 async function faltaHorario(id) {
   const { data } = await db.rpc('ficha_cuenta', { p_id: id });
@@ -7552,7 +7553,7 @@ async function faltaHorario(id) {
 
 AYUDA.agenda[2].push(
   'En la <b>semana</b>: la hora con «~» junto al día es el fin estimado (en naranja si pasa de la hora de vuelta con la que se planificó). Arrastra una cita a otro día para moverla. El menú «⋯» de cada día permite añadir una cita o <b>bloquear el día</b> (vacaciones, formación…).',
-  `<b>Planificar la semana</b> reparte ${TT('medico', 'p', '', 'l', 'l')} entre los días libres: a quien le toca ${TT('visita', 's', '', 'l', 'l')}, urgentes, interesados, nunca visitados o una de tus rutas. Cada uno cae un día que pasa consulta y agrupado por zona. Revisa la propuesta y pulsa <b>Guardar en la agenda</b>.`,
+  `<b>Planificar la semana</b> reparte ${TT('medico', 'p', '', 'l', 'l')} entre los días libres: a quien le toca ${TT('visita', 's', '', 'l', 'l')}, urgentes, interesados, nunca visitados o una de tus rutas. Cada uno cae un día que atiende y agrupado por zona. Revisa la propuesta y pulsa <b>Guardar en la agenda</b>.`,
   'Administración y televenta pueden ver la agenda de otra persona con el selector de arriba, planificarle la semana y ver el <b>cumplimiento del equipo</b> con el botón «Equipo».');
 
 
@@ -7579,7 +7580,7 @@ function campoDato(v, k, valor) {
   return `<label class="datol">${lab}<input data-dato="${k}" value="${esc(valor || '')}" placeholder="Opcional"></label>`;
 }
 
-/* Registrar visita: la ventana base y el aviso si falta el horario de consulta (antes eran 3 capas). */
+/* Registrar visita: la ventana base y el aviso si falta el horario de atención (antes eran 3 capas). */
 async function abrirVisita(id) {
   return ventanaCargando(async () => {
     await abrirVisitaBase(id);
@@ -7587,11 +7588,11 @@ async function abrirVisita(id) {
   });
 }
 
-// Registrar visita · Aviso si el médico no tiene horario de consulta
+// Registrar visita · Aviso si el médico no tiene horario de atención
 async function visitaAvisoHorario(id) {
   if (!$('vguardar') || !await faltaHorario(id) || $('vhorario')) return;
   const fh = $('dbody').querySelector('.fh');
-  if (fh) fh.insertAdjacentHTML('afterend', `<div class="avisoh" id="vhorario"><span>⚠ Falta su horario de consulta. Aprovecha ${TT('visita', 's', 'el', 'l', 'l')} para preguntarlo
+  if (fh) fh.insertAdjacentHTML('afterend', `<div class="avisoh" id="vhorario"><span>⚠ Falta su horario de atención. Aprovecha ${TT('visita', 's', 'el', 'l', 'l')} para preguntarlo
     y complétalo después en <b>Editar ficha</b>.</span></div>`);
 }
 
@@ -8012,7 +8013,7 @@ const MANUAL = [
     hacer: [[1, 'Ver tus rutas y las propuestas'], [2, 'Crear y editar rutas, planificarlas y pasarlas a tu agenda']],
     config: ['Punto de salida y llegada (Configuración → Preferencias)', `Salida y vuelta de cada ruta (al crearla o editarla) y tiempos de ${TT('visita', 's', '', 'l', 'l')} (⚙ Tiempos de ${TT('visita', 's', '', 'l', 'l')})`] },
   { id: 'directorio', t: `${TT('medico', 'p', '', 'l', 'C')}`, a: 'M', para: `Todos ${TT('medico', 'p', 'el', 'l', 'l')} que puedes ver: tu cartera o toda la base si eres de administración o televenta.`,
-    hacer: [[1, 'Buscar, filtrar y ver fichas'], [2, 'Editar fichas y horarios de consulta'], [3, `Dar de alta ${TT('medico', 'p', '', 'l', 'l', 'nuevo')}`], [3, 'Unificar duplicados (administración)']],
+    hacer: [[1, 'Buscar, filtrar y ver fichas'], [2, 'Editar fichas y horarios de atención'], [3, `Dar de alta ${TT('medico', 'p', '', 'l', 'l', 'nuevo')}`], [3, 'Unificar duplicados (administración)']],
     config: ['Columnas visibles (⋯ → Elegir columnas)', 'Filtros guardados como indicadores de Inicio'] },
   { id: 'centros', t: 'Centros', a: 'C', para: 'Las fichas de clínicas, hospitales y centros.',
     hacer: [[1, 'Ver fichas de centros'], [2, 'Editarlas'], [3, 'Darlas de alta']], config: [] },
@@ -8032,8 +8033,8 @@ const MANUAL = [
 const FAQ = [
   ['No veo un módulo', 'Depende de tus permisos. En la ficha de cada módulo de este manual ves tu nivel de acceso; si necesitas más, pídelo a administración.'],
   [`He registrado ${TT('visita', 's', 'un', 'l', 'l')} por error`, `Abre la ficha ${TT('medico', 's', 'del', 'l', 'l')}, busca ${TT('visita', 's', 'el', 'l', 'l')} en el historial y pulsa «Editar»: puedes corregirla o borrarla.`],
-  ['La hora estimada de una cita no cuadra', `Revisa tu horario de rutas y el horario de consulta ${TT('medico', 's', 'del', 'l', 'l')} en su ficha. La estimación cuenta desplazamientos, esperas y minutos por ${TT('visita', 's', '', 'l', 'l')}.`],
-  [`${TT('medico', 's', 'un', 'C', 'l')} no aparece en mis rutas`, `Solo entran ${TT('medico', 'p', '', 'l', 'l')} con ubicación y, si tiene horario de consulta, en sus días y horas. Revisa su ficha.`],
+  ['La hora estimada de una cita no cuadra', `Revisa tu horario de rutas y el horario de atención ${TT('medico', 's', 'del', 'l', 'l')} en su ficha. La estimación cuenta desplazamientos, esperas y minutos por ${TT('visita', 's', '', 'l', 'l')}.`],
+  [`${TT('medico', 's', 'un', 'C', 'l')} no aparece en mis rutas`, `Solo entran ${TT('medico', 'p', '', 'l', 'l')} con ubicación y, si tiene horario de atención, en sus días y horas. Revisa su ficha.`],
   ['¿Puedo usar la app sin conexión?', `Sí: consulta lo último que viste y registra ${TT('visita', 'p', '', 'l', 'l')}; se envían solas al recuperar la conexión.`],
   ['¿Por qué no puedo descargar datos?', `Por seguridad: los datos de ${TT('medico', 'p', '', 'l', 'l')} y ventas solo se consultan dentro de la plataforma.`]
 ];
@@ -8218,7 +8219,7 @@ async function resumenRutas() {
   const j = jornadaActiva();
   const abiertas = citasHoy.filter(c => CITA_ABIERTA.includes(c.estado)).length;
   const hechas = citasHoy.filter(c => c.estado === 'Visitada').length;
-  const grupos = [['hoy', '📅', 'Pasan consulta hoy', 'y no se visitan desde hace 14 días'], ['urgentes', '❗', 'Urgentes sin visitar', ''],
+  const grupos = [['hoy', '📅', 'Atienden hoy', 'y no se visitan desde hace 14 días'], ['urgentes', '❗', 'Urgentes sin visitar', ''],
     ['interesados', '🔥', `${TT('medico', 'p', '', 'l', 'C', 'interesado')} sin ${TT('visita', 's', '', 'l', 'l')} en 20 días`, ''], ['sin_visitar', '🆕', `Nunca visitad${terminoDe('medico').g === 'f' ? 'a' : 'o'}s`, 'con ubicación']];
   PROPUESTAS = pr || {};
   $('rcuerpo').innerHTML = `
@@ -8236,7 +8237,7 @@ async function resumenRutas() {
           <span class="tx"><b>${esc(r.nombre)}</b><span class="sm">${r.tipo === 'criterios' ? 'Por criterios' : 'Lista fija'}${r.n != null ? ' · ' + num(r.n) + ` ${TT('medico', 'p', '', 'l', 'l')}` : ''}</span></span></button>`).join('')}</div>
           ${RUTAS.length > 6 ? '<button class="verlo" data-rs="mis">Ver todas</button>' : ''}`
         : `<div class="rguia"><p><b>Aún no tienes rutas.</b> Una ruta es una lista de ${TT('medico', 'p', '', 'l', 'l')} que visitas a menudo. Tres pasos:</p>
-            <ol><li><b>+ Nueva ruta</b>: elige ${TT('medico', 'p', '', 'l', 'l', 'concreto')} o unos criterios (municipio, estado, días de consulta).</li>
+            <ol><li><b>+ Nueva ruta</b>: elige ${TT('medico', 'p', '', 'l', 'l', 'concreto')} o unos criterios (municipio, estado, días de atención).</li>
               <li><b>Planificar</b>: la app ordena las paradas y calcula las horas con tu horario.</li>
               <li><b>Guardar en mi agenda</b> o <b>Empezar</b>: el plan pasa a «Tu día».</li></ol>
             <div class="acts"><button class="btn" id="rrnueva">+ Crear mi primera ruta</button></div></div>`}</div>
@@ -8324,7 +8325,7 @@ KPI_CAT.push(
   { id: 'muestras_mes', t: 'muestras entregadas este mes', v: k => k.muestras_mes },
   { id: 'material_mes', t: 'entregas de material este mes', v: k => k.material_mes },
   { id: 'sin_visita_60', t: `${TT('medico', 'p', '', 'l', 'l')} sin ${TT('visita', 's', '', 'l', 'l')} en 60 días`, v: k => k.sin_visita_60, cls: k => k.sin_visita_60 ? 'warn' : 'ok' },
-  { id: 'sin_horario', t: 'fichas sin horario de consulta', v: k => k.sin_horario, cls: k => k.sin_horario ? 'warn' : 'ok' },
+  { id: 'sin_horario', t: 'fichas sin horario de atención', v: k => k.sin_horario, cls: k => k.sin_horario ? 'warn' : 'ok' },
   { id: 'borradores', t: 'pedidos en borrador', v: k => k.borradores, cls: k => k.borradores ? 'warn' : '', h: 'x-ventas' }
 );
 Object.assign(AYUDA_KPI, {
@@ -8339,7 +8340,7 @@ Object.assign(AYUDA_KPI, {
   muestras_mes: `Muestras entregadas en ${TT('visita', 'p', 'el', 'l', 'l')} de este mes.`,
   material_mes: 'Veces que se ha entregado material comercial (dípticos, talonarios…) este mes.',
   sin_visita_60: `${TT('medico', 'p', '', 'l', 'C')} que puedes ver y que no se visitan desde hace más de 60 días (o nunca).`,
-  sin_horario: `${TT('medico', 'p', '', 'l', 'C')} sin días ni horas de consulta en su ficha. Sin ese dato, las rutas y el planificador no pueden ajustarse a su horario.`,
+  sin_horario: `${TT('medico', 'p', '', 'l', 'C')} sin días ni horas de atención en su ficha. Sin ese dato, las rutas y el planificador no pueden ajustarse a su horario.`,
   borradores: 'Pedidos guardados como borrador que todavía no cuentan en métricas ni comisiones. Pulsa para verlos.'
 });
 ['uds_mes', 'prescriptores', 'citas_7d', 'sin_visita_60'].forEach(k => { if (!KPI_DEF.includes(k)) KPI_DEF.push(k); });
@@ -8757,7 +8758,7 @@ async function trazabilidad(loteId) {
     <div class="fh"><div><h2>Trazabilidad · lote ${esc(lo.numero_lote || '')}</h2>
       <div class="sm">${esc(lo.producto || '')}${lo.caducidad ? ' · caduca el ' + fechaCorta(lo.caducidad) : ''}${lo.proveedor ? ' · ' + esc(lo.proveedor) : ''}${lo.compra ? ' · compra ' + esc(lo.compra) : ''}</div></div>
       <button class="x" data-cerrar2 aria-label="Cerrar">✕</button></div>
-    <p class="sm">Todas las entradas y salidas de este lote. Ante una alerta sanitaria, aquí están los clientes a los que llegó.</p>
+    <p class="sm">Todas las entradas y salidas de este lote. Ante una alerta de un lote, aquí están los clientes a los que llegó.</p>
     <div class="dgrid-wrap"><div class="dgrid traz">
       <div class="dh"><span>Fecha</span><span>Movimiento</span><span class="num">Uds.</span><span>Cliente</span><span>${TT('medico', 's', '', 'l', 'C')}</span><span>Almacén</span></div>
       ${m.map(x => `<div class="dr" style="cursor:default"><span>${fechaCorta(String(x.fecha).slice(0, 10))}</span><span>${esc(tipos[x.tipo] || x.tipo)}${x.pedido ? `<span class="sm">Pedido ${esc(x.pedido)}</span>` : ''}</span>
@@ -9983,7 +9984,7 @@ const ES_MEDICO = () => puede('portal_prescriptor');
 async function cargarInforme() {
   if (puede('portal_centro')) return cargarCentro();   // v2.128.0: el portal del centro
   const v = $('v-informe');
-  v.innerHTML = `<div class="medhero"><div><div class="sm" style="color:rgba(255,255,255,.8)">Tu informe de prescripción</div><h1 id="mdnom">…</h1><div id="mdesp" class="sm" style="color:rgba(255,255,255,.85)"></div></div>
+  v.innerHTML = `<div class="medhero"><div><div class="sm" style="color:rgba(255,255,255,.8)">Tu informe de ventas atribuidas</div><h1 id="mdnom">…</h1><div id="mdesp" class="sm" style="color:rgba(255,255,255,.85)"></div></div>
       <div class="medper"><div id="mdper"></div></div></div>
     <div id="mdcuerpo"><div class="card">${skelCard('Cargando tu informe…')}</div></div>`;
   const pinta = async () => {
@@ -9996,17 +9997,17 @@ async function cargarInforme() {
     const meses = mesesEntre(d.desde, d.hasta), serie = {}; (d.serie || []).forEach(s => serie[s.mes] = s);
     $('mdcuerpo').innerHTML = `
       <div class="kpis vtot mdk">
-        <div class="kpi"><b>${num(d.unidades)}</b><span>unidades pautadas</span></div>
+        <div class="kpi"><b>${num(d.unidades)}</b><span>unidades atribuidas</span></div>
         <div class="kpi"><b>${num(d.pautas)}</b><span>pautas (pedidos)</span></div>
         <div class="kpi"><b>${num(d.pacientes)}</b><span>${TT('paciente', 'p', '', 'l', 'l')}</span></div>
         <div class="kpi"><b>${num(d.repiten)}</b><span>${TT('paciente', 'p', '', 'l', 'l')} que repiten</span></div>
-        <div class="kpi ${top ? 'ok' : ''}"><b>${top ? '🏆 ' + top : d.posicion ? 'Nº ' + d.posicion : '—'}</b><span>${d.posicion ? `de ${num(d.prescriptores)} ${TT('medico', 'p', '', 'l', 'l')}` : 'sin pautas en el periodo'}</span></div>
+        <div class="kpi ${top ? 'ok' : ''}"><b>${top ? '🏆 ' + top : d.posicion ? 'Nº ' + d.posicion : '—'}</b><span>${d.posicion ? `de ${num(d.prescriptores)} ${TT('medico', 'p', '', 'l', 'l')}` : 'sin ventas en el periodo'}</span></div>
       </div>
       <div class="angrid">
         <div class="card ancard ancha"><h2>Tus pautas mes a mes</h2>
           ${d.unidades ? svgBarras(meses, meses.map(m => (serie[m] || {}).unidades || 0), meses.map(m => (serie[m] || {}).pautas || 0), ['Unidades', 'Pautas'])
             : vacioGrafico(`Cuando tus ${TT('paciente', 'p', '', 'l', 'l')} hagan su pedido, verás aquí la evolución.`)}
-          <p class="leer">Cada barra son las unidades pautadas en el mes y la línea, el número de pautas.${d.ultima_pauta ? ' Última pauta: ' + fechaCorta(d.ultima_pauta) + '.' : ''}</p></div>
+          <p class="leer">Cada barra son las unidades atribuidas en el mes y la línea, el número de ventas.${d.ultima_pauta ? ' Última venta: ' + fechaCorta(d.ultima_pauta) + '.' : ''}</p></div>
         <div class="card ancard"><h2>Qué pautas</h2>
           ${(d.productos || []).length ? svgDonut(d.productos.map(x => ({ n: x.nombre, v: x.unidades }))) : vacioGrafico('Aparecerá el reparto por producto.')}</div>
         <div class="card ancard"><h2>Llamadas de tus ${TT('paciente', 'p', '', 'l', 'l')}</h2>
@@ -10043,9 +10044,9 @@ if (typeof pintarBnav === 'function') pintarBnav = (orig => function () {
 
 // Vincular un usuario de tipo Médico con su ficha (Administración → Usuarios → Editar)
 
-MANUAL.push({ id: 'medico', t: `Espacio ${TT('medico', 's', 'del', 'l', 'l')}`, a: null, para: `${TT('medico', 'p', 'el', 'C', 'l')} con usuario ven su informe de prescripción y reciben un aviso con cada pauta a su nombre.`,
+MANUAL.push({ id: 'medico', t: `Espacio ${TT('medico', 's', 'del', 'l', 'l')}`, a: null, para: `${TT('medico', 'p', 'el', 'C', 'l')} con usuario ven su informe de ventas atribuidas y reciben un aviso con cada venta a su nombre.`,
   hacer: [[3, 'Crear el usuario con el rol «Medico» y vincularlo a su ficha (Administración → Usuarios → Editar)']],
-  config: [`${TT('medico', 's', 'el', 'C', 'l')} ve unidades, pautas, ${TT('paciente', 'p', '', 'l', 'l')} (solo el número), su posición entre los prescriptores y las llamadas de sus ${TT('paciente', 'p', '', 'l', 'l')}. Nunca importes ni nombres.`] });
+  config: [`${TT('medico', 's', 'el', 'C', 'l')} ve unidades, ventas, ${TT('paciente', 'p', '', 'l', 'l')} (solo el número), su posición entre ${TT('medico', 'p', 'el', 'l', 'l')} y las llamadas de sus ${TT('paciente', 'p', '', 'l', 'l')}. Nunca importes ni nombres.`] });
 ICONOS_MANUAL.medico = '🩺';
 
 /* ---------------- factura en PDF con el logo circular ---------------- */
@@ -10234,14 +10235,14 @@ async function vistazoHoy() {
 
 // Indicadores con icono, explicación breve y, cuando se puede, comparación
 const KPI_ICO = { citas: '📅', urgentes: '⚠️', visitas_sem: '📝', visitas_mes: '🗓️', interesados: '✨', sin_contactar: '📇', cartera: '🩺', dups: '🧩',
-  sin_visita_60: '⏳', sin_horario: '🕘', uds_mes: '📦', prescriptores: '💊', nuevos_presc: '🌱', activos_90: '🔁', conversion: '📈',
+  sin_visita_60: '⏳', sin_horario: '🕘', uds_mes: '📦', prescriptores: '👥', nuevos_presc: '🌱', activos_90: '🔁', conversion: '📈',
   importe_mes: '€', borradores: '✏️', muestras_mes: '🎁', material_mes: '📚', citas_7d: '📆', visitas_7d: '🧭' };
 // v2.105.0: los subtítulos que dependen del vocabulario o del nombre de un estado se calculan al pintarlos (get)
 const KPI_TXT = { citas: 'Visitadas de las citas de hoy', urgentes: `${TT('medico', 'p', '', 'l', 'C', 'marcado')} urgentes sin ${TT('visita', 's', '', 'l', 'l')}`, visitas_sem: 'Registradas de lunes a hoy',
   visitas_mes: 'Registradas en el mes', get interesados() { return `En estado «${estadoPapel('interes') || 'interés'}»`; }, sin_contactar: `Todavía sin ${TT('visita', 's', 'primer', 'l', 'l')}`, get cartera() { return `Asignad${terminoDe('medico').g === 'f' ? 'a' : 'o'}s a ti`; },
-  dups: 'Fichas por revisar', uds_mes: 'Cajas validadas en el mes', prescriptores: 'Con alguna venta este mes', nuevos_presc: 'Primera venta este mes',
+  dups: 'Fichas por revisar', uds_mes: 'Unidades validadas en el mes', prescriptores: 'Con alguna venta este mes', nuevos_presc: 'Primera venta este mes',
   activos_90: 'Con ventas en 90 días', get conversion() { return `Visitad${terminoDe('medico').g === 'f' ? 'a' : 'o'}s ya en «${estadoPapel('positivo') || 'positivo'}»`; }, importe_mes: 'Base sin IVA del mes', borradores: 'Pedidos sin validar',
-  sin_visita_60: 'Hace más de 60 días', sin_horario: 'Sin días de consulta', muestras_mes: 'Entregadas este mes', material_mes: 'Entregado este mes',
+  sin_visita_60: 'Hace más de 60 días', sin_horario: 'Sin días de atención', muestras_mes: 'Entregadas este mes', material_mes: 'Entregado este mes',
   citas_7d: 'Programadas los próximos 7 días', visitas_7d: 'En los últimos 7 días' };
 function indicadoresCompletos() {
   // v2.104.0: cada tarjeta lleva su indicador (data-kid). Antes se emparejaban por posición y, al quitar los que
@@ -10263,7 +10264,7 @@ const EXPLICA_ALERTA = [
   [/más de una cartera/i, `El mismo ${TT('medico', 's', '', 'l', 'l')} aparece en la cartera de varias personas.`, 'Deja una sola persona desde Administración → Usuarios → Asignar.'],
   [/otra cartera|otro comercial/i, `Un comercial ha visitado ${TT('medico', 'p', '', 'l', 'l')} que lleva otra persona.`, `Revisa si hay que cambiar la cartera o coordinar ${TT('visita', 'p', 'el', 'l', 'l')}.`],
   [/dos personas|14 días/i, `Dos personas han visitado al mismo ${TT('medico', 's', '', 'l', 'l')} en pocos días.`, `Coordina quién lo lleva para no repetir ${TT('visita', 'p', '', 'l', 'l')}.`],
-  [/sin médico|sin atribuir/i, `Pedidos validados que no tienen ${TT('medico', 's', '', 'l', 'l')}: no se atribuyen a nadie.`, `Ábrelos y asigna su ${TT('medico', 's', '', 'l', 'l')} de referencia.`],
+  [/sin médico|sin atribuir|atribuido/i, `Pedidos validados que no tienen ${TT('medico', 's', '', 'l', 'l')}: no se atribuyen a nadie.`, `Ábrelos y asigna su ${TT('medico', 's', '', 'l', 'l')} de referencia.`],
   [/stock|caduc/i, 'Productos con pocas unidades o lotes próximos a caducar.', 'Revisa el stock y prepara un pedido de compra.'],
   [/compra|recepci/i, 'Pedidos de compra pendientes de recibir.', 'Registra la recepción cuando llegue la mercancía.']
 ];
@@ -11509,7 +11510,7 @@ const I18N = [
   ['Aceptar', 'OK', 'OK', 'OK', 'OK'], ['Borrar', 'Clear', 'Leeren', 'Effacer', 'Cancella'], ['Sí', 'Yes', 'Ja', 'Oui', 'Sì'], ['No', 'No', 'Nein', 'Non', 'No'],
   ['Entrar', 'Sign in', 'Anmelden', 'Se connecter', 'Accedi'], ['Correo', 'Email', 'E-Mail', 'E-mail', 'Email'], ['Contraseña', 'Password', 'Passwort', 'Mot de passe', 'Password'],
   ['He olvidado la contraseña', 'I forgot my password', 'Passwort vergessen', 'Mot de passe oublié', 'Ho dimenticato la password'], ['Bienvenido', 'Welcome', 'Willkommen', 'Bienvenue', 'Benvenuto'],
-  ['Buscar médico, centro o municipio', 'Search doctor, centre or town', 'Arzt, Zentrum oder Ort suchen', 'Rechercher médecin, centre ou ville', 'Cerca medico, centro o comune'],
+  ['Buscar médico, centro o municipio', 'Search doctor, centre or town', 'Arzt, Zentrum oder Ort suchen', 'Rechercher médecin, centre ou ville', 'Cerca medico, centro o comune'], ['Buscar profesional, centro o municipio', 'Search professional, centre or town', 'Fachkraft, Zentrum oder Ort suchen', 'Rechercher professionnel, centre ou ville', 'Cerca professionista, centro o comune'], ['Profesionales', 'Professionals', 'Fachkräfte', 'Professionnels', 'Professionisti'], ['Buscar profesional, centro o municipio', 'Search professional, centre or town', 'Fachkraft, Zentrum oder Ort suchen', 'Rechercher professionnel, centre ou ville', 'Cerca professionista, centro o comune'], ['Profesionales', 'Professionals', 'Fachkräfte', 'Professionnels', 'Professionisti'], ['Buscar profesional, centro o municipio', 'Search professional, centre or town', 'Fachkraft, Zentrum oder Ort suchen', 'Rechercher professionnel, centre ou ville', 'Cerca professionista, centro o comune'], ['Profesionales', 'Professionals', 'Fachkräfte', 'Professionnels', 'Professionisti'],
   ['Tu día', 'Your day', 'Dein Tag', 'Votre journée', 'La tua giornata'], ['Alertas', 'Alerts', 'Warnungen', 'Alertes', 'Avvisi'], ['Mi semana', 'My week', 'Meine Woche', 'Ma semaine', 'La mia settimana'],
   ['Ventas del mes', 'Sales this month', 'Umsatz des Monats', 'Ventes du mois', 'Vendite del mese'], ['Operativa de pedidos', 'Order operations', 'Bestellabwicklung', 'Suivi des commandes', 'Gestione ordini'],
   ['Notificaciones', 'Notifications', 'Benachrichtigungen', 'Notifications', 'Notifiche'], ['Idioma', 'Language', 'Sprache', 'Langue', 'Lingua'],
@@ -11534,7 +11535,7 @@ const I18N = [
   ['Registrar visita', 'Log visit', 'Besuch erfassen', 'Enregistrer la visite', 'Registra visita'], ['Editar ficha', 'Edit record', 'Datensatz bearbeiten', 'Modifier la fiche', 'Modifica scheda'],
   ['Marcar urgente', 'Mark urgent', 'Als dringend markieren', 'Marquer urgent', 'Segna urgente'], ['+ Añadir a mi agenda', '+ Add to my calendar', '+ Zu meinem Kalender', '+ Ajouter à mon agenda', '+ Aggiungi alla mia agenda'],
   ['Estado', 'Status', 'Status', 'Statut', 'Stato'], ['Visitas', 'Visits', 'Besuche', 'Visites', 'Visite'], ['Comercial asignado', 'Assigned rep', 'Zuständiger Vertreter', 'Commercial assigné', 'Agente assegnato'],
-  ['Unidades pautadas', 'Units prescribed', 'Verordnete Einheiten', 'Unités prescrites', 'Unità prescritte'], ['Empezar jornada', 'Start day', 'Tag beginnen', 'Commencer la journée', 'Inizia la giornata'],
+  ['Unidades pautadas', 'Units prescribed', 'Verordnete Einheiten', 'Unités prescrites', 'Unità prescritte'], ['Unidades atribuidas', 'Attributed units', 'Zugeordnete Einheiten', 'Unités attribuées', 'Unità attribuite'], ['Unidades atribuidas', 'Attributed units', 'Zugeordnete Einheiten', 'Unités attribuées', 'Unità attribuite'], ['Unidades atribuidas', 'Attributed units', 'Zugeordnete Einheiten', 'Unités attribuées', 'Unità attribuite'], ['Empezar jornada', 'Start day', 'Tag beginnen', 'Commencer la journée', 'Inizia la giornata'],
   ['Ordenar por cercanía', 'Sort by distance', 'Nach Entfernung sortieren', 'Trier par proximité', 'Ordina per vicinanza'], ['Ventas', 'Sales', 'Verkäufe', 'Ventes', 'Vendite'],
   ['Compras', 'Purchases', 'Einkäufe', 'Achats', 'Acquisti'], ['Proveedores', 'Suppliers', 'Lieferanten', 'Fournisseurs', 'Fornitori'], ['Llamadas', 'Calls', 'Anrufe', 'Appels', 'Chiamate'], ['Oportunidades', 'Opportunities', 'Verkaufschancen', 'Opportunités', 'Opportunità'], ['+ Nueva venta', '+ New sale', '+ Neuer Verkauf', '+ Nouvelle vente', '+ Nuova vendita'],
   ['Resumen', 'Summary', 'Übersicht', 'Résumé', 'Riepilogo'], ['Explorar', 'Explore', 'Erkunden', 'Explorer', 'Esplora'], ['Facturas', 'Invoices', 'Rechnungen', 'Factures', 'Fatture'],
@@ -12258,9 +12259,9 @@ db.rpc = (orig => function (fn, params, opts) {
 
 /* ---------------- nombre del módulo de contactos ---------------- */
 
-const ETIQUETAS = ['Prescriptores', 'Cuentas', `${TT('medico', 'p', '', 'l', 'C')}`, 'Contactos', 'Clientes potenciales', 'Puntos de venta'];
+const ETIQUETAS = [...new Set([`${TT('medico', 'p', '', 'l', 'C')}`, 'Profesionales', 'Cuentas', 'Contactos', 'Clientes potenciales', 'Puntos de venta', 'Prescriptores'])];
 // v2.105.0: sin etiqueta propia, el nombre sale del vocabulario de la empresa («Farmacias», «Contactos»…); con el vocabulario por defecto, «Prescriptores»
-const etiquetaContactos = () => ((AJUSTES.marca || {}).etiqueta || ((TERMINOS.medico || {}).p ? TT('medico', 'p', '', 'l', 'C') : 'Prescriptores'));
+const etiquetaContactos = () => ((AJUSTES.marca || {}).etiqueta || TT('medico', 'p', '', 'l', 'C'));
 function aplicarEtiqueta() {
   const n = etiquetaContactos();
   document.querySelectorAll('nav.main [data-t="directorio"], #bnav [data-t="directorio"], .bmasgrid [data-bm="directorio"]').forEach(b => {
@@ -12325,7 +12326,7 @@ pintarMarca = (orig => async function () {
   ok.closest('.acts').insertAdjacentHTML('beforebegin', `<div class="mketqbox"><label for="mketq">Cómo llamáis a quienes visitáis</label>
     <div class="g2"><select id="mketq">${ETIQUETAS.map(e => `<option ${e === actual ? 'selected' : ''}>${e}</option>`).join('')}<option value="__otra" ${otra ? 'selected' : ''}>Otro nombre…</option></select>
       <input id="mketqo" class="${otra ? '' : 'hide'}" value="${otra ? esc(actual) : ''}" placeholder="Escribe el nombre"></div>
-    <div class="sm">Es el nombre del módulo donde están ${TT('medico', 'p', '', 'l', 'l')}, farmacias, centros y cualquier otro contacto al que visitáis.</div></div>`);
+    <div class="sm">Es el nombre del módulo donde están ${TT('medico', 'p', '', 'l', 'l')}, centros y cualquier otro contacto al que visitáis.</div></div>`);
   const ETQ_TERM = { medico: 'Profesional al que visitáis', paciente: 'Cliente final', visita: 'Cada encuentro con el profesional' };
   ok.closest('.acts').insertAdjacentHTML('beforebegin', `<div class="mkvoc"><label>Vocabulario de la plataforma</label>
     <div class="sm">Cómo se llaman en todos los textos. En blanco, se usa el nombre de siempre.</div>
@@ -12337,7 +12338,7 @@ pintarMarca = (orig => async function () {
   $('mketq').onchange = () => $('mketqo').classList.toggle('hide', $('mketq').value !== '__otra');
   const guardar = ok.onclick;
   ok.onclick = async () => {
-    const etq = $('mketq').value === '__otra' ? ($('mketqo').value.trim() || 'Prescriptores') : $('mketq').value;
+    const etq = $('mketq').value === '__otra' ? ($('mketqo').value.trim() || TT('medico', 'p', '', 'l', 'C')) : $('mketq').value;
     await guardar();
     const v = Object.assign({}, AJUSTES.marca || {}, { etiqueta: etq });
     const { error } = await db.rpc('guardar_ajuste', { p_clave: 'marca', p_valor: v });
@@ -12374,7 +12375,7 @@ function detalleUsuario(u) {
       <div class="sm" style="margin-top:6px">Última actividad: ${u.ultima_actividad ? new Date(u.ultima_actividad).toLocaleString('es-ES', { dateStyle: 'medium', timeStyle: 'short' }) : 'ninguna registrada'}</div></div>
     <div class="usracc">
       <button class="btn" data-uacc="editar">✏️ Editar rol, permisos y zona</button>
-      ${!rolPuede(u.rol, 'portal_prescriptor') ? '<button class="btn sec" data-uacc="cartera">🩺 Asignar cartera</button>' : ''}
+      ${!rolPuede(u.rol, 'portal_prescriptor') ? '<button class="btn sec" data-uacc="cartera">🗂️ Asignar cartera</button>' : ''}
       <button class="btn sec" data-uacc="pass">🔑 Enviar cambio de contraseña</button>
       ${typeof puedeSuplantar === 'function' && puedeSuplantar() && u.id !== PERFIL.id && !rolPuede(u.rol, 'administrar') && u.activo ? '<button class="btn sec" data-uacc="como">👤 Entrar como esta persona</button>' : ''}
       ${puede('administrar') && u.id !== PERFIL.id ? '<button class="btn sec dang" data-uacc="borrar">🗑 Borrar usuario</button>' : ''}</div>`;
@@ -14214,7 +14215,7 @@ const IMP_CAMPOS = {
     ['cargo', 'Cargo', 0, ['cargo', 'puesto']],
     ['telefono', 'Teléfono', 0, ['telefono', 'tel', 'phone', 'movil', 'tfno', 'telf', 'tlf']],
     ['email', 'Email', 0, ['email', 'correo', 'e mail', 'mail']],
-    ['centro', 'Centro de consulta', 0, ['centro', 'clinica', 'hospital', 'centro de trabajo', 'consulta']],
+    ['centro', 'Centro o lugar de trabajo', 0, ['centro', 'clinica', 'hospital', 'centro de trabajo', 'consulta']],
     ['direccion', 'Dirección de la consulta', 0, ['direccion', 'domicilio', 'address']],
     ['cp', 'Código postal', 0, ['codigo postal', 'cp', 'postal']],
     ['municipio', 'Población', 0, ['poblacion', 'municipio', 'ciudad', 'localidad']],
@@ -14239,7 +14240,7 @@ const IMP_CAMPOS = {
 const IMP_TIPOS = () => [
   ['clientes', 'Clientes', `${TT('paciente', 'p', '', 'l', 'C')} y empresas: datos de contacto y facturación`, 'users'],
   ['productos', 'Productos', 'Catálogo: referencias, precios, IVA y costes', 'package'],
-  ['prescriptores', etiquetaContactos(), `${TT('medico', 'p', '', 'l', 'C')} y sus centros de consulta`, 'stethoscope'],
+  ['prescriptores', etiquetaContactos(), `${TT('medico', 'p', '', 'l', 'C')} y sus centros`, 'stethoscope'],
   ['ventas', 'Ventas', 'Histórico de ventas con sus líneas de producto', 'shopping-cart']];
 const impNorm = t => String(t == null ? '' : t).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
 const impClave = t => impNorm(t).toUpperCase().replace(/ /g, '_').slice(0, 40) || 'CAMPO';
@@ -17442,7 +17443,7 @@ function rpMotivos() {
   const g = terminoDe('medico').g === 'f' ? 'a' : 'o';
   return {
     urgente: ['urgente', 'urgentes', 'p-urg'],
-    consulta: ['pasa consulta', 'pasan consulta', 'p-est'],
+    consulta: ['atiende', 'atienden', 'p-est'],
     interes: [TT('medico', 's', '', 'l', 'l', 'interesado'), TT('medico', 'p', '', 'l', 'l', 'interesado'), 'p-warn'],
     pendiente: ['pendiente de otra ruta', 'pendientes de otras rutas', 'p-per'],
     cliente: ['buen cliente sin ' + TT('visita', 's', '', 'l', 'l'), 'buenos clientes sin ' + TT('visita', 's', '', 'l', 'l'), 'p-est'],
@@ -17636,7 +17637,7 @@ function rpMisRutas() {
         <span class="tx"><b>${esc(r.nombre)}</b><span class="sm">${r.dinamica ? 'Por criterios' : num(r.n_fijos || 0) + ' ' + TT('medico', 'p', '', 'l', 'l')}${r.visitados ? ` · ${num(r.visitados)} visitados` : ''}${r.mia ? '' : ' · de ' + esc(r.duenyo || '')}</span></span>
         <span class="acts" style="margin:0"><button class="btn sec" type="button" data-ruta="${r.id}">Planificar</button>
           <button class="btn sec tdmas" type="button" data-rmas="${r.id}" aria-label="Más opciones de ${esc(r.nombre)}">⋯</button></span></div>`).join('')}</div>`
-    : `<div class="rguia"><p>Una ruta es una lista de ${TT('medico', 'p', '', 'l', 'l')} a quienes vas a ver a menudo: con nombres concretos o por criterios (municipio, estado, días de consulta) que se recalculan solos.</p>
+    : `<div class="rguia"><p>Una ruta es una lista de ${TT('medico', 'p', '', 'l', 'l')} a quienes vas a ver a menudo: con nombres concretos o por criterios (municipio, estado, días de atención) que se recalculan solos.</p>
         <div class="acts"><button class="btn sec" type="button" id="rrnueva">+ Crear mi primera ruta</button></div></div>`}`;
   if ($('rrnueva')) $('rrnueva').onclick = () => editorRuta(null);
   caja.querySelectorAll('[data-ruta]').forEach(b => b.onclick = () => planificar(b.dataset.ruta, b));
@@ -19446,7 +19447,7 @@ pintarProximoRecibo = function () {
 /* v2.174.0 · Agenda (avisos de Eric, gestionando el lunes desde el domingo):
    - «Añadir a mi agenda» de la ficha propone el día que se está viendo en la Agenda (antes, siempre hoy) y la cita aparece al momento (antes solo
      se refrescaba Inicio y había que pulsar F5).
-   - El aviso naranja de «Tu día» explica por qué sale: el horario de consulta de la ficha, la hora a la que llegarías y cómo quitarlo (al pasar el
+   - El aviso naranja de «Tu día» explica por qué sale: el horario de atención de la ficha, la hora a la que llegarías y cómo quitarlo (al pasar el
      ratón y con la «i»). Si una parada queda a más de 4 h de la anterior, el aviso dice que revises su ubicación (una dirección mal situada lo
      descuadra todo), y un fin estimado pasada la medianoche ya no sale como «06:27». */
 document.addEventListener('click', async e => {
@@ -19488,8 +19489,8 @@ function explicarAviso(inf) {
   if (inf.lejos) return `Esta parada queda a unos ${num(inf.lejos)} km de la anterior (o de tu punto de salida), así que la hora estimada se va muy tarde. Suele ser una dirección mal situada: revisa la ubicación en su ficha o tu punto de salida en Mi perfil.`;
   const v = inf.ventanas && inf.ventanas.length ? txtVentanas(inf.ventanas) : '';
   const dia = inf.fecha ? DIA_NOMBRE(inf.fecha) : 'ese día';
-  if (inf.ventanas && !inf.ventanas.length) return `Según su ficha, ${quien} no pasa consulta los ${dia}. Si sí pasa, añade ese día en «Horario de consulta» de su ficha.`;
-  return `Según su ficha, ${quien} pasa consulta los ${dia} de ${v}${inf.llegada != null ? `, y siguiendo el orden de tu día llegarías hacia las ${hm(inf.llegada)}` : ''}. Para quitar el aviso: pon una hora a la cita, cámbiala de orden o corrige el horario en su ficha. Es solo un aviso: la cita se guarda igual.`;
+  if (inf.ventanas && !inf.ventanas.length) return `Según su ficha, ${quien} no atiende los ${dia}. Si sí atiende, añade ese día en «Horario de atención» de su ficha.`;
+  return `Según su ficha, ${quien} atiende los ${dia} de ${v}${inf.llegada != null ? `, y siguiendo el orden de tu día llegarías hacia las ${hm(inf.llegada)}` : ''}. Para quitar el aviso: pon una hora a la cita, cámbiala de orden o corrige el horario en su ficha. Es solo un aviso: la cita se guarda igual.`;
 }
 pintarTuDia = (orig => async function (...a) {
   const r = await orig.apply(this, a);
@@ -19543,7 +19544,7 @@ pintarTuDia = (orig => async function (...a) {
     const fuera = Object.values(TD_INFO).filter(i => i.llegada != null && i.llegada >= limite).length;
     const finTxt = e.fin >= 24 * 60 ? `pasada la medianoche (hacia las ${hm(e.fin)} del día siguiente)` : `hacia las ${hm(e.fin)}`;
     lista.classList.add('tdnocabe');
-    lista.insertAdjacentHTML('beforebegin', `<div class="banda-aviso" id="tdnocabe">${noCabe ? `<b>Este día no cabe en una jornada.</b> Con este orden acabarías ${finTxt}${fuera ? ` y ${fuera === 1 ? 'una cita queda' : fuera + ' citas quedan'} fuera de la jornada` : ''}.` : `<b>El orden de las citas no encaja con sus horas:</b> ${conAviso} no llegan a su hora o a su horario de consulta.`}
+    lista.insertAdjacentHTML('beforebegin', `<div class="banda-aviso" id="tdnocabe">${noCabe ? `<b>Este día no cabe en una jornada.</b> Con este orden acabarías ${finTxt}${fuera ? ` y ${fuera === 1 ? 'una cita queda' : fuera + ' citas quedan'} fuera de la jornada` : ''}.` : `<b>El orden de las citas no encaja con sus horas:</b> ${conAviso} no llegan a su hora o a su horario de atención.`}
       Antes de mirar cada cita: ${$('tdordenar') ? '<button type="button" class="btn sec" id="tdnocord">Ordenar por cercanía</button> o ' : ''}pasa a otro día las citas de la zona más lejana (⋯ → Aplazar).</div>`);
     if ($('tdnocord')) $('tdnocord').onclick = () => $('tdordenar') && $('tdordenar').click();
     lista.querySelectorAll('.tdit').forEach(it => {
@@ -19555,7 +19556,7 @@ pintarTuDia = (orig => async function (...a) {
   } catch (err) {}
   return r;
 })(pintarTuDia);
-// Cita con hora fija que el orden deja tarde: el aviso dice qué hacer, y la «i» habla del orden (no del horario de consulta)
+// Cita con hora fija que el orden deja tarde: el aviso dice qué hacer, y la «i» habla del orden (no del horario de atención)
 estimarDiaBase = (orig => function (citas, fecha) {
   const r = orig.call(this, citas, fecha);
   Object.values(TD_INFO).forEach(i => { if (i.aviso && /^Llegarías hacia/.test(i.aviso) && !/súbela/.test(i.aviso)) { i.orden = true; i.aviso += ': súbela en la lista u ordena por cercanía'; } });
@@ -19585,11 +19586,11 @@ document.addEventListener('focusin', e => {
    2. El mes de la Agenda se puede mover a otros meses y años (‹ ›, «Hoy» y el título abre meses y años).
    3. Una sola ventana de cita (también desde «Añadir a mi agenda» de la ficha): profesional, día, hora, centro (si tiene varios) y notas.
    4. Al pulsar una cita de «Tu día» se abre su detalle (cuándo, dónde, horario, estado y notas que se pueden cambiar) con las acciones.
-   5. El horario de consulta mira todos sus centros (SQL 110, otros_dias): si el de la cita no pasa consulta ese día pero otro sí, se usa ese.
+   5. El horario de atención mira todos sus centros (SQL 110, otros_dias): si el de la cita no atiende ese día pero otro sí, se usa ese.
    6. En el móvil, en «Esta semana», toda la celda del día abre ese día (antes cada nombre llevaba a su ficha).
    7. En el móvil, «Mover a otro día» y las demás fechas ya no abren el calendario del teléfono antes que el de delcos. */
 
-// ---- 5. Horario de consulta en todos sus centros
+// ---- 5. Horario de atención en todos sus centros
 function centroConConsulta(c, fecha) {
   const v = ventanasDe(c.dias, fecha);
   if (!v || v.length) return null;   // sin horario en ese centro (no se sabe) o con consulta ese día: nada que cambiar
@@ -19604,7 +19605,7 @@ estimarDiaBase = (orig => function (citas, fecha) {
 })(estimarDiaBase);
 explicarAviso = (orig => function (inf) {
   const t = orig.call(this, inf);
-  return inf.otroCentro ? t.replace('Según su ficha,', `Ese día pasa consulta en ${inf.otroCentro} (no en el centro de la cita). Según su ficha,`) : t;
+  return inf.otroCentro ? t.replace('Según su ficha,', `Ese día atiende en ${inf.otroCentro} (no en el centro de la cita). Según su ficha,`) : t;
 })(explicarAviso);
 
 // ---- 3. Una sola ventana de cita, con centro y notas
@@ -19673,7 +19674,7 @@ function verCita(c) {
   const hora = c.hora ? String(c.hora).slice(0, 5) : (abierta && inf.llegada != null && inf.llegada < 24 * 60 ? `hacia las ${hm(inf.llegada)} (estimada)` : 'sin hora');
   const donde = [c.centro_nombre, c.direccion, c.municipio].filter(Boolean).join(' · ');
   const v = inf.ventanas || ventanasDe(c.dias, c.fecha);
-  const horario = v && v.length ? `${inf.otroCentro ? 'En ' + inf.otroCentro + ': ' : ''}${txtVentanas(v)}` : v && !v.length ? 'Ese día no pasa consulta' : '';
+  const horario = v && v.length ? `${inf.otroCentro ? 'En ' + inf.otroCentro + ': ' : ''}${txtVentanas(v)}` : v && !v.length ? 'Ese día no atiende' : '';
   $('dbody').innerHTML = `
     <div class="fh"><div><h2>${esc(c.nombre)}</h2>${c.especialidad ? `<div class="sm">${esc(c.especialidad)}</div>` : ''}</div>
       <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
@@ -19842,7 +19843,7 @@ document.addEventListener('focusin', e => {
 })();
 
 /* v2.177.0 · Ficha de centro (decisión de Eric, 5/10/2026): los centros dados de alta salen en el buscador (SQL 111, buscar_global con id) y al
-   pulsarlos se abre su ficha: dirección, teléfono, cómo llegar, horario y la lista de profesionales que pasan consulta allí (ficha_centro), con
+   pulsarlos se abre su ficha: dirección, teléfono, cómo llegar, horario y la lista de profesionales que atienden allí (ficha_centro), con
    «+ Añadir» (centro_anadir_profesional: enlaza o crea su consulta en el centro), y en cada uno Ficha, «+ Cita» en ese centro y «Quitar»
    (centro_quitar_profesional: quita esa consulta de su ficha). «Editar centro» corrige sus datos y su horario (guardar_centro). */
 const HOR_TXT = h => DIAS_SEM.filter(([d]) => h && h[d]).map(([d, n]) => `${n} ${h[d]}`).join(' · ');
@@ -20462,7 +20463,7 @@ function formPrivada(box, i) {
   const dirAntes = [v('direccion'), v('cp'), v('municipio')].join('|');
   let situada = false;                                         // se ha situado en el mapa desde que se abrió el formulario
   cont.innerHTML = `<div class="cpform cppriv">
-    <div class="cpformcab"><b>Consulta privada</b><span class="sm">Dónde pasa consulta (en su casa, un despacho…). Se guarda con la ficha.</span></div>
+    <div class="cpformcab"><b>Consulta privada</b><span class="sm">Dónde atiende (en su casa, un despacho…). Se guarda con la ficha.</span></div>
     <div class="g2"><div><label for="${k}d">Dirección</label><input id="${k}d" value="${esc(v('direccion'))}" placeholder="Calle, número, piso"></div>
       <div><label for="${k}c">Código postal</label><input id="${k}c" value="${esc(v('cp'))}" inputmode="numeric"></div></div>
     <div class="g2"><div><label for="${k}m">Población</label><input id="${k}m" value="${esc(v('municipio'))}"></div>
@@ -23045,3 +23046,41 @@ function kpisVivos() {
   const enganchar = () => { const c = $('kpis'); if (c && !c.__kv) { c.__kv = true; ob.observe(c, { childList: true }); kpisVivos(); } };
   enganchar();   // #kpis está en index.html desde el arranque: basta con vigilarlo a él
 })();
+
+/* v2.224.0 · Volver desde el manual al punto exacto (aviso de Eric: al pulsar un «?» y llegar al manual faltaba una flecha para volver).
+   - Al entrar en el manual desde otra pantalla se guarda dónde estaba (MANUAL_VUELTA: pantalla y desplazamiento); la pestaña de cada página,
+     el apartado de Configuración y el día de la Agenda ya se recuerdan solos (PAG_TAB, CFG_KEY, AG_FECHA).
+   - La cabecera del manual lleva «‹ Volver a …» (#manvolver): vuelve a esa pantalla y, cuando ha terminado de pintarse, al mismo punto. */
+let MANUAL_VUELTA = null;
+function nombrePantalla(t) {
+  const b = document.querySelector(`nav.main [data-t="${t}"]`);
+  const n = (b && b.textContent.trim()) || (typeof PAGINAS !== 'undefined' && PAGINAS[t] && PAGINAS[t].t) || (t === 'config' ? 'Configuración' : '');
+  return n || 'donde estabas';
+}
+ir = (orig => function (t, ...r) {
+  if (t === 'manual' && TAB !== 'manual') MANUAL_VUELTA = { tab: TAB, y: window.scrollY || 0 };
+  return orig.call(this, t, ...r);
+})(ir);
+async function volverDelManual() {
+  const v = MANUAL_VUELTA; MANUAL_VUELTA = null;
+  if (!v) { ir('inicio'); return; }
+  ir(v.tab);
+  // Espera a que la pantalla esté pintada (sin «preparando») y tenga alto suficiente para volver al mismo punto
+  const fin = Date.now() + 4000;
+  while (Date.now() < fin) {
+    await new Promise(res => setTimeout(res, 120));
+    const sec = $('v-' + v.tab) || document.querySelector('main > section:not(.hide)');
+    const listo = !document.querySelector('main > section.preparando') && (!sec || !sec.classList.contains('cargando'));
+    if (listo && document.documentElement.scrollHeight - innerHeight >= v.y - 2) break;
+  }
+  window.scrollTo(0, v.y);
+}
+cargarManual = (orig => async function (...a) {
+  const r = await orig.apply(this, a);
+  const h = document.querySelector('#v-manual .saludo');
+  if (h && MANUAL_VUELTA && !$('manvolver')) {
+    h.insertAdjacentHTML('afterbegin', `<button type="button" class="manvuelta" id="manvolver"><b aria-hidden="true">‹</b> Volver a ${esc(nombrePantalla(MANUAL_VUELTA.tab))}</button>`);
+    $('manvolver').onclick = () => volverDelManual();
+  }
+  return r;
+})(cargarManual);
