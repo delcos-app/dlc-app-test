@@ -3485,7 +3485,7 @@ input[type=checkbox]:not(.vfswitch input):focus-visible{outline:none;box-shadow:
 .aghud{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:0 auto 0 28px}
 .aghud .agp{display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 12px;border:1px solid var(--line);border-radius:999px;background:var(--panel);font-size:13px;color:var(--muted);white-space:nowrap;line-height:1}
 .aghud .agp b{font:800 15px var(--f-titulo);color:var(--navy)}
-.aghud .agp.av b{color:#B26B00}
+.aghud .agp.agp-pend b{color:#B26B00}
 .aghud .agp[data-agp]{cursor:pointer}.aghud .agp[data-agp]:hover{border-color:#9DB8D6}
 /* Cinta */
 .cinta{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:12px 14px 10px;margin:0 0 12px}
@@ -3548,7 +3548,8 @@ input[type=checkbox]:not(.vfswitch input):focus-visible{outline:none;box-shadow:
 .tdu-dat li{display:grid;grid-template-columns:16px minmax(0,1fr);gap:8px;align-items:start;font-size:13.5px;line-height:1.35;color:#2B4762}
 .tdu-dat svg{width:16px;height:16px;color:#8A9BB0;margin-top:1px}
 .tdu-dat li.toca{color:var(--navy);font-weight:700}.tdu-dat li.toca svg{color:var(--navy)}
-.tdu-dat li.av{color:#8A5300}.tdu-dat li.av svg{color:#C98A00}
+.tdu-dat li.tdav .tdavi{margin-left:4px;vertical-align:1px}
+.tdu-dat li.tdav{color:#8A5300}.tdu-dat li.tdav svg{color:#C98A00}
 .tdu-pie{display:flex;align-items:center;gap:8px;margin:14px 0 0 56px;padding-top:12px;border-top:1px solid var(--line)}
 .tdu-est{display:flex;align-items:center;gap:6px;min-width:0;flex-wrap:wrap}.tdu-est .sm{margin:0}
 .tdu-ops{display:flex;gap:6px;margin-left:auto}
@@ -3716,6 +3717,6 @@ try{var co=sessionStorage.getItem('dlc-cambio-org');if(co!==null||localStorage.g
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.219.0"></script>
+<script src="./app.js?v=2.220.0"></script>
 </body>
 </html>

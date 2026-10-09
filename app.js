@@ -22689,7 +22689,9 @@ htPreparar = (orig => function (sec, ...r) {
   return orig.call(this, sec, ...r);
 })(htPreparar);
 
-/* v2.219.0 · Agenda con tarjetas y cinta de 14 días (decisión de Eric, prototipo «versión D»).
+/* v2.220.0: la pastilla «Pendientes» y las líneas de aviso usaban la clase .av, que es la del avatar redondo de la app (salía un círculo
+   cortado en lugar de la pastilla): ahora .agp-pend y .tdav.
+   v2.219.0 · Agenda con tarjetas y cinta de 14 días (decisión de Eric, prototipo «versión D»).
    - Las cifras pasan a pastillas junto al título (#aghud, leídas de #agmet, que queda oculto).
    - La semana y el mes se sustituyen por una cinta de 14 días (.cinta): un punto por cita (hecha, por hacer, sin cerrar),
      ‹ › de semana en semana, «Hoy» para volver, el mes completo al pulsar su nombre (#agmes flotando) y «Planificar la semana».
@@ -22730,7 +22732,7 @@ function agPastillas() {
     }
     const tit = [((x.querySelector('.agmv') || {}).textContent || '').trim(), ((x.querySelector('.agms') || {}).textContent || '').trim()].filter(Boolean).join(' · ');
     const nom = k === 2 ? 'Cierres' : t;
-    return `<span class="agp ${k === 3 ? 'av' : ''}" title="${esc(tit)}" ${k === 3 ? 'data-agp="pend" role="button" tabindex="0"' : ''}>${esc(nom)} <b>${esc(bv)}${de ? '/' + esc(de[1]) : ''}</b></span>`;
+    return `<span class="agp ${k === 3 ? 'agp-pend' : ''}" title="${esc(tit)}" ${k === 3 ? 'data-agp="pend" role="button" tabindex="0"' : ''}>${esc(nom)} <b>${esc(bv)}${de ? '/' + esc(de[1]) : ''}</b></span>`;
   }).join('');
   let h = $('aghud');
   if (!h) { const ref = sal.firstElementChild; if (!ref) return; ref.insertAdjacentHTML('afterend', '<div class="aghud" id="aghud" aria-label="Tus números"></div>'); h = $('aghud'); }
@@ -22834,14 +22836,17 @@ function tarjetasTuDia() {
     const nivel = escala.findIndex(x => x.valor === c.estado_comercial);
     const obj = nivel >= 0 ? escala[nivel + 1] : null;
     const falta = d.min != null ? d.min - ahora : null;
-    const aviso = ((it.querySelector('.tdaviso') || {}).textContent || '').trim();
+    // El aviso sin la «i» de la fila; si la fila la tiene, la tarjeta lleva la suya, que abre la misma explicación
+    const avEl = it.querySelector('.tdaviso');
+    const aviso = avEl ? [...avEl.childNodes].filter(x => x.nodeType === 3).map(x => x.textContent).join('').trim() : '';
+    const avBtn = avEl && avEl.querySelector('.tdavi') ? ` <button type="button" class="tdavi" data-tdavi="${c.id}" aria-label="Por qué sale este aviso">i</button>` : '';
     const vent = ((it.querySelector('.tdvent') || {}).textContent || '').trim();
     const lineas = [
       ant && ant.proxima_accion ? ['toca', 'toca', `Toca: ${esc(ant.proxima_accion)}`] : null,
       c.anterior !== undefined ? ['reloj', '', ant ? `Última ${vis} hace ${dias(ant.fecha)} ${dias(ant.fecha) === 1 ? 'día' : 'días'}` : `Primera ${vis}`] : null,
       vent ? ['puerta', '', esc(vent)] : null,
-      ab && aviso ? ['aviso', 'av', esc(aviso)] : null,
-      ab && !xyCita(c) ? ['aviso', 'av', 'Sin ubicación'] : null,
+      ab && aviso ? ['aviso', 'tdav', esc(aviso) + avBtn] : null,
+      ab && !xyCita(c) ? ['aviso', 'tdav', 'Sin ubicación'] : null,
       c.nota ? ['nota', '', esc(c.nota)] : null
     ].filter(Boolean);
     const cuando = !ab ? '' : d === sig && falta != null && falta > 0 ? `en ${falta >= 60 ? Math.floor(falta / 60) + ' h ' : ''}${falta % 60} min` : d.htx.startsWith('~') ? 'Hora estimada' : '';
@@ -22869,6 +22874,12 @@ function tarjetasTuDia() {
   agPastillas();
 }
 pintarTuDia = (orig => async function (...a) { const r = await orig.apply(this, a); tarjetasTuDia(); return r; })(pintarTuDia);
+// La «i» del aviso de la tarjeta abre la explicación de la fila
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-tdavi]'); if (!b) return;
+  const f = [...document.querySelectorAll('.tdlista .tdit')].find(it => it.querySelector(`[data-td$="|${b.dataset.tdavi}"]`));
+  const i = f && f.querySelector('.tdavi'); if (i) i.click();
+});
 // Pulsar la tarjeta (fuera de sus botones) abre la cita, como la fila de antes
 document.addEventListener('click', e => {
   const t = e.target.closest('.tdu'); if (!t || e.target.closest('button, a, input, select')) return;
