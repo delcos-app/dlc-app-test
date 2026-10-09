@@ -22946,8 +22946,11 @@ function kvGrafica(id, k) {
     const sig = ab.find(a => (kvMin(a.hora) ?? 9999) >= ahora - 15) || ab[0];
     const tipo = a => CITA_ABIERTA.includes(a.estado) ? (a === sig ? 'sig' : '') : EST_COL[a.estado] === 'var(--warn)' ? 'no' : 'ok';
     const s = sig ? `Siguiente <b>${esc(String(sig.hora || '').slice(0, 5) || '—')}</b> · ${esc(sig.nombre)}` : l.length ? 'Todas cerradas' : 'Sin citas hoy';
-    const mas = (k.citas_hoy || 0) - l.length;
-    return { s, z: l.length ? `<div class="kvdots">${l.map(a => `<span class="kvdot"><i class="${tipo(a)}" title="${esc(a.nombre)}"></i><em>${esc(String(a.hora || '').slice(0, 5) || '·')}</em></span>`).join('')}${mas > 0 ? `<span class="kvdot"><em class="kvmas">+${mas}</em></span>` : ''}</div>` : '' };
+    // v2.223.0: como mucho cinco puntos (tres en el móvil, con la siguiente siempre a la vista) y «+N» con el resto; antes saltaban a otra fila y tapaban el texto
+    const nv = matchMedia('(max-width: 760px)').matches ? 3 : 5;
+    const iS = sig ? l.indexOf(sig) : 0, ini = Math.max(0, Math.min(iS - (nv >> 1), l.length - nv)), ver = l.slice(ini, ini + nv);
+    const mas = Math.max(0, (k.citas_hoy || l.length) - ver.length);
+    return { s, z: l.length ? `<div class="kvdots">${ver.map(a => `<span class="kvdot"><i class="${tipo(a)}" title="${esc(a.nombre)}"></i><em>${esc(String(a.hora || '').slice(0, 5) || '·')}</em></span>`).join('')}${mas > 0 ? `<span class="kvdot"><em class="kvmas">+${mas}</em></span>` : ''}</div>` : '' };
   }
   if (id === 'urgentes') {
     return k.urgentes ? { s: `${num(k.urgentes)} por atender`, z: '<div class="kvradar" aria-hidden="true"><i></i><b></b><b></b></div>' }

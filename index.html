@@ -3663,6 +3663,10 @@ input[type=checkbox]:not(.vfswitch input):focus-visible{outline:none;box-shadow:
   #kpis.kvivo .kvley{display:none}
 }
 @media (prefers-reduced-motion: reduce){#kpis.kvivo *{animation:none!important}#kpis.kvivo .kvlin path.l{stroke-dashoffset:0}}
+
+/* v2.223.0 · «Citas de hoy»: los puntos en una sola fila */
+#kpis.kvivo .kvdots{flex-wrap:nowrap;gap:8px;overflow:hidden;max-width:100%}
+#kpis.kvivo .kvdot{flex:none}
 </style>
 </head>
 <body>
@@ -3801,6 +3805,6 @@ try{var co=sessionStorage.getItem('dlc-cambio-org');if(co!==null||localStorage.g
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.222.0"></script>
+<script src="./app.js?v=2.223.0"></script>
 </body>
 </html>
