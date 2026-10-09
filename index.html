@@ -3579,6 +3579,14 @@ input[type=checkbox]:not(.vfswitch input):focus-visible{outline:none;box-shadow:
   .tdu-pie{flex-wrap:wrap}
   .tdu-reg{flex:1 1 100%;order:3;min-height:44px}
 }
+
+/* v2.221.0 · El «+» flotante no tapa el contenido */
+@media (max-width:760px){
+  .fab{transition:background-color var(--t-rapido) var(--ease-sal),transform .28s var(--ease-sal),opacity .2s var(--ease-sal)!important}
+  body.fabfuera .fab{transform:translateY(calc(100% + 24px)) scale(.92)!important;opacity:0;pointer-events:none}
+  body main:has(.fab:not(.hide)){padding-bottom:calc(76px + 72px + env(safe-area-inset-bottom,0px))!important}
+}
+@media (prefers-reduced-motion: reduce){body.fabfuera .fab{transition:none!important}}
 </style>
 </head>
 <body>
@@ -3717,6 +3725,6 @@ try{var co=sessionStorage.getItem('dlc-cambio-org');if(co!==null||localStorage.g
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.220.0"></script>
+<script src="./app.js?v=2.221.0"></script>
 </body>
 </html>

@@ -22889,3 +22889,24 @@ document.addEventListener('keydown', e => {
   if (e.key !== 'Enter' || !e.target.matches || !e.target.matches('.tdu')) return;
   const c = (TD_CITAS || []).find(x => x.id === e.target.dataset.tdu); if (c) verCita(c);
 });
+
+/* v2.221.0 · El «+» flotante del móvil no tapa el contenido (aviso de Eric: tapaba el final de las tarjetas y de la jornada).
+   - Al desplazarse hacia abajo se aparta (baja y se desvanece); al subir, al pararse arriba del todo o al llegar al final, vuelve.
+   - Con «+» en la pantalla, el contenido deja sitio debajo para que lo último no quede bajo el botón (estilo). */
+(() => {
+  let y0 = scrollY, fuera = false, pend = false;
+  const poner = v => { if (v === fuera) return; fuera = v; document.body.classList.toggle('fabfuera', v); };
+  addEventListener('scroll', () => {
+    if (pend) return; pend = true;
+    requestAnimationFrame(() => {
+      pend = false;
+      const y = scrollY, dy = y - y0, alFinal = innerHeight + y >= document.documentElement.scrollHeight - 8;
+      if (y < 40 || alFinal) poner(false);
+      else if (dy > 6) poner(true);
+      else if (dy < -6) poner(false);
+      y0 = y;
+    });
+  }, { passive: true });
+  // Al cambiar de pantalla vuelve a estar a la vista
+  ir = (orig => function (...x) { poner(false); y0 = 0; return orig.apply(this, x); })(ir);
+})();
