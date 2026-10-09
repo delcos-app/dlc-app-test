@@ -3672,6 +3672,18 @@ input[type=checkbox]:not(.vfswitch input):focus-visible{outline:none;box-shadow:
 .manvuelta{display:inline-flex;align-items:center;gap:6px;padding:7px 14px 7px 10px;border:1px solid var(--line);border-radius:999px;background:#fff;color:var(--navy);font:600 14px var(--f-texto);cursor:pointer}
 .manvuelta b{font-size:18px;line-height:1;font-weight:700}
 .manvuelta:hover{border-color:var(--navy)}
+
+/* v2.225.0 · Clientes sin duplicados */
+.kodup{display:grid;grid-template-columns:1fr auto;gap:4px 14px;align-items:center;margin:12px 0 4px;padding:12px 14px;border:1px solid #F0C36D;border-left:4px solid #E08A00;border-radius:12px;background:#FFF8E8}
+.kodup.hide{display:none}
+.kodupt{grid-column:1 / -1;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;color:#8A4B0B}
+.kodupt span{font-size:13px}
+.kodupc{display:flex;flex-direction:column;min-width:0}
+.kodupc b{color:var(--navy)}
+.kodup > .sm{grid-column:1 / -1}
+.kodup #kodupusar{white-space:nowrap}
+@media (max-width:560px){.kodup{grid-template-columns:1fr}.kodup #kodupusar{width:100%}}
+input.campodup{border-color:#E08A00!important;box-shadow:0 0 0 3px rgba(224,138,0,.15)}
 </style>
 </head>
 <body>
@@ -3810,6 +3822,6 @@ try{var co=sessionStorage.getItem('dlc-cambio-org');if(co!==null||localStorage.g
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.224.0"></script>
+<script src="./app.js?v=2.225.0"></script>
 </body>
 </html>

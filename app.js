@@ -5753,6 +5753,7 @@ function editorContacto(c, alGuardar, op) {
       cuenta_id: medico ? medico.id : null
     }});
     ev.target.disabled = false; ev.target.textContent = c.id ? 'Guardar' : conPedido ? '🛒 Crear y hacer pedido' : `Crear ${TT('paciente', 's', '', 'l', 'l')}`;
+    if (error && /cliente_duplicado/.test(error.hint || '')) { toast(error.message, true); if ($('konif')) $('konif').dispatchEvent(new Event('input')); return; }   // v2.225.0
     if (error || (r && r.ok === false)) { toast('No se ha podido guardar', true); return; }
     if (cps && !(await camposGuardar(cps, (r && r.contacto && r.contacto.id) || c.id))) return;
     $('dlg2').close(); toast(c.id ? `${TT('paciente', 's', '', 'l', 'C', 'guardado')}` : `${TT('paciente', 's', '', 'l', 'C', 'creado')}`);
@@ -23084,3 +23085,56 @@ cargarManual = (orig => async function (...a) {
   }
   return r;
 })(cargarManual);
+
+
+/* v2.225.0 · Clientes sin duplicados (aviso de Eric: no se puede dar de alta otra vez a un cliente con el mismo NIF/CIF, correo o móvil).
+   - La base no lo deja (disparador contactos_sin_duplicados, SQL 134); aquí se avisa mientras se escribe: clientes_coincidencias con lo que
+     hay en NIF, correo, móvil y teléfono (sin contar el propio cliente al editarlo).
+   - Aviso #kodup encima de los botones: «Este cliente ya existe · mismo móvil», con su nombre y datos y un botón:
+     «Usar este cliente» si se viene de un pedido o de una nueva venta (carga sus datos de un clic), «Ver su ficha» en el resto.
+     Si lo lleva otra persona y no se puede ver, solo se dice que existe. Mientras haya coincidencia, Crear queda desactivado. */
+editorContacto = (orig => function (c, alGuardar, op) {
+  const r = orig.apply(this, arguments);
+  c = c || {};
+  if (!$('konif') || !$('kook')) return r;
+  const acts = $('kook').closest('.acts');
+  if (acts && !$('kodup')) acts.insertAdjacentHTML('beforebegin', '<div id="kodup" class="kodup hide" role="alert" aria-live="polite"></div>');
+  const ids = ['konif', 'komail', 'komov', 'kotel'];
+  const leer = () => ({ nif: $('konif').value, email: $('komail').value, movil: $('komov').value, telefono: $('kotel').value, excluir: c.id || null });
+  const hayDato = d => d.nif.replace(/[^A-Za-z0-9]/g, '').length >= 8 || /.@.+\../.test(d.email) || [d.movil, d.telefono].some(x => x.replace(/\D/g, '').length >= 9);
+  const usar = !c.id && !!alGuardar && TAB !== 'pacientes';
+  let t = null, turno = 0;
+  const pintar = x => {
+    const k = $('kodup'); if (!k) return;
+    ids.forEach(id => $(id) && $(id).classList.remove('campodup'));
+    [$('kook'), $('kopedido')].filter(Boolean).forEach(b => { b.disabled = !!x; });
+    if (!x) { k.classList.add('hide'); k.innerHTML = ''; return; }
+    const marca = { NIF: ['konif'], correo: ['komail'] }[x.campo] || ['komov', 'kotel'].filter(id => $(id).value.replace(/\D/g, '').length >= 9);
+    marca.forEach(id => $(id) && $(id).classList.add('campodup'));
+    k.innerHTML = x.visible
+      ? `<div class="kodupt"><b>${TT('paciente', 's', 'este', 'C', 'l')} ya existe</b><span>mismo ${esc(x.campo)}</span></div>
+         <div class="kodupc"><b>${esc(x.nombre || '')}</b><span class="sm">${esc([x.nif, x.movil || x.telefono, x.email, x.municipio].filter(Boolean).join(' · '))}</span></div>
+         <button type="button" class="btn" id="kodupusar">${usar ? `Usar ${TT('paciente', 's', 'este', 'l', 'l')}` : 'Ver su ficha'}</button>`
+      : `<div class="kodupt"><b>Ya existe ${TT('paciente', 's', 'un', 'l', 'l')} con ese ${esc(x.campo)}</b></div>
+         <div class="sm">Lo lleva otra persona del equipo: pide que te lo asignen en lugar de crearlo de nuevo.</div>`;
+    k.classList.remove('hide');
+    if ($('kodupusar')) $('kodupusar').onclick = () => {
+      $('dlg2').close();
+      const res = Object.assign({}, x, x.cuenta_id ? { medico: x.cuenta, medico_codigo: x.cuenta_codigo } : {});
+      if (usar) alGuardar(res); else fichaPaciente(x.id);
+    };
+  };
+  const comprobar = () => {
+    clearTimeout(t);
+    t = setTimeout(async () => {
+      const d = leer(), mio = ++turno;
+      if (!hayDato(d)) { pintar(null); return; }
+      const { data } = await db.rpc('clientes_coincidencias', { p: d });
+      if (mio !== turno || !$('kodup')) return;
+      pintar(Array.isArray(data) && data.length ? data[0] : null);
+    }, 350);
+  };
+  ids.forEach(id => $(id) && $(id).addEventListener('input', comprobar));
+  if (!c.id && hayDato(leer())) comprobar();
+  return r;
+})(editorContacto);
