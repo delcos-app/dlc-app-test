@@ -23138,3 +23138,97 @@ editorContacto = (orig => function (c, alGuardar, op) {
   if (!c.id && hayDato(leer())) comprobar();
   return r;
 })(editorContacto);
+
+/* v2.226.0 · Arreglos de la lista de Eric (9/10/2026).
+   1. Una sola ayuda por pantalla: fuera el «?» del manual (.manq); cada título lleva su «i» (las páginas nuevas también: Ciclo, Cirugías,
+      Eventos…) y la ventanita de la «i» termina con «Ver en el manual de uso», que abre el manual en el apartado de esa pantalla; desde allí,
+      «‹ Volver a …» devuelve al mismo punto (v2.224.0).
+   2. Agenda: el selector «Mi agenda» y el botón «Equipo» se reponen siempre que la cabecera se vuelve a pintar (al pulsar Día se pintaba dos
+      veces seguidas y se perdían) y, dentro de Equipo, el botón pasa a «Mi agenda» para volver de un clic.
+   3. Una tarea hecha se abre en modo lectura, con «Volver a pendiente» y «Borrar».
+   4. Pedidos: fuera la tarjeta «Pedidos sin atribuir».
+   5. Menú de la persona: sin «Organización» (está dentro de Configuración); «Manual de uso» y «Reportar un problema», aparte, como ayuda. */
+ponerAyudaManual = function () {
+  document.querySelectorAll('.manq').forEach(b => b.remove());
+  if (ES_MEDICO() || TAB === 'manual' || TAB === 'delcos' || /^pd-/.test(TAB)) return;   // el Panel delcos es interno
+  const v = $('v-' + TAB), h = v && v.querySelector('.saludo h1'); if (!h) return;
+  const sal = h.closest('.saludo') || h;
+  if (sal.querySelector('.ai')) return;
+  if (AYUDA[TAB]) { h.insertAdjacentHTML('beforeend', `<button class="ai" data-ayuda="${TAB}" aria-label="Ayuda">i</button>`); return; }
+  const P = (typeof PAGINAS !== 'undefined' && PAGINAS[TAB]) || {};
+  h.insertAdjacentHTML('beforeend', `<button class="ai" data-ayuda-tit="${esc(P.t || h.textContent.trim())}" data-ayuda-txt="${esc(P.d || '')}" aria-label="Ayuda">i</button>`);
+};
+const anclaAyuda = b => {
+  const k = b.dataset.ayuda || '';
+  if (b.dataset.manual) return b.dataset.manual;
+  if (MANUAL_ANCLA[k]) return MANUAL_ANCLA[k];
+  if (/^ini_/.test(k)) return MANUAL_ANCLA.inicio;
+  return MANUAL_ANCLA[TAB] || '';
+};
+// La ventanita ya llevaba «Ver más en el manual de uso» (resumirAyuda), que abría el buscador del manual: ahora abre el apartado de esa pantalla
+resumirAyuda = (orig => function (pop) {
+  orig.call(this, pop);
+  const l = pop.querySelector('.aiman'); if (!l) return;
+  const b = pop.__de, ancla = b ? anclaAyuda(b) : (MANUAL_ANCLA[TAB] || '');
+  l.innerHTML = 'Ver en el manual de uso <span aria-hidden="true">›</span>';
+  l.onclick = ev => { ev.preventDefault(); ev.stopPropagation(); pop.remove(); abrirManual(ancla); };
+})(resumirAyuda);
+
+function asegurarEquipo() {
+  if (TAB !== 'agenda' || !VE_TODO()) return;
+  // Solo en la cabecera que se ve: mientras se repinta puede quedar una copia congelada con los mismos id
+  const acts = document.querySelector('#v-agenda > .saludo .acts'); if (!acts) return;
+  let sel = acts.querySelector('#agvista');
+  if (!sel) {
+    if (!COMS.length) { cargarComerciales().then(asegurarEquipo); return; }
+    acts.insertAdjacentHTML('afterbegin', `<select id="agvista" aria-label="Agenda de" title="Ver la agenda de otra persona">
+        <option value="">Mi agenda</option>${COMS.filter(u => u.id !== PERFIL.id).map(u => `<option value="${u.id}" ${AG_VISTA && AG_VISTA.id === u.id ? 'selected' : ''}>${esc(u.nombre)}</option>`).join('')}</select>`);
+    sel = acts.querySelector('#agvista');
+    sel.onchange = e => verAgendaDe(e.target.value);
+  }
+  let b = acts.querySelector('[data-ag="equipo"]');
+  if (!b) { sel.insertAdjacentHTML('afterend', '<button class="btn sec" data-ag="equipo">Equipo</button>'); b = acts.querySelector('[data-ag="equipo"]'); }
+  const eq = AG_MODO === 'equipo';
+  b.textContent = eq ? 'Mi agenda' : 'Equipo';
+  b.classList.toggle('sec', !eq);
+  b.title = eq ? 'Volver a tu agenda' : 'Ver el cumplimiento del equipo';
+}
+cargarAgenda = (orig => async function (...a) {
+  const r = await orig.apply(this, a);
+  asegurarEquipo(); [250, 900].forEach(ms => setTimeout(() => { try { asegurarEquipo(); } catch (e) {} }, ms));
+  return r;
+})(cargarAgenda);
+window.addEventListener('click', e => {
+  const b = e.target.closest('[data-ag="equipo"]'); if (!b || AG_MODO !== 'equipo') return;
+  e.stopImmediatePropagation(); e.preventDefault();
+  AG_MODO = 'dia'; AG_VISTA = null; if ($('agvista')) $('agvista').value = '';
+  cargarAgenda();
+}, true);
+
+editarTarea = (orig => function (t, fecha) {
+  if (!t || !t.id || !t.hecha) return orig.apply(this, arguments);
+  $('dbody').innerHTML = `
+    <div class="fh"><div><h2>Tarea hecha</h2><div class="sm">${esc(fechaLarga(new Date(t.fecha + 'T00:00:00')))}${t.hora ? ' · ' + esc(String(t.hora).slice(0, 5)) : ''}</div></div>
+      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
+    <div class="tarlec"><span class="tarok">Hecha</span><b>${esc(t.titulo || '')}</b>${t.nota ? `<p>${esc(t.nota)}</p>` : ''}</div>
+    <div class="acts" style="justify-content:space-between">
+      <button type="button" class="btn sec peligro" id="taborrar">Borrar</button>
+      <span style="display:flex;gap:8px"><button type="button" class="btn sec" data-cerrar>Cerrar</button><button type="button" class="btn" id="tareabrir">Volver a pendiente</button></span></div>`;
+  $('tareabrir').onclick = async ev => {
+    ev.target.disabled = true;
+    const { error } = await db.from('tareas').update({ hecha: false, modificado_en: new Date().toISOString() }).eq('id', t.id);
+    ev.target.disabled = false;
+    if (error) { toast('No se ha podido cambiar', true); return; }
+    TAREAS_DIA = null; pintarTuDia(); orig.call(this, Object.assign({}, t, { hecha: false }), fecha);
+  };
+  $('taborrar').onclick = async () => {
+    if (!await preguntar('La tarea desaparece.', { titulo: '¿Borrar la tarea?', ok: 'Borrar', peligro: true })) return;
+    const { error } = await db.from('tareas').delete().eq('id', t.id);
+    if (error) { toast('No se ha podido borrar', true); return; }
+    $('dlg').close(); toast('Tarea borrada'); TAREAS_DIA = null; pintarTuDia();
+  };
+  $('dlg').classList.add('pequena');
+  $('dlg').showModal();
+})(editarTarea);
+
+pintarSinAtribuir = async function () { const c = $('cardsinatr'); if (c) c.remove(); };

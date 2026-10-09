@@ -3684,6 +3684,24 @@ input[type=checkbox]:not(.vfswitch input):focus-visible{outline:none;box-shadow:
 .kodup #kodupusar{white-space:nowrap}
 @media (max-width:560px){.kodup{grid-template-columns:1fr}.kodup #kodupusar{width:100%}}
 input.campodup{border-color:#E08A00!important;box-shadow:0 0 0 3px rgba(224,138,0,.15)}
+
+/* v2.226.0 · Ayuda con enlace al manual, tarea hecha en lectura y menú de la persona */
+.manq{display:none!important}
+.aipop .aiman{display:flex;align-items:center;gap:4px;margin-top:10px;padding:8px 0 0;width:100%;border:0;border-top:1px solid var(--line);background:none;color:var(--azul,#3F82C0);font:600 13px var(--f-texto);cursor:pointer;text-align:left}
+.aipop .aiman:hover{color:var(--navy)}
+.tarlec{display:flex;flex-direction:column;gap:6px;margin:8px 0 14px}
+.tarlec .tarok{align-self:flex-start;padding:3px 10px;border-radius:999px;background:#E7F5EE;color:#0E6B4C;font:700 12px var(--f-texto)}
+.tarlec b{font-size:16px;color:var(--navy)}
+.tarlec p{margin:0;white-space:pre-wrap;color:var(--mut)}
+#umenu:not(.hide){display:flex;flex-direction:column}
+#umenu > *{order:3}
+#umenu > .uh{order:0}
+#umenu [data-u="perfil"]{order:1}
+#umenu [data-u="cfg"]{order:2}
+#umenu [data-u="organizacion"]{display:none!important}
+#umenu [data-u="manual"]{order:5;margin-top:4px;border-top:1px solid var(--line);border-radius:0 0 9px 9px;padding-top:12px}
+#umenu [data-u="reportar"]{order:6}
+#umenu [data-u="salir"]{order:8;margin-top:4px;border-top:1px solid var(--line);border-radius:0 0 9px 9px;padding-top:12px}
 </style>
 </head>
 <body>
@@ -3822,6 +3840,6 @@ try{var co=sessionStorage.getItem('dlc-cambio-org');if(co!==null||localStorage.g
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.225.0"></script>
+<script src="./app.js?v=2.226.0"></script>
 </body>
 </html>
