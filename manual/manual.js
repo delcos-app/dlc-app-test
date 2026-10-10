@@ -96,6 +96,13 @@
   const cerrarIndice = () => { $('indice').classList.remove('abierto'); $('abrirIndice').setAttribute('aria-expanded', 'false'); };
   $('abrirIndice').onclick = () => { const a = $('indice').classList.toggle('abierto'); $('abrirIndice').setAttribute('aria-expanded', String(a)); };
   $('indice').addEventListener('click', e => { if (e.target.closest('a')) cerrarIndice(); });
+  // v2.231.0: en el móvil el índice se cierra con su «✕», tocando fuera o con Escape
+  document.body.insertAdjacentHTML('beforeend', '<button type="button" class="indcerrar" id="indcerrar" aria-label="Cerrar el índice">✕</button>');
+  $('indcerrar').onclick = cerrarIndice;
+  document.addEventListener('click', e => { if ($('indice').classList.contains('abierto') && !e.target.closest('#indice, #abrirIndice')) cerrarIndice(); });
+  window.addEventListener('blur', () => { if ($('indice').classList.contains('abierto')) cerrarIndice(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('indice').classList.contains('abierto')) cerrarIndice(); });
+  new MutationObserver(() => document.body.classList.toggle('indabierto', $('indice').classList.contains('abierto'))).observe($('indice'), { attributes: true, attributeFilter: ['class'] });
 
   // ---------- Fotos y vídeos ----------
   const QUIETO = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;

@@ -3875,6 +3875,33 @@ input.campodup{border-color:#E08A00!important;box-shadow:0 0 0 3px rgba(224,138,
 .ankpi.anv .avpt{animation-name:avpunto}@keyframes avpunto{to{opacity:1}}
 @media (prefers-reduced-motion:reduce){.pk .pkbars i{animation:none}.ankpi.anv .avsp path.l{animation:none;stroke-dashoffset:0}.ankpi.anv .avsp path.a{animation:none;opacity:.12}.ankpi.anv .avpt{animation:none;opacity:1}}
 @media (max-width:760px){#anareas .ankpi .ankval{font-size:clamp(22px,7.4vw,30px);overflow-wrap:anywhere}}
+
+/* v2.231.0 · Arreglos del móvil */
+header .top .logo,nav.main .mlmarca{cursor:pointer}
+@media (min-width:900px){.cfuvolver.manvuelta{display:none}}
+@media (max-width:899px){.cfuvolver.manvuelta{display:inline-flex;margin:0 0 12px}}
+/* Sin contactar: lo que falta, en color; lo contactado, claro */
+#kpis.kvivo .kvwaf i{background:#DCE6F1;border-radius:3px}
+#kpis.kvivo .kvwaf i.f{background:var(--navy);box-shadow:none}
+/* Agenda · «⋯» del día en la cabecera de Tu día */
+#agcuerpo .tdtitw{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px}
+#agcuerpo .tdtitw > .tdstats{flex:0 0 100%}
+#agcuerpo .tddiamas{width:34px;height:34px;min-height:0;padding:0;display:inline-grid;place-items:center;border-radius:10px;margin-left:auto}
+#agcuerpo .tddiamas svg{width:18px;height:18px}
+@media (pointer:coarse){#agcinta .cdmas,#agcinta .cdia.sel .cdmas{display:none!important}}
+/* Tu día con los mismos márgenes */
+#v-agenda.agcinta #agcuerpo > .agband,#v-agenda.agcinta #agcuerpo > #tdnocabe,#v-agenda.agcinta #agcuerpo > .tdesc{margin-left:16px;margin-right:16px}
+#v-agenda.agcinta #agcuerpo > .tdesc{margin-bottom:16px}
+#v-agenda.agcinta #agcuerpo > #tdnocabe{border-radius:12px}
+@media (max-width:760px){
+  #v-agenda.agcinta #agcuerpo > .agband,#v-agenda.agcinta #agcuerpo > #tdnocabe,#v-agenda.agcinta #agcuerpo > .tdesc{margin-left:12px;margin-right:12px}
+  #v-agenda.agcinta #agcuerpo .tdhead{padding:14px 12px 10px}
+  #v-agenda.agcinta #agcuerpo > .agband{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px}
+  #v-agenda.agcinta #agcuerpo > .agband button{justify-content:space-between;width:100%;font-size:13px;padding:10px 12px;text-align:left}
+  #v-agenda.agcinta #agcuerpo > .agband button b{margin-left:auto}
+  #v-agenda.agcinta #agcuerpo .tdhead .acts{margin-top:4px!important}
+}
+.vccerrada{margin:0 0 12px}
 </style>
 </head>
 <body>
@@ -4013,6 +4040,6 @@ try{var co=sessionStorage.getItem('dlc-cambio-org');if(co!==null||localStorage.g
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.230.0"></script>
+<script src="./app.js?v=2.231.0"></script>
 </body>
 </html>

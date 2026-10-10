@@ -23817,3 +23817,99 @@ anCargarKpis = (orig => async function () {
     });
   }));
 })(anCargarKpis);
+
+/* v2.231.0 · Arreglos del móvil (lista de Eric del 10/10/2026):
+   - El logotipo de la empresa (arriba a la izquierda) lleva al inicio.
+   - Configuración en el móvil: «‹ Volver» como botón (antes «‹ Configuración», que repetía el título).
+   - Agenda: el «⋯» del día sale en la cabecera de «Tu día» (en táctil ya no aparece sobre el día de la cinta); «Tu día» con márgenes
+     iguales (bandejas, aviso y tarjetas); las citas cerradas no llevan «⋯» y al abrirlas dicen cómo se cerraron y qué se puede cambiar.
+   - Inicio: la cuadrícula de «Sin contactar» marca en color lo que falta por contactar (antes, cuadros vacíos).
+   - iPhone: si una lectura no contesta en 4,5 s (la conexión se queda colgada al volver del segundo plano), se lanza otra igual y vale la
+     primera que llegue; antes se esperaban 20 s. Las que pasan de 4 s quedan en el registro de errores («Lento: …») para medirlas. */
+
+// Logotipo → inicio
+document.addEventListener('click', e => {
+  const l = e.target.closest && e.target.closest('header .top .logo, nav.main .mlmarca');
+  if (!l || !PERFIL) return;
+  const b = document.querySelector('nav.main [data-t="inicio"]') || document.querySelector('nav.main [data-t]');
+  if (b) { e.preventDefault(); b.click(); }
+});
+
+// Configuración: botón de volver
+cargarConfig = (orig => async function (...a) {
+  const r = await orig.apply(this, a);
+  const b = $('cfuvolver');
+  if (b && !b.classList.contains('manvuelta')) { b.classList.add('manvuelta'); b.innerHTML = '<b aria-hidden="true">‹</b> Volver'; b.setAttribute('aria-label', 'Volver a Configuración'); }
+  return r;
+})(cargarConfig);
+
+// Agenda · las citas cerradas no tienen menú (salvo «Volver a planificarla» de hoy en adelante)
+// (sin escribir estados: se pregunta al propio menú si tiene algo que ofrecer)
+function citaConMenu(c) {
+  if (CITA_ABIERTA.includes(c.estado)) return true;
+  const t0 = toast; let hay = false; toast = () => {};
+  try { menuCita(document.body, c); hay = !!document.querySelector('.tdmenu'); } catch (e) { hay = true; }
+  finally { toast = t0; document.querySelectorAll('.tdmenu').forEach(m => m.remove()); }
+  return hay;
+}
+const citaHecha = e => EST_COL[e] === 'var(--ok)';
+tarjetasTuDia = (orig => function (...a) {
+  const r = orig.apply(this, a);
+  const cuerpo = $('agcuerpo'); if (!cuerpo) return r;
+  cuerpo.querySelectorAll('.tdu[data-tdu]').forEach(t => {
+    const c = (TD_CITAS || []).find(x => x.id === t.dataset.tdu);
+    if (c && !citaConMenu(c)) { const m = t.querySelector('[data-td^="mas|"]'); if (m) m.remove(); }
+  });
+  // El «⋯» del día, en la cabecera de «Tu día»
+  const h2 = cuerpo.querySelector('.tdhead h2');
+  if (h2 && AG_FECHA >= hoyISO() && !$('tddiamas')) {
+    h2.insertAdjacentHTML('afterend', `<button type="button" class="kmv tddiamas" id="tddiamas" aria-label="Opciones del día" title="Opciones del día: nueva cita, bloquear el día…">${SVA(ICU.mas)}</button>`);
+    const b = $('tddiamas'), cab = h2.parentElement; cab.classList.add('tdtitw');
+    b.onclick = e => { e.stopPropagation(); const d = document.querySelector(`#agcinta [data-cf="${AG_FECHA}"]`); menuDiaSemana(b, AG_FECHA, !!(d && d.classList.contains('bloq'))); };
+  }
+  return r;
+})(tarjetasTuDia);
+
+verCita = (orig => function (c, ...r) {
+  const x = orig.call(this, c, ...r);
+  if (!c || CITA_ABIERTA.includes(c.estado) || !$('dbody')) return x;
+  const datos = $('dbody').querySelector('.vcdatos'); if (!datos || $('vccerrada')) return x;
+  const reabrir = citaConMenu(c);
+  datos.insertAdjacentHTML('afterend', `<div class="banda-info vccerrada" id="vccerrada"><b>Cita cerrada: ${esc(c.estado)}.</b>
+    <span id="vccomo"></span> ${reabrir ? 'Si hace falta, puedes volver a planificarla desde «⋯».' : 'La hora y el día ya no se cambian; las notas sí. Si hace falta volver, crea una cita nueva.'}</div>`);
+  if (citaHecha(c.estado) && c.cuenta_id) {
+    db.from('actividades').select('resultados, hora').eq('cuenta_id', c.cuenta_id).eq('fecha', c.fecha).limit(1).then(({ data }) => {
+      const a = (data || [])[0], s = $('vccomo'); if (!a || !s) return;
+      const res = Array.isArray(a.resultados) ? a.resultados.filter(Boolean).join(', ') : (a.resultados || '');
+      s.textContent = `Se registró la ${TT('visita', 's', '', 'l', 'l')}${a.hora ? ' a las ' + String(a.hora).slice(0, 5) : ''}${res ? ': ' + res : ''}.`;
+    }, () => {});
+  }
+  return x;
+})(verCita);
+
+// iPhone: lecturas que se quedan colgadas
+const LECT_DUP = new Set(['buscar_cuentas', 'buscar_global', 'panel_inicio', 'inicio_areas', 'inicio_graficas',
+  'agenda_rango', 'agenda_metricas', 'mis_notificaciones', 'ficha_cuenta', 'operativa_pendiente', 'catalogos_todos', 'opciones_filtros']);
+db.rpc = (orig => function (fn, params, opts) {
+  if (!LECT_DUP.has(fn)) return orig.call(db, fn, params, opts);
+  const t0 = performance.now();
+  return new Promise(res => {
+    let fin = false, otra = null, espera = null;
+    const acabar = x => { if (fin) return; fin = true; clearTimeout(tm); clearTimeout(espera); res(x); };
+    // La segunda va directa (sin la caché ni «una sola en vuelo», que devolvería la misma petición colgada)
+    const tm = setTimeout(() => {
+      if (fin) return;
+      [...RC_VUELO.keys()].forEach(k => { if (k.startsWith(fn + '|')) RC_VUELO.delete(k); });
+      otra = Promise.resolve(RPC_ORIG(fn, params, opts));
+      otra.then(acabar, e => acabar({ data: null, error: e }));
+    }, 4500);
+    Promise.resolve(orig.call(db, fn, params, opts)).then(x => {
+      if (otra && x && x.error) { espera = setTimeout(() => acabar(x), 8000); return; }
+      acabar(x);
+    }, e => { if (otra) espera = setTimeout(() => acabar({ data: null, error: e }), 8000); else acabar({ data: null, error: e }); });
+  }).then(x => {
+    const ms = Math.round(performance.now() - t0);
+    if (ms > 4000 && navigator.onLine) registrarError('api', `Lento: ${fn}`, { funcion: fn, ms, pantalla: TAB, segundo_intento: ms > 4500 });
+    return x;
+  });
+})(db.rpc);
