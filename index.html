@@ -4075,6 +4075,32 @@ header .top .logo,nav.main .mlmarca{cursor:pointer}
   .rnpieb{width:100%}.rnpieb .btn{flex:1}
   .rnpar .der{flex-direction:column;align-items:flex-end;gap:4px}
 }
+
+/* v2.235.0 · Textos personalizados */
+.txp{display:flex;flex-direction:column;gap:14px}
+.txbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.txq{flex:1 1 100%;position:relative}.txq input{width:100%;padding-left:38px;border-radius:12px;background:#F6F9FC}
+.txq svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:#7A8BA0}
+.txchips{display:flex;gap:6px;flex-wrap:wrap}
+.txchips button{all:unset;cursor:pointer;font-size:13px;border:1px solid var(--line);border-radius:999px;padding:5px 11px;color:#4A6280;background:var(--panel,#fff)}
+.txchips button.on{background:var(--navy);border-color:var(--navy);color:#fff}.txchips button b{margin-left:5px}
+.txchips button:focus-visible{outline:2px solid var(--azul);outline-offset:2px}
+.txg{background:var(--panel,#fff);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.txg h3{margin:0;padding:12px 16px;font:800 15px var(--f-titulo);color:var(--navy);background:#F6F9FC;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.txg h3 .sm{font:400 12.5px var(--f-texto);color:#7A8BA0}
+.txhead{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr) minmax(0,1.6fr) 36px;gap:12px;padding:8px 16px;font:700 11.5px var(--f-titulo);letter-spacing:.06em;text-transform:uppercase;color:#7A8BA0}
+.txrow{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr) minmax(0,1.6fr) 36px;gap:12px;align-items:center;padding:9px 16px;border-top:1px solid var(--line)}
+.txrow .donde{font-size:13px;color:#4A6280}.txrow .siempre{font-size:14px;color:#4A6280}
+.txrow input{padding:7px 10px;font-size:14px;min-height:0}
+.txrow.cambio{background:#FBFCF2}.txrow.cambio input:not(:placeholder-shown){border-color:#C9B458;background:#fff}
+.txrow .rv{all:unset;cursor:pointer;width:30px;height:30px;border-radius:8px;display:grid;place-items:center;color:#7A8BA0}.txrow .rv svg{width:16px;height:16px}
+.txrow .rv:hover{background:#EEF3F8;color:var(--navy)}
+.txrow .dos{display:flex;gap:6px}.txrow .dos input{min-width:0;flex:1}
+.txtag{font:700 10.5px var(--f-titulo);letter-spacing:.05em;text-transform:uppercase;color:#7A6200;background:#F7EFC9;border-radius:999px;padding:2px 7px;margin-left:6px;vertical-align:1px;white-space:nowrap}
+.txtag.txpend{color:#8A3A10;background:#FCE5D6}
+.txpie{position:sticky;bottom:12px;display:flex;justify-content:space-between;align-items:center;gap:12px;background:var(--panel,#fff);border:1px solid var(--line);border-radius:14px;padding:10px 14px;box-shadow:0 6px 20px rgba(11,37,64,.10)}
+@media (max-width:899px){.txhead{display:none}.txrow{grid-template-columns:minmax(0,1fr) 36px}.txrow .donde,.txrow .siempre{grid-column:1 / -1}.txrow .donde{font-size:12px}
+  .txpie{bottom:calc(var(--bnav-h, 64px) + 8px)}}
 </style>
 </head>
 <body>
@@ -4213,6 +4239,6 @@ try{var co=sessionStorage.getItem('dlc-cambio-org');if(co!==null||localStorage.g
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.234.0"></script>
+<script src="./app.js?v=2.235.0"></script>
 </body>
 </html>

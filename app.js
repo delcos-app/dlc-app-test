@@ -24701,3 +24701,171 @@ pintarRutaEnCurso = (orig => function (...a) { if (RN) return; return orig.apply
 rutasMapa = (orig => async function (...a) { if (RN) return; const r = await orig.apply(this, a); const m = $('rmapa'), g = $('rngrid'); if (m && g && g.nextElementSibling !== m) { g.after(m); if (RM_MAPA) setTimeout(() => { try { RM_MAPA.resize(); } catch (e) {} }, 50); } return r; })(rutasMapa);
 cargarRutasPaso2 = (orig => function (...a) { if (RN) return; return orig.apply(this, a); })(cargarRutasPaso2);
 document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('nav.main [data-t="rutas"], #bnav [data-t="rutas"], .bmasgrid [data-bm="rutas"]'); if (b && RN) RN = null; }, true);
+
+/* v2.235.0 · Textos personalizados (Eric eligió la A de https://claude.ai/artifact/6uxwD5zLEbd3krk1QMeoPF; SQL 140).
+   - Configuración → Empresa → «Textos personalizados»: una lista con buscador y filtros con todo lo que cada empresa puede llamar a
+     su manera: vocabulario (ajuste terminos), nombres del menú (ajuste menu_nombres; el de las fichas es marca.etiqueta), estados
+     comerciales y resultados de visita (renombrar_texto: también en las fichas y en las visitas ya registradas), roles y campos.
+   - Los nombres del menú se aplican en el menú lateral, la barra del móvil, «Más» y el título de cada pantalla. */
+const TX_IC = { rv: '<path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/>', lupa: '<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>' };
+const txSV = d => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + d + '</svg>';
+const menuNombres = () => (AJUSTES && AJUSTES.menu_nombres) || {};
+
+// ---------- nombres del menú ----------
+function txTexto(b) {
+  const l = b.querySelector('.mllab, b, em, small, .lb'); if (l && !l.querySelector('svg')) return { get: () => l.textContent.trim(), set: v => { l.textContent = v; if (b.dataset.tip) b.dataset.tip = v; } };
+  const tn = [...b.childNodes].find(x => x.nodeType === 3 && x.nodeValue.trim());
+  return tn ? { get: () => tn.nodeValue.trim(), set: v => { tn.nodeValue = tn.nodeValue.replace(tn.nodeValue.trim(), v); if (b.dataset.tip) b.dataset.tip = v; } } : null;
+}
+function aplicarNombresMenu() {
+  const mn = menuNombres();
+  document.querySelectorAll('nav.main [data-t], #bnav [data-t], .bmasgrid [data-bm]').forEach(b => {
+    const t = b.dataset.t || b.dataset.bm; if (!t || t === 'directorio' || /^pd-/.test(t)) return;
+    const x = txTexto(b); if (!x) return;
+    if (!b.dataset.txdef) b.dataset.txdef = x.get();
+    const n = mn[t] || b.dataset.txdef;
+    if (x.get() !== n) x.set(n);
+  });
+  // El título de la pantalla abierta
+  const t = typeof TAB !== 'undefined' ? TAB : null, b = t && document.querySelector(`nav.main [data-t="${t}"]`);
+  if (t && t !== 'directorio' && b && b.dataset.txdef) {
+    const h = document.querySelector(`#v-${t} .saludo h1, #v-${t} .pagcab h1`) || (t === 'ventas' && document.querySelector('#v-ventas .saludo h1'));
+    const tn = h && [...h.childNodes].find(x => x.nodeType === 3 && x.nodeValue.trim());
+    const n = mn[t] || b.dataset.txdef;
+    if (tn && (tn.nodeValue.trim() === b.dataset.txdef || Object.values(mn).includes(tn.nodeValue.trim())) && tn.nodeValue.trim() !== n) tn.nodeValue = tn.nodeValue.replace(tn.nodeValue.trim(), n);
+  }
+}
+aplicarEtiqueta = (orig => function (...a) { const r = orig.apply(this, a); try { aplicarNombresMenu(); } catch (e) {} return r; })(aplicarEtiqueta);
+ir = (orig => function (...a) { const r = orig.apply(this, a); setTimeout(() => { try { aplicarNombresMenu(); } catch (e) {} }, 0); Promise.resolve(r).then(() => { try { aplicarNombresMenu(); } catch (e) {} }); return r; })(ir);
+// Cuando el menú se vuelve a montar (al arrancar, al cambiar de tamaño…), se vuelven a poner los nombres
+if (typeof montarMenuLateral === 'function') montarMenuLateral = (orig => function (...a) { const r = orig.apply(this, a); try { aplicarNombresMenu(); } catch (e) {} return r; })(montarMenuLateral);
+let TX_OBS = 0;
+new MutationObserver(() => { if (!Object.keys(menuNombres()).length || TX_OBS) return; TX_OBS = requestAnimationFrame(() => { TX_OBS = 0; try { aplicarNombresMenu(); } catch (e) {} }); })
+  .observe(document.body, { childList: true, subtree: true });
+
+// ---------- la pantalla ----------
+arbolCfgUnico = (orig => function (...a) {
+  const g = orig.apply(this, a);
+  if (!puedeOrganizacion()) return g;
+  const emp = g.find(x => x[0] === 'Empresa');
+  if (emp && !emp[1].some(x => x.k === 'o.textos')) {
+    const i = emp[1].findIndex(x => x.k === 'o.marca');
+    emp[1].splice(i + 1, 0, { k: 'o.textos', t: 'Textos personalizados', ic: 'file-text', d: 'Vocabulario, menú, estados, resultados, roles y campos', r: () => pintarTextos() });
+  }
+  return g;
+})(arbolCfgUnico);
+CFG_CLAVES['o.textos'] = 'textos nombres vocabulario menú menu estados resultados roles campos renombrar palabras';
+let TX = null;   // {filas, filtro, q}
+async function pintarTextos() {
+  const c = $('cfgcuerpo'); if (!c) return;
+  cargando(c, 'Cargando los textos…');
+  const [{ data }, { data: ce }] = await Promise.all([db.rpc('catalogos_todos'), db.from('clasificadores').select('id').eq('papel', 'estado_comercial').limit(1)]);
+  const { data: est } = ce && ce[0] ? await db.from('valores_clasificador').select('id,valor,orden,activo').eq('clasificador_id', ce[0].id).order('orden') : { data: [] };
+  const cats = (data || []).filter(x => x.papel !== 'estado_comercial');
+  if (est && est.length) cats.push({ papel: 'estado_comercial', valores: est });
+  if (!$('cfgcuerpo')) return;
+  const filas = [];
+  const etq = { medico: `${TT('medico', 's', '', 'l', 'C')} al que visitáis`, paciente: 'Cliente final', visita: 'Cada encuentro' };
+  Object.keys(TERM_DEF).forEach(k => { const d = TERM_DEF[k], t = (TERMINOS || {})[k] || {};
+    filas.push({ g: 'voc', donde: etq[k] || k, siempre: `${d.s} · ${d.p}`, k, s0: t.s || '', p0: t.p || '', s: t.s || '', p: t.p || '', ds: d.s, dp: d.p }); });
+  const mn = menuNombres();
+  document.querySelectorAll('nav.main [data-t]').forEach(b => {
+    const t = b.dataset.t; if (/^pd-/.test(t) || filas.some(f => f.g === 'menu' && f.t === t)) return;
+    if (t === 'directorio') { const actual = (AJUSTES.marca || {}).etiqueta || ''; const def = TT('medico', 'p', '', 'l', 'C');
+      filas.push({ g: 'menu', donde: 'Menú', t, siempre: def, v0: actual && actual !== def ? actual : '', v: actual && actual !== def ? actual : '' }); return; }
+    const x = txTexto(b), def = b.dataset.txdef || (x && x.get()) || t;
+    filas.push({ g: 'menu', donde: 'Menú', t, siempre: def, v0: mn[t] || '', v: mn[t] || '' });
+  });
+  const valores = (papel, g, donde) => { const cat = cats.find(x => x.papel === papel); ((cat && cat.valores) || []).filter(v => v.activo !== false).forEach(v => filas.push({ g, donde, id: v.id, siempre: v.valor, v0: '', v: '', ahora: true })); };
+  if (puedeCatalogos() || puede('administrar')) { valores('estado_comercial', 'est', 'Estado comercial'); valores('resultado_visita', 'est', `Resultado de la ${TT('visita', 's', '', 'l', 'l')}`); }
+  if (puede('administrar')) rolesNombres().forEach(r => filas.push({ g: 'rol', donde: 'Rol', antes: r, siempre: r, v0: '', v: '', ahora: true }));
+  if (puedeCatalogos() || puede('administrar')) cats.filter(x => x.tipo_campo && !x.sistema).forEach(x => filas.push({ g: 'campo', donde: 'Campo de la ficha', id: x.id, siempre: x.nombre, v0: '', v: '', ahora: true }));
+  TX = { filas, filtro: (TX && TX.filtro) || '', q: '' };
+  txPintar();
+}
+const TX_G = [['voc', 'Vocabulario', 'Las palabras que salen en todos los textos. En blanco, la de siempre.'],
+  ['menu', 'Menú', 'El nombre de cada apartado del menú y de su pantalla. En blanco, el de siempre.'],
+  ['est', 'Estados y resultados', 'Al cambiar un nombre, se cambia también en las fichas y en las visitas que ya lo tienen.'],
+  ['rol', 'Roles', 'El nombre de cada rol. Sus usuarios y permisos siguen igual.'],
+  ['campo', 'Campos de la ficha', 'El nombre de cada campo personalizado.']];
+const txCambiada = f => f.g === 'voc' ? (f.s !== f.s0 || f.p !== f.p0) : (f.v || '') !== (f.v0 || '');
+const txPersonal = f => f.g === 'voc' ? !!(f.s || f.p) : f.g === 'menu' ? !!f.v : false;
+function txPintar() {
+  const c = $('cfgcuerpo'); if (!c || !TX) return;
+  const q = impNorm(TX.q || ''), F = TX.filtro;
+  const ver = f => (!F || (F === 'cambios' ? (txPersonal(f) || txCambiada(f)) : f.g === F)) && (!q || impNorm([f.donde, f.siempre, f.v, f.s, f.p].join(' ')).includes(q));
+  const nCamb = TX.filas.filter(f => txPersonal(f) || txCambiada(f)).length, pend = TX.filas.filter(txCambiada).length;
+  const fila = (f, i) => {
+    const marca = txCambiada(f) ? '<span class="txtag txpend">Sin guardar</span>' : txPersonal(f) ? '<span class="txtag">Cambiado</span>' : '';
+    const vuelve = f.g === 'voc' ? (f.s || f.p) : f.v;
+    return `<div class="txrow ${txPersonal(f) || txCambiada(f) ? 'cambio' : ''}" data-txi="${i}"><span class="donde">${esc(f.donde)}</span>
+      <span class="siempre">${esc(f.siempre)}${marca}</span>
+      ${f.g === 'voc' ? `<span class="dos"><input data-txs value="${esc(f.s)}" placeholder="${esc(f.ds)}" aria-label="Singular"><input data-txp value="${esc(f.p)}" placeholder="${esc(f.dp)}" aria-label="Plural"></span>`
+        : `<input data-txv value="${esc(f.v)}" placeholder="${esc(f.ahora ? 'Nuevo nombre' : f.siempre)}" aria-label="Nuevo nombre de ${esc(f.siempre)}">`}
+      ${vuelve ? `<button type="button" class="rv" data-txrv="${i}" title="${f.ahora ? 'Dejarlo como está' : 'Volver al de siempre'}" aria-label="${f.ahora ? 'Dejarlo como está' : 'Volver al de siempre'}">${txSV(TX_IC.rv)}</button>` : '<span></span>'}</div>`;
+  };
+  c.innerHTML = `<div class="txp">
+    <div class="txbar"><div class="txq">${txSV(TX_IC.lupa)}<input id="txq" placeholder="Busca un texto: estado, menú, rol…" value="${esc(TX.q || '')}" autocomplete="off"></div>
+      <div class="txchips" role="group" aria-label="Filtrar">${[['', 'Todos'], ['cambios', 'Cambiados', nCamb]].concat(TX_G.filter(([g]) => TX.filas.some(f => f.g === g)).map(([g, t]) => [g, t]))
+        .map(([k, t, n]) => `<button type="button" data-txf="${k}" class="${F === k ? 'on' : ''}" aria-pressed="${F === k}">${esc(t)}${n ? `<b>${n}</b>` : ''}</button>`).join('')}</div></div>
+    ${TX_G.map(([g, t, s]) => { const fs = TX.filas.map((f, i) => [f, i]).filter(([f]) => f.g === g && ver(f)); if (!fs.length) return '';
+      return `<section class="txg"><h3>${esc(t)}<span class="sm">${esc(s)}</span></h3>
+        <div class="txhead"><span>Dónde sale</span><span>${g === 'voc' || g === 'menu' ? 'El de siempre' : 'Ahora se llama'}</span><span>${g === 'voc' || g === 'menu' ? 'Vuestro texto' : 'Nuevo nombre'}</span><span></span></div>
+        ${fs.map(([f, i]) => fila(f, i)).join('')}</section>`; }).join('') || '<div class="vacio">Ningún texto coincide.</div>'}
+    <div class="txpie"><span class="sm">${pend ? `${pend} ${pend === 1 ? 'cambio' : 'cambios'} sin guardar` : 'Todo guardado'}</span>
+      <span class="acts" style="margin:0"><button type="button" class="btn sec" id="txdes" ${pend ? '' : 'disabled'}>Deshacer</button><button type="button" class="btn" id="txok" ${pend ? '' : 'disabled'}>Guardar</button></span></div></div>`;
+  const q2 = $('txq'); let tq = null;
+  q2.oninput = () => { TX.q = q2.value; clearTimeout(tq); tq = setTimeout(() => { const pos = q2.selectionStart; txPintar(); const n = $('txq'); n.focus(); n.setSelectionRange(pos, pos); }, 200); };
+  c.querySelectorAll('[data-txf]').forEach(b => b.onclick = () => { TX.filtro = b.dataset.txf; txPintar(); });
+  c.querySelectorAll('.txrow').forEach(r => {
+    const f = TX.filas[+r.dataset.txi];
+    const upd = () => { const ant = txCambiada(f); r.classList.toggle('cambio', txPersonal(f) || txCambiada(f)); if (ant !== txCambiada(f) || true) txPie(); };
+    r.querySelectorAll('[data-txv]').forEach(i => i.oninput = () => { f.v = i.value; upd(); });
+    r.querySelectorAll('[data-txs]').forEach(i => i.oninput = () => { f.s = i.value; upd(); });
+    r.querySelectorAll('[data-txp]').forEach(i => i.oninput = () => { f.p = i.value; upd(); });
+  });
+  c.querySelectorAll('[data-txrv]').forEach(b => b.onclick = () => { const f = TX.filas[+b.dataset.txrv]; if (f.g === 'voc') { f.s = ''; f.p = ''; } else f.v = ''; txPintar(); });
+  $('txdes').onclick = () => { TX.filas.forEach(f => { if (f.g === 'voc') { f.s = f.s0; f.p = f.p0; } else f.v = f.v0; }); txPintar(); };
+  $('txok').onclick = txGuardar;
+}
+function txPie() {
+  const pend = TX.filas.filter(txCambiada).length, p = document.querySelector('.txpie .sm');
+  if (p) p.textContent = pend ? `${pend} ${pend === 1 ? 'cambio' : 'cambios'} sin guardar` : 'Todo guardado';
+  if ($('txok')) $('txok').disabled = !pend; if ($('txdes')) $('txdes').disabled = !pend;
+}
+async function txGuardar() {
+  const camb = TX.filas.filter(txCambiada); if (!camb.length) return;
+  const b = $('txok'); b.disabled = true;
+  const err = [];
+  let recargar = false;
+  // Vocabulario
+  if (camb.some(f => f.g === 'voc')) {
+    const voc = {};
+    TX.filas.filter(f => f.g === 'voc').forEach(f => { const o = {}; if (f.s.trim()) o.s = f.s.trim(); if (f.p.trim()) o.p = f.p.trim(); const g0 = ((TERMINOS || {})[f.k] || {}).g; if (g0 && Object.keys(o).length) o.g = g0; if (Object.keys(o).length) voc[f.k] = o; });
+    const { data, error } = await db.rpc('guardar_ajuste', { p_clave: 'terminos', p_valor: voc });
+    if (error || (data && data.ok === false)) err.push('el vocabulario'); else { try { localStorage.setItem(TERMKEY, JSON.stringify(voc)); } catch (e) {} recargar = true; }
+  }
+  // Menú (el de las fichas es la etiqueta de la marca)
+  if (camb.some(f => f.g === 'menu')) {
+    const mn = {}; TX.filas.filter(f => f.g === 'menu' && f.t !== 'directorio' && f.v.trim()).forEach(f => { mn[f.t] = f.v.trim(); });
+    const { data, error } = await db.rpc('guardar_ajuste', { p_clave: 'menu_nombres', p_valor: mn });
+    if (error || (data && data.ok === false)) err.push('los nombres del menú'); else { AJUSTES.menu_nombres = mn; recargar = true; }
+    const dir = TX.filas.find(f => f.g === 'menu' && f.t === 'directorio');
+    if (dir && txCambiada(dir)) {
+      const v = Object.assign({}, AJUSTES.marca || {}, { etiqueta: dir.v.trim() || TT('medico', 'p', '', 'l', 'C') });
+      const r2 = await db.rpc('guardar_ajuste', { p_clave: 'marca', p_valor: v });
+      if (r2.error || (r2.data && r2.data.ok === false)) err.push(`el nombre de ${TT('medico', 'p', '', 'l', 'l')}`); else { AJUSTES.marca = v; aplicarEtiqueta(); }
+    }
+  }
+  // Estados, resultados, roles y campos: uno a uno, en la base (también en las fichas y visitas que los tienen)
+  for (const f of camb.filter(x => ['est', 'rol', 'campo'].includes(x.g) && x.v.trim())) {
+    const p = f.g === 'rol' ? { tipo: 'rol', antes: f.antes, nuevo: f.v.trim() } : { tipo: f.g === 'campo' ? 'campo' : 'valor', id: f.id, nuevo: f.v.trim() };
+    const { data, error } = await db.rpc('renombrar_texto', { p });
+    if (error || !data || !data.ok) err.push(`«${f.siempre}»${data && data.error === 'existe' ? ' (ya hay otro con ese nombre)' : ''}`);
+    else recargar = true;
+  }
+  invalidarCache();
+  if (err.length) { toast('No se ha podido cambiar ' + err.join(', '), true); b.disabled = false; return; }
+  toast('Textos guardados: se recarga la plataforma');
+  setTimeout(() => location.reload(), 900);
+}
