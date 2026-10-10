@@ -3826,6 +3826,55 @@ input.campodup{border-color:#E08A00!important;box-shadow:0 0 0 3px rgba(224,138,
 .agbdc .lista{margin-top:8px}
 @media (max-width:1099px){#v-agenda.agunida.agcinta #agsemlat{grid-column:1;position:static}}
 @media (prefers-reduced-motion:reduce){.agsemexp{animation:none}}
+
+/* v2.230.0 · KPIs de Pedidos y Analítica */
+#operativa.pkop{background:none;border:0;box-shadow:none;padding:0;margin:0 0 14px}
+.pk{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;position:relative}
+.pk .pkt{position:relative;display:flex;flex-direction:column;align-items:stretch;text-align:left;background:var(--panel,#fff);border:1px solid var(--line);border-radius:16px;padding:16px 18px 14px;cursor:pointer;font:inherit;color:inherit;overflow:hidden;transition:border-color .2s,box-shadow .2s,transform .2s;min-width:0}
+.pk .pkt:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(11,37,64,.08)}
+.pk .pkt.on{border-color:var(--navy);box-shadow:inset 0 0 0 2px var(--navy)}
+.pk .pkt[data-cero]{cursor:default}.pk .pkt[data-cero]:hover{transform:none;box-shadow:none}
+.pk .pktt{font:700 12px var(--f-titulo);letter-spacing:.08em;text-transform:uppercase;color:#5B6B80;display:flex;align-items:center;gap:8px;padding-right:70px}
+.pk .pktt svg{width:16px;height:16px;flex:none}
+.pk .pkn{font:800 34px/1.1 var(--f-titulo);color:var(--navy);margin-top:8px;font-variant-numeric:tabular-nums}
+.pk .pkt.alta .pkn{color:#B4541A}
+.pk .pks{font-size:13px;color:#5B6B80;margin-top:2px;min-height:18px}.pk .pks b{color:var(--navy)}
+.pk .pkbars{display:flex;align-items:flex-end;gap:4px;height:34px;margin-top:12px}
+.pk .pkbars i{flex:1;border-radius:3px 3px 0 0;background:#D6E6F5;transform-origin:bottom;animation:pkcrece .9s cubic-bezier(.2,.8,.2,1) both}
+.pk .pkt.alta .pkbars i{background:#F6D3BE}.pk .pkbars i.u{background:var(--navy)}.pk .pkt.alta .pkbars i.u{background:#B4541A}
+.pk .pklg{font-size:11px;color:#8A9BB0;margin-top:4px}
+.pk .pkfil{position:absolute;top:14px;right:14px;font:700 11px var(--f-texto);color:#fff;background:var(--navy);border-radius:999px;padding:2px 9px;opacity:0;transition:opacity .2s}
+.pk .pkt.on .pkfil{opacity:1}
+.pk .pkcfg,.pkvacio .pkcfg{position:absolute;top:-38px;right:0;width:32px;height:32px;border-radius:10px;border:1px solid var(--line);background:var(--panel,#fff);display:grid;place-items:center;cursor:pointer;color:var(--navy)}
+.pk .pkcfg svg,.pkvacio .pkcfg svg{width:16px;height:16px}
+.pkcfg.pkcfgcab{position:static;width:auto;height:auto;padding:0 12px;display:inline-flex;align-items:center;justify-content:center;align-self:stretch}
+.pkcfg.pkcfgcab svg{width:16px;height:16px}
+.pkvacio{position:relative;padding:12px 56px 12px 16px;border:1px dashed var(--line);border-radius:14px;font-size:13.5px;color:#5B6B80}
+.pkvacio .pkcfg{top:8px;right:10px}
+@keyframes pkcrece{from{transform:scaleY(0)}}
+@media (max-width:760px){
+  .pk{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:minmax(220px,78%);overflow-x:auto;scroll-snap-type:x mandatory;padding:2px 2px 6px;margin:0 -2px;scrollbar-width:none}
+  .pk::-webkit-scrollbar{display:none}
+  .pk .pkt{scroll-snap-align:start;padding:14px 16px 12px}
+  .pk .pkn{font-size:30px}
+  .pk .pktt{padding-right:0;font-size:11px;letter-spacing:.05em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+  .pk .pktt svg{vertical-align:-3px;margin-right:6px}
+  .pk .pkt.on .pktt{padding-right:70px}
+  .pk .pkcfg{position:static;align-self:center;grid-row:1}
+}
+/* Analítica */
+.ankpi.anv .ankval{font-variant-numeric:tabular-nums}
+.ankpi.anv .avz{position:relative;height:60px;margin-top:10px}
+.ankpi.anv .avz.avsin{display:none}
+.ankpi.anv .avsp{width:100%;height:46px;display:block;overflow:visible}
+.ankpi.anv .avsp path.l{fill:none;stroke:var(--navy);stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke;stroke-dasharray:100;stroke-dashoffset:100;animation:avtraza 1.2s cubic-bezier(.2,.8,.2,1) forwards}
+.ankpi.anv .avsp path.a{fill:#3F82C0;opacity:0;animation:avfondo .8s .5s forwards}
+.ankpi.anv .avpt{position:absolute;width:7px;height:7px;margin:-3.5px 0 0 -3.5px;border-radius:50%;background:var(--navy);opacity:0;animation:avfondo .3s 1s forwards}
+.ankpi.anv .avm{display:flex;justify-content:space-between;font-size:10.5px;color:#8A9BB0;margin-top:2px}
+@keyframes avtraza{to{stroke-dashoffset:0}}@keyframes avfondo{to{opacity:.12}}
+.ankpi.anv .avpt{animation-name:avpunto}@keyframes avpunto{to{opacity:1}}
+@media (prefers-reduced-motion:reduce){.pk .pkbars i{animation:none}.ankpi.anv .avsp path.l{animation:none;stroke-dashoffset:0}.ankpi.anv .avsp path.a{animation:none;opacity:.12}.ankpi.anv .avpt{animation:none;opacity:1}}
+@media (max-width:760px){#anareas .ankpi .ankval{font-size:clamp(22px,7.4vw,30px);overflow-wrap:anywhere}}
 </style>
 </head>
 <body>
@@ -3964,6 +4013,6 @@ try{var co=sessionStorage.getItem('dlc-cambio-org');if(co!==null||localStorage.g
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.229.0"></script>
+<script src="./app.js?v=2.230.0"></script>
 </body>
 </html>

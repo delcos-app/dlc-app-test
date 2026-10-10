@@ -23688,3 +23688,132 @@ agVerDia = (orig => function (...a) {
   return r;
 })(agVerDia);
 document.addEventListener('click', e => { if (e.target.closest('#agcinta [data-cm]')) setTimeout(() => { try { agMenusCinta(); agBotonSemana(); } catch (x) {} }, 400); });
+
+/* v2.230.0 · KPIs de Pedidos y Analítica (Eric eligió la A de https://claude.ai/artifact/PTBZBvZ3yZrQxpxXCNKyrs).
+   - Pedidos: #operativa deja de ser el cartel con los avisos desplegables y pasa a tres tarjetas vivas (pagos por validar, paquetes por
+     preparar y facturas por enviar) con su número que cuenta, una frase y la entrada de los últimos 10 días. Pulsar una pone el filtro
+     «Operativa» (#popf) de la tabla; volver a pulsarla lo quita. Las cifras son las de la tabla (todos los pendientes). El engranaje
+     (#opcfg) sigue eligiendo qué tarjetas se ven.
+   - Analítica: cada indicador cuenta hasta su cifra y dibuja la línea de los últimos seis meses (analitica_kpis_periodo por mes, con
+     el filtro propio del indicador). Sin línea los de «a día de hoy» y los de texto. */
+const PK_TARJ = [['pago', 'pago', 'Pagos por validar', 'credit-card'], ['paquete', 'paquete', 'Paquetes por preparar', 'package'],
+  ['email_factura', 'email', 'Facturas por enviar', 'mail']];
+const pkMovimiento = () => !matchMedia('(prefers-reduced-motion: reduce)').matches;
+function pkContar(els, fmt) {
+  if (!pkMovimiento()) { els.forEach(el => el.textContent = fmt(+el.dataset.v, el)); return; }
+  const t0 = performance.now();
+  const paso = t => { const p = Math.min(1, (t - t0) / 900), e = 1 - Math.pow(1 - p, 3); els.forEach(el => { if (el.isConnected) el.textContent = fmt(+el.dataset.v * e, el); }); if (p < 1) requestAnimationFrame(paso); };
+  requestAnimationFrame(paso);
+}
+function pkMarcar() {
+  const s = $('popf'), v = s ? s.value : '';
+  document.querySelectorAll('#operativa [data-pk]').forEach(b => { b.classList.toggle('on', b.dataset.pk === v); b.setAttribute('aria-pressed', b.dataset.pk === v); });
+}
+document.addEventListener('change', e => { if (e.target && e.target.id === 'popf') pkMarcar(); });
+pintarOperativa = async function () {
+  let c = $('operativa');
+  if (!c) { const ref = $('vcuerpo'); if (!ref) return; ref.insertAdjacentHTML('beforebegin', '<div id="operativa"></div>'); c = $('operativa'); }
+  const [{ data }, { data: aj }] = await Promise.all([RPC_ORIG('operativa_pendiente', {}),
+    db.from('ajustes').select('valor').eq('clave', 'avisos_pedidos').maybeSingle()]);
+  c = $('operativa'); if (!c) return;
+  c.className = 'pkop';
+  document.querySelectorAll('#opcfg').forEach(x => x.remove());
+  const d = data || {}, oblig = (((aj && aj.valor) || {}).obligatorios || {})[PERFIL.rol] || [];
+  const pref = ((PERFIL.preferencias || {}).avisos_pedidos) || {};
+  const vis = PK_TARJ.filter(([k]) => oblig.includes(k) || pref[k] !== false);
+  const hoy = hoyISO(), dia = x => String(x.fecha || '').slice(0, 10);
+  const barras = l => { const m = {}; l.forEach(x => { m[dia(x)] = (m[dia(x)] || 0) + 1; }); return [...Array(10)].map((_, i) => m[isoMas(hoy, i - 9)] || 0); };
+  const antig = l => l.length ? Math.max(0, ...l.map(x => Math.round((new Date(hoy) - new Date(dia(x))) / 864e5))) : 0;
+  const hace = n => n === 0 ? 'de hoy' : n === 1 ? 'de ayer' : `de hace ${num(n)} días`;
+  const frase = (k, l) => {
+    if (!l.length) return k === 'pago' ? 'Todos los pagos validados' : k === 'paquete' ? 'Todo preparado' : 'Todas enviadas';
+    const ant = `el más antiguo, ${hace(antig(l))}`;
+    if (k === 'pago' && verImportes()) return `<b>${eurI(l.reduce((a, x) => a + (+x.total || 0), 0))}</b> por confirmar · ${ant}`;
+    return ant.charAt(0).toUpperCase() + ant.slice(1);
+  };
+  const gear = `<button type="button" class="pkcfg" id="opcfg" aria-label="Elegir qué avisos ver" title="Elegir qué avisos ver">${svgIco(ICON_NOM.settings || '')}</button>`;
+  c.innerHTML = !vis.length
+    ? `<div class="pkvacio">Has ocultado los avisos de pedidos. Vuelve a elegirlos con el engranaje. ${gear}</div>`
+    : `<div class="pk">${vis.map(([k, f, t, ic]) => {
+        const l = d[k] || [], b = barras(l), mx = Math.max(1, ...b), alta = k === 'pago' && l.length;
+        return `<button type="button" class="pkt ${alta ? 'alta' : ''}" data-pk="${f}" aria-pressed="false" ${l.length ? '' : 'data-cero'}>
+          <span class="pkfil">Filtrando</span><span class="pktt">${svgIco(ICON_NOM[ic] || ICON_NOM.info || '')} ${t}</span>
+          <span class="pkn" data-v="${l.length}">${num(l.length)}</span><span class="pks">${frase(k, l)}</span>
+          <span class="pkbars" aria-hidden="true">${b.map((n, i) => `<i class="${i === 9 ? 'u' : ''}" style="height:${n ? Math.max(14, 100 * n / mx) : 6}%"></i>`).join('')}</span>
+          <span class="pklg">Entrada de los últimos 10 días</span></button>`; }).join('')}${gear}</div>`;
+  c.querySelectorAll('[data-pk]').forEach(b => b.onclick = () => {
+    const s = $('popf'); if (!s) return;
+    s.value = s.value === b.dataset.pk ? '' : b.dataset.pk; s.dispatchEvent(new Event('change', { bubbles: true }));
+    pkMarcar();
+  });
+  // El engranaje, junto a «Filtros y columnas» de la cabecera (si está a la vista)
+  const hb = document.querySelector('#v-ventas .htbtn'), g = $('opcfg');
+  if (hb && hb.offsetParent && g && vis.length) { g.className = 'btn sec pkcfg pkcfgcab'; hb.insertAdjacentElement('beforebegin', g); }
+  $('opcfg').onclick = () => configurarAvisosPedidos(oblig);
+  pkMarcar();
+  pkContar([...c.querySelectorAll('.pkn[data-v]')], n => num(Math.round(n)));
+};
+
+/* ---------------- Analítica: cifras que cuentan y línea de seis meses ---------------- */
+const AN_SERIE = new Map();
+const AN_MES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+function anMeses(hasta) {
+  return [...Array(6)].map((_, i) => {
+    const d = new Date(hasta + 'T12:00:00'); d.setDate(1); d.setMonth(d.getMonth() - 5 + i);
+    const a = isoLocal(d); d.setMonth(d.getMonth() + 1); d.setDate(0); const b = isoLocal(d);
+    return [a, b > hasta ? hasta : b];
+  });
+}
+async function anSerie(meses, f, fams) {
+  const clave = JSON.stringify([meses[0][0], meses[5][1], f, fams]);
+  if (!AN_SERIE.has(clave)) AN_SERIE.set(clave, Promise.all(meses.map(([a, b]) =>
+    db.rpc('analitica_kpis_periodo', { p_desde: a, p_hasta: b, p_filtro: f, p_familias: fams, p_estado: false }).then(r => r.error ? {} : (r.data || {}), () => ({})))));
+  const r = await AN_SERIE.get(clave);
+  if (r.every(x => !Object.keys(x).length)) AN_SERIE.delete(clave);
+  return r;
+}
+function anLinea(vals, meses) {
+  const mx = Math.max(...vals), mn = Math.min(...vals, 0), W = 200, H = 40, rg = (mx - mn) || 1;
+  const pts = vals.map((x, i) => [i * W / 5, H - 4 - (H - 8) * (x - mn) / rg]);
+  const dl = pts.map((p, i) => (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(' ');
+  return `<svg class="avsp" viewBox="0 0 200 46" preserveAspectRatio="none" aria-hidden="true"><path class="a" d="${dl} L200 46 L0 46 Z"/><path class="l" pathLength="100" d="${dl}"/></svg>
+    <span class="avpt" style="left:${(pts[5][0] / 2).toFixed(1)}%;top:${(pts[5][1] / 46 * 100).toFixed(1)}%"></span>
+    <div class="avm">${meses.map(([a]) => `<span>${AN_MES[+a.slice(5, 7) - 1]}</span>`).join('')}</div>`;
+}
+anCargarKpis = (orig => async function () {
+  await orig.apply(this, arguments);
+  const caja = $('anareas'); if (!caja || !AN_CFG || !$('anper')) return;
+  const pedido = caja.dataset.pedido, cat = anCatalogo(), r = $('anper').__rango(), hoy = hoyISO();
+  const hasta = !r.hasta || r.hasta > hoy ? hoy : r.hasta, meses = anMeses(hasta);
+  const tarjetas = [...caja.querySelectorAll('.ankpi[data-anu]')].map(el => {
+    const x = AN_CFG.kpis.find(y => y.u === el.dataset.anu), k = x && cat.find(c => c.id === x.id);
+    return { el, x, k };
+  }).filter(t => t.x && t.k);
+  // Las cifras cuentan desde cero (con su mismo formato)
+  const nums = [];
+  tarjetas.forEach(({ el, k }) => {
+    el.classList.add('anv');
+    const n = el.querySelector('.ankval'); if (!n || k.fmt === 'txt') return;
+    const t = n.textContent, m = t.match(/-?[\d.]+(,\d+)?/); if (!m) return;
+    n.dataset.v = parseFloat(m[0].replace(/\./g, '').replace(',', '.')); n.dataset.f = t; n.dataset.dec = m[1] ? m[1].length - 1 : 0; nums.push(n);
+  });
+  pkContar(nums, (v, el) => el.dataset.f.replace(/-?[\d.]+(,\d+)?/, v.toLocaleString('es-ES', { minimumFractionDigits: +el.dataset.dec, maximumFractionDigits: +el.dataset.dec })));
+  // La línea: hueco reservado ya (sin saltos) y se dibuja al llegar
+  const conLinea = tarjetas.filter(({ k }) => !k.hoy && k.fmt !== 'txt');
+  conLinea.forEach(({ el }) => el.insertAdjacentHTML('beforeend', '<div class="avz" aria-hidden="true"></div>'));
+  const grupos = {};
+  conLinea.forEach(t => {
+    const f = {}; (AN_FILTROS[t.k.fam] || []).forEach(c => { if (t.x.f && t.x.f[c]) f[c] = t.x.f[c]; });
+    const g = JSON.stringify(f); (grupos[g] = grupos[g] || { f, fams: new Set(), ts: [] }).fams.add(t.k.fam); grupos[g].ts.push(t);
+  });
+  await Promise.all(Object.values(grupos).map(async g => {
+    const serie = await anSerie(meses, g.f, [...g.fams].sort());
+    if (!$('anareas') || $('anareas').dataset.pedido !== pedido) return;
+    g.ts.forEach(({ el, x, k }) => {
+      const z = el.querySelector('.avz'); if (!z) return;
+      const vals = serie.map(s => +s[x.id] || 0);
+      if (vals.every(v => !v)) { z.classList.add('avsin'); return; }
+      z.innerHTML = anLinea(vals, meses); z.title = meses.map(([a], i) => `${AN_MES[+a.slice(5, 7) - 1]}: ${anFmt(vals[i], k.fmt).replace(/<[^>]+>/g, '')}`).join(' · ');
+    });
+  }));
+})(anCargarKpis);
