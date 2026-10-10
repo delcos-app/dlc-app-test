@@ -3902,6 +3902,17 @@ header .top .logo,nav.main .mlmarca{cursor:pointer}
   #v-agenda.agcinta #agcuerpo .tdhead .acts{margin-top:4px!important}
 }
 .vccerrada{margin:0 0 12px}
+
+/* v2.232.0 · Notificaciones que no vuelven */
+.notit2:not(.nuevo){opacity:.78}
+.notit2:not(.nuevo):hover{opacity:1}
+.notacts{align-items:center;min-height:32px}
+.notit2 .tx .notbor{position:absolute;right:0;bottom:0;margin:0;width:32px;height:32px;min-height:0;padding:0;border:1px solid transparent;border-radius:9px;background:none;color:var(--muted);display:inline-grid;place-items:center;cursor:pointer}
+.notit2 .tx .notbor:hover{border-color:var(--line);color:#B42318;background:#FEF3F2}
+.notit2 .tx .notbor svg{width:16px;height:16px}
+.notit2.notsale{transition:opacity .2s,transform .2s;opacity:0;transform:translateX(16px)}
+.notpie{margin:10px 16px 0;color:var(--muted)}
+@media (prefers-reduced-motion:reduce){.notit2.notsale{transition:none}}
 </style>
 </head>
 <body>
@@ -4040,6 +4051,6 @@ try{var co=sessionStorage.getItem('dlc-cambio-org');if(co!==null||localStorage.g
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.231.0"></script>
+<script src="./app.js?v=2.232.0"></script>
 </body>
 </html>
