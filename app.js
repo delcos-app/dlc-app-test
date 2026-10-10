@@ -24223,3 +24223,481 @@ cargarRutas = (orig => async function (...a) {
   rutasMapa();
   return r;
 })(cargarRutas);
+
+/* v2.234.0 · Rutas paso a paso (Eric eligió la B de https://claude.ai/artifact/1Ggx6ScuLR1Ad1kfmbQ6t1; SQL 139).
+   - Fuera las propuestas automáticas. «Mis rutas» en tarjetas: recorrido dibujado, cuándo se hace, próxima fecha, a cuántos ves,
+     kilómetros y hora de fin; «Pasar a mi agenda», «Editar» y «Eliminar» a la vista.
+   - Crear o editar en tres pasos: 1) a quién vas a ver (buscador, filtros y mapa: tocar un punto lo añade), 2) orden y horario
+     (el mejor orden se calcula solo respetando las horas de atención; se puede cambiar a mano y fijar horas), 3) vista previa del día
+     (por las calles, con la función «rutas») y cuándo: un día concreto, cada semana, cada 15 días o una vez al mes (1.ª–4.ª o última
+     semana). El nombre se propone solo (día y municipios) y se puede cambiar.
+   - Pasar a la agenda: las citas de los días que tocan (8 semanas o 3 meses), sin duplicar (op_id por ruta, ficha y día) y saltando
+     los días bloqueados. Las rutas que se repiten se rellenan solas hasta 4 semanas vista (repeticion.hasta guarda hasta dónde). */
+const RN_DIAS = ['L', 'M', 'X', 'J', 'V'], RN_DIAN = { L: 'lunes', M: 'martes', X: 'miércoles', J: 'jueves', V: 'viernes' };
+const RN_SEM = { 1: 'primer', 2: 'segundo', 3: 'tercer', 4: 'cuarto', 5: 'último' };
+let RN = null;          // la ruta que se está creando o editando
+let RN_LISTA = null, RN_MAPA_P = null;    // tarjetas de Mis rutas: [{r, ms}]
+const rnSV = d => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + d + '</svg>';
+const RN_IC = { up: '<path d="m18 15-6-6-6 6"/>', down: '<path d="m6 9 6 6 6-6"/>', x: '<path d="M18 6 6 18M6 6l12 12"/>', lupa: '<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>',
+  lapiz: '<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>', papelera: '<path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>',
+  reloj: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>', varita: '<path d="m15 4 5 5"/><path d="M3 21 15 9"/><path d="M19 3v4M17 5h4M7 3v2M6 4h2"/>', check: '<path d="M20 6 9 17l-5-5"/>' };
+
+// ---------- fechas de una ruta que se repite ----------
+const rnDiaSem = d => RN_DIAS.indexOf(d) + 1;   // L = 1 … V = 5 (getDay)
+function rnCumple(rep, f) {
+  if (!rep) return false;
+  const d = new Date(f + 'T12:00:00');
+  if (rep.tipo === 'fecha') return rep.fecha === f;
+  if (d.getDay() !== rnDiaSem(rep.dia)) return false;
+  if (rep.tipo === 'semanal') return !rep.desde || f >= rep.desde;
+  if (rep.tipo === 'quincenal') { const base = new Date((rep.desde || f) + 'T12:00:00'); const sem = Math.round((d - base) / 864e5 / 7); return f >= (rep.desde || f) && sem % 2 === 0; }
+  if (rep.tipo === 'mensual') {
+    const n = Math.ceil(d.getDate() / 7);
+    if (+rep.semana === 5) { const sig = new Date(d); sig.setDate(d.getDate() + 7); return sig.getMonth() !== d.getMonth(); }
+    return n === +rep.semana;
+  }
+  return false;
+}
+function rnFechas(rep, desde, hasta) {
+  const out = []; if (!rep) return out;
+  if (rep.tipo === 'fecha') return rep.fecha && rep.fecha >= desde && rep.fecha <= hasta ? [rep.fecha] : [];
+  for (let f = desde; f <= hasta; f = isoMas(f, 1)) if (rnCumple(rep, f)) out.push(f);
+  return out;
+}
+const rnHorizonte = rep => isoMas(hoyISO(), rep && rep.tipo === 'mensual' ? 92 : 56);
+function rnCuando(rep) {
+  if (!rep) return 'Sin fecha fija';
+  if (rep.tipo === 'fecha') return rep.fecha ? fechaLarga(new Date(rep.fecha + 'T12:00:00')).replace(/^./, c => c.toUpperCase()) : 'Un día concreto';
+  if (rep.tipo === 'semanal') return `Cada ${RN_DIAN[rep.dia]}`;
+  if (rep.tipo === 'quincenal') return `Cada 15 días, los ${RN_DIAN[rep.dia]}`;
+  if (rep.tipo === 'mensual') return `El ${RN_SEM[rep.semana] || 'primer'} ${RN_DIAN[rep.dia]} de cada mes`;
+  return '';
+}
+const rnProxima = rep => rnFechas(rep, hoyISO(), isoMas(hoyISO(), 120))[0] || null;
+// El día de referencia para las horas de atención: el de la repetición o el siguiente laborable
+function rnFechaRef(rep, nombre) {
+  const p = rnProxima(rep); if (p) return p;
+  const m = String(nombre || '').toLowerCase().match(/^(lunes|martes|miércoles|jueves|viernes)(?=[\s·]|$)/);
+  if (m) { const d = RN_DIAS.find(k => RN_DIAN[k] === m[1]); return rnFechas({ tipo: 'semanal', dia: d }, isoMas(hoyISO(), 1), isoMas(hoyISO(), 8))[0] || siguienteLaborable(); }
+  return siguienteLaborable();
+}
+
+// ---------- horas ----------
+function rnItems(ms, fecha) { return ms.map(m => ({ id: m.id, ref: m, xy: m.lat != null && m.lon != null ? [+m.lat, +m.lon] : null, ventanas: ventanasDe(m.dias, fecha), fija: null })); }
+function rnConHor(salida, vuelta, fn) { return conHor({ salida: salida || '09:00', vuelta: vuelta || null }, fn); }
+// El mejor orden: el planificador de siempre (cercanía y horas de atención)
+function rnOrdenAuto(ms, fecha, salida, vuelta) {
+  return rnConHor(salida, vuelta, () => {
+    const { seq, fuera } = programarVisitas(rnItems(ms, fecha), minHora(salida || '09:00'));
+    return seq.map(s => s.it.ref).concat(fuera.map(f => f.it.ref));
+  });
+}
+// Horas siguiendo el orden que hay (con las fijadas a mano)
+function rnHoras(ms, fecha, salida, vuelta, fijas) {
+  return rnConHor(salida, vuelta, () => {
+    const cfg = PLANCFG(), sal = salidaUsuario(), dura = cfg.visita || 15;
+    let pos = sal.lat != null ? [+sal.lat, +sal.lon] : null, t = minHora(salida || '09:00'), km = 0;
+    const out = ms.map((m, i) => {
+      const xy = m.lat != null ? [+m.lat, +m.lon] : null, ven = ventanasDe(m.dias, fecha);
+      const mismo = pos && xy && pos[0] === xy[0] && pos[1] === xy[1];
+      const v = pos && xy && !mismo ? minutosEntre(pos, xy) + (cfg.parada || 0) : 0;
+      if (pos && xy && !mismo) km += Math.hypot((xy[0] - pos[0]) * 111.32, (xy[1] - pos[1]) * 111.32 * Math.cos(xy[0] * Math.PI / 180)) * 1.3;
+      let ini = t + v; const fija = fijas && fijas[m.id] ? minHora(fijas[m.id]) : null;
+      if (fija != null) ini = Math.max(ini, fija);
+      else if (ven && ven.length) { const w = ven.find(([a, b]) => ini <= b - dura) || null; if (w && ini < w[0]) ini = w[0]; }
+      const aviso = !xy ? 'Sin ubicación' : ven && !ven.length ? `Ese día no atiende` : ven && ven.length && !ven.some(([a, b]) => ini >= a && ini + dura <= b) ? `Fuera de su horario (${txtVentanas(ven)})` : '';
+      const r = { m, i, ini, fin: ini + dura, viaje: v, ven, aviso, fija: fija != null, mismo }; if (xy) pos = xy; t = ini + dura; return r;
+    });
+    const tope = minHora(cfg.tope);
+    return { filas: out, fin: t, km, pasa: vuelta && t > tope };
+  });
+}
+function rnNombreAuto(ms, rep) {
+  const munis = [...new Set(ms.map(m => rpTitulo(m.municipio || '')).filter(Boolean))];
+  const dia = rep && rep.dia ? RN_DIAN[rep.dia].replace(/^./, c => c.toUpperCase()) : rep && rep.tipo === 'fecha' && rep.fecha ? fechaCorta(rep.fecha) : '';
+  const zona = munis.length ? munis.slice(0, 2).join(' y ') + (munis.length > 2 ? ' y más' : '') : 'Nueva ruta';
+  return dia ? `${dia} · ${zona}` : zona;
+}
+
+// ---------- Mis rutas ----------
+function rnCroquis(ms) {
+  const pts = []; ms.forEach(m => { if (m.lat == null) return; if (!pts.some(u => u.lat === +m.lat && u.lon === +m.lon)) pts.push({ lat: +m.lat, lon: +m.lon }); });
+  if (!pts.length) return '<div class="rnsin">Sin ubicaciones</div>';
+  const W = 400, H = 140, P = 22, PT = 44, la = pts.map(p => p.lat), lo = pts.map(p => p.lon);
+  const a0 = Math.min(...la), a1 = Math.max(...la), o0 = Math.min(...lo), o1 = Math.max(...lo), k = Math.cos(a0 * Math.PI / 180);
+  const s = Math.min((W - 2 * P) / Math.max(1e-6, (o1 - o0) * k), (H - P - PT) / Math.max(1e-6, a1 - a0));
+  const cx = (W - (o1 - o0) * k * s) / 2, cy = (H - PT - P - (a1 - a0) * s) / 2 + P;
+  const ps = pts.map(p => [cx + (p.lon - o0) * k * s, H - cy - (p.lat - a0) * s]);
+  return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><polyline points="${ps.map(p => p.map(v => v.toFixed(1)).join(',')).join(' ')}" fill="none" stroke="#3F82C0" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+    ${ps.map((p, i) => `<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="10.5" fill="#17457A" stroke="#fff" stroke-width="2.5"/><text x="${p[0].toFixed(1)}" y="${(p[1] + 4).toFixed(1)}" text-anchor="middle" font-size="11" font-weight="800" fill="#fff" font-family="Manrope, sans-serif">${i + 1}</text>`).join('')}</svg>`;
+}
+async function rnMiembros(r) {
+  const { data } = await db.rpc('cuentas_de_ruta', { p_id: r.id });
+  const ms = data || [], pos = id => { const i = (r.codigos || []).indexOf(id); return i < 0 ? 1e9 : i; };
+  return r.dinamica ? ms : ms.slice().sort((a, b) => pos(a.id) - pos(b.id));
+}
+cargarRutasBase = async function () {
+  const v = $('v-rutas');
+  if (RN) return rnPintar();
+  const { data: rutas } = await db.rpc('rutas_visibles');
+  RUTAS = rutas || [];
+  const lista = await Promise.all(RUTAS.map(async r => ({ r, ms: await rnMiembros(r) })));
+  RN_LISTA = lista;
+  v.innerHTML = `
+    <div class="saludo"><div><h1>Rutas</h1><div class="fecha">Tus rutas: créalas paso a paso, revísalas y pásalas a tu agenda</div></div>
+      <div class="acts" style="margin:0"><button class="btn" id="rnueva">+ Nueva ruta</button></div></div>
+    <div class="rngrid" id="rngrid">${lista.map(({ r, ms }, i) => {
+      const rep = r.repeticion || null, f = rnFechaRef(rep, r.nombre), h = rnHoras(ms, f, r.salida, r.vuelta, r.fijas), prox = rnProxima(rep);
+      const paradas = new Set(ms.filter(m => m.lat != null).map(m => (+m.lat).toFixed(5) + ',' + (+m.lon).toFixed(5))).size;
+      return `<article class="rncard" data-rni="${i}"><div class="rncro">${rnCroquis(ms)}<span class="rndia">${esc(rnCuando(rep))}</span></div>
+        <div class="rntx"><b>${esc(r.nombre)}</b>
+          <span class="sm">${num(ms.length)} ${ms.length === 1 ? TT('medico', 's', '', 'l', 'l') : TT('medico', 'p', '', 'l', 'l')} · ${paradas} ${paradas === 1 ? 'parada' : 'paradas'}${h.km >= 1 ? ' · ' + Math.round(h.km) + ' km' : ''}</span>
+          <span class="sm">${ms.length ? `De ${r.salida ? String(r.salida).slice(0, 5) : '09:00'} a ${hm(h.fin)}` : 'Todavía sin nadie'}${prox ? ` · próxima: ${esc(fechaCorta(prox))}` : ''}${r.mia ? '' : ' · de ' + esc(r.duenyo || '')}</span></div>
+        <div class="rnacts"><button class="btn" type="button" data-rnag="${i}">Pasar a mi agenda</button>
+          ${r.mia || puede('administrar') ? `<button class="btn sec" type="button" data-rned="${i}">${rnSV(RN_IC.lapiz)} Editar</button>
+          <button class="btn sec rnico" type="button" data-rnbor="${i}" aria-label="Eliminar ${esc(r.nombre)}" title="Eliminar">${rnSV(RN_IC.papelera)}</button>` : `<button class="btn sec" type="button" data-rnver="${i}">Ver</button>`}</div></article>`; }).join('')}
+      <button class="rnnueva" type="button" id="rnnueva2"><span><span class="mas">+</span><b>Nueva ruta</b><span class="sm">${lista.length ? 'Elige a quién vas a ver y en qué orden' : `Tu primera ruta: elige a quién vas a ver, el orden y cuándo. La app calcula las horas.`}</span></span></button></div>
+    <div id="rcuerpo" hidden></div><div id="rplan"></div>`;
+  $('rnueva').onclick = $('rnnueva2').onclick = () => rnAbrir(null);
+  v.querySelectorAll('[data-rned]').forEach(b => b.onclick = () => rnAbrir(lista[+b.dataset.rned], 3));
+  v.querySelectorAll('[data-rnver]').forEach(b => b.onclick = () => rnAbrir(lista[+b.dataset.rnver], 3));
+  v.querySelectorAll('[data-rnag]').forEach(b => b.onclick = () => rnPasarAgenda(lista[+b.dataset.rnag], b));
+  v.querySelectorAll('[data-rnbor]').forEach(b => b.onclick = async () => {
+    const { r } = lista[+b.dataset.rnbor];
+    if (!await preguntar(`Se elimina «${r.nombre}». Las citas que ya están en tu agenda no se borran.`, { titulo: '¿Eliminar la ruta?', ok: 'Eliminar', peligro: true })) return;
+    const { error } = await db.rpc('guardar_ruta', { p: { id: r.id, activa: false } });
+    if (error) { toast('No se ha podido eliminar', true); return; }
+    toast('Ruta eliminada'); invalidarCache(); cargarRutas();
+  });
+};
+
+// ---------- pasar a la agenda ----------
+async function rnCitasEn(r, ms, fechas) {
+  let n = 0, saltados = [];
+  const bloq = fechas.length ? await bloqueadosSemana(fechas[0], fechas[fechas.length - 1]) : {};
+  for (const f of fechas) {
+    if (bloq[f]) { saltados.push(f); continue; }
+    const existentes = await citasDelDia(f), ids = [];
+    let orden = existentes.length;
+    for (const m of ms) {
+      const ya = existentes.find(c => c.cuenta_id === m.id && CITA_ABIERTA.includes(c.estado));
+      if (ya) { ids.push(ya.id); continue; }
+      const { data: x, error } = await db.rpc('guardar_cita', { p: { cuenta_id: m.id, fecha: f, hora: (r.fijas || {})[m.id] || null, centro_nombre: m.centro_nombre || null,
+        estado: CITA_ABIERTA[0], origen: 'Ruta', orden: ++orden, salida: r.salida || null, vuelta: r.vuelta || null, op_id: `r-${r.id}-${m.id}-${f}` } });
+      if (error || !x || !x.ok) { toast('No se ha podido guardar alguna cita', true); return { n, saltados, error: true }; }
+      ids.push(x.id); n++;
+    }
+    const cerradas = existentes.filter(c => !CITA_ABIERTA.includes(c.estado)).map(c => c.id);
+    const otras = existentes.filter(c => CITA_ABIERTA.includes(c.estado) && !ids.includes(c.id)).map(c => c.id);
+    await db.rpc('ordenar_citas', { p_ids: cerradas.concat(otras, ids) });
+  }
+  invalidarCache();
+  return { n, saltados };
+}
+async function rnPasarAgenda(item, btn) {
+  const { r } = item, ms = (item.ms || []).filter(m => m.lat != null);
+  if (!ms.length) { toast(`Esta ruta no tiene ${TT('medico', 'p', '', 'l', 'l')} con ubicación`, true); return; }
+  let rep = r.repeticion || null, fechas;
+  if (!rep) {
+    const f = await pedirCampo('¿Qué día la haces?', 'date', siguienteLaborable(), 'Día');
+    if (!f) return; fechas = [f];
+  } else fechas = rnFechas(rep, rep.desde && rep.desde > hoyISO() ? rep.desde : hoyISO(), rnHorizonte(rep));
+  if (!fechas.length) { toast('No hay ningún día próximo para esta ruta', true); return; }
+  if (fechas.length > 1 && !await preguntar(`Se añaden ${ms.length} ${ms.length === 1 ? "cita" : "citas"} cada día, en ${fechas.length} días: ${fechas.map(f => fechaCorta(f)).join(', ')}. Los días bloqueados se saltan y no se repite a nadie que ya tenga cita ese día.`,
+    { titulo: 'Pasar la ruta a tu agenda', ok: 'Añadir' })) return;
+  if (btn) btn.disabled = true;
+  try {
+    const res = await rnCitasEn(r, ms, fechas);
+    if (res.error) return;
+    if (rep && rep.tipo !== 'fecha') await db.rpc('guardar_ruta', { p: { id: r.id, repeticion: Object.assign({}, rep, { hasta: fechas[fechas.length - 1] }) } });
+    toast(`${res.n} ${res.n === 1 ? 'cita añadida' : 'citas añadidas'}${res.saltados.length ? ` · ${res.saltados.length} ${res.saltados.length === 1 ? 'día bloqueado' : 'días bloqueados'} sin tocar` : ''}`);
+    AG_MODO = 'dia'; AG_FECHA = fechas.find(f => !res.saltados.includes(f)) || fechas[0]; ir('agenda');
+  } finally { if (btn) btn.disabled = false; }
+}
+async function pedirCampo(titulo, tipo, valor, etiqueta) {
+  return new Promise(res => {
+    const d = $('mini');
+    d.innerHTML = `<div class="fbox"><div class="fh"><h2>${esc(titulo)}</h2></div><label for="rnpc">${esc(etiqueta)}</label><input id="rnpc" type="${tipo}" value="${esc(valor || '')}" min="${hoyISO()}">
+      <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-op="no">Cancelar</button><button class="btn" data-op="si">Aceptar</button></div></div>`;
+    const fin = v => { d.close(); res(v); };
+    d.querySelectorAll('[data-op]').forEach(b => b.onclick = () => fin(b.dataset.op === 'si' ? $('rnpc').value : null));
+    d.oncancel = e => { e.preventDefault(); fin(null); };
+    if (typeof mejorarCampos === 'function') mejorarCampos(d);
+    d.showModal();
+  });
+}
+// Las rutas que se repiten se rellenan solas hasta 4 semanas vista (una vez al día, solo las propias)
+async function rnRellenar() {
+  try {
+    const k = 'delcos-rnrell-' + (PERFIL || {}).id; if (localStorage.getItem(k) === hoyISO()) return;
+    localStorage.setItem(k, hoyISO());
+    const { data } = await RPC_ORIG('rutas_visibles', {});
+    for (const r of (data || []).filter(x => x.mia && x.repeticion && x.repeticion.tipo !== 'fecha')) {
+      const rep = r.repeticion, desde = rep.hasta && rep.hasta >= hoyISO() ? isoMas(rep.hasta, 1) : (rep.desde && rep.desde > hoyISO() ? rep.desde : hoyISO());
+      const fechas = rnFechas(rep, desde, isoMas(hoyISO(), 28)); if (!fechas.length) continue;
+      const ms = (await rnMiembros(r)).filter(m => m.lat != null); if (!ms.length) continue;
+      const res = await rnCitasEn(r, ms, fechas);
+      if (!res.error) await db.rpc('guardar_ruta', { p: { id: r.id, repeticion: Object.assign({}, rep, { hasta: fechas[fechas.length - 1] }) } });
+    }
+  } catch (e) {}
+}
+setTimeout(() => { if (typeof PERFIL !== 'undefined' && PERFIL && (typeof verArea !== 'function' || verArea('rutas'))) rnRellenar(); }, 8000);
+
+// ---------- crear o editar ----------
+function rnAbrir(item, paso) {
+  const r = item && item.r;
+  const rep = r ? (r.repeticion || null) : { tipo: 'semanal', dia: RN_DIAS[Math.max(0, new Date(siguienteLaborable() + 'T12:00:00').getDay() - 1)] || 'L', desde: siguienteLaborable() };
+  RN = { id: r ? r.id : null, nombre: r ? r.nombre : '', auto: !r, ms: item ? item.ms.slice() : [], rep, salida: r && r.salida ? String(r.salida).slice(0, 5) : '09:00',
+    vuelta: r && r.vuelta ? String(r.vuelta).slice(0, 5) : '', fijas: Object.assign({}, (r && r.fijas) || {}), ordenManual: !!r, paso: paso || 1, centros: r ? r.centros || [] : [],
+    q: '', fil: { mios: true, urg: false, dia: false, nunca: false }, res: [], mapa: null };
+  if (TAB !== 'rutas') ir('rutas'); else rnPintar();
+}
+function rnCerrar() { RN = null; if (RM_MAPA) { try { RM_MAPA.remove(); } catch (e) {} RM_MAPA = null; } cargarRutas(); }
+function rnNombre() { if (RN.auto) RN.nombre = rnNombreAuto(RN.ms, RN.rep); return RN.nombre || 'Nueva ruta'; }
+function rnPintar() {
+  const v = $('v-rutas'); if (!v || !RN) return;
+  const pasos = [['1', 'A quién vas a ver'], ['2', 'Orden y horario'], ['3', 'Vista previa y cuándo']];
+  v.innerHTML = `<div class="rnroot">
+    <div><button class="rnvol" type="button" id="rnvol">‹ Mis rutas</button>
+      <div class="rntit"><input id="rnnom" value="${esc(rnNombre())}" aria-label="Nombre de la ruta" maxlength="80"><span class="rnlap">${rnSV(RN_IC.lapiz)}</span></div>
+      <div class="sm rnnomsm">${RN.auto ? 'Nombre propuesto con el día y los municipios: puedes cambiarlo' : 'Nombre de la ruta'}</div></div>
+    <div class="rnpasos" role="tablist">${pasos.map(([n, t]) => `<button type="button" role="tab" data-rnp="${n}" class="${+n === RN.paso ? 'on' : +n < RN.paso ? 'ok' : ''}" aria-selected="${+n === RN.paso}" ${+n > 1 && !RN.ms.length ? 'disabled' : ''}><i>${+n < RN.paso ? '✓' : n}</i><span>${t}</span></button>`).join('')}</div>
+    <div id="rnpaso"></div></div>`;
+  $('rnvol').onclick = rnCerrar;
+  $('rnnom').oninput = e => { RN.nombre = e.target.value; RN.auto = !e.target.value.trim(); };
+  v.querySelectorAll('[data-rnp]').forEach(b => b.onclick = () => { if (b.disabled) return; RN.paso = +b.dataset.rnp; rnPintar(); });
+  if (RN.paso === 1) rnPaso1(); else if (RN.paso === 2) rnPaso2(); else rnPaso3();
+}
+const rnPie = (izq, der) => `<div class="rnpie"><span>${izq}</span><span class="rnpieb">${der}</span></div>`;
+
+// Paso 1: a quién vas a ver
+async function rnBuscar() {
+  const f = RN.fil, dia = RN.rep && RN.rep.dia;
+  const { data } = await db.rpc('buscar_cuentas', { q: RN.q || null, f_provincia: null, f_municipio: null, f_estado: null, f_especialidad: null, f_area: null,
+    f_urgentes: !!f.urg, f_mios: !!f.mios, f_sin_visitar: !!f.nunca, f_comercial: null, f_reporting: null, orden: null, lim: 200, desplaz: 0 });
+  let l = ((data || {}).filas || []);
+  // Sin cartera propia (p. ej. administración), «Mi cartera» se quita sola la primera vez
+  if (f.mios && !l.length && !RN.q && !RN.__sinCartera) { RN.__sinCartera = true; f.mios = false; return rnBuscar(); }
+  if (f.dia && dia) l = l.filter(m => m.dias && m.dias[dia]);
+  RN.res = l;
+}
+async function rnPaso1() {
+  const caja = $('rnpaso'), dia = RN.rep && RN.rep.dia;
+  caja.innerHTML = `<div class="rnb1"><div class="rnsel">
+      <div class="rnbus">${rnSV(RN_IC.lupa)}<input id="rnq" placeholder="Busca por nombre, centro o municipio" value="${esc(RN.q)}" autocomplete="off"></div>
+      <div class="rnfil" role="group" aria-label="Filtros">
+        <button type="button" data-rnf="mios" class="${RN.fil.mios ? 'on' : ''}" id="rnfmios">Mi cartera</button><button type="button" data-rnf="urg" class="${RN.fil.urg ? 'on' : ''}">Urgentes</button>
+        ${dia ? `<button type="button" data-rnf="dia" class="${RN.fil.dia ? 'on' : ''}">Atienden el ${RN_DIAN[dia]}</button>` : ''}<button type="button" data-rnf="nunca" class="${RN.fil.nunca ? 'on' : ''}">Nunca visitados</button></div>
+      <div class="rnres" id="rnres"><div class="sm" style="padding:10px 4px">Buscando…</div></div></div>
+    <div class="rnmini"><div class="mc" id="rnmc"></div><div class="rnley"><span><i style="background:#17457A"></i>En la ruta</span><span><i style="background:#9FB6CE"></i>Para añadir</span><span><i style="background:#E08A00"></i>Urgente</span></div></div></div>
+    ${rnPie(`<b id="rnn">${RN.ms.length}</b> elegidos`, `<button class="btn" type="button" id="rnsig1" ${RN.ms.length ? '' : 'disabled'}>Siguiente: orden y horario</button>`)}`;
+  let tq = null;
+  $('rnq').oninput = e => { RN.q = e.target.value; clearTimeout(tq); tq = setTimeout(async () => { await rnBuscar(); rnLista1(); rnMapa1(); }, 300); };
+  caja.querySelectorAll('[data-rnf]').forEach(b => b.onclick = async () => { RN.fil[b.dataset.rnf] = !RN.fil[b.dataset.rnf]; b.classList.toggle('on'); await rnBuscar(); rnLista1(); rnMapa1(); });
+  $('rnsig1').onclick = () => { RN.paso = 2; if (!RN.ordenManual) rnAuto(); rnPintar(); };
+  await rnBuscar(); if (!$('rnres')) return;
+  if ($('rnfmios')) $('rnfmios').classList.toggle('on', !!RN.fil.mios);
+  rnLista1(); rnMapa1();
+}
+function rnToggle(m) {
+  const i = RN.ms.findIndex(x => x.id === m.id);
+  if (i >= 0) { RN.ms.splice(i, 1); delete RN.fijas[m.id]; } else RN.ms.push(m);
+  RN.ordenManual = false;
+  if ($('rnn')) $('rnn').textContent = RN.ms.length;
+  if ($('rnsig1')) $('rnsig1').disabled = !RN.ms.length;
+  if (RN.auto && $('rnnom')) $('rnnom').value = rnNombre();
+  document.querySelectorAll('[data-rnp="2"], [data-rnp="3"]').forEach(b => b.disabled = !RN.ms.length);
+  rnLista1(); rnMapa1();
+}
+function rnLista1() {
+  const c = $('rnres'); if (!c) return;
+  const sel = new Set(RN.ms.map(m => m.id)), dia = RN.rep && RN.rep.dia;
+  const l = RN.ms.filter(m => !RN.res.some(x => x.id === m.id)).concat(RN.res);
+  c.innerHTML = l.length ? l.slice(0, 120).map(m => `<button type="button" class="rnopt ${sel.has(m.id) ? 'on' : ''}" data-rnm="${m.id}" aria-pressed="${sel.has(m.id)}">
+      <span class="ck">${sel.has(m.id) ? rnSV(RN_IC.check) : ''}</span>
+      <span class="tx"><b>${esc(m.nombre)}</b><span class="sm">${esc([m.centro_nombre, rpTitulo(m.municipio || '')].filter(Boolean).join(' · '))}${dia && m.dias ? (m.dias[dia] ? ` · atiende ${esc(String(m.dias[dia]))}` : ` · no atiende el ${RN_DIAN[dia]}`) : ''}</span></span>
+      <span class="tag ${m.urgente ? 'u' : ''}">${m.urgente ? 'Urgente' : esc(m.estado_comercial || '')}</span></button>`).join('')
+    : `<div class="vacio">No hay ${TT('medico', 'p', '', 'l', 'l')} con esos filtros.</div>`;
+  c.querySelectorAll('[data-rnm]').forEach(b => b.onclick = () => { const m = l.find(x => x.id === b.dataset.rnm); if (m) rnToggle(m); });
+}
+async function rnMapaBase(el, ms) {
+  const ml = await rmLib();
+  if (RM_MAPA) { const viejo = RM_MAPA; RM_MAPA = null; setTimeout(() => { try { viejo.remove(); } catch (e) {} }, 0); }
+  const map = new ml.Map({ container: el, style: 'https://tiles.openfreemap.org/styles/liberty', maxPitch: 0, dragRotate: false, attributionControl: { compact: true } });
+  RM_MAPA = map; map.touchZoomRotate.disableRotation();
+  map.addControl(new ml.NavigationControl({ showCompass: false }), 'top-right');
+  map.__mk = [];
+  map.on('load', () => { if (!map.style) return; rnRestilo(map); map.__listo = true; });
+  return { ml, map };
+}
+function rnRestilo(map) {
+  (map.getStyle().layers || []).forEach(l => {
+    const id = l.id, set = (k, v) => { try { map.setPaintProperty(id, k, v); } catch (e) {} }, off = () => { try { map.setLayoutProperty(id, 'visibility', 'none'); } catch (e) {} };
+    if (/^rn-/.test(id)) return;
+    if (l.type === 'fill-extrusion') return off();
+    if (l.type === 'background') return set('background-color', RM_PAL.tierra);
+    if (l.type === 'symbol') { if (/poi|aeroway|housenumber|transit|rail|ferry|shield/i.test(id)) return off(); set('text-color', RM_PAL.texto); set('text-halo-color', '#FFFFFF'); set('text-halo-width', 1.4); return; }
+    if (l.type === 'fill') { if (/water/i.test(id)) return set('fill-color', RM_PAL.agua); if (/building/i.test(id)) return set('fill-color', RM_PAL.edif); if (/park|wood|grass|forest|landcover|cemetery|pitch/i.test(id)) { set('fill-color', RM_PAL.parque); return set('fill-opacity', 0.8); } set('fill-color', RM_PAL.zona); return set('fill-opacity', 0.6); }
+    if (l.type === 'line') { if (/water|river|stream|canal/i.test(id)) return set('line-color', RM_PAL.agua); if (/rail|ferry|aeroway|boundary|admin/i.test(id)) return off(); const g = /motorway|trunk|primary/i.test(id); set('line-color', /casing/i.test(id) ? (g ? RM_PAL.viaBorde : RM_PAL.borde) : (g ? RM_PAL.via : RM_PAL.calle)); }
+  });
+}
+const rnFC = l => ({ type: 'FeatureCollection', features: l });
+function rnPintarCapas(map, ml, ms, otros, linea, encaje) {
+  if (!map || !ml || !map.getContainer().isConnected) return;
+  const fijo = () => {
+    if (!map.style || !map.getContainer().isConnected) return;
+    const src = (id, data) => { const s = map.getSource(id); if (s) s.setData(data); else map.addSource(id, { type: 'geojson', data }); };
+    src('rn-otros', rnFC((otros || []).filter(m => m.lat != null).map(m => ({ type: 'Feature', properties: { id: m.id, u: m.urgente ? 1 : 0 }, geometry: { type: 'Point', coordinates: [+m.lon, +m.lat] } }))));
+    src('rn-linea', { type: 'Feature', geometry: { type: 'LineString', coordinates: linea || [] } });
+    if (!map.getLayer('rn-linea-b')) {
+      map.addLayer({ id: 'rn-linea-b', type: 'line', source: 'rn-linea', paint: { 'line-color': RM_PAL.rutaBorde, 'line-width': 7 }, layout: { 'line-cap': 'round', 'line-join': 'round' } });
+      map.addLayer({ id: 'rn-linea', type: 'line', source: 'rn-linea', paint: { 'line-color': RM_PAL.ruta, 'line-width': 4.5 }, layout: { 'line-cap': 'round', 'line-join': 'round' } });
+      map.addLayer({ id: 'rn-otros', type: 'circle', source: 'rn-otros', paint: { 'circle-radius': 7, 'circle-color': ['case', ['==', ['get', 'u'], 1], '#E08A00', '#9FB6CE'], 'circle-stroke-color': '#fff', 'circle-stroke-width': 2 } });
+      map.on('click', 'rn-otros', e => { const id = e.features && e.features[0] && e.features[0].properties.id; const m = (RN && RN.res || []).find(x => x.id === id); if (m) rnToggle(m); });
+      map.on('mouseenter', 'rn-otros', () => { map.getCanvas().style.cursor = 'pointer'; }); map.on('mouseleave', 'rn-otros', () => { map.getCanvas().style.cursor = ''; });
+    }
+  };
+  if (map.__listo) fijo(); else map.once('load', () => setTimeout(fijo, 0));
+  map.__mk.forEach(m => m.remove()); map.__mk = [];
+  const sal = salidaUsuario();
+  if (sal.lat != null) { const e = document.createElement('div'); e.className = 'rmcasa'; e.innerHTML = svgIco(ICON_NOM.house || ''); map.__mk.push(new ml.Marker({ element: e }).setLngLat([+sal.lon, +sal.lat]).addTo(map)); }
+  const grupos = []; ms.forEach((m, i) => { if (m.lat == null) return; const u = grupos[grupos.length - 1]; if (u && u.lat === +m.lat && u.lon === +m.lon) u.n.push(i + 1); else grupos.push({ lat: +m.lat, lon: +m.lon, n: [i + 1], m }); });
+  grupos.forEach(g => { const e = document.createElement('button'); e.type = 'button'; e.className = 'rmmk' + (g.n.length > 1 ? ' multi' : ''); e.style.setProperty('--c', '#17457A');
+    e.innerHTML = `<span>${g.n.length > 2 ? g.n[0] + '–' + g.n[g.n.length - 1] : g.n.join('·')}</span>`; e.title = g.m.nombre;
+    if (RN && RN.paso === 1) e.onclick = ev => { ev.stopPropagation(); rnToggle(g.m); };
+    map.__mk.push(new ml.Marker({ element: e, anchor: 'bottom' }).setLngLat([g.lon, g.lat]).addTo(map)); });
+  if (encaje !== false) {
+    const xs = ms.concat(otros || []).filter(m => m.lat != null).map(m => [+m.lon, +m.lat]).concat(sal.lat != null && ms.length ? [[+sal.lon, +sal.lat]] : []);
+    if (xs.length) { const b = xs.reduce((b, p) => [[Math.min(b[0][0], p[0]), Math.min(b[0][1], p[1])], [Math.max(b[1][0], p[0]), Math.max(b[1][1], p[1])]], [[180, 90], [-180, -90]]);
+      map.fitBounds(b, { padding: 50, duration: map.__ya ? 500 : 0, maxZoom: 14 }); map.__ya = true; }
+  }
+}
+async function rnMapa1() {
+  const el = $('rnmc'); if (!el || !RN) return;
+  if (!RM_MAPA || RM_MAPA.getContainer() !== el) {
+    if (!RN_MAPA_P || RN_MAPA_P.el !== el) { RN_MAPA_P = rnMapaBase(el).then(({ ml, map }) => { map.__ml = ml; }); RN_MAPA_P.el = el; }
+    await RN_MAPA_P;
+  }
+  if (!$('rnmc') || !RM_MAPA || !RM_MAPA.__ml || RM_MAPA.getContainer() !== $('rnmc')) return;
+  const map = RM_MAPA, sel = new Set(RN.ms.map(m => m.id)), sal = salidaUsuario();
+  const linea = (sal.lat != null && RN.ms.length ? [[+sal.lon, +sal.lat]] : []).concat(RN.ms.filter(m => m.lat != null).map(m => [+m.lon, +m.lat]));
+  rnPintarCapas(map, map.__ml, RN.ms, RN.res.filter(m => !sel.has(m.id)), linea, !map.__ya);
+}
+
+// Paso 2: orden y horario
+function rnAuto() { const f = rnFechaRef(RN.rep, RN.nombre); RN.ms = rnOrdenAuto(RN.ms, f, RN.salida, RN.vuelta); RN.ordenManual = false; }
+function rnPaso2() {
+  const caja = $('rnpaso'), f = rnFechaRef(RN.rep, RN.nombre), h = rnHoras(RN.ms, f, RN.salida, RN.vuelta, RN.fijas);
+  const sal = salidaUsuario();
+  caja.innerHTML = `<div class="rnb2"><div class="rnord">
+      <div class="rnordcab"><div class="rnhor2"><label>Sales a las <input type="time" id="rnsal" value="${esc(RN.salida)}"></label><label>Vuelves como tarde <input type="time" id="rnvue" value="${esc(RN.vuelta)}" placeholder="Sin hora"></label>
+        <span class="sm">Desde ${esc(sal.nombre || 'tu punto de salida')} · horas calculadas para el ${esc(fechaLarga(new Date(f + 'T12:00:00')))}</span></div>
+        <button class="btn sec" type="button" id="rnauto">${rnSV(RN_IC.varita)} ${RN.ordenManual ? 'Volver al orden automático' : 'Orden automático'}</button></div>
+      <p class="sm rnordtx">${RN.ordenManual ? 'Has cambiado el orden a mano.' : 'El mejor orden: el más corto que respeta las horas de atención.'} Usa las flechas para cambiarlo y toca una hora para fijarla.</p>
+      <div class="rnlst">${h.filas.map((x, i) => `${i && !x.mismo && x.viaje ? `<div class="rntramo">${Math.round(x.viaje)} min</div>` : ''}<div class="rnpar ${x.aviso ? 'aviso' : ''}">
+          <span class="n">${i + 1}</span>
+          <div class="tx"><b>${esc(x.m.nombre)}</b><span class="sm">${esc([x.m.centro_nombre, rpTitulo(x.m.municipio || '')].filter(Boolean).join(' · '))}</span>
+            <span class="sm ${x.aviso ? 'rnav' : ''}">${esc(x.aviso || (x.ven && x.ven.length ? 'Atiende ' + txtVentanas(x.ven) : ''))}</span></div>
+          <div class="der"><button type="button" class="rnh ${x.fija ? 'fija' : ''}" data-rnh="${x.m.id}" title="${x.fija ? 'Hora fijada: toca para cambiarla o quitarla' : 'Hora calculada: toca para fijarla'}">${x.fija ? rnSV(RN_IC.reloj) : '~'}${hm(x.ini)}</button>
+            <span class="ops"><button type="button" data-rnmv="-1|${i}" aria-label="Subir" ${i ? '' : 'disabled'}>${rnSV(RN_IC.up)}</button><button type="button" data-rnmv="1|${i}" aria-label="Bajar" ${i < h.filas.length - 1 ? '' : 'disabled'}>${rnSV(RN_IC.down)}</button>
+              <button type="button" data-rnx="${i}" aria-label="Quitar">${rnSV(RN_IC.x)}</button></span></div></div>`).join('')}</div></div>
+    <div class="rnresum"><div><b>${RN.ms.length}</b>${TT('medico', 'p', '', 'l', 'l')}</div><div><b>${new Set(RN.ms.filter(m => m.lat != null).map(m => m.lat + ',' + m.lon)).size}</b>paradas</div>
+      <div><b>${Math.round(h.km)} km</b>aprox.</div><div><b class="${h.pasa ? 'rnmal' : ''}">${hm(h.fin)}</b>terminas${h.pasa ? ' (pasa de tu hora de vuelta)' : ''}</div></div></div>
+    ${rnPie('Lo ves en el mapa en el paso siguiente.', '<button class="btn sec" type="button" id="rnant2">‹ Atrás</button><button class="btn" type="button" id="rnsig2">Siguiente: vista previa</button>')}`;
+  $('rnsal').onchange = e => { RN.salida = e.target.value || '09:00'; if (!RN.ordenManual) rnAuto(); rnPaso2(); };
+  $('rnvue').onchange = e => { RN.vuelta = e.target.value || ''; if (!RN.ordenManual) rnAuto(); rnPaso2(); };
+  $('rnauto').onclick = () => { rnAuto(); rnPaso2(); };
+  caja.querySelectorAll('[data-rnmv]').forEach(b => b.onclick = () => { const [d, i] = b.dataset.rnmv.split('|').map(Number), j = i + d; [RN.ms[i], RN.ms[j]] = [RN.ms[j], RN.ms[i]]; RN.ordenManual = true; rnPaso2(); });
+  caja.querySelectorAll('[data-rnx]').forEach(b => b.onclick = () => { const m = RN.ms.splice(+b.dataset.rnx, 1)[0]; if (m) delete RN.fijas[m.id]; if (!RN.ms.length) { RN.paso = 1; return rnPintar(); } rnPaso2(); });
+  caja.querySelectorAll('[data-rnh]').forEach(b => b.onclick = async () => {
+    const id = b.dataset.rnh, x = h.filas.find(y => y.m.id === id);
+    const op = await elegirOpcion('Hora de la visita', `${x.m.nombre}${x.ven && x.ven.length ? ' · atiende ' + txtVentanas(x.ven) : ''}`,
+      [{ k: 'no', t: 'Cancelar', cls: 'sec' }].concat(RN.fijas[id] ? [{ k: 'quitar', t: 'Que la calcule la app', cls: 'sec' }] : []).concat([{ k: 'fijar', t: 'Fijar una hora' }]));
+    if (op === 'quitar') { delete RN.fijas[id]; return rnPaso2(); }
+    if (op !== 'fijar') return;
+    const v = await pedirCampo('Fijar la hora', 'time', RN.fijas[id] || hm(x.ini), 'Hora'); if (!v) return;
+    RN.fijas[id] = v; rnPaso2();
+  });
+  $('rnant2').onclick = () => { RN.paso = 1; rnPintar(); };
+  $('rnsig2').onclick = () => { RN.paso = 3; rnPintar(); };
+}
+
+// Paso 3: vista previa y cuándo
+function rnRepHtml() {
+  const rep = RN.rep || null, t = rep ? rep.tipo : 'nada', dia = (rep && rep.dia) || 'L';
+  const op = (k, tx) => `<button type="button" data-rnrt="${k}" class="${t === k ? 'on' : ''}" aria-pressed="${t === k}">${tx}</button>`;
+  return `<div class="rncuando"><h3>¿Cuándo la haces?</h3>
+    <div class="segs rnrt" role="group" aria-label="Cuándo">${op('fecha', 'Un día')}${op('semanal', 'Cada semana')}${op('quincenal', 'Cada 15 días')}${op('mensual', 'Una vez al mes')}${op('nada', 'Sin fecha')}</div>
+    ${t === 'fecha' ? `<label for="rnfe">Día</label><input type="date" id="rnfe" value="${esc((rep && rep.fecha) || siguienteLaborable())}" min="${hoyISO()}">` : ''}
+    ${['semanal', 'quincenal', 'mensual'].includes(t) ? `<div class="rndias2" role="group" aria-label="Día de la semana">${RN_DIAS.map(d => `<button type="button" data-rnd="${d}" class="${d === dia ? 'on' : ''}">${RN_DIAN[d].charAt(0).toUpperCase() + RN_DIAN[d].slice(1, 3)}</button>`).join('')}</div>` : ''}
+    ${t === 'mensual' ? `<label for="rnsem">Qué semana del mes</label><select id="rnsem">${[1, 2, 3, 4, 5].map(n => `<option value="${n}" ${+((rep && rep.semana) || 1) === n ? 'selected' : ''}>${n === 5 ? 'La última' : `La ${RN_SEM[n].replace(/r$/, 'ra')}`}</option>`).join('')}</select>` : ''}
+    ${t === 'quincenal' ? `<label for="rnde">Empezando el</label><input type="date" id="rnde" value="${esc((rep && rep.desde) || siguienteLaborable())}" min="${hoyISO()}">` : ''}
+    <p class="sm rnrtx">${t === 'nada' ? 'Se guarda sin fecha: la pasas a tu agenda cuando quieras.' : `${esc(rnCuando(rep))}.${(() => { const f = rnFechas(rep, hoyISO(), rnHorizonte(rep)).slice(0, 4); return f.length ? ` Próximas: ${f.map(x => fechaCorta(x)).join(', ')}.` : ''; })()}`}</p></div>`;
+}
+async function rnPaso3() {
+  const caja = $('rnpaso'), f = rnFechaRef(RN.rep, RN.nombre), h = rnHoras(RN.ms, f, RN.salida, RN.vuelta, RN.fijas), sal = salidaUsuario();
+  const repetida = RN.rep && RN.rep.tipo !== 'fecha';
+  caja.innerHTML = `<div class="rnb3"><div class="rnmini"><div class="mc" id="rnmc"></div><div class="rnchip" id="rnchip">Calculando la ruta…</div></div>
+      <div class="rnlado"><div class="rntl"><h3 id="rntlh">${esc(fechaLarga(new Date(f + 'T12:00:00')).replace(/^./, c => c.toUpperCase()))} · así será tu día</h3><div id="rntl"></div></div>${rnRepHtml()}</div></div>
+    ${rnPie(RN.id ? 'Los cambios se guardan en la ruta; las citas que ya están en tu agenda no cambian.' : 'Se guarda en Mis rutas.',
+      `<button class="btn sec" type="button" id="rnant3">‹ Atrás</button><button class="btn sec" type="button" id="rnguar">Guardar ruta</button><button class="btn" type="button" id="rnguarag">${RN.rep ? 'Guardar y pasar a mi agenda' : 'Guardar y elegir el día'}</button>`)}`;
+  const tl = (hh, tramos) => {
+    const filas = hh.filas;
+    $('rntl').innerHTML = `<div class="rntli viaje"><span class="h">${hm(minHora(RN.salida || '09:00'))}</span><span class="l"></span><span class="t">Sales de ${esc(sal.nombre || 'tu punto de salida')}</span></div>
+      ${filas.map((x, i) => `${i && !x.mismo && x.viaje ? `<div class="rntli viaje"><span class="h"></span><span class="l"></span><span class="t">${Math.round(x.viaje)} min de coche</span></div>` : ''}
+        <div class="rntli"><span class="h">${hm(x.ini)}</span><span class="l"><i></i></span><span class="t"><b>${i + 1}. ${esc(x.m.nombre)}</b><span class="sm">${esc(x.m.centro_nombre || rpTitulo(x.m.municipio || ''))}${x.aviso ? ` · <span class="rnav">${esc(x.aviso)}</span>` : ''}</span></span></div>`).join('')}
+      <div class="rntli viaje"><span class="h">${hm(hh.fin)}</span><span class="l"></span><span class="t">Terminas la última ${TT('visita', 's', '', 'l', 'l')}</span></div>`;
+  };
+  tl(h);
+  const pon = () => { const c = caja.querySelector('.rncuando'); c.outerHTML = rnRepHtml(); engancharRep(); const f2 = rnFechaRef(RN.rep, RN.nombre); if ($('rntlh')) $('rntlh').textContent = fechaLarga(new Date(f2 + 'T12:00:00')).replace(/^./, c => c.toUpperCase()) + ' · así será tu día'; tl(rnHoras(RN.ms, f2, RN.salida, RN.vuelta, RN.fijas)); if (RN.auto && $('rnnom')) $('rnnom').value = rnNombre(); $('rnguarag').textContent = RN.rep ? 'Guardar y pasar a mi agenda' : 'Guardar y elegir el día'; };
+  const engancharRep = () => {
+    caja.querySelectorAll('[data-rnrt]').forEach(b => b.onclick = () => { const t = b.dataset.rnrt, dia = (RN.rep && RN.rep.dia) || 'L';
+      RN.rep = t === 'nada' ? null : t === 'fecha' ? { tipo: 'fecha', fecha: (RN.rep && RN.rep.fecha) || siguienteLaborable() } : t === 'mensual' ? { tipo: 'mensual', dia, semana: (RN.rep && RN.rep.semana) || 1 }
+        : { tipo: t, dia, desde: (RN.rep && RN.rep.desde) || siguienteLaborable() }; pon(); });
+    caja.querySelectorAll('[data-rnd]').forEach(b => b.onclick = () => { RN.rep = Object.assign({}, RN.rep, { dia: b.dataset.rnd }); pon(); });
+    if ($('rnfe')) $('rnfe').onchange = e => { RN.rep = { tipo: 'fecha', fecha: e.target.value }; pon(); };
+    if ($('rnde')) $('rnde').onchange = e => { RN.rep = Object.assign({}, RN.rep, { desde: e.target.value }); pon(); };
+    if ($('rnsem')) $('rnsem').onchange = e => { RN.rep = Object.assign({}, RN.rep, { semana: +e.target.value }); pon(); };
+    if (typeof mejorarCampos === 'function') mejorarCampos(caja);
+  };
+  engancharRep();
+  $('rnant3').onclick = () => { RN.paso = 2; rnPintar(); };
+  $('rnguar').onclick = () => rnGuardar(false);
+  $('rnguarag').onclick = () => rnGuardar(true);
+  // El mapa: en recto y, si contesta la función, por las calles
+  const el = $('rnmc'); const { ml, map } = await rnMapaBase(el); if (!$('rnmc')) return;
+  const conXY = RN.ms.filter(m => m.lat != null);
+  const pts = (sal.lat != null ? [[+sal.lat, +sal.lon]] : []).concat(conXY.map(m => [+m.lat, +m.lon]));
+  const puntos = pts.filter((p, i) => !i || p[0] !== pts[i - 1][0] || p[1] !== pts[i - 1][1]);
+  rnPintarCapas(map, ml, RN.ms, null, puntos.map(p => [p[1], p[0]]));
+  if (puntos.length < 2 || puntos.length > 30) { $('rnchip').textContent = 'Vista previa en línea recta'; return; }
+  const res = await rmRuta(puntos, `${f}T${RN.salida || '09:00'}:00`); if (!$('rnchip')) return;
+  if (res.ok && res.tramos && res.tramos.length === puntos.length - 1) {
+    const linea = res.tramos.flatMap(t => (t.linea || []).map(([la, lo]) => [lo, la]));
+    rnPintarCapas(map, ml, RN.ms, null, linea, false);
+    $('rnchip').innerHTML = `Por las calles, con tráfico · <b>${String(res.km).replace('.', ',')} km</b> · <b>${rmDur(res.min)}</b> al volante <span class="rmfuente">Ruta: © TomTom</span>`;
+  } else $('rnchip').textContent = `${RM_MOTIVO[res.motivo] || RM_MOTIVO.servicio}: vista previa en línea recta`;
+}
+async function rnGuardar(agenda) {
+  const nombre = ($('rnnom') && $('rnnom').value.trim()) || rnNombre();
+  const rep = RN.rep ? Object.assign({}, RN.rep) : null;
+  if (rep) delete rep.hasta;   // al cambiar la ruta, la agenda se vuelve a mirar desde hoy
+  const p = { nombre, codigos: RN.ms.map(m => m.id), reglas: null, salida: RN.salida || null, vuelta: RN.vuelta || null, repeticion: rep,
+    fijas: Object.keys(RN.fijas).length ? RN.fijas : null, centros: RN.centros || [] };
+  if (RN.id) p.id = RN.id;
+  const b1 = $('rnguar'), b2 = $('rnguarag'); [b1, b2].forEach(b => b && (b.disabled = true));
+  const { data, error } = await db.rpc('guardar_ruta', { p });
+  [b1, b2].forEach(b => b && (b.disabled = false));
+  if (error || !data || !data.ok) { toast('No se ha podido guardar la ruta' + (error ? ': ' + error.message : ''), true); return; }
+  invalidarCache();
+  const ms = RN.ms.slice();
+  RN = null;
+  toast('Ruta guardada');
+  if (agenda) return rnPasarAgenda({ r: Object.assign({}, p, { id: data.id, mia: true }), ms });
+  cargarRutas();
+}
+// Con la ruta abierta, Rutas solo pinta el editor (sin la jornada en curso ni el mapa de hoy); el menú «Rutas» vuelve a Mis rutas
+pintarRutaEnCurso = (orig => function (...a) { if (RN) return; return orig.apply(this, a); })(pintarRutaEnCurso);
+rutasMapa = (orig => async function (...a) { if (RN) return; const r = await orig.apply(this, a); const m = $('rmapa'), g = $('rngrid'); if (m && g && g.nextElementSibling !== m) { g.after(m); if (RM_MAPA) setTimeout(() => { try { RM_MAPA.resize(); } catch (e) {} }, 50); } return r; })(rutasMapa);
+cargarRutasPaso2 = (orig => function (...a) { if (RN) return; return orig.apply(this, a); })(cargarRutasPaso2);
+document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('nav.main [data-t="rutas"], #bnav [data-t="rutas"], .bmasgrid [data-bm="rutas"]'); if (b && RN) RN = null; }, true);
