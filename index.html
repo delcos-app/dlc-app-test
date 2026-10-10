@@ -3913,6 +3913,50 @@ header .top .logo,nav.main .mlmarca{cursor:pointer}
 .notit2.notsale{transition:opacity .2s,transform .2s;opacity:0;transform:translateX(16px)}
 .notpie{margin:10px 16px 0;color:var(--muted)}
 @media (prefers-reduced-motion:reduce){.notit2.notsale{transition:none}}
+
+/* v2.233.0 · Tu día en el mapa (Rutas) */
+.rmapa{padding:0;overflow:hidden;margin:0 0 16px}
+.rmcab{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 16px 12px;flex-wrap:wrap}
+.rmcab h2{margin:0;padding:0}
+.rmcab .sm{display:block;margin-top:2px}.rmcab .sm b{color:var(--navy)}
+.rmfuente{color:#8A9BB0;font-size:11.5px;margin-left:4px;white-space:nowrap}
+#rmplay{display:inline-flex;align-items:center;gap:8px}#rmplay svg{width:16px;height:16px}
+.rmwrap{position:relative;border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:#F1F3F4}
+.rmc{height:420px}
+.rmnav{position:absolute;left:12px;bottom:28px;z-index:3;display:flex;gap:12px;align-items:center;max-width:min(420px,calc(100% - 24px));background:#FFFFFF;border:1px solid var(--line);border-radius:14px;padding:10px 14px;box-shadow:0 8px 22px rgba(11,37,64,.14)}
+.rmnav:empty{display:none}
+.rmnav .ico{width:34px;height:34px;border-radius:10px;background:var(--navy);color:#fff;display:grid;place-items:center;flex:none}.rmnav .ico svg{width:18px;height:18px}
+.rmnav b{display:block;color:var(--navy);font-size:14.5px}.rmnav span{font-size:12.5px;color:#5B6B80}
+.rmmk{all:unset;box-sizing:border-box;cursor:pointer;min-width:32px;height:32px;padding:0 8px;border-radius:16px;background:var(--c,#17457A);border:2.5px solid #fff;display:grid;place-items:center;box-shadow:0 4px 10px rgba(11,37,64,.3);position:relative;transition:opacity .25s,transform .15s}
+.rmmk span{color:#fff;font:800 13px var(--f-titulo)}
+.rmmk:hover,.rmmk:focus-visible{transform:scale(1.12)}
+.rmmk.pasada{opacity:.45}
+.rmmk.sig::before{content:'';position:absolute;inset:-7px;border-radius:20px;border:2px solid #7CC3EC;animation:rmpulso 1.8s ease-out infinite;pointer-events:none}
+@keyframes rmpulso{from{opacity:1;transform:scale(.9)}to{opacity:0;transform:scale(1.35)}}
+.rmcasa{width:26px;height:26px;border-radius:8px;background:#0B2540;color:#fff;display:grid;place-items:center;border:2px solid #fff;box-shadow:0 4px 10px rgba(11,37,64,.3)}.rmcasa svg{width:14px;height:14px}
+.rmyo{width:34px;height:34px;position:relative;pointer-events:none}
+.rmyo .haz{position:absolute;left:50%;top:50%;width:84px;height:84px;margin:-42px 0 0 -42px;transition:opacity .25s}.rmyo .haz svg{width:100%;height:100%;display:block}
+.rmyo.parado .haz{opacity:0}
+.rmyo .pun{position:absolute;inset:0;border-radius:50%;background:var(--navy);border:3px solid #fff;box-shadow:0 3px 10px rgba(11,37,64,.35);display:grid;place-items:center;color:#fff}.rmyo .pun svg{width:17px;height:17px}
+.rmyo.va .pun{box-shadow:0 0 0 7px rgba(124,195,236,.35),0 3px 10px rgba(11,37,64,.35)}
+.rmjorn{padding:12px 16px 14px}
+.rmpista{position:relative;height:34px;border-radius:9px;background:#F2F7FC;overflow:hidden}
+.rmpista .seg{position:absolute;top:6px;bottom:6px;border-radius:6px}
+.rmpista .seg.viaje{background:repeating-linear-gradient(90deg,#C9D7E6 0 6px,transparent 6px 10px);top:15px;bottom:15px}
+.rmpista .seg.vis{background:var(--navy);min-width:20px}.rmpista .seg.vis.hecha{background:var(--ok)}.rmpista .seg.vis.no{background:#E08A00}
+.rmpista .seg.vis span{position:absolute;left:4px;top:50%;transform:translateY(-50%);color:#fff;font:800 11px var(--f-titulo)}
+.rmpista .tope{position:absolute;top:0;bottom:0;background:rgba(201,61,43,.08);border-left:2px dashed rgba(201,61,43,.55)}
+.rmpista .ahora{position:absolute;top:0;bottom:0;width:2px;background:#7CC3EC}
+.rmhoras{position:relative;height:16px;margin-top:4px}.rmhoras span{position:absolute;transform:translateX(-50%);font-size:11px;color:var(--muted);white-space:nowrap}
+.rmscrub{width:100%;margin:6px 0 0;accent-color:var(--navy);min-height:0;height:18px;padding:0;border:0;background:none}
+.rmtx b{color:var(--navy)}
+@media (max-width:760px){
+  .rmc{height:320px}
+  .rmcab #rmplay{width:100%;justify-content:center}
+  .rmhoras span:nth-child(even){display:none}
+  .rmnav{bottom:34px;left:8px;right:8px;max-width:none}
+}
+@media (prefers-reduced-motion:reduce){.rmmk.sig::before{animation:none}}
 </style>
 </head>
 <body>
@@ -4051,6 +4095,6 @@ try{var co=sessionStorage.getItem('dlc-cambio-org');if(co!==null||localStorage.g
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.232.0"></script>
+<script src="./app.js?v=2.233.0"></script>
 </body>
 </html>

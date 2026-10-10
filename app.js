@@ -23994,3 +23994,232 @@ notifPintar = function () {
   };
   $('notcfg').onclick = () => { $('dlg').close(); CFG_SEC = 'notif'; window.__CFG_DIRECTO = true; ir('config'); };
 };
+
+/* v2.233.0 · Tu día en el mapa, en Rutas (decisión de Eric: servicio de rutas TomTom, mapa en Rutas; SQL 138 y función «rutas»).
+   - Arriba de Rutas, «Tu día en el mapa»: las citas de hoy numeradas en un mapa plano (MapLibre + OpenFreeMap, colores de delcos),
+     la ruta por las calles y la jornada en una pista con la hora; «Ver el día» mueve el marcador por las calles y la cámara lo sigue.
+   - La ruta y los tiempos los da la función «rutas» (TomTom, con tráfico). Antes de cada petición la base comprueba el tope
+     (2.000 al día entre todas las empresas y 30 por usuario y día); si no cabe, o no está activada, la ruta va en línea recta con
+     los tiempos aproximados de siempre y se dice. No se guarda nada de TomTom: solo se recuerda en memoria 10 minutos.
+   - Pulsar una parada abre la cita (verCita). */
+const RM_SV = d => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + d + '</svg>';
+const RM_COCHE = '<path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/>';
+const RM_PAL = { tierra: '#F1F3F4', zona: '#ECEEF0', parque: '#D6EDDA', agua: '#AFD3F2', edif: '#E4E6EA', calle: '#FFFFFF', borde: '#DADCE0', via: '#FFF1C2', viaBorde: '#F2D27A', texto: '#5F6368', ruta: '#3F82C0', rutaBorde: '#1F5A99', hecho: '#A8BCD2' };
+let RM_LIB = null, RM_MAPA = null, RM_ANIM = null;
+const RM_MEM = new Map();   // ruta pedida → {t, r}: solo en memoria y 10 minutos
+function rmLib() {
+  if (window.maplibregl) return Promise.resolve(window.maplibregl);
+  return RM_LIB || (RM_LIB = new Promise((res, rej) => {
+    document.head.insertAdjacentHTML('beforeend', '<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">');
+    const s = document.createElement('script'); s.src = 'https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js'; s.crossOrigin = 'anonymous';
+    s.onload = () => res(window.maplibregl); s.onerror = () => { RM_LIB = null; rej(new Error('mapa')); }; document.head.appendChild(s);
+  }));
+}
+const rmDur = m => m >= 60 ? `${Math.floor(m / 60)} h ${String(Math.round(m % 60)).padStart(2, '0')}` : `${Math.round(m)} min`;
+const rmKm = (a, b) => Math.hypot((b[1] - a[1]) * 111.32 * Math.cos(a[0] * Math.PI / 180), (b[0] - a[0]) * 111.32);
+
+// El día: paradas en su orden, la salida (si hay) y los tramos de viaje y de visita
+function rmPlan(citas, fecha, tramos) {
+  const vivas = citas.filter(c => xyCita(c) && (CITA_ABIERTA.includes(c.estado) || citaHecha(c.estado)));
+  const r = estimarDia(vivas, fecha), dura = PLANCFG().visita || 15, aparcar = +PLANCFG().parada || 0, sal = salidaUsuario();
+  const casa = sal && sal.lat != null && sal.lon != null ? [+sal.lat, +sal.lon] : null;
+  const paradas = vivas.map((c, i) => ({ c, i, xy: xyCita(c), ini: r.est[c.id] != null ? r.est[c.id] : minHora(c.hora) })).filter(p => p.ini != null);
+  const puntos = (casa ? [casa] : []).concat(paradas.map(p => p.xy)).concat(casa && paradas.length ? [casa] : []);
+  const segs = []; let pos = casa, t = null, k = 0;
+  paradas.forEach((p, j) => {
+    const mismo = pos && pos[0] === p.xy[0] && pos[1] === p.xy[1];
+    let ini = p.ini;
+    if (pos && !mismo) {
+      const tr = tramos && tramos[k], v = tr ? tr.min + aparcar : minutosEntre(pos, p.xy);
+      const sale = t != null ? t : ini - v;
+      if (tramos) ini = Math.max(sale + v, minHora(p.c.hora) || 0);   // con tiempos reales, la hora sale del viaje (las fijas se respetan)
+      segs.push({ tipo: 'viaje', a: sale, b: sale + v, de: pos, hasta: p.xy, k, km: tr ? tr.km : null });
+    }
+    if (pos && (casa || j > 0)) k++;
+    p.ini = ini; segs.push({ tipo: 'vis', a: ini, b: ini + dura, p }); pos = p.xy; t = ini + dura;
+  });
+  if (casa && pos && t != null) { const tr = tramos && tramos[k], v = tr ? tr.min : minutosEntre(pos, casa); segs.push({ tipo: 'viaje', a: t, b: t + v, de: pos, hasta: casa, k, km: tr ? tr.km : null }); t += v; }
+  return { paradas, puntos, segs, casa, ini: segs.length ? segs[0].a : 9 * 60, fin: t || 18 * 60, tope: isFinite(r.tope) ? r.tope : null };
+}
+async function rmRuta(puntos, salida) {
+  const k = JSON.stringify([puntos, salida]), m = RM_MEM.get(k);
+  if (m && Date.now() - m.t < 600000) return m.r;
+  let r = null;
+  try {
+    const { data, error } = await db.functions.invoke('rutas', { body: { puntos, salida } });
+    if (!error) r = data;
+    else {
+      const st = error.context && error.context.status;
+      r = st === 404 ? { ok: false, motivo: 'sin_clave' } : await Promise.resolve(error.context && error.context.json ? error.context.json() : null).then(x => x && x.motivo ? x : { ok: false, motivo: 'servicio' }, () => ({ ok: false, motivo: 'servicio' }));
+    }
+  }
+  catch (e) { r = { ok: false, motivo: 'servicio' }; }
+  if (r && r.ok) RM_MEM.set(k, { t: Date.now(), r });
+  return r || { ok: false, motivo: 'servicio' };
+}
+const RM_MOTIVO = {
+  empresa: 'Hoy tu empresa ya ha usado su cupo de rutas por calles', global: 'Hoy ya se ha usado el cupo de rutas por calles',
+  apagado: 'Las rutas por calles están desactivadas', sin_clave: 'Las rutas por calles aún no están activadas',
+  servicio: 'El servicio de rutas no ha contestado', sesion: 'No se ha podido comprobar tu sesión', datos: 'Alguna parada no tiene una ubicación válida'
+};
+
+async function rutasMapa() {
+  if (TAB !== 'rutas' || !$('v-rutas')) return;
+  const ref = $('renc') || $('v-rutas').querySelector('.saludo'); if (!ref) return;
+  const fecha = hoyISO(), citas = await citasDelDia(fecha);
+  if (TAB !== 'rutas' || !ref.isConnected) return;
+  let caja = $('rmapa');
+  const P0 = rmPlan(citas, fecha, null);
+  if (!P0.paradas.length) { if (caja) caja.remove(); return; }
+  if (!caja) { ref.insertAdjacentHTML('afterend', '<section class="card rmapa" id="rmapa" aria-label="Tu día en el mapa"></section>'); caja = $('rmapa'); }
+  caja.innerHTML = `<div class="rmcab"><div><h2>Tu día en el mapa</h2><span class="sm" id="rmsub">Buscando la ruta por las calles…</span></div>
+      <button type="button" class="btn" id="rmplay">${RM_SV('<path d="M6 4l14 8-14 8z"/>')}<span>Ver el día</span></button></div>
+    <div class="rmwrap"><div class="rmc" id="rmc"></div><div class="rmnav" id="rmnav"></div></div>
+    <div class="rmjorn"><div class="rmpista" id="rmpista"></div><div class="rmhoras" id="rmhoras"></div>
+      <input type="range" class="rmscrub" id="rmscrub" step="5" aria-label="Hora del día"><div class="rmtx sm" id="rmtx"></div></div>`;
+  let ml;
+  try { ml = await rmLib(); } catch (e) { $('rmc').innerHTML = '<div class="vacio">No se ha podido cargar el mapa. Comprueba la conexión.</div>'; return; }
+  if (!$('rmc')) return;
+  const salida = P0.segs.length ? `${fecha}T${hm(Math.max(0, P0.segs[0].a))}:00` : null;
+  const lineaRecta = P0.puntos.length > 1 && P0.puntos.length <= 30 ? null : 'datos';
+  const res = lineaRecta ? { ok: false, motivo: lineaRecta } : await rmRuta(P0.puntos, salida);
+  if (!$('rmc')) return;
+  const P = res.ok && res.tramos && res.tramos.length === P0.puntos.length - 1 ? rmPlan(citas, fecha, res.tramos) : P0;
+  const real = P !== P0;
+  $('rmsub').innerHTML = real
+    ? `Por las calles, con tráfico · <b>${String(res.km).replace('.', ',')} km</b> · <b>${rmDur(res.min)}</b> al volante${res.retraso_min ? ` (${res.retraso_min} min por el tráfico)` : ''} · fin hacia las <b>${hm(P.fin)}</b> <span class="rmfuente">Ruta: © TomTom</span>`
+    : `${esc(RM_MOTIVO[res.motivo] || RM_MOTIVO.servicio)}: tiempos aproximados en línea recta · fin hacia las <b>${hm(P.fin)}</b>`;
+  pintarRutasMapa(ml, P, real ? res.tramos : null);
+}
+
+function pintarRutasMapa(ml, P, tramos) {
+  if (RM_ANIM) { cancelAnimationFrame(RM_ANIM); RM_ANIM = null; }
+  if (RM_MAPA) { try { RM_MAPA.remove(); } catch (e) {} RM_MAPA = null; }
+  const xs = P.paradas.map(p => p.xy).concat(P.casa ? [P.casa] : []);
+  const bb = xs.reduce((b, [la, lo]) => [[Math.min(b[0][0], lo), Math.min(b[0][1], la)], [Math.max(b[1][0], lo), Math.max(b[1][1], la)]], [[180, 90], [-180, -90]]);
+  const map = new ml.Map({ container: 'rmc', style: 'https://tiles.openfreemap.org/styles/liberty', maxPitch: 0, dragRotate: false, attributionControl: { compact: true } });
+  RM_MAPA = map; map.touchZoomRotate.disableRotation();
+  map.fitBounds(bb, { padding: { top: 50, bottom: 90, left: 50, right: 50 }, duration: 0, maxZoom: 15 });
+  map.addControl(new ml.NavigationControl({ showCompass: false }), 'top-right');
+  // Los tramos de viaje: por las calles si los hay; si no, en recto
+  const VIA = P.segs.filter(s => s.tipo === 'viaje');
+  const prep = l => { const c = [0]; for (let i = 1; i < l.length; i++) c.push(c[i - 1] + rmKm([l[i - 1][1], l[i - 1][0]], [l[i][1], l[i][0]])); return { l, c, tot: c[c.length - 1] || 0.001 }; };
+  const PL = VIA.map(v => prep(tramos && tramos[v.k] && tramos[v.k].linea && tramos[v.k].linea.length > 1
+    ? tramos[v.k].linea.map(([la, lo]) => [lo, la]) : [[v.de[1], v.de[0]], [v.hasta[1], v.hasta[0]]]));
+  const enLinea = (pl, f) => {
+    const d = Math.max(0, Math.min(1, f)) * pl.tot; let i = 1; while (i < pl.c.length - 1 && pl.c[i] < d) i++;
+    const a = pl.l[i - 1], b = pl.l[i] || a, g = Math.max(0, Math.min(1, (d - pl.c[i - 1]) / ((pl.c[i] - pl.c[i - 1]) || 1)));
+    return { pt: [a[0] + (b[0] - a[0]) * g, a[1] + (b[1] - a[1]) * g], i, rumbo: (Math.atan2((b[0] - a[0]) * Math.cos(a[1] * Math.PI / 180), b[1] - a[1]) * 180 / Math.PI + 360) % 360 };
+  };
+  const linea = () => ({ type: 'Feature', geometry: { type: 'LineString', coordinates: PL.flatMap(x => x.l) } });
+  map.on('load', () => {
+    (map.getStyle().layers || []).forEach(l => {
+      const id = l.id, set = (k, v) => { try { map.setPaintProperty(id, k, v); } catch (e) {} }, ocultar = () => { try { map.setLayoutProperty(id, 'visibility', 'none'); } catch (e) {} };
+      if (l.type === 'fill-extrusion') return ocultar();
+      if (l.type === 'background') return set('background-color', RM_PAL.tierra);
+      if (l.type === 'symbol') { if (/poi|aeroway|housenumber|transit|rail|ferry|shield/i.test(id)) return ocultar(); set('text-color', RM_PAL.texto); set('text-halo-color', '#FFFFFF'); set('text-halo-width', 1.4); return; }
+      if (l.type === 'fill') {
+        if (/water/i.test(id)) return set('fill-color', RM_PAL.agua);
+        if (/building/i.test(id)) { set('fill-color', RM_PAL.edif); set('fill-outline-color', RM_PAL.borde); return; }
+        if (/park|wood|grass|forest|landcover|cemetery|pitch/i.test(id)) { set('fill-color', RM_PAL.parque); set('fill-opacity', 0.8); return; }
+        set('fill-color', RM_PAL.zona); set('fill-opacity', 0.6); return;
+      }
+      if (l.type === 'line') {
+        if (/water|river|stream|canal/i.test(id)) return set('line-color', RM_PAL.agua);
+        if (/rail|ferry|aeroway|boundary|admin/i.test(id)) return ocultar();
+        const grande = /motorway|trunk|primary/i.test(id);
+        set('line-color', /casing/i.test(id) ? (grande ? RM_PAL.viaBorde : RM_PAL.borde) : (grande ? RM_PAL.via : RM_PAL.calle));
+      }
+    });
+    const lp = { 'line-cap': 'round', 'line-join': 'round' };
+    map.addSource('rm-ruta', { type: 'geojson', data: linea() });
+    map.addSource('rm-hecho', { type: 'geojson', data: { type: 'Feature', geometry: { type: 'LineString', coordinates: [] } } });
+    map.addLayer({ id: 'rm-ruta-borde', type: 'line', source: 'rm-ruta', paint: { 'line-color': RM_PAL.rutaBorde, 'line-width': 8 }, layout: lp });
+    map.addLayer({ id: 'rm-ruta', type: 'line', source: 'rm-ruta', paint: { 'line-color': RM_PAL.ruta, 'line-width': 5, ...(tramos ? {} : { 'line-dasharray': [1.5, 1.5] }) }, layout: lp });
+    map.addLayer({ id: 'rm-hecho', type: 'line', source: 'rm-hecho', paint: { 'line-color': RM_PAL.hecho, 'line-width': 6 }, layout: lp });
+    mover();
+  });
+  // Paradas (las del mismo sitio, juntas) y la salida
+  if (P.casa) { const e = document.createElement('div'); e.className = 'rmcasa'; e.title = salidaUsuario().nombre || 'Salida'; e.innerHTML = svgIco(ICON_NOM.house || ''); new ml.Marker({ element: e }).setLngLat([P.casa[1], P.casa[0]]).addTo(map); }
+  const MK = {}, grupos = {};
+  P.paradas.forEach(p => { const k = p.xy.join(','); (grupos[k] = grupos[k] || []).push(p); });
+  Object.values(grupos).forEach(g => {
+    const e = document.createElement('button'); e.type = 'button'; e.className = 'rmmk' + (g.length > 1 ? ' multi' : '');
+    e.style.setProperty('--c', EST_COL[g[0].c.estado] || 'var(--navy)');
+    e.innerHTML = `<span>${g.map(p => p.i + 1).join('·')}</span>`; e.setAttribute('aria-label', g.map(p => p.c.nombre).join(', '));
+    e.onclick = ev => { ev.stopPropagation(); verCita(g[0].c); };
+    new ml.Marker({ element: e, anchor: 'bottom' }).setLngLat([g[0].xy[1], g[0].xy[0]]).addTo(map);
+    g.forEach(p => { MK[p.c.id] = e; });
+  });
+  // El marcador propio con su haz
+  const yo = document.createElement('div'); yo.className = 'rmyo';
+  yo.innerHTML = `<span class="haz"><svg viewBox="0 0 84 84"><path d="M42 42 L27 2.9 A42 42 0 0 1 57 2.9 Z" fill="#3F82C0" fill-opacity=".38"/></svg></span><span class="pun">${RM_SV(RM_COCHE)}</span>`;
+  const myo = new ml.Marker({ element: yo }).setLngLat([xs[0][1], xs[0][0]]).addTo(map);
+  // La jornada en una pista
+  const lo = Math.floor((Math.min(P.ini, P.tope || P.ini) - 30) / 60) * 60, hi = Math.ceil((Math.max(P.fin, P.tope || 0) + 30) / 60) * 60;
+  const x = m => ((m - lo) / ((hi - lo) || 1) * 100).toFixed(2) + '%';
+  const ahora = (() => { const d = new Date(); return d.getHours() * 60 + d.getMinutes(); })();
+  $('rmpista').innerHTML = `${P.tope && P.tope < hi ? `<div class="tope" style="left:${x(P.tope)};right:0" title="Después de tu hora de vuelta"></div>` : ''}
+    ${P.segs.map(s => s.tipo === 'viaje' ? `<div class="seg viaje" style="left:${x(s.a)};width:calc(${x(s.b)} - ${x(s.a)})"></div>`
+      : `<div class="seg vis ${citaHecha(s.p.c.estado) ? 'hecha' : CITA_ABIERTA.includes(s.p.c.estado) ? '' : 'no'}" style="left:${x(s.a)};width:calc(${x(s.b)} - ${x(s.a)})" title="${esc(s.p.c.nombre)}"><span>${s.p.i + 1}</span></div>`).join('')}
+    ${ahora > lo && ahora < hi ? `<div class="ahora" style="left:${x(ahora)}"></div>` : ''}`;
+  $('rmhoras').innerHTML = Array.from({ length: (hi - lo) / 60 + 1 }, (_, k) => lo + k * 60).map(m => `<span style="left:${x(m)}">${hm(m)}</span>`).join('');
+  const s = $('rmscrub'); s.min = lo; s.max = hi; s.value = Math.min(hi, Math.max(lo, ahora));
+  let cam = false, cen = null, tAnt = 0;
+  const nav = $('rmnav');
+  const mover = mm => {
+    if (!$('rmscrub')) return;
+    const m = mm != null ? mm : +s.value;
+    const k = VIA.findIndex(v => m >= v.a && m < v.b), seg = k >= 0 ? VIA[k] : null;
+    const vis = P.segs.find(v => v.tipo === 'vis' && m >= v.a && m <= v.b);
+    const antes = P.segs.filter(v => v.b <= m).pop();
+    let pt, f = 0, rumbo = null;
+    if (seg) { f = (m - seg.a) / ((seg.b - seg.a) || 1); const e = enLinea(PL[k], f); pt = e.pt; rumbo = e.rumbo; }
+    else if (vis) pt = [vis.p.xy[1], vis.p.xy[0]];
+    else if (antes) { const q = antes.tipo === 'vis' ? antes.p.xy : antes.hasta; pt = [q[1], q[0]]; }
+    else pt = [xs[0][1], xs[0][0]];
+    myo.setLngLat(pt); yo.classList.toggle('parado', !seg);
+    if (rumbo != null) yo.querySelector('.haz').style.transform = `rotate(${rumbo}deg)`;
+    const hecho = []; PL.forEach((pl, i) => { if (VIA[i].b <= m) hecho.push(...pl.l); else if (i === k) { const e = enLinea(pl, f); hecho.push(...pl.l.slice(0, e.i), e.pt); } });
+    const sh = map.getSource && map.getSource('rm-hecho'); sh && sh.setData({ type: 'Feature', geometry: { type: 'LineString', coordinates: hecho.length > 1 ? hecho : [] } });
+    const dura = PLANCFG().visita || 15, sig = P.paradas.find(p => p.ini + dura > m);
+    P.paradas.forEach(p => { const el = MK[p.c.id]; if (!el) return; el.classList.toggle('pasada', p.ini + dura <= m); el.classList.toggle('sig', p === sig); });
+    const lugar = xy => { const p = P.paradas.find(q => q.xy[0] === xy[0] && q.xy[1] === xy[1]); return p ? p.c.nombre : (salidaUsuario().nombre || 'la salida'); };
+    if (seg) nav.innerHTML = `<span class="ico">${RM_SV(RM_COCHE)}</span><div><b>Hacia ${esc(lugar(seg.hasta))}</b><span>Llegas hacia las ${hm(seg.b)}${seg.km != null ? ` · ${String(Math.round((1 - f) * seg.km * 10) / 10).replace('.', ',')} km` : ''}</span></div>`;
+    else if (vis) nav.innerHTML = `<span class="ico">${RM_SV('<path d="M20 6 9 17l-5-5"/>')}</span><div><b>En ${esc(vis.p.c.nombre)}</b><span>Hasta las ${hm(vis.b)}${sig && sig !== vis.p ? ' · después, ' + esc(sig.c.nombre) : ''}</span></div>`;
+    else nav.innerHTML = sig ? `<span class="ico">${RM_SV('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>')}</span><div><b>Siguiente: ${esc(sig.c.nombre)}</b><span>Hacia las ${hm(sig.ini)}</span></div>`
+      : `<span class="ico">${svgIco(ICON_NOM.house || '')}</span><div><b>Jornada terminada</b><span>De vuelta hacia las ${hm(P.fin)}</span></div>`;
+    $('rmtx').innerHTML = `A las <b>${hm(m)}</b>`;
+    if (cam) {
+      const t = performance.now(), g = tAnt ? 1 - Math.exp(-Math.min(500, t - tAnt) / 1000 * 2.2) : 1; tAnt = t;
+      cen = cen ? [cen[0] + (pt[0] - cen[0]) * g, cen[1] + (pt[1] - cen[1]) * g] : pt;
+      map.jumpTo({ center: cen, zoom: 13.6 });
+    }
+  };
+  s.oninput = () => mover();
+  const pb = $('rmplay');
+  const parar = () => {
+    if (RM_ANIM) cancelAnimationFrame(RM_ANIM); RM_ANIM = null; if (pb) pb.querySelector('span').textContent = 'Ver el día';
+    yo.classList.remove('va'); if (cam) { cam = false; cen = null; tAnt = 0; map.fitBounds(bb, { padding: { top: 50, bottom: 90, left: 50, right: 50 }, duration: 900, maxZoom: 15 }); }
+  };
+  pb.onclick = () => {
+    if (RM_ANIM) return parar();
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let m = +s.value >= hi - 5 ? lo : +s.value, t0 = null;
+    cam = !reduce; pb.querySelector('span').textContent = 'Parar'; yo.classList.add('va');
+    const paso = t => {
+      if (!$('rmscrub')) return parar();
+      if (t0 == null) t0 = t; const dt = Math.min(0.1, (t - t0) / 1000); t0 = t;
+      const enViaje = VIA.some(v => m >= v.a && m <= v.b);
+      m = Math.min(hi, m + dt * (enViaje ? 6 : 70)); s.value = m; mover(m);
+      if (m < hi) RM_ANIM = requestAnimationFrame(paso); else parar();
+    };
+    RM_ANIM = requestAnimationFrame(paso);
+  };
+  mover();
+}
+cargarRutas = (orig => async function (...a) {
+  const r = await orig.apply(this, a);
+  rutasMapa();
+  return r;
+})(cargarRutas);
