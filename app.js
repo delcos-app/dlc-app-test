@@ -23419,3 +23419,130 @@ htPreparar = (orig => function (sec, ...r) {
   sec.querySelectorAll('.dgrid').forEach(g => { const n = g.querySelectorAll(':scope > .dr').length; if (g.dataset.htn != n) { g.dataset.htn = n; htOrdenarFilas(g); } });
   return x;
 })(htPreparar);
+
+/* v2.228.0 · Inicio de toda la empresa, en mosaico (decisión de Eric, 10/10/2026: variante «Mosaico» de https://claude.ai/artifact/5UMynF3SKQnJYBVkR6CCk7).
+   - Fuera las listas que solo miraban la Agenda (rutas sugeridas, agenda, próximas acciones, urgentes, últimas visitas, Mi semana…). En su lugar,
+     un mosaico con piezas de distintos tamaños: «Requiere tu atención» (grande: pagos por validar, facturas vencidas, urgentes, paquetes, stock,
+     cirugías por reponer, concursos que vencen, llamadas, duplicados…; cada línea lleva a su pantalla), Ventas del mes (frente al mes pasado y
+     visitas de los últimos 14 días), Tu día (tus citas y tareas), Cobros, Ciclo, Stock, Cartera y Lo que viene (eventos, concursos, cirugías
+     y revisiones de equipos).
+   - Cada persona ve solo las áreas de su plan y sus permisos (las mismas del menú) y los importes solo con permiso de importes.
+   - Los indicadores de siempre siguen, plegados al final («Ver tus indicadores»), con su configuración.
+   - Los números cuentan y las gráficas crecen al llegar, todo a la vez; sin animación con «reducir movimiento».
+   - Datos: inicio_areas() (SQL 136) más panel_inicio, inicio_graficas, operativa_pendiente, alertas_stock, ciclo_cuentas y las citas de hoy. */
+const verArea = t => { const b = document.querySelector(`nav.main [data-t="${t}"]`); return !!b && !b.classList.contains('hide') && !b.classList.contains('bloq'); };
+const MOS_MES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'], MOS_DS = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
+const mosEur = n => Math.round(+n || 0).toLocaleString('es-ES') + ' €';
+const mosIco = n => svgIco(ICON_NOM[n] || ICON_NOM.info);
+let MOS_TURNO = 0;
+async function datosMosaico() {
+  const h = hoyISO(), r = x => Promise.resolve(x).then(v => (v && v.data) || null, () => null);
+  const [ar, op, al, ci, ll, citas, ta] = await Promise.all([
+    r(db.rpc('inicio_areas')),
+    VE_TODO() && nivelDe2('V') >= 1 ? r(RPC_ORIG('operativa_pendiente', {})) : null,
+    verArea('productos') ? r(RPC_ORIG('alertas_stock', {})) : null,
+    verArea('ciclo') ? r(RPC_ORIG('ciclo_cuentas', { p_usuario: null })) : null,
+    VE_TODO() && typeof hayOportunidades === 'function' && hayOportunidades() ? r(RPC_ORIG('llamadas_seguimiento', {})) : null,
+    citasDelDia(h).catch(() => []), r(db.from('tareas').select('id,titulo,hora,hecha').eq('fecha', h))]);
+  if (!KV_INI) { const p = await r(db.rpc('panel_inicio')); KV_INI = p; }
+  return { h, ar: ar || {}, op, al: al || [], ci, ll, citas: citas || [], ta: ta || [], k: (KV_INI && KV_INI.kpis) || {}, gr: KV_GRAF };
+}
+function mosAtencion(D) {
+  const it = [], add = (n, g, ic, t, s, fn) => { if (n) it.push({ n, g, ic, t, s, fn }); };
+  const c = D.ar.cobros, op = D.op || {}, nop = k => (op[k] || []).length;
+  if (c && verArea('facturacion')) add(c.n_vencidas, 'alta', 'receipt', 'Facturas vencidas', `${mosEur(c.vencido)} por cobrar`, () => ir('facturacion'));
+  add(nop('pago'), 'alta', 'credit-card', 'Pagos por validar', 'Pedidos cobrados que esperan su visto bueno', () => { PEDSEC = 'ventas'; ir('ventas'); });
+  add(D.k.urgentes, 'alta', 'zap', `${TT('medico', 'p', '', 'l', 'C', 'urgente')} sin visitar`, 'Marcados como urgentes en su ficha', () => ir('directorio'));
+  if (verArea('cirugias')) add(D.ar.cirugias_reponer, 'alta', 'scissors', 'Material de cirugías por reponer', 'Reposición en 48 horas', () => ir('cirugias'));
+  add(nop('paquete'), 'media', 'package', 'Paquetes por preparar', 'Pedidos confirmados sin enviar', () => { PEDSEC = 'ventas'; ir('ventas'); });
+  (D.al || []).forEach(a => add(a.n, a.gravedad === 'alta' ? 'alta' : 'media', 'package', a.titulo, (a.items || []).slice(0, 2).map(x => x.nombre).join(' · '), () => ir('productos')));
+  if (D.ll) { const p = D.ll.filter(x => x.proxima_fecha && x.proxima_fecha <= D.h); add(p.length, 'media', 'phone', 'Volver a llamar hoy', p.some(x => x.proxima_fecha < D.h) ? 'Algunas llamadas van con retraso' : 'Clientes a los que quedaste en llamar', () => { PEDSEC = 'llamadas'; ir('ventas'); }); }
+  if (verArea('concursos')) add(D.ar.concursos_vencen, 'media', 'gavel', 'Contratos que vencen en 90 días', 'Concursos por renovar', () => ir('concursos'));
+  add(nop('email_factura') + nop('email_pago'), 'media', 'mail', 'Correos por enviar', 'Facturas y avisos de pago sin enviar al cliente', () => { PEDSEC = 'ventas'; ir('ventas'); });
+  if (typeof puedeDuplicados === 'function' && puedeDuplicados()) add(D.k.pendientes_unificar, 'media', 'copy', 'Fichas duplicadas por revisar', 'Posibles duplicados', () => ir('duplicados'));
+  it.sort((a, b) => (a.g === b.g ? b.n - a.n : a.g === 'alta' ? -1 : 1));
+  return it;
+}
+function pintarMosaicoHtml(D) {
+  const A = mosAtencion(D), k = D.k, imp = verImportes(), tiles = [];
+  const total = A.reduce((a, x) => a + x.n, 0);
+  tiles.push(`<div class="mt mtat ${A.length <= 2 ? 'pocas' : ''}"><div class="mtt">${mosIco('bell')} Requiere tu atención${total ? `<span class="mtatn" data-mcnt="${total}">${total}</span>` : ''}</div>
+    <div class="mtl">${A.slice(0, 7).map((x, i) => `<button type="button" class="mti ${x.g}" data-mat="${i}"><span class="mic">${mosIco(x.ic)}</span>
+      <span class="mtx"><b>${esc(x.t)}</b><span>${esc(x.s || '')}</span></span><span class="mn" data-mcnt="${x.n}">${x.n}</span><span class="mfl" aria-hidden="true">›</span></button>`).join('')
+      || `<div class="mtok">${mosIco('check')}<span><b>Todo al día</b>No hay nada pendiente en ninguna área.</span></div>`}</div></div>`);
+  // Ventas del mes
+  const v = D.ar.ventas || {};
+  if (verArea('ventas')) {
+    const base = imp && v.importe != null, act = base ? v.importe : v.unidades, ant = base ? v.importe_ant : v.unidades_ant;
+    const dif = ant ? Math.round(100 * (act - ant) / ant) : null;
+    const dias = {}; ((D.gr && D.gr.por_dia) || []).forEach(x => { dias[x.fecha] = x.n; });
+    const bs = [...Array(14)].map((_, i) => isoMas(D.h, i - 13)), mx = Math.max(1, ...bs.map(f => dias[f] || 0));
+    tiles.push(`<div class="mt mtven"><div class="mtt">${mosIco('chart-column')} Ventas del mes</div>
+      <div class="mn1" ${base ? `data-meur="${act}"` : `data-mcnt="${act}"`}>${base ? mosEur(act) : num(act) + '<small>uds.</small>'}</div>
+      <div class="ms">${dif == null ? '' : `<span class="${dif >= 0 ? 'mup' : 'mdown'}">${dif >= 0 ? '▲' : '▼'} ${Math.abs(dif)} %</span> frente al mismo día del mes pasado · `}<b>${num(v.pedidos || 0)}</b> pedidos${base ? ` · <b>${num(v.unidades || 0)}</b> uds.` : ''}</div>
+      <div class="mbars" role="img" aria-label="${TT('visita', 'p', '', 'l', 'C')} por día en los últimos 14 días">${bs.map(f => `<i class="${f === D.h ? 'h' : ''}" style="height:${Math.max(4, 100 * (dias[f] || 0) / mx)}%"></i>`).join('')}</div>
+      <div class="mleg">${TT('visita', 'p', '', 'l', 'C')} de los últimos 14 días</div></div>`);
+  }
+  // Tu día
+  const ab = D.citas.filter(c => CITA_ABIERTA.includes(c.estado)), hechas = D.citas.filter(c => !CITA_ABIERTA.includes(c.estado) && !citaAnulada(c.estado)).length;
+  const vivas = D.citas.filter(c => !citaAnulada(c.estado)).length, tpend = D.ta.filter(t => !t.hecha).length;
+  tiles.push(`<div class="mt mthoy"><div class="mtt">${mosIco('calendar-days')} Tu día</div>
+    <div class="mn1"><span data-mcnt="${vivas}">${vivas}</span><small>${vivas === 1 ? 'cita' : 'citas'}</small></div>
+    <div class="ms"><b>${hechas}</b> hechas · <b>${tpend}</b> ${tpend === 1 ? 'tarea pendiente' : 'tareas pendientes'}</div>
+    <div class="mprog"><i style="width:${vivas ? Math.max(3, 100 * hechas / vivas) : 0}%"></i></div>
+    <div class="mcitas">${ab.slice(0, 4).map(c => `<div><b>${esc(String(c.hora || '').slice(0, 5) || '—')}</b><span>${esc(c.medico || c.nombre || '')}</span></div>`).join('')
+      || `<button type="button" class="lnk" data-mplan>${vivas ? 'Día completado' : 'Planifica tu día'}</button>`}</div></div>`);
+  // Cobros
+  const c = D.ar.cobros;
+  if (c && imp && verArea('facturacion')) tiles.push(`<div class="mt mtcob"><div class="mtt">${mosIco('euro')} Cobros</div>
+    <div class="mn1" data-meur="${c.pendiente}">${mosEur(c.pendiente)}</div><div class="ms">pendiente en <b>${num(c.n)}</b> ${c.n === 1 ? 'factura' : 'facturas'}</div>
+    <div class="mmini"><div><span>Vencido</span><b class="${c.vencido > 0 ? 'mdown' : ''}">${mosEur(c.vencido)}</b></div><div><span>Facturado este mes</span><b>${mosEur(c.facturado_mes)}</b></div></div></div>`);
+  // Ciclo
+  if (D.ci && (D.ci.resumen || []).length) {
+    const r = D.ci.resumen, hh = r.reduce((a, x) => a + x.hechas, 0), o = r.reduce((a, x) => a + x.objetivo, 0), pc = o ? Math.round(100 * hh / o) : 0, C = 2 * Math.PI * 30;
+    tiles.push(`<div class="mt mtcic"><div class="mtt">${mosIco('target')} Ciclo de ${TT('visita', 'p', '', 'l', 'l')}</div>
+      <div class="mfila"><svg class="mring" viewBox="0 0 70 70" aria-hidden="true"><circle class="f" cx="35" cy="35" r="30"/><circle class="v" cx="35" cy="35" r="30" style="stroke-dasharray:${C * pc / 100} ${C}"/></svg>
+      <div><div class="mn1" style="margin:0"><span data-mcnt="${pc}">${pc}</span> %</div><div class="ms"><b>${hh}</b> de ${o} · quedan ${D.ci.quedan_dias || 0} días</div></div></div></div>`);
+  }
+  // Stock
+  if (verArea('productos')) { const n = (D.al || []).reduce((a, x) => a + x.n, 0);
+    tiles.push(`<div class="mt mtsto"><div class="mtt">${mosIco('package')} Stock</div><div class="mn1"><span data-mcnt="${n}">${n}</span><small>${n === 1 ? 'aviso' : 'avisos'}</small></div>
+      <div class="mmini">${(D.al || []).slice(0, 3).map(a => `<div><span>${esc(a.titulo)}</span><b>${a.n}</b></div>`).join('') || '<div><span>Todo en orden</span></div>'}</div></div>`); }
+  // Cartera
+  if (verArea('directorio')) tiles.push(`<div class="mt mtcar"><div class="mtt">${mosIco('users')} Cartera</div>
+    <div class="mn1"><span data-mcnt="${k.cuentas || 0}">${num(k.cuentas || 0)}</span><small>${TT('medico', 'p', '', 'l', 'l')}</small></div>
+    <div class="mmini">${verArea('ventas') ? `<div><span>Han vendido este mes</span><b>${num(k.prescriptores_mes || 0)}</b></div>` : ''}<div><span>Sin contactar</span><b>${num(k.sin_contactar || 0)}</b></div><div><span>Sin ${TT('visita', 's', '', 'l', 'l')} en 60 días</span><b>${num(k.sin_visita_60 || 0)}</b></div></div></div>`);
+  // Lo que viene
+  const pr = (D.ar.proximos || []).filter(x => x.tipo !== 'evento' || verArea('eventos')).filter(x => x.tipo !== 'concurso' || verArea('concursos')).filter(x => x.tipo !== 'cirugia' || verArea('cirugias')).filter(x => x.tipo !== 'equipo' || verArea('parque'));
+  if (pr.length) tiles.push(`<div class="mt mtprox"><div class="mtt">${mosIco('clock')} Lo que viene</div><div class="mtl2">${pr.slice(0, 6).map(x => { const d = new Date(x.fecha + 'T12:00:00');
+      return `<div class="me"><span class="md">${d.getDate()} ${MOS_MES[d.getMonth()]}<small>${MOS_DS[d.getDay()]}</small></span><span class="mp ${x.tipo}"></span><span class="mtx"><b>${esc(x.titulo)}</b><span>${esc(x.sub || '')}</span></span></div>`; }).join('')}</div></div>`);
+  return { html: tiles.join(''), A };
+}
+function mosContar(box) {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const els = [...box.querySelectorAll('[data-mcnt], [data-meur]')], t0 = performance.now();
+  const paso = t => { const p = Math.min(1, (t - t0) / 900), e = 1 - Math.pow(1 - p, 3);
+    els.forEach(el => { if (el.dataset.meur != null) el.textContent = mosEur(+el.dataset.meur * e); else el.textContent = num(Math.round(+el.dataset.mcnt * e)); });
+    if (p < 1) requestAnimationFrame(paso); };
+  requestAnimationFrame(paso);
+}
+async function pintarMosaico() {
+  if (TAB !== 'inicio' || ES_MEDICO()) return;
+  const sec = $('v-inicio'); if (!sec) return;
+  const turno = ++MOS_TURNO, D = await datosMosaico();
+  if (turno !== MOS_TURNO || TAB !== 'inicio') return;
+  const { html, A } = pintarMosaicoHtml(D);
+  let box = $('inimos');
+  if (!box) { sec.querySelector('.saludo').insertAdjacentHTML('afterend', '<div id="inimos" class="inimos"></div><div class="inikpisb"><button type="button" class="btn sec" id="inikpisver">Ver tus indicadores</button></div>'); box = $('inimos');
+    $('inikpisver').onclick = () => { const on = !sec.classList.contains('conkpis'); sec.classList.toggle('conkpis', on); $('inikpisver').textContent = on ? 'Ocultar tus indicadores' : 'Ver tus indicadores'; }; }
+  box.innerHTML = html;
+  box.querySelectorAll('[data-mat]').forEach(b => b.onclick = () => A[+b.dataset.mat].fn());
+  const pl = box.querySelector('[data-mplan]'); if (pl) pl.onclick = () => ir('agenda');
+  sec.classList.add('conmos');
+  mosContar(box);
+}
+cargarInicio = (orig => function (...a) {
+  const r = orig.apply(this, a);
+  Promise.resolve(r).then(() => pintarMosaico()).catch(() => {});
+  return r;
+})(cargarInicio);
