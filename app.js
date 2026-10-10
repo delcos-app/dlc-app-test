@@ -7344,7 +7344,7 @@ async function planificarSemana(desde, dias, bloq, porDia) {
   const misRutas = (rutas || []).filter(x => !AG_VISTA || x.usuario_id === agUid() || x.visible_para === '*');
   $('dbody').innerHTML = `
     <div class="fh"><div><h2>Planificar la semana${AG_VISTA ? ' de ' + esc(AG_VISTA.nombre) : ''}</h2>
-      <div class="sm">Reparte ${TT('medico', 'p', 'el', 'l', 'l')} entre los días, cada uno un día que pase consulta y agrupados por zona</div></div>
+      <div class="sm">Reparte ${TT('medico', 'p', 'el', 'l', 'l')} entre los días, cada uno un día que atienda y agrupados por zona</div></div>
       <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
     <label for="spfuente">¿A quién?</label>
     <select id="spfuente">
@@ -15049,7 +15049,7 @@ Object.assign(ICON_NOM, {"building-2":"<path d=\"M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0
    v2.98.0 · Centros en las rutas
    En el editor de rutas, «Añadir un centro» añade todos sus médicos (se quitan
    los que no se van a ver). La ruta guarda sus centros y cada médico se
-   planifica en ese centro aunque pase consulta también en otros.
+   planifica en ese centro aunque atienda también en otros.
    ============================================================ */
 function rutaCentrosHTML(centros, medicos) {
   const chip = m => `<span class="chip">${esc(m.nombre)}
@@ -15065,7 +15065,7 @@ function rutaCentrosHTML(centros, medicos) {
   const sueltos = medicos.filter(m => !centros.some(c => c.id === m.centro_ruta));
   return grupos + (sueltos.length ? `${centros.length ? `<div class="sm rcentrootros">Otros ${TT('medico', 'p', '', 'l', 'l')}</div>` : ''}<div class="chips">${sueltos.map(chip).join('')}</div>` : '');
 }
-if (AYUDA.rutas) AYUDA.rutas[2].push(`Con <b>Añadir un centro</b> entran todos sus ${TT('medico', 'p', '', 'l', 'l')}: quita los que no vayas a ver. En el plan, los de un mismo centro forman una sola parada y se les planifica en ese centro aunque pasen consulta en otros.`);
+if (AYUDA.rutas) AYUDA.rutas[2].push(`Con <b>Añadir un centro</b> entran todos sus ${TT('medico', 'p', '', 'l', 'l')}: quita los que no vayas a ver. En el plan, los de un mismo centro forman una sola parada y se les planifica en ese centro aunque atiendan en otros.`);
 
 
 /* ============================================================
@@ -23546,3 +23546,145 @@ cargarInicio = (orig => function (...a) {
   Promise.resolve(r).then(() => pintarMosaico()).catch(() => {});
   return r;
 })(cargarInicio);
+
+/* v2.229.0 · Agenda en una sola pantalla (decisión de Eric, 10/10/2026: variante B de https://claude.ai/artifact/7iht52N5whHBhAueRH7pso).
+   - Cinta: cada día lleva su «⋯» (nueva cita, ver el día, bloquear o desbloquear: festivo, vacaciones, formación…) y los bloqueados se ven
+     rayados con su motivo. «Planificar la semana» pasa a «Ver la semana»: despliega la semana debajo de la cinta, en la misma pantalla, con la
+     rejilla de siempre (pintarSemanaAgenda pintada en #agsemexp: citas, arrastrar, «⋯» por día) y un solo botón, «Repartir la semana» (el
+     planificador; su propuesta se guarda o descarta allí mismo).
+   - Las sugerencias van dentro de «Tu día»: cada cita lleva «En este centro también» con los profesionales del mismo centro (un toque, su
+     «+ Cita» de siempre). «Les toca visita» y «Pendientes de días anteriores» pasan a dos bandejas con su número bajo «Tu día», que abren el
+     panel lateral con su lista.
+   - La columna derecha es «Tu semana» (#agsemlat): día a día con sus citas, su «⋯» y «Repartir la semana». */
+let AG_SEM_ABIERTA = false;
+async function agBloqueos(desde, n) { try { return await bloqueadosSemana(desde, isoMas(desde, n - 1)); } catch (e) { return {}; } }
+async function agMenusCinta() {
+  const cin = $('agcinta'); if (!cin) return;
+  const ini = cin.dataset.ini; if (!ini) return;
+  const bloq = await agBloqueos(ini, 14);
+  if ($('agcinta') !== cin) return;
+  cin.querySelectorAll('button').forEach(b => {
+    const f = b.dataset.cf || b.dataset.agdia || b.dataset.f || b.dataset.fecha; if (!f || !/^\d{4}-\d{2}-\d{2}$/.test(f)) return;
+    b.classList.add('cdia'); b.classList.toggle('bloq', !!bloq[f]);
+    if (bloq[f]) b.dataset.bloq = bloq[f]; else delete b.dataset.bloq;
+    if (f >= hoyISO() && !b.querySelector('.cdmas')) {
+      b.insertAdjacentHTML('beforeend', '<span class="cdmas" role="button" tabindex="0" aria-label="Opciones del día" title="Opciones del día">⋯</span>');
+      const m = b.querySelector('.cdmas');
+      const abrir = ev => { ev.stopPropagation(); ev.preventDefault(); menuDiaSemana(m, f, b.classList.contains('bloq')); };
+      m.addEventListener('click', abrir, true); m.addEventListener('keydown', ev => { if (ev.key === 'Enter') abrir(ev); });
+    }
+  });
+}
+// La semana de siempre, pintada debajo de la cinta (se cambia el id un momento para que pintarSemanaAgenda pinte allí)
+async function agPintarSemanaExp() {
+  const cin = $('agcinta'); if (!cin || !AG_SEM_ABIERTA) { const x = $('agsemexp'); if (x) x.remove(); return; }
+  let cont = $('agsemexp'); if (!cont) { cin.insertAdjacentHTML('beforeend', '<div id="agsemexp" class="agsemexp"></div>'); cont = $('agsemexp'); }
+  const real = $('agcuerpo'), modo = AG_MODO;
+  if (!real) return;
+  real.id = 'agcuerpo-dia'; cont.id = 'agcuerpo'; AG_MODO = 'semana';
+  try { await pintarSemanaAgenda(); } finally { cont.id = 'agsemexp'; real.id = 'agcuerpo'; AG_MODO = modo; }
+  const h = cont.querySelector('.semhead h2'); if (h) h.remove();
+  const p = cont.querySelector('#semplan'); if (p) p.textContent = 'Repartir la semana';
+  const head = cont.querySelector('.semhead'); if (head) head.insertAdjacentHTML('afterbegin', '<span class="sm">Arrastra una cita a otro día para moverla · «⋯» en un día para bloquearlo o añadir una cita</span>');
+}
+function agBotonSemana() {
+  const b = $('cplan'); if (!b) return;
+  b.innerHTML = `${svgIco(ICON_NOM['calendar-days'] || ICON_NOM.info)}<span>${AG_SEM_ABIERTA ? 'Ocultar la semana' : 'Ver la semana'}</span>`;
+  b.title = AG_SEM_ABIERTA ? 'Ocultar la semana' : 'Ver la semana entera, moverla y repartirla';
+  b.setAttribute('aria-expanded', String(AG_SEM_ABIERTA));
+  b.onclick = ev => { ev.stopPropagation(); ev.preventDefault(); AG_SEM_ABIERTA = !AG_SEM_ABIERTA; agBotonSemana(); agPintarSemanaExp(); };
+}
+function agRepartirSemana() {
+  AG_SEM_ABIERTA = true; agBotonSemana();
+  agPintarSemanaExp().then(() => { const p = $('semplan'); if (p) { $('agsemexp').scrollIntoView({ behavior: 'smooth', block: 'start' }); p.click(); } });
+}
+// Columna derecha: tu semana
+async function agSemanaLateral() {
+  if (TAB !== 'agenda' || AG_MODO !== 'dia') return;
+  const v = $('v-agenda'); if (!v || !v.classList.contains('agcinta')) return;
+  let box = $('agsemlat');
+  if (!box) { const ref = $('agsug') || $('agpend') || $('agcuerpo'); ref.insertAdjacentHTML(ref.id === 'agcuerpo' ? 'afterend' : 'beforebegin', '<div class="card" id="agsemlat"></div>'); box = $('agsemlat'); }
+  const desde = lunesDe(AG_FECHA || hoyISO()), hasta = isoMas(desde, 6);
+  const [r, bloq] = await Promise.all([rpcCache('agenda_rango', { p_desde: desde, p_hasta: hasta, p_usuario: agUsuarioFiltro() }, 'agenda-' + desde), agBloqueos(desde, 7)]);
+  if (!$('agsemlat')) return;
+  const por = {}; ((r && r.data) || []).filter(c => !citaAnulada(c.estado)).forEach(c => (por[c.fecha] = por[c.fecha] || []).push(c));
+  const DS = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
+  box.innerHTML = `<h2>Tu semana</h2><p class="sm agslnota">«⋯» en un día para bloquearlo (festivo, vacaciones, formación) o añadir una cita.</p>
+    <div class="agsl">${[...Array(7)].map((_, i) => { const f = isoMas(desde, i), d = new Date(f + 'T12:00:00'), l = (por[f] || []).sort((a, b) => String(a.hora || '').localeCompare(String(b.hora || '')));
+      return `<div class="agsld ${f === hoyISO() ? 'hoy' : ''} ${f === AG_FECHA ? 'sel' : ''} ${bloq[f] ? 'bloq' : ''}" data-agsl="${f}" role="button" tabindex="0" aria-label="Ver el ${fechaCorta(f)}">
+        <span class="agslf">${d.getDate()}<small>${DS[d.getDay()]}</small></span>
+        <span class="agslc">${bloq[f] ? `<span class="agslb">${esc(bloq[f])}</span>` : ''}${l.slice(0, 3).map(c => `<span class="agslx"><b>${esc(String(c.hora || '').slice(0, 5))}</b>${esc(c.medico || c.nombre || '')}</span>`).join('')}${l.length > 3 ? `<span class="agslv">y ${l.length - 3} más</span>` : ''}${!l.length && !bloq[f] ? '<span class="agslv">Libre</span>' : ''}</span>
+        ${f >= hoyISO() ? `<button type="button" class="agslm" data-agslm="${f}" aria-label="Opciones del ${fechaCorta(f)}">⋯</button>` : '<span></span>'}</div>`; }).join('')}</div>
+    ${[...Array(7)].some((_, i) => isoMas(desde, i) >= hoyISO()) ? '<div class="acts agslacts"><button type="button" class="btn sec" id="agslrep">Repartir la semana</button></div>' : ''}`;
+  box.querySelectorAll('[data-agslm]').forEach(b => b.onclick = ev => { ev.stopPropagation(); menuDiaSemana(b, b.dataset.agslm, !!bloq[b.dataset.agslm]); });
+  box.querySelectorAll('[data-agsl]').forEach(d => { const ver = () => agVerDia(d.dataset.agsl); d.onclick = ver; d.onkeydown = e => { if (e.key === 'Enter') ver(); }; });
+  if ($('agslrep')) $('agslrep').onclick = agRepartirSemana;
+}
+// Sugerencias dentro de tu día y bandejas
+function agSugerenciasDentro() {
+  if (TAB !== 'agenda' || AG_MODO !== 'dia') return;
+  const sug = $('agsug'), lista = document.querySelector('#agcuerpo .tdlista') || $('agcuerpo'); if (!sug || !lista) return;
+  const tarjetas = [...document.querySelectorAll('#agcuerpo .tdu')];
+  tarjetas.forEach(t => t.querySelectorAll('.agtamb').forEach(x => x.remove()));
+  sug.querySelectorAll('.sgcen').forEach(c => {
+    const cab = c.querySelector('.sgcencab'); if (!cab) return;
+    const nom = ((cab.querySelector('b, strong, h4') || cab).textContent || '').trim().split(/\n/)[0].toUpperCase();
+    if (!nom) return;
+    const t = tarjetas.find(x => x.textContent.toUpperCase().includes(nom.slice(0, 22))); if (!t) return;
+    const items = [...c.querySelectorAll('.item')]; if (!items.length) return;
+    const chips = items.map((it, i) => { const n = ((it.querySelector('.tx b, b') || {}).textContent || '').trim(); return n ? `<button type="button" data-agti="${i}" title="Añadir una cita con ${esc(n)}"><i>+</i> ${esc(n)}</button>` : ''; }).join('');
+    const pie = t.querySelector('.tdu-pie, .tduacts') || t.lastElementChild;
+    pie.insertAdjacentHTML('beforebegin', `<div class="agtamb"><div class="agtambh">${svgIco(ICON_NOM['map-pin'])} En este centro también</div><div class="agtambl">${chips}</div></div>`);
+    t.querySelectorAll('[data-agti]').forEach(b => b.onclick = ev => {
+      ev.stopPropagation();
+      const it = items[+b.dataset.agti], cita = it && [...it.querySelectorAll('button')].find(x => /cita/i.test(x.textContent));
+      if (cita) cita.click(); else if (it) it.click();
+    });
+  });
+  // Bandejas: «Les toca visita» y «Pendientes de días anteriores»
+  const head = document.querySelector('#agcuerpo .tdhead'); if (!head) return;
+  const toca = [...sug.querySelectorAll('.lista')].filter(l => !l.closest('.sgcen')).pop();
+  const nToca = toca ? toca.querySelectorAll('.item').length : 0;
+  const pend = $('agpend'), nPend = pend ? +(((pend.querySelector('h2 .n, h2 span') || {}).textContent || '').replace(/\D/g, '')) || pend.querySelectorAll('.item').length : 0;
+  let band = $('agband'); if (band) band.remove();
+  if (!nToca && !nPend) return;
+  head.insertAdjacentHTML('afterend', `<div class="agband" id="agband">${nToca ? `<button type="button" data-agbd="toca">${svgIco(ICON_NOM.target)} Les toca ${TT('visita', 's', '', 'l', 'l')} <b>${nToca}</b></button>` : ''}${nPend ? `<button type="button" class="urg" data-agbd="pend">${svgIco(ICON_NOM['circle-alert'] || ICON_NOM.info)} Pendientes de días anteriores <b>${nPend}</b></button>` : ''}</div>`);
+  $('agband').querySelectorAll('[data-agbd]').forEach(b => b.onclick = () => agBandeja(b.dataset.agbd));
+}
+function agBandeja(k) {
+  const d = $('tools'), sug = $('agsug'), pend = $('agpend');
+  const tit = k === 'toca' ? `Les toca ${TT('visita', 's', '', 'l', 'l')}` : 'Pendientes de días anteriores';
+  const txt = k === 'toca' ? `Según la frecuencia objetivo de cada ${TT('medico', 's', '', 'l', 'l')}. Añádelos a este día o planifica una ruta con ellos.` : 'Los planificaste y no se visitaron. Muévelos a hoy o descártalos.';
+  d.innerHTML = `<div class="tbox"><div class="fh"><h2>${esc(tit)}</h2><button class="x" id="tclose" aria-label="Cerrar">✕</button></div><p class="sm">${esc(txt)}</p><div class="agbdc"></div></div>`;
+  const c = d.querySelector('.agbdc');
+  if (k === 'toca' && sug) { const l = [...sug.querySelectorAll('.lista')].filter(x => !x.closest('.sgcen')).pop(); if (l) { const cab = l.previousElementSibling; if (cab && cab.querySelector('button')) c.appendChild(cab); c.appendChild(l); const vm = sug.querySelector('.vermas'); if (vm) c.appendChild(vm); } }
+  if (k === 'pend' && pend) [...pend.children].filter(x => !x.matches('h2, p.sm')).forEach(x => c.appendChild(x));
+  $('tclose').onclick = () => d.classList.remove('abierto');
+  if (typeof HERR_CTX !== 'undefined') HERR_CTX = 'agband-' + k;
+  d.classList.add('abierto');
+}
+function agVistaUnica() {
+  if (TAB !== 'agenda') return;
+  const v = $('v-agenda'); if (!v) return;
+  const dia = AG_MODO === 'dia' && v.classList.contains('agcinta');
+  v.classList.toggle('agb', dia);
+  if (!dia) { const x = $('agsemlat'); if (x) x.remove(); return; }
+  agBotonSemana(); agMenusCinta(); agSemanaLateral(); agSugerenciasDentro(); agPintarSemanaExp();
+}
+cargarAgenda = (orig => async function (...a) {
+  const r = await orig.apply(this, a);
+  try { agVistaUnica(); } catch (e) {}
+  return r;
+})(cargarAgenda);
+sugerenciasAgenda = (orig => async function (...a) {
+  const r = await orig.apply(this, a);
+  try { agSugerenciasDentro(); } catch (e) {}
+  return r;
+})(sugerenciasAgenda);
+// Los cambios de la cinta (‹ › o pulsar otro día) repintan la cinta: se le vuelven a poner los menús y la semana
+agVerDia = (orig => function (...a) {
+  const r = orig.apply(this, a);
+  Promise.resolve(r).then(() => { try { if (TAB === 'agenda' && AG_MODO === 'dia') { agMenusCinta(); agBotonSemana(); } } catch (e) {} });
+  return r;
+})(agVerDia);
+document.addEventListener('click', e => { if (e.target.closest('#agcinta [data-cm]')) setTimeout(() => { try { agMenusCinta(); agBotonSemana(); } catch (x) {} }, 400); });

@@ -3780,6 +3780,52 @@ input.campodup{border-color:#E08A00!important;box-shadow:0 0 0 3px rgba(224,138,
 @media (prefers-reduced-motion:reduce){.inimos .mbars i,.inimos .mprog i,.inimos .mring .v{animation:none}}
 @media (max-width:1100px){.inimos{grid-template-columns:repeat(2,minmax(0,1fr))}.inimos .mtat{grid-row:auto}}
 @media (max-width:640px){.inimos{grid-template-columns:minmax(0,1fr)}.inimos .mt{grid-column:auto!important}.inimos .mn1{font-size:28px}.inimos .mcitas{grid-template-columns:minmax(0,1fr)}}
+
+/* v2.229.0 · Agenda en una sola pantalla */
+#v-agenda.agb #agsug,#v-agenda.agb #agpend{display:none!important}
+#v-agenda.agunida.agcinta #agsemlat{grid-column:2;order:4;margin:0 0 12px!important;align-self:start;position:sticky;top:84px}
+#agsemlat h2{padding:16px 16px 0}
+#agsemlat .agslnota{margin:2px 16px 0}
+#agsemlat .agsl{display:flex;flex-direction:column;gap:8px;margin:12px 16px 0}
+#agsemlat .agsld{display:grid;grid-template-columns:42px minmax(0,1fr) 28px;gap:10px;align-items:start;border:1px solid var(--line);border-radius:12px;padding:9px 10px;background:var(--panel,#fff);cursor:pointer}
+#agsemlat .agsld:hover{border-color:#B9CCE0}
+#agsemlat .agsld.hoy .agslf{color:var(--azul,#3F82C0)}
+#agsemlat .agsld.sel{border-color:var(--navy);box-shadow:inset 0 0 0 1px var(--navy)}
+#agsemlat .agsld.bloq{background:repeating-linear-gradient(135deg,#F7F9FC 0 6px,#EEF2F7 6px 12px)}
+#agsemlat .agslf{font:800 16px/1.1 var(--f-titulo);color:var(--navy);text-align:center}
+#agsemlat .agslf small{display:block;font:700 10.5px var(--f-texto);color:#7A8BA0;text-transform:uppercase;margin-top:2px}
+#agsemlat .agslc{min-width:0;display:flex;flex-direction:column;gap:3px}
+#agsemlat .agslx{font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#203A57}
+#agsemlat .agslx b{font:700 12px var(--f-titulo);margin-right:6px}
+#agsemlat .agslv{font-size:12.5px;color:#9AA8B8}
+#agsemlat .agslb{font:700 12px var(--f-texto);color:#8A5A00}
+#agsemlat .agslm{border:0;background:#EEF4FB;border-radius:8px;width:28px;height:28px;cursor:pointer;color:var(--navy);font-weight:700}
+#agsemlat .agslacts{justify-content:flex-end;margin:12px 16px 16px}
+#agcinta .cdia{position:relative}
+#agcinta .cdmas{position:absolute;top:2px;right:2px;width:22px;height:22px;border-radius:7px;background:var(--panel,#fff);color:var(--navy);display:grid;place-items:center;font:700 14px/1 var(--f-titulo);opacity:0;cursor:pointer;box-shadow:0 1px 3px rgba(11,37,64,.15)}
+#agcinta .cdia:hover .cdmas,#agcinta .cdia:focus-within .cdmas,#agcinta .cdia.sel .cdmas{opacity:1}
+@media (pointer:coarse){#agcinta .cdmas{opacity:0;pointer-events:none}#agcinta .cdia.sel .cdmas{opacity:1;pointer-events:auto}}
+#agcinta .cdia.bloq{background:repeating-linear-gradient(135deg,#F3F6FA 0 6px,#E9EEF5 6px 12px);border-radius:12px}
+#agcinta .cdia.bloq::after{content:attr(data-bloq);position:absolute;left:4px;right:4px;bottom:2px;font:700 9.5px var(--f-texto);color:#8A5A00;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#cplan{display:inline-flex;align-items:center;gap:6px}
+.agsemexp{margin-top:14px;border-top:1px solid var(--line);padding-top:12px;animation:agdesp .3s cubic-bezier(.2,.8,.2,1)}
+@keyframes agdesp{from{opacity:0;transform:translateY(-6px)}}
+.agsemexp .semhead{display:flex;align-items:center;gap:12px;justify-content:space-between;margin-bottom:10px}
+.agtamb{margin:10px 0 0;padding:10px 12px;border-radius:12px;background:#F4F8FC;border:1px dashed #C9D9EA}
+.agtambh{font:700 11.5px var(--f-titulo);letter-spacing:.06em;text-transform:uppercase;color:#4A6280;display:flex;align-items:center;gap:6px}
+.agtambh svg{width:14px;height:14px}
+.agtambl{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.agtambl button{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--panel,#fff);border-radius:999px;padding:5px 11px 5px 9px;font:600 12.5px var(--f-texto);color:var(--navy);cursor:pointer}
+.agtambl button i{font-style:normal;font-weight:800;color:var(--azul,#3F82C0)}
+.agtambl button:hover{border-color:var(--navy)}
+.agband{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 12px}
+.agband button{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--panel,#fff);border-radius:12px;padding:9px 12px;font:600 13.5px var(--f-texto);color:var(--navy);cursor:pointer}
+.agband button svg{width:16px;height:16px}
+.agband button b{font:800 15px var(--f-titulo)}
+.agband button.urg b{color:#B4541A}
+.agbdc .lista{margin-top:8px}
+@media (max-width:1099px){#v-agenda.agunida.agcinta #agsemlat{grid-column:1;position:static}}
+@media (prefers-reduced-motion:reduce){.agsemexp{animation:none}}
 </style>
 </head>
 <body>
@@ -3918,6 +3964,6 @@ try{var co=sessionStorage.getItem('dlc-cambio-org');if(co!==null||localStorage.g
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.228.0"></script>
+<script src="./app.js?v=2.229.0"></script>
 </body>
 </html>
