@@ -172,7 +172,7 @@ dialog::backdrop{background:rgba(14,47,82,.4)}
 #econs > .cons:first-child .consprio{display:inline}
 #econs > .cons:first-child [data-cmov="-1"],#econs > .cons:last-child [data-cmov="1"]{visibility:hidden}
 /* v2.75.0 · Agenda: Día, Semana y Mes con el mismo ancho, marcados o no */
-.saludo .acts [data-ag="dia"],.saludo .acts [data-ag="semana"],.saludo .acts [data-ag="mes"]{min-width:88px}
+
 /* v2.77.0 · Subcategorías en los catálogos */
 .lista .item.vsub{padding-left:30px}
 .lista .item.vsub .ic{opacity:.5}
@@ -519,8 +519,7 @@ body.conruta{padding-top:46px}
 .opcol summary{cursor:pointer;font-size:13.5px}
 .opcol summary b{font-size:18px;color:var(--navy);margin-right:4px}
 .dgrid.llam{--cols:110px minmax(140px,1.2fr) minmax(140px,1.2fr) 130px 150px minmax(130px,1fr) 100px;min-width:980px}
-#agmeses{width:auto;min-height:44px;padding:6px 10px;border-radius:10px}
-#agcuerpo.varios .mesbloque{border-bottom:1px solid var(--line);padding-bottom:10px}
+
 .barra{height:10px;background:var(--bg);border-radius:6px;overflow:hidden;position:relative}
 .barra i{display:block;height:100%;background:var(--sky)}
 /* v2.35.0 */
@@ -881,11 +880,7 @@ dialog{overscroll-behavior:contain}
   .saludo .acts.chips::-webkit-scrollbar{display:none}
   .chip,.saludo .acts.chips > *{flex:0 0 auto;min-height:38px!important;height:38px;padding:0 12px!important;font-size:13.5px!important;border-radius:11px!important;white-space:nowrap}
   .saludo .acts.chips select{width:auto;min-width:130px}
-  .segm{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:4px;padding:4px;margin:0 0 8px;background:rgba(255,255,255,.9);border:1px solid var(--line);border-radius:14px}
-  .segm button{border:0;background:none;border-radius:10px;height:36px;font:inherit;font-weight:650;font-size:13.5px;color:var(--muted);cursor:pointer}
-  .segm button.on{background:var(--grad);color:#fff;box-shadow:none}
-  .agnavm{display:grid;grid-template-columns:44px 1fr 44px;gap:6px;margin:0 0 10px}
-  .agnavm .chip{justify-content:center;border:1px solid var(--line);background:#fff;color:var(--navy);font-weight:700;font-size:15px!important}
+
   .subnav{display:flex;flex-wrap:nowrap;overflow-x:auto;gap:6px;scrollbar-width:none;padding-bottom:2px}
   .subnav::-webkit-scrollbar{display:none}
   .subnav button{flex:0 0 auto;height:36px;min-height:36px;padding:0 14px;font-size:13.5px;border-radius:11px}
@@ -1779,12 +1774,12 @@ dialog[open]::backdrop{animation:uiFunde var(--t-medio) linear}
    (ya no en azul relleno). Botón flotante del móvil: redondo, icono «+» de
    la biblioteca, sombra de lo que flota y respuesta al pulsar.
    ============================================================ */
-.segm,.segs{background:var(--hielo);border:1px solid var(--line);border-radius:10px;padding:3px;gap:2px}
-.segm button,.segs button{border-radius:8px;font-weight:600;color:var(--muted);
+.segs{background:var(--hielo);border:1px solid var(--line);border-radius:10px;padding:3px;gap:2px}
+.segs button{border-radius:8px;font-weight:600;color:var(--muted);
   transition:background-color var(--t-rapido) var(--ease-sal),color var(--t-rapido) var(--ease-sal),box-shadow var(--t-rapido) var(--ease-sal)}
-.segm button:hover,.segs button:hover{color:var(--navy)}
-.segm button.on,.segs button.on{background:#FFFFFF;color:var(--navy);box-shadow:var(--sh)}
-.segm button:focus-visible,.segs button:focus-visible{outline:none;box-shadow:var(--foco)}
+.segs button:hover{color:var(--navy)}
+.segs button.on{background:#FFFFFF;color:var(--navy);box-shadow:var(--sh)}
+.segs button:focus-visible{outline:none;box-shadow:var(--foco)}
 .chipsel{transition:background-color var(--t-rapido) var(--ease-sal),border-color var(--t-rapido) var(--ease-sal)}
 .chipsel:hover{border-color:var(--sky)}
 .chipsel:focus-visible{outline:none;box-shadow:var(--foco)}
@@ -1795,7 +1790,7 @@ dialog[open]::backdrop{animation:uiFunde var(--t-medio) linear}
   .fab:hover{background:var(--navy-2)}
   .fab:active{transform:scale(var(--pulsa))}
 }
-@media (prefers-reduced-motion: reduce){.segm button,.segs button,.chipsel,.fab{transition:none!important}.fab:active{transform:none}}
+@media (prefers-reduced-motion: reduce){.segs button,.chipsel,.fab{transition:none!important}.fab:active{transform:none}}
 
 /* ============================================================
    v2.97.0 · Biblioteca de interfaz: etiquetas de estado
@@ -2046,27 +2041,16 @@ dialog > #dbody > .acts:last-child,dialog > #dlg2body > .acts:last-child{positio
 #v-agenda > .saludo .acts{align-items:center}
 #v-agenda > .saludo .acts > #agvista{order:1}
 #v-agenda > .saludo .acts > [data-ag=equipo]{order:2}
-#v-agenda > .saludo .acts > .agnav{order:3}
-#v-agenda > .saludo .acts > .agmodos{order:4}
+
 #v-agenda > .saludo .acts > [data-ag=nueva]{order:5;margin-left:4px}
 /* ‹ Hoy ›: un bloque con divisiones finas */
-.agnav{display:inline-flex;align-items:stretch;height:40px;border:1px solid var(--line-f);border-radius:10px;background:#FFFFFF;overflow:hidden}
-.agnav button{border:0;background:none;font:inherit;font-weight:650;font-size:14px;color:var(--navy);cursor:pointer;padding:0 14px;
-  transition:background-color var(--t-rapido) var(--ease-sal)}
-.agnav [data-ag=ant],.agnav [data-ag=sig]{width:40px;padding:0;display:grid;place-items:center}
-.agnav [data-ag=hoy]{border-left:1px solid var(--line);border-right:1px solid var(--line)}
-.agnav button .ico{width:18px;height:18px}
-.agnav button:hover{background:var(--hielo)}
-.agnav button:active{background:var(--sky-soft)}
-.agnav button:focus-visible{outline:none;box-shadow:inset var(--foco)}
+
 /* Día/Semana/Mes: selector segmentado de la biblioteca, a la misma altura que los botones */
-.agmodos{height:40px;align-items:stretch;margin:0}
-.agmodos button{min-width:76px!important;padding:0 14px}
+
 /* En «Equipo» ninguna vista queda marcada (la app pone .sec a Semana) */
-.agmodos button.sec.on{background:none;box-shadow:none;color:var(--muted)}
+
 /* Meses a la vista (en «Mes»): el primero por la izquierda, para que los demás botones no se muevan al cambiar de vista */
-#v-agenda > .saludo .acts > #agmeses{order:0;height:40px;min-width:118px;padding-right:36px}
-@media (prefers-reduced-motion: reduce){.agnav button{transition:none}}
+
 /* Calidad del dato: las cifras se reparten en filas iguales, sin una tarjeta suelta en la última fila */
 @media (min-width:761px){
   #calidad .kpis,#segkpis{grid-template-columns:repeat(4,minmax(0,1fr))}
@@ -2703,7 +2687,6 @@ label.chk > span{display:flex;flex-direction:column;gap:3px;min-width:0;line-hei
 }
 /* v2.141.0 · Agenda en una sola pantalla: métricas, hoy, semana y mes (maquetación básica; el diseño, de Branding) */
 /* v2.143.0 · Agenda en una sola pantalla: métricas, hoy, semana y mes (maquetación básica; el diseño, de Branding) */
-.agunida .agmodos,.agunida .agnav,.agunida [data-ag="ant"],.agunida [data-ag="sig"],.agunida [data-ag="hoy"],.agunida [data-ag="dia"],.agunida [data-ag="semana"],.agunida [data-ag="mes"],.agunida #agmeses{display:none!important}
 
 .agmesgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;padding:0 12px 12px}
 .agmd{font-size:11px;color:var(--muted);text-align:center}
@@ -2730,15 +2713,13 @@ label.chk > span{display:flex;flex-direction:column;gap:3px;min-width:0;line-hei
 
 #v-agenda.agunida #agcuerpo{order:3}
 
-#v-agenda.agunida #agpend{order:5}
 #v-agenda.agunida #agmes{order:6}
-#v-agenda.agunida :is(#agcuerpo,#agpend,#agmes){margin:0 0 12px!important}
-#v-agenda.agunida #agpend:empty{display:none}
+#v-agenda.agunida :is(#agcuerpo,#agmes){margin:0 0 12px!important}
 
 @media (min-width:1100px){
   #v-agenda.agunida{display:grid;grid-template-columns:minmax(0,1fr) minmax(320px,380px);column-gap:16px;align-items:start}
   #v-agenda.agunida > *{grid-column:1 / -1}
-  #v-agenda.agunida :is(#agcuerpo,#agpend){grid-column:1}
+  #v-agenda.agunida :is(#agcuerpo){grid-column:1}
   #v-agenda.agunida #agmes{grid-column:2;grid-row:3 / span 4;align-self:start;position:sticky;top:84px}
 }
 /* Métricas: cifra protagonista */
@@ -2747,7 +2728,7 @@ label.chk > span{display:flex;flex-direction:column;gap:3px;min-width:0;line-hei
 :is(#agmes) > .fh{padding:14px 14px 10px 16px;margin:0;flex-wrap:wrap;row-gap:8px}
 :is(#agmes) > .fh h2{margin:0;font:800 15px var(--f-titulo);color:var(--ink);display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
 :is(#agmes) > .fh h2 .sm{font:500 12.5px var(--f-texto);color:var(--muted)}
-#agplansem{min-height:34px;padding:0 12px;font-size:13px;white-space:nowrap}
+
 /* La semana, rediseñada: una franja de 7 días; cada día con su fecha, cuántas hechas de cuántas y un punto por cita (del color de
    su estado). Al pulsar un día se abren sus citas. */
 
@@ -2768,7 +2749,7 @@ label.chk > span{display:flex;flex-direction:column;gap:3px;min-width:0;line-hei
 
 }
 /* El antiguo selector Día/Semana/Mes del móvil se quedaba como una barra vacía */
-#v-agenda.agunida > .segm,#v-agenda.agunida > .agnavm{display:none!important}
+
 @media (prefers-reduced-motion: reduce){#agmes .agmc{transition:none}}
 /* v2.145.0 · Rutas en una sola pantalla: propuestas del día a la izquierda y mis rutas a la derecha */
 .rgrid2{display:grid;gap:16px;grid-template-columns:1fr;align-items:start}
@@ -3387,7 +3368,7 @@ input[type=checkbox]:not(.vfswitch input):focus-visible{outline:none;box-shadow:
   #v-agenda.agunida.agcinta{grid-template-columns:minmax(0,1.6fr) minmax(340px,1fr)}
   #v-agenda.agunida.agcinta > *,#v-agenda.agunida.agcinta #agcinta{grid-column:1 / -1}
   #v-agenda.agunida.agcinta #agcuerpo{grid-column:1;grid-row:span 3}
-  #v-agenda.agunida.agcinta :is(#agpend){grid-column:2}
+
 }
 /* Pastillas */
 .aghud{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:0 auto 0 28px}
@@ -3690,7 +3671,7 @@ input.campodup{border-color:#E08A00!important;box-shadow:0 0 0 3px rgba(224,138,
 @media (max-width:640px){.inimos{grid-template-columns:minmax(0,1fr)}.inimos .mt{grid-column:auto!important}.inimos .mn1{font-size:28px}.inimos .mcitas{grid-template-columns:minmax(0,1fr)}}
 
 /* v2.229.0 · Agenda en una sola pantalla */
-#v-agenda.agb #agpend{display:none!important}
+
 #v-agenda.agunida.agcinta #agsemlat{grid-column:2;order:4;margin:0 0 12px!important;align-self:start;position:sticky;top:84px}
 #agsemlat h2{padding:16px 16px 0}
 #agsemlat .agslnota{margin:2px 16px 0}
@@ -4314,6 +4295,6 @@ try{var co=sessionStorage.getItem('dlc-cambio-org');if(co!==null||localStorage.g
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.247.0"></script>
+<script src="./app.js?v=2.248.0"></script>
 </body>
 </html>
