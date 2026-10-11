@@ -4183,6 +4183,11 @@ body.modo-plataforma.menulat #v-delcos .pagtabs{display:none}
 /* v2.258.0 · «Tu día»: horas con tráfico real o botón para calcularlas */
 .tdtraf{display:inline-flex;align-items:center}
 .tdtrafok{color:var(--ok);font-weight:650}
+
+/* v2.259.0 · Visita sin conexión: aviso en la ventana, cita pendiente de enviar en «Tu día» y cambios sin enviar */
+.vsinred{margin:0 0 12px}
+.tdpendm{display:inline-flex;align-items:center;gap:6px;font:650 12.5px var(--f-texto);color:#8A5A00;background:#FFF4E0;border-radius:999px;padding:3px 10px;margin-right:auto}
+.conex.err{background:#FDECEC;color:#9B1C1C;cursor:pointer}
 </style>
 </head>
 <body>
@@ -4319,6 +4324,6 @@ try{var co=sessionStorage.getItem('dlc-cambio-org');if(co!==null||localStorage.g
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.258.0"></script>
+<script src="./app.js?v=2.259.0"></script>
 </body>
 </html>
