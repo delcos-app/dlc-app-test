@@ -1085,9 +1085,7 @@ async function cargarAgenda() {
 
   await pintarAgendaBase();
 
-  // Día: sugerencias para hoy y días futuros, y «Tu día»
-  if (TAB === 'agenda' && AG_MODO === 'dia' && AG_FECHA >= hoyISO()) sugerenciasAgenda();
-  if (TAB === 'agenda' && AG_MODO === 'dia') await pintarTuDia();
+  // v2.246.0: la vista del día no pasa por aquí (agCargarDia)
 
   // Semana en cuadrícula y «Reprogramar todas» para los pendientes de días anteriores
   if (TAB === 'agenda') {
@@ -5277,66 +5275,7 @@ function editorProducto(p) {
 /* ---------------- agenda: sugerencias para el día ---------------- */
 
 
-async function sugerenciasAgenda() {
-  if (!$('agsug')) $('agcuerpo').insertAdjacentHTML('afterend', '<div class="card sug" id="agsug"></div>');
-  const fecha = AG_FECHA, esHoy = fecha === hoyISO();
-  $('agsug').innerHTML = skelCard(esHoy ? 'Sugerencias para hoy' : 'Sugerencias para este día');
-  const [{ data: pr }, { data: pi }, { data: ya }, { data: toca }] = await Promise.all([
-    db.rpc('propuestas_rutas', { lim: 40 }),
-    rpcCache('panel_inicio', { lim: 6 }, 'inicio').then(r => ({ data: r.data })),
-    rpcCache('agenda_rango', { p_desde: fecha, p_hasta: fecha, p_usuario: agUsuarioFiltro() }, 'agenda-' + fecha),
-    db.rpc('toca_actividad', { p_usuario: agUid() === PERFIL.id && VE_TODO() ? null : agUid(), lim: 60 })
-  ]);
-  let cen = [];
-  try { ({ data: cen } = await RPC_ORIG('sugerencias_centros', { p_fecha: fecha, p_usuario: agUid() === PERFIL.id ? null : agUid() })); } catch (e) { cen = []; }
-  if (!$('agsug') || AG_FECHA !== fecha) return;
-  if (!$('agsug') || AG_FECHA !== fecha) return;
-  const conCita = new Set((ya || []).map(c => c.cuenta_id));
-  const libre = l => (l || []).filter(m => !conCita.has(m.id || m.cuenta_id));
-  const acciones = libre((pi && pi.acciones) || []).filter(a => a.proxima_fecha <= fecha);
-  const grupos = [
-    esHoy ? ['hoy', 'Atienden hoy y hace más de 14 días que no se visitan', libre(pr && pr.hoy)] : null,
-    ['acciones', 'Acciones pendientes para este día o atrasadas', acciones.map(a => ({ id: a.cuenta_id, nombre: a.nombre, especialidad: a.especialidad, extra: (a.proxima_accion || 'Seguimiento') + ' · ' + fechaCorta(a.proxima_fecha) }))],
-    ['toca', `Les toca ${TT('visita', 's', '', 'l', 'l')} según su frecuencia objetivo`, libre(toca).map(m => Object.assign({}, m, { extra: [m.estado_comercial, m.dias_sin_visita != null ? m.dias_sin_visita + ` días sin ${TT('visita', 's', '', 'l', 'l')}` : 'nunca visitado', m.municipio].filter(Boolean).join(' · ') }))],
-    ['urgentes', 'Urgentes sin visitar', libre(pr && pr.urgentes)],
-    ['interesados', `${TT('medico', 'p', '', 'l', 'C', 'interesado')} sin ${TT('visita', 's', '', 'l', 'l')} en 20 días`, libre(pr && pr.interesados)]
-  ].filter(g => g && g[2].length);
-
-  const centros = cen || [];
-  $('agsug').innerHTML = `<h2>${esHoy ? 'Sugerencias para hoy' : 'Sugerencias para ' + fechaCorta(fecha)}</h2>
-    <p class="sm">${TT('medico', 'p', '', 'l', 'C')} que conviene ver. Añádelos a la agenda o planifica una ruta con ellos.</p>
-    ${centros.length ? `<h3>En tus centros de este día</h3>
-      <p class="sm">Aprovecha que estás allí: ${TT('medico', 'p', '', 'l', 'l')} del mismo centro o a menos de 200 m. Visítalos o pregunta en recepción los datos que faltan.</p>
-      ${centros.map(g => `<div class="sgcen"><div class="sgcencab">📍 <b>${esc(g.centro_nombre || 'Centro')}</b>${g.municipio ? ` <span class="sm">${esc(g.municipio)}</span>` : ''}
-          ${g.centro_sin_horario ? `<span class="pill p-warn" title="Pregunta el horario en recepción y añádelo desde la ficha de ${TT('medico', 's', 'un', 'l', 'l')} del centro">Falta el horario del centro</span>` : ''}</div>
-        <div class="lista">${(g.medicos || []).map((m, i) => `<div class="item ${i >= 4 ? 'extra' : ''}" style="cursor:default">
-          <span class="ic ${m.visitar ? 'w' : ''}" title="${m.visitar ? 'Conviene visitarlo' : 'Faltan datos en su ficha'}">${m.visitar ? '★' : '✎'}</span>
-          <span class="tx"><b>${m.sin_reporting ? '<span class="pill p-sr">Sin reporting</span> ' : ''}${esc(m.nombre)}</b>
-            <span class="sm">${esc([m.especialidad, m.metros > 30 ? `a ${m.metros} m · ${m.centro || ''}` : ''].filter(Boolean).join(' · '))}</span>
-            <span class="sm">${m.visitar ? `<b>${esc(m.visitar)}</b>` : ''}${m.falta && m.falta.length ? `${m.visitar ? ' · ' : ''}<span class="sgfalta">Falta: ${esc(m.falta.join(', '))}</span>` : ''}</span></span>
-          <span class="acts" style="margin:0"><button class="btn sec" data-sgf="${m.id}">Ficha</button>
-            ${m.falta && m.falta.length ? `<button class="btn sec" data-sged="${m.id}">Completar</button>` : ''}
-            ${m.visitar ? `<button class="btn sec" data-sgc="${m.id}">+ Cita</button>` : ''}</span></div>`).join('')}
-          ${(g.medicos || []).length > 4 ? `<button class="vermas" type="button" data-vermas>Ver los ${num(g.medicos.length - 4)} restantes</button>` : ''}</div></div>`).join('')}` : ''}
-    ${grupos.map(([k, t, l]) => `<h3>${esc(t)} <span>${l.some(m => m.lat) && k !== 'acciones'
-        ? `<button class="btn sec" data-sgruta="${k}">Planificar ruta</button>` : ''}</span></h3>
-      <div class="lista">${l.map((m, i) => `<div class="item ${i >= 5 ? 'extra' : ''}" style="cursor:default">
-        <span class="ic ${k === 'urgentes' || k === 'acciones' ? 'w' : ''}">${k === 'hoy' ? '📅' : k === 'urgentes' ? '!' : k === 'acciones' ? '↻' : '🔥'}</span>
-        <span class="tx"><b>${esc(m.nombre)}</b><span class="sm">${esc(m.extra || [m.especialidad, m.centro_nombre, m.municipio].filter(Boolean).join(' · '))}</span></span>
-        <span class="acts" style="margin:0"><button class="btn sec" data-sgf="${m.id}">Ficha</button>
-          <button class="btn sec" data-sgc="${m.id}">+ Cita</button></span></div>`).join('')}
-        ${l.length > 5 ? `<button class="vermas" type="button" data-vermas>Ver los ${num(l.length - 5)} restantes</button>` : ''}</div>`).join('')
-      || (centros.length ? '' : '<div class="vacio">No hay sugerencias: tu agenda está al día.</div>')}`;
-  $('agsug').querySelectorAll('[data-sged]').forEach(b => b.onclick = () => abrirEditor(b.dataset.sged));
-  $('agsug').querySelectorAll('[data-sgf]').forEach(b => b.onclick = () => abrirFicha(b.dataset.sgf));
-  $('agsug').querySelectorAll('[data-sgc]').forEach(b => b.onclick = () => nuevaCita(b.dataset.sgc, fecha));
-  $('agsug').querySelectorAll('[data-sgruta]').forEach(b => b.onclick = async e => {
-    const lista = libre(b.dataset.sgruta === 'toca' ? toca : pr[b.dataset.sgruta]);
-    ir('rutas');
-    await new Promise(r => setTimeout(r, 60));
-    planDesdeLista(lista, b.dataset.sgruta, e.currentTarget);
-  });
-}
+async function sugerenciasAgenda() { }   // v2.246.0: la vista del día pide sus sugerencias en agSugerencias (las de antes se pintaban ocultas)
 
 /* ---------------- ayudas nuevas ---------------- */
 
@@ -5360,7 +5299,6 @@ Object.assign(AYUDA, {
     `Al registrar ${TT('visita', 's', 'el', 'l', 'l')} desde la ficha, la cita pasa a «Visitada».`,
     'En la vista de día verás <b>sugerencias</b>: quién atiende ese día, acciones pendientes, urgentes e interesados.']]
 });
-ANCLAS_AYUDA.push(['#agsug > h2', 'agenda']);
 
 
 /* ============================================================
@@ -6490,78 +6428,7 @@ function proximoDiaConsulta(dias, desde) {
 
 let TD_CITAS = [];
 
-async function pintarTuDia() {
-  const fecha = AG_FECHA, esHoy = fecha === hoyISO(), pasado = fecha < hoyISO();
-  const r = await rpcCache('agenda_rango', { p_desde: fecha, p_hasta: fecha, p_usuario: agUsuarioFiltro() }, 'agenda-' + fecha);
-  if (AG_FECHA !== fecha || AG_MODO !== 'dia') return;
-  const todas = r.data || [];
-  const mias = todas.filter(c => c.usuario_id === agUid());
-  const otras = todas.filter(c => c.usuario_id !== agUid());
-  TD_CITAS = mias;
-  const { est, fin, tope } = estimarDia(mias, fecha);
-  const j = jornadaActiva();
-  const n = e => mias.filter(c => e.includes(c.estado)).length;
-  const activas = mias.filter(c => !['Descartada', 'Aplazada'].includes(c.estado));
-  const abiertas = n(CITA_ABIERTA);
-  const pasaTope = abiertas && fin > tope;
-  const conSitio = mias.filter(c => CITA_ABIERTA.includes(c.estado) && xyCita(c)).length;
-
-  $('agcuerpo').innerHTML = `
-    <div class="tdhead">
-      <div><h2 style="padding:0">${esHoy ? 'Tu día' : pasado ? 'Lo que pasó este día' : 'Tu agenda de este día'}</h2>
-        <div class="tdstats">
-          <span><b>${num(activas.length)}</b> citas</span>
-          <span><b style="color:var(--ok)">${n(['Visitada'])}</b> visitadas</span>
-          ${n(['No estaba']) ? `<span><b style="color:var(--warn)">${n(['No estaba'])}</b> no estaban</span>` : ''}
-          <span><b>${abiertas}</b> por hacer</span>
-          ${abiertas && !pasado ? `<span>Fin estimado <b style="color:${pasaTope ? 'var(--warn)' : 'var(--navy)'}">${hm(fin)}</b>${pasaTope ? ' · pasa de la hora de vuelta' : ''}</span>` : ''}
-        </div></div>
-      <div class="acts" style="margin:0">
-        ${!pasado && conSitio > 1 ? '<button class="btn sec" id="tdordenar" title="Ordena las citas abiertas para recorrer menos kilómetros. Las que tienen hora fija se respetan.">Ordenar por cercanía</button>' : ''}
-        ${esHoy && !j && abiertas && agUid() === PERFIL.id ? '<button class="btn" id="tdempezar">▶ Empezar jornada</button>' : ''}
-        ${esHoy && j && agUid() === PERFIL.id ? '<button class="btn dang" id="tdterminar">Terminar jornada</button>' : ''}
-        ${pasado && abiertas ? '<button class="btn" id="tdrepro">Reprogramar pendientes</button>' : ''}
-      </div>
-    </div>
-    ${esHoy && j ? `<div class="tdjornada">● Jornada en curso desde hace ${durTxt(Date.now() - j.inicio)}. Registra cada ${TT('visita', 's', '', 'l', 'l')} al terminarla.</div>` : ''}
-    ${mias.length ? `<div class="lista tdlista">${mias.map((c, i) => {
-      const abierta = CITA_ABIERTA.includes(c.estado);
-      const hora = c.hora ? esc(String(c.hora).slice(0, 5)) : (abierta && est[c.id] != null && !pasado ? '~' + hm(est[c.id]) : '·');
-      const idxAb = mias.filter(x => CITA_ABIERTA.includes(x.estado)).indexOf(c);
-      return `<div class="item tdit ${abierta ? '' : 'cerrada'}" data-tdf="${c.cuenta_id}" role="button" tabindex="0">
-        <span class="tdnum">${i + 1}</span>
-        <span class="tx"><b><span class="tdh" title="${c.hora ? 'Hora fijada' : 'Hora estimada según el orden'}" style="background:color-mix(in srgb, ${EST_COL[c.estado] || 'var(--muted)'} 12%, transparent);color:${EST_COL[c.estado]}">${hora}</span>${c.urgente ? '<span class="pill p-urg">Urgente</span> ' : ''}${esc(c.nombre)}</b>
-          <span class="sm">${esc([c.centro_nombre, c.municipio].filter(Boolean).join(' · ') || 'Sin centro')}${!xyCita(c) && abierta ? ' · <span style="color:var(--warn)">sin ubicación</span>' : ''}</span>
-          <span class="sm">${pillCita(c.estado)}${textoOrigenCita(c)}${c.nota ? ' · ' + esc(c.nota) : ''}</span>
-          ${abierta && TD_INFO[c.id] && TD_INFO[c.id].aviso ? `<span class="sm tdaviso">${esc(TD_INFO[c.id].aviso)}</span>`
-            : abierta && TD_INFO[c.id] && TD_INFO[c.id].ventanas && TD_INFO[c.id].ventanas.length ? `<span class="sm tdvent">Consulta ${esc(txtVentanas(TD_INFO[c.id].ventanas))}${TD_INFO[c.id].espera ? ` · esperas ${TD_INFO[c.id].espera} min` : ''}</span>` : ''}</span>
-        <span class="acts tdacts" style="margin:0">
-          ${abierta && !pasado ? `
-            <span class="tdord">
-              <button class="kmv" data-td="sube|${c.id}" aria-label="Subir" ${idxAb <= 0 ? 'disabled' : ''}>${ICO.arriba}</button>
-              <button class="kmv" data-td="baja|${c.id}" aria-label="Bajar" ${idxAb >= abiertas - 1 ? 'disabled' : ''}>${ICO.abajo}</button></span>` : ''}
-          ${abierta && puedeRegistrarEnDia(c.fecha) ? `<button class="btn tdreg" data-td="visita|${c.id}" aria-label="Registrar ${TT('visita', 's', '', 'l', 'l')}" title="Registrar ${TT('visita', 's', '', 'l', 'l')}"><span class="tdreg-t">Registrar ${TT('visita', 's', '', 'l', 'l')}</span><span class="tdreg-i">+</span></button>` : ''}
-          ${c.estado === 'No estaba' && !pasado ? `<button class="btn sec" data-td="nueva|${c.id}">Nueva cita</button>` : ''}
-          <button class="btn sec tdmas" data-td="mas|${c.id}" aria-label="Más acciones">⋯</button>
-        </span></div>`;
-    }).join('')}</div>` : `<div class="vacio">${esHoy ? 'No tienes citas hoy. Planifica una ruta en Rutas o cita a alguien de las sugerencias.' : 'Sin citas este día.'}</div>`}
-    ${otras.length ? `<h3 class="tdotros">Citas de otras personas · ${otras.length}</h3>
-      <div class="lista">${otras.map(c => `<div class="item" style="cursor:default"><span class="ic">${c.hora ? esc(String(c.hora).slice(0, 5)) : '·'}</span>
-        <span class="tx"><b>${esc(c.nombre)}</b><span class="sm">${esc(c.usuario || '')} · ${pillCita(c.estado)}</span></span></div>`).join('')}</div>` : ''}`;
-
-  if ($('tdempezar')) $('tdempezar').onclick = empezarJornada;
-  if ($('tdterminar')) $('tdterminar').onclick = terminarJornada;
-  if ($('tdrepro')) $('tdrepro').onclick = () => reprogramarCitas(mias.filter(c => CITA_ABIERTA.includes(c.estado)), 'Pendientes del ' + fechaCorta(fecha), 'Sin visitar ese día');
-  if ($('tdordenar')) $('tdordenar').onclick = async () => {
-    const nuevo = ordenarPorCercania(mias);
-    const nf = ordenarPorCercania.fuera || 0;
-    if (await guardarOrden(nuevo)) { toast(nf ? `Ordenadas · ${nf} no caben en su horario o en el tuyo y quedan al final` : 'Citas ordenadas por cercanía'); repintarDiaSuave(); }
-  };
-  $('agcuerpo').querySelectorAll('[data-tdf]').forEach(el => {
-    const abrir = e => { if (e.target.closest('button, a, .tdmenu')) return; abrirFicha(el.dataset.tdf); };
-    el.onclick = abrir; el.onkeydown = e => { if (e.key === 'Enter') abrir(e); };
-  });
-}
+async function pintarTuDia() { }   // v2.246.0: «Tu día» es tdPintar (v2.244.0); la lista de antes se pintaba oculta
 
 // (v2.183.0: aquí iba la primera versión de menuCita; se redefine entera más abajo)
 document.addEventListener('pointerdown', e => {
@@ -12936,17 +12803,6 @@ pintarMarca = (orig => async function (...a) {
 
 /* ---------------- agenda: día a la izquierda, sugerencias y pendientes a la derecha ---------------- */
 
-function agendaDosColumnas() {
-  if (TAB !== 'agenda' || AG_MODO !== 'dia' || innerWidth < 1400) return;
-  const cuerpo = $('agcuerpo'), lado = [$('agsug'), $('agpend')].filter(Boolean);
-  if (!cuerpo || !lado.length || cuerpo.parentElement.classList.contains('agizq')) return;
-  const w = document.createElement('div'); w.className = 'agdos';
-  const izq = document.createElement('div'); izq.className = 'agizq';
-  const der = document.createElement('div'); der.className = 'agder';
-  cuerpo.parentNode.insertBefore(w, cuerpo); izq.appendChild(cuerpo); w.appendChild(izq); w.appendChild(der);
-  lado.forEach(x => der.appendChild(x));
-}
-cargarAgenda = (orig => async function (...a) { await orig(...a); agendaDosColumnas(); })(cargarAgenda);
 
 /* ---------------- manual: columna de lectura con índice ---------------- */
 
@@ -14912,33 +14768,6 @@ consultaDeLaVisita = (orig => function (cons) {
 })(consultaDeLaVisita);
 abrirFicha = (orig => async function (...a) { try { return await orig.apply(this, a); } finally { FICHA_CENTRO = null; } })(abrirFicha);
 accionCita = (orig => function (k, c, ...r) { if (k === 'ficha') FICHA_CENTRO = c.centro_nombre || null; return orig(k, c, ...r); })(accionCita);
-// Al pulsar una cita de «Tu día» (antes de que se abra su ficha) se recuerda su centro
-document.addEventListener('click', e => {
-  const it = e.target.closest('.tdlista [data-tdf]'); if (!it || e.target.closest('button, a, .tdmenu')) return;
-  const c = (TD_CITAS || [])[[...it.parentElement.querySelectorAll(':scope > [data-tdf]')].indexOf(it)];
-  FICHA_CENTRO = c && c.cuenta_id === it.dataset.tdf ? c.centro_nombre || null : null;
-}, true);
-pintarTuDia = (orig => async function (...a) {
-  const r = await orig.apply(this, a);
-  const lista = $('agcuerpo') && $('agcuerpo').querySelector('.tdlista'); if (!lista) return r;
-  const items = [...lista.querySelectorAll(':scope > [data-tdf]')], citas = TD_CITAS || [];
-  if (items.length !== citas.length) return r;
-  // Tramos de citas seguidas con el mismo centro (al menos dos)
-  let i = 0;
-  while (i < citas.length) {
-    const cen = citas[i].centro_nombre ? clasNorm(citas[i].centro_nombre) : '';
-    let j = i + 1;
-    while (cen && j < citas.length && clasNorm(citas[j].centro_nombre || '') === cen) j++;
-    if (cen && j - i > 1) {
-      const c = citas[i], n = j - i;
-      items[i].insertAdjacentHTML('beforebegin', `<div class="tdcentro">${svgIco(ICON_NOM['building-2'])}<b>${esc(c.centro_nombre)}</b>
-        <span class="sm">${esc(c.municipio || '')}${c.municipio ? ' · ' : ''}${n} citas</span></div>`);
-      for (let k = i; k < j; k++) items[k].classList.add('tdengrupo');
-    }
-    i = j;
-  }
-  return r;
-})(pintarTuDia);
 
 
 // Barra inferior del móvil y barra de «Entrar como» desde el primer momento
@@ -17148,94 +16977,21 @@ ir = (orig => function (t, ...a) {
   if (t === 'agenda' && IR_DESDE_MENU) { AG_MODO = 'dia'; AG_FECHA = hoyISO(); }   // la Agenda del menú abre siempre hoy
   return orig.call(this, t, ...a);
 })(ir);
+// v2.246.0: la vista del día la monta agCargarDia; aquí solo semana, mes y equipo (vuelta a la agenda de hoy)
 cargarAgenda = (orig => async function (...a) {
   const r = await orig.apply(this, a);
   const v = $('v-agenda'); if (!v || TAB !== 'agenda') return r;
-  const unida = agUnida();
-  v.classList.toggle('agunida', unida);
-  if (!unida) {
-    // Semana o mes detallados: vuelta a la agenda de hoy
-    const acts = v.querySelector('.saludo .acts');
-    if (acts && !$('agvolver') && AG_MODO !== 'equipo') {
-      acts.insertAdjacentHTML('afterbegin', '<button class="btn sec" id="agvolver" type="button">← Agenda de hoy</button>');
-      $('agvolver').onclick = () => { AG_MODO = 'dia'; AG_FECHA = hoyISO(); cargarAgenda(); };
-    }
-    return r;
+  v.classList.remove('agunida');
+  const acts = v.querySelector('.saludo .acts');
+  if (acts && !$('agvolver') && AG_MODO !== 'equipo') {
+    acts.insertAdjacentHTML('afterbegin', '<button class="btn sec" id="agvolver" type="button">← Agenda de hoy</button>');
+    $('agvolver').onclick = () => { AG_MODO = 'dia'; AG_FECHA = hoyISO(); cargarAgenda(); };
   }
-  if ($('agtit')) $('agtit').textContent = 'Hoy · ' + fechaLarga(new Date(AG_FECHA + 'T00:00:00'));
-  // Hoy y las sugerencias, uno al lado del otro desde 1100 px (la vista de día de antes lo hacía desde 1400)
-  if (innerWidth >= 1100 && !document.querySelector('#v-agenda .agdos')) {
-    const cuerpo = $('agcuerpo'), lado = [$('agsug'), $('agpend')].filter(Boolean);
-    if (cuerpo && lado.length) {
-      const w = document.createElement('div'); w.className = 'agdos';
-      const izq = document.createElement('div'); izq.className = 'agizq';
-      const der = document.createElement('div'); der.className = 'agder';
-      cuerpo.parentNode.insertBefore(w, cuerpo); izq.appendChild(cuerpo); w.appendChild(izq); w.appendChild(der); lado.forEach(x => der.appendChild(x));
-    }
-  }
-  agMetricas();
-  await agSemanaMes();
   return r;
 })(cargarAgenda);
 
-async function agMetricas() {
-  const v = $('v-agenda'); if (!v) return;
-  let m = $('agmet');
-  if (!m) { const s = v.querySelector('.saludo'); if (!s) return; s.insertAdjacentHTML('afterend', '<div class="agmet" id="agmet" aria-label="Tus números"></div>'); m = $('agmet'); }
-  const { data: d } = await RPC_ORIG('agenda_metricas', { p_usuario: AG_VISTA ? AG_VISTA.id : null });
-  if (!$('agmet') || !d) return;
-  const n1 = x => num(x == null ? 0 : x), dec = x => (x == null ? '0' : String(x).replace('.', ','));
-  const h = d.hoy || {}, s = d.semana || {}, c = d.cierres || {}, p = d.pendientes || {};
-  m.innerHTML = [
-    ['Hoy', `<b>${n1(h.visitadas)}</b> de ${n1(h.citas)} citas`, `media ${dec(d.media_dia)} ${TT('visita', 'p', '', 'l', 'l')}/día`],
-    ['Semana', `<b>${n1(s.visitas)}</b> ${TT('visita', 'p', '', 'l', 'l')}`, `media ${dec(s.media)}/semana`],
-    ['Cierres con éxito', `<b>${n1(c.hoy)}</b> hoy`, `media ${dec(c.media_dia)}/día`],
-    ['Pendientes', `<b>${n1((p.urgentes || 0) + (p.sin_visita || 0))}</b> por visitar`, `${n1(p.urgentes)} urgentes · ${n1(p.sin_visita)} sin ${TT('visita', 's', '', 'l', 'l')} en 60 días`]
-  ].map(([t, a, b]) => `<div class="agm"><span class="agmt">${t}</span><span class="agmv">${a}</span><span class="agms">${b}</span></div>`).join('');
-}
+async function agMetricas() { }   // v2.246.0: las cifras de la vista del día salen en las pastillas (AG_MET)
 
-async function agSemanaMes() {
-  if (!agUnida()) return;
-  const hoy = hoyISO(), lun = lunesDe(hoy), dom = isoMas(lun, 6), mes = hoy.slice(0, 7);
-  const ini = mes + '-01', fin = isoMas(fechaLocal(new Date(new Date(ini + 'T12:00:00').getFullYear(), new Date(ini + 'T12:00:00').getMonth() + 1, 1)), -1);
-  const desde = lun < ini ? lun : ini, hasta = dom > fin ? dom : fin;
-  const { data } = await rpcCache('agenda_rango', { p_desde: desde, p_hasta: hasta, p_usuario: agUsuarioFiltro() }, 'agenda-unida-' + desde + '-' + hasta);
-  if (!agUnida()) return;
-  const porDia = {};
-  (data || []).filter(x => !['Descartada', 'Aplazada'].includes(x.estado)).forEach(x => { (porDia[x.fecha] = porDia[x.fecha] || []).push(x); });
-  Object.values(porDia).forEach(l => l.sort((a, b) => String(a.hora || '99').localeCompare(String(b.hora || '99'))));
-  const hora = x => x.hora ? String(x.hora).slice(0, 5) : '';
-  const corto = n => String(n || '').replace(/^(Dra?\.|Sra?\.|D\.)\s*/i, '');
-  // Semana en curso
-  const semana = Array.from({ length: 7 }, (_, i) => isoMas(lun, i));
-  const semHTML = `<div class="card agsem" id="agsemana"><div class="fh"><h2>Esta semana <span class="sm">${fechaCorta(lun)} – ${fechaCorta(dom)}</span></h2>
-      <button type="button" class="btn sec" id="agplansem">Planificar la semana</button></div>
-    <div class="agsemgrid">${semana.map((f, i) => { const l = porDia[f] || [], hechas = l.filter(x => x.estado === 'Visitada').length;
-      return `<div class="agsd ${f === hoy ? 'hoy' : ''} ${f < hoy ? 'pasado' : ''}" data-agdia="${f}">
-        <button type="button" class="agsdh" data-agdia="${f}"><b>${AG_DIAS_TXT[i]} ${+f.slice(8)}</b>${l.length ? `<span>${hechas}/${l.length}</span>` : ''}</button>
-        ${l.slice(0, 4).map(x => `<button type="button" class="agsc" data-agficha="${x.cuenta_id}" style="--c:${EST_COL[x.estado] || '#6B7F95'}">${hora(x) ? `<i>${hora(x)}</i> ` : ''}${esc(corto(x.nombre))}</button>`).join('')}
-        ${l.length > 4 ? `<button type="button" class="agsmas" data-agdia="${f}">+${l.length - 4} más</button>` : ''}
-        ${!l.length ? '<span class="agsv">—</span>' : ''}</div>`; }).join('')}</div></div>`;
-  // Mes con puntos
-  const d1 = new Date(ini + 'T12:00:00'), hueco = (d1.getDay() + 6) % 7, nd = +fin.slice(8);
-  const celdas = Array(hueco).fill('').concat(Array.from({ length: nd }, (_, i) => `${mes}-${String(i + 1).padStart(2, '0')}`));
-  const mesHTML = `<div class="card agmes" id="agmes"><div class="fh"><h2>${periodoTxt(mes).replace(/^./, c => c.toUpperCase())}</h2></div>
-    <div class="agmesgrid">${AG_DIAS_TXT.map(x => `<span class="agmd">${x}</span>`).join('')}${celdas.map(f => {
-      if (!f) return '<span></span>';
-      const l = porDia[f] || [];
-      return `<button type="button" class="agmc ${f === hoy ? 'hoy' : ''} ${f < hoy ? 'pasado' : ''} ${l.length ? 'con' : ''}" data-agdia="${f}" aria-label="${fechaCorta(f)}: ${l.length} citas">
-        <span>${+f.slice(8)}</span>${l.length ? `<i class="agpt">${l.length > 9 ? '9+' : l.length}</i>` : ''}</button>`; }).join('')}</div></div>`;
-  ['agsemana', 'agmes', 'agsemmes'].forEach(id => { const x = $(id); if (x) x.remove(); });
-  const html = `<div class="agsemmes" id="agsemmes">${semHTML}${mesHTML}</div>`;
-  const dos = document.querySelector('#v-agenda .agdos');
-  if (dos) dos.insertAdjacentHTML('afterend', html);
-  else if ($('agcuerpo')) $('agcuerpo').insertAdjacentHTML('afterend', html);
-  else return;
-  $('agplansem').onclick = () => { AG_MODO = 'semana'; AG_FECHA = hoy; cargarAgenda(); };
-  const cont = $('agsemmes');
-  cont.querySelectorAll('[data-agficha]').forEach(b => b.onclick = ev => { ev.stopPropagation(); abrirFicha(b.dataset.agficha); });
-  cont.querySelectorAll('button[data-agdia]').forEach(b => b.onclick = ev => { ev.stopPropagation(); agVerDia(b.dataset.agdia, porDia[b.dataset.agdia] || [], b); });
-}
 
 // (v2.183.0: aquí iba la primera versión de agVerDia; se redefine entera más abajo)
 document.addEventListener('pointerdown', e => { if (!e.target.closest('.agpop, [data-agdia]')) document.querySelectorAll('.agpop').forEach(x => x.remove()); }, true);
@@ -17572,20 +17328,18 @@ function agMarcarDia() {
   }
   caja.classList.add('agtitdia');
 }
-cargarAgenda = (orig => async function (...a) { const r = await orig.apply(this, a); agMarcarDia(); return r; })(cargarAgenda);
 
 /* v2.147.0 · Agenda: «Tu día» sin citas (petición de Eric). Sin contadores a cero; en un día pasado, «No tuviste citas este día.» (no se
    puede añadir nada); el mensaje, compacto: icono y frase en una línea, centrado. */
 function agDiaVacio() {
   const c = $('agcuerpo'); if (!c || TAB !== 'agenda') return;
   const v = c.querySelector(':scope > .vacio'), st = c.querySelector('.tdhead .tdstats');
-  const sinCitas = !!v && !c.querySelector('.tdlista');
+  const sinCitas = !!v && !c.querySelector('.tdesc');
   if (st) st.classList.toggle('hide', sinCitas);
   if (!v) return;
   v.classList.add('vlinea');
   if (AG_FECHA < hoyISO()) v.textContent = 'No tuviste citas este día.';
 }
-cargarAgenda = (orig => async function (...a) { const r = await orig.apply(this, a); agDiaVacio(); return r; })(cargarAgenda);
 
 
 /* v2.148.0 · Analítica: panel de indicadores por áreas (decisión de Eric, 3/10/2026: «Panel por áreas + Explorar», engranaje con
@@ -19145,21 +18899,6 @@ try { const m = () => { try { localStorage.setItem('dlc-modo', MODO_PLATAFORMA ?
   aplicarModoPlataforma = (orig => function (...a) { const r = orig.apply(this, a); m(); return r; })(aplicarModoPlataforma); } catch (e) {}
 
 // ---- «Tu día»: la cita movida se desliza a su sitio (FLIP) y queda resaltada un momento
-moverCitaLocal = (orig => async function (orden, id, acc) {
-  const idDe = it => { const b = it.querySelector('[data-td]'); return b ? b.dataset.td.split('|')[1] : null; };
-  const antes = new Map();
-  document.querySelectorAll('.tdlista .tdit').forEach(it => { const k = idDe(it); if (k) antes.set(k, it.getBoundingClientRect().top); });
-  const r = await orig.call(this, orden, id, acc);
-  const quieto = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
-  document.querySelectorAll('.tdlista .tdit').forEach(it => {
-    const k = idDe(it); if (!k) return;
-    if (String(k) === String(id)) { it.classList.remove('tdmovida'); void it.offsetWidth; it.classList.add('tdmovida'); setTimeout(() => it.classList.remove('tdmovida'), 1300); }
-    const y0 = antes.get(k); if (quieto || y0 == null || !it.animate) return;
-    const dy = y0 - it.getBoundingClientRect().top;
-    if (Math.abs(dy) > 1) it.animate([{ transform: `translateY(${dy}px)` }, { transform: 'none' }], { duration: 260, easing: 'cubic-bezier(.2,.7,.2,1)' });
-  });
-  return r;
-})(moverCitaLocal);
 
 /* v2.173.0 · El próximo recibo con IVA en «Plan y suscripción» (petición de Eric por la sesión de la web: que la web, Stripe y la app digan lo mismo).
    Durante la prueba: hoy 0 €, el primer recibo con IVA (con la puesta en marcha si el pago es mensual) y lo que viene después; fuera de ella, el
@@ -19262,25 +19001,6 @@ function explicarAviso(inf) {
   if (inf.ventanas && !inf.ventanas.length) return `Según su ficha, ${quien} no atiende los ${dia}. Si sí atiende, añade ese día en «Horario de atención» de su ficha.`;
   return `Según su ficha, ${quien} atiende los ${dia} de ${v}${inf.llegada != null ? `, y siguiendo el orden de tu día llegarías hacia las ${hm(inf.llegada)}` : ''}. Para quitar el aviso: pon una hora a la cita, cámbiala de orden o corrige el horario en su ficha. Es solo un aviso: la cita se guarda igual.`;
 }
-pintarTuDia = (orig => async function (...a) {
-  const r = await orig.apply(this, a);
-  try {
-    document.querySelectorAll('.tdlista .tdit').forEach(it => {
-      const av = it.querySelector('.tdaviso'); if (!av || av.dataset.expl) return;
-      const id = (it.querySelector('[data-td]') || { dataset: {} }).dataset.td; const k = id ? id.split('|')[1] : null;
-      const inf = k && TD_INFO[k]; if (!inf) return;
-      if (inf.lejos) av.textContent = `Ubicación a ${num(inf.lejos)} km de la parada anterior: revisa la dirección`;
-      const t = explicarAviso(inf);
-      av.dataset.expl = '1'; av.title = t;
-      av.insertAdjacentHTML('beforeend', ` <button type="button" class="tdavi" aria-label="Por qué sale este aviso">i</button>`);
-      av.querySelector('.tdavi').onclick = ev => { ev.stopPropagation(); appVentana({ titulo: 'Por qué sale este aviso', msg: t, ok: 'Entendido', cancel: false }); };
-    });
-    if (EST_ULT && EST_ULT.fin >= 24 * 60) document.querySelectorAll('#agcuerpo .tdstats span, .tdstats span').forEach(s => {
-      if (/^Fin estimado/.test(s.textContent.trim()) && !s.dataset.dia) { s.dataset.dia = '1'; s.insertAdjacentHTML('beforeend', ' <span class="sm">(día siguiente: revisa los avisos)</span>'); }
-    });
-  } catch (e) {}
-  return r;
-})(pintarTuDia);
 
 /* v2.175.0 · Con pago anual, la tarjeta de la cuota enseña lo que se cobra (repaso de Web delcos): «2950 € · Al año, sin IVA · 3569,50 € con IVA»,
    igual que el aviso del recibo (antes, el equivalente mensual). */
@@ -19301,31 +19021,6 @@ pintarProximoRecibo = (orig => function (...a) {
    actual el día no cabe en la jornada (acaba después de la hora de vuelta o, sin ella, de las 21:00), un solo aviso arriba dice qué hacer («Ordenar
    por cercanía» o pasar citas a otro día) y se quitan los avisos sueltos de hora y horario, que en ese caso no dicen nada útil; las horas estimadas
    que caen fuera de la jornada salen como «—». Los de ubicación lejana se quedan. Y en el móvil, volver a pulsar «⋯» cierra su menú. */
-pintarTuDia = (orig => async function (...a) {
-  const r = await orig.apply(this, a);
-  try {
-    const lista = document.querySelector('#agcuerpo .tdlista'), e = lista && TD_CITAS ? estimarDia(TD_CITAS, AG_FECHA) : null;
-    const viejo = $('tdnocabe'); if (viejo) viejo.remove();
-    if (!lista || !e || AG_FECHA < hoyISO()) return r;
-    const limite = isFinite(e.tope) ? e.tope : 21 * 60;
-    const conAviso = Object.values(TD_INFO).filter(i => i.aviso && !i.lejos).length;
-    if (!(e.fin > limite) && conAviso < 3) return r;
-    const noCabe = e.fin > limite;
-    const fuera = Object.values(TD_INFO).filter(i => i.llegada != null && i.llegada >= limite).length;
-    const finTxt = e.fin >= 24 * 60 ? `pasada la medianoche (hacia las ${hm(e.fin)} del día siguiente)` : `hacia las ${hm(e.fin)}`;
-    lista.classList.add('tdnocabe');
-    lista.insertAdjacentHTML('beforebegin', `<div class="banda-aviso" id="tdnocabe">${noCabe ? `<b>Este día no cabe en una jornada.</b> Con este orden acabarías ${finTxt}${fuera ? ` y ${fuera === 1 ? 'una cita queda' : fuera + ' citas quedan'} fuera de la jornada` : ''}.` : `<b>El orden de las citas no encaja con sus horas:</b> ${conAviso} no llegan a su hora o a su horario de atención.`}
-      Antes de mirar cada cita: ${$('tdordenar') ? '<button type="button" class="btn sec" id="tdnocord">Ordenar por cercanía</button> o ' : ''}pasa a otro día las citas de la zona más lejana (⋯ → Aplazar).</div>`);
-    if ($('tdnocord')) $('tdnocord').onclick = () => $('tdordenar') && $('tdordenar').click();
-    lista.querySelectorAll('.tdit').forEach(it => {
-      const id = (it.querySelector('[data-td]') || { dataset: {} }).dataset.td, k = id ? id.split('|')[1] : null, inf = k && TD_INFO[k];
-      if (!inf) return;
-      const av = it.querySelector('.tdaviso'); if (av && !inf.lejos) av.remove();
-      const h = it.querySelector('.tdh'); if (h && /^~/.test(h.textContent) && inf.llegada >= limite) { h.textContent = '—'; h.title = 'Con este orden, fuera de la jornada'; }
-    });
-  } catch (err) {}
-  return r;
-})(pintarTuDia);
 // Cita con hora fija que el orden deja tarde: el aviso dice qué hacer, y la «i» habla del orden (no del horario de atención)
 estimarDiaBase = (orig => function (citas, fecha) {
   const r = orig.call(this, citas, fecha);
@@ -19435,10 +19130,6 @@ window.addEventListener('click', e => {
 }, true);
 
 // ---- 4. Detalle de la cita al pulsarla en «Tu día»
-function citaDeItem(it) {
-  const b = it && it.querySelector('[data-td]'); const id = b ? b.dataset.td.split('|')[1] : null;
-  return id ? (TD_CITAS || []).find(x => x.id === id) : null;
-}
 function verCita(c) {
   const inf = TD_INFO[c.id] || {}, abierta = CITA_ABIERTA.includes(c.estado);
   const hora = c.hora ? String(c.hora).slice(0, 5) : (abierta && inf.llegada != null && inf.llegada < 24 * 60 ? `hacia las ${hm(inf.llegada)} (estimada)` : 'sin hora');
@@ -19483,20 +19174,6 @@ function verCita(c) {
   $('dlg').classList.add('pequena');
   $('dlg').showModal();
 }
-window.addEventListener('click', e => {
-  const it = e.target.closest && e.target.closest('.tdlista [data-tdf]');
-  if (!it || e.target.closest('button, a, .tdmenu, input, textarea, select')) return;
-  const c = citaDeItem(it); if (!c) return;
-  e.stopImmediatePropagation(); e.stopPropagation(); e.preventDefault();
-  verCita(c);
-}, true);
-window.addEventListener('keydown', e => {
-  if (e.key !== 'Enter') return;
-  const it = e.target.closest && e.target.closest('.tdlista [data-tdf]');
-  if (!it || e.target !== it) return;
-  const c = citaDeItem(it); if (!c) return;
-  e.stopImmediatePropagation(); e.preventDefault(); verCita(c);
-}, true);
 
 // ---- 2. El mes de la Agenda, en cualquier mes y año
 let AG_MES = null;
@@ -19556,21 +19233,8 @@ function agElegirMes(mes, ancla) {
   p.style.top = Math.min(innerHeight - p.offsetHeight - 10, r.bottom + 6) + 'px';
 }
 document.addEventListener('pointerdown', e => { if (!e.target.closest('.agmpop, #agmtit')) document.querySelectorAll('.agmpop').forEach(x => x.remove()); }, true);
-agSemanaMes = (orig => async function (...a) {
-  const r = await orig.apply(this, a);
-  try { if ($('agmes')) await agPintarMes(AG_MES || hoyISO().slice(0, 7)); } catch (e) {}
-  return r;
-})(agSemanaMes);
 
 // ---- 6. «Esta semana»: toda la celda abre el día (en el móvil, también al tocar un nombre)
-window.addEventListener('click', e => {
-  const cel = e.target.closest && e.target.closest('#agsemana .agsd[data-agdia]');
-  if (!cel) return;
-  const movil = window.matchMedia && matchMedia('(max-width: 760px)').matches;
-  if (e.target.closest('.agsc') && !movil) return;   // en el escritorio, el nombre sigue llevando a su ficha
-  e.stopImmediatePropagation(); e.stopPropagation(); e.preventDefault();
-  agVerDia(cel.dataset.agdia);
-}, true);
 
 // ---- 7. Fechas y horas en el móvil: el campo se prepara antes de abrir la ventana (así el teléfono no abre su calendario)
 (() => {
@@ -19737,72 +19401,6 @@ window.addEventListener('click', e => {
 
 // ---- 1. La franja de la semana, en cualquier semana
 let AG_SEMANA = null;
-async function agPintarSemana(lun, dir) {
-  const caja = $('agsemana'); if (!caja) return;
-  const hoy = hoyISO(), actual = lunesDe(hoy);
-  lun = lun || actual; AG_SEMANA = lun;
-  const dom = isoMas(lun, 6);
-  const grid = caja.querySelector('.agsemgrid');
-  const cab = caja.querySelector('.fh h2');
-  if (cab) cab.innerHTML = `${lun === actual ? 'Esta semana' : lun === isoMas(actual, 7) ? 'La semana que viene' : lun === isoMas(actual, -7) ? 'La semana pasada' : 'Semana'} <span class="sm">${fechaCorta(lun)} – ${fechaCorta(dom)}</span>`;
-  const fh = caja.querySelector('.fh');
-  if (fh && !fh.querySelector('.agsemnav')) {
-    fh.insertAdjacentHTML('beforeend', `<span class="agsemnav"><button type="button" class="kmv" data-agsw="-1" aria-label="Semana anterior">‹</button>
-      <button type="button" class="kmv" data-agsw="1" aria-label="Semana siguiente">›</button></span>`);
-    fh.querySelectorAll('[data-agsw]').forEach(b => b.onclick = ev => { ev.stopPropagation(); agPintarSemana(isoMas(AG_SEMANA || actual, 7 * +b.dataset.agsw), +b.dataset.agsw); });
-  }
-  if (!grid) return;
-  const marcar = () => grid.querySelectorAll('.agsd[data-agdia]').forEach(d => d.classList.toggle('sel', d.dataset.agdia === AG_FECHA && AG_FECHA !== hoy));
-  if (!dir && lun === actual && !caja.dataset.sem) { marcar(); return; }   // la de esta semana ya está pintada
-  const { data } = await rpcCache('agenda_rango', { p_desde: lun, p_hasta: dom, p_usuario: agUsuarioFiltro() }, 'agenda-sem-' + lun);
-  if (AG_SEMANA !== lun || !$('agsemana')) return;
-  const porDia = {};
-  (data || []).filter(x => !['Descartada', 'Aplazada'].includes(x.estado)).forEach(x => { (porDia[x.fecha] = porDia[x.fecha] || []).push(x); });
-  Object.values(porDia).forEach(l => l.sort((a, b) => String(a.hora || '99').localeCompare(String(b.hora || '99'))));
-  const hora = x => x.hora ? String(x.hora).slice(0, 5) : '';
-  const corto = n => String(n || '').replace(/^(Dra?\.|Sra?\.|D\.)\s*/i, '');
-  const html = Array.from({ length: 7 }, (_, i) => isoMas(lun, i)).map((f, i) => { const l = porDia[f] || [], hechas = l.filter(x => x.estado === 'Visitada').length;
-    return `<div class="agsd ${f === hoy ? 'hoy' : ''} ${f < hoy ? 'pasado' : ''}" data-agdia="${f}">
-      <button type="button" class="agsdh" data-agdia="${f}"><b>${AG_DIAS_TXT[i]} ${+f.slice(8)}</b>${l.length ? `<span>${hechas}/${l.length}</span>` : ''}</button>
-      ${l.slice(0, 4).map(x => `<button type="button" class="agsc" data-agficha="${x.cuenta_id}" style="--c:${EST_COL[x.estado] || '#6B7F95'}">${hora(x) ? `<i>${hora(x)}</i> ` : ''}${esc(corto(x.nombre))}</button>`).join('')}
-      ${l.length > 4 ? `<button type="button" class="agsmas" data-agdia="${f}">+${l.length - 4} más</button>` : ''}
-      ${!l.length ? '<span class="agsv">—</span>' : ''}</div>`; }).join('');
-  const quieto = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if (dir && grid.animate && !quieto) await grid.animate([{ transform: 'none', opacity: 1 }, { transform: `translateX(${-dir * 28}%)`, opacity: 0 }], { duration: 140, easing: 'ease-in' }).finished.catch(() => {});
-  grid.innerHTML = html; caja.dataset.sem = lun;
-  grid.querySelectorAll('[data-agficha]').forEach(b => b.onclick = ev => { ev.stopPropagation(); abrirFicha(b.dataset.agficha); });
-  grid.querySelectorAll('button[data-agdia]').forEach(b => b.onclick = ev => { ev.stopPropagation(); agVerDia(b.dataset.agdia); });
-  marcar();
-  if (dir && grid.animate && !quieto) grid.animate([{ transform: `translateX(${dir * 28}%)`, opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 200, easing: 'cubic-bezier(.2,.7,.2,1)' });
-}
-// Deslizar el dedo sobre la franja: semana anterior o siguiente
-(() => {
-  let x0 = null, y0 = null;
-  document.addEventListener('touchstart', e => { const g = e.target.closest && e.target.closest('#agsemana .agsemgrid'); if (!g || e.touches.length !== 1) { x0 = null; return; } x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; }, { passive: true });
-  document.addEventListener('touchend', e => {
-    if (x0 == null) return;
-    const t = e.changedTouches[0], dx = t.clientX - x0, dy = t.clientY - y0; x0 = null;
-    if (Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
-    const dir = dx < 0 ? 1 : -1;
-    agPintarSemana(isoMas(AG_SEMANA || lunesDe(hoyISO()), 7 * dir), dir);
-    const g = document.querySelector('#agsemana .agsemgrid'); if (g) { g.__swipe = Date.now(); }
-  }, { passive: true });
-  // El toque que termina un deslizamiento no abre el día
-  window.addEventListener('click', e => { const g = e.target.closest && e.target.closest('#agsemana .agsemgrid'); if (g && g.__swipe && Date.now() - g.__swipe < 400) { e.stopImmediatePropagation(); e.preventDefault(); } }, true);
-})();
-agSemanaMes = (orig => async function (...a) {
-  const r = await orig.apply(this, a);
-  try { if ($('agsemana')) await agPintarSemana(AG_SEMANA || lunesDe(hoyISO()), 0); } catch (e) {}
-  return r;
-})(agSemanaMes);
-agVerDia = (orig => async function (f, ...a) {
-  const r = await orig.call(this, f, ...a);
-  try {
-    const lun = lunesDe(f);
-    if ($('agsemana')) { if (lun !== (AG_SEMANA || lunesDe(hoyISO()))) agPintarSemana(lun, lun > (AG_SEMANA || lun) ? 1 : -1); else agPintarSemana(lun, 0); }
-  } catch (e) {}
-  return r;
-})(agVerDia);
 
 // ---- 2 y 3. Cabecera del día: moverse de día y apuntar tareas
 // Se guardan las del día en memoria: mover una cita repinta el día sin volver a pedirlas (solo se piden al cambiar de día, recargar o editarlas)
@@ -19848,54 +19446,6 @@ function editarTarea(t, fecha) {
   $('dlg').classList.add('pequena');
   $('dlg').showModal();
 }
-pintarTuDia = (orig => async function (...a) {
-  const r = await orig.apply(this, a);
-  try {
-    const cuerpo = $('agcuerpo'), head = cuerpo && cuerpo.querySelector('.tdhead');
-    if (!head || !agUnida()) return r;
-    const f = AG_FECHA, h2 = head.querySelector('h2');
-    // Moverse de día sin salir de la pantalla
-    if (h2 && !head.querySelector('.tdnav')) {
-      h2.insertAdjacentHTML('afterend', `<span class="tdnav">
-        <button type="button" class="kmv" data-tdd="-1" aria-label="Día anterior">‹</button>
-        <span class="tdnavf"><button type="button" class="btn sec" id="tdelegir">Elegir día</button><input type="date" id="tdelegirf" data-sel="1" tabindex="-1" aria-hidden="true"></span>
-        <button type="button" class="kmv" data-tdd="1" aria-label="Día siguiente">›</button></span>`);
-      head.querySelectorAll('[data-tdd]').forEach(b => b.onclick = () => agVerDia(isoMas(AG_FECHA, +b.dataset.tdd)));
-      const inp = $('tdelegirf');
-      $('tdelegir').onclick = ev => { ev.stopPropagation(); inp.value = AG_FECHA; abrirCalendario(inp); };
-      inp.addEventListener('change', () => { if (inp.value && inp.value !== AG_FECHA) agVerDia(inp.value); });
-    }
-    // Tareas propias del día
-    const propia = !AG_VISTA || AG_VISTA.id === PERFIL.id;
-    const acts = head.querySelector('.acts');
-    if (propia && acts && !$('tdtarea')) {
-      acts.insertAdjacentHTML('afterbegin', '<button type="button" class="btn sec" id="tdtarea">+ Tarea</button>');
-      $('tdtarea').onclick = () => editarTarea(null, AG_FECHA);
-    }
-    const l = propia ? await tareasDelDia(f) : null;
-    if (AG_FECHA !== f || !$('agcuerpo')) return r;
-    const vieja = $('tdtareas'); if (vieja) vieja.remove();
-    if (l && l.length) {
-      const sitio = $('tdnocabe') || cuerpo.querySelector('.tdlista') || cuerpo.querySelector('.vacio');
-      const html = `<div class="tdtareas" id="tdtareas"><div class="tdtcab">Tareas y notas · ${l.length}</div>${l.map(t => `
-        <div class="tdtarea ${t.hecha ? 'hecha' : ''}" data-tarea="${t.id}">
-          <label class="tdtchk"><input type="checkbox" data-tacheck="${t.id}" ${t.hecha ? 'checked' : ''} aria-label="Hecha"></label>
-          <span class="tdth">${t.hora ? esc(String(t.hora).slice(0, 5)) : ''}</span>
-          <span class="tdttx"><b>${esc(t.titulo)}</b>${t.nota ? `<span class="sm">${esc(t.nota)}</span>` : ''}</span>
-          ${l.length > 1 ? `<span class="tdtmov"><button type="button" class="kmv" data-tamov="-1|${t.id}" aria-label="Subir la tarea" ${l[0] === t ? 'disabled' : ''}>↑</button><button type="button" class="kmv" data-tamov="1|${t.id}" aria-label="Bajar la tarea" ${l[l.length - 1] === t ? 'disabled' : ''}>↓</button></span>` : ''}</div>`).join('')}</div>`;
-      if (sitio) sitio.insertAdjacentHTML('beforebegin', html); else cuerpo.insertAdjacentHTML('beforeend', html);
-      $('tdtareas').querySelectorAll('[data-tacheck]').forEach(c => c.onchange = async ev => {
-        ev.stopPropagation();
-        const { error } = await db.from('tareas').update({ hecha: c.checked, modificado_en: new Date().toISOString() }).eq('id', c.dataset.tacheck);
-        if (error) { toast('No se ha podido guardar', true); c.checked = !c.checked; return; }
-        c.closest('.tdtarea').classList.toggle('hecha', c.checked); TAREAS_DIA = null;
-      });
-      $('tdtareas').querySelectorAll('.tdtarea').forEach(d => d.onclick = ev => { if (ev.target.closest('.tdtchk, .tdtmov')) return; editarTarea(l.find(x => x.id === d.dataset.tarea)); });
-      $('tdtareas').querySelectorAll('[data-tamov]').forEach(b => b.onclick = ev => { ev.stopPropagation(); const [dir, id] = b.dataset.tamov.split('|'); moverTarea(id, +dir); });
-    }
-  } catch (e) {}
-  return r;
-})(pintarTuDia);
 
 // ---- 4. Borrar y descartar en el detalle de la cita
 verCita = (orig => function (c) {
@@ -20126,33 +19676,19 @@ let AGQ_T = null, AGQ_ID = null, DLG_EPOCA = 0;
 new MutationObserver(() => { if ($('dlg').open) DLG_EPOCA = RC_EPOCA; }).observe($('dlg'), { attributes: true, attributeFilter: ['open'] });
 function agCambiosEnVentana() { return RC_EPOCA !== DLG_EPOCA; }
 function agOlvidarAgenda() { for (const k of [...RC.keys()]) if (k.startsWith('agenda_')) { RC.delete(k); RC_VUELO.delete(k); } }
-function tdIdDe(it) { const b = it.querySelector('[data-td]'); return b ? b.dataset.td.split('|')[1] : null; }
 
 // Repinta «Tu día» sin saltos: las citas que cambian de sitio se deslizan y la tocada queda resaltada un momento
 async function repintarDiaSuave(id, data) {
+  // v2.246.0: el deslizamiento de las tarjetas lo pone la envoltura de la v2.244.0 (aquí animaba las filas ocultas)
   agOlvidarAgenda();
   if (data) { TD_PRESET = { fecha: AG_FECHA, data }; TD_ULTIMO = { fecha: AG_FECHA, data }; }
-  const antes = new Map();
-  document.querySelectorAll('.tdlista .tdit').forEach(it => { const k = tdIdDe(it); if (k) antes.set(k, it.getBoundingClientRect().top); });
   const cuerpo = $('agcuerpo'), alto = cuerpo ? cuerpo.offsetHeight : 0, y = window.scrollY;
   if (cuerpo) cuerpo.style.minHeight = alto + 'px';           // mientras se repinta, la caja no encoge
   try { await pintarTuDia(); } finally { if ($('agcuerpo')) $('agcuerpo').style.minHeight = ''; }
   window.scrollTo({ top: y });
-  const quieto = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
-  document.querySelectorAll('.tdlista .tdit').forEach(it => {
-    const k = tdIdDe(it); if (!k) return;
-    if (id && String(k) === String(id)) { it.classList.remove('tdmovida'); void it.offsetWidth; it.classList.add('tdmovida'); setTimeout(() => it.classList.remove('tdmovida'), 1300); }
-    const y0 = antes.get(k); if (quieto || y0 == null || !it.animate) return;
-    const dy = y0 - it.getBoundingClientRect().top;
-    if (Math.abs(dy) > 1) it.animate([{ transform: `translateY(${dy}px)` }, { transform: 'none' }], { duration: 320, easing: 'cubic-bezier(.2,.7,.2,1)' });
-  });
 }
 // Métricas, semana y mes: solo cambian sus cifras
-function agCifrasQuietas() {
-  agMetricas();
-  const s = $('agsemana'); if (s && s.querySelector('.agsemgrid')) { s.dataset.sem = AG_SEMANA || lunesDe(hoyISO()); agPintarSemana(AG_SEMANA || lunesDe(hoyISO())); }
-  const m = $('agmes'); if (m) { m.dataset.mes = '-'; agPintarMes(AG_MES); }
-}
+function agCifrasQuietas() { }   // v2.246.0: en la vista del día, la de agCifrasQuietas de la v2.245.0
 // Lo que antes era «cargar la agenda entera» tras un cambio: en la vista del día, solo lo que cambia
 function agRefrescoQuieto(id, o = {}) {
   if (TAB !== 'agenda' || !agUnida() || !$('agcuerpo')) { cargarAgenda(); cargarInicio(); pintarRutaBarra(); return; }
@@ -22480,30 +22016,7 @@ const ICU = {
 };
 
 // Pastillas con las cifras (de #agmet, que se sigue pintando igual)
-function agPastillas() {
-  const v = $('v-agenda'), m = $('agmet'); if (!v || !m || !agConCinta()) return;
-  const sal = v.querySelector(':scope > .saludo'); if (!sal) return;
-  const ms = [...m.querySelectorAll('.agm')]; if (!ms.length) return;
-  const html = ms.map((x, k) => {
-    const t = (x.querySelector('.agmt') || {}).textContent || '', b = (x.querySelector('.agmv b') || {}).textContent || '';
-    let de = k === 0 ? ((x.querySelector('.agmv') || {}).textContent || '').match(/de\s+([\d.]+)/) : null;
-    // «Hoy», con las mismas citas que Tu día cuando se ve hoy
-    let bv = b;
-    if (k === 0 && AG_FECHA === hoyISO() && Array.isArray(TD_CITAS) && TD_ULTIMO && TD_ULTIMO.fecha === AG_FECHA) {
-      const act = TD_CITAS.filter(c => !citaAnulada(c.estado));
-      bv = String(act.filter(c => !CITA_ABIERTA.includes(c.estado)).length); de = [null, String(act.length)];
-    }
-    const tit = [((x.querySelector('.agmv') || {}).textContent || '').trim(), ((x.querySelector('.agms') || {}).textContent || '').trim()].filter(Boolean).join(' · ');
-    const nom = k === 2 ? 'Cierres' : t;
-    return `<span class="agp ${k === 3 ? 'agp-pend' : ''}" title="${esc(tit)}" ${k === 3 ? 'data-agp="pend" role="button" tabindex="0"' : ''}>${esc(nom)} <b>${esc(bv)}${de ? '/' + esc(de[1]) : ''}</b></span>`;
-  }).join('');
-  let h = $('aghud');
-  if (!h) { const ref = sal.firstElementChild; if (!ref) return; ref.insertAdjacentHTML('afterend', '<div class="aghud" id="aghud" aria-label="Tus números"></div>'); h = $('aghud'); }
-  h.innerHTML = html;
-  const p = h.querySelector('[data-agp="pend"]');
-  if (p) p.onclick = p.onkeydown = e => { if (e.type === 'keydown' && e.key !== 'Enter') return; const d = $('agpend'); d && d.scrollIntoView({ behavior: 'smooth', block: 'start' }); };
-}
-agMetricas = (orig => async function (...a) { const r = await orig.apply(this, a); agPastillas(); return r; })(agMetricas);
+function agPastillas() { }   // v2.246.0: las pastillas salen de AG_MET (agPastillasHtml)
 
 // La cinta de 14 días
 async function agCinta() {
@@ -22572,77 +22085,8 @@ cargarAgenda = (orig => async function (...a) {
   if (agConCinta()) { agPastillas(); await agCinta(); } else { CINTA_INI = null; }
   return r;
 })(cargarAgenda);
-agCifrasQuietas = (orig => function (...a) { const r = orig.apply(this, a); if (agConCinta()) agCinta(); return r; })(agCifrasQuietas);
 
 // Las tarjetas de Tu día, desde la lista de siempre
-function tarjetasTuDia() {
-  const cuerpo = $('agcuerpo'), lista = cuerpo && cuerpo.querySelector('.tdlista');
-  if (!lista || !agConCinta()) return;
-  const viejas = cuerpo.querySelector('.tdesc'); if (viejas) viejas.remove();
-  const fecha = AG_FECHA, hoy = hoyISO(), esHoy = fecha === hoy;
-  const ahora = (() => { const d = new Date(); return d.getHours() * 60 + d.getMinutes(); })();
-  const escala = ESTADOS_DEF.filter(x => x.papel !== 'negativo');
-  const vis = TT('visita', 's', '', 'l', 'l');
-  const filas = [...lista.querySelectorAll('.tdit')];
-  const datos = filas.map((it, i) => {
-    const b = it.querySelector('[data-td]'), id = b ? b.dataset.td.split('|')[1] : null;
-    const c = (TD_CITAS || []).find(x => x.id === id); if (!c) return null;
-    const htx = ((it.querySelector('.tdh') || {}).textContent || '').trim();
-    const m = htx.match(/(\d{1,2}):(\d{2})/);
-    return { c, it, i, htx, min: m ? +m[1] * 60 + +m[2] : null };
-  }).filter(Boolean);
-  const abiertas = datos.filter(d => CITA_ABIERTA.includes(d.c.estado));
-  const sig = esHoy ? (abiertas.find(d => d.min == null || d.min + 15 >= ahora) || null) : null;
-  const dias = f => Math.max(0, Math.round((new Date(hoy + 'T12:00:00') - new Date(String(f).slice(0, 10) + 'T12:00:00')) / 864e5));
-  const card = d => {
-    const { c, it } = d, ab = CITA_ABIERTA.includes(c.estado), info = TD_INFO[c.id] || {}, ant = c.anterior || null;
-    const nivel = escala.findIndex(x => x.valor === c.estado_comercial);
-    const obj = nivel >= 0 ? escala[nivel + 1] : null;
-    const falta = d.min != null ? d.min - ahora : null;
-    // El aviso sin la «i» de la fila; si la fila la tiene, la tarjeta lleva la suya, que abre la misma explicación
-    const avEl = it.querySelector('.tdaviso');
-    const aviso = avEl ? [...avEl.childNodes].filter(x => x.nodeType === 3).map(x => x.textContent).join('').trim() : '';
-    const avBtn = avEl && avEl.querySelector('.tdavi') ? ` <button type="button" class="tdavi" data-tdavi="${c.id}" aria-label="Por qué sale este aviso">i</button>` : '';
-    const vent = ((it.querySelector('.tdvent') || {}).textContent || '').trim();
-    const lineas = [
-      ant && ant.proxima_accion ? ['toca', 'toca', `Toca: ${esc(ant.proxima_accion)}`] : null,
-      c.anterior !== undefined ? ['reloj', '', ant ? `Última ${vis} hace ${dias(ant.fecha)} ${dias(ant.fecha) === 1 ? 'día' : 'días'}` : `Primera ${vis}`] : null,
-      vent ? ['puerta', '', esc(vent)] : null,
-      ab && aviso ? ['aviso', 'tdav', esc(aviso) + avBtn] : null,
-      ab && !xyCita(c) ? ['aviso', 'tdav', 'Sin ubicación'] : null,
-      c.nota ? ['nota', '', esc(c.nota)] : null
-    ].filter(Boolean);
-    const cuando = !ab ? '' : d === sig && falta != null && falta > 0 ? `en ${falta >= 60 ? Math.floor(falta / 60) + ' h ' : ''}${falta % 60} min` : d.htx.startsWith('~') ? 'Hora estimada' : '';
-    const bt = k => it.querySelector(`[data-td="${k}|${c.id}"]`);
-    const sube = bt('sube'), baja = bt('baja'), reg = bt('visita'), nueva = bt('nueva');
-    return `<article class="tdu ${d === sig ? 'sig' : ''} ${ab ? '' : 'hecha'}" data-tdu="${c.id}" tabindex="0" aria-label="${esc(c.nombre)}">
-      <div class="tdu-cab">
-        <div class="tdu-av" aria-hidden="true">${esc(iniciales(c.nombre))}<span class="n">${d.i + 1}</span></div>
-        <div class="tdu-tit">${d === sig ? '<span class="tdu-sig"><i></i>Siguiente</span>' : ''}
-          <div class="tdu-nom"><b class="tdu-nb" title="Ver la cita">${esc(c.nombre)}</b>${c.clase ? `<span class="tdu-k ${esc(c.clase)}" title="Clase ${esc(c.clase)}">${esc(c.clase)}</span>` : ''}${(it.querySelector('.p-urg') || {}).outerHTML || ''}</div>
-          <span class="tdu-sub">${esc([c.centro_nombre, c.municipio].filter(Boolean).join(' · ') || '')}</span></div>
-        <div class="tdu-hora"><span class="h">${esc(d.htx || '·')}</span>${cuando ? `<span class="tdu-cu">${cuando}</span>` : ''}</div>
-      </div>
-      ${escala.length && nivel >= 0 ? `<div class="tdu-niv"><div class="tdu-barra" title="${esc(escala.map(x => x.valor).join(' → '))}">${escala.map((x, k) => `<i class="${k <= nivel ? 'on' : k === nivel + 1 ? 'obj' : ''}"></i>`).join('')}</div>
-        <span class="tdu-nt"><b>${esc(c.estado_comercial)}</b>${obj ? ` → ${esc(obj.valor)}` : ' · mantener'}</span></div>` : ''}
-      ${lineas.length ? `<ul class="tdu-dat">${lineas.map(([ic, cl, t]) => `<li class="${cl}">${SVA(ICU[ic])}<span>${t}</span></li>`).join('')}</ul>` : ''}
-      <div class="tdu-pie"><span class="tdu-est">${pillCita(c.estado)}<span class="sm">${textoOrigenCita(c)}</span></span>
-        <span class="tdu-ops">${sube ? `<button class="kmv" type="button" data-td="sube|${c.id}" aria-label="Subir en el orden" title="Subir en el orden" ${sube.disabled ? 'disabled' : ''}>${ICO.arriba}</button>` : ''}${baja ? `<button class="kmv" type="button" data-td="baja|${c.id}" aria-label="Bajar en el orden" title="Bajar en el orden" ${baja.disabled ? 'disabled' : ''}>${ICO.abajo}</button>` : ''}<button class="kmv" type="button" data-td="mas|${c.id}" aria-label="Más acciones" title="Más acciones">${SVA(ICU.mas)}</button></span>
-        ${nueva ? `<button class="btn sec tdu-reg" type="button" data-td="nueva|${c.id}">Nueva cita</button>` : ''}
-        ${reg ? `<button class="btn ${d === sig ? '' : 'sec'} tdu-reg" type="button" data-td="visita|${c.id}">Registrar ${vis}</button>` : ''}</div>
-    </article>`;
-  };
-  lista.insertAdjacentHTML('beforebegin', `<div class="tdesc" aria-label="Citas del día">${datos.map(card).join('')}</div>`);
-  lista.classList.add('tdoculta');
-  agPastillas();
-}
-pintarTuDia = (orig => async function (...a) { const r = await orig.apply(this, a); tarjetasTuDia(); return r; })(pintarTuDia);
-// La «i» del aviso de la tarjeta abre la explicación de la fila
-document.addEventListener('click', e => {
-  const b = e.target.closest('[data-tdavi]'); if (!b) return;
-  const f = [...document.querySelectorAll('.tdlista .tdit')].find(it => it.querySelector(`[data-td$="|${b.dataset.tdavi}"]`));
-  const i = f && f.querySelector('.tdavi'); if (i) i.click();
-});
 // Pulsar la tarjeta (fuera de sus botones) abre la cita, como la fila de antes
 document.addEventListener('click', e => {
   const t = e.target.closest('.tdu'); if (!t || e.target.closest('button, a, input, select')) return;
@@ -23382,66 +22826,17 @@ async function agSemanaLateral() {
   if ($('agslrep')) $('agslrep').onclick = agRepartirSemana;
 }
 // Sugerencias dentro de tu día y bandejas
-function agSugerenciasDentro() {
-  if (TAB !== 'agenda' || AG_MODO !== 'dia') return;
-  const sug = $('agsug'), lista = document.querySelector('#agcuerpo .tdlista') || $('agcuerpo'); if (!sug || !lista) return;
-  const tarjetas = [...document.querySelectorAll('#agcuerpo .tdu')];
-  tarjetas.forEach(t => t.querySelectorAll('.agtamb').forEach(x => x.remove()));
-  sug.querySelectorAll('.sgcen').forEach(c => {
-    const cab = c.querySelector('.sgcencab'); if (!cab) return;
-    const nom = ((cab.querySelector('b, strong, h4') || cab).textContent || '').trim().split(/\n/)[0].toUpperCase();
-    if (!nom) return;
-    const t = tarjetas.find(x => x.textContent.toUpperCase().includes(nom.slice(0, 22))); if (!t) return;
-    const items = [...c.querySelectorAll('.item')]; if (!items.length) return;
-    const chips = items.map((it, i) => { const n = ((it.querySelector('.tx b, b') || {}).textContent || '').trim(); return n ? `<button type="button" data-agti="${i}" title="Añadir una cita con ${esc(n)}"><i>+</i> ${esc(n)}</button>` : ''; }).join('');
-    const pie = t.querySelector('.tdu-pie, .tduacts') || t.lastElementChild;
-    pie.insertAdjacentHTML('beforebegin', `<div class="agtamb"><div class="agtambh">${svgIco(ICON_NOM['map-pin'])} En este centro también</div><div class="agtambl">${chips}</div></div>`);
-    t.querySelectorAll('[data-agti]').forEach(b => b.onclick = ev => {
-      ev.stopPropagation();
-      const it = items[+b.dataset.agti], cita = it && [...it.querySelectorAll('button')].find(x => /cita/i.test(x.textContent));
-      if (cita) cita.click(); else if (it) it.click();
-    });
-  });
-  // Bandejas: «Les toca visita» y «Pendientes de días anteriores»
-  const head = document.querySelector('#agcuerpo .tdhead'); if (!head) return;
-  const toca = [...sug.querySelectorAll('.lista')].filter(l => !l.closest('.sgcen')).pop();
-  const nToca = toca ? toca.querySelectorAll('.item').length : 0;
-  const pend = $('agpend'), nPend = pend ? +(((pend.querySelector('h2 .n, h2 span') || {}).textContent || '').replace(/\D/g, '')) || pend.querySelectorAll('.item').length : 0;
-  let band = $('agband'); if (band) band.remove();
-  if (!nToca && !nPend) return;
-  head.insertAdjacentHTML('afterend', `<div class="agband" id="agband">${nToca ? `<button type="button" data-agbd="toca">${svgIco(ICON_NOM.target)} Les toca ${TT('visita', 's', '', 'l', 'l')} <b>${nToca}</b></button>` : ''}${nPend ? `<button type="button" class="urg" data-agbd="pend">${svgIco(ICON_NOM['circle-alert'] || ICON_NOM.info)} Pendientes de días anteriores <b>${nPend}</b></button>` : ''}</div>`);
-  $('agband').querySelectorAll('[data-agbd]').forEach(b => b.onclick = () => agBandeja(b.dataset.agbd));
-}
-function agBandeja(k) {
-  const d = $('tools'), sug = $('agsug'), pend = $('agpend');
-  const tit = k === 'toca' ? `Les toca ${TT('visita', 's', '', 'l', 'l')}` : 'Pendientes de días anteriores';
-  const txt = k === 'toca' ? `Según la frecuencia objetivo de cada ${TT('medico', 's', '', 'l', 'l')}. Añádelos a este día o planifica una ruta con ellos.` : 'Los planificaste y no se visitaron. Muévelos a hoy o descártalos.';
-  d.innerHTML = `<div class="tbox"><div class="fh"><h2>${esc(tit)}</h2><button class="x" id="tclose" aria-label="Cerrar">✕</button></div><p class="sm">${esc(txt)}</p><div class="agbdc"></div></div>`;
-  const c = d.querySelector('.agbdc');
-  if (k === 'toca' && sug) { const l = [...sug.querySelectorAll('.lista')].filter(x => !x.closest('.sgcen')).pop(); if (l) { const cab = l.previousElementSibling; if (cab && cab.querySelector('button')) c.appendChild(cab); c.appendChild(l); const vm = sug.querySelector('.vermas'); if (vm) c.appendChild(vm); } }
-  if (k === 'pend' && pend) [...pend.children].filter(x => !x.matches('h2, p.sm')).forEach(x => c.appendChild(x));
-  $('tclose').onclick = () => d.classList.remove('abierto');
-  if (typeof HERR_CTX !== 'undefined') HERR_CTX = 'agband-' + k;
-  d.classList.add('abierto');
-}
+function agBandeja() { }   // v2.246.0: las bandejas salen de AG_SUG y AG_PEND
 function agVistaUnica() {
-  if (TAB !== 'agenda') return;
-  const v = $('v-agenda'); if (!v) return;
-  const dia = AG_MODO === 'dia' && v.classList.contains('agcinta');
-  v.classList.toggle('agb', dia);
-  if (!dia) { const x = $('agsemlat'); if (x) x.remove(); return; }
-  agBotonSemana(); agMenusCinta(); agSemanaLateral(); agSugerenciasDentro(); agPintarSemanaExp();
+  // v2.246.0: solo fuera de la vista del día (la del día es agCargarDia)
+  const v = TAB === 'agenda' && $('v-agenda'); if (!v || agN()) return;
+  v.classList.remove('agb'); const x = $('agsemlat'); if (x) x.remove();
 }
 cargarAgenda = (orig => async function (...a) {
   const r = await orig.apply(this, a);
   try { agVistaUnica(); } catch (e) {}
   return r;
 })(cargarAgenda);
-sugerenciasAgenda = (orig => async function (...a) {
-  const r = await orig.apply(this, a);
-  try { agSugerenciasDentro(); } catch (e) {}
-  return r;
-})(sugerenciasAgenda);
 // Los cambios de la cinta (‹ › o pulsar otro día) repintan la cinta: se le vuelven a poner los menús y la semana
 agVerDia = (orig => function (...a) {
   const r = orig.apply(this, a);
@@ -23614,22 +23009,6 @@ function citaConMenu(c) {
   return hay;
 }
 const citaHecha = e => EST_COL[e] === 'var(--ok)';
-tarjetasTuDia = (orig => function (...a) {
-  const r = orig.apply(this, a);
-  const cuerpo = $('agcuerpo'); if (!cuerpo) return r;
-  cuerpo.querySelectorAll('.tdu[data-tdu]').forEach(t => {
-    const c = (TD_CITAS || []).find(x => x.id === t.dataset.tdu);
-    if (c && !citaConMenu(c)) { const m = t.querySelector('[data-td^="mas|"]'); if (m) m.remove(); }
-  });
-  // El «⋯» del día, en la cabecera de «Tu día»
-  const h2 = cuerpo.querySelector('.tdhead h2');
-  if (h2 && AG_FECHA >= hoyISO() && !$('tddiamas')) {
-    h2.insertAdjacentHTML('afterend', `<button type="button" class="kmv tddiamas" id="tddiamas" aria-label="Opciones del día" title="Opciones del día: nueva cita, bloquear el día…">${SVA(ICU.mas)}</button>`);
-    const b = $('tddiamas'), cab = h2.parentElement; cab.classList.add('tdtitw');
-    b.onclick = e => { e.stopPropagation(); const d = document.querySelector(`#agcinta [data-cf="${AG_FECHA}"]`); menuDiaSemana(b, AG_FECHA, !!(d && d.classList.contains('bloq'))); };
-  }
-  return r;
-})(tarjetasTuDia);
 
 verCita = (orig => function (c, ...r) {
   const x = orig.call(this, c, ...r);
@@ -25491,7 +24870,7 @@ async function tdPintar() {
 pintarTuDia = (orig => async function (...a) { return agConCinta() ? tdPintar() : orig.apply(this, a); })(pintarTuDia);
 // La «i» del aviso abre su explicación (antes pulsaba la de la fila oculta)
 document.addEventListener('click', e => {
-  const b = e.target.closest('[data-tdavi]'); if (!b || document.querySelector('.tdlista .tdit')) return;
+  const b = e.target.closest('[data-tdavi]'); if (!b) return;
   e.stopPropagation();
   const inf = TD_INFO[b.dataset.tdavi]; if (!inf) return;
   appVentana({ titulo: 'Por qué sale este aviso', msg: explicarAviso(inf), ok: 'Entendido', cancel: false });
@@ -25757,3 +25136,12 @@ agPintarSemanaExp = (orig => async function (...a) {
   cin.insertAdjacentHTML('beforeend', '<div id="agsemexp" class="agsemexp" style="display:none"></div>');
   try { return await orig.apply(this, a); } finally { const x = $('agsemexp'); if (x) x.style.display = ''; }
 })(agPintarSemanaExp);
+
+
+/* ============================================================
+   v2.246.0 · Agenda reescrita (3 de 3): fuera las capas antiguas de la vista del día. Desde la v2.244.0 «Tu día» sale de tdPintar
+   y desde la v2.245.0 la vista del día la monta agCargarDia, pero seguían en la app la lista oculta de «Tu día» y sus cinco capas
+   (centros agrupados, avisos, «no cabe», navegación por días, tarjetas copiadas), las cifras, la semana y el mes de 2026 que se
+   pintaban escondidos, las sugerencias en columna y las capas que las leían. Se quitan, con sus estilos. Semana, mes y Equipo
+   (a los que se llega desde Rutas, el planificador y Equipo) siguen igual.
+   ============================================================ */
