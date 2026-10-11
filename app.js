@@ -25073,3 +25073,8 @@ document.addEventListener('click', e => {
   const b = e.target.closest('#v-config .cfuidx [data-ck]'); if (!b || TAB !== 'config' || b.dataset.ck === CFG_KEY) return;
   congelar($('v-config'));
 }, true);
+
+
+/* v2.253.0 · Inicio sin fantasmas: el mosaico, la cabecera y los indicadores ya llegaban y cambiaban de una vez (prueba inicio2253, como
+   comercial, administración y dirección). En el móvil, la cabecera guardaba 100 px a la derecha de cuando los botones iban arriba: con
+   «Buenas tardes» la «i» bajaba sola a otra línea. Solo estilo. */
