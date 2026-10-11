@@ -4223,6 +4223,20 @@ main > section.preparando::after,dialog > .preparando::after{animation:cargaApar
 .plantilla #opcfg{display:none!important}
 .plantilla .fab.plfuera,.plantilla .dgrid > .dr.htfuera{display:none!important}
 @media (max-width:760px){main > section.plantilla .kpis.vtot.plres{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px 14px!important}main > section.plantilla .kpis.vtot.plres > .kpi{display:flex!important;flex-direction:column!important;gap:0!important;padding:0!important;margin:0!important;min-height:0!important;border:0!important;background:none!important;box-shadow:none!important;width:auto!important}.plantilla .kpis.vtot.plres > .kpi{font-size:12.5px}}
+
+/* v2.239.0 · Modelo «Lista» en Eventos, Cirugías, Concursos y Parque */
+.dgrid.blq-eventos{--cols:minmax(220px,2fr) 170px 110px minmax(160px,1.5fr) 90px 110px;min-width:920px}
+.dgrid.blq-cirugias{--cols:150px minmax(180px,1.4fr) minmax(220px,2fr) minmax(170px,1.2fr);min-width:880px}
+.dgrid.blq-concursos{--cols:minmax(220px,1.6fr) minmax(240px,2fr) minmax(200px,1.3fr);min-width:860px}
+.dgrid.blq-parque{--cols:minmax(200px,1.4fr) minmax(260px,2fr) minmax(200px,1.3fr);min-width:860px}
+.dgrid[class*="blq-"] > .dr > span:not(.plcard){display:flex;flex-wrap:wrap;gap:4px;align-items:center;min-width:0}
+.dgrid[class*="blq-"] > .dr > span.num:not(.plcard){justify-content:flex-end}
+.dgrid > .dr.plgfuera{display:none!important}
+.plgband{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.plkpis.plbanda:has(> .plgband.hide),.plkpis.plbanda:empty{display:none}
+.plgsel{display:none!important}
+#cfgcuerpo > p.sm{margin:0 0 10px}
+@media (max-width:760px){.plgband{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}}
 </style>
 </head>
 <body>
@@ -4361,6 +4375,6 @@ try{var co=sessionStorage.getItem('dlc-cambio-org');if(co!==null||localStorage.g
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.238.0"></script>
+<script src="./app.js?v=2.239.0"></script>
 </body>
 </html>
