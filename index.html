@@ -4165,6 +4165,11 @@ body.modo-plataforma.menulat #v-delcos .pagtabs{display:none}
 /* El recuento de la barra tiene sitio fijo: el esqueleto y la cifra ocupan lo mismo y no empujan el buscador ni los filtros */
 .pltool .plcnt{min-width:150px}
 .plchip.plespera{opacity:.55;pointer-events:none}
+
+/* v2.251.0 · Cambio de pestaña en las listas de bloques: la lista de antes atenuada hasta que llega la nueva; el filtro de bloques
+   con un solo bloque se queda en su sitio, desactivado */
+#cfgcuerpo.pagcambia{opacity:.5;transition:opacity .15s}
+.plchip.plnada{opacity:.45;pointer-events:none}
 </style>
 </head>
 <body>
@@ -4301,6 +4306,6 @@ try{var co=sessionStorage.getItem('dlc-cambio-org');if(co!==null||localStorage.g
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.250.0"></script>
+<script src="./app.js?v=2.251.0"></script>
 </body>
 </html>
