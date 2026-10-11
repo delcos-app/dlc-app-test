@@ -4194,6 +4194,20 @@ body.modo-plataforma.menulat #v-delcos .pagtabs{display:none}
 .discab p{margin:0;flex:1 1 320px;min-width:0}
 .dissub{font:700 11px var(--f-titulo);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:22px 0 2px}
 .disoff b{color:var(--muted)}
+
+/* v2.261.0 · Leer códigos con la cámara: botón dentro del campo y ventana de la cámara */
+.escw{position:relative;display:block;min-width:0}
+.escw > input{width:100%;padding-right:46px}
+.escbtn{position:absolute;right:3px;top:50%;transform:translateY(-50%);width:38px;height:38px;min-height:0;padding:0;border:0;border-radius:8px;
+  background:var(--hielo,#F2F7FC);color:var(--navy,#17457A);display:grid;place-items:center;cursor:pointer}
+.escbtn svg{width:18px;height:18px}
+.escdlg{padding:0;border:0;border-radius:16px;width:min(520px,calc(100vw - 24px));max-width:none;overflow:hidden;background:var(--card,#fff)}
+.escdlg::backdrop{background:rgba(11,37,64,.6)}
+.escvid{position:relative;background:#0B2540;aspect-ratio:4/3;max-height:62vh}
+.escvid video{width:100%;height:100%;object-fit:cover;display:block}
+.escmarco{position:absolute;inset:22% 14%;border:2px solid rgba(255,255,255,.9);border-radius:12px;box-shadow:0 0 0 999px rgba(11,37,64,.35)}
+.escpie{display:grid;gap:10px;padding:14px 16px 16px}
+.escpie p{margin:0;min-height:2.6em}
 </style>
 </head>
 <body>
@@ -4330,6 +4344,6 @@ try{var co=sessionStorage.getItem('dlc-cambio-org');if(co!==null||localStorage.g
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.260.0"></script>
+<script src="./app.js?v=2.261.0"></script>
 </body>
 </html>
