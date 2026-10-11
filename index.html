@@ -4208,6 +4208,12 @@ body.modo-plataforma.menulat #v-delcos .pagtabs{display:none}
 .escmarco{position:absolute;inset:22% 14%;border:2px solid rgba(255,255,255,.9);border-radius:12px;box-shadow:0 0 0 999px rgba(11,37,64,.35)}
 .escpie{display:grid;gap:10px;padding:14px 16px 16px}
 .escpie p{margin:0;min-height:2.6em}
+
+/* v2.263.0 · Liquidaciones por persona y mes */
+.liqfil{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:flex-end;padding:0 16px 8px}
+.liqfil > div{min-width:0;flex:0 1 220px}
+.liqfil select{width:100%}
+.liqfil p{margin:0 0 8px;flex:1 1 220px;font-variant-numeric:tabular-nums}
 </style>
 </head>
 <body>
@@ -4344,6 +4350,6 @@ try{var co=sessionStorage.getItem('dlc-cambio-org');if(co!==null||localStorage.g
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.262.0"></script>
+<script src="./app.js?v=2.263.0"></script>
 </body>
 </html>
