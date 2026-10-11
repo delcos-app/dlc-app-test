@@ -25061,3 +25061,15 @@ plSync = (orig => function (tab, ...x) {
   }
   return r;
 })(plSync);
+
+
+/* ============================================================
+   v2.252.0 · Configuración sin fantasmas. Al pasar de un apartado a otro, la página nueva salía vacía y se iba llenando
+   (14 de 26 apartados se veían en varios pasos: «Tus datos», «Punto de salida», Roles…). Ahora el apartado de antes se queda
+   fijo y atenuado (la copia de congelar, como en las pestañas) hasta que el nuevo está entero.
+   Usuarios y Calidad del dato ya llegaban y cambiaban de una vez (pruebas usuarios2252).
+   ============================================================ */
+document.addEventListener('click', e => {
+  const b = e.target.closest('#v-config .cfuidx [data-ck]'); if (!b || TAB !== 'config' || b.dataset.ck === CFG_KEY) return;
+  congelar($('v-config'));
+}, true);
