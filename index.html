@@ -161,8 +161,8 @@ dialog::backdrop{background:rgba(14,47,82,.4)}
 .dpc{display:flex;flex-direction:column;gap:5px}
 .dpt{border:1px solid var(--line);background:var(--panel);border-radius:9px;padding:8px;cursor:pointer;font-weight:600;color:var(--muted);text-align:left}
 .dpt[aria-pressed=true]{background:var(--navy);color:#fff;border-color:var(--navy)}
-.dph{display:flex;gap:5px;align-items:center}
-.dph input{min-height:34px;padding:5px 6px;font-size:13px}
+
+
 .qk{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
 .qk button{border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:5px 11px;font-size:12.5px;font-weight:600;color:var(--navy);cursor:pointer}
 .cons{border:1px solid var(--line);border-radius:12px;padding:12px;margin-top:10px;position:relative}
@@ -297,9 +297,9 @@ body.conruta{padding-top:46px}
 .acts .ai-dir{margin:0 4px 0 auto}
 .subnav button.ai{padding:0;width:20px;height:20px;border-radius:50%;font:italic 700 11px/1 Georgia,serif;color:var(--sky);background:var(--panel)}
 .acts .ai-dir + .kebab{margin-left:0}
-#v-inicio.ini-cargando > *:not(.ini-loader){display:none!important}
-.ini-loader{display:none}
-#v-inicio.ini-cargando .ini-loader{display:flex;min-height:60vh}
+
+
+
 .gsug .gload{display:flex;gap:10px;align-items:center;padding:14px 12px;color:var(--muted);font-size:13.5px}
 .gsug .gload .spin{width:18px;height:18px;border-width:2px}
 .gsearch.buscando::after{content:"";position:absolute;right:12px;top:50%;width:16px;height:16px;margin-top:-8px;border:2px solid var(--line);border-top-color:var(--navy);border-radius:50%;animation:gira .8s linear infinite}
@@ -429,7 +429,7 @@ body.conruta{padding-top:46px}
 .cargatotal b{font-size:17px;color:var(--navy)}
 .rgrid .card > .acts{padding:0 16px 16px;margin-top:4px}
 .rgrid .card > h2{padding-bottom:4px}
-.kx{display:block;margin-top:4px;font-size:11.5px}
+
 .angrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
 .angrid .card{margin:0}
 .ancard.ancha{grid-column:1 / -1}
@@ -619,7 +619,7 @@ body.conruta{padding-top:46px}
 .kmv:disabled{opacity:.35;cursor:default}
 .renc .parada{display:flex;align-items:center;gap:10px;justify-content:flex-start}
 .renc .parada .ptit{flex:1}
-.renc .pord{display:flex;gap:4px}
+
 .icobtn{display:inline-grid;place-items:center;width:36px;height:36px;border-radius:50%;background:var(--navy);color:#fff;text-decoration:none;flex:0 0 auto}
 .icobtn:hover{background:var(--sky)}
 .rmed{cursor:pointer!important}
@@ -806,7 +806,7 @@ body{overflow-x:clip;width:100%;min-height:100dvh}
 @media (max-width:760px){
   /* Con menos de 16 px el iPhone amplía la pantalla al escribir y no la devuelve a su tamaño */
   input,select,textarea,.selval{font-size:16px!important}
-  .datol input,.datol select,.dph input,.lrow input,.lrow select{font-size:16px!important}
+  .datol input,.datol select,.lrow input,.lrow select{font-size:16px!important}
 }
 #girar{display:none}
 /* ============================================================
@@ -1034,9 +1034,9 @@ nav.main button.bloq{opacity:.55}.cand{font-size:11px;margin-left:4px}
 .usrchips{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:4px}
 .usrdat{display:flex;flex-direction:column;align-items:flex-end;gap:2px;font-size:12px;color:var(--muted);white-space:nowrap}.usrdat b{color:var(--navy)}
 .usrcab{display:flex;gap:12px;align-items:center}
-.usrgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:10px 0}
-.usrperm{display:grid;grid-template-columns:1fr 1fr;gap:4px 10px;font-size:13px}.usrperm span{display:flex;justify-content:space-between;gap:6px}
-.usrperm em{font-style:normal;font-size:11.5px;color:var(--muted)}.usrperm .no{color:var(--muted)}
+
+
+
 .usracc{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .nivleg{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0}
 .nivleg span{display:flex;flex-direction:column;gap:2px;padding:10px 12px;border-radius:12px;font-size:12px;color:var(--muted);border:1px solid var(--line)}
@@ -1049,7 +1049,7 @@ nav.main button.bloq{opacity:.55}.cand{font-size:11px;margin-left:4px}
 body.masabierto .bnav{border-top-color:transparent;box-shadow:none}
 .bmasbox{bottom:calc(60px + env(safe-area-inset-bottom,0px));border-radius:22px 22px 0 0;box-shadow:0 -10px 30px rgba(11,58,102,.12)}
 @media (max-width:1100px){.planes{grid-template-columns:1fr 1fr}}
-@media (max-width:760px){.planes,.marcaed,.usrgrid,.usracc,.nivleg{grid-template-columns:1fr}.usrlista{grid-template-columns:1fr}.usrcard{grid-template-columns:auto 1fr}.usrdat{grid-column:2;align-items:flex-start;flex-direction:row;gap:10px}}
+@media (max-width:760px){.planes,.marcaed,.usracc,.nivleg{grid-template-columns:1fr}.usrlista{grid-template-columns:1fr}.usrcard{grid-template-columns:auto 1fr}.usrdat{grid-column:2;align-items:flex-start;flex-direction:row;gap:10px}}
 /* v2.42.0 */
 .cfgnav{position:sticky;top:96px;max-height:calc(100vh - 110px);overflow:auto;padding-right:4px;scrollbar-width:thin}
 .cfgcuerpo{min-height:60vh}
@@ -4406,6 +4406,6 @@ try{var co=sessionStorage.getItem('dlc-cambio-org');if(co!==null||localStorage.g
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.241.0"></script>
+<script src="./app.js?v=2.242.0"></script>
 </body>
 </html>

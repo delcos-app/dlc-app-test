@@ -2994,41 +2994,7 @@ async function cargarRutasPaso2() {
 
 // (v2.183.0: aquí iba la primera versión de cargarRutasBase; se redefine entera más abajo)
 
-async function listaRutas() {
-  const { data, error } = await db.rpc('rutas_visibles');
-  if (error) { $('rcuerpo').innerHTML = `<div class="card"><div class="vacio">No se ha podido cargar: ${esc(error.message)}</div></div>`; return; }
-  RUTAS = data || [];
-  if (!RUTAS.length) {
-    $('rcuerpo').innerHTML = `<div class="card"><div class="vacio">
-      Todavía no tienes rutas. Créala con <b>+ Nueva ruta</b>, con una lista de ${TT('medico', 'p', '', 'l', 'l', 'concreto')}
-      o por criterios que se recalculan solos.<br><br>
-      También puedes usar las <b>propuestas automáticas</b> de la pestaña de al lado.</div></div>`;
-    return;
-  }
-  $('rcuerpo').innerHTML = `<div class="card"><h2>Mis rutas<span class="n">${RUTAS.length}</span></h2>
-    <div class="lista">${RUTAS.map(r => `<div class="item" style="cursor:default">
-      <span class="ic ${r.tipo === 'Urgente' ? 'w' : ''}">${r.tipo === 'Urgente' ? '★' : '◉'}</span>
-      <span class="tx"><b>${esc(r.nombre)}</b><span class="sm">
-        ${r.dinamica ? 'Por criterios' : r.n_fijos + ` ${TT('medico', 'p', '', 'l', 'l')}`} · ${r.visitados} visitados${r.desde ? ' desde ' + fechaCorta(r.desde) : ''}
-        ${r.mia ? '' : ' · de ' + esc(r.duenyo)}</span></span>
-      <span class="acts" style="margin:0">
-        <button class="btn" data-ruta="${r.id}">Planificar</button>
-        <button class="btn sec" data-rver="${r.id}">Ver ${TT('medico', 'p', '', 'l', 'l')}</button>
-        ${r.mia || puede('administrar') ? `<button class="btn sec" data-redit="${r.id}">Editar</button>
-          <button class="btn sec" data-rdup="${r.id}">Duplicar</button>
-          <button class="btn sec" data-rdel="${r.id}">Eliminar</button>` : ''}</span></div>`).join('')}</div></div>`;
-
-  $('rcuerpo').querySelectorAll('[data-redit]').forEach(b => b.onclick = () => editorRuta(b.dataset.redit));
-  $('rcuerpo').querySelectorAll('[data-rver]').forEach(b => b.onclick = () => verMedicosRuta(b.dataset.rver));
-  $('rcuerpo').querySelectorAll('[data-rdup]').forEach(b => b.onclick = () => duplicarRuta(b.dataset.rdup));
-  $('rcuerpo').querySelectorAll('[data-rdel]').forEach(b => b.onclick = async () => {
-    const r = RUTAS.find(x => x.id === b.dataset.rdel);
-    if (!await preguntar(`Se elimina "${r.nombre}".\nLos ${TT('medico', 'p', '', 'l', 'l')} y sus ${TT('visita', 'p', '', 'l', 'l')} no se borran.`,
-      { titulo: '¿Eliminar la ruta?', ok: 'Eliminar', peligro: true })) return;
-    await db.rpc('guardar_ruta', { p: { id: r.id, activa: false } });
-    toast('Ruta eliminada'); cargarRutas();
-  });
-}
+// v2.242.0: aquí iba listaRutas (nadie la usaba)
 
 async function duplicarRuta(id) {
   const r = RUTAS.find(x => x.id === id); if (!r) return;
@@ -3062,42 +3028,7 @@ async function verMedicosRuta(id) {
 
 /* ---------------- propuestas automáticas ---------------- */
 
-async function listaPropuestas() {
-  const { data, error } = await db.rpc('propuestas_rutas', { lim: 60 });
-  if (error) { $('rcuerpo').innerHTML = `<div class="card"><div class="vacio">${esc(error.message)}</div></div>`; return; }
-  PROPUESTAS = data;
-  const dn = { L: 'lunes', M: 'martes', X: 'miércoles', J: 'jueves', V: 'viernes' }[data.dia] || 'hoy';
-  const bloques = [
-    ['hoy', '📅', `Atienden ${dn}`, `Con día de atención conocido y sin ${TT('visita', 's', '', 'l', 'l')} reciente`],
-    ['pendientes', '⏳', 'Pendientes de rutas anteriores', 'Planificados y no visitados'],
-    ['urgentes', '❗', 'Urgentes sin visitar', 'Marcados como urgentes'],
-    ['interesados', '🔥', `${TT('medico', 'p', '', 'l', 'C', 'interesado')} sin ${TT('visita', 's', '', 'l', 'l')} en 20 días`, 'Para no perder el interés'],
-    ['sin_visitar', '🆕', 'Sin visitar nunca', `${TT('visita', 'p', 'primer', 'C', 'l')}, agrupados por zona`]
-  ].filter(([k]) => (data[k] || []).length);
-
-  $('rcuerpo').innerHTML = bloques.length ? `<div class="card">
-    <h2>Propuestas de hoy</h2><p class="sm">Calculadas con tus datos. Planifícalas o guárdalas como ruta.</p>
-    <div class="lista">${bloques.map(([k, ic, t, s]) => `<div class="item" style="cursor:default">
-      <span class="ic">${ic}</span>
-      <span class="tx"><b>${t}</b><span class="sm">${s} · <b>${num(data[k].length)}</b> ${TT('medico', 'p', '', 'l', 'l')}</span></span>
-      <span class="acts" style="margin:0">
-        <button class="btn" data-prop="${k}">Planificar</button>
-        <button class="btn sec" data-propg="${k}|${esc(t)}">Guardar como ruta</button></span></div>`).join('')}</div></div>`
-    : '<div class="card"><div class="vacio">Ahora mismo no hay propuestas: todo al día.</div></div>';
-
-  $('rcuerpo').querySelectorAll('[data-prop]').forEach(b => b.onclick = e => planDesdeLista(PROPUESTAS[b.dataset.prop], b.dataset.prop, e.target));
-  $('rcuerpo').querySelectorAll('[data-propg]').forEach(b => b.onclick = async () => {
-    const [k, t] = b.dataset.propg.split('|');
-    const nombre = await pedirTexto('Nombre de la ruta', t, { titulo: 'Guardar como ruta', ok: 'Guardar' });
-    if (!nombre) return;
-    const { error } = await db.rpc('guardar_ruta', { p: {
-      nombre, tipo: k === 'urgentes' ? 'Urgente' : 'Normal', desde: hoyISO(),
-      codigos: PROPUESTAS[k].map(m => m.id), reglas: null
-    }});
-    if (error) { toast('No se ha podido guardar: ' + error.message, true); return; }
-    toast('Guardada como ruta fija'); RSEC = 'mis'; cargarRutas();
-  });
-}
+// v2.242.0: aquí iba listaPropuestas (nadie la usaba)
 
 /* ---------------- editor de ruta ---------------- */
 
@@ -3416,13 +3347,7 @@ async function cercaDeMi(btn) {
 /* ---------------- agenda: crear cita, hora y mes ---------------- */
 
 
-async function cambiarHoraCita(id, hora) {
-  const h = await appVentana({ titulo: 'Hora de la cita', ok: 'Guardar', campo: { valor: hora || '', tipo: 'time' } });
-  if (h === null) return;
-  const { error } = await db.from('agenda').update({ hora: h || null }).eq('id', id);
-  if (error) { toast('No se ha podido: ' + error.message, true); return; }
-  toast('Hora actualizada'); cargarAgenda();
-}
+// v2.242.0: aquí iba la primera versión de cambiarHoraCita (se redefine entera más abajo)
 
 async function pintarMesAgenda(mes) {
   const { data } = await db.rpc('agenda_mes', { p_mes: mes, p_usuario: agUsuarioFiltro() });
@@ -5960,7 +5885,7 @@ async function asignarCartera(id) {
 /* ---------------- rutas: plan desde ahora, ruta en curso, pausar y reanudar ---------------- */
 
 const RPKEY = () => 'dlc-ruta-pausa-' + (PERFIL ? PERFIL.id : '');
-const rutaPausada = () => { try { return JSON.parse(localStorage.getItem(RPKEY()) || 'null'); } catch (e) { return null; } };
+// v2.242.0: aquí iba rutaPausada (nadie la usaba)
 
 
 
@@ -6039,7 +5964,7 @@ ANCLAS_AYUDA.push(['#v-pacientes .saludo h1', 'pacientes'], ['#v-productos .salu
 /* ---------------- ajustes generales (envío) ---------------- */
 
 let AJUSTES = {};
-const envioCfg = () => Object.assign({ precio_con_iva: 0, iva: 21, por_defecto: false }, AJUSTES.envio || {});
+// v2.242.0: aquí iba envioCfg (nadie la usaba)
 async function cargarAjustes() {
   const { data } = await db.rpc('ajustes_lista');
   AJUSTES = data || {};
@@ -8213,43 +8138,7 @@ function editorServicio(s) {
 
 RSEC = 'inicio';
 
-async function resumenRutas() {
-  const hoy = hoyISO();
-  const [{ data: rutas }, { data: pr }, citasHoy] = await Promise.all([db.rpc('rutas_visibles'), db.rpc('propuestas_rutas', { lim: 60 }), citasDelDia(hoy)]);
-  RUTAS = rutas || [];
-  const j = jornadaActiva();
-  const abiertas = citasHoy.filter(c => CITA_ABIERTA.includes(c.estado)).length;
-  const hechas = citasHoy.filter(c => c.estado === 'Visitada').length;
-  const grupos = [['hoy', '📅', 'Atienden hoy', 'y no se visitan desde hace 14 días'], ['urgentes', '❗', 'Urgentes sin visitar', ''],
-    ['interesados', '🔥', `${TT('medico', 'p', '', 'l', 'C', 'interesado')} sin ${TT('visita', 's', '', 'l', 'l')} en 20 días`, ''], ['sin_visitar', '🆕', `Nunca visitad${terminoDe('medico').g === 'f' ? 'a' : 'o'}s`, 'con ubicación']];
-  PROPUESTAS = pr || {};
-  $('rcuerpo').innerHTML = `
-    <div class="rgrid">
-      <div class="card"><h2>Hoy</h2>
-        ${j ? `<p><b style="color:var(--ok)">● Jornada en curso</b> · ${hechas} visitadas, ${abiertas} por hacer</p>`
-          : (hechas + abiertas) ? `<p>Tienes <b>${hechas + abiertas}</b> citas hoy: ${hechas} visitadas y ${abiertas} por hacer.</p>`
-          : '<p>No tienes citas hoy. Elige una propuesta o una de tus rutas y pásala a tu agenda.</p>'}
-        <div class="acts"><button class="btn" id="rrdia">Ver mi día</button><button class="btn sec" id="rrsem">Planificar la semana</button></div></div>
-      <div class="card"><h2>Propuestas para hoy</h2><p class="sm">Calculadas con tus datos. Al pulsar se prepara el plan.</p>
-        <div class="lista">${grupos.map(([k, ic, t, s]) => { const n = ((pr || {})[k] || []).filter(m => m.lat).length; return `<button class="item" data-rrprop="${k}" ${n ? '' : 'disabled style="opacity:.5"'}>
-          <span class="ic">${ic}</span><span class="tx"><b>${t}</b><span class="sm">${n} ${TT('medico', 'p', '', 'l', 'l')}${s ? ' ' + s : ''}</span></span><span class="n">${n}</span></button>`; }).join('')}</div></div>
-      <div class="card"><h2>Mis rutas<span class="n">${RUTAS.length}</span></h2>
-        ${RUTAS.length ? `<div class="lista">${RUTAS.slice(0, 6).map(r => `<button class="item" data-ruta="${r.id}"><span class="ic">➤</span>
-          <span class="tx"><b>${esc(r.nombre)}</b><span class="sm">${r.tipo === 'criterios' ? 'Por criterios' : 'Lista fija'}${r.n != null ? ' · ' + num(r.n) + ` ${TT('medico', 'p', '', 'l', 'l')}` : ''}</span></span></button>`).join('')}</div>
-          ${RUTAS.length > 6 ? '<button class="verlo" data-rs="mis">Ver todas</button>' : ''}`
-        : `<div class="rguia"><p><b>Aún no tienes rutas.</b> Una ruta es una lista de ${TT('medico', 'p', '', 'l', 'l')} que visitas a menudo. Tres pasos:</p>
-            <ol><li><b>+ Nueva ruta</b>: elige ${TT('medico', 'p', '', 'l', 'l', 'concreto')} o unos criterios (municipio, estado, días de atención).</li>
-              <li><b>Planificar</b>: la app ordena las paradas y calcula las horas con tu horario.</li>
-              <li><b>Guardar en mi agenda</b> o <b>Empezar</b>: el plan pasa a «Tu día».</li></ol>
-            <div class="acts"><button class="btn" id="rrnueva">+ Crear mi primera ruta</button></div></div>`}</div>
-    </div>`;
-  $('rrdia').onclick = () => { AG_MODO = 'dia'; AG_FECHA = hoy; ir('agenda'); };
-  $('rrsem').onclick = () => { AG_MODO = 'semana'; AG_FECHA = hoy; ir('agenda'); setTimeout(() => $('semplan') && $('semplan').click(), 900); };
-  if ($('rrnueva')) $('rrnueva').onclick = () => editorRuta(null);
-  $('rcuerpo').querySelectorAll('[data-rrprop]').forEach(b => b.onclick = () => planDesdeLista((pr || {})[b.dataset.rrprop] || [], b.dataset.rrprop, b));
-  $('rcuerpo').querySelectorAll('[data-ruta]').forEach(b => b.onclick = () => planificar(b.dataset.ruta, b));
-  $('rcuerpo').querySelectorAll('[data-rs]').forEach(b => b.onclick = () => { RSEC = b.dataset.rs; cargarRutas(); });
-}
+// v2.242.0: aquí iba resumenRutas (nadie la usaba)
 
 /* ---------------- Inicio: mi semana, ventas, alertas y equipo ---------------- */
 
@@ -11154,51 +11043,11 @@ function irEnlace(e) {
 }
 // (v2.183.0: aquí iba la primera versión de panelNotificaciones; se redefine entera más abajo)
 
-function panelNotificacionesPaso1(l) {
-  const b = $('notcfg');
-  if (b) b.onclick = () => { $('dlg').close(); CFG_SEC = 'notif'; window.__CFG_DIRECTO = true; ir('config'); };
-}
+// v2.242.0: aquí iba panelNotificacionesPaso1 (nadie la usaba)
 
-function panelNotificacionesPaso2(l) {
-  $('dbody').querySelectorAll('.notit').forEach((b, i) => {
-    const x = l[i], e = x && EXPLICA_NOTIF[x.tipo]; if (!e || b.querySelector('.notacc')) return;
-    b.querySelector('.tx').insertAdjacentHTML('beforeend', `<span class="notacc">${esc(e[1])}</span>`);
-  });
-}
+// v2.242.0: aquí iba panelNotificacionesPaso2 (nadie la usaba)
 
-function panelNotificacionesBase(l) {
-  const ico = t => (TIPOS_NOTIF.find(x => x[0] === t) || [])[1] || '🔔';
-  $('dbody').innerHTML = `<div class="fh"><div><h2>Notificaciones</h2><div class="sm">${NOTIF_N ? NOTIF_N + ' sin leer' : 'Estás al día'}</div></div>
-    <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-    <div class="notlista">${l.map(x => `<button class="notit ${x.leida_en ? '' : 'nuevo'}" data-nid="${x.id}" data-nen="${esc(x.enlace || '')}">
-      <span class="ic">${ico(x.tipo)}</span><span class="tx"><b>${esc(x.titulo)}</b><span class="sm">${esc(x.cuerpo || '')}</span>
-      <span class="sm">${new Date(x.creado_en).toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' })}</span></span></button>`).join('') || '<div class="vacio">No tienes notificaciones.</div>'}</div>
-    <div class="acts" style="justify-content:space-between;flex-wrap:wrap"><button class="btn sec" id="notcfg">⚙ Elegir qué notificaciones recibo</button>
-      <span class="acts" style="margin:0;flex-wrap:wrap">
-        ${NOTIF_N ? '<button class="btn sec" id="notleer">Marcar todas como leídas</button>' : ''}
-        ${l.some(x => x.leida_en) ? '<button class="btn sec" id="notlimpiar">Borrar las leídas</button>' : ''}
-        ${l.length ? '<button class="btn sec dang" id="notvaciar">Vaciar todas</button>' : ''}</span></div>`;
-  $('dlg').showModal();
-  $('dbody').querySelectorAll('[data-nid]').forEach(b => b.onclick = async () => {
-    await db.rpc('leer_notificacion', { p_id: b.dataset.nid }); $('dlg').close(); irEnlace(b.dataset.nen); refrescarCampana();
-  });
-  if ($('notleer')) $('notleer').onclick = async () => { await db.rpc('leer_notificaciones'); $('dlg').close(); refrescarCampana(); };
-  // v2.87.0: limpiar las notificaciones propias (las leídas o todas)
-  const borrarNotif = async soloLeidas => {
-    let q = db.from('notificaciones').delete().eq('usuario_id', PERFIL.id);
-    if (soloLeidas) q = q.not('leida_en', 'is', null);
-    const { error } = await q;
-    if (error) { toast('No se han podido borrar', true); return; }
-    toast(soloLeidas ? 'Notificaciones leídas borradas' : 'Notificaciones vaciadas');
-    $('dlg').close(); refrescarCampana();
-  };
-  if ($('notlimpiar')) $('notlimpiar').onclick = () => borrarNotif(true);
-  if ($('notvaciar')) $('notvaciar').onclick = async () => {
-    const op = await elegirOpcion('Vaciar notificaciones', 'Se borran todas tus notificaciones, también las que no has leído.', [{ k: 'no', t: 'Cancelar', cls: 'sec' }, { k: 'si', t: 'Vaciar' }]);
-    if (op === 'si') borrarNotif(false);
-  };
-  $('notcfg').onclick = () => { $('dlg').close(); CFG_SEC = 'notif'; ir('config'); };
-}
+// v2.242.0: aquí iba panelNotificacionesBase (nadie la usaba)
 setInterval(refrescarCampana, 60000);
 
 function pintarNotif() {
@@ -11634,10 +11483,7 @@ function marcarUbicado(box, i, lat, lon, texto) {
   if (est) est.innerHTML = `<b style="color:var(--ok)">✓ Ubicado</b> ${esc(texto || '')} <a href="https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=18/${lat}/${lon}" target="_blank" rel="noopener">Ver en el mapa</a>`;
   const d = box.closest('dialog'); if (d) d.dataset.sucio = '1';
 }
-async function geocodificar(q) {
-  const r = await fetch('https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=1&q=' + encodeURIComponent(q));
-  const j = await r.json(); return j[0] || null;
-}
+// v2.242.0: aquí iba la primera versión de geocodificar (se redefine entera más abajo)
 async function geoInversa(lat, lon) {
   try { const r = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&addressdetails=1&lat=${lat}&lon=${lon}`); return await r.json(); } catch (e) { return null; }
 }
@@ -12664,15 +12510,7 @@ function htAplicarColumnas(g) {
   g.querySelectorAll(':scope > .dh, :scope > .dr').forEach(f => [...f.children].forEach((c, i) => c.classList.toggle('htno', ocultas.includes(i))));
 }
 // Filtros automáticos por columna (columnas con pocos valores distintos) y búsqueda dentro de la tabla
-function htAplicarFiltros(g) {
-  const st = HT_ESTADO[htTipo(g)] || { texto: '', facetas: {} };
-  const t = (st.texto || '').toLowerCase();
-  g.querySelectorAll(':scope > .dr').forEach(f => {
-    const celdas = [...f.children];
-    const ok = (!t || f.textContent.toLowerCase().includes(t)) && Object.entries(st.facetas || {}).every(([i, v]) => !v || (celdas[i] && celdas[i].textContent.trim() === v));
-    f.classList.toggle('htfuera', !ok);
-  });
-}
+// v2.242.0: aquí iba la primera versión de htAplicarFiltros (se redefine entera más abajo)
 function htActivos(sec) {
   const g = sec.querySelector('.dgrid'); const st = g ? HT_ESTADO[htTipo(g)] || {} : {};
   let n = Object.values(st.facetas || {}).filter(Boolean).length + (st.texto ? 1 : 0);
@@ -13854,15 +13692,7 @@ function resumirAyuda(pop) {
   };
 }
 // Texto explicativo de una tarjeta → ayuda «i» junto a su título
-function textoAAyuda(card) {
-  if (!card || card.dataset.txayuda) return;
-  const p = card.querySelector(':scope > p.sm, :scope > p'); const h = card.querySelector(':scope > h2, :scope > h3, :scope > .fh h2, :scope > div > h2');
-  if (!p || !h || p.textContent.trim().length < 30) return;
-  card.dataset.txayuda = '1';
-  const b = document.createElement('button'); b.type = 'button'; b.className = 'ai'; b.setAttribute('aria-label', 'Ayuda');
-  b.dataset.ayudaTit = h.textContent.trim(); b.dataset.ayudaTxt = p.textContent.trim(); b.textContent = 'i';
-  h.appendChild(b); p.remove();
-}
+// v2.242.0: aquí iba textoAAyuda (nadie la usaba)
 
 /* ---------------- 3. Facturación: Series, Registro y VeriFactu ---------------- */
 
@@ -16101,7 +15931,7 @@ abrirFicha = (orig => async function (id, ...a) { const r = await orig.call(this
    1 cliente (buscar o ficha nueva, con lo que ya sabemos de él), 2 qué quiere (productos y unidades, médico de referencia, cómo llegó),
    3 cómo termina (pedido o motivo de no compra y cuándo volver a llamar). Con el extra «Oportunidades» de la organización, cada venta
    queda registrada con su día y hora, lo que quería y cuánto, se cierre con pedido o no; sin él, el recorrido lleva al pedido. */
-function hayOportunidades() { return ((typeof PLAN_ACTUAL !== 'undefined' && PLAN_ACTUAL && PLAN_ACTUAL.extras) || []).includes('oportunidades'); }
+// v2.242.0: aquí iba la primera versión de hayOportunidades (se redefine entera más abajo)
 function extraNombre(k) { return { oportunidades: 'Oportunidades', portal: 'Portal' }[k] || k; }
 async function catOportunidades() {
   await catLlamadas();
@@ -16424,7 +16254,7 @@ function orgExtras(c, l) {
 /* v2.126.0 · Portal del médico (extra «Portal» de la organización). En «Mi informe», además: la constancia de sus pacientes solo en
    cifras (sin ninguna fila por paciente), pedir material de lo que la empresa permite y escribir dudas a su comercial. En la ficha,
    quien la lleva entrega el material y contesta. En Configuración → Portal del médico, qué material se puede pedir y cuánto. */
-function hayExtra(k) { return ((typeof PLAN_ACTUAL !== 'undefined' && PLAN_ACTUAL && PLAN_ACTUAL.extras) || []).includes(k); }
+// v2.242.0: aquí iba la primera versión de hayExtra (se redefine entera más abajo)
 const MOTIVO_PORTAL = { permiso: 'No tienes permiso', extra: 'Tu empresa no tiene el portal activado', material: 'Ese material ya no se puede pedir',
   cantidad: 'Esa cantidad supera el máximo', vacio: 'Escribe el mensaje', cerrada: 'Ya estaba cerrado', no_existe: 'Ya no existe' };
 const motivoPortal = r => MOTIVO_PORTAL[(r && r.motivo) || ''] || 'No se ha podido hacer';
@@ -18124,68 +17954,7 @@ function notifDia(f) {
   return dif <= 0 ? 'Hoy' : dif === 1 ? 'Ayer' : dif < 7 ? 'Esta semana' : 'Antes';
 }
 
-function notifPintar() {
-  const l = NOTIF_LISTA, ico = t => (TIPOS_NOTIF.find(x => x[0] === t) || [])[1] || '🔔';
-  const areas = NOTIF_AREAS.filter(a => l.some(x => notifArea(x.tipo) === a[0]));
-  if (NOTIF_FILTRO && !areas.some(a => a[0] === NOTIF_FILTRO)) NOTIF_FILTRO = '';
-  const vis = l.filter(x => !NOTIF_FILTRO || notifArea(x.tipo) === NOTIF_FILTRO);
-  let dia = '';
-  $('dbody').innerHTML = `<div class="fh"><div><h2>Notificaciones</h2><div class="sm">${NOTIF_N ? NOTIF_N + ' sin leer' : 'Estás al día'}</div></div>
-      <span class="acts" style="margin:0"><button type="button" class="icobtn notcfgb" id="notcfg" title="Elegir qué recibo y cuándo" aria-label="Elegir qué recibo y cuándo">${svgIco(ICON_NOM.settings)}</button>
-      <button class="x" data-cerrar aria-label="Cerrar">✕</button></span></div>
-    ${areas.length > 1 ? `<div class="segs notfil" role="group" aria-label="Filtrar">${[['', 'Todas']].concat(areas.map(a => [a[0], a[1]])).map(([k, t]) =>
-      `<button type="button" data-nfil="${k}" class="${NOTIF_FILTRO === k ? 'on' : ''}" aria-pressed="${NOTIF_FILTRO === k}">${esc(t)}</button>`).join('')}</div>` : ''}
-    <div class="notlista2">${vis.map((x, i) => {
-      const g = notifDia(x.visible_desde || x.creado_en), cab = g !== dia ? `<h3 class="notdia">${g}</h3>` : ''; dia = g;
-      const acc = notifAcciones(x), cuando = new Date(x.visible_desde || x.creado_en);
-      return `${cab}<div class="notit2 ${x.leida_en ? '' : 'nuevo'}" data-nidx="${l.indexOf(x)}">
-        <span class="ic" aria-hidden="true">${ico(x.tipo)}</span>
-        <div class="tx"><b>${esc(x.titulo)}</b>${x.cuerpo ? `<span class="sm">${esc(x.cuerpo)}</span>` : ''}
-          <span class="sm notcuando">${g === 'Hoy' || g === 'Ayer' ? cuando.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) : cuando.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}${x.resumen ? ' · del resumen del día' : ''}</span>
-          <div class="notacts">${acc.map(([t, , p], j) => `<button type="button" class="btn ${p ? '' : 'sec'}" data-nacc="${j}">${esc(t)}</button>`).join('')}
-            <button type="button" class="btn sec" data-npos>Posponer a mañana</button></div></div></div>`; }).join('')
-      || `<div class="vacio">${NOTIF_FILTRO ? 'No hay avisos de esta área.' : 'No tienes notificaciones.'}</div>`}</div>
-    <div class="acts" style="justify-content:flex-end;flex-wrap:wrap">
-      ${NOTIF_N ? '<button class="btn sec" id="notleer">Marcar todas como leídas</button>' : ''}
-      ${l.some(x => x.leida_en) ? '<button class="btn sec" id="notlimpiar">Borrar las leídas</button>' : ''}
-      ${l.length ? '<button class="btn sec dang" id="notvaciar">Vaciar todas</button>' : ''}</div>`;
-  const cerrarYRefrescar = () => { $('dlg').close(); refrescarCampana(); };
-  $('dbody').querySelectorAll('[data-nfil]').forEach(b => b.onclick = () => { NOTIF_FILTRO = b.dataset.nfil; notifPintar(); });
-  $('dbody').querySelectorAll('.notit2').forEach(el => {
-    const x = l[+el.dataset.nidx], acc = notifAcciones(x);
-    el.querySelectorAll('[data-nacc]').forEach(b => b.onclick = async e => {
-      e.stopPropagation();
-      await db.rpc('leer_notificacion', { p_id: x.id });
-      cerrarYRefrescar(); acc[+b.dataset.nacc][1]();
-    });
-    el.querySelector('[data-npos]').onclick = async e => {
-      e.stopPropagation();
-      const { data } = await db.rpc('posponer_notificacion', { p_id: x.id });
-      if (!data || !data.ok) { toast('No se ha podido posponer', true); return; }
-      NOTIF_LISTA = l.filter(y => y !== x); if (!x.leida_en) NOTIF_N = Math.max(0, NOTIF_N - 1);
-      toast('Te lo volvemos a enseñar mañana'); notifPintar(); refrescarCampana();
-    };
-    // Pulsar el aviso (fuera de los botones) hace su acción principal
-    el.onclick = async () => {
-      await db.rpc('leer_notificacion', { p_id: x.id });
-      cerrarYRefrescar(); if (acc.length) (acc.find(a => a[2]) || acc[0])[1]();
-    };
-  });
-  if ($('notleer')) $('notleer').onclick = async () => { await db.rpc('leer_notificaciones'); cerrarYRefrescar(); };
-  const borrarNotif = async soloLeidas => {
-    let q = db.from('notificaciones').delete().eq('usuario_id', PERFIL.id);
-    if (soloLeidas) q = q.not('leida_en', 'is', null);
-    const { error } = await q;
-    if (error) { toast('No se han podido borrar', true); return; }
-    toast(soloLeidas ? 'Notificaciones leídas borradas' : 'Notificaciones vaciadas'); cerrarYRefrescar();
-  };
-  if ($('notlimpiar')) $('notlimpiar').onclick = () => borrarNotif(true);
-  if ($('notvaciar')) $('notvaciar').onclick = async () => {
-    const op = await elegirOpcion('Vaciar notificaciones', 'Se borran todas tus notificaciones, también las que no has leído.', [{ k: 'no', t: 'Cancelar', cls: 'sec' }, { k: 'si', t: 'Vaciar' }]);
-    if (op === 'si') borrarNotif(false);
-  };
-  $('notcfg').onclick = () => { $('dlg').close(); CFG_SEC = 'notif'; window.__CFG_DIRECTO = true; ir('config'); };
-}
+// v2.242.0: aquí iba la primera versión de notifPintar (se redefine entera más abajo)
 panelNotificaciones = function (l) {
   NOTIF_LISTA = l || [];
   notifPintar();
@@ -22189,15 +21958,7 @@ aplicarPermisosMenu = (orig => function (...a) {
 const MANUAL_ANCLA = { inicio: 'inicio', agenda: 'agenda', rutas: 'rutas', ciclo: 'ciclo', cirugias: 'cirugias', directorio: 'directorio', seguimiento: 'calidad',
   duplicados: 'duplicados', eventos: 'eventos', pacientes: 'clientes', ventas: 'pedidos', oportunidades: 'oportunidades', compras: 'compras', proveedores: 'proveedores', concursos: 'concursos', parque: 'parque', productos: 'productos',
   facturacion: 'facturacion', analitica: 'analitica', config: 'ajustes', perfil: 'perfil', empresa: 'organizacion', plan: 'plan', organizacion: 'organizacion', usuarios: 'usuarios' };
-function abrirManual(ancla) {
-  try {
-    localStorage.setItem('delcos-manual', JSON.stringify({ empresa: nombreApp(),
-      terminos: Object.fromEntries(Object.keys(TERM_DEF).map(k => [k, terminoDe(k)])) }));
-  } catch (e) {}
-  const url = 'manual/index.html' + (ancla ? '#' + ancla : '');
-  const w = window.open(url, '_blank');   // sin «noopener»: con él el navegador devuelve null aunque abra la pestaña
-  if (w) { try { w.opener = window; } catch (e) {} } else location.href = url;
-}
+// v2.242.0: aquí iba la primera versión de abrirManual (se redefine entera más abajo)
 document.addEventListener('click', e => {
   const b = e.target.closest('#manbtn'); if (!b || ES_MEDICO()) return;
   e.stopImmediatePropagation(); e.preventDefault();
@@ -24976,76 +24737,10 @@ function plCargarKpis(tab) {
 
 // Sin nombre propio, el filtro rápido usa la etiqueta de su campo (así no se escribe aquí el nombre de un rol)
 const plEtiqueta = id => { const l = document.querySelector(`label[for="${id}"]`); return l ? l.textContent.trim() : ''; };
-function plToolHtml(tab) {
-  const c = PL[tab];
-  return `<label class="plq">${plIco('search', '🔍')}<input type="search" class="plqi" placeholder="Buscar en ${esc(c.que())}" aria-label="Buscar en ${esc(c.que())}"></label>
-    <div class="plrap">${c.rapidos.map(([id, t]) => { t = t || plEtiqueta(id); return `<button type="button" class="plchip" data-plr="${id}" data-plt="${esc(t)}">${esc(t)}</button>`; }).join('')}</div>
-    <button type="button" class="plbtn plfil">${plIco('sliders-horizontal')}<span>Filtros</span><span class="pln hide"></span></button>
-    <button type="button" class="plbtn plcol">${plIco('columns-3', 'table', 'list')}<span>Columnas</span></button>
-    ${c.mapa() ? `<button type="button" class="plbtn plic plmapa" title="Ver en el mapa" aria-label="Ver en el mapa">${plIco('map')}</button>` : ''}
-    <span class="plcnt"><i class="plsk" style="width:90px"></i></span>`;
-}
+// v2.242.0: aquí iba la primera versión de plToolHtml (se redefine entera más abajo)
 
 // Monta (o vuelve a ajustar) la plantilla sobre lo que haya pintado la pantalla. Se puede llamar las veces que haga falta.
-function plSync(tab) {
-  const sec = $('v-' + tab), c = PL[tab]; if (!sec || !c) return;
-  sec.classList.add('plantilla');
-  const sal = sec.querySelector(':scope > .saludo');
-  // Cabecera: la acción principal y «⋯» con las secundarias
-  const acts = sal && sal.querySelector('.acts');
-  if (acts && !acts.querySelector('.plmas')) acts.insertAdjacentHTML('afterbegin', `<button type="button" class="btn sec plmas" aria-label="Más acciones" title="Más acciones">${plIco('ellipsis', '⋯')}</button>`);
-  const mas = acts && acts.querySelector('.plmas'); if (mas) mas.classList.toggle('plno', !c.mas().some(([id]) => $(id) && !$(id).classList.contains('hide')));
-  const nb = c.nuevo();
-  if (nb && c.textoNuevo && !ES_MOVIL() && !nb.classList.contains('fab') && nb.textContent.trim() !== c.textoNuevo()) { nb.innerHTML = plIco('plus') + ' ' + esc(c.textoNuevo()); }
-  if (nb && c.textoNuevo && ES_MOVIL() && !nb.dataset.plfab) {
-    nb.dataset.plfab = '1';
-    nb.classList.add('fab'); nb.dataset.txt = c.textoNuevo(); nb.setAttribute('aria-label', c.textoNuevo()); nb.innerHTML = plIco('plus'); sec.appendChild(nb);
-  }
-  // Indicadores y barra, justo debajo de la cabecera
-  let kp = sec.querySelector(':scope > .plkpis');
-  if (!kp) { kp = document.createElement('div'); kp.className = 'plkpis'; kp.innerHTML = plKpisHtml(tab); }
-  let tl = sec.querySelector(':scope > .pltool');
-  if (!tl) { tl = document.createElement('div'); tl.className = 'pltool'; tl.innerHTML = plToolHtml(tab); }
-  // Solo se colocan al crearlos: si otra parte de la pantalla mete algo en medio, no se recolocan (se pelearían sin fin)
-  if (!kp.isConnected) { if (sal) sal.after(kp); else sec.prepend(kp); }
-  if (!tl.isConnected) kp.after(tl);
-  plCargarKpis(tab);
-  kp.querySelectorAll('[data-plk]').forEach(b => b.classList.toggle('on', c.kpiOn(b.dataset.plk)));
-  // Buscador: refleja la búsqueda de la pantalla (si no se está escribiendo)
-  const qi = tl.querySelector('.plqi'); if (qi && document.activeElement !== qi && qi.value !== c.q()) qi.value = c.q();
-  // Filtros rápidos: el nombre y lo elegido; sin opciones, no se ven
-  tl.querySelectorAll('[data-plr]').forEach(b => {
-    const s = $(b.dataset.plr), w = s && s.closest('#fcomwrap');
-    const ver = !!s && !(w && w.classList.contains('hide')) && s.options.length > 1; b.classList.toggle('hide', !ver); if (!ver) return;
-    const on = s.selectedIndex > 0, txt = on ? `${b.dataset.plt}: ${s.options[s.selectedIndex].text.replace(/\s*\(\d[\d.]*\)\s*$/, '')}` : b.dataset.plt;
-    if (b.textContent !== txt) b.textContent = txt; b.classList.toggle('on', on);
-  });
-  const n = c.activos(), pn = tl.querySelector('.pln');
-  if (pn) { const v = String(n || ''); if (pn.textContent !== v) pn.textContent = v; if (pn.classList.contains('hide') !== !n) pn.classList.toggle('hide', !n); }
-  // Recuento: el de la pantalla, sin el tiempo de la consulta; mientras busca se queda el anterior
-  const cu = c.cuenta(), cnt = tl.querySelector('.plcnt');
-  if (cu && cnt && /\d/.test(cu.textContent)) { const h = cu.innerHTML.replace(/<span class="sm">[\s\S]*?<\/span>/, '').trim(); if (cnt.dataset.h !== h) { cnt.dataset.h = h; cnt.innerHTML = h; } }
-  // Tabla y pie juntos en una tarjeta
-  const tb = c.tabla(), pie = c.pie();
-  if (tb && !tb.parentElement.classList.contains('pltab')) { const w = document.createElement('div'); w.className = 'pltab'; tb.before(w); w.appendChild(tb); if (pie) w.appendChild(pie); }
-  else if (tb && pie && pie.parentElement !== tb.parentElement) tb.parentElement.appendChild(pie);
-  // Cuerpo: esqueleto la primera vez; al volver a buscar, la tabla anterior atenuada en su sitio
-  const cuerpo = c.cuerpo();
-  if (cuerpo) {
-    if (cuerpo.querySelector(':scope > .cargador')) {
-      if (cuerpo.__plUlt) { cuerpo.innerHTML = cuerpo.__plUlt; cuerpo.classList.add('platenua'); }
-      else { cuerpo.innerHTML = plEsqueleto(tab, tab !== 'directorio'); if (tab === 'directorio' && !$('thead').children.length) $('thead').innerHTML = plEsqueleto(tab, true).match(/<div class="plskh">[\s\S]*?<\/div>/)[0]; }
-    } else if (c.conDatos(cuerpo)) { cuerpo.classList.remove('platenua'); cuerpo.__plUlt = cuerpo.innerHTML; }
-  }
-  // Sin nada todavía (Clientes antes de su primera consulta): el esqueleto del cuerpo entero
-  const vc = tab === 'pacientes' && $('vcuerpo');
-  if (vc && !vc.children.length) vc.innerHTML = `<div class="panel plskpanel"><div class="pltab">${plEsqueleto(tab, true)}</div></div>`;
-  // Tarjetas del móvil de las tablas en rejilla
-  if (c.card) sec.querySelectorAll('.dgrid > .dr:not([data-plc])').forEach(dr => {
-    dr.dataset.plc = '1'; const x = c.card(dr);
-    dr.insertAdjacentHTML('beforeend', `<span class="plcard"><b>${esc(x.a)}</b><span class="plc2">${esc(x.b)}</span><span class="plc3">${x.c}</span></span>`);
-  });
-}
+// v2.242.0: aquí iba la primera versión de plSync (se redefine entera más abajo)
 
 // Un observador por pantalla: cada vez que la pantalla se repinta, la plantilla se ajusta antes de que se vea
 const PL_OBS = {};
@@ -25592,3 +25287,6 @@ areaEncaje = (orig => function (...a) { return FX_FICHA ? null : orig.apply(this
   const orig = window[n]; if (typeof orig !== 'function') return;
   window[n] = async function (...a) { FX_FICHA++; try { return await orig.apply(this, a); } finally { FX_FICHA--; } };
 });
+
+
+/* v2.242.0 · Limpieza segura: fuera funciones sin uso y cuerpos antiguos redefinidos; estilos de clases que ya no existen. */
