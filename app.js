@@ -12049,7 +12049,8 @@ ventanaCargando = async function (fn) {
 
 function ordenarCabeceraCuentas() {
   const acts = document.querySelector('#dircab .acts'), nuevo = $('nuevoBtn');
-  if (acts && nuevo && nuevo.parentElement !== acts) { nuevo.classList.remove('sec'); nuevo.innerHTML = svgIco(ICON_NOM.plus) + ' Crear nuevo'; acts.appendChild(nuevo); }
+  // v2.268.0: en el móvil el botón es el «+» redondo (plSync): no se mueve a la cabecera ni se le pone texto (salía «Crear nuevo» dentro del círculo)
+  if (acts && nuevo && nuevo.parentElement !== acts && !(nuevo.dataset.plfab && ES_MOVIL())) { nuevo.classList.remove('sec', 'fab'); nuevo.innerHTML = svgIco(ICON_NOM.plus) + ' Crear nuevo'; acts.appendChild(nuevo); }
   const mapa = $('mapaBtn');
   if (mapa && !mapa.classList.contains('icobtn')) { mapa.classList.add('icobtn'); mapa.title = 'Ver en el mapa'; mapa.setAttribute('aria-label', 'Ver en el mapa'); mapa.innerHTML = svgIco(ICON_NOM.map); mapa.parentElement.appendChild(mapa); }
   const tools = $('dirtools');
