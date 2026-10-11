@@ -25522,3 +25522,238 @@ repintarDiaSuave = (orig => async function (id, data) {
   tdAnimar(antes, id, 320);
   return r;
 })(repintarDiaSuave);
+
+
+
+/* ============================================================
+   v2.245.0 · Agenda reescrita (2 de 3): la vista del día se monta de una vez desde los datos. Hasta ahora cargarAgenda pasaba por
+   once capas: pintaba la Agenda de 2021 (flechas, Día/Semana/Mes), las cifras (#agmet), la semana (#agsemana), el mes (#agmes), las
+   sugerencias (#agsug) y los pendientes (#agpend), las escondía y otras capas leían ese HTML oculto para pintar las pastillas, las
+   bandejas y «En este centro también». Ahora, en la vista de día:
+   - agCargarDia() pinta la cabecera (título, pastillas, + Nueva cita y, quien ve el equipo, «Mi agenda/…» y Equipo), la cinta, «Tu día»
+     (tdPintar) y «Tu semana»; nada oculto.
+   - Pastillas desde agenda_metricas (AG_MET). La cuarta, «Por visitar», ya no lleva a una lista escondida.
+   - Bandejas desde los datos: «Les toca visita» = toca_actividad (antes contaba la última lista de las sugerencias, que podía ser
+     otra) y «Pendientes de días anteriores» = pendientes_ruta, con sus botones en el panel lateral.
+   - «En este centro también» desde sugerencias_centros, por la posición del centro (antes, buscando su nombre en el texto).
+   - El mes se pinta al pulsarlo en la cinta; la cinta conserva sus «⋯» y la semana desplegada al repintarse; «Tu semana» se
+     actualiza al cambiar de día.
+   Semana, Mes y Equipo siguen como estaban.
+   ============================================================ */
+let AG_MET = null, AG_SUG = null, AG_PEND = null;
+const agN = () => agConCinta() && $('v-agenda').classList.contains('agn');
+
+async function agCargarDia() {
+  const v = $('v-agenda'); if (!v) return;
+  if (!AG_FECHA) AG_FECHA = hoyISO();
+  TAREAS_DIA = null;
+  const y = scrollY, mismo = v.classList.contains('agn') && $('agcuerpo') && $('agcuerpo').children.length;
+  const previo = mismo && $('agcuerpo').dataset.f === AG_FECHA ? $('agcuerpo').innerHTML : null;
+  const hoy = hoyISO();
+  v.classList.add('agunida', 'agcinta', 'agb', 'agn');
+  v.innerHTML = `
+    <div class="saludo"><div><h1>Agenda</h1><div class="fecha" id="agtit">${esc('Hoy · ' + fechaLarga(new Date(hoy + 'T00:00:00')) + (AG_VISTA ? ' · agenda de ' + AG_VISTA.nombre : ''))}</div></div>
+      <div class="aghud" id="aghud" aria-label="Tus números">${agPastillasHtml()}</div>
+      <div class="acts" style="margin:0"><button class="btn" data-ag="nueva">+ Nueva cita</button></div></div>
+    <div class="card" id="agcuerpo" data-f="${AG_FECHA}">${previo || '<div class="skel"></div><div class="skel" style="width:70%"></div><div class="skel" style="width:85%"></div>'}</div>
+    <div class="card" id="agsemlat"></div>`;
+  agMetricas();
+  agSugerencias();
+  await Promise.all([pintarTuDia(), agCinta(), agSemanaLateral()]);
+  if (!agN()) return;
+  // «Mi agenda/…» y Equipo, cuando el móvil ya ha ordenado la cabecera (si no, se llevaba Equipo fuera, con los modos de antes)
+  v.querySelectorAll(':scope > .segm').forEach(x => x.remove());
+  asegurarEquipo();
+  agMarcarDia(); agDiaVacio();
+  if (!AG_VISTA) avisoSinSalida($('agcuerpo'));
+  if (mismo) window.scrollTo(0, y);
+  // Si una bandeja estaba abierta (p. ej. tras «Mover a hoy»), se repinta con lo nuevo
+  if ($('tools') && $('tools').classList.contains('abierto') && typeof HERR_CTX !== 'undefined' && /^agband-/.test(HERR_CTX || '')) agBandeja(HERR_CTX.slice(7));
+}
+cargarAgenda = (orig => async function (...a) {
+  if (TAB === 'agenda' && AG_MODO === 'dia') return agCargarDia();
+  const v = $('v-agenda'); if (v) v.classList.remove('agn');
+  return orig.apply(this, a);
+})(cargarAgenda);
+
+// ---- Pastillas: las cifras de agenda_metricas
+function agPastillasHtml() {
+  const d = AG_MET; if (!d) return '';
+  const n1 = x => num(x == null ? 0 : x), dec = x => (x == null ? '0' : String(x).replace('.', ','));
+  const h = d.hoy || {}, s = d.semana || {}, c = d.cierres || {}, p = d.pendientes || {};
+  let hechas = n1(h.visitadas), total = n1(h.citas);
+  // «Hoy», con las mismas citas que Tu día cuando se ve hoy
+  if (AG_FECHA === hoyISO() && Array.isArray(TD_CITAS) && TD_ULTIMO && TD_ULTIMO.fecha === AG_FECHA) {
+    const act = TD_CITAS.filter(x => !citaAnulada(x.estado));
+    hechas = num(act.filter(x => !CITA_ABIERTA.includes(x.estado)).length); total = num(act.length);
+  }
+  const vp = TT('visita', 'p', '', 'l', 'l');
+  return [
+    ['Hoy', `${hechas}/${total}`, `${hechas} de ${total} citas · media ${dec(d.media_dia)} ${vp}/día`, ''],
+    ['Semana', n1(s.visitas), `${n1(s.visitas)} ${vp} · media ${dec(s.media)}/semana`, ''],
+    ['Cierres', n1(c.hoy), `${n1(c.hoy)} cierres con éxito hoy · media ${dec(c.media_dia)}/día`, ''],
+    ['Por visitar', n1((p.urgentes || 0) + (p.sin_visita || 0)), `${n1(p.urgentes)} urgentes · ${n1(p.sin_visita)} sin ${TT('visita', 's', '', 'l', 'l')} en 60 días`, 'agp-pend']
+  ].map(([t, b, tit, cl]) => `<span class="agp ${cl}" title="${esc(tit)}">${esc(t)} <b>${esc(b)}</b></span>`).join('');
+}
+agPastillas = (orig => function (...a) {
+  if (!agN()) return orig.apply(this, a);
+  const h = $('aghud'); if (!h || !AG_MET) return;
+  const html = agPastillasHtml(); if (h.__html !== html) { h.innerHTML = html; h.__html = html; }   // solo si cambia alguna cifra
+})(agPastillas);
+agMetricas = (orig => async function (...a) {
+  if (!agN()) return orig.apply(this, a);
+  const { data } = await RPC_ORIG('agenda_metricas', { p_usuario: AG_VISTA ? AG_VISTA.id : null });
+  if (!data || !agN()) return;
+  AG_MET = data; agPastillas();
+})(agMetricas);
+
+// ---- Cinta: al repintarse conserva sus «⋯», el botón de la semana y la semana desplegada; el mes se pinta al abrirlo
+agCinta = (orig => async function (...a) {
+  const r = await orig.apply(this, a);
+  if (!agN() || !$('agcinta')) return r;
+  agMenusCinta(); agBotonSemana();
+  if (AG_SEM_ABIERTA && !$('agsemexp')) agPintarSemanaExp();
+  const b = $('cmesb'); if (b) b.onclick = e => { e.stopPropagation(); agMesPop(); };
+  return r;
+})(agCinta);
+function agMesPop() {
+  let m = $('agmes');
+  if (m && m.classList.contains('pop')) { cerrarMesCinta(); return; }
+  if (!m) { $('v-agenda').insertAdjacentHTML('beforeend', '<div class="card agmes" id="agmes"><div class="fh"></div><div class="agmesgrid"></div></div>'); m = $('agmes'); }
+  m.dataset.mes = '-';
+  agPintarMes(AG_MES || (AG_FECHA || hoyISO()).slice(0, 7));
+  m.classList.add('pop'); $('cmesb').setAttribute('aria-expanded', 'true');
+  const r = $('cmesb').getBoundingClientRect(), w = Math.min(380, innerWidth - 32);
+  Object.assign(m.style, { top: Math.round(r.bottom + 8) + 'px', left: Math.round(Math.max(16, Math.min(r.left, innerWidth - w - 16))) + 'px', bottom: 'auto', right: 'auto' });
+}
+
+// ---- Sugerencias: los datos de las bandejas y de «En este centro también»
+async function agSugerencias() {
+  const fecha = AG_FECHA, hoy = hoyISO(), uid = agUid();
+  const yo = uid === PERFIL.id;
+  const [rp, rt, rc] = await Promise.all([
+    Promise.resolve(RPC_ORIG('pendientes_ruta', {})).catch(() => ({ data: null })),
+    fecha >= hoy ? Promise.resolve(db.rpc('toca_actividad', { p_usuario: yo && VE_TODO() ? null : uid, lim: 60 })).catch(() => ({ data: null })) : { data: [] },
+    fecha >= hoy ? Promise.resolve(RPC_ORIG('sugerencias_centros', { p_fecha: fecha, p_usuario: yo ? null : uid })).catch(() => ({ data: [] })) : { data: [] }
+  ]);
+  if (AG_FECHA !== fecha || !agN()) return;
+  AG_PEND = (rp && rp.data) || [];
+  AG_SUG = { fecha, toca: (rt && rt.data) || [], centros: (rc && rc.data) || [] };
+  agTamb(); agBandejas();
+}
+sugerenciasAgenda = (orig => async function (...a) { return agN() ? agSugerencias() : orig.apply(this, a); })(sugerenciasAgenda);
+// Quién ya tiene cita ese día (no se le propone)
+const agConCitaHoy = () => new Set((TD_CITAS || []).filter(c => !citaAnulada(c.estado)).map(c => c.cuenta_id));
+
+// «En este centro también»: cada centro de sugerencias_centros va en la primera cita del día que está allí (a menos de 200 m)
+function agTamb() {
+  const cuerpo = $('agcuerpo'); if (!cuerpo || !AG_SUG || AG_SUG.fecha !== AG_FECHA) return;
+  cuerpo.querySelectorAll('.agtamb').forEach(x => x.remove());
+  const tarjetas = [...cuerpo.querySelectorAll('.tdu[data-tdu]')]; if (!tarjetas.length) return;
+  const cita = id => (TD_CITAS || []).find(c => String(c.id) === String(id));
+  const ya = agConCitaHoy(), usadas = new Set();
+  AG_SUG.centros.forEach(g => {
+    const gente = (g.cuentas || g.medicos || []).filter(m => !ya.has(m.id)); if (!gente.length) return;
+    const t = tarjetas.find(x => {
+      const c = cita(x.dataset.tdu); if (!c || usadas.has(x)) return false;
+      if (g.lat != null && c.lat != null) return km([+g.lat, +g.lon], [+c.lat, +c.lon]) <= 0.2;
+      return g.centro_nombre && c.centro_nombre && agImp(g.centro_nombre) === agImp(c.centro_nombre);
+    });
+    if (!t) return;
+    usadas.add(t);
+    const chips = gente.slice(0, 6).map(m => `<button type="button" data-agti="${m.id}" data-agtv="${m.visitar ? 1 : ''}" title="${esc(m.visitar ? 'Añadir una cita · ' + m.visitar : 'Ver su ficha' + (m.falta && m.falta.length ? ' · falta: ' + m.falta.join(', ') : ''))}">${m.visitar ? '<i>+</i> ' : ''}${esc(m.nombre)}</button>`).join('')
+      + (gente.length > 6 ? `<span class="sm">y ${gente.length - 6} más</span>` : '');
+    const pie = t.querySelector('.tdu-pie') || t.lastElementChild;
+    pie.insertAdjacentHTML('beforebegin', `<div class="agtamb"><div class="agtambh">${svgIco(ICON_NOM['map-pin'])} En este centro también</div><div class="agtambl">${chips}</div></div>`);
+  });
+}
+const agImp = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+document.addEventListener('click', e => {
+  const b = e.target.closest('#agcuerpo .agtamb [data-agti]'); if (!b) return;
+  e.stopPropagation();
+  if (b.dataset.agtv) nuevaCita(b.dataset.agti, AG_FECHA); else abrirFicha(b.dataset.agti);
+}, true);
+
+// Bandejas bajo la cabecera de «Tu día»
+function agTocaLista() { const ya = agConCitaHoy(); return AG_SUG && AG_SUG.fecha === AG_FECHA ? AG_SUG.toca.filter(m => !ya.has(m.id || m.cuenta_id)) : []; }
+function agBandejas() {
+  const head = document.querySelector('#agcuerpo .tdhead'); if (!head) return;
+  const old = $('agband'); if (old) old.remove();
+  const nToca = agTocaLista().length, nPend = (AG_PEND || []).length;
+  if (!nToca && !nPend) return;
+  head.insertAdjacentHTML('afterend', `<div class="agband" id="agband">${nToca ? `<button type="button" data-agbd="toca">${svgIco(ICON_NOM.target)} Les toca ${TT('visita', 's', '', 'l', 'l')} <b>${nToca}</b></button>` : ''}${nPend ? `<button type="button" class="urg" data-agbd="pend">${svgIco(ICON_NOM['circle-alert'] || ICON_NOM.info)} Pendientes de días anteriores <b>${nPend}</b></button>` : ''}</div>`);
+  $('agband').querySelectorAll('[data-agbd]').forEach(b => b.onclick = () => agBandeja(b.dataset.agbd));
+}
+agBandeja = (orig => function (k) {
+  if (!agN()) return orig.apply(this, arguments);
+  const d = $('tools'); if (!d) return;
+  const toca = k === 'toca';
+  const l = toca ? agTocaLista() : (AG_PEND || []);
+  const vis = TT('visita', 's', '', 'l', 'l');
+  const tit = toca ? `Les toca ${vis}` : 'Pendientes de días anteriores';
+  const txt = toca ? `Según la frecuencia objetivo de cada ${TT('medico', 's', '', 'l', 'l')}. Añádelos a este día o planifica una ruta con ellos.` : 'Los planificaste y no se visitaron. Muévelos a hoy o descártalos.';
+  const fila = m => toca
+    ? `<div class="item" style="cursor:default"><span class="ic">${svgIco(ICON_NOM.target)}</span>
+        <span class="tx"><b>${esc(m.nombre)}</b><span class="sm">${esc([m.estado_comercial, m.dias_sin_visita != null ? m.dias_sin_visita + ` días sin ${vis}` : 'nunca visitado', m.municipio].filter(Boolean).join(' · '))}</span></span>
+        <span class="acts" style="margin:0"><button class="btn sec" data-agbf="${m.id}">Ficha</button><button class="btn sec" data-agbc="${m.id}">+ Cita</button></span></div>`
+    : `<div class="item" style="cursor:default"><span class="ic w">!</span>
+        <span class="tx"><b>${esc(m.nombre)}</b><span class="sm">${fechaCorta(m.fecha)}${m.centro_nombre ? ' · ' + esc(m.centro_nombre) : ''}</span></span>
+        <span class="acts" style="margin:0"><button class="btn sec" data-cita="hoy|${m.id}">Mover a hoy</button><button class="btn sec" data-cita="desc|${m.id}">Descartar</button></span></div>`;
+  d.innerHTML = `<div class="tbox"><div class="fh"><h2>${esc(tit)}</h2><button class="x" id="tclose" aria-label="Cerrar">✕</button></div><p class="sm">${esc(txt)}</p>
+    <div class="acts" style="margin:8px 0">${toca && l.some(m => m.lat) ? '<button class="btn sec" id="agbruta">Planificar ruta</button>' : ''}${!toca && l.length ? '<button class="btn sec" id="agbrepro">Reprogramar todas</button>' : ''}</div>
+    <div class="agbdc"><div class="lista">${l.map(fila).join('') || '<div class="vacio">Nada pendiente.</div>'}</div></div></div>`;
+  $('tclose').onclick = () => d.classList.remove('abierto');
+  d.querySelectorAll('[data-agbf]').forEach(b => b.onclick = () => abrirFicha(b.dataset.agbf));
+  d.querySelectorAll('[data-agbc]').forEach(b => b.onclick = () => nuevaCita(b.dataset.agbc, AG_FECHA));
+  if ($('agbruta')) $('agbruta').onclick = async e => { const bt = e.currentTarget; d.classList.remove('abierto'); ir('rutas'); await new Promise(r => setTimeout(r, 60)); planDesdeLista(l, 'toca', bt); };
+  if ($('agbrepro')) $('agbrepro').onclick = () => reprogramarCitas(l, 'Pendientes de días anteriores', `${l.length} sin visitar`);
+  if (typeof HERR_CTX !== 'undefined') HERR_CTX = 'agband-' + k;
+  d.classList.add('abierto');
+});
+
+// «Tu día» repintado (mover, cambiar la hora…): vuelven sus bandejas y «En este centro también»
+pintarTuDia = (orig => async function (...a) {
+  const r = await orig.apply(this, a);
+  if (agN()) { agTamb(); agBandejas(); }
+  return r;
+})(pintarTuDia);
+
+// Al cambiar de día: «Tu semana» y las pastillas también (antes «Tu semana» se quedaba en la semana de antes)
+agVerDia = (orig => async function (f, ...a) {
+  const r = await orig.call(this, f, ...a);
+  if (agN() && AG_FECHA === f) { agSemanaLateral(); agPastillas(); if (f < hoyISO()) agSugerencias(); }
+  return r;
+})(agVerDia);
+
+// Tras un cambio: pastillas, cinta, «Tu semana», el mes si está abierto y las bandejas
+agCifrasQuietas = (orig => function (...a) {
+  if (!agN()) return orig.apply(this, a);
+  agMetricas(); agCinta(); agSemanaLateral();
+  const m = $('agmes'); if (m && m.classList.contains('pop')) { m.dataset.mes = '-'; agPintarMes(AG_MES); }
+  agSugerencias();
+})(agCifrasQuietas);
+// El título conserva «· agenda de …» al ver la de otra persona (agMarcarDia lo dejaba en «Hoy · …»)
+agMarcarDia = (orig => function (...a) {
+  const r = orig.apply(this, a);
+  if (agN() && AG_VISTA && $('agtit') && !$('agtit').textContent.includes(AG_VISTA.nombre)) $('agtit').textContent += ' · agenda de ' + AG_VISTA.nombre;
+  return r;
+})(agMarcarDia);
+// Subir o bajar una cita no recarga la Agenda aunque otra pantalla (Inicio pide las citas de hoy) haya pedido otro día entretanto:
+// se guarda lo último de cada día y se usa el del día que se ve
+const AG_DIAS_DATOS = {};
+rpcCache = (orig => async function (fn, params, clave) {
+  const r = await orig.call(this, fn, params, clave);
+  if (fn === 'agenda_rango' && params && params.p_desde === params.p_hasta && r && r.data) AG_DIAS_DATOS[params.p_desde] = r.data;
+  return r;
+})(rpcCache);
+moverCitaLocal = (orig => async function (...a) {
+  if ((!TD_ULTIMO || TD_ULTIMO.fecha !== AG_FECHA) && AG_DIAS_DATOS[AG_FECHA]) TD_ULTIMO = { fecha: AG_FECHA, data: AG_DIAS_DATOS[AG_FECHA] };
+  return orig.apply(this, a);
+})(moverCitaLocal);
+// «Ver la semana» aparece de una vez: se pinta escondida y se enseña ya con sus días (antes salía vacía y se llenaba)
+agPintarSemanaExp = (orig => async function (...a) {
+  const cin = $('agcinta');
+  if (!agN() || !cin || !AG_SEM_ABIERTA || $('agsemexp')) return orig.apply(this, a);
+  cin.insertAdjacentHTML('beforeend', '<div id="agsemexp" class="agsemexp" style="display:none"></div>');
+  try { return await orig.apply(this, a); } finally { const x = $('agsemexp'); if (x) x.style.display = ''; }
+})(agPintarSemanaExp);
