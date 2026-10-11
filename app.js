@@ -25145,3 +25145,35 @@ agPintarSemanaExp = (orig => async function (...a) {
    pintaban escondidos, las sugerencias en columna y las capas que las leían. Se quitan, con sus estilos. Semana, mes y Equipo
    (a los que se llega desde Rutas, el planificador y Equipo) siguen igual.
    ============================================================ */
+
+
+/* ============================================================
+   v2.247.0 · «Ver la semana» sin descuadre (aviso de Eric: en apptest, en el 14/10, al pulsar «Ver la semana» la pantalla se
+   descuadraba un momento). Para pintar la semana dentro de la cinta, la tarjeta de «Tu día» cede un instante su nombre (#agcuerpo)
+   a la semana; mientras llegaban los datos de esa semana (en una semana que no es la de hoy hay que pedirlos), la tarjeta perdía su
+   sitio en la rejilla y saltaba arriba a todo el ancho. Ahora los datos se piden antes y el cambio de nombre dura solo lo que se
+   tarda en pintar, sin esperar a la red.
+   ============================================================ */
+let SEM_PREVIA = null;
+agPintarSemanaExp = (orig => async function (...a) {
+  if (!agN() || !AG_SEM_ABIERTA || !$('agcinta') || $('agsemexp')) return orig.apply(this, a);
+  const f = AG_FECHA, desde = lunesDe(f), hasta = isoMas(desde, 6);
+  const [r, bloq] = await Promise.all([
+    rpcCache('agenda_rango', { p_desde: desde, p_hasta: hasta, p_usuario: agUsuarioFiltro() }, 'agenda-' + desde),
+    bloqueadosSemana(desde, hasta)
+  ]);
+  if (!agN() || !AG_SEM_ABIERTA || AG_FECHA !== f || $('agsemexp')) return;
+  SEM_PREVIA = { desde, hasta, r, bloq };
+  try { return await orig.apply(this, a); } finally { SEM_PREVIA = null; }
+})(agPintarSemanaExp);
+// Lo pedido antes se entrega una vez, sin volver a la red
+rpcCache = (orig => function (fn, params, clave, ...x) {
+  const p = SEM_PREVIA;
+  if (p && p.r && fn === 'agenda_rango' && params && params.p_desde === p.desde && params.p_hasta === p.hasta) { const r = p.r; p.r = null; return Promise.resolve(r); }
+  return orig.call(this, fn, params, clave, ...x);
+})(rpcCache);
+bloqueadosSemana = (orig => function (desde, hasta, ...x) {
+  const p = SEM_PREVIA;
+  if (p && p.bloq && desde === p.desde && hasta === p.hasta) { const b = p.bloq; p.bloq = null; return Promise.resolve(b); }
+  return orig.call(this, desde, hasta, ...x);
+})(bloqueadosSemana);
