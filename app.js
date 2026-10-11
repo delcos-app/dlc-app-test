@@ -12418,7 +12418,7 @@ new MutationObserver(() => {
 
 // (v2.183.0: aquí iba la primera versión de congelar; se redefine entera más abajo)
 document.addEventListener('click', e => {
-  const b = e.target.closest('main .subnav button, main [data-pedsec], main [data-psec], main [data-fsec], main [data-ansec], main [data-avista], main [data-ag="dia"], main [data-ag="semana"], main [data-ag="mes"], main [data-ag="equipo"], main [data-ag="ant"], main [data-ag="sig"], main [data-ag="hoy"]');
+  const b = e.target.closest('main .subnav button, main [data-pedsec], main [data-psec], main [data-fsec], main [data-ansec], main [data-avista], main [data-ag="equipo"]');
   if (!b || b.getAttribute('aria-pressed') === 'true') return;
   congelar(b.closest('main > section'));
 }, true);
@@ -25083,3 +25083,16 @@ document.addEventListener('click', e => {
 /* v2.254.0 · Rutas sin fantasmas: la lista de rutas, «Tu día en el mapa» y los pasos del editor llegan de una vez (prueba rutas2254). En el
    ordenador, la caja del paso 1 crecía con los resultados hasta su máximo y empujaba la barra de abajo («Siguiente») al filtrar: ahora tiene
    alto fijo y la lista se desplaza dentro. Solo estilo. */
+
+
+/* ============================================================
+   v2.255.0 · Pestañas de página sin fantasmas. En Ciclo de visitas (como administración), al cambiar de pestaña la página se volvía a
+   montar y se iba llenando en varios pasos. Las pestañas de las páginas (Ciclo, Eventos, Cirugías, Concursos, Parque, Mi perfil,
+   Empresa…) usan ahora la copia fija y atenuada que ya usaban las demás pestañas de la app, hasta que la nueva está entera. De la lista
+   de botones que la usan salen los de la Agenda de antes (Día, Semana, Mes y las flechas), que ya no existen.
+   Analítica (resumen y Explorar) ya llegaba y cambiaba de una vez (prueba ciclo2255).
+   ============================================================ */
+document.addEventListener('click', e => {
+  const b = e.target.closest('main .pagtabs [data-ptab]'); if (!b || b.classList.contains('on')) return;
+  congelar(b.closest('main > section'));
+}, true);
