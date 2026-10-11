@@ -4157,6 +4157,14 @@ body.modo-plataforma.menulat #v-delcos .pagtabs{display:none}
   dialog#dlg.dlgficha{width:100%;max-width:560px;height:100dvh;max-height:100dvh;margin:0 0 0 auto;border-radius:18px 0 0 18px;animation:entra .18s ease-out}
   dialog#dlg.dlgficha > *{max-height:none}
 }
+
+/* v2.249.0 · Contactos y Clientes: el resumen de filtros de antes no empuja la tabla (lo dicen los filtros rápidos y la barra);
+   con el mapa abierto no queda la tabla vacía debajo */
+.plantilla #chips{display:none!important}
+#v-directorio .pltab:has(#lista.hide){display:none}
+/* El recuento de la barra tiene sitio fijo: el esqueleto y la cifra ocupan lo mismo y no empujan el buscador ni los filtros */
+.pltool .plcnt{min-width:150px}
+.plchip.plespera{opacity:.55;pointer-events:none}
 </style>
 </head>
 <body>
@@ -4252,9 +4260,7 @@ try{var co=sessionStorage.getItem('dlc-cambio-org');if(co!==null||localStorage.g
         <div class="acts" style="padding:12px 14px 0;margin:0"><button class="btn sec" id="nuevoBtn">+ Crear nuevo</button><button class="btn sec" id="mapaBtn">Ver mapa</button><button class="btn sec" id="guardarFiltro">★ Guardar filtro</button><button class="btn sec" id="cercaBtn">Cerca de mí</button><button class="btn sec hide" id="dupBtn">Duplicados</button><button class="btn sec kebab" id="dirtools" title="Filtros y columnas">⋮</button></div>
         <div class="cuenta" id="cuenta">Cargando…</div>
         <div id="mapawrap" class="hide"><div id="mapa"></div><div class="mapleg" id="mapleg"></div></div>
-        <div class="sm hide" id="scrollhint" style="padding:8px 14px 0">Desliza a los lados para ver todas las columnas</div>
         <div class="tabla" id="tabla"><div class="thead" id="thead"></div><div id="lista"></div></div>
-        <button class="mas hide" id="mas">Cargar más</button>
         <div id="dirpag"></div>
       </div>
     </section>
@@ -4295,6 +4301,6 @@ try{var co=sessionStorage.getItem('dlc-cambio-org');if(co!==null||localStorage.g
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.248.0"></script>
+<script src="./app.js?v=2.249.0"></script>
 </body>
 </html>
