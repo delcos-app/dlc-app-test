@@ -25078,3 +25078,8 @@ document.addEventListener('click', e => {
 /* v2.253.0 · Inicio sin fantasmas: el mosaico, la cabecera y los indicadores ya llegaban y cambiaban de una vez (prueba inicio2253, como
    comercial, administración y dirección). En el móvil, la cabecera guardaba 100 px a la derecha de cuando los botones iban arriba: con
    «Buenas tardes» la «i» bajaba sola a otra línea. Solo estilo. */
+
+
+/* v2.254.0 · Rutas sin fantasmas: la lista de rutas, «Tu día en el mapa» y los pasos del editor llegan de una vez (prueba rutas2254). En el
+   ordenador, la caja del paso 1 crecía con los resultados hasta su máximo y empujaba la barra de abajo («Siguiente») al filtrar: ahora tiene
+   alto fijo y la lista se desplaza dentro. Solo estilo. */
