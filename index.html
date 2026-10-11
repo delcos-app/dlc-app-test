@@ -4243,6 +4243,37 @@ body.modo-plataforma.menulat #v-delcos .pagtabs{display:none}
 .prmati{display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--line)}
 .prmati span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .prmatadd{margin-top:8px;display:inline-flex}
+
+/* v2.267.0 · Carga visible y arreglos del móvil */
+/* Línea de luz al cambiar de pantalla: cruza la parte alta de punta a punta, con la cola celeste y la cabeza marino */
+.cometa{position:fixed;left:0;right:0;top:0;height:3px;overflow:hidden;pointer-events:none;z-index:2147483000}
+.cometa i{position:absolute;top:0;left:0;height:100%;width:42%;opacity:0;border-radius:0 3px 3px 0;
+  background:linear-gradient(90deg,rgba(124,195,236,0) 0%,rgba(124,195,236,.55) 55%,#7CC3EC 82%,#3F82C0 94%,#17457A 100%);
+  box-shadow:0 0 10px 1px rgba(124,195,236,.65)}
+.cometa.va i{animation:cometa .75s cubic-bezier(.35,.1,.25,1) both}
+@keyframes cometa{0%{transform:translateX(-100%);opacity:0}12%{opacity:1}82%{opacity:1}100%{transform:translateX(240%);opacity:0}}
+@media (prefers-reduced-motion:reduce){.cometa.va i{animation:cometaQuieto .6s ease both;width:100%}
+  @keyframes cometaQuieto{0%,100%{opacity:0}40%{opacity:.8}}}
+/* Esqueletos: brillo más visible y un cargador pequeño en cada bloque */
+.plsk{background:linear-gradient(90deg,#E1E9F2 0,#F7FAFD 40%,#E1E9F2 80%);background-size:300% 100%}
+.plk.plcarga,.inimos .mtsk,.kpi.ksk,.plsktab{position:relative}
+.plk.plcarga::after,.inimos .mtsk::after,.kpi.ksk::after,.plsktab::after{content:'';position:absolute;top:12px;right:12px;width:18px;height:18px;
+  background:var(--orbita);animation:gira 1.15s cubic-bezier(.45,.05,.55,.95) infinite;pointer-events:none;opacity:.9}
+.plsktab::after{top:14px;right:14px;width:22px;height:22px}
+@media (prefers-reduced-motion:reduce){.plk.plcarga::after,.inimos .mtsk::after,.kpi.ksk::after,.plsktab::after{animation-duration:2.4s}}
+/* Inicio en el móvil: el saludo entero (puede ir en dos líneas) y los botones a su derecha, sin taparlo */
+@media (max-width:760px){
+  #v-inicio > .saludo{padding-right:96px!important}
+  #v-inicio > .saludo h1{white-space:normal!important;overflow:visible!important;text-overflow:clip!important}
+}
+/* Resumen de las listas en el móvil: dos columnas de cifras pequeñas, como los indicadores */
+@media (max-width:760px){
+  main > section.plantilla .kpis.vtot.plres,main > section.plantilla #vcuerpo > .panel > .kpis.vtot.plres{
+    display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important;padding:0!important}
+  main > section.plantilla .kpis.vtot.plres > .kpi,main > section.plantilla #vcuerpo > .panel > .kpis.vtot.plres > .kpi{display:flex!important;flex-direction:column!important;align-items:flex-start!important;gap:1px!important;
+    padding:9px 12px!important;border:1px solid var(--line)!important;border-radius:12px!important;background:var(--panel,#fff)!important;min-width:0;font-size:12.5px!important;margin:0!important;height:auto!important}
+  main > section.plantilla .kpis.vtot.plres > .kpi span{overflow:hidden;text-overflow:ellipsis;max-width:100%}
+}
 </style>
 </head>
 <body>
@@ -4379,6 +4410,6 @@ try{var co=sessionStorage.getItem('dlc-cambio-org');if(co!==null||localStorage.g
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.266.0"></script>
+<script src="./app.js?v=2.267.0"></script>
 </body>
 </html>
