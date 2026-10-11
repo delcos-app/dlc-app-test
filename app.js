@@ -9119,6 +9119,7 @@ async function listaPedidos() {
       <option value="">Todos</option><option value="web">Por la web</option><option value="portal">Portal del centro</option><option value="otros">Comercial, teléfono o correo</option></select></div>`);
     $('porigf').onchange = () => { PEDPAG = 0; listaPedidos(); };
   }
+  filtrosRestaurar($('v-ventas'));   // v2.269.0: los filtros que tenías
   const params = { p_desde: r.desde, p_hasta: r.hasta, p_canal: $('pcanal').value || null, q: ($('pq') && $('pq').value.trim()) || null,
     p_estado: $('pestado').value || null, p_operativa: ($('popf') && $('popf').value) || null, lim: tamPagina(), desplaz: PEDPAG * tamPagina(),
     ...(($('porigf') && $('porigf').value) ? { p_origen: $('porigf').value } : {}),
@@ -9142,7 +9143,7 @@ async function listaPedidos() {
   const cpCols = clasVisibles('pedido');
   $('pedlista').innerHTML = PEDIDOS.length ? `<div class="dgrid-wrap"><div class="dgrid peds2 ${imp ? '' : 'sinimp'}">
     <div class="dh"><span>Fecha</span><span>Cliente</span><span>${TT('medico', 's', '', 'l', 'C')}</span><span>Comercial</span><span>Productos</span>
-      <span class="num">Uds.</span>${imp ? '<span class="num">Base</span><span class="num">Total</span>' : ''}<span>Estado</span><span>Operativa</span>${clasCabeceras(cpCols)}</div>
+      <span class="num">Uds.</span>${imp ? '<span class="num">Base</span><span class="num">Total</span>' : ''}<span>Estado</span><span>Operativa</span><span>Notas</span>${clasCabeceras(cpCols)}</div>
     ${PEDIDOS.map(p => `<button class="dr" data-ped="${p.id}" style="${p.estado === 'Anulado' ? 'opacity:.55' : ''}">
       <span>${fechaCorta(p.fecha)}${p.factura || p.numero ? `<span class="sm">${esc(p.factura || p.numero)}</span>` : ''}</span>
       <span><b>${esc(p.contacto || p.centro || p.cuenta_texto || '—')}</b><span class="sm">${p.canal === 'centro' ? 'Venta a centro' : 'Venta ' + TT('paciente', 's', 'al', 'l', 'l')}${p.origen === 'web' ? ' · <span class="pweb">Web</span>' : p.origen === 'portal' ? ' · <span class="pweb">Portal</span>' : ''}${p.forma_pago ? ' · ' + esc(p.forma_pago) : ''}${p.justificante ? ' · <span title="Con justificante de pago">📎</span>' : ''}</span></span>
@@ -9150,7 +9151,7 @@ async function listaPedidos() {
       <span>${p.comercial ? esc(p.comercial) : '<span class="vac">—</span>'}</span>
       <span class="sm corta">${esc(p.productos || '')}</span><span class="num">${num(p.unidades)}</span>
       ${imp ? `<span class="num">${eurI(p.base)}</span><span class="num"><b>${eurI(p.total)}</b></span>` : ''}
-      <span>${pillEstado(p.estado)}</span><span>${ico(p)}</span>${clasCeldas(cpCols, p.clasificadores)}</button>`).join('')}
+      <span>${pillEstado(p.estado)}</span><span>${ico(p)}</span><span class="sm corta pednota" title="${esc(p.nota || '')}">${esc(p.nota || '')}</span>${clasCeldas(cpCols, p.clasificadores)}</button>`).join('')}
   </div></div>` : '<div class="vacio">No hay pedidos con estos filtros.</div>';
   clasRejilla($('pedlista').querySelector('.dgrid.peds2'), cpCols.length);
   if (!$('pedpag')) $('pedlista').insertAdjacentHTML('afterend', '<div id="pedpag"></div>');
@@ -13217,7 +13218,7 @@ function estable(el, max = 4000, desde) {
     // Las esperas se miden con el cronómetro interno del navegador (siempre avanza; el reloj puede saltar)
     const t0 = desde || Date.now() - 5, p0 = performance.now(); let ultimo = p0 - 5, fin = false;
     // Cuentan los cambios dentro del elemento (no los de su propia clase, que son los del mecanismo de carga)
-    const mo = new MutationObserver(ms => { if (ms.some(m => m.target !== el)) ultimo = performance.now(); });
+    const mo = new MutationObserver(ms => { if (ms.some(m => m.target !== el && !cambioDeCifra(m))) ultimo = performance.now(); });   // v2.269.0
     mo.observe(el, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'style'] });
     const listo = () => { if (fin) return; fin = true; mo.disconnect(); res(); };
     // Pantalla ya cargada: si al terminar la tarea actual no hay consultas ni cambios, se muestra al momento
@@ -13229,8 +13230,8 @@ function estable(el, max = 4000, desde) {
       // Solo las consultas lanzadas desde que empezó (las que ya estaban en curso, como la campana, no cuentan)
       // …y con un respiro de 120 ms desde el último cambio y desde la última consulta terminada (las encadenadas no se toman por el final)
       const ya = performance.now();
-      if ((pendientesDesde(t0) === 0 && ya - Math.max(ultimo, RED_ULTIMO_FIN) >= 120 && !conEsqueletos()) || ya - p0 > max) { clearInterval(w); listo(); }
-    }, 30);
+      if ((pendientesDesde(t0) === 0 && ya - Math.max(ultimo, RED_ULTIMO_FIN) >= 50 && !conEsqueletos()) || ya - p0 > max) { clearInterval(w); listo(); }   // v2.269.0: 50 ms (antes 120)
+    }, 15);
   });
 }
 
@@ -26196,3 +26197,52 @@ window.addEventListener('resize', () => {
     f.classList.add('fab'); f.setAttribute('aria-label', f.dataset.txt || 'Añadir'); f.innerHTML = svgIco(ICON_NOM.plus);
   });
 });
+
+
+
+
+/* ============================================================
+   v2.269.0 · Cargas rápidas, filtros que se mantienen y notas en Pedidos (petición de Eric, 11/10/2026; necesita el SQL 144).
+   - Las pantallas se enseñan antes: «estable» espera 50 ms sin cambios (antes 120), mira cada 15 ms (antes 30) y no espera a las
+     cifras que cuentan (Analítica esperaba ~1 s oculta a que terminaran sus indicadores). Con el SQL 144
+     las consultas lentas bajan a 20-60 ms.
+   - Los indicadores de una lista solo se piden en su pantalla (los de Clientes se pedían también en Pedidos, Compras, Productos…).
+   - Los filtros de las listas (los de la fila de filtros y los propios del panel «Filtros») se recuerdan: si la pantalla se vuelve a pintar (al guardar un pedido,
+     al volver a ella…) salen con lo que tenías puesto, hasta que los quites tú.
+   - Pedidos: columna «Notas».
+   ============================================================ */
+// Una cifra que se anima al contar (solo cambia su texto, y son números) no es «la pantalla sigue cargando»: antes, en Analítica,
+// la pantalla esperaba oculta ~1 s a que terminaran de contar los indicadores
+function cambioDeCifra(m) {
+  if (m.type !== 'childList') return false;
+  const ns = [...m.addedNodes, ...m.removedNodes];
+  return ns.length > 0 && ns.every(n => n.nodeType === 3) && /^[\d.,\s%€+\-−]*$/.test(m.target.textContent || '');
+}
+plCargarKpis = (orig => function (tab, ...a) {
+  if (tab !== TAB) return;   // en otra pantalla, no (se piden al llegar a la suya)
+  return orig.call(this, tab, ...a);
+})(plCargarKpis);
+
+// ---- Memoria de filtros: lo que se elige en una fila de filtros se vuelve a poner cuando la pantalla se pinta de nuevo
+const FMEM = {};
+function filtroGuardar(e) {
+  const el = e.target; if (!el || !el.id || !/^(SELECT|INPUT)$/.test(el.tagName) || !el.closest('main .filtros, main .htpropios')) return;   // la fila de filtros o, con el modelo de página, el panel
+  if (el.type === 'checkbox' || el.type === 'radio') return;
+  FMEM[el.id] = el.value;
+}
+document.addEventListener('change', filtroGuardar, true);
+document.addEventListener('input', filtroGuardar, true);
+function filtrosRestaurar(root) {
+  (root || document).querySelectorAll('.filtros select[id], .filtros input[id], .htpropios select[id], .htpropios input[id]').forEach(el => {
+    if (!(el.id in FMEM) || el.value === FMEM[el.id] || el.type === 'checkbox' || el.type === 'radio') return;
+    if (el.tagName === 'SELECT' && ![...el.options].some(o => o.value === FMEM[el.id])) return;
+    el.value = FMEM[el.id];
+  });
+}
+// Las pantallas montan su periodo justo antes de pedir la lista: es el momento de devolver los filtros
+montarPeriodo = (orig => function (el, ...a) {
+  const r = orig.call(this, el, ...a);
+  try { filtrosRestaurar(el && el.closest('main > section')); } catch (e) {}
+  return r;
+})(montarPeriodo);
+
