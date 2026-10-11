@@ -4112,7 +4112,7 @@ main > section.preparando::after,dialog > .preparando::after{animation:cargaApar
 @media (prefers-reduced-motion:reduce){.spin,main > section.preparando::after,dialog > .preparando::after{animation-duration:2.4s!important}}
 
 /* v2.236.0 · Modelo de página «Lista» (variante A) */
-.plantilla > .saludo .acts > :not(.plmas):not(#nuevoBtn):not(#pacnuevo){display:none!important}
+.plantilla > .saludo .acts > .sec:not(.plmas),.plantilla > .saludo .acts > .htbtn,.plantilla > .saludo .acts > .ai-hueco{display:none!important}
 .plantilla .plmas.plno{display:none!important}
 .plantilla .plmas{width:40px;padding:0!important;justify-content:center}
 .plantilla .plmas .ico{width:18px;height:18px}
@@ -4205,6 +4205,24 @@ main > section.preparando::after,dialog > .preparando::after{animation:cargaApar
 .inimos .mtsk{display:flex;flex-direction:column;gap:12px;min-height:118px}
 .inimos .mtsk.mtat{min-height:268px}
 .inimos .mtsk .plsk{height:12px}.inimos .mtsk .plsk:first-child{height:10px;margin-bottom:6px}
+
+/* v2.238.0 · Modelo «Lista» en Ventas, Facturas y Productos */
+.plkpis.plbanda{display:block}
+.plkpis.plbanda > #operativa{margin:0}
+.plantilla .kpis.vtot.plres{display:flex!important;flex-wrap:wrap;gap:6px 18px;grid-template-columns:none!important;background:none;border:0;padding:2px 4px;margin:0 0 2px!important;box-shadow:none}
+.plantilla .kpis.vtot.plres > .kpi{all:unset;display:inline-flex;align-items:baseline;gap:6px;font-size:13.5px;color:var(--muted)}
+.plantilla .kpis.vtot.plres > .kpi b{font:800 16px var(--f-titulo);color:#17457A;font-variant-numeric:tabular-nums}
+.plantilla .kpis.vtot.plres > .kpi.warn b{color:#B4541A}.plantilla .kpis.vtot.plres > .kpi.ok b{color:#1D6B3A}
+.plantilla .kpis.vtot.plres > .kpi .ai,.plantilla .kpis.vtot.plres > .kpi svg{display:none}
+.plantilla > .subnav{margin-bottom:12px}
+.plantilla .panel > .filtros.filbusca > div:has(> input[type=search]),.plantilla .panel > .filtros.filbusca > div:has(> #pq),.plantilla .panel > .filtros.filbusca > div:has(> #llq),.plantilla .panel > .filtros.filbusca > div:has(> #fq){display:none!important}
+.plantilla .panel > .filtros:not(:has(.htchip, .chip, select, input:not([type=search]))){display:none}
+.plantilla .panel > .filtros{padding:0!important;margin:0!important;border:0!important;background:none!important;min-height:0}
+.plantilla .panel > .cuenta{display:none}
+.plantilla .plskpanel{margin-top:10px}
+.plantilla #opcfg{display:none!important}
+.plantilla .fab.plfuera,.plantilla .dgrid > .dr.htfuera{display:none!important}
+@media (max-width:760px){main > section.plantilla .kpis.vtot.plres{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px 14px!important}main > section.plantilla .kpis.vtot.plres > .kpi{display:flex!important;flex-direction:column!important;gap:0!important;padding:0!important;margin:0!important;min-height:0!important;border:0!important;background:none!important;box-shadow:none!important;width:auto!important}.plantilla .kpis.vtot.plres > .kpi{font-size:12.5px}}
 </style>
 </head>
 <body>
@@ -4343,6 +4361,6 @@ try{var co=sessionStorage.getItem('dlc-cambio-org');if(co!==null||localStorage.g
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.237.0"></script>
+<script src="./app.js?v=2.238.0"></script>
 </body>
 </html>
