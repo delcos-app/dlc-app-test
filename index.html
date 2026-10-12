@@ -4413,6 +4413,22 @@ dialog.encajada #dbody > .acts:last-child,dialog.encajada #dlg2body > .acts:last
 #cfgcuerpo .mtacts{margin-top:12px}
 @media (max-width:1100px){#cfgcuerpo .matfila2{grid-template-columns:1fr 1fr}#cfgcuerpo .matfila2 .mtnom{grid-column:1 / -1}}
 @media (max-width:760px){#cfgcuerpo .matfila2{grid-template-columns:1fr}}
+
+/* v2.279.0 · Datos de acceso, «Mi ficha» con lo necesario y ver la contraseña */
+.pwdw{position:relative;display:block}
+.pwdw > input{padding-right:46px!important;width:100%}
+.pwdojo{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:34px;height:34px;border:0;background:none;border-radius:8px;color:var(--muted);cursor:pointer;display:grid;place-items:center;padding:0}
+.pwdojo:hover{background:color-mix(in srgb,var(--line) 60%,transparent);color:var(--ink)}
+.pwdojo svg{width:18px;height:18px}
+#v-informe .pmreq{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:999px;background:#FFF1DB;color:#9A5B00;font:600 11px/1.6 var(--f-texto);vertical-align:middle}
+#v-informe .pmcheck{margin:16px 0 0;padding:12px 16px;border-radius:14px;border:1px solid #F3D9A4;background:#FFF7E8}
+#v-informe .pmcheck.ok{border-color:#B7E1C8;background:#EEF8F2}
+#v-informe .pmcheck ul{list-style:none;margin:6px 0 4px;padding:0;display:flex;flex-wrap:wrap;gap:6px 18px}
+#v-informe .pmcheck li{display:flex;align-items:center;gap:6px;font-size:13.5px}
+#v-informe .pmcheck li::before{content:'';width:16px;height:16px;border-radius:50%;border:2px solid #D9A441;box-sizing:border-box}
+#v-informe .pmcheck li.ok::before{border-color:#2E9E6A;background:#2E9E6A url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4 8.5l2.5 2.5L12 5.5' fill='none' stroke='white' stroke-width='2'/%3E%3C/svg%3E") center/12px no-repeat}
+#v-informe .pmcheck li.ok{color:var(--muted)}
+#dbody .usrok .mono{font-family:ui-monospace,Menlo,Consolas,monospace}
 </style>
 </head>
 <body>
@@ -4549,6 +4565,6 @@ try{var co=sessionStorage.getItem('dlc-cambio-org');if(co!==null||localStorage.g
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.278.0"></script>
+<script src="./app.js?v=2.279.0"></script>
 </body>
 </html>

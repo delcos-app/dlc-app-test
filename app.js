@@ -1721,6 +1721,7 @@ function nuevoUsuarioResumen(pre) {
     await crear(ev);
     const ok = /Usuario creado/.test($('nmsg') ? $('nmsg').textContent : '');
     if (!ok) return;
+    Promise.resolve(RPC_ORIG('guardar_acceso_temporal', { p_email: datos.email, p_pass: datos.pass })).then(() => {}, () => {});   // v2.279.0: para volver a verlos
     const vinc = ($('nmsg').textContent.match(/Vinculado a (.+)\./) || [])[1];
     delete $('dlg').dataset.sucio;
     const url = location.origin + location.pathname;
@@ -11891,6 +11892,7 @@ function detalleUsuario(u) {
     <div class="usracc">
       <button class="btn" data-uacc="editar">✏️ Editar rol, permisos y zona</button>
       ${!rolPuede(u.rol, 'portal_prescriptor') ? '<button class="btn sec" data-uacc="cartera">🗂️ Asignar cartera</button>' : ''}
+      ${puede('administrar') && u.id !== PERFIL.id ? '<button class="btn sec" data-uacc="acceso">Datos de acceso</button>' : ''}
       <button class="btn sec" data-uacc="pass">🔑 Enviar cambio de contraseña</button>
       ${typeof puedeVerComo === 'function' && puedeVerComo(u) ? (esInvitado(u) ? '<button class="btn" data-uacc="como">👤 Impersonalizar</button>' : '<button class="btn sec" data-uacc="como">👤 Impersonalizar</button>') : ''}
       ${puede('administrar') && u.id !== PERFIL.id ? '<button class="btn sec dang" data-uacc="borrar">🗑 Borrar usuario</button>' : ''}</div>`;
@@ -11900,6 +11902,7 @@ function detalleUsuario(u) {
     if (a === 'editar') editarUsuario(u.id);
     if (a === 'cartera') { $('dlg').close(); asignarCartera(u.id); }
     if (a === 'pass') { $('dlg').close(); restablecerPassword(u); }
+    if (a === 'acceso') verAccesoTemporal(u);   // v2.279.0
     if (a === 'como') { $('dlg').close(); entrarComo(u.id); }
     if (a === 'borrar') { $('dlg').close(); borrarUsuario(u); }
   });
@@ -26505,24 +26508,25 @@ function pmPintarFicha() {
   const estado = PM.prop ? (PM.prop.estado === 'Pendiente' ? `Enviado el ${horaCorta(PM.prop.modificado_en)}: tu comercial lo revisará.` : `Tu comercial revisó tus datos. Si algo cambia, vuelve a enviarlo.`)
     : 'Todavía no nos has enviado tus datos.';
   box.innerHTML = `
-    ${PM.faltan.length ? `<div class="pmaviso"><div><b>Completa tu ficha</b><span class="sm">Falta ${esc(pmFaltaTxt())}.</span></div></div>` : ''}
+    <div class="pmcheck" id="pmcheck"></div>
     <div class="card ancard pmcons pmcont"><h2>Contacto y ${TT('visita', 'p', '', 'l', 'l')} ${pmAyu('Contacto y ' + TT('visita', 'p', '', 'l', 'l'), 'Cómo puede contactarte tu comercial y cómo y cuándo te va mejor que pase a verte. Escribe lo que prefieras: lo revisa antes de pasarlo a tu ficha y lo tendrá en cuenta al organizar su agenda.')}</h2>
-      <div class="pmcampos"><div><label for="pmtel">Teléfono</label><input id="pmtel" inputmode="tel" value="${esc(F.telefono)}" placeholder="Móvil o consulta"></div>
+      <div class="pmcampos"><div><label for="pmtel">Teléfono <span class="pmreq">Necesario</span></label><input id="pmtel" inputmode="tel" value="${esc(F.telefono)}" placeholder="Móvil o consulta"></div>
         <div><label for="pmmail">Correo</label><input id="pmmail" type="email" value="${esc(F.email)}" placeholder="tu@correo.es"></div>
-        <div><label for="pmcomo">Cómo prefieres ${TT('visita', 'p', 'el', 'l', 'l')}</label><select id="pmcomo"><option value="">Elige…</option>${PM_COMO.map(x => `<option ${F.visitas.como === x ? 'selected' : ''}>${esc(x)}</option>`).join('')}</select></div>
+        <div><label for="pmcomo">Cómo prefieres ${TT('visita', 'p', 'el', 'l', 'l')} <span class="pmreq">Necesario</span></label><select id="pmcomo"><option value="">Elige…</option>${PM_COMO.map(x => `<option ${F.visitas.como === x ? 'selected' : ''}>${esc(x)}</option>`).join('')}</select></div>
         <div><label for="pmmom">Mejor momento</label><input id="pmmom" value="${esc(F.visitas.momento)}" placeholder="p. ej. martes a última hora"></div>
         <div class="pmancho"><label for="pmnot">Notas para tu comercial</label><textarea id="pmnot" rows="2" placeholder="Acceso, planta, a quién preguntar…">${esc(F.notas)}</textarea></div></div></div>
-    <div class="card ancard pmcons"><h2>Dónde pasas consulta ${pmAyu('Dónde pasas consulta', 'Añade cada centro o consulta donde atiendes y su horario. Busca el centro por su nombre o población; si no aparece, añádelo tú. En el horario, pulsa los días y escribe las horas; con «Rellenar» pones de golpe el mismo horario en todos los días marcados.')}</h2>
+    <div class="card ancard pmcons"><h2>Dónde pasas consulta <span class="pmreq">Necesario: al menos un día con horario</span> ${pmAyu('Dónde pasas consulta', 'Añade cada centro o consulta donde atiendes y su horario. Busca el centro por su nombre o población; si no aparece, añádelo tú. En el horario, pulsa los días y escribe las horas; con «Rellenar» pones de golpe el mismo horario en todos los días marcados.')}</h2>
       <div id="pmclist" class="pmclist">${F.consultas.map((c, i) => pmConsulta(c, i)).join('') || '<p class="sm">Todavía no hay ninguna consulta.</p>'}</div>
       <div class="pmcadd"><input id="pmcq" type="search" placeholder="Añadir un centro: escribe su nombre o la población" aria-label="Buscar un centro"><div id="pmcres" class="pmcres"></div></div></div>
     <div class="pmpie"><span class="sm" id="pmest">${esc(estado)}</span><button type="button" class="btn" id="pmenviar">Enviar a mi comercial</button></div>`;
   let t;
   $('pmcq').oninput = () => { clearTimeout(t); t = setTimeout(pmBuscarCentro, 250); };
   $('pmenviar').onclick = pmEnviar;
+  box.addEventListener('input', pmPintarCheck); box.addEventListener('change', pmPintarCheck); pmPintarCheck();   // v2.279.0
 }
 
 function pmConsulta(c, i) {
-  const nuevo = !c.centro_id && !c.ubicacion_id;
+  const nuevo = (!c.centro_id && !c.ubicacion_id) || !String(c.nombre || '').trim();   // v2.279.0: sin nombre, se escribe
   return `<div class="pmc" data-pmc="${i}">
     <div class="pmccab">${nuevo ? `<div class="g2 pmcnuevo"><div><label>Centro o consulta</label><input data-pmcf="${i}|nombre" value="${esc(c.nombre || '')}"></div>
         <div><label>Dirección y población</label><input data-pmcf="${i}|direccion" value="${esc([c.direccion, c.municipio].filter(Boolean).join(', '))}" placeholder="Calle, número, población"></div></div>`
@@ -26552,7 +26556,7 @@ function pmLeerForm() {
   document.querySelectorAll('#pmficha [data-pmcf]').forEach(x => { const [i, k] = x.dataset.pmcf.split('|'); F.consultas[+i][k] = x.value.trim(); if (k === 'direccion') F.consultas[+i].municipio = ''; });
   document.querySelectorAll('#pmficha [data-pmhi]').forEach(x => { const [i, k, j, p] = x.dataset.pmhi.split('|'); const r = (F.consultas[+i].dias[k] || [])[+j]; if (r) r[+p] = pmHora(x.value) || x.value.trim(); });
 }
-function pmRepintarConsultas() { const l = $('pmclist'); if (l) l.innerHTML = PM.ficha.consultas.map((c, i) => pmConsulta(c, i)).join('') || '<p class="sm">Todavía no hay ninguna consulta.</p>'; }
+function pmRepintarConsultas() { const l = $('pmclist'); if (l) l.innerHTML = PM.ficha.consultas.map((c, i) => pmConsulta(c, i)).join('') || '<p class="sm">Todavía no hay ninguna consulta.</p>'; pmPintarCheck(); }
 
 document.addEventListener('click', e => {
   const b = e.target.closest('#pmficha [data-pmhd], #pmficha [data-pmhp], #pmficha [data-pmhx], #pmficha [data-pmha], #pmficha [data-pmcx], #pmficha [data-pmcr]');
@@ -26811,3 +26815,78 @@ async function matMejorar() {
     } finally { ev.target.disabled = false; }
   };
 }
+
+
+
+
+/* ============================================================
+   v2.279.0 · Datos de acceso a mano, «Mi ficha» con lo necesario y ver la contraseña (peticiones de Eric, 12/10/2026; SQL 148).
+   - Al dar de alta a alguien se guardan su usuario y su contraseña temporal; en su ventana de Usuarios, «Datos de acceso» los vuelve a
+     enseñar para copiarlos. Cuando esa persona ya ha entrado, la contraseña ya no sirve: se borra y se ofrece enviarle el cambio.
+   - Mi ficha del profesional: arriba, lo necesario para quitar el aviso de «faltan datos» (teléfono, al menos un día con horario y
+     cómo prefiere las visitas), marcado según lo va rellenando; esos campos llevan «Necesario». Un centro sin nombre se puede escribir.
+   - Cualquier campo de contraseña (también el de entrar) tiene un botón para ver lo que se escribe.
+   ============================================================ */
+async function verAccesoTemporal(u) {
+  const { data: r } = await RPC_ORIG('ver_acceso_temporal', { p_usuario: u.id });
+  const url = location.origin + location.pathname;
+  const cab = t => `<div class="fh"><div><h2>${esc(t)}</h2><div class="sm">${esc(u.nombre || '')} · ${esc(u.email || '')}</div></div><button class="x" data-cerrar aria-label="Cerrar">✕</button></div>`;
+  if (!r || !r.ok) {
+    const txt = !r ? 'No se han podido leer sus datos de acceso.'
+      : r.error === 'ya_entro' ? 'Ya ha entrado en la plataforma, así que su contraseña temporal ya no sirve. Si no la recuerda, envíale el cambio de contraseña.'
+      : r.error === 'sin_datos' ? 'No hay datos de acceso guardados: se dio de alta antes de que se guardaran o con otro método. Envíale el cambio de contraseña para que ponga una.'
+      : 'No tienes permiso para ver sus datos de acceso.';
+    $('dbody').innerHTML = `${cab('Datos de acceso')}<p>${esc(txt)}</p>
+      <div class="acts" style="justify-content:flex-end;flex-wrap:wrap">${r && r.error !== 'permiso' ? '<button class="btn sec" id="accpass">Enviar cambio de contraseña</button>' : ''}<button class="btn" data-cerrar>Cerrar</button></div>`;
+    if ($('accpass')) $('accpass').onclick = () => { $('dlg').close(); restablecerPassword(u); };
+    return;
+  }
+  const texto = `Hola ${nombrePila(r.nombre)}, ya tienes acceso a ${nombreApp()}.\nEntra en ${url}\nUsuario: ${r.email}\nContraseña temporal: ${r.pass}\nCámbiala al entrar (menú de tu nombre → Mi perfil).`;
+  $('dbody').innerHTML = `${cab('Datos de acceso')}
+    <div class="usrok"><div><span>Nombre</span><b>${esc(r.nombre)}</b></div><div><span>Rol</span><b>${esc(r.rol || '')}</b></div>
+      <div><span>Usuario</span><b>${esc(r.email)}</b></div><div><span>Contraseña temporal</span><b class="mono">${esc(r.pass)}</b></div>
+      ${r.cuenta ? `<div><span>${TT('medico', 's', '', 'l', 'C', 'vinculado')}</span><b>${esc(r.cuenta)}</b></div>` : ''}<div><span>Dirección</span><b>${esc(url)}</b></div></div>
+    <p class="sm">Aún no ha entrado. Cuando entre por primera vez y cambie la contraseña, estos datos dejan de estar aquí.</p>
+    <div class="acts" style="justify-content:flex-end;flex-wrap:wrap"><button class="btn sec" id="acccop">Copiar los datos</button><button class="btn" data-cerrar>Hecho</button></div>`;
+  $('acccop').onclick = async () => { try { await navigator.clipboard.writeText(texto); toast('Copiado: pégalo en un mensaje'); } catch (e) { toast('No se ha podido copiar', true); } };
+}
+
+// Mi ficha: lo necesario para quitar el aviso, al día según se rellena
+function pmPintarCheck() {
+  const box = $('pmcheck'); if (!box || !PM.ficha) return;
+  try { pmLeerForm(); } catch (e) {}
+  const F = PM.ficha;
+  const tel = !!String(F.telefono || '').trim(), como = !!String((F.visitas || {}).como || '').trim();
+  const horario = (F.consultas || []).some(c => Object.values(c.dias || {}).some(l => (l || []).some(r => /^\d\d:\d\d$/.test(r[0]) && /^\d\d:\d\d$/.test(r[1]) && r[1] > r[0])));
+  const todo = tel && como && horario;
+  box.classList.toggle('ok', todo);
+  box.innerHTML = `<b>${todo ? 'Tu ficha tiene todo lo necesario' : 'Para completar tu ficha'}</b>
+    <ul><li class="${tel ? 'ok' : ''}">Un teléfono de contacto</li><li class="${horario ? 'ok' : ''}">Dónde y cuándo pasas consulta (al menos un día con su horario)</li><li class="${como ? 'ok' : ''}">Cómo prefieres las ${TT('visita', 'p', '', 'l', 'l')}</li></ul>
+    <span class="sm">${todo ? 'Envíalo a tu comercial y el aviso de «faltan datos» desaparece.' : 'El resto es opcional. Cuando lo tengas, pulsa «Enviar a mi comercial».'}</span>`;
+}
+
+// Ver la contraseña mientras se escribe, en cualquier campo de contraseña
+const OJO_SVG = {
+  ver: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>',
+  ocultar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.9 4.2A10.6 10.6 0 0 1 12 4c6.4 0 10 8 10 8a17.6 17.6 0 0 1-2.2 3.2M6.6 6.6C3.7 8.6 2 12 2 12s3.6 8 10 8a9.7 9.7 0 0 0 5.4-1.6"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/><path d="M2 2l20 20"/></svg>'
+};
+function ojoClave(inp) {
+  if (!inp || inp.dataset.ojo || inp.closest('.pwdw')) return;
+  inp.dataset.ojo = '1';
+  const w = document.createElement('span'); w.className = 'pwdw';
+  inp.parentNode.insertBefore(w, inp); w.appendChild(inp);
+  const b = document.createElement('button'); b.type = 'button'; b.className = 'pwdojo'; b.innerHTML = OJO_SVG.ver;
+  b.setAttribute('aria-label', 'Ver la contraseña'); b.title = 'Ver la contraseña';
+  b.onclick = () => {
+    const ver = inp.type === 'password'; inp.type = ver ? 'text' : 'password';
+    b.innerHTML = ver ? OJO_SVG.ocultar : OJO_SVG.ver; const t = ver ? 'Ocultar la contraseña' : 'Ver la contraseña'; b.setAttribute('aria-label', t); b.title = t;
+    inp.focus({ preventScroll: true });
+  };
+  w.appendChild(b);
+}
+document.querySelectorAll('input[type=password]').forEach(ojoClave);
+new MutationObserver(ms => { for (const m of ms) for (const n of m.addedNodes) {
+  if (n.nodeType !== 1) continue;
+  if (n.matches && n.matches('input[type=password]')) ojoClave(n);
+  else if (n.querySelectorAll) n.querySelectorAll('input[type=password]').forEach(ojoClave);
+} }).observe(document.body, { childList: true, subtree: true });
