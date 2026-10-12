@@ -536,7 +536,7 @@ async function fichaAcceso(id) {
   const [{ data: us }, rfm] = await Promise.all([RPC_ORIG('usuarios_resumen', {}), rpcCache('ficha_cuenta', { p_id: id }, 'ficha-' + id)]);
   const ya = (us || []).find(u => u.cuenta_id === id), m = (rfm && rfm.data && rfm.data.medico) || {};   // v2.128.0: m.tipo (centro o no)
   $('fbody').insertAdjacentHTML('beforeend', `<div class="blk" id="facceso"><h3>Acceso a la plataforma</h3>
-    ${ya ? `<p class="sm">Tiene acceso como <b>${esc(ya.email || '')}</b>${ya.activo ? '' : ' (desactivado)'}: ${m.tipo === 'Centro' ? 'pide la reposición de sus productos, material y escribe a su comercial' : 've su informe y recibe un aviso con cada pauta'}.</p>`
+    ${ya ? `<p class="sm">Tiene acceso como <b>${esc(ya.email || '')}</b>${ya.activo ? '' : ' (desactivado)'}: ${m.tipo === 'Centro' ? 'pide la reposición de sus productos, material y escribe a su comercial' : 've su informe y recibe un aviso con cada pauta'}</p>${ya.activo && typeof puedeVerComo === 'function' && puedeVerComo(ya) ? `<button class="btn sec" data-ucomo="${ya.id}">Ver lo que ve</button>` : ''}.</p>`
       : m.tipo === 'Centro' ? `<p class="sm">Puede tener acceso para pedir la reposición de los productos que le des de alta, pedir material y escribir a su comercial.</p>
          <button class="btn sec" id="fdaracc">Dar acceso</button>`
       : `<p class="sm">Puede tener acceso a su informe de ventas atribuidas y recibir un aviso con cada venta a su nombre. No verá importes ni datos de ${TT('paciente', 'p', '', 'l', 'l')}.</p>
@@ -1511,7 +1511,7 @@ async function cargarAdmin() {
         <button class="btn sec" data-uver="${u.id}">Ver cartera</button>
         <button class="btn sec" data-ucart="${u.id}">Asignar</button>
         <button class="btn sec" data-upass="${u.id}">Contraseña</button>
-        ${puedeSuplantar() && u.id !== PERFIL.id && !rolPuede(u.rol, 'administrar') && u.activo ? `<button class="btn sec" data-ucomo="${u.id}" title="Ver la plataforma exactamente como esta persona">👤 Entrar como</button>` : ''}</span></div>`).join('')}</div>`;
+        ${puedeVerComo(u) ? `<button class="btn sec" data-ucomo="${u.id}" title="Ver la plataforma exactamente como esta persona">👤 Entrar como</button>` : ''}</span></div>`).join('')}</div>`;
 
   ($('admcuerpo') || document.createElement('div')).querySelectorAll('[data-uedit]').forEach(b => b.onclick = () => editarUsuario(b.dataset.uedit));
   ($('admcuerpo') || document.createElement('div')).querySelectorAll('[data-ucart]').forEach(b => b.onclick = () => asignarCartera(b.dataset.ucart));
@@ -10561,7 +10561,8 @@ async function pintarPlan2() {
 
 let USR_F = { q: '', rol: '', est: 'activos' };
 async function pintarUsuarios2() {
-  const { data } = await RPC_ORIG('usuarios_resumen', {});
+  const [{ data }, rAcc] = await Promise.all([RPC_ORIG('usuarios_resumen', {}), RPC_ORIG('invitados_accesos', {})]);   // v2.270.0: cuándo entró cada uno
+  const ACC = {}; ((rAcc && rAcc.data) || []).forEach(x => ACC[x.id] = x);
   const todos = data || []; USUARIOS = todos.map(u => Object.assign({ medicos: u.cartera, visitas: u.visitas_mes }, u));
   const act = planDe(PLAN_ACTUAL.plan), maxU = usuariosContratados();
   const activos = todos.filter(u => u.activo && !rolPuede(u.rol, 'portal_prescriptor'));
@@ -10570,8 +10571,10 @@ async function pintarUsuarios2() {
   const porRol = {}; activos.forEach(u => porRol[u.rol] = (porRol[u.rol] || 0) + 1);
   const pinta = () => {
     const q = USR_F.q.toLowerCase();
-    const l = todos.filter(u => (!q || (u.nombre + ' ' + (u.email || '')).toLowerCase().includes(q)) && (!USR_F.rol || u.rol === USR_F.rol)
+    const l0 = todos.filter(u => (!q || (u.nombre + ' ' + (u.email || '') + ' ' + (u.medico || u.cuenta || '')).toLowerCase().includes(q)) && (!USR_F.rol || u.rol === USR_F.rol)
       && (USR_F.est === 'todos' || (USR_F.est === 'activos' ? u.activo : !u.activo)));
+    const l = l0.filter(u => !esInvitado(u));   // v2.270.0: los invitados, en su grupo
+    pintarInvitados(l0.filter(esInvitado), ACC);
     $('usrl').innerHTML = l.map(u => {
       const mods = Object.keys(MODULO_AREA).filter(m => rolPuede(u.rol, 'administrar') || +((u.areas || {})[MODULO_AREA[m]] || 0) >= 1);
       const reciente = u.ultima_actividad ? new Date(u.ultima_actividad) : null;
@@ -10596,7 +10599,10 @@ async function pintarUsuarios2() {
         <select id="usrrol"><option value="">Todos los roles</option>${rolesNombres().map(r => `<option ${USR_F.rol === r ? 'selected' : ''}>${esc(r)}</option>`).join('')}</select>
         <select id="usrest"><option value="activos" ${USR_F.est === 'activos' ? 'selected' : ''}>Activos</option><option value="inactivos" ${USR_F.est === 'inactivos' ? 'selected' : ''}>Desactivados</option><option value="todos" ${USR_F.est === 'todos' ? 'selected' : ''}>Todos</option></select>
         <button class="btn" id="usrnuevo">+ Nuevo usuario</button></div>
-      <div id="usrl" class="usrlista"></div></div></div>`;
+      <div id="usrl" class="usrlista"></div></div>
+    <div class="card usrinvw" style="padding:14px 16px"><h3>Invitados <span id="usrinvn" class="sm"></span></h3>
+      <p class="sm">${TT('medico', 'p', '', 'l', 'C')} y centros a los que has dado acceso a su portal. No cuentan como usuarios del plan. Con «Ver lo que ve» entras en su portal tal como lo verán.</p>
+      <div id="usrinv" class="usrinvl"></div></div></div>`;
   $('usrq').oninput = () => { USR_F.q = $('usrq').value; pinta(); };
   $('usrrol').onchange = () => { USR_F.rol = $('usrrol').value; pinta(); };
   $('usrest').onchange = () => { USR_F.est = $('usrest').value; pinta(); };
@@ -11879,7 +11885,7 @@ function detalleUsuario(u) {
       <button class="btn" data-uacc="editar">✏️ Editar rol, permisos y zona</button>
       ${!rolPuede(u.rol, 'portal_prescriptor') ? '<button class="btn sec" data-uacc="cartera">🗂️ Asignar cartera</button>' : ''}
       <button class="btn sec" data-uacc="pass">🔑 Enviar cambio de contraseña</button>
-      ${typeof puedeSuplantar === 'function' && puedeSuplantar() && u.id !== PERFIL.id && !rolPuede(u.rol, 'administrar') && u.activo ? '<button class="btn sec" data-uacc="como">👤 Entrar como esta persona</button>' : ''}
+      ${typeof puedeVerComo === 'function' && puedeVerComo(u) ? (esInvitado(u) ? '<button class="btn" data-uacc="como">Ver lo que ve</button>' : '<button class="btn sec" data-uacc="como">👤 Entrar como esta persona</button>') : ''}
       ${puede('administrar') && u.id !== PERFIL.id ? '<button class="btn sec dang" data-uacc="borrar">🗑 Borrar usuario</button>' : ''}</div>`;
   $('dlg').showModal();
   $('dbody').querySelectorAll('[data-uacc]').forEach(b => b.onclick = () => {
@@ -14908,7 +14914,7 @@ async function fichaAccesoCartera(id) {
   // Solo en las fichas de su cartera (o en todas si ve todo)
   if ((!ya && !(mia || []).length) || FICHA_ID !== id || $('facceso')) return;
   $('fbody').insertAdjacentHTML('beforeend', `<div class="blk" id="facceso"><h3>Acceso a la plataforma</h3>
-    ${ya ? `<p class="sm">Tiene acceso${ya.email ? ` como <b>${esc(ya.email)}</b>` : ''}${ya.activo ? '' : ' (desactivado)'}: ${m.tipo === 'Centro' ? 'pide la reposición de sus productos, material y escribe a su comercial' : 've su informe y recibe un aviso con cada pauta'}.</p>`
+    ${ya ? `<p class="sm">Tiene acceso${ya.email ? ` como <b>${esc(ya.email)}</b>` : ''}${ya.activo ? '' : ' (desactivado)'}: ${m.tipo === 'Centro' ? 'pide la reposición de sus productos, material y escribe a su comercial' : 've su informe y recibe un aviso con cada pauta'}</p>${ya.activo && typeof puedeVerComo === 'function' && puedeVerComo(ya) ? `<button class="btn sec" data-ucomo="${ya.id}">Ver lo que ve</button>` : ''}.</p>`
       : `<p class="sm">${m.tipo === 'Centro' ? 'Puede tener acceso para pedir la reposición de los productos que le des de alta, pedir material y escribir a su comercial.' : `Puede tener acceso a su informe y recibir un aviso con cada pauta a su nombre. No verá importes ni datos de ${TT('paciente', 'p', '', 'l', 'l')}.`}</p>
          <div class="g2"><div><label for="faccmail">Correo</label><input id="faccmail" type="email" value="${esc(m.email || '')}" placeholder="nombre@correo.com"></div>
          <div style="align-self:end"><button class="btn sec" id="fdaracc">Dar acceso</button></div></div><div class="sm" id="faccmsg"></div>`}</div>`);
@@ -26246,3 +26252,86 @@ montarPeriodo = (orig => function (el, ...a) {
   return r;
 })(montarPeriodo);
 
+
+
+
+
+/* ============================================================
+   v2.270.0 · «Entrar como» que funciona e invitados en Usuarios (aviso de Eric, 12/10/2026; necesita el SQL 145 y la función de
+   Supabase «impersonar» nueva).
+   - «Entrar como» fallaba: la función antigua solo dejaba entrar al rol «Administrador». Ahora comprueba la base (suplantar_preparar)
+     y, si algo no deja, la app dice por qué (y lo anota en el registro de errores si es un fallo).
+   - Invitados: profesionales y centros con acceso a su portal. En Usuarios van en su propio grupo, con su ficha, cuándo entraron por
+     última vez y qué ven; «Ver lo que ve» abre la plataforma como esa persona (con cualquier plan: solo ve su portal).
+   ============================================================ */
+const esInvitado = u => !!u && (rolPuede(u.rol, 'portal_prescriptor') || rolPuede(u.rol, 'portal_centro'));
+function puedeVerComo(u) {
+  return !!(PERFIL && u && (puede('administrar') || ((PERFIL.areas || {}).U || 0) >= 3) && !suplantando() && u.id !== PERFIL.id && u.activo
+    && !rolPuede(u.rol, 'administrar') && (PLAN_ACTUAL.plan === 'medida' || esInvitado(u)));
+}
+const queVeInvitado = u => rolPuede(u.rol, 'portal_centro')
+  ? 'Pide la reposición de los productos que le des de alta, pide material y escribe a su comercial.'
+  : `Ve su informe de ventas atribuidas (sin importes ni datos de ${TT('paciente', 'p', '', 'l', 'l')}), pide material y escribe sus dudas.`;
+const SUPL_ERR = {
+  administrador: 'No se puede entrar como otra persona que administra',
+  permiso: 'No tienes permiso para entrar como otra persona',
+  inactivo: 'Esa persona está desactivada: actívala antes',
+  propio: 'Ya estás en tu propia sesión',
+  otra: 'Esa persona es de otra empresa',
+  no_encontrado: 'No se encuentra a esa persona (o no tiene correo)',
+  plan: 'Entrar como alguien del equipo es del plan A medida (como los invitados, sí)',
+  sesion: 'Tu sesión ha caducado: vuelve a entrar y prueba otra vez',
+};
+
+entrarComo = async function (id) {
+  const u = (USUARIOS || []).find(x => x.id === id) || { nombre: 'esta persona' };
+  const inv = esInvitado(u);
+  if (!await preguntar(inv
+      ? `Verás exactamente lo que ve ${u.nombre} al entrar en su portal.\n\nLo que hagas quedará a su nombre y la entrada queda anotada en la auditoría. Para volver, pulsa «Volver a mi sesión» en la barra morada de arriba.`
+      : `Verás la plataforma exactamente como ${u.nombre}: su menú, sus permisos, su cartera y sus datos.\n\nLo que hagas quedará a su nombre y la entrada queda anotada en la auditoría. Para volver, pulsa «Volver a mi sesión» en la barra morada de arriba.`,
+    { titulo: inv ? `¿Ver lo que ve ${u.nombre}?` : `¿Entrar como ${u.nombre}?`, ok: inv ? 'Ver lo que ve' : 'Entrar como ' + nombrePila(u.nombre) })) return;
+  pantallaCarga((inv ? 'Abriendo el portal de ' : 'Entrando como ') + u.nombre + '…');
+  const { data: { session } } = await db.auth.getSession();
+  if (!session) { quitarCarga(); toast(SUPL_ERR.sesion, true); return; }
+  let { data, error } = await db.functions.invoke('impersonar', { body: { usuario_id: id } });
+  // La función antigua respondía con un error HTTP: se lee el motivo igualmente
+  if (error && !data && error.context && typeof error.context.json === 'function') { try { data = await error.context.json(); } catch (e) {} }
+  if (!data || !data.ok) {
+    const e = data && data.error;
+    toast(SUPL_ERR[e] || ('No se ha podido entrar: ' + ((data && data.detalle) || (error && error.message) || e || 'la función «impersonar» no responde')), true);
+    if (!SUPL_ERR[e] || e === 'sesion') registrarError('api', 'Entrar como: ' + (e || (error && error.message) || 'sin respuesta'), { estado: error && error.context && error.context.status, detalle: data && data.detalle });
+    quitarCarga(); return;
+  }
+  localStorage.setItem(SKEY, JSON.stringify({ access_token: session.access_token, refresh_token: session.refresh_token,
+    nombre: PERFIL.nombre, id: PERFIL.id, como: data.nombre, rol: data.rol, desde: Date.now() }));
+  const { error: e2 } = await db.auth.verifyOtp({ token_hash: data.token_hash, type: 'magiclink' });
+  if (e2) {
+    localStorage.removeItem(SKEY);
+    await db.auth.setSession({ access_token: session.access_token, refresh_token: session.refresh_token });
+    registrarError('api', 'Entrar como: no se abre la sesión', { mensaje: e2.message });
+    toast('No se ha podido abrir su sesión: ' + e2.message, true); quitarCarga(); return;
+  }
+  limpiarDatosLocales();
+  location.reload();
+};
+
+// Grupo «Invitados» de Usuarios
+function pintarInvitados(lista, acc) {
+  const box = $('usrinv'); if (!box) return;
+  const hace = t => { if (!t) return null; const d = new Date(t); return isNaN(d) ? null : d.toLocaleString('es-ES', { dateStyle: 'medium', timeStyle: 'short' }); };
+  $('usrinvn').textContent = lista.length ? '· ' + num(lista.length) : '';
+  box.innerHTML = lista.map(u => {
+    const a = acc[u.id] || {}, ult = hace(a.ultimo_acceso);
+    return `<div class="usrinv ${u.activo ? '' : 'off'}">
+      <span class="usrav" style="background:${esc((rolDef(u.rol) || {}).color || '#17457A')}">${esc(iniciales(u.nombre))}</span>
+      <span class="usrtx"><b>${esc(u.nombre)}</b><span class="sm">${esc(u.email || '')}</span>
+        <span class="usrchips">${u.cuenta_id ? `<button class="pill p-per" data-uinvf="${u.cuenta_id}" title="Abrir su ficha">${esc(u.medico || u.cuenta || 'Su ficha')}</button>` : '<span class="pill p-anu">Sin ficha</span>'}
+          ${u.activo ? '' : '<span class="pill p-anu">Desactivado</span>'}
+          <span class="sm usrinvult">${ult ? 'Último acceso: ' + esc(ult) : 'Aún no ha entrado'}</span></span>
+        <span class="sm usrinvve">${esc(queVeInvitado(u))}</span></span>
+      <span class="usrinvacts">${puedeVerComo(u) ? `<button class="btn" data-ucomo="${u.id}">Ver lo que ve</button>` : ''}
+        <button class="btn sec" data-uinvd="${u.id}">Detalles</button></span></div>`;
+  }).join('') || `<div class="vacio">${Object.keys(acc).length || (USUARIOS || []).some(esInvitado) ? 'Nadie con estos filtros.' : `Todavía no has dado acceso a nadie. Se da desde su ficha: «Acceso a la plataforma» → «Dar acceso».`}</div>`;
+  box.querySelectorAll('[data-uinvf]').forEach(b => b.onclick = () => abrirFicha(b.dataset.uinvf));
+  box.querySelectorAll('[data-uinvd]').forEach(b => b.onclick = () => detalleUsuario((USUARIOS || []).find(x => x.id === b.dataset.uinvd)));
+}

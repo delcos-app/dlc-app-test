@@ -4279,6 +4279,19 @@ body.modo-plataforma.menulat #v-delcos .pagtabs{display:none}
 .dgrid.peds2{--cols:84px minmax(160px,1.4fr) minmax(140px,1.2fr) 110px minmax(110px,1fr) 50px 90px 96px 96px 80px minmax(130px,1.1fr);min-width:1250px}
 .dgrid.peds2.sinimp{--cols:84px minmax(160px,1.4fr) minmax(140px,1.2fr) 110px minmax(110px,1fr) 50px 96px 80px minmax(130px,1.1fr);min-width:1050px}
 .dgrid.peds2 .pednota{color:var(--muted)}
+
+/* v2.270.0 · Invitados en Usuarios */
+.usrinvw{margin-top:14px}
+.usrinvw h3{margin:0 0 4px}
+.usrinvl{display:grid;gap:8px;margin-top:10px}
+.usrinv{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--panel)}
+.usrinv.off{opacity:.6}
+.usrinv .usrtx{display:flex;flex-direction:column;gap:3px;min-width:0}
+.usrinv .usrchips{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.usrinv button.pill{cursor:pointer;border:0;font:inherit}
+.usrinvve{color:var(--muted)}
+.usrinvacts{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+@media (max-width:760px){.usrinv{grid-template-columns:auto minmax(0,1fr)}.usrinvacts{grid-column:1/-1;justify-content:stretch}.usrinvacts .btn{flex:1}}
 </style>
 </head>
 <body>
@@ -4415,6 +4428,6 @@ try{var co=sessionStorage.getItem('dlc-cambio-org');if(co!==null||localStorage.g
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.269.0"></script>
+<script src="./app.js?v=2.270.0"></script>
 </body>
 </html>
