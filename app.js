@@ -26041,7 +26041,7 @@ async function presMateriales(forzar) {
   if (PRES_MAT && !forzar && Date.now() - PRES_T < 300000) return PRES_MAT;
   if (!navigator.onLine) return PRES_MAT || [];
   try {
-    const { data, error } = await db.from('producto_materiales').select('id,producto_id,nombre,tipo,orden').order('orden').order('creado_en');
+    const { data, error } = await db.from('producto_materiales').select('id,producto_id,nombre,tipo,orden,para_portal').order('orden').order('creado_en');
     if (!error) { PRES_MAT = data || []; PRES_T = Date.now(); }
   } catch (e) {}
   return PRES_MAT || [];
@@ -26126,11 +26126,11 @@ editorProducto = (orig => function (p, ...r) {
     const l = (await presMateriales(true)).filter(m => m.producto_id === p.id);
     if (!$('dbody') || $('prmat') || !$('prok')) return;
     ref.insertAdjacentHTML('beforebegin', `<div class="blk" id="prmat"><h3>Material para presentar</h3>
-      <p class="sm">Imágenes o PDF (fichas técnicas, estudios, catálogo) que se enseñan a pantalla completa al registrar ${esc(TT('visita', 's', 'una', 'l', 'l'))}. Hasta 8 MB cada uno.</p>
+      <p class="sm">Imágenes o PDF (fichas técnicas, estudios, catálogo) que se enseñan a pantalla completa al registrar ${esc(TT('visita', 's', 'una', 'l', 'l'))}. Hasta 8 MB cada uno. Con «Para los centros», los centros que tienen el producto lo descargan desde su portal.</p>
       <div class="prmatl" id="prmatl"></div>
       <label class="btn sec prmatadd">+ Añadir imagen o PDF<input type="file" id="prmatf" accept="image/*,application/pdf" multiple hidden></label></div>`);
     const pinta = lista => {
-      $('prmatl').innerHTML = lista.length ? lista.map(m => `<div class="prmati"><span>${m.tipo === 'application/pdf' ? 'PDF' : 'Imagen'} · ${esc(m.nombre)}</span>
+      $('prmatl').innerHTML = lista.length ? lista.map(m => `<div class="prmati"><span>${m.tipo === 'application/pdf' ? 'PDF' : 'Imagen'} · ${esc(m.nombre)}</span><label class="prmatpp"><input type="checkbox" data-prmatpp="${m.id}" ${m.para_portal ? 'checked' : ''}> Para los centros</label>
           <button type="button" class="lnk" data-prmatver="${m.id}">Ver</button><button type="button" class="lnk" data-prmatdel="${m.id}" aria-label="Quitar ${esc(m.nombre)}">Quitar</button></div>`).join('')
         : '<p class="sm">Todavía no tiene material.</p>';
       $('prmatl').querySelectorAll('[data-prmatver]').forEach(b => b.onclick = async () => {
@@ -27019,10 +27019,10 @@ async function centroPintar() {
       <div class="kpi"><b>${num(uds)}</b><span>unidades en 12 meses</span></div>
       <div class="kpi"><b>${num(lp.length)}</b><span>productos para pedir</span></div></div>
     <div class="pmfila">
-      <div class="card ancard pcpeds"><h2>Tus pedidos ${pmAyu('Tus pedidos', 'Los pedidos de reposición que habéis hecho y en qué punto están: pendiente de validar por tu comercial, validado, preparado o anulado.')}</h2>
+      <div class="card ancard pcpeds"><h2>Tus pedidos ${pmAyu('Tus pedidos', 'Los pedidos de reposición que habéis hecho y en qué punto están: pendiente de validar por tu comercial, pendiente de pago (si se paga por adelantado), validado, preparado o anulado. Cada pedido lleva los lotes que se os han enviado y sus facturas para descargar.')}</h2>
         ${peds.length ? `<div class="lista">${peds.slice(0, 8).map(p => `<div class="item"><span class="tx">
             <b>${p.numero ? esc(p.numero) + ' · ' : ''}${fechaCorta(String(p.fecha).slice(0, 10))}</b>
-            <span class="sm">${esc((p.lineas || []).map(l => `${l.producto} × ${num(l.unidades)}${l.regalo ? ' de regalo' : ''}`).join(', '))}${p.total != null ? ' · ' + eurI(p.total) : ''}</span></span>
+            <span class="sm">${esc((p.lineas || []).map(l => `${l.producto} × ${num(l.unidades)}${l.regalo ? ' de regalo' : ''}`).join(', '))}${p.total != null ? ' · ' + eurI(p.total) : ''}</span>${pcExtraPed(p)}</span>
             <span class="pcpst"><span class="pill ${NOMBRE_ESTADO_CENTRO[p.estado] || ''}">${esc(p.estado)}</span>${p.proforma ? `<button type="button" class="btn sec chico" data-pcpro="${p.id}">Factura proforma</button>` : ''}</span></div>`).join('')}</div>` : '<p class="sm">Todavía no hay pedidos.</p>'}</div>
       <div class="card ancard"><h2>Lo que habéis comprado ${pmAyu('Lo que habéis comprado', 'Unidades de los últimos 12 meses por producto, de los pedidos validados.')}</h2>
         ${pp.length ? barrasH(pp.map(x => ({ n: x.producto, v: x.unidades })), v => num(v) + ' uds.') : vacioGrafico('Aparecerá cuando tengáis pedidos validados.')}</div></div>`;
@@ -27141,7 +27141,7 @@ editorProducto = (orig => function (p, ...r) {
       <div id="prpkl"></div><button type="button" class="btn sec chico" id="prpkmas">+ Añadir pack</button>
       <div class="g2" style="margin-top:10px"><div><label for="prpkpvp">PVP recomendado (con IVA)</label><input id="prpkpvp" type="number" step="0.01" value="${d && d.pvp_recomendado != null ? +d.pvp_recomendado : ''}" placeholder="Sin indicar"></div></div>
       <span class="pcerr" id="prpkerr" hidden></span>
-      <div class="acts" style="justify-content:flex-start;margin:8px 0 0"><button type="button" class="btn sec" id="prpkok">Guardar packs</button></div></div>`);
+      <div class="prpkacts"><button type="button" class="btn sec" id="prpkok">Guardar packs</button></div></div>`);
     const leer = () => [...$('prpkl').querySelectorAll('.prpkf')].map(f => ({ compra: f.querySelector('[data-pkc]').value, regalo: f.querySelector('[data-pkg]').value }));
     const pinta = () => {
       $('prpkl').innerHTML = packs.length ? packs.map((k, i) => `<div class="prpkf"><label>Compra <input type="number" step="1" data-pkc value="${k.compra || ''}"></label>
@@ -27221,3 +27221,76 @@ function pcDebeHtml(peds) {
   const n = (peds || []).filter(p => p.proforma).length;
   return n ? `<div class="pmaviso pcdebe"><div><b>${n === 1 ? 'Tienes un pedido pendiente de pago' : `Tienes ${num(n)} pedidos pendientes de pago`}</b><span class="sm">Descarga la factura proforma en «Tus pedidos» y haz la transferencia: lo preparamos en cuanto llegue.</span></div></div>` : '';
 }
+
+
+
+
+/* ============================================================
+   v2.285.0 · Portal del centro: lotes, facturas y material para descargar (SQL 153).
+   - «Tus pedidos»: cada pedido con sus lotes (y caducidad) y sus facturas o rectificativas, que se descargan en PDF con el
+     diseño de la empresa.
+   - «Material y dudas»: «Material para descargar» con el material de sus productos que la empresa marca «Para los centros»
+     (en el producto, Material para presentar → «Para los centros»).
+   ============================================================ */
+function pcExtraPed(p) {
+  const lotes = p.lotes || [], facs = p.facturas || [];
+  return (lotes.length ? `<span class="sm pclotes">Lote${lotes.length > 1 ? 's' : ''}: ${lotes.map(l => `${esc(l.producto)} ${esc(l.lote)}${l.caducidad ? ' (cad. ' + fechaCorta(String(l.caducidad).slice(0, 10)) + ')' : ''}`).join(' · ')}</span>` : '')
+    + (facs.length ? `<span class="pcfacs">${facs.map(f => `<button type="button" class="lnk" data-pcfac="${f.id}">${f.rectificativa ? 'Rectificativa' : 'Factura'} ${esc(f.numero || '')}</button>`).join('')}</span>` : '');
+}
+
+async function pcFactura(id, btn) {
+  if (btn) btn.disabled = true;
+  try {
+    const { data: f } = await RPC_ORIG('portal_factura', { p_id: id });
+    if (!f || !f.ok) { toast(motivoPortal(f), true); return; }
+    const d = f.diseno || {};
+    const C = Object.assign({}, PDF_DEF, d, { cols: Object.assign({}, PDF_DEF.cols, d.cols || {}) });
+    const doc = await facturaPDF(f, f.rectifica_num || '', C);
+    doc.save(nombrePDF(f));
+  } catch (e) { toast('No se ha podido preparar la factura', true); registrarError('app', 'Factura del portal', { e: String(e) }); }
+  finally { if (btn) btn.disabled = false; }
+}
+
+async function pcMaterialBajar(id, btn) {
+  if (btn) btn.disabled = true;
+  try {
+    const { data: m } = await RPC_ORIG('portal_material_archivo', { p_id: id });
+    if (!m || !m.ok) { toast(motivoPortal(m), true); return; }
+    const bin = atob(m.datos || ''), u8 = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
+    const url = URL.createObjectURL(new Blob([u8], { type: m.tipo || 'application/octet-stream' }));
+    const a = document.createElement('a'); a.href = url; a.download = m.nombre || 'material'; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 30000);
+  } catch (e) { toast('No se ha podido descargar', true); }
+  finally { if (btn) btn.disabled = false; }
+}
+
+document.addEventListener('click', e => {
+  const t = e.target.closest && e.target.closest('[data-pcfac], [data-pcmat]'); if (!t) return;
+  if (t.dataset.pcfac) pcFactura(t.dataset.pcfac, t); else pcMaterialBajar(t.dataset.pcmat, t);
+});
+
+async function pcDescargas() {
+  const caja = $('pmmat'); if (!caja || $('pcdesc')) return;
+  caja.insertAdjacentHTML('afterbegin', `<div class="card ancard" id="pcdesc"><h2>Material para descargar ${pmAyu('Material para descargar', 'Dípticos, fichas de producto, guías de mostrador y otro material que la empresa prepara para los centros, de los productos que tenéis dados de alta. Pulsa para descargarlo.')}</h2><div id="pcdescl">${skelCard('Cargando…')}</div></div>`);
+  const { data: l } = await RPC_ORIG('portal_materiales', {});
+  const box = $('pcdescl'); if (!box) return;
+  const lista = Array.isArray(l) ? l : [];
+  const kb = n => n ? (n > 1048576 ? (n / 1048576).toLocaleString('es-ES', { maximumFractionDigits: 1 }) + ' MB' : Math.max(1, Math.round(n / 1024)) + ' KB') : '';
+  box.innerHTML = lista.length ? `<div class="lista">${lista.map(m => `<div class="item"><span class="tx"><b>${esc(m.nombre)}</b>
+      <span class="sm">${esc(m.producto)} · ${m.tipo === 'application/pdf' ? 'PDF' : 'Imagen'}${m.tamano ? ' · ' + kb(m.tamano) : ''}</span></span>
+      <button type="button" class="btn sec chico" data-pcmat="${m.id}">Descargar</button></div>`).join('')}</div>`
+    : '<p class="sm">Todavía no hay material para descargar.</p>';
+}
+centroPintar = (orig => async function (...a) { const r = await orig.apply(this, a); try { await pcDescargas(); } catch (e) {} return r; })(centroPintar);
+
+// Producto: el material, también para los centros
+document.addEventListener('change', async e => {
+  const c = e.target.closest && e.target.closest('[data-prmatpp]'); if (!c) return;
+  c.disabled = true;
+  const { error } = await db.from('producto_materiales').update({ para_portal: c.checked }).eq('id', c.dataset.prmatpp);
+  c.disabled = false;
+  if (error) { c.checked = !c.checked; toast('No se ha podido guardar: ' + error.message, true); return; }
+  const m = (PRES_MAT || []).find(x => x.id === c.dataset.prmatpp); if (m) m.para_portal = c.checked;
+  toast(c.checked ? 'Los centros que tienen este producto ya lo pueden descargar' : 'Ya no se ofrece a los centros');
+});
