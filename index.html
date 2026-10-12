@@ -4393,6 +4393,9 @@ body.modo-medico #v-config #cfgcuerpo > .card{margin:0}
 #agcinta .cdmas{top:50%;right:4px;transform:translateY(-50%)}
 #agsemlat .agsl{margin-bottom:16px}
 @media (min-width:761px){#agcuerpo .tdhead .acts{flex-basis:100%;width:100%}}
+
+/* v2.275.0 · Ventanas metidas en la página: la fila de botones queda fija abajo, siempre a la vista */
+dialog.encajada #dbody > .acts:last-child,dialog.encajada #dlg2body > .acts:last-child{position:sticky;bottom:0;z-index:2;background:var(--panel,#fff);margin:12px -22px -22px;padding:12px 22px;border-top:1px solid var(--line);box-shadow:0 -6px 14px -10px rgba(11,37,64,.25)}
 </style>
 </head>
 <body>
@@ -4529,6 +4532,6 @@ try{var co=sessionStorage.getItem('dlc-cambio-org');if(co!==null||localStorage.g
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.274.0"></script>
+<script src="./app.js?v=2.275.0"></script>
 </body>
 </html>

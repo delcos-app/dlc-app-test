@@ -15437,6 +15437,9 @@ function devolverEncajada(d) {
   // Si un repintado borra el apartado con la ventana dentro, se recupera (cerrada) en <body>
   new MutationObserver(() => { if (d.__casa && !d.isConnected) { d.__casa.appendChild(d); if (d.open) d.close(); } }).observe(document.body, { childList: true, subtree: true });
   d.addEventListener('close', () => {
+    // v2.275.0: si la ventana ya se ha vuelto a abrir (cerrar y abrir otra seguida, como «Borrar usuario» desde su ficha), el aviso
+    // de cierre llega tarde y deshacía su sitio: quedaba suelta al final de la página, fuera de la vista
+    if (d.open) return;
     devolverEncajada(d); delete d.dataset.fija;
     if (!d.classList.contains('encajada')) return;
     d.classList.remove('encajada'); d.removeAttribute('style');
