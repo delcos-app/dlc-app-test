@@ -536,7 +536,7 @@ async function fichaAcceso(id) {
   const [{ data: us }, rfm] = await Promise.all([RPC_ORIG('usuarios_resumen', {}), rpcCache('ficha_cuenta', { p_id: id }, 'ficha-' + id)]);
   const ya = (us || []).find(u => u.cuenta_id === id), m = (rfm && rfm.data && rfm.data.medico) || {};   // v2.128.0: m.tipo (centro o no)
   $('fbody').insertAdjacentHTML('beforeend', `<div class="blk" id="facceso"><h3>Acceso a la plataforma</h3>
-    ${ya ? `<p class="sm">Tiene acceso como <b>${esc(ya.email || '')}</b>${ya.activo ? '' : ' (desactivado)'}: ${m.tipo === 'Centro' ? 'pide la reposición de sus productos, material y escribe a su comercial' : 've su informe y recibe un aviso con cada pauta'}</p>${ya.activo && typeof puedeVerComo === 'function' && puedeVerComo(ya) ? `<button class="btn sec" data-ucomo="${ya.id}">Ver lo que ve</button>` : ''}.</p>`
+    ${ya ? `<p class="sm">Tiene acceso como <b>${esc(ya.email || '')}</b>${ya.activo ? '' : ' (desactivado)'}: ${m.tipo === 'Centro' ? 'pide la reposición de sus productos, material y escribe a su comercial' : 've su informe y recibe un aviso con cada pauta'}</p>${ya.activo && typeof puedeVerComo === 'function' && puedeVerComo(ya) ? `<button class="btn sec" data-ucomo="${ya.id}">👤 Impersonalizar</button>` : ''}.</p>`
       : m.tipo === 'Centro' ? `<p class="sm">Puede tener acceso para pedir la reposición de los productos que le des de alta, pedir material y escribir a su comercial.</p>
          <button class="btn sec" id="fdaracc">Dar acceso</button>`
       : `<p class="sm">Puede tener acceso a su informe de ventas atribuidas y recibir un aviso con cada venta a su nombre. No verá importes ni datos de ${TT('paciente', 'p', '', 'l', 'l')}.</p>
@@ -1511,7 +1511,7 @@ async function cargarAdmin() {
         <button class="btn sec" data-uver="${u.id}">Ver cartera</button>
         <button class="btn sec" data-ucart="${u.id}">Asignar</button>
         <button class="btn sec" data-upass="${u.id}">Contraseña</button>
-        ${puedeVerComo(u) ? `<button class="btn sec" data-ucomo="${u.id}" title="Ver la plataforma exactamente como esta persona">👤 Entrar como</button>` : ''}</span></div>`).join('')}</div>`;
+        ${puedeVerComo(u) ? `<button class="btn sec" data-ucomo="${u.id}" title="Abrir una sesión con su usuario, sus permisos y sus datos">👤 Impersonalizar</button>` : ''}</span></div>`).join('')}</div>`;
 
   ($('admcuerpo') || document.createElement('div')).querySelectorAll('[data-uedit]').forEach(b => b.onclick = () => editarUsuario(b.dataset.uedit));
   ($('admcuerpo') || document.createElement('div')).querySelectorAll('[data-ucart]').forEach(b => b.onclick = () => asignarCartera(b.dataset.ucart));
@@ -7550,7 +7550,7 @@ function limpiarDatosLocales() {
 
 async function entrarComo(id) {
   const u = (USUARIOS || []).find(x => x.id === id) || { nombre: 'esta persona' };
-  if (!await preguntar(`Verás la plataforma exactamente como ${u.nombre}: su menú, sus permisos, su cartera y sus datos.\n\nLo que hagas quedará a su nombre, y la entrada queda anotada en la auditoría. Para volver, pulsa «Volver a mi sesión» en la barra morada.`,
+  if (!await preguntar(`Abrirás una sesión con el usuario de ${u.nombre}: su menú, sus permisos, su cartera y sus datos.\n\nLo que hagas quedará a su nombre, y la entrada queda anotada en la auditoría. Para volver, pulsa «Volver a mi sesión» en la barra morada.`,
     { titulo: `¿Entrar como ${u.nombre}?`, ok: 'Entrar como ' + nombrePila(u.nombre) })) return;
   pantallaCarga('Entrando como ' + u.nombre + '…');
   const { data: { session } } = await db.auth.getSession();
@@ -7590,8 +7590,8 @@ function pintarBarraSuplantacion() {
   let b = $('barrasup');
   if (!s) { if (b) b.remove(); return; }
   if (!b) { document.body.insertAdjacentHTML('afterbegin', '<div id="barrasup"></div>'); b = $('barrasup'); }
-  b.innerHTML = `<span>👤 <b>Estás dentro como ${esc(PERFIL ? PERFIL.nombre : s.como)}</b>${PERFIL ? ' · ' + esc(PERFIL.rol) : ''} · Ves lo mismo que esa persona y lo que hagas queda a su nombre</span>
-    <button class="btn" id="supvolver">↩ Volver a mi sesión (${esc(nombrePila(s.nombre))})</button>`;
+  b.innerHTML = `<span>👤 <b>Impersonalizando a ${esc(PERFIL ? PERFIL.nombre : s.como)}</b>${PERFIL ? ' · ' + esc(PERFIL.rol) : ''} · Sesión con su usuario: lo que hagas queda a su nombre</span>
+    <button class="btn" id="supvolver">↩ Terminar la impersonalización (${esc(nombrePila(s.nombre))})</button>`;
   $('supvolver').onclick = volverAMiSesion;
 }
 
@@ -7600,7 +7600,7 @@ document.addEventListener('click', e => {
   if (b) entrarComo(b.dataset.ucomo);
 });
 
-AREAS.push(['U', 'Entrar como otro usuario']);
+AREAS.push(['U', 'Impersonalizar usuarios']);
 
 /* ---------------- manual de uso ---------------- */
 
@@ -7632,7 +7632,7 @@ const MANUAL = [
   { id: 'config', t: 'Configuración', a: 'K', para: 'Tus preferencias y las listas que usa toda la plataforma.',
     hacer: [[0, 'Cambiar tus preferencias de salida, llegada, navegador y avisos'], [1, 'Ver clasificadores'], [2, 'Añadir y editar valores de clasificadores'], [3, 'Crear clasificadores nuevos']], config: [] },
   { id: 'admin', t: 'Administración', a: null, para: 'Usuarios, permisos, carteras, comisiones, accesos y auditoría. Solo administración.',
-    hacer: [[3, 'Crear y editar usuarios y sus permisos'], [3, 'Asignar carteras (exclusivas o no)'], [3, 'Configurar comisiones y liquidar'], [3, 'Entrar como otro usuario para ver lo que ve']],
+    hacer: [[3, 'Crear y editar usuarios y sus permisos'], [3, 'Asignar carteras (exclusivas o no)'], [3, 'Configurar comisiones y liquidar'], [3, 'Impersonalizar a otro usuario para revisar lo que ve']],
     config: [`Cartera exclusiva: ${TT('medico', 's', 'un', 'l', 'l')} en una sola cartera (Agenda → Equipo → ⚙ Reglas de cartera)`] }
 ];
 
@@ -9544,6 +9544,9 @@ const ES_MEDICO = () => puede('portal_prescriptor');
 
 async function cargarInforme() {
   if (puede('portal_centro')) return cargarCentro();   // v2.128.0: el portal del centro
+  // v2.271.0: página nueva (al final del archivo); al arrancar se espera a que esté leída
+  if (!window.PM_LISTO) { const v0 = $('v-informe'); if (v0 && !v0.innerHTML.trim()) v0.innerHTML = '<div class="card">' + skelCard('Cargando tu informe…') + '</div>'; setTimeout(cargarInforme, 30); return; }
+  return cargarInforme2271();
   const v = $('v-informe');
   v.innerHTML = `<div class="medhero"><div><div class="sm" style="color:rgba(255,255,255,.8)">Tu informe de ventas atribuidas</div><h1 id="mdnom">…</h1><div id="mdesp" class="sm" style="color:rgba(255,255,255,.85)"></div></div>
       <div class="medper"><div id="mdper"></div></div></div>
@@ -9607,7 +9610,7 @@ if (typeof pintarBnav === 'function') pintarBnav = (orig => function () {
 
 MANUAL.push({ id: 'medico', t: `Espacio ${TT('medico', 's', 'del', 'l', 'l')}`, a: null, para: `${TT('medico', 'p', 'el', 'C', 'l')} con usuario ven su informe de ventas atribuidas y reciben un aviso con cada venta a su nombre.`,
   hacer: [[3, 'Crear el usuario con el rol «Medico» y vincularlo a su ficha (Administración → Usuarios → Editar)']],
-  config: [`${TT('medico', 's', 'el', 'C', 'l')} ve unidades, ventas, ${TT('paciente', 'p', '', 'l', 'l')} (solo el número), su posición entre ${TT('medico', 'p', 'el', 'l', 'l')} y las llamadas de sus ${TT('paciente', 'p', '', 'l', 'l')}. Nunca importes ni nombres.`] });
+  config: [`${TT('medico', 's', 'el', 'C', 'l')} ve unidades, ventas, ${TT('paciente', 'p', '', 'l', 'l')} (solo el número) y las llamadas de sus ${TT('paciente', 'p', '', 'l', 'l')}. Nunca importes ni nombres.`] });
 ICONOS_MANUAL.medico = '🩺';
 
 /* ---------------- factura en PDF con el logo circular ---------------- */
@@ -10498,7 +10501,7 @@ const PLANES = [
   { id: 'premium', nombre: 'Premium', precio: 1190, incluidos: 40, bloque: [10, 249], medicos: null,
     para: 'Redes comerciales grandes que lo quieren todo',
     modulos: ['inicio', 'agenda', 'rutas', 'directorio', 'seguimiento', 'ventas', 'pacientes', 'productos', 'analitica', 'facturacion'],
-    ventajas: ['Todo lo de Avanzado', `Espacio ${TT('medico', 's', 'del', 'l', 'l')} sin límite`, 'Entrar como otro usuario y auditoría completa', 'Puesta en marcha y migración de datos incluidas', 'Soporte prioritario'] }
+    ventajas: ['Todo lo de Avanzado', `Espacio ${TT('medico', 's', 'del', 'l', 'l')} sin límite`, 'Impersonalización de usuarios y auditoría completa', 'Puesta en marcha y migración de datos incluidas', 'Soporte prioritario'] }
 ];
 let PLAN_ACTUAL = { plan: 'medida' };   // v2.117.0: hasta que llega el de la base, el completo
 const planDe = id => PLANES.find(p => p.id === id) || PLANES[3];
@@ -10601,7 +10604,7 @@ async function pintarUsuarios2() {
         <button class="btn" id="usrnuevo">+ Nuevo usuario</button></div>
       <div id="usrl" class="usrlista"></div></div>
     <div class="card usrinvw" style="padding:14px 16px"><h3>Invitados <span id="usrinvn" class="sm"></span></h3>
-      <p class="sm">${TT('medico', 'p', '', 'l', 'C')} y centros a los que has dado acceso a su portal. No cuentan como usuarios del plan. Con «Ver lo que ve» entras en su portal tal como lo verán.</p>
+      <p class="sm">${TT('medico', 'p', '', 'l', 'C')} y centros a los que has dado acceso a su portal. No cuentan como usuarios del plan. Con «Impersonalizar» abres una sesión con su usuario y ves su portal tal como lo verá.</p>
       <div id="usrinv" class="usrinvl"></div></div></div>`;
   $('usrq').oninput = () => { USR_F.q = $('usrq').value; pinta(); };
   $('usrrol').onchange = () => { USR_F.rol = $('usrrol').value; pinta(); };
@@ -10615,7 +10618,7 @@ async function pintarUsuarios2() {
 const QUE_ABRE = { H: 'Inicio: indicadores, alertas y resumen', G: 'Agenda, citas y «Tu día»', R: 'Rutas y planificador', M: `${TT('medico', 'p', '', 'l', 'C')}, centros y sus fichas`,
   C: 'Centros y sus datos', S: `Registro de ${TT('visita', 'p', '', 'l', 'l')}`, V: 'Pedidos: ventas, compras y llamadas', L: `Clientes (${TT('paciente', 'p', '', 'l', 'l')} y empresas)`, P: 'Productos, servicios y stock',
   F: 'Facturación, cobros y rectificativas', A: 'Analítica y rankings', E: 'Importes en euros (si no, solo unidades)', Q: 'Calidad del dato y duplicados',
-  K: 'Clasificadores y listas de valores', U: 'Entrar como otra persona' };
+  K: 'Clasificadores y listas de valores', U: 'Impersonalizar a otros usuarios' };
 const plantillaRol = r => Object.assign({}, (rolDef(r) || {}).plantilla || {}, (AJUSTES.roles || {})[r] || {});
 async function pintarRoles() {
   await cargarAjustes();
@@ -10947,7 +10950,7 @@ PLANES.splice(0, PLANES.length,
     ventajas: ['Todo lo de Profesional', 'Facturación con VeriFactu y cobros', 'Compras, proveedores y trazabilidad', `Zonas, supervisión y espacio ${TT('medico', 's', 'del', 'l', 'l')} (25)`] },
   { id: 'premium', nombre: 'Premium', precio: 179, incluidos: 15, bloque: [1, 8], medicos: null, para: 'Redes comerciales completas',
     modulos: ['inicio', 'agenda', 'rutas', 'directorio', 'seguimiento', 'ventas', 'pacientes', 'productos', 'analitica', 'facturacion'],
-    ventajas: ['Todo lo de Avanzado', `Espacio ${TT('medico', 's', 'del', 'l', 'l')} sin límite`, 'Entrar como otro usuario y auditoría', 'Soporte prioritario y ayuda con la migración'] });
+    ventajas: ['Todo lo de Avanzado', `Espacio ${TT('medico', 's', 'del', 'l', 'l')} sin límite`, 'Impersonalización de usuarios y auditoría', 'Soporte prioritario y ayuda con la migración'] });
 pintarPlan2 = (orig => async function () {
   await orig();
   const c = $('cfgcuerpo'); if (!c) return;
@@ -11885,7 +11888,7 @@ function detalleUsuario(u) {
       <button class="btn" data-uacc="editar">✏️ Editar rol, permisos y zona</button>
       ${!rolPuede(u.rol, 'portal_prescriptor') ? '<button class="btn sec" data-uacc="cartera">🗂️ Asignar cartera</button>' : ''}
       <button class="btn sec" data-uacc="pass">🔑 Enviar cambio de contraseña</button>
-      ${typeof puedeVerComo === 'function' && puedeVerComo(u) ? (esInvitado(u) ? '<button class="btn" data-uacc="como">Ver lo que ve</button>' : '<button class="btn sec" data-uacc="como">👤 Entrar como esta persona</button>') : ''}
+      ${typeof puedeVerComo === 'function' && puedeVerComo(u) ? (esInvitado(u) ? '<button class="btn" data-uacc="como">👤 Impersonalizar</button>' : '<button class="btn sec" data-uacc="como">👤 Impersonalizar</button>') : ''}
       ${puede('administrar') && u.id !== PERFIL.id ? '<button class="btn sec dang" data-uacc="borrar">🗑 Borrar usuario</button>' : ''}</div>`;
   $('dlg').showModal();
   $('dbody').querySelectorAll('[data-uacc]').forEach(b => b.onclick = () => {
@@ -14914,7 +14917,7 @@ async function fichaAccesoCartera(id) {
   // Solo en las fichas de su cartera (o en todas si ve todo)
   if ((!ya && !(mia || []).length) || FICHA_ID !== id || $('facceso')) return;
   $('fbody').insertAdjacentHTML('beforeend', `<div class="blk" id="facceso"><h3>Acceso a la plataforma</h3>
-    ${ya ? `<p class="sm">Tiene acceso${ya.email ? ` como <b>${esc(ya.email)}</b>` : ''}${ya.activo ? '' : ' (desactivado)'}: ${m.tipo === 'Centro' ? 'pide la reposición de sus productos, material y escribe a su comercial' : 've su informe y recibe un aviso con cada pauta'}</p>${ya.activo && typeof puedeVerComo === 'function' && puedeVerComo(ya) ? `<button class="btn sec" data-ucomo="${ya.id}">Ver lo que ve</button>` : ''}.</p>`
+    ${ya ? `<p class="sm">Tiene acceso${ya.email ? ` como <b>${esc(ya.email)}</b>` : ''}${ya.activo ? '' : ' (desactivado)'}: ${m.tipo === 'Centro' ? 'pide la reposición de sus productos, material y escribe a su comercial' : 've su informe y recibe un aviso con cada pauta'}</p>${ya.activo && typeof puedeVerComo === 'function' && puedeVerComo(ya) ? `<button class="btn sec" data-ucomo="${ya.id}">👤 Impersonalizar</button>` : ''}.</p>`
       : `<p class="sm">${m.tipo === 'Centro' ? 'Puede tener acceso para pedir la reposición de los productos que le des de alta, pedir material y escribir a su comercial.' : `Puede tener acceso a su informe y recibir un aviso con cada pauta a su nombre. No verá importes ni datos de ${TT('paciente', 'p', '', 'l', 'l')}.`}</p>
          <div class="g2"><div><label for="faccmail">Correo</label><input id="faccmail" type="email" value="${esc(m.email || '')}" placeholder="nombre@correo.com"></div>
          <div style="align-self:end"><button class="btn sec" id="fdaracc">Dar acceso</button></div></div><div class="sm" id="faccmsg"></div>`}</div>`);
@@ -26273,13 +26276,13 @@ const queVeInvitado = u => rolPuede(u.rol, 'portal_centro')
   ? 'Pide la reposición de los productos que le des de alta, pide material y escribe a su comercial.'
   : `Ve su informe de ventas atribuidas (sin importes ni datos de ${TT('paciente', 'p', '', 'l', 'l')}), pide material y escribe sus dudas.`;
 const SUPL_ERR = {
-  administrador: 'No se puede entrar como otra persona que administra',
-  permiso: 'No tienes permiso para entrar como otra persona',
+  administrador: 'No se puede impersonalizar a un usuario que administra',
+  permiso: 'No tienes permiso para impersonalizar usuarios',
   inactivo: 'Esa persona está desactivada: actívala antes',
   propio: 'Ya estás en tu propia sesión',
   otra: 'Esa persona es de otra empresa',
   no_encontrado: 'No se encuentra a esa persona (o no tiene correo)',
-  plan: 'Entrar como alguien del equipo es del plan A medida (como los invitados, sí)',
+  plan: 'Impersonalizar a usuarios del equipo es del plan A medida (a los invitados, con cualquier plan)',
   sesion: 'Tu sesión ha caducado: vuelve a entrar y prueba otra vez',
 };
 
@@ -26287,10 +26290,10 @@ entrarComo = async function (id) {
   const u = (USUARIOS || []).find(x => x.id === id) || { nombre: 'esta persona' };
   const inv = esInvitado(u);
   if (!await preguntar(inv
-      ? `Verás exactamente lo que ve ${u.nombre} al entrar en su portal.\n\nLo que hagas quedará a su nombre y la entrada queda anotada en la auditoría. Para volver, pulsa «Volver a mi sesión» en la barra morada de arriba.`
-      : `Verás la plataforma exactamente como ${u.nombre}: su menú, sus permisos, su cartera y sus datos.\n\nLo que hagas quedará a su nombre y la entrada queda anotada en la auditoría. Para volver, pulsa «Volver a mi sesión» en la barra morada de arriba.`,
-    { titulo: inv ? `¿Ver lo que ve ${u.nombre}?` : `¿Entrar como ${u.nombre}?`, ok: inv ? 'Ver lo que ve' : 'Entrar como ' + nombrePila(u.nombre) })) return;
-  pantallaCarga((inv ? 'Abriendo el portal de ' : 'Entrando como ') + u.nombre + '…');
+      ? `Abrirás una sesión con el usuario de ${u.nombre} y verás su portal tal como lo ve.\n\nLo que hagas quedará a su nombre y la impersonalización queda registrada en la auditoría. Para terminar, pulsa «Terminar la impersonalización» en la barra morada de arriba.`
+      : `Abrirás una sesión con el usuario de ${u.nombre}: su menú, sus permisos, su cartera y sus datos.\n\nLo que hagas quedará a su nombre y la impersonalización queda registrada en la auditoría. Para terminar, pulsa «Terminar la impersonalización» en la barra morada de arriba.`,
+    { titulo: `¿Impersonalizar a ${u.nombre}?`, ok: 'Impersonalizar' })) return;
+  pantallaCarga('Impersonalizando a ' + u.nombre + '…');
   const { data: { session } } = await db.auth.getSession();
   if (!session) { quitarCarga(); toast(SUPL_ERR.sesion, true); return; }
   let { data, error } = await db.functions.invoke('impersonar', { body: { usuario_id: id } });
@@ -26299,7 +26302,7 @@ entrarComo = async function (id) {
   if (!data || !data.ok) {
     const e = data && data.error;
     toast(SUPL_ERR[e] || ('No se ha podido entrar: ' + ((data && data.detalle) || (error && error.message) || e || 'la función «impersonar» no responde')), true);
-    if (!SUPL_ERR[e] || e === 'sesion') registrarError('api', 'Entrar como: ' + (e || (error && error.message) || 'sin respuesta'), { estado: error && error.context && error.context.status, detalle: data && data.detalle });
+    if (!SUPL_ERR[e] || e === 'sesion') registrarError('api', 'Impersonalizar: ' + (e || (error && error.message) || 'sin respuesta'), { estado: error && error.context && error.context.status, detalle: data && data.detalle });
     quitarCarga(); return;
   }
   localStorage.setItem(SKEY, JSON.stringify({ access_token: session.access_token, refresh_token: session.refresh_token,
@@ -26308,7 +26311,7 @@ entrarComo = async function (id) {
   if (e2) {
     localStorage.removeItem(SKEY);
     await db.auth.setSession({ access_token: session.access_token, refresh_token: session.refresh_token });
-    registrarError('api', 'Entrar como: no se abre la sesión', { mensaje: e2.message });
+    registrarError('api', 'Impersonalizar: no se abre la sesión', { mensaje: e2.message });
     toast('No se ha podido abrir su sesión: ' + e2.message, true); quitarCarga(); return;
   }
   limpiarDatosLocales();
@@ -26329,9 +26332,312 @@ function pintarInvitados(lista, acc) {
           ${u.activo ? '' : '<span class="pill p-anu">Desactivado</span>'}
           <span class="sm usrinvult">${ult ? 'Último acceso: ' + esc(ult) : 'Aún no ha entrado'}</span></span>
         <span class="sm usrinvve">${esc(queVeInvitado(u))}</span></span>
-      <span class="usrinvacts">${puedeVerComo(u) ? `<button class="btn" data-ucomo="${u.id}">Ver lo que ve</button>` : ''}
+      <span class="usrinvacts">${puedeVerComo(u) ? `<button class="btn" data-ucomo="${u.id}">👤 Impersonalizar</button>` : ''}
         <button class="btn sec" data-uinvd="${u.id}">Detalles</button></span></div>`;
   }).join('') || `<div class="vacio">${Object.keys(acc).length || (USUARIOS || []).some(esInvitado) ? 'Nadie con estos filtros.' : `Todavía no has dado acceso a nadie. Se da desde su ficha: «Acceso a la plataforma» → «Dar acceso».`}</div>`;
   box.querySelectorAll('[data-uinvf]').forEach(b => b.onclick = () => abrirFicha(b.dataset.uinvf));
   box.querySelectorAll('[data-uinvd]').forEach(b => b.onclick = () => detalleUsuario((USUARIOS || []).find(x => x.id === b.dataset.uinvd)));
 }
+
+
+
+
+/* ============================================================
+   v2.271.0 · Portal del profesional en una sola página (revisión de Eric, 12/10/2026; variante C elegida; necesita el SQL 146).
+   - Pestañas dentro de la página: «Resumen», «Mi ficha» y «Material y dudas». Sin «Inicio», sin manual y, en Configuración, solo
+     «Mis datos» (sin módulos, actividad, rol ni «al entrar, abrir») y «Notificaciones».
+   - Resumen: 4 indicadores y debajo, en dos columnas iguales alineadas con ellos, «Tu evolución» (un solo gráfico: unidades por mes y,
+     debajo, cuántas ventas), «Por producto», «Llamadas recibidas a tu nombre» y «Constancia». Sin posición entre profesionales.
+     Cada bloque se explica en su ayuda «i».
+   - Mi ficha: contacto, dónde pasa consulta (centros de la base, sin más datos que nombre y dirección, o uno nuevo), un horario
+     flexible y rápido por centro (días, varias franjas con horas libres y botones para rellenar de golpe), cómo prefiere las visitas
+     y notas. Se envía como propuesta a su comercial (portal_guardar_ficha); si le falta algo, aviso arriba y notificación (SQL 146).
+   - En la ficha del equipo: «Datos enviados desde su portal» con lo que tenéis y lo que propone, «Editar la ficha» y «Marcar como
+     revisado».
+   ============================================================ */
+const PM = { tab: 'res', ficha: null, faltan: [], prop: null, ubic: [] };
+const pmAyu = (t, x) => `<button type="button" class="ai" data-ayuda-tit="${esc(t)}" data-ayuda-txt="${esc(x)}" aria-label="Qué es">i</button>`;
+const PM_DIAS = ['L', 'M', 'X', 'J', 'V', 'S'];
+const PM_DIAN = { L: 'Lunes', M: 'Martes', X: 'Miércoles', J: 'Jueves', V: 'Viernes', S: 'Sábado' };
+const PM_COMO = ['Con cita previa', 'Sin cita, al final de la consulta', 'Sin cita, en cualquier hueco', 'Por teléfono o videollamada', 'Prefiero que me escribáis antes'];
+
+// cargarInforme (en su sitio) espera a que se lea este final y llama aquí: al arrancar, «Mi informe» se pinta antes
+async function cargarInforme2271() {
+  const v = $('v-informe'), pac = TT('paciente', 'p', '', 'l', 'l');
+  v.innerHTML = `<div class="medhero"><div><div class="sm" style="color:rgba(255,255,255,.8)">Tu informe de ventas atribuidas</div><h1 id="mdnom">…</h1><div id="mdesp" class="sm" style="color:rgba(255,255,255,.85)"></div></div>
+      <div class="medper"><div id="mdper"></div></div></div>
+    <div class="pmtabs" role="tablist">${[['res', 'Resumen'], ['ficha', 'Mi ficha'], ['mat', 'Material y dudas']].map(([k, t]) =>
+      `<button type="button" role="tab" data-pmt="${k}" class="${PM.tab === k ? 'on' : ''}" aria-selected="${PM.tab === k}">${t}<span class="pmtpunto" hidden></span></button>`).join('')}</div>
+    <div data-pmp="res" id="mdcuerpo" ${PM.tab === 'res' ? '' : 'hidden'}>${pmEsqueleto()}</div>
+    <div data-pmp="ficha" id="pmficha" ${PM.tab === 'ficha' ? '' : 'hidden'}>${pmEsqueleto(true)}</div>
+    <div data-pmp="mat" id="pmmat" ${PM.tab === 'mat' ? '' : 'hidden'}><div id="mdportal" class="pmfila"></div></div>`;
+  v.querySelectorAll('[data-pmt]').forEach(b => b.onclick = () => pmTab(b.dataset.pmt));
+  const pinta = async () => {
+    const r = $('mdper').__rango();
+    const [{ data: d }, { data: c }, { data: f }] = await Promise.all([RPC_ORIG('informe_cuenta', { p_desde: r.desde, p_hasta: r.hasta }),
+      RPC_ORIG('constancia_pacientes', { p_meses: 12 }), PM.ficha ? Promise.resolve({ data: null }) : RPC_ORIG('portal_mi_ficha', {})]);
+    if (f && f.ok) pmFichaDatos(f);
+    if (!$('mdcuerpo')) return;
+    if (!d || !d.ok) { $('mdcuerpo').innerHTML = `<div class="card"><div class="vacio">Tu usuario todavía no está vinculado a tu ficha de ${TT('medico', 's', '', 'l', 'l')}. Avisa a la empresa para activarlo.</div></div>`; return; }
+    $('mdnom').textContent = d.medico.nombre; $('mdesp').textContent = d.medico.especialidad || '';
+    $('mdcuerpo').innerHTML = pmResumen(d, c || {}, pac);
+    $('mdcuerpo').querySelectorAll('[data-pmir]').forEach(b => b.onclick = () => pmTab(b.dataset.pmir));
+    pmPintarFicha();
+  };
+  montarPeriodo($('mdper'), { id: 'informe', valor: 'anio', alCambiar: pinta });
+  await pinta();
+  portalMedico();
+}
+window.PM_LISTO = true;
+
+function pmTab(k) {
+  PM.tab = k;
+  document.querySelectorAll('#v-informe [data-pmt]').forEach(b => { b.classList.toggle('on', b.dataset.pmt === k); b.setAttribute('aria-selected', b.dataset.pmt === k); });
+  document.querySelectorAll('#v-informe [data-pmp]').forEach(p => p.hidden = p.dataset.pmp !== k);
+  window.scrollTo({ top: 0 });
+}
+
+function pmEsqueleto(ficha) {
+  const k = `<div class="pmk">${'<div class="kpi ksk"><b class="plsk"></b><span class="plsk"></span></div>'.repeat(4)}</div>`;
+  const c = '<div class="card ancard pmsk"><span class="plsk"></span></div>';
+  return ficha ? `<div class="pmfila">${c}${c}</div><div class="pmfila">${c}</div>` : `${k}<div class="pmfila">${c}${c}</div><div class="pmfila">${c}${c}</div>`;
+}
+
+// ——— Resumen ———
+function pmResumen(d, k, pac) {
+  const meses = mesesEntre(d.desde, d.hasta), serie = {}; (d.serie || []).forEach(s => serie[s.mes] = s);
+  const ll = d.llamadas || {}, conv = ll.total ? Math.round(ll.con_pedido / ll.total * 100) : null;
+  const mx = Math.max(1, ...meses.map(m => (serie[m] || {}).unidades || 0));
+  const evol = d.unidades ? `<div class="pmleg"><span><i></i>Unidades</span><span><i class="v"></i>Ventas</span></div>
+    <div class="pmev" style="--n:${meses.length}">${meses.map(m => {
+      const s = serie[m] || {}, u = s.unidades || 0, n = s.pautas || 0;
+      const mes = new Date(m + '-01T12:00').toLocaleDateString('es-ES', { month: 'short' }).replace('.', '');
+      return `<div class="pmcol" title="${esc(mes)}: ${num(u)} unidades, ${num(n)} ventas"><div class="pmbar"><b>${u ? num(u) : ''}</b><i style="height:${u ? Math.max(3, u / mx * 100) : 0}%"></i></div>
+        <span class="pmm">${esc(mes)}</span><span class="pmn">${n ? `<em>${num(n)}</em>` : ''}</span></div>`; }).join('')}</div>`
+    : vacioGrafico(`Cuando tus ${pac} hagan su pedido, verás aquí la evolución.`);
+  const cons = !k.ok ? '<p class="sm">No disponible.</p>' : k.pocos
+    ? `<p class="sm">En los últimos ${num(k.meses || 12)} meses han empezado ${num(k.empezaron)} ${pac}. A partir de ${num(k.minimo || 5)} verás aquí su constancia.</p>`
+    : `<div class="minis cons"><div><b>${num(k.empezaron)}</b><span>empezaron</span></div><div><b>${k.empezaron ? Math.round(k.repiten / k.empezaron * 100) + '%' : '—'}</b><span>repiten</span></div>
+        <div><b>${k.dias_entre ? num(k.dias_entre) + ' días' : '—'}</b><span>entre pedidos</span></div><div><b>${num(k.sin_pedir)}</b><span>más de 60 días sin pedir</span></div></div>`;
+  const falta = PM.faltan.length ? `<div class="pmaviso"><div><b>Completa tu ficha</b><span class="sm">Falta ${esc(pmFaltaTxt())}. Así tu comercial pasa a verte cuando mejor te va.</span></div>
+      <button type="button" class="btn" data-pmir="ficha">Completar mi ficha</button></div>` : '';
+  return `${falta}
+    <div class="pmk">
+      <div class="kpi"><b>${num(d.unidades)}</b><span>unidades atribuidas</span></div>
+      <div class="kpi"><b>${num(d.pautas)}</b><span>ventas</span></div>
+      <div class="kpi"><b>${num(d.pacientes)}</b><span>${pac}</span></div>
+      <div class="kpi"><b>${d.ultima_pauta ? fechaCorta(d.ultima_pauta) : '—'}</b><span>última venta</span></div></div>
+    <div class="pmfila">
+      <div class="card ancard"><h2>Tu evolución ${pmAyu('Tu evolución', `Cada barra son las unidades atribuidas a tu nombre en el mes; el número de debajo, cuántas ventas fueron. Cambia el periodo arriba a la derecha.${d.ultima_pauta ? ' Última venta: ' + fechaCorta(d.ultima_pauta) + '.' : ''}`)}</h2>${evol}</div>
+      <div class="card ancard"><h2>Por producto ${pmAyu('Por producto', 'Qué productos se han vendido a tu nombre en el periodo y qué parte de las unidades es cada uno.')}</h2>
+        ${(d.productos || []).length ? `<div class="pmdon">${svgDonut(d.productos.map(x => ({ n: x.nombre, v: x.unidades })))}</div>` : vacioGrafico('Aparecerá el reparto por producto.')}</div></div>
+    <div class="pmfila">
+      <div class="card ancard"><h2>Llamadas recibidas a tu nombre ${pmAyu('Llamadas recibidas a tu nombre', `Registro de las llamadas que recibe la empresa de ${pac} que indican venir de tu parte, tanto si terminan en compra como si no. No se muestra ningún dato de quién llama.`)}</h2>
+        <div class="minis"><div><b>${num(ll.total || 0)}</b><span>llamadas</span></div><div><b>${conv == null ? '—' : conv + '%'}</b><span>terminan en compra</span></div></div>
+        ${(ll.por_resultado || []).length ? barrasH(ll.por_resultado.map(x => ({ n: x.resultado, v: x.n })), num) : '<p class="sm">Todavía no hay llamadas registradas a tu nombre.</p>'}</div>
+      <div class="card ancard" id="pmconst"><h2>Constancia de tus ${pac} ${pmAyu(`Constancia de tus ${pac}`, `Últimos 12 meses: cuántos ${pac} empezaron contigo, cuántos repiten y cada cuánto piden. Solo cifras: nunca se muestra ningún ${TT('paciente', 's', '', 'l', 'l')} y, con menos de 5, no se enseña nada para que nadie pueda reconocerlos. Por confidencialidad tampoco se muestran importes.`)}</h2>${cons}</div></div>`;
+}
+
+const pmFaltaTxt = () => {
+  const t = { horario: 'dónde y cuándo pasas consulta', telefono: 'un teléfono de contacto', visitas: `cómo prefieres ${TT('visita', 'p', 'el', 'l', 'l')}` };
+  const l = PM.faltan.map(x => t[x]).filter(Boolean);
+  return l.length > 1 ? l.slice(0, -1).join(', ') + ' y ' + l[l.length - 1] : l[0] || 'algún dato';
+};
+
+// ——— Mi ficha: datos ———
+function pmRangos(txt) {
+  const t = String(txt || ''), out = [];
+  const re = /(\d{1,2})(?::(\d{2}))?\s*[-–a]\s*(\d{1,2})(?::(\d{2}))?/g; let m;
+  while ((m = re.exec(t))) out.push([pmHora(m[1] + ':' + (m[2] || '00')), pmHora(m[3] + ':' + (m[4] || '00'))]);
+  if (!out.length && /mañana/i.test(t)) out.push(['09:00', '14:00']);
+  if (/tarde/i.test(t) && !out.some(r => r[0] >= '14:00')) out.push(['16:00', '20:00']);
+  return out;
+}
+function pmHora(v) {
+  const s = String(v || '').replace(/[^\d:]/g, '');
+  let h, m;
+  if (s.includes(':')) [h, m] = s.split(':'); else if (s.length <= 2) { h = s; m = '00'; } else { h = s.slice(0, s.length - 2); m = s.slice(-2); }
+  h = +h; m = +(m || 0);
+  if (!s || isNaN(h) || h > 23 || m > 59) return '';
+  return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0');
+}
+function pmFichaDatos(f) {
+  PM.faltan = f.faltan || []; PM.prop = f.propuesta || null; PM.ubic = f.ubicaciones || [];
+  const p = (PM.prop && PM.prop.datos) || {}, c = f.cuenta || {};
+  const dias = o => { const r = {}; PM_DIAS.forEach(k => { const l = Array.isArray(o && o[k]) ? o[k].map(x => Array.isArray(x) ? x : pmRangos(x)[0]).filter(Boolean) : pmRangos(o && o[k]); if (l.length) r[k] = l; }); return r; };
+  PM.ficha = {
+    telefono: p.telefono != null ? p.telefono : (c.telefono || ''), email: p.email != null ? p.email : (c.email || ''),
+    consultas: (p.consultas || PM.ubic.map(u => ({ centro_id: u.centro_id, ubicacion_id: u.id, nombre: u.nombre, direccion: u.direccion, municipio: u.municipio, dias: u.dias })))
+      .map(x => Object.assign({}, x, { dias: dias(x.dias) })),
+    visitas: Object.assign({ como: '', momento: '' }, p.visitas || {}), notas: p.notas || ''
+  };
+}
+
+// ——— Mi ficha: pantalla ———
+function pmPintarFicha() {
+  const box = $('pmficha'); if (!box || !PM.ficha) return;
+  const F = PM.ficha;
+  document.querySelectorAll('#v-informe [data-pmt=ficha] .pmtpunto').forEach(x => x.hidden = !PM.faltan.length);
+  const estado = PM.prop ? (PM.prop.estado === 'Pendiente' ? `Enviado el ${horaCorta(PM.prop.modificado_en)}: tu comercial lo revisará.` : `Tu comercial revisó tus datos. Si algo cambia, vuelve a enviarlo.`)
+    : 'Todavía no nos has enviado tus datos.';
+  box.innerHTML = `
+    ${PM.faltan.length ? `<div class="pmaviso"><div><b>Completa tu ficha</b><span class="sm">Falta ${esc(pmFaltaTxt())}.</span></div></div>` : ''}
+    <div class="card ancard pmcons pmcont"><h2>Contacto y ${TT('visita', 'p', '', 'l', 'l')} ${pmAyu('Contacto y ' + TT('visita', 'p', '', 'l', 'l'), 'Cómo puede contactarte tu comercial y cómo y cuándo te va mejor que pase a verte. Escribe lo que prefieras: lo revisa antes de pasarlo a tu ficha y lo tendrá en cuenta al organizar su agenda.')}</h2>
+      <div class="pmcampos"><div><label for="pmtel">Teléfono</label><input id="pmtel" inputmode="tel" value="${esc(F.telefono)}" placeholder="Móvil o consulta"></div>
+        <div><label for="pmmail">Correo</label><input id="pmmail" type="email" value="${esc(F.email)}" placeholder="tu@correo.es"></div>
+        <div><label for="pmcomo">Cómo prefieres ${TT('visita', 'p', 'el', 'l', 'l')}</label><select id="pmcomo"><option value="">Elige…</option>${PM_COMO.map(x => `<option ${F.visitas.como === x ? 'selected' : ''}>${esc(x)}</option>`).join('')}</select></div>
+        <div><label for="pmmom">Mejor momento</label><input id="pmmom" value="${esc(F.visitas.momento)}" placeholder="p. ej. martes a última hora"></div>
+        <div class="pmancho"><label for="pmnot">Notas para tu comercial</label><textarea id="pmnot" rows="2" placeholder="Acceso, planta, a quién preguntar…">${esc(F.notas)}</textarea></div></div></div>
+    <div class="card ancard pmcons"><h2>Dónde pasas consulta ${pmAyu('Dónde pasas consulta', 'Añade cada centro o consulta donde atiendes y su horario. Busca el centro por su nombre o población; si no aparece, añádelo tú. En el horario, pulsa los días y escribe las horas; con «Rellenar» pones de golpe el mismo horario en todos los días marcados.')}</h2>
+      <div id="pmclist" class="pmclist">${F.consultas.map((c, i) => pmConsulta(c, i)).join('') || '<p class="sm">Todavía no hay ninguna consulta.</p>'}</div>
+      <div class="pmcadd"><input id="pmcq" type="search" placeholder="Añadir un centro: escribe su nombre o la población" aria-label="Buscar un centro"><div id="pmcres" class="pmcres"></div></div></div>
+    <div class="pmpie"><span class="sm" id="pmest">${esc(estado)}</span><button type="button" class="btn" id="pmenviar">Enviar a mi comercial</button></div>`;
+  let t;
+  $('pmcq').oninput = () => { clearTimeout(t); t = setTimeout(pmBuscarCentro, 250); };
+  $('pmenviar').onclick = pmEnviar;
+}
+
+function pmConsulta(c, i) {
+  const nuevo = !c.centro_id && !c.ubicacion_id;
+  return `<div class="pmc" data-pmc="${i}">
+    <div class="pmccab">${nuevo ? `<div class="g2 pmcnuevo"><div><label>Centro o consulta</label><input data-pmcf="${i}|nombre" value="${esc(c.nombre || '')}"></div>
+        <div><label>Dirección y población</label><input data-pmcf="${i}|direccion" value="${esc([c.direccion, c.municipio].filter(Boolean).join(', '))}" placeholder="Calle, número, población"></div></div>`
+      : `<div><b>${esc(c.nombre || 'Consulta')}</b><span class="sm">${esc([c.direccion, c.municipio].filter(Boolean).join(' · '))}</span></div>`}
+      <button type="button" class="btn sec pmcx" data-pmcx="${i}">Quitar</button></div>
+    ${pmHorario(c.dias || {}, i)}</div>`;
+}
+
+// Horario flexible y rápido: días que se encienden, varias franjas con horas libres, y rellenar de golpe
+function pmHorario(d, i) {
+  return `<div class="pmhz">
+    <div class="pmhzpre"><span class="sm">Rellenar los días marcados:</span>
+      <button type="button" class="chip" data-pmhp="${i}|m">Mañana 9:00–14:00</button><button type="button" class="chip" data-pmhp="${i}|t">Tarde 16:00–20:00</button>
+      <button type="button" class="chip" data-pmhp="${i}|mt">Mañana y tarde</button><button type="button" class="chip" data-pmhp="${i}|c">Copiar el primer día</button></div>
+    ${PM_DIAS.map(k => { const l = d[k] || []; return `<div class="pmhd ${l.length ? 'on' : ''}">
+      <button type="button" class="pmhdia" data-pmhd="${i}|${k}" aria-pressed="${!!l.length}">${PM_DIAN[k]}</button>
+      <div class="pmhr">${l.length ? l.map((r, j) => `<span class="pmhf"><input data-pmhi="${i}|${k}|${j}|0" value="${esc(r[0])}" inputmode="numeric" maxlength="5" aria-label="Desde">
+          <span>a</span><input data-pmhi="${i}|${k}|${j}|1" value="${esc(r[1])}" inputmode="numeric" maxlength="5" aria-label="Hasta">
+          <button type="button" class="pmhx" data-pmhx="${i}|${k}|${j}" aria-label="Quitar esta franja">✕</button></span>`).join('')
+          + `<button type="button" class="pmhmas" data-pmha="${i}|${k}">+ Otra franja</button>` : '<span class="sm">No pasa consulta</span>'}</div></div>`; }).join('')}</div>`;
+}
+
+function pmLeerForm() {
+  const F = PM.ficha; if (!F || !$('pmtel')) return;
+  F.telefono = $('pmtel').value.trim(); F.email = $('pmmail').value.trim();
+  F.visitas = { como: $('pmcomo').value, momento: $('pmmom').value.trim() }; F.notas = $('pmnot').value.trim();
+  document.querySelectorAll('#pmficha [data-pmcf]').forEach(x => { const [i, k] = x.dataset.pmcf.split('|'); F.consultas[+i][k] = x.value.trim(); if (k === 'direccion') F.consultas[+i].municipio = ''; });
+  document.querySelectorAll('#pmficha [data-pmhi]').forEach(x => { const [i, k, j, p] = x.dataset.pmhi.split('|'); const r = (F.consultas[+i].dias[k] || [])[+j]; if (r) r[+p] = pmHora(x.value) || x.value.trim(); });
+}
+function pmRepintarConsultas() { const l = $('pmclist'); if (l) l.innerHTML = PM.ficha.consultas.map((c, i) => pmConsulta(c, i)).join('') || '<p class="sm">Todavía no hay ninguna consulta.</p>'; }
+
+document.addEventListener('click', e => {
+  const b = e.target.closest('#pmficha [data-pmhd], #pmficha [data-pmhp], #pmficha [data-pmhx], #pmficha [data-pmha], #pmficha [data-pmcx], #pmficha [data-pmcr]');
+  if (!b || !PM.ficha) return;
+  pmLeerForm();
+  const F = PM.ficha;
+  if (b.dataset.pmhd) {   // encender o apagar un día: al encenderlo copia el horario del día marcado más cercano
+    const [i, k] = b.dataset.pmhd.split('|'), d = F.consultas[+i].dias;
+    if ((d[k] || []).length) delete d[k];
+    else { const prev = PM_DIAS.filter(x => (d[x] || []).length); d[k] = prev.length ? d[prev[0]].map(r => r.slice()) : [['09:00', '14:00']]; }
+  }
+  if (b.dataset.pmhp) {
+    const [i, m] = b.dataset.pmhp.split('|'), d = F.consultas[+i].dias;
+    let dias = PM_DIAS.filter(x => (d[x] || []).length); if (!dias.length) dias = ['L', 'M', 'X', 'J', 'V'];
+    const r = m === 'm' ? [['09:00', '14:00']] : m === 't' ? [['16:00', '20:00']] : m === 'mt' ? [['09:00', '14:00'], ['16:00', '20:00']] : (d[dias[0]] || [['09:00', '14:00']]);
+    dias.forEach(x => d[x] = r.map(y => y.slice()));
+  }
+  if (b.dataset.pmhx) { const [i, k, j] = b.dataset.pmhx.split('|'), d = F.consultas[+i].dias; d[k].splice(+j, 1); if (!d[k].length) delete d[k]; }
+  if (b.dataset.pmha) { const [i, k] = b.dataset.pmha.split('|'), l = F.consultas[+i].dias[k], u = l[l.length - 1]; l.push(u && u[1] < '15:00' ? ['16:00', '20:00'] : ['', '']); }
+  if (b.dataset.pmcx) F.consultas.splice(+b.dataset.pmcx, 1);
+  if (b.dataset.pmcr) {
+    const x = (PM.cres || [])[+b.dataset.pmcr];
+    F.consultas.push(x ? { centro_id: x.id, nombre: x.nombre, direccion: x.direccion, municipio: x.municipio, dias: {} } : { nombre: $('pmcq').value.trim(), direccion: '', dias: {} });
+    $('pmcq').value = ''; $('pmcres').innerHTML = '';
+  }
+  pmRepintarConsultas();
+});
+document.addEventListener('focusout', e => { const x = e.target.closest && e.target.closest('#pmficha [data-pmhi]'); if (x) { const v = pmHora(x.value); if (v) x.value = v; } });
+
+async function pmBuscarCentro() {
+  const q = $('pmcq').value.trim(), box = $('pmcres'); if (!box) return;
+  if (q.length < 2) { box.innerHTML = ''; return; }
+  const { data } = await RPC_ORIG('portal_buscar_centros', { p_q: q });
+  if ($('pmcq').value.trim() !== q) return;
+  PM.cres = Array.isArray(data) ? data : [];
+  box.innerHTML = PM.cres.map((x, i) => `<button type="button" data-pmcr="${i}"><b>${esc(x.nombre)}</b><span class="sm">${esc([x.direccion, x.municipio].filter(Boolean).join(' · '))}</span></button>`).join('')
+    + `<button type="button" data-pmcr="nuevo" class="pmcnew"><b>No lo encuentro: añadir «${esc(q)}»</b><span class="sm">Escribe después su dirección</span></button>`;
+}
+
+async function pmEnviar() {
+  pmLeerForm();
+  const F = PM.ficha, mal = [];
+  F.consultas.forEach(c => Object.values(c.dias || {}).forEach(l => l.forEach(r => { if (!/^\d\d:\d\d$/.test(r[0]) || !/^\d\d:\d\d$/.test(r[1]) || r[1] <= r[0]) mal.push(c.nombre); })));
+  if (mal.length) { toast('Revisa las horas de ' + mal[0] + ': cada franja necesita una hora de inicio y otra de fin posterior', true); return; }
+  if (F.consultas.some(c => !String(c.nombre || '').trim())) { toast('Pon el nombre de cada centro', true); return; }
+  const datos = { telefono: F.telefono, email: F.email, visitas: F.visitas, notas: F.notas,
+    consultas: F.consultas.map(c => ({ centro_id: c.centro_id || null, ubicacion_id: c.ubicacion_id || null, nombre: c.nombre, direccion: c.direccion || '', municipio: c.municipio || '',
+      dias: Object.fromEntries(Object.entries(c.dias || {}).map(([k, l]) => [k, l.map(r => r[0] + '-' + r[1]).join(', ')])) })) };
+  const b = $('pmenviar'); b.disabled = true;
+  const { data: r } = await db.rpc('portal_guardar_ficha', { p: datos });
+  b.disabled = false;
+  if (!r || !r.ok) { toast('No se ha podido enviar', true); return; }
+  toast('Enviado a tu comercial');
+  const { data: f } = await RPC_ORIG('portal_mi_ficha', {}); if (f && f.ok) pmFichaDatos(f);
+  pmPintarFicha();
+  const av = document.querySelector('#mdcuerpo > .pmaviso'); if (av && !PM.faltan.length) av.remove();
+}
+
+// ——— Material y dudas: las tarjetas de siempre, en su pestaña, con su ayuda ———
+portalMedico = (orig => async function (...a) {
+  const r = await orig.apply(this, a);
+  if (!ES_MEDICO() || puede('portal_centro')) return r;
+  const c = $('mdcons'); if (c) c.remove();   // la constancia va en el Resumen
+  const ay = { mdmat: ['Pedir material', 'Pide el material que te ofrece la empresa (folletos, talonarios…). Le llega a tu comercial, que te lo entrega; mientras está pendiente lo puedes anular.'],
+    mdmsg: ['Dudas a tu comercial', 'Escribe a tu comercial cualquier duda. Te contestará aquí y te llegará un aviso.'] };
+  Object.entries(ay).forEach(([id, [t, x]]) => { const h = document.querySelector('#' + id + ' > h2'); if (h && !h.querySelector('.ai')) h.insertAdjacentHTML('beforeend', ' ' + pmAyu(t, x)); });
+  return r;
+})(portalMedico);
+
+// ——— Sin manual, sin «Inicio» y Configuración con lo suyo ———
+arbolCfgUnico = (orig => function (...a) {
+  const g = orig.apply(this, a);
+  if (!ES_MEDICO()) return g;
+  return g.map(([t, l]) => [t, (l || []).filter(x => x.k === 'datos' || x.k === 'notif').map(x => x.k === 'datos' ? Object.assign({}, x, { d: 'Nombre, teléfono, idioma y contraseña' }) : x)]).filter(([, l]) => l.length);
+})(arbolCfgUnico);
+resumirAyuda = (orig => function (pop) {
+  orig.call(this, pop);
+  if (ES_MEDICO()) pop.querySelectorAll('.aiman').forEach(x => x.remove());
+})(resumirAyuda);
+ir = (orig => function (t, ...a) {
+  if (ES_MEDICO() && !puede('portal_centro') && !['informe', 'config', 'perfil'].includes(t)) t = 'informe';
+  return orig.call(this, t, ...a);
+})(ir);
+
+// ——— En la ficha del equipo: lo que ha enviado desde su portal ———
+async function fichaPropuesta(id) {
+  if (ES_MEDICO() || FICHA_ID !== id || !$('fbody') || $('fprop')) return;
+  const { data: p } = await RPC_ORIG('ficha_propuesta', { p_cuenta: id });
+  if (!p || FICHA_ID !== id || !$('fbody') || $('fprop')) return;
+  const d = p.datos || {}, rf = await rpcCache('ficha_cuenta', { p_id: id }, 'ficha-' + id), m = (rf && rf.data && rf.data.medico) || {};
+  const fila = (t, ahora, nuevo) => nuevo && nuevo !== ahora ? `<div class="fpdif"><span class="sm">${t}</span><span>${ahora ? `<s>${esc(ahora)}</s> → ` : ''}<b>${esc(nuevo)}</b></span></div>` : '';
+  const horario = dd => PM_DIAS.filter(k => dd && dd[k]).map(k => `${PM_DIAN[k].slice(0, 3)} ${esc(dd[k])}`).join(' · ') || 'Sin horario';
+  const html = `<section class="blk fprop" id="fprop"><h3>Datos enviados desde su portal <span class="pill p-warn">Por revisar</span></h3>
+    <p class="sm">${esc(p.quien || TT('medico', 's', 'el', 'l', 'C'))} los envió el ${horaCorta(p.modificado_en)}. Pásalos a la ficha con «Editar la ficha» y márcalos como revisados.</p>
+    ${fila('Teléfono', m.telefono, d.telefono)}${fila('Correo', m.email, d.email)}
+    ${(d.consultas || []).map(c => `<div class="fpcon"><b>${esc(c.nombre || 'Consulta')}</b> ${c.centro_id || c.ubicacion_id ? '' : '<span class="pill p-per">Centro nuevo</span>'}
+      <span class="sm">${esc([c.direccion, c.municipio].filter(Boolean).join(' · '))}</span><span class="sm">${horario(c.dias)}</span></div>`).join('')}
+    ${d.visitas && (d.visitas.como || d.visitas.momento) ? `<div class="fpdif"><span class="sm">${TT('visita', 'p', '', 'l', 'C')}</span><span>${esc([d.visitas.como, d.visitas.momento].filter(Boolean).join(' · '))}</span></div>` : ''}
+    ${d.notas ? `<div class="fpdif"><span class="sm">Notas</span><span>${esc(d.notas)}</span></div>` : ''}
+    <div class="acts" style="justify-content:flex-start;margin:8px 0 0">${$('fbody').querySelector('[data-act=editar]') ? '<button type="button" class="btn sec" id="fpropedit">Editar la ficha</button>' : ''}
+      <button type="button" class="btn" id="fpropok">Marcar como revisado</button></div></section>`;
+  // Debajo de la cabecera de la ficha (nombre y botones), antes del primer bloque
+  const ref = [...$('fbody').children].find(x => x.matches('.blk, section, .card') && x.id !== 'fprop');
+  if (ref) ref.insertAdjacentHTML('beforebegin', html); else $('fbody').insertAdjacentHTML('beforeend', html);
+  if ($('fpropedit')) $('fpropedit').onclick = () => { const e = $('fbody').querySelector('[data-act=editar]'); if (e) e.click(); };
+  $('fpropok').onclick = async () => {
+    const { data: r } = await db.rpc('revisar_propuesta', { p_id: p.id });
+    if (!r || !r.ok) { toast(r && r.error === 'permiso' ? 'No tienes permiso para revisarlo' : 'No se ha podido marcar', true); return; }
+    toast('Marcado como revisado'); const b = $('fprop'); if (b) b.remove();
+  };
+}
+abrirFicha = (orig => async function (id, ...a) { const r = await orig.call(this, id, ...a); await fichaPropuesta(id); return r; })(abrirFicha);
