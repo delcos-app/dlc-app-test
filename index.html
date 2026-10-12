@@ -4388,6 +4388,11 @@ body.modo-medico #v-config #cfgcuerpo > .card{margin:0}
 #tdtareas.plegadas .tdtarea{display:none}
 #agcuerpo .tdhead > div:first-child{padding-right:44px}
 #agcuerpo .tdhead #tddiamas{position:absolute;top:14px;right:16px;margin:0}
+
+/* v2.274.0 · Agenda: el «⋯» de cada día de la cinta a la derecha (sin tapar la letra), sitio para el «⋯» de Tu día y margen bajo «Tu semana» */
+#agcinta .cdmas{top:50%;right:4px;transform:translateY(-50%)}
+#agsemlat .agsl{margin-bottom:16px}
+@media (min-width:761px){#agcuerpo .tdhead .acts{flex-basis:100%;width:100%}}
 </style>
 </head>
 <body>
@@ -4524,6 +4529,6 @@ try{var co=sessionStorage.getItem('dlc-cambio-org');if(co!==null||localStorage.g
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.273.0"></script>
+<script src="./app.js?v=2.274.0"></script>
 </body>
 </html>
