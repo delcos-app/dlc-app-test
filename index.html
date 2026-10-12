@@ -4400,6 +4400,19 @@ dialog.encajada #dbody > .acts:last-child,dialog.encajada #dlg2body > .acts:last
 /* v2.277.0 · Pedir material: aviso del máximo */
 #mdmatmax{display:block;margin-top:4px}
 #mdmatmax.mdmatpasa{color:#B42318;font-weight:600}
+
+/* v2.278.0 · Material de visita: una fila por material con sus ajustes */
+#cfgcuerpo .matlista2{display:grid;gap:8px}
+#cfgcuerpo .matfila2{display:grid;grid-template-columns:minmax(140px,1.1fr) minmax(200px,1.3fr) minmax(170px,1fr) 150px auto;gap:10px 16px;align-items:end;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--panel)}
+#cfgcuerpo .matfila2.off{opacity:.6}
+#cfgcuerpo .matfila2 .mtnom{align-self:center}
+#cfgcuerpo .matfila2 .mtcampo{display:flex;flex-direction:column;gap:4px;margin:0}
+#cfgcuerpo .matfila2 .mtpor{align-self:center;margin:0}
+#cfgcuerpo .matfila2 .mterr{grid-column:1 / -1;color:#B42318;font-weight:600}
+#cfgcuerpo .matfila2 [data-mpx]{width:100%}
+#cfgcuerpo .mtacts{margin-top:12px}
+@media (max-width:1100px){#cfgcuerpo .matfila2{grid-template-columns:1fr 1fr}#cfgcuerpo .matfila2 .mtnom{grid-column:1 / -1}}
+@media (max-width:760px){#cfgcuerpo .matfila2{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -4536,6 +4549,6 @@ try{var co=sessionStorage.getItem('dlc-cambio-org');if(co!==null||localStorage.g
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.277.0"></script>
+<script src="./app.js?v=2.278.0"></script>
 </body>
 </html>
