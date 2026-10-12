@@ -1659,7 +1659,8 @@ function pintarUsuarioBase(id) {
         const desde = modo === 'todo' ? '2000-01-01' : modo === 'fecha' ? ($('ucdf').value || hoyISO()) : hoyISO();
         await db.rpc('asignar_esquema', { p_usuario: id, p_esquema: $('ucom').value || null, p_quitar: !$('ucom').value, p_desde: desde });
       }
-      await db.from('perfiles').update({ comision_ver: $('uverc').value }).eq('id', id);
+      const { error: ever } = await db.from('perfiles').update({ comision_ver: $('uverc').value }).eq('id', id);   // v2.276.0: si falla, se dice
+      if (ever) { toast('Usuario guardado, pero no se ha podido guardar qué ve de su comisión: ' + ever.message, true); return; }
     }
     // v2.109.0: la zona marcada se guarda también con «Guardar» (antes solo con su propio botón y se perdía)
     let extra = '';
@@ -2734,6 +2735,9 @@ function editorEsquema(id) {
 async function panelComisionUsuario(u) {
   if (!ESQUEMAS.length) { const { data } = await db.rpc('esquemas_lista'); ESQUEMAS = data || []; }
   const actual = ESQUEMAS.find(e => (e.personas || []).includes(u.nombre));
+  // v2.276.0: el valor guardado, de su perfil (la lista de usuarios no lo trae: siempre salía «Nada»)
+  const { data: pv } = await db.from('perfiles').select('comision_ver').eq('id', u.id).maybeSingle();
+  const ver = (pv && pv.comision_ver) || u.comision_ver || 'nada'; u.comision_ver = ver;
   return `<label>Comisión</label>
     <div class="g2">
       <div><label class="sm" for="ucom">Esquema</label><select id="ucom">
@@ -2741,9 +2745,9 @@ async function panelComisionUsuario(u) {
         ${ESQUEMAS.map(e => `<option value="${e.id}" ${actual && actual.id === e.id ? 'selected' : ''}>${esc(e.nombre)}</option>`).join('')}
       </select></div>
       <div><label class="sm" for="uverc">Qué ve esa persona</label><select id="uverc">
-        <option value="nada" ${u.comision_ver === 'nada' || !u.comision_ver ? 'selected' : ''}>Nada</option>
-        <option value="unidades" ${u.comision_ver === 'unidades' ? 'selected' : ''}>Solo sus unidades</option>
-        <option value="importe" ${u.comision_ver === 'importe' ? 'selected' : ''}>Unidades e importe</option>
+        <option value="nada" ${ver === 'nada' ? 'selected' : ''}>Nada</option>
+        <option value="unidades" ${ver === 'unidades' ? 'selected' : ''}>Solo sus unidades</option>
+        <option value="importe" ${ver === 'importe' ? 'selected' : ''}>Unidades e importe</option>
       </select></div>
     </div>`;
 }
