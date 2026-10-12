@@ -4460,6 +4460,10 @@ dialog.encajada #dbody > .acts:last-child,dialog.encajada #dlg2body > .acts:last
 #prpacks .pmhx{border:0;background:none;color:var(--muted);cursor:pointer;padding:6px}
 #prpacks .pcerr{display:block;color:#B42318;font-weight:600;font-size:13px;margin-top:6px}
 @media (max-width:760px){#v-informe .pcped .pcpack{grid-template-columns:repeat(3,minmax(0,1fr))}#v-informe .pcped .pcpk,#v-informe .pcped [data-pcpk]{grid-column:1 / -1}#v-informe .pcped .pcef{grid-template-columns:minmax(0,1fr) 90px 36px}}
+
+/* v2.284.0 · Pago por adelantado */
+#v-informe .pcpeds .pcpst{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+#v-informe .pcped .pcant{margin:10px 0 0;padding:10px 12px;border-radius:10px;background:var(--hielo,#F2F7FC)}
 </style>
 </head>
 <body>
@@ -4596,6 +4600,6 @@ try{var co=sessionStorage.getItem('dlc-cambio-org');if(co!==null||localStorage.g
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.283.0"></script>
+<script src="./app.js?v=2.284.0"></script>
 </body>
 </html>
