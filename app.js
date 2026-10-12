@@ -11913,17 +11913,21 @@ function borrarUsuario(u) {
     <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>Cancelar</button><button class="btn dang" id="buok">Borrar usuario</button></div>`;
   $('dlg').showModal();
   $('buok').onclick = async ev => {
-    if ($('buconf').value.trim().toUpperCase() !== 'BORRAR') { toast('Escribe BORRAR para confirmar', true); return; }
+    const buerr = t => { let m = $('buerr'); if (!m) { $('buok').closest('.acts').insertAdjacentHTML('beforebegin', '<p class="buerr" id="buerr" role="alert"></p>'); m = $('buerr'); } m.textContent = t; };   // v2.272.0: el motivo, dentro de la ventana
+    if ($('buconf').value.trim().toUpperCase() !== 'BORRAR') { buerr('Escribe BORRAR en el recuadro para confirmar.'); toast('Escribe BORRAR para confirmar', true); return; }
     ev.target.disabled = true;
-    const { data: r, error } = await db.rpc('borrar_usuario', { p_id: u.id, p_con_actividad: $('bucon').checked });
+    const { data: r, error } = await db.rpc('borrar_usuario_seguro', { p_id: u.id, p_con_actividad: $('bucon').checked });   // v2.272.0: borrar_usuario_seguro (SQL 147)
     ev.target.disabled = false;
     if (error || !r || !r.ok) {
-      const txt = { permiso: 'Solo administración puede borrar usuarios', uno_mismo: 'No puedes borrarte a ti', ultimo_admin: 'Es el último administrador: da antes ese rol a otra persona', no_existe: 'Ese usuario ya no existe' }[(r && r.error) || ''] || (error && error.message) || '';
-      toast('No se ha podido borrar: ' + txt, true); return;
+      const txt = { permiso: 'Solo administración puede borrar usuarios', uno_mismo: 'No puedes borrarte a ti', ultimo_admin: 'Es el último administrador: da antes ese rol a otra persona', no_existe: 'Ese usuario ya no existe', referencias: 'hay datos que dependen de esta persona (' + ((r && r.detalle) || '') + ')' }[(r && r.error) || ''] || (error && error.message) || 'sin respuesta';
+      buerr('No se ha podido borrar: ' + txt); toast('No se ha podido borrar: ' + txt, true);
+      if (!r || !['permiso', 'uno_mismo', 'ultimo_admin'].includes(r.error)) registrarError('api', 'Borrar usuario: ' + ((r && r.error) || (error && error.message) || 'sin respuesta'), { detalle: r && r.detalle });
+      return;
     }
     $('dlg').close();
     toast(String(r.acceso || '').startsWith('no_borrado') ? 'Usuario borrado (su acceso queda sin perfil: ya no puede usar la plataforma)' : 'Usuario borrado');
     if (typeof cargarAdmin === 'function') cargarAdmin();
+    if (TAB === 'config' && typeof CFG_KEY !== 'undefined' && CFG_KEY === 'usuarios') pintarUsuarios2();   // v2.272.0: la lista, sin esa persona
   };
 }
 
@@ -26641,3 +26645,20 @@ async function fichaPropuesta(id) {
   };
 }
 abrirFicha = (orig => async function (id, ...a) { const r = await orig.call(this, id, ...a); await fichaPropuesta(id); return r; })(abrirFicha);
+
+
+
+
+/* ============================================================
+   v2.272.0 · Configuración del profesional ajustada a lo suyo (aviso de Eric, 12/10/2026): la ayuda «i» habla solo de lo que
+   puede hacer (Mis datos y Notificaciones; su consulta y visitas, en «Mi ficha») y las dos tarjetas de «Mis datos» miden lo mismo.
+   ============================================================ */
+// La ayuda de Configuración, según quién la mira: el profesional solo tiene sus datos y sus avisos
+(() => {
+  let general = AYUDA.config;
+  const suya = ['Configuración', 'Aquí cambias tu cuenta.', [
+    '<b>Mis datos</b>: tu nombre, tu teléfono, el idioma y la contraseña; también cierras la sesión.',
+    '<b>Notificaciones</b>: qué avisos te llegan (por ejemplo, cada venta a tu nombre) y si los quieres al momento, en el resumen de la mañana o no.',
+    'Dónde y cuándo pasas consulta y cómo prefieres las ' + TT('visita', 'p', '', 'l', 'l') + ' se indica en <b>Mi ficha</b>, dentro de Mi informe.']];
+  Object.defineProperty(AYUDA, 'config', { configurable: true, enumerable: true, get: () => (typeof ES_MEDICO === 'function' && ES_MEDICO() ? suya : general), set: v => { general = v; } });
+})();

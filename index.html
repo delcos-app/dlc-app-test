@@ -4356,6 +4356,12 @@ body.modo-medico #v-config .cfu #miperfil,body.modo-medico #v-config #cfgcuerpo 
 .fprop .fpcon{flex-direction:column}
 @media (max-width:760px){#v-informe .pmk{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}#v-informe .pmfila,#v-informe .pmclist,#v-informe .pmcampos{grid-template-columns:1fr}
   #v-informe .pmhd{grid-template-columns:1fr}#v-informe .pmev{height:180px}#v-informe .pmtabs{display:flex}#v-informe .pmtabs button{flex:1;padding:8px 10px}}
+
+/* v2.272.0 · Borrar usuario: el motivo dentro de la ventana; Configuración del profesional con las dos tarjetas iguales */
+body.modo-medico #v-config #cfgcuerpo{grid-template-columns:repeat(2,minmax(0,1fr))!important;align-items:stretch}
+body.modo-medico #v-config #cfgcuerpo > .card{margin:0}
+@media (max-width:760px){body.modo-medico #v-config #cfgcuerpo{grid-template-columns:1fr!important}}
+#dbody .buerr{margin:10px 0 0;padding:8px 12px;border-radius:10px;background:#FDECEC;color:#9B1C1C;font-size:13.5px}
 </style>
 </head>
 <body>
@@ -4492,6 +4498,6 @@ try{var co=sessionStorage.getItem('dlc-cambio-org');if(co!==null||localStorage.g
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.271.0"></script>
+<script src="./app.js?v=2.272.0"></script>
 </body>
 </html>
