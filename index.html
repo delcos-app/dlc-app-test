@@ -4440,6 +4440,26 @@ dialog.encajada #dbody > .acts:last-child,dialog.encajada #dlg2body > .acts:last
 #v-informe .pcped .pctot b{font-size:18px}
 #v-informe .pcpeds .item{cursor:default}
 @media (max-width:760px){#v-informe .pcped .pclin{grid-template-columns:1fr}}
+
+/* v2.283.0 · Packs para los centros */
+#v-informe .pcped .pcprod{padding:12px 0;border-top:1px solid var(--line)}
+#v-informe .pcped .pcprod:first-child{border-top:0}
+#v-informe .pcped .pcpcab{display:flex;justify-content:space-between;gap:8px 16px;flex-wrap:wrap;align-items:baseline;margin-bottom:4px}
+#v-informe .pcped .pcpack{grid-template-columns:minmax(0,1.3fr) repeat(3,minmax(0,.8fr)) 110px;border-top:1px solid #EEF3F8}
+#v-informe .pcped .pcpacks .pcpack:first-child{border-top:0}
+#v-informe .pcped .pcpk b,#v-informe .pcped .pcdato b{display:block}
+#v-informe .pcped .pcdato{font-variant-numeric:tabular-nums}
+#v-informe .pcped [data-pcpk]{width:100%}
+#v-informe .pcped .pcent{display:flex;flex-direction:column;gap:6px;margin:14px 0 6px;padding-top:12px;border-top:1px solid var(--line)}
+#v-informe .pcped .pcentl{display:flex;flex-direction:column;gap:8px;padding-left:4px}
+#v-informe .pcped .pcef{display:grid;grid-template-columns:minmax(0,1fr) 120px 36px;gap:8px;align-items:center}
+#v-informe .pcped #pcentres.pcmal{color:#B42318;font-weight:600}
+#prpacks .prpkf{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;margin-bottom:8px}
+#prpacks .prpkf label{display:flex;flex-direction:column;gap:4px;font-size:13px}
+#prpacks .prpkf input{width:110px}
+#prpacks .pmhx{border:0;background:none;color:var(--muted);cursor:pointer;padding:6px}
+#prpacks .pcerr{display:block;color:#B42318;font-weight:600;font-size:13px;margin-top:6px}
+@media (max-width:760px){#v-informe .pcped .pcpack{grid-template-columns:repeat(3,minmax(0,1fr))}#v-informe .pcped .pcpk,#v-informe .pcped [data-pcpk]{grid-column:1 / -1}#v-informe .pcped .pcef{grid-template-columns:minmax(0,1fr) 90px 36px}}
 </style>
 </head>
 <body>
@@ -4576,6 +4596,6 @@ try{var co=sessionStorage.getItem('dlc-cambio-org');if(co!==null||localStorage.g
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.282.0"></script>
+<script src="./app.js?v=2.283.0"></script>
 </body>
 </html>
