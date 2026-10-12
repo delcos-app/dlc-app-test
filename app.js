@@ -16037,6 +16037,9 @@ arbolConfig = (orig => function () {
    Ve sus pedidos y lo comprado, pide material y escribe a su comercial (lo mismo que el médico). En la ficha del centro, «Productos
    del centro». */
 async function cargarCentro() {
+  // v2.282.0: página nueva (al final del archivo); al arrancar se espera a que esté leída
+  if (!window.PM_LISTO || typeof cargarCentro2282 !== 'function') { const v0 = $('v-informe'); if (v0 && !v0.innerHTML.trim()) v0.innerHTML = '<div class="card">' + skelCard('Cargando…') + '</div>'; setTimeout(cargarCentro, 30); return; }
+  if (window.PC_LISTO) return cargarCentro2282();
   const v = $('v-informe');
   v.innerHTML = `<div class="medhero"><div><div class="sm" style="color:rgba(255,255,255,.8)">Tu centro</div><h1 id="ctnom">…</h1>
       <div class="sm" style="color:rgba(255,255,255,.85)">Pide la reposición de tus productos y sigue tus pedidos</div></div></div>
@@ -26518,7 +26521,7 @@ function pmPintarFicha() {
         <div><label for="pmcomo">Cómo prefieres ${TT('visita', 'p', 'el', 'l', 'l')} <span class="pmreq">Necesario</span></label><select id="pmcomo"><option value="">Elige…</option>${PM_COMO.map(x => `<option ${F.visitas.como === x ? 'selected' : ''}>${esc(x)}</option>`).join('')}</select></div>
         <div><label for="pmmom">Mejor momento</label><input id="pmmom" value="${esc(F.visitas.momento)}" placeholder="p. ej. martes a última hora"></div>
         <div class="pmancho"><label for="pmnot">Notas para tu comercial</label><textarea id="pmnot" rows="2" placeholder="Acceso, planta, a quién preguntar…">${esc(F.notas)}</textarea></div></div></div>
-    <div class="card ancard pmcons"><h2>Dónde pasas consulta <span class="pmreq">Necesario: al menos un día con horario</span> ${pmAyu('Dónde pasas consulta', 'Añade cada centro o consulta donde atiendes y su horario. Busca el centro por su nombre o población; si no aparece, añádelo tú. En el horario, pulsa los días y escribe las horas; con «Rellenar» pones de golpe el mismo horario en todos los días marcados.')}</h2>
+    <div class="card ancard pmcons"><h2>${PM_CENTRO() ? 'Dónde y cuándo atendéis' : 'Dónde pasas consulta'} <span class="pmreq">Necesario: al menos un día con horario</span> ${pmAyu(PM_CENTRO() ? 'Dónde y cuándo atendéis' : 'Dónde pasas consulta', 'Añade cada centro o consulta donde atiendes y su horario. Busca el centro por su nombre o población; si no aparece, añádelo tú. En el horario, pulsa los días y escribe las horas; con «Rellenar» pones de golpe el mismo horario en todos los días marcados.')}</h2>
       <div id="pmclist" class="pmclist">${F.consultas.map((c, i) => pmConsulta(c, i)).join('') || '<p class="sm">Todavía no hay ninguna consulta.</p>'}</div>
       <div class="pmcadd"><input id="pmcq" type="search" placeholder="Añadir un centro: escribe su nombre o la población" aria-label="Buscar un centro"><div id="pmcres" class="pmcres"></div></div></div>
     <div class="pmpie"><span class="sm" id="pmest">${esc(estado)}</span><button type="button" class="btn" id="pmenviar">Enviar a mi comercial</button></div>`;
@@ -26621,7 +26624,7 @@ async function pmEnviar() {
 // ——— Material y dudas: las tarjetas de siempre, en su pestaña, con su ayuda ———
 portalMedico = (orig => async function (...a) {
   const r = await orig.apply(this, a);
-  if (!ES_MEDICO() || puede('portal_centro')) return r;
+  if (!ES_MEDICO()) return r;   // v2.282.0: también el centro
   const c = $('mdcons'); if (c) c.remove();   // la constancia va en el Resumen
   const ay = { mdmat: ['Pedir material', 'Pide el material que te ofrece la empresa (folletos, talonarios…). Le llega a tu comercial, que te lo entrega; mientras está pendiente lo puedes anular.'],
     mdmsg: ['Dudas a tu comercial', 'Escribe a tu comercial cualquier duda. Te contestará aquí y te llegará un aviso.'] };
@@ -26640,7 +26643,7 @@ resumirAyuda = (orig => function (pop) {
   if (ES_MEDICO()) pop.querySelectorAll('.aiman').forEach(x => x.remove());
 })(resumirAyuda);
 ir = (orig => function (t, ...a) {
-  if (ES_MEDICO() && !puede('portal_centro') && !['informe', 'config', 'perfil'].includes(t)) t = 'informe';
+  if (ES_MEDICO() && !['informe', 'config', 'perfil'].includes(t)) t = 'informe';   // v2.282.0: también el centro
   return orig.call(this, t, ...a);
 })(ir);
 
@@ -26864,7 +26867,7 @@ function pmPintarCheck() {
   const todo = tel && como && horario;
   box.classList.toggle('ok', todo);
   box.innerHTML = `<b>${todo ? 'Tu ficha tiene todo lo necesario' : 'Para completar tu ficha'}</b>
-    <ul><li class="${tel ? 'ok' : ''}">Un teléfono de contacto</li><li class="${horario ? 'ok' : ''}">Dónde y cuándo pasas consulta (al menos un día con su horario)</li><li class="${como ? 'ok' : ''}">Cómo prefieres las ${TT('visita', 'p', '', 'l', 'l')}</li></ul>
+    <ul><li class="${tel ? 'ok' : ''}">Un teléfono de contacto</li><li class="${horario ? 'ok' : ''}">${PM_CENTRO() ? 'Dónde y cuándo atendéis' : 'Dónde y cuándo pasas consulta'} (al menos un día con su horario)</li><li class="${como ? 'ok' : ''}">Cómo prefieres las ${TT('visita', 'p', '', 'l', 'l')}</li></ul>
     <span class="sm">${todo ? 'Envíalo a tu comercial y el aviso de «faltan datos» desaparece.' : 'El resto es opcional. Cuando lo tengas, pulsa «Enviar a mi comercial».'}</span>`;
 }
 
@@ -26950,7 +26953,7 @@ function avisosEnVivo() {
       clearTimeout(espera);
       espera = setTimeout(() => {
         refrescarCampana();
-        if (ES_MEDICO() && !puede('portal_centro') && $('v-informe') && TAB === 'informe') { try { portalMedico(); } catch (e) {} }
+        if (ES_MEDICO() && $('v-informe') && TAB === 'informe') { try { if (puede('portal_centro') && typeof centroPintar === 'function') centroPintar(); else portalMedico(); } catch (e) {} }
         if (que !== 'notif' && typeof FICHA_ID !== 'undefined' && FICHA_ID && $('fportal')) { const b = $('fportal'); b.remove(); try { fichaPortal(FICHA_ID); } catch (e) {} }
       }, 400);
     };
@@ -26963,3 +26966,95 @@ function avisosEnVivo() {
 }
 // Se engancha en cuanto hay perfil (al arrancar llega un momento después)
 (function engancharVivo() { if (PERFIL && PERFIL.id) { avisosEnVivo(); comprobarAcceso(true); } else setTimeout(engancharVivo, 1000); })();
+
+
+
+
+/* ============================================================
+   v2.282.0 · Portal del centro con el mismo modelo que el del profesional (petición de Eric, 12/10/2026).
+   Una sola página con pestañas: «Resumen» (4 indicadores; «Tus pedidos» y «Lo que has comprado» del mismo tamaño, con su «i»),
+   «Pedir reposición» (sus productos con su precio; sin máximo en el campo: por encima de 1.000 unidades —lo que acepta
+   pedido_portal, que descartaba en silencio— avisa en la fila y no envía), «Mi centro» (la misma ficha que el profesional, con
+   sus textos) y «Material y dudas». Configuración, ayudas y navegación, como el portal del profesional.
+   ============================================================ */
+const PM_CENTRO = () => typeof puede === 'function' && puede('portal_centro');
+const PC_MAX = 1000;
+window.PC_LISTO = true;
+
+async function cargarCentro2282() {
+  const v = $('v-informe');
+  v.innerHTML = `<div class="medhero"><div><div class="sm" style="color:rgba(255,255,255,.8)">Tu centro</div><h1 id="ctnom">…</h1>
+      <div class="sm" style="color:rgba(255,255,255,.85)">Pide la reposición de tus productos y sigue tus pedidos</div></div></div>
+    <div class="pmtabs" role="tablist">${[['res', 'Resumen'], ['ped', 'Pedir reposición'], ['ficha', 'Mi centro'], ['mat', 'Material y dudas']].map(([k, t]) =>
+      `<button type="button" role="tab" data-pmt="${k}" class="${PM.tab === k ? 'on' : ''}" aria-selected="${PM.tab === k}">${t}<span class="pmtpunto" hidden></span></button>`).join('')}</div>
+    <div data-pmp="res" id="mdcuerpo" ${PM.tab === 'res' ? '' : 'hidden'}>${pmEsqueleto()}</div>
+    <div data-pmp="ped" id="pcped" ${PM.tab === 'ped' ? '' : 'hidden'}>${pmEsqueleto(true)}</div>
+    <div data-pmp="ficha" id="pmficha" ${PM.tab === 'ficha' ? '' : 'hidden'}>${pmEsqueleto(true)}</div>
+    <div data-pmp="mat" id="pmmat" ${PM.tab === 'mat' ? '' : 'hidden'}><div id="mdportal" class="pmfila"></div></div>`;
+  if (!['res', 'ped', 'ficha', 'mat'].includes(PM.tab)) PM.tab = 'res';
+  v.querySelectorAll('[data-pmt]').forEach(b => b.onclick = () => pmTab(b.dataset.pmt));
+  await centroPintar();
+  portalMedico();
+}
+
+async function centroPintar() {
+  if (!$('mdcuerpo')) return;
+  const [{ data: prods }, { data: mp }, { data: f }] = await Promise.all([RPC_ORIG('productos_portal', {}), RPC_ORIG('mis_pedidos_portal', {}),
+    PM.ficha ? Promise.resolve({ data: null }) : RPC_ORIG('portal_mi_ficha', {})]);
+  if (f && f.ok) pmFichaDatos(f);
+  if (!$('mdcuerpo')) return;
+  if (mp && mp.nombre) $('ctnom').textContent = mp.nombre;
+  const lp = Array.isArray(prods) ? prods : [], peds = (mp && mp.pedidos) || [], pp = (mp && mp.por_producto) || [];
+  const conIva = x => r2((+x.precio || 0) * (1 + (+x.iva || 0) / 100));
+  const enMarcha = peds.filter(p => p.estado !== 'Anulado' && p.estado !== 'Preparado').length;
+  const uds = pp.reduce((s, x) => s + (+x.unidades || 0), 0);
+  const ult = peds.length ? String(peds[0].fecha).slice(0, 10) : null;
+  const falta = PM.faltan.length ? `<div class="pmaviso"><div><b>Completa la ficha de tu centro</b><span class="sm">Falta ${esc(pmFaltaTxt())}. Así tu comercial os visita cuando mejor os va.</span></div>
+      <button type="button" class="btn" data-pmir="ficha">Completar la ficha</button></div>` : '';
+  $('mdcuerpo').innerHTML = `${falta}
+    <div class="pmk">
+      <div class="kpi"><b>${num(enMarcha)}</b><span>pedidos en marcha</span></div>
+      <div class="kpi"><b>${ult ? fechaCorta(ult) : '—'}</b><span>último pedido</span></div>
+      <div class="kpi"><b>${num(uds)}</b><span>unidades en 12 meses</span></div>
+      <div class="kpi"><b>${num(lp.length)}</b><span>productos para pedir</span></div></div>
+    <div class="pmfila">
+      <div class="card ancard pcpeds"><h2>Tus pedidos ${pmAyu('Tus pedidos', 'Los pedidos de reposición que habéis hecho y en qué punto están: pendiente de validar por tu comercial, validado, preparado o anulado.')}</h2>
+        ${peds.length ? `<div class="lista">${peds.slice(0, 8).map(p => `<div class="item"><span class="tx">
+            <b>${p.numero ? esc(p.numero) + ' · ' : ''}${fechaCorta(String(p.fecha).slice(0, 10))}</b>
+            <span class="sm">${esc((p.lineas || []).map(l => `${l.producto} × ${num(l.unidades)}`).join(', '))}${p.total != null ? ' · ' + eurI(p.total) : ''}</span></span>
+            <span class="pill ${NOMBRE_ESTADO_CENTRO[p.estado] || ''}">${esc(p.estado)}</span></div>`).join('')}</div>` : '<p class="sm">Todavía no hay pedidos.</p>'}</div>
+      <div class="card ancard"><h2>Lo que habéis comprado ${pmAyu('Lo que habéis comprado', 'Unidades de los últimos 12 meses por producto, de los pedidos validados.')}</h2>
+        ${pp.length ? barrasH(pp.map(x => ({ n: x.producto, v: x.unidades })), v => num(v) + ' uds.') : vacioGrafico('Aparecerá cuando tengáis pedidos validados.')}</div></div>`;
+  $('mdcuerpo').querySelectorAll('[data-pmir]').forEach(b => b.onclick = () => pmTab(b.dataset.pmir));
+  // Pedir reposición
+  $('pcped').innerHTML = `<div class="card ancard pmcons pcped"><h2>Pedir reposición ${pmAyu('Pedir reposición', `Escribe cuántas unidades necesitáis de cada producto (como máximo ${num(PC_MAX)} de cada uno por pedido) y envía el pedido. Tu comercial lo revisa y lo valida; en «Resumen» verás cuándo está validado y preparado.`)}</h2>
+    ${lp.length ? `<div id="ctprods">${lp.map(x => `<div class="pclin"><span><b>${esc(x.nombre)}</b><span class="sm">${eurI(conIva(x))} con IVA${x.propio ? ' · vuestro precio' : ''}</span></span>
+        <input type="number" step="1" value="0" data-ctp="${x.producto_id}" data-ctpr="${conIva(x)}" aria-label="Unidades de ${esc(x.nombre)}"><span class="pcerr" hidden></span></div>`).join('')}</div>
+      <label for="ctnota">Nota</label><input id="ctnota" placeholder="Opcional: horario de entrega, persona de contacto…">
+      <div class="pctot"><span>Total <b id="cttot">${eurI(0)}</b> con IVA</span><button type="button" class="btn" id="ctok">Enviar pedido</button></div>`
+      : '<p class="sm">Todavía no tenéis productos para pedir. Tu comercial os los dará de alta.</p>'}</div>`;
+  const filas = () => [...$('pcped').querySelectorAll('[data-ctp]')];
+  const revisar = () => {
+    let total = 0, mal = 0;
+    filas().forEach(i => {
+      const n = Number(i.value || 0), e = i.closest('.pclin').querySelector('.pcerr');
+      const bad = !Number.isInteger(n) || n < 0 || n > PC_MAX;
+      e.hidden = !bad; e.textContent = bad ? (n > PC_MAX ? `Como máximo ${num(PC_MAX)} unidades por producto en cada pedido` : 'Escribe un número entero de unidades') : '';
+      if (bad) mal++; else total += n * (+i.dataset.ctpr || 0);
+    });
+    if ($('cttot')) $('cttot').textContent = eurI(total);
+    return mal;
+  };
+  filas().forEach(i => i.addEventListener('input', revisar));
+  if ($('ctok')) $('ctok').onclick = async ev => {
+    if (revisar()) { toast('Revisa las unidades marcadas en rojo', true); return; }
+    const lineas = filas().map(i => ({ producto_id: i.dataset.ctp, unidades: Math.floor(+i.value || 0) })).filter(x => x.unidades > 0);
+    if (!lineas.length) { toast('Pon las unidades de algún producto', true); return; }
+    ev.target.disabled = true;
+    const { data: r } = await db.rpc('pedido_portal', { p_lineas: lineas, p_nota: $('ctnota').value.trim() || null });
+    ev.target.disabled = false;
+    if (!r || !r.ok) { toast(r && r.motivo === 'vacio' ? 'Pon las unidades de algún producto' : motivoPortal(r), true); return; }
+    toast('Pedido enviado: tu comercial lo validará'); PM.tab = 'res'; await centroPintar(); pmTab('res');
+  };
+  pmPintarFicha();
+}

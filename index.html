@@ -4429,6 +4429,17 @@ dialog.encajada #dbody > .acts:last-child,dialog.encajada #dlg2body > .acts:last
 #v-informe .pmcheck li.ok::before{border-color:#2E9E6A;background:#2E9E6A url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4 8.5l2.5 2.5L12 5.5' fill='none' stroke='white' stroke-width='2'/%3E%3C/svg%3E") center/12px no-repeat}
 #v-informe .pmcheck li.ok{color:var(--muted)}
 #dbody .usrok .mono{font-family:ui-monospace,Menlo,Consolas,monospace}
+
+/* v2.282.0 · Portal del centro */
+#v-informe .pcped .pclin{display:grid;grid-template-columns:minmax(0,1fr) 140px;gap:6px 16px;align-items:center;padding:10px 0;border-top:1px solid #EEF3F8}
+#v-informe .pcped .pclin:first-child{border-top:0}
+#v-informe .pcped .pclin b{display:block}
+#v-informe .pcped .pclin [data-ctp]{width:100%}
+#v-informe .pcped .pcerr{grid-column:1 / -1;color:#B42318;font-weight:600;font-size:13px}
+#v-informe .pcped .pctot{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+#v-informe .pcped .pctot b{font-size:18px}
+#v-informe .pcpeds .item{cursor:default}
+@media (max-width:760px){#v-informe .pcped .pclin{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -4565,6 +4576,6 @@ try{var co=sessionStorage.getItem('dlc-cambio-org');if(co!==null||localStorage.g
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.281.0"></script>
+<script src="./app.js?v=2.282.0"></script>
 </body>
 </html>
