@@ -1093,7 +1093,7 @@ document.addEventListener('click', async e => {
     toast('Cita descartada'); cargarAgenda(); cargarInicio(); return;
   }
   if (acc === 'borrar') {
-    if (!await preguntar('La cita desaparece de la agenda.', { titulo: '¿Borrar la cita?', ok: 'Borrar', peligro: true })) return;
+    if (!await preguntar('La cita desaparece de la agenda sin dejar rastro.', { titulo: '¿Eliminar la cita?', ok: 'Eliminar', peligro: true })) return;
     const { data: r } = await db.rpc('borrar_cita', { p_id: id });
     if (r && r.ok === false) {
       toast(r.error === 'visitada' ? `No se puede borrar ${TT('visita', 's', 'un', 'l', 'l')} ya realizada`
@@ -6264,10 +6264,10 @@ async function accionCita(k, c) {
     toast(estado === 'Confirmada' ? 'Cita confirmada' : estado === 'Descartada' ? 'Cita descartada' : 'Confirmación quitada'); refrescar(); return;
   }
   if (k === 'borrar') {
-    if (!await preguntar('La cita desaparece de la agenda.', { titulo: '¿Borrar la cita?', ok: 'Borrar', peligro: true })) return;
+    if (!await preguntar('La cita desaparece de la agenda sin dejar rastro.', { titulo: '¿Eliminar la cita?', ok: 'Eliminar', peligro: true })) return;
     const { data: r } = await db.rpc('borrar_cita', { p_id: c.id });
-    if (r && r.ok === false) { toast(r.error === 'pasada' ? 'Solo se pueden borrar citas de hoy en adelante' : 'No se ha podido borrar', true); return; }
-    toast('Cita borrada'); refrescar(); return;
+    if (r && r.ok === false) { toast(r.error === 'pasada' ? 'Solo se pueden eliminar citas de hoy en adelante' : 'No se ha podido eliminar', true); return; }
+    toast('Cita eliminada'); refrescar(); return;
   }
   if (k === 'aplazar') {
     const f = await pedirFecha('¿A qué día la pasas?', proximoDiaConsulta(c.dias, c.fecha),
@@ -16449,12 +16449,13 @@ menuCita = function (boton, c) {
     abierta ? ['aplazar', 'Aplazar a otro día', 'Queda como aplazada y se crea la cita nueva'] : null,
     abierta && c.estado === 'Planificada' ? ['confirmar', 'Marcar como confirmada', 'Ya has hablado con la consulta'] : null,
     abierta && c.estado === 'Confirmada' ? ['desconfirmar', 'Quitar la confirmación', ''] : null,
-    abierta ? ['descartar', 'Descartar la cita', 'Ya no hace falta ir'] : null
+    abierta ? ['descartar', 'Descartar la cita', 'Ya no hace falta ir'] : null,
+    abierta && c.fecha >= hoyISO() ? ['borrar', 'Eliminar la cita', 'Fue un error: desaparece de la agenda'] : null   // v2.273.0
   ].filter(Boolean);
   if (!ops.length) { toast('Esta cita ya está cerrada'); return; }
   const m = document.createElement('div');
   m.className = 'tdmenu'; m.__t = Date.now();
-  m.innerHTML = ops.map(([k, t, s]) => `<button data-tdop="${k}" class="${k === 'descartar' ? 'peligro' : ''}"><b>${esc(t)}</b>${s ? `<span>${esc(s)}</span>` : ''}</button>`).join('');
+  m.innerHTML = ops.map(([k, t, s]) => `<button data-tdop="${k}" class="${k === 'descartar' || k === 'borrar' ? 'peligro' : ''}"><b>${esc(t)}</b>${s ? `<span>${esc(s)}</span>` : ''}</button>`).join('');
   document.body.appendChild(m);
   const r = boton.getBoundingClientRect();
   m.style.top = Math.min(window.innerHeight - m.offsetHeight - 10, r.bottom + 6) + 'px';
@@ -19194,7 +19195,7 @@ verCita = (orig => function (c) {
     if (caja && abierta) {
       caja.insertAdjacentHTML('afterend', `<div class="vcfin">
         <button type="button" class="lnk" id="vcdescartar">Descartar la cita</button><span class="sm">No se hará: queda en el historial.</span>
-        ${borrable ? '<button type="button" class="lnk peligro" id="vcborrar">Borrar la cita</button><span class="sm">Fue un error: desaparece sin dejar rastro.</span>' : ''}</div>`);
+        ${borrable ? '<button type="button" class="lnk peligro" id="vcborrar">Eliminar la cita</button><span class="sm">Fue un error: desaparece sin dejar rastro.</span>' : ''}</div>`);
       $('vcdescartar').onclick = () => { $('dlg').close(); accionCita('descartar', c); };
       if ($('vcborrar')) $('vcborrar').onclick = () => { $('dlg').close(); accionCita('borrar', c); };
     }
@@ -24462,7 +24463,9 @@ async function tdPintar() {
       c.nota ? ['nota', '', esc(c.nota)] : null
     ].filter(Boolean);
     const sube = ab && !pasado, reg = ab && puedeRegistrarEnDia(c.fecha), nueva = citaAusente(c.estado) && !pasado;
-    return `<article class="tdu ${c === sig ? 'sig' : ''} ${ab ? '' : 'hecha'}" data-tdu="${c.id}" data-tdf="${c.cuenta_id}" tabindex="0" aria-label="${esc(c.nombre)}">
+    const mini = !ab && !citaHecha(c.estado) && !citaAusente(c.estado);   // v2.273.0: movida o descartada, en una línea
+    const st = ab ? 'abierta' : citaHecha(c.estado) ? 'hecha' : citaAusente(c.estado) ? 'ausente' : 'cerrada';   // v2.273.0: color suave según cómo está
+    return `<article class="tdu ${c === sig ? 'sig' : ''} ${ab ? '' : 'hecha'} ${mini ? 'tdmini' : ''} tdst-${st}" data-tdu="${c.id}" data-tdf="${c.cuenta_id}" tabindex="0" aria-label="${esc(c.nombre)}">
       <div class="tdu-cab">
         <div class="tdu-av" aria-hidden="true">${esc(iniciales(c.nombre))}<span class="n">${i + 1}</span></div>
         <div class="tdu-tit">${c === sig ? '<span class="tdu-sig"><i></i>Siguiente</span>' : ''}
@@ -24793,10 +24796,11 @@ async function agCargarEquipo() {
 }
 async function agCargarDia() {
   const v = $('v-agenda'); if (!v) return;
-  if (!AG_FECHA) AG_FECHA = hoyISO();
+  if (!AG_FECHA || (AG_FECHA === AG_HOY_VISTO && AG_HOY_VISTO !== hoyISO())) AG_FECHA = hoyISO();   // v2.273.0: al cambiar de día, hoy
+  if (AG_FECHA === hoyISO()) AG_HOY_VISTO = AG_FECHA;
   const f = AG_FECHA;
   TAREAS_DIA = null;
-  if (!CINTA_INI || f < CINTA_INI || f > diasMas(CINTA_INI, 13)) CINTA_INI = lunesCinta(f);
+  CINTA_INI = lunesCinta(f);   // v2.273.0: la semana del día a la izquierda y la siguiente a la derecha
   v.dataset.listo = '';
   const y = scrollY, mismo = v.classList.contains('agn') && $('agcuerpo');
   if (mismo) $('agcuerpo').classList.add('agcargando');
@@ -26662,3 +26666,49 @@ abrirFicha = (orig => async function (id, ...a) { const r = await orig.call(this
     'Dónde y cuándo pasas consulta y cómo prefieres las ' + TT('visita', 'p', '', 'l', 'l') + ' se indica en <b>Mi ficha</b>, dentro de Mi informe.']];
   Object.defineProperty(AYUDA, 'config', { configurable: true, enumerable: true, get: () => (typeof ES_MEDICO === 'function' && ES_MEDICO() ? suya : general), set: v => { general = v; } });
 })();
+
+
+
+
+/* ============================================================
+   v2.273.0 · Agenda: eliminar citas, tarjetas compactas, cinta desde esta semana y cabecera en una línea (peticiones de Eric, 12/10/2026).
+   - «⋯» de la cita: «Eliminar la cita» (de hoy en adelante; desaparece sin dejar rastro).
+   - Citas movidas o descartadas: tarjeta compacta (nombre, centro y estado en una línea).
+   - La cinta empieza en la semana del día que se ve (esta semana a la izquierda, la siguiente a la derecha); «La semana pasada»
+     ya no sale de entrada. Si la app sigue abierta al cambiar de día, la Agenda vuelve a hoy.
+   - «Les toca visita» y «Pendientes de días anteriores» van en la misma línea que los botones de Tu día; el «⋯» del día, en la esquina.
+   - Cada tarjeta con un color suave según cómo está: por hacer (azul), hecha (verde), no estaba (ámbar), movida o descartada (gris).
+   - Marcar o quitar «urgente» se ve al momento en la lista de fichas y en la Agenda.
+   - Fuera «Repartir la semana» (Eric: no aporta).
+   ============================================================ */
+var AG_HOY_VISTO = null;
+agBandejas = (orig => function (...x) {
+  const r = orig.apply(this, x);
+  const b = $('agband'), acts = document.querySelector('#agcuerpo .tdhead .acts');
+  if (b && acts && matchMedia('(min-width: 761px)').matches) {
+    b.classList.add('agbandin'); acts.appendChild(b);
+    b.querySelectorAll('button').forEach(x => x.childNodes.forEach(n => { if (n.nodeType === 3 && /días anteriores/.test(n.textContent)) n.textContent = n.textContent.replace('de días anteriores', 'anteriores'); }));
+  }
+  return r;
+})(agBandejas);
+alternarUrgente = (orig => async function (id, ...x) {
+  const r = await orig.call(this, id, ...x);
+  invalidarCache(); try { DB_PRE.clear(); } catch (e) {}
+  if (TAB === 'directorio') buscar(true);
+  if (TAB === 'agenda' && typeof agRefrescoQuieto === 'function') agRefrescoQuieto();
+  return r;
+})(alternarUrgente);
+// Tareas del día plegables: un clic en su título las oculta todas y se ven solo las citas (se recuerda en este dispositivo)
+const tdTareasPlegadas = () => { try { return localStorage.getItem('delcos-tareas-plegadas') === '1'; } catch (e) { return false; } };
+function tdPlegarTareas() {
+  const t = $('tdtareas'), cab = t && t.querySelector('.tdtcab'); if (!t || !cab) return;
+  t.classList.toggle('plegadas', tdTareasPlegadas());
+  cab.setAttribute('role', 'button'); cab.tabIndex = 0;
+  cab.setAttribute('aria-expanded', String(!tdTareasPlegadas())); cab.title = tdTareasPlegadas() ? 'Ver las tareas' : 'Ocultar las tareas';
+  if (!cab.__plegar) {
+    cab.__plegar = true;
+    const alternar = () => { try { localStorage.setItem('delcos-tareas-plegadas', tdTareasPlegadas() ? '0' : '1'); } catch (e) {} tdPlegarTareas(); };
+    cab.onclick = alternar; cab.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); alternar(); } };
+  }
+}
+pintarTuDia = (orig => async function (...x) { const r = await orig.apply(this, x); tdPlegarTareas(); return r; })(pintarTuDia);

@@ -4362,6 +4362,32 @@ body.modo-medico #v-config #cfgcuerpo{grid-template-columns:repeat(2,minmax(0,1f
 body.modo-medico #v-config #cfgcuerpo > .card{margin:0}
 @media (max-width:760px){body.modo-medico #v-config #cfgcuerpo{grid-template-columns:1fr!important}}
 #dbody .buerr{margin:10px 0 0;padding:8px 12px;border-radius:10px;background:#FDECEC;color:#9B1C1C;font-size:13.5px}
+
+/* v2.273.0 · Agenda: tarjetas compactas, cabecera en una línea y «⋯» en la esquina */
+.tdu.tdmini{padding:8px 14px;background:color-mix(in srgb,var(--panel) 70%,var(--bg,#F2F7FC))}
+.tdu.tdmini :is(.tdu-niv,.tdu-dat,.tdu-sig,.tdu-cu,[data-td^=sube],[data-td^=baja]){display:none!important}
+.tdu.tdmini .tdu-cab{grid-template-columns:28px minmax(0,1fr) auto;gap:10px;align-items:center}
+.tdu.tdmini .tdu-av{width:28px;height:28px;font-size:11px}
+.tdu.tdmini .tdu-av .n{display:none}
+.tdu.tdmini .tdu-nom b{font-size:14px}
+.tdu.tdmini .tdu-pie{margin:4px 0 0 38px;padding-top:0;border-top:0}
+.tdu.tdmini .tdu-hora{display:none}
+#agcuerpo .tdhead .acts > .agband.agbandin{display:contents}
+#agcuerpo .tdhead .acts > .agband.agbandin button{margin:0}
+@media (min-width:761px){#agcuerpo .tdhead .acts{display:flex;flex-wrap:wrap;gap:6px}#agcuerpo .tdhead .acts > :is(.btn,button),#agcuerpo .tdhead .acts > .agband.agbandin button{min-height:36px;height:36px;padding:0 10px;font-size:13px;white-space:nowrap;border-radius:10px}#agcuerpo .tdhead .acts > .agband.agbandin button b{font-size:13.5px}}
+#agcuerpo .tdhead{position:relative}
+.tdu{border-left:4px solid transparent}
+.tdu.tdst-abierta{border-left-color:#8FBCE6}
+.tdu.tdst-hecha{border-left-color:#7CC9A0;background:color-mix(in srgb,#2E9E6A 5%,var(--panel))}
+.tdu.tdst-ausente{border-left-color:#F0C27A;background:color-mix(in srgb,#D97706 5%,var(--panel))}
+.tdu.tdst-cerrada{border-left-color:#C5CFDA}
+#agslrep,.agslacts,#agsemexp #semplan{display:none!important}
+#tdtareas .tdtcab{cursor:pointer;display:flex;align-items:center;gap:6px;user-select:none}
+#tdtareas .tdtcab::after{content:'';width:7px;height:7px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg);margin:-3px 0 0 4px;transition:transform .15s}
+#tdtareas.plegadas .tdtcab::after{transform:rotate(-45deg);margin:0 0 0 2px}
+#tdtareas.plegadas .tdtarea{display:none}
+#agcuerpo .tdhead > div:first-child{padding-right:44px}
+#agcuerpo .tdhead #tddiamas{position:absolute;top:14px;right:16px;margin:0}
 </style>
 </head>
 <body>
@@ -4498,6 +4524,6 @@ try{var co=sessionStorage.getItem('dlc-cambio-org');if(co!==null||localStorage.g
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.272.0"></script>
+<script src="./app.js?v=2.273.0"></script>
 </body>
 </html>
