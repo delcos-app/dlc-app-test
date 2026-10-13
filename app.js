@@ -9613,7 +9613,7 @@ async function pintarAvisos() {
   b.innerHTML = `🔔${n ? `<span class="nb2">${n > 9 ? '9+' : n}</span>` : ''}`;
   b.onclick = async () => {
     const l = (data && data.lista) || [];
-    $('dbody').innerHTML = `<div class="fh"><div><h2>Avisos</h2><div class="sm">Cada vez que se registra una pauta a tu nombre</div></div><button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
+    $('dbody').innerHTML = `<div class="fh"><div><h2>Avisos</h2><div class="sm">Cada vez que se registra una pauta</div></div><button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
       <div class="lista">${l.map(x => `<div class="item ${x.leida_en ? '' : 'nuevo'}" style="cursor:default"><span class="ic">💊</span>
         <span class="tx"><b>${esc(x.titulo)}</b><span class="sm">${esc(x.cuerpo || '')} · ${new Date(x.creado_en).toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' })}</span></span></div>`).join('') || '<div class="vacio">Sin avisos todavía.</div>'}</div>`;
     $('dlg').showModal();
@@ -10701,7 +10701,7 @@ abrirMasMovil = (orig => function () {
 /* ---------------- notificaciones ---------------- */
 
 const TIPOS_NOTIF = [
-  ['pauta', '💊', 'Pautas registradas', 'Cada vez que se registra, se corrige o se anula una pauta en la que figuras'],
+  ['pauta', '💊', 'Pautas registradas', 'Cada vez que se registra, se corrige o se anula una pauta'],
   ['venta_cartera', '🛒', 'Ventas de mi cartera', `Cuando se valida una venta de ${TT('medico', 's', 'un', 'l', 'l')} que llevas`],
   ['cartera', '🩺', 'Cambios en mi cartera', `Cuando te asignan ${TT('medico', 'p', '', 'l', 'l', 'nuevo')}`],
   ['cruce', '🔁', `${TT('visita', 'p', '', 'l', 'C')} de otros a mi cartera`, `Cuando otra persona ${TT('visita', 's', '', 'l', 'l')} a ${TT('medico', 's', 'un', 'l', 'l')} que llevas`],
@@ -11747,7 +11747,7 @@ const MOD_DE_MANUAL = { agenda: 'agenda', rutas: 'rutas', directorio: 'directori
 /* ---------------- notificaciones mejor explicadas ---------------- */
 
 const EXPLICA_NOTIF = {
-  pauta: [`Cada vez que se registra, se corrige o se anula una ${TT('pauta', 's', '', 'l', 'l')} en la que figuras.`, 'Consulta tu portal para ver las cifras.'],
+  pauta: [`Cada vez que se registra, se corrige o se anula una ${TT('pauta', 's', '', 'l', 'l')}.`, 'Consulta tu portal para ver las cifras.'],
   venta_cartera: [`Cuando se valida una venta de ${TT('medico', 's', 'un', 'l', 'l')} que llevas, con las unidades y el producto.`, `Buen momento para agradecérselo en la ${TT('visita', 's', 'proximo', 'l', 'l')}.`],
   cartera: [`Cuando te asignan ${TT('medico', 'p', '', 'l', 'l', 'nuevo')}, a mano o por tu zona.`, `Revisa su ficha y planifica la ${TT('visita', 's', 'primer', 'l', 'l')}.`],
   cruce: [`Cuando otra persona del equipo ${TT('visita', 's', '', 'l', 'l')} a ${TT('medico', 's', 'un', 'l', 'l')} de tu cartera.`, `Coordinaos para no repetir ${TT('visita', 'p', '', 'l', 'l')}.`],
@@ -26451,12 +26451,21 @@ function pmTab(k) {
 }
 
 function pmEsqueleto(ficha) {
-  const k = `<div class="pmk">${'<div class="kpi ksk"><b class="plsk"></b><span class="plsk"></span></div>'.repeat(4)}</div>`;
   const c = '<div class="card ancard pmsk"><span class="plsk"></span></div>';
-  return ficha ? `<div class="pmfila">${c}${c}</div><div class="pmfila">${c}</div>` : `${k}<div class="pmfila">${c}${c}</div><div class="pmfila">${c}${c}</div>`;
+  return ficha ? `<div class="pmfila">${c}${c}</div><div class="pmfila">${c}</div>` : `<div class="pmfila pm3">${c}${c}${c}</div><div class="pmfila">${c}${c}</div>`;
 }
 
 // ——— Resumen ———
+// v2.292: las cifras del periodo en una tarjeta en lista, en la fila de «Métricas» y «Por producto» (antes, 4 indicadores sueltos encima;
+// Eric eligió la lista «C»). Cada fila con su «i». Sin «pacientes» (casi ningún pedido lleva su ficha) ni «pautas registradas» (Eric: confunde).
+function pmPeriodo(d) {
+  const P = TT('pauta', 'p', '', 'l', 'l'), Ps = TT('pauta', 's', '', 'l', 'l');
+  const f = [
+    [num(d.unidades), 'Unidades', `Total de unidades de producto de las ${P} del periodo elegido arriba a la derecha.`],
+    [d.ultima_pauta ? fechaCorta(d.ultima_pauta) : '—', 'Última ' + Ps, `Fecha de la ${Ps} más reciente del periodo.`]];
+  return `<div class="card ancard" id="pmperiodo"><h2>Resumen del periodo</h2>
+    <div class="pmperl">${f.map(x => `<div><span>${esc(x[1])} ${pmAyu(x[1], x[2])}</span><b>${x[0]}</b></div>`).join('')}</div></div>`;
+}
 function pmResumen(d, k, pac) {
   const meses = mesesEntre(d.desde, d.hasta), serie = {}; (d.serie || []).forEach(s => serie[s.mes] = s);
   const ll = d.llamadas || {}, conv = ll.total ? Math.round(ll.con_pedido / ll.total * 100) : null;
@@ -26475,19 +26484,15 @@ function pmResumen(d, k, pac) {
   const falta = PM.faltan.length ? `<div class="pmaviso"><div><b>Completa tu ficha</b><span class="sm">Falta ${esc(pmFaltaTxt())}. Así tu comercial pasa a verte cuando mejor te va.</span></div>
       <button type="button" class="btn" data-pmir="ficha">Completar mi ficha</button></div>` : '';
   return `${falta}
-    <div class="pmk">
-      <div class="kpi"><b>${num(d.unidades)}</b><span>unidades en ${TT('pauta', 'p', '', 'l', 'l')}</span></div>
-      <div class="kpi"><b>${num(d.pautas)}</b><span>${TT('pauta', 'p', '', 'l', 'l')} registradas</span></div>
-      <div class="kpi"><b>${num(d.pacientes)}</b><span>${pac} que indican que les atiendes</span></div>
-      <div class="kpi"><b>${d.ultima_pauta ? fechaCorta(d.ultima_pauta) : '—'}</b><span>última ${TT('pauta', 's', '', 'l', 'l')}</span></div></div>
-    <div class="pmfila">
+    <div class="pmfila pm3">
+      ${pmPeriodo(d)}
       <div class="card ancard"><h2>Métricas de ${TT('pauta', 'p', '', 'l', 'l')} ${pmAyu(`Métricas de ${TT('pauta', 'p', '', 'l', 'l')}`, `Cada barra son las unidades de las ${TT('pauta', 'p', '', 'l', 'l')} registradas en el mes; el número de debajo, cuántas ${TT('pauta', 'p', '', 'l', 'l')} fueron. Cambia el periodo arriba a la derecha.${d.ultima_pauta ? ' Última ' + TT('pauta', 's', '', 'l', 'l') + ': ' + fechaCorta(d.ultima_pauta) + '.' : ''}`)}</h2>${evol}</div>
       <div class="card ancard"><h2>Por producto ${pmAyu('Por producto', `Qué productos aparecen en las ${TT('pauta', 'p', '', 'l', 'l')} registradas en el periodo y qué parte de las unidades es cada uno.`)}</h2>
         ${(d.productos || []).length ? `<div class="pmdon">${svgDonut(d.productos.map(x => ({ n: x.nombre, v: x.unidades })))}</div>` : vacioGrafico('Aparecerá el reparto por producto.')}</div></div>
     <div class="pmfila">
-      <div class="card ancard"><h2>Consultas que te mencionan ${pmAyu('Consultas que te mencionan', `Cuántas consultas recibe la empresa en las que se menciona tu nombre, y en cuántas se inicia una ${TT('pauta', 's', '', 'l', 'l')}. Solo cifras: no se muestra ningún dato de quién llama.`)}</h2>
+      <div class="card ancard"><h2>Consultas recibidas ${pmAyu('Consultas recibidas', `Número de consultas recibidas por la empresa en el periodo y qué parte inicia una ${TT('pauta', 's', '', 'l', 'l')}. Solo cifras: no se muestra ningún dato de quién llama.`)}</h2>
         <div class="minis"><div><b>${num(ll.total || 0)}</b><span>consultas</span></div><div><b>${conv == null ? '—' : conv + '%'}</b><span>inician ${TT('pauta', 's', '', 'l', 'l')}</span></div></div>
-        ${(ll.por_resultado || []).length ? barrasH(ll.por_resultado.map(x => ({ n: x.resultado, v: x.n })), num) : '<p class="sm">Todavía no hay consultas que te mencionen.</p>'}</div>
+        ${(ll.por_resultado || []).length ? barrasH(ll.por_resultado.map(x => ({ n: x.resultado, v: x.n })), num) : '<p class="sm">Todavía no hay consultas registradas en el periodo.</p>'}</div>
       <div class="card ancard" id="pmconst"><h2>Continuidad de las ${TT('pauta', 'p', '', 'l', 'l')} ${pmAyu(`Continuidad de las ${TT('pauta', 'p', '', 'l', 'l')}`, `Cifras agregadas y anónimas de los últimos 12 meses: cuántas ${TT('pauta', 'p', '', 'l', 'l')} se iniciaron, qué parte continúa y cada cuánto se reponen. Nunca se muestra información de ninguna persona y, con menos de 5, no se enseña nada. Tampoco se muestran importes.`)}</h2>${cons}</div></div>`;
 }
 
@@ -26708,7 +26713,7 @@ abrirFicha = (orig => async function (id, ...a) { const r = await orig.call(this
   let general = AYUDA.config;
   const suya = ['Configuración', 'Aquí cambias tu cuenta.', [
     '<b>Mis datos</b>: tu nombre, tu teléfono, el idioma y la contraseña; también cierras la sesión.',
-    '<b>Notificaciones</b>: qué avisos te llegan (por ejemplo, cada venta a tu nombre) y si los quieres al momento, en el resumen de la mañana o no.',
+    '<b>Notificaciones</b>: qué avisos te llegan (por ejemplo, cada pauta registrada) y si los quieres al momento, en el resumen de la mañana o no.',
     'Dónde y cuándo pasas consulta y cómo prefieres las ' + TT('visita', 'p', '', 'l', 'l') + ' se indica en <b>Mi ficha</b>, dentro de Mi informe.']];
   Object.defineProperty(AYUDA, 'config', { configurable: true, enumerable: true, get: () => (typeof ES_MEDICO === 'function' && ES_MEDICO() ? suya : general), set: v => { general = v; } });
 })();
