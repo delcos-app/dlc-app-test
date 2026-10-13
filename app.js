@@ -78,7 +78,7 @@ let PERFIL = null, TAB = 'inicio';
    que los saca del vocabulario de cada cliente (ajuste «terminos») con su plural, su género y el artículo que concuerda.
    TT(término, 's'|'p', determinante, mayúsculas del determinante, mayúsculas del nombre[, adjetivo en masculino singular]) · 'l' minúscula, 'C' inicial, 'U' todo. */
 // v2.224.0: palabras de partida genéricas (antes «médico» y «paciente»: DLC las tiene como vocabulario propio desde el SQL 133)
-const TERM_DEF = { medico: { s: 'profesional', p: 'profesionales', g: 'm' }, paciente: { s: 'cliente', p: 'clientes', g: 'm' }, visita: { s: 'visita', p: 'visitas', g: 'f' } };
+const TERM_DEF = { medico: { s: 'profesional', p: 'profesionales', g: 'm' }, paciente: { s: 'cliente', p: 'clientes', g: 'm' }, visita: { s: 'visita', p: 'visitas', g: 'f' }, pauta: { s: 'pauta', p: 'pautas', g: 'f' } };
 const TERM_DET = { el: ['el', 'los', 'la', 'las'], un: ['un', 'unos', 'una', 'unas'], del: ['del', 'de los', 'de la', 'de las'], al: ['al', 'a los', 'a la', 'a las'],
   este: ['este', 'estos', 'esta', 'estas'], ningun: ['ningún', 'ningunos', 'ninguna', 'ningunas'], otro: ['otro', 'otros', 'otra', 'otras'],
   nuevo: ['nuevo', 'nuevos', 'nueva', 'nuevas'], primer: ['primer', 'primeros', 'primera', 'primeras'], ultimo: ['último', 'últimos', 'última', 'últimas'],
@@ -539,7 +539,7 @@ async function fichaAcceso(id) {
     ${ya ? `<p class="sm">Tiene acceso como <b>${esc(ya.email || '')}</b>${ya.activo ? '' : ' (desactivado)'}: ${m.tipo === 'Centro' ? 'pide la reposición de sus productos, material y escribe a su comercial' : 've su informe y recibe un aviso con cada pauta'}</p>${ya.activo && typeof puedeVerComo === 'function' && puedeVerComo(ya) ? `<button class="btn sec" data-ucomo="${ya.id}">👤 Impersonalizar</button>` : ''}.</p>`
       : m.tipo === 'Centro' ? `<p class="sm">Puede tener acceso para pedir la reposición de los productos que le des de alta, pedir material y escribir a su comercial.</p>
          <button class="btn sec" id="fdaracc">Dar acceso</button>`
-      : `<p class="sm">Puede tener acceso a su informe de ventas atribuidas y recibir un aviso con cada venta a su nombre. No verá importes ni datos de ${TT('paciente', 'p', '', 'l', 'l')}.</p>
+      : `<p class="sm">Puede tener acceso a su portal (cifras agregadas de ${TT('pauta', 'p', '', 'l', 'l')}) y recibir un aviso con cada ${TT('pauta', 's', '', 'l', 'l')} registrada. No verá importes ni datos de ${TT('paciente', 'p', '', 'l', 'l')}.</p>
          <button class="btn sec" id="fdaracc">Dar acceso</button>`}</div>`);
   if ($('fdaracc')) $('fdaracc').onclick = async () => {
     const { data: f } = await db.rpc('ficha_cuenta', { p_id: id });
@@ -1584,7 +1584,7 @@ async function usuarioFichaMedico(id) {
   if (pf && pf.cuenta_id) { const { data: fm } = await db.rpc('ficha_cuenta', { p_id: pf.cuenta_id }); if (fm && fm.medico) medico = { id: fm.medico.id, nombre: fm.medico.nombre }; }
   const ref = $('dbody').querySelector('.acts:last-of-type');
   ref.insertAdjacentHTML('beforebegin', `<div class="blk" id="umedw"><h3>Ficha de ${TT('medico', 's', '', 'l', 'l')} vinculada</h3>
-    <p class="sm">Este usuario verá solo el informe de ${TT('medico', 's', 'este', 'l', 'l')} y recibirá un aviso con cada pauta a su nombre. Sin importes ni datos de ${TT('paciente', 'p', '', 'l', 'l')}.</p>
+    <p class="sm">Este usuario verá solo el informe de ${TT('medico', 's', 'este', 'l', 'l')} y recibirá un aviso con cada ${TT('pauta', 's', '', 'l', 'l')} registrada. Sin importes ni datos de ${TT('paciente', 'p', '', 'l', 'l')}.</p>
     <div id="umedsel"></div><div class="acts" style="margin-top:8px"><button class="btn sec" id="umedok">Guardar vínculo</button>
     ${medico ? `<button class="btn sec" id="umedver">Ver su informe</button>` : ''}</div></div>`);
   selectorMedico($('umedsel'), { valor: medico, placeholder: 'Busca su ficha', alElegir: m => { medico = m; } });
@@ -1706,8 +1706,18 @@ function nuevoUsuarioPlanYMedico(pre, act, maxU, activos) {
     if (rolPuede($('nr').value, 'portal_prescriptor') && !medico) { toast(`Elige ${TT('medico', 's', 'el', 'l', 'l')} del directorio`, true); return; }
     await crear(ev);
     if (rolPuede($('nr').value, 'portal_prescriptor') && medico && /Usuario creado/.test($('nmsg').textContent)) {
-      const { data: u } = await db.from('perfiles').select('id').eq('email', $('ne').value.trim()).single();
-      if (u) { await db.rpc('vincular_cuenta', { p_usuario: u.id, p_medico: medico.id }); $('nmsg').insertAdjacentHTML('beforeend', ` Vinculado a <b>${esc(medico.nombre)}</b>.`); }
+      // v2.291: el perfil puede tardar en existir tras crear el usuario y el vínculo puede fallar: se reintenta y, si no se consigue, se dice
+      // (antes decía «Vinculado» siempre y el profesional se quedaba sin ficha: su portal no cargaba)
+      let ok = false;
+      for (let i = 0; i < 6 && !ok; i++) {
+        if (i) await new Promise(r => setTimeout(r, 700));
+        const { data: u } = await db.from('perfiles').select('id').eq('email', $('ne').value.trim()).maybeSingle();
+        if (!u) continue;
+        const { data: r, error } = await db.rpc('vincular_cuenta', { p_usuario: u.id, p_medico: medico.id });
+        ok = !error && !(r && r.ok === false);
+      }
+      $('nmsg').insertAdjacentHTML('beforeend', ok ? ` Vinculado a <b>${esc(medico.nombre)}</b>.`
+        : ` <span class="campoerr"><b>No se ha podido vincular a ${esc(medico.nombre)}.</b> Hazlo en Configuración → Usuarios → su ficha → «Ficha de ${esc(TT('medico', 's', '', 'l', 'l'))} vinculada»; sin vínculo su portal no muestra nada.</span>`);
     }
     if (TAB === 'config' && CFG_SEC === 'usuarios') pintarUsuarios2();
   };
@@ -9553,13 +9563,18 @@ async function cargarInforme() {
   if (!window.PM_LISTO) { const v0 = $('v-informe'); if (v0 && !v0.innerHTML.trim()) v0.innerHTML = '<div class="card">' + skelCard('Cargando tu informe…') + '</div>'; setTimeout(cargarInforme, 30); return; }
   return cargarInforme2271();
   const v = $('v-informe');
-  v.innerHTML = `<div class="medhero"><div><div class="sm" style="color:rgba(255,255,255,.8)">Tu informe de ventas atribuidas</div><h1 id="mdnom">…</h1><div id="mdesp" class="sm" style="color:rgba(255,255,255,.85)"></div></div>
+  v.innerHTML = `<div class="medhero"><div><div class="sm" style="color:rgba(255,255,255,.8)">Tu portal</div><h1 id="mdnom">…</h1><div id="mdesp" class="sm" style="color:rgba(255,255,255,.85)"></div></div>
       <div class="medper"><div id="mdper"></div></div></div>
     <div id="mdcuerpo"><div class="card">${skelCard('Cargando tu informe…')}</div></div>`;
   const pinta = async () => {
     const r = $('mdper').__rango();
     const { data: d } = await RPC_ORIG('informe_cuenta', { p_desde: r.desde, p_hasta: r.hasta });
-    if (!d || !d.ok) { $('mdcuerpo').innerHTML = `<div class="card"><div class="vacio">Tu usuario todavía no está vinculado a tu ficha de ${TT('medico', 's', '', 'l', 'l')}. Avisa a la empresa para activarlo.</div></div>`; return; }
+    if (!d || !d.ok) {
+      // v2.291: sin ficha vinculada, las dos pestañas lo dicen (antes «Mi ficha» se quedaba cargando) y la cabecera lleva su nombre
+      const sin = `<div class="card"><div class="vacio">Tu usuario todavía no está vinculado a tu ficha de ${TT('medico', 's', '', 'l', 'l')}. Avisa a la empresa para activarlo.</div></div>`;
+      $('mdcuerpo').innerHTML = sin; if ($('pmficha')) $('pmficha').innerHTML = sin;
+      $('mdnom').textContent = (PERFIL && PERFIL.nombre) || ''; return;
+    }
     $('mdnom').textContent = d.medico.nombre; $('mdesp').textContent = d.medico.especialidad || '';
     const top = d.posicion && d.posicion <= 3 ? 'Top 3' : d.posicion && d.posicion <= 5 ? 'Top 5' : d.posicion && d.posicion <= 10 ? 'Top 10' : null;
     const ll = d.llamadas || {}, conv = ll.total ? Math.round(ll.con_pedido / ll.total * 100) : null;
@@ -10686,7 +10701,7 @@ abrirMasMovil = (orig => function () {
 /* ---------------- notificaciones ---------------- */
 
 const TIPOS_NOTIF = [
-  ['pauta', '💊', 'Pautas a mi nombre', 'Cada vez que se registra una pauta con tu nombre'],
+  ['pauta', '💊', 'Pautas registradas', 'Cada vez que se registra, se corrige o se anula una pauta en la que figuras'],
   ['venta_cartera', '🛒', 'Ventas de mi cartera', `Cuando se valida una venta de ${TT('medico', 's', 'un', 'l', 'l')} que llevas`],
   ['cartera', '🩺', 'Cambios en mi cartera', `Cuando te asignan ${TT('medico', 'p', '', 'l', 'l', 'nuevo')}`],
   ['cruce', '🔁', `${TT('visita', 'p', '', 'l', 'C')} de otros a mi cartera`, `Cuando otra persona ${TT('visita', 's', '', 'l', 'l')} a ${TT('medico', 's', 'un', 'l', 'l')} que llevas`],
@@ -11732,7 +11747,7 @@ const MOD_DE_MANUAL = { agenda: 'agenda', rutas: 'rutas', directorio: 'directori
 /* ---------------- notificaciones mejor explicadas ---------------- */
 
 const EXPLICA_NOTIF = {
-  pauta: [`Cada vez que se registra un pedido de ${TT('paciente', 's', 'un', 'l', 'l')} que viene de tu parte.`, 'Consulta tu informe para ver la evolución.'],
+  pauta: [`Cada vez que se registra, se corrige o se anula una ${TT('pauta', 's', '', 'l', 'l')} en la que figuras.`, 'Consulta tu portal para ver las cifras.'],
   venta_cartera: [`Cuando se valida una venta de ${TT('medico', 's', 'un', 'l', 'l')} que llevas, con las unidades y el producto.`, `Buen momento para agradecérselo en la ${TT('visita', 's', 'proximo', 'l', 'l')}.`],
   cartera: [`Cuando te asignan ${TT('medico', 'p', '', 'l', 'l', 'nuevo')}, a mano o por tu zona.`, `Revisa su ficha y planifica la ${TT('visita', 's', 'primer', 'l', 'l')}.`],
   cruce: [`Cuando otra persona del equipo ${TT('visita', 's', '', 'l', 'l')} a ${TT('medico', 's', 'un', 'l', 'l')} de tu cartera.`, `Coordinaos para no repetir ${TT('visita', 'p', '', 'l', 'l')}.`],
@@ -15852,7 +15867,7 @@ function orgExtras(c, l) {
       <label class="chk"><input type="checkbox" id="oxopor" ${act.includes('oportunidades') ? 'checked' : ''}> <span><b>Oportunidades</b>
         <span class="sm">Registro de cada venta, se cierre con pedido o no: día y hora, qué producto y cuántas unidades quería, su ${TT('medico', 's', '', 'l', 'l')} de referencia y cómo llegó, con sus métricas.</span></span></label>
       <label class="chk"><input type="checkbox" id="oxport" ${act.includes('portal') ? 'checked' : ''}> <span><b>Portal ${TT('medico', 's', 'del', 'l', 'l')}</b>
-        <span class="sm">En su informe, la constancia de sus ${TT('paciente', 'p', '', 'l', 'l')} (solo cifras), pedir material y escribir dudas a su comercial.</span></span></label>
+        <span class="sm">En su portal, cifras agregadas de ${TT('pauta', 'p', '', 'l', 'l')} (sin datos de personas), pedir material y escribir dudas a su comercial.</span></span></label>
       <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>Cancelar</button><button class="btn" id="oxok">Guardar</button></div>`;
     $('dlg').showModal();
     $('oxok').onclick = async () => {
@@ -15910,8 +15925,8 @@ async function portalMedico() {
   const lp = Array.isArray(perm) ? perm : [];
   const ls = sols || [], lm = msgs || [];
   caja.innerHTML = `
-    <div class="card ancard ancha" id="mdcons"><h2>Constancia de tus ${pac}</h2>${constancia}
-      <p class="leer">Últimos 12 meses, ${pac} que empezaron contigo. Solo cifras: nunca se muestra ningún ${TT('paciente', 's', '', 'l', 'l')}.</p></div>
+    <div class="card ancard ancha" id="mdcons"><h2>Continuidad de las ${TT('pauta', 'p', '', 'l', 'l')}</h2>${constancia}
+      <p class="leer">Cifras agregadas y anónimas de los últimos 12 meses. Nunca se muestra información de ninguna persona.</p></div>
     <div class="card ancard" id="mdmat"><h2>Pedir material</h2>
       ${lp.length ? `<div class="g2"><div><label for="mdmatm">Material</label><select id="mdmatm">${lp.map(x => `<option value="${esc(x.valor)}" data-max="${x.max}">${esc(x.valor)}</option>`).join('')}</select></div>
         <div><label for="mdmatn">Cantidad</label><input id="mdmatn" type="number" min="1" value="1"><span class="sm" id="mdmatmax">Máximo ${num(lp[0].max)} por petición</span></div></div>
@@ -26307,7 +26322,7 @@ function puedeVerComo(u) {
 }
 const queVeInvitado = u => rolPuede(u.rol, 'portal_centro')
   ? 'Pide la reposición de los productos que le des de alta, pide material y escribe a su comercial.'
-  : `Ve su informe de ventas atribuidas (sin importes ni datos de ${TT('paciente', 'p', '', 'l', 'l')}), pide material y escribe sus dudas.`;
+  : `Ve su portal (cifras agregadas de ${TT('pauta', 'p', '', 'l', 'l')}, sin importes ni datos de ${TT('paciente', 'p', '', 'l', 'l')}), pide material y escribe sus dudas.`;
 const SUPL_ERR = {
   administrador: 'No se puede impersonalizar a un usuario que administra',
   permiso: 'No tienes permiso para impersonalizar usuarios',
@@ -26397,7 +26412,7 @@ const PM_COMO = ['Con cita previa', 'Sin cita, al final de la consulta', 'Sin ci
 // cargarInforme (en su sitio) espera a que se lea este final y llama aquí: al arrancar, «Mi informe» se pinta antes
 async function cargarInforme2271() {
   const v = $('v-informe'), pac = TT('paciente', 'p', '', 'l', 'l');
-  v.innerHTML = `<div class="medhero"><div><div class="sm" style="color:rgba(255,255,255,.8)">Tu informe de ventas atribuidas</div><h1 id="mdnom">…</h1><div id="mdesp" class="sm" style="color:rgba(255,255,255,.85)"></div></div>
+  v.innerHTML = `<div class="medhero"><div><div class="sm" style="color:rgba(255,255,255,.8)">Tu portal</div><h1 id="mdnom">…</h1><div id="mdesp" class="sm" style="color:rgba(255,255,255,.85)"></div></div>
       <div class="medper"><div id="mdper"></div></div></div>
     <div class="pmtabs" role="tablist">${[['res', 'Resumen'], ['ficha', 'Mi ficha'], ['mat', 'Material y dudas']].map(([k, t]) =>
       `<button type="button" role="tab" data-pmt="${k}" class="${PM.tab === k ? 'on' : ''}" aria-selected="${PM.tab === k}">${t}<span class="pmtpunto" hidden></span></button>`).join('')}</div>
@@ -26411,7 +26426,12 @@ async function cargarInforme2271() {
       RPC_ORIG('constancia_pacientes', { p_meses: 12 }), PM.ficha ? Promise.resolve({ data: null }) : RPC_ORIG('portal_mi_ficha', {})]);
     if (f && f.ok) pmFichaDatos(f);
     if (!$('mdcuerpo')) return;
-    if (!d || !d.ok) { $('mdcuerpo').innerHTML = `<div class="card"><div class="vacio">Tu usuario todavía no está vinculado a tu ficha de ${TT('medico', 's', '', 'l', 'l')}. Avisa a la empresa para activarlo.</div></div>`; return; }
+    if (!d || !d.ok) {
+      // v2.291: sin ficha vinculada, las dos pestañas lo dicen (antes «Mi ficha» se quedaba cargando) y la cabecera lleva su nombre
+      const sin = `<div class="card"><div class="vacio">Tu usuario todavía no está vinculado a tu ficha de ${TT('medico', 's', '', 'l', 'l')}. Avisa a la empresa para activarlo.</div></div>`;
+      $('mdcuerpo').innerHTML = sin; if ($('pmficha')) $('pmficha').innerHTML = sin;
+      $('mdnom').textContent = (PERFIL && PERFIL.nombre) || ''; return;
+    }
     $('mdnom').textContent = d.medico.nombre; $('mdesp').textContent = d.medico.especialidad || '';
     $('mdcuerpo').innerHTML = pmResumen(d, c || {}, pac);
     $('mdcuerpo').querySelectorAll('[data-pmir]').forEach(b => b.onclick = () => pmTab(b.dataset.pmir));
@@ -26441,34 +26461,34 @@ function pmResumen(d, k, pac) {
   const meses = mesesEntre(d.desde, d.hasta), serie = {}; (d.serie || []).forEach(s => serie[s.mes] = s);
   const ll = d.llamadas || {}, conv = ll.total ? Math.round(ll.con_pedido / ll.total * 100) : null;
   const mx = Math.max(1, ...meses.map(m => (serie[m] || {}).unidades || 0));
-  const evol = d.unidades ? `<div class="pmleg"><span><i></i>Unidades</span><span><i class="v"></i>Ventas</span></div>
+  const evol = d.unidades ? `<div class="pmleg"><span><i></i>Unidades</span><span><i class="v"></i>${TT('pauta', 'p', '', 'C', 'l')}</span></div>
     <div class="pmev" style="--n:${meses.length}">${meses.map(m => {
       const s = serie[m] || {}, u = s.unidades || 0, n = s.pautas || 0;
       const mes = new Date(m + '-01T12:00').toLocaleDateString('es-ES', { month: 'short' }).replace('.', '');
-      return `<div class="pmcol" title="${esc(mes)}: ${num(u)} unidades, ${num(n)} ventas"><div class="pmbar"><b>${u ? num(u) : ''}</b><i style="height:${u ? Math.max(3, u / mx * 100) : 0}%"></i></div>
+      return `<div class="pmcol" title="${esc(mes)}: ${num(u)} unidades, ${num(n)} ${TT('pauta', 'p', '', 'l', 'l')}"><div class="pmbar"><b>${u ? num(u) : ''}</b><i style="height:${u ? Math.max(3, u / mx * 100) : 0}%"></i></div>
         <span class="pmm">${esc(mes)}</span><span class="pmn">${n ? `<em>${num(n)}</em>` : ''}</span></div>`; }).join('')}</div>`
-    : vacioGrafico(`Cuando tus ${pac} hagan su pedido, verás aquí la evolución.`);
+    : vacioGrafico(`Cuando haya ${TT('pauta', 'p', '', 'l', 'l')} registradas, verás aquí cómo evolucionan.`);
   const cons = !k.ok ? '<p class="sm">No disponible.</p>' : k.pocos
-    ? `<p class="sm">En los últimos ${num(k.meses || 12)} meses han empezado ${num(k.empezaron)} ${pac}. A partir de ${num(k.minimo || 5)} verás aquí su constancia.</p>`
-    : `<div class="minis cons"><div><b>${num(k.empezaron)}</b><span>empezaron</span></div><div><b>${k.empezaron ? Math.round(k.repiten / k.empezaron * 100) + '%' : '—'}</b><span>repiten</span></div>
-        <div><b>${k.dias_entre ? num(k.dias_entre) + ' días' : '—'}</b><span>entre pedidos</span></div><div><b>${num(k.sin_pedir)}</b><span>más de 60 días sin pedir</span></div></div>`;
+    ? `<p class="sm">En los últimos ${num(k.meses || 12)} meses se han iniciado ${num(k.empezaron)} ${TT('pauta', 'p', '', 'l', 'l')}. A partir de ${num(k.minimo || 5)} verás aquí cifras de continuidad.</p>`
+    : `<div class="minis cons"><div><b>${num(k.empezaron)}</b><span>iniciadas</span></div><div><b>${k.empezaron ? Math.round(k.repiten / k.empezaron * 100) + '%' : '—'}</b><span>continúan</span></div>
+        <div><b>${k.dias_entre ? num(k.dias_entre) + ' días' : '—'}</b><span>entre reposiciones</span></div><div><b>${num(k.sin_pedir)}</b><span>más de 60 días sin reponer</span></div></div>`;
   const falta = PM.faltan.length ? `<div class="pmaviso"><div><b>Completa tu ficha</b><span class="sm">Falta ${esc(pmFaltaTxt())}. Así tu comercial pasa a verte cuando mejor te va.</span></div>
       <button type="button" class="btn" data-pmir="ficha">Completar mi ficha</button></div>` : '';
   return `${falta}
     <div class="pmk">
-      <div class="kpi"><b>${num(d.unidades)}</b><span>unidades atribuidas</span></div>
-      <div class="kpi"><b>${num(d.pautas)}</b><span>ventas</span></div>
-      <div class="kpi"><b>${num(d.pacientes)}</b><span>${pac}</span></div>
-      <div class="kpi"><b>${d.ultima_pauta ? fechaCorta(d.ultima_pauta) : '—'}</b><span>última venta</span></div></div>
+      <div class="kpi"><b>${num(d.unidades)}</b><span>unidades en ${TT('pauta', 'p', '', 'l', 'l')}</span></div>
+      <div class="kpi"><b>${num(d.pautas)}</b><span>${TT('pauta', 'p', '', 'l', 'l')} registradas</span></div>
+      <div class="kpi"><b>${num(d.pacientes)}</b><span>${pac} que indican que les atiendes</span></div>
+      <div class="kpi"><b>${d.ultima_pauta ? fechaCorta(d.ultima_pauta) : '—'}</b><span>última ${TT('pauta', 's', '', 'l', 'l')}</span></div></div>
     <div class="pmfila">
-      <div class="card ancard"><h2>Tu evolución ${pmAyu('Tu evolución', `Cada barra son las unidades atribuidas a tu nombre en el mes; el número de debajo, cuántas ventas fueron. Cambia el periodo arriba a la derecha.${d.ultima_pauta ? ' Última venta: ' + fechaCorta(d.ultima_pauta) + '.' : ''}`)}</h2>${evol}</div>
-      <div class="card ancard"><h2>Por producto ${pmAyu('Por producto', 'Qué productos se han vendido a tu nombre en el periodo y qué parte de las unidades es cada uno.')}</h2>
+      <div class="card ancard"><h2>Métricas de ${TT('pauta', 'p', '', 'l', 'l')} ${pmAyu(`Métricas de ${TT('pauta', 'p', '', 'l', 'l')}`, `Cada barra son las unidades de las ${TT('pauta', 'p', '', 'l', 'l')} registradas en el mes; el número de debajo, cuántas ${TT('pauta', 'p', '', 'l', 'l')} fueron. Cambia el periodo arriba a la derecha.${d.ultima_pauta ? ' Última ' + TT('pauta', 's', '', 'l', 'l') + ': ' + fechaCorta(d.ultima_pauta) + '.' : ''}`)}</h2>${evol}</div>
+      <div class="card ancard"><h2>Por producto ${pmAyu('Por producto', `Qué productos aparecen en las ${TT('pauta', 'p', '', 'l', 'l')} registradas en el periodo y qué parte de las unidades es cada uno.`)}</h2>
         ${(d.productos || []).length ? `<div class="pmdon">${svgDonut(d.productos.map(x => ({ n: x.nombre, v: x.unidades })))}</div>` : vacioGrafico('Aparecerá el reparto por producto.')}</div></div>
     <div class="pmfila">
-      <div class="card ancard"><h2>Llamadas recibidas a tu nombre ${pmAyu('Llamadas recibidas a tu nombre', `Registro de las llamadas que recibe la empresa de ${pac} que indican venir de tu parte, tanto si terminan en compra como si no. No se muestra ningún dato de quién llama.`)}</h2>
-        <div class="minis"><div><b>${num(ll.total || 0)}</b><span>llamadas</span></div><div><b>${conv == null ? '—' : conv + '%'}</b><span>terminan en compra</span></div></div>
-        ${(ll.por_resultado || []).length ? barrasH(ll.por_resultado.map(x => ({ n: x.resultado, v: x.n })), num) : '<p class="sm">Todavía no hay llamadas registradas a tu nombre.</p>'}</div>
-      <div class="card ancard" id="pmconst"><h2>Constancia de tus ${pac} ${pmAyu(`Constancia de tus ${pac}`, `Últimos 12 meses: cuántos ${pac} empezaron contigo, cuántos repiten y cada cuánto piden. Solo cifras: nunca se muestra ningún ${TT('paciente', 's', '', 'l', 'l')} y, con menos de 5, no se enseña nada para que nadie pueda reconocerlos. Por confidencialidad tampoco se muestran importes.`)}</h2>${cons}</div></div>`;
+      <div class="card ancard"><h2>Consultas que te mencionan ${pmAyu('Consultas que te mencionan', `Cuántas consultas recibe la empresa en las que se menciona tu nombre, y en cuántas se inicia una ${TT('pauta', 's', '', 'l', 'l')}. Solo cifras: no se muestra ningún dato de quién llama.`)}</h2>
+        <div class="minis"><div><b>${num(ll.total || 0)}</b><span>consultas</span></div><div><b>${conv == null ? '—' : conv + '%'}</b><span>inician ${TT('pauta', 's', '', 'l', 'l')}</span></div></div>
+        ${(ll.por_resultado || []).length ? barrasH(ll.por_resultado.map(x => ({ n: x.resultado, v: x.n })), num) : '<p class="sm">Todavía no hay consultas que te mencionen.</p>'}</div>
+      <div class="card ancard" id="pmconst"><h2>Continuidad de las ${TT('pauta', 'p', '', 'l', 'l')} ${pmAyu(`Continuidad de las ${TT('pauta', 'p', '', 'l', 'l')}`, `Cifras agregadas y anónimas de los últimos 12 meses: cuántas ${TT('pauta', 'p', '', 'l', 'l')} se iniciaron, qué parte continúa y cada cuánto se reponen. Nunca se muestra información de ninguna persona y, con menos de 5, no se enseña nada. Tampoco se muestran importes.`)}</h2>${cons}</div></div>`;
 }
 
 const pmFaltaTxt = () => {
