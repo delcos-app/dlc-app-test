@@ -26452,10 +26452,23 @@ function pmTab(k) {
 
 function pmEsqueleto(ficha) {
   const c = '<div class="card ancard pmsk"><span class="plsk"></span></div>';
-  return ficha ? `<div class="pmfila">${c}${c}</div><div class="pmfila">${c}</div>` : `<div class="pmfila pm3">${c}${c}${c}</div><div class="pmfila">${c}${c}</div>`;
+  return ficha ? `<div class="pmfila">${c}${c}</div><div class="pmfila">${c}</div>` : `<div class="pmfila pm3">${c}${c}${c}</div><div class="pmfila pm3">${c}${c}${c}</div>`;
 }
 
 // ——— Resumen ———
+// v2.293 (SQL 155): «Pautas más utilizadas»: qué parte de las pautas del periodo es de cada formato (1, 2, 2 + 1 de regalo…). Sin personas.
+function pmFormatoTxt(f) {
+  const m = /^(d+)+(d+)$/.exec(f);
+  if (m) return `${m[1]} + ${m[2]} de regalo`;
+  if (f === '4+') return '4 o más unidades';
+  return f === '1' ? '1 unidad' : f + ' unidades';
+}
+function pmFormatos(d) {
+  const P = TT('pauta', 'p', '', 'l', 'l'), l = d.formatos || [], tot = l.reduce((a, x) => a + (x.n || 0), 0);
+  const ayu = pmAyu('Pautas más utilizadas', `Cómo son las ${P} del periodo elegido arriba a la derecha: qué parte es de 1 unidad, de 2, de 2 + 1 de regalo… Sirve para ver qué formato se utiliza más. Solo porcentajes: no se muestra ningún dato de personas.`);
+  return `<div class="card ancard" id="pmformatos"><h2>${P.charAt(0).toUpperCase() + P.slice(1)} más utilizadas ${ayu}</h2>
+    ${tot ? barrasH(l.map(x => ({ n: pmFormatoTxt(x.formato), v: Math.round(x.n / tot * 100) })), v => v + ' %') : vacioGrafico(`Cuando haya ${P} en el periodo, verás aquí qué formatos se utilizan más.`)}</div>`;
+}
 // v2.292: las cifras del periodo en una tarjeta en lista, en la fila de «Métricas» y «Por producto» (antes, 4 indicadores sueltos encima;
 // Eric eligió la lista «C»). Cada fila con su «i». Sin «pacientes» (casi ningún pedido lleva su ficha) ni «pautas registradas» (Eric: confunde).
 function pmPeriodo(d) {
@@ -26489,7 +26502,8 @@ function pmResumen(d, k, pac) {
       <div class="card ancard"><h2>Métricas de ${TT('pauta', 'p', '', 'l', 'l')} ${pmAyu(`Métricas de ${TT('pauta', 'p', '', 'l', 'l')}`, `Cada barra son las unidades de las ${TT('pauta', 'p', '', 'l', 'l')} registradas en el mes; el número de debajo, cuántas ${TT('pauta', 'p', '', 'l', 'l')} fueron. Cambia el periodo arriba a la derecha.${d.ultima_pauta ? ' Última ' + TT('pauta', 's', '', 'l', 'l') + ': ' + fechaCorta(d.ultima_pauta) + '.' : ''}`)}</h2>${evol}</div>
       <div class="card ancard"><h2>Por producto ${pmAyu('Por producto', `Qué productos aparecen en las ${TT('pauta', 'p', '', 'l', 'l')} registradas en el periodo y qué parte de las unidades es cada uno.`)}</h2>
         ${(d.productos || []).length ? `<div class="pmdon">${svgDonut(d.productos.map(x => ({ n: x.nombre, v: x.unidades })))}</div>` : vacioGrafico('Aparecerá el reparto por producto.')}</div></div>
-    <div class="pmfila">
+    <div class="pmfila pm3">
+      ${pmFormatos(d)}
       <div class="card ancard"><h2>Consultas recibidas ${pmAyu('Consultas recibidas', `Número de consultas recibidas por la empresa en el periodo y qué parte inicia una ${TT('pauta', 's', '', 'l', 'l')}. Solo cifras: no se muestra ningún dato de quién llama.`)}</h2>
         <div class="minis"><div><b>${num(ll.total || 0)}</b><span>consultas</span></div><div><b>${conv == null ? '—' : conv + '%'}</b><span>inician ${TT('pauta', 's', '', 'l', 'l')}</span></div></div>
         ${(ll.por_resultado || []).length ? barrasH(ll.por_resultado.map(x => ({ n: x.resultado, v: x.n })), num) : '<p class="sm">Todavía no hay consultas registradas en el periodo.</p>'}</div>
