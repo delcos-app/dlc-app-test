@@ -1,3 +1,7 @@
+/* v2.305.0: si el enlace del correo de activación ha caducado, Supabase vuelve a la app con el error en la dirección
+   (#error_code=otp_expired o ?error_code=…): se lee antes de nada para avisar en el acceso y ofrecer un enlace nuevo */
+const ENLACE_ERROR = (() => { try { const p = new URLSearchParams((location.hash || '').replace(/^#/, '') + '&' + (location.search || '').replace(/^\?/, ''));
+  return p.get('error_code') || p.get('error') || null; } catch (e) { return null; } })();
 /* Añadir una clase que ya está o quitar una que no está no hace nada (el navegador lo contaba como un cambio
    y despertaba a los componentes que vigilan la pantalla, que podían entrar en bucle entre ellos) */
 (function () {
@@ -166,6 +170,7 @@ $('lform').addEventListener('submit', async e => {
   const { error } = await db.auth.signInWithPassword({ email: $('lu').value.trim(), password: $('lp').value });
   btn.disabled = false; btn.textContent = 'Entrar';
   if (error) {
+    if (/not confirmed/i.test(error.message)) { accesoSinActivar('Tu cuenta aún no está activada: abre el enlace del correo que te enviamos o pide uno nuevo.'); return; }
     msg.textContent = error.message === 'Invalid login credentials'
       ? 'Correo o contraseña incorrectos.' : 'No se ha podido entrar: ' + error.message;
     return;
@@ -11927,6 +11932,7 @@ function detalleUsuario(u) {
       ${!rolPuede(u.rol, 'portal_prescriptor') ? '<button class="btn sec" data-uacc="cartera">🗂️ Asignar cartera</button>' : ''}
       ${puede('administrar') && u.id !== PERFIL.id ? '<button class="btn sec" data-uacc="acceso">Datos de acceso</button>' : ''}
       <button class="btn sec" data-uacc="pass">🔑 Enviar cambio de contraseña</button>
+      <button class="btn sec" data-uacc="activar">📧 Reenviar el correo de activación</button>
       ${typeof puedeVerComo === 'function' && puedeVerComo(u) ? (esInvitado(u) ? '<button class="btn" data-uacc="como">👤 Impersonalizar</button>' : '<button class="btn sec" data-uacc="como">👤 Impersonalizar</button>') : ''}
       ${puede('administrar') && u.id !== PERFIL.id ? '<button class="btn sec dang" data-uacc="borrar">🗑 Borrar usuario</button>' : ''}</div>`;
   $('dlg').showModal();
@@ -11935,6 +11941,7 @@ function detalleUsuario(u) {
     if (a === 'editar') editarUsuario(u.id);
     if (a === 'cartera') { $('dlg').close(); asignarCartera(u.id); }
     if (a === 'pass') { $('dlg').close(); restablecerPassword(u); }
+    if (a === 'activar') reenviarActivacion(u.email);
     if (a === 'acceso') verAccesoTemporal(u);   // v2.279.0
     if (a === 'como') { $('dlg').close(); entrarComo(u.id); }
     if (a === 'borrar') { $('dlg').close(); borrarUsuario(u); }
@@ -27544,3 +27551,37 @@ buscar = (orig => function (...a) {
   if (s) { if (s.options[1]) s.options[1].text = TT('medico', 'p', '', 'l', 'C'); if (s.value !== (F.tipo || '')) s.value = F.tipo || ''; }
   return orig.apply(this, a);
 })(buscar);
+
+
+/* ============================================================
+   v2.305.0 · Reenviar el correo de activación (aviso de Eric: un profesional abrió el enlace del correo de alta cuando ya
+   había caducado y no tenía forma de pedir otro). Supabase reenvía el correo de confirmación con auth.resend (no hace falta
+   SQL): desde la ficha del usuario (administración) y desde la pantalla de acceso, que avisa si el enlace ha caducado o si
+   la cuenta aún no está activada.
+   ============================================================ */
+async function reenviarActivacion(email, o = {}) {
+  email = String(email || '').trim();
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { (o.err || (t => toast(t, true)))('Escribe tu correo para enviarte un enlace nuevo.'); return false; }
+  const { error } = await db.auth.resend({ type: 'signup', email, options: { emailRedirectTo: location.origin + location.pathname } });
+  if (error) {
+    const t = /rate|seconds|429|security purposes/i.test(error.message + (error.status || '')) ? 'Se acaba de enviar uno: espera un minuto antes de pedir otro.'
+      : /already|confirmed/i.test(error.message) ? 'Esa cuenta ya está activada: puede entrar con su correo y contraseña (o usar «Enviar cambio de contraseña»).'
+      : 'No se ha podido enviar: ' + error.message;
+    (o.err || (x => toast(x, true)))(t); return false;
+  }
+  (o.ok || toast)('Correo de activación enviado a ' + email + '. El enlace nuevo sustituye al anterior.');
+  return true;
+}
+// En el acceso: aviso y botón «Enviarme un enlace nuevo» con el correo escrito
+function accesoSinActivar(texto) {
+  const msg = $('lmsg'); if (!msg) return;
+  msg.innerHTML = `<span>${esc(texto)}</span> <button type="button" class="btn sec chico" id="lreenv">Enviarme un enlace nuevo</button>`;
+  $('lreenv').onclick = async () => {
+    const b = $('lreenv'); b.disabled = true;
+    await reenviarActivacion($('lu').value, { ok: t => { msg.textContent = t; }, err: t => { msg.querySelector('span').textContent = t; b.disabled = false; } });
+  };
+}
+if (ENLACE_ERROR && /otp_expired|access_denied|expired/i.test(ENLACE_ERROR)) {
+  accesoSinActivar('El enlace de activación ha caducado o ya se usó. Escribe tu correo y te enviamos uno nuevo.');
+  try { history.replaceState(null, '', location.pathname); } catch (e) {}
+}
