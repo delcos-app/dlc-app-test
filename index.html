@@ -4523,6 +4523,13 @@ body.tdcompacto #agcuerpo .tdu .tdu-av{display:none}
 #dbody.edcentro .cons > label:has(+ .cenpick){display:none}
 #dbody.edcentro .cons{border:0;padding:0;background:none}
 .edch{margin:14px 0 4px}
+/* v2.303: «En este centro también» agrupado por cuándo atienden; todo el recuadro abre la ficha del centro */
+.agtambc{cursor:pointer}
+.agtambc:hover{border-color:var(--navy)}
+.agtambver{margin-left:auto;text-transform:none;letter-spacing:0;font-weight:700;color:var(--navy)}
+.agtambg{margin-top:8px}
+.agtambg .agtambl{margin-top:4px}
+.agtambgt{font-size:12px;font-weight:700;color:var(--muted)}
 /* ==== SISTEMA delcos · capa del contrato de componentes (generada desde sistema/contrato.json con gen_capa.js; no se edita a mano) ==== */
 html:not(#_s) body :is(#v-inicio .saludo h1#hola){font-family:var(--f-titulo) !important;font-weight:800 !important;font-size:30px !important}
 html:not(#_s) body :is(#v-informe .medhero h1):not(:is(#v-inicio .saludo h1#hola)){font-family:var(--f-titulo) !important;font-weight:800 !important;font-size:30px !important}
@@ -4714,6 +4721,6 @@ try{var co=sessionStorage.getItem('dlc-cambio-org');if(co!==null||localStorage.g
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.302.0"></script>
+<script src="./app.js?v=2.303.0"></script>
 </body>
 </html>

@@ -21871,7 +21871,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrarMesCin
 // Las tarjetas de Tu día, desde la lista de siempre
 // Pulsar la tarjeta (fuera de sus botones) abre la cita, como la fila de antes
 document.addEventListener('click', e => {
-  const t = e.target.closest('.tdu'); if (!t || e.target.closest('button, a, input, select')) return;
+  const t = e.target.closest('.tdu'); if (!t || e.target.closest('button, a, input, select, .agtamb[data-agtc]')) return;
   const c = (TD_CITAS || []).find(x => x.id === t.dataset.tdu); if (c) verCita(c);
 });
 document.addEventListener('keydown', e => {
@@ -24719,12 +24719,34 @@ function agTamb() {
     });
     if (!t) return;
     usadas.add(t);
-    const chips = gente.slice(0, 6).map(m => `<button type="button" data-agti="${m.id}" data-agtv="${m.visitar ? 1 : ''}" title="${esc(m.visitar ? 'Añadir una cita · ' + m.visitar : 'Ver su ficha' + (m.falta && m.falta.length ? ' · falta: ' + m.falta.join(', ') : ''))}">${m.visitar ? '<i>+</i> ' : ''}${esc(m.nombre)}</button>`).join('')
+    // v2.303: agrupados por cuándo atienden en ese centro el día de la cita (mañana, tarde, otro día); con más de 6, los primeros
+    const chip = m => `<button type="button" data-agti="${m.id}" data-agtv="${m.visitar ? 1 : ''}" title="${esc(m.visitar ? 'Añadir una cita · ' + m.visitar : 'Ver su ficha' + (m.falta && m.falta.length ? ' · falta: ' + m.falta.join(', ') : ''))}">${m.visitar ? '<i>+</i> ' : ''}${esc(m.nombre)}</button>`;
+    const grupos = agTambGrupos(gente.slice(0, 6), AG_FECHA);
+    const chips = grupos.map(([t2, l]) => `<div class="agtambg"><span class="agtambgt">${esc(t2)}</span><div class="agtambl">${l.map(chip).join('')}</div></div>`).join('')
       + (gente.length > 6 ? `<span class="sm">y ${gente.length - 6} más</span>` : '');
     const pie = t.querySelector('.tdu-pie') || t.lastElementChild;
-    pie.insertAdjacentHTML('beforebegin', `<div class="agtamb"><div class="agtambh">${svgIco(ICON_NOM['map-pin'])} En este centro también</div><div class="agtambl">${chips}</div></div>`);
+    pie.insertAdjacentHTML('beforebegin', `<div class="agtamb${g.centro_id ? ' agtambc' : ''}"${g.centro_id ? ` data-agtc="${esc(g.centro_id)}" role="button" tabindex="0" title="Abrir la ficha del centro"` : ''}><div class="agtambh">${svgIco(ICON_NOM['map-pin'])} En este centro también${g.centro_id ? '<span class="agtambver">Ver el centro ›</span>' : ''}</div>${chips}</div>`);
   });
 }
+// Mañana / tarde / otro día según el horario de su consulta (ubicaciones.dias: {"L": "Mañana 10:00-13:00", "X": "16-19"…})
+function agTambGrupos(gente, fecha) {
+  const letra = 'DLMXJVS'[new Date(fecha + 'T12:00:00').getDay()], NOM = { L: 'lunes', M: 'martes', X: 'miércoles', J: 'jueves', V: 'viernes', S: 'sábado', D: 'domingo' };
+  const g = { m: [], t: [], o: [], s: [] }, otros = new Set();
+  gente.forEach(m => {
+    const d = m.dias || {}, hoy = d[letra], ks = Object.keys(d).filter(k => d[k]);
+    if (!ks.length) { g.s.push(m); return; }
+    if (!hoy) { g.o.push(m); ks.forEach(k => otros.add(k)); return; }
+    const h = parseInt((String(hoy).match(/(\d{1,2})(?::\d{2})?/) || [])[1], 10);
+    (/tarde/i.test(hoy) || (!/ma[ñn]ana/i.test(hoy) && h >= 14) ? g.t : g.m).push(m);
+  });
+  const dOtros = 'LMXJVSD'.split('').filter(k => otros.has(k)).map(k => NOM[k]);
+  return [['Por la mañana', g.m], ['Por la tarde', g.t], ['Otro día' + (dOtros.length && dOtros.length <= 3 ? ' (' + dOtros.join(', ') + ')' : ''), g.o], ['Sin horario', g.s]].filter(([, l]) => l.length);
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest('#agcuerpo .agtamb[data-agtc]'); if (!b || e.target.closest('[data-agti]')) return;
+  e.stopPropagation(); fichaCentro(b.dataset.agtc);
+}, true);
+document.addEventListener('keydown', e => { const b = e.target.closest && e.target.closest('#agcuerpo .agtamb[data-agtc]'); if (b && e.target === b && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); fichaCentro(b.dataset.agtc); } });
 const agImp = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
 document.addEventListener('click', e => {
   const b = e.target.closest('#agcuerpo .agtamb [data-agti]'); if (!b) return;
