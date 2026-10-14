@@ -4943,12 +4943,14 @@ async function verPedidoBase(id) {
       ${puedeVentas() && bor ? `<button class="btn sec dang" id="pdborrar">Eliminar borrador</button>
         <button class="btn sec" id="pdeditar">Editar</button>
         <button class="btn" id="pdvalidar">Validar pedido</button>` : ''}
+      ${puedeVentas() && !bor && !anulado ? '<button class="btn sec" id="pdeditnf">Editar datos</button>' : ''}
       ${puedeVentas() && !bor && !anulado ? '<button class="btn sec dang" id="pdanular">Anular pedido</button>' : ''}
       <button class="btn sec" data-cerrar>Cerrar</button></div>`;
 
   const vp = $('dbody').querySelector('[data-vpac]');
   if (vp) vp.onclick = () => { $('dlg').close(); fichaPaciente(vp.dataset.vpac); };
   if ($('pdeditar')) $('pdeditar').onclick = () => editorPedido(data);
+  if ($('pdeditnf')) $('pdeditnf').onclick = () => editarPedidoNoFiscal(data);   // v2.307.0
   if ($('pdborrar')) $('pdborrar').onclick = async () => {
     if (!await preguntar('El borrador desaparece por completo.', { titulo: '¿Eliminar el borrador?', ok: 'Eliminar', peligro: true })) return;
     const { data: r, error: e } = await db.rpc('borrar_pedido', { p_id: id });
@@ -27654,3 +27656,36 @@ function pintarPlantillasCorreo() {
 }
 // Aparece en cuanto la página «Correo y firma» está pintada (su botón Guardar, #cook, existe)
 new MutationObserver(() => { if (TAB === 'config' && $('cook') && !$('plcorreo')) pintarPlantillasCorreo(); }).observe(document.querySelector('main') || document.body, { childList: true, subtree: true });
+
+
+/* ============================================================
+   v2.307.0 · Datos no fiscales de un pedido validado (petición de Eric: «todo lo que no es fiscal debe poder editarse»).
+   «Editar datos» en un pedido validado o facturado: nota, forma de pago, referencia del pago y campos personalizados del
+   pedido. Las líneas, precios, IVA, cliente y fecha no se tocan (son la base de la factura); una factura emitida tampoco
+   cambia: conserva la forma de pago con la que se emitió. Se guarda directamente (la regla ped_edit ya lo permite a
+   administración y a quien lleva ventas con nivel 2) y queda en el historial de cambios.
+   ============================================================ */
+function editarPedidoNoFiscal(data) {
+  const p = data.pedido, cps = camposHTML('pedido', p.clasificadores || {});
+  $('dlg2body').innerHTML = `<div class="fh"><div><h2>Editar datos del pedido ${esc(p.numero || '')}</h2>
+      <div class="sm">Solo lo que no es fiscal: las líneas, los importes, el cliente y la fecha no cambian.</div></div>
+      <button class="x" data-cerrar2 aria-label="Cerrar">✕</button></div>
+    <label for="nfnota">Nota</label><textarea id="nfnota" rows="4">${esc(p.nota || '')}</textarea>
+    <div class="g2"><div><label for="nffp">Forma de pago</label><select id="nffp"><option value="">—</option>${(CAT.forma_pago || []).map(x => `<option ${p.forma_pago === x.valor ? 'selected' : ''}>${esc(x.valor)}</option>`).join('')}</select></div>
+      <div><label for="nfref">Referencia del pago</label><input id="nfref" value="${esc(p.pago_referencia || '')}" placeholder="p. ej. número de la transferencia"></div></div>
+    ${p.factura_id ? '<p class="sm">Este pedido ya tiene factura: la factura emitida conserva la forma de pago con la que se hizo.</p>' : ''}
+    <div id="nfcampos">${cps}</div>
+    <div class="acts nfacts"><button class="btn sec" data-cerrar2>Cancelar</button><button class="btn" id="nfok">Guardar</button></div>`;
+  $('dlg2').showModal();
+  $('nfok').onclick = async ev => {
+    const leido = camposLeer($('nfcampos'));
+    if (leido && leido.falta.length) { toast(`Rellena «${leido.falta[0]}»`, true); return; }
+    ev.target.disabled = true;
+    const { error } = await db.from('pedidos').update({ nota: $('nfnota').value.trim() || null, forma_pago: $('nffp').value || null, pago_referencia: $('nfref').value.trim() || null }).eq('id', p.id);
+    if (error) { ev.target.disabled = false; toast('No se ha podido guardar: ' + error.message, true); return; }
+    if (!(await camposGuardar(leido, p.id))) { ev.target.disabled = false; return; }
+    $('dlg2').close(); toast('Datos del pedido guardados');
+    try { invalidarCache(); } catch (e) {}
+    verPedido(p.id);
+  };
+}
