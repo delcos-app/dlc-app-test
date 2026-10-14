@@ -24562,7 +24562,7 @@ async function tdPintar() {
 
   $('agcuerpo').innerHTML = `
     <div class="tdhead">
-      <div class="${fecha >= hoy ? 'tdtitw' : ''}"><h2 style="padding:0">${esHoy ? 'Tu día' : pasado ? 'Lo que pasó este día' : 'Tu agenda de este día'}</h2>${fecha >= hoy ? `<button type="button" class="kmv tddiamas" id="tddiamas" aria-label="Opciones del día" title="Opciones del día: nueva cita, bloquear el día…">${SVA(ICU.mas)}</button>` : ''}
+      <div class="${fecha >= hoy ? 'tdtitw' : ''}"><h2 style="padding:0">${esHoy ? 'Tu día' : pasado ? 'Lo que pasó este día' : 'Tu agenda de este día'}</h2>${mias.length > 1 ? `<button type="button" class="btn sec chico plic" id="tdcompactar" aria-pressed="${tdCompacto()}" title="${tdCompacto() ? 'Ver el detalle de las citas' : 'Compactar las citas: una línea cada una'}" aria-label="${tdCompacto() ? 'Ver el detalle de las citas' : 'Compactar las citas'}">${plIco(tdCompacto() ? 'file-text' : 'list')}</button>` : ''}${fecha >= hoy ? `<button type="button" class="kmv tddiamas" id="tddiamas" aria-label="Opciones del día" title="Opciones del día: nueva cita, bloquear el día…">${SVA(ICU.mas)}</button>` : ''}
         <div class="tdstats">
           <span><b>${num(activas)}</b> citas</span>
           <span><b style="color:var(--ok)">${num(hechas)}</b> visitadas</span>
@@ -27369,4 +27369,19 @@ document.addEventListener('change', async e => {
   if (error) { c.checked = !c.checked; toast('No se ha podido guardar: ' + error.message, true); return; }
   const m = (PRES_MAT || []).find(x => x.id === c.dataset.prmatpp); if (m) m.para_portal = c.checked;
   toast(c.checked ? 'Los centros que tienen este producto ya lo pueden descargar' : 'Ya no se ofrece a los centros');
+});
+
+
+/* ============================================================
+   v2.299.0 · Tu día compacto (petición de Eric): un botón deja cada cita en una línea con el nombre, la hora y el estado.
+   Se recuerda en este dispositivo. Pulsar la cita sigue abriendo su detalle (desde ahí se registra la visita).
+   ============================================================ */
+function tdCompacto() { try { return localStorage.getItem('delcos-tdcompacto') === '1'; } catch (e) { return false; } }
+function tdAplicarCompacto() { document.body.classList.toggle('tdcompacto', tdCompacto()); }
+tdAplicarCompacto();
+document.addEventListener('click', e => {
+  const b = e.target.closest('#tdcompactar'); if (!b) return;
+  const on = !tdCompacto();
+  try { localStorage.setItem('delcos-tdcompacto', on ? '1' : '0'); } catch (x) {}
+  tdAplicarCompacto(); b.title = on ? 'Ver el detalle de las citas' : 'Compactar las citas: una línea cada una'; b.setAttribute('aria-label', on ? 'Ver el detalle de las citas' : 'Compactar las citas'); b.innerHTML = plIco(on ? 'file-text' : 'list'); b.setAttribute('aria-pressed', on);
 });
