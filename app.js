@@ -19096,7 +19096,8 @@ async function fichaCentro(id) {
   $('dbody').innerHTML = `<div class="fh"><div><h2>Centro</h2></div><button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
     <div class="skel" style="width:60%"></div><div class="skel"></div><div class="skel" style="width:80%"></div>`;
   if (!dlg.open) dlg.showModal();
-  const { data, error } = await db.rpc('ficha_centro', { p_id: id });
+  // v2.310.0: con la ficha se pide su cuenta de tipo Centro (un solo centro), para abrirla desde aquí
+  const [{ data, error }, { data: cta }] = await Promise.all([db.rpc('ficha_centro', { p_id: id }), db.from('cuentas').select('id').eq('centro_id', id).maybeSingle().then(r => r, () => ({ data: null }))]);
   if (!dlg.open) return;
   if (error || !data || !data.datos) {
     $('dbody').innerHTML = `<div class="fh"><div><h2>Centro</h2></div><button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
@@ -19114,6 +19115,7 @@ async function fichaCentro(id) {
       ${c.telefono ? `<a class="btn sec" href="tel:${esc(c.telefono)}">Llamar · ${esc(c.telefono)}</a>` : ''}
       ${c.lat != null ? '<button type="button" class="btn sec" id="fcllegar">Cómo llegar</button>' : ''}
       ${data.puede_editar ? '<button type="button" class="btn sec" id="fceditar">Editar centro</button>' : ''}
+      ${cta && cta.id ? `<button type="button" class="btn sec" id="fccuenta" data-fccta="${cta.id}">Ficha comercial</button>` : ''}
     </div>
     ${hor ? `<div class="vcdatos"><div class="vcfila"><span>Horario</span><b>${esc(hor)}</b></div></div>` : ''}
     <div class="fcprocab"><h3>${esc(quien)} · ${num(l.length)}</h3>${data.puede_fichas ? '<button type="button" class="btn" id="fcanadir">+ Añadir</button>' : ''}</div>
@@ -27780,3 +27782,32 @@ navegarA = async function (destino, paradas) {
   location.href = app;
   setTimeout(() => { document.removeEventListener('visibilitychange', marcar); if (!fuera && document.visibilityState === 'visible') { const w = window.open(web, '_blank'); if (!w) location.href = web; } }, 1500);   // sin el clic, el navegador puede bloquear la ventana: entonces se abre aquí mismo
 };
+
+
+/* ============================================================
+   v2.310.0 · Un solo centro (decisión de Eric; SQL 158). Cada centro es a la vez cuenta de tipo Centro (sale en Cuentas →
+   Centros, con su estado, visitas y pedidos) y centro-lugar (su ficha con sus profesionales). Desde la ficha del centro,
+   «Ficha comercial» abre su cuenta; desde la cuenta de un centro, «Ver sus profesionales» abre la ficha del centro.
+   ============================================================ */
+document.addEventListener('click', e => {
+  const b = e.target.closest('#fccuenta'); if (!b) return;
+  $('dlg').close(); abrirFicha(b.dataset.fccta);
+});
+abrirFicha = (orig => async function (id, ...a) {
+  const r = await orig.call(this, id, ...a);
+  try {
+    const { data: c } = await db.from('cuentas').select('tipo, centro_id').eq('id', id).maybeSingle();
+    const fb = $('fbody');
+    if (c && c.tipo === 'Centro' && c.centro_id && fb && FICHA_ID === id && !$('fcentrop')) {
+      const fh = fb.querySelector('.fh');
+      (fh || fb.firstElementChild).insertAdjacentHTML('afterend', `<div class="blk" id="fcentrop"><div class="fcentropf"><span>Los ${esc(TT('medico', 'p', '', 'l', 'l'))} que atienden aquí y su horario</span>
+        <button type="button" class="btn sec chico" data-fcver="${c.centro_id}">Ver sus ${esc(TT('medico', 'p', '', 'l', 'l'))}</button></div></div>`);
+    }
+  } catch (e) {}
+  return r;
+})(abrirFicha);
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-fcver]'); if (!b) return;
+  const f = $('ficha'); if (f && f.open) f.close();
+  fichaCentro(b.dataset.fcver);
+});
