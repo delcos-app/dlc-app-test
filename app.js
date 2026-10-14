@@ -27746,3 +27746,37 @@ toast = (orig => function (...a) {
 // Si después se abre (o se vuelve a abrir) una ventana con el aviso a la vista, el aviso vuelve a ponerse encima
 function subirAviso() { const t = $('toast'); if (!t || t.classList.contains('hide') || typeof t.showPopover !== 'function' || !t.hasAttribute('popover')) return; try { if (t.matches(':popover-open')) t.hidePopover(); t.showPopover(); } catch (e) {} }
 new MutationObserver(ms => { if (ms.some(m => m.target.tagName === 'DIALOG' && m.target.open)) requestAnimationFrame(subirAviso); }).observe(document.body, { subtree: true, attributes: true, attributeFilter: ['open'] });
+
+/* ============================================================
+   v2.309.0 · «Cómo llegar» sin pantalla en blanco al volver (aviso de Eric). En el móvil, con delcos instalado como app, el
+   enlace web de Google Maps o Waze se abría en una ventana de navegador intermedia que saltaba a la app de mapas y se
+   quedaba detrás, en blanco y con una ✕. Ahora, en el móvil, se abre directamente la app de mapas con su propio enlace
+   (comgooglemaps://, google.navigation:, waze://, maps://); si esa app no está instalada y delcos sigue a la vista al cabo
+   de un momento, se abre el enlace web como antes. En el ordenador no cambia nada.
+   ============================================================ */
+const ES_ANDROID = /Android/i.test(navigator.userAgent);
+function enlaceNavApp(destino, paradas, n) {
+  const d = Array.isArray(destino) ? destino.join(',') : String(destino);
+  if (n === 'waze') return 'waze://?ll=' + encodeURIComponent(d) + '&navigate=yes';
+  if (n === 'apple') return ES_IOS ? 'maps://?daddr=' + encodeURIComponent(d) + '&dirflg=d' : null;
+  if (ES_IOS) return 'comgooglemaps://?daddr=' + [...(paradas || []).map(p => p.join(',')), d].map(encodeURIComponent).join('+to:') + '&directionsmode=driving';
+  if (ES_ANDROID && !(paradas && paradas.length)) return 'google.navigation:q=' + encodeURIComponent(d) + '&mode=d';
+  return null;   // Android con paradas: solo el enlace web admite la ruta entera
+}
+navegarA = async function (destino, paradas) {
+  if (!destino) { toast('Esta parada no tiene ubicación', true); return; }
+  const varias = paradas && paradas.length;
+  const op = await elegirOpcion('¿Con qué app quieres navegar?',
+    varias ? 'Google Maps abre la ruta completa con todas las paradas. Waze y Apple Maps solo admiten un destino: abrirán la primera parada.' : '',
+    [{ k: 'google', t: 'Google Maps' }, { k: 'waze', t: 'Waze', cls: 'sec' }, { k: 'apple', t: 'Apple Maps', cls: 'sec' }, { k: 'no', t: 'Cancelar', cls: 'sec' }]);
+  if (!op || op === 'no') return;
+  const dest = op === 'google' ? destino : (varias ? paradas[0] : destino), par = op === 'google' ? paradas : null;
+  const web = enlaceNav(dest, par, op);
+  const app = (ES_IOS || ES_ANDROID) ? enlaceNavApp(dest, par, op) : null;
+  if (!app) { window.open(web, '_blank', 'noopener'); return; }
+  // La app de mapas toma el control y delcos pasa a segundo plano; si no está instalada, delcos sigue a la vista y se usa la web
+  let fuera = false; const marcar = () => { if (document.visibilityState === 'hidden') fuera = true; };
+  document.addEventListener('visibilitychange', marcar);
+  location.href = app;
+  setTimeout(() => { document.removeEventListener('visibilitychange', marcar); if (!fuera && document.visibilityState === 'visible') { const w = window.open(web, '_blank'); if (!w) location.href = web; } }, 1500);   // sin el clic, el navegador puede bloquear la ventana: entonces se abre aquí mismo
+};
