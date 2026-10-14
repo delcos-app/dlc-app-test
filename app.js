@@ -10617,7 +10617,7 @@ async function pintarUsuarios2() {
       <div class="kpi"><b>${num(activos.length)} / ${num(maxU)}</b><span>usuarios del plan ${esc(act.nombre)}</span></div>
       ${Object.entries(porRol).map(([r, n]) => `<div class="kpi"><b>${num(n)}</b><span>${esc(r)}</span></div>`).join('')}
       <div class="kpi ${inactivos ? 'warn' : 'ok'}"><b>${num(inactivos)}</b><span>sin actividad en 30 días</span></div>
-      <div class="kpi"><b>${num(todos.filter(u => rolPuede(u.rol, 'portal_prescriptor') && u.activo).length)}</b><span>${TT('medico', 'p', '', 'l', 'l')} con acceso</span></div></div>
+      <div class="kpi" data-usrinvk><b>${num(todos.filter(u => (rolPuede(u.rol, 'portal_prescriptor') || rolPuede(u.rol, 'portal_centro')) && u.activo).length)}</b><span>Cuentas con acceso</span></div></div>
     <div class="card" style="padding:14px 16px">
       <div class="usrbar"><input id="usrq" type="search" placeholder="Buscar por nombre o email" value="${esc(USR_F.q)}">
         <select id="usrrol"><option value="">Todos los roles</option>${rolesNombres().map(r => `<option ${USR_F.rol === r ? 'selected' : ''}>${esc(r)}</option>`).join('')}</select>
@@ -21759,6 +21759,13 @@ pulirCfg = (orig => function () {
           k.querySelectorAll('.usrresrol').forEach(y => y.classList.toggle('on', y === x && !!s.value)); };
         x.onclick = filtra; x.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); filtra(); } };
       });
+      // v2.297: «Cuentas con acceso» (profesionales y centros con portal) lleva a la tarjeta de invitados
+      const inv = k.querySelector('[data-usrinvk]');
+      if (inv) {
+        inv.classList.add('usrresrol'); inv.setAttribute('role', 'button'); inv.tabIndex = 0; inv.title = 'Ver las cuentas con acceso a su portal';
+        const ir2 = () => { const w = c.querySelector('.usrinvw'); if (!w) return; w.scrollIntoView({ behavior: 'smooth', block: 'start' }); w.classList.remove('usrinvluz'); void w.offsetWidth; w.classList.add('usrinvluz'); };
+        inv.onclick = ir2; inv.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); ir2(); } };
+      }
     }
   }
 })(pulirCfg);

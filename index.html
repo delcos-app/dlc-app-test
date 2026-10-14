@@ -4496,13 +4496,16 @@ dialog.encajada #dbody > .acts:last-child,dialog.encajada #dlg2body > .acts:last
 #v-informe .pmperl b{font:800 20px var(--f-titulo);color:var(--ink);font-variant-numeric:tabular-nums}
 /* v2.296: desplegables de filtro con muchas opciones (las filas se montaban) y, en el móvil, hoja abajo; «Quitar filtros» */
 .plpopl button{flex-shrink:0}
-.plquitar{all:unset;cursor:pointer;padding:0 12px;color:var(--blue);font-weight:700;white-space:nowrap;display:inline-flex;align-items:center}
+.plquitar{all:unset;cursor:pointer;padding:0 12px;color:var(--navy);font-weight:700;white-space:nowrap;display:inline-flex;align-items:center}
 @media (max-width:760px){
   .plpop.plhoja{position:fixed;left:8px;right:8px;top:auto;bottom:calc(8px + env(safe-area-inset-bottom,0px));max-width:none;max-height:70vh;display:flex;flex-direction:column;z-index:400}
   .plpop.plhoja .plpopl{max-height:none;flex:1;min-height:0}
   .plpop.plhoja .plpopq{flex-shrink:0}
   .plpop.plhoja .plpopl button{padding:12px}
 }
+/* v2.297: la tarjeta de invitados se marca un momento al llegar desde «Cuentas con acceso» */
+@keyframes usrinvluz{0%{box-shadow:0 0 0 3px var(--navy)}100%{box-shadow:0 0 0 0 var(--navy)}}
+.usrinvw.usrinvluz{animation:usrinvluz 1.6s ease-out}
 /* ==== SISTEMA delcos · capa del contrato de componentes (generada desde sistema/contrato.json con gen_capa.js; no se edita a mano) ==== */
 html:not(#_s) body :is(#v-inicio .saludo h1#hola){font-family:var(--f-titulo) !important;font-weight:800 !important;font-size:30px !important}
 html:not(#_s) body :is(#v-informe .medhero h1):not(:is(#v-inicio .saludo h1#hola)){font-family:var(--f-titulo) !important;font-weight:800 !important;font-size:30px !important}
@@ -4694,6 +4697,6 @@ try{var co=sessionStorage.getItem('dlc-cambio-org');if(co!==null||localStorage.g
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.296.0"></script>
+<script src="./app.js?v=2.297.0"></script>
 </body>
 </html>
