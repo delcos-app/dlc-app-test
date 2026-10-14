@@ -4894,7 +4894,7 @@ async function pedidoOperativa(id) {
     ${OPS.map(([k, t]) => `<label class="opchk ${opHecho(p, k) ? 'on' : ''}"><input type="checkbox" data-op="${k}" ${opHecho(p, k) ? 'checked' : ''} ${permitido ? '' : 'disabled'}>
       <span>${esc(t)}${k === 'pago' && p.forma_pago ? ` <span class="sm">· ${esc(p.forma_pago)}${/reembolso/i.test(p.forma_pago) ? ' (se cobra al entregar)' : ''}</span>` : ''}</span></label>`).join('')}
     <div class="acts" style="margin:6px 0 0">
-      ${cli.email ? `<a class="btn sec" id="pdmailpago" data-ped="${id}" href="mailto:${esc(cli.email)}?subject=${encodeURIComponent('Datos para el pago de tu pedido ' + (p.numero || ''))}&body=${encodeURIComponent(textoEmailPago(p, total, cli.nombre))}">✉️ Preparar email con los datos de pago</a>` : '<span class="sm">El cliente no tiene email en su ficha.</span>'}
+      ${cli.email ? `<a class="btn sec" id="pdmailpago" data-ped="${id}" href="mailto:${esc(cli.email)}?subject=${encodeURIComponent(asuntoEmailPago(p, total, cli.nombre))}&body=${encodeURIComponent(textoEmailPago(p, total, cli.nombre))}">✉️ Preparar email con los datos de pago</a>` : '<span class="sm">El cliente no tiene email en su ficha.</span>'}
     </div></div>`);
   $('dbody').querySelectorAll('[data-op]').forEach(c => c.onchange = async () => {
     const { data: r, error } = await db.rpc('marcar_operativa', { p_pedido: id, p_campo: c.dataset.op, p_hecho: c.checked });
@@ -9242,8 +9242,8 @@ async function enviarFacturaEmail(f, rn) {
     <div class="fh"><div><h2>Enviar ${esc(f.numero)} por email</h2><div class="sm">La factura va adjunta en PDF</div></div>
       <button class="x" data-cerrar2 aria-label="Cerrar">✕</button></div>
     <label for="efp">Para</label><input id="efp" type="email" value="${esc(c.email || '')}" placeholder="email del cliente">
-    <label for="efa">Asunto</label><input id="efa" value="${esc(`Tu factura ${f.numero} · ${e.razon_social || nombreApp()}`)}">
-    <label for="eft">Mensaje</label><textarea id="eft" rows="7">${esc(`Hola${saludo ? ' ' + saludo : ''}:\n\nTe adjuntamos la factura ${f.numero} de tu pedido, por un importe de ${eurI(f.total)}.\n\nGracias por tu confianza. Para cualquier consulta, estamos a tu disposición${e.telefono ? ' en el ' + e.telefono : ''}.\n\nUn saludo,\n${e.razon_social || nombreApp()}`)}</textarea>
+    <label for="efa">Asunto</label><input id="efa" value="${esc(plantillaCorreo('factura', 'asunto', varsCorreo({ documento: 'factura', numero: f.numero, importe: f.total, nombre: c.nombre })))}">
+    <label for="eft">Mensaje</label><textarea id="eft" rows="12">${esc(plantillaCorreo('factura', 'texto', varsCorreo({ documento: 'factura', numero: f.numero, importe: f.total, nombre: c.nombre })))}</textarea>
     <div class="adjunto">📎 ${esc(nombrePDF(f))}</div>
     <div class="acts" style="justify-content:flex-end;flex-wrap:wrap"><button class="btn sec" data-cerrar2>Cancelar</button>
       <button class="btn" id="efok">Enviar</button></div>`;
@@ -9285,6 +9285,7 @@ document.addEventListener('click', async e => {
   const a = e.target.closest('#pdmailpago');
   if (!a) return;
   e.preventDefault(); e.stopImmediatePropagation();
+  if (!((AJUSTES.empresa || {}).iban || '').trim()) { toast('Falta el IBAN: ponlo en Configuración → Facturación → Datos fiscales antes de enviar los datos de pago', true); return; }   // v2.306.0
   const href = new URL(a.href.replace(/^mailto:/, 'http://x/?to=').replace('?subject', '&subject'));
   const para = decodeURIComponent(href.searchParams.get('to') || ''), asunto = href.searchParams.get('subject') || '', texto = href.searchParams.get('body') || '';
   const { data, error } = await db.functions.invoke('enviar_email', { body: { para, asunto, texto, pedido_id: a.dataset.ped || null, marca: 'email_pago' } });
@@ -27585,3 +27586,71 @@ if (ENLACE_ERROR && /otp_expired|access_denied|expired/i.test(ENLACE_ERROR)) {
   accesoSinActivar('El enlace de activación ha caducado o ya se usó. Escribe tu correo y te enviamos uno nuevo.');
   try { history.replaceState(null, '', location.pathname); } catch (e) {}
 }
+
+
+/* ============================================================
+   v2.306.0 · Textos de los correos a los clientes (revisión de Eric con un correo real: al cliente le llegó «IBAN: (añade el
+   IBAN…)», la despedida repetía lo que ya dice la firma y el concepto no era su nombre). Cada empresa escribe sus textos en
+   Configuración → Correo y firma → «Textos de los correos», con huecos como [nombre] o [iban] que se rellenan al enviar.
+   Se guardan en el ajuste plantillas_correo. Sin IBAN no se envían los datos de pago. La despedida y los teléfonos van solo en la firma.
+   ============================================================ */
+const PLANT_CORREO = {
+  pago: { titulo: 'Datos de pago por transferencia', asunto: '[Documento] [numero] de [empresa] para [nombre]',
+    texto: 'Hola [nombre_pila]:\n\nGracias por tu pedido [numero], por un importe de [importe].\n\nPara completarlo, haz una transferencia bancaria con estos datos:\n\nBeneficiario: [beneficiario]\nIBAN: [iban]\nImporte: [importe]\nConcepto: [nombre]\n\nIndica el concepto tal como aparece arriba: así identificamos el pago enseguida y no se retrasa la preparación del pedido.\n\nEn cuanto recibamos el pago preparamos el envío.' },
+  factura: { titulo: 'Envío de la factura', asunto: '[Documento] [numero] de [empresa] para [nombre]',
+    texto: 'Hola [nombre_pila]:\n\nTe adjuntamos la [documento] [numero] de tu pedido, por un importe de [importe].\n\nGracias por tu confianza. Si tienes cualquier duda, estaremos encantados de ayudarte.' }
+};
+const VARS_CORREO = [['nombre', 'Nombre completo del cliente'], ['nombre_pila', 'Solo el nombre de pila'], ['empresa', 'Vuestra razón social'], ['documento', 'pedido o factura'],
+  ['Documento', 'Pedido o Factura'], ['numero', 'Número del pedido o la factura'], ['importe', 'Importe total'], ['beneficiario', 'Titular de la cuenta (razón social)'], ['iban', 'IBAN de los datos fiscales']];
+function varsCorreo(o) {
+  const e = AJUSTES.empresa || {}, emp = e.razon_social || nombreApp(), doc = o.documento || 'pedido';
+  return { nombre: o.nombre || '', nombre_pila: o.nombre ? nombrePila(o.nombre) : '', empresa: emp, documento: doc, Documento: doc.charAt(0).toUpperCase() + doc.slice(1),
+    numero: o.numero || '', importe: eurI(o.importe || 0), beneficiario: emp, iban: e.iban || '' };
+}
+function plantillaCorreo(k, campo, v) {
+  const g = (AJUSTES.plantillas_correo || {})[k] || {}, t = (g[campo] || '').trim() || PLANT_CORREO[k][campo];
+  return t.replace(/\[(\w+)\]/g, (m, n) => n in v ? v[n] : m).replace(/ {2,}/g, ' ').trim();
+}
+textoEmailPago = function (p, total, cliente) { return plantillaCorreo('pago', 'texto', varsCorreo({ documento: 'pedido', numero: p.numero, importe: total, nombre: cliente })); };
+function asuntoEmailPago(p, total, cliente) { return plantillaCorreo('pago', 'asunto', varsCorreo({ documento: 'pedido', numero: p.numero, importe: total, nombre: cliente })); }
+
+// Configuración → Correo y firma: «Textos de los correos»
+function pintarPlantillasCorreo() {
+  const c = $('cfgcuerpo'); if (!c || $('plcorreo') || !$('cook')) return;
+  const fin = $('cook').closest('.card'); if (!fin) return;
+  let k = 'pago';
+  fin.insertAdjacentHTML('beforebegin', `<div class="card cfgpanel" id="plcorreo"><h2 class="plch">Textos de los correos</h2>
+    <p class="sm">Lo que reciben tus clientes. Los huecos entre corchetes se rellenan al enviar. La despedida, los teléfonos y el aviso legal ya van en la firma: no hace falta repetirlos aquí.</p>
+    <div class="segs" id="plck" role="group" aria-label="Correo">${Object.entries(PLANT_CORREO).map(([x, p]) => `<button type="button" data-plk2="${x}" class="${x === k ? 'on' : ''}">${esc(p.titulo)}</button>`).join('')}</div>
+    <label for="plcasu">Asunto</label><input id="plcasu">
+    <label for="plctxt">Texto</label><textarea id="plctxt" rows="14"></textarea>
+    <div class="sm plchue">Huecos (pulsa para añadirlo donde está el cursor):</div>
+    <div class="plcvars">${VARS_CORREO.map(([n, t]) => `<button type="button" class="btn sec chico" data-plv="${n}" title="${esc(t)}">[${n}]</button>`).join('')}</div>
+    <div class="acts plcacts"><button type="button" class="btn sec" id="plcrest">Volver al texto de partida</button><button type="button" class="btn" id="plcok">Guardar los textos</button></div>
+    <p class="sm plcmsg" id="plcmsg"></p></div>`);
+  const val = () => { const g = (AJUSTES.plantillas_correo || {})[k] || {}; $('plcasu').value = g.asunto || PLANT_CORREO[k].asunto; $('plctxt').value = g.texto || PLANT_CORREO[k].texto; };
+  const pend = {};
+  const leer = () => { pend[k] = { asunto: $('plcasu').value.trim(), texto: $('plctxt').value.replace(/\s+$/, '') }; };
+  val();
+  $('plck').onclick = e => {
+    const b = e.target.closest('[data-plk2]'); if (!b) return; leer(); k = b.dataset.plk2;
+    $('plck').querySelectorAll('[data-plk2]').forEach(x => x.classList.toggle('on', x === b));
+    if (pend[k]) { $('plcasu').value = pend[k].asunto; $('plctxt').value = pend[k].texto; } else val();
+  };
+  let ult = $('plctxt'); ['plcasu', 'plctxt'].forEach(id => $(id).addEventListener('focus', () => { ult = $(id); }));
+  c.querySelectorAll('[data-plv]').forEach(b => b.onclick = () => {
+    const t = ult, v = '[' + b.dataset.plv + ']', i = t.selectionStart == null ? t.value.length : t.selectionStart, j = t.selectionEnd == null ? i : t.selectionEnd;
+    t.value = t.value.slice(0, i) + v + t.value.slice(j); t.focus(); t.selectionStart = t.selectionEnd = i + v.length;
+  });
+  $('plcrest').onclick = () => { $('plcasu').value = PLANT_CORREO[k].asunto; $('plctxt').value = PLANT_CORREO[k].texto; };
+  $('plcok').onclick = async ev => {
+    leer(); const v = Object.assign({}, AJUSTES.plantillas_correo || {}, pend);
+    ev.target.disabled = true;
+    const { data: r, error } = await db.rpc('guardar_ajuste', { p_clave: 'plantillas_correo', p_valor: v });
+    ev.target.disabled = false;
+    if (error || (r && r.ok === false)) { $('plcmsg').textContent = 'No se han podido guardar: ' + ((error && error.message) || r.error); return; }
+    AJUSTES.plantillas_correo = v; $('plcmsg').textContent = 'Textos guardados.'; toast('Textos de los correos guardados');
+  };
+}
+// Aparece en cuanto la página «Correo y firma» está pintada (su botón Guardar, #cook, existe)
+new MutationObserver(() => { if (TAB === 'config' && $('cook') && !$('plcorreo')) pintarPlantillasCorreo(); }).observe(document.querySelector('main') || document.body, { childList: true, subtree: true });
