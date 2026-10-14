@@ -593,7 +593,7 @@ async function pintarFichaBase(id) {
           ${v.muestras ? ` · ${v.muestras} muestras` : ''}
           ${v.nota ? `<div class="sm">${esc(v.nota)}</div>` : ''}
           ${v.proxima_fecha ? `<div class="sm">Próxima: ${fechaCorta(v.proxima_fecha)} · ${esc(v.proxima_accion || '')}</div>` : ''}</span>
-        ${puedeRegistrar() ? `<button class="btn sec" data-editv='${esc(JSON.stringify(v))}' style="min-height:30px;padding:5px 9px;font-size:12.5px">Editar</button>` : ''}
+        ${puedeRegistrar() ? `<button class="btn sec chico" data-editv='${esc(JSON.stringify(v))}' style="min-height:30px;padding:5px 9px;font-size:12.5px">Editar</button>` : ''}
       </div>`).join('') : `<div class="sm">Todavía no hay ${TT('visita', 'p', '', 'l', 'l', 'registrado')}.</div>`}</div>
     <div id="fzcampos"></div>
     <section class="blk fventas" id="fventas"><h3>Ventas y ${TT('paciente', 'p', '', 'l', 'l')}</h3><div id="fventasc"></div></section>`;
@@ -1920,8 +1920,8 @@ async function listaSeguimiento(reinicia) {
         <span class="sm">${m.n_visitas} ${TT('visita', 'p', '', 'l', 'l')}${m.muestras ? ' · ' + m.muestras + ' muestras' : ''}</span></span>
       <span class="c3"><span class="sm">${m.proxima_fecha
         ? `<b style="color:${m.proxima_fecha < hoyISO() ? 'var(--warn)' : 'var(--navy)'}">${fechaCorta(m.proxima_fecha)}</b><br>${esc(m.proxima_accion || '')}
-           <br><span class="acts" style="margin:4px 0 0"><button class="btn sec" data-acc="hecha|${m.id}" style="min-height:26px;padding:3px 8px;font-size:12px">Hecha</button>
-           <button class="btn sec" data-acc="aplazar|${m.id}" style="min-height:26px;padding:3px 8px;font-size:12px">Aplazar</button></span>`
+           <br><span class="acts" style="margin:4px 0 0"><button class="btn sec chico" data-acc="hecha|${m.id}" style="min-height:26px;padding:3px 8px;font-size:12px">Hecha</button>
+           <button class="btn sec chico" data-acc="aplazar|${m.id}" style="min-height:26px;padding:3px 8px;font-size:12px">Aplazar</button></span>`
         : ''}</span></span>
       <span class="pill p-est">${esc(m.estado_comercial)}</span>
     </button>`).join(''));
@@ -2621,7 +2621,7 @@ async function pintarComisionesBase() {
         ${e.calculo === 'fijo' ? eur(e.valor_fijo) + ' por unidad'
           : (e.tramos || []).map(t => `${t.desde_u}${t.hasta_u ? '-' + t.hasta_u : '+'}: ${eur(t.valor)}`).join(' · ') || 'sin tramos'}
         ${(e.personas || []).length ? ' · ' + e.personas.map(esc).join(', ') : ' · sin asignar'}</span></span>
-      <span class="acts" style="margin:0"><button class="btn sec" data-esq="${e.id}">Editar</button></span></div>`).join('')
+      <span class="acts" style="margin:0"><button class="btn sec chico" data-esq="${e.id}">Editar</button></span></div>`).join('')
       || '<div class="vacio">Todavía no hay esquemas.</div>'}</div>
     <div class="acts" style="padding:0 16px 14px"><button class="btn" id="esqnuevo">+ Nuevo esquema</button></div>
 
@@ -3911,7 +3911,7 @@ function pagHTML(total, pagina, tam) {
         : `<button data-pg="${n}" aria-current="${n === pagina}">${n + 1}</button>`).join('')}
       <button data-pg="${pagina + 1}" ${pagina >= paginas - 1 ? 'disabled' : ''} aria-label="Página siguiente">›</button>
     </span>
-    <span class="ptam">Mostrar <select data-pgtam>${TAMANOS.map(n =>
+    <span class="ptam">Mostrar <select class="chico" data-pgtam>${TAMANOS.map(n =>
       `<option value="${n}" ${n === tam ? 'selected' : ''}>${n}</option>`).join('')}</select></span></div>`;
 }
 
@@ -6123,7 +6123,7 @@ function abrirKpis() {
         const desc = x.filtro ? 'Filtro guardado del Directorio: ' + textoFiltro(x.filtro) + '.' : (AYUDA_KPI[x.id] || '');
         return `<div class="kcard ${x.on ? 'on' : ''}">
           <button type="button" class="kojo" data-kon="${i}" aria-pressed="${x.on}" title="${x.on ? 'Visible: pulsa para ocultar' : 'Oculto: pulsa para mostrar'}">${x.on ? ICO.ojo : ICO.ojoNo}</button>
-          <div class="ktx"><input data-kt="${i}" value="${esc(x.t)}" placeholder="${esc(k ? k.t.charAt(0).toUpperCase() + k.t.slice(1) : textoFiltro(x.filtro))}" aria-label="Nombre del indicador">
+          <div class="ktx"><input class="chico" data-kt="${i}" value="${esc(x.t)}" placeholder="${esc(k ? k.t.charAt(0).toUpperCase() + k.t.slice(1) : textoFiltro(x.filtro))}" aria-label="Nombre del indicador">
             <span class="sm">${esc(desc)}</span></div>
           <div class="kord">
             <button type="button" class="kmv" data-kmv="${i}|-1" aria-label="Subir" ${i === 0 ? 'disabled' : ''}>${ICO.arriba}</button>
@@ -9112,7 +9112,7 @@ Object.assign(RPC_TTL, { pedidos_pagina: 30 });
 function avisoSinSalida(el) {
   if (prefsActivas().salida || !el || el.querySelector('.sinsalida')) return;
   el.insertAdjacentHTML('afterbegin', `<div class="avisoh sinsalida"><span>📍 <b>Aún no has configurado tu punto de salida.</b> Las horas se calculan desde la ${TT('visita', 's', 'primer', 'l', 'l')}, sin el desplazamiento inicial.</span>
-    <button class="btn sec" data-irprefs>Configurarlo</button></div>`);
+    <button class="btn sec chico" data-irprefs>Configurarlo</button></div>`);
 }
 document.addEventListener('click', e => { if (e.target.closest('[data-irprefs]')) { CFG_SEC = 'prefs'; ir('config'); } });
 
@@ -10648,9 +10648,9 @@ async function pintarRoles() {
     <div class="nivleg">${NIVEL_TXT.map((t, i) => `<span class="nv${i}"><b>${esc(t)}</b>${['No ve el módulo ni aparece en el menú', 'Lo ve, pero no cambia nada', 'Crea y edita lo suyo', 'Todo, incluido borrar y configurar'][i]}</span>`).join('')}</div>
     <div class="dgrid-wrap"><table class="rolmat"><thead><tr><th>Permiso</th>${roles.map(r => `<th>${esc(r)}</th>`).join('')}</tr></thead>
       <tbody>${AREAS.map(([k, n]) => `<tr><td><b>${esc(n)}</b><span class="sm">${esc(QUE_ABRE[k] || '')}</span></td>
-        ${roles.map(r => `<td><select data-rol="${esc(r)}" data-ar="${k}" class="nvsel" ${rolPuede(r, 'administrar') ? 'disabled' : ''}>${NIVEL_TXT.map((t, i) => `<option value="${i}" ${+(plantillaRol(r)[k] || 0) === i ? 'selected' : ''}>${esc(t)}</option>`).join('')}</select></td>`).join('')}</tr>`).join('')}</tbody></table></div>
+        ${roles.map(r => `<td><select data-rol="${esc(r)}" data-ar="${k}" class="nvsel chico" ${rolPuede(r, 'administrar') ? 'disabled' : ''}>${NIVEL_TXT.map((t, i) => `<option value="${i}" ${+(plantillaRol(r)[k] || 0) === i ? 'selected' : ''}>${esc(t)}</option>`).join('')}</select></td>`).join('')}</tr>`).join('')}</tbody></table></div>
     <div class="acts" style="justify-content:flex-end;flex-wrap:wrap"><button class="btn sec" id="rolrest">Volver a los valores de partida</button><button class="btn" id="rolok">Guardar plantillas</button></div></div>`;
-  const colorea = () => $('cfgcuerpo').querySelectorAll('.nvsel').forEach(s => s.className = 'nvsel nv' + s.value);
+  const colorea = () => $('cfgcuerpo').querySelectorAll('.nvsel').forEach(s => s.className = 'nvsel chico nv' + s.value);
   $('cfgcuerpo').addEventListener('change', colorea); colorea();
   const leer = () => { const o = {}; $('cfgcuerpo').querySelectorAll('[data-rol]:not([disabled])').forEach(s => { (o[s.dataset.rol] = o[s.dataset.rol] || {})[s.dataset.ar] = +s.value; }); return o; };
   $('rolrest').onclick = async () => { await db.rpc('guardar_ajuste', { p_clave: 'roles', p_valor: {} }); AJUSTES.roles = {}; toast('Valores de partida'); pintarRoles(); };
@@ -12264,7 +12264,7 @@ function htPreparar(sec) {
     if (!ref || !acts) return;
     ref.insertAdjacentHTML('afterend', '<div class="htpanel hide"><div class="htpropios"></div><div class="htauto"></div></div>');
     panel = sec.querySelector('.htpanel');
-    acts.insertAdjacentHTML('afterbegin', `<button class="btn sec htbtn" type="button" title="Filtros y columnas" aria-label="Filtros y columnas">${svgIco(ICON_NOM['sliders-horizontal'])}<span class="htl"> Filtros y columnas</span><span class="htn"></span></button>`);
+    acts.insertAdjacentHTML('afterbegin', `<button class="btn sec chico htbtn" type="button" title="Filtros y columnas" aria-label="Filtros y columnas">${svgIco(ICON_NOM['sliders-horizontal'])}<span class="htl"> Filtros y columnas</span><span class="htn"></span></button>`);
     acts.querySelector('.htbtn').onclick = () => { panel.classList.toggle('hide'); if (!panel.classList.contains('hide')) htPintarPanel(sec); };
   }
   // Los filtros propios de la pantalla pasan al panel; la búsqueda por texto se queda a la vista
@@ -12272,7 +12272,7 @@ function htPreparar(sec) {
     propios.dataset.ht = '1';
     [...propios.children].forEach(ch => {
       if (ch.matches('input[type=search],input[type=text]') || ch.querySelector('input[type=search],input[type=text]')) return;
-      panel.querySelector('.htpropios').appendChild(ch);
+      panel.querySelector('.htpropios').appendChild(chicoEn(ch, true));
     });
     if (!propios.children.length) propios.classList.add('hide');
     panel.querySelectorAll('.htpropios select').forEach(s => s.addEventListener('change', () => htContador(sec)));
@@ -12400,11 +12400,13 @@ async function pintarPaginaPlan() {
 
 // Los filtros propios de cada pantalla se guardan en un contenedor oculto de la pantalla
 // y se llevan al panel lateral al abrirlo (y vuelven al cerrarlo)
+// v2.294 (R-02): los filtros propios son compactos en el panel de la pantalla y normales en el panel lateral: se marca al moverlos
+function chicoEn(el, si) { [el, ...el.querySelectorAll('input, select')].forEach(x => { if (x.matches('input, select')) x.classList.toggle('chico', si); }); return el; }
 function htLateralAbierto() { const d = $('tools'); return d.classList.contains('abierto') && String(HERR_CTX || '').startsWith('ht-'); }
 function htDevolver() {
   const d = $('tools'), lat = d.querySelector('.htpropios.lat'); if (!lat) return;
   const sec = $('v-' + String(HERR_CTX || '').replace('ht-', '')), hold = sec && sec.querySelector('.htpanel .htpropios');
-  if (hold) [...lat.children].forEach(ch => hold.appendChild(ch));
+  if (hold) [...lat.children].forEach(ch => hold.appendChild(chicoEn(ch, true)));
 }
 new MutationObserver(() => { if (!$('tools').classList.contains('abierto')) htDevolver(); }).observe($('tools'), { attributes: true, attributeFilter: ['class'] });
 function htAbrirLateral(sec) {
@@ -12415,7 +12417,7 @@ function htAbrirLateral(sec) {
   d.innerHTML = `<div class="tbox"><div class="fh"><h2>Filtros y columnas</h2><button class="x" id="tclose" aria-label="Cerrar">✕</button></div>
     <div class="htpropios lat"></div><div class="htauto"></div></div>`;
   const hold = sec.querySelector('.htpanel .htpropios');
-  if (hold) [...hold.children].forEach(ch => d.querySelector('.htpropios.lat').appendChild(ch));
+  if (hold) [...hold.children].forEach(ch => d.querySelector('.htpropios.lat').appendChild(chicoEn(ch, false)));
   $('tclose').onclick = () => d.classList.remove('abierto');
   d.classList.add('abierto');
   htPintarPanel(sec);
@@ -14464,7 +14466,7 @@ htPreparar = (orig => function (sec) {
     ref.insertAdjacentHTML('afterend', '<div class="htpanel hide"><div class="htpropios"></div><div class="htauto"></div></div>');
   }
   if (sec.querySelector('.htpanel') && !sec.querySelector('.htbtn') && acts) {
-    acts.insertAdjacentHTML('afterbegin', `<button class="btn sec htbtn" type="button" title="Filtros y columnas" aria-label="Filtros y columnas">${svgIco(ICON_NOM['sliders-horizontal'])}<span class="htl"> Filtros y columnas</span><span class="htn"></span></button>`);
+    acts.insertAdjacentHTML('afterbegin', `<button class="btn sec chico htbtn" type="button" title="Filtros y columnas" aria-label="Filtros y columnas">${svgIco(ICON_NOM['sliders-horizontal'])}<span class="htl"> Filtros y columnas</span><span class="htn"></span></button>`);
   }
   const r = orig(sec);
   if (!sec.querySelector('.dgrid') && clasPantalla(sec)) htContador(sec);
@@ -14629,11 +14631,11 @@ async function pintarOrganizaciones() {
       <span class="tx"><b>${esc(o.nombre)}</b>${orgEstado(o)}<span class="sm">${esc(o.nif || 'Sin NIF')} · ${esc(orgPlanTxt(o))}${((o.plan_datos || {}).extras || []).length ? ' + ' + o.plan_datos.extras.map(extraNombre).join(', ') : ''} · ${num(o.usuarios)} usuarios · ${num(o.cuentas)} cuentas${o.pendiente ? ' · pendiente de registro: ' + esc(o.pendiente) : ''}</span>
         <span class="sm">${(o.dominios || []).length ? 'Dominios: ' + o.dominios.map(esc).join(', ') : 'Sin dominio propio: su pantalla de acceso muestra la marca de delcos'}</span></span>
       <span class="acts" style="margin:0"><span class="sm">${o.creado_en ? fechaCorta(String(o.creado_en).slice(0, 10)) : ''}</span>
-        <button class="btn sec" type="button" data-orgdom="${o.id}">Dominios</button>
-        <button class="btn sec" type="button" data-orgext="${o.id}">Extras</button>
-        <button class="btn ${o.id === (VISTA_ORG || {}).id ? 'sec' : ''}" type="button" data-orgver="${o.id}">${o.id === (VISTA_ORG || {}).id ? 'Estás dentro' : 'Entrar'}</button>
-        <button class="btn sec" type="button" data-orgplan="${o.id}">Plan</button>
-        <button class="btn sec" type="button" data-orgexp="${o.id}">Descargar datos</button>
+        <button class="btn sec chico" type="button" data-orgdom="${o.id}">Dominios</button>
+        <button class="btn sec chico" type="button" data-orgext="${o.id}">Extras</button>
+        <button class="btn chico ${o.id === (VISTA_ORG || {}).id ? 'sec' : ''}" type="button" data-orgver="${o.id}">${o.id === (VISTA_ORG || {}).id ? 'Estás dentro' : 'Entrar'}</button>
+        <button class="btn sec chico" type="button" data-orgplan="${o.id}">Plan</button>
+        <button class="btn sec chico" type="button" data-orgexp="${o.id}">Descargar datos</button>
         ${!o.principal && (((o.plan_datos || {}).estado === 'prueba') || !o.activa) ? `<button class="btn sec" type="button" data-orgdel="${o.id}">Borrar empresa</button>` : ''}</span></div>`).join('')}</div>`}</div>`;
   orgAcciones(c, l); orgExtras(c, l);
   // v2.131.0: entrar en la organización para verla tal cual
@@ -17697,7 +17699,7 @@ async function pintarErroresDelcos() {
           <div class="errmsg">${esc(x.mensaje)}</div>
           <details class="errdet"><summary class="sm">Versiones y detalle técnico</summary><div class="sm">Versiones: ${esc(x.versiones || '—')} · primera ${fecha(x.primera)}</div>
             <pre>${esc(JSON.stringify(x.detalle || {}, null, 1))}</pre></details></div>
-        <select data-egh="${i}" aria-label="Estado del grupo">${['Nuevo', 'Revisado', 'Resuelto'].map(e => `<option ${x.estado === e ? 'selected' : ''}>${e}</option>`).join('')}</select></div>`).join('')
+        <select class="chico" data-egh="${i}" aria-label="Estado del grupo">${['Nuevo', 'Revisado', 'Resuelto'].map(e => `<option ${x.estado === e ? 'selected' : ''}>${e}</option>`).join('')}</select></div>`).join('')
       || `<div class="vacio">${f.estado === 'abiertos' ? 'No hay errores sin resolver en este periodo.' : 'Sin errores con estos filtros.'}</div>`}</div></div>`;
   $('egest').onchange = $('egdias').onchange = () => { window.__ERRG = { estado: $('egest').value, dias: +$('egdias').value }; pintarErroresDelcos(); };
   c.querySelectorAll('[data-egh]').forEach(s => s.onchange = async () => {
@@ -22334,9 +22336,9 @@ htPintarPanel = (orig => function (sec) {
     return { i, nombre, t };
   }).filter(Boolean);
   const html = cols.length ? `<div class="htbloque htcolf"><h4>Filtrar por columna</h4><div class="htfacetas">${cols.map(c => c.t === 'texto'
-      ? `<label><span>${esc(c.nombre)}</span><input type="search" data-htt="${c.i}" value="${esc(st.facetas[c.i] || '')}" placeholder="Contiene…"></label>`
-      : `<div class="htrango"><span>${esc(c.nombre)}</span><div><input type="${c.t === 'fecha' ? 'date' : 'number'}" data-htd="${c.i}" data-htk="${c.t}" value="${esc((st.rangos[c.i] || {}).d || '')}" aria-label="${esc(c.nombre)} desde" placeholder="Desde">
-          <input type="${c.t === 'fecha' ? 'date' : 'number'}" data-hth="${c.i}" data-htk="${c.t}" value="${esc((st.rangos[c.i] || {}).h || '')}" aria-label="${esc(c.nombre)} hasta" placeholder="Hasta"></div></div>`).join('')}</div></div>` : '';
+      ? `<label><span>${esc(c.nombre)}</span><input type="search" class="chico" data-htt="${c.i}" value="${esc(st.facetas[c.i] || '')}" placeholder="Contiene…"></label>`
+      : `<div class="htrango"><span>${esc(c.nombre)}</span><div><input type="${c.t === 'fecha' ? 'date' : 'number'}" class="chico" data-htd="${c.i}" data-htk="${c.t}" value="${esc((st.rangos[c.i] || {}).d || '')}" aria-label="${esc(c.nombre)} desde" placeholder="Desde">
+          <input type="${c.t === 'fecha' ? 'date' : 'number'}" class="chico" data-hth="${c.i}" data-htk="${c.t}" value="${esc((st.rangos[c.i] || {}).h || '')}" aria-label="${esc(c.nombre)} hasta" placeholder="Hasta"></div></div>`).join('')}</div></div>` : '';
   const antesDe = [...zona.querySelectorAll('.htbloque')].find(b => b.querySelector('[data-htc], .t2abrir')) || zona.querySelector('.acts');
   if (bloque) bloque.outerHTML = html; else if (html) { if (antesDe) antesDe.insertAdjacentHTML('beforebegin', html); else zona.insertAdjacentHTML('beforeend', html); }
   // Los filtros de antes (desplegable con un valor exacto) pasan a «contiene»
@@ -22801,8 +22803,8 @@ notifPintar = function () {
       <span class="ic" aria-hidden="true">${notifIco(x.tipo)}</span>
       <div class="tx"><b>${esc(x.titulo)}</b>${x.cuerpo ? `<span class="sm">${esc(x.cuerpo)}</span>` : ''}
         <span class="sm notcuando">${g === 'Hoy' ? cuando.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) : g === 'Ayer' ? 'Ayer' : cuando.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' })}${x.resumen ? ' · del resumen del día' : ''}</span>
-        <div class="notacts">${acc.map(([t, , p], j) => `<button type="button" class="btn ${p ? '' : 'sec'}" data-nacc="${j}">${esc(t)}</button>`).join('')}
-          ${x.leida_en ? '' : '<button type="button" class="btn sec" data-npos>Posponer a mañana</button>'}
+        <div class="notacts">${acc.map(([t, , p], j) => `<button type="button" class="btn chico ${p ? '' : 'sec'}" data-nacc="${j}">${esc(t)}</button>`).join('')}
+          ${x.leida_en ? '' : '<button type="button" class="btn sec chico" data-npos>Posponer a mañana</button>'}
           <button type="button" class="notbor" data-nbor aria-label="Borrar esta notificación" title="Borrar">${svgIco(ICON_NOM['trash-2'])}</button></div></div></div>`;
   };
   $('dbody').innerHTML = `<div class="fh"><div><h2>Notificaciones</h2><div class="sm">${NOTIF_N ? `${NOTIF_N} sin leer` : 'Estás al día'} · últimos 7 días</div></div>
@@ -23217,9 +23219,9 @@ cargarRutasBase = async function () {
         <div class="rntx"><b>${esc(r.nombre)}</b>
           <span class="sm">${num(ms.length)} ${ms.length === 1 ? TT('medico', 's', '', 'l', 'l') : TT('medico', 'p', '', 'l', 'l')} · ${paradas} ${paradas === 1 ? 'parada' : 'paradas'}${h.km >= 1 ? ' · ' + Math.round(h.km) + ' km' : ''}</span>
           <span class="sm">${ms.length ? `De ${r.salida ? String(r.salida).slice(0, 5) : '09:00'} a ${hm(h.fin)}` : 'Todavía sin nadie'}${prox ? ` · próxima: ${esc(fechaCorta(prox))}` : ''}${r.mia ? '' : ' · de ' + esc(r.duenyo || '')}</span></div>
-        <div class="rnacts"><button class="btn" type="button" data-rnag="${i}">Pasar a mi agenda</button>
-          ${r.mia || puede('administrar') ? `<button class="btn sec" type="button" data-rned="${i}">${rnSV(RN_IC.lapiz)} Editar</button>
-          <button class="btn sec rnico" type="button" data-rnbor="${i}" aria-label="Eliminar ${esc(r.nombre)}" title="Eliminar">${rnSV(RN_IC.papelera)}</button>` : `<button class="btn sec" type="button" data-rnver="${i}">Ver</button>`}</div></article>`; }).join('')}
+        <div class="rnacts"><button class="btn chico" type="button" data-rnag="${i}">Pasar a mi agenda</button>
+          ${r.mia || puede('administrar') ? `<button class="btn sec chico" type="button" data-rned="${i}">${rnSV(RN_IC.lapiz)} Editar</button>
+          <button class="btn sec chico rnico" type="button" data-rnbor="${i}" aria-label="Eliminar ${esc(r.nombre)}" title="Eliminar">${rnSV(RN_IC.papelera)}</button>` : `<button class="btn sec chico" type="button" data-rnver="${i}">Ver</button>`}</div></article>`; }).join('')}
       <button class="rnnueva" type="button" id="rnnueva2"><span><span class="mas">+</span><b>Nueva ruta</b><span class="sm">${lista.length ? 'Elige a quién vas a ver y en qué orden' : `Tu primera ruta: elige a quién vas a ver, el orden y cuándo. La app calcula las horas.`}</span></span></button></div>
     <div id="rcuerpo" hidden></div><div id="rplan"></div>`;
   $('rnueva').onclick = $('rnnueva2').onclick = () => rnAbrir(null);
@@ -23664,8 +23666,8 @@ function txPintar() {
     const vuelve = f.g === 'voc' ? (f.s || f.p) : f.v;
     return `<div class="txrow ${txPersonal(f) || txCambiada(f) ? 'cambio' : ''}" data-txi="${i}"><span class="donde">${esc(f.donde)}</span>
       <span class="siempre">${esc(f.siempre)}${marca}</span>
-      ${f.g === 'voc' ? `<span class="dos"><input data-txs value="${esc(f.s)}" placeholder="${esc(f.ds)}" aria-label="Singular"><input data-txp value="${esc(f.p)}" placeholder="${esc(f.dp)}" aria-label="Plural"></span>`
-        : `<input data-txv value="${esc(f.v)}" placeholder="${esc(f.ahora ? 'Nuevo nombre' : f.siempre)}" aria-label="Nuevo nombre de ${esc(f.siempre)}">`}
+      ${f.g === 'voc' ? `<span class="dos"><input class="chico" data-txs value="${esc(f.s)}" placeholder="${esc(f.ds)}" aria-label="Singular"><input class="chico" data-txp value="${esc(f.p)}" placeholder="${esc(f.dp)}" aria-label="Plural"></span>`
+        : `<input class="chico" data-txv value="${esc(f.v)}" placeholder="${esc(f.ahora ? 'Nuevo nombre' : f.siempre)}" aria-label="Nuevo nombre de ${esc(f.siempre)}">`}
       ${vuelve ? `<button type="button" class="rv" data-txrv="${i}" title="${f.ahora ? 'Dejarlo como está' : 'Volver al de siempre'}" aria-label="${f.ahora ? 'Dejarlo como está' : 'Volver al de siempre'}">${txSV(TX_IC.rv)}</button>` : '<span></span>'}</div>`;
   };
   c.innerHTML = `<div class="txp">
@@ -24073,7 +24075,7 @@ plSync = function (tab) {
   sec.classList.add('plantilla'); sec.dataset.plsec = clave;
   const sal = sec.querySelector(':scope > .saludo');
   const acts = sal && sal.querySelector('.acts');
-  if (acts && !acts.querySelector('.plmas')) acts.insertAdjacentHTML('afterbegin', `<button type="button" class="btn sec plmas" aria-label="Más acciones" title="Más acciones">${plIco('ellipsis', '⋯')}</button>`);
+  if (acts && !acts.querySelector('.plmas')) acts.insertAdjacentHTML('afterbegin', `<button type="button" class="btn sec chico plmas" aria-label="Más acciones" title="Más acciones">${plIco('ellipsis', '⋯')}</button>`);
   const mas = acts && acts.querySelector('.plmas'); if (mas) { const no = !c.mas().length; if (mas.classList.contains('plno') !== no) mas.classList.toggle('plno', no); }
   const nb = c.nuevo && c.nuevo();
   if (nb && c.textoNuevo && !ES_MOVIL() && !nb.classList.contains('fab') && nb.textContent.trim() !== c.textoNuevo()) nb.innerHTML = plIco('plus') + ' ' + esc(c.textoNuevo());
@@ -24143,9 +24145,9 @@ plToolHtml = function (tab) {
   const c = plCfg(tab);
   return `<label class="plq">${plIco('search', '🔍')}<input type="search" class="plqi" placeholder="Buscar en ${esc(c.que())}" aria-label="Buscar en ${esc(c.que())}"></label>
     <div class="plrap">${c.rapidos.map(([id, t]) => { t = t || plEtiq(id); return `<button type="button" class="plchip" data-plr="${esc(id)}" data-plt="${esc(t)}">${esc(t)}</button>`; }).join('')}</div>
-    <button type="button" class="plbtn plfil">${plIco('sliders-horizontal')}<span>Filtros</span><span class="pln hide"></span></button>
-    <button type="button" class="plbtn plcol">${plIco('columns-3', 'table', 'list')}<span>Columnas</span></button>
-    ${c.mapa() ? `<button type="button" class="plbtn plic plmapa" title="Ver en el mapa" aria-label="Ver en el mapa">${plIco('map')}</button>` : ''}
+    <button type="button" class="plbtn chico plfil">${plIco('sliders-horizontal')}<span>Filtros</span><span class="pln hide"></span></button>
+    <button type="button" class="plbtn chico plcol">${plIco('columns-3', 'table', 'list')}<span>Columnas</span></button>
+    ${c.mapa() ? `<button type="button" class="plbtn chico plic plmapa" title="Ver en el mapa" aria-label="Ver en el mapa">${plIco('map')}</button>` : ''}
     <span class="plcnt"><i class="plsk" style="width:90px"></i></span>`;
 };
 plKpisHtml = (orig => function (tab) { return plCfg(tab) && plCfg(tab).kpis ? orig(tab) : ''; })(plKpisHtml);
@@ -24534,11 +24536,11 @@ async function tdPintar() {
           ${abiertas && !pasado ? `<span>Fin estimado <b style="color:${pasaTope ? 'var(--warn)' : 'var(--navy)'}">${hm(fin)}</b>${pasaTope ? ' · pasa de la hora de vuelta' : ''}${fin >= 24 * 60 ? ' <span class="sm">(día siguiente: revisa los avisos)</span>' : ''}</span>` : ''}
         </div></div>
       <div class="acts" style="margin:0">
-        ${propia ? '<button type="button" class="btn sec" id="tdtarea">+ Tarea</button>' : ''}
-        ${!pasado && conSitio > 1 ? '<button class="btn sec" id="tdordenar" title="Ordena las citas abiertas para recorrer menos kilómetros. Las que tienen hora fija se respetan.">Ordenar por cercanía</button>' : ''}
-        ${esHoy && !j && abiertas && agUid() === PERFIL.id ? '<button class="btn" id="tdempezar">▶ Empezar jornada</button>' : ''}
-        ${esHoy && j && agUid() === PERFIL.id ? '<button class="btn dang" id="tdterminar">Terminar jornada</button>' : ''}
-        ${pasado && abiertas ? '<button class="btn" id="tdrepro">Reprogramar pendientes</button>' : ''}
+        ${propia ? '<button type="button" class="btn sec chico" id="tdtarea">+ Tarea</button>' : ''}
+        ${!pasado && conSitio > 1 ? '<button class="btn sec chico" id="tdordenar" title="Ordena las citas abiertas para recorrer menos kilómetros. Las que tienen hora fija se respetan.">Ordenar por cercanía</button>' : ''}
+        ${esHoy && !j && abiertas && agUid() === PERFIL.id ? '<button class="btn chico" id="tdempezar">▶ Empezar jornada</button>' : ''}
+        ${esHoy && j && agUid() === PERFIL.id ? '<button class="btn dang chico" id="tdterminar">Terminar jornada</button>' : ''}
+        ${pasado && abiertas ? '<button class="btn chico" id="tdrepro">Reprogramar pendientes</button>' : ''}
       </div>
     </div>
     ${esHoy && j ? `<div class="tdjornada">● Jornada en curso desde hace ${durTxt(Date.now() - j.inicio)}. Registra cada ${vis} al terminarla.</div>` : ''}
@@ -26576,7 +26578,7 @@ function pmConsulta(c, i) {
     <div class="pmccab">${nuevo ? `<div class="g2 pmcnuevo"><div><label>Centro o consulta</label><input data-pmcf="${i}|nombre" value="${esc(c.nombre || '')}"></div>
         <div><label>Dirección y población</label><input data-pmcf="${i}|direccion" value="${esc([c.direccion, c.municipio].filter(Boolean).join(', '))}" placeholder="Calle, número, población"></div></div>`
       : `<div><b>${esc(c.nombre || 'Consulta')}</b><span class="sm">${esc([c.direccion, c.municipio].filter(Boolean).join(' · '))}</span></div>`}
-      <button type="button" class="btn sec pmcx" data-pmcx="${i}">Quitar</button></div>
+      <button type="button" class="btn sec chico pmcx" data-pmcx="${i}">Quitar</button></div>
     ${pmHorario(c.dias || {}, i)}</div>`;
 }
 
@@ -26814,7 +26816,7 @@ async function matMejorar() {
   lista.classList.add('matlista2');
   lista.innerHTML = (vals || []).map(v => { const p = de(v.valor); return `<div class="matfila2 ${v.activo ? '' : 'off'}" data-mv="${v.id}" data-mvv="${esc(v.valor)}" data-mdt0="${v.dato_tipo === 'numero' ? 'numero' : ''}">
       <b class="mtnom">${esc(v.valor)}</b>
-      <label class="mtcampo"><span class="sm">Al registrar ${vis}</span><select data-mdt>
+      <label class="mtcampo"><span class="sm">Al registrar ${vis}</span><select class="chico" data-mdt>
         <option value="numero" ${v.dato_tipo === 'numero' ? 'selected' : ''}>Anotar cuántas se entregan</option>
         <option value="" ${v.dato_tipo === 'numero' ? '' : 'selected'}>Solo marcar que se entregó</option></select></label>
       ${conPortal ? `<label class="opt mtpor"><input type="checkbox" data-mpp ${p ? 'checked' : ''}> Se puede pedir desde el portal</label>
