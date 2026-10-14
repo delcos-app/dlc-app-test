@@ -3778,11 +3778,11 @@ header .top .logo,nav.main .mlmarca{cursor:pointer}
 #agcuerpo .tddiamas svg{width:18px;height:18px}
 @media (pointer:coarse){#agcinta .cdmas,#agcinta .cdia.sel .cdmas{display:none!important}}
 /* Tu día con los mismos márgenes */
-#v-agenda.agcinta #agcuerpo > .agband,#v-agenda.agcinta #agcuerpo > #tdnocabe,#v-agenda.agcinta #agcuerpo > .tdesc{margin-left:16px;margin-right:16px}
+#v-agenda.agcinta #agcuerpo > .agband,#v-agenda.agcinta #agcuerpo > #tdnocabe,#v-agenda.agcinta #agcuerpo > .tdesc,#v-agenda.agcinta #agcuerpo > #tdtareas{margin-left:16px;margin-right:16px}
 #v-agenda.agcinta #agcuerpo > .tdesc{margin-bottom:16px}
 #v-agenda.agcinta #agcuerpo > #tdnocabe{border-radius:12px}
 @media (max-width:760px){
-  #v-agenda.agcinta #agcuerpo > .agband,#v-agenda.agcinta #agcuerpo > #tdnocabe,#v-agenda.agcinta #agcuerpo > .tdesc{margin-left:12px;margin-right:12px}
+  #v-agenda.agcinta #agcuerpo > .agband,#v-agenda.agcinta #agcuerpo > #tdnocabe,#v-agenda.agcinta #agcuerpo > .tdesc,#v-agenda.agcinta #agcuerpo > #tdtareas{margin-left:12px;margin-right:12px}
   #v-agenda.agcinta #agcuerpo .tdhead{padding:14px 12px 10px}
   #v-agenda.agcinta #agcuerpo > .agband{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px}
   #v-agenda.agcinta #agcuerpo > .agband button{justify-content:space-between;width:100%;font-size:13px;padding:10px 12px;text-align:left}
@@ -4506,6 +4506,8 @@ dialog.encajada #dbody > .acts:last-child,dialog.encajada #dlg2body > .acts:last
 /* v2.297: la tarjeta de invitados se marca un momento al llegar desde «Cuentas con acceso» */
 @keyframes usrinvluz{0%{box-shadow:0 0 0 3px var(--navy)}100%{box-shadow:0 0 0 0 var(--navy)}}
 .usrinvw.usrinvluz{animation:usrinvluz 1.6s ease-out}
+/* v2.298: la caja de tareas con el mismo aspecto que una cita (Eric: todo debe verse igual) */
+#v-agenda.agcinta #agcuerpo > #tdtareas{background:#fff;border-radius:14px;padding:12px 14px}
 /* ==== SISTEMA delcos · capa del contrato de componentes (generada desde sistema/contrato.json con gen_capa.js; no se edita a mano) ==== */
 html:not(#_s) body :is(#v-inicio .saludo h1#hola){font-family:var(--f-titulo) !important;font-weight:800 !important;font-size:30px !important}
 html:not(#_s) body :is(#v-informe .medhero h1):not(:is(#v-inicio .saludo h1#hola)){font-family:var(--f-titulo) !important;font-weight:800 !important;font-size:30px !important}
@@ -4697,6 +4699,6 @@ try{var co=sessionStorage.getItem('dlc-cambio-org');if(co!==null||localStorage.g
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.297.0"></script>
+<script src="./app.js?v=2.298.0"></script>
 </body>
 </html>

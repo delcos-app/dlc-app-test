@@ -6238,6 +6238,18 @@ const salidaUsuario = () => prefsActivas().salida || { nombre: `la ${TT('visita'
 
 /** Orden por cercanía: las citas con hora fija marcan el esqueleto; las demás se insertan donde menos desvío suman. */
 
+// v2.298: coloca la cita de esa ficha con esa hora entre las abiertas del día (mismo criterio que «Cambiar la hora»)
+async function colocarPorHora(fecha, uid, cuentaId, h) {
+  const { data } = await RPC_ORIG('agenda_rango', { p_desde: fecha, p_hasta: fecha, p_usuario: uid });
+  const hh = c => c.hora ? String(c.hora).slice(0, 5) : null;
+  const ab = (data || []).filter(c => c.usuario_id === uid && CITA_ABIERTA.includes(c.estado));
+  const yo = ab.filter(c => c.cuenta_id === cuentaId && hh(c) === h).pop(); if (!yo) return;
+  const resto = ab.filter(c => c !== yo);
+  let i = resto.findIndex(c => hh(c) && hh(c) > h);
+  if (i < 0) { i = 0; resto.forEach((c, k) => { if (hh(c) && hh(c) <= h) i = k + 1; }); }
+  resto.splice(i, 0, yo);
+  if (resto.some((c, k) => c !== ab[k])) { await guardarOrden(resto); if (typeof RC !== 'undefined' && RC.delete) RC.delete('agenda-' + fecha); }
+}
 async function guardarOrden(citas) {
   const { data: r, error } = await db.rpc('ordenar_citas', { p_ids: citas.map(c => c.id) });
   if (error || (r && r.ok === false)) { toast('No se ha podido guardar el orden', true); return false; }
@@ -18899,6 +18911,8 @@ nuevaCita = async function (medicoId, fecha, op = {}) {
     }});
     ev.target.disabled = false;
     if (r.error) { toast('No se ha podido: ' + r.error.message, true); return; }
+    // v2.298: con hora, la cita nueva se coloca entre las del día según su hora (antes quedaba la última)
+    if ($('nch').value) await colocarPorHora(f, TAB === 'agenda' && AG_VISTA ? AG_VISTA.id : PERFIL.id, elegido.id, $('nch').value);
     $('dlg').close(); toast('Cita añadida el ' + fechaDiaMes(f)); if (TAB === 'agenda') agRefrescoQuieto(); else cargarInicio();
   };
   $('dlg').classList.add('pequena');
