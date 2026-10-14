@@ -3343,6 +3343,7 @@ function abrirHerramientas(contexto) {
     ${VE_TODO() && $('fcom') ? `<label>Comercial</label><select data-tf="com">${$('fcom').innerHTML}</select>` : ''}
     <label class="opt" style="margin-top:10px"><input type="checkbox" data-tfc="mios" ${F.mios ? 'checked' : ''}> Solo ${TT('medico', 'p', 'el', 'l', 'l')} de mi cartera</label>
     <label class="opt"><input type="checkbox" data-tfc="sin" ${F.sin ? 'checked' : ''}> Sin visitar nunca</label>
+    <label class="opt"><input type="checkbox" data-tfc="urg" ${F.urg ? 'checked' : ''}> Solo urgentes</label>
     <div class="tfcampos">${camposFiltros('medico', F.campos, 'tfcp')}</div>
     <label>Ordenar por</label><select data-tf="orden">
       <option value="nombre" ${F.orden === 'nombre' ? 'selected' : ''}>Nombre</option>
@@ -23755,7 +23756,15 @@ const PL = {
     rapidos: [['fest', 'Estado'], ['fcom', ''], ['fprov', 'Provincia'], ['fmuni', 'Municipio'], ['fesp', 'Especialidad']],
     q: () => F.q || '',
     buscarQ: v => { F.q = v; buscar(true); },
-    activos: () => ['prov', 'muni', 'esp', 'est', 'rep', 'com'].filter(k => F[k]).length + ['urg', 'mios', 'sin'].filter(k => F[k]).length + Object.keys(F.campos || {}).length,
+    buscaTxt: () => 'Buscar cuentas',
+    // v2.296: un campo personalizado vaciado se quedaba como clave y contaba como filtro sin verse en el panel
+    activos: () => ['prov', 'muni', 'esp', 'est', 'rep', 'com'].filter(k => F[k]).length + ['urg', 'mios', 'sin'].filter(k => F[k]).length + Object.values(F.campos || {}).filter(filtroConValor).length,
+    quitar: () => {
+      Object.assign(F, { q: '', prov: '', muni: '', esp: '', est: '', urg: false, mios: false, sin: false, com: '', rep: '', campos: {} });
+      ['fest', 'fprov', 'fmuni', 'fesp', 'fcom', 'frep', 'q'].forEach(id => { if ($(id)) $(id).value = ''; });
+      const t = $('tools'); if (t && t.classList.contains('abierto') && HERR_CTX === 'directorio') t.classList.remove('abierto');
+      cargarFiltros(); buscar(true);
+    },
     filtros: () => { const b = $('dirtools'); if (b) b.click(); },
     columnas: () => abrirColumnas(),
     mapa: () => $('mapaBtn'),
@@ -23874,6 +23883,8 @@ revelar = (orig => function (el, max, desde) {
 
 // Los indicadores se piden aparte (RPC_ORIG): las listas «solo la última» descartarían las consultas paralelas
 // Clics de la barra, los indicadores y el menú «⋯»
+// Un filtro de campo personalizado cuenta si tiene algo (texto, lista o rango)
+const filtroConValor = v => v != null && v !== '' && !(Array.isArray(v) && !v.length) && !(typeof v === 'object' && !Array.isArray(v) && !Object.values(v).some(x => x != null && x !== ''));
 function plCerrarPop() { document.querySelectorAll('.plpop').forEach(p => p.remove()); }
 function plPop(btn, items) {
   plCerrarPop();
@@ -23882,8 +23893,8 @@ function plPop(btn, items) {
   p.innerHTML = (items.length > 12 ? '<input type="search" class="plpopq" placeholder="Buscar…" aria-label="Buscar">' : '') +
     `<div class="plpopl">${items.map((x, i) => `<button type="button" role="menuitemradio" aria-checked="${!!x.on}" class="${x.on ? 'on' : ''}" data-ppi="${i}">${esc(x.t)}</button>`).join('')}</div>`;
   document.body.appendChild(p);
-  const izq = Math.min(Math.max(8, r.left), innerWidth - p.offsetWidth - 8);
-  Object.assign(p.style, { left: izq + 'px', top: (r.bottom + 6 + scrollY) + 'px' });
+  if (ES_MOVIL()) p.classList.add('plhoja');
+  else { const izq = Math.min(Math.max(8, r.left), innerWidth - p.offsetWidth - 8); Object.assign(p.style, { left: izq + 'px', top: (r.bottom + 6 + scrollY) + 'px' }); }
   p.querySelectorAll('[data-ppi]').forEach(b => b.onclick = () => { plCerrarPop(); items[+b.dataset.ppi].fn(); });
   const q = p.querySelector('.plpopq');
   if (q) { q.oninput = () => { const v = normalizar(q.value); p.querySelectorAll('[data-ppi]').forEach(b => b.classList.toggle('hide', !!v && !normalizar(b.textContent).includes(v))); }; if (!PANTALLA_TACTIL) q.focus(); }
@@ -23908,6 +23919,7 @@ document.addEventListener('click', e => {
     if (items.length) plPop(e.target.closest('.plmas'), items); return;
   }
   if (e.target.closest('.plfil')) { c.filtros(); return; }
+  if (e.target.closest('.plquitar') && c.quitar) { c.quitar(); plSync(tab); return; }
   if (e.target.closest('.plcol')) { c.columnas(); return; }
   if (e.target.closest('.plmapa')) { const m = c.mapa(); if (m) m.click(); setTimeout(() => plSync(tab), 50); return; }
 });
@@ -24111,6 +24123,7 @@ plSync = function (tab) {
   });
   const n = c.activos(), pn = tl.querySelector('.pln');
   if (pn) { const v = String(n || ''); if (pn.textContent !== v) pn.textContent = v; if (pn.classList.contains('hide') !== !n) pn.classList.toggle('hide', !n); }
+  const pq = tl.querySelector('.plquitar'); if (pq && pq.classList.contains('hide') !== !n) pq.classList.toggle('hide', !n);
   const cnt = tl.querySelector('.plcnt'), h = plRecuento(sec, c);
   if (cnt && h && cnt.dataset.h !== h) { cnt.dataset.h = h; cnt.innerHTML = h; }
   // Tabla y pie en una tarjeta; los totales, en la franja de resumen encima
@@ -24143,9 +24156,10 @@ plSync = function (tab) {
 // La barra y los clics usan la configuración de la sección abierta
 plToolHtml = function (tab) {
   const c = plCfg(tab);
-  return `<label class="plq">${plIco('search', '🔍')}<input type="search" class="plqi" placeholder="Buscar en ${esc(c.que())}" aria-label="Buscar en ${esc(c.que())}"></label>
+  return `<label class="plq">${plIco('search', '🔍')}<input type="search" class="plqi" placeholder="${esc(c.buscaTxt ? c.buscaTxt() : 'Buscar en ' + c.que())}" aria-label="${esc(c.buscaTxt ? c.buscaTxt() : 'Buscar en ' + c.que())}"></label>
     <div class="plrap">${c.rapidos.map(([id, t]) => { t = t || plEtiq(id); return `<button type="button" class="plchip" data-plr="${esc(id)}" data-plt="${esc(t)}">${esc(t)}</button>`; }).join('')}</div>
     <button type="button" class="plbtn chico plfil">${plIco('sliders-horizontal')}<span>Filtros</span><span class="pln hide"></span></button>
+    ${c.quitar ? '<button type="button" class="plquitar hide">Quitar filtros</button>' : ''}
     <button type="button" class="plbtn chico plcol">${plIco('columns-3', 'table', 'list')}<span>Columnas</span></button>
     ${c.mapa() ? `<button type="button" class="plbtn chico plic plmapa" title="Ver en el mapa" aria-label="Ver en el mapa">${plIco('map')}</button>` : ''}
     <span class="plcnt"><i class="plsk" style="width:90px"></i></span>`;
