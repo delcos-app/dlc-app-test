@@ -13676,7 +13676,7 @@ function pintarBotonesRuta(fecha) {
   let rc = $('tdrutacompleta');
   const pasado = fecha < hoyISO();
   if (!pasado && TD_PARADAS.length && agUid() === PERFIL.id) {
-    if (!rc) { cont.insertAdjacentHTML('afterbegin', `<button class="btn sec" id="tdrutacompleta" type="button" title="Abre todas las paradas del día en el navegador, en orden">${svgIco(ICON_NOM.map)} Ruta completa</button>`); rc = $('tdrutacompleta'); }
+    if (!rc) { cont.insertAdjacentHTML('afterbegin', `<button class="btn sec chico" id="tdrutacompleta" type="button" title="Abre todas las paradas del día en el navegador, en orden">${svgIco(ICON_NOM.map)} Ruta completa</button>`); rc = $('tdrutacompleta'); }
     rc.onclick = () => rutaCompleta();
   } else if (rc) rc.remove();
 }
