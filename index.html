@@ -4530,6 +4530,9 @@ body.tdcompacto #agcuerpo .tdu .tdu-av{display:none}
 .agtambg{margin-top:8px}
 .agtambg .agtambl{margin-top:4px}
 .agtambgt{font-size:12px;font-weight:700;color:var(--muted)}
+/* v2.304: Cuentas con cinco indicadores (profesionales, centros, urgentes, sin visitar y mi cartera) */
+#v-directorio > .plkpis{grid-template-columns:repeat(5,minmax(0,1fr))}
+@media (max-width:760px){ #v-directorio > .plkpis{grid-template-columns:repeat(2,minmax(0,1fr))} #v-directorio > .plkpis > :last-child{grid-column:1 / -1} }
 /* ==== SISTEMA delcos · capa del contrato de componentes (generada desde sistema/contrato.json con gen_capa.js; no se edita a mano) ==== */
 html:not(#_s) body :is(#v-inicio .saludo h1#hola){font-family:var(--f-titulo) !important;font-weight:800 !important;font-size:30px !important}
 html:not(#_s) body :is(#v-informe .medhero h1):not(:is(#v-inicio .saludo h1#hola)){font-family:var(--f-titulo) !important;font-weight:800 !important;font-size:30px !important}
@@ -4667,6 +4670,7 @@ try{var co=sessionStorage.getItem('dlc-cambio-org');if(co!==null||localStorage.g
           <div><label for="fmuni">Municipio</label><select id="fmuni"></select></div>
           <div><label for="fesp">Especialidad</label><select id="fesp"></select></div>
           <div><label for="frep">Reporting</label><select id="frep"><option value="">Todos</option><option value="con">Con reporting</option><option value="sin">Sin reporting</option></select></div>
+          <div><label for="ftipo">Tipo</label><select id="ftipo"><option value="">Todas</option><option value="Persona">Profesionales</option><option value="Centro">Centros</option></select></div>
           <div><label for="fest">Estado comercial</label><select id="fest"></select></div>
           <div id="fcomwrap" class="hide"><label for="fcom">Comercial</label><select id="fcom"></select></div>
           <div><label for="forden">Ordenar por</label>
@@ -4721,6 +4725,6 @@ try{var co=sessionStorage.getItem('dlc-cambio-org');if(co!==null||localStorage.g
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.303.0"></script>
+<script src="./app.js?v=2.304.0"></script>
 </body>
 </html>

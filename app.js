@@ -352,6 +352,7 @@ async function buscar(reiniciar) {
     q: F.q || null, f_provincia: F.prov || null, f_municipio: F.muni || null,
     f_estado: F.est || null, f_especialidad: F.esp || null, f_area: null,
     f_urgentes: F.urg, f_mios: !!F.mios, f_sin_visitar: !!F.sin, f_comercial: F.com || null, f_reporting: F.rep || null,
+    ...(F.tipo ? { f_tipo: F.tipo } : {}),
     orden: F.orden, lim: tamPagina(), desplaz: F.pagina * tamPagina(),
     ...(Object.keys(F.campos || {}).length ? { f_campos: F.campos } : {})
   };
@@ -3335,6 +3336,7 @@ function abrirHerramientas(contexto) {
   HERR_CTX = contexto;
   const filtrosDir = `
     <h3>Filtros</h3>
+    <label>Tipo</label><select data-tf="tipo"><option value="">Todas</option><option value="Persona" ${F.tipo === 'Persona' ? 'selected' : ''}>Profesionales</option><option value="Centro" ${F.tipo === 'Centro' ? 'selected' : ''}>Centros</option></select>
     <label>Provincia</label><select data-tf="prov">${optFiltro(OPF.provincias, F.prov, 'Todas las provincias')}</select>
     <label>Municipio</label><select data-tf="muni">${optFiltro(OPF.municipios, F.muni, 'Todos los municipios')}</select>
     <label>Especialidad</label><select data-tf="esp">${optFiltro(OPF.especialidades, F.esp, 'Todas las especialidades')}</select>
@@ -23774,15 +23776,16 @@ const PL = {
     textoNuevo: () => 'Añadir ' + TT('medico', 's', '', 'l', 'l'),
     cuerpo: () => $('lista'), tabla: () => $('tabla'), pie: () => $('dirpag'), cuenta: () => $('cuenta'),
     conDatos: el => !!el.querySelector('.trow, .vacio'),
-    rapidos: [['fest', 'Estado'], ['fcom', ''], ['fprov', 'Provincia'], ['fmuni', 'Municipio'], ['fesp', 'Especialidad']],
+    rapidos: [['ftipo', 'Tipo'], ['fest', 'Estado'], ['fcom', ''], ['fprov', 'Provincia'], ['fmuni', 'Municipio'], ['fesp', 'Especialidad']],
     q: () => F.q || '',
     buscarQ: v => { F.q = v; buscar(true); },
     buscaTxt: () => 'Buscar cuentas',
+    nKpis: 5,   // v2.304.0: el esqueleto con los mismos cinco huecos
     // v2.296: un campo personalizado vaciado se quedaba como clave y contaba como filtro sin verse en el panel
-    activos: () => ['prov', 'muni', 'esp', 'est', 'rep', 'com'].filter(k => F[k]).length + ['urg', 'mios', 'sin'].filter(k => F[k]).length + Object.values(F.campos || {}).filter(filtroConValor).length,
+    activos: () => ['tipo', 'prov', 'muni', 'esp', 'est', 'rep', 'com'].filter(k => F[k]).length + ['urg', 'mios', 'sin'].filter(k => F[k]).length + Object.values(F.campos || {}).filter(filtroConValor).length,
     quitar: () => {
-      Object.assign(F, { q: '', prov: '', muni: '', esp: '', est: '', urg: false, mios: false, sin: false, com: '', rep: '', campos: {} });
-      ['fest', 'fprov', 'fmuni', 'fesp', 'fcom', 'frep', 'q'].forEach(id => { if ($(id)) $(id).value = ''; });
+      Object.assign(F, { q: '', tipo: '', prov: '', muni: '', esp: '', est: '', urg: false, mios: false, sin: false, com: '', rep: '', campos: {} });
+      ['ftipo', 'fest', 'fprov', 'fmuni', 'fesp', 'fcom', 'frep', 'q'].forEach(id => { if ($(id)) $(id).value = ''; });
       const t = $('tools'); if (t && t.classList.contains('abierto') && HERR_CTX === 'directorio') t.classList.remove('abierto');
       cargarFiltros(); buscar(true);
     },
@@ -23792,12 +23795,13 @@ const PL = {
     mas: () => [['dircalidad', 'Calidad del dato'], ['cercaBtn', 'Cerca de mí']],
     kpis: async () => {
       const t = x => RPC_ORIG('buscar_cuentas', { q: null, lim: 1, desplaz: 0, ...x }).then(r => (r.data && r.data.total) || 0, () => 0);
-      const [tot, urg, sin, mios] = await Promise.all([t({}), t({ f_urgentes: true }), t({ f_sin_visitar: true }), t({ f_mios: true })]);
-      return [{ k: 'tot', t: TT('medico', 'p', '', 'l', 'C'), n: tot, s: 'en total' }, { k: 'urg', t: 'Urgentes', n: urg, s: 'marcados como urgentes' },
+      // v2.304.0: profesionales y centros por separado (antes una sola cifra con el nombre de los profesionales que contaba también los centros)
+      const [pro, cen, urg, sin, mios] = await Promise.all([t({ f_tipo: 'Persona' }), t({ f_tipo: 'Centro' }), t({ f_urgentes: true }), t({ f_sin_visitar: true }), t({ f_mios: true })]);
+      return [{ k: 'Persona', t: TT('medico', 'p', '', 'l', 'C'), n: pro, s: 'en total' }, { k: 'Centro', t: 'Centros', n: cen, s: 'en total' }, { k: 'urg', t: 'Urgentes', n: urg, s: 'marcados como urgentes' },
         { k: 'sin', t: 'Sin visitar nunca', n: sin, s: 'todavía sin ' + TT('visita', 'p', '', 'l', 'l') }, { k: 'mios', t: 'De mi cartera', n: mios, s: 'asignados a ti' }];
     },
-    kpiOn: k => k === 'tot' ? !F.urg && !F.sin && !F.mios : !!F[k],
-    kpiPulsar: k => { if (k === 'tot') { F.urg = false; F.sin = false; F.mios = false; } else F[k] = !F[k]; buscar(true); },
+    kpiOn: k => k === 'Persona' || k === 'Centro' ? F.tipo === k : !!F[k],
+    kpiPulsar: k => { if (k === 'Persona' || k === 'Centro') { F.tipo = F.tipo === k ? '' : k; if ($('ftipo')) $('ftipo').value = F.tipo; } else F[k] = !F[k]; buscar(true); },
     card: null   // las tarjetas del directorio las pone filaTabla (abajo), con los datos de la ficha
   },
   pacientes: {
@@ -23850,7 +23854,7 @@ function plEsqueleto(tab, conCab) {
 
 function plKpisHtml(tab) {
   const c = PL[tab], k = PL_KPI[tab];
-  if (!k || !k.datos) return ['', '', '', ''].map(() => `<div class="plk plcarga"><span class="plkt"><i class="plsk" style="width:46%"></i></span><b><i class="plsk plskv"></i></b><small><i class="plsk" style="width:70%"></i></small></div>`).join('');
+  if (!k || !k.datos) return Array(c.nKpis || 4).fill('').map(() => `<div class="plk plcarga"><span class="plkt"><i class="plsk" style="width:46%"></i></span><b><i class="plsk plskv"></i></b><small><i class="plsk" style="width:70%"></i></small></div>`).join('');
   return k.datos.map(d => `<button type="button" class="plk ${c.kpiOn(d.k) ? 'on' : ''}" data-plk="${d.k}"><span class="plkt">${esc(d.t)}</span><b data-pln="${d.n}">${num(d.n)}</b><small>${esc(d.s)}</small></button>`).join('');
 }
 function plCargarKpis(tab) {
@@ -27531,3 +27535,12 @@ abrirEditor = (orig => async function (id, tipo, ...r) {
   }, true);
   return res;
 })(abrirEditor);
+
+// v2.304.0: el filtro rápido «Tipo» de Cuentas
+if ($('ftipo')) $('ftipo').addEventListener('change', e => { F.tipo = e.target.value; buscar(true); });
+// El desplegable sigue a F.tipo (también si se cambia desde el panel o los indicadores) y nombra a los profesionales con el vocabulario de la empresa
+buscar = (orig => function (...a) {
+  const s = $('ftipo');
+  if (s) { if (s.options[1]) s.options[1].text = TT('medico', 'p', '', 'l', 'C'); if (s.value !== (F.tipo || '')) s.value = F.tipo || ''; }
+  return orig.apply(this, a);
+})(buscar);
