@@ -4673,7 +4673,8 @@ async function editorPedido(pedido) {
     envio_iva: ped && ped.envio ? +ped.envio_iva : +((SERVICIOS.find(x => x.por_defecto && x.activo) || {}).iva ?? 21),
     envio_con: ped && ped.envio ? r2(+ped.envio_base * (1 + (+ped.envio_iva || 0) / 100)) : +((SERVICIOS.find(x => x.por_defecto && x.activo) || {}).pvp || 0),
     // v2.115.0: origen (web o no) y referencia del pago
-    origen: ['web', 'portal'].includes((ped || pedido || {}).origen) ? (ped || pedido).origen : 'manual', pago_referencia: ped ? ped.pago_referencia || '' : '' };
+    origen: ['web', 'portal'].includes((ped || pedido || {}).origen) ? (ped || pedido).origen : 'manual', pago_referencia: ped ? ped.pago_referencia || '' : '',
+    sin_cargo: ped ? !!ped.sin_cargo : false };   // v2.317.0
   const justifs = [];   // v2.115.0: justificantes elegidos, se suben al guardar
   const leerForm = () => {
     if (!$('pfecha')) return;
@@ -4681,7 +4682,8 @@ async function editorPedido(pedido) {
       descuento: $('pdto').value, descuento_tipo: $('pdtot').value, nota: $('pnota').value,
       envio: $('penv').checked, envio_con: +$('penvi').value || 0, envio_iva: +$('penvv').value || 0, servicio_id: $('pserv').value,
       cuenta_texto: $('pselmed') ? ($('pselmed').__texto || '') : form.cuenta_texto,
-      origen: $('porig') ? $('porig').value : form.origen, pago_referencia: $('pref') ? $('pref').value : form.pago_referencia });
+      origen: $('porig') ? $('porig').value : form.origen, pago_referencia: $('pref') ? $('pref').value : form.pago_referencia,
+      sin_cargo: $('psincargo') ? $('psincargo').checked : form.sin_cargo });
   };
 
   const pinta = () => {
@@ -4715,7 +4717,9 @@ async function editorPedido(pedido) {
         </div>
         <div class="ldes" data-des="${i}"></div></div>`).join('')}</div>
       <div class="acts" style="margin-top:0"><button type="button" class="btn sec" id="plmas">+ Añadir línea</button></div>
-      <div class="g2">
+      <div class="pscbox"><label class="opt"><input type="checkbox" id="psincargo" ${form.sin_cargo ? 'checked' : ''}> Entrega sin cargo (muestra)</label>
+        <span class="sm">Las unidades cuentan ${esc(TT('medico', 's', 'al', 'l', 'l'))} de referencia y salen del stock, pero no es una venta: 0 €, sin factura, sin cobro y sin comisión.</span></div>
+      <div class="g2 pscg2">
         <div><label for="ppago">Forma de pago</label><select id="ppago"><option value=""></option>
           ${(CAT.forma_pago || []).map(x => `<option ${form.forma_pago === x.valor ? 'selected' : ''}>${esc(x.valor)}</option>`).join('')}</select></div>
         <div><label for="pdto">Descuento general</label>
@@ -4747,6 +4751,7 @@ async function editorPedido(pedido) {
         <button class="btn" id="pvalid">Guardar y validar</button></div>`;
 
     const desglose = () => {
+      if ($('psincargo') && $('psincargo').checked) lineas.forEach(l => { l.descuento = 100; });   // v2.317.0
       lineas.forEach((l, i) => {
         const d = lineaDesglose(l), el = $('plineas').querySelector(`[data-des="${i}"]`);
         if (el) el.innerHTML = `<span>Base <b>${eurI(d.base)}</b></span><span>IVA ${num(l.iva || 0)}% <b>${eurI(d.iva)}</b></span><span>Total <b>${eurI(d.total)}</b></span>
@@ -4807,7 +4812,9 @@ async function editorPedido(pedido) {
       const cps = camposLeer($('dbody'));
       if (cps && cps.falta.length) { toast(`Rellena «${cps.falta[0]}»`, true); return; }
       let trfVal = false;   // v2.314.0: con transferencia, el pedido puede esperar al pago en borrador
-      if (estado === 'Confirmado' && esTransferencia($('ppago').value)) {
+      const sc = !!($('psincargo') && $('psincargo').checked);   // v2.317.0: entrega sin cargo
+      if (sc && !medico && !await preguntar(`Sin ${TT('medico', 's', '', 'l', 'l')} de referencia, estas unidades no cuentan a nadie.`, { titulo: 'Entrega sin cargo', ok: 'Guardar igualmente' })) return;
+      if (!sc && estado === 'Confirmado' && esTransferencia($('ppago').value)) {
         const v = await elegirOpcion('Pago por transferencia', 'Este pedido se puede guardar en borrador hasta validar el pago: no cuenta en métricas ni comisiones y aún se puede cambiar. Cuando llegue la transferencia, lo validas desde el pedido.',
           [{ k: 'no', t: 'Cancelar', cls: 'sec' }, { k: 'validar', t: 'Validar ya', cls: 'sec' }, { k: 'borrador', t: 'Guardar en borrador' }]);
         if (!v) return;
@@ -4824,6 +4831,7 @@ async function editorPedido(pedido) {
         forma_pago: $('ppago').value || null, origen: $('porig').value, pago_referencia: $('ppago').value ? $('pref').value.trim() : '',
         descuento: +$('pdto').value || 0, descuento_tipo: $('pdtot').value,
         envio: $('penv').checked, envio_con_iva: +$('penvi').value || 0, envio_iva: +$('penvv').value || 0, servicio_id: $('pserv').value || null,
+        sin_cargo: sc,
         lineas: lineas.filter(l => l.producto_id).map(l => ({ producto_id: l.producto_id, unidades: l.unidades || 1,
           importe: l.importe, descuento: l.descuento || 0, iva: l.iva })),
         op_id: 'p-' + Date.now()
@@ -4838,12 +4846,13 @@ async function editorPedido(pedido) {
       if (justifs.length && !(await subirJustificantes((r && r.id) || (ped && ped.id), justifs))) return;
       $('dlg').close();
       if (o.alGuardar) { await o.alGuardar((r && r.id) || (ped && ped.id)); return; }   // v2.314.0
-      toast(estado === 'Borrador' ? (esTransferencia($('ppago').value) ? 'Guardado en borrador hasta validar el pago' : 'Borrador guardado') : (medico ? 'Pedido validado y atribuido' : 'Pedido validado · pendiente de atribuir'));
+      toast(sc ? (estado === 'Borrador' ? 'Entrega sin cargo guardada en borrador' : 'Entrega sin cargo validada') : estado === 'Borrador' ? (esTransferencia($('ppago').value) ? 'Guardado en borrador hasta validar el pago' : 'Borrador guardado') : (medico ? 'Pedido validado y atribuido' : 'Pedido validado · pendiente de atribuir'));
       if (TAB === 'ventas') cargarVentas();
       if (TAB === 'pacientes') listaPacientes();
       if ($('ficha').open && FICHA_PAC) fichaPaciente(FICHA_PAC);
     };
     $('pborr').onclick = e => guardar('Borrador', e.target);
+    $('psincargo').onchange = () => { leerForm(); lineas.forEach(l => { l.descuento = form.sin_cargo ? 100 : 0; }); pinta(); };   // v2.317.0
     $('ptrfmail').onclick = e => {   // v2.314.0: guarda en borrador y envía los datos de pago
       if (!contacto) { toast(`Elige ${TT('paciente', 's', 'el', 'l', 'l')} para enviarle los datos de pago`, true); return; }
       if (!((AJUSTES.empresa || {}).iban || '').trim()) { toast('Falta el IBAN: ponlo en Configuración → Facturación → Datos fiscales antes de enviar los datos de pago', true); return; }
@@ -4890,7 +4899,7 @@ async function pedidoFacturas(id) {
   if (fac.length) {
     acts.insertAdjacentHTML('afterbegin', fac.map(f => `<button class="btn sec" data-pvfac="${f.id}">🧾 ${esc(f.numero)}</button>`).join(''));
     acts.querySelectorAll('[data-pvfac]').forEach(b => b.onclick = () => verFactura(b.dataset.pvfac));
-  } else if (p.estado === 'Confirmado' && puedeFacturar()) {
+  } else if (p.estado === 'Confirmado' && !p.sin_cargo && puedeFacturar()) {
     acts.insertAdjacentHTML('afterbegin', '<button class="btn" id="pvemitir">🧾 Emitir factura</button>');
     $('pvemitir').onclick = async () => { const r = await emitirFacturaPedido(id); if (r) verFactura(r.id); };
   }
@@ -4906,10 +4915,10 @@ async function pedidoOperativa(id) {
   const permitido = VE_TODO() && nivelDe2('V') >= 2;
   const acts = $('dbody').querySelector('.acts:last-of-type');
   acts.insertAdjacentHTML('beforebegin', `<div class="blk" id="pdops"><h3>Operativa</h3>
-    ${OPS.map(([k, t]) => `<label class="opchk ${opHecho(p, k) ? 'on' : ''}"><input type="checkbox" data-op="${k}" ${opHecho(p, k) ? 'checked' : ''} ${permitido ? '' : 'disabled'}>
+    ${p.sin_cargo ? '<p class="sm">Entrega sin cargo: sin factura ni cobro. Las unidades cuentan al profesional de referencia.</p>' : ''}${OPS.filter(([k]) => !(p.sin_cargo && k === 'pago')).map(([k, t]) => `<label class="opchk ${opHecho(p, k) ? 'on' : ''}"><input type="checkbox" data-op="${k}" ${opHecho(p, k) ? 'checked' : ''} ${permitido ? '' : 'disabled'}>
       <span>${esc(t)}${k === 'pago' && p.forma_pago ? ` <span class="sm">· ${esc(p.forma_pago)}${/reembolso/i.test(p.forma_pago) ? ' (se cobra al entregar)' : ''}</span>` : ''}</span></label>`).join('')}
     <div class="acts" style="margin:6px 0 0">
-      ${cli.email ? `<a class="btn sec" id="pdmailpago" data-ped="${id}" href="mailto:${esc(cli.email)}?subject=${encodeURIComponent(asuntoEmailPago(p, total, cli.nombre))}&body=${encodeURIComponent(textoEmailPago(p, total, cli.nombre))}">✉️ Preparar email con los datos de pago</a>` : '<span class="sm">El cliente no tiene email en su ficha.</span>'}
+      ${p.sin_cargo ? '' : cli.email ? `<a class="btn sec" id="pdmailpago" data-ped="${id}" href="mailto:${esc(cli.email)}?subject=${encodeURIComponent(asuntoEmailPago(p, total, cli.nombre))}&body=${encodeURIComponent(textoEmailPago(p, total, cli.nombre))}">✉️ Preparar email con los datos de pago</a>` : '<span class="sm">El cliente no tiene email en su ficha.</span>'}
     </div></div>`);
   $('dbody').querySelectorAll('[data-op]').forEach(c => c.onchange = async () => {
     const { data: r, error } = await db.rpc('marcar_operativa', { p_pedido: id, p_campo: c.dataset.op, p_hecho: c.checked });
@@ -8828,7 +8837,7 @@ async function emitirFacturaPedido(pedidoId) {
     { titulo: '¿Emitir la factura?', ok: 'Emitir factura' })) return null;
   const { data: r, error } = await db.rpc('emitir_factura', { p_pedido: pedidoId });
   if (error || (r && r.ok === false)) {
-    toast(r && r.error === 'ya_facturado' ? 'Este pedido ya tiene la factura ' + r.numero : r && r.error === 'no_validado' ? 'Solo se facturan pedidos validados' : r && r.error === 'distribuidor' ? 'Este pedido lo factura el distribuidor' : 'No se ha podido emitir: ' + ((error && error.message) || (r && r.error)), true);
+    toast(r && r.error === 'ya_facturado' ? 'Este pedido ya tiene la factura ' + r.numero : r && r.error === 'no_validado' ? 'Solo se facturan pedidos validados' : r && r.error === 'distribuidor' ? 'Este pedido lo factura el distribuidor' : r && r.error === 'sin_cargo' ? 'Una entrega sin cargo no se factura' : 'No se ha podido emitir: ' + ((error && error.message) || (r && r.error)), true);
     return null;
   }
   toast('Factura ' + r.numero + ' emitida');
@@ -9191,7 +9200,7 @@ async function listaPedidos() {
     ${imp ? `<div class="kpi"><b>${eurI(s.base || 0)}</b><span>Base sin IVA</span></div>
     <div class="kpi"><b>${eurI(s.iva || 0)}</b><span>IVA</span></div>
     <div class="kpi ok"><b>${eurI(s.total || 0)}</b><span>Total con IVA</span></div>` : ''}`;
-  const ico = p => p.estado !== 'Confirmado' ? '' : `<span class="opico" title="Pago ${p.pago_estado === 'Cobrado' ? 'recibido' : 'pendiente'} · Paquete ${p.paquete_en ? 'preparado' : 'por preparar'}${p.factura ? ' · Factura ' + (p.email_factura_en ? 'enviada' : 'por enviar') : ''}">
+  const ico = p => p.estado !== 'Confirmado' ? '' : p.sin_cargo ? `<span class="opico" title="Paquete ${p.paquete_en ? 'preparado' : 'por preparar'}"><i class="${p.paquete_en ? 'ok' : 'no'}">📦</i></span>` : `<span class="opico" title="Pago ${p.pago_estado === 'Cobrado' ? 'recibido' : 'pendiente'} · Paquete ${p.paquete_en ? 'preparado' : 'por preparar'}${p.factura ? ' · Factura ' + (p.email_factura_en ? 'enviada' : 'por enviar') : ''}">
       <i class="${p.pago_estado === 'Cobrado' ? 'ok' : 'no'}">💳</i><i class="${p.paquete_en ? 'ok' : 'no'}">📦</i>${p.factura ? `<i class="${p.email_factura_en ? 'ok' : 'no'}">🧾</i>` : ''}</span>`;
   const cpCols = clasVisibles('pedido');
   $('pedlista').innerHTML = PEDIDOS.length ? `<div class="dgrid-wrap"><div class="dgrid peds2 ${imp ? '' : 'sinimp'}">
@@ -9204,7 +9213,7 @@ async function listaPedidos() {
       <span>${p.comercial ? esc(p.comercial) : '<span class="vac">—</span>'}</span>
       <span class="sm corta">${esc(p.productos || '')}</span><span class="num">${num(p.unidades)}</span>
       ${imp ? `<span class="num">${eurI(p.base)}</span><span class="num"><b>${eurI(p.total)}</b></span>` : ''}
-      <span>${pillEstado(p.estado)}</span><span>${ico(p)}</span><span class="sm corta pednota" title="${esc(p.nota || '')}">${esc(p.nota || '')}</span>${clasCeldas(cpCols, p.clasificadores)}</button>`).join('')}
+      <span>${pillEstado(p.estado)}${p.sin_cargo ? ' <span class="pill p-sc">Sin cargo</span>' : ''}</span><span>${ico(p)}</span><span class="sm corta pednota" title="${esc(p.nota || '')}">${esc(p.nota || '')}</span>${clasCeldas(cpCols, p.clasificadores)}</button>`).join('')}
   </div></div>` : '<div class="vacio">No hay pedidos con estos filtros.</div>';
   clasRejilla($('pedlista').querySelector('.dgrid.peds2'), cpCols.length);
   if (!$('pedpag')) $('pedlista').insertAdjacentHTML('afterend', '<div id="pedpag"></div>');
@@ -28122,6 +28131,11 @@ PL.ventas.pedidos.card = dr => {
   if (!p) return { a: '', b: '', c: '' };
   const cli = p.contacto || p.centro || p.cuenta_texto || '', quien = cli || p.medico || 'Sin cliente';
   const que = [num(p.unidades || 0) + (+p.unidades === 1 ? ' ud.' : ' uds.'), p.productos].filter(Boolean).join(' · ');
-  const otros = [p.forma_pago || 'Sin forma de pago', fechaCorta(p.fecha), cli ? (p.medico || '') : ''].filter(Boolean).join(' · ');
+  const otros = [p.sin_cargo ? 'Sin cargo (muestra)' : p.forma_pago || 'Sin forma de pago', fechaCorta(p.fecha), cli ? (p.medico || '') : ''].filter(Boolean).join(' · ');
   return { a: quien, b: que, c: pillEstado(p.estado) + (verImportes() && p.total != null ? `<span class="plcimp">${eurI(p.total)}</span>` : ''), d: otros };
 };
+
+
+/* v2.317.0 · Entrega sin cargo (decisión de Eric; SQL 161): en el editor del pedido, «Entrega sin cargo (muestra)» (#psincargo) quita forma de pago,
+   descuento y envío (CSS con :has) y pone las líneas al 100 %; guardar_pedido recibe sin_cargo. En el pedido, sin «Emitir factura» ni «Pago recibido»;
+   en la lista, la pastilla «Sin cargo» y sin el icono de pago; en el móvil, «Sin cargo (muestra)» en lugar de la forma de pago. */
