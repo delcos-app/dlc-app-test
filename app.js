@@ -15962,7 +15962,7 @@ async function portalMedico() {
     puede('portal_centro') ? Promise.resolve({ data: null }) : RPC_ORIG('constancia_pacientes', { p_meses: 12 }), RPC_ORIG('portal_material_permitido', {}),
     db.from('solicitudes_material').select('id,material,cantidad,nota,estado,creado_en,cerrado_en').order('creado_en', { ascending: false }).limit(20),
     db.from('mensajes_cuenta').select('id,texto,del_portal,creado_en,leido_en').order('creado_en', { ascending: true }).limit(200)]);
-  if (!$('mdportal')) return;
+  caja = $('mdportal'); if (!caja) return;   // v2.318.0: si se ha vuelto a pintar mientras llegaban los datos, la caja de ahora
   const pac = TT('paciente', 'p', '', 'l', 'l'), k = c || {};
   const pct = (a, b) => b ? Math.round(a / b * 100) + '%' : '—';
   const constancia = !k.ok ? '<div class="sm">No disponible.</div>' : k.pocos
@@ -16015,7 +16015,7 @@ async function portalMedico() {
     if (!r || !r.ok) { toast(motivoPortal(r), true); return; }
     toast('Pedido de material anulado'); portalMedico();
   });
-  $('mdmsgok').onclick = async ev => {
+  if ($('mdmsgok')) $('mdmsgok').onclick = async ev => {
     const t = $('mdmsgt').value.trim(); if (!t) { toast('Escribe el mensaje', true); return; }
     ev.target.disabled = true;
     const { data: r } = await db.rpc('enviar_mensaje_cuenta', { p_cuenta: null, p_texto: t });
