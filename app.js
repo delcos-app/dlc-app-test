@@ -4723,6 +4723,8 @@ async function editorPedido(pedido) {
             <select id="pdtot" style="max-width:110px"><option value="porcentaje">%</option>
               <option value="importe" ${form.descuento_tipo === 'importe' ? 'selected' : ''}>€</option></select></div></div>
       </div>
+      <div id="ptrfbox" class="pdtrfbox ${esTransferencia(form.forma_pago) ? '' : 'hide'}"><span class="sm">Pago por transferencia: envía los datos de pago y guarda el pedido en borrador; cuando llegue el pago, lo validas desde el pedido.</span>
+        <button type="button" class="btn sec chico" id="ptrfmail">Enviar los datos de pago</button></div>
       <div id="ppagox" class="g2 ${form.forma_pago ? '' : 'hide'}">
         <div><label for="pref">Referencia del pago</label><input id="pref" value="${esc(form.pago_referencia)}" placeholder="Código de la transferencia, bizum…"></div>
         <div><label>Justificante (foto o PDF)</label><label class="btn sec" style="display:inline-flex">📎 Adjuntar<input id="pjus" type="file" accept="image/*,application/pdf" data-fp="1" hidden></label>
@@ -4772,7 +4774,7 @@ async function editorPedido(pedido) {
     $('plmas').onclick = () => { lineas.push({ producto_id: productoPorDefecto(), unidades: 1, descuento: 0 }); autoImporte(lineas[lineas.length - 1]); pinta(); };
     $('plineas').querySelectorAll('[data-lx]').forEach(b => b.onclick = () => { lineas.splice(+b.dataset.lx, 1); pinta(); });
     $('pcan').onchange = () => $('zonapac').classList.toggle('escentro', $('pcan').value === 'centro');
-    $('ppago').onchange = () => $('ppagox').classList.toggle('hide', !$('ppago').value);
+    $('ppago').onchange = () => { $('ppagox').classList.toggle('hide', !$('ppago').value); $('ptrfbox').classList.toggle('hide', !esTransferencia($('ppago').value)); };   // v2.314.0
     $('pjus').onchange = async e => {
       const f = e.target.files[0]; e.target.value = ''; if (!f) return;
       const j = await leerJustificante(f); if (!j) return;
@@ -4800,11 +4802,18 @@ async function editorPedido(pedido) {
     } });
     montarMed();
 
-    const guardar = async (estado, btn) => {
+    const guardar = async (estado, btn, o = {}) => {
       if (!lineas.some(l => l.producto_id)) { toast('Añade al menos un producto', true); return; }
       const cps = camposLeer($('dbody'));
       if (cps && cps.falta.length) { toast(`Rellena «${cps.falta[0]}»`, true); return; }
-      if (estado === 'Confirmado' && !await preguntar('Una vez validado, el pedido cuenta en métricas y comisiones y ya no se puede editar ni eliminar: solo anular.',
+      let trfVal = false;   // v2.314.0: con transferencia, el pedido puede esperar al pago en borrador
+      if (estado === 'Confirmado' && esTransferencia($('ppago').value)) {
+        const v = await elegirOpcion({ titulo: 'Pago por transferencia', msg: 'Este pedido se puede guardar en borrador hasta validar el pago: no cuenta en métricas ni comisiones y aún se puede cambiar. Cuando llegue la transferencia, lo validas desde el pedido.',
+          botones: [['validar', 'Validar ya', 'sec'], ['borrador', 'Guardar en borrador', '']] });
+        if (!v) return;
+        if (v === 'borrador') estado = 'Borrador'; else trfVal = true;
+      }
+      if (estado === 'Confirmado' && !trfVal && !await preguntar('Una vez validado, el pedido cuenta en métricas y comisiones y ya no se puede editar ni eliminar: solo anular.',
         { titulo: '¿Validar el pedido?', ok: 'Validar' })) return;
       btn.disabled = true; const txt = btn.textContent; btn.textContent = 'Guardando…';
       const { data: r, error } = await db.rpc('guardar_pedido', { p: {
@@ -4828,12 +4837,18 @@ async function editorPedido(pedido) {
       if (cps && !(await camposGuardar(cps, (r && r.id) || (ped && ped.id)))) return;
       if (justifs.length && !(await subirJustificantes((r && r.id) || (ped && ped.id), justifs))) return;
       $('dlg').close();
-      toast(estado === 'Borrador' ? 'Borrador guardado' : (medico ? 'Pedido validado y atribuido' : 'Pedido validado · pendiente de atribuir'));
+      if (o.alGuardar) { await o.alGuardar((r && r.id) || (ped && ped.id)); return; }   // v2.314.0
+      toast(estado === 'Borrador' ? (esTransferencia($('ppago').value) ? 'Guardado en borrador hasta validar el pago' : 'Borrador guardado') : (medico ? 'Pedido validado y atribuido' : 'Pedido validado · pendiente de atribuir'));
       if (TAB === 'ventas') cargarVentas();
       if (TAB === 'pacientes') listaPacientes();
       if ($('ficha').open && FICHA_PAC) fichaPaciente(FICHA_PAC);
     };
     $('pborr').onclick = e => guardar('Borrador', e.target);
+    $('ptrfmail').onclick = e => {   // v2.314.0: guarda en borrador y envía los datos de pago
+      if (!contacto) { toast(`Elige ${TT('paciente', 's', 'el', 'l', 'l')} para enviarle los datos de pago`, true); return; }
+      if (!((AJUSTES.empresa || {}).iban || '').trim()) { toast('Falta el IBAN: ponlo en Configuración → Facturación → Datos fiscales antes de enviar los datos de pago', true); return; }
+      guardar('Borrador', e.target, { alGuardar: async id => { await enviarDatosPago(id); verPedido(id); if (TAB === 'ventas') cargarVentas(); } });
+    };
     $('pvalid').onclick = e => guardar('Confirmado', e.target);
     // Campos personalizados del pedido: se conservan al repintar
     if ((CAMPOS.pedido || []).some(c => c.en_ficha) && $('pnota')) {
@@ -4958,18 +4973,19 @@ async function verPedidoBase(id) {
     $('dlg').close(); toast('Borrador eliminado'); if (TAB === 'ventas') cargarVentas();
   };
   if ($('pdvalidar')) $('pdvalidar').onclick = async e => {
-    if (!await preguntar('Una vez validado, el pedido cuenta en métricas y comisiones y ya no se puede editar ni eliminar: solo anular.',
+    if (!await preguntar((e.target.dataset.pago ? 'Se anota el pago como recibido. ' : '') + 'Una vez validado, el pedido cuenta en métricas y comisiones y ya no se puede editar ni eliminar: solo anular.',
       { titulo: '¿Validar el pedido?', ok: 'Validar' })) return;
     e.target.disabled = true;
     const { data: r, error: er } = await db.rpc('guardar_pedido', { p: {
       id, estado: 'Confirmado', fecha: p.fecha, canal: p.canal, contacto_id: p.contacto_id, centro_id: p.centro_id,
-      cuenta_id: data.medico ? data.medico.id : null, cuenta_texto: p.cuenta_texto, nota: p.nota, forma_pago: p.forma_pago,
+      cuenta_id: data.medico ? data.medico.id : null, cuenta_texto: p.cuenta_texto, nota: p.nota, forma_pago: p.forma_pago, pago_referencia: p.pago_referencia || '',
       descuento: p.descuento || 0, descuento_tipo: p.descuento_tipo,
       envio: !!p.envio, envio_con_iva: p.envio ? r2(+p.envio_base * (1 + (+p.envio_iva || 0) / 100)) : 0, envio_iva: p.envio_iva, servicio_id: p.servicio_id,
       lineas: l.map(x => ({ producto_id: x.producto_id, unidades: x.unidades, importe: x.importe, descuento: x.descuento, iva: x.iva })) } });
     e.target.disabled = false;
     if (er || (r && r.ok === false)) { toast('No se ha podido validar: ' + ((er && er.message) || (r && r.error) || ''), true); return; }
-    toast('Pedido validado'); verPedido(id); if (TAB === 'ventas') cargarVentas();
+    if (e.target.dataset.pago) await db.rpc('marcar_operativa', { p_pedido: id, p_campo: 'pago', p_hecho: true });   // v2.314.0
+    toast(e.target.dataset.pago ? 'Pedido validado · pago recibido' : 'Pedido validado'); verPedido(id); if (TAB === 'ventas') cargarVentas();
   };
   if ($('pdanular')) $('pdanular').onclick = async () => {
     const motivo = await pedirTexto('Motivo de la anulación (opcional)', '', { titulo: '¿Anular el pedido?', ok: 'Anular' });
@@ -28051,3 +28067,58 @@ $('clibajas').onclick = async () => {
 };
 document.addEventListener('click', e => { const b = e.target.closest('#clibajasl [data-calta]'); if (b) setTimeout(() => { const it = b.closest('.bajaf'); if (it) it.remove(); }, 400); });
 PL.pacientes.mas = (orig => () => orig().concat([['clibajas', `${TT('paciente', 'p', '', 'l', 'C')} dados de baja`]]))(PL.pacientes.mas);
+
+
+/* ============================================================
+   v2.314.0 · Pedido con pago por transferencia (aviso de Eric: el correo con los datos de pago solo salía con el pedido
+   validado y, si el cliente no pagaba, había que hacer una rectificativa). En el pedido, con la forma de pago
+   «Transferencia»: «Enviar los datos de pago» guarda el pedido en borrador y envía el correo; «Guardar y validar» pregunta si
+   se guarda en borrador hasta validar el pago. En el borrador, el bloque «Pago por transferencia» con el estado del correo,
+   «Enviar los datos de pago» y «Pago recibido · validar» (valida el pedido y anota el pago).
+   ============================================================ */
+function esTransferencia(fp) { return /transfer/i.test(fp || ''); }
+function elegirOpcion({ titulo, msg, botones }) {
+  return new Promise(res => {
+    const d = $('mini');
+    d.innerHTML = `<div class="fbox"><div class="fh"><h2>${esc(titulo)}</h2></div>${msg ? `<p class="elmsg">${esc(msg)}</p>` : ''}
+      <div class="acts elacts"><button class="btn sec" data-elop="">Cancelar</button>${botones.map(([v, t, c]) => `<button class="btn ${c || ''}" data-elop="${esc(v)}">${esc(t)}</button>`).join('')}</div></div>`;
+    const fin = v => { d.close(); res(v || null); };
+    d.querySelectorAll('[data-elop]').forEach(b => b.onclick = () => fin(b.dataset.elop));
+    d.onclick = e => { if (e.target === d) fin(null); };
+    d.oncancel = e => { e.preventDefault(); fin(null); };
+    d.showModal();
+    setTimeout(() => { const b = d.querySelector('[data-elop]:last-child'); if (b) b.focus(); }, 30);
+  });
+}
+async function enviarDatosPago(id) {
+  if (!((AJUSTES.empresa || {}).iban || '').trim()) { toast('Falta el IBAN: ponlo en Configuración → Facturación → Datos fiscales antes de enviar los datos de pago', true); return false; }
+  const { data } = await RPC_ORIG('pedido_detalle', { p_id: id });
+  const p = data && data.pedido; if (!p) { toast('No se ha encontrado el pedido', true); return false; }
+  const cli = data.contacto || {}, total = +((data.totales || {}).total || 0);
+  if (!cli.email) { toast(`${TT('paciente', 's', '', 'l', 'C')} no tiene email en su ficha`, true); return false; }
+  const asunto = asuntoEmailPago(p, total, cli.nombre), texto = textoEmailPago(p, total, cli.nombre);
+  const { data: r, error } = await db.functions.invoke('enviar_email', { body: { para: cli.email, asunto, texto, pedido_id: id, marca: 'email_pago' } });
+  if (!error && r && r.ok) { toast('Datos de pago enviados · el pedido espera al pago en borrador'); return true; }
+  location.href = `mailto:${cli.email}?subject=${encodeURIComponent(asunto)}&body=${encodeURIComponent(texto)}`;   // sin envío directo: el correo del dispositivo
+  if (await preguntar('¿Has enviado el email con los datos de pago?', { titulo: 'Email de pago', ok: 'Sí, marcar como enviado' }))
+    await db.rpc('marcar_operativa', { p_pedido: id, p_campo: 'email_pago', p_hecho: true });
+  return true;
+}
+verPedido = (orig => async function (id, ...a) {
+  const r = await orig.call(this, id, ...a);
+  try {
+    if (!$('dlg').open || $('pdtrfb') || !$('pdvalidar') || !puedeVentas()) return r;
+    const { data } = await RPC_ORIG('pedido_detalle', { p_id: id });
+    const p = data && data.pedido;
+    if (!p || p.estado !== 'Borrador' || !esTransferencia(p.forma_pago) || $('pdtrfb') || !$('pdvalidar')) return r;
+    const cli = data.contacto || {};
+    const acts = $('pdvalidar').closest('.acts');
+    acts.insertAdjacentHTML('beforebegin', `<div class="blk" id="pdtrfb"><h3>Pago por transferencia</h3>
+      <p class="sm">${p.email_pago_en ? `Datos de pago enviados el ${fechaCorta(String(p.email_pago_en).slice(0, 10))}. El pedido espera en borrador hasta que llegue el pago.` : 'Datos de pago sin enviar. El pedido espera en borrador hasta que llegue el pago.'}</p>
+      <div class="acts pdtrfacts">${cli.email ? `<button type="button" class="btn sec chico" id="pdtrfmail">${p.email_pago_en ? 'Volver a enviar los datos de pago' : 'Enviar los datos de pago'}</button>` : `<span class="sm">${esc(TT('paciente', 's', '', 'l', 'C'))} no tiene email en su ficha.</span>`}
+        <button type="button" class="btn chico" id="pdtrfok">Pago recibido · validar</button></div></div>`);
+    if ($('pdtrfmail')) $('pdtrfmail').onclick = async e => { e.target.disabled = true; if (await enviarDatosPago(id)) verPedido(id); else e.target.disabled = false; };
+    $('pdtrfok').onclick = () => { const v = $('pdvalidar'); v.dataset.pago = '1'; v.click(); setTimeout(() => { if (v.isConnected) delete v.dataset.pago; }, 60000); };
+  } catch (e) {}
+  return r;
+})(verPedido);
