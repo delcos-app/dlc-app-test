@@ -4808,8 +4808,8 @@ async function editorPedido(pedido) {
       if (cps && cps.falta.length) { toast(`Rellena «${cps.falta[0]}»`, true); return; }
       let trfVal = false;   // v2.314.0: con transferencia, el pedido puede esperar al pago en borrador
       if (estado === 'Confirmado' && esTransferencia($('ppago').value)) {
-        const v = await elegirOpcion({ titulo: 'Pago por transferencia', msg: 'Este pedido se puede guardar en borrador hasta validar el pago: no cuenta en métricas ni comisiones y aún se puede cambiar. Cuando llegue la transferencia, lo validas desde el pedido.',
-          botones: [['validar', 'Validar ya', 'sec'], ['borrador', 'Guardar en borrador', '']] });
+        const v = await elegirOpcion('Pago por transferencia', 'Este pedido se puede guardar en borrador hasta validar el pago: no cuenta en métricas ni comisiones y aún se puede cambiar. Cuando llegue la transferencia, lo validas desde el pedido.',
+          [{ k: 'no', t: 'Cancelar', cls: 'sec' }, { k: 'validar', t: 'Validar ya', cls: 'sec' }, { k: 'borrador', t: 'Guardar en borrador' }]);
         if (!v) return;
         if (v === 'borrador') estado = 'Borrador'; else trfVal = true;
       }
@@ -28076,20 +28076,8 @@ PL.pacientes.mas = (orig => () => orig().concat([['clibajas', `${TT('paciente', 
    se guarda en borrador hasta validar el pago. En el borrador, el bloque «Pago por transferencia» con el estado del correo,
    «Enviar los datos de pago» y «Pago recibido · validar» (valida el pedido y anota el pago).
    ============================================================ */
+/* v2.315.0: la pregunta usa elegirOpcion de siempre (una segunda declaración con el mismo nombre la sustituía y rompía las demás ventanas). */
 function esTransferencia(fp) { return /transfer/i.test(fp || ''); }
-function elegirOpcion({ titulo, msg, botones }) {
-  return new Promise(res => {
-    const d = $('mini');
-    d.innerHTML = `<div class="fbox"><div class="fh"><h2>${esc(titulo)}</h2></div>${msg ? `<p class="elmsg">${esc(msg)}</p>` : ''}
-      <div class="acts elacts"><button class="btn sec" data-elop="">Cancelar</button>${botones.map(([v, t, c]) => `<button class="btn ${c || ''}" data-elop="${esc(v)}">${esc(t)}</button>`).join('')}</div></div>`;
-    const fin = v => { d.close(); res(v || null); };
-    d.querySelectorAll('[data-elop]').forEach(b => b.onclick = () => fin(b.dataset.elop));
-    d.onclick = e => { if (e.target === d) fin(null); };
-    d.oncancel = e => { e.preventDefault(); fin(null); };
-    d.showModal();
-    setTimeout(() => { const b = d.querySelector('[data-elop]:last-child'); if (b) b.focus(); }, 30);
-  });
-}
 async function enviarDatosPago(id) {
   if (!((AJUSTES.empresa || {}).iban || '').trim()) { toast('Falta el IBAN: ponlo en Configuración → Facturación → Datos fiscales antes de enviar los datos de pago', true); return false; }
   const { data } = await RPC_ORIG('pedido_detalle', { p_id: id });
