@@ -24203,7 +24203,7 @@ plSync = function (tab) {
   if (sec.querySelector('.dgrid, .vacio')) sec.querySelectorAll(':scope > .plskpanel').forEach(x => x.remove());
   if (c.card) sec.querySelectorAll('.dgrid > .dr:not([data-plc])').forEach(dr => {
     dr.dataset.plc = '1'; const x = c.card(dr);
-    dr.insertAdjacentHTML('beforeend', `<span class="plcard"><b>${esc(x.a)}</b><span class="plc2">${esc(x.b)}</span><span class="plc3">${x.c}</span></span>`);
+    dr.insertAdjacentHTML('beforeend', `<span class="plcard"><b>${esc(x.a)}</b><span class="plc2">${esc(x.b)}</span><span class="plc3">${x.c}</span>${x.d ? `<span class="plc4">${esc(x.d)}</span>` : ''}</span>`);   // v2.316.0: tercera línea
   });
 };
 // La barra y los clics usan la configuración de la sección abierta
@@ -28110,3 +28110,18 @@ verPedido = (orig => async function (id, ...a) {
   } catch (e) {}
   return r;
 })(verPedido);
+
+
+/* ============================================================
+   v2.316.0 · Pedidos en el móvil (aviso de Eric: la tarjeta apenas enseñaba lo esencial). Cada pedido en tres líneas:
+   quién (cliente), estado e importe a la derecha; qué y cuántas (unidades y productos); y forma de pago, fecha y
+   profesional de referencia.
+   ============================================================ */
+PL.ventas.pedidos.card = dr => {
+  const p = (typeof PEDIDOS !== 'undefined' ? PEDIDOS : []).find(x => x.id === dr.dataset.ped);
+  if (!p) return { a: '', b: '', c: '' };
+  const cli = p.contacto || p.centro || p.cuenta_texto || '', quien = cli || p.medico || 'Sin cliente';
+  const que = [num(p.unidades || 0) + (+p.unidades === 1 ? ' ud.' : ' uds.'), p.productos].filter(Boolean).join(' · ');
+  const otros = [p.forma_pago || 'Sin forma de pago', fechaCorta(p.fecha), cli ? (p.medico || '') : ''].filter(Boolean).join(' · ');
+  return { a: quien, b: que, c: pillEstado(p.estado) + (verImportes() && p.total != null ? `<span class="plcimp">${eurI(p.total)}</span>` : ''), d: otros };
+};
