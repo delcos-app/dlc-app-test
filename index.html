@@ -3736,14 +3736,15 @@ input.campodup{border-color:#E08A00!important;box-shadow:0 0 0 3px rgba(224,138,
 .pkvacio{position:relative;padding:12px 56px 12px 16px;border:1px dashed var(--line);border-radius:14px;font-size:13.5px;color:#5B6B80}
 .pkvacio .pkcfg{top:8px;right:10px}
 @keyframes pkcrece{from{transform:scaleY(0)}}
+/* v2.319.0 (opción B de Eric): en el móvil, los tres avisos en una fila con solo el título y el número, para que la lista salga antes */
 @media (max-width:760px){
-  .pk{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:minmax(220px,78%);overflow-x:auto;scroll-snap-type:x mandatory;padding:2px 2px 6px;margin:0 -2px;scrollbar-width:none}
-  .pk::-webkit-scrollbar{display:none}
-  .pk .pkt{scroll-snap-align:start;padding:14px 16px 12px}
-  .pk .pkn{font-size:30px}
-  .pk .pktt{padding-right:0;font-size:11px;letter-spacing:.05em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
-  .pk .pktt svg{vertical-align:-3px;margin-right:6px}
-  .pk .pkt.on .pktt{padding-right:70px}
+  .pk{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+  .pk .pkt{padding:10px 10px 10px}
+  .pk .pkn{font-size:24px;margin-top:4px}
+  .pk .pktt{padding-right:0;font-size:10.5px;letter-spacing:.04em;line-height:1.25;white-space:normal;display:block}
+  .pk .pktt svg{vertical-align:-3px;margin-right:4px}
+  .pk .pkt.on .pktt{padding-right:0}
+  .pk .pks,.pk .pkbars,.pk .pklg,.pk .pkfil{display:none}
   .pk .pkcfg{position:static;align-self:center;grid-row:1}
 }
 /* Analítica */
@@ -4108,7 +4109,7 @@ main > section.preparando::after,dialog > .preparando::after{animation:cargaApar
 .plantilla .plskpanel{margin-top:10px}
 .plantilla #opcfg{display:none!important}
 .plantilla .fab.plfuera,.plantilla .dgrid > .dr.htfuera{display:none!important}
-@media (max-width:760px){main > section.plantilla .kpis.vtot.plres{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px 14px!important}main > section.plantilla .kpis.vtot.plres > .kpi{display:flex!important;flex-direction:column!important;gap:0!important;padding:0!important;margin:0!important;min-height:0!important;border:0!important;background:none!important;box-shadow:none!important;width:auto!important}.plantilla .kpis.vtot.plres > .kpi{font-size:12.5px}}
+@media (max-width:760px){main > section.plantilla .kpis.vtot.plres{display:flex!important;flex-wrap:nowrap!important;gap:8px 14px!important}main > section.plantilla .kpis.vtot.plres > .kpi{display:flex!important;flex-direction:column!important;gap:0!important;padding:0!important;margin:0!important;min-height:0!important;border:0!important;background:none!important;box-shadow:none!important;width:auto!important}.plantilla .kpis.vtot.plres > .kpi{font-size:12.5px}}
 
 /* v2.239.0 · Modelo «Lista» en Eventos, Cirugías, Concursos y Parque */
 .dgrid.blq-eventos{--cols:minmax(220px,2fr) 170px 110px minmax(160px,1.5fr) 90px 110px;min-width:920px}
@@ -4263,13 +4264,14 @@ body.modo-plataforma.menulat #v-delcos .pagtabs{display:none}
   #v-inicio > .saludo{padding-right:96px!important}
   #v-inicio > .saludo h1{white-space:normal!important;overflow:visible!important;text-overflow:clip!important}
 }
-/* Resumen de las listas en el móvil: dos columnas de cifras pequeñas, como los indicadores */
+/* Resumen de las listas en el móvil: una tira de cifras pequeñas que se desliza (v2.319.0; antes, dos columnas) */
 @media (max-width:760px){
   main > section.plantilla .kpis.vtot.plres,main > section.plantilla #vcuerpo > .panel > .kpis.vtot.plres{
-    display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important;padding:0!important}
+    display:flex!important;flex-wrap:nowrap!important;overflow-x:auto;scrollbar-width:none;gap:8px!important;padding:0 0 4px!important}
+  main > section.plantilla .kpis.vtot.plres::-webkit-scrollbar{display:none}
   main > section.plantilla .kpis.vtot.plres > .kpi,main > section.plantilla #vcuerpo > .panel > .kpis.vtot.plres > .kpi{display:flex!important;flex-direction:column!important;align-items:flex-start!important;gap:1px!important;
-    padding:9px 12px!important;border:1px solid var(--line)!important;border-radius:12px!important;background:var(--panel,#fff)!important;min-width:0;font-size:12.5px!important;margin:0!important;height:auto!important}
-  main > section.plantilla .kpis.vtot.plres > .kpi span{overflow:hidden;text-overflow:ellipsis;max-width:100%}
+    padding:9px 12px!important;border:1px solid var(--line)!important;border-radius:12px!important;background:var(--panel,#fff)!important;min-width:0;font-size:12.5px!important;margin:0!important;height:auto!important;flex:0 0 auto!important}
+  main > section.plantilla .kpis.vtot.plres > .kpi span{white-space:nowrap}
 }
 
 /* v2.269.0 · Pedidos con la columna «Notas» */
@@ -4760,6 +4762,6 @@ try{var co=sessionStorage.getItem('dlc-cambio-org');if(co!==null||localStorage.g
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.318.0"></script>
+<script src="./app.js?v=2.319.0"></script>
 </body>
 </html>
