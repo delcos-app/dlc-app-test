@@ -28162,7 +28162,7 @@ const tvSub = () => {
 };
 function tvEmbudo(d) {
   const r = d.resumen || {}, a = r.anterior || {}, p = tvPct(r.con_venta, r.profesionales), pa = tvPct(a.con_venta, a.profesionales);
-  const fil = [[`${TT('visita', 'p', '', 'l', 'C')} hechas`, r.visitas, 1, ''], [TT('medico', 'p', '', 'l', 'C', 'visitado'), r.profesionales, r.visitas ? r.profesionales / r.visitas : 0, ''],
+  const fil = [[`${TT('visita', 'p', '', 'l', 'C')} hechas`, r.visitas, r.visitas ? 1 : 0, ''], [TT('medico', 'p', '', 'l', 'C', 'visitado'), r.profesionales, r.visitas ? r.profesionales / r.visitas : 0, ''],
     ['Con venta en ' + d.dias + ' días', r.con_venta, r.visitas ? r.con_venta / r.visitas : 0, 'c']];
   const dif = a.profesionales ? p - pa : null;
   return `<div class="tvgrid"><div class="tvizq"><div class="tvbig">${num(p)}<small> %</small></div>
