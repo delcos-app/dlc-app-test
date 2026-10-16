@@ -28152,25 +28152,26 @@ PL.ventas.pedidos.card = dr => {
    Usa el periodo de Analítica y lo compara con el anterior. La vista elegida se recuerda (localStorage delcos-tvvista).
    Solo para el equipo: nunca en el portal del profesional.
    ============================================================ */
-const TV_VISTAS = [['embudo', 'Embudo'], ['efecto', 'El efecto'], ['meses', 'Mes a mes']];
+const TV_VISTAS = [['embudo', 'Embudo'], ['efecto', 'El efecto'], ['meses', 'Mes a mes'], ['tipos', 'Por tipo']];
 let TV_DATOS = null, TV_I = 0;
 try { TV_I = Math.max(0, TV_VISTAS.findIndex(v => v[0] === localStorage.getItem('delcos-tvvista'))); } catch (e) {}
 const tvPct = (a, b) => b ? Math.round(a / b * 100) : 0;
 const tvSub = () => {
   const d = TV_DATOS || {};
-  return [`${TT('visita', 'p', '', 'l', 'C')} del ${fechaCorta(d.desde)} al ${fechaCorta(d.hasta)} y ventas atribuidas ${TT('medico', 's', 'al', 'l', 'l')} en los ${d.dias || 30} días siguientes`,
-    `Unidades que se venden por ${TT('visita', 's', '', 'l', 'l')}, de media, en los ${d.dias || 30} días antes y después de ella`,
-    `Por mes: ${TT('visita', 'p', '', 'l', 'l')} hechas y cuántas tienen una venta ${TT('medico', 's', 'del', 'l', 'l')} en los ${d.dias || 30} días siguientes`][TV_I];
+  return [`${TT('visita', 'p', '', 'l', 'C')} del ${fechaCorta(d.desde)} al ${fechaCorta(d.hasta)} y pedidos atribuidos ${TT('medico', 's', 'al', 'l', 'l')} en los ${d.dias || 30} días siguientes`,
+    `Unidades pedidas por ${TT('visita', 's', '', 'l', 'l')}, de media, en los ${d.dias || 30} días antes y después de ella`,
+    `Por mes: ${TT('visita', 'p', '', 'l', 'l')} hechas y cuántas tienen un pedido atribuido ${TT('medico', 's', 'al', 'l', 'l')} en los ${d.dias || 30} días siguientes`,
+    `${TT('visita', 'p', 'el', 'C', 'l')} de captación, de presentación y de seguimiento, y cuántas tienen un pedido en los ${d.dias || 30} días siguientes`][TV_I];
 };
 function tvEmbudo(d) {
   const r = d.resumen || {}, a = r.anterior || {}, p = tvPct(r.con_venta, r.profesionales), pa = tvPct(a.con_venta, a.profesionales);
   const fil = [[`${TT('visita', 'p', '', 'l', 'C')} hechas`, r.visitas, r.visitas ? 1 : 0, ''], [TT('medico', 'p', '', 'l', 'C', 'visitado'), r.profesionales, r.visitas ? r.profesionales / r.visitas : 0, ''],
-    ['Con venta en ' + d.dias + ' días', r.con_venta, r.visitas ? r.con_venta / r.visitas : 0, 'c']];
+    ['Con pedido en ' + d.dias + ' días', r.con_venta, r.visitas ? r.con_venta / r.visitas : 0, 'c']];
   const dif = a.profesionales ? p - pa : null;
   return `<div class="tvgrid"><div class="tvizq"><div class="tvbig">${num(p)}<small> %</small></div>
-      <div class="tvlbl">${TT('medico', 'p', 'del', 'l', 'l', 'visitado')} tienen una venta en ${d.dias} días</div>
+      <div class="tvlbl">${TT('medico', 'p', 'del', 'l', 'l', 'visitado')} tienen un pedido en ${d.dias} días</div>
       <div class="tvrow"><div class="tvmini"><b>${num(r.unidades || 0)}</b><span class="tvlbl">unidades</span></div>
-        <div class="tvmini"><b>${r.dias_media != null ? num(r.dias_media) + ' días' : '—'}</b><span class="tvlbl">hasta la 1.ª venta</span></div></div></div>
+        <div class="tvmini"><b>${r.dias_media != null ? num(r.dias_media) + ' días' : '—'}</b><span class="tvlbl">hasta el primer pedido</span></div></div></div>
     <div class="tvfun">${fil.map(([t, n, f, c]) => `<div class="tvst"><span>${esc(t)}</span>
       <svg class="tvbar" viewBox="0 0 100 10" preserveAspectRatio="none" aria-hidden="true"><rect class="tvbg" width="100" height="10" rx="3"/><rect class="tvfg ${c}" width="${Math.max(f * 100, n ? 3 : 0).toFixed(1)}" height="10" rx="3"/></svg>
       <b>${num(n || 0)}</b></div>`).join('')}
@@ -28191,7 +28192,7 @@ function tvEfecto(d) {
   const fmt = v => v.toLocaleString('es-ES', { maximumFractionDigits: v < 10 ? 2 : 1 });
   const big = ma > 0 ? `${md >= ma ? '+' : ''}${num(Math.round((md / ma - 1) * 100))}<small> %</small>` : (md > 0 ? '—' : '0');
   return `<div class="tvgrid tvgb"><div class="tvizq"><div class="tvbig">${big}</div>
-      <div class="tvlbl">${ma > 0 ? `${md >= ma ? 'más' : 'menos'} unidades en los ${dd} días siguientes ${TT('visita', 's', 'al', 'l', 'l')}` : md > 0 ? `antes ${TT('visita', 's', 'del', 'l', 'l')} no había ventas` : 'sin ventas en esas fechas'}</div>
+      <div class="tvlbl">${ma > 0 ? `${md >= ma ? 'más' : 'menos'} unidades en los ${dd} días siguientes ${TT('visita', 's', 'al', 'l', 'l')}` : md > 0 ? `antes ${TT('visita', 's', 'del', 'l', 'l')} no había pedidos` : 'sin pedidos en esas fechas'}</div>
       <div class="tvrow"><div class="tvmini"><b>${fmt(ma)}</b><span class="tvlbl">uds./día antes</span></div><div class="tvmini"><b>${fmt(md)}</b><span class="tvlbl">uds./día después</span></div></div></div>
     <div><svg class="tvsvg" viewBox="0 0 ${W} ${H}" role="img" aria-label="Unidades por día antes y después">
       <defs><linearGradient id="tvgrad" x1="0" x2="0" y1="0" y2="1"><stop offset="0" class="tvs1"/><stop offset="1" class="tvs2"/></linearGradient></defs>
@@ -28212,19 +28213,19 @@ function tvMeses(d) {
   const pts = ms.map((m, i) => [PL + bw * i + bw / 2, yp(tvPct(m.con_venta, m.visitas)), tvPct(m.con_venta, m.visitas), m.visitas]);
   const ult = ms[ms.length - 1], pen = ms[ms.length - 2];
   const pu = tvPct(ult.con_venta, ult.visitas), pp = pen ? tvPct(pen.con_venta, pen.visitas) : null;
-  return `<div class="tvrow tvrowc"><div class="tvmini"><b>${num(pu)} %</b><span class="tvlbl">${esc(nom(ult.mes))}, acaban en venta</span></div>
+  return `<div class="tvrow tvrowc"><div class="tvmini"><b>${num(pu)} %</b><span class="tvlbl">${esc(nom(ult.mes))}, acaban en pedido</span></div>
       ${pp != null && pen.visitas ? `<div class="tvmini"><b class="${pu >= pp ? 'tvok' : 'tvmal'}">${pu >= pp ? '+' : ''}${num(pu - pp)} pts</b><span class="tvlbl">frente a ${esc(nom(pen.mes))}</span></div>` : ''}</div>
-    <svg class="tvsvg" viewBox="0 0 ${W} ${H}" role="img" aria-label="Por mes, con venta y sin ella">
+    <svg class="tvsvg" viewBox="0 0 ${W} ${H}" role="img" aria-label="Por mes, con pedido y sin él">
     ${ms.map((m, i) => { const x0 = PL + bw * i + bw * 0.2, w = bw * 0.6; return `<rect x="${x0}" y="${yv(m.visitas)}" width="${w}" height="${H - 26 - yv(m.visitas)}" rx="6" class="tvbv"/>
       <rect x="${x0}" y="${yv(m.con_venta)}" width="${w}" height="${H - 26 - yv(m.con_venta)}" rx="6" class="tvbc"/>
       <text x="${x0 + w / 2}" y="${H - 8}" class="tvtxt tvtxteje" text-anchor="middle">${esc(nom(m.mes))}</text>`; }).join('')}
     <path d="${pts.filter(p => p[3]).map((p, i) => (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(' ')}" class="tvlinp"/>
     ${pts.filter(p => p[3]).map(p => `<circle cx="${p[0]}" cy="${p[1]}" r="4.5" class="tvpt"/><text x="${p[0]}" y="${p[1] - 10}" class="tvtxt tvtxtpct" text-anchor="middle">${p[2]}%</text>`).join('')}
-    </svg><div class="tvley"><span><i class="tvl3"></i>${TT('visita', 'p', '', 'l', 'C')}</span><span><i class="tvl4"></i>Con venta en ${d.dias} días</span><span><i class="tvl5"></i>% que acaba en venta</span></div>`;
+    </svg><div class="tvley"><span><i class="tvl3"></i>${TT('visita', 'p', '', 'l', 'C')}</span><span><i class="tvl4"></i>Con pedido en ${d.dias} días</span><span><i class="tvl5"></i>% que acaba en pedido</span></div>`;
 }
 function tvPintar() {
   const c = $('tvcuerpo'); if (!c || !TV_DATOS) return;
-  c.innerHTML = [tvEmbudo, tvEfecto, tvMeses][TV_I](TV_DATOS);
+  c.innerHTML = [tvEmbudo, tvEfecto, tvMeses, tvTipos][TV_I](TV_DATOS);
   $('tvsub').textContent = tvSub();
   $('tvpos').textContent = `${TV_I + 1} de ${TV_VISTAS.length} · ${TV_VISTAS[TV_I][1]}`;
 }
@@ -28233,7 +28234,7 @@ function tvTarjeta(d) {
   const vieja = $('tvvis'); if (vieja) vieja.remove();
   TV_DATOS = d; if (!d || !d.resumen) return;
   caja.insertAdjacentHTML('afterbegin', `<section class="card tvcard" id="tvvis"><div class="tvcab">
-      <div class="tvtit"><h2>Ventas tras ${TT('visita', 's', 'el', 'l', 'l')} <button type="button" class="ai" data-ayuda-tit="Ventas tras ${TT('visita', 's', 'el', 'l', 'l')}" data-ayuda-txt="${esc(`${TT('visita', 's', 'un', 'l', 'C')} a ${TT('medico', 's', 'un', 'l', 'l')} cuenta como «con venta» si hay un pedido validado atribuido ${TT('medico', 's', 'al', 'l', 'l')} el mismo día o en los ${d.dias} días siguientes. No cuentan las entregas sin cargo. ${TT('visita', 'p', 'el', 'l', 'C')} de los últimos ${d.dias} días todavía pueden sumar ventas.`)}" aria-label="Qué es">i</button></h2>
+      <div class="tvtit"><h2>Pedidos tras ${TT('visita', 's', 'el', 'l', 'l')} <button type="button" class="ai" data-ayuda-tit="Pedidos tras ${TT('visita', 's', 'el', 'l', 'l')}" data-ayuda-txt="${esc(`${TT('visita', 's', 'un', 'C', 'l')} a ${TT('medico', 's', 'un', 'l', 'l')} cuenta como con pedido si hay un pedido validado atribuido ${TT('medico', 's', 'al', 'l', 'l')} el mismo día o en los ${d.dias} días siguientes. No cuentan las entregas sin cargo. ${TT('visita', 'p', 'el', 'C', 'l')} de los últimos ${d.dias} días todavía pueden sumar pedidos. Por tipo: captación es la primera ${TT('visita', 's', '', 'l', 'l')} que se registra a ${TT('medico', 's', 'un', 'l', 'l')}; presentación, la que lleva la ficha a un estado de avance o interés o presenta un producto que no se le había presentado; seguimiento, las demás.`)}" aria-label="Qué es">i</button></h2>
         <div class="sm" id="tvsub"></div></div>
       <div class="tvnav"><button type="button" class="btn sec chico" data-tvn="-1" aria-label="Vista anterior">‹</button><span class="sm" id="tvpos"></span><button type="button" class="btn sec chico" data-tvn="1" aria-label="Vista siguiente">›</button></div>
     </div><div id="tvcuerpo"></div></section>`);
@@ -28343,3 +28344,31 @@ pedidoPago = async function (id) {
       <button type="button" class="btn sec chico" data-jver="${j.id}">Ver</button></div>`).join('')}</div>` : ''}</div>`);
   $('pdpago').querySelectorAll('[data-jver]').forEach(b => b.onclick = () => verJustificante(b.dataset.jver));
 };
+
+
+/* ============================================================
+   v2.326.0 · Pedidos tras la visita, por tipo (petición de Eric, 16/10/2026; SQL 168). La tarjeta de Analítica se llama ya
+   «Pedidos tras la visita» y no habla de ventas (regla de Eric: nunca «venta» al hablar de pedidos y profesionales). Cuarta
+   vista «Por tipo»: visitas de captación (la primera a cada profesional), de presentación (resultado que avanza la ficha o un
+   producto nuevo presentado) y de seguimiento, cuántas acaban en pedido, y lo mismo por persona del equipo.
+   ============================================================ */
+const TV_TIPOS = [['captacion', 'Captación'], ['presentacion', 'Presentación'], ['seguimiento', 'Seguimiento']];
+function tvTipos(d) {
+  const ts = d.tipos || [], eq = d.equipo || [];
+  if (!ts.some(t => t.visitas)) return `<div class="vacio">Sin ${TT('visita', 'p', '', 'l', 'l')} en este periodo.</div>`;
+  const tot = ts.reduce((a, t) => a + (+t.con_pedido || 0), 0);
+  const nuevas = ts.filter(t => t.tipo !== 'seguimiento').reduce((a, t) => a + (+t.con_pedido || 0), 0);
+  const nom = k => (TV_TIPOS.find(x => x[0] === k) || [k, k])[1];
+  const par = o => o && o.visitas ? `${num(o.con_pedido)} de ${num(o.visitas)}` : '—';
+  return `<div class="tvgrid"><div class="tvizq"><div class="tvbig">${num(tvPct(nuevas, tot))}<small> %</small></div>
+      <div class="tvlbl">de ${TT('visita', 'p', 'el', 'l', 'l')} con pedido son de captación o de presentación</div>
+      <div class="tvrow"><div class="tvmini"><b>${num(nuevas)}</b><span class="tvlbl">de captación o presentación</span></div>
+        <div class="tvmini"><b>${num(tot - nuevas)}</b><span class="tvlbl">de seguimiento</span></div></div></div>
+    <div class="tvfun">${ts.map(t => `<div class="tvst"><span>${esc(nom(t.tipo))} · ${num(t.con_pedido)} de ${num(t.visitas)}</span>
+      <svg class="tvbar" viewBox="0 0 100 10" preserveAspectRatio="none" aria-hidden="true"><rect class="tvbg" width="100" height="10" rx="3"/><rect class="tvfg${t.tipo === 'seguimiento' ? '' : ' c'}" width="${Math.max(tvPct(t.con_pedido, t.visitas), t.con_pedido ? 3 : 0)}" height="10" rx="3"/></svg>
+      <b>${num(tvPct(t.con_pedido, t.visitas))} %</b></div>`).join('')}
+      <div class="tvlbl">${ts.map(t => `${esc(nom(t.tipo))}: ${num(t.unidades || 0)} uds.`).join(' · ')}</div></div></div>
+    ${eq.length ? `<div class="tveq"><table class="trtabla"><thead><tr><th>Persona</th>${TV_TIPOS.map(x => `<th>${x[1]}</th>`).join('')}</tr></thead>
+      <tbody>${eq.map(u => `<tr><td>${esc(u.nombre)}</td>${TV_TIPOS.map(x => `<td>${par(u[x[0]])}</td>`).join('')}</tr>`).join('')}</tbody></table>
+      <div class="tvlbl">Con pedido de cada tipo, de las ${TT('visita', 'p', '', 'l', 'l')} que registró cada persona</div></div>` : ''}`;
+}
