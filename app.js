@@ -4648,7 +4648,8 @@ const pillEstado = e => `<span class="pill ${e === 'Borrador' ? 'p-bor' : e === 
 async function editorPedido(pedido) {
   if (!PRODUCTOS.length) await cargarProductos();
   const ped = pedido && pedido.pedido ? pedido.pedido : null;
-  if (ped && ped.estado !== 'Borrador') { toast('Un pedido validado no se puede editar. Anúlalo si hace falta.', true); return; }
+  // v2.322.0: un pedido validado se edita entero mientras no tenga factura
+  if (ped && (ped.estado === 'Anulado' || (ped.estado !== 'Borrador' && ped.factura_id))) { toast(ped.factura_id ? 'Ese pedido ya tiene factura: para cambiarlo, haz una rectificativa' : 'Un pedido anulado no se puede editar', true); return; }
   // v2.200.0: con un contrato en vigor de la ficha, el precio es el adjudicado
   await cargarPreciosContrato((pedido && ((pedido.medico && pedido.medico.id) || (pedido.lineas && pedido.lineas[0] && pedido.lineas[0].cuenta_id) || (pedido.contacto && pedido.contacto.cuenta_id))) || null);
   const prod = id => conPrecioContrato(PRODUCTOS.find(p => p.id === id) || {});
@@ -4689,7 +4690,7 @@ async function editorPedido(pedido) {
   const pinta = () => {
     leerForm();
     $('dbody').innerHTML = `
-      <div class="fh"><div><h2>${ped ? 'Editar borrador' : 'Nuevo pedido'}</h2>
+      <div class="fh"><div><h2>${ped ? (ped.estado === 'Confirmado' ? 'Editar pedido' : 'Editar borrador') : 'Nuevo pedido'}</h2>
         <div class="sm">Escribe los importes con IVA: la base y el IVA se calculan solos.</div></div>
         <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
       <div class="g2">
@@ -4727,7 +4728,7 @@ async function editorPedido(pedido) {
             <select id="pdtot" style="max-width:110px"><option value="porcentaje">%</option>
               <option value="importe" ${form.descuento_tipo === 'importe' ? 'selected' : ''}>€</option></select></div></div>
       </div>
-      <div id="ptrfbox" class="pdtrfbox ${esTransferencia(form.forma_pago) ? '' : 'hide'}"><span class="sm">Pago por transferencia: envía los datos de pago y guarda el pedido en borrador; cuando llegue el pago, lo validas desde el pedido.</span>
+      <div id="ptrfbox" class="pdtrfbox ${esTransferencia(form.forma_pago) && !(ped && ped.estado === 'Confirmado') ? '' : 'hide'}"><span class="sm">Pago por transferencia: envía los datos de pago y guarda el pedido en borrador; cuando llegue el pago, lo validas desde el pedido.</span>
         <button type="button" class="btn sec chico" id="ptrfmail">Enviar los datos de pago</button></div>
       <div id="ppagox" class="g2 ${form.forma_pago ? '' : 'hide'}">
         <div><label for="pref">Referencia del pago</label><input id="pref" value="${esc(form.pago_referencia)}" placeholder="Código de la transferencia, bizum…"></div>
@@ -4747,8 +4748,8 @@ async function editorPedido(pedido) {
       <label for="pnota">Nota</label><input id="pnota" value="${esc(form.nota)}">
       <div class="acts" style="justify-content:flex-end">
         <button class="btn sec" data-cerrar>Cancelar</button>
-        <button class="btn sec" id="pborr">Guardar borrador</button>
-        <button class="btn" id="pvalid">Guardar y validar</button></div>`;
+        <button class="btn sec ${ped && ped.estado === 'Confirmado' ? 'hide' : ''}" id="pborr">Guardar borrador</button>
+        <button class="btn" id="pvalid">${ped && ped.estado === 'Confirmado' ? 'Guardar cambios' : 'Guardar y validar'}</button></div>`;   // v2.322.0
 
     const desglose = () => {
       if ($('psincargo') && $('psincargo').checked) lineas.forEach(l => { l.descuento = 100; });   // v2.317.0
@@ -4779,7 +4780,7 @@ async function editorPedido(pedido) {
     $('plmas').onclick = () => { lineas.push({ producto_id: productoPorDefecto(), unidades: 1, descuento: 0 }); autoImporte(lineas[lineas.length - 1]); pinta(); };
     $('plineas').querySelectorAll('[data-lx]').forEach(b => b.onclick = () => { lineas.splice(+b.dataset.lx, 1); pinta(); });
     $('pcan').onchange = () => $('zonapac').classList.toggle('escentro', $('pcan').value === 'centro');
-    $('ppago').onchange = () => { $('ppagox').classList.toggle('hide', !$('ppago').value); $('ptrfbox').classList.toggle('hide', !esTransferencia($('ppago').value)); };   // v2.314.0
+    $('ppago').onchange = () => { $('ppagox').classList.toggle('hide', !$('ppago').value); $('ptrfbox').classList.toggle('hide', !esTransferencia($('ppago').value) || !!(ped && ped.estado === 'Confirmado')); };   // v2.314.0
     $('pjus').onchange = async e => {
       const f = e.target.files[0]; e.target.value = ''; if (!f) return;
       const j = await leerJustificante(f); if (!j) return;
@@ -4813,14 +4814,15 @@ async function editorPedido(pedido) {
       if (cps && cps.falta.length) { toast(`Rellena «${cps.falta[0]}»`, true); return; }
       let trfVal = false;   // v2.314.0: con transferencia, el pedido puede esperar al pago en borrador
       const sc = !!($('psincargo') && $('psincargo').checked);   // v2.317.0: entrega sin cargo
+      const yaVal = !!(ped && ped.estado === 'Confirmado');   // v2.322.0: validado y sin factura: se guarda tal cual, sin volver a preguntar
       if (sc && !medico && !await preguntar(`Sin ${TT('medico', 's', '', 'l', 'l')} de referencia, estas unidades no cuentan a nadie.`, { titulo: 'Entrega sin cargo', ok: 'Guardar igualmente' })) return;
-      if (!sc && estado === 'Confirmado' && esTransferencia($('ppago').value)) {
+      if (!sc && !yaVal && estado === 'Confirmado' && esTransferencia($('ppago').value)) {
         const v = await elegirOpcion('Pago por transferencia', 'Este pedido se puede guardar en borrador hasta validar el pago: no cuenta en métricas ni comisiones y aún se puede cambiar. Cuando llegue la transferencia, lo validas desde el pedido.',
           [{ k: 'no', t: 'Cancelar', cls: 'sec' }, { k: 'validar', t: 'Validar ya', cls: 'sec' }, { k: 'borrador', t: 'Guardar en borrador' }]);
         if (!v) return;
         if (v === 'borrador') estado = 'Borrador'; else trfVal = true;
       }
-      if (estado === 'Confirmado' && !trfVal && !await preguntar('Una vez validado, el pedido cuenta en métricas y comisiones y ya no se puede editar ni eliminar: solo anular.',
+      if (estado === 'Confirmado' && !trfVal && !yaVal && !await preguntar('Una vez validado, el pedido cuenta en métricas y comisiones y ya no se puede editar ni eliminar: solo anular.',
         { titulo: '¿Validar el pedido?', ok: 'Validar' })) return;
       btn.disabled = true; const txt = btn.textContent; btn.textContent = 'Guardando…';
       const { data: r, error } = await db.rpc('guardar_pedido', { p: {
@@ -4838,7 +4840,7 @@ async function editorPedido(pedido) {
       }});
       btn.disabled = false; btn.textContent = txt;
       if (error || (r && r.ok === false)) {
-        toast(r && r.error === 'validado' ? 'Ese pedido ya está validado y no se puede editar'
+        toast(r && r.error === 'facturado' ? 'Ese pedido ya tiene factura: para cambiarlo, haz una rectificativa' : r && r.error === 'validado' ? 'Ese pedido ya no se puede editar'
           : 'No se ha podido guardar: ' + ((error && error.message) || 'sin permiso'), true);
         return;
       }
@@ -4846,7 +4848,7 @@ async function editorPedido(pedido) {
       if (justifs.length && !(await subirJustificantes((r && r.id) || (ped && ped.id), justifs))) return;
       $('dlg').close();
       if (o.alGuardar) { await o.alGuardar((r && r.id) || (ped && ped.id)); return; }   // v2.314.0
-      toast(sc ? (estado === 'Borrador' ? 'Entrega sin cargo guardada en borrador' : 'Entrega sin cargo validada') : estado === 'Borrador' ? (esTransferencia($('ppago').value) ? 'Guardado en borrador hasta validar el pago' : 'Borrador guardado') : (medico ? 'Pedido validado y atribuido' : 'Pedido validado · pendiente de atribuir'));
+      toast(yaVal ? 'Pedido actualizado' : sc ? (estado === 'Borrador' ? 'Entrega sin cargo guardada en borrador' : 'Entrega sin cargo validada') : estado === 'Borrador' ? (esTransferencia($('ppago').value) ? 'Guardado en borrador hasta validar el pago' : 'Borrador guardado') : (medico ? 'Pedido validado y atribuido' : 'Pedido validado · pendiente de atribuir'));
       if (TAB === 'ventas') cargarVentas();
       if (TAB === 'pacientes') listaPacientes();
       if ($('ficha').open && FICHA_PAC) fichaPaciente(FICHA_PAC);
@@ -4967,7 +4969,7 @@ async function verPedidoBase(id) {
       ${puedeVentas() && bor ? `<button class="btn sec dang" id="pdborrar">Eliminar borrador</button>
         <button class="btn sec" id="pdeditar">Editar</button>
         <button class="btn" id="pdvalidar">Validar pedido</button>` : ''}
-      ${puedeVentas() && !bor && !anulado ? '<button class="btn sec" id="pdeditnf">Editar datos</button>' : ''}
+      ${puedeVentas() && !bor && !anulado ? (p.factura_id ? '<button class="btn sec" id="pdeditnf">Editar datos</button>' : '<button class="btn sec" id="pdeditar">Editar pedido</button>') : ''}
       ${puedeVentas() && !bor && !anulado ? '<button class="btn sec dang" id="pdanular">Anular pedido</button>' : ''}
       <button class="btn sec" data-cerrar>Cerrar</button></div>`;
 
