@@ -28280,16 +28280,16 @@ editorProducto = (orig => function (p, ...r) {
     const fila = $('prok').closest('.acts') || $('dbody').querySelector('.acts:last-of-type'); if (!fila) return;
     fila.insertAdjacentHTML('afterbegin', '<button type="button" class="btn sec dang prelimb" id="prelim">Eliminar producto</button>');
     $('prelim').onclick = async () => {
-      if (!await preguntar('Si nunca se ha usado, se borra. Si tiene ventas, compras, lotes o muestras, deja de salir en todas partes pero se conserva para el histórico: los pedidos, las facturas y los lotes siguen con su nombre. Se puede recuperar.',
+      if (!await preguntar('Si no se ha vendido nunca, se borra del todo, también su stock, sus lotes y sus compras. Si tiene ventas, muestras firmadas, cirugías o equipos, deja de salir en todas partes pero se conserva para el histórico (los pedidos y las facturas siguen con su nombre) y se puede recuperar.',
         { titulo: `¿Eliminar «${p.nombre}»?`, ok: 'Eliminar', peligro: true })) return;
       const { data: res, error } = await db.rpc('eliminar_producto', { p_id: p.id });
       if (error || !res || !res.ok) {
-        toast(res && res.error === 'stock' ? `Tiene ${num(res.unidades)} unidades en stock: sácalas o regulariza el stock antes de eliminarlo`
+        toast(res && res.error === 'stock' ? `Tiene ventas y ${num(res.unidades)} unidades en stock: sácalas o regulariza el stock antes de eliminarlo`
           : res && res.error === 'permiso' ? 'No tienes permiso para eliminar productos' : 'No se ha podido eliminar: ' + ((error && error.message) || (res && res.error) || ''), true);
         return;
       }
       if ($('dlg').open) $('dlg').close();
-      if (res.modo === 'borrado') toast('Producto eliminado');
+      if (res.modo === 'borrado') toast('Producto eliminado' + (res.detalle && +res.detalle.unidades ? ` con sus ${num(res.detalle.unidades)} unidades de stock` : ''));   // v2.324.0
       else toast('Producto eliminado de las listas · se conserva en el histórico (' + Object.entries(res.detalle || {}).map(([k, n]) => `${num(n)} ${PROD_USOS[k] || k}`).join(', ') + ')');
       refrescarProductos();
     };
