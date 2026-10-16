@@ -4559,6 +4559,9 @@ html body .toast[popover]{margin:0;border:0;overflow:visible}
 /* v2.311: dar de baja y eliminar fichas */
 .plmasoc{display:none}
 .fbajablk .acts{justify-content:flex-end;margin:0}
+/* v2.325.0 · pago del pedido solo de lectura; sin adjuntar justificantes en el editor */
+.pdpagof{display:flex;flex-direction:column;gap:2px}
+#ppagox > div:has(#pjus){display:none}
 /* v2.323.0 · eliminar producto */
 .acts > .prelimb{margin-right:auto}
 /* v2.322.0 · enlace-botón de los datos de pago, centrado como un botón */
@@ -4800,6 +4803,6 @@ try{var co=sessionStorage.getItem('dlc-cambio-org');if(co!==null||localStorage.g
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.324.0"></script>
+<script src="./app.js?v=2.325.0"></script>
 </body>
 </html>

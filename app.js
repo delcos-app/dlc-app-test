@@ -4950,7 +4950,7 @@ async function verPedidoBase(id) {
 
   $('dbody').innerHTML = `
     <div class="fh"><div><h2>Pedido ${esc(p.numero || '')} ${pillEstado(p.estado)}</h2>
-      <div class="sm">${fechaCorta(p.fecha)} · ${p.canal === 'centro' ? 'Venta a centro' : `Venta ${TT('paciente', 's', 'al', 'l', 'l')}`}${p.forma_pago ? ' · ' + esc(p.forma_pago) : ''}</div></div>
+      <div class="sm">${fechaCorta(p.fecha)} · ${etiquetaCanal(p, t.total)}${p.forma_pago ? ' · ' + esc(p.forma_pago) : ''}</div></div>
       <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
     ${bor ? '<div class="cacheaviso" style="margin-top:10px">Borrador: todavía no cuenta en métricas ni en comisiones.</div>' : ''}
     ${c ? `<div class="blk"><h3>${TT('paciente', 's', '', 'l', 'C')}</h3><div><b>${esc(c.nombre)}</b></div>
@@ -9210,7 +9210,7 @@ async function listaPedidos() {
       <span class="num">Uds.</span>${imp ? '<span class="num">Base</span><span class="num">Total</span>' : ''}<span>Estado</span><span>Operativa</span><span>Notas</span>${clasCabeceras(cpCols)}</div>
     ${PEDIDOS.map(p => `<button class="dr" data-ped="${p.id}" style="${p.estado === 'Anulado' ? 'opacity:.55' : ''}">
       <span>${fechaCorta(p.fecha)}${p.factura || p.numero ? `<span class="sm">${esc(p.factura || p.numero)}</span>` : ''}</span>
-      <span><b>${esc(p.contacto || p.centro || p.cuenta_texto || '—')}</b><span class="sm">${p.canal === 'centro' ? 'Venta a centro' : 'Venta ' + TT('paciente', 's', 'al', 'l', 'l')}${p.origen === 'web' ? ' · <span class="pweb">Web</span>' : p.origen === 'portal' ? ' · <span class="pweb">Portal</span>' : ''}${p.forma_pago ? ' · ' + esc(p.forma_pago) : ''}${p.justificante ? ' · <span title="Con justificante de pago">📎</span>' : ''}</span></span>
+      <span><b>${esc(p.contacto || p.centro || p.cuenta_texto || '—')}</b><span class="sm">${etiquetaCanal(p, p.total)}${p.origen === 'web' ? ' · <span class="pweb">Web</span>' : p.origen === 'portal' ? ' · <span class="pweb">Portal</span>' : ''}${p.forma_pago ? ' · ' + esc(p.forma_pago) : ''}${p.justificante ? ' · <span title="Con justificante de pago">📎</span>' : ''}</span></span>
       <span class="corta">${p.medico ? esc(p.medico) : '<span class="vac">Sin atribuir</span>'}</span>
       <span>${p.comercial ? esc(p.comercial) : '<span class="vac">—</span>'}</span>
       <span class="sm corta">${esc(p.productos || '')}</span><span class="num">${num(p.unidades)}</span>
@@ -28133,7 +28133,7 @@ PL.ventas.pedidos.card = dr => {
   if (!p) return { a: '', b: '', c: '' };
   const cli = p.contacto || p.centro || p.cuenta_texto || '', quien = cli || p.medico || 'Sin cliente';
   const que = [num(p.unidades || 0) + (+p.unidades === 1 ? ' ud.' : ' uds.'), p.productos].filter(Boolean).join(' · ');
-  const otros = [p.sin_cargo ? 'Sin cargo (muestra)' : p.forma_pago || 'Sin forma de pago', fechaCorta(p.fecha), cli ? (p.medico || '') : ''].filter(Boolean).join(' · ');
+  const otros = [sinCargoP(p, p.total) ? 'Entrega sin cargo' : p.forma_pago || 'Sin forma de pago', fechaCorta(p.fecha), cli ? (p.medico || '') : ''].filter(Boolean).join(' · ');
   return { a: quien, b: que, c: pillEstado(p.estado) + (verImportes() && p.total != null ? `<span class="plcimp">${eurI(p.total)}</span>` : ''), d: otros };
 };
 
@@ -28316,3 +28316,30 @@ document.addEventListener('click', async e => {
   refrescarProductos();
 });
 if (PL.productos && PL.productos.prods) PL.productos.prods.mas = (orig => () => orig().concat(puedeEliminarProducto() ? [['prodelim', 'Productos eliminados']] : []))(PL.productos.prods.mas);
+
+
+/* ============================================================
+   v2.325.0 · Pedidos: pago solo de lectura y entregas sin cargo (aviso de Eric, 16/10/2026).
+   - El bloque «Pago» del pedido ya no se edita a medias: enseña la referencia y los justificantes que haya; se cambian con
+     «Editar» (o «Editar datos» si ya tiene factura). Fuera «Guardar referencia» y «Añadir justificante» (basta el check de
+     «Pago recibido»); en el editor tampoco se adjuntan justificantes.
+   - Un pedido sin cargo (marcado así o a 0 € con unidades) se describe como «Entrega sin cargo» y no como «Venta al …»: no es una
+     venta (también los que se hicieron antes al 100 % de descuento).
+   ============================================================ */
+function sinCargoP(p, total) { return !!(p && (p.sin_cargo || (total != null && Math.abs(+total) < 0.005 && (p.unidades == null || +p.unidades > 0)))); }
+function etiquetaCanal(p, total) { return sinCargoP(p, total) ? 'Entrega sin cargo' : p.canal === 'centro' ? 'Venta a centro' : `Venta ${TT('paciente', 's', 'al', 'l', 'l')}`; }
+pedidoPago = async function (id) {
+  if (!$('dlg').open || $('pdpago')) return;
+  const [{ data }, { data: js }] = await Promise.all([RPC_ORIG('pedido_detalle', { p_id: id }),
+    db.from('pedidos_justificantes').select('id,nombre,tamano,creado_en').eq('pedido_id', id).order('creado_en')]);
+  const p = data && data.pedido; if (!p || !$('dlg').open || $('pdpago')) return;
+  if (p.sin_cargo) return;
+  const acts = $('dbody').querySelector('.acts:last-of-type'); if (!acts) return;
+  const ref = $('pdops') || acts;
+  ref.insertAdjacentHTML('beforebegin', `<div class="blk" id="pdpago"><h3>Pago</h3>
+    ${p.origen === 'web' ? '<p class="sm"><span class="pill p-est">Pedido por la web</span></p>' : ''}
+    <div class="pdpagof"><span class="sm">Referencia del pago</span><b>${p.pago_referencia ? esc(p.pago_referencia) : '—'}</b></div>
+    ${(js || []).length ? `<div class="lista" id="pdjus">${js.map(j => `<div class="item"><span class="tx"><b>${esc(j.nombre)}</b><span class="sm">${fechaCorta(String(j.creado_en).slice(0, 10))} · ${num(Math.round(j.tamano / 1024))} KB</span></span>
+      <button type="button" class="btn sec chico" data-jver="${j.id}">Ver</button></div>`).join('')}</div>` : ''}</div>`);
+  $('pdpago').querySelectorAll('[data-jver]').forEach(b => b.onclick = () => verJustificante(b.dataset.jver));
+};
