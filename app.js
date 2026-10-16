@@ -4916,7 +4916,7 @@ async function pedidoOperativa(id) {
   const cli = data.contacto || {}, total = +((data.totales || {}).total || 0);
   const permitido = VE_TODO() && nivelDe2('V') >= 2;
   const acts = $('dbody').querySelector('.acts:last-of-type');
-  acts.insertAdjacentHTML('beforebegin', `<div class="blk" id="pdops"><h3>Operativa</h3>
+  acts.insertAdjacentHTML('beforebegin', `<div class="blk" id="pdops" data-nosucio><h3>Operativa</h3>
     ${p.sin_cargo ? '<p class="sm">Entrega sin cargo: sin factura ni cobro. Las unidades cuentan al profesional de referencia.</p>' : ''}${OPS.filter(([k]) => !(p.sin_cargo && k === 'pago')).map(([k, t]) => `<label class="opchk ${opHecho(p, k) ? 'on' : ''}"><input type="checkbox" data-op="${k}" ${opHecho(p, k) ? 'checked' : ''} ${permitido ? '' : 'disabled'}>
       <span>${esc(t)}${k === 'pago' && p.forma_pago ? ` <span class="sm">· ${esc(p.forma_pago)}${/reembolso/i.test(p.forma_pago) ? ' (se cobra al entregar)' : ''}</span>` : ''}</span></label>`).join('')}
     <div class="acts" style="margin:6px 0 0">
@@ -5211,7 +5211,7 @@ document.addEventListener('click', e => {
 });
 
 async function intentarCerrar(d) {
-  if (d.dataset.sucio && !await preguntar('Si sales ahora perderás los cambios que has hecho.',
+  if (d.dataset.sucio && hayBotonGuardar(d) && !await preguntar('Si sales ahora perderás los cambios que has hecho.',
     { titulo: '¿Salir sin guardar?', ok: 'Salir sin guardar', peligro: true })) return;
   d.close();
 }
@@ -28371,4 +28371,16 @@ function tvTipos(d) {
     ${eq.length ? `<div class="tveq"><table class="trtabla"><thead><tr><th>Persona</th>${TV_TIPOS.map(x => `<th>${x[1]}</th>`).join('')}</tr></thead>
       <tbody>${eq.map(u => `<tr><td>${esc(u.nombre)}</td>${TV_TIPOS.map(x => `<td>${par(u[x[0]])}</td>`).join('')}</tr>`).join('')}</tbody></table>
       <div class="tvlbl">Con pedido de cada tipo, de las ${TT('visita', 'p', '', 'l', 'l')} que registró cada persona</div></div>` : ''}`;
+}
+
+
+/* ============================================================
+   v2.327.0 · Sin «¿Salir sin guardar?» donde no hay nada que guardar (aviso de Eric, 16/10/2026). Los checks de
+   «Operativa» del pedido se guardan al momento (data-nosucio) y, además, una ventana solo pregunta al cerrar si tiene
+   a la vista un botón que guarde (Guardar, Validar, Crear, Añadir, Enviar, Aplicar, Aceptar…): si no lo hay, no se
+   ha podido dejar nada a medias.
+   ============================================================ */
+function hayBotonGuardar(d) {
+  return [...d.querySelectorAll('button, .btn')].some(b => b.offsetParent && !b.disabled && !b.classList.contains('sec')
+    && /^(guardar|validar|crear|añadir|enviar|aplicar|aceptar|confirmar|registrar|emitir|dar de alta)/i.test((b.textContent || '').trim()));
 }
