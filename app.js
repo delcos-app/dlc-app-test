@@ -4675,7 +4675,8 @@ async function editorPedido(pedido) {
     envio_con: ped && ped.envio ? r2(+ped.envio_base * (1 + (+ped.envio_iva || 0) / 100)) : +((SERVICIOS.find(x => x.por_defecto && x.activo) || {}).pvp || 0),
     // v2.115.0: origen (web o no) y referencia del pago
     origen: ['web', 'portal'].includes((ped || pedido || {}).origen) ? (ped || pedido).origen : 'manual', pago_referencia: ped ? ped.pago_referencia || '' : '',
-    sin_cargo: ped ? !!ped.sin_cargo : false };   // v2.317.0
+    sin_cargo: ped ? !!ped.sin_cargo : false,   // v2.317.0
+    reportar: ped ? !!ped.reportar_profesional : false };   // v2.328.0: por defecto no se reporta
   const justifs = [];   // v2.115.0: justificantes elegidos, se suben al guardar
   const leerForm = () => {
     if (!$('pfecha')) return;
@@ -4684,7 +4685,7 @@ async function editorPedido(pedido) {
       envio: $('penv').checked, envio_con: +$('penvi').value || 0, envio_iva: +$('penvv').value || 0, servicio_id: $('pserv').value,
       cuenta_texto: $('pselmed') ? ($('pselmed').__texto || '') : form.cuenta_texto,
       origen: $('porig') ? $('porig').value : form.origen, pago_referencia: $('pref') ? $('pref').value : form.pago_referencia,
-      sin_cargo: $('psincargo') ? $('psincargo').checked : form.sin_cargo });
+      sin_cargo: $('psincargo') ? $('psincargo').checked : form.sin_cargo, reportar: $('prepprof') ? $('prepprof').checked : form.reportar });
   };
 
   const pinta = () => {
@@ -4706,6 +4707,7 @@ async function editorPedido(pedido) {
         <label class="solopac">${TT('paciente', 's', '', 'l', 'C')}</label><div id="pselpac" class="solopac"></div>
         <label><span class="solopac">${TT('medico', 's', '', 'l', 'C')} de referencia</span><span class="solocen">Centro que compra</span></label><div id="pselmed"></div>
         <div class="sm" style="margin-top:4px"><span class="solopac">Si no lo encuentras, deja el nombre escrito: el pedido quedará pendiente de atribuir.</span><span class="solocen">Elige su ficha (de tipo centro): las unidades cuentan para el centro y su comercial.</span></div>
+        <label class="opt solopac prepbox"><input type="checkbox" id="prepprof" ${form.reportar ? 'checked' : ''}> Reportar ${esc(TT('medico', 's', 'al', 'l', 'l'))}</label>
       </div>
       <label>Líneas</label>
       <div id="plineas">${lineas.map((l, i) => `<div class="lin" data-li="${i}">
@@ -4845,6 +4847,13 @@ async function editorPedido(pedido) {
         return;
       }
       if (cps && !(await camposGuardar(cps, (r && r.id) || (ped && ped.id)))) return;
+      {   // v2.328.0: reportar al profesional solo si se marca (por defecto, no)
+        const rid = (r && r.id) || (ped && ped.id), rep = !!($('prepprof') && $('prepprof').checked) && !$('zonapac').classList.contains('escentro');
+        if (rid && (rep || (ped && ped.reportar_profesional))) {
+          const { data: mr, error: me } = await db.rpc('marcar_reporte', { p_id: rid, p_valor: rep });
+          if (me || (mr && mr.ok === false)) toast('El pedido se ha guardado, pero no se ha podido cambiar «Reportar»', true);
+        }
+      }
       if (justifs.length && !(await subirJustificantes((r && r.id) || (ped && ped.id), justifs))) return;
       $('dlg').close();
       if (o.alGuardar) { await o.alGuardar((r && r.id) || (ped && ped.id)); return; }   // v2.314.0
@@ -4919,6 +4928,8 @@ async function pedidoOperativa(id) {
   acts.insertAdjacentHTML('beforebegin', `<div class="blk" id="pdops" data-nosucio><h3>Operativa</h3>
     ${p.sin_cargo ? '<p class="sm">Entrega sin cargo: sin factura ni cobro. Las unidades cuentan al profesional de referencia.</p>' : ''}${OPS.filter(([k]) => !(p.sin_cargo && k === 'pago')).map(([k, t]) => `<label class="opchk ${opHecho(p, k) ? 'on' : ''}"><input type="checkbox" data-op="${k}" ${opHecho(p, k) ? 'checked' : ''} ${permitido ? '' : 'disabled'}>
       <span>${esc(t)}${k === 'pago' && p.forma_pago ? ` <span class="sm">· ${esc(p.forma_pago)}${/reembolso/i.test(p.forma_pago) ? ' (se cobra al entregar)' : ''}</span>` : ''}</span></label>`).join('')}
+    <label class="opchk ${p.reportar_profesional ? 'on' : ''}"><input type="checkbox" data-reporte ${p.reportar_profesional ? 'checked' : ''} ${permitido ? '' : 'disabled'}>
+      <span>Reportado ${esc(TT('medico', 's', 'al', 'l', 'l'))}</span></label>
     <div class="acts" style="margin:6px 0 0">
       ${p.sin_cargo ? '' : cli.email ? `<a class="btn sec" id="pdmailpago" data-ped="${id}" href="mailto:${esc(cli.email)}?subject=${encodeURIComponent(asuntoEmailPago(p, total, cli.nombre))}&body=${encodeURIComponent(textoEmailPago(p, total, cli.nombre))}">✉️ Preparar email con los datos de pago</a>` : '<span class="sm">El cliente no tiene email en su ficha.</span>'}
     </div></div>`);
@@ -4929,6 +4940,13 @@ async function pedidoOperativa(id) {
     toast(c.checked ? (c.dataset.op === 'pago' ? 'Pago validado' + (p.factura_id ? ' · cobro anotado en la factura' : '') : 'Hecho') : 'Desmarcado');
     if (TAB === 'ventas' && PEDSEC === 'ventas') pintarOperativa();
   });
+  const crep = $('dbody').querySelector('[data-reporte]');   // v2.328.0
+  if (crep) crep.onchange = async () => {
+    const { data: r, error } = await db.rpc('marcar_reporte', { p_id: id, p_valor: crep.checked });
+    if (error || (r && r.ok === false)) { crep.checked = !crep.checked; toast('No se ha podido guardar', true); return; }
+    crep.closest('.opchk').classList.toggle('on', crep.checked);
+    toast(crep.checked ? 'Reportado' : 'Ya no se reporta');
+  };
   if ($('pdmailpago')) $('pdmailpago').addEventListener('click', () => setTimeout(async () => {
     if (await preguntar('¿Has enviado el email con los datos de pago?', { titulo: 'Email de pago', ok: 'Sí, marcar como enviado' })) {
       await db.rpc('marcar_operativa', { p_pedido: id, p_campo: 'email_pago', p_hecho: true }); verPedido(id);
