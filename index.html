@@ -3726,7 +3726,14 @@ input.campodup{border-color:#E08A00!important;box-shadow:0 0 0 3px rgba(224,138,
 .pk .pkbars{display:flex;align-items:flex-end;gap:4px;height:34px;margin-top:12px}
 .pk .pkbars i{flex:1;border-radius:3px 3px 0 0;background:#D6E6F5;transform-origin:bottom;animation:pkcrece .9s cubic-bezier(.2,.8,.2,1) both}
 .pk .pkt.alta .pkbars i{background:#F6D3BE}.pk .pkbars i.u{background:var(--navy)}.pk .pkt.alta .pkbars i.u{background:#B4541A}
-.pk .pklg{font-size:11px;color:#8A9BB0;margin-top:4px}
+.pk .pklg{font-size:11px;color:#8A9BB0;margin-top:6px}
+/* v2.330.0: el día bajo cada barra; sábados, domingos y festivos en otro color */
+.pk .pkdias{display:flex;gap:4px;margin-top:4px}
+.pk .pkdias span{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;font-size:10.5px;line-height:1.2;color:var(--muted)}
+.pk .pkdias span b{font-size:11px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums}
+.pk .pkdias span.fin,.pk .pkdias span.fin b{color:var(--warn)}
+.pk .pkdias span.u b{color:var(--navy)}
+.pk .pkbars i.fin{background:var(--warn-bg)}.pk .pkt.alta .pkbars i.fin{background:var(--neutro-s)}
 .pk .pkfil{position:absolute;top:14px;right:14px;font:700 11px var(--f-texto);color:#fff;background:var(--navy);border-radius:999px;padding:2px 9px;opacity:0;transition:opacity .2s}
 .pk .pkt.on .pkfil{opacity:1}
 .pk .pkcfg,.pkvacio .pkcfg{position:absolute;top:-38px;right:0;width:32px;height:32px;border-radius:10px;border:1px solid var(--line);background:var(--panel,#fff);display:grid;place-items:center;cursor:pointer;color:var(--navy)}
@@ -3744,7 +3751,7 @@ input.campodup{border-color:#E08A00!important;box-shadow:0 0 0 3px rgba(224,138,
   .pk .pktt{padding-right:0;font-size:10.5px;letter-spacing:.04em;line-height:1.25;white-space:normal;display:block}
   .pk .pktt svg{vertical-align:-3px;margin-right:4px}
   .pk .pkt.on .pktt{padding-right:0}
-  .pk .pks,.pk .pkbars,.pk .pklg,.pk .pkfil{display:none}
+  .pk .pks,.pk .pkbars,.pk .pkdias,.pk .pklg,.pk .pkfil{display:none}
   .pk .pkcfg{position:static;align-self:center;grid-row:1}
 }
 /* Analítica */
@@ -4805,6 +4812,6 @@ try{var co=sessionStorage.getItem('dlc-cambio-org');if(co!==null||localStorage.g
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.329.0"></script>
+<script src="./app.js?v=2.330.0"></script>
 </body>
 </html>
