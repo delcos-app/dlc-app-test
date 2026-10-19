@@ -4817,6 +4817,10 @@ async function editorPedido(pedido) {
       let trfVal = false;   // v2.314.0: con transferencia, el pedido puede esperar al pago en borrador
       const sc = !!($('psincargo') && $('psincargo').checked);   // v2.317.0: entrega sin cargo
       const yaVal = !!(ped && ped.estado === 'Confirmado');   // v2.322.0: validado y sin factura: se guarda tal cual, sin volver a preguntar
+      if (!medico && contacto && contacto.id && !$('zonapac').classList.contains('escentro')) {   // v2.329.0
+        const { data: kc } = await db.from('contactos').select('cuenta_id, cuenta_por_pedido').eq('id', contacto.id).maybeSingle();
+        if (kc && kc.cuenta_id && !kc.cuenta_por_pedido) medico = { id: kc.cuenta_id, nombre: contacto.medico || '' };
+      }
       if (sc && !medico && !await preguntar(`Sin ${TT('medico', 's', '', 'l', 'l')} de referencia, estas unidades no cuentan a nadie.`, { titulo: 'Entrega sin cargo', ok: 'Guardar igualmente' })) return;
       if (!sc && !yaVal && estado === 'Confirmado' && esTransferencia($('ppago').value)) {
         const v = await elegirOpcion('Pago por transferencia', 'Este pedido se puede guardar en borrador hasta validar el pago: no cuenta en métricas ni comisiones y aún se puede cambiar. Cuando llegue la transferencia, lo validas desde el pedido.',
@@ -5194,6 +5198,7 @@ Object.assign(AYUDA, {
    ============================================================ */
 
 const VE_TODO = () => puede('ver_todo');
+const puedeMedicoLibre = () => puede('administrar') || nivelDe2('V') >= 2;   // v2.329.0
 
 /* ---------------- fechas y horas: todo el campo abre el selector ---------------- */
 
@@ -5443,7 +5448,8 @@ function editorContacto(c, alGuardar, op) {
         <div class="sm" id="konifm" style="margin-top:4px"></div></div>
     </div>
     <label>${TT('medico', 's', '', 'l', 'C')} que lo trata</label><div id="kosel"></div>
-    <div class="sm" style="margin-top:4px">Las unidades de sus pedidos se atribuyen a ${TT('medico', 's', 'este', 'l', 'l')} y a su comercial.</div>
+    <div class="sm" style="margin-top:4px" id="komsm">Las unidades de sus pedidos se atribuyen a ${TT('medico', 's', 'este', 'l', 'l')} y a su comercial.</div>
+    ${puedeMedicoLibre() ? `<label class="opt prepbox"><input type="checkbox" id="komlibre"> ${esc(TT('medico', 's', '', 'l', 'C'))} distinto en cada pedido (no se guarda en la ficha)</label>` : ''}
     <div class="g2">
       <div><label for="kodir">Dirección de entrega</label><input id="kodir" value="${esc(c.direccion || '')}"></div>
       <div><label for="kocp">Código postal</label><input id="kocp" value="${esc(c.cp || '')}" inputmode="numeric"></div>
@@ -5468,6 +5474,13 @@ function editorContacto(c, alGuardar, op) {
       ${conLlamada && op.llamada ? '<button class="btn" id="kopedido">🛒 Crear y hacer pedido</button>' : ''}</div>`;
 
   selectorMedico($('kosel'), { valor: medico, alElegir: m => { medico = m; } });
+  // v2.329.0: clientes como un equipo comercial, con un profesional distinto en cada pedido
+  let libreAntes = false;
+  const libreVer = () => { const on = !!($('komlibre') && $('komlibre').checked); $('kosel').classList.toggle('hide', on); $('komsm').classList.toggle('hide', on); if ($('kosel').previousElementSibling) $('kosel').previousElementSibling.classList.toggle('hide', on); };
+  if ($('komlibre')) {
+    $('komlibre').onchange = libreVer;
+    if (c.id) db.from('contactos').select('cuenta_por_pedido').eq('id', c.id).maybeSingle().then(({ data }) => { libreAntes = !!(data && data.cuenta_por_pedido); if ($('komlibre')) { $('komlibre').checked = libreAntes; libreVer(); } });
+  }
   const revisaDoc = () => {
     const r = validarDoc($('konif').value, tipo);
     $('konifm').innerHTML = r.ok ? '' : `<span style="color:var(--danger)">${esc(r.msg)}</span>`;
@@ -5499,12 +5512,19 @@ function editorContacto(c, alGuardar, op) {
       direccion: $('kodir').value.trim(), cp: $('kocp').value.trim(), municipio: $('komun').value.trim(),
       provincia: $('kopro').value.trim(), telefono: $('kotel').value.trim(), movil: $('komov').value.trim(),
       email: $('komail').value.trim(), empresa: tipo === 'Empresa' ? '' : $('koemp').value.trim(), nota: $('konota').value.trim(),
-      cuenta_id: medico ? medico.id : null
+      cuenta_id: medico && !($('komlibre') && $('komlibre').checked) ? medico.id : null
     }});
     ev.target.disabled = false; ev.target.textContent = c.id ? 'Guardar' : conPedido ? '🛒 Crear y hacer pedido' : `Crear ${TT('paciente', 's', '', 'l', 'l')}`;
     if (error && /cliente_duplicado/.test(error.hint || '')) { toast(error.message, true); if ($('konif')) $('konif').dispatchEvent(new Event('input')); return; }   // v2.225.0
     if (error || (r && r.ok === false)) { toast('No se ha podido guardar', true); return; }
     if (cps && !(await camposGuardar(cps, (r && r.contacto && r.contacto.id) || c.id))) return;
+    const libre = !!($('komlibre') && $('komlibre').checked);
+    if ($('komlibre') && libre !== libreAntes) {
+      const { data: ml, error: me } = await db.rpc('guardar_cuenta_por_pedido', { p_id: (r && r.contacto && r.contacto.id) || c.id, p_valor: libre });
+      if (me || (ml && ml.ok === false)) { toast('No se ha podido guardar la opción del profesional', true); return; }
+      if (libre && r && r.contacto) r.contacto.cuenta_id = null;
+    }
+    if (libre) medico = null;
     $('dlg2').close(); toast(c.id ? `${TT('paciente', 's', '', 'l', 'C', 'guardado')}` : `${TT('paciente', 's', '', 'l', 'C', 'creado')}`);
     const res = Object.assign({}, r.contacto, medico ? { medico: medico.nombre, medico_codigo: medico.codigo } : {});
     // v2.119.0: la llamada queda registrada con el cliente recién creado (si se ha apuntado algo o se viene de una llamada)
@@ -6040,6 +6060,7 @@ async function cargarAnalitica() {
           ${PRODUCTOS.map(p => `<option value="${p.id}">${esc(p.nombre)}</option>`).join('')}</select></div>
         <div><label for="arep">Reporting</label><select id="arep"><option value="">Todos ${TT('medico', 'p', 'el', 'l', 'l')}</option>
           <option value="con">Con reporting</option><option value="sin">Sin reporting</option></select></div>
+        ${VE_TODO() ? `<div><label for="areprt">Reporte</label><select id="areprt"><option value="">Todos</option><option value="si">Reportados</option><option value="no">Sin reportar</option></select></div>` : ''}
         ${VE_TODO() ? `<div><label for="acom">Comercial</label><select id="acom"><option value="">Todos</option>
           ${COMS.map(u => `<option value="${u.id}">${esc(u.nombre)}</option>`).join('')}</select></div>` : ''}
         <div style="grid-column:span 2"><label>${TT('medico', 's', '', 'l', 'C')}</label><div id="amed"></div></div>
@@ -6057,7 +6078,7 @@ async function cargarAnalitica() {
   montarPeriodo($('aper'), { id: 'analitica', valor: 'anio', alCambiar: () => { sinc(); refrescarAnalitica(); } });
   sinc();
   selectorMedico($('amed'), { valor: AN_MED, placeholder: `Todos · busca ${TT('medico', 's', 'un', 'l', 'l')} para ver sus ventas`, alElegir: m => { AN_MED = m; refrescarAnalitica(); } });
-  ['adim', 'acanal', 'amedida', 'aprod', 'acom', 'arep'].forEach(id => { if ($(id)) $(id).onchange = refrescarAnalitica; });
+  ['adim', 'acanal', 'amedida', 'aprod', 'acom', 'arep', 'areprt'].forEach(id => { if ($(id)) $(id).onchange = refrescarAnalitica; });
   $('v-analitica').querySelectorAll('[data-avista]').forEach(b => b.onclick = () => {
     const tabla = b.dataset.avista === 'tabla';
     $('v-analitica').querySelectorAll('[data-avista]').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
@@ -6080,11 +6101,12 @@ async function pintarAnalitica() {
   const { data, error } = await db.rpc('analitica_v2', {
     p_dim: dim, p_desde: r.desde, p_hasta: r.hasta, p_canal: $('acanal').value || null,
     p_medico: AN_MED ? AN_MED.id : null, p_comercial: ($('acom') && $('acom').value) || null,
-    p_producto: $('aprod').value || null, lim: 100, p_reporting: ($('arep') && $('arep').value) || null });
+    p_producto: $('aprod').value || null, lim: 100, p_reporting: ($('arep') && $('arep').value) || null, p_reportado: ($('areprt') && $('areprt').value) || null });
   if (error) { $('atabla').innerHTML = `<div class="vacio">No se ha podido calcular: ${esc(error.message)}</div>`; $('atot').innerHTML = ''; return; }
   const t = data.totales || {}, filas = (data.filas || []).slice().sort((a, b) => (+b[medida] || 0) - (+a[medida] || 0));
   const quien = [AN_MED ? AN_MED.nombre : '', $('acom') && $('acom').value ? $('acom').selectedOptions[0].textContent : '',
-    $('aprod').value ? $('aprod').selectedOptions[0].textContent : '', $('arep') && $('arep').value ? $('arep').selectedOptions[0].textContent : ''].filter(Boolean).join(' · ');
+    $('aprod').value ? $('aprod').selectedOptions[0].textContent : '', $('arep') && $('arep').value ? $('arep').selectedOptions[0].textContent : '',
+    $('areprt') && $('areprt').value ? $('areprt').selectedOptions[0].textContent : ''].filter(Boolean).join(' · ');
   $('atot').innerHTML = `
     <div class="kpi"><b>${num(t.unidades)}</b><span>Unidades${quien ? ' · ' + esc(quien) : ''}</span></div>
     <div class="kpi ok"><b>${eurI(t.importe)}</b><span>Importe sin IVA</span></div>
@@ -9201,10 +9223,17 @@ async function listaPedidos() {
       <option value="">Todos</option><option value="web">Por la web</option><option value="portal">Portal del centro</option><option value="otros">Comercial, teléfono o correo</option></select></div>`);
     $('porigf').onchange = () => { PEDPAG = 0; listaPedidos(); };
   }
+  // v2.329.0: reportados o no al profesional (interno: solo quien ve todo)
+  if (!$('prepf') && $('porigf') && VE_TODO()) {
+    $('porigf').closest('div').insertAdjacentHTML('afterend', `<div><label for="prepf">Reporte</label><select id="prepf">
+      <option value="">Todos</option><option value="si">Reportados</option><option value="no">Sin reportar</option></select></div>`);
+    $('prepf').onchange = () => { PEDPAG = 0; listaPedidos(); };
+  }
   filtrosRestaurar($('v-ventas'));   // v2.269.0: los filtros que tenías
   const params = { p_desde: r.desde, p_hasta: r.hasta, p_canal: $('pcanal').value || null, q: ($('pq') && $('pq').value.trim()) || null,
     p_estado: $('pestado').value || null, p_operativa: ($('popf') && $('popf').value) || null, lim: tamPagina(), desplaz: PEDPAG * tamPagina(),
     ...(($('porigf') && $('porigf').value) ? { p_origen: $('porigf').value } : {}),
+    ...(($('prepf') && $('prepf').value) ? { p_reportado: $('prepf').value } : {}),
     ...(Object.keys(PEDF).length ? { f_campos: PEDF } : {}) };
   const clave = 'pedidos-' + JSON.stringify(params);
   if (!$('pedlista').querySelector('.dgrid')) cargando($('pedlista'), 'Cargando pedidos…');
@@ -17453,7 +17482,8 @@ pintarResumenAnalitica = async function () {
   cuerpo.innerHTML = `<div class="filtros" id="anfil"><div id="anper" data-anp="resumen"></div>
       <div data-anp="resumen"><label for="ancomp">Comparar con</label><select id="ancomp">
         <option value="anterior" ${AN_CFG.comp === 'anterior' ? 'selected' : ''}>El periodo anterior</option>
-        <option value="anio" ${AN_CFG.comp === 'anio' ? 'selected' : ''}>El mismo periodo del año pasado</option></select></div></div>
+        <option value="anio" ${AN_CFG.comp === 'anio' ? 'selected' : ''}>El mismo periodo del año pasado</option></select></div>
+      ${VE_TODO() ? `<div data-anp="resumen"><label for="anrep">Reporte</label><select id="anrep"><option value="">Todos</option><option value="si" ${AN_REP === 'si' ? 'selected' : ''}>Reportados</option><option value="no" ${AN_REP === 'no' ? 'selected' : ''}>Sin reportar</option></select></div>` : ''}</div>
     <p class="sm anresumen" id="anresumen"></p>
     <div id="ankpis" hidden></div>
     <div id="anareas"><div class="ankgrid">${Array.from({ length: 4 }, () => '<div class="ankpi"><div class="skel" style="width:60%"></div><div class="skel" style="width:40%;height:24px"></div></div>').join('')}</div></div>
@@ -17464,6 +17494,7 @@ pintarResumenAnalitica = async function () {
   };
   montarPeriodo($('anper'), { id: 'analitica-resumen', valor: 'anio', alCambiar: pinta });
   $('ancomp').onchange = async () => { AN_CFG.comp = $('ancomp').value; await anGuardar(AN_CFG); anCargarKpis(); };
+  if ($('anrep')) $('anrep').onchange = () => { AN_REP = $('anrep').value; anCargarKpis(); };   // v2.329.0
   pinta();
   anMoverFiltros();
 };
@@ -22719,6 +22750,7 @@ pintarOperativa = async function () {
 
 /* ---------------- Analítica: cifras que cuentan y línea de seis meses ---------------- */
 const AN_SERIE = new Map();
+var AN_REP = '';   // v2.329.0: Analítica → Resumen, «Reporte»
 const AN_MES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
 function anMeses(hasta) {
   return [...Array(6)].map((_, i) => {
@@ -22728,7 +22760,7 @@ function anMeses(hasta) {
   });
 }
 async function anSerie(meses, f, fams) {
-  const clave = JSON.stringify([meses[0][0], meses[5][1], f, fams]);
+  const clave = JSON.stringify([meses[0][0], meses[5][1], f, fams, AN_REP]);
   if (!AN_SERIE.has(clave)) AN_SERIE.set(clave, Promise.all(meses.map(([a, b]) =>
     db.rpc('analitica_kpis_periodo', { p_desde: a, p_hasta: b, p_filtro: f, p_familias: fams, p_estado: false }).then(r => r.error ? {} : (r.data || {}), () => ({})))));
   const r = await AN_SERIE.get(clave);
@@ -24128,7 +24160,7 @@ const plRejilla = o => Object.assign({
 Object.assign(PL, {
   ventas: {
     pedidos: plRejilla({ tab: 'ventas', que: () => 'pedidos', lista: 'pedlista', pag: 'pedpag', buscador: 'pq', banda: 'operativa', extra: [['opcfg', 'Elegir qué avisos ver']],
-      rapidos: [['#pper select', 'Periodo'], ['#pestado', ''], ['#pcanal', ''], ['#porigf', '']] }),
+      rapidos: [['#pper select', 'Periodo'], ['#pestado', ''], ['#pcanal', ''], ['#porigf', ''], ['#prepf', '']] }),
     oport: plRejilla({ tab: 'ventas', que: () => 'oportunidades', lista: 'lllista', pag: 'llpag', buscador: 'llq', despues: 'llres2',
       rapidos: [['#llper select', 'Periodo'], ['#llfres', '']] }),
     compras: plRejilla({ tab: 'ventas', que: () => 'pedidos de compra' }),
@@ -24445,7 +24477,7 @@ pkContar = (orig => function (els, fmt) {
 })(pkContar);
 
 // Pedidos y Oportunidades comparten el panel de filtros: los de la otra sección se apartan (no salen en el panel ni como filtro activo)
-const PL_AJENOS = { pedidos: ['llper', 'llfres'], oport: ['pper', 'pcanal', 'pestado', 'popf', 'porigf'], compras: ['llper', 'llfres', 'pper', 'pcanal', 'pestado', 'popf', 'porigf'], prov: ['llper', 'llfres', 'pper', 'pcanal', 'pestado', 'popf', 'porigf'] };
+const PL_AJENOS = { pedidos: ['llper', 'llfres'], oport: ['pper', 'pcanal', 'pestado', 'popf', 'porigf', 'prepf'], compras: ['llper', 'llfres', 'pper', 'pcanal', 'pestado', 'popf', 'porigf', 'prepf'], prov: ['llper', 'llfres', 'pper', 'pcanal', 'pestado', 'popf', 'porigf', 'prepf'] };
 function plAjenos(sec, clave) {
   const pan = sec.querySelector(':scope > .htpanel'), prop = pan && pan.querySelector('.htpropios'); if (!prop) return;
   let fuera = pan.querySelector(':scope > .plajenos');
@@ -25978,7 +26010,7 @@ db.rpc = (orig => function (fn, args, ...r) {
   if (fn === 'analitica_tabla' && TAB === 'analitica' && args && !('p_producto' in args) && $('aprod')) {
     args = Object.assign({}, args, {
       p_medico: AN_MED ? AN_MED.id : null, p_comercial: ($('acom') && $('acom').value) || null,
-      p_producto: $('aprod').value || null, p_reporting: ($('arep') && $('arep').value) || null });
+      p_producto: $('aprod').value || null, p_reporting: ($('arep') && $('arep').value) || null, p_reportado: ($('areprt') && $('areprt').value) || null });
   }
   return orig.call(this, fn, args, ...r);
 })(db.rpc);
@@ -28402,3 +28434,19 @@ function hayBotonGuardar(d) {
   return [...d.querySelectorAll('button, .btn')].some(b => b.offsetParent && !b.disabled && !b.classList.contains('sec')
     && /^(guardar|validar|crear|añadir|enviar|aplicar|aceptar|confirmar|registrar|emitir|dar de alta)/i.test((b.textContent || '').trim()));
 }
+
+/* ============================================================
+   v2.329.0 · Reportados al profesional, a la vista en Pedidos y en Analítica (interno: solo quien ve todo)
+   - Pedidos: filtro «Reporte» (Todos, Reportados, Sin reportar) en el panel y como filtro rápido; la lista y el resumen lo respetan.
+   - Analítica → Resumen: «Reporte» en los filtros de arriba (indicadores y sus líneas de seis meses); Explorar: «Reporte» en el Ranking y
+     en la «Tabla por meses».
+   - Clientes: «Profesional distinto en cada pedido» (contactos.cuenta_por_pedido): la ficha no guarda profesional y el pedido no lo propone.
+   - Pedido sin profesional elegido: toma el de la ficha del cliente al guardar (salvo los de la marca anterior).
+   ============================================================ */
+db.rpc = (orig => function (fn, args, ...r) {
+  if (TAB === 'analitica' && AN_REP && args) {
+    if ((fn === 'analitica_kpis' || fn === 'analitica_kpis_periodo') && !(args.p_filtro && args.p_filtro.reportado)) args = Object.assign({}, args, { p_filtro: Object.assign({}, args.p_filtro || {}, { reportado: AN_REP }) });
+    else if (fn === 'analitica_v2' && !$('areprt') && !('p_reportado' in args)) args = Object.assign({}, args, { p_reportado: AN_REP });
+  }
+  return orig.call(this, fn, args, ...r);
+})(db.rpc);
