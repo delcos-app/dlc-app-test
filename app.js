@@ -4732,7 +4732,7 @@ async function editorPedido(pedido) {
       </div>
       <div id="ptrfbox" class="pdtrfbox ${esTransferencia(form.forma_pago) && !(ped && ped.estado === 'Confirmado') ? '' : 'hide'}"><span class="sm">Pago por transferencia: envía los datos de pago y guarda el pedido en borrador; cuando llegue el pago, lo validas desde el pedido.</span>
         <button type="button" class="btn sec chico" id="ptrfmail">Enviar los datos de pago</button></div>
-      <div id="ptpvbox" class="pdtrfbox ${tpvActivo() && esPagoTpv(form.forma_pago) && !(ped && ped.estado === 'Confirmado') ? '' : 'hide'}"><span class="sm">Pago con tarjeta o Bizum: le llega por SMS el enlace para pagar y el pedido espera en borrador; cuando paga, se valida solo y queda cobrado.</span>
+      <div id="ptpvbox" class="pdtrfbox ${tpvActivo() && esPagoTpv(form.forma_pago) && !(ped && ped.estado === 'Confirmado') ? '' : 'hide'}"><span class="sm">Pago con tarjeta o Bizum: le llega por SMS el enlace y elige cómo pagar. El pedido espera en borrador y, cuando paga, se valida solo y queda cobrado con la forma de pago que haya usado.</span>
         <button type="button" class="btn sec chico" id="ptpvenv">Enviar enlace de pago</button></div>
       <div id="ppagox" class="g2 ${form.forma_pago ? '' : 'hide'}">
         <div><label for="pref">Referencia del pago</label><input id="pref" value="${esc(form.pago_referencia)}" placeholder="Código de la transferencia, bizum…"></div>
@@ -28538,7 +28538,7 @@ let TPV_MIRA = null;
 async function tpvBloque(id) {
   const box = $('pdpago'); if (!box || $('pdtpv')) return;
   const [{ data: ls }, { data: p }] = await Promise.all([
-    db.from('pagos_tpv').select('id,estado,movil,metodo,autorizacion,error,url_pago,entorno,creado_en,caduca_en,pagado_en').eq('pedido_id', id).neq('estado', 'Anulado').order('creado_en', { ascending: false }).limit(1),
+    db.from('pagos_tpv').select('*').eq('pedido_id', id).neq('estado', 'Anulado').order('creado_en', { ascending: false }).limit(1),
     db.from('pedidos').select('estado,pago_estado,forma_pago,sin_cargo').eq('id', id).maybeSingle()]);
   if (!$('pdpago') || $('pdtpv') || !p) return;
   const t = (ls || [])[0];
@@ -28549,7 +28549,7 @@ async function tpvBloque(id) {
   const [etq, cls] = TPV_EST[est] || ['', ''];
   const cuando = s => s ? `${fechaCorta(String(s).slice(0, 10))} a las ${new Date(s).toTimeString().slice(0, 5)}` : '';
   const detalle = !t ? 'Todavía no se ha enviado el enlace de pago.'
-    : est === 'Pagado' ? `Pagado${t.metodo ? ' con ' + esc(t.metodo === 'Bizum' ? t.metodo : t.metodo.toLowerCase()) : ''} el ${cuando(t.pagado_en)}${t.autorizacion ? ' · autorización ' + esc(t.autorizacion) : ''}`
+    : est === 'Pagado' ? `Pagado${t.metodo ? ' con ' + esc(t.metodo === 'Bizum' ? t.metodo : t.metodo.toLowerCase()) : ''} el ${cuando(t.pagado_en)}${t.autorizacion ? ' · autorización ' + esc(t.autorizacion) : ''}${t.metodo && t.forma_pedida && t.forma_pedida.toLowerCase() !== t.metodo.toLowerCase() ? ` · el pedido se hizo con «${esc(t.forma_pedida)}» y el cliente eligió ${esc(t.metodo === 'Bizum' ? t.metodo : t.metodo.toLowerCase())}` : ''}`
     : est === 'Fallido' ? esc(t.error || 'El banco no ha autorizado el pago')
     : est === 'Caducado' ? `El enlace enviado al ${esc(t.movil || '')} el ${cuando(t.creado_en)} ha caducado sin pagar`
     : `Enviado por SMS al ${esc(t.movil || '')} el ${cuando(t.creado_en)} · esperando el pago${p.estado === 'Borrador' ? '. Cuando pague, el pedido se valida solo.' : ''}`;
@@ -28681,3 +28681,5 @@ async function tpvAvisoImporte(id) {
   if (t && tot != null && Math.abs(+t.importe - tot) > 0.005)
     toast(`El enlace de pago enviado era de ${eurI(+t.importe)} y el pedido es ahora de ${eurI(tot)}: envía uno nuevo desde el pedido`, true);
 }
+
+/* v2.334.0: al cobrar por el enlace, la forma de pago del pedido pasa a ser la que eligió el cliente (SQL 173); «Abrir la página de pago (pruebas)» centrado como los demás botones. */
