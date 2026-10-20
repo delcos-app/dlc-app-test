@@ -4731,12 +4731,12 @@ async function editorPedido(pedido) {
             <select id="pdtot" style="max-width:110px"><option value="porcentaje">%</option>
               <option value="importe" ${form.descuento_tipo === 'importe' ? 'selected' : ''}>€</option></select></div></div>
       </div>
-      <div id="ptrfbox" class="pdtrfbox ${esTransferencia(form.forma_pago) && !(ped && ped.estado === 'Confirmado') ? '' : 'hide'}"><span class="sm">Pago por transferencia: envía los datos de pago y guarda el pedido en borrador; cuando llegue el pago, lo validas desde el pedido.</span>
-        <button type="button" class="btn sec chico" id="ptrfmail">Enviar los datos de pago</button></div>
-      <div id="ptpvbox" class="pdtrfbox ${tpvActivo() && esPagoTpv(form.forma_pago) && !(ped && ped.estado === 'Confirmado') ? '' : 'hide'}"><span class="sm">Pago con tarjeta o Bizum: le llega por SMS el enlace y elige cómo pagar. El pedido espera en borrador y, cuando paga, se valida solo y queda cobrado con la forma de pago que haya usado.</span>
-        <button type="button" class="btn sec chico" id="ptpvenv">Enviar enlace de pago</button></div>
-      <div id="ppagox" class="g2 ${form.forma_pago ? '' : 'hide'}">
-        <div><label for="pref">Referencia del pago</label><input id="pref" value="${esc(form.pago_referencia)}" placeholder="Código de la transferencia, bizum…"></div>
+      <div id="ppagox" class="pagofila ${form.forma_pago ? '' : 'hide'}">
+        <div class="pagoref"><label for="pref">Referencia del pago</label><input id="pref" value="${esc(form.pago_referencia)}" placeholder="Código de la transferencia, bizum…"></div>
+        <span id="ptrfbox" class="pagoacc ${esTransferencia(form.forma_pago) && !(ped && ped.estado === 'Confirmado') ? '' : 'hide'}"><button type="button" class="btn sec" id="ptrfmail">Enviar los datos de pago</button>
+          ${pmAyu('Pago por transferencia', 'Envía al cliente los datos de pago y el pedido se guarda en borrador. Cuando llegue el pago, lo validas desde el pedido.')}</span>
+        <span id="ptpvbox" class="pagoacc ${tpvActivo() && esPagoTpv(form.forma_pago) && !(ped && ped.estado === 'Confirmado') ? '' : 'hide'}"><button type="button" class="btn sec" id="ptpvenv">Enviar enlace de pago</button>
+          ${pmAyu('Pago con tarjeta o Bizum', 'Al cliente le llega por SMS el enlace y elige cómo pagar. El pedido espera en borrador y, cuando paga, se valida solo y queda cobrado con la forma de pago que haya usado.')}</span>
         <div><label>Justificante (foto o PDF)</label><label class="btn sec" style="display:inline-flex">📎 Adjuntar<input id="pjus" type="file" accept="image/*,application/pdf" data-fp="1" hidden></label>
           <div class="sm" id="pjusl">${justifs.map((j, i) => `<span class="jusp">📎 ${esc(j.nombre)} <button type="button" class="lnk" data-jx="${i}" aria-label="Quitar ${esc(j.nombre)}">quitar</button></span>`).join(' ')}</div></div>
       </div>
@@ -4938,8 +4938,8 @@ async function pedidoFacturas(id) {
     acts.insertAdjacentHTML('afterbegin', fac.map(f => `<button class="btn sec" data-pvfac="${f.id}">🧾 ${esc(f.numero)}</button>`).join(''));
     acts.querySelectorAll('[data-pvfac]').forEach(b => b.onclick = () => verFactura(b.dataset.pvfac));
   } else if (p.estado === 'Confirmado' && !p.sin_cargo && puedeFacturar()) {
-    acts.insertAdjacentHTML('afterbegin', '<button class="btn" id="pvemitir">🧾 Emitir factura</button>');
-    $('pvemitir').onclick = async () => { const r = await emitirFacturaPedido(id); if (r) verFactura(r.id); };
+    acts.insertAdjacentHTML('afterbegin', '<button class="btn" id="pvemitir">🧾 Ver la factura</button>');   // v2.339.0: primero la vista previa
+    $('pvemitir').onclick = () => previaFacturaPedido(id);
   }
 }
 
@@ -4994,8 +4994,8 @@ async function verPedidoBase(id) {
   const bor = p.estado === 'Borrador', anulado = p.estado === 'Anulado';
 
   $('dbody').innerHTML = `
-    <div class="fh"><div><h2>Pedido ${esc(p.numero || '')} ${pillEstado(p.estado)}</h2>
-      <div class="sm">${fechaCorta(p.fecha)} · ${etiquetaCanal(p, t.total)}${p.forma_pago ? ' · ' + esc(p.forma_pago) : ''}</div></div>
+    <div class="fh pdcab"><div class="pdcabt"><h2>Pedido${p.numero ? ' ' + esc(p.numero) : ''}</h2>${pillEstado(p.estado)}
+      <span class="sm pdmeta">${fechaCorta(p.fecha)} · ${etiquetaCanal(p, t.total)}${p.forma_pago ? ' · ' + esc(p.forma_pago) : ''}</span></div>
       <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
     ${bor ? '<div class="cacheaviso" style="margin-top:10px">Borrador: todavía no cuenta en métricas ni en comisiones.</div>' : ''}
     ${c ? `<div class="blk"><h3>${TT('paciente', 's', '', 'l', 'C')}</h3><div><b>${esc(c.nombre)}</b></div>
@@ -8899,12 +8899,12 @@ async function pintarRegistro() {
 
 /* ---------------- desde el pedido: emitir o ver la factura ---------------- */
 
-async function emitirFacturaPedido(pedidoId) {
+async function emitirFacturaPedido(pedidoId, o = {}) {
   const { data: pd } = await RPC_ORIG('pedido_detalle', { p_id: pedidoId });
   const cli = pd && pd.contacto;
   const aviso = !cli ? '\n\n⚠ El pedido no tiene cliente: la factura saldrá sin destinatario. Para una factura completa, asigna antes un cliente con su NIF.'
     : !cli.nif ? `\n\n⚠ ${cli.nombre} no tiene DNI o CIF en su ficha: conviene añadirlo antes para una factura completa.` : '';
-  if (!await preguntar('Se emite la factura con el número siguiente de la serie. Una vez emitida no se puede modificar ni borrar: si hay un error se corrige con una rectificativa.' + aviso,
+  if (!o.yaVista && !await preguntar('Se emite la factura con el número siguiente de la serie. Una vez emitida no se puede modificar ni borrar: si hay un error se corrige con una rectificativa.' + aviso,
     { titulo: '¿Emitir la factura?', ok: 'Emitir factura' })) return null;
   const { data: r, error } = await db.rpc('emitir_factura', { p_pedido: pedidoId });
   if (error || (r && r.ok === false)) {
@@ -17493,7 +17493,7 @@ async function anGraficos(desde, hasta) {
         : vacioGrafico('Cuando haya pedidos validados verás aquí las unidades (barras) y el importe (línea) de cada mes.')}
       <p class="leer"><b>Cómo leerlo:</b> arriba, las unidades vendidas cada mes; abajo, el importe, con los mismos meses alineados. Si el importe crece más que las unidades, se vende a mejor precio (menos descuento o productos de más valor).</p></div>
     <div class="card ancard"><h2>Reparto por producto</h2>
-      ${(act.por_producto || []).length ? svgDonut((act.por_producto || []).slice(0, 6).map(x => ({ n: x.nombre, v: x.unidades }))) : vacioGrafico('Verás qué parte de las unidades corresponde a cada producto.')}
+      ${(act.por_producto || []).length ? barrasReparto((act.por_producto || []).map(x => ({ n: x.nombre, v: +x.unidades || 0 }))) : vacioGrafico('Verás qué parte de las unidades corresponde a cada producto.')}
       <p class="leer"><b>Cómo leerlo:</b> el porcentaje de unidades de cada producto en el periodo. Sirve para ver de qué depende la facturación.</p></div>
     <div class="card ancard"><h2>${TT('medico', 'p', '', 'l', 'C')} con más ventas</h2>
       ${med.filter(x => x.clave !== 'sin').length ? barrasH(med.filter(x => x.clave !== 'sin').map(x => ({ n: x.nombre, v: x.unidades })), num) : vacioGrafico(`Aparecerán los 10 ${TT('medico', 'p', '', 'l', 'l')} con más unidades atribuidas.`)}
@@ -28903,3 +28903,61 @@ function medirBnav() {
 }
 addEventListener('resize', medirBnav); setTimeout(medirBnav, 0);
 pintarBnav = (orig => function (...a) { const r = orig.apply(this, a); medirBnav(); return r; })(pintarBnav);
+
+
+/* ============================================================
+   v2.339.0 · Vista previa de la factura antes de emitirla (Eric, 20/10/2026). En el pedido, «Ver la factura» enseña el PDF tal como
+   saldrá (mismas cuentas que emitir_factura: precio = importe / unidades, base con el descuento general repartido, envío como línea,
+   desglose por tipo de IVA) con «VISTA PREVIA» y sin número; desde ahí, «Emitir factura». No guarda nada.
+   ============================================================ */
+function facturaDePedido(d) {
+  const p = d.pedido, t = d.totales || {}, c = d.contacto || {};
+  const emp = Object.fromEntries(Object.entries((AJUSTES || {}).empresa || {}).filter(([, v]) => v));
+  if (emp.poblacion && !emp.municipio) emp.municipio = emp.poblacion;
+  const bruto = +t.bruto || 0, k = bruto ? (+t.base_productos || 0) / bruto : 1, r2 = v => Math.round(v * 100) / 100;
+  const lineas = (d.lineas || []).map(x => ({ descripcion: x.producto || 'Sin producto', unidades: +x.unidades || 0,
+    precio: (+x.unidades ? (+x.importe || 0) / +x.unidades : 0), descuento: +x.descuento || 0, iva: +x.iva || 0,
+    base: r2((+x.importe || 0) * (1 - (+x.descuento || 0) / 100) * k) }));
+  if (p.envio) lineas.push({ descripcion: ((SERVICIOS || []).find(x => x.id === p.servicio_id) || {}).nombre || 'Envío', unidades: 1,
+    precio: +p.envio_base || 0, descuento: 0, iva: +p.envio_iva || 0, base: r2(+p.envio_base || 0), servicio: true });
+  const g = {}; lineas.forEach(l => { g[l.iva] = (g[l.iva] || 0) + l.base; });
+  const desglose_iva = Object.keys(g).map(Number).sort((a, b) => a - b).map(iva => ({ iva, base: r2(g[iva]), cuota: r2(g[iva] * iva / 100) }));
+  const base = r2(desglose_iva.reduce((a, x) => a + x.base, 0)), total = r2(desglose_iva.reduce((a, x) => a + x.base + x.cuota, 0));
+  return { numero: 'Sin número hasta emitirla', fecha: hoyISO(), vencimiento: hoyISO(), emisor: emp, forma_pago: p.forma_pago || '',
+    cliente: c.id ? { nombre: c.nombre, nif: c.nif, direccion: c.direccion, cp: c.cp, municipio: c.municipio, provincia: c.provincia, email: c.email } : {},
+    lineas, base, desglose_iva, total, verifactu: {} };
+}
+async function previaFacturaPedido(id) {
+  await cargarAjustes();
+  const { data: d } = await RPC_ORIG('pedido_detalle', { p_id: id });
+  if (!d || !d.pedido) { toast('No se ha podido leer el pedido', true); return; }
+  const c = d.contacto, falta = !c ? `El pedido no tiene ${TT('paciente', 's', '', 'l', 'l')}: la factura saldrá sin destinatario.` : !c.nif ? `${esc(c.nombre)} no tiene DNI o CIF en su ficha: conviene añadirlo antes.` : '';
+  $('dlg2body').innerHTML = `<div class="fh"><div><h2>Vista previa de la factura</h2></div><button class="x" data-cerrar2 aria-label="Cerrar">✕</button></div>
+    ${falta ? `<div class="banda-aviso facpaviso">${falta}</div>` : ''}
+    <div class="facprev"><iframe id="facpif" title="Vista previa de la factura"></iframe></div>
+    <p class="sm">Al emitirla se le da el número siguiente de la serie y ya no se puede modificar ni borrar: un error se corrige con una rectificativa.</p>
+    <div class="acts"><button type="button" class="btn sec" data-cerrar2>Cancelar</button><button type="button" class="btn" id="facpemitir">Emitir factura</button></div>`;
+  $('dlg2').classList.add('amplia'); $('dlg2').addEventListener('close', () => $('dlg2').classList.remove('amplia'), { once: true });
+  $('dlg2').showModal();
+  try {
+    const C = Object.assign({}, cfgPDF()); C.titulo = (C.titulo || 'FACTURA') + ' · VISTA PREVIA';
+    const doc = await facturaPDF(facturaDePedido(d), '', C);
+    if ($('facpif')) $('facpif').src = doc.output('bloburl') + '#toolbar=0&navpanes=0&view=FitH';
+  } catch (e) { toast('No se ha podido preparar la vista previa', true); registrarError('app', 'Vista previa de la factura', { e: String(e) }); }
+  $('facpemitir').onclick = () => conCarga($('facpemitir'), 'Emitiendo…', async () => {
+    const r = await emitirFacturaPedido(id, { yaVista: true });
+    if (r) { $('dlg2').close(); verFactura(r.id); }
+  });
+}
+
+
+/* v2.339.0 · «Reparto por producto» en barras (Eric: el anillo dejaba media tarjeta vacía): total arriba y, por producto, barra con
+   unidades y porcentaje, hasta 10 (los demás juntos en «Otros»), con el mismo ritmo que la tarjeta de al lado. */
+function barrasReparto(items) {
+  const l = [...items].sort((a, b) => b.v - a.v), tot = l.reduce((n, x) => n + x.v, 0) || 1;
+  const vis = l.length > 10 ? [...l.slice(0, 9), { n: 'Otros (' + (l.length - 9) + ')', v: l.slice(9).reduce((n, x) => n + x.v, 0) }] : l;
+  const pc = v => { const p = v / tot * 100; return (p > 0 && p < 1 ? '<1' : Math.round(p)) + ' %'; };
+  return `<div class="reptot"><b>${num(tot)}</b> unidades · ${num(l.length)} ${l.length === 1 ? 'producto' : 'productos'}</div>
+    <div class="barrash reparto">${vis.map(x => `<div class="bh"><span class="bhn" title="${esc(x.n)}">${esc(x.n)}</span>
+      <svg class="bhsvg" viewBox="0 0 100 12" preserveAspectRatio="none" aria-hidden="true"><rect class="f" width="100" height="12" rx="6"/><rect class="v" width="${Math.max(2, x.v / tot * 100).toFixed(1)}" height="12" rx="6"/></svg><b>${num(x.v)}</b><span class="sm bhp">${pc(x.v)}</span></div>`).join('')}</div>`;
+}
