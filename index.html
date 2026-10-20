@@ -3264,7 +3264,7 @@ input[type=checkbox]:not(.vfswitch input):focus-visible{outline:none;box-shadow:
 .vfswitch input:checked + .sw{background:var(--navy)}
 /* v2.215.0 · Configuración en un solo sitio: índice y página */
 .cfu{display:grid;grid-template-columns:252px minmax(0,1fr);gap:28px;align-items:start}
-.cfuidx{position:sticky;top:88px;max-height:calc(100vh - 100px);overflow:auto;padding:2px 4px 16px 4px;scrollbar-width:thin}
+.cfuidx{position:sticky;top:88px;max-height:var(--cfuidxh,calc(100vh - 100px));overflow:auto;overscroll-behavior:contain;padding:2px 4px 16px 4px;scrollbar-width:thin}
 .cfubusca{position:relative;margin:0 0 6px}.cfubusca svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:var(--muted);pointer-events:none}
 .cfubusca input{min-height:38px!important;padding:7px 10px 7px 33px!important;font-size:14px;border-radius:10px;max-width:none!important}
 .cfuidx h4{font:700 11px var(--f-titulo);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:16px 10px 4px}
@@ -4742,6 +4742,16 @@ html body :is(.pagtabs, .subnav, .pmtabs)::-webkit-scrollbar{display:none}
 .barrash.reparto .bh b{text-align:right;font-variant-numeric:tabular-nums}
 .bhsvg{width:100%;height:12px;display:block}.bhsvg .f{fill:var(--bg)}.bhsvg .v{fill:var(--sky)}
 .barrash.reparto .bhp{text-align:right;font-variant-numeric:tabular-nums}
+/* v2.340.0 · Configuración: pestañas de las partes de un apartado, Textos personalizados y sin «Cómo se llama cada cosa» */
+.cfucab .cfgpartes{margin-top:12px}
+#v-config #mkvoccard,#v-config .mkvoc,#v-config .mketqbox{display:none!important}
+.txmtab{display:flex;flex-direction:column}
+.txmf{display:grid;grid-template-columns:28px minmax(0,1fr) minmax(0,1.4fr);gap:10px;align-items:center;padding:6px 0;border-top:1px solid var(--line)}
+.txmf.txmcab{border-top:0;font:700 11px var(--f-titulo);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.txmico{text-align:center}
+.txmdef{font-weight:600}
+.txmf input{max-width:360px}
+@media (max-width:760px){.txmf{grid-template-columns:24px minmax(0,1fr)}.txmf > span:last-child{grid-column:2}.txmf.txmcab{display:none}}
 </style>
 </head>
 <body>
@@ -4879,6 +4889,6 @@ try{var co=sessionStorage.getItem('dlc-cambio-org');if(co!==null||localStorage.g
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.339.0"></script>
+<script src="./app.js?v=2.340.0"></script>
 </body>
 </html>

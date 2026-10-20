@@ -10974,12 +10974,14 @@ function pintarPerfilBase() {
   pintarPrefsPerfil();
 }
 async function pintarPrefsPerfil() {
-  // La tarjeta #miperfil la genera el envoltorio de pintarPrefs: se pinta en un contenedor aparte y se mueve
-  const real = $('cfgcuerpo'); real.id = 'cfgcuerpo-real';
-  const t = document.createElement('div'); t.id = 'cfgcuerpo'; t.style.display = 'none'; document.body.appendChild(t);
-  try { await pintarPrefs(); } catch (e) {}
-  const mp = t.querySelector('#miperfil'); t.remove(); real.id = 'cfgcuerpo';
-  if (mp && $('perfilcab')) $('perfilcab').replaceWith(mp);
+  // v2.340.0: la tarjeta de la persona se pinta directamente en su sitio (antes, en un contenedor escondido esperando a pintarPrefs:
+  // llegaba tarde o, si quedaba otra #miperfil en la copia fija, no llegaba y dejaba el hueco)
+  document.querySelectorAll('#miperfil, #mpextra').forEach(x => { if (x.closest('.congelada')) x.removeAttribute('id'); else x.remove(); });
+  if (!$('perfilcab')) return;
+  const p = pintarPrefsPaso2();
+  const mp = $('miperfil');
+  if (mp && $('perfilcab')) $('perfilcab').replaceWith(mp); else if ($('perfilcab')) $('perfilcab').remove();
+  try { await p; } catch (e) {}
 }
 // Al entrar, se abre el módulo elegido
 
@@ -21658,7 +21660,7 @@ function arbolCfgUnico() {
       { k: 'usuarios', t: 'Usuarios', ic: 'users', d: 'Personas del equipo, su rol, su cartera y su comisión', r: () => pintarUsuarios2() },
       { k: 'roles', t: 'Roles y permisos', ic: 'lock-keyhole', d: 'Qué puede ver y hacer cada rol', r: () => pintarRoles() },
       ...hojas(de('cartera')), ...hojas(de('comis')), ...hojas(de('seguridad'))] : []],
-    ['Empresa', [...o('marca', 'palette', 'Nombre, logo y cómo llamáis a cada cosa', 'Marca y vocabulario'), ...o('correo', 'mail', 'Cuenta de envío y firma de los correos'),
+    ['Empresa', [...o('marca', 'palette', 'Nombre de la plataforma y logo', 'Marca y logo'), ...o('correo', 'mail', 'Cuenta de envío y firma de los correos'),
       ...o('plan', 'credit-card', 'Tu plan, los usuarios y los pagos'), ...o('copias', 'save', 'Descarga de todos los datos de la empresa'),
       ...o('orgs', 'building', 'Empresas de la plataforma')]],
     ['Facturación', [...o('fiscal', 'receipt', 'Razón social, NIF y dirección'), ...o('series', 'receipt', 'Numeración de las facturas'),
@@ -21666,8 +21668,8 @@ function arbolCfgUnico() {
     ['Datos', (cfg.find(g => g[0] === 'Datos') || [, []])[1].flatMap(hojas)]
   ].filter(g => g[1].length);
 }
-const hojasCfg = arbol => arbol.flatMap(([gr, l]) => l.flatMap(it => it.hijos
-  ? it.hijos.map(h => ({ k: h.k, t: h.t, r: h.r, gr, ic: it.ic, padre: it.t, d: '', mod: it.mod })) : [Object.assign({ gr }, it)]));
+// v2.340.0 (Eric): cada apartado es una sola entrada del índice; sus partes (Rutas: salida y tiempos…) van dentro, en pestañas
+const hojasCfg = arbol => arbol.flatMap(([gr, l]) => l.map(it => Object.assign({ gr }, it)));
 let CFG_PEND = { t: 0, l: {} };
 async function pendientesCfg() {
   if (Date.now() - CFG_PEND.t < 60000) return CFG_PEND.l;
@@ -21687,60 +21689,83 @@ async function pendientesCfg() {
 const LUPA_CFG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>';
 let CFG_DETALLE = false;
 cargarConfig = async function () {
+  // v2.340.0 (avisos de Eric): se abre siempre en «Mis datos» (no en el último apartado); al cambiar de apartado solo cambia la página
+  // de la derecha (el índice se queda, con su desplazamiento: antes se volvía a montar todo y daba un salto); los apartados con partes
+  // son una sola entrada y las partes, pestañas dentro de la página.
   if (typeof salirPanel === 'function') salirPanel();
   const arbol = arbolCfgUnico(), hojas = hojasCfg(arbol);
-  let ult = ''; try { ult = localStorage.getItem('delcos-cfg') || ''; } catch (e) {}
-  const pedida = CFG_KEY || ult;
-  const it = hojas.find(x => x.k === pedida) || hojas.find(x => x.k.startsWith(pedida + '.')) || hojas[0];
+  const pedida = CFG_KEY || 'datos';
+  const it = hojas.find(x => x.k === pedida) || hojas.find(x => x.hijos && x.hijos.some(h => h.k === pedida)) || hojas.find(x => pedida.startsWith(x.k + '.'))
+    || hojas.find(x => x.k === 'datos') || hojas[0];
   if (!it) return;
-  CFG_KEY = it.k; try { localStorage.setItem('delcos-cfg', it.k); } catch (e) {}
-  const movil = ES_MOVIL();
-  const ind = arbol.map(([gr, l]) => `<h4>${esc(gr)}</h4>${l.map(x => x.hijos
-    ? `<div class="cfipad">${svgIco(ICON_NOM[x.ic] || '')}<span>${esc(x.t)}</span></div>${x.hijos.map(h => `<button type="button" class="sub${h.k === it.k ? ' on' : ''}" data-ck="${h.k}"><span>${esc(h.t)}</span></button>`).join('')}`
-    : `<button type="button" class="${x.k === it.k ? 'on' : ''}" data-ck="${x.k}">${svgIco(ICON_NOM[x.ic] || '')}<span>${esc(x.t)}</span>${x.mod && !planIncluye(x.mod) ? `<span class="pill p-plan">${esc(planMinimo(x.mod) ? planMinimo(x.mod).nombre : 'Plan')}</span>` : ''}</button>`).join('')}`).join('');
-  $('v-config').innerHTML = `<div class="saludo"><div><h1>Configuración</h1><div class="fecha">Tu cuenta${arbol.length > 1 ? ', tu equipo y tu empresa, en un solo sitio' : ' y tus preferencias'}</div></div></div>
-    <div class="cfu${movil && CFG_DETALLE ? ' det' : ''}">
-      <nav class="cfuidx" aria-label="Apartados de configuración"><div class="cfubusca">${LUPA_CFG}<input id="cfubus" type="search" placeholder="Buscar un ajuste" autocomplete="off" aria-label="Buscar un ajuste"></div>
-        <div id="cfulista">${ind}</div><div class="cfusin hide" id="cfusin">Ningún ajuste con esas palabras</div></nav>
-      <section class="cfupag"><button type="button" class="cfuvolver" id="cfuvolver">‹ Configuración</button>
-        <div class="cfucab"><div class="miga">${esc(it.gr)}${it.padre ? ' · ' + esc(it.padre) : ''}</div><h2>${esc(it.t)}</h2>${it.d ? `<p>${esc(it.d)}</p>` : ''}</div>
-        <div class="cfupend hide" id="cfupend"></div>
-        <div id="cfgcuerpo-hub"><div id="cfgcuerpo"></div></div></section></div>`;
-  const v = $('v-config');
-  v.querySelectorAll('[data-ck]').forEach(b => b.onclick = () => { CFG_KEY = b.dataset.ck; CFG_DETALLE = true; cargarConfig(); if (ES_MOVIL()) scrollTo(0, 0); });
-  $('cfuvolver').onclick = () => { CFG_DETALLE = false; v.querySelector('.cfu').classList.remove('det'); scrollTo(0, 0); };
-  // Buscador: por nombre, apartado y palabras clave; Intro abre el primero
-  const busca = $('cfubus');
-  busca.oninput = () => {
-    const q = impNorm(busca.value.trim());
-    let vis = 0;
-    v.querySelectorAll('#cfulista [data-ck]').forEach(b => {
-      const h = hojas.find(x => x.k === b.dataset.ck) || {};
-      const txt = impNorm([h.t, h.padre, h.gr, h.d, CFG_CLAVES[h.k] || CFG_CLAVES[(h.k || '').split('.')[0]] || ''].join(' '));
-      const ok = !q || q.split(/\s+/).every(p => txt.includes(p)); b.classList.toggle('hide', !ok); if (ok) vis++;
-    });
-    v.querySelectorAll('#cfulista h4, #cfulista .cfipad').forEach(e => {
-      let s = e.nextElementSibling, alguno = false;
-      while (s && (e.tagName === 'H4' ? s.tagName !== 'H4' : s.classList.contains('sub'))) { if (s.matches('[data-ck]:not(.hide)')) alguno = true; s = s.nextElementSibling; }
-      e.classList.toggle('hide', !!q && !alguno);
-    });
-    $('cfusin').classList.toggle('hide', vis > 0);
-  };
-  busca.onkeydown = e => { if (e.key === 'Enter') { const b = v.querySelector('#cfulista [data-ck]:not(.hide)'); if (b) { e.preventDefault(); b.click(); } } };
-  // Lo pendiente: punto en el índice y aviso en el apartado
+  const hijo = it.hijos ? (it.hijos.find(h => h.k === pedida) || it.hijos[0]) : null;
+  CFG_KEY = hijo ? hijo.k : it.k;
+  const movil = ES_MOVIL(), v = $('v-config');
+  const firma = hojas.map(x => x.k + (x.hijos ? '(' + x.hijos.map(h => h.k).join(',') + ')' : '')).join('|') + '|' + movil;
+  if (!(v.dataset.cfgfirma === firma && $('cfulista') && v.querySelector('.cfupag'))) {
+    const ind = arbol.map(([gr, l]) => `<h4>${esc(gr)}</h4>${l.map(x => `<button type="button" data-ck="${x.k}">${svgIco(ICON_NOM[x.ic] || '')}<span>${esc(x.t)}</span>${x.mod && !planIncluye(x.mod) ? `<span class="pill p-plan">${esc(planMinimo(x.mod) ? planMinimo(x.mod).nombre : 'Plan')}</span>` : ''}</button>`).join('')}`).join('');
+    v.innerHTML = `<div class="saludo"><div><h1>Configuración</h1><div class="fecha">Tu cuenta${arbol.length > 1 ? ', tu equipo y tu empresa, en un solo sitio' : ' y tus preferencias'}</div></div></div>
+      <div class="cfu">
+        <nav class="cfuidx" aria-label="Apartados de configuración"><div class="cfubusca">${LUPA_CFG}<input id="cfubus" type="search" placeholder="Buscar un ajuste" autocomplete="off" aria-label="Buscar un ajuste"></div>
+          <div id="cfulista">${ind}</div><div class="cfusin hide" id="cfusin">Ningún ajuste con esas palabras</div></nav>
+        <section class="cfupag"><button type="button" class="cfuvolver" id="cfuvolver">‹ Configuración</button>
+          <div class="cfucab"></div><div class="cfupend hide" id="cfupend"></div>
+          <div id="cfgcuerpo-hub"><div id="cfgcuerpo"></div></div></section></div>`;
+    v.dataset.cfgfirma = firma;
+    v.querySelectorAll('#cfulista [data-ck]').forEach(b => b.onclick = () => { CFG_KEY = b.dataset.ck; CFG_DETALLE = true; cargarConfig(); if (ES_MOVIL()) scrollTo(0, 0); });
+    $('cfuvolver').onclick = () => { CFG_DETALLE = false; v.querySelector('.cfu').classList.remove('det'); scrollTo(0, 0); };
+    // Buscador: por nombre, apartado, partes y palabras clave; Intro abre el primero
+    const busca = $('cfubus');
+    busca.oninput = () => {
+      const q = impNorm(busca.value.trim());
+      let vis = 0;
+      v.querySelectorAll('#cfulista [data-ck]').forEach(b => {
+        const h = hojasCfg(arbolCfgUnico()).find(x => x.k === b.dataset.ck) || {};
+        const partes = (h.hijos || []).map(x => x.t + ' ' + (CFG_CLAVES[x.k] || '')).join(' ');
+        const txt = impNorm([h.t, h.gr, h.d, partes, CFG_CLAVES[h.k] || ''].join(' '));
+        const ok = !q || q.split(/\s+/).every(p => txt.includes(p)); b.classList.toggle('hide', !ok); if (ok) vis++;
+      });
+      v.querySelectorAll('#cfulista h4').forEach(e => {
+        let x = e.nextElementSibling, alguno = false;
+        while (x && x.tagName !== 'H4') { if (x.matches('[data-ck]:not(.hide)')) alguno = true; x = x.nextElementSibling; }
+        e.classList.toggle('hide', !!q && !alguno);
+      });
+      $('cfusin').classList.toggle('hide', vis > 0);
+    };
+    busca.onkeydown = e => { if (e.key === 'Enter') { const b = v.querySelector('#cfulista [data-ck]:not(.hide)'); if (b) { e.preventDefault(); b.click(); } } };
+    cfuAjustarIndice();
+  }
+  v.querySelector('.cfu').classList.toggle('det', movil && CFG_DETALLE);
+  v.querySelectorAll('#cfulista [data-ck]').forEach(b => b.classList.toggle('on', b.dataset.ck === it.k));
+  // Cabecera de la página y, si tiene partes, sus pestañas
+  v.querySelector('.cfucab').innerHTML = `<div class="miga">${esc(it.gr)}</div><h2>${esc(it.t)}</h2>${it.d ? `<p>${esc(it.d)}</p>` : ''}
+    ${it.hijos ? `<div class="pagtabs cfgpartes" role="tablist">${it.hijos.map(h => `<button type="button" role="tab" data-cks="${h.k}" aria-selected="${h === hijo}" class="${h === hijo ? 'on' : ''}">${esc(h.t)}</button>`).join('')}</div>` : ''}`;
+  v.querySelectorAll('.cfucab [data-cks]').forEach(b => b.onclick = () => { if (b.dataset.cks === CFG_KEY) return; CFG_KEY = b.dataset.cks; cargarConfig(); });
+  $('cfupend').classList.add('hide'); $('cfupend').innerHTML = '';
+  $('cfgcuerpo-hub').innerHTML = '<div id="cfgcuerpo"></div>';
+  // Lo pendiente: punto en el índice (en el apartado que lo contiene) y aviso en la página
   pendientesCfg().then(l => {
     if (!$('cfulista')) return;
-    Object.entries(l).forEach(([k, t]) => { const b = v.querySelector(`#cfulista [data-ck="${k}"]`); if (b && !b.querySelector('.cfupt')) { b.insertAdjacentHTML('beforeend', '<span class="cfupt"></span>'); b.title = t; } });
+    Object.entries(l).forEach(([k, t]) => { const b = [...v.querySelectorAll('#cfulista [data-ck]')].find(x => k === x.dataset.ck || k.startsWith(x.dataset.ck + '.')); if (b && !b.querySelector('.cfupt')) { b.insertAdjacentHTML('beforeend', '<span class="cfupt"></span>'); b.title = t; } });
     if (l[CFG_KEY] && $('cfupend')) { $('cfupend').innerHTML = `<span class="cfupt"></span>${esc(l[CFG_KEY])}`; $('cfupend').classList.remove('hide'); }
   });
   // El apartado (o, si el plan no lo incluye, qué plan lo trae)
+  const r = hijo ? hijo.r : it.r;
   if (it.mod && !planIncluye(it.mod)) {
     const p = planMinimo(it.mod);
-    $('cfgcuerpo').innerHTML = `<div class="card cfgpanel planup"><div class="planupico">${svgIco(ICON_NOM.lock)}</div><h2>${esc(it.padre || it.t)} está en el plan ${esc(p ? p.nombre : 'A medida')}</h2>
+    $('cfgcuerpo').innerHTML = `<div class="card cfgpanel planup"><div class="planupico">${svgIco(ICON_NOM.lock)}</div><h2>${esc(it.t)} está en el plan ${esc(p ? p.nombre : 'A medida')}</h2>
       <p class="sm">Tu plan ${esc(planDe(PLAN_ACTUAL.plan).nombre)} no lo incluye.</p>${puedeOrganizacion() ? '<div class="acts"><button class="btn" id="planver">Ver planes</button></div>' : ''}</div>`;
     if ($('planver')) $('planver').onclick = () => { CFG_KEY = 'o.plan'; cargarConfig(); };
-  } else Promise.resolve().then(it.r);
+  } else Promise.resolve().then(r);
 };
+// El índice cabe siempre en la pantalla: su alto llega justo al borde de abajo, así la rueda lo recorre entero sin tener que mover la página
+function cfuAjustarIndice() {
+  const n = document.querySelector('#v-config .cfuidx'); if (!n || TAB !== 'config' || ES_MOVIL()) return;
+  const top = Math.max(0, n.getBoundingClientRect().top);
+  n.style.setProperty('--cfuidxh', Math.max(240, innerHeight - top - 12) + 'px');
+}
+let CFU_RAF = 0;
+['scroll', 'resize'].forEach(ev => addEventListener(ev, () => { cancelAnimationFrame(CFU_RAF); CFU_RAF = requestAnimationFrame(cfuAjustarIndice); }, { passive: true }));
 // Cualquier camino a los ajustes lleva a su entrada de Configuración
 ir = (orig => function (t, ...r) {
   let k = null;
@@ -21752,7 +21777,7 @@ ir = (orig => function (t, ...r) {
   else if (t === 'plan') k = 'o.plan';
   else if (t === 'usuarios') k = PAG_TAB.usuarios === 'roles' ? 'roles' : 'usuarios';
   if (k === null) return orig.call(this, t, ...r);
-  if (k) { CFG_KEY = k; CFG_DETALLE = true; } else if (IR_DESDE_MENU_CFG) CFG_DETALLE = false;
+  if (k) { CFG_KEY = k; CFG_DETALLE = true; } else if (IR_DESDE_MENU_CFG) { CFG_DETALLE = false; CFG_KEY = 'datos'; }   // v2.340.0: siempre «Mis datos»
   if (t !== 'config') { PAG_TAB.perfil = PAG_TAB.organizacion = PAG_TAB.empresa = PAG_TAB.usuarios = undefined; }
   CFG_SEC = '__cfg'; CFG_SUB = null; IR_DESDE_MENU_CFG = false;
   return orig.call(this, 'config', ...r);
@@ -23767,7 +23792,7 @@ arbolCfgUnico = (orig => function (...a) {
   const emp = g.find(x => x[0] === 'Empresa');
   if (emp && !emp[1].some(x => x.k === 'o.textos')) {
     const i = emp[1].findIndex(x => x.k === 'o.marca');
-    emp[1].splice(i + 1, 0, { k: 'o.textos', t: 'Textos personalizados', ic: 'file-text', d: 'Vocabulario, menú, estados, resultados, roles y campos', r: () => pintarTextos() });
+    emp[1].splice(i + 1, 0, { k: 'o.textos', t: 'Textos personalizados', ic: 'file-text', d: 'Cómo se llama cada módulo en tu empresa', r: () => pintarTextos() });
   }
   return g;
 })(arbolCfgUnico);
@@ -25323,8 +25348,9 @@ plSync = (orig => function (tab, ...x) {
    Usuarios y Calidad del dato ya llegaban y cambiaban de una vez (pruebas usuarios2252).
    ============================================================ */
 document.addEventListener('click', e => {
-  const b = e.target.closest('#v-config .cfuidx [data-ck]'); if (!b || TAB !== 'config' || b.dataset.ck === CFG_KEY) return;
-  congelar($('v-config'));
+  const b = e.target.closest('#v-config .cfuidx [data-ck], #v-config .cfucab [data-cks]'); if (!b || TAB !== 'config' || b.classList.contains('on')) return;
+  const p = document.querySelector('#v-config .cfupag');
+  if (p && p.offsetParent && !ES_MOVIL()) congelar(p); else congelar($('v-config'));   // en el móvil el índice tapa la página: toda la pantalla
 }, true);
 
 
@@ -28961,3 +28987,52 @@ function barrasReparto(items) {
     <div class="barrash reparto">${vis.map(x => `<div class="bh"><span class="bhn" title="${esc(x.n)}">${esc(x.n)}</span>
       <svg class="bhsvg" viewBox="0 0 100 12" preserveAspectRatio="none" aria-hidden="true"><rect class="f" width="100" height="12" rx="6"/><rect class="v" width="${Math.max(2, x.v / tot * 100).toFixed(1)}" height="12" rx="6"/></svg><b>${num(x.v)}</b><span class="sm bhp">${pc(x.v)}</span></div>`).join('')}</div>`;
 }
+
+
+/* ============================================================
+   v2.340.0 · Textos personalizados, rehecho (Eric, 20/10/2026): una tabla con cada módulo del menú, su nombre de siempre y el que
+   quiere la empresa (en blanco, el de siempre). Se irá ampliando. El de las fichas (directorio) es la etiqueta de la marca.
+   La tarjeta «Cómo se llama cada cosa» de Marca y vocabulario queda fuera (Eric: descartada).
+   ============================================================ */
+pintarTextos = async function () {
+  await cargarAjustes();
+  const mn = menuNombres(), etqDef = TT('medico', 'p', '', 'l', 'C');
+  const vistos = new Set();
+  const filas = [...document.querySelectorAll('nav.main [data-t]')].filter(b => {
+    const t = b.dataset.t; if (vistos.has(t) || MENU_FUERA.includes(t) || ['config', 'delcos', 'manual'].includes(t) || b.classList.contains('hide')) return false;
+    vistos.add(t); return true;
+  }).map(b => {
+    const t = b.dataset.t, x = txTexto(b), def = t === 'directorio' ? etqDef : (b.dataset.txdef || (x && x.get()) || t);
+    const val = t === 'directorio' ? (((AJUSTES.marca || {}).etiqueta || '') !== etqDef ? ((AJUSTES.marca || {}).etiqueta || '') : '') : (mn[t] || '');
+    return { t, def, val };
+  });
+  $('cfgcuerpo').innerHTML = `<div class="card cfgpanel txmenu"><h2>Menús ${pmAyu('Menús', 'Cómo se llama cada módulo en el menú y en el título de su pantalla. Escribe el nombre que usa tu empresa; en blanco, se usa el de siempre.')}</h2>
+    <div class="txmtab" role="table"><div class="txmf txmcab" role="row"><span></span><span role="columnheader">Módulo</span><span role="columnheader">Nombre en tu empresa</span></div>
+    ${filas.map(f => `<div class="txmf" role="row"><span class="txmico" role="cell">${ICO_MOD[f.t] || '•'}</span><span role="cell" class="txmdef">${esc(f.def)}</span>
+      <span role="cell"><input data-txm="${f.t}" value="${esc(f.val)}" placeholder="${esc(f.def)}" maxlength="30" aria-label="Nombre de ${esc(f.def)} en tu empresa"></span></div>`).join('')}</div>
+    <div class="acts"><button type="button" class="btn" id="txmok">Guardar</button></div></div>`;
+  $('txmok').onclick = () => conCarga($('txmok'), 'Guardando…', async () => {
+    const nuevo = {}; let dir = null;
+    $('cfgcuerpo').querySelectorAll('[data-txm]').forEach(i => { const v = i.value.trim(); if (i.dataset.txm === 'directorio') dir = v; else if (v) nuevo[i.dataset.txm] = v; });
+    const { data, error } = await db.rpc('guardar_ajuste', { p_clave: 'menu_nombres', p_valor: nuevo });
+    if (error || (data && data.ok === false)) { toast('No se han podido guardar los nombres', true); return; }
+    AJUSTES.menu_nombres = nuevo;
+    if (dir !== null && dir !== (((AJUSTES.marca || {}).etiqueta || '') === etqDef ? '' : (AJUSTES.marca || {}).etiqueta || '')) {
+      const v = Object.assign({}, AJUSTES.marca || {}, { etiqueta: dir || etqDef });
+      const r2 = await db.rpc('guardar_ajuste', { p_clave: 'marca', p_valor: v });
+      if (!r2.error && !(r2.data && r2.data.ok === false)) { AJUSTES.marca = v; aplicarEtiqueta(); }
+    }
+    aplicarNombresMenu(); MENU_FIRMA = ''; try { montarMenuLateral(); pintarBnav(); } catch (e) {}
+    toast('Nombres guardados');
+  });
+};
+
+// v2.340.0 (Eric): «Estados comerciales» no es una página aparte: va como pestaña de «Clasificadores»
+arbolCfgUnico = (orig => function (...a) {
+  const g = orig.apply(this, a), d = g.find(x => x[0] === 'Datos'); if (!d) return g;
+  const l = d[1], cat = l.find(x => x.k === 'cat'), est = l.find(x => x.k === 'estados');
+  if (cat && est && !cat.hijos) {
+    d[1] = l.filter(x => x !== est).map(x => x === cat ? Object.assign({}, cat, { hijos: [{ k: 'cat', t: 'Listas de valores', r: cat.r }, { k: 'estados', t: est.t, r: est.r }] }) : x);
+  }
+  return g;
+})(arbolCfgUnico);
