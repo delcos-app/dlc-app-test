@@ -5487,7 +5487,7 @@ function editorContacto(c, alGuardar, op) {
     </div>
     <div class="g2">
       <div><label for="komail">Email</label><input id="komail" type="email" value="${esc(c.email || '')}"></div>
-      <div id="koempw" class="${tipo === 'Empresa' ? 'hide' : ''}"><label for="koemp">Empresa (si factura a una)</label><input id="koemp" value="${esc(c.empresa || '')}"></div>
+      <div id="koempw" class="${tipo === 'Empresa' ? 'koinv' : ''}"><label for="koemp">Empresa ${pmAyu('Empresa', 'Si la persona factura a nombre de una empresa, escribe aquí su nombre. Con «Empresa» arriba no hace falta.')}</label><input id="koemp" value="${esc(c.empresa || '')}"></div>
     </div>
     <label for="konota">Nota</label><input id="konota" value="${esc(c.nota || '')}">
     ${conLlamada ? llamadaAltaHTML(op.llamada) : ''}
@@ -5516,7 +5516,7 @@ function editorContacto(c, alGuardar, op) {
     $('konifl').textContent = tipo === 'Empresa' ? 'CIF' : 'DNI o NIE';
     $('konoml').textContent = tipo === 'Empresa' ? 'Razón social' : 'Nombre y apellidos';
     $('konif').placeholder = tipo === 'Empresa' ? 'B12345678' : '12345678Z';
-    $('koempw').classList.toggle('hide', tipo === 'Empresa');
+    $('koempw').classList.toggle('koinv', tipo === 'Empresa');   // v2.341.0: el hueco se queda (antes desaparecía y todo lo de debajo saltaba)
     if ($('konif').value) revisaDoc();
   });
   $('kocancel').onclick = () => $('dlg2').close();
@@ -12359,7 +12359,7 @@ function htPintarPanel(sec) {
       <div class="htbloque"><h4>Buscar en la tabla</h4><input type="search" class="httexto" value="${esc(st.texto || '')}" placeholder="Cualquier dato de la tabla"></div>
       ${facetas.length ? `<div class="htbloque"><h4>Filtrar por columna</h4><div class="htfacetas">${facetas.map(f => `<label><span>${esc(f.nombre)}</span><select data-htf="${f.i}"><option value="">Todos</option>${f.vals.map(v => `<option ${st.facetas[f.i] === v ? 'selected' : ''}>${esc(v)}</option>`).join('')}</select></label>`).join('')}</div></div>` : ''}
       ${cab.filter(Boolean).length > 2 ? `<div class="htbloque"><h4>Columnas</h4><div class="htcols">${cab.map((n, i) => n ? `<label class="opt"><input type="checkbox" data-htc="${i}" ${ocultas.includes(i) ? '' : 'checked'} ${i === 0 ? 'disabled' : ''}> ${esc(n)}</label>` : '').join('')}</div></div>` : ''}
-      <div class="acts" style="margin:0;justify-content:flex-end"><button class="btn sec" type="button" data-htlimpiar>Quitar filtros</button></div>`;
+      <div class="acts" style="margin:0;justify-content:flex-end"><button class="btn sec dang" type="button" data-htlimpiar>${svgIco(ICON_NOM.x)} Eliminar filtros</button></div>`;
     zona.querySelector('.httexto').oninput = e => { st.texto = e.target.value; htAplicarFiltros(g); htContador(sec); };
     zona.querySelectorAll('[data-htf]').forEach(s => s.onchange = () => { st.facetas[s.dataset.htf] = s.value; htAplicarFiltros(g); htContador(sec); });
     zona.querySelectorAll('[data-htc]').forEach(c => c.onchange = () => {
@@ -24336,7 +24336,7 @@ plToolHtml = function (tab) {
   return `<label class="plq">${plIco('search', '🔍')}<input type="search" class="plqi" placeholder="${esc(c.buscaTxt ? c.buscaTxt() : 'Buscar en ' + c.que())}" aria-label="${esc(c.buscaTxt ? c.buscaTxt() : 'Buscar en ' + c.que())}"></label>
     <div class="plrap">${c.rapidos.map(([id, t]) => { t = t || plEtiq(id); return `<button type="button" class="plchip" data-plr="${esc(id)}" data-plt="${esc(t)}">${esc(t)}</button>`; }).join('')}</div>
     <button type="button" class="plbtn chico plfil">${plIco('sliders-horizontal')}<span>Filtros</span><span class="pln hide"></span></button>
-    ${c.quitar ? '<button type="button" class="plquitar hide">Quitar filtros</button>' : ''}
+    ${c.quitar ? `<button type="button" class="btn sec chico dang plquitar hide">${svgIco(ICON_NOM.x)} Eliminar filtros</button>` : ''}
     <button type="button" class="plbtn chico plcol">${plIco('columns-3', 'table', 'list')}<span>Columnas</span></button>
     ${c.mapa() ? `<button type="button" class="plbtn chico plic plmapa" title="Ver en el mapa" aria-label="Ver en el mapa">${plIco('map')}</button>` : ''}
     <span class="plcnt"><i class="plsk" style="width:90px"></i></span>`;
@@ -29036,3 +29036,61 @@ arbolCfgUnico = (orig => function (...a) {
   }
   return g;
 })(arbolCfgUnico);
+
+/* ============================================================
+   v2.341.0 · Los indicadores de las listas se adaptan a los filtros (Eric: con «Manresa» la tabla tenía 111 y los indicadores seguían
+   con el total). Cada indicador cuenta su condición dentro de los filtros que haya (búsqueda, municipio, estado…); sin filtros, el
+   total de siempre. Se recalculan al cambiar los filtros (kpiFirma).
+   ============================================================ */
+(() => {
+  const d = PL.directorio;
+  if (d) {
+    const base = () => ({ q: F.q || null, f_provincia: F.prov || null, f_municipio: F.muni || null, f_estado: F.est || null, f_especialidad: F.esp || null,
+      f_area: null, f_comercial: F.com || null, f_reporting: F.rep || null, ...(Object.keys(F.campos || {}).length ? { f_campos: F.campos } : {}) });
+    d.kpiFirma = () => JSON.stringify([F.q, F.prov, F.muni, F.est, F.esp, F.com, F.rep, F.tipo, !!F.urg, !!F.mios, !!F.sin, F.campos || {}]);
+    const filtrado = () => !!(F.q || F.prov || F.muni || F.est || F.esp || F.com || F.rep || F.tipo || F.urg || F.mios || F.sin || Object.keys(F.campos || {}).length);
+    d.kpis = async () => {
+      const t = x => RPC_ORIG('buscar_cuentas', { ...base(), f_tipo: F.tipo || null, f_urgentes: !!F.urg, f_mios: !!F.mios, f_sin_visitar: !!F.sin, lim: 1, desplaz: 0, ...x }).then(r => (r.data && r.data.total) || 0, () => 0);
+      const [pro, cen, urg, sin, mios] = await Promise.all([t({ f_tipo: 'Persona' }), t({ f_tipo: 'Centro' }), t({ f_urgentes: true }), t({ f_sin_visitar: true }), t({ f_mios: true })]);
+      const fl = filtrado(), con = 'con estos filtros';
+      return [{ k: 'Persona', t: TT('medico', 'p', '', 'l', 'C'), n: pro, s: fl ? con : 'en total' }, { k: 'Centro', t: 'Centros', n: cen, s: fl ? con : 'en total' },
+        { k: 'urg', t: 'Urgentes', n: urg, s: fl ? con : 'marcados como urgentes' }, { k: 'sin', t: 'Sin visitar nunca', n: sin, s: fl ? con : 'todavía sin ' + TT('visita', 'p', '', 'l', 'l') },
+        { k: 'mios', t: 'De mi cartera', n: mios, s: fl ? con : 'asignados a ti' }];
+    };
+  }
+  const c = PL.pacientes;
+  if (c) {
+    const base = () => ({ q: PAC.q || null, p_medico: PAC.medico || null, p_municipio: PAC.municipio || null, ...(Object.keys(PAC.campos || {}).length ? { f_campos: PAC.campos } : {}) });
+    c.kpiFirma = () => JSON.stringify([PAC.q, PAC.medico, PAC.municipio, PAC.tipo, PAC.pedidos, PAC.campos || {}]);
+    c.kpis = async () => {
+      const t = x => RPC_ORIG('clientes_lista', { ...base(), p_tipo: PAC.tipo || null, p_pedidos: PAC.pedidos || null, lim: 1, desplaz: 0, ...x }).then(r => (r.data && r.data.total) || 0, () => 0);
+      const [tot, con, sin, emp] = await Promise.all([t({ p_tipo: null, p_pedidos: null }), t({ p_pedidos: 'con' }), t({ p_pedidos: 'sin' }), t({ p_tipo: 'Empresa' })]);
+      const fl = !!(PAC.q || PAC.medico || PAC.municipio || PAC.tipo || PAC.pedidos || Object.keys(PAC.campos || {}).length), cf = 'con estos filtros';
+      return [{ k: 'tot', t: 'Clientes', n: tot, s: fl ? cf : 'en total' }, { k: 'con', t: 'Con pedidos', n: con, s: fl ? cf : 'han comprado alguna vez' },
+        { k: 'sin', t: 'Sin pedidos', n: sin, s: fl ? cf : 'todavía sin compras' }, { k: 'emp', t: 'Empresas', n: emp, s: fl ? cf : 'clínicas, centros y otras' }];
+    };
+  }
+})();
+plCargarKpis = function (tab) {
+  if (tab !== TAB) return;
+  const c = plCfg(tab); if (!c || !c.kpis) return;
+  const ep = typeof RC_EPOCA !== 'undefined' ? RC_EPOCA : 0, f = c.kpiFirma ? c.kpiFirma() : '';
+  let k = PL_KPI[tab];
+  if (k && k.pend) { if (f !== k.firma) k.otra = true; return; }
+  if (k && k.datos && k.epoca === ep && k.firma === f && Date.now() - k.t < 60000) return;
+  PL_KPI[tab] = k = Object.assign(k || {}, { pend: true, firma: f, otra: false });
+  c.kpis().then(datos => {
+    const nuevo = !k.datos;
+    Object.assign(k, { datos, t: Date.now(), epoca: ep, pend: false });
+    const box = document.querySelector(`#v-${tab} .plkpis`);
+    if (box) {
+      box.innerHTML = plKpisHtml(tab);
+      if (nuevo && !matchMedia('(prefers-reduced-motion: reduce)').matches) box.querySelectorAll('b[data-pln]').forEach(b => {
+        const n = +b.dataset.pln, t0 = performance.now(); if (!n) return;
+        const paso = () => { const p = Math.min(1, (performance.now() - t0) / 700); b.textContent = num(Math.round(n * (1 - Math.pow(1 - p, 3)))); if (p < 1) requestAnimationFrame(paso); };
+        paso();
+      });
+    }
+    if (k.otra) { k.otra = false; plCargarKpis(tab); }
+  }, () => { k.pend = false; });
+};
