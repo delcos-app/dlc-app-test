@@ -2406,7 +2406,7 @@ dialog.encajada .pdfprev iframe{height:calc(100vh - var(--alto-cab,0px) - 190px)
     margin:0!important;padding:0 10px!important;border:0;border-radius:10px;background:none;color:#3B5168;font:600 14.5px var(--f-texto);
     text-align:left;white-space:nowrap;cursor:pointer;transition:background-color var(--t-rapido) var(--ease-sal),color var(--t-rapido) var(--ease-sal)}
   body.menulat nav.main .in button[data-t].hide,body.menulat nav.main .in button[data-t].mloculto,body.menulat nav.main .in .mlitem.hide,
-  body.menulat nav.main .in button[data-t="seguimiento"]{display:none!important}
+  body.menulat nav.main .in button[data-t="seguimiento"],body.menulat nav.main .in button[data-t="usuarios"]{display:none!important}
   body.menulat nav.main .in button[data-t]::after{display:none!important}
   body.menulat nav.main .in button[data-t] .navico,body.menulat .mlitem .ico{margin:0!important;opacity:.8;flex:none;width:18px;height:18px}
   body.menulat nav.main .in button[data-t] .navico svg{width:18px;height:18px}
@@ -4683,6 +4683,11 @@ html body :is(.pagtabs, .subnav, .pmtabs)::-webkit-scrollbar{display:none}
 .tpvok{color:var(--ok)}.tpverr{color:var(--dang)}
 .tpvw{display:flex;flex-direction:column;gap:12px}
 #tpvurl{word-break:break-all}
+/* v2.335.0: barra del móvil con 2 a 5 botones, «Personalizar menú» del móvil */
+@media (max-width:760px){.bnav[data-n="2"]{grid-template-columns:repeat(2,1fr)}.bnav[data-n="3"]{grid-template-columns:repeat(3,1fr)}.bnav[data-n="4"]{grid-template-columns:repeat(4,1fr)}}
+.bmaspers{justify-content:center;margin-top:10px}
+.movp{display:flex;align-items:center;gap:10px}
+.movpico{width:22px;text-align:center;color:var(--navy)}
 </style>
 </head>
 <body>
@@ -4820,6 +4825,6 @@ try{var co=sessionStorage.getItem('dlc-cambio-org');if(co!==null||localStorage.g
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.334.0"></script>
+<script src="./app.js?v=2.335.0"></script>
 </body>
 </html>

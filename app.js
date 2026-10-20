@@ -542,11 +542,12 @@ async function fichaAcceso(id) {
   const [{ data: us }, rfm] = await Promise.all([RPC_ORIG('usuarios_resumen', {}), rpcCache('ficha_cuenta', { p_id: id }, 'ficha-' + id)]);
   const ya = (us || []).find(u => u.cuenta_id === id), m = (rfm && rfm.data && rfm.data.medico) || {};   // v2.128.0: m.tipo (centro o no)
   $('fbody').insertAdjacentHTML('beforeend', `<div class="blk" id="facceso"><h3>Acceso a la plataforma</h3>
-    ${ya ? `<p class="sm">Tiene acceso como <b>${esc(ya.email || '')}</b>${ya.activo ? '' : ' (desactivado)'}: ${m.tipo === 'Centro' ? 'pide la reposición de sus productos, material y escribe a su comercial' : 've su informe y recibe un aviso con cada pauta'}</p>${ya.activo && typeof puedeVerComo === 'function' && puedeVerComo(ya) ? `<button class="btn sec" data-ucomo="${ya.id}">👤 Impersonalizar</button>` : ''}.</p>`
+    ${ya ? `<p class="sm">Tiene acceso como <b>${esc(ya.email || '')}</b>${ya.activo ? '' : ' (desactivado)'}: ${m.tipo === 'Centro' ? 'pide la reposición de sus productos, material y escribe a su comercial' : 've su informe y recibe un aviso con cada pauta'}.</p><p class="sm facccon" data-facccon="${ya.id}"></p>${ya.activo && typeof puedeVerComo === 'function' && puedeVerComo(ya) ? `<button class="btn sec" data-ucomo="${ya.id}">👤 Impersonalizar</button>` : ''}`
       : m.tipo === 'Centro' ? `<p class="sm">Puede tener acceso para pedir la reposición de los productos que le des de alta, pedir material y escribir a su comercial.</p>
          <button class="btn sec" id="fdaracc">Dar acceso</button>`
       : `<p class="sm">Puede tener acceso a su portal (cifras agregadas de ${TT('pauta', 'p', '', 'l', 'l')}) y recibir un aviso con cada ${TT('pauta', 's', '', 'l', 'l')} registrada. No verá importes ni datos de ${TT('paciente', 'p', '', 'l', 'l')}.</p>
          <button class="btn sec" id="fdaracc">Dar acceso</button>`}</div>`);
+  if (ya) facccon(ya.id);   // v2.335.0
   if ($('fdaracc')) $('fdaracc').onclick = async () => {
     const { data: f } = await db.rpc('ficha_cuenta', { p_id: id });
     $('ficha').close(); nuevoUsuario({ medico: { id, nombre: f.medico.nombre }, nombre: f.medico.nombre, email: f.medico.email || '', centro: f.medico.tipo === 'Centro' });
@@ -5971,11 +5972,16 @@ async function cargarVentas() {
   if (PEDSEC === 'llamadas' && !VE_TODO()) PEDSEC = 'ventas';
   const sec = PEDSEC;
   if (sec === 'llamadas') PEDSEC = 'compras';
-  await cargarVentasBase();
-  await pedidosSecciones();
+  PEDSEC_CARGA = sec;   // v2.335.0: mientras se monta sobre «Compras», el menú y las pestañas marcan ya la sección de verdad
+  try {
+    await cargarVentasBase();
+    await pedidosSecciones();
+  } finally { PEDSEC_CARGA = null; }
   await pedidosLlamadas(sec);
   await pedidosBotonLlamada();
 }
+var PEDSEC_CARGA = null;
+function pedsecVista() { return PEDSEC_CARGA || PEDSEC; }
 
 // Pedidos · Pestañas Ventas, Compras y Proveedores, y contenido de Compras y Proveedores
 async function pedidosSecciones() {
@@ -5983,9 +5989,9 @@ async function pedidosSecciones() {
   v.querySelector('.saludo h1').firstChild.textContent = 'Pedidos';
   v.querySelector('.saludo .fecha').textContent = 'Ventas, compras y proveedores';
   v.querySelector('.saludo').insertAdjacentHTML('afterend', `<div class="subnav" id="pedsub">
-    <button data-pedsec="ventas" aria-pressed="${PEDSEC === 'ventas'}">Ventas</button>
-    <button data-pedsec="compras" aria-pressed="${PEDSEC === 'compras'}">Compras</button>
-    <button data-pedsec="proveedores" aria-pressed="${PEDSEC === 'proveedores'}">Proveedores</button></div>`);
+    <button data-pedsec="ventas" aria-pressed="${pedsecVista() === 'ventas'}">Ventas</button>
+    <button data-pedsec="compras" aria-pressed="${pedsecVista() === 'compras'}">Compras</button>
+    <button data-pedsec="proveedores" aria-pressed="${pedsecVista() === 'proveedores'}">Proveedores</button></div>`);
   v.querySelectorAll('[data-pedsec]').forEach(b => b.onclick = () => { PEDSEC = b.dataset.pedsec; cargarVentas(); });
   if (PEDSEC === 'ventas') return;
   const acts = v.querySelector('.saludo .acts');
@@ -10705,6 +10711,7 @@ let USR_F = { q: '', rol: '', est: 'activos' };
 async function pintarUsuarios2() {
   const [{ data }, rAcc] = await Promise.all([RPC_ORIG('usuarios_resumen', {}), RPC_ORIG('invitados_accesos', {})]);   // v2.270.0: cuándo entró cada uno
   const ACC = {}; ((rAcc && rAcc.data) || []).forEach(x => ACC[x.id] = x);
+  USR_ACC = ACC;   // v2.335.0: última conexión de cada uno
   const todos = data || []; USUARIOS = todos.map(u => Object.assign({ medicos: u.cartera, visitas: u.visitas_mes }, u));
   const act = planDe(PLAN_ACTUAL.plan), maxU = usuariosContratados();
   const activos = todos.filter(u => u.activo && !rolPuede(u.rol, 'portal_prescriptor'));
@@ -10726,7 +10733,7 @@ async function pintarUsuarios2() {
           <span class="usrchips"><span class="pill p-est">${esc(u.rol)}</span>${u.activo ? '' : '<span class="pill p-anu">Desactivado</span>'}
             ${rolPuede(u.rol, 'portal_prescriptor') ? `<span class="pill p-per">${esc(u.medico || 'Sin ficha')}</span>` : `<span class="sm">${mods.length} módulos</span>`}</span></span>
         <span class="usrdat">${!rolPuede(u.rol, 'portal_prescriptor') ? `<span><b>${num(u.cartera)}</b> en cartera</span><span><b>${num(u.visitas_mes)}</b> ${TT('visita', 'p', '', 'l', 'l')} mes</span>` : ''}
-          <span class="sm">${reciente ? 'Activo ' + fechaCorta(isoLocal(reciente)) : 'Sin actividad'}</span></span></button>`;
+          <span class="sm usrcon" title="${reciente ? 'Última actividad registrada: ' + fechaCorta(isoLocal(reciente)) : 'Sin actividad registrada'}">${esc(conexionTxt(ACC[u.id]))}</span></span></button>`;
     }).join('') || '<div class="vacio">Nadie con estos filtros.</div>';
     $('usrl').querySelectorAll('[data-usr]').forEach(b => b.onclick = () => detalleUsuario(todos.find(u => u.id === b.dataset.usr)));
   };
@@ -12025,7 +12032,7 @@ function detalleUsuario(u) {
     <div class="blk"><h3>Actividad</h3>${rolPuede(u.rol, 'portal_prescriptor') ? `<p class="sm">Vinculado a <b>${esc(u.medico || 'ninguna ficha')}</b>.</p>` : `
       <div class="uper" style="grid-template-columns:repeat(2,1fr)"><div><b>${num(u.cartera)}</b><span>en cartera</span></div><div><b>${num(u.visitas_mes)}</b><span>${TT('visita', 'p', '', 'l', 'l')} este mes</span></div></div>
       ${u.zonas && u.zonas.length ? `<div class="sm">Zona: ${esc(u.zonas.map(z => z.charAt(0) + z.slice(1).toLowerCase()).join(', '))}</div>` : ''}`}
-      <div class="sm" style="margin-top:6px">Última actividad: ${u.ultima_actividad ? new Date(u.ultima_actividad).toLocaleString('es-ES', { dateStyle: 'medium', timeStyle: 'short' }) : 'ninguna registrada'}</div></div>
+      <div class="sm" style="margin-top:6px">${puede('administrar') ? esc(conexionTxt((USR_ACC || {})[u.id], true)) + '<br>' : ''}Última actividad: ${u.ultima_actividad ? new Date(u.ultima_actividad).toLocaleString('es-ES', { dateStyle: 'medium', timeStyle: 'short' }) : 'ninguna registrada'}</div></div>
     <div class="usracc">
       <button class="btn" data-uacc="editar">✏️ Editar rol, permisos y zona</button>
       ${!rolPuede(u.rol, 'portal_prescriptor') ? '<button class="btn sec" data-uacc="cartera">🗂️ Asignar cartera</button>' : ''}
@@ -15069,7 +15076,7 @@ async function fichaAccesoCartera(id) {
   // Solo en las fichas de su cartera (o en todas si ve todo)
   if ((!ya && !(mia || []).length) || FICHA_ID !== id || $('facceso')) return;
   $('fbody').insertAdjacentHTML('beforeend', `<div class="blk" id="facceso"><h3>Acceso a la plataforma</h3>
-    ${ya ? `<p class="sm">Tiene acceso${ya.email ? ` como <b>${esc(ya.email)}</b>` : ''}${ya.activo ? '' : ' (desactivado)'}: ${m.tipo === 'Centro' ? 'pide la reposición de sus productos, material y escribe a su comercial' : 've su informe y recibe un aviso con cada pauta'}</p>${ya.activo && typeof puedeVerComo === 'function' && puedeVerComo(ya) ? `<button class="btn sec" data-ucomo="${ya.id}">👤 Impersonalizar</button>` : ''}.</p>`
+    ${ya ? `<p class="sm">Tiene acceso${ya.email ? ` como <b>${esc(ya.email)}</b>` : ''}${ya.activo ? '' : ' (desactivado)'}: ${m.tipo === 'Centro' ? 'pide la reposición de sus productos, material y escribe a su comercial' : 've su informe y recibe un aviso con cada pauta'}.</p>${ya.activo && typeof puedeVerComo === 'function' && puedeVerComo(ya) ? `<button class="btn sec" data-ucomo="${ya.id}">👤 Impersonalizar</button>` : ''}`
       : `<p class="sm">${m.tipo === 'Centro' ? 'Puede tener acceso para pedir la reposición de los productos que le des de alta, pedir material y escribir a su comercial.' : `Puede tener acceso a su informe y recibir un aviso con cada pauta a su nombre. No verá importes ni datos de ${TT('paciente', 'p', '', 'l', 'l')}.`}</p>
          <div class="g2"><div><label for="faccmail">Correo</label><input id="faccmail" type="email" value="${esc(m.email || '')}" placeholder="nombre@correo.com"></div>
          <div style="align-self:end"><button class="btn sec" id="fdaracc">Dar acceso</button></div></div><div class="sm" id="faccmsg"></div>`}</div>`);
@@ -16636,7 +16643,7 @@ document.addEventListener('click', e => {
 }, true);
 function marcarPedsec() {
   if (TAB !== 'ventas') return;
-  const alias = Object.keys(ALIAS_PEDIDOS).find(k => ALIAS_PEDIDOS[k] === PEDSEC) || 'ventas';
+  const alias = Object.keys(ALIAS_PEDIDOS).find(k => ALIAS_PEDIDOS[k] === pedsecVista()) || 'ventas';
   document.querySelectorAll('nav.main [data-t], #bnav [data-t]').forEach(x => x.setAttribute('aria-selected', String(x.dataset.t === alias)));
 }
 ir = (orig => function (t, ...a) {
@@ -26403,7 +26410,7 @@ if (document.querySelector('#v-inicio.conmos')) inicioCabecera();
 
 // ---- Menú del móvil: la sección que se ve, no la página que la contiene
 const SUBSEC_MENU = { llamadas: 'oportunidades', compras: 'compras', proveedores: 'proveedores' };
-function tabDelMenu() { return TAB === 'ventas' && typeof PEDSEC !== 'undefined' && SUBSEC_MENU[PEDSEC] ? SUBSEC_MENU[PEDSEC] : TAB; }
+function tabDelMenu() { return TAB === 'ventas' && typeof PEDSEC !== 'undefined' && SUBSEC_MENU[pedsecVista()] ? SUBSEC_MENU[pedsecVista()] : TAB; }
 abrirMasMovil = (orig => function (...a) {
   const r = orig.apply(this, a);
   const t = tabDelMenu();
@@ -26547,13 +26554,13 @@ function pintarInvitados(lista, acc) {
   const hace = t => { if (!t) return null; const d = new Date(t); return isNaN(d) ? null : d.toLocaleString('es-ES', { dateStyle: 'medium', timeStyle: 'short' }); };
   $('usrinvn').textContent = lista.length ? '· ' + num(lista.length) : '';
   box.innerHTML = lista.map(u => {
-    const a = acc[u.id] || {}, ult = hace(a.ultimo_acceso);
+    const a = acc[u.id] || {}, ult = hace(a.ultima_conexion || a.ultimo_acceso);
     return `<div class="usrinv ${u.activo ? '' : 'off'}">
       <span class="usrav" style="background:${esc((rolDef(u.rol) || {}).color || '#17457A')}">${esc(iniciales(u.nombre))}</span>
       <span class="usrtx"><b>${esc(u.nombre)}</b><span class="sm">${esc(u.email || '')}</span>
         <span class="usrchips">${u.cuenta_id ? `<button class="pill p-per" data-uinvf="${u.cuenta_id}" title="Abrir su ficha">${esc(u.medico || u.cuenta || 'Su ficha')}</button>` : '<span class="pill p-anu">Sin ficha</span>'}
           ${u.activo ? '' : '<span class="pill p-anu">Desactivado</span>'}
-          <span class="sm usrinvult">${ult ? 'Último acceso: ' + esc(ult) : 'Aún no ha entrado'}</span></span>
+          <span class="sm usrinvult">${ult ? esc(conexionTxt(a)) : 'Aún no ha entrado'}</span></span>
         <span class="sm usrinvve">${esc(queVeInvitado(u))}</span></span>
       <span class="usrinvacts">${puedeVerComo(u) ? `<button class="btn" data-ucomo="${u.id}">👤 Impersonalizar</button>` : ''}
         <button class="btn sec" data-uinvd="${u.id}">Detalles</button></span></div>`;
@@ -28683,3 +28690,136 @@ async function tpvAvisoImporte(id) {
 }
 
 /* v2.334.0: al cobrar por el enlace, la forma de pago del pedido pasa a ser la que eligió el cliente (SQL 173); «Abrir la página de pago (pruebas)» centrado como los demás botones. */
+
+
+/* ============================================================
+   v2.335.0 · Menú (peticiones de Eric, 20/10/2026)
+   - «Usuarios» fuera del menú (está en Configuración → Equipo → Usuarios): en el menú de escritorio y en «Más» del móvil.
+   - Móvil: «Personalizar menú» en «Más» (movPersonalizar): qué pantallas van en la barra de abajo (hasta 4; preferencias.menu.barra)
+     y cuáles salen en «Más» (las mismas que se ocultan en el menú de escritorio: preferencias.menu.ocultos). Lo oculto no sale en «Más».
+   ============================================================ */
+const MOV_BARRA_DEF = ['inicio', 'agenda', 'rutas', 'directorio'];
+const MENU_FUERA = ['usuarios'];
+function movNombre(t) {
+  const b = document.querySelector(`nav.main [data-t="${t}"]`); if (!b) return t;
+  const x = txTexto(b); return ((x && x.get()) || b.textContent).replace('Pronto', '').trim();
+}
+function movDisponibles() {
+  const vistos = new Set();
+  return [...document.querySelectorAll('nav.main [data-t]')].filter(x => {
+    const t = x.dataset.t;
+    if (vistos.has(t) || x.classList.contains('hide') || x.disabled || x.classList.contains('bloq') || x.classList.contains('mlplan') || MENU_FUERA.includes(t)) return false;
+    vistos.add(t); return true;
+  }).map(x => x.dataset.t).sort((x, y) => movOrden(x) - movOrden(y));
+}
+function movOrden(t) {   // como el menú del ordenador: Tu día, Cartera, Ventas…
+  let l = []; try { l = menuGrupos().flatMap(g => g.items); } catch (e) {}
+  const i = l.indexOf(t); return i < 0 ? 999 : i;
+}
+function movBarra() {
+  const disp = movDisponibles(), p = menuPrefs().barra;
+  let l = (Array.isArray(p) && p.length ? p : MOV_BARRA_DEF).filter(t => disp.includes(t)).slice(0, 4);
+  if (!l.length) l = MOV_BARRA_DEF.filter(t => disp.includes(t));
+  return l;
+}
+pintarBnav = (orig => function (...a) {
+  if (ES_MEDICO()) return orig.apply(this, a);
+  const b = $('bnav'); if (!b) return orig.apply(this, a);
+  const barra = movBarra();
+  b.dataset.n = String(barra.length + 1);
+  b.innerHTML = barra.map(t => `<button data-t="${t}" aria-selected="${TAB === t}"><span>${ICO_MOD[t] || '•'}</span>${esc(movNombre(t))}</button>`).join('')
+    + `<button id="bmasbtn" aria-selected="${!barra.includes(TAB)}"><span>⋯</span>Más</button>`;
+  b.querySelectorAll('[data-t]').forEach(x => x.onclick = () => ir(x.dataset.t));
+  $('bmasbtn').onclick = abrirMasMovil;
+})(pintarBnav);
+abrirMasMovil = (orig => function (...a) {
+  const r = orig.apply(this, a);
+  const s = $('bmas'), g = s && s.querySelector('.bmasgrid'); if (!g) return r;
+  const barra = movBarra(), ocultos = menuPrefs().ocultos || [];
+  const quiero = movDisponibles().filter(t => !barra.includes(t) && !ocultos.includes(t));
+  const cerrar = () => { s.classList.remove('abierto'); setTimeout(() => s.classList.add('hide'), 180); };
+  g.querySelectorAll('[data-bm]').forEach(x => { if (!quiero.includes(x.dataset.bm)) x.remove(); });
+  quiero.forEach(t => {
+    if (g.querySelector(`[data-bm="${t}"]`)) return;
+    g.insertAdjacentHTML('beforeend', `<button data-bm="${t}" class="${tabDelMenu() === t ? 'on' : ''}"><span>${ICO_MOD[t] || '•'}</span>${esc(movNombre(t))}</button>`);
+    g.querySelector(`[data-bm="${t}"]`).onclick = () => { cerrar(); ir(t); };
+  });
+  quiero.forEach(t => { const x = g.querySelector(`[data-bm="${t}"]`); if (x) g.appendChild(x); });   // en el orden del menú
+  if (!s.querySelector('#bmaspers')) {
+    g.insertAdjacentHTML('afterend', '<div class="acts bmaspers"><button type="button" class="btn sec chico" id="bmaspers">Personalizar menú</button></div>');
+    $('bmaspers').onclick = () => { cerrar(); movPersonalizar(); };
+  }
+  return r;
+})(abrirMasMovil);
+
+function movPersonalizar() {
+  const disp = movDisponibles(), p = menuPrefs();
+  const estado = { barra: movBarra(), ocultos: [...(p.ocultos || [])] };
+  const fila = (t, attr, on, dis) => `<label class="opt movp"><input type="checkbox" ${attr}="${t}" ${on ? 'checked' : ''} ${dis ? 'disabled' : ''}>
+      <span class="movpico">${ICO_MOD[t] || '•'}</span><span>${esc(movNombre(t))}</span></label>`;
+  const pinta = () => {
+    const lleno = estado.barra.length >= 4;
+    $('dlg2body').innerHTML = `<div class="fh"><div><h2>Personalizar menú</h2></div><button class="x" data-cerrar2 aria-label="Cerrar">✕</button></div>
+      <div class="blk"><h3>Barra de abajo <span class="sm">(${estado.barra.length} de 4)</span></h3>
+        ${disp.map(t => fila(t, 'data-mb', estado.barra.includes(t), lleno && !estado.barra.includes(t))).join('')}</div>
+      <div class="blk"><h3>En «Más»</h3>
+        ${disp.filter(t => !estado.barra.includes(t)).map(t => fila(t, 'data-mo', !estado.ocultos.includes(t), false)).join('') || '<p class="sm">Todo lo que tienes está en la barra de abajo.</p>'}
+        <p class="sm">Lo que quites de «Más» también deja de salir en el menú del ordenador.</p></div>
+      <div class="acts"><button type="button" class="btn sec" id="movpdef">Restablecer</button><button type="button" class="btn" id="movpok">Guardar</button></div>`;
+  };
+  pinta();
+  const d = $('dlg2'), cuerpo = $('dlg2body');
+  const cambio = e => {
+    const mb = e.target.closest('[data-mb]'), mo = e.target.closest('[data-mo]');
+    if (mb) {
+      const t = mb.dataset.mb;
+      if (mb.checked) { if (estado.barra.length < 4) estado.barra = disp.filter(x => estado.barra.includes(x) || x === t); estado.ocultos = estado.ocultos.filter(x => x !== t); }
+      else if (estado.barra.length > 1) estado.barra = estado.barra.filter(x => x !== t);
+      pinta();
+    } else if (mo) estado.ocultos = mo.checked ? estado.ocultos.filter(x => x !== mo.dataset.mo) : [...new Set([...estado.ocultos, mo.dataset.mo])];
+  };
+  const clic = async e => {
+    if (e.target.closest('#movpdef')) { estado.barra = MOV_BARRA_DEF.filter(t => disp.includes(t)); estado.ocultos = []; pinta(); return; }
+    const ok = e.target.closest('#movpok'); if (!ok) return;
+    const prefs = Object.assign({}, PERFIL.preferencias || {}, { menu: Object.assign({}, menuPrefs(), { barra: estado.barra, ocultos: estado.ocultos }) });
+    ok.disabled = true;
+    const { data, error } = await db.rpc('guardar_preferencias', { p: prefs });
+    ok.disabled = false;
+    if (error) { toast('No se ha podido guardar el menú', true); return; }
+    PERFIL.preferencias = data || prefs;
+    d.close();
+    pintarBnav(); MENU_FIRMA = ''; try { montarMenuLateral(); } catch (er) {}
+    toast('Menú guardado');
+  };
+  cuerpo.addEventListener('change', cambio); cuerpo.addEventListener('click', clic);
+  d.addEventListener('close', () => { cuerpo.removeEventListener('change', cambio); cuerpo.removeEventListener('click', clic); }, { once: true });
+  d.showModal();
+}
+
+
+/* ============================================================
+   v2.335.0 · Última conexión (petición de Eric, 20/10/2026; SQL 174): en la tarjeta de cada usuario, en su detalle, en los invitados
+   y en «Acceso a la plataforma» de la ficha. Es lo más reciente entre el último inicio de sesión y la última renovación de su
+   sesión (la app la renueva sola mientras está abierta). Sin el SQL 174, el último inicio de sesión. Solo la ve la administración.
+   ============================================================ */
+var USR_ACC = null;
+function conexionTxt(a, largo) {
+  const t = a && (a.ultima_conexion || a.ultimo_acceso), d = t ? new Date(t) : null;
+  if (!d || isNaN(d)) return a ? 'Nunca se ha conectado' : (largo ? 'Última conexión: sin datos' : '');
+  const min = Math.round((Date.now() - d) / 60000), hora = d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+  const hoy = new Date(); hoy.setHours(0, 0, 0, 0); const ayer = new Date(hoy - 864e5);
+  let x;
+  if (min < 5) x = 'ahora mismo';
+  else if (min < 60) x = 'hace ' + min + ' min';
+  else if (d >= hoy) x = 'hoy a las ' + hora;
+  else if (d >= ayer) x = 'ayer a las ' + hora;
+  else x = 'el ' + d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: d.getFullYear() === hoy.getFullYear() ? undefined : 'numeric' }) + (largo ? ' a las ' + hora : '');
+  return (largo ? 'Última conexión: ' : 'Conectado ') + x;
+}
+async function facccon(uid) {
+  if (!puede('administrar')) return;   // la información de sesión, solo para la administración (Eric)
+  const { data } = await RPC_ORIG('ultimas_conexiones', { p_ids: [uid] });
+  const el = document.querySelector(`[data-facccon="${uid}"]`); if (!el) return;
+  const a = (data || []).find(x => x.id === uid);
+  el.textContent = a ? conexionTxt(a, true) : '';
+}
