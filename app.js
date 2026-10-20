@@ -8066,6 +8066,7 @@ function svgBarras(meses, a, b, etiquetas) {
   // v2.108.0: con dos series ya no se mezclan dos escalas en un mismo eje: se dibujan dos gráficos pequeños,
   // uno encima del otro, con los mismos meses alineados (arriba barras, abajo línea), cada uno con su escala y su título.
   const caja = $('angraf'), W = Math.max(420, Math.min(1400, ((caja && caja.clientWidth) || 700) - 40)), P = 34, n = meses.length || 1;
+  const salta = typeof ES_MOVIL === 'function' && ES_MOVIL() && n > 6, labOk = i => !salta || (n - 1 - i) % 2 === 0;   // v2.338.0: en el móvil, un mes sí y otro no (se pisaban)
   const x = i => P + (W - P * 2) * (i + .5) / n;
   const esEur = t => /importe|euros|€/i.test(t || '');
   const fmt = (v, t) => esEur(t) ? eurI(v) : num(v);
@@ -8075,7 +8076,7 @@ function svgBarras(meses, a, b, etiquetas) {
       <line x1="${P}" y1="${base}" x2="${W - P}" y2="${base}" class="eje"/>
       ${serie.map((v, i) => `<g><rect x="${x(i) - bw / 2}" y="${y(v)}" width="${bw}" height="${base - y(v)}" rx="4" class="barra1"><title>${mesTxt(meses[i])}: ${fmt(v, etq)} ${esEur(etq) ? '' : esc(etq.toLowerCase())}</title></rect>
         ${v ? `<text x="${x(i)}" y="${y(v) - 5}" class="val">${fmt(v, etq)}</text>` : ''}
-        ${conMeses ? `<text x="${x(i)}" y="${H - 8}" class="lab">${mesTxt(meses[i])}</text>` : ''}</g>`).join('')}
+        ${conMeses && labOk(i) ? `<text x="${x(i)}" y="${H - 8}" class="lab">${mesTxt(meses[i])}</text>` : ''}</g>`).join('')}
     </svg>`;
   };
   if (!b) return barras(a, etiquetas[0], 230, true);
@@ -8088,7 +8089,7 @@ function svgBarras(meses, a, b, etiquetas) {
       <polyline points="${serie.map((v, i) => `${x(i)},${y(v)}`).join(' ')}" class="linea2"/>
       ${serie.map((v, i) => `<circle cx="${x(i)}" cy="${y(v)}" r="4" class="punto2"><title>${mesTxt(meses[i])}: ${fmt(v, etq)}</title></circle>
         ${v && (i === imax || i === ultimo) ? `<text x="${x(i)}" y="${y(v) - 9}" class="val">${fmt(v, etq)}</text>` : ''}
-        <text x="${x(i)}" y="${H - 8}" class="lab">${mesTxt(meses[i])}</text>`).join('')}
+        ${labOk(i) ? `<text x="${x(i)}" y="${H - 8}" class="lab">${mesTxt(meses[i])}</text>` : ''}`).join('')}
     </svg>`;
   };
   return `<div class="grafdos">
@@ -17240,6 +17241,9 @@ function agMarcarDia() {
     h.insertAdjacentHTML('afterend', '<button type="button" class="btn sec" id="agahoy">Volver a hoy</button>');
     b = $('agahoy'); b.onclick = () => agVerDia(hoyISO());
   }
+  // v2.338.0: en el móvil va delante de «+ Tarea», en la misma fila (Eric)
+  const acts = !matchMedia('(min-width: 761px)').matches && v.querySelector('#agcuerpo .tdhead .acts');
+  if (acts && acts.firstElementChild !== b) acts.prepend(b);
   caja.classList.add('agtitdia');
 }
 
@@ -22110,7 +22114,7 @@ function kvGrafica(id, k) {
     return { s: '', z: `<div class="kvdona"><svg viewBox="0 0 58 58" aria-hidden="true">${segs}</svg><div class="kvley">${esc2.filter(c => c.n).slice(0, 4).map(c => `<span><i style="background:${KV_COL[c.e.papel] || '#C9D7E6'}"></i>${c.n} ${esc(c.e.valor)}</span>`).join('')}</div></div>` };
   }
   if (id === 'sin_contactar' && G && totalCartera) {
-    const n = Math.min(totalCartera, 96), sin = Math.round(k.sin_contactar / totalCartera * n);
+    const n = Math.min(totalCartera, ES_MOVIL() ? 64 : 96), sin = Math.round(k.sin_contactar / totalCartera * n);   // v2.338.0: en el móvil, 64 (4 filas); con 96 tapaba la cifra
     return { s: `${Math.round(k.sin_contactar / totalCartera * 100)} % de tu cartera`, z: `<div class="kvwaf" aria-hidden="true">${Array.from({ length: n }, (_, i) => `<i class="${i >= n - sin ? 'f' : ''}"></i>`).join('')}</div>` };
   }
   if (id === 'sin_visita_60' && k.medicos) {
@@ -26936,7 +26940,9 @@ var AG_HOY_VISTO = null;
 agBandejas = (orig => function (...x) {
   const r = orig.apply(this, x);
   const b = $('agband'), acts = document.querySelector('#agcuerpo .tdhead .acts');
-  if (b && acts && matchMedia('(min-width: 761px)').matches) {
+  // v2.338.0 (Eric): en el móvil también en una fila (antes, cada uno en la suya); «Volver a hoy» va delante
+  const hoy = $('agahoy'); if (hoy && acts && !matchMedia('(min-width: 761px)').matches && acts.firstElementChild !== hoy) acts.prepend(hoy);
+  if (b && acts) {
     b.classList.add('agbandin'); acts.appendChild(b);
     b.querySelectorAll('button').forEach(x => x.childNodes.forEach(n => { if (n.nodeType === 3 && /días anteriores/.test(n.textContent)) n.textContent = n.textContent.replace('de días anteriores', 'anteriores'); }));
   }
@@ -28884,3 +28890,16 @@ async function facccon(uid) {
   const a = (data || []).find(x => x.id === uid);
   el.textContent = a ? conexionTxt(a, true) : '';
 }
+
+
+/* ============================================================
+   v2.338.0 · Ventanas completas en el móvil (D-024; petición de Eric, 20/10/2026): #dlg, #dlg2 y #ficha ocupan toda la pantalla menos el
+   menú de abajo, sin esquinas y con su alto final desde que se abren (antes el pedido crecía en blanco mientras cargaba). --bnavh es el
+   alto del menú de abajo, medido.
+   ============================================================ */
+function medirBnav() {
+  const b = $('bnav'), h = b && getComputedStyle(b).display !== 'none' ? Math.round(b.getBoundingClientRect().height) : 0;
+  document.documentElement.style.setProperty('--bnavh', h + 'px');
+}
+addEventListener('resize', medirBnav); setTimeout(medirBnav, 0);
+pintarBnav = (orig => function (...a) { const r = orig.apply(this, a); medirBnav(); return r; })(pintarBnav);
