@@ -3727,7 +3727,7 @@ input.campodup{border-color:#E08A00!important;box-shadow:0 0 0 3px rgba(224,138,
 .pk .pkbars i{flex:1;border-radius:3px 3px 0 0;background:#D6E6F5;transform-origin:bottom;animation:pkcrece .9s cubic-bezier(.2,.8,.2,1) both}
 .pk .pkt.alta .pkbars i{background:#F6D3BE}.pk .pkbars i.u{background:var(--navy)}.pk .pkt.alta .pkbars i.u{background:#B4541A}
 .pk .pklg{font-size:11px;color:#8A9BB0;margin-top:6px}
-/* v2.330.0: el día bajo cada barra; sábados, domingos y festivos en otro color */
+/* v2.331.0: el día bajo cada barra; sábados, domingos y festivos en otro color */
 .pk .pkdias{display:flex;gap:4px;margin-top:4px}
 .pk .pkdias span{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;font-size:10.5px;line-height:1.2;color:var(--muted)}
 .pk .pkdias span b{font-size:11px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums}
@@ -4675,6 +4675,13 @@ html body :is(.pagtabs, .subnav, .pmtabs)::-webkit-scrollbar{display:none}
   html:not(#_s) body :is(.card):not(:is(#v-inicio .saludo h1#hola),:is(#v-informe .medhero h1),:is(main > section .saludo h1),:is(.fab),:is(.plqi, .pltool input),:is(#q, .plqi, #cfubus, #pmcq, #txq, input[type=search]),:is(.plchip),:is(.chip:not(.btn)),:is(.chipsel, [data-txf], .htchip, [data-agti], [data-qk], .pmhdia, [data-rnf]),:is(.kmv, .kojo, .agslm, .notbor, .pmhx, .pmhmas, .quitar, .kcfg, .ankcfg, .cdmas, .pwdojo, .rv),:is(.btn.icoonly, .icobtn, dialog .x, .fh .x),:is(.btn.chico, button.chico),:is(.btn:not(.lnk)),:is(.lnk),:is(.numw),:is(.selw > input),:is(input.chico, select.chico),:is(textarea),:is(input:not([type=checkbox]):not([type=radio]):not([type=file]):not([type=hidden]):not([type=range]):not([type=color]):not(.numw input):not(.selw input), select),:is(.cfuvolver, .cfgvolver, .manvuelta, .rnvol),:is(button[data-pg], .pag button),:is(.mti, .opfila),:is(.usrcard, .cat-card, .imptipo, [data-agbd]),:is(.cdia, .agsld, .cmesb),:is(.ai),:is([data-rnp], .rnpasos button, .imppasos button),:is(label[for]:not(.btn):not(.opt):not(.chk)),:is(input[type=checkbox]:not(.vfswitch input):not(.sw input), input[type=radio]),:is(button.opt),:is(.card.ancard, #agcuerpo, #agsemlat, .card.sinpad)){padding-left:16px !important;padding-right:16px !important}
 }
 /* ==== fin SISTEMA delcos ==== */
+/* v2.331.0: cobro con tarjeta o Bizum en el pedido y su configuración */
+#pdtpv{margin-top:12px;padding-top:12px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:6px}
+#pdtpv .pdpagof .pill{align-self:flex-start}
+#pdtpv .acts{margin:0}
+.tpvok{color:var(--ok)}.tpverr{color:var(--dang)}
+.tpvw{display:flex;flex-direction:column;gap:12px}
+#tpvurl{word-break:break-all}
 </style>
 </head>
 <body>
@@ -4812,6 +4819,6 @@ try{var co=sessionStorage.getItem('dlc-cambio-org');if(co!==null||localStorage.g
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.330.0"></script>
+<script src="./app.js?v=2.331.0"></script>
 </body>
 </html>
