@@ -4686,7 +4686,13 @@ html body :is(.pagtabs, .subnav, .pmtabs)::-webkit-scrollbar{display:none}
 /* v2.335.0: barra del móvil con 2 a 5 botones, «Personalizar menú» del móvil */
 @media (max-width:760px){.bnav[data-n="2"]{grid-template-columns:repeat(2,1fr)}.bnav[data-n="3"]{grid-template-columns:repeat(3,1fr)}.bnav[data-n="4"]{grid-template-columns:repeat(4,1fr)}}
 .bmaspers{justify-content:center;margin-top:10px}
-.movp{display:flex;align-items:center;gap:10px}
+.movpl{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+.movp{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 10px;border:1px solid var(--line);border-radius:12px;background:var(--card)}
+.movp.movp-barra{border-color:var(--navy)}
+.movp.movp-oculta .movpn,.movp.movp-oculta .movpico{opacity:.5}
+.movpn{flex:1;min-width:90px;font-weight:600}
+.movpmv{display:flex;gap:2px}
+.movp .segs{margin-left:auto}
 .movpico{width:22px;text-align:center;color:var(--navy)}
 </style>
 </head>
@@ -4825,6 +4831,6 @@ try{var co=sessionStorage.getItem('dlc-cambio-org');if(co!==null||localStorage.g
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.335.0"></script>
+<script src="./app.js?v=2.336.0"></script>
 </body>
 </html>

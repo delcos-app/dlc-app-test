@@ -16811,7 +16811,7 @@ menuPersonalizar = function () {
   const bloques = () => estado.orden.filter(id => (estado.items[id] || []).some(disponible));
   // Vista previa: el menú se monta con lo que hay en el panel; al cerrar sin guardar vuelve a lo guardado
   const previa = () => {
-    PERFIL.preferencias = Object.assign({}, prefs0 || {}, { menu: { orden: [...estado.orden], items: JSON.parse(JSON.stringify(estado.items)), ocultos: [...estado.ocultos] } });
+    PERFIL.preferencias = Object.assign({}, prefs0 || {}, { menu: Object.assign({}, ((prefs0 || {}).menu) || {}, { orden: [...estado.orden], items: JSON.parse(JSON.stringify(estado.items)), ocultos: [...estado.ocultos] }) });
     MENU_FIRMA = ''; montarMenuLateral();
   };
   let guardado = false;
@@ -16853,7 +16853,7 @@ menuPersonalizar = function () {
     if (e.target.closest('#mlpdef')) { estado.orden = MENU_GRUPOS.map(x => x.id); MENU_GRUPOS.forEach(x => { estado.items[x.id] = [...x.items]; }); estado.ocultos = []; pinta(); previa(); return; }
     const ok = e.target.closest('#mlpok');
     if (ok) {
-      const prefs = Object.assign({}, prefs0 || {}, { menu: { orden: estado.orden, items: estado.items, ocultos: estado.ocultos } });
+      const prefs = Object.assign({}, prefs0 || {}, { menu: Object.assign({}, ((prefs0 || {}).menu) || {}, { orden: estado.orden, items: estado.items, ocultos: estado.ocultos }) });   // v2.336.0: conserva la barra del móvil
       ok.disabled = true;
       const { data, error } = await db.rpc('guardar_preferencias', { p: prefs });
       ok.disabled = false;
@@ -28736,7 +28736,7 @@ abrirMasMovil = (orig => function (...a) {
   const r = orig.apply(this, a);
   const s = $('bmas'), g = s && s.querySelector('.bmasgrid'); if (!g) return r;
   const barra = movBarra(), ocultos = menuPrefs().ocultos || [];
-  const quiero = movDisponibles().filter(t => !barra.includes(t) && !ocultos.includes(t));
+  const quiero = movMasOrden(movDisponibles().filter(t => !barra.includes(t) && !ocultos.includes(t)));
   const cerrar = () => { s.classList.remove('abierto'); setTimeout(() => s.classList.add('hide'), 180); };
   g.querySelectorAll('[data-bm]').forEach(x => { if (!quiero.includes(x.dataset.bm)) x.remove(); });
   quiero.forEach(t => {
@@ -28744,7 +28744,7 @@ abrirMasMovil = (orig => function (...a) {
     g.insertAdjacentHTML('beforeend', `<button data-bm="${t}" class="${tabDelMenu() === t ? 'on' : ''}"><span>${ICO_MOD[t] || '•'}</span>${esc(movNombre(t))}</button>`);
     g.querySelector(`[data-bm="${t}"]`).onclick = () => { cerrar(); ir(t); };
   });
-  quiero.forEach(t => { const x = g.querySelector(`[data-bm="${t}"]`); if (x) g.appendChild(x); });   // en el orden del menú
+  quiero.forEach(t => { const x = g.querySelector(`[data-bm="${t}"]`); if (x) g.appendChild(x); });   // en el orden elegido
   if (!s.querySelector('#bmaspers')) {
     g.insertAdjacentHTML('afterend', '<div class="acts bmaspers"><button type="button" class="btn sec chico" id="bmaspers">Personalizar menú</button></div>');
     $('bmaspers').onclick = () => { cerrar(); movPersonalizar(); };
@@ -28753,35 +28753,48 @@ abrirMasMovil = (orig => function (...a) {
 })(abrirMasMovil);
 
 function movPersonalizar() {
+  // v2.336.0 (aviso de Eric: no se podía ordenar ni cambiar la barra): una sola lista en tu orden; cada pantalla va en la barra de
+  // abajo (hasta 4), en «Más» u oculta. Las flechas cambian el orden (el de la barra y el de «Más»).
   const disp = movDisponibles(), p = menuPrefs();
-  const estado = { barra: movBarra(), ocultos: [...(p.ocultos || [])] };
-  const fila = (t, attr, on, dis) => `<label class="opt movp"><input type="checkbox" ${attr}="${t}" ${on ? 'checked' : ''} ${dis ? 'disabled' : ''}>
-      <span class="movpico">${ICO_MOD[t] || '•'}</span><span>${esc(movNombre(t))}</span></label>`;
+  const barra0 = movBarra(), mas0 = movMasOrden(disp.filter(t => !barra0.includes(t)));
+  const est = { orden: [...barra0, ...mas0], zona: {} };
+  disp.forEach(t => est.zona[t] = barra0.includes(t) ? 'barra' : (p.ocultos || []).includes(t) ? 'oculta' : 'mas');
+  const nBarra = () => est.orden.filter(t => est.zona[t] === 'barra').length;
+  const ZONAS = [['barra', 'Barra'], ['mas', 'Más'], ['oculta', 'Oculta']];
   const pinta = () => {
-    const lleno = estado.barra.length >= 4;
+    const l = est.orden;
     $('dlg2body').innerHTML = `<div class="fh"><div><h2>Personalizar menú</h2></div><button class="x" data-cerrar2 aria-label="Cerrar">✕</button></div>
-      <div class="blk"><h3>Barra de abajo <span class="sm">(${estado.barra.length} de 4)</span></h3>
-        ${disp.map(t => fila(t, 'data-mb', estado.barra.includes(t), lleno && !estado.barra.includes(t))).join('')}</div>
-      <div class="blk"><h3>En «Más»</h3>
-        ${disp.filter(t => !estado.barra.includes(t)).map(t => fila(t, 'data-mo', !estado.ocultos.includes(t), false)).join('') || '<p class="sm">Todo lo que tienes está en la barra de abajo.</p>'}
-        <p class="sm">Lo que quites de «Más» también deja de salir en el menú del ordenador.</p></div>
+      <p class="sm">Elige dónde va cada pantalla y su orden. En la barra de abajo caben 4 (ahora ${nBarra()}); si añades otra, la última de la barra pasa a «Más». Lo que ocultes tampoco sale en el menú del ordenador.</p>
+      <div class="movpl">${l.map((t, i) => `<div class="movp movp-${est.zona[t]}" data-mpt="${t}">
+        <span class="movpmv"><button type="button" class="kmv" data-mpm="-1|${t}" aria-label="Subir" ${i === 0 ? 'disabled' : ''}>↑</button><button type="button" class="kmv" data-mpm="1|${t}" aria-label="Bajar" ${i === l.length - 1 ? 'disabled' : ''}>↓</button></span>
+        <span class="movpico">${ICO_MOD[t] || '•'}</span><span class="movpn">${esc(movNombre(t))}</span>
+        <div class="segs" role="group" aria-label="Dónde va">${ZONAS.map(([z, n]) => `<button type="button" data-mpz="${z}|${t}" class="${est.zona[t] === z ? 'on' : ''}">${n}</button>`).join('')}</div></div>`).join('')}</div>
       <div class="acts"><button type="button" class="btn sec" id="movpdef">Restablecer</button><button type="button" class="btn" id="movpok">Guardar</button></div>`;
   };
   pinta();
   const d = $('dlg2'), cuerpo = $('dlg2body');
-  const cambio = e => {
-    const mb = e.target.closest('[data-mb]'), mo = e.target.closest('[data-mo]');
-    if (mb) {
-      const t = mb.dataset.mb;
-      if (mb.checked) { if (estado.barra.length < 4) estado.barra = disp.filter(x => estado.barra.includes(x) || x === t); estado.ocultos = estado.ocultos.filter(x => x !== t); }
-      else if (estado.barra.length > 1) estado.barra = estado.barra.filter(x => x !== t);
-      pinta();
-    } else if (mo) estado.ocultos = mo.checked ? estado.ocultos.filter(x => x !== mo.dataset.mo) : [...new Set([...estado.ocultos, mo.dataset.mo])];
-  };
   const clic = async e => {
-    if (e.target.closest('#movpdef')) { estado.barra = MOV_BARRA_DEF.filter(t => disp.includes(t)); estado.ocultos = []; pinta(); return; }
+    const mv = e.target.closest('[data-mpm]'), zn = e.target.closest('[data-mpz]');
+    if (mv) {
+      const [dir, t] = mv.dataset.mpm.split('|'), i = est.orden.indexOf(t), j = i + +dir;
+      if (j < 0 || j >= est.orden.length) return;
+      [est.orden[i], est.orden[j]] = [est.orden[j], est.orden[i]]; pinta(); return;
+    }
+    if (zn) {
+      const [z, t] = zn.dataset.mpz.split('|');
+      if (z === est.zona[t]) return;
+      if (est.zona[t] === 'barra' && nBarra() <= 1) { toast('La barra de abajo necesita al menos una pantalla', true); return; }
+      if (z === 'barra' && nBarra() >= 4) { const ult = est.orden.filter(x => est.zona[x] === 'barra').pop(); est.zona[ult] = 'mas'; }
+      est.zona[t] = z; pinta(); return;
+    }
+    if (e.target.closest('#movpdef')) {
+      est.orden = [...MOV_BARRA_DEF.filter(t => disp.includes(t)), ...disp.filter(t => !MOV_BARRA_DEF.includes(t))];
+      disp.forEach(t => est.zona[t] = MOV_BARRA_DEF.includes(t) ? 'barra' : 'mas'); pinta(); return;
+    }
     const ok = e.target.closest('#movpok'); if (!ok) return;
-    const prefs = Object.assign({}, PERFIL.preferencias || {}, { menu: Object.assign({}, menuPrefs(), { barra: estado.barra, ocultos: estado.ocultos }) });
+    const barra = est.orden.filter(t => est.zona[t] === 'barra'), mas = est.orden.filter(t => est.zona[t] !== 'barra');
+    const ocultos = [...new Set([...(p.ocultos || []).filter(t => !disp.includes(t)), ...disp.filter(t => est.zona[t] === 'oculta')])];
+    const prefs = Object.assign({}, PERFIL.preferencias || {}, { menu: Object.assign({}, menuPrefs(), { barra, mas, ocultos }) });
     ok.disabled = true;
     const { data, error } = await db.rpc('guardar_preferencias', { p: prefs });
     ok.disabled = false;
@@ -28791,9 +28804,14 @@ function movPersonalizar() {
     pintarBnav(); MENU_FIRMA = ''; try { montarMenuLateral(); } catch (er) {}
     toast('Menú guardado');
   };
-  cuerpo.addEventListener('change', cambio); cuerpo.addEventListener('click', clic);
-  d.addEventListener('close', () => { cuerpo.removeEventListener('change', cambio); cuerpo.removeEventListener('click', clic); }, { once: true });
+  cuerpo.addEventListener('click', clic);
+  d.addEventListener('close', () => cuerpo.removeEventListener('click', clic), { once: true });
   d.showModal();
+}
+// Orden de «Más»: el que eligió la persona y, detrás, lo nuevo en el orden del menú
+function movMasOrden(l) {
+  const o = menuPrefs().mas || [];
+  return [...l].sort((x, y) => { const a = o.indexOf(x), b = o.indexOf(y); return (a < 0 ? 900 + movOrden(x) : a) - (b < 0 ? 900 + movOrden(y) : b); });
 }
 
 
