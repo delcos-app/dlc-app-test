@@ -13082,7 +13082,7 @@ ordenarBotones = function (sec) {
 pintarActualizado = (orig => function () {
   orig();
   const b = $('iniact'); if (!b) return;
-  b.classList.add('icoredondo');
+  b.classList.add('icoredondo', 'icoonly');   // v2.337.0: botón de icono del sistema delcos (con el relleno de un botón normal el icono quedaba 3 px a la derecha)
   const c = CACHE_MOD.inicio; const m = c ? Math.floor((Date.now() - c.t) / 60000) : 0;
   b.title = (m < 1 ? 'Datos actualizados ahora' : `Datos actualizados hace ${m} min`) + ' · Pulsa para actualizar';
   b.setAttribute('aria-label', b.title);
@@ -16363,6 +16363,9 @@ function menuGrupos() {
   gs.sort((a, b) => ((orden.indexOf(a.id) + 1) || 99) - ((orden.indexOf(b.id) + 1) || 99));
   const otros = [...document.querySelectorAll('#nav button[data-t]')].map(b => b.dataset.t).filter(k => !conocidos.has(k));
   if (otros.length) gs.push({ id: 'otros', t: 'Otros', items: otros });
+  // v2.337.0 (Eric): Inicio siempre el primero, se ordene como se ordene el resto
+  gs.forEach(g => { g.items = g.items.filter(k => k !== 'inicio'); });
+  if (gs.length && conocidos.has('inicio')) gs[0].items.unshift('inicio');
   return gs;
 }
 const menuEscritorio = () => innerWidth >= 900;
@@ -16402,7 +16405,7 @@ function montarMenuLateral() {
     g.items.forEach(k => { const b = inn.querySelector(`button[data-t="${k}"]`); if (b) bs.appendChild(b); });
   });
   botones.forEach(b => {
-    b.classList.toggle('mloculto', ocultos.includes(b.dataset.t) && !MENU_FIJO.items.includes(b.dataset.t));
+    b.classList.toggle('mloculto', ocultos.includes(b.dataset.t) && !MENU_FIJO.items.includes(b.dataset.t) && b.dataset.t !== 'inicio');
     // El texto va en su propia etiqueta (se oculta al plegar) y el nombre sirve de aviso al pasar el ratón
     const t = [...b.childNodes].filter(n => n.nodeType === 3 && n.textContent.trim());
     if (t.length) {
@@ -16806,7 +16809,7 @@ menuPersonalizar = function () {
   const boton = k => document.querySelector(`#nav button[data-t="${k}"]`);
   const nombre = k => { const b = boton(k); return b ? (b.dataset.tip || (b.querySelector('.mllab') || b).textContent.trim()) : ''; };
   const icono = k => { const b = boton(k), s = b && b.querySelector('svg'); return s ? s.outerHTML : ''; };
-  const disponible = k => { const b = boton(k); return !!b && k !== 'seguimiento' && !b.classList.contains('hide') && (b.classList.contains('mloculto') || getComputedStyle(b).display !== 'none'); };
+  const disponible = k => { const b = boton(k); return !!b && k !== 'seguimiento' && k !== 'inicio' && !b.classList.contains('hide') && (b.classList.contains('mloculto') || getComputedStyle(b).display !== 'none'); };
   const tit = id => (MENU_GRUPOS.find(x => x.id === id) || { t: 'Otros' }).t;
   const bloques = () => estado.orden.filter(id => (estado.items[id] || []).some(disponible));
   // Vista previa: el menú se monta con lo que hay en el panel; al cerrar sin guardar vuelve a lo guardado
@@ -16829,6 +16832,7 @@ menuPersonalizar = function () {
   const pinta = foco => {
     caja.innerHTML = `<div class="mlph"><div><b>Personalizar menú</b><span class="sm">Arrastra para ordenar y elige qué secciones ves. Solo cambia tu menú.</span></div>
         <button type="button" class="x" id="mlpx" aria-label="Cerrar">✕</button></div>
+      ${boton('inicio') ? `<div class="mlpi mlpfijo"><span class="mlpico">${icono('inicio')}</span><span class="mlpn">${esc(nombre('inicio'))}</span><span class="sm">Siempre el primero</span></div>` : ''}
       <div class="mlpl">${bloques().map(id => {
         const its = estado.items[id].filter(disponible), vis = its.filter(k => !estado.ocultos.includes(k)).length;
         return `<section class="mlpg" data-g="${id}">
@@ -28718,7 +28722,9 @@ function movOrden(t) {   // como el menú del ordenador: Tu día, Cartera, Venta
 }
 function movBarra() {
   const disp = movDisponibles(), p = menuPrefs().barra;
-  let l = (Array.isArray(p) && p.length ? p : MOV_BARRA_DEF).filter(t => disp.includes(t)).slice(0, 4);
+  let l = (Array.isArray(p) && p.length ? p : MOV_BARRA_DEF).filter(t => disp.includes(t) && t !== 'inicio');
+  if (disp.includes('inicio')) l.unshift('inicio');   // v2.337.0: Inicio siempre el primero
+  l = l.slice(0, 4);
   if (!l.length) l = MOV_BARRA_DEF.filter(t => disp.includes(t));
   return l;
 }
@@ -28753,48 +28759,54 @@ abrirMasMovil = (orig => function (...a) {
 })(abrirMasMovil);
 
 function movPersonalizar() {
-  // v2.336.0 (aviso de Eric: no se podía ordenar ni cambiar la barra): una sola lista en tu orden; cada pantalla va en la barra de
-  // abajo (hasta 4), en «Más» u oculta. Las flechas cambian el orden (el de la barra y el de «Más»).
-  const disp = movDisponibles(), p = menuPrefs();
-  const barra0 = movBarra(), mas0 = movMasOrden(disp.filter(t => !barra0.includes(t)));
-  const est = { orden: [...barra0, ...mas0], zona: {} };
-  disp.forEach(t => est.zona[t] = barra0.includes(t) ? 'barra' : (p.ocultos || []).includes(t) ? 'oculta' : 'mas');
-  const nBarra = () => est.orden.filter(t => est.zona[t] === 'barra').length;
+  // v2.337.0 (Eric): agrupadas: primero la barra de abajo, después «Más» y al final las ocultas. Al cambiar una de grupo va directa a su
+  // grupo (al final; a la barra, si está llena, la última pasa a ser la primera de «Más»). Se ordenan arrastrando (dedo o ratón, por el
+  // asa ⠿; se puede soltar también en otro grupo) o con las flechas, dentro de su grupo. Inicio, siempre la primera de la barra.
+  const disp = movDisponibles(), p = menuPrefs(), FIJA = disp.includes('inicio') ? 'inicio' : null;
+  const barra0 = movBarra().filter(t => t !== FIJA), resto = movMasOrden(disp.filter(t => !barra0.includes(t) && t !== FIJA));
+  const G = { barra: [...barra0], mas: resto.filter(t => !(p.ocultos || []).includes(t)), oculta: resto.filter(t => (p.ocultos || []).includes(t)) };
+  const MAXB = FIJA ? 3 : 4;
+  const GRUPOS = [['barra', 'Barra de abajo', 'Hasta 4'], ['mas', 'En «Más»', ''], ['oculta', 'Ocultas', 'Tampoco salen en el menú del ordenador']];
   const ZONAS = [['barra', 'Barra'], ['mas', 'Más'], ['oculta', 'Oculta']];
+  const ajustar = () => { while (G.barra.length > MAXB) G.mas.unshift(G.barra.pop()); };
+  const fila = (t, z, i, n) => `<div class="movp movp-${z}" data-mpt="${t}">
+      <span class="movpdrag" data-mpd="${t}" aria-hidden="true" title="Arrastrar">⠿</span>
+      <span class="movpmv"><button type="button" class="kmv" data-mpm="-1|${t}" aria-label="Subir" ${i === 0 ? 'disabled' : ''}>↑</button><button type="button" class="kmv" data-mpm="1|${t}" aria-label="Bajar" ${i === n - 1 ? 'disabled' : ''}>↓</button></span>
+      <span class="movpico">${ICO_MOD[t] || '•'}</span><span class="movpn">${esc(movNombre(t))}</span>
+      <div class="segs" role="group" aria-label="Dónde va">${ZONAS.map(([k, x]) => `<button type="button" data-mpz="${k}|${t}" class="${z === k ? 'on' : ''}">${x}</button>`).join('')}</div></div>`;
   const pinta = () => {
-    const l = est.orden;
     $('dlg2body').innerHTML = `<div class="fh"><div><h2>Personalizar menú</h2></div><button class="x" data-cerrar2 aria-label="Cerrar">✕</button></div>
-      <p class="sm">Elige dónde va cada pantalla y su orden. En la barra de abajo caben 4 (ahora ${nBarra()}); si añades otra, la última de la barra pasa a «Más». Lo que ocultes tampoco sale en el menú del ordenador.</p>
-      <div class="movpl">${l.map((t, i) => `<div class="movp movp-${est.zona[t]}" data-mpt="${t}">
-        <span class="movpmv"><button type="button" class="kmv" data-mpm="-1|${t}" aria-label="Subir" ${i === 0 ? 'disabled' : ''}>↑</button><button type="button" class="kmv" data-mpm="1|${t}" aria-label="Bajar" ${i === l.length - 1 ? 'disabled' : ''}>↓</button></span>
-        <span class="movpico">${ICO_MOD[t] || '•'}</span><span class="movpn">${esc(movNombre(t))}</span>
-        <div class="segs" role="group" aria-label="Dónde va">${ZONAS.map(([z, n]) => `<button type="button" data-mpz="${z}|${t}" class="${est.zona[t] === z ? 'on' : ''}">${n}</button>`).join('')}</div></div>`).join('')}</div>
+      <p class="sm">Arrastra por ⠿ (o usa las flechas) para cambiar el orden. Si pasas una pantalla a otro grupo, se coloca sola al final de ese grupo.</p>
+      ${GRUPOS.map(([z, n, x]) => `<div class="movpg"><h3>${n} <span class="sm">· ${G[z].length + (z === 'barra' && FIJA ? 1 : 0)}${x ? ' · ' + x : ''}</span></h3>
+        ${z === 'barra' && FIJA ? `<div class="movp movp-barra movpfijo"><span class="movpico">${ICO_MOD[FIJA] || '•'}</span><span class="movpn">${esc(movNombre(FIJA))}</span><span class="sm">Siempre la primera</span></div>` : ''}
+        <div class="movpl" data-mpg="${z}">${G[z].map((t, i) => fila(t, z, i, G[z].length)).join('') || '<div class="movpvac sm">Suelta aquí una pantalla</div>'}</div></div>`).join('')}
       <div class="acts"><button type="button" class="btn sec" id="movpdef">Restablecer</button><button type="button" class="btn" id="movpok">Guardar</button></div>`;
   };
   pinta();
   const d = $('dlg2'), cuerpo = $('dlg2body');
+  const grupoDe = t => Object.keys(G).find(z => G[z].includes(t));
   const clic = async e => {
     const mv = e.target.closest('[data-mpm]'), zn = e.target.closest('[data-mpz]');
     if (mv) {
-      const [dir, t] = mv.dataset.mpm.split('|'), i = est.orden.indexOf(t), j = i + +dir;
-      if (j < 0 || j >= est.orden.length) return;
-      [est.orden[i], est.orden[j]] = [est.orden[j], est.orden[i]]; pinta(); return;
+      const [dir, t] = mv.dataset.mpm.split('|'), l = G[grupoDe(t)], i = l.indexOf(t), j = i + +dir;
+      if (j < 0 || j >= l.length) return;
+      [l[i], l[j]] = [l[j], l[i]]; pinta(); return;
     }
     if (zn) {
-      const [z, t] = zn.dataset.mpz.split('|');
-      if (z === est.zona[t]) return;
-      if (est.zona[t] === 'barra' && nBarra() <= 1) { toast('La barra de abajo necesita al menos una pantalla', true); return; }
-      if (z === 'barra' && nBarra() >= 4) { const ult = est.orden.filter(x => est.zona[x] === 'barra').pop(); est.zona[ult] = 'mas'; }
-      est.zona[t] = z; pinta(); return;
+      const [z, t] = zn.dataset.mpz.split('|'), de = grupoDe(t);
+      if (z === de) return;
+      if (de === 'barra' && !FIJA && G.barra.length <= 1) { toast('La barra de abajo necesita al menos una pantalla', true); return; }
+      G[de] = G[de].filter(x => x !== t);
+      if (z === 'barra' && G.barra.length >= MAXB) G.mas.unshift(G.barra.pop());
+      G[z].push(t); pinta(); return;
     }
     if (e.target.closest('#movpdef')) {
-      est.orden = [...MOV_BARRA_DEF.filter(t => disp.includes(t)), ...disp.filter(t => !MOV_BARRA_DEF.includes(t))];
-      disp.forEach(t => est.zona[t] = MOV_BARRA_DEF.includes(t) ? 'barra' : 'mas'); pinta(); return;
+      G.barra = MOV_BARRA_DEF.filter(t => disp.includes(t) && t !== FIJA); G.mas = disp.filter(t => !G.barra.includes(t) && t !== FIJA); G.oculta = []; pinta(); return;
     }
     const ok = e.target.closest('#movpok'); if (!ok) return;
-    const barra = est.orden.filter(t => est.zona[t] === 'barra'), mas = est.orden.filter(t => est.zona[t] !== 'barra');
-    const ocultos = [...new Set([...(p.ocultos || []).filter(t => !disp.includes(t)), ...disp.filter(t => est.zona[t] === 'oculta')])];
-    const prefs = Object.assign({}, PERFIL.preferencias || {}, { menu: Object.assign({}, menuPrefs(), { barra, mas, ocultos }) });
+    const ocultos = [...new Set([...(p.ocultos || []).filter(t => !disp.includes(t)), ...G.oculta])];
+    const barra = FIJA ? [FIJA, ...G.barra] : [...G.barra];
+    const prefs = Object.assign({}, PERFIL.preferencias || {}, { menu: Object.assign({}, menuPrefs(), { barra, mas: [...G.mas, ...G.oculta], ocultos }) });
     ok.disabled = true;
     const { data, error } = await db.rpc('guardar_preferencias', { p: prefs });
     ok.disabled = false;
@@ -28804,8 +28816,39 @@ function movPersonalizar() {
     pintarBnav(); MENU_FIRMA = ''; try { montarMenuLateral(); } catch (er) {}
     toast('Menú guardado');
   };
-  cuerpo.addEventListener('click', clic);
-  d.addEventListener('close', () => cuerpo.removeEventListener('click', clic), { once: true });
+  // Arrastrar con el dedo o el ratón (eventos de puntero: el arrastrar del navegador no funciona con el dedo)
+  let arr = null;
+  const abajo = e => {
+    const h = e.target.closest('[data-mpd]'); if (!h) return;
+    const row = h.closest('.movp'); e.preventDefault();
+    const r = row.getBoundingClientRect();
+    arr = { row, dy: e.clientY - r.top, id: e.pointerId, h };
+    arr.hueco = document.createElement('div'); arr.hueco.className = 'movphueco'; arr.hueco.style.height = r.height + 'px';
+    row.before(arr.hueco);
+    row.classList.add('movparr'); row.style.width = r.width + 'px'; row.style.top = r.top + 'px'; row.style.left = r.left + 'px';
+    try { h.setPointerCapture(e.pointerId); } catch (er) {}
+  };
+  const mueve = e => {
+    if (!arr || e.pointerId !== arr.id) return;
+    arr.row.style.top = (e.clientY - arr.dy) + 'px';
+    const filas = [...cuerpo.querySelectorAll('.movpl > .movp:not(.movparr), .movpl > .movpvac')];
+    const destino = filas.find(f => { const r = f.getBoundingClientRect(); return e.clientY < r.top + r.height / 2; });
+    if (destino) destino.before(arr.hueco);
+    else { const ls = cuerpo.querySelectorAll('.movpl'); ls[ls.length - 1].appendChild(arr.hueco); }
+    const sc = d.getBoundingClientRect(); if (e.clientY < sc.top + 60) d.scrollTop -= 12; else if (e.clientY > sc.bottom - 60) d.scrollTop += 12;
+  };
+  const suelta = e => {
+    if (!arr || e.pointerId !== arr.id) return;
+    const { row, hueco } = arr; arr = null;
+    hueco.replaceWith(row); row.classList.remove('movparr'); row.style.width = row.style.top = row.style.left = '';
+    const t = row.dataset.mpt;
+    cuerpo.querySelectorAll('.movpl').forEach(l => { G[l.dataset.mpg] = [...l.querySelectorAll(':scope > .movp')].map(x => x.dataset.mpt); });
+    if (!FIJA && !G.barra.length) { Object.keys(G).forEach(z => { G[z] = G[z].filter(x => x !== t); }); G.barra = [t]; toast('La barra de abajo necesita al menos una pantalla', true); }
+    ajustar(); pinta();
+  };
+  const evs = [['click', clic], ['pointerdown', abajo], ['pointermove', mueve], ['pointerup', suelta], ['pointercancel', suelta]];
+  evs.forEach(([n, f]) => cuerpo.addEventListener(n, f));
+  d.addEventListener('close', () => evs.forEach(([n, f]) => cuerpo.removeEventListener(n, f)), { once: true });
   d.showModal();
 }
 // Orden de «Más»: el que eligió la persona y, detrás, lo nuevo en el orden del menú
