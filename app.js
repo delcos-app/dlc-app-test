@@ -4732,6 +4732,8 @@ async function editorPedido(pedido) {
       </div>
       <div id="ptrfbox" class="pdtrfbox ${esTransferencia(form.forma_pago) && !(ped && ped.estado === 'Confirmado') ? '' : 'hide'}"><span class="sm">Pago por transferencia: envía los datos de pago y guarda el pedido en borrador; cuando llegue el pago, lo validas desde el pedido.</span>
         <button type="button" class="btn sec chico" id="ptrfmail">Enviar los datos de pago</button></div>
+      <div id="ptpvbox" class="pdtrfbox ${tpvActivo() && esPagoTpv(form.forma_pago) && !(ped && ped.estado === 'Confirmado') ? '' : 'hide'}"><span class="sm">Pago con tarjeta o Bizum: le llega por SMS el enlace para pagar y el pedido espera en borrador; cuando paga, se valida solo y queda cobrado.</span>
+        <button type="button" class="btn sec chico" id="ptpvenv">Enviar enlace de pago</button></div>
       <div id="ppagox" class="g2 ${form.forma_pago ? '' : 'hide'}">
         <div><label for="pref">Referencia del pago</label><input id="pref" value="${esc(form.pago_referencia)}" placeholder="Código de la transferencia, bizum…"></div>
         <div><label>Justificante (foto o PDF)</label><label class="btn sec" style="display:inline-flex">📎 Adjuntar<input id="pjus" type="file" accept="image/*,application/pdf" data-fp="1" hidden></label>
@@ -4782,7 +4784,8 @@ async function editorPedido(pedido) {
     $('plmas').onclick = () => { lineas.push({ producto_id: productoPorDefecto(), unidades: 1, descuento: 0 }); autoImporte(lineas[lineas.length - 1]); pinta(); };
     $('plineas').querySelectorAll('[data-lx]').forEach(b => b.onclick = () => { lineas.splice(+b.dataset.lx, 1); pinta(); });
     $('pcan').onchange = () => $('zonapac').classList.toggle('escentro', $('pcan').value === 'centro');
-    $('ppago').onchange = () => { $('ppagox').classList.toggle('hide', !$('ppago').value); $('ptrfbox').classList.toggle('hide', !esTransferencia($('ppago').value) || !!(ped && ped.estado === 'Confirmado')); };   // v2.314.0
+    $('ppago').onchange = () => { $('ppagox').classList.toggle('hide', !$('ppago').value); $('ptrfbox').classList.toggle('hide', !esTransferencia($('ppago').value) || !!(ped && ped.estado === 'Confirmado'));
+      $('ptpvbox').classList.toggle('hide', !(tpvActivo() && esPagoTpv($('ppago').value)) || !!(ped && ped.estado === 'Confirmado')); };   // v2.314.0 y v2.333.0
     $('pjus').onchange = async e => {
       const f = e.target.files[0]; e.target.value = ''; if (!f) return;
       const j = await leerJustificante(f); if (!j) return;
@@ -4817,12 +4820,17 @@ async function editorPedido(pedido) {
       let trfVal = false;   // v2.314.0: con transferencia, el pedido puede esperar al pago en borrador
       const sc = !!($('psincargo') && $('psincargo').checked);   // v2.317.0: entrega sin cargo
       const yaVal = !!(ped && ped.estado === 'Confirmado');   // v2.322.0: validado y sin factura: se guarda tal cual, sin volver a preguntar
-      // v2.331.0: cobro por SMS al validar; sin móvil el pedido se guarda igual y solo se avisa (se cobra como siempre)
-      let tpvSi = !sc && !yaVal && estado === 'Confirmado' && tpvActivo() && esPagoTpv($('ppago').value), tpvSinMovil = false;
-      if (tpvSi) {
-        let mov = '';
-        if (contacto && contacto.id) { const { data: kc } = await db.from('contactos').select('movil,telefono').eq('id', contacto.id).maybeSingle(); mov = tpvMovil((kc && (kc.movil || kc.telefono)) || ''); }
-        if (!mov) { tpvSi = false; tpvSinMovil = true; }
+      // v2.333.0: con tarjeta o Bizum (y el cobro activo) se elige: enviar el enlace (el pedido espera al pago en borrador y se valida solo
+      // al pagar) o validar ya (cobrado de otra forma). Sin móvil del cliente, se valida como siempre y se avisa.
+      let tpvSinMovil = false;
+      if (!sc && !yaVal && estado === 'Confirmado' && !o.alGuardar && tpvActivo() && esPagoTpv($('ppago').value)) {
+        if (!await tpvMovilDe(contacto)) tpvSinMovil = true;
+        else {
+          const v = await elegirOpcion('Pago con tarjeta o Bizum', `Se le puede enviar por SMS el enlace de pago: el pedido espera en borrador y, cuando paga, se valida solo y queda cobrado. Si ya lo habéis cobrado de otra forma, valídalo ya.`,
+            [{ k: 'no', t: 'Cancelar', cls: 'sec' }, { k: 'validar', t: 'Validar ya', cls: 'sec' }, { k: 'enlace', t: 'Enviar enlace de pago' }]);
+          if (!v) return;
+          if (v === 'enlace') { estado = 'Borrador'; o = Object.assign({}, o, { alGuardar: tpvTrasGuardar }); } else trfVal = true;
+        }
       }
       if (!medico && contacto && contacto.id && !$('zonapac').classList.contains('escentro')) {   // v2.329.0
         const { data: kc } = await db.from('contactos').select('cuenta_id, cuenta_por_pedido').eq('id', contacto.id).maybeSingle();
@@ -4869,8 +4877,8 @@ async function editorPedido(pedido) {
       $('dlg').close();
       if (o.alGuardar) { await o.alGuardar((r && r.id) || (ped && ped.id)); return; }   // v2.314.0
       toast(yaVal ? 'Pedido actualizado' : sc ? (estado === 'Borrador' ? 'Entrega sin cargo guardada en borrador' : 'Entrega sin cargo validada') : estado === 'Borrador' ? (esTransferencia($('ppago').value) ? 'Guardado en borrador hasta validar el pago' : 'Borrador guardado') : (medico ? 'Pedido validado y atribuido' : 'Pedido validado · pendiente de atribuir'));
-      if (tpvSi && ((r && r.id) || (ped && ped.id))) await tpvEnviar((r && r.id) || (ped && ped.id));   // v2.331.0
-      else if (tpvSinMovil) toast(`Pedido validado. Sin móvil ${TT('paciente', 's', 'del', 'l', 'l')} no se ha enviado el enlace de pago: cóbralo como siempre o añade su móvil y envíalo desde el pedido`);
+      if (tpvSinMovil) toast(`Pedido validado. Sin móvil ${TT('paciente', 's', 'del', 'l', 'l')} no se puede enviar el enlace de pago: cóbralo como siempre`);   // v2.333.0
+      if (estado === 'Borrador' && ped && ped.id) tpvAvisoImporte(ped.id);
       if (TAB === 'ventas') cargarVentas();
       if (TAB === 'pacientes') listaPacientes();
       if ($('ficha').open && FICHA_PAC) fichaPaciente(FICHA_PAC);
@@ -4881,6 +4889,11 @@ async function editorPedido(pedido) {
       if (!contacto) { toast(`Elige ${TT('paciente', 's', 'el', 'l', 'l')} para enviarle los datos de pago`, true); return; }
       if (!((AJUSTES.empresa || {}).iban || '').trim()) { toast('Falta el IBAN: ponlo en Configuración → Facturación → Datos fiscales antes de enviar los datos de pago', true); return; }
       guardar('Borrador', e.target, { alGuardar: async id => { await enviarDatosPago(id); verPedido(id); if (TAB === 'ventas') cargarVentas(); } });
+    };
+    $('ptpvenv').onclick = async e => {   // v2.333.0: guarda en borrador y envía el enlace de pago
+      if (!contacto) { toast(`Elige ${TT('paciente', 's', 'el', 'l', 'l')} para enviarle el enlace de pago`, true); return; }
+      if (!await tpvMovilDe(contacto)) { toast(`${TT('paciente', 's', '', 'l', 'C')} no tiene móvil: añádelo en su ficha para enviarle el enlace de pago`, true); return; }
+      guardar('Borrador', e.target, { alGuardar: tpvTrasGuardar });
     };
     $('pvalid').onclick = e => guardar('Confirmado', e.target);
     // Campos personalizados del pedido: se conservan al repintar
@@ -28529,7 +28542,7 @@ async function tpvBloque(id) {
     db.from('pedidos').select('estado,pago_estado,forma_pago,sin_cargo').eq('id', id).maybeSingle()]);
   if (!$('pdpago') || $('pdtpv') || !p) return;
   const t = (ls || [])[0];
-  const pendiente = p.estado === 'Confirmado' && (p.pago_estado || 'Pendiente') === 'Pendiente' && !p.sin_cargo;
+  const pendiente = ['Confirmado', 'Borrador'].includes(p.estado) && (p.pago_estado || 'Pendiente') === 'Pendiente' && !p.sin_cargo;   // v2.333.0: también en borrador
   const puedeEnviar = pendiente && tpvActivo() && esPagoTpv(p.forma_pago) && (puede('administrar') || nivelDe2('V') >= 2);
   if (!t && !puedeEnviar) return;
   const est = t && t.estado === 'Enviado' && t.caduca_en && new Date(t.caduca_en) < new Date() ? 'Caducado' : t && t.estado;
@@ -28539,7 +28552,7 @@ async function tpvBloque(id) {
     : est === 'Pagado' ? `Pagado${t.metodo ? ' con ' + esc(t.metodo === 'Bizum' ? t.metodo : t.metodo.toLowerCase()) : ''} el ${cuando(t.pagado_en)}${t.autorizacion ? ' · autorización ' + esc(t.autorizacion) : ''}`
     : est === 'Fallido' ? esc(t.error || 'El banco no ha autorizado el pago')
     : est === 'Caducado' ? `El enlace enviado al ${esc(t.movil || '')} el ${cuando(t.creado_en)} ha caducado sin pagar`
-    : `Enviado por SMS al ${esc(t.movil || '')} el ${cuando(t.creado_en)} · esperando el pago`;
+    : `Enviado por SMS al ${esc(t.movil || '')} el ${cuando(t.creado_en)} · esperando el pago${p.estado === 'Borrador' ? '. Cuando pague, el pedido se valida solo.' : ''}`;
   const verPrueba = t && t.entorno === 'pruebas' && est === 'Enviado' && t.url_pago;
   box.insertAdjacentHTML('beforeend', `<div class="tpvped" id="pdtpv">
     <div class="pdpagof"><span class="sm">Cobro con tarjeta o Bizum</span>${etq ? `<span class="pill ${cls}">${etq}</span>` : ''}</div>
@@ -28561,7 +28574,7 @@ async function tpvBloque(id) {
     if (!$('dlg').open || !$('pdtpv')) return;
     const { data: x } = await db.from('pagos_tpv').select('estado').eq('id', t.id).maybeSingle();
     if (!$('dlg').open || !$('pdtpv')) return;
-    if (x && x.estado === 'Pagado') { toast('Pago recibido'); invalidarCache(); verPedido(id); if (TAB === 'ventas') cargarVentas(); return; }
+    if (x && x.estado === 'Pagado') { toast(p.estado === 'Borrador' ? 'Pago recibido · pedido validado' : 'Pago recibido'); invalidarCache(); verPedido(id); if (TAB === 'ventas') cargarVentas(); return; }
     if (x && x.estado !== 'Enviado') { $('pdtpv').remove(); tpvBloque(id); return; }
     TPV_MIRA = setTimeout(mira, 8000);
   }, 8000);
@@ -28641,3 +28654,30 @@ arbolCfgUnico = (orig => function (...a) {
   return g;
 })(arbolCfgUnico);
 CFG_CLAVES['o.pruebas'] = 'pruebas produccion producción datos copia traer partida entorno';
+
+
+/* ============================================================
+   v2.333.0 · Cobro con tarjeta o Bizum con el pedido en borrador hasta que se paga (decisión de Eric, 20/10/2026; SQL 172), como la
+   transferencia: en el pedido, con tarjeta o Bizum, «Enviar enlace de pago» guarda el pedido en borrador y envía el SMS; «Guardar y
+   validar» pregunta si se envía el enlace o se valida ya. Al pagar, el pedido se valida solo y queda cobrado (lo hace la base con el aviso
+   del banco). Si no paga, sigue en borrador: se reenvía o se elimina, sin rectificativa. Si se cambia un borrador con un enlace enviado y
+   cambia el importe, se avisa de enviar uno nuevo (un enlace antiguo pagado no valida nada: avisa para revisarlo).
+   ============================================================ */
+async function tpvMovilDe(contacto) {
+  if (!contacto || !contacto.id) return '';
+  const { data: kc } = await db.from('contactos').select('movil,telefono').eq('id', contacto.id).maybeSingle();
+  return tpvMovil((kc && (kc.movil || kc.telefono)) || '');
+}
+async function tpvTrasGuardar(id) {
+  await tpvEnviar(id);
+  verPedido(id);
+  if (TAB === 'ventas') cargarVentas();
+}
+async function tpvAvisoImporte(id) {
+  const [{ data: t }, { data: d }] = await Promise.all([
+    db.from('pagos_tpv').select('importe').eq('pedido_id', id).eq('estado', 'Enviado').order('creado_en', { ascending: false }).limit(1).maybeSingle(),
+    RPC_ORIG('pedido_detalle', { p_id: id })]);
+  const tot = d && d.totales ? +d.totales.total : null;
+  if (t && tot != null && Math.abs(+t.importe - tot) > 0.005)
+    toast(`El enlace de pago enviado era de ${eurI(+t.importe)} y el pedido es ahora de ${eurI(tot)}: envía uno nuevo desde el pedido`, true);
+}
