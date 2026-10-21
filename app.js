@@ -622,7 +622,7 @@ function fichaVisitaHTML(m, cons, vis) {
   const NOMDIA = { L: 'lunes', M: 'martes', X: 'miércoles', J: 'jueves', V: 'viernes', S: 'sábado', D: 'domingo' };
   if (m.urgente) filas.push(fila('circle-alert', `<b>Urgente</b>${m.urgente_motivo ? ': ' + esc(m.urgente_motivo) : ''}`, 'fvurg'));
   if (c) {
-    const donde = [c.planta, c.sala].filter(Boolean).map(esc).join(' · ');
+    const donde = [c.planta, c.sala].map(x => String(x || '').trim()).filter(x => x && !/^[-–·.]+$/.test(x)).map(esc).join(' · ');   // v2.343.0: sin pastilla vacía
     filas.push(fila('building-2', `<b>${esc(c.centro_nombre || 'Consulta privada')}</b>${donde ? `<span class="fvdonde">${donde}</span>` : ''}
       <div class="sm">${esc([c.direccion, [c.cp, c.municipio].filter(Boolean).join(' ')].filter(Boolean).join(', ')) || 'Sin dirección'}</div>
       ${c.lat ? `<button class="btn sec fvbtn" type="button" data-nav="${navAttr([c.lat, c.lon])}">${svgIco(ICON_NOM['map-pin'])} Cómo llegar</button>` : ''}`));
@@ -9614,6 +9614,8 @@ document.addEventListener('click', e => {
     const inp = s.querySelector('input'); if (inp.disabled || inp.dataset.ro === '1') return;
     e.preventDefault(); inp.type === 'date' ? abrirCalendario(inp) : abrirReloj(inp); return;
   }
+  // v2.343.0: el «clic fantasma» del móvil (justo tras abrir) no cierra el calendario: con las ventanas a pantalla completa caía fuera
+  const sd = $('seldlg'); if (sd && sd.__abierto && Date.now() - sd.__abierto < 500) return;
   if (!e.target.closest('.selpop')) cerrarSelector();
 }, true);
 // El calendario del sistema no se abre: se usa el propio
@@ -22870,7 +22872,7 @@ anCargarKpis = (orig => async function () {
     g.ts.forEach(({ el, x, k }) => {
       const z = el.querySelector('.avz'); if (!z) return;
       const vals = serie.map(s => +s[x.id] || 0);
-      if (vals.every(v => !v)) { z.classList.add('avsin'); return; }
+      if (vals.every(v => !v)) { z.classList.add('avcero'); z.innerHTML = anLinea(vals, meses); z.title = 'Sin datos en estos seis meses'; return; }   // v2.343.0: línea plana (antes se escondía y la tarjeta quedaba descuadrada y vacía)
       z.innerHTML = anLinea(vals, meses); z.title = meses.map(([a], i) => `${AN_MES[+a.slice(5, 7) - 1]}: ${anFmt(vals[i], k.fmt).replace(/<[^>]+>/g, '')}`).join(' · ');
     });
   }));
@@ -29303,3 +29305,18 @@ disenoPDF = (orig => async function (...a) {
   };
   return r;
 })(disenoPDF);
+
+/* v2.343.0 · El «+» flotante del móvil vuelve a la cabecera al pasar a tamaño de ordenador (aviso de Eric: «+ Añadir médico» se
+   quedaba debajo de la tabla tras usar el simulador de móvil o estrechar la ventana sin recargar). */
+function fabAOrdenador() {
+  if (ES_MOVIL()) return;
+  document.querySelectorAll('main > section .fab[data-txt], main > section .fab[data-plfab], main > section > button[data-plfab], main > section > button[data-txt]').forEach(f => {
+    const sec = f.closest('main > section'), acts = sec && sec.querySelector(':scope > .saludo .acts'); if (!acts) return;
+    const txt = f.dataset.txt || f.getAttribute('aria-label') || 'Añadir';
+    f.classList.remove('fab', 'plfuera'); delete f.dataset.plfab; delete f.dataset.txt;
+    f.innerHTML = plIco('plus') + ' ' + esc(txt.replace(/^\s*\+\s*/, ''));
+    acts.appendChild(f);
+  });
+}
+let FAB_RZ = 0;
+addEventListener('resize', () => { clearTimeout(FAB_RZ); FAB_RZ = setTimeout(() => { fabAOrdenador(); try { if (typeof plSync === 'function' && TAB) plSync(TAB); } catch (e) {} }, 120); });
