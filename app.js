@@ -495,7 +495,7 @@ async function fichaUnidades(id) {
       .map(([t, v]) => `<div><b>${num(v)}</b><span>${t}</span></div>`).join('')}</div>
     ${u.total ? `<div class="segs" id="fuserie" role="group" aria-label="Evolución">${UDS_SERIES.map(([k, t]) => `<button type="button" data-us="${k}" class="${k === UDS_SERIE ? 'on' : ''}">${t}</button>`).join('')}</div>` : ''}
     <div class="spark" id="fuspark">${sparkUnidades(u, UDS_SERIE)}</div>
-    <div class="sm">${u.total ? `${num(u.pautas)} pautas · última el ${fechaCorta(u.ultima)} · <span id="fusley">${leyendaUnidades(UDS_SERIE)}</span>` : 'Todavía sin pautas registradas.'}</div></div>`;
+    <div class="sm">${u.total ? `${num(u.pautas)} ${TT('pauta', u.pautas === 1 ? 's' : 'p', '', 'l', 'l')} · última el ${fechaCorta(u.ultima)} · <span id="fusley">${leyendaUnidades(UDS_SERIE)}</span>` : `Todavía sin ${TT('pauta', 'p', '', 'l', 'l')} registradas.`}</div></div>`;
   // v2.96.0: las ventas van en su sección plegada, al final de la ficha
   const zona = $('fventasc');
   if (zona) zona.insertAdjacentHTML('afterbegin', bloque);
@@ -542,10 +542,10 @@ async function fichaAcceso(id) {
   const [{ data: us }, rfm] = await Promise.all([RPC_ORIG('usuarios_resumen', {}), rpcCache('ficha_cuenta', { p_id: id }, 'ficha-' + id)]);
   const ya = (us || []).find(u => u.cuenta_id === id), m = (rfm && rfm.data && rfm.data.medico) || {};   // v2.128.0: m.tipo (centro o no)
   $('fbody').insertAdjacentHTML('beforeend', `<div class="blk" id="facceso"><h3>Acceso a la plataforma</h3>
-    ${ya ? `<p class="sm">Tiene acceso como <b>${esc(ya.email || '')}</b>${ya.activo ? '' : ' (desactivado)'}: ${m.tipo === 'Centro' ? 'pide la reposición de sus productos, material y escribe a su comercial' : 've su informe y recibe un aviso con cada pauta'}.</p><p class="sm facccon" data-facccon="${ya.id}"></p>${ya.activo && typeof puedeVerComo === 'function' && puedeVerComo(ya) ? `<button class="btn sec" data-ucomo="${ya.id}">👤 Impersonalizar</button>` : ''}`
+    ${ya ? `<p class="sm">Tiene acceso como <b>${esc(ya.email || '')}</b>${ya.activo ? '' : ' (desactivado)'}: ${m.tipo === 'Centro' ? 'pide la reposición de sus productos, material y escribe a su comercial' : 've su portal: cifras agregadas, sin importes ni datos de personas'}.</p><p class="sm facccon" data-facccon="${ya.id}"></p>${ya.activo && typeof puedeVerComo === 'function' && puedeVerComo(ya) ? `<button class="btn sec" data-ucomo="${ya.id}">👤 Impersonalizar</button>` : ''}`
       : m.tipo === 'Centro' ? `<p class="sm">Puede tener acceso para pedir la reposición de los productos que le des de alta, pedir material y escribir a su comercial.</p>
          <button class="btn sec" id="fdaracc">Dar acceso</button>`
-      : `<p class="sm">Puede tener acceso a su portal (cifras agregadas de ${TT('pauta', 'p', '', 'l', 'l')}) y recibir un aviso con cada ${TT('pauta', 's', '', 'l', 'l')} registrada. No verá importes ni datos de ${TT('paciente', 'p', '', 'l', 'l')}.</p>
+      : `<p class="sm">Puede tener acceso a su portal (cifras agregadas de ${TT('pauta', 'p', '', 'l', 'l')}) , pedir material y escribir a su comercial. No verá importes ni datos de ${TT('paciente', 'p', '', 'l', 'l')}.</p>
          <button class="btn sec" id="fdaracc">Dar acceso</button>`}</div>`);
   if (ya) facccon(ya.id);   // v2.335.0
   if ($('fdaracc')) $('fdaracc').onclick = async () => {
@@ -827,10 +827,10 @@ async function abrirEditor(id, tipo) {
 
   $('dbody').innerHTML = `
     <div class="fh"><div><h2>${id ? 'Editar ficha' : esCentro ? 'Nuevo centro' : esc(fichaNueva().nueva)}</h2>
-      <div class="sm">${id ? esc(m.nombre) : esCentro ? 'Clínica, hospital, empresa o tienda' : `${TT('medico', 's', '', 'l', 'C')} con sus centros`}</div></div>
+      <div class="sm">${id ? esc(m.nombre) : esCentro ? 'Empresa, tienda, oficina u otro local' : `${TT('medico', 's', '', 'l', 'C')} con sus centros`}</div></div>
       <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
     <label for="en">${esCentro ? 'Nombre del centro' : 'Apellidos, Nombre'}</label>
-    <input id="en" value="${esc(m.nombre || '')}" placeholder="${esCentro ? 'CLÍNICA SANT JORDI' : 'GARCIA LOPEZ, ANA'}" autocapitalize="characters">
+    <input id="en" value="${esc(m.nombre || '')}" placeholder="${esCentro ? 'CENTRO SANT JORDI' : 'GARCIA LOPEZ, ANA'}" autocapitalize="characters">
     ${esCentro ? '' : `<div class="g2">
       <div><label for="ee">Especialidad</label><select id="ee">${opts(CAT.especialidad, m.especialidad)}</select></div>
       <div><label for="ea">Área</label><select id="ea">${opts(CAT.area, m.area)}</select></div></div>`}
@@ -1005,7 +1005,7 @@ $('nuevoBtn').addEventListener('click', () => {
       <button class="opt ${puedeCrearTipo('Persona') ? '' : 'hide'}" data-crear="Persona" style="flex-direction:column;align-items:flex-start;gap:4px;padding:16px">
         <b style="font-size:16px;color:var(--navy)">${esc(fichaNueva().nombre)}</b><span class="sm">${TT('medico', 's', '', 'l', 'C')} con sus centros y horarios</span></button>
       <button class="opt ${puedeCrearTipo('Centro') ? '' : 'hide'}" data-crear="Centro" style="flex-direction:column;align-items:flex-start;gap:4px;padding:16px">
-        <b style="font-size:16px;color:var(--navy)">Centro</b><span class="sm">Clínica, hospital, empresa o tienda</span></button>
+        <b style="font-size:16px;color:var(--navy)">Centro</b><span class="sm">Empresa, tienda, oficina u otro local</span></button>
     </div>`;
   $('dbody').querySelectorAll('[data-crear]').forEach(b => b.onclick = () => abrirEditor(null, b.dataset.crear));
   $('dlg').showModal();
@@ -4152,7 +4152,7 @@ const AYUDA_KPI = {
   urgentes: `${TT('medico', 'p', '', 'l', 'C', 'marcado')} como urgentes que todavía no tienen ${TT('visita', 's', 'ningun', 'l', 'l')}. Pulsa para verlos en el Directorio.`,
   visitas_sem: `${TT('visita', 'p', '', 'l', 'C', 'registrado')} desde el lunes de esta semana.`,
   visitas_mes: `${TT('visita', 'p', '', 'l', 'C', 'registrado')} desde el día 1 de este mes.`,
-  interesados: `${TT('medico', 'p', '', 'l', 'C')} en estado «${estadoPapel('interes') || 'interés'}». El siguiente paso es conseguir la primera pauta. Pulsa para verlos.`,
+  interesados: `${TT('medico', 'p', '', 'l', 'C')} en estado «${estadoPapel('interes') || 'interés'}». El siguiente paso es conseguir ${TT('pauta', 's', 'primer', 'l', 'l')}. Pulsa para verlos.`,
   sin_contactar: `${TT('medico', 'p', '', 'l', 'C')} a los que todavía no se ha presentado el producto. Pulsa para verlos.`,
   cartera: `${TT('medico', 'p', '', 'l', 'C')} que puedes ver: tu cartera asignada o, si eres de administración o televenta, toda la base.`,
   dups: 'Fichas marcadas como posible duplicado al darlas de alta. Pulsa para revisarlas y unificarlas.',
@@ -8032,7 +8032,7 @@ Object.assign(AYUDA_KPI, {
   visitas_7d: `${TT('visita', 'p', '', 'l', 'C', 'registrado')} en los últimos siete días, contando hoy.`,
   citas_7d: 'Tus citas abiertas de hoy a los próximos seis días. Pulsa para ver tu semana.',
   muestras_mes: `Muestras entregadas en ${TT('visita', 'p', 'el', 'l', 'l')} de este mes.`,
-  material_mes: 'Veces que se ha entregado material comercial (dípticos, talonarios…) este mes.',
+  material_mes: 'Veces que se ha entregado material comercial (dípticos, catálogos…) este mes.',
   sin_visita_60: `${TT('medico', 'p', '', 'l', 'C')} que puedes ver y que no se visitan desde hace más de 60 días (o nunca).`,
   sin_horario: `${TT('medico', 'p', '', 'l', 'C')} sin días ni horas de atención en su ficha. Sin ese dato, las rutas y el planificador no pueden ajustarse a su horario.`,
   borradores: 'Pedidos guardados como borrador que todavía no cuentan en métricas ni comisiones. Pulsa para verlos.'
@@ -9724,8 +9724,8 @@ async function cargarInforme() {
           ${(d.productos || []).length ? svgDonut(d.productos.map(x => ({ n: x.nombre, v: x.unidades }))) : vacioGrafico('Aparecerá el reparto por producto.')}</div>
         <div class="card ancard"><h2>Llamadas de tus ${TT('paciente', 'p', '', 'l', 'l')}</h2>
           <div class="minis"><div><b>${num(ll.total || 0)}</b><span>llamadas</span></div><div><b>${conv == null ? '—' : conv + '%'}</b><span>acaban en pedido</span></div></div>
-          ${(ll.por_resultado || []).length ? barrasH(ll.por_resultado.map(x => ({ n: x.resultado, v: x.n })), num) : `<p class="sm" style="padding:0 16px">Todavía no hay llamadas registradas de ${TT('paciente', 'p', '', 'l', 'l')} que vengan de tu parte.</p>`}
-          <p class="leer">${TT('paciente', 'p', '', 'l', 'C')} que llaman a la empresa de tu parte. Si muchos llaman por dudas o por precio, podemos darte material para explicarlo en consulta.</p></div>
+          ${(ll.por_resultado || []).length ? barrasH(ll.por_resultado.map(x => ({ n: x.resultado, v: x.n })), num) : `<p class="sm" style="padding:0 16px">Todavía no hay llamadas registradas en el periodo.</p>`}
+          <p class="leer">${TT('paciente', 'p', '', 'l', 'C')} que llaman a la empresa. Si muchos llaman por dudas o por precio, podemos darte material para explicarlo.</p></div>
       </div>
       <p class="sm" style="text-align:center;margin:18px 0">Por confidencialidad no se muestran datos de tus ${TT('paciente', 'p', '', 'l', 'l')} ni importes.</p>`;
   };
@@ -9741,7 +9741,7 @@ async function pintarAvisos() {
   b.innerHTML = `🔔${n ? `<span class="nb2">${n > 9 ? '9+' : n}</span>` : ''}`;
   b.onclick = async () => {
     const l = (data && data.lista) || [];
-    $('dbody').innerHTML = `<div class="fh"><div><h2>Avisos</h2><div class="sm">Cada vez que se registra una pauta</div></div><button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
+    $('dbody').innerHTML = `<div class="fh"><div><h2>Avisos</h2><div class="sm">Cada vez que se registra ${TT('pauta', 's', 'un', 'l', 'l')}</div></div><button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
       <div class="lista">${l.map(x => `<div class="item ${x.leida_en ? '' : 'nuevo'}" style="cursor:default"><span class="ic">💊</span>
         <span class="tx"><b>${esc(x.titulo)}</b><span class="sm">${esc(x.cuerpo || '')} · ${new Date(x.creado_en).toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' })}</span></span></div>`).join('') || '<div class="vacio">Sin avisos todavía.</div>'}</div>`;
     $('dlg').showModal();
@@ -9756,8 +9756,8 @@ if (typeof pintarBnav === 'function') pintarBnav = (orig => function () {
 
 // Vincular un usuario de tipo Médico con su ficha (Administración → Usuarios → Editar)
 
-MANUAL.push({ id: 'medico', t: `Espacio ${TT('medico', 's', 'del', 'l', 'l')}`, a: null, para: `${TT('medico', 'p', 'el', 'C', 'l')} con usuario ven su informe de ventas atribuidas y reciben un aviso con cada venta a su nombre.`,
-  hacer: [[3, 'Crear el usuario con el rol «Medico» y vincularlo a su ficha (Administración → Usuarios → Editar)']],
+MANUAL.push({ id: 'medico', t: `Espacio ${TT('medico', 's', 'del', 'l', 'l')}`, a: null, para: `${TT('medico', 'p', 'el', 'C', 'l')} con usuario ven su portal: cifras agregadas, sin importes ni datos de personas.`,
+  hacer: [[3, 'Crear el usuario con un rol de portal y vincularlo a su ficha (Configuración → Usuarios → Editar)']],
   config: [`${TT('medico', 's', 'el', 'C', 'l')} ve unidades, ventas, ${TT('paciente', 'p', '', 'l', 'l')} (solo el número) y las llamadas de sus ${TT('paciente', 'p', '', 'l', 'l')}. Nunca importes ni nombres.`] });
 ICONOS_MANUAL.medico = '🩺';
 
@@ -11010,9 +11010,9 @@ async function pintarMaterial() {
   $('cfgcuerpo').innerHTML = `
     <div class="card cfgpanel"><h2 style="padding:0 0 4px">Material de ${TT('visita', 's', '', 'l', 'l')}</h2>
       <p class="sm">Todo lo que un comercial puede dejar en ${TT('visita', 's', 'un', 'l', 'l')}. Al registrar ${TT('visita', 's', 'el', 'l', 'l')} se marca qué se entregó y cuánto, y queda en la ficha ${TT('medico', 's', 'del', 'l', 'l')} y en Analítica (material por comercial, por ${TT('medico', 's', '', 'l', 'l')} y por mes).</p>
-      <div class="mattipos"><div><b>💊 Muestras de producto</b><span>Unidades de un producto del catálogo. Pueden descontarse del stock.</span></div>
-        <div><b>📚 Material promocional</b><span>Dípticos, talonarios, flyers, tarjetas… Se cuentan, pero no descuentan stock.</span></div></div></div>
-    <div class="card cfgpanel"><h2 style="padding:0 0 4px">💊 Muestras de producto</h2>
+      <div class="mattipos"><div><b>📦 Muestras de producto</b><span>Unidades de un producto del catálogo. Pueden descontarse del stock.</span></div>
+        <div><b>📚 Material promocional</b><span>Dípticos, catálogos, flyers, tarjetas… Se cuentan, pero no descuentan stock.</span></div></div></div>
+    <div class="card cfgpanel"><h2 style="padding:0 0 4px">📦 Muestras de producto</h2>
       <div class="g2"><div><label for="muprod">Producto que se entrega como muestra</label><select id="muprod"><option value="">— Ninguno —</option>${PRODUCTOS.filter(p => p.tipo !== 'servicio').map(p => `<option value="${p.id}" ${p.id === m.producto_id ? 'selected' : ''}>${esc(p.nombre)}</option>`).join('')}</select></div><div></div></div>
       <label class="vfswitch" style="margin-top:10px"><input type="checkbox" id="murest" ${m.restar_stock ? 'checked' : ''}><span class="sw"></span>
         <span><b>Descontar las muestras del stock</b><br><span class="sm">Salen del maletín de quien registra ${TT('visita', 's', 'el', 'l', 'l')} (o del almacén central si no tiene), empezando por el lote que caduca antes. Así sabes cuántas muestras quedan y a quién llegó cada lote.</span></span></label>
@@ -11021,7 +11021,7 @@ async function pintarMaterial() {
       <p class="sm">Lo que aparece para marcar al registrar ${TT('visita', 's', 'un', 'l', 'l')}. En cada uno eliges si al registrar se anotan las unidades entregadas y, con el portal, si se puede pedir desde él y cuántas como máximo por petición.</p>
       <div class="matlista">${(vals || []).map(v => `<div class="matfila ${v.activo ? '' : 'off'}"><b>${esc(v.valor)}</b><span class="sm">${v.dato_tipo === 'numero' ? 'Pide cantidad' : 'Solo se marca'}</span>
         <label class="vfswitch mini"><input type="checkbox" data-mact="${v.id}" ${v.activo ? 'checked' : ''}><span class="sw"></span><span class="sm">${v.activo ? 'Activo' : 'Oculto'}</span></label></div>`).join('') || '<div class="sm">Todavía no hay material.</div>'}</div>
-      <div class="matadd"><input id="matn" placeholder="Nuevo material, p. ej. Póster para consulta"><label class="opt" style="margin:0"><input type="checkbox" id="matq" checked> Anotar cuántas se entregan</label>
+      <div class="matadd"><input id="matn" placeholder="Nuevo material, p. ej. Cartel para el mostrador"><label class="opt" style="margin:0"><input type="checkbox" id="matq" checked> Anotar cuántas se entregan</label>
         <button class="btn sec" id="matok" ${cid ? '' : 'disabled'}>Añadir</button></div></div>`;
   $('muok').onclick = async () => {
     if ($('murest').checked && !$('muprod').value) { toast('Elige el producto de las muestras', true); return; }
@@ -11161,7 +11161,7 @@ const LOCALES = { es: 'es-ES', en: 'en-GB', de: 'de-DE', fr: 'fr-FR', it: 'it-IT
 // [castellano, inglés, alemán, francés, italiano]
 const I18N = [
   ['Inicio', 'Home', 'Start', 'Accueil', 'Home'], ['Agenda', 'Calendar', 'Kalender', 'Agenda', 'Agenda'], ['Rutas', 'Routes', 'Routen', 'Itinéraires', 'Percorsi'],
-  ['Médicos', 'Doctors', 'Ärzte', 'Médecins', 'Medici'], ['Directorio', 'Doctors', 'Ärzte', 'Médecins', 'Medici'], ['Clientes', 'Customers', 'Kunden', 'Clients', 'Clienti'], ['Productos', 'Products', 'Produkte', 'Produits', 'Prodotti'],
+  ['Médicos', 'Doctors', 'Ärzte', 'Médecins', 'Medici'], ['Directorio', 'Directory', 'Verzeichnis', 'Annuaire', 'Elenco'], ['Clientes', 'Customers', 'Kunden', 'Clients', 'Clienti'], ['Productos', 'Products', 'Produkte', 'Produits', 'Prodotti'],
   ['Calidad del dato', 'Data quality', 'Datenqualität', 'Qualité des données', 'Qualità dei dati'], ['Pedidos', 'Orders', 'Bestellungen', 'Commandes', 'Ordini'],
   ['Analítica', 'Analytics', 'Analysen', 'Analyses', 'Analisi'], ['Facturación', 'Invoicing', 'Rechnungen', 'Facturation', 'Fatturazione'], ['Más', 'More', 'Mehr', 'Plus', 'Altro'],
   ['Mi informe', 'My report', 'Mein Bericht', 'Mon rapport', 'Il mio report'], ['Mi centro', 'My centre', 'Mein Zentrum', 'Mon centre', 'Il mio centro'], ['Configuración', 'Settings', 'Einstellungen', 'Paramètres', 'Impostazioni'],
@@ -11794,7 +11794,7 @@ function arbolConfig() {
       { k: 'comis', ic: 'euro', t: 'Comisiones', d: 'Esquemas y quién cobra con cada uno', mod: 'ventas', r: () => panelDeModulo('comisiones') },
       { k: 'seguridad', ic: 'lock-keyhole', t: 'Seguridad y registro', d: 'Accesos y cambios registrados', sub: [['accesos', 'Accesos', () => panelDeModulo('accesos')], ['auditoria', 'Auditoría', () => panelDeModulo('auditoria')]] }] : []],
     ['Datos', [
-      ...(puedeCatalogos() ? [{ k: 'cat', ic: 'tag', t: 'Clasificadores', d: 'Listas de valores: especialidades, motivos…', r: () => { $('cfgcuerpo').innerHTML = ''; pintarCatalogos(); } }] : []),
+      ...(puedeCatalogos() ? [{ k: 'cat', ic: 'tag', t: 'Clasificadores', d: 'Listas de valores: estados, motivos…', r: () => { $('cfgcuerpo').innerHTML = ''; pintarCatalogos(); } }] : []),
       ...(admin || nivelDe2('P') >= 3 ? [{ k: 'stock', ic: 'warehouse', t: 'Stock y material', d: `Almacenes y material de ${TT('visita', 's', '', 'l', 'l')}`, mod: 'productos', sub: [['alm', 'Almacenes', pintarAlmacenes2], ['mues', `Material de ${TT('visita', 's', '', 'l', 'l')}`, pintarMaterial]] }] : [])]],
     ['Facturación', admin ? [
       { k: 'fact', ic: 'receipt', t: 'Facturación', d: 'Datos fiscales, series y VeriFactu', mod: 'facturacion', sub: [['fiscal', 'Datos fiscales', fac(pintarEmpresa)], ['series', 'Series', fac(pintarSeries)], ['vf', 'VeriFactu', fac(pintarVerifactu)], ['pdf', 'Diseño del PDF', () => disenoPDF()]] }] : []],
@@ -11884,7 +11884,7 @@ const EXPLICA_NOTIF = {
   pedido_validado: ['Cada pedido que valida otra persona del equipo.', 'Prepara el envío, valida el pago o emite la factura.'],
   citas_hoy: ['Al empezar el día, cuántas citas tienes.', 'Abre «Tu día» para empezar la jornada.'],
   sin_visitar: [`Cada lunes, ${TT('medico', 'p', 'el', 'l', 'l')} de tu cartera que llevan más de 60 días sin ${TT('visita', 's', '', 'l', 'l')}.`, 'Tenlos en cuenta al planificar la semana.'],
-  cliente_nuevo: [`Cuando se da de alta ${TT('paciente', 's', 'un', 'l', 'l')} que viene de ${TT('medico', 's', 'un', 'l', 'l')} de tu cartera.`, `Señal de actividad en su consulta.`],
+  cliente_nuevo: [`Cuando se da de alta ${TT('paciente', 's', 'un', 'l', 'l')} que viene de ${TT('medico', 's', 'un', 'l', 'l')} de tu cartera.`, `Señal de que su cartera se mueve.`],
   pago_recibido: ['Cuando se confirma el pago de un pedido que creaste.', 'Ya se puede preparar el envío.'],
   borrador_nuevo: ['Cuando alguien deja un pedido pendiente de validar.', 'Revísalo y valídalo para que salga el pedido.'],
   seguimientos_hoy: ['Al empezar el día, las llamadas de seguimiento que tocan o están atrasadas.', 'Están en Pedidos → Oportunidades.'],
@@ -11917,7 +11917,7 @@ db.rpc = (orig => function (fn, params, opts) {
   const r = orig.call(db, fn, params, opts);
   if (!r || typeof r.then !== 'function') return r;
   let hecho = false;
-  const limite = new Promise(res => setTimeout(() => { if (!hecho) res({ data: null, error: { message: 'La consulta ha tardado demasiado (' + fn + ')', code: 'TIEMPO' } }); }, 20000));
+  const limite = new Promise(res => setTimeout(() => { if (!hecho) res({ data: null, error: { message: 'La petición ha tardado demasiado (' + fn + ')', code: 'TIEMPO' } }); }, 20000));
   return conCatch(Promise.race([Promise.resolve(r).then(x => { hecho = true; return x; }, e => { hecho = true; return { data: null, error: e }; }), limite]));
 })(db.rpc);
 
@@ -14348,7 +14348,7 @@ function formCentro(box, i, c, aviso) {
   if (c.privada) { pintarCentroSel(box, i); return; }
   cont.innerHTML = `<div class="cpform">
     <div class="cpformcab"><b>${c.id ? 'Editar centro' : 'Centro nuevo'}</b>${aviso ? `<span class="sm cpaviso">${esc(aviso)}</span>` : ''}</div>
-    <div class="g2"><div><label for="${k}n">Nombre del centro</label><input id="${k}n" value="${esc(c.nombre || '')}" placeholder="p. ej. Clínica Sagrada Família"></div>
+    <div class="g2"><div><label for="${k}n">Nombre del centro</label><input id="${k}n" value="${esc(c.nombre || '')}" placeholder="p. ej. Centro Sagrada Família"></div>
       <div><label for="${k}t">Teléfono</label><input id="${k}t" value="${esc(c.telefono || '')}" inputmode="tel"></div></div>
     <div class="g2"><div><label for="${k}d">Dirección</label><input id="${k}d" value="${esc(c.direccion || '')}"></div>
       <div><label for="${k}c">Código postal</label><input id="${k}c" value="${esc(c.cp || '')}" inputmode="numeric"></div></div>
@@ -15080,8 +15080,8 @@ async function fichaAccesoCartera(id) {
   // Solo en las fichas de su cartera (o en todas si ve todo)
   if ((!ya && !(mia || []).length) || FICHA_ID !== id || $('facceso')) return;
   $('fbody').insertAdjacentHTML('beforeend', `<div class="blk" id="facceso"><h3>Acceso a la plataforma</h3>
-    ${ya ? `<p class="sm">Tiene acceso${ya.email ? ` como <b>${esc(ya.email)}</b>` : ''}${ya.activo ? '' : ' (desactivado)'}: ${m.tipo === 'Centro' ? 'pide la reposición de sus productos, material y escribe a su comercial' : 've su informe y recibe un aviso con cada pauta'}.</p>${ya.activo && typeof puedeVerComo === 'function' && puedeVerComo(ya) ? `<button class="btn sec" data-ucomo="${ya.id}">👤 Impersonalizar</button>` : ''}`
-      : `<p class="sm">${m.tipo === 'Centro' ? 'Puede tener acceso para pedir la reposición de los productos que le des de alta, pedir material y escribir a su comercial.' : `Puede tener acceso a su informe y recibir un aviso con cada pauta a su nombre. No verá importes ni datos de ${TT('paciente', 'p', '', 'l', 'l')}.`}</p>
+    ${ya ? `<p class="sm">Tiene acceso${ya.email ? ` como <b>${esc(ya.email)}</b>` : ''}${ya.activo ? '' : ' (desactivado)'}: ${m.tipo === 'Centro' ? 'pide la reposición de sus productos, material y escribe a su comercial' : 've su portal: cifras agregadas, sin importes ni datos de personas'}.</p>${ya.activo && typeof puedeVerComo === 'function' && puedeVerComo(ya) ? `<button class="btn sec" data-ucomo="${ya.id}">👤 Impersonalizar</button>` : ''}`
+      : `<p class="sm">${m.tipo === 'Centro' ? 'Puede tener acceso para pedir la reposición de los productos que le des de alta, pedir material y escribir a su comercial.' : `Puede tener acceso a su portal (cifras agregadas de ${TT('pauta', 'p', '', 'l', 'l')}), pedir material y escribir a su comercial. No verá importes ni datos de ${TT('paciente', 'p', '', 'l', 'l')}.`}</p>
          <div class="g2"><div><label for="faccmail">Correo</label><input id="faccmail" type="email" value="${esc(m.email || '')}" placeholder="nombre@correo.com"></div>
          <div style="align-self:end"><button class="btn sec" id="fdaracc">Dar acceso</button></div></div><div class="sm" id="faccmsg"></div>`}</div>`);
   if (!$('fdaracc')) return;
@@ -16624,7 +16624,7 @@ menuCita = function (boton, c) {
   const ops = [
     abierta ? ['hora', c.hora ? 'Cambiar la hora' : 'Fijar una hora', ''] : null,
     abierta ? ['aplazar', 'Aplazar a otro día', 'Queda como aplazada y se crea la cita nueva'] : null,
-    abierta && c.estado === 'Planificada' ? ['confirmar', 'Marcar como confirmada', 'Ya has hablado con la consulta'] : null,
+    abierta && c.estado === 'Planificada' ? ['confirmar', 'Marcar como confirmada', 'Ya has confirmado la cita'] : null,
     abierta && c.estado === 'Confirmada' ? ['desconfirmar', 'Quitar la confirmación', ''] : null,
     abierta ? ['descartar', 'Descartar la cita', 'Ya no hace falta ir'] : null,
     abierta && c.fecha >= hoyISO() ? ['borrar', 'Eliminar la cita', 'Fue un error: desaparece de la agenda'] : null   // v2.273.0
@@ -18131,7 +18131,7 @@ function perdidasPlan(de, a, datos) {
   if (de === a) return l;
   const nombreMod = m => (MOD_PLAN.find(x => x[0] === m) || [m, m])[1];
   pd.modulos.filter(m => !pa.modulos.includes(m) && m in MODULO_AREA).forEach(m => l.push(m === 'facturacion'
-    ? `Facturación: ${datos && datos.facturas ? 'tus facturas quedan en solo consulta (verlas, descargarlas y cobrarlas, no emitir nuevas)' : 'no podrás emitir facturas'}` : nombreMod(m)));
+    ? `Facturación: ${datos && datos.facturas ? 'tus facturas quedan en solo lectura (verlas, descargarlas y cobrarlas, no emitir nuevas)' : 'no podrás emitir facturas'}` : nombreMod(m)));
   Object.keys(PLAN_SECCIONES).forEach(s => { if (PLAN_SECCIONES[s].includes(de) && !PLAN_SECCIONES[s].includes(a)) l.push(TITULO_PEDSEC[s] ? TITULO_PEDSEC[s][0] : s); });
   Object.keys(PLAN_EXTRAS).forEach(x => {
     if (!PLAN_EXTRAS[x].includes(de) || PLAN_EXTRAS[x].includes(a) || extras.includes(x)) return;
@@ -20167,7 +20167,7 @@ function editarEvento(ev) {
     <div class="g2"><div><label for="evtipo">Tipo</label><select id="evtipo">${EV_TIPOS.map(t => `<option ${t === e.tipo ? 'selected' : ''}>${t}</option>`).join('')}</select></div>
       <div><label for="evf">Fecha</label><input id="evf" type="date" value="${esc(e.fecha || '')}"></div></div>
     <div class="g2"><div><label for="evh">Hora</label><input id="evh" type="time" value="${esc(e.hora ? String(e.hora).slice(0, 5) : '')}"></div>
-      <div><label for="evl">Lugar</label><input id="evl" value="${esc(e.lugar || '')}" placeholder="Hotel, hospital, sede…"></div></div>
+      <div><label for="evl">Lugar</label><input id="evl" value="${esc(e.lugar || '')}" placeholder="Hotel, centro, sede…"></div></div>
     <label class="opt"><input type="checkbox" id="evon" ${e.en_linea ? 'checked' : ''}> En línea</label>
     <label for="evn">Nota</label><textarea id="evn" rows="3">${esc(e.nota || '')}</textarea>
     <div class="acts" style="justify-content:flex-end">${ev && (ev.creado_por === PERFIL.id || puede('administrar')) ? '<button type="button" class="btn sec peligro" id="evborrar">Borrar</button>' : ''}
@@ -20941,7 +20941,7 @@ async function editarConcurso(c) {
     <label for="cont">Título</label><input id="cont" value="${esc(e.titulo || '')}" placeholder="p. ej. Suministro de material de osteosíntesis">
     <label>A quién se vende</label><div id="concta"></div>
     <div class="g2"><div><label for="conexp">Expediente</label><input id="conexp" value="${esc(e.expediente || '')}"></div>
-      <div><label for="conorg">Organismo</label><input id="conorg" value="${esc(e.organismo || '')}" placeholder="p. ej. Servicio de Salud"></div></div>
+      <div><label for="conorg">Organismo</label><input id="conorg" value="${esc(e.organismo || '')}" placeholder="p. ej. Diputación de Barcelona"></div></div>
     <div class="g2"><div><label for="conpub">Publicado</label><input id="conpub" type="date" value="${esc(e.publicado || '')}"></div>
       <div><label for="conlim">Presentar hasta</label><input id="conlim" type="date" value="${esc(e.limite || '')}"></div></div>
     <div class="g2"><div><label for="conimp">Importe de licitación sin IVA (€)</label><input id="conimp" type="number" min="0" step="0.01" value="${e.importe_licitacion != null ? +e.importe_licitacion : ''}"></div>
@@ -21178,7 +21178,7 @@ async function editarEquipo(e, cuenta) {
       <button type="button" class="btn sec" data-cerrar>Cancelar</button><button type="button" class="btn" id="eqok">${e ? 'Guardar' : 'Dar de alta'}</button></div>`;
   if (!$('dlg').open) $('dlg').showModal();
   let cta = e ? { id: e.cuenta_id, nombre: (e.cuentas || {}).nombre || '' } : cuenta || null;
-  selectorMedico($('eqcta'), { valor: cta, placeholder: 'Busca el hospital o la clínica', alElegir: m => { cta = m; } });
+  selectorMedico($('eqcta'), { valor: cta, placeholder: 'Busca el centro', alElegir: m => { cta = m; } });
   const verFin = () => $('eqcfw').classList.toggle('hide', $('eqc').value === 'Venta');
   verFin(); $('eqc').onchange = verFin;
   $('eqp').onchange = () => { if (!e) $('eqr').value = $('eqp').selectedOptions[0].dataset.rm || 0; };
@@ -23973,7 +23973,7 @@ const PL = {
       const t = x => RPC_ORIG('clientes_lista', { q: null, p_medico: null, lim: 1, desplaz: 0, p_tipo: null, p_pedidos: null, p_municipio: null, ...x }).then(r => (r.data && r.data.total) || 0, () => 0);
       const [tot, con, sin, emp] = await Promise.all([t({}), t({ p_pedidos: 'con' }), t({ p_pedidos: 'sin' }), t({ p_tipo: 'Empresa' })]);
       return [{ k: 'tot', t: 'Clientes', n: tot, s: 'en total' }, { k: 'con', t: 'Con pedidos', n: con, s: 'han comprado alguna vez' },
-        { k: 'sin', t: 'Sin pedidos', n: sin, s: 'todavía sin compras' }, { k: 'emp', t: 'Empresas', n: emp, s: 'clínicas, centros y otras' }];
+        { k: 'sin', t: 'Sin pedidos', n: sin, s: 'todavía sin compras' }, { k: 'emp', t: 'Empresas', n: emp, s: 'centros, tiendas y otras' }];
     },
     kpiOn: k => k === 'tot' ? !PAC.tipo && !PAC.pedidos : k === 'emp' ? PAC.tipo === 'Empresa' : PAC.pedidos === k,
     kpiPulsar: k => {
@@ -25431,8 +25431,8 @@ pintarEstadoDelcos = (orig => async function (...a) {
   const card = c.querySelector('.card.cfgpanel'), pie = card && [...card.querySelectorAll(':scope > p.sm')].pop(); if (!card) return;
   const cfg = u.config || {}, glob = +cfg.global || 2000, emp = u.empresas || [];
   const html = `<h3 class="pdh3">Servicio de rutas (TomTom)</h3>
-    ${pdKpis([[num(u.hoy || 0) + ' / ' + num(glob), 'consultas hoy, entre todas las empresas', (u.hoy || 0) >= glob * 0.8 ? 'aviso' : ''],
-      [num(u.mes || 0), 'consultas este mes'], [cfg.activo === false ? 'Apagado' : 'Activo', 'servicio', cfg.activo === false ? 'aviso' : ''],
+    ${pdKpis([[num(u.hoy || 0) + ' / ' + num(glob), 'peticiones hoy, entre todas las empresas', (u.hoy || 0) >= glob * 0.8 ? 'aviso' : ''],
+      [num(u.mes || 0), 'peticiones este mes'], [cfg.activo === false ? 'Apagado' : 'Activo', 'servicio', cfg.activo === false ? 'aviso' : ''],
       [num(+cfg.por_usuario || 30), 'por usuario activo y día']])}
     ${emp.length ? `<div class="tablawrap"><table class="pdtabla"><thead><tr><th>Empresa</th><th class="num">Hoy</th><th class="num">Cupo diario</th><th class="num">Este mes</th></tr></thead><tbody>
       ${emp.map(x => `<tr><td>${esc(x.nombre)}</td><td class="num" style="${x.hoy >= x.cupo ? 'color:var(--warn);font-weight:700' : ''}">${num(x.hoy)}</td><td class="num">${num(x.cupo)}</td><td class="num">${num(x.mes)}</td></tr>`).join('')}</tbody></table></div>`
@@ -25518,7 +25518,7 @@ function tdMarcaTrafico() {
   const real = tdRealVigente() && TD_REAL.k === ruta.k;
   st.insertAdjacentHTML('beforeend', real
     ? '<span class="tdtraf tdtrafok" title="Horas calculadas por las calles y con el tráfico de ahora (TomTom)">Con tráfico real</span>'
-    : '<span class="tdtraf"><button type="button" class="kcfg" id="tdtrafico" title="Una consulta al servicio de rutas: horas por las calles y con el tráfico de ahora">Calcular con tráfico</button></span>');
+    : '<span class="tdtraf"><button type="button" class="kcfg" id="tdtrafico" title="Una petición al servicio de rutas: horas por las calles y con el tráfico de ahora">Calcular con tráfico</button></span>');
   const b = $('tdtrafico'); if (b) b.onclick = () => tdTrafico(false);
 }
 pintarTuDia = (orig => async function (...a) {
@@ -25869,7 +25869,7 @@ async function abrirEscaner(inp) {
   }
   if (!ESC || !ESC.vivo) { ESC && ESC.stream && ESC.stream.getTracks().forEach(t => t.stop()); return; }
   const v = $('escv'); v.srcObject = ESC.stream; try { await v.play(); } catch (e) {}
-  escTexto(modo === 'lote' ? 'Apunta al código de la caja: se lee el número de lote' : grupo.length > 1 ? `Apunta al código de cada unidad · ${ESC.leidos.size} de ${grupo.length}` : 'Apunta al código de la unidad: se lee el número de serie o la UDI');
+  escTexto(modo === 'lote' ? 'Apunta al código de la caja: se lee el número de lote' : grupo.length > 1 ? `Apunta al código de cada unidad · ${ESC.leidos.size} de ${grupo.length}` : 'Apunta al código de la unidad: se lee el lote o el número de serie');
   if ('BarcodeDetector' in window) {
     try {
       const fmts = await BarcodeDetector.getSupportedFormats();
@@ -26720,14 +26720,14 @@ function pmResumen(d, k, pac) {
         ${(d.productos || []).length ? `<div class="pmdon">${svgDonut(d.productos.map(x => ({ n: x.nombre, v: x.unidades })))}</div>` : vacioGrafico('Aparecerá el reparto por producto.')}</div></div>
     <div class="pmfila pm3">
       ${pmFormatos(d)}
-      <div class="card ancard"><h2>Consultas recibidas ${pmAyu('Consultas recibidas', `Número de consultas recibidas por la empresa en el periodo y qué parte inicia una ${TT('pauta', 's', '', 'l', 'l')}. Solo cifras: no se muestra ningún dato de quién llama.`)}</h2>
+      <div class="card ancard"><h2>Llamadas recibidas ${pmAyu('Llamadas recibidas', `Número de llamadas recibidas por la empresa en el periodo y qué parte inicia una ${TT('pauta', 's', '', 'l', 'l')}. Solo cifras: no se muestra ningún dato de quién llama.`)}</h2>
         <div class="minis"><div><b>${num(ll.total || 0)}</b><span>consultas</span></div><div><b>${conv == null ? '—' : conv + '%'}</b><span>inician ${TT('pauta', 's', '', 'l', 'l')}</span></div></div>
-        ${(ll.por_resultado || []).length ? barrasH(ll.por_resultado.map(x => ({ n: x.resultado, v: x.n })), num) : '<p class="sm">Todavía no hay consultas registradas en el periodo.</p>'}</div>
+        ${(ll.por_resultado || []).length ? barrasH(ll.por_resultado.map(x => ({ n: x.resultado, v: x.n })), num) : '<p class="sm">Todavía no hay llamadas registradas en el periodo.</p>'}</div>
       <div class="card ancard" id="pmconst"><h2>Continuidad de las ${TT('pauta', 'p', '', 'l', 'l')} ${pmAyu(`Continuidad de las ${TT('pauta', 'p', '', 'l', 'l')}`, `Cifras agregadas y anónimas de los últimos 12 meses: cuántas ${TT('pauta', 'p', '', 'l', 'l')} se iniciaron, qué parte continúa y cada cuánto se reponen. Nunca se muestra información de ninguna persona y, con menos de 5, no se enseña nada. Tampoco se muestran importes.`)}</h2>${cons}</div></div>`;
 }
 
 const pmFaltaTxt = () => {
-  const t = { horario: typeof PM_CENTRO === 'function' && PM_CENTRO() ? 'dónde y cuándo atendéis' : 'dónde y cuándo pasas consulta', telefono: 'un teléfono de contacto', visitas: `cómo prefieres ${TT('visita', 'p', 'el', 'l', 'l')}` };
+  const t = { horario: typeof PM_CENTRO === 'function' && PM_CENTRO() ? 'dónde y cuándo atendéis' : 'dónde y cuándo atiendes', telefono: 'un teléfono de contacto', visitas: `cómo prefieres ${TT('visita', 'p', 'el', 'l', 'l')}` };
   const l = PM.faltan.map(x => t[x]).filter(Boolean);
   return l.length > 1 ? l.slice(0, -1).join(', ') + ' y ' + l[l.length - 1] : l[0] || 'algún dato';
 };
@@ -26776,7 +26776,7 @@ function pmPintarFicha() {
         <div><label for="pmcomo">Cómo prefieres ${TT('visita', 'p', 'el', 'l', 'l')} <span class="pmreq">Necesario</span></label><select id="pmcomo"><option value="">Elige…</option>${PM_COMO.map(x => `<option ${F.visitas.como === x ? 'selected' : ''}>${esc(x)}</option>`).join('')}</select></div>
         <div><label for="pmmom">Mejor momento</label><input id="pmmom" value="${esc(F.visitas.momento)}" placeholder="p. ej. martes a última hora"></div>
         <div class="pmancho"><label for="pmnot">Notas para tu comercial</label><textarea id="pmnot" rows="2" placeholder="Acceso, planta, a quién preguntar…">${esc(F.notas)}</textarea></div></div></div>
-    <div class="card ancard pmcons"><h2>${PM_CENTRO() ? 'Dónde y cuándo atendéis' : 'Dónde pasas consulta'} <span class="pmreq">Necesario: al menos un día con horario</span> ${pmAyu(PM_CENTRO() ? 'Dónde y cuándo atendéis' : 'Dónde pasas consulta', 'Añade cada centro o consulta donde atiendes y su horario. Busca el centro por su nombre o población; si no aparece, añádelo tú. En el horario, pulsa los días y escribe las horas; con «Rellenar» pones de golpe el mismo horario en todos los días marcados.')}</h2>
+    <div class="card ancard pmcons"><h2>${PM_CENTRO() ? 'Dónde y cuándo atendéis' : 'Dónde atiendes'} <span class="pmreq">Necesario: al menos un día con horario</span> ${pmAyu(PM_CENTRO() ? 'Dónde y cuándo atendéis' : 'Dónde atiendes', 'Añade cada centro o consulta donde atiendes y su horario. Busca el centro por su nombre o población; si no aparece, añádelo tú. En el horario, pulsa los días y escribe las horas; con «Rellenar» pones de golpe el mismo horario en todos los días marcados.')}</h2>
       <div id="pmclist" class="pmclist">${F.consultas.map((c, i) => pmConsulta(c, i)).join('') || '<p class="sm">Todavía no hay ninguna consulta.</p>'}</div>
       <div class="pmcadd"><input id="pmcq" type="search" placeholder="Añadir un centro: escribe su nombre o la población" aria-label="Buscar un centro"><div id="pmcres" class="pmcres"></div></div></div>
     <div class="pmpie"><span class="sm" id="pmest">${esc(estado)}</span><button type="button" class="btn" id="pmenviar">Enviar a mi comercial</button></div>`;
@@ -26807,7 +26807,7 @@ function pmHorario(d, i) {
       <div class="pmhr">${l.length ? l.map((r, j) => `<span class="pmhf"><input data-pmhi="${i}|${k}|${j}|0" value="${esc(r[0])}" inputmode="numeric" maxlength="5" aria-label="Desde">
           <span>a</span><input data-pmhi="${i}|${k}|${j}|1" value="${esc(r[1])}" inputmode="numeric" maxlength="5" aria-label="Hasta">
           <button type="button" class="pmhx" data-pmhx="${i}|${k}|${j}" aria-label="Quitar esta franja">✕</button></span>`).join('')
-          + `<button type="button" class="pmhmas" data-pmha="${i}|${k}">+ Otra franja</button>` : '<span class="sm">No pasa consulta</span>'}</div></div>`; }).join('')}</div>`;
+          + `<button type="button" class="pmhmas" data-pmha="${i}|${k}">+ Otra franja</button>` : '<span class="sm">No atiende</span>'}</div></div>`; }).join('')}</div>`;
 }
 
 function pmLeerForm() {
@@ -26881,7 +26881,7 @@ portalMedico = (orig => async function (...a) {
   const r = await orig.apply(this, a);
   if (!ES_MEDICO()) return r;   // v2.282.0: también el centro
   const c = $('mdcons'); if (c) c.remove();   // la constancia va en el Resumen
-  const ay = { mdmat: ['Pedir material', 'Pide el material que te ofrece la empresa (folletos, talonarios…). Le llega a tu comercial, que te lo entrega; mientras está pendiente lo puedes anular.'],
+  const ay = { mdmat: ['Pedir material', 'Pide el material que te ofrece la empresa (folletos, catálogos…). Le llega a tu comercial, que te lo entrega; mientras está pendiente lo puedes anular.'],
     mdmsg: ['Dudas a tu comercial', 'Escribe a tu comercial cualquier duda. Te contestará aquí y te llegará un aviso.'] };
   Object.entries(ay).forEach(([id, [t, x]]) => { const h = document.querySelector('#' + id + ' > h2'); if (h && !h.querySelector('.ai')) h.insertAdjacentHTML('beforeend', ' ' + pmAyu(t, x)); });
   return r;
@@ -26944,7 +26944,7 @@ abrirFicha = (orig => async function (id, ...a) { const r = await orig.call(this
   const suya = ['Configuración', 'Aquí cambias tu cuenta.', [
     '<b>Mis datos</b>: tu nombre, tu teléfono, el idioma y la contraseña; también cierras la sesión.',
     '<b>Notificaciones</b>: qué avisos te llegan (por ejemplo, cada pauta registrada) y si los quieres al momento, en el resumen de la mañana o no.',
-    'Dónde y cuándo pasas consulta y cómo prefieres las ' + TT('visita', 'p', '', 'l', 'l') + ' se indica en <b>Mi ficha</b>, dentro de Mi informe.']];
+    'Dónde y cuándo atiendes y cómo prefieres las ' + TT('visita', 'p', '', 'l', 'l') + ' se indica en <b>Mi ficha</b>, dentro de Mi informe.']];
   Object.defineProperty(AYUDA, 'config', { configurable: true, enumerable: true, get: () => (typeof ES_MEDICO === 'function' && ES_MEDICO() ? suya : general), set: v => { general = v; } });
 })();
 
@@ -27124,7 +27124,7 @@ function pmPintarCheck() {
   const todo = tel && como && horario;
   box.classList.toggle('ok', todo);
   box.innerHTML = `<b>${todo ? 'Tu ficha tiene todo lo necesario' : 'Para completar tu ficha'}</b>
-    <ul><li class="${tel ? 'ok' : ''}">Un teléfono de contacto</li><li class="${horario ? 'ok' : ''}">${PM_CENTRO() ? 'Dónde y cuándo atendéis' : 'Dónde y cuándo pasas consulta'} (al menos un día con su horario)</li><li class="${como ? 'ok' : ''}">Cómo prefieres las ${TT('visita', 'p', '', 'l', 'l')}</li></ul>
+    <ul><li class="${tel ? 'ok' : ''}">Un teléfono de contacto</li><li class="${horario ? 'ok' : ''}">${PM_CENTRO() ? 'Dónde y cuándo atendéis' : 'Dónde y cuándo atiendes'} (al menos un día con su horario)</li><li class="${como ? 'ok' : ''}">Cómo prefieres las ${TT('visita', 'p', '', 'l', 'l')}</li></ul>
     <span class="sm">${todo ? 'Envíalo a tu comercial y el aviso de «faltan datos» desaparece.' : 'El resto es opcional. Cuando lo tengas, pulsa «Enviar a mi comercial».'}</span>`;
 }
 
@@ -27293,10 +27293,10 @@ async function centroPintar() {
 
 /* ============================================================
    v2.283.0 · Packs para los centros (petición de Eric, 12/10/2026, con las directrices comerciales de los centros; SQL 151).
-   - Producto: «Packs para los centros» (compras N, te regalan M) y PVP recomendado con IVA. Con packs, el centro pide ese
+   - Producto: «Packs para los centros» (compras N, te regalan M) y PVP de referencia con IVA. Con packs, el centro pide ese
      producto solo por packs desde su portal; el regalo va en el pedido como línea aparte al 100 % de descuento.
    - Portal del centro, «Pedir reposición»: cada pack con sus unidades, su importe, el coste real por unidad y el margen sobre el
-     PVP recomendado; cuántos packs de cada (0 a 50, avisando en la fila si no vale); entrega en la dirección del centro o
+     PVP de referencia; cuántos packs de cada (0 a 50, avisando en la fila si no vale); entrega en la dirección del centro o
      repartida entre varias direcciones (las unidades repartidas tienen que cuadrar). La bonificación es de cada pedido.
    ============================================================ */
 const PC_PACK_MAX = 50;
@@ -27310,7 +27310,7 @@ function pcPintarPedido(lp) {
     const pu = conIva(x), packs = Array.isArray(x.packs) ? x.packs : [], pvp = +x.pvp_recomendado || 0;
     if (!packs.length) return `<div class="pcprod"><div class="pcpcab"><b>${esc(x.nombre)}</b><span class="sm">${eurI(pu)} la unidad con IVA${x.propio ? ' · vuestro precio' : ''}</span></div>
       <div class="pclin"><span class="sm">Unidades</span><input type="number" step="1" value="0" data-ctp="${x.producto_id}" data-ctpr="${pu}" aria-label="Unidades de ${esc(x.nombre)}"><span class="pcerr" hidden></span></div></div>`;
-    return `<div class="pcprod"><div class="pcpcab"><b>${esc(x.nombre)}</b><span class="sm">${eurI(pu)} la unidad con IVA${pvp ? ` · PVP recomendado ${eurI(pvp)}` : ''}</span></div>
+    return `<div class="pcprod"><div class="pcpcab"><b>${esc(x.nombre)}</b><span class="sm">${eurI(pu)} la unidad con IVA${pvp ? ` · PVP de referencia ${eurI(pvp)}` : ''}</span></div>
       <div class="pcpacks">${packs.map((k, i) => {
         const c = +k.compra || 0, g = +k.regalo || 0, imp = r2(c * pu), coste = (c + g) ? imp / (c + g) : 0;
         return `<div class="pclin pcpack"><span class="pcpk"><b>Pack ${num(c)}${g ? ' + ' + num(g) : ''}</b><span class="sm">${num(c + g)} unidades${g ? ` (${num(g)} de regalo)` : ''}</span></span>
@@ -27321,7 +27321,7 @@ function pcPintarPedido(lp) {
           <span class="pcerr" hidden></span></div>`;
       }).join('')}</div></div>`;
   };
-  box.innerHTML = `<div class="card ancard pmcons pcped"><h2>Pedir reposición ${pmAyu('Pedir reposición', `Elige cuántos packs quieres de cada producto (de 0 a ${num(PC_PACK_MAX)} de cada pack). El coste por unidad incluye las de regalo, y el margen se calcula sobre el PVP recomendado. La bonificación es de cada pedido. Tu comercial lo revisa y lo valida; en «Resumen» verás cómo va.`)}</h2>
+  box.innerHTML = `<div class="card ancard pmcons pcped"><h2>Pedir reposición ${pmAyu('Pedir reposición', `Elige cuántos packs quieres de cada producto (de 0 a ${num(PC_PACK_MAX)} de cada pack). El coste por unidad incluye las de regalo, y el margen se calcula sobre el PVP de referencia. La bonificación es de cada pedido. Tu comercial lo revisa y lo valida; en «Resumen» verás cómo va.`)}</h2>
     ${lp.length ? `<div id="ctprods">${lp.map(prod).join('')}</div>
       <div class="pcent"><b>Entrega</b>
         <label class="opt"><input type="radio" name="pcent" value="una" checked> En la dirección del centro</label>
@@ -27385,7 +27385,7 @@ function pcPintarPedido(lp) {
   revisar();
 }
 
-// Producto: packs para los centros y PVP recomendado
+// Producto: packs para los centros y PVP de referencia
 editorProducto = (orig => function (p, ...r) {
   const x = orig.call(this, p, ...r);
   setTimeout(async () => {
@@ -27394,9 +27394,9 @@ editorProducto = (orig => function (p, ...r) {
     const ref = $('prmat') || $('dbody').querySelector('.acts:last-of-type'); if (!ref || $('prpacks')) return;
     let packs = (d && Array.isArray(d.packs) ? d.packs : []).map(k => ({ compra: +k.compra || 0, regalo: +k.regalo || 0 }));
     ref.insertAdjacentHTML('beforebegin', `<div class="blk" id="prpacks"><h3>Packs para los centros</h3>
-      <p class="sm">Si pones packs, los centros piden este producto solo por packs desde su portal. El regalo va en el pedido como línea aparte al 100 % de descuento. El PVP recomendado (con IVA) sirve para enseñarles su margen.</p>
+      <p class="sm">Si pones packs, los centros piden este producto solo por packs desde su portal. El regalo va en el pedido como línea aparte al 100 % de descuento. El PVP de referencia (con IVA) sirve para enseñarles su margen.</p>
       <div id="prpkl"></div><button type="button" class="btn sec chico" id="prpkmas">+ Añadir pack</button>
-      <div class="g2" style="margin-top:10px"><div><label for="prpkpvp">PVP recomendado (con IVA)</label><input id="prpkpvp" type="number" step="0.01" value="${d && d.pvp_recomendado != null ? +d.pvp_recomendado : ''}" placeholder="Sin indicar"></div></div>
+      <div class="g2" style="margin-top:10px"><div><label for="prpkpvp">PVP de referencia (con IVA)</label><input id="prpkpvp" type="number" step="0.01" value="${d && d.pvp_recomendado != null ? +d.pvp_recomendado : ''}" placeholder="Sin indicar"></div></div>
       <span class="pcerr" id="prpkerr" hidden></span>
       <div class="prpkacts"><button type="button" class="btn sec" id="prpkok">Guardar packs</button></div></div>`);
     const leer = () => [...$('prpkl').querySelectorAll('.prpkf')].map(f => ({ compra: f.querySelector('[data-pkc]').value, regalo: f.querySelector('[data-pkg]').value }));
@@ -27413,7 +27413,7 @@ editorProducto = (orig => function (p, ...r) {
       const malo = l.find(k => !Number.isInteger(k.compra) || k.compra < 1 || !Number.isInteger(k.regalo) || k.regalo < 0);
       const rep = l.some((k, i) => l.findIndex(y => y.compra === k.compra && y.regalo === k.regalo) !== i);
       const pv = $('prpkpvp').value === '' ? null : Number($('prpkpvp').value);
-      const txt = malo ? 'Cada pack necesita una compra de 1 o más unidades y un regalo de 0 o más (números enteros).' : rep ? 'Hay dos packs iguales.' : pv != null && (!(pv >= 0) || isNaN(pv)) ? 'El PVP recomendado tiene que ser un importe de 0 o más.' : '';
+      const txt = malo ? 'Cada pack necesita una compra de 1 o más unidades y un regalo de 0 o más (números enteros).' : rep ? 'Hay dos packs iguales.' : pv != null && (!(pv >= 0) || isNaN(pv)) ? 'El PVP de referencia tiene que ser un importe de 0 o más.' : '';
       err.hidden = !txt; err.textContent = txt; if (txt) return;
       ev.target.disabled = true;
       const { error } = await db.from('productos').update({ packs: l.length ? l.sort((a, b) => a.compra - b.compra) : null, pvp_recomendado: pv }).eq('id', p.id);
@@ -29069,7 +29069,7 @@ arbolCfgUnico = (orig => function (...a) {
       const [tot, con, sin, emp] = await Promise.all([t({ p_tipo: null, p_pedidos: null }), t({ p_pedidos: 'con' }), t({ p_pedidos: 'sin' }), t({ p_tipo: 'Empresa' })]);
       const fl = !!(PAC.q || PAC.medico || PAC.municipio || PAC.tipo || PAC.pedidos || Object.keys(PAC.campos || {}).length), cf = 'con estos filtros';
       return [{ k: 'tot', t: 'Clientes', n: tot, s: fl ? cf : 'en total' }, { k: 'con', t: 'Con pedidos', n: con, s: fl ? cf : 'han comprado alguna vez' },
-        { k: 'sin', t: 'Sin pedidos', n: sin, s: fl ? cf : 'todavía sin compras' }, { k: 'emp', t: 'Empresas', n: emp, s: fl ? cf : 'clínicas, centros y otras' }];
+        { k: 'sin', t: 'Sin pedidos', n: sin, s: fl ? cf : 'todavía sin compras' }, { k: 'emp', t: 'Empresas', n: emp, s: fl ? cf : 'centros, tiendas y otras' }];
     };
   }
 })();

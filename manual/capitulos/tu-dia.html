@@ -73,7 +73,7 @@
 <h3 id="inicio-tarjetas">Las tarjetas de abajo</h3>
 <dl class="defs">
   <dt>Tu comisión</dt><dd>Si tu empresa te lo enseña, las unidades que llevas este mes, la comisión acumulada y cuánto te falta para el siguiente tramo.</dd>
-  <dt>Rutas sugeridas</dt><dd>Listas preparadas con tus datos de hoy: quién pasa consulta hoy, urgentes, interesados sin {visita} y los nunca visitados. Al pulsar una, se planifica la ruta (ver <a href="#rutas">Rutas</a>).</dd>
+  <dt>Rutas sugeridas</dt><dd>Listas preparadas con tus datos de hoy: quién atiende hoy, urgentes, interesados sin {visita} y los nunca visitados. Al pulsar una, se planifica la ruta (ver <a href="#rutas">Rutas</a>).</dd>
   <dt>Tu agenda de hoy</dt><dd>Tus citas de hoy por hora; en verde, las visitadas.</dd>
   <dt>Próximas acciones</dt><dd>Lo que apuntaste como «próxima acción» en las últimas {visitas}, para los próximos 7 días. En naranja si ya pasó la fecha.</dd>
   <dt>Pendientes de rutas anteriores</dt><dd>Citas de días pasados que no se llegaron a visitar.</dd>
@@ -118,13 +118,13 @@
 
 <h3 id="agenda-tu-dia">«Tu día»: la lista de citas</h3>
 <p>Es el corazón de la Agenda: tus citas en el orden en que las vas a hacer. Arriba del todo, cuántas citas tienes, cuántas llevas visitadas, cuántas quedan y la hora a la que acabarías («Fin estimado»).</p>
-<figure><img src="media/tu-dia/agenda-tu-dia.webp" alt="Lista de citas de Tu día agrupada por centro" loading="lazy"><figcaption>Cada cita con su hora, su centro, su estado y el horario de consulta. Las dos del mismo centro van juntas.</figcaption></figure>
+<figure><img src="media/tu-dia/agenda-tu-dia.webp" alt="Lista de citas de Tu día agrupada por centro" loading="lazy"><figcaption>Cada cita con su hora, su centro, su estado y el horario de atención. Las dos del mismo centro van juntas.</figcaption></figure>
 <p>En cada cita ves:</p>
 <dl class="defs">
   <dt>La hora</dt><dd>Si la cita tiene <b>hora fijada</b>, sale tal cual («10:30»). Si no, delcos calcula a qué hora llegarías siguiendo el orden y la pone con «~» («~11:15»). Si con ese orden cae fuera de tu jornada, sale «—».</dd>
   <dt>El centro</dt><dd>Centro y municipio. Si dos o más citas seguidas son del mismo centro, se agrupan bajo su nombre: así ves de un vistazo que haces varias {visitas} en el mismo sitio.</dd>
   <dt>El estado</dt><dd><span class="p plan">Planificada</span> <span class="p conf">Confirmada</span> <span class="p vis">Visitada</span> <span class="p noe">No estaba</span> <span class="p gris">Aplazada</span> <span class="p gris">Descartada</span>. Las dos primeras están <b>abiertas</b>; las demás, cerradas (salen más claras). Al lado, de dónde salió la cita (Ruta, Agenda, Ficha, Planificador semanal…).</dd>
-  <dt>La consulta</dt><dd>El horario de consulta de ese día y, si llegarías antes de que abra, cuánto esperarías.</dd>
+  <dt>La consulta</dt><dd>El horario de atención de ese día y, si llegarías antes de que abra, cuánto esperarías.</dd>
 </dl>
 <p>Y a la derecha, sus botones: las <b>flechas</b> para cambiar el orden, <b>Registrar {visita}</b> y el menú <b>⋯</b>. Pulsando la cita se abre su ventana con todos los datos.</p>
 
@@ -134,8 +134,8 @@
   <thead><tr><th>Aviso</th><th>Qué significa y qué hacer</th></tr></thead>
   <tbody>
     <tr><td>«Llegarías hacia las 11:40 y la cita es a las 10:30»</td><td>La cita tiene hora fija pero está colocada después de otras. Súbela en la lista o pulsa «Ordenar por cercanía».</td></tr>
-    <tr><td>«Ese día no pasa consulta»</td><td>Según su ficha no pasa consulta ese día de la semana. Si sí pasa, añade el día en el horario de consulta de su ficha.</td></tr>
-    <tr><td>«Fuera de su horario de consulta»</td><td>Siguiendo tu orden llegarías cuando ya no está. Ponle una hora, cámbiala de orden o corrige su horario. La cita se guarda igual: es solo un aviso.</td></tr>
+    <tr><td>«Ese día no atiende»</td><td>Según su ficha no atiende ese día de la semana. Si sí atiende, añade el día en el horario de atención de su ficha.</td></tr>
+    <tr><td>«Fuera de su horario de atención»</td><td>Siguiendo tu orden llegarías cuando ya no está. Ponle una hora, cámbiala de orden o corrige su horario. La cita se guarda igual: es solo un aviso.</td></tr>
     <tr><td>«Ubicación a 300 km de la parada anterior»</td><td>La dirección parece mal situada en el mapa. Revisa la dirección de la ficha.</td></tr>
   </tbody></table></div>
 <p>Si el día entero no cabe en tu jornada (acabarías tarde o hay tres o más citas con avisos), sale una banda arriba: <b>«Este día no cabe en una jornada»</b> o <b>«El orden de las citas no encaja con sus horas»</b>, con el botón «Ordenar por cercanía» y la sugerencia de aplazar las citas de la zona más lejana.</p>
@@ -147,7 +147,7 @@
 <p>Pulsa ↑ o ↓ en una cita abierta: se mueve al momento, se queda resaltada un instante y las horas estimadas se recalculan.</p>
 <figure class="video"><video src="media/tu-dia/v-flechas.webm" aria-label="Vídeo: cambiar el orden con las flechas"></video><figcaption>Las flechas suben o bajan la cita y el orden se guarda solo.</figcaption></figure>
 <h4>Ordenar por cercanía</h4>
-<p>Reordena tus citas abiertas para hacer menos kilómetros, respetando las horas fijas y los horarios de consulta. Si alguna no cabe, queda al final y te lo dice.</p>
+<p>Reordena tus citas abiertas para hacer menos kilómetros, respetando las horas fijas y los horarios de atención. Si alguna no cabe, queda al final y te lo dice.</p>
 <figure class="video"><video src="media/tu-dia/v-ordenar.webm" aria-label="Vídeo: ordenar por cercanía"></video><figcaption>«Ordenar por cercanía» recoloca las citas para recorrer menos camino.</figcaption></figure>
 <h4>Fijando la hora</h4>
 <p>En el menú <b>⋯</b> de la cita, «Fijar una hora» o «Cambiar la hora». Con hora, la cita se coloca sola entre las demás según su hora. Si borras la hora, vuelve a ser estimada.</p>
@@ -157,15 +157,15 @@
 <figure class="estrecha"><img src="media/tu-dia/cita-menu.webp" alt="Menú de una cita con sus opciones" loading="lazy"><figcaption>Las opciones de una cita abierta.</figcaption></figure>
 <dl class="defs">
   <dt>Fijar / Cambiar la hora</dt><dd>Pone una hora a la cita (o la quita).</dd>
-  <dt>Aplazar a otro día</dt><dd>Te propone el próximo día que pasa consulta (puedes elegir otro). La cita de hoy queda como «Aplazada» y se crea la nueva. Si ese día ya tenía una cita, no se duplica.</dd>
-  <dt>Marcar como confirmada</dt><dd>Para cuando ya has hablado con la consulta. «Quitar la confirmación» lo deshace.</dd>
+  <dt>Aplazar a otro día</dt><dd>Te propone el próximo día que atiende (puedes elegir otro). La cita de hoy queda como «Aplazada» y se crea la nueva. Si ese día ya tenía una cita, no se duplica.</dd>
+  <dt>Marcar como confirmada</dt><dd>Para cuando ya has confirmado la cita. «Quitar la confirmación» lo deshace.</dd>
   <dt>Descartar la cita</dt><dd>Ya no hace falta ir. Queda en el historial como descartada.</dd>
   <dt>Volver a planificarla</dt><dd>En una cita aplazada o descartada (de hoy en adelante): vuelve a estar planificada ese día. Si la habías pasado a otro día, esa otra se quita.</dd>
 </dl>
 <figure class="video"><video src="media/tu-dia/v-aplazar.webm" aria-label="Vídeo: aplazar una cita y volver a planificarla"></video><figcaption>Aplazar una cita y, después, volver a planificarla.</figcaption></figure>
 
 <h3 id="agenda-cita">La ventana de la cita</h3>
-<p>Al pulsar una cita se abre su ventana con <b>cuándo</b> (y si la hora es fija o estimada), <b>dónde</b>, el <b>horario de consulta</b> de ese día, el <b>estado</b> y unas <b>notas de la cita</b> que puedes escribir y guardar (por ejemplo, «llevar el estudio nuevo»).</p>
+<p>Al pulsar una cita se abre su ventana con <b>cuándo</b> (y si la hora es fija o estimada), <b>dónde</b>, el <b>horario de atención</b> de ese día, el <b>estado</b> y unas <b>notas de la cita</b> que puedes escribir y guardar (por ejemplo, «llevar el estudio nuevo»).</p>
 <figure class="estrecha"><img src="media/tu-dia/cita-ventana.webp" alt="Ventana de una cita" loading="lazy"><figcaption>La ventana de la cita: datos, notas y botones.</figcaption></figure>
 <p>Desde aquí puedes ver la ficha, abrir «Cómo llegar», cambiar la hora, moverla a otro día o registrar la {visita}. Abajo hay dos botones que conviene distinguir:</p>
 <div class="tabla"><table>
@@ -179,7 +179,7 @@
 <p>Cuando acabas una {visita}, pulsa <b>Registrar {visita}</b> en su cita (en el móvil, el icono). Se abre la ventana de registrar {visita} de esa ficha. Al guardar:</p>
 <ul>
   <li>si marcaste algún resultado positivo, la cita pasa a <span class="p vis">Visitada</span>;</li>
-  <li>si todos los resultados son negativos (por ejemplo, «No estaba»), pasa a <span class="p noe">No estaba</span> y aparece el botón <b>Nueva cita</b>, que te propone el próximo día que pasa consulta.</li>
+  <li>si todos los resultados son negativos (por ejemplo, «No estaba»), pasa a <span class="p noe">No estaba</span> y aparece el botón <b>Nueva cita</b>, que te propone el próximo día que atiende.</li>
 </ul>
 <figure class="video"><video src="media/tu-dia/v-registrar.webm" aria-label="Vídeo: registrar la visita desde Tu día"></video><figcaption>Registrar la {visita}: la cita pasa a «Visitada».</figcaption></figure>
 <p>Todo lo que tiene la ventana de registrar {visita} (fotos, muestras, productos presentados, próxima acción) se explica en el capítulo «La {visita} y lo común».</p>
@@ -224,7 +224,7 @@
 <figure><img src="media/tu-dia/agenda-sugerencias.webp" alt="Sugerencias para el día" loading="lazy"><figcaption>Sugerencias para hoy, empezando por los centros donde ya vas.</figcaption></figure>
 
 <h3 id="agenda-pendientes">Pendientes y reprogramar</h3>
-<p>Si en días anteriores quedaron citas sin hacer, aparecen en <b>Pendientes de rutas anteriores</b>. Cada una se puede <b>mover a hoy</b> o <b>descartar</b>. Con <b>Reprogramar todas</b> delcos te propone, para cada una, el próximo día que pasa consulta: cambia la fecha si quieres, desmarca las que no quieras mover y pulsa «Mover las marcadas».</p>
+<p>Si en días anteriores quedaron citas sin hacer, aparecen en <b>Pendientes de rutas anteriores</b>. Cada una se puede <b>mover a hoy</b> o <b>descartar</b>. Con <b>Reprogramar todas</b> delcos te propone, para cada una, el próximo día que atiende: cambia la fecha si quieres, desmarca las que no quieras mover y pulsa «Mover las marcadas».</p>
 
 <h3 id="agenda-jornada">Empezar y terminar la jornada</h3>
 <ol class="pasos">
@@ -242,7 +242,7 @@
 <ol class="pasos">
   <li>Elige <b>a quién</b>: a quien le toca {visita}, urgentes, interesados, nunca visitados o una de tus rutas.</li>
   <li>Marca los <b>días</b> (los pasados y los bloqueados no se pueden), el máximo de {visitas} nuevas por día, la hora de salida y la vuelta.</li>
-  <li>Pulsa <span class="boton">Proponer reparto</span>. Cada {medico} va a un día que pasa consulta, agrupados por zona, respetando las citas que ya tienes.</li>
+  <li>Pulsa <span class="boton">Proponer reparto</span>. Cada {medico} va a un día que atiende, agrupados por zona, respetando las citas que ya tienes.</li>
   <li>Revisa la propuesta en la semana (las citas nuevas salen marcadas) y abajo, «Se quedan sin día», con el motivo.</li>
   <li>Pulsa <span class="boton">Guardar en la agenda</span> o «Descartar».</li>
 </ol>
@@ -268,18 +268,18 @@
 <figure><img src="media/tu-dia/rutas.webp" alt="Pantalla de Rutas" loading="lazy"><figcaption>A la izquierda, las propuestas del día; a la derecha, tus rutas guardadas.</figcaption></figure>
 
 <h3 id="rutas-propuestas">Las propuestas del día</h3>
-<p>Arriba a la izquierda, delcos te propone hasta tres rutas para hoy (o, a partir de las 13:00 y los fines de semana, para el siguiente día laborable; puedes cambiarlo). Cada propuesta lleva un pequeño croquis, la zona, cuántos {medicos} y paradas, el horario y los kilómetros, y por qué te la propone: urgentes, quién pasa consulta ese día, interesados, buenos clientes sin {visita}, pendientes de otras rutas o nunca visitados.</p>
-<figure><img src="media/tu-dia/rutas-propuesta-medicos.webp" alt="Propuesta con sus médicos" loading="lazy"><figcaption>«Ver {medicos}» enseña a quién incluye; con ✕ quitas a quien no quieras.</figcaption></figure>
+<p>Arriba a la izquierda, delcos te propone hasta tres rutas para hoy (o, a partir de las 13:00 y los fines de semana, para el siguiente día laborable; puedes cambiarlo). Cada propuesta lleva un pequeño croquis, la zona, cuántos {medicos} y paradas, el horario y los kilómetros, y por qué te la propone: urgentes, quién atiende ese día, interesados, buenos clientes sin {visita}, pendientes de otras rutas o nunca visitados.</p>
+<figure><img src="media/tu-dia/rutas-propuesta-medicos.webp" alt="Propuesta con sus fichas" loading="lazy"><figcaption>«Ver {medicos}» enseña a quién incluye; con ✕ quitas a quien no quieras.</figcaption></figure>
 <p>Cada propuesta tiene tres botones: <b>Ver {medicos}</b>, <b>Planificar</b> (abre el plan con horas) y <b>A mi agenda</b> (crea las citas directamente).</p>
-<div class="nota"><h4>Cómo elige delcos</h4><p>Solo entran fichas con ubicación, sin cita tuya pendiente, no visitadas en la última semana y, si tienen horario, que pasen consulta ese día. Pesan más los urgentes, quien pasa consulta ese día y no se ve desde hace dos semanas, los interesados sin {visita}, los pendientes de otras rutas y tus mejores clientes. Y aprende de ti: las zonas a las que sueles ir y el día de la semana en que vas. Cada ruta no se aleja más de 25 km entre paradas ni pasa de unas 5 horas.</p></div>
+<div class="nota"><h4>Cómo elige delcos</h4><p>Solo entran fichas con ubicación, sin cita tuya pendiente, no visitadas en la última semana y, si tienen horario, que atiendan ese día. Pesan más los urgentes, quien atiende ese día y no se ve desde hace dos semanas, los interesados sin {visita}, los pendientes de otras rutas y tus mejores clientes. Y aprende de ti: las zonas a las que sueles ir y el día de la semana en que vas. Cada ruta no se aleja más de 25 km entre paradas ni pasa de unas 5 horas.</p></div>
 
 <h3 id="rutas-plan">El plan</h3>
 <p>Al pulsar <b>Planificar</b> (en una propuesta, en tus rutas, en las sugerencias o en «Rutas sugeridas» de Inicio), delcos arma el plan del día:</p>
 <figure><img src="media/tu-dia/rutas-plan.webp" alt="Plan del día con paradas y horas" loading="lazy"><figcaption>El plan: salida, paradas con su hora, y los botones para llevarlo a la agenda.</figcaption></figure>
 <ul>
   <li>La <b>salida</b> (desde tu punto de salida y a qué hora), cuántas paradas y la hora de vuelta.</li>
-  <li>Cada <b>parada</b> numerada: centro, horario, dirección y {los medicos} que verás allí con su hora y su horario de consulta. Varias {visitas} en el mismo sitio forman una sola parada.</li>
-  <li><b>Se quedan fuera</b>: quien no cabe y por qué (sin ubicación, no pasa consulta ese día, no llegas a su hora, no da tiempo a volver…).</li>
+  <li>Cada <b>parada</b> numerada: centro, horario, dirección y {los medicos} que verás allí con su hora y su horario de atención. Varias {visitas} en el mismo sitio forman una sola parada.</li>
+  <li><b>Se quedan fuera</b>: quien no cabe y por qué (sin ubicación, no atiende ese día, no llegas a su hora, no da tiempo a volver…).</li>
   <li><b>Ya citados</b>: quien ya tiene una cita tuya, que no se repite.</li>
 </ul>
 <p>Puedes poner una <b>nota</b> en una parada (se guardará en la cita de cada {medico}), abrir su ficha o pulsar <b>Ir</b> para navegar hasta ella.</p>
@@ -292,13 +292,13 @@
   <dt>✕ Descartar plan</dt><dd>Lo cierra sin cambiar nada.</dd>
 </dl>
 <figure class="video"><video src="media/tu-dia/v-plan.webm" aria-label="Vídeo: de una propuesta a la agenda"></video><figcaption>De una propuesta a tu agenda en tres pulsaciones.</figcaption></figure>
-<div class="nota aviso"><p>Si ya pasó la hora de vuelta de la ruta, delcos te ofrece cambiar el horario o planificarla para mañana. Si nadie cabe, te dice por qué (por ejemplo, «ninguno pasa consulta el lunes»).</p></div>
+<div class="nota aviso"><p>Si ya pasó la hora de vuelta de la ruta, delcos te ofrece cambiar el horario o planificarla para mañana. Si nadie cabe, te dice por qué (por ejemplo, «ninguno atiende el lunes»).</p></div>
 
 <h3 id="rutas-mis-rutas">Tus rutas guardadas</h3>
 <p>Una ruta es una lista de {medicos} a los que vas a ver a menudo («Zona norte de los martes», «Urgentes de Valencia»). Hay dos tipos:</p>
 <dl class="defs">
   <dt>Lista fija</dt><dd>Eliges tú a quién. Con «Añadir un centro» entran todos sus {medicos} de golpe y quitas los que no vayas a ver; en el plan, el centro es una sola parada.</dd>
-  <dt>Por criterios</dt><dd>Provincia, municipio, centro, especialidad, estado, días sin {visita}, quién pasa consulta un día o solo urgentes. Se recalcula cada día. «Ver cuántos cumplen» te dice cuántos entran ahora.</dd>
+  <dt>Por criterios</dt><dd>Provincia, municipio, centro, especialidad, estado, días sin {visita}, quién atiende un día o solo urgentes. Se recalcula cada día. «Ver cuántos cumplen» te dice cuántos entran ahora.</dd>
 </dl>
 <div class="mapa" style="grid-template-columns:repeat(auto-fit,minmax(260px,1fr))">
   <figure style="margin:0"><img src="media/tu-dia/rutas-editor.webp" alt="Editor de ruta con lista fija" loading="lazy"><figcaption>Lista fija.</figcaption></figure>
@@ -320,7 +320,7 @@
   <li>Se empieza a la hora de salida de la ruta (o a las 9:00) y, si es hoy, nunca antes de ahora.</li>
   <li>Cada trayecto se estima por la distancia en línea recta: los primeros 30 km a 40 km/h y el resto a 100 km/h, más 5 minutos.</li>
   <li>Se suman los minutos por parada (al cambiar de sitio) y los minutos por {visita}.</li>
-  <li>Si llegas antes de que abra la consulta, se cuenta la espera.</li>
+  <li>Si llegas antes de que abra, se cuenta la espera.</li>
 </ul>
 <p>Son estimaciones: sirven para ordenar el día y ver si cabe, no para cronometrarlo.</p>
 <figure class="movil"><img src="media/tu-dia/rutas-movil.webp" alt="Rutas en el móvil" loading="lazy"><figcaption>Rutas en el móvil, con el botón redondo para crear una ruta.</figcaption></figure>
@@ -331,7 +331,7 @@
   <dt>Configuración → Rutas</dt><dd>Tu punto de salida y de llegada, el aviso de «ya se ha visto hace poco» y cuántos días cuentan, y los tiempos de {visita}.</dd>
   <dt>Configuración → Inicio</dt><dd>Tus indicadores.</dd>
   <dt>Configuración → Cartera y {visitas}</dt><dd>(Administración) La frecuencia objetivo por estado, las reglas de cartera y el ciclo A/B/C.</dd>
-  <dt>La ficha de cada {medico}</dt><dd>Su horario de consulta en cada centro, la dirección y su punto en el mapa, si es urgente y su estado comercial. De ellos dependen las horas, los avisos, las sugerencias y las rutas.</dd>
+  <dt>La ficha de cada {medico}</dt><dd>Su horario de atención en cada centro, la dirección y su punto en el mapa, si es urgente y su estado comercial. De ellos dependen las horas, los avisos, las sugerencias y las rutas.</dd>
 </dl>
 
 <h2 id="tu-dia-preguntas">Preguntas frecuentes</h2>
@@ -344,6 +344,6 @@
 <h4>Empecé la jornada en el móvil y en el ordenador no sale.</h4>
 <p>La jornada vive en el dispositivo donde la empiezas. Es normal.</p>
 <h4>Un {medico} no aparece en las propuestas ni en el plan.</h4>
-<p>Revisa que tenga dirección y punto en el mapa, que no tenga ya una cita tuya pendiente y que pase consulta ese día. En el plan, mira «Se quedan fuera»: dice el motivo.</p>
+<p>Revisa que tenga dirección y punto en el mapa, que no tenga ya una cita tuya pendiente y que atienda ese día. En el plan, mira «Se quedan fuera»: dice el motivo.</p>
 <h4>No veo «Ventas del mes» en Inicio.</h4>
 <p>Solo sale a quien tiene el módulo de ventas.</p>
