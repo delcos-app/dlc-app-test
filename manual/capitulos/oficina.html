@@ -24,7 +24,7 @@
   <dt>Estado</dt><dd><span class="p conf">Activo</span>, <b>En pausa</b> (no aparece al hacer pedidos, pero conserva su stock) o <b>Descatalogado</b> (deja de venderse). Los pedidos antiguos lo conservan con su estado entre paréntesis.</dd>
   <dt>Muestras con control legal</dt><dd>Para medicamentos: firma y límite legal (lo explicamos en <a href="#visita-muestras">La {visita} y lo común</a>).</dd>
   <dt>Promoción</dt><dd>«Se promociona en las {visitas}»: sale para marcarlo como presentado y en la cobertura del ciclo.</dd>
-  <dt>Equipo</dt><dd>«Es un equipo»: al validar un pedido se pide el número de serie de cada unidad (ver <a href="#parque">Parque instalado</a>).</dd>
+  <dt>Equipo</dt><dd>«Es un equipo»: al confirmar un pedido se pide el número de serie de cada unidad (ver <a href="#parque">Parque instalado</a>).</dd>
 </dl>
 <p>Estado, muestras, promoción y equipo se guardan solos al cambiarlos, y solo salen en productos ya creados: crea el producto y vuelve a abrirlo.</p>
 
@@ -76,14 +76,14 @@
   <dt>Apuntar uso</dt><dd>Lo que se ha usado de cada lote, con una referencia («Cirugía del martes, quirófano 2»), nunca datos del paciente.</dd>
   <dt>Recuento</dt><dd>Escribe lo que hay ahora; lo que falte se apunta como usado.</dd>
 </dl>
-<p>Lo usado crea un <b>pedido en borrador</b> del centro (con el precio de contrato si lo hay) para validarlo, y te ofrece <b>Reponer lo usado</b>. Al validar ese pedido no se vuelve a restar stock: ya salió al depósito.</p>
+<p>Lo usado crea un <b>pedido en borrador</b> del centro (con el precio de contrato si lo hay) para confirmarlo, y te ofrece <b>Reponer lo usado</b>. Al confirmar ese pedido no se vuelve a restar stock: ya salió al depósito.</p>
 <figure class="video"><video src="media/oficina/v-deposito.webm" aria-label="Vídeo: recuento del depósito"></video><figcaption>Un recuento con faltas: queda el pedido y se repone.</figcaption></figure>
 
 <!-- ============================== FACTURACIÓN ============================== -->
 <h2 id="facturacion">Facturación</h2>
 <div class="donde"><span><b>Dónde:</b> menú, bloque «Ventas» → «Facturación»</span><span><b>Quién:</b> planes Empresa y A medida; quien ve todo el equipo y tiene el permiso de facturación</span></div>
 <figure><img src="media/oficina/facturas.webp" alt="Lista de facturas" loading="lazy"></figure>
-<p>Las facturas se emiten desde los pedidos validados. La lista tiene el periodo, un buscador por número, cliente o NIF, y el filtro de cobro (pendiente, vencida, cobrada). Arriba, lo facturado, la base, el IVA, lo pendiente de cobro y lo vencido. Las rectificativas restan.</p>
+<p>Las facturas se emiten desde los pedidos confirmados. La lista tiene el periodo, un buscador por número, cliente o NIF, y el filtro de cobro (pendiente, vencida, cobrada). Arriba, lo facturado, la base, el IVA, lo pendiente de cobro y lo vencido. Las rectificativas restan.</p>
 
 <h3 id="factura">La factura por dentro</h3>
 <figure><img src="media/oficina/factura.webp" alt="Una factura" loading="lazy"></figure>
@@ -99,12 +99,12 @@
   <figure style="margin:0"><img src="media/oficina/factura-email.webp" alt="Enviar por email" loading="lazy"><figcaption>Enviar por email.</figcaption></figure>
 </div>
 <figure class="video"><video src="media/oficina/v-rectificar.webm" aria-label="Vídeo: emitir una rectificativa"></video><figcaption>Rectificar una unidad de una factura.</figcaption></figure>
-<p>Para emitir, en un pedido validado: <b>Emitir factura</b>. Te avisa si el cliente no tiene DNI o CIF. Si tu empresa lo tiene activado, la factura se emite sola al validar el pedido. El vencimiento es la fecha más los días configurados (15 de partida).</p>
+<p>Para emitir, en un pedido confirmado: <b>Emitir factura</b>. Te avisa si el cliente no tiene DNI o CIF. Si tu empresa lo tiene activado, la factura se emite sola al confirmar el pedido. El vencimiento es la fecha más los días configurados (15 de partida).</p>
 
 <h3 id="facturacion-config">Configuración de la facturación</h3>
 <p>La administración tiene, en Facturación → <b>Configuración</b> (y en Organización):</p>
 <dl class="defs">
-  <dt>Datos fiscales</dt><dd>Razón social y NIF (obligatorios), dirección, teléfono, email, web, IBAN, datos registrales y pie de factura, con una vista previa de la cabecera. Y al emitir: los días hasta el vencimiento, la forma de pago por defecto y <b>emitir la factura al validar un pedido</b>.</dd>
+  <dt>Datos fiscales</dt><dd>Razón social y NIF (obligatorios), dirección, teléfono, email, web, IBAN, datos registrales y pie de factura, con una vista previa de la cabecera. Y al emitir: los días hasta el vencimiento, la forma de pago por defecto y <b>emitir la factura al confirmar un pedido</b>.</dd>
   <dt>Series y numeración</dt><dd>Cada serie numera de forma correlativa: facturas, rectificativas y simplificadas. El formato (el código de la serie, el año con dos o cuatro cifras y el número con las cifras que quieras: por ejemplo, F260408) y el <b>siguiente número</b>, para seguir con la numeración de otro programa. Puede volver a 1 cada año.</dd>
   <dt>VeriFactu</dt><dd>El registro encadenado de cada factura ya funciona. Al activar VeriFactu, las facturas nuevas llevan el código QR y la leyenda «VERI*FACTU». El envío automático a Hacienda llegará más adelante (necesita el certificado digital de la empresa).</dd>
   <dt>Registro</dt><dd>Todo lo que pasa en la facturación: emisiones, rectificaciones, cobros, cambios de configuración y descargas.</dd>
@@ -136,7 +136,7 @@
   <li><b>Aprobar</b> la deja congelada; cuando se pague, <b>Marcar pagada</b>.</li>
 </ol>
 <figure class="video"><video src="media/oficina/v-liquidar.webm" aria-label="Vídeo: liquidar comisiones"></video></figure>
-<p>Solo cuentan los pedidos validados, con el esquema vigente en ese mes. Las liquidaciones cerradas no cambian aunque luego se reasigne con fecha pasada, y nunca se borran. Cada persona ve en Inicio su comisión del mes y cuánto le falta para el siguiente tramo, si la administración le deja verlo (en su usuario: «Qué ve esa persona»: nada, solo sus unidades, o unidades e importe).</p>
+<p>Solo cuentan los pedidos confirmados, con el esquema vigente en ese mes. Las liquidaciones cerradas no cambian aunque luego se reasigne con fecha pasada, y nunca se borran. Cada persona ve en Inicio su comisión del mes y cuánto le falta para el siguiente tramo, si la administración le deja verlo (en su usuario: «Qué ve esa persona»: nada, solo sus unidades, o unidades e importe).</p>
 
 <!-- ============================== ANALÍTICA ============================== -->
 <h2 id="analitica">Analítica</h2>

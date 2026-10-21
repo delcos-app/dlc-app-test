@@ -181,7 +181,7 @@
   <li>Comprueba la referencia del paciente y pulsa <span class="boton">Guardar lo usado</span>.</li>
 </ol>
 <figure><img src="media/visita/cirugia-usar.webp" alt="Registrar lo usado con números de serie" loading="lazy"></figure>
-<p>Al guardar: sale del stock lote a lote, la cirugía pasa a <span class="p vis">Hecha</span>, su cita de la Agenda pasa a Visitada, se crea un <b>pedido en borrador</b> al hospital con lo usado (al validarlo no vuelve a restar stock) y empiezan las <b>48 horas</b> para reponer. Si tu usuario no puede hacer pedidos, la cirugía queda con «Sin pedido» y la banda «Falta el pedido al hospital con lo usado»: quien lleve los pedidos puede pulsar «Crear el pedido».</p>
+<p>Al guardar: sale del stock lote a lote, la cirugía pasa a <span class="p vis">Hecha</span>, su cita de la Agenda pasa a Visitada, se crea un <b>pedido en borrador</b> al hospital con lo usado (al confirmarlo no vuelve a restar stock) y empiezan las <b>48 horas</b> para reponer. Si tu usuario no puede hacer pedidos, la cirugía queda con «Sin pedido» y la banda «Falta el pedido al hospital con lo usado»: quien lleve los pedidos puede pulsar «Crear el pedido».</p>
 <figure><img src="media/visita/cirugia-hecha.webp" alt="Cirugía hecha con lo usado y Reponer ahora" loading="lazy"><figcaption>Una cirugía hecha: la tabla «Lo usado» con lote y número de serie, y los botones «Ver el pedido» y «Reponer ahora».</figcaption></figure>
 <p><b>Reponer ahora</b> repone lo usado desde el almacén central, por lote y caducidad. Si pasan las 48 horas sin reponer, a quien asistió y a la administración les llega el aviso «Reposición vencida». En la ficha del cirujano y del hospital, el bloque <b>Cirugías</b> enseña las 5 últimas.</p>
 
@@ -255,8 +255,8 @@
     <tr><td>Caída de ventas</td><td>Desde el día 10: {un medico} baja más de un 40 %</td><td>Ver ficha o Citar</td></tr>
     <tr><td>{Pacientes} nuevos de mi cartera</td><td>Alta de {un paciente} que viene de uno de los tuyos</td><td>Ver ficha</td></tr>
     <tr><td>Toca reponer</td><td>Cada día: un cliente habitual ha pasado su intervalo</td><td>Llamar o Nueva venta</td></tr>
-    <tr><td>Pedidos validados, en borrador, del portal</td><td>Cuando pasa</td><td>Ver pedido</td></tr>
-    <tr><td>Pagos de mis pedidos, pagos pendientes</td><td>Pago recibido; o cada día, pagos de más de una semana</td><td>Ver pedido o Pedidos</td></tr>
+    <tr><td>Pedidos confirmados, en borrador, del portal</td><td>Cuando pasa</td><td>Ver pedido</td></tr>
+    <tr><td>Pagos de mis pedidos, pagos pendientes</td><td>Cobrado; o cada día, pagos de más de una semana</td><td>Ver pedido o Pedidos</td></tr>
     <tr><td>Llamadas de seguimiento</td><td>Cada día: las de hoy</td><td>Pedidos → Llamadas</td></tr>
     <tr><td>Facturas vencidas</td><td>Cada día: las vencidas sin cobrar</td><td>Facturación</td></tr>
     <tr><td>Stock bajo, lotes que caducan, mercancía recibida</td><td>Al bajar del mínimo; cada día los que caducan en 30 días; al recibir una compra</td><td>Stock</td></tr>

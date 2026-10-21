@@ -21,7 +21,7 @@
 <dl class="defs">
   <dt>Arriba</dt><dd><b>+ Nueva venta</b> (si puedes crear pedidos) y <b>Filtros y columnas</b>, con un número si hay filtros puestos.</dd>
   <dt>Buscador</dt><dd>Por {medico}, {paciente} o número de pedido.</dd>
-  <dt>Indicadores</dt><dd>Pedidos validados (y cuántos en borrador), unidades, cuántos llegaron por la web y, si puedes ver importes, base sin IVA, IVA y total con IVA. Solo cuentan los <b>validados</b>.</dd>
+  <dt>Indicadores</dt><dd>Pedidos confirmados (y cuántos en borrador), unidades, cuántos llegaron por la web y, si puedes ver importes, base sin IVA, IVA y total con IVA. Solo cuentan los <b>validados</b>.</dd>
   <dt>La tabla</dt><dd>Fecha (y número de factura o de pedido), cliente (con «Venta al {paciente}» o «Venta a centro», la marca <b>Web</b> o <b>Portal</b> y la forma de pago), {medico} de referencia (o «Sin atribuir»), comercial, productos, unidades, importes, estado (<span class="p conf">Validado</span>, <span class="p plan">Borrador</span> o <span class="p gris">Anulado</span>) y la <b>operativa</b>.</dd>
   <dt>Operativa</dt><dd>Tres iconos en los validados: el pago, el paquete y la factura enviada. En color, hecho; en gris, pendiente. Al pasar el ratón lo dice («Pago pendiente · Paquete por preparar»).</dd>
 </dl>
@@ -31,8 +31,8 @@
 <p>Quien ve todo el equipo tiene arriba una tarjeta con lo pendiente, en cuatro grupos que se despliegan:</p>
 <figure><img src="media/ventas/pedidos-avisos.webp" alt="Avisos de pedidos" loading="lazy"></figure>
 <dl class="defs">
-  <dt>Pagos por validar</dt><dd>Pedidos validados con el pago pendiente.</dd>
-  <dt>Paquetes por preparar</dt><dd>Validados sin «Paquete preparado».</dd>
+  <dt>Pendientes de cobro</dt><dd>Pedidos confirmados con el pago pendiente.</dd>
+  <dt>Paquetes por preparar</dt><dd>Confirmados sin «Paquete preparado».</dd>
   <dt>Facturas por enviar</dt><dd>Con factura emitida y sin «Email con la factura enviado».</dd>
   <dt>Datos de pago por enviar</dt><dd>Transferencias pendientes a las que aún no se ha enviado el correo con los datos de pago.</dd>
 </dl>
@@ -52,7 +52,7 @@
 <h2 id="nueva-venta">Nueva venta</h2>
 <div class="donde"><span><b>Dónde:</b> «+ Nueva venta» en Pedidos y en Oportunidades; «+ Nuevo pedido» en la ficha de un cliente; el aviso «Toca reponer»</span><span><b>Quién:</b> quien puede crear pedidos</span></div>
 <p>Una venta en tres pasos, pensada para el teléfono. Lo bueno es que <b>queda registrada aunque no compre</b>: así sabes qué se pide, qué no se vende y por qué.</p>
-<figure class="video"><video src="media/ventas/v-nueva-venta.webm" aria-label="Vídeo: una venta por teléfono"></video><figcaption>Buscar al cliente, repetir su último pedido, hacer el pedido y validarlo.</figcaption></figure>
+<figure class="video"><video src="media/ventas/v-nueva-venta.webm" aria-label="Vídeo: una venta por teléfono"></video><figcaption>Buscar al cliente, repetir su último pedido, hacer el pedido y confirmarlo.</figcaption></figure>
 <ol class="pasos">
   <li><b>Cliente:</b> escribe su nombre, teléfono o DNI y elígelo, o pulsa <b>+ Crear ficha nueva</b>. Debajo verás <b>lo que ya sabemos</b>: su último pedido con el botón <b>Repetir</b>, cuántos pedidos lleva y, si quedaste en llamarle, cuándo y por qué. «Pedido sin cliente (venta a centro)» va directo al pedido.</li>
   <li><b>Qué quiere:</b> los productos y las unidades (con lo que «iría a comprar»), {el medico} o centro de referencia (si no está en la base, escribe su nombre: cuenta igual para las métricas), <b>cómo llegó</b> (llamada entrante, saliente, web, WhatsApp, correo, presencial) y el <b>motivo</b>. En «Más detalles», la fecha y una nota.</li>
@@ -81,25 +81,25 @@
   <dt>Servicio</dt><dd>Por ejemplo, el envío a domicilio, con su importe y su IVA. No lleva descuento ni cuenta como unidades.</dd>
   <dt>Totales, nota y campos propios</dt><dd>Unidades, base, una fila por cada tipo de IVA y el total.</dd>
 </dl>
-<p>Abajo: <b>Guardar borrador</b> (no cuenta todavía) o <b>Guardar y validar</b>, que pregunta antes:</p>
+<p>Abajo: <b>Guardar borrador</b> (no cuenta todavía) o <b>Guardar y confirmar</b>, que pregunta antes:</p>
 <figure class="estrecha"><img src="media/ventas/validar-pregunta.webp" alt="¿Validar el pedido?" loading="lazy"></figure>
-<p>Al validar, el pedido cuenta en las métricas y las comisiones: se atribuye a {el medico} y al comercial que lo lleva <b>en ese momento</b>, y el stock sale del almacén central empezando por el lote que caduca antes. Si tu empresa emite la factura al validar, se emite sola. Un pedido validado ya no se edita: solo se anula.</p>
+<p>Al confirmar, el pedido cuenta en las métricas y las comisiones: se atribuye a {el medico} y al comercial que lo lleva <b>en ese momento</b>, y el stock sale del almacén central empezando por el lote que caduca antes. Si tu empresa emite la factura al confirmar, se emite sola. Un pedido confirmado ya no se edita: solo se anula.</p>
 <div class="nota"><p>Si cambias a mano el importe de una línea, ya no se recalcula al cambiar las unidades. Pulsar dos veces o repetir sin conexión nunca duplica un pedido.</p></div>
 
 <!-- ============================== VER PEDIDO ============================== -->
 <h2 id="pedido-ver">Ver un pedido</h2>
 <div class="tabla" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px">
-  <figure style="margin:0"><img src="media/ventas/pedido-validado.webp" alt="Pedido validado" loading="lazy"><figcaption>Un pedido validado.</figcaption></figure>
+  <figure style="margin:0"><img src="media/ventas/pedido-validado.webp" alt="Pedido confirmado" loading="lazy"><figcaption>Un pedido confirmado.</figcaption></figure>
   <figure style="margin:0"><img src="media/ventas/pedido-borrador.webp" alt="Pedido en borrador" loading="lazy"><figcaption>Un borrador: todavía no cuenta.</figcaption></figure>
 </div>
 <p>Arriba, el número, el estado, la fecha, el canal y la forma de pago. Debajo, el {paciente} (con «Ver ficha del {paciente}»), {el medico} y su comercial, las líneas con sus totales, la nota y los campos propios. Y además:</p>
 <dl class="defs">
-  <dt>Operativa</dt><dd>(Quien ve todo el equipo) Casillas <b>Pago recibido</b>, <b>Paquete preparado</b>, <b>Email con la factura enviado</b> y <b>Email con los datos de pago enviado</b>. Al marcar el pago de un pedido ya facturado, se anota el cobro en la factura. «Preparar email con los datos de pago» escribe el correo con el importe, el IBAN y el concepto.</dd>
+  <dt>Operativa</dt><dd>(Quien ve todo el equipo) Casillas <b>Cobrado</b>, <b>Paquete preparado</b>, <b>Email con la factura enviado</b> y <b>Email con los datos de pago enviado</b>. Al marcar el pago de un pedido ya facturado, se anota el cobro en la factura. «Preparar email con los datos de pago» escribe el correo con el importe, el IBAN y el concepto.</dd>
   <dt>Pago</dt><dd>La referencia del pago y los justificantes («Añadir justificante», «Ver», «Quitar»).</dd>
   <dt>Distribuidor</dt><dd>Si lo sirve uno: quién factura y, ya validado, «Preparar correo al distribuidor» con todo el pedido.</dd>
   <dt>Equipos</dt><dd>Si lleva productos que son equipos: «Dar de alta los equipos» (ver <a href="#parque">Parque instalado</a>).</dd>
 </dl>
-<p>Los botones de abajo cambian según el estado: en un borrador, <b>Eliminar borrador</b>, <b>Editar</b> y <b>Validar pedido</b>; en uno validado, <b>Emitir factura</b> (o el número de la factura, que la abre) y <b>Anular pedido</b>, que pide un motivo y lo deja en la auditoría. Un pedido con factura no se anula sin más: la factura se corrige antes con una rectificativa.</p>
+<p>Los botones de abajo cambian según el estado: en un borrador, <b>Eliminar borrador</b>, <b>Editar</b> y <b>Confirmar pedido</b>; en uno validado, <b>Emitir factura</b> (o el número de la factura, que la abre) y <b>Anular pedido</b>, que pide un motivo y lo deja en la auditoría. Un pedido con factura no se anula sin más: la factura se corrige antes con una rectificativa.</p>
 <figure class="video"><video src="media/ventas/v-operativa.webm" aria-label="Vídeo: pago, paquete y factura"></video><figcaption>Desde un aviso: marcar el pago y el paquete, y emitir la factura.</figcaption></figure>
 <div class="nota"><p><b>Pedidos que nacen solos.</b> Un centro con portal pide su reposición y llega como <b>borrador</b> con la marca «Portal»; lo usado del material en depósito y de una cirugía también crea un borrador. Se validan como cualquier otro.</p></div>
 
@@ -175,7 +175,7 @@
 <figure class="video"><video src="media/ventas/v-revision.webm" aria-label="Vídeo: apuntar una revisión"></video></figure>
 <dl class="defs">
   <dt>Dar de alta un equipo</dt><dd>«+ Equipo» (aquí o en la ficha del centro): dónde está, qué equipo, número de serie o UDI, ubicación, fecha de instalación, contrato, garantía y cada cuántos meses se revisa. «Retirar» lo deja en el historial y deja de avisar.</dd>
-  <dt>Desde el pedido</dt><dd>Al validar un pedido con productos marcados como equipo, el pedido avisa de que faltan por dar de alta y deja apuntar el número de serie de cada unidad.</dd>
+  <dt>Desde el pedido</dt><dd>Al confirmar un pedido con productos marcados como equipo, el pedido avisa de que faltan por dar de alta y deja apuntar el número de serie de cada unidad.</dd>
   <dt>En el producto</dt><dd>(Administración) «Es un equipo: se instala con su número de serie» y cada cuántos meses se revisa.</dd>
 </dl>
 <figure class="estrecha"><img src="media/ventas/equipo-nuevo.webp" alt="Nuevo equipo" loading="lazy"></figure>
@@ -185,14 +185,14 @@
 <dl class="defs">
   <dt>Configuración → Clasificadores</dt><dd>(Administración) Formas de pago, motivos y resultados de las llamadas, «Cómo llegó» y los campos propios de pedidos y clientes.</dd>
   <dt>Productos</dt><dd>Precios, IVA, servicios (como el envío), si es un equipo y su revisión.</dd>
-  <dt>Facturación → Datos fiscales</dt><dd>Emitir la factura al validar y el IBAN para el correo de pago.</dd>
+  <dt>Facturación → Datos fiscales</dt><dd>Emitir la factura al confirmar y el IBAN para el correo de pago.</dd>
   <dt>Usuarios y roles</dt><dd>Quién puede crear pedidos, ver importes, comprar, ver todo el equipo y qué avisos de pedidos son obligatorios.</dd>
   <dt>Concursos → Avisos de vencimiento</dt><dd>Los días de aviso de contratos y equipos.</dd>
 </dl>
 
 <h2 id="ventas-preguntas">Preguntas frecuentes</h2>
 <h4>He validado un pedido con un error.</h4>
-<p>Un pedido validado no se edita: anúlalo (con su motivo) y haz uno nuevo. Si ya tenía factura, primero hay que corregirla con una rectificativa.</p>
+<p>Un pedido confirmado no se edita: anúlalo (con su motivo) y haz uno nuevo. Si ya tenía factura, primero hay que corregirla con una rectificativa.</p>
 <h4>Un pedido sale «Sin atribuir».</h4>
 <p>{El medico} de referencia no estaba en la base y se escribió solo su nombre. Las unidades no cuentan para nadie: antes de validar, elige su ficha en el pedido.</p>
 <h4>No veo euros en Pedidos.</h4>
