@@ -4757,6 +4757,17 @@ html body :is(.pagtabs, .subnav, .pmtabs)::-webkit-scrollbar{display:none}
 /* v2.341.0 · Alta de cliente: el campo «Empresa» guarda su sitio con «Empresa» elegido (sin saltos) */
 #koempw.koinv{visibility:hidden}
 #koempw label .ai{margin-left:4px}
+/* v2.342.0 · Plantillas de correo y del PDF */
+#plcorreo > .fh{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.plclista{display:flex;flex-direction:column;gap:14px;margin-top:6px}
+.plcusot{font:700 11px var(--f-titulo);letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px}
+.plcfila{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-top:1px solid var(--line);flex-wrap:wrap}
+.plcn{display:flex;flex-direction:column;gap:2px;min-width:0}.plcn .sm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:520px}
+.plcb{display:flex;gap:6px;flex-wrap:wrap}
+.pdfplbar{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:0 0 12px;padding:0 0 12px;border-bottom:1px solid var(--line)}
+.pdfplbar > div:first-child{min-width:220px;flex:1 1 220px;max-width:360px}
+.pdfplacts{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.efplants{margin-top:6px}
 </style>
 </head>
 <body>
@@ -4894,6 +4905,6 @@ try{var co=sessionStorage.getItem('dlc-cambio-org');if(co!==null||localStorage.g
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.341.0"></script>
+<script src="./app.js?v=2.342.0"></script>
 </body>
 </html>
