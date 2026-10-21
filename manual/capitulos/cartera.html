@@ -2,10 +2,10 @@
 <h1>Cartera</h1>
 <p class="entrada">Las fichas de {los medicos} y de los centros que visitáis: cómo encontrarlas, qué cuenta cada ficha, cómo se editan y se mantienen limpias, cómo se traen desde un Excel, y los eventos y el portal que comparten con vosotros.</p>
 <div class="mapa">
-  <a href="#cartera-fichas"><b>Las fichas</b><span>Persona y centro, consultas, estado, urgente</span></a>
+  <a href="#cartera-fichas"><b>Las fichas</b><span>Persona y centro, {consultas}, estado, urgente</span></a>
   <a href="#directorio"><b>El directorio</b><span>La lista, filtros, columnas, mapa y «Cerca de mí»</span></a>
   <a href="#ficha"><b>La ficha</b><span>Todo lo que enseña, bloque a bloque</span></a>
-  <a href="#ficha-editar"><b>Editar y dar de alta</b><span>Datos, consultas, centros y horario</span></a>
+  <a href="#ficha-editar"><b>Editar y dar de alta</b><span>Datos, {consultas}, centros y horario</span></a>
   <a href="#ficha-centro"><b>Ficha de centro</b><span>El centro con todos sus profesionales</span></a>
   <a href="#calidad"><b>Calidad del dato y duplicados</b><span>Fichas completas y fichas repetidas</span></a>
   <a href="#importar"><b>Importar datos</b><span>Traer fichas, clientes, productos o ventas desde Excel</span></a>
@@ -18,8 +18,8 @@
 <p>Cada {medico} o centro que visitáis tiene una <b>ficha</b>. Antes de empezar conviene tener claras unas pocas ideas:</p>
 <dl class="defs">
   <dt>Ficha de persona y ficha de centro</dt><dd>Una ficha de <b>persona</b> es un profesional, con una o varias consultas. Una ficha de <b>centro</b> es una clínica, un hospital o una farmacia que tratáis como cliente: puede tener portal, productos propios, depósito y equipos.</dd>
-  <dt>Consulta</dt><dd>Cada sitio donde atiende {un medico}: el centro, la planta, la sala, el teléfono, los días y el horario. La primera es la <b>principal</b>.</dd>
-  <dt>Centro</dt><dd>El edificio compartido (dirección, teléfono, horario de apertura y punto en el mapa) al que se enlazan las consultas. Lo comparten todas las fichas que atienden allí, y tiene su propia <a href="#ficha-centro">ficha de centro</a>.</dd>
+  <dt>{Consulta}</dt><dd>Cada sitio donde atiende {un medico}: el centro, la planta, la sala, el teléfono, los días y el horario. La primera es la <b>principal</b>.</dd>
+  <dt>Centro</dt><dd>El edificio compartido (dirección, teléfono, horario de apertura y punto en el mapa) al que se enlazan {las consultas}. Lo comparten todas las fichas que atienden allí, y tiene su propia <a href="#ficha-centro">ficha de centro</a>.</dd>
   <dt>Estado comercial</dt><dd>En qué punto está la relación: sin contactar, presentado, interesado, cliente… Cada empresa tiene los suyos. Cambia solo al registrar {visitas} y se puede cambiar a mano.</dd>
   <dt>Urgente</dt><dd>Una marca con su motivo para no olvidar a alguien: sale primero en las listas, en rojo en el mapa y en Inicio.</dd>
   <dt>Sin reporting</dt><dd>{Medicos} que se visitan igual, pero que no quieren informes ni seguimiento.</dd>
@@ -31,7 +31,7 @@
 <div class="donde"><span><b>Dónde:</b> menú, bloque «Cartera», el primer botón (con el nombre que use tu empresa: Prescriptores, Cuentas, Contactos…); en el móvil, en la barra de abajo</span><span><b>Quién:</b> quien tiene permiso para ver las fichas, en todos los planes</span></div>
 <figure><img src="media/cartera/directorio.webp" alt="Directorio de fichas" loading="lazy"><figcaption>El directorio visto por la dirección: con la columna «Comerciales».</figcaption></figure>
 <p>Arriba tienes <b>Calidad del dato</b> (si tienes permiso), <b>+ Crear nuevo</b> y <b>Filtros y columnas</b>; debajo, <b>Cerca de mí</b> y el botón del <b>mapa</b>. El contador dice cuántas fichas cumplen lo que buscas («123 prescriptores · 18 ms»).</p>
-<p>La tabla enseña de entrada el nombre (con las marcas «Urgente» y «Sin reporting»), la especialidad, el centro, el municipio, los <b>días</b> que atiende (L M X J V encendidos; al pasar el ratón ves el horario) y el estado. Quien ve todo el equipo ve además quién lleva cada ficha. Pulsa una fila para abrir su ficha.</p>
+<p>La tabla enseña de entrada el nombre (con las marcas «Urgente» y «Sin reporting»), la {especialidad}, el centro, el municipio, los <b>días</b> que atiende (L M X J V encendidos; al pasar el ratón ves el horario) y el estado. Quien ve todo el equipo ve además quién lleva cada ficha. Pulsa una fila para abrir su ficha.</p>
 <ul>
   <li>Arrastra el borde de una cabecera para hacer la columna más ancha o más estrecha. Se recuerda en ese navegador.</li>
   <li>Si la tabla no cabe, desliza a los lados para ver todas las columnas.</li>
@@ -48,7 +48,7 @@
   <figure style="margin:0"><img src="media/cartera/columnas.webp" alt="Elegir columnas" loading="lazy"><figcaption>«Elegir columnas».</figcaption></figure>
 </div>
 <dl class="defs">
-  <dt>Filtros</dt><dd>Provincia (el municipio se ajusta a ella), municipio, especialidad, estado comercial (cada opción con cuántas fichas tiene), reporting y, si ves todo el equipo, comercial (también «Sin comercial»). El municipio y la provincia buscan en todas las consultas de la ficha, no solo en la principal.</dd>
+  <dt>Filtros</dt><dd>Provincia (el municipio se ajusta a ella), municipio, {especialidad}, estado comercial (cada opción con cuántas fichas tiene), reporting y, si ves todo el equipo, comercial (también «Sin comercial»). El municipio y la provincia buscan en todas {las consultas} de la ficha, no solo en la principal.</dd>
   <dt>Clasificadores</dt><dd>Un filtro por cada campo propio de tu empresa (potencial, cargo…). Si tiene pocos valores, un desplegable; si tiene muchos, un buscador; si es un número o una fecha, «Desde» y «Hasta». La casilla «Columna» lo añade a la tabla.</dd>
   <dt>Ordenar por</dt><dd>Nombre, urgentes primero o {visita} más reciente.</dd>
   <dt>Limpiar filtros</dt><dd>Lo quita todo y cierra el panel.</dd>
@@ -61,7 +61,7 @@
 <div class="nota"><p><b>¿Y «mis fichas» o «sin visitar»?</b> No hacen falta como filtro: cada comercial ve ya solo su cartera, y quien ve todo filtra por comercial. Las listas rápidas (urgentes sin visitar, interesados, sin contactar…) se abren desde los indicadores de Inicio, y «Sin visitar» está en Calidad del dato.</p></div>
 
 <h3 id="directorio-mapa">El mapa</h3>
-<p>El botón del mapa cambia la tabla por un mapa con un punto por ficha (respetando los filtros). El color dice el estado: ámbar sin contactar, azul en avance, marino interesados, verde clientes y gris los negativos; en <b>rojo y más grande</b>, los urgentes que nunca se han visitado. La leyenda dice cuántas fichas tienen ubicación. Al pulsar un punto ves el nombre, la especialidad, el centro y el estado, con «Abrir ficha». Necesita conexión.</p>
+<p>El botón del mapa cambia la tabla por un mapa con un punto por ficha (respetando los filtros). El color dice el estado: ámbar sin contactar, azul en avance, marino interesados, verde clientes y gris los negativos; en <b>rojo y más grande</b>, los urgentes que nunca se han visitado. La leyenda dice cuántas fichas tienen ubicación. Al pulsar un punto ves el nombre, la {especialidad}, el centro y el estado, con «Abrir ficha». Necesita conexión.</p>
 <figure><img src="media/cartera/mapa.webp" alt="Directorio en el mapa" loading="lazy"></figure>
 <figure class="video"><video src="media/cartera/v-mapa.webm" aria-label="Vídeo: el mapa de la cartera"></video><figcaption>Abrir el mapa y pulsar un punto.</figcaption></figure>
 
@@ -70,7 +70,7 @@
 <figure class="movil"><img src="media/cartera/cerca-movil.webp" alt="Cerca de mí en el móvil" loading="lazy"></figure>
 
 <h3 id="directorio-crear">Dar de alta una ficha</h3>
-<p><b>+ Crear nuevo</b> pregunta qué quieres dar de alta: {un medico} («Profesional con sus consultas y horarios») o un <b>centro</b> («Empresa, tienda, oficina u otro local»). Solo salen las opciones que tu permiso permite. Después se abre el editor, igual que para <a href="#ficha-editar">editar una ficha</a>.</p>
+<p><b>+ Crear nuevo</b> pregunta qué quieres dar de alta: {un medico} («Profesional con sus {consultas} y horarios») o un <b>centro</b> («Empresa, tienda, oficina u otro local»). Solo salen las opciones que tu permiso permite. Después se abre el editor, igual que para <a href="#ficha-editar">editar una ficha</a>.</p>
 <figure class="estrecha"><img src="media/cartera/crear-nuevo.webp" alt="Ventana Crear nuevo" loading="lazy"></figure>
 <p>Si tu empresa ha repartido zonas, las fichas nuevas de tu zona entran solas en tu cartera.</p>
 
@@ -84,13 +84,13 @@
 </div>
 
 <h3 id="ficha-arriba">Arriba: nombre y botones</h3>
-<p>El nombre, la especialidad, el área y el código. Debajo, los botones: <b>Registrar {visita}</b>, <b>Editar ficha</b>, <b>Marcar urgente</b> (o «Quitar urgente») y <b>+ Añadir a mi agenda</b>, que abre la ventana de nueva cita con {el medico} ya elegido. Si a la ficha le falta el horario de atención, una banda te lo recuerda con «Completar horario».</p>
+<p>El nombre, la {especialidad}, el área y el código. Debajo, los botones: <b>Registrar {visita}</b>, <b>Editar ficha</b>, <b>Marcar urgente</b> (o «Quitar urgente») y <b>+ Añadir a mi agenda</b>, que abre la ventana de nueva cita con {el medico} ya elegido. Si a la ficha le falta el horario de atención, una banda te lo recuerda con «Completar horario».</p>
 
 <h3 id="ficha-visita">Para la {visita}</h3>
 <figure class="estrecha"><img src="media/cartera/ficha-para-la-visita.webp" alt="Bloque Para la visita" loading="lazy"></figure>
 <p>Todo lo que necesitas en la puerta:</p>
 <ul>
-  <li><b>Dónde:</b> el centro de la consulta (la de tu cita, la que tiene consulta hoy o la principal), planta y sala, la dirección y <b>Cómo llegar</b> (te pregunta si con Google Maps, Waze o Apple Maps).</li>
+  <li><b>Dónde:</b> el centro de {la consulta} (la de tu cita, la que tiene consulta hoy o la principal), planta y sala, la dirección y <b>Cómo llegar</b> (te pregunta si con Google Maps, Waze o Apple Maps).</li>
   <li><b>Cuándo:</b> «Hoy atiende: 08:30-14:30» o «Hoy no atiende aquí · el jueves…», el horario del centro y los días de la semana con hoy marcado.</li>
   <li><b>Cómo llegar dentro:</b> las indicaciones («Pasillo azul, al fondo…»).</li>
   <li><b>Última {visita}</b>, con su resultado, su nota y el material que dejaste.</li>
@@ -106,7 +106,7 @@
 
 <h3 id="ficha-bloques">El resto de bloques</h3>
 <dl class="defs">
-  <dt>Otras consultas</dt><dd>Si atiende en más sitios: cada uno con su dirección, planta, sala, teléfono, días y horario, y «Cómo llegar».</dd>
+  <dt>Otras {consultas}</dt><dd>Si atiende en más sitios: cada uno con su dirección, planta, sala, teléfono, días y horario, y «Cómo llegar».</dd>
   <dt>{Visitas}</dt><dd>Las 10 últimas, con su botón «Editar» y sus fotos (lo explicamos en <a href="#visita-ficha">La {visita} y lo común</a>).</dd>
   <dt>Muestras, eventos, cirugías, concursos, equipos y depósito</dt><dd>Cada uno sale si la ficha tiene algo de eso y si tu plan lo incluye.</dd>
   <dt>Campos personalizados</dt><dd>Los datos propios de tu empresa (cargo, potencial…), solo para leer: se cambian en «Editar ficha».</dd>
@@ -121,7 +121,7 @@
 </div>
 
 <h3 id="ficha-historial">Historial de cambios y deshacer</h3>
-<p>Al final de la ficha, la administración tiene el <b>Historial de cambios</b>: cada alta, edición o baja de la ficha y de sus consultas, quién la hizo y cuándo, y qué había antes y qué hay después («Estado: Interesado → Prescribe»). El botón <b>Deshacer</b> devuelve esos datos a su valor anterior, sin tocar lo que se haya cambiado después.</p>
+<p>Al final de la ficha, la administración tiene el <b>Historial de cambios</b>: cada alta, edición o baja de la ficha y de sus {consultas}, quién la hizo y cuándo, y qué había antes y qué hay después («Estado: Interesado → Prescribe»). El botón <b>Deshacer</b> devuelve esos datos a su valor anterior, sin tocar lo que se haya cambiado después.</p>
 <figure class="estrecha"><img src="media/cartera/ficha-historial.webp" alt="Historial de cambios de la ficha" loading="lazy"></figure>
 
 <h3 id="ficha-urgente">Marcar como urgente</h3>
@@ -135,30 +135,30 @@
 <figure class="estrecha"><img src="media/cartera/editor.webp" alt="Editar ficha" loading="lazy"></figure>
 <dl class="defs">
   <dt>Nombre</dt><dd>Para una persona, «APELLIDOS, NOMBRE» (por ejemplo, «GARCIA LOPEZ, ANA»); para un centro, su nombre. Se guarda en mayúsculas.</dd>
-  <dt>Especialidad y área</dt><dd>De las listas de tu empresa.</dd>
+  <dt>{Especialidad} y área</dt><dd>De las listas de tu empresa.</dd>
   <dt>Teléfono, email y contacto</dt><dd>El contacto es para la secretaría o quien te da cita.</dd>
   <dt>Sin reporting</dt><dd>«Solo {visita} presencial: no quiere informes ni feedback».</dd>
   <dt>Nota</dt><dd>Lo que el equipo debe saber de esta ficha.</dd>
   <dt>Campos personalizados</dt><dd>Los obligatorios llevan asterisco; los de solo lectura no se pueden cambiar.</dd>
-  <dt>Consultas</dt><dd>Una caja por consulta. La primera es la principal; las flechas cambian el orden y «Quitar» la borra. «+ Añadir consulta» añade otra.</dd>
+  <dt>{Consultas}</dt><dd>Una caja por consulta. La primera es la principal; las flechas cambian el orden y «Quitar» la borra. «+ Añadir consulta» añade otra.</dd>
   <dt>Comercial asignado</dt><dd>Solo para la administración al editar.</dd>
 </dl>
 <p><span class="boton">Guardar cambios</span> (o <span class="boton">Crear</span>) guarda y abre la ficha. Si falta algo, te dice qué: «Escribe el nombre», «Rellena «Potencial»»… El estado comercial no se cambia aquí: una ficha nueva empieza en el estado inicial.</p>
 
 <h3 id="ficha-consulta">El centro de cada consulta</h3>
 <p>Cada consulta se enlaza a un centro de la base compartida. Con un centro elegido ves su tarjeta: dirección, teléfono, horario de apertura de hoy y los botones <b>Cómo llegar</b>, <b>Editar centro</b> y <b>Cambiar</b>.</p>
-<figure class="estrecha"><img src="media/cartera/editor-centro.webp" alt="Tarjeta del centro de una consulta" loading="lazy"></figure>
-<p>Con <b>Cambiar</b> (o en una consulta nueva) aparece el buscador de centros: escribe el nombre, la calle o la población y elige. Además:</p>
+<figure class="estrecha"><img src="media/cartera/editor-centro.webp" alt="Tarjeta del centro de {una consulta}" loading="lazy"></figure>
+<p>Con <b>Cambiar</b> (o en {una consulta} nueva) aparece el buscador de centros: escribe el nombre, la calle o la población y elige. Además:</p>
 <dl class="defs">
   <dt>Estoy aquí</dt><dd>Usa tu ubicación. Si hay centros a menos de 250 m, te pregunta si estás en uno de ellos; si no, abre «Centro nuevo» con la dirección ya puesta.</dd>
   <dt>+ Centro nuevo</dt><dd>Nombre, teléfono, dirección, código postal, población, provincia y horario de apertura de lunes a domingo (con «Copiar el horario del lunes»). «Buscar la dirección en el mapa» lo sitúa.</dd>
-  <dt>Consulta privada (sin centro)</dt><dd>Para quien atiende en su casa o en un despacho: dirección, código postal, población y provincia, con «Buscar la dirección en el mapa» o «Estoy aquí». Se guarda con la ficha, sin crear un centro compartido.</dd>
+  <dt>{Consulta} privada (sin centro)</dt><dd>Para quien atiende en su casa o en un despacho: dirección, código postal, población y provincia, con «Buscar la dirección en el mapa» o «Estoy aquí». Se guarda con la ficha, sin crear un centro compartido.</dd>
 </dl>
 <div class="tabla" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px">
-  <figure style="margin:0"><img src="media/cartera/editor-buscar-centro.webp" alt="Buscar un centro para la consulta" loading="lazy"><figcaption>Buscar el centro.</figcaption></figure>
-  <figure style="margin:0"><img src="media/cartera/editor-privada.webp" alt="Consulta privada" loading="lazy"><figcaption>Consulta privada.</figcaption></figure>
+  <figure style="margin:0"><img src="media/cartera/editor-buscar-centro.webp" alt="Buscar un centro para {la consulta}" loading="lazy"><figcaption>Buscar el centro.</figcaption></figure>
+  <figure style="margin:0"><img src="media/cartera/editor-privada.webp" alt="{Consulta} privada" loading="lazy"><figcaption>{Consulta} privada.</figcaption></figure>
 </div>
-<div class="nota aviso"><p><b>El punto del mapa importa.</b> Una consulta sin ubicación no sale en las rutas ni en el mapa. delcos solo busca direcciones en España y comprueba que salgan en la población que has escrito: si la encuentra en otro sitio, te avisa («Esa dirección sale en X, no en Y») y no guarda el punto. Un centro nuevo o editado se guarda al momento en la base compartida y vale para todas las fichas que atienden allí.</p></div>
+<div class="nota aviso"><p><b>El punto del mapa importa.</b> {Una consulta} sin ubicación no sale en las rutas ni en el mapa. delcos solo busca direcciones en España y comprueba que salgan en la población que has escrito: si la encuentra en otro sitio, te avisa («Esa dirección sale en X, no en Y») y no guarda el punto. Un centro nuevo o editado se guarda al momento en la base compartida y vale para todas las fichas que atienden allí.</p></div>
 
 <h3 id="ficha-horario">Días y horario de {visita}</h3>
 <p>Para cada día de lunes a viernes, <b>Mañana</b> y <b>Tarde</b>, y la franja de horas de cada una. Los atajos <b>L-V mañanas</b>, <b>L-V tardes</b> y <b>Limpiar</b> ahorran clics. Este horario es el que usan las rutas, el planificador, tu día y el aviso de horario.</p>
@@ -176,8 +176,8 @@
 <figure class="estrecha"><img src="media/cartera/ficha-centro.webp" alt="Ficha de centro" loading="lazy"></figure>
 <ul>
   <li><b>+ Añadir</b> busca una ficha y la enlaza al centro. Si no tenía consulta allí, se la crea con los datos del centro (y es la principal si no tenía otra).</li>
-  <li><b>Quitar</b> pregunta antes: esa consulta desaparece de su ficha. Si era la principal, pasa a serlo otra.</li>
-  <li><b>Editar centro</b> cambia el nombre, el teléfono, la dirección y el horario para todas las consultas enlazadas. Si cambias la dirección, el centro se vuelve a situar solo en el mapa.</li>
+  <li><b>Quitar</b> pregunta antes: esa {consulta} desaparece de su ficha. Si era la principal, pasa a serlo otra.</li>
+  <li><b>Editar centro</b> cambia el nombre, el teléfono, la dirección y el horario para todas {las consultas} enlazadas. Si cambias la dirección, el centro se vuelve a situar solo en el mapa.</li>
 </ul>
 <figure class="video"><video src="media/cartera/v-centro.webm" aria-label="Vídeo: buscar un centro y añadir un profesional"></video><figcaption>Buscar el centro, abrirlo y añadir un profesional.</figcaption></figure>
 <figure class="estrecha"><img src="media/cartera/editar-centro.webp" alt="Editar centro" loading="lazy"></figure>
@@ -188,7 +188,7 @@
 <p>Una cartera con datos completos hace que funcionen bien las rutas, el mapa, el reparto por zonas y las horas de tu día. Esta pantalla te dice qué falta y dónde.</p>
 <figure><img src="media/cartera/calidad.webp" alt="Calidad del dato" loading="lazy"></figure>
 <dl class="defs">
-  <dt>Fichas completas</dt><dd>El porcentaje de fichas de persona con ubicación, horario, especialidad y teléfono o email. Debajo, una tarjeta por cada cosa que falta (sin ubicación, sin horario, sin especialidad, sin teléfono ni email, sin provincia, sin comercial y pendientes de unificar), en naranja si hay alguna. La «i» explica por qué importa cada una.</dd>
+  <dt>Fichas completas</dt><dd>El porcentaje de fichas de persona con ubicación, horario, {especialidad} y teléfono o email. Debajo, una tarjeta por cada cosa que falta (sin ubicación, sin horario, sin {especialidad}, sin teléfono ni email, sin provincia, sin comercial y pendientes de unificar), en naranja si hay alguna. La «i» explica por qué importa cada una.</dd>
   <dt>Direcciones que no cuadran</dt><dd>Consultas cuyo punto del mapa está lejos de su municipio (más de 50 km) o fuera de España. «Volver a situar» busca la dirección otra vez y la corrige si cuadra.</dd>
   <dt>El embudo</dt><dd>Una cifra por estado comercial y los totales de {medicos} visitados, {visitas}, muestras y fichas con dirección y horario.</dd>
   <dt>La lista</dt><dd>Con filtros por estado, provincia, municipio y <b>Mostrar</b> (todos, solo visitados, sin visitar, con próxima acción, acciones atrasadas). Cada fila dice la última {visita} y la próxima acción, con los botones <b>Hecha</b> y <b>Aplazar</b> (te pregunta para cuándo; de entrada, dentro de 7 días).</dd>
@@ -200,8 +200,8 @@
 <ol class="pasos">
   <li>Pulsa <b>Comparar</b> en una pareja.</li>
   <li>Elige qué ficha se conserva (la otra desaparece). «Ver ficha» abre cada una por si quieres mirarla.</li>
-  <li>Para cada dato distinto (nombre, especialidad, teléfono, email, estado…), marca el valor que se queda.</li>
-  <li>Pulsa <span class="boton">Unificar</span> y confirma. Las consultas, {las visitas}, las citas y la cartera se juntan en la ficha que queda.</li>
+  <li>Para cada dato distinto (nombre, {especialidad}, teléfono, email, estado…), marca el valor que se queda.</li>
+  <li>Pulsa <span class="boton">Unificar</span> y confirma. {Las consultas}, {las visitas}, las citas y la cartera se juntan en la ficha que queda.</li>
 </ol>
 <p>Si no son la misma persona, <b>No son duplicados</b>: no volverán a salir. Unificar no se puede deshacer desde la app.</p>
 <figure class="video"><video src="media/cartera/v-duplicados.webm" aria-label="Vídeo: unificar dos fichas"></video><figcaption>Comparar, elegir los datos y unificar.</figcaption></figure>
@@ -212,7 +212,7 @@
 <p>Para traer de golpe tus fichas, clientes, productos o ventas desde un Excel (.xlsx, .xls) o un CSV, hasta 20.000 filas. Son cuatro pasos:</p>
 <figure class="video"><video src="media/cartera/v-importar.webm" aria-label="Vídeo: importar fichas desde un archivo"></video><figcaption>Una importación completa: tipo, archivo, columnas, revisión e importar.</figcaption></figure>
 <ol class="pasos">
-  <li><b>Qué importar:</b> clientes, productos, {medicos} (con sus centros de consulta) o ventas.</li>
+  <li><b>Qué importar:</b> clientes, productos, {medicos} (con sus centros de atención) o ventas.</li>
   <li><b>Archivo:</b> arrástralo o púlsalo para elegirlo. La fila de títulos se detecta sola aunque haya filas antes; si el Excel tiene varias hojas, te pregunta cuál.</li>
   <li><b>Columnas:</b> delcos propone a qué campo va cada columna (y recuerda lo que elegiste la última vez con un archivo igual). Las que no tenemos se pueden guardar como <b>campo personalizado</b>, que se crea solo.</li>
   <li><b>Revisión:</b> una prueba sin guardar nada: cuántos registros son nuevos, cuántos ya existen (y si quieres actualizarlos con los datos del archivo o dejarlos como están) y cuántos tienen errores, que puedes ver fila a fila. <span class="boton">Importar N registros</span> lo hace de verdad.</li>
@@ -224,7 +224,7 @@
 <p>Al terminar ves cuántos se crearon, actualizaron, quedaron igual o tenían errores, y los botones <b>Deshacer esta importación</b>, «Importar otro archivo» y «Ver {medicos}».</p>
 <dl class="defs">
   <dt>Cómo se reconocen las que ya existen</dt><dd>Por el nombre. Al actualizar solo se rellenan los datos que trae el archivo.</dd>
-  <dt>Las consultas importadas</dt><dd>Llevan el centro como texto, sin enlazar ni situar en el mapa: después saldrán en Calidad del dato como «sin ubicación».</dd>
+  <dt>{Las consultas} importadas</dt><dd>Llevan el centro como texto, sin enlazar ni situar en el mapa: después saldrán en Calidad del dato como «sin ubicación».</dd>
   <dt>Ventas</dt><dd>Cada fila es una línea; las filas con el mismo número forman un pedido. Los productos tienen que existir; las ventas que ya estaban no se tocan.</dd>
   <dt>Importaciones</dt><dd>La pestaña con el historial: qué se importó, cuándo y quién, y <b>Deshacer</b>. Deshacer borra lo que creó esa importación (lo que actualizó no cambia) y nunca borra lo que ya se esté usando en pedidos, facturas o citas.</dd>
 </dl>
@@ -274,7 +274,7 @@
 <h2 id="cartera-ajustes">Lo que se configura</h2>
 <dl class="defs">
   <dt>Organización → Marca y vocabulario</dt><dd>(Propietario) Cómo llamáis a quienes visitáis (Prescriptores, Cuentas, Contactos…) y las palabras {medico}, {visita} y {paciente}. Cambia la app y este manual.</dd>
-  <dt>Configuración → Clasificadores</dt><dd>(Administración) Estados comerciales, especialidades, áreas, motivos de urgencia y los campos personalizados de las fichas: tipo, obligatorio, solo lectura, si salen en la ficha, como columna o como filtro.</dd>
+  <dt>Configuración → Clasificadores</dt><dd>(Administración) Estados comerciales, {especialidades}, áreas, motivos de urgencia y los campos personalizados de las fichas: tipo, obligatorio, solo lectura, si salen en la ficha, como columna o como filtro.</dd>
   <dt>Usuarios y roles</dt><dd>Quién ve todo el equipo, quién puede crear y editar fichas, importar o dar acceso al portal, y las zonas de cada comercial.</dd>
   <dt>Configuración → Portal del {medico}</dt><dd>Qué material se puede pedir desde el portal y cuánto cada vez.</dd>
   <dt>Configuración → Cartera y {visitas}</dt><dd>El ciclo A/B/C y la frecuencia de {visitas}.</dd>
@@ -284,9 +284,9 @@
 <h4>No encuentro a {un medico} que sé que existe.</h4>
 <p>Puede que no esté en tu cartera: solo ves las fichas que tienes asignadas. Pídeselo a quien reparte la cartera.</p>
 <h4>{Un medico} no sale en el mapa ni en las rutas.</h4>
-<p>Le falta el punto del mapa en sus consultas. Ábrelo, «Editar ficha», y en su centro «Buscar la dirección en el mapa». Calidad del dato te dice cuántos están así.</p>
+<p>Le falta el punto del mapa en sus {consultas}. Ábrelo, «Editar ficha», y en su centro «Buscar la dirección en el mapa». Calidad del dato te dice cuántos están así.</p>
 <h4>He cambiado la dirección de un centro y han cambiado otras fichas.</h4>
-<p>Es lo esperado: el centro es compartido. Si solo una persona atiende en otro sitio, cámbiale la consulta a otro centro o a una consulta privada.</p>
+<p>Es lo esperado: el centro es compartido. Si solo una persona atiende en otro sitio, cámbiale {la consulta} a otro centro o a {una consulta} privada.</p>
 <h4>¿Puedo descargar la lista en Excel?</h4>
 <p>No: para proteger los datos, el directorio no se descarga. La administración puede descargar la copia completa de la empresa desde Organización.</p>
 <h4>He importado un archivo equivocado.</h4>

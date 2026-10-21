@@ -9,7 +9,8 @@
   const HTML = {};   // id del capítulo → HTML ya con el vocabulario
 
   // ---------- Vocabulario de la empresa (lo deja la app en el navegador al abrir el manual) ----------
-  const BASE = { medico: { s: 'profesional', p: 'profesionales', g: 'm' }, visita: { s: 'visita', p: 'visitas', g: 'f' }, paciente: { s: 'cliente', p: 'clientes', g: 'm' } };
+  const BASE = { medico: { s: 'profesional', p: 'profesionales', g: 'm' }, visita: { s: 'visita', p: 'visitas', g: 'f' }, paciente: { s: 'cliente', p: 'clientes', g: 'm' },
+    consulta: { s: 'ubicación', p: 'ubicaciones', g: 'f' }, especialidad: { s: 'segmento', p: 'segmentos', g: 'm' } };
   let TER = BASE, EMPRESA = '';
   try {
     const d = JSON.parse(localStorage.getItem('delcos-manual') || '{}');
@@ -19,7 +20,7 @@
   const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
   // {medico} {medicos} {Medico} {un medico} {al medico} {el medico} {los medicos}… y lo mismo con visita y paciente
   // (con el artículo en mayúscula, {La visita}, sale al principio de frase: «La visita», «El contacto»…)
-  const vocab = html => html.replace(/\{([uU]n |[uU]na |[eE]l |[lL]a |[aA]l |[aA] la |[lL]os |[lL]as |[dD]el |[dD]e la )?([MmVvPp])(edico|isita|aciente)(s?)\}/g, (m, art, ini, resto, pl) => {
+  const vocab = html => html.replace(/\{([uU]n |[uU]na |[eE]l |[lL]a |[aA]l |[aA] la |[lL]os |[lL]as |[dD]el |[dD]e la )?([MmVvPpCcEe])(edico|isita|aciente|onsulta|specialidad)(s|es)?\}/g, (m, art, ini, resto, pl) => {
     const clave = (ini.toLowerCase() + resto), t = TER[clave] || BASE[clave]; if (!t) return m;
     let w = pl ? t.p : t.s; const f = t.g === 'f';
     let a = '';

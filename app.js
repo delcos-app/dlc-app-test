@@ -82,7 +82,8 @@ let PERFIL = null, TAB = 'inicio';
    que los saca del vocabulario de cada cliente (ajuste «terminos») con su plural, su género y el artículo que concuerda.
    TT(término, 's'|'p', determinante, mayúsculas del determinante, mayúsculas del nombre[, adjetivo en masculino singular]) · 'l' minúscula, 'C' inicial, 'U' todo. */
 // v2.224.0: palabras de partida genéricas (antes «médico» y «paciente»: DLC las tiene como vocabulario propio desde el SQL 133)
-const TERM_DEF = { medico: { s: 'profesional', p: 'profesionales', g: 'm' }, paciente: { s: 'cliente', p: 'clientes', g: 'm' }, visita: { s: 'visita', p: 'visitas', g: 'f' }, pauta: { s: 'pauta', p: 'pautas', g: 'f' } };
+const TERM_DEF = { medico: { s: 'profesional', p: 'profesionales', g: 'm' }, paciente: { s: 'cliente', p: 'clientes', g: 'm' }, visita: { s: 'visita', p: 'visitas', g: 'f' }, pauta: { s: 'pauta', p: 'pautas', g: 'f' },
+  consulta: { s: 'ubicación', p: 'ubicaciones', g: 'f' }, especialidad: { s: 'segmento', p: 'segmentos', g: 'm' } };   // v2.347.0
 const TERM_DET = { el: ['el', 'los', 'la', 'las'], un: ['un', 'unos', 'una', 'unas'], del: ['del', 'de los', 'de la', 'de las'], al: ['al', 'a los', 'a la', 'a las'],
   este: ['este', 'estos', 'esta', 'estas'], ningun: ['ningún', 'ningunos', 'ninguna', 'ningunas'], otro: ['otro', 'otros', 'otra', 'otras'],
   nuevo: ['nuevo', 'nuevos', 'nueva', 'nuevas'], primer: ['primer', 'primeros', 'primera', 'primeras'], ultimo: ['último', 'últimos', 'última', 'últimas'],
@@ -93,6 +94,9 @@ try { TERMINOS = JSON.parse(localStorage.getItem(TERMKEY) || '{}') || {}; } catc
 const terminoDe = k => { const d = TERM_DEF[k] || { s: k, p: k + 's', g: 'm' }, t = TERMINOS[k] || {};
   return { s: String(t.s || '').trim() || d.s, p: String(t.p || '').trim() || d.p, g: t.g === 'f' || t.g === 'm' ? t.g : d.g }; };
 const casoTermino = (t, c) => c === 'U' ? t.toUpperCase() : c === 'C' ? t.charAt(0).toUpperCase() + t.slice(1) : t;
+// v2.347.0: «Todos los segmentos» / «Todas las especialidades»
+const todosLos = k => (terminoDe(k).g === 'f' ? 'Todas ' : 'Todos ') + TT(k, 'p', 'el', 'l', 'l');
+const consultaPrivada = (cn = 'C') => TT('consulta', 's', '', 'l', cn, 'privado');
 function TT(k, n, det, cd, cn, adj) {
   const d = terminoDe(k), nom = casoTermino(n === 'p' ? d.p : d.s, cn);
   // Adjetivo que acompaña al nombre (se escribe en masculino singular): concuerda en género y número
@@ -296,7 +300,7 @@ async function cargarFiltros(soloMunicipios) {
   };
   if (!soloMunicipios) {
     pon('fprov', data.provincias, 'Todas las provincias', F.prov);
-    pon('fesp', data.especialidades, 'Todas las especialidades', F.esp);
+    pon('fesp', data.especialidades, todosLos('especialidad'), F.esp);
     pon('fest', data.estados, 'Todos los estados', F.est);
   }
   pon('fmuni', data.municipios, 'Todos los municipios', F.muni);
@@ -395,8 +399,8 @@ function fila(m) {
   const d = m.dias || {};
   return `<button class="fila" data-id="${m.id}">
     <span><span class="nm">${m.urgente ? '<span class="pill p-urg">Urgente</span> ' : ''}${m.sin_reporting ? `<span class="pill p-sr" title="Solo ${TT('visita', 's', '', 'l', 'l')} presencial: sin informes ni feedback">Sin reporting</span> ` : ''}${esc(m.nombre)}</span>
-      <span class="sm">${esc(m.especialidad || 'Sin especialidad')}</span></span>
-    <span class="c2"><span class="nm" style="font-size:13.5px">${esc(m.centro_nombre || 'Consulta privada')}</span>
+      <span class="sm">${esc(m.especialidad || 'Sin ' + TT('especialidad', 's', '', 'l', 'l'))}</span></span>
+    <span class="c2"><span class="nm" style="font-size:13.5px">${esc(m.centro_nombre || consultaPrivada())}</span>
       <span class="sm">${esc([m.municipio, m.provincia].filter(Boolean).join(' · '))}</span></span>
     <span class="c3"><span class="dias">${['L','M','X','J','V'].map(k => `<span class="${d[k] ? 'on' : ''}">${k}</span>`).join('')}</span></span>
     <span class="pill p-est">${esc(m.estado_comercial)}</span>
@@ -585,7 +589,7 @@ async function pintarFichaBase(id) {
         : `<span class="pill p-est">${esc(m.estado_comercial)}</span>`}</div>
       ${com.length ? `<div class="sm" style="margin-top:6px">Comercial: ${com.map(esc).join(', ')}</div>` : ''}
     </div>
-    ${cons.filter(c => c !== consultaDeLaVisita(cons)).map(c => `<div class="blk"><h3>${esc(c.centro_nombre || 'Consulta privada')}</h3>
+    ${cons.filter(c => c !== consultaDeLaVisita(cons)).map(c => `<div class="blk"><h3>${esc(c.centro_nombre || consultaPrivada())}</h3>
       <div>${esc([c.direccion, c.cp, c.municipio].filter(Boolean).join(', ')) || '<span class="sm">Sin dirección</span>'}</div>
       ${c.planta || c.sala ? `<div class="sm">${esc([c.planta, c.sala].filter(Boolean).join(' · '))}</div>` : ''}
       ${c.indicaciones ? `<div class="sm">${esc(c.indicaciones)}</div>` : ''}
@@ -623,7 +627,7 @@ function fichaVisitaHTML(m, cons, vis) {
   if (m.urgente) filas.push(fila('circle-alert', `<b>Urgente</b>${m.urgente_motivo ? ': ' + esc(m.urgente_motivo) : ''}`, 'fvurg'));
   if (c) {
     const donde = [c.planta, c.sala].map(x => String(x || '').trim()).filter(x => x && !/^[-–·.]+$/.test(x)).map(esc).join(' · ');   // v2.343.0: sin pastilla vacía
-    filas.push(fila('building-2', `<b>${esc(c.centro_nombre || 'Consulta privada')}</b>${donde ? `<span class="fvdonde">${donde}</span>` : ''}
+    filas.push(fila('building-2', `<b>${esc(c.centro_nombre || consultaPrivada())}</b>${donde ? `<span class="fvdonde">${donde}</span>` : ''}
       <div class="sm">${esc([c.direccion, [c.cp, c.municipio].filter(Boolean).join(' ')].filter(Boolean).join(', ')) || 'Sin dirección'}</div>
       ${c.lat ? `<button class="btn sec fvbtn" type="button" data-nav="${navAttr([c.lat, c.lon])}">${svgIco(ICON_NOM['map-pin'])} Cómo llegar</button>` : ''}`));
     // Cuándo: su horario de hoy en esta consulta (o el próximo día que atiende) y el horario del centro
@@ -634,7 +638,7 @@ function fichaVisitaHTML(m, cons, vis) {
       ${cen ? `<div class="sm">Centro abierto hoy: ${esc(cen)}</div>` : ''}
       <div class="dias fvdias">${['L', 'M', 'X', 'J', 'V'].map(k => `<span class="${d[k] ? 'on' : ''} ${k === hoy ? 'hoy' : ''}" title="${esc(d[k] || '')}">${k}</span>`).join('')}</div>`));
     if (c.indicaciones) filas.push(fila('info', `<b>Cómo llegar dentro:</b> ${esc(c.indicaciones)}`, 'fvind'));
-  } else filas.push(fila('building-2', '<span class="sm">Sin consulta registrada: añádela en «Editar ficha».</span>'));
+  } else filas.push(fila('building-2', `<span class="sm">Sin ${TT('consulta', 's', '', 'l', 'l')} registrada: añádela en «Editar ficha».</span>`));
   // Lo último que pasó y lo que quedó pendiente
   const ult = (vis || [])[0];
   if (ult) {
@@ -804,11 +808,11 @@ function consHTML(c, i) {
     <label>Centro</label><div class="cenpick" data-cp="${i}"></div>
     <div class="g2" style="margin-top:10px">
       <div><label>Planta</label><input data-cf="${i}|planta" value="${esc(c.planta || '')}" maxlength="60" placeholder="p. ej. 2.ª planta"></div>
-      <div><label>Sala o consulta</label><input data-cf="${i}|sala" value="${esc(c.sala || '')}" maxlength="60" placeholder="p. ej. Consulta 14"></div>
+      <div><label>Sala o despacho</label><input data-cf="${i}|sala" value="${esc(c.sala || '')}" maxlength="60" placeholder="p. ej. Despacho 14"></div>
     </div>
     <label>Indicaciones para llegar</label><input data-cf="${i}|indicaciones" value="${esc(c.indicaciones || '')}" maxlength="300" placeholder="p. ej. Entrar por la puerta B y preguntar en recepción">
     <div class="g2" style="margin-top:10px">
-      <div><label>Teléfono de la consulta</label><input data-cf="${i}|telefono" value="${esc(c.telefono || '')}" inputmode="tel" placeholder="Si es distinto del del centro"></div><div></div>
+      <div><label>Teléfono ${TT('consulta', 's', 'del', 'l', 'l')}</label><input data-cf="${i}|telefono" value="${esc(c.telefono || '')}" inputmode="tel" placeholder="Si es distinto del del centro"></div><div></div>
     </div>
     <label>Días y horario de ${TT('visita', 's', '', 'l', 'l')}</label>${dpHTML(c.dias || {}, i)}
   </div>`;
@@ -832,7 +836,7 @@ async function abrirEditor(id, tipo) {
     <label for="en">${esCentro ? 'Nombre del centro' : 'Apellidos, Nombre'}</label>
     <input id="en" value="${esc(m.nombre || '')}" placeholder="${esCentro ? 'CENTRO SANT JORDI' : 'GARCIA LOPEZ, ANA'}" autocapitalize="characters">
     ${esCentro ? '' : `<div class="g2">
-      <div><label for="ee">Especialidad</label><select id="ee">${opts(CAT.especialidad, m.especialidad)}</select></div>
+      <div><label for="ee">${TT('especialidad', 's', '', 'l', 'C')}</label><select id="ee">${opts(CAT.especialidad, m.especialidad)}</select></div>
       <div><label for="ea">Área</label><select id="ea">${opts(CAT.area, m.area)}</select></div></div>`}
     <div class="g2">
       <div><label for="et">Teléfono</label><input id="et" value="${esc(m.telefono || '')}" inputmode="tel"></div>
@@ -843,7 +847,7 @@ async function abrirEditor(id, tipo) {
     <label for="eno">Nota</label><textarea id="eno" rows="3">${esc(m.nota || '')}</textarea>
     ${camposHTML('medico', m.clasificadores)}
     <div id="econs">${cons.map(consHTML).join('')}</div>
-    <div class="acts"><button type="button" class="btn sec" id="eadd">+ Añadir consulta</button></div>
+    <div class="acts"><button type="button" class="btn sec" id="eadd">+ Añadir ${TT('consulta', 's', '', 'l', 'l')}</button></div>
     <div id="edup"></div>
     <div class="acts" style="justify-content:flex-end">
       <button class="btn sec" data-cerrar>Cancelar</button>
@@ -1185,7 +1189,7 @@ function planHorasYFueraDePlan() {
     const p = PLAN.paradas[i]; if (!p) return;
     const linea = el.querySelectorAll('.tx .sm')[1];
     if (linea) linea.innerHTML = p.medicos.map(m => `<span class="pmed"><b>${m.horaPlan != null ? hm(m.horaPlan) : ''}</b> ${esc(m.nombre)}${
-      m.ventanas && m.ventanas.length ? ` <span class="pvent">consulta ${txtVentanas(m.ventanas)}</span>` : ''}</span>`).join('');
+      m.ventanas && m.ventanas.length ? ` <span class="pvent">atiende ${txtVentanas(m.ventanas)}</span>` : ''}</span>`).join('');
   });
   const fuera = PLAN.fuera || [];
   if (fuera.length) {
@@ -1831,15 +1835,15 @@ async function cargarSeguimientoPaso1() {
     <div class="manh" style="padding:14px 16px 0"><h2 style="padding:0">Fichas completas: ${pct(q.completas, q.total)}%</h2><span class="sm">${num(q.completas)} de ${num(q.total)} ${TT('medico', 'p', '', 'l', 'l')}</span></div>
     <div class="barra" style="margin:8px 16px 10px"><i style="width:${pct(q.completas, q.total)}%"></i></div>
     <div class="kpis" style="padding:0 16px 10px">
-      ${item(q.sin_ubicacion, 'sin ubicación', 'Sin coordenadas en ninguna consulta: no entran en rutas ni en el mapa.')}
+      ${item(q.sin_ubicacion, 'sin ubicación', `Sin coordenadas en ${TT('consulta', 's', 'ningun', 'l', 'l')}: no entran en rutas ni en el mapa.`)}
       ${item(q.sin_horario, 'sin horario de atención', 'Sin días ni horas de atención: las rutas no pueden ajustarse a su horario.')}
-      ${item(q.sin_especialidad, 'sin especialidad', 'Sin especialidad en la ficha: no se pueden filtrar ni analizar por especialidad.')}
+      ${item(q.sin_especialidad, 'sin ' + TT('especialidad', 's', '', 'l', 'l'), `Sin ${TT('especialidad', 's', '', 'l', 'l')} en la ficha: no se pueden filtrar ni analizar por ${TT('especialidad', 's', '', 'l', 'l')}.`)}
       ${item(q.sin_contacto, 'sin teléfono ni email', `No hay forma de contactar con ellos fuera ${TT('visita', 's', 'del', 'l', 'l')}.`)}
       ${item(q.sin_provincia, 'sin provincia', 'Sin provincia no se pueden asignar por zona a un comercial.')}
       ${item(q.sin_comercial, 'sin comercial', `${TT('medico', 'p', '', 'l', 'C')} que no están en ninguna cartera.`)}
       ${item(q.duplicados, 'pendientes de unificar', 'Fichas marcadas como posibles duplicados.')}
     </div>
-    <p class="sm" style="padding:0 16px 10px">Una ficha completa tiene ubicación, horario, especialidad y teléfono o email. Debajo, el avance de cada ${TT('medico', 's', '', 'l', 'l')}.</p></div>`);
+    <p class="sm" style="padding:0 16px 10px">Una ficha completa tiene ubicación, horario, ${TT('especialidad', 's', '', 'l', 'l')} y teléfono o email. Debajo, el avance de cada ${TT('medico', 's', '', 'l', 'l')}.</p></div>`);
 }
 
 async function cargarSeguimientoPaso2() {
@@ -2004,7 +2008,7 @@ function pintarDuplicados() {
   });
 }
 
-const CAMPOS_UNI = [['nombre', 'Nombre'], ['especialidad', 'Especialidad'], ['area', 'Área'],
+const CAMPOS_UNI = [['nombre', 'Nombre'], ['especialidad', TT('especialidad', 's', '', 'l', 'C')], ['area', 'Área'],
   ['telefono', 'Teléfono'], ['email', 'Email'], ['contacto', 'Contacto'], ['nota', 'Nota'],
   ['estado_comercial', 'Estado comercial']];
 
@@ -2023,7 +2027,7 @@ async function compararFichas(idA, idB) {
     const dif = CAMPOS_UNI.filter(([k]) => (a[k] || '') !== (b[k] || ''));
     $('dbody').innerHTML = `
       <div class="fh"><div><h2>Unificar fichas</h2>
-        <div class="sm">Elige cuál se conserva y con qué datos. Consultas, ${TT('visita', 'p', '', 'l', 'l')}, citas y cartera se juntan en la que quede.</div></div>
+        <div class="sm">Elige cuál se conserva y con qué datos. ${TT('consulta', 'p', '', 'l', 'C')}, ${TT('visita', 'p', '', 'l', 'l')}, citas y cartera se juntan en la que quede.</div></div>
         <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
       <div class="opciones">
         ${[a, b].map(m => `<button class="opt" data-queda="${m.id}" aria-pressed="${queda === m.id}">
@@ -2323,7 +2327,7 @@ const pedirFecha = (msg, valor, o = {}) => appVentana({ msg, titulo: o.titulo ||
 
 const COLS = [
   { k: 'nombre', t: `${TT('medico', 's', '', 'l', 'C')}`, w: 250, fijo: true },
-  { k: 'especialidad', t: 'Especialidad', w: 170 },
+  { k: 'especialidad', get t() { return TT('especialidad', 's', '', 'l', 'C'); }, w: 170 },
   { k: 'centro_nombre', t: 'Centro', w: 200 },
   { k: 'municipio', t: 'Municipio', w: 140 },
   { k: 'direccion', t: 'Dirección', w: 200 },
@@ -2958,7 +2962,7 @@ async function editorRuta(id) {
         </div>
         <div class="g2">
           <div><label for="ccen">Centro</label><select id="ccen">${sel(op.centros, g.centro)}</select></div>
-          <div><label for="cesp">Especialidad</label><select id="cesp">${sel(op.especialidades, g.especialidad)}</select></div>
+          <div><label for="cesp">${TT('especialidad', 's', '', 'l', 'C')}</label><select id="cesp">${sel(op.especialidades, g.especialidad)}</select></div>
         </div>
         <div class="g2">
           <div><label for="cest">Estado comercial</label><select id="cest">${sel(op.estados, g.estado)}</select></div>
@@ -3345,7 +3349,7 @@ function abrirHerramientas(contexto) {
     <label>Tipo</label><select data-tf="tipo"><option value="">Todas</option><option value="Persona" ${F.tipo === 'Persona' ? 'selected' : ''}>Profesionales</option><option value="Centro" ${F.tipo === 'Centro' ? 'selected' : ''}>Centros</option></select>
     <label>Provincia</label><select data-tf="prov">${optFiltro(OPF.provincias, F.prov, 'Todas las provincias')}</select>
     <label>Municipio</label><select data-tf="muni">${optFiltro(OPF.municipios, F.muni, 'Todos los municipios')}</select>
-    <label>Especialidad</label><select data-tf="esp">${optFiltro(OPF.especialidades, F.esp, 'Todas las especialidades')}</select>
+    <label>${TT('especialidad', 's', '', 'l', 'C')}</label><select data-tf="esp">${optFiltro(OPF.especialidades, F.esp, todosLos('especialidad'))}</select>
     <label>Estado comercial</label><select data-tf="est">${optFiltro(OPF.estados, F.est, 'Todos los estados')}</select>
     <label>Reporting</label><select data-tf="rep"><option value="">Todos</option><option value="con" ${F.rep === 'con' ? 'selected' : ''}>Con reporting</option><option value="sin" ${F.rep === 'sin' ? 'selected' : ''}>Sin reporting</option></select>
     ${VE_TODO() && $('fcom') ? `<label>Comercial</label><select data-tf="com">${$('fcom').innerHTML}</select>` : ''}
@@ -4093,14 +4097,14 @@ async function compararEn(el, idA, idB) {
   let queda = b.id;
   const eleccion = {};
   CAMPOS_UNI.forEach(([k]) => eleccion[k] = b[k] ? 'queda' : (a[k] ? 'va' : 'queda'));
-  const resumen = (m, x) => `${num((x.consultas || []).length)} consultas · ${num((x.visitas || []).length)} ${TT('visita', 'p', '', 'l', 'l')}`;
+  const resumen = (m, x) => `${num((x.consultas || []).length)} ${TT('consulta', 'p', '', 'l', 'l')} · ${num((x.visitas || []).length)} ${TT('visita', 'p', '', 'l', 'l')}`;
 
   const pinta = () => {
     const va = queda === a.id ? b : a, qu = queda === a.id ? a : b;
     const dif = CAMPOS_UNI.filter(([k]) => (a[k] || '') !== (b[k] || ''));
     el.innerHTML = `<div class="fbox">
       <div class="fh"><div><h2>Comparar fichas</h2>
-        <div class="sm">Elige cuál se conserva y con qué datos. Consultas, ${TT('visita', 'p', '', 'l', 'l')}, citas y cartera se juntan en la que quede.</div></div>
+        <div class="sm">Elige cuál se conserva y con qué datos. ${TT('consulta', 'p', '', 'l', 'C')}, ${TT('visita', 'p', '', 'l', 'l')}, citas y cartera se juntan en la que quede.</div></div>
         <button class="x" id="dcx" aria-label="Cerrar">✕</button></div>
       <div class="opciones">
         ${[[a, ctx.A], [b, ctx.B]].map(([m, x]) => `<button class="opt" data-queda="${m.id}" aria-pressed="${queda === m.id}">
@@ -4170,7 +4174,7 @@ const AYUDA = {
     ['El motivo de urgencia se ve en su ficha.', 'Desde Rutas puedes planificar una ruta solo con urgentes.']],
   ini_ultimas: [`${TT('visita', 'p', 'ultimo', 'C', 'l')}`, `${TT('visita', 'p', 'el', 'C', 'l', 'registrado')} más recientes, con su resultado.`, []],
   ini_recom: ['Rutas sugeridas', 'Listas calculadas cada día con tus datos. Al pulsar una, se planifica la ruta del día.',
-    ['«Atienden hoy»: tienen consulta este día de la semana y no se visitan desde hace más de 14 días.',
+    ['«Atienden hoy»: atienden este día de la semana y no se visitan desde hace más de 14 días.',
      `«${TT('medico', 'p', '', 'l', 'C', 'interesado')}»: en estado «${estadoPapel('interes') || 'interés'}» y sin ${TT('visita', 's', '', 'l', 'l')} en 20 días.`,
      `Solo entran ${TT('medico', 'p', '', 'l', 'l')} con ubicación: completar direcciones mejora las propuestas.`]],
   ini_pend: ['Pendientes de rutas anteriores', 'Citas que planificaste y quedaron sin visitar.',
@@ -4191,7 +4195,7 @@ const AYUDA = {
     `Solo entran ${TT('medico', 'p', '', 'l', 'l')} con ubicación. Completar la dirección y los días de atención mejora mucho las rutas.`]],
   directorio: ['Directorio', `Todos ${TT('medico', 'p', 'el', 'l', 'l')} que puedes ver.`, [
     'El buscador de arriba filtra por nombre, centro o municipio.',
-    `El municipio y la provincia cuentan todas las consultas ${TT('medico', 's', 'del', 'l', 'l')}, no solo la principal.`,
+    `El municipio y la provincia cuentan ${todosLos('consulta').toLowerCase()} ${TT('medico', 's', 'del', 'l', 'l')}, no solo la principal.`,
     '«⋮» abre los filtros, las columnas y las descargas.',
     '«★ Guardar filtro» convierte los filtros actuales en un indicador de Inicio.',
     '«Cerca de mí» usa la ubicación del dispositivo.',
@@ -4222,7 +4226,7 @@ const AYUDA = {
   duplicados: ['Duplicados', 'Fichas que pueden ser la misma persona.', [
     '<b>Pendientes</b>: marcadas al darlas de alta. <b>Nombres parecidos</b>: coincidencia del 80% o más.',
     'Al comparar eliges qué ficha queda y qué dato conservar de cada campo.',
-    `Consultas, ${TT('visita', 'p', '', 'l', 'l')}, citas y cartera se juntan en la ficha que queda. No se puede deshacer desde la app.`,
+    `${TT('consulta', 'p', '', 'l', 'C')}, ${TT('visita', 'p', '', 'l', 'l')}, citas y cartera se juntan en la ficha que queda. No se puede deshacer desde la app.`,
     '«No son duplicados» guarda la pareja como distinta y no vuelve a salir.']]
 };
 
@@ -5697,7 +5701,7 @@ async function asignarCartera(id) {
       <div><label for="aprov">Provincia</label><select id="aprov">${sel(op.provincias)}</select></div>
       <div><label for="amuni">Municipio</label><select id="amuni">${sel(op.municipios)}</select></div></div>
     <div class="g2">
-      <div><label for="aesp">Especialidad</label><select id="aesp">${sel(op.especialidades)}</select></div>
+      <div><label for="aesp">${TT('especialidad', 's', '', 'l', 'C')}</label><select id="aesp">${sel(op.especialidades)}</select></div>
       <div><label for="aest">Estado</label><select id="aest">${sel(op.estados)}</select></div></div>
     <label class="opt" style="margin-top:10px"><input type="checkbox" id="aurg"> Solo urgentes</label>
     <div id="amsg" class="cuenta" style="padding:10px 0 0"></div>
@@ -5788,7 +5792,7 @@ $('dlg').addEventListener('close', () => {
 Object.assign(AYUDA, {
   directorio: ['Directorio', `Todos ${TT('medico', 'p', 'el', 'l', 'l')} que puedes ver.`, [
     'El buscador de arriba filtra por nombre, centro o municipio.',
-    `El municipio y la provincia cuentan todas las consultas ${TT('medico', 's', 'del', 'l', 'l')}, no solo la principal.`,
+    `El municipio y la provincia cuentan ${todosLos('consulta').toLowerCase()} ${TT('medico', 's', 'del', 'l', 'l')}, no solo la principal.`,
     `Administración y televenta ven los comerciales de cada ${TT('medico', 's', '', 'l', 'l')} y pueden filtrar por comercial.`,
     '«⋮» abre los filtros y las columnas.',
     '«★ Guardar filtro» convierte los filtros actuales en un indicador de Inicio.',
@@ -6173,7 +6177,7 @@ async function pintarAnalitica() {
 
 async function pintarAuditoria() {
   cargando($('admcuerpo'), 'Cargando la auditoría…');
-  const nombreEnt = { cuentas: `${TT('medico', 's', '', 'l', 'C')}`, ubicaciones: 'Consulta', actividades: `${TT('visita', 's', '', 'l', 'C')}`, atribuciones: 'Cartera', agenda: 'Cita', rutas: 'Ruta',
+  const nombreEnt = { cuentas: `${TT('medico', 's', '', 'l', 'C')}`, ubicaciones: TT('consulta', 's', '', 'l', 'C'), actividades: `${TT('visita', 's', '', 'l', 'C')}`, atribuciones: 'Cartera', agenda: 'Cita', rutas: 'Ruta',
     pedidos: 'Pedido', perfiles: 'Usuario', productos: 'Producto', contactos: `${TT('paciente', 's', '', 'l', 'C')}` };
   const { data: us } = await db.rpc('usuarios_lista');
   const usuarios = (us || []).slice().sort((x, y) => String(x.nombre).localeCompare(String(y.nombre), 'es'));
@@ -6695,7 +6699,7 @@ function programarVisitas(items, t0) {
   pend.forEach(it => {
     const v = it.ventanas;
     fuera.push({ it, motivo: it.fija != null ? 'no llegas a la hora fijada'
-      : v && v.every(([, b]) => b <= t) ? `su consulta (${txtVentanas(v)}) ya habrá acabado`
+      : v && v.every(([, b]) => b <= t) ? `su horario (${txtVentanas(v)}) ya habrá acabado`
       : 'no da tiempo a volver antes de tu hora de vuelta' });
   });
   return { seq, fuera, fin: t + minutosEntre(pos, [sal.lat, sal.lon]) };
@@ -6768,7 +6772,7 @@ async function construirPlan(conXY, rutaId, btn, opts) {
     const m = Object.assign({}, s.it.ref, { horaPlan: s.ini, ventanas: s.it.ventanas });
     const ult = paradas[paradas.length - 1];
     if (ult && ult.xy[0] === s.it.xy[0] && ult.xy[1] === s.it.xy[1]) { ult.medicos.push(m); ult.fin = s.fin; }
-    else paradas.push({ centro: m.centro_nombre || 'Consulta privada', municipio: m.municipio, dir: m.direccion,
+    else paradas.push({ centro: m.centro_nombre || consultaPrivada(), municipio: m.municipio, dir: m.direccion,
       xy: s.it.xy, medicos: [m], llegada: s.ini, fin: s.fin });
   });
   PLAN = { rutaId, salida: sal, paradas, fin, fecha, inicio: t0, fuera: fuera.map(f => ({ m: f.it.ref, motivo: f.motivo })), citados, horario: HOR };
@@ -7356,7 +7360,7 @@ async function abrirVisitaBase(id) {
     <div class="g2">
       <div><label for="vf">Fecha</label><input id="vf" type="date" value="${hoyISO()}"></div>
       <div><label for="vc">Centro ${TT('visita', 's', 'del', 'l', 'l')}</label><select id="vc">
-        ${cons.map(c => `<option value="${c.id}">${esc(c.centro_nombre || 'Consulta privada')}${c.municipio ? ' · ' + esc(c.municipio) : ''}</option>`).join('')}
+        ${cons.map(c => `<option value="${c.id}">${esc(c.centro_nombre || consultaPrivada())}${c.municipio ? ' · ' + esc(c.municipio) : ''}</option>`).join('')}
       </select></div>
     </div>
     <label>Resultado <span class="sm">· puedes marcar varios de «${TT('visita', 's', '', 'l', 'l', 'realizado')}»</span></label>
@@ -8959,7 +8963,7 @@ abrirHorarioPlan = (orig => function () {
   const ayuda = {
     hsal: `A qué hora sales. La ${TT('visita', 's', 'primer', 'l', 'l')} se calcula desde aquí o desde ahora, si esa hora ya ha pasado.`,
     htop: `Hora de vuelta de la ruta. No se planifican ${TT('visita', 'p', '', 'l', 'l')} que te hagan volver más tarde; si el día se pasa, se marca en naranja.`,
-    hvis: `Lo que dura de media cada ${TT('visita', 's', '', 'l', 'l')} con ${TT('medico', 's', 'un', 'l', 'l')}, dentro de la consulta.`,
+    hvis: `Lo que dura de media cada ${TT('visita', 's', '', 'l', 'l')} con ${TT('medico', 's', 'un', 'l', 'l')}, una vez allí.`,
     hpar: `Tiempo extra cada vez que llegas a un sitio nuevo: aparcar, entrar, esperar en recepción. Si ves a varios ${TT('medico', 'p', '', 'l', 'l')} en el mismo centro, se cuenta una sola vez.`
   };
   Object.entries(ayuda).forEach(([id, t]) => { const i = $(id); if (i && !i.parentElement.querySelector('.ayudah')) i.insertAdjacentHTML('afterend', `<span class="sm ayudah">${esc(t)}</span>`); });
@@ -9206,7 +9210,7 @@ document.querySelectorAll('[data-t="seguimiento"]').forEach(b => { if (b.closest
 /* ---------------- ayudas y manual ---------------- */
 
 AYUDA.seguimiento = ['Calidad del dato', `Qué parte de la base está completa y qué falta, y el avance comercial de cada ${TT('medico', 's', '', 'l', 'l')}.`, [
-  'Arriba, el porcentaje de fichas completas y cuántas fichas no tienen ubicación, horario, especialidad, contacto, provincia o comercial.',
+  `Arriba, el porcentaje de fichas completas y cuántas fichas no tienen ubicación, horario, ${TT('especialidad', 's', '', 'l', 'l')}, contacto, provincia o comercial.`,
   `Debajo, cada ${TT('medico', 's', '', 'l', 'l')} con su estado, ${TT('visita', 'p', '', 'l', 'l')} y próxima acción, con filtros para localizar los atrasados.`]];
 MANUAL.forEach(s => {
   if (s.id === 'ventas') s.hacer.push([1, 'Operativa de cada pedido: pago recibido, paquete preparado y emails enviados (televenta)'], [1, `Registro de llamadas de televenta, con motivo, resultado y ${TT('medico', 's', '', 'l', 'l')} del que viene`]);
@@ -13853,13 +13857,13 @@ const IMP_CAMPOS = {
     ['tipo', 'Tipo (producto o servicio)', 0, ['tipo']]],
   prescriptores: [
     ['nombre', 'Nombre', 1, ['nombre', 'medico', 'doctor', 'prescriptor', 'nombre completo', 'name']],
-    ['especialidad', 'Especialidad', 0, ['especialidad', 'specialty', 'especialitat']],
+    ['especialidad', TT('especialidad', 's', '', 'l', 'C'), 0, ['especialidad', 'specialty', 'especialitat', 'segmento', 'categoria']],
     ['area', 'Área', 0, ['area', 'zona']],
     ['cargo', 'Cargo', 0, ['cargo', 'puesto']],
     ['telefono', 'Teléfono', 0, ['telefono', 'tel', 'phone', 'movil', 'tfno', 'telf', 'tlf']],
     ['email', 'Email', 0, ['email', 'correo', 'e mail', 'mail']],
     ['centro', 'Centro o lugar de trabajo', 0, ['centro', 'clinica', 'hospital', 'centro de trabajo', 'consulta']],
-    ['direccion', 'Dirección de la consulta', 0, ['direccion', 'domicilio', 'address']],
+    ['direccion', `Dirección ${TT('consulta', 's', 'del', 'l', 'l')}`, 0, ['direccion', 'domicilio', 'address']],
     ['cp', 'Código postal', 0, ['codigo postal', 'cp', 'postal']],
     ['municipio', 'Población', 0, ['poblacion', 'municipio', 'ciudad', 'localidad']],
     ['provincia', 'Provincia', 0, ['provincia']],
@@ -14274,7 +14278,7 @@ async function pintarCentroSel(box, i, modo) {
   cont.innerHTML = `<div class="cpbus"><input class="cpq" type="search" placeholder="Busca el centro por nombre, calle o población" autocomplete="off">
       <div class="cpres"></div>
       <div class="acts" style="margin:8px 0 0;flex-wrap:wrap"><button type="button" class="btn sec" data-cpaqui>📍 Estoy aquí</button>
-        <button type="button" class="btn sec" data-cpnuevo>+ Centro nuevo</button><button type="button" class="btn sec" data-cpprivada>Consulta privada (sin centro)</button></div></div>`;
+        <button type="button" class="btn sec" data-cpnuevo>+ Centro nuevo</button><button type="button" class="btn sec" data-cpprivada>${consultaPrivada()} (sin centro)</button></div></div>`;
   const q = cont.querySelector('.cpq'), res = cont.querySelector('.cpres');
   let t = null, n = 0;
   q.oninput = () => {
@@ -14288,7 +14292,7 @@ async function pintarCentroSel(box, i, modo) {
     }, 250);
   };
   cont.querySelector('[data-cpnuevo]').onclick = () => formCentro(box, i, { nombre: q.value.trim() });
-  cont.querySelector('[data-cpprivada]').onclick = () => { cpPoner(box, i, { nombre: 'CONSULTA PRIVADA' }); pintarCentroSel(box, i); formCentro(box, i, { nombre: 'Consulta privada', privada: true }); };
+  cont.querySelector('[data-cpprivada]').onclick = () => { cpPoner(box, i, { nombre: consultaPrivada('U').toUpperCase() }); pintarCentroSel(box, i); formCentro(box, i, { nombre: consultaPrivada(), privada: true }); };
   cont.querySelector('[data-cpaqui]').onclick = e => estoyAqui(box, i, e.currentTarget);
   if (modo === 'buscar') q.focus();
 }
@@ -14296,7 +14300,7 @@ function tarjetaCentro(c, enlazado) {
   const hor = c.horario && Object.keys(c.horario).length ? c.horario : null;
   const hoy = hor && hor[hoyLetra()];
   return `<div class="cpcard"><div class="cpcab"><b>${esc(c.nombre || 'Sin nombre')}</b>
-      ${enlazado ? '' : '<span class="pill p-warn" title="Esta consulta aún no está enlazada con un centro de la base">Sin enlazar</span>'}</div>
+      ${enlazado ? '' : '<span class="pill p-warn" title="' + TT('consulta', 's', 'este', 'C', 'l') + ' aún no está enlazada con un centro de la base">Sin enlazar</span>'}</div>
     <span class="sm">${esc([c.direccion, [c.cp, c.municipio].filter(Boolean).join(' ')].filter(Boolean).join(' · ') || 'Sin dirección')}</span>
     ${c.telefono ? `<span class="sm">☎ <a href="tel:${esc(c.telefono)}">${esc(c.telefono)}</a></span>` : ''}
     ${hor ? `<span class="sm">🕘 ${hoy ? `<b>Hoy ${esc(hoy)}</b> · ` : ''}${esc(txtHorario(hor))}</span>` : enlazado ? '<span class="sm" style="color:var(--muted)">Sin horario de apertura</span>' : ''}
@@ -14739,6 +14743,7 @@ arrancar();
   const q = document.getElementById('q'); if (q) q.placeholder = `Buscar ${TT('medico', 's', '', 'l', 'l')}, centro o municipio`;
   const h = document.querySelector('#c-ultimas h2'); if (h) h.textContent = `Últimas ${TT('visita', 'p', '', 'l', 'l')}`;
   const o = document.querySelector('option[value="reciente"]'); if (o) o.textContent = `${TT('visita', 's', '', 'l', 'C')} más reciente`;
+  const fe = document.querySelector('label[for="fesp"]'); if (fe) fe.textContent = TT('especialidad', 's', '', 'l', 'C');   // v2.347.0
 })();
 
 /* v2.74.0 · El detalle del pedido muestra sus campos personalizados */
@@ -15629,7 +15634,7 @@ cargarAjustes = (orig => async function (...a) { const r = await orig(...a); if 
    rutas (pedidos, facturas, usuarios y cartera tienen efectos en stock, facturación, comisiones o permisos). */
 const DESHACIBLES = ['cuentas', 'ubicaciones', 'contactos', 'productos', 'rutas'];
 const deshacible = a => DESHACIBLES.includes(a.entidad) && ['Edición', 'Baja'].includes(a.accion);
-const CAMPO_TXT = { nombre: 'Nombre', estado_comercial: 'Estado', especialidad: 'Especialidad', area: 'Área', telefono: 'Teléfono', movil: 'Móvil', email: 'Email',
+const CAMPO_TXT = { nombre: 'Nombre', estado_comercial: 'Estado', get especialidad() { return TT('especialidad', 's', '', 'l', 'C'); }, area: 'Área', telefono: 'Teléfono', movil: 'Móvil', email: 'Email',
   direccion: 'Dirección', cp: 'Código postal', municipio: 'Población', provincia: 'Provincia', nota: 'Nota', urgente: 'Urgente', centro_nombre: 'Centro',
   dias: 'Horario', principal: 'Principal', nif: 'DNI / CIF', cuenta_id: TT('medico', 's', '', 'l', 'C'), codigo: 'Código', precio: 'Precio', estado: 'Estado',
   sin_reporting: 'Sin reporting', clasificadores: 'Campos propios', planta: 'Planta', sala: 'Sala', indicaciones: 'Cómo llegar', lat: 'Latitud', lon: 'Longitud' };
@@ -15649,14 +15654,14 @@ function cajaDeshacerPersona(caja, usuario, desde, nombre, despues) {
   if (!caja) return;
   if (!usuario || !desde) { caja.innerHTML = ''; return; }
   caja.innerHTML = `<div class="card" id="audpersona" style="margin:0 16px 10px"><h3>Deshacer los cambios de ${esc(nombre.trim())}</h3>
-    <p class="sm">Todo lo que cambió o borró en fichas, consultas, clientes, productos y rutas desde el ${fechaCorta(desde)}. Lo que otra persona haya cambiado después no se toca.</p>
+    <p class="sm">Todo lo que cambió o borró en fichas, ${TT('consulta', 'p', '', 'l', 'l')}, clientes, productos y rutas desde el ${fechaCorta(desde)}. Lo que otra persona haya cambiado después no se toca.</p>
     <div class="acts" style="margin:6px 0 0"><button type="button" class="btn sec" id="audsim">Ver qué se desharía</button></div><div id="audres" class="sm"></div></div>`;
   $('audsim').onclick = async ev => {
     ev.target.disabled = true;
     const { data: s } = await db.rpc('deshacer_persona', { p_usuario: usuario, p_desde: desde + 'T00:00:00', p_simular: true });
     ev.target.disabled = false;
     if (!s || !s.ok) { toast('No se ha podido calcular', true); return; }
-    const nom = { cuentas: 'fichas', ubicaciones: 'consultas', contactos: 'clientes', productos: 'productos', rutas: 'rutas' };
+    const nom = { cuentas: 'fichas', ubicaciones: TT('consulta', 'p', '', 'l', 'l'), contactos: 'clientes', productos: 'productos', rutas: 'rutas' };
     if (!s.cambios) { $('audres').textContent = 'No hay nada que deshacer en ese periodo (o ya se ha vuelto a cambiar).'; return; }
     $('audres').innerHTML = `Se desharían <b>${num(s.cambios)}</b> cambios (${num(s.campos)} datos): ${Object.entries(s.por_entidad || {}).map(([k, n]) => `${num(n)} en ${nom[k] || k}`).join(', ')}.
       ${s.sin_deshacer ? ` ${num(s.sin_deshacer)} no se pueden deshacer porque se han vuelto a cambiar después.` : ''}
@@ -15682,7 +15687,7 @@ async function fichaHistorial(id) {
     : `<span class="sm">${esc(resumenDetalle(a.detalle))}</span>`;
   $('fbody').insertAdjacentHTML('beforeend', `<details class="blk" id="fhist"><summary>Historial de cambios <span class="n">${num(l.length)}</span></summary>
     <div class="lista">${l.map(a => `<div class="item" style="cursor:default"><span class="tx">
-        <b>${esc(a.accion)}${a.entidad === 'ubicaciones' ? ' · consulta' : ''}</b>
+        <b>${esc(a.accion)}${a.entidad === 'ubicaciones' ? ' · ' + TT('consulta', 's', '', 'l', 'l') : ''}</b>
         <span class="sm">${esc(a.usuario)} · ${new Date(a.creado_en).toLocaleString('es', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
         ${lineas(a)}</span>${a.deshacible ? `<button type="button" class="btn sec" data-fhx="${a.id}">Deshacer</button>` : ''}</div>`).join('')
       || '<div class="sm">Sin cambios registrados.</div>'}</div></details>`);
@@ -17102,7 +17107,7 @@ function rpPintar() {
       <div class="segs" id="rpdia" role="group" aria-label="Día">${o.finde ? '' : `<button type="button" data-rpd="hoy" class="${o.manana ? '' : 'on'}" aria-pressed="${!o.manana}">Hoy</button>`}
         <button type="button" data-rpd="man" class="${o.manana ? 'on' : ''}" aria-pressed="${o.manana}">${etMan.replace(/^./, c => c.toUpperCase())}</button></div></div>
     ${o.lista.length ? o.lista.map(rpTarjeta).join('')
-      : `<div class="vacio">No hay a nadie a quien convenga ir ${quien}: ni urgentes, ni consultas, ni ${TT('medico', 'p', '', 'l', 'l', 'interesado')} sin ${TT('visita', 's', '', 'l', 'l')}.
+      : `<div class="vacio">No hay a nadie a quien convenga ir ${quien}: ni urgentes, ni quien atienda ese día, ni ${TT('medico', 'p', '', 'l', 'l', 'interesado')} sin ${TT('visita', 's', '', 'l', 'l')}.
           ${o.manana ? '' : 'Prueba con el día siguiente.'}</div>`}`;
   caja.querySelectorAll('[data-rpd]').forEach(b => b.onclick = () => rpCargar(b.dataset.rpd === 'man'));
   caja.querySelectorAll('[data-rpver]').forEach(b => b.onclick = () => {
@@ -19067,7 +19072,7 @@ function verCita(c) {
     <div class="vcdatos">
       <div class="vcfila"><span>Cuándo</span><b>${esc(fechaLarga(new Date(c.fecha + 'T12:00:00')).replace(/^./, x => x.toUpperCase()))} · ${esc(hora)}</b></div>
       <div class="vcfila"><span>Dónde</span><b>${esc(donde || 'Sin centro')}</b></div>
-      ${horario ? `<div class="vcfila"><span>Consulta</span><b>${esc(horario)}</b></div>` : ''}
+      ${horario ? `<div class="vcfila"><span>Horario</span><b>${esc(horario)}</b></div>` : ''}
       <div class="vcfila"><span>Estado</span><b>${pillCita(c.estado)}${textoOrigenCita(c) ? ` <span class="sm">${textoOrigenCita(c)}</span>` : ''}</b></div>
     </div>
     ${abierta && inf.aviso ? `<div class="banda-aviso" style="margin:0 0 12px">${esc(inf.aviso)}</div>` : ''}
@@ -19242,7 +19247,7 @@ async function fichaCentro(id) {
       return `<div class="item fcpro">
         <span class="tx"><b>${m.urgente ? '❗ ' : ''}${esc(m.nombre)}</b>
           <span class="sm">${esc([m.especialidad, donde].filter(Boolean).join(' · ') || '—')}</span>
-          ${dias ? `<span class="sm">Consulta: ${esc(dias)}</span>` : ''}</span>
+          ${dias ? `<span class="sm">Atiende: ${esc(dias)}</span>` : ''}</span>
         <span class="acts" style="margin:0">
           <button type="button" class="btn sec" data-fcf="${m.id}">Ficha</button>
           <button type="button" class="btn sec" data-fcc="${m.id}">+ Cita</button>
@@ -19267,7 +19272,7 @@ async function fichaCentro(id) {
   $('dbody').querySelectorAll('[data-fcq]').forEach(b => b.onclick = async () => {
     const m = l.find(x => x.id === b.dataset.fcq); if (!m) return;
     const unica = +m.consultas <= 1;
-    if (!await preguntar(`Se quita a ${m.nombre} de ${c.nombre}: esta consulta desaparece de su ficha.${unica ? ' Era su única consulta: su ficha se queda sin centro.' : ''}`,
+    if (!await preguntar(`Se quita a ${m.nombre} de ${c.nombre}: ${TT('consulta', 's', 'este', 'l', 'l')} desaparece de su ficha.${unica ? ` Era su única ${TT('consulta', 's', '', 'l', 'l')}: su ficha se queda sin centro.` : ''}`,
       { titulo: '¿Quitar del centro?', ok: 'Quitar', peligro: true })) return;
     const { data: r, error: e } = await db.rpc('centro_quitar_profesional', { p_centro: c.id, p_cuenta: m.id });
     if (e || !r || !r.ok) { toast(r && r.error === 'permiso' ? `No puedes cambiar la ficha de ${m.nombre}` : 'No se ha podido quitar', true); return; }
@@ -19278,7 +19283,7 @@ async function fichaCentro(id) {
 function editarCentroFicha(c) {
   const h = c.horario || {};
   $('dbody').innerHTML = `
-    <div class="fh"><div><h2>Editar centro</h2><div class="sm">Los cambios se pasan a las consultas enlazadas a este centro</div></div>
+    <div class="fh"><div><h2>Editar centro</h2><div class="sm">Los cambios se pasan a ${TT('consulta', 'p', 'el', 'l', 'l')} enlazadas a este centro</div></div>
       <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
     <div class="g2"><div><label for="ecn">Nombre del centro</label><input id="ecn" value="${esc(c.nombre || '')}"></div>
       <div><label for="ect">Teléfono</label><input id="ect" value="${esc(c.telefono || '')}" inputmode="tel"></div></div>
@@ -19488,7 +19493,7 @@ async function pintarDireccionesDudosas() {
   if (!l.length) return;
   cal.insertAdjacentHTML('afterend', `<div class="card" id="caldirs">
     <div class="fh"><div><h2>Direcciones que no cuadran · ${num(l.length)}</h2>
-      <div class="sm">El punto del mapa de estas consultas está lejos de su municipio: «Cómo llegar», las rutas y la agenda las sitúan mal.</div></div></div>
+      <div class="sm">El punto del mapa de ${TT('consulta', 'p', 'este', 'l', 'l')} está lejos de su municipio: «Cómo llegar», las rutas y la agenda las sitúan mal.</div></div></div>
     <div class="lista">${l.map(u => `<div class="item cdir" data-cdir="${u.id}" style="cursor:default">
       <span class="tx"><b>${esc(u.nombre)}</b>
         <span class="sm">${esc([u.centro_nombre, u.direccion, [u.cp, u.municipio].filter(Boolean).join(' ')].filter(Boolean).join(' · ') || 'Sin dirección')}</span>
@@ -19669,16 +19674,17 @@ toast = (orig => function (msg, err) {
    (no como «Sin enlazar») y tiene «Editar la consulta» / «Añadir la dirección»: dirección, código postal, población, provincia y su punto en el mapa
    (buscando la dirección o con «Estoy aquí»). Planta, sala, indicaciones, teléfono y horario siguen debajo, como en cualquier consulta.
    Se guarda con la ficha (en la consulta del profesional; no crea un centro compartido). */
-const esConsultaPrivada = c => !(c && c.id) && /^consulta privada/i.test(String((c && c.nombre) || '').trim());
+const esConsultaPrivada = c => { if (c && c.id) return false; const n = String((c && c.nombre) || '').trim().toLowerCase();   // v2.347.0: con cualquier palabra del vocabulario
+  return /^(consulta|ubicaci[oó]n) privad[ao]/.test(n) || n.startsWith(consultaPrivada('l').toLowerCase()); };
 tarjetaCentro = (orig => function (c, enlazado) {
   if (enlazado || !esConsultaPrivada(c)) return orig.call(this, c, enlazado);
   const dir = [c.direccion, [c.cp, c.municipio].filter(Boolean).join(' ')].filter(Boolean).join(' · ');
-  return `<div class="cpcard cppriv"><div class="cpcab"><b>Consulta privada</b><span class="pill p-est">Sin centro</span></div>
+  return `<div class="cpcard cppriv"><div class="cpcab"><b>${consultaPrivada()}</b><span class="pill p-est">Sin centro</span></div>
     <span class="sm">${esc(dir || 'Sin dirección todavía')}</span>
     ${c.lat ? '' : `<span class="sm" style="color:var(--warn)">${dir ? 'Sin ubicación: no saldrá en rutas ni en el mapa' : 'Añade la dirección para que salga en rutas y en el mapa'}</span>`}
     <div class="acts" style="margin:8px 0 0;flex-wrap:wrap">
       ${c.lat ? `<button type="button" class="btn sec" data-nav="${navAttr([+c.lat, +c.lon])}">Cómo llegar</button>` : ''}
-      <button type="button" class="btn ${dir ? 'sec' : ''}" data-cpeditar>${dir ? 'Editar la consulta' : 'Añadir la dirección'}</button>
+      <button type="button" class="btn ${dir ? 'sec' : ''}" data-cpeditar>${dir ? 'Editar ' + TT('consulta', 's', 'el', 'l', 'l') : 'Añadir la dirección'}</button>
       <button type="button" class="btn sec" data-cpcambiar>Cambiar</button></div></div>`;
 })(tarjetaCentro);
 formCentro = (orig => function (box, i, c, aviso) {
@@ -19693,7 +19699,7 @@ function formPrivada(box, i) {
   const dirAntes = [v('direccion'), v('cp'), v('municipio')].join('|');
   let situada = false;                                         // se ha situado en el mapa desde que se abrió el formulario
   cont.innerHTML = `<div class="cpform cppriv">
-    <div class="cpformcab"><b>Consulta privada</b><span class="sm">Dónde atiende (en su casa, un despacho…). Se guarda con la ficha.</span></div>
+    <div class="cpformcab"><b>${consultaPrivada()}</b><span class="sm">Dónde atiende (en su casa, un despacho…). Se guarda con la ficha.</span></div>
     <div class="g2"><div><label for="${k}d">Dirección</label><input id="${k}d" value="${esc(v('direccion'))}" placeholder="Calle, número, piso"></div>
       <div><label for="${k}c">Código postal</label><input id="${k}c" value="${esc(v('cp'))}" inputmode="numeric"></div></div>
     <div class="g2"><div><label for="${k}m">Población</label><input id="${k}m" value="${esc(v('municipio'))}"></div>
@@ -19739,7 +19745,7 @@ function formPrivada(box, i) {
     }
     cpPoner(box, i, { nombre: 'CONSULTA PRIVADA', direccion: val('d'), cp: val('c'), municipio: val('m').toUpperCase(), provincia: val('p').toUpperCase(), lat, lon });
     pintarCentroSel(box, i);
-    toast(lat != null ? 'Consulta privada lista: se guarda con la ficha' : 'Dirección puesta, sin punto en el mapa: se guarda con la ficha');
+    toast(lat != null ? `${consultaPrivada()} lista: se guarda con la ficha` : 'Dirección puesta, sin punto en el mapa: se guarda con la ficha');
   };
   $(k + (v('direccion') ? 'd' : 'm')).focus();
 }
@@ -20265,7 +20271,7 @@ async function pintarTransparencia(anio) {
   $('trano').onchange = e => pintarTransparencia(+e.target.value);
   if ($('trcsv')) $('trcsv').onclick = () => {
     const q = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"', n = v => String(+v || 0).replace('.', ',');
-    const csv = [[TT('medico', 's', '', 'l', 'C'), 'Código', 'Especialidad', 'Eventos', ...EV_CONCEPTOS.map(([, t]) => t), 'Total'].map(q).join(';')]
+    const csv = [[TT('medico', 's', '', 'l', 'C'), 'Código', TT('especialidad', 's', '', 'l', 'C'), 'Eventos', ...EV_CONCEPTOS.map(([, t]) => t), 'Total'].map(q).join(';')]
       .concat(l.map(x => [q(x.nombre), q(x.codigo), q(x.especialidad), x.eventos, ...EV_CONCEPTOS.map(([k]) => n(x[k])), n(x.total)].join(';'))).join('\r\n');
     const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' }));
     a.download = `transparencia-${anio}.csv`; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
@@ -20477,7 +20483,7 @@ async function pintarClasificar() {
   const filas = l || [], fil = [['sin', 'Sin clasificar']].concat(CIC_CLASES.map(k => [k, k]), [['todas', 'Todas']]);
   const yaQ = $('cicq') && document.activeElement === $('cicq');
   caja.innerHTML = `<div class="cicpag"><div class="ciccab"><span class="segs" id="cicclf" role="group" aria-label="Mostrar">${fil.map(([k, t]) => `<button type="button" data-cl="${k}" class="${k === CIC_CLF ? 'on' : ''}" aria-pressed="${k === CIC_CLF}">${t}</button>`).join('')}</span>
-      <span class="cicacc"><input id="cicq" type="search" placeholder="Buscar por nombre, especialidad o municipio" value="${esc(CIC_Q)}" aria-label="Buscar">${sel}</span></div>
+      <span class="cicacc"><input id="cicq" type="search" placeholder="Buscar por nombre, ${TT('especialidad', 's', '', 'l', 'l')} o municipio" value="${esc(CIC_Q)}" aria-label="Buscar">${sel}</span></div>
     <p class="sm">Pulsa A, B o C en cada ${TT('medico', 's', '', 'l', 'l')}: <b>A</b> para los más importantes, <b>B</b> para los intermedios y <b>C</b> para el resto. Pulsar la letra marcada la quita. Las ${TT('visita', 'p', '', 'l', 'l')} de los últimos 12 meses ayudan a decidir.</p>
     ${filas.length ? `<section class="card cicbloque"><div class="lista">${filas.map(m => `<div class="item cicrow" data-cfila="${m.id}">
         <span class="tx"><button type="button" class="lnk" data-cfi="${m.id}"><b>${esc(m.nombre)}</b></button>
@@ -23807,7 +23813,7 @@ async function pintarTextos() {
   if (est && est.length) cats.push({ papel: 'estado_comercial', valores: est });
   if (!$('cfgcuerpo')) return;
   const filas = [];
-  const etq = { medico: `${TT('medico', 's', '', 'l', 'C')} al que visitáis`, paciente: 'Cliente final', visita: 'Cada encuentro' };
+  const etq = { medico: `${TT('medico', 's', '', 'l', 'C')} al que visitáis`, paciente: 'Cliente final', visita: 'Cada encuentro', pauta: 'Lo que se registra en su portal', consulta: 'Lugar donde atiende', especialidad: 'Categoría de cada ficha' };
   Object.keys(TERM_DEF).forEach(k => { const d = TERM_DEF[k], t = (TERMINOS || {})[k] || {};
     filas.push({ g: 'voc', donde: etq[k] || k, siempre: `${d.s} · ${d.p}`, k, s0: t.s || '', p0: t.p || '', s: t.s || '', p: t.p || '', ds: d.s, dp: d.p }); });
   const mn = menuNombres();
@@ -24686,7 +24692,7 @@ async function tdPintar() {
     // El aviso: el de ubicación lejana siempre; los demás, solo si no hay el aviso general de «no cabe»
     let aviso = ab && info.aviso ? (info.lejos ? `Ubicación a ${num(info.lejos)} km de la parada anterior: revisa la dirección` : info.aviso) : '';
     if (aviso && bandaNoCabe && !info.lejos) aviso = '';
-    const vent = ab && !aviso && info.ventanas && info.ventanas.length ? `Consulta ${txtVentanas(info.ventanas)}${info.espera ? ` · esperas ${info.espera} min` : ''}` : '';
+    const vent = ab && !aviso && info.ventanas && info.ventanas.length ? `Atiende ${txtVentanas(info.ventanas)}${info.espera ? ` · esperas ${info.espera} min` : ''}` : '';
     const lineas = [
       ant && ant.proxima_accion ? ['toca', 'toca', `Toca: ${esc(ant.proxima_accion)}`] : null,
       c.anterior !== undefined ? ['reloj', '', ant ? `Última ${vis} hace ${tdDiasDesde(ant.fecha)} ${tdDiasDesde(ant.fecha) === 1 ? 'día' : 'días'}` : `Primera ${vis}`] : null,
@@ -26721,7 +26727,7 @@ function pmResumen(d, k, pac) {
     <div class="pmfila pm3">
       ${pmFormatos(d)}
       <div class="card ancard"><h2>Llamadas recibidas ${pmAyu('Llamadas recibidas', `Número de llamadas recibidas por la empresa en el periodo y qué parte inicia una ${TT('pauta', 's', '', 'l', 'l')}. Solo cifras: no se muestra ningún dato de quién llama.`)}</h2>
-        <div class="minis"><div><b>${num(ll.total || 0)}</b><span>consultas</span></div><div><b>${conv == null ? '—' : conv + '%'}</b><span>inician ${TT('pauta', 's', '', 'l', 'l')}</span></div></div>
+        <div class="minis"><div><b>${num(ll.total || 0)}</b><span>llamadas</span></div><div><b>${conv == null ? '—' : conv + '%'}</b><span>inician ${TT('pauta', 's', '', 'l', 'l')}</span></div></div>
         ${(ll.por_resultado || []).length ? barrasH(ll.por_resultado.map(x => ({ n: x.resultado, v: x.n })), num) : '<p class="sm">Todavía no hay llamadas registradas en el periodo.</p>'}</div>
       <div class="card ancard" id="pmconst"><h2>Continuidad de las ${TT('pauta', 'p', '', 'l', 'l')} ${pmAyu(`Continuidad de las ${TT('pauta', 'p', '', 'l', 'l')}`, `Cifras agregadas y anónimas de los últimos 12 meses: cuántas ${TT('pauta', 'p', '', 'l', 'l')} se iniciaron, qué parte continúa y cada cuánto se reponen. Nunca se muestra información de ninguna persona y, con menos de 5, no se enseña nada. Tampoco se muestran importes.`)}</h2>${cons}</div></div>`;
 }
@@ -26771,13 +26777,13 @@ function pmPintarFicha() {
   box.innerHTML = `
     <div class="pmcheck" id="pmcheck"></div>
     <div class="card ancard pmcons pmcont"><h2>Contacto y ${TT('visita', 'p', '', 'l', 'l')} ${pmAyu('Contacto y ' + TT('visita', 'p', '', 'l', 'l'), 'Cómo puede contactarte tu comercial y cómo y cuándo te va mejor que pase a verte. Escribe lo que prefieras: lo revisa antes de pasarlo a tu ficha y lo tendrá en cuenta al organizar su agenda.')}</h2>
-      <div class="pmcampos"><div><label for="pmtel">Teléfono <span class="pmreq">Necesario</span></label><input id="pmtel" inputmode="tel" value="${esc(F.telefono)}" placeholder="Móvil o consulta"></div>
+      <div class="pmcampos"><div><label for="pmtel">Teléfono <span class="pmreq">Necesario</span></label><input id="pmtel" inputmode="tel" value="${esc(F.telefono)}" placeholder="Móvil o fijo"></div>
         <div><label for="pmmail">Correo</label><input id="pmmail" type="email" value="${esc(F.email)}" placeholder="tu@correo.es"></div>
         <div><label for="pmcomo">Cómo prefieres ${TT('visita', 'p', 'el', 'l', 'l')} <span class="pmreq">Necesario</span></label><select id="pmcomo"><option value="">Elige…</option>${PM_COMO.map(x => `<option ${F.visitas.como === x ? 'selected' : ''}>${esc(x)}</option>`).join('')}</select></div>
         <div><label for="pmmom">Mejor momento</label><input id="pmmom" value="${esc(F.visitas.momento)}" placeholder="p. ej. martes a última hora"></div>
         <div class="pmancho"><label for="pmnot">Notas para tu comercial</label><textarea id="pmnot" rows="2" placeholder="Acceso, planta, a quién preguntar…">${esc(F.notas)}</textarea></div></div></div>
-    <div class="card ancard pmcons"><h2>${PM_CENTRO() ? 'Dónde y cuándo atendéis' : 'Dónde atiendes'} <span class="pmreq">Necesario: al menos un día con horario</span> ${pmAyu(PM_CENTRO() ? 'Dónde y cuándo atendéis' : 'Dónde atiendes', 'Añade cada centro o consulta donde atiendes y su horario. Busca el centro por su nombre o población; si no aparece, añádelo tú. En el horario, pulsa los días y escribe las horas; con «Rellenar» pones de golpe el mismo horario en todos los días marcados.')}</h2>
-      <div id="pmclist" class="pmclist">${F.consultas.map((c, i) => pmConsulta(c, i)).join('') || '<p class="sm">Todavía no hay ninguna consulta.</p>'}</div>
+    <div class="card ancard pmcons"><h2>${PM_CENTRO() ? 'Dónde y cuándo atendéis' : 'Dónde atiendes'} <span class="pmreq">Necesario: al menos un día con horario</span> ${pmAyu(PM_CENTRO() ? 'Dónde y cuándo atendéis' : 'Dónde atiendes', 'Añade cada centro o lugar donde atiendes y su horario. Busca el centro por su nombre o población; si no aparece, añádelo tú. En el horario, pulsa los días y escribe las horas; con «Rellenar» pones de golpe el mismo horario en todos los días marcados.')}</h2>
+      <div id="pmclist" class="pmclist">${F.consultas.map((c, i) => pmConsulta(c, i)).join('') || '<p class="sm">Todavía no hay ningún lugar.</p>'}</div>
       <div class="pmcadd"><input id="pmcq" type="search" placeholder="Añadir un centro: escribe su nombre o la población" aria-label="Buscar un centro"><div id="pmcres" class="pmcres"></div></div></div>
     <div class="pmpie"><span class="sm" id="pmest">${esc(estado)}</span><button type="button" class="btn" id="pmenviar">Enviar a mi comercial</button></div>`;
   let t;
@@ -26789,9 +26795,9 @@ function pmPintarFicha() {
 function pmConsulta(c, i) {
   const nuevo = (!c.centro_id && !c.ubicacion_id) || !String(c.nombre || '').trim();   // v2.279.0: sin nombre, se escribe
   return `<div class="pmc" data-pmc="${i}">
-    <div class="pmccab">${nuevo ? `<div class="g2 pmcnuevo"><div><label>Centro o consulta</label><input data-pmcf="${i}|nombre" value="${esc(c.nombre || '')}"></div>
+    <div class="pmccab">${nuevo ? `<div class="g2 pmcnuevo"><div><label>Centro o lugar</label><input data-pmcf="${i}|nombre" value="${esc(c.nombre || '')}"></div>
         <div><label>Dirección y población</label><input data-pmcf="${i}|direccion" value="${esc([c.direccion, c.municipio].filter(Boolean).join(', '))}" placeholder="Calle, número, población"></div></div>`
-      : `<div><b>${esc(c.nombre || 'Consulta')}</b><span class="sm">${esc([c.direccion, c.municipio].filter(Boolean).join(' · '))}</span></div>`}
+      : `<div><b>${esc(c.nombre || TT('consulta', 's', '', 'l', 'C'))}</b><span class="sm">${esc([c.direccion, c.municipio].filter(Boolean).join(' · '))}</span></div>`}
       <button type="button" class="btn sec chico pmcx" data-pmcx="${i}">Quitar</button></div>
     ${pmHorario(c.dias || {}, i)}</div>`;
 }
@@ -26817,7 +26823,7 @@ function pmLeerForm() {
   document.querySelectorAll('#pmficha [data-pmcf]').forEach(x => { const [i, k] = x.dataset.pmcf.split('|'); F.consultas[+i][k] = x.value.trim(); if (k === 'direccion') F.consultas[+i].municipio = ''; });
   document.querySelectorAll('#pmficha [data-pmhi]').forEach(x => { const [i, k, j, p] = x.dataset.pmhi.split('|'); const r = (F.consultas[+i].dias[k] || [])[+j]; if (r) r[+p] = pmHora(x.value) || x.value.trim(); });
 }
-function pmRepintarConsultas() { const l = $('pmclist'); if (l) l.innerHTML = PM.ficha.consultas.map((c, i) => pmConsulta(c, i)).join('') || '<p class="sm">Todavía no hay ninguna consulta.</p>'; pmPintarCheck(); }
+function pmRepintarConsultas() { const l = $('pmclist'); if (l) l.innerHTML = PM.ficha.consultas.map((c, i) => pmConsulta(c, i)).join('') || '<p class="sm">Todavía no hay ningún lugar.</p>'; pmPintarCheck(); }
 
 document.addEventListener('click', e => {
   const b = e.target.closest('#pmficha [data-pmhd], #pmficha [data-pmhp], #pmficha [data-pmhx], #pmficha [data-pmha], #pmficha [data-pmcx], #pmficha [data-pmcr]');
@@ -26913,7 +26919,7 @@ async function fichaPropuesta(id) {
   const html = `<section class="blk fprop" id="fprop"><h3>Datos enviados desde su portal <span class="pill p-warn">Por revisar</span></h3>
     <p class="sm">${esc(p.quien || TT('medico', 's', 'el', 'l', 'C'))} los envió el ${horaCorta(p.modificado_en)}. Pásalos a la ficha con «Editar la ficha» y márcalos como revisados.</p>
     ${fila('Teléfono', m.telefono, d.telefono)}${fila('Correo', m.email, d.email)}
-    ${(d.consultas || []).map(c => `<div class="fpcon"><b>${esc(c.nombre || 'Consulta')}</b> ${c.centro_id || c.ubicacion_id ? '' : '<span class="pill p-per">Centro nuevo</span>'}
+    ${(d.consultas || []).map(c => `<div class="fpcon"><b>${esc(c.nombre || TT('consulta', 's', '', 'l', 'C'))}</b> ${c.centro_id || c.ubicacion_id ? '' : '<span class="pill p-per">Centro nuevo</span>'}
       <span class="sm">${esc([c.direccion, c.municipio].filter(Boolean).join(' · '))}</span><span class="sm">${horario(c.dias)}</span></div>`).join('')}
     ${d.visitas && (d.visitas.como || d.visitas.momento) ? `<div class="fpdif"><span class="sm">${TT('visita', 'p', '', 'l', 'C')}</span><span>${esc([d.visitas.como, d.visitas.momento].filter(Boolean).join(' · '))}</span></div>` : ''}
     ${d.notas ? `<div class="fpdif"><span class="sm">Notas</span><span>${esc(d.notas)}</span></div>` : ''}
@@ -28078,7 +28084,7 @@ compararEn = (orig => async function (el, idA, idB) {
       ${cons.map((c, i) => `<label class="opt"><input type="radio" name="dupdir" value="${c.id}" ${i === 0 ? 'checked' : ''}> <span>${esc(txt(c))} <span class="sm">· de ${esc(c.de)}</span></span></label>`).join('') || '<p class="sm">Ninguno de los dos tiene dirección.</p>'}
       <h3>${esc(TT('medico', 'p', '', 'l', 'C'))}</h3><p class="sm">Los de los dos centros (${num(pa)} + ${num(pb)}) pasan al que se conserva. Si alguno estaba en los dos, queda una sola vez.</p></div>`;
   } else if (cons.length) {
-    html = `<div class="dupcons"><h3>Centros y consultas</h3><p class="sm">Se conservan los marcados en la ficha que queda: puedes quedarte con los dos.</p>
+    html = `<div class="dupcons"><h3>Centros y ${TT('consulta', 'p', '', 'l', 'l')}</h3><p class="sm">Se conservan los marcados en la ficha que queda: puedes quedarte con los dos.</p>
       ${cons.map(c => `<label class="opt"><input type="checkbox" data-dupcons="${c.id}" checked> <span>${esc(txt(c))} <span class="sm">· de ${esc(c.de)}</span></span></label>`).join('')}</div>`;
   }
   // Lo marcado se recuerda: el panel se vuelve a pintar al elegir qué ficha queda o qué dato se conserva
@@ -28097,7 +28103,7 @@ compararEn = (orig => async function (el, idA, idB) {
   el.__dupClic = ev => {
     if (!ev.target.closest('#duniok')) return;
     const q = esCentro ? cons.filter(c => c.id !== dir).map(c => c.id) : [...quita];
-    if (!esCentro && cons.length && q.length === cons.length) { ev.stopImmediatePropagation(); ev.preventDefault(); toast('Deja marcado al menos un centro o consulta', true); return; }
+    if (!esCentro && cons.length && q.length === cons.length) { ev.stopImmediatePropagation(); ev.preventDefault(); toast(`Deja marcado al menos un centro o ${TT('consulta', 's', '', 'l', 'l')}`, true); return; }
     DUP_TRAS = { quitar: q, esCentro, a: t[idA] || {}, b: t[idB] || {} };
   };
   el.addEventListener('click', el.__dupClic, true);
