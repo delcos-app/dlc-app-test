@@ -23,7 +23,7 @@
   <dt>Buscador</dt><dd>Por {medico}, {paciente} o número de pedido.</dd>
   <dt>Indicadores</dt><dd>Pedidos confirmados (y cuántos en borrador), unidades, cuántos llegaron por la web y, si puedes ver importes, base sin IVA, IVA y total con IVA. Solo cuentan los <b>validados</b>.</dd>
   <dt>La tabla</dt><dd>Fecha (y número de factura o de pedido), cliente (con «Venta al {paciente}» o «Venta a centro», la marca <b>Web</b> o <b>Portal</b> y la forma de pago), {medico} de referencia (o «Sin atribuir»), comercial, productos, unidades, importes, estado (<span class="p conf">Validado</span>, <span class="p plan">Borrador</span> o <span class="p gris">Anulado</span>) y la <b>operativa</b>.</dd>
-  <dt>Operativa</dt><dd>Tres iconos en los validados: el pago, el paquete y la factura enviada. En color, hecho; en gris, pendiente. Al pasar el ratón lo dice («Pago pendiente · Paquete por preparar»).</dd>
+  <dt>Operativa</dt><dd>Tres iconos en los confirmados: el pago, el paquete y la factura enviada. En color, hecho; en gris, pendiente. Al pasar el ratón lo dice («Pago pendiente · Paquete por preparar»).</dd>
 </dl>
 <p>Sin permiso para ver importes no se ve ningún euro en toda la pantalla, solo unidades. Pulsa una fila para <a href="#pedido-ver">ver el pedido</a>.</p>
 
@@ -42,7 +42,7 @@
 <figure class="estrecha"><img src="media/ventas/pedidos-filtros.webp" alt="Filtros de pedidos" loading="lazy"></figure>
 <dl class="defs">
   <dt>Periodo</dt><dd>Todo, hoy, ayer, esta semana, últimos 7 días, mes actual (de entrada), mes anterior, trimestre, año o unas fechas. Se recuerda en tu dispositivo.</dd>
-  <dt>Canal, estado, operativa y origen</dt><dd>Venta al {paciente} o a centro; validados, borradores o anulados; pago por validar, paquete por preparar o factura por enviar; por la web, desde el portal del centro o por el comercial, teléfono o correo.</dd>
+  <dt>Canal, estado, operativa y origen</dt><dd>Venta al {paciente} o a centro; confirmados, borradores o anulados; pago por validar, paquete por preparar o factura por enviar; por la web, desde el portal del centro o por el comercial, teléfono o correo.</dd>
   <dt>Clasificadores</dt><dd>Los campos propios de los pedidos de tu empresa.</dd>
   <dt>Buscar en la tabla, filtrar por columna y columnas</dt><dd>Afinan lo que ya se ve en la página y eligen qué columnas enseñar.</dd>
 </dl>
@@ -96,10 +96,10 @@
 <dl class="defs">
   <dt>Operativa</dt><dd>(Quien ve todo el equipo) Casillas <b>Cobrado</b>, <b>Paquete preparado</b>, <b>Email con la factura enviado</b> y <b>Email con los datos de pago enviado</b>. Al marcar el pago de un pedido ya facturado, se anota el cobro en la factura. «Preparar email con los datos de pago» escribe el correo con el importe, el IBAN y el concepto.</dd>
   <dt>Pago</dt><dd>La referencia del pago y los justificantes («Añadir justificante», «Ver», «Quitar»).</dd>
-  <dt>Distribuidor</dt><dd>Si lo sirve uno: quién factura y, ya validado, «Preparar correo al distribuidor» con todo el pedido.</dd>
+  <dt>Distribuidor</dt><dd>Si lo sirve uno: quién factura y, ya confirmado, «Preparar correo al distribuidor» con todo el pedido.</dd>
   <dt>Equipos</dt><dd>Si lleva productos que son equipos: «Dar de alta los equipos» (ver <a href="#parque">Parque instalado</a>).</dd>
 </dl>
-<p>Los botones de abajo cambian según el estado: en un borrador, <b>Eliminar borrador</b>, <b>Editar</b> y <b>Confirmar pedido</b>; en uno validado, <b>Emitir factura</b> (o el número de la factura, que la abre) y <b>Anular pedido</b>, que pide un motivo y lo deja en la auditoría. Un pedido con factura no se anula sin más: la factura se corrige antes con una rectificativa.</p>
+<p>Los botones de abajo cambian según el estado: en un borrador, <b>Eliminar borrador</b>, <b>Editar</b> y <b>Confirmar pedido</b>; en uno confirmado, <b>Emitir factura</b> (o el número de la factura, que la abre) y <b>Anular pedido</b>, que pide un motivo y lo deja en la auditoría. Un pedido con factura no se anula sin más: la factura se corrige antes con una rectificativa.</p>
 <figure class="video"><video src="media/ventas/v-operativa.webm" aria-label="Vídeo: pago, paquete y factura"></video><figcaption>Desde un aviso: marcar el pago y el paquete, y emitir la factura.</figcaption></figure>
 <div class="nota"><p><b>Pedidos que nacen solos.</b> Un centro con portal pide su reposición y llega como <b>borrador</b> con la marca «Portal»; lo usado del material en depósito y de una cirugía también crea un borrador. Se validan como cualquier otro.</p></div>
 
@@ -191,7 +191,7 @@
 </dl>
 
 <h2 id="ventas-preguntas">Preguntas frecuentes</h2>
-<h4>He validado un pedido con un error.</h4>
+<h4>He confirmado un pedido con un error.</h4>
 <p>Un pedido confirmado no se edita: anúlalo (con su motivo) y haz uno nuevo. Si ya tenía factura, primero hay que corregirla con una rectificativa.</p>
 <h4>Un pedido sale «Sin atribuir».</h4>
 <p>{El medico} de referencia no estaba en la base y se escribió solo su nombre. Las unidades no cuentan para nadie: antes de validar, elige su ficha en el pedido.</p>

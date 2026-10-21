@@ -16239,7 +16239,8 @@ async function pintarCentro() {
   };
   portalMedico();
 }
-const NOMBRE_ESTADO_CENTRO = { 'Pendiente de validar': 'p-warn', Validado: 'p-est', Preparado: 'p-per', Anulado: 'p-anu' };
+const NOMBRE_ESTADO_CENTRO = { 'Pendiente de confirmar': 'p-warn', Confirmado: 'p-est', 'Pendiente de validar': 'p-warn', Validado: 'p-est',   // v2.349.0 (SQL 176); los dos de antes, por si la base aún no lo tiene
+  Preparado: 'p-per', Anulado: 'p-anu' };
 
 // Ficha de un centro: qué productos puede pedir y a qué precio (sin IVA; vacío = tarifa)
 async function fichaProductosCentro(id) {
@@ -27282,7 +27283,7 @@ async function centroPintar() {
       <div class="kpi"><b>${num(uds)}</b><span>unidades en 12 meses</span></div>
       <div class="kpi"><b>${num(lp.length)}</b><span>productos para pedir</span></div></div>
     <div class="pmfila">
-      <div class="card ancard pcpeds"><h2>Tus pedidos ${pmAyu('Tus pedidos', 'Los pedidos de reposición que habéis hecho y en qué punto están: pendiente de confirmar por tu comercial, pendiente de pago (si se paga por adelantado), validado, preparado o anulado. Cada pedido lleva los lotes que se os han enviado y sus facturas para descargar.')}</h2>
+      <div class="card ancard pcpeds"><h2>Tus pedidos ${pmAyu('Tus pedidos', 'Los pedidos de reposición que habéis hecho y en qué punto están: pendiente de confirmar por tu comercial, pendiente de pago (si se paga por adelantado), confirmado, preparado o anulado. Cada pedido lleva los lotes que se os han enviado y sus facturas para descargar.')}</h2>
         ${peds.length ? `<div class="lista">${peds.slice(0, 8).map(p => `<div class="item"><span class="tx">
             <b>${p.numero ? esc(p.numero) + ' · ' : ''}${fechaCorta(String(p.fecha).slice(0, 10))}</b>
             <span class="sm">${esc((p.lineas || []).map(l => `${l.producto} × ${num(l.unidades)}${l.regalo ? ' de regalo' : ''}`).join(', '))}${p.total != null ? ' · ' + eurI(p.total) : ''}</span>${pcExtraPed(p)}</span>
