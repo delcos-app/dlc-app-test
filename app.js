@@ -10607,10 +10607,9 @@ async function pintarMarca() {
     <p class="sm">Así se ve la plataforma para todo tu equipo: en la pantalla de acceso, arriba en cada pantalla, en la app del móvil y en las facturas.</p>
     <div class="marcaed"><div class="marcaprev"><img id="mklogo" src="${esc(logo || 'logo-app.png')}" alt=""><b id="mknomp">${esc(m.nombre)}</b></div>
       <div><label for="mknom">Nombre de la plataforma</label><input id="mknom" value="${esc(m.nombre)}" placeholder="p. ej. Acme Comercial">
-        <label>Logo o imagen de perfil</label>
+        <label>Logo o imagen de perfil ${pmAyu('Logo', 'Se adapta a un círculo. Mejor una imagen cuadrada, con el logo centrado.')}</label>
         <div class="acts" style="margin:0"><label class="btn sec" for="mkfile" style="margin:0">Subir imagen</label><input id="mkfile" type="file" accept="image/*" class="hide">
           ${logo ? '<button class="btn sec" id="mkquitar">Quitar</button>' : ''}</div>
-        <div class="sm" style="margin-top:4px">Se adapta a un círculo. Mejor una imagen cuadrada, con el logo centrado.</div>
         <label class="opt" style="margin-top:10px"><input type="checkbox" id="mkfac" ${m.logo_factura !== false ? 'checked' : ''}> Usar también en las facturas</label></div></div>
     <div class="acts" style="justify-content:flex-end"><button class="btn" id="mkok">Guardar</button></div></div>`;
   $('mknom').oninput = () => $('mknomp').textContent = $('mknom').value || 'Mi empresa';
@@ -21740,8 +21739,7 @@ cargarConfig = async function () {
   v.querySelector('.cfu').classList.toggle('det', movil && CFG_DETALLE);
   v.querySelectorAll('#cfulista [data-ck]').forEach(b => b.classList.toggle('on', b.dataset.ck === it.k));
   // Cabecera de la página y, si tiene partes, sus pestañas
-  v.querySelector('.cfucab').innerHTML = `<div class="miga">${esc(it.gr)}</div><h2>${esc(it.t)}</h2>${it.d ? `<p>${esc(it.d)}</p>` : ''}
-    ${it.hijos ? `<div class="pagtabs cfgpartes" role="tablist">${it.hijos.map(h => `<button type="button" role="tab" data-cks="${h.k}" aria-selected="${h === hijo}" class="${h === hijo ? 'on' : ''}">${esc(h.t)}</button>`).join('')}</div>` : ''}`;
+  v.querySelector('.cfucab').innerHTML = `<div class="miga">${esc(it.gr)}</div><h2>${esc(it.t)}</h2>${it.d ? `<p>${esc(it.d)}</p>` : ''}`;   // v2.344.0: sin pestañas: las partes, una debajo de otra
   v.querySelectorAll('.cfucab [data-cks]').forEach(b => b.onclick = () => { if (b.dataset.cks === CFG_KEY) return; CFG_KEY = b.dataset.cks; cargarConfig(); });
   $('cfupend').classList.add('hide'); $('cfupend').innerHTML = '';
   $('cfgcuerpo-hub').innerHTML = '<div id="cfgcuerpo"></div>';
@@ -21752,7 +21750,7 @@ cargarConfig = async function () {
     if (l[CFG_KEY] && $('cfupend')) { $('cfupend').innerHTML = `<span class="cfupt"></span>${esc(l[CFG_KEY])}`; $('cfupend').classList.remove('hide'); }
   });
   // El apartado (o, si el plan no lo incluye, qué plan lo trae)
-  const r = hijo ? hijo.r : it.r;
+  const r = it.hijos ? () => cfgApilar(it, hijo) : it.r;
   if (it.mod && !planIncluye(it.mod)) {
     const p = planMinimo(it.mod);
     $('cfgcuerpo').innerHTML = `<div class="card cfgpanel planup"><div class="planupico">${svgIco(ICON_NOM.lock)}</div><h2>${esc(it.t)} está en el plan ${esc(p ? p.nombre : 'A medida')}</h2>
@@ -21803,8 +21801,8 @@ pintarNotif = function () {
     return `<span><b>${c.m}</b> al momento</span><span><b>${c.r}</b> en el resumen de la mañana</span><span><b>${c.n}</b> desactivados</span>`; };
   $('cfgcuerpo').innerHTML = tipos.length ? `<div class="card cfgpanel ntf">
     <div class="ntfres" id="ntfres">${resumen()}</div>
-    <div class="ajfila"><div><b>Horas de silencio</b><span class="sm">Lo que llegue en ese tiempo lo verás al terminar el silencio.</span></div>
-      <div class="ajctl"><label class="vfswitch mini" title="Silenciar"><input type="checkbox" id="nsil" ${s.activo ? 'checked' : ''} aria-label="Silenciar"><span class="sw"></span></label>
+    <div class="ajfila ntfsil"><div><div class="ntfsilt"><label class="vfswitch mini" title="Activar las horas de silencio"><input type="checkbox" id="nsil" ${s.activo ? 'checked' : ''} aria-label="Activar las horas de silencio"><span class="sw"></span></label><b>Horas de silencio</b></div><span class="sm">Lo que llegue en ese tiempo lo verás al terminar el silencio.</span></div>
+      <div class="ajctl">
         <input type="time" id="nsild" value="${esc(s.desde || '20:00')}" aria-label="Desde"> a <input type="time" id="nsilh" value="${esc(s.hasta || '08:00')}" aria-label="Hasta">
         <label class="ntffin"><input type="checkbox" id="nsilf" ${s.finde !== false ? 'checked' : ''}> Fines de semana</label></div></div>
     ${filas.map(([t, l]) => `<h3 class="ntfarea">${esc(t)}</h3>${l.map(([k, ic, tt, d]) => {
@@ -29320,3 +29318,129 @@ function fabAOrdenador() {
 }
 let FAB_RZ = 0;
 addEventListener('resize', () => { clearTimeout(FAB_RZ); FAB_RZ = setTimeout(() => { fabAOrdenador(); try { if (typeof plSync === 'function' && TAB) plSync(TAB); } catch (e) {} }, 120); });
+
+
+/* ============================================================
+   v2.344.0 · Configuración más ordenada (lista de Eric, 21/10/2026)
+   - Un apartado con partes (Rutas, Cartera y visitas, Stock y material, Importar datos, Clasificadores, Datos fiscales con Series) es
+     una sola página: sus partes una debajo de otra, sin pestañas. Cada parte se pinta en su propia sección y funciona igual que antes:
+     sus piezas con nombre fijo (#cfgcuerpo, #fcuerpo, el panel #dbody) se le devuelven al tocarla y las de las otras se guardan.
+   - Mis datos en una sola tarjeta; Datos fiscales y Series juntos; los botones de KPIs de Inicio junto al título.
+   ============================================================ */
+const IDS_SEC = ['fcuerpo', 'dbody', 'v-admin'];
+let CFG_SEC_ACT = null;
+function cfgSecDormir(sec) {
+  sec.querySelectorAll(IDS_SEC.map(i => '#' + i).join(',')).forEach(e => { e.dataset.idd = e.id; e.removeAttribute('id'); });
+  const c = sec.querySelector(':scope > .cfgsecc'); if (c && c.id === 'cfgcuerpo') c.removeAttribute('id');
+}
+function cfgSecDespertar(sec) {
+  if (!sec || CFG_SEC_ACT === sec) return;
+  document.querySelectorAll('#cfgcuerpo-hub .cfgsec').forEach(o => { if (o !== sec) cfgSecDormir(o); });
+  const viejo = $('cfgcuerpo'); if (viejo && !sec.contains(viejo)) viejo.removeAttribute('id');
+  sec.querySelector(':scope > .cfgsecc').id = 'cfgcuerpo';
+  sec.querySelectorAll('[data-idd]').forEach(e => { e.id = e.dataset.idd; delete e.dataset.idd; });
+  // La ventana de siempre (#dbody) solo se aparta si la sección tiene su panel
+  if (sec.__panel) { const m = document.querySelector('dialog #dbody'); if (m) m.id = 'dbody-modal'; PANEL_ACTIVO = sec.__panel; }
+  else { const m = $('dbody-modal'); if (m && !document.querySelector('#dbody')) m.id = 'dbody'; PANEL_ACTIVO = null; }
+  CFG_SEC_ACT = sec; CFG_KEY = sec.dataset.cfgsec;
+}
+const cfgEstable = (el, max) => new Promise(ok => {
+  let t = 0, fin = 0; const ob = new MutationObserver(() => { clearTimeout(t); t = setTimeout(listo, 150); });
+  const listo = () => { if (el.querySelector('.cfgcarga, .giro, .spin')) { t = setTimeout(listo, 150); return; } ob.disconnect(); clearTimeout(fin); ok(); };
+  ob.observe(el, { childList: true, subtree: true, attributes: true }); t = setTimeout(listo, 200); fin = setTimeout(() => { ob.disconnect(); clearTimeout(t); ok(); }, max || 5000);
+});
+async function cfgApilar(it, foco) {
+  const hub = $('cfgcuerpo-hub'); if (!hub) return;
+  CFG_SEC_ACT = null;
+  // Se preparan escondidas y la página aparece entera de una vez (sin fantasmas)
+  hub.innerHTML = '<div class="cfgsecs" hidden>' + it.hijos.map(h => `<section class="cfgsec" data-cfgsec="${h.k}"><h3 class="cfgsectit">${esc(h.t)}</h3><div class="cfgsecc"></div></section>`).join('') + '</div><div class="cfgcarga cargandolocal"><span class="giro"></span> Cargando…</div>';
+  hub.dataset.apilado = '1';
+  for (const sec of hub.querySelectorAll('.cfgsec')) {
+    if (!hub.isConnected) return;
+    const h = it.hijos.find(x => x.k === sec.dataset.cfgsec);
+    sec.__panel = null; PANEL_ACTIVO = null;
+    const m = $('dbody-modal'); if (m && !document.querySelector('#dbody')) m.id = 'dbody';
+    cfgSecDespertar(sec);
+    try { await h.r(); } catch (e) {}
+    await cfgEstable(sec, 4000);
+    if (PANEL_ACTIVO && sec.querySelector('[data-panel]')) sec.__panel = PANEL_ACTIVO;
+    try { if (typeof pulirCfg === 'function') pulirCfg(); } catch (e) {}
+    // Sin título repetido: si la parte ya empieza con su título, fuera el de la sección
+    if ([...sec.querySelectorAll('.cfgsecc h2')].some(x => x.offsetParent)) sec.querySelector('.cfgsectit').hidden = true;   // la parte ya trae su título
+    CFG_SEC_ACT = null;
+  }
+  const caja = hub.querySelector('.cfgsecs'); if (caja) caja.hidden = false; const cg = hub.querySelector(':scope > .cfgcarga'); if (cg) cg.remove();
+  const primera = (foco && hub.querySelector(`.cfgsec[data-cfgsec="${foco.k}"]`)) || hub.querySelector('.cfgsec');
+  cfgSecDespertar(primera);
+  if (foco && foco !== it.hijos[0] && primera) primera.scrollIntoView({ block: 'start', behavior: 'smooth' });
+}
+// Tocar una parte le devuelve sus piezas (en captura: antes de que su botón haga nada)
+['pointerdown', 'focusin', 'keydown'].forEach(ev => document.addEventListener(ev, e => {
+  const sec = e.target.closest && e.target.closest('#cfgcuerpo-hub .cfgsec'); if (sec) cfgSecDespertar(sec);
+}, true));
+// Al cambiar de apartado, la ventana de siempre vuelve a su sitio
+cargarConfig = (orig => async function (...a) {
+  const hub = $('cfgcuerpo-hub');
+  if (hub && hub.dataset.apilado) {
+    hub.querySelectorAll('[data-idd]').forEach(e => e.removeAttribute('data-idd'));
+    const m = $('dbody-modal'); if (m) { const p = document.querySelector('#dbody[data-panel]'); if (p) p.removeAttribute('id'); m.id = 'dbody'; }
+    PANEL_ACTIVO = null; CFG_SEC_ACT = null; delete hub.dataset.apilado;
+  }
+  return orig.apply(this, a);
+})(cargarConfig);
+
+// Datos fiscales y Series, juntos
+arbolCfgUnico = (orig => function (...a) {
+  const g = orig.apply(this, a), f = g.find(x => x[0] === 'Facturación'); if (!f) return g;
+  const fi = f[1].find(x => x.k === 'o.fiscal'), se = f[1].find(x => x.k === 'o.series');
+  if (fi && se && !fi.hijos) f[1] = f[1].filter(x => x !== se).map(x => x === fi ? Object.assign({}, fi, { d: 'Razón social, NIF, dirección y numeración de las facturas',
+    hijos: [{ k: 'o.fiscal', t: fi.t, r: fi.r }, { k: 'o.series', t: se.t, r: se.r }] }) : x);
+  return g;
+})(arbolCfgUnico);
+
+// Mis datos: una sola tarjeta (la persona, sus datos y la seguridad)
+pintarPerfil = (orig => function (...a) {
+  const r = orig.apply(this, a);
+  if (TAB !== 'config') return r;
+  const c = $('cfgcuerpo'); if (!c || c.querySelector('.perfuno')) return r;
+  const mp = c.querySelector('#miperfil'), dt = [...c.children].find(x => x.querySelector && x.querySelector('#pfn')), sg = c.querySelector('.perfseg');
+  if (!dt) return r;
+  const u = document.createElement('div'); u.className = 'card cfgpanel perfuno';
+  u.innerHTML = '<div class="perfunorow"></div>';
+  const row = u.firstChild;
+  [mp, dt].filter(Boolean).forEach(x => { x.classList.remove('card', 'cfgpanel'); x.classList.add('perfparte'); row.appendChild(x); });
+  if (sg) { sg.classList.remove('card', 'cfgpanel'); sg.classList.add('perfparte'); u.appendChild(sg); }
+  c.prepend(u);
+  return r;
+})(pintarPerfil);
+// pintarPrefsPerfil pone la tarjeta de la persona después: va a su sitio dentro de la tarjeta única
+pintarPrefsPerfil = (orig => async function (...a) {
+  const p = orig.apply(this, a);
+  const mp = $('miperfil'), row = document.querySelector('#cfgcuerpo .perfunorow');
+  if (mp && row && mp.parentElement !== row) { mp.classList.remove('card', 'cfgpanel'); mp.classList.add('perfparte'); row.prepend(mp); }
+  return p;
+})(pintarPrefsPerfil);
+
+// KPIs de Inicio: Restaurar y Guardar junto al título
+new MutationObserver(() => {
+  if (TAB !== 'config' || CFG_KEY !== 'inicio.kpis') return;
+  const cab = document.querySelector('#v-config .cfucab'), c = $('cfgcuerpo'); if (!cab || !c) return;
+  const acts = [...c.querySelectorAll('.acts')].filter(x => x.querySelector('.btn') && !x.classList.contains('cfuacts')).pop(); if (!acts) return;
+  cab.querySelectorAll('.cfuacts').forEach(x => x.remove());
+  acts.classList.add('cfuacts'); cab.appendChild(acts);
+}).observe(document.body, { childList: true, subtree: true });
+// v2.344.0: los estilos de Configuración hablan de #cfgcuerpo (el contenedor activo); se copian para las demás secciones de la página
+function cfgClonarEstilos() {
+  const re = /#cfgcuerpo(?![-\w])/g;
+  const nuevo = sel => sel.split(',').filter(p => re.test(p) && !(re.lastIndex = 0)).map(p => p.replace(re, '#cfgcuerpo-hub .cfgsecc')).join(',');
+  const recorrer = (lista, dentro) => {
+    for (const r of [...lista]) {
+      if (r.cssRules && r.media) { recorrer(r.cssRules, r); continue; }
+      if (!r.selectorText || !r.selectorText.includes('#cfgcuerpo')) continue;
+      re.lastIndex = 0; const sel = nuevo(r.selectorText); if (!sel) continue;
+      try { (dentro || r.parentStyleSheet).insertRule(`${sel}{${r.style.cssText}}`, (dentro || r.parentStyleSheet).cssRules.length); } catch (e) {}
+    }
+  };
+  for (const h of document.styleSheets) { try { if (!h.href) recorrer(h.cssRules, null); } catch (e) {} }
+}
+setTimeout(cfgClonarEstilos, 0);

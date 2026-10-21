@@ -4771,6 +4771,30 @@ html body :is(.pagtabs, .subnav, .pmtabs)::-webkit-scrollbar{display:none}
 /* v2.343.0 · Ninguna pastilla vacía (aviso de Eric: un chip vacío junto a «Cómo llegar») */
 html body :is(.fvdonde,.pill,.chip):empty{display:none}
 .ankpi.anv .avz.avcero .avsp path.l{stroke:#C9D7E6}.ankpi.anv .avz.avcero .avpt{background:#C9D7E6}
+/* v2.344.0 · Configuración más ordenada */
+#cfgcuerpo-hub .cfgsec + .cfgsec{margin-top:22px}
+#cfgcuerpo-hub .cfgsectit{font:800 15px var(--f-titulo);color:var(--navy);margin:0 0 10px}
+#v-config #cfgcuerpo.perfil2{display:block}
+.perfuno .perfunorow{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:24px;align-items:start}
+.perfuno .perfparte{border:0;background:none;box-shadow:none;padding:0;margin:0}
+.perfuno .perfseg{border-top:1px solid var(--line);margin-top:18px;padding-top:16px}
+.perfuno .perfseg > h2{font:800 15px var(--f-titulo);color:var(--navy);display:flex;align-items:center;gap:8px;margin:0 0 4px}.perfuno .perfseg > h2 svg{width:18px;height:18px}
+.perfuno .perfunorow > .perfparte:not(#miperfil) > h2{display:none}
+@media (max-width:900px){.perfuno .perfunorow{grid-template-columns:1fr}}
+.ntfsilt{display:flex;align-items:center;justify-content:flex-start;gap:10px}
+.ntfsilt > .vfswitch{flex:0 0 auto;width:auto;margin:0}.ntfsilt > b{flex:0 1 auto}
+.ntfsil .ajctl{display:flex;align-items:center;gap:10px;flex-wrap:nowrap}
+.ntfsil:has(#nsil:not(:checked)) .ajctl{opacity:.45}
+#v-config .usrbar{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;align-items:center}
+#v-config .usrbar > *{width:100%;min-width:0}
+@media (max-width:760px){#v-config .usrbar{grid-template-columns:1fr 1fr}#v-config .usrbar > #usrq{grid-column:1 / -1}}
+#v-config label.btn{display:inline-flex;align-items:center;justify-content:center}
+#v-config .marcaed{grid-template-columns:150px minmax(0,1fr);gap:18px;align-items:start}
+#v-config .marcaprev{padding:14px}
+#v-config .marcaprev img{width:84px;height:84px}
+.cfucab{position:relative}
+.cfucab > .cfuacts{position:absolute;right:0;top:22px;margin:0;display:flex;gap:8px}
+@media (max-width:760px){.cfucab > .cfuacts{position:static;margin-top:10px}}
 </style>
 </head>
 <body>
@@ -4908,6 +4932,6 @@ try{var co=sessionStorage.getItem('dlc-cambio-org');if(co!==null||localStorage.g
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.343.0"></script>
+<script src="./app.js?v=2.344.0"></script>
 </body>
 </html>
