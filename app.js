@@ -28550,7 +28550,9 @@ function pkDia(iso, n, hoy) {
      secreta, entorno pruebas/real, «Probar» y la dirección de aviso para el banco.
    ============================================================ */
 const tpvCfg = () => AJUSTES.cobro_tpv || {};
-const tpvActivo = () => !!(tpvCfg().activo && puedeModulo('ventas'));
+// v2.345.0: solo en pruebas hasta tener el terminal del banco (decisión de Eric); para abrirlo en producción, TPV_VISIBLE = true
+const TPV_VISIBLE = EN_PRUEBAS || /^(localhost|127\.)/.test(location.hostname);   // en local, para la batería
+const tpvActivo = () => !!(TPV_VISIBLE && tpvCfg().activo && puedeModulo('ventas'));
 const esPagoTpv = fp => /tarjeta|bizum/i.test(fp || '');
 const tpvMovil = t => { let m = String(t || '').replace(/\D/g, ''); m = m.replace(/^(0034|34)(?=[67]\d{8}$)/, ''); return /^[67]\d{8}$/.test(m) ? m : ''; };
 const TPV_ERR = {
@@ -28631,7 +28633,7 @@ pedidoPago = (orig => async function (id, ...a) {
 // Configuración → Facturación → «Cobro con tarjeta y Bizum»
 arbolCfgUnico = (orig => function (...a) {
   const g = orig.apply(this, a);
-  if (!puedeOrganizacion() || !puedeModulo('ventas')) return g;
+  if (!TPV_VISIBLE || !puedeOrganizacion() || !puedeModulo('ventas')) return g;
   let fac = g.find(x => x[0] === 'Facturación');
   if (!fac) { fac = ['Facturación', []]; g.push(fac); }
   if (!fac[1].some(x => x.k === 'tpv'))
