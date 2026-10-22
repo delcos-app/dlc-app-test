@@ -12,13 +12,19 @@
 <meta name="theme-color" content="#EAF5FC">
 <meta name="color-scheme" content="light only">
 <link rel="manifest" href="./manifest.webmanifest">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <link rel="apple-touch-icon" href="./apple-touch-180.png">
 <link rel="icon" type="image/svg+xml" href="./favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=Source+Sans+3:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
 <style>
+/* v2.356.0 · Estilo por capas (R-03 fase 3). Orden: lib (Leaflet y MapLibre) → sistema (capa del contrato) → antiguo (el estilo de
+   siempre) → parches (arreglos que antes ganaban a otras reglas antiguas con la marca «important»). Una capa posterior gana a la anterior sin mirar
+   la fuerza del selector; con la marca «important» es al revés: por eso la capa del sistema va antes de «antiguo». */
+@layer lib, sistema, antiguo, parches;
+@import url("https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css") layer(lib);
+@layer antiguo {
+
 html{color-scheme:light only}
 :root{
   color-scheme:light only;
@@ -683,7 +689,7 @@ html,body{background:#F3F8FC}
 body::before{content:none}
 /* Cabecera y menú de cristal */
 header{background:#FFFFFF;border-bottom:1px solid var(--line)}
-header .logo{height:46px!important;width:46px;max-width:none;border-radius:50%;object-fit:cover;background:#fff;box-shadow:none}
+header .logo{width:46px;max-width:none;border-radius:50%;object-fit:cover;background:#fff;box-shadow:none}
 nav.main{background:transparent;border-bottom:0}
 nav.main button{border-radius:10px;margin:4px 0;transition:background .15s,color .15s}
 nav.main button:hover{background:var(--hielo);color:var(--navy)}
@@ -791,7 +797,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 body{overflow-x:clip;width:100%;min-height:100dvh}
 @media (max-width:760px){
   /* Con menos de 16 px el iPhone amplía la pantalla al escribir y no la devuelve a su tamaño */
-  input,select,textarea,.selval{font-size:16px!important}
+  input,select,textarea,.selval{}
   .datol input,.datol select,.lrow input,.lrow select{font-size:16px}
 }
 #girar{display:none}
@@ -808,7 +814,7 @@ dialog{overscroll-behavior:contain}
 .vistazo{display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:10px;font-size:14px;color:var(--ink)}
 .vistazo .prox{color:var(--muted)}
 .vistazo .lnk{border:0;background:none;color:var(--sky);font-weight:700;padding:0;cursor:pointer;font:inherit}
-.icoacts{position:absolute;top:14px;right:14px;gap:6px!important}
+.icoacts{position:absolute;top:14px;right:14px;}
 .icoacts .btn{width:38px;display:grid;place-items:center;background:rgba(255,255,255,.85)}
 #v-inicio .saludo{padding-right:110px}
 .kico{position:absolute;right:12px;bottom:10px;font-size:18px;opacity:.28;pointer-events:none}
@@ -864,9 +870,9 @@ dialog{overscroll-behavior:contain}
   main{padding-bottom:calc(96px + env(safe-area-inset-bottom,0px))}
   /* Ventanas: nada más ancho que la pantalla y márgenes iguales */
   dialog{width:calc(100% - 16px)!important;max-width:calc(100% - 16px)!important;max-height:calc(100dvh - 24px)}
-  dialog .fbox, #dbody, #dlg2body{padding:16px!important;overflow-x:hidden}
+  dialog .fbox, #dbody, #dlg2body{overflow-x:hidden}
   dialog *{max-width:100%}
-  dialog .g2,dialog .g3{grid-template-columns:1fr!important}
+  dialog .g2,dialog .g3{}
   dialog .opciones{grid-template-columns:1fr}
   .fh{display:flex;align-items:flex-start;gap:10px}
   .fh .x,.x{margin:0;flex:0 0 40px;}
@@ -878,7 +884,7 @@ dialog{overscroll-behavior:contain}
   .saludo h1{font-size:22px}
   .saludo .acts.chips{display:flex;flex-wrap:nowrap;overflow-x:auto;gap:6px;margin:0;padding:0 0 2px;scrollbar-width:none;justify-content:flex-start}
   .saludo .acts.chips::-webkit-scrollbar{display:none}
-  .chip,.saludo .acts.chips > *{flex:0 0 auto;min-height:38px;height:38px;padding:0 12px!important;font-size:13.5px!important;border-radius:11px;white-space:nowrap}
+  .chip,.saludo .acts.chips > *{flex:0 0 auto;min-height:38px;height:38px;font-size:13.5px!important;border-radius:11px;white-space:nowrap}
   .saludo .acts.chips select{width:auto;min-width:130px}
 
   
@@ -896,7 +902,7 @@ dialog{overscroll-behavior:contain}
   /* Configuración */
   .cfghub{grid-template-columns:1fr}
   .cfgnav{position:static}
-  #v-config .g2,#v-config .g3,#v-facturacion .g2{grid-template-columns:1fr!important}
+  #v-config .g2,#v-config .g3,#v-facturacion .g2{}
   .saludo .acts.chips:empty{display:none}
   /* Administración */
   #admcuerpo .lista > .item{flex-wrap:wrap;}
@@ -1072,7 +1078,7 @@ body.masabierto .bnav{border-top-color:transparent;box-shadow:none}
 #cfgcuerpo .cols > .card .g2{grid-template-columns:1fr;gap:8px}
 #cfgcuerpo .cols > .card .g2 > div > input{max-width:none}
 #cfgcuerpo .cols > .card .acts{margin-top:auto;padding-top:10px}
-#cfgcuerpo > .card,#cfgcuerpo > div > .card{margin:12px 0 0!important;padding:16px 18px!important}
+#cfgcuerpo > .card,#cfgcuerpo > div > .card{padding:16px 18px!important}
 #cfgcuerpo > .acts{margin-top:12px}
 #cfgcuerpo textarea{width:100%;max-width:none;box-sizing:border-box}
 #cfgcuerpo .card .g2{align-items:start}
@@ -1232,7 +1238,7 @@ nav.main [data-t="seguimiento"]{display:none}
 /* v2.52.0 · ancho completo, avisos a la derecha, listas completas, errores */
 @media (min-width:1100px){.top,nav.main .in,main{max-width:none;padding-left:clamp(18px,2.2vw,40px);padding-right:clamp(18px,2.2vw,40px)}}
 @keyframes avisoDer{from{transform:translateX(120%);opacity:0}to{transform:none;opacity:1}}
-.upd{left:auto!important;right:16px!important;animation:avisoDer .28s cubic-bezier(.2,.8,.2,1)!important}
+.upd{left:auto!important;right:16px!important;}
 @media (max-width:760px){.upd{left:12px!important;right:12px!important}}
 .extra{display:none!important}
 .vermas{display:block;width:100%;border:0;background:none;color:var(--sky);font:inherit;font-weight:700;font-size:13px;padding:8px 10px;text-align:left;cursor:pointer}
@@ -1376,7 +1382,7 @@ html{overflow-y:scroll;scrollbar-gutter:stable}
 
 /* Segundo panel lateral (columnas) */
 .t2volver{display:inline-flex;border:0;background:none;color:var(--sky);font:inherit;font-weight:700;padding:0 0 10px;cursor:pointer}
-.tools2{z-index:1202!important;box-shadow:-12px 0 30px rgba(11,58,102,.12)}
+.tools2{box-shadow:-12px 0 30px rgba(11,58,102,.12)}
 .toolsfondo{position:fixed;inset:0;background:rgba(11,58,102,.18);z-index:1190}
 .tools{z-index:1200}
 .t2cols{display:flex;flex-direction:column;gap:2px;margin-top:10px}.t2cols .opt{padding:8px 4px;border-bottom:1px solid var(--line);margin:0}
@@ -1392,7 +1398,7 @@ html{overflow-y:scroll;scrollbar-gutter:stable}
 .card .lista:has(> .item:nth-child(12)){max-height:520px;overflow:auto;overscroll-behavior:contain}
 /* Botones de cabecera: mismo tamaño y separación */
 .saludo .acts{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
-.saludo .acts > .btn,.saludo .acts > select{min-height:40px;margin:0!important}
+.saludo .acts > .btn,.saludo .acts > select{min-height:40px;}
 
 /* v2.56.0 · indicador de carga con retraso de 120 ms y mínimo visible */
 @keyframes cargaOculta{to{visibility:hidden}}
@@ -2369,7 +2375,7 @@ dialog.encajada .pdfprev iframe{height:calc(100vh - var(--alto-cab,0px) - 190px)
    borde y otras se paraban en 1.120 px), y dentro ningún campo ni selector va de punta a punta: tienen el ancho de lo que
    se escribe en ellos. Las tablas, listas y rejillas siguen a todo el ancho. En el móvil no cambia nada. */
 @media (min-width:1100px){
-  #cfgcuerpo,.pagcuerpo,#fcuerpo{max-width:none!important}
+  #cfgcuerpo,.pagcuerpo,#fcuerpo{}
   :is(#cfgcuerpo,.pagcuerpo,dialog.encajada) :is(input:not([type=checkbox]):not([type=radio]):not([type=color]):not([type=range]),select):not(.numw *):not(.selw *){max-width:440px}
   :is(#cfgcuerpo,.pagcuerpo,dialog.encajada) textarea{max-width:720px}
   /* Campos con selector propio de fecha o número: su caja tampoco se estira */
@@ -3305,7 +3311,7 @@ input[type=checkbox]:not(.vfswitch input):focus-visible{outline:none;box-shadow:
 
 /* v2.216.0 · Tu cuenta y Empresa en filas de ajuste */
 #v-config .cfudup{display:none}
-#v-config .numw{max-width:136px!important;min-width:0}#v-config .numw input{min-height:38px;padding:6px 4px}
+#v-config .numw{min-width:0}#v-config .numw input{min-height:38px;padding:6px 4px}
 #v-config .numw .nb{width:36px;font-size:16px}
 #v-config .g2.ajlista{display:block}
 #v-config .ajnum{padding:12px 0}#v-config .ajnum .ajtxt label{display:block;margin:0;color:var(--navy);font-weight:700;font-size:15px}
@@ -3318,10 +3324,10 @@ input[type=checkbox]:not(.vfswitch input):focus-visible{outline:none;box-shadow:
 #v-config .copiaest.copiafila{flex-direction:row;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
 #v-config .copiaest.copiafila > div{display:flex;flex-direction:column;gap:2px}
 #mkvoccard .mketqbox{margin:6px 0 14px}#mkvoccard .mketqbox .g2{max-width:620px}
-#mkvoccard .mkvocf{display:grid!important;grid-template-columns:minmax(0,1.4fr) repeat(2,minmax(0,1fr)) minmax(0,1.1fr);gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line);margin:0}
+#mkvoccard .mkvocf{grid-template-columns:minmax(0,1.4fr) repeat(2,minmax(0,1fr)) minmax(0,1.1fr);gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line);margin:0}
 #mkvoccard .mkvocf:last-child{border-bottom:0}
 #mkvoccard .mkvocf > div{min-width:0}#mkvoccard .mkvocf label{display:none}
-#mkvoccard .mkvocf input,#mkvoccard .mkvocf select{max-width:none!important;min-height:40px}
+#mkvoccard .mkvocf input,#mkvoccard .mkvocf select{min-height:40px}
 #mkvoccard .mkvoccab{font:700 11px var(--f-titulo);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:0 0 4px}
 #mkvoccard .mkvocn{color:var(--navy);font-size:14.5px}
 @media (max-width:899px){
@@ -3348,7 +3354,7 @@ input[type=checkbox]:not(.vfswitch input):focus-visible{outline:none;box-shadow:
 #v-config .rolmat th:first-child,#v-config .rolmat td:first-child{position:sticky;left:0;z-index:1;background:#FFFFFF;box-shadow:1px 0 0 var(--line);min-width:200px;max-width:240px}
 #v-config .rolmat th:first-child{background:var(--hielo);z-index:2}
 #v-config .rolmat td{padding:8px 8px}
-#v-config .rolmat select{width:116px;min-width:0;max-width:none!important;min-height:34px;padding:4px 26px 4px 9px;font-size:13px;background-position:right 8px center}
+#v-config .rolmat select{width:116px;min-width:0;min-height:34px;padding:4px 26px 4px 9px;font-size:13px;background-position:right 8px center}
 #v-config .rolmat .selw{max-width:none}
 
 /* v2.219.0 · Agenda con tarjetas y cinta de 14 días */
@@ -3465,7 +3471,7 @@ input[type=checkbox]:not(.vfswitch input):focus-visible{outline:none;box-shadow:
 
 /* v2.221.0 · El «+» flotante no tapa el contenido */
 @media (max-width:760px){
-  .fab{transition:background-color var(--t-rapido) var(--ease-sal),transform .28s var(--ease-sal),opacity .2s var(--ease-sal)!important}
+  .fab{}
   body.fabfuera .fab{transform:translateY(calc(100% + 24px)) scale(.92)!important;opacity:0;pointer-events:none}
   body main:has(.fab:not(.hide)){padding-bottom:calc(76px + 72px + env(safe-area-inset-bottom,0px))!important}
 }
@@ -3519,7 +3525,7 @@ input[type=checkbox]:not(.vfswitch input):focus-visible{outline:none;box-shadow:
 #kpis.kvivo .kvlin text{font:600 9px var(--f-texto);fill:#8A9BB0}#kpis.kvivo .kvlin text.hoy{fill:var(--navy);font-weight:700}
 /* Anillo de la cartera */
 #kpis.kvivo .kvdona{display:flex;align-items:center;gap:12px;width:100%}
-#kpis.kvivo .kvdona svg{width:58px!important;height:58px!important;flex:none}
+#kpis.kvivo .kvdona svg{flex:none}
 #kpis.kvivo .kvdona circle.s{transform:rotate(-90deg);transform-origin:center;animation:kvanillo 1s cubic-bezier(.3,.7,.2,1) both}
 @keyframes kvanillo{from{stroke-dasharray:0 999}}
 #kpis.kvivo .kvley{display:grid;gap:3px;font-size:11.5px;color:#4C6178;min-width:0}
@@ -3994,7 +4000,7 @@ header .top .logo,nav.main .mlmarca{cursor:pointer}
 
 /* v2.236.0 · Cargador de órbita vectorial: siempre redondo, más grande, con el anillo y una estela de puntos detrás del satélite */
 :root{--orbita:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='24' fill='none' stroke='%23B9CCE0' stroke-width='1.4' stroke-opacity='.55'/%3E%3Ccircle cx='32' cy='32' r='11' fill='%2317457A'/%3E%3Ccircle cx='23.01' cy='9.75' r='3.6' fill='%237CC3EC' fill-opacity='0.55'/%3E%3Ccircle cx='15.94' cy='14.16' r='2.9' fill='%237CC3EC' fill-opacity='0.38'/%3E%3Ccircle cx='11.22' cy='20.00' r='2.3' fill='%237CC3EC' fill-opacity='0.24'/%3E%3Ccircle cx='8.71' cy='26.19' r='1.8' fill='%237CC3EC' fill-opacity='0.14'/%3E%3Ccircle cx='32' cy='8' r='5' fill='%237CC3EC'/%3E%3C/svg%3E") center/contain no-repeat;--orbita-blanca:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='24' fill='none' stroke='%23FFFFFF' stroke-width='1.4' stroke-opacity='.55'/%3E%3Ccircle cx='32' cy='32' r='11' fill='%23FFFFFF'/%3E%3Ccircle cx='23.01' cy='9.75' r='3.6' fill='%237CC3EC' fill-opacity='0.55'/%3E%3Ccircle cx='15.94' cy='14.16' r='2.9' fill='%237CC3EC' fill-opacity='0.38'/%3E%3Ccircle cx='11.22' cy='20.00' r='2.3' fill='%237CC3EC' fill-opacity='0.24'/%3E%3Ccircle cx='8.71' cy='26.19' r='1.8' fill='%237CC3EC' fill-opacity='0.14'/%3E%3Ccircle cx='32' cy='8' r='5' fill='%237CC3EC'/%3E%3C/svg%3E") center/contain no-repeat}
-.spin{width:44px;height:44px;animation:gira 1.15s cubic-bezier(.45,.05,.55,.95) infinite!important}
+.spin{width:44px;height:44px;}
 .cargatotal .spin{width:64px!important;height:64px!important}
 .gsug .gload .spin{width:22px!important;height:22px!important}
 main > section.preparando::after,dialog > .preparando::after{width:60px!important;height:60px!important;margin-left:-30px!important}
@@ -4101,7 +4107,7 @@ main > section.preparando::after,dialog > .preparando::after{animation:cargaApar
 /* v2.238.0 · Modelo «Lista» en Ventas, Facturas y Productos */
 .plkpis.plbanda{display:block}
 .plkpis.plbanda > #operativa{margin:0}
-.plantilla .kpis.vtot.plres{display:flex;flex-wrap:wrap;gap:6px 18px;grid-template-columns:none!important;background:none;border:0;padding:2px 4px;margin:0 0 2px!important;box-shadow:none}
+.plantilla .kpis.vtot.plres{display:flex;flex-wrap:wrap;gap:6px 18px;grid-template-columns:none!important;background:none;border:0;padding:2px 4px;box-shadow:none}
 .plantilla .kpis.vtot.plres > .kpi{all:unset;display:inline-flex;align-items:baseline;gap:6px;font-size:13.5px;color:var(--muted)}
 .plantilla .kpis.vtot.plres > .kpi b{font:800 16px var(--f-titulo);color:#17457A;font-variant-numeric:tabular-nums}
 .plantilla .kpis.vtot.plres > .kpi.warn b{color:#B4541A}.plantilla .kpis.vtot.plres > .kpi.ok b{color:#1D6B3A}
@@ -4131,7 +4137,7 @@ main > section.preparando::after,dialog > .preparando::after{animation:cargaApar
 @media (max-width:760px){.plgband{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}}
 
 /* v2.240.0 · Paneles sin saltos: Analítica en el móvil, las cifras caben en una línea */
-@media (max-width:620px){.ankpi .ankval{font-size:clamp(17px,5.4vw,22px)!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.02em}}
+@media (max-width:620px){.ankpi .ankval{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.02em}}
 
 /* v2.241.0 · Volver, pestañas, pasos y fichas («Ligera») */
 /* «‹ Destino»: enlace encima del título */
@@ -4142,7 +4148,7 @@ main > section.preparando::after,dialog > .preparando::after{animation:cargaApar
 #v-duplicados #dvolver{display:none}   /* ya está «‹ Calidad del dato» arriba */
 /* Pestañas: caja segmentada */
 main .subnav,main .pagtabs{display:inline-flex;gap:2px;background:#fff;border:1px solid var(--line);margin-bottom:14px}
-main .subnav button,main .pagtabs button{border:0!important;background:none!important;border-radius:9px;padding:7px 14px;font:600 13.5px var(--f-titulo);color:#4A6280!important;box-shadow:none!important}
+main .subnav button,main .pagtabs button{border-radius:9px;padding:7px 14px;font:600 13.5px var(--f-titulo);}
 main .subnav button:hover,main .pagtabs button:hover{background:#F2F7FC!important}
 main .subnav button.on,main .subnav button[aria-current="page"],main .pagtabs button.on{background:#EAF2FB!important;color:#17457A!important}
 body.modo-plataforma.menulat #v-delcos .pagtabs{display:none}
@@ -4619,6 +4625,9 @@ html body .toast[popover]{margin:0;border:0;overflow:visible}
 .duppest{margin:0 0 12px}
 .dupcons{margin-top:14px}
 .dupcons .opt{display:flex;gap:8px;align-items:flex-start;margin:6px 0}
+
+}
+@layer sistema {
 /* ==== SISTEMA delcos · capa del contrato de componentes (generada desde sistema/contrato.json con gen_capa.js; no se edita a mano) ==== */
 html:not(#_s) body :is(#v-inicio .saludo h1#hola){font-family:var(--f-titulo) !important;font-weight:800 !important;font-size:30px !important}
 html:not(#_s) body :is(#v-informe .medhero h1):not(:is(#v-inicio .saludo h1#hola)){font-family:var(--f-titulo) !important;font-weight:800 !important;font-size:30px !important}
@@ -4677,6 +4686,9 @@ html body :is(.pagtabs, .subnav, .pmtabs)::-webkit-scrollbar{display:none}
   html:not(#_s) body :is(dialog#dlg[open]:not(.encajada), dialog#dlg2[open]:not(.encajada), dialog#ficha[open]):not(:is(#v-inicio .saludo h1#hola),:is(#v-informe .medhero h1),:is(main > section .saludo h1),:is(.fab),:is(.plqi, .pltool input),:is(#q, .plqi, #cfubus, #pmcq, #txq, input[type=search]),:is(.plchip),:is(.chip:not(.btn)),:is(.chipsel, [data-txf], .htchip, [data-agti], [data-qk], .pmhdia, [data-rnf]),:is(.kmv, .kojo, .agslm, .notbor, .pmhx, .pmhmas, .quitar, .kcfg, .ankcfg, .cdmas, .pwdojo, .rv),:is(.btn.icoonly, .icobtn, dialog .x, .fh .x),:is(.btn.chico, button.chico),:is(.btn:not(.lnk)),:is(.lnk),:is(.numw),:is(.selw > input),:is(input.chico, select.chico),:is(textarea),:is(input:not([type=checkbox]):not([type=radio]):not([type=file]):not([type=hidden]):not([type=range]):not([type=color]):not(.numw input):not(.selw input), select),:is(.cfuvolver, .cfgvolver, .manvuelta, .rnvol),:is(button[data-pg], .pag button),:is(.mti, .opfila),:is(.usrcard, .cat-card, .imptipo, [data-agbd]),:is(.cdia, .agsld, .cmesb),:is(.ai),:is([data-rnp], .rnpasos button, .imppasos button),:is(label[for]:not(.btn):not(.opt):not(.chk)),:is(input[type=checkbox]:not(.vfswitch input):not(.sw input), input[type=radio]),:is(button.opt),:is(.card.ancard, #agcuerpo, #agsemlat, .card.sinpad),:is(.card),:is(.card > h2, .card > .fh h2, .card > .fh > div > h2),:is(.kpi.usrresrol, .usrres .kpi, .plres .kpi, .vtot .kpi),:is(.kpi, .plk, .kv, .ankpi, .mt, .pkt),:is(.pill),:is(.pagtabs, .subnav, .pmtabs, .cfgsubs),:is(.pagtabs > button, .subnav > button, .pmtabs > button, .cfgsubs > button),:is(.segs),:is(.dgrid > .dh),:is(.dgrid > .dr),:is(.trow),:is(.lista > .item),:is(.fila[data-id], button.item, .rnopt),:is(dialog#ficha[open], dialog#dlg.dlgficha[open])){border-radius:0 !important}
 }
 /* ==== fin SISTEMA delcos ==== */
+}
+@layer antiguo {
+
 /* v2.331.0: cobro con tarjeta o Bizum en el pedido y su configuración */
 #pdtpv{margin-top:12px;padding-top:12px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:6px}
 #pdtpv .pdpagof .pill{align-self:flex-start}
@@ -4794,6 +4806,37 @@ html body :is(.fvdonde,.pill,.chip):empty{display:none}
 /* v2.350.0: el pedido se enseña cuando están todas sus partes */
 #dlg.pdprep #dbody{visibility:hidden}
 #dlg.pdprep::after{content:"";position:absolute;inset:0;margin:auto;width:44px;height:44px;background:var(--orbita);animation:gira .9s linear infinite}
+
+}
+@layer parches {
+/* v2.356.0: estos arreglos ganaban con la marca «important» a reglas antiguas más fuertes; en esta capa ganan sin él */
+header .logo{height:46px}
+@media (max-width:760px){input,select,textarea,.selval{font-size:16px}}
+.icoacts{gap:6px}
+@media (max-width:760px){dialog .fbox, #dbody, #dlg2body{padding:16px}}
+@media (max-width:760px){dialog .g2,dialog .g3{grid-template-columns:1fr}}
+@media (max-width:760px){.chip,.saludo .acts.chips > *{padding:0 12px}}
+@media (max-width:760px){#v-config .g2,#v-config .g3,#v-facturacion .g2{grid-template-columns:1fr}}
+#cfgcuerpo > .card,#cfgcuerpo > div > .card{margin:12px 0 0}
+.upd{animation:avisoDer .28s cubic-bezier(.2,.8,.2,1)}
+.tools2{z-index:1202}
+.saludo .acts > .btn,.saludo .acts > select{margin:0}
+@media (min-width:1100px){#cfgcuerpo,.pagcuerpo,#fcuerpo{max-width:none}}
+#v-config .numw{max-width:136px}
+#mkvoccard .mkvocf{display:grid}
+#mkvoccard .mkvocf input,#mkvoccard .mkvocf select{max-width:none}
+#v-config .rolmat select{max-width:none}
+@media (max-width:760px){.fab{transition:background-color var(--t-rapido) var(--ease-sal),transform .28s var(--ease-sal),opacity .2s var(--ease-sal)}}
+#kpis.kvivo .kvdona svg{width:58px}
+#kpis.kvivo .kvdona svg{height:58px}
+.spin{animation:gira 1.15s cubic-bezier(.45,.05,.55,.95) infinite}
+.plantilla .kpis.vtot.plres{margin:0 0 2px}
+@media (max-width:620px){.ankpi .ankval{font-size:clamp(17px,5.4vw,22px)}}
+main .subnav button,main .pagtabs button{border:0}
+main .subnav button,main .pagtabs button{background:none}
+main .subnav button,main .pagtabs button{color:#4A6280}
+main .subnav button,main .pagtabs button{box-shadow:none}
+}
 </style>
 </head>
 <body>
@@ -4931,6 +4974,6 @@ try{var co=sessionStorage.getItem('dlc-cambio-org');if(co!==null||localStorage.g
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.355.0"></script>
+<script src="./app.js?v=2.356.0"></script>
 </body>
 </html>

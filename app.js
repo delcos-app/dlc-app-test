@@ -23059,7 +23059,7 @@ const RM_MEM = new Map();   // ruta pedida → {t, r}: solo en memoria y 10 minu
 function rmLib() {
   if (window.maplibregl) return Promise.resolve(window.maplibregl);
   return RM_LIB || (RM_LIB = new Promise((res, rej) => {
-    document.head.insertAdjacentHTML('beforeend', '<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">');
+    document.head.insertAdjacentHTML('beforeend', '<style>@import url("https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css") layer(lib);</style>');   // v2.356.0: en la capa de las librerías
     const s = document.createElement('script'); s.src = 'https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js'; s.crossOrigin = 'anonymous';
     s.onload = () => res(window.maplibregl); s.onerror = () => { RM_LIB = null; rej(new Error('mapa')); }; document.head.appendChild(s);
   }));
@@ -29446,7 +29446,7 @@ function cfgClonarEstilos() {
   const nuevo = sel => sel.split(',').filter(p => re.test(p) && !(re.lastIndex = 0)).map(p => p.replace(re, '#cfgcuerpo-hub .cfgsecc')).join(',');
   const recorrer = (lista, dentro) => {
     for (const r of [...lista]) {
-      if (r.cssRules && r.media) { recorrer(r.cssRules, r); continue; }
+      if (r.cssRules && (r.media || (typeof CSSLayerBlockRule !== 'undefined' && r instanceof CSSLayerBlockRule))) { recorrer(r.cssRules, r); continue; }   // v2.356.0: también dentro de las capas
       if (!r.selectorText || !r.selectorText.includes('#cfgcuerpo')) continue;
       re.lastIndex = 0; const sel = nuevo(r.selectorText); if (!sel) continue;
       try { (dentro || r.parentStyleSheet).insertRule(`${sel}{${r.style.cssText}}`, (dentro || r.parentStyleSheet).cssRules.length); } catch (e) {}
