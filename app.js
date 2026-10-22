@@ -28960,21 +28960,21 @@ function facturaDePedido(d) {
     lineas, base, desglose_iva, total, verifactu: {} };
 }
 async function previaFacturaPedido(id) {
+  // v2.352.0: en su ventana grande, encima del pedido (que sigue abierto tal cual); se abre al momento con el cargador
+  const d2 = $('dlg2');
+  $('dlg2body').innerHTML = '<div class="fh"><div><h2>Vista previa de la factura</h2></div><button class="x" data-cerrar2 aria-label="Cerrar">✕</button></div><div class="facprev facpcarga"><div class="spin"></div></div>';
+  d2.classList.add('amplia'); d2.addEventListener('close', () => d2.classList.remove('amplia'), { once: true });
+  if (!d2.open) d2.showModal();
   await cargarAjustes();
   const { data: d } = await RPC_ORIG('pedido_detalle', { p_id: id });
-  if (!d || !d.pedido) { toast('No se ha podido leer el pedido', true); return; }
+  if (!d2.open) return;
+  if (!d || !d.pedido) { d2.close(); toast('No se ha podido leer el pedido', true); return; }
   const c = d.contacto, falta = !c ? `El pedido no tiene ${TT('paciente', 's', '', 'l', 'l')}: la factura saldrá sin destinatario.` : !c.nif ? `${esc(c.nombre)} no tiene DNI o CIF en su ficha: conviene añadirlo antes.` : '';
-  // v2.350.0: en la misma ventana del pedido; «‹ Volver» lleva otra vez al pedido
-  const dl = $('dlg');
-  if (typeof VISTA !== 'undefined' && VISTA && VISTA.dlg === dl && dl.open && VISTA.fn !== 'previaFacturaPedido') { VISTA.cerrada = null; VUELTA.push(VISTA); }
-  VISTA = { fn: 'previaFacturaPedido', args: [id], t: performance.now(), dlg: dl };
-  $('dbody').innerHTML = `<div class="fh"><div><h2>Vista previa de la factura</h2></div><button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
+  $('dlg2body').innerHTML = `<div class="fh"><div><h2>Vista previa de la factura</h2></div><button class="x" data-cerrar2 aria-label="Cerrar">✕</button></div>
     ${falta ? `<div class="banda-aviso facpaviso">${falta}</div>` : ''}
     <div class="facprev"><iframe id="facpif" title="Vista previa de la factura"></iframe></div>
     <p class="sm">Al emitirla se le da el número siguiente de la serie y ya no se puede modificar ni borrar: un error se corrige con una rectificativa.</p>
-    <div class="acts"><button type="button" class="btn sec" data-cerrar>Cancelar</button><button type="button" class="btn" id="facpemitir">Emitir factura</button></div>`;
-  if (!dl.open) dl.showModal();
-  vistaBoton(VISTA, dl);
+    <div class="acts"><button type="button" class="btn sec" data-cerrar2>Cancelar</button><button type="button" class="btn" id="facpemitir">Emitir factura</button></div>`;
   try {
     const C = Object.assign({}, cfgPDF()); C.titulo = (C.titulo || 'FACTURA') + ' · VISTA PREVIA';
     const doc = await facturaPDF(facturaDePedido(d), '', C);
@@ -28982,7 +28982,7 @@ async function previaFacturaPedido(id) {
   } catch (e) { toast('No se ha podido preparar la vista previa', true); registrarError('app', 'Vista previa de la factura', { e: String(e) }); }
   $('facpemitir').onclick = () => conCarga($('facpemitir'), 'Emitiendo…', async () => {
     const r = await emitirFacturaPedido(id, { yaVista: true });
-    if (r) { if (VUELTA.length) VISTA = VUELTA.pop(); verFactura(r.id); }
+    if (r) { d2.close(); verFactura(r.id); }
   });
 }
 
