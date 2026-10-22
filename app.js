@@ -82,7 +82,7 @@ let PERFIL = null, TAB = 'inicio';
    que los saca del vocabulario de cada cliente (ajuste «terminos») con su plural, su género y el artículo que concuerda.
    TT(término, 's'|'p', determinante, mayúsculas del determinante, mayúsculas del nombre[, adjetivo en masculino singular]) · 'l' minúscula, 'C' inicial, 'U' todo. */
 // v2.224.0: palabras de partida genéricas (antes «médico» y «paciente»: DLC las tiene como vocabulario propio desde el SQL 133)
-const TERM_DEF = { medico: { s: 'profesional', p: 'profesionales', g: 'm' }, paciente: { s: 'cliente', p: 'clientes', g: 'm' }, visita: { s: 'visita', p: 'visitas', g: 'f' }, pauta: { s: 'pauta', p: 'pautas', g: 'f' },
+const TERM_DEF = { medico: { s: 'profesional', p: 'profesionales', g: 'm' }, paciente: { s: 'cliente', p: 'clientes', g: 'm' }, visita: { s: 'visita', p: 'visitas', g: 'f' }, pauta: { s: 'solicitud', p: 'solicitudes', g: 'f' },
   consulta: { s: 'ubicación', p: 'ubicaciones', g: 'f' }, especialidad: { s: 'segmento', p: 'segmentos', g: 'm' } };   // v2.347.0
 const TERM_DET = { el: ['el', 'los', 'la', 'las'], un: ['un', 'unos', 'una', 'unas'], del: ['del', 'de los', 'de la', 'de las'], al: ['al', 'a los', 'a la', 'a las'],
   este: ['este', 'estos', 'esta', 'estas'], ningun: ['ningún', 'ningunos', 'ninguna', 'ningunas'], otro: ['otro', 'otros', 'otra', 'otras'],
@@ -1606,7 +1606,7 @@ async function usuarioFichaMedico(id) {
   };
   if ($('umedver')) $('umedver').onclick = async () => {
     const { data: d } = await RPC_ORIG('informe_cuenta', { p_medico: medico.id });
-    toast(`${medico.nombre}: ${num(d.unidades)} unidades, ${num(d.pautas)} pautas este año${d.posicion ? ' · Nº ' + d.posicion : ''}`);
+    toast(`${medico.nombre}: ${num(d.unidades)} unidades, ${num(d.pautas)} ${TT('pauta', 'p', '', 'l', 'l')} este año${d.posicion ? ' · Nº ' + d.posicion : ''}`);
   };
 }
 
@@ -4936,14 +4936,14 @@ async function pedidoFacturas(id) {
   const acts = $('dbody').querySelector('.acts:last-of-type'); if (!acts) return;
   const { data } = await RPC_ORIG('pedido_detalle', { p_id: id });
   const p = data && data.pedido; if (!p) return;
-  const { data: fs } = await RPC_ORIG('facturas_lista', { q: null, lim: 1000 });
-  const fac = (fs || []).filter(f => f.pedido_id === id);
+  const { data: fs } = await db.from('facturas').select('id,numero,pedido_id').eq('pedido_id', id);   // v2.350.0: solo las de este pedido
+  const fac = fs || [];
   if (fac.length) {
     acts.insertAdjacentHTML('afterbegin', fac.map(f => `<button class="btn sec" data-pvfac="${f.id}">🧾 ${esc(f.numero)}</button>`).join(''));
     acts.querySelectorAll('[data-pvfac]').forEach(b => b.onclick = () => verFactura(b.dataset.pvfac));
   } else if (p.estado === 'Confirmado' && !p.sin_cargo && puedeFacturar()) {
     acts.insertAdjacentHTML('afterbegin', '<button class="btn" id="pvemitir">🧾 Ver la factura</button>');   // v2.339.0: primero la vista previa
-    $('pvemitir').onclick = () => previaFacturaPedido(id);
+    acts.querySelector('#pvemitir').onclick = () => previaFacturaPedido(id);
   }
 }
 
@@ -7757,7 +7757,7 @@ const MANUAL = [
   { id: 'directorio', t: `${TT('medico', 'p', '', 'l', 'C')}`, a: 'M', para: `Todos ${TT('medico', 'p', 'el', 'l', 'l')} que puedes ver: tu cartera o toda la base si eres de administración o televenta.`,
     hacer: [[1, 'Buscar, filtrar y ver fichas'], [2, 'Editar fichas y horarios de atención'], [3, `Dar de alta ${TT('medico', 'p', '', 'l', 'l', 'nuevo')}`], [3, 'Unificar duplicados (administración)']],
     config: ['Columnas visibles (⋯ → Elegir columnas)', 'Filtros guardados como indicadores de Inicio'] },
-  { id: 'centros', t: 'Centros', a: 'C', para: 'Las fichas de clínicas, hospitales y centros.',
+  { id: 'centros', t: 'Centros', a: 'C', para: 'Las fichas de centros y clínicas.',
     hacer: [[1, 'Ver fichas de centros'], [2, 'Editarlas'], [3, 'Darlas de alta']], config: [] },
   { id: 'visitas', t: `${TT('visita', 'p', '', 'l', 'C')}`, a: 'S', para: `El registro de cada ${TT('visita', 's', '', 'l', 'l')}: resultado, muestras, material entregado y próxima acción.`,
     hacer: [[1, `Ver el historial de ${TT('visita', 'p', '', 'l', 'l')}`], [2, `Registrar y editar ${TT('visita', 'p', '', 'l', 'l')}`]],
@@ -8452,7 +8452,7 @@ async function trazabilidad(loteId) {
   const lo = (data && data.lote) || {}, m = (data && data.movimientos) || [];
   const tipos = { inicial: 'Stock inicial', entrada_compra: 'Entrada por compra', salida_venta: 'Venta', anulacion_venta: 'Anulación de venta',
     salida_muestra: `Muestra en ${TT('visita', 's', '', 'l', 'l')}`, ajuste: 'Ajuste de inventario', traspaso_salida: 'Traspaso (sale)', traspaso_entrada: 'Traspaso (entra)', devolucion: 'Devolución',
-    consumo_deposito: 'Usado en un depósito', consumo_cirugia: 'Usado en una cirugía' };
+    consumo_deposito: 'Usado en un depósito', consumo_cirugia: 'Usado en una intervención' };
   $('dlg2body').innerHTML = `
     <div class="fh"><div><h2>Trazabilidad · lote ${esc(lo.numero_lote || '')}</h2>
       <div class="sm">${esc(lo.producto || '')}${lo.caducidad ? ' · caduca el ' + fechaCorta(lo.caducidad) : ''}${lo.proveedor ? ' · ' + esc(lo.proveedor) : ''}${lo.compra ? ' · compra ' + esc(lo.compra) : ''}</div></div>
@@ -9714,17 +9714,17 @@ async function cargarInforme() {
     $('mdcuerpo').innerHTML = `
       <div class="kpis vtot mdk">
         <div class="kpi"><b>${num(d.unidades)}</b><span>unidades atribuidas</span></div>
-        <div class="kpi"><b>${num(d.pautas)}</b><span>pautas (pedidos)</span></div>
+        <div class="kpi"><b>${num(d.pautas)}</b><span>${TT('pauta', 'p', '', 'l', 'l')} (pedidos)</span></div>
         <div class="kpi"><b>${num(d.pacientes)}</b><span>${TT('paciente', 'p', '', 'l', 'l')}</span></div>
         <div class="kpi"><b>${num(d.repiten)}</b><span>${TT('paciente', 'p', '', 'l', 'l')} que repiten</span></div>
         <div class="kpi ${top ? 'ok' : ''}"><b>${top ? '🏆 ' + top : d.posicion ? 'Nº ' + d.posicion : '—'}</b><span>${d.posicion ? `de ${num(d.prescriptores)} ${TT('medico', 'p', '', 'l', 'l')}` : 'sin ventas en el periodo'}</span></div>
       </div>
       <div class="angrid">
-        <div class="card ancard ancha"><h2>Tus pautas mes a mes</h2>
-          ${d.unidades ? svgBarras(meses, meses.map(m => (serie[m] || {}).unidades || 0), meses.map(m => (serie[m] || {}).pautas || 0), ['Unidades', 'Pautas'])
+        <div class="card ancard ancha"><h2>Tus ${TT('pauta', 'p', '', 'l', 'l')} mes a mes</h2>
+          ${d.unidades ? svgBarras(meses, meses.map(m => (serie[m] || {}).unidades || 0), meses.map(m => (serie[m] || {}).pautas || 0), ['Unidades', TT('pauta', 'p', '', 'l', 'C')])
             : vacioGrafico(`Cuando tus ${TT('paciente', 'p', '', 'l', 'l')} hagan su pedido, verás aquí la evolución.`)}
           <p class="leer">Cada barra son las unidades atribuidas en el mes y la línea, el número de ventas.${d.ultima_pauta ? ' Última venta: ' + fechaCorta(d.ultima_pauta) + '.' : ''}</p></div>
-        <div class="card ancard"><h2>Qué pautas</h2>
+        <div class="card ancard"><h2>Qué ${TT('pauta', 'p', '', 'l', 'l')}</h2>
           ${(d.productos || []).length ? svgDonut(d.productos.map(x => ({ n: x.nombre, v: x.unidades }))) : vacioGrafico('Aparecerá el reparto por producto.')}</div>
         <div class="card ancard"><h2>Llamadas de tus ${TT('paciente', 'p', '', 'l', 'l')}</h2>
           <div class="minis"><div><b>${num(ll.total || 0)}</b><span>llamadas</span></div><div><b>${conv == null ? '—' : conv + '%'}</b><span>acaban en pedido</span></div></div>
@@ -16065,7 +16065,7 @@ async function portalMedico() {
   const ls = sols || [], lm = msgs || [];
   caja.innerHTML = `
     <div class="card ancard ancha" id="mdcons"><h2>Continuidad de las ${TT('pauta', 'p', '', 'l', 'l')}</h2>${constancia}
-      <p class="leer">Cifras agregadas y anónimas de los últimos 12 meses. Nunca se muestra información de ninguna persona.</p></div>
+      <p class="leer">En los últimos 12 meses: cuántas ${TT('pauta', 'p', '', 'l', 'l')} han empezado, qué parte se ha repetido y cada cuántos días.</p></div>
     <div class="card ancard" id="mdmat"><h2>Pedir material</h2>
       ${lp.length ? `<div class="g2"><div><label for="mdmatm">Material</label><select id="mdmatm">${lp.map(x => `<option value="${esc(x.valor)}" data-max="${x.max}">${esc(x.valor)}</option>`).join('')}</select></div>
         <div><label for="mdmatn">Cantidad</label><input id="mdmatn" type="number" min="1" value="1"><span class="sm" id="mdmatmax">Máximo ${num(lp[0].max)} por petición</span></div></div>
@@ -17735,7 +17735,7 @@ const PLAN_FILAS = () => {
     ['Pedidos web y pagos', 'Lo que entra por tu web, con referencia y justificante del pago', C],
     ['Oportunidades', 'Cada venta, se cierre o no, con sus métricas', C],   // v2.158.0: incluida desde Comercial
     ['Cobertura de cada producto por ciclo', `Qué productos han oído tus ${med} de A, B y C en sus ${vis}`, C],   // v2.199.0
-    ['Eventos y transparencia', 'Talleres, cursos y congresos con sus asistentes y el informe anual', C],   // v2.199.0
+    ['Eventos e informe de gastos', 'Talleres, cursos y congresos con sus asistentes y el informe anual', C],   // v2.199.0
     ['Productos y stock por lotes', 'Catálogo, lotes, caducidades y almacenes', C],
     ['Analítica', 'Indicadores por áreas comparados con el periodo anterior, y explorar tus datos', C],
     ['Comisiones por tramos', 'Esquemas y liquidaciones de cada mes', C],
@@ -17743,7 +17743,7 @@ const PLAN_FILAS = () => {
     ['Facturación con VeriFactu y cobros', 'Series, rectificativas y el registro de cada factura', E],
     ['Compras, proveedores y trazabilidad', 'Lo enviado, lo que está en camino y lo recibido', E],
     ['Material en depósito', 'Lo que tienes en cada centro, lo usado y su reposición', E],   // v2.201.0
-    ['Cirugías con lote y número de serie', 'Programación, lo usado por unidad, pedido y reposición en 48 horas', E],   // v2.201.0
+    ['Intervenciones con lote y número de serie', 'Programación, lo usado por unidad, pedido y reposición en 48 horas', E],   // v2.201.0
     ['Concursos y contratos', 'Pliegos, lotes adjudicados y precios de contrato en los pedidos', E],   // v2.201.0
     ['Parque instalado', 'Equipos con su número de serie, contrato, garantía y revisiones', E],   // v2.201.0
     ['Zonas, supervisión del equipo y auditoría', 'Historial de cambios de cada ficha, con deshacer', E],
@@ -19944,7 +19944,7 @@ abrirVisitaBase = (orig => async function (id, ...r) {
   const res = await orig.call(this, id, ...r);
   const d = $('dbody'), nota = $('vn');
   if (!d || !nota || !$('vguardar') || $('vmuestras') || !VISITA_ACTUAL || VISITA_ACTUAL.id !== id) return res;
-  if (!navigator.onLine) return res;   // v2.259.0: sin red no hay muestras con firma (y db.from tardaba más de 10 s en rendirse)
+  if (!navigator.onLine) return res;   // v2.259.0: sin red no hay muestras (y db.from tardaba más de 10 s en rendirse)
   try { const { data: ct } = await db.from('cuentas').select('tipo').eq('id', id).maybeSingle(); if (ct && ct.tipo === 'Centro') return res; } catch (e) {}   // v2.203.0
   const { data: l } = await db.rpc('muestras_de_cuenta', { p_cuenta: id });
   if (!Array.isArray(l) || !l.length || !$('vn') || $('vmuestras')) return res;
@@ -20120,13 +20120,13 @@ verPedido = (orig => async function (id, ...a) {
    «Quién los recomienda» pasan a «… de referencia», con el vocabulario de cada empresa; «Recomendaciones de rutas» pasa a «Rutas
    sugeridas». Cambiado en su sitio (reemplazos2194). Las demos (sql/demo/generar_demos.py) usan «Activo» y «Visita con pedido». */
 
-/* v2.195.0 · Eventos, formación y transparencia (última pieza de la primera tanda del estudio por sectores, SQL 121). Decisiones de Eric:
-   sección propia «Eventos» (en el bloque Cartera del menú), importe por concepto por asistente con informe anual de transparencia, y en los
+/* v2.195.0 · Eventos, formación e informe de gastos (última pieza de la primera tanda del estudio por sectores, SQL 121). Decisiones de Eric:
+   sección propia «Eventos» (en el bloque Cartera del menú), importe por concepto por asistente con informe anual de gastos, y en los
    planes Comercial, Empresa y A medida (candado en Campo, como Compras).
    - Eventos → «Eventos»: próximos y pasados; «+ Nuevo evento» (título, tipo, fecha, hora, lugar o en línea, nota); al abrir uno, sus
      asistentes con su estado y lo que se le da a cada uno (inscripción, viaje y alojamiento, comidas, honorarios), con aviso si una comida
      pasa de 60 € por persona.
-   - Eventos → «Transparencia» (administración o quien ve todo el equipo): por año, lo dado a cada profesional por concepto, para descargar.
+   - Eventos → «Informe de gastos» (administración o quien ve todo el equipo): por año, lo dado a cada profesional por concepto, para descargar.
    - Ficha: bloque «Eventos» con los últimos a los que ha ido o está invitado. */
 const EV_TIPOS = ['Taller', 'Curso', 'Congreso', 'Webinar', 'Reunión científica', 'Comida de trabajo', 'Otro'];
 const EV_ESTADOS = ['Invitado', 'Confirmado', 'Asistió', 'No asistió'];
@@ -20147,7 +20147,7 @@ aplicarPermisosMenu = (orig => function (...a) { try { menuEventos(); } catch (e
 const verTransparencia = () => puede('administrar') || VE_TODO();
 PAGINAS.eventos = { t: 'Eventos', permiso: () => !ES_MEDICO() && puedeModulo('directorio') && planIncluyeSeccion('eventos') };
 Object.defineProperty(PAGINAS.eventos, 'd', { get: () => 'Talleres, cursos y congresos con sus asistentes, inscripciones y gastos' });
-Object.defineProperty(PAGINAS.eventos, 'tabs', { get: () => [['lista', 'Eventos', () => pintarEventos()]].concat(verTransparencia() ? [['transparencia', 'Transparencia', () => pintarTransparencia()]] : []) });
+Object.defineProperty(PAGINAS.eventos, 'tabs', { get: () => [['lista', 'Eventos', () => pintarEventos()]].concat(verTransparencia() ? [['transparencia', 'Informe de gastos', () => pintarTransparencia()]] : []) });
 
 async function pintarEventos() {
   const caja = $('cfgcuerpo'); if (!caja) return;
@@ -20215,7 +20215,7 @@ async function verEvento(id) {
         <button type="button" class="x" data-asq aria-label="Quitar">✕</button>
         <div class="evimp">${EV_CONCEPTOS.map(([k, t]) => `<label><span>${t}</span><input type="number" min="0" step="0.01" data-asimp="${k}" value="${+a[k] ? +a[k] : ''}" placeholder="0"></label>`).join('')}</div></div>`).join('') : '<div class="vacio vlinea">Todavía no hay asistentes: añade los invitados.</div>'}</div>
     <div class="evpie"><span>Gastos de este evento</span><b id="evtotal">${eur(tot())}</b></div>
-    <p class="sm">Las inscripciones y gastos de cada asistente (inscripción, viaje y alojamiento, comidas y honorarios) salen en el informe anual de transparencia. Las comidas no deberían pasar de ${EV_COMIDA_MAX} € por persona.</p>
+    <p class="sm">Las inscripciones y gastos de cada asistente (inscripción, viaje y alojamiento, comidas y honorarios) salen en el informe anual de gastos. Las comidas no deberían pasar de ${EV_COMIDA_MAX} € por persona.</p>
     <div class="acts" style="justify-content:flex-end">${edita ? '<button type="button" class="btn sec" id="eveditar">Editar evento</button>' : ''}<button type="button" class="btn" data-cerrar>Hecho</button></div>`;
   if (!$('dlg').open) $('dlg').showModal();
   if ($('eveditar')) $('eveditar').onclick = () => editarEvento(e);
@@ -20264,7 +20264,7 @@ async function pintarTransparencia(anio) {
   const suma = k => l.reduce((s, x) => s + (+x[k] || 0), 0);
   caja.innerHTML = `<div class="evpag"><div class="evcab"><label for="trano">Año</label><select id="trano">${[actual, actual - 1, actual - 2, actual - 3].map(y => `<option ${y === anio ? 'selected' : ''}>${y}</option>`).join('')}</select>
       ${l.length ? '<button type="button" class="btn sec" id="trcsv">Descargar (CSV)</button>' : ''}</div>
-    <p class="sm">Los gastos de eventos de cada ${TT('medico', 's', '', 'l', 'l')} durante el año, por concepto (las asistencias marcadas «No asistió» no cuentan). Es la base del informe anual de transparencia de los códigos de Farmaindustria y Fenin: revísalo con vuestro responsable de cumplimiento antes de publicarlo.</p>
+    <p class="sm">Los gastos de eventos de cada ${TT('medico', 's', '', 'l', 'l')} durante el año, por concepto (las asistencias marcadas «No asistió» no cuentan). Es la base del informe anual de gastos de los códigos de Farmaindustria y Fenin: revísalo con vuestro responsable de cumplimiento antes de publicarlo.</p>
     ${l.length ? `<div class="dgrid-wrap"><table class="trtabla"><thead><tr><th>${TT('medico', 's', '', 'l', 'C')}</th><th>Eventos</th>${EV_CONCEPTOS.map(([, t]) => `<th>${t}</th>`).join('')}<th>Total</th></tr></thead>
       <tbody>${l.map(x => `<tr><td><b>${esc(x.nombre)}</b>${x.especialidad ? `<span class="sm"> · ${esc(x.especialidad)}</span>` : ''}</td><td>${x.eventos}</td>${EV_CONCEPTOS.map(([k]) => `<td>${eur(+x[k] || 0)}</td>`).join('')}<td><b>${eur(+x.total || 0)}</b></td></tr>`).join('')}</tbody>
       <tfoot><tr><td>Total</td><td></td>${EV_CONCEPTOS.map(([k]) => `<td>${eur(suma(k))}</td>`).join('')}<td><b>${eur(suma('total'))}</b></td></tr></tfoot></table></div>`
@@ -20275,7 +20275,7 @@ async function pintarTransparencia(anio) {
     const csv = [[TT('medico', 's', '', 'l', 'C'), 'Código', TT('especialidad', 's', '', 'l', 'C'), 'Eventos', ...EV_CONCEPTOS.map(([, t]) => t), 'Total'].map(q).join(';')]
       .concat(l.map(x => [q(x.nombre), q(x.codigo), q(x.especialidad), x.eventos, ...EV_CONCEPTOS.map(([k]) => n(x[k])), n(x.total)].join(';'))).join('\r\n');
     const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' }));
-    a.download = `transparencia-${anio}.csv`; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+    a.download = `informe de gastos-${anio}.csv`; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
   };
 }
 
@@ -20341,7 +20341,7 @@ function formDeposito(acc) {
     f.innerHTML = `<div class="depbox"><b>Apuntar lo usado</b>
       <div class="depitems">${l.map((x, i) => `<label><span>${esc(x.nombre)} <span class="sm">· ${esc(x.numero_lote || 'sin lote')} · quedan ${num(x.unidades)}</span></span>
         <input type="number" min="0" max="${x.unidades}" step="1" data-dlin="${i}" placeholder="0" aria-label="Usadas de ${esc(x.nombre)}"></label>`).join('')}</div>
-      <label for="depref">Referencia</label><input id="depref" maxlength="120" placeholder="p. ej. Cirugía del martes, quirófano 2 (sin datos del paciente)">
+      <label for="depref">Referencia</label><input id="depref" maxlength="120" placeholder="p. ej. Intervención del martes, sala 2 (sin datos del paciente)">
       <div class="acts" style="justify-content:flex-end"><button type="button" class="btn sec" id="depcanc">Cancelar</button><button type="button" class="btn" id="depok">Apuntar</button></div></div>`;
   } else {
     f.innerHTML = `<div class="depbox"><b>Recuento</b><span class="sm">Escribe lo que hay ahora; lo que falte se apunta como usado.</span>
@@ -20675,24 +20675,24 @@ async function pintarCobertura() {
   caja.querySelectorAll('[data-cfi]').forEach(b => b.onclick = () => abrirFicha(b.dataset.cfi));
   caja.querySelectorAll('[data-ccita]').forEach(b => b.onclick = () => nuevaCita(b.dataset.ccita));
 }
-/* v2.199.0 · Cirugías con lote y número de serie (tercera tanda del estudio por sectores, SQL 125). Decisiones de Eric: sección propia y
-   cada cirugía también en la Agenda de quien asiste; el material se elige en cada cirugía (depósito del hospital o el de quien asiste); el
-   número de serie o UDI se apunta al usar; lo usado crea el pedido en borrador al hospital y una reposición con plazo de 48 horas que avisa.
-   - Menú «Cirugías» (en «Tu día»): reposiciones pendientes (las vencidas, marcadas), próximas y hechas en los últimos 30 días; «+ Nueva cirugía».
-   - Ventana de la cirugía: datos, «Registrar lo usado» (por lote, con un número de serie o UDI por unidad y la referencia del paciente sin
+/* v2.199.0 · Intervenciones con lote y número de serie (tercera tanda del estudio por sectores, SQL 125). Decisiones de Eric: sección propia y
+   cada intervención también en la Agenda de quien asiste; el material se elige en cada intervención (depósito del centro o el de quien asiste); el
+   número de serie se apunta al usar; lo usado crea el pedido en borrador al centro y una reposición con plazo de 48 horas que avisa.
+   - Menú «Intervenciones» (en «Tu día»): reposiciones pendientes (las vencidas, marcadas), próximas y hechas en los últimos 30 días; «+ Nueva intervención».
+   - Ventana de la cirugía: datos, «Registrar lo usado» (por lote, con un número de serie por unidad y la referencia del paciente sin
      datos de salud), lo usado con su lote y serie, el pedido y «Reponer ahora».
-   - Ficha del cirujano o del hospital: sus últimas cirugías. Los avisos de reposición vencida abren la cirugía. */
-const CIR_ORIGEN = [['deposito', 'Depósito del hospital'], ['personal', 'Material de quien asiste']];
+   - Ficha del responsable o del centro: sus últimas intervenciones. Los avisos de reposición vencida abren la intervención. */
+const CIR_ORIGEN = [['deposito', 'Depósito del centro'], ['personal', 'Material de quien asiste']];
 const cirHora = c => c.hora ? String(c.hora).slice(0, 5) : '';
 const cirRepo = c => c.reposicion === 'vencida' ? '<span class="pill p-urg">Reposición vencida</span>'
   : c.reposicion === 'pendiente' ? `<span class="pill p-warn">Reponer antes del ${esc(new Date(c.reposicion_limite).toLocaleString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }))}</span>`
   : c.reposicion === 'repuesta' ? '<span class="pill p-est">Repuesta</span>' : '';
 const cirEstado = c => `<span class="pill ${c.estado === 'Hecha' ? 'p-est' : c.estado === 'Anulada' ? 'p-anu' : 'p-per'}">${esc(c.estado)}</span>`;
-const CIR_ERR = { permiso: 'No puedes cambiar esta cirugía', faltan: 'Faltan la fecha, el hospital o el cirujano', hospital: 'El hospital tiene que ser una ficha de tipo centro',
-  sin_deposito: 'Este hospital no tiene depósito: déjale material desde su ficha o elige el material de quien asiste', sin_almacen: 'Quien asiste no tiene almacén propio con material',
-  hecha: 'La cirugía ya está hecha: no se puede cambiar', sin_stock: 'No hay bastante en el almacén de la cirugía', series: 'Hay más números de serie que unidades',
-  linea: 'Revisa las unidades de cada línea', vacio: 'Apunta al menos una unidad usada', anulada: 'La cirugía está anulada', no_hecha: 'Primero registra lo usado',
-  sin_origen: 'No hay almacén central del que reponer', cirujano: 'Elige un cirujano de tu empresa', asistente: 'Quien asiste tiene que ser una persona activa del equipo',
+const CIR_ERR = { permiso: 'No puedes cambiar esta intervención', faltan: 'Faltan la fecha, el centro o el responsable', hospital: 'El centro tiene que ser una ficha de tipo centro',
+  sin_deposito: 'Este centro no tiene depósito: déjale material desde su ficha o elige el material de quien asiste', sin_almacen: 'Quien asiste no tiene almacén propio con material',
+  hecha: 'La intervención ya está hecha: no se puede cambiar', sin_stock: 'No hay bastante en el almacén de la intervención', series: 'Hay más números de serie que unidades',
+  linea: 'Revisa las unidades de cada línea', vacio: 'Apunta al menos una unidad usada', anulada: 'La intervención está anulada', no_hecha: 'Primero registra lo usado',
+  sin_origen: 'No hay almacén central del que reponer', cirujano: 'Elige un responsable de tu empresa', asistente: 'Quien asiste tiene que ser una persona activa del equipo',
   valores: 'Revisa de dónde sale el material' };
 const cirError = r => CIR_ERR[r && r.error] || 'No se ha podido guardar';
 Object.assign(ICON_NOM, { scissors: '<circle cx="6" cy="6" r="3"/><path d="M8.12 8.12 12 12"/><path d="M20 4 8.12 15.88"/><circle cx="6" cy="18" r="3"/><path d="M14.8 14.8 20 20"/>' });
@@ -20701,11 +20701,11 @@ ICO_NAV.cirugias = 'scissors'; ICO_MOD.cirugias = svgIco(ICON_NOM.scissors);
 function menuCirugias() {
   const nav = document.querySelector('nav.main .in'); if (!nav) return;
   let b = nav.querySelector('[data-t="cirugias"]');
-  if (!b) { const tras = nav.querySelector('[data-t="ciclo"]') || nav.querySelector('[data-t="agenda"]'); if (!tras) return; tras.insertAdjacentHTML('afterend', '<button data-t="cirugias" aria-selected="false">Cirugías</button>'); b = nav.querySelector('[data-t="cirugias"]'); }
+  if (!b) { const tras = nav.querySelector('[data-t="ciclo"]') || nav.querySelector('[data-t="agenda"]'); if (!tras) return; tras.insertAdjacentHTML('afterend', '<button data-t="cirugias" aria-selected="false">Intervenciones</button>'); b = nav.querySelector('[data-t="cirugias"]'); }
   b.classList.toggle('hide', !!(ES_MEDICO() || !puedeModulo('agenda')));
 }
 aplicarPermisosMenu = (orig => function (...a) { try { menuCirugias(); } catch (e) {} const r = orig.apply(this, a); try { menuCirugias(); } catch (e) {} return r; })(aplicarPermisosMenu);
-PAGINAS.cirugias = { t: 'Cirugías', permiso: () => !ES_MEDICO() && puedeModulo('agenda'), tabs: [['lista', 'Cirugías', () => pintarCirugias()]] };
+PAGINAS.cirugias = { t: 'Intervenciones', permiso: () => !ES_MEDICO() && puedeModulo('agenda'), tabs: [['lista', 'Intervenciones', () => pintarCirugias()]] };
 Object.defineProperty(PAGINAS.cirugias, 'd', { get: () => 'Programación, material usado con lote y número de serie, y reposición en 48 horas' });
 
 async function pintarCirugias() {
@@ -20713,21 +20713,21 @@ async function pintarCirugias() {
   const hoy = hoyISO();
   const { data, error } = await db.rpc('cirugias_lista', { p_desde: isoMas(hoy, -30), p_hasta: isoMas(hoy, 120) });
   if (!$('cfgcuerpo') || TAB !== 'cirugias') return;
-  if (error) { caja.innerHTML = '<div class="vacio">No se han podido cargar las cirugías.</div>'; return; }
+  if (error) { caja.innerHTML = '<div class="vacio">No se han podido cargar las intervenciones.</div>'; return; }
   const l = data || [];
   const repo = l.filter(c => c.reposicion === 'vencida' || c.reposicion === 'pendiente');
   const prox = l.filter(c => c.estado === 'Programada' && c.fecha >= hoy);
   const atras = l.filter(c => c.estado === 'Programada' && c.fecha < hoy);
   const hechas = l.filter(c => c.estado !== 'Programada' && c.fecha <= hoy).reverse();
   const fila = c => `<button type="button" class="item cirrow" data-cir="${c.id}"><span class="cirf"><b>${esc(fechaCorta(c.fecha))}</b><span class="sm">${esc(cirHora(c))}</span></span>
-    <span class="tx"><b>${esc(c.procedimiento || 'Cirugía')}</b><span class="sm">${esc([c.cirujano, c.hospital, c.quirofano].filter(Boolean).join(' · '))}${c.asistente ? ' · asiste ' + esc(c.asistente) : ''}</span></span>
+    <span class="tx"><b>${esc(c.procedimiento || 'Intervención')}</b><span class="sm">${esc([c.cirujano, c.hospital, c.quirofano].filter(Boolean).join(' · '))}${c.asistente ? ' · asiste ' + esc(c.asistente) : ''}</span></span>
     <span class="cirest">${cirEstado(c)}${c.estado === 'Hecha' && !c.pedido_id ? '<span class="pill p-warn">Sin pedido</span>' : ''}${cirRepo(c)}</span></button>`;
   const bloque = (t, l2, vacio) => `<section class="card cirbloque"><h2>${t}</h2>${l2.length ? `<div class="lista">${l2.map(fila).join('')}</div>` : `<div class="vacio vlinea">${vacio}</div>`}</section>`;
-  caja.innerHTML = `<div class="cirpag"><div class="evcab"><button type="button" class="btn" id="cirnueva">+ Nueva cirugía</button></div>
+  caja.innerHTML = `<div class="cirpag"><div class="evcab"><button type="button" class="btn" id="cirnueva">+ Nueva intervención</button></div>
     ${repo.length ? bloque('Reposiciones pendientes', repo, '') : ''}
     ${atras.length ? bloque('Sin registrar lo usado', atras, '') : ''}
-    ${bloque('Próximas', prox, 'No hay cirugías programadas.')}
-    ${bloque('Hechas en los últimos 30 días', hechas, 'Todavía no hay cirugías hechas.')}</div>`;
+    ${bloque('Próximas', prox, 'No hay intervenciones programadas.')}
+    ${bloque('Hechas en los últimos 30 días', hechas, 'Todavía no hay intervenciones hechas.')}</div>`;
   $('cirnueva').onclick = () => editarCirugia(null);
   caja.querySelectorAll('[data-cir]').forEach(b => b.onclick = () => verCirugia(b.dataset.cir));
 }
@@ -20736,16 +20736,16 @@ async function editarCirugia(c) {
   const e = c || { fecha: isoMas(hoyISO(), 1), origen: 'deposito', asistente_id: PERFIL.id };
   if (!COMS.length) { try { await cargarComerciales(); } catch (x) {} }
   const gente = COMS.some(u => u.id === PERFIL.id) ? COMS : [{ id: PERFIL.id, nombre: PERFIL.nombre }].concat(COMS);
-  $('dbody').innerHTML = `<div class="fh"><div><h2>${c ? 'Cambiar la cirugía' : 'Nueva cirugía'}</h2><div class="sm">Sale también en la Agenda de quien asiste</div></div>
+  $('dbody').innerHTML = `<div class="fh"><div><h2>${c ? 'Cambiar la intervención' : 'Nueva intervención'}</h2><div class="sm">Sale también en la Agenda de quien asiste</div></div>
       <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
     <div class="g2"><div><label for="cirf">Fecha</label><input id="cirf" type="date" value="${esc(e.fecha || '')}"></div>
       <div><label for="cirh">Hora</label><input id="cirh" type="time" value="${esc(cirHora(e))}"></div></div>
-    <label>Hospital</label><div id="cirhos"></div>
-    <label>Cirujano</label><div id="circir"></div>
+    <label>Centro</label><div id="cirhos"></div>
+    <label>Responsable</label><div id="circir"></div>
     <div class="g2"><div><label for="cirp">Procedimiento</label><input id="cirp" value="${esc(e.procedimiento || '')}" placeholder="p. ej. Prótesis de rodilla"></div>
-      <div><label for="cirq">Quirófano</label><input id="cirq" value="${esc(e.quirofano || '')}" placeholder="p. ej. Q3"></div></div>
+      <div><label for="cirq">Sala</label><input id="cirq" value="${esc(e.quirofano || '')}" placeholder="p. ej. Q3"></div></div>
     <div class="g2"><div><label for="cira">Asiste</label><select id="cira">${gente.map(u => `<option value="${u.id}" ${u.id === e.asistente_id ? 'selected' : ''}>${esc(u.nombre)}</option>`).join('')}</select></div>
-      <div><label for="cirref">Referencia ${TT('paciente', 's', 'del', 'l', 'l')}</label><input id="cirref" maxlength="60" value="${esc(e.referencia_caso || '')}" placeholder="Código del hospital, sin datos de salud"></div></div>
+      <div><label for="cirref">Referencia ${TT('paciente', 's', 'del', 'l', 'l')}</label><input id="cirref" maxlength="60" value="${esc(e.referencia_caso || '')}" placeholder="Código del centro, sin datos de salud"></div></div>
     <label>De dónde sale el material</label>
     <div class="segs" id="cirori" role="group" aria-label="De dónde sale el material">${CIR_ORIGEN.map(([k, t]) => `<button type="button" data-o="${k}" class="${k === e.origen ? 'on' : ''}" aria-pressed="${k === e.origen}">${t}</button>`).join('')}</div>
     <label for="cirn">Nota</label><textarea id="cirn" rows="2">${esc(e.nota || '')}</textarea>
@@ -20753,46 +20753,46 @@ async function editarCirugia(c) {
       <button type="button" class="btn sec" data-cerrar>Cancelar</button><button type="button" class="btn" id="cirok">${c ? 'Guardar' : 'Programar'}</button></div>`;
   if (!$('dlg').open) $('dlg').showModal();
   const sel = { hos: c ? { id: c.hospital_id, nombre: c.hospital } : null, cir: c ? { id: c.cirujano_id, nombre: c.cirujano, especialidad: c.especialidad } : null };
-  selectorMedico($('cirhos'), { valor: sel.hos, placeholder: 'Busca el hospital o la clínica', alElegir: m => { sel.hos = m; } });
-  selectorMedico($('circir'), { valor: sel.cir, placeholder: 'Busca al cirujano', alElegir: m => { sel.cir = m; } });
+  selectorMedico($('cirhos'), { valor: sel.hos, placeholder: 'Busca el centro o la clínica', alElegir: m => { sel.hos = m; } });
+  selectorMedico($('circir'), { valor: sel.cir, placeholder: 'Busca al responsable', alElegir: m => { sel.cir = m; } });
   $('cirori').querySelectorAll('[data-o]').forEach(b => b.onclick = () => $('cirori').querySelectorAll('[data-o]').forEach(x => { x.classList.toggle('on', x === b); x.setAttribute('aria-pressed', String(x === b)); }));
   const guardar = async (estado, boton) => {
-    if (!$('cirf').value || !sel.hos || !sel.cir) { toast('Elige la fecha, el hospital y el cirujano', true); return; }
+    if (!$('cirf').value || !sel.hos || !sel.cir) { toast('Elige la fecha, el centro y el responsable', true); return; }
     boton.disabled = true;
     const { data: r, error } = await db.rpc('cirugia_guardar', { p: { id: c ? c.id : null, fecha: $('cirf').value, hora: $('cirh').value || null,
       hospital_id: sel.hos.id, cirujano_id: sel.cir.id, procedimiento: $('cirp').value, quirofano: $('cirq').value, asistente_id: $('cira').value,
       origen: $('cirori').querySelector('.on').dataset.o, referencia_caso: $('cirref').value, nota: $('cirn').value, estado } });
     boton.disabled = false;
     if (error || !r || r.ok === false) { toast(error ? 'No se ha podido guardar: ' + error.message : cirError(r), true); return; }
-    toast(estado === 'Anulada' ? 'Cirugía anulada' : c ? 'Cirugía guardada' : 'Cirugía programada'); invalidarCache();
+    toast(estado === 'Anulada' ? 'Intervención anulada' : c ? 'Intervención guardada' : 'Intervención programada'); invalidarCache();
     if (estado === 'Anulada') $('dlg').close(); else verCirugia(r.id);
   };
   $('cirok').onclick = ev => guardar('Programada', ev.target);
   if ($('ciranular')) $('ciranular').onclick = async ev => {
-    if (!await preguntar('La cita de la Agenda queda descartada.', { titulo: '¿Anular la cirugía?', ok: 'Anular', peligro: true })) return;
+    if (!await preguntar('La cita de la Agenda queda descartada.', { titulo: '¿Anular la intervención?', ok: 'Anular', peligro: true })) return;
     guardar('Anulada', ev.target);
   };
 }
 
 async function verCirugia(id, aviso) {
   const { data: d, error } = await db.rpc('cirugia_detalle', { p_id: id });
-  if (error || !d) { toast('No se ha encontrado la cirugía', true); return; }
+  if (error || !d) { toast('No se ha encontrado la intervención', true); return; }
   const c = d.cirugia, prog = c.estado === 'Programada', st = d.stock || [], us = d.consumos || [];
   const repo = c.estado !== 'Hecha' ? null : c.repuesta_en ? 'repuesta' : new Date(c.reposicion_limite) < new Date() ? 'vencida' : 'pendiente';
-  $('dbody').innerHTML = `<div class="fh"><div><h2>${esc(c.procedimiento || 'Cirugía')}</h2>
+  $('dbody').innerHTML = `<div class="fh"><div><h2>${esc(c.procedimiento || 'Intervención')}</h2>
       <div class="sm">${esc(fechaLarga(new Date(c.fecha + 'T12:00:00')))}${c.hora ? ' · ' + esc(cirHora(c)) : ''} · ${esc(d.hospital)}${c.quirofano ? ' · ' + esc(c.quirofano) : ''}</div></div>
       <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
     ${aviso || ''}
-    <div class="cirdat"><span>Cirujano</span><b><button type="button" class="lnk" data-cfi="${c.cirujano_id}">${esc(d.cirujano)}</button>${d.especialidad ? ` <span class="sm">· ${esc(d.especialidad)}</span>` : ''}</b>
-      <span>Hospital</span><b><button type="button" class="lnk" data-cfi="${c.hospital_id}">${esc(d.hospital)}</button></b>
+    <div class="cirdat"><span>Responsable</span><b><button type="button" class="lnk" data-cfi="${c.cirujano_id}">${esc(d.cirujano)}</button>${d.especialidad ? ` <span class="sm">· ${esc(d.especialidad)}</span>` : ''}</b>
+      <span>Centro</span><b><button type="button" class="lnk" data-cfi="${c.hospital_id}">${esc(d.hospital)}</button></b>
       <span>Asiste</span><b>${esc(d.asistente || '—')}</b>
       <span>Material</span><b>${esc(d.almacen || (CIR_ORIGEN.find(x => x[0] === c.origen) || [, ''])[1])}</b>
       ${c.referencia_caso ? `<span>${TT('paciente', 's', '', 'l', 'C')}</span><b>Ref. ${esc(c.referencia_caso)}</b>` : ''}
       <span>Estado</span><b>${cirEstado(c)} ${cirRepo(Object.assign({}, c, { reposicion: repo }))}</b></div>
     ${c.nota ? `<p class="sm">${esc(c.nota)}</p>` : ''}
-    ${c.estado === 'Hecha' && !c.pedido_id ? `<div class="banda-aviso cirsinped">Falta el pedido al hospital con lo usado. <button type="button" class="btn sec" id="cirhacerped">Crear el pedido</button></div>` : ''}
+    ${c.estado === 'Hecha' && !c.pedido_id ? `<div class="banda-aviso cirsinped">Falta el pedido al centro con lo usado. <button type="button" class="btn sec" id="cirhacerped">Crear el pedido</button></div>` : ''}
     ${prog && d.puede ? `<div id="cirusar"></div>` : ''}
-    ${us.length ? `<h3>Lo usado</h3><div class="deptab"><div class="deph cirh"><span>Producto</span><span>Lote</span><span>Nº de serie o UDI</span><span>Uds</span></div>
+    ${us.length ? `<h3>Lo usado</h3><div class="deptab"><div class="deph cirh"><span>Producto</span><span>Lote</span><span>Nº de serie</span><span>Uds</span></div>
       ${us.map(x => `<div class="depf cirh"><span>${esc(x.producto)}</span><span>${esc(x.numero_lote || 'Sin lote')}</span><span>${esc(x.serie || '—')}</span><b>${num(x.unidades)}</b></div>`).join('')}</div>` : ''}
     <div class="acts" style="justify-content:flex-end">${c.pedido_id ? '<button type="button" class="btn sec" id="cirped">Ver el pedido</button>' : ''}
       ${repo && repo !== 'repuesta' && d.puede ? '<button type="button" class="btn" id="cirrepo">Reponer ahora</button>' : ''}
@@ -20818,17 +20818,17 @@ async function verCirugia(id, aviso) {
 
 function pintarUsoCirugia(c, st) {
   const box = $('cirusar');
-  if (!st.length) { box.innerHTML = `<div class="banda-aviso">No hay material en ${c.origen === 'deposito' ? 'el depósito del hospital' : 'el almacén de quien asiste'}: repón antes de registrar lo usado.</div>`; return; }
+  if (!st.length) { box.innerHTML = `<div class="banda-aviso">No hay material en ${c.origen === 'deposito' ? 'el depósito del centro' : 'el almacén de quien asiste'}: repón antes de registrar lo usado.</div>`; return; }
   box.innerHTML = `<details class="cirdet"><summary class="btn">Registrar lo usado</summary><div class="depbox">
-    <span class="sm">Escribe las unidades usadas de cada lote. Si llevan número de serie o UDI, apúntalo en cada unidad.</span>
+    <span class="sm">Escribe las unidades usadas de cada lote. Si llevan número de serie, apúntalo en cada unidad.</span>
     <div class="cirlin">${st.map((x, i) => `<div class="cirl" data-ci="${i}"><label><span>${esc(x.nombre)} <span class="sm">· ${esc(x.numero_lote || 'sin lote')}${x.caducidad ? ' · cad. ' + fechaCorta(x.caducidad) : ''} · hay ${num(x.unidades)}</span></span>
       <input type="number" min="0" max="${x.unidades}" step="1" data-cu="${i}" placeholder="0" aria-label="Usadas de ${esc(x.nombre)}"></label><div class="cirser" data-cs="${i}"></div></div>`).join('')}</div>
-    <label for="cirref2">Referencia ${TT('paciente', 's', 'del', 'l', 'l')}</label><input id="cirref2" maxlength="60" value="${esc(c.referencia_caso || '')}" placeholder="Código del hospital, sin datos de salud">
+    <label for="cirref2">Referencia ${TT('paciente', 's', 'del', 'l', 'l')}</label><input id="cirref2" maxlength="60" value="${esc(c.referencia_caso || '')}" placeholder="Código del centro, sin datos de salud">
     <div class="acts" style="justify-content:flex-end"><button type="button" class="btn" id="cirusok">Guardar lo usado</button></div></div></details>`;
   box.querySelectorAll('[data-cu]').forEach(i => i.oninput = () => {
     const k = i.dataset.cu, n = Math.min(+i.max, Math.max(0, Math.floor(+i.value || 0))), s = box.querySelector(`[data-cs="${k}"]`);
     const ya = [...s.querySelectorAll('input')].map(x => x.value);
-    s.innerHTML = Array.from({ length: Math.min(n, 30) }, (_, j) => `<input data-cser="${k}" maxlength="120" value="${esc(ya[j] || '')}" placeholder="Nº de serie o UDI de la unidad ${j + 1}" aria-label="Número de serie de la unidad ${j + 1}">`).join('');
+    s.innerHTML = Array.from({ length: Math.min(n, 30) }, (_, j) => `<input data-cser="${k}" maxlength="120" value="${esc(ya[j] || '')}" placeholder="Nº de serie de la unidad ${j + 1}" aria-label="Número de serie de la unidad ${j + 1}">`).join('');
   });
   $('cirusok').onclick = async ev => {
     const items = st.map((x, i) => ({ producto_id: x.producto_id, lote_id: x.lote_id, unidades: Math.max(0, Math.floor(+box.querySelector(`[data-cu="${i}"]`).value || 0)),
@@ -20840,7 +20840,7 @@ function pintarUsoCirugia(c, st) {
     ev.target.disabled = false;
     if (error || !r || r.ok === false) { toast(error ? 'No se ha podido guardar: ' + error.message : cirError(r), true); return; }
     toast('Guardado lo usado'); invalidarCache();
-    verCirugia(c.id, `<div class="banda-ok depaviso">${r.pedido_id ? 'Queda un pedido en borrador al hospital para confirmarlo y la' : 'Guardado lo usado. Queda la'} reposición pendiente: hay 48 horas para reponer lo usado.</div>`);
+    verCirugia(c.id, `<div class="banda-ok depaviso">${r.pedido_id ? 'Queda un pedido en borrador al centro para confirmarlo y la' : 'Guardado lo usado. Queda la'} reposición pendiente: hay 48 horas para reponer lo usado.</div>`);
   };
 }
 
@@ -20850,15 +20850,15 @@ irEnlace = (orig => function (e) {
   return orig.call(this, e);
 })(irEnlace);
 
-// Ficha del cirujano o del hospital: sus últimas cirugías
+// Ficha del responsable o del centro: sus últimas intervenciones
 abrirFicha = (orig => async function (id, ...a) {
   const r = await orig.call(this, id, ...a);
   try {
     if (ES_MEDICO() || !$('fzcampos') || $('fcirugias') || !planIncluyeSeccion('cirugias')) return r;
     const { data: l } = await db.from('cirugias').select('id,fecha,procedimiento,estado').or(`cirujano_id.eq.${id},hospital_id.eq.${id}`).order('fecha', { ascending: false }).limit(5);
     if (!(l || []).length || !$('fzcampos') || $('fcirugias') || FICHA_ID !== id) return r;
-    $('fzcampos').insertAdjacentHTML('beforebegin', `<div class="blk" id="fcirugias"><h3>Cirugías</h3>
-      ${l.map(x => `<div class="fmrow"><span><button type="button" class="lnk" data-fcir="${x.id}">${esc(x.procedimiento || 'Cirugía')}</button><span class="sm"> · ${fechaCorta(x.fecha)}</span></span>${cirEstado(x)}</div>`).join('')}</div>`);
+    $('fzcampos').insertAdjacentHTML('beforebegin', `<div class="blk" id="fcirugias"><h3>Intervenciones</h3>
+      ${l.map(x => `<div class="fmrow"><span><button type="button" class="lnk" data-fcir="${x.id}">${esc(x.procedimiento || 'Intervención')}</button><span class="sm"> · ${fechaCorta(x.fecha)}</span></span>${cirEstado(x)}</div>`).join('')}</div>`);
     $('fcirugias').querySelectorAll('[data-fcir]').forEach(b => b.onclick = () => { $('ficha').close(); verCirugia(b.dataset.fcir); });
   } catch (e) {}
   return r;
@@ -20958,7 +20958,7 @@ async function editarConcurso(c) {
       <button type="button" class="btn sec" data-cerrar>Cancelar</button><button type="button" class="btn" id="conok">${c ? 'Guardar' : 'Crear concurso'}</button></div>`;
   if (!$('dlg').open) $('dlg').showModal();
   let cta = c ? { id: c.cuenta_id, nombre: (c.cuentas || {}).nombre || '' } : null;
-  selectorMedico($('concta'), { valor: cta, placeholder: 'Busca el hospital, la clínica o el organismo', alElegir: m => { cta = m; } });
+  selectorMedico($('concta'), { valor: cta, placeholder: 'Busca el centro, la clínica o el organismo', alElegir: m => { cta = m; } });
   $('conok').onclick = async ev => {
     const titulo = $('cont').value.trim();
     if (!titulo || !cta) { toast('Escribe el título y elige a quién se vende', true); return; }
@@ -21108,7 +21108,7 @@ const conPrecioContrato = p => { const x = p && p.id && PED_PRECIOS.precios[p.id
    - Menú «Parque instalado» (en «Ventas»): revisiones que tocan en 30 días, contratos y garantías que vencen, y todos los equipos (buscador).
    - Ventana del equipo: datos, contrato o garantía, revisiones (con «Apuntar revisión» y «Programar en la agenda») y retirarlo.
    - Ficha: «Equipos instalados» con «+ Equipo». Pedido validado con productos «equipo»: «Dar de alta los equipos» con su número de serie.
-   Además (decisión de Eric en Web delcos): Cirugías, Material en depósito, Concursos y Parque instalado, en los planes Empresa y A medida. */
+   Además (decisión de Eric en Web delcos): Intervenciones, Material en depósito, Concursos y Parque instalado, en los planes Empresa y A medida. */
 Object.assign(PLAN_SECCIONES, { cirugias: ['empresa', 'medida'], deposito: ['empresa', 'medida'], concursos: ['empresa', 'medida'], parque: ['empresa', 'medida'] });
 ['cirugias', 'concursos'].forEach(k => { const o = PAGINAS[k].permiso; PAGINAS[k].permiso = () => o() && planIncluyeSeccion(k); });
 const EQ_CONTRATOS = ['Venta', 'Alquiler', 'Cesión'];
@@ -21173,8 +21173,8 @@ async function editarEquipo(e, cuenta) {
       <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
     <label>Dónde está</label><div id="eqcta"></div>
     <div class="g2"><div><label for="eqp">Equipo</label><select id="eqp">${lista.map(p => `<option value="${p.id}" data-rm="${p.revision_meses || 0}" ${p.id === x.producto_id ? 'selected' : ''}>${esc(p.nombre)}${p.es_equipo ? '' : ' (no marcado como equipo)'}</option>`).join('')}</select></div>
-      <div><label for="eqs">Nº de serie o UDI</label><input id="eqs" value="${esc(x.serie || '')}" maxlength="120"></div></div>
-    <div class="g2"><div><label for="equ">Ubicación</label><input id="equ" value="${esc(x.ubicacion || '')}" placeholder="p. ej. Quirófano 2, planta 3"></div>
+      <div><label for="eqs">Nº de serie</label><input id="eqs" value="${esc(x.serie || '')}" maxlength="120"></div></div>
+    <div class="g2"><div><label for="equ">Ubicación</label><input id="equ" value="${esc(x.ubicacion || '')}" placeholder="p. ej. Sala 2, planta 3"></div>
       <div><label for="eqi">Instalado el</label><input id="eqi" type="date" value="${esc(x.instalado || '')}"></div></div>
     <div class="g2"><div><label for="eqc">Contrato</label><select id="eqc">${EQ_CONTRATOS.map(k => `<option ${k === x.contrato ? 'selected' : ''}>${k}</option>`).join('')}</select></div>
       <div id="eqcfw"><label for="eqcf">Fin del contrato</label><input id="eqcf" type="date" value="${esc(x.contrato_fin || '')}"></div></div>
@@ -21321,9 +21321,9 @@ verPedido = (orig => async function (id, ...a) {
       <div class="banda-aviso">${n === 1 ? 'Falta dar de alta 1 equipo' : `Faltan por dar de alta ${n} equipos`} de este pedido en el parque instalado. <button type="button" class="btn sec" id="pdeqalta">Dar de alta los equipos</button></div>
       <div id="pdeqf"></div></div>`);
     $('pdeqalta').onclick = () => {
-      $('pdeqf').innerHTML = `<div class="depbox"><span class="sm">Escribe el número de serie o UDI de cada unidad.</span>
+      $('pdeqf').innerHTML = `<div class="depbox"><span class="sm">Escribe el número de serie de cada unidad.</span>
         ${l.map((x, i) => `<div><b>${esc(x.nombre)}</b> <span class="sm">· ${esc(x.cuenta || '')}</span><div class="cirser">${Array.from({ length: Math.min(x.faltan, 30) }, (_, j) => `<input data-pqs="${i}" maxlength="120" placeholder="Nº de serie de la unidad ${j + 1}" aria-label="Número de serie de la unidad ${j + 1} de ${esc(x.nombre)}">`).join('')}</div></div>`).join('')}
-        <div class="g2"><div><label for="pdeqi">Instalado el</label><input id="pdeqi" type="date" value="${hoyISO()}"></div><div><label for="pdequ">Ubicación</label><input id="pdequ" placeholder="p. ej. Quirófano 2"></div></div>
+        <div class="g2"><div><label for="pdeqi">Instalado el</label><input id="pdeqi" type="date" value="${hoyISO()}"></div><div><label for="pdequ">Ubicación</label><input id="pdequ" placeholder="p. ej. Sala 2"></div></div>
         <div class="acts" style="justify-content:flex-end"><button type="button" class="btn" id="pdeqok">Dar de alta</button></div></div>`;
       $('pdeqok').onclick = async ev => {
         const filas = [];
@@ -21344,17 +21344,17 @@ verPedido = (orig => async function (id, ...a) {
 })(verPedido);
 try { menuParque(); candadoSecciones(); } catch (e) {}
 /* v2.203.0 · Arreglos de la auditoría del manual (SQL 128). Lo que encontró la revisión de cada pantalla:
-   - Notificaciones: los avisos de cirugías, contratos y equipos se pueden elegir (al momento, en el resumen o nada) como los demás.
+   - Notificaciones: los avisos de intervenciones, contratos y equipos se pueden elegir (al momento, en el resumen o nada) como los demás.
    - Los avisos de la suscripción y del plan abren «Plan y suscripción»; los de la plataforma, el Panel delcos.
    - Usuarios y roles: tras guardar o borrar un usuario se repinta esta página (antes, la antigua de Administración).
    - Editar una visita: también cómo fue (presencial, teléfono, videollamada) y los productos presentados.
    - El buscador de arriba usa el vocabulario de la empresa.
    Además, arreglos en su sitio: «Guardar filtro» en el panel de filtros, textos que mandaban a menús que ya no existen, «Portal del centro» en el
    origen de Pedidos, anular un pedido facturado, «Configuración» de Facturación solo para administración, trazabilidad legible, «Ventas del mes»
-   solo con ventas, «Planificar» una sola vez, métricas de la Agenda con el vocabulario, muestras con firma solo en fichas de persona y los errores
-   de cirugías con su texto. */
+   solo con ventas, «Planificar» una sola vez, métricas de la Agenda con el vocabulario, muestras solo en fichas de persona y los errores
+   de intervenciones con su texto. */
 TIPOS_NOTIF.push(
-  ['reposicion_cirugia', '🔄', 'Reposiciones de cirugía', 'Cuando pasan 48 horas de una cirugía sin reponer lo usado'],
+  ['reposicion_cirugia', '🔄', 'Reposiciones de intervención', 'Cuando pasan 48 horas de una intervención sin reponer lo usado'],
   ['vence_contrato', '📜', 'Contratos que vencen', 'Antes de que venza un contrato de concurso, con los días que elige la empresa'],
   ['vence_equipo', '⏳', 'Equipos: contrato o garantía', 'Antes de que venza el contrato o la garantía de un equipo instalado'],
   ['revision_equipo', '📆', 'Revisiones de equipos', 'Cuando toca revisar un equipo en los próximos 7 días o ya ha pasado la fecha']
@@ -21363,7 +21363,7 @@ TIPOS_NOTIF.push(
   const a = NOTIF_AREAS.find(x => x[0] === 'cobros'); if (a) a[2].push('reposicion_cirugia', 'vence_contrato', 'vence_equipo', 'revision_equipo');
   NOTIF_DIARIOS.push('reposicion_cirugia', 'vence_contrato', 'vence_equipo', 'revision_equipo');
   Object.assign(EXPLICA_NOTIF, {
-    reposicion_cirugia: ['Una cirugía hecha lleva más de 48 horas sin reponer lo que se usó en su almacén (depósito del hospital o el de quien asistió).', 'Abre la cirugía y pulsa «Reponer ahora».'],
+    reposicion_cirugia: ['Una intervención hecha lleva más de 48 horas sin reponer lo que se usó en su almacén (depósito del centro o el de quien asistió).', 'Abre la intervención y pulsa «Reponer ahora».'],
     vence_contrato: ['Un contrato adjudicado de un concurso vence pronto. Avisa una vez por cada plazo que elige la administración (de partida, 90 y 30 días).', 'Prepara la renovación o pide la prórroga.'],
     vence_equipo: ['Vence el contrato (alquiler o cesión) o la garantía de un equipo instalado.', 'Habla con el centro para renovarlo o retirarlo.'],
     revision_equipo: ['A un equipo instalado le toca la revisión periódica en los próximos 7 días, o ya ha pasado la fecha.', 'Programa la revisión en la agenda y apúntala al hacerla.']
@@ -21447,7 +21447,7 @@ ir = (orig => function (...a) {
   return r;
 })(ir);
 
-/* v2.205.0 · Manual: capítulo «La visita y lo común». El «?» de Ciclo de visitas y de Cirugías lleva a su sección del capítulo
+/* v2.205.0 · Manual: capítulo «La visita y lo común». El «?» de Ciclo de visitas y de Intervenciones lleva a su sección del capítulo
    (MANUAL_ANCLA, editado en su sitio), y el material de cada visita ya no repite los resultados sin dato (detTxt, editado en su sitio). */
 
 /* v2.206.0 · Manual: capítulo «Cartera». El «?» del directorio, Calidad del dato, Duplicados y Eventos lleva a su sección
@@ -22286,7 +22286,7 @@ editorContacto = (orig => function (c, alGuardar, op) {
 })(editorContacto);
 
 /* v2.226.0 · Arreglos de la lista de Eric (9/10/2026).
-   1. Una sola ayuda por pantalla: fuera el «?» del manual (.manq); cada título lleva su «i» (las páginas nuevas también: Ciclo, Cirugías,
+   1. Una sola ayuda por pantalla: fuera el «?» del manual (.manq); cada título lleva su «i» (las páginas nuevas también: Ciclo, Intervenciones,
       Eventos…) y la ventanita de la «i» termina con «Ver en el manual de uso», que abre el manual en el apartado de esa pantalla; desde allí,
       «‹ Volver a …» devuelve al mismo punto (v2.224.0).
    2. Agenda: el selector «Mi agenda» y el botón «Equipo» se reponen siempre que la cabecera se vuelve a pintar (al pulsar Día se pintaba dos
@@ -22564,8 +22564,8 @@ htPreparar = (orig => function (sec, ...r) {
 /* v2.228.0 · Inicio de toda la empresa, en mosaico (decisión de Eric, 10/10/2026: variante «Mosaico» de https://claude.ai/artifact/5UMynF3SKQnJYBVkR6CCk7).
    - Fuera las listas que solo miraban la Agenda (rutas sugeridas, agenda, próximas acciones, urgentes, últimas visitas, Mi semana…). En su lugar,
      un mosaico con piezas de distintos tamaños: «Requiere tu atención» (grande: pagos por validar, facturas vencidas, urgentes, paquetes, stock,
-     cirugías por reponer, concursos que vencen, llamadas, duplicados…; cada línea lleva a su pantalla), Ventas del mes (frente al mes pasado y
-     visitas de los últimos 14 días), Tu día (tus citas y tareas), Cobros, Ciclo, Stock, Cartera y Lo que viene (eventos, concursos, cirugías
+     intervenciones por reponer, concursos que vencen, llamadas, duplicados…; cada línea lleva a su pantalla), Ventas del mes (frente al mes pasado y
+     visitas de los últimos 14 días), Tu día (tus citas y tareas), Cobros, Ciclo, Stock, Cartera y Lo que viene (eventos, concursos, intervenciones
      y revisiones de equipos).
    - Cada persona ve solo las áreas de su plan y sus permisos (las mismas del menú) y los importes solo con permiso de importes.
    - Los indicadores de siempre siguen, plegados al final («Ver tus indicadores»), con su configuración.
@@ -22594,7 +22594,7 @@ function mosAtencion(D) {
   if (c && verArea('facturacion')) add(c.n_vencidas, 'alta', 'receipt', 'Facturas vencidas', `${mosEur(c.vencido)} por cobrar`, () => ir('facturacion'));
   add(nop('pago'), 'alta', 'credit-card', 'Pendientes de cobro', 'Pedidos confirmados que aún no están cobrados', () => { PEDSEC = 'ventas'; ir('ventas'); });
   add(D.k.urgentes, 'alta', 'zap', `${TT('medico', 'p', '', 'l', 'C', 'urgente')} sin visitar`, 'Marcados como urgentes en su ficha', () => ir('directorio'));
-  if (verArea('cirugias')) add(D.ar.cirugias_reponer, 'alta', 'scissors', 'Material de cirugías por reponer', 'Reposición en 48 horas', () => ir('cirugias'));
+  if (verArea('cirugias')) add(D.ar.cirugias_reponer, 'alta', 'scissors', 'Material de intervenciones por reponer', 'Reposición en 48 horas', () => ir('cirugias'));
   add(nop('paquete'), 'media', 'package', 'Paquetes por preparar', 'Pedidos confirmados sin enviar', () => { PEDSEC = 'ventas'; ir('ventas'); });
   (D.al || []).forEach(a => add(a.n, a.gravedad === 'alta' ? 'alta' : 'media', 'package', a.titulo, (a.items || []).slice(0, 2).map(x => x.nombre).join(' · '), () => ir('productos')));
   if (D.ll) { const p = D.ll.filter(x => x.proxima_fecha && x.proxima_fecha <= D.h); add(p.length, 'media', 'phone', 'Volver a llamar hoy', p.some(x => x.proxima_fecha < D.h) ? 'Algunas llamadas van con retraso' : 'Clientes a los que quedaste en llamar', () => { PEDSEC = 'llamadas'; ir('ventas'); }); }
@@ -24400,7 +24400,7 @@ document.addEventListener('input', e => {
 
 
 /* ============================================================
-   v2.239.0 · Modelo «Lista» en Eventos, Cirugías, Concursos y Parque instalado: los bloques de tarjetas pasan a una tabla con
+   v2.239.0 · Modelo «Lista» en Eventos, Intervenciones, Concursos y Parque instalado: los bloques de tarjetas pasan a una tabla con
    las mismas filas (cada fila conserva su botón y lo que abre). Los bloques (Próximos, Pasados, Reposiciones…) pasan a ser
    indicadores que filtran y un filtro rápido; si una fila estaba en dos bloques, sale una vez y cuenta en los dos.
    La acción principal sube a la cabecera; las demás, al «⋯».
@@ -24416,8 +24416,8 @@ const BLQ = {
       const asis = p.find(x => /asistente/.test(x)) || '', lugar = p.filter((x, i) => i > 0 && x !== hora && x !== tipo && x !== asis).join(' · ');
       return [`<b>${esc(plTxt(b.querySelector('.tx b')))}</b>`, esc(p[0] + (hora ? ' · ' + hora : '')), esc(tipo || '—'), esc(lugar || '—'), esc((asis.match(/\d+/) || ['0'])[0]), esc(plTxt(b.querySelector('.evtot')) || '—')];
     } },
-  cirugias: { attr: 'cir', que: 'cirugías', grupo: 'Bloque', def: 'Cirugías',
-    cols: [['Fecha', ''], ['Cirugía', ''], ['Equipo y lugar', ''], ['Estado', '']],
+  cirugias: { attr: 'cir', que: 'intervenciones', grupo: 'Bloque', def: 'Intervenciones',
+    cols: [['Fecha', ''], ['Intervención', ''], ['Equipo y lugar', ''], ['Estado', '']],
     celdas: b => [esc(plTxt(b.querySelector('.cirf b')) + (plTxt(b.querySelector('.cirf .sm')) ? ' · ' + plTxt(b.querySelector('.cirf .sm')) : '')),
       `<b>${esc(plTxt(b.querySelector('.tx b')))}</b>`, esc(plSm(b.querySelector('.tx'))), (b.querySelector('.cirest') || {}).innerHTML || ''] },
   concursos: { attr: 'con', que: 'concursos', grupo: 'Bloque', def: 'Concursos',
@@ -24427,7 +24427,7 @@ const BLQ = {
     cols: [['Equipo', ''], ['Serie, centro y contrato', ''], ['Revisión y vencimientos', '']],
     celdas: b => [`<b>${esc(plTxt(b.querySelector('.tx b')))}</b>`, esc(plSm(b.querySelector('.tx'))), (b.querySelector('.cirest') || {}).innerHTML || ''] }
 };
-// Configuración de cada una (Eventos solo en su pestaña «Eventos», no en Transparencia)
+// Configuración de cada una (Eventos solo en su pestaña «Eventos», no en Informe de gastos)
 Object.assign(PL_SECC, {
   eventos: () => { const on = document.querySelector('#v-eventos .pagtabs button.on'); return !on || on === document.querySelector('#v-eventos .pagtabs button') ? 'lista' : null; },
   cirugias: () => 'lista', concursos: () => 'lista', parque: () => 'lista'
@@ -24503,7 +24503,7 @@ document.addEventListener('click', e => {
   const tab = k.closest('section').id.slice(2); PLG[tab] = PLG[tab] === k.dataset.plg ? '' : k.dataset.plg; blqFiltrar(tab); plSync(tab);
 });
 Object.keys(BLQ).forEach(plObservar);
-// Las páginas (Eventos, Cirugías…) crean su sección al entrar: el observador se engancha entonces (y otra vez si se vuelve a crear)
+// Las páginas (Eventos, Intervenciones…) crean su sección al entrar: el observador se engancha entonces (y otra vez si se vuelve a crear)
 const PL_OBSEL = {};
 function plVigilar(tab) {
   const sec = $('v-' + tab); if (!sec || PL_OBSEL[tab] === sec) return;
@@ -24568,7 +24568,7 @@ plSync = (orig => function (tab) {
 /* ============================================================
    v2.241.0 · Volver, pestañas, pasos y fichas: una sola forma (Eric eligió la A «Ligera» de
    https://claude.ai/artifact/SYZkDbbm8dtSRTUWEN5TE4). «‹ Destino» como enlace encima del título; pestañas en caja segmentada;
-   pasos de los asistentes en barra numerada; y la ficha de un registro (pedido, factura, evento, cirugía, concurso, equipo, centro,
+   pasos de los asistentes en barra numerada; y la ficha de un registro (pedido, factura, evento, intervención, concurso, equipo, centro,
    stock, depósito) en panel lateral en el ordenador, como la de un contacto: la lista sigue a la vista. Los formularios y las
    ventanas anchas (comparar, importar…) siguen como estaban, y Configuración sigue sin ventanas emergentes.
    ============================================================ */
@@ -25313,12 +25313,12 @@ paginador = (orig => function (el, ...a) {
 
 
 /* ============================================================
-   v2.251.0 · Pestañas sin fantasmas en Eventos, Cirugías, Concursos y Parque (listas sin fantasmas, tercer grupo). Las cuatro
+   v2.251.0 · Pestañas sin fantasmas en Eventos, Intervenciones, Concursos y Parque (listas sin fantasmas, tercer grupo). Las cuatro
    listas de bloques llegan de una vez y no se recolocan al buscar, filtrar, pulsar un bloque u ordenar (prueba bloques2251),
    pero al cambiar de pestaña (Concursos: En marcha, Contratos, Cerrados) la página entera se volvía a montar y, mientras
    llegaban los datos, la cabecera se quedaba sin su botón, el filtro de bloques desaparecía y la barra se movía. Ahora:
    - Cambiar entre pestañas que son listas no vuelve a montar la página: la pestaña se marca al momento, la lista de antes se
-     atenúa y la nueva la sustituye de una vez cuando llegan sus datos (a Transparencia de Eventos, que no es una lista, se
+     atenúa y la nueva la sustituye de una vez cuando llegan sus datos (a Informe de gastos de Eventos, que no es una lista, se
      sigue llegando montando la página entera).
    - El filtro de bloques se queda en su sitio, desactivado, si la pestaña tiene un solo bloque (antes desaparecía y el buscador
      se ensanchaba).
@@ -25328,7 +25328,7 @@ cargarPagina = (orig => function (t, ...a) {
   if (!P || !BLQ[t] || TAB !== t || !caja || !tabs || !sec.classList.contains('plantilla')) return orig.call(this, t, ...a);
   const tab = P.tabs.some(x => x[0] === PAG_TAB[t]) ? PAG_TAB[t] : P.tabs[0][0];
   tabs.querySelectorAll('[data-ptab]').forEach(b => b.classList.toggle('on', b.dataset.ptab === tab));
-  // Solo entre pestañas que son listas (Transparencia de Eventos no lo es: esa página se vuelve a montar entera, como antes)
+  // Solo entre pestañas que son listas (Informe de gastos de Eventos no lo es: esa página se vuelve a montar entera, como antes)
   if (PL_SECC[t] && !PL_SECC[t]()) return orig.call(this, t, ...a);
   caja.classList.add('pagcambia');
   return Promise.resolve().then(P.tabs.find(x => x[0] === tab)[2]).finally(() => { const c = $('cfgcuerpo'); if (c) c.classList.remove('pagcambia'); });
@@ -25373,7 +25373,7 @@ document.addEventListener('click', e => {
 
 /* ============================================================
    v2.255.0 · Pestañas de página sin fantasmas. En Ciclo de visitas (como administración), al cambiar de pestaña la página se volvía a
-   montar y se iba llenando en varios pasos. Las pestañas de las páginas (Ciclo, Eventos, Cirugías, Concursos, Parque, Mi perfil,
+   montar y se iba llenando en varios pasos. Las pestañas de las páginas (Ciclo, Eventos, Intervenciones, Concursos, Parque, Mi perfil,
    Empresa…) usan ahora la copia fija y atenuada que ya usaban las demás pestañas de la app, hasta que la nueva está entera. De la lista
    de botones que la usan salen los de la Agenda de antes (Día, Semana, Mes y las flechas), que ya no existen.
    Analítica (resumen y Explorar) ya llegaba y cambiaba de una vez (prueba ciclo2255).
@@ -25567,7 +25567,7 @@ plSync = (orig => function (tab, ...x) {
    - La cola se envía de una en una (sin dos envíos a la vez); lo que el servidor rechaza no se pierde: queda en «sin enviar», con
      aviso y la opción de reintentar o descartar; el tiempo agotado cuenta como fallo de red.
    - Sin conexión, la app arranca con el perfil guardado aunque no pueda comprobar la sesión.
-   - Las muestras con firma siguen necesitando conexión (el límite legal se comprueba en el servidor): la ventana lo avisa.
+   - Las muestras siguen necesitando conexión (el límite legal se comprueba en el servidor): la ventana lo avisa.
    ============================================================ */
 let VISITA_OP = null;   // op_id de la ventana abierta (el mismo si se pulsa Guardar dos veces)
 esErrorRed = (orig => function (e) {
@@ -25600,7 +25600,7 @@ abrirVisitaBase = (orig => async function (...a) {
   const r = await orig.apply(this, a);
   if (!navigator.onLine && $('dlg').open && $('vguardar') && !$('dbody').querySelector('.vsinred')) {
     const fh = $('dbody').querySelector('.fh');
-    const html = `<div class="banda-aviso vsinred"><b>Sin conexión.</b> ${esc(TT('visita', 's', 'la', 'l', 'C'))} se guarda en este móvil y se envía sola al recuperar la conexión. Las muestras con firma necesitan conexión.</div>`;
+    const html = `<div class="banda-aviso vsinred"><b>Sin conexión.</b> ${esc(TT('visita', 's', 'la', 'l', 'C'))} se guarda en este móvil y se envía sola al recuperar la conexión. Las muestras necesitan conexión.</div>`;
     if (fh) fh.insertAdjacentHTML('afterend', html); else $('dbody').insertAdjacentHTML('afterbegin', html);
   }
   return r;
@@ -25775,8 +25775,8 @@ function editarDistribuidor(d) {
 
 
 /* ============================================================
-   v2.261.0 · Leer lotes, números de serie y UDI con la cámara (grupo 4 del plan del 11/10/2026). En el móvil o la tableta, los campos
-   de lote (entrada de stock y recepción de compras) y de número de serie o UDI (cirugías, equipos y equipos de un pedido) llevan un
+   v2.261.0 · Leer lotes, números de serie con la cámara (grupo 4 del plan del 11/10/2026). En el móvil o la tableta, los campos
+   de lote (entrada de stock y recepción de compras) y de número de serie (intervenciones, equipos y equipos de un pedido) llevan un
    botón de cámara. Se lee el código (DataMatrix, QR, Code 128, EAN…) y, si es GS1 (el de las cajas y la UDI), se separa: el lote
    (10), el número de serie (21), la caducidad (17) y la fabricación (11); en una entrada de stock también se rellenan las fechas si
    están vacías. En los números de serie de varias unidades la cámara sigue abierta y va llenando las siguientes (sin repetir).
@@ -26688,7 +26688,7 @@ function pmFormatoTxt(f) {
 }
 function pmFormatos(d) {
   const P = TT('pauta', 'p', '', 'l', 'l'), l = d.formatos || [], tot = l.reduce((a, x) => a + (x.n || 0), 0);
-  const ayu = pmAyu('Pautas más utilizadas', `Cómo son las ${P} del periodo elegido arriba a la derecha: qué parte es de 1 unidad, de 2, de 2 + 1 de regalo… Sirve para ver qué formato se utiliza más. Solo porcentajes: no se muestra ningún dato de personas.`);
+  const ayu = pmAyu(P.charAt(0).toUpperCase() + P.slice(1) + ' más utilizadas', `Cómo son las ${P} del periodo elegido arriba a la derecha: qué parte es de 1 unidad, de 2, de 2 + 1 de regalo… Sirve para ver qué formato se utiliza más. Solo porcentajes: no se muestra ningún dato de personas.`);
   return `<div class="card ancard" id="pmformatos"><h2>${P.charAt(0).toUpperCase() + P.slice(1)} más utilizadas ${ayu}</h2>
     ${tot ? barrasH(l.map(x => ({ n: pmFormatoTxt(x.formato), v: Math.round(x.n / tot * 100) })), v => v + ' %') : vacioGrafico(`Cuando haya ${P} en el periodo, verás aquí qué formatos se utilizan más.`)}</div>`;
 }
@@ -26715,8 +26715,8 @@ function pmResumen(d, k, pac) {
     : vacioGrafico(`Cuando haya ${TT('pauta', 'p', '', 'l', 'l')} registradas, verás aquí cómo evolucionan.`);
   const cons = !k.ok ? '<p class="sm">No disponible.</p>' : k.pocos
     ? `<p class="sm">En los últimos ${num(k.meses || 12)} meses se han iniciado ${num(k.empezaron)} ${TT('pauta', 'p', '', 'l', 'l')}. A partir de ${num(k.minimo || 5)} verás aquí cifras de continuidad.</p>`
-    : `<div class="minis cons"><div><b>${num(k.empezaron)}</b><span>iniciadas</span></div><div><b>${k.empezaron ? Math.round(k.repiten / k.empezaron * 100) + '%' : '—'}</b><span>continúan</span></div>
-        <div><b>${k.dias_entre ? num(k.dias_entre) + ' días' : '—'}</b><span>entre reposiciones</span></div><div><b>${num(k.sin_pedir)}</b><span>más de 60 días sin reponer</span></div></div>`;
+    : `<div class="minis cons"><div><b>${num(k.empezaron)}</b><span>iniciadas</span></div><div><b>${k.empezaron ? Math.round(k.repiten / k.empezaron * 100) + '%' : '—'}</b><span>se repiten</span></div>
+        <div><b>${k.dias_entre ? num(k.dias_entre) + ' días' : '—'}</b><span>entre una y otra</span></div><div><b>${num(k.sin_pedir)}</b><span>más de 60 días sin repetirse</span></div></div>`;
   const falta = PM.faltan.length ? `<div class="pmaviso"><div><b>Completa tu ficha</b><span class="sm">Falta ${esc(pmFaltaTxt())}. Así tu comercial pasa a verte cuando mejor te va.</span></div>
       <button type="button" class="btn" data-pmir="ficha">Completar mi ficha</button></div>` : '';
   return `${falta}
@@ -26725,12 +26725,9 @@ function pmResumen(d, k, pac) {
       <div class="card ancard"><h2>Métricas de ${TT('pauta', 'p', '', 'l', 'l')} ${pmAyu(`Métricas de ${TT('pauta', 'p', '', 'l', 'l')}`, `Cada barra son las unidades de las ${TT('pauta', 'p', '', 'l', 'l')} registradas en el mes; el número de debajo, cuántas ${TT('pauta', 'p', '', 'l', 'l')} fueron. Cambia el periodo arriba a la derecha.${d.ultima_pauta ? ' Última ' + TT('pauta', 's', '', 'l', 'l') + ': ' + fechaCorta(d.ultima_pauta) + '.' : ''}`)}</h2>${evol}</div>
       <div class="card ancard"><h2>Por producto ${pmAyu('Por producto', `Qué productos aparecen en las ${TT('pauta', 'p', '', 'l', 'l')} registradas en el periodo y qué parte de las unidades es cada uno.`)}</h2>
         ${(d.productos || []).length ? `<div class="pmdon">${svgDonut(d.productos.map(x => ({ n: x.nombre, v: x.unidades })))}</div>` : vacioGrafico('Aparecerá el reparto por producto.')}</div></div>
-    <div class="pmfila pm3">
+    <div class="pmfila">
       ${pmFormatos(d)}
-      <div class="card ancard"><h2>Llamadas recibidas ${pmAyu('Llamadas recibidas', `Número de llamadas recibidas por la empresa en el periodo y qué parte inicia una ${TT('pauta', 's', '', 'l', 'l')}. Solo cifras: no se muestra ningún dato de quién llama.`)}</h2>
-        <div class="minis"><div><b>${num(ll.total || 0)}</b><span>llamadas</span></div><div><b>${conv == null ? '—' : conv + '%'}</b><span>inician ${TT('pauta', 's', '', 'l', 'l')}</span></div></div>
-        ${(ll.por_resultado || []).length ? barrasH(ll.por_resultado.map(x => ({ n: x.resultado, v: x.n })), num) : '<p class="sm">Todavía no hay llamadas registradas en el periodo.</p>'}</div>
-      <div class="card ancard" id="pmconst"><h2>Continuidad de las ${TT('pauta', 'p', '', 'l', 'l')} ${pmAyu(`Continuidad de las ${TT('pauta', 'p', '', 'l', 'l')}`, `Cifras agregadas y anónimas de los últimos 12 meses: cuántas ${TT('pauta', 'p', '', 'l', 'l')} se iniciaron, qué parte continúa y cada cuánto se reponen. Nunca se muestra información de ninguna persona y, con menos de 5, no se enseña nada. Tampoco se muestran importes.`)}</h2>${cons}</div></div>`;
+      <div class="card ancard" id="pmconst"><h2>Continuidad de las ${TT('pauta', 'p', '', 'l', 'l')} ${pmAyu(`Continuidad de las ${TT('pauta', 'p', '', 'l', 'l')}`, `En los últimos 12 meses: cuántas ${TT('pauta', 'p', '', 'l', 'l')} han empezado, qué parte se ha repetido al menos una vez, cuántos días pasan de media entre una vez y la siguiente, y cuántas llevan más de 60 días sin repetirse.`)}</h2>${cons}</div></div>`;
 }
 
 const pmFaltaTxt = () => {
@@ -26950,7 +26947,7 @@ abrirFicha = (orig => async function (id, ...a) { const r = await orig.call(this
   let general = AYUDA.config;
   const suya = ['Configuración', 'Aquí cambias tu cuenta.', [
     '<b>Mis datos</b>: tu nombre, tu teléfono, el idioma y la contraseña; también cierras la sesión.',
-    '<b>Notificaciones</b>: qué avisos te llegan (por ejemplo, cada pauta registrada) y si los quieres al momento, en el resumen de la mañana o no.',
+    '<b>Notificaciones</b>: qué avisos te llegan (por ejemplo, cada ' + TT('pauta', 's', '', 'l', 'l') + ' registrada) y si los quieres al momento, en el resumen de la mañana o no.',
     'Dónde y cuándo atiendes y cómo prefieres las ' + TT('visita', 'p', '', 'l', 'l') + ' se indica en <b>Mi ficha</b>, dentro de Mi informe.']];
   Object.defineProperty(AYUDA, 'config', { configurable: true, enumerable: true, get: () => (typeof ES_MEDICO === 'function' && ES_MEDICO() ? suya : general), set: v => { general = v; } });
 })();
@@ -27588,7 +27585,7 @@ document.addEventListener('click', e => {
   VUELTA_CLIC = { d, t: performance.now() };
 }, true);
 const VISTA_TITULO = { verCita: 'la cita', fichaCentro: 'el centro', abrirFicha: 'la ficha', verPedido: 'el pedido', verFactura: 'la factura', verEvento: 'el evento',
-  verCirugia: 'la cirugía', verConcurso: 'el concurso', verEquipo: 'el equipo', verDeposito: 'el depósito', fichaStock: 'el producto' };
+  verCirugia: 'la intervención', verConcurso: 'el concurso', verEquipo: 'el equipo', verDeposito: 'el depósito', fichaStock: 'el producto' };
 const vistaDlg = () => ['ficha', 'dlg'].map($).find(d => d && d.open) || null;
 const vistaIgual = (a, b) => a && b && a.fn === b.fn && JSON.stringify(a.args.map(x => x && x.id || x)) === JSON.stringify(b.args.map(x => x && x.id || x));
 function vistaBoton(v, d0) {
@@ -27968,7 +27965,7 @@ document.addEventListener('click', e => {
    «Dar de baja» (siempre; se deshace desde Cuentas → «⋯» → «Fichas dadas de baja») y «Eliminar la ficha» (administración o
    nivel completo en fichas; solo si no tiene visitas, ventas, muestras, eventos… — si tiene, lo dice y ofrece la baja).
    ============================================================ */
-const BAJA_QUE = { visitas: 'visitas', ventas: 'ventas', muestras: 'muestras entregadas', eventos: 'eventos', cirugias: 'cirugías', concursos: 'concursos', equipos: 'equipos', portal: 'acceso al portal' };
+const BAJA_QUE = { visitas: 'visitas', ventas: 'ventas', muestras: 'muestras entregadas', eventos: 'eventos', cirugias: 'intervenciones', concursos: 'concursos', equipos: 'equipos', portal: 'acceso al portal' };
 abrirFicha = (orig => async function (id, ...a) {
   const r = await orig.call(this, id, ...a);
   try {
@@ -28389,7 +28386,7 @@ anCatalogo = (orig => function (...a) { return orig.apply(this, a).filter(k => k
    ============================================================ */
 const puedeEliminarProducto = () => puede('administrar') || nivelDe2('P') >= 2;
 const PROD_USOS = { ventas: 'pedidos', borradores: 'borradores', servicio: 'pedidos con este servicio', compras: 'compras', lotes: 'lotes',
-  movimientos: 'movimientos de stock', muestras: 'entregas de muestras', cirugias: 'cirugías', concursos: 'precios de concurso', equipos: 'equipos',
+  movimientos: 'movimientos de stock', muestras: 'entregas de muestras', cirugias: 'intervenciones', concursos: 'precios de concurso', equipos: 'equipos',
   visitas: TT('visita', 'p', '', 'l', 'l'), comisiones: 'esquemas de comisión' };
 async function refrescarProductos() {
   try { invalidarCache(); } catch (e) {}
@@ -28404,7 +28401,7 @@ editorProducto = (orig => function (p, ...r) {
     const fila = $('prok').closest('.acts') || $('dbody').querySelector('.acts:last-of-type'); if (!fila) return;
     fila.insertAdjacentHTML('afterbegin', '<button type="button" class="btn sec dang prelimb" id="prelim">Eliminar producto</button>');
     $('prelim').onclick = async () => {
-      if (!await preguntar('Si no se ha vendido nunca, se borra del todo, también su stock, sus lotes y sus compras. Si tiene ventas, muestras firmadas, cirugías o equipos, deja de salir en todas partes pero se conserva para el histórico (los pedidos y las facturas siguen con su nombre) y se puede recuperar.',
+      if (!await preguntar('Si no se ha vendido nunca, se borra del todo, también su stock, sus lotes y sus compras. Si tiene ventas, muestras firmadas, intervenciones o equipos, deja de salir en todas partes pero se conserva para el histórico (los pedidos y las facturas siguen con su nombre) y se puede recuperar.',
         { titulo: `¿Eliminar «${p.nombre}»?`, ok: 'Eliminar', peligro: true })) return;
       const { data: res, error } = await db.rpc('eliminar_producto', { p_id: p.id });
       if (error || !res || !res.ok) {
@@ -28967,13 +28964,17 @@ async function previaFacturaPedido(id) {
   const { data: d } = await RPC_ORIG('pedido_detalle', { p_id: id });
   if (!d || !d.pedido) { toast('No se ha podido leer el pedido', true); return; }
   const c = d.contacto, falta = !c ? `El pedido no tiene ${TT('paciente', 's', '', 'l', 'l')}: la factura saldrá sin destinatario.` : !c.nif ? `${esc(c.nombre)} no tiene DNI o CIF en su ficha: conviene añadirlo antes.` : '';
-  $('dlg2body').innerHTML = `<div class="fh"><div><h2>Vista previa de la factura</h2></div><button class="x" data-cerrar2 aria-label="Cerrar">✕</button></div>
+  // v2.350.0: en la misma ventana del pedido; «‹ Volver» lleva otra vez al pedido
+  const dl = $('dlg');
+  if (typeof VISTA !== 'undefined' && VISTA && VISTA.dlg === dl && dl.open && VISTA.fn !== 'previaFacturaPedido') { VISTA.cerrada = null; VUELTA.push(VISTA); }
+  VISTA = { fn: 'previaFacturaPedido', args: [id], t: performance.now(), dlg: dl };
+  $('dbody').innerHTML = `<div class="fh"><div><h2>Vista previa de la factura</h2></div><button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
     ${falta ? `<div class="banda-aviso facpaviso">${falta}</div>` : ''}
     <div class="facprev"><iframe id="facpif" title="Vista previa de la factura"></iframe></div>
     <p class="sm">Al emitirla se le da el número siguiente de la serie y ya no se puede modificar ni borrar: un error se corrige con una rectificativa.</p>
-    <div class="acts"><button type="button" class="btn sec" data-cerrar2>Cancelar</button><button type="button" class="btn" id="facpemitir">Emitir factura</button></div>`;
-  $('dlg2').classList.add('amplia'); $('dlg2').addEventListener('close', () => $('dlg2').classList.remove('amplia'), { once: true });
-  $('dlg2').showModal();
+    <div class="acts"><button type="button" class="btn sec" data-cerrar>Cancelar</button><button type="button" class="btn" id="facpemitir">Emitir factura</button></div>`;
+  if (!dl.open) dl.showModal();
+  vistaBoton(VISTA, dl);
   try {
     const C = Object.assign({}, cfgPDF()); C.titulo = (C.titulo || 'FACTURA') + ' · VISTA PREVIA';
     const doc = await facturaPDF(facturaDePedido(d), '', C);
@@ -28981,7 +28982,7 @@ async function previaFacturaPedido(id) {
   } catch (e) { toast('No se ha podido preparar la vista previa', true); registrarError('app', 'Vista previa de la factura', { e: String(e) }); }
   $('facpemitir').onclick = () => conCarga($('facpemitir'), 'Emitiendo…', async () => {
     const r = await emitirFacturaPedido(id, { yaVista: true });
-    if (r) { $('dlg2').close(); verFactura(r.id); }
+    if (r) { if (VUELTA.length) VISTA = VUELTA.pop(); verFactura(r.id); }
   });
 }
 
@@ -29484,3 +29485,33 @@ function pillPaso(p) {
   const hechos = p.estado === 'Confirmado' ? ['Confirmado', p.paquete_en ? 'Preparado' : '', cobroDe(p) === 'Cobrado' ? 'Cobrado' : '', p.factura ? 'Facturado' : ''].filter(Boolean).join(' · ') : '';
   return '<span class="pill ' + c + '"' + (hechos ? ' title="Hecho: ' + hechos + '"' : '') + '>' + t + '</span>';
 }
+
+
+/* ============================================================
+   v2.350.0 · Ventanas de Pedidos sin saltos (avisos de Eric, 22/10/2026).
+   1. El pedido aparece de una vez: mientras se pintan sus partes (facturas, operativa, pago, distribuidor, equipos…) la ventana
+      enseña el cargador; antes los botones llegaban por tandas y «Ver la factura» empujaba a «Editar pedido» justo al pulsar.
+   2. Una ventana que la persona cierra mientras carga (✕, «Cancelar», Escape o fuera) no vuelve a abrirse sola: solo con otro
+      clic o tecla (o al volver a la ventana anterior con «‹ Volver»).
+   ============================================================ */
+verPedido = (orig => async function (id, ...a) {
+  const d = $('dlg'); d.classList.add('pdprep');
+  try { return await orig.call(this, id, ...a); }
+  finally { try { await estable($('dbody'), 2500); } catch (e) {} d.classList.remove('pdprep'); }
+})(verPedido);
+
+let ULT_ACCION = 0;
+const CIERRE_USUARIO = {}, CIERRE_PEND = {};
+['pointerdown', 'keydown'].forEach(t => document.addEventListener(t, () => { ULT_ACCION = performance.now(); }, true));
+['dlg', 'dlg2', 'ficha'].forEach(id => {
+  const d = $(id); if (!d) return;
+  d.addEventListener('cancel', () => { CIERRE_PEND[id] = performance.now(); });
+  d.addEventListener('click', e => { if (e.target === d || e.target.closest('[data-cerrar], [data-cerrar2], .x')) CIERRE_PEND[id] = performance.now(); }, true);
+  d.addEventListener('close', () => { const p = CIERRE_PEND[id]; if (p && performance.now() - p < 600) CIERRE_USUARIO[id] = performance.now(); CIERRE_PEND[id] = 0; });
+  const sm = d.showModal;
+  d.showModal = function (...a) {
+    const c = CIERRE_USUARIO[id];
+    if (c && ULT_ACCION < c && !(typeof VUELTA_REABRIENDO !== 'undefined' && VUELTA_REABRIENDO) && performance.now() - c < 20000) return;
+    return sm.apply(this, a);
+  };
+});

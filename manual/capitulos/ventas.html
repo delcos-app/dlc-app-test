@@ -101,7 +101,7 @@
 </dl>
 <p>Los botones de abajo cambian según el estado: en un borrador, <b>Eliminar borrador</b>, <b>Editar</b> y <b>Confirmar pedido</b>; en uno confirmado, <b>Emitir factura</b> (o el número de la factura, que la abre) y <b>Anular pedido</b>, que pide un motivo y lo deja en la auditoría. Un pedido con factura no se anula sin más: la factura se corrige antes con una rectificativa.</p>
 <figure class="video"><video src="media/ventas/v-operativa.webm" aria-label="Vídeo: pago, paquete y factura"></video><figcaption>Desde un aviso: marcar el pago y el paquete, y emitir la factura.</figcaption></figure>
-<div class="nota"><p><b>Pedidos que nacen solos.</b> Un centro con portal pide su reposición y llega como <b>borrador</b> con la marca «Portal»; lo usado del material en depósito y de una cirugía también crea un borrador. Se validan como cualquier otro.</p></div>
+<div class="nota"><p><b>Pedidos que nacen solos.</b> Un centro con portal pide su reposición y llega como <b>borrador</b> con la marca «Portal»; lo usado del material en depósito y de una intervención también crea un borrador. Se validan como cualquier otro.</p></div>
 
 <!-- ============================== OPORTUNIDADES ============================== -->
 <h2 id="oportunidades">Oportunidades</h2>
@@ -147,19 +147,19 @@
 <!-- ============================== CONCURSOS ============================== -->
 <h2 id="concursos">Concursos</h2>
 <div class="donde"><span><b>Dónde:</b> menú, bloque «Ventas» → «Concursos»</span><span><b>Quién:</b> planes Empresa y A medida; cada concurso lo ve quien ve todo, quien lleva la ficha, su responsable o quien lo creó</span></div>
-<p>Las licitaciones de hospitales y organismos, con sus lotes y, si se ganan, los <b>precios del contrato</b>, que se ponen solos en los pedidos de esa ficha mientras el contrato está en vigor.</p>
+<p>Las licitaciones de centros y organismos, con sus lotes y, si se ganan, los <b>precios del contrato</b>, que se ponen solos en los pedidos de esa ficha mientras el contrato está en vigor.</p>
 <figure><img src="media/ventas/concursos.webp" alt="Concursos en marcha" loading="lazy"></figure>
 <dl class="defs">
   <dt>En marcha</dt><dd>En estudio y con oferta enviada, por fecha límite. «Presentar hasta el…» se pone en rojo si ya pasó.</dd>
   <dt>Contratos</dt><dd>Los adjudicados, por vencimiento: «Vence en 75 días», «Vence hoy», «Vencido» o «Sin fecha de fin».</dd>
   <dt>Cerrados</dt><dd>Perdidos y desiertos.</dd>
 </dl>
-<p><b>+ Nuevo concurso</b> pide el título, a quién se vende (la ficha del hospital u organismo), el expediente, el organismo, las fechas, el importe de licitación y el responsable.</p>
+<p><b>+ Nuevo concurso</b> pide el título, a quién se vende (la ficha del centro u organismo), el expediente, el organismo, las fechas, el importe de licitación y el responsable.</p>
 <h3 id="concurso-ventana">El concurso por dentro</h3>
 <figure><img src="media/ventas/concurso.webp" alt="Concurso adjudicado con sus lotes" loading="lazy"></figure>
 <p>Todo se guarda al cambiarlo. El <b>estado</b> (en estudio, oferta enviada, adjudicado, perdido, desierto); si está adjudicado, las fechas del contrato y de la prórroga. Los <b>lotes</b>, cada uno con su estado (pendiente, ganado o perdido), los importes y, si se pierde, quién se lo llevó; y dentro de cada lote, los productos con su <b>precio sin IVA</b> y unidades.</p>
 <figure class="video"><video src="media/ventas/v-concurso.webm" aria-label="Vídeo: adjudicar un concurso"></video><figcaption>Pasarlo a adjudicado y marcar el lote como ganado.</figcaption></figure>
-<div class="nota"><p><b>Qué precio se aplica.</b> El de los lotes <b>ganados</b> de concursos <b>adjudicados</b> y en vigor. Si un producto está en varios contratos, manda el que vence más tarde. En el pedido sale la marca «Precio de concurso». También lo usan los pedidos del depósito y de las cirugías.</p></div>
+<div class="nota"><p><b>Qué precio se aplica.</b> El de los lotes <b>ganados</b> de concursos <b>adjudicados</b> y en vigor. Si un producto está en varios contratos, manda el que vence más tarde. En el pedido sale la marca «Precio de concurso». También lo usan los pedidos del depósito y de las intervenciones.</p></div>
 <p>La administración elige en <b>Avisos de vencimiento</b> cuántos días antes avisar (de partida, 90 y 30). El aviso llega a quien lleva la ficha, al responsable y a la administración, una vez por plazo. Los mismos días valen para los equipos.</p>
 <figure class="estrecha"><img src="media/ventas/concurso-avisos.webp" alt="Avisos de vencimiento" loading="lazy"></figure>
 
@@ -174,7 +174,7 @@
 <p>Dónde está (el centro y la ubicación), cuándo se instaló, el contrato (venta, alquiler o cesión), la garantía, cada cuántos meses se revisa y el historial de <b>revisiones</b> (preventiva, correctiva o instalación). <b>Apuntar revisión</b> la añade y recalcula sola la próxima. <b>Programar en la agenda</b> crea la cita de la próxima revisión.</p>
 <figure class="video"><video src="media/ventas/v-revision.webm" aria-label="Vídeo: apuntar una revisión"></video></figure>
 <dl class="defs">
-  <dt>Dar de alta un equipo</dt><dd>«+ Equipo» (aquí o en la ficha del centro): dónde está, qué equipo, número de serie o UDI, ubicación, fecha de instalación, contrato, garantía y cada cuántos meses se revisa. «Retirar» lo deja en el historial y deja de avisar.</dd>
+  <dt>Dar de alta un equipo</dt><dd>«+ Equipo» (aquí o en la ficha del centro): dónde está, qué equipo, número de serie, ubicación, fecha de instalación, contrato, garantía y cada cuántos meses se revisa. «Retirar» lo deja en el historial y deja de avisar.</dd>
   <dt>Desde el pedido</dt><dd>Al confirmar un pedido con productos marcados como equipo, el pedido avisa de que faltan por dar de alta y deja apuntar el número de serie de cada unidad.</dd>
   <dt>En el producto</dt><dd>(Administración) «Es un equipo: se instala con su número de serie» y cada cuántos meses se revisa.</dd>
 </dl>

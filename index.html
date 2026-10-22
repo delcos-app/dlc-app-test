@@ -2328,7 +2328,7 @@ dialog.encajada .pdfprev iframe{height:calc(100vh - var(--alto-cab,0px) - 190px)
 #mdmat .acts,#mdmsg .acts{margin-top:12px!important}
 #mdmsgt{width:100%;min-height:76px}
 /* Constancia: cifras en tarjetas claras con la cifra en Manrope */
-.minis.cons{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;padding:0 16px;margin:4px 0 10px}
+.minis.cons{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;padding:0 16px;margin:4px 0 10px;border:0;border-radius:0}
 .minis.cons > div{background:var(--hielo);border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:2px}
 .minis.cons b{font:800 20px var(--f-titulo);color:var(--ink);font-variant-numeric:tabular-nums}
 .minis.cons span{font-size:12.5px;color:var(--muted)}
@@ -4795,6 +4795,9 @@ html body :is(.fvdonde,.pill,.chip):empty{display:none}
 .cfucab{position:relative}
 .cfucab > .cfuacts{position:absolute;right:0;top:22px;margin:0;display:flex;gap:8px}
 @media (max-width:760px){.cfucab > .cfuacts{position:static;margin-top:10px}}
+/* v2.350.0: el pedido se enseña cuando están todas sus partes */
+#dlg.pdprep #dbody{visibility:hidden}
+#dlg.pdprep::after{content:"";position:absolute;inset:0;margin:auto;width:44px;height:44px;background:var(--orbita);animation:gira .9s linear infinite}
 </style>
 </head>
 <body>
@@ -4932,6 +4935,6 @@ try{var co=sessionStorage.getItem('dlc-cambio-org');if(co!==null||localStorage.g
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.349.0"></script>
+<script src="./app.js?v=2.350.0"></script>
 </body>
 </html>

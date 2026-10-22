@@ -9,7 +9,7 @@
   <a href="#ficha-centro"><b>Ficha de centro</b><span>El centro con todos sus profesionales</span></a>
   <a href="#calidad"><b>Calidad del dato y duplicados</b><span>Fichas completas y fichas repetidas</span></a>
   <a href="#importar"><b>Importar datos</b><span>Traer fichas, clientes, productos o ventas desde Excel</span></a>
-  <a href="#eventos"><b>Eventos y transparencia</b><span>Asistentes, gastos e informe anual</span></a>
+  <a href="#eventos"><b>Eventos e informe de gastos</b><span>Asistentes, gastos e informe anual</span></a>
   <a href="#portal"><b>El portal</b><span>Lo que ven {los medicos} y los centros con acceso</span></a>
 </div>
 
@@ -17,7 +17,7 @@
 <h2 id="cartera-fichas">Las fichas</h2>
 <p>Cada {medico} o centro que visitáis tiene una <b>ficha</b>. Antes de empezar conviene tener claras unas pocas ideas:</p>
 <dl class="defs">
-  <dt>Ficha de persona y ficha de centro</dt><dd>Una ficha de <b>persona</b> es un profesional, con una o varias consultas. Una ficha de <b>centro</b> es una clínica, un hospital o una farmacia que tratáis como cliente: puede tener portal, productos propios, depósito y equipos.</dd>
+  <dt>Ficha de persona y ficha de centro</dt><dd>Una ficha de <b>persona</b> es un profesional, con una o varias consultas. Una ficha de <b>centro</b> es una clínica, un centro o una farmacia que tratáis como cliente: puede tener portal, productos propios, depósito y equipos.</dd>
   <dt>{Consulta}</dt><dd>Cada sitio donde atiende {un medico}: el centro, la planta, la sala, el teléfono, los días y el horario. La primera es la <b>principal</b>.</dd>
   <dt>Centro</dt><dd>El edificio compartido (dirección, teléfono, horario de apertura y punto en el mapa) al que se enlazan {las consultas}. Lo comparten todas las fichas que atienden allí, y tiene su propia <a href="#ficha-centro">ficha de centro</a>.</dd>
   <dt>Estado comercial</dt><dd>En qué punto está la relación: sin contactar, presentado, interesado, cliente… Cada empresa tiene los suyos. Cambia solo al registrar {visitas} y se puede cambiar a mano.</dd>
@@ -108,7 +108,7 @@
 <dl class="defs">
   <dt>Otras {consultas}</dt><dd>Si atiende en más sitios: cada uno con su dirección, planta, sala, teléfono, días y horario, y «Cómo llegar».</dd>
   <dt>{Visitas}</dt><dd>Las 10 últimas, con su botón «Editar» y sus fotos (lo explicamos en <a href="#visita-ficha">La {visita} y lo común</a>).</dd>
-  <dt>Muestras, eventos, cirugías, concursos, equipos y depósito</dt><dd>Cada uno sale si la ficha tiene algo de eso y si tu plan lo incluye.</dd>
+  <dt>Muestras, eventos, intervenciones, concursos, equipos y depósito</dt><dd>Cada uno sale si la ficha tiene algo de eso y si tu plan lo incluye.</dd>
   <dt>Campos personalizados</dt><dd>Los datos propios de tu empresa (cargo, potencial…), solo para leer: se cambian en «Editar ficha».</dd>
   <dt>Ventas y {pacientes}</dt><dd>Las unidades de sus pautas (hoy, semana, mes, trimestre, año y total, con barras por semana, mes o año), cuántos {pacientes} tiene asociados y, si puedes verlos, cuáles. Solo cifras para quien no ve importes.</dd>
   <dt>Comercial asignado</dt><dd>(Administración) Quién lleva la ficha. Las ventas nuevas se atribuyen a quien la lleva en ese momento; las anteriores no cambian.</dd>
@@ -230,9 +230,9 @@
 </dl>
 
 <!-- ============================== EVENTOS ============================== -->
-<h2 id="eventos">Eventos y transparencia</h2>
+<h2 id="eventos">Eventos e informe de gastos</h2>
 <div class="donde"><span><b>Dónde:</b> menú, bloque «Cartera» → «Eventos»</span><span><b>Quién:</b> planes Comercial, Empresa y A medida; crear eventos, con permiso de {visitas}; cambiarlos, quien los creó o la administración</span></div>
-<p>Talleres, cursos, congresos, webinars y comidas de trabajo, con quién asistió y cuánto se gastó en cada {medico}. Con eso, delcos prepara el informe anual de transparencia.</p>
+<p>Talleres, cursos, congresos, webinars y comidas de trabajo, con quién asistió y cuánto se gastó en cada {medico}. Con eso, delcos prepara el informe anual de gastos.</p>
 <figure><img src="media/cartera/eventos.webp" alt="Lista de eventos" loading="lazy"><figcaption>Próximos y pasados, con el total de gastos de cada uno.</figcaption></figure>
 <p><b>+ Nuevo evento</b> pide el título, el tipo (taller, curso, congreso, webinar, reunión científica, comida de trabajo u otro), la fecha, la hora, el lugar o «En línea» y una nota.</p>
 <figure class="estrecha"><img src="media/cartera/evento-nuevo.webp" alt="Nuevo evento" loading="lazy"></figure>
@@ -243,9 +243,9 @@
 <figure class="video"><video src="media/cartera/v-evento.webm" aria-label="Vídeo: añadir un asistente y apuntar gastos"></video><figcaption>Añadir un asistente y apuntar la inscripción y la comida.</figcaption></figure>
 <div class="nota aviso"><p><b>Comidas de más de 60 € por persona.</b> El campo se pone en naranja y delcos te recuerda que revises que cumpla el código de buenas prácticas.</p></div>
 
-<h3 id="transparencia">Transparencia</h3>
-<p>Para la administración y quien ve todo el equipo: los gastos de cada {medico} en un año (por defecto, el anterior), por concepto y con el total. Las asistencias marcadas «No asistió» no cuentan. <b>Descargar (CSV)</b> la baja para trabajarla en Excel. Es la base del informe anual de transparencia de los códigos de Farmaindustria y Fenin: revisadlo con vuestro responsable de cumplimiento antes de publicarlo.</p>
-<figure><img src="media/cartera/transparencia.webp" alt="Informe de transparencia" loading="lazy"></figure>
+<h3 id="transparencia">Informe de gastos</h3>
+<p>Para la administración y quien ve todo el equipo: los gastos de cada {medico} en un año (por defecto, el anterior), por concepto y con el total. Las asistencias marcadas «No asistió» no cuentan. <b>Descargar (CSV)</b> la baja para trabajarla en Excel. Es la base del informe anual de gastos de los códigos de Farmaindustria y Fenin: revisadlo con vuestro responsable de cumplimiento antes de publicarlo.</p>
+<figure><img src="media/cartera/transparencia.webp" alt="Informe de informe de gastos" loading="lazy"></figure>
 
 <!-- ============================== PORTAL ============================== -->
 <h2 id="portal">El portal de {los medicos} y de los centros</h2>
