@@ -6170,7 +6170,7 @@ async function pintarAnalitica() {
       <span class="barra"><i style="width:${Math.round((+f[medida] || 0) / tot * 100)}%"></i><em>${Math.round((+f[medida] || 0) / tot * 100)}%</em></span></div>`).join('')}
     <div class="dr dtot"><span></span><span><b>Total</b></span><span class="num"><b>${num(t.unidades)}</b></span>
       <span class="num"><b>${eurI(t.importe)}</b></span><span class="num"><b>${num(t.pedidos)}</b></span><span></span></div>
-  </div></div>` : '<div class="vacio">Sin pedidos confirmados con estos filtros.</div>';
+  </div></div>` : '<div class="vacio">Sin pedidos completados con estos filtros.</div>';
 }
 
 /* ---------------- auditoría con periodo ---------------- */
@@ -6270,14 +6270,14 @@ function abrirKpis() {
 /* ---------------- ayudas ---------------- */
 
 Object.assign(AYUDA, {
-  analitica: ['Analítica', 'Unidades e importes de los pedidos confirmados.', [
+  analitica: ['Analítica', 'Unidades e importes de los pedidos completados.', [
     `Elige el <b>periodo</b> y la dimensión: ${TT('medico', 's', '', 'l', 'l')}, comercial, producto, municipio, mes o canal.`,
     `Filtra por un <b>${TT('medico', 's', '', 'l', 'l')}</b>, un <b>comercial</b> o un <b>producto</b> para ver sus totales y su reparto por producto.`,
     'El importe es sin IVA y con el descuento de cada línea.',
     'Los datos no se pueden descargar: se consultan solo dentro de la plataforma.']]
 });
 AYUDA.inicio[2].splice(1, 1, 'El icono ⚙ junto al saludo abre los indicadores: el ojo los muestra u oculta y las flechas cambian el orden.');
-AYUDA.ventas[2].push('Arriba tienes los totales del periodo (solo pedidos confirmados) y al final de la tabla, la suma.');
+AYUDA.ventas[2].push('Arriba tienes los totales del periodo (solo pedidos completados: confirmados, cobrados, preparados y facturados) y al final de la tabla, la suma.');
 
 
 /* ============================================================
@@ -8027,8 +8027,8 @@ KPI_CAT.push(
   { id: 'borradores', t: 'pedidos en borrador', v: k => k.borradores, cls: k => k.borradores ? 'warn' : '', h: 'x-ventas' }
 );
 Object.assign(AYUDA_KPI, {
-  uds_mes: 'Unidades de los pedidos confirmados desde el día 1 de este mes. En verde si va por delante de los mismos días del mes anterior. Pulsa para ir a Analítica.',
-  importe_mes: 'Importe sin IVA de los pedidos confirmados este mes (con el descuento de cada línea).',
+  uds_mes: 'Unidades de los pedidos completados desde el día 1 de este mes. En verde si va por delante de los mismos días del mes anterior. Pulsa para ir a Analítica.',
+  importe_mes: 'Importe sin IVA de los pedidos completados este mes (con el descuento de cada línea).',
   prescriptores: `${TT('medico', 'p', '', 'l', 'C', 'distinto')} a los que se ha atribuido alguna venta este mes.`,
   nuevos_presc: `${TT('medico', 'p', '', 'l', 'C')} cuya primera venta atribuida ha sido este mes: el mejor indicador de captación.`,
   activos_90: `${TT('medico', 'p', '', 'l', 'C')} con alguna venta atribuida en los últimos 90 días: tu base activa.`,
@@ -9276,7 +9276,7 @@ async function listaPedidos() {
   const d = res.data, s = d.resumen || {}, imp = verImportes();
   PEDIDOS = d.filas || [];
   $('ptotales').innerHTML = `
-    <div class="kpi"><b>${num(s.pedidos || 0)}</b><span>Pedidos confirmados${s.borradores ? ` · ${s.borradores} en borrador` : ''}</span></div>
+    <div class="kpi"><b>${num(s.pedidos || 0)}</b><span>Pedidos completados${s.borradores ? ` · ${s.borradores} en borrador` : ''}</span></div>
     <div class="kpi"><b>${num(s.unidades || 0)}</b><span>Unidades</span></div>
     ${s.web_pedidos != null ? `<div class="kpi" id="pkweb"><b>${num(s.web_pedidos || 0)}</b><span>Por la web${imp && s.web_base != null ? ` · ${eurI(s.web_base || 0)} sin IVA` : ''}</span></div>` : ''}
     ${imp ? `<div class="kpi"><b>${eurI(s.base || 0)}</b><span>Base sin IVA</span></div>
@@ -16224,7 +16224,7 @@ async function pintarCentro() {
           <span class="sm">${esc((p.lineas || []).map(l => `${l.producto} × ${num(l.unidades)}`).join(', '))}${p.total != null ? ' · ' + eurI(p.total) : ''}</span></span>
           <span class="pill ${NOMBRE_ESTADO_CENTRO[p.estado] || ''}">${esc(p.estado)}</span></div>`).join('')}</div>` : '<div class="sm" style="padding:0 16px">Todavía no hay pedidos.</div>'}</div>
     <div class="card ancard" id="ctcompra"><h2>Lo que has comprado</h2>
-      ${pp.length ? barrasH(pp.map(x => ({ n: x.producto, v: x.unidades })), v => num(v) + ' uds.') : vacioGrafico('Aparecerá cuando tengas pedidos confirmados.')}
+      ${pp.length ? barrasH(pp.map(x => ({ n: x.producto, v: x.unidades })), v => num(v) + ' uds.') : vacioGrafico('Aparecerá cuando tengas pedidos completados.')}
       <p class="leer">Unidades de los últimos 12 meses, por producto.</p></div>`;
   const total = () => [...$('ctcuerpo').querySelectorAll('[data-ctp]')].reduce((s, i) => s + (Math.max(0, +i.value || 0)) * (+i.dataset.ctpr || 0), 0);
   $('ctcuerpo').querySelectorAll('[data-ctp]').forEach(i => i.oninput = i.onchange = () => { $('cttot').textContent = eurI(total()); });
@@ -17290,9 +17290,9 @@ const AN_FILTROS = { ventas: ['comercial', 'producto', 'canal', 'municipio'], cl
 function anCatalogo() {
   const med = TT('medico', 'p', '', 'l', 'l'), vis = TT('visita', 'p', '', 'l', 'l'), vis1 = TT('visita', 's', '', 'l', 'l');
   return [
-    ['importe', 'ventas', 'Ventas sin IVA', 'eur', true, 'Importe sin IVA de los pedidos confirmados, con el descuento de cada línea.', false, true, true],
-    ['unidades', 'ventas', 'Unidades vendidas', 'num', true, 'Unidades de los pedidos confirmados.', false, false, true],
-    ['pedidos', 'ventas', 'Pedidos', 'num', true, 'Pedidos confirmados en el periodo.', false, false, false],
+    ['importe', 'ventas', 'Ventas sin IVA', 'eur', true, 'Importe sin IVA de los pedidos completados, con el descuento de cada línea.', false, true, true],
+    ['unidades', 'ventas', 'Unidades vendidas', 'num', true, 'Unidades de los pedidos completados.', false, false, true],
+    ['pedidos', 'ventas', 'Pedidos', 'num', true, 'Pedidos completados en el periodo.', false, false, false],
     ['ticket', 'ventas', 'Ticket medio', 'eur', true, 'Importe medio de cada pedido.', false, true, true],
     ['web_pct', 'ventas', 'Ventas por la web', 'pct', true, 'Parte del importe que llega en pedidos marcados como «por la web».', false, true, true],
     ['margen', 'ventas', 'Margen bruto', 'eur', true, 'Ventas menos el coste de los productos vendidos. Solo cuenta los productos con coste: ponlo en cada producto.', false, true, false],
@@ -17499,7 +17499,7 @@ async function anGraficos(desde, hasta) {
   $('angraf').innerHTML = `
     ${puedeModulo('ventas') ? `<div class="card ancard ancha"><h2>Evolución de las ventas</h2>
       ${(t.unidades || 0) ? svgBarras(meses, meses.map(m => (serie[m] || {}).unidades || 0), verImportes() ? meses.map(m => +((serie[m] || {}).importe || 0)) : null, ['Unidades', 'Importe sin IVA'])
-        : vacioGrafico('Cuando haya pedidos confirmados verás aquí las unidades (barras) y el importe (línea) de cada mes.')}
+        : vacioGrafico('Cuando haya pedidos completados verás aquí las unidades (barras) y el importe (línea) de cada mes.')}
       <p class="leer"><b>Cómo leerlo:</b> arriba, las unidades vendidas cada mes; abajo, el importe, con los mismos meses alineados. Si el importe crece más que las unidades, se vende a mejor precio (menos descuento o productos de más valor).</p></div>
     <div class="card ancard"><h2>Reparto por producto</h2>
       ${(act.por_producto || []).length ? barrasReparto((act.por_producto || []).map(x => ({ n: x.nombre, v: +x.unidades || 0 }))) : vacioGrafico('Verás qué parte de las unidades corresponde a cada producto.')}
@@ -29473,11 +29473,12 @@ function pillCobroPed(p) {
 function pasoPedido(p) {
   if (p.estado === 'Anulado') return ['Anulado', 'p-anu'];
   if (p.estado === 'Borrador') return p.email_pago_en ? ['Esperando pago', 'p-bor'] : ['Borrador', 'p-sr'];
+  if (p.completado === true) return ['Completado', 'p-trfok'];   // v2.351.0: la misma regla que las cifras (pedido_completado)
   const alEntregar = /reembolso/i.test(p.forma_pago || ''), porCobrar = cobroDe(p) === 'Pendiente de cobro';
   if (porCobrar && !alEntregar) return ['Por cobrar', 'p-bor'];
   if (!p.paquete_en) return ['Por preparar', 'p-est'];
   if (porCobrar) return ['Por cobrar', 'p-bor'];
-  if (!p.factura && !p.factura_id && cobroDe(p) !== 'Sin cargo' && puedeModulo('facturacion')) return ['Por facturar', 'p-est'];
+  if (p.completado === false || (!p.factura && !p.factura_id && cobroDe(p) !== 'Sin cargo')) return ['Por facturar', 'p-est'];
   return ['Completado', 'p-trfok'];
 }
 function pillPaso(p) {
