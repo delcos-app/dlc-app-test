@@ -26660,7 +26660,8 @@ async function cargarInforme2271() {
     $('mdcuerpo').querySelectorAll('[data-pmir]').forEach(b => b.onclick = () => pmTab(b.dataset.pmir));
     pmPintarFicha();
   };
-  montarPeriodo($('mdper'), { id: 'informe', valor: 'anio', alCambiar: pinta });
+  try { localStorage.removeItem('dlc-per-informe-' + (PERFIL ? PERFIL.id : '')); } catch (e) {}   // v2.353.0: al entrar, siempre «Esta semana»
+  montarPeriodo($('mdper'), { id: 'informe', valor: 'semana', alCambiar: pinta });
   await pinta();
   portalMedico();
 }
@@ -26719,7 +26720,7 @@ function pmResumen(d, k, pac) {
         <div><b>${k.dias_entre ? num(k.dias_entre) + ' días' : '—'}</b><span>entre una y otra</span></div><div><b>${num(k.sin_pedir)}</b><span>más de 60 días sin repetirse</span></div></div>`;
   const falta = PM.faltan.length ? `<div class="pmaviso"><div><b>Completa tu ficha</b><span class="sm">Falta ${esc(pmFaltaTxt())}. Así tu comercial pasa a verte cuando mejor te va.</span></div>
       <button type="button" class="btn" data-pmir="ficha">Completar mi ficha</button></div>` : '';
-  return `${falta}
+  return `${pmActividad(d)}${falta}
     <div class="pmfila pm3">
       ${pmPeriodo(d)}
       <div class="card ancard"><h2>Métricas de ${TT('pauta', 'p', '', 'l', 'l')} ${pmAyu(`Métricas de ${TT('pauta', 'p', '', 'l', 'l')}`, `Cada barra son las unidades de las ${TT('pauta', 'p', '', 'l', 'l')} registradas en el mes; el número de debajo, cuántas ${TT('pauta', 'p', '', 'l', 'l')} fueron. Cambia el periodo arriba a la derecha.${d.ultima_pauta ? ' Última ' + TT('pauta', 's', '', 'l', 'l') + ': ' + fechaCorta(d.ultima_pauta) + '.' : ''}`)}</h2>${evol}</div>
@@ -29516,3 +29517,20 @@ const CIERRE_USUARIO = {}, CIERRE_PEND = {};
     return sm.apply(this, a);
   };
 });
+
+
+/* ============================================================
+   v2.353.0 · Portal del profesional: la actividad del periodo, de un vistazo (Eric, 22/10/2026). Al entrar el periodo es «Esta semana».
+   Con alguna solicitud completada: «Esta semana se han activado 2 …», escueto. Sin ninguna: lo dice y ofrece «Material y dudas».
+   Solo cuenta lo completado (SQL 177): nunca se enseña nada que no lo esté.
+   ============================================================ */
+const PM_PER_TXT = { hoy: 'Hoy', ayer: 'Ayer', semana: 'Esta semana', '7d': 'En los últimos 7 días', mes: 'Este mes', mesant: 'El mes pasado',
+  tri: 'Este trimestre', triant: 'El trimestre pasado', anio: 'Este año', anioant: 'El año pasado', todo: 'En total', pers: 'En estas fechas' };
+function pmActividad(d) {
+  const sel = document.querySelector('#mdper [data-per]'), cuando = PM_PER_TXT[sel ? sel.value : 'semana'] || 'En este periodo';
+  const n = +d.pautas || 0, t = terminoDe('pauta');
+  if (n > 0) return `<div class="banda-ok pmact" id="pmact"><b>${cuando} se ${n === 1 ? 'ha' : 'han'} activado ${num(n)} ${esc(n === 1 ? t.s : t.p)}</b></div>`;
+  return `<div class="banda-info pmact" id="pmact"><b>${cuando} no se ha activado ${t.g === 'f' ? 'ninguna' : 'ningún'} ${esc(t.s)}.</b>
+    ¿Necesitas material, información o resolver alguna duda? Escríbenos y te ayudamos.
+    <button type="button" class="btn sec chico" data-pmir="mat">Material y dudas</button></div>`;
+}

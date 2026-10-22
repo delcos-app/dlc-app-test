@@ -4795,6 +4795,9 @@ html body :is(.fvdonde,.pill,.chip):empty{display:none}
 .cfucab{position:relative}
 .cfucab > .cfuacts{position:absolute;right:0;top:22px;margin:0;display:flex;gap:8px}
 @media (max-width:760px){.cfucab > .cfuacts{position:static;margin-top:10px}}
+/* v2.353.0: la actividad del periodo en el portal */
+#v-informe .pmact{margin:16px 0 0;display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px}
+#v-informe .pmact .btn{margin-left:auto}
 /* v2.352.0: la vista previa de la factura, con su cargador mientras llega */
 #dlg2 .facprev.facpcarga{display:grid;place-items:center;min-height:min(70vh,820px)}
 @media (max-width:760px){#dlg2 .facprev.facpcarga{min-height:calc(100dvh - var(--bnavh,0px) - 230px)}}
@@ -4938,6 +4941,6 @@ try{var co=sessionStorage.getItem('dlc-cambio-org');if(co!==null||localStorage.g
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.352.0"></script>
+<script src="./app.js?v=2.353.0"></script>
 </body>
 </html>
