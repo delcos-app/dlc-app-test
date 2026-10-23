@@ -1422,7 +1422,7 @@ function pintarPrefsBase() {
 
   $('cfgcuerpo').innerHTML = `
     <p class="sm">El punto de salida y el de llegada se usan para calcular el plan del día y los recorridos.</p>
-    <div class="cols" style="grid-template-columns:1fr 1fr">
+    <div class="cols">
       ${caja('salida', s, 'Punto de salida', 'Dónde empiezas el día')}
       ${caja('llegada', l, 'Punto de llegada', 'Déjalo vacío para volver al punto de salida')}
     </div>
@@ -1638,7 +1638,7 @@ function pintarUsuarioBase(id) {
         <option value="0" ${u.activo ? '' : 'selected'}>Desactivado</option></select></div>
     </div>
     <label>Permisos por área</label>
-    ${AREAS.map(([k, t]) => `<div class="dprow" style="grid-template-columns:130px 1fr"><b>${t}</b>
+    ${AREAS.map(([k, t]) => `<div class="dprow" style="grid-template-columns:130px minmax(0,1fr)"><b>${t}</b>
       <select data-area="${k}">${NIVELES.map((n, i) => `<option value="${i}" ${(+areas[k] || 0) === i ? 'selected' : ''}>${n}</option>`).join('')}</select></div>`).join('')}
     <div id="ucomzona"></div>
     <div class="acts" style="justify-content:flex-end">
@@ -2585,7 +2585,7 @@ async function pintarComisionesPaso1() {
       <div class="g2"><div><label for="aep">Persona</label><select id="aep">${COMS.map(u => `<option value="${u.id}">${esc(u.nombre)} · ${esc(u.rol)}</option>`).join('')}</select></div>
         <div><label for="aee">Esquema</label><select id="aee"><option value="">Sin comisión</option>${ESQUEMAS.map(e => `<option value="${e.id}">${esc(e.nombre)}</option>`).join('')}</select></div></div>
       <label>Se aplica</label>
-      <div class="opciones" style="grid-template-columns:repeat(3,1fr)">
+      <div class="opciones" style="grid-template-columns:repeat(3,minmax(0,1fr))">
         <label class="opt"><input type="radio" name="aem" value="hoy" checked> A partir de hoy</label>
         <label class="opt"><input type="radio" name="aem" value="todo"> A todo el histórico</label>
         <label class="opt"><input type="radio" name="aem" value="fecha"> Desde una fecha</label></div>
@@ -3569,7 +3569,7 @@ function nuevoClasificador() {
         <div><label for="ncd">Descripción</label><input id="ncd" placeholder="Para qué sirve"></div>
       </div>
       <label>Valores</label>
-      <div id="ncv">${valores.map((v, i) => `<div class="g2" style="grid-template-columns:1fr auto;margin-bottom:6px">
+      <div id="ncv">${valores.map((v, i) => `<div class="g2" style="grid-template-columns:minmax(0,1fr) auto;margin-bottom:6px">
         <input data-ncv="${i}" value="${esc(v)}" placeholder="Valor ${i + 1}">
         ${valores.length > 1 ? `<button type="button" class="btn sec" data-ncx="${i}">✕</button>` : ''}</div>`).join('')}</div>
       <div class="acts"><button type="button" class="btn sec" id="ncmas">+ Añadir valor</button></div>
@@ -5079,7 +5079,7 @@ async function fichaPaciente(id) {
       <button class="x" id="fpx" aria-label="Cerrar">✕</button></div>
     ${permitido ? `<div class="acts"><button class="btn" id="fpnped">+ Nuevo pedido</button>
       <button class="btn sec" id="fpedit">Editar datos</button></div>` : ''}
-    <div class="kpis" style="margin:10px 0 0;grid-template-columns:repeat(3,1fr)">
+    <div class="kpis" style="margin:10px 0 0;grid-template-columns:repeat(3,minmax(0,1fr))">
       <div class="kpi"><b>${num(validos.length)}</b><span>pedidos</span></div>
       <div class="kpi"><b>${num(data.total_unidades)}</b><span>unidades</span></div>
       <div class="kpi"><b>${eurI(validos.reduce((n, p) => n + (+p.total || 0), 0))}</b><span>con IVA</span></div></div>
@@ -8729,7 +8729,7 @@ function rectificarFactura(f) {
       <button class="x" data-cerrar2 aria-label="Cerrar">✕</button></div>
     <label for="rfm">Motivo</label><input id="rfm" placeholder="p. ej. Devolución de una caja rota, error en el precio…">
     <label>Qué se rectifica</label>
-    <div class="opciones" style="grid-template-columns:1fr 1fr"><label class="opt"><input type="radio" name="rft" value="total" checked> Toda la factura</label>
+    <div class="opciones" style="grid-template-columns:minmax(0,1fr) minmax(0,1fr)"><label class="opt"><input type="radio" name="rft" value="total" checked> Toda la factura</label>
       <label class="opt"><input type="radio" name="rft" value="parcial"> Solo algunas unidades</label></div>
     <div id="rflin" class="hide">${f.lineas.map((l, i) => `<div class="g2" style="align-items:center"><div>${esc(l.descripcion)} <span class="sm">(${num(l.unidades)} uds)</span></div>
       <div><input type="number" min="0" max="${l.unidades}" data-rfi="${i}" value="0" aria-label="Unidades a rectificar"></div></div>`).join('')}</div>
@@ -11270,7 +11270,6 @@ if (MAPA_I18N) traducir(document.body);
 
 /* ---------------- horizontal: no se muestra ningún aviso ---------------- */
 
-(function () { const g = $('girar'); if (g) g.remove(); })();
 
 /* ---------------- idioma ---------------- */
 
@@ -12038,7 +12037,7 @@ function detalleUsuario(u) {
         <span class="permmod">${svgIco(ICON_NOM[n ? 'check' : 'minus'])}${esc(nombres[m])}</span><span class="permniv nv${n}">${esc(NIVEL_TXT[n])}</span></div>`; }).join('')}</div>
       <div class="sm" style="margin-top:8px">${importes ? 'Ve los importes de las ventas.' : 'En ventas solo ve unidades, no importes.'}</div></div>
     <div class="blk"><h3>Actividad</h3>${rolPuede(u.rol, 'portal_prescriptor') ? `<p class="sm">Vinculado a <b>${esc(u.medico || 'ninguna ficha')}</b>.</p>` : `
-      <div class="uper" style="grid-template-columns:repeat(2,1fr)"><div><b>${num(u.cartera)}</b><span>en cartera</span></div><div><b>${num(u.visitas_mes)}</b><span>${TT('visita', 'p', '', 'l', 'l')} este mes</span></div></div>
+      <div class="uper" style="grid-template-columns:repeat(2,minmax(0,1fr))"><div><b>${num(u.cartera)}</b><span>en cartera</span></div><div><b>${num(u.visitas_mes)}</b><span>${TT('visita', 'p', '', 'l', 'l')} este mes</span></div></div>
       ${u.zonas && u.zonas.length ? `<div class="sm">Zona: ${esc(u.zonas.map(z => z.charAt(0) + z.slice(1).toLowerCase()).join(', '))}</div>` : ''}`}
       <div class="sm" style="margin-top:6px">${puede('administrar') ? esc(conexionTxt((USR_ACC || {})[u.id], true)) + '<br>' : ''}Última actividad: ${u.ultima_actividad ? new Date(u.ultima_actividad).toLocaleString('es-ES', { dateStyle: 'medium', timeStyle: 'short' }) : 'ninguna registrada'}</div></div>
     <div class="usracc">
@@ -29449,7 +29448,9 @@ function cfgClonarEstilos() {
       if (r.cssRules && (r.media || (typeof CSSLayerBlockRule !== 'undefined' && r instanceof CSSLayerBlockRule))) { recorrer(r.cssRules, r); continue; }   // v2.356.0: también dentro de las capas
       if (!r.selectorText || !r.selectorText.includes('#cfgcuerpo')) continue;
       re.lastIndex = 0; const sel = nuevo(r.selectorText); if (!sel) continue;
-      try { (dentro || r.parentStyleSheet).insertRule(`${sel}{${r.style.cssText}}`, (dentro || r.parentStyleSheet).cssRules.length); } catch (e) {}
+      // v2.361.0: la copia va justo detrás de su original (al final del bloque, la de escritorio quedaba detrás de la del @media y le ganaba)
+      const caja = dentro || r.parentStyleSheet;
+      try { caja.insertRule(`${sel}{${r.style.cssText}}`, [...caja.cssRules].indexOf(r) + 1); } catch (e) {}
     }
   };
   for (const h of document.styleSheets) { try { if (!h.href) recorrer(h.cssRules, null); } catch (e) {} }
