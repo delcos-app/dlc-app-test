@@ -604,7 +604,7 @@ async function pintarFichaBase(id) {
           ${v.muestras ? ` · ${v.muestras} muestras` : ''}
           ${v.nota ? `<div class="sm">${esc(v.nota)}</div>` : ''}
           ${v.proxima_fecha ? `<div class="sm">Próxima: ${fechaCorta(v.proxima_fecha)} · ${esc(v.proxima_accion || '')}</div>` : ''}</span>
-        ${puedeRegistrar() ? `<button class="btn sec chico" data-editv='${esc(JSON.stringify(v))}' style="min-height:30px;padding:5px 9px;font-size:12.5px">Editar</button>` : ''}
+        ${puedeRegistrar() ? `<button class="btn sec chico" data-editv='${esc(JSON.stringify(v))}'>Editar</button>` : ''}
       </div>`).join('') : `<div class="sm">Todavía no hay ${TT('visita', 'p', '', 'l', 'l', 'registrado')}.</div>`}</div>
     <div id="fzcampos"></div>
     <section class="blk fventas" id="fventas"><h3>Ventas y ${TT('paciente', 'p', '', 'l', 'l')}</h3><div id="fventasc"></div></section>`;
@@ -1408,7 +1408,7 @@ async function pintarPrefsPaso2() {
 function pintarPrefsBase() {
   const s = punto('salida') || { nombre: '', dir: '' };
   const l = punto('llegada');
-  const caja = (k, x, titulo, sub) => `<div class="card" style="padding:16px">
+  const caja = (k, x, titulo, sub) => `<div class="card" style="padding-top:16px;padding-bottom:16px">
     <h2 style="padding:0">${titulo}</h2><p class="sm" style="padding:0">${sub}</p>
     <div class="g2" style="margin-top:10px">
       <div><label>Nombre</label><input data-pn="${k}" value="${esc(x ? x.nombre || '' : '')}" placeholder="Casa, Oficina…"></div>
@@ -1931,8 +1931,8 @@ async function listaSeguimiento(reinicia) {
         <span class="sm">${m.n_visitas} ${TT('visita', 'p', '', 'l', 'l')}${m.muestras ? ' · ' + m.muestras + ' muestras' : ''}</span></span>
       <span class="c3"><span class="sm">${m.proxima_fecha
         ? `<b style="color:${m.proxima_fecha < hoyISO() ? 'var(--warn)' : 'var(--navy)'}">${fechaCorta(m.proxima_fecha)}</b><br>${esc(m.proxima_accion || '')}
-           <br><span class="acts" style="margin:4px 0 0"><button class="btn sec chico" data-acc="hecha|${m.id}" style="min-height:26px;padding:3px 8px;font-size:12px">Hecha</button>
-           <button class="btn sec chico" data-acc="aplazar|${m.id}" style="min-height:26px;padding:3px 8px;font-size:12px">Aplazar</button></span>`
+           <br><span class="acts" style="margin:4px 0 0"><button class="btn sec chico" data-acc="hecha|${m.id}">Hecha</button>
+           <button class="btn sec chico" data-acc="aplazar|${m.id}">Aplazar</button></span>`
         : ''}</span></span>
       <span class="pill p-est">${esc(m.estado_comercial)}</span>
     </button>`).join(''));
@@ -6100,7 +6100,7 @@ async function cargarAnalitica() {
       </div>
       <div class="kpis vtot" id="atot"></div>
       <div id="aprods"></div>
-      <div class="subnav" style="padding:12px 14px 0"><button data-avista="rank" aria-pressed="true">Ranking</button>
+      <div class="subnav"><button data-avista="rank" aria-pressed="true">Ranking</button>
         <button data-avista="tabla" aria-pressed="false">Tabla por meses</button></div>
       <div id="aserie" style="padding:14px"></div>
       <div id="atabla"></div>
@@ -8860,7 +8860,7 @@ async function pintarEmpresa() {
   await cargarAjustes();
   const e = AJUSTES.empresa || {}, c = Object.assign({ vencimiento_dias: 15, forma_pago: '', emitir_al_validar: false }, AJUSTES.facturacion || {});
   const f = (k, t, extra) => `<div><label for="em_${k}">${t}</label><input id="em_${k}" value="${esc(e[k] || '')}" ${extra || ''}></div>`;
-  $('fcuerpo').innerHTML = `<div class="card" style="padding:16px 18px">
+  $('fcuerpo').innerHTML = `<div class="card" style="padding-top:16px;padding-bottom:16px">
     <h2 style="padding:0 0 8px">Datos fiscales del emisor</h2><p class="sm">Aparecen en cada factura. Las facturas ya emitidas conservan los datos con los que se emitieron.</p>
     <div class="g2">${f('razon_social', 'Razón social')}${f('nif', 'NIF')}</div>
     <div class="g2">${f('direccion', 'Dirección')}${f('cp', 'Código postal')}</div>
@@ -10749,13 +10749,13 @@ async function pintarUsuarios2() {
       ${Object.entries(porRol).map(([r, n]) => `<div class="kpi"><b>${num(n)}</b><span>${esc(r)}</span></div>`).join('')}
       <div class="kpi ${inactivos ? 'warn' : 'ok'}"><b>${num(inactivos)}</b><span>sin actividad en 30 días</span></div>
       <div class="kpi" data-usrinvk><b>${num(todos.filter(u => (rolPuede(u.rol, 'portal_prescriptor') || rolPuede(u.rol, 'portal_centro')) && u.activo).length)}</b><span>Cuentas con acceso</span></div></div>
-    <div class="card" style="padding:14px 16px">
+    <div class="card" style="padding-top:14px;padding-bottom:14px">
       <div class="usrbar"><input id="usrq" type="search" placeholder="Buscar por nombre o email" value="${esc(USR_F.q)}">
         <select id="usrrol"><option value="">Todos los roles</option>${rolesNombres().map(r => `<option ${USR_F.rol === r ? 'selected' : ''}>${esc(r)}</option>`).join('')}</select>
         <select id="usrest"><option value="activos" ${USR_F.est === 'activos' ? 'selected' : ''}>Activos</option><option value="inactivos" ${USR_F.est === 'inactivos' ? 'selected' : ''}>Desactivados</option><option value="todos" ${USR_F.est === 'todos' ? 'selected' : ''}>Todos</option></select>
         <button class="btn" id="usrnuevo">+ Nuevo usuario</button></div>
       <div id="usrl" class="usrlista"></div></div>
-    <div class="card usrinvw" style="padding:14px 16px"><h3>Invitados <span id="usrinvn" class="sm"></span></h3>
+    <div class="card usrinvw" style="padding-top:14px;padding-bottom:14px"><h3>Invitados <span id="usrinvn" class="sm"></span></h3>
       <p class="sm">${TT('medico', 'p', '', 'l', 'C')} y centros a los que has dado acceso a su portal. No cuentan como usuarios del plan. Con «Impersonalizar» abres una sesión con su usuario y ves su portal tal como lo verá.</p>
       <div id="usrinv" class="usrinvl"></div></div></div>`;
   $('usrq').oninput = () => { USR_F.q = $('usrq').value; pinta(); };
