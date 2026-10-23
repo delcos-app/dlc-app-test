@@ -4273,7 +4273,7 @@ body.modo-plataforma.menulat #v-delcos .pagtabs{display:none}
 @media (prefers-reduced-motion:reduce){.plk.plcarga::after,.inimos .mtsk::after,.kpi.ksk::after,.plsktab::after{animation-duration:2.4s}}
 /* Inicio en el móvil: el saludo entero (puede ir en dos líneas) y los botones a su derecha, sin taparlo */
 @media (max-width:760px){
-  #v-inicio > .saludo{padding-right:96px!important}
+  #v-inicio > .saludo{padding-right:116px!important}   /* v2.358.0: los dos botones miden ~106 px (con 96 el nombre llegaba al de ajustes) */
   #v-inicio > .saludo h1{white-space:normal;overflow:visible;text-overflow:clip}
 }
 /* Resumen de las listas en el móvil: una tira de cifras pequeñas que se desliza (v2.319.0; antes, dos columnas) */
@@ -4975,6 +4975,6 @@ try{var co=sessionStorage.getItem('dlc-cambio-org');if(co!==null||localStorage.g
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.357.0"></script>
+<script src="./app.js?v=2.358.0"></script>
 </body>
 </html>
