@@ -26,11 +26,6 @@ let RC_EPOCA = 0;
 const rcLS = k => 'dlc-rc-' + (PERFIL ? PERFIL.id : '') + '-' + k;
 const rcCopia = r => ({ data: r.data == null ? r.data : JSON.parse(JSON.stringify(r.data)), error: r.error || null });
 
-function invalidarCache() {
-  RC.clear(); RC_VUELO.clear(); RC_EPOCA++;
-  try { ESQUEMAS = []; } catch (e) {}          // listas guardadas en memoria que deben volver a pedirse
-  try { Object.keys(localStorage).filter(k => k.startsWith('dlc-rc-')).forEach(k => localStorage.removeItem(k)); } catch (e) {}
-}
 
 // Las peticiones de Supabase no traen .catch ni .finally: se añaden para que el código que los usa no falle.
 const conCatch = b => {
@@ -168,55 +163,6 @@ function paginador(el, total, pagina, alCambiar, alCambiarTam) {
 const PAG_MEM = {};
 const PAG_EXCLUIR = '.carsel, .picker, #lista, #slista, #kpis, .gsug, .umenu, .dl-menu, #tools, .opciones, .chips, .pag, #c-agenda, #c-acciones, #c-urgentes, #c-ultimas, #c-recom, #c-pend';
 
-function paginarListas() {
-  document.querySelectorAll('.pag[data-auto]').forEach(p => { if (!p.__lista || !p.__lista.isConnected) p.remove(); });
-  const grupos = new Map();
-  document.querySelectorAll('main .item, main .trow, dialog[open] .item, dialog[open] .trow').forEach(r => {
-    const p = r.parentElement;
-    if (!p || r.hasAttribute('data-fijo') || p.closest(PAG_EXCLUIR)) return;
-    if (!grupos.has(p)) grupos.set(p, []);
-    grupos.get(p).push(r);
-  });
-  grupos.forEach((filas, p) => {
-    const tam = tamPagina();
-    if (filas.length <= TAMANOS[0]) {
-      if (p.__pagEl) { p.__pagEl.remove(); p.__pagEl = null; filas.forEach(f => f.style.display = ''); }
-      return;
-    }
-    if (p.id && PAG_MEM[p.id] != null && p.__pagina == null) p.__pagina = PAG_MEM[p.id];   // listas que conservan la página
-    else if (p.__pagFilas !== filas.length || p.__pagPrimera !== filas[0]) {
-      if (!(p.id && PAG_MEM[p.id] != null)) p.__pagina = 0;
-    }
-    p.__pagFilas = filas.length; p.__pagPrimera = filas[0];
-    const paginas = Math.ceil(filas.length / tam);
-    if (p.__pagina >= paginas) p.__pagina = paginas - 1;
-    if (p.id) PAG_MEM[p.id] = p.__pagina;
-    const estado = [filas.length, p.__pagina, tam].join('|');
-    if (p.__pagEl && p.__pagEl.isConnected && p.__pagEstado === estado) return;   // nada que cambiar
-    p.__pagEstado = estado;
-    filas.forEach((f, i) => { f.style.display = Math.floor(i / tam) === p.__pagina ? '' : 'none'; });
-    if (!p.__pagEl || !p.__pagEl.isConnected) {
-      p.__pagEl = document.createElement('div');
-      p.__pagEl.setAttribute('data-auto', '');
-      p.__pagEl.className = 'pag';
-      p.__pagEl.__lista = p;
-      p.insertAdjacentElement('afterend', p.__pagEl);
-    }
-    const tmp = document.createElement('div');
-    tmp.innerHTML = pagHTML(filas.length, p.__pagina, tam);
-    p.__pagEl.innerHTML = tmp.firstElementChild.innerHTML;
-    p.__pagEl.querySelectorAll('[data-pg]').forEach(b => b.onclick = () => {
-      p.__pagina = +b.dataset.pg; p.__pagEstado = null; paginarListas();
-      const r = p.getBoundingClientRect();
-      if (r.top < 0) p.scrollIntoView({ block: 'start', behavior: 'smooth' });
-    });
-    p.__pagEl.querySelector('[data-pgtam]').onchange = e => {
-      fijarTam(+e.target.value);
-      document.querySelectorAll('.pag[data-auto]').forEach(x => { if (x.__lista) x.__lista.__pagEstado = null; });
-      paginarListas();
-    };
-  });
-}
 
 let T_OBS = null;
 new MutationObserver(muts => {
@@ -248,19 +194,6 @@ async function cargarDuplicados() {
   listasDuplicados();
 }
 
-async function listasDuplicados() {
-  cargando($('dpendc'), 'Buscando fichas pendientes…');
-  cargando($('dparc'), 'Buscando nombres parecidos…');
-  const [rp, rs] = await Promise.all([db.rpc('duplicados_pendientes'), db.rpc('escanear_duplicados', { p_umbral: 80, p_tope: 200 })]);
-  DUP_PEND = rp.data || []; DUP_PARES = rs.data || [];
-  const ids = [...new Set([...DUP_PEND.map(x => x.id), ...DUP_PARES.map(p => p.a_id)])];
-  DUP_TIPO = {};
-  for (let i = 0; i < ids.length; i += 150) {
-    const { data } = await db.from('cuentas').select('id, tipo').in('id', ids.slice(i, i + 150));
-    (data || []).forEach(c => { DUP_TIPO[c.id] = c.tipo || 'Persona'; });
-  }
-  pintarListasDup();
-}
 
 function pintarListasDup() {
   if (!$('dpendc')) return;

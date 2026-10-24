@@ -16,26 +16,6 @@ function pintarConexion() {
   else { el.className = 'conex hide'; el.textContent = ''; }
 }
 
-/** Ejecuta una escritura; si no hay conexión, la guarda y la reenvía después. */
-async function escribir(fn, payload, etiqueta) {
-  if (!navigator.onLine) {
-    colaGuardar(colaLeer().concat([{ fn, payload: marcarSinConexion(fn, payload), etiqueta, t: Date.now() }]));
-    pintarConexion();
-    toast('Sin conexión: se enviará al recuperarla');
-    return { offline: true };
-  }
-  const { data, error } = await db.rpc(fn, payload);
-  if (error) {
-    if (String(error.message || '').match(/fetch|network|Failed/i)) {
-      colaGuardar(colaLeer().concat([{ fn, payload: marcarSinConexion(fn, payload), etiqueta, t: Date.now() }]));
-      pintarConexion();
-      toast('Guardado en este dispositivo: se enviará luego');
-      return { offline: true };
-    }
-    return { error };
-  }
-  return { data };
-}
 
 async function vaciarCola() {
   if (!navigator.onLine) return;
@@ -150,156 +130,12 @@ function pintarPlan() {
   planFichasYNotas();
 }
 
-function planBotonesAgenda() {
-  if ($('planag')) $('planag').onclick = async ev => {
-    ev.target.disabled = true;
-    const r = await planAAgenda(PLAN);
-    ev.target.disabled = false;
-    if (!r) return;
-    toast(`${r.n} citas en tu agenda del ${fechaCorta(r.fecha)}`);
-    AG_MODO = 'dia'; AG_FECHA = r.fecha; PLAN = null; ir('agenda');
-  };
-  if ($('planempezar')) { $('planempezar').textContent = '▶ Pasar a mi agenda y empezar'; $('planempezar').onclick = empezarRuta; }
-  if ($('planag')) $('planag').textContent = 'Guardar en mi agenda';
-}
 
-function planHorasYFueraDePlan() {
-  if (!PLAN || !$('rplan')) return;
-  // Hora de cada médico y su franja de consulta
-  $('rplan').querySelectorAll('.lista > .item').forEach((el, i) => {
-    const p = PLAN.paradas[i]; if (!p) return;
-    const linea = el.querySelectorAll('.tx .sm')[1];
-    if (linea) linea.innerHTML = p.medicos.map(m => `<span class="pmed"><b>${m.horaPlan != null ? hm(m.horaPlan) : ''}</b> ${esc(m.nombre)}${
-      m.ventanas && m.ventanas.length ? ` <span class="pvent">atiende ${txtVentanas(m.ventanas)}</span>` : ''}</span>`).join('');
-  });
-  const fuera = PLAN.fuera || [];
-  if (fuera.length) {
-    $('rplan').querySelector('.card .lista').insertAdjacentHTML('afterend', `<div class="planfuera">
-      <h3>Se quedan fuera · ${fuera.length}</h3>
-      <div class="lista">${fuera.map((f, i) => `<div class="item ${i >= 30 ? 'extra' : ''}" style="cursor:default">
-        <span class="ic w">!</span><span class="tx"><b>${esc(f.m.nombre)}</b>
-          <span class="sm">${esc(f.motivo)}${f.m.municipio ? ' · ' + esc(f.m.municipio) : ''}</span></span></div>`).join('')}
-        ${fuera.length > 30 ? `<button class="vermas" type="button" data-vermas>Ver los ${fuera.length - 30} restantes</button>` : ''}</div></div>`);
-  }
-}
 
-function planMapaYDescartar() {
-  if (!PLAN || !$('rplan')) return;
-  const fuera = $('rplan').querySelector('.planfuera'), mapa = $('planmapa');
-  if (fuera && mapa) mapa.insertAdjacentElement('afterend', fuera);
-  if ($('plancerrar')) { $('plancerrar').textContent = '✕ Descartar plan'; $('plancerrar').title = 'Descarta este plan (la ruta guardada no cambia)'; }
-  if ($('planver')) $('planver').onclick = () => {
-    const m = $('planmapa');
-    if (m.dataset.on && m.style.height !== '0px') {
-      m.style.height = '0px'; m.style.marginTop = '0'; $('planver').textContent = 'Ver la ruta en el mapa';
-    } else {
-      mapaDelPlan(); m.style.height = 'min(55vh,460px)'; m.style.marginTop = '12px'; $('planver').textContent = 'Ocultar el mapa';
-    }
-  };
-}
 
-function planVisitadosRecientes() {
-  if (!PLAN || !$('rplan') || PLAN.__recientes === undefined && !PLAN.__pedido) {
-    if (PLAN && !PLAN.__pedido) {
-      PLAN.__pedido = true;
-      const ids = PLAN.paradas.flatMap(p => p.medicos.map(m => m.id));
-      recientesDe(ids, PLAN.fecha || hoyISO()).then(por => { if (!PLAN) return; PLAN.__recientes = por; pintarPlan(); });
-    }
-    return;
-  }
-  const por = PLAN.__recientes || {};
-  const ids = Object.keys(por);
-  if (!ids.length) return;
-  $('rplan').querySelectorAll('.pmed').forEach(el => {
-    const m = PLAN.paradas.flatMap(p => p.medicos).find(x => el.textContent.includes(x.nombre));
-    if (m && por[m.id] && !el.querySelector('.prec')) el.insertAdjacentHTML('beforeend', ` <span class="prec">⚠ ${esc(txtReciente(por[m.id].slice(0, 2)))}</span>`);
-  });
-  const card = $('rplan').querySelector('.card');
-  if (card && !$('planrec')) {
-    card.querySelector('h2').insertAdjacentHTML('afterend', `<div class="avisoh" id="planrec"><span>⚠ ${ids.length} ${ids.length === 1 ? `${TT('medico', 's', '', 'l', 'l')} del plan ya se ha` : `${TT('medico', 'p', '', 'l', 'l')} del plan ya se han`} visitado o tienen cita en los últimos ${avisoRevisita().dias} días.</span>
-      <button class="btn sec" id="planquitar">Quitarlos del plan</button></div>`);
-    $('planquitar').onclick = () => {
-      const u = ULTIMO_PLAN; if (!u) return;
-      construirPlan(u.conXY.filter(m => !ids.includes(m.id)), u.rutaId, null, u.opts);
-    };
-  }
-}
 
-function planAvisoSinSalida() {
- if (PLAN && $('rplan')) avisoSinSalida($('rplan').querySelector('.card'));
-}
 
-function planFichasYNotas() {
-  if (!PLAN || !$('rplan')) return;
-  const items = $('rplan').querySelectorAll('.lista > .item');
-  PLAN.paradas.forEach((p, i) => {
-    const it = items[i]; if (!it || it.dataset.ext) return;
-    it.dataset.ext = '1';
-    const tx = it.querySelector('.tx'), meds = tx.querySelectorAll('.sm')[1];
-    if (meds) meds.innerHTML = p.medicos.map(m => `<button type="button" class="lnkmed" data-pfm="${m.id}" title="Abrir la ficha">${esc(m.nombre)}</button>`).join('');
-    if (p.nota) tx.insertAdjacentHTML('beforeend', `<span class="sm notapar">📝 ${esc(p.nota)}</span>`);
-    const acts = it.querySelector('.acts');
-    acts.insertAdjacentHTML('afterbegin', `${p.medicos.length === 1 ? `<button class="btn sec" data-pfm="${p.medicos[0].id}">Ficha</button>` : ''}<button class="btn sec" data-pnota="${i}">${p.nota ? 'Editar nota' : 'Nota'}</button>`);
-  });
-  $('rplan').querySelectorAll('[data-pfm]').forEach(b => b.onclick = () => abrirFicha(b.dataset.pfm));
-  $('rplan').querySelectorAll('[data-pnota]').forEach(b => b.onclick = async () => {
-    const p = PLAN.paradas[+b.dataset.pnota];
-    const t = await pedirTexto(`Se guardará en la cita de cada ${TT('medico', 's', '', 'l', 'l')} de esta parada al pasar el plan a tu agenda.`, p.nota || '', { titulo: 'Nota para ' + p.centro, ok: 'Guardar nota', tipo: 'area' });
-    if (t === null) return; p.nota = t.trim(); pintarPlan();
-  });
-}
 
-function pintarPlanBase() {
-  if (!PLAN) { $('rplan').innerHTML = ''; return; }
-  const total = PLAN.paradas.reduce((n, p) => n + p.medicos.length, 0);
-  const ultima = PLAN.paradas[PLAN.paradas.length - 1];
-  // Ruta completa: todas las paradas y la vuelta a la salida (o termina en la última parada si no hay salida con ubicación)
-  const conCasa = PLAN.salida.lat != null;
-  const rutaDest = conCasa ? [PLAN.salida.lat, PLAN.salida.lon] : ultima.xy;
-  const rutaParadas = conCasa ? PLAN.paradas.map(p => p.xy) : PLAN.paradas.slice(0, -1).map(p => p.xy);
-
-  $('rplan').innerHTML = `<div class="card">
-    <h2>${PLAN.fecha && PLAN.fecha !== hoyISO() ? 'Plan para el ' + fechaLarga(new Date(PLAN.fecha + 'T00:00:00')) : 'Plan de hoy'}<span class="n">${total} ${TT('medico', total === 1 ? 's' : 'p', '', 'l', 'l')}</span></h2>
-    <p class="sm">Salida de ${esc(PLAN.salida.nombre)} a las ${PLAN.inicio != null ? hm(PLAN.inicio) : PLANCFG().salida} · ${PLAN.paradas.length} ${PLAN.paradas.length === 1 ? 'parada' : 'paradas'} ·
-      vuelta sobre las ${hm(PLAN.fin)} · <button class="kcfg" id="planhora">⚙ Cambiar horario</button></p>
-    <div class="lista">${PLAN.paradas.map((p, i) => `<div class="item" style="cursor:default">
-      <span class="ic">${i + 1}</span>
-      <span class="tx"><b>${esc(p.centro)}</b>
-        <span class="sm">${hm(p.llegada)}–${hm(p.fin)} · ${esc([p.dir, p.municipio].filter(Boolean).join(', '))} · ${p.medicos.length} ${TT('medico', p.medicos.length === 1 ? 's' : 'p', '', 'l', 'l')}</span>
-        <span class="sm">${p.medicos.map(m => esc(m.nombre)).join(' · ')}</span></span>
-      <span class="acts" style="margin:0"><button class="btn sec" type="button" data-nav="${navAttr(p.xy)}">Ir</button></span>
-    </div>`).join('')}</div>
-    <div id="planmapa" style="height:0;margin:0 16px;border-radius:12px;overflow:hidden"></div>
-    <div class="acts" style="padding:12px 16px 16px">
-      <button class="btn sec" id="planver">Ver la ruta en el mapa</button>
-      <button class="btn" type="button" data-nav="${navAttr(rutaDest, rutaParadas)}">Abrir la ruta en el navegador</button>
-      <button class="btn sec" id="planag">Guardar en mi agenda</button>
-      ${!PLAN.fecha || PLAN.fecha === hoyISO() ? '<button class="btn" id="planempezar">▶ Empezar ruta</button>' : ''}
-      <button class="btn sec" id="plancerrar">Cerrar</button>
-    </div></div>`;
-
-  $('plancerrar').onclick = () => { PLAN = null; pintarPlan(); };
-  $('planver').onclick = e => { mapaDelPlan(); e.target.classList.add('hide'); };
-  if ($('planhora')) $('planhora').onclick = abrirHorarioPlan;
-  if ($('planempezar')) $('planempezar').onclick = () => empezarRuta();
-  $('planag').onclick = async ev => {
-    ev.target.disabled = true; ev.target.textContent = 'Guardando…';
-    let n = 0;
-    for (const p of PLAN.paradas) {
-      for (const m of p.medicos) {
-        await escribir('guardar_cita', { p: {
-          cuenta_id: m.id, fecha: PLAN.fecha || hoyISO(), hora: hm(p.llegada), centro_nombre: p.centro,
-          estado: 'Planificada', origen: 'Plan del día',
-          op_id: 'c-' + m.id + '-' + (PLAN.fecha || hoyISO())
-        }});
-        n++;
-      }
-    }
-    ev.target.disabled = false; ev.target.textContent = 'Guardar en mi agenda';
-    toast(`${n} citas guardadas en tu agenda`);
-    cargarInicio();
-  };
-}
 
 /* ---------------- añadir cita desde la ficha ---------------- */
 

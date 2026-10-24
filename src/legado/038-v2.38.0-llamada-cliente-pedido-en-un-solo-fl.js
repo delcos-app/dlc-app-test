@@ -41,13 +41,6 @@ colocarPop = (orig => function (pop, ref) {
 
 /* ---------------- llamadas: cliente, médico, resultado y pedido en un flujo ---------------- */
 
-async function buscarClientes(q) {
-  const t = q.trim().replace(/[,()]/g, ' ');
-  if (t.length < 2) return [];
-  const { data } = await db.from('contactos').select('id,nombre,telefono,movil,email,nif,cuenta_id')
-    .or(`nombre.ilike.%${t}%,telefono.ilike.%${t}%,movil.ilike.%${t}%,nif.ilike.%${t}%`).limit(8);
-  return data || [];
-}
 
 async function editorLlamada(l, previa) {
   await catLlamadas();
@@ -190,52 +183,6 @@ pintarLlamadas = (orig => async function () {
 /* ---------------- comisiones: quién cobra, dentro del propio esquema ---------------- */
 
 
-async function personasEsquema(id) {
-  const ref = $('eguardaresq') && $('eguardaresq').closest('.acts');
-  if (!ref || $('esqpers')) return;
-  if (!id) { ref.insertAdjacentHTML('beforebegin', '<div class="blk" id="esqpers"><h3>Quién cobra con este esquema</h3><p class="sm">Guarda el esquema y después podrás asignarlo a las personas.</p></div>'); return; }
-  ref.insertAdjacentHTML('beforebegin', '<div class="blk" id="esqpers"><h3>Quién cobra con este esquema</h3><div id="esqlista" class="sm">Cargando…</div></div>');
-  if (!COMS.length) await cargarComerciales();
-  const pinta = async () => {
-    const { data } = await db.rpc('asignaciones_esquema_lista');
-    const l = (data || []).filter(x => x.esquema_id === id), hoy = hoyISO(), admin = puede('administrar');
-    if (!$('esqlista')) return;
-    $('esqlista').innerHTML = `${l.length ? `<div class="esqfilas">${l.map(x => {
-      const est = x.vigente ? ['Vigente', 'p-est'] : x.desde > hoy ? ['Programado', 'p-per'] : ['Terminado', 'p-anu'];
-      return `<div class="esqfila"><span class="candado" title="Guardado: no se puede modificar">🔒</span>
-        <span class="ef1"><b>${esc(x.persona)}</b><span class="sm">${x.desde <= '2000-01-01' ? 'Todo el histórico' : 'Desde ' + fechaCorta(x.desde)}${x.hasta ? ' hasta ' + fechaCorta(x.hasta) : ''}</span></span>
-        <span class="pill ${est[1]}">${est[0]}</span>
-        ${admin && x.vigente ? `<button type="button" class="kcfg" data-efin="${x.usuario_id}">Terminar hoy</button>` : ''}
-        ${admin && x.desde > hoy ? `<button type="button" class="kcfg" data-equi="${x.usuario_id}" data-edesde="${x.desde}">Anular</button>` : ''}</div>`;
-    }).join('')}</div>` : '<p class="sm">Nadie cobra todavía con este esquema.</p>'}
-    ${admin ? `<div class="esqadd"><select id="eap"><option value="">Añadir persona…</option>${COMS.filter(u => rolPuede(u.rol, 'cobrar_comision')).map(u => `<option value="${u.id}">${esc(u.nombre)}</option>`).join('')}</select>
-      <select id="eadm"><option value="hoy">desde hoy</option><option value="todo">todo su histórico</option><option value="fecha">desde una fecha…</option></select>
-      <span id="eadfw" class="hide"><input id="eadf" type="date" value="${hoy}"></span>
-      <button type="button" class="btn sec" id="eaok">Asignar</button></div>
-      <p class="sm" style="margin-top:6px">Una vez guardada, la asignación queda bloqueada 🔒. Para cambiarla, asigna otro esquema: el anterior termina el día antes.</p>` : ''}`;
-    if (!admin) return;
-    $('eadm').onchange = () => $('eadfw').classList.toggle('hide', $('eadm').value !== 'fecha');
-    $('eaok').onclick = async () => {
-      if (!$('eap').value) { toast('Elige la persona', true); return; }
-      const m = $('eadm').value, desde = m === 'todo' ? '2000-01-01' : m === 'fecha' ? $('eadf').value : hoy;
-      const quien = COMS.find(u => u.id === $('eap').value).nombre;
-      if (!await preguntar(`${quien} cobrará con este esquema ${m === 'todo' ? 'en todo su histórico' : 'desde el ' + fechaCorta(desde)}. Si tenía otro, termina el día antes. Una vez guardado no se puede modificar.`, { titulo: '¿Asignar el esquema?', ok: 'Asignar' })) return;
-      const { data: r, error } = await db.rpc('asignar_esquema', { p_usuario: $('eap').value, p_esquema: id, p_quitar: false, p_desde: desde });
-      if (error || (r && r.ok === false)) { toast('No se ha podido asignar', true); return; }
-      toast('Asignado a ' + quien); ESQUEMAS = []; pinta();
-    };
-    $('esqlista').querySelectorAll('[data-efin]').forEach(b => b.onclick = async () => {
-      if (!await preguntar('Dejará de cobrar con este esquema a partir de mañana.', { titulo: '¿Terminar hoy?', ok: 'Terminar', peligro: true })) return;
-      const d = new Date(); d.setDate(d.getDate() + 1);
-      await db.rpc('asignar_esquema', { p_usuario: b.dataset.efin, p_esquema: null, p_quitar: true, p_desde: fechaLocal(d) }); pinta();
-    });
-    $('esqlista').querySelectorAll('[data-equi]').forEach(b => b.onclick = async () => {
-      if (!await preguntar('Se anula la asignación programada.', { titulo: '¿Anular?', ok: 'Anular', peligro: true })) return;
-      await db.rpc('asignar_esquema', { p_usuario: b.dataset.equi, p_esquema: null, p_quitar: true, p_desde: b.dataset.edesde }); pinta();
-    });
-  };
-  pinta();
-}
 
 // En la ficha de la persona solo se informa: el esquema se gestiona en Comisiones
 

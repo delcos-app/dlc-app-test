@@ -17,69 +17,11 @@ let AG_MET = null, AG_SUG = null, AG_PEND = null;
 const agN = () => agConCinta() && $('v-agenda').classList.contains('agn');
 
 
-// ---- Pastillas: las cifras de agenda_metricas
-function agPastillasHtml() {
-  const d = AG_MET; if (!d) return '';
-  const n1 = x => num(x == null ? 0 : x), dec = x => (x == null ? '0' : String(x).replace('.', ','));
-  const h = d.hoy || {}, s = d.semana || {}, c = d.cierres || {}, p = d.pendientes || {};
-  let hechas = n1(h.visitadas), total = n1(h.citas);
-  // «Hoy», con las mismas citas que Tu día cuando se ve hoy
-  if (AG_FECHA === hoyISO() && Array.isArray(TD_CITAS) && TD_ULTIMO && TD_ULTIMO.fecha === AG_FECHA) {
-    const act = TD_CITAS.filter(x => !citaAnulada(x.estado));
-    hechas = num(act.filter(x => !CITA_ABIERTA.includes(x.estado)).length); total = num(act.length);
-  }
-  const vp = TT('visita', 'p', '', 'l', 'l');
-  return [
-    ['Hoy', `${hechas}/${total}`, `${hechas} de ${total} citas · media ${dec(d.media_dia)} ${vp}/día`, ''],
-    ['Semana', n1(s.visitas), `${n1(s.visitas)} ${vp} · media ${dec(s.media)}/semana`, ''],
-    ['Cierres', n1(c.hoy), `${n1(c.hoy)} cierres con éxito hoy · media ${dec(c.media_dia)}/día`, ''],
-    ['Por visitar', n1((p.urgentes || 0) + (p.sin_visita || 0)), `${n1(p.urgentes)} urgentes · ${n1(p.sin_visita)} sin ${TT('visita', 's', '', 'l', 'l')} en 60 días`, 'agp-pend']
-  ].map(([t, b, tit, cl]) => `<span class="agp ${cl}" title="${esc(tit)}">${esc(t)} <b>${esc(b)}</b></span>`).join('');
-}
 
 
 // Quién ya tiene cita ese día (no se le propone)
 const agConCitaHoy = () => new Set((TD_CITAS || []).filter(c => !citaAnulada(c.estado)).map(c => c.cuenta_id));
 
-// «En este centro también»: cada centro de sugerencias_centros va en la primera cita del día que está allí (a menos de 200 m)
-function agTamb() {
-  const cuerpo = $('agcuerpo'); if (!cuerpo || !AG_SUG || AG_SUG.fecha !== AG_FECHA) return;
-  cuerpo.querySelectorAll('.agtamb').forEach(x => x.remove());
-  const tarjetas = [...cuerpo.querySelectorAll('.tdu[data-tdu]')]; if (!tarjetas.length) return;
-  const cita = id => (TD_CITAS || []).find(c => String(c.id) === String(id));
-  const ya = agConCitaHoy(), usadas = new Set();
-  AG_SUG.centros.forEach(g => {
-    const gente = (g.cuentas || g.medicos || []).filter(m => !ya.has(m.id)); if (!gente.length) return;
-    const t = tarjetas.find(x => {
-      const c = cita(x.dataset.tdu); if (!c || usadas.has(x)) return false;
-      if (g.lat != null && c.lat != null) return km([+g.lat, +g.lon], [+c.lat, +c.lon]) <= 0.2;
-      return g.centro_nombre && c.centro_nombre && agImp(g.centro_nombre) === agImp(c.centro_nombre);
-    });
-    if (!t) return;
-    usadas.add(t);
-    // v2.303: agrupados por cuándo atienden en ese centro el día de la cita (mañana, tarde, otro día); con más de 6, los primeros
-    const chip = m => `<button type="button" data-agti="${m.id}" data-agtv="${m.visitar ? 1 : ''}" title="${esc(m.visitar ? 'Añadir una cita · ' + m.visitar : 'Ver su ficha' + (m.falta && m.falta.length ? ' · falta: ' + m.falta.join(', ') : ''))}">${m.visitar ? '<i>+</i> ' : ''}${esc(m.nombre)}</button>`;
-    const grupos = agTambGrupos(gente.slice(0, 6), AG_FECHA);
-    const chips = grupos.map(([t2, l]) => `<div class="agtambg"><span class="agtambgt">${esc(t2)}</span><div class="agtambl">${l.map(chip).join('')}</div></div>`).join('')
-      + (gente.length > 6 ? `<span class="sm">y ${gente.length - 6} más</span>` : '');
-    const pie = t.querySelector('.tdu-pie') || t.lastElementChild;
-    pie.insertAdjacentHTML('beforebegin', `<div class="agtamb${g.centro_id ? ' agtambc' : ''}"${g.centro_id ? ` data-agtc="${esc(g.centro_id)}" role="button" tabindex="0" title="Abrir la ficha del centro"` : ''}><div class="agtambh">${svgIco(ICON_NOM['map-pin'])} En este centro también${g.centro_id ? '<span class="agtambver">Ver el centro ›</span>' : ''}</div>${chips}</div>`);
-  });
-}
-// Mañana / tarde / otro día según el horario de su consulta (ubicaciones.dias: {"L": "Mañana 10:00-13:00", "X": "16-19"…})
-function agTambGrupos(gente, fecha) {
-  const letra = 'DLMXJVS'[new Date(fecha + 'T12:00:00').getDay()], NOM = { L: 'lunes', M: 'martes', X: 'miércoles', J: 'jueves', V: 'viernes', S: 'sábado', D: 'domingo' };
-  const g = { m: [], t: [], o: [], s: [] }, otros = new Set();
-  gente.forEach(m => {
-    const d = m.dias || {}, hoy = d[letra], ks = Object.keys(d).filter(k => d[k]);
-    if (!ks.length) { g.s.push(m); return; }
-    if (!hoy) { g.o.push(m); ks.forEach(k => otros.add(k)); return; }
-    const h = parseInt((String(hoy).match(/(\d{1,2})(?::\d{2})?/) || [])[1], 10);
-    (/tarde/i.test(hoy) || (!/ma[ñn]ana/i.test(hoy) && h >= 14) ? g.t : g.m).push(m);
-  });
-  const dOtros = 'LMXJVSD'.split('').filter(k => otros.has(k)).map(k => NOM[k]);
-  return [['Por la mañana', g.m], ['Por la tarde', g.t], ['Otro día' + (dOtros.length && dOtros.length <= 3 ? ' (' + dOtros.join(', ') + ')' : ''), g.o], ['Sin horario', g.s]].filter(([, l]) => l.length);
-}
 document.addEventListener('click', e => {
   const b = e.target.closest('#agcuerpo .agtamb[data-agtc]'); if (!b || e.target.closest('[data-agti]')) return;
   e.stopPropagation(); fichaCentro(b.dataset.agtc);
@@ -92,8 +34,6 @@ document.addEventListener('click', e => {
   if (b.dataset.agtv) nuevaCita(b.dataset.agti, AG_FECHA); else abrirFicha(b.dataset.agti);
 }, true);
 
-// Bandejas bajo la cabecera de «Tu día»
-function agTocaLista() { const ya = agConCitaHoy(); return AG_SUG && AG_SUG.fecha === AG_FECHA ? AG_SUG.toca.filter(m => !ya.has(m.id || m.cuenta_id)) : []; }
 function agBandejas() {
   const head = document.querySelector('#agcuerpo .tdhead'); if (!head) return;
   const old = $('agband'); if (old) old.remove();

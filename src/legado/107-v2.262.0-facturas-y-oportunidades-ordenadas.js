@@ -10,22 +10,6 @@ const ORD_MEM = {
   llam: { fn: 'llamadas_lista', campos: ['fecha', x => x.cliente || x.nombre, 'importe_estimado', x => x.medico || x.cuenta_texto, x => x.resultado || (x.pedido_id ? 'Pedido hecho' : ''), 'proxima_fecha', 'usuario'] }
 };
 Object.keys(ORD_MEM).forEach(t => { ORD_SRV[t] = (i, n) => (ORD_MEM[t].campos[i] != null && !htCeldaNoOrdenable(n)) ? 'c' + i : null; });
-function ordMemValor(x, c) { const v = typeof c === 'function' ? c(x) : x[c]; return v == null || v === '' ? null : v; }
-function ordMemComparar(a, b) {
-  if (a == null || b == null) return (a == null) - (b == null);   // vacíos al final
-  if (typeof a === 'number' || (typeof a === 'string' && /^-?\d+(\.\d+)?$/.test(a) && /^-?\d+(\.\d+)?$/.test(String(b)))) return (+a) - (+b);
-  return String(a).localeCompare(String(b), 'es', { numeric: true, sensitivity: 'base' });
-}
-function ordMemOrdenar(tipo, l) {
-  const o = HT_ORDEN[tipo], cfg = ORD_MEM[tipo]; if (!o || !cfg || !Array.isArray(l)) return l;
-  const c = cfg.campos[o.i]; if (c == null) return l;
-  const vacio = v => v == null;
-  return l.map((x, k) => [x, k]).sort((p, q) => {
-    const a = ordMemValor(p[0], c), b = ordMemValor(q[0], c);
-    if (vacio(a) || vacio(b)) return (vacio(a) - vacio(b)) || (p[1] - q[1]);   // los vacíos siempre al final
-    return o.dir * ordMemComparar(a, b) || (p[1] - q[1]);
-  }).map(p => p[0]);
-}
 // La lista llega ordenada de la base según la columna elegida
 db.rpc = (orig => async function (fn, args, ...r) {
   const res = await orig.call(this, fn, args, ...r);

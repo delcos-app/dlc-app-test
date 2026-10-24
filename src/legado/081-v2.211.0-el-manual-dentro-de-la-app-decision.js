@@ -4,12 +4,6 @@
    - El portal del médico sigue con su manual de siempre (cargarManual original).
    - window.MANUAL_ULTIMA guarda la última dirección pedida (la usan las pruebas). */
 let MANUAL_DESTINO = '';
-function guardarVocabManual() {
-  try {
-    localStorage.setItem('delcos-manual', JSON.stringify({ empresa: nombreApp(),
-      terminos: Object.fromEntries(Object.keys(TERM_DEF).map(k => [k, terminoDe(k)])) }));
-  } catch (e) {}
-}
 abrirManual = function (ancla) {
   guardarVocabManual();
   MANUAL_DESTINO = ancla || '';
@@ -74,27 +68,6 @@ cargarSeguimiento = (orig => async function (...a) {
   return r;
 })(cargarSeguimiento);
 
-/* v2.213.0 · Citas aplazadas: adónde fueron y de dónde vienen (petición de Eric; SQL 129).
-   - La cita que queda «Aplazada» dice adónde se movió (siguiendo la cadena si se volvió a aplazar) y cómo está allí si ya se cerró.
-   - La nueva hereda la anterior: de qué día viene y cómo se citó la primera vez (Ruta, Ficha…), en lugar de «Aplazada».
-   - Si vuelve a un día en que estaba aplazada, la base la reactiva y se ve como las demás (aplazar_cita y reabrir_cita).
-   - En la ventana de la cita, botones para ir al día al que se movió o del que viene. */
-function diaCita(f) {
-  const d = new Date(f + 'T12:00:00');
-  return d.toLocaleDateString('es-ES', { weekday: 'long' }) + ' ' + d.getDate() + '/' + (d.getMonth() + 1);
-}
-function textoOrigenCita(c) {
-  const p = [];
-  if (c.estado === 'Aplazada' && c.aplazada_a_fecha) {
-    const fin = c.aplazada_a_estado && !CITA_ABIERTA.includes(c.aplazada_a_estado) && c.aplazada_a_estado !== 'Aplazada' ? ' (' + c.aplazada_a_estado.toLowerCase() + ')' : '';
-    p.push('movida al ' + diaCita(c.aplazada_a_fecha) + fin);
-  }
-  if (c.aplazada_de_fecha) {
-    p.push('viene del ' + diaCita(c.aplazada_de_fecha));
-    if (c.origen_inicial && !['Aplazada', 'Reprogramada'].includes(c.origen_inicial)) p.push(c.origen_inicial);
-  } else if (c.origen && !(c.estado === 'Aplazada' && c.aplazada_a_fecha && c.origen === 'Aplazada')) p.push(c.origen);
-  return p.length ? ' · ' + esc(p.join(' · ')) : '';
-}
 verCita = (orig => function (c, ...r) {
   const x = orig.call(this, c, ...r);
   const acts = $('dbody') && $('dbody').querySelector('.vcacts');
@@ -119,14 +92,6 @@ verCita = (orig => function (c, ...r) {
    - Manual: en el iPhone y el iPad el libro dentro de un marco sale en blanco con la app instalada; allí se abre a pantalla
      completa, con «Volver a la app». */
 var VISITA_FECHA = '';
-function puedeRegistrarEnDia(f) {
-  const h = hoyISO();
-  return !f || f === h || (f < h && puede('visita_fecha_pasada'));
-}
-function marcarSinConexion(fn, payload) {
-  if (fn !== 'registrar_actividad' || !payload || !payload.p) return payload;
-  return Object.assign({}, payload, { p: Object.assign({}, payload.p, { sin_conexion: true }) });
-}
 abrirVisitaBase = (orig => async function (...r) {
   const fecha = VISITA_FECHA; VISITA_FECHA = '';
   const x = await orig.apply(this, r);
@@ -168,12 +133,6 @@ const CFG_CLAVES = { datos: 'nombre teléfono idioma perfil contraseña sesión 
   'o.plan': 'suscripción pago tarjeta usuarios precio', 'o.copias': 'copia seguridad descargar exportar', 'o.fiscal': 'nif razón social dirección',
   'o.series': 'numeración factura', 'o.vf': 'verifactu hacienda', 'o.pdf': 'factura diseño logo colores', cat: 'clasificadores listas valores especialidades motivos',
   portal: 'portal material pedir' };
-function claveCfgVieja(sec, sub) {
-  if (!sec || sec === '__cfg') return '';
-  if (sec === 'equipo') return sub === 'roles' ? 'roles' : 'usuarios';
-  if (sub) return sec + '.' + sub;
-  return CFG_VIEJO[sec] || sec;
-}
 function arbolCfgUnico() {
   const admin = puede('administrar'), org = puedeOrganizacion();
   const cfg = arbolConfig(), todos = cfg.flatMap(g => g[1]), de = k => todos.find(x => x.k === k);
@@ -292,12 +251,6 @@ cargarConfig = async function () {
     if ($('planver')) $('planver').onclick = () => { CFG_KEY = 'o.plan'; cargarConfig(); };
   } else Promise.resolve().then(r);
 };
-// El índice cabe siempre en la pantalla: su alto llega justo al borde de abajo, así la rueda lo recorre entero sin tener que mover la página
-function cfuAjustarIndice() {
-  const n = document.querySelector('#v-config .cfuidx'); if (!n || TAB !== 'config' || ES_MOVIL()) return;
-  const top = Math.max(0, n.getBoundingClientRect().top);
-  n.style.setProperty('--cfuidxh', Math.max(240, innerHeight - top - 12) + 'px');
-}
 let CFU_RAF = 0;
 ['scroll', 'resize'].forEach(ev => addEventListener(ev, () => { cancelAnimationFrame(CFU_RAF); CFU_RAF = requestAnimationFrame(cfuAjustarIndice); }, { passive: true }));
 // Cualquier camino a los ajustes lleva a su entrada de Configuración
@@ -610,110 +563,12 @@ const kvMin = h => { const m = String(h || '').match(/(\d{1,2}):(\d{2})/); retur
 const KV_COL = { inicial: '#C9D7E6', avance: '#3F82C0', interes: '#17457A', positivo: '#1E7A4C', negativo: '#94A3B8' };
 const KV_DN = ['D', 'L', 'M', 'X', 'J', 'V', 'S'];
 
-function kvGrafica(id, k) {
-  const h = hoyISO(), G = KV_GRAF, vis = TT('visita', 'p', '', 'l', 'l');
-  const porDia = {}; ((G && G.por_dia) || []).forEach(x => { porDia[x.fecha] = x.n; });
-  const estados = {}; ((G && G.estados) || []).forEach(x => { estados[x.valor] = x.n; });
-  const totalCartera = Object.values(estados).reduce((a, b) => a + b, 0);
-  if (id === 'citas' && KV_INI) {
-    const l = (KV_INI.agenda_hoy || []).filter(a => !citaAnulada(a.estado));
-    const ab = l.filter(a => CITA_ABIERTA.includes(a.estado)), ahora = (() => { const d = new Date(); return d.getHours() * 60 + d.getMinutes(); })();
-    const sig = ab.find(a => (kvMin(a.hora) ?? 9999) >= ahora - 15) || ab[0];
-    const tipo = a => CITA_ABIERTA.includes(a.estado) ? (a === sig ? 'sig' : '') : EST_COL[a.estado] === 'var(--warn)' ? 'no' : 'ok';
-    const s = sig ? `Siguiente <b>${esc(String(sig.hora || '').slice(0, 5) || '—')}</b> · ${esc(sig.nombre)}` : l.length ? 'Todas cerradas' : 'Sin citas hoy';
-    // v2.223.0: como mucho cinco puntos (tres en el móvil, con la siguiente siempre a la vista) y «+N» con el resto; antes saltaban a otra fila y tapaban el texto
-    const nv = matchMedia('(max-width: 760px)').matches ? 3 : 5;
-    const iS = sig ? l.indexOf(sig) : 0, ini = Math.max(0, Math.min(iS - (nv >> 1), l.length - nv)), ver = l.slice(ini, ini + nv);
-    const mas = Math.max(0, (k.citas_hoy || l.length) - ver.length);
-    return { s, z: l.length ? `<div class="kvdots">${ver.map(a => `<span class="kvdot"><i class="${tipo(a)}" title="${esc(a.nombre)}"></i><em>${esc(String(a.hora || '').slice(0, 5) || '·')}</em></span>`).join('')}${mas > 0 ? `<span class="kvdot"><em class="kvmas">+${mas}</em></span>` : ''}</div>` : '' };
-  }
-  if (id === 'urgentes') {
-    return k.urgentes ? { s: `${num(k.urgentes)} por atender`, z: '<div class="kvradar" aria-hidden="true"><i></i><b></b><b></b></div>' }
-      : { s: 'Ninguno pendiente', z: `<div class="kvcalma"><span>${kvSvg('<path d="M20 6 9 17l-5-5"/>')}</span>Todo al día</div>` };
-  }
-  if ((id === 'visitas_sem' || id === 'citas_7d') && G) {
-    const prox = id === 'citas_7d';
-    const dias = Array.from({ length: 7 }, (_, i) => prox ? kvMas(h, i) : kvMas(kvLunes(h), i));
-    const proxD = {}; (G.proximos || []).forEach(x => { proxD[x.fecha] = x.n; });
-    const val = dias.map(f => (prox ? proxD[f] : porDia[f]) || 0);
-    const mx = Math.max(1, ...val), W = 196, bw = 18, gap = (W - 7 * bw) / 6;
-    const bars = val.map((v, i) => { const hh = Math.max(3, v / mx * 40), x = i * (bw + gap), fut = !prox && dias[i] > h, esH = dias[i] === h;
-      return `<rect x="${x}" y="${44 - hh}" width="${bw}" height="${hh}" rx="4" fill="${fut ? '#E3EBF3' : esH ? 'var(--sky)' : 'var(--navy)'}" opacity="${v ? 1 : .35}"/><text x="${x + bw / 2}" y="58" text-anchor="middle" class="${esH ? 'hoy' : ''}">${KV_DN[new Date(dias[i] + 'T12:00:00').getDay()]}</text>`; }).join('');
-    let s;
-    if (prox) { const i = val.indexOf(Math.max(...val)); s = val[i] ? `El ${new Date(dias[i] + 'T12:00:00').toLocaleDateString('es-ES', { weekday: 'long' })}, el día más lleno (<b>${val[i]}</b>)` : 'Semana libre'; }
-    else { const m4 = Array.from({ length: 28 }, (_, i) => porDia[kvMas(kvLunes(h), -28 + i)] || 0).reduce((a, b) => a + b, 0) / 20; s = `Media <b>${String(m4.toFixed(1)).replace('.', ',')}</b> al día las 4 semanas anteriores`; }
-    return { s, z: `<svg class="kvbar" viewBox="0 0 ${W} 60" preserveAspectRatio="xMidYMax meet" aria-hidden="true">${bars}</svg>` };
-  }
-  if (id === 'visitas_mes' && G) {
-    const dHoy = +h.slice(8, 10), ini = h.slice(0, 8) + '01', d0 = new Date(ini + 'T12:00:00'); d0.setMonth(d0.getMonth() - 1); const iniAnt = isoLocal(d0);
-    const acum = f0 => { let a = 0; return Array.from({ length: dHoy }, (_, i) => { a += porDia[kvMas(f0, i)] || 0; return a; }); };
-    const ac = acum(ini), ant = acum(iniAnt);
-    if (dHoy < 2) return { s: '', z: '' };
-    const mx = Math.max(1, ...ant, ...ac), W = 196, H = 46, x = i => i / (dHoy - 1) * W, y = v => H - v / mx * H;
-    const lin = a => a.map((v, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join('');
-    const dif = ac[ac.length - 1] - ant[ant.length - 1];
-    return { s: dif >= 0 ? `<b>+${dif}</b> sobre el mismo día del mes pasado` : `<b>${dif}</b> frente al mismo día del mes pasado`,
-      z: `<svg class="kvlin" viewBox="0 0 ${W} ${H + 12}" preserveAspectRatio="none" aria-hidden="true"><path d="${lin(ant)}" fill="none" stroke="#C9D7E6" stroke-width="2" stroke-dasharray="4 4"/>
-        <path class="l" d="${lin(ac)}" pathLength="100" fill="none" stroke="var(--navy)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
-        <text x="0" y="${H + 11}">1</text><text x="${W}" y="${H + 11}" text-anchor="end" class="hoy">hoy</text>
-        <circle class="fin" cx="${x(dHoy - 1)}" cy="${y(ac[ac.length - 1])}" r="4" fill="var(--sky)" stroke="var(--navy)" stroke-width="1.5"/></svg>` };
-  }
-  if ((id === 'interesados' || id === 'cartera') && G && totalCartera) {
-    const esc2 = ESTADOS_DEF.filter(e => e.papel !== 'negativo').map(e => ({ e, n: estados[e.valor] || 0 }));
-    if (id === 'interesados') {
-      const pasos = esc2.filter(c => c.e.papel !== 'inicial'); if (!pasos.length) return { s: '', z: '' };
-      const mx = Math.max(1, ...pasos.map(c => c.n)), W = 196, bw = W / pasos.length;
-      const col = pasos.map((c, i) => { const on = c.e.papel === 'interes', hh = Math.max(4, c.n / mx * 28), nom = c.e.valor.length > 11 ? c.e.valor.slice(0, 10) + '.' : c.e.valor;
-        return `<rect x="${i * bw + 4}" y="${34 - hh}" width="${bw - 8}" height="${hh}" rx="4" fill="${on ? 'var(--navy)' : '#DCE6F1'}"/><text x="${i * bw + bw / 2}" y="${30 - hh}" text-anchor="middle" class="n ${on ? 'on' : ''}">${c.n}</text><text x="${i * bw + bw / 2}" y="48" text-anchor="middle" class="${on ? 'on' : ''}">${esc(nom)}</text>`; }).join('');
-      const pos = esc2.find(c => c.e.papel === 'positivo');
-      return { s: pos ? (pos.n ? `<b>${pos.n}</b> ya en «${esc(pos.e.valor)}»` : `Siguiente paso: «${esc(pos.e.valor)}»`) : '', z: `<svg class="kvbar" viewBox="0 0 ${W} 52" preserveAspectRatio="xMidYMax meet" aria-hidden="true">${col}</svg>` };
-    }
-    const C = 2 * Math.PI * 22; let off = 0;
-    const segs = esc2.filter(c => c.n).map(c => { const l = c.n / totalCartera * C, s = `<circle class="s" cx="29" cy="29" r="22" fill="none" stroke="${KV_COL[c.e.papel] || '#C9D7E6'}" stroke-width="9" stroke-dasharray="${Math.max(0, l - 1.5)} ${C}" stroke-dashoffset="${-off}"/>`; off += l; return s; }).join('');
-    return { s: '', z: `<div class="kvdona"><svg viewBox="0 0 58 58" aria-hidden="true">${segs}</svg><div class="kvley">${esc2.filter(c => c.n).slice(0, 4).map(c => `<span><i style="background:${KV_COL[c.e.papel] || '#C9D7E6'}"></i>${c.n} ${esc(c.e.valor)}</span>`).join('')}</div></div>` };
-  }
-  if (id === 'sin_contactar' && G && totalCartera) {
-    const n = Math.min(totalCartera, ES_MOVIL() ? 64 : 96), sin = Math.round(k.sin_contactar / totalCartera * n);   // v2.338.0: en el móvil, 64 (4 filas); con 96 tapaba la cifra
-    return { s: `${Math.round(k.sin_contactar / totalCartera * 100)} % de tu cartera`, z: `<div class="kvwaf" aria-hidden="true">${Array.from({ length: n }, (_, i) => `<i class="${i >= n - sin ? 'f' : ''}"></i>`).join('')}</div>` };
-  }
-  if (id === 'sin_visita_60' && k.medicos) {
-    const p = Math.round(k.sin_visita_60 / Math.max(1, k.medicos) * 100);
-    return { s: `${p} % de tu cartera`, z: `<div class="kvpropw"><div class="kvprop"><i style="width:${p}%"></i></div><div class="kvpropt"><span><i class="kvq a"></i>Sin ${TT('visita', 's', '', 'l', 'l')} en 60 días</span><span><i class="kvq b"></i>El resto</span></div></div>` };
-  }
-  if (id === 'uds_mes' && k.uds_mes_ant != null && (k.uds_mes || k.uds_mes_ant)) {
-    const a = k.uds_mes || 0, b = k.uds_mes_ant || 0, mx = Math.max(1, a, b), W = 196;
-    return { s: b ? `${a >= b ? '+' : ''}${Math.round((a - b) / b * 100)} % frente al mismo día del mes pasado` : '',
-      z: `<svg class="kvbar" viewBox="0 0 ${W} 44" preserveAspectRatio="none" aria-hidden="true"><rect x="0" y="4" width="${b / mx * W}" height="12" rx="4" fill="#DCE6F1"/><rect x="0" y="24" width="${Math.max(3, a / mx * W)}" height="12" rx="4" fill="var(--navy)"/></svg>` };
-  }
-  return { s: '', z: '' };
-}
 function kvContar(raiz) {
   const ns = [...raiz.querySelectorAll('[data-kvn]')];
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) { ns.forEach(n => n.textContent = num(+n.dataset.kvn)); return; }
   const t0 = performance.now(), dur = 900;
   const paso = t => { const f = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - f, 3); ns.forEach(n => { if (n.isConnected) n.textContent = num(Math.round(+n.dataset.kvn * e)); }); if (f < 1) requestAnimationFrame(paso); };
   requestAnimationFrame(paso);
-}
-function kpisVivos() {
-  const cont = $('kpis'); if (!cont || !KV_INI || !cont.querySelector('.kpi[data-kid]') || cont.querySelector('.kvt')) return;
-  const k = KV_INI.kpis || {};
-  cont.classList.add('kvivo');
-  cont.querySelectorAll('.kpi[data-kid]').forEach(el => {
-    const id = el.dataset.kid, c = KPI_CAT.find(y => y.id === id); if (!c) return;
-    const raw = c.v(k), m = String(raw).match(/^(\d+)\/(\d+)$/);
-    const { s, z } = kvGrafica(id, k);
-    const ai = el.querySelector('.ai'), t = ((el.querySelector('b + span') || {}).textContent || c.t).trim();
-    el.classList.add('kv');
-    el.innerHTML = `${ai ? ai.outerHTML : ''}<div class="kvt">${esc(t)}</div>
-      <div class="kvn">${m ? `<b data-kvn="${m[1]}">0</b><span class="kvu">/${m[2]}</span>` : /^\d+$/.test(String(raw)) ? `<b data-kvn="${raw}">0</b>` : `<b>${esc(String(raw))}</b>`}</div>
-      <div class="kvs">${s}</div>${z ? `<div class="kvz">${z}</div>` : ''}`;
-  });
-  // Los filtros guardados, con la misma tarjeta
-  cont.querySelectorAll('.kpi[data-kfi]').forEach(el => {
-    el.classList.add('kv'); const b = el.querySelector('b.cont'), sp = el.querySelector('b + span');
-    if (b && sp) { sp.className = 'kvt'; b.insertAdjacentElement('beforebegin', sp); const n = document.createElement('div'); n.className = 'kvn'; b.insertAdjacentElement('beforebegin', n); n.appendChild(b); }
-  });
-  kvContar(cont);
 }
 (() => {
   const ob = new MutationObserver(() => { if ($('kpis')) kpisVivos(); });

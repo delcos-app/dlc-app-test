@@ -1,0 +1,80 @@
+// servicios/mapas.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
+// Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
+
+async function pintarMapa() {
+  if (!window.L) { $('mapleg').textContent = 'El mapa necesita conexión.'; return; }
+  $('mapleg').textContent = 'Cargando puntos…';
+
+  const { data, error } = await db.rpc('mapa_cuentas', {
+    q: F.q || null, f_provincia: F.prov || null, f_municipio: F.muni || null,
+    f_estado: F.est || null, f_especialidad: F.esp || null, f_urgentes: !!F.urg
+  });
+  if (error) { $('mapleg').textContent = 'No se ha podido cargar el mapa: ' + error.message; return; }
+
+  if (!MAPA) {
+    MAPA = L.map('mapa', { preferCanvas: true }).setView([41.6, 1.9], 9);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+      { maxZoom: 19, attribution: '© OpenStreetMap' }).addTo(MAPA);
+  }
+  if (CAPA) CAPA.remove();
+  CAPA = L.layerGroup().addTo(MAPA);
+
+  const puntos = data || [];
+  puntos.forEach(m => {
+    const col = m.urgente && !m.ultima_visita ? '#B42318' : (colEstado(m.estado) || '#6B7F95');
+    L.circleMarker([m.lat, m.lon], {
+      radius: m.urgente ? 7 : 5, color: '#fff', weight: 1.5, fillColor: col, fillOpacity: .92
+    }).addTo(CAPA).bindPopup(
+      `<b>${esc(m.nombre)}</b><br>${esc(m.especialidad || '')}<br>${esc(m.centro || '')} ${esc(m.municipio || '')}<br>
+       <span style="color:${col};font-weight:700">${esc(m.estado)}</span><br>
+       <a href="#" onclick="abrirFicha('${m.id}');return false">Abrir ficha</a>`);
+  });
+
+  if (puntos.length) MAPA.fitBounds(puntos.map(m => [m.lat, m.lon]), { padding: [30, 30] });
+  setTimeout(() => MAPA.invalidateSize(), 60);
+
+  $('mapleg').innerHTML =
+    `<span><i style="background:#B42318"></i>Urgente sin visitar</span>` +
+    ESTADOS_DEF.map(x => `<span><i style="background:${colEstado(x.valor) || '#6B7F95'}"></i>${esc(x.valor)}</span>`).join('') +
+    `<span style="margin-left:auto"><b>${num(puntos.length)}</b> con ubicación de ${num(F.total)} encontrados</span>`;
+}
+
+function enlaceNav(destino, paradas, n = 'google') {
+  const d = Array.isArray(destino) ? destino.join(',') : destino;
+  if (n === 'waze') return 'https://waze.com/ul?ll=' + encodeURIComponent(d) + '&navigate=yes';
+  if (n === 'apple') return 'https://maps.apple.com/?daddr=' + encodeURIComponent(d) + '&dirflg=d';
+  const wp = paradas && paradas.length ? '&waypoints=' + encodeURIComponent(paradas.map(p => p.join(',')).join('|')) : '';
+  return 'https://www.google.com/maps/dir/?api=1&destination=' + encodeURIComponent(d) + '&travelmode=driving' + wp;
+}
+
+async function navegarA(destino, paradas) {
+  if (!destino) { toast('Esta parada no tiene ubicación', true); return; }
+  const varias = paradas && paradas.length;
+  const op = await elegirOpcion('¿Con qué app quieres navegar?',
+    varias ? 'Google Maps abre la ruta completa con todas las paradas. Waze y Apple Maps solo admiten un destino: abrirán la primera parada.' : '',
+    [{ k: 'google', t: 'Google Maps' }, { k: 'waze', t: 'Waze', cls: 'sec' }, { k: 'apple', t: 'Apple Maps', cls: 'sec' }, { k: 'no', t: 'Cancelar', cls: 'sec' }]);
+  if (!op || op === 'no') return;
+  const dest = op === 'google' ? destino : (varias ? paradas[0] : destino), par = op === 'google' ? paradas : null;
+  const web = enlaceNav(dest, par, op);
+  const app = (ES_IOS || ES_ANDROID) ? enlaceNavApp(dest, par, op) : null;
+  if (!app) { window.open(web, '_blank', 'noopener'); return; }
+  // La app de mapas toma el control y delcos pasa a segundo plano; si no está instalada, delcos sigue a la vista y se usa la web
+  let fuera = false; const marcar = () => { if (document.visibilityState === 'hidden') fuera = true; };
+  document.addEventListener('visibilitychange', marcar);
+  location.href = app;
+  setTimeout(() => { document.removeEventListener('visibilitychange', marcar); if (!fuera && document.visibilityState === 'visible') { const w = window.open(web, '_blank'); if (!w) location.href = web; } }, 1500);   // sin el clic, el navegador puede bloquear la ventana: entonces se abre aquí mismo
+}
+
+// v2.242.0: aquí iba la primera versión de geocodificar (se redefine entera más abajo)
+async function geoInversa(lat, lon) {
+  try { const r = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&addressdetails=1&lat=${lat}&lon=${lon}`); return await r.json(); } catch (e) { return null; }
+}
+
+function enlaceNavApp(destino, paradas, n) {
+  const d = Array.isArray(destino) ? destino.join(',') : String(destino);
+  if (n === 'waze') return 'waze://?ll=' + encodeURIComponent(d) + '&navigate=yes';
+  if (n === 'apple') return ES_IOS ? 'maps://?daddr=' + encodeURIComponent(d) + '&dirflg=d' : null;
+  if (ES_IOS) return 'comgooglemaps://?daddr=' + [...(paradas || []).map(p => p.join(',')), d].map(encodeURIComponent).join('+to:') + '&directionsmode=driving';
+  if (ES_ANDROID && !(paradas && paradas.length)) return 'google.navigation:q=' + encodeURIComponent(d) + '&mode=d';
+  return null;   // Android con paradas: solo el enlace web admite la ruta entera
+}

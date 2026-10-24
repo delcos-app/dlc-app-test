@@ -22,23 +22,7 @@ const kpiConfig = () => {
   return KPI_CAT.map(k => ({ id: k.id, on: KPI_DEF.includes(k.id), t: '' }));
 };
 
-async function guardarKpis(lista) {
-  const prefs = Object.assign({}, PERFIL.preferencias || {}, { kpis: lista });
-  const { data, error } = await db.rpc('guardar_preferencias', { p: prefs });
-  if (error) { toast('No se ha podido guardar: ' + error.message, true); return false; }
-  PERFIL.preferencias = data || prefs;
-  return true;
-}
 
-/** Cuenta los médicos de un filtro guardado. */
-async function contarFiltro(f) {
-  const { data } = await db.rpc('buscar_cuentas', {
-    q: f.q || null, f_provincia: f.prov || null, f_municipio: f.muni || null,
-    f_estado: f.est || null, f_especialidad: f.esp || null, f_area: null,
-    f_urgentes: !!f.urg, f_mios: !!f.mios, f_sin_visitar: !!f.sin, orden: 'nombre', lim: 1, desplaz: 0, f_comercial: f.com || null
-  });
-  return data ? data.total : 0;
-}
 
 
 

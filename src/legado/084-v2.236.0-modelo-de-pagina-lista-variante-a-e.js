@@ -81,13 +81,6 @@ filaTabla = (orig => function (m) {
   return h.slice(0, i) + `<span class="plcard"><b>${m.urgente ? '<i class="plurg" aria-label="Urgente"></i>' : ''}${esc(m.nombre || '')}</b><span class="plc2">${esc(l2)}</span><span class="plc3">${celda(m, 'estado_comercial')}</span></span>` + h.slice(i);
 })(filaTabla);
 
-// Esqueleto de la tabla: mismas filas y alturas que la tabla cargada
-function plEsqueleto(tab, conCab) {
-  const anchos = tab === 'directorio' ? colsConfig().filter(c => c.on).map(c => c.w) : [200, 90, 110, 110, 170, 130, 130, 110, 70, 60, 100];
-  const barra = (w, r, i) => `<span class="plskc" style="width:${w}px;min-width:${w}px"><i class="plsk" style="width:${[70, 55, 80, 60, 45, 65, 50][(i + r) % 7]}%"></i></span>`;
-  const fila = r => `<div class="plskr">${anchos.map((w, i) => barra(w, r, i)).join('')}<span class="plcard"><i class="plsk" style="width:62%"></i><i class="plsk" style="width:44%"></i></span></div>`;
-  return `<div class="plsktab">${conCab ? `<div class="plskh">${anchos.map(w => `<span class="plskc" style="width:${w}px;min-width:${w}px"><i class="plsk" style="width:46%"></i></span>`).join('')}</div>` : ''}${Array.from({ length: 8 }, (_, r) => fila(r)).join('')}</div>`;
-}
 
 function plKpisHtml(tab) {
   const c = PL[tab], k = PL_KPI[tab];
@@ -120,20 +113,6 @@ const plEtiqueta = id => { const l = document.querySelector(`label[for="${id}"]`
 
 // Un observador por pantalla: cada vez que la pantalla se repinta, la plantilla se ajusta antes de que se vea
 const PL_OBS = {};
-function plObservar(tab) {
-  const sec = $('v-' + tab); if (!sec || PL_OBS[tab]) return;
-  let pend = false;
-  let n = 0, t0 = 0;
-  const mo = new MutationObserver(() => {
-    if (pend) return;
-    // Freno: más de 30 ajustes en 100 ms es que otra parte de la pantalla responde a cada cambio; se espera al siguiente fotograma
-    const ya = performance.now(); if (ya - t0 > 100) { t0 = ya; n = 0; }
-    if (++n > 30) { if (n === 31) requestAnimationFrame(() => { n = 0; t0 = performance.now(); plSync(tab); }); return; }
-    pend = true;
-    queueMicrotask(() => { pend = false; window.PL_N = (window.PL_N || 0) + 1; mo.disconnect(); try { plSync(tab); } finally { mo.takeRecords(); mo.observe(sec, { childList: true, subtree: true, characterData: true }); } });
-  });
-  PL_OBS[tab] = mo; mo.observe(sec, { childList: true, subtree: true, characterData: true });
-}
 Object.keys(PL).forEach(plObservar);
 
 // Al llegar, sin cargador que tape la pantalla: se ve la plantilla con su esqueleto
@@ -147,20 +126,6 @@ revelar = (orig => function (el, max, desde) {
 // Clics de la barra, los indicadores y el menú «⋯»
 // Un filtro de campo personalizado cuenta si tiene algo (texto, lista o rango)
 const filtroConValor = v => v != null && v !== '' && !(Array.isArray(v) && !v.length) && !(typeof v === 'object' && !Array.isArray(v) && !Object.values(v).some(x => x != null && x !== ''));
-function plCerrarPop() { document.querySelectorAll('.plpop').forEach(p => p.remove()); }
-function plPop(btn, items) {
-  plCerrarPop();
-  const r = btn.getBoundingClientRect();
-  const p = document.createElement('div'); p.className = 'plpop'; p.setAttribute('role', 'menu');
-  p.innerHTML = (items.length > 12 ? '<input type="search" class="plpopq" placeholder="Buscar…" aria-label="Buscar">' : '') +
-    `<div class="plpopl">${items.map((x, i) => `<button type="button" role="menuitemradio" aria-checked="${!!x.on}" class="${x.on ? 'on' : ''}" data-ppi="${i}">${esc(x.t)}</button>`).join('')}</div>`;
-  document.body.appendChild(p);
-  if (ES_MOVIL()) p.classList.add('plhoja');
-  else { const izq = Math.min(Math.max(8, r.left), innerWidth - p.offsetWidth - 8); Object.assign(p.style, { left: izq + 'px', top: (r.bottom + 6 + scrollY) + 'px' }); }
-  p.querySelectorAll('[data-ppi]').forEach(b => b.onclick = () => { plCerrarPop(); items[+b.dataset.ppi].fn(); });
-  const q = p.querySelector('.plpopq');
-  if (q) { q.oninput = () => { const v = normalizar(q.value); p.querySelectorAll('[data-ppi]').forEach(b => b.classList.toggle('hide', !!v && !normalizar(b.textContent).includes(v))); }; if (!PANTALLA_TACTIL) q.focus(); }
-}
 const normalizar = typeof quitarAcentos === 'function' ? (s => quitarAcentos(String(s || '').toLowerCase())) : (s => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''));
 document.addEventListener('click', e => {
   if (!e.target.closest('.plpop') && !e.target.closest('.plchip, .plmas')) plCerrarPop();

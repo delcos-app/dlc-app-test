@@ -83,20 +83,5 @@ db.rpc = (orig => function (fn, args, ...r) {
     return x;
   });
 })(db.rpc);
-async function dupJuntarCentros(queda, va) {
-  if (!queda.centro_id || !va.centro_id) return;
-  const { data: qc } = await db.from('centros').select('id, nombre, municipio').eq('id', queda.centro_id).maybeSingle();
-  const { data: vc } = await db.from('centros').select('id, nombre, municipio').eq('id', va.centro_id).maybeSingle();
-  if (!qc) return;
-  const pon = { centro_id: qc.id, centro_nombre: qc.nombre };
-  await db.from('ubicaciones').update(pon).eq('centro_id', va.centro_id);
-  if (vc) await db.from('ubicaciones').update(pon).is('centro_id', null).eq('centro_nombre', vc.nombre);
-  // Quien quede dos veces en el centro: una sola consulta (la principal, si la hay)
-  const { data: u } = await db.from('ubicaciones').select('id, cuenta_id, principal').eq('centro_id', qc.id);
-  const vistos = {}, sobran = [];
-  (u || []).sort((x, y) => (y.principal ? 1 : 0) - (x.principal ? 1 : 0)).forEach(x => { if (x.cuenta_id === queda.id) return; if (vistos[x.cuenta_id]) sobran.push(x.id); else vistos[x.cuenta_id] = 1; });
-  if (sobran.length) await db.from('ubicaciones').delete().in('id', sobran);
-  try { invalidarCache(); } catch (e) {}
-}
 
 

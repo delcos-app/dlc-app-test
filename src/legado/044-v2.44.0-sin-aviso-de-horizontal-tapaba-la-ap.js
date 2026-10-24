@@ -30,17 +30,6 @@ window.addEventListener('resize', () => { if (TAB === 'config') cfgMovil(); });
 
 /* ---------------- ubicación de centros y consultas ---------------- */
 
-function marcarUbicado(box, i, lat, lon, texto) {
-  const set = (f, v) => { let el = box.querySelector(`[data-cf="${i}|${f}"]`); if (!el) { el = document.createElement('input'); el.type = 'hidden'; el.dataset.cf = `${i}|${f}`; box.appendChild(el); } el.value = v; };
-  set('lat', lat); set('lon', lon);
-  const est = box.querySelector('.cubest');
-  if (est) est.innerHTML = `<b style="color:var(--ok)">✓ Ubicado</b> ${esc(texto || '')} <a href="https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=18/${lat}/${lon}" target="_blank" rel="noopener">Ver en el mapa</a>`;
-  const d = box.closest('dialog'); if (d) d.dataset.sucio = '1';
-}
-// v2.242.0: aquí iba la primera versión de geocodificar (se redefine entera más abajo)
-async function geoInversa(lat, lon) {
-  try { const r = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&addressdetails=1&lat=${lat}&lon=${lon}`); return await r.json(); } catch (e) { return null; }
-}
 function rellenarDireccion(box, i, a) {
   if (!a) return;
   const set = (f, v) => { const el = box.querySelector(`[data-cf="${i}|${f}"]`); if (el && v && !el.value.trim()) el.value = v; };

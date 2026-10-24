@@ -61,22 +61,6 @@ async function editarVisita(v, medicoId) {
 
 /* ---------------- cerca de mí ---------------- */
 
-async function cercaDeMi(btn) {
-  if (!navigator.geolocation) { toast('Este dispositivo no tiene ubicación', true); return; }
-  btn.disabled = true; btn.textContent = 'Localizando…';
-  navigator.geolocation.getCurrentPosition(async p => {
-    const { data, error } = await db.rpc('cuentas_cerca', {
-      p_lat: p.coords.latitude, p_lon: p.coords.longitude, p_km: 10, lim: 100
-    });
-    btn.disabled = false; btn.textContent = 'Cerca de mí';
-    if (error) { toast('No se ha podido buscar: ' + error.message, true); return; }
-    CERCA = { lista: data || [], pos: [p.coords.latitude, p.coords.longitude] };
-    pintarCerca();
-  }, () => {
-    btn.disabled = false; btn.textContent = 'Cerca de mí';
-    toast('No se ha podido obtener tu ubicación. Revisa los permisos del navegador.', true);
-  }, { enableHighAccuracy: true, timeout: 15000 });
-}
 
 
 /* ---------------- agenda: crear cita, hora y mes ---------------- */

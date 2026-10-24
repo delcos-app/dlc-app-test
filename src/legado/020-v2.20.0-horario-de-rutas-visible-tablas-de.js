@@ -14,21 +14,6 @@ async function cargarAjustes() {
 
 /* ---------------- totales con envío ---------------- */
 
-function totalesPedido(lineas, d, dt, env) {
-  const ls = lineas.map(l => ({ b: (+l.importe || 0) * (1 - (+l.descuento || 0) / 100), iva: +l.iva || 0, u: +l.unidades || 0 }));
-  const sb = ls.reduce((n, l) => n + l.b, 0);
-  const k = !+d || !sb ? 1 : dt === 'importe' ? Math.max(0, 1 - d / sb) : Math.max(0, 1 - d / 100);
-  const porIva = {};
-  ls.forEach(l => { porIva[l.iva] = (porIva[l.iva] || 0) + l.b * k * l.iva / 100; });
-  const t = { unidades: ls.reduce((n, l) => n + l.u, 0), bruto: sb, descuento: sb * (1 - k), baseProd: sb * k, porIva };
-  // El envío se escribe con IVA; aquí se separa su base y su IVA
-  t.envio = env && env.on ? { con: r2(env.con), iva: +env.iva || 0, base: (+env.con || 0) / (1 + (+env.iva || 0) / 100), nombre: env.nombre || 'Envío' } : null;
-  if (t.envio) { t.envio.ivaImp = t.envio.con - t.envio.base; porIva[t.envio.iva] = (porIva[t.envio.iva] || 0) + t.envio.ivaImp; }
-  t.base = t.baseProd + (t.envio ? t.envio.base : 0);
-  t.iva = Object.values(porIva).reduce((n, x) => n + x, 0);
-  t.total = t.base + t.iva;
-  return t;
-}
 
 function bloqueTotales(t) {
   const tipos = Object.keys(t.porIva).sort((a, b) => a - b);

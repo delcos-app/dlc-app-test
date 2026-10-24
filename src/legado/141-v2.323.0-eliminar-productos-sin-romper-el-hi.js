@@ -8,11 +8,6 @@ const puedeEliminarProducto = () => puede('administrar') || nivelDe2('P') >= 2;
 const PROD_USOS = { ventas: 'pedidos', borradores: 'borradores', servicio: 'pedidos con este servicio', compras: 'compras', lotes: 'lotes',
   movimientos: 'movimientos de stock', muestras: 'entregas de muestras', cirugias: 'intervenciones', concursos: 'precios de concurso', equipos: 'equipos',
   visitas: TT('visita', 'p', '', 'l', 'l'), comisiones: 'esquemas de comisión' };
-async function refrescarProductos() {
-  try { invalidarCache(); } catch (e) {}
-  await cargarProductos();
-  if (TAB === 'productos' && typeof cargarProductosModulo === 'function') cargarProductosModulo();
-}
 editorProducto = (orig => function (p, ...r) {
   const x = orig.call(this, p, ...r);
   setTimeout(() => {

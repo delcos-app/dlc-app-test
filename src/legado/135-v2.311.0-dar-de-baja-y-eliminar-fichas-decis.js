@@ -17,14 +17,6 @@ abrirFicha = (orig => async function (id, ...a) {
   } catch (e) {}
   return r;
 })(abrirFicha);
-async function bajaCuenta(id, baja) {
-  const { data: r, error } = await db.rpc('baja_cuenta', { p_id: id, p_baja: baja });
-  if (error || !r || !r.ok) { toast('No se ha podido: ' + ((error && error.message) || (r && r.error) || ''), true); return false; }
-  try { invalidarCache(); } catch (e) {}
-  toast(baja ? 'Ficha dada de baja' + (r.citas_quitadas ? ` · ${r.citas_quitadas} ${r.citas_quitadas === 1 ? 'cita quitada' : 'citas quitadas'} de la agenda` : '') : 'Ficha dada de alta de nuevo');
-  if (TAB === 'directorio' && typeof buscar === 'function') buscar(true);
-  return true;
-}
 document.addEventListener('click', async e => {
   const b = e.target.closest('[data-fbaja], [data-falta], [data-felim]'); if (!b) return;
   const f = $('ficha');

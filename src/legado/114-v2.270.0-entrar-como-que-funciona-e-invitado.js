@@ -7,10 +7,6 @@
      última vez y qué ven; «Ver lo que ve» abre la plataforma como esa persona (con cualquier plan: solo ve su portal).
    ============================================================ */
 const esInvitado = u => !!u && (rolPuede(u.rol, 'portal_prescriptor') || rolPuede(u.rol, 'portal_centro'));
-function puedeVerComo(u) {
-  return !!(PERFIL && u && (puede('administrar') || ((PERFIL.areas || {}).U || 0) >= 3) && !suplantando() && u.id !== PERFIL.id && u.activo
-    && !rolPuede(u.rol, 'administrar') && (PLAN_ACTUAL.plan === 'medida' || esInvitado(u)));
-}
 const queVeInvitado = u => rolPuede(u.rol, 'portal_centro')
   ? 'Pide la reposición de los productos que le des de alta, pide material y escribe a su comercial.'
   : `Ve su portal (cifras agregadas de ${TT('pauta', 'p', '', 'l', 'l')}, sin importes ni datos de ${TT('paciente', 'p', '', 'l', 'l')}), pide material y escribe sus dudas.`;

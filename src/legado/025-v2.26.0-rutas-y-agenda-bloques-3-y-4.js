@@ -8,19 +8,7 @@
 
 let AG_VISTA = null;   // { id, nombre, rol, preferencias } cuando administración mira la agenda de otra persona
 function prefsActivas() { return (TAB === 'agenda' && AG_VISTA && AG_VISTA.preferencias) || PERFIL.preferencias || {}; }
-function agUid() { return AG_VISTA ? AG_VISTA.id : PERFIL.id; }
-function agUsuarioFiltro() {
-  if (TAB === 'agenda' && AG_VISTA) return AG_VISTA.id;
-  return puede('administrar') ? null : PERFIL.id;
-}
 
-async function verAgendaDe(id) {
-  if (!id || id === PERFIL.id) { AG_VISTA = null; cargarAgenda(); return; }
-  const { data } = await RPC_ORIG('preferencias_de', { p_usuario: id });
-  if (!data) { toast('No se ha podido abrir su agenda', true); return; }
-  AG_VISTA = { id: data.id, nombre: data.nombre, rol: data.rol, preferencias: data.preferencias || {} };
-  cargarAgenda();
-}
 
 /* ---------------- días bloqueados ---------------- */
 
@@ -30,132 +18,11 @@ async function bloqueadosSemana(desde, hasta) {
   return b;
 }
 
-async function menuDiaSemana(boton, fecha, bloqueado) {
-  document.querySelectorAll('.tdmenu').forEach(m => m.remove());
-  const m = document.createElement('div');
-  m.className = 'tdmenu'; m.__t = Date.now();
-  m.innerHTML = [
-    fecha >= hoyISO() ? ['nueva', 'Nueva cita', `Añadir ${TT('medico', 's', 'un', 'l', 'l')} a este día`] : null,
-    ['ver', 'Ver el día', 'Abrirlo en «Tu día»'],
-    fecha >= hoyISO() ? (bloqueado ? ['desbloquear', 'Desbloquear el día', 'Vuelve a estar disponible para planificar']
-      : ['bloquear', 'Bloquear el día', 'Vacaciones, formación, congreso… El planificador no lo usará']) : null
-  ].filter(Boolean).map(([k, t, s]) => `<button data-dmo="${k}"><b>${esc(t)}</b><span>${esc(s)}</span></button>`).join('');
-  document.body.appendChild(m);
-  const r = boton.getBoundingClientRect();
-  m.style.top = Math.min(window.innerHeight - m.offsetHeight - 10, r.bottom + 6) + 'px';
-  m.style.left = Math.max(10, Math.min(window.innerWidth - m.offsetWidth - 10, r.right - m.offsetWidth)) + 'px';
-  m.querySelectorAll('[data-dmo]').forEach(b => b.onclick = async () => {
-    m.remove();
-    const k = b.dataset.dmo;
-    if (k === 'nueva') return nuevaCita(null, fecha);
-    if (k === 'ver') { AG_FECHA = fecha; AG_MODO = 'dia'; return cargarAgenda(); }
-    let motivo = null;
-    if (k === 'bloquear') {
-      motivo = await pedirTexto('Motivo (opcional)', '', { titulo: 'Bloquear el ' + fechaCorta(fecha), ok: 'Bloquear' });
-      if (motivo === null) return;
-    }
-    const { data: r2, error } = await RPC_ORIG('bloquear_dia', { p_fecha: fecha, p_motivo: motivo, p_usuario: agUid(), p_bloquear: k === 'bloquear' });
-    if (error || (r2 && r2.ok === false)) { toast('No se ha podido cambiar', true); return; }
-    toast(k === 'bloquear' ? 'Día bloqueado' : 'Día desbloqueado'); cargarAgenda();
-  });
-}
 
 /* ---------------- semana: carga, bloqueos, arrastrar y planificador ---------------- */
 
 let SEM_BORRADOR = null;   // propuesta del planificador aún sin guardar
 
-async function pintarSemanaAgenda() {
-  const desde = lunesDe(AG_FECHA), hasta = isoMas(desde, 6);
-  const filtro = agUsuarioFiltro(), uid = agUid();
-  const [r, bloq] = await Promise.all([
-    rpcCache('agenda_rango', { p_desde: desde, p_hasta: hasta, p_usuario: filtro }, 'agenda-' + desde),
-    bloqueadosSemana(desde, hasta)
-  ]);
-  if (AG_MODO !== 'semana') return;
-  const porDia = {};
-  (r.data || []).forEach(c => (porDia[c.fecha] = porDia[c.fecha] || []).push(c));
-  const dias = Array.from({ length: 7 }, (_, i) => isoMas(desde, i));
-  const borr = SEM_BORRADOR && SEM_BORRADOR.semana === desde && SEM_BORRADOR.uid === uid ? SEM_BORRADOR : null;
-  const hayFuturo = dias.some(f => f >= hoyISO());
-  const cfg = PLANCFG();
-
-  $('agcuerpo').innerHTML = `
-    <div class="semhead"><h2 style="padding:0">Semana del ${fechaCorta(desde)} al ${fechaCorta(hasta)}${AG_VISTA ? ` · ${esc(AG_VISTA.nombre)}` : ''}</h2>
-      ${hayFuturo && !borr ? '<button class="btn" id="semplan">Planificar la semana</button>' : ''}</div>
-    ${borr ? `<div class="semborr">
-      <span><b>Propuesta sin guardar</b> · ${num(borr.total)} ${TT('visita', 'p', '', 'l', 'l', 'nuevo')} en ${Object.keys(borr.dias).filter(f => borr.dias[f].length).length} días${borr.sinDia.length ? ` · ${borr.sinDia.length} sin día` : ''}</span>
-      <span class="acts" style="margin:0"><button class="btn sec" id="semdescartar">Descartar</button><button class="btn" id="semguardar">Guardar en la agenda</button></span></div>` : ''}
-    <div class="semwrap"><div class="mes sem">
-      ${['L', 'M', 'X', 'J', 'V', 'S', 'D'].map(d => `<span class="mesdow">${d}</span>`).join('')}
-      ${dias.map(f => {
-        const todas = (porDia[f] || []).filter(c => !['Descartada', 'Aplazada'].includes(c.estado));
-        const mias = todas.filter(c => c.usuario_id === uid);
-        const nuevas = borr ? (borr.dias[f] || []) : [];
-        const hechas = todas.filter(c => c.estado === 'Visitada').length;
-        const d = new Date(f + 'T12:00:00');
-        const abiertas = mias.filter(c => CITA_ABIERTA.includes(c.estado));
-        let carga = '';
-        if ((abiertas.length || nuevas.length) && f >= hoyISO()) {
-          const { fin, tope } = estimarDia(mias.concat(nuevas.map(n => Object.assign({ estado: 'Planificada' }, (SEM_BORRADOR && SEM_BORRADOR.horario) || {}, n.cita))), f);
-          carga = `<span class="semcarga ${fin > tope ? 'pasa' : ''}" title="Hora de fin estimada${fin > tope ? ': pasa de la hora de vuelta ' + hm(tope) : ''}">~${hm(fin)}</span>`;
-        }
-        return `<div class="mesdia semdia ${f === hoyISO() ? 'hoy' : ''} ${d.getDay() === 0 || d.getDay() === 6 ? 'finde' : ''} ${bloq[f] ? 'bloq' : ''}" data-semdia="${f}" role="button" tabindex="0">
-          <div class="semcab"><b>${d.getDate()}</b>${todas.length ? `<span class="mespunto">${hechas}/${todas.length}</span>` : ''}${carga}
-            <button class="semmas" data-semmenu="${f}" aria-label="Opciones del ${fechaCorta(f)}" title="Opciones del día">⋯</button></div>
-          ${bloq[f] ? `<span class="sembloq">🚫 ${esc(bloq[f])}</span>` : ''}
-          <div class="semcitas">${todas.slice(0, 9).map(c => {
-            const mover = c.usuario_id === uid && CITA_ABIERTA.includes(c.estado) && c.fecha >= hoyISO();
-            return `<span class="semcita" data-semficha="${c.cuenta_id}" ${mover ? `draggable="true" data-semcid="${c.id}"` : ''}
-              title="${esc(c.nombre)} · ${esc(c.estado)}${mover ? ' · arrástrala a otro día para moverla' : ''}" style="border-left-color:${EST_COL[c.estado] || 'var(--muted)'}">
-              ${c.hora ? `<i>${esc(String(c.hora).slice(0, 5))}</i>` : ''}${esc(String(c.nombre).split(',')[0])}${c.usuario_id !== uid && c.usuario ? ` <em>${esc(iniciales(c.usuario))}</em>` : ''}</span>`;
-          }).join('')}
-            ${nuevas.map(n => `<span class="semcita nueva" title="Propuesta: ${esc(n.m.nombre)}${n.ini != null ? ' · ~' + hm(n.ini) : ''}"><i>~${n.ini != null ? hm(n.ini) : ''}</i>${esc(String(n.m.nombre).split(',')[0])}</span>`).join('')}
-            ${todas.length > 9 ? `<span class="sm">y ${todas.length - 9} más</span>` : ''}</div>
-        </div>`;
-      }).join('')}
-    </div></div>
-    ${borr && borr.sinDia.length ? `<div class="planfuera" style="margin:0 16px 16px"><h3>Se quedan sin día · ${borr.sinDia.length}</h3>
-      <div class="lista">${borr.sinDia.slice(0, 25).map(x => `<div class="item" style="cursor:default"><span class="ic w">!</span>
-        <span class="tx"><b>${esc(x.m.nombre)}</b><span class="sm">${esc(x.motivo)}${x.m.municipio ? ' · ' + esc(x.m.municipio) : ''}</span></span></div>`).join('')}
-        ${borr.sinDia.length > 25 ? `<div class="sm" style="padding:6px 12px">y ${borr.sinDia.length - 25} más</div>` : ''}</div></div>` : ''}`;
-
-  if ($('semplan')) $('semplan').onclick = () => planificarSemana(desde, dias, bloq, porDia);
-  if ($('semdescartar')) $('semdescartar').onclick = () => { SEM_BORRADOR = null; cargarAgenda(); };
-  if ($('semguardar')) $('semguardar').onclick = e => guardarBorradorSemana(e.target);
-
-  $('agcuerpo').querySelectorAll('[data-semdia]').forEach(el => {
-    const abrir = e => {
-      const mm = e.target.closest('[data-semmenu]');
-      if (mm) { menuDiaSemana(mm, mm.dataset.semmenu, !!bloq[mm.dataset.semmenu]); return; }
-      if (e.target.closest('.semcita.nueva')) return;
-      if (e.target.closest('[data-semficha]')) { abrirFicha(e.target.closest('[data-semficha]').dataset.semficha); return; }
-      AG_FECHA = el.dataset.semdia; AG_MODO = 'dia'; cargarAgenda();
-    };
-    el.onclick = abrir; el.onkeydown = e => { if (e.key === 'Enter') abrir(e); };
-    // Soltar una cita arrastrada
-    el.ondragover = e => { if (e.dataTransfer.types.includes('text/cita')) { e.preventDefault(); el.classList.add('sobre'); } };
-    el.ondragleave = () => el.classList.remove('sobre');
-    el.ondrop = async e => {
-      e.preventDefault(); el.classList.remove('sobre');
-      const id = e.dataTransfer.getData('text/cita'), destino = el.dataset.semdia;
-      const c = (r.data || []).find(x => x.id === id);
-      if (!c || c.fecha === destino) return;
-      if (destino < hoyISO()) { toast('No se puede mover a un día pasado', true); return; }
-      const avisos = [];
-      if (bloq[destino]) avisos.push(`ese día está bloqueado (${bloq[destino]})`);
-      const v = ventanasDe(c.dias, destino);
-      if (v && !v.length) avisos.push('ese día no atiende');
-      if (avisos.length && !await preguntar(`${c.nombre}: ${avisos.join(' y ')}.`, { titulo: '¿Moverla igualmente?', ok: 'Mover' })) return;
-      const { data: rr, error } = await db.rpc('estado_cita', { p_id: id, p_estado: c.estado, p_fecha: destino });
-      if (error || (rr && rr.ok === false)) { toast('No se ha podido mover', true); return; }
-      toast('Movida al ' + fechaCorta(destino)); cargarAgenda();
-    };
-  });
-  $('agcuerpo').querySelectorAll('[data-semcid]').forEach(ch => {
-    ch.ondragstart = e => { e.dataTransfer.setData('text/cita', ch.dataset.semcid); e.dataTransfer.effectAllowed = 'move'; ch.classList.add('arrastrando'); };
-    ch.ondragend = () => ch.classList.remove('arrastrando');
-  });
-}
 
 /* Planificador: reparte médicos entre los días de la semana */
 async function planificarSemana(desde, dias, bloq, porDia) {
@@ -361,11 +228,6 @@ document.addEventListener('click', e => {
 
 /* ---------------- aviso: falta el horario de atención ---------------- */
 
-async function faltaHorario(id) {
-  const { data } = navigator.onLine ? await db.rpc('ficha_cuenta', { p_id: id }) : await rpcCache('ficha_cuenta', { p_id: id }, 'ficha-' + id);
-  const cons = (data && data.consultas) || [];
-  return data && data.medico && data.medico.tipo !== 'Centro' && !cons.some(c => c.dias && Object.keys(c.dias).some(k => c.dias[k]));
-}
 
 
 

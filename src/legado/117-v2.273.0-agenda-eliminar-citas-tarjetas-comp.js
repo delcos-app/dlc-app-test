@@ -30,17 +30,6 @@ alternarUrgente = (orig => async function (id, ...x) {
 })(alternarUrgente);
 // Tareas del día plegables: un clic en su título las oculta todas y se ven solo las citas (se recuerda en este dispositivo)
 const tdTareasPlegadas = () => { try { return localStorage.getItem('delcos-tareas-plegadas') === '1'; } catch (e) { return false; } };
-function tdPlegarTareas() {
-  const t = $('tdtareas'), cab = t && t.querySelector('.tdtcab'); if (!t || !cab) return;
-  t.classList.toggle('plegadas', tdTareasPlegadas());
-  cab.setAttribute('role', 'button'); cab.tabIndex = 0;
-  cab.setAttribute('aria-expanded', String(!tdTareasPlegadas())); cab.title = tdTareasPlegadas() ? 'Ver las tareas' : 'Ocultar las tareas';
-  if (!cab.__plegar) {
-    cab.__plegar = true;
-    const alternar = () => { try { localStorage.setItem('delcos-tareas-plegadas', tdTareasPlegadas() ? '0' : '1'); } catch (e) {} tdPlegarTareas(); };
-    cab.onclick = alternar; cab.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); alternar(); } };
-  }
-}
 pintarTuDia = (orig => async function (...x) { const r = await orig.apply(this, x); tdPlegarTareas(); return r; })(pintarTuDia);
 
 

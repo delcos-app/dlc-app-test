@@ -29,13 +29,6 @@ async function abrirVisita(id) {
   });
 }
 
-// Registrar visita · Aviso si el médico no tiene horario de atención
-async function visitaAvisoHorario(id) {
-  if (!$('vguardar') || !await faltaHorario(id) || $('vhorario')) return;
-  const fh = $('dbody').querySelector('.fh');
-  if (fh) fh.insertAdjacentHTML('afterend', `<div class="avisoh" id="vhorario"><span>⚠ Falta su horario de atención. Aprovecha ${TT('visita', 's', 'el', 'l', 'l')} para preguntarlo
-    y complétalo después en <b>Editar ficha</b>.</span></div>`);
-}
 
 /* Parte base; abrirVisita le añade el resto */
 async function abrirVisitaBase(id) {
@@ -242,15 +235,6 @@ function abrirColumnas() {
 
 Object.assign(PAC, { tipo: '', pedidos: '', municipio: '' });
 
-async function cargarPacientes() {
-  vaciarModulos('v-pacientes');
-  $('v-pacientes').innerHTML = `
-    <div class="saludo"><div><h1>Clientes</h1><div class="fecha">${TT('paciente', 'p', '', 'l', 'C')} y empresas que compran: con qué ${TT('medico', 's', '', 'l', 'l')} y su historial</div></div>
-      <div class="acts" style="margin:0">${puedeVentas() ? '<button class="btn" id="pacnuevo">+ Nuevo cliente</button>' : ''}</div></div>
-    <div id="vcuerpo"></div>`;
-  if ($('pacnuevo')) $('pacnuevo').onclick = () => editorContacto({}, c => fichaPaciente(c.id));
-  pintarPacientes();
-}
 
 async function pintarPacientes() {
   const { data: munis } = await db.rpc('municipios_clientes');
@@ -283,32 +267,6 @@ async function pintarPacientes() {
   listaPacientes();
 }
 
-async function listaPacientes() {
-  cargando($('paclista'), 'Buscando clientes…');
-  const { data, error } = await db.rpc('clientes_lista', { q: PAC.q || null, p_medico: PAC.medico,
-    lim: tamPagina(), desplaz: PAC.pagina * tamPagina(), p_tipo: PAC.tipo || null, p_pedidos: PAC.pedidos || null,
-    p_municipio: PAC.municipio || null, ...(Object.keys(PAC.campos || {}).length ? { f_campos: PAC.campos } : {}) });
-  if (error) { $('paccuenta').textContent = 'No se ha podido cargar: ' + error.message; $('paclista').innerHTML = ''; return; }
-  $('paccuenta').innerHTML = `<b>${num(data.total)}</b> ${data.total === 1 ? 'cliente' : 'clientes'}`;
-  const f = data.filas || [];
-  const v = x => x ? esc(x) : '<span class="vac">—</span>';
-  const cpCols = clasVisibles('cliente');
-  $('paclista').innerHTML = f.length ? `<div class="dgrid-wrap"><div class="dgrid pacs">
-    <div class="dh"><span>Cliente</span><span>Tipo</span><span>DNI / CIF</span><span>Teléfono</span><span>Email</span><span>Población</span>
-      <span>${TT('medico', 's', '', 'l', 'C')}</span><span>Comercial</span><span class="num">Pedidos</span><span class="num">Uds.</span><span>Último pedido</span>${clasCabeceras(cpCols)}</div>
-    ${f.map(x => `<button class="dr" data-pac="${x.id}">
-      <span><b>${esc(x.nombre)}</b></span>
-      <span><span class="pill ${x.tipo === 'Empresa' ? 'p-emp' : 'p-per'}">${x.tipo === 'Empresa' ? 'Empresa' : `${TT('paciente', 's', '', 'l', 'C')}`}</span></span>
-      <span>${v(x.nif)}</span><span>${v(x.telefono || x.movil)}</span><span class="corta">${v(x.email)}</span><span>${v(x.municipio)}</span>
-      <span class="corta">${x.medico ? esc(x.medico) : '<span class="vac">Sin asignar</span>'}</span><span>${v(x.comercial)}</span>
-      <span class="num">${num(x.pedidos)}</span><span class="num"><b>${num(x.unidades)}</b></span>
-      <span>${x.ultimo_pedido ? fechaCorta(x.ultimo_pedido) : '<span class="vac">—</span>'}</span>${cpCols.map(c => `<span>${v(campoTexto(c, (x.clasificadores || {})[c.clave]))}</span>`).join('')}
-    </button>`).join('')}</div></div>` : '<div class="vacio">Ningún cliente con estos filtros.</div>';
-  // Columnas de campos personalizados: se añaden a la rejilla
-  clasRejilla($('paclista').querySelector('.dgrid.pacs'), cpCols.length);
-  $('paclista').querySelectorAll('[data-pac]').forEach(b => b.onclick = () => fichaPaciente(b.dataset.pac));
-  paginador($('pacpag'), data.total, PAC.pagina, p => { PAC.pagina = p; listaPacientes(); }, () => { PAC.pagina = 0; listaPacientes(); });
-}
 
 document.querySelectorAll('#nav [data-t="pacientes"]').forEach(b => b.textContent = 'Clientes');
 

@@ -116,7 +116,6 @@ const OPS = [['pago', 'Cobrado', 'pago_estado', '💳'], ['paquete', 'Paquete pr
   ['email_factura', 'Email con la factura enviado', 'email_factura_en', '🧾'], ['email_pago', 'Email con los datos de pago enviado', 'email_pago_en', '✉️']];
 const opHecho = (p, k) => k === 'pago' ? p.pago_estado === 'Cobrado' : !!p[OPS.find(o => o[0] === k)[2]];
 
-function textoEmailPago(p, total, cliente) { return plantillaCorreo('pago', 'texto', varsCorreo({ documento: 'pedido', numero: p.numero, importe: total, nombre: cliente })); }
 
 
 // (v2.183.0: aquí iba la primera versión de pintarOperativa; se redefine entera más abajo)
@@ -124,11 +123,6 @@ function textoEmailPago(p, total, cliente) { return plantillaCorreo('pago', 'tex
 /* ---------------- Pedidos: pestaña «Llamadas» ---------------- */
 
 
-async function catLlamadas() {
-  for (const k of ['motivo_llamada', 'resultado_llamada']) {
-    if (!(CAT[k] || []).length) { const { data } = await db.rpc('catalogo_papel', { p_papel: k }); CAT[k] = data || []; }
-  }
-}
 async function pintarLlamadas() {
   await catLlamadas();
   $('vcuerpo').innerHTML = `<div class="panel">

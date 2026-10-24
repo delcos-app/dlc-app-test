@@ -32,23 +32,5 @@ abrirHorarioPlan = (orig => function () {
 
 /* ---------------- «Cerca de mí» con paginación ---------------- */
 
-function pintarCerca() {
-  const l = CERCA.lista, tam = tamPagina(), pag = CERCA.pagina || 0;
-  const vista = l.slice(pag * tam, pag * tam + tam);
-  $('thead').innerHTML = '';
-  $('cuenta').innerHTML = `<b>${num(l.length)}</b> ${TT('medico', l.length === 1 ? 's' : 'p', '', 'l', 'l')} a menos de 10 km de ti
-    <button class="kcfg" id="cercacerrar" style="margin-left:10px">Volver a la búsqueda</button>`;
-  $('lista').innerHTML = vista.length ? vista.map(m => `<button class="trow" data-id="${m.id}" style="padding:10px 14px;gap:12px">
-      <span class="tcell cercakm"><b style="color:var(--navy)">${String(m.km).replace('.', ',')} km</b></span>
-      <span class="tcell" style="flex:1;width:auto">
-        <span class="nm">${m.urgente ? '<span class="pill p-urg">Urgente</span> ' : ''}${m.sin_reporting ? `<span class="pill p-sr" title="Solo ${TT('visita', 's', '', 'l', 'l')} presencial: sin informes ni feedback">Sin reporting</span> ` : ''}${esc(m.nombre)}</span>
-        <span class="sm">${esc(m.especialidad || '')} · ${esc(m.centro_nombre || '')} ${esc(m.municipio || '')}</span></span>
-      <span class="tcell cercaest"><span class="pill p-est">${esc(m.estado_comercial)}</span></span>
-    </button>`).join('') : `<div class="vacio">No hay ${TT('medico', 'p', '', 'l', 'l')} con ubicación a menos de 10 km.</div>`;
-  $('dirpag').classList.remove('hide');
-  paginador($('dirpag'), l.length, pag, p => { CERCA.pagina = p; pintarCerca(); window.scrollTo({ top: 0, behavior: 'smooth' }); },
-    () => { CERCA.pagina = 0; pintarCerca(); });
-  $('cercacerrar').onclick = () => { CERCA = null; buscar(true); };
-}
 
 

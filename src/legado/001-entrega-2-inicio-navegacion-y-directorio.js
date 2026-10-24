@@ -28,21 +28,6 @@ const FN_NEUTRAS = new Set(['actividad_mensual', 'agenda_metricas', 'analitica_k
   'pedidos_pagina', 'pedidos_pagina_base', 'plan_uso', 'resumen_inicio', 'resumen_seguimiento', 'rutas_candidatos', 'seguimiento_lista',
   'sugerencias_centros', 'supervision_equipo', 'toca_actividad', 'trazabilidad_lote', 'usuarios_lista', 'usuarios_resumen', 'zonas_resumen']);
 const RE_NEUTRAS = new RegExp('"(' + Object.keys(CLAVES_NEUTRAS).join('|') + ')"\\s*:');
-function copiarClavesAntiguas(x) {
-  if (Array.isArray(x)) { x.forEach(copiarClavesAntiguas); return; }
-  if (!x || typeof x !== 'object') return;
-  for (const k of Object.keys(x)) { copiarClavesAntiguas(x[k]); const v = CLAVES_NEUTRAS[k]; if (v && !(v in x)) x[v] = x[k]; }
-}
-async function respuestaConClavesAntiguas(url, r) {
-  const m = /\/rest\/v1\/rpc\/([a-z0-9_]+)/.exec(String(url));
-  if (!m || !FN_NEUTRAS.has(m[1]) || !r.ok) return r;
-  const t = await r.clone().text();
-  if (!RE_NEUTRAS.test(t)) return r;
-  let j; try { j = JSON.parse(t); } catch (e) { return r; }
-  copiarClavesAntiguas(j);
-  const h = new Headers(r.headers); h.delete('content-length');
-  return new Response(JSON.stringify(j), { status: r.status, statusText: r.statusText, headers: h });
-}
 
 const db = window.supabase.createClient(CFG.url, CFG.anon, {
   auth: { persistSession: true, autoRefreshToken: true, storageKey: 'dlc-os-sesion',
@@ -84,13 +69,6 @@ const casoTermino = (t, c) => c === 'U' ? t.toUpperCase() : c === 'C' ? t.charAt
 // v2.347.0: «Todos los segmentos» / «Todas las especialidades»
 const todosLos = k => (terminoDe(k).g === 'f' ? 'Todas ' : 'Todos ') + TT(k, 'p', 'el', 'l', 'l');
 const consultaPrivada = (cn = 'C') => TT('consulta', 's', '', 'l', cn, 'privado');
-function TT(k, n, det, cd, cn, adj) {
-  const d = terminoDe(k), nom = casoTermino(n === 'p' ? d.p : d.s, cn);
-  // Adjetivo que acompaña al nombre (se escribe en masculino singular): concuerda en género y número
-  const ad = adj ? ' ' + (d.g === 'f' ? adj.replace(/o$/, 'a') : adj) + (n === 'p' ? 's' : '') : '';
-  if (!det || !TERM_DET[det]) return nom + ad;
-  return casoTermino(TERM_DET[det][(d.g === 'f' ? 2 : 0) + (n === 'p' ? 1 : 0)], cd) + ' ' + nom + ad;
-}
 
 /* v2.69.0 · Permisos por capacidad. El código pregunta qué puede hacer una persona (puede('administrar')),
    nunca cómo se llama su rol: los roles y sus capacidades son datos de cada cliente (tablas roles y roles_capacidades). */
@@ -113,30 +91,6 @@ const papelEstado = v => (ESTADOS_DEF.find(x => x.valor === v) || {}).papel || '
 // v2.97.0: colores del sistema de diseño por papel (pendiente ámbar, avance azul, interés marino, positivo verde, negativo gris)
 const COL_PAPEL = { inicial: '#8A4B0B', avance: '#3F82C0', interes: '#17457A', positivo: '#0E6B4C', negativo: '#4A5868' };
 const colEstado = v => COL_PAPEL[papelEstado(v)] || '';
-async function cargarRoles() {
-  const [{ data, error }, { data: est, error: e2 }, voc] = await Promise.all([
-    db.from('roles').select('nombre,orden,color,plantilla,por_defecto,roles_capacidades(capacidad)').order('orden').order('nombre'),
-    db.rpc('catalogo_papel', { p_papel: 'estado_comercial' }),
-    db.from('ajustes').select('valor').eq('clave', 'terminos').maybeSingle()]);
-  // Vocabulario: si cambia respecto al guardado, se recarga una vez para que todos los textos lo usen
-  if (voc && !voc.error) {
-    const nuevo = JSON.stringify((voc.data && voc.data.valor) || {}), antes = JSON.stringify(TERMINOS || {});
-    if (nuevo !== antes) {
-      try { localStorage.setItem(TERMKEY, nuevo); } catch (e) {}
-      let ya = false; try { ya = sessionStorage.getItem('dlc-terminos-recarga') === nuevo; sessionStorage.setItem('dlc-terminos-recarga', nuevo); } catch (e) {}
-      if (!ya) { location.reload(); return false; }
-    }
-  }
-  if (!e2 && Array.isArray(est)) {
-    ESTADOS_DEF = est.map(x => ({ valor: x.valor, papel: x.papel || '' }));
-    try { localStorage.setItem(ESTKEY, JSON.stringify(ESTADOS_DEF)); } catch (e) {}
-  }
-  if (error || !data) return false;
-  ROLES_DEF = data.map(r => ({ nombre: r.nombre, orden: r.orden, color: r.color, plantilla: r.plantilla || {}, por_defecto: !!r.por_defecto,
-    capacidades: (r.roles_capacidades || []).map(x => x.capacidad) }));
-  try { localStorage.setItem(ROLKEY, JSON.stringify(ROLES_DEF)); } catch (e) {}
-  return !e2;
-}
 const F = { q: '', prov: '', muni: '', esp: '', est: '', urg: false, orden: 'nombre', pagina: 0, total: 0, campos: {} };
 const PASO = 50;
 
@@ -418,86 +372,9 @@ async function abrirFicha(id, ...r) {
   await fichaAcceso(id);
 }
 
-// Ficha · Comercial asignado (administración) y pacientes que vienen de este prescriptor
-async function fichaComercialYPacientes(id) {
-  if (FICHA_ID !== id || !$('fbody').querySelector('.fh')) return;
-  const esAdmin = puede('administrar');
-  if (esAdmin) {
-    $('fbody').insertAdjacentHTML('beforeend', `<div class="blk" id="fcomblk"><h3>Comercial asignado</h3>
-      <div style="display:flex;gap:8px"><select id="fcomsel" style="flex:1"><option>Cargando…</option></select>
-        <button class="btn sec" id="fcomok">Guardar</button></div>
-      <div class="sm" style="margin-top:6px">Las ventas nuevas se atribuyen al comercial asignado en ese momento. Las anteriores no cambian.</div></div>`);
-    const [{ data: us }, { data: act }] = await Promise.all([db.rpc('usuarios_lista'), RPC_ORIG('responsable_de_cuenta', { p_medico: id })]);
-    if (FICHA_ID !== id || !$('fcomsel')) return;
-    $('fcomsel').innerHTML = '<option value="">Sin comercial</option>' + (us || []).filter(u => u.activo && (rolPuede(u.rol, 'cartera') || (act && act.id === u.id)))
-      .map(u => `<option value="${u.id}" ${act && act.id === u.id ? 'selected' : ''}>${esc(u.nombre)} · ${esc(u.rol)}</option>`).join('');
-    $('fcomok').onclick = async ev => {
-      ev.target.disabled = true;
-      const { data: r, error } = await db.rpc('asignar_responsable_cuenta', { p_medico: id, p_usuario: $('fcomsel').value || null });
-      ev.target.disabled = false;
-      if (error || (r && r.ok === false)) { toast('No se ha podido asignar', true); return; }
-      toast('Comercial asignado'); abrirFicha(id);
-    };
-  }
-  if (esAdmin || ((PERFIL.areas || {}).V || 0) >= 1) {
-    const { data } = await db.rpc('clientes_lista', { q: null, p_medico: id, lim: 5, desplaz: 0 });
-    if (FICHA_ID !== id || !data || !data.total) return;
-    ($('fventasc') || $('fbody')).insertAdjacentHTML('beforeend', `<div class="blk"><h3>${TT('paciente', 'p', '', 'l', 'C')}<span class="n" style="margin-left:6px">${num(data.total)}</span></h3>
-      ${data.filas.map(x => `<button class="item" data-fmpac="${x.id}"><span class="tx"><b>${esc(x.nombre)}</b>
-        <span class="sm">${num(x.unidades)} uds. · ${num(x.pedidos)} pedidos${x.ultimo_pedido ? ' · último ' + fechaCorta(x.ultimo_pedido) : ''}</span></span></button>`).join('')}
-      ${data.total > 5 ? `<button class="verlo" id="fmpactodos" style="border-radius:8px;margin-top:6px">Ver los ${num(data.total)} ${TT('paciente', 'p', '', 'l', 'l')}</button>` : ''}</div>`);
-    $('fbody').querySelectorAll('[data-fmpac]').forEach(b => b.onclick = () => fichaPaciente(b.dataset.fmpac));
-    const nombre = ($('fbody').querySelector('.fh h2') || {}).textContent || '';
-    if ($('fmpactodos')) $('fmpactodos').onclick = () => {
-      $('ficha').close(); Object.assign(PAC, { q: '', medico: id, medicoNombre: nombre.replace(/^Urgente\s*/, ''), pagina: 0 }); ir('pacientes');
-    };
-  }
-}
 
-// Ficha · Aviso si falta su horario de atención
-async function fichaAvisoHorario(id) {
-  if (FICHA_ID !== id || !$('fbody').querySelector('.fh')) return;
-  if (!await faltaHorario(id) || FICHA_ID !== id || $('fhorario')) return;
-  $('fbody').querySelector('.fh').insertAdjacentHTML('afterend', `<div class="avisoh" id="fhorario">
-    <span>⚠ <b>Falta su horario de atención.</b> Sin él, las rutas y el planificador no saben qué días y horas atiende.</span>
-    ${puedeEditar() ? '<button class="btn sec" id="fhcompletar">Completar horario</button>' : ''}</div>`);
-  if ($('fhcompletar')) $('fhcompletar').onclick = () => abrirEditor(id);
-}
 
-// Ficha · Material entregado y datos bajo cada visita del historial
-async function fichaMaterialVisitas(id) {
-  if (FICHA_ID !== id) return;
-  // Material y datos bajo cada visita del historial
-  $('fbody').querySelectorAll('[data-editv]').forEach(b => {
-    let v; try { v = JSON.parse(b.dataset.editv); } catch (e) { return; }
-    const t = detTxt(v); if (!t) return;
-    const span = b.parentElement.querySelector(':scope > span');
-    if (span && !span.querySelector('.vdet')) span.insertAdjacentHTML('beforeend', `<div class="sm vdet">📎 ${esc(t)}</div>`);
-  });
-}
 
-// Ficha · Unidades pautadas por periodo y evolución de los últimos 12 meses
-async function fichaUnidades(id) {
-  if (FICHA_ID !== id || !$('fbody') || $('fundades')) return;
-  const { data: u } = await RPC_ORIG('unidades_cuenta', { p_medico: id });
-  if (!u || FICHA_ID !== id || $('fundades')) return;
-  const bloque = `<div class="blk" id="fundades"><h3>Unidades atribuidas</h3>
-    <div class="uper">${[['Hoy', u.hoy], ['Semana', u.semana], ['Mes', u.mes], ['Trimestre', u.trimestre], ['Año', u.anio], ['Total', u.total]]
-      .map(([t, v]) => `<div><b>${num(v)}</b><span>${t}</span></div>`).join('')}</div>
-    ${u.total ? `<div class="segs" id="fuserie" role="group" aria-label="Evolución">${UDS_SERIES.map(([k, t]) => `<button type="button" data-us="${k}" class="${k === UDS_SERIE ? 'on' : ''}">${t}</button>`).join('')}</div>` : ''}
-    <div class="spark" id="fuspark">${sparkUnidades(u, UDS_SERIE)}</div>
-    <div class="sm">${u.total ? `${num(u.pautas)} ${TT('pauta', u.pautas === 1 ? 's' : 'p', '', 'l', 'l')} · última el ${fechaCorta(u.ultima)} · <span id="fusley">${leyendaUnidades(UDS_SERIE)}</span>` : `Todavía sin ${TT('pauta', 'p', '', 'l', 'l')} registradas.`}</div></div>`;
-  // v2.96.0: las ventas van en su sección plegada, al final de la ficha
-  const zona = $('fventasc');
-  if (zona) zona.insertAdjacentHTML('afterbegin', bloque);
-  else ($('fbody').querySelector('.blk:nth-of-type(2)') || $('fbody').lastElementChild).insertAdjacentHTML('beforebegin', bloque);
-  // v2.113.0: semana, mes o año (se recuerda la última elegida)
-  $('fbody').querySelectorAll('#fuserie [data-us]').forEach(b => b.onclick = () => {
-    UDS_SERIE = b.dataset.us; try { localStorage.setItem('dlc-uds-serie', UDS_SERIE); } catch (e) {}
-    $('fbody').querySelectorAll('#fuserie [data-us]').forEach(x => x.classList.toggle('on', x === b));
-    $('fuspark').innerHTML = sparkUnidades(u, UDS_SERIE); $('fusley').textContent = leyendaUnidades(UDS_SERIE);
-  });
-}
 
 // v2.113.0 · Unidades de la ficha por semana (12), mes (12) o año (5)
 const UDS_SERIES = [['semana', 'Semana'], ['mes', 'Mes'], ['anio', 'Año']];
@@ -513,91 +390,8 @@ function sparkUnidades(u, k) {
   return s.map(([n, t, c], i) => `<i class="${n ? '' : 'cero'}${i === s.length - 1 ? ' actual' : ''}" style="height:${Math.round(n / max * 100)}%" title="${esc(t)}: ${num(n)}"${i === 0 ? ` data-ini="${esc(c)}"` : ''}${i === s.length - 1 ? ` data-fin="${esc(c)}"` : ''}></i>`).join('');
 }
 
-// v2.113.0 · Ficha · Cuántos clientes tiene (vinculados o que han comprado con ella). Solo números: también lo ve el comercial
-async function fichaClientes(id) {
-  if (FICHA_ID !== id || !$('fventasc') || $('fclientes')) return;
-  const { data: c } = await RPC_ORIG('clientes_de_cuenta', { p_cuenta: id });
-  if (!c || !c.ok || FICHA_ID !== id || !$('fventasc') || $('fclientes')) return;
-  const bloque = `<div class="blk" id="fclientes"><h3>${TT('paciente', 'p', '', 'l', 'C')} asociados</h3>
-    <div class="uper">${[['Asociados', c.total], ['Con pedidos', c.con_pedido], ['Sin pedidos', c.sin_pedido]].map(([t, v]) => `<div><b>${num(v)}</b><span>${t}</span></div>`).join('')}</div>
-    ${c.total ? '' : `<div class="sm">Todavía no tiene ${TT('paciente', 'p', '', 'l', 'l')} asociados.</div>`}</div>`;
-  const u = $('fundades');
-  if (u) u.insertAdjacentHTML('afterend', bloque); else $('fventasc').insertAdjacentHTML('afterbegin', bloque);
-}
 
-// Ficha · Acceso del médico a la plataforma (administración)
-async function fichaAcceso(id) {
-  // v2.109.0: quien tiene «Dar acceso a fichas de su cartera» lo hace desde la ficha, sin pasar por Usuarios
-  if (!puede('administrar') && puede('dar_acceso_cuentas')) return fichaAccesoCartera(id);
-  if (!puede('administrar') || FICHA_ID !== id || !$('fbody') || $('facceso')) return;
-  const [{ data: us }, rfm] = await Promise.all([RPC_ORIG('usuarios_resumen', {}), rpcCache('ficha_cuenta', { p_id: id }, 'ficha-' + id)]);
-  const ya = (us || []).find(u => u.cuenta_id === id), m = (rfm && rfm.data && rfm.data.medico) || {};   // v2.128.0: m.tipo (centro o no)
-  $('fbody').insertAdjacentHTML('beforeend', `<div class="blk" id="facceso"><h3>Acceso a la plataforma</h3>
-    ${ya ? `<p class="sm">Tiene acceso como <b>${esc(ya.email || '')}</b>${ya.activo ? '' : ' (desactivado)'}: ${m.tipo === 'Centro' ? 'pide la reposición de sus productos, material y escribe a su comercial' : 've su portal: cifras agregadas, sin importes ni datos de personas'}.</p><p class="sm facccon" data-facccon="${ya.id}"></p>${ya.activo && typeof puedeVerComo === 'function' && puedeVerComo(ya) ? `<button class="btn sec" data-ucomo="${ya.id}">👤 Impersonalizar</button>` : ''}`
-      : m.tipo === 'Centro' ? `<p class="sm">Puede tener acceso para pedir la reposición de los productos que le des de alta, pedir material y escribir a su comercial.</p>
-         <button class="btn sec" id="fdaracc">Dar acceso</button>`
-      : `<p class="sm">Puede tener acceso a su portal (cifras agregadas de ${TT('pauta', 'p', '', 'l', 'l')}) , pedir material y escribir a su comercial. No verá importes ni datos de ${TT('paciente', 'p', '', 'l', 'l')}.</p>
-         <button class="btn sec" id="fdaracc">Dar acceso</button>`}</div>`);
-  if (ya) facccon(ya.id);   // v2.335.0
-  if ($('fdaracc')) $('fdaracc').onclick = async () => {
-    const { data: f } = await db.rpc('ficha_cuenta', { p_id: id });
-    $('ficha').close(); nuevoUsuario({ medico: { id, nombre: f.medico.nombre }, nombre: f.medico.nombre, email: f.medico.email || '', centro: f.medico.tipo === 'Centro' });
-  };
-}
 
-/* Ficha base del prescriptor; abrirFicha le añade el resto de bloques */
-async function pintarFichaBase(id) {
-  FICHA_ID = id;
-  $('fbody').innerHTML = '<div class="skel" style="width:50%"></div><div class="skel"></div><div class="skel" style="width:80%"></div>';
-  $('ficha').showModal();
-  const rf = await rpcCache('ficha_cuenta', { p_id: id }, 'ficha-' + id);
-  const data = rf.data;
-  if (!data || !data.medico) { $('fbody').innerHTML = '<p class="sm">Sin conexión y sin copia guardada de esta ficha.</p>'; return; }
-
-  const m = data.medico, cons = data.consultas || [], vis = data.visitas || [], com = data.comerciales || [];
-  const dias = ['L','M','X','J','V'];
-
-  $('fbody').innerHTML = `${rf.cache ? '<div class="cacheaviso">Sin conexión · ficha guardada en este dispositivo</div>' : ''}
-    <div class="fh">
-      <div><h2>${m.urgente ? '<span class="pill p-urg">Urgente</span> ' : ''}${m.sin_reporting ? `<span class="pill p-sr" title="Solo ${TT('visita', 's', '', 'l', 'l')} presencial: sin informes ni feedback">Sin reporting</span> ` : ''}${esc(m.nombre)}</h2>
-        <div class="sm">${esc(m.especialidad || '')}${m.area ? ' · ' + esc(m.area) : ''} · código ${esc(m.codigo)}</div></div>
-      <button class="x" id="fx" aria-label="Cerrar">✕</button>
-    </div>
-    ${(puedeRegistrar() || puedeEditarTipo(m.tipo)) ? `<div class="acts">
-      ${puedeRegistrar() ? `<button class="btn" data-act="visita" data-id="${m.id}">Registrar ${TT('visita', 's', '', 'l', 'l')}</button>` : ''}
-      ${puedeEditarTipo(m.tipo) ? `<button class="btn sec" data-act="editar" data-id="${m.id}">Editar ficha</button>` : ''}
-      ${puedeEditarTipo(m.tipo) ? `<button class="btn ${m.urgente ? 'sec' : 'warn'}" data-act="urgente" data-id="${m.id}" data-urg="${m.urgente ? 1 : 0}">${m.urgente ? 'Quitar urgente' : 'Marcar urgente'}</button>` : ''}
-      <button class="btn sec" data-agendar="${m.id}">+ Añadir a mi agenda</button>
-    </div>` : ''}
-    ${fichaVisitaHTML(m, cons, vis)}
-    <div class="blk"><h3>Estado</h3>
-      <div>${puedeEditar()
-        ? `<select data-estado="${m.id}" style="max-width:240px">${estados().map(x => `<option ${x === m.estado_comercial ? 'selected' : ''}>${esc(x)}</option>`).join('')}</select>`
-        : `<span class="pill p-est">${esc(m.estado_comercial)}</span>`}</div>
-      ${com.length ? `<div class="sm" style="margin-top:6px">Comercial: ${com.map(esc).join(', ')}</div>` : ''}
-    </div>
-    ${cons.filter(c => c !== consultaDeLaVisita(cons)).map(c => `<div class="blk"><h3>${esc(c.centro_nombre || consultaPrivada())}</h3>
-      <div>${esc([c.direccion, c.cp, c.municipio].filter(Boolean).join(', ')) || '<span class="sm">Sin dirección</span>'}</div>
-      ${c.planta || c.sala ? `<div class="sm">${esc([c.planta, c.sala].filter(Boolean).join(' · '))}</div>` : ''}
-      ${c.indicaciones ? `<div class="sm">${esc(c.indicaciones)}</div>` : ''}
-      ${c.telefono ? `<div class="sm">Teléfono: ${esc(c.telefono)}</div>` : ''}
-      <div class="dias" style="margin-top:8px">${dias.map(k => `<span class="${(c.dias || {})[k] ? 'on' : ''}">${k}</span>`).join('')}</div>
-      ${dias.filter(k => (c.dias || {})[k]).map(k => `<div class="sm">${k}: ${esc(c.dias[k])}</div>`).join('')}
-      ${c.lat ? `<div class="sm" style="margin-top:6px"><button class="lnk" type="button" data-nav="${navAttr([c.lat, c.lon])}">Cómo llegar</button></div>` : ''}
-    </div>`).join('')}
-    <div class="blk"><h3>${TT('visita', 'p', '', 'l', 'C')}</h3>
-      ${vis.length ? vis.slice(0, 10).map(v => `<div data-vrow="${v.id}" style="padding:7px 0;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:10px;align-items:flex-start">
-        <span><b>${fechaCorta(v.fecha)}</b>${v.modo === 'telefono' ? ' · Por teléfono' : v.modo === 'video' ? ' · Por videollamada' : ''} · ${esc((v.resultados || []).join(' + ') || 'Sin resultado')}
-          ${v.muestras ? ` · ${v.muestras} muestras` : ''}
-          ${v.nota ? `<div class="sm">${esc(v.nota)}</div>` : ''}
-          ${v.proxima_fecha ? `<div class="sm">Próxima: ${fechaCorta(v.proxima_fecha)} · ${esc(v.proxima_accion || '')}</div>` : ''}</span>
-        ${puedeRegistrar() ? `<button class="btn sec chico" data-editv='${esc(JSON.stringify(v))}'>Editar</button>` : ''}
-      </div>`).join('') : `<div class="sm">Todavía no hay ${TT('visita', 'p', '', 'l', 'l', 'registrado')}.</div>`}</div>
-    <div id="fzcampos"></div>
-    <section class="blk fventas" id="fventas"><h3>Ventas y ${TT('paciente', 'p', '', 'l', 'l')}</h3><div id="fventasc"></div></section>`;
-  $('fx').onclick = () => $('ficha').close();
-  $('fbody').querySelectorAll('[data-editv]').forEach(b => b.onclick = () => editarVisita(JSON.parse(b.dataset.editv), id));
-}
 
 /* v2.96.0 · «Para la visita»: lo que hace falta al llegar, arriba del todo.
    Dónde (centro, planta, sala, cómo llegar), cuándo (su horario de hoy y el del centro), cómo entrar,
@@ -606,44 +400,6 @@ async function pintarFichaBase(id) {
 function consultaDeLaVisita(cons) {
   const hoy = hoyLetra();
   return (cons || []).find(c => (c.dias || {})[hoy]) || (cons || [])[0] || null;
-}
-function fichaVisitaHTML(m, cons, vis) {
-  const fila = (ico, html, cls) => `<div class="fvfila ${cls || ''}"><span class="fvico">${svgIco(ICON_NOM[ico] || '')}</span><div>${html}</div></div>`;
-  const c = consultaDeLaVisita(cons), hoy = hoyLetra(), filas = [];
-  const NOMDIA = { L: 'lunes', M: 'martes', X: 'miércoles', J: 'jueves', V: 'viernes', S: 'sábado', D: 'domingo' };
-  if (m.urgente) filas.push(fila('circle-alert', `<b>Urgente</b>${m.urgente_motivo ? ': ' + esc(m.urgente_motivo) : ''}`, 'fvurg'));
-  if (c) {
-    const donde = [c.planta, c.sala].map(x => String(x || '').trim()).filter(x => x && !/^[-–·.]+$/.test(x)).map(esc).join(' · ');   // v2.343.0: sin pastilla vacía
-    filas.push(fila('building-2', `<b>${esc(c.centro_nombre || consultaPrivada())}</b>${donde ? `<span class="fvdonde">${donde}</span>` : ''}
-      <div class="sm">${esc([c.direccion, [c.cp, c.municipio].filter(Boolean).join(' ')].filter(Boolean).join(', ')) || 'Sin dirección'}</div>
-      ${c.lat ? `<button class="btn sec fvbtn" type="button" data-nav="${navAttr([c.lat, c.lon])}">${svgIco(ICON_NOM['map-pin'])} Cómo llegar</button>` : ''}`));
-    // Cuándo: su horario de hoy en esta consulta (o el próximo día que atiende) y el horario del centro
-    const d = c.dias || {}, orden = 'LMXJVSD', h = d[hoy];
-    const prox = h ? null : [...orden.slice(orden.indexOf(hoy) + 1), ...orden.slice(0, orden.indexOf(hoy) + 1)].find(k => d[k]);
-    const cen = (c.horario_centro || {})[hoy];
-    filas.push(fila('clock', `${h ? `<b>Hoy atiende: ${esc(h)}</b>` : prox ? `Hoy no atiende aquí · el ${NOMDIA[prox]}: ${esc(d[prox])}` : 'Sin horario de atención'}
-      ${cen ? `<div class="sm">Centro abierto hoy: ${esc(cen)}</div>` : ''}
-      <div class="dias fvdias">${['L', 'M', 'X', 'J', 'V'].map(k => `<span class="${d[k] ? 'on' : ''} ${k === hoy ? 'hoy' : ''}" title="${esc(d[k] || '')}">${k}</span>`).join('')}</div>`));
-    if (c.indicaciones) filas.push(fila('info', `<b>Cómo llegar dentro:</b> ${esc(c.indicaciones)}`, 'fvind'));
-  } else filas.push(fila('building-2', `<span class="sm">Sin ${TT('consulta', 's', '', 'l', 'l')} registrada: añádela en «Editar ficha».</span>`));
-  // Lo último que pasó y lo que quedó pendiente
-  const ult = (vis || [])[0];
-  if (ult) {
-    const mat = detTxt(ult);
-    filas.push(fila('notebook-pen', `<b>Última ${TT('visita', 's', '', 'l', 'l')}: ${fechaCorta(ult.fecha)}</b> · ${esc((ult.resultados || []).join(' + ') || 'Sin resultado')}
-      ${ult.nota ? `<div class="sm">${esc(ult.nota)}</div>` : ''}${mat ? `<div class="sm">Material: ${esc(mat)}</div>` : ''}`));
-  }
-  const pend = (vis || []).find(v => v.proxima_accion || v.proxima_fecha);
-  if (pend) {
-    const f = pend.proxima_fecha, hoyIso = hoyISO();
-    const est = !f ? '' : f < hoyIso ? '<span class="pill p-bor">Atrasada</span>' : f === hoyIso ? '<span class="pill p-est">Hoy</span>' : '';
-    filas.push(fila('clipboard-list', `<b>Pendiente:</b> ${esc(pend.proxima_accion || 'Volver a ' + TT('visita', 's', '', 'l', 'l'))}${f ? ` · ${fechaCorta(f)}` : ''} ${est}`));
-  }
-  if (m.nota) filas.push(fila('message-circle', `<b>Notas:</b> ${esc(m.nota)}`));
-  const tels = [m.telefono, c && c.telefono].filter(Boolean).filter((x, i, a) => a.indexOf(x) === i);
-  if (tels.length || m.contacto) filas.push(fila('phone', `${tels.map(t => `<a href="tel:${esc(t.replace(/\s+/g, ''))}"><b>${esc(t)}</b></a>`).join(' · ')}
-    ${m.contacto ? `<div class="sm">${esc(m.contacto)}</div>` : ''}`));
-  return `<section class="fvis" aria-label="Para la ${TT('visita', 's', '', 'l', 'l')}"><h3>Para la ${TT('visita', 's', '', 'l', 'l')}</h3>${filas.join('')}</section>`;
 }
 
 $('ficha').addEventListener('click', e => { if (e.target.id === 'ficha') $('ficha').close(); });

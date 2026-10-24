@@ -25,17 +25,6 @@ pkContar = (orig => function (els, fmt) {
 
 // Pedidos y Oportunidades comparten el panel de filtros: los de la otra sección se apartan (no salen en el panel ni como filtro activo)
 const PL_AJENOS = { pedidos: ['llper', 'llfres'], oport: ['pper', 'pcanal', 'pestado', 'popf', 'porigf', 'prepf'], compras: ['llper', 'llfres', 'pper', 'pcanal', 'pestado', 'popf', 'porigf', 'prepf'], prov: ['llper', 'llfres', 'pper', 'pcanal', 'pestado', 'popf', 'porigf', 'prepf'] };
-function plAjenos(sec, clave) {
-  const pan = sec.querySelector(':scope > .htpanel'), prop = pan && pan.querySelector('.htpropios'); if (!prop) return;
-  let fuera = pan.querySelector(':scope > .plajenos');
-  if (!fuera) { fuera = document.createElement('div'); fuera.className = 'plajenos hide'; pan.appendChild(fuera); }
-  const ajenos = new Set(PL_AJENOS[clave] || []);
-  [...prop.children, ...fuera.children].forEach(d => {
-    const s = d.querySelector('select'), id = d.id || (s && s.id) || '', ajeno = ajenos.has(id);
-    if (ajeno && d.parentElement !== fuera) fuera.appendChild(d);
-    else if (!ajeno && d.parentElement === fuera) prop.appendChild(d);
-  });
-}
 plSync = (orig => function (tab) {
   if (tab === 'ventas') { const sec = $('v-ventas'), k = PL_SECC.ventas(); if (sec && k) plAjenos(sec, k); }
   return orig(tab);

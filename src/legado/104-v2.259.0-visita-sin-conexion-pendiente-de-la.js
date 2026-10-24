@@ -16,18 +16,6 @@ let VISITA_OP = null;   // op_id de la ventana abierta (el mismo si se pulsa Gua
 esErrorRed = (orig => function (e) {
   return orig(e) || /ha tardado demasiado|tiempo agotado|timeout|timed out/i.test(String((e && (e.message || e)) || ''));
 })(esErrorRed);
-function colaPoner(op) {
-  try { colaGuardar(colaLeer().concat([op])); return true; }
-  catch (e) { toast('El móvil no tiene espacio para guardar este cambio sin conexión', true); return false; }
-}
-// Ficha y resultados de la visita: de la red y, sin ella, de la copia guardada
-async function visitaDatos(id) {
-  const [f, c] = await Promise.all([rpcCache('ficha_cuenta', { p_id: id }, 'ficha-' + id), rpcCache('clasificadores_actividad', { p_cuenta: id }, 'clasact-' + id)]);
-  let clas = c && c.data;
-  if (clas && !c.cache) { try { guardarCache('clasact', clas); } catch (e) {} }
-  if (!clas) { const g = leerCache('clasact'); clas = g && g.d; }
-  return [{ data: f && f.data, error: f && f.data ? null : { message: navigator.onLine ? 'no se ha podido leer la ficha' : 'sin conexión y sin copia de esta ficha en el móvil' } }, { data: clas || [] }];
-}
 // Catálogos guardados en el móvil (resultado por defecto de la visita, «No estaba»…)
 cargarCatalogos = (orig => async function (...a) {
   const r = await orig.apply(this, a);
@@ -51,30 +39,10 @@ abrirVisitaBase = (orig => async function (...a) {
 
 // ---- Fotos de una visita guardada sin conexión: en el móvil hasta que la visita se envía
 const FOTOS_IDB = 'delcos-fotos';
-function fotosIDB() {
-  return new Promise((ok, mal) => { const r = indexedDB.open(FOTOS_IDB, 1); r.onupgradeneeded = () => r.result.createObjectStore('pend'); r.onsuccess = () => ok(r.result); r.onerror = () => mal(r.error); });
-}
-async function fotosGuardarPendientes(op, fotos) {
-  if (!op || !fotos || !fotos.length) return;
-  try {
-    const b = await fotosIDB();
-    await new Promise((ok, mal) => { const t = b.transaction('pend', 'readwrite'); t.objectStore('pend').put(fotos, op); t.oncomplete = ok; t.onerror = () => mal(t.error); });
-    setTimeout(() => toast('Sin conexión: las fotos quedan en el móvil y se subirán con ' + TT('visita', 's', 'la', 'l', 'l')), 2600);
-  } catch (e) { setTimeout(() => toast('Sin conexión: no se han podido guardar las fotos en el móvil. Añádelas desde su historial', true), 2600); }
-}
-async function fotosEnviarPendientes(op, id) {
-  try {
-    const b = await fotosIDB();
-    const fotos = await new Promise(ok => { const r = b.transaction('pend').objectStore('pend').get(op); r.onsuccess = () => ok(r.result); r.onerror = () => ok(null); });
-    if (!fotos || !fotos.length) return;
-    if (await subirFotosVisita(id, fotos)) await new Promise(ok => { const t = b.transaction('pend', 'readwrite'); t.objectStore('pend').delete(op); t.oncomplete = ok; t.onerror = ok; });
-  } catch (e) {}
-}
 
 // ---- La cola: de una en una, sin perder lo que el servidor rechaza
 const COLA_KO = 'dlc-cola-ko';
 const colaKo = () => { try { return JSON.parse(localStorage.getItem(COLA_KO) || '[]'); } catch (e) { return []; } };
-function colaKoPoner(op, motivo) { try { localStorage.setItem(COLA_KO, JSON.stringify(colaKo().concat([Object.assign({}, op, { motivo, falla: Date.now() })]))); } catch (e) {} }
 let COLA_ENVIANDO = false;
 vaciarCola = async function () {
   if (!navigator.onLine || COLA_ENVIANDO) return;
@@ -115,19 +83,6 @@ document.addEventListener('click', async e => {
   else if (k === 'desc' && await preguntar('Se borran del móvil y no se enviarán.', { titulo: '¿Descartar los cambios sin enviar?', ok: 'Descartar', peligro: true })) { localStorage.removeItem(COLA_KO); pintarConexion(); }
 });
 
-// ---- «Tu día»: las citas con la visita guardada en el móvil, marcadas y sin «Registrar»
-function tdMarcarPendientes() {
-  const pend = colaLeer().filter(o => o.fn === 'registrar_actividad' && o.payload && o.payload.p && o.payload.p.fecha === AG_FECHA);
-  document.querySelectorAll('#agcuerpo .tdu[data-tdu]').forEach(t => {
-    const c = (TD_CITAS || []).find(x => String(x.id) === t.dataset.tdu); if (!c) return;
-    const p = pend.some(o => o.payload.p.cuenta_id === c.cuenta_id);
-    if (t.classList.contains('tdpend') !== p) t.classList.toggle('tdpend', p);
-    const m = t.querySelector('.tdpendm');
-    if (p && !m) { const pie = t.querySelector('.tdu-pie'); if (pie) pie.insertAdjacentHTML('afterbegin', `<span class="tdpendm">Registrada en el móvil · pendiente de enviar</span>`); }
-    if (!p && m) m.remove();
-    t.querySelectorAll('[data-td^="visita|"]').forEach(b => { if (b.classList.contains('hide') !== p) b.classList.toggle('hide', p); });
-  });
-}
 pintarTuDia = (orig => async function (...a) {
   const r = await orig.apply(this, a);
   if (agConCinta()) tdMarcarPendientes();

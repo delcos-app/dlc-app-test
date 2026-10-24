@@ -74,44 +74,6 @@ const optFiltro = (lista, v, todo) => `<option value="">${todo}</option>` +
 
 let CATS_ABIERTOS = {};
 
-async function pintarCatalogos() {
-  cargando($('cfgcuerpo'), 'Cargando los clasificadores…');
-  const { data } = await db.rpc('catalogos_todos');
-  CATS = data || [];
-  const puedeEditar = puede('administrar') || ((PERFIL.areas || {}).K || 0) >= 2;
-  const completo = puede('administrar') || ((PERFIL.areas || {}).K || 0) >= 3;
-
-  const grupos = {};
-  CATS.forEach(c => (grupos[c.grupo || 'General'] = grupos[c.grupo || 'General'] || []).push(c));
-
-  $('cfgcuerpo').innerHTML = `
-    <div class="dayhead2"><p class="sm">Listas que usan todos los usuarios en fichas, ${TT('visita', 'p', '', 'l', 'l')}, pedidos y filtros.
-      ${puedeEditar ? '' : '<b>Tienes permiso de solo lectura.</b>'}</p>
-      ${completo ? '<button class="btn" id="cnuevo">+ Nuevo clasificador</button>' : ''}</div>
-    ${Object.entries(grupos).map(([g, lista]) => `
-      <div class="grupo">
-        <button class="grupoh" data-grupo="${esc(g)}">
-          <span>${CATS_ABIERTOS[g] === false ? '▸' : '▾'} <b>${esc(g)}</b>
-            <span class="sm">${lista.length} ${lista.length === 1 ? 'clasificador' : 'clasificadores'}</span></span></button>
-        <div class="grupoc ${CATS_ABIERTOS[g] === false ? 'hide' : ''}">
-          ${lista.map(c => `<button class="cat-card" data-cat="${c.id}">
-            <span class="cat-h"><b>${esc(c.nombre)}</b>
-              ${c.sistema ? '<span class="tagsis">del sistema</span>' : ''}
-              ${puedeEditar ? '' : '<span class="tagro" title="Solo lectura">🔒</span>'}</span>
-            <span class="sm">${c.n_activos} ${c.n_activos === 1 ? 'valor activo' : 'valores activos'}${c.descripcion ? ' · ' + esc(c.descripcion) : ''}</span>
-            <span class="cat-v">${(c.valores || []).filter(v => v.activo).slice(0, 5).map(v => `<span class="chip">${esc(v.valor)}</span>`).join('')}
-              ${c.n_activos > 5 ? `<span class="sm">+${c.n_activos - 5}</span>` : ''}</span>
-          </button>`).join('')}
-        </div></div>`).join('')}`;
-
-  $('cfgcuerpo').querySelectorAll('[data-grupo]').forEach(b => b.onclick = () => {
-    const g = b.dataset.grupo;
-    CATS_ABIERTOS[g] = CATS_ABIERTOS[g] === false;
-    pintarCatalogos();
-  });
-  $('cfgcuerpo').querySelectorAll('[data-cat]').forEach(b => b.onclick = () => abrirClasificador(b.dataset.cat));
-  if ($('cnuevo')) $('cnuevo').onclick = () => nuevoClasificador();
-}
 
 /* v2.72.0 · Un clasificador de ficha, cliente o producto sin papel es un campo personalizado: tipo y dónde se ve */
 function cajaCampo(c, completo) {
@@ -211,57 +173,6 @@ function abrirClasificador(id) {
   $('dlg').showModal();
 }
 
-function nuevoClasificador() {
-  let valores = [''];
-  const grupos = [...new Set(CATS.map(c => c.grupo || 'General').concat([`${TT('medico', 'p', '', 'l', 'C')}`, `${TT('visita', 'p', '', 'l', 'C')}`, 'Ventas', 'General']))];
-
-  const pinta = () => {
-    $('dbody').innerHTML = `
-      <div class="fh"><div><h2>Nuevo clasificador</h2>
-        <div class="sm">Una lista propia que podrás usar en fichas, ${TT('visita', 'p', '', 'l', 'l')} o pedidos</div></div>
-        <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-      <div class="g2">
-        <div><label for="ncn2">Nombre</label><input id="ncn2" placeholder="p. ej. Tipo de centro"></div>
-        <div><label for="ncg">Grupo</label><select id="ncg">${grupos.map(g => `<option>${esc(g)}</option>`).join('')}</select></div>
-      </div>
-      <div class="g2">
-        <div><label for="nca">¿Dónde se usa?</label><select id="nca">
-          <option value="medico">En la ficha ${TT('medico', 's', 'del', 'l', 'l')}</option>
-          <option value="visita">Al registrar ${TT('visita', 's', 'un', 'l', 'l')}</option>
-          <option value="pedido">En los pedidos</option>
-          <option value="cliente">En la ficha ${TT('paciente', 's', 'del', 'l', 'l')}</option>
-          <option value="producto">En la ficha del producto</option></select></div>
-        <div><label for="ncd">Descripción</label><input id="ncd" placeholder="Para qué sirve"></div>
-      </div>
-      <label>Valores</label>
-      <div id="ncv">${valores.map((v, i) => `<div class="g2" style="grid-template-columns:minmax(0,1fr) auto;margin-bottom:6px">
-        <input data-ncv="${i}" value="${esc(v)}" placeholder="Valor ${i + 1}">
-        ${valores.length > 1 ? `<button type="button" class="btn sec" data-ncx="${i}">✕</button>` : ''}</div>`).join('')}</div>
-      <div class="acts"><button type="button" class="btn sec" id="ncmas">+ Añadir valor</button></div>
-      <div class="acts" style="justify-content:flex-end">
-        <button class="btn sec" data-cerrar>Cancelar</button>
-        <button class="btn" id="ncok2">Crear clasificador</button></div>`;
-
-    const leer = () => valores = [...$('ncv').querySelectorAll('[data-ncv]')].map(i => i.value);
-    $('ncmas').onclick = () => { leer(); valores.push(''); pinta(); };
-    $('dbody').querySelectorAll('[data-ncx]').forEach(b => b.onclick = () => { leer(); valores.splice(+b.dataset.ncx, 1); pinta(); });
-    $('ncok2').onclick = async ev => {
-      leer();
-      const nombre = $('ncn2').value.trim();
-      if (!nombre) { toast('Ponle un nombre', true); return; }
-      ev.target.disabled = true;
-      const { data: r } = await db.rpc('crear_clasificador', { p: {
-        nombre, grupo: $('ncg').value, ambito: $('nca').value, descripcion: $('ncd').value.trim(),
-        valores: valores.map(v => v.trim()).filter(Boolean)
-      }});
-      ev.target.disabled = false;
-      if (r && r.ok === false) { toast('No tienes permiso', true); return; }
-      $('dlg').close(); toast('Clasificador creado'); pintarCatalogos(); cargarCatalogos();
-    };
-  };
-  pinta();
-  $('dlg').showModal();
-}
 
 /* ---------------- duplicados pendientes con su pareja ---------------- */
 

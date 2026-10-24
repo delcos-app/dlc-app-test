@@ -50,7 +50,5 @@ toast = (orig => function (...a) {
   }
   return r;
 })(toast);
-// Si después se abre (o se vuelve a abrir) una ventana con el aviso a la vista, el aviso vuelve a ponerse encima
-function subirAviso() { const t = $('toast'); if (!t || t.classList.contains('hide') || typeof t.showPopover !== 'function' || !t.hasAttribute('popover')) return; try { if (t.matches(':popover-open')) t.hidePopover(); t.showPopover(); } catch (e) {} }
 new MutationObserver(ms => { if (ms.some(m => m.target.tagName === 'DIALOG' && m.target.open)) requestAnimationFrame(subirAviso); }).observe(document.body, { subtree: true, attributes: true, attributeFilter: ['open'] });
 

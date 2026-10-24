@@ -148,30 +148,6 @@ valorVisible = (orig => function (inp) {
   sp.textContent = `${selFechaMedia(v.slice(0, 10))} · ${v.slice(11, 16)}`;
 })(valorVisible);
 
-// ---------- Mes y fecha con hora con el mismo selector; teclado de los números ----------
-function mejorarCamposNuevos(raiz) {
-  const r = raiz && raiz.querySelectorAll ? raiz : document;
-  const lista = [...r.querySelectorAll('input[type=month]:not([data-sel]), input[type=datetime-local]:not([data-sel])')];
-  if (r.matches && r.matches('input[type=month]:not([data-sel]), input[type=datetime-local]:not([data-sel])')) lista.push(r);
-  lista.forEach(inp => {
-    inp.dataset.sel = '1';
-    if (inp.closest('.selpop')) return;
-    const w = document.createElement('span'); w.className = 'selw fecha';
-    inp.parentNode.insertBefore(w, inp); w.appendChild(inp);
-    w.insertAdjacentHTML('beforeend', '<span class="selico" aria-hidden="true">📅</span>');
-    inp.dataset.ro = inp.readOnly ? '1' : '';
-    inp.readOnly = true; inp.setAttribute('inputmode', 'none');
-    w.insertAdjacentHTML('afterbegin', '<span class="selval"></span>');
-    const desc = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value');
-    Object.defineProperty(inp, 'value', { configurable: true, get() { return desc.get.call(this); }, set(v) { desc.set.call(this, v); valorVisible(this); } });
-    inp.addEventListener('change', () => valorVisible(inp)); inp.addEventListener('input', () => valorVisible(inp));
-    valorVisible(inp);
-  });
-  r.querySelectorAll('input[type=number]:not([inputmode])').forEach(inp => {
-    const paso = inp.step && inp.step !== 'any' ? +inp.step : 1;
-    inp.setAttribute('inputmode', paso < 1 || inp.step === 'any' ? 'decimal' : 'numeric');
-  });
-}
 mejorarCampos = (orig => function (raiz) { orig(raiz); mejorarCamposNuevos(raiz); })(mejorarCampos);
 mejorarCamposNuevos(document);
 
@@ -244,39 +220,6 @@ pintarRoles = (orig => async function (...a) {
   };
 })(pintarRoles);
 
-async function fichaAccesoCartera(id) {
-  if (FICHA_ID !== id || !$('fbody') || $('facceso')) return;
-  const [{ data: acc }, { data: mia }, rf] = await Promise.all([
-    RPC_ORIG('cuentas_con_acceso', {}),
-    VE_TODO() ? Promise.resolve({ data: [1] }) : db.from('atribuciones').select('cuenta_id').eq('cuenta_id', id).eq('usuario_id', PERFIL.id).is('hasta', null).limit(1),
-    rpcCache('ficha_cuenta', { p_id: id }, 'ficha-' + id)]);
-  const ya = (acc || []).find(x => x.cuenta_id === id), m = (rf && rf.data && rf.data.medico) || {};
-  // Solo en las fichas de su cartera (o en todas si ve todo)
-  if ((!ya && !(mia || []).length) || FICHA_ID !== id || $('facceso')) return;
-  $('fbody').insertAdjacentHTML('beforeend', `<div class="blk" id="facceso"><h3>Acceso a la plataforma</h3>
-    ${ya ? `<p class="sm">Tiene acceso${ya.email ? ` como <b>${esc(ya.email)}</b>` : ''}${ya.activo ? '' : ' (desactivado)'}: ${m.tipo === 'Centro' ? 'pide la reposición de sus productos, material y escribe a su comercial' : 've su portal: cifras agregadas, sin importes ni datos de personas'}.</p>${ya.activo && typeof puedeVerComo === 'function' && puedeVerComo(ya) ? `<button class="btn sec" data-ucomo="${ya.id}">👤 Impersonalizar</button>` : ''}`
-      : `<p class="sm">${m.tipo === 'Centro' ? 'Puede tener acceso para pedir la reposición de los productos que le des de alta, pedir material y escribir a su comercial.' : `Puede tener acceso a su portal (cifras agregadas de ${TT('pauta', 'p', '', 'l', 'l')}), pedir material y escribir a su comercial. No verá importes ni datos de ${TT('paciente', 'p', '', 'l', 'l')}.`}</p>
-         <div class="g2"><div><label for="faccmail">Correo</label><input id="faccmail" type="email" value="${esc(m.email || '')}" placeholder="nombre@correo.com"></div>
-         <div style="align-self:end"><button class="btn sec" id="fdaracc">Dar acceso</button></div></div><div class="sm" id="faccmsg"></div>`}</div>`);
-  if (!$('fdaracc')) return;
-  $('fdaracc').onclick = async ev => {
-    const email = $('faccmail').value.trim();
-    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { toast('Escribe un correo válido', true); return; }
-    ev.target.disabled = true;
-    const { data: r, error } = await db.rpc('dar_acceso_cuenta', { p_cuenta: id, p_email: email });
-    const motivo = { permiso: 'Tu rol no puede dar acceso', cartera: `Solo puedes dar acceso a ${TT('medico', 'p', '', 'l', 'l')} de tu cartera`,
-      ya_tiene: 'Esta ficha ya tiene acceso', correo_en_uso: 'Ese correo ya es de otro usuario', email: 'El correo no es válido',
-      sin_rol_portal: 'No hay ningún rol con acceso al portal: créalo en Configuración → Roles' };
-    if (error || !r || !r.ok) { ev.target.disabled = false; toast(motivo[(r && r.error) || ''] || 'No se ha podido dar acceso', true); return; }
-    const pass = 'Tmp-' + Math.random().toString(36).slice(2, 8);
-    const tmp = window.supabase.createClient(CFG.url, CFG.anon, { auth: { persistSession: false, autoRefreshToken: false } });
-    const { error: e2 } = await tmp.auth.signUp({ email, password: pass, options: { data: { nombre: m.nombre || email.split('@')[0], usuario: email.split('@')[0] } } });
-    ev.target.disabled = false;
-    if (e2) { toast('No se ha podido crear el acceso: ' + e2.message, true); return; }
-    ev.target.remove(); $('faccmail').disabled = true; MED_ACCESO = null;
-    $('faccmsg').innerHTML = `<b style="color:var(--ok)">Acceso creado.</b> Contraseña temporal: <b>${esc(pass)}</b>. Pásasela y que la cambie al entrar.`;
-  };
-}
 
 /* v2.111.0 · Teclado en escritorio.
    1. Buscadores: con las flechas se recorren los resultados (el desplegable de sugerencias o, en los buscadores que filtran
@@ -348,12 +291,6 @@ function pantallaTrasF5() {
   // Solo si se acaba de pulsar (una recarga horas después, o desde el botón del navegador, entra por el inicio)
   return v && v.t && Date.now() - (v.h || 0) < 60000 ? v : null;
 }
-function volverTrasF5(v) {
-  if (v.c) CFG_SEC = v.c;
-  if (v.s) CFG_SUB = v.s;
-  if (v.p) Object.assign(PAG_TAB, v.p);
-  if (['config', 'perfil', 'empresa', 'plan'].includes(v.t) || puedeModulo(v.t)) ir(v.t);
-}
 
 // v2.112.0 · Ventanas: al abrir, el foco no se queda en la X (se veía un recuadro de foco sin haber usado el teclado)
 // y, al desplazar una ventana larga, la cabecera muestra una línea de separación
@@ -382,31 +319,6 @@ function volverTrasF5(v) {
    guardado en la tabla pedidos_justificantes. Lo ve quien ve el pedido. */
 const JUSTIF_MAX = 3000000;
 const aBase64 = blob => new Promise((ok, mal) => { const fr = new FileReader(); fr.onload = () => ok(String(fr.result).split(',')[1] || ''); fr.onerror = mal; fr.readAsDataURL(blob); });
-async function leerJustificante(f) {
-  try {
-    if (f.type === 'application/pdf') {
-      if (f.size > JUSTIF_MAX) { toast('El PDF pesa más de 3 MB: haz una foto del justificante o reduce el PDF', true); return null; }
-      return { nombre: f.name, tipo: f.type, tamano: f.size, datos: await aBase64(f) };
-    }
-    if (!/^image\//.test(f.type)) { toast('Adjunta una foto o un PDF', true); return null; }
-    const url = URL.createObjectURL(f);
-    const img = await new Promise((ok, mal) => { const i = new Image(); i.onload = () => ok(i); i.onerror = mal; i.src = url; });
-    const k = Math.min(1, 1600 / Math.max(img.naturalWidth, img.naturalHeight));
-    const c = document.createElement('canvas'); c.width = Math.round(img.naturalWidth * k); c.height = Math.round(img.naturalHeight * k);
-    c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(url);
-    const blob = await new Promise(ok => c.toBlob(ok, 'image/jpeg', 0.82));
-    if (!blob || blob.size > JUSTIF_MAX) { toast('No se ha podido preparar la foto', true); return null; }
-    return { nombre: f.name.replace(/\.[^.]+$/, '') + '.jpg', tipo: 'image/jpeg', tamano: blob.size, datos: await aBase64(blob) };
-  } catch (e) { toast('No se ha podido leer el archivo', true); return null; }
-}
-async function subirJustificantes(pedido, lista) {
-  // El pedido ya está guardado: si falla la subida se avisa, pero no se repite el guardado
-  for (const j of lista) {
-    const { error } = await db.from('pedidos_justificantes').insert({ pedido_id: pedido, nombre: j.nombre, tipo: j.tipo, tamano: j.tamano, datos: j.datos });
-    if (error) { toast('El pedido se ha guardado, pero no se ha podido subir «' + j.nombre + '». Añádelo desde el pedido.', true); return true; }
-  }
-  return true;
-}
 async function verJustificante(id) {
   const { data, error } = await db.from('pedidos_justificantes').select('nombre,tipo,datos').eq('id', id).single();
   if (error || !data) { toast('No se ha podido abrir el justificante', true); return; }
@@ -538,11 +450,6 @@ pintarPaginaPlan = async function () {
 };
 
 
-// v2.117.0 · Organizaciones: plan de cada empresa, estado (prueba, terminada, desactivada), descargar sus datos y borrar las de prueba
-function orgPlanTxt(o) {
-  const pd = o.plan_datos || {}, p = planDe(pd.plan || o.plan);
-  return `plan ${p.nombre}${pd.plan === 'medida' || pd.usuarios == null ? '' : ` · ${num(pd.usuarios)} contratados`}${pd.pago === 'anual' ? ' · anual' : pd.plan === 'medida' ? '' : ' · mensual'}`;
-}
 function orgEstado(o) {
   const pd = o.plan_datos || {};
   if (o.bloqueada === 'desactivada') return '<span class="pill p-anu">Desactivada</span> ';

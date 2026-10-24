@@ -1,18 +1,6 @@
 /* v2.166.0 · «Darme de baja» en Plan y suscripción (petición de Eric): abre directamente la pantalla de cancelar de Stripe y, al confirmar,
    vuelve sola a delcos (?pago=baja) con el aviso de hasta cuándo se puede usar. Con la baja pedida, «Seguir con la suscripción» la deshace. */
 const PAGO_VUELTA_BAJA = new URLSearchParams(location.search).get('pago') === 'baja';   // se lee antes de que el arranque limpie la dirección
-async function pagoEsperarBaja() {
-  for (let i = 0; i < 15; i++) {
-    await pagoCargarEstado();
-    const pl = PLAN_ACTUAL || {};
-    if (pl.baja_al_final || pl.estado === 'cancelada') {
-      toast(`Baja registrada: puedes usar delcos hasta el ${fechaCorta(pl.periodo_fin)}`);
-      if (TAB === 'plan' || TAB === 'organizacion' || TAB === 'config') ir(TAB); return;
-    }
-    await new Promise(r => setTimeout(r, 2000));
-  }
-  toast('Baja pedida: en unos minutos lo verás en Plan y suscripción');
-}
 if (PAGO_VUELTA_BAJA) {
   let n = 0;
   const t = setInterval(() => {
@@ -65,66 +53,6 @@ const PRESU_NECESITA = [
   ['soporte', 'Soporte prioritario'], ['otro', 'Otra cosa']];
 const PRESU_CUANDO = ['Lo antes posible', 'Este trimestre', 'Más adelante', 'Solo me estoy informando'];
 const PRESU_ESTADO = { 'Nueva': 'Recibida', 'En curso': 'En curso', 'Cerrada': 'Atendida' };
-function pedirPresupuesto(tipo) {
-  tipo = tipo === 'contrato' ? 'contrato' : 'presupuesto';
-  const est = { contacto: 'correo' }, usados = +((PAGO_ESTADO || {}).usuarios || 0), med = +((PAGO_ESTADO || {}).medicos || 0);
-  const tit = tipo === 'contrato' ? 'Hablar de tu contrato A medida' : 'Pide tu plan A medida';
-  $('dbody').innerHTML = `<div class="fh"><div><h2>${tit}</h2>
-      <div class="sm">Cuéntanos qué necesitáis y te respondemos en un día laborable. No te comprometes a nada.</div></div>
-      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-    <div class="presu">
-      <section><h3>Qué buscáis <span class="sm">(marca lo que encaje; no hace falta acertar)</span></h3>
-        <div class="presuops">${PRESU_NECESITA.map(([k, t]) => `<label class="presuop"><input type="checkbox" value="${k}"><span>${esc(t)}</span></label>`).join('')}</div>
-        <div id="presuprogw" class="hide"><label for="presuprog">¿Con qué programa?</label><input id="presuprog" placeholder="Por ejemplo: Holded, Sage, A3, Salesforce…"></div>
-        <label for="presumsg">Cuéntanos con tus palabras</label>
-        <textarea id="presumsg" rows="4" placeholder="Qué queréis conseguir, cómo trabajáis hoy, qué os falta… Todo nos ayuda a proponeros lo mejor."></textarea></section>
-      <section><h3>Vuestro equipo</h3>
-        <div class="g2"><div><label for="presuusu">Usuarios aproximados</label><input id="presuusu" type="number" min="1" class="numw" value="${Math.max(50, usados)}">
-            <span class="sm">Ahora sois ${num(usados)}.</span></div>
-          <div><label for="presumed">${TT('medico', 'p', '', 'l', 'C')} o centros con portal</label><input id="presumed" type="number" min="0" class="numw" value="${med || ''}" placeholder="Opcional"></div>
-          <div><label for="presucuando">¿Cuándo os gustaría empezar?</label><select id="presucuando">${PRESU_CUANDO.map(x => `<option>${esc(x)}</option>`).join('')}</select></div></div></section>
-      <section><h3>Cómo te contactamos</h3>
-        <div class="g2"><div><label for="presunom">Nombre</label><input id="presunom" value="${esc(PERFIL.nombre || '')}"></div>
-          <div><label for="presumail">Correo</label><input id="presumail" type="email" value="${esc(PERFIL.email || '')}"></div>
-          <div><label for="presutel">Teléfono</label><input id="presutel" type="tel" placeholder="Opcional" value="${esc(PERFIL.telefono || '')}"></div>
-          <div><label for="presuhora">Mejor momento</label><input id="presuhora" placeholder="Por ejemplo: mañanas de 9 a 13"></div></div>
-        <label>Prefieres</label><div class="segs" role="group" id="presucont">${[['correo', 'Correo'], ['llamada', 'Llamada'], ['video', 'Videollamada']]
-          .map(([k, t]) => `<button type="button" data-pc="${k}" class="${k === 'correo' ? 'on' : ''}" aria-pressed="${k === 'correo'}">${t}</button>`).join('')}</div></section>
-    </div>
-    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>Cancelar</button><button class="btn" id="presuok">Enviar solicitud</button></div>`;
-  const ops = () => [...$('dbody').querySelectorAll('.presuop input:checked')].map(x => x.value);
-  $('dbody').querySelectorAll('.presuop input').forEach(x => x.onchange = () => {
-    x.closest('.presuop').classList.toggle('on', x.checked);
-    $('presuprogw').classList.toggle('hide', !ops().includes('conexion'));
-  });
-  $('dbody').querySelectorAll('[data-pc]').forEach(b => b.onclick = () => {
-    est.contacto = b.dataset.pc; $('dbody').querySelectorAll('[data-pc]').forEach(x => { x.classList.toggle('on', x === b); x.setAttribute('aria-pressed', String(x === b)); });
-  });
-  $('presuok').onclick = async ev => {
-    const necesita = ops(), mensaje = $('presumsg').value.trim();
-    if (!necesita.length && !mensaje) { toast('Marca qué buscáis o cuéntanoslo con tus palabras', true); $('presumsg').focus(); return; }
-    if (!$('presumail').value.trim() && !$('presutel').value.trim()) { toast('Déjanos un correo o un teléfono para contestarte', true); return; }
-    const datos = { necesita, necesita_txt: necesita.map(k => (PRESU_NECESITA.find(x => x[0] === k) || [k, k])[1]), programa: $('presuprog').value.trim() || null,
-      mensaje, usuarios: +$('presuusu').value || null, portal: +$('presumed').value || null, cuando: $('presucuando').value,
-      nombre: $('presunom').value.trim(), correo: $('presumail').value.trim(), telefono: $('presutel').value.trim() || null,
-      horario: $('presuhora').value.trim() || null, contacto: est.contacto, plan_actual: (PLAN_ACTUAL || {}).plan || null };
-    ev.target.disabled = true;
-    const { data: r, error } = await RPC_ORIG('pedir_presupuesto', { p: { tipo, datos } });
-    ev.target.disabled = false;
-    if (error || !r || !r.ok) {
-      toast(({ demasiadas: 'Ya nos has enviado varias hoy: te contestamos enseguida', vacia: 'Cuéntanos qué buscáis', permiso: 'No puedes enviar solicitudes' })[(r && r.error) || ''] || 'No se ha podido enviar', true);
-      return;
-    }
-    $('dbody').innerHTML = `<div class="fh"><div><h2>Solicitud enviada</h2></div><button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-      <div class="presuok"><div class="presuokic">${svgIco(ICON_NOM.check)}</div>
-        <p><b>Gracias, ${esc(nombrePila(datos.nombre || PERFIL.nombre || ''))}.</b> Ya la tenemos: te ${est.contacto === 'correo' ? 'escribimos' : est.contacto === 'llamada' ? 'llamamos' : 'proponemos una videollamada'}
-          en un día laborable${datos.correo ? ` (${esc(datos.correo)})` : ''}.</p>
-        <p class="sm">Puedes ver en qué punto está en Plan y suscripción.</p></div>
-      <div class="acts" style="justify-content:flex-end"><button class="btn" data-cerrar>Entendido</button></div>`;
-    $('dlg').addEventListener('close', () => { if (TAB === 'plan' || TAB === 'organizacion' || TAB === 'config') ir(TAB); }, { once: true });
-  };
-  $('dlg').showModal();
-}
 // «Plan y suscripción»: botones al formulario (en lugar de correos) y la última solicitud con su estado
 pintarPaginaPlan = (orig => async function (...a) {
   const r = await orig.apply(this, a);
@@ -302,23 +230,6 @@ const PANEL_SECCIONES = [['pd-orgs', 'orgs', 'Clientes', 'building-2'], ['pd-sol
     return MODO_PLATAFORMA ? [...base, ['equipo', 'Equipo delcos', () => pintarUsuarios2()], ['plantilla', 'Plantilla', () => pintarPlantillaDelcos()]] : base;
   } });
 })();
-async function pintarPlantillaDelcos(sub) {
-  const c = $('cfgcuerpo'); if (!c) return;
-  if (!sub) {
-    c.innerHTML = `<div class="card cfgpanel"><h2>Plantilla de las empresas nuevas</h2>
-      <p class="sm">Lo que recibe cada empresa al darse de alta (desde la web o desde Clientes). Cambiarlo aquí no toca a las empresas que ya existen.</p>
-      <div class="acts" style="justify-content:flex-start"><button type="button" class="btn sec" data-plsub="roles">Roles y permisos</button>
-        <button type="button" class="btn sec" data-plsub="cat">Catálogos y estados</button></div></div>`;
-    c.querySelectorAll('[data-plsub]').forEach(b => b.onclick = () => pintarPlantillaDelcos(b.dataset.plsub));
-    return;
-  }
-  // Los editores de siempre, sobre la organización de plataforma (que es la plantilla)
-  if (sub === 'roles') await pintarRoles(); else { c.innerHTML = ''; await pintarCatalogos(); }
-  const c2 = $('cfgcuerpo'); if (!c2 || $('plaviso')) return;
-  c2.insertAdjacentHTML('afterbegin', `<div class="banda-info" id="plaviso">Estás cambiando la <b>plantilla de las empresas nuevas</b>.
-    <button type="button" class="btn sec" id="plvolver">Volver a la plantilla</button></div>`);
-  $('plvolver').onclick = () => pintarPlantillaDelcos();
-}
 // Menú: en modo plataforma, solo las secciones del panel (como botones del menú de siempre, ocultos fuera de él)
 (() => {
   const nav = $('nav'); if (!nav) return;
@@ -335,10 +246,6 @@ ir = (orig => function (t, ...a) {
   if (MODO_PLATAFORMA && !['delcos', 'config', 'perfil', 'manual'].includes(t)) { const r = orig.call(this, 'delcos', ...a); marcarPanel(); return r; }
   const r = orig.call(this, t, ...a); if (t === 'delcos') marcarPanel(); return r;
 })(ir);
-function marcarPanel() {
-  const tab = PAG_TAB.delcos || 'orgs';
-  document.querySelectorAll('nav.main [data-t]').forEach(b => { if (b.classList.contains('pdsec') || b.dataset.t === 'delcos') b.setAttribute('aria-selected', String(b.dataset.t === 'pd-' + tab)); });
-}
 function aplicarModoPlataforma() {
   document.body.classList.toggle('modo-plataforma', MODO_PLATAFORMA);
   document.querySelectorAll('#nav [data-t]').forEach(b => {
@@ -430,79 +337,7 @@ const pdHace = v => { if (!v) return '—'; const m = Math.round((Date.now() - n
 const pdKpis = l => `<div class="pdkpis">${l.map(([v, t, cls]) => `<div class="pdkpi${cls ? ' ' + cls : ''}"><b>${v}</b><span>${esc(t)}</span></div>`).join('')}</div>`;
 const pdEsqueleto = () => `<div class="card cfgpanel"><div class="pdkpis">${'<div class="pdkpi"><div class="skel" style="width:50%"></div><div class="skel" style="width:70%"></div></div>'.repeat(4)}</div><div class="skel"></div><div class="skel" style="width:80%"></div></div>`;
 
-// ---- Cobros y suscripciones: el estado de pago de cada empresa (de ajustes.plan, que mantiene el aviso de Stripe)
-function pdCobroEstado(o) {
-  const p = o.plan_datos || {};
-  if (o.bloqueada) return ['Bloqueada', 'p-anu', o.bloqueada === 'desactivada' ? 'Desactivada' : 'Prueba terminada'];
-  if (p.estado === 'cancelada') return ['Cancelada', 'p-anu', p.periodo_fin ? 'Acceso hasta el ' + pdFecha(p.periodo_fin) : ''];
-  if (p.estado === 'impago') { const d = p.impago_desde ? Math.round((Date.now() - new Date(p.impago_desde + 'T12:00:00')) / 864e5) : 0;
-    return ['Impago', 'p-urg', d >= 14 ? 'Solo lectura desde hace ' + (d - 14) + ' días' : 'Le quedan ' + (14 - d) + ' días de gracia']; }
-  if (p.en_prueba || p.estado === 'prueba') return ['En prueba', 'p-warn', (p.prueba_hasta || p.periodo_fin) ? 'Hasta el ' + pdFecha(p.prueba_hasta || p.periodo_fin) : ''];
-  if (!p.stripe_suscripcion) return [p.plan === 'medida' ? 'A medida' : 'Sin suscripción', 'p-per', p.plan === 'medida' ? 'Contrato con delcos' : 'Sin pago con tarjeta'];
-  return ['Al día', 'p-est', p.periodo_fin ? 'Próximo recibo: ' + pdFecha(p.periodo_fin) : ''];
-}
-function pdMensual(p) {
-  if (!p || !p.stripe_suscripcion || p.estado === 'cancelada' || p.plan === 'medida') return 0;
-  const pl = planDe(p.plan), u = Math.max(+p.usuarios || 0, pl.minimo || 3);
-  return (p.pago === 'anual' ? (pl.anual || pl.precio) : pl.precio) * u;
-}
-async function pintarCobrosDelcos() {
-  const c = $('cfgcuerpo'); if (!c) return;
-  c.innerHTML = pdEsqueleto();
-  const { data, error } = await RPC_ORIG('organizaciones_lista', {});
-  if (!$('cfgcuerpo') || PAG_TAB.delcos !== 'cobros') return;
-  const l = error ? [] : (data || []);
-  const est = l.map(o => ({ o, p: o.plan_datos || {}, e: pdCobroEstado(o) }));
-  const cuenta = n => est.filter(x => x.e[0] === n).length;
-  const mrr = est.filter(x => x.e[0] === 'Al día').reduce((t, x) => t + pdMensual(x.p), 0);
-  const stripe = id => `https://dashboard.stripe.com/${EN_PRUEBAS ? 'test/' : ''}customers/${encodeURIComponent(id)}`;
-  let filtro = 'todas';
-  const pinta = () => {
-    const f = est.filter(x => filtro === 'todas' || (filtro === 'atencion' ? ['Impago', 'Bloqueada'].includes(x.e[0]) || x.p.baja_al_final || x.p.cambio_previsto : x.e[0] === filtro));
-    $('pdcobl').innerHTML = f.length ? `<div class="tablawrap"><table class="pdtabla"><thead><tr><th>Empresa</th><th>Plan</th><th>Estado</th><th>Al mes</th><th>Pendiente</th><th></th></tr></thead><tbody>
-      ${f.map(({ o, p, e }) => { const avisos = [p.baja_al_final ? 'Se da de baja al final del periodo' : '', p.cambio_previsto ? 'Cambio previsto a ' + planDe(p.cambio_previsto.plan || p.plan).nombre + (p.cambio_previsto.usuarios ? ' · ' + p.cambio_previsto.usuarios + ' usuarios' : '') + (p.cambio_previsto.desde ? ' el ' + pdFecha(p.cambio_previsto.desde) : '') : '', p.compromiso_hasta ? 'Compromiso hasta el ' + pdFecha(p.compromiso_hasta) : ''].filter(Boolean);
-        return `<tr><td><b>${esc(o.nombre)}</b><div class="sm">${o.usuarios} usuarios activos${p.origen === 'web' ? ' · alta desde la web' : ''}</div></td>
-          <td>${esc(planDe(p.plan).nombre)}<div class="sm">${p.plan === 'medida' ? '' : (p.usuarios ? p.usuarios + ' contratados · ' : '') + (p.pago === 'anual' ? 'anual' : 'mensual')}</div></td>
-          <td><span class="pill ${e[1]}">${e[0]}</span><div class="sm">${esc(e[2])}</div></td>
-          <td class="num">${pdMensual(p) ? eur(pdMensual(p)) : '—'}</td>
-          <td>${avisos.map(a => `<div class="sm">${esc(a)}</div>`).join('') || '<span class="sm">—</span>'}</td>
-          <td>${p.stripe_cliente ? `<a class="btn sec" href="${stripe(p.stripe_cliente)}" target="_blank" rel="noopener">Ver en Stripe</a>` : ''}</td></tr>`; }).join('')}</tbody></table></div>`
-      : '<div class="vacio">No hay empresas en este grupo.</div>';
-  };
-  c.innerHTML = `<div class="card cfgpanel">
-    ${error ? `<div class="banda-peligro">No se han podido leer: ${esc(error.message)}</div>` : ''}
-    ${pdKpis([[cuenta('Al día'), 'al día'], [cuenta('En prueba'), 'en prueba'], [cuenta('Impago'), 'con impago', cuenta('Impago') ? 'mal' : ''],
-      [est.filter(x => x.p.baja_al_final).length, 'se dan de baja'], [eur(mrr), 'cobro mensual estimado (sin IVA)']])}
-    <div class="segs" id="pdcobf">${[['todas', 'Todas'], ['atencion', 'Requieren atención'], ['Al día', 'Al día'], ['En prueba', 'En prueba'], ['Impago', 'Impago']]
-      .map(([k, n]) => `<button type="button" data-pdf="${esc(k)}" class="${k === filtro ? 'on' : ''}">${n}</button>`).join('')}</div>
-    <div id="pdcobl"></div>
-    <p class="sm">El estado llega solo desde Stripe con cada cobro. Las devoluciones y los datos de la tarjeta se miran en Stripe.</p></div>`;
-  c.querySelectorAll('[data-pdf]').forEach(b => b.onclick = () => { filtro = b.dataset.pdf; c.querySelectorAll('[data-pdf]').forEach(x => x.classList.toggle('on', x === b)); pinta(); });
-  pinta();
-}
 
-// ---- Altas desde la web: completadas (con su empresa y si ya ha entrado) y a medias (empezaron el pago y no lo terminaron)
-async function pintarAltasDelcos() {
-  const c = $('cfgcuerpo'); if (!c) return;
-  c.innerHTML = pdEsqueleto();
-  const { data, error } = await RPC_ORIG('altas_lista', {});
-  if (!$('cfgcuerpo') || PAG_TAB.delcos !== 'altas') return;
-  const l = error ? [] : (data || []);
-  const hechas = l.filter(a => a.estado === 'completada'), medias = l.filter(a => a.estado !== 'completada');
-  const sem = l.filter(a => Date.now() - new Date(a.creado_en) < 7 * 864e5);
-  const fila = a => { const d = a.datos || {};
-    const est = a.estado !== 'completada' ? ['A medias', 'p-warn', 'No terminó el pago · ' + pdHace(a.creado_en)]
-      : a.entro ? ['Dentro', 'p-est', 'Ya ha entrado en delcos'] : ['Invitada', 'p-per', a.invitado_en ? 'Invitación enviada ' + pdHace(a.invitado_en) : 'Falta la invitación'];
-    return `<div class="pdalta"><div class="pdaltacab"><b>${esc(a.organizacion || d.empresa || 'Sin nombre')}</b> <span class="pill ${est[1]}">${est[0]}</span>
-        <span class="pill p-per">${esc(planDe(d.plan).nombre)} · ${d.usuarios || 3} usuarios · ${d.pago === 'anual' ? 'anual' : 'mensual'}</span></div>
-      <div class="sm">${esc(d.nombre || '')}${d.email ? ` · <a href="mailto:${esc(d.email)}">${esc(d.email)}</a>` : ''}${d.telefono ? ` · <a href="tel:${esc(d.telefono)}">${esc(d.telefono)}</a>` : ''}${d.nif ? ' · ' + esc(d.nif) : ''}</div>
-      <div class="sm">${esc(est[2])} · empezó el ${pdFecha(a.creado_en)}</div></div>`; };
-  c.innerHTML = `<div class="card cfgpanel">
-    ${error ? `<div class="banda-peligro">No se han podido leer: ${esc(error.message)}</div>` : ''}
-    ${pdKpis([[hechas.length, 'completadas (90 días)'], [hechas.filter(a => a.entro).length, 'ya han entrado'], [medias.length, 'a medias (7 días)', medias.length ? 'aviso' : ''], [sem.length, 'esta semana']])}
-    ${medias.length ? `<h3 class="pdh3">A medias</h3><p class="sm">Rellenaron el formulario pero no terminaron de poner la tarjeta. Puede valer la pena escribirles. Se borran solas a los 7 días.</p>${medias.map(fila).join('')}` : ''}
-    <h3 class="pdh3">Completadas</h3>${hechas.map(fila).join('') || '<div class="vacio">Todavía no hay altas completadas desde la web.</div>'}</div>`;
-}
 
 // ---- Estado de la plataforma: SQL aplicado, versión publicada y versiones que usa cada empresa
 async function pintarEstadoDelcos() {

@@ -38,25 +38,6 @@ db.rpc = (orig => function (fn, params, opts) {
   sal.insertAdjacentHTML('beforebegin', `<button data-u="reportar">${svgIco(ICON_NOM.bug)} Reportar un problema</button>`);
   document.addEventListener('click', e => { if (e.target.closest('[data-u="reportar"]')) reportarProblema(); });
 })();
-// (v2.183.0: aquí iba la primera versión de reportarProblema; se redefine entera más abajo)
-// Configuración → Seguridad y registro → Errores (administración)
-async function pintarErrores() {
-  const f = window.__ERRF || { tipo: '', estado: 'Nuevo' };
-  const { data } = await RPC_ORIG('errores_lista', { p_tipo: f.tipo || null, p_estado: f.estado || null });
-  const l = data || [];
-  const nom = { error: 'Error de programa', api: 'Error de base de datos', reporte: 'Reporte de usuario' };
-  $('cfgcuerpo').innerHTML = `<div class="card cfgpanel"><h2>Errores y reportes</h2>
-    <p class="sm">Errores que se producen al usar la plataforma y problemas que reportan las personas. Descarga el archivo para enviárselo a quien da soporte técnico.</p>
-    <div class="usrbar"><select id="erft"><option value="">Todos los tipos</option>${Object.entries(nom).map(([k, t]) => `<option value="${k}" ${f.tipo === k ? 'selected' : ''}>${t}</option>`).join('')}</select>
-      <select id="erfe">${['', 'Nuevo', 'Revisado', 'Resuelto'].map(e => `<option value="${e}" ${f.estado === e ? 'selected' : ''}>${e || 'Todos los estados'}</option>`).join('')}</select>
-      <button class="btn sec" id="erdesc">${svgIco(ICON_NOM.download)} Descargar</button></div>
-    <div class="errlista">${l.map(x => `<div class="errfila e-${x.tipo}"><div><b>${esc(nom[x.tipo] || x.tipo)}</b> <span class="sm">${new Date(x.creado_en).toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' })} · ${esc(x.usuario || '—')} · ${esc(x.pantalla || '—')} · v${esc(x.version || '')}</span>
-        <div class="errmsg">${esc(x.mensaje)}</div></div>
-      <select data-errst="${x.id}">${['Nuevo', 'Revisado', 'Resuelto'].map(e => `<option ${x.estado === e ? 'selected' : ''}>${e}</option>`).join('')}</select></div>`).join('') || '<div class="vacio">Sin errores con estos filtros.</div>'}</div></div>`;
-  $('erft').onchange = $('erfe').onchange = () => { window.__ERRF = { tipo: $('erft').value, estado: $('erfe').value }; pintarErrores(); };
-  $('cfgcuerpo').querySelectorAll('[data-errst]').forEach(s => s.onchange = async () => { await RPC_ORIG('marcar_error', { p_id: +s.dataset.errst, p_estado: s.value }); toast('Estado actualizado'); });
-  $('erdesc').onclick = () => { const b = new Blob([JSON.stringify(l, null, 1)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = `errores_${hoyISO()}.json`; a.click(); };
-}
 arbolConfig = (orig => function () {
   const g = orig();
   g.forEach(([, l]) => l.forEach(x => { if (x.k === 'seguridad' && x.sub && !x.sub.some(s => s[0] === 'errores')) x.sub.push(['errores', 'Errores y reportes', pintarErrores]); }));
@@ -81,17 +62,6 @@ ventanaCargando = async function (fn) {
 
 /* ---------------- Cuentas: cabecera ordenada; Duplicados dentro de Calidad del dato ---------------- */
 
-function ordenarCabeceraCuentas() {
-  const acts = document.querySelector('#dircab .acts'), nuevo = $('nuevoBtn');
-  // v2.268.0: en el móvil el botón es el «+» redondo (plSync): no se mueve a la cabecera ni se le pone texto (salía «Crear nuevo» dentro del círculo)
-  if (acts && nuevo && nuevo.parentElement !== acts && !(nuevo.dataset.plfab && ES_MOVIL())) { nuevo.classList.remove('sec', 'fab'); nuevo.innerHTML = svgIco(ICON_NOM.plus) + ' Crear nuevo'; acts.appendChild(nuevo); }
-  const mapa = $('mapaBtn');
-  if (mapa && !mapa.classList.contains('icobtn')) { mapa.classList.add('icobtn'); mapa.title = 'Ver en el mapa'; mapa.setAttribute('aria-label', 'Ver en el mapa'); mapa.innerHTML = svgIco(ICON_NOM.map); mapa.parentElement.appendChild(mapa); }
-  const tools = $('dirtools');
-  if (tools && !tools.dataset.v252) { tools.dataset.v252 = '1'; tools.innerHTML = svgIco(ICON_NOM['sliders-horizontal']) + ' Filtros y columnas'; tools.classList.remove('kebab'); }
-  if ($('guardarFiltro')) $('guardarFiltro').classList.add('hide');
-  if ($('dupBtn')) $('dupBtn').classList.add('hide');
-}
 botonCalidad = (orig => function () { orig(); ordenarCabeceraCuentas(); })(botonCalidad);
 // «Guardar filtro» pasa al panel de filtros y columnas
 abrirHerramientas = (orig => function (ctx, ...r) {

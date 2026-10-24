@@ -313,11 +313,6 @@ $('dlg2').addEventListener('click', e => {
   else if (e.target.closest('[data-cerrar2]')) $('dlg2').close();
 });
 
-/* v2.75.0 · Cómo se llama una ficha nueva: el vocabulario del cliente o, si no lo ha cambiado, «cuenta» */
-function fichaNueva() {
-  if (TERMINOS && TERMINOS.medico && TERMINOS.medico.s) return { nombre: TT('medico', 's', '', 'l', 'C'), nueva: TT('medico', 's', 'nuevo', 'C', 'l') };
-  return { nombre: 'Cuenta', nueva: 'Nueva cuenta' };
-}
 /* v2.77.0 · Valores con categoría (p. ej. Traumatología › Columna): el selector los agrupa */
 function optsGrupos(lista, v) {
   const hijos = {}; lista.forEach(x => { if (x.padre) (hijos[x.padre] = hijos[x.padre] || []).push(x); });

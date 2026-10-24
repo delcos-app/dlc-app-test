@@ -9,89 +9,10 @@
 const LETRA_DIA = f => 'DLMXJVS'[new Date(f + 'T12:00:00').getDay()];
 const txtMin = m => hm(m);
 
-/**
- * Franjas de consulta de un médico en una fecha, en minutos.
- * null → no sabemos su horario (sin restricción) · [] → ese día no atiende · [[ini, fin], …]
- */
-function ventanasDe(dias, fecha) {
-  const d = dias || {};
-  if (!Object.keys(d).some(k => d[k])) return null;
-  const t = d[LETRA_DIA(fecha)];
-  if (!t) return [];
-  const out = [];
-  String(t).split(/[;,/]| y /i).forEach(parte => {
-    const r = /(\d{1,2})(?:[:.h](\d{2}))?\s*[-–a]\s*(\d{1,2})(?:[:.h](\d{2}))?/.exec(parte);
-    if (r) out.push([+r[1] * 60 + (+r[2] || 0), +r[3] * 60 + (+r[4] || 0)]);
-    else if (/mañana/i.test(parte)) out.push([9 * 60, 14 * 60]);
-    else if (/tarde/i.test(parte)) out.push([15 * 60, 20 * 60]);
-  });
-  return out.length ? out.sort((a, b) => a[0] - b[0]) : [[0, 24 * 60]];
-}
 const txtVentanas = v => v && v.length ? v.map(([a, b]) => `${txtMin(a)}–${txtMin(b)}`).join(' y ') : '';
 
-/** Primer minuto en que se puede empezar la visita llegando a «llegada», o null si no hay hueco. */
-function inicioPosible(it, llegada, dura) {
-  if (it.fija != null) return llegada <= it.fija + 10 ? Math.max(llegada, it.fija) : null;
-  if (!it.ventanas) return llegada;
-  for (const [a, b] of it.ventanas) { const s = Math.max(llegada, a); if (s + dura <= b) return s; }
-  return null;
-}
 
-/**
- * Ordena visitas respetando franjas de consulta y horas fijadas.
- * items: { id, xy, ventanas, fija, ref }. Devuelve { seq: [{it, llegada, ini, fin}], fuera: [{it, motivo}], fin }
- */
-function programarVisitas(items, t0) {
-  const cfg = PLANCFG(), sal = salidaUsuario(), tope = minHora(cfg.tope), dura = cfg.visita;
-  let pos = [sal.lat, sal.lon], t = t0;
-  const seq = [], fuera = [];
-  let pend = [];
-  items.forEach(it => {
-    if (it.ventanas && !it.ventanas.length) fuera.push({ it, motivo: 'no atiende este día' });
-    else if (!it.xy) fuera.push({ it, motivo: 'sin ubicación' });
-    else pend.push(it);
-  });
-  const llegadaA = (it, desde, tt, primera) => {
-    const mismo = !primera && desde[0] === it.xy[0] && desde[1] === it.xy[1];
-    return tt + (mismo ? 0 : minutosEntre(desde, it.xy) + cfg.parada);
-  };
-  while (pend.length) {
-    let mejor = null;
-    const fijas = pend.filter(x => x.fija != null).sort((a, b) => a.fija - b.fija);
-    for (const it of pend) {
-      const lleg = llegadaA(it, pos, t, !seq.length);
-      const ini = inicioPosible(it, lleg, dura);
-      // Tiene que dar tiempo a terminar la visita Y volver a casa antes de «Vuelta como tarde»
-      if (ini == null || ini + dura + minutosEntre(it.xy, [sal.lat, sal.lon]) > tope) continue;
-      // No elegir algo que haga llegar tarde a la próxima cita con hora fijada
-      if (it.fija == null && fijas.length) {
-        const f = fijas[0];
-        if (llegadaA(f, it.xy, ini + dura, false) > f.fija + 10) continue;
-      }
-      const coste = ini - t;
-      if (!mejor || coste < mejor.coste) mejor = { it, lleg, ini, coste };
-    }
-    if (!mejor) break;
-    seq.push({ it: mejor.it, llegada: mejor.lleg, ini: mejor.ini, fin: mejor.ini + dura });
-    t = mejor.ini + dura; pos = mejor.it.xy;
-    pend = pend.filter(x => x !== mejor.it);
-  }
-  pend.forEach(it => {
-    const v = it.ventanas;
-    fuera.push({ it, motivo: it.fija != null ? 'no llegas a la hora fijada'
-      : v && v.every(([, b]) => b <= t) ? `su horario (${txtVentanas(v)}) ya habrá acabado`
-      : 'no da tiempo a volver antes de tu hora de vuelta' });
-  });
-  return { seq, fuera, fin: t + minutosEntre(pos, [sal.lat, sal.lon]) };
-}
 
-async function conHorarios(lista) {
-  const faltan = lista.filter(m => !('dias' in m)).map(m => m.id);
-  if (!faltan.length) return lista;
-  const { data } = await db.rpc('horarios_cuentas', { p_ids: faltan });
-  const por = {}; (data || []).forEach(h => por[h.id] = h);
-  return lista.map(m => por[m.id] ? Object.assign({}, m, { dias: por[m.id].dias || {} }) : m);
-}
 
 /* ---------------- plan de ruta con horarios ---------------- */
 
@@ -208,80 +129,10 @@ function estimarDiaBase(citas, fecha) {
   return { est, fin: t + tdMinutos(pos, [sal.lat, sal.lon]), tope: minHora(cfg.tope) };
 }
 
-function ordenarPorCercania(citas) { return conHor(horDeCitas(citas), () => ordenarPorCercaniaBase(citas)); }
-function ordenarPorCercaniaBase(citas) {
-  const fecha = (citas[0] && citas[0].fecha) || AG_FECHA;
-  const cfg = PLANCFG(), ahora = new Date(), minAhora = ahora.getHours() * 60 + ahora.getMinutes();
-  let t0 = minHora(cfg.salida);
-  if (fecha === hoyISO()) t0 = Math.max(t0, Math.ceil(minAhora / 5) * 5);
-  const cerradas = citas.filter(c => !CITA_ABIERTA.includes(c.estado));
-  const abiertas = citas.filter(c => CITA_ABIERTA.includes(c.estado));
-  const items = abiertas.map(c => ({ id: c.id, ref: c, xy: xyCita(c), ventanas: ventanasDe(c.dias, fecha), fija: minHora(c.hora) }));
-  // Para ordenar no se descarta a nadie por la hora tope: se ordena todo lo posible
-  const { seq, fuera } = programarVisitas(items, t0);
-  ordenarPorCercania.fuera = fuera.length;
-  return cerradas.concat(seq.map(s => s.it.ref), fuera.map(f => f.it.ref));
-}
 
 /* ---------------- reprogramar lo no visitado ---------------- */
 
-async function reprogramarCitas(citas, titulo, texto) {
-  if (!citas.length) return false;
-  const conH = await conHorarios(citas.map(c => Object.assign({ id: c.cuenta_id }, 'dias' in c ? { dias: c.dias } : {})));
-  const dias = {}; conH.forEach(h => dias[h.id] = h.dias || {});
-  const base = hoyISO();
-  const filas = citas.map(c => ({ c, fecha: proximoDiaConsulta(dias[c.cuenta_id], c.fecha > base ? c.fecha : base),
-    horario: Object.keys(dias[c.cuenta_id] || {}).filter(k => (dias[c.cuenta_id] || {})[k]).join(' ') }));
-  return new Promise(res => {
-    $('dbody').innerHTML = `
-      <div class="fh"><div><h2>${esc(titulo)}</h2><div class="sm">${esc(texto)}</div></div>
-        <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-      <p class="sm">Te propongo el próximo día que cada ${TT('medico', 's', '', 'l', 'l')} atiende. Cambia la fecha si quieres o desmarca los que no quieras mover.</p>
-      <div class="lista reprog" data-nosucio>${filas.map((f, i) => `<div class="item" style="cursor:default">
-        <input type="checkbox" data-rpi="${i}" checked aria-label="Mover">
-        <span class="tx"><b>${esc(f.c.nombre)}</b>
-          <span class="sm">${esc([f.c.centro_nombre, f.c.municipio].filter(Boolean).join(' · '))}${f.c.fecha < base ? ' · era el ' + fechaCorta(f.c.fecha) : ''}</span>
-          <span class="sm">${f.horario ? 'Atiende: ' + esc(f.horario) : 'Sin días de atención conocidos'}</span></span>
-        <input type="date" data-rpf="${i}" value="${f.fecha}" min="${base}"></div>`).join('')}</div>
-      <div class="acts" style="justify-content:flex-end">
-        <button class="btn sec" id="rpno">Dejarlas como están</button>
-        <button class="btn" id="rpok">Mover las marcadas</button></div>`;
-    const cerrar = v => { $('dlg').close(); res(v); };
-    $('rpno').onclick = () => cerrar(false);
-    $('rpok').onclick = async ev => {
-      ev.target.disabled = true; ev.target.textContent = 'Moviendo…';
-      let n = 0;
-      for (let i = 0; i < filas.length; i++) {
-        if (!$('dbody').querySelector(`[data-rpi="${i}"]`).checked) continue;
-        const f = $('dbody').querySelector(`[data-rpf="${i}"]`).value; if (!f) continue;
-        const { data: r } = await db.rpc('aplazar_cita', { p_id: filas[i].c.id, p_fecha: f, p_hora: null, p_origen: 'Reprogramada' });
-        if (r && r.ok) n++;
-      }
-      toast(n ? `${n} ${n === 1 ? 'cita movida' : 'citas movidas'}` : 'No se ha movido ninguna');
-      cerrar(n > 0);
-      cargarAgenda(); cargarInicio(); pintarRutaBarra();
-    };
-    $('dlg').showModal();
-  });
-}
 
-async function terminarJornada() {
-  const j = jornadaActiva(); if (!j) return;
-  invalidarCache();
-  const citas = await citasDelDia(hoyISO());
-  const hechas = citas.filter(c => c.estado === 'Visitada').length;
-  const abiertas = citas.filter(c => CITA_ABIERTA.includes(c.estado));
-  const ok = await preguntar(`Tiempo: ${durTxt(Date.now() - j.inicio)} · Visitadas: ${hechas} de ${citas.filter(c => !['Descartada', 'Aplazada'].includes(c.estado)).length}` +
-    (abiertas.length ? `\n\nTe quedan ${abiertas.length} ${abiertas.length === 1 ? 'cita abierta' : 'citas abiertas'}. Al terminar te propongo a qué día moverlas.` : ''),
-    { titulo: '¿Terminar la jornada?', ok: 'Terminar jornada' });
-  if (!ok) return;
-  localStorage.removeItem(JKEY());
-  pintarRutaBarra();
-  toast(`Jornada terminada · ${hechas} visitadas`);
-  if (abiertas.length) await reprogramarCitas(abiertas, 'Lo que ha quedado pendiente hoy', `${abiertas.length} sin visitar`);
-  if (TAB === 'agenda') cargarAgenda();
-  if (TAB === 'rutas') cargarRutas();
-}
 
 /* ---------------- semana en cuadrícula ---------------- */
 

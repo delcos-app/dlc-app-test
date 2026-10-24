@@ -38,7 +38,6 @@ function usarCache(t) {
   const ok = VIA_IR === t && c && sec && sec.children.length && c.clave === ESTADO_MOD[t]() && c.esc === ESCRITURAS && Date.now() - c.t < 10 * 60000;
   return !!ok;
 }
-function marcarCache(t) { CACHE_MOD[t] = { clave: ESTADO_MOD[t](), t: Date.now(), esc: ESCRITURAS }; }
 [['inicio', 'cargarInicio'], ['ventas', 'cargarVentas'], ['productos', 'cargarProductosModulo'], ['facturacion', 'cargarFacturacion'],
  ['analitica', 'cargarAnalitica'], ['pacientes', 'cargarPacientes'], ['agenda', 'cargarAgenda']].forEach(([t, fn]) => {
   const orig = window[fn] || eval(fn);
@@ -226,29 +225,6 @@ new MutationObserver(() => { if (TAB === 'directorio') barraCuentas(); }).observ
 
 const FAC_CONFIG = [['empresa', 'Datos fiscales'], ['series', 'Series y numeración'], ['verifactu', 'VeriFactu'], ['registro', 'Registro']];
 let FAC_ULTIMA = 'empresa';
-function subnavFacturacion() {
-  // v2.75.0: durante el revelado atómico hay una copia congelada de la pantalla; el submenú va en la real
-  const real = sel => [...document.querySelectorAll('#v-facturacion ' + sel)].find(x => !x.closest('.congelada'));
-  const nav = real('.subnav'); if (!nav) return;
-  const enConfig = FAC_CONFIG.some(x => x[0] === FSEC);
-  if (enConfig) FAC_ULTIMA = FSEC;
-  nav.querySelectorAll('[data-fsec]').forEach(b => { if (FAC_CONFIG.some(x => x[0] === b.dataset.fsec)) b.classList.add('hide'); });
-  if (!nav.querySelector('[data-faccfg]') && puede('administrar')) {
-    nav.insertAdjacentHTML('beforeend', `<button data-faccfg="1">${svgIco(ICON_NOM.settings)} Configuración</button>`);
-    nav.querySelector('[data-faccfg]').onclick = () => { FSEC = FAC_ULTIMA; cargarFacturacion(); };
-  }
-  if (nav.querySelector('[data-faccfg]')) nav.querySelector('[data-faccfg]').setAttribute('aria-pressed', String(enConfig));
-  let sub = real('.faccfgsub');
-  if (sub && sub.previousElementSibling !== nav) { sub.remove(); sub = null; }
-  if (enConfig && !sub) {
-    nav.insertAdjacentHTML('afterend', `<div class="cfgsubs faccfgsub">${FAC_CONFIG.map(([k, t]) => `<button data-fsub="${k}" class="${k === FSEC ? 'on' : ''}">${t}</button>`).join('')}</div>`);
-    // v2.87.0: «Diseño del PDF» se abre desde la configuración de facturación
-    sub = real('.faccfgsub');
-    if (sub && puede('administrar') && !sub.querySelector('[data-fpdf]')) sub.insertAdjacentHTML('beforeend', '<button data-fpdf="1">Diseño del PDF</button>');
-    const bp = sub && sub.querySelector('[data-fpdf]'); if (bp) bp.onclick = () => disenoPDF();
-    document.querySelectorAll('#v-facturacion [data-fsub]').forEach(b => b.onclick = () => { FSEC = b.dataset.fsub; cargarFacturacion(); });
-  } else if (!enConfig && sub) sub.remove();
-}
 new MutationObserver(() => { if (TAB === 'facturacion') subnavFacturacion(); }).observe($('v-facturacion'), { childList: true, subtree: true });
 cargarFacturacion = (orig => async function (...a) { const r = await orig.apply(this, a); requestAnimationFrame(() => { if (TAB === 'facturacion') subnavFacturacion(); }); return r; })(cargarFacturacion);
 

@@ -1,0 +1,405 @@
+// pantallas/portal.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
+// Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
+
+// ——— Lado de quien lleva la ficha ———
+async function fichaPortal(id) {
+  if (ES_MEDICO() || !hayExtra('portal') || FICHA_ID !== id || !$('fbody') || $('fportal')) return;
+  const [{ data: sols }, { data: msgs }, { data: acc }] = await Promise.all([
+    db.from('solicitudes_material').select('id,material,cantidad,nota,estado,creado_en,cerrado_en').eq('cuenta_id', id).order('creado_en', { ascending: false }).limit(10),
+    db.from('mensajes_cuenta').select('id,texto,del_portal,creado_en,leido_en').eq('cuenta_id', id).order('creado_en', { ascending: true }).limit(200),
+    db.from('perfiles').select('id').eq('cuenta_id', id).eq('activo', true).limit(1)]);
+  if (FICHA_ID !== id || !$('fbody') || $('fportal')) return;
+  const ls = sols || [], lm = msgs || [], pend = ls.filter(x => x.estado === 'Pendiente'), sinLeer = lm.filter(x => x.del_portal && !x.leido_en).length;
+  if (!ls.length && !lm.length && !(acc || []).length) return;   // sin portal ni actividad: no se ocupa sitio
+  const html = `<section class="blk" id="fportal"><h3>Portal${pend.length ? ` <span class="pill p-warn">${num(pend.length)} material por entregar</span>` : ''}${sinLeer ? ` <span class="pill p-urg">${num(sinLeer)} sin leer</span>` : ''}</h3>
+    ${ls.length ? `<div class="lista">${ls.map(x => `<div class="item" style="cursor:default"><span class="tx"><b>${num(x.cantidad)} × ${esc(x.material)}</b>
+        <span class="sm">Pedido el ${horaCorta(x.creado_en)}${x.nota ? ' · ' + esc(x.nota) : ''}</span></span>${pillMaterial(x.estado)}
+        ${x.estado === 'Pendiente' ? `<button type="button" class="btn chico" data-fpent="${x.id}">Entregado</button>` : ''}</div>`).join('')}</div>` : ''}
+    <div class="fpmsg"><b class="sm">Mensajes</b><div id="fphilo">${hiloMensajes(lm, false)}</div>
+      <div class="fpresp"><input id="fpmsgt" placeholder="Contestar" aria-label="Contestar"><button type="button" class="btn sec" id="fpmsgok">Enviar</button></div></div></section>`;
+  const vis = $('fbody').querySelector('section.fvis');
+  if (vis) vis.insertAdjacentHTML('afterend', html); else $('fbody').insertAdjacentHTML('beforeend', html);
+  const rehacer = () => { const b = $('fportal'); if (b) b.remove(); fichaPortal(id); };
+  $('fportal').querySelectorAll('[data-fpent]').forEach(b => b.onclick = async () => {
+    const { data: r } = await db.rpc('cerrar_material', { p_id: b.dataset.fpent, p_estado: 'Entregado' });
+    if (!r || !r.ok) { toast(motivoPortal(r), true); return; }
+    toast('Material entregado: se le avisa'); rehacer();
+  });
+  $('fpmsgok').onclick = async ev => {
+    const t = $('fpmsgt').value.trim(); if (!t) { toast('Escribe el mensaje', true); return; }
+    ev.target.disabled = true;
+    const { data: r } = await db.rpc('enviar_mensaje_cuenta', { p_cuenta: id, p_texto: t });
+    ev.target.disabled = false;
+    if (!r || !r.ok) { toast(motivoPortal(r), true); return; }
+    toast('Mensaje enviado'); rehacer();
+  };
+  if (sinLeer) RPC_ORIG('leer_mensajes_cuenta', { p_cuenta: id });
+}
+
+// (v2.183.0: aquí iba la primera versión de elegirPago; se redefine entera más abajo)
+async function pagoPortal(boton) { const d = await pagoLlamar({ accion: 'portal' }, boton); if (d && d.url) location.href = d.url; }
+
+function pmTab(k) {
+  PM.tab = k;
+  document.querySelectorAll('#v-informe [data-pmt]').forEach(b => { b.classList.toggle('on', b.dataset.pmt === k); b.setAttribute('aria-selected', b.dataset.pmt === k); });
+  document.querySelectorAll('#v-informe [data-pmp]').forEach(p => p.hidden = p.dataset.pmp !== k);
+  window.scrollTo({ top: 0 });
+}
+
+function pmEsqueleto(ficha) {
+  const c = '<div class="card ancard pmsk"><span class="plsk"></span></div>';
+  return ficha ? `<div class="pmfila">${c}${c}</div><div class="pmfila">${c}</div>` : `<div class="pmfila pm3">${c}${c}${c}</div><div class="pmfila pm3">${c}${c}${c}</div>`;
+}
+
+// ——— Resumen ———
+// v2.293 (SQL 155): «Pautas más utilizadas»: qué parte de las pautas del periodo es de cada formato (1, 2, 2 + 1 de regalo…). Sin personas.
+function pmFormatoTxt(f) {
+  const m = /^(d+)+(d+)$/.exec(f);
+  if (m) return `${m[1]} + ${m[2]} de regalo`;
+  if (f === '4+') return '4 o más unidades';
+  return f === '1' ? '1 unidad' : f + ' unidades';
+}
+
+function pmFormatos(d) {
+  const P = TT('pauta', 'p', '', 'l', 'l'), l = d.formatos || [], tot = l.reduce((a, x) => a + (x.n || 0), 0);
+  const ayu = pmAyu(P.charAt(0).toUpperCase() + P.slice(1) + ' más utilizadas', `Cómo son las ${P} del periodo elegido arriba a la derecha: qué parte es de 1 unidad, de 2, de 2 + 1 de regalo… Sirve para ver qué formato se utiliza más. Solo porcentajes: no se muestra ningún dato de personas.`);
+  return `<div class="card ancard" id="pmformatos"><h2>${P.charAt(0).toUpperCase() + P.slice(1)} más utilizadas ${ayu}</h2>
+    ${tot ? barrasH(l.map(x => ({ n: pmFormatoTxt(x.formato), v: Math.round(x.n / tot * 100) })), v => v + ' %') : vacioGrafico(`Cuando haya ${P} en el periodo, verás aquí qué formatos se utilizan más.`)}</div>`;
+}
+
+// v2.292: las cifras del periodo en una tarjeta en lista, en la fila de «Métricas» y «Por producto» (antes, 4 indicadores sueltos encima;
+// Eric eligió la lista «C»). Cada fila con su «i». Sin «pacientes» (casi ningún pedido lleva su ficha) ni «pautas registradas» (Eric: confunde).
+function pmPeriodo(d) {
+  const P = TT('pauta', 'p', '', 'l', 'l'), Ps = TT('pauta', 's', '', 'l', 'l');
+  const f = [
+    [num(d.unidades), 'Unidades', `Total de unidades de producto de las ${P} del periodo elegido arriba a la derecha.`],
+    [d.ultima_pauta ? fechaCorta(d.ultima_pauta) : '—', 'Última ' + Ps, `Fecha de la ${Ps} más reciente del periodo.`]];
+  return `<div class="card ancard" id="pmperiodo"><h2>Resumen del periodo</h2>
+    <div class="pmperl">${f.map(x => `<div><span>${esc(x[1])} ${pmAyu(x[1], x[2])}</span><b>${x[0]}</b></div>`).join('')}</div></div>`;
+}
+
+function pmResumen(d, k, pac) {
+  const meses = mesesEntre(d.desde, d.hasta), serie = {}; (d.serie || []).forEach(s => serie[s.mes] = s);
+  const ll = d.llamadas || {}, conv = ll.total ? Math.round(ll.con_pedido / ll.total * 100) : null;
+  const mx = Math.max(1, ...meses.map(m => (serie[m] || {}).unidades || 0));
+  const evol = d.unidades ? `<div class="pmleg"><span><i></i>Unidades</span><span><i class="v"></i>${TT('pauta', 'p', '', 'C', 'l')}</span></div>
+    <div class="pmev" style="--n:${meses.length}">${meses.map(m => {
+      const s = serie[m] || {}, u = s.unidades || 0, n = s.pautas || 0;
+      const mes = new Date(m + '-01T12:00').toLocaleDateString('es-ES', { month: 'short' }).replace('.', '');
+      return `<div class="pmcol" title="${esc(mes)}: ${num(u)} unidades, ${num(n)} ${TT('pauta', 'p', '', 'l', 'l')}"><div class="pmbar"><b>${u ? num(u) : ''}</b><i style="height:${u ? Math.max(3, u / mx * 100) : 0}%"></i></div>
+        <span class="pmm">${esc(mes)}</span><span class="pmn">${n ? `<em>${num(n)}</em>` : ''}</span></div>`; }).join('')}</div>`
+    : vacioGrafico(`Cuando haya ${TT('pauta', 'p', '', 'l', 'l')} registradas, verás aquí cómo evolucionan.`);
+  const cons = !k.ok ? '<p class="sm">No disponible.</p>' : k.pocos
+    ? `<p class="sm">En los últimos ${num(k.meses || 12)} meses se han iniciado ${num(k.empezaron)} ${TT('pauta', 'p', '', 'l', 'l')}. A partir de ${num(k.minimo || 5)} verás aquí cifras de continuidad.</p>`
+    : `<div class="minis cons"><div><b>${num(k.empezaron)}</b><span>iniciadas</span></div><div><b>${k.empezaron ? Math.round(k.repiten / k.empezaron * 100) + '%' : '—'}</b><span>se repiten</span></div>
+        <div><b>${k.dias_entre ? num(k.dias_entre) + ' días' : '—'}</b><span>entre una y otra</span></div><div><b>${num(k.sin_pedir)}</b><span>más de 60 días sin repetirse</span></div></div>`;
+  const falta = PM.faltan.length ? `<div class="pmaviso"><div><b>Completa tu ficha</b><span class="sm">Falta ${esc(pmFaltaTxt())}. Así tu comercial pasa a verte cuando mejor te va.</span></div>
+      <button type="button" class="btn" data-pmir="ficha">Completar mi ficha</button></div>` : '';
+  return `${pmActividad(d)}${falta}
+    <div class="pmfila pm3">
+      ${pmPeriodo(d)}
+      <div class="card ancard"><h2>Métricas de ${TT('pauta', 'p', '', 'l', 'l')} ${pmAyu(`Métricas de ${TT('pauta', 'p', '', 'l', 'l')}`, `Cada barra son las unidades de las ${TT('pauta', 'p', '', 'l', 'l')} registradas en el mes; el número de debajo, cuántas ${TT('pauta', 'p', '', 'l', 'l')} fueron. Cambia el periodo arriba a la derecha.${d.ultima_pauta ? ' Última ' + TT('pauta', 's', '', 'l', 'l') + ': ' + fechaCorta(d.ultima_pauta) + '.' : ''}`)}</h2>${evol}</div>
+      <div class="card ancard"><h2>Por producto ${pmAyu('Por producto', `Qué productos aparecen en las ${TT('pauta', 'p', '', 'l', 'l')} registradas en el periodo y qué parte de las unidades es cada uno.`)}</h2>
+        ${(d.productos || []).length ? `<div class="pmdon">${svgDonut(d.productos.map(x => ({ n: x.nombre, v: x.unidades })))}</div>` : vacioGrafico('Aparecerá el reparto por producto.')}</div></div>
+    <div class="pmfila">
+      ${pmFormatos(d)}
+      <div class="card ancard" id="pmconst"><h2>Continuidad de las ${TT('pauta', 'p', '', 'l', 'l')} ${pmAyu(`Continuidad de las ${TT('pauta', 'p', '', 'l', 'l')}`, `En los últimos 12 meses: cuántas ${TT('pauta', 'p', '', 'l', 'l')} han empezado, qué parte se ha repetido al menos una vez, cuántos días pasan de media entre una vez y la siguiente, y cuántas llevan más de 60 días sin repetirse.`)}</h2>${cons}</div></div>`;
+}
+
+// ——— Mi ficha: datos ———
+function pmRangos(txt) {
+  const t = String(txt || ''), out = [];
+  const re = /(\d{1,2})(?::(\d{2}))?\s*[-–a]\s*(\d{1,2})(?::(\d{2}))?/g; let m;
+  while ((m = re.exec(t))) out.push([pmHora(m[1] + ':' + (m[2] || '00')), pmHora(m[3] + ':' + (m[4] || '00'))]);
+  if (!out.length && /mañana/i.test(t)) out.push(['09:00', '14:00']);
+  if (/tarde/i.test(t) && !out.some(r => r[0] >= '14:00')) out.push(['16:00', '20:00']);
+  return out;
+}
+
+function pmHora(v) {
+  const s = String(v || '').replace(/[^\d:]/g, '');
+  let h, m;
+  if (s.includes(':')) [h, m] = s.split(':'); else if (s.length <= 2) { h = s; m = '00'; } else { h = s.slice(0, s.length - 2); m = s.slice(-2); }
+  h = +h; m = +(m || 0);
+  if (!s || isNaN(h) || h > 23 || m > 59) return '';
+  return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0');
+}
+
+function pmFichaDatos(f) {
+  PM.faltan = f.faltan || []; PM.prop = f.propuesta || null; PM.ubic = f.ubicaciones || [];
+  const p = (PM.prop && PM.prop.datos) || {}, c = f.cuenta || {};
+  const dias = o => { const r = {}; PM_DIAS.forEach(k => { const l = Array.isArray(o && o[k]) ? o[k].map(x => Array.isArray(x) ? x : pmRangos(x)[0]).filter(Boolean) : pmRangos(o && o[k]); if (l.length) r[k] = l; }); return r; };
+  PM.ficha = {
+    telefono: p.telefono != null ? p.telefono : (c.telefono || ''), email: p.email != null ? p.email : (c.email || ''),
+    consultas: (p.consultas || PM.ubic.map(u => ({ centro_id: u.centro_id, ubicacion_id: u.id, nombre: u.nombre, direccion: u.direccion, municipio: u.municipio, dias: u.dias })))
+      .map(x => Object.assign({}, x, { dias: dias(x.dias) })),
+    visitas: Object.assign({ como: '', momento: '' }, p.visitas || {}), notas: p.notas || ''
+  };
+}
+
+// ——— Mi ficha: pantalla ———
+function pmPintarFicha() {
+  const box = $('pmficha'); if (!box || !PM.ficha) return;
+  const F = PM.ficha;
+  document.querySelectorAll('#v-informe [data-pmt=ficha] .pmtpunto').forEach(x => x.hidden = !PM.faltan.length);
+  const estado = PM.prop ? (PM.prop.estado === 'Pendiente' ? `Enviado el ${horaCorta(PM.prop.modificado_en)}: tu comercial lo revisará.` : `Tu comercial revisó tus datos. Si algo cambia, vuelve a enviarlo.`)
+    : 'Todavía no nos has enviado tus datos.';
+  box.innerHTML = `
+    <div class="pmcheck" id="pmcheck"></div>
+    <div class="card ancard pmcons pmcont"><h2>Contacto y ${TT('visita', 'p', '', 'l', 'l')} ${pmAyu('Contacto y ' + TT('visita', 'p', '', 'l', 'l'), 'Cómo puede contactarte tu comercial y cómo y cuándo te va mejor que pase a verte. Escribe lo que prefieras: lo revisa antes de pasarlo a tu ficha y lo tendrá en cuenta al organizar su agenda.')}</h2>
+      <div class="pmcampos"><div><label for="pmtel">Teléfono <span class="pmreq">Necesario</span></label><input id="pmtel" inputmode="tel" value="${esc(F.telefono)}" placeholder="Móvil o fijo"></div>
+        <div><label for="pmmail">Correo</label><input id="pmmail" type="email" value="${esc(F.email)}" placeholder="tu@correo.es"></div>
+        <div><label for="pmcomo">Cómo prefieres ${TT('visita', 'p', 'el', 'l', 'l')} <span class="pmreq">Necesario</span></label><select id="pmcomo"><option value="">Elige…</option>${PM_COMO.map(x => `<option ${F.visitas.como === x ? 'selected' : ''}>${esc(x)}</option>`).join('')}</select></div>
+        <div><label for="pmmom">Mejor momento</label><input id="pmmom" value="${esc(F.visitas.momento)}" placeholder="p. ej. martes a última hora"></div>
+        <div class="pmancho"><label for="pmnot">Notas para tu comercial</label><textarea id="pmnot" rows="2" placeholder="Acceso, planta, a quién preguntar…">${esc(F.notas)}</textarea></div></div></div>
+    <div class="card ancard pmcons"><h2>${PM_CENTRO() ? 'Dónde y cuándo atendéis' : 'Dónde atiendes'} <span class="pmreq">Necesario: al menos un día con horario</span> ${pmAyu(PM_CENTRO() ? 'Dónde y cuándo atendéis' : 'Dónde atiendes', 'Añade cada centro o lugar donde atiendes y su horario. Busca el centro por su nombre o población; si no aparece, añádelo tú. En el horario, pulsa los días y escribe las horas; con «Rellenar» pones de golpe el mismo horario en todos los días marcados.')}</h2>
+      <div id="pmclist" class="pmclist">${F.consultas.map((c, i) => pmConsulta(c, i)).join('') || '<p class="sm">Todavía no hay ningún lugar.</p>'}</div>
+      <div class="pmcadd"><input id="pmcq" type="search" placeholder="Añadir un centro: escribe su nombre o la población" aria-label="Buscar un centro"><div id="pmcres" class="pmcres"></div></div></div>
+    <div class="pmpie"><span class="sm" id="pmest">${esc(estado)}</span><button type="button" class="btn" id="pmenviar">Enviar a mi comercial</button></div>`;
+  let t;
+  $('pmcq').oninput = () => { clearTimeout(t); t = setTimeout(pmBuscarCentro, 250); };
+  $('pmenviar').onclick = pmEnviar;
+  box.addEventListener('input', pmPintarCheck); box.addEventListener('change', pmPintarCheck); pmPintarCheck();   // v2.279.0
+}
+
+function pmConsulta(c, i) {
+  const nuevo = (!c.centro_id && !c.ubicacion_id) || !String(c.nombre || '').trim();   // v2.279.0: sin nombre, se escribe
+  return `<div class="pmc" data-pmc="${i}">
+    <div class="pmccab">${nuevo ? `<div class="g2 pmcnuevo"><div><label>Centro o lugar</label><input data-pmcf="${i}|nombre" value="${esc(c.nombre || '')}"></div>
+        <div><label>Dirección y población</label><input data-pmcf="${i}|direccion" value="${esc([c.direccion, c.municipio].filter(Boolean).join(', '))}" placeholder="Calle, número, población"></div></div>`
+      : `<div><b>${esc(c.nombre || TT('consulta', 's', '', 'l', 'C'))}</b><span class="sm">${esc([c.direccion, c.municipio].filter(Boolean).join(' · '))}</span></div>`}
+      <button type="button" class="btn sec chico pmcx" data-pmcx="${i}">Quitar</button></div>
+    ${pmHorario(c.dias || {}, i)}</div>`;
+}
+
+// Horario flexible y rápido: días que se encienden, varias franjas con horas libres, y rellenar de golpe
+function pmHorario(d, i) {
+  return `<div class="pmhz">
+    <div class="pmhzpre"><span class="sm">Rellenar los días marcados:</span>
+      <button type="button" class="chip" data-pmhp="${i}|m">Mañana 9:00–14:00</button><button type="button" class="chip" data-pmhp="${i}|t">Tarde 16:00–20:00</button>
+      <button type="button" class="chip" data-pmhp="${i}|mt">Mañana y tarde</button><button type="button" class="chip" data-pmhp="${i}|c">Copiar el primer día</button></div>
+    ${PM_DIAS.map(k => { const l = d[k] || []; return `<div class="pmhd ${l.length ? 'on' : ''}">
+      <button type="button" class="pmhdia" data-pmhd="${i}|${k}" aria-pressed="${!!l.length}">${PM_DIAN[k]}</button>
+      <div class="pmhr">${l.length ? l.map((r, j) => `<span class="pmhf"><input data-pmhi="${i}|${k}|${j}|0" value="${esc(r[0])}" inputmode="numeric" maxlength="5" aria-label="Desde">
+          <span>a</span><input data-pmhi="${i}|${k}|${j}|1" value="${esc(r[1])}" inputmode="numeric" maxlength="5" aria-label="Hasta">
+          <button type="button" class="pmhx" data-pmhx="${i}|${k}|${j}" aria-label="Quitar esta franja">✕</button></span>`).join('')
+          + `<button type="button" class="pmhmas" data-pmha="${i}|${k}">+ Otra franja</button>` : '<span class="sm">No atiende</span>'}</div></div>`; }).join('')}</div>`;
+}
+
+function pmLeerForm() {
+  const F = PM.ficha; if (!F || !$('pmtel')) return;
+  F.telefono = $('pmtel').value.trim(); F.email = $('pmmail').value.trim();
+  F.visitas = { como: $('pmcomo').value, momento: $('pmmom').value.trim() }; F.notas = $('pmnot').value.trim();
+  document.querySelectorAll('#pmficha [data-pmcf]').forEach(x => { const [i, k] = x.dataset.pmcf.split('|'); F.consultas[+i][k] = x.value.trim(); if (k === 'direccion') F.consultas[+i].municipio = ''; });
+  document.querySelectorAll('#pmficha [data-pmhi]').forEach(x => { const [i, k, j, p] = x.dataset.pmhi.split('|'); const r = (F.consultas[+i].dias[k] || [])[+j]; if (r) r[+p] = pmHora(x.value) || x.value.trim(); });
+}
+
+function pmRepintarConsultas() { const l = $('pmclist'); if (l) l.innerHTML = PM.ficha.consultas.map((c, i) => pmConsulta(c, i)).join('') || '<p class="sm">Todavía no hay ningún lugar.</p>'; pmPintarCheck(); }
+
+async function pmBuscarCentro() {
+  const q = $('pmcq').value.trim(), box = $('pmcres'); if (!box) return;
+  if (q.length < 2) { box.innerHTML = ''; return; }
+  const { data } = await RPC_ORIG('portal_buscar_centros', { p_q: q });
+  if ($('pmcq').value.trim() !== q) return;
+  PM.cres = Array.isArray(data) ? data : [];
+  box.innerHTML = PM.cres.map((x, i) => `<button type="button" data-pmcr="${i}"><b>${esc(x.nombre)}</b><span class="sm">${esc([x.direccion, x.municipio].filter(Boolean).join(' · '))}</span></button>`).join('')
+    + `<button type="button" data-pmcr="nuevo" class="pmcnew"><b>No lo encuentro: añadir «${esc(q)}»</b><span class="sm">Escribe después su dirección</span></button>`;
+}
+
+async function pmEnviar() {
+  pmLeerForm();
+  const F = PM.ficha, mal = [];
+  F.consultas.forEach(c => Object.values(c.dias || {}).forEach(l => l.forEach(r => { if (!/^\d\d:\d\d$/.test(r[0]) || !/^\d\d:\d\d$/.test(r[1]) || r[1] <= r[0]) mal.push(c.nombre); })));
+  if (mal.length) { toast('Revisa las horas de ' + mal[0] + ': cada franja necesita una hora de inicio y otra de fin posterior', true); return; }
+  if (F.consultas.some(c => !String(c.nombre || '').trim())) { toast('Pon el nombre de cada centro', true); return; }
+  const datos = { telefono: F.telefono, email: F.email, visitas: F.visitas, notas: F.notas,
+    consultas: F.consultas.map(c => ({ centro_id: c.centro_id || null, ubicacion_id: c.ubicacion_id || null, nombre: c.nombre, direccion: c.direccion || '', municipio: c.municipio || '',
+      dias: Object.fromEntries(Object.entries(c.dias || {}).map(([k, l]) => [k, l.map(r => r[0] + '-' + r[1]).join(', ')])) })) };
+  const b = $('pmenviar'); b.disabled = true;
+  const { data: r } = await db.rpc('portal_guardar_ficha', { p: datos });
+  b.disabled = false;
+  if (!r || !r.ok) { toast('No se ha podido enviar', true); return; }
+  toast('Enviado a tu comercial');
+  const { data: f } = await RPC_ORIG('portal_mi_ficha', {}); if (f && f.ok) pmFichaDatos(f);
+  pmPintarFicha();
+  const av = document.querySelector('#mdcuerpo > .pmaviso'); if (av && !PM.faltan.length) av.remove();
+}
+
+// Mi ficha: lo necesario para quitar el aviso, al día según se rellena
+function pmPintarCheck() {
+  const box = $('pmcheck'); if (!box || !PM.ficha) return;
+  try { pmLeerForm(); } catch (e) {}
+  const F = PM.ficha;
+  const tel = !!String(F.telefono || '').trim(), como = !!String((F.visitas || {}).como || '').trim();
+  const horario = (F.consultas || []).some(c => Object.values(c.dias || {}).some(l => (l || []).some(r => /^\d\d:\d\d$/.test(r[0]) && /^\d\d:\d\d$/.test(r[1]) && r[1] > r[0])));
+  const todo = tel && como && horario;
+  box.classList.toggle('ok', todo);
+  box.innerHTML = `<b>${todo ? 'Tu ficha tiene todo lo necesario' : 'Para completar tu ficha'}</b>
+    <ul><li class="${tel ? 'ok' : ''}">Un teléfono de contacto</li><li class="${horario ? 'ok' : ''}">${PM_CENTRO() ? 'Dónde y cuándo atendéis' : 'Dónde y cuándo atiendes'} (al menos un día con su horario)</li><li class="${como ? 'ok' : ''}">Cómo prefieres las ${TT('visita', 'p', '', 'l', 'l')}</li></ul>
+    <span class="sm">${todo ? 'Envíalo a tu comercial y el aviso de «faltan datos» desaparece.' : 'El resto es opcional. Cuando lo tengas, pulsa «Enviar a mi comercial».'}</span>`;
+}
+
+function pcPintarPedido(lp) {
+  const box = $('pcped'); if (!box) return;
+  const conIva = x => r2((+x.precio || 0) * (1 + (+x.iva || 0) / 100));
+  const dirs = [...new Set((PM.ubic || []).map(u => [u.direccion, u.municipio].filter(Boolean).join(', ')).filter(Boolean))];
+  const prod = x => {
+    const pu = conIva(x), packs = Array.isArray(x.packs) ? x.packs : [], pvp = +x.pvp_recomendado || 0;
+    if (!packs.length) return `<div class="pcprod"><div class="pcpcab"><b>${esc(x.nombre)}</b><span class="sm">${eurI(pu)} la unidad con IVA${x.propio ? ' · vuestro precio' : ''}</span></div>
+      <div class="pclin"><span class="sm">Unidades</span><input type="number" step="1" value="0" data-ctp="${x.producto_id}" data-ctpr="${pu}" aria-label="Unidades de ${esc(x.nombre)}"><span class="pcerr" hidden></span></div></div>`;
+    return `<div class="pcprod"><div class="pcpcab"><b>${esc(x.nombre)}</b><span class="sm">${eurI(pu)} la unidad con IVA${pvp ? ` · PVP de referencia ${eurI(pvp)}` : ''}</span></div>
+      <div class="pcpacks">${packs.map((k, i) => {
+        const c = +k.compra || 0, g = +k.regalo || 0, imp = r2(c * pu), coste = (c + g) ? imp / (c + g) : 0;
+        return `<div class="pclin pcpack"><span class="pcpk"><b>Pack ${num(c)}${g ? ' + ' + num(g) : ''}</b><span class="sm">${num(c + g)} unidades${g ? ` (${num(g)} de regalo)` : ''}</span></span>
+          <span class="pcdato"><b>${eurI(imp)}</b><span class="sm">con IVA</span></span>
+          <span class="pcdato"><b>${eurI(coste)}</b><span class="sm">por unidad</span></span>
+          ${pvp ? `<span class="pcdato"><b>${pcPct((pvp - coste) / pvp)}</b><span class="sm">de margen</span></span>` : '<span></span>'}
+          <input type="number" step="1" value="0" data-pcpk="${x.producto_id}" data-pci="${i}" data-pcc="${c}" data-pcg="${g}" data-pcimp="${imp}" aria-label="Cuántos packs ${num(c)}${g ? '+' + num(g) : ''}">
+          <span class="pcerr" hidden></span></div>`;
+      }).join('')}</div></div>`;
+  };
+  box.innerHTML = `<div class="card ancard pmcons pcped"><h2>Pedir reposición ${pmAyu('Pedir reposición', `Elige cuántos packs quieres de cada producto (de 0 a ${num(PC_PACK_MAX)} de cada pack). El coste por unidad incluye las de regalo, y el margen se calcula sobre el PVP de referencia. La bonificación es de cada pedido. Tu comercial lo revisa y lo confirma; en «Resumen» verás cómo va.`)}</h2>
+    ${lp.length ? `<div id="ctprods">${lp.map(prod).join('')}</div>
+      <div class="pcent"><b>Entrega</b>
+        <label class="opt"><input type="radio" name="pcent" value="una" checked> En la dirección del centro</label>
+        <label class="opt"><input type="radio" name="pcent" value="varias"> Repartir entre varias direcciones</label>
+        <div id="pcentl" class="pcentl" hidden><datalist id="pcdirs">${dirs.map(d => `<option value="${esc(d)}">`).join('')}</datalist>
+          <div id="pcentf"></div><button type="button" class="btn sec chico" id="pcentmas">+ Otra dirección</button><span class="sm" id="pcentres"></span></div></div>
+      ${window.PC_ANT ? '<p class="sm pcant">Pago por adelantado: cuando tu comercial lo confirme, descarga la factura proforma en «Resumen» y haz la transferencia. Lo preparamos en cuanto llegue.</p>' : ''}<label for="ctnota">Nota</label><input id="ctnota" placeholder="Opcional: horario de entrega, persona de contacto…">
+      <div class="pctot"><span id="pctxt">Total <b id="cttot">${eurI(0)}</b> con IVA</span><button type="button" class="btn" id="ctok">Enviar pedido</button></div>`
+      : '<p class="sm">Todavía no tenéis productos para pedir. Tu comercial os los dará de alta.</p>'}</div>`;
+  if (!lp.length) return;
+  const entFila = (d = '', u = '') => `<div class="pcef"><input list="pcdirs" placeholder="Dirección de entrega" value="${esc(d)}" data-pced><input type="number" step="1" placeholder="Unidades" value="${esc(u)}" data-pceu><button type="button" class="pmhx" data-pcex aria-label="Quitar esta dirección">✕</button></div>`;
+  const entPintar = () => { if (!$('pcentf').children.length) $('pcentf').innerHTML = entFila() + entFila(); };   // sin repintar: se perdería lo escrito
+  const revisar = () => {
+    let total = 0, uds = 0, regalo = 0, mal = 0;
+    box.querySelectorAll('[data-ctp], [data-pcpk]').forEach(i => {
+      const n = Number(i.value || 0), e = i.closest('.pclin').querySelector('.pcerr'), pk = !!i.dataset.pcpk, max = pk ? PC_PACK_MAX : PC_MAX;
+      const bad = !Number.isInteger(n) || n < 0 || n > max;
+      e.hidden = !bad; e.textContent = bad ? (n > max ? (pk ? `Como máximo ${num(max)} packs de este tipo en cada pedido` : `Como máximo ${num(max)} unidades en cada pedido`) : 'Escribe un número entero') : '';
+      if (bad) { mal++; return; }
+      if (pk) { total += n * (+i.dataset.pcimp || 0); uds += n * ((+i.dataset.pcc || 0) + (+i.dataset.pcg || 0)); regalo += n * (+i.dataset.pcg || 0); }
+      else { total += n * (+i.dataset.ctpr || 0); uds += n; }
+    });
+    const varias = (box.querySelector('[name=pcent]:checked') || {}).value === 'varias';
+    $('pcentl').hidden = !varias;
+    let repartidas = 0;
+    if (varias) { entPintar(); box.querySelectorAll('[data-pceu]').forEach(i => { repartidas += Math.max(0, Math.floor(+i.value || 0)); }); }
+    const res = $('pcentres');
+    if (res) { res.textContent = varias ? `Repartidas ${num(repartidas)} de ${num(uds)} unidades` : ''; res.classList.toggle('pcmal', varias && repartidas !== uds); }
+    $('pctxt').innerHTML = `Total <b id="cttot">${eurI(total)}</b> con IVA${uds ? ` · ${num(uds)} unidades${regalo ? ` (${num(regalo)} de regalo)` : ''}` : ''}`;
+    return { mal, uds, varias, repartidas };
+  };
+  box.addEventListener('input', revisar); box.addEventListener('change', revisar);
+  box.addEventListener('click', e => {
+    if (e.target.closest('#pcentmas')) { $('pcentf').insertAdjacentHTML('beforeend', entFila()); revisar(); }
+    const x = e.target.closest('[data-pcex]'); if (x) { x.closest('.pcef').remove(); revisar(); }
+  });
+  $('ctok').onclick = async ev => {
+    const r = revisar();
+    if (r.mal) { toast('Revisa las cantidades marcadas en rojo', true); return; }
+    const lineas = [];
+    box.querySelectorAll('[data-pcpk]').forEach(i => { const n = Math.floor(+i.value || 0); if (n > 0) lineas.push({ producto_id: i.dataset.pcpk, pack: { compra: +i.dataset.pcc, regalo: +i.dataset.pcg }, packs: n }); });
+    box.querySelectorAll('[data-ctp]').forEach(i => { const n = Math.floor(+i.value || 0); if (n > 0) lineas.push({ producto_id: i.dataset.ctp, unidades: n }); });
+    if (!lineas.length) { toast('Elige algún pack o pon unidades', true); return; }
+    let entregas = null;
+    if (r.varias) {
+      entregas = [...box.querySelectorAll('.pcef')].map(f => ({ direccion: f.querySelector('[data-pced]').value.trim(), unidades: Math.floor(+f.querySelector('[data-pceu]').value || 0) }))
+        .filter(x => x.direccion && x.unidades > 0);
+      if (entregas.length < 2 || r.repartidas !== r.uds) { toast(`Reparte las ${num(r.uds)} unidades entre al menos dos direcciones`, true); return; }
+    }
+    ev.target.disabled = true;
+    const { data: res } = await db.rpc('pedido_portal', { p_lineas: lineas, p_nota: $('ctnota').value.trim() || null, p_entregas: entregas });
+    ev.target.disabled = false;
+    if (!res || !res.ok) {
+      const m = res && res.motivo;
+      toast(m === 'vacio' ? 'Elige algún pack o pon unidades' : m === 'pack' ? `Ese pack de ${res.producto || 'producto'} ya no está disponible: vuelve a cargar la página`
+        : m === 'unidades' ? `Revisa las cantidades de ${res.producto || 'un producto'}` : m === 'entregas' ? `Las direcciones tienen que sumar ${num(res.total)} unidades` : motivoPortal(res), true);
+      return;
+    }
+    toast('Pedido enviado: tu comercial lo confirmará'); PM.tab = 'res'; await centroPintar(); pmTab('res');
+  };
+  revisar();
+}
+
+async function pcProforma(id, btn) {
+  if (btn) btn.disabled = true;
+  try {
+    const { data: f } = await RPC_ORIG('portal_proforma', { p_id: id });
+    if (!f || !f.ok) { toast(f && f.motivo === 'no_encontrado' ? 'Ese pedido ya no está pendiente de pago' : motivoPortal(f), true); return; }
+    const d = f.diseno || {};
+    const C = Object.assign({}, PDF_DEF, d, { cols: Object.assign({}, PDF_DEF.cols, d.cols || {}) },
+      { titulo: 'FACTURA PROFORMA', formaPago: true, iban: true, vencimiento: false });
+    const doc = await facturaPDF(f, '', C);
+    doc.save(f.numero + '.pdf');
+    toast(`Proforma descargada. Pon «${f.concepto}» como concepto de la transferencia`);
+  } catch (e) { toast('No se ha podido preparar la proforma', true); registrarError('app', 'Proforma del portal', { e: String(e) }); }
+  finally { if (btn) btn.disabled = false; }
+}
+
+function pcDebeHtml(peds) {
+  const n = (peds || []).filter(p => p.proforma).length;
+  return n ? `<div class="pmaviso pcdebe"><div><b>${n === 1 ? 'Tienes un pedido pendiente de pago' : `Tienes ${num(n)} pedidos pendientes de pago`}</b><span class="sm">Descarga la factura proforma en «Tus pedidos» y haz la transferencia: lo preparamos en cuanto llegue.</span></div></div>` : '';
+}
+
+/* ============================================================
+   v2.285.0 · Portal del centro: lotes, facturas y material para descargar (SQL 153).
+   - «Tus pedidos»: cada pedido con sus lotes (y caducidad) y sus facturas o rectificativas, que se descargan en PDF con el
+     diseño de la empresa.
+   - «Material y dudas»: «Material para descargar» con el material de sus productos que la empresa marca «Para los centros»
+     (en el producto, Material para presentar → «Para los centros»).
+   ============================================================ */
+function pcExtraPed(p) {
+  const lotes = p.lotes || [], facs = p.facturas || [];
+  return (lotes.length ? `<span class="sm pclotes">Lote${lotes.length > 1 ? 's' : ''}: ${lotes.map(l => `${esc(l.producto)} ${esc(l.lote)}${l.caducidad ? ' (cad. ' + fechaCorta(String(l.caducidad).slice(0, 10)) + ')' : ''}`).join(' · ')}</span>` : '')
+    + (facs.length ? `<span class="pcfacs">${facs.map(f => `<button type="button" class="lnk" data-pcfac="${f.id}">${f.rectificativa ? 'Rectificativa' : 'Factura'} ${esc(f.numero || '')}</button>`).join('')}</span>` : '');
+}
+
+async function pcFactura(id, btn) {
+  if (btn) btn.disabled = true;
+  try {
+    const { data: f } = await RPC_ORIG('portal_factura', { p_id: id });
+    if (!f || !f.ok) { toast(motivoPortal(f), true); return; }
+    const d = f.diseno || {};
+    const C = Object.assign({}, PDF_DEF, d, { cols: Object.assign({}, PDF_DEF.cols, d.cols || {}) });
+    const doc = await facturaPDF(f, f.rectifica_num || '', C);
+    doc.save(nombrePDF(f));
+  } catch (e) { toast('No se ha podido preparar la factura', true); registrarError('app', 'Factura del portal', { e: String(e) }); }
+  finally { if (btn) btn.disabled = false; }
+}
+
+async function pcMaterialBajar(id, btn) {
+  if (btn) btn.disabled = true;
+  try {
+    const { data: m } = await RPC_ORIG('portal_material_archivo', { p_id: id });
+    if (!m || !m.ok) { toast(motivoPortal(m), true); return; }
+    const bin = atob(m.datos || ''), u8 = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
+    const url = URL.createObjectURL(new Blob([u8], { type: m.tipo || 'application/octet-stream' }));
+    const a = document.createElement('a'); a.href = url; a.download = m.nombre || 'material'; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 30000);
+  } catch (e) { toast('No se ha podido descargar', true); }
+  finally { if (btn) btn.disabled = false; }
+}
+
+async function pcDescargas() {
+  const caja = $('pmmat'); if (!caja || $('pcdesc')) return;
+  caja.insertAdjacentHTML('afterbegin', `<div class="card ancard" id="pcdesc"><h2>Material para descargar ${pmAyu('Material para descargar', 'Dípticos, fichas de producto, guías de mostrador y otro material que la empresa prepara para los centros, de los productos que tenéis dados de alta. Pulsa para descargarlo.')}</h2><div id="pcdescl">${skelCard('Cargando…')}</div></div>`);
+  const { data: l } = await RPC_ORIG('portal_materiales', {});
+  const box = $('pcdescl'); if (!box) return;
+  const lista = Array.isArray(l) ? l : [];
+  const kb = n => n ? (n > 1048576 ? (n / 1048576).toLocaleString('es-ES', { maximumFractionDigits: 1 }) + ' MB' : Math.max(1, Math.round(n / 1024)) + ' KB') : '';
+  box.innerHTML = lista.length ? `<div class="lista">${lista.map(m => `<div class="item"><span class="tx"><b>${esc(m.nombre)}</b>
+      <span class="sm">${esc(m.producto)} · ${m.tipo === 'application/pdf' ? 'PDF' : 'Imagen'}${m.tamano ? ' · ' + kb(m.tamano) : ''}</span></span>
+      <button type="button" class="btn sec chico" data-pcmat="${m.id}">Descargar</button></div>`).join('')}</div>`
+    : '<p class="sm">Todavía no hay material para descargar.</p>';
+}
+
+function pmActividad(d) {
+  const sel = document.querySelector('#mdper [data-per]'), cuando = PM_PER_TXT[sel ? sel.value : 'semana'] || 'En este periodo';
+  const n = +d.pautas || 0, t = terminoDe('pauta');
+  if (n > 0) return `<div class="banda-ok pmact" id="pmact"><b>${cuando} se ${n === 1 ? 'ha' : 'han'} activado ${num(n)} ${esc(n === 1 ? t.s : t.p)}</b></div>`;
+  return `<div class="banda-info pmact" id="pmact"><b>${cuando} no se ha activado ${t.g === 'f' ? 'ninguna' : 'ningún'} ${esc(t.s)}.</b>
+    ¿Necesitas material, información o resolver alguna duda? Escríbenos y te ayudamos.
+    <button type="button" class="btn sec chico" data-pmir="mat">Material y dudas</button></div>`;
+}

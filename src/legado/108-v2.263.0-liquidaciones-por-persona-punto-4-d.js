@@ -8,7 +8,6 @@
    - La lista de liquidaciones se puede ver por persona y por mes, con el total de lo que se ve.
    ============================================================ */
 let LIQ_FIL = { u: '', p: '' };
-function liqMesFin(per) { const [a, m] = per.split('-').map(Number); return `${per}-${String(new Date(a, m, 0).getDate()).padStart(2, '0')}`; }
 // (R-12: calcularLiquidaciones se definía aquí otra vez; ahora está en su sitio, más arriba)
 // La lista, con filtros de persona y mes y el total de lo que se ve
 pintarComisionesBase = (orig => async function (...a) {

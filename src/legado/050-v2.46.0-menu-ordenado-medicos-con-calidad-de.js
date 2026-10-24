@@ -144,13 +144,7 @@ async function cargarConfig() {
   if (ES_MOVIL() && !window.__CFG_DIRECTO) document.querySelector('.cfghub').classList.remove('detalle');
   window.__CFG_DIRECTO = false;
 };
-function cfgMovil() {
-  const hub = document.querySelector('.cfghub'); if (!hub) return;
-  hub.classList.toggle('movil', ES_MOVIL());
-  if (!ES_MOVIL()) { hub.classList.remove('detalle'); return; }
-  const cont = $('cfgcuerpo-hub');
-  if (cont && !cont.querySelector(':scope > .cfgvolver')) cont.insertAdjacentHTML('afterbegin', '<button class="cfgvolver" type="button">‹ Configuración</button>');
-};
+;
 
 /* ---------------- manual: qué incluye tu plan ---------------- */
 

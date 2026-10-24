@@ -19,25 +19,6 @@ const PERIODOS = [['todo', 'Todo'], ['hoy', 'Hoy'], ['ayer', 'Ayer'], ['semana',
   ['mes', 'Mes actual'], ['mesant', 'Mes anterior'], ['tri', 'Trimestre actual'], ['triant', 'Trimestre anterior'],
   ['anio', 'Año actual'], ['anioant', 'Año anterior'], ['pers', 'Personalizado']];
 
-function rangoPeriodo(k) {
-  const h = new Date(); h.setHours(12, 0, 0, 0);
-  const y = h.getFullYear(), m = h.getMonth(), q = Math.floor(m / 3);
-  const D = (a, b, c) => fechaLocal(new Date(a, b, c, 12));
-  const mas = n => { const d = new Date(h); d.setDate(d.getDate() + n); return fechaLocal(d); };
-  switch (k) {
-    case 'hoy': return [fechaLocal(h), fechaLocal(h)];
-    case 'ayer': return [mas(-1), mas(-1)];
-    case 'semana': return [mas(-((h.getDay() + 6) % 7)), fechaLocal(h)];
-    case '7d': return [mas(-6), fechaLocal(h)];
-    case 'mes': return [D(y, m, 1), D(y, m + 1, 0)];
-    case 'mesant': return [D(y, m - 1, 1), D(y, m, 0)];
-    case 'tri': return [D(y, q * 3, 1), D(y, q * 3 + 3, 0)];
-    case 'triant': return [D(y, q * 3 - 3, 1), D(y, q * 3, 0)];
-    case 'anio': return [D(y, 0, 1), D(y, 11, 31)];
-    case 'anioant': return [D(y - 1, 0, 1), D(y - 1, 11, 31)];
-    default: return [null, null];
-  }
-}
 
 /** Selector de periodo. el.__rango() devuelve { desde, hasta } (null = sin límite). */
 function montarPeriodo(el, o) {
@@ -84,85 +65,9 @@ async function cargarVentas() {
 var PEDSEC_CARGA = null;
 function pedsecVista() { return PEDSEC_CARGA || PEDSEC; }
 
-// Pedidos · Pestañas Ventas, Compras y Proveedores, y contenido de Compras y Proveedores
-async function pedidosSecciones() {
-  const v = $('v-ventas');
-  v.querySelector('.saludo h1').firstChild.textContent = 'Pedidos';
-  v.querySelector('.saludo .fecha').textContent = 'Ventas, compras y proveedores';
-  v.querySelector('.saludo').insertAdjacentHTML('afterend', `<div class="subnav" id="pedsub">
-    <button data-pedsec="ventas" aria-pressed="${pedsecVista() === 'ventas'}">Ventas</button>
-    <button data-pedsec="compras" aria-pressed="${pedsecVista() === 'compras'}">Compras</button>
-    <button data-pedsec="proveedores" aria-pressed="${pedsecVista() === 'proveedores'}">Proveedores</button></div>`);
-  v.querySelectorAll('[data-pedsec]').forEach(b => b.onclick = () => { PEDSEC = b.dataset.pedsec; cargarVentas(); });
-  if (PEDSEC === 'ventas') return;
-  const acts = v.querySelector('.saludo .acts');
-  acts.innerHTML = puedeCompras() ? (PEDSEC === 'compras' ? '<button class="btn" id="compnueva">+ Nuevo pedido de compra</button>'
-    : '<button class="btn" id="provnuevo">+ Nuevo proveedor</button>') : '';
-  if ($('compnueva')) $('compnueva').onclick = () => editorCompra(null);
-  if ($('provnuevo')) $('provnuevo').onclick = () => editorProveedor(null);
-  if (PEDSEC === 'compras') pintarCompras(); else pintarProveedores();
-}
 
-// Pedidos · Pestaña Llamadas y operativa de ventas
-async function pedidosLlamadas(sec) {
-  PEDSEC = sec;
-  const sub = $('pedsub');
-  if (PEDSEC === 'llamadas' && !hayOportunidades()) PEDSEC = 'ventas';
-  if (sub && VE_TODO() && hayOportunidades() && !sub.querySelector('[data-pedsec="llamadas"]')) {
-    sub.insertAdjacentHTML('beforeend', `<button data-pedsec="llamadas" aria-pressed="${PEDSEC === 'llamadas'}">Oportunidades</button>`);
-    sub.querySelector('[data-pedsec="llamadas"]').onclick = () => { PEDSEC = 'llamadas'; cargarVentas(); };
-  }
-  if (sub) sub.querySelectorAll('[data-pedsec]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.pedsec === PEDSEC)));
-  if (PEDSEC === 'ventas' && VE_TODO()) pintarOperativa();
-  if (PEDSEC === 'llamadas') {
-    const acts = $('v-ventas').querySelector('.saludo .acts');
-    acts.innerHTML = '<button class="btn" id="llnueva">+ Nueva venta</button>';
-    $('llnueva').onclick = () => nuevaVenta();
-    pintarLlamadas();
-  }
-}
 
-// Pedidos · Botón «Registrar llamada» en Ventas
-async function pedidosBotonLlamada() {
-  return;   // v2.125.0: «+ Nueva venta» une llamada y pedido
-  if (!VE_TODO() || PEDSEC !== 'ventas') return;
-  const acts = $('v-ventas').querySelector('.saludo .acts');
-  if (acts && !$('pedllam')) {
-    acts.insertAdjacentHTML('afterbegin', '<button class="btn sec" id="pedllam">📞 Registrar llamada</button>');
-    $('pedllam').onclick = () => editorLlamada(null);
-  }
-}
 
-/* Parte base; cargarVentas le añade el resto */
-async function cargarVentasBase() {
-  vaciarModulos('v-ventas');
-  $('v-ventas').innerHTML = `
-    <div class="saludo"><div><h1>Ventas</h1><div class="fecha">Pedidos, unidades e importes</div></div>
-      <div class="acts" style="margin:0">${puedeVentas() ? '<button class="btn" id="pednuevo">+ Nueva venta</button>' : ''}</div></div>
-    <div id="vcuerpo">
-      <div class="panel">
-        <div class="filtros">
-          <div id="pper"></div>
-          <div><label for="pcanal">Canal</label><select id="pcanal">
-            <option value="">Todos</option><option value="paciente">Venta ${TT('paciente', 's', 'al', 'l', 'l')}</option>
-            <option value="centro">Venta a centro</option></select></div>
-          <div><label for="pestado">Estado</label><select id="pestado">
-            <option value="">Todos</option><option value="Confirmado">Confirmados</option>
-            <option value="Borrador">Borradores</option><option value="Anulado">Anulados</option></select></div>
-          <div><label for="pq">Buscar</label><input id="pq" type="search" placeholder="${TT('medico', 's', '', 'l', 'C')}, ${TT('paciente', 's', '', 'l', 'l')} o nº de pedido"></div>
-        </div>
-        <div class="kpis vtot" id="ptotales"></div>
-        <div id="pedlista"></div>
-      </div>
-    </div>`;
-  if ($('pednuevo')) $('pednuevo').onclick = () => nuevaVenta();   // v2.125.0: cliente, interés y cierre en un recorrido
-  montarPeriodo($('pper'), { id: 'ventas', valor: 'mes', alCambiar: listaPedidos });
-  ['pcanal', 'pestado'].forEach(id => $(id).onchange = listaPedidos);
-  let tq; $('pq').oninput = () => { clearTimeout(tq); tq = setTimeout(listaPedidos, 350); };
-  await cargarProductos();
-  listaPedidos();
-  pintarSinAtribuir();
-}
 
 
 /* ---------------- analítica con totales y filtros ---------------- */
@@ -223,93 +128,9 @@ function refrescarAnalitica() {
   if (!$('atabla2').classList.contains('hide')) pintarTablaAnalitica();
 }
 
-async function pintarAnalitica() {
-  cargando($('atabla'), 'Calculando…');
-  $('atot').innerHTML = Array.from({ length: 4 }, () => '<div class="kpi ksk"><div class="skel" style="width:40%;height:24px;margin:2px 0 8px"></div><div class="skel" style="width:70%;margin:0"></div></div>').join('');
-  const r = $('aper').__rango(), dim = $('adim').value, medida = $('amedida').value;
-  const { data, error } = await db.rpc('analitica_v2', {
-    p_dim: dim, p_desde: r.desde, p_hasta: r.hasta, p_canal: $('acanal').value || null,
-    p_medico: AN_MED ? AN_MED.id : null, p_comercial: ($('acom') && $('acom').value) || null,
-    p_producto: $('aprod').value || null, lim: 100, p_reporting: ($('arep') && $('arep').value) || null, p_reportado: ($('areprt') && $('areprt').value) || null });
-  if (error) { $('atabla').innerHTML = `<div class="vacio">No se ha podido calcular: ${esc(error.message)}</div>`; $('atot').innerHTML = ''; return; }
-  const t = data.totales || {}, filas = (data.filas || []).slice().sort((a, b) => (+b[medida] || 0) - (+a[medida] || 0));
-  const quien = [AN_MED ? AN_MED.nombre : '', $('acom') && $('acom').value ? $('acom').selectedOptions[0].textContent : '',
-    $('aprod').value ? $('aprod').selectedOptions[0].textContent : '', $('arep') && $('arep').value ? $('arep').selectedOptions[0].textContent : '',
-    $('areprt') && $('areprt').value ? $('areprt').selectedOptions[0].textContent : ''].filter(Boolean).join(' · ');
-  $('atot').innerHTML = `
-    <div class="kpi"><b>${num(t.unidades)}</b><span>Unidades${quien ? ' · ' + esc(quien) : ''}</span></div>
-    <div class="kpi ok"><b>${eurI(t.importe)}</b><span>Importe sin IVA</span></div>
-    <div class="kpi"><b>${num(t.pedidos)}</b><span>Pedidos</span></div>
-    <div class="kpi"><b>${num(t.medicos)}</b><span>${TT('medico', 'p', '', 'l', 'C')} con ventas</span></div>`;
-  const pp = data.por_producto || [];
-  $('aprods').innerHTML = pp.length > 1 || (pp.length === 1 && dim !== 'producto') ? `<div class="dgrid-wrap"><div class="dgrid aprod">
-    <div class="dh"><span>Por producto</span><span class="num">Unidades</span><span class="num">% uds.</span><span class="num">Importe</span></div>
-    ${pp.map(p => `<div class="dr" style="cursor:default"><span><b>${esc(p.nombre)}</b></span><span class="num">${num(p.unidades)}</span>
-      <span class="num">${Math.round(p.unidades / (t.unidades || 1) * 100)}%</span><span class="num">${eurI(p.importe)}</span></div>`).join('')}
-  </div></div>` : '';
-
-  const serie = data.serie || [];
-  if (serie.length > 1) {
-    const max = Math.max(...serie.map(s => +s[medida] || 0)) || 1;
-    $('aserie').innerHTML = `<div style="display:flex;gap:6px;align-items:flex-end;height:130px">${serie.map(s => `
-      <div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:4px">
-        <span class="sm">${medida === 'importe' ? eurI(s.importe).replace(',00', '') : num(s.unidades)}</span>
-        <div style="width:100%;background:var(--sky);border-radius:6px 6px 0 0;height:${Math.round((+s[medida] || 0) / max * 84)}px"></div>
-        <span class="sm">${esc(s.mes.slice(5))}/${esc(s.mes.slice(2, 4))}</span></div>`).join('')}</div>`;
-  } else $('aserie').innerHTML = '';
-
-  const tot = +t[medida] || 1;
-  $('atabla').innerHTML = filas.length ? `<div class="dgrid-wrap"><div class="dgrid arank">
-    <div class="dh"><span>#</span><span>${esc($('adim').selectedOptions[0].textContent)}</span><span class="num">Unidades</span>
-      <span class="num">Importe</span><span class="num">Pedidos</span><span>Peso</span></div>
-    ${filas.map((f, i) => `<div class="dr" style="cursor:default"><span class="sm">${i + 1}</span><span><b>${esc(f.nombre)}</b></span>
-      <span class="num">${num(f.unidades)}</span><span class="num">${eurI(f.importe)}</span><span class="num">${num(f.pedidos)}</span>
-      <span class="barra"><i style="width:${Math.round((+f[medida] || 0) / tot * 100)}%"></i><em>${Math.round((+f[medida] || 0) / tot * 100)}%</em></span></div>`).join('')}
-    <div class="dr dtot"><span></span><span><b>Total</b></span><span class="num"><b>${num(t.unidades)}</b></span>
-      <span class="num"><b>${eurI(t.importe)}</b></span><span class="num"><b>${num(t.pedidos)}</b></span><span></span></div>
-  </div></div>` : '<div class="vacio">Sin pedidos completados con estos filtros.</div>';
-}
 
 /* ---------------- auditoría con periodo ---------------- */
 
-async function pintarAuditoria() {
-  cargando($('admcuerpo'), 'Cargando la auditoría…');
-  const nombreEnt = { cuentas: `${TT('medico', 's', '', 'l', 'C')}`, ubicaciones: TT('consulta', 's', '', 'l', 'C'), actividades: `${TT('visita', 's', '', 'l', 'C')}`, atribuciones: 'Cartera', agenda: 'Cita', rutas: 'Ruta',
-    pedidos: 'Pedido', perfiles: 'Usuario', productos: 'Producto', contactos: `${TT('paciente', 's', '', 'l', 'C')}` };
-  const { data: us } = await db.rpc('usuarios_lista');
-  const usuarios = (us || []).slice().sort((x, y) => String(x.nombre).localeCompare(String(y.nombre), 'es'));
-  ($('admcuerpo') || document.createElement('div')).innerHTML = `<h2>Auditoría<span class="n" id="audn">…</span></h2>
-    <p class="sm">Quién ha cambiado qué y cuándo. Se guarda automáticamente.</p>
-    <div class="filtros" style="border:0;padding:10px 16px">
-      <div id="audper"></div>
-      <div><label for="ausr">Usuario</label><select id="ausr"><option value="">Todos</option>
-        ${usuarios.map(u => `<option value="${u.id}">${esc(u.nombre)}</option>`).join('')}</select></div>
-      <div><label for="aent">Entidad</label><select id="aent"><option value="">Todas</option>
-        ${Object.entries(nombreEnt).map(([k, t]) => `<option value="${k}">${t}</option>`).join('')}</select></div></div>
-    <div id="auddes"></div>
-    <div class="lista" id="audlista"></div>`;
-  const pinta = async () => {
-    cargando($('audlista'), 'Filtrando…');
-    const r = $('audper').__rango();
-    const { data } = await RPC_ORIG('auditoria_lista', { p_entidad: $('aent').value || null, p_usuario: $('ausr').value || null,
-      p_desde: r.desde, lim: 500 });
-    if (!$('audn') || !$('audlista')) return;   // v2.160.0: se cambió de pestaña mientras cargaba (error del registro de pruebas)
-    const l = (data || []).filter(a => !r.hasta || String(a.creado_en).slice(0, 10) <= r.hasta);
-    $('audn').textContent = num(l.length) + (l.length === 500 ? '+' : '');
-    $('audlista').innerHTML = l.map(a => `<div class="item" style="cursor:default">
-      <span class="ic ${a.accion === 'Baja' ? 'w' : a.accion === 'Alta' ? 'o' : ''}">${a.accion === 'Alta' ? '+' : a.accion === 'Baja' ? '−' : '✎'}</span>
-      <span class="tx"><b>${esc(a.accion)} · ${esc(nombreEnt[a.entidad] || a.entidad)}</b>
-        <span class="sm">${esc(a.usuario)} · ${new Date(a.creado_en).toLocaleString('es', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
-        <span class="sm">${esc(resumenDetalle(a.detalle))}</span></span>${deshacible(a) ? `<button type="button" class="btn sec" data-audx="${a.id}">Deshacer</button>` : ''}</div>`).join('')
-      || '<div class="vacio">Sin movimientos con estos filtros.</div>';
-    // v2.123.0: deshacer un cambio, o todo lo de la persona elegida desde el inicio del periodo
-    $('audlista').querySelectorAll('[data-audx]').forEach(b => b.onclick = () => deshacerUno(+b.dataset.audx, pinta));
-    cajaDeshacerPersona($('auddes'), $('ausr').value, r.desde, ($('ausr').selectedOptions[0] || {}).textContent || '', pinta);
-  };
-  montarPeriodo($('audper'), { id: 'auditoria', valor: '7d', alCambiar: pinta });
-  ['ausr', 'aent'].forEach(id => $(id).onchange = pinta);
-  pinta();
-}
 
 /* ---------------- indicadores: configurador en tarjetas ---------------- */
 

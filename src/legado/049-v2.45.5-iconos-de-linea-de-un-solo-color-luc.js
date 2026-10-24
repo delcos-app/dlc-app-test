@@ -48,12 +48,6 @@ iconizar(document.body);
 // Menú principal de escritorio con los mismos iconos que el móvil
 const ICO_NAV = { inicio: 'house', agenda: 'calendar-days', rutas: 'route', directorio: 'contact', pacientes: 'users', productos: 'package',
   seguimiento: 'shield-check', ventas: 'shopping-cart', analitica: 'chart-column', facturacion: 'receipt', informe: 'file-text' };
-function iconosMenu() {
-  document.querySelectorAll('nav.main [data-t]').forEach(b => {
-    if (b.querySelector('.navico') || !ICO_NAV[b.dataset.t]) return;
-    b.insertAdjacentHTML('afterbegin', `<span class="navico">${svgIco(ICON_NOM[ICO_NAV[b.dataset.t]])}</span>`);
-  });
-}
 // El menú «Más» del móvil usa exactamente los mismos iconos
 Object.keys(ICO_NAV).forEach(k => { ICO_MOD[k] = svgIco(ICON_NOM[ICO_NAV[k]]); });
 iconosMenu();

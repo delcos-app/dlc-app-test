@@ -1,0 +1,284 @@
+// pantallas/panel_delcos.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
+// Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
+
+function salirPanel() {
+  if (!PANEL_ACTIVO) return;
+  if (PANEL_ACTIVO.tipo === 'dbody') { const p = document.querySelector('#cfgcuerpo [data-panel]#dbody'); if (p) p.id = ''; const r = $('dbody-modal'); if (r) r.id = 'dbody'; }
+  if (PANEL_ACTIVO.tipo === 'admin') { const p = document.querySelector('#cfgcuerpo [data-panel]#v-admin'); if (p) p.id = ''; const r = $('v-admin-real'); if (r) r.id = 'v-admin'; }
+  PANEL_ACTIVO = null;
+}
+
+// (v2.183.0: aquí iba la primera versión de reportarProblema; se redefine entera más abajo)
+// Configuración → Seguridad y registro → Errores (administración)
+async function pintarErrores() {
+  const f = window.__ERRF || { tipo: '', estado: 'Nuevo' };
+  const { data } = await RPC_ORIG('errores_lista', { p_tipo: f.tipo || null, p_estado: f.estado || null });
+  const l = data || [];
+  const nom = { error: 'Error de programa', api: 'Error de base de datos', reporte: 'Reporte de usuario' };
+  $('cfgcuerpo').innerHTML = `<div class="card cfgpanel"><h2>Errores y reportes</h2>
+    <p class="sm">Errores que se producen al usar la plataforma y problemas que reportan las personas. Descarga el archivo para enviárselo a quien da soporte técnico.</p>
+    <div class="usrbar"><select id="erft"><option value="">Todos los tipos</option>${Object.entries(nom).map(([k, t]) => `<option value="${k}" ${f.tipo === k ? 'selected' : ''}>${t}</option>`).join('')}</select>
+      <select id="erfe">${['', 'Nuevo', 'Revisado', 'Resuelto'].map(e => `<option value="${e}" ${f.estado === e ? 'selected' : ''}>${e || 'Todos los estados'}</option>`).join('')}</select>
+      <button class="btn sec" id="erdesc">${svgIco(ICON_NOM.download)} Descargar</button></div>
+    <div class="errlista">${l.map(x => `<div class="errfila e-${x.tipo}"><div><b>${esc(nom[x.tipo] || x.tipo)}</b> <span class="sm">${new Date(x.creado_en).toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' })} · ${esc(x.usuario || '—')} · ${esc(x.pantalla || '—')} · v${esc(x.version || '')}</span>
+        <div class="errmsg">${esc(x.mensaje)}</div></div>
+      <select data-errst="${x.id}">${['Nuevo', 'Revisado', 'Resuelto'].map(e => `<option ${x.estado === e ? 'selected' : ''}>${e}</option>`).join('')}</select></div>`).join('') || '<div class="vacio">Sin errores con estos filtros.</div>'}</div></div>`;
+  $('erft').onchange = $('erfe').onchange = () => { window.__ERRF = { tipo: $('erft').value, estado: $('erfe').value }; pintarErrores(); };
+  $('cfgcuerpo').querySelectorAll('[data-errst]').forEach(s => s.onchange = async () => { await RPC_ORIG('marcar_error', { p_id: +s.dataset.errst, p_estado: s.value }); toast('Estado actualizado'); });
+  $('erdesc').onclick = () => { const b = new Blob([JSON.stringify(l, null, 1)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = `errores_${hoyISO()}.json`; a.click(); };
+}
+
+/* ============================================================
+   v2.86.0 · Organizaciones de la plataforma (fase 4): alta de empresas nuevas
+   Solo quien tiene la capacidad «gestionar_plataforma» (el Administrador de la
+   organización principal). Cada organización nace con sus roles, catálogos,
+   series y ajustes, y su administrador queda invitado.
+   ============================================================ */
+async function pintarOrganizaciones() {
+  const c = $('cfgcuerpo'); if (!c) return;
+  c.innerHTML = '<div class="card"><div class="sm">Cargando…</div></div>';
+  const { data, error } = await db.rpc('organizaciones_lista');
+  const l = Array.isArray(data) ? data : [];
+  c.innerHTML = `<div class="card"><div class="fh"><div><h2>Organizaciones</h2>
+      <div class="sm">Cada empresa trabaja aislada, con sus datos, sus usuarios, su numeración y su configuración.</div></div>
+      <button class="btn" id="orgnueva">+ Nueva organización</button></div>
+    ${error ? `<div class="vacio">No se han podido cargar: ${esc(error.message)}</div>` : `<div class="lista">${l.map(o => `<div class="item" style="cursor:default">
+      <span class="tx"><b>${esc(o.nombre)}</b>${orgEstado(o)}<span class="sm">${esc(o.nif || 'Sin NIF')} · ${esc(orgPlanTxt(o))}${((o.plan_datos || {}).extras || []).length ? ' + ' + o.plan_datos.extras.map(extraNombre).join(', ') : ''} · ${num(o.usuarios)} usuarios · ${num(o.cuentas)} cuentas${o.pendiente ? ' · pendiente de registro: ' + esc(o.pendiente) : ''}</span>
+        <span class="sm">${(o.dominios || []).length ? 'Dominios: ' + o.dominios.map(esc).join(', ') : 'Sin dominio propio: su pantalla de acceso muestra la marca de delcos'}</span></span>
+      <span class="acts" style="margin:0"><span class="sm">${o.creado_en ? fechaCorta(String(o.creado_en).slice(0, 10)) : ''}</span>
+        <button class="btn sec chico" type="button" data-orgdom="${o.id}">Dominios</button>
+        <button class="btn sec chico" type="button" data-orgext="${o.id}">Extras</button>
+        <button class="btn chico ${o.id === (VISTA_ORG || {}).id ? 'sec' : ''}" type="button" data-orgver="${o.id}">${o.id === (VISTA_ORG || {}).id ? 'Estás dentro' : 'Entrar'}</button>
+        <button class="btn sec chico" type="button" data-orgplan="${o.id}">Plan</button>
+        <button class="btn sec chico" type="button" data-orgexp="${o.id}">Descargar datos</button>
+        ${!o.principal && (((o.plan_datos || {}).estado === 'prueba') || !o.activa) ? `<button class="btn sec" type="button" data-orgdel="${o.id}">Borrar empresa</button>` : ''}</span></div>`).join('')}</div>`}</div>`;
+  orgAcciones(c, l); orgExtras(c, l);
+  // v2.131.0: entrar en la organización para verla tal cual
+  c.querySelectorAll('[data-orgver]').forEach(b => b.onclick = () => { const o = l.find(x => x.id === b.dataset.orgver); if (o && o.id !== (VISTA_ORG || {}).id) entrarEnOrganizacion(o); });
+  // v2.103.0: los dominios de cada organización deciden la marca de su pantalla de acceso
+  c.querySelectorAll('[data-orgdom]').forEach(b => b.onclick = async () => {
+    const o = l.find(x => x.id === b.dataset.orgdom); if (!o) return;
+    const txt = await pedirTexto(`Dominios desde los que se entra a ${o.nombre}, separados por comas (p. ej. app.empresa.com). Su pantalla de acceso mostrará su nombre y su logo. Déjalo vacío para quitar todos.`,
+      (o.dominios || []).join(', '), { titulo: 'Dominios de la organización', ok: 'Guardar' });
+    if (txt === null) return;
+    const { data: r, error: e } = await db.rpc('guardar_dominios_organizacion', { p_id: o.id, p_dominios: txt.split(/[,;\s]+/).filter(Boolean) });
+    if (e || !r || !r.ok) {
+      toast((r && { permiso: 'No tienes permiso', dominio: `«${r.dominio}» no es un dominio válido`, en_uso: `Ese dominio ya es de ${r.organizacion}`, no_existe: 'La organización ya no existe' }[r.error]) || 'No se han podido guardar los dominios' + (e ? ': ' + e.message : ''), true);
+      return;
+    }
+    toast(r.dominios.length ? 'Dominios guardados' : 'Dominios quitados'); pintarOrganizaciones();
+  });
+  $('orgnueva').onclick = () => {
+    $('dbody').innerHTML = `<div class="fh"><div><h2>Nueva organización</h2><div class="sm">Nace con los roles, catálogos, series y ajustes de partida de la plataforma</div></div>
+        <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
+      <div class="g2"><div><label for="onom">Nombre de la empresa</label><input id="onom"></div>
+        <div><label for="onif">NIF</label><input id="onif"></div>
+        <div><label for="oplan">Plan</label><select id="oplan">${PLANES.map(p => `<option value="${p.id}" ${p.id === 'empresa' ? 'selected' : ''}>${esc(p.nombre)}</option>`).join('')}</select></div>
+        <div><label for="ousu">Usuarios contratados</label><input id="ousu" type="number" min="3" value="3"></div>
+        <div><label for="opago">Pago</label><select id="opago"><option value="mensual">Mensual</option><option value="anual">Anual</option></select></div>
+        <div><label class="chk"><input type="checkbox" id="oprueba" checked> Empresa de prueba (30 días)</label></div></div>
+      <h3 style="margin-top:14px">Su administrador</h3>
+      <div class="g2"><div><label for="oanom">Nombre</label><input id="oanom"></div>
+        <div><label for="oamail">Correo</label><input id="oamail" type="email"></div>
+        <div><label for="oapass">Contraseña temporal</label><input id="oapass" value="Tmp-${Math.random().toString(36).slice(2, 8)}"></div></div>
+      <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>Cancelar</button><button class="btn" id="ocrear">Crear organización</button></div>
+      <div id="omsg" class="sm" style="margin-top:10px"></div>`;
+    $('ocrear').onclick = async ev => {
+      const nombre = $('onom').value.trim(), email = $('oamail').value.trim(), pass = $('oapass').value, anom = $('oanom').value.trim();
+      if (!nombre || !email || !anom || pass.length < 6) { toast('Completa el nombre, el administrador, su correo y la contraseña', true); return; }
+      ev.target.disabled = true; ev.target.textContent = 'Creando…';
+      const { data: r, error: e1 } = await db.rpc('crear_organizacion', { p: { nombre, nif: $('onif').value.trim(), plan: $('oplan').value, usuarios: +$('ousu').value || 3, pago: $('opago').value,
+        prueba_dias: $('oprueba').checked ? 30 : 0, email_admin: email } });
+      if (e1 || !r || !r.ok) {
+        ev.target.disabled = false; ev.target.textContent = 'Crear organización';
+        const txt = { permiso: 'No tienes permiso', nombre: 'Falta el nombre', email: 'El correo no es válido', email_existe: 'Ese correo ya tiene usuario' }[(r && r.error) || ''] || (e1 && e1.message) || '';
+        $('omsg').innerHTML = `<span style="color:var(--dang)">No se ha podido crear: ${esc(txt)}</span>`; return;
+      }
+      // Su administrador se registra: la invitación le coloca en la organización nueva
+      const tmp = window.supabase.createClient(CFG.url, CFG.anon, { auth: { persistSession: false, autoRefreshToken: false } });
+      const { error: e2 } = await tmp.auth.signUp({ email, password: pass, options: { data: { nombre: anom, usuario: email.split('@')[0] } } });
+      ev.target.disabled = false; ev.target.textContent = 'Crear organización';
+      $('omsg').innerHTML = e2 ? `<span style="color:var(--dang)">Organización creada, pero no su usuario: ${esc(e2.message)}. Queda invitado: puede registrarse con ese correo.</span>`
+        : `<b style="color:var(--ok)">Organización creada.</b> Usuario de ${esc(email)} con contraseña temporal <b>${esc(pass)}</b>. Pásasela y que la cambie al entrar.`;
+      pintarOrganizaciones();
+    };
+    $('dlg').showModal();
+  };
+}
+
+// v2.117.0 · Organizaciones: plan de cada empresa, estado (prueba, terminada, desactivada), descargar sus datos y borrar las de prueba
+function orgPlanTxt(o) {
+  const pd = o.plan_datos || {}, p = planDe(pd.plan || o.plan);
+  return `plan ${p.nombre}${pd.plan === 'medida' || pd.usuarios == null ? '' : ` · ${num(pd.usuarios)} contratados`}${pd.pago === 'anual' ? ' · anual' : pd.plan === 'medida' ? '' : ' · mensual'}`;
+}
+
+// Menú de usuario: una sola entrada «Organización» en lugar de Empresa y Plan
+function menuOrganizacion() {
+  const plan = document.querySelector('[data-u="plan"]'), emp = document.querySelector('[data-u="empresa"]');
+  if (!document.querySelector('[data-u="organizacion"]') && (emp || plan))
+    (emp || plan).insertAdjacentHTML('beforebegin', `<button data-u="organizacion" class="hide">${svgIco(ICON_NOM.building)} Organización</button>`);
+  [plan, emp].forEach(b => b && b.classList.add('hide'));
+  const o = document.querySelector('[data-u="organizacion"]'); if (o) o.classList.toggle('hide', !puedeOrganizacion());
+}
+
+// Organizaciones: los extras de cada empresa (los activa la plataforma)
+function orgExtras(c, l) {
+  c.querySelectorAll('[data-orgext]').forEach(b => b.onclick = () => {
+    const o = l.find(x => x.id === b.dataset.orgext); if (!o) return;
+    const act = (o.plan_datos || {}).extras || [];
+    $('dbody').innerHTML = `<div class="fh"><div><h2>Extras de ${esc(o.nombre)}</h2><div class="sm">Lo que tiene contratado aparte de su plan</div></div>
+        <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
+      <label class="chk"><input type="checkbox" id="oxopor" ${act.includes('oportunidades') ? 'checked' : ''}> <span><b>Oportunidades</b>
+        <span class="sm">Registro de cada venta, se cierre con pedido o no: día y hora, qué producto y cuántas unidades quería, su ${TT('medico', 's', '', 'l', 'l')} de referencia y cómo llegó, con sus métricas.</span></span></label>
+      <label class="chk"><input type="checkbox" id="oxport" ${act.includes('portal') ? 'checked' : ''}> <span><b>Portal ${TT('medico', 's', 'del', 'l', 'l')}</b>
+        <span class="sm">En su portal, cifras agregadas de ${TT('pauta', 'p', '', 'l', 'l')} (sin datos de personas), pedir material y escribir dudas a su comercial.</span></span></label>
+      <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>Cancelar</button><button class="btn" id="oxok">Guardar</button></div>`;
+    $('dlg').showModal();
+    $('oxok').onclick = async () => {
+      const { data: r, error } = await db.rpc('guardar_extras_organizacion', { p_org: o.id, p_extras: [$('oxopor').checked && 'oportunidades', $('oxport').checked && 'portal'].filter(Boolean) });
+      if (error || !r || !r.ok) { toast('No se han podido guardar los extras' + (error ? ': ' + error.message : ''), true); return; }
+      $('dlg').close(); toast('Extras guardados');
+      const { data: u } = await RPC_ORIG('plan_uso', {}); if (u && u.plan) PLAN_ACTUAL = u.plan;   // por si es la propia
+      pintarOrganizaciones();
+    };
+  });
+}
+
+async function franjaVista() {
+  if (!PERFIL || !puede('gestionar_plataforma')) { quitarFranja(); return; }
+  const { data } = await RPC_ORIG('vista_organizacion', {});
+  VISTA_ORG = data || null;
+  if (!VISTA_ORG) { quitarFranja(); return; }
+  let f = $('orgvista');
+  if (!f) { document.body.insertAdjacentHTML('afterbegin', '<div id="orgvista" class="orgvista" role="status"></div>'); f = $('orgvista'); }
+  f.innerHTML = `<span>Estás viendo <b>${esc(VISTA_ORG.nombre)}</b>${VISTA_ORG.bloqueada ? ` <span class="pill p-warn">${VISTA_ORG.bloqueada === 'desactivada' ? 'desactivada' : 'prueba terminada'}</span>` : ''} tal cual la ve esa empresa. Lo que hagas queda en su registro.</span>
+    <button type="button" class="btn sec" id="orgvistasal">Salir</button>`;
+  document.body.classList.add('con-vista');
+  document.documentElement.style.setProperty('--alto-franja', f.offsetHeight + 'px');
+  $('orgvistasal').onclick = async ev => {
+    ev.target.disabled = true;
+    const { data: r } = await db.rpc('salir_organizacion', {});
+    if (!r || !r.ok) { ev.target.disabled = false; toast('No se ha podido salir', true); return; }
+    location.reload();
+  };
+}
+
+function quitarFranja() {
+  const f = $('orgvista'); if (f) f.remove();
+  document.body.classList.remove('con-vista'); document.documentElement.style.setProperty('--alto-franja', '0px');
+}
+
+async function pintarErroresDelcos() {
+  const c = $('cfgcuerpo'); if (!c) return;
+  const f = window.__ERRG || { estado: 'abiertos', dias: 15 };
+  c.innerHTML = `<div class="card cfgpanel"><div class="skel" style="width:40%"></div><div class="skel"></div></div>`;
+  const { data, error } = await RPC_ORIG('errores_resumen', { p_dias: f.dias });
+  if (!$('cfgcuerpo')) return;
+  const todos = error ? [] : (data || []);
+  const l = todos.filter(x => f.estado === 'todos' || (f.estado === 'abiertos' ? x.estado !== 'Resuelto' : x.estado === 'Resuelto'));
+  const nom = { error: 'Error de programa', api: 'Error de base de datos' };
+  const fecha = v => new Date(v).toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' });
+  c.innerHTML = `<div class="card cfgpanel errgrupos"><h2 style="padding:0 0 4px">Errores de la plataforma</h2>
+    <p class="sm">Los errores iguales van juntos. Al marcar un grupo como resuelto queda apuntada la versión; si vuelve a salir en esa versión o en una
+      posterior, se reabre solo. «Descargar» guarda el archivo para quien da soporte técnico.</p>
+    ${error ? `<div class="banda-peligro">No se ha podido leer el registro: ${esc(error.message)}</div>` : ''}
+    <div class="usrbar"><select id="egest"><option value="abiertos" ${f.estado === 'abiertos' ? 'selected' : ''}>Sin resolver</option>
+        <option value="resueltos" ${f.estado === 'resueltos' ? 'selected' : ''}>Resueltos</option><option value="todos" ${f.estado === 'todos' ? 'selected' : ''}>Todos</option></select>
+      <select id="egdias">${[7, 15, 30, 90].map(n => `<option value="${n}" ${f.dias === n ? 'selected' : ''}>Últimos ${n} días</option>`).join('')}</select>
+      <button class="btn sec" id="egdesc">${svgIco(ICON_NOM.download)} Descargar</button></div>
+    <div class="errlista">${l.map((x, i) => `<div class="errfila e-${x.tipo}">
+        <div><b>${esc(nom[x.tipo] || x.tipo)}</b> <span class="sm">· ${esc(x.pantalla || '—')} · ${num(x.veces)} ${x.veces === 1 ? 'vez' : 'veces'} · ${num(x.personas)} ${x.personas === 1 ? 'persona' : 'personas'}
+          · última ${fecha(x.ultima)}${x.resuelto_en_version ? (x.resuelto_auto ? ' · resuelto solo en ' : ' · resuelto en ') + esc(x.resuelto_en_version) : ''}</span>
+          <div class="errmsg">${esc(x.mensaje)}</div>
+          <details class="errdet"><summary class="sm">Versiones y detalle técnico</summary><div class="sm">Versiones: ${esc(x.versiones || '—')} · primera ${fecha(x.primera)}</div>
+            <pre>${esc(JSON.stringify(x.detalle || {}, null, 1))}</pre></details></div>
+        <select class="chico" data-egh="${i}" aria-label="Estado del grupo">${['Nuevo', 'Revisado', 'Resuelto'].map(e => `<option ${x.estado === e ? 'selected' : ''}>${e}</option>`).join('')}</select></div>`).join('')
+      || `<div class="vacio">${f.estado === 'abiertos' ? 'No hay errores sin resolver en este periodo.' : 'Sin errores con estos filtros.'}</div>`}</div></div>`;
+  $('egest').onchange = $('egdias').onchange = () => { window.__ERRG = { estado: $('egest').value, dias: +$('egdias').value }; pintarErroresDelcos(); };
+  c.querySelectorAll('[data-egh]').forEach(s => s.onchange = async () => {
+    const x = l[+s.dataset.egh];
+    const { data: r } = await RPC_ORIG('marcar_errores_huella', { p_huella: x.huella, p_estado: s.value });
+    toast(r && r.ok ? (s.value === 'Resuelto' ? 'Grupo resuelto: si vuelve a salir, se reabre solo' : 'Estado actualizado') : 'No se ha podido cambiar', !(r && r.ok));
+    if (r && r.ok) pintarErroresDelcos();
+  });
+  $('egdesc').onclick = () => {
+    const b = new Blob([JSON.stringify({ generado: new Date().toISOString(), version: VERSION_APP, errores: todos }, null, 1)], { type: 'application/json' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = `errores_${hoyISO()}.json`; a.click();
+  };
+}
+
+async function pintarPlantillaDelcos(sub) {
+  const c = $('cfgcuerpo'); if (!c) return;
+  if (!sub) {
+    c.innerHTML = `<div class="card cfgpanel"><h2>Plantilla de las empresas nuevas</h2>
+      <p class="sm">Lo que recibe cada empresa al darse de alta (desde la web o desde Clientes). Cambiarlo aquí no toca a las empresas que ya existen.</p>
+      <div class="acts" style="justify-content:flex-start"><button type="button" class="btn sec" data-plsub="roles">Roles y permisos</button>
+        <button type="button" class="btn sec" data-plsub="cat">Catálogos y estados</button></div></div>`;
+    c.querySelectorAll('[data-plsub]').forEach(b => b.onclick = () => pintarPlantillaDelcos(b.dataset.plsub));
+    return;
+  }
+  // Los editores de siempre, sobre la organización de plataforma (que es la plantilla)
+  if (sub === 'roles') await pintarRoles(); else { c.innerHTML = ''; await pintarCatalogos(); }
+  const c2 = $('cfgcuerpo'); if (!c2 || $('plaviso')) return;
+  c2.insertAdjacentHTML('afterbegin', `<div class="banda-info" id="plaviso">Estás cambiando la <b>plantilla de las empresas nuevas</b>.
+    <button type="button" class="btn sec" id="plvolver">Volver a la plantilla</button></div>`);
+  $('plvolver').onclick = () => pintarPlantillaDelcos();
+}
+
+async function pintarCobrosDelcos() {
+  const c = $('cfgcuerpo'); if (!c) return;
+  c.innerHTML = pdEsqueleto();
+  const { data, error } = await RPC_ORIG('organizaciones_lista', {});
+  if (!$('cfgcuerpo') || PAG_TAB.delcos !== 'cobros') return;
+  const l = error ? [] : (data || []);
+  const est = l.map(o => ({ o, p: o.plan_datos || {}, e: pdCobroEstado(o) }));
+  const cuenta = n => est.filter(x => x.e[0] === n).length;
+  const mrr = est.filter(x => x.e[0] === 'Al día').reduce((t, x) => t + pdMensual(x.p), 0);
+  const stripe = id => `https://dashboard.stripe.com/${EN_PRUEBAS ? 'test/' : ''}customers/${encodeURIComponent(id)}`;
+  let filtro = 'todas';
+  const pinta = () => {
+    const f = est.filter(x => filtro === 'todas' || (filtro === 'atencion' ? ['Impago', 'Bloqueada'].includes(x.e[0]) || x.p.baja_al_final || x.p.cambio_previsto : x.e[0] === filtro));
+    $('pdcobl').innerHTML = f.length ? `<div class="tablawrap"><table class="pdtabla"><thead><tr><th>Empresa</th><th>Plan</th><th>Estado</th><th>Al mes</th><th>Pendiente</th><th></th></tr></thead><tbody>
+      ${f.map(({ o, p, e }) => { const avisos = [p.baja_al_final ? 'Se da de baja al final del periodo' : '', p.cambio_previsto ? 'Cambio previsto a ' + planDe(p.cambio_previsto.plan || p.plan).nombre + (p.cambio_previsto.usuarios ? ' · ' + p.cambio_previsto.usuarios + ' usuarios' : '') + (p.cambio_previsto.desde ? ' el ' + pdFecha(p.cambio_previsto.desde) : '') : '', p.compromiso_hasta ? 'Compromiso hasta el ' + pdFecha(p.compromiso_hasta) : ''].filter(Boolean);
+        return `<tr><td><b>${esc(o.nombre)}</b><div class="sm">${o.usuarios} usuarios activos${p.origen === 'web' ? ' · alta desde la web' : ''}</div></td>
+          <td>${esc(planDe(p.plan).nombre)}<div class="sm">${p.plan === 'medida' ? '' : (p.usuarios ? p.usuarios + ' contratados · ' : '') + (p.pago === 'anual' ? 'anual' : 'mensual')}</div></td>
+          <td><span class="pill ${e[1]}">${e[0]}</span><div class="sm">${esc(e[2])}</div></td>
+          <td class="num">${pdMensual(p) ? eur(pdMensual(p)) : '—'}</td>
+          <td>${avisos.map(a => `<div class="sm">${esc(a)}</div>`).join('') || '<span class="sm">—</span>'}</td>
+          <td>${p.stripe_cliente ? `<a class="btn sec" href="${stripe(p.stripe_cliente)}" target="_blank" rel="noopener">Ver en Stripe</a>` : ''}</td></tr>`; }).join('')}</tbody></table></div>`
+      : '<div class="vacio">No hay empresas en este grupo.</div>';
+  };
+  c.innerHTML = `<div class="card cfgpanel">
+    ${error ? `<div class="banda-peligro">No se han podido leer: ${esc(error.message)}</div>` : ''}
+    ${pdKpis([[cuenta('Al día'), 'al día'], [cuenta('En prueba'), 'en prueba'], [cuenta('Impago'), 'con impago', cuenta('Impago') ? 'mal' : ''],
+      [est.filter(x => x.p.baja_al_final).length, 'se dan de baja'], [eur(mrr), 'cobro mensual estimado (sin IVA)']])}
+    <div class="segs" id="pdcobf">${[['todas', 'Todas'], ['atencion', 'Requieren atención'], ['Al día', 'Al día'], ['En prueba', 'En prueba'], ['Impago', 'Impago']]
+      .map(([k, n]) => `<button type="button" data-pdf="${esc(k)}" class="${k === filtro ? 'on' : ''}">${n}</button>`).join('')}</div>
+    <div id="pdcobl"></div>
+    <p class="sm">El estado llega solo desde Stripe con cada cobro. Las devoluciones y los datos de la tarjeta se miran en Stripe.</p></div>`;
+  c.querySelectorAll('[data-pdf]').forEach(b => b.onclick = () => { filtro = b.dataset.pdf; c.querySelectorAll('[data-pdf]').forEach(x => x.classList.toggle('on', x === b)); pinta(); });
+  pinta();
+}
+
+// ---- Altas desde la web: completadas (con su empresa y si ya ha entrado) y a medias (empezaron el pago y no lo terminaron)
+async function pintarAltasDelcos() {
+  const c = $('cfgcuerpo'); if (!c) return;
+  c.innerHTML = pdEsqueleto();
+  const { data, error } = await RPC_ORIG('altas_lista', {});
+  if (!$('cfgcuerpo') || PAG_TAB.delcos !== 'altas') return;
+  const l = error ? [] : (data || []);
+  const hechas = l.filter(a => a.estado === 'completada'), medias = l.filter(a => a.estado !== 'completada');
+  const sem = l.filter(a => Date.now() - new Date(a.creado_en) < 7 * 864e5);
+  const fila = a => { const d = a.datos || {};
+    const est = a.estado !== 'completada' ? ['A medias', 'p-warn', 'No terminó el pago · ' + pdHace(a.creado_en)]
+      : a.entro ? ['Dentro', 'p-est', 'Ya ha entrado en delcos'] : ['Invitada', 'p-per', a.invitado_en ? 'Invitación enviada ' + pdHace(a.invitado_en) : 'Falta la invitación'];
+    return `<div class="pdalta"><div class="pdaltacab"><b>${esc(a.organizacion || d.empresa || 'Sin nombre')}</b> <span class="pill ${est[1]}">${est[0]}</span>
+        <span class="pill p-per">${esc(planDe(d.plan).nombre)} · ${d.usuarios || 3} usuarios · ${d.pago === 'anual' ? 'anual' : 'mensual'}</span></div>
+      <div class="sm">${esc(d.nombre || '')}${d.email ? ` · <a href="mailto:${esc(d.email)}">${esc(d.email)}</a>` : ''}${d.telefono ? ` · <a href="tel:${esc(d.telefono)}">${esc(d.telefono)}</a>` : ''}${d.nif ? ' · ' + esc(d.nif) : ''}</div>
+      <div class="sm">${esc(est[2])} · empezó el ${pdFecha(a.creado_en)}</div></div>`; };
+  c.innerHTML = `<div class="card cfgpanel">
+    ${error ? `<div class="banda-peligro">No se han podido leer: ${esc(error.message)}</div>` : ''}
+    ${pdKpis([[hechas.length, 'completadas (90 días)'], [hechas.filter(a => a.entro).length, 'ya han entrado'], [medias.length, 'a medias (7 días)', medias.length ? 'aviso' : ''], [sem.length, 'esta semana']])}
+    ${medias.length ? `<h3 class="pdh3">A medias</h3><p class="sm">Rellenaron el formulario pero no terminaron de poner la tarjeta. Puede valer la pena escribirles. Se borran solas a los 7 días.</p>${medias.map(fila).join('')}` : ''}
+    <h3 class="pdh3">Completadas</h3>${hechas.map(fila).join('') || '<div class="vacio">Todavía no hay altas completadas desde la web.</div>'}</div>`;
+}

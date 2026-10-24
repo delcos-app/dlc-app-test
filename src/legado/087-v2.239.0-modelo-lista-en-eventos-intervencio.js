@@ -104,11 +104,6 @@ document.addEventListener('click', e => {
 Object.keys(BLQ).forEach(plObservar);
 // Las páginas (Eventos, Intervenciones…) crean su sección al entrar: el observador se engancha entonces (y otra vez si se vuelve a crear)
 const PL_OBSEL = {};
-function plVigilar(tab) {
-  const sec = $('v-' + tab); if (!sec || PL_OBSEL[tab] === sec) return;
-  if (PL_OBS[tab]) { PL_OBS[tab].disconnect(); delete PL_OBS[tab]; }
-  PL_OBSEL[tab] = sec; plObservar(tab);
-}
 ir = (orig => function (t, ...a) { const r = orig.call(this, t, ...a); if (PL[t]) { plVigilar(t); setTimeout(() => plVigilar(t), 0); } return r; })(ir);
 Object.keys(PL).forEach(plVigilar);
 // Las pestañas de las páginas (.pagtabs) van justo debajo de la cabecera: la banda y la barra, después de ellas

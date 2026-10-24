@@ -290,13 +290,6 @@ ir = function (t) {
 
 /* ---------------- v2.59.0 · nombre configurado en todos los textos; sin ayuda en la tabla de Cuentas ---------------- */
 
-// Todo texto que diga «Directorio» (ayudas, manual, avisos…) usa el nombre que ha elegido la empresa
-function nombreEnTextos(raiz) {
-  const et = etiquetaContactos(); if (!raiz || et === 'Directorio') return;
-  const w = document.createTreeWalker(raiz, NodeFilter.SHOW_TEXT, { acceptNode: n => n.parentElement && !n.parentElement.closest('script,style,textarea,input,[data-notr]') && /directorio/i.test(n.nodeValue) ? 1 : 2 });
-  const ns = []; while (w.nextNode()) ns.push(w.currentNode);
-  ns.forEach(n => { n.nodeValue = n.nodeValue.replace(/\bDirectorio\b/g, et).replace(/\bdirectorio\b/g, et.toLowerCase()); });
-}
 new MutationObserver(ms => { for (const m of ms) for (const n of m.addedNodes) nombreEnTextos(n.nodeType === 1 ? n : n.parentElement); })
   .observe(document.body, { childList: true, subtree: true });
 nombreEnTextos(document.body);

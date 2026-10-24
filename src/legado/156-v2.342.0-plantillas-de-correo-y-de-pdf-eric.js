@@ -11,88 +11,19 @@
 const USOS_CORREO = { pago: 'Datos de pago', factura: 'Envío de la factura' };
 let PLANT_ELEGIDA = { pago: null, factura: null }, PDF_ELEGIDO = null, PDF_EDITANDO = null;
 const idPlant = () => 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
-function listaCorreos() {
-  const a = AJUSTES.plantillas_correo || {};
-  if (Array.isArray(a.lista) && a.lista.length) return a.lista;
-  return Object.keys(USOS_CORREO).map(u => ({ id: u, nombre: PLANT_CORREO[u].titulo, uso: u, asunto: (a[u] || {}).asunto || PLANT_CORREO[u].asunto, texto: (a[u] || {}).texto || PLANT_CORREO[u].texto, defecto: true }));
-}
 const plantillasCorreo = uso => listaCorreos().filter(x => x.uso === uso);
-// (R-12: plantillaCorreo se definía aquí otra vez; ahora está en su sitio, más arriba)
-async function guardarCorreos(lista) {
-  const v = Object.assign({}, AJUSTES.plantillas_correo || {}, { lista });
-  const { data: r, error } = await db.rpc('guardar_ajuste', { p_clave: 'plantillas_correo', p_valor: v });
-  if (error || (r && r.ok === false)) { toast('No se han podido guardar las plantillas', true); return false; }
-  AJUSTES.plantillas_correo = v; return true;
-}
-// Elegir plantilla al enviar (solo si hay más de una para ese uso). Devuelve false si se cancela.
-async function elegirPlantillaCorreo(uso) {
-  const l = plantillasCorreo(uso); PLANT_ELEGIDA[uso] = null;
-  if (l.length < 2) return true;
-  const def = l.find(x => x.defecto) || l[0];
-  const k = await elegirOpcion('¿Con qué plantilla?', `Hay ${l.length} plantillas para «${USOS_CORREO[uso]}». La de por defecto es «${def.nombre}».`,
-    [{ k: '', t: 'Cancelar', cls: 'sec' }, ...[def, ...l.filter(x => x !== def)].map((x, i) => ({ k: x.id, t: x.nombre, cls: i ? 'sec' : '' }))]);
-  if (!k) return false;
-  PLANT_ELEGIDA[uso] = k; return true;
-}
 enviarDatosPago = (orig => async function (id, ...a) {
   if (!await elegirPlantillaCorreo('pago')) return false;
   try { return await orig.call(this, id, ...a); } finally { PLANT_ELEGIDA.pago = null; }
 })(enviarDatosPago);
 
-// (R-12: pintarPlantillasCorreo se definía aquí otra vez; ahora está en su sitio, más arriba)
-function editarPlantillaCorreo(p, nueva, alGuardar) {
-  $('dlg2body').innerHTML = `<div class="fh"><div><h2>${nueva ? 'Nueva plantilla de correo' : 'Editar la plantilla'}</h2></div><button class="x" data-cerrar2 aria-label="Cerrar">✕</button></div>
-    <div class="g2"><div><label for="pcen">Nombre</label><input id="pcen" value="${esc(p.nombre)}" maxlength="60" placeholder="Por ejemplo: Datos de pago · clínicas"></div>
-      <div><label for="pceu">Se usa para</label><select id="pceu">${Object.entries(USOS_CORREO).map(([k, t]) => `<option value="${k}" ${p.uso === k ? 'selected' : ''}>${esc(t)}</option>`).join('')}</select></div></div>
-    <label for="pcea">Asunto</label><input id="pcea" value="${esc(p.asunto)}">
-    <label for="pcet">Texto</label><textarea id="pcet" rows="12">${esc(p.texto)}</textarea>
-    <div class="sm plchue">Huecos (pulsa para añadirlo donde está el cursor):</div>
-    <div class="plcvars">${VARS_CORREO.map(([n, t]) => `<button type="button" class="btn sec chico" data-plv="${n}" title="${esc(t)}">[${n}]</button>`).join('')}</div>
-    <label class="chk"><input type="checkbox" id="pced" ${p.defecto ? 'checked' : ''}> <span>Usarla por defecto para este uso</span></label>
-    <div class="acts"><button type="button" class="btn sec" data-cerrar2>Cancelar</button><button type="button" class="btn" id="pceok">Guardar</button></div>`;
-  $('dlg2').showModal();
-  let ult = $('pcet'); ['pcea', 'pcet'].forEach(id => $(id).addEventListener('focus', () => { ult = $(id); }));
-  $('dlg2body').querySelectorAll('[data-plv]').forEach(b => b.onclick = () => {
-    const t = ult, v = '[' + b.dataset.plv + ']', i = t.selectionStart == null ? t.value.length : t.selectionStart, j = t.selectionEnd == null ? i : t.selectionEnd;
-    t.value = t.value.slice(0, i) + v + t.value.slice(j); t.focus(); t.selectionStart = t.selectionEnd = i + v.length;
-  });
-  $('pceok').onclick = () => conCarga($('pceok'), 'Guardando…', async () => {
-    const nombre = $('pcen').value.trim(); if (!nombre) { toast('Pon un nombre a la plantilla', true); return; }
-    const n = Object.assign({}, p, { nombre, uso: $('pceu').value, asunto: $('pcea').value.trim(), texto: $('pcet').value.replace(/\s+$/, ''), defecto: $('pced').checked });
-    let l = listaCorreos().map(x => Object.assign({}, x)).filter(x => x.id !== n.id);
-    if (n.defecto) l.forEach(x => { if (x.uso === n.uso) x.defecto = false; });
-    l.push(n);
-    Object.keys(USOS_CORREO).forEach(u => { const g = l.filter(x => x.uso === u); if (g.length && !g.some(x => x.defecto)) g[0].defecto = true; });
-    if (await guardarCorreos(l)) { $('dlg2').close(); toast('Plantilla guardada'); alGuardar && alGuardar(); }
-  });
-}
 
-// ---- PDF ----
-function listaPDF() {
-  const a = AJUSTES.factura_pdf_plantillas || {};
-  if (Array.isArray(a.lista) && a.lista.length) return { lista: a.lista, defecto: a.defecto || a.lista[0].id };
-  return { lista: [{ id: 'base', nombre: 'Diseño principal', cfg: AJUSTES.factura_pdf || {} }], defecto: 'base' };
-}
 const cfgDePlantilla = id => { const p = listaPDF().lista.find(x => x.id === id); const c = (p && p.cfg) || {};
   return Object.assign({}, PDF_DEF, c, { cols: Object.assign({}, PDF_DEF.cols, c.cols || {}) }); };
-async function guardarPDFPlantillas(v) {
-  const { data: r, error } = await RPC_V2342('guardar_ajuste', { p_clave: 'factura_pdf_plantillas', p_valor: v });
-  if (error || (r && r.ok === false)) { toast('No se han podido guardar las plantillas del PDF', true); return false; }
-  AJUSTES.factura_pdf_plantillas = v; return true;
-}
 facturaPDF = (orig => function (f, rn, cfg, ...a) {
   if (!cfg && PDF_ELEGIDO && PDF_ELEGIDO !== listaPDF().defecto) cfg = cfgDePlantilla(PDF_ELEGIDO);
   return orig.call(this, f, rn, cfg, ...a);
 })(facturaPDF);
-async function elegirPlantillaPDF() {
-  const { lista, defecto } = listaPDF(); PDF_ELEGIDO = null;
-  if (lista.length < 2) return true;
-  const def = lista.find(x => x.id === defecto) || lista[0];
-  const k = await elegirOpcion('¿Con qué diseño?', `Hay ${lista.length} diseños del PDF. El de por defecto es «${def.nombre}».`,
-    [{ k: '', t: 'Cancelar', cls: 'sec' }, ...[def, ...lista.filter(x => x !== def)].map((x, i) => ({ k: x.id, t: x.nombre, cls: i ? 'sec' : '' }))]);
-  if (!k) return false;
-  PDF_ELEGIDO = k; return true;
-}
 descargarFacturaPDF = (orig => async function (...a) {
   if (!await elegirPlantillaPDF()) return;
   try { return await orig.apply(this, a); } finally { PDF_ELEGIDO = null; }

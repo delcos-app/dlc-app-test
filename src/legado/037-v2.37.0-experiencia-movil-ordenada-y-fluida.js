@@ -161,18 +161,6 @@ const KPI_TXT = { citas: 'Visitadas de las citas de hoy', urgentes: `${TT('medic
   activos_90: 'Con ventas en 90 días', get conversion() { return `Visitad${terminoDe('medico').g === 'f' ? 'a' : 'o'}s ya en «${estadoPapel('positivo') || 'positivo'}»`; }, importe_mes: 'Base sin IVA del mes', borradores: 'Pedidos sin confirmar',
   sin_visita_60: 'Hace más de 60 días', sin_horario: 'Sin días de atención', muestras_mes: 'Entregadas este mes', material_mes: 'Entregado este mes',
   citas_7d: 'Programadas los próximos 7 días', visitas_7d: 'En los últimos 7 días' };
-function indicadoresCompletos() {
-  // v2.104.0: cada tarjeta lleva su indicador (data-kid). Antes se emparejaban por posición y, al quitar los que
-  // la persona no puede ver, las siguientes tomaban el subtítulo y el icono de otra
-  const cards = [...document.querySelectorAll('#kpis .kpi')];
-  cards.forEach(k => {
-    const c = k.dataset.kid ? { id: k.dataset.kid } : null; if (!c || k.dataset.comp) return;
-    k.dataset.comp = '1';
-    // v2.92.0: los indicadores sin icono propio (por ejemplo, los de una zona) no llevan caja de icono vacía
-    if (KPI_ICO[c.id]) k.insertAdjacentHTML('afterbegin', `<span class="kico" aria-hidden="true">${KPI_ICO[c.id]}</span>`);
-    if (KPI_TXT[c.id]) k.insertAdjacentHTML('beforeend', `<em class="kdesc">${esc(KPI_TXT[c.id])}</em>`);
-  });
-}
 
 /* ---------------- alertas: ventana clara, con qué significa y qué hacer ---------------- */
 

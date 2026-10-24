@@ -6,14 +6,6 @@
    de un momento, se abre el enlace web como antes. En el ordenador no cambia nada.
    ============================================================ */
 const ES_ANDROID = /Android/i.test(navigator.userAgent);
-function enlaceNavApp(destino, paradas, n) {
-  const d = Array.isArray(destino) ? destino.join(',') : String(destino);
-  if (n === 'waze') return 'waze://?ll=' + encodeURIComponent(d) + '&navigate=yes';
-  if (n === 'apple') return ES_IOS ? 'maps://?daddr=' + encodeURIComponent(d) + '&dirflg=d' : null;
-  if (ES_IOS) return 'comgooglemaps://?daddr=' + [...(paradas || []).map(p => p.join(',')), d].map(encodeURIComponent).join('+to:') + '&directionsmode=driving';
-  if (ES_ANDROID && !(paradas && paradas.length)) return 'google.navigation:q=' + encodeURIComponent(d) + '&mode=d';
-  return null;   // Android con paradas: solo el enlace web admite la ruta entera
-}
 // (R-12: navegarA se definía aquí otra vez; ahora está en su sitio, más arriba)
 
 

@@ -16,14 +16,6 @@ fichaPaciente = (orig => async function (id, ...a) {
   } catch (e) {}
   return r;
 })(fichaPaciente);
-async function bajaCliente(id, baja) {
-  const { data: r, error } = await db.rpc('baja_cliente', { p_id: id, p_baja: baja });
-  if (error || !r || !r.ok) { toast('No se ha podido: ' + ((error && error.message) || (r && r.error) || ''), true); return false; }
-  try { invalidarCache(); DB_PRE.clear(); } catch (e) {}
-  toast(baja ? `${TT('paciente', 's', '', 'l', 'C')} dado de baja` : `${TT('paciente', 's', '', 'l', 'C')} dado de alta de nuevo`);
-  if (TAB === 'pacientes' && typeof listaPacientes === 'function') listaPacientes();
-  return true;
-}
 document.addEventListener('click', async e => {
   const b = e.target.closest('[data-cbaja], [data-calta], [data-celim]'); if (!b) return;
   const f = $('ficha');

@@ -22,25 +22,11 @@ function resumenDetalle(d) {
   return Object.keys(d).slice(0, 4).map(k => `${k}: ${textoValor(d[k]).slice(0, 30)}`).join(' · ');
 };
 
-// Editar usuario y asignar cartera funcionan aunque la lista de usuarios aún no esté cargada (por ejemplo, desde una notificación)
-async function asegurarUsuario(id) {
-  if ((USUARIOS || []).some(x => x.id === id)) return;
-  const { data } = await RPC_ORIG('usuarios_resumen', {});
-  USUARIOS = (data || []).map(u => Object.assign({ medicos: u.cartera, visitas: u.visitas_mes }, u));
-}
 asignarCartera = (orig => async function (id, ...r) { await asegurarUsuario(id); return orig(id, ...r); })(asignarCartera);
 // Una llamada sin fecha se abre con la fecha de ahora (antes fallaba al abrirse)
 editorLlamada = (orig => function (l, ...r) { if (l && !l.fecha) l = Object.assign({}, l, { fecha: new Date().toISOString() }); return orig(l, ...r); })(editorLlamada);
 
 // Registro de facturación: el detalle de cada evento en texto legible
 const NOMBRES_DETALLE = { importe: 'Importe', forma: 'Forma de pago', motivo: 'Motivo', para: 'Para', asunto: 'Asunto', clave: 'Ajuste', total: 'Total', serie: 'Serie', numero: 'Número' };
-function detalleEvento(d) {
-  if (!d || typeof d !== 'object') return d ? String(d) : '—';
-  const partes = Object.keys(d).filter(k => d[k] != null && d[k] !== '' && k !== 'valor' && !/^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(String(d[k]))).map(k => {
-    const v = d[k]; const n = NOMBRES_DETALLE[k] || (k.charAt(0).toUpperCase() + k.slice(1).replace(/_/g, ' '));
-    return `${n}: ${typeof v === 'number' && /importe|total/.test(k) ? eur(v) : textoValor(v)}`;
-  });
-  return partes.join(' · ').slice(0, 160) || '—';
-}
 
 

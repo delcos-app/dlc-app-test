@@ -12,20 +12,6 @@ ir = (orig => function (t, ...r) {
   if (t === 'manual' && TAB !== 'manual') MANUAL_VUELTA = { tab: TAB, y: window.scrollY || 0 };
   return orig.call(this, t, ...r);
 })(ir);
-async function volverDelManual() {
-  const v = MANUAL_VUELTA; MANUAL_VUELTA = null;
-  if (!v) { ir('inicio'); return; }
-  ir(v.tab);
-  // Espera a que la pantalla esté pintada (sin «preparando») y tenga alto suficiente para volver al mismo punto
-  const fin = Date.now() + 4000;
-  while (Date.now() < fin) {
-    await new Promise(res => setTimeout(res, 120));
-    const sec = $('v-' + v.tab) || document.querySelector('main > section:not(.hide)');
-    const listo = !document.querySelector('main > section.preparando') && (!sec || !sec.classList.contains('cargando'));
-    if (listo && document.documentElement.scrollHeight - innerHeight >= v.y - 2) break;
-  }
-  window.scrollTo(0, v.y);
-}
 cargarManual = (orig => async function (...a) {
   const r = await orig.apply(this, a);
   const h = document.querySelector('#v-manual .saludo');
@@ -190,27 +176,6 @@ const HT_ORDEN = {};   // por tabla: { i, dir: 1 | -1, k }
 try { Object.assign(HT_ORDEN, JSON.parse(localStorage.getItem('delcos-orden') || '{}')); } catch (e) {}
 const htGuardarOrden = () => { try { localStorage.setItem('delcos-orden', JSON.stringify(HT_ORDEN)); } catch (e) {} };
 const MESES_CORTOS = { ene: 1, feb: 2, mar: 3, abr: 4, may: 5, jun: 6, jul: 7, ago: 8, sep: 9, sept: 9, oct: 10, nov: 11, dic: 12 };
-// Valor de una celda para ordenar o filtrar: { n: número } | { f: 'AAAA-MM-DD' } | { t: texto } | {} vacía
-function htValor(txt) {
-  const s = String(txt || '').replace(/\s+/g, ' ').trim();
-  if (!s || s === '—' || s === '-') return {};
-  let m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
-  if (m) return { f: `${m[3].length === 2 ? '20' + m[3] : m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}` };
-  m = s.match(/^(\d{4})-(\d{2})-(\d{2})/); if (m) return { f: m[0] };
-  m = s.toLowerCase().match(/^(?:[a-záéíóú]{3,4}\.? )?(\d{1,2}) (ene|feb|mar|abr|may|jun|jul|ago|sept?|oct|nov|dic)[a-z.]*(?: (\d{4}))?/);
-  if (m) { const y = m[3] || String(new Date().getFullYear()); return { f: `${y}-${String(MESES_CORTOS[m[2]]).padStart(2, '0')}-${m[1].padStart(2, '0')}` }; }
-  m = s.match(/^[-−]?\s?\d{1,3}(?:\.\d{3})*(?:,\d+)?\s*(?:€|%|uds?\.?|h|min|km)?$/i) || s.match(/^[-−]?\d+(?:[.,]\d+)?\s*(?:€|%|uds?\.?|h|min|km)?$/i);
-  if (m) { const n = parseFloat(s.replace(/[−]/, '-').replace(/[^\d,.-]/g, '').replace(/\.(?=\d{3}(\D|$))/g, '').replace(',', '.')); if (!isNaN(n)) return { n }; }
-  return { t: s.toLowerCase() };
-}
-function htComparar(a, b) {
-  const va = htValor(a), vb = htValor(b);
-  const vacia = x => !('n' in x) && !('f' in x) && !('t' in x);
-  if (vacia(va) || vacia(vb)) return vacia(va) - vacia(vb);
-  if ('n' in va && 'n' in vb) return va.n - vb.n;
-  if ('f' in va && 'f' in vb) return va.f < vb.f ? -1 : va.f > vb.f ? 1 : 0;
-  return String(va.t ?? va.n ?? va.f).localeCompare(String(vb.t ?? vb.n ?? vb.f), 'es', { numeric: true, sensitivity: 'base' });
-}
 // Tablas que se ordenan en la base: qué clave usa cada columna (por su posición o su nombre)
 const ORD_SRV = {
   peds2: (i, n) => i === 2 ? 'profesional' : ({ Fecha: 'fecha', Cliente: 'cliente', Comercial: 'comercial', 'Uds.': 'unidades', Base: 'base', Total: 'total', Estado: 'estado' })[n] || null,
@@ -219,32 +184,6 @@ const ORD_SRV = {
 const ORD_DIR = { nombre: 'nombre', especialidad: 'especialidad', centro_nombre: 'lugar', municipio: 'municipio', ultima_visita: 'reciente', estado_comercial: 'estado' };
 const htCeldaNoOrdenable = n => !n || /^(operativa|acciones?|productos)$/i.test(n);
 const htNoFiltrable = n => !n || /^(operativa|acciones?)$/i.test(n);
-function htMarcarCabecera(g) {
-  const tipo = htTipo(g), o = HT_ORDEN[tipo], cab = g.querySelector(':scope > .dh'); if (!cab) return;
-  [...cab.children].forEach((c, i) => {
-    const n = c.textContent.trim(), srv = ORD_SRV[tipo], ok = srv ? !!srv(i, n) : !htCeldaNoOrdenable(n);
-    c.classList.toggle('htord', ok);
-    c.classList.toggle('ord-asc', !!o && o.i === i && o.dir === 1);
-    c.classList.toggle('ord-desc', !!o && o.i === i && o.dir === -1);
-    if (ok) { c.setAttribute('role', 'button'); c.title = 'Ordenar por esta columna'; }
-  });
-}
-function htOrdenarFilas(g) {
-  const tipo = htTipo(g), o = HT_ORDEN[tipo]; htMarcarCabecera(g);
-  if (!o || ORD_SRV[tipo]) return;
-  const cab = g.querySelector(':scope > .dh'); if (!cab) return;
-  const filas = [...g.querySelectorAll(':scope > .dr')];
-  if (!filas.length) return;
-  filas.forEach((f, k) => { if (f.dataset.htpos == null) f.dataset.htpos = k; });
-  const orden = [...filas].sort((a, b) => o.dir * htComparar((a.children[o.i] || {}).textContent, (b.children[o.i] || {}).textContent) || (+a.dataset.htpos - +b.dataset.htpos));
-  if (orden.some((f, k) => f !== filas[k])) { let ref = cab; orden.forEach(f => { ref.after(f); ref = f; }); }
-}
-function htQuitarOrden(g) {
-  const filas = [...g.querySelectorAll(':scope > .dr')];
-  if (filas.some(f => f.dataset.htpos == null)) return;
-  let ref = g.querySelector(':scope > .dh');
-  [...filas].sort((a, b) => +a.dataset.htpos - +b.dataset.htpos).forEach(f => { ref.after(f); ref = f; });
-}
 // Pulsar una cabecera: asc → desc → sin orden
 document.addEventListener('click', e => {
   const c = e.target.closest('.dgrid > .dh > *'); if (!c || e.target.closest('input, button, select, .res')) return;
@@ -294,14 +233,6 @@ document.addEventListener('click', e => {
   buscar(true); cabeceraTabla();
 });
 
-// Filtros por columna según el tipo de dato
-function htTipoColumna(vals) {
-  const v = vals.map(htValor).filter(x => Object.keys(x).length);
-  if (!v.length) return 'texto';
-  if (v.every(x => 'f' in x)) return 'fecha';
-  if (v.every(x => 'n' in x)) return 'numero';
-  return 'texto';
-}
 htPintarPanel = (orig => function (sec) {
   orig.call(this, sec);
   // El panel se abre al lado (#tools) y allí van también los filtros propios de la pantalla
@@ -380,89 +311,6 @@ const MOS_MES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 
 const mosEur = n => Math.round(+n || 0).toLocaleString('es-ES') + ' €';
 const mosIco = n => svgIco(ICON_NOM[n] || ICON_NOM.info);
 let MOS_TURNO = 0;
-async function datosMosaico() {
-  const h = hoyISO(), r = x => Promise.resolve(x).then(v => (v && v.data) || null, () => null);
-  const [ar, op, al, ci, ll, citas, ta] = await Promise.all([
-    r(db.rpc('inicio_areas')),
-    VE_TODO() && nivelDe2('V') >= 1 ? r(RPC_ORIG('operativa_pendiente', {})) : null,
-    verArea('productos') ? r(RPC_ORIG('alertas_stock', {})) : null,
-    verArea('ciclo') ? r(RPC_ORIG('ciclo_cuentas', { p_usuario: null })) : null,
-    VE_TODO() && typeof hayOportunidades === 'function' && hayOportunidades() ? r(RPC_ORIG('llamadas_seguimiento', {})) : null,
-    citasDelDia(h).catch(() => []), r(db.from('tareas').select('id,titulo,hora,hecha').eq('fecha', h))]);
-  if (!KV_INI) { const p = await r(db.rpc('panel_inicio')); KV_INI = p; }
-  return { h, ar: ar || {}, op, al: al || [], ci, ll, citas: citas || [], ta: ta || [], k: (KV_INI && KV_INI.kpis) || {}, gr: KV_GRAF };
-}
-function mosAtencion(D) {
-  const it = [], add = (n, g, ic, t, s, fn) => { if (n) it.push({ n, g, ic, t, s, fn }); };
-  const c = D.ar.cobros, op = D.op || {}, nop = k => (op[k] || []).length;
-  if (c && verArea('facturacion')) add(c.n_vencidas, 'alta', 'receipt', 'Facturas vencidas', `${mosEur(c.vencido)} por cobrar`, () => ir('facturacion'));
-  add(nop('pago'), 'alta', 'credit-card', 'Pendientes de cobro', 'Pedidos confirmados que aún no están cobrados', () => { PEDSEC = 'ventas'; ir('ventas'); });
-  add(D.k.urgentes, 'alta', 'zap', `${TT('medico', 'p', '', 'l', 'C', 'urgente')} sin visitar`, 'Marcados como urgentes en su ficha', () => ir('directorio'));
-  if (verArea('cirugias')) add(D.ar.cirugias_reponer, 'alta', 'scissors', 'Material de intervenciones por reponer', 'Reposición en 48 horas', () => ir('cirugias'));
-  add(nop('paquete'), 'media', 'package', 'Paquetes por preparar', 'Pedidos confirmados sin enviar', () => { PEDSEC = 'ventas'; ir('ventas'); });
-  (D.al || []).forEach(a => add(a.n, a.gravedad === 'alta' ? 'alta' : 'media', 'package', a.titulo, (a.items || []).slice(0, 2).map(x => x.nombre).join(' · '), () => ir('productos')));
-  if (D.ll) { const p = D.ll.filter(x => x.proxima_fecha && x.proxima_fecha <= D.h); add(p.length, 'media', 'phone', 'Volver a llamar hoy', p.some(x => x.proxima_fecha < D.h) ? 'Algunas llamadas van con retraso' : 'Clientes a los que quedaste en llamar', () => { PEDSEC = 'llamadas'; ir('ventas'); }); }
-  if (verArea('concursos')) add(D.ar.concursos_vencen, 'media', 'gavel', 'Contratos que vencen en 90 días', 'Concursos por renovar', () => ir('concursos'));
-  add(nop('email_factura') + nop('email_pago'), 'media', 'mail', 'Correos por enviar', 'Facturas y avisos de pago sin enviar al cliente', () => { PEDSEC = 'ventas'; ir('ventas'); });
-  if (typeof puedeDuplicados === 'function' && puedeDuplicados()) add(D.k.pendientes_unificar, 'media', 'copy', 'Fichas duplicadas por revisar', 'Posibles duplicados', () => ir('duplicados'));
-  it.sort((a, b) => (a.g === b.g ? b.n - a.n : a.g === 'alta' ? -1 : 1));
-  return it;
-}
-function pintarMosaicoHtml(D) {
-  const A = mosAtencion(D), k = D.k, imp = verImportes(), tiles = [];
-  const total = A.reduce((a, x) => a + x.n, 0);
-  tiles.push(`<div class="mt mtat ${A.length <= 2 ? 'pocas' : ''}"><div class="mtt">${mosIco('bell')} Requiere tu atención${total ? `<span class="mtatn" data-mcnt="${total}">${total}</span>` : ''}</div>
-    <div class="mtl">${A.slice(0, 7).map((x, i) => `<button type="button" class="mti ${x.g}" data-mat="${i}"><span class="mic">${mosIco(x.ic)}</span>
-      <span class="mtx"><b>${esc(x.t)}</b><span>${esc(x.s || '')}</span></span><span class="mn" data-mcnt="${x.n}">${x.n}</span><span class="mfl" aria-hidden="true">›</span></button>`).join('')
-      || `<div class="mtok">${mosIco('check')}<span><b>Todo al día</b>No hay nada pendiente en ninguna área.</span></div>`}</div></div>`);
-  // Ventas del mes
-  const v = D.ar.ventas || {};
-  if (verArea('ventas')) {
-    const base = imp && v.importe != null, act = base ? v.importe : v.unidades, ant = base ? v.importe_ant : v.unidades_ant;
-    const dif = ant ? Math.round(100 * (act - ant) / ant) : null;
-    const dias = {}; ((D.gr && D.gr.por_dia) || []).forEach(x => { dias[x.fecha] = x.n; });
-    const bs = [...Array(14)].map((_, i) => isoMas(D.h, i - 13)), mx = Math.max(1, ...bs.map(f => dias[f] || 0));
-    tiles.push(`<div class="mt mtven"><div class="mtt">${mosIco('chart-column')} Ventas del mes</div>
-      <div class="mn1" ${base ? `data-meur="${act}"` : `data-mcnt="${act}"`}>${base ? mosEur(act) : num(act) + '<small>uds.</small>'}</div>
-      <div class="ms">${dif == null ? '' : `<span class="${dif >= 0 ? 'mup' : 'mdown'}">${dif >= 0 ? '▲' : '▼'} ${Math.abs(dif)} %</span> frente al mismo día del mes pasado · `}<b>${num(v.pedidos || 0)}</b> pedidos${base ? ` · <b>${num(v.unidades || 0)}</b> uds.` : ''}</div>
-      <div class="mbars" role="img" aria-label="${TT('visita', 'p', '', 'l', 'C')} por día en los últimos 14 días">${bs.map(f => `<i class="${f === D.h ? 'h' : ''}" style="height:${Math.max(4, 100 * (dias[f] || 0) / mx)}%"></i>`).join('')}</div>
-      <div class="mleg">${TT('visita', 'p', '', 'l', 'C')} de los últimos 14 días</div></div>`);
-  }
-  // Tu día
-  const ab = D.citas.filter(c => CITA_ABIERTA.includes(c.estado)), hechas = D.citas.filter(c => !CITA_ABIERTA.includes(c.estado) && !citaAnulada(c.estado)).length;
-  const vivas = D.citas.filter(c => !citaAnulada(c.estado)).length, tpend = D.ta.filter(t => !t.hecha).length;
-  tiles.push(`<div class="mt mthoy"><div class="mtt">${mosIco('calendar-days')} Tu día</div>
-    <div class="mn1"><span data-mcnt="${vivas}">${vivas}</span><small>${vivas === 1 ? 'cita' : 'citas'}</small></div>
-    <div class="ms"><b>${hechas}</b> hechas · <b>${tpend}</b> ${tpend === 1 ? 'tarea pendiente' : 'tareas pendientes'}</div>
-    <div class="mprog"><i style="width:${vivas ? Math.max(3, 100 * hechas / vivas) : 0}%"></i></div>
-    <div class="mcitas">${ab.slice(0, 4).map(c => `<div><b>${esc(String(c.hora || '').slice(0, 5) || '—')}</b><span>${esc(c.medico || c.nombre || '')}</span></div>`).join('')
-      || `<button type="button" class="lnk" data-mplan>${vivas ? 'Día completado' : 'Planifica tu día'}</button>`}</div></div>`);
-  // Cobros
-  const c = D.ar.cobros;
-  if (c && imp && verArea('facturacion')) tiles.push(`<div class="mt mtcob"><div class="mtt">${mosIco('euro')} Cobros</div>
-    <div class="mn1" data-meur="${c.pendiente}">${mosEur(c.pendiente)}</div><div class="ms">pendiente en <b>${num(c.n)}</b> ${c.n === 1 ? 'factura' : 'facturas'}</div>
-    <div class="mmini"><div><span>Vencido</span><b class="${c.vencido > 0 ? 'mdown' : ''}">${mosEur(c.vencido)}</b></div><div><span>Facturado este mes</span><b>${mosEur(c.facturado_mes)}</b></div></div></div>`);
-  // Ciclo
-  if (D.ci && (D.ci.resumen || []).length) {
-    const r = D.ci.resumen, hh = r.reduce((a, x) => a + x.hechas, 0), o = r.reduce((a, x) => a + x.objetivo, 0), pc = o ? Math.round(100 * hh / o) : 0, C = 2 * Math.PI * 30;
-    tiles.push(`<div class="mt mtcic"><div class="mtt">${mosIco('target')} Ciclo de ${TT('visita', 'p', '', 'l', 'l')}</div>
-      <div class="mfila"><svg class="mring" viewBox="0 0 70 70" aria-hidden="true"><circle class="f" cx="35" cy="35" r="30"/><circle class="v" cx="35" cy="35" r="30" style="stroke-dasharray:${C * pc / 100} ${C}"/></svg>
-      <div><div class="mn1" style="margin:0"><span data-mcnt="${pc}">${pc}</span> %</div><div class="ms"><b>${hh}</b> de ${o} · quedan ${D.ci.quedan_dias || 0} días</div></div></div></div>`);
-  }
-  // Stock
-  if (verArea('productos')) { const n = (D.al || []).reduce((a, x) => a + x.n, 0);
-    tiles.push(`<div class="mt mtsto"><div class="mtt">${mosIco('package')} Stock</div><div class="mn1"><span data-mcnt="${n}">${n}</span><small>${n === 1 ? 'aviso' : 'avisos'}</small></div>
-      <div class="mmini">${(D.al || []).slice(0, 3).map(a => `<div><span>${esc(a.titulo)}</span><b>${a.n}</b></div>`).join('') || '<div><span>Todo en orden</span></div>'}</div></div>`); }
-  // Cartera
-  if (verArea('directorio')) tiles.push(`<div class="mt mtcar"><div class="mtt">${mosIco('users')} Cartera</div>
-    <div class="mn1"><span data-mcnt="${k.cuentas || 0}">${num(k.cuentas || 0)}</span><small>${TT('medico', 'p', '', 'l', 'l')}</small></div>
-    <div class="mmini">${verArea('ventas') ? `<div><span>Han vendido este mes</span><b>${num(k.prescriptores_mes || 0)}</b></div>` : ''}<div><span>Sin contactar</span><b>${num(k.sin_contactar || 0)}</b></div><div><span>Sin ${TT('visita', 's', '', 'l', 'l')} en 60 días</span><b>${num(k.sin_visita_60 || 0)}</b></div></div></div>`);
-  // Lo que viene
-  const pr = (D.ar.proximos || []).filter(x => x.tipo !== 'evento' || verArea('eventos')).filter(x => x.tipo !== 'concurso' || verArea('concursos')).filter(x => x.tipo !== 'cirugia' || verArea('cirugias')).filter(x => x.tipo !== 'equipo' || verArea('parque'));
-  if (pr.length) tiles.push(`<div class="mt mtprox"><div class="mtt">${mosIco('clock')} Lo que viene</div><div class="mtl2">${pr.slice(0, 6).map(x => { const d = new Date(x.fecha + 'T12:00:00');
-      return `<div class="me"><span class="md">${d.getDate()} ${MOS_MES[d.getMonth()]}<small>${MOS_DS[d.getDay()]}</small></span><span class="mp ${x.tipo}"></span><span class="mtx"><b>${esc(x.titulo)}</b><span>${esc(x.sub || '')}</span></span></div>`; }).join('')}</div></div>`);
-  return { html: tiles.join(''), A };
-}
 function mosContar(box) {
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   const els = [...box.querySelectorAll('[data-mcnt], [data-meur]')], t0 = performance.now();
@@ -470,21 +318,6 @@ function mosContar(box) {
     els.forEach(el => { if (el.dataset.meur != null) el.textContent = mosEur(+el.dataset.meur * e); else el.textContent = num(Math.round(+el.dataset.mcnt * e)); });
     if (p < 1) requestAnimationFrame(paso); };
   requestAnimationFrame(paso);
-}
-async function pintarMosaico() {
-  if (TAB !== 'inicio' || ES_MEDICO()) return;
-  const sec = $('v-inicio'); if (!sec) return;
-  const turno = ++MOS_TURNO, D = await datosMosaico();
-  if (turno !== MOS_TURNO || TAB !== 'inicio') return;
-  const { html, A } = pintarMosaicoHtml(D);
-  let box = $('inimos');
-  if (!box) { sec.querySelector('.saludo').insertAdjacentHTML('afterend', '<div id="inimos" class="inimos"></div><div class="inikpisb"><button type="button" class="btn sec" id="inikpisver">Ver tus indicadores</button></div>'); box = $('inimos');
-    $('inikpisver').onclick = () => { const on = !sec.classList.contains('conkpis'); sec.classList.toggle('conkpis', on); $('inikpisver').textContent = on ? 'Ocultar tus indicadores' : 'Ver tus indicadores'; }; }
-  box.innerHTML = html;
-  box.querySelectorAll('[data-mat]').forEach(b => b.onclick = () => A[+b.dataset.mat].fn());
-  const pl = box.querySelector('[data-mplan]'); if (pl) pl.onclick = () => ir('agenda');
-  sec.classList.add('conmos');
-  mosContar(box);
 }
 cargarInicio = (orig => function (...a) {
   const r = orig.apply(this, a);
@@ -502,24 +335,6 @@ cargarInicio = (orig => function (...a) {
      panel lateral con su lista.
    - La columna derecha es «Tu semana» (#agsemlat): día a día con sus citas, su «⋯» y «Repartir la semana». */
 let AG_SEM_ABIERTA = false;
-async function agBloqueos(desde, n) { try { return await bloqueadosSemana(desde, isoMas(desde, n - 1)); } catch (e) { return {}; } }
-async function agMenusCinta() {
-  const cin = $('agcinta'); if (!cin) return;
-  const ini = cin.dataset.ini; if (!ini) return;
-  const bloq = await agBloqueos(ini, 14);
-  if ($('agcinta') !== cin) return;
-  cin.querySelectorAll('button').forEach(b => {
-    const f = b.dataset.cf || b.dataset.agdia || b.dataset.f || b.dataset.fecha; if (!f || !/^\d{4}-\d{2}-\d{2}$/.test(f)) return;
-    b.classList.add('cdia'); b.classList.toggle('bloq', !!bloq[f]);
-    if (bloq[f]) b.dataset.bloq = bloq[f]; else delete b.dataset.bloq;
-    if (f >= hoyISO() && !b.querySelector('.cdmas')) {
-      b.insertAdjacentHTML('beforeend', '<span class="cdmas" role="button" tabindex="0" aria-label="Opciones del día" title="Opciones del día">⋯</span>');
-      const m = b.querySelector('.cdmas');
-      const abrir = ev => { ev.stopPropagation(); ev.preventDefault(); menuDiaSemana(m, f, b.classList.contains('bloq')); };
-      m.addEventListener('click', abrir, true); m.addEventListener('keydown', ev => { if (ev.key === 'Enter') abrir(ev); });
-    }
-  });
-}
 // La semana de siempre, pintada debajo de la cinta (se cambia el id un momento para que pintarSemanaAgenda pinte allí)
 async function agPintarSemanaExp() {
   const cin = $('agcinta'); if (!cin || !AG_SEM_ABIERTA) { const x = $('agsemexp'); if (x) x.remove(); return; }
@@ -572,10 +387,6 @@ function pkContar(els, fmt) {
   const paso = t => { const p = Math.min(1, (t - t0) / 900), e = 1 - Math.pow(1 - p, 3); els.forEach(el => { if (el.isConnected) el.textContent = fmt(+el.dataset.v * e, el); }); if (p < 1) requestAnimationFrame(paso); };
   requestAnimationFrame(paso);
 }
-function pkMarcar() {
-  const s = $('popf'), v = s ? s.value : '';
-  document.querySelectorAll('#operativa [data-pk]').forEach(b => { b.classList.toggle('on', b.dataset.pk === v); b.setAttribute('aria-pressed', b.dataset.pk === v); });
-}
 document.addEventListener('change', e => { if (e.target && e.target.id === 'popf') pkMarcar(); });
 pintarOperativa = async function () {
   let c = $('operativa');
@@ -626,29 +437,6 @@ pintarOperativa = async function () {
 const AN_SERIE = new Map();
 var AN_REP = '';   // v2.329.0: Analítica → Resumen, «Reporte»
 const AN_MES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
-function anMeses(hasta) {
-  return [...Array(6)].map((_, i) => {
-    const d = new Date(hasta + 'T12:00:00'); d.setDate(1); d.setMonth(d.getMonth() - 5 + i);
-    const a = isoLocal(d); d.setMonth(d.getMonth() + 1); d.setDate(0); const b = isoLocal(d);
-    return [a, b > hasta ? hasta : b];
-  });
-}
-async function anSerie(meses, f, fams) {
-  const clave = JSON.stringify([meses[0][0], meses[5][1], f, fams, AN_REP]);
-  if (!AN_SERIE.has(clave)) AN_SERIE.set(clave, Promise.all(meses.map(([a, b]) =>
-    db.rpc('analitica_kpis_periodo', { p_desde: a, p_hasta: b, p_filtro: f, p_familias: fams, p_estado: false }).then(r => r.error ? {} : (r.data || {}), () => ({})))));
-  const r = await AN_SERIE.get(clave);
-  if (r.every(x => !Object.keys(x).length)) AN_SERIE.delete(clave);
-  return r;
-}
-function anLinea(vals, meses) {
-  const mx = Math.max(...vals), mn = Math.min(...vals, 0), W = 200, H = 40, rg = (mx - mn) || 1;
-  const pts = vals.map((x, i) => [i * W / 5, H - 4 - (H - 8) * (x - mn) / rg]);
-  const dl = pts.map((p, i) => (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(' ');
-  return `<svg class="avsp" viewBox="0 0 200 46" preserveAspectRatio="none" aria-hidden="true"><path class="a" d="${dl} L200 46 L0 46 Z"/><path class="l" pathLength="100" d="${dl}"/></svg>
-    <span class="avpt" style="left:${(pts[5][0] / 2).toFixed(1)}%;top:${(pts[5][1] / 46 * 100).toFixed(1)}%"></span>
-    <div class="avm">${meses.map(([a]) => `<span>${AN_MES[+a.slice(5, 7) - 1]}</span>`).join('')}</div>`;
-}
 anCargarKpis = (orig => async function () {
   await orig.apply(this, arguments);
   const caja = $('anareas'); if (!caja || !AN_CFG || !$('anper')) return;

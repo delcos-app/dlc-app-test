@@ -38,37 +38,6 @@ function limpiarDatosLocales() {
   try { Object.keys(localStorage).filter(k => /^dlc-(rc-|perfil|jornada-)/.test(k)).forEach(k => localStorage.removeItem(k)); } catch (e) {}
 }
 
-async function entrarComo(id) {
-  const u = (USUARIOS || []).find(x => x.id === id) || { nombre: 'esta persona' };
-  const inv = esInvitado(u);
-  if (!await preguntar(inv
-      ? `Abrirás una sesión con el usuario de ${u.nombre} y verás su portal tal como lo ve.\n\nLo que hagas quedará a su nombre y la impersonalización queda registrada en la auditoría. Para terminar, pulsa «Terminar la impersonalización» en la barra morada de arriba.`
-      : `Abrirás una sesión con el usuario de ${u.nombre}: su menú, sus permisos, su cartera y sus datos.\n\nLo que hagas quedará a su nombre y la impersonalización queda registrada en la auditoría. Para terminar, pulsa «Terminar la impersonalización» en la barra morada de arriba.`,
-    { titulo: `¿Impersonalizar a ${u.nombre}?`, ok: 'Impersonalizar' })) return;
-  pantallaCarga('Impersonalizando a ' + u.nombre + '…');
-  const { data: { session } } = await db.auth.getSession();
-  if (!session) { quitarCarga(); toast(SUPL_ERR.sesion, true); return; }
-  let { data, error } = await db.functions.invoke('impersonar', { body: { usuario_id: id } });
-  // La función antigua respondía con un error HTTP: se lee el motivo igualmente
-  if (error && !data && error.context && typeof error.context.json === 'function') { try { data = await error.context.json(); } catch (e) {} }
-  if (!data || !data.ok) {
-    const e = data && data.error;
-    toast(SUPL_ERR[e] || ('No se ha podido entrar: ' + ((data && data.detalle) || (error && error.message) || e || 'la función «impersonar» no responde')), true);
-    if (!SUPL_ERR[e] || e === 'sesion') registrarError('api', 'Impersonalizar: ' + (e || (error && error.message) || 'sin respuesta'), { estado: error && error.context && error.context.status, detalle: data && data.detalle });
-    quitarCarga(); return;
-  }
-  localStorage.setItem(SKEY, JSON.stringify({ access_token: session.access_token, refresh_token: session.refresh_token,
-    nombre: PERFIL.nombre, id: PERFIL.id, como: data.nombre, rol: data.rol, desde: Date.now() }));
-  const { error: e2 } = await db.auth.verifyOtp({ token_hash: data.token_hash, type: 'magiclink' });
-  if (e2) {
-    localStorage.removeItem(SKEY);
-    await db.auth.setSession({ access_token: session.access_token, refresh_token: session.refresh_token });
-    registrarError('api', 'Impersonalizar: no se abre la sesión', { mensaje: e2.message });
-    toast('No se ha podido abrir su sesión: ' + e2.message, true); quitarCarga(); return;
-  }
-  limpiarDatosLocales();
-  location.reload();
-}
 
 async function volverAMiSesion() {
   const s = suplantando(); if (!s) return;
@@ -180,14 +149,6 @@ pintarEquipo = (orig => async function () {
 
 const avisoRevisita = () => Object.assign({ on: true, dias: 7 }, ((PERFIL.preferencias || {}).avisos || {}).revisita || {});
 
-async function guardarAvisoRevisita(v) {
-  const prefs = Object.assign({}, PERFIL.preferencias || {});
-  prefs.avisos = Object.assign({}, prefs.avisos || {}, { revisita: v });
-  const { data, error } = await db.rpc('guardar_preferencias', { p: prefs });
-  if (error) { toast('No se ha podido guardar', true); return false; }
-  PERFIL.preferencias = data || prefs;
-  return true;
-}
 
 /** Visitas o citas de estos médicos cerca de la fecha (sin contar ese mismo día). */
 async function recientesDe(ids, fecha) {
@@ -234,28 +195,6 @@ async function cargarProductosModulo() {
   if (PSEC === 'servicios') pintarServicios(); else pintarProductos();
 }
 
-async function pintarProductos() {
-  const esAdmin = puede('administrar');
-  cargando($('vcuerpo'), 'Cargando productos…');
-  const { data } = await RPC_ORIG('productos_lista', { p_todos: esAdmin });
-  // v2.88.0: filtros por campos (Clasificadores); la lista llega entera, así que se filtra aquí
-  const l = (data || []).filter(p => (p.tipo || 'producto') === 'producto' && clasCumple(p.clasificadores, PRODF));
-  const cpCols = clasVisibles('producto');
-  $('vcuerpo').innerHTML = `<div class="panel">
-    <div class="cuenta"><b>${num(l.filter(p => p.activo).length)}</b> ${l.filter(p => p.activo).length === 1 ? 'producto activo' : 'productos activos'}${l.some(p => !p.activo) ? ` · ${num(l.filter(p => !p.activo).length)} inactivos` : ''}</div>
-    <div class="dgrid-wrap"><div class="dgrid prods">
-      <div class="dh"><span></span><span>Producto</span><span>Referencia</span><span class="num">Sin IVA</span><span class="num">IVA</span><span class="num">Con IVA</span><span>Estado</span>${clasCabeceras(cpCols)}</div>
-      ${l.map(p => `<button class="dr" data-prod="${p.id}" style="${p.activo ? '' : 'opacity:.55'}">
-        <span><span class="pfoto" style="${p.foto_url ? `background-image:url('${esc(p.foto_url)}')` : ''}">${p.foto_url ? '' : '◧'}</span></span>
-        <span><b>${esc(p.nombre)}</b><span class="sm">${esc(p.presentacion || 'Sin presentación')}</span></span>
-        <span class="sm">${esc(p.referencia || '—')}</span><span class="num">${p.precio != null ? eurI(p.precio) : '—'}</span>
-        <span class="num">${num(p.iva || 0)}%</span><span class="num"><b>${p.pvp != null ? eurI(p.pvp) : '—'}</b></span>
-        <span><span class="pill ${p.activo ? 'p-est' : 'p-anu'}">${p.activo ? 'Activo' : 'Inactivo'}</span></span>${clasCeldas(cpCols, p.clasificadores)}</button>`).join('')
-        || `<div class="vacio">${Object.keys(PRODF).length ? 'Ningún producto con estos filtros.' : 'Todavía no hay productos.'}</div>`}
-    </div></div></div>`;
-  clasRejilla($('vcuerpo').querySelector('.dgrid.prods'), cpCols.length);
-  $('vcuerpo').querySelectorAll('[data-prod]').forEach(b => b.onclick = () => editorProducto(l.find(p => p.id === b.dataset.prod)));
-}
 
 async function pintarServicios() {
   const esAdmin = puede('administrar');

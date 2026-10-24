@@ -58,7 +58,6 @@ function pagPonerGuardar() {
   }
   pagMarcarSucio();
 }
-function pagMarcarSucio() { const n = PAG_SUCIO.size; ['cfuguardar', 'cfudescartar'].forEach(id => { const b = $(id); if (b) b.disabled = !n; }); }
 async function pagGuardarTodo() {
   const g = $('cfuguardar'), p = pagActual(); if (!g || g.disabled || !p) return;
   g.disabled = true;

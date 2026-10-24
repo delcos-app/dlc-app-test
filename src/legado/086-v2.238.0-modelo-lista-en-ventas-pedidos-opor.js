@@ -61,12 +61,6 @@ Object.assign(PL, {
     stock: plRejilla({ tab: 'productos', que: () => 'productos' })
   }
 });
-// La configuración de una pantalla en este momento (las de varias secciones, según la abierta)
-function plCfg(tab) {
-  const x = PL[tab]; if (!x) return null;
-  if (PL_SECC[tab]) { const k = PL_SECC[tab](); return k ? x[k] || null : null; }
-  return x;
-}
 const plSel = id => id && /^[#.]/.test(id) ? document.querySelector(id) : $(id);
 const plEtiq = id => { const s = plSel(id); if (!s) return ''; const l = (s.id && document.querySelector(`label[for="${s.id}"]`)) || (s.closest('div') && s.closest('div').querySelector(':scope > label')); return l ? l.textContent.trim() : ''; };
 

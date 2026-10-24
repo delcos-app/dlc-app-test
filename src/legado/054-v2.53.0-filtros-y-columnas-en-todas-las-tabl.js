@@ -8,8 +8,6 @@
 // Pantallas con filtros propios que pasan al panel (la búsqueda por texto sigue a la vista)
 const HT_FILTROS = { pacientes: '#v-pacientes .filtros', facturacion: '#v-facturacion .filtros', analitica: '#anper' };
 const HT_ESTADO = {};   // por tabla: { texto, facetas: {col: valor} }
-function htTipo(g) { return [...g.classList].find(c => c !== 'dgrid') || 'tabla'; }
-function htOcultas(tipo) { try { return JSON.parse(localStorage.getItem('ht-cols-' + tipo)) || []; } catch (e) { return []; } }
 // Columnas: se quitan de la rejilla conservando las proporciones del resto
 function htAplicarColumnas(g) {
   const tipo = htTipo(g), ocultas = htOcultas(tipo);
@@ -109,11 +107,6 @@ new MutationObserver(() => {
 /* ---------------- Prescriptores: columna «Acceso a la plataforma» ---------------- */
 
 let MED_ACCESO = null;
-async function cargarAccesoMedicos() {
-  if (!(PERFIL && (puede('administrar') || VE_TODO() || puede('dar_acceso_cuentas')))) { MED_ACCESO = {}; return; }
-  const { data } = await RPC_ORIG('cuentas_con_acceso', {});
-  MED_ACCESO = {}; (data || []).forEach(x => { MED_ACCESO[x.cuenta_id] = x; });
-}
 COLS.push({ k: 'acceso', t: 'Acceso a la plataforma', w: 170 });
 celda = (orig => function (m, k) {
   if (k !== 'acceso') return orig(m, k);

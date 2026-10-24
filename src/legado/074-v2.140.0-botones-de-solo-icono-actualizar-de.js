@@ -332,28 +332,9 @@ function rpPintar() {
   caja.querySelectorAll('[data-rpag]').forEach(b => b.onclick = () => rpAgenda(+b.dataset.rpag, b));
 }
 
-function rpPlanDe(i) {
-  const p = RPROP.lista[i]; if (!p) return null;
-  PROPUESTAS = PROPUESTAS || {};
-  PROPUESTAS['prop' + (i + 1)] = p.sel;   // así «Tiempos de visita» puede recalcular el plan
-  return p;
-}
 async function rpPlan(i, btn) {
   const p = rpPlanDe(i); if (!p) return;
   await construirPlan(p.sel, 'prop' + (i + 1), btn, { manana: RPROP.manana, horario: null });
-}
-async function rpAgenda(i, btn) {
-  const p = rpPlanDe(i); if (!p) return;
-  btn.disabled = true;
-  try {
-    PLAN = null;
-    await construirPlan(p.sel, 'prop' + (i + 1), btn, { manana: RPROP.manana, horario: null });
-    if (!PLAN) return;
-    const r = await planAAgenda(PLAN);
-    if (!r) return;
-    toast(`${r.n} citas en tu agenda ${rpNombreDia(r.fecha) === 'hoy' ? 'de hoy' : 'del ' + fechaCorta(r.fecha)}`);
-    PLAN = null; AG_MODO = 'dia'; AG_FECHA = r.fecha; ir('agenda');
-  } finally { btn.disabled = false; }
 }
 
 async function rpCargar(manana) {
@@ -364,45 +345,6 @@ async function rpCargar(manana) {
   rpPintar();
 }
 
-// Mis rutas: lista compacta con «Planificar» y el resto en el menú ⋯
-function rpMisRutas() {
-  const caja = $('rmis'); if (!caja) return;
-  const R = RUTAS || [];
-  caja.innerHTML = `<div class="fh"><h2>Mis rutas${R.length ? `<span class="n">${R.length}</span>` : ''}</h2></div>
-    ${R.length ? `<div class="lista">${R.map(r => `<div class="item rmit" style="cursor:default">
-        <span class="tx"><b>${esc(r.nombre)}</b><span class="sm">${r.dinamica ? 'Por criterios' : num(r.n_fijos || 0) + ' ' + TT('medico', 'p', '', 'l', 'l')}${r.visitados ? ` · ${num(r.visitados)} visitados` : ''}${r.mia ? '' : ' · de ' + esc(r.duenyo || '')}</span></span>
-        <span class="acts" style="margin:0"><button class="btn sec" type="button" data-ruta="${r.id}">Planificar</button>
-          <button class="btn sec tdmas" type="button" data-rmas="${r.id}" aria-label="Más opciones de ${esc(r.nombre)}">⋯</button></span></div>`).join('')}</div>`
-    : `<div class="rguia"><p>Una ruta es una lista de ${TT('medico', 'p', '', 'l', 'l')} a quienes vas a ver a menudo: con nombres concretos o por criterios (municipio, estado, días de atención) que se recalculan solos.</p>
-        <div class="acts"><button class="btn sec" type="button" id="rrnueva">+ Crear mi primera ruta</button></div></div>`}`;
-  if ($('rrnueva')) $('rrnueva').onclick = () => editorRuta(null);
-  caja.querySelectorAll('[data-ruta]').forEach(b => b.onclick = () => planificar(b.dataset.ruta, b));
-  caja.querySelectorAll('[data-rmas]').forEach(b => b.onclick = () => rpMenuRuta(b, R.find(x => x.id === b.dataset.rmas)));
-}
-function rpMenuRuta(boton, r) {
-  document.querySelectorAll('.tdmenu').forEach(m => m.remove());
-  if (!r) return;
-  const ed = r.mia || puede('administrar');
-  const ops = [['ver', `Ver ${TT('medico', 'p', '', 'l', 'l')}`], ed ? ['editar', 'Editar'] : null, ed ? ['duplicar', 'Duplicar'] : null, ed ? ['eliminar', 'Eliminar'] : null].filter(Boolean);
-  const m = document.createElement('div');
-  m.className = 'tdmenu'; m.__t = Date.now();
-  m.innerHTML = ops.map(([k, t]) => `<button type="button" data-rmop="${k}" class="${k === 'eliminar' ? 'peligro' : ''}"><b>${t}</b></button>`).join('');
-  document.body.appendChild(m);
-  const b = boton.getBoundingClientRect();
-  m.style.top = Math.min(window.innerHeight - m.offsetHeight - 10, b.bottom + 6) + 'px';
-  m.style.left = Math.max(10, Math.min(window.innerWidth - m.offsetWidth - 10, b.right - m.offsetWidth)) + 'px';
-  m.querySelectorAll('[data-rmop]').forEach(x => x.onclick = async () => {
-    m.remove();
-    const k = x.dataset.rmop;
-    if (k === 'ver') return verMedicosRuta(r.id);
-    if (k === 'editar') return editorRuta(r.id);
-    if (k === 'duplicar') return duplicarRuta(r.id);
-    if (!await preguntar(`Se elimina "${r.nombre}".\nLos ${TT('medico', 'p', '', 'l', 'l')} y sus ${TT('visita', 'p', '', 'l', 'l')} no se borran.`,
-      { titulo: '¿Eliminar la ruta?', ok: 'Eliminar', peligro: true })) return;
-    await db.rpc('guardar_ruta', { p: { id: r.id, activa: false } });
-    toast('Ruta eliminada'); cargarRutas();
-  });
-}
 
 cargarRutasBase = async function () {
   const v = $('v-rutas');
@@ -460,17 +402,6 @@ function agMarcarDia() {
   caja.classList.add('agtitdia');
 }
 
-/* v2.147.0 · Agenda: «Tu día» sin citas (petición de Eric). Sin contadores a cero; en un día pasado, «No tuviste citas este día.» (no se
-   puede añadir nada); el mensaje, compacto: icono y frase en una línea, centrado. */
-function agDiaVacio() {
-  const c = $('agcuerpo'); if (!c || TAB !== 'agenda') return;
-  const v = c.querySelector(':scope > .vacio'), st = c.querySelector('.tdhead .tdstats');
-  const sinCitas = !!v && !c.querySelector('.tdesc');
-  if (st) st.classList.toggle('hide', sinCitas);
-  if (!v) return;
-  v.classList.add('vlinea');
-  if (AG_FECHA < hoyISO()) v.textContent = 'No tuviste citas este día.';
-}
 
 
 /* v2.148.0 · Analítica: panel de indicadores por áreas (decisión de Eric, 3/10/2026: «Panel por áreas + Explorar», engranaje con
@@ -532,48 +463,8 @@ const anFamNombre = f => { const x = AN_FAM.find(a => a[0] === f); return x ? (t
 const anFamVisible = f => { const x = AN_FAM.find(a => a[0] === f); return !!x && x[2](); };
 const anKpiVisible = k => anFamVisible(k.fam) && (!k.imp || verImportes());
 
-// Configuración de cada uno: preferencias.analitica = { comp, kpis: [{ u, id, on, f, comp, t }] }
-function anConfig() {
-  const cat = anCatalogo(), p = (prefsActivas().analitica || {});
-  let l = Array.isArray(p.kpis) ? p.kpis.filter(x => cat.some(k => k.id === x.id)) : [];
-  cat.forEach(k => { if (!l.some(x => x.id === k.id)) l.push({ u: k.id, id: k.id, on: k.def, f: {}, comp: '', t: '' }); });
-  return { comp: p.comp || 'anterior', kpis: l };
-}
-async function anGuardar(cfg) {
-  const prefs = Object.assign({}, PERFIL.preferencias || {}, { analitica: cfg });
-  const { data } = await db.rpc('guardar_preferencias', { p: prefs });
-  PERFIL.preferencias = data || prefs;
-}
 let AN_CFG = null, AN_DATOS = {};
 
-function anFmt(v, fmt) {
-  if (v == null || v === '') return '—';
-  if (fmt === 'txt') return esc(v);
-  if (fmt === 'eur') return eurI(v);
-  if (fmt === 'pct') return String(Math.round(+v * 10) / 10).replace('.', ',') + ' %';
-  if (fmt === 'dec') return String(Math.round(+v * 10) / 10).replace('.', ',');
-  if (fmt === 'dias') return String(Math.round(+v)) + ' días';
-  return num(v);
-}
-function anDelta(k, a, b, comp) {
-  if (k.hoy) return '<span class="sm">a día de hoy</span>';
-  if (k.fmt === 'txt') return '';
-  const txt = comp === 'anio' ? 'vs el año pasado' : 'vs periodo anterior';
-  if (a == null || b == null || (+b === 0 && k.fmt !== 'pct')) return `<span class="sm">sin datos ${comp === 'anio' ? 'del año pasado' : 'del periodo anterior'}</span>`;
-  const dif = k.fmt === 'pct' ? +a - +b : (+a - +b) / Math.abs(+b) * 100;
-  if (Math.abs(dif) < 0.05) return `<span class="ankdel igual">Igual que ${comp === 'anio' ? 'el año pasado' : 'el periodo anterior'}</span>`;
-  const bien = k.sube == null ? null : (dif > 0) === k.sube;
-  const val = k.fmt === 'pct' ? String(Math.round(Math.abs(dif) * 10) / 10).replace('.', ',') + ' pt' : Math.round(Math.abs(dif)) + ' %';
-  return `<span class="ankdel ${bien == null ? 'neutro' : bien ? 'up' : 'down'}">${dif > 0 ? '▲' : '▼'} ${val} <span class="sm">${txt}</span></span>`;
-}
-function anFiltroTxt(f) {
-  const out = [];
-  if (f.comercial) { const u = (COMS || []).find(x => x.id === f.comercial); out.push(u ? u.nombre : 'Un comercial'); }
-  if (f.producto) { const p = (PRODUCTOS || []).find(x => x.id === f.producto); out.push(p ? p.nombre : 'Un producto'); }
-  if (f.canal) { const o = $('acanal') && [...$('acanal').options].find(x => x.value === f.canal); out.push(o ? o.textContent : f.canal); }
-  if (f.municipio) out.push(rpTitulo(f.municipio));
-  return out.join(' · ');
-}
 
 // Las cifras: una llamada por cada combinación distinta de filtro y comparación
 async function anCargarKpis() {
@@ -615,114 +506,9 @@ async function anCargarKpis() {
   if ($('ancambiar')) $('ancambiar').onclick = () => { const b = document.querySelector('#v-analitica .htbtn'); if (b) { b.click(); b.scrollIntoView({ block: 'nearest' }); } };
 }
 
-// El engranaje: filtro propio del indicador, comparación, nombre, duplicar y ocultar
-function anEngranaje(boton, u) {
-  document.querySelectorAll('.ankpop').forEach(x => x.remove());
-  const x = AN_CFG.kpis.find(y => y.u === u); if (!x) return;
-  const k = anCatalogo().find(c => c.id === x.id), sirve = AN_FILTROS[k.fam] || [], f = x.f || {};
-  const opt = (v, t, sel) => `<option value="${esc(v)}" ${sel ? 'selected' : ''}>${esc(t)}</option>`;
-  const canales = $('acanal') ? [...$('acanal').options].map(o => opt(o.value, o.textContent, o.value === (f.canal || ''))).join('') : '';
-  const p = document.createElement('div'); p.className = 'ankpop'; p.__t = Date.now();
-  p.innerHTML = `<div class="agpoph"><b>${esc(x.t || k.t)}</b><button type="button" class="x" aria-label="Cerrar">✕</button></div>
-    <label for="ankn">Nombre</label><input id="ankn" autocomplete="off" value="${esc(x.t || '')}" placeholder="${esc(k.t)}">
-    ${sirve.includes('comercial') && VE_TODO() ? `<label for="ankc">Comercial</label><select id="ankc">${opt('', 'Todos', !f.comercial)}${(COMS || []).map(c => opt(c.id, c.nombre, c.id === f.comercial)).join('')}</select>` : ''}
-    ${sirve.includes('producto') ? `<label for="ankp">Producto</label><select id="ankp">${opt('', 'Todos', !f.producto)}${(PRODUCTOS || []).map(c => opt(c.id, c.nombre, c.id === f.producto)).join('')}</select>` : ''}
-    ${sirve.includes('canal') && canales ? `<label for="ankca">Canal</label><select id="ankca">${canales}</select>` : ''}
-    ${sirve.includes('municipio') ? `<label for="ankm">Municipio</label><input id="ankm" autocomplete="off" value="${esc(f.municipio || '')}" placeholder="Todos">` : ''}
-    ${!sirve.length ? `<p class="sm">Este indicador no se filtra por comercial ni por producto: cuenta lo de toda la empresa que puedes ver.</p>` : ''}
-    ${k.hoy ? '' : `<label for="ankcmp">Comparar con</label><select id="ankcmp">${opt('', 'Lo mismo que el panel', !x.comp)}${opt('anterior', 'El periodo anterior', x.comp === 'anterior')}${opt('anio', 'El mismo periodo del año pasado', x.comp === 'anio')}</select>`}
-    <div class="acts ankacts"><button type="button" class="btn sec" id="ankdup">Duplicar</button><button type="button" class="btn sec" id="ankoff">Ocultar</button>
-      <button type="button" class="btn" id="ankok">Guardar</button></div>`;
-  document.body.appendChild(p);
-  const r = boton.getBoundingClientRect(), w = Math.min(320, innerWidth - 20);
-  p.style.width = w + 'px';
-  p.style.left = Math.max(10, Math.min(innerWidth - w - 10, r.right - w)) + 'px';
-  p.style.top = Math.max(10, Math.min(innerHeight - p.offsetHeight - 10, r.bottom + 6)) + 'px';
-  const leer = () => {
-    const nf = {};
-    if ($('ankc') && $('ankc').value) nf.comercial = $('ankc').value;
-    if ($('ankp') && $('ankp').value) nf.producto = $('ankp').value;
-    if ($('ankca') && $('ankca').value) nf.canal = $('ankca').value;
-    if ($('ankm') && $('ankm').value.trim()) nf.municipio = $('ankm').value.trim();
-    return { f: nf, t: $('ankn').value.trim(), comp: $('ankcmp') ? $('ankcmp').value : '' };
-  };
-  const listo = async () => { p.remove(); await anGuardar(AN_CFG); anCargarKpis(); };
-  p.querySelector('.x').onclick = () => p.remove();
-  $('ankok').onclick = () => { Object.assign(x, leer()); listo(); };
-  $('ankoff').onclick = () => { x.on = false; listo(); toast('Indicador oculto: vuelve a mostrarlo desde «Personalizar»'); };
-  $('ankdup').onclick = () => {
-    const n = Object.assign({}, x, leer(), { u: x.id + '-' + Date.now().toString(36), on: true });
-    if (!n.t) n.t = k.t + ' (copia)';
-    AN_CFG.kpis.splice(AN_CFG.kpis.indexOf(x) + 1, 0, n); listo();
-  };
-}
 document.addEventListener('pointerdown', e => { if (!e.target.closest('.ankpop, [data-ancfg]')) document.querySelectorAll('.ankpop').forEach(x => x.remove()); }, true);
 
-// Personalizar: qué indicadores se ven (las copias se pueden borrar)
-function anPersonalizar() {
-  const cat = anCatalogo(), D = AN_CFG.kpis.map(x => Object.assign({}, x));
-  const pinta = () => {
-    $('dbody').innerHTML = `<div class="fh"><div><h2>Indicadores de Analítica</h2>
-        <div class="sm">Elige cuáles ves. Con el engranaje de cada uno puedes filtrarlo, cambiarle el nombre o duplicarlo.</div></div>
-        <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-      ${AN_FAM.filter(([f]) => anFamVisible(f)).map(([f]) => `<div class="blk anpers"><h3>${esc(anFamNombre(f))}</h3>
-        ${D.map((x, i) => [x, i]).filter(([x]) => { const k = cat.find(c => c.id === x.id); return k && k.fam === f && anKpiVisible(k); }).map(([x, i]) => {
-          const k = cat.find(c => c.id === x.id), ft = anFiltroTxt(x.f || {});
-          return `<label class="anpf"><span class="vfswitch mini"><input type="checkbox" data-anon="${i}" ${x.on ? 'checked' : ''}><span class="sw"></span></span>
-            <span class="tx"><b>${esc(x.t || k.t)}</b><span class="sm">${esc(ft || k.ayuda)}</span></span>
-            ${x.u !== x.id ? `<button type="button" class="x" data-andel="${i}" title="Borrar la copia" aria-label="Borrar la copia">✕</button>` : ''}</label>`; }).join('')}</div>`).join('')}
-      <div class="acts" style="justify-content:flex-end"><button class="btn sec" id="anres0">Volver a los de siempre</button><button class="btn" id="anpok">Guardar</button></div>`;
-    $('dbody').querySelectorAll('[data-anon]').forEach(c => c.onchange = () => { D[+c.dataset.anon].on = c.checked; $('dlg').dataset.sucio = '1'; });
-    $('dbody').querySelectorAll('[data-andel]').forEach(b => b.onclick = e => { e.preventDefault(); D.splice(+b.dataset.andel, 1); $('dlg').dataset.sucio = '1'; pinta(); });
-    $('anres0').onclick = () => { D.length = 0; cat.forEach(k => D.push({ u: k.id, id: k.id, on: k.def, f: {}, comp: '', t: '' })); $('dlg').dataset.sucio = '1'; pinta(); };
-    $('anpok').onclick = async ev => {
-      ev.target.disabled = true;
-      AN_CFG.kpis = D; await anGuardar(AN_CFG);
-      delete $('dlg').dataset.sucio; $('dlg').close(); anCargarKpis();
-    };
-  };
-  pinta(); $('dlg').showModal();
-}
 
-// Gráficos del Resumen (los de antes, con el periodo del panel)
-async function anGraficos(desde, hasta) {
-  if (!$('angraf')) return;
-  $('angraf').innerHTML = Array.from({ length: 4 }, () => `<div class="card">${skelCard('Cargando…')}</div>`).join('');
-  const [act, med, actv, emb] = await Promise.all([
-    db.rpc('analitica_v2', { p_dim: 'producto', p_desde: desde, p_hasta: hasta, lim: 20 }).then(x => x.data || {}),
-    db.rpc('analitica_v2', { p_dim: 'medico', p_desde: desde, p_hasta: hasta, lim: 10 }).then(x => (x.data || {}).filas || []),
-    db.rpc('actividad_mensual', { p_desde: desde, p_hasta: hasta }).then(x => x.data || []),
-    db.rpc('embudo_comercial').then(x => x.data || {})
-  ]);
-  if (!$('angraf')) return;
-  const t = act.totales || {}, meses = mesesEntre(desde, hasta);
-  const serie = {}; (act.serie || []).forEach(s => serie[s.mes] = s);
-  const vis = {}; actv.forEach(s => vis[s.mes] = s);
-  const orden = ESTADOS_DEF.filter(x => x.papel !== 'negativo').map(x => x.valor), negEst = estadoPapel('negativo');
-  const embTot = orden.reduce((n, k) => n + (+emb[k] || 0), 0);
-  $('angraf').innerHTML = `
-    ${puedeModulo('ventas') ? `<div class="card ancard ancha"><h2>Evolución de las ventas</h2>
-      ${(t.unidades || 0) ? svgBarras(meses, meses.map(m => (serie[m] || {}).unidades || 0), verImportes() ? meses.map(m => +((serie[m] || {}).importe || 0)) : null, ['Unidades', 'Importe sin IVA'])
-        : vacioGrafico('Cuando haya pedidos completados verás aquí las unidades (barras) y el importe (línea) de cada mes.')}
-      <p class="leer"><b>Cómo leerlo:</b> arriba, las unidades vendidas cada mes; abajo, el importe, con los mismos meses alineados. Si el importe crece más que las unidades, se vende a mejor precio (menos descuento o productos de más valor).</p></div>
-    <div class="card ancard"><h2>Reparto por producto</h2>
-      ${(act.por_producto || []).length ? barrasReparto((act.por_producto || []).map(x => ({ n: x.nombre, v: +x.unidades || 0 }))) : vacioGrafico('Verás qué parte de las unidades corresponde a cada producto.')}
-      <p class="leer"><b>Cómo leerlo:</b> el porcentaje de unidades de cada producto en el periodo. Sirve para ver de qué depende la facturación.</p></div>
-    <div class="card ancard"><h2>${TT('medico', 'p', '', 'l', 'C')} con más ventas</h2>
-      ${med.filter(x => x.clave !== 'sin').length ? barrasH(med.filter(x => x.clave !== 'sin').map(x => ({ n: x.nombre, v: x.unidades })), num) : vacioGrafico(`Aparecerán los 10 ${TT('medico', 'p', '', 'l', 'l')} con más unidades atribuidas.`)}
-      <p class="leer"><b>Cómo leerlo:</b> los diez ${TT('medico', 'p', '', 'l', 'l')} con más unidades atribuidas. Son los que conviene cuidar: ${TT('visita', 'p', '', 'l', 'l')} frecuentes, material y seguimiento.</p></div>` : ''}
-    <div class="card ancard"><h2>Embudo comercial</h2>
-      ${embTot ? `<div class="embudo">${orden.map((k, i) => { const v = +emb[k] || 0, ant2 = i ? (+emb[orden[i - 1]] || 0) : 0;
-        return `<div class="emb"><span class="embn">${esc(k)}</span><span class="embb"><i style="width:${Math.max(3, v / embTot * 100)}%"></i></span><b>${num(v)}</b>
-          ${i ? `<span class="sm">${ant2 ? pct(v, ant2 + v) + '% avanza' : ''}</span>` : '<span class="sm"></span>'}</div>`; }).join('')}
-        ${negEst && emb[negEst] ? `<div class="sm" style="margin-top:6px">${esc(negEst)}: ${num(emb[negEst])}</div>` : ''}</div>`
-        : vacioGrafico(`Verás cuántos ${TT('medico', 'p', '', 'l', 'l')} hay en cada estado comercial.`)}
-      <p class="leer"><b>Cómo leerlo:</b> cuántos ${TT('medico', 'p', '', 'l', 'l')} hay en cada estado. El porcentaje indica qué parte ha pasado a ese estado respecto al anterior.</p></div>
-    <div class="card ancard ancha"><h2>Actividad y resultados</h2>
-      ${actv.length || (t.unidades || 0) ? svgBarras(meses, meses.map(m => (vis[m] || {}).visitas || 0), meses.map(m => (serie[m] || {}).unidades || 0), [`${TT('visita', 'p', '', 'l', 'C')}`, 'Unidades vendidas'])
-        : vacioGrafico(`Verás ${TT('visita', 'p', 'el', 'l', 'l')} de cada mes junto a las unidades vendidas.`)}
-      <p class="leer"><b>Cómo leerlo:</b> las barras son ${TT('visita', 'p', 'el', 'l', 'l', 'registrado')} y la línea, las unidades vendidas. Si ${TT('visita', 'p', 'el', 'l', 'l')} suben y las ventas no, conviene revisar el mensaje y a quién se va a ver.</p></div>`;
-}
 
 pintarResumenAnalitica = async function () {
   const cuerpo = $('anres'); if (!cuerpo) return;
@@ -752,28 +538,6 @@ pintarResumenAnalitica = async function () {
 // En «Filtros y columnas» van los del Resumen o los de Explorar según la pestaña
 Object.defineProperty(HT_FILTROS, 'analitica', { configurable: true, enumerable: true,
   get: () => ANSEC === 'explorar' ? '#v-analitica .panel > .filtros' : '#anfil' });
-// Los filtros de las dos pestañas pasan al panel (cada vez: el Resumen se puede volver a pintar); la búsqueda por texto sigue a la vista
-function anMoverFiltros() {
-  const v = $('v-analitica'); if (!v) return;
-  htPreparar(v);
-  const dest = v.querySelector('.htpanel .htpropios'); if (!dest) return;
-  [['#anfil', 'resumen'], ['#v-analitica .panel > .filtros', 'explorar']].forEach(([sel, k]) => {
-    const src = document.querySelector(sel); if (!src) return;
-    [...src.children].forEach(ch => {
-      if (ch.matches('input[type=search],input[type=text]') || ch.querySelector('input[type=search],input[type=text], #adim, #amedida')) return;   // «Ver por» y «Ordenar por» van a la vista
-      ch.dataset.anp = k; dest.appendChild(ch);
-    });
-    src.dataset.ht = '1'; if (!src.children.length) src.classList.add('hide');
-  });
-  dest.querySelectorAll('select').forEach(x => { if (!x.dataset.anht) { x.dataset.anht = '1'; x.addEventListener('change', () => htContador(v)); } });
-}
-function anPestana() {
-  const v = $('v-analitica'); if (!v) return;
-  v.classList.toggle('an-exp', ANSEC === 'explorar'); v.classList.toggle('an-res', ANSEC !== 'explorar');
-  $('tools').dataset.ansec = ANSEC === 'explorar' ? 'explorar' : 'resumen';   // el panel lateral de «Filtros y columnas» está fuera de la pantalla
-  anMoverFiltros();
-  const per = $('anpers'); if (per) per.hidden = ANSEC === 'explorar';
-}
 cargarAnalitica = (orig => async function () {
   await orig();
   const v = $('v-analitica'); if (!v) return;

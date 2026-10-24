@@ -1,12 +1,3 @@
-/* ============================================================
-   v2.314.0 · Pedido con pago por transferencia (aviso de Eric: el correo con los datos de pago solo salía con el pedido
-   validado y, si el cliente no pagaba, había que hacer una rectificativa). En el pedido, con la forma de pago
-   «Transferencia»: «Enviar los datos de pago» guarda el pedido en borrador y envía el correo; «Guardar y validar» pregunta si
-   se guarda en borrador hasta que llegue el pago. En el borrador, el bloque «Pago por transferencia» con el estado del correo,
-   «Enviar los datos de pago» y «Pago recibido · validar» (valida el pedido y anota el pago).
-   ============================================================ */
-/* v2.315.0: la pregunta usa elegirOpcion de siempre (una segunda declaración con el mismo nombre la sustituía y rompía las demás ventanas). */
-function esTransferencia(fp) { return /transfer/i.test(fp || ''); }
 async function enviarDatosPago(id) {
   if (!((AJUSTES.empresa || {}).iban || '').trim()) { toast('Falta el IBAN: ponlo en Configuración → Facturación → Datos fiscales antes de enviar los datos de pago', true); return false; }
   const { data } = await RPC_ORIG('pedido_detalle', { p_id: id });

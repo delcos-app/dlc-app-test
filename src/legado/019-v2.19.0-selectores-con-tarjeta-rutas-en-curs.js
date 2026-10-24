@@ -16,7 +16,6 @@ document.addEventListener('click', e => {
 
 /* ---------------- protección de datos: sin descargas ---------------- */
 
-function descargar() { toast('La descarga de datos está desactivada para proteger la información.', true); }
 ['__dlDir', '__dlSeg', '__dlAn'].forEach(k => { try { delete window[k]; } catch (e) { window[k] = undefined; } });
 
 /* ---------------- buscador superior: se limpia al elegir ---------------- */
@@ -40,11 +39,6 @@ document.addEventListener('click', e => {
   d.addEventListener('cancel', e => { e.preventDefault(); intentarCerrar(d); });
 });
 
-async function intentarCerrar(d) {
-  if (d.dataset.sucio && hayBotonGuardar(d) && !await preguntar('Si sales ahora perderás los cambios que has hecho.',
-    { titulo: '¿Salir sin guardar?', ok: 'Salir sin guardar', peligro: true })) return;
-  d.close();
-}
 
 /* ---------------- selector de médico (igual que el buscador principal) ---------------- */
 
@@ -59,71 +53,6 @@ function cerrarPickers(salvo) {
 }
 document.addEventListener('pointerdown', e => { if (!e.target.closest('.picker')) cerrarPickers(); });
 
-/**
- * Pinta en `el` un buscador de médicos. Al elegir, el campo se cambia por una tarjeta con ✕.
- * opciones: valor (médico elegido), alElegir(m | null), placeholder
- */
-function selectorMedico(el, o) {
-  let valor = o.valor || null;
-  const pinta = () => {
-    if (valor) {
-      el.innerHTML = tarjetaMedico(valor);
-      el.querySelector('.sx').onclick = () => { valor = null; el.__texto = ''; pinta(); o.alElegir && o.alElegir(null); setTimeout(() => { const i = el.querySelector('input'); if (i) i.focus(); }, 0); };
-      return;
-    }
-    el.innerHTML = `<div class="picker"><input type="search" autocomplete="off" placeholder="${esc(o.placeholder || 'Busca por nombre, centro o municipio')}" value="${esc(el.__texto || '')}">
-      <div class="gsug hide"></div></div>`;
-    const caja = el.querySelector('.picker'), inp = caja.querySelector('input'), sug = caja.querySelector('.gsug');
-    let t, pide = 0;
-    const elegir = m => { valor = m; el.__texto = ''; pinta(); o.alElegir && o.alElegir(m); };
-    const listaMedicos = async (titulo, params) => {
-      caja.classList.add('buscando');
-      sug.innerHTML = `<div class="gload"><span class="spin"></span>Buscando ${TT('medico', 'p', '', 'l', 'l')}…</div>`; sug.classList.remove('hide');
-      const { data } = await db.rpc('buscar_cuentas', Object.assign({ q: null, f_provincia: null, f_municipio: null, f_estado: null,
-        f_especialidad: null, f_area: null, f_urgentes: false, f_mios: false, f_sin_visitar: false, orden: 'nombre', lim: 30, desplaz: 0 }, params));
-      caja.classList.remove('buscando');
-      const f = (data && data.filas) || [];
-      sug.innerHTML = `<button type="button" class="gback" data-back>← Volver a los resultados</button>
-        <div class="gsh">${esc(titulo)} · ${num(data ? data.total : 0)} ${TT('medico', 'p', '', 'l', 'l')}${data && data.total > 30 ? ' (se muestran 30)' : ''}</div>` +
-        (f.map((m, i) => `<button type="button" data-pm="${i}"><span class="gic">${m.urgente ? '❗' : '👤'}</span>
-          <span><b>${esc(m.nombre)}</b><span class="sm">${esc([m.especialidad, m.centro_nombre, m.municipio].filter(Boolean).join(' · '))}</span></span></button>`).join('')
-          || `<div class="gload">Sin ${TT('medico', 'p', '', 'l', 'l')}.</div>`);
-      sug.querySelector('[data-back]').onclick = () => buscarTexto();
-      sug.querySelectorAll('[data-pm]').forEach(b => b.onclick = () => elegir(f[+b.dataset.pm]));
-    };
-    const buscarTexto = () => {
-      const q = inp.value.trim(); el.__texto = inp.value;
-      clearTimeout(t);
-      if (q.length < 2) { sug.classList.add('hide'); caja.classList.remove('buscando'); return; }
-      caja.classList.add('buscando');
-      sug.innerHTML = '<div class="gload"><span class="spin"></span>Buscando…</div>'; sug.classList.remove('hide');
-      const n = ++pide;
-      t = setTimeout(async () => {
-        const { data } = await db.rpc('buscar_global', { q, lim: 6 });
-        if (n !== pide) return;
-        caja.classList.remove('buscando');
-        if (!data) { sug.innerHTML = '<div class="gload">No se ha podido buscar. Revisa la conexión.</div>'; return; }
-        const mu = data.municipios || [], ce = data.centros || [], me = data.medicos || [];
-        if (!mu.length && !ce.length && !me.length) { sug.innerHTML = `<div class="gload">Sin resultados para «${esc(q)}».</div>`; return; }
-        sug.innerHTML =
-          (mu.length ? '<div class="gsh">Municipios</div>' + mu.map((x, i) => `<button type="button" data-pmu="${i}"><span class="gic">📍</span>
-            <span><b>${resaltarBusqueda(x.valor, q)}</b><span class="sm">${num(x.n)} ${TT('medico', 'p', '', 'l', 'l')} · ver la lista</span></span></button>`).join('') : '') +
-          (ce.length ? '<div class="gsh">Centros</div>' + ce.map((x, i) => `<button type="button" data-pce="${i}"><span class="gic">🏥</span>
-            <span><b>${resaltarBusqueda(x.valor, q)}</b><span class="sm">${esc(x.municipio || '')} · ${num(x.n)} ${TT('medico', 'p', '', 'l', 'l')} · ver la lista</span></span></button>`).join('') : '') +
-          (me.length ? `<div class="gsh">${TT('medico', 'p', '', 'l', 'C')}</div>` + me.map((x, i) => `<button type="button" data-pme="${i}"><span class="gic">${x.urgente ? '❗' : '👤'}</span>
-            <span><b>${resaltarBusqueda(x.nombre, q)}</b><span class="sm">${esc([x.especialidad, x.centro_nombre, x.municipio].filter(Boolean).join(' · '))}</span></span></button>`).join('') : '');
-        sug.querySelectorAll('[data-pmu]').forEach(b => b.onclick = () => listaMedicos(mu[+b.dataset.pmu].valor, { f_municipio: mu[+b.dataset.pmu].valor }));
-        sug.querySelectorAll('[data-pce]').forEach(b => b.onclick = () => listaMedicos(ce[+b.dataset.pce].valor, { q: ce[+b.dataset.pce].valor }));
-        sug.querySelectorAll('[data-pme]').forEach(b => b.onclick = () => elegir(me[+b.dataset.pme]));
-      }, 250);
-    };
-    inp.oninput = buscarTexto;
-    inp.onfocus = () => { if (inp.value.trim().length >= 2 && sug.innerHTML) { cerrarPickers(caja); sug.classList.remove('hide'); } };
-    inp.onkeydown = e => { if (e.key === 'Escape') { sug.classList.add('hide'); e.stopPropagation(); } };
-  };
-  pinta();
-  el.__valor = () => valor;
-}
 
 /* ---------------- selector de paciente ---------------- */
 
@@ -136,43 +65,6 @@ const tarjetaPaciente = c => `<div class="selcard"><span class="ic">🧑</span>
     ${c.medico ? `<span class="sm">${TT('medico', 's', '', 'l', 'C')}: ${esc(c.medico)}</span>` : ''}</span>
   <button type="button" class="sx" aria-label="Quitar">✕</button></div>`;
 
-function selectorPaciente(el, o) {
-  let valor = o.valor || null;
-  const pinta = () => {
-    if (valor) {
-      el.innerHTML = tarjetaPaciente(valor);
-      el.querySelector('.sx').onclick = () => { valor = null; pinta(); o.alElegir && o.alElegir(null); };
-      return;
-    }
-    el.innerHTML = `<div style="display:flex;gap:8px"><div class="picker" style="flex:1">
-        <input type="search" autocomplete="off" placeholder="Nombre, teléfono o DNI"><div class="gsug hide"></div></div>
-      <button type="button" class="btn sec" data-pnuevo>+ Nuevo</button></div>`;
-    const caja = el.querySelector('.picker'), inp = caja.querySelector('input'), sug = caja.querySelector('.gsug');
-    let t, pide = 0;
-    inp.oninput = () => {
-      const q = inp.value.trim();
-      clearTimeout(t);
-      if (q.length < 2) { sug.classList.add('hide'); caja.classList.remove('buscando'); return; }
-      caja.classList.add('buscando');
-      sug.innerHTML = `<div class="gload"><span class="spin"></span>Buscando ${TT('paciente', 'p', '', 'l', 'l')}…</div>`; sug.classList.remove('hide');
-      const n = ++pide;
-      t = setTimeout(async () => {
-        const { data } = await db.rpc('contactos_lista', { q, lim: 8 });
-        if (n !== pide) return;
-        caja.classList.remove('buscando');
-        const l = data || [];
-        sug.innerHTML = `<div class="gsh">${TT('paciente', 'p', '', 'l', 'C')}</div>` + (l.map((x, i) => `<button type="button" data-pc="${i}"><span class="gic">🧑</span>
-          <span><b>${esc(x.nombre)}</b><span class="sm">${esc([x.telefono || x.movil, x.nif, x.municipio, x.medico].filter(Boolean).join(' · '))}</span></span></button>`).join('')
-          || `<div class="gload">Sin coincidencias. Créalo con «+ Nuevo».</div>`);
-        sug.querySelectorAll('[data-pc]').forEach(b => b.onclick = () => { valor = l[+b.dataset.pc]; pinta(); o.alElegir && o.alElegir(valor); });
-      }, 250);
-    };
-    el.querySelector('[data-pnuevo]').onclick = () => editorContacto({ nombre: inp.value.trim() }, c => {
-      valor = Object.assign({}, c); pinta(); o.alElegir && o.alElegir(valor);
-    });
-  };
-  pinta();
-}
 
 /* ---------------- nueva cita con el selector de médico ---------------- */
 
@@ -412,35 +304,6 @@ function celda(m, k) {
   return `<span class="sm">${esc(m[k] || '')}</span>`;
 }
 
-function filtroActual() {
-  const f = {};
-  ['q', 'prov', 'muni', 'esp', 'est', 'com'].forEach(k => { if (F[k]) f[k] = F[k]; });
-  if (F.urg) f.urg = true;
-  if (F.mios) f.mios = true;
-  if (F.sin) f.sin = true;
-  return f;
-}
-function textoFiltro(f) {
-  const p = [];
-  if (f.urg) p.push('urgentes');
-  if (f.mios) p.push('de mi cartera');
-  if (f.sin) p.push('sin visitar');
-  if (f.est) p.push(f.est);
-  if (f.esp) p.push(f.esp);
-  if (f.muni) p.push(f.muni); else if (f.prov) p.push(f.prov);
-  if (f.com) p.push(f.com === 'ninguno' ? 'sin comercial' : 'de ' + ((COMS.find(u => u.id === f.com) || {}).nombre || 'un comercial'));
-  if (f.q) p.push('“' + f.q + '”');
-  return p.length ? p.join(' · ') : `Todos ${TT('medico', 'p', 'el', 'l', 'l')}`;
-}
-function aplicarFiltroGuardado(f) {
-  Object.assign(F, { q: '', prov: '', muni: '', esp: '', est: '', com: '', urg: false, mios: false, sin: false, orden: 'nombre', pagina: 0 });
-  if (f.q) { F.q = f.q; $('q').value = f.q; }
-  ['prov', 'muni', 'esp', 'est', 'com'].forEach(k => { if (f[k]) { F[k] = f[k]; const s = $('f' + k); if (s) s.value = f[k]; } });
-  if (f.urg) F.urg = true;
-  if (f.mios) F.mios = true;
-  if (f.sin) F.sin = true;
-  ir('directorio'); buscar(true);
-}
 
 /* ---------------- ficha del médico: comercial en «Editar ficha» ---------------- */
 
@@ -541,21 +404,6 @@ const RPKEY = () => 'dlc-ruta-pausa-' + (PERFIL ? PERFIL.id : '');
 
 
 
-/** Ventana con varias opciones; devuelve la clave elegida o null. */
-function elegirOpcion(titulo, msg, botones) {
-  return new Promise(res => {
-    const d = $('mini');
-    d.innerHTML = `<div class="fbox"><div class="fh"><h2>${esc(titulo)}</h2></div>
-      <p style="margin:0 0 10px;white-space:pre-line">${esc(msg)}</p>
-      <div class="acts" style="justify-content:flex-end;flex-wrap:wrap">${botones.map(b =>
-        `<button class="btn ${b.cls || ''}" data-op="${b.k}">${esc(b.t)}</button>`).join('')}</div></div>`;
-    const fin = v => { d.close(); res(v); };
-    d.querySelectorAll('[data-op]').forEach(b => b.onclick = () => fin(b.dataset.op === 'no' ? null : b.dataset.op));
-    d.oncancel = e => { e.preventDefault(); fin(null); };
-    d.onclick = e => { if (e.target === d) fin(null); };
-    d.showModal();
-  });
-}
 
 
 

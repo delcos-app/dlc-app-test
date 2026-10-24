@@ -7,7 +7,6 @@
      venta (también los que se hicieron antes al 100 % de descuento).
    ============================================================ */
 function sinCargoP(p, total) { return !!(p && (p.sin_cargo || (total != null && Math.abs(+total) < 0.005 && (p.unidades == null || +p.unidades > 0)))); }
-function etiquetaCanal(p, total) { return sinCargoP(p, total) ? 'Entrega sin cargo' : p.canal === 'centro' ? 'Venta a centro' : `Venta ${TT('paciente', 's', 'al', 'l', 'l')}`; }
 pedidoPago = async function (id) {
   if (!$('dlg').open || $('pdpago')) return;
   const [{ data }, { data: js }] = await Promise.all([RPC_ORIG('pedido_detalle', { p_id: id }),

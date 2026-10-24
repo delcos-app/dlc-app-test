@@ -67,92 +67,10 @@ function pintarPerfil() {
   pintarPerfilPaso4();
 }
 
-function pintarPerfilPaso1() {
-  const g = $('pfi') && $('pfi').closest('.g2'); if (!g) return;
-  const vacio = g.children[1];
-  vacio.innerHTML = `<label for="pfl">Idioma</label><select id="pfl" data-notr>${IDIOMAS.map(([k, n]) => `<option value="${k}" ${IDIOMA === k ? 'selected' : ''}>${n}</option>`).join('')}</select>`;
-  $('pfl').onchange = async () => {
-    const id = $('pfl').value;
-    const prefs = Object.assign({}, PERFIL.preferencias || {}, { idioma: id });
-    const { data, error } = await db.rpc('guardar_preferencias', { p: prefs });
-    if (error) { toast('No se ha podido guardar', true); return; }
-    PERFIL.preferencias = data || prefs;
-    try { localStorage.setItem('app-idioma', id); } catch (e) {}
-    // Al volver al castellano se recarga para recuperar los textos originales
-    if (id === 'es') { location.reload(); return; }
-    aplicarIdioma(id); toast('✓');
-  };
-}
 
-function pintarPerfilPaso2() {
-  const ok = $('pfok');
-  if (ok) {
-    // Siempre con las preferencias actuales: antes, guardar «Mis datos» podía borrar el idioma elegido
-    ok.onclick = async () => {
-      const nombre = $('pfn').value.trim(); if (!nombre) { toast('El nombre no puede quedar vacío', true); return; }
-      const prefs = Object.assign({}, PERFIL.preferencias || {}, { telefono: $('pft').value.trim(), inicio: $('pfi').value });
-      const [a, b] = await Promise.all([db.rpc('guardar_preferencias', { p: prefs }), db.from('perfiles').update({ nombre }).eq('id', PERFIL.id)]);
-      if (a.error) { toast('No se ha podido guardar', true); return; }
-      PERFIL.preferencias = a.data || prefs;
-      if (!b.error) { PERFIL.nombre = nombre; $('uname').textContent = nombrePila(nombre); $('av').textContent = iniciales(nombre); }
-      toast('Datos guardados');
-    };
-  }
-  const sel = $('pfl');
-  if (sel) sel.onchange = async () => {
-    const id = sel.value;
-    const prefs = Object.assign({}, PERFIL.preferencias || {}, { idioma: id });
-    const { data, error } = await db.rpc('guardar_preferencias', { p: prefs });
-    if (error) { toast('No se ha podido guardar', true); return; }
-    PERFIL.preferencias = data || prefs;
-    try { localStorage.setItem('app-idioma', id); sessionStorage.removeItem('app-idioma-recarga'); } catch (e) {}
-    pantallaCarga(IDIOMAS.find(x => x[0] === id)[1] + '…');
-    location.reload();
-  };
-}
 
-function pintarPerfilPaso3() {
- medidorClave($('pfp1'), $('pfp2'), $('pfpok'));
-}
 
-function pintarPerfilPaso4() {
- const c = $('pfp1') && $('pfp1').closest('.card'); if (c) c.remove();
-}
 
-function pintarPerfilBase() {
-  const pr = PERFIL.preferencias || {};
-  const inicios = [['inicio', 'Inicio'], ['agenda', 'Agenda'], ['rutas', 'Rutas'], ['directorio', 'Directorio'], ['ventas', 'Pedidos']].filter(([k]) => puedeModulo(k));
-  $('cfgcuerpo').innerHTML = `<div id="perfilcab"></div>
-    <div class="card cfgpanel"><h2>Mis datos</h2>
-      <div class="g2"><div><label for="pfn">Nombre visible</label><input id="pfn" value="${esc(PERFIL.nombre)}"></div>
-        <div><label for="pft">Teléfono</label><input id="pft" inputmode="tel" value="${esc(pr.telefono || '')}" placeholder="Para que el equipo pueda llamarte"></div></div>
-      <div class="g2"><div><label for="pfi">Al entrar, abrir</label><select id="pfi">${inicios.map(([k, t]) => `<option value="${k}" ${(pr.inicio || 'inicio') === k ? 'selected' : ''}>${t}</option>`).join('')}</select></div><div></div></div>
-      <div class="acts" style="justify-content:flex-end"><button class="btn" id="pfok">Guardar</button></div></div>
-    <div class="card cfgpanel"><h2>Contraseña</h2>
-      <div class="g2"><div><label for="pfp1">Nueva contraseña</label><input id="pfp1" type="password" autocomplete="new-password"></div>
-        <div><label for="pfp2">Repítela</label><input id="pfp2" type="password" autocomplete="new-password"></div></div>
-      <div class="acts" style="justify-content:flex-end"><button class="btn sec" id="pfpok">Cambiar contraseña</button></div></div>`;
-  // Tarjeta de contexto (datos, accesos y actividad)
-  const tmp = $('cfgcuerpo'); const guard = tmp.innerHTML;
-  $('pfok').onclick = async () => {
-    const nombre = $('pfn').value.trim(); if (!nombre) { toast('El nombre no puede quedar vacío', true); return; }
-    const prefs = Object.assign({}, pr, { telefono: $('pft').value.trim(), inicio: $('pfi').value });
-    const [a, b] = await Promise.all([db.rpc('guardar_preferencias', { p: prefs }), db.from('perfiles').update({ nombre }).eq('id', PERFIL.id)]);
-    if (a.error) { toast('No se ha podido guardar', true); return; }
-    PERFIL.preferencias = a.data || prefs; if (!b.error) { PERFIL.nombre = nombre; $('uname').textContent = nombrePila(nombre); $('av').textContent = iniciales(nombre); }
-    toast('Datos guardados');
-  };
-  $('pfpok').onclick = async () => {
-    const p1 = $('pfp1').value, p2 = $('pfp2').value;
-    if (p1.length < 8) { toast('Mínimo 8 caracteres', true); return; } if (p1 !== p2) { toast('No coinciden', true); return; }
-    const { error } = await db.auth.updateUser({ password: p1 });
-    if (error) { toast('No se ha podido cambiar: ' + error.message, true); return; }
-    $('pfp1').value = $('pfp2').value = ''; toast('Contraseña cambiada');
-  };
-  // Se reutiliza la tarjeta de perfil con accesos y actividad
-  const caja = document.createElement('div'); caja.id = 'cfgcuerpo-tmp';
-  pintarPrefsPerfil();
-}
 async function pintarPrefsPerfil() {
   // v2.340.0: la tarjeta de la persona se pinta directamente en su sitio (antes, en un contenedor escondido esperando a pintarPrefs:
   // llegaba tarde o, si quedaba otra #miperfil en la copia fija, no llegaba y dejaba el hueco)
@@ -167,15 +85,6 @@ async function pintarPrefsPerfil() {
 
 /* ---------------- Rutas y desplazamientos ---------------- */
 
-async function pintarPrefsParte(parte) {
-  await pintarPrefs();
-  const c = $('cfgcuerpo'); if (!c) return;
-  if ($('miperfil')) $('miperfil').remove();
-  if (parte === 'rutas') {
-    c.querySelectorAll(':scope > p.sm').forEach(p => p.remove());
-    c.insertAdjacentHTML('afterbegin', '<div class="card cfgpanel"><h2>Rutas y desplazamientos</h2><p class="sm">Desde dónde sales y dónde terminas. Al pulsar «Cómo llegar» eliges con qué app navegar (Google Maps, Waze o Apple Maps). El horario de las rutas está en su propio apartado.</p></div>');
-  }
-}
 
 /* ---------------- Material de visita ---------------- */
 
@@ -217,29 +126,6 @@ async function pintarMaterial() {
 
 /* ---------------- Almacenes ---------------- */
 
-async function pintarAlmacenes2() {
-  await cargarAlmacenes(); if (!COMS.length) await cargarComerciales();
-  const { data: st } = await RPC_ORIG('stock_resumen', {});
-  const sinMaletin = COMS.filter(u => rolPuede(u.rol, 'almacen_propio') && !ALMACENES.some(a => a.usuario_id === u.id));
-  $('cfgcuerpo').innerHTML = `
-    <div class="card cfgpanel"><h2>Almacenes</h2>
-      <p class="sm">Dónde está físicamente tu stock. Cada unidad está en un almacén y en un lote, así sabes qué hay, dónde y cuándo caduca.</p>
-      <div class="mattipos"><div><b>🏢 Almacén central</b><span>Donde entra la mercancía al recibir las compras y de donde salen los pedidos.</span></div>
-        <div><b>💼 Maletín de comercial</b><span>Las muestras que lleva cada comercial. Se reponen traspasando desde el central y se descuentan al registrar ${TT('visita', 'p', '', 'l', 'l')}.</span></div></div></div>
-    <div class="card cfgpanel"><h2>Tus almacenes</h2>
-      <div class="almgrid">${ALMACENES.map(a => `<div class="almc"><span class="ic">${a.tipo === 'central' ? '🏢' : a.tipo === 'deposito' ? '🏢' : '💼'}</span>
-        <b>${esc(a.nombre)}</b><span class="sm">${a.tipo === 'central' ? 'Almacén central' : a.tipo === 'deposito' ? 'Depósito en un centro' : 'Maletín de ' + esc(a.usuario || '—')}${a.activo ? '' : ' · inactivo'}</span>
-        <span class="almu"><b>${num(a.unidades || 0)}</b> unidades</span></div>`).join('')}</div>
-      ${sinMaletin.length ? `<div class="avisoh" style="margin-top:12px"><span>${sinMaletin.length === 1 ? esc(sinMaletin[0].nombre) + ' no tiene' : sinMaletin.length + ' comerciales no tienen'} maletín: sus muestras saldrán del almacén central.</span></div>` : ''}
-      <div class="matadd" style="margin-top:12px"><select id="almu">${COMS.filter(u => rolPuede(u.rol, 'almacen_propio')).map(u => `<option value="${u.id}">${esc(u.nombre)}</option>`).join('')}</select>
-        <button class="btn sec" id="almok">Crear maletín</button></div>
-      <p class="sm">Para pasar unidades del central a un maletín: Productos → Stock → abre el producto → «Traspasar».${Array.isArray(st) && st.length ? '' : ''}</p></div>`;
-  $('almok').onclick = async () => {
-    const u = COMS.find(x => x.id === $('almu').value); if (!u) return;
-    const { error } = await db.rpc('guardar_almacen', { p: { nombre: 'Maletín ' + String(u.nombre).split(' ')[0], tipo: 'maletin', usuario_id: u.id } });
-    if (error) { toast('No se ha podido crear', true); return; } toast('Maletín creado'); pintarAlmacenes2();
-  };
-}
 
 /* ---------------- Configuración: apartados y navegación ---------------- */
 

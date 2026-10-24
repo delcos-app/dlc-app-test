@@ -10,12 +10,6 @@
 // y se llevan al panel lateral al abrirlo (y vuelven al cerrarlo)
 // v2.294 (R-02): los filtros propios son compactos en el panel de la pantalla y normales en el panel lateral: se marca al moverlos
 function chicoEn(el, si) { [el, ...el.querySelectorAll('input, select')].forEach(x => { if (x.matches('input, select')) x.classList.toggle('chico', si); }); return el; }
-function htLateralAbierto() { const d = $('tools'); return d.classList.contains('abierto') && String(HERR_CTX || '').startsWith('ht-'); }
-function htDevolver() {
-  const d = $('tools'), lat = d.querySelector('.htpropios.lat'); if (!lat) return;
-  const sec = $('v-' + String(HERR_CTX || '').replace('ht-', '')), hold = sec && sec.querySelector('.htpanel .htpropios');
-  if (hold) [...lat.children].forEach(ch => hold.appendChild(chicoEn(ch, true)));
-}
 new MutationObserver(() => { if (!$('tools').classList.contains('abierto')) htDevolver(); }).observe($('tools'), { attributes: true, attributeFilter: ['class'] });
 function htAbrirLateral(sec) {
   const d = $('tools'), id = sec.id.replace('v-', '');
@@ -49,16 +43,6 @@ htActivos = (orig => function (sec) {
   if (htLateralAbierto() && HERR_CTX === 'ht-' + sec.id.replace('v-', '')) $('tools').querySelectorAll('.htpropios.lat select').forEach(s => { if (s.selectedIndex > 0) n++; });
   return n;
 })(htActivos);
-// El botón va a la derecha de la cabecera y abre el panel lateral
-function htColocarBoton(sec) {
-  const b = sec.querySelector('.htbtn'); if (!b || b.dataset.v254) return;
-  b.dataset.v254 = '1';
-  const acts = b.parentElement; acts.appendChild(b); acts.classList.add('htacts');
-  b.onclick = () => htAbrirLateral(sec);
-  sec.querySelectorAll('.htpanel').forEach(p => p.classList.add('hide'));
-  // Los selectores del panel lateral actualizan el contador
-  $('tools').addEventListener('change', () => htContador(sec));
-}
 let HT2_PEND = false;
 new MutationObserver(() => {
   if (HT2_PEND) return; HT2_PEND = true;

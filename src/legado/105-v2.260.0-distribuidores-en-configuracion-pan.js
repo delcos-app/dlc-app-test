@@ -46,29 +46,6 @@ async function pintarDistribuidores() {
     pintarDistribuidores();
   });
 }
-function editarDistribuidor(d) {
-  const nuevo = !d; d = d || {};
-  $('dlg2body').innerHTML = `<div class="fh"><div><h2>${nuevo ? 'Nuevo distribuidor' : 'Editar distribuidor'}</h2><div class="sm">Mayorista o depósito que sirve pedidos a vuestros clientes</div></div>
-      <button class="x" data-cerrar2 aria-label="Cerrar">✕</button></div>
-    <label for="dsn">Nombre</label><input id="dsn" placeholder="p. ej. Cofares" value="${esc(d.nombre || '')}">
-    <div class="g2"><div><label for="dse">Correo para pedidos</label><input id="dse" type="email" value="${esc(d.email || '')}"></div>
-      <div><label for="dst">Teléfono</label><input id="dst" inputmode="tel" value="${esc(d.telefono || '')}"></div></div>
-    <label for="dsnota">Nota</label><input id="dsnota" placeholder="Horario de pedidos, persona de contacto…" value="${esc(d.nota || '')}">
-    <div class="acts" style="justify-content:flex-end"><button type="button" class="btn sec" data-cerrar2>Cancelar</button><button type="button" class="btn" id="dsok">${nuevo ? 'Añadir' : 'Guardar'}</button></div>`;
-  $('dlg2').showModal();
-  $('dsok').onclick = async () => {
-    const nombre = $('dsn').value.trim(); if (!nombre) { toast('Escribe el nombre', true); return; }
-    const email = $('dse').value.trim() || null;
-    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { toast('El correo no parece válido', true); return; }
-    const fila = { nombre, email, telefono: $('dst').value.trim() || null, nota: $('dsnota').value.trim() || null };
-    $('dsok').disabled = true;
-    const { error } = nuevo ? await db.from('distribuidores').insert(fila) : await db.from('distribuidores').update(fila).eq('id', d.id);
-    if (error) { $('dsok').disabled = false; toast((nuevo ? 'No se ha podido añadir: ' : 'No se ha podido guardar: ') + error.message, true); return; }
-    $('dlg2').close(); toast(nuevo ? 'Distribuidor añadido' : 'Guardado');
-    await cargarDistribuidores(true).catch(() => []);
-    if (CFG_KEY === 'distribuidores' && $('cfgcuerpo')) pintarDistribuidores();
-  };
-}
 
 
 

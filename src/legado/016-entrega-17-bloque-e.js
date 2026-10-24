@@ -19,11 +19,6 @@ async function rpcCache(fn, params, clave) {
   return { data: null, cache: true };
 }
 
-function avisoCache(el, fecha) {
-  if (!el) return;
-  el.insertAdjacentHTML('afterbegin', `<div class="cacheaviso">Sin conexión · datos guardados
-    ${fecha ? 'el ' + new Date(fecha).toLocaleString('es', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : ''}</div>`);
-}
 
 /* ---------------- administración: secciones nuevas ---------------- */
 

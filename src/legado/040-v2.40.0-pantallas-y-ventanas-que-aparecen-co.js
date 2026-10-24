@@ -27,36 +27,11 @@ db.rpc = function (fn, params, opts) {
 let ALERTAS_OCULTAS = null;
 const tituloAlerta = s => s.textContent.replace(/\s+/g, ' ').replace(/^\s*\d+\s*/, '').replace(/\bequipo\b\s*$/, '').trim();
 const normAl = t => String(t).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').slice(0, 60);
-function claveAlerta(titulo, x) {
-  const id = x.dataset.inificha || x.dataset.iniped || x.dataset.inistock || x.dataset.inicomp;
-  return normAl(titulo) + ':' + (id || normAl((x.querySelector('.tx b') || x).textContent));
-}
 async function cargarOcultas(forzar) {
   if (ALERTAS_OCULTAS && !forzar) return ALERTAS_OCULTAS;
   const { data } = await RPC_ORIG('mis_alertas_descartadas', {});
   ALERTAS_OCULTAS = data || [];
   return ALERTAS_OCULTAS;
-}
-async function filtrarAlertasInicio() {
-  const caja = $('iniextra'); if (!caja) return;
-  const ocultas = new Set((await cargarOcultas()).map(x => x.clave));
-  let total = 0;
-  caja.querySelectorAll('details.alerta2').forEach(det => {
-    const sum = det.querySelector(':scope > summary'), tit = tituloAlerta(sum);
-    const items = [...det.querySelectorAll(':scope > div > .item, :scope .lista > .item')];
-    items.forEach(x => { if (ocultas.has(claveAlerta(tit, x))) x.remove(); });
-    const quedan = det.querySelectorAll(':scope > div > .item, :scope .lista > .item').length;
-    if (!quedan && items.length) { det.remove(); return; }
-    const nEl = [...sum.querySelectorAll('span, b')].find(e => /^\d+$/.test(e.textContent.trim()));
-    if (nEl && items.length) nEl.textContent = quedan;
-    total += quedan || 0;
-  });
-  const card = caja.querySelector('details.alerta2') ? caja.querySelector('details.alerta2').closest('.card') : null;
-  const n = card && card.querySelector('h2 .n'); if (n) n.textContent = card.querySelectorAll('details.alerta2').length;
-  if (ALERTAS_OCULTAS.length && card && !card.querySelector('.alocultas')) {
-    card.insertAdjacentHTML('beforeend', `<button class="kcfg alocultas" style="margin:4px 16px 12px">Ver alertas ocultas (${ALERTAS_OCULTAS.length})</button>`);
-    card.querySelector('.alocultas').onclick = verOcultas;
-  }
 }
 async function verOcultas() {
   const l = await cargarOcultas(true);

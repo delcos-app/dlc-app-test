@@ -19,27 +19,7 @@ const NOTIF_DIARIOS = ['citas_hoy', 'seguimientos_hoy', 'pagos_pendientes', 'fac
 const notifArea = t => (NOTIF_AREAS.find(a => a[2].includes(t)) || ['otros'])[0];
 let NOTIF_LISTA = [], NOTIF_FILTRO = '';
 
-// Acciones de cada aviso: [texto, función, principal]
-function notifAcciones(x) {
-  const d = x.datos || {}, [t, id] = String(x.enlace || '').split(':'), out = [];
-  if (x.tipo === 'reponer') {
-    if (d.telefono) out.push(['Llamar', () => { location.href = 'tel:' + String(d.telefono).replace(/\s+/g, ''); }, true]);
-    out.push(['Nueva venta', () => nuevaVenta({ contacto_id: d.contacto_id || id, cliente: d.nombre, telefono: d.telefono }), !d.telefono]);
-  } else if (x.tipo === 'caida_ventas') {
-    out.push(['Ver ficha', () => abrirFicha(d.cuenta_id || id), true], ['Citar', () => nuevaCita(d.cuenta_id || id)]);
-  } else if (x.tipo === 'visita_sin_registrar') {
-    out.push([`Registrar ${TT('visita', 's', '', 'l', 'l')}`, () => abrirVisita(d.cuenta_id), true], ['Ver ficha', () => abrirFicha(d.cuenta_id)]);
-  } else if (t === 'pedido' && id) out.push(['Ver pedido', () => verPedido(id), true]);
-  else if (t === 'ficha' && id) out.push(['Ver ficha', () => abrirFicha(id), true]);
-  else if (x.enlace) out.push(['Abrir', () => irEnlace(x.enlace), true]);
-  return out;
-}
 
-function notifDia(f) {
-  const d = new Date(f), hoy = new Date(); hoy.setHours(0, 0, 0, 0);
-  const dif = Math.round((hoy - new Date(d.getFullYear(), d.getMonth(), d.getDate())) / 864e5);
-  return dif <= 0 ? 'Hoy' : dif === 1 ? 'Ayer' : dif < 7 ? 'Esta semana' : 'Antes';
-}
 
 // v2.242.0: aquí iba la primera versión de notifPintar (se redefine entera más abajo)
 panelNotificaciones = function (l) {
@@ -48,19 +28,6 @@ panelNotificaciones = function (l) {
   if (!$('dlg').open) $('dlg').showModal();
 };
 
-// Ajustes: tabla compacta (al momento / en el resumen del día) y silencio
-async function notifGuardarPrefs(cambio, ok) {
-  const prefs = Object.assign({}, PERFIL.preferencias || {}, cambio);
-  const { data, error } = await db.rpc('guardar_preferencias', { p: prefs });
-  if (error) { toast('No se ha podido guardar', true); return false; }
-  PERFIL.preferencias = data || prefs; if (ok) toast(ok); return true;
-}
-function notifModo(k) {
-  const v = ((PERFIL.preferencias || {}).notif || {})[k], diario = NOTIF_DIARIOS.includes(k);
-  if (v === false) return 'no';
-  if (v && typeof v === 'object') { if (v.m === false && v.r) return 'r'; if (v.m === false) return 'no'; }
-  return diario ? 'r' : 'm';
-}
 pintarNotif = function () {
   const tipos = tiposDeMiRol(), s = (PERFIL.preferencias || {}).notif_silencio || {};
   const filas = NOTIF_AREAS.map(([a, t, ks]) => [t, tipos.filter(x => ks.includes(x[0]))]).filter(([, l]) => l.length);
@@ -226,44 +193,6 @@ refrescarAnalitica = (orig => function (...a) {
   return orig.apply(this, a);
 })(refrescarAnalitica);
 
-async function pintarErroresDelcos() {
-  const c = $('cfgcuerpo'); if (!c) return;
-  const f = window.__ERRG || { estado: 'abiertos', dias: 15 };
-  c.innerHTML = `<div class="card cfgpanel"><div class="skel" style="width:40%"></div><div class="skel"></div></div>`;
-  const { data, error } = await RPC_ORIG('errores_resumen', { p_dias: f.dias });
-  if (!$('cfgcuerpo')) return;
-  const todos = error ? [] : (data || []);
-  const l = todos.filter(x => f.estado === 'todos' || (f.estado === 'abiertos' ? x.estado !== 'Resuelto' : x.estado === 'Resuelto'));
-  const nom = { error: 'Error de programa', api: 'Error de base de datos' };
-  const fecha = v => new Date(v).toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' });
-  c.innerHTML = `<div class="card cfgpanel errgrupos"><h2 style="padding:0 0 4px">Errores de la plataforma</h2>
-    <p class="sm">Los errores iguales van juntos. Al marcar un grupo como resuelto queda apuntada la versión; si vuelve a salir en esa versión o en una
-      posterior, se reabre solo. «Descargar» guarda el archivo para quien da soporte técnico.</p>
-    ${error ? `<div class="banda-peligro">No se ha podido leer el registro: ${esc(error.message)}</div>` : ''}
-    <div class="usrbar"><select id="egest"><option value="abiertos" ${f.estado === 'abiertos' ? 'selected' : ''}>Sin resolver</option>
-        <option value="resueltos" ${f.estado === 'resueltos' ? 'selected' : ''}>Resueltos</option><option value="todos" ${f.estado === 'todos' ? 'selected' : ''}>Todos</option></select>
-      <select id="egdias">${[7, 15, 30, 90].map(n => `<option value="${n}" ${f.dias === n ? 'selected' : ''}>Últimos ${n} días</option>`).join('')}</select>
-      <button class="btn sec" id="egdesc">${svgIco(ICON_NOM.download)} Descargar</button></div>
-    <div class="errlista">${l.map((x, i) => `<div class="errfila e-${x.tipo}">
-        <div><b>${esc(nom[x.tipo] || x.tipo)}</b> <span class="sm">· ${esc(x.pantalla || '—')} · ${num(x.veces)} ${x.veces === 1 ? 'vez' : 'veces'} · ${num(x.personas)} ${x.personas === 1 ? 'persona' : 'personas'}
-          · última ${fecha(x.ultima)}${x.resuelto_en_version ? (x.resuelto_auto ? ' · resuelto solo en ' : ' · resuelto en ') + esc(x.resuelto_en_version) : ''}</span>
-          <div class="errmsg">${esc(x.mensaje)}</div>
-          <details class="errdet"><summary class="sm">Versiones y detalle técnico</summary><div class="sm">Versiones: ${esc(x.versiones || '—')} · primera ${fecha(x.primera)}</div>
-            <pre>${esc(JSON.stringify(x.detalle || {}, null, 1))}</pre></details></div>
-        <select class="chico" data-egh="${i}" aria-label="Estado del grupo">${['Nuevo', 'Revisado', 'Resuelto'].map(e => `<option ${x.estado === e ? 'selected' : ''}>${e}</option>`).join('')}</select></div>`).join('')
-      || `<div class="vacio">${f.estado === 'abiertos' ? 'No hay errores sin resolver en este periodo.' : 'Sin errores con estos filtros.'}</div>`}</div></div>`;
-  $('egest').onchange = $('egdias').onchange = () => { window.__ERRG = { estado: $('egest').value, dias: +$('egdias').value }; pintarErroresDelcos(); };
-  c.querySelectorAll('[data-egh]').forEach(s => s.onchange = async () => {
-    const x = l[+s.dataset.egh];
-    const { data: r } = await RPC_ORIG('marcar_errores_huella', { p_huella: x.huella, p_estado: s.value });
-    toast(r && r.ok ? (s.value === 'Resuelto' ? 'Grupo resuelto: si vuelve a salir, se reabre solo' : 'Estado actualizado') : 'No se ha podido cambiar', !(r && r.ok));
-    if (r && r.ok) pintarErroresDelcos();
-  });
-  $('egdesc').onclick = () => {
-    const b = new Blob([JSON.stringify({ generado: new Date().toISOString(), version: VERSION_APP, errores: todos }, null, 1)], { type: 'application/json' });
-    const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = `errores_${hoyISO()}.json`; a.click();
-  };
-}
 if (PAGINAS.delcos && !PAGINAS.delcos.tabs.some(t => t[0] === 'errores')) PAGINAS.delcos.tabs.push(['errores', 'Errores', () => pintarErroresDelcos()]);
 // Producción (3/10/2026): en el iPhone, sin cobertura, Safari da «Load failed» o «Fetch is aborted». Eso no es un fallo de la plataforma:
 // no se apunta en el registro de errores, y la visita (registrar_actividad, que no se duplica gracias a su op_id) se guarda en la cola
@@ -306,19 +235,7 @@ async function escribirRpc(fn, payload) {
 const PAGO_PLANES = ['campo', 'comercial', 'empresa'];
 let PAGO_ESTADO = null;   // la respuesta de plan_uso (plan, usuarios, solo_lectura)
 
-async function pagoLlamar(cuerpo, boton) {
-  if (boton) { boton.disabled = true; boton.dataset.txt = boton.textContent; boton.textContent = 'Abriendo…'; }
-  try {
-    const { data, error } = await db.functions.invoke('pagos', { body: cuerpo });
-    let d = data;
-    if (error) { try { d = await error.context.json(); } catch (e) { d = { ok: false, error: error.message }; } }
-    if (!d || !d.ok) { toast('No se ha podido: ' + ((d && d.error) || 'error del pago'), true); return null; }
-    return d;
-  } finally { if (boton) { boton.disabled = false; boton.textContent = boton.dataset.txt; } }
-}
 
-// (v2.183.0: aquí iba la primera versión de elegirPago; se redefine entera más abajo)
-async function pagoPortal(boton) { const d = await pagoLlamar({ accion: 'portal' }, boton); if (d && d.url) location.href = d.url; }
 
 // «Plan y suscripción»: los botones reales en lugar de correos
 pintarPaginaPlan = (orig => async function (...a) {
@@ -368,16 +285,6 @@ async function pagoCargarEstado() {
   if (!data) return;
   PAGO_ESTADO = data; if (data.plan && data.plan.plan) PLAN_ACTUAL = data.plan;
   pagoAviso();
-}
-// Al volver de Stripe: se espera a que llegue el aviso y el plan quede activo
-async function pagoEsperarActivo() {
-  for (let i = 0; i < 20; i++) {
-    await new Promise(r => setTimeout(r, 3000));
-    await pagoCargarEstado();
-    const pl = PLAN_ACTUAL || {};
-    if (pl.stripe_suscripcion && pl.estado === 'activo') { toast('Suscripción activa: plan ' + planDe(pl.plan).nombre); if (TAB === 'plan' || TAB === 'organizacion' || TAB === 'config') ir(TAB); return; }
-  }
-  toast('El pago está hecho; la suscripción aparecerá en unos minutos');
 }
 (function pagoArranque() {
   let n = 0;
@@ -502,19 +409,7 @@ menuPersonalizar = (orig => function (...a) {
   return r;
 })(menuPersonalizar);
 
-/* v2.165.0 · Bajar de plan con orden (decisiones de Eric, 4/10/2026):
-   - A medida: no se baja desde la app; lo hace delcos desde su panel y no antes de la fecha de compromiso del contrato.
-   - Las bajadas (plan menor, menos usuarios o de anual a mensual) se programan para el final del periodo pagado; las subidas, al momento.
-     Antes de confirmar se enseña lo que se deja de tener. «Plan y suscripción» dice el cambio previsto (con «Anular el cambio») y la baja pedida.
-   - Sin Facturación en el plan pero con facturas emitidas: Facturación en solo consulta (verlas y descargarlas, no emitir; la base lo impide). */
-function facConsulta() {
-  try { return !!(PAGO_ESTADO && PAGO_ESTADO.facturas) && !['empresa', 'medida'].includes((PLAN_ACTUAL || {}).plan); } catch (e) { return false; }
-}
 const facSinPlan = () => { try { return !['empresa', 'medida'].includes((PLAN_ACTUAL || {}).plan); } catch (e) { return false; } };
-function marcarFacPlan() {
-  document.body.classList.toggle('facsolo', facSinPlan());
-  try { aplicarPermisosMenu(); } catch (e) {}
-}
 pagoCargarEstado = (orig => async function (...a) { const r = await orig.apply(this, a); marcarFacPlan(); return r; })(pagoCargarEstado);
 // En solo consulta, la pantalla lo dice arriba y Organización no enseña lo de emitir (datos fiscales, series, VeriFactu, PDF)
 cargarFacturacion = (orig => async function (...a) {

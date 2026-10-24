@@ -7,20 +7,6 @@
 NOMBRE_ESTADO_CENTRO['Pendiente de pago'] = 'p-warn';
 window.PC_ANT = false;
 
-async function pcProforma(id, btn) {
-  if (btn) btn.disabled = true;
-  try {
-    const { data: f } = await RPC_ORIG('portal_proforma', { p_id: id });
-    if (!f || !f.ok) { toast(f && f.motivo === 'no_encontrado' ? 'Ese pedido ya no está pendiente de pago' : motivoPortal(f), true); return; }
-    const d = f.diseno || {};
-    const C = Object.assign({}, PDF_DEF, d, { cols: Object.assign({}, PDF_DEF.cols, d.cols || {}) },
-      { titulo: 'FACTURA PROFORMA', formaPago: true, iban: true, vencimiento: false });
-    const doc = await facturaPDF(f, '', C);
-    doc.save(f.numero + '.pdf');
-    toast(`Proforma descargada. Pon «${f.concepto}» como concepto de la transferencia`);
-  } catch (e) { toast('No se ha podido preparar la proforma', true); registrarError('app', 'Proforma del portal', { e: String(e) }); }
-  finally { if (btn) btn.disabled = false; }
-}
 document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('[data-pcpro]'); if (b) pcProforma(b.dataset.pcpro, b); });
 
 // Configuración → Portal: pago por adelantado de los pedidos del centro
@@ -44,10 +30,6 @@ pintarCfgPortal = (orig => async function (...a) {
   return r;
 })(pintarCfgPortal);
 
-function pcDebeHtml(peds) {
-  const n = (peds || []).filter(p => p.proforma).length;
-  return n ? `<div class="pmaviso pcdebe"><div><b>${n === 1 ? 'Tienes un pedido pendiente de pago' : `Tienes ${num(n)} pedidos pendientes de pago`}</b><span class="sm">Descarga la factura proforma en «Tus pedidos» y haz la transferencia: lo preparamos en cuanto llegue.</span></div></div>` : '';
-}
 
 
 

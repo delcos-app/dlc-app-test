@@ -35,20 +35,6 @@ if (window.L && L.map) {
 /* ---------------- Configuración: todo se muestra en el panel de la derecha ---------------- */
 
 let PANEL_ACTIVO = null;
-function salirPanel() {
-  if (!PANEL_ACTIVO) return;
-  if (PANEL_ACTIVO.tipo === 'dbody') { const p = document.querySelector('#cfgcuerpo [data-panel]#dbody'); if (p) p.id = ''; const r = $('dbody-modal'); if (r) r.id = 'dbody'; }
-  if (PANEL_ACTIVO.tipo === 'admin') { const p = document.querySelector('#cfgcuerpo [data-panel]#v-admin'); if (p) p.id = ''; const r = $('v-admin-real'); if (r) r.id = 'v-admin'; }
-  PANEL_ACTIVO = null;
-}
-// Las pantallas que se abrían en ventana se pintan dentro del panel
-function panelDeVentana(fn) {
-  salirPanel();
-  const r = $('dbody'); r.id = 'dbody-modal';
-  $('cfgcuerpo').innerHTML = '<div id="dbody" data-panel="1" class="cfgpanel card"></div>';
-  PANEL_ACTIVO = { tipo: 'dbody', refrescar: () => panelDeVentana(fn) };
-  fn();
-}
 function panelDeModulo(sec) {
   salirPanel();
   const r = $('v-admin'); r.id = 'v-admin-real';
@@ -116,34 +102,6 @@ pintarVerifactu = async function () {
 /* ---------------- Manual: se explica antes de llevarte a ningún sitio ---------------- */
 
 const CFG_DE_MODULO = { agenda: 'horario', rutas: 'horario', admin: 'usuarios', facturacion: 'fiscal', inicio: 'kpis', config: 'prefs', directorio: 'cat', ventas: 'cat', permisos: 'usuarios', medico: 'usuarios', roles: 'usuarios' };
-function infoManual(id, paso) {
-  const s = MANUAL.find(x => x.id === id);
-  if (!s && !paso) return;
-  if (paso) {
-    const [ic, t, d, m] = paso;
-    $('dbody').innerHTML = `<div class="fh"><div><h2>${ic} ${esc(t)}</h2><div class="sm">Primeros pasos</div></div><button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-      <p>${esc(d)}</p>${(MANUAL.find(x => x.id === m) || {}).para ? `<p class="sm">${esc(MANUAL.find(x => x.id === m).para)}</p>` : ''}
-      <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>Ahora no</button>
-        ${m === 'config' || puedeModulo(m) ? `<button class="btn" id="mangoir">Llévame</button>` : ''}</div>`;
-    $('dlg').showModal();
-    if ($('mangoir')) $('mangoir').onclick = () => { $('dlg').close(); if (m === 'config') CFG_SEC = 'prefs'; ir(m); };
-    return;
-  }
-  const n = s.a ? nivelDe2(s.a) : (puede('administrar') ? 3 : 1);
-  const ay = AYUDA[id === 'visitas' ? 'agenda' : id === 'centros' ? 'directorio' : id] || null;
-  const destino = MODULO_AREA[id] || ['manual', 'config'].includes(id) ? id : null;
-  const cfg = CFG_DE_MODULO[id];
-  $('dbody').innerHTML = `<div class="fh"><div><h2>${ICONOS_MANUAL[id] || '📘'} ${esc(s.t)}</h2><div class="sm">${esc(s.para)}</div></div><button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-    <h3 class="mansub">Qué puedes hacer</h3><ul class="manlist">${s.hacer.map(([req, txt]) => `<li class="${n >= req ? 'si' : 'no'}"><span>${n >= req ? '✓' : '🔒'}</span><span>${esc(txt)}</span></li>`).join('')}</ul>
-    ${ay && ay[2] && ay[2].length ? `<h3 class="mansub">Cómo funciona</h3><ul class="manlist">${ay[2].map(x => `<li><span>•</span><span>${x}</span></li>`).join('')}</ul>` : ''}
-    ${s.config.length ? `<h3 class="mansub">Dónde se configura</h3><div class="mancfg">${s.config.map(x => `<span>⚙ ${esc(x)}</span>`).join('')}</div>` : ''}
-    <div class="acts" style="justify-content:flex-end;flex-wrap:wrap;margin-top:14px"><button class="btn sec" data-cerrar>Cerrar</button>
-      ${cfg && (puede('administrar') || ['horario', 'kpis', 'prefs'].includes(cfg)) ? `<button class="btn sec" id="manircfg">Ir a su configuración</button>` : ''}
-      ${destino && destino !== 'manual' && (destino === 'config' || puedeModulo(destino)) ? `<button class="btn" id="manirmod">Abrir ${esc(s.t)}</button>` : ''}</div>`;
-  $('dlg').showModal();
-  if ($('manirmod')) $('manirmod').onclick = () => { $('dlg').close(); ir(destino); };
-  if ($('manircfg')) $('manircfg').onclick = () => { $('dlg').close(); CFG_SEC = cfg; ir('config'); };
-}
 document.addEventListener('click', e => { const r = $('manres'); if (r && !e.target.closest('.manbusca')) r.classList.add('hide'); });
 
 

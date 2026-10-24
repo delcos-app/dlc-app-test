@@ -100,12 +100,6 @@ document.addEventListener('focusin', e => {
    6. En el móvil, en «Esta semana», toda la celda del día abre ese día (antes cada nombre llevaba a su ficha).
    7. En el móvil, «Mover a otro día» y las demás fechas ya no abren el calendario del teléfono antes que el de delcos. */
 
-// ---- 5. Horario de atención en todos sus centros
-function centroConConsulta(c, fecha) {
-  const v = ventanasDe(c.dias, fecha);
-  if (!v || v.length) return null;   // sin horario en ese centro (no se sabe) o con consulta ese día: nada que cambiar
-  return (c.otros_dias || []).find(o => o && o.lugar !== c.centro_nombre && (w => w && w.length)(ventanasDe(o.dias, fecha))) || null;
-}
 estimarDiaBase = (orig => function (citas, fecha) {
   const otro = {};
   const cs = (citas || []).map(c => { const o = centroConConsulta(c, fecha); if (!o) return c; otro[c.id] = o; return Object.assign({}, c, { dias: o.dias }); });
@@ -224,61 +218,6 @@ function verCita(c) {
 
 // ---- 2. El mes de la Agenda, en cualquier mes y año
 let AG_MES = null;
-async function agPintarMes(mes) {
-  const caja = $('agmes'); if (!caja) return;
-  const hoy = hoyISO(), actual = hoy.slice(0, 7);
-  mes = mes || actual; AG_MES = mes;
-  const ini = mes + '-01', d1 = new Date(ini + 'T12:00:00');
-  const fin = isoMas(fechaLocal(new Date(d1.getFullYear(), d1.getMonth() + 1, 1)), -1);
-  let porDia = {};
-  if ((caja.dataset.mes || actual) !== mes) {
-    const { data } = await rpcCache('agenda_rango', { p_desde: ini, p_hasta: fin, p_usuario: agUsuarioFiltro() }, 'agenda-mes-' + mes);
-    (data || []).filter(x => !['Descartada', 'Aplazada'].includes(x.estado)).forEach(x => { porDia[x.fecha] = (porDia[x.fecha] || 0) + 1; });
-    if (AG_MES !== mes || !$('agmes')) return;
-    $('agmes').dataset.mes = mes;
-    const hueco = (d1.getDay() + 6) % 7, nd = +fin.slice(8);
-    const celdas = Array(hueco).fill('').concat(Array.from({ length: nd }, (_, i) => `${mes}-${String(i + 1).padStart(2, '0')}`));
-    $('agmes').querySelector('.agmesgrid').innerHTML = AG_DIAS_TXT.map(x => `<span class="agmd">${x}</span>`).join('') + celdas.map(f => {
-      if (!f) return '<span></span>';
-      const n = porDia[f] || 0;
-      return `<button type="button" class="agmc ${f === hoy ? 'hoy' : ''} ${f < hoy ? 'pasado' : ''} ${n ? 'con' : ''}" data-agdia="${f}" aria-label="${fechaCorta(f)}: ${n} citas">
-        <span>${+f.slice(8)}</span>${n ? `<i class="agpt">${n > 9 ? '9+' : n}</i>` : ''}</button>`; }).join('');
-  }
-  const fh = $('agmes').querySelector('.fh');
-  fh.classList.add('agmesh');
-  fh.innerHTML = `<button type="button" class="kmv agmnav" data-agm="-1" aria-label="Mes anterior">‹</button>
-    <button type="button" class="agmtit" id="agmtit" aria-label="Elegir mes y año">${esc(periodoTxt(mes).replace(/^./, c => c.toUpperCase()))}</button>
-    <button type="button" class="kmv agmnav" data-agm="1" aria-label="Mes siguiente">›</button>
-    ${mes !== actual ? '<button type="button" class="btn sec agmhoy" id="agmhoy">Hoy</button>' : ''}`;
-  const mover = n => { const d = new Date(ini + 'T12:00:00'); d.setMonth(d.getMonth() + n); agPintarMes(fechaLocal(d).slice(0, 7)); };
-  fh.querySelectorAll('[data-agm]').forEach(b => b.onclick = ev => { ev.stopPropagation(); mover(+b.dataset.agm); });
-  if ($('agmhoy')) $('agmhoy').onclick = ev => { ev.stopPropagation(); agPintarMes(actual); };
-  $('agmtit').onclick = ev => { ev.stopPropagation(); agElegirMes(mes, ev.currentTarget); };
-  $('agmes').querySelectorAll('.agmc[data-agdia]').forEach(b => {
-    b.classList.toggle('sel', b.dataset.agdia === AG_FECHA && AG_FECHA !== hoy);
-    b.onclick = ev => { ev.stopPropagation(); agVerDia(b.dataset.agdia); };
-  });
-}
-function agElegirMes(mes, ancla) {
-  document.querySelectorAll('.agmpop').forEach(x => x.remove());
-  let anio = +mes.slice(0, 4);
-  const p = document.createElement('div'); p.className = 'agmpop';
-  const nombres = Array.from({ length: 12 }, (_, i) => new Date(2026, i, 15).toLocaleDateString('es-ES', { month: 'short' }).replace('.', ''));
-  const pinta = () => {
-    p.innerHTML = `<div class="agmpoph"><button type="button" class="kmv" data-an="-1" aria-label="Año anterior">‹</button><b>${anio}</b>
-      <button type="button" class="kmv" data-an="1" aria-label="Año siguiente">›</button></div>
-      <div class="agmpopg">${nombres.map((n, i) => { const k = `${anio}-${String(i + 1).padStart(2, '0')}`;
-        return `<button type="button" data-mk="${k}" class="${k === mes ? 'on' : ''}">${n}</button>`; }).join('')}</div>`;
-    p.querySelectorAll('[data-an]').forEach(b => b.onclick = ev => { ev.stopPropagation(); anio += +b.dataset.an; pinta(); });
-    p.querySelectorAll('[data-mk]').forEach(b => b.onclick = ev => { ev.stopPropagation(); p.remove(); agPintarMes(b.dataset.mk); });
-  };
-  pinta();
-  document.body.appendChild(p);
-  const r = ancla.getBoundingClientRect(), w = Math.min(280, innerWidth - 20);
-  p.style.width = w + 'px';
-  p.style.left = Math.max(10, Math.min(innerWidth - w - 10, r.left + r.width / 2 - w / 2)) + 'px';
-  p.style.top = Math.min(innerHeight - p.offsetHeight - 10, r.bottom + 6) + 'px';
-}
 document.addEventListener('pointerdown', e => { if (!e.target.closest('.agmpop, #agmtit')) document.querySelectorAll('.agmpop').forEach(x => x.remove()); }, true);
 
 // ---- 6. «Esta semana»: toda la celda abre el día (en el móvil, también al tocar un nombre)
@@ -328,108 +267,6 @@ document.addEventListener('focusin', e => {
    «+ Añadir» (centro_anadir_profesional: enlaza o crea su consulta en el centro), y en cada uno Ficha, «+ Cita» en ese centro y «Quitar»
    (centro_quitar_profesional: quita esa consulta de su ficha). «Editar centro» corrige sus datos y su horario (guardar_centro). */
 const HOR_TXT = h => DIAS_SEM.filter(([d]) => h && h[d]).map(([d, n]) => `${n} ${h[d]}`).join(' · ');
-async function fichaCentro(id) {
-  const dlg = $('dlg');
-  dlg.classList.remove('pequena');
-  $('dbody').innerHTML = `<div class="fh"><div><h2>Centro</h2></div><button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-    <div class="skel" style="width:60%"></div><div class="skel"></div><div class="skel" style="width:80%"></div>`;
-  if (!dlg.open) dlg.showModal();
-  // v2.310.0: con la ficha se pide su cuenta de tipo Centro (un solo centro), para abrirla desde aquí
-  const [{ data, error }, { data: cta }] = await Promise.all([db.rpc('ficha_centro', { p_id: id }), db.from('cuentas').select('id').eq('centro_id', id).maybeSingle().then(r => r, () => ({ data: null }))]);
-  if (!dlg.open) return;
-  if (error || !data || !data.datos) {
-    $('dbody').innerHTML = `<div class="fh"><div><h2>Centro</h2></div><button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-      <div class="banda-peligro">No se ha podido abrir el centro${error ? ': ' + esc(error.message) : ''}.</div>`;
-    return;
-  }
-  const c = data.datos, l = data.profesionales || [];
-  const dir = [c.direccion, [c.cp, c.municipio].filter(Boolean).join(' '), c.provincia].filter(Boolean).join(', ');
-  const hor = HOR_TXT(c.horario);
-  const quien = TT('medico', 'p', '', 'l', 'C');
-  $('dbody').innerHTML = `
-    <div class="fh"><div><h2>${esc(c.nombre)}</h2><div class="sm">${esc(dir || 'Sin dirección')}</div></div>
-      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-    <div class="fcacts">
-      ${c.telefono ? `<a class="btn sec" href="tel:${esc(c.telefono)}">Llamar · ${esc(c.telefono)}</a>` : ''}
-      ${c.lat != null ? '<button type="button" class="btn sec" id="fcllegar">Cómo llegar</button>' : ''}
-      ${data.puede_editar ? '<button type="button" class="btn sec" id="fceditar">Editar centro</button>' : ''}
-      ${cta && cta.id ? `<button type="button" class="btn sec" id="fccuenta" data-fccta="${cta.id}">Ficha comercial</button>` : ''}
-    </div>
-    ${hor ? `<div class="vcdatos"><div class="vcfila"><span>Horario</span><b>${esc(hor)}</b></div></div>` : ''}
-    <div class="fcprocab"><h3>${esc(quien)} · ${num(l.length)}</h3>${data.puede_fichas ? '<button type="button" class="btn" id="fcanadir">+ Añadir</button>' : ''}</div>
-    <div id="fcsel"></div>
-    ${l.length ? `<div class="lista fclista">${l.map(m => {
-      const donde = [m.planta ? 'Planta ' + m.planta : '', m.sala ? 'Sala ' + m.sala : ''].filter(Boolean).join(' · ');
-      const dias = HOR_TXT(m.dias);
-      return `<div class="item fcpro">
-        <span class="tx"><b>${m.urgente ? '❗ ' : ''}${esc(m.nombre)}</b>
-          <span class="sm">${esc([m.especialidad, donde].filter(Boolean).join(' · ') || '—')}</span>
-          ${dias ? `<span class="sm">Atiende: ${esc(dias)}</span>` : ''}</span>
-        <span class="acts" style="margin:0">
-          <button type="button" class="btn sec" data-fcf="${m.id}">Ficha</button>
-          <button type="button" class="btn sec" data-fcc="${m.id}">+ Cita</button>
-          ${data.puede_fichas ? `<button type="button" class="btn sec fcquitar" data-fcq="${m.id}" aria-label="Quitar a ${esc(m.nombre)} del centro">Quitar</button>` : ''}
-        </span></div>`; }).join('')}</div>`
-      : `<div class="vacio">Todavía no hay ${esc(quien.toLowerCase())} en este centro.${data.puede_fichas ? ' Añádelos con «+ Añadir».' : ''}</div>`}`;
-  if ($('fcllegar')) $('fcllegar').onclick = () => navegarA([+c.lat, +c.lon]);
-  if ($('fceditar')) $('fceditar').onclick = () => editarCentroFicha(c);
-  if ($('fcanadir')) $('fcanadir').onclick = () => {
-    $('fcanadir').disabled = true;
-    selectorMedico($('fcsel'), { alElegir: async m => {
-      if (!m) return;
-      const { data: r, error: e } = await db.rpc('centro_anadir_profesional', { p_centro: c.id, p_cuenta: m.id });
-      if (e || !r || !r.ok) { toast(r && r.error === 'permiso' ? `No puedes cambiar la ficha de ${m.nombre}` : 'No se ha podido añadir', true); fichaCentro(c.id); return; }
-      toast(r.ya ? `${m.nombre} ya estaba en el centro: queda enlazado` : `${m.nombre} añadido a ${c.nombre}`);
-      fichaCentro(c.id);
-    } });
-    const i = $('fcsel').querySelector('input'); if (i) i.focus();
-  };
-  $('dbody').querySelectorAll('[data-fcf]').forEach(b => b.onclick = () => { dlg.close(); FICHA_CENTRO = c.nombre; abrirFicha(b.dataset.fcf); });
-  $('dbody').querySelectorAll('[data-fcc]').forEach(b => b.onclick = () => { FICHA_CENTRO = c.nombre; nuevaCita(b.dataset.fcc); });
-  $('dbody').querySelectorAll('[data-fcq]').forEach(b => b.onclick = async () => {
-    const m = l.find(x => x.id === b.dataset.fcq); if (!m) return;
-    const unica = +m.consultas <= 1;
-    if (!await preguntar(`Se quita a ${m.nombre} de ${c.nombre}: ${TT('consulta', 's', 'este', 'l', 'l')} desaparece de su ficha.${unica ? ` Era su única ${TT('consulta', 's', '', 'l', 'l')}: su ficha se queda sin centro.` : ''}`,
-      { titulo: '¿Quitar del centro?', ok: 'Quitar', peligro: true })) return;
-    const { data: r, error: e } = await db.rpc('centro_quitar_profesional', { p_centro: c.id, p_cuenta: m.id });
-    if (e || !r || !r.ok) { toast(r && r.error === 'permiso' ? `No puedes cambiar la ficha de ${m.nombre}` : 'No se ha podido quitar', true); return; }
-    toast(`${m.nombre} ya no está en ${c.nombre}`);
-    fichaCentro(c.id);
-  });
-}
-function editarCentroFicha(c) {
-  const h = c.horario || {};
-  $('dbody').innerHTML = `
-    <div class="fh"><div><h2>Editar centro</h2><div class="sm">Los cambios se pasan a ${TT('consulta', 'p', 'el', 'l', 'l')} enlazadas a este centro</div></div>
-      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-    <div class="g2"><div><label for="ecn">Nombre del centro</label><input id="ecn" value="${esc(c.nombre || '')}"></div>
-      <div><label for="ect">Teléfono</label><input id="ect" value="${esc(c.telefono || '')}" inputmode="tel"></div></div>
-    <div class="g2"><div><label for="ecd">Dirección</label><input id="ecd" value="${esc(c.direccion || '')}"></div>
-      <div><label for="ecc">Código postal</label><input id="ecc" value="${esc(c.cp || '')}" inputmode="numeric"></div></div>
-    <div class="g2"><div><label for="ecm">Población</label><input id="ecm" value="${esc(c.municipio || '')}"></div>
-      <div><label for="ecp">Provincia</label><input id="ecp" value="${esc(c.provincia || '')}"></div></div>
-    <label>Horario de apertura</label>
-    <div class="cphor">${DIAS_SEM.map(([d, n]) => `<div><span>${n}</span><input data-ech="${d}" value="${esc(h[d] || '')}" placeholder="${d === 'D' ? 'Cerrado' : '8:00-20:00'}"></div>`).join('')}</div>
-    <div class="acts" style="justify-content:flex-end"><button type="button" class="btn sec" id="ecvolver">Volver</button><button type="button" class="btn" id="ecok">Guardar cambios</button></div>`;
-  $('ecvolver').onclick = () => fichaCentro(c.id);
-  $('ecok').onclick = async ev => {
-    const v = k => $(k).value.trim();
-    if (!v('ecn')) { toast('Escribe el nombre del centro', true); return; }
-    const horario = {}; $('dbody').querySelectorAll('[data-ech]').forEach(x => { if (x.value.trim()) horario[x.dataset.ech] = x.value.trim(); });
-    const cambioDir = v('ecd') !== (c.direccion || '') || v('ecm') !== (c.municipio || '') || v('ecc') !== (c.cp || '');
-    ev.target.disabled = true;
-    let lat = c.lat, lon = c.lon;
-    if (cambioDir && (v('ecd') || v('ecm'))) {
-      const g = await geocodificar([v('ecd'), v('ecc'), v('ecm'), v('ecp'), 'España'].filter(Boolean).join(', '), { direccion: v('ecd'), municipio: v('ecm'), cp: v('ecc') }).catch(() => null);
-      if (g && !g.fuera) { lat = +g.lat; lon = +g.lon; } else if (g && g.fuera) toast(`La dirección sale en ${g.fuera}, no en ${v('ecm')}: se guarda sin mover el punto del mapa`, true);
-    }
-    const { data: r, error } = await RPC_ORIG('guardar_centro', { p: { id: c.id, nombre: v('ecn'), telefono: v('ect'), direccion: v('ecd'), cp: v('ecc'),
-      municipio: v('ecm'), provincia: v('ecp'), lat, lon, horario } });
-    ev.target.disabled = false;
-    if (error || !r || !r.ok) { toast((r && r.error) || 'No se ha podido guardar', true); return; }
-    toast('Centro guardado'); fichaCentro(c.id);
-  };
-}
 // Buscador de arriba: un centro dado de alta abre su ficha
 window.addEventListener('click', e => {
   const b = e.target.closest && e.target.closest('[data-gcid]');
@@ -454,14 +291,6 @@ let AG_SEMANA = null;
 // ---- 2 y 3. Cabecera del día: moverse de día y apuntar tareas
 // Se guardan las del día en memoria: mover una cita repinta el día sin volver a pedirlas (solo se piden al cambiar de día, recargar o editarlas)
 let TAREAS_DIA = null;
-async function tareasDelDia(f) {
-  if (AG_VISTA && AG_VISTA.id !== PERFIL.id) return null;   // las tareas son de cada uno: en la agenda de otra persona no se ven
-  if (TAREAS_DIA && TAREAS_DIA.f === f) return TAREAS_DIA.l;
-  const { data, error } = await db.from('tareas').select('*').eq('fecha', f).order('orden', { ascending: true, nullsFirst: false }).order('hora', { ascending: true, nullsFirst: false }).order('creado_en');
-  if (error) return null;
-  TAREAS_DIA = { f, l: data || [] };
-  return TAREAS_DIA.l;
-}
 function editarTarea(t, fecha) {
   t = t || {};
   $('dbody').innerHTML = `
@@ -602,37 +431,4 @@ cargarSeguimientoPaso1 = (orig => async function (...a) {
   try { await pintarDireccionesDudosas(); } catch (e) {}
   return r;
 })(cargarSeguimientoPaso1);
-async function pintarDireccionesDudosas() {
-  const cal = $('calidad'); if (!cal || $('caldirs')) return;
-  const { data, error } = await db.rpc('ubicaciones_dudosas', {});
-  if (error || !$('calidad') || $('caldirs')) return;
-  const l = data || [];
-  if (!l.length) return;
-  cal.insertAdjacentHTML('afterend', `<div class="card" id="caldirs">
-    <div class="fh"><div><h2>Direcciones que no cuadran · ${num(l.length)}</h2>
-      <div class="sm">El punto del mapa de ${TT('consulta', 'p', 'este', 'l', 'l')} está lejos de su municipio: «Cómo llegar», las rutas y la agenda las sitúan mal.</div></div></div>
-    <div class="lista">${l.map(u => `<div class="item cdir" data-cdir="${u.id}" style="cursor:default">
-      <span class="tx"><b>${esc(u.nombre)}</b>
-        <span class="sm">${esc([u.centro_nombre, u.direccion, [u.cp, u.municipio].filter(Boolean).join(' ')].filter(Boolean).join(' · ') || 'Sin dirección')}</span>
-        <span class="sm cdirkm">${u.km != null ? `El punto está a ${num(u.km)} km de ${esc(u.municipio)}` : 'El punto está fuera de España'}</span></span>
-      <span class="acts" style="margin:0">
-        <button type="button" class="btn sec" data-cdirf="${u.cuenta_id}">Ficha</button>
-        ${u.direccion || u.municipio ? `<button type="button" class="btn" data-cdirg="${u.id}">Volver a situar</button>` : ''}</span></div>`).join('')}</div></div>`);
-  const caja = $('caldirs');
-  caja.querySelectorAll('[data-cdirf]').forEach(b => b.onclick = () => abrirFicha(b.dataset.cdirf));
-  caja.querySelectorAll('[data-cdirg]').forEach(b => b.onclick = async () => {
-    const u = l.find(x => x.id === b.dataset.cdirg); if (!u) return;
-    const txt = b.textContent; b.disabled = true; b.textContent = 'Buscando…';
-    const g = await geocodificar([u.direccion, u.cp, u.municipio, u.provincia, 'España'].filter(Boolean).join(', '), { direccion: u.direccion, municipio: u.municipio, cp: u.cp });
-    b.disabled = false; b.textContent = txt;
-    if (!g) { toast('No se encuentra esa dirección: corrígela en la ficha', true); return; }
-    if (g.fuera) { toast(`Esa dirección sale en ${g.fuera}, no en ${u.municipio}: corrígela en la ficha`, true); return; }
-    const { error: e } = await db.from('ubicaciones').update({ lat: +g.lat, lon: +g.lon }).eq('id', u.id);
-    if (e) { toast('No se ha podido guardar: ' + e.message, true); return; }
-    toast(`${u.nombre}: situado en ${u.municipio}`);
-    const fila = caja.querySelector(`[data-cdir="${u.id}"]`); if (fila) fila.remove();
-    const h = caja.querySelector('h2'), quedan = caja.querySelectorAll('.cdir').length;
-    if (!quedan) caja.remove(); else if (h) h.textContent = `Direcciones que no cuadran · ${num(quedan)}`;
-  });
-}
 

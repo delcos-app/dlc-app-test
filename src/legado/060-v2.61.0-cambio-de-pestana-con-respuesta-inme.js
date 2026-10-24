@@ -62,28 +62,6 @@ function resumirAyuda(pop) {
 
 /* ---------------- 3. Facturación: Series, Registro y VeriFactu ---------------- */
 
-function ajustarFacturacion() {
-  if (TAB !== 'facturacion') return;
-  const cu = $('fcuerpo'); if (!cu) return;
-  if (FSEC === 'series') {
-    const nb = [...cu.querySelectorAll('button')].find(x => /nueva serie/i.test(x.textContent));
-    const barra = cu.querySelector('.tbarra, .filtros.conbtn');
-    if (nb && barra && nb.parentElement !== barra) { const hb = barra.querySelector('.htbtn'); nb.classList.add('tbacc'); hb ? barra.insertBefore(nb, hb) : barra.appendChild(nb); }
-  }
-  // Series y Registro: su texto explicativo pasa a una ayuda «i» al principio de la barra de la tabla
-  if (FSEC === 'series' || FSEC === 'registro') {
-    const barra = cu.querySelector('.tbarra, .filtros.conbtn');
-    if (barra && !barra.querySelector('.ai')) {
-      const txt = [cu.querySelector('.panel > .cuenta'), FSEC === 'series' ? cu.querySelector('.panel > p.sm') : null].filter(Boolean);
-      if (txt.length) {
-        const b = document.createElement('button'); b.type = 'button'; b.className = 'ai'; b.textContent = 'i'; b.setAttribute('aria-label', 'Ayuda');
-        b.dataset.ayudaTit = FSEC === 'series' ? 'Series y numeración' : 'Registro de facturación';
-        b.dataset.ayudaTxt = txt.map(x => { const c = x.cloneNode(true); c.querySelectorAll('button').forEach(y => y.remove()); return c.textContent.trim().replace(/\s+/g, ' '); }).join(' ');
-        barra.insertBefore(b, barra.firstChild); txt.forEach(x => x.remove());
-      }
-    }
-  }
-}
 new MutationObserver(() => ajustarFacturacion()).observe($('v-facturacion'), { childList: true, subtree: true });
 
 /* ---------------- 4. Cuentas: el icono sigue el modo real (mapa o lista) ---------------- */
@@ -208,18 +186,6 @@ facturaPDF = async function (f, rectificaNum, cfgPrueba) {
   }
   return doc;
 };
-// Factura de ejemplo para la vista previa
-function facturaEjemplo() {
-  // Los datos reales de la empresa (Facturación → Configuración → Datos fiscales); de ejemplo solo lo que falte
-  const real = Object.fromEntries(Object.entries((AJUSTES || {}).empresa || {}).filter(([, v]) => v));
-  if (real.poblacion && !real.municipio) real.municipio = real.poblacion;
-  const e = Object.assign({ razon_social: nombreApp(), nif: 'B00000000', direccion: 'Calle Mayor 1', cp: '08001', municipio: 'Barcelona', telefono: '930 000 000', web: 'www.tuempresa.com', email: 'hola@tuempresa.com', iban: 'ES00 0000 0000 0000 0000 0000', pie: 'Gracias por su confianza.' }, real);
-  const pr = (PRODUCTOS[0] || { nombre: 'Producto de ejemplo' }).nombre;
-  return { numero: 'F260001', fecha: hoyISO(), vencimiento: hoyISO(), emisor: e, forma_pago: 'Transferencia bancaria',
-    cliente: { nombre: 'Cliente de ejemplo', nif: '12345678Z', direccion: 'Avenida Diagonal 100', municipio: 'Barcelona', cp: '08018', provincia: 'Barcelona', email: 'cliente@correo.es' },
-    lineas: [{ descripcion: pr + ' · caja de 60 cápsulas', precio: 41.82, unidades: 2, base: 83.64, iva: 10 }, { descripcion: 'Envío', precio: 5, unidades: 1, base: 5, iva: 21 }],
-    base: 88.64, desglose_iva: [{ iva: 10, cuota: 8.36 }, { iva: 21, cuota: 1.05 }], total: 98.05, verifactu: {} };
-}
 async function disenoPDF() {
   const C = cfgPDF();
   await cargarAjustes();
@@ -273,14 +239,6 @@ async function disenoPDF() {
     AJUSTES.factura_pdf = JSON.parse(JSON.stringify(C)); delete $('dlg').dataset.sucio; if (!enPagina) $('dlg').close(); toast('Diseño del PDF guardado');
   });
   pinta();
-}
-// Botón en Facturas (administración)
-function botonDisenoPDF() {
-  return;   // v2.87.0: el diseño del PDF está en la configuración de facturación, no en Facturas
-  if (TAB !== 'facturacion' || FSEC !== 'facturas' || !PERFIL || !puede('administrar') || $('fpdfbtn')) return;
-  const acts = document.querySelector('#v-facturacion .saludo .acts'); if (!acts) return;
-  acts.insertAdjacentHTML('afterbegin', `<button class="btn sec" id="fpdfbtn" type="button">${svgIco(ICON_NOM.file)} Diseño del PDF</button>`);
-  $('fpdfbtn').onclick = () => disenoPDF();
 }
 new MutationObserver(botonDisenoPDF).observe($('v-facturacion'), { childList: true, subtree: true });
 

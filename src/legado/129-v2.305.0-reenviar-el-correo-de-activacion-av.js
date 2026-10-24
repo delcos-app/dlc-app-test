@@ -17,15 +17,6 @@ async function reenviarActivacion(email, o = {}) {
   (o.ok || toast)('Correo de activación enviado a ' + email + '. El enlace nuevo sustituye al anterior.');
   return true;
 }
-// En el acceso: aviso y botón «Enviarme un enlace nuevo» con el correo escrito
-function accesoSinActivar(texto) {
-  const msg = $('lmsg'); if (!msg) return;
-  msg.innerHTML = `<span>${esc(texto)}</span> <button type="button" class="btn sec chico" id="lreenv">Enviarme un enlace nuevo</button>`;
-  $('lreenv').onclick = async () => {
-    const b = $('lreenv'); b.disabled = true;
-    await reenviarActivacion($('lu').value, { ok: t => { msg.textContent = t; }, err: t => { msg.querySelector('span').textContent = t; b.disabled = false; } });
-  };
-}
 if (ENLACE_ERROR && /otp_expired|access_denied|expired/i.test(ENLACE_ERROR)) {
   accesoSinActivar('El enlace de activación ha caducado o ya se usó. Escribe tu correo y te enviamos uno nuevo.');
   try { history.replaceState(null, '', location.pathname); } catch (e) {}
