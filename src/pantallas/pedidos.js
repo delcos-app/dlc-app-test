@@ -1367,3 +1367,171 @@ async function enviarDatosPago(id, ...a) {
   if (!await elegirPlantillaCorreo('pago')) return false;
   try { return await enviarDatosPagoBase.call(this, id, ...a); } finally { PLANT_ELEGIDA.pago = null; }
 }
+
+// (v2.183.0: aquí iba la primera versión de ventanaCargando; se redefine entera más abajo)
+/* Ver pedido: la ventana base, sus facturas (o emitirla) y la operativa (antes eran 4 capas). */
+async function verPedidoBase2(id) {
+  return ventanaCargando(async () => {
+    await verPedidoBase(id);
+    await pedidoFacturas(id);
+    await pedidoOperativa(id);
+    await pedidoPago(id);
+  });
+}
+
+/* Pedidos: la base y, en orden, las secciones, las llamadas y el botón de registrar llamada (antes eran 4 capas). */
+async function cargarVentasBase2() {
+  // «Llamadas» solo para quien ve todo el equipo; la base pinta la cabecera como «Compras» y luego se sustituye
+  if (PEDSEC === 'llamadas' && !VE_TODO()) PEDSEC = 'ventas';
+  const sec = PEDSEC;
+  if (sec === 'llamadas') PEDSEC = 'compras';
+  PEDSEC_CARGA = sec;   // v2.335.0: mientras se monta sobre «Compras», el menú y las pestañas marcan ya la sección de verdad
+  try {
+    await cargarVentasBase();
+    await pedidosSecciones();
+  } finally { PEDSEC_CARGA = null; }
+  await pedidosLlamadas(sec);
+  await pedidosBotonLlamada();
+}
+
+/* v2.74.0 · El detalle del pedido muestra sus campos personalizados */
+async function verPedidoBase3(id, ...a) { const r = await verPedidoBase2.call(this, id, ...a); if (id) setTimeout(() => bloqueCampos('pedidos', id, $('dbody')), 150); return r; }
+
+async function cargarVentasBase3(...a) {
+  const r = await cargarVentasBase2.apply(this, a);
+  const v = $('v-ventas'), [t, d] = TITULO_PEDSEC[PEDSEC] || TITULO_PEDSEC.ventas;
+  const h = v && v.querySelector('.saludo h1'); if (h && h.firstChild) h.firstChild.textContent = t;
+  const f = v && v.querySelector('.saludo .fecha'); if (f) f.textContent = d;
+  marcarPedsec();
+  return r;
+}
+
+async function pagoCargarEstadoBase() {
+  const { data } = await RPC_ORIG('plan_uso', {});
+  if (!data) return;
+  PAGO_ESTADO = data; if (data.plan && data.plan.plan) PLAN_ACTUAL = data.plan;
+  pagoAviso();
+}
+
+async function pagoCargarEstadoBase2(...a) { const r = await pagoCargarEstadoBase.apply(this, a); marcarFacPlan(); return r; }
+
+// Se sabe al entrar (plan_uso): en la de plataforma, a Clientes
+async function pagoCargarEstado(...a) {
+  const antes = MODO_PLATAFORMA;
+  const r = await pagoCargarEstadoBase2.apply(this, a);
+  MODO_PLATAFORMA = !!(PAGO_ESTADO && PAGO_ESTADO.plataforma);
+  if (MODO_PLATAFORMA !== antes) {
+    aplicarModoPlataforma();
+    if (MODO_PLATAFORMA && TAB !== 'delcos' && TAB !== 'config') ir('pd-orgs');
+  }
+  return r;
+}
+
+// Ver pedido: distribuidor, correo para él y sin «Emitir factura» si factura él
+async function verPedidoBase4(id, ...a) {
+  const r = await verPedidoBase3.call(this, id, ...a);
+  try {
+    if (!$('dlg').open || $('pddist')) return r;
+    const { data } = await RPC_ORIG('pedido_detalle', { p_id: id });
+    const p = data && data.pedido; if (!p || !p.distribuidor_id || !$('dlg').open || $('pddist')) return r;
+    const d = (await cargarDistribuidores()).find(x => x.id === p.distribuidor_id) || (await cargarDistribuidores(true)).find(x => x.id === p.distribuidor_id) || { nombre: 'Distribuidor' };
+    if (p.factura_distribuidor && $('pvemitir')) $('pvemitir').remove();
+    const cli = data.contacto || {}, l = data.lineas || [];
+    const cuerpo = [`Pedido ${p.numero || ''} de ${nombreApp()}`, '', `Cliente: ${cli.nombre || p.cuenta_texto || ''}${p.distribuidor_codigo ? ' · código ' + p.distribuidor_codigo : ''}`,
+      cli.direccion ? `Dirección: ${[cli.direccion, cli.cp, cli.municipio].filter(Boolean).join(', ')}` : '', '',
+      ...l.map(x => `- ${x.unidades} × ${x.producto || x.nombre || ''}`), '', p.factura_distribuidor ? 'Lo factura el distribuidor.' : 'Lo factura ' + nombreApp() + '.',
+      p.nota ? '\nNota: ' + p.nota : ''].filter(x => x !== null).join('\n');
+    const asunto = `Pedido ${p.numero || ''} · ${cli.nombre || p.cuenta_texto || ''}`;
+    const sitio = $('pdpago') || $('dbody').querySelector('.acts:last-of-type'); if (!sitio) return r;
+    sitio.insertAdjacentHTML('beforebegin', `<div class="blk" id="pddist"><h3>Distribuidor</h3>
+      <p>Lo sirve <b>${esc(d.nombre)}</b>${p.distribuidor_codigo ? ` · código del cliente <b>${esc(p.distribuidor_codigo)}</b>` : ''} · ${p.factura_distribuidor ? 'lo factura el distribuidor' : 'lo facturamos nosotros'}</p>
+      ${p.estado === 'Confirmado' ? `<div class="acts" style="justify-content:flex-start;margin-top:6px">${d.email ? `<a class="btn sec" id="pdmaild" href="mailto:${esc(d.email)}?subject=${encodeURIComponent(asunto)}&body=${encodeURIComponent(cuerpo)}">Preparar correo al distribuidor</a>` : '<span class="sm">El distribuidor no tiene correo: añádelo en sus datos.</span>'}
+        <span class="sm" id="pdmailest">${p.transfer_enviado_en ? 'Correo preparado el ' + fechaCorta(String(p.transfer_enviado_en).slice(0, 10)) : 'Correo sin preparar'}</span></div>` : '<p class="sm">Al confirmarlo podrás preparar el correo al distribuidor.</p>'}</div>`);
+    trfPoner(id, p, d, data);   // v2.265.0
+    if ($('pdmaild')) $('pdmaild').addEventListener('click', async () => {
+      const { data: m } = await db.rpc('marcar_transfer_enviado', { p_id: id });
+      if (m && m.ok && $('pdmailest')) $('pdmailest').textContent = 'Correo preparado el ' + fechaCorta(hoyISO());
+    });
+  } catch (e) {}
+  return r;
+}
+
+// Pedido validado con productos «equipo»: dar de alta los equipos con su número de serie
+async function verPedidoBase5(id, ...a) {
+  const r = await verPedidoBase4.call(this, id, ...a);
+  try {
+    if (!$('dlg').open || $('pdequipos') || !planIncluyeSeccion('parque')) return r;
+    const { data: p } = await db.from('pedidos').select('estado').eq('id', id).maybeSingle();
+    if (!p || p.estado !== 'Confirmado') return r;
+    const { data: pend } = await db.rpc('equipos_pendientes_pedido', { p_pedido: id });
+    const l = (pend || []).filter(x => x.faltan > 0);
+    if (!l.length || !$('dlg').open || $('pdequipos')) return r;
+    const sitio = $('pddist') || $('pdpago') || $('dbody').querySelector('.acts:last-of-type'); if (!sitio) return r;
+    const n = l.reduce((s, x) => s + x.faltan, 0);
+    sitio.insertAdjacentHTML('beforebegin', `<div class="blk" id="pdequipos"><h3>Equipos</h3>
+      <div class="banda-aviso">${n === 1 ? 'Falta dar de alta 1 equipo' : `Faltan por dar de alta ${n} equipos`} de este pedido en el parque instalado. <button type="button" class="btn sec" id="pdeqalta">Dar de alta los equipos</button></div>
+      <div id="pdeqf"></div></div>`);
+    $('pdeqalta').onclick = () => {
+      $('pdeqf').innerHTML = `<div class="depbox"><span class="sm">Escribe el número de serie de cada unidad.</span>
+        ${l.map((x, i) => `<div><b>${esc(x.nombre)}</b> <span class="sm">· ${esc(x.cuenta || '')}</span><div class="cirser">${Array.from({ length: Math.min(x.faltan, 30) }, (_, j) => `<input data-pqs="${i}" maxlength="120" placeholder="Nº de serie de la unidad ${j + 1}" aria-label="Número de serie de la unidad ${j + 1} de ${esc(x.nombre)}">`).join('')}</div></div>`).join('')}
+        <div class="g2"><div><label for="pdeqi">Instalado el</label><input id="pdeqi" type="date" value="${hoyISO()}"></div><div><label for="pdequ">Ubicación</label><input id="pdequ" placeholder="p. ej. Sala 2"></div></div>
+        <div class="acts" style="justify-content:flex-end"><button type="button" class="btn" id="pdeqok">Dar de alta</button></div></div>`;
+      $('pdeqok').onclick = async ev => {
+        const filas = [];
+        l.forEach((x, i) => $('pdeqf').querySelectorAll(`[data-pqs="${i}"]`).forEach(inp => {
+          if (!inp.value.trim() || !x.cuenta_id) return;
+          filas.push({ cuenta_id: x.cuenta_id, producto_id: x.producto_id, serie: inp.value.trim(), instalado: $('pdeqi').value || hoyISO(), ubicacion: $('pdequ').value.trim() || null, revision_meses: +x.revision_meses || 0, pedido_id: id });
+        }));
+        if (!filas.length) { toast(l.some(x => !x.cuenta_id) ? 'El pedido no tiene ficha: da de alta los equipos desde la ficha del centro' : 'Escribe al menos un número de serie', true); return; }
+        ev.target.disabled = true;
+        const { error } = await db.from('equipos').insert(filas);
+        ev.target.disabled = false;
+        if (error) { toast(/row-level|policy/i.test(error.message) ? 'No puedes dar de alta equipos de esta ficha' : 'No se ha podido guardar: ' + error.message, true); return; }
+        toast(filas.length === 1 ? 'Equipo dado de alta' : `${filas.length} equipos dados de alta`); verPedido(id);
+      };
+    };
+  } catch (e) {}
+  return r;
+}
+
+async function cargarVentas(...a) {
+  const r = await cargarVentasBase3.apply(this, a);
+  const cuerpo = $('vcuerpo');
+  if (PEDSEC === 'ventas' && cuerpo && puedeAtribuir() && !$('cardsinatr')) {
+    cuerpo.insertAdjacentHTML('afterbegin', '<div class="card hide" id="cardsinatr"></div>');
+    pintarSinAtribuir();
+  }
+  return r;
+}
+
+async function verPedidoBase6(id, ...a) {
+  const r = await verPedidoBase5.call(this, id, ...a);
+  try {
+    if (!$('dlg').open || $('pdtrfb') || !$('pdvalidar') || !puedeVentas()) return r;
+    const { data } = await RPC_ORIG('pedido_detalle', { p_id: id });
+    const p = data && data.pedido;
+    if (!p || p.estado !== 'Borrador' || !esTransferencia(p.forma_pago) || $('pdtrfb') || !$('pdvalidar')) return r;
+    const cli = data.contacto || {};
+    const acts = $('pdvalidar').closest('.acts');
+    acts.insertAdjacentHTML('beforebegin', `<div class="blk" id="pdtrfb"><h3>Pago por transferencia</h3>
+      <p class="sm">${p.email_pago_en ? `Datos de pago enviados el ${fechaCorta(String(p.email_pago_en).slice(0, 10))}. El pedido espera en borrador hasta que llegue el pago.` : 'Datos de pago sin enviar. El pedido espera en borrador hasta que llegue el pago.'}</p>
+      <div class="acts pdtrfacts">${cli.email ? `<button type="button" class="btn sec chico" id="pdtrfmail">${p.email_pago_en ? 'Volver a enviar los datos de pago' : 'Enviar los datos de pago'}</button>` : `<span class="sm">${esc(TT('paciente', 's', '', 'l', 'C'))} no tiene email en su ficha.</span>`}
+        <button type="button" class="btn chico" id="pdtrfok">Cobrado · confirmar</button></div></div>`);
+    if ($('pdtrfmail')) $('pdtrfmail').onclick = async e => { e.target.disabled = true; if (await enviarDatosPago(id)) verPedido(id); else e.target.disabled = false; };
+    $('pdtrfok').onclick = () => { const v = $('pdvalidar'); v.dataset.pago = '1'; v.click(); setTimeout(() => { if (v.isConnected) delete v.dataset.pago; }, 60000); };
+  } catch (e) {}
+  return r;
+}
+
+/* ============================================================
+   v2.350.0 · Ventanas de Pedidos sin saltos (avisos de Eric, 22/10/2026).
+   1. El pedido aparece de una vez: mientras se pintan sus partes (facturas, operativa, pago, distribuidor, equipos…) la ventana
+      enseña el cargador; antes los botones llegaban por tandas y «Ver la factura» empujaba a «Editar pedido» justo al pulsar.
+   2. Una ventana que la persona cierra mientras carga (✕, «Cancelar», Escape o fuera) no vuelve a abrirse sola: solo con otro
+      clic o tecla (o al volver a la ventana anterior con «‹ Volver»).
+   ============================================================ */
+async function verPedido(id, ...a) {
+  const d = $('dlg'); d.classList.add('pdprep');
+  try { return await verPedidoBase6.call(this, id, ...a); }
+  finally { try { await estable($('dbody'), 2500); } catch (e) {} d.classList.remove('pdprep'); }
+}

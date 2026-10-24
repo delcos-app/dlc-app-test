@@ -21,8 +21,8 @@ document.addEventListener('click', async e => {
 }, true);
 
 let EST_ULT = null;
-estimarDiaBase = (orig => function (citas, fecha) {
-  const r = orig.call(this, citas, fecha);
+function estimarDiaBaseBase2(citas, fecha) {
+  const r = estimarDiaBaseBase.call(this, citas, fecha);
   try {
     const sal = salidaUsuario();
     let pos = sal && sal.lat != null ? [+sal.lat, +sal.lon] : null;
@@ -36,8 +36,8 @@ estimarDiaBase = (orig => function (citas, fecha) {
   } catch (e) {}
   EST_ULT = r;
   return r;
-})(estimarDiaBase);
-function explicarAviso(inf) {
+}
+function explicarAvisoBase(inf) {
   const quien = TT('medico', 's', 'el', 'l', 'l');
   if (inf.lejos) return `Esta parada queda a unos ${num(inf.lejos)} km de la anterior (o de tu punto de salida), así que la hora estimada se va muy tarde. Suele ser una dirección mal situada: revisa la ubicación en su ficha o tu punto de salida en Mi perfil.`;
   const v = inf.ventanas && inf.ventanas.length ? txtVentanas(inf.ventanas) : '';
@@ -66,15 +66,15 @@ pintarProximoRecibo = (orig => function (...a) {
    por cercanía» o pasar citas a otro día) y se quitan los avisos sueltos de hora y horario, que en ese caso no dicen nada útil; las horas estimadas
    que caen fuera de la jornada salen como «—». Los de ubicación lejana se quedan. Y en el móvil, volver a pulsar «⋯» cierra su menú. */
 // Cita con hora fija que el orden deja tarde: el aviso dice qué hacer, y la «i» habla del orden (no del horario de atención)
-estimarDiaBase = (orig => function (citas, fecha) {
-  const r = orig.call(this, citas, fecha);
+function estimarDiaBaseBase3(citas, fecha) {
+  const r = estimarDiaBaseBase2.call(this, citas, fecha);
   Object.values(TD_INFO).forEach(i => { if (i.aviso && /^Llegarías hacia/.test(i.aviso) && !/súbela/.test(i.aviso)) { i.orden = true; i.aviso += ': súbela en la lista u ordena por cercanía'; } });
   return r;
-})(estimarDiaBase);
-explicarAviso = (orig => function (inf) {
+}
+function explicarAvisoBase2(inf) {
   if (inf.orden && !inf.lejos) return 'La cita tiene hora fija, pero está colocada después de otras sin hora: siguiendo el orden de la lista no llegarías a tiempo. Súbela con las flechas hasta su sitio o pulsa «Ordenar por cercanía», que respeta las horas fijas. Es solo un aviso: la cita se guarda igual.';
-  return orig.call(this, inf);
-})(explicarAviso);
+  return explicarAvisoBase.call(this, inf);
+}
 document.addEventListener('click', e => {
   const b = e.target.closest('button'), m = document.querySelector('.tdmenu');
   if (b && m && m.__de === b) { m.remove(); e.stopImmediatePropagation(); e.preventDefault(); return; }
@@ -97,17 +97,17 @@ document.addEventListener('focusin', e => {
    6. En el móvil, en «Esta semana», toda la celda del día abre ese día (antes cada nombre llevaba a su ficha).
    7. En el móvil, «Mover a otro día» y las demás fechas ya no abren el calendario del teléfono antes que el de delcos. */
 
-estimarDiaBase = (orig => function (citas, fecha) {
+function estimarDiaBase(citas, fecha) {
   const otro = {};
   const cs = (citas || []).map(c => { const o = centroConConsulta(c, fecha); if (!o) return c; otro[c.id] = o; return Object.assign({}, c, { dias: o.dias }); });
-  const r = orig.call(this, cs, fecha);
+  const r = estimarDiaBaseBase3.call(this, cs, fecha);
   Object.keys(otro).forEach(id => { if (TD_INFO[id]) TD_INFO[id].otroCentro = otro[id].lugar; });
   return r;
-})(estimarDiaBase);
-explicarAviso = (orig => function (inf) {
-  const t = orig.call(this, inf);
+}
+function explicarAviso(inf) {
+  const t = explicarAvisoBase2.call(this, inf);
   return inf.otroCentro ? t.replace('Según su ficha,', `Ese día atiende en ${inf.otroCentro} (no en el centro de la cita). Según su ficha,`) : t;
-})(explicarAviso);
+}
 
 // ---- 3. Una sola ventana de cita, con centro y notas
 nuevaCita = async function (medicoId, fecha, op = {}) {
@@ -167,51 +167,6 @@ window.addEventListener('click', e => {
   nuevaCita(b.dataset.agendar, null, { origen: 'Ficha' });
 }, true);
 
-// ---- 4. Detalle de la cita al pulsarla en «Tu día»
-function verCita(c) {
-  const inf = TD_INFO[c.id] || {}, abierta = CITA_ABIERTA.includes(c.estado);
-  const hora = c.hora ? String(c.hora).slice(0, 5) : (abierta && inf.llegada != null && inf.llegada < 24 * 60 ? `hacia las ${hm(inf.llegada)} (estimada)` : 'sin hora');
-  const donde = [c.centro_nombre, c.direccion, c.municipio].filter(Boolean).join(' · ');
-  const v = inf.ventanas || ventanasDe(c.dias, c.fecha);
-  const horario = v && v.length ? `${inf.otroCentro ? 'En ' + inf.otroCentro + ': ' : ''}${txtVentanas(v)}` : v && !v.length ? 'Ese día no atiende' : '';
-  $('dbody').innerHTML = `
-    <div class="fh"><div><h2>${esc(c.nombre)}</h2>${c.especialidad ? `<div class="sm">${esc(c.especialidad)}</div>` : ''}</div>
-      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-    <div class="vcdatos">
-      <div class="vcfila"><span>Cuándo</span><b>${esc(fechaLarga(new Date(c.fecha + 'T12:00:00')).replace(/^./, x => x.toUpperCase()))} · ${esc(hora)}</b></div>
-      <div class="vcfila"><span>Dónde</span><b>${esc(donde || 'Sin centro')}</b></div>
-      ${horario ? `<div class="vcfila"><span>Horario</span><b>${esc(horario)}</b></div>` : ''}
-      <div class="vcfila"><span>Estado</span><b>${pillCita(c.estado)}${textoOrigenCita(c) ? ` <span class="sm">${textoOrigenCita(c)}</span>` : ''}</b></div>
-    </div>
-    ${abierta && inf.aviso ? `<div class="banda-aviso" style="margin:0 0 12px">${esc(inf.aviso)}</div>` : ''}
-    <label for="vcnota">Notas de la cita</label>
-    <textarea id="vcnota" rows="3" placeholder="p. ej. quedamos en el bar de enfrente, llevar el reporting…">${esc(c.nota || '')}</textarea>
-    <div class="vcacts">
-      <button type="button" class="btn sec" id="vcficha">Ver ficha</button>
-      ${xyCita(c) ? '<button type="button" class="btn sec" id="vcllegar">Cómo llegar</button>' : ''}
-      ${abierta ? '<button type="button" class="btn sec" id="vchora">Cambiar hora</button><button type="button" class="btn sec" id="vcmover">Mover a otro día</button>' : ''}
-    </div>
-    <div class="acts" style="justify-content:flex-end">
-      <button type="button" class="btn sec" id="vcok" disabled>Guardar notas</button>
-      ${abierta && puedeRegistrarEnDia(c.fecha) ? `<button type="button" class="btn" id="vcreg">Registrar ${TT('visita', 's', '', 'l', 'l')}</button>` : ''}</div>`;
-  const cerrar = () => $('dlg').close();
-  const nota = $('vcnota');
-  nota.oninput = () => { $('vcok').disabled = nota.value.trim() === (c.nota || '').trim(); };
-  $('vcok').onclick = async ev => {
-    ev.target.disabled = true;
-    const v2 = nota.value.trim();
-    const { error } = await db.from('agenda').update({ nota: v2 || null }).eq('id', c.id);
-    if (error) { ev.target.disabled = false; toast('No se ha podido guardar: ' + error.message, true); return; }
-    c.nota = v2; cerrar(); toast('Notas guardadas'); agRefrescoQuieto(c.id, { cifras: false });
-  };
-  $('vcficha').onclick = () => { cerrar(); FICHA_CENTRO = c.centro_nombre || null; abrirFicha(c.cuenta_id); };
-  if ($('vcllegar')) $('vcllegar').onclick = () => accionCita('llegar', c);
-  if ($('vchora')) $('vchora').onclick = () => { cerrar(); accionCita('hora', c); };
-  if ($('vcmover')) $('vcmover').onclick = () => { cerrar(); accionCita('aplazar', c); };
-  if ($('vcreg')) $('vcreg').onclick = () => { cerrar(); VISITA_FECHA = c.fecha; abrirVisita(c.cuenta_id); };
-  $('dlg').classList.add('pequena');
-  $('dlg').showModal();
-}
 
 document.addEventListener('pointerdown', e => { if (!e.target.closest('.agmpop, #agmtit')) document.querySelectorAll('.agmpop').forEach(x => x.remove()); }, true);
 
@@ -277,40 +232,7 @@ window.addEventListener('click', e => {
 
 
 
-// ---- 4. Borrar y descartar en el detalle de la cita
-verCita = (orig => function (c) {
-  const r = orig.call(this, c);
-  try {
-    const abierta = CITA_ABIERTA.includes(c.estado), borrable = abierta && c.fecha >= hoyISO();
-    const caja = $('dbody') && $('dbody').querySelector('.vcacts');
-    if (caja && abierta) {
-      caja.insertAdjacentHTML('afterend', `<div class="vcfin">
-        <button type="button" class="lnk" id="vcdescartar">Descartar la cita</button><span class="sm">No se hará: queda en el historial.</span>
-        ${borrable ? '<button type="button" class="lnk peligro" id="vcborrar">Eliminar la cita</button><span class="sm">Fue un error: desaparece sin dejar rastro.</span>' : ''}</div>`);
-      $('vcdescartar').onclick = () => { $('dlg').close(); accionCita('descartar', c); };
-      if ($('vcborrar')) $('vcborrar').onclick = () => { $('dlg').close(); accionCita('borrar', c); };
-    }
-  } catch (e) {}
-  return r;
-})(verCita);
 
-/* v2.179.0 · Resultados de visita según el estado de la ficha (decisión de Eric, SQL 113): al registrar una visita solo salen los resultados
-   que tocan en el estado de esa ficha (clasificadores_actividad con p_cuenta marca «oculto» los demás); «Ver todos» los enseña igualmente.
-   En Configuración, cada resultado lleva «En todos los estados» / «Solo en: …» para elegir en qué estados aparece (guardar_valor, en_estados). */
-abrirVisitaBase = (orig => async function (id, ...r) {
-  if ($('dbody')) $('dbody').classList.remove('vertodos');
-  const res = await orig.call(this, id, ...r);
-  try {
-    const caja = $('dbody'); if (!caja) return res;
-    const ocultos = caja.querySelectorAll('.optw[data-oculto]');
-    if (ocultos.length && !$('vtodos')) {
-      const ult = [...caja.querySelectorAll('.opciones')].filter(o => o.querySelector('[data-res]')).pop();
-      if (ult) ult.insertAdjacentHTML('afterend', `<button type="button" class="lnk" id="vtodos">Ver ${ocultos.length === 1 ? 'el resultado' : `los ${ocultos.length} resultados`} de otros estados</button>`);
-      $('vtodos').onclick = () => { caja.classList.add('vertodos'); $('vtodos').remove(); };
-    }
-  } catch (e) {}
-  return res;
-})(abrirVisitaBase);
 
 (() => {
   const caja = $('dbody'); if (!caja || !window.MutationObserver) return;

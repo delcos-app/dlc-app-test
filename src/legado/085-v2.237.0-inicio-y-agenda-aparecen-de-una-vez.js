@@ -1,17 +1,3 @@
-revelar = (orig => function (el, max, desde) {
-  const tab = el && el.id && el.id.slice(2), listo = LISTA_PARA[tab];
-  if (!listo || !el.matches || !el.matches('main > section')) return orig(el, max, desde);
-  // Inicio con su esqueleto: sin cargador encima
-  if (tab === 'inicio' && !ES_MEDICO()) { inicioEsqueleto(); el.classList.remove('preparando'); llegar(el); return; }
-  const turno = ++REVELADO, t0 = performance.now(), tope = LISTA_ESPERA[tab] || 6000;
-  el.classList.add('preparando'); el.__t0 = t0; el.__cinta = 0;
-  const mirar = () => estable(el, Math.max(300, tope - (performance.now() - t0)), desde).then(() => {
-    if (turno !== REVELADO) return;
-    if (listo(el) || performance.now() - t0 > tope) { el.classList.remove('preparando'); llegar(el); }
-    else setTimeout(mirar, 60);
-  });
-  mirar();
-})(revelar);
 // Al abrir la app, la primera pantalla también espera a estar completa (antes se enseñaba sin pasar por el revelado)
 (() => {
   const app = $('app'); if (!app) return;

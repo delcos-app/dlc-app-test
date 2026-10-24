@@ -157,17 +157,6 @@ function aplicarModoPlataforma() {
   try { MENU_FIRMA = ''; montarMenuLateral(); } catch (e) {}
 }
 aplicarPermisosMenu = (orig => function (...a) { const r = orig.apply(this, a); try { aplicarModoPlataforma(); } catch (e) {} return r; })(aplicarPermisosMenu);
-// Se sabe al entrar (plan_uso): en la de plataforma, a Clientes
-pagoCargarEstado = (orig => async function (...a) {
-  const antes = MODO_PLATAFORMA;
-  const r = await orig.apply(this, a);
-  MODO_PLATAFORMA = !!(PAGO_ESTADO && PAGO_ESTADO.plataforma);
-  if (MODO_PLATAFORMA !== antes) {
-    aplicarModoPlataforma();
-    if (MODO_PLATAFORMA && TAB !== 'delcos' && TAB !== 'config') ir('pd-orgs');
-  }
-  return r;
-})(pagoCargarEstado);
 
 /* v2.172.0 · «Tu día»: subir o bajar una cita la mueve al momento, sin recargar la agenda (aviso de Eric: antes se recargaban métricas,
    semana, mes y sugerencias). La lista se repinta con el orden nuevo a partir de lo que ya hay (agenda_rango no se vuelve a pedir) y el orden
@@ -181,19 +170,6 @@ rpcCache = (orig => async function (fn, params, clave) {
   if (fn === 'agenda_rango' && params && params.p_desde === params.p_hasta && r && r.data) TD_ULTIMO = { fecha: params.p_desde, data: r.data };
   return r;
 })(rpcCache);
-async function moverCitaLocal(orden, id, acc) {
-  const u = TD_ULTIMO && TD_ULTIMO.fecha === AG_FECHA ? TD_ULTIMO.data : null;
-  if (!u) { if (await guardarOrden(orden)) cargarAgenda(); return; }
-  const ids = new Set(orden.map(c => c.id));
-  TD_PRESET = { fecha: AG_FECHA, data: [...orden, ...u.filter(c => !ids.has(c.id))] };
-  TD_ULTIMO = { fecha: AG_FECHA, data: TD_PRESET.data };
-  const y = window.scrollY;
-  await pintarTuDia();
-  window.scrollTo({ top: y });
-  const b = document.querySelector(`#agcuerpo .tdu [data-td="${acc}|${id}"]:not([disabled])`) || document.querySelector(`#agcuerpo .tdu [data-td$="|${id}"]`);
-  if (b) b.focus({ preventScroll: true });
-  if (!(await guardarOrden(orden))) cargarAgenda();
-}
 
 /* v2.173.0 · Panel delcos completo (SQL 108): Cobros y suscripciones, Altas desde la web y Estado de la plataforma, en el menú del panel.
    Con el menú lateral, el panel ya no repite sus apartados como pestañas (aviso de Eric): el título dice dónde estás. Al entrar en una
@@ -217,14 +193,6 @@ PANEL_SECCIONES.splice(5, 0, ['pd-estado', 'estado', 'Estado de la plataforma', 
     return PANEL_SECCIONES.map(([, k, n]) => { const b = base.find(x => x[0] === k); return b ? [k, n, b[2]] : extra[k] ? [k, n, extra[k]] : null; }).filter(Boolean);
   } });
 })();
-cargarPagina = (orig => function (t, ...a) {
-  const r = orig.call(this, t, ...a);
-  if (t === 'delcos' && MODO_PLATAFORMA) {
-    const sec = $('v-delcos'), tab = PAG_TAB.delcos || 'orgs', s = PANEL_SECCIONES.find(x => x[1] === tab);
-    if (sec && s) { const h = sec.querySelector('.saludo h1'), d = sec.querySelector('.saludo .fecha'); if (h) h.textContent = s[2]; if (d) d.textContent = PANEL_DESC[tab] || ''; }
-  }
-  return r;
-})(cargarPagina);
 
 
 

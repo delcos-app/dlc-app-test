@@ -169,3 +169,55 @@ async function vaciarCola() {
   if (fallidos) toast(`${fallidos === 1 ? 'Un cambio guardado sin conexión no se ha podido enviar' : fallidos + ' cambios guardados sin conexión no se han podido enviar'}: pulsa el aviso de arriba para verlos`, true);
   if (colaLeer().length < habia) { invalidarCache(); cargarInicio(); if (TAB === 'agenda') cargarAgenda(); }
 }
+
+async function escribirRpcBase(fn, payload) {
+  const r = navigator.onLine ? await db.rpc(fn, payload) : { error: { message: 'Failed to fetch' } };
+  if (r && r.error && esErrorRed(r.error)) {
+    colaPoner({ fn, payload: marcarSinConexion(fn, payload), etiqueta: TT('visita', 's', '', 'l', 'C'), t: Date.now() });
+    pintarConexion();
+    setTimeout(() => toast('Sin conexión: queda guardado en este dispositivo y se enviará al recuperarla'), 1500);
+    return { data: { encolada: true }, error: null };
+  }
+  return r;
+}
+
+async function escribirRpcBase2(fn, payload, ...a) {
+  const va = VISITA_ACTUAL;
+  if (fn !== 'registrar_actividad' || !va || !payload || !payload.p || payload.p.cuenta_id !== va.id) return escribirRpcBase.call(this, fn, payload, ...a);
+  payload.p.modo = va.modo;
+  VISITA_ACTUAL = null;
+  const r = await escribirRpcBase.call(this, fn, payload, ...a);
+  if (va.fotos.length && r && !r.error) {
+    if (r.data && r.data.id) subirFotosVisita(r.data.id, va.fotos);
+    else fotosGuardarPendientes(payload.p.op_id, va.fotos);   // v2.259.0: se suben con la visita
+  }
+  return r;
+}
+
+async function escribirRpcBase3(fn, payload, ...a) {
+  const va = VISITA_ACTUAL;
+  if (fn !== 'registrar_actividad' || !va || !va.muestras || !payload || !payload.p || payload.p.cuenta_id !== va.id) return escribirRpcBase2.call(this, fn, payload, ...a);
+  const items = va.muestras.items().map(x => ({ producto_id: x.producto_id, unidades: x.unidades }));
+  const firma = va.muestras.firma(), firmante = va.muestras.firmante();
+  const r = await escribirRpcBase2.call(this, fn, payload, ...a);
+  if (items.length && r && !r.error) {
+    const pm = { cuenta_id: payload.p.cuenta_id, fecha: payload.p.fecha, items, firma, firmante, op_id: 'm-' + payload.p.op_id,
+      ...(r.data && r.data.id ? { actividad_id: r.data.id } : { actividad_op: payload.p.op_id }) };
+    const rm = await escribirRpcBase2.call(this, 'registrar_muestras', { p: pm });
+    if (rm && !rm.error && rm.data && rm.data.ok === false) setTimeout(() => toast(`${TT('visita', 's', '', 'l', 'C', 'guardado')}, pero las muestras no: ${muestraError(rm.data)}`, true), 2600);
+    else if (rm && rm.error) setTimeout(() => toast(`${TT('visita', 's', '', 'l', 'C', 'guardado')}, pero las muestras no se han podido guardar`, true), 2600);
+  }
+  return r;
+}
+
+async function escribirRpcBase4(fn, payload, ...a) {
+  const va = VISITA_ACTUAL;
+  if (fn === 'registrar_actividad' && va && va.productos && payload && payload.p && payload.p.cuenta_id === va.id) payload.p.productos = va.productos.slice();
+  return escribirRpcBase3.call(this, fn, payload, ...a);
+}
+
+async function escribirRpc(fn, payload, ...a) {
+  const r = await escribirRpcBase4.call(this, fn, payload, ...a);
+  if (fn === 'registrar_actividad' && r && r.data && r.data.encolada) setTimeout(() => { if (TAB === 'agenda') tdMarcarPendientes(); }, 0);
+  return r;
+}

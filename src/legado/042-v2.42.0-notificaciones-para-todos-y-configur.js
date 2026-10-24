@@ -15,12 +15,6 @@ const TIPOS_NOTIF = [
   ['pedido_validado', '📦', 'Pedidos confirmados', 'Cada pedido que se confirma (menos los tuyos)']
 ];
 pintarAvisos = refrescarCampana;
-function irEnlace(e) {
-  if (!e) return;
-  const [t, id] = String(e).split(':');
-  if (t === 'ficha' && id) abrirFicha(id); else if (t === 'pedido' && id) verPedido(id);
-  else if (t === 'informe') ir('informe'); else if (t === 'directorio') ir('directorio');
-}
 // (v2.183.0: aquí iba la primera versión de panelNotificaciones; se redefine entera más abajo)
 
 // v2.242.0: aquí iba panelNotificacionesPaso1 (nadie la usaba)
@@ -47,14 +41,6 @@ function pintarNotif() {
 
 /* ---------------- Mi perfil ---------------- */
 
-/* pintarPerfil: la parte base y, en orden, cada paso que se le añade (antes eran 4 capas separadas). */
-function pintarPerfil() {
-  pintarPerfilBase();
-  pintarPerfilPaso1();
-  pintarPerfilPaso2();
-  pintarPerfilPaso3();
-  pintarPerfilPaso4();
-}
 
 
 

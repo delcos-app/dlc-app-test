@@ -76,23 +76,6 @@ document.addEventListener('click', e => {
 
 // (v2.183.0: aquí iba la primera versión de pintarResumenAnalitica; se redefine entera más abajo)
 
-cargarAnalitica = (orig => async function () {
-  await orig();
-  const v = $('v-analitica'), panel = v.querySelector('.panel');
-  if (!panel) return;
-  v.querySelector('.saludo').insertAdjacentHTML('afterend', `<div class="subnav" id="ansub">
-    <button data-ansec="resumen" aria-pressed="${ANSEC === 'resumen'}">Resumen</button>
-    <button data-ansec="explorar" aria-pressed="${ANSEC === 'explorar'}">Explorar datos</button></div>
-    <div id="anres" class="${ANSEC === 'resumen' ? '' : 'hide'}"></div>`);
-  panel.classList.toggle('hide', ANSEC === 'resumen');
-  v.querySelectorAll('[data-ansec]').forEach(b => b.onclick = () => {
-    ANSEC = b.dataset.ansec;
-    v.querySelectorAll('[data-ansec]').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
-    $('anres').classList.toggle('hide', ANSEC !== 'resumen'); panel.classList.toggle('hide', ANSEC === 'resumen');
-    if (ANSEC === 'resumen' && !$('ankpis')) pintarResumenAnalitica();
-  });
-  if (ANSEC === 'resumen') pintarResumenAnalitica();
-})(cargarAnalitica);
 
 AYUDA.analitica[2].unshift(`<b>Resumen</b>: indicadores con la comparación frente al periodo anterior y gráficos explicados (evolución, productos, ${TT('medico', 'p', '', 'l', 'l')}, embudo y actividad). <b>Explorar datos</b>: ranking y tablas con filtros por ${TT('medico', 's', '', 'l', 'l')}, comercial y producto.`);
 

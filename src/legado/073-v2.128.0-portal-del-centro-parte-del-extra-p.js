@@ -1,5 +1,4 @@
 
-abrirFicha = (orig => async function (id, ...a) { const r = await orig.call(this, id, ...a); fichaProductosCentro(id); return r; })(abrirFicha);
 
 
 /* v2.131.0 · Usuarios y roles con página propia; panel de delcos (solo quien gestiona la plataforma): organizaciones, accesos y
@@ -15,15 +14,6 @@ PAGINAS.delcos = { t: 'Panel delcos', d: 'Clientes de la plataforma, accesos y r
   const g = Object.getOwnPropertyDescriptor(PAGINAS.organizacion, 'tabs').get;
   Object.defineProperty(PAGINAS.organizacion, 'tabs', { get() { return g.call(this).filter(x => x[0] !== 'orgs'); }, configurable: true });
 })();
-// Configuración: Inicio primero; Usuarios y roles, y Seguridad y registro, ya no están aquí
-arbolConfig = (orig => function () {
-  const g = orig().map(([n, l]) => [n, l.filter(x => !['equipo', 'seguridad', 'orgs'].includes(x.k))]).filter(x => x[1].length);
-  for (const grupo of g) {
-    const i = grupo[1].findIndex(x => x.k === 'inicio');
-    if (i >= 0) { const [it] = grupo[1].splice(i, 1); g[0][1].unshift(it); break; }
-  }
-  return g;
-})(arbolConfig);
 // Lo que antes se abría en Configuración lleva a su página
 ir = (orig => function (t, ...a) {
   if (t === 'config' && CFG_SEC === 'equipo') { PAG_TAB.usuarios = CFG_SUB === 'roles' ? 'roles' : 'usuarios'; CFG_SEC = 'inicio'; CFG_SUB = null; t = 'usuarios'; }
@@ -219,14 +209,6 @@ ir = (orig => function (t, ...a) {
   if (t === 'ventas') marcarPedsec();
   return r;
 })(ir);
-cargarVentas = (orig => async function (...a) {
-  const r = await orig.apply(this, a);
-  const v = $('v-ventas'), [t, d] = TITULO_PEDSEC[PEDSEC] || TITULO_PEDSEC.ventas;
-  const h = v && v.querySelector('.saludo h1'); if (h && h.firstChild) h.firstChild.textContent = t;
-  const f = v && v.querySelector('.saludo .fecha'); if (f) f.textContent = d;
-  marcarPedsec();
-  return r;
-})(cargarVentas);
 // Los botones se crean antes de que el menú lateral reparta los bloques (y se vuelve a mirar su permiso después)
 aplicarPermisosMenu = (orig => function (...a) { try { menuPedidos2139(); } catch (e) {} const r = orig.apply(this, a); menuPedidos2139(); return r; })(aplicarPermisosMenu);
 Object.assign(ICO_NAV, { oportunidades: 'phone', compras: 'clipboard-list', proveedores: 'building' });

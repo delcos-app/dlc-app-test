@@ -24,7 +24,7 @@ function estimarDiaBase2(citas, fecha) {
   if (!h || !h.vuelta) r.tope = Infinity;   // sin hora de vuelta planificada no hay aviso
   return r;
 }
-function estimarDiaBase(citas, fecha) {
+function estimarDiaBaseBase(citas, fecha) {
   const cfg = PLANCFG(), sal = salidaUsuario(), dura = cfg.visita;
   const ahora = new Date(), minAhora = ahora.getHours() * 60 + ahora.getMinutes();
   let t = minHora(cfg.salida);

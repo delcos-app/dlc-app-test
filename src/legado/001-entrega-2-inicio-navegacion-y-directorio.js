@@ -213,24 +213,6 @@ $('lista').addEventListener('click', e => { const b = e.target.closest('[data-id
 
 /* ---------------- ficha ---------------- */
 
-/* Ficha del prescriptor: la ficha base y, en orden, cada bloque que se le añade
-   (antes eran 6 capas separadas). */
-async function abrirFicha(id, ...r) {
-  const d = $('ficha'); d.classList.add('cargando');
-  const limite = setTimeout(() => d.classList.remove('cargando'), 8000);
-  try {
-    FICHA_PAC = null;
-    await pintarFichaBase(id, ...r);
-    await fichaComercialYPacientes(id);
-    await fichaAvisoHorario(id);
-    await fichaMaterialVisitas(id);
-    await fichaUnidades(id);
-    await fichaClientes(id);
-    // v2.96.0: si no hay ventas que enseñar (o no hay permiso para verlas), la sección no aparece
-    if ($('fventas') && !$('fventasc').children.length) $('fventas').remove();
-  } finally { clearTimeout(limite); requestAnimationFrame(() => d.classList.remove('cargando')); }
-  await fichaAcceso(id);
-}
 
 
 

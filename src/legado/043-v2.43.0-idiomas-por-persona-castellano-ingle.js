@@ -59,16 +59,6 @@ TIPOS_NOTIF.push(
   ['duplicado', '🧩', 'Posibles duplicados', 'Cuando una ficha se marca como posible duplicado'],
   ['usuario_nuevo', '👤', 'Usuarios nuevos', 'Cuando se da de alta una persona'],
   ['esquema', '€', 'Mi comisión', 'Cuando te asignan un esquema de comisión']);
-irEnlace = (orig => function (e) {
-  const [t] = String(e || '').split(':');
-  if (t === 'agenda') { AG_MODO = 'dia'; AG_FECHA = hoyISO(); ir('agenda'); }
-  else if (t === 'llamadas') { PEDSEC = 'llamadas'; ir('ventas'); }
-  else if (t === 'ventas') { PEDSEC = 'ventas'; ir('ventas'); }
-  else if (t === 'stock') { PSEC = 'stock'; ir('productos'); }
-  else if (t === 'facturacion') ir('facturacion');
-  else if (t === 'duplicados') ir('duplicados');
-  else orig(e);
-})(irEnlace);
 // Resumen del día: se genera la primera vez que se abre la plataforma cada día
 // Configuración de notificaciones agrupada
 pintarNotif = (orig => function () {

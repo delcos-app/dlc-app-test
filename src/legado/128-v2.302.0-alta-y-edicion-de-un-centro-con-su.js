@@ -4,8 +4,8 @@
    contacto y nota, y debajo su dirección (calle, código postal, población, provincia), cómo llegar y su horario de atención.
    Sin consultas ni planta/sala. Se guarda como la ubicación principal de la ficha, situada en el mapa al guardar.
    ============================================================ */
-abrirEditor = (orig => async function (id, tipo, ...r) {
-  const res = await orig.call(this, id, tipo, ...r);
+async function abrirEditor(id, tipo, ...r) {
+  const res = await abrirEditorBase2.call(this, id, tipo, ...r);
   const body = $('dbody');
   if (!body || !$('eguardar') || $('ee') || $('esr') || !$('econs')) return res;   // solo el formulario de un centro
   body.classList.add('edcentro');
@@ -41,7 +41,7 @@ abrirEditor = (orig => async function (id, tipo, ...r) {
     ant.d = d; ant.m = m; listo = true; $('eguardar').click();
   }, true);
   return res;
-})(abrirEditor);
+}
 
 // v2.304.0: el filtro rápido «Tipo» de Cuentas
 if ($('ftipo')) $('ftipo').addEventListener('change', e => { F.tipo = e.target.value; buscar(true); });

@@ -18,8 +18,8 @@ db.rpc = (orig => function (fn, args, ...r) {
   return orig.call(this, fn, args, ...r);
 })(db.rpc);
 
-arbolCfgUnico = (orig => function (...a) {
-  const g = orig.apply(this, a);
+function arbolCfgUnicoBase4(...a) {
+  const g = arbolCfgUnicoBase3.apply(this, a);
   if (!(puedeCatalogos() || puede('administrar'))) return g;
   let dat = g.find(x => x[0] === 'Datos');
   if (!dat) { dat = ['Datos', []]; g.push(dat); }
@@ -28,36 +28,9 @@ arbolCfgUnico = (orig => function (...a) {
     dat[1].splice(i < 0 ? 0 : i + 1, 0, { k: 'estados', t: 'Estados comerciales', ic: 'target', d: 'El papel de cada estado: inicial, en avance, con interés, ya es cliente o ya no interesa', r: () => pintarEstadosPapel() });
   }
   return g;
-})(arbolCfgUnico);
+}
 CFG_CLAVES.estados = 'estados comerciales papel inicial avance interés interes cliente activo positivo perdido negativo embudo';
 
-// Panel delcos → Organizaciones: desactivar o volver a activar
-orgAcciones = (orig => function (c, l) {
-  const r = orig.apply(this, arguments);
-  c.querySelectorAll('[data-orgdom]').forEach(b => {
-    const o = l.find(x => x.id === b.dataset.orgdom); if (!o || o.principal || b.parentNode.querySelector('[data-orgact]')) return;   // la propia (principal), nunca
-    const del = b.parentNode.querySelector('[data-orgdel]');
-    const html = `<button class="btn sec" type="button" data-orgact="${o.id}">${o.activa === false ? 'Volver a activar' : 'Desactivar'}</button>`;
-    if (del) del.insertAdjacentHTML('beforebegin', html); else b.parentNode.insertAdjacentHTML('beforeend', html);
-  });
-  c.querySelectorAll('[data-orgact]').forEach(b => b.onclick = async () => {
-    const o = l.find(x => x.id === b.dataset.orgact); if (!o) return;
-    const activar = o.activa === false;
-    if (!await preguntar(activar ? `Sus ${num(o.usuarios)} usuarios podrán volver a entrar.`
-      : `Sus ${num(o.usuarios)} usuarios no podrán entrar hasta que la vuelvas a activar. Sus datos no se tocan.`,
-      { titulo: activar ? `¿Volver a activar ${o.nombre}?` : `¿Desactivar ${o.nombre}?`, ok: activar ? 'Volver a activar' : 'Desactivar', peligro: !activar })) return;
-    b.disabled = true;
-    const { data: x, error } = await db.rpc('activar_organizacion', { p_org: o.id, p_activa: activar });
-    if (error || !x || !x.ok) {
-      b.disabled = false;
-      toast(({ permiso: 'No tienes permiso', principal: 'La organización principal no se puede desactivar', organizacion: 'No se encuentra esa empresa' })[(x && x.error) || ''] || ('No se ha podido cambiar' + (error ? ': ' + error.message : '')), true);
-      return;
-    }
-    toast(activar ? `${o.nombre} vuelve a estar activa` : `${o.nombre} desactivada`);
-    pintarOrganizaciones();
-  });
-  return r;
-})(orgAcciones);
 
 
 

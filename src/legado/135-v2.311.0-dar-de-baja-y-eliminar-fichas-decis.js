@@ -1,16 +1,3 @@
-abrirFicha = (orig => async function (id, ...a) {
-  const r = await orig.call(this, id, ...a);
-  try {
-    const { data: c } = await db.from('cuentas').select('tipo, nombre, archivado_en').eq('id', id).maybeSingle();
-    const fb = $('fbody');
-    if (!c || !fb || FICHA_ID !== id || $('fbajablk') || !puedeEditarTipo(c.tipo)) return r;
-    const elim = nivelDe2('M') >= 3;
-    fb.insertAdjacentHTML('beforeend', `<div class="blk fbajablk" id="fbajablk"><div class="acts">
-      ${c.archivado_en ? `<button type="button" class="btn sec chico" data-falta="${id}">Volver a dar de alta</button>` : `<button type="button" class="btn sec chico" data-fbaja="${id}">Dar de baja</button>`}
-      ${elim ? `<button type="button" class="btn sec dang chico" data-felim="${id}">Eliminar la ficha</button>` : ''}</div></div>`);
-  } catch (e) {}
-  return r;
-})(abrirFicha);
 document.addEventListener('click', async e => {
   const b = e.target.closest('[data-fbaja], [data-falta], [data-felim]'); if (!b) return;
   const f = $('ficha');

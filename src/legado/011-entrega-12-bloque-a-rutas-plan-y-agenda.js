@@ -19,16 +19,6 @@ document.addEventListener('click', e => {
 
 
 
-async function cargarRutasPaso2() {
-  const acts = $('v-rutas').querySelector('.saludo .acts');
-  if (acts && !$('rhorario')) {
-    acts.insertAdjacentHTML('afterbegin', `<button class="btn sec" id="rhorario" title="Minutos por ${TT('visita', 's', '', 'l', 'l')} y por parada">⚙ Tiempos de ${TT('visita', 's', '', 'l', 'l')}</button>`);
-    $('rhorario').onclick = abrirHorarioPlan;
-  }
-  const c = PLANCFG();
-  const sub = $('v-rutas').querySelector('.saludo .fecha');
-  if (sub) sub.textContent = `Crea, edita y planifica tus rutas · ${c.visita} min por ${TT('medico', 's', '', 'l', 'l')}`;
-}
 
 // (v2.183.0: aquí iba la primera versión de cargarRutasBase; se redefine entera más abajo)
 

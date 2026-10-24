@@ -10,15 +10,6 @@ const VERSION_APP = (((document.querySelector('script[src*="app.js"]') || {}).sr
 
 /* ---------------- registro de errores ---------------- */
 
-function registrarError(tipo, mensaje, detalle) {
-  try {
-    const m = String(mensaje || '').slice(0, 500);
-    ERRORES_SESION.push({ t: new Date().toISOString(), tipo, m, pantalla: TAB }); if (ERRORES_SESION.length > 20) ERRORES_SESION.shift();
-    const clave = tipo + '|' + m; if (ERR_ENVIADOS.has(clave) || !PERFIL) return; ERR_ENVIADOS.add(clave);
-    // La consulta solo se envía cuando se espera su resultado
-    Promise.resolve(RPC_ORIG('registrar_error', { p: { tipo, mensaje: m, detalle: detalle || null, pantalla: TAB, version: VERSION_APP, navegador: navigator.userAgent } })).then(() => {}, () => {});
-  } catch (e) {}
-}
 window.addEventListener('error', e => registrarError('error', e.message, { archivo: (e.filename || '').split('/').pop(), linea: e.lineno, columna: e.colno, pila: e.error && e.error.stack ? String(e.error.stack).slice(0, 1500) : null }));
 window.addEventListener('unhandledrejection', e => registrarError('error', (e.reason && (e.reason.message || e.reason)) || 'Promesa rechazada', { pila: e.reason && e.reason.stack ? String(e.reason.stack).slice(0, 1500) : null }));
 // Errores de la base de datos (no los de permiso esperados)
@@ -36,11 +27,6 @@ db.rpc = (orig => function (fn, params, opts) {
   sal.insertAdjacentHTML('beforebegin', `<button data-u="reportar">${svgIco(ICON_NOM.bug)} Reportar un problema</button>`);
   document.addEventListener('click', e => { if (e.target.closest('[data-u="reportar"]')) reportarProblema(); });
 })();
-arbolConfig = (orig => function () {
-  const g = orig();
-  g.forEach(([, l]) => l.forEach(x => { if (x.k === 'seguridad' && x.sub && !x.sub.some(s => s[0] === 'errores')) x.sub.push(['errores', 'Errores y reportes', pintarErrores]); }));
-  return g;
-})(arbolConfig);
 
 /* ---------------- sin parpadeos ---------------- */
 
@@ -61,8 +47,8 @@ ventanaCargando = async function (fn) {
 /* ---------------- Cuentas: cabecera ordenada; Duplicados dentro de Calidad del dato ---------------- */
 
 // «Guardar filtro» pasa al panel de filtros y columnas
-abrirHerramientas = (orig => function (ctx, ...r) {
-  const x = orig(ctx, ...r);
+function abrirHerramientasBase2(ctx, ...r) {
+  const x = abrirHerramientasBase(ctx, ...r);
   setTimeout(() => {
     // v2.203.0: el panel de filtros es lateral (#tools), no una ventana
     const cont = $('tools') && $('tools').classList.contains('abierto') ? $('tools') : (document.querySelector('dialog[open] .fh') ? document.querySelector('dialog[open]') : null);
@@ -71,16 +57,7 @@ abrirHerramientas = (orig => function (ctx, ...r) {
     $('hguardarf').onclick = () => { if (cont.close) cont.close(); else cont.classList.remove('abierto'); $('guardarFiltro').click(); };
   }, 60);
   return x;
-})(abrirHerramientas);
-// Duplicados: botón en la cabecera de Calidad del dato (administración) y vuelta atrás
-cargarSeguimiento = (orig => async function () {
-  await orig();
-  const acts = document.querySelector('#v-seguimiento .saludo .acts') || (document.querySelector('#v-seguimiento .saludo') && document.querySelector('#v-seguimiento .saludo').appendChild(Object.assign(document.createElement('div'), { className: 'acts' })));
-  if (acts && puede('administrar') && !$('caldup')) {
-    acts.insertAdjacentHTML('beforeend', `<button class="btn sec" id="caldup">${svgIco(ICON_NOM.copy)} Duplicados</button>`);
-    $('caldup').onclick = () => ir('duplicados');
-  }
-})(cargarSeguimiento);
+}
 
 /* ---------------- listas completas donde antes ponía «y N más» ---------------- */
 
@@ -106,23 +83,5 @@ opcionesProducto = function (id, nombre) {
     lista.map(p => `<option value="${p.id}" ${p.id === id ? 'selected' : ''}>${esc(p.nombre)}${vendible(p) ? '' : ' (' + esc(p.estado.toLowerCase()) + ')'}</option>`).join('')
     || '<option value="">Sin productos activos</option>';
 };
-// En la ficha del producto: selector de estado
-editorProducto = (orig => function (p, ...r) {
-  const x = orig(p, ...r);
-  setTimeout(() => {
-    if (!p || !p.id || $('prestado') || !$('dbody')) return;
-    const est = ESTADO_PROD[p.id] || p.estado || 'Activo';
-    const ref = $('dbody').querySelector('.acts:last-of-type'); if (!ref) return;
-    ref.insertAdjacentHTML('beforebegin', `<div class="blk" id="prestado"><h3>Estado</h3><div class="segs">${['Activo', 'En pausa', 'Descatalogado'].map(e => `<button type="button" data-pest="${e}" class="${e === est ? 'on' : ''}">${e}</button>`).join('')}</div>
-      <div class="sm" style="margin-top:6px">«En pausa»: no aparece al hacer pedidos, pero se conserva su stock. «Descatalogado»: deja de venderse.</div></div>`);
-    $('dbody').querySelectorAll('[data-pest]').forEach(b => b.onclick = async () => {
-      const { data, error } = await RPC_ORIG('estado_producto', { p_id: p.id, p_estado: b.dataset.pest });
-      if (error || !data || !data.ok) { toast('No se ha podido cambiar el estado', true); return; }
-      ESTADO_PROD[p.id] = b.dataset.pest; const pp = PRODUCTOS.find(z => z.id === p.id); if (pp) pp.estado = b.dataset.pest;
-      $('dbody').querySelectorAll('[data-pest]').forEach(z => z.classList.toggle('on', z === b)); toast('Estado: ' + b.dataset.pest);
-    });
-  }, 80);
-  return x;
-})(editorProducto);
 
 

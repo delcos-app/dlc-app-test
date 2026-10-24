@@ -1730,3 +1730,31 @@ function rmPlan(...a) {
   const r0 = TD_REAL; TD_REAL = null;
   try { return rmPlanBase.apply(this, a); } finally { TD_REAL = r0; }
 }
+
+async function cargarRutasPaso2Base() {
+  const acts = $('v-rutas').querySelector('.saludo .acts');
+  if (acts && !$('rhorario')) {
+    acts.insertAdjacentHTML('afterbegin', `<button class="btn sec" id="rhorario" title="Minutos por ${TT('visita', 's', '', 'l', 'l')} y por parada">⚙ Tiempos de ${TT('visita', 's', '', 'l', 'l')}</button>`);
+    $('rhorario').onclick = abrirHorarioPlan;
+  }
+  const c = PLANCFG();
+  const sub = $('v-rutas').querySelector('.saludo .fecha');
+  if (sub) sub.textContent = `Crea, edita y planifica tus rutas · ${c.visita} min por ${TT('medico', 's', '', 'l', 'l')}`;
+}
+
+// El subtítulo cuenta cómo va el día (lo que antes era la tarjeta «Hoy» del resumen)
+async function cargarRutasPaso2Base2(...a) {
+  const r = await cargarRutasPaso2Base.apply(this, a);
+  const sub = $('v-rutas') && $('v-rutas').querySelector('.saludo .fecha');
+  if (sub && !jornadaActiva()) {
+    const citas = await citasDelDia(hoyISO());
+    if (!sub.isConnected) return r;   // v2.202.0: la pantalla se repintó o se salió de ella mientras se leían las citas
+    const hechas = citas.filter(c => c.estado === 'Visitada').length, abiertas = citas.filter(c => CITA_ABIERTA.includes(c.estado)).length;
+    const txt = hechas + abiertas ? `Hoy tienes ${hechas + abiertas} ${hechas + abiertas === 1 ? 'cita' : 'citas'}: ${hechas} ${hechas === 1 ? 'visitada' : 'visitadas'} y ${abiertas} por hacer` : 'Hoy no tienes citas';
+    sub.innerHTML = `${esc(txt)} · <button type="button" class="kcfg" id="rverdia">Ver mi día</button>`;
+    sub.querySelector('#rverdia').onclick = () => { AG_MODO = 'dia'; AG_FECHA = hoyISO(); ir('agenda'); };
+  }
+  return r;
+}
+
+function cargarRutasPaso2(...a) { if (RN) return; return cargarRutasPaso2Base2.apply(this, a); }

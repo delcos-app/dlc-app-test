@@ -512,3 +512,181 @@ function refrescarAnalitica(...a) {
 
 // v2.320.0 · Fuera el indicador «Conversión visita → venta» (decisión de Eric): lo mide, más completo, la tarjeta «Ventas tras la visita»
 function anCatalogo(...a) { return anCatalogoBase.apply(this, a).filter(k => k.id !== 'conversion_pct'); }
+
+async function cargarAnaliticaBase() {
+  if (!COMS.length && VE_TODO()) await cargarComerciales();
+  await cargarProductos();
+  $('v-analitica').innerHTML = `
+    <div class="saludo"><div><h1>Analítica</h1><div class="fecha">Unidades e importes por ${TT('medico', 's', '', 'l', 'l')}, comercial, producto o zona</div></div></div>
+    <div class="panel">
+      <div class="filtros">
+        <div id="aper"></div>
+        <div><label for="adim">Ver por</label><select id="adim">
+          <option value="medico">${TT('medico', 's', '', 'l', 'C')}</option><option value="comercial">Comercial</option>
+          <option value="producto">Producto</option><option value="municipio">Municipio</option>
+          <option value="mes">Mes</option><option value="canal">Canal</option></select></div>
+        <div><label for="amedida">Ordenar por</label><select id="amedida">
+          <option value="unidades">Unidades</option><option value="importe">Importe</option></select></div>
+        <div><label for="acanal">Canal</label><select id="acanal">
+          <option value="">Todos</option><option value="paciente">Venta ${TT('paciente', 's', 'al', 'l', 'l')}</option>
+          <option value="centro">Venta a centro</option></select></div>
+        <div><label for="aprod">Producto</label><select id="aprod"><option value="">Todos</option>
+          ${PRODUCTOS.map(p => `<option value="${p.id}">${esc(p.nombre)}</option>`).join('')}</select></div>
+        <div><label for="arep">Reporting</label><select id="arep"><option value="">Todos ${TT('medico', 'p', 'el', 'l', 'l')}</option>
+          <option value="con">Con reporting</option><option value="sin">Sin reporting</option></select></div>
+        ${VE_TODO() ? `<div><label for="areprt">Reporte</label><select id="areprt"><option value="">Todos</option><option value="si">Reportados</option><option value="no">Sin reportar</option></select></div>` : ''}
+        ${VE_TODO() ? `<div><label for="acom">Comercial</label><select id="acom"><option value="">Todos</option>
+          ${COMS.map(u => `<option value="${u.id}">${esc(u.nombre)}</option>`).join('')}</select></div>` : ''}
+        <div style="grid-column:span 2"><label>${TT('medico', 's', '', 'l', 'C')}</label><div id="amed"></div></div>
+        <input type="hidden" id="adesde"><input type="hidden" id="ahasta">
+      </div>
+      <div class="kpis vtot" id="atot"></div>
+      <div id="aprods"></div>
+      <div class="subnav"><button data-avista="rank" aria-pressed="true">Ranking</button>
+        <button data-avista="tabla" aria-pressed="false">Tabla por meses</button></div>
+      <div id="aserie" style="padding:14px"></div>
+      <div id="atabla"></div>
+      <div id="atabla2" class="hide"></div>
+    </div>`;
+  const sinc = () => { const r = $('aper').__rango(); $('adesde').value = r.desde || ''; $('ahasta').value = r.hasta || ''; };
+  montarPeriodo($('aper'), { id: 'analitica', valor: 'anio', alCambiar: () => { sinc(); refrescarAnalitica(); } });
+  sinc();
+  selectorMedico($('amed'), { valor: AN_MED, placeholder: `Todos · busca ${TT('medico', 's', 'un', 'l', 'l')} para ver sus ventas`, alElegir: m => { AN_MED = m; refrescarAnalitica(); } });
+  ['adim', 'acanal', 'amedida', 'aprod', 'acom', 'arep', 'areprt'].forEach(id => { if ($(id)) $(id).onchange = refrescarAnalitica; });
+  $('v-analitica').querySelectorAll('[data-avista]').forEach(b => b.onclick = () => {
+    const tabla = b.dataset.avista === 'tabla';
+    $('v-analitica').querySelectorAll('[data-avista]').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+    $('atabla').classList.toggle('hide', tabla); $('aserie').classList.toggle('hide', tabla);
+    $('atabla2').classList.toggle('hide', !tabla);
+    if (tabla) pintarTablaAnalitica();
+  });
+  pintarAnalitica();
+}
+
+async function cargarAnaliticaBase2() {
+  await cargarAnaliticaBase();
+  const v = $('v-analitica'), panel = v.querySelector('.panel');
+  if (!panel) return;
+  v.querySelector('.saludo').insertAdjacentHTML('afterend', `<div class="subnav" id="ansub">
+    <button data-ansec="resumen" aria-pressed="${ANSEC === 'resumen'}">Resumen</button>
+    <button data-ansec="explorar" aria-pressed="${ANSEC === 'explorar'}">Explorar datos</button></div>
+    <div id="anres" class="${ANSEC === 'resumen' ? '' : 'hide'}"></div>`);
+  panel.classList.toggle('hide', ANSEC === 'resumen');
+  v.querySelectorAll('[data-ansec]').forEach(b => b.onclick = () => {
+    ANSEC = b.dataset.ansec;
+    v.querySelectorAll('[data-ansec]').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+    $('anres').classList.toggle('hide', ANSEC !== 'resumen'); panel.classList.toggle('hide', ANSEC === 'resumen');
+    if (ANSEC === 'resumen' && !$('ankpis')) pintarResumenAnalitica();
+  });
+  if (ANSEC === 'resumen') pintarResumenAnalitica();
+}
+
+// Las cifras: una llamada por cada combinación distinta de filtro y comparación
+async function anCargarKpisBase() {
+  const caja = $('anareas'); if (!caja || !AN_CFG) return;
+  const cat = anCatalogo(), r = $('anper').__rango();
+  const hasta = r.hasta || hoyISO(), desde = r.desde || isoMas(hasta, -364);
+  const vis = AN_CFG.kpis.filter(x => x.on).map(x => Object.assign({}, x, { k: cat.find(c => c.id === x.id) })).filter(x => x.k && anKpiVisible(x.k));
+  const grupos = {};
+  vis.forEach(x => {
+    const comp = x.comp || AN_CFG.comp, f = {}; (AN_FILTROS[x.k.fam] || []).forEach(c => { if (x.f && x.f[c]) f[c] = x.f[c]; });
+    const clave = JSON.stringify([f, comp]);
+    (grupos[clave] = grupos[clave] || { f, comp, fams: new Set(), items: [] }).fams.add(x.k.fam);
+    grupos[clave].items.push(x);
+    x.clave = clave;
+  });
+  const pedido = Date.now(); caja.dataset.pedido = pedido;
+  const res = await Promise.all(Object.entries(grupos).map(async ([clave, g]) => {
+    const { data, error } = await db.rpc('analitica_kpis', { p_desde: desde, p_hasta: hasta, p_filtro: g.f, p_familias: [...g.fams], p_comp: g.comp });
+    return [clave, error ? { error: error.message } : data];
+  }));
+  if (!$('anareas') || $('anareas').dataset.pedido !== String(pedido)) return;
+  AN_DATOS = Object.fromEntries(res);
+  const porFam = {};
+  vis.forEach(x => (porFam[x.k.fam] = porFam[x.k.fam] || []).push(x));
+  caja.innerHTML = AN_FAM.filter(([f]) => porFam[f]).map(([f]) => `<section class="anarea" data-fam="${f}"><h3>${esc(anFamNombre(f))}</h3>
+    <div class="ankgrid">${porFam[f].map(x => {
+      const d = AN_DATOS[x.clave] || {}, a = (d.act || {})[x.id], b = (d.ant || {})[x.id], ft = anFiltroTxt(x.f || {});
+      return `<div class="ankpi" data-anu="${esc(x.u)}">
+        <div class="ankcab"><span class="anktit">${esc(x.t || x.k.t)}</span>
+          <button type="button" class="ai" data-ayuda-txt="${esc(x.k.ayuda)}" data-ayuda-tit="${esc(x.k.t)}" aria-label="Qué es">i</button>
+          <button type="button" class="ankcfg" data-ancfg="${esc(x.u)}" title="Filtrar y ajustar" aria-label="Filtrar y ajustar ${esc(x.t || x.k.t)}">${svgIco(ICON_NOM.settings)}</button></div>
+        <b class="ankval ${x.k.fmt === 'txt' ? 'txt' : ''}">${d.error ? '—' : anFmt(a, x.k.fmt)}</b>
+        ${d.error ? `<span class="sm">No se ha podido calcular</span>` : anDelta(x.k, a, b, x.comp || AN_CFG.comp)}
+        ${ft ? `<span class="ankfil">${esc(ft)}</span>` : ''}</div>`; }).join('')}</div></section>`).join('')
+    || `<div class="vacio">No tienes indicadores a la vista. Elige cuáles quieres ver con <b>Personalizar</b>.</div>`;
+  caja.querySelectorAll('[data-ancfg]').forEach(b => b.onclick = e => { e.stopPropagation(); anEngranaje(b, b.dataset.ancfg); });
+  const cmp = AN_CFG.comp === 'anio' ? 'el mismo periodo del año pasado' : 'el periodo anterior';
+  if ($('anresumen')) $('anresumen').innerHTML = `Del ${fechaCorta(desde)} al ${fechaCorta(hasta)}, comparado con ${cmp} · <button type="button" class="kcfg" id="ancambiar">Cambiar</button>`;
+  if ($('ancambiar')) $('ancambiar').onclick = () => { const b = document.querySelector('#v-analitica .htbtn'); if (b) { b.click(); b.scrollIntoView({ block: 'nearest' }); } };
+}
+
+async function cargarAnalitica() {
+  await cargarAnaliticaBase2();
+  const v = $('v-analitica'); if (!v) return;
+  // Explorar: «Ver por» y «Ordenar por» quedan a la vista, encima de Ranking / Tabla; el resto, a «Filtros y columnas»
+  const panel = v.querySelector('.panel'), fil = panel && panel.querySelector(':scope > .filtros');
+  if (fil && !$('anvista')) {
+    fil.insertAdjacentHTML('afterend', '<div class="anvista" id="anvista"></div>');
+    ['adim', 'amedida'].forEach(id => { const c = $(id) && ($(id).closest('.filtros > div') || $(id).closest('.htpropios > div')); if (c) { delete c.dataset.anp; $('anvista').appendChild(c); } });
+    [...fil.children].forEach(c => c.dataset.anp = 'explorar');
+  }
+  // Personalizar, en la cabecera (solo en el Resumen)
+  const sal = v.querySelector('.saludo');
+  const sub = sal && sal.querySelector('.fecha'); if (sub) sub.textContent = 'Cómo va cada área frente al periodo anterior, y los datos para explorar';
+  if (sal && !$('anpers')) {
+    let acts = sal.querySelector(':scope > .acts');
+    if (!acts) { sal.insertAdjacentHTML('beforeend', '<div class="acts"></div>'); acts = sal.querySelector(':scope > .acts'); }
+    acts.insertAdjacentHTML('afterbegin', '<button type="button" class="btn sec" id="anpers">Personalizar</button>');
+    $('anpers').onclick = () => { if (!AN_CFG) AN_CFG = anConfig(); anPersonalizar(); };
+  }
+  v.querySelectorAll('[data-ansec]').forEach(b => b.addEventListener('click', () => setTimeout(anPestana, 0)));
+  anPestana();
+}
+
+async function anCargarKpisBase2() {
+  await anCargarKpisBase.apply(this, arguments);
+  const caja = $('anareas'); if (!caja || !AN_CFG || !$('anper')) return;
+  const pedido = caja.dataset.pedido, cat = anCatalogo(), r = $('anper').__rango(), hoy = hoyISO();
+  const hasta = !r.hasta || r.hasta > hoy ? hoy : r.hasta, meses = anMeses(hasta);
+  const tarjetas = [...caja.querySelectorAll('.ankpi[data-anu]')].map(el => {
+    const x = AN_CFG.kpis.find(y => y.u === el.dataset.anu), k = x && cat.find(c => c.id === x.id);
+    return { el, x, k };
+  }).filter(t => t.x && t.k);
+  // Las cifras cuentan desde cero (con su mismo formato)
+  const nums = [];
+  tarjetas.forEach(({ el, k }) => {
+    el.classList.add('anv');
+    const n = el.querySelector('.ankval'); if (!n || k.fmt === 'txt') return;
+    const t = n.textContent, m = t.match(/-?[\d.]+(,\d+)?/); if (!m) return;
+    n.dataset.v = parseFloat(m[0].replace(/\./g, '').replace(',', '.')); n.dataset.f = t; n.dataset.dec = m[1] ? m[1].length - 1 : 0; nums.push(n);
+  });
+  pkContar(nums, (v, el) => el.dataset.f.replace(/-?[\d.]+(,\d+)?/, v.toLocaleString('es-ES', { minimumFractionDigits: +el.dataset.dec, maximumFractionDigits: +el.dataset.dec })));
+  // La línea: hueco reservado ya (sin saltos) y se dibuja al llegar
+  const conLinea = tarjetas.filter(({ k }) => !k.hoy && k.fmt !== 'txt');
+  conLinea.forEach(({ el }) => el.insertAdjacentHTML('beforeend', '<div class="avz" aria-hidden="true"></div>'));
+  const grupos = {};
+  conLinea.forEach(t => {
+    const f = {}; (AN_FILTROS[t.k.fam] || []).forEach(c => { if (t.x.f && t.x.f[c]) f[c] = t.x.f[c]; });
+    const g = JSON.stringify(f); (grupos[g] = grupos[g] || { f, fams: new Set(), ts: [] }).fams.add(t.k.fam); grupos[g].ts.push(t);
+  });
+  await Promise.all(Object.values(grupos).map(async g => {
+    const serie = await anSerie(meses, g.f, [...g.fams].sort());
+    if (!$('anareas') || $('anareas').dataset.pedido !== pedido) return;
+    g.ts.forEach(({ el, x, k }) => {
+      const z = el.querySelector('.avz'); if (!z) return;
+      const vals = serie.map(s => +s[x.id] || 0);
+      if (vals.every(v => !v)) { z.classList.add('avcero'); z.innerHTML = anLinea(vals, meses); z.title = 'Sin datos en estos seis meses'; return; }   // v2.343.0: línea plana (antes se escondía y la tarjeta quedaba descuadrada y vacía)
+      z.innerHTML = anLinea(vals, meses); z.title = meses.map(([a], i) => `${AN_MES[+a.slice(5, 7) - 1]}: ${anFmt(vals[i], k.fmt).replace(/<[^>]+>/g, '')}`).join(' · ');
+    });
+  }));
+}
+
+async function anCargarKpis(...a) {
+  const r = $('anper') && $('anper').__rango ? $('anper').__rango() : null;
+  const p = r ? Promise.resolve(RPC_ORIG('ventas_tras_visita', { p_desde: r.desde || null, p_hasta: r.hasta || null, p_dias: 30 })).then(x => (x && x.data) || null, () => null) : null;
+  const res = await anCargarKpisBase2.apply(this, a);
+  const d = p ? await p : null;
+  if (TAB === 'analitica') tvTarjeta(d);
+  return res;
+}

@@ -47,7 +47,7 @@ document.addEventListener('click', e => {
 /* ---------------- editar ficha y altas ---------------- */
 
 
-async function abrirEditor(id, tipo) {
+async function abrirEditorBase(id, tipo) {
   let m = { tipo: tipo || 'Persona', estado_comercial: estadoPapel('inicial') }, cons = [{}];
   if (id) {
     const { data, error } = await db.rpc('ficha_cuenta', { p_id: id });

@@ -10,22 +10,6 @@ Object.assign(RPC_TTL, { facturas_lista: 20, series_lista: 60, eventos_facturaci
 
 /* ---------------- módulo ---------------- */
 
-async function cargarFacturacion() {
-  const admin = puede('administrar');
-  const secs = [['facturas', 'Facturas'], ['series', 'Series y numeración']].concat(admin ? [['empresa', 'Datos fiscales'], ['verifactu', 'VeriFactu'], ['registro', 'Registro']] : []);
-  if (!secs.some(s => s[0] === FSEC)) FSEC = 'facturas';
-  $('v-facturacion').innerHTML = `
-    <div class="saludo"><div><h1>Facturación</h1><div class="fecha">Facturas emitidas desde los pedidos, rectificativas y cobros</div></div>
-      <div class="acts" style="margin:0"></div></div>
-    <div class="subnav">${secs.map(([k, t]) => `<button data-fsec="${k}" aria-pressed="${FSEC === k}">${t}</button>`).join('')}</div>
-    <div id="fcuerpo"></div>`;
-  $('v-facturacion').querySelectorAll('[data-fsec]').forEach(b => b.onclick = () => { FSEC = b.dataset.fsec; cargarFacturacion(); });
-  if (FSEC === 'facturas') pintarFacturas();
-  if (FSEC === 'series') pintarSeries();
-  if (FSEC === 'empresa') pintarEmpresa();
-  if (FSEC === 'verifactu') pintarVerifactu();
-  if (FSEC === 'registro') pintarRegistro();
-}
 
 
 
@@ -42,7 +26,7 @@ async function cargarFacturacion() {
 
 /* ---------------- datos fiscales y preferencias de facturación ---------------- */
 
-async function pintarEmpresa() {
+async function pintarEmpresaBase() {
   await cargarAjustes();
   const e = AJUSTES.empresa || {}, c = Object.assign({ vencimiento_dias: 15, forma_pago: '', emitir_al_validar: false }, AJUSTES.facturacion || {});
   const f = (k, t, extra) => `<div><label for="em_${k}">${t}</label><input id="em_${k}" value="${esc(e[k] || '')}" ${extra || ''}></div>`;

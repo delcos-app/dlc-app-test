@@ -31,7 +31,7 @@ function aplicarEtiquetaBase() {
   if (h) { const tn = [...h.childNodes].find(x => x.nodeType === 3 && x.nodeValue.trim()); if (tn) tn.nodeValue = n; else h.insertAdjacentText('afterbegin', n); }
   const v = $('calvolver'); if (v) v.textContent = '‹ ' + n;
 }
-cargarAjustes = (orig => async function () { await orig(); aplicarEtiqueta(); })(cargarAjustes);
+async function cargarAjustes() { await cargarAjustesBase(); aplicarEtiqueta(); }
 new MutationObserver(() => { const b = document.querySelector('#bnav [data-t="directorio"]'); if (b && !b.textContent.includes(etiquetaContactos())) aplicarEtiqueta(); })
   .observe(document.body, { childList: true, subtree: true });
 
@@ -42,7 +42,6 @@ new MutationObserver(() => { const b = document.querySelector('#bnav [data-t="di
   plan.insertAdjacentHTML('beforebegin', `<button data-u="empresa" class="hide">${svgIco(ICON_NOM.building)} Empresa</button>`);
   document.addEventListener('click', e => { if (e.target.closest('[data-u="empresa"]')) { CFG_SEC = 'empresa'; window.__CFG_DIRECTO = true; ir('config'); } });
 })();
-arbolConfig = (orig => function () { return orig().filter(g => g[0] !== 'Empresa'); })(arbolConfig);
 Object.assign(CFG_ANTES, { marca: ['__empresa', 'marca'], correo: ['__empresa', 'correo'], copias: ['__empresa', 'copias'], empresa: ['__empresa', 'marca'] });
 
 /* ---------------- Configuración: carga visible y errores claros ---------------- */
@@ -52,66 +51,12 @@ cargarConfig = (orig => async function () {
   if (CFG_SEC === 'empresa') CFG_SEC = '__empresa';
   await orig();
 })(cargarConfig);
-// Se amplía el árbol con los apartados ocultos y se envuelve cada pintado para mostrar carga y errores
-arbolConfig = (orig => function () {
-  const g = orig();
-  const envolver = f => async () => {
-    const c = $('cfgcuerpo'); c.innerHTML = '<div class="cfgcarga"><span class="giro"></span> Cargando…</div>';
-    // Si al cabo de 20 segundos sigue cargando, se avisa en lugar de dejarlo en blanco
-    setTimeout(() => { if (c.isConnected && c.querySelector(':scope > .cfgcarga')) mostrarError(new Error('El apartado no ha terminado de cargar. Revisa la conexión y vuelve a intentarlo.')); }, 20000);
-    const mostrarError = e => {
-      c.innerHTML = `<div class="card cfgpanel"><h2>No se ha podido cargar</h2><p class="sm">${esc(e && e.message ? e.message : String(e))}</p>
-        <div class="acts"><button class="btn sec" id="cfgreint">${svgIco(ICON_NOM['rotate-cw'])} Reintentar</button></div></div>`;
-      $('cfgreint').onclick = () => envolver(f)();
-    };
-    try { await f(); }
-    catch (e) { mostrarError(e); }
-  };
-  g.forEach(([, l]) => l.forEach(x => { if (x.r) x.r = envolver(x.r); if (x.sub) x.sub.forEach(s => { s[2] = envolver(s[2]); }); }));
-  // Apartado oculto «Empresa» (se abre desde el menú de usuario)
-  g.push(['__oculto', [{ k: '__empresa', ic: 'building', t: 'Empresa', d: '', sub: [['marca', 'Marca y logo', envolver(pintarMarca)], ['correo', 'Correo y firma', envolver(pintarCorreo)], ['copias', 'Copias de seguridad', envolver(pintarCopias)]] }]]);
-  return g;
-})(arbolConfig);
 // El grupo oculto no se pinta en el menú lateral
 new MutationObserver(() => document.querySelectorAll('.cfgnav .cfgg').forEach(g => { if (g.querySelector('h3') && g.querySelector('h3').textContent === '__oculto') g.remove(); }))
   .observe(document.body, { childList: true, subtree: true });
 
 /* ---------------- Marca y logo: nombre del módulo de contactos ---------------- */
 
-pintarMarca = (orig => async function () {
-  await orig();
-  const ok = $('mkok'); if (!ok || $('mketq')) return;
-  const actual = etiquetaContactos(), otra = !ETIQUETAS.includes(actual);
-  ok.closest('.acts').insertAdjacentHTML('beforebegin', `<div class="mketqbox"><label for="mketq">Cómo llamáis a quienes visitáis</label>
-    <div class="g2"><select id="mketq">${ETIQUETAS.map(e => `<option ${e === actual ? 'selected' : ''}>${e}</option>`).join('')}<option value="__otra" ${otra ? 'selected' : ''}>Otro nombre…</option></select>
-      <input id="mketqo" class="${otra ? '' : 'hide'}" value="${otra ? esc(actual) : ''}" placeholder="Escribe el nombre"></div>
-    <div class="sm">Es el nombre del módulo donde están ${TT('medico', 'p', '', 'l', 'l')}, centros y cualquier otro contacto al que visitáis.</div></div>`);
-  const ETQ_TERM = { medico: 'Profesional al que visitáis', paciente: 'Cliente final', visita: 'Cada encuentro con el profesional' };
-  ok.closest('.acts').insertAdjacentHTML('beforebegin', `<div class="mkvoc"><label>Vocabulario de la plataforma</label>
-    <div class="sm">Cómo se llaman en todos los textos. En blanco, se usa el nombre de siempre.</div>
-    ${Object.keys(TERM_DEF).map(k => { const d = TERM_DEF[k], t = TERMINOS[k] || {}; return `<div class="g3 mkvocf" data-term="${k}">
-      <div><label class="sm">${esc(ETQ_TERM[k])} · singular</label><input data-tf="s" value="${esc(t.s || '')}" placeholder="${esc(d.s)}"></div>
-      <div><label class="sm">Plural</label><input data-tf="p" value="${esc(t.p || '')}" placeholder="${esc(d.p)}"></div>
-      <div><label class="sm">Género</label><select data-tf="g"><option value="">${d.g === 'f' ? 'Femenino' : 'Masculino'} (el de siempre)</option>
-        <option value="m" ${t.g === 'm' ? 'selected' : ''}>Masculino</option><option value="f" ${t.g === 'f' ? 'selected' : ''}>Femenino</option></select></div></div>`; }).join('')}</div>`);
-  $('mketq').onchange = () => $('mketqo').classList.toggle('hide', $('mketq').value !== '__otra');
-  const guardar = ok.onclick;
-  ok.onclick = async () => {
-    const etq = $('mketq').value === '__otra' ? ($('mketqo').value.trim() || TT('medico', 'p', '', 'l', 'C')) : $('mketq').value;
-    await guardar();
-    const v = Object.assign({}, AJUSTES.marca || {}, { etiqueta: etq });
-    const { error } = await db.rpc('guardar_ajuste', { p_clave: 'marca', p_valor: v });
-    if (!error) { AJUSTES.marca = v; aplicarEtiqueta(); }
-    const voc = {};
-    document.querySelectorAll('.mkvocf').forEach(f => { const o = {}; f.querySelectorAll('[data-tf]').forEach(i => { if (i.value.trim()) o[i.dataset.tf] = i.value.trim(); }); if (Object.keys(o).length) voc[f.dataset.term] = o; });
-    if (JSON.stringify(voc) !== JSON.stringify(TERMINOS || {})) {
-      const { error: e3 } = await db.rpc('guardar_ajuste', { p_clave: 'terminos', p_valor: voc });
-      if (e3) { toast('No se ha podido guardar el vocabulario', true); return; }
-      try { localStorage.setItem(TERMKEY, JSON.stringify(voc)); } catch (e) {}
-      toast('Vocabulario guardado: se recarga la plataforma'); setTimeout(() => location.reload(), 900);
-    }
-  };
-})(pintarMarca);
 
 /* ---------------- detalle de usuario ordenado ---------------- */
 

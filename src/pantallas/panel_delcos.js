@@ -407,3 +407,130 @@ async function pintarEstadoDelcos(...a) {
       : '<div class="vacio">Ninguna empresa ha usado el servicio de rutas este mes.</div>'}`;
   if (pie) pie.insertAdjacentHTML('beforebegin', html); else card.insertAdjacentHTML('beforeend', html);
 }
+
+function orgAccionesBase(c, l) {
+  const de = id => l.find(x => x.id === id);
+  // Plan: el de pago o una prueba (con su fecha de fin)
+  c.querySelectorAll('[data-orgplan]').forEach(b => b.onclick = () => {
+    const o = de(b.dataset.orgplan); if (!o) return;
+    const pd = o.plan_datos || {}, fin = pd.prueba_hasta || new Date(Date.now() + 30 * 864e5).toISOString().slice(0, 10);
+    $('dbody').innerHTML = `<div class="fh"><div><h2>Plan de ${esc(o.nombre)}</h2><div class="sm">Solo la plataforma cambia el plan de una empresa</div></div>
+        <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
+      <div class="g2"><div><label for="opplan">Plan</label><select id="opplan">${PLANES.map(p => `<option value="${p.id}" ${p.id === (pd.plan || o.plan) ? 'selected' : ''}>${esc(p.nombre)}</option>`).join('')}</select></div>
+        <div><label for="opusu">Usuarios contratados</label><input id="opusu" type="number" min="3" value="${esc(pd.usuarios == null ? '' : pd.usuarios)}" placeholder="Sin límite"></div>
+        <div><label for="oppago">Pago</label><select id="oppago"><option value="mensual">Mensual</option><option value="anual" ${pd.pago === 'anual' ? 'selected' : ''}>Anual</option></select></div>
+        <div><label for="opest">Estado</label><select id="opest"><option value="activo">De pago</option><option value="prueba" ${pd.estado === 'prueba' ? 'selected' : ''}>Prueba</option></select></div>
+        <div id="opfinw" class="${pd.estado === 'prueba' ? '' : 'hide'}"><label for="opfin">Prueba hasta</label><input id="opfin" type="date" value="${esc(fin)}"></div></div>
+      <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>Cancelar</button><button class="btn" id="opok">Guardar plan</button></div>`;
+    $('opest').onchange = () => $('opfinw').classList.toggle('hide', $('opest').value !== 'prueba');
+    $('opok').onclick = async ev => {
+      ev.target.disabled = true;
+      const { data: r, error } = await db.rpc('guardar_plan_organizacion', { p_org: o.id, p: { plan: $('opplan').value, usuarios: $('opusu').value === '' ? null : +$('opusu').value,
+        pago: $('oppago').value, estado: $('opest').value, prueba_hasta: $('opest').value === 'prueba' ? $('opfin').value : null } });
+      ev.target.disabled = false;
+      if (error || !r || !r.ok) {
+        toast(({ permiso: 'No tienes permiso', minimo: 'Mínimo 3 usuarios (salvo A medida)', prueba_hasta: 'Falta la fecha de fin de la prueba', plan: 'Plan no válido' })[(r && r.error) || ''] || 'No se ha podido guardar', true);
+        return;
+      }
+      $('dlg').close(); toast('Plan guardado'); pintarOrganizaciones();
+    };
+    $('dlg').showModal();
+  });
+  // Descargar todos sus datos (para entregárselos si deja la prueba)
+  c.querySelectorAll('[data-orgexp]').forEach(b => b.onclick = async () => {
+    const o = de(b.dataset.orgexp); if (!o) return;
+    b.disabled = true; const t = b.textContent; b.textContent = 'Preparando…';
+    const { data, error } = await RPC_ORIG('exportar_organizacion', { p_org: o.id });
+    b.disabled = false; b.textContent = t;
+    if (error || !data) { toast('No se han podido descargar sus datos', true); return; }
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 1)], { type: 'application/json' }));
+    a.download = `datos_${o.nombre.replace(/[^\p{L}\p{N}]+/gu, '_')}_${hoyISO()}.json`; a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 60000);
+    toast('Datos descargados');
+  });
+  // Borrar una empresa de prueba o desactivada (nunca con facturas): hay que escribir su nombre
+  c.querySelectorAll('[data-orgdel]').forEach(b => b.onclick = async () => {
+    const o = de(b.dataset.orgdel); if (!o) return;
+    if (o.facturas) { toast(`${o.nombre} tiene facturas emitidas: no se puede borrar (VeriFactu). Desactívala en su lugar.`, true); return; }
+    const txt = await pedirTexto(`Se borrarán ${o.nombre} y todos sus datos (${num(o.usuarios)} usuarios, ${num(o.cuentas)} cuentas, pedidos, agenda…). No se puede deshacer: descarga antes sus datos si hay que entregárselos. Escribe su nombre para confirmarlo.`,
+      '', { titulo: 'Borrar empresa', ok: 'Borrar' });
+    if (txt === null) return;
+    if (txt.trim() !== o.nombre) { toast('El nombre no coincide: no se ha borrado nada', true); return; }
+    const { data: r, error } = await db.rpc('borrar_organizacion', { p_org: o.id });
+    if (error || !r || !r.ok) {
+      toast(({ permiso: 'No tienes permiso', principal: 'La organización principal no se puede borrar', activa: 'Solo se borran empresas de prueba o desactivadas',
+        facturas: 'Tiene facturas emitidas: no se puede borrar' })[(r && r.error) || ''] || ('No se ha podido borrar' + (error ? ': ' + error.message : '')), true);
+      return;
+    }
+    toast(`${o.nombre} borrada` + (String(r.acceso || '').startsWith('no_borrado') ? '. Borra sus usuarios en Supabase → Authentication.' : ''));
+    pintarOrganizaciones();
+  });
+}
+
+// Panel delcos → Organizaciones → Plan: fecha de compromiso (A medida), lo que pierde al bajar y aviso si paga con Stripe
+function orgAccionesBase2(c, l) {
+  const r = orgAccionesBase.apply(this, arguments);
+  c.querySelectorAll('[data-orgplan]').forEach(b => {
+    const f = b.onclick; if (!f || b.__p2165) return; b.__p2165 = true;
+    b.onclick = (...x) => {
+      f.apply(b, x);
+      const o = l.find(y => y.id === b.dataset.orgplan); if (!o || !$('opplan')) return;
+      const pd = o.plan_datos || {}, de = pd.plan || o.plan;
+      $('opest').closest('.g2').insertAdjacentHTML('beforeend', `<div id="opcompw"><label for="opcomp">Compromiso hasta (A medida)</label>
+        <input id="opcomp" type="date" value="${esc(pd.compromiso_hasta || '')}"><span class="sm">Antes de esa fecha no se puede bajar de A medida.</span></div>`);
+      $('opest').closest('.g2').insertAdjacentHTML('afterend', `${pd.stripe_suscripcion ? '<div class="banda-aviso" id="opstripe">Esta empresa paga con Stripe: este cambio no se pasa a Stripe. Para que cuadre el cobro, cámbialo también allí.</div>' : ''}<div id="opperd"></div>`);
+      const pinta = () => {
+        $('opcompw').classList.toggle('hide', $('opplan').value !== 'medida');
+        const p = perdidasPlan(de, $('opplan').value, { extras: pd.extras || [], facturas: +o.facturas > 0 });
+        const bloq = de === 'medida' && $('opplan').value !== 'medida' && pd.compromiso_hasta && pd.compromiso_hasta > hoyISO();
+        $('opperd').innerHTML = bloq ? `<div class="banda-peligro">Tiene compromiso A medida hasta el ${fechaCorta(pd.compromiso_hasta)}: no se puede bajar antes.</div>`
+          : rangoPlan($('opplan').value) < rangoPlan(de) && p.length ? `<div class="banda-aviso">Al pasar a ${esc(planDe($('opplan').value).nombre)} dejará de tener:<ul>${p.map(x => `<li>${esc(x)}</li>`).join('')}</ul></div>` : '';
+      };
+      $('opplan').addEventListener('change', pinta); pinta();
+      $('opok').onclick = async ev => {
+        ev.target.disabled = true;
+        const p = { plan: $('opplan').value, usuarios: $('opusu').value === '' ? null : +$('opusu').value, pago: $('oppago').value, estado: $('opest').value,
+          prueba_hasta: $('opest').value === 'prueba' ? $('opfin').value : null };
+        if (p.plan === 'medida') p.compromiso_hasta = $('opcomp').value || null;
+        const { data: res, error } = await db.rpc('guardar_plan_organizacion', { p_org: o.id, p });
+        ev.target.disabled = false;
+        if (error || !res || !res.ok) {
+          toast(({ permiso: 'No tienes permiso', minimo: 'Mínimo 3 usuarios (salvo A medida)', prueba_hasta: 'Falta la fecha de fin de la prueba', plan: 'Plan no válido',
+            compromiso: `Tiene compromiso A medida hasta el ${fechaCorta(res && res.hasta)}` })[(res && res.error) || ''] || 'No se ha podido guardar', true);
+          return;
+        }
+        $('dlg').close(); toast('Plan guardado'); pintarOrganizaciones();
+      };
+    };
+  });
+  return r;
+}
+
+// Panel delcos → Organizaciones: desactivar o volver a activar
+function orgAcciones(c, l) {
+  const r = orgAccionesBase2.apply(this, arguments);
+  c.querySelectorAll('[data-orgdom]').forEach(b => {
+    const o = l.find(x => x.id === b.dataset.orgdom); if (!o || o.principal || b.parentNode.querySelector('[data-orgact]')) return;   // la propia (principal), nunca
+    const del = b.parentNode.querySelector('[data-orgdel]');
+    const html = `<button class="btn sec" type="button" data-orgact="${o.id}">${o.activa === false ? 'Volver a activar' : 'Desactivar'}</button>`;
+    if (del) del.insertAdjacentHTML('beforebegin', html); else b.parentNode.insertAdjacentHTML('beforeend', html);
+  });
+  c.querySelectorAll('[data-orgact]').forEach(b => b.onclick = async () => {
+    const o = l.find(x => x.id === b.dataset.orgact); if (!o) return;
+    const activar = o.activa === false;
+    if (!await preguntar(activar ? `Sus ${num(o.usuarios)} usuarios podrán volver a entrar.`
+      : `Sus ${num(o.usuarios)} usuarios no podrán entrar hasta que la vuelvas a activar. Sus datos no se tocan.`,
+      { titulo: activar ? `¿Volver a activar ${o.nombre}?` : `¿Desactivar ${o.nombre}?`, ok: activar ? 'Volver a activar' : 'Desactivar', peligro: !activar })) return;
+    b.disabled = true;
+    const { data: x, error } = await db.rpc('activar_organizacion', { p_org: o.id, p_activa: activar });
+    if (error || !x || !x.ok) {
+      b.disabled = false;
+      toast(({ permiso: 'No tienes permiso', principal: 'La organización principal no se puede desactivar', organizacion: 'No se encuentra esa empresa' })[(x && x.error) || ''] || ('No se ha podido cambiar' + (error ? ': ' + error.message : '')), true);
+      return;
+    }
+    toast(activar ? `${o.nombre} vuelve a estar activa` : `${o.nombre} desactivada`);
+    pintarOrganizaciones();
+  });
+  return r;
+}

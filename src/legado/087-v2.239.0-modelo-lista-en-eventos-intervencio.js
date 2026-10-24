@@ -11,12 +11,6 @@ Object.keys(BLQ).forEach(tab => {
 
 // Antes de ajustar la plantilla, los bloques se convierten en tabla
 plSync = (orig => function (tab) { if (BLQ[tab] && plCfg(tab)) blqConvertir(tab); return orig(tab); })(plSync);
-// El recuento de estas tablas cuenta solo las filas que se ven (bloque y búsqueda)
-plRecuento = (orig => function (sec, c) {
-  if (!c.bloques) return orig(sec, c);
-  const g = sec.querySelector('.dgrid'); if (!g) return sec.querySelector('#cfgcuerpo .vacio') ? `<b>0</b> ${esc(c.que())}` : '';
-  return `<b>${num(g.querySelectorAll(':scope > .dr:not(.htfuera):not(.plgfuera)').length)}</b> ${esc(c.que())}`;
-})(plRecuento);
 document.addEventListener('click', e => {
   const k = e.target.closest('main > section.plantilla [data-plg]'); if (!k) return;
   const tab = k.closest('section').id.slice(2); PLG[tab] = PLG[tab] === k.dataset.plg ? '' : k.dataset.plg; blqFiltrar(tab); plSync(tab);

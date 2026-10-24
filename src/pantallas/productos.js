@@ -577,3 +577,273 @@ async function pintarMaterial(...x) {
   try { await matMejorar(); } catch (e) { registrarError('error', 'Material promocional: ' + e.message); }
   return r;
 }
+
+function editorProductoBase(p) {
+  const esAdmin = puede('administrar');
+  p = p || { iva: 10, activo: true, unidades_envase: 1 };
+  const ro = esAdmin ? '' : 'disabled';
+  $('dbody').innerHTML = `
+    <div class="fh"><div><h2>${p.id ? esc(p.nombre) : 'Nuevo producto'}</h2>
+      <div class="sm">${esAdmin ? 'Escribe el precio sin IVA o con IVA: el otro se calcula solo.' : 'Solo administración puede cambiar productos.'}</div></div>
+      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
+    <div style="display:flex;gap:14px;align-items:center;margin-top:8px">
+      <span class="pfoto" id="prfprev" style="width:72px;height:72px;${p.foto_url ? `background-image:url('${esc(p.foto_url)}')` : ''}">${p.foto_url ? '' : '◧'}</span>
+      ${esAdmin ? '<div style="flex:1"><label for="prfoto" style="margin-top:0">Foto</label><input id="prfoto" type="file" accept="image/*"></div>' : ''}</div>
+    <div class="g2">
+      <div><label for="prn">Nombre</label><input id="prn" value="${esc(p.nombre || '')}" ${ro}></div>
+      <div><label for="prp">Presentación</label><input id="prp" value="${esc(p.presentacion || '')}" placeholder="Caja de 30 sobres" ${ro}></div></div>
+    <div class="pvp">
+      <div><label for="prpr">Precio sin IVA (€)</label><input id="prpr" type="number" step="0.01" min="0" value="${p.precio != null ? +(+p.precio).toFixed(4) : ''}" ${ro}></div>
+      <div><label for="priva">IVA (%)</label><input id="priva" type="number" step="1" min="0" max="21" value="${p.iva != null ? p.iva : 10}" ${ro}></div>
+      <div><label for="prpvp">Precio con IVA (€)</label><input id="prpvp" type="number" step="0.01" min="0" value="${p.precio != null ? r2(p.precio * (1 + (+p.iva || 0) / 100)) : ''}" ${ro}></div></div>
+    <div class="g2">
+      <div><label for="prref">Referencia</label><input id="prref" value="${esc(p.referencia || '')}" ${ro}></div>
+      <div><label for="prcb">Código de barras</label><input id="prcb" value="${esc(p.codigo_barras || '')}" ${ro}></div></div>
+    <div class="g2">
+      <div><label for="prue">Unidades por envase</label><input id="prue" type="number" min="1" value="${p.unidades_envase || 1}" ${ro}></div>
+      <div><label for="prco">Coste (€, sin IVA)</label><input id="prco" type="number" step="0.01" min="0" value="${p.coste != null ? p.coste : ''}" ${ro}></div></div>
+    ${esAdmin && p.id ? `<label class="opt" style="margin-top:12px"><input type="checkbox" id="pract" ${p.activo ? 'checked' : ''}> Activo: aparece al crear pedidos</label>` : ''}
+    <div class="acts" style="justify-content:flex-end">
+      <button class="btn sec" data-cerrar>${esAdmin ? 'Cancelar' : 'Cerrar'}</button>
+      ${esAdmin ? `<button class="btn" id="prok">${p.id ? 'Guardar' : 'Crear producto'}</button>` : ''}</div>`;
+  $('dlg').showModal();
+  if (!esAdmin) return;
+
+  const iva = () => (+$('priva').value || 0) / 100;
+  $('prpr').oninput = () => { $('prpvp').value = $('prpr').value === '' ? '' : r2(+$('prpr').value * (1 + iva())); };
+  $('prpvp').oninput = () => { $('prpr').value = $('prpvp').value === '' ? '' : +(+$('prpvp').value / (1 + iva())).toFixed(4); };
+  $('priva').oninput = () => { if ($('prpr').value !== '') $('prpvp').value = r2(+$('prpr').value * (1 + iva())); };
+  $('prfoto').onchange = e => {
+    const f = e.target.files[0]; if (!f) return;
+    $('prfprev').style.backgroundImage = `url('${URL.createObjectURL(f)}')`; $('prfprev').textContent = '';
+  };
+  camposInsertar($('dbody'), 'producto', p.id, $('prok') && $('prok').closest('.acts'));
+  $('prok').onclick = async ev => {
+    if (!$('prn').value.trim()) { toast('Escribe el nombre', true); return; }
+    const cps = camposLeer($('dbody'));
+    if (cps && cps.falta.length) { toast(`Rellena «${cps.falta[0]}»`, true); return; }
+    ev.target.disabled = true; ev.target.textContent = 'Guardando…';
+    let foto_url;
+    const f = $('prfoto').files && $('prfoto').files[0];
+    if (f) {
+      const ruta = 'p-' + Date.now() + '-' + f.name.replace(/[^a-zA-Z0-9.]/g, '');
+      const { error: eu } = await db.storage.from('productos').upload(ruta, f, { upsert: true });
+      if (!eu) foto_url = db.storage.from('productos').getPublicUrl(ruta).data.publicUrl;
+      else toast('La foto no se ha podido subir: ' + eu.message, true);
+    }
+    const { data: r, error } = await db.rpc('guardar_producto', { p: {
+      id: p.id || null, nombre: $('prn').value.trim(), presentacion: $('prp').value.trim(),
+      precio: $('prpr').value, iva: $('priva').value, referencia: $('prref').value.trim(),
+      codigo_barras: $('prcb').value.trim(), unidades_envase: $('prue').value, coste: $('prco').value,
+      ...(foto_url ? { foto_url } : {}), ...($('pract') ? { activo: $('pract').checked } : {}) } });
+    ev.target.disabled = false; ev.target.textContent = p.id ? 'Guardar' : 'Crear producto';
+    if (error || (r && r.ok === false)) { toast('No se ha podido guardar: ' + ((error && error.message) || (r && r.error) || ''), true); return; }
+    if (cps && !(await camposGuardar(cps, (r && r.id) || p.id))) return;
+    $('dlg').close(); toast(p.id ? 'Producto guardado' : 'Producto creado');
+    await cargarProductos(); if (TAB === 'productos') pintarProductos();
+  };
+}
+
+// En la ficha del producto: selector de estado
+function editorProductoBase2(p, ...r) {
+  const x = editorProductoBase(p, ...r);
+  setTimeout(() => {
+    if (!p || !p.id || $('prestado') || !$('dbody')) return;
+    const est = ESTADO_PROD[p.id] || p.estado || 'Activo';
+    const ref = $('dbody').querySelector('.acts:last-of-type'); if (!ref) return;
+    ref.insertAdjacentHTML('beforebegin', `<div class="blk" id="prestado"><h3>Estado</h3><div class="segs">${['Activo', 'En pausa', 'Descatalogado'].map(e => `<button type="button" data-pest="${e}" class="${e === est ? 'on' : ''}">${e}</button>`).join('')}</div>
+      <div class="sm" style="margin-top:6px">«En pausa»: no aparece al hacer pedidos, pero se conserva su stock. «Descatalogado»: deja de venderse.</div></div>`);
+    $('dbody').querySelectorAll('[data-pest]').forEach(b => b.onclick = async () => {
+      const { data, error } = await RPC_ORIG('estado_producto', { p_id: p.id, p_estado: b.dataset.pest });
+      if (error || !data || !data.ok) { toast('No se ha podido cambiar el estado', true); return; }
+      ESTADO_PROD[p.id] = b.dataset.pest; const pp = PRODUCTOS.find(z => z.id === p.id); if (pp) pp.estado = b.dataset.pest;
+      $('dbody').querySelectorAll('[data-pest]').forEach(z => z.classList.toggle('on', z === b)); toast('Estado: ' + b.dataset.pest);
+    });
+  }, 80);
+  return x;
+}
+
+function editorProductoBase3(p, ...a) { const r = editorProductoBase2.call(this, p, ...a); if (p && p.id) setTimeout(() => bloqueCampos('productos', p.id, $('dbody')), 150); return r; }
+
+// Producto: datos de la muestra regulada (solo administración; se guardan al cambiarlos)
+function editorProductoBase4(p, ...r) {
+  const x = editorProductoBase3.call(this, p, ...r);
+  setTimeout(async () => {
+    if (!puede('administrar') || !$('dbody') || !$('prok') || $('prmuestra')) return;
+    const ref = $('dbody').querySelector('.acts:last-of-type'); if (!ref) return;
+    if (!p || !p.id) { ref.insertAdjacentHTML('beforebegin', '<div class="blk" id="prmuestra"><h3>Muestras con control legal</h3><p class="sm">Guarda el producto y vuelve a abrirlo para marcarlo como muestra con control legal.</p></div>'); return; }
+    const { data: m } = await db.from('productos').select('muestra_regulada,muestra_desde,muestra_max').eq('id', p.id).maybeSingle();
+    if (!$('dbody') || $('prmuestra')) return;
+    const d = m || {};
+    ref.insertAdjacentHTML('beforebegin', `<div class="blk" id="prmuestra"><h3>Muestras con control legal</h3>
+      <label class="opt"><input type="checkbox" id="prmreg" ${d.muestra_regulada ? 'checked' : ''}> Es un medicamento: sus muestras llevan firma y límite</label>
+      <div class="g2 ${d.muestra_regulada ? '' : 'hide'}" id="prmdat">
+        <div><label for="prmdesde">Autorizado el</label><input id="prmdesde" type="date" value="${esc(d.muestra_desde || '')}"></div>
+        <div><label for="prmmax">Máximo por profesional y año</label><input id="prmmax" type="number" min="1" max="10" step="1" value="${d.muestra_max || 10}"></div></div>
+      <p class="sm">La ley permite como mucho 10 muestras por medicamento, profesional y año, durante los 2 años siguientes a su autorización, y con la solicitud firmada.</p></div>`);
+    const guardar = async () => {
+      const reg = $('prmreg').checked, max = Math.min(10, Math.max(1, +$('prmmax').value || 10));
+      $('prmdat').classList.toggle('hide', !reg);
+      const { error } = await db.from('productos').update({ muestra_regulada: reg, muestra_desde: $('prmdesde').value || null, muestra_max: max }).eq('id', p.id);
+      toast(error ? 'No se ha podido guardar: ' + error.message : 'Muestras: guardado', !!error);
+    };
+    ['prmreg', 'prmdesde', 'prmmax'].forEach(k => $(k).addEventListener('change', guardar));
+  }, 120);
+  return x;
+}
+
+function editorProductoBase5(p, ...r) {
+  const x = editorProductoBase4.call(this, p, ...r);
+  setTimeout(async () => {
+    if (!puede('administrar') || !planIncluyeSeccion('cobertura') || !$('dbody') || !$('prok') || $('prpromo') || !p || !p.id) return;
+    const ref = $('dbody').querySelector('.acts:last-of-type'); if (!ref) return;
+    const { data: m } = await db.from('productos').select('promocionado').eq('id', p.id).maybeSingle();
+    if (!$('dbody') || $('prpromo') || !m) return;
+    ref.insertAdjacentHTML('beforebegin', `<div class="blk" id="prpromo"><h3>Promoción</h3>
+      <label class="opt"><input type="checkbox" id="prpromoc" ${m.promocionado ? 'checked' : ''}> Se promociona en las ${TT('visita', 'p', '', 'l', 'l')}</label>
+      <p class="sm">Sale en «Registrar ${TT('visita', 's', '', 'l', 'l')}» para marcarlo como presentado, y en la cobertura por producto del ciclo.</p></div>`);
+    $('prpromoc').onchange = async e => {
+      const { error } = await db.from('productos').update({ promocionado: e.target.checked }).eq('id', p.id);
+      toast(error ? 'No se ha podido guardar: ' + error.message : (e.target.checked ? 'Se promociona en las ' + TT('visita', 'p', '', 'l', 'l') : 'Ya no se promociona'), !!error);
+      if (!error) PROMO_PRODS = null;
+    };
+  }, 140);
+  return x;
+}
+
+// Producto: es un equipo y cada cuánto se revisa
+function editorProductoBase6(p, ...r) {
+  const x = editorProductoBase5.call(this, p, ...r);
+  setTimeout(async () => {
+    if (!puede('administrar') || !planIncluyeSeccion('parque') || !$('dbody') || !$('prok') || $('prequipo') || !p || !p.id) return;
+    const ref = $('dbody').querySelector('.acts:last-of-type'); if (!ref) return;
+    const { data: m } = await db.from('productos').select('es_equipo,revision_meses').eq('id', p.id).maybeSingle();
+    if (!$('dbody') || $('prequipo') || !m) return;
+    ref.insertAdjacentHTML('beforebegin', `<div class="blk" id="prequipo"><h3>Equipo</h3>
+      <label class="opt"><input type="checkbox" id="preqc" ${m.es_equipo ? 'checked' : ''}> Es un equipo: se instala con su número de serie</label>
+      <div class="${m.es_equipo ? '' : 'hide'}" id="preqd"><label for="preqr">Revisión cada (meses; 0 = sin revisiones)</label><input id="preqr" type="number" min="0" max="120" step="1" value="${+m.revision_meses || 0}" style="max-width:140px"></div>
+      <p class="sm">Al confirmar un pedido con este producto se pide el número de serie de cada unidad y queda en el parque instalado del cliente.</p></div>`);
+    const guardar = async () => {
+      $('preqd').classList.toggle('hide', !$('preqc').checked);
+      const { error } = await db.from('productos').update({ es_equipo: $('preqc').checked, revision_meses: Math.min(120, Math.max(0, Math.floor(+$('preqr').value || 0))) }).eq('id', p.id);
+      toast(error ? 'No se ha podido guardar: ' + error.message : 'Equipo: guardado', !!error);
+    };
+    $('preqc').onchange = guardar; $('preqr').onchange = guardar;
+  }, 160);
+  return x;
+}
+
+// Ficha del producto: el material para presentar
+function editorProductoBase7(p, ...r) {
+  const x = editorProductoBase6.call(this, p, ...r);
+  setTimeout(async () => {
+    if (!puede('administrar') || !$('dbody') || !$('prok') || $('prmat') || !p || !p.id) return;
+    const ref = $('dbody').querySelector('.acts:last-of-type'); if (!ref) return;
+    const l = (await presMateriales(true)).filter(m => m.producto_id === p.id);
+    if (!$('dbody') || $('prmat') || !$('prok')) return;
+    ref.insertAdjacentHTML('beforebegin', `<div class="blk" id="prmat"><h3>Material para presentar</h3>
+      <p class="sm">Imágenes o PDF (fichas técnicas, estudios, catálogo) que se enseñan a pantalla completa al registrar ${esc(TT('visita', 's', 'una', 'l', 'l'))}. Hasta 8 MB cada uno. Con «Para los centros», los centros que tienen el producto lo descargan desde su portal.</p>
+      <div class="prmatl" id="prmatl"></div>
+      <label class="btn sec prmatadd">+ Añadir imagen o PDF<input type="file" id="prmatf" accept="image/*,application/pdf" data-fp="1" multiple hidden></label></div>`);
+    const pinta = lista => {
+      $('prmatl').innerHTML = lista.length ? lista.map(m => `<div class="prmati"><span>${m.tipo === 'application/pdf' ? 'PDF' : 'Imagen'} · ${esc(m.nombre)}</span><label class="prmatpp"><input type="checkbox" data-prmatpp="${m.id}" ${m.para_portal ? 'checked' : ''}> Para los centros</label>
+          <button type="button" class="lnk" data-prmatver="${m.id}">Ver</button><button type="button" class="lnk" data-prmatdel="${m.id}" aria-label="Quitar ${esc(m.nombre)}">Quitar</button></div>`).join('')
+        : '<p class="sm">Todavía no tiene material.</p>';
+      $('prmatl').querySelectorAll('[data-prmatver]').forEach(b => b.onclick = async () => {
+        await presMateriales(); presentarSolo(p, b.dataset.prmatver);
+      });
+      $('prmatl').querySelectorAll('[data-prmatdel]').forEach(b => b.onclick = async () => {
+        const m = lista.find(y => y.id === b.dataset.prmatdel); if (!m) return;
+        if (!await preguntar(`Se quita «${m.nombre}» del material de este producto.`, { titulo: '¿Quitar el material?', ok: 'Quitar', peligro: true })) return;
+        const { error } = await db.from('producto_materiales').delete().eq('id', m.id);
+        if (error) { toast('No se ha podido quitar: ' + error.message, true); return; }
+        PRES_DATOS.delete(m.id); pinta((await presMateriales(true)).filter(y => y.producto_id === p.id)); toast('Material quitado');
+      });
+    };
+    pinta(l);
+    $('prmatf').onchange = async e => {
+      const fs = [...e.target.files]; e.target.value = '';
+      let n = 0, orden = l.length;
+      for (const f of fs) {
+        let a = null;
+        if (f.type === 'application/pdf') {
+          if (f.size > PRES_MAX) { toast(`«${f.name}» pesa más de 8 MB`, true); continue; }
+          a = { nombre: f.name, tipo: f.type, tamano: f.size, datos: await aBase64(f) };
+        } else if (/^image\//.test(f.type)) a = await leerJustificante(f);
+        else { toast(`«${f.name}» no es una imagen ni un PDF`, true); continue; }
+        if (!a) continue;
+        const { error } = await db.from('producto_materiales').insert({ producto_id: p.id, nombre: a.nombre, tipo: a.tipo, tamano: a.tamano, datos: a.datos, orden: orden++ });
+        if (error) { toast(`No se ha podido subir «${f.name}»: ${error.message}`, true); continue; }
+        n++;
+      }
+      if (n) toast(n === 1 ? 'Material añadido' : `${n} archivos añadidos`);
+      if ($('prmatl')) pinta((await presMateriales(true)).filter(y => y.producto_id === p.id));
+    };
+  }, 160);
+  return x;
+}
+
+// Producto: packs para los centros y PVP de referencia
+function editorProductoBase8(p, ...r) {
+  const x = editorProductoBase7.call(this, p, ...r);
+  setTimeout(async () => {
+    if (!puede('administrar') || !$('dbody') || !$('prok') || $('prpacks') || !p || !p.id) return;
+    const { data: d } = await db.from('productos').select('packs, pvp_recomendado').eq('id', p.id).maybeSingle();
+    const ref = $('prmat') || $('dbody').querySelector('.acts:last-of-type'); if (!ref || $('prpacks')) return;
+    let packs = (d && Array.isArray(d.packs) ? d.packs : []).map(k => ({ compra: +k.compra || 0, regalo: +k.regalo || 0 }));
+    ref.insertAdjacentHTML('beforebegin', `<div class="blk" id="prpacks"><h3>Packs para los centros</h3>
+      <p class="sm">Si pones packs, los centros piden este producto solo por packs desde su portal. El regalo va en el pedido como línea aparte al 100 % de descuento. El PVP de referencia (con IVA) sirve para enseñarles su margen.</p>
+      <div id="prpkl"></div><button type="button" class="btn sec chico" id="prpkmas">+ Añadir pack</button>
+      <div class="g2" style="margin-top:10px"><div><label for="prpkpvp">PVP de referencia (con IVA)</label><input id="prpkpvp" type="number" step="0.01" value="${d && d.pvp_recomendado != null ? +d.pvp_recomendado : ''}" placeholder="Sin indicar"></div></div>
+      <span class="pcerr" id="prpkerr" hidden></span>
+      <div class="prpkacts"><button type="button" class="btn sec" id="prpkok">Guardar packs</button></div></div>`);
+    const leer = () => [...$('prpkl').querySelectorAll('.prpkf')].map(f => ({ compra: f.querySelector('[data-pkc]').value, regalo: f.querySelector('[data-pkg]').value }));
+    const pinta = () => {
+      $('prpkl').innerHTML = packs.length ? packs.map((k, i) => `<div class="prpkf"><label>Compra <input type="number" step="1" data-pkc value="${k.compra || ''}"></label>
+          <label>Regalo <input type="number" step="1" data-pkg value="${k.regalo || 0}"></label><button type="button" class="pmhx" data-pkx="${i}" aria-label="Quitar este pack">✕</button></div>`).join('')
+        : '<p class="sm">Sin packs: los centros lo piden por unidades.</p>';
+      $('prpkl').querySelectorAll('[data-pkx]').forEach(b => b.onclick = () => { packs = leer(); packs.splice(+b.dataset.pkx, 1); pinta(); });
+    };
+    pinta();
+    $('prpkmas').onclick = () => { packs = leer(); packs.push({ compra: '', regalo: 0 }); pinta(); };
+    $('prpkok').onclick = async ev => {
+      const l = leer().map(k => ({ compra: Number(k.compra), regalo: Number(k.regalo || 0) })), err = $('prpkerr');
+      const malo = l.find(k => !Number.isInteger(k.compra) || k.compra < 1 || !Number.isInteger(k.regalo) || k.regalo < 0);
+      const rep = l.some((k, i) => l.findIndex(y => y.compra === k.compra && y.regalo === k.regalo) !== i);
+      const pv = $('prpkpvp').value === '' ? null : Number($('prpkpvp').value);
+      const txt = malo ? 'Cada pack necesita una compra de 1 o más unidades y un regalo de 0 o más (números enteros).' : rep ? 'Hay dos packs iguales.' : pv != null && (!(pv >= 0) || isNaN(pv)) ? 'El PVP de referencia tiene que ser un importe de 0 o más.' : '';
+      err.hidden = !txt; err.textContent = txt; if (txt) return;
+      ev.target.disabled = true;
+      const { error } = await db.from('productos').update({ packs: l.length ? l.sort((a, b) => a.compra - b.compra) : null, pvp_recomendado: pv }).eq('id', p.id);
+      ev.target.disabled = false;
+      if (error) { toast('No se han podido guardar los packs: ' + error.message, true); return; }
+      packs = l; pinta(); toast(l.length ? `Packs guardados (${num(l.length)})` : 'Sin packs: se pide por unidades');
+    };
+  }, 0);
+  return x;
+}
+
+function editorProducto(p, ...r) {
+  const x = editorProductoBase8.call(this, p, ...r);
+  setTimeout(() => {
+    if (!p || !p.id || !puedeEliminarProducto() || !$('dbody') || !$('prok') || $('prelim')) return;
+    // dentro de la fila de botones del editor: un bloque nuevo al final despistaría a los que buscan .acts:last-of-type
+    const fila = $('prok').closest('.acts') || $('dbody').querySelector('.acts:last-of-type'); if (!fila) return;
+    fila.insertAdjacentHTML('afterbegin', '<button type="button" class="btn sec dang prelimb" id="prelim">Eliminar producto</button>');
+    $('prelim').onclick = async () => {
+      if (!await preguntar('Si no se ha vendido nunca, se borra del todo, también su stock, sus lotes y sus compras. Si tiene ventas, muestras firmadas, intervenciones o equipos, deja de salir en todas partes pero se conserva para el histórico (los pedidos y las facturas siguen con su nombre) y se puede recuperar.',
+        { titulo: `¿Eliminar «${p.nombre}»?`, ok: 'Eliminar', peligro: true })) return;
+      const { data: res, error } = await db.rpc('eliminar_producto', { p_id: p.id });
+      if (error || !res || !res.ok) {
+        toast(res && res.error === 'stock' ? `Tiene ventas y ${num(res.unidades)} unidades en stock: sácalas o regulariza el stock antes de eliminarlo`
+          : res && res.error === 'permiso' ? 'No tienes permiso para eliminar productos' : 'No se ha podido eliminar: ' + ((error && error.message) || (res && res.error) || ''), true);
+        return;
+      }
+      if ($('dlg').open) $('dlg').close();
+      if (res.modo === 'borrado') toast('Producto eliminado' + (res.detalle && +res.detalle.unidades ? ` con sus ${num(res.detalle.unidades)} unidades de stock` : ''));   // v2.324.0
+      else toast('Producto eliminado de las listas · se conserva en el histórico (' + Object.entries(res.detalle || {}).map(([k, n]) => `${num(n)} ${PROD_USOS[k] || k}`).join(', ') + ')');
+      refrescarProductos();
+    };
+  }, 0);
+  return x;
+}

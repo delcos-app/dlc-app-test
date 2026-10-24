@@ -1,36 +1,17 @@
 
-// El contador del botón suma los filtros de Clasificadores
-htActivos = (orig => function (sec) { const P = clasPantalla(sec); return orig(sec) + (P ? Object.keys(P.estado()).length : 0); })(htActivos);
-// El botón «Filtros y columnas» vive en la barra de la tabla: si la tabla se vuelve a pintar entera
-// (Productos al filtrar o guardar), el botón desaparecía con ella. Se vuelve a crear si falta.
-htPreparar = (orig => function (sec) {
-  const acts = sec.querySelector('.saludo .acts');
-  // v2.96.0: en Clientes, Pedidos y Productos el panel existe aunque la lista salga vacía (un periodo sin datos o
-  // un filtro de Clasificadores que no deja nada): sin él no se podría cambiar el filtro que la ha vaciado
-  const ref = sec.querySelector('.subnav') || sec.querySelector('.saludo');
-  if (!sec.querySelector('.htpanel') && !sec.querySelector('.dgrid') && clasPantalla(sec) && ref && acts) {
-    ref.insertAdjacentHTML('afterend', '<div class="htpanel hide"><div class="htpropios"></div><div class="htauto"></div></div>');
-  }
-  if (sec.querySelector('.htpanel') && !sec.querySelector('.htbtn') && acts) {
-    acts.insertAdjacentHTML('afterbegin', `<button class="btn sec chico htbtn" type="button" title="Filtros y columnas" aria-label="Filtros y columnas">${svgIco(ICON_NOM['sliders-horizontal'])}<span class="htl"> Filtros y columnas</span><span class="htn"></span></button>`);
-  }
-  const r = orig(sec);
-  if (!sec.querySelector('.dgrid') && clasPantalla(sec)) htContador(sec);
-  return r;
-})(htPreparar);
 // «Elegir columnas» no repite las columnas de los campos: se eligen en Clasificadores
-panelColumnas = (orig => function (titulo, cols, alCambiar) {
+function panelColumnas(titulo, cols, alCambiar) {
   const g = $('v-' + TAB) && $('v-' + TAB).querySelector('.dgrid'), cab = g ? [...(g.querySelector(':scope > .dh') || { children: [] }).children] : [];
-  return orig(titulo, cols.filter(c => !(cab[c.i] && cab[c.i].classList.contains('cpcol'))), alCambiar);
-})(panelColumnas);
+  return panelColumnasBase2(titulo, cols.filter(c => !(cab[c.i] && cab[c.i].classList.contains('cpcol'))), alCambiar);
+}
 
 /* ---------- Cuentas: la sección va en su panel de filtros, con sus columnas ---------- */
 // Todos los campos pueden ser columna; de entrada se ven los que tienen «Columna en la tabla»
 camposEnDirectorio = function () {
   (CAMPOS.medico || []).forEach(c => { if (!COLS.some(x => x.k === 'cp:' + c.clave)) COLS.push({ k: 'cp:' + c.clave, t: c.nombre, w: 150 }); });
 };
-abrirHerramientas = (orig => function (ctx, ...r) {
-  const x = orig(ctx, ...r);
+function abrirHerramientas(ctx, ...r) {
+  const x = abrirHerramientasBase3(ctx, ...r);
   const d = $('tools'), z = d.querySelector('.tfcampos');
   if (ctx === 'directorio' && z && d.classList.contains('abierto')) {
     // Después de los filtros y antes de las columnas
@@ -39,7 +20,7 @@ abrirHerramientas = (orig => function (ctx, ...r) {
     clasPintar(z, 'medico', F.campos = F.campos || {}, () => buscar(true), () => buscar(true), 'h3');
   }
   return x;
-})(abrirHerramientas);
+}
 function pintarChips() {
   pintarChipsBase();
   const cs = clasChips('medico', F.campos);

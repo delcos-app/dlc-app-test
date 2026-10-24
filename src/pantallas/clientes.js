@@ -384,3 +384,79 @@ async function pintarPacientes(...a) {
   DB_PRE.set('municipios_clientes{}', m); DB_PRE.set('clientes_lista' + JSON.stringify(p), l);
   return pintarPacientesBase.apply(this, a);
 }
+
+async function fichaPacienteBase(id) {
+  FICHA_PAC = id; FICHA_ID = null;
+  $('fbody').innerHTML = '<div class="skel" style="width:50%"></div><div class="skel"></div><div class="skel" style="width:80%"></div>';
+  if (!$('ficha').open) $('ficha').showModal();
+  const { data } = await RPC_ORIG('contacto_detalle', { p_id: id });
+  if (FICHA_PAC !== id) return;
+  if (!data || !data.contacto) { $('fbody').innerHTML = `<div class="vacio">No se ha encontrado ${TT('paciente', 's', 'el', 'l', 'l')}.</div>`; return; }
+  const c = data.contacto, m = data.medico, ped = data.pedidos || [];
+  const validos = ped.filter(p => p.estado !== 'Anulado' && p.estado !== 'Borrador');
+  const permitido = puedeVentas();
+
+  $('fbody').innerHTML = `
+    <div class="fh"><div><h2>${esc(c.nombre)}</h2><div class="sm">${TT('paciente', 's', '', 'l', 'C')}${c.nif ? ' · NIF ' + esc(c.nif) : ''}</div></div>
+      <button class="x" id="fpx" aria-label="Cerrar">✕</button></div>
+    ${permitido ? `<div class="acts"><button class="btn" id="fpnped">+ Nuevo pedido</button>
+      <button class="btn sec" id="fpedit">Editar datos</button></div>` : ''}
+    <div class="kpis" style="margin:10px 0 0;grid-template-columns:repeat(3,minmax(0,1fr))">
+      <div class="kpi"><b>${num(validos.length)}</b><span>pedidos</span></div>
+      <div class="kpi"><b>${num(data.total_unidades)}</b><span>unidades</span></div>
+      <div class="kpi"><b>${eurI(validos.reduce((n, p) => n + (+p.total || 0), 0))}</b><span>con IVA</span></div></div>
+    <div class="blk"><h3>${TT('medico', 's', '', 'l', 'C')} que lo trata</h3>
+      ${m ? `<div><button class="kcfg" data-fpmed="${m.id}" style="font-size:15px">${esc(m.nombre)}</button>
+          <span class="sm"> · código ${esc(m.codigo)}${m.especialidad ? ' · ' + esc(m.especialidad) : ''}</span></div>
+        <div class="sm">${m.comercial ? 'Comercial: ' + esc(m.comercial) : 'Sin comercial asignado'}</div>`
+        : `<div class="sm">Sin ${TT('medico', 's', '', 'l', 'l', 'asignado')}. Las unidades de ${TT('paciente', 's', 'este', 'l', 'l')} no se atribuyen a nadie hasta que lo asignes.</div>`}
+      ${permitido ? `<label>${m ? `Cambiar de ${TT('medico', 's', '', 'l', 'l')}` : `Asignar ${TT('medico', 's', '', 'l', 'l')}`}</label><div id="fpsel"></div>
+        ${m ? `<div class="acts"><button class="btn sec" id="fpmedquitar">Quitar ${TT('medico', 's', '', 'l', 'l')}</button></div>` : ''}` : ''}
+    </div>
+    <div class="blk"><h3>Contacto</h3>
+      ${[['Teléfono', c.telefono], ['Móvil', c.movil], ['Email', c.email],
+         ['Dirección', [c.direccion, c.cp, c.municipio, c.provincia].filter(Boolean).join(', ')], ['Nota', c.nota]]
+        .filter(x => x[1]).map(([k, v]) => `<div class="sm"><b style="color:var(--ink)">${k}:</b> ${esc(v)}</div>`).join('')
+        || '<div class="sm">Sin datos de contacto.</div>'}</div>
+    <div class="blk"><h3>Pedidos</h3>
+      ${ped.map(p => `<button class="item" data-fpped="${p.id}" style="padding:8px 4px">
+        <span class="tx"><b>${fechaCorta(p.fecha)} · ${esc(p.productos || 'Sin productos')}</b>
+          <span class="sm">${num(p.unidades)} uds. · ${eurI(p.total)} con IVA${p.medico ? ' · ' + esc(p.medico) : ''}</span></span>
+        ${pillEstado(p.estado)}</button>`).join('') || '<div class="sm">Todavía no tiene pedidos.</div>'}</div>`;
+
+  $('fpx').onclick = () => { FICHA_PAC = null; $('ficha').close(); };
+  $('fbody').querySelectorAll('[data-fpped]').forEach(b => b.onclick = () => verPedido(b.dataset.fpped));
+  const bm = $('fbody').querySelector('[data-fpmed]');
+  if (bm) bm.onclick = () => { FICHA_PAC = null; abrirFicha(bm.dataset.fpmed); };
+  if ($('fpnped')) $('fpnped').onclick = () => nuevaVenta({ contacto: Object.assign({}, c, m ? { medico: m.nombre, medico_codigo: m.codigo } : {}), medico: m ? { id: m.id, nombre: m.nombre } : null });
+  if ($('fpedit')) $('fpedit').onclick = () => editorContacto(c, () => fichaPaciente(id));
+  const asignar = async medicoId => {
+    const { data: r, error } = await db.rpc('asignar_cuenta_cliente', { p_contacto: id, p_medico: medicoId });
+    if (error || (r && r.ok === false)) { toast('No se ha podido guardar', true); return; }
+    toast(medicoId ? `${TT('medico', 's', '', 'l', 'C', 'asignado')}` : `${TT('medico', 's', '', 'l', 'C', 'quitado')}`); fichaPaciente(id);
+    if (TAB === 'pacientes') listaPacientes();
+  };
+  if ($('fpmedquitar')) $('fpmedquitar').onclick = () => asignar(null);
+  if ($('fpsel')) selectorMedico($('fpsel'), { valor: null, placeholder: `Busca ${TT('medico', 's', 'el', 'l', 'l')} por nombre, centro o municipio`, alElegir: x => { if (x) asignar(x.id); } });
+}
+
+async function fichaPacienteBase2(id, ...a) { const r = await fichaPacienteBase.call(this, id, ...a); bloqueCampos('contactos', id, $('ficha') && ($('ficha').querySelector('.fbody, #fbody') || $('ficha').firstElementChild)); return r; }
+
+/* ============================================================
+   v2.313.0 · Dar de baja y eliminar clientes (decisión de Eric; SQL 160). Al pie de la ficha del cliente: «Dar de baja»
+   (deja de salir en Clientes y al buscar un cliente; conserva pedidos y facturas; se deshace desde Clientes → «⋯» →
+   «Clientes dados de baja») y «Eliminar» (administración o nivel completo en ventas; solo sin pedidos ni facturas).
+   ============================================================ */
+async function fichaPaciente(id, ...a) {
+  const r = await fichaPacienteBase2.call(this, id, ...a);
+  try {
+    const fb = $('fbody');
+    if (!fb || FICHA_PAC !== id || $('cbajablk') || !puedeVentas()) return r;
+    const { data: c } = await db.from('contactos').select('archivado_en').eq('id', id).maybeSingle();
+    if (!c || FICHA_PAC !== id) return r;
+    fb.insertAdjacentHTML('beforeend', `<div class="blk fbajablk" id="cbajablk"><div class="acts">
+      ${c.archivado_en ? `<button type="button" class="btn sec chico" data-calta="${id}">Volver a dar de alta</button>` : `<button type="button" class="btn sec chico" data-cbaja="${id}">Dar de baja</button>`}
+      ${nivelDe2('V') >= 3 ? `<button type="button" class="btn sec dang chico" data-celim="${id}">Eliminar ${esc(TT('paciente', 's', 'el', 'l', 'l'))}</button>` : ''}</div></div>`);
+  } catch (e) {}
+  return r;
+}

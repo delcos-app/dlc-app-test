@@ -39,7 +39,7 @@ document.addEventListener('click', e => { const b = e.target.closest('main [data
 
 new MutationObserver(ms => { for (const m of ms) for (const n of m.addedNodes) if (n.nodeType === 1 && n.classList.contains('aipop')) resumirAyuda(n); })
   .observe(document.body, { childList: true });
-function resumirAyuda(pop) {
+function resumirAyudaBase(pop) {
   const txt = pop.textContent || '';
   const lis = [...pop.querySelectorAll('li')];
   if (txt.length > 320 || lis.length > 3) {
@@ -65,16 +65,6 @@ new MutationObserver(() => ajustarFacturacion()).observe($('v-facturacion'), { c
 
 /* ---------------- 4. Cuentas: el icono sigue el modo real (mapa o lista) ---------------- */
 
-barraCuentas = (orig => function () {
-  orig();
-  const m = $('mapaBtn'); if (!m) return;
-  const mapa = [...document.querySelectorAll('#v-directorio .leaflet-container, #v-directorio #mapa')].some(x => x.offsetParent);
-  const quiere = mapa ? 'lista' : 'mapa';
-  if (m.dataset.icono !== quiere || !m.querySelector('svg')) {
-    m.dataset.icono = quiere; m.innerHTML = svgIco(ICON_NOM[quiere === 'lista' ? 'list' : 'map']);
-    m.title = quiere === 'lista' ? 'Ver la lista' : 'Ver en el mapa'; m.setAttribute('aria-label', m.title);
-  }
-})(barraCuentas);
 
 /* ---------------- 5. Diseño del PDF de la factura ---------------- */
 

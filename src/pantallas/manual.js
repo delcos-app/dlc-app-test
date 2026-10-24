@@ -177,3 +177,49 @@ let MANUAL_DESTINO = '';
      el apartado de Configuración y el día de la Agenda ya se recuerdan solos (PAG_TAB, CFG_KEY, AG_FECHA).
    - La cabecera del manual lleva «‹ Volver a …» (#manvolver): vuelve a esa pantalla y, cuando ha terminado de pintarse, al mismo punto. */
 let MANUAL_VUELTA = null;
+
+/* cargarManual: la parte base y, en orden, cada paso que se le añade (antes eran 3 capas separadas). */
+async function cargarManualBase2() {
+  await cargarManualBase();
+  await cargarManualPaso1();
+  await cargarManualPaso2();
+  await cargarManualPaso3();
+}
+
+async function cargarManualBase3(...a) {
+  await cargarManualBase2(...a);
+  const v = $('v-manual'); return;   // el índice lateral se retiró
+  const tit = [...v.querySelectorAll('h2.mantit')];
+  if (tit.length < 2) return;
+  tit.forEach((h, i) => { h.id = h.id || 'mant' + i; });
+  v.classList.add('conindice');
+  v.insertAdjacentHTML('afterbegin', `<nav class="manindice"><b>En esta página</b>${tit.map(h => `<a href="#${h.id}" data-manir="${h.id}">${esc(h.textContent)}</a>`).join('')}</nav>`);
+  v.querySelectorAll('[data-manir]').forEach(a => a.onclick = e => { e.preventDefault(); const h = $(a.dataset.manir); scrollTo({ top: h.getBoundingClientRect().top + scrollY - 140, behavior: 'smooth' }); });
+}
+
+async function cargarManualBase4(...a) {
+  if (ES_MEDICO()) return cargarManualBase3.apply(this, a);
+  const v = $('v-manual'); if (!v) return;
+  guardarVocabManual();
+  const url = 'manual/index.html?app=1' + (MANUAL_DESTINO ? '#' + MANUAL_DESTINO : ''); MANUAL_DESTINO = '';
+  v.innerHTML = `<div class="saludo"><div><h1>Manual de uso</h1><div class="fecha">Todo lo que puedes hacer con delcos, paso a paso, con fotos y vídeos</div></div></div>
+    <iframe id="manlibro" class="manlibro" title="Manual de uso" src="${url}"></iframe>`;
+}
+
+async function cargarManualBase5(...a) {
+  if (!ES_IOS || ES_MEDICO()) return cargarManualBase4.apply(this, a);
+  guardarVocabManual();
+  const url = 'manual/index.html' + (MANUAL_DESTINO ? '#' + MANUAL_DESTINO : ''); MANUAL_DESTINO = '';
+  window.MANUAL_ULTIMA = url;
+  location.href = url;
+}
+
+async function cargarManual(...a) {
+  const r = await cargarManualBase5.apply(this, a);
+  const h = document.querySelector('#v-manual .saludo');
+  if (h && MANUAL_VUELTA && !$('manvolver')) {
+    h.insertAdjacentHTML('afterbegin', `<button type="button" class="manvuelta" id="manvolver"><b aria-hidden="true">‹</b> Volver a ${esc(nombrePantalla(MANUAL_VUELTA.tab))}</button>`);
+    $('manvolver').onclick = () => volverDelManual();
+  }
+  return r;
+}

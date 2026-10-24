@@ -24,11 +24,6 @@ const pendientesDesde = t0 => { const lim = performance.now() - (Date.now() - t0
 })();
 
 
-function revelar(el, max, desde) {
-  if (!el) return; const turno = ++REVELADO;
-  el.classList.add('preparando');
-  estable(el, max, desde).then(() => { if (turno === REVELADO || !el.matches('main > section')) { el.classList.remove('preparando'); llegar(el); } });
-}
 ir = (orig => function (t) {
   const t0 = Date.now() - 2;
   const r = orig(t);

@@ -42,21 +42,20 @@ document.addEventListener('focusout', e => { const x = e.target.closest && e.tar
 
 
 // ——— Sin manual, sin «Inicio» y Configuración con lo suyo ———
-arbolCfgUnico = (orig => function (...a) {
-  const g = orig.apply(this, a);
+function arbolCfgUnicoBase5(...a) {
+  const g = arbolCfgUnicoBase4.apply(this, a);
   if (!ES_MEDICO()) return g;
   return g.map(([t, l]) => [t, (l || []).filter(x => x.k === 'datos' || x.k === 'notif').map(x => x.k === 'datos' ? Object.assign({}, x, { d: 'Nombre, teléfono, idioma y contraseña' }) : x)]).filter(([, l]) => l.length);
-})(arbolCfgUnico);
-resumirAyuda = (orig => function (pop) {
-  orig.call(this, pop);
+}
+function resumirAyuda(pop) {
+  resumirAyudaBase2.call(this, pop);
   if (ES_MEDICO()) pop.querySelectorAll('.aiman').forEach(x => x.remove());
-})(resumirAyuda);
+}
 ir = (orig => function (t, ...a) {
   if (ES_MEDICO() && !['informe', 'config', 'perfil'].includes(t)) t = 'informe';   // v2.282.0: también el centro
   return orig.call(this, t, ...a);
 })(ir);
 
-abrirFicha = (orig => async function (id, ...a) { const r = await orig.call(this, id, ...a); await fichaPropuesta(id); return r; })(abrirFicha);
 
 
 

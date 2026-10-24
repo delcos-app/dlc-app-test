@@ -24,22 +24,6 @@ cargarConfig = (orig => async function (...a) {
 })(cargarConfig);
 
 
-verCita = (orig => function (c, ...r) {
-  const x = orig.call(this, c, ...r);
-  if (!c || CITA_ABIERTA.includes(c.estado) || !$('dbody')) return x;
-  const datos = $('dbody').querySelector('.vcdatos'); if (!datos || $('vccerrada')) return x;
-  const reabrir = citaConMenu(c);
-  datos.insertAdjacentHTML('afterend', `<div class="banda-info vccerrada" id="vccerrada"><b>Cita cerrada: ${esc(c.estado)}.</b>
-    <span id="vccomo"></span> ${reabrir ? 'Si hace falta, puedes volver a planificarla desde «⋯».' : 'La hora y el día ya no se cambian; las notas sí. Si hace falta volver, crea una cita nueva.'}</div>`);
-  if (citaHecha(c.estado) && c.cuenta_id) {
-    db.from('actividades').select('resultados, hora').eq('cuenta_id', c.cuenta_id).eq('fecha', c.fecha).limit(1).then(({ data }) => {
-      const a = (data || [])[0], s = $('vccomo'); if (!a || !s) return;
-      const res = Array.isArray(a.resultados) ? a.resultados.filter(Boolean).join(', ') : (a.resultados || '');
-      s.textContent = `Se registró la ${TT('visita', 's', '', 'l', 'l')}${a.hora ? ' a las ' + String(a.hora).slice(0, 5) : ''}${res ? ': ' + res : ''}.`;
-    }, () => {});
-  }
-  return x;
-})(verCita);
 
 // iPhone: lecturas que se quedan colgadas
 const LECT_DUP = new Set(['buscar_cuentas', 'buscar_global', 'panel_inicio', 'inicio_areas', 'inicio_graficas',
@@ -202,7 +186,6 @@ setTimeout(() => { if (typeof PERFIL !== 'undefined' && PERFIL && (typeof verAre
 
 
 
-cargarRutasPaso2 = (orig => function (...a) { if (RN) return; return orig.apply(this, a); })(cargarRutasPaso2);
 document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('nav.main [data-t="rutas"], #bnav [data-t="rutas"], .bmasgrid [data-bm="rutas"]'); if (b && RN) RN = null; }, true);
 
 
@@ -214,8 +197,8 @@ new MutationObserver(() => { if (!Object.keys(menuNombres()).length || TX_OBS) r
   .observe(document.body, { childList: true, subtree: true });
 
 // ---------- la pantalla ----------
-arbolCfgUnico = (orig => function (...a) {
-  const g = orig.apply(this, a);
+function arbolCfgUnicoBase2(...a) {
+  const g = arbolCfgUnicoBase.apply(this, a);
   if (!puedeOrganizacion()) return g;
   const emp = g.find(x => x[0] === 'Empresa');
   if (emp && !emp[1].some(x => x.k === 'o.textos')) {
@@ -223,7 +206,7 @@ arbolCfgUnico = (orig => function (...a) {
     emp[1].splice(i + 1, 0, { k: 'o.textos', t: 'Textos personalizados', ic: 'file-text', d: 'Cómo se llama cada módulo en tu empresa', r: () => pintarTextos() });
   }
   return g;
-})(arbolCfgUnico);
+}
 CFG_CLAVES['o.textos'] = 'textos nombres vocabulario menú menu estados resultados roles campos renombrar palabras';
 
 

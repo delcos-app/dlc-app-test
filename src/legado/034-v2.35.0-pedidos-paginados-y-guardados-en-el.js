@@ -43,15 +43,15 @@ document.addEventListener('click', async e => {
 
 /* ---------------- datos fiscales: web de la empresa para el pie de la factura ---------------- */
 
-pintarEmpresa = (orig => async function () {
-  await orig();
+async function pintarEmpresaBase2() {
+  await pintarEmpresaBase();
   if ($('em_web')) return;
   const e = AJUSTES.empresa || {};
   $('em_email').closest('.g2').insertAdjacentHTML('afterend', `<div class="g2"><div><label for="em_web">Web</label><input id="em_web" value="${esc(e.web || '')}" placeholder="www.tuempresa.com"></div><div></div></div>`);
   const ok = $('emok').onclick;
   $('emok').onclick = async () => { await ok(); AJUSTES.empresa = Object.assign({}, AJUSTES.empresa, { web: $('em_web').value.trim() });
     await db.rpc('guardar_ajuste', { p_clave: 'empresa', p_valor: AJUSTES.empresa }); };
-})(pintarEmpresa);
+}
 
 /* ---------------- manual de uso renovado ---------------- */
 
@@ -67,13 +67,6 @@ const PRIMEROS_PASOS = {
     ['📊', 'Analiza los resultados', 'Analítica → Resumen, con gráficos explicados.', 'analitica']]
 };
 
-/* cargarManual: la parte base y, en orden, cada paso que se le añade (antes eran 3 capas separadas). */
-async function cargarManual() {
-  await cargarManualBase();
-  await cargarManualPaso1();
-  await cargarManualPaso2();
-  await cargarManualPaso3();
-}
 
 
 

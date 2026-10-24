@@ -15,14 +15,6 @@ Object.assign(PL, {
   }
 });
 
-// Recuento: el de la pantalla; si no tiene, el paginador («1–20 de N») o las filas que se ven
-function plRecuento(sec, c) {
-  const cu = c.cuenta && c.cuenta(); if (cu && /\d/.test(cu.textContent)) return cu.innerHTML.replace(/<span class="sm">[\s\S]*?<\/span>/, '').trim();
-  const pag = sec.querySelector('.pltab .pag > span, .pag > span'); const m = pag && pag.textContent.match(/de\s+([\d.]+)/);
-  const g = sec.querySelector('.dgrid'); if (!m && !g) return sec.querySelector('.pltab .vacio, .panel .vacio') ? `<b>0</b> ${esc(c.que())}` : '';
-  const n = m ? m[1] : num(g.querySelectorAll(':scope > .dr:not(.hide):not(.htfuera)').length);
-  return `<b>${n}</b> ${esc(c.que())}`;
-}
 
 plSync = function (tab) {
   const sec = $('v-' + tab), c = plCfg(tab); if (!sec) return;
@@ -113,20 +105,6 @@ plToolHtml = function (tab) {
 };
 plCargarKpis = (orig => function (tab) { const c = plCfg(tab); if (c && c.kpis) return orig(tab); })(plCargarKpis);
 ['ventas', 'facturacion', 'productos'].forEach(plObservar);
-// Revelado de las pantallas con secciones: la primera llegada, de una vez (como siempre), con la plantilla ya puesta
-revelar = (orig => function (el, max, desde) {
-  const tab = el && el.id && el.id.slice(2);
-  if (PL_SECC[tab] && el.matches && el.matches('main > section')) {
-    // Primera llegada de una pantalla en rejilla: de una vez, con el cargador (el esqueleto queda para cuando se vuelve a buscar)
-    const t0 = Date.now(); el.classList.add('preparando');
-    // La sección puede decidirse un momento después (al pintarse): se vuelve a mirar
-    setTimeout(() => { if (plCfg(tab)) plSync(tab);
-      // La v2.236 trataba como plantilla toda pantalla de PL: mientras se llama al revelado de siempre, esta no está en PL
-      const keep = PL[tab]; delete PL[tab]; try { orig(el, max, desde || t0); } finally { PL[tab] = keep; } }, 0);
-    return;
-  }
-  return orig(el, max, desde);
-})(revelar);
 // Clics de la barra: con la configuración de la sección abierta (la v2.236 leía PL[tab] directamente)
 document.addEventListener('click', e => {
   const sec = e.target.closest('main > section.plantilla'); if (!sec || !PL_SECC[sec.id.slice(2)]) return;

@@ -17,18 +17,6 @@ rpcCache = (orig => function (fn, params, clave, ...x) {
 })(rpcCache);
 
 
-// ---- «Tu día» con sus bandejas y «En este centro también», de una vez
-async function pintarTuDia() {
-  if (!agConCinta()) return;
-  const f = AG_FECHA;
-  let s = null;
-  await agConDatos([...agDiaCargas(f), !AG_SUG || AG_SUG.fecha !== f ? agSugDatos(f).then(x => { s = x; }) : null], async () => {
-    if (AG_FECHA !== f || !agConCinta()) return;
-    agPonerSug(f, s);
-    await tdPintar();
-    if (agN()) { agTamb(); agBandejas(); }
-  });
-}
 
 // ---- Elegir otro día: todo lo que cambia (Tu día, bandejas, cinta, «Tu semana», la semana abierta) aparece a la vez
 agVerDia = async function (f) {
@@ -58,10 +46,6 @@ agVerDia = async function (f) {
   if (top < 80 || top > innerHeight * 0.6) scrollTo({ top: scrollY + top - 90, behavior: 'smooth' });
 };
 
-agPintarSemanaExp = (orig => function (...a) {
-  if (!agN()) return orig.apply(this, a);
-  return agConDatos(AG_SEM_ABIERTA ? agSemCargas(AG_FECHA) : [], () => orig.apply(this, a));
-})(agPintarSemanaExp);
 
 
 

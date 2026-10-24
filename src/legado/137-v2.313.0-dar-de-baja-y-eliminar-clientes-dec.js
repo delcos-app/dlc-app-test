@@ -1,21 +1,3 @@
-/* ============================================================
-   v2.313.0 · Dar de baja y eliminar clientes (decisión de Eric; SQL 160). Al pie de la ficha del cliente: «Dar de baja»
-   (deja de salir en Clientes y al buscar un cliente; conserva pedidos y facturas; se deshace desde Clientes → «⋯» →
-   «Clientes dados de baja») y «Eliminar» (administración o nivel completo en ventas; solo sin pedidos ni facturas).
-   ============================================================ */
-fichaPaciente = (orig => async function (id, ...a) {
-  const r = await orig.call(this, id, ...a);
-  try {
-    const fb = $('fbody');
-    if (!fb || FICHA_PAC !== id || $('cbajablk') || !puedeVentas()) return r;
-    const { data: c } = await db.from('contactos').select('archivado_en').eq('id', id).maybeSingle();
-    if (!c || FICHA_PAC !== id) return r;
-    fb.insertAdjacentHTML('beforeend', `<div class="blk fbajablk" id="cbajablk"><div class="acts">
-      ${c.archivado_en ? `<button type="button" class="btn sec chico" data-calta="${id}">Volver a dar de alta</button>` : `<button type="button" class="btn sec chico" data-cbaja="${id}">Dar de baja</button>`}
-      ${nivelDe2('V') >= 3 ? `<button type="button" class="btn sec dang chico" data-celim="${id}">Eliminar ${esc(TT('paciente', 's', 'el', 'l', 'l'))}</button>` : ''}</div></div>`);
-  } catch (e) {}
-  return r;
-})(fichaPaciente);
 document.addEventListener('click', async e => {
   const b = e.target.closest('[data-cbaja], [data-calta], [data-celim]'); if (!b) return;
   const f = $('ficha');

@@ -1,15 +1,3 @@
-/* ============================================================
-   v2.350.0 · Ventanas de Pedidos sin saltos (avisos de Eric, 22/10/2026).
-   1. El pedido aparece de una vez: mientras se pintan sus partes (facturas, operativa, pago, distribuidor, equipos…) la ventana
-      enseña el cargador; antes los botones llegaban por tandas y «Ver la factura» empujaba a «Editar pedido» justo al pulsar.
-   2. Una ventana que la persona cierra mientras carga (✕, «Cancelar», Escape o fuera) no vuelve a abrirse sola: solo con otro
-      clic o tecla (o al volver a la ventana anterior con «‹ Volver»).
-   ============================================================ */
-verPedido = (orig => async function (id, ...a) {
-  const d = $('dlg'); d.classList.add('pdprep');
-  try { return await orig.call(this, id, ...a); }
-  finally { try { await estable($('dbody'), 2500); } catch (e) {} d.classList.remove('pdprep'); }
-})(verPedido);
 
 const CIERRE_USUARIO = {}, CIERRE_PEND = {};
 ['pointerdown', 'keydown'].forEach(t => document.addEventListener(t, () => { ULT_ACCION = performance.now(); }, true));

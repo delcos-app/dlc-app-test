@@ -383,3 +383,231 @@ async function editarVisita(v, ...r) {
   } catch (e) {}
   return res;
 }
+
+/* Parte base; abrirVisita le añade el resto */
+async function abrirVisitaBaseBase(id) {
+  const [{ data, error }, { data: clas }] = (VISITA_OP = null, await visitaDatos(id));   // v2.259.0: sin red, con la copia guardada   // v2.179.0: con la ficha, marca los resultados que no tocan en su estado
+  if (error) { toast('No se ha podido abrir: ' + error.message, true); return; }
+  const m = data.medico, cons = data.consultas || [];
+  const grupos = (clas || []).filter(c => (c.valores || []).length);
+  const res = grupos.find(c => c.papel === 'resultado_visita') || { clave: '', papel: 'resultado_visita', nombre: 'Resultado', valores: CAT.resultado_visita || [] };
+  const otros = grupos.filter(c => c !== res);
+  const idx = {};   // clave del botón → { clasificador, valor }
+  const boton = (c, v, neg) => {
+    const k = c.clave + '::' + v.valor; idx[k] = { c: c.clave, v };
+    return `<span class="optw"${v.oculto ? ' data-oculto="1"' : ''}><button type="button" class="opt ${neg ? 'neg' : ''}" data-vk="${esc(k)}" ${c === res ? `data-res="${esc(v.valor)}"` : ''} ${neg ? 'data-neg="1"' : ''} aria-pressed="false">
+      <span class="mk"></span>${esc(v.valor)}${v.dato_tipo ? ' <span class="datom">+ dato</span>' : ''}</button>
+      ${v.dato_tipo ? `<span class="datobox hide" data-box="${esc(k)}">${campoDato(v, k)}</span>` : ''}</span>`;
+  };
+
+  $('dbody').innerHTML = `
+    <div class="fh"><div><h2>Registrar ${TT('visita', 's', '', 'l', 'l')}</h2><div class="sm">${esc(m.nombre)}</div></div>
+      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
+    <div class="g2">
+      <div><label for="vf">Fecha</label><input id="vf" type="date" value="${hoyISO()}"></div>
+      <div><label for="vc">Centro ${TT('visita', 's', 'del', 'l', 'l')}</label><select id="vc">
+        ${cons.map(c => `<option value="${c.id}">${esc(c.centro_nombre || consultaPrivada())}${c.municipio ? ' · ' + esc(c.municipio) : ''}</option>`).join('')}
+      </select></div>
+    </div>
+    <label>Resultado <span class="sm">· puedes marcar varios de «${TT('visita', 's', '', 'l', 'l', 'realizado')}»</span></label>
+    <div class="opciones">${res.valores.filter(v => v.extra !== 'neg').map(v => boton(res, v, false)).join('')}</div>
+    <div class="opciones" style="margin-top:8px">${res.valores.filter(v => v.extra === 'neg').map(v => boton(res, v, true)).join('')}</div>
+    ${otros.map(c => `<label>${esc(c.nombre)}${c.descripcion ? ` <span class="sm">· ${esc(c.descripcion)}</span>` : ''}</label>
+      <div class="opciones">${c.valores.map(v => boton(c, v, false)).join('')}</div>`).join('')}
+    <div class="g2" style="margin-top:6px">
+      <div><label for="vpa">Próxima acción</label><input id="vpa" placeholder="p. ej. Llevar reporting"></div>
+      <div><label for="vpf">Fecha de la próxima acción</label><input id="vpf" type="date"></div>
+    </div>
+    <label for="vn">Nota</label><textarea id="vn" rows="3"></textarea>
+    <div class="acts" style="justify-content:flex-end">
+      <button class="btn sec" data-cerrar>Cancelar</button>
+      <button class="btn" id="vguardar">Guardar ${TT('visita', 's', '', 'l', 'l')}</button>
+    </div>`;
+
+  $('dbody').querySelectorAll('[data-vk]').forEach(b => b.onclick = () => {
+    const k = b.dataset.vk, info = idx[k], on = b.getAttribute('aria-pressed') === 'true';
+    if (info.c === res.clave) {
+      const esNeg = b.dataset.neg === '1';
+      $('dbody').querySelectorAll('[data-res]').forEach(x => {
+        if ((esNeg || x.dataset.neg === '1') && x !== b) {
+          x.setAttribute('aria-pressed', 'false');
+          const bx = $('dbody').querySelector(`[data-box="${CSS.escape(x.dataset.vk)}"]`); if (bx) bx.classList.add('hide');
+        }
+      });
+    }
+    b.setAttribute('aria-pressed', String(!on));
+    const box = $('dbody').querySelector(`[data-box="${CSS.escape(k)}"]`);
+    if (box) { box.classList.toggle('hide', on); if (!on) { const i = box.querySelector('input, select'); if (i) setTimeout(() => i.focus(), 30); } }
+  });
+
+  $('vguardar').onclick = async ev => {
+    const marcados = [...$('dbody').querySelectorAll('[data-vk][aria-pressed=true]')].map(b => b.dataset.vk);
+    const resultados = marcados.filter(k => idx[k].c === res.clave).map(k => idx[k].v.valor);
+    if (!resultados.length) { toast('Elige al menos un resultado', true); return; }
+    const detalles = marcados.map(k => {
+      const el = $('dbody').querySelector(`[data-dato="${CSS.escape(k)}"]`);
+      const d = el ? el.value.trim() : '';
+      return Object.assign({ clasificador: idx[k].c, valor: idx[k].v.valor }, d ? { dato: d } : {});
+    });
+    ev.target.disabled = true; ev.target.textContent = 'Guardando…';
+    const { data: r, error: err } = await escribirRpc('registrar_actividad', { p: {
+      cuenta_id: id, ubicacion_id: $('vc').value || null, fecha: $('vf').value,
+      resultados, detalles, nota: $('vn').value.trim(),
+      proxima_accion: $('vpa').value.trim(), proxima_fecha: $('vpf').value || null,
+      op_id: VISITA_OP || (VISITA_OP = 'v-' + id + '-' + Date.now())
+    }});
+    ev.target.disabled = false; ev.target.textContent = `Guardar ${TT('visita', 's', '', 'l', 'l')}`;
+    if (err) { toast('No se ha podido guardar: ' + err.message, true); return; }
+    $('dlg').close();
+    if (!(r && r.encolada)) toast(`${TT('visita', 's', '', 'l', 'C', 'registrado')}` + (r && r.estado ? ' · estado: ' + r.estado : ''));
+    // v2.87.0: si estaba marcada como urgente y la visita se ha hecho, se pregunta si se quita la marca
+    const hecha = marcados.some(k => idx[k].c === res.clave && idx[k].v.extra !== 'neg');
+    if (m.urgente && hecha) {
+      const op = await elegirOpcion('Estaba marcada como urgente',
+        `${m.nombre}${m.urgente_motivo ? ' · ' + m.urgente_motivo : ''}\n\n¿Quitas la marca de urgente ahora que ya la has visitado?`,
+        [{ k: 'dejar', t: 'La dejo', cls: 'sec' }, { k: 'quitar', t: 'Quitar urgente' }]);
+      if (op === 'quitar') {
+        const { error: e2 } = await db.from('cuentas').update({ urgente: false, urgente_motivo: null }).eq('id', id);
+        toast(e2 ? 'No se ha podido quitar la marca' : 'Ya no está marcada como urgente', !!e2);
+      }
+    }
+    cargarInicio();
+    if (FICHA_ID === id) abrirFicha(id);
+  };
+  $('dlg').showModal();
+}
+
+/* v2.179.0 · Resultados de visita según el estado de la ficha (decisión de Eric, SQL 113): al registrar una visita solo salen los resultados
+   que tocan en el estado de esa ficha (clasificadores_actividad con p_cuenta marca «oculto» los demás); «Ver todos» los enseña igualmente.
+   En Configuración, cada resultado lleva «En todos los estados» / «Solo en: …» para elegir en qué estados aparece (guardar_valor, en_estados). */
+async function abrirVisitaBaseBase2(id, ...r) {
+  if ($('dbody')) $('dbody').classList.remove('vertodos');
+  const res = await abrirVisitaBaseBase.call(this, id, ...r);
+  try {
+    const caja = $('dbody'); if (!caja) return res;
+    const ocultos = caja.querySelectorAll('.optw[data-oculto]');
+    if (ocultos.length && !$('vtodos')) {
+      const ult = [...caja.querySelectorAll('.opciones')].filter(o => o.querySelector('[data-res]')).pop();
+      if (ult) ult.insertAdjacentHTML('afterend', `<button type="button" class="lnk" id="vtodos">Ver ${ocultos.length === 1 ? 'el resultado' : `los ${ocultos.length} resultados`} de otros estados</button>`);
+      $('vtodos').onclick = () => { caja.classList.add('vertodos'); $('vtodos').remove(); };
+    }
+  } catch (e) {}
+  return res;
+}
+
+async function abrirVisitaBaseBase3(id, ...r) {
+  const res = await abrirVisitaBaseBase2.call(this, id, ...r);
+  const d = $('dbody'), g = d && $('vguardar') && d.querySelector('.g2');
+  if (!g || $('vmodo')) return res;
+  VISITA_ACTUAL = { id, modo: 'presencial', fotos: [] };
+  g.insertAdjacentHTML('afterend', `<label>Cómo fue</label>
+    <div class="segs" id="vmodo" role="group" aria-label="Cómo fue">${MODOS_VISITA.map(([k, t]) => `<button type="button" data-vmodo="${k}" class="${k === 'presencial' ? 'on' : ''}" aria-pressed="${k === 'presencial'}">${t}</button>`).join('')}</div>`);
+  d.querySelectorAll('[data-vmodo]').forEach(b => b.onclick = () => {
+    if (!VISITA_ACTUAL) return;
+    VISITA_ACTUAL.modo = b.dataset.vmodo;
+    d.querySelectorAll('[data-vmodo]').forEach(x => { x.classList.toggle('on', x === b); x.setAttribute('aria-pressed', String(x === b)); });
+  });
+  const nota = $('vn');
+  if (nota) nota.insertAdjacentHTML('afterend', `<div class="vfotosw"><label class="btn sec" id="vfotobtn" style="display:inline-flex">${svgIco(ICON_NOM.camera)} Añadir foto<input type="file" id="vfotof" accept="image/*" data-fp="1" hidden multiple></label>
+    <span class="sm">Lineal, exposición, material colocado… (hasta ${FOTOS_VISITA_MAX})</span><div class="vfotos" id="vfotos"></div></div>`);
+  const pintar = () => pintarFotosVisita($('vfotos'), VISITA_ACTUAL ? VISITA_ACTUAL.fotos : [], i => { VISITA_ACTUAL.fotos.splice(i, 1); pintar(); });
+  if ($('vfotof')) $('vfotof').onchange = async e => {
+    for (const f of [...e.target.files]) {
+      if (!VISITA_ACTUAL) break;
+      if (VISITA_ACTUAL.fotos.length >= FOTOS_VISITA_MAX) { toast(`Como mucho ${FOTOS_VISITA_MAX} fotos por ${TT('visita', 's', '', 'l', 'l')}`, true); break; }
+      const j = await leerFotoVisita(f); if (j) VISITA_ACTUAL.fotos.push(j);
+    }
+    e.target.value = ''; pintar();
+  };
+  return res;
+}
+
+async function abrirVisitaBaseBase4(id, ...r) {
+  const res = await abrirVisitaBaseBase3.call(this, id, ...r);
+  const d = $('dbody'), nota = $('vn');
+  if (!d || !nota || !$('vguardar') || $('vmuestras') || !VISITA_ACTUAL || VISITA_ACTUAL.id !== id) return res;
+  if (!navigator.onLine) return res;   // v2.259.0: sin red no hay muestras (y db.from tardaba más de 10 s en rendirse)
+  try { const { data: ct } = await db.from('cuentas').select('tipo').eq('id', id).maybeSingle(); if (ct && ct.tipo === 'Centro') return res; } catch (e) {}   // v2.203.0
+  const { data: l } = await db.rpc('muestras_de_cuenta', { p_cuenta: id });
+  if (!Array.isArray(l) || !l.length || !$('vn') || $('vmuestras')) return res;
+  const nombre = (d.querySelector('.fh .sm') || {}).textContent || '';
+  const lab = nota.previousElementSibling && nota.previousElementSibling.tagName === 'LABEL' ? nota.previousElementSibling : nota;
+  lab.insertAdjacentHTML('beforebegin', `<div class="vmuestras" id="vmuestras"><label>Muestras de medicamento</label>
+    ${l.map(x => `<div class="vmrow ${x.en_plazo && x.quedan ? '' : 'agotada'}"><span><b>${esc(x.nombre)}</b><span class="sm">${!x.en_plazo ? 'Ya no se puede dar: el plazo acabó el ' + fechaCorta(x.hasta)
+      : `Quedan ${x.quedan} de ${x.max} este año${x.hasta ? ' · hasta el ' + fechaCorta(x.hasta) : ''}`}</span></span>
+      <input type="number" min="0" max="${x.en_plazo ? x.quedan : 0}" step="1" value="0" data-vmprod="${x.producto_id}" aria-label="Muestras de ${esc(x.nombre)}" ${x.en_plazo && x.quedan ? '' : 'disabled'}></div>`).join('')}
+    <div class="vmfirma hide" id="vmfirma"><label>Firma de quien las recibe <span class="sm">· solicitud de muestras con fecha de hoy</span></label>
+      <canvas id="vmcanvas" aria-label="Espacio para firmar"></canvas>
+      <div class="vmfpie"><input id="vmfirmante" value="${esc(nombre)}" aria-label="Nombre de quien firma" placeholder="Nombre de quien firma"><button type="button" class="lnk" id="vmborrar">Borrar la firma</button></div></div></div>`);
+  let pad = null;
+  const items = () => [...d.querySelectorAll('[data-vmprod]')].map(i => ({ producto_id: i.dataset.vmprod, unidades: Math.max(0, Math.floor(+i.value || 0)), max: +i.max })).filter(x => x.unidades > 0);
+  const ver = () => { const hay = items().length > 0; $('vmfirma').classList.toggle('hide', !hay); if (hay && !pad) pad = padFirma($('vmcanvas')); };
+  d.querySelectorAll('[data-vmprod]').forEach(i => i.addEventListener('input', ver));
+  $('vmborrar').onclick = () => pad && pad.borrar();
+  VISITA_ACTUAL.muestras = {
+    items, firmante: () => $('vmfirmante') ? $('vmfirmante').value.trim() : '', firma: () => (pad ? pad.imagen() : null),
+    validar: () => {
+      const it = items();
+      if (!it.length) return null;
+      const pasa = it.find(x => x.unidades > x.max);
+      if (pasa) return 'Se pasa del máximo de muestras de este año';
+      if (!pad || pad.vacia()) return 'Falta la firma de quien recibe las muestras';
+      return null;
+    }
+  };
+  return res;
+}
+
+async function abrirVisitaBaseBase5(id, ...r) {
+  const res = await abrirVisitaBaseBase4.call(this, id, ...r);
+  try {
+    const d = $('dbody'), ancla = $('vmodo');
+    if (!d || !ancla || $('vprods') || !VISITA_ACTUAL || VISITA_ACTUAL.id !== id || !planIncluyeSeccion('cobertura')) return res;
+    const l = await productosPromocionados();
+    if (!l.length || !$('vmodo') || $('vprods') || !VISITA_ACTUAL || VISITA_ACTUAL.id !== id) return res;
+    VISITA_ACTUAL.productos = [];
+    ancla.insertAdjacentHTML('afterend', `<label>Productos presentados</label>
+      <div class="opciones" id="vprods">${l.map(p => `<button type="button" class="opt" data-vprod="${p.id}" aria-pressed="false"><span class="mk"></span>${esc(p.nombre)}</button>`).join('')}</div>`);
+    d.querySelectorAll('[data-vprod]').forEach(b => b.onclick = () => {
+      if (!VISITA_ACTUAL) return;
+      const on = b.getAttribute('aria-pressed') !== 'true'; b.setAttribute('aria-pressed', String(on));
+      VISITA_ACTUAL.productos = [...d.querySelectorAll('[data-vprod][aria-pressed=true]')].map(x => x.dataset.vprod);
+    });
+  } catch (e) {}
+  return res;
+}
+
+async function abrirVisitaBaseBase6(...r) {
+  const fecha = VISITA_FECHA; VISITA_FECHA = '';
+  const x = await abrirVisitaBaseBase5.apply(this, r);
+  const vf = $('vf');
+  if (vf) {
+    vf.max = hoyISO();
+    if (!puede('visita_fecha_pasada')) { vf.value = hoyISO(); vf.min = hoyISO(); vf.disabled = true; vf.title = 'La visita se registra el mismo día'; }
+    else if (fecha && fecha <= hoyISO()) vf.value = fecha;
+  }
+  return x;
+}
+
+// Aviso en la ventana de la visita sin conexión
+async function abrirVisitaBaseBase7(...a) {
+  const r = await abrirVisitaBaseBase6.apply(this, a);
+  if (!navigator.onLine && $('dlg').open && $('vguardar') && !$('dbody').querySelector('.vsinred')) {
+    const fh = $('dbody').querySelector('.fh');
+    const html = `<div class="banda-aviso vsinred"><b>Sin conexión.</b> ${esc(TT('visita', 's', 'la', 'l', 'C'))} se guarda en este móvil y se envía sola al recuperar la conexión. Las muestras necesitan conexión.</div>`;
+    if (fh) fh.insertAdjacentHTML('afterend', html); else $('dbody').insertAdjacentHTML('afterbegin', html);
+  }
+  return r;
+}
+
+async function abrirVisitaBase(id, ...r) {
+  const res = await abrirVisitaBaseBase7.call(this, id, ...r);
+  try {
+    const v = $('vprods'); if (!v || $('vpres') || !PRES_MAT || !PRES_MAT.length) return res;
+    const con = [...v.querySelectorAll('[data-vprod]')].filter(b => PRES_MAT.some(m => m.producto_id === b.dataset.vprod));
+    if (!con.length) return res;
+    v.insertAdjacentHTML('afterend', `<div class="vpres" id="vpres"><span class="sm">Presentar</span>${con.map(b => `<button type="button" class="chip" data-vpres="${b.dataset.vprod}">▶ ${esc(b.textContent.trim())}</button>`).join('')}</div>`);
+    $('vpres').querySelectorAll('[data-vpres]').forEach(b => b.onclick = () => presentarProducto(b.dataset.vpres));
+  } catch (e) {}
+  return res;
+}

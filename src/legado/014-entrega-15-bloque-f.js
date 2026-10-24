@@ -4,7 +4,7 @@
 
 /* ---------------- panel lateral de herramientas ---------------- */
 
-function abrirHerramientas(contexto) {
+function abrirHerramientasBase(contexto) {
   const d = $('tools');
   if (d.classList.contains('abierto') && HERR_CTX === contexto) { d.classList.remove('abierto'); return; }
   HERR_CTX = contexto;

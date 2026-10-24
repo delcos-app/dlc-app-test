@@ -1328,3 +1328,245 @@ function agBandejas(...x) {
   }
   return r;
 }
+
+async function accionCitaBase(k, c) {
+  const refrescar = () => agRefrescoQuieto(c.id);
+  if (k === 'ficha') return abrirFicha(c.cuenta_id);
+  if (k === 'llegar') return navegarA(xyCita(c));
+  if (k === 'hora') return cambiarHoraCita(c.id, c.hora || '');
+  if (k === 'confirmar' || k === 'desconfirmar' || k === 'descartar') {
+    const estado = k === 'confirmar' ? 'Confirmada' : k === 'desconfirmar' ? 'Planificada' : 'Descartada';
+    const r = await escribir('estado_cita', { p_id: c.id, p_estado: estado });
+    if (r && r.error) { toast('No se ha podido cambiar', true); return; }
+    toast(estado === 'Confirmada' ? 'Cita confirmada' : estado === 'Descartada' ? 'Cita descartada' : 'Confirmación quitada'); refrescar(); return;
+  }
+  if (k === 'borrar') {
+    if (!await preguntar('La cita desaparece de la agenda sin dejar rastro.', { titulo: '¿Eliminar la cita?', ok: 'Eliminar', peligro: true })) return;
+    const { data: r } = await db.rpc('borrar_cita', { p_id: c.id });
+    if (r && r.ok === false) { toast(r.error === 'pasada' ? 'Solo se pueden eliminar citas de hoy en adelante' : 'No se ha podido eliminar', true); return; }
+    toast('Cita eliminada'); refrescar(); return;
+  }
+  if (k === 'aplazar') {
+    const f = await pedirFecha('¿A qué día la pasas?', proximoDiaConsulta(c.dias, c.fecha),
+      { titulo: 'Aplazar la cita', ok: 'Aplazar' });
+    if (!f) return;
+    const { data: r, error } = await db.rpc('aplazar_cita', { p_id: c.id, p_fecha: f, p_hora: null, p_origen: 'Aplazada' });
+    if (error || (r && r.ok === false)) { toast('No se ha podido aplazar', true); return; }
+    toast(r && r.ya ? 'Ya tenía una cita ese día' : r && r.mismo_dia ? 'Sigue en el mismo día' : r && r.reabierta ? 'Vuelve a su cita del ' + fechaCorta(f) : 'Aplazada al ' + fechaCorta(f)); refrescar(); return;
+  }
+  if (k === 'noestaba') {
+    const neg = (CAT.resultado_visita || []).filter(x => x.extra === 'neg');
+    if (!neg.length) { toast('Falta un resultado negativo en Configuración → Clasificadores', true); return; }
+    let res = neg[0].valor;
+    if (neg.length > 1) {
+      const op = await elegirOpcion('¿Qué ha pasado?', c.nombre, [{ k: 'no', t: 'Cancelar', cls: 'sec' }].concat(neg.map((x, i) => ({ k: 'n' + i, t: x.valor, cls: 'sec' }))));
+      if (!op) return;
+      res = neg[+op.slice(1)].valor;
+    }
+    const { error } = await escribirRpc('registrar_actividad', { p: { cuenta_id: c.cuenta_id, fecha: c.fecha, resultados: [res],
+      op_id: 'v-' + c.cuenta_id + '-' + Date.now() } });
+    if (error) { toast('No se ha podido guardar: ' + error.message, true); return; }
+    toast('Anotado: ' + res);
+    refrescar();
+    return nuevaFechaTrasNoEstaba(c);
+  }
+  if (k === 'nueva') return nuevaFechaTrasNoEstaba(c);
+}
+
+function accionCitaBase2(k, c, ...r) { if (k === 'ficha') FICHA_CENTRO = c.centro_nombre || null; return accionCitaBase(k, c, ...r); }
+
+async function moverCitaLocalBase(orden, id, acc) {
+  const u = TD_ULTIMO && TD_ULTIMO.fecha === AG_FECHA ? TD_ULTIMO.data : null;
+  if (!u) { if (await guardarOrden(orden)) cargarAgenda(); return; }
+  const ids = new Set(orden.map(c => c.id));
+  TD_PRESET = { fecha: AG_FECHA, data: [...orden, ...u.filter(c => !ids.has(c.id))] };
+  TD_ULTIMO = { fecha: AG_FECHA, data: TD_PRESET.data };
+  const y = window.scrollY;
+  await pintarTuDia();
+  window.scrollTo({ top: y });
+  const b = document.querySelector(`#agcuerpo .tdu [data-td="${acc}|${id}"]:not([disabled])`) || document.querySelector(`#agcuerpo .tdu [data-td$="|${id}"]`);
+  if (b) b.focus({ preventScroll: true });
+  if (!(await guardarOrden(orden))) cargarAgenda();
+}
+
+// ---- 4. Detalle de la cita al pulsarla en «Tu día»
+function verCitaBase(c) {
+  const inf = TD_INFO[c.id] || {}, abierta = CITA_ABIERTA.includes(c.estado);
+  const hora = c.hora ? String(c.hora).slice(0, 5) : (abierta && inf.llegada != null && inf.llegada < 24 * 60 ? `hacia las ${hm(inf.llegada)} (estimada)` : 'sin hora');
+  const donde = [c.centro_nombre, c.direccion, c.municipio].filter(Boolean).join(' · ');
+  const v = inf.ventanas || ventanasDe(c.dias, c.fecha);
+  const horario = v && v.length ? `${inf.otroCentro ? 'En ' + inf.otroCentro + ': ' : ''}${txtVentanas(v)}` : v && !v.length ? 'Ese día no atiende' : '';
+  $('dbody').innerHTML = `
+    <div class="fh"><div><h2>${esc(c.nombre)}</h2>${c.especialidad ? `<div class="sm">${esc(c.especialidad)}</div>` : ''}</div>
+      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
+    <div class="vcdatos">
+      <div class="vcfila"><span>Cuándo</span><b>${esc(fechaLarga(new Date(c.fecha + 'T12:00:00')).replace(/^./, x => x.toUpperCase()))} · ${esc(hora)}</b></div>
+      <div class="vcfila"><span>Dónde</span><b>${esc(donde || 'Sin centro')}</b></div>
+      ${horario ? `<div class="vcfila"><span>Horario</span><b>${esc(horario)}</b></div>` : ''}
+      <div class="vcfila"><span>Estado</span><b>${pillCita(c.estado)}${textoOrigenCita(c) ? ` <span class="sm">${textoOrigenCita(c)}</span>` : ''}</b></div>
+    </div>
+    ${abierta && inf.aviso ? `<div class="banda-aviso" style="margin:0 0 12px">${esc(inf.aviso)}</div>` : ''}
+    <label for="vcnota">Notas de la cita</label>
+    <textarea id="vcnota" rows="3" placeholder="p. ej. quedamos en el bar de enfrente, llevar el reporting…">${esc(c.nota || '')}</textarea>
+    <div class="vcacts">
+      <button type="button" class="btn sec" id="vcficha">Ver ficha</button>
+      ${xyCita(c) ? '<button type="button" class="btn sec" id="vcllegar">Cómo llegar</button>' : ''}
+      ${abierta ? '<button type="button" class="btn sec" id="vchora">Cambiar hora</button><button type="button" class="btn sec" id="vcmover">Mover a otro día</button>' : ''}
+    </div>
+    <div class="acts" style="justify-content:flex-end">
+      <button type="button" class="btn sec" id="vcok" disabled>Guardar notas</button>
+      ${abierta && puedeRegistrarEnDia(c.fecha) ? `<button type="button" class="btn" id="vcreg">Registrar ${TT('visita', 's', '', 'l', 'l')}</button>` : ''}</div>`;
+  const cerrar = () => $('dlg').close();
+  const nota = $('vcnota');
+  nota.oninput = () => { $('vcok').disabled = nota.value.trim() === (c.nota || '').trim(); };
+  $('vcok').onclick = async ev => {
+    ev.target.disabled = true;
+    const v2 = nota.value.trim();
+    const { error } = await db.from('agenda').update({ nota: v2 || null }).eq('id', c.id);
+    if (error) { ev.target.disabled = false; toast('No se ha podido guardar: ' + error.message, true); return; }
+    c.nota = v2; cerrar(); toast('Notas guardadas'); agRefrescoQuieto(c.id, { cifras: false });
+  };
+  $('vcficha').onclick = () => { cerrar(); FICHA_CENTRO = c.centro_nombre || null; abrirFicha(c.cuenta_id); };
+  if ($('vcllegar')) $('vcllegar').onclick = () => accionCita('llegar', c);
+  if ($('vchora')) $('vchora').onclick = () => { cerrar(); accionCita('hora', c); };
+  if ($('vcmover')) $('vcmover').onclick = () => { cerrar(); accionCita('aplazar', c); };
+  if ($('vcreg')) $('vcreg').onclick = () => { cerrar(); VISITA_FECHA = c.fecha; abrirVisita(c.cuenta_id); };
+  $('dlg').classList.add('pequena');
+  $('dlg').showModal();
+}
+
+// ---- 4. Borrar y descartar en el detalle de la cita
+function verCitaBase2(c) {
+  const r = verCitaBase.call(this, c);
+  try {
+    const abierta = CITA_ABIERTA.includes(c.estado), borrable = abierta && c.fecha >= hoyISO();
+    const caja = $('dbody') && $('dbody').querySelector('.vcacts');
+    if (caja && abierta) {
+      caja.insertAdjacentHTML('afterend', `<div class="vcfin">
+        <button type="button" class="lnk" id="vcdescartar">Descartar la cita</button><span class="sm">No se hará: queda en el historial.</span>
+        ${borrable ? '<button type="button" class="lnk peligro" id="vcborrar">Eliminar la cita</button><span class="sm">Fue un error: desaparece sin dejar rastro.</span>' : ''}</div>`);
+      $('vcdescartar').onclick = () => { $('dlg').close(); accionCita('descartar', c); };
+      if ($('vcborrar')) $('vcborrar').onclick = () => { $('dlg').close(); accionCita('borrar', c); };
+    }
+  } catch (e) {}
+  return r;
+}
+
+async function accionCita(k, c) {
+  if (k !== 'rehacer') return accionCitaBase2.call(this, k, c);
+  const { data: r, error } = await db.rpc('reabrir_cita', { p_id: c.id });
+  if (error || !r || r.ok === false) { toast(r && r.error === 'pasada' ? 'Solo se pueden volver a planificar citas de hoy en adelante' : 'No se ha podido volver a planificar', true); return; }
+  toast(r.quitada ? 'Vuelve a estar planificada (se quita la del ' + fechaCorta(r.quitada) + ')' : 'Vuelve a estar planificada');
+  agRefrescoQuieto(c.id);
+}
+
+function verCitaBase3(c) {
+  const r = verCitaBase2.call(this, c);
+  try {
+    const caja = $('dbody') && $('dbody').querySelector('.vcacts');
+    if (caja && ['Aplazada', 'Descartada'].includes(c.estado) && c.fecha >= hoyISO()) {
+      caja.insertAdjacentHTML('beforeend', '<button type="button" class="btn sec" id="vcrehacer">Volver a planificarla</button>');
+      $('vcrehacer').onclick = () => { $('dlg').close(); accionCita('rehacer', c); };
+    }
+  } catch (e) {}
+  return r;
+}
+
+function verCitaBase4(c, ...r) {
+  const x = verCitaBase3.call(this, c, ...r);
+  const acts = $('dbody') && $('dbody').querySelector('.vcacts');
+  if (acts && c) {
+    const ir = (f, txt, id) => {
+      if (!f || f === c.fecha || $(id)) return;
+      acts.insertAdjacentHTML('beforeend', `<button type="button" class="btn sec" id="${id}">${esc(txt)}</button>`);
+      $(id).onclick = () => { $('dlg').close(); AG_MODO = 'dia'; agVerDia(f); };
+    };
+    if (c.estado === 'Aplazada') ir(c.aplazada_a_fecha, 'Ir al ' + (c.aplazada_a_fecha ? diaCita(c.aplazada_a_fecha) : ''), 'vcirdest');
+    ir(c.aplazada_de_fecha, 'Ver el ' + (c.aplazada_de_fecha ? diaCita(c.aplazada_de_fecha) : ''), 'vcirorig');
+  }
+  return x;
+}
+
+// La semana de siempre, pintada debajo de la cinta (se cambia el id un momento para que pintarSemanaAgenda pinte allí)
+async function agPintarSemanaExpBase() {
+  const cin = $('agcinta'); if (!cin || !AG_SEM_ABIERTA) { const x = $('agsemexp'); if (x) x.remove(); return; }
+  let cont = $('agsemexp'); if (!cont) { cin.insertAdjacentHTML('beforeend', '<div id="agsemexp" class="agsemexp"></div>'); cont = $('agsemexp'); }
+  const real = $('agcuerpo'), modo = AG_MODO;
+  if (!real) return;
+  real.id = 'agcuerpo-dia'; cont.id = 'agcuerpo'; AG_MODO = 'semana';
+  try { await pintarSemanaAgenda(); } finally { cont.id = 'agsemexp'; real.id = 'agcuerpo'; AG_MODO = modo; }
+  const h = cont.querySelector('.semhead h2'); if (h) h.remove();
+  const p = cont.querySelector('#semplan'); if (p) p.textContent = 'Repartir la semana';
+  const head = cont.querySelector('.semhead'); if (head) head.insertAdjacentHTML('afterbegin', '<span class="sm">Arrastra una cita a otro día para moverla · «⋯» en un día para bloquearlo o añadir una cita</span>');
+}
+
+function verCita(c, ...r) {
+  const x = verCitaBase4.call(this, c, ...r);
+  if (!c || CITA_ABIERTA.includes(c.estado) || !$('dbody')) return x;
+  const datos = $('dbody').querySelector('.vcdatos'); if (!datos || $('vccerrada')) return x;
+  const reabrir = citaConMenu(c);
+  datos.insertAdjacentHTML('afterend', `<div class="banda-info vccerrada" id="vccerrada"><b>Cita cerrada: ${esc(c.estado)}.</b>
+    <span id="vccomo"></span> ${reabrir ? 'Si hace falta, puedes volver a planificarla desde «⋯».' : 'La hora y el día ya no se cambian; las notas sí. Si hace falta volver, crea una cita nueva.'}</div>`);
+  if (citaHecha(c.estado) && c.cuenta_id) {
+    db.from('actividades').select('resultados, hora').eq('cuenta_id', c.cuenta_id).eq('fecha', c.fecha).limit(1).then(({ data }) => {
+      const a = (data || [])[0], s = $('vccomo'); if (!a || !s) return;
+      const res = Array.isArray(a.resultados) ? a.resultados.filter(Boolean).join(', ') : (a.resultados || '');
+      s.textContent = `Se registró la ${TT('visita', 's', '', 'l', 'l')}${a.hora ? ' a las ' + String(a.hora).slice(0, 5) : ''}${res ? ': ' + res : ''}.`;
+    }, () => {});
+  }
+  return x;
+}
+
+async function moverCitaLocalBase2(orden, id, acc) {
+  const antes = tdPosiciones();
+  const r = await moverCitaLocalBase.call(this, orden, id, acc);
+  tdAnimar(antes, id, 260);
+  const b = document.querySelector(`#agcuerpo .tdu [data-td="${acc}|${id}"]:not([disabled])`) || document.querySelector(`#agcuerpo .tdu [data-td$="|${id}"]`);
+  if (b) b.focus({ preventScroll: true });
+  return r;
+}
+
+async function moverCitaLocal(...a) {
+  if ((!TD_ULTIMO || TD_ULTIMO.fecha !== AG_FECHA) && AG_DIAS_DATOS[AG_FECHA]) TD_ULTIMO = { fecha: AG_FECHA, data: AG_DIAS_DATOS[AG_FECHA] };
+  return moverCitaLocalBase2.apply(this, a);
+}
+
+// «Ver la semana» aparece de una vez: se pinta escondida y se enseña ya con sus días (antes salía vacía y se llenaba)
+async function agPintarSemanaExpBase2(...a) {
+  const cin = $('agcinta');
+  if (!agN() || !cin || !AG_SEM_ABIERTA || $('agsemexp')) return agPintarSemanaExpBase.apply(this, a);
+  cin.insertAdjacentHTML('beforeend', '<div id="agsemexp" class="agsemexp" style="display:none"></div>');
+  try { return await agPintarSemanaExpBase.apply(this, a); } finally { const x = $('agsemexp'); if (x) x.style.display = ''; }
+}
+
+// ---- «Tu día» con sus bandejas y «En este centro también», de una vez
+async function pintarTuDiaBase() {
+  if (!agConCinta()) return;
+  const f = AG_FECHA;
+  let s = null;
+  await agConDatos([...agDiaCargas(f), !AG_SUG || AG_SUG.fecha !== f ? agSugDatos(f).then(x => { s = x; }) : null], async () => {
+    if (AG_FECHA !== f || !agConCinta()) return;
+    agPonerSug(f, s);
+    await tdPintar();
+    if (agN()) { agTamb(); agBandejas(); }
+  });
+}
+
+function agPintarSemanaExp(...a) {
+  if (!agN()) return agPintarSemanaExpBase2.apply(this, a);
+  return agConDatos(AG_SEM_ABIERTA ? agSemCargas(AG_FECHA) : [], () => agPintarSemanaExpBase2.apply(this, a));
+}
+
+async function pintarTuDiaBase2(...a) {
+  const r = await pintarTuDiaBase.apply(this, a);
+  if (agConCinta()) tdMarcaTrafico();
+  return r;
+}
+
+async function pintarTuDiaBase3(...a) {
+  const r = await pintarTuDiaBase2.apply(this, a);
+  if (agConCinta()) tdMarcarPendientes();
+  return r;
+}
+
+async function pintarTuDia(...x) { const r = await pintarTuDiaBase3.apply(this, x); tdPlegarTareas(); return r; }

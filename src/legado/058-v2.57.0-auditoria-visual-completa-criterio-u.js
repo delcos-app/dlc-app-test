@@ -44,22 +44,8 @@ function pintarActualizado() {
 
 /* ---------------- 3. Cuentas: una sola ayuda junto al título; nombre configurable en Calidad ---------------- */
 
-barraCuentas = (orig => function () {
-  const t = $('dirtools'), h = document.querySelector('#dircab h1');
-  // Solo la ayuda de la barra (no las de la tabla) y una sola vez
-  if (t && h && !h.querySelector('.ai')) { const ai = t.parentElement.querySelector(':scope > .ai'); if (ai) h.appendChild(ai); }
-  const ai0 = document.querySelector('#v-directorio .panel .ai'); const guard = ai0; // no se mueve nada más
-  const m = $('mapaBtn');
-  if (m) {
-    const lista = /lista/i.test(m.textContent) || m.dataset.modo === 'true' && !m.querySelector('svg');
-    if (!m.querySelector('svg')) { m.dataset.modo = String(lista); m.innerHTML = svgIco(ICON_NOM[lista ? 'list' : 'map']); m.title = lista ? 'Ver la lista' : 'Ver en el mapa'; m.setAttribute('aria-label', m.title); }
-    m.classList.add('icobtn');
-  }
-  if (t) t.classList.add('aderecha');
-})(barraCuentas);
 // Si antes se subieron varias ayudas al título, se deja solo una
 new MutationObserver(() => { const h = document.querySelector('#dircab h1'); if (h) h.querySelectorAll('.ai').forEach((a, i) => { if (i) a.remove(); }); }).observe(document.querySelector('main'), { childList: true, subtree: true });
-cargarSeguimiento = (orig => async function (...a) { await orig(...a); const v = $('calvolver'); if (v) v.textContent = '‹ ' + etiquetaContactos(); })(cargarSeguimiento);
 
 /* ---------------- 4. IVA: solo los porcentajes (nunca un importe «con IVA») ---------------- */
 
@@ -102,23 +88,6 @@ $('dlg').addEventListener('close', () => {
 
 /* ---------------- 8. Mi perfil y Empresa: pantallas completas ---------------- */
 
-pintarPerfil = (orig => function () {
-  orig();
-  // El contenedor de la página (no el provisional que se usa mientras se prepara la tarjeta de la persona)
-  const c = document.querySelector('#v-perfil .pagcuerpo') || (TAB === 'config' ? document.querySelector('#v-config #cfgcuerpo-real, #v-config #cfgcuerpo') : null); if (!c || c.querySelector('.perfseg')) return;
-  c.classList.add('perfil2');
-  c.insertAdjacentHTML('beforeend', `<div class="card cfgpanel perfseg"><h2 style="padding:0 0 4px">${svgIco(ICON_NOM.shield)} Seguridad y sesión</h2>
-    <p class="sm">Para cambiar la contraseña te enviamos un enlace a tu correo. Así nadie puede cambiarla desde un dispositivo que hayas dejado abierto.</p>
-    <div class="perfsegf"><div><span class="sm">Correo de acceso</span><b>${esc(PERFIL.email || '')}</b></div><div><span class="sm">Rol</span><b>${esc(PERFIL.rol)}</b></div></div>
-    <div class="acts" style="justify-content:flex-start;flex-wrap:wrap"><button class="btn sec" id="perfclave">${svgIco(ICON_NOM['key-round'])} Enviarme el enlace para cambiar la contraseña</button>
-      <button class="btn sec" id="perfsalir">${svgIco(ICON_NOM['log-out'])} Cerrar sesión</button></div></div>`);
-  $('perfclave').onclick = () => conCarga($('perfclave'), 'Enviando…', async () => {
-    const { error } = await db.auth.resetPasswordForEmail(PERFIL.email, { redirectTo: location.origin + location.pathname });
-    toast(error ? 'No se ha podido enviar: ' + error.message : 'Te hemos enviado el enlace a ' + PERFIL.email, !!error);
-  });
-  $('perfsalir').onclick = () => { const s = document.querySelector('[data-u="salir"]'); if (s) s.click(); };
-  // (el nombre configurado del módulo de contactos lo aplica el componente general, antes de pintar)
-})(pintarPerfil);
 
 /* ---------------- 9. Plan: «Cómo funciona» explicado paso a paso ---------------- */
 
@@ -205,9 +174,6 @@ new MutationObserver(() => {
 
 /* ---------------- v2.58.0 · la configuración de Facturación solo vive en su módulo ---------------- */
 
-// Configuración ya no repite Facturación (datos fiscales, series y VeriFactu): están en Facturación → Configuración.
-// Además, tenerlo en los dos sitios creaba dos contenedores con el mismo identificador.
-arbolConfig = (orig => function () { return orig().map(([g, l]) => [g, l.filter(x => x.k !== 'fact')]).filter(g => g[1].length); })(arbolConfig);
 const IR_V258 = ir;
 ir = function (t) {
   const mapa = { fiscal: 'empresa', series: 'series', vf: 'verifactu', fact: FAC_ULTIMA || 'empresa' };

@@ -6,13 +6,5 @@ document.addEventListener('click', e => {
   try { localStorage.setItem('delcos-tvvista', TV_VISTAS[TV_I][0]); } catch (x) {}
   tvPintar();
 });
-anCargarKpis = (orig => async function (...a) {
-  const r = $('anper') && $('anper').__rango ? $('anper').__rango() : null;
-  const p = r ? Promise.resolve(RPC_ORIG('ventas_tras_visita', { p_desde: r.desde || null, p_hasta: r.hasta || null, p_dias: 30 })).then(x => (x && x.data) || null, () => null) : null;
-  const res = await orig.apply(this, a);
-  const d = p ? await p : null;
-  if (TAB === 'analitica') tvTarjeta(d);
-  return res;
-})(anCargarKpis);
 
 

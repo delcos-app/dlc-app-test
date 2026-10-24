@@ -38,49 +38,6 @@ document.addEventListener('pointerdown', e => {
 // Se cierra al desplazarse, salvo en el primer instante (el propio toque puede mover un poco la página)
 document.addEventListener('scroll', () => document.querySelectorAll('.tdmenu').forEach(m => { if (Date.now() - (m.__t || 0) > 400) m.remove(); }), true);
 
-async function accionCita(k, c) {
-  const refrescar = () => agRefrescoQuieto(c.id);
-  if (k === 'ficha') return abrirFicha(c.cuenta_id);
-  if (k === 'llegar') return navegarA(xyCita(c));
-  if (k === 'hora') return cambiarHoraCita(c.id, c.hora || '');
-  if (k === 'confirmar' || k === 'desconfirmar' || k === 'descartar') {
-    const estado = k === 'confirmar' ? 'Confirmada' : k === 'desconfirmar' ? 'Planificada' : 'Descartada';
-    const r = await escribir('estado_cita', { p_id: c.id, p_estado: estado });
-    if (r && r.error) { toast('No se ha podido cambiar', true); return; }
-    toast(estado === 'Confirmada' ? 'Cita confirmada' : estado === 'Descartada' ? 'Cita descartada' : 'Confirmación quitada'); refrescar(); return;
-  }
-  if (k === 'borrar') {
-    if (!await preguntar('La cita desaparece de la agenda sin dejar rastro.', { titulo: '¿Eliminar la cita?', ok: 'Eliminar', peligro: true })) return;
-    const { data: r } = await db.rpc('borrar_cita', { p_id: c.id });
-    if (r && r.ok === false) { toast(r.error === 'pasada' ? 'Solo se pueden eliminar citas de hoy en adelante' : 'No se ha podido eliminar', true); return; }
-    toast('Cita eliminada'); refrescar(); return;
-  }
-  if (k === 'aplazar') {
-    const f = await pedirFecha('¿A qué día la pasas?', proximoDiaConsulta(c.dias, c.fecha),
-      { titulo: 'Aplazar la cita', ok: 'Aplazar' });
-    if (!f) return;
-    const { data: r, error } = await db.rpc('aplazar_cita', { p_id: c.id, p_fecha: f, p_hora: null, p_origen: 'Aplazada' });
-    if (error || (r && r.ok === false)) { toast('No se ha podido aplazar', true); return; }
-    toast(r && r.ya ? 'Ya tenía una cita ese día' : r && r.mismo_dia ? 'Sigue en el mismo día' : r && r.reabierta ? 'Vuelve a su cita del ' + fechaCorta(f) : 'Aplazada al ' + fechaCorta(f)); refrescar(); return;
-  }
-  if (k === 'noestaba') {
-    const neg = (CAT.resultado_visita || []).filter(x => x.extra === 'neg');
-    if (!neg.length) { toast('Falta un resultado negativo en Configuración → Clasificadores', true); return; }
-    let res = neg[0].valor;
-    if (neg.length > 1) {
-      const op = await elegirOpcion('¿Qué ha pasado?', c.nombre, [{ k: 'no', t: 'Cancelar', cls: 'sec' }].concat(neg.map((x, i) => ({ k: 'n' + i, t: x.valor, cls: 'sec' }))));
-      if (!op) return;
-      res = neg[+op.slice(1)].valor;
-    }
-    const { error } = await escribirRpc('registrar_actividad', { p: { cuenta_id: c.cuenta_id, fecha: c.fecha, resultados: [res],
-      op_id: 'v-' + c.cuenta_id + '-' + Date.now() } });
-    if (error) { toast('No se ha podido guardar: ' + error.message, true); return; }
-    toast('Anotado: ' + res);
-    refrescar();
-    return nuevaFechaTrasNoEstaba(c);
-  }
-  if (k === 'nueva') return nuevaFechaTrasNoEstaba(c);
-}
 
 
 document.addEventListener('click', async e => {

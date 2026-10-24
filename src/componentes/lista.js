@@ -487,3 +487,25 @@ function plKpisHtmlBase(tab) {
 }
 
 function plKpisHtml(tab) { return plCfg(tab) && plCfg(tab).kpis ? plKpisHtmlBase(tab) : ''; }
+
+// Recuento: el de la pantalla; si no tiene, el paginador («1–20 de N») o las filas que se ven
+function plRecuentoBase(sec, c) {
+  const cu = c.cuenta && c.cuenta(); if (cu && /\d/.test(cu.textContent)) return cu.innerHTML.replace(/<span class="sm">[\s\S]*?<\/span>/, '').trim();
+  const pag = sec.querySelector('.pltab .pag > span, .pag > span'); const m = pag && pag.textContent.match(/de\s+([\d.]+)/);
+  const g = sec.querySelector('.dgrid'); if (!m && !g) return sec.querySelector('.pltab .vacio, .panel .vacio') ? `<b>0</b> ${esc(c.que())}` : '';
+  const n = m ? m[1] : num(g.querySelectorAll(':scope > .dr:not(.hide):not(.htfuera)').length);
+  return `<b>${n}</b> ${esc(c.que())}`;
+}
+
+// El recuento de estas tablas cuenta solo las filas que se ven (bloque y búsqueda)
+function plRecuentoBase2(sec, c) {
+  if (!c.bloques) return plRecuentoBase(sec, c);
+  const g = sec.querySelector('.dgrid'); if (!g) return sec.querySelector('#cfgcuerpo .vacio') ? `<b>0</b> ${esc(c.que())}` : '';
+  return `<b>${num(g.querySelectorAll(':scope > .dr:not(.htfuera):not(.plgfuera)').length)}</b> ${esc(c.que())}`;
+}
+
+// ---- «Cerca de mí»: el recuento de la barra lleva «Volver a la búsqueda» de verdad
+function plRecuento(sec, c) {
+  const r = plRecuentoBase2.call(this, sec, c);
+  return typeof r === 'string' ? r.replace(/\sid="cercacerrar"/g, ' data-cercavolver') : r;
+}

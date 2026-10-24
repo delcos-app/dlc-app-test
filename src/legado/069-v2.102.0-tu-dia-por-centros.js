@@ -1,5 +1,3 @@
-abrirFicha = (orig => async function (...a) { try { return await orig.apply(this, a); } finally { FICHA_CENTRO = null; } })(abrirFicha);
-accionCita = (orig => function (k, c, ...r) { if (k === 'ficha') FICHA_CENTRO = c.centro_nombre || null; return orig(k, c, ...r); })(accionCita);
 
 
 // Barra inferior del móvil y barra de «Entrar como» desde el primer momento
@@ -18,7 +16,5 @@ arrancar();
   const fe = document.querySelector('label[for="fesp"]'); if (fe) fe.textContent = TT('especialidad', 's', '', 'l', 'C');   // v2.347.0
 })();
 
-/* v2.74.0 · El detalle del pedido muestra sus campos personalizados */
-verPedido = (orig => async function (id, ...a) { const r = await orig.call(this, id, ...a); if (id) setTimeout(() => bloqueCampos('pedidos', id, $('dbody')), 150); return r; })(verPedido);
 
 

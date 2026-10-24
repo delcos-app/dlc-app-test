@@ -38,16 +38,5 @@ rpcCache = (orig => async function (fn, params, clave) {
   if (fn === 'agenda_rango' && params && params.p_desde === params.p_hasta && r && r.data) AG_DIAS_DATOS[params.p_desde] = r.data;
   return r;
 })(rpcCache);
-moverCitaLocal = (orig => async function (...a) {
-  if ((!TD_ULTIMO || TD_ULTIMO.fecha !== AG_FECHA) && AG_DIAS_DATOS[AG_FECHA]) TD_ULTIMO = { fecha: AG_FECHA, data: AG_DIAS_DATOS[AG_FECHA] };
-  return orig.apply(this, a);
-})(moverCitaLocal);
-// «Ver la semana» aparece de una vez: se pinta escondida y se enseña ya con sus días (antes salía vacía y se llenaba)
-agPintarSemanaExp = (orig => async function (...a) {
-  const cin = $('agcinta');
-  if (!agN() || !cin || !AG_SEM_ABIERTA || $('agsemexp')) return orig.apply(this, a);
-  cin.insertAdjacentHTML('beforeend', '<div id="agsemexp" class="agsemexp" style="display:none"></div>');
-  try { return await orig.apply(this, a); } finally { const x = $('agsemexp'); if (x) x.style.display = ''; }
-})(agPintarSemanaExp);
 
 

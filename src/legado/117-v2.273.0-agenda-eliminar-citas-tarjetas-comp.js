@@ -17,7 +17,6 @@ async function alternarUrgente(id, ...x) {
   if (TAB === 'agenda' && typeof agRefrescoQuieto === 'function') agRefrescoQuieto();
   return r;
 }
-pintarTuDia = (orig => async function (...x) { const r = await orig.apply(this, x); tdPlegarTareas(); return r; })(pintarTuDia);
 
 
 /* v2.274.0 · Agenda: márgenes y «⋯» que no se montan (solo estilo, en index.html). */

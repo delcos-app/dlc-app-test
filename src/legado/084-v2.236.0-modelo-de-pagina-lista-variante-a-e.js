@@ -25,12 +25,6 @@ function plCargarKpis(tab) {
 
 Object.keys(PL).forEach(plObservar);
 
-// Al llegar, sin cargador que tape la pantalla: se ve la plantilla con su esqueleto
-revelar = (orig => function (el, max, desde) {
-  const tab = el && el.id && el.id.slice(2);
-  if (el && PL[tab] && el.matches('main > section')) { el.classList.remove('preparando'); plSync(tab); llegar(el); return; }
-  return orig(el, max, desde);
-})(revelar);
 
 const normalizar = typeof quitarAcentos === 'function' ? (s => quitarAcentos(String(s || '').toLowerCase())) : (s => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''));
 document.addEventListener('click', e => {
@@ -63,7 +57,5 @@ document.addEventListener('input', e => {
   const tab = i.closest('section').id.slice(2);
   clearTimeout(PL_TQ); PL_TQ = setTimeout(() => PL[tab].buscarQ(i.value.trim()), 300);
 });
-// Si el modo mapa cambia el botón, la barra lo refleja
-barraCuentas = (orig => function () { orig(); const b = document.querySelector('#v-directorio .plmapa'), m = $('mapaBtn'); if (b && m && b.dataset.modo !== (m.dataset.modo || '')) { b.dataset.modo = m.dataset.modo || ''; b.innerHTML = m.innerHTML; b.title = m.title; b.setAttribute('aria-label', m.title); } })(barraCuentas);
 
 

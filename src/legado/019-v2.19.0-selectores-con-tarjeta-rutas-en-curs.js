@@ -126,8 +126,8 @@ function celdaBase(m, k) {
 
 /* ---------------- ficha del médico: comercial en «Editar ficha» ---------------- */
 
-abrirEditor = (orig => async function (id, tipo) {
-  await orig(id, tipo);
+async function abrirEditorBase2(id, tipo) {
+  await abrirEditorBase(id, tipo);
   if (!id || !puede('administrar') || !$('eguardar')) return;
   const acts = $('eguardar').closest('.acts');
   acts.insertAdjacentHTML('beforebegin', `<label for="ecom">Comercial asignado</label>
@@ -144,7 +144,7 @@ abrirEditor = (orig => async function (id, tipo) {
     const { data: r } = await db.rpc('asignar_responsable_cuenta', { p_medico: id, p_usuario: ahora || null });
     if (r && r.ok === false) toast('No se ha podido cambiar el comercial', true);
   });
-})(abrirEditor);
+}
 
 /* ---------------- administración: asignar cartera viendo la lista ---------------- */
 

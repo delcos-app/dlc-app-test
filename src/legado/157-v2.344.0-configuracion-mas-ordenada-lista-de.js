@@ -22,29 +22,14 @@ cargarConfig = (orig => async function (...a) {
 })(cargarConfig);
 
 // Datos fiscales y Series, juntos
-arbolCfgUnico = (orig => function (...a) {
-  const g = orig.apply(this, a), f = g.find(x => x[0] === 'Facturación'); if (!f) return g;
+function arbolCfgUnico(...a) {
+  const g = arbolCfgUnicoBase8.apply(this, a), f = g.find(x => x[0] === 'Facturación'); if (!f) return g;
   const fi = f[1].find(x => x.k === 'o.fiscal'), se = f[1].find(x => x.k === 'o.series');
   if (fi && se && !fi.hijos) f[1] = f[1].filter(x => x !== se).map(x => x === fi ? Object.assign({}, fi, { d: 'Razón social, NIF, dirección y numeración de las facturas',
     hijos: [{ k: 'o.fiscal', t: fi.t, r: fi.r }, { k: 'o.series', t: se.t, r: se.r }] }) : x);
   return g;
-})(arbolCfgUnico);
+}
 
-// Mis datos: una sola tarjeta (la persona, sus datos y la seguridad)
-pintarPerfil = (orig => function (...a) {
-  const r = orig.apply(this, a);
-  if (TAB !== 'config') return r;
-  const c = $('cfgcuerpo'); if (!c || c.querySelector('.perfuno')) return r;
-  const mp = c.querySelector('#miperfil'), dt = [...c.children].find(x => x.querySelector && x.querySelector('#pfn')), sg = c.querySelector('.perfseg');
-  if (!dt) return r;
-  const u = document.createElement('div'); u.className = 'card cfgpanel perfuno';
-  u.innerHTML = '<div class="perfunorow"></div>';
-  const row = u.firstChild;
-  [mp, dt].filter(Boolean).forEach(x => { x.classList.remove('card', 'cfgpanel'); x.classList.add('perfparte'); row.appendChild(x); });
-  if (sg) { sg.classList.remove('card', 'cfgpanel'); sg.classList.add('perfparte'); u.appendChild(sg); }
-  c.prepend(u);
-  return r;
-})(pintarPerfil);
 
 // KPIs de Inicio: Restaurar y Guardar junto al título
 new MutationObserver(() => {

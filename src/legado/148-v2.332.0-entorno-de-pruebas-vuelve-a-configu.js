@@ -4,15 +4,15 @@
    índice y la franja de arriba está oculta desde la v2.137.0: no había forma de llegar a los botones. Ahora: Configuración → Empresa →
    «Entorno de pruebas» (solo en apptest y para la administración), con «Traer los datos de producción» y «Volver a los datos de partida».
    ============================================================ */
-arbolCfgUnico = (orig => function (...a) {
-  const g = orig.apply(this, a);
+function arbolCfgUnicoBase7(...a) {
+  const g = arbolCfgUnicoBase6.apply(this, a);
   if (!EN_PRUEBAS || !puede('administrar')) return g;
   let emp = g.find(x => x[0] === 'Empresa');
   if (!emp) { emp = ['Empresa', []]; g.push(emp); }
   if (!emp[1].some(x => x.k === 'o.pruebas'))
     emp[1].push({ k: 'o.pruebas', t: 'Entorno de pruebas', ic: 'refresh-cw', d: 'Traer los datos de producción o volver a los de partida', r: () => pintarCfgPruebas() });
   return g;
-})(arbolCfgUnico);
+}
 CFG_CLAVES['o.pruebas'] = 'pruebas produccion producción datos copia traer partida entorno';
 
 

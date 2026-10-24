@@ -5,11 +5,6 @@
 
 /* ---------------- ajustes generales (envío) ---------------- */
 
-// v2.242.0: aquí iba envioCfg (nadie la usaba)
-async function cargarAjustes() {
-  const { data } = await db.rpc('ajustes_lista');
-  AJUSTES = data || {};
-}
 
 /* ---------------- totales con envío ---------------- */
 

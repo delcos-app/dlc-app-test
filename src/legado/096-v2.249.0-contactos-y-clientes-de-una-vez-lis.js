@@ -5,11 +5,6 @@ db.rpc = (orig => function (fn, p, ...x) {
 // El buscador de la barra busca directamente (antes pasaba por el campo oculto y esperaba dos veces)
 PL.pacientes.buscarQ = v => { const i = $('pacq'); if (i) i.value = v; PAC.q = (v || '').trim(); PAC.pagina = 0; listaPacientes(); };
 
-// ---- «Cerca de mí»: el recuento de la barra lleva «Volver a la búsqueda» de verdad
-plRecuento = (orig => function (sec, c) {
-  const r = orig.call(this, sec, c);
-  return typeof r === 'string' ? r.replace(/\sid="cercacerrar"/g, ' data-cercavolver') : r;
-})(plRecuento);
 document.addEventListener('click', e => {
   const b = e.target.closest('[data-cercavolver]'); if (!b) return;
   e.stopPropagation(); CERCA = null; buscar(true);

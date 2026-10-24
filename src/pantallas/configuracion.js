@@ -2372,3 +2372,234 @@ async function pintarPrefsPerfil(...a) {
   if (mp && row && mp.parentElement !== row) { mp.classList.remove('card', 'cfgpanel'); mp.classList.add('perfparte'); row.prepend(mp); }
   return p;
 }
+
+// v2.242.0: aquí iba envioCfg (nadie la usaba)
+async function cargarAjustesBase() {
+  const { data } = await db.rpc('ajustes_lista');
+  AJUSTES = data || {};
+}
+
+async function pintarMarcaBase() {
+  await cargarAjustes();
+  const m = Object.assign({ nombre: nombreApp(), logo: null, logo_factura: true }, AJUSTES.marca || {});
+  let logo = m.logo;
+  $('cfgcuerpo').innerHTML = `<div class="card cfgpanel"><h2>Marca de la empresa</h2>
+    <p class="sm">Así se ve la plataforma para todo tu equipo: en la pantalla de acceso, arriba en cada pantalla, en la app del móvil y en las facturas.</p>
+    <div class="marcaed"><div class="marcaprev"><img id="mklogo" src="${esc(logo || 'logo-app.png')}" alt=""><b id="mknomp">${esc(m.nombre)}</b></div>
+      <div><label for="mknom">Nombre de la plataforma</label><input id="mknom" value="${esc(m.nombre)}" placeholder="p. ej. Acme Comercial">
+        <label>Logo o imagen de perfil ${pmAyu('Logo', 'Se adapta a un círculo. Mejor una imagen cuadrada, con el logo centrado.')}</label>
+        <div class="acts" style="margin:0"><label class="btn sec" for="mkfile" style="margin:0">Subir imagen</label><input id="mkfile" type="file" accept="image/*" class="hide">
+          ${logo ? '<button class="btn sec" id="mkquitar">Quitar</button>' : ''}</div>
+        <label class="opt" style="margin-top:10px"><input type="checkbox" id="mkfac" ${m.logo_factura !== false ? 'checked' : ''}> Usar también en las facturas</label></div></div>
+    <div class="acts" style="justify-content:flex-end"><button class="btn" id="mkok">Guardar</button></div></div>`;
+  $('mknom').oninput = () => $('mknomp').textContent = $('mknom').value || 'Mi empresa';
+  $('mkfile').onchange = async e => {
+    const f = e.target.files[0]; if (!f) return;
+    const img = new Image(); img.src = URL.createObjectURL(f); await img.decode();
+    const c = document.createElement('canvas'); c.width = c.height = 256; const x = c.getContext('2d');
+    const lado = Math.min(img.width, img.height); x.drawImage(img, (img.width - lado) / 2, (img.height - lado) / 2, lado, lado, 0, 0, 256, 256);
+    logo = c.toDataURL('image/png'); $('mklogo').src = logo;
+  };
+  if ($('mkquitar')) $('mkquitar').onclick = () => { logo = null; $('mklogo').src = 'logo-app.png'; };
+  $('mkok').onclick = async () => {
+    const v = { nombre: $('mknom').value.trim() || 'Mi empresa', logo, logo_factura: $('mkfac').checked };
+    const { error } = await db.rpc('guardar_ajuste', { p_clave: 'marca', p_valor: v });
+    if (error) { toast('No se ha podido guardar', true); return; }
+    AJUSTES.marca = v; MARCA = { nombre: v.nombre, logo: v.logo }; localStorage.setItem('app-marca', JSON.stringify(MARCA)); LOGO_DATA = null;
+    aplicarMarca(); toast('Marca guardada');
+  };
+}
+
+/* pintarPerfil: la parte base y, en orden, cada paso que se le añade (antes eran 4 capas separadas). */
+function pintarPerfilBase2() {
+  pintarPerfilBase();
+  pintarPerfilPaso1();
+  pintarPerfilPaso2();
+  pintarPerfilPaso3();
+  pintarPerfilPaso4();
+}
+
+function arbolConfigBase() {
+  const admin = puede('administrar');
+  return [
+    ['Tu cuenta', [
+      { k: 'perfil', ic: 'user', t: 'Mi perfil', d: 'Tus datos, idioma y qué abrir al entrar', r: pintarPerfil },
+      { k: 'notif', ic: 'bell', t: 'Notificaciones', d: 'Qué avisos quieres recibir', r: pintarNotif },
+      { k: 'rutas', ic: 'route', t: 'Rutas', d: `Punto de salida y llegada, y tiempos de ${TT('visita', 's', '', 'l', 'l')}`, sub: [['salida', 'Salida y llegada', () => pintarPrefsParte('rutas')], ['horario', `Tiempos de ${TT('visita', 's', '', 'l', 'l')}`, () => panelDeVentana(abrirHorarioPlan)]] },
+      { k: 'inicio', ic: 'house', t: 'Inicio', d: 'Indicadores de Inicio', sub: [['kpis', 'Indicadores', () => panelDeVentana(abrirKpis)]] }]],
+    ['Equipo', admin ? [
+      { k: 'equipo', ic: 'users', t: 'Usuarios y roles', d: 'Personas, permisos y roles', sub: [['usuarios', 'Usuarios', pintarUsuarios2], ['roles', 'Roles y permisos', pintarRoles]] },
+      { k: 'cartera', ic: 'compass', t: `Cartera y ${TT('visita', 'p', '', 'l', 'l')}`, d: `Reglas de cartera y frecuencia de ${TT('visita', 's', '', 'l', 'l')}`, sub: [['reglas', 'Reglas de cartera', () => panelDeVentana(editorReglasCartera)], ['frec', `Frecuencia de ${TT('visita', 's', '', 'l', 'l')}`, () => panelDeVentana(editorFrecuencia)], ['ciclo', 'Ciclo A/B/C', () => panelDeVentana(editorCiclo)]] },
+      { k: 'comis', ic: 'euro', t: 'Comisiones', d: 'Esquemas y quién cobra con cada uno', mod: 'ventas', r: () => panelDeModulo('comisiones') },
+      { k: 'seguridad', ic: 'lock-keyhole', t: 'Seguridad y registro', d: 'Accesos y cambios registrados', sub: [['accesos', 'Accesos', () => panelDeModulo('accesos')], ['auditoria', 'Auditoría', () => panelDeModulo('auditoria')]] }] : []],
+    ['Datos', [
+      ...(puedeCatalogos() ? [{ k: 'cat', ic: 'tag', t: 'Clasificadores', d: 'Listas de valores: estados, motivos…', r: () => { $('cfgcuerpo').innerHTML = ''; pintarCatalogos(); } }] : []),
+      ...(admin || nivelDe2('P') >= 3 ? [{ k: 'stock', ic: 'warehouse', t: 'Stock y material', d: `Almacenes y material de ${TT('visita', 's', '', 'l', 'l')}`, mod: 'productos', sub: [['alm', 'Almacenes', pintarAlmacenes2], ['mues', `Material de ${TT('visita', 's', '', 'l', 'l')}`, pintarMaterial]] }] : [])]],
+    ['Facturación', admin ? [
+      { k: 'fact', ic: 'receipt', t: 'Facturación', d: 'Datos fiscales, series y VeriFactu', mod: 'facturacion', sub: [['fiscal', 'Datos fiscales', fac(pintarEmpresa)], ['series', 'Series', fac(pintarSeries)], ['vf', 'VeriFactu', fac(pintarVerifactu)], ['pdf', 'Diseño del PDF', () => disenoPDF()]] }] : []],
+    ['Empresa', admin ? [
+      { k: 'marca', ic: 'palette', t: 'Marca y logo', d: 'Nombre de la plataforma y logo', r: pintarMarca },
+      { k: 'correo', ic: 'mail', t: 'Correo y firma', d: 'Cuenta de envío y firma', r: pintarCorreo },
+      { k: 'copias', ic: 'save', t: 'Copias de seguridad', d: 'Descarga todos los datos', r: pintarCopias }] : []],
+    ['Plataforma', puede('gestionar_plataforma') ? [
+      { k: 'orgs', ic: 'building', t: 'Organizaciones', d: 'Empresas de la plataforma y alta de nuevas', r: pintarOrganizaciones }] : []]
+  ].filter(g => g[1].length);
+}
+
+function arbolConfigBase2() { return arbolConfigBase().filter(g => g[0] !== 'Empresa'); }
+
+// Se amplía el árbol con los apartados ocultos y se envuelve cada pintado para mostrar carga y errores
+function arbolConfigBase3() {
+  const g = arbolConfigBase2();
+  const envolver = f => async () => {
+    const c = $('cfgcuerpo'); c.innerHTML = '<div class="cfgcarga"><span class="giro"></span> Cargando…</div>';
+    // Si al cabo de 20 segundos sigue cargando, se avisa en lugar de dejarlo en blanco
+    setTimeout(() => { if (c.isConnected && c.querySelector(':scope > .cfgcarga')) mostrarError(new Error('El apartado no ha terminado de cargar. Revisa la conexión y vuelve a intentarlo.')); }, 20000);
+    const mostrarError = e => {
+      c.innerHTML = `<div class="card cfgpanel"><h2>No se ha podido cargar</h2><p class="sm">${esc(e && e.message ? e.message : String(e))}</p>
+        <div class="acts"><button class="btn sec" id="cfgreint">${svgIco(ICON_NOM['rotate-cw'])} Reintentar</button></div></div>`;
+      $('cfgreint').onclick = () => envolver(f)();
+    };
+    try { await f(); }
+    catch (e) { mostrarError(e); }
+  };
+  g.forEach(([, l]) => l.forEach(x => { if (x.r) x.r = envolver(x.r); if (x.sub) x.sub.forEach(s => { s[2] = envolver(s[2]); }); }));
+  // Apartado oculto «Empresa» (se abre desde el menú de usuario)
+  g.push(['__oculto', [{ k: '__empresa', ic: 'building', t: 'Empresa', d: '', sub: [['marca', 'Marca y logo', envolver(pintarMarca)], ['correo', 'Correo y firma', envolver(pintarCorreo)], ['copias', 'Copias de seguridad', envolver(pintarCopias)]] }]]);
+  return g;
+}
+
+async function pintarMarcaBase2() {
+  await pintarMarcaBase();
+  const ok = $('mkok'); if (!ok || $('mketq')) return;
+  const actual = etiquetaContactos(), otra = !ETIQUETAS.includes(actual);
+  ok.closest('.acts').insertAdjacentHTML('beforebegin', `<div class="mketqbox"><label for="mketq">Cómo llamáis a quienes visitáis</label>
+    <div class="g2"><select id="mketq">${ETIQUETAS.map(e => `<option ${e === actual ? 'selected' : ''}>${e}</option>`).join('')}<option value="__otra" ${otra ? 'selected' : ''}>Otro nombre…</option></select>
+      <input id="mketqo" class="${otra ? '' : 'hide'}" value="${otra ? esc(actual) : ''}" placeholder="Escribe el nombre"></div>
+    <div class="sm">Es el nombre del módulo donde están ${TT('medico', 'p', '', 'l', 'l')}, centros y cualquier otro contacto al que visitáis.</div></div>`);
+  const ETQ_TERM = { medico: 'Profesional al que visitáis', paciente: 'Cliente final', visita: 'Cada encuentro con el profesional' };
+  ok.closest('.acts').insertAdjacentHTML('beforebegin', `<div class="mkvoc"><label>Vocabulario de la plataforma</label>
+    <div class="sm">Cómo se llaman en todos los textos. En blanco, se usa el nombre de siempre.</div>
+    ${Object.keys(TERM_DEF).map(k => { const d = TERM_DEF[k], t = TERMINOS[k] || {}; return `<div class="g3 mkvocf" data-term="${k}">
+      <div><label class="sm">${esc(ETQ_TERM[k])} · singular</label><input data-tf="s" value="${esc(t.s || '')}" placeholder="${esc(d.s)}"></div>
+      <div><label class="sm">Plural</label><input data-tf="p" value="${esc(t.p || '')}" placeholder="${esc(d.p)}"></div>
+      <div><label class="sm">Género</label><select data-tf="g"><option value="">${d.g === 'f' ? 'Femenino' : 'Masculino'} (el de siempre)</option>
+        <option value="m" ${t.g === 'm' ? 'selected' : ''}>Masculino</option><option value="f" ${t.g === 'f' ? 'selected' : ''}>Femenino</option></select></div></div>`; }).join('')}</div>`);
+  $('mketq').onchange = () => $('mketqo').classList.toggle('hide', $('mketq').value !== '__otra');
+  const guardar = ok.onclick;
+  ok.onclick = async () => {
+    const etq = $('mketq').value === '__otra' ? ($('mketqo').value.trim() || TT('medico', 'p', '', 'l', 'C')) : $('mketq').value;
+    await guardar();
+    const v = Object.assign({}, AJUSTES.marca || {}, { etiqueta: etq });
+    const { error } = await db.rpc('guardar_ajuste', { p_clave: 'marca', p_valor: v });
+    if (!error) { AJUSTES.marca = v; aplicarEtiqueta(); }
+    const voc = {};
+    document.querySelectorAll('.mkvocf').forEach(f => { const o = {}; f.querySelectorAll('[data-tf]').forEach(i => { if (i.value.trim()) o[i.dataset.tf] = i.value.trim(); }); if (Object.keys(o).length) voc[f.dataset.term] = o; });
+    if (JSON.stringify(voc) !== JSON.stringify(TERMINOS || {})) {
+      const { error: e3 } = await db.rpc('guardar_ajuste', { p_clave: 'terminos', p_valor: voc });
+      if (e3) { toast('No se ha podido guardar el vocabulario', true); return; }
+      try { localStorage.setItem(TERMKEY, JSON.stringify(voc)); } catch (e) {}
+      toast('Vocabulario guardado: se recarga la plataforma'); setTimeout(() => location.reload(), 900);
+    }
+  };
+}
+
+function arbolConfigBase4() {
+  const g = arbolConfigBase3();
+  g.forEach(([, l]) => l.forEach(x => { if (x.k === 'seguridad' && x.sub && !x.sub.some(s => s[0] === 'errores')) x.sub.push(['errores', 'Errores y reportes', pintarErrores]); }));
+  return g;
+}
+
+// Configuración ya no repite Mi perfil ni Notificaciones: están en su propia página
+function arbolConfigBase5() { return arbolConfigBase4().map(([g, l]) => [g, l.filter(x => !['perfil', 'notif'].includes(x.k))]).filter(g => g[1].length); }
+
+async function pintarMarca(...a) {
+  await pintarMarcaBase2(...a);
+  const card = $('cfgcuerpo') && $('cfgcuerpo').querySelector('.card'); if (!card || $('mkprev2')) return;
+  const w = document.createElement('div'); w.className = 'conprevia';
+  card.parentNode.insertBefore(w, card); w.appendChild(card);
+  w.insertAdjacentHTML('beforeend', `<div class="previa"><div class="sm previat">Así lo verá tu equipo</div><div id="mkprev2"></div></div>`);
+  const pinta = () => {
+    const n = ($('mknom') || {}).value || nombreApp(), lg = ($('mklogo') || {}).src || 'logo-app.png';
+    $('mkprev2').innerHTML = `<div class="mkcab"><img src="${esc(lg)}" alt=""><span class="mkbus">Buscar…</span><span class="mkav">${esc(iniciales(PERFIL ? PERFIL.nombre : ''))}</span></div>
+      <div class="mklogin"><img src="${esc(lg)}" alt=""><b>${esc(n)}</b><span>Entra con tu correo y contraseña.</span><i></i><i></i><em>Entrar</em></div>`;
+  };
+  card.addEventListener('input', pinta); card.addEventListener('change', () => setTimeout(pinta, 300));
+  new MutationObserver(pinta).observe($('mklogo'), { attributes: true, attributeFilter: ['src'] });
+  pinta();
+}
+
+function pintarPerfilBase3() {
+  pintarPerfilBase2();
+  // El contenedor de la página (no el provisional que se usa mientras se prepara la tarjeta de la persona)
+  const c = document.querySelector('#v-perfil .pagcuerpo') || (TAB === 'config' ? document.querySelector('#v-config #cfgcuerpo-real, #v-config #cfgcuerpo') : null); if (!c || c.querySelector('.perfseg')) return;
+  c.classList.add('perfil2');
+  c.insertAdjacentHTML('beforeend', `<div class="card cfgpanel perfseg"><h2 style="padding:0 0 4px">${svgIco(ICON_NOM.shield)} Seguridad y sesión</h2>
+    <p class="sm">Para cambiar la contraseña te enviamos un enlace a tu correo. Así nadie puede cambiarla desde un dispositivo que hayas dejado abierto.</p>
+    <div class="perfsegf"><div><span class="sm">Correo de acceso</span><b>${esc(PERFIL.email || '')}</b></div><div><span class="sm">Rol</span><b>${esc(PERFIL.rol)}</b></div></div>
+    <div class="acts" style="justify-content:flex-start;flex-wrap:wrap"><button class="btn sec" id="perfclave">${svgIco(ICON_NOM['key-round'])} Enviarme el enlace para cambiar la contraseña</button>
+      <button class="btn sec" id="perfsalir">${svgIco(ICON_NOM['log-out'])} Cerrar sesión</button></div></div>`);
+  $('perfclave').onclick = () => conCarga($('perfclave'), 'Enviando…', async () => {
+    const { error } = await db.auth.resetPasswordForEmail(PERFIL.email, { redirectTo: location.origin + location.pathname });
+    toast(error ? 'No se ha podido enviar: ' + error.message : 'Te hemos enviado el enlace a ' + PERFIL.email, !!error);
+  });
+  $('perfsalir').onclick = () => { const s = document.querySelector('[data-u="salir"]'); if (s) s.click(); };
+  // (el nombre configurado del módulo de contactos lo aplica el componente general, antes de pintar)
+}
+
+// Configuración ya no repite Facturación (datos fiscales, series y VeriFactu): están en Facturación → Configuración.
+// Además, tenerlo en los dos sitios creaba dos contenedores con el mismo identificador.
+function arbolConfigBase6() { return arbolConfigBase5().map(([g, l]) => [g, l.filter(x => x.k !== 'fact')]).filter(g => g[1].length); }
+
+// Configuración → Datos → Importar datos (administración)
+function arbolConfigBase7() {
+  const g = arbolConfigBase6();
+  // v2.109.0: con el permiso «Importar datos» del rol (antes, solo administración)
+  if (!puede('importar_datos')) return g;
+  const datos = g.find(x => x[0] === 'Datos');
+  const item = { k: 'importar', ic: 'file-spreadsheet', t: 'Importar datos', d: `Clientes, productos, ${etiquetaContactos().toLowerCase()} y ventas desde Excel o CSV`,
+    sub: [['nueva', 'Nueva importación', pintarImportar], ['historial', 'Importaciones', pintarImportaciones]] };
+  if (datos) { if (!datos[1].some(x => x.k === 'importar')) datos[1].push(item); } else g.push(['Datos', [item]]);
+  return g;
+}
+
+// Configuración, sin lo que ahora está en Organización
+function arbolConfigBase8() {
+  return arbolConfigBase7().map(([g, l]) => [g, l.filter(x => !['fact', 'marca', 'correo', 'copias', 'orgs'].includes(x.k))]).filter(g => g[1].length);
+}
+
+function arbolConfigBase9() {
+  const g = arbolConfigBase8();
+  if (puede('administrar') && hayExtra('portal')) {
+    const it = { k: 'portal', ic: 'stethoscope', t: `Portal ${TT('medico', 's', 'del', 'l', 'l')}`, d: 'Material que pueden pedir', r: pintarCfgPortal };
+    const datos = g.find(x => x[0] === 'Datos');
+    if (datos) datos[1].push(it); else g.push(['Datos', [it]]);
+  }
+  return g;
+}
+
+// Configuración: Inicio primero; Usuarios y roles, y Seguridad y registro, ya no están aquí
+function arbolConfig() {
+  const g = arbolConfigBase9().map(([n, l]) => [n, l.filter(x => !['equipo', 'seguridad', 'orgs'].includes(x.k))]).filter(x => x[1].length);
+  for (const grupo of g) {
+    const i = grupo[1].findIndex(x => x.k === 'inicio');
+    if (i >= 0) { const [it] = grupo[1].splice(i, 1); g[0][1].unshift(it); break; }
+  }
+  return g;
+}
+
+// Mis datos: una sola tarjeta (la persona, sus datos y la seguridad)
+function pintarPerfil(...a) {
+  const r = pintarPerfilBase3.apply(this, a);
+  if (TAB !== 'config') return r;
+  const c = $('cfgcuerpo'); if (!c || c.querySelector('.perfuno')) return r;
+  const mp = c.querySelector('#miperfil'), dt = [...c.children].find(x => x.querySelector && x.querySelector('#pfn')), sg = c.querySelector('.perfseg');
+  if (!dt) return r;
+  const u = document.createElement('div'); u.className = 'card cfgpanel perfuno';
+  u.innerHTML = '<div class="perfunorow"></div>';
+  const row = u.firstChild;
+  [mp, dt].filter(Boolean).forEach(x => { x.classList.remove('card', 'cfgpanel'); x.classList.add('perfparte'); row.appendChild(x); });
+  if (sg) { sg.classList.remove('card', 'cfgpanel'); sg.classList.add('perfparte'); u.appendChild(sg); }
+  c.prepend(u);
+  return r;
+}

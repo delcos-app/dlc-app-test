@@ -11,25 +11,7 @@ Object.defineProperty(PAGINAS.concursos, 'd', { get: () => 'Pliegos, lotes adjud
 
 $('dlg').addEventListener('close', () => { if (TAB === 'concursos' && $('cfgcuerpo')) setTimeout(() => { if (!$('dlg').open && TAB === 'concursos') pintarConcursos(PAG_TAB.concursos || 'marcha'); }, 300); });
 
-irEnlace = (orig => function (e) {
-  const [t, id] = String(e || '').split(':');
-  if (t === 'concurso' && id) { verConcurso(id); return; }
-  return orig.call(this, e);
-})(irEnlace);
 
-// Ficha: sus concursos (en marcha y contratos)
-abrirFicha = (orig => async function (id, ...a) {
-  const r = await orig.call(this, id, ...a);
-  try {
-    if (ES_MEDICO() || !$('fzcampos') || $('fconcursos') || !planIncluyeSeccion('concursos')) return r;
-    const { data: l } = await db.from('concursos').select('id,titulo,estado,fin,prorroga_hasta').eq('cuenta_id', id).in('estado', ['En estudio', 'Oferta enviada', 'Adjudicado']).order('creado_en', { ascending: false }).limit(6);
-    if (!(l || []).length || !$('fzcampos') || $('fconcursos') || FICHA_ID !== id) return r;
-    $('fzcampos').insertAdjacentHTML('beforebegin', `<div class="blk" id="fconcursos"><h3>Concursos</h3>
-      ${l.map(x => { const q = conQuedan(x); return `<div class="fmrow"><span><button type="button" class="lnk" data-fcon="${x.id}">${esc(x.titulo)}</button>${x.estado === 'Adjudicado' && q != null ? `<span class="sm"> · ${q < 0 ? 'vencido' : 'vence el ' + fechaCorta(conVence(x))}</span>` : ''}</span>${conPill(x.estado)}</div>`; }).join('')}</div>`);
-    $('fconcursos').querySelectorAll('[data-fcon]').forEach(b => b.onclick = () => { $('ficha').close(); verConcurso(b.dataset.fcon); });
-  } catch (e) {}
-  return r;
-})(abrirFicha);
 try { menuConcursos(); } catch (e) {}
 
 /* v2.201.0 · Parque instalado (última pieza de la tercera tanda del estudio por sectores, SQL 127). Decisiones de Eric: los equipos se dan de
@@ -52,90 +34,9 @@ Object.defineProperty(PAGINAS.parque, 'd', { get: () => 'Equipos instalados con 
 
 $('dlg').addEventListener('close', () => { if (TAB === 'parque' && $('cfgcuerpo')) setTimeout(() => { if (!$('dlg').open && TAB === 'parque') pintarParque(); }, 300); });
 
-irEnlace = (orig => function (e) {
-  const [t, id] = String(e || '').split(':');
-  if (t === 'equipo' && id) { verEquipo(id); return; }
-  return orig.call(this, e);
-})(irEnlace);
 
-// Producto: es un equipo y cada cuánto se revisa
-editorProducto = (orig => function (p, ...r) {
-  const x = orig.call(this, p, ...r);
-  setTimeout(async () => {
-    if (!puede('administrar') || !planIncluyeSeccion('parque') || !$('dbody') || !$('prok') || $('prequipo') || !p || !p.id) return;
-    const ref = $('dbody').querySelector('.acts:last-of-type'); if (!ref) return;
-    const { data: m } = await db.from('productos').select('es_equipo,revision_meses').eq('id', p.id).maybeSingle();
-    if (!$('dbody') || $('prequipo') || !m) return;
-    ref.insertAdjacentHTML('beforebegin', `<div class="blk" id="prequipo"><h3>Equipo</h3>
-      <label class="opt"><input type="checkbox" id="preqc" ${m.es_equipo ? 'checked' : ''}> Es un equipo: se instala con su número de serie</label>
-      <div class="${m.es_equipo ? '' : 'hide'}" id="preqd"><label for="preqr">Revisión cada (meses; 0 = sin revisiones)</label><input id="preqr" type="number" min="0" max="120" step="1" value="${+m.revision_meses || 0}" style="max-width:140px"></div>
-      <p class="sm">Al confirmar un pedido con este producto se pide el número de serie de cada unidad y queda en el parque instalado del cliente.</p></div>`);
-    const guardar = async () => {
-      $('preqd').classList.toggle('hide', !$('preqc').checked);
-      const { error } = await db.from('productos').update({ es_equipo: $('preqc').checked, revision_meses: Math.min(120, Math.max(0, Math.floor(+$('preqr').value || 0))) }).eq('id', p.id);
-      toast(error ? 'No se ha podido guardar: ' + error.message : 'Equipo: guardado', !!error);
-    };
-    $('preqc').onchange = guardar; $('preqr').onchange = guardar;
-  }, 160);
-  return x;
-})(editorProducto);
 
-// Ficha: equipos instalados
-abrirFicha = (orig => async function (id, ...a) {
-  const r = await orig.call(this, id, ...a);
-  try {
-    if (ES_MEDICO() || !planIncluyeSeccion('parque') || !$('fzcampos') || $('fequipos')) return r;
-    const { data: l } = await db.from('equipos').select('id,serie,ubicacion,estado,contrato,contrato_fin,garantia_hasta,proxima_revision,productos(nombre)').eq('cuenta_id', id).eq('estado', 'Instalado').order('instalado', { ascending: false }).limit(20);
-    if (!$('fzcampos') || $('fequipos') || FICHA_ID !== id) return r;
-    const { data: c } = await db.from('cuentas').select('tipo,nombre').eq('id', id).maybeSingle();
-    if (!(l || []).length && (!c || c.tipo !== 'Centro')) return r;
-    if (!$('fzcampos') || $('fequipos') || FICHA_ID !== id) return r;
-    $('fzcampos').insertAdjacentHTML('beforebegin', `<div class="blk" id="fequipos"><h3>Equipos instalados${(l || []).length ? ` <span class="n">${l.length}</span>` : ''}</h3>
-      ${(l || []).map(x => `<div class="fmrow"><span><button type="button" class="lnk" data-feq="${x.id}">${esc((x.productos || {}).nombre || 'Equipo')}</button><span class="sm">${x.serie ? ' · nº ' + esc(x.serie) : ''}${x.ubicacion ? ' · ' + esc(x.ubicacion) : ''}</span></span>${eqRevPill(x)}</div>`).join('') || '<p class="sm">Sin equipos instalados.</p>'}
-      <button type="button" class="btn sec" id="feqmas">+ Equipo</button></div>`);
-    $('fequipos').querySelectorAll('[data-feq]').forEach(b => b.onclick = () => { $('ficha').close(); verEquipo(b.dataset.feq); });
-    $('feqmas').onclick = () => { $('ficha').close(); editarEquipo(null, { id, nombre: (c || {}).nombre || '' }); };
-  } catch (e) {}
-  return r;
-})(abrirFicha);
 
-// Pedido validado con productos «equipo»: dar de alta los equipos con su número de serie
-verPedido = (orig => async function (id, ...a) {
-  const r = await orig.call(this, id, ...a);
-  try {
-    if (!$('dlg').open || $('pdequipos') || !planIncluyeSeccion('parque')) return r;
-    const { data: p } = await db.from('pedidos').select('estado').eq('id', id).maybeSingle();
-    if (!p || p.estado !== 'Confirmado') return r;
-    const { data: pend } = await db.rpc('equipos_pendientes_pedido', { p_pedido: id });
-    const l = (pend || []).filter(x => x.faltan > 0);
-    if (!l.length || !$('dlg').open || $('pdequipos')) return r;
-    const sitio = $('pddist') || $('pdpago') || $('dbody').querySelector('.acts:last-of-type'); if (!sitio) return r;
-    const n = l.reduce((s, x) => s + x.faltan, 0);
-    sitio.insertAdjacentHTML('beforebegin', `<div class="blk" id="pdequipos"><h3>Equipos</h3>
-      <div class="banda-aviso">${n === 1 ? 'Falta dar de alta 1 equipo' : `Faltan por dar de alta ${n} equipos`} de este pedido en el parque instalado. <button type="button" class="btn sec" id="pdeqalta">Dar de alta los equipos</button></div>
-      <div id="pdeqf"></div></div>`);
-    $('pdeqalta').onclick = () => {
-      $('pdeqf').innerHTML = `<div class="depbox"><span class="sm">Escribe el número de serie de cada unidad.</span>
-        ${l.map((x, i) => `<div><b>${esc(x.nombre)}</b> <span class="sm">· ${esc(x.cuenta || '')}</span><div class="cirser">${Array.from({ length: Math.min(x.faltan, 30) }, (_, j) => `<input data-pqs="${i}" maxlength="120" placeholder="Nº de serie de la unidad ${j + 1}" aria-label="Número de serie de la unidad ${j + 1} de ${esc(x.nombre)}">`).join('')}</div></div>`).join('')}
-        <div class="g2"><div><label for="pdeqi">Instalado el</label><input id="pdeqi" type="date" value="${hoyISO()}"></div><div><label for="pdequ">Ubicación</label><input id="pdequ" placeholder="p. ej. Sala 2"></div></div>
-        <div class="acts" style="justify-content:flex-end"><button type="button" class="btn" id="pdeqok">Dar de alta</button></div></div>`;
-      $('pdeqok').onclick = async ev => {
-        const filas = [];
-        l.forEach((x, i) => $('pdeqf').querySelectorAll(`[data-pqs="${i}"]`).forEach(inp => {
-          if (!inp.value.trim() || !x.cuenta_id) return;
-          filas.push({ cuenta_id: x.cuenta_id, producto_id: x.producto_id, serie: inp.value.trim(), instalado: $('pdeqi').value || hoyISO(), ubicacion: $('pdequ').value.trim() || null, revision_meses: +x.revision_meses || 0, pedido_id: id });
-        }));
-        if (!filas.length) { toast(l.some(x => !x.cuenta_id) ? 'El pedido no tiene ficha: da de alta los equipos desde la ficha del centro' : 'Escribe al menos un número de serie', true); return; }
-        ev.target.disabled = true;
-        const { error } = await db.from('equipos').insert(filas);
-        ev.target.disabled = false;
-        if (error) { toast(/row-level|policy/i.test(error.message) ? 'No puedes dar de alta equipos de esta ficha' : 'No se ha podido guardar: ' + error.message, true); return; }
-        toast(filas.length === 1 ? 'Equipo dado de alta' : `${filas.length} equipos dados de alta`); verPedido(id);
-      };
-    };
-  } catch (e) {}
-  return r;
-})(verPedido);
 try { menuParque(); candadoSecciones(); } catch (e) {}
 /* v2.203.0 · Arreglos de la auditoría del manual (SQL 128). Lo que encontró la revisión de cada pantalla:
    - Notificaciones: los avisos de intervenciones, contratos y equipos se pueden elegir (al momento, en el resumen o nada) como los demás.
@@ -164,12 +65,6 @@ TIPOS_NOTIF.push(
   });
 })();
 
-irEnlace = (orig => function (e) {
-  const [t] = String(e || '').split(':');
-  if (t === 'plan') { ir('plan'); return; }
-  if (t === 'delcos' && puede('gestionar_plataforma')) { ir('delcos'); return; }
-  return orig.call(this, e);
-})(irEnlace);
 
 async function cargarAdmin(...a) {
   if (TAB === 'usuarios' && PAGINAS.usuarios) { cargarPagina('usuarios'); return; }

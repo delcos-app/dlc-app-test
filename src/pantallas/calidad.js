@@ -320,3 +320,32 @@ async function cargarSeguimientoPaso1(...a) {
   try { await pintarDireccionesDudosas(); } catch (e) {}
   return r;
 }
+
+/* cargarSeguimiento: la parte base y, en orden, cada paso que se le añade (antes eran 2 capas separadas). */
+async function cargarSeguimientoBase2() {
+  await cargarSeguimientoBase();
+  await cargarSeguimientoPaso1();
+  await cargarSeguimientoPaso2();
+}
+
+// Duplicados: botón en la cabecera de Calidad del dato (administración) y vuelta atrás
+async function cargarSeguimientoBase3() {
+  await cargarSeguimientoBase2();
+  const acts = document.querySelector('#v-seguimiento .saludo .acts') || (document.querySelector('#v-seguimiento .saludo') && document.querySelector('#v-seguimiento .saludo').appendChild(Object.assign(document.createElement('div'), { className: 'acts' })));
+  if (acts && puede('administrar') && !$('caldup')) {
+    acts.insertAdjacentHTML('beforeend', `<button class="btn sec" id="caldup">${svgIco(ICON_NOM.copy)} Duplicados</button>`);
+    $('caldup').onclick = () => ir('duplicados');
+  }
+}
+
+async function cargarSeguimientoBase4(...a) { await cargarSeguimientoBase3(...a); const v = $('calvolver'); if (v) v.textContent = '‹ ' + etiquetaContactos(); }
+
+async function cargarSeguimiento(...a) {
+  const r = await cargarSeguimientoBase4.apply(this, a);
+  const acts = document.querySelector('#v-seguimiento .saludo .acts');
+  if (acts && puedeDuplicados() && !$('caldup')) {
+    acts.insertAdjacentHTML('beforeend', `<button class="btn sec" id="caldup">${svgIco(ICON_NOM.copy)} Duplicados</button>`);
+    $('caldup').onclick = () => ir('duplicados');
+  }
+  return r;
+}

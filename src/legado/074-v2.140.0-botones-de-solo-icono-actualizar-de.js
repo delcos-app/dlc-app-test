@@ -177,20 +177,6 @@ cargarRutasBase = async function () {
   if (PLAN) pintarPlan();
 };
 
-// El subtítulo cuenta cómo va el día (lo que antes era la tarjeta «Hoy» del resumen)
-cargarRutasPaso2 = (orig => async function (...a) {
-  const r = await orig.apply(this, a);
-  const sub = $('v-rutas') && $('v-rutas').querySelector('.saludo .fecha');
-  if (sub && !jornadaActiva()) {
-    const citas = await citasDelDia(hoyISO());
-    if (!sub.isConnected) return r;   // v2.202.0: la pantalla se repintó o se salió de ella mientras se leían las citas
-    const hechas = citas.filter(c => c.estado === 'Visitada').length, abiertas = citas.filter(c => CITA_ABIERTA.includes(c.estado)).length;
-    const txt = hechas + abiertas ? `Hoy tienes ${hechas + abiertas} ${hechas + abiertas === 1 ? 'cita' : 'citas'}: ${hechas} ${hechas === 1 ? 'visitada' : 'visitadas'} y ${abiertas} por hacer` : 'Hoy no tienes citas';
-    sub.innerHTML = `${esc(txt)} · <button type="button" class="kcfg" id="rverdia">Ver mi día</button>`;
-    sub.querySelector('#rverdia').onclick = () => { AG_MODO = 'dia'; AG_FECHA = hoyISO(); ir('agenda'); };
-  }
-  return r;
-})(cargarRutasPaso2);
 
 
 
@@ -199,45 +185,6 @@ cargarRutasPaso2 = (orig => async function (...a) {
 let AN_CFG = null, AN_DATOS = {};
 
 
-// Las cifras: una llamada por cada combinación distinta de filtro y comparación
-async function anCargarKpis() {
-  const caja = $('anareas'); if (!caja || !AN_CFG) return;
-  const cat = anCatalogo(), r = $('anper').__rango();
-  const hasta = r.hasta || hoyISO(), desde = r.desde || isoMas(hasta, -364);
-  const vis = AN_CFG.kpis.filter(x => x.on).map(x => Object.assign({}, x, { k: cat.find(c => c.id === x.id) })).filter(x => x.k && anKpiVisible(x.k));
-  const grupos = {};
-  vis.forEach(x => {
-    const comp = x.comp || AN_CFG.comp, f = {}; (AN_FILTROS[x.k.fam] || []).forEach(c => { if (x.f && x.f[c]) f[c] = x.f[c]; });
-    const clave = JSON.stringify([f, comp]);
-    (grupos[clave] = grupos[clave] || { f, comp, fams: new Set(), items: [] }).fams.add(x.k.fam);
-    grupos[clave].items.push(x);
-    x.clave = clave;
-  });
-  const pedido = Date.now(); caja.dataset.pedido = pedido;
-  const res = await Promise.all(Object.entries(grupos).map(async ([clave, g]) => {
-    const { data, error } = await db.rpc('analitica_kpis', { p_desde: desde, p_hasta: hasta, p_filtro: g.f, p_familias: [...g.fams], p_comp: g.comp });
-    return [clave, error ? { error: error.message } : data];
-  }));
-  if (!$('anareas') || $('anareas').dataset.pedido !== String(pedido)) return;
-  AN_DATOS = Object.fromEntries(res);
-  const porFam = {};
-  vis.forEach(x => (porFam[x.k.fam] = porFam[x.k.fam] || []).push(x));
-  caja.innerHTML = AN_FAM.filter(([f]) => porFam[f]).map(([f]) => `<section class="anarea" data-fam="${f}"><h3>${esc(anFamNombre(f))}</h3>
-    <div class="ankgrid">${porFam[f].map(x => {
-      const d = AN_DATOS[x.clave] || {}, a = (d.act || {})[x.id], b = (d.ant || {})[x.id], ft = anFiltroTxt(x.f || {});
-      return `<div class="ankpi" data-anu="${esc(x.u)}">
-        <div class="ankcab"><span class="anktit">${esc(x.t || x.k.t)}</span>
-          <button type="button" class="ai" data-ayuda-txt="${esc(x.k.ayuda)}" data-ayuda-tit="${esc(x.k.t)}" aria-label="Qué es">i</button>
-          <button type="button" class="ankcfg" data-ancfg="${esc(x.u)}" title="Filtrar y ajustar" aria-label="Filtrar y ajustar ${esc(x.t || x.k.t)}">${svgIco(ICON_NOM.settings)}</button></div>
-        <b class="ankval ${x.k.fmt === 'txt' ? 'txt' : ''}">${d.error ? '—' : anFmt(a, x.k.fmt)}</b>
-        ${d.error ? `<span class="sm">No se ha podido calcular</span>` : anDelta(x.k, a, b, x.comp || AN_CFG.comp)}
-        ${ft ? `<span class="ankfil">${esc(ft)}</span>` : ''}</div>`; }).join('')}</div></section>`).join('')
-    || `<div class="vacio">No tienes indicadores a la vista. Elige cuáles quieres ver con <b>Personalizar</b>.</div>`;
-  caja.querySelectorAll('[data-ancfg]').forEach(b => b.onclick = e => { e.stopPropagation(); anEngranaje(b, b.dataset.ancfg); });
-  const cmp = AN_CFG.comp === 'anio' ? 'el mismo periodo del año pasado' : 'el periodo anterior';
-  if ($('anresumen')) $('anresumen').innerHTML = `Del ${fechaCorta(desde)} al ${fechaCorta(hasta)}, comparado con ${cmp} · <button type="button" class="kcfg" id="ancambiar">Cambiar</button>`;
-  if ($('ancambiar')) $('ancambiar').onclick = () => { const b = document.querySelector('#v-analitica .htbtn'); if (b) { b.click(); b.scrollIntoView({ block: 'nearest' }); } };
-}
 
 document.addEventListener('pointerdown', e => { if (!e.target.closest('.ankpop, [data-ancfg]')) document.querySelectorAll('.ankpop').forEach(x => x.remove()); }, true);
 
@@ -271,27 +218,5 @@ pintarResumenAnalitica = async function () {
 // En «Filtros y columnas» van los del Resumen o los de Explorar según la pestaña
 Object.defineProperty(HT_FILTROS, 'analitica', { configurable: true, enumerable: true,
   get: () => ANSEC === 'explorar' ? '#v-analitica .panel > .filtros' : '#anfil' });
-cargarAnalitica = (orig => async function () {
-  await orig();
-  const v = $('v-analitica'); if (!v) return;
-  // Explorar: «Ver por» y «Ordenar por» quedan a la vista, encima de Ranking / Tabla; el resto, a «Filtros y columnas»
-  const panel = v.querySelector('.panel'), fil = panel && panel.querySelector(':scope > .filtros');
-  if (fil && !$('anvista')) {
-    fil.insertAdjacentHTML('afterend', '<div class="anvista" id="anvista"></div>');
-    ['adim', 'amedida'].forEach(id => { const c = $(id) && ($(id).closest('.filtros > div') || $(id).closest('.htpropios > div')); if (c) { delete c.dataset.anp; $('anvista').appendChild(c); } });
-    [...fil.children].forEach(c => c.dataset.anp = 'explorar');
-  }
-  // Personalizar, en la cabecera (solo en el Resumen)
-  const sal = v.querySelector('.saludo');
-  const sub = sal && sal.querySelector('.fecha'); if (sub) sub.textContent = 'Cómo va cada área frente al periodo anterior, y los datos para explorar';
-  if (sal && !$('anpers')) {
-    let acts = sal.querySelector(':scope > .acts');
-    if (!acts) { sal.insertAdjacentHTML('beforeend', '<div class="acts"></div>'); acts = sal.querySelector(':scope > .acts'); }
-    acts.insertAdjacentHTML('afterbegin', '<button type="button" class="btn sec" id="anpers">Personalizar</button>');
-    $('anpers').onclick = () => { if (!AN_CFG) AN_CFG = anConfig(); anPersonalizar(); };
-  }
-  v.querySelectorAll('[data-ansec]').forEach(b => b.addEventListener('click', () => setTimeout(anPestana, 0)));
-  anPestana();
-})(cargarAnalitica);
 
 

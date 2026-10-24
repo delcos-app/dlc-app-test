@@ -21,11 +21,6 @@ function estimarDia(citas, fecha, ...x) {
   }
   return estimarDiaBase2.call(this, citas, fecha, ...x);
 }
-pintarTuDia = (orig => async function (...a) {
-  const r = await orig.apply(this, a);
-  if (agConCinta()) tdMarcaTrafico();
-  return r;
-})(pintarTuDia);
 
 // ---- Filtros rápidos que no desaparecen (aviso intermitente de la batería: en Contactos, en el móvil, un filtro aparecía tarde
 // cuando sus opciones llegaban después de entrar). Un filtro rápido cuyo desplegable aún no tiene opciones se ve desactivado en su

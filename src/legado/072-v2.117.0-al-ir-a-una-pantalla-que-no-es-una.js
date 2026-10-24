@@ -27,10 +27,6 @@ ir = function (t, ...a) {
   if (t === 'organizacion' && !puedeOrganizacion()) t = 'inicio';
   return IR_V2121(t, ...a);
 };
-// Configuración, sin lo que ahora está en Organización
-arbolConfig = (orig => function () {
-  return orig().map(([g, l]) => [g, l.filter(x => !['fact', 'marca', 'correo', 'copias', 'orgs'].includes(x.k))]).filter(g => g[1].length);
-})(arbolConfig);
 mostrarApp = (orig => function (...a) { const r = orig(...a); menuOrganizacion(); return r; })(mostrarApp);
 document.addEventListener('click', e => {
   const b = e.target.closest('[data-u="organizacion"]'); if (!b) return;
@@ -96,7 +92,6 @@ const CAMPO_TXT = { nombre: 'Nombre', estado_comercial: 'Estado', get especialid
   direccion: 'Dirección', cp: 'Código postal', municipio: 'Población', provincia: 'Provincia', nota: 'Nota', urgente: 'Urgente', centro_nombre: 'Centro',
   dias: 'Horario', principal: 'Principal', nif: 'DNI / CIF', cuenta_id: TT('medico', 's', '', 'l', 'C'), codigo: 'Código', precio: 'Precio', estado: 'Estado',
   sin_reporting: 'Sin reporting', clasificadores: 'Campos propios', planta: 'Planta', sala: 'Sala', indicaciones: 'Cómo llegar', lat: 'Latitud', lon: 'Longitud' };
-abrirFicha = (orig => async function (id, ...a) { const r = await orig.call(this, id, ...a); fichaHistorial(id); return r; })(abrirFicha);
 
 
 
@@ -193,16 +188,6 @@ pintarLlamadas = async function () {
 
 
 
-abrirFicha = (orig => async function (id, ...a) { const r = await orig.call(this, id, ...a); fichaPortal(id); return r; })(abrirFicha);
 
-arbolConfig = (orig => function () {
-  const g = orig();
-  if (puede('administrar') && hayExtra('portal')) {
-    const it = { k: 'portal', ic: 'stethoscope', t: `Portal ${TT('medico', 's', 'del', 'l', 'l')}`, d: 'Material que pueden pedir', r: pintarCfgPortal };
-    const datos = g.find(x => x[0] === 'Datos');
-    if (datos) datos[1].push(it); else g.push(['Datos', [it]]);
-  }
-  return g;
-})(arbolConfig);
 
 

@@ -27,36 +27,6 @@ Promise.resolve(RPC_ORIG('marca_publica', { p_dominio: /[?&]alta=ok/.test(locati
 }, () => {});
 // El logo de la empresa también en las facturas
 
-async function pintarMarca() {
-  await cargarAjustes();
-  const m = Object.assign({ nombre: nombreApp(), logo: null, logo_factura: true }, AJUSTES.marca || {});
-  let logo = m.logo;
-  $('cfgcuerpo').innerHTML = `<div class="card cfgpanel"><h2>Marca de la empresa</h2>
-    <p class="sm">Así se ve la plataforma para todo tu equipo: en la pantalla de acceso, arriba en cada pantalla, en la app del móvil y en las facturas.</p>
-    <div class="marcaed"><div class="marcaprev"><img id="mklogo" src="${esc(logo || 'logo-app.png')}" alt=""><b id="mknomp">${esc(m.nombre)}</b></div>
-      <div><label for="mknom">Nombre de la plataforma</label><input id="mknom" value="${esc(m.nombre)}" placeholder="p. ej. Acme Comercial">
-        <label>Logo o imagen de perfil ${pmAyu('Logo', 'Se adapta a un círculo. Mejor una imagen cuadrada, con el logo centrado.')}</label>
-        <div class="acts" style="margin:0"><label class="btn sec" for="mkfile" style="margin:0">Subir imagen</label><input id="mkfile" type="file" accept="image/*" class="hide">
-          ${logo ? '<button class="btn sec" id="mkquitar">Quitar</button>' : ''}</div>
-        <label class="opt" style="margin-top:10px"><input type="checkbox" id="mkfac" ${m.logo_factura !== false ? 'checked' : ''}> Usar también en las facturas</label></div></div>
-    <div class="acts" style="justify-content:flex-end"><button class="btn" id="mkok">Guardar</button></div></div>`;
-  $('mknom').oninput = () => $('mknomp').textContent = $('mknom').value || 'Mi empresa';
-  $('mkfile').onchange = async e => {
-    const f = e.target.files[0]; if (!f) return;
-    const img = new Image(); img.src = URL.createObjectURL(f); await img.decode();
-    const c = document.createElement('canvas'); c.width = c.height = 256; const x = c.getContext('2d');
-    const lado = Math.min(img.width, img.height); x.drawImage(img, (img.width - lado) / 2, (img.height - lado) / 2, lado, lado, 0, 0, 256, 256);
-    logo = c.toDataURL('image/png'); $('mklogo').src = logo;
-  };
-  if ($('mkquitar')) $('mkquitar').onclick = () => { logo = null; $('mklogo').src = 'logo-app.png'; };
-  $('mkok').onclick = async () => {
-    const v = { nombre: $('mknom').value.trim() || 'Mi empresa', logo, logo_factura: $('mkfac').checked };
-    const { error } = await db.rpc('guardar_ajuste', { p_clave: 'marca', p_valor: v });
-    if (error) { toast('No se ha podido guardar', true); return; }
-    AJUSTES.marca = v; MARCA = { nombre: v.nombre, logo: v.logo }; localStorage.setItem('app-marca', JSON.stringify(MARCA)); LOGO_DATA = null;
-    aplicarMarca(); toast('Marca guardada');
-  };
-}
 
 /* ---------------- planes ---------------- */
 

@@ -5,89 +5,6 @@
 
 /* ---------------- componente común: «Filtros y columnas» ---------------- */
 
-// Columnas: se quitan de la rejilla conservando las proporciones del resto
-function htAplicarColumnas(g) {
-  const tipo = htTipo(g), ocultas = htOcultas(tipo);
-  if (!g.dataset.colsBase) g.dataset.colsBase = getComputedStyle(g).getPropertyValue('--cols').trim();
-  const pistas = []; let prof = 0, act = '';
-  for (const ch of g.dataset.colsBase) { if (ch === '(') prof++; if (ch === ')') prof--; if (ch === ' ' && !prof) { if (act) pistas.push(act); act = ''; } else act += ch; }
-  if (act) pistas.push(act);
-  if (!pistas.length) return;
-  g.style.setProperty('--cols', pistas.filter((_, i) => !ocultas.includes(i)).join(' '));
-  if (ocultas.length) g.style.minWidth = 'auto';
-  g.querySelectorAll(':scope > .dh, :scope > .dr').forEach(f => [...f.children].forEach((c, i) => c.classList.toggle('htno', ocultas.includes(i))));
-}
-// Filtros automáticos por columna (columnas con pocos valores distintos) y búsqueda dentro de la tabla
-// v2.242.0: aquí iba la primera versión de htAplicarFiltros (se redefine entera más abajo)
-function htActivos(sec) {
-  const g = sec.querySelector('.dgrid'); const st = g ? HT_ESTADO[htTipo(g)] || {} : {};
-  let n = Object.values(st.facetas || {}).filter(Boolean).length + (st.texto ? 1 : 0);
-  sec.querySelectorAll('.htpanel .htpropios select').forEach(s => { if (s.selectedIndex > 0) n++; });
-  return n;
-}
-function htPintarPanel(sec) {
-  const panel = sec.querySelector('.htpanel'); if (!panel) return;
-  const g = sec.querySelector('.dgrid');
-  const zona = panel.querySelector('.htauto'); zona.innerHTML = '';
-  if (g) {
-    const tipo = htTipo(g), st = HT_ESTADO[tipo] = HT_ESTADO[tipo] || { texto: '', facetas: {} };
-    const cab = [...(g.querySelector(':scope > .dh') || { children: [] }).children].map(c => c.textContent.trim());
-    const filas = [...g.querySelectorAll(':scope > .dr')];
-    const facetas = cab.map((nombre, i) => {
-      const vals = [...new Set(filas.map(f => (f.children[i] || {}).textContent ? f.children[i].textContent.trim() : '').filter(Boolean))];
-      return vals.length > 1 && vals.length <= 15 && nombre ? { i, nombre, vals: vals.sort() } : null;
-    }).filter(Boolean);
-    const ocultas = htOcultas(tipo);
-    zona.innerHTML = `
-      <div class="htbloque"><h4>Buscar en la tabla</h4><input type="search" class="httexto" value="${esc(st.texto || '')}" placeholder="Cualquier dato de la tabla"></div>
-      ${facetas.length ? `<div class="htbloque"><h4>Filtrar por columna</h4><div class="htfacetas">${facetas.map(f => `<label><span>${esc(f.nombre)}</span><select data-htf="${f.i}"><option value="">Todos</option>${f.vals.map(v => `<option ${st.facetas[f.i] === v ? 'selected' : ''}>${esc(v)}</option>`).join('')}</select></label>`).join('')}</div></div>` : ''}
-      ${cab.filter(Boolean).length > 2 ? `<div class="htbloque"><h4>Columnas</h4><div class="htcols">${cab.map((n, i) => n ? `<label class="opt"><input type="checkbox" data-htc="${i}" ${ocultas.includes(i) ? '' : 'checked'} ${i === 0 ? 'disabled' : ''}> ${esc(n)}</label>` : '').join('')}</div></div>` : ''}
-      <div class="acts" style="margin:0;justify-content:flex-end"><button class="btn sec dang" type="button" data-htlimpiar>${svgIco(ICON_NOM.x)} Eliminar filtros</button></div>`;
-    zona.querySelector('.httexto').oninput = e => { st.texto = e.target.value; htAplicarFiltros(g); htContador(sec); };
-    zona.querySelectorAll('[data-htf]').forEach(s => s.onchange = () => { st.facetas[s.dataset.htf] = s.value; htAplicarFiltros(g); htContador(sec); });
-    zona.querySelectorAll('[data-htc]').forEach(c => c.onchange = () => {
-      const o = new Set(htOcultas(tipo)); c.checked ? o.delete(+c.dataset.htc) : o.add(+c.dataset.htc);
-      localStorage.setItem('ht-cols-' + tipo, JSON.stringify([...o])); htAplicarColumnas(g);
-    });
-    zona.querySelector('[data-htlimpiar]').onclick = () => {
-      HT_ESTADO[tipo] = { texto: '', facetas: {} };
-      panel.querySelectorAll('.htpropios select').forEach(s => { if (s.selectedIndex > 0) { s.selectedIndex = 0; s.dispatchEvent(new Event('change', { bubbles: true })); } });
-      htAplicarFiltros(g); htPintarPanel(sec); htContador(sec);
-    };
-  }
-}
-function htPreparar(sec) {
-  const id = sec.id.replace('v-', '');
-  if (id === 'directorio') { const f = sec.querySelector('.panel > .filtros'); if (f) f.classList.add('hide'); return; }
-  // v2.87.0: en la configuración de facturación no hay tablas que filtrar
-  if (id === 'facturacion' && typeof FSEC !== 'undefined' && FSEC !== 'facturas') return;
-  const g = sec.querySelector('.dgrid'), propios = HT_FILTROS[id] ? document.querySelector(HT_FILTROS[id]) : null;
-  if (!g && !propios) return;
-  let panel = sec.querySelector('.htpanel');
-  if (!panel) {
-    const ref = sec.querySelector('.subnav') || sec.querySelector('.saludo');
-    let acts = sec.querySelector('.saludo .acts');
-    if (!acts && sec.querySelector('.saludo')) { sec.querySelector('.saludo').insertAdjacentHTML('beforeend', '<div class="acts"></div>'); acts = sec.querySelector('.saludo .acts'); }
-    if (!ref || !acts) return;
-    ref.insertAdjacentHTML('afterend', '<div class="htpanel hide"><div class="htpropios"></div><div class="htauto"></div></div>');
-    panel = sec.querySelector('.htpanel');
-    acts.insertAdjacentHTML('afterbegin', `<button class="btn sec chico htbtn" type="button" title="Filtros y columnas" aria-label="Filtros y columnas">${svgIco(ICON_NOM['sliders-horizontal'])}<span class="htl"> Filtros y columnas</span><span class="htn"></span></button>`);
-    acts.querySelector('.htbtn').onclick = () => { panel.classList.toggle('hide'); if (!panel.classList.contains('hide')) htPintarPanel(sec); };
-  }
-  // Los filtros propios de la pantalla pasan al panel; la búsqueda por texto se queda a la vista
-  if (propios && !propios.dataset.ht) {
-    propios.dataset.ht = '1';
-    [...propios.children].forEach(ch => {
-      if (ch.matches('input[type=search],input[type=text]') || ch.querySelector('input[type=search],input[type=text]')) return;
-      panel.querySelector('.htpropios').appendChild(chicoEn(ch, true));
-    });
-    if (!propios.children.length) propios.classList.add('hide');
-    panel.querySelectorAll('.htpropios select').forEach(s => s.addEventListener('change', () => htContador(sec)));
-  }
-  // Una tabla nueva (datos recién pintados): se le aplican columnas y filtros, y se actualiza el panel si está abierto
-  if (g && !g.dataset.ht) { g.dataset.ht = '1'; htAplicarColumnas(g); htAplicarFiltros(g); if (!panel.classList.contains('hide')) htPintarPanel(sec); }
-  htContador(sec);
-}
 new MutationObserver(() => {
   if (HT_PEND) return; HT_PEND = true;
   queueMicrotask(() => { HT_PEND = false; const sec = $('v-' + TAB); if (sec && !sec.classList.contains('hide')) htPreparar(sec); });
@@ -106,22 +23,6 @@ function celda(m, k) {
 /* ---------------- páginas propias: Perfil, Empresa y Plan ---------------- */
 
 let PAG_TAB = {};
-function cargarPagina(t) {
-  const P = PAGINAS[t];
-  if (P.permiso && !P.permiso()) { ir('inicio'); return; }   // v2.121.0: páginas con su propio permiso (Organización)
-  if (P.admin && !puede('administrar')) { ir('inicio'); return; }
-  let sec = $('v-' + t);
-  if (!sec) { document.querySelector('main').insertAdjacentHTML('beforeend', `<section id="v-${t}"></section>`); sec = $('v-' + t); }
-  // Solo puede haber un contenedor de contenido a la vez: Configuración y las otras páginas se vacían (se repintan al volver)
-  if ($('v-config')) $('v-config').innerHTML = '';
-  Object.keys(PAGINAS).forEach(o => { if (o !== t && $('v-' + o)) $('v-' + o).innerHTML = ''; });
-  const tab = P.tabs.some(x => x[0] === PAG_TAB[t]) ? PAG_TAB[t] : P.tabs[0][0];
-  sec.innerHTML = `${t === 'plan' ? '' : `<div class="saludo"><div><h1>${esc(P.t)}</h1><div class="fecha">${esc(P.d)}</div></div></div>`}
-    ${P.tabs.length > 1 ? `<div class="cfgsubs pagtabs">${P.tabs.map(([k, n]) => `<button data-ptab="${k}" class="${k === tab ? 'on' : ''}">${esc(n)}</button>`).join('')}</div>` : ''}
-    <div id="cfgcuerpo" class="pagcuerpo"></div>`;
-  sec.querySelectorAll('.pagtabs [data-ptab]').forEach(b => b.onclick = () => { PAG_TAB[t] = b.dataset.ptab; cargarPagina(t); });
-  Promise.resolve().then(P.tabs.find(x => x[0] === tab)[2]);
-}
 const IR_V253 = ir;
 ir = function (t) {
   // Apartados que ahora tienen página propia: solo se redirige cuando se piden expresamente
@@ -132,8 +33,6 @@ ir = function (t) {
   IR_V253(t);
   if (PAGINAS[t]) cargarPagina(t);
 };
-// Configuración ya no repite Mi perfil ni Notificaciones: están en su propia página
-arbolConfig = (orig => function () { return orig().map(([g, l]) => [g, l.filter(x => !['perfil', 'notif'].includes(x.k))]).filter(g => g[1].length); })(arbolConfig);
 // Menú de usuario: cada opción abre su página
 document.addEventListener('click', e => {
   const b = e.target.closest('[data-u="perfil"], [data-u="empresa"], [data-u="plan"]'); if (!b) return;

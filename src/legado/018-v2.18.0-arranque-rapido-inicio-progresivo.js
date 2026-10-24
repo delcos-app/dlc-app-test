@@ -150,16 +150,6 @@ async function pintarInicio() {
 
 /* ---------------- detalle de pedido ---------------- */
 
-// (v2.183.0: aquí iba la primera versión de ventanaCargando; se redefine entera más abajo)
-/* Ver pedido: la ventana base, sus facturas (o emitirla) y la operativa (antes eran 4 capas). */
-async function verPedido(id) {
-  return ventanaCargando(async () => {
-    await verPedidoBase(id);
-    await pedidoFacturas(id);
-    await pedidoOperativa(id);
-    await pedidoPago(id);
-  });
-}
 
 
 
@@ -170,129 +160,10 @@ async function verPedido(id) {
 
 
 
-async function fichaPaciente(id) {
-  FICHA_PAC = id; FICHA_ID = null;
-  $('fbody').innerHTML = '<div class="skel" style="width:50%"></div><div class="skel"></div><div class="skel" style="width:80%"></div>';
-  if (!$('ficha').open) $('ficha').showModal();
-  const { data } = await RPC_ORIG('contacto_detalle', { p_id: id });
-  if (FICHA_PAC !== id) return;
-  if (!data || !data.contacto) { $('fbody').innerHTML = `<div class="vacio">No se ha encontrado ${TT('paciente', 's', 'el', 'l', 'l')}.</div>`; return; }
-  const c = data.contacto, m = data.medico, ped = data.pedidos || [];
-  const validos = ped.filter(p => p.estado !== 'Anulado' && p.estado !== 'Borrador');
-  const permitido = puedeVentas();
-
-  $('fbody').innerHTML = `
-    <div class="fh"><div><h2>${esc(c.nombre)}</h2><div class="sm">${TT('paciente', 's', '', 'l', 'C')}${c.nif ? ' · NIF ' + esc(c.nif) : ''}</div></div>
-      <button class="x" id="fpx" aria-label="Cerrar">✕</button></div>
-    ${permitido ? `<div class="acts"><button class="btn" id="fpnped">+ Nuevo pedido</button>
-      <button class="btn sec" id="fpedit">Editar datos</button></div>` : ''}
-    <div class="kpis" style="margin:10px 0 0;grid-template-columns:repeat(3,minmax(0,1fr))">
-      <div class="kpi"><b>${num(validos.length)}</b><span>pedidos</span></div>
-      <div class="kpi"><b>${num(data.total_unidades)}</b><span>unidades</span></div>
-      <div class="kpi"><b>${eurI(validos.reduce((n, p) => n + (+p.total || 0), 0))}</b><span>con IVA</span></div></div>
-    <div class="blk"><h3>${TT('medico', 's', '', 'l', 'C')} que lo trata</h3>
-      ${m ? `<div><button class="kcfg" data-fpmed="${m.id}" style="font-size:15px">${esc(m.nombre)}</button>
-          <span class="sm"> · código ${esc(m.codigo)}${m.especialidad ? ' · ' + esc(m.especialidad) : ''}</span></div>
-        <div class="sm">${m.comercial ? 'Comercial: ' + esc(m.comercial) : 'Sin comercial asignado'}</div>`
-        : `<div class="sm">Sin ${TT('medico', 's', '', 'l', 'l', 'asignado')}. Las unidades de ${TT('paciente', 's', 'este', 'l', 'l')} no se atribuyen a nadie hasta que lo asignes.</div>`}
-      ${permitido ? `<label>${m ? `Cambiar de ${TT('medico', 's', '', 'l', 'l')}` : `Asignar ${TT('medico', 's', '', 'l', 'l')}`}</label><div id="fpsel"></div>
-        ${m ? `<div class="acts"><button class="btn sec" id="fpmedquitar">Quitar ${TT('medico', 's', '', 'l', 'l')}</button></div>` : ''}` : ''}
-    </div>
-    <div class="blk"><h3>Contacto</h3>
-      ${[['Teléfono', c.telefono], ['Móvil', c.movil], ['Email', c.email],
-         ['Dirección', [c.direccion, c.cp, c.municipio, c.provincia].filter(Boolean).join(', ')], ['Nota', c.nota]]
-        .filter(x => x[1]).map(([k, v]) => `<div class="sm"><b style="color:var(--ink)">${k}:</b> ${esc(v)}</div>`).join('')
-        || '<div class="sm">Sin datos de contacto.</div>'}</div>
-    <div class="blk"><h3>Pedidos</h3>
-      ${ped.map(p => `<button class="item" data-fpped="${p.id}" style="padding:8px 4px">
-        <span class="tx"><b>${fechaCorta(p.fecha)} · ${esc(p.productos || 'Sin productos')}</b>
-          <span class="sm">${num(p.unidades)} uds. · ${eurI(p.total)} con IVA${p.medico ? ' · ' + esc(p.medico) : ''}</span></span>
-        ${pillEstado(p.estado)}</button>`).join('') || '<div class="sm">Todavía no tiene pedidos.</div>'}</div>`;
-
-  $('fpx').onclick = () => { FICHA_PAC = null; $('ficha').close(); };
-  $('fbody').querySelectorAll('[data-fpped]').forEach(b => b.onclick = () => verPedido(b.dataset.fpped));
-  const bm = $('fbody').querySelector('[data-fpmed]');
-  if (bm) bm.onclick = () => { FICHA_PAC = null; abrirFicha(bm.dataset.fpmed); };
-  if ($('fpnped')) $('fpnped').onclick = () => nuevaVenta({ contacto: Object.assign({}, c, m ? { medico: m.nombre, medico_codigo: m.codigo } : {}), medico: m ? { id: m.id, nombre: m.nombre } : null });
-  if ($('fpedit')) $('fpedit').onclick = () => editorContacto(c, () => fichaPaciente(id));
-  const asignar = async medicoId => {
-    const { data: r, error } = await db.rpc('asignar_cuenta_cliente', { p_contacto: id, p_medico: medicoId });
-    if (error || (r && r.ok === false)) { toast('No se ha podido guardar', true); return; }
-    toast(medicoId ? `${TT('medico', 's', '', 'l', 'C', 'asignado')}` : `${TT('medico', 's', '', 'l', 'C', 'quitado')}`); fichaPaciente(id);
-    if (TAB === 'pacientes') listaPacientes();
-  };
-  if ($('fpmedquitar')) $('fpmedquitar').onclick = () => asignar(null);
-  if ($('fpsel')) selectorMedico($('fpsel'), { valor: null, placeholder: `Busca ${TT('medico', 's', 'el', 'l', 'l')} por nombre, centro o municipio`, alElegir: x => { if (x) asignar(x.id); } });
-}
 
 /* ---------------- productos ---------------- */
 
 
-function editorProducto(p) {
-  const esAdmin = puede('administrar');
-  p = p || { iva: 10, activo: true, unidades_envase: 1 };
-  const ro = esAdmin ? '' : 'disabled';
-  $('dbody').innerHTML = `
-    <div class="fh"><div><h2>${p.id ? esc(p.nombre) : 'Nuevo producto'}</h2>
-      <div class="sm">${esAdmin ? 'Escribe el precio sin IVA o con IVA: el otro se calcula solo.' : 'Solo administración puede cambiar productos.'}</div></div>
-      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-    <div style="display:flex;gap:14px;align-items:center;margin-top:8px">
-      <span class="pfoto" id="prfprev" style="width:72px;height:72px;${p.foto_url ? `background-image:url('${esc(p.foto_url)}')` : ''}">${p.foto_url ? '' : '◧'}</span>
-      ${esAdmin ? '<div style="flex:1"><label for="prfoto" style="margin-top:0">Foto</label><input id="prfoto" type="file" accept="image/*"></div>' : ''}</div>
-    <div class="g2">
-      <div><label for="prn">Nombre</label><input id="prn" value="${esc(p.nombre || '')}" ${ro}></div>
-      <div><label for="prp">Presentación</label><input id="prp" value="${esc(p.presentacion || '')}" placeholder="Caja de 30 sobres" ${ro}></div></div>
-    <div class="pvp">
-      <div><label for="prpr">Precio sin IVA (€)</label><input id="prpr" type="number" step="0.01" min="0" value="${p.precio != null ? +(+p.precio).toFixed(4) : ''}" ${ro}></div>
-      <div><label for="priva">IVA (%)</label><input id="priva" type="number" step="1" min="0" max="21" value="${p.iva != null ? p.iva : 10}" ${ro}></div>
-      <div><label for="prpvp">Precio con IVA (€)</label><input id="prpvp" type="number" step="0.01" min="0" value="${p.precio != null ? r2(p.precio * (1 + (+p.iva || 0) / 100)) : ''}" ${ro}></div></div>
-    <div class="g2">
-      <div><label for="prref">Referencia</label><input id="prref" value="${esc(p.referencia || '')}" ${ro}></div>
-      <div><label for="prcb">Código de barras</label><input id="prcb" value="${esc(p.codigo_barras || '')}" ${ro}></div></div>
-    <div class="g2">
-      <div><label for="prue">Unidades por envase</label><input id="prue" type="number" min="1" value="${p.unidades_envase || 1}" ${ro}></div>
-      <div><label for="prco">Coste (€, sin IVA)</label><input id="prco" type="number" step="0.01" min="0" value="${p.coste != null ? p.coste : ''}" ${ro}></div></div>
-    ${esAdmin && p.id ? `<label class="opt" style="margin-top:12px"><input type="checkbox" id="pract" ${p.activo ? 'checked' : ''}> Activo: aparece al crear pedidos</label>` : ''}
-    <div class="acts" style="justify-content:flex-end">
-      <button class="btn sec" data-cerrar>${esAdmin ? 'Cancelar' : 'Cerrar'}</button>
-      ${esAdmin ? `<button class="btn" id="prok">${p.id ? 'Guardar' : 'Crear producto'}</button>` : ''}</div>`;
-  $('dlg').showModal();
-  if (!esAdmin) return;
-
-  const iva = () => (+$('priva').value || 0) / 100;
-  $('prpr').oninput = () => { $('prpvp').value = $('prpr').value === '' ? '' : r2(+$('prpr').value * (1 + iva())); };
-  $('prpvp').oninput = () => { $('prpr').value = $('prpvp').value === '' ? '' : +(+$('prpvp').value / (1 + iva())).toFixed(4); };
-  $('priva').oninput = () => { if ($('prpr').value !== '') $('prpvp').value = r2(+$('prpr').value * (1 + iva())); };
-  $('prfoto').onchange = e => {
-    const f = e.target.files[0]; if (!f) return;
-    $('prfprev').style.backgroundImage = `url('${URL.createObjectURL(f)}')`; $('prfprev').textContent = '';
-  };
-  camposInsertar($('dbody'), 'producto', p.id, $('prok') && $('prok').closest('.acts'));
-  $('prok').onclick = async ev => {
-    if (!$('prn').value.trim()) { toast('Escribe el nombre', true); return; }
-    const cps = camposLeer($('dbody'));
-    if (cps && cps.falta.length) { toast(`Rellena «${cps.falta[0]}»`, true); return; }
-    ev.target.disabled = true; ev.target.textContent = 'Guardando…';
-    let foto_url;
-    const f = $('prfoto').files && $('prfoto').files[0];
-    if (f) {
-      const ruta = 'p-' + Date.now() + '-' + f.name.replace(/[^a-zA-Z0-9.]/g, '');
-      const { error: eu } = await db.storage.from('productos').upload(ruta, f, { upsert: true });
-      if (!eu) foto_url = db.storage.from('productos').getPublicUrl(ruta).data.publicUrl;
-      else toast('La foto no se ha podido subir: ' + eu.message, true);
-    }
-    const { data: r, error } = await db.rpc('guardar_producto', { p: {
-      id: p.id || null, nombre: $('prn').value.trim(), presentacion: $('prp').value.trim(),
-      precio: $('prpr').value, iva: $('priva').value, referencia: $('prref').value.trim(),
-      codigo_barras: $('prcb').value.trim(), unidades_envase: $('prue').value, coste: $('prco').value,
-      ...(foto_url ? { foto_url } : {}), ...($('pract') ? { activo: $('pract').checked } : {}) } });
-    ev.target.disabled = false; ev.target.textContent = p.id ? 'Guardar' : 'Crear producto';
-    if (error || (r && r.ok === false)) { toast('No se ha podido guardar: ' + ((error && error.message) || (r && r.error) || ''), true); return; }
-    if (cps && !(await camposGuardar(cps, (r && r.id) || p.id))) return;
-    $('dlg').close(); toast(p.id ? 'Producto guardado' : 'Producto creado');
-    await cargarProductos(); if (TAB === 'productos') pintarProductos();
-  };
-}
 
 /* ---------------- ficha del médico: comercial y pacientes ---------------- */
 

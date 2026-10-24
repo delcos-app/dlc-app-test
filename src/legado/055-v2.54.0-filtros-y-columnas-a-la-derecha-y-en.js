@@ -7,25 +7,6 @@
 /* ---------------- «Filtros y columnas» en el panel lateral ---------------- */
 
 new MutationObserver(() => { if (!$('tools').classList.contains('abierto')) htDevolver(); }).observe($('tools'), { attributes: true, attributeFilter: ['class'] });
-// El contenido automático (buscar, filtrar por columna, columnas) se pinta en el panel lateral
-htPintarPanel = (orig => function (sec) {
-  const d = $('tools');
-  if (!(htLateralAbierto() && HERR_CTX === 'ht-' + sec.id.replace('v-', ''))) return;
-  // Se reutiliza la función anterior pintando sobre un «panel» temporal y se lleva el resultado al lateral
-  const tmp = document.createElement('div'); tmp.className = 'htpanel'; tmp.innerHTML = '<div class="htauto"></div>';
-  const real = sec.querySelector('.htpanel'); if (real) real.classList.add('htreal');
-  sec.appendChild(tmp);
-  const antes = sec.querySelector('.htpanel:not(.htreal)');
-  if (real) real.classList.remove('htpanel');
-  try { orig(sec); } finally { if (real) real.classList.add('htpanel'); }
-  const auto = d.querySelector('.htauto'); auto.replaceWith(tmp.querySelector('.htauto')); tmp.remove();
-  if (real) real.classList.remove('htreal');
-})(htPintarPanel);
-htActivos = (orig => function (sec) {
-  let n = orig(sec);
-  if (htLateralAbierto() && HERR_CTX === 'ht-' + sec.id.replace('v-', '')) $('tools').querySelectorAll('.htpropios.lat select').forEach(s => { if (s.selectedIndex > 0) n++; });
-  return n;
-})(htActivos);
 new MutationObserver(() => {
   if (HT2_PEND) return; HT2_PEND = true;
   queueMicrotask(() => { HT2_PEND = false; const sec = $('v-' + TAB); if (sec) htColocarBoton(sec); });

@@ -6,14 +6,6 @@ abrirManual = function (ancla) {
   if (TAB === 'manual' && f) { try { f.contentWindow.location.hash = ancla || 'portada'; } catch (e) {} return; }
   ir('manual');
 };
-cargarManual = (orig => async function (...a) {
-  if (ES_MEDICO()) return orig.apply(this, a);
-  const v = $('v-manual'); if (!v) return;
-  guardarVocabManual();
-  const url = 'manual/index.html?app=1' + (MANUAL_DESTINO ? '#' + MANUAL_DESTINO : ''); MANUAL_DESTINO = '';
-  v.innerHTML = `<div class="saludo"><div><h1>Manual de uso</h1><div class="fecha">Todo lo que puedes hacer con delcos, paso a paso, con fotos y vídeos</div></div></div>
-    <iframe id="manlibro" class="manlibro" title="Manual de uso" src="${url}"></iframe>`;
-})(cargarManual);
 ponerAyudaManual = (orig => function () { if (TAB === 'manual') return; return orig.apply(this, arguments); })(ponerAyudaManual);
 
 pintarSinAtribuir = (orig => async function (...a) {
@@ -21,39 +13,7 @@ pintarSinAtribuir = (orig => async function (...a) {
   const c = $('cardsinatr'); if (c) c.classList.toggle('hide', !c.innerHTML.trim());
   return r;
 })(pintarSinAtribuir);
-cargarVentas = (orig => async function (...a) {
-  const r = await orig.apply(this, a);
-  const cuerpo = $('vcuerpo');
-  if (PEDSEC === 'ventas' && cuerpo && puedeAtribuir() && !$('cardsinatr')) {
-    cuerpo.insertAdjacentHTML('afterbegin', '<div class="card hide" id="cardsinatr"></div>');
-    pintarSinAtribuir();
-  }
-  return r;
-})(cargarVentas);
-cargarSeguimiento = (orig => async function (...a) {
-  const r = await orig.apply(this, a);
-  const acts = document.querySelector('#v-seguimiento .saludo .acts');
-  if (acts && puedeDuplicados() && !$('caldup')) {
-    acts.insertAdjacentHTML('beforeend', `<button class="btn sec" id="caldup">${svgIco(ICON_NOM.copy)} Duplicados</button>`);
-    $('caldup').onclick = () => ir('duplicados');
-  }
-  return r;
-})(cargarSeguimiento);
 
-verCita = (orig => function (c, ...r) {
-  const x = orig.call(this, c, ...r);
-  const acts = $('dbody') && $('dbody').querySelector('.vcacts');
-  if (acts && c) {
-    const ir = (f, txt, id) => {
-      if (!f || f === c.fecha || $(id)) return;
-      acts.insertAdjacentHTML('beforeend', `<button type="button" class="btn sec" id="${id}">${esc(txt)}</button>`);
-      $(id).onclick = () => { $('dlg').close(); AG_MODO = 'dia'; agVerDia(f); };
-    };
-    if (c.estado === 'Aplazada') ir(c.aplazada_a_fecha, 'Ir al ' + (c.aplazada_a_fecha ? diaCita(c.aplazada_a_fecha) : ''), 'vcirdest');
-    ir(c.aplazada_de_fecha, 'Ver el ' + (c.aplazada_de_fecha ? diaCita(c.aplazada_de_fecha) : ''), 'vcirorig');
-  }
-  return x;
-})(verCita);
 
 /* v2.214.0 · Visita del día, resultados que hacen avanzar y manual en el iPhone (peticiones de Eric; SQL 130).
    - Una visita se registra el día de la cita: «Registrar» sale en las citas de hoy; en las de días pasados, solo con el permiso
@@ -64,25 +24,7 @@ verCita = (orig => function (c, ...r) {
    - Manual: en el iPhone y el iPad el libro dentro de un marco sale en blanco con la app instalada; allí se abre a pantalla
      completa, con «Volver a la app». */
 var VISITA_FECHA = '';
-abrirVisitaBase = (orig => async function (...r) {
-  const fecha = VISITA_FECHA; VISITA_FECHA = '';
-  const x = await orig.apply(this, r);
-  const vf = $('vf');
-  if (vf) {
-    vf.max = hoyISO();
-    if (!puede('visita_fecha_pasada')) { vf.value = hoyISO(); vf.min = hoyISO(); vf.disabled = true; vf.title = 'La visita se registra el mismo día'; }
-    else if (fecha && fecha <= hoyISO()) vf.value = fecha;
-  }
-  return x;
-})(abrirVisitaBase);
 const ES_IOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-cargarManual = (orig => async function (...a) {
-  if (!ES_IOS || ES_MEDICO()) return orig.apply(this, a);
-  guardarVocabManual();
-  const url = 'manual/index.html' + (MANUAL_DESTINO ? '#' + MANUAL_DESTINO : ''); MANUAL_DESTINO = '';
-  window.MANUAL_ULTIMA = url;
-  location.href = url;
-})(cargarManual);
 
 /* v2.215.0 · Configuración en un solo sitio (decisión de Eric: propuesta A con los avisos de B; https://claude.ai/artifact/HW1gHEaYPuG3kbCpd2RnzZ).
    - Mi perfil, Configuración, Organización y Usuarios y roles son una sola pantalla: índice a la izquierda (Tu cuenta, Equipo, Empresa,
@@ -94,7 +36,7 @@ cargarManual = (orig => async function (...a) {
    - Piezas de la marca en toda la app: casillas de 18 px con el marino, interruptores en marino.
    - Notificaciones: cada aviso con «Al momento · En el resumen · No», el resumen arriba y el silencio en una fila. */
 var CFG_KEY = '';
-function arbolCfgUnico() {
+function arbolCfgUnicoBase() {
   const admin = puede('administrar'), org = puedeOrganizacion();
   const cfg = arbolConfig(), todos = cfg.flatMap(g => g[1]), de = k => todos.find(x => x.k === k);
   const hojas = it => {
@@ -355,13 +297,6 @@ function pulirCfg() {
   }
 }
 
-/* v2.218.0 · Roles y Series (lo que quedaba del rediseño de Configuración).
-   - «Filtros y columnas» no se engancha a Configuración (salía suelto en la cabecera al abrir Series).
-   - Roles y permisos: la columna del permiso queda fija al desplazarse a los lados y los desplegables son más estrechos (estilo). */
-htPreparar = (orig => function (sec, ...r) {
-  if (sec && sec.id === 'v-config') { sec.querySelectorAll('.htbtn, .htpanel').forEach(x => x.remove()); return; }
-  return orig.call(this, sec, ...r);
-})(htPreparar);
 
 const SVA = d => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + d + '</svg>';
 const ICU = {

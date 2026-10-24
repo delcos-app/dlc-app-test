@@ -94,20 +94,6 @@ congelar = function (sec) {
 
 /* ---------------- 4. Tablas: anchos de columna ajustables y recordados por persona ---------------- */
 
-htAplicarColumnas = (orig => function (g) {
-  orig(g);
-  const tipo = htTipo(g), an = anchosGuardados(tipo);
-  const dh = g.querySelector(':scope > .dh'); if (!dh) return;
-  if (an) {
-    const ocultas = htOcultas(tipo), pistas = g.dataset.colsBase.split(/\s+(?![^(]*\))/).filter(Boolean);
-    g.style.setProperty('--cols', pistas.map((p, i) => ocultas.includes(i) ? null : (an[i] ? an[i] + 'px' : p)).filter(Boolean).join(' '));
-    g.style.minWidth = 'max-content';
-  }
-  [...dh.children].forEach((c, i) => {
-    if (c.querySelector('.colres') || c.classList.contains('htno') || i === dh.children.length - 1) return;
-    c.classList.add('conres'); c.insertAdjacentHTML('beforeend', `<i class="colres" data-colres="${i}" title="Arrastra para cambiar el ancho"></i>`);
-  });
-})(htAplicarColumnas);
 document.addEventListener('pointerdown', e => {
   const h = e.target.closest('.dgrid .colres'); if (!h) return;
   e.preventDefault(); e.stopPropagation();
@@ -124,12 +110,12 @@ document.addEventListener('pointerdown', e => {
   document.addEventListener('pointermove', mover); document.addEventListener('pointerup', soltar);
 }, true);
 // En el panel de columnas: volver a los anchos originales
-panelColumnas = (orig => function (titulo, cols, alCambiar) {
-  orig(titulo, cols, alCambiar);
+function panelColumnasBase2(titulo, cols, alCambiar) {
+  panelColumnasBase(titulo, cols, alCambiar);
   const sec = $('v-' + TAB), g = sec && sec.querySelector('.dgrid'); if (!g) return;
   $('tools2').querySelector('.tbox').insertAdjacentHTML('beforeend', '<div class="acts"><button class="btn sec" type="button" id="t2anchos">Restablecer los anchos</button></div>');
   $('t2anchos').onclick = () => { localStorage.removeItem(claveAnchos(htTipo(g))); g.style.minWidth = ''; delete g.dataset.ht; htAplicarColumnas(g); toast('Anchos restablecidos'); };
-})(panelColumnas);
+}
 
 /* ---------------- 5. Campos de formulario ---------------- */
 
@@ -161,24 +147,11 @@ document.addEventListener('input', e => { const t = e.target; if (t.tagName === 
 
 /* ---------------- 6. Cuentas: barra ordenada, mapa como icono y ayuda en el título ---------------- */
 
-function barraCuentas() {
-  const m = $('mapaBtn');
-  if (m) {
-    const lista = /lista/i.test(m.textContent);
-    const ico = svgIco(ICON_NOM[lista ? 'list' : 'map']);
-    if (!m.querySelector('svg') || m.dataset.modo !== String(lista)) { m.dataset.modo = String(lista); m.innerHTML = ico; m.title = lista ? 'Ver la lista' : 'Ver en el mapa'; m.setAttribute('aria-label', m.title); }
-    m.classList.add('icobtn');
-  }
-  const t = $('dirtools'); if (t) t.classList.add('aderecha');
-  const ai = document.querySelector('#v-directorio .panel .ai'), h = document.querySelector('#dircab h1');
-  if (ai && h && !h.contains(ai)) h.appendChild(ai);
-}
 new MutationObserver(() => { if (TAB === 'directorio') barraCuentas(); }).observe($('v-directorio'), { childList: true, subtree: true, characterData: true });
 
 /* ---------------- 7. Facturación: «Facturas» y «Configuración» ---------------- */
 
 new MutationObserver(() => { if (TAB === 'facturacion') subnavFacturacion(); }).observe($('v-facturacion'), { childList: true, subtree: true });
-cargarFacturacion = (orig => async function (...a) { const r = await orig.apply(this, a); requestAnimationFrame(() => { if (TAB === 'facturacion') subnavFacturacion(); }); return r; })(cargarFacturacion);
 
 /* ---------------- 8. KPIs ---------------- */
 

@@ -58,13 +58,6 @@ pintarNotif = function () {
   ['nsil', 'nsild', 'nsilh', 'nsilf'].forEach(id => { if ($(id)) $(id).onchange = guardarSil; });
 };
 
-// Enlaces nuevos de los avisos
-irEnlace = (orig => function (e) {
-  const [t, id] = String(e || '').split(':');
-  if (t === 'cliente' && id) return nuevaVenta({ contacto_id: id });
-  if (t === 'cita') { AG_MODO = 'dia'; AG_FECHA = hoyISO(); return ir('agenda'); }
-  return orig(e);
-})(irEnlace);
 
 // v2.154.0 · Iconos del menú «Más» del móvil (y de «Tus módulos» en Mi perfil): las secciones añadidas después (Oportunidades, Compras,
 // Proveedores, Usuarios y roles, Panel delcos) no llegaban a ICO_MOD y salían con un punto
@@ -144,20 +137,6 @@ if (PAGINAS.delcos && !PAGINAS.delcos.tabs.some(t => t[0] === 'errores')) PAGINA
 // no se apunta en el registro de errores, y la visita (registrar_actividad, que no se duplica gracias a su op_id) se guarda en la cola
 // del dispositivo y se envía al recuperar la conexión, en lugar de pedir que se repita.
 function esErrorRed(e) { return /failed to fetch|load failed|networkerror|network request failed|aborterror|fetch is aborted|internet connection|err_internet|err_network/i.test(String((e && (e.message || e)) || '')); }
-registrarError = (orig => function (tipo, mensaje, detalle) {
-  if (tipo === 'api' && esErrorRed(mensaje)) return;
-  return orig.call(this, tipo, mensaje, detalle);
-})(registrarError);
-async function escribirRpc(fn, payload) {
-  const r = navigator.onLine ? await db.rpc(fn, payload) : { error: { message: 'Failed to fetch' } };
-  if (r && r.error && esErrorRed(r.error)) {
-    colaPoner({ fn, payload: marcarSinConexion(fn, payload), etiqueta: TT('visita', 's', '', 'l', 'C'), t: Date.now() });
-    pintarConexion();
-    setTimeout(() => toast('Sin conexión: queda guardado en este dispositivo y se enviará al recuperarla'), 1500);
-    return { data: { encolada: true }, error: null };
-  }
-  return r;
-}
 
 /* v2.161.0 · Los errores corregidos se dan por resueltos solos (petición de Eric, 3/10/2026). Al abrirse, la app avisa una vez de su
    versión (version_en_uso, SQL 101): así se sabe desde cuándo se usa cada versión en cada empresa, y los errores que no han vuelto a
@@ -208,12 +187,6 @@ pintarPaginaPlan = (orig => async function (...a) {
   return r;
 })(pintarPaginaPlan);
 
-async function pagoCargarEstado() {
-  const { data } = await RPC_ORIG('plan_uso', {});
-  if (!data) return;
-  PAGO_ESTADO = data; if (data.plan && data.plan.plan) PLAN_ACTUAL = data.plan;
-  pagoAviso();
-}
 (function pagoArranque() {
   let n = 0;
   const t = setInterval(() => {
@@ -227,11 +200,6 @@ async function pagoCargarEstado() {
     } else if (++n > 90) clearInterval(t);
   }, 1500);
 })();
-// En solo lectura, los fallos al guardar se explican (toast, en componentes/aviso.js) y no cuentan como errores de la plataforma
-registrarError = (orig => function (tipo, mensaje, detalle) {
-  if (PAGO_ESTADO && PAGO_ESTADO.solo_lectura && /row-level security|violates row-level/i.test(String(mensaje))) return;
-  return orig.call(this, tipo, mensaje, detalle);
-})(registrarError);
 
 aplicarPermisosMenu = (orig => function (...a) { const r = orig.apply(this, a); try { candadoSecciones(); } catch (e) {} return r; })(aplicarPermisosMenu);
 ir = (orig => function (t, ...a) {
@@ -283,18 +251,6 @@ menuPersonalizar = (orig => function (...a) {
   return r;
 })(menuPersonalizar);
 
-pagoCargarEstado = (orig => async function (...a) { const r = await orig.apply(this, a); marcarFacPlan(); return r; })(pagoCargarEstado);
-// En solo consulta, la pantalla lo dice arriba y Organización no enseña lo de emitir (datos fiscales, series, VeriFactu, PDF)
-cargarFacturacion = (orig => async function (...a) {
-  const r = await orig.apply(this, a);
-  const v = $('v-facturacion');
-  if (v && facConsulta() && !v.querySelector('#facconsulta')) {
-    const sub = v.querySelector('.subnav');
-    if (sub) sub.insertAdjacentHTML('afterend', `<div id="facconsulta" class="banda-info">Tu plan ${esc(planDe(PLAN_ACTUAL.plan).nombre)} no incluye Facturación:
-      puedes consultar y descargar las facturas que ya emitiste y registrar sus cobros, pero no emitir nuevas.</div>`);
-  }
-  return r;
-})(cargarFacturacion);
 (() => {
   const d = Object.getOwnPropertyDescriptor(PAGINAS.organizacion, 'tabs'); if (!d || !d.get) return;
   Object.defineProperty(PAGINAS.organizacion, 'tabs', { configurable: true, get() {
@@ -369,42 +325,4 @@ pintarPaginaPlan = (orig => async function (...a) {
   return r;
 })(pintarPaginaPlan);
 
-// Panel delcos → Organizaciones → Plan: fecha de compromiso (A medida), lo que pierde al bajar y aviso si paga con Stripe
-orgAcciones = (orig => function (c, l) {
-  const r = orig.apply(this, arguments);
-  c.querySelectorAll('[data-orgplan]').forEach(b => {
-    const f = b.onclick; if (!f || b.__p2165) return; b.__p2165 = true;
-    b.onclick = (...x) => {
-      f.apply(b, x);
-      const o = l.find(y => y.id === b.dataset.orgplan); if (!o || !$('opplan')) return;
-      const pd = o.plan_datos || {}, de = pd.plan || o.plan;
-      $('opest').closest('.g2').insertAdjacentHTML('beforeend', `<div id="opcompw"><label for="opcomp">Compromiso hasta (A medida)</label>
-        <input id="opcomp" type="date" value="${esc(pd.compromiso_hasta || '')}"><span class="sm">Antes de esa fecha no se puede bajar de A medida.</span></div>`);
-      $('opest').closest('.g2').insertAdjacentHTML('afterend', `${pd.stripe_suscripcion ? '<div class="banda-aviso" id="opstripe">Esta empresa paga con Stripe: este cambio no se pasa a Stripe. Para que cuadre el cobro, cámbialo también allí.</div>' : ''}<div id="opperd"></div>`);
-      const pinta = () => {
-        $('opcompw').classList.toggle('hide', $('opplan').value !== 'medida');
-        const p = perdidasPlan(de, $('opplan').value, { extras: pd.extras || [], facturas: +o.facturas > 0 });
-        const bloq = de === 'medida' && $('opplan').value !== 'medida' && pd.compromiso_hasta && pd.compromiso_hasta > hoyISO();
-        $('opperd').innerHTML = bloq ? `<div class="banda-peligro">Tiene compromiso A medida hasta el ${fechaCorta(pd.compromiso_hasta)}: no se puede bajar antes.</div>`
-          : rangoPlan($('opplan').value) < rangoPlan(de) && p.length ? `<div class="banda-aviso">Al pasar a ${esc(planDe($('opplan').value).nombre)} dejará de tener:<ul>${p.map(x => `<li>${esc(x)}</li>`).join('')}</ul></div>` : '';
-      };
-      $('opplan').addEventListener('change', pinta); pinta();
-      $('opok').onclick = async ev => {
-        ev.target.disabled = true;
-        const p = { plan: $('opplan').value, usuarios: $('opusu').value === '' ? null : +$('opusu').value, pago: $('oppago').value, estado: $('opest').value,
-          prueba_hasta: $('opest').value === 'prueba' ? $('opfin').value : null };
-        if (p.plan === 'medida') p.compromiso_hasta = $('opcomp').value || null;
-        const { data: res, error } = await db.rpc('guardar_plan_organizacion', { p_org: o.id, p });
-        ev.target.disabled = false;
-        if (error || !res || !res.ok) {
-          toast(({ permiso: 'No tienes permiso', minimo: 'Mínimo 3 usuarios (salvo A medida)', prueba_hasta: 'Falta la fecha de fin de la prueba', plan: 'Plan no válido',
-            compromiso: `Tiene compromiso A medida hasta el ${fechaCorta(res && res.hasta)}` })[(res && res.error) || ''] || 'No se ha podido guardar', true);
-          return;
-        }
-        $('dlg').close(); toast('Plan guardado'); pintarOrganizaciones();
-      };
-    };
-  });
-  return r;
-})(orgAcciones);
 

@@ -7,12 +7,6 @@ let DUPS = null, PARES = null;
 
 /* ---------------- seguimiento ---------------- */
 
-/* cargarSeguimiento: la parte base y, en orden, cada paso que se le añade (antes eran 2 capas separadas). */
-async function cargarSeguimiento() {
-  await cargarSeguimientoBase();
-  await cargarSeguimientoPaso1();
-  await cargarSeguimientoPaso2();
-}
 
 
 

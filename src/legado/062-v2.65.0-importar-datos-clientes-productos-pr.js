@@ -66,16 +66,5 @@ const IMP_CAMPOS = {
 };
 
 
-// Configuración → Datos → Importar datos (administración)
-arbolConfig = (orig => function () {
-  const g = orig();
-  // v2.109.0: con el permiso «Importar datos» del rol (antes, solo administración)
-  if (!puede('importar_datos')) return g;
-  const datos = g.find(x => x[0] === 'Datos');
-  const item = { k: 'importar', ic: 'file-spreadsheet', t: 'Importar datos', d: `Clientes, productos, ${etiquetaContactos().toLowerCase()} y ventas desde Excel o CSV`,
-    sub: [['nueva', 'Nueva importación', pintarImportar], ['historial', 'Importaciones', pintarImportaciones]] };
-  if (datos) { if (!datos[1].some(x => x.k === 'importar')) datos[1].push(item); } else g.push(['Datos', [item]]);
-  return g;
-})(arbolConfig);
 
 

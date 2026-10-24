@@ -258,3 +258,156 @@ function paginador(el, ...a) {
   if (el && el.id) document.querySelectorAll('#' + el.id).forEach(x => { if (x !== el) x.remove(); });
   return paginadorBase.call(this, el, ...a);
 }
+
+function irEnlaceBase(e) {
+  if (!e) return;
+  const [t, id] = String(e).split(':');
+  if (t === 'ficha' && id) abrirFicha(id); else if (t === 'pedido' && id) verPedido(id);
+  else if (t === 'informe') ir('informe'); else if (t === 'directorio') ir('directorio');
+}
+
+function irEnlaceBase2(e) {
+  const [t] = String(e || '').split(':');
+  if (t === 'agenda') { AG_MODO = 'dia'; AG_FECHA = hoyISO(); ir('agenda'); }
+  else if (t === 'llamadas') { PEDSEC = 'llamadas'; ir('ventas'); }
+  else if (t === 'ventas') { PEDSEC = 'ventas'; ir('ventas'); }
+  else if (t === 'stock') { PSEC = 'stock'; ir('productos'); }
+  else if (t === 'facturacion') ir('facturacion');
+  else if (t === 'duplicados') ir('duplicados');
+  else irEnlaceBase(e);
+}
+
+function cargarPaginaBase(t) {
+  const P = PAGINAS[t];
+  if (P.permiso && !P.permiso()) { ir('inicio'); return; }   // v2.121.0: páginas con su propio permiso (Organización)
+  if (P.admin && !puede('administrar')) { ir('inicio'); return; }
+  let sec = $('v-' + t);
+  if (!sec) { document.querySelector('main').insertAdjacentHTML('beforeend', `<section id="v-${t}"></section>`); sec = $('v-' + t); }
+  // Solo puede haber un contenedor de contenido a la vez: Configuración y las otras páginas se vacían (se repintan al volver)
+  if ($('v-config')) $('v-config').innerHTML = '';
+  Object.keys(PAGINAS).forEach(o => { if (o !== t && $('v-' + o)) $('v-' + o).innerHTML = ''; });
+  const tab = P.tabs.some(x => x[0] === PAG_TAB[t]) ? PAG_TAB[t] : P.tabs[0][0];
+  sec.innerHTML = `${t === 'plan' ? '' : `<div class="saludo"><div><h1>${esc(P.t)}</h1><div class="fecha">${esc(P.d)}</div></div></div>`}
+    ${P.tabs.length > 1 ? `<div class="cfgsubs pagtabs">${P.tabs.map(([k, n]) => `<button data-ptab="${k}" class="${k === tab ? 'on' : ''}">${esc(n)}</button>`).join('')}</div>` : ''}
+    <div id="cfgcuerpo" class="pagcuerpo"></div>`;
+  sec.querySelectorAll('.pagtabs [data-ptab]').forEach(b => b.onclick = () => { PAG_TAB[t] = b.dataset.ptab; cargarPagina(t); });
+  Promise.resolve().then(P.tabs.find(x => x[0] === tab)[2]);
+}
+
+function revelarBase(el, max, desde) {
+  if (!el) return; const turno = ++REVELADO;
+  el.classList.add('preparando');
+  estable(el, max, desde).then(() => { if (turno === REVELADO || !el.matches('main > section')) { el.classList.remove('preparando'); llegar(el); } });
+}
+
+// Enlaces nuevos de los avisos
+function irEnlaceBase3(e) {
+  const [t, id] = String(e || '').split(':');
+  if (t === 'cliente' && id) return nuevaVenta({ contacto_id: id });
+  if (t === 'cita') { AG_MODO = 'dia'; AG_FECHA = hoyISO(); return ir('agenda'); }
+  return irEnlaceBase2(e);
+}
+
+function cargarPaginaBase2(t, ...a) {
+  const r = cargarPaginaBase.call(this, t, ...a);
+  if (t === 'delcos' && MODO_PLATAFORMA) {
+    const sec = $('v-delcos'), tab = PAG_TAB.delcos || 'orgs', s = PANEL_SECCIONES.find(x => x[1] === tab);
+    if (sec && s) { const h = sec.querySelector('.saludo h1'), d = sec.querySelector('.saludo .fecha'); if (h) h.textContent = s[2]; if (d) d.textContent = PANEL_DESC[tab] || ''; }
+  }
+  return r;
+}
+
+function irEnlaceBase4(e) {
+  const [t, id] = String(e || '').split(':');
+  if (t === 'cirugia' && id) { verCirugia(id); return; }
+  return irEnlaceBase3.call(this, e);
+}
+
+function irEnlaceBase5(e) {
+  const [t, id] = String(e || '').split(':');
+  if (t === 'concurso' && id) { verConcurso(id); return; }
+  return irEnlaceBase4.call(this, e);
+}
+
+function irEnlaceBase6(e) {
+  const [t, id] = String(e || '').split(':');
+  if (t === 'equipo' && id) { verEquipo(id); return; }
+  return irEnlaceBase5.call(this, e);
+}
+
+function irEnlace(e) {
+  const [t] = String(e || '').split(':');
+  if (t === 'plan') { ir('plan'); return; }
+  if (t === 'delcos' && puede('gestionar_plataforma')) { ir('delcos'); return; }
+  return irEnlaceBase6.call(this, e);
+}
+
+// Al llegar, sin cargador que tape la pantalla: se ve la plantilla con su esqueleto
+function revelarBase2(el, max, desde) {
+  const tab = el && el.id && el.id.slice(2);
+  if (el && PL[tab] && el.matches('main > section')) { el.classList.remove('preparando'); plSync(tab); llegar(el); return; }
+  return revelarBase(el, max, desde);
+}
+
+function revelarBase3(el, max, desde) {
+  const tab = el && el.id && el.id.slice(2), listo = LISTA_PARA[tab];
+  if (!listo || !el.matches || !el.matches('main > section')) return revelarBase2(el, max, desde);
+  // Inicio con su esqueleto: sin cargador encima
+  if (tab === 'inicio' && !ES_MEDICO()) { inicioEsqueleto(); el.classList.remove('preparando'); llegar(el); return; }
+  const turno = ++REVELADO, t0 = performance.now(), tope = LISTA_ESPERA[tab] || 6000;
+  el.classList.add('preparando'); el.__t0 = t0; el.__cinta = 0;
+  const mirar = () => estable(el, Math.max(300, tope - (performance.now() - t0)), desde).then(() => {
+    if (turno !== REVELADO) return;
+    if (listo(el) || performance.now() - t0 > tope) { el.classList.remove('preparando'); llegar(el); }
+    else setTimeout(mirar, 60);
+  });
+  mirar();
+}
+
+// Revelado de las pantallas con secciones: la primera llegada, de una vez (como siempre), con la plantilla ya puesta
+function revelarBase4(el, max, desde) {
+  const tab = el && el.id && el.id.slice(2);
+  if (PL_SECC[tab] && el.matches && el.matches('main > section')) {
+    // Primera llegada de una pantalla en rejilla: de una vez, con el cargador (el esqueleto queda para cuando se vuelve a buscar)
+    const t0 = Date.now(); el.classList.add('preparando');
+    // La sección puede decidirse un momento después (al pintarse): se vuelve a mirar
+    setTimeout(() => { if (plCfg(tab)) plSync(tab);
+      // La v2.236 trataba como plantilla toda pantalla de PL: mientras se llama al revelado de siempre, esta no está en PL
+      const keep = PL[tab]; delete PL[tab]; try { revelarBase3(el, max, desde || t0); } finally { PL[tab] = keep; } }, 0);
+    return;
+  }
+  return revelarBase3(el, max, desde);
+}
+
+/* ============================================================
+   v2.251.0 · Pestañas sin fantasmas en Eventos, Intervenciones, Concursos y Parque (listas sin fantasmas, tercer grupo). Las cuatro
+   listas de bloques llegan de una vez y no se recolocan al buscar, filtrar, pulsar un bloque u ordenar (prueba bloques2251),
+   pero al cambiar de pestaña (Concursos: En marcha, Contratos, Cerrados) la página entera se volvía a montar y, mientras
+   llegaban los datos, la cabecera se quedaba sin su botón, el filtro de bloques desaparecía y la barra se movía. Ahora:
+   - Cambiar entre pestañas que son listas no vuelve a montar la página: la pestaña se marca al momento, la lista de antes se
+     atenúa y la nueva la sustituye de una vez cuando llegan sus datos (a Informe de gastos de Eventos, que no es una lista, se
+     sigue llegando montando la página entera).
+   - El filtro de bloques se queda en su sitio, desactivado, si la pestaña tiene un solo bloque (antes desaparecía y el buscador
+     se ensanchaba).
+   ============================================================ */
+function cargarPagina(t, ...a) {
+  const P = PAGINAS[t], sec = $('v-' + t), caja = sec && sec.querySelector('#cfgcuerpo'), tabs = sec && sec.querySelector(':scope > .pagtabs');
+  if (!P || !BLQ[t] || TAB !== t || !caja || !tabs || !sec.classList.contains('plantilla')) return cargarPaginaBase2.call(this, t, ...a);
+  const tab = P.tabs.some(x => x[0] === PAG_TAB[t]) ? PAG_TAB[t] : P.tabs[0][0];
+  tabs.querySelectorAll('[data-ptab]').forEach(b => b.classList.toggle('on', b.dataset.ptab === tab));
+  // Solo entre pestañas que son listas (Informe de gastos de Eventos no lo es: esa página se vuelve a montar entera, como antes)
+  if (PL_SECC[t] && !PL_SECC[t]()) return cargarPaginaBase2.call(this, t, ...a);
+  caja.classList.add('pagcambia');
+  return Promise.resolve().then(P.tabs.find(x => x[0] === tab)[2]).finally(() => { const c = $('cfgcuerpo'); if (c) c.classList.remove('pagcambia'); });
+}
+
+/* ============================================================
+   v2.256.0 · Fichas sin fantasmas. La ficha de una cuenta se enseña cuando está entera (revelado de las ventanas), pero se rendía a
+   los 1,5 s: con la red lenta, los bloques que llegan después (historial de visitas, campos, muestras, ciclo…) aparecían ya abierta
+   y empujaban lo de debajo. Ahora la ficha espera hasta 5 s a tener todos sus bloques. Pedido, factura, evento y ficha de centro ya
+   se abrían de una vez (prueba fichas2256).
+   ============================================================ */
+function revelar(el, max, desde) {
+  if (el && el.id === 'fbody') max = Math.max(max || 0, 5000);
+  return revelarBase4.call(this, el, max, desde);
+}

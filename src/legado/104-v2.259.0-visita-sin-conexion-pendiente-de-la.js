@@ -11,16 +11,6 @@ cargarCatalogos = (orig => async function (...a) {
   } catch (e) {}
   return r;
 })(cargarCatalogos);
-// Aviso en la ventana de la visita sin conexión
-abrirVisitaBase = (orig => async function (...a) {
-  const r = await orig.apply(this, a);
-  if (!navigator.onLine && $('dlg').open && $('vguardar') && !$('dbody').querySelector('.vsinred')) {
-    const fh = $('dbody').querySelector('.fh');
-    const html = `<div class="banda-aviso vsinred"><b>Sin conexión.</b> ${esc(TT('visita', 's', 'la', 'l', 'C'))} se guarda en este móvil y se envía sola al recuperar la conexión. Las muestras necesitan conexión.</div>`;
-    if (fh) fh.insertAdjacentHTML('afterend', html); else $('dbody').insertAdjacentHTML('afterbegin', html);
-  }
-  return r;
-})(abrirVisitaBase);
 
 
 // (R-12: vaciarCola se definía aquí otra vez; ahora está en su sitio, más arriba)
@@ -41,16 +31,6 @@ document.addEventListener('click', async e => {
   else if (k === 'desc' && await preguntar('Se borran del móvil y no se enviarán.', { titulo: '¿Descartar los cambios sin enviar?', ok: 'Descartar', peligro: true })) { localStorage.removeItem(COLA_KO); pintarConexion(); }
 });
 
-pintarTuDia = (orig => async function (...a) {
-  const r = await orig.apply(this, a);
-  if (agConCinta()) tdMarcarPendientes();
-  return r;
-})(pintarTuDia);
-escribirRpc = (orig => async function (fn, payload, ...a) {
-  const r = await orig.call(this, fn, payload, ...a);
-  if (fn === 'registrar_actividad' && r && r.data && r.data.encolada) setTimeout(() => { if (TAB === 'agenda') tdMarcarPendientes(); }, 0);
-  return r;
-})(escribirRpc);
 
 
 
