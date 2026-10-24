@@ -1,0 +1,21 @@
+# Comprobaciones de cada subida (plan de migración, bloque 8.3). No usan secretos ni tocan la base de datos.
+name: Comprobar
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  comprobar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: app.js e index.html salen de src/ y estilos/
+        run: node herramientas/construir.mjs --comprobar
+      - name: Tipos (los archivos con «// @ts-check» sin errores)
+        run: npx --yes typescript@5.6.3 tsc -p tsconfig.json
+      - name: Librerías con versión exacta y huella correcta
+        run: node herramientas/dependencias.mjs
