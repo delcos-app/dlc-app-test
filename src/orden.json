@@ -2,6 +2,7 @@
  "_que_es": "Orden en que herramientas/construir.mjs junta las piezas (docs/normas_codigo.md). Cada salida es la concatenación tal cual de sus piezas.",
  "salidas": {
   "app.js": [
+   "src/generated/core.js",
    "src/nucleo/dispositivo.js",
    "src/nucleo/en_vivo.js",
    "src/nucleo/errores.js",
