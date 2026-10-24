@@ -208,7 +208,7 @@ dialog#ficha{max-width:520px;width:100%;height:100dvh;max-height:100dvh;margin:0
 dialog#ficha .fbox{height:100%;overflow:auto;padding-bottom:40px}
 @keyframes entra{from{transform:translateX(24px);opacity:.6}to{transform:none;opacity:1}}
 .upd{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--navy);color:#fff;border-radius:14px;padding:10px 12px 10px 18px;display:flex;gap:12px;align-items:center;z-index:95;box-shadow:0 12px 30px rgba(10,20,30,.3)}
-.upd .btn{background:#fff;color:var(--navy);border-color:#fff;}
+.upd{--banda:#17457A}
 .bnav{display:none}
 @media (max-width:760px){
   nav.main{display:none}
@@ -223,8 +223,8 @@ dialog#ficha .fbox{height:100%;overflow:auto;padding-bottom:40px}
 
 .rutabar{position:fixed;left:0;right:0;top:0;z-index:95;background:#12805C;color:#fff;padding:10px 16px;display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;font-size:14px}
 .rutabar .rt{background:rgba(255,255,255,.18);border-radius:999px;padding:2px 10px;font-weight:700;font-variant-numeric:tabular-nums}
-.rutabar .btn{min-height:34px;padding:6px 12px}
-.rutabar .btn.sec{background:#fff;color:#12805C;border-color:#fff}
+.rutabar{--banda:#12805C}
+
 body.conruta header{top:46px}
 body.conruta{padding-top:46px}
 .kcfg{border:0;background:none;color:var(--navy);font-weight:600;cursor:pointer;font-size:13px;padding:0}
@@ -321,7 +321,7 @@ body.conruta{padding-top:46px}
 .aipop > b:first-child{display:block;margin-bottom:4px;font-size:13.5px}
 .aipop ul{margin:6px 0 0;padding-left:18px}
 .alerta{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border:1px solid var(--warn);background:var(--warn-bg);color:var(--warn);border-radius:var(--r);padding:12px 16px;margin-bottom:16px;font-weight:600}
-.alerta .btn{background:var(--panel);color:var(--warn);border-color:var(--warn);min-height:36px;padding:6px 14px}
+
 .dupgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:16px;align-items:start}
 .dupgrid .card{margin:0}
 .dupgrid > div > .card{margin:0 0 16px}
@@ -387,7 +387,7 @@ body.conruta{padding-top:46px}
 .datoinfo{margin:8px 0 0}
 /* v2.28.0 */
 #barrasup{position:relative;z-index:96;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;background:#5B2A86;color:#fff;padding:8px 16px;font-size:13px}
-#barrasup .btn{background:#fff;color:#5B2A86;border-color:#fff;min-height:32px;padding:4px 12px;font-size:12.5px}
+#barrasup{--banda:#5B2A86}
 .bmas{position:fixed;inset:0;background:rgba(10,20,30,.45);z-index:120;display:flex;align-items:flex-end}
 .bmas.hide{display:none}
 .bmasbox{background:var(--panel);width:100%;border-radius:18px 18px 0 0;padding:14px 16px calc(18px + env(safe-area-inset-bottom,0px))}
@@ -560,9 +560,9 @@ body.conruta{padding-top:46px}
 @media (max-width:760px){.manhero{grid-template-columns:minmax(0,1fr);padding:18px}.mangrid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.mancard{min-height:0}}
 #franjapruebas{position:relative;z-index:95;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;
   background:repeating-linear-gradient(135deg,#B45309 0 14px,#C2610F 14px 28px);color:#fff;padding:8px 16px;font-size:13px}
-#franjapruebas .btn{min-height:32px;padding:4px 12px;font-size:12.5px}
-#franjapruebas .btn.sec{background:rgba(255,255,255,.14);color:#fff;border-color:rgba(255,255,255,.6)}
-#franjapruebas .btn:not(.sec){background:#fff;color:#B45309;border-color:#fff}
+#franjapruebas{--banda:#B45309}
+
+
 #franjapruebas .ai{background:rgba(255,255,255,.2);border-color:rgba(255,255,255,.7);color:#fff}
 #franjapruebas .prpunto{opacity:.92;margin-left:4px}
 #franjapruebas .prpunto.falta{font-weight:700;background:rgba(0,0,0,.18);padding:2px 8px;border-radius:999px}
@@ -664,8 +664,8 @@ body.conruta{padding-top:46px}
 .p-bor{background:var(--warn-bg);color:var(--warn)}
 .p-anu{background:#F1F1F1;color:var(--muted)}
 .pvp{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,.6fr) minmax(0,1fr);gap:10px}
-.sug h3{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);padding:12px 16px 0;margin:0;display:flex;justify-content:space-between;align-items:center;gap:8px}
-.sug h3 .btn{min-height:30px;padding:4px 10px;font-size:12px;text-transform:none;letter-spacing:0}
+
+
 #bootsplash{position:fixed;inset:0;display:grid;place-items:center;background:var(--bg);z-index:200}
 @media (max-width:760px){.lin .lrow{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.pvp{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.fila.pac,.fila.prod{grid-template-columns:minmax(0,1fr) auto}.fila.pac .c2,.fila.pac .c3,.fila.prod .c2{display:none}}
 .dupcmp{position:sticky;top:120px}
@@ -841,8 +841,8 @@ dialog{overscroll-behavior:contain}
 .alcards{display:flex;flex-direction:column;gap:8px;margin-top:8px}
 .alcard{border:1px solid var(--line);border-radius:14px;padding:12px 14px;background:#fff;display:flex;flex-direction:column;gap:4px}
 .alc1{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}.alc1 b{color:var(--navy);font-size:14.5px}
-.alcard .btn{align-self:flex-start;min-height:36px;padding:6px 12px;margin-top:4px;font-size:13px}
-.accsheet{display:flex;flex-direction:column;gap:8px;margin-top:8px}.accsheet .btn{justify-content:flex-start;min-height:46px;text-align:left}
+.alcard .btn{align-self:flex-start;margin-top:4px}
+.accsheet{display:flex;flex-direction:column;gap:8px;margin-top:8px}.accsheet .btn{justify-content:flex-start;text-align:left}
 .dgrid .dr > span{min-width:0;overflow:hidden;text-overflow:ellipsis}
 .dgrid .dh > span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .bmas{position:fixed;inset:0;z-index:95;background:rgba(11,58,102,0);transition:background .18s}
@@ -1097,7 +1097,7 @@ body.masabierto .bnav{border-top-color:transparent;box-shadow:none}
 .cfghub.movil .cfgvolver{display:inline-flex;align-items:center;gap:4px;border:0;background:none;color:var(--sky);font:inherit;font-weight:700;font-size:15px;padding:4px 0 12px;cursor:pointer}
 .cfghub.movil .cfgg button{padding:12px 14px}
 .cubica{margin:6px 0 4px;padding:10px 12px;border-radius:12px;background:var(--sky-soft)}
-.cubica .acts .btn{min-height:38px;font-size:13.5px}
+
 
 .vfswitch{position:relative}
 .vfswitch input{position:absolute;left:0;top:0;width:1px;opacity:0;pointer-events:none;margin:0}
@@ -1605,7 +1605,7 @@ body:not(.inilisto) #v-inicio .saludo .acts{visibility:hidden}
   .rutabar{flex-wrap:nowrap;gap:8px;padding:6px 10px;padding-top:calc(6px + env(safe-area-inset-top,0px));font-size:13px}
   .rutabar .rbtx{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
   .rutabar .rblargo{display:none}.rutabar .rbcorto{display:inline}
-  .rutabar .acts{flex:none;gap:6px}.rutabar .btn{min-height:30px;padding:4px 10px;font-size:12px}
+  .rutabar .acts{flex:none;gap:6px}
   /* Cada cita: hora · datos completos · columna de acciones */
 
   /* Estado, origen y nota: como mucho dos líneas (la nota completa está en la ficha) */
@@ -1830,7 +1830,7 @@ dialog[open]::backdrop{animation:uiFunde var(--t-medio) linear}
 /* Aviso de Inicio (duplicados pendientes): banda de atención con su acción a la derecha */
 .alerta{border:0;background:var(--warn-bg);color:#5C3207;border-radius:12px;padding:12px 16px;font-weight:500}
 .alerta .icw{color:var(--warn)}
-.alerta .btn{background:#FFFFFF;color:var(--warn);border:1px solid #E8C9A3;box-shadow:none}
+
 .alerta .btn:hover{background:#FFF8EE;border-color:var(--warn)}
 /* Lista de alertas de Inicio: contadores con el tono de su gravedad */
 .alerta2 .an{background:var(--sky-soft);color:var(--navy)}
@@ -2136,7 +2136,7 @@ dialog > #dbody > .acts:last-child,dialog > #dlg2body > .acts:last-child{positio
 #pdjus .item .tx{flex:1;min-width:0;display:flex;flex-direction:column}
 #pdjus .item .tx b{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:flex;align-items:center;gap:6px}
 #pdjus .item .tx b .ico{width:16px;height:16px;color:var(--sky);flex:none}
-#pdjus .item .btn{min-height:34px;padding:0 12px;font-size:13.5px}
+
 #pdjus > .sm{color:var(--muted)}
 /* Lista de pedidos: la marca «Web» como etiqueta pequeña */
 .pweb{display:inline-flex;align-items:center;padding:0 7px;border-radius:999px;background:var(--sky-soft);color:var(--navy);font-size:11.5px;font-weight:700;line-height:18px;vertical-align:1px}
@@ -2307,7 +2307,7 @@ dialog.encajada .pdfprev iframe{height:calc(100vh - var(--alto-cab,0px) - 190px)
 #nvperd:not(:empty){color:var(--warn);font-weight:600}
 @media (max-width:760px){#nvnook{width:100%}}
 /* Oportunidades: «Volver a llamar» con acciones del mismo tamaño; sin datos en el periodo, solo el aviso (no siete gráficos vacíos) */
-#llsegs .btn{min-height:36px}
+
 #llsegs [data-llok]{font-size:0;width:36px;padding:0;display:inline-grid;place-items:center}
 #llsegs [data-llok]::before{content:"";width:16px;height:16px;background:var(--navy);-webkit-mask:var(--ico-check) center/contain no-repeat;mask:var(--ico-check) center/contain no-repeat}
 #llres2:not(:has(.barrash)){display:none!important}
@@ -2337,7 +2337,7 @@ dialog.encajada .pdfprev iframe{height:calc(100vh - var(--alto-cab,0px) - 190px)
 #mdmatl{display:flex;flex-direction:column;gap:6px;margin-top:14px}
 #mdmatl .item,#fportal .lista .item{display:flex;align-items:center;gap:10px;padding:8px 10px 8px 12px;border:1px solid var(--line);border-radius:10px;background:#FFFFFF}
 #mdmatl .item .tx,#fportal .lista .item .tx{flex:1;min-width:0;display:flex;flex-direction:column}
-#mdmatl .item .btn,#fportal .lista .item .btn{min-height:34px;padding:0 12px;font-size:13.5px}
+
 /* Conversación: burbujas de la marca (las mías en marino a la derecha, las del otro en blanco con borde) */
 .hilo{gap:8px;max-height:340px;padding:6px 2px}
 .msj{max-width:82%;padding:9px 13px;border-radius:14px 14px 14px 4px;background:#FFFFFF;border:1px solid var(--line);font-size:14.5px;line-height:1.45;color:var(--ink)}
@@ -3017,7 +3017,7 @@ html.cambiando-org #bootsplash,html.cambiando-org #bootsplash.hide{display:grid!
 .tdaviso{cursor:help}.tdavi{display:inline-grid;place-items:center;width:18px;height:18px;margin-left:4px;padding:0;border-radius:50%;border:1px solid currentColor;background:transparent;color:inherit;font:600 11px/1 Manrope,sans-serif;cursor:pointer;vertical-align:middle}
 /* v2.175.0 · día que no cabe */
 @media (pointer: coarse){.selw input{pointer-events:none}}
-#tdnocabe{margin:0 0 10px}#tdnocabe .btn{margin:0 4px;padding:4px 10px;min-height:0;font-size:13px}
+#tdnocabe{margin:0 0 10px}#tdnocabe .btn{margin:0 4px}
 /* v2.176.0 · Detalle de la cita, mes navegable, deslizar para recargar */
 .vcdatos{display:grid;gap:8px;margin:0 0 14px}
 .vcfila{display:grid;grid-template-columns:84px minmax(0,1fr);gap:10px;font-size:14.5px;align-items:baseline}
@@ -4675,12 +4675,16 @@ html:not(#_s) body :is(.pmaviso, .banda-aviso):not(:is(#v-inicio .saludo h1#hola
 html:not(#_s) body :is(.calg button):not(:is(#v-inicio .saludo h1#hola),:is(#v-informe .medhero h1, .planhero h1, .manhero h1),:is(main > section .saludo h1, .cfucab h2),:is(.fab),:is(.plqi, .pltool input),:is(#q, .plqi, #cfubus, #pmcq, #txq, input[type=search]),:is(.plchip),:is(.chip:not(.btn)),:is(.chipsel, [data-txf], .htchip, [data-agti], [data-qk], .pmhdia, [data-rnf], .rpchips button, .rndias2 button, .agmpopg button, .agtambl button),:is(.kmv, .kojo, .agslm, .notbor, .pmhx, .ankcfg, .rv),:is(.btn.icoonly, .icobtn, dialog .x, .fh .x),:is(.btn.chico, button.chico),:is(.btn:not(.lnk)),:is(.lnk, .quitar, .kcfg, .pmhmas),:is(.numw),:is(.selw > input),:is(input.chico, select.chico),:is(textarea),:is(input:not([type=checkbox]):not([type=radio]):not([type=file]):not([type=hidden]):not([type=range]):not([type=color]):not(.numw input):not(.selw input), select),:is(.cfuvolver, .cfgvolver, .manvuelta, .rnvol),:is(:is(button[data-pg], .pag button):is([aria-current="true"], [aria-current="page"], .on)),:is(button[data-pg], .pag button),:is(.mti, .opfila),:is(.usrcard, .cat-card, .imptipo, [data-agbd]),:is(.cdia, .agsld, .cmesb),:is(.ai),:is([data-rnp], .rnpasos button, .imppasos button),:is(label[for]:not(.btn):not(.opt):not(.chk)),:is(input[type=checkbox]:not(.vfswitch input):not(.sw input), input[type=radio]),:is(button.opt),:is(.card.ancard, #agcuerpo, #agsemlat, .card.sinpad),:is(.card),:is(.card > h2, .card > .fh h2, .card > .fh > div > h2),:is(.fh h2),:is(.kpi.usrresrol, .usrres .kpi, .plres .kpi, .vtot .kpi),:is(.kpi, .plk, .kv, .ankpi, .mt, .pkt),:is(.pill),:is(.pagtabs, .subnav, .pmtabs, .cfgsubs),:is(:is(.pagtabs, .subnav, .pmtabs, .cfgsubs) > button:is(.on, [aria-current="page"], [aria-pressed="true"], [aria-selected="true"])),:is(.pagtabs > button, .subnav > button, .pmtabs > button, .cfgsubs > button),:is(.segs),:is(.dgrid > .dh),:is(.dgrid > .dr),:is(.trow),:is(.lista > .item),:is(.fila[data-id], button.item, .rnopt),:is(dialog#ficha[open], dialog#dlg.dlgficha[open]),:is(dialog#dlg[open]:not(.encajada), dialog#dlg2[open]:not(.encajada), dialog#ficha[open]),:is(dialog[open]),:is(.pmaviso, .banda-aviso),:is(.bnav button),:is(.bmasgrid button)){border-radius:10px}
 html:not(#_s) body :is(.rjg button):not(:is(#v-inicio .saludo h1#hola),:is(#v-informe .medhero h1, .planhero h1, .manhero h1),:is(main > section .saludo h1, .cfucab h2),:is(.fab),:is(.plqi, .pltool input),:is(#q, .plqi, #cfubus, #pmcq, #txq, input[type=search]),:is(.plchip),:is(.chip:not(.btn)),:is(.chipsel, [data-txf], .htchip, [data-agti], [data-qk], .pmhdia, [data-rnf], .rpchips button, .rndias2 button, .agmpopg button, .agtambl button),:is(.kmv, .kojo, .agslm, .notbor, .pmhx, .ankcfg, .rv),:is(.btn.icoonly, .icobtn, dialog .x, .fh .x),:is(.btn.chico, button.chico),:is(.btn:not(.lnk)),:is(.lnk, .quitar, .kcfg, .pmhmas),:is(.numw),:is(.selw > input),:is(input.chico, select.chico),:is(textarea),:is(input:not([type=checkbox]):not([type=radio]):not([type=file]):not([type=hidden]):not([type=range]):not([type=color]):not(.numw input):not(.selw input), select),:is(.cfuvolver, .cfgvolver, .manvuelta, .rnvol),:is(:is(button[data-pg], .pag button):is([aria-current="true"], [aria-current="page"], .on)),:is(button[data-pg], .pag button),:is(.mti, .opfila),:is(.usrcard, .cat-card, .imptipo, [data-agbd]),:is(.cdia, .agsld, .cmesb),:is(.ai),:is([data-rnp], .rnpasos button, .imppasos button),:is(label[for]:not(.btn):not(.opt):not(.chk)),:is(input[type=checkbox]:not(.vfswitch input):not(.sw input), input[type=radio]),:is(button.opt),:is(.card.ancard, #agcuerpo, #agsemlat, .card.sinpad),:is(.card),:is(.card > h2, .card > .fh h2, .card > .fh > div > h2),:is(.fh h2),:is(.kpi.usrresrol, .usrres .kpi, .plres .kpi, .vtot .kpi),:is(.kpi, .plk, .kv, .ankpi, .mt, .pkt),:is(.pill),:is(.pagtabs, .subnav, .pmtabs, .cfgsubs),:is(:is(.pagtabs, .subnav, .pmtabs, .cfgsubs) > button:is(.on, [aria-current="page"], [aria-pressed="true"], [aria-selected="true"])),:is(.pagtabs > button, .subnav > button, .pmtabs > button, .cfgsubs > button),:is(.segs),:is(.dgrid > .dh),:is(.dgrid > .dr),:is(.trow),:is(.lista > .item),:is(.fila[data-id], button.item, .rnopt),:is(dialog#ficha[open], dialog#dlg.dlgficha[open]),:is(dialog#dlg[open]:not(.encajada), dialog#dlg2[open]:not(.encajada), dialog#ficha[open]),:is(dialog[open]),:is(.pmaviso, .banda-aviso),:is(.bnav button),:is(.bmasgrid button),:is(.calg button)){border-radius:10px}
 /* v2.366.0 (D-036): colores de las variantes de botón (principal, secundario, peligro, aviso, icono) */
-html:not(#_s) body .btn:not(.icoonly):not(.sec):not(.dang):not(.peligro):not(.warn):not(:is(.alerta, .upd) .btn):not(:hover):not(:active):not(.on):not([aria-pressed="true"]):not(.lnk){background:#17457A;color:#FFFFFF;border-color:transparent}
-html:not(#_s) body .btn.sec:not(.icoonly):not(.dang):not(.peligro):not(.warn):not(:is(.alerta, .upd) .btn):not(:hover):not(:active):not(.on):not([aria-pressed="true"]):not(.lnk){background:#FFFFFF;color:#17457A;border-color:#C5D5E4}
+html:not(#_s) body .btn:not(.icoonly):not(.sec):not(.dang):not(.peligro):not(.warn):not(:is(.alerta, .upd, .rutabar, #barrasup, #franjapruebas) .btn):not(:hover):not(:active):not(.on):not([aria-pressed="true"]):not(.lnk){background:#17457A;color:#FFFFFF;border-color:transparent}
+html:not(#_s) body .btn.sec:not(.icoonly):not(.dang):not(.peligro):not(.warn):not(:is(.alerta, .upd, .rutabar, #barrasup, #franjapruebas) .btn):not(:hover):not(:active):not(.on):not([aria-pressed="true"]):not(.lnk){background:#FFFFFF;color:#17457A;border-color:#C5D5E4}
 html:not(#_s) body .btn.sec:is(.dang, .peligro):not(.icoonly):not(:hover):not(:active):not(.on):not([aria-pressed="true"]):not(.lnk){background:#FFFFFF;color:#B42318;border-color:#F1C4BF}
+html:not(#_s) body .btn:is(.dang, .peligro):not(.sec):not(.icoonly):not(:hover):not(:active):not(.on):not([aria-pressed="true"]):not(.lnk){background:#B42318;color:#FFFFFF;border-color:transparent}
 html:not(#_s) body :is(.btn.warn, .alerta .btn):not(:hover):not(:active):not(.on):not([aria-pressed="true"]):not(.lnk){background:#FFFFFF;color:var(--warn);border-color:var(--warn)}
-html:not(#_s) body .btn.icoonly:not(.upd .btn):not(:hover):not(:active):not(.on):not([aria-pressed="true"]):not(.lnk){background:#FFFFFF;color:#17457A;border-color:#C5D5E4}
+html:not(#_s) body .btn.icoonly:not(:is(.upd, .rutabar, #barrasup, #franjapruebas) .btn):not(:hover):not(:active):not(.on):not([aria-pressed="true"]):not(.lnk){background:#FFFFFF;color:#17457A;border-color:#C5D5E4}
 html:not(#_s) body .icobtn:not(:hover):not(:active):not(.on):not([aria-pressed="true"]):not(.lnk){background:#17457A;color:#FFFFFF;border:0}
+/* v2.375.0 (D-041): botón sobre banda de color (aviso de versión, jornada en curso, impersonalizar, franja de pruebas): cada banda solo dice su color con --banda */
+html:not(#_s) body :is(.upd, .rutabar, #barrasup, #franjapruebas) .btn:not(.sec):not(.dang):not(:hover):not(:active):not(.on):not([aria-pressed="true"]):not(.lnk){background:#FFFFFF;color:var(--banda,#17457A);border-color:#FFFFFF}
+html:not(#_s) body :is(.upd, .rutabar, #barrasup, #franjapruebas) .btn.sec:not(:hover):not(:active):not(.on):not([aria-pressed="true"]):not(.lnk){background:rgba(255,255,255,.14);color:#FFFFFF;border-color:rgba(255,255,255,.6)}
 /* v2.371.0: las horas del reloj con el texto tinta de los días (salían en negro puro) */
 html:not(#_s) body .rjg button:not(.sel):not(.on):not(:hover){color:#0B2540}
 /* v2.364.0 (D-035): estados de las pestañas y la paginación (la capa fija sus colores: el paso del ratón y el foco también van aquí) */
@@ -5050,6 +5054,6 @@ try{var co=sessionStorage.getItem('dlc-cambio-org');if(co!==null||localStorage.g
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.374.0"></script>
+<script src="./app.js?v=2.375.0"></script>
 </body>
 </html>

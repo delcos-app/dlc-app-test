@@ -4600,7 +4600,7 @@ async function pintarInicioBase() {
         <span>⚠ ${[nPend ? `${num(nPend)} ${nPend === 1 ? 'ficha pendiente' : 'fichas pendientes'} de unificar` : '',
                   nPar ? `${num(nPar)}${nPar >= 200 ? '+' : ''} ${nPar === 1 ? 'posible duplicado' : 'posibles duplicados'} por nombre` : '']
                   .filter(Boolean).join(' y ')}</span>
-        <button class="btn" data-k="dups">Revisar duplicados</button></div>` : '';
+        <button class="btn chico" data-k="dups">Revisar duplicados</button></div>` : '';
   };
   avisoDup();
   if (esAdmin) db.rpc('resumen_duplicados').then(r => { DUP_RES = r.data || null; avisoDup(); }).catch(() => {});
@@ -6351,7 +6351,7 @@ async function pintarRutaBarra() {
   const hechas = citas.filter(c => c.estado === 'Visitada' || c.estado === 'No estaba').length;
   const total = citas.filter(c => !['Descartada', 'Aplazada'].includes(c.estado)).length;
   el.innerHTML = `<span class="rbtx">● <b class="rblargo">Jornada en curso · </b><span class="rt">${durTxt(Date.now() - j.inicio)}</span> · ${hechas}<span class="rblargo"> de </span><span class="rbcorto">/</span>${total}<span class="rblargo"> hechas</span></span>
-    <span class="acts" style="margin:0"><button class="btn sec" id="rbver">Mi día</button><button class="btn dang" id="rbfin">Terminar</button></span>`;
+    <span class="acts" style="margin:0"><button class="btn sec chico" id="rbver">Mi día</button><button class="btn dang chico" id="rbfin">Terminar</button></span>`;
   // El contenido de la página empieza justo debajo del banner, mida lo que mida
   requestAnimationFrame(() => document.documentElement.style.setProperty('--rbh', el.offsetHeight + 'px'));
   $('rbver').onclick = () => { AG_MODO = 'dia'; AG_FECHA = hoyISO(); ir('agenda'); };
@@ -6602,7 +6602,7 @@ function pintarFranjaPruebas() {
       <button class="ai" data-ayuda="pruebas" aria-label="Qué es el entorno de pruebas">i</button>
       <span class="prpunto" id="prpunto"></span></span>
     ${admin ? `<span class="acts" style="margin:0">
-      <button class="btn" id="prreset" title="Deshace todo lo hecho en pruebas y deja los datos como se cargaron de producción">↺ Volver a los datos de partida</button></span>` : ''}`;
+      <button class="btn chico" id="prreset" title="Deshace todo lo hecho en pruebas y deja los datos como se cargaron de producción">↺ Volver a los datos de partida</button></span>` : ''}`;
   // Cuándo se guardó el punto de partida
   RPC_ORIG_FROM('entorno_pruebas').select('maestro_guardado_en, ultimo_reset').eq('id', 1).single().then(({ data }) => {
     const el = $('prpunto'); if (!el) return;
@@ -7753,7 +7753,7 @@ function pintarBarraSuplantacion() {
   if (!s) { if (b) b.remove(); return; }
   if (!b) { document.body.insertAdjacentHTML('afterbegin', '<div id="barrasup"></div>'); b = $('barrasup'); }
   b.innerHTML = `<span>👤 <b>Impersonalizando a ${esc(PERFIL ? PERFIL.nombre : s.como)}</b>${PERFIL ? ' · ' + esc(PERFIL.rol) : ''} · Sesión con su usuario: lo que hagas queda a su nombre</span>
-    <button class="btn" id="supvolver">↩ Terminar la impersonalización (${esc(nombrePila(s.nombre))})</button>`;
+    <button class="btn chico" id="supvolver">↩ Terminar la impersonalización (${esc(nombrePila(s.nombre))})</button>`;
   $('supvolver').onclick = volverAMiSesion;
 }
 
@@ -10012,7 +10012,7 @@ document.addEventListener('click', e => {
         : x.dataset.inistock ? ['Ver stock', 'inistock', x.dataset.inistock] : x.dataset.inicomp ? ['Abrir compra', 'inicomp', x.dataset.inicomp] : null;
       return `<div class="alcard" data-clave="${esc(claveAlerta(titulo, x))}" data-titulo="${esc(titulo)}"><div class="alc1"><b>${esc(tit)}</b>${cant && cant !== tit ? `<span class="pill p-per">${esc(cant)}</span>` : ''}</div>
         ${sub && sub !== tit ? `<div class="sm">${esc(sub)}</div>` : ''}
-        <div class="alacts">${acc ? `<button class="btn sec" data-alacc="${acc[1]}" data-id="${acc[2]}">${acc[0]}</button>` : ''}<button class="btn sec" data-aloc="menu">Ocultar…</button></div>
+        <div class="alacts">${acc ? `<button class="btn sec chico" data-alacc="${acc[1]}" data-id="${acc[2]}">${acc[0]}</button>` : ''}<button class="btn sec chico" data-aloc="menu">Ocultar…</button></div>
         <div class="alocmenu hide"><span class="sm">Ocultar este caso:</span><button class="kcfg" data-aloc="7">7 días</button><button class="kcfg" data-aloc="30">30 días</button><button class="kcfg" data-aloc="siempre">Para siempre</button></div></div>`;
     }).join('') || '<div class="vacio">Sin coincidencias.</div>';
     $('allista').querySelectorAll('[data-alacc]').forEach(b => b.onclick = () => {
@@ -10254,8 +10254,8 @@ pintarLlamadas = (orig => async function () {
         <span class="ic" style="${x.proxima_fecha < hoy ? 'background:#FDECEC;color:var(--dang)' : x.proxima_fecha === hoy ? 'background:#FFF4E5;color:var(--warn)' : ''}">📞</span>
         <span class="tx"><b>${esc(x.cliente || x.nombre || 'Sin nombre')}</b>
           <span class="sm">${x.proxima_fecha < hoy ? '<b style="color:var(--dang)">Atrasada · </b>' : x.proxima_fecha === hoy ? '<b style="color:var(--warn)">Hoy · </b>' : fechaCorta(x.proxima_fecha) + ' · '}${esc(x.resultado || '')}${x.proxima_accion ? ' · ' + esc(x.proxima_accion) : ''}${x.medico ? ' · de ' + esc(x.medico) : ''}</span></span>
-        <span class="acts" style="margin:0;flex-wrap:nowrap">${(x.tel_cliente || x.telefono) ? `<a class="btn sec" href="tel:${esc(x.tel_cliente || x.telefono)}">Llamar</a>` : ''}
-          <button class="btn" data-llseg="${x.id}">Registrar</button><button class="btn sec" data-llok="${x.id}" title="Ya no hace falta">✓</button></span></div>`).join('')}</div></div>`);
+        <span class="acts" style="margin:0;flex-wrap:nowrap">${(x.tel_cliente || x.telefono) ? `<a class="btn sec chico" href="tel:${esc(x.tel_cliente || x.telefono)}">Llamar</a>` : ''}
+          <button class="btn chico" data-llseg="${x.id}">Registrar</button><button class="btn sec chico" data-llok="${x.id}" title="Ya no hace falta">✓</button></span></div>`).join('')}</div></div>`);
     $('llsegs').querySelectorAll('[data-llseg]').forEach(b => b.onclick = () => { const x = l.find(y => y.id === b.dataset.llseg);
       editorLlamada({ direccion: 'Saliente', fecha: new Date().toISOString(), contacto_id: x.contacto_id, cliente: x.cliente, nombre: x.nombre, telefono: x.telefono, cuenta_id: x.cuenta_id, medico: x.medico, motivo: 'Seguimiento de televenta' }, x); });
     $('llsegs').querySelectorAll('[data-llok]').forEach(b => b.onclick = async () => { await db.rpc('marcar_seguimiento', { p_id: b.dataset.llok, p_hecho: true }); toast('Seguimiento cerrado'); pintarLlamadas(); });
@@ -10545,7 +10545,7 @@ async function verOcultas() {
     <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
     <div class="alcards">${l.map(x => `<div class="alcard"><div class="alc1"><b>${esc(x.detalle || x.clave)}</b>
       <span class="pill ${x.hasta ? 'p-per' : 'p-anu'}">${x.hasta ? 'Hasta ' + fechaCorta(x.hasta) : 'Para siempre'}</span></div>
-      <div class="sm">${esc(x.titulo || '')}</div><button class="btn sec" data-alrec="${esc(x.clave)}">Recuperar</button></div>`).join('') || '<div class="vacio">No tienes alertas ocultas.</div>'}</div>`;
+      <div class="sm">${esc(x.titulo || '')}</div><button class="btn sec chico" data-alrec="${esc(x.clave)}">Recuperar</button></div>`).join('') || '<div class="vacio">No tienes alertas ocultas.</div>'}</div>`;
   $('dlg').showModal();
   $('dbody').querySelectorAll('[data-alrec]').forEach(b => b.onclick = async () => {
     await db.rpc('restaurar_alerta', { p_clave: b.dataset.alrec }); b.closest('.alcard').remove(); ALERTAS_OCULTAS = null; toast('Recuperada');
@@ -11340,7 +11340,7 @@ new MutationObserver(() => {
     const i = box.dataset.cons, dir = box.querySelector(`[data-cf="${i}|direccion"]`); if (!dir) return;
     const g = dir.closest('.g2'); if (!g) return;
     g.insertAdjacentHTML('afterend', `<div class="cubica"><div class="cubest sm">${box.dataset.lat ? '<b style="color:var(--ok)">✓ Ubicado</b>' : 'Sin ubicación: no saldrá en rutas ni en el mapa'}</div>
-      <div class="acts" style="margin:6px 0 0"><button type="button" class="btn sec" data-cbus="${i}">🔎 Buscar la dirección</button><button type="button" class="btn sec" data-cgeo="${i}">📍 Estoy aquí</button></div></div>`);
+      <div class="acts" style="margin:6px 0 0"><button type="button" class="btn sec chico" data-cbus="${i}">🔎 Buscar la dirección</button><button type="button" class="btn sec chico" data-cgeo="${i}">📍 Estoy aquí</button></div></div>`);
     const prov = box.querySelector(`[data-cf="${i}|provincia"]`);
     if (prov && prov.value === 'BARCELONA' && !box.querySelector(`[data-cid="${i}"]`).value) prov.value = '';
   });
@@ -15284,9 +15284,9 @@ async function pedidoPago(id) {
         <div style="align-self:end"><button type="button" class="btn sec" id="pdrefok">Guardar referencia</button></div></div>`
       : `<p class="sm">Referencia: ${p.pago_referencia ? `<b>${esc(p.pago_referencia)}</b>` : 'sin referencia'}</p>`}
     <div class="lista" id="pdjus">${(js || []).map(j => `<div class="item"><span class="tx"><b>📎 ${esc(j.nombre)}</b><span class="sm">${fechaCorta(String(j.creado_en).slice(0, 10))} · ${num(Math.round(j.tamano / 1024))} KB</span></span>
-      <button type="button" class="btn sec" data-jver="${j.id}">Ver</button>${j.creado_por === PERFIL.id || puede('administrar') ? `<button type="button" class="btn sec" data-jdel="${j.id}" aria-label="Quitar ${esc(j.nombre)}">Quitar</button>` : ''}</div>`).join('')
+      <button type="button" class="btn sec chico" data-jver="${j.id}">Ver</button>${j.creado_por === PERFIL.id || puede('administrar') ? `<button type="button" class="btn sec chico" data-jdel="${j.id}" aria-label="Quitar ${esc(j.nombre)}">Quitar</button>` : ''}</div>`).join('')
       || '<div class="sm">Sin justificante.</div>'}</div>
-    <label class="btn sec" style="margin-top:8px;display:inline-flex">📎 Añadir justificante<input type="file" id="pdjusf" accept="image/*,application/pdf" data-fp="1" hidden></label></div>`);
+    <label class="btn sec chico" style="margin-top:8px;display:inline-flex">📎 Añadir justificante<input type="file" id="pdjusf" accept="image/*,application/pdf" data-fp="1" hidden></label></div>`);
   const repinta = () => { const b = $('pdpago'); if (b) b.remove(); pedidoPago(id); };
   if ($('pdrefok')) $('pdrefok').onclick = async ev => {
     ev.target.disabled = true;
@@ -15951,8 +15951,8 @@ pintarLlamadas = async function () {
         <span class="ic" style="${x.proxima_fecha < hoy ? 'background:#FDECEC;color:var(--dang)' : x.proxima_fecha === hoy ? 'background:#FFF4E5;color:var(--warn)' : ''}">📞</span>
         <span class="tx"><b>${esc(x.cliente || x.nombre || 'Sin nombre')}</b>
           <span class="sm">${x.proxima_fecha < hoy ? '<b style="color:var(--dang)">Atrasada · </b>' : x.proxima_fecha === hoy ? '<b style="color:var(--warn)">Hoy · </b>' : fechaCorta(x.proxima_fecha) + ' · '}${esc(x.resultado || '')}${x.proxima_accion ? ' · ' + esc(x.proxima_accion) : ''}${x.medico ? ' · de ' + esc(x.medico) : ''}</span></span>
-        <span class="acts" style="margin:0;flex-wrap:nowrap">${(x.tel_cliente || x.telefono) ? `<a class="btn sec" href="tel:${esc(x.tel_cliente || x.telefono)}">Llamar</a>` : ''}
-          <button class="btn" data-llseg="${x.id}">Registrar</button><button class="btn sec" data-llok="${x.id}" title="Ya no hace falta">✓</button></span></div>`).join('')}</div></div>`;
+        <span class="acts" style="margin:0;flex-wrap:nowrap">${(x.tel_cliente || x.telefono) ? `<a class="btn sec chico" href="tel:${esc(x.tel_cliente || x.telefono)}">Llamar</a>` : ''}
+          <button class="btn chico" data-llseg="${x.id}">Registrar</button><button class="btn sec chico" data-llok="${x.id}" title="Ya no hace falta">✓</button></span></div>`).join('')}</div></div>`;
     $('llsegz').querySelectorAll('[data-llseg]').forEach(b => b.onclick = async () => {
       const x = l.find(y => y.id === b.dataset.llseg);
       const { data: an } = await db.from('llamadas').select('interes').eq('id', x.id).maybeSingle();
@@ -16094,7 +16094,7 @@ async function portalMedico() {
       : '<p class="sm" style="padding:0 16px">Tu empresa todavía no ofrece material para pedir.</p>'}
       ${ls.length ? `<div class="lista" id="mdmatl">${ls.map(x => `<div class="item" style="cursor:default"><span class="tx"><b>${num(x.cantidad)} × ${esc(x.material)}</b>
           <span class="sm">${horaCorta(x.creado_en)}${x.nota ? ' · ' + esc(x.nota) : ''}</span></span>${pillMaterial(x.estado)}
-          ${x.estado === 'Pendiente' ? `<button type="button" class="btn sec" data-mdanu="${x.id}">Anular</button>` : ''}</div>`).join('')}</div>` : ''}</div>
+          ${x.estado === 'Pendiente' ? `<button type="button" class="btn sec chico" data-mdanu="${x.id}">Anular</button>` : ''}</div>`).join('')}</div>` : ''}</div>
     <div class="card ancard" id="mdmsg"><h2>Dudas a tu comercial</h2>
       <div id="mdhilo">${hiloMensajes(lm, true)}</div>
       <textarea id="mdmsgt" rows="2" placeholder="Escribe tu duda" aria-label="Tu mensaje"></textarea>
@@ -16146,7 +16146,7 @@ async function fichaPortal(id) {
   const html = `<section class="blk" id="fportal"><h3>Portal${pend.length ? ` <span class="pill p-warn">${num(pend.length)} material por entregar</span>` : ''}${sinLeer ? ` <span class="pill p-urg">${num(sinLeer)} sin leer</span>` : ''}</h3>
     ${ls.length ? `<div class="lista">${ls.map(x => `<div class="item" style="cursor:default"><span class="tx"><b>${num(x.cantidad)} × ${esc(x.material)}</b>
         <span class="sm">Pedido el ${horaCorta(x.creado_en)}${x.nota ? ' · ' + esc(x.nota) : ''}</span></span>${pillMaterial(x.estado)}
-        ${x.estado === 'Pendiente' ? `<button type="button" class="btn" data-fpent="${x.id}">Entregado</button>` : ''}</div>`).join('')}</div>` : ''}
+        ${x.estado === 'Pendiente' ? `<button type="button" class="btn chico" data-fpent="${x.id}">Entregado</button>` : ''}</div>`).join('')}</div>` : ''}
     <div class="fpmsg"><b class="sm">Mensajes</b><div id="fphilo">${hiloMensajes(lm, false)}</div>
       <div class="fpresp"><input id="fpmsgt" placeholder="Contestar" aria-label="Contestar"><button type="button" class="btn sec" id="fpmsgok">Enviar</button></div></div></section>`;
   const vis = $('fbody').querySelector('section.fvis');
@@ -24768,7 +24768,7 @@ async function tdPintar() {
     </div>
     ${esHoy && j ? `<div class="tdjornada">● Jornada en curso desde hace ${durTxt(Date.now() - j.inicio)}. Registra cada ${vis} al terminarla.</div>` : ''}
     ${bandaNoCabe ? `<div class="banda-aviso" id="tdnocabe">${noCabe ? `<b>Este día no cabe en una jornada.</b> Con este orden acabarías ${finTxt}${fuera ? ` y ${fuera === 1 ? 'una cita queda' : fuera + ' citas quedan'} fuera de tu horario` : ''}.` : `<b>Varias citas no encajan con sus horarios.</b>`}
-      Antes de mirar cada cita: ${!pasado && conSitio > 1 ? '<button type="button" class="btn sec" id="tdnocord">Ordenar por cercanía</button> o ' : ''}pasa a otro día las citas de la zona más lejana (⋯ → Aplazar).</div>` : ''}
+      Antes de mirar cada cita: ${!pasado && conSitio > 1 ? '<button type="button" class="btn sec chico" id="tdnocord">Ordenar por cercanía</button> o ' : ''}pasa a otro día las citas de la zona más lejana (⋯ → Aplazar).</div>` : ''}
     ${mias.length ? `<div class="tdesc" aria-label="Citas del día">${mias.map(tarjeta).join('')}</div>`
       : `<div class="vacio">${esHoy ? 'No tienes citas hoy. Planifica una ruta en Rutas o cita a alguien de las sugerencias.' : 'Sin citas este día.'}</div>`}
     ${otras.length ? `<h3 class="tdotros">Citas de otras personas · ${otras.length}</h3>
