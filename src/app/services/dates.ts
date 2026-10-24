@@ -1,0 +1,20 @@
+/** Dates as «YYYY-MM-DD» in local time (Spain), the format the database and the screens use. */
+
+export function toIsoDate(date: Date): string {
+  return new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+}
+
+export function todayIso(): string {
+  return toIsoDate(new Date());
+}
+
+/** «2026-10-24» plus `days` (negative goes back). Noon avoids daylight-saving surprises. */
+export function addDays(isoDate: string, days: number): string {
+  const date = new Date(`${isoDate}T12:00:00`);
+  date.setDate(date.getDate() + days);
+  return toIsoDate(date);
+}
+
+export function fromIsoDate(isoDate: string): Date {
+  return new Date(`${isoDate}T12:00:00`);
+}

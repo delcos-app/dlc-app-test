@@ -8,3 +8,5 @@ declare const XLSX: any;
 declare const ZXing: any;
 declare const BarcodeDetector: any;
 declare const CONFIG: any;
+// El código nuevo (src/app) se publica en window.delcos para el código viejo mientras dura la migración
+interface Window { delcos: any }

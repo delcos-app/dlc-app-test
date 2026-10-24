@@ -33,6 +33,13 @@ export default tseslint.config(
       'no-console': ['error', { allow: ['warn', 'error'] }],
       'no-restricted-globals': ['error', { name: 'event', message: 'Use the event parameter.' }],
       '@typescript-eslint/explicit-module-boundary-types': 'error',
+      // HTML is built with template literals: numbers inside them are expected
+      '@typescript-eslint/restrict-template-expressions': ['error', { allowNumber: true }],
     },
+  },
+  {
+    // Legacy names (TT, ES_MEDICO, KV_INI…) are declared as they are; they disappear when their piece is migrated
+    files: ['src/app/legacy/globals.d.ts'],
+    rules: { '@typescript-eslint/naming-convention': 'off' },
   },
 );

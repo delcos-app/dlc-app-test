@@ -1,15 +1,20 @@
 /**
  * Entry point of the new code (src/app). esbuild bundles it into src/generated/core.js, which runs first in app.js.
- * While screens migrate, the legacy code (src/legado) reaches the new services through `window.delcos`.
+ * While screens migrate, the legacy code (src/legado) reaches the new services and screens through `window.delcos`.
  */
 import { createRouter, type Router } from './core/router';
 import { setLanguage, setVocabulary, t } from './i18n';
+import * as home from './screens/home';
 
 export interface DelcosCore {
   readonly router: Router;
   readonly t: typeof t;
   readonly setLanguage: typeof setLanguage;
   readonly setVocabulary: typeof setVocabulary;
+  /** Migrated screens, called by the legacy adapters (e.g. cargarInicio) until navigation moves to the router. */
+  readonly screens: {
+    readonly home: { readonly load: typeof home.load; readonly renderSkeleton: typeof home.renderSkeleton };
+  };
 }
 
 declare global {
@@ -18,9 +23,15 @@ declare global {
   }
 }
 
+const router = createRouter('inicio');
+router.register(home.homeRoute);
+
 window.delcos = {
-  router: createRouter('inicio'),
+  router,
   t,
   setLanguage,
   setVocabulary,
+  screens: {
+    home: { load: home.load, renderSkeleton: home.renderSkeleton },
+  },
 };

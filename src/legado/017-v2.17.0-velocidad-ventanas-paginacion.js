@@ -55,7 +55,7 @@ db.from = function (tabla) {
 
 /* ---------------- inicio: un único cargador hasta tenerlo todo ---------------- */
 
-let INI_LISTO = false, INI_EN_CURSO = null, INI_OTRA = false, DUP_RES = null;
+let INI_LISTO = false, DUP_RES = null;
 
 
 
