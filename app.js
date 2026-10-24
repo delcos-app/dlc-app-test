@@ -1,7 +1,9 @@
+// @ts-check
 // nucleo/dispositivo.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función y constantes de valor puro: su sitio no cambia lo que hace la app. Normas: docs/normas_codigo.md.
 
 const ES_MOVIL = () => matchMedia('(max-width: 760px)').matches;
+// @ts-check
 // nucleo/en_vivo.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -28,10 +30,12 @@ function avisosEnVivo() {
 
 // ——— En vivo ———
 let VIVO = null;
+// @ts-check
 // nucleo/errores.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función y constantes de valor puro: su sitio no cambia lo que hace la app. Normas: docs/normas_codigo.md.
 
 let ERR_ENVIADOS = new Set();
+// @ts-check
 // nucleo/idioma.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -631,6 +635,7 @@ async function refrescarCampana() {
   b.innerHTML = `🔔${NOTIF_N ? `<span class="nb2">${NOTIF_N > 9 ? '9+' : NOTIF_N}</span>` : ''}`;
   b.onclick = () => panelNotificaciones(d.lista || []);
 }
+// @ts-check
 // nucleo/sesion.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -735,6 +740,7 @@ const SUPL_ERR = {
   plan: 'Impersonalizar a usuarios del equipo es del plan A medida (a los invitados, con cualquier plan)',
   sesion: 'Tu sesión ha caducado: vuelve a entrar y prueba otra vez',
 };
+// @ts-check
 // nucleo/utilidades.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función y constantes de valor puro: su sitio no cambia lo que hace la app. Normas: docs/normas_codigo.md.
 
@@ -762,6 +768,7 @@ const conCatch = b => {
 const nombreApp = () => MARCA.nombre || 'Mi empresa';
 
 const hexRGB = h => { const x = (h || '#1C2733').replace('#', ''); return [0, 2, 4].map(i => parseInt(x.substr(i, 2), 16)); };
+// @ts-check
 // nucleo/version.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -794,6 +801,7 @@ async function comprobarVersion() {
    si es otra, la app se recarga sola cuando no hay nada a medias (ninguna ventana abierta ni un campo con el cursor) o, si lo hay, enseña el aviso
    «Hay una versión nueva» para que se recargue al terminar. */
 let VERSION_VISTA = 0;
+// @ts-check
 // servicios/api.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -1214,6 +1222,7 @@ let ESC = null;   // { inp, modo, stream, det, zx, vivo, leidos:Set, n }
 const ESC_ULT_N = n => n === 1 ? 'Una unidad' : `${n} unidades`;
 
 const ESC_ULT_TXT = (v, g) => 'Leído: ' + v + (g && g.cad ? ' · caduca el ' + fechaCorta(g.cad) : '');
+// @ts-check
 // servicios/catalogos.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función y constantes de valor puro: su sitio no cambia lo que hace la app. Normas: docs/normas_codigo.md.
 
@@ -1221,6 +1230,7 @@ const ESC_ULT_TXT = (v, g) => 'Leído: ' + v + (g && g.cad ? ' · caduca el ' + 
 const CAT = { resultado_visita: [], especialidad: [], area: [], motivo_urgencia: [], forma_pago: [] };
 
 let PROV_CCAA = null;
+// @ts-check
 // servicios/estados.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función y constantes de valor puro: su sitio no cambia lo que hace la app. Normas: docs/normas_codigo.md.
 
@@ -1258,6 +1268,7 @@ async function cargarLectorExcel() {
   await new Promise((ok, ko) => { const s = document.createElement('script'); s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'; s.integrity = 'sha384-vtjasyidUo0kW94K5MXDXntzOJpQgBKXmE7e2Ga4LG0skTTLeBi97eFAXsqewJjw'; s.crossOrigin = 'anonymous'; s.onload = ok; s.onerror = ko; document.head.appendChild(s); });
   return window.XLSX;
 }
+// @ts-check
 // servicios/fechas.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -1377,6 +1388,7 @@ const lunesCinta = f => { const d = new Date(f + 'T12:00:00'); d.setDate(d.getDa
 const diasMas = (f, n) => { const d = new Date(f + 'T12:00:00'); d.setDate(d.getDate() + n); return isoLocal(d); };
 
 const MESES_CORTOS = { ene: 1, feb: 2, mar: 3, abr: 4, may: 5, jun: 6, jul: 7, ago: 8, sep: 9, sept: 9, oct: 10, nov: 11, dic: 12 };
+// @ts-check
 // servicios/formato.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función y constantes de valor puro: su sitio no cambia lo que hace la app. Normas: docs/normas_codigo.md.
 
@@ -1562,6 +1574,7 @@ const PDF_DEF = { logo: true, logoPos: 'izq', logoTam: 'm', color: '#1C2733', ti
   pieTel: true, pieWeb: true, pieTexto: true, paginas: true, qrPos: 'abajo' };
 
 const cfgPDF = () => Object.assign({}, PDF_DEF, (AJUSTES || {}).factura_pdf || {}, { cols: Object.assign({}, PDF_DEF.cols, ((AJUSTES || {}).factura_pdf || {}).cols || {}) });
+// @ts-check
 // servicios/permisos.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -1644,6 +1657,7 @@ const verArea = t => { const b = document.querySelector(`nav.main [data-t="${t}"
    Productos → «⋯» → «Productos eliminados».
    ============================================================ */
 const puedeEliminarProducto = () => puede('administrar') || nivelDe2('P') >= 2;
+// @ts-check
 // servicios/planes.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función y constantes de valor puro: su sitio no cambia lo que hace la app. Normas: docs/normas_codigo.md.
 
@@ -1720,6 +1734,7 @@ const rangoPlan = k => ['campo', 'comercial', 'empresa', 'medida'].indexOf(k);
 // Igual que la función «pagos»: plan menor, menos usuarios o de anual a mensual
 const esBajada = (de, a) => rangoPlan(a.plan) < rangoPlan(de.plan)
   || (rangoPlan(a.plan) === rangoPlan(de.plan) && (+a.usuarios < +de.usuarios || (de.pago === 'anual' && a.pago === 'mensual')));
+// @ts-check
 // servicios/vocabulario.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -1762,6 +1777,7 @@ const TRATAMIENTO = /^(dr|dra|d|dña|dª|sr|sra|srta|prof|profa|lic|ldo|lda)\.?$
 
 // v2.105.0: sin etiqueta propia, el nombre sale del vocabulario de la empresa («Farmacias», «Contactos»…); con el vocabulario por defecto, «Prescriptores»
 const etiquetaContactos = () => ((AJUSTES.marca || {}).etiqueta || TT('medico', 'p', '', 'l', 'C'));
+// @ts-check
 // componentes/aviso.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -1783,6 +1799,7 @@ function subirAviso() { const t = $('toast'); if (!t || t.classList.contains('hi
 let tToast;
 
 const avisoRevisita = () => Object.assign({ on: true, dias: 7 }, ((PERFIL.preferencias || {}).avisos || {}).revisita || {});
+// @ts-check
 // componentes/ayuda.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -1812,6 +1829,7 @@ const anclaAyuda = b => {
   if (/^ini_/.test(k)) return MANUAL_ANCLA.inicio;
   return MANUAL_ANCLA[TAB] || '';
 };
+// @ts-check
 // componentes/buscador.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -1847,6 +1865,7 @@ let BUSQ_N = 0;   // solo cuenta la última búsqueda: las anteriores se descart
 
 // Solo los buscadores: los de tipo búsqueda y los campos con su lista de resultados justo debajo
 const esBuscador = i => i && i.matches && i.matches('input') && !i.list && (i.type === 'search' || (!!i.nextElementSibling && i.nextElementSibling.matches('.gsug, .cpres, .lista, [role=listbox]')));
+// @ts-check
 // componentes/campos.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -1956,6 +1975,7 @@ const OJO_SVG = {
   ver: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>',
   ocultar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.9 4.2A10.6 10.6 0 0 1 12 4c6.4 0 10 8 10 8a17.6 17.6 0 0 1-2.2 3.2M6.6 6.6C3.7 8.6 2 12 2 12s3.6 8 10 8a9.7 9.7 0 0 0 5.4-1.6"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/><path d="M2 2l20 20"/></svg>'
 };
+// @ts-check
 // componentes/carga.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -1972,6 +1992,7 @@ const cargando = (el, texto) => { if (el) el.innerHTML =
 const skelCard = t => `<h2>${esc(t)}</h2><div class="skel" style="width:45%"></div><div class="skel"></div><div class="skel" style="width:70%"></div>`;
 
 const quitarCarga = () => { const o = $('cargatotal'); if (o) o.classList.add('hide'); };
+// @ts-check
 // componentes/clasificadores.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -2288,6 +2309,7 @@ const filtroConValor = v => v != null && v !== '' && !(Array.isArray(v) && !v.le
 
 // ---- Memoria de filtros: lo que se elige en una fila de filtros se vuelve a poner cuando la pantalla se pinta de nuevo
 const FMEM = {};
+// @ts-check
 // componentes/firma.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -2302,6 +2324,7 @@ function padFirma(canvas) {
   requestAnimationFrame(ajustar);
   return { borrar: ajustar, vacia: () => !hay, imagen: () => (hay ? canvas.toDataURL('image/png').split(',')[1] : null), marcar: () => { hay = true; } };
 }
+// @ts-check
 // componentes/graficos.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -3150,6 +3173,7 @@ const selFechaLarga = iso => { const d = new Date(iso + 'T12:00:00'); return `${
 const selFechaMedia = iso => { const d = new Date(iso + 'T12:00:00'); return isNaN(d) ? iso : d.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }); };
 
 const selTipo = inp => inp.type === 'month' ? 'mes' : inp.type === 'datetime-local' ? 'fechahora' : inp.type === 'time' ? 'hora' : 'fecha';
+// @ts-check
 // componentes/teclado.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -16725,6 +16749,10 @@ setInterval(() => { if (rutaActiva()) pintarRutaBarra(); }, 60000);
 
 /* ---------------- ventanas propias ---------------- */
 
+/**
+ * Ventana propia (aviso, confirmación o pregunta con un campo).
+ * @param {{ titulo?: string, msg?: string, ok?: string, cancel?: string, campo?: any, opciones?: any, peligro?: boolean }} o
+ */
 function appVentana({ titulo, msg, ok, cancel, campo, opciones, peligro }) {
   return new Promise(res => {
     const d = $('mini');

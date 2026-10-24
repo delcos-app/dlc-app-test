@@ -4,6 +4,10 @@
 
 /* ---------------- ventanas propias ---------------- */
 
+/**
+ * Ventana propia (aviso, confirmación o pregunta con un campo).
+ * @param {{ titulo?: string, msg?: string, ok?: string, cancel?: string, campo?: any, opciones?: any, peligro?: boolean }} o
+ */
 function appVentana({ titulo, msg, ok, cancel, campo, opciones, peligro }) {
   return new Promise(res => {
     const d = $('mini');
