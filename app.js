@@ -2661,16 +2661,26 @@ async function pintarComisionesBase() {
 }
 
 async function calcularLiquidaciones() {
-  const per = $('liqper').value;
-  if (!per) return;
-  const conEsquema = [];
-  ESQUEMAS.forEach(e => (e.personas || []).forEach(n => {
-    const u = USUARIOS.find(x => x.nombre === n);
-    if (u && !conEsquema.includes(u.id)) conEsquema.push(u.id);
-  }));
-  if (!conEsquema.length) { toast('Ningún usuario tiene esquema asignado', true); return; }
-  for (const u of conEsquema) await db.rpc('liquidar', { p_usuario: u, p_periodo: per, p_estado: 'Borrador' });
-  toast(`${conEsquema.length === 1 ? 'Calculada 1 liquidación' : 'Calculadas ' + conEsquema.length + ' liquidaciones'} de ${periodoTxt(per)}`);
+  const per = $('liqper') && $('liqper').value; if (!per) return;
+  const ini = per + '-01', fin = liqMesFin(per), esq = new Set(ESQUEMAS.map(e => e.id));
+  const [{ data: asg, error }, { data: ya }] = await Promise.all([
+    db.from('asignaciones_comision').select('usuario_id,esquema_id,desde,hasta'),
+    RPC_ORIG('liquidaciones_lista', { p_periodo: per })]);
+  if (error) { toast('No se han podido leer las asignaciones: ' + error.message, true); return; }
+  const cerradas = new Set((ya || []).filter(l => l.estado !== 'Borrador').map(l => l.usuario_id));
+  const ids = [...new Set((asg || []).filter(a => esq.has(a.esquema_id) && (!a.desde || a.desde <= fin) && (!a.hasta || a.hasta >= ini)).map(a => a.usuario_id))];
+  if (!ids.length) { toast('Nadie tuvo un esquema de comisión en ' + periodoTxt(per), true); return; }
+  const calc = ids.filter(u => !cerradas.has(u));
+  if (!calc.length) { toast(`Las liquidaciones de ${periodoTxt(per)} ya están aprobadas o pagadas: no se recalculan`); return; }
+  const b = $('liqcalc'); if (b) b.disabled = true;
+  let mal = 0;
+  for (const u of calc) { const { data: r, error: e } = await db.rpc('liquidar', { p_usuario: u, p_periodo: per, p_estado: 'Borrador' }); if (e || (r && r.ok === false)) mal++; }
+  if (b) b.disabled = false;
+  const n = calc.length - mal;
+  toast(`${n === 1 ? 'Calculada 1 liquidación' : 'Calculadas ' + n + ' liquidaciones'} de ${periodoTxt(per)}` +
+    (cerradas.size ? ` · ${cerradas.size === 1 ? '1 ya aprobada o pagada se deja' : cerradas.size + ' ya aprobadas o pagadas se dejan'} como estaba${cerradas.size === 1 ? '' : 'n'}` : '') +
+    (mal ? ` · ${mal} sin calcular` : ''), !!mal);
+  LIQ_FIL.p = per;
   pintarComisiones();
 }
 
@@ -2821,8 +2831,15 @@ async function navegarA(destino, paradas) {
     varias ? 'Google Maps abre la ruta completa con todas las paradas. Waze y Apple Maps solo admiten un destino: abrirán la primera parada.' : '',
     [{ k: 'google', t: 'Google Maps' }, { k: 'waze', t: 'Waze', cls: 'sec' }, { k: 'apple', t: 'Apple Maps', cls: 'sec' }, { k: 'no', t: 'Cancelar', cls: 'sec' }]);
   if (!op || op === 'no') return;
-  const url = op === 'google' ? enlaceNav(destino, paradas, 'google') : enlaceNav(varias ? paradas[0] : destino, null, op);
-  window.open(url, '_blank', 'noopener');
+  const dest = op === 'google' ? destino : (varias ? paradas[0] : destino), par = op === 'google' ? paradas : null;
+  const web = enlaceNav(dest, par, op);
+  const app = (ES_IOS || ES_ANDROID) ? enlaceNavApp(dest, par, op) : null;
+  if (!app) { window.open(web, '_blank', 'noopener'); return; }
+  // La app de mapas toma el control y delcos pasa a segundo plano; si no está instalada, delcos sigue a la vista y se usa la web
+  let fuera = false; const marcar = () => { if (document.visibilityState === 'hidden') fuera = true; };
+  document.addEventListener('visibilitychange', marcar);
+  location.href = app;
+  setTimeout(() => { document.removeEventListener('visibilitychange', marcar); if (!fuera && document.visibilityState === 'visible') { const w = window.open(web, '_blank'); if (!w) location.href = web; } }, 1500);   // sin el clic, el navegador puede bloquear la ventana: entonces se abre aquí mismo
 }
 document.addEventListener('click', e => {
   const b = e.target.closest('[data-nav]'); if (!b) return;
@@ -4026,8 +4043,13 @@ async function listasDuplicados() {
   cargando($('dpendc'), 'Buscando fichas pendientes…');
   cargando($('dparc'), 'Buscando nombres parecidos…');
   const [rp, rs] = await Promise.all([db.rpc('duplicados_pendientes'), db.rpc('escanear_duplicados', { p_umbral: 80, p_tope: 200 })]);
-  DUP_PEND = rp.data || [];
-  DUP_PARES = rs.data || [];
+  DUP_PEND = rp.data || []; DUP_PARES = rs.data || [];
+  const ids = [...new Set([...DUP_PEND.map(x => x.id), ...DUP_PARES.map(p => p.a_id)])];
+  DUP_TIPO = {};
+  for (let i = 0; i < ids.length; i += 150) {
+    const { data } = await db.from('cuentas').select('id, tipo').in('id', ids.slice(i, i + 150));
+    (data || []).forEach(c => { DUP_TIPO[c.id] = c.tipo || 'Persona'; });
+  }
   pintarListasDup();
 }
 
@@ -7686,18 +7708,21 @@ function limpiarDatosLocales() {
 
 async function entrarComo(id) {
   const u = (USUARIOS || []).find(x => x.id === id) || { nombre: 'esta persona' };
-  if (!await preguntar(`Abrirás una sesión con el usuario de ${u.nombre}: su menú, sus permisos, su cartera y sus datos.\n\nLo que hagas quedará a su nombre, y la entrada queda anotada en la auditoría. Para volver, pulsa «Volver a mi sesión» en la barra morada.`,
-    { titulo: `¿Entrar como ${u.nombre}?`, ok: 'Entrar como ' + nombrePila(u.nombre) })) return;
-  pantallaCarga('Entrando como ' + u.nombre + '…');
+  const inv = esInvitado(u);
+  if (!await preguntar(inv
+      ? `Abrirás una sesión con el usuario de ${u.nombre} y verás su portal tal como lo ve.\n\nLo que hagas quedará a su nombre y la impersonalización queda registrada en la auditoría. Para terminar, pulsa «Terminar la impersonalización» en la barra morada de arriba.`
+      : `Abrirás una sesión con el usuario de ${u.nombre}: su menú, sus permisos, su cartera y sus datos.\n\nLo que hagas quedará a su nombre y la impersonalización queda registrada en la auditoría. Para terminar, pulsa «Terminar la impersonalización» en la barra morada de arriba.`,
+    { titulo: `¿Impersonalizar a ${u.nombre}?`, ok: 'Impersonalizar' })) return;
+  pantallaCarga('Impersonalizando a ' + u.nombre + '…');
   const { data: { session } } = await db.auth.getSession();
-  if (!session) return;
-  const { data, error } = await db.functions.invoke('impersonar', { body: { usuario_id: id } });
-  if (error || !data || !data.ok) {
+  if (!session) { quitarCarga(); toast(SUPL_ERR.sesion, true); return; }
+  let { data, error } = await db.functions.invoke('impersonar', { body: { usuario_id: id } });
+  // La función antigua respondía con un error HTTP: se lee el motivo igualmente
+  if (error && !data && error.context && typeof error.context.json === 'function') { try { data = await error.context.json(); } catch (e) {} }
+  if (!data || !data.ok) {
     const e = data && data.error;
-    toast(e === 'administrador' ? 'No se puede entrar como otro administrador'
-      : e === 'permiso' ? 'No tienes permiso para entrar como otra persona'
-      : e === 'inactivo' ? 'Ese usuario está desactivado'
-      : 'No se ha podido: ' + ((error && error.message) || e || 'la función «impersonar» no responde'), true);
+    toast(SUPL_ERR[e] || ('No se ha podido entrar: ' + ((data && data.detalle) || (error && error.message) || e || 'la función «impersonar» no responde')), true);
+    if (!SUPL_ERR[e] || e === 'sesion') registrarError('api', 'Impersonalizar: ' + (e || (error && error.message) || 'sin respuesta'), { estado: error && error.context && error.context.status, detalle: data && data.detalle });
     quitarCarga(); return;
   }
   localStorage.setItem(SKEY, JSON.stringify({ access_token: session.access_token, refresh_token: session.refresh_token,
@@ -7706,6 +7731,7 @@ async function entrarComo(id) {
   if (e2) {
     localStorage.removeItem(SKEY);
     await db.auth.setSession({ access_token: session.access_token, refresh_token: session.refresh_token });
+    registrarError('api', 'Impersonalizar: no se abre la sesión', { mensaje: e2.message });
     toast('No se ha podido abrir su sesión: ' + e2.message, true); quitarCarga(); return;
   }
   limpiarDatosLocales();
@@ -9134,12 +9160,7 @@ const OPS = [['pago', 'Cobrado', 'pago_estado', '💳'], ['paquete', 'Paquete pr
   ['email_factura', 'Email con la factura enviado', 'email_factura_en', '🧾'], ['email_pago', 'Email con los datos de pago enviado', 'email_pago_en', '✉️']];
 const opHecho = (p, k) => k === 'pago' ? p.pago_estado === 'Cobrado' : !!p[OPS.find(o => o[0] === k)[2]];
 
-function textoEmailPago(p, total, cliente) {
-  const e = AJUSTES.empresa || {};
-  return `Hola${cliente ? ' ' + nombrePila(cliente) : ''}:\n\nGracias por tu pedido${p.numero ? ' ' + p.numero : ''}. Para completarlo, haz una transferencia con estos datos:\n\n` +
-    `Importe: ${eurI(total || 0)}\nBeneficiario: ${e.razon_social || nombreApp()}\nIBAN: ${e.iban || '(añade el IBAN en Facturación → Datos fiscales)'}\nConcepto: ${p.numero || 'Pedido'} ${cliente || ''}\n\n` +
-    `En cuanto recibamos el pago preparamos el envío.\n\nUn saludo,\n${e.razon_social || nombreApp()}${e.telefono ? '\n' + e.telefono : ''}`;
-}
+function textoEmailPago(p, total, cliente) { return plantillaCorreo('pago', 'texto', varsCorreo({ documento: 'pedido', numero: p.numero, importe: total, nombre: cliente })); }
 
 
 // (v2.183.0: aquí iba la primera versión de pintarOperativa; se redefine entera más abajo)
@@ -23805,31 +23826,36 @@ arbolCfgUnico = (orig => function (...a) {
 CFG_CLAVES['o.textos'] = 'textos nombres vocabulario menú menu estados resultados roles campos renombrar palabras';
 let TX = null;   // {filas, filtro, q}
 async function pintarTextos() {
-  const c = $('cfgcuerpo'); if (!c) return;
-  cargando(c, 'Cargando los textos…');
-  const [{ data }, { data: ce }] = await Promise.all([db.rpc('catalogos_todos'), db.from('clasificadores').select('id').eq('papel', 'estado_comercial').limit(1)]);
-  const { data: est } = ce && ce[0] ? await db.from('valores_clasificador').select('id,valor,orden,activo').eq('clasificador_id', ce[0].id).order('orden') : { data: [] };
-  const cats = (data || []).filter(x => x.papel !== 'estado_comercial');
-  if (est && est.length) cats.push({ papel: 'estado_comercial', valores: est });
-  if (!$('cfgcuerpo')) return;
-  const filas = [];
-  const etq = { medico: `${TT('medico', 's', '', 'l', 'C')} al que visitáis`, paciente: 'Cliente final', visita: 'Cada encuentro', pauta: 'Lo que se registra en su portal', consulta: 'Lugar donde atiende', especialidad: 'Categoría de cada ficha' };
-  Object.keys(TERM_DEF).forEach(k => { const d = TERM_DEF[k], t = (TERMINOS || {})[k] || {};
-    filas.push({ g: 'voc', donde: etq[k] || k, siempre: `${d.s} · ${d.p}`, k, s0: t.s || '', p0: t.p || '', s: t.s || '', p: t.p || '', ds: d.s, dp: d.p }); });
-  const mn = menuNombres();
-  document.querySelectorAll('nav.main [data-t]').forEach(b => {
-    const t = b.dataset.t; if (/^pd-/.test(t) || filas.some(f => f.g === 'menu' && f.t === t)) return;
-    if (t === 'directorio') { const actual = (AJUSTES.marca || {}).etiqueta || ''; const def = TT('medico', 'p', '', 'l', 'C');
-      filas.push({ g: 'menu', donde: 'Menú', t, siempre: def, v0: actual && actual !== def ? actual : '', v: actual && actual !== def ? actual : '' }); return; }
-    const x = txTexto(b), def = b.dataset.txdef || (x && x.get()) || t;
-    filas.push({ g: 'menu', donde: 'Menú', t, siempre: def, v0: mn[t] || '', v: mn[t] || '' });
+  await cargarAjustes();
+  const mn = menuNombres(), etqDef = TT('medico', 'p', '', 'l', 'C');
+  const vistos = new Set();
+  const filas = [...document.querySelectorAll('nav.main [data-t]')].filter(b => {
+    const t = b.dataset.t; if (vistos.has(t) || MENU_FUERA.includes(t) || ['config', 'delcos', 'manual'].includes(t) || b.classList.contains('hide')) return false;
+    vistos.add(t); return true;
+  }).map(b => {
+    const t = b.dataset.t, x = txTexto(b), def = t === 'directorio' ? etqDef : (b.dataset.txdef || (x && x.get()) || t);
+    const val = t === 'directorio' ? (((AJUSTES.marca || {}).etiqueta || '') !== etqDef ? ((AJUSTES.marca || {}).etiqueta || '') : '') : (mn[t] || '');
+    return { t, def, val };
   });
-  const valores = (papel, g, donde) => { const cat = cats.find(x => x.papel === papel); ((cat && cat.valores) || []).filter(v => v.activo !== false).forEach(v => filas.push({ g, donde, id: v.id, siempre: v.valor, v0: '', v: '', ahora: true })); };
-  if (puedeCatalogos() || puede('administrar')) { valores('estado_comercial', 'est', 'Estado comercial'); valores('resultado_visita', 'est', `Resultado de la ${TT('visita', 's', '', 'l', 'l')}`); }
-  if (puede('administrar')) rolesNombres().forEach(r => filas.push({ g: 'rol', donde: 'Rol', antes: r, siempre: r, v0: '', v: '', ahora: true }));
-  if (puedeCatalogos() || puede('administrar')) cats.filter(x => x.tipo_campo && !x.sistema).forEach(x => filas.push({ g: 'campo', donde: 'Campo de la ficha', id: x.id, siempre: x.nombre, v0: '', v: '', ahora: true }));
-  TX = { filas, filtro: (TX && TX.filtro) || '', q: '' };
-  txPintar();
+  $('cfgcuerpo').innerHTML = `<div class="card cfgpanel txmenu"><h2>Menús ${pmAyu('Menús', 'Cómo se llama cada módulo en el menú y en el título de su pantalla. Escribe el nombre que usa tu empresa; en blanco, se usa el de siempre.')}</h2>
+    <div class="txmtab" role="table"><div class="txmf txmcab" role="row"><span></span><span role="columnheader">Módulo</span><span role="columnheader">Nombre en tu empresa</span></div>
+    ${filas.map(f => `<div class="txmf" role="row"><span class="txmico" role="cell">${ICO_MOD[f.t] || '•'}</span><span role="cell" class="txmdef">${esc(f.def)}</span>
+      <span role="cell"><input data-txm="${f.t}" value="${esc(f.val)}" placeholder="${esc(f.def)}" maxlength="30" aria-label="Nombre de ${esc(f.def)} en tu empresa"></span></div>`).join('')}</div>
+    <div class="acts"><button type="button" class="btn" id="txmok">Guardar</button></div></div>`;
+  $('txmok').onclick = () => conCarga($('txmok'), 'Guardando…', async () => {
+    const nuevo = {}; let dir = null;
+    $('cfgcuerpo').querySelectorAll('[data-txm]').forEach(i => { const v = i.value.trim(); if (i.dataset.txm === 'directorio') dir = v; else if (v) nuevo[i.dataset.txm] = v; });
+    const { data, error } = await db.rpc('guardar_ajuste', { p_clave: 'menu_nombres', p_valor: nuevo });
+    if (error || (data && data.ok === false)) { toast('No se han podido guardar los nombres', true); return; }
+    AJUSTES.menu_nombres = nuevo;
+    if (dir !== null && dir !== (((AJUSTES.marca || {}).etiqueta || '') === etqDef ? '' : (AJUSTES.marca || {}).etiqueta || '')) {
+      const v = Object.assign({}, AJUSTES.marca || {}, { etiqueta: dir || etqDef });
+      const r2 = await db.rpc('guardar_ajuste', { p_clave: 'marca', p_valor: v });
+      if (!r2.error && !(r2.data && r2.data.ok === false)) { AJUSTES.marca = v; aplicarEtiqueta(); }
+    }
+    aplicarNombresMenu(); MENU_FIRMA = ''; try { montarMenuLateral(); pintarBnav(); } catch (e) {}
+    toast('Nombres guardados');
+  });
 }
 const TX_G = [['voc', 'Vocabulario', 'Las palabras que salen en todos los textos. En blanco, la de siempre.'],
   ['menu', 'Menú', 'El nombre de cada apartado del menú y de su pantalla. En blanco, el de siempre.'],
@@ -25995,29 +26021,7 @@ document.addEventListener('click', e => {
    ============================================================ */
 let LIQ_FIL = { u: '', p: '' };
 function liqMesFin(per) { const [a, m] = per.split('-').map(Number); return `${per}-${String(new Date(a, m, 0).getDate()).padStart(2, '0')}`; }
-calcularLiquidaciones = async function () {
-  const per = $('liqper') && $('liqper').value; if (!per) return;
-  const ini = per + '-01', fin = liqMesFin(per), esq = new Set(ESQUEMAS.map(e => e.id));
-  const [{ data: asg, error }, { data: ya }] = await Promise.all([
-    db.from('asignaciones_comision').select('usuario_id,esquema_id,desde,hasta'),
-    RPC_ORIG('liquidaciones_lista', { p_periodo: per })]);
-  if (error) { toast('No se han podido leer las asignaciones: ' + error.message, true); return; }
-  const cerradas = new Set((ya || []).filter(l => l.estado !== 'Borrador').map(l => l.usuario_id));
-  const ids = [...new Set((asg || []).filter(a => esq.has(a.esquema_id) && (!a.desde || a.desde <= fin) && (!a.hasta || a.hasta >= ini)).map(a => a.usuario_id))];
-  if (!ids.length) { toast('Nadie tuvo un esquema de comisión en ' + periodoTxt(per), true); return; }
-  const calc = ids.filter(u => !cerradas.has(u));
-  if (!calc.length) { toast(`Las liquidaciones de ${periodoTxt(per)} ya están aprobadas o pagadas: no se recalculan`); return; }
-  const b = $('liqcalc'); if (b) b.disabled = true;
-  let mal = 0;
-  for (const u of calc) { const { data: r, error: e } = await db.rpc('liquidar', { p_usuario: u, p_periodo: per, p_estado: 'Borrador' }); if (e || (r && r.ok === false)) mal++; }
-  if (b) b.disabled = false;
-  const n = calc.length - mal;
-  toast(`${n === 1 ? 'Calculada 1 liquidación' : 'Calculadas ' + n + ' liquidaciones'} de ${periodoTxt(per)}` +
-    (cerradas.size ? ` · ${cerradas.size === 1 ? '1 ya aprobada o pagada se deja' : cerradas.size + ' ya aprobadas o pagadas se dejan'} como estaba${cerradas.size === 1 ? '' : 'n'}` : '') +
-    (mal ? ` · ${mal} sin calcular` : ''), !!mal);
-  LIQ_FIL.p = per;
-  pintarComisiones();
-};
+// (R-12: calcularLiquidaciones se definía aquí otra vez; ahora está en su sitio, más arriba)
 // La lista, con filtros de persona y mes y el total de lo que se ve
 pintarComisionesBase = (orig => async function (...a) {
   const r = await orig.apply(this, a);
@@ -26556,37 +26560,7 @@ const SUPL_ERR = {
   sesion: 'Tu sesión ha caducado: vuelve a entrar y prueba otra vez',
 };
 
-entrarComo = async function (id) {
-  const u = (USUARIOS || []).find(x => x.id === id) || { nombre: 'esta persona' };
-  const inv = esInvitado(u);
-  if (!await preguntar(inv
-      ? `Abrirás una sesión con el usuario de ${u.nombre} y verás su portal tal como lo ve.\n\nLo que hagas quedará a su nombre y la impersonalización queda registrada en la auditoría. Para terminar, pulsa «Terminar la impersonalización» en la barra morada de arriba.`
-      : `Abrirás una sesión con el usuario de ${u.nombre}: su menú, sus permisos, su cartera y sus datos.\n\nLo que hagas quedará a su nombre y la impersonalización queda registrada en la auditoría. Para terminar, pulsa «Terminar la impersonalización» en la barra morada de arriba.`,
-    { titulo: `¿Impersonalizar a ${u.nombre}?`, ok: 'Impersonalizar' })) return;
-  pantallaCarga('Impersonalizando a ' + u.nombre + '…');
-  const { data: { session } } = await db.auth.getSession();
-  if (!session) { quitarCarga(); toast(SUPL_ERR.sesion, true); return; }
-  let { data, error } = await db.functions.invoke('impersonar', { body: { usuario_id: id } });
-  // La función antigua respondía con un error HTTP: se lee el motivo igualmente
-  if (error && !data && error.context && typeof error.context.json === 'function') { try { data = await error.context.json(); } catch (e) {} }
-  if (!data || !data.ok) {
-    const e = data && data.error;
-    toast(SUPL_ERR[e] || ('No se ha podido entrar: ' + ((data && data.detalle) || (error && error.message) || e || 'la función «impersonar» no responde')), true);
-    if (!SUPL_ERR[e] || e === 'sesion') registrarError('api', 'Impersonalizar: ' + (e || (error && error.message) || 'sin respuesta'), { estado: error && error.context && error.context.status, detalle: data && data.detalle });
-    quitarCarga(); return;
-  }
-  localStorage.setItem(SKEY, JSON.stringify({ access_token: session.access_token, refresh_token: session.refresh_token,
-    nombre: PERFIL.nombre, id: PERFIL.id, como: data.nombre, rol: data.rol, desde: Date.now() }));
-  const { error: e2 } = await db.auth.verifyOtp({ token_hash: data.token_hash, type: 'magiclink' });
-  if (e2) {
-    localStorage.removeItem(SKEY);
-    await db.auth.setSession({ access_token: session.access_token, refresh_token: session.refresh_token });
-    registrarError('api', 'Impersonalizar: no se abre la sesión', { mensaje: e2.message });
-    toast('No se ha podido abrir su sesión: ' + e2.message, true); quitarCarga(); return;
-  }
-  limpiarDatosLocales();
-  location.reload();
-};
+// (R-12: entrarComo se definía aquí otra vez; ahora está en su sitio, más arriba)
 
 // Grupo «Invitados» de Usuarios
 function pintarInvitados(lista, acc) {
@@ -27759,48 +27733,43 @@ function varsCorreo(o) {
     numero: o.numero || '', importe: eurI(o.importe || 0), beneficiario: emp, iban: e.iban || '' };
 }
 function plantillaCorreo(k, campo, v) {
-  const g = (AJUSTES.plantillas_correo || {})[k] || {}, t = (g[campo] || '').trim() || PLANT_CORREO[k][campo];
+  const l = plantillasCorreo(k), p = l.find(x => x.id === PLANT_ELEGIDA[k]) || l.find(x => x.defecto) || l[0] || {};
+  const t = (p[campo] || '').trim() || PLANT_CORREO[k][campo];
   return t.replace(/\[(\w+)\]/g, (m, n) => n in v ? v[n] : m).replace(/ {2,}/g, ' ').trim();
 }
-textoEmailPago = function (p, total, cliente) { return plantillaCorreo('pago', 'texto', varsCorreo({ documento: 'pedido', numero: p.numero, importe: total, nombre: cliente })); };
+// (R-12: textoEmailPago se definía aquí otra vez; ahora está en su sitio, más arriba)
 function asuntoEmailPago(p, total, cliente) { return plantillaCorreo('pago', 'asunto', varsCorreo({ documento: 'pedido', numero: p.numero, importe: total, nombre: cliente })); }
 
 // Configuración → Correo y firma: «Textos de los correos»
+// Configuración → Correo y firma → «Plantillas de correo»
 function pintarPlantillasCorreo() {
   const c = $('cfgcuerpo'); if (!c || $('plcorreo') || !$('cook')) return;
   const fin = $('cook').closest('.card'); if (!fin) return;
-  let k = 'pago';
-  fin.insertAdjacentHTML('beforebegin', `<div class="card cfgpanel" id="plcorreo"><h2 class="plch">Textos de los correos</h2>
-    <p class="sm">Lo que reciben tus clientes. Los huecos entre corchetes se rellenan al enviar. La despedida, los teléfonos y el aviso legal ya van en la firma: no hace falta repetirlos aquí.</p>
-    <div class="segs" id="plck" role="group" aria-label="Correo">${Object.entries(PLANT_CORREO).map(([x, p]) => `<button type="button" data-plk2="${x}" class="${x === k ? 'on' : ''}">${esc(p.titulo)}</button>`).join('')}</div>
-    <label for="plcasu">Asunto</label><input id="plcasu">
-    <label for="plctxt">Texto</label><textarea id="plctxt" rows="14"></textarea>
-    <div class="sm plchue">Huecos (pulsa para añadirlo donde está el cursor):</div>
-    <div class="plcvars">${VARS_CORREO.map(([n, t]) => `<button type="button" class="btn sec chico" data-plv="${n}" title="${esc(t)}">[${n}]</button>`).join('')}</div>
-    <div class="acts plcacts"><button type="button" class="btn sec" id="plcrest">Volver al texto de partida</button><button type="button" class="btn" id="plcok">Guardar los textos</button></div>
-    <p class="sm plcmsg" id="plcmsg"></p></div>`);
-  const val = () => { const g = (AJUSTES.plantillas_correo || {})[k] || {}; $('plcasu').value = g.asunto || PLANT_CORREO[k].asunto; $('plctxt').value = g.texto || PLANT_CORREO[k].texto; };
-  const pend = {};
-  const leer = () => { pend[k] = { asunto: $('plcasu').value.trim(), texto: $('plctxt').value.replace(/\s+$/, '') }; };
-  val();
-  $('plck').onclick = e => {
-    const b = e.target.closest('[data-plk2]'); if (!b) return; leer(); k = b.dataset.plk2;
-    $('plck').querySelectorAll('[data-plk2]').forEach(x => x.classList.toggle('on', x === b));
-    if (pend[k]) { $('plcasu').value = pend[k].asunto; $('plctxt').value = pend[k].texto; } else val();
+  fin.insertAdjacentHTML('beforebegin', `<div class="card cfgpanel" id="plcorreo"><div class="fh"><h2 class="plch">Plantillas de correo ${pmAyu('Plantillas de correo', 'Los correos que reciben tus clientes. Crea las que quieras, con el nombre que quieras; para cada uso, una es la de por defecto y, si hay más, se elige al enviar. Los huecos entre corchetes ([nombre], [iban]…) se rellenan al enviar. La despedida y los teléfonos ya van en la firma.')}</h2>
+    <button type="button" class="btn sec chico" id="plcnueva">+ Nueva plantilla</button></div><div id="plclista" class="plclista"></div></div>`);
+  const pinta = () => {
+    const l = listaCorreos();
+    $('plclista').innerHTML = Object.keys(USOS_CORREO).map(u => {
+      const g = l.filter(x => x.uso === u);
+      return `<div class="plcuso"><div class="sm plcusot">${esc(USOS_CORREO[u])}</div>${g.map(x => `<div class="plcfila"><span class="plcn"><b>${esc(x.nombre)}</b>${x.defecto ? ' <span class="pill p-ok">Por defecto</span>' : ''}<span class="sm">${esc(x.asunto)}</span></span>
+        <span class="plcb"><button type="button" class="btn sec chico" data-plce="${x.id}">Editar</button><button type="button" class="btn sec chico" data-plcd="${x.id}">Duplicar</button>
+          ${g.length > 1 ? `<button type="button" class="btn sec chico dang" data-plcx="${x.id}">Eliminar</button>` : ''}</span></div>`).join('') || '<div class="sm">Sin plantillas.</div>'}</div>`;
+    }).join('');
   };
-  let ult = $('plctxt'); ['plcasu', 'plctxt'].forEach(id => $(id).addEventListener('focus', () => { ult = $(id); }));
-  c.querySelectorAll('[data-plv]').forEach(b => b.onclick = () => {
-    const t = ult, v = '[' + b.dataset.plv + ']', i = t.selectionStart == null ? t.value.length : t.selectionStart, j = t.selectionEnd == null ? i : t.selectionEnd;
-    t.value = t.value.slice(0, i) + v + t.value.slice(j); t.focus(); t.selectionStart = t.selectionEnd = i + v.length;
-  });
-  $('plcrest').onclick = () => { $('plcasu').value = PLANT_CORREO[k].asunto; $('plctxt').value = PLANT_CORREO[k].texto; };
-  $('plcok').onclick = async ev => {
-    leer(); const v = Object.assign({}, AJUSTES.plantillas_correo || {}, pend);
-    ev.target.disabled = true;
-    const { data: r, error } = await db.rpc('guardar_ajuste', { p_clave: 'plantillas_correo', p_valor: v });
-    ev.target.disabled = false;
-    if (error || (r && r.ok === false)) { $('plcmsg').textContent = 'No se han podido guardar: ' + ((error && error.message) || r.error); return; }
-    AJUSTES.plantillas_correo = v; $('plcmsg').textContent = 'Textos guardados.'; toast('Textos de los correos guardados');
+  pinta();
+  $('plcorreo').onclick = async e => {
+    const ed = e.target.closest('[data-plce]'), du = e.target.closest('[data-plcd]'), x = e.target.closest('[data-plcx]');
+    const l = listaCorreos().map(p => Object.assign({}, p));
+    if (e.target.closest('#plcnueva')) { editarPlantillaCorreo({ id: idPlant(), nombre: '', uso: 'pago', asunto: PLANT_CORREO.pago.asunto, texto: PLANT_CORREO.pago.texto, defecto: false }, true, pinta); return; }
+    if (ed) { editarPlantillaCorreo(l.find(p => p.id === ed.dataset.plce), false, pinta); return; }
+    if (du) { const o = l.find(p => p.id === du.dataset.plcd); editarPlantillaCorreo(Object.assign({}, o, { id: idPlant(), nombre: o.nombre + ' (copia)', defecto: false }), true, pinta); return; }
+    if (x) {
+      const o = l.find(p => p.id === x.dataset.plcx); if (!o) return;
+      if (!await preguntar(`Se elimina la plantilla «${o.nombre}».`, { titulo: '¿Eliminar la plantilla?', ok: 'Eliminar' })) return;
+      let n = l.filter(p => p !== o);
+      if (o.defecto) { const otra = n.find(p => p.uso === o.uso); if (otra) otra.defecto = true; }
+      if (await guardarCorreos(n)) { toast('Plantilla eliminada'); pinta(); }
+    }
   };
 }
 // Aparece en cuanto la página «Correo y firma» está pintada (su botón Guardar, #cook, existe)
@@ -27912,23 +27881,7 @@ function enlaceNavApp(destino, paradas, n) {
   if (ES_ANDROID && !(paradas && paradas.length)) return 'google.navigation:q=' + encodeURIComponent(d) + '&mode=d';
   return null;   // Android con paradas: solo el enlace web admite la ruta entera
 }
-navegarA = async function (destino, paradas) {
-  if (!destino) { toast('Esta parada no tiene ubicación', true); return; }
-  const varias = paradas && paradas.length;
-  const op = await elegirOpcion('¿Con qué app quieres navegar?',
-    varias ? 'Google Maps abre la ruta completa con todas las paradas. Waze y Apple Maps solo admiten un destino: abrirán la primera parada.' : '',
-    [{ k: 'google', t: 'Google Maps' }, { k: 'waze', t: 'Waze', cls: 'sec' }, { k: 'apple', t: 'Apple Maps', cls: 'sec' }, { k: 'no', t: 'Cancelar', cls: 'sec' }]);
-  if (!op || op === 'no') return;
-  const dest = op === 'google' ? destino : (varias ? paradas[0] : destino), par = op === 'google' ? paradas : null;
-  const web = enlaceNav(dest, par, op);
-  const app = (ES_IOS || ES_ANDROID) ? enlaceNavApp(dest, par, op) : null;
-  if (!app) { window.open(web, '_blank', 'noopener'); return; }
-  // La app de mapas toma el control y delcos pasa a segundo plano; si no está instalada, delcos sigue a la vista y se usa la web
-  let fuera = false; const marcar = () => { if (document.visibilityState === 'hidden') fuera = true; };
-  document.addEventListener('visibilitychange', marcar);
-  location.href = app;
-  setTimeout(() => { document.removeEventListener('visibilitychange', marcar); if (!fuera && document.visibilityState === 'visible') { const w = window.open(web, '_blank'); if (!w) location.href = web; } }, 1500);   // sin el clic, el navegador puede bloquear la ventana: entonces se abre aquí mismo
-};
+// (R-12: navegarA se definía aquí otra vez; ahora está en su sitio, más arriba)
 
 
 /* ============================================================
@@ -28033,19 +27986,7 @@ PL.directorio.mas = (orig => () => orig().concat([['dirbajas', 'Fichas dadas de 
    Sin SQL: unificar_cuentas ya junta todo lo que cuelga de la ficha (consultas, visitas, citas, cartera…).
    ============================================================ */
 let DUP_TIPO = {}, DUP_PEST = 'Persona';
-listasDuplicados = async function () {
-  cargando($('dpendc'), 'Buscando fichas pendientes…');
-  cargando($('dparc'), 'Buscando nombres parecidos…');
-  const [rp, rs] = await Promise.all([db.rpc('duplicados_pendientes'), db.rpc('escanear_duplicados', { p_umbral: 80, p_tope: 200 })]);
-  DUP_PEND = rp.data || []; DUP_PARES = rs.data || [];
-  const ids = [...new Set([...DUP_PEND.map(x => x.id), ...DUP_PARES.map(p => p.a_id)])];
-  DUP_TIPO = {};
-  for (let i = 0; i < ids.length; i += 150) {
-    const { data } = await db.from('cuentas').select('id, tipo').in('id', ids.slice(i, i + 150));
-    (data || []).forEach(c => { DUP_TIPO[c.id] = c.tipo || 'Persona'; });
-  }
-  pintarListasDup();
-};
+// (R-12: listasDuplicados se definía aquí otra vez; ahora está en su sitio, más arriba)
 const dupTipoDe = id => DUP_TIPO[id] === 'Centro' ? 'Centro' : 'Persona';
 pintarListasDup = (orig => function () {
   if (!$('dpendc')) return;
@@ -29004,38 +28945,7 @@ function barrasReparto(items) {
    quiere la empresa (en blanco, el de siempre). Se irá ampliando. El de las fichas (directorio) es la etiqueta de la marca.
    La tarjeta «Cómo se llama cada cosa» de Marca y vocabulario queda fuera (Eric: descartada).
    ============================================================ */
-pintarTextos = async function () {
-  await cargarAjustes();
-  const mn = menuNombres(), etqDef = TT('medico', 'p', '', 'l', 'C');
-  const vistos = new Set();
-  const filas = [...document.querySelectorAll('nav.main [data-t]')].filter(b => {
-    const t = b.dataset.t; if (vistos.has(t) || MENU_FUERA.includes(t) || ['config', 'delcos', 'manual'].includes(t) || b.classList.contains('hide')) return false;
-    vistos.add(t); return true;
-  }).map(b => {
-    const t = b.dataset.t, x = txTexto(b), def = t === 'directorio' ? etqDef : (b.dataset.txdef || (x && x.get()) || t);
-    const val = t === 'directorio' ? (((AJUSTES.marca || {}).etiqueta || '') !== etqDef ? ((AJUSTES.marca || {}).etiqueta || '') : '') : (mn[t] || '');
-    return { t, def, val };
-  });
-  $('cfgcuerpo').innerHTML = `<div class="card cfgpanel txmenu"><h2>Menús ${pmAyu('Menús', 'Cómo se llama cada módulo en el menú y en el título de su pantalla. Escribe el nombre que usa tu empresa; en blanco, se usa el de siempre.')}</h2>
-    <div class="txmtab" role="table"><div class="txmf txmcab" role="row"><span></span><span role="columnheader">Módulo</span><span role="columnheader">Nombre en tu empresa</span></div>
-    ${filas.map(f => `<div class="txmf" role="row"><span class="txmico" role="cell">${ICO_MOD[f.t] || '•'}</span><span role="cell" class="txmdef">${esc(f.def)}</span>
-      <span role="cell"><input data-txm="${f.t}" value="${esc(f.val)}" placeholder="${esc(f.def)}" maxlength="30" aria-label="Nombre de ${esc(f.def)} en tu empresa"></span></div>`).join('')}</div>
-    <div class="acts"><button type="button" class="btn" id="txmok">Guardar</button></div></div>`;
-  $('txmok').onclick = () => conCarga($('txmok'), 'Guardando…', async () => {
-    const nuevo = {}; let dir = null;
-    $('cfgcuerpo').querySelectorAll('[data-txm]').forEach(i => { const v = i.value.trim(); if (i.dataset.txm === 'directorio') dir = v; else if (v) nuevo[i.dataset.txm] = v; });
-    const { data, error } = await db.rpc('guardar_ajuste', { p_clave: 'menu_nombres', p_valor: nuevo });
-    if (error || (data && data.ok === false)) { toast('No se han podido guardar los nombres', true); return; }
-    AJUSTES.menu_nombres = nuevo;
-    if (dir !== null && dir !== (((AJUSTES.marca || {}).etiqueta || '') === etqDef ? '' : (AJUSTES.marca || {}).etiqueta || '')) {
-      const v = Object.assign({}, AJUSTES.marca || {}, { etiqueta: dir || etqDef });
-      const r2 = await db.rpc('guardar_ajuste', { p_clave: 'marca', p_valor: v });
-      if (!r2.error && !(r2.data && r2.data.ok === false)) { AJUSTES.marca = v; aplicarEtiqueta(); }
-    }
-    aplicarNombresMenu(); MENU_FIRMA = ''; try { montarMenuLateral(); pintarBnav(); } catch (e) {}
-    toast('Nombres guardados');
-  });
-};
+// (R-12: pintarTextos se definía aquí otra vez; ahora está en su sitio, más arriba)
 
 // v2.340.0 (Eric): «Estados comerciales» no es una página aparte: va como pestaña de «Clasificadores»
 arbolCfgUnico = (orig => function (...a) {
@@ -29125,11 +29035,7 @@ function listaCorreos() {
   return Object.keys(USOS_CORREO).map(u => ({ id: u, nombre: PLANT_CORREO[u].titulo, uso: u, asunto: (a[u] || {}).asunto || PLANT_CORREO[u].asunto, texto: (a[u] || {}).texto || PLANT_CORREO[u].texto, defecto: true }));
 }
 const plantillasCorreo = uso => listaCorreos().filter(x => x.uso === uso);
-plantillaCorreo = function (k, campo, v) {
-  const l = plantillasCorreo(k), p = l.find(x => x.id === PLANT_ELEGIDA[k]) || l.find(x => x.defecto) || l[0] || {};
-  const t = (p[campo] || '').trim() || PLANT_CORREO[k][campo];
-  return t.replace(/\[(\w+)\]/g, (m, n) => n in v ? v[n] : m).replace(/ {2,}/g, ' ').trim();
-};
+// (R-12: plantillaCorreo se definía aquí otra vez; ahora está en su sitio, más arriba)
 async function guardarCorreos(lista) {
   const v = Object.assign({}, AJUSTES.plantillas_correo || {}, { lista });
   const { data: r, error } = await db.rpc('guardar_ajuste', { p_clave: 'plantillas_correo', p_valor: v });
@@ -29151,37 +29057,7 @@ enviarDatosPago = (orig => async function (id, ...a) {
   try { return await orig.call(this, id, ...a); } finally { PLANT_ELEGIDA.pago = null; }
 })(enviarDatosPago);
 
-// Configuración → Correo y firma → «Plantillas de correo»
-pintarPlantillasCorreo = function () {
-  const c = $('cfgcuerpo'); if (!c || $('plcorreo') || !$('cook')) return;
-  const fin = $('cook').closest('.card'); if (!fin) return;
-  fin.insertAdjacentHTML('beforebegin', `<div class="card cfgpanel" id="plcorreo"><div class="fh"><h2 class="plch">Plantillas de correo ${pmAyu('Plantillas de correo', 'Los correos que reciben tus clientes. Crea las que quieras, con el nombre que quieras; para cada uso, una es la de por defecto y, si hay más, se elige al enviar. Los huecos entre corchetes ([nombre], [iban]…) se rellenan al enviar. La despedida y los teléfonos ya van en la firma.')}</h2>
-    <button type="button" class="btn sec chico" id="plcnueva">+ Nueva plantilla</button></div><div id="plclista" class="plclista"></div></div>`);
-  const pinta = () => {
-    const l = listaCorreos();
-    $('plclista').innerHTML = Object.keys(USOS_CORREO).map(u => {
-      const g = l.filter(x => x.uso === u);
-      return `<div class="plcuso"><div class="sm plcusot">${esc(USOS_CORREO[u])}</div>${g.map(x => `<div class="plcfila"><span class="plcn"><b>${esc(x.nombre)}</b>${x.defecto ? ' <span class="pill p-ok">Por defecto</span>' : ''}<span class="sm">${esc(x.asunto)}</span></span>
-        <span class="plcb"><button type="button" class="btn sec chico" data-plce="${x.id}">Editar</button><button type="button" class="btn sec chico" data-plcd="${x.id}">Duplicar</button>
-          ${g.length > 1 ? `<button type="button" class="btn sec chico dang" data-plcx="${x.id}">Eliminar</button>` : ''}</span></div>`).join('') || '<div class="sm">Sin plantillas.</div>'}</div>`;
-    }).join('');
-  };
-  pinta();
-  $('plcorreo').onclick = async e => {
-    const ed = e.target.closest('[data-plce]'), du = e.target.closest('[data-plcd]'), x = e.target.closest('[data-plcx]');
-    const l = listaCorreos().map(p => Object.assign({}, p));
-    if (e.target.closest('#plcnueva')) { editarPlantillaCorreo({ id: idPlant(), nombre: '', uso: 'pago', asunto: PLANT_CORREO.pago.asunto, texto: PLANT_CORREO.pago.texto, defecto: false }, true, pinta); return; }
-    if (ed) { editarPlantillaCorreo(l.find(p => p.id === ed.dataset.plce), false, pinta); return; }
-    if (du) { const o = l.find(p => p.id === du.dataset.plcd); editarPlantillaCorreo(Object.assign({}, o, { id: idPlant(), nombre: o.nombre + ' (copia)', defecto: false }), true, pinta); return; }
-    if (x) {
-      const o = l.find(p => p.id === x.dataset.plcx); if (!o) return;
-      if (!await preguntar(`Se elimina la plantilla «${o.nombre}».`, { titulo: '¿Eliminar la plantilla?', ok: 'Eliminar' })) return;
-      let n = l.filter(p => p !== o);
-      if (o.defecto) { const otra = n.find(p => p.uso === o.uso); if (otra) otra.defecto = true; }
-      if (await guardarCorreos(n)) { toast('Plantilla eliminada'); pinta(); }
-    }
-  };
-};
+// (R-12: pintarPlantillasCorreo se definía aquí otra vez; ahora está en su sitio, más arriba)
 function editarPlantillaCorreo(p, nueva, alGuardar) {
   $('dlg2body').innerHTML = `<div class="fh"><div><h2>${nueva ? 'Nueva plantilla de correo' : 'Editar la plantilla'}</h2></div><button class="x" data-cerrar2 aria-label="Cerrar">✕</button></div>
     <div class="g2"><div><label for="pcen">Nombre</label><input id="pcen" value="${esc(p.nombre)}" maxlength="60" placeholder="Por ejemplo: Datos de pago · clínicas"></div>
