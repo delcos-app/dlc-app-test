@@ -174,7 +174,7 @@ dialog::backdrop{background:rgba(14,47,82,.4)}
 .cons .quitar{border:0;background:none;color:var(--dang);cursor:pointer;font-weight:700}
 /* v2.75.0 · Consultas: la primera es la principal; se ordenan y se quitan todas */
 .cons .consbar{position:absolute;right:10px;top:6px;display:flex;gap:6px;align-items:center}
-.cons .consbar .kmv{width:26px;min-height:0;border:1px solid var(--line);border-radius:7px;background:var(--panel);}
+.cons .consbar .kmv{border:1px solid var(--line);background:var(--panel);}
 .cons .consprio{display:none;font-size:11.5px;font-weight:700;color:var(--navy);background:var(--sky-soft);border-radius:999px;padding:2px 8px}
 #econs > .cons:first-child .consprio{display:inline}
 #econs > .cons:first-child [data-cmov="-1"],#econs > .cons:last-child [data-cmov="1"]{visibility:hidden}
@@ -196,7 +196,7 @@ dialog::backdrop{background:rgba(14,47,82,.4)}
 
 .subnav{display:flex;gap:6px;}
 .subnav button{border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:7px 15px;font-weight:600;color:var(--navy);cursor:pointer}
-.subnav button[aria-pressed=true]{background:var(--navy);color:#fff;border-color:var(--navy)}
+
 
 
 /* ---------- mapa, ficha lateral y móvil ---------- */
@@ -218,7 +218,7 @@ dialog#ficha .fbox{height:100%;overflow:auto;padding-bottom:40px}
   
   main{padding-bottom:78px}
   .conex,.upd{bottom:86px}
-  dialog#ficha{max-width:none;}
+  
 }
 
 .rutabar{position:fixed;left:0;right:0;top:0;z-index:95;background:#12805C;color:#fff;padding:10px 16px;display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;font-size:14px}
@@ -309,7 +309,7 @@ body.conruta{padding-top:46px}
 .pag{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:10px 14px;border-top:1px solid var(--line);background:var(--panel);font-size:13px;color:var(--muted)}
 .pag .pbtns{display:flex;gap:4px;align-items:center;flex-wrap:wrap}
 .pag button{border:1px solid var(--line);background:var(--panel);border-radius:8px;min-width:34px;height:32px;padding:0 9px;font-weight:600;color:var(--navy);cursor:pointer}
-.pag button[aria-current=true]{background:var(--navy);color:#fff;border-color:var(--navy)}
+
 .pag button:disabled{opacity:.4;cursor:default}
 .pag select{width:auto;}
 .pag .ptam{display:flex;gap:6px;align-items:center}
@@ -605,10 +605,10 @@ body.conruta{padding-top:46px}
 .kcard.on{background:var(--panel);border-color:var(--sky);opacity:1;box-shadow:0 2px 8px rgba(14,47,82,.06)}
 .kcard .ktx{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
 .kcard .ktx input{padding:6px 9px;}
-.kojo{border:1px solid var(--line);background:var(--panel);border-radius:10px;width:38px;height:38px;display:grid;place-items:center;color:var(--muted);cursor:pointer;flex:0 0 auto}
+.kojo{border:1px solid var(--line);background:var(--panel);display:grid;place-items:center;color:var(--muted);cursor:pointer;flex:0 0 auto}
 .kcard.on .kojo{color:var(--navy);border-color:var(--sky);background:var(--sky-soft)}
 .kord{display:flex;flex-direction:column;gap:4px}
-.kmv{border:1px solid var(--line);background:var(--panel);border-radius:8px;width:28px;height:26px;display:grid;place-items:center;color:var(--navy);cursor:pointer;padding:0;font-size:12px}
+.kmv{border:1px solid var(--line);background:var(--panel);display:grid;place-items:center;color:var(--navy);cursor:pointer;font-size:12px}
 .kmv:disabled{opacity:.35;cursor:default}
 .renc .parada{display:flex;align-items:center;gap:10px;justify-content:flex-start}
 .renc .parada .ptit{flex:1}
@@ -714,7 +714,7 @@ nav.main button[aria-selected=true]::after{height:3px;bottom:-4px;background:var
 .btn.sec.dang{color:var(--peligro);border-color:#F1C4BF;}
 .btn.sec.dang:hover{background:var(--peligro-s)}
 .subnav button{border-color:var(--line-f);background:#FFFFFF}
-.subnav button[aria-pressed=true]{background:var(--navy);border-color:transparent;box-shadow:none}
+
 /* Campos */
 input,select,textarea{background:#FFFFFF;border:1px solid var(--line-f);border-radius:10px;transition:border-color var(--t-rapido) var(--ease-sal),box-shadow var(--t-rapido) var(--ease-sal)}
 input:hover,select:hover,textarea:hover{border-color:#9DB4CB}
@@ -874,7 +874,7 @@ dialog{overscroll-behavior:contain}
   dialog .opciones{grid-template-columns:minmax(0,1fr)}
   .fh{display:flex;align-items:flex-start;gap:10px}
   .fh .x,.x{margin:0;flex:0 0 40px;}
-  #ficha{height:100dvh;max-height:100dvh;margin:0;border-radius:0}
+  
   #ficha .fh{position:sticky;top:0;z-index:5;background:#fff;padding:14px 16px 10px;margin:0 -16px 8px}
   .tools .tbox .fh,.tools .fh{padding-right:0}
   /* Cabeceras de módulo ordenadas */
@@ -1071,7 +1071,7 @@ body.masabierto .bnav{border-top-color:transparent;box-shadow:none}
 .kpi .ai{position:absolute;top:8px;right:8px;margin:0}
 #cfgcuerpo > p.sm{margin:0 0 10px}
 #cfgcuerpo .cols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;align-items:stretch;margin:12px 0 0}
-#cfgcuerpo .cols > .card{margin:0;display:flex;flex-direction:column;}
+
 #cfgcuerpo .cols > .card .g2{grid-template-columns:minmax(0,1fr);gap:8px}
 #cfgcuerpo .cols > .card .g2 > div > input{max-width:none}
 #cfgcuerpo .cols > .card .acts{margin-top:auto;padding-top:10px}
@@ -1187,9 +1187,9 @@ nav.main button[aria-selected=true] .navico{opacity:1}
 @keyframes avisoEntra{from{transform:translateX(-120%);opacity:0}to{transform:none;opacity:1}}
 .upd{position:fixed;left:16px;right:auto;top:calc(16px + env(safe-area-inset-top,0px));bottom:auto;transform:none;
   z-index:6001;animation:avisoEntra .28s cubic-bezier(.2,.8,.2,1)}
-.cfgsubs{display:flex;gap:4px;margin:0 0 12px;background:#fff;border:1px solid var(--line);width:max-content;}
+.cfgsubs{display:flex;width:max-content;}
 .cfgsubs button{border:0;background:none;color:var(--muted);cursor:pointer;white-space:nowrap}
-.cfgsubs button.on{box-shadow:none}
+
 .cfgg .ci .ico{width:19px;height:19px}
 .pill.p-plan{background:#F3E8FF;color:#6B21A8;display:inline-flex;align-items:center;gap:4px;font-size:11px}
 .pill.p-plan .ico{width:12px;height:12px}
@@ -1268,7 +1268,7 @@ section.cargando-pend{}
 .htbtn .ico{margin-right:4px}
 .htno{display:none!important}
 .htfuera{display:none!important}
-.pagtabs{margin-bottom:14px}
+
 .planhero{display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap;align-items:center;padding:28px 30px;border-radius:22px;background:var(--grad);color:#fff;margin-bottom:22px;box-shadow:0 18px 40px rgba(21,82,143,.25)}
 .planhero h1{color:#fff;margin:2px 0 6px;font-size:34px}.planhero p{margin:0;opacity:.9;max-width:520px}
 .planeti{font-size:12px;text-transform:uppercase;letter-spacing:.08em;opacity:.8}
@@ -1448,8 +1448,8 @@ textarea{min-height:96px;resize:vertical}
 .iniact.icoredondo span{display:none}
 /* Ventanas: tres tamaños según su contenido */
 @media (min-width:761px){#dlg{width:min(720px,94vw);max-width:none}
-#dlg.amplia{width:min(980px,96vw);max-width:none}
-#dlg.pequena{width:min(560px,94vw);max-width:none}}
+#dlg.amplia{width:min(980px,96vw);}
+#dlg.pequena{width:min(560px,94vw);}}
 #dlg.amplia .g2{grid-template-columns:repeat(2,minmax(0,1fr))}
 .pilavolver{display:inline-flex;align-items:center;gap:6px;border:0;background:none;color:var(--sky);font:inherit;font-weight:700;padding:0 0 10px;cursor:pointer}
 .pilavolver .ico{width:16px;height:16px}
@@ -1946,9 +1946,9 @@ main > section > .panel,main > section > .card{max-width:100%}
 /* Filtros: en el móvil cada campo ocupa todo el ancho */
 @media (max-width:760px){.filtros{grid-template-columns:minmax(0,1fr);padding:12px}.filtros input,.filtros select,.filtros .selw{width:100%;max-width:none}}
 /* Pestañas de las páginas propias y de Configuración: en el móvil bajan de línea en vez de cortarse */
-.cfgsubs{background:var(--hielo);border-color:var(--line);gap:2px}
+.cfgsubs{gap:2px}
 
-.cfgsubs button.on{background:#FFFFFF;color:var(--navy);box-shadow:var(--sh)}
+
 
 /* Manual: en el móvil el buscador va debajo del título, a todo el ancho */
 @media (max-width:760px){.manhero{flex-direction:column;align-items:stretch;gap:14px}.manbusca,.manbusca input{width:100%;max-width:none}}
@@ -2101,7 +2101,7 @@ dialog > #dbody > .acts:last-child,dialog > #dlg2body > .acts:last-child{positio
 #fundades:not(:has(#fuserie)) .spark{display:none}
 #fventas .sm{color:var(--muted)}
 /* Lista de pacientes: filas a todo el ancho, alineadas con el resto, que se iluminan al pasar el ratón */
-#fventas .item[data-fmpac]{display:flex;width:calc(100% + 16px);margin:0 -8px;padding:8px;text-align:left;cursor:pointer;
+#fventas .item[data-fmpac]{width:calc(100% + 16px);margin:0 -8px;padding:8px;
   transition:background-color var(--t-rapido) var(--ease-sal)}
 #fventas .item[data-fmpac]:hover{background:var(--hielo)}
 #fventas .item[data-fmpac]:focus-visible{outline:none;box-shadow:var(--foco)}
@@ -2809,7 +2809,7 @@ label.chk > span{display:flex;flex-direction:column;gap:3px;min-width:0;line-hei
 .ankpi{background:var(--panel,#fff);border:1px solid var(--line);padding:12px 14px;display:flex;flex-direction:column;gap:4px;min-width:0}
 .ankcab{display:flex;align-items:center;gap:6px}
 .anktit{flex:1;min-width:0;font-size:13.5px;color:var(--muted);font-weight:600}
-.ankcfg{border:0;background:none;padding:4px;border-radius:8px;cursor:pointer;color:var(--muted);display:inline-grid;place-items:center}
+.ankcfg{border:0;background:none;cursor:pointer;color:var(--muted);display:inline-grid;place-items:center}
 .ankcfg:hover{background:var(--sky-soft,#EAF3FB);color:var(--navy,#17457A)}
 .ankcfg .ico{width:16px;height:16px}
 .ankval{font-family:Manrope,system-ui,sans-serif;font-size:24px;line-height:1.15;color:var(--ink,#0B2540)}
@@ -3376,7 +3376,7 @@ input[type=checkbox]:not(.vfswitch input):focus-visible{outline:none;box-shadow:
 .cinta{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:12px 14px 10px;margin:0 0 12px}
 .ccab{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 8px}
 .cinta .cnav{display:flex;align-items:center;gap:4px}
-.cinta .cnav .kmv{width:34px;height:34px;font-size:17px;border-radius:10px}
+.cinta .cnav .kmv{font-size:17px;}
 .cinta .cmesb{border:0;background:none;font:800 16px var(--f-titulo);color:var(--navy);cursor:pointer;padding:6px 8px;border-radius:8px;min-height:0;min-width:170px;white-space:nowrap}
 .cinta .cmesb:hover{background:var(--hielo)}.cinta .cmesb span{font-size:12px;color:var(--muted)}
 .cley{display:flex;gap:14px;font-size:12px;color:var(--muted);margin-left:auto}
@@ -3684,7 +3684,7 @@ input.campodup{border-color:#E08A00!important;box-shadow:0 0 0 3px rgba(224,138,
 #agsemlat .agslx b{font:700 12px var(--f-titulo);margin-right:6px}
 #agsemlat .agslv{font-size:12.5px;color:#9AA8B8}
 #agsemlat .agslb{font:700 12px var(--f-texto);color:#8A5A00}
-#agsemlat .agslm{border:0;background:#EEF4FB;border-radius:8px;width:28px;height:28px;padding:0;display:inline-grid;place-items:center;cursor:pointer;color:var(--navy);font-weight:700}
+#agsemlat .agslm{border:0;background:#EEF4FB;display:inline-grid;place-items:center;cursor:pointer;color:var(--navy);font-weight:700}
 #agsemlat .agslacts{justify-content:flex-end;margin:12px 16px 16px}
 #agcinta .cdia{position:relative}
 #agcinta .cdmas{position:absolute;width:22px;height:22px;border-radius:7px;background:var(--panel,#fff);color:var(--navy);display:grid;place-items:center;font:700 14px/1 var(--f-titulo);opacity:0;box-shadow:0 1px 3px rgba(11,37,64,.15)}
@@ -3799,7 +3799,7 @@ header .top .logo,nav.main .mlmarca{cursor:pointer}
 .notit2:not(.nuevo){opacity:.78}
 .notit2:not(.nuevo):hover{opacity:1}
 .notacts{align-items:center;min-height:32px}
-.notit2 .tx .notbor{position:absolute;right:0;bottom:0;width:32px;height:32px;padding:0;border:1px solid transparent;border-radius:9px;background:none;color:var(--muted);display:inline-grid;place-items:center;cursor:pointer}
+.notit2 .tx .notbor{position:absolute;right:0;bottom:0;border:1px solid transparent;background:none;color:var(--muted);display:inline-grid;place-items:center;cursor:pointer}
 .notit2 .tx .notbor:hover{border-color:var(--line);color:#B42318;background:#FEF3F2}
 .notit2 .tx .notbor svg{width:16px;height:16px}
 .notit2.notsale{transition:opacity .2s,transform .2s;opacity:0;transform:translateX(16px)}
@@ -3892,7 +3892,7 @@ header .top .logo,nav.main .mlmarca{cursor:pointer}
 .rnbus svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:#7A8BA0}
 .rnfil{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0}
 .rnfil button{all:unset;cursor:pointer;font-size:13px;border:1px solid var(--line);border-radius:999px;padding:5px 11px;color:#4A6280}
-.rnfil button.on{background:var(--navy);border-color:var(--navy);color:#fff}
+
 .rnres{overflow:auto;flex:1;min-height:0}
 .rnopt{all:unset;box-sizing:border-box;cursor:pointer;width:100%;display:grid;grid-template-columns:22px minmax(0,1fr) auto;gap:10px;align-items:center;padding:9px 6px;border-top:1px solid var(--line)}
 .rnopt:hover{background:#F6F9FC}
@@ -4069,7 +4069,7 @@ main > section.preparando::after,dialog > .preparando::after{animation:cargaApar
 .plpopl{max-height:320px;overflow-y:auto;display:flex;flex-direction:column}
 .plpopl button{all:unset;cursor:pointer;padding:9px 12px;border-radius:8px;font-size:14px;color:#203A57;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .plpopl button:hover,.plpopl button:focus-visible{background:#F2F7FC}
-.plpopl button.on{color:#17457A;font-weight:700;background:#EAF2FB}
+.plpopl button.on{font-weight:700;}
 @media (max-width:1099px){.pltool{flex-wrap:wrap}.plq{flex-basis:100%}.plrap{flex:1 1 auto}}
 @media (max-width:760px){
   .plkpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:2px 0 10px}
@@ -4143,7 +4143,7 @@ main > section.preparando::after,dialog > .preparando::after{animation:cargaApar
 .manvuelta b{font-size:16px}
 #v-duplicados #dvolver{display:none}   /* ya está «‹ Calidad del dato» arriba */
 /* Pestañas: caja segmentada */
-main .subnav,main .pagtabs{display:inline-flex;gap:2px;background:#fff;border:1px solid var(--line);margin-bottom:14px}
+main .subnav,main .pagtabs{display:inline-flex;gap:2px;margin-bottom:14px}
 main .subnav button,main .pagtabs button{font:600 13.5px var(--f-titulo);}
 main .subnav button:hover,main .pagtabs button:hover{background:#F2F7FC!important}
 
@@ -4302,9 +4302,9 @@ body.modo-plataforma.menulat #v-delcos .pagtabs{display:none}
 /* v2.271.0 · Portal del profesional en una sola página */
 body.modo-medico nav.main [data-t=inicio],body.modo-medico [data-u=manual],body.modo-medico #manbtn{display:none}
 
-#v-informe .pmtabs{display:inline-flex;gap:4px;margin:16px 0 0;background:#E7EEF6;}
+#v-informe .pmtabs{display:inline-flex;gap:4px;margin:16px 0 0;}
 #v-informe .pmtabs button{border:0;background:none;color:#3B5470;cursor:pointer;white-space:nowrap;position:relative}
-#v-informe .pmtabs button.on{background:#fff;color:var(--ink);box-shadow:0 1px 2px rgba(11,37,64,.12)}
+
 #v-informe .pmtpunto{position:absolute;top:6px;right:6px;width:7px;height:7px;border-radius:50%;background:#D97706}
 #v-informe .pmk{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin:16px 0 0}
 
@@ -4344,11 +4344,11 @@ body.modo-medico nav.main [data-t=inicio],body.modo-medico [data-u=manual],body.
 #v-informe .pmhzpre .chip{border:1px solid var(--line);background:var(--panel);padding:5px 10px;font:inherit;font-size:12.5px;cursor:pointer}
 #v-informe .pmhd{display:grid;grid-template-columns:104px minmax(0,1fr);gap:8px;align-items:center;padding:4px 0;border-top:1px solid #EEF3F8}
 #v-informe .pmhdia{border:1px solid var(--line);background:var(--panel);border-radius:10px;padding:7px 8px;font-weight:600;font-size:13px;cursor:pointer;color:var(--muted)}
-#v-informe .pmhd.on .pmhdia{background:#F2F7FC;border-color:#3F82C0;color:var(--ink)}
+
 #v-informe .pmhr{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 #v-informe .pmhf{display:inline-flex;align-items:center;gap:4px;border:1px solid var(--line);border-radius:10px;padding:2px 4px;background:var(--panel)}
 #v-informe .pmhf input{width:58px;padding:2px 4px;border:0;text-align:center;font-variant-numeric:tabular-nums;background:transparent}
-#v-informe .pmhx{border:0;background:none;color:var(--muted);cursor:pointer;padding:2px 4px}
+#v-informe .pmhx{border:0;background:none;color:var(--muted);cursor:pointer;}
 #v-informe .pmhmas{border:1px dashed var(--line);background:none;border-radius:10px;padding:5px 9px;font-size:12.5px;font-weight:600;cursor:pointer;color:#3F82C0}
 #v-informe .pmcadd{margin-top:12px;position:relative}
 #v-informe .pmcres{display:flex;flex-direction:column;gap:4px;margin-top:6px}
@@ -4739,7 +4739,7 @@ html body :is(.pagtabs, .subnav, .pmtabs)::-webkit-scrollbar{display:none}
 @media (max-width:760px){#kpis.kvivo .kvwaf{grid-template-columns:repeat(16,minmax(0,1fr));gap:2px}}
 /* D-024 · Ventanas completas en el móvil: toda la pantalla menos el menú de abajo, desde que se abren */
 @media (max-width:760px){
-  dialog#dlg[open]:not(.encajada),dialog#dlg2[open]:not(.encajada),dialog#ficha[open]{position:fixed;inset:0 0 auto 0;margin:0;height:calc(100dvh - var(--bnavh,0px));max-height:calc(100dvh - var(--bnavh,0px));box-shadow:none;animation:uiFunde var(--t-medio) linear}
+  dialog#dlg[open]:not(.encajada),dialog#dlg2[open]:not(.encajada),dialog#ficha[open]{inset:0 0 auto 0;height:calc(100dvh - var(--bnavh,0px));max-height:calc(100dvh - var(--bnavh,0px));box-shadow:none;animation:uiFunde var(--t-medio) linear}
   dialog#dlg[open]:not(.encajada)::backdrop,dialog#dlg2[open]:not(.encajada)::backdrop,dialog#ficha[open]::backdrop{background:transparent}
   dialog#dlg[open]:not(.encajada) > #dbody,dialog#dlg2[open]:not(.encajada) > #dlg2body{min-height:100%;box-sizing:border-box}
 }
@@ -4878,8 +4878,8 @@ dialog.encajada{width:100%}
 @media (max-width:760px){#kpis.kvivo{gap:8px}}
 @media (max-width:760px){#kpis.kvivo .kpi.kv{padding:12px}}
 .plantilla .fab.plfuera,.plantilla .dgrid > .dr.htfuera{display:none}
-main .subnav button.on,main .subnav button[aria-current="page"],main .pagtabs button.on{background:#EAF2FB}
-main .subnav button.on,main .subnav button[aria-current="page"],main .pagtabs button.on{color:#17457A}
+
+
 @media (max-width:760px){main > section.plantilla .kpis.vtot.plres,main > section.plantilla #vcuerpo > .panel > .kpis.vtot.plres{gap:8px}}
 @media (max-width:760px){main > section.plantilla .kpis.vtot.plres > .kpi,main > section.plantilla #vcuerpo > .panel > .kpis.vtot.plres > .kpi{padding:9px 12px}}
 body.modo-medico #v-config .cfu #miperfil,body.modo-medico #v-config #cfgcuerpo #miperfil,body.modo-medico .perfsegf > div:nth-child(2),body.modo-medico #cfgcuerpo .g2 > div:has(#pfi){display:none}
@@ -5023,6 +5023,6 @@ try{var co=sessionStorage.getItem('dlc-cambio-org');if(co!==null||localStorage.g
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.364.0"></script>
+<script src="./app.js?v=2.365.0"></script>
 </body>
 </html>
