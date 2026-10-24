@@ -16,6 +16,6 @@ jobs:
       - name: app.js e index.html salen de src/ y estilos/
         run: node herramientas/construir.mjs --comprobar
       - name: Tipos (los archivos con «// @ts-check» sin errores)
-        run: npx --yes typescript@5.6.3 tsc -p tsconfig.json
+        run: npx --yes -p typescript@5.6.3 tsc -p tsconfig.json
       - name: Librerías con versión exacta y huella correcta
         run: node herramientas/dependencias.mjs
