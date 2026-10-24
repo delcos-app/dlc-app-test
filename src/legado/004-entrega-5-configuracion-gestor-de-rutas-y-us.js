@@ -4,9 +4,6 @@
 
 let CFG_SEC = 'prefs', ADM_SEC = 'usuarios', USUARIOS = [], CATS = [];
 const AREAS = [['H', 'Inicio'], ['G', 'Agenda'], ['R', 'Rutas'], ['M', `${TT('medico', 'p', '', 'l', 'C')}`], ['C', 'Centros'], ['S', `${TT('visita', 'p', '', 'l', 'C')}`], ['V', `Ventas y ${TT('paciente', 'p', '', 'l', 'l')}`], ['K', 'Configuración']];
-const NIVELES = ['Sin acceso', 'Ver', 'Editar', 'Completo'];
-// v2.109.0: los clasificadores son un permiso del rol (antes, administrar o nivel 2 en Configuración)
-const puedeCatalogos = () => PERFIL && puede('gestionar_clasificadores');
 
 /* ---------------- configuración ---------------- */
 

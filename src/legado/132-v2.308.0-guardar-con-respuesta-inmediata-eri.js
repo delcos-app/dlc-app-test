@@ -13,13 +13,6 @@ window.fetch = (orig => function (...a) {
   RED_VUELO++; RED_ULT = performance.now();
   return orig.apply(this, a).finally(() => { RED_VUELO = Math.max(0, RED_VUELO - 1); RED_ULT = performance.now(); });
 })(window.fetch);
-const GUARDA_TXT = /^(\+\s*)?(guardar|crear|añadir|enviar|validar|aplicar|confirmar|emitir|cobrar|registrar|marcar|asignar|unificar|cambiar|borrar|eliminar|quitar|anular|rectificar|liquidar|pedir|actualizar)\b/i;
-const esBotonGuardar = b => {
-  if (!b || b.matches('.sec, .x, .kmv, .plic, [data-cerrar], [data-cerrar2], .vueltabtn, .guardando')) return false;
-  if (!b.closest('dialog[open], #v-config')) return false;
-  const t = (b.textContent || '').trim();
-  return /ok$|guardar|enviar/i.test(b.id || '') || GUARDA_TXT.test(t);
-};
 document.addEventListener('click', e => {
   const b = e.target.closest && e.target.closest('button.btn');
   if (!esBotonGuardar(b)) { if (b && b.classList.contains('guardando')) { e.stopImmediatePropagation(); e.preventDefault(); } return; }

@@ -5,17 +5,14 @@
 
 /* ---------------- estados de cita ---------------- */
 
-const CITA_ABIERTA = ['Planificada', 'Confirmada'];
 Object.assign(EST_COL, { Planificada: 'var(--navy)', Confirmada: 'var(--sky)', Visitada: 'var(--ok)',
   'No estaba': 'var(--warn)', Aplazada: 'var(--muted)', Descartada: 'var(--muted)' });
-const pillCita = e => `<span class="pill cest" style="background:color-mix(in srgb, ${EST_COL[e] || 'var(--muted)'} 12%, transparent);color:${EST_COL[e] || 'var(--muted)'}">${esc(e)}</span>`;
 
 // La ruta en curso de versiones anteriores se sustituye por la jornada
 try { Object.keys(localStorage).filter(k => k.startsWith('dlc-ruta-')).forEach(k => localStorage.removeItem(k)); } catch (e) {}
 
 /* ---------------- jornada ---------------- */
 
-const JKEY = () => 'dlc-jornada-' + (PERFIL ? PERFIL.id : '');
 
 
 async function empezarJornada() {
@@ -32,9 +29,6 @@ async function empezarJornada() {
 
 /* ---------------- orden y horas estimadas ---------------- */
 
-const minHora = h => h ? (+String(h).slice(0, 2) * 60 + +String(h).slice(3, 5)) : null;
-const xyCita = c => c.lat != null && c.lon != null ? [+c.lat, +c.lon] : null;
-const salidaUsuario = () => prefsActivas().salida || { nombre: `la ${TT('visita', 's', 'primer', 'l', 'l')}`, lat: null, lon: null, falta: true };
 
 /** Calcula la hora estimada de cada cita abierta siguiendo el orden actual. */
 
@@ -44,7 +38,6 @@ const salidaUsuario = () => prefsActivas().salida || { nombre: `la ${TT('visita'
 
 /* ---------------- «Tu día» en la agenda ---------------- */
 
-let TD_CITAS = [];
 
 
 // (v2.183.0: aquí iba la primera versión de menuCita; se redefine entera más abajo)

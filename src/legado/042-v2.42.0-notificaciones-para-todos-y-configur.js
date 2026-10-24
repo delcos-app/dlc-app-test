@@ -14,8 +14,6 @@ const TIPOS_NOTIF = [
   ['cruce', '🔁', `${TT('visita', 'p', '', 'l', 'C')} de otros a mi cartera`, `Cuando otra persona ${TT('visita', 's', '', 'l', 'l')} a ${TT('medico', 's', 'un', 'l', 'l')} que llevas`],
   ['pedido_validado', '📦', 'Pedidos confirmados', 'Cada pedido que se confirma (menos los tuyos)']
 ];
-const tiposDeMiRol = () => TIPOS_NOTIF.filter(t => puede('aviso_' + t[0]));
-let NOTIF_N = 0;
 pintarAvisos = refrescarCampana;
 function irEnlace(e) {
   if (!e) return;

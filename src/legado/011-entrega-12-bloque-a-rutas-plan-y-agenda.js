@@ -3,31 +3,17 @@
    ============================================================ */
 
 let RSEC = 'mis', PROPUESTAS = null;
-/* v2.76.0 · La salida y la vuelta son de cada ruta (o del día planificado), no un ajuste general.
-   HOR = horario del plan en curso; sin él se estima desde las 9:00 (o desde ahora) y no hay hora de vuelta. */
-let HOR = null;
-const TIEMPOS = () => { const p = prefsActivas().plan || {}; return { visita: +p.visita || 15, parada: p.parada != null && p.parada !== '' ? +p.parada : 10 }; };
-const PLANCFG = () => Object.assign({}, TIEMPOS(), { salida: (HOR && HOR.salida) || '09:00', tope: (HOR && HOR.vuelta) || '23:59',
-  conSalida: !!(HOR && HOR.salida), conTope: !!(HOR && HOR.vuelta) });
-const horDeCitas = l => { const c = (l || []).find(x => x && (x.salida || x.vuelta)); return c ? { salida: c.salida || null, vuelta: c.vuelta || null } : null; };
-const horDeRuta = id => { const r = (RUTAS || []).find(x => x.id === id); return r && (r.salida || r.vuelta) ? { salida: r.salida || null, vuelta: r.vuelta || null } : null; };
 
 /* ---------------- navegador de mapas ---------------- */
 
-const NAVEGADORES = [['google', 'Google Maps'], ['apple', 'Apple Maps'], ['waze', 'Waze']];
-const navActual = () => (PERFIL.preferencias || {}).navegador || 'google';
 
 
 
-// Cada navegación pregunta con qué app abrirla (Google Maps admite la ruta con todas sus paradas)
-const navAttr = (d, p) => esc(JSON.stringify({ d, p: p && p.length ? p : null }));
 document.addEventListener('click', e => {
   const b = e.target.closest('[data-nav]'); if (!b) return;
   e.preventDefault();
   try { const v = JSON.parse(b.dataset.nav); navegarA(v.d, v.p); } catch (x) { /* dato de navegación no válido */ }
 });
-const selectorNav = () => `<select id="navsel" title="Navegador de mapas" style="max-width:160px">${
-  NAVEGADORES.map(([v, t]) => `<option value="${v}" ${navActual() === v ? 'selected' : ''}>${t}</option>`).join('')}</select>`;
 
 /* ---------------- pantalla de rutas ---------------- */
 

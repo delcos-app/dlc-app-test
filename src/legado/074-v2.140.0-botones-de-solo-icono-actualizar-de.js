@@ -129,12 +129,6 @@ menuPersonalizar = function () {
 };
 
 
-/* v2.143.0 · Agenda en una sola pantalla (decisión de Eric, 3/10/2026): sin flechas ni Día/Semana/Mes. Arriba, una línea fina con
-   cuatro métricas; luego Hoy («Tu día») con las sugerencias al lado; debajo, la semana en curso en 7 columnas y el mes con puntos.
-   Al pulsar un día se ven sus citas ahí mismo (sin cambiar de pantalla). La semana detallada (arrastrar, planificar, bloquear días)
-   sigue a un clic con «Planificar la semana», y vuelve con «Agenda de hoy». */
-const AG_DIAS_TXT = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
-const agUnida = () => TAB === 'agenda' && AG_MODO === 'dia';   // v2.146.0: también con otro día elegido (antes solo hoy)
 ir = (orig => function (t, ...a) {
   if (t === 'agenda' && IR_DESDE_MENU) { AG_MODO = 'dia'; AG_FECHA = hoyISO(); }   // la Agenda del menú abre siempre hoy
   return orig.call(this, t, ...a);
@@ -147,28 +141,12 @@ document.addEventListener('pointerdown', e => { if (!e.target.closest('.agpop, [
 
 // v2.143.0: en Pedidos y Oportunidades los filtros pasan dentro de «Filtros y columnas» (a la vista queda solo el buscador)
 HT_FILTROS.ventas = "#v-ventas .filtros";
-/* v2.144.0 · Páginas propias: la acción principal («+ Nuevo usuario», «+ Nueva organización») sube a la derecha de la cabecera, como
-   «+ Nueva venta» en el resto de pantallas (regla de Eric: misma posición en todas). Antes iba dentro de la tarjeta, junto al buscador. */
-const ACCION_PAGINA = ['usrnuevo', 'orgnueva'];
-let ACCION_PAG_PEND = false;
 new MutationObserver(() => {
   if (ACCION_PAG_PEND) return; ACCION_PAG_PEND = true;
   queueMicrotask(() => { ACCION_PAG_PEND = false; subirAccionPagina(); });
 }).observe(document.querySelector('main'), { childList: true, subtree: true });
 
 
-/* v2.145.0 · Rutas en una sola pantalla (decisión de Eric, 3/10/2026: «Propuestas del día y mis rutas al lado» y propuestas que
-   aprenden de lo que hace). Sin pestañas: a la izquierda 2 o 3 rutas ya armadas para el día (por zona y llenas hasta la jornada,
-   con sus motivos y un croquis), a la derecha las rutas guardadas, y el plan se abre debajo al pulsar. Los candidatos y su
-   puntuación vienen de rutas_candidatos (SQL 95): urgentes, consulta ese día, interesados que se enfrían, pendientes, buenos
-   clientes sin visita y nunca visitados, más las zonas y días en que sueles visitar y quién más compra. */
-let RPROP = null;   // { manana, fecha, datos, lista: [{ sel, ini, fin, km, zona }] }
-const RP_JORNADA = 300;   // minutos de una jornada de propuestas (5 h) si la ruta no dice otra cosa
-const RP_DIAS = { L: 'lunes', M: 'martes', X: 'miércoles', J: 'jueves', V: 'viernes' };
-const rpNombreDia = f => {
-  const man = new Date(); man.setDate(man.getDate() + 1);
-  return f === hoyISO() ? 'hoy' : f === isoLocal(man) ? 'mañana' : 'el ' + fechaLarga(new Date(f + 'T00:00:00')).replace(/,.*/, '');
-};
 
 
 
@@ -238,23 +216,6 @@ function agMarcarDia() {
 
 
 
-/* v2.148.0 · Analítica: panel de indicadores por áreas (decisión de Eric, 3/10/2026: «Panel por áreas + Explorar», engranaje con
-   filtro propio que se guarda y las cuatro familias nuevas). Resumen: indicadores de Ventas, Clientes, Equipo, Oportunidades, Cobros y
-   Stock (cada uno según su módulo y permisos) con la comparación elegida; cada tarjeta tiene su engranaje (comercial, producto, canal,
-   municipio, comparación y nombre; se puede duplicar con otro filtro) y «Personalizar» elige cuáles se ven. El periodo y la comparación
-   van en «Filtros y columnas»; en Explorar, también todos sus filtros (a la vista quedan «Ver por», «Ordenar por» y la búsqueda).
-   Las cifras salen de analitica_kpis (SQL 96), una llamada por filtro distinto. */
-const AN_FAM = [
-  ['ventas', 'Ventas', () => puedeModulo('ventas')],
-  ['clientes', 'Clientes', () => puedeModulo('ventas')],
-  ['equipo', () => 'Equipo y ' + TT('visita', 'p', '', 'l', 'l'), () => puedeModulo('agenda')],
-  ['oportunidades', 'Oportunidades', () => puedeModulo('ventas') && hayOportunidades()],
-  ['cobros', 'Cobros', () => puedeModulo('facturacion')],
-  ['stock', 'Stock y compras', () => puedeModulo('productos') && nivelDe2('P') >= 1]
-];
-// Qué filtros tienen sentido en cada área
-const AN_FILTROS = { ventas: ['comercial', 'producto', 'canal', 'municipio'], clientes: ['comercial', 'producto', 'canal', 'municipio'],
-  equipo: ['comercial', 'municipio'], oportunidades: ['comercial', 'producto'], cobros: [], stock: ['producto'] };
 // [id, área, título, formato, mejor si sube (true/false/null), ayuda, a hoy, solo con importes, por defecto]
 function anCatalogo() {
   const med = TT('medico', 'p', '', 'l', 'l'), vis = TT('visita', 'p', '', 'l', 'l'), vis1 = TT('visita', 's', '', 'l', 'l');
@@ -293,9 +254,6 @@ function anCatalogo() {
     ['compras', 'stock', 'Compras del periodo', 'eur', null, 'Importe de los pedidos de compra del periodo (sin los cancelados).', false, true, false]
   ].map(([id, fam, t, fmt, sube, ayuda, hoy, imp, def]) => ({ id, fam, t, fmt, sube, ayuda, hoy, imp, def }));
 }
-const anFamNombre = f => { const x = AN_FAM.find(a => a[0] === f); return x ? (typeof x[1] === 'function' ? x[1]() : x[1]) : f; };
-const anFamVisible = f => { const x = AN_FAM.find(a => a[0] === f); return !!x && x[2](); };
-const anKpiVisible = k => anFamVisible(k.fam) && (!k.imp || verImportes());
 
 let AN_CFG = null, AN_DATOS = {};
 

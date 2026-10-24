@@ -946,3 +946,62 @@ function fila(m) {
     <span class="pill p-est">${esc(m.estado_comercial)}</span>
   </button>`;
 }
+
+const consultaPrivada = (cn = 'C') => TT('consulta', 's', '', 'l', cn, 'privado');
+
+const F = { q: '', prov: '', muni: '', esp: '', est: '', urg: false, orden: 'nombre', pagina: 0, total: 0, campos: {} };
+
+let FICHA_ID = null;
+
+let CERCA = null;
+
+let OPF = { provincias: [], municipios: [], especialidades: [], estados: [], centros: [] };
+
+const optFiltro = (lista, v, todo) => `<option value="">${todo}</option>` +
+  (lista || []).map(o => `<option ${v === o.v ? 'selected' : ''}>${esc(o.v)} (${o.n})</option>`).join('');
+
+let FICHA_PAC = null;
+
+const tarjetaMedico = m => `<div class="selcard"><span class="ic">👤</span>
+  <span class="tx"><b>${esc(m.nombre)}</b>
+    <span class="sm">${esc([m.especialidad, m.centro_nombre || m.centro, m.municipio].filter(Boolean).join(' · '))}</span>
+    ${m.codigo ? `<span class="sm">Código ${esc(m.codigo)}</span>` : ''}</span>
+  <button type="button" class="sx" aria-label="Quitar">✕</button></div>`;
+
+const ES_MEDICO = () => puede('portal_prescriptor');
+
+const cpCampo = (box, i, f) => box.querySelector(`[data-cf="${i}|${f}"]`);
+
+/* ============================================================
+   v2.102.0 · «Tu día» por centros
+   Las citas seguidas en un mismo centro se agrupan bajo el centro (como las
+   paradas del plan). Y la ficha abierta desde una cita muestra en «Para la
+   visita» la consulta de ESE centro. (El SQL 79 pone la base en hora de España.)
+   ============================================================ */
+let FICHA_CENTRO = null;   // centro de la cita desde la que se abre la ficha
+
+const NOMBRE_ESTADO_CENTRO = { 'Pendiente de confirmar': 'p-warn', Confirmado: 'p-est', 'Pendiente de validar': 'p-warn', Validado: 'p-est',   // v2.349.0 (SQL 176); los dos de antes, por si la base aún no lo tiene
+  Preparado: 'p-per', Anulado: 'p-anu' };
+
+/* v2.177.0 · Ficha de centro (decisión de Eric, 5/10/2026): los centros dados de alta salen en el buscador (SQL 111, buscar_global con id) y al
+   pulsarlos se abre su ficha: dirección, teléfono, cómo llegar, horario y la lista de profesionales que atienden allí (ficha_centro), con
+   «+ Añadir» (centro_anadir_profesional: enlaza o crea su consulta en el centro), y en cada uno Ficha, «+ Cita» en ese centro y «Quitar»
+   (centro_quitar_profesional: quita esa consulta de su ficha). «Editar centro» corrige sus datos y su horario (guardar_centro). */
+const HOR_TXT = h => DIAS_SEM.filter(([d]) => h && h[d]).map(([d, n]) => `${n} ${h[d]}`).join(' · ');
+
+/* v2.189.0 · La consulta privada tiene su propia ficha (aviso de Eric: al elegir «Consulta privada (sin centro)» no se podía poner ni la dirección:
+   esos datos de la consulta solo los rellenaba un centro). Ahora una consulta sin centro cuyo nombre empieza por «Consulta privada» se ve como tal
+   (no como «Sin enlazar») y tiene «Editar la consulta» / «Añadir la dirección»: dirección, código postal, población, provincia y su punto en el mapa
+   (buscando la dirección o con «Estoy aquí»). Planta, sala, indicaciones, teléfono y horario siguen debajo, como en cualquier consulta.
+   Se guarda con la ficha (en la consulta del profesional; no crea un centro compartido). */
+const esConsultaPrivada = c => { if (c && c.id) return false; const n = String((c && c.nombre) || '').trim().toLowerCase();   // v2.347.0: con cualquier palabra del vocabulario
+  return /^(consulta|ubicaci[oó]n) privad[ao]/.test(n) || n.startsWith(consultaPrivada('l').toLowerCase()); };
+
+/* ============================================================
+   v2.241.0 · Volver, pestañas, pasos y fichas: una sola forma (Eric eligió la A «Ligera» de
+   https://claude.ai/artifact/SYZkDbbm8dtSRTUWEN5TE4). «‹ Destino» como enlace encima del título; pestañas en caja segmentada;
+   pasos de los asistentes en barra numerada; y la ficha de un registro (pedido, factura, evento, intervención, concurso, equipo, centro,
+   stock, depósito) en panel lateral en el ordenador, como la de un contacto: la lista sigue a la vista. Los formularios y las
+   ventanas anchas (comparar, importar…) siguen como estaban, y Configuración sigue sin ventanas emergentes.
+   ============================================================ */
+let FX_FICHA = 0;

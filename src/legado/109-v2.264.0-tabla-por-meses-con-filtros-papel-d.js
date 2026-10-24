@@ -18,13 +18,6 @@ db.rpc = (orig => function (fn, args, ...r) {
   return orig.call(this, fn, args, ...r);
 })(db.rpc);
 
-// Estados comerciales: el papel de cada uno
-const PAPELES_ESTADO = [
-  ['inicial', 'Inicial', 'El de las fichas nuevas. Solo hay uno.'],
-  ['avance', 'En avance', 'Ya hay contacto, pero todavía sin interés claro.'],
-  ['interes', 'Con interés', 'Interesado: se le sigue de cerca.'],
-  ['positivo', 'Ya es cliente', 'El objetivo: ya compra o trabaja con vosotros.'],
-  ['negativo', 'Ya no interesa', 'No le interesa o se ha perdido.']];
 arbolCfgUnico = (orig => function (...a) {
   const g = orig.apply(this, a);
   if (!(puedeCatalogos() || puede('administrar'))) return g;

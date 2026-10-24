@@ -1,18 +1,3 @@
-/* ============================================================
-   v2.259.0 · Visita sin conexión (pendiente de la auditoría del 8/10, cerrado el 11/10/2026). Antes, sin cobertura la ventana
-   «Registrar visita» ni se abría; si la red caía al guardar, la visita podía rechazarse al reenviarla otro día (por la fecha) y
-   perderse sin aviso, o duplicarse al repetir. Ahora:
-   - La visita se abre sin conexión con la última copia de la ficha (la misma de la ficha) y de sus resultados, y los catálogos
-     quedan guardados en el móvil.
-   - Al guardar sin conexión: a la cola con «sin conexión» (el servidor no la rechaza por la fecha), con el mismo op_id aunque se
-     repita, y las fotos se guardan en el móvil (IndexedDB) y se suben solas cuando se envía la visita.
-   - «Tu día» marca la cita «Registrada en el móvil · pendiente de enviar» y quita «Registrar».
-   - La cola se envía de una en una (sin dos envíos a la vez); lo que el servidor rechaza no se pierde: queda en «sin enviar», con
-     aviso y la opción de reintentar o descartar; el tiempo agotado cuenta como fallo de red.
-   - Sin conexión, la app arranca con el perfil guardado aunque no pueda comprobar la sesión.
-   - Las muestras siguen necesitando conexión (el límite legal se comprueba en el servidor): la ventana lo avisa.
-   ============================================================ */
-let VISITA_OP = null;   // op_id de la ventana abierta (el mismo si se pulsa Guardar dos veces)
 esErrorRed = (orig => function (e) {
   return orig(e) || /ha tardado demasiado|tiempo agotado|timeout|timed out/i.test(String((e && (e.message || e)) || ''));
 })(esErrorRed);
@@ -37,13 +22,7 @@ abrirVisitaBase = (orig => async function (...a) {
   return r;
 })(abrirVisitaBase);
 
-// ---- Fotos de una visita guardada sin conexión: en el móvil hasta que la visita se envía
-const FOTOS_IDB = 'delcos-fotos';
 
-// ---- La cola: de una en una, sin perder lo que el servidor rechaza
-const COLA_KO = 'dlc-cola-ko';
-const colaKo = () => { try { return JSON.parse(localStorage.getItem(COLA_KO) || '[]'); } catch (e) { return []; } };
-let COLA_ENVIANDO = false;
 vaciarCola = async function () {
   if (!navigator.onLine || COLA_ENVIANDO) return;
   let c = colaLeer(); if (!c.length) return;

@@ -1563,3 +1563,82 @@ async function rpCargar(manana) {
   RPROP = Object.assign(obj, { datos: data || {}, lista: rpArmar((data || {}).candidatos || [], obj) });
   rpPintar();
 }
+
+const rutaActiva = () => { try { return JSON.parse(localStorage.getItem(RKEY()) || 'null'); } catch (e) { return null; } };
+
+/* v2.76.0 · La salida y la vuelta son de cada ruta (o del día planificado), no un ajuste general.
+   HOR = horario del plan en curso; sin él se estima desde las 9:00 (o desde ahora) y no hay hora de vuelta. */
+let HOR = null;
+
+const TIEMPOS = () => { const p = prefsActivas().plan || {}; return { visita: +p.visita || 15, parada: p.parada != null && p.parada !== '' ? +p.parada : 10 }; };
+
+const PLANCFG = () => Object.assign({}, TIEMPOS(), { salida: (HOR && HOR.salida) || '09:00', tope: (HOR && HOR.vuelta) || '23:59',
+  conSalida: !!(HOR && HOR.salida), conTope: !!(HOR && HOR.vuelta) });
+
+const horDeRuta = id => { const r = (RUTAS || []).find(x => x.id === id); return r && (r.salida || r.vuelta) ? { salida: r.salida || null, vuelta: r.vuelta || null } : null; };
+
+const RPKEY = () => 'dlc-ruta-pausa-' + (PERFIL ? PERFIL.id : '');
+
+let ULTIMO_PLAN = null;
+
+let SEM_BORRADOR = null;   // propuesta del planificador aún sin guardar
+
+/* v2.145.0 · Rutas en una sola pantalla (decisión de Eric, 3/10/2026: «Propuestas del día y mis rutas al lado» y propuestas que
+   aprenden de lo que hace). Sin pestañas: a la izquierda 2 o 3 rutas ya armadas para el día (por zona y llenas hasta la jornada,
+   con sus motivos y un croquis), a la derecha las rutas guardadas, y el plan se abre debajo al pulsar. Los candidatos y su
+   puntuación vienen de rutas_candidatos (SQL 95): urgentes, consulta ese día, interesados que se enfrían, pendientes, buenos
+   clientes sin visita y nunca visitados, más las zonas y días en que sueles visitar y quién más compra. */
+let RPROP = null;   // { manana, fecha, datos, lista: [{ sel, ini, fin, km, zona }] }
+
+const RP_DIAS = { L: 'lunes', M: 'martes', X: 'miércoles', J: 'jueves', V: 'viernes' };
+
+const rpNombreDia = f => {
+  const man = new Date(); man.setDate(man.getDate() + 1);
+  return f === hoyISO() ? 'hoy' : f === isoLocal(man) ? 'mañana' : 'el ' + fechaLarga(new Date(f + 'T00:00:00')).replace(/,.*/, '');
+};
+
+/* v2.233.0 · Tu día en el mapa, en Rutas (decisión de Eric: servicio de rutas TomTom, mapa en Rutas; SQL 138 y función «rutas»).
+   - Arriba de Rutas, «Tu día en el mapa»: las citas de hoy numeradas en un mapa plano (MapLibre + OpenFreeMap, colores de delcos),
+     la ruta por las calles y la jornada en una pista con la hora; «Ver el día» mueve el marcador por las calles y la cámara lo sigue.
+   - La ruta y los tiempos los da la función «rutas» (TomTom, con tráfico). Antes de cada petición la base comprueba el tope
+     (2.000 al día entre todas las empresas y 30 por usuario y día); si no cabe, o no está activada, la ruta va en línea recta con
+     los tiempos aproximados de siempre y se dice. No se guarda nada de TomTom: solo se recuerda en memoria 10 minutos.
+   - Pulsar una parada abre la cita (verCita). */
+const RM_SV = d => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + d + '</svg>';
+
+const RM_COCHE = '<path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/>';
+
+const RM_PAL = { tierra: '#F1F3F4', zona: '#ECEEF0', parque: '#D6EDDA', agua: '#AFD3F2', edif: '#E4E6EA', calle: '#FFFFFF', borde: '#DADCE0', via: '#FFF1C2', viaBorde: '#F2D27A', texto: '#5F6368', ruta: '#3F82C0', rutaBorde: '#1F5A99', hecho: '#A8BCD2' };
+
+const RM_MEM = new Map();   // ruta pedida → {t, r}: solo en memoria y 10 minutos
+
+const rmDur = m => m >= 60 ? `${Math.floor(m / 60)} h ${String(Math.round(m % 60)).padStart(2, '0')}` : `${Math.round(m)} min`;
+
+const rmKm = (a, b) => Math.hypot((b[1] - a[1]) * 111.32 * Math.cos(a[0] * Math.PI / 180), (b[0] - a[0]) * 111.32);
+
+const RM_MOTIVO = {
+  empresa: 'Hoy tu empresa ya ha usado su cupo de rutas por calles', global: 'Hoy ya se ha usado el cupo de rutas por calles',
+  apagado: 'Las rutas por calles están desactivadas', sin_clave: 'Las rutas por calles aún no están activadas',
+  servicio: 'El servicio de rutas no ha contestado', sesion: 'No se ha podido comprobar tu sesión', datos: 'Alguna parada no tiene una ubicación válida'
+};
+
+const RN_SEM = { 1: 'primer', 2: 'segundo', 3: 'tercer', 4: 'cuarto', 5: 'último' };
+
+let RN = null;          // la ruta que se está creando o editando
+
+const rnSV = d => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + d + '</svg>';
+
+const RN_IC = { up: '<path d="m18 15-6-6-6 6"/>', down: '<path d="m6 9 6 6 6-6"/>', x: '<path d="M18 6 6 18M6 6l12 12"/>', lupa: '<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>',
+  lapiz: '<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>', papelera: '<path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>',
+  reloj: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>', varita: '<path d="m15 4 5 5"/><path d="M3 21 15 9"/><path d="M19 3v4M17 5h4M7 3v2M6 4h2"/>', check: '<path d="M20 6 9 17l-5-5"/>' };
+
+// ---------- fechas de una ruta que se repite ----------
+const rnDiaSem = d => RN_DIAS.indexOf(d) + 1;   // L = 1 … V = 5 (getDay)
+
+const rnHorizonte = rep => isoMas(hoyISO(), rep && rep.tipo === 'mensual' ? 92 : 56);
+
+const rnProxima = rep => rnFechas(rep, hoyISO(), isoMas(hoyISO(), 120))[0] || null;
+
+const rnPie = (izq, der) => `<div class="rnpie"><span>${izq}</span><span class="rnpieb">${der}</span></div>`;
+
+const rnFC = l => ({ type: 'FeatureCollection', features: l });

@@ -28,8 +28,6 @@ alternarUrgente = (orig => async function (id, ...x) {
   if (TAB === 'agenda' && typeof agRefrescoQuieto === 'function') agRefrescoQuieto();
   return r;
 })(alternarUrgente);
-// Tareas del día plegables: un clic en su título las oculta todas y se ven solo las citas (se recuerda en este dispositivo)
-const tdTareasPlegadas = () => { try { return localStorage.getItem('delcos-tareas-plegadas') === '1'; } catch (e) { return false; } };
 pintarTuDia = (orig => async function (...x) { const r = await orig.apply(this, x); tdPlegarTareas(); return r; })(pintarTuDia);
 
 

@@ -63,7 +63,6 @@ cargarSeguimiento = (orig => async function (...a) { await orig(...a); const v =
 
 /* ---------------- 4. IVA: solo los porcentajes (nunca un importe «con IVA») ---------------- */
 
-const ES_IMPORTE = /imp|importe|total|base|precio|pvp|coste|cobro|con_iva|conIva|sin_iva/i;
 // Se deshace cualquier conversión errónea (un importe convertido en lista de IVA)
 new MutationObserver(() => {
   document.querySelectorAll('select.ivasel').forEach(sel => {
@@ -90,8 +89,6 @@ new MutationObserver(ms => { for (const m of ms) for (const n of m.addedNodes) i
 
 /* ---------------- 6. Ventanas: tres tamaños según su contenido ---------------- */
 
-// Pequeña (confirmaciones y citas), normal (fichas y formularios) y amplia (pedidos, compras y facturas)
-const VENT_AMPLIA = ['editorPedido', 'verPedido', 'editorCompra', 'verFactura'];
 VENT_AMPLIA.forEach(fn => {
   const orig = eval(fn);
   const nueva = function (...a) { $('dlg').classList.add('amplia'); return orig.apply(this, a); };

@@ -30,10 +30,6 @@ pintarPaginaPlan = (orig => async function (...a) {
 /* v2.167.0 · Al volver de Stripe (pago, baja o el portal) se abre «Plan y suscripción», no Inicio (petición de Eric). Stripe vuelve a
    …/?pago=…#plan o a …/#plan: la primera pantalla tras entrar es la del plan. */
 let PAGO_IR_PLAN = location.hash === '#plan' || new URLSearchParams(location.search).has('pago');
-const pagoAlPlan = () => {
-  PAGO_IR_PLAN = false;
-  try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
-};
 ir = (orig => function (t, ...a) {
   if (PAGO_IR_PLAN && PERFIL) { pagoAlPlan(); if (!ES_MEDICO() && puedeOrganizacion()) t = 'plan'; }
   return orig.call(this, t, ...a);
@@ -42,17 +38,6 @@ ir = (orig => function (t, ...a) {
 if (PAGO_IR_PLAN && typeof PERFIL !== 'undefined' && PERFIL) setTimeout(() => { if (PAGO_IR_PLAN) ir('plan'); }, 0);
 setTimeout(() => { PAGO_IR_PLAN = false; }, 30000);
 
-/* v2.167.0 · «Pedir presupuesto» dentro de delcos (petición de Eric: nada de abrir el correo ni llevar al cliente fuera). Un formulario con
-   la imagen de la plataforma: el contacto ya relleno, qué buscan (opciones que se marcan, sin cerrar nada: siempre hay «Cuéntanos con tus
-   palabras»), tamaño, cuándo y cómo prefieren que les contactemos. Se guarda (pedir_presupuesto, SQL 104), delcos recibe un aviso al
-   momento y la empresa ve en «Plan y suscripción» en qué punto está. Con A medida, el mismo formulario sirve para hablar del contrato.
-   En el panel de delcos, pestaña «Solicitudes» con su estado y una nota. */
-const PRESU_NECESITA = [
-  ['usuarios', 'Más de 50 usuarios'], ['migracion', 'Migrar nuestros datos'], ['conexion', 'Conectar con nuestro programa (ERP, CRM, contabilidad…)'],
-  ['portal', 'Portal para muchos profesionales o centros'], ['desarrollo', 'Algo hecho a nuestra medida'], ['formacion', 'Formación del equipo'],
-  ['soporte', 'Soporte prioritario'], ['otro', 'Otra cosa']];
-const PRESU_CUANDO = ['Lo antes posible', 'Este trimestre', 'Más adelante', 'Solo me estoy informando'];
-const PRESU_ESTADO = { 'Nueva': 'Recibida', 'En curso': 'En curso', 'Cerrada': 'Atendida' };
 // «Plan y suscripción»: botones al formulario (en lugar de correos) y la última solicitud con su estado
 pintarPaginaPlan = (orig => async function (...a) {
   const r = await orig.apply(this, a);
@@ -117,11 +102,6 @@ pintarPaginaPlan = (orig => async function (...a) {
   return r;
 })(pintarPaginaPlan);
 
-/* v2.169.0 · Datos de facturación bien antes del primer recibo (petición de Eric: «¿quién garantiza que después de la prueba los datos están
-   bien?»). En «Plan y suscripción», con suscripción de Stripe, los datos con los que se factura (razón social, NIF, correo y dirección, de la
-   función «pagos», acción datos) y «Corregir datos» (portal de Stripe); lo que falta, marcado. Durante la prueba, en los 7 últimos días, aviso
-   arriba para revisarlos. El alta se hace en la web (www.delcos.app/empezar.html): el empezar.html del panel lleva allí. */
-const diasHasta = f => f ? Math.round((Date.parse(String(f).slice(0, 10)) - Date.parse(hoyISO())) / 864e5) : null;   // días de calendario
 pintarPaginaPlan = (orig => async function (...a) {
   const r = await orig.apply(this, a);
   const c = $('cfgcuerpo'), pl = PLAN_ACTUAL || {};
@@ -157,14 +137,6 @@ pagoAviso = (orig => function (...a) {
   return r;
 })(pagoAviso);
 
-/* v2.171.0 · Panel delcos fuera de las empresas (decisión de Eric, 4/10/2026). El equipo de delcos entra con su propio usuario, que vive en
-   la organización de plataforma (SQL 107); allí la app enseña SOLO el Panel delcos, con su menú: Clientes, Solicitudes, Errores, Accesos,
-   Auditoría, Equipo delcos y Plantilla (roles y catálogos que reciben las empresas nuevas). Para ayudar a una empresa, «Entrar» desde
-   Clientes (la app normal de esa empresa, con la franja «Estás viendo…») y «Salir» vuelve al panel. plan_uso dice si es la de plataforma. */
-let MODO_PLATAFORMA = false;
-const PANEL_SECCIONES = [['pd-orgs', 'orgs', 'Clientes', 'building-2'], ['pd-solicitudes', 'solicitudes', 'Solicitudes', 'mail'],
-  ['pd-errores', 'errores', 'Errores', 'bug'], ['pd-accesos', 'accesos', 'Accesos', 'lock-keyhole'], ['pd-auditoria', 'auditoria', 'Auditoría', 'history'],
-  ['pd-equipo', 'equipo', 'Equipo delcos', 'users'], ['pd-plantilla', 'plantilla', 'Plantilla', 'clipboard-list']];
 // Pestañas propias del panel en modo plataforma: el equipo (los usuarios de la de plataforma) y la plantilla de las empresas nuevas
 (() => {
   const base = PAGINAS.delcos.tabs;
@@ -243,11 +215,6 @@ async function moverCitaLocal(orden, id, acc) {
    que no se vea ni un instante lo de la otra. En «Tu día», la cita que se sube o se baja se desliza a su sitio y queda marcada un momento. */
 PANEL_SECCIONES.splice(1, 0, ['pd-cobros', 'cobros', 'Cobros y suscripciones', 'credit-card'], ['pd-altas', 'altas', 'Altas desde la web', 'rocket']);
 PANEL_SECCIONES.splice(5, 0, ['pd-estado', 'estado', 'Estado de la plataforma', 'shield-check']);
-const PANEL_DESC = { orgs: 'Las empresas que usan delcos: plan, dominios, extras y entrar a ayudarlas', cobros: 'Quién paga, quién está en prueba y qué recibos vienen',
-  altas: 'Empresas que se han dado de alta desde www.delcos.app', solicitudes: 'Presupuestos A medida y conversaciones sobre el contrato',
-  errores: 'Errores de la plataforma agrupados, de todas las empresas', estado: 'Versiones en uso, SQL aplicado y cifras generales',
-  accesos: 'Entradas y salidas de la plataforma', auditoria: 'Cambios hechos en el panel', equipo: 'Las personas de delcos con acceso al panel',
-  plantilla: 'Roles y catálogos que recibe cada empresa nueva' };
 (() => {
   const nav = $('nav'); if (!nav) return;
   PANEL_SECCIONES.forEach(([t, , txt, ico]) => {
@@ -273,11 +240,6 @@ cargarPagina = (orig => function (t, ...a) {
   return r;
 })(cargarPagina);
 
-const pdFecha = v => v ? new Date(String(v).length === 10 ? v + 'T12:00:00' : v).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
-const pdHace = v => { if (!v) return '—'; const m = Math.round((Date.now() - new Date(v)) / 60000);
-  return m < 60 ? `hace ${Math.max(1, m)} min` : m < 1440 ? `hace ${Math.round(m / 60)} h` : `hace ${Math.round(m / 1440)} días`; };
-const pdKpis = l => `<div class="pdkpis">${l.map(([v, t, cls]) => `<div class="pdkpi${cls ? ' ' + cls : ''}"><b>${v}</b><span>${esc(t)}</span></div>`).join('')}</div>`;
-const pdEsqueleto = () => `<div class="card cfgpanel"><div class="pdkpis">${'<div class="pdkpi"><div class="skel" style="width:50%"></div><div class="skel" style="width:70%"></div></div>'.repeat(4)}</div><div class="skel"></div><div class="skel" style="width:80%"></div></div>`;
 
 
 
@@ -343,24 +305,14 @@ try { const m = () => { try { localStorage.setItem('dlc-modo', MODO_PLATAFORMA ?
 
 // ---- «Tu día»: la cita movida se desliza a su sitio (FLIP) y queda resaltada un momento
 
-/* v2.173.0 · El próximo recibo con IVA en «Plan y suscripción» (petición de Eric por la sesión de la web: que la web, Stripe y la app digan lo mismo).
-   Durante la prueba: hoy 0 €, el primer recibo con IVA (con la puesta en marcha si el pago es mensual) y lo que viene después; fuera de ella, el
-   próximo recibo y su fecha. Se pinta al momento con la misma cuenta que la web (IVA = redondeo de base × 21 / 100) y, si la función «pagos»
-   devuelve el recibo de Stripe (acción datos, campo proximo), se cambia por ese (lleva descuentos y lo ya apuntado). */
-let PAGO_PROXIMO = null;
 db.functions.invoke = (orig => async function (fn, op, ...a) {
   const r = await orig.call(this, fn, op, ...a);
   try { if (fn === 'pagos' && op && op.body && op.body.accion === 'datos' && r && r.data && r.data.ok) { PAGO_PROXIMO = r.data.proximo || null; pintarProximoRecibo(); } } catch (e) {}
   return r;
 })(db.functions.invoke.bind(db.functions));
-const ivaDe = x => Math.round(x * 21) / 100;
 // (v2.183.0: aquí iba la primera versión de pintarProximoRecibo; se redefine entera más abajo)
 pintarPaginaPlan = (orig => async function (...a) { const r = await orig.apply(this, a); try { pintarProximoRecibo(); } catch (e) {} return r; })(pintarPaginaPlan);
 
-/* v2.174.0 · Recibo con IVA como en la web (repaso de Web delcos): fecha larga («el 3 de noviembre»), importes enteros sin decimales (490 €), sin la
-   línea «Próximo recibo el …» que repetía la fecha y, bajo la cuota «Al mes, sin IVA», lo mismo con IVA. */
-const eurW = n => { const s = eur(n); return Math.round(+n * 100) % 100 === 0 ? s.replace(/,00(?=\s?€)/, '') : s; };
-const fechaDiaMes = f => f ? new Date(String(f).slice(0, 10) + 'T12:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'long' }) : '';
 pintarProximoRecibo = function () {
   const c = $('cfgcuerpo'), pl = PLAN_ACTUAL || {}, h = c && c.querySelector('#planact h2');
   if (!h) return;

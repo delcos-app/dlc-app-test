@@ -11,7 +11,6 @@ verPedido = (orig => async function (id, ...a) {
   finally { try { await estable($('dbody'), 2500); } catch (e) {} d.classList.remove('pdprep'); }
 })(verPedido);
 
-let ULT_ACCION = 0;
 const CIERRE_USUARIO = {}, CIERRE_PEND = {};
 ['pointerdown', 'keydown'].forEach(t => document.addEventListener(t, () => { ULT_ACCION = performance.now(); }, true));
 ['dlg', 'dlg2', 'ficha'].forEach(id => {

@@ -4,7 +4,6 @@
 
 /* ---------------- panel lateral de herramientas ---------------- */
 
-let HERR_CTX = null;
 function abrirHerramientas(contexto) {
   const d = $('tools');
   if (d.classList.contains('abierto') && HERR_CTX === contexto) { d.classList.remove('abierto'); return; }
@@ -63,16 +62,12 @@ function abrirHerramientas(contexto) {
   });
 }
 
-let OPF = { provincias: [], municipios: [], especialidades: [], estados: [], centros: [] };
-const optFiltro = (lista, v, todo) => `<option value="">${todo}</option>` +
-  (lista || []).map(o => `<option ${v === o.v ? 'selected' : ''}>${esc(o.v)} (${o.n})</option>`).join('');
 
 /* ---------------- contactos: alta completa y buscador ---------------- */
 
 
 /* ---------------- clasificadores por grupos ---------------- */
 
-let CATS_ABIERTOS = {};
 
 
 function abrirClasificador(id) {

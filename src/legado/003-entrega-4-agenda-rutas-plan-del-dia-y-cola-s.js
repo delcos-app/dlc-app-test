@@ -4,9 +4,6 @@
 
 /* ---------------- cola sin conexión ---------------- */
 
-const COLA = 'dlc-cola';
-const colaLeer = () => { try { return JSON.parse(localStorage.getItem(COLA) || '[]'); } catch (e) { return []; } };
-const colaGuardar = c => localStorage.setItem(COLA, JSON.stringify(c));
 
 function pintarConexion() {
   const n = colaLeer().length;
@@ -42,9 +39,6 @@ setInterval(() => vaciarCola(), 60000);
 
 let AG_MODO = 'dia', AG_FECHA = null;
 
-const isoMas = (iso, n) => { const d = new Date(iso + 'T12:00:00'); d.setDate(d.getDate() + n); return isoLocal(d); };
-const lunesDe = iso => { const d = new Date(iso + 'T12:00:00'); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return isoLocal(d); };
-const EST_COL = { Planificada: 'var(--navy)', Visitada: 'var(--ok)', Pendiente: 'var(--warn)', Reprogramada: 'var(--sky)', Descartada: 'var(--muted)' };
 
 /* Agenda: pinta la vista base (día, semana o mes) y le añade, en orden, lo que antes eran 8 capas separadas. */
 
@@ -103,11 +97,6 @@ function km(a, b) {
   const s = Math.sin(dLat / 2) ** 2 + Math.cos(a[0] * r) * Math.cos(b[0] * r) * Math.sin(dLon / 2) ** 2;
   return 2 * R * Math.asin(Math.sqrt(s));
 }
-// v2.175.0 (decisión de Eric: autopista a 120 km/h): los primeros 30 km en línea recta a 40 km/h (ciudad) y lo que pase de 30 km a 100 km/h en línea
-// recta (la carretera es ~1,2 veces más larga: unos 120 km/h por autopista); antes, todo a 40
-const minutosEntre = (a, b) => { if (!a || !b || a[0] == null || b[0] == null) return 0; const d = km(a, b);
-  return Math.max(6, Math.round(Math.min(d, 30) / 40 * 60 + Math.max(d - 30, 0) / 100 * 60) + 5); };
-const hm = m => String(Math.floor(m / 60) % 24).padStart(2, '0') + ':' + String(Math.round(m) % 60).padStart(2, '0');
 
 
 /* pintarPlan: la parte base y, en orden, cada paso que se le añade (antes eran 6 capas separadas). */

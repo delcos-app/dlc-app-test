@@ -1,10 +1,3 @@
-/* ============================================================
-   v2.102.0 · «Tu día» por centros
-   Las citas seguidas en un mismo centro se agrupan bajo el centro (como las
-   paradas del plan). Y la ficha abierta desde una cita muestra en «Para la
-   visita» la consulta de ESE centro. (El SQL 79 pone la base en hora de España.)
-   ============================================================ */
-let FICHA_CENTRO = null;   // centro de la cita desde la que se abre la ficha
 // La consulta de la visita: la del centro de la cita; si no, la que tiene consulta hoy; si no, la principal
 consultaDeLaVisita = (orig => function (cons) {
   const pref = FICHA_CENTRO ? clasNorm(FICHA_CENTRO) : '';

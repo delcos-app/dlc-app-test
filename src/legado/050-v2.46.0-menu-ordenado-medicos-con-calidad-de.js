@@ -27,7 +27,6 @@ Object.assign(ICON_NOM, {"euro": "<path d=\"M4 10h12\" /> <path d=\"M4 14h9\" />
 
 /* ---------------- menú principal: orden y «Médicos» ---------------- */
 
-const ORDEN_MENU = ['inicio', 'agenda', 'rutas', 'directorio', 'ventas', 'pacientes', 'productos', 'facturacion', 'analitica', 'informe'];
 ordenarMenu();
 // «Calidad del dato» pasa a ser un botón dentro de Médicos
 function botonCalidad() {
@@ -53,8 +52,6 @@ function botonCalidad() {
 
 /* ---------------- Configuración por bloques con subapartados ---------------- */
 
-let CFG_SUB = null;
-const fac = fn => () => { $('cfgcuerpo').innerHTML = '<div id="fcuerpo"></div>'; fn(); };
 function arbolConfig() {
   const admin = puede('administrar');
   return [
@@ -81,10 +78,6 @@ function arbolConfig() {
       { k: 'orgs', ic: 'building', t: 'Organizaciones', d: 'Empresas de la plataforma y alta de nuevas', r: pintarOrganizaciones }] : []]
   ].filter(g => g[1].length);
 }
-// Nombres anteriores de cada apartado → dónde está ahora
-const CFG_ANTES = { prefs: ['perfil'], horario: ['rutas', 'horario'], kpis: ['inicio', 'kpis'], usuarios: ['equipo', 'usuarios'],
-  roles: ['equipo', 'roles'], reglas: ['cartera', 'reglas'], frec: ['cartera', 'frec'], accesos: ['seguridad', 'accesos'], auditoria: ['seguridad', 'auditoria'],
-  alm: ['stock', 'alm'], mues: ['stock', 'mues'], fiscal: ['fact', 'fiscal'], series: ['fact', 'series'], vf: ['fact', 'vf'] };
 async function cargarConfig() {
   salirPanel();
   if (CFG_ANTES[CFG_SEC]) { const [k, s] = CFG_ANTES[CFG_SEC]; CFG_SEC = k; if (s) CFG_SUB = s; }
@@ -141,7 +134,6 @@ async function cargarConfig() {
 
 /* ---------------- manual: qué incluye tu plan ---------------- */
 
-const MOD_DE_MANUAL = { agenda: 'agenda', rutas: 'rutas', directorio: 'directorio', ventas: 'ventas', facturacion: 'facturacion', analitica: 'analitica', productos: 'productos', pacientes: 'pacientes', seguimiento: 'seguimiento' };
 
 /* ---------------- notificaciones mejor explicadas ---------------- */
 

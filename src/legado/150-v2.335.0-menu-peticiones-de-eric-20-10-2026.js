@@ -1,11 +1,3 @@
-/* ============================================================
-   v2.335.0 · Menú (peticiones de Eric, 20/10/2026)
-   - «Usuarios» fuera del menú (está en Configuración → Equipo → Usuarios): en el menú de escritorio y en «Más» del móvil.
-   - Móvil: «Personalizar menú» en «Más» (movPersonalizar): qué pantallas van en la barra de abajo (hasta 4; preferencias.menu.barra)
-     y cuáles salen en «Más» (las mismas que se ocultan en el menú de escritorio: preferencias.menu.ocultos). Lo oculto no sale en «Más».
-   ============================================================ */
-const MOV_BARRA_DEF = ['inicio', 'agenda', 'rutas', 'directorio'];
-const MENU_FUERA = ['usuarios'];
 pintarBnav = (orig => function (...a) {
   if (ES_MEDICO()) return orig.apply(this, a);
   const b = $('bnav'); if (!b) return orig.apply(this, a);

@@ -12,8 +12,6 @@ document.addEventListener('click', e => { if (e.target.closest('[data-irprefs]')
 
 /* ---------------- Pedidos → Ventas: por páginas y guardado en el dispositivo ---------------- */
 
-let PEDPAG = 0;
-let PEDF = {};   // v2.88.0: filtros por campos del pedido (Clasificadores)
 // Cualquier cambio de filtro vuelve a la primera página
 document.addEventListener('change', e => { if (e.target.closest('#pper, #pcanal, #pestado')) PEDPAG = 0; }, true);
 document.addEventListener('input', e => { if (e.target.id === 'pq') PEDPAG = 0; }, true);
@@ -24,10 +22,7 @@ let FACPAG = 0, LLPAG = 0;
 
 /* ---------------- factura en PDF (mismo formato que Holded) ---------------- */
 
-let LOGO_DATA = null;
 
-// (v2.183.0: aquí iba la primera versión de facturaPDF; se redefine entera más abajo)
-const nombrePDF = f => `${f.numero}_${String((f.cliente || {}).nombre || 'cliente').replace(/[^\p{L}\p{N} ]/gu, '').trim().replace(/\s+/g, '_')}.pdf`;
 
 async function descargarFacturaPDF(f, rn) {
   const doc = await facturaPDF(f, rn); doc.save(nombrePDF(f));
@@ -107,8 +102,6 @@ pintarEmpresa = (orig => async function () {
 
 /* ---------------- manual de uso renovado ---------------- */
 
-const ICONOS_MANUAL = { roles: '👥', inicio: '🏠', agenda: '📅', rutas: '🧭', directorio: '🩺', centros: '🏥', visitas: '📝', ventas: '🛒',
-  config: '⚙️', admin: '🛡️', facturacion: '🧾', permisos: '🔐' };
 const PRIMEROS_PASOS = {
   cartera: [['📍', 'Configura tu punto de salida', 'Configuración → Preferencias. Con él se calculan las horas de tus rutas.', 'config'],
     ['📅', 'Planifica tu semana', `Agenda → Semana → «Planificar la semana». Reparte a tus ${TT('medico', 'p', '', 'l', 'l')} por días.`, 'agenda'],

@@ -343,3 +343,65 @@ function tvTipos(d) {
       <tbody>${eq.map(u => `<tr><td>${esc(u.nombre)}</td>${TV_TIPOS.map(x => `<td>${par(u[x[0]])}</td>`).join('')}</tr>`).join('')}</tbody></table>
       <div class="tvlbl">Con pedido de cada tipo, de las ${TT('visita', 'p', '', 'l', 'l')} que registró cada persona</div></div>` : ''}`;
 }
+
+const AN = { dim: 'medico', desde: '', hasta: '', canal: '', producto: '' };
+
+let AN_MED = null;
+
+let ANSEC = 'resumen';
+
+/* v2.148.0 · Analítica: panel de indicadores por áreas (decisión de Eric, 3/10/2026: «Panel por áreas + Explorar», engranaje con
+   filtro propio que se guarda y las cuatro familias nuevas). Resumen: indicadores de Ventas, Clientes, Equipo, Oportunidades, Cobros y
+   Stock (cada uno según su módulo y permisos) con la comparación elegida; cada tarjeta tiene su engranaje (comercial, producto, canal,
+   municipio, comparación y nombre; se puede duplicar con otro filtro) y «Personalizar» elige cuáles se ven. El periodo y la comparación
+   van en «Filtros y columnas»; en Explorar, también todos sus filtros (a la vista quedan «Ver por», «Ordenar por» y la búsqueda).
+   Las cifras salen de analitica_kpis (SQL 96), una llamada por filtro distinto. */
+const AN_FAM = [
+  ['ventas', 'Ventas', () => puedeModulo('ventas')],
+  ['clientes', 'Clientes', () => puedeModulo('ventas')],
+  ['equipo', () => 'Equipo y ' + TT('visita', 'p', '', 'l', 'l'), () => puedeModulo('agenda')],
+  ['oportunidades', 'Oportunidades', () => puedeModulo('ventas') && hayOportunidades()],
+  ['cobros', 'Cobros', () => puedeModulo('facturacion')],
+  ['stock', 'Stock y compras', () => puedeModulo('productos') && nivelDe2('P') >= 1]
+];
+
+// Qué filtros tienen sentido en cada área
+const AN_FILTROS = { ventas: ['comercial', 'producto', 'canal', 'municipio'], clientes: ['comercial', 'producto', 'canal', 'municipio'],
+  equipo: ['comercial', 'municipio'], oportunidades: ['comercial', 'producto'], cobros: [], stock: ['producto'] };
+
+const anFamNombre = f => { const x = AN_FAM.find(a => a[0] === f); return x ? (typeof x[1] === 'function' ? x[1]() : x[1]) : f; };
+
+const anFamVisible = f => { const x = AN_FAM.find(a => a[0] === f); return !!x && x[2](); };
+
+const anKpiVisible = k => anFamVisible(k.fam) && (!k.imp || verImportes());
+
+const AN_MES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+
+/* ============================================================
+   v2.320.0 · Ventas tras la visita (petición de Eric, 16/10/2026; SQL 163). En Analítica → Resumen, arriba, una tarjeta con
+   flechas ‹ › que enseña el mismo dato de tres maneras (le gustaban las tres propuestas por igual):
+     1. Embudo: visitas, profesionales visitados y los que tienen una venta en los 30 días siguientes; % grande, unidades y días.
+     2. El efecto de la visita: unidades por visita y día, 30 días antes y después (media de 7 días), con el día de la visita.
+     3. Mes a mes: visitas y visitas con venta de los 6 últimos meses, con la línea del %.
+   Usa el periodo de Analítica y lo compara con el anterior. La vista elegida se recuerda (localStorage delcos-tvvista).
+   Solo para el equipo: nunca en el portal del profesional.
+   ============================================================ */
+const TV_VISTAS = [['embudo', 'Embudo'], ['efecto', 'El efecto'], ['meses', 'Mes a mes'], ['tipos', 'Por tipo']];
+
+const tvPct = (a, b) => b ? Math.round(a / b * 100) : 0;
+
+const tvSub = () => {
+  const d = TV_DATOS || {};
+  return [`${TT('visita', 'p', '', 'l', 'C')} del ${fechaCorta(d.desde)} al ${fechaCorta(d.hasta)} y pedidos atribuidos ${TT('medico', 's', 'al', 'l', 'l')} en los ${d.dias || 30} días siguientes`,
+    `Unidades pedidas por ${TT('visita', 's', '', 'l', 'l')}, de media, en los ${d.dias || 30} días antes y después de ella`,
+    `Por mes: ${TT('visita', 'p', '', 'l', 'l')} hechas y cuántas tienen un pedido atribuido ${TT('medico', 's', 'al', 'l', 'l')} en los ${d.dias || 30} días siguientes`,
+    `${TT('visita', 'p', 'el', 'C', 'l')} de captación, de presentación y de seguimiento, y cuántas tienen un pedido en los ${d.dias || 30} días siguientes`][TV_I];
+};
+
+/* ============================================================
+   v2.326.0 · Pedidos tras la visita, por tipo (petición de Eric, 16/10/2026; SQL 168). La tarjeta de Analítica se llama ya
+   «Pedidos tras la visita» y no habla de ventas (regla de Eric: nunca «venta» al hablar de pedidos y profesionales). Cuarta
+   vista «Por tipo»: visitas de captación (la primera a cada profesional), de presentación (resultado que avanza la ficha o un
+   producto nuevo presentado) y de seguimiento, cuántas acaban en pedido, y lo mismo por persona del equipo.
+   ============================================================ */
+const TV_TIPOS = [['captacion', 'Captación'], ['presentacion', 'Presentación'], ['seguimiento', 'Seguimiento']];

@@ -3,10 +3,6 @@
    ============================================================ */
 
 let PRODUCTOS = [], PEDIDOS = [], SIN_ATRIB = [];
-const AN = { dim: 'medico', desde: '', hasta: '', canal: '', producto: '' };
-// Crear o cambiar pedidos y pacientes: administración y televenta (el comercial solo consulta lo suyo)
-const puedeVentas = () => PERFIL && (puede('administrar') || (((PERFIL.areas || {}).V || 0) >= 2 && puede('televenta')));
-const veVentas = () => PERFIL && (puede('administrar') || ((PERFIL.areas || {}).V || 0) >= 1 || puede('cartera'));
 
 
 /* ---------------- pedidos ---------------- */

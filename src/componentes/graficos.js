@@ -101,3 +101,35 @@ async function graficoCanal() {
       <div class="donutley">${filas.map((f, i) => `<div><i style="background:${cols[i % 4]}"></i><span>${esc(f.nombre)}</span><b>${num(f.total)}</b><span class="sm">${Math.round((+f.total || 0) / tot * 100)}%</span></div>`).join('')}</div></div>`
     : vacioGrafico('Verás qué parte de las ventas llega por cada canal.');
 }
+
+const KPI_DEF = ['citas', 'urgentes', 'visitas_sem', 'visitas_mes', 'interesados', 'sin_contactar', 'cartera', 'dups'];
+
+const kpiConfig = () => {
+  const p = (PERFIL.preferencias || {}).kpis;
+  if (Array.isArray(p) && p.length) return p;
+  return KPI_CAT.map(k => ({ id: k.id, on: KPI_DEF.includes(k.id), t: '' }));
+};
+
+const vacioGrafico = t => `<div class="gvacio"><span>📊</span><b>Aún no hay datos para este gráfico</b><span class="sm">${esc(t)}</span></div>`;
+
+const KPI_CATEGORIA = {
+  citas: 'Agenda', citas_7d: 'Agenda', urgentes: 'Cartera', interesados: 'Cartera', sin_contactar: 'Cartera', cartera: 'Cartera',
+  sin_visita_60: 'Cartera', sin_horario: 'Calidad del dato', dups: 'Calidad del dato', visitas_sem: 'Actividad', visitas_mes: 'Actividad',
+  visitas_7d: 'Actividad', muestras_mes: 'Actividad', material_mes: 'Actividad', uds_mes: 'Ventas (unidades)', prescriptores: 'Ventas (unidades)',
+  nuevos_presc: 'Ventas (unidades)', activos_90: 'Ventas (unidades)', conversion: 'Cartera', importe_mes: 'Ventas (importes)', borradores: 'Pedidos'
+};
+
+const KPI_PERMISO = { importe_mes: ['E', 1], borradores: ['V', 1], dups: ['Q', 1], sin_horario: ['M', 1] };
+
+/* v2.87.0 · Cada indicador pertenece a un módulo: solo lo ve quien tiene acceso a ese módulo */
+const KPI_MOD = {
+  citas: 'agenda', visitas_sem: 'agenda', visitas_mes: 'agenda', visitas_7d: 'agenda', citas_7d: 'agenda', muestras_mes: 'agenda', material_mes: 'agenda',
+  urgentes: 'directorio', interesados: 'directorio', sin_contactar: 'directorio', cartera: 'directorio', dups: 'directorio', sin_visita_60: 'directorio', sin_horario: 'directorio',
+  uds_mes: 'ventas', importe_mes: 'ventas', prescriptores: 'ventas', nuevos_presc: 'ventas', activos_90: 'ventas', borradores: 'ventas',
+  conversion: 'analitica'
+};
+
+// Indicadores con icono, explicación breve y, cuando se puede, comparación
+const KPI_ICO = { citas: '📅', urgentes: '⚠️', visitas_sem: '📝', visitas_mes: '🗓️', interesados: '✨', sin_contactar: '📇', cartera: '🩺', dups: '🧩',
+  sin_visita_60: '⏳', sin_horario: '🕘', uds_mes: '📦', prescriptores: '👥', nuevos_presc: '🌱', activos_90: '🔁', conversion: '📈',
+  importe_mes: '€', borradores: '✏️', muestras_mes: '🎁', material_mes: '📚', citas_7d: '📆', visitas_7d: '🧭' };

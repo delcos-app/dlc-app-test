@@ -1,20 +1,9 @@
-/* ============================================================
-   v2.300.0 · Volver siempre al punto de partida (petición de Eric). Cuando desde una ventana se abre otra (una cita → la
-   ficha del centro → la ficha de un profesional…), la de antes se apunta en una pila. Al cerrar la de dentro (con su ✕,
-   con «‹ Volver» o al guardar y cerrarse), se vuelve a abrir la anterior con sus datos al día, en vez de dejar a la persona
-   en la pantalla de debajo. Cerrar la primera cierra del todo. Cambiar de pantalla vacía la pila.
-   ============================================================ */
-const VUELTA = [];
 let VISTA = null, VUELTA_REABRIENDO = false, VUELTA_CLIC = null, VUELTA_PONER = false;
 // El último clic dentro de una ventana (menos su ✕): así se sabe que la ventana nueva se abrió desde ella aunque el botón la cierre antes
 document.addEventListener('click', e => {
   const d = e.target.closest && e.target.closest('dialog'); if (!d || e.target.closest('[data-cerrar], .x, .vueltabtn')) return;
   VUELTA_CLIC = { d, t: performance.now() };
 }, true);
-const VISTA_TITULO = { verCita: 'la cita', fichaCentro: 'el centro', abrirFicha: 'la ficha', verPedido: 'el pedido', verFactura: 'la factura', verEvento: 'el evento',
-  verCirugia: 'la intervención', verConcurso: 'el concurso', verEquipo: 'el equipo', verDeposito: 'el depósito', fichaStock: 'el producto' };
-const vistaDlg = () => ['ficha', 'dlg'].map($).find(d => d && d.open) || null;
-const vistaIgual = (a, b) => a && b && a.fn === b.fn && JSON.stringify(a.args.map(x => x && x.id || x)) === JSON.stringify(b.args.map(x => x && x.id || x));
 Object.keys(VISTA_TITULO).forEach(fn => {
   const orig = window[fn]; if (typeof orig !== 'function') return;
   window[fn] = async function (...args) {

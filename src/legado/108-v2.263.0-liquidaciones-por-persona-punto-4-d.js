@@ -1,13 +1,3 @@
-/* ============================================================
-   v2.263.0 · Liquidaciones por persona (punto 4 del plan del 11/10/2026; auditoría del manual).
-   - «Calcular el periodo» buscaba a quién liquidar por el NOMBRE (dos personas con el mismo nombre se confundían) y solo a quien
-     tenía el esquema abierto hoy. Ahora va por la persona (su id) y liquida a todos los que tuvieron un esquema vigente algún día
-     de ese mes (también a quien dejó de cobrar a mitad de mes).
-   - Además, volver a calcular un mes devolvía a «Borrador» las liquidaciones ya aprobadas o pagadas (y las descongelaba). Ahora
-     solo se recalculan las que siguen en borrador; las aprobadas y pagadas no se tocan.
-   - La lista de liquidaciones se puede ver por persona y por mes, con el total de lo que se ve.
-   ============================================================ */
-let LIQ_FIL = { u: '', p: '' };
 // (R-12: calcularLiquidaciones se definía aquí otra vez; ahora está en su sitio, más arriba)
 // La lista, con filtros de persona y mes y el total de lo que se ve
 pintarComisionesBase = (orig => async function (...a) {

@@ -153,3 +153,27 @@ async function volverDelManual() {
   }
   window.scrollTo(0, v.y);
 }
+
+const MOD_DE_MANUAL = { agenda: 'agenda', rutas: 'rutas', directorio: 'directorio', ventas: 'ventas', facturacion: 'facturacion', analitica: 'analitica', productos: 'productos', pacientes: 'pacientes', seguimiento: 'seguimiento' };
+
+/* v2.204.0 · Manual nuevo: un libro aparte en manual/ (decisiones de Eric: se abre desde la app, fotos y vídeos de la empresa de demostración,
+   con el vocabulario de cada empresa, y por capítulos; el primero, «Tu día»).
+   - «Manual de uso» abre el libro en otra pestaña; antes deja en el navegador las palabras de la empresa (médico, visita, paciente) y su nombre.
+   - Cada pantalla lleva un «?» junto al título que abre el manual en su capítulo (los que aún no están escritos abren la portada).
+   - El portal del profesional sigue con su manual de siempre hasta que tenga capítulo. */
+const MANUAL_ANCLA = { inicio: 'inicio', agenda: 'agenda', rutas: 'rutas', ciclo: 'ciclo', cirugias: 'cirugias', directorio: 'directorio', seguimiento: 'calidad',
+  duplicados: 'duplicados', eventos: 'eventos', pacientes: 'clientes', ventas: 'pedidos', oportunidades: 'oportunidades', compras: 'compras', proveedores: 'proveedores', concursos: 'concursos', parque: 'parque', productos: 'productos',
+  facturacion: 'facturacion', analitica: 'analitica', config: 'ajustes', perfil: 'perfil', empresa: 'organizacion', plan: 'plan', organizacion: 'organizacion', usuarios: 'usuarios' };
+
+/* v2.211.0 · El manual, dentro de la app (decisión de Eric, opción B: sin abrir otra pestaña y con el mismo peso).
+   - «Manual de uso» y el «?» de cada pantalla llevan a la pantalla «manual», que enseña el libro (manual/index.html?app=1) en un marco a todo el
+     ancho; el libro solo se descarga al abrirlo, capítulo a capítulo. Si ya se está en el manual, el «?» solo mueve el libro a su sección.
+   - El portal del médico sigue con su manual de siempre (cargarManual original).
+   - window.MANUAL_ULTIMA guarda la última dirección pedida (la usan las pruebas). */
+let MANUAL_DESTINO = '';
+
+/* v2.224.0 · Volver desde el manual al punto exacto (aviso de Eric: al pulsar un «?» y llegar al manual faltaba una flecha para volver).
+   - Al entrar en el manual desde otra pantalla se guarda dónde estaba (MANUAL_VUELTA: pantalla y desplazamiento); la pestaña de cada página,
+     el apartado de Configuración y el día de la Agenda ya se recuerdan solos (PAG_TAB, CFG_KEY, AG_FECHA).
+   - La cabecera del manual lleva «‹ Volver a …» (#manvolver): vuelve a esa pantalla y, cuando ha terminado de pintarse, al mismo punto. */
+let MANUAL_VUELTA = null;

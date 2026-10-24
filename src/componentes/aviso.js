@@ -15,3 +15,7 @@ function avisoSinSalida(el) {
 
 // Si después se abre (o se vuelve a abrir) una ventana con el aviso a la vista, el aviso vuelve a ponerse encima
 function subirAviso() { const t = $('toast'); if (!t || t.classList.contains('hide') || typeof t.showPopover !== 'function' || !t.hasAttribute('popover')) return; try { if (t.matches(':popover-open')) t.hidePopover(); t.showPopover(); } catch (e) {} }
+
+let tToast;
+
+const avisoRevisita = () => Object.assign({ on: true, dias: 7 }, ((PERFIL.preferencias || {}).avisos || {}).revisita || {});

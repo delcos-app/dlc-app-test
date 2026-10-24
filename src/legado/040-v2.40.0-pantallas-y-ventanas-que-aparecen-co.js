@@ -24,9 +24,6 @@ db.rpc = function (fn, params, opts) {
 
 /* ---------------- alertas: ocultar y recuperar ---------------- */
 
-let ALERTAS_OCULTAS = null;
-const tituloAlerta = s => s.textContent.replace(/\s+/g, ' ').replace(/^\s*\d+\s*/, '').replace(/\bequipo\b\s*$/, '').trim();
-const normAl = t => String(t).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').slice(0, 60);
 
 // Ocultar desde la ventana de la alerta
 document.addEventListener('click', async e => {

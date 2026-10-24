@@ -2,8 +2,6 @@
    DLC OS 2.0 · Entrega 2: inicio, navegación y directorio
    ============================================================ */
 
-const $ = id => document.getElementById(id);
-const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const CFG = window.DLC_CONFIG;
 // Enlace del correo de recuperación: se detecta antes de que se procese, para no arrancar la app con esa sesión
 // v2.168.0: también el enlace de bienvenida (invitación) de quien se da de alta desde la web: primero crea su contraseña
@@ -13,15 +11,6 @@ const ENLACE_CADUCADO = /(^#|&)error_code=/.test(location.hash) || /(^#|&)error=
 /* Sesión: si al entrar se desmarcó «Mantener la sesión iniciada», al cerrar el navegador hay que volver a entrar */
 try { if (localStorage.getItem('dlc-no-recordar') && !/(^|; )dlc-sesion-viva=1/.test(document.cookie)) localStorage.removeItem('dlc-os-sesion'); } catch (e) {}
 
-/* v2.181.0 · Nombres neutros en las respuestas de la base (decisión de Eric: dos versiones). Desde la v2.182.0 (SQL 116) estas funciones
-   responden con nombres neutros (cuenta, ubicaciones, actividades…) en lugar de los de DLC (medico, consultas, visitas…). La app sigue usando
-   por dentro los de siempre: al recibir la respuesta de una de ellas, cada clave nueva se copia también con su nombre antiguo (si no viene ya).
-   Con la base todavía en los nombres antiguos no hace nada. Para una función nueva que use estos nombres, añadirla a FN_NEUTRAS. */
-const CLAVES_NEUTRAS = { cuenta: 'medico', cuentas: 'medicos', ubicaciones: 'consultas', actividades: 'visitas', cuenta_codigo: 'medico_codigo',
-  clientes: 'pacientes', ultima_actividad: 'ultima_visita', actividades_mes: 'visitas_mes', actividades_semana: 'visitas_semana',
-  ubicacion_telefono: 'consulta_telefono', dias_con_actividad: 'dias_con_visitas', dias_sin_actividad: 'dias_sin_visita',
-  cuentas_visitadas: 'medicos_visitados', n_ubicaciones: 'n_consultas', n_actividades: 'n_visitas', por_cuenta: 'por_medico',
-  ultimas_actividades: 'ultimas_visitas', actividades_dia: 'visitas_dia', actividades_total: 'visitas_total' };
 const FN_NEUTRAS = new Set(['actividad_mensual', 'agenda_metricas', 'analitica_kpis', 'analitica_kpis_periodo', 'analitica_v2', 'buscar_centros', 'buscar_cuentas',
   'buscar_global', 'cartera_usuario', 'clientes_lista', 'constancia_pacientes', 'contacto_detalle', 'contactos_lista', 'ficha_centro', 'ficha_cuenta', 'guardar_cuenta',
   'importar_lote', 'informe_cuenta', 'llamadas_lista', 'llamadas_resumen', 'llamadas_seguimiento', 'panel_inicio', 'pedido_detalle', 'pedidos_lista',
@@ -50,61 +39,12 @@ const db = window.supabase.createClient(CFG.url, CFG.anon, {
 
 let PERFIL = null, TAB = 'inicio';
 
-/* v2.71.0 · Diccionario de términos. Los textos no escriben «médico», «paciente» ni «visita»: los piden a TT(),
-   que los saca del vocabulario de cada cliente (ajuste «terminos») con su plural, su género y el artículo que concuerda.
-   TT(término, 's'|'p', determinante, mayúsculas del determinante, mayúsculas del nombre[, adjetivo en masculino singular]) · 'l' minúscula, 'C' inicial, 'U' todo. */
-// v2.224.0: palabras de partida genéricas (antes «médico» y «paciente»: DLC las tiene como vocabulario propio desde el SQL 133)
-const TERM_DEF = { medico: { s: 'profesional', p: 'profesionales', g: 'm' }, paciente: { s: 'cliente', p: 'clientes', g: 'm' }, visita: { s: 'visita', p: 'visitas', g: 'f' }, pauta: { s: 'solicitud', p: 'solicitudes', g: 'f' },
-  consulta: { s: 'ubicación', p: 'ubicaciones', g: 'f' }, especialidad: { s: 'segmento', p: 'segmentos', g: 'm' } };   // v2.347.0
-const TERM_DET = { el: ['el', 'los', 'la', 'las'], un: ['un', 'unos', 'una', 'unas'], del: ['del', 'de los', 'de la', 'de las'], al: ['al', 'a los', 'a la', 'a las'],
-  este: ['este', 'estos', 'esta', 'estas'], ningun: ['ningún', 'ningunos', 'ninguna', 'ningunas'], otro: ['otro', 'otros', 'otra', 'otras'],
-  nuevo: ['nuevo', 'nuevos', 'nueva', 'nuevas'], primer: ['primer', 'primeros', 'primera', 'primeras'], ultimo: ['último', 'últimos', 'última', 'últimas'],
-  proximo: ['próximo', 'próximos', 'próxima', 'próximas'] };
-const TERMKEY = 'dlc-terminos';
-let TERMINOS = {};
 try { TERMINOS = JSON.parse(localStorage.getItem(TERMKEY) || '{}') || {}; } catch (e) { TERMINOS = {}; }
-const terminoDe = k => { const d = TERM_DEF[k] || { s: k, p: k + 's', g: 'm' }, t = TERMINOS[k] || {};
-  return { s: String(t.s || '').trim() || d.s, p: String(t.p || '').trim() || d.p, g: t.g === 'f' || t.g === 'm' ? t.g : d.g }; };
-const casoTermino = (t, c) => c === 'U' ? t.toUpperCase() : c === 'C' ? t.charAt(0).toUpperCase() + t.slice(1) : t;
-// v2.347.0: «Todos los segmentos» / «Todas las especialidades»
-const todosLos = k => (terminoDe(k).g === 'f' ? 'Todas ' : 'Todos ') + TT(k, 'p', 'el', 'l', 'l');
-const consultaPrivada = (cn = 'C') => TT('consulta', 's', '', 'l', cn, 'privado');
 
-/* v2.69.0 · Permisos por capacidad. El código pregunta qué puede hacer una persona (puede('administrar')),
-   nunca cómo se llama su rol: los roles y sus capacidades son datos de cada cliente (tablas roles y roles_capacidades). */
-const ROLKEY = 'dlc-roles';
-let ROLES_DEF = [];
 try { ROLES_DEF = JSON.parse(localStorage.getItem(ROLKEY) || '[]') || []; } catch (e) { ROLES_DEF = []; }
-const puede = c => !!(PERFIL && (PERFIL.capacidades || []).includes(c));
-const rolDef = r => ROLES_DEF.find(x => x.nombre === r) || null;
-const rolPuede = (r, c) => { const d = rolDef(r); return !!(d && (d.capacidades || []).includes(c)); };
-const rolesNombres = () => ROLES_DEF.map(x => x.nombre);
-const rolCon = c => (ROLES_DEF.find(x => (x.capacidades || []).includes(c)) || {}).nombre || '';
-const rolPorDefecto = () => (ROLES_DEF.find(x => x.por_defecto) || ROLES_DEF.find(x => !(x.capacidades || []).includes('administrar')) || {}).nombre || '';
-/* v2.70.0 · Estados comerciales como catálogo: el código conoce su papel (inicial, avance, interes, positivo, negativo), no su nombre */
-const ESTKEY = 'dlc-estados';
-let ESTADOS_DEF = [];
 try { ESTADOS_DEF = JSON.parse(localStorage.getItem(ESTKEY) || '[]') || []; } catch (e) { ESTADOS_DEF = []; }
-const estados = () => ESTADOS_DEF.map(x => x.valor);
-const estadoPapel = p => (ESTADOS_DEF.find(x => x.papel === p) || {}).valor || '';
-const papelEstado = v => (ESTADOS_DEF.find(x => x.valor === v) || {}).papel || '';
-// v2.97.0: colores del sistema de diseño por papel (pendiente ámbar, avance azul, interés marino, positivo verde, negativo gris)
-const COL_PAPEL = { inicial: '#8A4B0B', avance: '#3F82C0', interes: '#17457A', positivo: '#0E6B4C', negativo: '#4A5868' };
-const colEstado = v => COL_PAPEL[papelEstado(v)] || '';
-const F = { q: '', prov: '', muni: '', esp: '', est: '', urg: false, orden: 'nombre', pagina: 0, total: 0, campos: {} };
 const PASO = 50;
 
-// Fechas SIEMPRE en hora local (España): convertir a hora universal restaba un día de 00:00 a 02:00
-const isoLocal = d => { const x = new Date(d.getTime() - d.getTimezoneOffset() * 60000); return x.toISOString().slice(0, 10); };
-const hoyISO = () => isoLocal(new Date());
-let fechaLarga = d => d.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
-const fechaCorta = s => { const d = new Date(s + 'T00:00:00'); return d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }); };
-// Nombre sin tratamiento delante («Dr. Gonzalo Serrano» → Gonzalo, iniciales GS)
-const TRATAMIENTO = /^(dr|dra|d|dña|dª|sr|sra|srta|prof|profa|lic|ldo|lda)\.?$/i;
-const partesNombre = n => { const p = String(n || '').trim().split(/\s+/); while (p.length > 1 && TRATAMIENTO.test(p[0])) p.shift(); return p; };
-const nombrePila = n => partesNombre(n)[0] || '';
-const iniciales = n => partesNombre(n).slice(0, 2).map(x => x[0] || '').join('').toUpperCase();
-const num = n => Number(n || 0).toLocaleString('es');
 
 /* ---------------- acceso ---------------- */
 
@@ -200,9 +140,6 @@ var ir = function (t) {
 /* ---------------- inicio ---------------- */
 
 
-const itemHTML = (id, ico, clase, titulo, sub) =>
-  `<button class="item" data-id="${id}"><span class="ic ${clase || ''}">${ico}</span>
-   <span class="tx"><b>${esc(titulo)}</b><span class="sm">${sub}</span></span></button>`;
 
 
 $('v-inicio').addEventListener('click', e => {
@@ -227,7 +164,6 @@ $('v-inicio').addEventListener('click', e => {
 /* ---------------- filtros ---------------- */
 
 
-let temporizador;
 $('q').addEventListener('input', e => {
   clearTimeout(temporizador);
   temporizador = setTimeout(() => {
@@ -270,7 +206,6 @@ $('chips').addEventListener('click', e => {
 
 /* ---------------- directorio ---------------- */
 
-let BUSQ_N = 0;   // solo cuenta la última búsqueda: las anteriores se descartan aunque respondan después
 async function buscar(reiniciar) {
   if (typeof MODO_MAPA !== 'undefined' && MODO_MAPA && reiniciar) setTimeout(() => pintarMapa(), 10);
   if (reiniciar) F.pagina = 0;
@@ -345,8 +280,6 @@ async function abrirFicha(id, ...r) {
 
 
 
-// v2.113.0 · Unidades de la ficha por semana (12), mes (12) o año (5)
-const UDS_SERIES = [['semana', 'Semana'], ['mes', 'Mes'], ['anio', 'Año']];
 let UDS_SERIE = (() => { try { const v = localStorage.getItem('dlc-uds-serie'); return ['semana', 'mes', 'anio'].includes(v) ? v : 'mes'; } catch (e) { return 'mes'; } })();
 const leyendaUnidades = k => ({ semana: 'barras: últimas 12 semanas', mes: 'barras: últimos 12 meses', anio: 'barras: últimos 5 años' })[k];
 

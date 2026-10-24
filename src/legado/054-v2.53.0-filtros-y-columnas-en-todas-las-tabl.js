@@ -5,9 +5,6 @@
 
 /* ---------------- componente común: «Filtros y columnas» ---------------- */
 
-// Pantallas con filtros propios que pasan al panel (la búsqueda por texto sigue a la vista)
-const HT_FILTROS = { pacientes: '#v-pacientes .filtros', facturacion: '#v-facturacion .filtros', analitica: '#anper' };
-const HT_ESTADO = {};   // por tabla: { texto, facetas: {col: valor} }
 // Columnas: se quitan de la rejilla conservando las proporciones del resto
 function htAplicarColumnas(g) {
   const tipo = htTipo(g), ocultas = htOcultas(tipo);
@@ -98,7 +95,6 @@ function htPreparar(sec) {
   if (g && !g.dataset.ht) { g.dataset.ht = '1'; htAplicarColumnas(g); htAplicarFiltros(g); if (!panel.classList.contains('hide')) htPintarPanel(sec); }
   htContador(sec);
 }
-let HT_PEND = false;
 new MutationObserver(() => {
   if (HT_PEND) return; HT_PEND = true;
   queueMicrotask(() => { HT_PEND = false; const sec = $('v-' + TAB); if (sec && !sec.classList.contains('hide')) htPreparar(sec); });
@@ -106,7 +102,6 @@ new MutationObserver(() => {
 
 /* ---------------- Prescriptores: columna «Acceso a la plataforma» ---------------- */
 
-let MED_ACCESO = null;
 COLS.push({ k: 'acceso', t: 'Acceso a la plataforma', w: 170 });
 celda = (orig => function (m, k) {
   if (k !== 'acceso') return orig(m, k);
@@ -117,11 +112,6 @@ celda = (orig => function (m, k) {
 
 /* ---------------- páginas propias: Perfil, Empresa y Plan ---------------- */
 
-const PAGINAS = {
-  perfil: { t: 'Mi perfil', d: 'Tus datos, idioma, qué abrir al entrar y tus notificaciones', tabs: [['datos', 'Mis datos', () => pintarPerfil()], ['notif', 'Notificaciones', () => pintarNotif()]] },
-  empresa: { t: 'Empresa', d: 'Marca, correo de la empresa y copias de seguridad', admin: true, tabs: [['marca', 'Marca y logo', () => pintarMarca()], ['correo', 'Correo y firma', () => pintarCorreo()], ['copias', 'Copias de seguridad', () => pintarCopias()]] },
-  plan: { t: 'Plan y suscripción', d: '', admin: true, tabs: [['plan', 'Plan', () => pintarPaginaPlan()]] }
-};
 let PAG_TAB = {};
 function cargarPagina(t) {
   const P = PAGINAS[t];

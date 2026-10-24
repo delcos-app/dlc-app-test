@@ -5,7 +5,6 @@
 
 /* ---------------- ajustes generales (envío) ---------------- */
 
-let AJUSTES = {};
 // v2.242.0: aquí iba envioCfg (nadie la usaba)
 async function cargarAjustes() {
   const { data } = await db.rpc('ajustes_lista');
@@ -28,11 +27,6 @@ async function cargarAjustes() {
 
 /* ---------------- rutas: horario siempre a mano ---------------- */
 
-let ULTIMO_PLAN = null;
-const siguienteLaborable = () => {
-  const d = new Date(); do { d.setDate(d.getDate() + 1); } while (d.getDay() === 0 || d.getDay() === 6);
-  return isoLocal(d);
-};
 
 
 

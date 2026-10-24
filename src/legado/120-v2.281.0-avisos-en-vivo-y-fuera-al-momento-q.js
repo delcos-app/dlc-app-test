@@ -26,8 +26,6 @@ document.addEventListener('click', e => { if (e.target.closest && e.target.close
   if (!poner()) { let n = 0; const t = setInterval(() => { if (poner() || ++n > 60) clearInterval(t); }, 250); }
 })();
 
-// ——— En vivo ———
-let VIVO = null;
 // Se engancha en cuanto hay perfil (al arrancar llega un momento después)
 (function engancharVivo() { if (PERFIL && PERFIL.id) { avisosEnVivo(); comprobarAcceso(true); } else setTimeout(engancharVivo, 1000); })();
 

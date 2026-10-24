@@ -28,3 +28,8 @@ function resaltarBusqueda(texto, q) {
   }
   return html + esc(s.slice(ult));
 }
+
+let BUSQ_N = 0;   // solo cuenta la última búsqueda: las anteriores se descartan aunque respondan después
+
+// Solo los buscadores: los de tipo búsqueda y los campos con su lista de resultados justo debajo
+const esBuscador = i => i && i.matches && i.matches('input') && !i.list && (i.type === 'search' || (!!i.nextElementSibling && i.nextElementSibling.matches('.gsug, .cpres, .lista, [role=listbox]')));

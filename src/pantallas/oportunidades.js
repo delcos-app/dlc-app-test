@@ -267,3 +267,7 @@ async function editorOportunidad(l, previa) {
     $('dlg').close(); toast('Oportunidad guardada'); refrescar();
   };
 }
+
+let LLAMADA_PEND = null;
+
+let LL_ALTA = { motivo: '', resultado: '' };

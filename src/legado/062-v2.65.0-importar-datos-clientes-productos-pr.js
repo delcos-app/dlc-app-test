@@ -64,15 +64,6 @@ const IMP_CAMPOS = {
     ['cobrado', 'Cobrado (sí o no)', 0, ['cobrado', 'pagado', 'estado cobro']],
     ['canal', 'Canal', 0, ['canal']]]
 };
-const IMP_TIPOS = () => [
-  ['clientes', 'Clientes', `${TT('paciente', 'p', '', 'l', 'C')} y empresas: datos de contacto y facturación`, 'users'],
-  ['productos', 'Productos', 'Catálogo: referencias, precios, IVA y costes', 'package'],
-  ['prescriptores', etiquetaContactos(), `${TT('medico', 'p', '', 'l', 'C')} y sus centros`, 'stethoscope'],
-  ['ventas', 'Ventas', 'Histórico de ventas con sus líneas de producto', 'shopping-cart']];
-const impNorm = t => String(t == null ? '' : t).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
-const impClave = t => impNorm(t).toUpperCase().replace(/ /g, '_').slice(0, 40) || 'CAMPO';
-const impHash = s => { let h = 5381; for (const c of s) h = ((h << 5) + h + c.charCodeAt(0)) | 0; return (h >>> 0).toString(36); };
-let IMP = null;   // estado del asistente
 
 
 // Configuración → Datos → Importar datos (administración)

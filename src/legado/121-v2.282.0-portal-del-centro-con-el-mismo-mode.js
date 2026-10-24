@@ -1,12 +1,3 @@
-/* ============================================================
-   v2.282.0 · Portal del centro con el mismo modelo que el del profesional (petición de Eric, 12/10/2026).
-   Una sola página con pestañas: «Resumen» (4 indicadores; «Tus pedidos» y «Lo que has comprado» del mismo tamaño, con su «i»),
-   «Pedir reposición» (sus productos con su precio; sin máximo en el campo: por encima de 1.000 unidades —lo que acepta
-   pedido_portal, que descartaba en silencio— avisa en la fila y no envía), «Mi centro» (la misma ficha que el profesional, con
-   sus textos) y «Material y dudas». Configuración, ayudas y navegación, como el portal del profesional.
-   ============================================================ */
-const PM_CENTRO = () => typeof puede === 'function' && puede('portal_centro');
-const PC_MAX = 1000;
 window.PC_LISTO = true;
 
 

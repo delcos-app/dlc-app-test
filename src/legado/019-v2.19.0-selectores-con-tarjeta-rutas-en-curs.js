@@ -4,8 +4,6 @@
    cambios sin guardar y protección de datos
    ============================================================ */
 
-const VE_TODO = () => puede('ver_todo');
-const puedeMedicoLibre = () => puede('administrar') || nivelDe2('V') >= 2;   // v2.329.0
 
 /* ---------------- fechas y horas: todo el campo abre el selector ---------------- */
 
@@ -42,25 +40,12 @@ document.addEventListener('click', e => {
 
 /* ---------------- selector de médico (igual que el buscador principal) ---------------- */
 
-const tarjetaMedico = m => `<div class="selcard"><span class="ic">👤</span>
-  <span class="tx"><b>${esc(m.nombre)}</b>
-    <span class="sm">${esc([m.especialidad, m.centro_nombre || m.centro, m.municipio].filter(Boolean).join(' · '))}</span>
-    ${m.codigo ? `<span class="sm">Código ${esc(m.codigo)}</span>` : ''}</span>
-  <button type="button" class="sx" aria-label="Quitar">✕</button></div>`;
 
 document.addEventListener('pointerdown', e => { if (!e.target.closest('.picker')) cerrarPickers(); });
 
 
 /* ---------------- selector de paciente ---------------- */
 
-const tarjetaPaciente = c => `<div class="selcard"><span class="ic">🧑</span>
-  <span class="tx"><b>${esc(c.nombre)}</b>
-    ${[c.direccion, [c.cp, c.municipio].filter(Boolean).join(' '), c.provincia].filter(Boolean).length
-      ? `<span class="sm">📦 ${esc([c.direccion, [c.cp, c.municipio].filter(Boolean).join(' '), c.provincia].filter(Boolean).join(', '))}</span>`
-      : '<span class="sm" style="color:var(--warn)">Sin dirección de entrega</span>'}
-    <span class="sm">${esc([c.nif ? (c.tipo === 'Empresa' ? 'CIF ' : 'DNI ') + c.nif : 'Sin DNI', c.email, c.telefono || c.movil].filter(Boolean).join(' · '))}</span>
-    ${c.medico ? `<span class="sm">${TT('medico', 's', '', 'l', 'C')}: ${esc(c.medico)}</span>` : ''}</span>
-  <button type="button" class="sx" aria-label="Quitar">✕</button></div>`;
 
 
 /* ---------------- nueva cita con el selector de médico ---------------- */
@@ -105,7 +90,6 @@ async function nuevaCita(medicoId, fecha) {
 
 /* ---------------- documento de identidad ---------------- */
 
-const LETRAS_DNI = 'TRWAGMYFPDXBNJZSQVHLCKE';
 
 /* ---------------- alta y edición de paciente ---------------- */
 
@@ -242,7 +226,6 @@ function editorContacto(c, alGuardar, op) {
 
 /* ---------------- módulos Pacientes y Productos ---------------- */
 
-const vaciarModulos = salvo => ['v-pacientes', 'v-productos', 'v-ventas'].forEach(k => { if (k !== salvo) $(k).innerHTML = ''; });
 
 
 
@@ -252,7 +235,6 @@ const vaciarModulos = salvo => ['v-pacientes', 'v-productos', 'v-ventas'].forEac
 
 /* ---------------- directorio: comerciales ---------------- */
 
-let COMS = [];
 $('fcom').addEventListener('change', e => { F.com = e.target.value; buscar(true); });
 
 COLS.push({ k: 'comerciales', t: 'Comerciales', w: 190 });
@@ -372,7 +354,6 @@ async function asignarCartera(id) {
 
 /* ---------------- rutas: plan desde ahora, ruta en curso, pausar y reanudar ---------------- */
 
-const RPKEY = () => 'dlc-ruta-pausa-' + (PERFIL ? PERFIL.id : '');
 // v2.242.0: aquí iba rutaPausada (nadie la usaba)
 
 

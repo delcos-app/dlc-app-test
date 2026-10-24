@@ -21,8 +21,6 @@ db.rpc = (orig => function (fn, params, opts) {
 /* ---------------- nombre del módulo de contactos ---------------- */
 
 const ETIQUETAS = [...new Set([`${TT('medico', 'p', '', 'l', 'C')}`, 'Profesionales', 'Cuentas', 'Contactos', 'Clientes potenciales', 'Puntos de venta', 'Prescriptores'])];
-// v2.105.0: sin etiqueta propia, el nombre sale del vocabulario de la empresa («Farmacias», «Contactos»…); con el vocabulario por defecto, «Prescriptores»
-const etiquetaContactos = () => ((AJUSTES.marca || {}).etiqueta || TT('medico', 'p', '', 'l', 'C'));
 function aplicarEtiqueta() {
   const n = etiquetaContactos();
   document.querySelectorAll('nav.main [data-t="directorio"], #bnav [data-t="directorio"], .bmasgrid [data-bm="directorio"]').forEach(b => {

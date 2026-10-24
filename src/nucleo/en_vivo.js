@@ -21,3 +21,6 @@ function avisosEnVivo() {
       .subscribe();
   } catch (e) { VIVO = null; }
 }
+
+// ——— En vivo ———
+let VIVO = null;

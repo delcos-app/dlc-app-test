@@ -6,12 +6,6 @@
    - Mis datos en una sola tarjeta; Datos fiscales y Series juntos; los botones de KPIs de Inicio junto al título.
    ============================================================ */
 const IDS_SEC = ['fcuerpo', 'dbody', 'v-admin'];
-let CFG_SEC_ACT = null;
-const cfgEstable = (el, max) => new Promise(ok => {
-  let t = 0, fin = 0; const ob = new MutationObserver(() => { clearTimeout(t); t = setTimeout(listo, 150); });
-  const listo = () => { if (el.querySelector('.cfgcarga, .giro, .spin')) { t = setTimeout(listo, 150); return; } ob.disconnect(); clearTimeout(fin); ok(); };
-  ob.observe(el, { childList: true, subtree: true, attributes: true }); t = setTimeout(listo, 200); fin = setTimeout(() => { ob.disconnect(); clearTimeout(t); ok(); }, max || 5000);
-});
 // Tocar una parte le devuelve sus piezas (en captura: antes de que su botón haga nada)
 ['pointerdown', 'focusin', 'keydown'].forEach(ev => document.addEventListener(ev, e => {
   const sec = e.target.closest && e.target.closest('#cfgcuerpo-hub .cfgsec'); if (sec) cfgSecDespertar(sec);

@@ -9,10 +9,7 @@ Object.assign(RPC_TTL, { informe_cuenta: 60, mis_notificaciones: 20, asignacione
 
 /* ---------------- selectores propios: fecha, hora y número ---------------- */
 
-const MESES_L = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
 let SELPOP = null, LOGO_CIRC = false;
-// Con una ventana abierta, solo se puede pulsar lo que está dentro: el selector se coloca en ella
-const capaSelector = inp => inp.closest('dialog[open]') || [...document.querySelectorAll('dialog[open]')].pop() || document.body;
 
 // (v2.183.0: aquí iba la primera versión de abrirCalendario; se redefine entera más abajo)
 
@@ -136,7 +133,6 @@ if (EN_PRUEBAS) {
 
 /* ---------------- espacio del médico ---------------- */
 
-const ES_MEDICO = () => puede('portal_prescriptor');
 
 
 async function pintarAvisos() {

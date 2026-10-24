@@ -5,7 +5,6 @@
 
 /* ---------------- pantalla de carga a pantalla completa ---------------- */
 
-const quitarCarga = () => { const o = $('cargatotal'); if (o) o.classList.add('hide'); };
 
 
 
@@ -17,7 +16,6 @@ volverAMiSesion = (orig => async function () {
 
 /* ---------------- agenda: una sola transición al cambiar de vista ---------------- */
 
-let ABRIR_PLAN_SEMANA = false;
 
 
 // Desde Rutas: «Planificar la semana» abre el planificador cuando la semana ya está pintada
@@ -30,7 +28,6 @@ document.addEventListener('click', e => {
 
 /* ---------------- Inicio: más indicadores ---------------- */
 
-const pct = (a, b) => b ? Math.round(a / b * 100) : 0;
 KPI_CAT.push(
   { id: 'uds_mes', t: 'unidades vendidas este mes', v: k => k.uds_mes, cls: k => k.uds_mes >= k.uds_mes_ant ? 'ok' : 'warn', h: 'x-analitica' },
   { id: 'importe_mes', t: 'ventas del mes sin IVA', v: k => eurI(k.importe_mes || 0).replace(',00', ''), h: 'x-analitica' },
@@ -77,14 +74,10 @@ document.addEventListener('click', e => {
 
 /* ---------------- Analítica: resumen visual ---------------- */
 
-let ANSEC = 'resumen';
-const MESES_C = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
-const mesTxt = m => MESES_C[+m.slice(5, 7) - 1] + ' ' + m.slice(2, 4);
 
 
 
 
-const vacioGrafico = t => `<div class="gvacio"><span>📊</span><b>Aún no hay datos para este gráfico</b><span class="sm">${esc(t)}</span></div>`;
 
 // (v2.183.0: aquí iba la primera versión de pintarResumenAnalitica; se redefine entera más abajo)
 

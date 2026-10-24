@@ -99,3 +99,29 @@ function hayBotonGuardar(d) {
   return [...d.querySelectorAll('button, .btn')].some(b => b.offsetParent && !b.disabled && !b.classList.contains('sec')
     && /^(guardar|validar|crear|añadir|enviar|aplicar|aceptar|confirmar|registrar|emitir|dar de alta)/i.test((b.textContent || '').trim()));
 }
+
+const preguntar = (msg, o = {}) => appVentana({ msg, titulo: o.titulo, ok: o.ok, peligro: o.peligro });
+
+const pedirTexto = (msg, valor, o = {}) => appVentana({ msg, titulo: o.titulo, ok: o.ok || 'Guardar', campo: { valor, placeholder: o.placeholder, tipo: o.tipo }, opciones: o.opciones });
+
+// Pequeña (confirmaciones y citas), normal (fichas y formularios) y amplia (pedidos, compras y facturas)
+const VENT_AMPLIA = ['editorPedido', 'verPedido', 'editorCompra', 'verFactura'];
+
+// Ventanas integradas: en escritorio, dentro de Configuración y de las páginas propias, una ventana ocupa el área de contenido
+// (sin fondo oscuro ni ventana flotante); al cerrarla vuelve el apartado. En el móvil las ventanas ya ocupan la pantalla.
+const ENCAJE_MIN = 900;
+
+const cerrarEncajadas = () => ['dlg2', 'dlg'].forEach(id => { const d = $(id); if (d && d.open && d.classList.contains('encajada')) d.close(); });
+
+let DATOS_CAMBIADOS = false;
+
+const GUARDA_TXT = /^(\+\s*)?(guardar|crear|añadir|enviar|validar|aplicar|confirmar|emitir|cobrar|registrar|marcar|asignar|unificar|cambiar|borrar|eliminar|quitar|anular|rectificar|liquidar|pedir|actualizar)\b/i;
+
+const esBotonGuardar = b => {
+  if (!b || b.matches('.sec, .x, .kmv, .plic, [data-cerrar], [data-cerrar2], .vueltabtn, .guardando')) return false;
+  if (!b.closest('dialog[open], #v-config')) return false;
+  const t = (b.textContent || '').trim();
+  return /ok$|guardar|enviar/i.test(b.id || '') || GUARDA_TXT.test(t);
+};
+
+let ULT_ACCION = 0;

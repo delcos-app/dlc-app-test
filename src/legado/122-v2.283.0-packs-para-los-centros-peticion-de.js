@@ -1,13 +1,3 @@
-/* ============================================================
-   v2.283.0 · Packs para los centros (petición de Eric, 12/10/2026, con las directrices comerciales de los centros; SQL 151).
-   - Producto: «Packs para los centros» (compras N, te regalan M) y PVP de referencia con IVA. Con packs, el centro pide ese
-     producto solo por packs desde su portal; el regalo va en el pedido como línea aparte al 100 % de descuento.
-   - Portal del centro, «Pedir reposición»: cada pack con sus unidades, su importe, el coste real por unidad y el margen sobre el
-     PVP de referencia; cuántos packs de cada (0 a 50, avisando en la fila si no vale); entrega en la dirección del centro o
-     repartida entre varias direcciones (las unidades repartidas tienen que cuadrar). La bonificación es de cada pedido.
-   ============================================================ */
-const PC_PACK_MAX = 50;
-const pcPct = v => (Math.round(v * 1000) / 10).toLocaleString('es-ES', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' %';
 
 
 // Producto: packs para los centros y PVP de referencia

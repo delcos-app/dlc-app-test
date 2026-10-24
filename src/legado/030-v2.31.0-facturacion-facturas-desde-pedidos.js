@@ -4,9 +4,6 @@
    ============================================================ */
 
 Object.assign(RPC_TTL, { facturas_lista: 20, series_lista: 60, eventos_facturacion_lista: 20 });
-let FSEC = 'facturas';
-const puedeFacturar = () => PERFIL && (puede('administrar') || (VE_TODO() && ((PERFIL.areas || {}).V || 0) >= 2));
-const pillCobro = e => `<span class="pill ${e === 'Cobrada' ? 'p-est' : e === 'Vencida' ? 'p-anu' : 'p-bor'}">${esc(e)}</span>`;
 
 /* ---------------- navegación ---------------- */
 
@@ -33,7 +30,6 @@ async function cargarFacturacion() {
 
 
 
-const refrescarFacturas = () => { if (TAB === 'facturacion' && FSEC === 'facturas' && $('flista')) pintarFacturas(); };
 
 
 

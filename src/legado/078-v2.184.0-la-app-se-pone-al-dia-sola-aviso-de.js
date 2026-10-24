@@ -1,8 +1,3 @@
-/* v2.184.0 · La app se pone al día sola (aviso de Eric: con la base ya en nombres neutros, una pestaña abierta desde antes seguía con la app antigua y
-   el buscador no encontraba nada hasta Ctrl+F5). Al volver a la pestaña y cada 10 minutos se mira qué versión está publicada (index.html sin caché);
-   si es otra, la app se recarga sola cuando no hay nada a medias (ninguna ventana abierta ni un campo con el cursor) o, si lo hay, enseña el aviso
-   «Hay una versión nueva» para que se recargue al terminar. */
-let VERSION_VISTA = 0;
 document.addEventListener('visibilitychange', () => { if (!document.hidden) comprobarVersion(); });
 setInterval(comprobarVersion, 10 * 60 * 1000);
 
@@ -106,13 +101,6 @@ toast = (orig => function (msg, err) {
   return r;
 })(toast);
 
-/* v2.189.0 · La consulta privada tiene su propia ficha (aviso de Eric: al elegir «Consulta privada (sin centro)» no se podía poner ni la dirección:
-   esos datos de la consulta solo los rellenaba un centro). Ahora una consulta sin centro cuyo nombre empieza por «Consulta privada» se ve como tal
-   (no como «Sin enlazar») y tiene «Editar la consulta» / «Añadir la dirección»: dirección, código postal, población, provincia y su punto en el mapa
-   (buscando la dirección o con «Estoy aquí»). Planta, sala, indicaciones, teléfono y horario siguen debajo, como en cualquier consulta.
-   Se guarda con la ficha (en la consulta del profesional; no crea un centro compartido). */
-const esConsultaPrivada = c => { if (c && c.id) return false; const n = String((c && c.nombre) || '').trim().toLowerCase();   // v2.347.0: con cualquier palabra del vocabulario
-  return /^(consulta|ubicaci[oó]n) privad[ao]/.test(n) || n.startsWith(consultaPrivada('l').toLowerCase()); };
 tarjetaCentro = (orig => function (c, enlazado) {
   if (enlazado || !esConsultaPrivada(c)) return orig.call(this, c, enlazado);
   const dir = [c.direccion, [c.cp, c.municipio].filter(Boolean).join(' ')].filter(Boolean).join(' · ');
@@ -131,15 +119,6 @@ formCentro = (orig => function (box, i, c, aviso) {
 
 
 
-/* v2.191.0 · Visita a distancia y fotos de la visita (primera tanda del estudio por sectores, SQL 118).
-   - Al registrar una visita se elige cómo fue: Presencial (por defecto), Por teléfono o Por videollamada (actividades.modo). En el historial
-     de la ficha, las que no son presenciales lo dicen.
-   - Fotos de la visita (lineal, exposición, material colocado…): se reducen a 1600 px en JPEG como los justificantes y se guardan en
-     actividad_fotos al registrar la visita. Sin conexión la visita se guarda igual y las fotos se añaden después desde su historial
-     («📷 Fotos»), donde también se ven y se borran. */
-const MODOS_VISITA = [['presencial', 'Presencial'], ['telefono', 'Teléfono'], ['video', 'Videollamada']];
-const FOTOS_VISITA_MAX = 6;
-let VISITA_ACTUAL = null;   // { id, modo, fotos } de la ventana «Registrar visita» abierta
 
 
 abrirVisitaBase = (orig => async function (id, ...r) {
@@ -203,17 +182,6 @@ abrirFicha = (orig => async function (id, ...a) {
 })(abrirFicha);
 
 
-/* v2.192.0 · Muestras con control legal (primera tanda del estudio por sectores, SQL 119; RD 1416/1994, art. 16).
-   - Producto: «Muestra con control legal» con fecha de autorización (se pueden dar los 2 años siguientes) y máximo por profesional y año.
-   - Registrar visita: si la empresa tiene productos regulados, bloque «Muestras de medicamento» con lo que queda este año para ese
-     profesional; si se entrega alguna, pide la firma (con el dedo o el ratón) y el nombre de quien firma. Se comprueba antes de guardar
-     la visita; después, registrar_muestras guarda todo o nada (también desde la cola sin conexión, enlazada por el op_id de la visita).
-   - Ficha: «Muestras este año» con lo entregado y lo que queda de cada producto regulado. */
-const MUESTRA_ERR = { firma: 'Falta la firma de quien recibe las muestras', profesional: 'Las muestras solo se entregan a profesionales, no a un centro',
-  plazo: 'Ese producto ya no se puede dar como muestra (han pasado 2 años desde su autorización)', limite: 'Se pasa del máximo de muestras de este año',
-  permiso: 'No puedes registrar muestras de esta ficha', producto: 'Producto no encontrado', no_existe: 'Ficha no encontrada' };
-const muestraError = r => (MUESTRA_ERR[r && r.error] || 'No se han podido guardar las muestras') +
-  (r && r.error === 'limite' ? ` (${r.producto}: quedan ${r.quedan} de ${r.max})` : r && r.error === 'plazo' ? ` (${r.producto})` : '');
 
 // Producto: datos de la muestra regulada (solo administración; se guardan al cambiarlos)
 editorProducto = (orig => function (p, ...r) {

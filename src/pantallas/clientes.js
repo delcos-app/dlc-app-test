@@ -140,3 +140,26 @@ async function bajaCliente(id, baja) {
   if (TAB === 'pacientes' && typeof listaPacientes === 'function') listaPacientes();
   return true;
 }
+
+const PAC = { q: '', medico: null, medicoNombre: '', pagina: 0 };
+
+const tarjetaPaciente = c => `<div class="selcard"><span class="ic">🧑</span>
+  <span class="tx"><b>${esc(c.nombre)}</b>
+    ${[c.direccion, [c.cp, c.municipio].filter(Boolean).join(' '), c.provincia].filter(Boolean).length
+      ? `<span class="sm">📦 ${esc([c.direccion, [c.cp, c.municipio].filter(Boolean).join(' '), c.provincia].filter(Boolean).join(', '))}</span>`
+      : '<span class="sm" style="color:var(--warn)">Sin dirección de entrega</span>'}
+    <span class="sm">${esc([c.nif ? (c.tipo === 'Empresa' ? 'CIF ' : 'DNI ') + c.nif : 'Sin DNI', c.email, c.telefono || c.movil].filter(Boolean).join(' · '))}</span>
+    ${c.medico ? `<span class="sm">${TT('medico', 's', '', 'l', 'C')}: ${esc(c.medico)}</span>` : ''}</span>
+  <button type="button" class="sx" aria-label="Quitar">✕</button></div>`;
+
+// Los mismos parámetros con que listaPacientes pide la lista
+const pacParams = () => ({ q: PAC.q || null, p_medico: PAC.medico,
+  lim: tamPagina(), desplaz: PAC.pagina * tamPagina(), p_tipo: PAC.tipo || null, p_pedidos: PAC.pedidos || null,
+  p_municipio: PAC.municipio || null, ...(Object.keys(PAC.campos || {}).length ? { f_campos: PAC.campos } : {}) });
+
+/* ============================================================
+   v2.311.0 · Dar de baja y eliminar fichas (decisión de Eric; SQL 159). Al pie de la ficha de un profesional o de un centro:
+   «Dar de baja» (siempre; se deshace desde Cuentas → «⋯» → «Fichas dadas de baja») y «Eliminar la ficha» (administración o
+   nivel completo en fichas; solo si no tiene visitas, ventas, muestras, eventos… — si tiene, lo dice y ofrece la baja).
+   ============================================================ */
+const BAJA_QUE = { visitas: 'visitas', ventas: 'ventas', muestras: 'muestras entregadas', eventos: 'eventos', cirugias: 'intervenciones', concursos: 'concursos', equipos: 'equipos', portal: 'acceso al portal' };

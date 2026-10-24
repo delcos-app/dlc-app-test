@@ -6,7 +6,6 @@
 
 /* ---------------- qué agenda se está viendo ---------------- */
 
-let AG_VISTA = null;   // { id, nombre, rol, preferencias } cuando administración mira la agenda de otra persona
 
 
 /* ---------------- días bloqueados ---------------- */
@@ -20,7 +19,6 @@ async function bloqueadosSemana(desde, hasta) {
 
 /* ---------------- semana: carga, bloqueos, arrastrar y planificador ---------------- */
 
-let SEM_BORRADOR = null;   // propuesta del planificador aún sin guardar
 
 
 

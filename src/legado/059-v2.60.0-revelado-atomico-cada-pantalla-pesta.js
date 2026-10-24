@@ -4,13 +4,9 @@
    dejado de cambiar (sin estados intermedios a la vista)
    ============================================================ */
 
-// 1. Todas las consultas a la base de datos, cuenten desde donde se hagan (también las que no pasan por los atajos)
-let RED_PEND = 0;
 // Contador en la salida a la red (lo llama el envío de peticiones del cliente de la base de datos)
 window.__redIni = () => { RED_PEND++; const m = performance.now() + Math.random() / 1000; RED_EN_CURSO.add(m); return m; };
 window.__redFin = m => { if (RED_EN_CURSO.delete(m)) { RED_PEND--; RED_ULTIMO_FIN = performance.now(); } };
-const RED_EN_CURSO = new Set();   // momento de inicio de cada consulta en curso
-let RED_ULTIMO_FIN = 0;   // cuándo terminó la última consulta
 // Cuentan todas las consultas en curso, también las precargas lanzadas poco antes de entrar (Analítica las aprovecha);
 // solo se ignoran las que llevan más de 3 s en marcha (un refresco de fondo colgado no debe bloquear la pantalla)
 const pendientesDesde = t0 => { const lim = performance.now() - (Date.now() - t0) - 3000; let n = 0; RED_EN_CURSO.forEach(t => { if (t >= lim) n++; }); return n; };
@@ -28,8 +24,6 @@ const pendientesDesde = t0 => { const lim = performance.now() - (Date.now() - t0
 })();
 
 
-// 3. Pantallas: se preparan ocultas y se muestran de golpe
-let REVELADO = 0;
 function revelar(el, max, desde) {
   if (!el) return; const turno = ++REVELADO;
   el.classList.add('preparando');

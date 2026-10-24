@@ -130,3 +130,18 @@ async function verEquipo(id) {
     verEquipo(id);
   });
 }
+
+const EQ_REV = ['Preventiva', 'Correctiva', 'Instalación'];
+
+const eqVence = e => e.contrato !== 'Venta' ? e.contrato_fin : e.garantia_hasta;
+
+const eqDias = f => f ? Math.round((new Date(f + 'T12:00:00') - new Date(hoyISO() + 'T12:00:00')) / 864e5) : null;
+
+const eqRevPill = e => { const d = eqDias(e.proxima_revision); if (e.estado === 'Retirado') return '<span class="pill p-anu">Retirado</span>';
+  return d == null ? '' : d < 0 ? `<span class="pill p-urg">Revisión pasada (${fechaCorta(e.proxima_revision)})</span>` : d <= 30 ? `<span class="pill p-warn">Revisar el ${fechaCorta(e.proxima_revision)}</span>` : `<span class="pill p-per">Próxima revisión ${fechaCorta(e.proxima_revision)}</span>`; };
+
+const eqVencePill = e => { const f = eqVence(e), d = eqDias(f); if (d == null || e.estado === 'Retirado') return '';
+  const que = e.contrato !== 'Venta' ? 'Contrato' : 'Garantía';
+  return d < 0 ? `<span class="pill p-anu">${que} vencido</span>` : d <= Math.max(...CON_AVISOS, 0) ? `<span class="pill p-urg">${que}: ${d === 0 ? 'vence hoy' : `vence en ${num(d)} ${d === 1 ? 'día' : 'días'}`}</span>` : ''; };
+
+let EQ_Q = '';

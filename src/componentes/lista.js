@@ -220,3 +220,249 @@ function blqFiltrar(tab) {
   const s = $('plg-' + tab); if (s && s.value !== v) s.value = v;
   const cnt = sec.querySelector('.plcnt'); if (cnt) { cnt.dataset.h = ''; }
 }
+
+const itemHTML = (id, ico, clase, titulo, sub) =>
+  `<button class="item" data-id="${id}"><span class="ic ${clase || ''}">${ico}</span>
+   <span class="tx"><b>${esc(titulo)}</b><span class="sm">${sub}</span></span></button>`;
+
+const COLS_DEF = ['nombre', 'especialidad', 'centro_nombre', 'municipio', 'dias', 'estado_comercial'];
+
+const colKey = () => 'dlc-cols-' + (PERFIL ? PERFIL.id : '');
+
+const colsGuardar = c => localStorage.setItem(colKey(), JSON.stringify(c));
+
+const TAMKEY = () => 'dlc-tam-' + (PERFIL ? PERFIL.id : '');
+
+const TAMANOS = [20, 50, 100];
+
+/* Paginación automática de cualquier otra lista o tabla con más de 20 filas. */
+const PAG_MEM = {};
+
+const PAG_EXCLUIR = '.carsel, .picker, #lista, #slista, #kpis, .gsug, .umenu, .dl-menu, #tools, .opciones, .chips, .pag, #c-agenda, #c-acciones, #c-urgentes, #c-ultimas, #c-recom, #c-pend';
+
+// Tablas que se ordenan en la base: qué clave usa cada columna (por su posición o su nombre)
+const ORD_SRV = {
+  peds2: (i, n) => i === 2 ? 'profesional' : ({ Fecha: 'fecha', Cliente: 'cliente', Comercial: 'comercial', 'Uds.': 'unidades', Base: 'base', Total: 'total', Estado: 'estado' })[n] || null,
+  pacs: (i, n) => i === 6 ? 'profesional' : ({ Cliente: 'nombre', Tipo: 'tipo', 'DNI / CIF': 'nif', Email: 'email', 'Población': 'municipio', Comercial: 'comercial', Pedidos: 'pedidos', 'Uds.': 'unidades', 'Último pedido': 'ultimo' })[n] || null
+};
+
+const ORD_DIR = { nombre: 'nombre', especialidad: 'especialidad', centro_nombre: 'lugar', municipio: 'municipio', ultima_visita: 'reciente', estado_comercial: 'estado' };
+
+/* ============================================================
+   v2.236.0 · Modelo de página «Lista» (variante A elegida por Eric): cabecera con la acción principal y «⋯»,
+   indicadores que filtran, barra con buscador, filtros rápidos, «Filtros», «Columnas» y el recuento, tabla con su pie
+   y tarjetas en el móvil. Al llegar no se tapa la pantalla: se ve el esqueleto con la misma forma. Primero en
+   Contactos (directorio) y Clientes; se monta encima de lo que ya pintan sus funciones, sin cambiar su lógica.
+   ============================================================ */
+const plIco = (...n) => svgIco(n.map(k => ICON_NOM[k] || ICON_EMOJI[k]).find(Boolean) || '');
+
+const PL_KPI = {};   // indicadores por pantalla: {t, epoca, datos}
+
+const PL = {
+  directorio: {
+    que: () => TT('medico', 'p', '', 'l', 'l'),
+    nuevo: () => $('nuevoBtn'),
+    textoNuevo: () => 'Añadir ' + TT('medico', 's', '', 'l', 'l'),
+    cuerpo: () => $('lista'), tabla: () => $('tabla'), pie: () => $('dirpag'), cuenta: () => $('cuenta'),
+    conDatos: el => !!el.querySelector('.trow, .vacio'),
+    rapidos: [['ftipo', 'Tipo'], ['fest', 'Estado'], ['fcom', ''], ['fprov', 'Provincia'], ['fmuni', 'Municipio'], ['fesp', 'Especialidad']],
+    q: () => F.q || '',
+    buscarQ: v => { F.q = v; buscar(true); },
+    buscaTxt: () => 'Buscar cuentas',
+    nKpis: 5,   // v2.304.0: el esqueleto con los mismos cinco huecos
+    // v2.296: un campo personalizado vaciado se quedaba como clave y contaba como filtro sin verse en el panel
+    activos: () => ['tipo', 'prov', 'muni', 'esp', 'est', 'rep', 'com'].filter(k => F[k]).length + ['urg', 'mios', 'sin'].filter(k => F[k]).length + Object.values(F.campos || {}).filter(filtroConValor).length,
+    quitar: () => {
+      Object.assign(F, { q: '', tipo: '', prov: '', muni: '', esp: '', est: '', urg: false, mios: false, sin: false, com: '', rep: '', campos: {} });
+      ['ftipo', 'fest', 'fprov', 'fmuni', 'fesp', 'fcom', 'frep', 'q'].forEach(id => { if ($(id)) $(id).value = ''; });
+      const t = $('tools'); if (t && t.classList.contains('abierto') && HERR_CTX === 'directorio') t.classList.remove('abierto');
+      cargarFiltros(); buscar(true);
+    },
+    filtros: () => { const b = $('dirtools'); if (b) b.click(); },
+    columnas: () => abrirColumnas(),
+    mapa: () => $('mapaBtn'),
+    mas: () => [['dircalidad', 'Calidad del dato'], ['cercaBtn', 'Cerca de mí']],
+    kpis: async () => {
+      const t = x => RPC_ORIG('buscar_cuentas', { q: null, lim: 1, desplaz: 0, ...x }).then(r => (r.data && r.data.total) || 0, () => 0);
+      // v2.304.0: profesionales y centros por separado (antes una sola cifra con el nombre de los profesionales que contaba también los centros)
+      const [pro, cen, urg, sin, mios] = await Promise.all([t({ f_tipo: 'Persona' }), t({ f_tipo: 'Centro' }), t({ f_urgentes: true }), t({ f_sin_visitar: true }), t({ f_mios: true })]);
+      return [{ k: 'Persona', t: TT('medico', 'p', '', 'l', 'C'), n: pro, s: 'en total' }, { k: 'Centro', t: 'Centros', n: cen, s: 'en total' }, { k: 'urg', t: 'Urgentes', n: urg, s: 'marcados como urgentes' },
+        { k: 'sin', t: 'Sin visitar nunca', n: sin, s: 'todavía sin ' + TT('visita', 'p', '', 'l', 'l') }, { k: 'mios', t: 'De mi cartera', n: mios, s: 'asignados a ti' }];
+    },
+    kpiOn: k => k === 'Persona' || k === 'Centro' ? F.tipo === k : !!F[k],
+    kpiPulsar: k => { if (k === 'Persona' || k === 'Centro') { F.tipo = F.tipo === k ? '' : k; if ($('ftipo')) $('ftipo').value = F.tipo; } else F[k] = !F[k]; buscar(true); },
+    card: null   // las tarjetas del directorio las pone filaTabla (abajo), con los datos de la ficha
+  },
+  pacientes: {
+    que: () => 'clientes',
+    nuevo: () => $('pacnuevo'),
+    cuerpo: () => $('paclista'), tabla: () => $('paclista'), pie: () => $('pacpag'), cuenta: () => $('paccuenta'),
+    conDatos: el => !!el.querySelector('.dgrid, .vacio'),
+    rapidos: [['pactipo', 'Tipo'], ['pacped', 'Pedidos'], ['pacmun', 'Población']],
+    q: () => PAC.q || '',
+    buscarQ: v => { const i = $('pacq'); if (i) { i.value = v; i.dispatchEvent(new Event('input', { bubbles: true })); } else { PAC.q = v; PAC.pagina = 0; listaPacientes(); } },
+    activos: () => (PAC.tipo ? 1 : 0) + (PAC.pedidos ? 1 : 0) + (PAC.municipio ? 1 : 0) + (PAC.medico ? 1 : 0) + Object.keys(PAC.campos || {}).length,
+    filtros: () => { const b = document.querySelector('#v-pacientes .htbtn'); if (b) b.click(); },
+    columnas: () => { const b = document.querySelector('#v-pacientes .htbtn'); if (!b) return; b.click(); setTimeout(() => { const c = $('tools') && $('tools').querySelector('.t2abrir'); if (c) c.click(); }, 80); },
+    mapa: () => null,
+    mas: () => [],
+    kpis: async () => {
+      const t = x => RPC_ORIG('clientes_lista', { q: null, p_medico: null, lim: 1, desplaz: 0, p_tipo: null, p_pedidos: null, p_municipio: null, ...x }).then(r => (r.data && r.data.total) || 0, () => 0);
+      const [tot, con, sin, emp] = await Promise.all([t({}), t({ p_pedidos: 'con' }), t({ p_pedidos: 'sin' }), t({ p_tipo: 'Empresa' })]);
+      return [{ k: 'tot', t: 'Clientes', n: tot, s: 'en total' }, { k: 'con', t: 'Con pedidos', n: con, s: 'han comprado alguna vez' },
+        { k: 'sin', t: 'Sin pedidos', n: sin, s: 'todavía sin compras' }, { k: 'emp', t: 'Empresas', n: emp, s: 'centros, tiendas y otras' }];
+    },
+    kpiOn: k => k === 'tot' ? !PAC.tipo && !PAC.pedidos : k === 'emp' ? PAC.tipo === 'Empresa' : PAC.pedidos === k,
+    kpiPulsar: k => {
+      if (k === 'tot') { PAC.tipo = ''; PAC.pedidos = ''; }
+      else if (k === 'emp') PAC.tipo = PAC.tipo === 'Empresa' ? '' : 'Empresa';
+      else PAC.pedidos = PAC.pedidos === k ? '' : k;
+      if ($('pactipo')) $('pactipo').value = PAC.tipo || ''; if ($('pacped')) $('pacped').value = PAC.pedidos || '';
+      PAC.pagina = 0; listaPacientes();
+    },
+    // Tarjeta del móvil a partir de la fila de la tabla: nombre, población y teléfono, y el tipo a la derecha
+    card: dr => { const c = dr.children, tx = i => c[i] ? c[i].textContent.trim() : '';
+      return { a: tx(0), b: [tx(5), tx(3)].filter(x => x && x !== '—').join(' · '), c: c[1] ? c[1].innerHTML : '' }; }
+  }
+};
+
+// Sin nombre propio, el filtro rápido usa la etiqueta de su campo (así no se escribe aquí el nombre de un rol)
+const plEtiqueta = id => { const l = document.querySelector(`label[for="${id}"]`); return l ? l.textContent.trim() : ''; };
+
+// Un observador por pantalla: cada vez que la pantalla se repinta, la plantilla se ajusta antes de que se vea
+const PL_OBS = {};
+
+// Buscador de la barra
+let PL_TQ;
+
+/* ============================================================
+   v2.237.0 · Inicio y Agenda aparecen de una vez (aviso de Eric): al abrir la app la primera pantalla se enseñaba
+   sin esperar (salían los indicadores antiguos y luego el mosaico) y la Agenda se daba por lista antes de tener la
+   cinta y «Tu semana». Inicio enseña desde el principio el esqueleto del mosaico; la Agenda sigue con el cargador hasta tener
+   la cinta y «Tu semana» (como mucho 10 s).
+   ============================================================ */
+// Tope de espera por pantalla: en el móvil con mala cobertura la Agenda encadena varias consultas
+const LISTA_ESPERA = { agenda: 10000 };
+
+const LISTA_PARA = {
+  // Inicio: el mosaico ya pintado (si la persona no tiene mosaico, basta con que no queden esqueletos)
+  inicio: s => !!s.querySelector('#inimos > *') || (!s.classList.contains('conmos') && !s.querySelector('.ksk, .skel') && performance.now() - (s.__t0 || 0) > 1500),
+  // Agenda en vista de día: la cinta y «Tu semana» con sus días (o, si no llega, un respiro de 0,8 s tras la cinta)
+  // v2.248.0: la vista del día avisa cuando está pintada entera (dataset.listo)
+  agenda: s => (typeof AG_MODO !== 'undefined' && AG_MODO !== 'dia') || s.dataset.listo === '1'
+};
+
+/* ============================================================
+   v2.238.0 · Modelo «Lista» en Ventas: Pedidos, Oportunidades, Compras, Proveedores, Facturas, Productos, Servicios y Stock.
+   La plantilla pasa a ser genérica: cada pantalla dice sus filtros rápidos (selectores), su buscador si lo tiene, dónde está su
+   lista y su paginador. Los indicadores que filtran (Operativa de Pedidos) van en la banda; los totales (.kpis.vtot) pasan a una
+   franja de resumen compacta encima de la tabla. Sin buscador propio, el de la barra filtra la tabla («Contiene»).
+   ============================================================ */
+// Pantallas con varias secciones: la configuración depende de la sección abierta (null = sin plantilla, p. ej. Configuración de Facturación)
+const PL_SECC = {
+  ventas: () => typeof PEDSEC === 'undefined' ? null : ({ ventas: 'pedidos', llamadas: 'oport', compras: 'compras', proveedores: 'prov' })[PEDSEC] || null,
+  facturacion: () => typeof FSEC !== 'undefined' && FSEC === 'facturas' ? 'facturas' : null,
+  productos: () => typeof PSEC === 'undefined' ? null : ({ catalogo: 'prods', servicios: 'servs', stock: 'stock' })[PSEC] || 'prods'
+};
+
+// Base común de las listas en rejilla (.dgrid) con «Filtros y columnas»
+const plRejilla = o => Object.assign({
+  rejilla: true,
+  nuevo: () => document.querySelector(`#v-${o.tab} > .saludo .acts > .btn:not(.sec):not(.htbtn):not(.fab)`) || document.querySelector(`#v-${o.tab} .fab`),
+  cuerpo: () => o.lista ? $(o.lista) : null,
+  tabla: () => { const w = document.querySelector(`#v-${o.tab} .dgrid-wrap`); return (o.lista && $(o.lista)) || w; },
+  pie: () => o.pag ? $(o.pag) : null,
+  cuenta: () => null,
+  conDatos: el => !!el.querySelector('.dgrid, .vacio'),
+  rapidos: [],
+  q: () => { const i = o.buscador && $(o.buscador); if (i) return i.value || ''; const g = document.querySelector(`#v-${o.tab} .dgrid`); return g ? ((HT_ESTADO[htTipo(g)] || {}).texto || '') : ''; },
+  buscarQ: v => {
+    const i = o.buscador && $(o.buscador);
+    if (i) { i.value = v; i.dispatchEvent(new Event('input', { bubbles: true })); return; }
+    const g = document.querySelector(`#v-${o.tab} .dgrid`); if (!g) return;
+    const t = htTipo(g); HT_ESTADO[t] = HT_ESTADO[t] || { texto: '', facetas: {} }; HT_ESTADO[t].texto = v; htAplicarFiltros(g);
+    const sec = $('v-' + o.tab); if (sec) { htContador(sec); }
+  },
+  activos: () => { const sec = $('v-' + o.tab); const n = sec ? sec.querySelectorAll('.htchips .htchip').length : 0; return n; },
+  filtros: () => { const b = document.querySelector(`#v-${o.tab} .htbtn`); if (b) b.click(); },
+  columnas: () => { const b = document.querySelector(`#v-${o.tab} .htbtn`); if (!b) return; b.click(); setTimeout(() => { const c = $('tools') && $('tools').querySelector('.t2abrir'); if (c) c.click(); }, 80); },
+  mapa: () => null,
+  // «⋯»: los botones secundarios de la cabecera (menos «Filtros y columnas»)
+  mas: () => [...document.querySelectorAll(`#v-${o.tab} > .saludo .acts > button.sec:not(.htbtn):not(.plmas)`)].filter(b => !b.classList.contains('hide') && !(o.extra || []).some(([id]) => id === b.id))
+    .map(b => { if (!b.id) b.id = 'plb' + Math.random().toString(36).slice(2, 8); return [b.id, (b.textContent.trim() || b.title || b.getAttribute('aria-label') || '').replace(/\s+/g, ' ')]; })
+    .concat((o.extra || []).filter(([id]) => $(id))),
+  kpis: null, kpiOn: () => false, kpiPulsar: () => {},
+  // Tarjeta del móvil: la primera celda, las dos siguientes con texto y la pastilla de estado (si la hay) a la derecha
+  card: dr => {
+    const c = [...dr.children].filter(x => !x.classList.contains('plcard')), tx = x => x ? x.textContent.trim().replace(/\s+/g, ' ') : '';
+    const est = c.find(x => x.querySelector('.pill, .est, .cirest, [class*="estado"]'));
+    const resto = c.slice(1).filter(x => x !== est).map(tx).filter(x => x && x !== '—').slice(0, 2);
+    return { a: tx(c[0]), b: resto.join(' · '), c: est ? est.innerHTML : '' };
+  }
+}, o);
+
+const plSel = id => id && /^[#.]/.test(id) ? document.querySelector(id) : $(id);
+
+const plEtiq = id => { const s = plSel(id); if (!s) return ''; const l = (s.id && document.querySelector(`label[for="${s.id}"]`)) || (s.closest('div') && s.closest('div').querySelector(':scope > label')); return l ? l.textContent.trim() : ''; };
+
+/* ============================================================
+   v2.239.0 · Modelo «Lista» en Eventos, Intervenciones, Concursos y Parque instalado: los bloques de tarjetas pasan a una tabla con
+   las mismas filas (cada fila conserva su botón y lo que abre). Los bloques (Próximos, Pasados, Reposiciones…) pasan a ser
+   indicadores que filtran y un filtro rápido; si una fila estaba en dos bloques, sale una vez y cuenta en los dos.
+   La acción principal sube a la cabecera; las demás, al «⋯».
+   ============================================================ */
+const PLG = {};   // bloque elegido por pantalla
+
+const plTxt = el => el ? el.textContent.trim().replace(/\s+/g, ' ') : '';
+
+const plSm = el => { const s = el && el.querySelector('.tx .sm, .sm'); return plTxt(s); };
+
+const BLQ = {
+  eventos: { attr: 'ev', que: 'eventos', grupo: 'Cuándo', def: 'Eventos',
+    cols: [['Evento', ''], ['Fecha', ''], ['Tipo', ''], ['Lugar', ''], ['Asistentes', 'num'], ['Gasto', 'num']],
+    celdas: b => {
+      const p = plSm(b).split(' · '), hora = p.find(x => /^\d{1,2}:\d{2}$/.test(x)), tipo = p.find(x => EV_TIPOS.includes(x));
+      const asis = p.find(x => /asistente/.test(x)) || '', lugar = p.filter((x, i) => i > 0 && x !== hora && x !== tipo && x !== asis).join(' · ');
+      return [`<b>${esc(plTxt(b.querySelector('.tx b')))}</b>`, esc(p[0] + (hora ? ' · ' + hora : '')), esc(tipo || '—'), esc(lugar || '—'), esc((asis.match(/\d+/) || ['0'])[0]), esc(plTxt(b.querySelector('.evtot')) || '—')];
+    } },
+  cirugias: { attr: 'cir', que: 'intervenciones', grupo: 'Bloque', def: 'Intervenciones',
+    cols: [['Fecha', ''], ['Intervención', ''], ['Equipo y lugar', ''], ['Estado', '']],
+    celdas: b => [esc(plTxt(b.querySelector('.cirf b')) + (plTxt(b.querySelector('.cirf .sm')) ? ' · ' + plTxt(b.querySelector('.cirf .sm')) : '')),
+      `<b>${esc(plTxt(b.querySelector('.tx b')))}</b>`, esc(plSm(b.querySelector('.tx'))), (b.querySelector('.cirest') || {}).innerHTML || ''] },
+  concursos: { attr: 'con', que: 'concursos', grupo: 'Bloque', def: 'Concursos',
+    cols: [['Concurso', ''], ['Cliente, organismo y lotes', ''], ['Estado y plazos', '']],
+    celdas: b => [`<b>${esc(plTxt(b.querySelector('.tx b')))}</b>`, esc(plSm(b.querySelector('.tx'))), (b.querySelector('.cirest') || {}).innerHTML || ''] },
+  parque: { attr: 'eq', que: 'equipos', grupo: 'Bloque', def: 'Todos los equipos',
+    cols: [['Equipo', ''], ['Serie, centro y contrato', ''], ['Revisión y vencimientos', '']],
+    celdas: b => [`<b>${esc(plTxt(b.querySelector('.tx b')))}</b>`, esc(plSm(b.querySelector('.tx'))), (b.querySelector('.cirest') || {}).innerHTML || ''] }
+};
+
+// Las páginas (Eventos, Intervenciones…) crean su sección al entrar: el observador se engancha entonces (y otra vez si se vuelve a crear)
+const PL_OBSEL = {};
+
+/* ============================================================
+   v2.240.0 · Paneles sin saltos. Grabados con la red lenta, Inicio, Analítica, Agenda, Rutas y Calidad del dato ya llegan
+   de una vez; quedaban tres detalles:
+   - Las cifras que cuentan (mosaico de Inicio, indicadores de Inicio, Pedidos y Analítica) volvían a contar desde cero cada vez
+     que se volvía a la pantalla, y parecía que saltaban: ahora solo cuentan si la cifra ha cambiado desde la última vez.
+   - En el móvil, las cifras grandes de Analítica se partían en dos líneas.
+   - Oportunidades enseñaba los filtros de Pedidos («Mes actual» dos veces): los de la otra sección se apartan del panel.
+   ============================================================ */
+const CONTADO = {};   // última cifra que se ha enseñado contando, por pantalla y grupo
+
+const plYaContado = (clave, valores) => { const k = TAB + ':' + clave, f = valores.join('|'); if (CONTADO[k] === f) return true; CONTADO[k] = f; return false; };
+
+// Pedidos y Oportunidades comparten el panel de filtros: los de la otra sección se apartan (no salen en el panel ni como filtro activo)
+const PL_AJENOS = { pedidos: ['llper', 'llfres'], oport: ['pper', 'pcanal', 'pestado', 'popf', 'porigf', 'prepf'], compras: ['llper', 'llfres', 'pper', 'pcanal', 'pestado', 'popf', 'porigf', 'prepf'], prov: ['llper', 'llfres', 'pper', 'pcanal', 'pestado', 'popf', 'porigf', 'prepf'] };
+
+/* ============================================================
+   v2.262.0 · Facturas y Oportunidades ordenadas de verdad (punto 3 del plan del 11/10/2026). Las dos listas traen ya todo el periodo
+   elegido (la base filtra por fechas, búsqueda y estado) y se paginaban en la pantalla, pero al pulsar una columna solo se ordenaban
+   las filas de la página que se veía. Ahora el orden se aplica a toda la lista del periodo antes de paginar y se vuelve a la primera
+   página: es lo más eficiente (los datos ya están en el móvil; no hace falta otra consulta ni cambiar la base). Si algún día una
+   empresa tiene miles de facturas en un mismo periodo, se pasaría la paginación a la base.
+   ============================================================ */
+const ORD_MEM = {
+  facts: { fn: 'facturas_lista', campos: ['numero', 'fecha', 'cliente', 'nif', 'base', 'cuota_iva', 'total', 'vencimiento', 'estado_cobro'] },
+  llam: { fn: 'llamadas_lista', campos: ['fecha', x => x.cliente || x.nombre, 'importe_estimado', x => x.medico || x.cuenta_texto, x => x.resultado || (x.pedido_id ? 'Pedido hecho' : ''), 'proxima_fecha', 'usuario'] }
+};

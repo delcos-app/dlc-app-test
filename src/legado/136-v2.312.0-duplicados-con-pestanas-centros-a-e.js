@@ -7,8 +7,6 @@
    Sin SQL: unificar_cuentas ya junta todo lo que cuelga de la ficha (consultas, visitas, citas, cartera…).
    ============================================================ */
 let DUP_TIPO = {}, DUP_PEST = 'Persona';
-// (R-12: listasDuplicados se definía aquí otra vez; ahora está en su sitio, más arriba)
-const dupTipoDe = id => DUP_TIPO[id] === 'Centro' ? 'Centro' : 'Persona';
 pintarListasDup = (orig => function () {
   if (!$('dpendc')) return;
   const p0 = DUP_PEND, q0 = DUP_PARES;
@@ -68,7 +66,6 @@ compararEn = (orig => async function (el, idA, idB) {
   };
   el.addEventListener('click', el.__dupClic, true);
 })(compararEn);
-let DUP_TRAS = null;
 db.rpc = (orig => function (fn, args, ...r) {
   const res = orig.call(this, fn, args, ...r);
   if (fn !== 'unificar_cuentas' || !DUP_TRAS || !res || typeof res.then !== 'function') return res;

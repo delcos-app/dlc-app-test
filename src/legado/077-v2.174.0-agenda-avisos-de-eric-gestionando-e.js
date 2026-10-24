@@ -37,7 +37,6 @@ estimarDiaBase = (orig => function (citas, fecha) {
   EST_ULT = r;
   return r;
 })(estimarDiaBase);
-const DIA_NOMBRE = f => new Date(String(f).slice(0, 10) + 'T12:00:00').toLocaleDateString('es-ES', { weekday: 'long' });
 function explicarAviso(inf) {
   const quien = TT('medico', 's', 'el', 'l', 'l');
   if (inf.lejos) return `Esta parada queda a unos ${num(inf.lejos)} km de la anterior (o de tu punto de salida), así que la hora estimada se va muy tarde. Suele ser una dirección mal situada: revisa la ubicación en su ficha o tu punto de salida en Mi perfil.`;
@@ -76,8 +75,6 @@ explicarAviso = (orig => function (inf) {
   if (inf.orden && !inf.lejos) return 'La cita tiene hora fija, pero está colocada después de otras sin hora: siguiendo el orden de la lista no llegarías a tiempo. Súbela con las flechas hasta su sitio o pulsa «Ordenar por cercanía», que respeta las horas fijas. Es solo un aviso: la cita se guarda igual.';
   return orig.call(this, inf);
 })(explicarAviso);
-// «⋯»: pulsar el mismo botón con su menú abierto lo cierra (antes lo volvía a abrir)
-let TDM_BOTON = null;
 document.addEventListener('click', e => {
   const b = e.target.closest('button'), m = document.querySelector('.tdmenu');
   if (b && m && m.__de === b) { m.remove(); e.stopImmediatePropagation(); e.preventDefault(); return; }
@@ -216,8 +213,6 @@ function verCita(c) {
   $('dlg').showModal();
 }
 
-// ---- 2. El mes de la Agenda, en cualquier mes y año
-let AG_MES = null;
 document.addEventListener('pointerdown', e => { if (!e.target.closest('.agmpop, #agmtit')) document.querySelectorAll('.agmpop').forEach(x => x.remove()); }, true);
 
 // ---- 6. «Esta semana»: toda la celda abre el día (en el móvil, también al tocar un nombre)
@@ -262,11 +257,6 @@ document.addEventListener('focusin', e => {
   });
 })();
 
-/* v2.177.0 · Ficha de centro (decisión de Eric, 5/10/2026): los centros dados de alta salen en el buscador (SQL 111, buscar_global con id) y al
-   pulsarlos se abre su ficha: dirección, teléfono, cómo llegar, horario y la lista de profesionales que atienden allí (ficha_centro), con
-   «+ Añadir» (centro_anadir_profesional: enlaza o crea su consulta en el centro), y en cada uno Ficha, «+ Cita» en ese centro y «Quitar»
-   (centro_quitar_profesional: quita esa consulta de su ficha). «Editar centro» corrige sus datos y su horario (guardar_centro). */
-const HOR_TXT = h => DIAS_SEM.filter(([d]) => h && h[d]).map(([d, n]) => `${n} ${h[d]}`).join(' · ');
 // Buscador de arriba: un centro dado de alta abre su ficha
 window.addEventListener('click', e => {
   const b = e.target.closest && e.target.closest('[data-gcid]');
@@ -285,12 +275,7 @@ window.addEventListener('click', e => {
    4. Borrar y descartar (decisión de Eric: las dos): en el detalle de la cita, «Descartar» (no se hará; queda en el historial) y «Borrar»
       (fue un error: desaparece; solo de hoy en adelante y si no se ha hecho). */
 
-// ---- 1. La franja de la semana, en cualquier semana
-let AG_SEMANA = null;
 
-// ---- 2 y 3. Cabecera del día: moverse de día y apuntar tareas
-// Se guardan las del día en memoria: mover una cita repinta el día sin volver a pedirlas (solo se piden al cambiar de día, recargar o editarlas)
-let TAREAS_DIA = null;
 function editarTarea(t, fecha) {
   t = t || {};
   $('dbody').innerHTML = `
@@ -365,13 +350,6 @@ abrirVisitaBase = (orig => async function (id, ...r) {
     .observe(caja, { childList: true, subtree: true });
 })();
 
-/* v2.180.0 · Direcciones bien situadas (aviso de Eric: el Dr. Margalet, en Barcelona, salía en Marbella).
-   - geocodificar(q, o): busca solo en España y, si se le da el municipio (o.municipio), solo vale un resultado de ese municipio; si el texto libre no
-     lo encuentra, prueba con calle, municipio y código postal por separado. Si solo aparece en otro sitio, devuelve ese resultado con `fuera` (el
-     municipio donde sale) y quien llama no guarda el punto.
-   - «Calidad del dato»: «Direcciones que no cuadran» (SQL 114, ubicaciones_dudosas): consultas a más de 50 km del resto de su municipio, con
-     «Volver a situar» (busca de nuevo con el municipio y guarda el punto si cuadra) y «Ficha». */
-const normGeo = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().replace(/[^A-Z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
 geocodificar = async function (q, o = {}) {
   const base = 'https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=5&countrycodes=es&';
   const pide = async qs => { try { const r = await fetch(base + qs); return r.ok ? await r.json() : []; } catch (e) { return []; } };

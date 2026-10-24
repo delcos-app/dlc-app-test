@@ -5,7 +5,6 @@
    ============================================================ */
 const ESCRITURAS_FICHAS = new Set(['guardar_cuenta', 'guardar_centro', 'centro_anadir_profesional', 'centro_quitar_profesional', 'guardar_campos',
   'unificar_cuentas', 'archivar_cuenta', 'clasificar_cuentas']);
-let DATOS_CAMBIADOS = false;
 db.rpc = (orig => function (fn, args, ...r) {
   const res = orig.call(this, fn, args, ...r);
   if (!ESCRITURAS_FICHAS.has(fn) || !res || typeof res.then !== 'function') return res;

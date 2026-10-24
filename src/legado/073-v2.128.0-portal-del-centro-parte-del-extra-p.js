@@ -1,5 +1,3 @@
-const NOMBRE_ESTADO_CENTRO = { 'Pendiente de confirmar': 'p-warn', Confirmado: 'p-est', 'Pendiente de validar': 'p-warn', Validado: 'p-est',   // v2.349.0 (SQL 176); los dos de antes, por si la base aún no lo tiene
-  Preparado: 'p-per', Anulado: 'p-anu' };
 
 abrirFicha = (orig => async function (id, ...a) { const r = await orig.call(this, id, ...a); fichaProductosCentro(id); return r; })(abrirFicha);
 
@@ -47,31 +45,10 @@ function menuPaginas2131() {
 }
 aplicarPermisosMenu = (orig => function (...a) { const r = orig.apply(this, a); menuPaginas2131(); franjaVista(); return r; })(aplicarPermisosMenu);
 
-// Franja «Estás viendo X · Salir» cuando el Administrador de delcos está dentro de otra organización
-let VISTA_ORG = null;
 // (v2.183.0: aquí iba la primera versión de entrarEnOrganizacion; se redefine entera más abajo)
 setTimeout(() => { try { menuPaginas2131(); franjaVista(); } catch (e) {} }, 0);
-/* ---------------- v2.132.0 · Menú lateral de escritorio (elegido por Eric: barra a la izquierda, agrupada por áreas) ----------------
-   Los botones siguen siendo los de siempre (nav.main #nav [data-t]): aquí solo se reparten en bloques, se pliega la barra a iconos
-   (por defecto en pantallas de menos de 1440 px; se recuerda en el dispositivo) y cada persona ordena los bloques y oculta secciones
-   («Personalizar menú», guardado en preferencias.menu). Solo en escritorio (≥ 900 px); el móvil sigue con su barra inferior.
-   Un botón nuevo en #nav que no esté en ningún bloque sale en «Otros». «Plataforma» (panel de delcos) va siempre al final, fijo. */
-const MENU_GRUPOS = [
-  { id: 'dia', t: 'Tu día', items: ['inicio', 'agenda', 'rutas'] },
-  { id: 'cartera', t: 'Cartera', items: ['directorio', 'pacientes', 'seguimiento'] },
-  { id: 'ventas', t: 'Ventas', items: ['ventas', 'productos', 'facturacion'] },
-  { id: 'resultados', t: 'Resultados', items: ['analitica', 'informe'] },
-  { id: 'equipo', t: 'Equipo', items: ['usuarios'] }];
-const MENU_FIJO = { id: 'plataforma', t: 'Plataforma', items: ['delcos'] };
-const MENU_PLEGAR_BAJO = 1440;
 // Iconos de las secciones nuevas (v2.131.0): Usuarios y roles con la llave de accesos y el panel de delcos con el escudo
 Object.assign(ICO_NAV, { usuarios: 'key-round', delcos: 'shield' });
-const ICO_SUBIR = '<path d="m18 15-6-6-6 6"/>';
-const ICO_PLEGAR = '<rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/><path d="m16 15-3-3 3-3"/>';
-const menuPrefs = () => ((typeof PERFIL !== 'undefined' && PERFIL && PERFIL.preferencias) || {}).menu || {};
-const menuEscritorio = () => innerWidth >= 900;
-const menuPlegado = () => { try { const v = localStorage.getItem('dlc-menu-plegado'); if (v === '1' || v === '0') return v === '1'; } catch (e) {} return innerWidth < MENU_PLEGAR_BAJO; };
-let MENU_FIRMA = '';
 function montarMenuLateral() {
   const inn = $('nav'); if (!inn) return;
   // Con una sola sección (portal del médico o del centro) no hace falta barra lateral: se queda la cabecera de siempre
@@ -136,22 +113,12 @@ function montarMenuLateral() {
   $('mlplegar').dataset.tip = document.body.classList.contains('menupleg') ? 'Desplegar el menú' : 'Plegar el menú';
 }
 document.addEventListener('mouseover', e => { const b = e.target.closest && e.target.closest('nav.main [data-tip]'); menuTip(b || null); });
-// (v2.183.0: aquí iba la primera versión de menuPersonalizar; se redefine entera más abajo)
-// Se monta al arrancar y se rehace si cambian los botones (permisos, módulos, portal), el tamaño de la pantalla o la sesión
-let MENU_RAF = 0;
-const menuRehacer = () => { if (MENU_RAF) return; MENU_RAF = requestAnimationFrame(() => { MENU_RAF = 0; montarMenuLateral(); }); };
 if ($('nav')) new MutationObserver(menuRehacer).observe($('nav'), { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
 addEventListener('resize', menuRehacer);
 if ($('app')) new MutationObserver(menuRehacer).observe($('app'), { attributes: true, attributeFilter: ['class'] });
 menuRehacer();
 
 
-/* v2.133.0 · Entorno de pruebas: «Traer los datos de producción». Junto a «Volver a los datos de partida» (y para quien puede
-   usarlo), pide a la función «refrescar-pruebas» de Supabase que lance el proceso de GitHub que copia los datos actuales de
-   producción (solo los lee) y los deja como nuevos datos de partida. La franja enseña en qué punto está y recarga al terminar. */
-const MOTIVO_REFRESCO = { permiso: 'Solo la administración puede traer los datos de producción', responsable: 'Solo la persona responsable del entorno de pruebas puede hacerlo',
-  en_marcha: 'Ya se están copiando los datos de producción', github: 'No se ha podido lanzar la copia en GitHub', no_es_pruebas: 'Esto solo funciona en el entorno de pruebas' };
-let REFRESCO_VIGILA = null;
 if (EN_PRUEBAS) {
   pintarFranjaPruebas = (orig => async function () {
     await orig();
@@ -242,11 +209,6 @@ menuCita = function (boton, c) {
   m.querySelectorAll('[data-tdop]').forEach(b => b.onclick = () => { m.remove(); accionCita(b.dataset.tdop, c); });
 };
 
-// Pedidos, Oportunidades, Compras y Proveedores: cada uno su entrada en el menú (por dentro, el mismo módulo con su sección)
-const ALIAS_PEDIDOS = { oportunidades: 'llamadas', compras: 'compras', proveedores: 'proveedores' };
-const TITULO_PEDSEC = { ventas: ['Pedidos', 'Pedidos de tus clientes, con sus unidades e importes'], llamadas: ['Oportunidades', 'Cada venta, se cierre con pedido o no, y por qué'],
-  compras: ['Compras', 'Pedidos a proveedores y mercancía en camino'], proveedores: ['Proveedores', 'A quién compras y en qué condiciones'] };
-let IR_DESDE_MENU = false;
 document.addEventListener('click', e => {
   if (e.target.closest('nav.main [data-t], #bnav [data-t], [data-bm]')) { IR_DESDE_MENU = true; setTimeout(() => { IR_DESDE_MENU = false; }, 0); }
 }, true);
@@ -271,8 +233,6 @@ Object.assign(ICO_NAV, { oportunidades: 'phone', compras: 'clipboard-list', prov
 (() => { const g = MENU_GRUPOS.find(x => x.id === 'ventas'); if (!g) return; ['proveedores', 'compras', 'oportunidades'].forEach(k => { if (!g.items.includes(k)) g.items.splice(g.items.indexOf('ventas') + 1, 0, k); }); })();
 setTimeout(() => { try { menuPedidos2139(); } catch (e) {} }, 0);
 
-// «Por hacer» de pedidos, configurable
-const AVISOS_PED = [['pago', 'Pendientes de cobro', '💳'], ['paquete', 'Paquetes por preparar', '📦'], ['email_factura', 'Facturas por enviar', '🧾'], ['email_pago', 'Datos de pago por enviar', '✉️']];
 pintarOperativa = async function () {
   let c = $('operativa');
   if (!c) { const ref = $('vcuerpo'); if (!ref) return; ref.insertAdjacentHTML('beforebegin', '<div class="card" id="operativa"></div>'); c = $('operativa'); }

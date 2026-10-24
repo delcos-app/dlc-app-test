@@ -493,3 +493,72 @@ async function cargarInforme2271() {
   await pinta();
   portalMedico();
 }
+
+/* v2.126.0 · Portal del médico (extra «Portal» de la organización). En «Mi informe», además: la constancia de sus pacientes solo en
+   cifras (sin ninguna fila por paciente), pedir material de lo que la empresa permite y escribir dudas a su comercial. En la ficha,
+   quien la lleva entrega el material y contesta. En Configuración → Portal del médico, qué material se puede pedir y cuánto. */
+// v2.242.0: aquí iba la primera versión de hayExtra (se redefine entera más abajo)
+const MOTIVO_PORTAL = { permiso: 'No tienes permiso', extra: 'Tu empresa no tiene el portal activado', material: 'Ese material ya no se puede pedir',
+  cantidad: 'Esa cantidad supera el máximo', vacio: 'Escribe el mensaje', cerrada: 'Ya estaba cerrado', no_existe: 'Ya no existe' };
+
+const motivoPortal = r => MOTIVO_PORTAL[(r && r.motivo) || ''] || 'No se ha podido hacer';
+
+/* ============================================================
+   v2.271.0 · Portal del profesional en una sola página (revisión de Eric, 12/10/2026; variante C elegida; necesita el SQL 146).
+   - Pestañas dentro de la página: «Resumen», «Mi ficha» y «Material y dudas». Sin «Inicio», sin manual y, en Configuración, solo
+     «Mis datos» (sin módulos, actividad, rol ni «al entrar, abrir») y «Notificaciones».
+   - Resumen: 4 indicadores y debajo, en dos columnas iguales alineadas con ellos, «Tu evolución» (un solo gráfico: unidades por mes y,
+     debajo, cuántas ventas), «Por producto», «Llamadas recibidas a tu nombre» y «Constancia». Sin posición entre profesionales.
+     Cada bloque se explica en su ayuda «i».
+   - Mi ficha: contacto, dónde pasa consulta (centros de la base, sin más datos que nombre y dirección, o uno nuevo), un horario
+     flexible y rápido por centro (días, varias franjas con horas libres y botones para rellenar de golpe), cómo prefiere las visitas
+     y notas. Se envía como propuesta a su comercial (portal_guardar_ficha); si le falta algo, aviso arriba y notificación (SQL 146).
+   - En la ficha del equipo: «Datos enviados desde su portal» con lo que tenéis y lo que propone, «Editar la ficha» y «Marcar como
+     revisado».
+   ============================================================ */
+const PM = { tab: 'res', ficha: null, faltan: [], prop: null, ubic: [] };
+
+const pmAyu = (t, x) => `<button type="button" class="ai" data-ayuda-tit="${esc(t)}" data-ayuda-txt="${esc(x)}" aria-label="Qué es">i</button>`;
+
+const PM_DIAS = ['L', 'M', 'X', 'J', 'V', 'S'];
+
+const PM_DIAN = { L: 'Lunes', M: 'Martes', X: 'Miércoles', J: 'Jueves', V: 'Viernes', S: 'Sábado' };
+
+const PM_COMO = ['Con cita previa', 'Sin cita, al final de la consulta', 'Sin cita, en cualquier hueco', 'Por teléfono o videollamada', 'Prefiero que me escribáis antes'];
+
+const pmFaltaTxt = () => {
+  const t = { horario: typeof PM_CENTRO === 'function' && PM_CENTRO() ? 'dónde y cuándo atendéis' : 'dónde y cuándo atiendes', telefono: 'un teléfono de contacto', visitas: `cómo prefieres ${TT('visita', 'p', 'el', 'l', 'l')}` };
+  const l = PM.faltan.map(x => t[x]).filter(Boolean);
+  return l.length > 1 ? l.slice(0, -1).join(', ') + ' y ' + l[l.length - 1] : l[0] || 'algún dato';
+};
+
+/* ============================================================
+   v2.282.0 · Portal del centro con el mismo modelo que el del profesional (petición de Eric, 12/10/2026).
+   Una sola página con pestañas: «Resumen» (4 indicadores; «Tus pedidos» y «Lo que has comprado» del mismo tamaño, con su «i»),
+   «Pedir reposición» (sus productos con su precio; sin máximo en el campo: por encima de 1.000 unidades —lo que acepta
+   pedido_portal, que descartaba en silencio— avisa en la fila y no envía), «Mi centro» (la misma ficha que el profesional, con
+   sus textos) y «Material y dudas». Configuración, ayudas y navegación, como el portal del profesional.
+   ============================================================ */
+const PM_CENTRO = () => typeof puede === 'function' && puede('portal_centro');
+
+const PC_MAX = 1000;
+
+/* ============================================================
+   v2.283.0 · Packs para los centros (petición de Eric, 12/10/2026, con las directrices comerciales de los centros; SQL 151).
+   - Producto: «Packs para los centros» (compras N, te regalan M) y PVP de referencia con IVA. Con packs, el centro pide ese
+     producto solo por packs desde su portal; el regalo va en el pedido como línea aparte al 100 % de descuento.
+   - Portal del centro, «Pedir reposición»: cada pack con sus unidades, su importe, el coste real por unidad y el margen sobre el
+     PVP de referencia; cuántos packs de cada (0 a 50, avisando en la fila si no vale); entrega en la dirección del centro o
+     repartida entre varias direcciones (las unidades repartidas tienen que cuadrar). La bonificación es de cada pedido.
+   ============================================================ */
+const PC_PACK_MAX = 50;
+
+const pcPct = v => (Math.round(v * 1000) / 10).toLocaleString('es-ES', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' %';
+
+/* ============================================================
+   v2.353.0 · Portal del profesional: la actividad del periodo, de un vistazo (Eric, 22/10/2026). Al entrar el periodo es «Esta semana».
+   Con alguna solicitud completada: «Esta semana se han activado 2 …», escueto. Sin ninguna: lo dice y ofrece «Material y dudas».
+   Solo cuenta lo completado (SQL 177): nunca se enseña nada que no lo esté.
+   ============================================================ */
+const PM_PER_TXT = { hoy: 'Hoy', ayer: 'Ayer', semana: 'Esta semana', '7d': 'En los últimos 7 días', mes: 'Este mes', mesant: 'El mes pasado',
+  tri: 'Este trimestre', triant: 'El trimestre pasado', anio: 'Este año', anioant: 'El año pasado', todo: 'En total', pers: 'En estas fechas' };

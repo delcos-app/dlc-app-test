@@ -1,32 +1,9 @@
-/* ============================================================
-   v2.271.0 · Portal del profesional en una sola página (revisión de Eric, 12/10/2026; variante C elegida; necesita el SQL 146).
-   - Pestañas dentro de la página: «Resumen», «Mi ficha» y «Material y dudas». Sin «Inicio», sin manual y, en Configuración, solo
-     «Mis datos» (sin módulos, actividad, rol ni «al entrar, abrir») y «Notificaciones».
-   - Resumen: 4 indicadores y debajo, en dos columnas iguales alineadas con ellos, «Tu evolución» (un solo gráfico: unidades por mes y,
-     debajo, cuántas ventas), «Por producto», «Llamadas recibidas a tu nombre» y «Constancia». Sin posición entre profesionales.
-     Cada bloque se explica en su ayuda «i».
-   - Mi ficha: contacto, dónde pasa consulta (centros de la base, sin más datos que nombre y dirección, o uno nuevo), un horario
-     flexible y rápido por centro (días, varias franjas con horas libres y botones para rellenar de golpe), cómo prefiere las visitas
-     y notas. Se envía como propuesta a su comercial (portal_guardar_ficha); si le falta algo, aviso arriba y notificación (SQL 146).
-   - En la ficha del equipo: «Datos enviados desde su portal» con lo que tenéis y lo que propone, «Editar la ficha» y «Marcar como
-     revisado».
-   ============================================================ */
-const PM = { tab: 'res', ficha: null, faltan: [], prop: null, ubic: [] };
-const pmAyu = (t, x) => `<button type="button" class="ai" data-ayuda-tit="${esc(t)}" data-ayuda-txt="${esc(x)}" aria-label="Qué es">i</button>`;
-const PM_DIAS = ['L', 'M', 'X', 'J', 'V', 'S'];
-const PM_DIAN = { L: 'Lunes', M: 'Martes', X: 'Miércoles', J: 'Jueves', V: 'Viernes', S: 'Sábado' };
-const PM_COMO = ['Con cita previa', 'Sin cita, al final de la consulta', 'Sin cita, en cualquier hueco', 'Por teléfono o videollamada', 'Prefiero que me escribáis antes'];
 
 window.PM_LISTO = true;
 
 
 
 
-const pmFaltaTxt = () => {
-  const t = { horario: typeof PM_CENTRO === 'function' && PM_CENTRO() ? 'dónde y cuándo atendéis' : 'dónde y cuándo atiendes', telefono: 'un teléfono de contacto', visitas: `cómo prefieres ${TT('visita', 'p', 'el', 'l', 'l')}` };
-  const l = PM.faltan.map(x => t[x]).filter(Boolean);
-  return l.length > 1 ? l.slice(0, -1).join(', ') + ' y ' + l[l.length - 1] : l[0] || 'algún dato';
-};
 
 
 

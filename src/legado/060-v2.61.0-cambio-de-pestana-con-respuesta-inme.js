@@ -6,7 +6,6 @@
 
 /* ---------------- 1. Cambio de pestaña: respuesta inmediata y vista anterior atenuada ---------------- */
 
-let CLIC_PESTANA = null;
 // Se registra al apoyar el dedo o el ratón (antes del clic), para que la vista fija sepa qué botón se ha pulsado
 document.addEventListener('pointerdown', e => { CLIC_PESTANA = e.target.closest('button, [data-ag]'); }, true);
 document.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') CLIC_PESTANA = e.target.closest && e.target.closest('button, [data-ag]'); }, true);
@@ -79,11 +78,6 @@ barraCuentas = (orig => function () {
 
 /* ---------------- 5. Diseño del PDF de la factura ---------------- */
 
-const PDF_DEF = { logo: true, logoPos: 'izq', logoTam: 'm', color: '#1C2733', titulo: 'FACTURA', fuente: 'helvetica', empresaCab: false, clientePos: 'der',
-  cols: { precio: true, unidades: true, subtotal: true, iva: true, total: true }, fotos: true, vencimiento: true, formaPago: true, iban: true, direccion: true,
-  pieTel: true, pieWeb: true, pieTexto: true, paginas: true, qrPos: 'abajo' };
-const cfgPDF = () => Object.assign({}, PDF_DEF, (AJUSTES || {}).factura_pdf || {}, { cols: Object.assign({}, PDF_DEF.cols, ((AJUSTES || {}).factura_pdf || {}).cols || {}) });
-const hexRGB = h => { const x = (h || '#1C2733').replace('#', ''); return [0, 2, 4].map(i => parseInt(x.substr(i, 2), 16)); };
 facturaPDF = async function (f, rectificaNum, cfgPrueba) {
   const C = cfgPrueba || cfgPDF();
   const JsPDF = await cargarJsPDF();

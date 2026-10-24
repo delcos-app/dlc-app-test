@@ -143,3 +143,27 @@ function pintarUsoCirugia(c, st) {
     verCirugia(c.id, `<div class="banda-ok depaviso">${r.pedido_id ? 'Queda un pedido en borrador al centro para confirmarlo y la' : 'Guardado lo usado. Queda la'} reposición pendiente: hay 48 horas para reponer lo usado.</div>`);
   };
 }
+
+/* v2.199.0 · Intervenciones con lote y número de serie (tercera tanda del estudio por sectores, SQL 125). Decisiones de Eric: sección propia y
+   cada intervención también en la Agenda de quien asiste; el material se elige en cada intervención (depósito del centro o el de quien asiste); el
+   número de serie se apunta al usar; lo usado crea el pedido en borrador al centro y una reposición con plazo de 48 horas que avisa.
+   - Menú «Intervenciones» (en «Tu día»): reposiciones pendientes (las vencidas, marcadas), próximas y hechas en los últimos 30 días; «+ Nueva intervención».
+   - Ventana de la cirugía: datos, «Registrar lo usado» (por lote, con un número de serie por unidad y la referencia del paciente sin
+     datos de salud), lo usado con su lote y serie, el pedido y «Reponer ahora».
+   - Ficha del responsable o del centro: sus últimas intervenciones. Los avisos de reposición vencida abren la intervención. */
+const CIR_ORIGEN = [['deposito', 'Depósito del centro'], ['personal', 'Material de quien asiste']];
+
+const cirRepo = c => c.reposicion === 'vencida' ? '<span class="pill p-urg">Reposición vencida</span>'
+  : c.reposicion === 'pendiente' ? `<span class="pill p-warn">Reponer antes del ${esc(new Date(c.reposicion_limite).toLocaleString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }))}</span>`
+  : c.reposicion === 'repuesta' ? '<span class="pill p-est">Repuesta</span>' : '';
+
+const cirEstado = c => `<span class="pill ${c.estado === 'Hecha' ? 'p-est' : c.estado === 'Anulada' ? 'p-anu' : 'p-per'}">${esc(c.estado)}</span>`;
+
+const CIR_ERR = { permiso: 'No puedes cambiar esta intervención', faltan: 'Faltan la fecha, el centro o el responsable', hospital: 'El centro tiene que ser una ficha de tipo centro',
+  sin_deposito: 'Este centro no tiene depósito: déjale material desde su ficha o elige el material de quien asiste', sin_almacen: 'Quien asiste no tiene almacén propio con material',
+  hecha: 'La intervención ya está hecha: no se puede cambiar', sin_stock: 'No hay bastante en el almacén de la intervención', series: 'Hay más números de serie que unidades',
+  linea: 'Revisa las unidades de cada línea', vacio: 'Apunta al menos una unidad usada', anulada: 'La intervención está anulada', no_hecha: 'Primero registra lo usado',
+  sin_origen: 'No hay almacén central del que reponer', cirujano: 'Elige un responsable de tu empresa', asistente: 'Quien asiste tiene que ser una persona activa del equipo',
+  valores: 'Revisa de dónde sale el material' };
+
+const cirError = r => CIR_ERR[r && r.error] || 'No se ha podido guardar';

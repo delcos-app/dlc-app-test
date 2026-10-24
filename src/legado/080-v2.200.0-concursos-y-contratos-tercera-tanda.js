@@ -1,17 +1,3 @@
-/* v2.200.0 · Concursos y contratos (tercera tanda del estudio por sectores, SQL 126). Decisiones de Eric: al ganar un lote, sus precios se
-   aplican solos en los pedidos de esa ficha mientras el contrato está en vigor; los días de aviso antes de que venza los elige cada empresa.
-   - Menú «Concursos» (en «Ventas»): «En marcha» (en estudio y con la oferta enviada, por fecha límite), «Contratos» (adjudicados, con lo que les queda)
-     y «Cerrados»; «+ Nuevo concurso» y, para la administración, «Avisos de vencimiento».
-   - Ventana del concurso: datos, estado, fechas del contrato y sus lotes (estado, importes, adjudicatario si se pierde) con los productos
-     y precios de cada lote.
-   - Pedidos: si la ficha tiene un contrato en vigor, el precio de sus productos es el adjudicado («Precio de concurso»).
-   - Ficha: sus concursos. Los avisos de vencimiento abren el concurso. */
-const CON_ESTADOS = ['En estudio', 'Oferta enviada', 'Adjudicado', 'Perdido', 'Desierto'];
-const CON_LOTE_EST = ['Pendiente', 'Ganado', 'Perdido'];
-const conPill = e => `<span class="pill ${e === 'Adjudicado' ? 'p-est' : e === 'Perdido' || e === 'Desierto' ? 'p-anu' : e === 'Oferta enviada' ? 'p-per' : 'p-warn'}">${esc(e)}</span>`;
-const conVence = c => c.prorroga_hasta || c.fin || null;
-const conQuedan = c => { const v = conVence(c); return v ? Math.round((new Date(v + 'T12:00:00') - new Date(hoyISO() + 'T12:00:00')) / 864e5) : null; };
-let CON_AVISOS = [90, 30];
 Object.assign(ICON_NOM, { gavel: '<path d="m14.5 12.5-8 8a2.12 2.12 0 1 1-3-3l8-8"/><path d="m16 16 6-6"/><path d="m8 8 6-6"/><path d="m9 7 8 8"/><path d="m21 11-8-8"/>' });
 ICO_NAV.concursos = 'gavel'; ICO_MOD.concursos = svgIco(ICON_NOM.gavel);
 (() => { const g = MENU_GRUPOS.find(x => x.id === 'ventas'); if (g && !g.items.includes('concursos')) g.items.splice(g.items.indexOf('ventas') + 1, 0, 'concursos'); })();
@@ -46,9 +32,6 @@ abrirFicha = (orig => async function (id, ...a) {
 })(abrirFicha);
 try { menuConcursos(); } catch (e) {}
 
-// Pedidos: el precio del contrato en vigor de la ficha (editorPedido lo consulta en su sitio)
-let PED_PRECIOS = { cuenta: null, precios: {} };
-const conPrecioContrato = p => { const x = p && p.id && PED_PRECIOS.precios[p.id]; return x ? Object.assign({}, p, { precio: +x.precio, contrato: x.concurso }) : p; };
 /* v2.201.0 · Parque instalado (última pieza de la tercera tanda del estudio por sectores, SQL 127). Decisiones de Eric: los equipos se dan de
    alta a mano en la ficha o al servir un pedido de un producto «equipo», con su número de serie; los avisos de vencimiento usan los días de la empresa.
    - Producto: «Es un equipo» y «Revisión cada N meses».
@@ -58,22 +41,12 @@ const conPrecioContrato = p => { const x = p && p.id && PED_PRECIOS.precios[p.id
    Además (decisión de Eric en Web delcos): Intervenciones, Material en depósito, Concursos y Parque instalado, en los planes Empresa y A medida. */
 Object.assign(PLAN_SECCIONES, { cirugias: ['empresa', 'medida'], deposito: ['empresa', 'medida'], concursos: ['empresa', 'medida'], parque: ['empresa', 'medida'] });
 ['cirugias', 'concursos'].forEach(k => { const o = PAGINAS[k].permiso; PAGINAS[k].permiso = () => o() && planIncluyeSeccion(k); });
-const EQ_CONTRATOS = ['Venta', 'Alquiler', 'Cesión'];
-const EQ_REV = ['Preventiva', 'Correctiva', 'Instalación'];
-const eqVence = e => e.contrato !== 'Venta' ? e.contrato_fin : e.garantia_hasta;
-const eqDias = f => f ? Math.round((new Date(f + 'T12:00:00') - new Date(hoyISO() + 'T12:00:00')) / 864e5) : null;
-const eqRevPill = e => { const d = eqDias(e.proxima_revision); if (e.estado === 'Retirado') return '<span class="pill p-anu">Retirado</span>';
-  return d == null ? '' : d < 0 ? `<span class="pill p-urg">Revisión pasada (${fechaCorta(e.proxima_revision)})</span>` : d <= 30 ? `<span class="pill p-warn">Revisar el ${fechaCorta(e.proxima_revision)}</span>` : `<span class="pill p-per">Próxima revisión ${fechaCorta(e.proxima_revision)}</span>`; };
-const eqVencePill = e => { const f = eqVence(e), d = eqDias(f); if (d == null || e.estado === 'Retirado') return '';
-  const que = e.contrato !== 'Venta' ? 'Contrato' : 'Garantía';
-  return d < 0 ? `<span class="pill p-anu">${que} vencido</span>` : d <= Math.max(...CON_AVISOS, 0) ? `<span class="pill p-urg">${que}: ${d === 0 ? 'vence hoy' : `vence en ${num(d)} ${d === 1 ? 'día' : 'días'}`}</span>` : ''; };
 Object.assign(ICON_NOM, { monitor: '<rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/>' });
 ICO_NAV.parque = 'monitor'; ICO_MOD.parque = svgIco(ICON_NOM.monitor);
 (() => { const g = MENU_GRUPOS.find(x => x.id === 'ventas'); if (g && !g.items.includes('parque')) g.items.splice(g.items.indexOf('concursos') + 1, 0, 'parque'); })();
 aplicarPermisosMenu = (orig => function (...a) { try { menuParque(); } catch (e) {} const r = orig.apply(this, a); try { menuParque(); } catch (e) {} return r; })(aplicarPermisosMenu);
 PAGINAS.parque = { t: 'Parque instalado', permiso: () => !ES_MEDICO() && puedeModulo('ventas') && planIncluyeSeccion('parque'), tabs: [['lista', 'Equipos', () => pintarParque()]] };
 Object.defineProperty(PAGINAS.parque, 'd', { get: () => 'Equipos instalados con su número de serie, contrato, garantía y revisiones' });
-let EQ_Q = '';
 
 
 
@@ -205,8 +178,6 @@ cargarAdmin = (orig => async function (...a) {
   return orig.apply(this, a);
 })(cargarAdmin);
 
-// Editar una visita: cómo fue y productos presentados (actualizar_actividad los guarda desde el SQL 128)
-let EV_EXTRA = null;
 editarVisita = (orig => async function (v, ...r) {
   const res = await orig.call(this, v, ...r);
   try {
@@ -241,14 +212,6 @@ aplicarPermisosMenu = (orig => function (...a) {
   try { const q = $('q'); if (q && /^Buscar /.test(q.placeholder)) q.placeholder = `Buscar ${TT('medico', 's', '', 'l', 'l')}, centro o municipio`; } catch (e) {}
   return r;
 })(aplicarPermisosMenu);
-/* v2.204.0 · Manual nuevo: un libro aparte en manual/ (decisiones de Eric: se abre desde la app, fotos y vídeos de la empresa de demostración,
-   con el vocabulario de cada empresa, y por capítulos; el primero, «Tu día»).
-   - «Manual de uso» abre el libro en otra pestaña; antes deja en el navegador las palabras de la empresa (médico, visita, paciente) y su nombre.
-   - Cada pantalla lleva un «?» junto al título que abre el manual en su capítulo (los que aún no están escritos abren la portada).
-   - El portal del profesional sigue con su manual de siempre hasta que tenga capítulo. */
-const MANUAL_ANCLA = { inicio: 'inicio', agenda: 'agenda', rutas: 'rutas', ciclo: 'ciclo', cirugias: 'cirugias', directorio: 'directorio', seguimiento: 'calidad',
-  duplicados: 'duplicados', eventos: 'eventos', pacientes: 'clientes', ventas: 'pedidos', oportunidades: 'oportunidades', compras: 'compras', proveedores: 'proveedores', concursos: 'concursos', parque: 'parque', productos: 'productos',
-  facturacion: 'facturacion', analitica: 'analitica', config: 'ajustes', perfil: 'perfil', empresa: 'organizacion', plan: 'plan', organizacion: 'organizacion', usuarios: 'usuarios' };
 // v2.242.0: aquí iba la primera versión de abrirManual (se redefine entera más abajo)
 document.addEventListener('click', e => {
   const b = e.target.closest('#manbtn'); if (!b || ES_MEDICO()) return;

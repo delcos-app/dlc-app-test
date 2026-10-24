@@ -8,7 +8,6 @@ Object.assign(RPC_TTL, { clasificadores_actividad: 300, municipios_clientes: 300
 
 /* ---------------- registrar visita con datos ---------------- */
 
-const esMuestras = d => (CAT.resultado_visita || []).some(x => x.valor === d.valor && x.papel === 'muestras');
 // v2.205.0: los resultados sin dato ya salen en la línea de la visita; no son material
 const detTxt = v => (v.detalles || []).filter(d => !esMuestras(d) && !(!d.dato && (v.resultados || []).includes(d.valor)))
   .map(d => d.valor + (d.dato ? ' (' + d.dato + ')' : '')).join(', ');

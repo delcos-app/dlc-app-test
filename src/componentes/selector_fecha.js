@@ -41,3 +41,27 @@ function cerrarSelector() {
   if (SELPOP) { SELPOP.remove(); SELPOP = null; }
   const d = $('seldlg'); if (d && d.open) d.close();
 }
+
+// Con una ventana abierta, solo se puede pulsar lo que está dentro: el selector se coloca en ella
+const capaSelector = inp => inp.closest('dialog[open]') || [...document.querySelectorAll('dialog[open]')].pop() || document.body;
+
+/* ============================================================
+   v2.101.0 · Fechas, horas y números
+   Los mismos selectores en escritorio y en móvil para todos los campos:
+   fecha, hora, mes (liquidaciones) y fecha con hora (llamadas), que antes
+   abrían el selector del sistema. Calendario con vista de meses y años
+   (se pulsa el título), atajos «Hoy» y «Mañana» y manejo con el teclado.
+   Reloj con «Ahora» y los minutos según el paso del campo. Números con el
+   teclado adecuado en el móvil, mantener pulsado para sumar o restar
+   seguido, la rueda del ratón ya no los cambia sin querer y se respetan
+   el mínimo y el máximo al escribir.
+   ============================================================ */
+const selDos = n => String(n).padStart(2, '0');
+
+const SEL_DIAS = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+
+const selFechaLarga = iso => { const d = new Date(iso + 'T12:00:00'); return `${SEL_DIAS[d.getDay()]}, ${d.getDate()} de ${MESES_L[d.getMonth()]} de ${d.getFullYear()}`; };
+
+const selFechaMedia = iso => { const d = new Date(iso + 'T12:00:00'); return isNaN(d) ? iso : d.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }); };
+
+const selTipo = inp => inp.type === 'month' ? 'mes' : inp.type === 'datetime-local' ? 'fechahora' : inp.type === 'time' ? 'hora' : 'fecha';

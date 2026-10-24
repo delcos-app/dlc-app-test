@@ -192,3 +192,25 @@ function editorAvisosVencimiento() {
     CON_AVISOS = dias; $('dlg').close(); toast('Avisos guardados');
   };
 }
+
+/* v2.200.0 · Concursos y contratos (tercera tanda del estudio por sectores, SQL 126). Decisiones de Eric: al ganar un lote, sus precios se
+   aplican solos en los pedidos de esa ficha mientras el contrato está en vigor; los días de aviso antes de que venza los elige cada empresa.
+   - Menú «Concursos» (en «Ventas»): «En marcha» (en estudio y con la oferta enviada, por fecha límite), «Contratos» (adjudicados, con lo que les queda)
+     y «Cerrados»; «+ Nuevo concurso» y, para la administración, «Avisos de vencimiento».
+   - Ventana del concurso: datos, estado, fechas del contrato y sus lotes (estado, importes, adjudicatario si se pierde) con los productos
+     y precios de cada lote.
+   - Pedidos: si la ficha tiene un contrato en vigor, el precio de sus productos es el adjudicado («Precio de concurso»).
+   - Ficha: sus concursos. Los avisos de vencimiento abren el concurso. */
+const CON_ESTADOS = ['En estudio', 'Oferta enviada', 'Adjudicado', 'Perdido', 'Desierto'];
+
+const conPill = e => `<span class="pill ${e === 'Adjudicado' ? 'p-est' : e === 'Perdido' || e === 'Desierto' ? 'p-anu' : e === 'Oferta enviada' ? 'p-per' : 'p-warn'}">${esc(e)}</span>`;
+
+const conVence = c => c.prorroga_hasta || c.fin || null;
+
+const conQuedan = c => { const v = conVence(c); return v ? Math.round((new Date(v + 'T12:00:00') - new Date(hoyISO() + 'T12:00:00')) / 864e5) : null; };
+
+let CON_AVISOS = [90, 30];
+
+const conPrecioContrato = p => { const x = p && p.id && PED_PRECIOS.precios[p.id]; return x ? Object.assign({}, p, { precio: +x.precio, contrato: x.concurso }) : p; };
+
+const EQ_CONTRATOS = ['Venta', 'Alquiler', 'Cesión'];

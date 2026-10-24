@@ -2,7 +2,6 @@
    DLC OS 2.0 · Entrega 13 · Bloque B: ficha, seguimiento y agenda
    ============================================================ */
 
-let CERCA = null;
 
 /* ---------------- editar y borrar visitas ---------------- */
 

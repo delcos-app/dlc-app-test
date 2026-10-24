@@ -5,9 +5,7 @@
 
 Object.assign(RPC_TTL, { stock_resumen: 30, compras_lista: 30, proveedores_lista: 60, almacenes_lista: 60, alertas_stock: 60 });
 
-const puedeCompras = () => PERFIL && (puede('administrar') || ((PERFIL.areas || {}).V || 0) >= 3);
 let PEDSEC = 'ventas', PROVEEDORES = [], ALMACENES = [];
-const pillCompra = e => `<span class="pill ${e === 'Recibido' ? 'p-est' : e === 'Cancelado' ? 'p-anu' : e === 'Borrador' ? 'p-bor' : 'p-per'}">${esc(e)}</span>`;
 
 /* ---------------- módulo Pedidos ---------------- */
 
@@ -40,13 +38,6 @@ cargarProductosModulo = (orig => async function () {
   }
 })(cargarProductosModulo);
 
-const estadoStock = s => {
-  if (s.stock <= 0) return ['Sin stock', 'p-anu'];
-  if (s.stock_minimo != null && s.stock < s.stock_minimo) return ['Bajo mínimo', 'p-bor'];
-  if (s.dias_cobertura != null && s.dias_cobertura <= s.plazo_dias + 14 && !s.en_camino) return ['Pedir ya', 'p-bor'];
-  return ['Correcto', 'p-est'];
-};
-const cadClase = f => !f ? '' : f < hoyISO() ? 'cad-pasada' : f <= isoMas(hoyISO(), 90) ? 'cad-pronto' : '';
 
 
 

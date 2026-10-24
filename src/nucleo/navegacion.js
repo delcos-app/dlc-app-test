@@ -130,3 +130,46 @@ function vistaBoton(v, d0) {
   const t = fh.firstElementChild, dentro = t && t.tagName !== 'BUTTON' && !t.matches('h2') ? t : fh;
   dentro.insertAdjacentHTML('afterbegin', `<button type="button" class="btn sec chico vueltabtn" title="Volver a ${esc(VISTA_TITULO[ant.fn] || 'la ventana anterior')}">‹ Volver</button>`);
 }
+
+let TAB_ANTERIOR = 'inicio';
+
+let APP_VISIBLE = false;
+
+const PAGINAS = {
+  perfil: { t: 'Mi perfil', d: 'Tus datos, idioma, qué abrir al entrar y tus notificaciones', tabs: [['datos', 'Mis datos', () => pintarPerfil()], ['notif', 'Notificaciones', () => pintarNotif()]] },
+  empresa: { t: 'Empresa', d: 'Marca, correo de la empresa y copias de seguridad', admin: true, tabs: [['marca', 'Marca y logo', () => pintarMarca()], ['correo', 'Correo y firma', () => pintarCorreo()], ['copias', 'Copias de seguridad', () => pintarCopias()]] },
+  plan: { t: 'Plan y suscripción', d: '', admin: true, tabs: [['plan', 'Plan', () => pintarPaginaPlan()]] }
+};
+
+let VIA_IR = null;
+
+// 3. Pantallas: se preparan ocultas y se muestran de golpe
+let REVELADO = 0;
+
+let CLIC_PESTANA = null;
+
+let IR_DESDE_MENU = false;
+
+/* v2.144.0 · Páginas propias: la acción principal («+ Nuevo usuario», «+ Nueva organización») sube a la derecha de la cabecera, como
+   «+ Nueva venta» en el resto de pantallas (regla de Eric: misma posición en todas). Antes iba dentro de la tarjeta, junto al buscador. */
+const ACCION_PAGINA = ['usrnuevo', 'orgnueva'];
+
+let ACCION_PAG_PEND = false;
+
+// ---- Menú del móvil: la sección que se ve, no la página que la contiene
+const SUBSEC_MENU = { llamadas: 'oportunidades', compras: 'compras', proveedores: 'proveedores' };
+
+/* ============================================================
+   v2.300.0 · Volver siempre al punto de partida (petición de Eric). Cuando desde una ventana se abre otra (una cita → la
+   ficha del centro → la ficha de un profesional…), la de antes se apunta en una pila. Al cerrar la de dentro (con su ✕,
+   con «‹ Volver» o al guardar y cerrarse), se vuelve a abrir la anterior con sus datos al día, en vez de dejar a la persona
+   en la pantalla de debajo. Cerrar la primera cierra del todo. Cambiar de pantalla vacía la pila.
+   ============================================================ */
+const VUELTA = [];
+
+const VISTA_TITULO = { verCita: 'la cita', fichaCentro: 'el centro', abrirFicha: 'la ficha', verPedido: 'el pedido', verFactura: 'la factura', verEvento: 'el evento',
+  verCirugia: 'la intervención', verConcurso: 'el concurso', verEquipo: 'el equipo', verDeposito: 'el depósito', fichaStock: 'el producto' };
+
+const vistaDlg = () => ['ficha', 'dlg'].map($).find(d => d && d.open) || null;
+
+const vistaIgual = (a, b) => a && b && a.fn === b.fn && JSON.stringify(a.args.map(x => x && x.id || x)) === JSON.stringify(b.args.map(x => x && x.id || x));

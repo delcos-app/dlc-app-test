@@ -1,18 +1,3 @@
-/* ============================================================
-   v2.237.0 · Inicio y Agenda aparecen de una vez (aviso de Eric): al abrir la app la primera pantalla se enseñaba
-   sin esperar (salían los indicadores antiguos y luego el mosaico) y la Agenda se daba por lista antes de tener la
-   cinta y «Tu semana». Inicio enseña desde el principio el esqueleto del mosaico; la Agenda sigue con el cargador hasta tener
-   la cinta y «Tu semana» (como mucho 10 s).
-   ============================================================ */
-// Tope de espera por pantalla: en el móvil con mala cobertura la Agenda encadena varias consultas
-const LISTA_ESPERA = { agenda: 10000 };
-const LISTA_PARA = {
-  // Inicio: el mosaico ya pintado (si la persona no tiene mosaico, basta con que no queden esqueletos)
-  inicio: s => !!s.querySelector('#inimos > *') || (!s.classList.contains('conmos') && !s.querySelector('.ksk, .skel') && performance.now() - (s.__t0 || 0) > 1500),
-  // Agenda en vista de día: la cinta y «Tu semana» con sus días (o, si no llega, un respiro de 0,8 s tras la cinta)
-  // v2.248.0: la vista del día avisa cuando está pintada entera (dataset.listo)
-  agenda: s => (typeof AG_MODO !== 'undefined' && AG_MODO !== 'dia') || s.dataset.listo === '1'
-};
 revelar = (orig => function (el, max, desde) {
   const tab = el && el.id && el.id.slice(2), listo = LISTA_PARA[tab];
   if (!listo || !el.matches || !el.matches('main > section')) return orig(el, max, desde);

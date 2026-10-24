@@ -9,8 +9,6 @@ Object.assign(ICON_NOM, {"upload": "<path d=\"M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1
 
 /* ---------------- 1. Escrituras: saber si algo ha cambiado ---------------- */
 
-let ESCRITURAS = 0;
-const ES_ESCRITURA = /^(guardar|registrar_(?!error)|emitir|rectificar|marcar|borrar|eliminar|asignar|unificar|validar|anular|crear|descartar|restaurar|estado_|recibir|traspasar|vincular|mover|aplicar|reprogramar|cancelar|confirmar|terminar)/;
 db.rpc = (orig => function (fn, params, opts) {
   const r = orig.call(db, fn, params, opts);
   if (ES_ESCRITURA.test(fn) && r && typeof r.then === 'function') Promise.resolve(r).then(x => { if (!x || !x.error) ESCRITURAS++; }, () => {});
@@ -26,13 +24,11 @@ new MutationObserver(() => {
 
 /* ---------------- 2. Pantallas ya cargadas: no se recargan sin motivo ---------------- */
 
-const CACHE_MOD = {};   // módulo → { clave, t, esc }
 const ESTADO_MOD = {
   inicio: () => '', ventas: () => PEDSEC, productos: () => PSEC, facturacion: () => FSEC,
   analitica: () => (typeof ASEC !== 'undefined' ? ASEC : ''), pacientes: () => '',
   agenda: () => [AG_MODO, AG_FECHA, AG_VISTA ? AG_VISTA.id : ''].join('|')
 };
-let VIA_IR = null;
 [['inicio', 'cargarInicio'], ['ventas', 'cargarVentas'], ['productos', 'cargarProductosModulo'], ['facturacion', 'cargarFacturacion'],
  ['analitica', 'cargarAnalitica'], ['pacientes', 'cargarPacientes'], ['agenda', 'cargarAgenda']].forEach(([t, fn]) => {
   const orig = window[fn] || eval(fn);
@@ -98,7 +94,6 @@ congelar = function (sec) {
 
 /* ---------------- 4. Tablas: anchos de columna ajustables y recordados por persona ---------------- */
 
-const claveAnchos = tipo => `ht-anchos-${(PERFIL || {}).id || ''}-${tipo}`;
 htAplicarColumnas = (orig => function (g) {
   orig(g);
   const tipo = htTipo(g), an = anchosGuardados(tipo);
@@ -138,8 +133,6 @@ panelColumnas = (orig => function (titulo, cols, alCambiar) {
 
 /* ---------------- 5. Campos de formulario ---------------- */
 
-// IVA: siempre una lista con los tipos legales, en cualquier ventana (se detecta por su nombre o su etiqueta)
-const ES_IVA = i => /iva/i.test(i.id + ' ' + (i.dataset.f || '') + ' ' + (i.name || '')) || /\bIVA\s*\(%\)|tipo de iva/i.test(((i.id && document.querySelector(`label[for="${i.id}"]`)) || {}).textContent || '');
 ivaSelector = (orig => function (inp) {
   if (!inp || inp.dataset.ivasel) return;
   inp.dataset.sel = '1';                                   // sin botones de sumar y restar
@@ -211,8 +204,6 @@ new MutationObserver(() => { if (TAB === 'directorio') barraCuentas(); }).observ
 
 /* ---------------- 7. Facturación: «Facturas» y «Configuración» ---------------- */
 
-const FAC_CONFIG = [['empresa', 'Datos fiscales'], ['series', 'Series y numeración'], ['verifactu', 'VeriFactu'], ['registro', 'Registro']];
-let FAC_ULTIMA = 'empresa';
 new MutationObserver(() => { if (TAB === 'facturacion') subnavFacturacion(); }).observe($('v-facturacion'), { childList: true, subtree: true });
 cargarFacturacion = (orig => async function (...a) { const r = await orig.apply(this, a); requestAnimationFrame(() => { if (TAB === 'facturacion') subnavFacturacion(); }); return r; })(cargarFacturacion);
 

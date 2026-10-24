@@ -1,19 +1,3 @@
-/* ============================================================
-   v2.101.0 · Fechas, horas y números
-   Los mismos selectores en escritorio y en móvil para todos los campos:
-   fecha, hora, mes (liquidaciones) y fecha con hora (llamadas), que antes
-   abrían el selector del sistema. Calendario con vista de meses y años
-   (se pulsa el título), atajos «Hoy» y «Mañana» y manejo con el teclado.
-   Reloj con «Ahora» y los minutos según el paso del campo. Números con el
-   teclado adecuado en el móvil, mantener pulsado para sumar o restar
-   seguido, la rueda del ratón ya no los cambia sin querer y se respetan
-   el mínimo y el máximo al escribir.
-   ============================================================ */
-const selDos = n => String(n).padStart(2, '0');
-const SEL_DIAS = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
-const selFechaLarga = iso => { const d = new Date(iso + 'T12:00:00'); return `${SEL_DIAS[d.getDay()]}, ${d.getDate()} de ${MESES_L[d.getMonth()]} de ${d.getFullYear()}`; };
-const selFechaMedia = iso => { const d = new Date(iso + 'T12:00:00'); return isNaN(d) ? iso : d.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }); };
-const selTipo = inp => inp.type === 'month' ? 'mes' : inp.type === 'datetime-local' ? 'fechahora' : inp.type === 'time' ? 'hora' : 'fecha';
 
 // ---------- Calendario: días, meses y años ----------
 abrirCalendario = function (inp, o) {
@@ -176,9 +160,6 @@ document.addEventListener('change', e => {
   if (n !== +i.value) { i.value = n; i.dispatchEvent(new Event('input', { bubbles: true })); }
 }, true);
 
-// Una pasada por fotograma como mucho, aunque la pantalla cambie muchas veces seguidas
-let sinHistorialPend = false;
-const sinHistorialLuego = () => { if (sinHistorialPend) return; sinHistorialPend = true; requestAnimationFrame(() => { sinHistorialPend = false; sinHistorial(document.body); }); };
 new MutationObserver(sinHistorialLuego).observe(document.body, { childList: true, subtree: true });
 sinHistorial(document.body);
 
@@ -215,14 +196,6 @@ pintarRoles = (orig => async function (...a) {
 })(pintarRoles);
 
 
-/* v2.111.0 · Teclado en escritorio.
-   1. Buscadores: con las flechas se recorren los resultados (el desplegable de sugerencias o, en los buscadores que filtran
-      una lista o una tabla, sus filas) e Intro abre el marcado. El elemento marcado lleva la clase .activo.
-   2. F5 (o Ctrl+R) recarga la app y vuelve a la pantalla en la que se estaba; Ctrl+F5 (o Ctrl+Mayús+R) entra de cero. */
-const TECLA_LISTAS = '.gsug, .cpres, .lista, .dgrid, [role=listbox], table';
-const teclaVisible = x => x.offsetParent !== null && !x.classList.contains('hide');
-// Solo los buscadores: los de tipo búsqueda y los campos con su lista de resultados justo debajo
-const esBuscador = i => i && i.matches && i.matches('input') && !i.list && (i.type === 'search' || (!!i.nextElementSibling && i.nextElementSibling.matches('.gsug, .cpres, .lista, [role=listbox]')));
 document.addEventListener('keydown', e => {
   if (!['ArrowDown', 'ArrowUp', 'Enter'].includes(e.key) || e.altKey || e.ctrlKey || e.metaKey || !esBuscador(e.target)) return;
   const l = teclaLista(e.target); if (!l) return;
@@ -284,10 +257,6 @@ document.addEventListener('keydown', e => {
 })();
 
 
-/* v2.115.0 · Justificante del pago: una foto (se reduce a 1600 px en JPEG antes de subirla) o un PDF de hasta 3 MB,
-   guardado en la tabla pedidos_justificantes. Lo ve quien ve el pedido. */
-const JUSTIF_MAX = 3000000;
-const aBase64 = blob => new Promise((ok, mal) => { const fr = new FileReader(); fr.onload = () => ok(String(fr.result).split(',')[1] || ''); fr.onerror = mal; fr.readAsDataURL(blob); });
 
 // Ver pedido · Pago: origen, referencia (editable por quien lleva la operativa) y justificantes (añadir, ver y quitar)
 async function pedidoPago(id) {
@@ -355,10 +324,6 @@ PLANES.splice(0, PLANES.length,
     modulos: ['inicio', 'agenda', 'rutas', 'directorio', 'seguimiento', 'ventas', 'pacientes', 'productos', 'analitica', 'facturacion'],
     ventajas: ['Todo lo de Empresa', 'Migración de datos', 'Conexión con tu programa de gestión', `Espacio ${TT('medico', 's', 'del', 'l', 'l')} sin límite`,
       'Ver la plataforma como cada persona de tu equipo, para ayudarla', 'Soporte prioritario'] });
-const PUESTA_EN_MARCHA = 490;
-const precioPlan = p => p.presupuesto ? 'presupuesto a medida' : `${eurI(p.precio)} por usuario al mes, ${eurI(p.anual)} con pago anual`;
-// Usuarios contratados (A medida o sin dato: sin límite)
-const usuariosContratados = () => PLAN_ACTUAL.plan === 'medida' || PLAN_ACTUAL.usuarios == null ? Infinity : +PLAN_ACTUAL.usuarios;
 
 // Plan y suscripción: tu plan (usuarios contratados, pago, prueba), los cuatro planes y la comparativa por módulos
 pintarPaginaPlan = async function () {

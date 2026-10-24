@@ -10,31 +10,10 @@
 
 const RPC_ORIG = db.rpc.bind(db);
 const FROM_ORIG = db.from.bind(db);
-const RPC_TTL = {                 // segundos
-  panel_inicio: 60, propuestas_rutas: 120, comision_periodo: 120, resumen_duplicados: 600,
-  agenda_rango: 60, agenda_mes: 60, pendientes_ruta: 60, rutas_visibles: 120,
-  buscar_cuentas: 60, buscar_global: 60, opciones_filtros: 600, mapa_cuentas: 120,
-  ficha_cuenta: 30, seguimiento_lista: 60, resumen_seguimiento: 120,
-  catalogo: 900, catalogos_todos: 900, productos_lista: 600, usuarios_lista: 300,
-  esquemas_lista: 300, liquidaciones_lista: 120, pedidos_lista: 60, contactos_lista: 60,
-  analitica_tabla: 120, analitica_unidades: 120, cartera_usuario: 60, duplicados_pendientes: 30
-};
-const RPC_ESCRITURA = /^(actualizar_|anular_|aplazar_|asignar_|recibir_|movimiento_|atribuir_|borrar_|crear_|estado_cita|guardar_|liquidar|ordenar_|perfil_nuevo|quitar_|registrar_actividad|registrar_visita|resolver_accion|tocar|unificar_|descartar_)/;
 
 const RC = new Map(), RC_VUELO = new Map();
-let RC_EPOCA = 0;
-const rcLS = k => 'dlc-rc-' + (PERFIL ? PERFIL.id : '') + '-' + k;
-const rcCopia = r => ({ data: r.data == null ? r.data : JSON.parse(JSON.stringify(r.data)), error: r.error || null });
 
 
-// Las peticiones de Supabase no traen .catch ni .finally: se añaden para que el código que los usa no falle.
-const conCatch = b => {
-  if (b && typeof b.then === 'function' && typeof b.catch !== 'function') {
-    b.catch = f => Promise.resolve(b).catch(f);
-    b.finally = f => Promise.resolve(b).finally(f);
-  }
-  return b;
-};
 db.rpc = function (fn, params, opts) {
   if (RPC_ESCRITURA.test(fn)) { invalidarCache(); return conCatch(RPC_ORIG(fn, params, opts)); }
   const ttl = RPC_TTL[fn];
@@ -73,7 +52,6 @@ db.from = function (tabla) {
 
 /* ---------------- navegación: recordar de dónde venimos ---------------- */
 
-let TAB_ANTERIOR = 'inicio';
 
 /* ---------------- inicio: un único cargador hasta tenerlo todo ---------------- */
 
@@ -124,8 +102,6 @@ document.addEventListener('keydown', e => {
 
 /* ---------------- paginación ---------------- */
 
-const TAMKEY = () => 'dlc-tam-' + (PERFIL ? PERFIL.id : '');
-const TAMANOS = [20, 50, 100];
 
 
 /** Paginador para listas que se piden al servidor por páginas. */
@@ -138,9 +114,6 @@ function paginador(el, total, pagina, alCambiar, alCambiarTam) {
   el.querySelector('[data-pgtam]').onchange = e => { fijarTam(+e.target.value); alCambiarTam(); };
 }
 
-/* Paginación automática de cualquier otra lista o tabla con más de 20 filas. */
-const PAG_MEM = {};
-const PAG_EXCLUIR = '.carsel, .picker, #lista, #slista, #kpis, .gsug, .umenu, .dl-menu, #tools, .opciones, .chips, .pag, #c-agenda, #c-acciones, #c-urgentes, #c-ultimas, #c-recom, #c-pend';
 
 
 let T_OBS = null;
@@ -370,14 +343,6 @@ const AYUDA = {
     '«No son duplicados» guarda la pareja como distinta y no vuelve a salir.']]
 };
 
-const ANCLAS_AYUDA = [
-  ['#v-inicio .saludo h1', 'inicio'], ['#c-agenda > h2', 'ini_agenda'], ['#c-acciones > h2', 'ini_acciones'],
-  ['#c-urgentes > h2', 'ini_urgentes'], ['#c-ultimas > h2', 'ini_ultimas'], ['#c-recom > h2', 'ini_recom'],
-  ['#c-pend > h2', 'ini_pend'], ['#c-comision > h2', 'ini_comision'],
-  ['#v-agenda .saludo h1', 'agenda'], ['#v-rutas .saludo h1', 'rutas'], ['#v-seguimiento .saludo h1', 'seguimiento'],
-  ['#v-ventas .saludo h1', 'ventas'], ['#v-analitica .saludo h1', 'analitica'], ['#v-config .saludo h1', 'config'],
-  ['#v-admin .saludo h1', 'admin'], ['#v-duplicados .saludo h1', 'duplicados']
-];
 
 
 document.addEventListener('click', e => {

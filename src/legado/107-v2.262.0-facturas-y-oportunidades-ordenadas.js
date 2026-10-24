@@ -1,14 +1,3 @@
-/* ============================================================
-   v2.262.0 · Facturas y Oportunidades ordenadas de verdad (punto 3 del plan del 11/10/2026). Las dos listas traen ya todo el periodo
-   elegido (la base filtra por fechas, búsqueda y estado) y se paginaban en la pantalla, pero al pulsar una columna solo se ordenaban
-   las filas de la página que se veía. Ahora el orden se aplica a toda la lista del periodo antes de paginar y se vuelve a la primera
-   página: es lo más eficiente (los datos ya están en el móvil; no hace falta otra consulta ni cambiar la base). Si algún día una
-   empresa tiene miles de facturas en un mismo periodo, se pasaría la paginación a la base.
-   ============================================================ */
-const ORD_MEM = {
-  facts: { fn: 'facturas_lista', campos: ['numero', 'fecha', 'cliente', 'nif', 'base', 'cuota_iva', 'total', 'vencimiento', 'estado_cobro'] },
-  llam: { fn: 'llamadas_lista', campos: ['fecha', x => x.cliente || x.nombre, 'importe_estimado', x => x.medico || x.cuenta_texto, x => x.resultado || (x.pedido_id ? 'Pedido hecho' : ''), 'proxima_fecha', 'usuario'] }
-};
 Object.keys(ORD_MEM).forEach(t => { ORD_SRV[t] = (i, n) => (ORD_MEM[t].campos[i] != null && !htCeldaNoOrdenable(n)) ? 'c' + i : null; });
 // La lista llega ordenada de la base según la columna elegida
 db.rpc = (orig => async function (fn, args, ...r) {

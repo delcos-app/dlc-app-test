@@ -62,3 +62,14 @@ async function fotosEnviarPendientes(op, id) {
     if (await subirFotosVisita(id, fotos)) await new Promise(ok => { const t = b.transaction('pend', 'readwrite'); t.objectStore('pend').delete(op); t.oncomplete = ok; t.onerror = ok; });
   } catch (e) {}
 }
+
+/* v2.115.0 · Justificante del pago: una foto (se reduce a 1600 px en JPEG antes de subirla) o un PDF de hasta 3 MB,
+   guardado en la tabla pedidos_justificantes. Lo ve quien ve el pedido. */
+const JUSTIF_MAX = 3000000;
+
+const aBase64 = blob => new Promise((ok, mal) => { const fr = new FileReader(); fr.onload = () => ok(String(fr.result).split(',')[1] || ''); fr.onerror = mal; fr.readAsDataURL(blob); });
+
+const FOTOS_VISITA_MAX = 6;
+
+// ---- Fotos de una visita guardada sin conexión: en el móvil hasta que la visita se envía
+const FOTOS_IDB = 'delcos-fotos';

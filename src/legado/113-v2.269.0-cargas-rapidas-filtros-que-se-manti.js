@@ -3,8 +3,6 @@ plCargarKpis = (orig => function (tab, ...a) {
   return orig.call(this, tab, ...a);
 })(plCargarKpis);
 
-// ---- Memoria de filtros: lo que se elige en una fila de filtros se vuelve a poner cuando la pantalla se pinta de nuevo
-const FMEM = {};
 document.addEventListener('change', filtroGuardar, true);
 document.addEventListener('input', filtroGuardar, true);
 // Las pantallas montan su periodo justo antes de pedir la lista: es el momento de devolver los filtros

@@ -10,9 +10,7 @@ Object.assign(RPC_TTL, { clientes_lista: 30, responsable_de_cuenta: 60 });
    después. En la consola del navegador queda el tiempo de cada paso: [DLC OS] … ms */
 
 const T0 = performance.now();
-const marca = paso => console.info(`[App] ${paso} · ${Math.round(performance.now() - T0)} ms`);
 const PKEY = 'dlc-perfil';
-let APP_VISIBLE = false;
 
 /* Entrada en la plataforma con el perfil de la persona.
    Reúne en una sola función lo que antes estaba repartido en 21 capas añadidas versión a versión,
@@ -169,7 +167,6 @@ async function arrancar() {
 
 /* ---------------- inicio: esqueleto y carga por partes ---------------- */
 
-const skelCard = t => `<h2>${esc(t)}</h2><div class="skel" style="width:45%"></div><div class="skel"></div><div class="skel" style="width:70%"></div>`;
 
 /* pintarInicio: la parte base y, en orden, cada paso que se le añade (antes eran 5 capas separadas). */
 async function pintarInicio() {
@@ -189,8 +186,6 @@ async function pintarInicio() {
 
 /* ---------------- cálculos de IVA ---------------- */
 
-const r2 = n => Math.round((+n || 0) * 100) / 100;
-const eurI = n => eur(r2(n));
 
 /** Mismo cálculo que la base de datos: descuento de línea, descuento general y luego IVA. */
 
@@ -198,9 +193,6 @@ const eurI = n => eur(r2(n));
 
 /* ---------------- ventas: pedidos, pacientes y productos ---------------- */
 
-let VSEC = 'pedidos';
-const PAC = { q: '', medico: null, medicoNombre: '', pagina: 0 };
-const pillEstado = e => `<span class="pill ${e === 'Borrador' ? 'p-bor' : e === 'Anulado' ? 'p-anu' : 'p-est'}">${esc(e)}</span>`;
 
 
 
@@ -577,7 +569,6 @@ async function verPedidoBase(id) {
 
 /* ---------------- pacientes ---------------- */
 
-let FICHA_PAC = null;
 
 
 

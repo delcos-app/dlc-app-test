@@ -522,3 +522,29 @@ async function verOcultas() {
     if (TAB === 'inicio') cargarInicio();
   });
 }
+
+let ALERTAS_OCULTAS = null;
+
+const tituloAlerta = s => s.textContent.replace(/\s+/g, ' ').replace(/^\s*\d+\s*/, '').replace(/\bequipo\b\s*$/, '').trim();
+
+const normAl = t => String(t).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').slice(0, 60);
+
+const SALUDOS = { en: ['Good morning', 'Good afternoon', 'Good evening'], de: ['Guten Morgen', 'Guten Tag', 'Guten Abend'], fr: ['Bonjour', 'Bon après-midi', 'Bonsoir'], it: ['Buongiorno', 'Buon pomeriggio', 'Buonasera'] };
+
+const kvSvg = (d, w = 2.4) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+
+const kvMas = (f, n) => { const d = new Date(f + 'T12:00:00'); d.setDate(d.getDate() + n); return isoLocal(d); };
+
+const kvLunes = f => { const d = new Date(f + 'T12:00:00'); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return isoLocal(d); };
+
+const kvMin = h => { const m = String(h || '').match(/(\d{1,2}):(\d{2})/); return m ? +m[1] * 60 + +m[2] : null; };
+
+const KV_COL = { inicial: '#C9D7E6', avance: '#3F82C0', interes: '#17457A', positivo: '#1E7A4C', negativo: '#94A3B8' };
+
+const KV_DN = ['D', 'L', 'M', 'X', 'J', 'V', 'S'];
+
+const mosEur = n => Math.round(+n || 0).toLocaleString('es-ES') + ' €';
+
+const mosIco = n => svgIco(ICON_NOM[n] || ICON_NOM.info);
+
+let MOS_TURNO = 0;

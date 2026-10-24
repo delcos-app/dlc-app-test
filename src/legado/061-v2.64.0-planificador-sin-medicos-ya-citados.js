@@ -16,7 +16,5 @@ pintarPlan = (orig => function (...a) {
   return r;
 })(pintarPlan);
 
-// Agenda del día: paradas abiertas en orden (se preparan al pintar para abrir la navegación al pulsar)
-let TD_PARADAS = [];
 
 

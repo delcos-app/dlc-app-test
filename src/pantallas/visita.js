@@ -216,3 +216,55 @@ function presentarSolo(p, idm) {
   const l = (PRES_MAT || []).filter(m => m.producto_id === p.id); if (!l.length) return;
   presAbrir(p.nombre || 'Material', l, Math.max(0, l.findIndex(m => m.id === idm)));
 }
+
+const esMuestras = d => (CAT.resultado_visita || []).some(x => x.valor === d.valor && x.papel === 'muestras');
+
+/* v2.191.0 · Visita a distancia y fotos de la visita (primera tanda del estudio por sectores, SQL 118).
+   - Al registrar una visita se elige cómo fue: Presencial (por defecto), Por teléfono o Por videollamada (actividades.modo). En el historial
+     de la ficha, las que no son presenciales lo dicen.
+   - Fotos de la visita (lineal, exposición, material colocado…): se reducen a 1600 px en JPEG como los justificantes y se guardan en
+     actividad_fotos al registrar la visita. Sin conexión la visita se guarda igual y las fotos se añaden después desde su historial
+     («📷 Fotos»), donde también se ven y se borran. */
+const MODOS_VISITA = [['presencial', 'Presencial'], ['telefono', 'Teléfono'], ['video', 'Videollamada']];
+
+let VISITA_ACTUAL = null;   // { id, modo, fotos } de la ventana «Registrar visita» abierta
+
+/* v2.192.0 · Muestras con control legal (primera tanda del estudio por sectores, SQL 119; RD 1416/1994, art. 16).
+   - Producto: «Muestra con control legal» con fecha de autorización (se pueden dar los 2 años siguientes) y máximo por profesional y año.
+   - Registrar visita: si la empresa tiene productos regulados, bloque «Muestras de medicamento» con lo que queda este año para ese
+     profesional; si se entrega alguna, pide la firma (con el dedo o el ratón) y el nombre de quien firma. Se comprueba antes de guardar
+     la visita; después, registrar_muestras guarda todo o nada (también desde la cola sin conexión, enlazada por el op_id de la visita).
+   - Ficha: «Muestras este año» con lo entregado y lo que queda de cada producto regulado. */
+const MUESTRA_ERR = { firma: 'Falta la firma de quien recibe las muestras', profesional: 'Las muestras solo se entregan a profesionales, no a un centro',
+  plazo: 'Ese producto ya no se puede dar como muestra (han pasado 2 años desde su autorización)', limite: 'Se pasa del máximo de muestras de este año',
+  permiso: 'No puedes registrar muestras de esta ficha', producto: 'Producto no encontrado', no_existe: 'Ficha no encontrada' };
+
+const muestraError = r => (MUESTRA_ERR[r && r.error] || 'No se han podido guardar las muestras') +
+  (r && r.error === 'limite' ? ` (${r.producto}: quedan ${r.quedan} de ${r.max})` : r && r.error === 'plazo' ? ` (${r.producto})` : '');
+
+/* ============================================================
+   v2.259.0 · Visita sin conexión (pendiente de la auditoría del 8/10, cerrado el 11/10/2026). Antes, sin cobertura la ventana
+   «Registrar visita» ni se abría; si la red caía al guardar, la visita podía rechazarse al reenviarla otro día (por la fecha) y
+   perderse sin aviso, o duplicarse al repetir. Ahora:
+   - La visita se abre sin conexión con la última copia de la ficha (la misma de la ficha) y de sus resultados, y los catálogos
+     quedan guardados en el móvil.
+   - Al guardar sin conexión: a la cola con «sin conexión» (el servidor no la rechaza por la fecha), con el mismo op_id aunque se
+     repita, y las fotos se guardan en el móvil (IndexedDB) y se suben solas cuando se envía la visita.
+   - «Tu día» marca la cita «Registrada en el móvil · pendiente de enviar» y quita «Registrar».
+   - La cola se envía de una en una (sin dos envíos a la vez); lo que el servidor rechaza no se pierde: queda en «sin enviar», con
+     aviso y la opción de reintentar o descartar; el tiempo agotado cuenta como fallo de red.
+   - Sin conexión, la app arranca con el perfil guardado aunque no pueda comprobar la sesión.
+   - Las muestras siguen necesitando conexión (el límite legal se comprueba en el servidor): la ventana lo avisa.
+   ============================================================ */
+let VISITA_OP = null;   // op_id de la ventana abierta (el mismo si se pulsa Guardar dos veces)
+
+/* ============================================================
+   v2.266.0 · Presentaciones de producto en la visita (grupo 4 del plan del 11/10/2026; necesita el SQL 143).
+   - Ficha del producto (administración): «Material para presentar», imágenes o PDF (fichas técnicas, estudios, catálogo).
+   - «Registrar visita»: bajo «Productos presentados», «Presentar» con los productos que tienen material; se ve a pantalla completa
+     (con flechas y teclado) y el producto queda marcado como presentado (cuenta en la cobertura del ciclo).
+   - El material se descarga al enseñarlo y se queda en memoria mientras la app está abierta; sin conexión, solo lo ya visto.
+   ============================================================ */
+const PRES_MAX = 8 * 1024 * 1024;
+
+const PRES_DATOS = new Map();               // id → datos (base64) ya descargados

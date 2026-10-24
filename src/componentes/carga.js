@@ -7,3 +7,10 @@ function pantallaCarga(msg) {
   o.innerHTML = `<div><span class="spin"></span><b>${esc(msg)}</b><span class="sm">Un momento: se está cargando todo de nuevo</span></div>`;
   o.classList.remove('hide');
 }
+
+const cargando = (el, texto) => { if (el) el.innerHTML =
+  `<div class="cargador"><span class="spin"></span><span class="sm">${esc(texto || 'Cargando…')}</span></div>`; };
+
+const skelCard = t => `<h2>${esc(t)}</h2><div class="skel" style="width:45%"></div><div class="skel"></div><div class="skel" style="width:70%"></div>`;
+
+const quitarCarga = () => { const o = $('cargatotal'); if (o) o.classList.add('hide'); };

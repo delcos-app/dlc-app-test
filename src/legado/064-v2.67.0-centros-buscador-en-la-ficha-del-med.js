@@ -3,9 +3,6 @@
    que rellena los datos solo, centro nuevo con horario de apertura
    ============================================================ */
 
-const DIAS_SEM = [['L', 'Lunes'], ['M', 'Martes'], ['X', 'Miércoles'], ['J', 'Jueves'], ['V', 'Viernes'], ['S', 'Sábado'], ['D', 'Domingo']];
-const hoyLetra = () => 'DLMXJVS'[new Date().getDay()];
-const cpCampo = (box, i, f) => box.querySelector(`[data-cf="${i}|${f}"]`);
 function tarjetaCentro(c, enlazado) {
   const hor = c.horario && Object.keys(c.horario).length ? c.horario : null;
   const hoy = hor && hor[hoyLetra()];

@@ -8,8 +8,6 @@
    - La cabecera dice si las horas son «con tráfico real» o estimadas.
    ============================================================ */
 let TD_REAL = null, TD_CALC = false;   // { k, mapa: Map('a>b' → minutos), t } · TD_CALC: calculando la clave (sin volver a entrar)
-const tdClaveXY = (a, b) => a && b && a[0] != null && b[0] != null ? `${(+a[0]).toFixed(5)},${(+a[1]).toFixed(5)}>${(+b[0]).toFixed(5)},${(+b[1]).toFixed(5)}` : '';
-const tdRealVigente = () => TD_REAL && Date.now() - TD_REAL.t < 600000;
 // El plan del mapa se calcula siempre con la estimación (así su clave es la misma en Rutas y en «Tu día»)
 rmPlan = (orig => function (...a) {
   if (a[2]) return orig.apply(this, a);

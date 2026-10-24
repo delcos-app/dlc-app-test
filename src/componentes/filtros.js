@@ -103,3 +103,41 @@ function filtrosRestaurar(root) {
     el.value = FMEM[el.id];
   });
 }
+
+const HT = ['15:00-19:00', '16:00-19:00', '16:00-20:00', '17:00-20:00'];
+
+let HERR_CTX = null;
+
+// Pantallas con filtros propios que pasan al panel (la búsqueda por texto sigue a la vista)
+const HT_FILTROS = { pacientes: '#v-pacientes .filtros', facturacion: '#v-facturacion .filtros', analitica: '#anper' };
+
+const HT_ESTADO = {};   // por tabla: { texto, facetas: {col: valor} }
+
+let HT_PEND = false;
+
+let HT2_PEND = false;
+
+/* v2.227.0 · Ordenar cualquier tabla por su columna y filtros por columna según su tipo (lista de Eric del 9/10/2026).
+   - Pulsar el nombre de una columna ordena (▲), volver a pulsar invierte (▼) y una tercera vez quita el orden. Se recuerda por tabla.
+   - Las tablas que se cargan por páginas se ordenan en la base para que valga para todas las páginas (SQL 135): Profesionales
+     (buscar_cuentas: orden), Pedidos (pedidos_pagina: p_orden) y Clientes (clientes_lista: p_orden). El resto, en la pantalla.
+   - «Filtros y columnas»: cada columna con el filtro de su tipo: texto («contiene»), número (desde/hasta) o fecha (desde/hasta, y nada si la
+     pantalla ya tiene su «Periodo»). Fuera los desplegables inventados con lo que se ve: las listas de valores fijos son las de Clasificadores
+     (su apartado propio). Tampoco se repiten columnas que la pantalla ya filtra con lo suyo (Estado, Canal…). */
+const htNorm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\s+/g, ' ').trim();
+
+const HT_ORDEN = {};   // por tabla: { i, dir: 1 | -1, k }
+
+const htGuardarOrden = () => { try { localStorage.setItem('delcos-orden', JSON.stringify(HT_ORDEN)); } catch (e) {} };
+
+const htCeldaNoOrdenable = n => !n || /^(operativa|acciones?|productos)$/i.test(n);
+
+const htNoFiltrable = n => !n || /^(operativa|acciones?)$/i.test(n);
+
+// Los indicadores se piden aparte (RPC_ORIG): las listas «solo la última» descartarían las consultas paralelas
+// Clics de la barra, los indicadores y el menú «⋯»
+// Un filtro de campo personalizado cuenta si tiene algo (texto, lista o rango)
+const filtroConValor = v => v != null && v !== '' && !(Array.isArray(v) && !v.length) && !(typeof v === 'object' && !Array.isArray(v) && !Object.values(v).some(x => x != null && x !== ''));
+
+// ---- Memoria de filtros: lo que se elige en una fila de filtros se vuelve a poner cuando la pantalla se pinta de nuevo
+const FMEM = {};

@@ -1,13 +1,4 @@
-/* ============================================================
-   v2.266.0 · Presentaciones de producto en la visita (grupo 4 del plan del 11/10/2026; necesita el SQL 143).
-   - Ficha del producto (administración): «Material para presentar», imágenes o PDF (fichas técnicas, estudios, catálogo).
-   - «Registrar visita»: bajo «Productos presentados», «Presentar» con los productos que tienen material; se ve a pantalla completa
-     (con flechas y teclado) y el producto queda marcado como presentado (cuenta en la cobertura del ciclo).
-   - El material se descarga al enseñarlo y se queda en memoria mientras la app está abierta; sin conexión, solo lo ya visto.
-   ============================================================ */
-const PRES_MAX = 8 * 1024 * 1024;
 let PRES_MAT = null, PRES_T = 0;           // [{id, producto_id, nombre, tipo, orden}] · cuándo se leyó
-const PRES_DATOS = new Map();               // id → datos (base64) ya descargados
 // La lista de material se pide a la vez que los productos promocionados (así «Presentar» sale con ellos, no después)
 productosPromocionados = (orig => async function (...a) {
   const [r] = await Promise.all([orig.apply(this, a), presMateriales()]);

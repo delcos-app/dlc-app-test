@@ -1,10 +1,3 @@
-/* ============================================================
-   v2.323.0 · Eliminar productos sin romper el histórico (decisión de Eric; SQL 165). En el producto, «Eliminar producto»:
-   si nunca se ha usado se borra; si tiene ventas, compras, lotes, muestras… deja de salir en todas partes pero se conserva
-   para el histórico (pedidos, facturas y lotes siguen con su nombre); con stock disponible no deja. Se recupera desde
-   Productos → «⋯» → «Productos eliminados».
-   ============================================================ */
-const puedeEliminarProducto = () => puede('administrar') || nivelDe2('P') >= 2;
 const PROD_USOS = { ventas: 'pedidos', borradores: 'borradores', servicio: 'pedidos con este servicio', compras: 'compras', lotes: 'lotes',
   movimientos: 'movimientos de stock', muestras: 'entregas de muestras', cirugias: 'intervenciones', concursos: 'precios de concurso', equipos: 'equipos',
   visitas: TT('visita', 'p', '', 'l', 'l'), comisiones: 'esquemas de comisión' };

@@ -15,18 +15,7 @@ Object.assign(RPC_TTL, { operativa_pendiente: 20, llamadas_lista: 20, llamadas_r
   AREAS.splice(i + 1, 0, ['L', 'Clientes'], ['P', 'Productos y stock'], ['F', 'Facturación'], ['A', 'Analítica'],
     ['E', 'Importes de ventas'], ['Q', 'Calidad del dato']);
 })();
-const nivelDe2 = a => !PERFIL ? 0 : puede('administrar') ? 3 : +((PERFIL.areas || {})[a] || 0);
-const verImportes = () => nivelDe2('E') >= 1;
 
-// Qué permiso abre cada módulo
-const MODULO_AREA = { inicio: 'H', agenda: 'G', rutas: 'R', directorio: 'M', pacientes: 'L', productos: 'P', seguimiento: 'Q',
-  ventas: 'V', analitica: 'A', facturacion: 'F' };
-const puedeModulo = t => {
-  if (!PERFIL) return false;
-  if (t === 'facturacion' && !VE_TODO()) return false;
-  const a = MODULO_AREA[t];
-  return !a || nivelDe2(a) >= 1;
-};
 /* aplicarPermisosMenu: la parte base y, en orden, cada paso que se le añade (antes eran 3 capas separadas). */
 function aplicarPermisosMenu() {
   aplicarPermisosMenuBase();
@@ -41,20 +30,6 @@ function aplicarPermisosMenu() {
 
 /* ---------------- indicadores con su categoría y permiso ---------------- */
 
-const KPI_CATEGORIA = {
-  citas: 'Agenda', citas_7d: 'Agenda', urgentes: 'Cartera', interesados: 'Cartera', sin_contactar: 'Cartera', cartera: 'Cartera',
-  sin_visita_60: 'Cartera', sin_horario: 'Calidad del dato', dups: 'Calidad del dato', visitas_sem: 'Actividad', visitas_mes: 'Actividad',
-  visitas_7d: 'Actividad', muestras_mes: 'Actividad', material_mes: 'Actividad', uds_mes: 'Ventas (unidades)', prescriptores: 'Ventas (unidades)',
-  nuevos_presc: 'Ventas (unidades)', activos_90: 'Ventas (unidades)', conversion: 'Cartera', importe_mes: 'Ventas (importes)', borradores: 'Pedidos'
-};
-const KPI_PERMISO = { importe_mes: ['E', 1], borradores: ['V', 1], dups: ['Q', 1], sin_horario: ['M', 1] };
-/* v2.87.0 · Cada indicador pertenece a un módulo: solo lo ve quien tiene acceso a ese módulo */
-const KPI_MOD = {
-  citas: 'agenda', visitas_sem: 'agenda', visitas_mes: 'agenda', visitas_7d: 'agenda', citas_7d: 'agenda', muestras_mes: 'agenda', material_mes: 'agenda',
-  urgentes: 'directorio', interesados: 'directorio', sin_contactar: 'directorio', cartera: 'directorio', dups: 'directorio', sin_visita_60: 'directorio', sin_horario: 'directorio',
-  uds_mes: 'ventas', importe_mes: 'ventas', prescriptores: 'ventas', nuevos_presc: 'ventas', activos_90: 'ventas', borradores: 'ventas',
-  conversion: 'analitica'
-};
 function kpiPermitido(c) {
   if (!c) return false;
   if (c.admin && !puede('administrar')) return false;
@@ -65,15 +40,10 @@ function kpiPermitido(c) {
 
 /* ---------------- zonas de cada comercial ---------------- */
 
-let PROV_CCAA = null;
-const zonasMarcadas = () => [...$('dbody').querySelectorAll('#uzonas [data-zp]:checked')].map(x => x.dataset.zp).sort();
 
 
 /* ---------------- operativa de los pedidos ---------------- */
 
-const OPS = [['pago', 'Cobrado', 'pago_estado', '💳'], ['paquete', 'Paquete preparado', 'paquete_en', '📦'],
-  ['email_factura', 'Email con la factura enviado', 'email_factura_en', '🧾'], ['email_pago', 'Email con los datos de pago enviado', 'email_pago_en', '✉️']];
-const opHecho = (p, k) => k === 'pago' ? p.pago_estado === 'Cobrado' : !!p[OPS.find(o => o[0] === k)[2]];
 
 
 

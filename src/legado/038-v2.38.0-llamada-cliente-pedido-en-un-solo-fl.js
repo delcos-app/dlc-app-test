@@ -27,7 +27,6 @@ db.rpc = function (fn, params, opts) {
     return res;
   }));
 };
-let LLAMADA_PEND = null;
 
 /* ---------------- selector de fecha: siempre junto a su campo ---------------- */
 

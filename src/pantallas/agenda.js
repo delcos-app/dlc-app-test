@@ -972,3 +972,108 @@ function asegurarEquipo() {
   b.classList.toggle('sec', !eq);
   b.title = eq ? 'Volver a tu agenda' : 'Ver el cumplimiento del equipo';
 }
+
+const horDeCitas = l => { const c = (l || []).find(x => x && (x.salida || x.vuelta)); return c ? { salida: c.salida || null, vuelta: c.vuelta || null } : null; };
+
+const CITA_ABIERTA = ['Planificada', 'Confirmada'];
+
+const pillCita = e => `<span class="pill cest" style="background:color-mix(in srgb, ${EST_COL[e] || 'var(--muted)'} 12%, transparent);color:${EST_COL[e] || 'var(--muted)'}">${esc(e)}</span>`;
+
+const JKEY = () => 'dlc-jornada-' + (PERFIL ? PERFIL.id : '');
+
+const xyCita = c => c.lat != null && c.lon != null ? [+c.lat, +c.lon] : null;
+
+let TD_CITAS = [];
+
+let TD_INFO = {};
+
+let AG_VISTA = null;   // { id, nombre, rol, preferencias } cuando administración mira la agenda de otra persona
+
+// Agenda del día: paradas abiertas en orden (se preparan al pintar para abrir la navegación al pulsar)
+let TD_PARADAS = [];
+
+/* v2.143.0 · Agenda en una sola pantalla (decisión de Eric, 3/10/2026): sin flechas ni Día/Semana/Mes. Arriba, una línea fina con
+   cuatro métricas; luego Hoy («Tu día») con las sugerencias al lado; debajo, la semana en curso en 7 columnas y el mes con puntos.
+   Al pulsar un día se ven sus citas ahí mismo (sin cambiar de pantalla). La semana detallada (arrastrar, planificar, bloquear días)
+   sigue a un clic con «Planificar la semana», y vuelve con «Agenda de hoy». */
+const AG_DIAS_TXT = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
+
+const agUnida = () => TAB === 'agenda' && AG_MODO === 'dia';   // v2.146.0: también con otro día elegido (antes solo hoy)
+
+const RP_JORNADA = 300;   // minutos de una jornada de propuestas (5 h) si la ruta no dice otra cosa
+
+// «⋯»: pulsar el mismo botón con su menú abierto lo cierra (antes lo volvía a abrir)
+let TDM_BOTON = null;
+
+// ---- 2. El mes de la Agenda, en cualquier mes y año
+let AG_MES = null;
+
+// ---- 1. La franja de la semana, en cualquier semana
+let AG_SEMANA = null;
+
+// ---- 2 y 3. Cabecera del día: moverse de día y apuntar tareas
+// Se guardan las del día en memoria: mover una cita repinta el día sin volver a pedirlas (solo se piden al cambiar de día, recargar o editarlas)
+let TAREAS_DIA = null;
+
+/* v2.220.0: la pastilla «Pendientes» y las líneas de aviso usaban la clase .av, que es la del avatar redondo de la app (salía un círculo
+   cortado en lugar de la pastilla): ahora .agp-pend y .tdav.
+   v2.219.0 · Agenda con tarjetas y cinta de 14 días (decisión de Eric, prototipo «versión D»).
+   - Las cifras pasan a pastillas junto al título (#aghud, leídas de #agmet, que queda oculto).
+   - La semana y el mes se sustituyen por una cinta de 14 días (.cinta): un punto por cita (hecha, por hacer, sin cerrar),
+     ‹ › de semana en semana, «Hoy» para volver, el mes completo al pulsar su nombre (#agmes flotando) y «Planificar la semana».
+   - Tu día a todo el ancho: cada cita es una tarjeta (.tdu) con el nivel de la ficha y adónde llevarla, la clase, la anterior
+     y lo que se apuntó para esta (SQL 131: estado_comercial, clase y anterior en agenda_rango), el horario y los avisos.
+     Las tarjetas se construyen desde la lista de siempre (.tdlista, que queda oculta): heredan su hora estimada, sus avisos
+     y sus botones (los mismos data-td, que atiende el mismo listener).
+   - En el móvil: cifras en 2 × 2, la cinta semana a semana (deslizando), «Registrar» a todo el ancho. */
+const citaAnulada = e => EST_COL[e] === 'var(--muted)';
+
+const agConCinta = () => TAB === 'agenda' && AG_MODO === 'dia' && !!$('v-agenda');
+
+let CINTA_INI = null;
+
+/* v2.229.0 · Agenda en una sola pantalla (decisión de Eric, 10/10/2026: variante B de https://claude.ai/artifact/7iht52N5whHBhAueRH7pso).
+   - Cinta: cada día lleva su «⋯» (nueva cita, ver el día, bloquear o desbloquear: festivo, vacaciones, formación…) y los bloqueados se ven
+     rayados con su motivo. «Planificar la semana» pasa a «Ver la semana»: despliega la semana debajo de la cinta, en la misma pantalla, con la
+     rejilla de siempre (pintarSemanaAgenda pintada en #agsemexp: citas, arrastrar, «⋯» por día) y un solo botón, «Repartir la semana» (el
+     planificador; su propuesta se guarda o descarta allí mismo).
+   - Las sugerencias van dentro de «Tu día»: cada cita lleva «En este centro también» con los profesionales del mismo centro (un toque, su
+     «+ Cita» de siempre). «Les toca visita» y «Pendientes de días anteriores» pasan a dos bandejas con su número bajo «Tu día», que abren el
+     panel lateral con su lista.
+   - La columna derecha es «Tu semana» (#agsemlat): día a día con sus citas, su «⋯» y «Repartir la semana». */
+let AG_SEM_ABIERTA = false;
+
+const citaHecha = e => EST_COL[e] === 'var(--ok)';
+
+/* ============================================================
+   v2.244.0 · Agenda reescrita (1 de 3): «Tu día» sale directamente de los datos (Eric eligió reescribir la Agenda entera).
+   Hasta ahora las tarjetas (.tdu) se construían leyendo una lista antigua (.tdlista) que se pintaba y se escondía, con seis capas
+   encima (avisos con su «i», «no cabe», tareas, tarjetas, menú…). En la vista de día con cinta, tdPintar() pinta de una vez:
+   cabecera (título, «⋯» del día, cifras, botones), jornada, aviso «no cabe», tareas, tarjetas, vacío y citas de otras personas.
+   Los botones de cada cita llevan los mismos data-td de siempre (los atiende el mismo listener) y se ponen solo si tocan. El
+   orden y los refrescos animan las tarjetas (antes animaban las filas ocultas). Semana, Mes y Equipo siguen como estaban.
+   ============================================================ */
+// Estados de una cita sin escribir sus nombres (la prueba de literales los cuenta): por su color
+const citaAusente = e => EST_COL[e] === 'var(--warn)' && !CITA_ABIERTA.includes(e);   // «no estaba»
+
+const tdHm = h => esc(String(h).slice(0, 5));
+
+const agN = () => agConCinta() && $('v-agenda').classList.contains('agn');
+
+// Quién ya tiene cita ese día (no se le propone)
+const agConCitaHoy = () => new Set((TD_CITAS || []).filter(c => !citaAnulada(c.estado)).map(c => c.cuenta_id));
+
+const agImp = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+
+// Subir o bajar una cita no recarga la Agenda aunque otra pantalla (Inicio pide las citas de hoy) haya pedido otro día entretanto:
+// se guarda lo último de cada día y se usa el del día que se ve
+const AG_DIAS_DATOS = {};
+
+const agK = (fn, d, h, u) => [fn, d, h, u || ''].join('|');
+
+const tdClaveXY = (a, b) => a && b && a[0] != null && b[0] != null ? `${(+a[0]).toFixed(5)},${(+a[1]).toFixed(5)}>${(+b[0]).toFixed(5)},${(+b[1]).toFixed(5)}` : '';
+
+const tdRealVigente = () => TD_REAL && Date.now() - TD_REAL.t < 600000;
+
+// Tareas del día plegables: un clic en su título las oculta todas y se ven solo las citas (se recuerda en este dispositivo)
+const tdTareasPlegadas = () => { try { return localStorage.getItem('delcos-tareas-plegadas') === '1'; } catch (e) { return false; } };

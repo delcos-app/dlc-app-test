@@ -1,25 +1,10 @@
-/* ============================================================
-   v2.342.0 · Plantillas de correo y de PDF (Eric, 20/10/2026: «que el usuario vaya creando las que quiera, con el nombre que quiera»;
-   eligió que al enviar salga la de por defecto y se pueda cambiar).
-   - Correo: ajuste plantillas_correo.lista = [{ id, nombre, uso: pago|factura, asunto, texto, defecto }]. Sin lista, las dos de
-     siempre (y los textos guardados antes). Configuración → Correo y firma → «Plantillas de correo»: crear, editar, duplicar,
-     eliminar y elegir la de por defecto de cada uso. Al enviar los datos de pago o la factura, si hay más de una, se elige.
-   - PDF: ajuste factura_pdf_plantillas = { lista: [{ id, nombre, cfg }], defecto }. factura_pdf sigue siendo el de por defecto (lo usa
-     también la base, en la proforma del portal). En «Diseño del PDF», una barra para elegir la plantilla, crear, renombrar, eliminar
-     y hacerla la de por defecto. Al descargar o enviar una factura, si hay más de una, se elige.
-   ============================================================ */
-const USOS_CORREO = { pago: 'Datos de pago', factura: 'Envío de la factura' };
 let PLANT_ELEGIDA = { pago: null, factura: null }, PDF_ELEGIDO = null, PDF_EDITANDO = null;
-const idPlant = () => 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
-const plantillasCorreo = uso => listaCorreos().filter(x => x.uso === uso);
 enviarDatosPago = (orig => async function (id, ...a) {
   if (!await elegirPlantillaCorreo('pago')) return false;
   try { return await orig.call(this, id, ...a); } finally { PLANT_ELEGIDA.pago = null; }
 })(enviarDatosPago);
 
 
-const cfgDePlantilla = id => { const p = listaPDF().lista.find(x => x.id === id); const c = (p && p.cfg) || {};
-  return Object.assign({}, PDF_DEF, c, { cols: Object.assign({}, PDF_DEF.cols, c.cols || {}) }); };
 facturaPDF = (orig => function (f, rn, cfg, ...a) {
   if (!cfg && PDF_ELEGIDO && PDF_ELEGIDO !== listaPDF().defecto) cfg = cfgDePlantilla(PDF_ELEGIDO);
   return orig.call(this, f, rn, cfg, ...a);
@@ -103,7 +88,6 @@ disenoPDF = (orig => async function (...a) {
   return r;
 })(disenoPDF);
 
-let FAB_RZ = 0;
 addEventListener('resize', () => { clearTimeout(FAB_RZ); FAB_RZ = setTimeout(() => { fabAOrdenador(); try { if (typeof plSync === 'function' && TAB) plSync(TAB); } catch (e) {} }, 120); });
 
 

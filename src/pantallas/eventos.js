@@ -145,3 +145,26 @@ async function pintarTransparencia(anio) {
     a.download = `informe de gastos-${anio}.csv`; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
   };
 }
+
+/* v2.195.0 · Eventos, formación e informe de gastos (última pieza de la primera tanda del estudio por sectores, SQL 121). Decisiones de Eric:
+   sección propia «Eventos» (en el bloque Cartera del menú), importe por concepto por asistente con informe anual de gastos, y en los
+   planes Comercial, Empresa y A medida (candado en Campo, como Compras).
+   - Eventos → «Eventos»: próximos y pasados; «+ Nuevo evento» (título, tipo, fecha, hora, lugar o en línea, nota); al abrir uno, sus
+     asistentes con su estado y lo que se le da a cada uno (inscripción, viaje y alojamiento, comidas, honorarios), con aviso si una comida
+     pasa de 60 € por persona.
+   - Eventos → «Informe de gastos» (administración o quien ve todo el equipo): por año, lo dado a cada profesional por concepto, para descargar.
+   - Ficha: bloque «Eventos» con los últimos a los que ha ido o está invitado. */
+const EV_TIPOS = ['Taller', 'Curso', 'Congreso', 'Webinar', 'Reunión científica', 'Comida de trabajo', 'Otro'];
+
+const EV_ESTADOS = ['Invitado', 'Confirmado', 'Asistió', 'No asistió'];
+
+const EV_CONCEPTOS = [['inscripcion', 'Inscripción'], ['viaje', 'Viaje y alojamiento'], ['comida', 'Comidas'], ['honorarios', 'Honorarios']];
+
+const EV_COMIDA_MAX = 60;
+
+const evTotal = a => EV_CONCEPTOS.reduce((s, [k]) => s + (+a[k] || 0), 0);
+
+const verTransparencia = () => puede('administrar') || VE_TODO();
+
+// Editar una visita: cómo fue y productos presentados (actualizar_actividad los guarda desde el SQL 128)
+let EV_EXTRA = null;

@@ -5,15 +5,10 @@
    WhatsApp con el menú del sistema y unidades por periodo en la ficha
    ============================================================ */
 
-const ES_MOVIL = () => matchMedia('(max-width: 760px)').matches;
 
 /* ---------------- navegación: cada cambio de módulo descarta lo pendiente ---------------- */
 
 let NAV_CTRL = new AbortController(), NAV_GEN = 0;
-// Las consultas de lectura de un módulo que ya no está en pantalla se descartan: nunca pintan ni devuelven la vista
-const TURNOS = {};
-const pedirTurno = k => (TURNOS[k] = (TURNOS[k] || 0) + 1);
-const esMiTurno = (k, t) => TURNOS[k] === t;
 const SOLO_ULTIMA = new Set(['pedidos_pagina', 'facturas_lista', 'llamadas_lista', 'clientes_lista', 'analitica_tabla', 'compras_lista', 'stock_resumen']);
 const RPC_V2361 = db.rpc;
 db.rpc = function (fn, params, opts) {
@@ -87,8 +82,6 @@ window.addEventListener('resize', () => { if (!ES_MOVIL()) document.querySelecto
 
 /* ---------------- menú «Más» del móvil con el mismo estilo ---------------- */
 
-const ICO_MOD = { inicio: '◉', agenda: '▤', rutas: '➤', directorio: '☰', pacientes: '👥', productos: '📦', seguimiento: '✔︎', ventas: '🛒',
-  analitica: '📊', facturacion: '🧾', informe: '◉' };
 function abrirMasMovil() {
   const principales = ['inicio', 'agenda', 'rutas', 'directorio'];
   const mods = [...document.querySelectorAll('nav.main [data-t]')]
@@ -110,10 +103,6 @@ pintarBnav = (orig => function () { orig(); const m = $('bmasbtn'); if (m) m.onc
 /* ---------------- Inicio: tarjeta de bienvenida con lo importante de hoy ---------------- */
 
 
-// Indicadores con icono, explicación breve y, cuando se puede, comparación
-const KPI_ICO = { citas: '📅', urgentes: '⚠️', visitas_sem: '📝', visitas_mes: '🗓️', interesados: '✨', sin_contactar: '📇', cartera: '🩺', dups: '🧩',
-  sin_visita_60: '⏳', sin_horario: '🕘', uds_mes: '📦', prescriptores: '👥', nuevos_presc: '🌱', activos_90: '🔁', conversion: '📈',
-  importe_mes: '€', borradores: '✏️', muestras_mes: '🎁', material_mes: '📚', citas_7d: '📆', visitas_7d: '🧭' };
 // v2.105.0: los subtítulos que dependen del vocabulario o del nombre de un estado se calculan al pintarlos (get)
 const KPI_TXT = { citas: 'Visitadas de las citas de hoy', urgentes: `${TT('medico', 'p', '', 'l', 'C', 'marcado')} urgentes sin ${TT('visita', 's', '', 'l', 'l')}`, visitas_sem: 'Registradas de lunes a hoy',
   visitas_mes: 'Registradas en el mes', get interesados() { return `En estado «${estadoPapel('interes') || 'interés'}»`; }, sin_contactar: `Todavía sin ${TT('visita', 's', 'primer', 'l', 'l')}`, get cartera() { return `Asignad${terminoDe('medico').g === 'f' ? 'a' : 'o'}s a ti`; },

@@ -14,20 +14,16 @@
    Semana, Mes y Equipo siguen como estaban.
    ============================================================ */
 let AG_MET = null, AG_SUG = null, AG_PEND = null;
-const agN = () => agConCinta() && $('v-agenda').classList.contains('agn');
 
 
 
 
-// Quién ya tiene cita ese día (no se le propone)
-const agConCitaHoy = () => new Set((TD_CITAS || []).filter(c => !citaAnulada(c.estado)).map(c => c.cuenta_id));
 
 document.addEventListener('click', e => {
   const b = e.target.closest('#agcuerpo .agtamb[data-agtc]'); if (!b || e.target.closest('[data-agti]')) return;
   e.stopPropagation(); fichaCentro(b.dataset.agtc);
 }, true);
 document.addEventListener('keydown', e => { const b = e.target.closest && e.target.closest('#agcuerpo .agtamb[data-agtc]'); if (b && e.target === b && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); fichaCentro(b.dataset.agtc); } });
-const agImp = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
 document.addEventListener('click', e => {
   const b = e.target.closest('#agcuerpo .agtamb [data-agti]'); if (!b) return;
   e.stopPropagation();
@@ -51,9 +47,6 @@ agMarcarDia = (orig => function (...a) {
   if (agN() && AG_VISTA && $('agtit') && !$('agtit').textContent.includes(AG_VISTA.nombre)) $('agtit').textContent += ' · agenda de ' + AG_VISTA.nombre;
   return r;
 })(agMarcarDia);
-// Subir o bajar una cita no recarga la Agenda aunque otra pantalla (Inicio pide las citas de hoy) haya pedido otro día entretanto:
-// se guarda lo último de cada día y se usa el del día que se ve
-const AG_DIAS_DATOS = {};
 rpcCache = (orig => async function (fn, params, clave) {
   const r = await orig.call(this, fn, params, clave);
   if (fn === 'agenda_rango' && params && params.p_desde === params.p_hasta && r && r.data) AG_DIAS_DATOS[params.p_desde] = r.data;

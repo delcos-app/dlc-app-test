@@ -7,8 +7,6 @@ inicioEsqueleto = (orig => function (...a) { const r = orig.apply(this, a); inic
 // Al abrir la app, el esqueleto de Inicio se pinta antes de que llegue esta parte del código: se completa aquí mismo
 if (document.querySelector('#v-inicio.conmos')) inicioCabecera();
 
-// ---- Menú del móvil: la sección que se ve, no la página que la contiene
-const SUBSEC_MENU = { llamadas: 'oportunidades', compras: 'compras', proveedores: 'proveedores' };
 abrirMasMovil = (orig => function (...a) {
   const r = orig.apply(this, a);
   const t = tabDelMenu();

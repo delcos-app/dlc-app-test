@@ -1,8 +1,3 @@
-/* v2.224.0 · Volver desde el manual al punto exacto (aviso de Eric: al pulsar un «?» y llegar al manual faltaba una flecha para volver).
-   - Al entrar en el manual desde otra pantalla se guarda dónde estaba (MANUAL_VUELTA: pantalla y desplazamiento); la pestaña de cada página,
-     el apartado de Configuración y el día de la Agenda ya se recuerdan solos (PAG_TAB, CFG_KEY, AG_FECHA).
-   - La cabecera del manual lleva «‹ Volver a …» (#manvolver): vuelve a esa pantalla y, cuando ha terminado de pintarse, al mismo punto. */
-let MANUAL_VUELTA = null;
 ir = (orig => function (t, ...r) {
   if (t === 'manual' && TAB !== 'manual') MANUAL_VUELTA = { tab: TAB, y: window.scrollY || 0 };
   return orig.call(this, t, ...r);
@@ -89,13 +84,6 @@ ponerAyudaManual = function () {
   const P = (typeof PAGINAS !== 'undefined' && PAGINAS[TAB]) || {};
   h.insertAdjacentHTML('beforeend', `<button class="ai" data-ayuda-tit="${esc(P.t || h.textContent.trim())}" data-ayuda-txt="${esc(P.d || '')}" aria-label="Ayuda">i</button>`);
 };
-const anclaAyuda = b => {
-  const k = b.dataset.ayuda || '';
-  if (b.dataset.manual) return b.dataset.manual;
-  if (MANUAL_ANCLA[k]) return MANUAL_ANCLA[k];
-  if (/^ini_/.test(k)) return MANUAL_ANCLA.inicio;
-  return MANUAL_ANCLA[TAB] || '';
-};
 // La ventanita ya llevaba «Ver más en el manual de uso» (resumirAyuda), que abría el buscador del manual: ahora abre el apartado de esa pantalla
 resumirAyuda = (orig => function (pop) {
   orig.call(this, pop);
@@ -140,26 +128,7 @@ editarTarea = (orig => function (t, fecha) {
 
 pintarSinAtribuir = async function () { const c = $('cardsinatr'); if (c) c.remove(); };
 
-/* v2.227.0 · Ordenar cualquier tabla por su columna y filtros por columna según su tipo (lista de Eric del 9/10/2026).
-   - Pulsar el nombre de una columna ordena (▲), volver a pulsar invierte (▼) y una tercera vez quita el orden. Se recuerda por tabla.
-   - Las tablas que se cargan por páginas se ordenan en la base para que valga para todas las páginas (SQL 135): Profesionales
-     (buscar_cuentas: orden), Pedidos (pedidos_pagina: p_orden) y Clientes (clientes_lista: p_orden). El resto, en la pantalla.
-   - «Filtros y columnas»: cada columna con el filtro de su tipo: texto («contiene»), número (desde/hasta) o fecha (desde/hasta, y nada si la
-     pantalla ya tiene su «Periodo»). Fuera los desplegables inventados con lo que se ve: las listas de valores fijos son las de Clasificadores
-     (su apartado propio). Tampoco se repiten columnas que la pantalla ya filtra con lo suyo (Estado, Canal…). */
-const htNorm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\s+/g, ' ').trim();
-const HT_ORDEN = {};   // por tabla: { i, dir: 1 | -1, k }
 try { Object.assign(HT_ORDEN, JSON.parse(localStorage.getItem('delcos-orden') || '{}')); } catch (e) {}
-const htGuardarOrden = () => { try { localStorage.setItem('delcos-orden', JSON.stringify(HT_ORDEN)); } catch (e) {} };
-const MESES_CORTOS = { ene: 1, feb: 2, mar: 3, abr: 4, may: 5, jun: 6, jul: 7, ago: 8, sep: 9, sept: 9, oct: 10, nov: 11, dic: 12 };
-// Tablas que se ordenan en la base: qué clave usa cada columna (por su posición o su nombre)
-const ORD_SRV = {
-  peds2: (i, n) => i === 2 ? 'profesional' : ({ Fecha: 'fecha', Cliente: 'cliente', Comercial: 'comercial', 'Uds.': 'unidades', Base: 'base', Total: 'total', Estado: 'estado' })[n] || null,
-  pacs: (i, n) => i === 6 ? 'profesional' : ({ Cliente: 'nombre', Tipo: 'tipo', 'DNI / CIF': 'nif', Email: 'email', 'Población': 'municipio', Comercial: 'comercial', Pedidos: 'pedidos', 'Uds.': 'unidades', 'Último pedido': 'ultimo' })[n] || null
-};
-const ORD_DIR = { nombre: 'nombre', especialidad: 'especialidad', centro_nombre: 'lugar', municipio: 'municipio', ultima_visita: 'reciente', estado_comercial: 'estado' };
-const htCeldaNoOrdenable = n => !n || /^(operativa|acciones?|productos)$/i.test(n);
-const htNoFiltrable = n => !n || /^(operativa|acciones?)$/i.test(n);
 // Pulsar una cabecera: asc → desc → sin orden
 document.addEventListener('click', e => {
   const c = e.target.closest('.dgrid > .dh > *'); if (!c || e.target.closest('input, button, select, .res')) return;
@@ -272,21 +241,7 @@ htPreparar = (orig => function (sec, ...r) {
   return x;
 })(htPreparar);
 
-/* v2.228.0 · Inicio de toda la empresa, en mosaico (decisión de Eric, 10/10/2026: variante «Mosaico» de https://claude.ai/artifact/5UMynF3SKQnJYBVkR6CCk7).
-   - Fuera las listas que solo miraban la Agenda (rutas sugeridas, agenda, próximas acciones, urgentes, últimas visitas, Mi semana…). En su lugar,
-     un mosaico con piezas de distintos tamaños: «Requiere tu atención» (grande: pagos por validar, facturas vencidas, urgentes, paquetes, stock,
-     intervenciones por reponer, concursos que vencen, llamadas, duplicados…; cada línea lleva a su pantalla), Ventas del mes (frente al mes pasado y
-     visitas de los últimos 14 días), Tu día (tus citas y tareas), Cobros, Ciclo, Stock, Cartera y Lo que viene (eventos, concursos, intervenciones
-     y revisiones de equipos).
-   - Cada persona ve solo las áreas de su plan y sus permisos (las mismas del menú) y los importes solo con permiso de importes.
-   - Los indicadores de siempre siguen, plegados al final («Ver tus indicadores»), con su configuración.
-   - Los números cuentan y las gráficas crecen al llegar, todo a la vez; sin animación con «reducir movimiento».
-   - Datos: inicio_areas() (SQL 136) más panel_inicio, inicio_graficas, operativa_pendiente, alertas_stock, ciclo_cuentas y las citas de hoy. */
-const verArea = t => { const b = document.querySelector(`nav.main [data-t="${t}"]`); return !!b && !b.classList.contains('hide') && !b.classList.contains('bloq'); };
 const MOS_MES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'], MOS_DS = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
-const mosEur = n => Math.round(+n || 0).toLocaleString('es-ES') + ' €';
-const mosIco = n => svgIco(ICON_NOM[n] || ICON_NOM.info);
-let MOS_TURNO = 0;
 function mosContar(box) {
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   const els = [...box.querySelectorAll('[data-mcnt], [data-meur]')], t0 = performance.now();
@@ -301,16 +256,6 @@ cargarInicio = (orig => function (...a) {
   return r;
 })(cargarInicio);
 
-/* v2.229.0 · Agenda en una sola pantalla (decisión de Eric, 10/10/2026: variante B de https://claude.ai/artifact/7iht52N5whHBhAueRH7pso).
-   - Cinta: cada día lleva su «⋯» (nueva cita, ver el día, bloquear o desbloquear: festivo, vacaciones, formación…) y los bloqueados se ven
-     rayados con su motivo. «Planificar la semana» pasa a «Ver la semana»: despliega la semana debajo de la cinta, en la misma pantalla, con la
-     rejilla de siempre (pintarSemanaAgenda pintada en #agsemexp: citas, arrastrar, «⋯» por día) y un solo botón, «Repartir la semana» (el
-     planificador; su propuesta se guarda o descarta allí mismo).
-   - Las sugerencias van dentro de «Tu día»: cada cita lleva «En este centro también» con los profesionales del mismo centro (un toque, su
-     «+ Cita» de siempre). «Les toca visita» y «Pendientes de días anteriores» pasan a dos bandejas con su número bajo «Tu día», que abren el
-     panel lateral con su lista.
-   - La columna derecha es «Tu semana» (#agsemlat): día a día con sus citas, su «⋯» y «Repartir la semana». */
-let AG_SEM_ABIERTA = false;
 // La semana de siempre, pintada debajo de la cinta (se cambia el id un momento para que pintarSemanaAgenda pinte allí)
 async function agPintarSemanaExp() {
   const cin = $('agcinta'); if (!cin || !AG_SEM_ABIERTA) { const x = $('agsemexp'); if (x) x.remove(); return; }
@@ -347,16 +292,6 @@ async function agSemanaLateral() {
 }
 // Sugerencias dentro de tu día y bandejas
 
-/* v2.230.0 · KPIs de Pedidos y Analítica (Eric eligió la A de https://claude.ai/artifact/PTBZBvZ3yZrQxpxXCNKyrs).
-   - Pedidos: #operativa deja de ser el cartel con los avisos desplegables y pasa a tres tarjetas vivas (pagos por validar, paquetes por
-     preparar y facturas por enviar) con su número que cuenta, una frase y la entrada de los últimos 10 días. Pulsar una pone el filtro
-     «Operativa» (#popf) de la tabla; volver a pulsarla lo quita. Las cifras son las de la tabla (todos los pendientes). El engranaje
-     (#opcfg) sigue eligiendo qué tarjetas se ven.
-   - Analítica: cada indicador cuenta hasta su cifra y dibuja la línea de los últimos seis meses (analitica_kpis_periodo por mes, con
-     el filtro propio del indicador). Sin línea los de «a día de hoy» y los de texto. */
-const PK_TARJ = [['pago', 'pago', 'Pendientes de cobro', 'credit-card'], ['paquete', 'paquete', 'Paquetes por preparar', 'package'],
-  ['email_factura', 'email', 'Facturas por enviar', 'mail']];
-const pkMovimiento = () => !matchMedia('(prefers-reduced-motion: reduce)').matches;
 function pkContar(els, fmt) {
   if (!pkMovimiento()) { els.forEach(el => el.textContent = fmt(+el.dataset.v, el)); return; }
   const t0 = performance.now();
@@ -409,10 +344,7 @@ pintarOperativa = async function () {
   pkContar([...c.querySelectorAll('.pkn[data-v]')], n => num(Math.round(n)));
 };
 
-/* ---------------- Analítica: cifras que cuentan y línea de seis meses ---------------- */
-const AN_SERIE = new Map();
 var AN_REP = '';   // v2.329.0: Analítica → Resumen, «Reporte»
-const AN_MES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
 anCargarKpis = (orig => async function () {
   await orig.apply(this, arguments);
   const caja = $('anareas'); if (!caja || !AN_CFG || !$('anper')) return;

@@ -5,7 +5,6 @@
    ============================================================ */
 
 Object.assign(RPC_TTL, { alertas_mias: 60, alertas_cruce: 120, actividades_recientes: 30 });
-let SERVICIOS = [];
 
 async function cargarProductos() {
   const { data } = await db.rpc('productos_lista');
@@ -30,9 +29,6 @@ function pintarBnav() {
 /* ---------------- entrar como otro usuario ---------------- */
 
 const SKEY = 'dlc-suplantador';
-const suplantando = () => { try { return JSON.parse(localStorage.getItem(SKEY) || 'null'); } catch (e) { return null; } };
-// v2.117.0: «Entrar como otro usuario» es del plan A medida
-const puedeSuplantar = () => PERFIL && (puede('administrar') || ((PERFIL.areas || {}).U || 0) >= 3) && !suplantando() && PLAN_ACTUAL.plan === 'medida';
 
 
 
@@ -55,8 +51,6 @@ AREAS.push(['U', 'Impersonalizar usuarios']);
 
 /* ---------------- manual de uso ---------------- */
 
-const NIVEL_TXT = ['Sin acceso', 'Ver', 'Editar', 'Completo'];
-const nivelDe = a => puede('administrar') ? 3 : ((PERFIL.areas || {})[a] || 0);
 
 const MANUAL = [
   { id: 'inicio', t: 'Inicio', a: 'H', para: 'El resumen de tu día y de tu semana: indicadores, alertas, tu agenda de hoy y lo que conviene hacer.',
@@ -118,10 +112,8 @@ pintarEquipo = (orig => async function () {
 
 /* ---------------- aviso de visita reciente ---------------- */
 
-const avisoRevisita = () => Object.assign({ on: true, dias: 7 }, ((PERFIL.preferencias || {}).avisos || {}).revisita || {});
 
 
-const txtReciente = l => l.map(x => `${x.tipo === 'visita' ? 'visitado' : 'cita'} el ${fechaCorta(x.fecha)}${x.usuario ? ' (' + x.usuario + ')' : ''}`).join(', ');
 
 citaRepetida = (orig => async function (medicoId, fecha) {
   const r = await orig(medicoId, fecha);
@@ -142,8 +134,6 @@ citaRepetida = (orig => async function (medicoId, fecha) {
 
 /* ---------------- servicios en Productos ---------------- */
 
-let PSEC = 'productos';
-let PRODF = {};   // v2.88.0: filtros por campos del producto (Clasificadores)
 async function cargarProductosModulo() {
   const esAdmin = puede('administrar');
   vaciarModulos('v-productos');

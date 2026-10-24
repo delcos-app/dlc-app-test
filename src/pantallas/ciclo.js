@@ -143,3 +143,23 @@ async function pintarCobertura() {
   caja.querySelectorAll('[data-cfi]').forEach(b => b.onclick = () => abrirFicha(b.dataset.cfi));
   caja.querySelectorAll('[data-ccita]').forEach(b => b.onclick = () => nuevaCita(b.dataset.ccita));
 }
+
+/* v2.197.0 · Ciclo de visitas con clasificación A/B/C (segunda tanda del estudio por sectores, SQL 123). Decisiones de Eric: cada ficha en A,
+   B o C, cada clase con sus visitas por ciclo y el ciclo configurable (de partida, trimestral: A = 3, B = 2, C = 1).
+   - Menú «Ciclo de visitas» (en «Tu día»): «Este ciclo» (cómo va cada clase y a quién le faltan visitas, con «+ Cita»), «Clasificar»
+     (A, B o C en cada ficha, con sus visitas de los últimos 12 meses como ayuda) y, para quien ve todo el equipo, «Equipo».
+   - Ficha: en el bloque «Estado», la clase (A, B, C; pulsar la marcada la quita) y las visitas de este ciclo.
+   - Configuración → Cartera y visitas → «Ciclo A/B/C» (administración): duración del ciclo y visitas de cada clase. */
+const CIC_CLASES = ['A', 'B', 'C'];
+
+const cicNombre = m => ({ 1: 'mes', 2: 'bimestre', 3: 'trimestre', 4: 'cuatrimestre', 6: 'semestre', 12: 'año' })[m] || 'ciclo';
+
+const cicVis = n => `${n} ${TT('visita', n === 1 ? 's' : 'p', '', 'l', 'l')}`;
+
+const cicPill = k => k ? `<span class="cicl c${k}">${k}</span>` : '<span class="cicl csin">—</span>';
+
+const cicSegs = (id, k, dis) => `<span class="segs cicsegs" role="group" aria-label="Clase">${CIC_CLASES.map(x => `<button type="button" data-ccl="${id}|${x}" class="${x === k ? 'on' : ''}" aria-pressed="${x === k}" ${dis ? 'disabled' : ''}>${x}</button>`).join('')}</span>`;
+
+const cicUsuario = () => VE_TODO() ? (CIC_DE || null) : PERFIL.id;
+
+const cicIrA = tab => { PAG_TAB.ciclo = tab; cargarPagina('ciclo'); };

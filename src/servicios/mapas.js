@@ -114,3 +114,26 @@ async function estoyAqui(box, i, b) {
   } catch (err) { toast('No se ha podido obtener tu ubicación: revisa el permiso de ubicación del navegador', true); }
   finally { b.disabled = false; b.textContent = txt; }
 }
+
+// v2.175.0 (decisión de Eric: autopista a 120 km/h): los primeros 30 km en línea recta a 40 km/h (ciudad) y lo que pase de 30 km a 100 km/h en línea
+// recta (la carretera es ~1,2 veces más larga: unos 120 km/h por autopista); antes, todo a 40
+const minutosEntre = (a, b) => { if (!a || !b || a[0] == null || b[0] == null) return 0; const d = km(a, b);
+  return Math.max(6, Math.round(Math.min(d, 30) / 40 * 60 + Math.max(d - 30, 0) / 100 * 60) + 5); };
+
+const NAVEGADORES = [['google', 'Google Maps'], ['apple', 'Apple Maps'], ['waze', 'Waze']];
+
+const navActual = () => (PERFIL.preferencias || {}).navegador || 'google';
+
+// Cada navegación pregunta con qué app abrirla (Google Maps admite la ruta con todas sus paradas)
+const navAttr = (d, p) => esc(JSON.stringify({ d, p: p && p.length ? p : null }));
+
+const selectorNav = () => `<select id="navsel" title="Navegador de mapas" style="max-width:160px">${
+  NAVEGADORES.map(([v, t]) => `<option value="${v}" ${navActual() === v ? 'selected' : ''}>${t}</option>`).join('')}</select>`;
+
+/* v2.180.0 · Direcciones bien situadas (aviso de Eric: el Dr. Margalet, en Barcelona, salía en Marbella).
+   - geocodificar(q, o): busca solo en España y, si se le da el municipio (o.municipio), solo vale un resultado de ese municipio; si el texto libre no
+     lo encuentra, prueba con calle, municipio y código postal por separado. Si solo aparece en otro sitio, devuelve ese resultado con `fuera` (el
+     municipio donde sale) y quien llama no guarda el punto.
+   - «Calidad del dato»: «Direcciones que no cuadran» (SQL 114, ubicaciones_dudosas): consultas a más de 50 km del resto de su municipio, con
+     «Volver a situar» (busca de nuevo con el municipio y guarda el punto si cuadra) y «Ficha». */
+const normGeo = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().replace(/[^A-Z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();

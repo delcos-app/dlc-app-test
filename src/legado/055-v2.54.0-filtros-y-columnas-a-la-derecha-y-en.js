@@ -39,7 +39,6 @@ htActivos = (orig => function (sec) {
   if (htLateralAbierto() && HERR_CTX === 'ht-' + sec.id.replace('v-', '')) $('tools').querySelectorAll('.htpropios.lat select').forEach(s => { if (s.selectedIndex > 0) n++; });
   return n;
 })(htActivos);
-let HT2_PEND = false;
 new MutationObserver(() => {
   if (HT2_PEND) return; HT2_PEND = true;
   queueMicrotask(() => { HT2_PEND = false; const sec = $('v-' + TAB); if (sec) htColocarBoton(sec); });
@@ -56,7 +55,6 @@ document.addEventListener('click', e => {
 
 /* ---------------- IVA: selector con los tipos legales ---------------- */
 
-const TIPOS_IVA = [[21, 'General · 21 %'], [10, 'Reducido · 10 %'], [4, 'Superreducido · 4 %'], [0, 'Exento · 0 %']];
 function ivaSelector(inp) {
   if (!inp || inp.dataset.ivasel || inp.type === 'hidden') return;
   inp.dataset.ivasel = '1';

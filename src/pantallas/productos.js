@@ -427,3 +427,43 @@ function editorServicio(s) {
     await cargarProductos(); if (TAB === 'productos') pintarServicios();
   };
 }
+
+let SERVICIOS = [];
+
+let PSEC = 'productos';
+
+let PRODF = {};   // v2.88.0: filtros por campos del producto (Clasificadores)
+
+const estadoStock = s => {
+  if (s.stock <= 0) return ['Sin stock', 'p-anu'];
+  if (s.stock_minimo != null && s.stock < s.stock_minimo) return ['Bajo mínimo', 'p-bor'];
+  if (s.dias_cobertura != null && s.dias_cobertura <= s.plazo_dias + 14 && !s.en_camino) return ['Pedir ya', 'p-bor'];
+  return ['Correcto', 'p-est'];
+};
+
+const cadClase = f => !f ? '' : f < hoyISO() ? 'cad-pasada' : f <= isoMas(hoyISO(), 90) ? 'cad-pronto' : '';
+
+let ESTADO_PROD = {};
+
+const vendible = p => (p.estado || 'Activo') === 'Activo';
+
+const pillMaterial = e => `<span class="pill ${e === 'Pendiente' ? 'p-warn' : e === 'Entregado' ? 'p-est' : 'p-anu'}">${esc(e)}</span>`;
+
+/* v2.196.0 · Material en depósito en el cliente (segunda tanda del estudio por sectores, SQL 122). Decisiones de Eric: solo en fichas de tipo
+   Centro; lo usado se sabe por recuento o apuntando cada uso; lo usado crea un pedido en borrador y se propone reponerlo.
+   - Ficha de un centro: bloque «Material en depósito» (unidades y productos) con «Abrir el depósito» o «Dejar material en depósito».
+   - Ventana del depósito: lo que hay por lote y caducidad (aviso si caduca en menos de 60 días), lo usado en 90 días y los últimos
+     movimientos; «Reponer» (de tu maletín o del almacén central), «Apuntar uso» (con referencia, sin datos del paciente) y «Recuento».
+     Lo usado deja un pedido en borrador del centro («Ver el pedido») y ofrece «Reponer lo usado». */
+let DEP = null;   // { cuenta, nombre, estado }
+
+const depCaducaPronto = f => f && f <= isoMas(hoyISO(), 60);
+
+/* v2.198.0 · Cobertura por producto en el ciclo (segunda tanda, «Panel y ciclos», SQL 124). Decisiones de Eric: la cobertura mide los
+   productos presentados en las visitas, y solo salen los que la administración marca como «Se promociona en las visitas».
+   - Producto: casilla «Se promociona en las visitas».
+   - Registrar visita: «Productos presentados» (los que se promocionan); el historial de la ficha dice qué se presentó.
+   - Ciclo de visitas → «Por producto»: por cada producto, cuántos de A, B y C lo han oído este ciclo y a quiénes les falta (con «+ Cita»). */
+let PROMO_PRODS = null;   // [{ id, nombre }] de los productos que se promocionan (última lista leída)
+
+const CON_LOTE_EST = ['Pendiente', 'Ganado', 'Perdido'];

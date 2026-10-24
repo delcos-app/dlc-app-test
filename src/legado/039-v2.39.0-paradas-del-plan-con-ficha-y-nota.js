@@ -34,7 +34,6 @@ if (window.L && L.map) {
 
 /* ---------------- Configuración: todo se muestra en el panel de la derecha ---------------- */
 
-let PANEL_ACTIVO = null;
 function panelDeModulo(sec) {
   salirPanel();
   const r = $('v-admin'); r.id = 'v-admin-real';
@@ -101,7 +100,6 @@ pintarVerifactu = async function () {
 
 /* ---------------- Manual: se explica antes de llevarte a ningún sitio ---------------- */
 
-const CFG_DE_MODULO = { agenda: 'horario', rutas: 'horario', admin: 'usuarios', facturacion: 'fiscal', inicio: 'kpis', config: 'prefs', directorio: 'cat', ventas: 'cat', permisos: 'usuarios', medico: 'usuarios', roles: 'usuarios' };
 document.addEventListener('click', e => { const r = $('manres'); if (r && !e.target.closest('.manbusca')) r.classList.add('hide'); });
 
 

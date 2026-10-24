@@ -6,10 +6,7 @@
 
 /* ---------------- horarios de atención ---------------- */
 
-const LETRA_DIA = f => 'DLMXJVS'[new Date(f + 'T12:00:00').getDay()];
-const txtMin = m => hm(m);
 
-const txtVentanas = v => v && v.length ? v.map(([a, b]) => `${txtMin(a)}–${txtMin(b)}`).join(' y ') : '';
 
 
 
@@ -20,7 +17,6 @@ const txtVentanas = v => v && v.length ? v.map(([a, b]) => `${txtMin(a)}–${txt
 
 /* ---------------- Tu día: horas estimadas respetando las consultas ---------------- */
 
-let TD_INFO = {};
 
 function estimarDia(citas, fecha) {
   const h = horDeCitas(citas);

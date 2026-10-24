@@ -249,3 +249,8 @@ async function revisarPendientes() {
   });
   $('dbody').querySelectorAll('[data-dficha]').forEach(b => b.onclick = () => { $('dlg').close(); abrirFicha(b.dataset.dficha); });
 }
+
+// (R-12: listasDuplicados se definía aquí otra vez; ahora está en su sitio, más arriba)
+const dupTipoDe = id => DUP_TIPO[id] === 'Centro' ? 'Centro' : 'Persona';
+
+let DUP_TRAS = null;

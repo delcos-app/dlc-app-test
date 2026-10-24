@@ -1,3 +1,7 @@
+// nucleo/dispositivo.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
+// Solo declaraciones de función y constantes de valor puro: su sitio no cambia lo que hace la app. Normas: docs/normas_codigo.md.
+
+const ES_MOVIL = () => matchMedia('(max-width: 760px)').matches;
 // nucleo/en_vivo.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -21,6 +25,13 @@ function avisosEnVivo() {
       .subscribe();
   } catch (e) { VIVO = null; }
 }
+
+// ——— En vivo ———
+let VIVO = null;
+// nucleo/errores.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
+// Solo declaraciones de función y constantes de valor puro: su sitio no cambia lo que hace la app. Normas: docs/normas_codigo.md.
+
+let ERR_ENVIADOS = new Set();
 // nucleo/idioma.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -57,6 +68,64 @@ function aplicarIdioma(id) {
   try { localStorage.setItem('app-idioma', IDIOMA); } catch (e) {}
   if (MAPA_I18N) traducir(document.body);
 }
+
+const IDIOMAS = [['es', 'Castellano'], ['en', 'English'], ['de', 'Deutsch'], ['fr', 'Français'], ['it', 'Italiano']];
+
+const LOCALES = { es: 'es-ES', en: 'en-GB', de: 'de-DE', fr: 'fr-FR', it: 'it-IT' };
+
+// [castellano, inglés, alemán, francés, italiano]
+const I18N = [
+  ['Inicio', 'Home', 'Start', 'Accueil', 'Home'], ['Agenda', 'Calendar', 'Kalender', 'Agenda', 'Agenda'], ['Rutas', 'Routes', 'Routen', 'Itinéraires', 'Percorsi'],
+  ['Médicos', 'Doctors', 'Ärzte', 'Médecins', 'Medici'], ['Directorio', 'Directory', 'Verzeichnis', 'Annuaire', 'Elenco'], ['Clientes', 'Customers', 'Kunden', 'Clients', 'Clienti'], ['Productos', 'Products', 'Produkte', 'Produits', 'Prodotti'],
+  ['Calidad del dato', 'Data quality', 'Datenqualität', 'Qualité des données', 'Qualità dei dati'], ['Pedidos', 'Orders', 'Bestellungen', 'Commandes', 'Ordini'],
+  ['Analítica', 'Analytics', 'Analysen', 'Analyses', 'Analisi'], ['Facturación', 'Invoicing', 'Rechnungen', 'Facturation', 'Fatturazione'], ['Más', 'More', 'Mehr', 'Plus', 'Altro'],
+  ['Mi informe', 'My report', 'Mein Bericht', 'Mon rapport', 'Il mio report'], ['Mi centro', 'My centre', 'Mein Zentrum', 'Mon centre', 'Il mio centro'], ['Configuración', 'Settings', 'Einstellungen', 'Paramètres', 'Impostazioni'],
+  ['Manual de uso', 'User guide', 'Handbuch', 'Guide d’utilisation', 'Manuale'], ['Cerrar sesión', 'Sign out', 'Abmelden', 'Se déconnecter', 'Esci'],
+  ['Cambiar contraseña', 'Change password', 'Passwort ändern', 'Changer le mot de passe', 'Cambia password'],
+  ['Guardar', 'Save', 'Speichern', 'Enregistrer', 'Salva'], ['Cancelar', 'Cancel', 'Abbrechen', 'Annuler', 'Annulla'], ['Cerrar', 'Close', 'Schließen', 'Fermer', 'Chiudi'],
+  ['Editar', 'Edit', 'Bearbeiten', 'Modifier', 'Modifica'], ['Eliminar', 'Delete', 'Löschen', 'Supprimer', 'Elimina'], ['Buscar', 'Search', 'Suchen', 'Rechercher', 'Cerca'],
+  ['Añadir', 'Add', 'Hinzufügen', 'Ajouter', 'Aggiungi'], ['Volver', 'Back', 'Zurück', 'Retour', 'Indietro'], ['Hoy', 'Today', 'Heute', 'Aujourd’hui', 'Oggi'],
+  ['Día', 'Day', 'Tag', 'Jour', 'Giorno'], ['Semana', 'Week', 'Woche', 'Semaine', 'Settimana'], ['Mes', 'Month', 'Monat', 'Mois', 'Mese'], ['Equipo', 'Team', 'Team', 'Équipe', 'Team'],
+  ['Aceptar', 'OK', 'OK', 'OK', 'OK'], ['Borrar', 'Clear', 'Leeren', 'Effacer', 'Cancella'], ['Sí', 'Yes', 'Ja', 'Oui', 'Sì'], ['No', 'No', 'Nein', 'Non', 'No'],
+  ['Entrar', 'Sign in', 'Anmelden', 'Se connecter', 'Accedi'], ['Correo', 'Email', 'E-Mail', 'E-mail', 'Email'], ['Contraseña', 'Password', 'Passwort', 'Mot de passe', 'Password'],
+  ['He olvidado la contraseña', 'I forgot my password', 'Passwort vergessen', 'Mot de passe oublié', 'Ho dimenticato la password'], ['Bienvenido', 'Welcome', 'Willkommen', 'Bienvenue', 'Benvenuto'],
+  ['Buscar médico, centro o municipio', 'Search doctor, centre or town', 'Arzt, Zentrum oder Ort suchen', 'Rechercher médecin, centre ou ville', 'Cerca medico, centro o comune'], ['Buscar profesional, centro o municipio', 'Search professional, centre or town', 'Fachkraft, Zentrum oder Ort suchen', 'Rechercher professionnel, centre ou ville', 'Cerca professionista, centro o comune'], ['Profesionales', 'Professionals', 'Fachkräfte', 'Professionnels', 'Professionisti'], ['Buscar profesional, centro o municipio', 'Search professional, centre or town', 'Fachkraft, Zentrum oder Ort suchen', 'Rechercher professionnel, centre ou ville', 'Cerca professionista, centro o comune'], ['Profesionales', 'Professionals', 'Fachkräfte', 'Professionnels', 'Professionisti'], ['Buscar profesional, centro o municipio', 'Search professional, centre or town', 'Fachkraft, Zentrum oder Ort suchen', 'Rechercher professionnel, centre ou ville', 'Cerca professionista, centro o comune'], ['Profesionales', 'Professionals', 'Fachkräfte', 'Professionnels', 'Professionisti'],
+  ['Tu día', 'Your day', 'Dein Tag', 'Votre journée', 'La tua giornata'], ['Alertas', 'Alerts', 'Warnungen', 'Alertes', 'Avvisi'], ['Mi semana', 'My week', 'Meine Woche', 'Ma semaine', 'La mia settimana'],
+  ['Ventas del mes', 'Sales this month', 'Umsatz des Monats', 'Ventes du mois', 'Vendite del mese'], ['Operativa de pedidos', 'Order operations', 'Bestellabwicklung', 'Suivi des commandes', 'Gestione ordini'],
+  ['Notificaciones', 'Notifications', 'Benachrichtigungen', 'Notifications', 'Notifiche'], ['Idioma', 'Language', 'Sprache', 'Langue', 'Lingua'],
+  ['Tu cuenta', 'Your account', 'Dein Konto', 'Votre compte', 'Il tuo account'], ['Mi perfil', 'My profile', 'Mein Profil', 'Mon profil', 'Il mio profilo'],
+  ['Rutas y desplazamientos', 'Routes and travel', 'Routen und Fahrten', 'Itinéraires et déplacements', 'Percorsi e spostamenti'], ['Horario de las rutas', 'Route schedule', 'Routenzeiten', 'Horaires des itinéraires', 'Orari dei percorsi'],
+  ['Indicadores de Inicio', 'Home indicators', 'Start-Kennzahlen', 'Indicateurs d’accueil', 'Indicatori della home'], ['Mensajes', 'Messages', 'Nachrichten', 'Messages', 'Messaggi'],
+  ['Base de datos', 'Database', 'Datenbank', 'Base de données', 'Database'], ['Clasificadores', 'Lists', 'Listen', 'Listes', 'Elenchi'], ['Equipo y cartera', 'Team and portfolio', 'Team und Portfolio', 'Équipe et portefeuille', 'Team e portafoglio'],
+  ['Usuarios y permisos', 'Users and permissions', 'Benutzer und Rechte', 'Utilisateurs et droits', 'Utenti e permessi'], ['Roles y permisos', 'Roles and permissions', 'Rollen und Rechte', 'Rôles et droits', 'Ruoli e permessi'],
+  ['Reglas de cartera', 'Portfolio rules', 'Portfolio-Regeln', 'Règles de portefeuille', 'Regole del portafoglio'], ['Frecuencia de visita', 'Visit frequency', 'Besuchshäufigkeit', 'Fréquence des visites', 'Frequenza delle visite'],
+  ['Comisiones', 'Commissions', 'Provisionen', 'Commissions', 'Provvigioni'], ['Accesos', 'Sign-ins', 'Anmeldungen', 'Connexions', 'Accessi'], ['Auditoría', 'Audit log', 'Protokoll', 'Journal d’audit', 'Registro attività'],
+  ['Stock', 'Stock', 'Bestand', 'Stock', 'Magazzino'], ['Almacenes', 'Warehouses', 'Lager', 'Entrepôts', 'Magazzini'], ['Material de visita', 'Visit materials', 'Besuchsmaterial', 'Matériel de visite', 'Materiale di visita'],
+  ['Datos fiscales', 'Tax details', 'Steuerdaten', 'Données fiscales', 'Dati fiscali'], ['Series y numeración', 'Series and numbering', 'Serien und Nummerierung', 'Séries et numérotation', 'Serie e numerazione'],
+  ['Empresa', 'Company', 'Unternehmen', 'Entreprise', 'Azienda'], ['Marca y logo', 'Brand and logo', 'Marke und Logo', 'Marque et logo', 'Marchio e logo'], ['Plan y suscripción', 'Plan and subscription', 'Tarif und Abo', 'Offre et abonnement', 'Piano e abbonamento'],
+  ['Mis datos', 'My details', 'Meine Daten', 'Mes données', 'I miei dati'], ['Nombre visible', 'Display name', 'Anzeigename', 'Nom affiché', 'Nome visualizzato'], ['Teléfono', 'Phone', 'Telefon', 'Téléphone', 'Telefono'],
+  ['Al entrar, abrir', 'Open on sign-in', 'Beim Start öffnen', 'Ouvrir à la connexion', 'Apri all’accesso'], ['Nueva contraseña', 'New password', 'Neues Passwort', 'Nouveau mot de passe', 'Nuova password'],
+  ['Repítela', 'Repeat it', 'Wiederholen', 'Répétez-le', 'Ripetila'], ['Punto de salida', 'Starting point', 'Startpunkt', 'Point de départ', 'Punto di partenza'], ['Punto de llegada', 'End point', 'Zielpunkt', 'Point d’arrivée', 'Punto di arrivo'],
+  ['Navegación', 'Navigation', 'Navigation', 'Navigation', 'Navigazione'], ['Nombre', 'Name', 'Name', 'Nom', 'Nome'], ['Dirección', 'Address', 'Adresse', 'Adresse', 'Indirizzo'],
+  ['Buscar dirección', 'Find address', 'Adresse suchen', 'Chercher l’adresse', 'Cerca indirizzo'], ['Usar mi ubicación', 'Use my location', 'Meinen Standort verwenden', 'Utiliser ma position', 'Usa la mia posizione'],
+  ['Guardar preferencias', 'Save preferences', 'Einstellungen speichern', 'Enregistrer', 'Salva preferenze'], ['Nuevo usuario', 'New user', 'Neuer Benutzer', 'Nouvel utilisateur', 'Nuovo utente'],
+  ['+ Nuevo usuario', '+ New user', '+ Neuer Benutzer', '+ Nouvel utilisateur', '+ Nuovo utente'], ['+ Nueva cita', '+ New appointment', '+ Neuer Termin', '+ Nouveau rendez-vous', '+ Nuovo appuntamento'],
+  ['+ Nuevo pedido', '+ New order', '+ Neue Bestellung', '+ Nouvelle commande', '+ Nuovo ordine'], ['+ Nuevo cliente', '+ New customer', '+ Neuer Kunde', '+ Nouveau client', '+ Nuovo cliente'],
+  ['Registrar visita', 'Log visit', 'Besuch erfassen', 'Enregistrer la visite', 'Registra visita'], ['Editar ficha', 'Edit record', 'Datensatz bearbeiten', 'Modifier la fiche', 'Modifica scheda'],
+  ['Marcar urgente', 'Mark urgent', 'Als dringend markieren', 'Marquer urgent', 'Segna urgente'], ['+ Añadir a mi agenda', '+ Add to my calendar', '+ Zu meinem Kalender', '+ Ajouter à mon agenda', '+ Aggiungi alla mia agenda'],
+  ['Estado', 'Status', 'Status', 'Statut', 'Stato'], ['Visitas', 'Visits', 'Besuche', 'Visites', 'Visite'], ['Comercial asignado', 'Assigned rep', 'Zuständiger Vertreter', 'Commercial assigné', 'Agente assegnato'],
+  ['Unidades pautadas', 'Units prescribed', 'Verordnete Einheiten', 'Unités prescrites', 'Unità prescritte'], ['Unidades atribuidas', 'Attributed units', 'Zugeordnete Einheiten', 'Unités attribuées', 'Unità attribuite'], ['Unidades atribuidas', 'Attributed units', 'Zugeordnete Einheiten', 'Unités attribuées', 'Unità attribuite'], ['Unidades atribuidas', 'Attributed units', 'Zugeordnete Einheiten', 'Unités attribuées', 'Unità attribuite'], ['Empezar jornada', 'Start day', 'Tag beginnen', 'Commencer la journée', 'Inizia la giornata'],
+  ['Ordenar por cercanía', 'Sort by distance', 'Nach Entfernung sortieren', 'Trier par proximité', 'Ordina per vicinanza'], ['Ventas', 'Sales', 'Verkäufe', 'Ventes', 'Vendite'],
+  ['Compras', 'Purchases', 'Einkäufe', 'Achats', 'Acquisti'], ['Proveedores', 'Suppliers', 'Lieferanten', 'Fournisseurs', 'Fornitori'], ['Llamadas', 'Calls', 'Anrufe', 'Appels', 'Chiamate'], ['Oportunidades', 'Opportunities', 'Verkaufschancen', 'Opportunités', 'Opportunità'], ['+ Nueva venta', '+ New sale', '+ Neuer Verkauf', '+ Nouvelle vente', '+ Nuova vendita'],
+  ['Resumen', 'Summary', 'Übersicht', 'Résumé', 'Riepilogo'], ['Explorar', 'Explore', 'Erkunden', 'Explorer', 'Esplora'], ['Facturas', 'Invoices', 'Rechnungen', 'Factures', 'Fatture'],
+  ['Mis rutas', 'My routes', 'Meine Routen', 'Mes itinéraires', 'I miei percorsi'], ['Propuestas automáticas', 'Suggested routes', 'Vorgeschlagene Routen', 'Itinéraires proposés', 'Percorsi suggeriti'],
+  ['Todos los módulos', 'All modules', 'Alle Module', 'Tous les modules', 'Tutti i moduli'], ['Gira el móvil', 'Rotate your phone', 'Handy drehen', 'Tournez votre téléphone', 'Ruota il telefono'],
+  ['Estás al día', 'You’re all caught up', 'Alles erledigt', 'Vous êtes à jour', 'Sei aggiornato'], ['Marcar todas como leídas', 'Mark all as read', 'Alle als gelesen markieren', 'Tout marquer comme lu', 'Segna tutte come lette'],
+  ['citas de hoy visitadas', 'today’s visits done', 'heutige Besuche erledigt', 'visites du jour faites', 'visite di oggi fatte'], ['urgentes sin visitar', 'urgent, not visited', 'dringend, nicht besucht', 'urgents non visités', 'urgenti non visitati'],
+  ['visitas esta semana', 'visits this week', 'Besuche diese Woche', 'visites cette semaine', 'visite questa settimana'], ['visitas este mes', 'visits this month', 'Besuche diesen Monat', 'visites ce mois-ci', 'visite questo mese'],
+  ['médicos interesados', 'interested doctors', 'interessierte Ärzte', 'médecins intéressés', 'medici interessati'], ['sin contactar', 'not contacted', 'nicht kontaktiert', 'non contactés', 'non contattati'],
+  ['médicos en tu cartera', 'doctors in your portfolio', 'Ärzte in deinem Portfolio', 'médecins de votre portefeuille', 'medici nel tuo portafoglio'], ['pendientes de unificar', 'pending merge', 'zusammenzuführen', 'à fusionner', 'da unire']
+];
 // nucleo/menu.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -329,6 +398,52 @@ function fabAOrdenador() {
     acts.appendChild(f);
   });
 }
+
+const ORDEN_MENU = ['inicio', 'agenda', 'rutas', 'directorio', 'ventas', 'pacientes', 'productos', 'facturacion', 'analitica', 'informe'];
+
+/* ---------------- v2.132.0 · Menú lateral de escritorio (elegido por Eric: barra a la izquierda, agrupada por áreas) ----------------
+   Los botones siguen siendo los de siempre (nav.main #nav [data-t]): aquí solo se reparten en bloques, se pliega la barra a iconos
+   (por defecto en pantallas de menos de 1440 px; se recuerda en el dispositivo) y cada persona ordena los bloques y oculta secciones
+   («Personalizar menú», guardado en preferencias.menu). Solo en escritorio (≥ 900 px); el móvil sigue con su barra inferior.
+   Un botón nuevo en #nav que no esté en ningún bloque sale en «Otros». «Plataforma» (panel de delcos) va siempre al final, fijo. */
+const MENU_GRUPOS = [
+  { id: 'dia', t: 'Tu día', items: ['inicio', 'agenda', 'rutas'] },
+  { id: 'cartera', t: 'Cartera', items: ['directorio', 'pacientes', 'seguimiento'] },
+  { id: 'ventas', t: 'Ventas', items: ['ventas', 'productos', 'facturacion'] },
+  { id: 'resultados', t: 'Resultados', items: ['analitica', 'informe'] },
+  { id: 'equipo', t: 'Equipo', items: ['usuarios'] }];
+
+const MENU_FIJO = { id: 'plataforma', t: 'Plataforma', items: ['delcos'] };
+
+const MENU_PLEGAR_BAJO = 1440;
+
+const menuPrefs = () => ((typeof PERFIL !== 'undefined' && PERFIL && PERFIL.preferencias) || {}).menu || {};
+
+const menuEscritorio = () => innerWidth >= 900;
+
+const menuPlegado = () => { try { const v = localStorage.getItem('dlc-menu-plegado'); if (v === '1' || v === '0') return v === '1'; } catch (e) {} return innerWidth < MENU_PLEGAR_BAJO; };
+
+let MENU_FIRMA = '';
+
+// (v2.183.0: aquí iba la primera versión de menuPersonalizar; se redefine entera más abajo)
+// Se monta al arrancar y se rehace si cambian los botones (permisos, módulos, portal), el tamaño de la pantalla o la sesión
+let MENU_RAF = 0;
+
+const menuRehacer = () => { if (MENU_RAF) return; MENU_RAF = requestAnimationFrame(() => { MENU_RAF = 0; montarMenuLateral(); }); };
+
+const menuNombres = () => (AJUSTES && AJUSTES.menu_nombres) || {};
+
+/* ============================================================
+   v2.335.0 · Menú (peticiones de Eric, 20/10/2026)
+   - «Usuarios» fuera del menú (está en Configuración → Equipo → Usuarios): en el menú de escritorio y en «Más» del móvil.
+   - Móvil: «Personalizar menú» en «Más» (movPersonalizar): qué pantallas van en la barra de abajo (hasta 4; preferencias.menu.barra)
+     y cuáles salen en «Más» (las mismas que se ocultan en el menú de escritorio: preferencias.menu.ocultos). Lo oculto no sale en «Más».
+   ============================================================ */
+const MOV_BARRA_DEF = ['inicio', 'agenda', 'rutas', 'directorio'];
+
+const MENU_FUERA = ['usuarios'];
+
+let FAB_RZ = 0;
 // nucleo/navegacion.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -461,6 +576,49 @@ function vistaBoton(v, d0) {
   const t = fh.firstElementChild, dentro = t && t.tagName !== 'BUTTON' && !t.matches('h2') ? t : fh;
   dentro.insertAdjacentHTML('afterbegin', `<button type="button" class="btn sec chico vueltabtn" title="Volver a ${esc(VISTA_TITULO[ant.fn] || 'la ventana anterior')}">‹ Volver</button>`);
 }
+
+let TAB_ANTERIOR = 'inicio';
+
+let APP_VISIBLE = false;
+
+const PAGINAS = {
+  perfil: { t: 'Mi perfil', d: 'Tus datos, idioma, qué abrir al entrar y tus notificaciones', tabs: [['datos', 'Mis datos', () => pintarPerfil()], ['notif', 'Notificaciones', () => pintarNotif()]] },
+  empresa: { t: 'Empresa', d: 'Marca, correo de la empresa y copias de seguridad', admin: true, tabs: [['marca', 'Marca y logo', () => pintarMarca()], ['correo', 'Correo y firma', () => pintarCorreo()], ['copias', 'Copias de seguridad', () => pintarCopias()]] },
+  plan: { t: 'Plan y suscripción', d: '', admin: true, tabs: [['plan', 'Plan', () => pintarPaginaPlan()]] }
+};
+
+let VIA_IR = null;
+
+// 3. Pantallas: se preparan ocultas y se muestran de golpe
+let REVELADO = 0;
+
+let CLIC_PESTANA = null;
+
+let IR_DESDE_MENU = false;
+
+/* v2.144.0 · Páginas propias: la acción principal («+ Nuevo usuario», «+ Nueva organización») sube a la derecha de la cabecera, como
+   «+ Nueva venta» en el resto de pantallas (regla de Eric: misma posición en todas). Antes iba dentro de la tarjeta, junto al buscador. */
+const ACCION_PAGINA = ['usrnuevo', 'orgnueva'];
+
+let ACCION_PAG_PEND = false;
+
+// ---- Menú del móvil: la sección que se ve, no la página que la contiene
+const SUBSEC_MENU = { llamadas: 'oportunidades', compras: 'compras', proveedores: 'proveedores' };
+
+/* ============================================================
+   v2.300.0 · Volver siempre al punto de partida (petición de Eric). Cuando desde una ventana se abre otra (una cita → la
+   ficha del centro → la ficha de un profesional…), la de antes se apunta en una pila. Al cerrar la de dentro (con su ✕,
+   con «‹ Volver» o al guardar y cerrarse), se vuelve a abrir la anterior con sus datos al día, en vez de dejar a la persona
+   en la pantalla de debajo. Cerrar la primera cierra del todo. Cambiar de pantalla vacía la pila.
+   ============================================================ */
+const VUELTA = [];
+
+const VISTA_TITULO = { verCita: 'la cita', fichaCentro: 'el centro', abrirFicha: 'la ficha', verPedido: 'el pedido', verFactura: 'la factura', verEvento: 'el evento',
+  verCirugia: 'la intervención', verConcurso: 'el concurso', verEquipo: 'el equipo', verDeposito: 'el depósito', fichaStock: 'el producto' };
+
+const vistaDlg = () => ['ficha', 'dlg'].map($).find(d => d && d.open) || null;
+
+const vistaIgual = (a, b) => a && b && a.fn === b.fn && JSON.stringify(a.args.map(x => x && x.id || x)) === JSON.stringify(b.args.map(x => x && x.id || x));
 // nucleo/notificaciones.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -541,6 +699,69 @@ function pintarBarraSuplantacion() {
 function prepararCambioOrg(destino) {
   try { sessionStorage.setItem('dlc-cambio-org', destino || ''); sessionStorage.removeItem('dlc-f5'); localStorage.removeItem('app-marca'); } catch (e) {}
 }
+
+const vaciarModulos = salvo => ['v-pacientes', 'v-productos', 'v-ventas'].forEach(k => { if (k !== salvo) $(k).innerHTML = ''; });
+
+const suplantando = () => { try { return JSON.parse(localStorage.getItem(SKEY) || 'null'); } catch (e) { return null; } };
+
+const ERRORES_SESION = [];
+
+/* v2.164.0 · Lo que no entra en el plan no sale en el menú (petición de Eric): al bajar de plan, los módulos con candado se quitan
+   solos del menú lateral y del «Más» del móvil, y en «Personalizar menú» salen con candado y el interruptor apagado y sin poder
+   encenderlo. No se toca lo que cada uno eligió: al volver a un plan que los incluye, reaparecen como estaban. */
+const fueraDePlan = b => !!b && b.classList.contains('bloq');
+
+/* ============================================================
+   v2.270.0 · «Entrar como» que funciona e invitados en Usuarios (aviso de Eric, 12/10/2026; necesita el SQL 145 y la función de
+   Supabase «impersonar» nueva).
+   - «Entrar como» fallaba: la función antigua solo dejaba entrar al rol «Administrador». Ahora comprueba la base (suplantar_preparar)
+     y, si algo no deja, la app dice por qué (y lo anota en el registro de errores si es un fallo).
+   - Invitados: profesionales y centros con acceso a su portal. En Usuarios van en su propio grupo, con su ficha, cuándo entraron por
+     última vez y qué ven; «Ver lo que ve» abre la plataforma como esa persona (con cualquier plan: solo ve su portal).
+   ============================================================ */
+const esInvitado = u => !!u && (rolPuede(u.rol, 'portal_prescriptor') || rolPuede(u.rol, 'portal_centro'));
+
+const queVeInvitado = u => rolPuede(u.rol, 'portal_centro')
+  ? 'Pide la reposición de los productos que le des de alta, pide material y escribe a su comercial.'
+  : `Ve su portal (cifras agregadas de ${TT('pauta', 'p', '', 'l', 'l')}, sin importes ni datos de ${TT('paciente', 'p', '', 'l', 'l')}), pide material y escribe sus dudas.`;
+
+const SUPL_ERR = {
+  administrador: 'No se puede impersonalizar a un usuario que administra',
+  permiso: 'No tienes permiso para impersonalizar usuarios',
+  inactivo: 'Esa persona está desactivada: actívala antes',
+  propio: 'Ya estás en tu propia sesión',
+  otra: 'Esa persona es de otra empresa',
+  no_encontrado: 'No se encuentra a esa persona (o no tiene correo)',
+  plan: 'Impersonalizar a usuarios del equipo es del plan A medida (a los invitados, con cualquier plan)',
+  sesion: 'Tu sesión ha caducado: vuelve a entrar y prueba otra vez',
+};
+// nucleo/utilidades.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
+// Solo declaraciones de función y constantes de valor puro: su sitio no cambia lo que hace la app. Normas: docs/normas_codigo.md.
+
+const $ = id => document.getElementById(id);
+
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+const partesNombre = n => { const p = String(n || '').trim().split(/\s+/); while (p.length > 1 && TRATAMIENTO.test(p[0])) p.shift(); return p; };
+
+const nombrePila = n => partesNombre(n)[0] || '';
+
+const iniciales = n => partesNombre(n).slice(0, 2).map(x => x[0] || '').join('').toUpperCase();
+
+let temporizador;
+
+// Las peticiones de Supabase no traen .catch ni .finally: se añaden para que el código que los usa no falle.
+const conCatch = b => {
+  if (b && typeof b.then === 'function' && typeof b.catch !== 'function') {
+    b.catch = f => Promise.resolve(b).catch(f);
+    b.finally = f => Promise.resolve(b).finally(f);
+  }
+  return b;
+};
+
+const nombreApp = () => MARCA.nombre || 'Mi empresa';
+
+const hexRGB = h => { const x = (h || '#1C2733').replace('#', ''); return [0, 2, 4].map(i => parseInt(x.substr(i, 2), 16)); };
 // nucleo/version.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -567,6 +788,12 @@ async function comprobarVersion() {
   if (!hayAlgoAMedias()) { try { sessionStorage.setItem('dlc-recarga-version', v); } catch (e) {} location.reload(); return; }
   const aviso = $('nuevaver'); if (aviso) aviso.classList.remove('hide');
 }
+
+/* v2.184.0 · La app se pone al día sola (aviso de Eric: con la base ya en nombres neutros, una pestaña abierta desde antes seguía con la app antigua y
+   el buscador no encontraba nada hasta Ctrl+F5). Al volver a la pestaña y cada 10 minutos se mira qué versión está publicada (index.html sin caché);
+   si es otra, la app se recarga sola cuando no hay nada a medias (ninguna ventana abierta ni un campo con el cursor) o, si lo hay, enseña el aviso
+   «Hay una versión nueva» para que se recargue al terminar. */
+let VERSION_VISTA = 0;
 // servicios/api.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -638,6 +865,82 @@ function cargaLocal(el) {
   const t0 = performance.now(); let quietos = 0;
   const w = setInterval(() => { quietos = PEND === 0 ? quietos + 1 : 0; if ((quietos >= 3 && performance.now() - t0 > 80) || performance.now() - t0 > 4000) { clearInterval(w); el.classList.remove('cargandolocal'); } }, 40);
 }
+
+const COLA = 'dlc-cola';
+
+const colaLeer = () => { try { return JSON.parse(localStorage.getItem(COLA) || '[]'); } catch (e) { return []; } };
+
+const colaGuardar = c => localStorage.setItem(COLA, JSON.stringify(c));
+
+const CKEY = k => 'dlc-cache-' + (PERFIL ? PERFIL.id : '') + '-' + k;
+
+const guardarCache = (k, d) => { try { localStorage.setItem(CKEY(k), JSON.stringify({ t: Date.now(), d })); } catch (e) {} };
+
+const leerCache = k => { try { const x = JSON.parse(localStorage.getItem(CKEY(k)) || 'null'); return x ? x : null; } catch (e) { return null; } };
+
+const RPC_TTL = {                 // segundos
+  panel_inicio: 60, propuestas_rutas: 120, comision_periodo: 120, resumen_duplicados: 600,
+  agenda_rango: 60, agenda_mes: 60, pendientes_ruta: 60, rutas_visibles: 120,
+  buscar_cuentas: 60, buscar_global: 60, opciones_filtros: 600, mapa_cuentas: 120,
+  ficha_cuenta: 30, seguimiento_lista: 60, resumen_seguimiento: 120,
+  catalogo: 900, catalogos_todos: 900, productos_lista: 600, usuarios_lista: 300,
+  esquemas_lista: 300, liquidaciones_lista: 120, pedidos_lista: 60, contactos_lista: 60,
+  analitica_tabla: 120, analitica_unidades: 120, cartera_usuario: 60, duplicados_pendientes: 30
+};
+
+const RPC_ESCRITURA = /^(actualizar_|anular_|aplazar_|asignar_|recibir_|movimiento_|atribuir_|borrar_|crear_|estado_cita|guardar_|liquidar|ordenar_|perfil_nuevo|quitar_|registrar_actividad|registrar_visita|resolver_accion|tocar|unificar_|descartar_)/;
+
+let RC_EPOCA = 0;
+
+const rcLS = k => 'dlc-rc-' + (PERFIL ? PERFIL.id : '') + '-' + k;
+
+const rcCopia = r => ({ data: r.data == null ? r.data : JSON.parse(JSON.stringify(r.data)), error: r.error || null });
+
+const RPC_ORIG_FROM = t => FROM_ORIG(t);
+
+// Las consultas de lectura de un módulo que ya no está en pantalla se descartan: nunca pintan ni devuelven la vista
+const TURNOS = {};
+
+const pedirTurno = k => (TURNOS[k] = (TURNOS[k] || 0) + 1);
+
+const esMiTurno = (k, t) => TURNOS[k] === t;
+
+let ESCRITURAS = 0;
+
+const ES_ESCRITURA = /^(guardar|registrar_(?!error)|emitir|rectificar|marcar|borrar|eliminar|asignar|unificar|validar|anular|crear|descartar|restaurar|estado_|recibir|traspasar|vincular|mover|aplicar|reprogramar|cancelar|confirmar|terminar)/;
+
+const CACHE_MOD = {};   // módulo → { clave, t, esc }
+
+// 1. Todas las consultas a la base de datos, cuenten desde donde se hagan (también las que no pasan por los atajos)
+let RED_PEND = 0;
+
+const RED_EN_CURSO = new Set();   // momento de inicio de cada consulta en curso
+
+let RED_ULTIMO_FIN = 0;   // cuándo terminó la última consulta
+
+/* ============================================================
+   v2.249.0 · Contactos y Clientes de una vez (listas sin fantasmas, primer grupo). Se sigue enseñando el esqueleto sin cargador
+   encima (modelo «Lista» de la v2.236), pero ahora es fiel: cada pieza de la estructura (cabecera, indicadores, barra con
+   buscador, filtros rápidos y recuento, tabla) está en su sitio desde el primer momento y al llegar los datos solo cambia lo de
+   dentro. Antes el recuento del esqueleto medía distinto que la cifra y empujaba el buscador y los filtros, y en Clientes los
+   filtros rápidos aparecían tarde (su desplegable se crea al llegar los datos) y salían dos esqueletos seguidos porque la lista
+   esperaba a la de poblaciones. Ahora:
+   - El recuento tiene sitio fijo y los filtros rápidos sin desplegable todavía se ven con su nombre, en espera (plespera).
+   - Clientes pide a la vez las poblaciones y la lista (DB_PRE: lo pedido antes se entrega una vez, sin volver a la red) y el
+     buscador espera 300 ms (antes 600: la barra y el campo oculto esperaban cada uno lo suyo).
+   - Arreglos: «Volver a la búsqueda» de «Cerca de mí» funciona desde la barra (era una copia sin clic y con el id repetido);
+     con el mapa abierto no queda la tabla vacía debajo; el resumen de filtros de antes (#chips) ya no aparece encima
+     de la tabla empujándola (lo dicen los filtros rápidos y el número de la barra).
+   ============================================================ */
+// ---- Lo pedido antes, entregado una vez sin volver a la red
+const DB_PRE = new Map();
+
+// ---- La cola: de una en una, sin perder lo que el servidor rechaza
+const COLA_KO = 'dlc-cola-ko';
+
+const colaKo = () => { try { return JSON.parse(localStorage.getItem(COLA_KO) || '[]'); } catch (e) { return []; } };
+
+let COLA_ENVIANDO = false;
 // servicios/archivos.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -702,6 +1005,17 @@ async function fotosEnviarPendientes(op, id) {
     if (await subirFotosVisita(id, fotos)) await new Promise(ok => { const t = b.transaction('pend', 'readwrite'); t.objectStore('pend').delete(op); t.oncomplete = ok; t.onerror = ok; });
   } catch (e) {}
 }
+
+/* v2.115.0 · Justificante del pago: una foto (se reduce a 1600 px en JPEG antes de subirla) o un PDF de hasta 3 MB,
+   guardado en la tabla pedidos_justificantes. Lo ve quien ve el pedido. */
+const JUSTIF_MAX = 3000000;
+
+const aBase64 = blob => new Promise((ok, mal) => { const fr = new FileReader(); fr.onload = () => ok(String(fr.result).split(',')[1] || ''); fr.onerror = mal; fr.readAsDataURL(blob); });
+
+const FOTOS_VISITA_MAX = 6;
+
+// ---- Fotos de una visita guardada sin conexión: en el móvil hasta que la visita se envía
+const FOTOS_IDB = 'delcos-fotos';
 // servicios/camara.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -851,6 +1165,67 @@ function cerrarEscaner() {
   }
   const d = $('escaner'); if (d && d.open) d.close();
 }
+
+/* ============================================================
+   v2.261.0 · Leer lotes, números de serie con la cámara (grupo 4 del plan del 11/10/2026). En el móvil o la tableta, los campos
+   de lote (entrada de stock y recepción de compras) y de número de serie (intervenciones, equipos y equipos de un pedido) llevan un
+   botón de cámara. Se lee el código (DataMatrix, QR, Code 128, EAN…) y, si es GS1 (el de las cajas y la UDI), se separa: el lote
+   (10), el número de serie (21), la caducidad (17) y la fabricación (11); en una entrada de stock también se rellenan las fechas si
+   están vacías. En los números de serie de varias unidades la cámara sigue abierta y va llenando las siguientes (sin repetir).
+   Usa el lector del navegador (BarcodeDetector) y, si no lo tiene (iPhone), una librería que se carga solo al abrir la cámara.
+   ============================================================ */
+const ESC_CAMPOS = [['#mvl', 'lote'], ['[data-r="lote"]', 'lote'], ['[data-cser]', 'serie'], ['[data-pqs]', 'serie'], ['#eqs', 'serie']];
+
+const ESC_PUEDE = () => !!(window.ESC_FORZAR || (PANTALLA_TACTIL && navigator.mediaDevices && navigator.mediaDevices.getUserMedia));
+
+// GS1: (01) GTIN, (10) lote, (11) fabricación, (17) caducidad, (21) serie… con paréntesis o con el separador GS
+const GS1_FIJOS = { '00': 18, '01': 14, '02': 14, '11': 6, '12': 6, '13': 6, '15': 6, '16': 6, '17': 6, '20': 2 };
+
+const GS1_VAR = ['10', '21', '22', '30', '37', '90', '91', '92', '93', '94', '95', '96', '97', '98', '99'];
+
+let ESC_PEND = false;
+
+// La ventana de la cámara
+let ESC = null;   // { inp, modo, stream, det, zx, vivo, leidos:Set, n }
+
+const ESC_ULT_N = n => n === 1 ? 'Una unidad' : `${n} unidades`;
+
+const ESC_ULT_TXT = (v, g) => 'Leído: ' + v + (g && g.cad ? ' · caduca el ' + fechaCorta(g.cad) : '');
+// servicios/catalogos.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
+// Solo declaraciones de función y constantes de valor puro: su sitio no cambia lo que hace la app. Normas: docs/normas_codigo.md.
+
+// Catálogos por su papel en la plataforma (clasificadores.papel), nunca por la clave que les ponga cada cliente
+const CAT = { resultado_visita: [], especialidad: [], area: [], motivo_urgencia: [], forma_pago: [] };
+
+let PROV_CCAA = null;
+// servicios/estados.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
+// Solo declaraciones de función y constantes de valor puro: su sitio no cambia lo que hace la app. Normas: docs/normas_codigo.md.
+
+/* v2.70.0 · Estados comerciales como catálogo: el código conoce su papel (inicial, avance, interes, positivo, negativo), no su nombre */
+const ESTKEY = 'dlc-estados';
+
+let ESTADOS_DEF = [];
+
+const estados = () => ESTADOS_DEF.map(x => x.valor);
+
+const estadoPapel = p => (ESTADOS_DEF.find(x => x.papel === p) || {}).valor || '';
+
+const papelEstado = v => (ESTADOS_DEF.find(x => x.valor === v) || {}).papel || '';
+
+// v2.97.0: colores del sistema de diseño por papel (pendiente ámbar, avance azul, interés marino, positivo verde, negativo gris)
+const COL_PAPEL = { inicial: '#8A4B0B', avance: '#3F82C0', interes: '#17457A', positivo: '#0E6B4C', negativo: '#4A5868' };
+
+const colEstado = v => COL_PAPEL[papelEstado(v)] || '';
+
+const EST_COL = { Planificada: 'var(--navy)', Visitada: 'var(--ok)', Pendiente: 'var(--warn)', Reprogramada: 'var(--sky)', Descartada: 'var(--muted)' };
+
+// Estados comerciales: el papel de cada uno
+const PAPELES_ESTADO = [
+  ['inicial', 'Inicial', 'El de las fichas nuevas. Solo hay uno.'],
+  ['avance', 'En avance', 'Ya hay contacto, pero todavía sin interés claro.'],
+  ['interes', 'Con interés', 'Interesado: se le sigue de cerca.'],
+  ['positivo', 'Ya es cliente', 'El objetivo: ya compra o trabaja con vosotros.'],
+  ['negativo', 'Ya no interesa', 'No le interesa o se ha perdido.']];
 // servicios/exportar.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -900,6 +1275,114 @@ function mesesEntre(d, h) {
   while (x <= fin && out.length < 36) { out.push(fechaLocal(x).slice(0, 7)); x.setMonth(x.getMonth() + 1); }
   return out;
 }
+
+// Fechas SIEMPRE en hora local (España): convertir a hora universal restaba un día de 00:00 a 02:00
+const isoLocal = d => { const x = new Date(d.getTime() - d.getTimezoneOffset() * 60000); return x.toISOString().slice(0, 10); };
+
+const hoyISO = () => isoLocal(new Date());
+
+let fechaLarga = d => d.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
+
+const fechaCorta = s => { const d = new Date(s + 'T00:00:00'); return d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }); };
+
+const DIAS = ['L', 'M', 'X', 'J', 'V'];
+
+const DIAN = { L: 'Lunes', M: 'Martes', X: 'Miércoles', J: 'Jueves', V: 'Viernes' };
+
+const HM = ['09:00-13:00', '09:30-13:30', '10:00-14:00', '08:00-15:00'];
+
+const isoMas = (iso, n) => { const d = new Date(iso + 'T12:00:00'); d.setDate(d.getDate() + n); return isoLocal(d); };
+
+const lunesDe = iso => { const d = new Date(iso + 'T12:00:00'); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return isoLocal(d); };
+
+const hm = m => String(Math.floor(m / 60) % 24).padStart(2, '0') + ':' + String(Math.round(m) % 60).padStart(2, '0');
+
+const pedirFecha = (msg, valor, o = {}) => appVentana({ msg, titulo: o.titulo || 'Elige la fecha', ok: o.ok || 'Aceptar', campo: { valor, tipo: 'date' } });
+
+const periodoActual = () => hoyISO().slice(0, 7);
+
+const periodoTxt = p => {
+  const [a, m] = p.split('-');
+  return ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'][+m - 1] + ' ' + a;
+};
+
+const siguienteLaborable = () => {
+  const d = new Date(); do { d.setDate(d.getDate() + 1); } while (d.getDay() === 0 || d.getDay() === 6);
+  return isoLocal(d);
+};
+
+const fechaLocal = d => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+
+const PERIODOS = [['todo', 'Todo'], ['hoy', 'Hoy'], ['ayer', 'Ayer'], ['semana', 'Esta semana'], ['7d', 'Últimos 7 días'],
+  ['mes', 'Mes actual'], ['mesant', 'Mes anterior'], ['tri', 'Trimestre actual'], ['triant', 'Trimestre anterior'],
+  ['anio', 'Año actual'], ['anioant', 'Año anterior'], ['pers', 'Personalizado']];
+
+const minHora = h => h ? (+String(h).slice(0, 2) * 60 + +String(h).slice(3, 5)) : null;
+
+const LETRA_DIA = f => 'DLMXJVS'[new Date(f + 'T12:00:00').getDay()];
+
+const txtReciente = l => l.map(x => `${x.tipo === 'visita' ? 'visitado' : 'cita'} el ${fechaCorta(x.fecha)}${x.usuario ? ' (' + x.usuario + ')' : ''}`).join(', ');
+
+const MESES_C = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+
+const mesTxt = m => MESES_C[+m.slice(5, 7) - 1] + ' ' + m.slice(2, 4);
+
+const MESES_L = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+
+const DIAS_SEM = [['L', 'Lunes'], ['M', 'Martes'], ['X', 'Miércoles'], ['J', 'Jueves'], ['V', 'Viernes'], ['S', 'Sábado'], ['D', 'Domingo']];
+
+const hoyLetra = () => 'DLMXJVS'[new Date().getDay()];
+
+const horaCorta = f => new Date(f).toLocaleString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+
+/* v2.169.0 · Datos de facturación bien antes del primer recibo (petición de Eric: «¿quién garantiza que después de la prueba los datos están
+   bien?»). En «Plan y suscripción», con suscripción de Stripe, los datos con los que se factura (razón social, NIF, correo y dirección, de la
+   función «pagos», acción datos) y «Corregir datos» (portal de Stripe); lo que falta, marcado. Durante la prueba, en los 7 últimos días, aviso
+   arriba para revisarlos. El alta se hace en la web (www.delcos.app/empezar.html): el empezar.html del panel lleva allí. */
+const diasHasta = f => f ? Math.round((Date.parse(String(f).slice(0, 10)) - Date.parse(hoyISO())) / 864e5) : null;   // días de calendario
+
+const pdFecha = v => v ? new Date(String(v).length === 10 ? v + 'T12:00:00' : v).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
+
+const fechaDiaMes = f => f ? new Date(String(f).slice(0, 10) + 'T12:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'long' }) : '';
+
+const DIA_NOMBRE = f => new Date(String(f).slice(0, 10) + 'T12:00:00').toLocaleDateString('es-ES', { weekday: 'long' });
+
+const cirHora = c => c.hora ? String(c.hora).slice(0, 5) : '';
+
+const lunesCinta = f => { const d = new Date(f + 'T12:00:00'); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return isoLocal(d); };
+
+const diasMas = (f, n) => { const d = new Date(f + 'T12:00:00'); d.setDate(d.getDate() + n); return isoLocal(d); };
+
+const MESES_CORTOS = { ene: 1, feb: 2, mar: 3, abr: 4, may: 5, jun: 6, jul: 7, ago: 8, sep: 9, sept: 9, oct: 10, nov: 11, dic: 12 };
+// servicios/formato.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
+// Solo declaraciones de función y constantes de valor puro: su sitio no cambia lo que hace la app. Normas: docs/normas_codigo.md.
+
+const num = n => Number(n || 0).toLocaleString('es');
+
+const durTxt = ms => { const m = Math.floor(ms / 60000); return (m >= 60 ? Math.floor(m / 60) + ' h ' : '') + (m % 60) + ' min'; };
+
+const eur = n => Number(n || 0).toLocaleString('es', { style: 'currency', currency: 'EUR', maximumFractionDigits: 2 });
+
+const r2 = n => Math.round((+n || 0) * 100) / 100;
+
+const eurI = n => eur(r2(n));
+
+const txtMin = m => hm(m);
+
+const pct = (a, b) => b ? Math.round(a / b * 100) : 0;
+
+const TIPOS_IVA = [[21, 'General · 21 %'], [10, 'Reducido · 10 %'], [4, 'Superreducido · 4 %'], [0, 'Exento · 0 %']];
+
+// IVA: siempre una lista con los tipos legales, en cualquier ventana (se detecta por su nombre o su etiqueta)
+const ES_IVA = i => /iva/i.test(i.id + ' ' + (i.dataset.f || '') + ' ' + (i.name || '')) || /\bIVA\s*\(%\)|tipo de iva/i.test(((i.id && document.querySelector(`label[for="${i.id}"]`)) || {}).textContent || '');
+
+const ES_IMPORTE = /imp|importe|total|base|precio|pvp|coste|cobro|con_iva|conIva|sin_iva/i;
+
+const ivaDe = x => Math.round(x * 21) / 100;
+
+/* v2.174.0 · Recibo con IVA como en la web (repaso de Web delcos): fecha larga («el 3 de noviembre»), importes enteros sin decimales (490 €), sin la
+   línea «Próximo recibo el …» que repetía la fecha y, bajo la cuota «Al mes, sin IVA», lo mismo con IVA. */
+const eurW = n => { const s = eur(n); return Math.round(+n * 100) % 100 === 0 ? s.replace(/,00(?=\s?€)/, '') : s; };
 // servicios/mapas.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -1016,6 +1499,29 @@ async function estoyAqui(box, i, b) {
   } catch (err) { toast('No se ha podido obtener tu ubicación: revisa el permiso de ubicación del navegador', true); }
   finally { b.disabled = false; b.textContent = txt; }
 }
+
+// v2.175.0 (decisión de Eric: autopista a 120 km/h): los primeros 30 km en línea recta a 40 km/h (ciudad) y lo que pase de 30 km a 100 km/h en línea
+// recta (la carretera es ~1,2 veces más larga: unos 120 km/h por autopista); antes, todo a 40
+const minutosEntre = (a, b) => { if (!a || !b || a[0] == null || b[0] == null) return 0; const d = km(a, b);
+  return Math.max(6, Math.round(Math.min(d, 30) / 40 * 60 + Math.max(d - 30, 0) / 100 * 60) + 5); };
+
+const NAVEGADORES = [['google', 'Google Maps'], ['apple', 'Apple Maps'], ['waze', 'Waze']];
+
+const navActual = () => (PERFIL.preferencias || {}).navegador || 'google';
+
+// Cada navegación pregunta con qué app abrirla (Google Maps admite la ruta con todas sus paradas)
+const navAttr = (d, p) => esc(JSON.stringify({ d, p: p && p.length ? p : null }));
+
+const selectorNav = () => `<select id="navsel" title="Navegador de mapas" style="max-width:160px">${
+  NAVEGADORES.map(([v, t]) => `<option value="${v}" ${navActual() === v ? 'selected' : ''}>${t}</option>`).join('')}</select>`;
+
+/* v2.180.0 · Direcciones bien situadas (aviso de Eric: el Dr. Margalet, en Barcelona, salía en Marbella).
+   - geocodificar(q, o): busca solo en España y, si se le da el municipio (o.municipio), solo vale un resultado de ese municipio; si el texto libre no
+     lo encuentra, prueba con calle, municipio y código postal por separado. Si solo aparece en otro sitio, devuelve ese resultado con `fuera` (el
+     municipio donde sale) y quien llama no guarda el punto.
+   - «Calidad del dato»: «Direcciones que no cuadran» (SQL 114, ubicaciones_dudosas): consultas a más de 50 km del resto de su municipio, con
+     «Volver a situar» (busca de nuevo con el municipio y guarda el punto si cuadra) y «Ficha». */
+const normGeo = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().replace(/[^A-Z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
 // servicios/pdf.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -1024,6 +1530,15 @@ async function cargarJsPDF() {
   await new Promise((ok, ko) => { const s = document.createElement('script'); s.src = new URL('jspdf.umd.min.js', location.href).href; s.onload = ok; s.onerror = ko; document.head.appendChild(s); });
   return window.jspdf.jsPDF;
 }
+
+// (v2.183.0: aquí iba la primera versión de facturaPDF; se redefine entera más abajo)
+const nombrePDF = f => `${f.numero}_${String((f.cliente || {}).nombre || 'cliente').replace(/[^\p{L}\p{N} ]/gu, '').trim().replace(/\s+/g, '_')}.pdf`;
+
+const PDF_DEF = { logo: true, logoPos: 'izq', logoTam: 'm', color: '#1C2733', titulo: 'FACTURA', fuente: 'helvetica', empresaCab: false, clientePos: 'der',
+  cols: { precio: true, unidades: true, subtotal: true, iva: true, total: true }, fotos: true, vencimiento: true, formaPago: true, iban: true, direccion: true,
+  pieTel: true, pieWeb: true, pieTexto: true, paginas: true, qrPos: 'abajo' };
+
+const cfgPDF = () => Object.assign({}, PDF_DEF, (AJUSTES || {}).factura_pdf || {}, { cols: Object.assign({}, PDF_DEF.cols, ((AJUSTES || {}).factura_pdf || {}).cols || {}) });
 // servicios/permisos.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -1031,6 +1546,157 @@ function puedeVerComo(u) {
   return !!(PERFIL && u && (puede('administrar') || ((PERFIL.areas || {}).U || 0) >= 3) && !suplantando() && u.id !== PERFIL.id && u.activo
     && !rolPuede(u.rol, 'administrar') && (PLAN_ACTUAL.plan === 'medida' || esInvitado(u)));
 }
+
+const puede = c => !!(PERFIL && (PERFIL.capacidades || []).includes(c));
+
+const puedeEditar = () => PERFIL && (puede('administrar') || ((PERFIL.areas || {}).M || 0) >= 2);
+
+const puedeEditarTipo = t => PERFIL && (puede('administrar') || ((PERFIL.areas || {})[t === 'Centro' ? 'C' : 'M'] || 0) >= 2);
+
+const puedeCrearTipo = t => PERFIL && (puede('administrar') || ((PERFIL.areas || {})[t === 'Centro' ? 'C' : 'M'] || 0) >= 3);
+
+const puedeCrear = () => puedeCrearTipo('Persona') || puedeCrearTipo('Centro');
+
+const puedeRegistrar = () => PERFIL && (puede('administrar') || ((PERFIL.areas || {}).S || 0) >= 2);
+
+const NIVELES = ['Sin acceso', 'Ver', 'Editar', 'Completo'];
+
+// v2.109.0: los clasificadores son un permiso del rol (antes, administrar o nivel 2 en Configuración)
+const puedeCatalogos = () => PERFIL && puede('gestionar_clasificadores');
+
+// Crear o cambiar pedidos y pacientes: administración y televenta (el comercial solo consulta lo suyo)
+const puedeVentas = () => PERFIL && (puede('administrar') || (((PERFIL.areas || {}).V || 0) >= 2 && puede('televenta')));
+
+const VE_TODO = () => puede('ver_todo');
+
+const puedeMedicoLibre = () => puede('administrar') || nivelDe2('V') >= 2;   // v2.329.0
+
+// v2.117.0: «Entrar como otro usuario» es del plan A medida
+const puedeSuplantar = () => PERFIL && (puede('administrar') || ((PERFIL.areas || {}).U || 0) >= 3) && !suplantando() && PLAN_ACTUAL.plan === 'medida';
+
+const NIVEL_TXT = ['Sin acceso', 'Ver', 'Editar', 'Completo'];
+
+const nivelDe = a => puede('administrar') ? 3 : ((PERFIL.areas || {})[a] || 0);
+
+const puedeCompras = () => PERFIL && (puede('administrar') || ((PERFIL.areas || {}).V || 0) >= 3);
+
+const puedeFacturar = () => PERFIL && (puede('administrar') || (VE_TODO() && ((PERFIL.areas || {}).V || 0) >= 2));
+
+const nivelDe2 = a => !PERFIL ? 0 : puede('administrar') ? 3 : +((PERFIL.areas || {})[a] || 0);
+
+const puedeModulo = t => {
+  if (!PERFIL) return false;
+  if (t === 'facturacion' && !VE_TODO()) return false;
+  const a = MODULO_AREA[t];
+  return !a || nivelDe2(a) >= 1;
+};
+
+const puedeOrganizacion = () => puede('configurar_organizacion') || puede('gestionar_plataforma');
+
+/* v2.212.0 · Decisiones de la auditoría (1).
+   - Pedidos: la tarjeta «Pedidos sin atribuir» vuelve a la pestaña Ventas (la pantalla nueva ya no tenía su hueco) para quien
+     puede atribuir (administración o nivel 2 en Pedidos, como atribuir_linea).
+   - Editar usuario: «Qué ve esa persona» de la comisión sale aparte (usuarioComisionInfo ocultaba la fila entera con el esquema).
+   - Duplicados: el botón de Calidad del dato y el indicador de Inicio, también para quien tiene nivel 3 en fichas (como la página). */
+const puedeDuplicados = () => puede('administrar') || ((PERFIL && PERFIL.areas) || {}).M >= 3;
+
+const puedeAtribuir = () => puede('administrar') || nivelDe2('V') >= 2;
+
+/* v2.228.0 · Inicio de toda la empresa, en mosaico (decisión de Eric, 10/10/2026: variante «Mosaico» de https://claude.ai/artifact/5UMynF3SKQnJYBVkR6CCk7).
+   - Fuera las listas que solo miraban la Agenda (rutas sugeridas, agenda, próximas acciones, urgentes, últimas visitas, Mi semana…). En su lugar,
+     un mosaico con piezas de distintos tamaños: «Requiere tu atención» (grande: pagos por validar, facturas vencidas, urgentes, paquetes, stock,
+     intervenciones por reponer, concursos que vencen, llamadas, duplicados…; cada línea lleva a su pantalla), Ventas del mes (frente al mes pasado y
+     visitas de los últimos 14 días), Tu día (tus citas y tareas), Cobros, Ciclo, Stock, Cartera y Lo que viene (eventos, concursos, intervenciones
+     y revisiones de equipos).
+   - Cada persona ve solo las áreas de su plan y sus permisos (las mismas del menú) y los importes solo con permiso de importes.
+   - Los indicadores de siempre siguen, plegados al final («Ver tus indicadores»), con su configuración.
+   - Los números cuentan y las gráficas crecen al llegar, todo a la vez; sin animación con «reducir movimiento».
+   - Datos: inicio_areas() (SQL 136) más panel_inicio, inicio_graficas, operativa_pendiente, alertas_stock, ciclo_cuentas y las citas de hoy. */
+const verArea = t => { const b = document.querySelector(`nav.main [data-t="${t}"]`); return !!b && !b.classList.contains('hide') && !b.classList.contains('bloq'); };
+
+/* ============================================================
+   v2.323.0 · Eliminar productos sin romper el histórico (decisión de Eric; SQL 165). En el producto, «Eliminar producto»:
+   si nunca se ha usado se borra; si tiene ventas, compras, lotes, muestras… deja de salir en todas partes pero se conserva
+   para el histórico (pedidos, facturas y lotes siguen con su nombre); con stock disponible no deja. Se recupera desde
+   Productos → «⋯» → «Productos eliminados».
+   ============================================================ */
+const puedeEliminarProducto = () => puede('administrar') || nivelDe2('P') >= 2;
+// servicios/planes.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
+// Solo declaraciones de función y constantes de valor puro: su sitio no cambia lo que hace la app. Normas: docs/normas_codigo.md.
+
+const verImportes = () => nivelDe2('E') >= 1;
+
+// Qué permiso abre cada módulo
+const MODULO_AREA = { inicio: 'H', agenda: 'G', rutas: 'R', directorio: 'M', pacientes: 'L', productos: 'P', seguimiento: 'Q',
+  ventas: 'V', analitica: 'A', facturacion: 'F' };
+
+let PLAN_ACTUAL = { plan: 'medida' };   // v2.117.0: hasta que llega el de la base, el completo
+
+const planDe = id => PLANES.find(p => p.id === id) || PLANES[3];
+
+// v2.165.0: sin Facturación en el plan pero con facturas, se entra en solo consulta (facConsulta, al final)
+const planIncluye = mod => !(mod in MODULO_AREA) || planDe(PLAN_ACTUAL.plan).modulos.includes(mod) || (mod === 'facturacion' && facConsulta());
+
+const planMinimo = mod => PLANES.find(p => p.modulos.includes(mod));
+
+const tiposDeMiRol = () => TIPOS_NOTIF.filter(t => puede('aviso_' + t[0]));
+
+// Filas de la comparativa: [nombre, detalle, planes que lo incluyen]
+const PLAN_FILAS = () => {
+  const T = ['campo', 'comercial', 'empresa', 'medida'], C = ['comercial', 'empresa', 'medida'], E = ['empresa', 'medida'], M = ['medida'];
+  const med = TT('medico', 'p', '', 'l', 'l'), vis = TT('visita', 'p', '', 'l', 'l'), pac = TT('paciente', 'p', '', 'l', 'l');
+  return [
+    ['Campo', null],
+    [`Cartera de ${med} y centros`, 'Fichas con su historial, horarios, estado comercial y tus campos', T],
+    [`Agenda, «Tu día» y registro de ${vis}`, 'Tu día, tu semana y tu mes en una pantalla, con sugerencias', T],
+    ['Rutas y planificación semanal', 'Rutas propuestas cada mañana, a tu agenda con un clic', T],
+    [`Ciclo de ${vis} A/B/C`, `Cada ficha en A, B o C con sus ${vis} por ciclo, y a quién le faltan`, T],   // v2.199.0
+    ['Muestras y material', `Lo que entregas en cada ${TT('visita', 's', '', 'l', 'l')}, por almacén`, T],
+    ['Calidad del dato y duplicados', 'Qué le falta a cada ficha y fichas repetidas, para unirlas', T],
+    ['Notificaciones', 'Por día y con su acción; cada persona elige qué y cuándo', T],
+    ['Usuarios, roles y permisos', 'Cada persona ve lo suyo y ordena su propio menú', T],
+    ['Importar datos', 'Desde Excel o CSV, con vista previa', T],
+    ['Venta', null],
+    ['Pedidos, televenta y clientes', `Nueva venta: llamada y pedido en un paso; ${pac} y empresas con su historial`, C],
+    ['Pedidos web y pagos', 'Lo que entra por tu web, con referencia y justificante del pago', C],
+    ['Oportunidades', 'Cada venta, se cierre o no, con sus métricas', C],   // v2.158.0: incluida desde Comercial
+    ['Cobertura de cada producto por ciclo', `Qué productos han oído tus ${med} de A, B y C en sus ${vis}`, C],   // v2.199.0
+    ['Eventos e informe de gastos', 'Talleres, cursos y congresos con sus asistentes y el informe anual', C],   // v2.199.0
+    ['Productos y stock por lotes', 'Catálogo, lotes, caducidades y almacenes', C],
+    ['Analítica', 'Indicadores por áreas comparados con el periodo anterior, y explorar tus datos', C],
+    ['Comisiones por tramos', 'Esquemas y liquidaciones de cada mes', C],
+    ['Oficina', null],
+    ['Facturación con VeriFactu y cobros', 'Series, rectificativas y el registro de cada factura', E],
+    ['Compras, proveedores y trazabilidad', 'Lo enviado, lo que está en camino y lo recibido', E],
+    ['Material en depósito', 'Lo que tienes en cada centro, lo usado y su reposición', E],   // v2.201.0
+    ['Intervenciones con lote y número de serie', 'Programación, lo usado por unidad, pedido y reposición en 48 horas', E],   // v2.201.0
+    ['Concursos y contratos', 'Pliegos, lotes adjudicados y precios de contrato en los pedidos', E],   // v2.201.0
+    ['Parque instalado', 'Equipos con su número de serie, contrato, garantía y revisiones', E],   // v2.201.0
+    ['Zonas, supervisión del equipo y auditoría', 'Historial de cambios de cada ficha, con deshacer', E],
+    ['Servicio', null],
+    ['Migración de tus datos', 'Y conexión con tu programa de gestión', M],
+    ['Soporte prioritario', null, M]
+  ];
+};
+
+/* v2.158.0 · Oportunidades y el portal entran en los planes (decisión de Eric, 3/10/2026; los precios no cambian). Oportunidades en
+   Comercial, Empresa y A medida; el portal del profesional y del centro en Empresa (hasta 50) y A medida (sin límite). El plan los
+   activa y el botón «Extras» del panel delcos queda para excepciones (tiene_extra, SQL 99, hace lo mismo en la base). */
+const PLAN_EXTRAS = { oportunidades: ['comercial', 'empresa', 'medida'], portal: ['empresa', 'medida'] };
+
+/* v2.163.0 · Compras y Proveedores son del plan Empresa (y A medida): en Campo y Comercial salen con candado y explican cómo
+   conseguirlos, igual que Facturación. Con el plan A medida no se contrata ni se cambia en línea (presupuesto: lo lleva delcos). */
+const PLAN_SECCIONES = { compras: ['empresa', 'medida'], proveedores: ['empresa', 'medida'] };
+
+const planIncluyeSeccion = t => !(t in PLAN_SECCIONES) || PLAN_SECCIONES[t].includes(PLAN_ACTUAL.plan);
+
+const PLAN_NOMBRE = () => { try { return planDe(PLAN_ACTUAL.plan).nombre; } catch (e) { return ''; } };
+
+const rangoPlan = k => ['campo', 'comercial', 'empresa', 'medida'].indexOf(k);
+
+// Igual que la función «pagos»: plan menor, menos usuarios o de anual a mensual
+const esBajada = (de, a) => rangoPlan(a.plan) < rangoPlan(de.plan)
+  || (rangoPlan(a.plan) === rangoPlan(de.plan) && (+a.usuarios < +de.usuarios || (de.pago === 'anual' && a.pago === 'mensual')));
 // servicios/vocabulario.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -1043,6 +1709,36 @@ function TT(k, n, det, cd, cn, adj) {
 }
 
 function etiquetaCanal(p, total) { return sinCargoP(p, total) ? 'Entrega sin cargo' : p.canal === 'centro' ? 'Venta a centro' : `Venta ${TT('paciente', 's', 'al', 'l', 'l')}`; }
+
+/* v2.71.0 · Diccionario de términos. Los textos no escriben «médico», «paciente» ni «visita»: los piden a TT(),
+   que los saca del vocabulario de cada cliente (ajuste «terminos») con su plural, su género y el artículo que concuerda.
+   TT(término, 's'|'p', determinante, mayúsculas del determinante, mayúsculas del nombre[, adjetivo en masculino singular]) · 'l' minúscula, 'C' inicial, 'U' todo. */
+// v2.224.0: palabras de partida genéricas (antes «médico» y «paciente»: DLC las tiene como vocabulario propio desde el SQL 133)
+const TERM_DEF = { medico: { s: 'profesional', p: 'profesionales', g: 'm' }, paciente: { s: 'cliente', p: 'clientes', g: 'm' }, visita: { s: 'visita', p: 'visitas', g: 'f' }, pauta: { s: 'solicitud', p: 'solicitudes', g: 'f' },
+  consulta: { s: 'ubicación', p: 'ubicaciones', g: 'f' }, especialidad: { s: 'segmento', p: 'segmentos', g: 'm' } };   // v2.347.0
+
+const TERM_DET = { el: ['el', 'los', 'la', 'las'], un: ['un', 'unos', 'una', 'unas'], del: ['del', 'de los', 'de la', 'de las'], al: ['al', 'a los', 'a la', 'a las'],
+  este: ['este', 'estos', 'esta', 'estas'], ningun: ['ningún', 'ningunos', 'ninguna', 'ningunas'], otro: ['otro', 'otros', 'otra', 'otras'],
+  nuevo: ['nuevo', 'nuevos', 'nueva', 'nuevas'], primer: ['primer', 'primeros', 'primera', 'primeras'], ultimo: ['último', 'últimos', 'última', 'últimas'],
+  proximo: ['próximo', 'próximos', 'próxima', 'próximas'] };
+
+const TERMKEY = 'dlc-terminos';
+
+let TERMINOS = {};
+
+const terminoDe = k => { const d = TERM_DEF[k] || { s: k, p: k + 's', g: 'm' }, t = TERMINOS[k] || {};
+  return { s: String(t.s || '').trim() || d.s, p: String(t.p || '').trim() || d.p, g: t.g === 'f' || t.g === 'm' ? t.g : d.g }; };
+
+const casoTermino = (t, c) => c === 'U' ? t.toUpperCase() : c === 'C' ? t.charAt(0).toUpperCase() + t.slice(1) : t;
+
+// v2.347.0: «Todos los segmentos» / «Todas las especialidades»
+const todosLos = k => (terminoDe(k).g === 'f' ? 'Todas ' : 'Todos ') + TT(k, 'p', 'el', 'l', 'l');
+
+// Nombre sin tratamiento delante («Dr. Gonzalo Serrano» → Gonzalo, iniciales GS)
+const TRATAMIENTO = /^(dr|dra|d|dña|dª|sr|sra|srta|prof|profa|lic|ldo|lda)\.?$/i;
+
+// v2.105.0: sin etiqueta propia, el nombre sale del vocabulario de la empresa («Farmacias», «Contactos»…); con el vocabulario por defecto, «Prescriptores»
+const etiquetaContactos = () => ((AJUSTES.marca || {}).etiqueta || TT('medico', 'p', '', 'l', 'C'));
 // componentes/aviso.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -1060,6 +1756,10 @@ function avisoSinSalida(el) {
 
 // Si después se abre (o se vuelve a abrir) una ventana con el aviso a la vista, el aviso vuelve a ponerse encima
 function subirAviso() { const t = $('toast'); if (!t || t.classList.contains('hide') || typeof t.showPopover !== 'function' || !t.hasAttribute('popover')) return; try { if (t.matches(':popover-open')) t.hidePopover(); t.showPopover(); } catch (e) {} }
+
+let tToast;
+
+const avisoRevisita = () => Object.assign({ on: true, dias: 7 }, ((PERFIL.preferencias || {}).avisos || {}).revisita || {});
 // componentes/ayuda.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -1072,6 +1772,23 @@ function ponerAyudas() {
   if (dt && !(dt.previousElementSibling && dt.previousElementSibling.matches('.ai')))
     dt.insertAdjacentHTML('beforebegin', '<button class="ai ai-dir" data-ayuda="directorio" aria-label="Ayuda">i</button>');
 }
+
+const ANCLAS_AYUDA = [
+  ['#v-inicio .saludo h1', 'inicio'], ['#c-agenda > h2', 'ini_agenda'], ['#c-acciones > h2', 'ini_acciones'],
+  ['#c-urgentes > h2', 'ini_urgentes'], ['#c-ultimas > h2', 'ini_ultimas'], ['#c-recom > h2', 'ini_recom'],
+  ['#c-pend > h2', 'ini_pend'], ['#c-comision > h2', 'ini_comision'],
+  ['#v-agenda .saludo h1', 'agenda'], ['#v-rutas .saludo h1', 'rutas'], ['#v-seguimiento .saludo h1', 'seguimiento'],
+  ['#v-ventas .saludo h1', 'ventas'], ['#v-analitica .saludo h1', 'analitica'], ['#v-config .saludo h1', 'config'],
+  ['#v-admin .saludo h1', 'admin'], ['#v-duplicados .saludo h1', 'duplicados']
+];
+
+const anclaAyuda = b => {
+  const k = b.dataset.ayuda || '';
+  if (b.dataset.manual) return b.dataset.manual;
+  if (MANUAL_ANCLA[k]) return MANUAL_ANCLA[k];
+  if (/^ini_/.test(k)) return MANUAL_ANCLA.inicio;
+  return MANUAL_ANCLA[TAB] || '';
+};
 // componentes/buscador.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -1102,6 +1819,11 @@ function resaltarBusqueda(texto, q) {
   }
   return html + esc(s.slice(ult));
 }
+
+let BUSQ_N = 0;   // solo cuenta la última búsqueda: las anteriores se descartan aunque respondan después
+
+// Solo los buscadores: los de tipo búsqueda y los campos con su lista de resultados justo debajo
+const esBuscador = i => i && i.matches && i.matches('input') && !i.list && (i.type === 'search' || (!!i.nextElementSibling && i.nextElementSibling.matches('.gsug, .cpres, .lista, [role=listbox]')));
 // componentes/campos.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -1196,6 +1918,21 @@ function sinHistorial(raiz) {
   (raiz || document).querySelectorAll('input:not([autocomplete]):not([type=checkbox]):not([type=radio]):not([type=file]):not([type=hidden]), textarea:not([autocomplete])')
     .forEach(i => i.setAttribute('autocomplete', 'off'));
 }
+
+const LETRAS_DNI = 'TRWAGMYFPDXBNJZSQVHLCKE';
+
+// Una pasada por fotograma como mucho, aunque la pantalla cambie muchas veces seguidas
+let sinHistorialPend = false;
+
+const sinHistorialLuego = () => { if (sinHistorialPend) return; sinHistorialPend = true; requestAnimationFrame(() => { sinHistorialPend = false; sinHistorial(document.body); }); };
+
+const campoTxt = k => CAMPO_TXT[k] || (k.charAt(0).toUpperCase() + k.slice(1).replace(/_/g, ' '));
+
+// Ver la contraseña mientras se escribe, en cualquier campo de contraseña
+const OJO_SVG = {
+  ver: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>',
+  ocultar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.9 4.2A10.6 10.6 0 0 1 12 4c6.4 0 10 8 10 8a17.6 17.6 0 0 1-2.2 3.2M6.6 6.6C3.7 8.6 2 12 2 12s3.6 8 10 8a9.7 9.7 0 0 0 5.4-1.6"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/><path d="M2 2l20 20"/></svg>'
+};
 // componentes/carga.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -1205,6 +1942,13 @@ function pantallaCarga(msg) {
   o.innerHTML = `<div><span class="spin"></span><b>${esc(msg)}</b><span class="sm">Un momento: se está cargando todo de nuevo</span></div>`;
   o.classList.remove('hide');
 }
+
+const cargando = (el, texto) => { if (el) el.innerHTML =
+  `<div class="cargador"><span class="spin"></span><span class="sm">${esc(texto || 'Cargando…')}</span></div>`; };
+
+const skelCard = t => `<h2>${esc(t)}</h2><div class="skel" style="width:45%"></div><div class="skel"></div><div class="skel" style="width:70%"></div>`;
+
+const quitarCarga = () => { const o = $('cargatotal'); if (o) o.classList.add('hide'); };
 // componentes/clasificadores.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -1339,6 +2083,45 @@ function clasPintarLateral(sec) {
   const P = clasPantalla(sec), cont = $('tools').querySelector('.htclas');
   if (P && cont && htLateralAbierto() && HERR_CTX === 'ht-' + sec.id.replace('v-', '')) clasPintar(cont, P.amb, P.estado(), P.recargar, P.recargar);
 }
+
+const CAMPO_TABLA = { medico: 'cuentas', cliente: 'contactos', producto: 'productos', pedido: 'pedidos' };
+
+const TIPOS_CAMPO = [['lista', 'Lista de valores'], ['texto', 'Texto'], ['numero', 'Número'], ['fecha', 'Fecha'], ['si_no', 'Sí / No']];
+
+const campoTexto = (c, v) => v == null || v === '' ? '' : c && c.tipo === 'si_no' ? (v === true || v === 'true' ? 'Sí' : 'No')
+  : c && c.tipo === 'fecha' ? fechaCorta(String(v)) : c && c.tipo === 'numero' ? String(v).replace('.', ',') : String(v);
+
+/* ============================================================
+   v2.88.0 · «Clasificadores» en «Filtros y columnas»
+   Todos los campos personalizados de Cuentas, Clientes, Pedidos y Productos
+   se pueden usar como filtro y como columna desde el panel. Listas y textos
+   con pocos valores: desplegable; con muchos: buscador. Números y fechas:
+   desde / hasta. «Columna en la tabla» decide si la columna se ve de entrada
+   y «Filtro» coloca el campo el primero de la sección.
+   ============================================================ */
+const CLAS_MAX_LISTA = 15;   // hasta este número de valores, desplegable; con más, buscador
+
+const CLAS_VALORES = {};     // por ámbito: valores que ya tienen las fichas en cada campo
+
+const clasNorm = s => String(s == null ? '' : s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+const clasCabeceras = cols => cols.map(c => `<span class="cpcol">${esc(c.nombre)}</span>`).join('');
+
+const clasCeldas = (cols, v) => cols.map(c => { const t = campoTexto(c, (v || {})[c.clave]); return `<span class="sm">${t ? esc(t) : '<span class="vac">—</span>'}</span>`; }).join('');
+
+const clasChips = (amb, estado) => Object.keys(estado || {}).map(k => {
+  const c = (CAMPOS[amb] || []).find(x => x.clave === k) || { clave: k, nombre: k };
+  return { k, t: clasTextoFiltro(c, estado[k]) };
+});
+
+/* ---------- Clientes, Pedidos y Productos: la sección va en el panel lateral ---------- */
+const CLAS_PANT = {
+  pacientes: { amb: 'cliente', estado: () => (PAC.campos = PAC.campos || {}), recargar: () => { PAC.pagina = 0; listaPacientes(); } },
+  ventas: { amb: 'pedido', estado: () => PEDF, recargar: () => { PEDPAG = 0; listaPedidos(); }, activo: () => !!$('pedlista') },
+  productos: { amb: 'producto', estado: () => PRODF, recargar: () => pintarProductos(), activo: () => PSEC === 'productos' }
+};
+
+const clasPantalla = sec => { const P = sec && CLAS_PANT[sec.id.replace('v-', '')]; return P && (!P.activo || P.activo()) ? P : null; };
 // componentes/filtros.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -1444,6 +2227,44 @@ function filtrosRestaurar(root) {
     el.value = FMEM[el.id];
   });
 }
+
+const HT = ['15:00-19:00', '16:00-19:00', '16:00-20:00', '17:00-20:00'];
+
+let HERR_CTX = null;
+
+// Pantallas con filtros propios que pasan al panel (la búsqueda por texto sigue a la vista)
+const HT_FILTROS = { pacientes: '#v-pacientes .filtros', facturacion: '#v-facturacion .filtros', analitica: '#anper' };
+
+const HT_ESTADO = {};   // por tabla: { texto, facetas: {col: valor} }
+
+let HT_PEND = false;
+
+let HT2_PEND = false;
+
+/* v2.227.0 · Ordenar cualquier tabla por su columna y filtros por columna según su tipo (lista de Eric del 9/10/2026).
+   - Pulsar el nombre de una columna ordena (▲), volver a pulsar invierte (▼) y una tercera vez quita el orden. Se recuerda por tabla.
+   - Las tablas que se cargan por páginas se ordenan en la base para que valga para todas las páginas (SQL 135): Profesionales
+     (buscar_cuentas: orden), Pedidos (pedidos_pagina: p_orden) y Clientes (clientes_lista: p_orden). El resto, en la pantalla.
+   - «Filtros y columnas»: cada columna con el filtro de su tipo: texto («contiene»), número (desde/hasta) o fecha (desde/hasta, y nada si la
+     pantalla ya tiene su «Periodo»). Fuera los desplegables inventados con lo que se ve: las listas de valores fijos son las de Clasificadores
+     (su apartado propio). Tampoco se repiten columnas que la pantalla ya filtra con lo suyo (Estado, Canal…). */
+const htNorm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\s+/g, ' ').trim();
+
+const HT_ORDEN = {};   // por tabla: { i, dir: 1 | -1, k }
+
+const htGuardarOrden = () => { try { localStorage.setItem('delcos-orden', JSON.stringify(HT_ORDEN)); } catch (e) {} };
+
+const htCeldaNoOrdenable = n => !n || /^(operativa|acciones?|productos)$/i.test(n);
+
+const htNoFiltrable = n => !n || /^(operativa|acciones?)$/i.test(n);
+
+// Los indicadores se piden aparte (RPC_ORIG): las listas «solo la última» descartarían las consultas paralelas
+// Clics de la barra, los indicadores y el menú «⋯»
+// Un filtro de campo personalizado cuenta si tiene algo (texto, lista o rango)
+const filtroConValor = v => v != null && v !== '' && !(Array.isArray(v) && !v.length) && !(typeof v === 'object' && !Array.isArray(v) && !Object.values(v).some(x => x != null && x !== ''));
+
+// ---- Memoria de filtros: lo que se elige en una fila de filtros se vuelve a poner cuando la pantalla se pinta de nuevo
+const FMEM = {};
 // componentes/firma.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -1561,6 +2382,38 @@ async function graficoCanal() {
       <div class="donutley">${filas.map((f, i) => `<div><i style="background:${cols[i % 4]}"></i><span>${esc(f.nombre)}</span><b>${num(f.total)}</b><span class="sm">${Math.round((+f.total || 0) / tot * 100)}%</span></div>`).join('')}</div></div>`
     : vacioGrafico('Verás qué parte de las ventas llega por cada canal.');
 }
+
+const KPI_DEF = ['citas', 'urgentes', 'visitas_sem', 'visitas_mes', 'interesados', 'sin_contactar', 'cartera', 'dups'];
+
+const kpiConfig = () => {
+  const p = (PERFIL.preferencias || {}).kpis;
+  if (Array.isArray(p) && p.length) return p;
+  return KPI_CAT.map(k => ({ id: k.id, on: KPI_DEF.includes(k.id), t: '' }));
+};
+
+const vacioGrafico = t => `<div class="gvacio"><span>📊</span><b>Aún no hay datos para este gráfico</b><span class="sm">${esc(t)}</span></div>`;
+
+const KPI_CATEGORIA = {
+  citas: 'Agenda', citas_7d: 'Agenda', urgentes: 'Cartera', interesados: 'Cartera', sin_contactar: 'Cartera', cartera: 'Cartera',
+  sin_visita_60: 'Cartera', sin_horario: 'Calidad del dato', dups: 'Calidad del dato', visitas_sem: 'Actividad', visitas_mes: 'Actividad',
+  visitas_7d: 'Actividad', muestras_mes: 'Actividad', material_mes: 'Actividad', uds_mes: 'Ventas (unidades)', prescriptores: 'Ventas (unidades)',
+  nuevos_presc: 'Ventas (unidades)', activos_90: 'Ventas (unidades)', conversion: 'Cartera', importe_mes: 'Ventas (importes)', borradores: 'Pedidos'
+};
+
+const KPI_PERMISO = { importe_mes: ['E', 1], borradores: ['V', 1], dups: ['Q', 1], sin_horario: ['M', 1] };
+
+/* v2.87.0 · Cada indicador pertenece a un módulo: solo lo ve quien tiene acceso a ese módulo */
+const KPI_MOD = {
+  citas: 'agenda', visitas_sem: 'agenda', visitas_mes: 'agenda', visitas_7d: 'agenda', citas_7d: 'agenda', muestras_mes: 'agenda', material_mes: 'agenda',
+  urgentes: 'directorio', interesados: 'directorio', sin_contactar: 'directorio', cartera: 'directorio', dups: 'directorio', sin_visita_60: 'directorio', sin_horario: 'directorio',
+  uds_mes: 'ventas', importe_mes: 'ventas', prescriptores: 'ventas', nuevos_presc: 'ventas', activos_90: 'ventas', borradores: 'ventas',
+  conversion: 'analitica'
+};
+
+// Indicadores con icono, explicación breve y, cuando se puede, comparación
+const KPI_ICO = { citas: '📅', urgentes: '⚠️', visitas_sem: '📝', visitas_mes: '🗓️', interesados: '✨', sin_contactar: '📇', cartera: '🩺', dups: '🧩',
+  sin_visita_60: '⏳', sin_horario: '🕘', uds_mes: '📦', prescriptores: '👥', nuevos_presc: '🌱', activos_90: '🔁', conversion: '📈',
+  importe_mes: '€', borradores: '✏️', muestras_mes: '🎁', material_mes: '📚', citas_7d: '📆', visitas_7d: '🧭' };
 // componentes/guardar_pagina.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -1622,6 +2475,29 @@ async function pagGuardarTodo() {
   }
   PAG_SUCIO.clear(); pagMarcarSucio();
 }
+
+/* ============================================================
+    v2.376.0 · D-042 (Eric): en una página, un solo «Guardar», arriba a la derecha. En Configuración cada bloque traía su
+    propio botón (dentro de la tarjeta o suelto debajo); ahora la cabecera del apartado lleva «Descartar cambios» y «Guardar»,
+    que se activa al cambiar algo y guarda cada bloque modificado con su propio guardado (que queda oculto). Los títulos que
+    repiten el de encima se ocultan. Las acciones que no son guardar (enviar un correo de prueba, añadir…) siguen en su bloque.
+   ============================================================ */
+// Páginas que configuran algo con varios bloques: dónde está su cabecera (donde van los botones) y su contenido. Una ventana que se
+// abre encima es ventana (sus botones, abajo); el contenido de un apartado que se pinta dentro de una ventana encajada lo declara con
+// data-pagina (Diseño del PDF) y cuenta como página.
+const PAG_GUARDA = [
+  // toda la página del apartado (también la ventana encajada, p. ej. Diseño del PDF)
+  { tab: 'config', cab: () => document.querySelector('#v-config .cfucab'), cuerpo: () => document.querySelector('#v-config .cfupag') || $('cfgcuerpo-hub') },
+  { tab: 'facturacion', cab: () => document.querySelector('#v-facturacion .cfgsubs') && document.querySelector('#v-facturacion > .saludo'), cuerpo: () => $('fcuerpo') },
+];
+
+// Lo que no cambia datos no activa «Guardar»: buscadores y filtros de la página
+const PAG_NO_CAMBIA = 'input[type=search], #txq, #cfubus, [placeholder^="Busca"]';
+
+const PAG_SUCIO = new Set();
+
+// Las páginas se pintan por partes y algunas se repintan al guardar: se vuelve a colocar al cambiar el contenido
+let PAG_GUARDA_RAF = 0;
 // componentes/iconos.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -1659,6 +2535,37 @@ function iconizar(raiz) {
     if (!b.querySelector('svg') && b.textContent.trim() === 'i') b.innerHTML = svgIco(ICON_NOM.info);
   });
 }
+
+const ICO = {
+  gear: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>',
+  ojo: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>',
+  ojoNo: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.9 17.9A10.1 10.1 0 0 1 12 20c-7 0-11-8-11-8a18.5 18.5 0 0 1 5.1-5.9M9.9 4.2A9.1 9.1 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.2 3.2M14.1 14.1a3 3 0 1 1-4.2-4.2"/><line x1="1" y1="1" x2="23" y2="23"/></svg>',
+  nav: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>',
+  arriba: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="18 15 12 9 6 15"/></svg>',
+  abajo: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>'
+};
+
+const ICONOS_MANUAL = { roles: '👥', inicio: '🏠', agenda: '📅', rutas: '🧭', directorio: '🩺', centros: '🏥', visitas: '📝', ventas: '🛒',
+  config: '⚙️', admin: '🛡️', facturacion: '🧾', permisos: '🔐' };
+
+const ICO_MOD = { inicio: '◉', agenda: '▤', rutas: '➤', directorio: '☰', pacientes: '👥', productos: '📦', seguimiento: '✔︎', ventas: '🛒',
+  analitica: '📊', facturacion: '🧾', informe: '◉' };
+
+const ICON_EMOJI = {"🆕": "<path d=\"M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z\" /> <line x1=\"12\" x2=\"12\" y1=\"8\" y2=\"16\" /> <line x1=\"8\" x2=\"16\" y1=\"12\" y2=\"12\" />", "★": "<path d=\"M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z\" />", "☆": "<path d=\"M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z\" />", "🔒": "<rect width=\"18\" height=\"11\" x=\"3\" y=\"11\" rx=\"2\" ry=\"2\" /> <path d=\"M7 11V7a5 5 0 0 1 10 0v4\" />", "👤": "<path d=\"M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2\" /> <circle cx=\"12\" cy=\"7\" r=\"4\" />", "📦": "<path d=\"M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z\" /> <path d=\"M12 22V12\" /> <path d=\"m3.3 7 7.703 4.734a2 2 0 0 0 1.994 0L20.7 7\" /> <path d=\"m7.5 4.27 9 5.15\" />", "📅": "<path d=\"M8 2v4\" /> <path d=\"M16 2v4\" /> <rect width=\"18\" height=\"18\" x=\"3\" y=\"4\" rx=\"2\" /> <path d=\"M3 10h18\" />", "🧾": "<path d=\"M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z\" /> <path d=\"M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8\" /> <path d=\"M12 17.5v-11\" />", "📍": "<path d=\"M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0\" /> <circle cx=\"12\" cy=\"10\" r=\"3\" />", "⚠️": "<path d=\"m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3\" /> <path d=\"M12 9v4\" /> <path d=\"M12 17h.01\" />", "⚠": "<path d=\"m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3\" /> <path d=\"M12 9v4\" /> <path d=\"M12 17h.01\" />", "🩺": "<path d=\"M11 2v2\" /> <path d=\"M5 2v2\" /> <path d=\"M5 3H4a2 2 0 0 0-2 2v4a6 6 0 0 0 12 0V5a2 2 0 0 0-2-2h-1\" /> <path d=\"M8 15a6 6 0 0 0 12 0v-3\" /> <circle cx=\"20\" cy=\"10\" r=\"2\" />", "❗": "<circle cx=\"12\" cy=\"12\" r=\"10\" /> <line x1=\"12\" x2=\"12\" y1=\"8\" y2=\"12\" /> <line x1=\"12\" x2=\"12.01\" y1=\"16\" y2=\"16\" />", "💳": "<rect width=\"20\" height=\"14\" x=\"2\" y=\"5\" rx=\"2\" /> <line x1=\"2\" x2=\"22\" y1=\"10\" y2=\"10\" />", "✉️": "<rect width=\"20\" height=\"16\" x=\"2\" y=\"4\" rx=\"2\" /> <path d=\"m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7\" />", "✉": "<rect width=\"20\" height=\"16\" x=\"2\" y=\"4\" rx=\"2\" /> <path d=\"m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7\" />", "👥": "<path d=\"M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2\" /> <circle cx=\"9\" cy=\"7\" r=\"4\" /> <path d=\"M22 21v-2a4 4 0 0 0-3-3.87\" /> <path d=\"M16 3.13a4 4 0 0 1 0 7.75\" />", "◧": "<rect width=\"18\" height=\"18\" x=\"3\" y=\"3\" rx=\"2\" /> <path d=\"M9 3v18\" />", "◉": "<path d=\"M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8\" /> <path d=\"M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z\" />", "📊": "<path d=\"M3 3v16a2 2 0 0 0 2 2h16\" /> <path d=\"M18 17V9\" /> <path d=\"M13 17V5\" /> <path d=\"M8 17v-3\" />", "🏢": "<path d=\"M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z\" /> <path d=\"M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2\" /> <path d=\"M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2\" /> <path d=\"M10 6h4\" /> <path d=\"M10 10h4\" /> <path d=\"M10 14h4\" /> <path d=\"M10 18h4\" />", "⬇": "<path d=\"M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4\" /> <polyline points=\"7 10 12 15 17 10\" /> <line x1=\"12\" x2=\"12\" y1=\"15\" y2=\"3\" />", "⭳": "<path d=\"M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4\" /> <polyline points=\"7 10 12 15 17 10\" /> <line x1=\"12\" x2=\"12\" y1=\"15\" y2=\"3\" />", "🛒": "<circle cx=\"8\" cy=\"21\" r=\"1\" /> <circle cx=\"19\" cy=\"21\" r=\"1\" /> <path d=\"M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12\" />", "🔔": "<path d=\"M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9\" /> <path d=\"M10.3 21a1.94 1.94 0 0 0 3.4 0\" />", "💊": "<path d=\"m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z\" /> <path d=\"m8.5 8.5 7 7\" />", "↻": "<path d=\"M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8\" /> <path d=\"M21 3v5h-5\" />", "▶": "<polygon points=\"6 3 20 12 6 21 6 3\" />", "🔥": "<path d=\"M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z\" />", "✎": "<path d=\"M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z\" /> <path d=\"m15 5 4 4\" />", "✏️": "<path d=\"M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z\" /> <path d=\"m15 5 4 4\" />", "✏": "<path d=\"M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z\" /> <path d=\"m15 5 4 4\" />", "🧭": "<path d=\"m16.24 7.76-1.804 5.411a2 2 0 0 1-1.265 1.265L7.76 16.24l1.804-5.411a2 2 0 0 1 1.265-1.265z\" /> <circle cx=\"12\" cy=\"12\" r=\"10\" />", "📝": "<path d=\"M13.4 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7.4\" /> <path d=\"M2 6h4\" /> <path d=\"M2 10h4\" /> <path d=\"M2 14h4\" /> <path d=\"M2 18h4\" /> <path d=\"M21.378 5.626a1 1 0 1 0-3.004-3.004l-5.01 5.012a2 2 0 0 0-.506.854l-.837 2.87a.5.5 0 0 0 .62.62l2.87-.837a2 2 0 0 0 .854-.506z\" />", "🛡️": "<path d=\"M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z\" />", "🛡": "<path d=\"M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z\" />", "🔐": "<circle cx=\"12\" cy=\"16\" r=\"1\" /> <rect x=\"3\" y=\"10\" width=\"18\" height=\"12\" rx=\"2\" /> <path d=\"M7 10V7a5 5 0 0 1 10 0v3\" />", "📞": "<path d=\"M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z\" />", "🔁": "<path d=\"m17 2 4 4-4 4\" /> <path d=\"M3 11v-1a4 4 0 0 1 4-4h14\" /> <path d=\"m7 22-4-4 4-4\" /> <path d=\"M21 13v1a4 4 0 0 1-4 4H3\" />", "▤": "<path d=\"M8 2v4\" /> <path d=\"M16 2v4\" /> <rect width=\"18\" height=\"18\" x=\"3\" y=\"4\" rx=\"2\" /> <path d=\"M3 10h18\" /> <path d=\"M8 14h.01\" /> <path d=\"M12 14h.01\" /> <path d=\"M16 14h.01\" /> <path d=\"M8 18h.01\" /> <path d=\"M12 18h.01\" /> <path d=\"M16 18h.01\" />", "⏳": "<path d=\"M5 22h14\" /> <path d=\"M5 2h14\" /> <path d=\"M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22\" /> <path d=\"M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2\" />", "⌛": "<path d=\"M5 22h14\" /> <path d=\"M5 2h14\" /> <path d=\"M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22\" /> <path d=\"M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2\" />", "🏥": "<path d=\"M12 6v4\" /> <path d=\"M14 14h-4\" /> <path d=\"M14 18h-4\" /> <path d=\"M14 8h-4\" /> <path d=\"M18 12h2a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-9a2 2 0 0 1 2-2h2\" /> <path d=\"M18 22V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v18\" />", "🧑‍⚕️": "<path d=\"M11 2v2\" /> <path d=\"M5 2v2\" /> <path d=\"M5 3H4a2 2 0 0 0-2 2v4a6 6 0 0 0 12 0V5a2 2 0 0 0-2-2h-1\" /> <path d=\"M8 15a6 6 0 0 0 12 0v-3\" /> <circle cx=\"20\" cy=\"10\" r=\"2\" />", "⚕️": "<path d=\"M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z\" /> <path d=\"M3.22 12H9.5l.5-1 2 4.5 2-7 1.5 3.5h5.27\" />", "🧑": "<circle cx=\"12\" cy=\"8\" r=\"5\" /> <path d=\"M20 21a8 8 0 0 0-16 0\" />", "➤": "<circle cx=\"6\" cy=\"19\" r=\"3\" /> <path d=\"M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15\" /> <circle cx=\"18\" cy=\"5\" r=\"3\" />", "💼": "<path d=\"M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16\" /> <rect width=\"20\" height=\"14\" x=\"2\" y=\"6\" rx=\"2\" />", "🧩": "<path d=\"M15.39 4.39a1 1 0 0 0 1.68-.474 2.5 2.5 0 1 1 3.014 3.015 1 1 0 0 0-.474 1.68l1.683 1.682a2.414 2.414 0 0 1 0 3.414L19.61 15.39a1 1 0 0 1-1.68-.474 2.5 2.5 0 1 0-3.014 3.015 1 1 0 0 1 .474 1.68l-1.683 1.682a2.414 2.414 0 0 1-3.414 0L8.61 19.61a1 1 0 0 0-1.68.474 2.5 2.5 0 1 1-3.014-3.015 1 1 0 0 0 .474-1.68l-1.683-1.682a2.414 2.414 0 0 1 0-3.414L4.39 8.61a1 1 0 0 1 1.68.474 2.5 2.5 0 1 0 3.014-3.015 1 1 0 0 1-.474-1.68l1.683-1.682a2.414 2.414 0 0 1 3.414 0z\" />", "📘": "<path d=\"M12 7v14\" /> <path d=\"M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z\" />", "🕘": "<circle cx=\"12\" cy=\"12\" r=\"10\" /> <polyline points=\"12 6 12 12 16 14\" />", "🕒": "<circle cx=\"12\" cy=\"12\" r=\"10\" /> <polyline points=\"12 6 12 12 16 14\" />", "🎁": "<rect x=\"3\" y=\"8\" width=\"18\" height=\"4\" rx=\"1\" /> <path d=\"M12 8v13\" /> <path d=\"M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7\" /> <path d=\"M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5\" />", "📚": "<path d=\"m16 6 4 14\" /> <path d=\"M12 6v14\" /> <path d=\"M8 8v12\" /> <path d=\"M4 4v16\" />", "✅": "<circle cx=\"12\" cy=\"12\" r=\"10\" /> <path d=\"m9 12 2 2 4-4\" />", "📈": "<polyline points=\"22 7 13.5 15.5 8.5 10.5 2 17\" /> <polyline points=\"16 7 22 7 22 13\" />", "📉": "<polyline points=\"22 17 13.5 8.5 8.5 13.5 2 7\" /> <polyline points=\"16 17 22 17 22 11\" />", "↺": "<path d=\"M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8\" /> <path d=\"M3 3v5h5\" />", "📎": "<path d=\"m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48\" />", "☰": "<path d=\"M16 2v2\" /> <path d=\"M7 22v-2a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v2\" /> <path d=\"M8 2v2\" /> <circle cx=\"12\" cy=\"11\" r=\"3\" /> <rect x=\"3\" y=\"4\" width=\"18\" height=\"18\" rx=\"2\" />", "🏠": "<path d=\"M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8\" /> <path d=\"M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z\" />", "🏷️": "<path d=\"M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z\" /> <circle cx=\"7.5\" cy=\"7.5\" r=\".5\" fill=\"currentColor\" />", "🏷": "<path d=\"M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z\" /> <circle cx=\"7.5\" cy=\"7.5\" r=\".5\" fill=\"currentColor\" />", "🏬": "<path d=\"M22 8.35V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8.35A2 2 0 0 1 3.26 6.5l8-3.2a2 2 0 0 1 1.48 0l8 3.2A2 2 0 0 1 22 8.35Z\" /> <path d=\"M6 18h12\" /> <path d=\"M6 14h12\" /> <rect width=\"12\" height=\"12\" x=\"6\" y=\"10\" />", "🚫": "<circle cx=\"12\" cy=\"12\" r=\"10\" /> <path d=\"m4.9 4.9 14.2 14.2\" />", "↩️": "<path d=\"M9 14 4 9l5-5\" /> <path d=\"M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5a5.5 5.5 0 0 1-5.5 5.5H11\" />", "↩": "<path d=\"M9 14 4 9l5-5\" /> <path d=\"M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5a5.5 5.5 0 0 1-5.5 5.5H11\" />", "🎫": "<path d=\"M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z\" /> <path d=\"M13 5v2\" /> <path d=\"M13 17v2\" /> <path d=\"M13 11v2\" />", "🏆": "<path d=\"M6 9H4.5a2.5 2.5 0 0 1 0-5H6\" /> <path d=\"M18 9h1.5a2.5 2.5 0 0 0 0-5H18\" /> <path d=\"M4 22h16\" /> <path d=\"M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22\" /> <path d=\"M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22\" /> <path d=\"M18 2H6v7a6 6 0 0 0 12 0V2Z\" />", "🗓️": "<rect width=\"18\" height=\"18\" x=\"3\" y=\"4\" rx=\"2\" /> <path d=\"M16 2v4\" /> <path d=\"M3 10h18\" /> <path d=\"M8 2v4\" /> <path d=\"M17 14h-6\" /> <path d=\"M13 18H7\" /> <path d=\"M7 14h.01\" /> <path d=\"M17 18h.01\" />", "🗓": "<rect width=\"18\" height=\"18\" x=\"3\" y=\"4\" rx=\"2\" /> <path d=\"M16 2v4\" /> <path d=\"M3 10h18\" /> <path d=\"M8 2v4\" /> <path d=\"M17 14h-6\" /> <path d=\"M13 18H7\" /> <path d=\"M7 14h.01\" /> <path d=\"M17 18h.01\" />", "✨": "<path d=\"M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z\" /> <path d=\"M20 3v4\" /> <path d=\"M22 5h-4\" /> <path d=\"M4 17v2\" /> <path d=\"M5 18H3\" />", "📇": "<path d=\"M16 2v2\" /> <path d=\"M7 22v-2a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v2\" /> <path d=\"M8 2v2\" /> <circle cx=\"12\" cy=\"11\" r=\"3\" /> <rect x=\"3\" y=\"4\" width=\"18\" height=\"18\" rx=\"2\" />", "🌱": "<path d=\"M7 20h10\" /> <path d=\"M10 20c5.5-2.5.8-6.4 3-10\" /> <path d=\"M9.5 9.4c1.1.8 1.8 2.2 2.3 3.7-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2 2.8-.5 4.4 0 5.5.8z\" /> <path d=\"M14.1 6a7 7 0 0 0-1.1 4c1.9-.1 3.3-.6 4.3-1.4 1-1 1.6-2.3 1.7-4.6-2.7.1-4 1-4.9 2z\" />", "📆": "<path d=\"M8 2v4\" /> <path d=\"M16 2v4\" /> <rect width=\"18\" height=\"18\" x=\"3\" y=\"4\" rx=\"2\" /> <path d=\"M3 10h18\" /> <path d=\"M8 14h.01\" /> <path d=\"M12 14h.01\" /> <path d=\"M16 14h.01\" /> <path d=\"M8 18h.01\" /> <path d=\"M12 18h.01\" /> <path d=\"M16 18h.01\" />", "🔢": "<line x1=\"4\" x2=\"20\" y1=\"9\" y2=\"9\" /> <line x1=\"4\" x2=\"20\" y1=\"15\" y2=\"15\" /> <line x1=\"10\" x2=\"8\" y1=\"3\" y2=\"21\" /> <line x1=\"16\" x2=\"14\" y1=\"3\" y2=\"21\" />", "#️⃣": "<line x1=\"4\" x2=\"20\" y1=\"9\" y2=\"9\" /> <line x1=\"4\" x2=\"20\" y1=\"15\" y2=\"15\" /> <line x1=\"10\" x2=\"8\" y1=\"3\" y2=\"21\" /> <line x1=\"16\" x2=\"14\" y1=\"3\" y2=\"21\" />", "🔗": "<path d=\"M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71\" /> <path d=\"M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71\" />", "📋": "<rect width=\"8\" height=\"4\" x=\"8\" y=\"2\" rx=\"1\" ry=\"1\" /> <path d=\"M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2\" /> <path d=\"M12 11h4\" /> <path d=\"M12 16h4\" /> <path d=\"M8 11h.01\" /> <path d=\"M8 16h.01\" />", "🔄": "<path d=\"M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8\" /> <path d=\"M21 3v5h-5\" /> <path d=\"M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16\" /> <path d=\"M8 16H3v5\" />", "🔑": "<path d=\"M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z\" /> <circle cx=\"16.5\" cy=\"7.5\" r=\".5\" fill=\"currentColor\" />", "📜": "<path d=\"M15 12h-5\" /> <path d=\"M15 8h-5\" /> <path d=\"M19 17V5a2 2 0 0 0-2-2H4\" /> <path d=\"M8 21h12a2 2 0 0 0 2-2v-1a1 1 0 0 0-1-1H11a1 1 0 0 0-1 1v1a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v2a1 1 0 0 0 1 1h3\" />", "🎨": "<circle cx=\"13.5\" cy=\"6.5\" r=\".5\" fill=\"currentColor\" /> <circle cx=\"17.5\" cy=\"10.5\" r=\".5\" fill=\"currentColor\" /> <circle cx=\"8.5\" cy=\"7.5\" r=\".5\" fill=\"currentColor\" /> <circle cx=\"6.5\" cy=\"12.5\" r=\".5\" fill=\"currentColor\" /> <path d=\"M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z\" />", "💬": "<path d=\"M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z\" />", "🚚": "<path d=\"M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2\" /> <path d=\"M15 18H9\" /> <path d=\"M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14\" /> <circle cx=\"17\" cy=\"18\" r=\"2\" /> <circle cx=\"7\" cy=\"18\" r=\"2\" />", "🔎": "<circle cx=\"11\" cy=\"11\" r=\"8\" /> <path d=\"m21 21-4.3-4.3\" />", "🤖": "<path d=\"M12 8V4H8\" /> <rect width=\"16\" height=\"12\" x=\"4\" y=\"8\" rx=\"2\" /> <path d=\"M2 14h2\" /> <path d=\"M20 14h2\" /> <path d=\"M15 13v2\" /> <path d=\"M9 13v2\" />", "💾": "<path d=\"M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z\" /> <path d=\"M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7\" /> <path d=\"M7 3v4a1 1 0 0 0 1 1h7\" />", "⚙️": "<path d=\"M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z\" /> <circle cx=\"12\" cy=\"12\" r=\"3\" />", "⚙": "<path d=\"M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z\" /> <circle cx=\"12\" cy=\"12\" r=\"3\" />", "⋯": "<circle cx=\"12\" cy=\"12\" r=\"1\" /> <circle cx=\"19\" cy=\"12\" r=\"1\" /> <circle cx=\"5\" cy=\"12\" r=\"1\" />", "🔍": "<circle cx=\"11\" cy=\"11\" r=\"8\" /> <path d=\"m21 21-4.3-4.3\" />", "⬆": "<path d=\"M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4\" /> <polyline points=\"17 8 12 3 7 8\" /> <line x1=\"12\" x2=\"12\" y1=\"3\" y2=\"15\" />", "📱": "<rect width=\"14\" height=\"20\" x=\"5\" y=\"2\" rx=\"2\" ry=\"2\" /> <path d=\"M12 18h.01\" />", "🗂️": "<path d=\"M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z\" />", "🗂": "<path d=\"M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z\" />", "📄": "<path d=\"M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z\" /> <path d=\"M14 2v4a2 2 0 0 0 2 2h4\" /> <path d=\"M10 9H8\" /> <path d=\"M16 13H8\" /> <path d=\"M16 17H8\" />", "📤": "<path d=\"M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z\" /> <path d=\"m21.854 2.147-10.94 10.939\" />", "📥": "<polyline points=\"22 12 16 12 14 15 10 15 8 12 2 12\" /> <path d=\"M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z\" />", "💡": "<path d=\"M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5\" /> <path d=\"M9 18h6\" /> <path d=\"M10 22h4\" />", "🙂": "<circle cx=\"12\" cy=\"12\" r=\"10\" /> <path d=\"M8 14s1.5 2 4 2 4-2 4-2\" /> <line x1=\"9\" x2=\"9.01\" y1=\"9\" y2=\"9\" /> <line x1=\"15\" x2=\"15.01\" y1=\"9\" y2=\"9\" />", "👋": "<path d=\"M18 11V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2\" /> <path d=\"M14 10V4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v2\" /> <path d=\"M10 10.5V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2v8\" /> <path d=\"M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15\" />", "⭐": "<path d=\"M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z\" />", "❌": "<circle cx=\"12\" cy=\"12\" r=\"10\" /> <path d=\"m15 9-6 6\" /> <path d=\"m9 9 6 6\" />", "➕": "<path d=\"M5 12h14\" /> <path d=\"M12 5v14\" />", "🗑️": "<path d=\"M3 6h18\" /> <path d=\"M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6\" /> <path d=\"M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2\" /> <line x1=\"10\" x2=\"10\" y1=\"11\" y2=\"17\" /> <line x1=\"14\" x2=\"14\" y1=\"11\" y2=\"17\" />", "🗑": "<path d=\"M3 6h18\" /> <path d=\"M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6\" /> <path d=\"M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2\" /> <line x1=\"10\" x2=\"10\" y1=\"11\" y2=\"17\" /> <line x1=\"14\" x2=\"14\" y1=\"11\" y2=\"17\" />", "🧪": "<path d=\"M10 2v7.527a2 2 0 0 1-.211.896L4.72 20.55a1 1 0 0 0 .9 1.45h12.76a1 1 0 0 0 .9-1.45l-5.069-10.127A2 2 0 0 1 14 9.527V2\" /> <path d=\"M8.5 2h7\" /> <path d=\"M7 16h10\" />", "🚀": "<path d=\"M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z\" /> <path d=\"m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z\" /> <path d=\"M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0\" /> <path d=\"M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5\" />", "📌": "<path d=\"M12 17v5\" /> <path d=\"M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z\" />", "🔓": "<rect width=\"18\" height=\"11\" x=\"3\" y=\"11\" rx=\"2\" ry=\"2\" /> <path d=\"M7 11V7a5 5 0 0 1 9.9-1\" />", "ⓘ": "<circle cx=\"12\" cy=\"12\" r=\"10\" /> <path d=\"M12 16v-4\" /> <path d=\"M12 8h.01\" />", "ℹ️": "<circle cx=\"12\" cy=\"12\" r=\"10\" /> <path d=\"M12 16v-4\" /> <path d=\"M12 8h.01\" />"};
+
+const ICON_NOM = {"info": "<circle cx=\"12\" cy=\"12\" r=\"10\" /> <path d=\"M12 16v-4\" /> <path d=\"M12 8h.01\" />", "x": "<path d=\"M18 6 6 18\" /> <path d=\"m6 6 12 12\" />", "check": "<path d=\"M20 6 9 17l-5-5\" />", "ellipsis": "<circle cx=\"12\" cy=\"12\" r=\"1\" /> <circle cx=\"19\" cy=\"12\" r=\"1\" /> <circle cx=\"5\" cy=\"12\" r=\"1\" />", "house": "<path d=\"M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8\" /> <path d=\"M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z\" />", "calendar-days": "<path d=\"M8 2v4\" /> <path d=\"M16 2v4\" /> <rect width=\"18\" height=\"18\" x=\"3\" y=\"4\" rx=\"2\" /> <path d=\"M3 10h18\" /> <path d=\"M8 14h.01\" /> <path d=\"M12 14h.01\" /> <path d=\"M16 14h.01\" /> <path d=\"M8 18h.01\" /> <path d=\"M12 18h.01\" /> <path d=\"M16 18h.01\" />", "route": "<circle cx=\"6\" cy=\"19\" r=\"3\" /> <path d=\"M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15\" /> <circle cx=\"18\" cy=\"5\" r=\"3\" />", "contact": "<path d=\"M16 2v2\" /> <path d=\"M7 22v-2a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v2\" /> <path d=\"M8 2v2\" /> <circle cx=\"12\" cy=\"11\" r=\"3\" /> <rect x=\"3\" y=\"4\" width=\"18\" height=\"18\" rx=\"2\" />", "users": "<path d=\"M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2\" /> <circle cx=\"9\" cy=\"7\" r=\"4\" /> <path d=\"M22 21v-2a4 4 0 0 0-3-3.87\" /> <path d=\"M16 3.13a4 4 0 0 1 0 7.75\" />", "package": "<path d=\"M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z\" /> <path d=\"M12 22V12\" /> <path d=\"m3.3 7 7.703 4.734a2 2 0 0 0 1.994 0L20.7 7\" /> <path d=\"m7.5 4.27 9 5.15\" />", "stethoscope": "<path d=\"M11 2v2\" /> <path d=\"M5 2v2\" /> <path d=\"M5 3H4a2 2 0 0 0-2 2v4a6 6 0 0 0 12 0V5a2 2 0 0 0-2-2h-1\" /> <path d=\"M8 15a6 6 0 0 0 12 0v-3\" /> <circle cx=\"20\" cy=\"10\" r=\"2\" />", "shopping-cart": "<circle cx=\"8\" cy=\"21\" r=\"1\" /> <circle cx=\"19\" cy=\"21\" r=\"1\" /> <path d=\"M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12\" />", "chart-column": "<path d=\"M3 3v16a2 2 0 0 0 2 2h16\" /> <path d=\"M18 17V9\" /> <path d=\"M13 17V5\" /> <path d=\"M8 17v-3\" />", "receipt": "<path d=\"M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z\" /> <path d=\"M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8\" /> <path d=\"M12 17.5v-11\" />", "shield-check": "<path d=\"M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z\" /> <path d=\"m9 12 2 2 4-4\" />", "file-text": "<path d=\"M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z\" /> <path d=\"M14 2v4a2 2 0 0 0 2 2h4\" /> <path d=\"M10 9H8\" /> <path d=\"M16 13H8\" /> <path d=\"M16 17H8\" />"};
+
+const svgIco = inner => `<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${inner}</svg>`;
+
+const icono = n => `<span class="icw">${svgIco(ICON_NOM[n] || ICON_EMOJI[n] || '')}</span>`;
+
+// Menú principal de escritorio con los mismos iconos que el móvil
+const ICO_NAV = { inicio: 'house', agenda: 'calendar-days', rutas: 'route', directorio: 'contact', pacientes: 'users', productos: 'package',
+  seguimiento: 'shield-check', ventas: 'shopping-cart', analitica: 'chart-column', facturacion: 'receipt', informe: 'file-text' };
+
+const ICO_SUBIR = '<path d="m18 15-6-6-6 6"/>';
+
+const ICO_PLEGAR = '<rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/><path d="m16 15-3-3 3-3"/>';
 // componentes/lista.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -1881,6 +2788,252 @@ function blqFiltrar(tab) {
   const s = $('plg-' + tab); if (s && s.value !== v) s.value = v;
   const cnt = sec.querySelector('.plcnt'); if (cnt) { cnt.dataset.h = ''; }
 }
+
+const itemHTML = (id, ico, clase, titulo, sub) =>
+  `<button class="item" data-id="${id}"><span class="ic ${clase || ''}">${ico}</span>
+   <span class="tx"><b>${esc(titulo)}</b><span class="sm">${sub}</span></span></button>`;
+
+const COLS_DEF = ['nombre', 'especialidad', 'centro_nombre', 'municipio', 'dias', 'estado_comercial'];
+
+const colKey = () => 'dlc-cols-' + (PERFIL ? PERFIL.id : '');
+
+const colsGuardar = c => localStorage.setItem(colKey(), JSON.stringify(c));
+
+const TAMKEY = () => 'dlc-tam-' + (PERFIL ? PERFIL.id : '');
+
+const TAMANOS = [20, 50, 100];
+
+/* Paginación automática de cualquier otra lista o tabla con más de 20 filas. */
+const PAG_MEM = {};
+
+const PAG_EXCLUIR = '.carsel, .picker, #lista, #slista, #kpis, .gsug, .umenu, .dl-menu, #tools, .opciones, .chips, .pag, #c-agenda, #c-acciones, #c-urgentes, #c-ultimas, #c-recom, #c-pend';
+
+// Tablas que se ordenan en la base: qué clave usa cada columna (por su posición o su nombre)
+const ORD_SRV = {
+  peds2: (i, n) => i === 2 ? 'profesional' : ({ Fecha: 'fecha', Cliente: 'cliente', Comercial: 'comercial', 'Uds.': 'unidades', Base: 'base', Total: 'total', Estado: 'estado' })[n] || null,
+  pacs: (i, n) => i === 6 ? 'profesional' : ({ Cliente: 'nombre', Tipo: 'tipo', 'DNI / CIF': 'nif', Email: 'email', 'Población': 'municipio', Comercial: 'comercial', Pedidos: 'pedidos', 'Uds.': 'unidades', 'Último pedido': 'ultimo' })[n] || null
+};
+
+const ORD_DIR = { nombre: 'nombre', especialidad: 'especialidad', centro_nombre: 'lugar', municipio: 'municipio', ultima_visita: 'reciente', estado_comercial: 'estado' };
+
+/* ============================================================
+   v2.236.0 · Modelo de página «Lista» (variante A elegida por Eric): cabecera con la acción principal y «⋯»,
+   indicadores que filtran, barra con buscador, filtros rápidos, «Filtros», «Columnas» y el recuento, tabla con su pie
+   y tarjetas en el móvil. Al llegar no se tapa la pantalla: se ve el esqueleto con la misma forma. Primero en
+   Contactos (directorio) y Clientes; se monta encima de lo que ya pintan sus funciones, sin cambiar su lógica.
+   ============================================================ */
+const plIco = (...n) => svgIco(n.map(k => ICON_NOM[k] || ICON_EMOJI[k]).find(Boolean) || '');
+
+const PL_KPI = {};   // indicadores por pantalla: {t, epoca, datos}
+
+const PL = {
+  directorio: {
+    que: () => TT('medico', 'p', '', 'l', 'l'),
+    nuevo: () => $('nuevoBtn'),
+    textoNuevo: () => 'Añadir ' + TT('medico', 's', '', 'l', 'l'),
+    cuerpo: () => $('lista'), tabla: () => $('tabla'), pie: () => $('dirpag'), cuenta: () => $('cuenta'),
+    conDatos: el => !!el.querySelector('.trow, .vacio'),
+    rapidos: [['ftipo', 'Tipo'], ['fest', 'Estado'], ['fcom', ''], ['fprov', 'Provincia'], ['fmuni', 'Municipio'], ['fesp', 'Especialidad']],
+    q: () => F.q || '',
+    buscarQ: v => { F.q = v; buscar(true); },
+    buscaTxt: () => 'Buscar cuentas',
+    nKpis: 5,   // v2.304.0: el esqueleto con los mismos cinco huecos
+    // v2.296: un campo personalizado vaciado se quedaba como clave y contaba como filtro sin verse en el panel
+    activos: () => ['tipo', 'prov', 'muni', 'esp', 'est', 'rep', 'com'].filter(k => F[k]).length + ['urg', 'mios', 'sin'].filter(k => F[k]).length + Object.values(F.campos || {}).filter(filtroConValor).length,
+    quitar: () => {
+      Object.assign(F, { q: '', tipo: '', prov: '', muni: '', esp: '', est: '', urg: false, mios: false, sin: false, com: '', rep: '', campos: {} });
+      ['ftipo', 'fest', 'fprov', 'fmuni', 'fesp', 'fcom', 'frep', 'q'].forEach(id => { if ($(id)) $(id).value = ''; });
+      const t = $('tools'); if (t && t.classList.contains('abierto') && HERR_CTX === 'directorio') t.classList.remove('abierto');
+      cargarFiltros(); buscar(true);
+    },
+    filtros: () => { const b = $('dirtools'); if (b) b.click(); },
+    columnas: () => abrirColumnas(),
+    mapa: () => $('mapaBtn'),
+    mas: () => [['dircalidad', 'Calidad del dato'], ['cercaBtn', 'Cerca de mí']],
+    kpis: async () => {
+      const t = x => RPC_ORIG('buscar_cuentas', { q: null, lim: 1, desplaz: 0, ...x }).then(r => (r.data && r.data.total) || 0, () => 0);
+      // v2.304.0: profesionales y centros por separado (antes una sola cifra con el nombre de los profesionales que contaba también los centros)
+      const [pro, cen, urg, sin, mios] = await Promise.all([t({ f_tipo: 'Persona' }), t({ f_tipo: 'Centro' }), t({ f_urgentes: true }), t({ f_sin_visitar: true }), t({ f_mios: true })]);
+      return [{ k: 'Persona', t: TT('medico', 'p', '', 'l', 'C'), n: pro, s: 'en total' }, { k: 'Centro', t: 'Centros', n: cen, s: 'en total' }, { k: 'urg', t: 'Urgentes', n: urg, s: 'marcados como urgentes' },
+        { k: 'sin', t: 'Sin visitar nunca', n: sin, s: 'todavía sin ' + TT('visita', 'p', '', 'l', 'l') }, { k: 'mios', t: 'De mi cartera', n: mios, s: 'asignados a ti' }];
+    },
+    kpiOn: k => k === 'Persona' || k === 'Centro' ? F.tipo === k : !!F[k],
+    kpiPulsar: k => { if (k === 'Persona' || k === 'Centro') { F.tipo = F.tipo === k ? '' : k; if ($('ftipo')) $('ftipo').value = F.tipo; } else F[k] = !F[k]; buscar(true); },
+    card: null   // las tarjetas del directorio las pone filaTabla (abajo), con los datos de la ficha
+  },
+  pacientes: {
+    que: () => 'clientes',
+    nuevo: () => $('pacnuevo'),
+    cuerpo: () => $('paclista'), tabla: () => $('paclista'), pie: () => $('pacpag'), cuenta: () => $('paccuenta'),
+    conDatos: el => !!el.querySelector('.dgrid, .vacio'),
+    rapidos: [['pactipo', 'Tipo'], ['pacped', 'Pedidos'], ['pacmun', 'Población']],
+    q: () => PAC.q || '',
+    buscarQ: v => { const i = $('pacq'); if (i) { i.value = v; i.dispatchEvent(new Event('input', { bubbles: true })); } else { PAC.q = v; PAC.pagina = 0; listaPacientes(); } },
+    activos: () => (PAC.tipo ? 1 : 0) + (PAC.pedidos ? 1 : 0) + (PAC.municipio ? 1 : 0) + (PAC.medico ? 1 : 0) + Object.keys(PAC.campos || {}).length,
+    filtros: () => { const b = document.querySelector('#v-pacientes .htbtn'); if (b) b.click(); },
+    columnas: () => { const b = document.querySelector('#v-pacientes .htbtn'); if (!b) return; b.click(); setTimeout(() => { const c = $('tools') && $('tools').querySelector('.t2abrir'); if (c) c.click(); }, 80); },
+    mapa: () => null,
+    mas: () => [],
+    kpis: async () => {
+      const t = x => RPC_ORIG('clientes_lista', { q: null, p_medico: null, lim: 1, desplaz: 0, p_tipo: null, p_pedidos: null, p_municipio: null, ...x }).then(r => (r.data && r.data.total) || 0, () => 0);
+      const [tot, con, sin, emp] = await Promise.all([t({}), t({ p_pedidos: 'con' }), t({ p_pedidos: 'sin' }), t({ p_tipo: 'Empresa' })]);
+      return [{ k: 'tot', t: 'Clientes', n: tot, s: 'en total' }, { k: 'con', t: 'Con pedidos', n: con, s: 'han comprado alguna vez' },
+        { k: 'sin', t: 'Sin pedidos', n: sin, s: 'todavía sin compras' }, { k: 'emp', t: 'Empresas', n: emp, s: 'centros, tiendas y otras' }];
+    },
+    kpiOn: k => k === 'tot' ? !PAC.tipo && !PAC.pedidos : k === 'emp' ? PAC.tipo === 'Empresa' : PAC.pedidos === k,
+    kpiPulsar: k => {
+      if (k === 'tot') { PAC.tipo = ''; PAC.pedidos = ''; }
+      else if (k === 'emp') PAC.tipo = PAC.tipo === 'Empresa' ? '' : 'Empresa';
+      else PAC.pedidos = PAC.pedidos === k ? '' : k;
+      if ($('pactipo')) $('pactipo').value = PAC.tipo || ''; if ($('pacped')) $('pacped').value = PAC.pedidos || '';
+      PAC.pagina = 0; listaPacientes();
+    },
+    // Tarjeta del móvil a partir de la fila de la tabla: nombre, población y teléfono, y el tipo a la derecha
+    card: dr => { const c = dr.children, tx = i => c[i] ? c[i].textContent.trim() : '';
+      return { a: tx(0), b: [tx(5), tx(3)].filter(x => x && x !== '—').join(' · '), c: c[1] ? c[1].innerHTML : '' }; }
+  }
+};
+
+// Sin nombre propio, el filtro rápido usa la etiqueta de su campo (así no se escribe aquí el nombre de un rol)
+const plEtiqueta = id => { const l = document.querySelector(`label[for="${id}"]`); return l ? l.textContent.trim() : ''; };
+
+// Un observador por pantalla: cada vez que la pantalla se repinta, la plantilla se ajusta antes de que se vea
+const PL_OBS = {};
+
+// Buscador de la barra
+let PL_TQ;
+
+/* ============================================================
+   v2.237.0 · Inicio y Agenda aparecen de una vez (aviso de Eric): al abrir la app la primera pantalla se enseñaba
+   sin esperar (salían los indicadores antiguos y luego el mosaico) y la Agenda se daba por lista antes de tener la
+   cinta y «Tu semana». Inicio enseña desde el principio el esqueleto del mosaico; la Agenda sigue con el cargador hasta tener
+   la cinta y «Tu semana» (como mucho 10 s).
+   ============================================================ */
+// Tope de espera por pantalla: en el móvil con mala cobertura la Agenda encadena varias consultas
+const LISTA_ESPERA = { agenda: 10000 };
+
+const LISTA_PARA = {
+  // Inicio: el mosaico ya pintado (si la persona no tiene mosaico, basta con que no queden esqueletos)
+  inicio: s => !!s.querySelector('#inimos > *') || (!s.classList.contains('conmos') && !s.querySelector('.ksk, .skel') && performance.now() - (s.__t0 || 0) > 1500),
+  // Agenda en vista de día: la cinta y «Tu semana» con sus días (o, si no llega, un respiro de 0,8 s tras la cinta)
+  // v2.248.0: la vista del día avisa cuando está pintada entera (dataset.listo)
+  agenda: s => (typeof AG_MODO !== 'undefined' && AG_MODO !== 'dia') || s.dataset.listo === '1'
+};
+
+/* ============================================================
+   v2.238.0 · Modelo «Lista» en Ventas: Pedidos, Oportunidades, Compras, Proveedores, Facturas, Productos, Servicios y Stock.
+   La plantilla pasa a ser genérica: cada pantalla dice sus filtros rápidos (selectores), su buscador si lo tiene, dónde está su
+   lista y su paginador. Los indicadores que filtran (Operativa de Pedidos) van en la banda; los totales (.kpis.vtot) pasan a una
+   franja de resumen compacta encima de la tabla. Sin buscador propio, el de la barra filtra la tabla («Contiene»).
+   ============================================================ */
+// Pantallas con varias secciones: la configuración depende de la sección abierta (null = sin plantilla, p. ej. Configuración de Facturación)
+const PL_SECC = {
+  ventas: () => typeof PEDSEC === 'undefined' ? null : ({ ventas: 'pedidos', llamadas: 'oport', compras: 'compras', proveedores: 'prov' })[PEDSEC] || null,
+  facturacion: () => typeof FSEC !== 'undefined' && FSEC === 'facturas' ? 'facturas' : null,
+  productos: () => typeof PSEC === 'undefined' ? null : ({ catalogo: 'prods', servicios: 'servs', stock: 'stock' })[PSEC] || 'prods'
+};
+
+// Base común de las listas en rejilla (.dgrid) con «Filtros y columnas»
+const plRejilla = o => Object.assign({
+  rejilla: true,
+  nuevo: () => document.querySelector(`#v-${o.tab} > .saludo .acts > .btn:not(.sec):not(.htbtn):not(.fab)`) || document.querySelector(`#v-${o.tab} .fab`),
+  cuerpo: () => o.lista ? $(o.lista) : null,
+  tabla: () => { const w = document.querySelector(`#v-${o.tab} .dgrid-wrap`); return (o.lista && $(o.lista)) || w; },
+  pie: () => o.pag ? $(o.pag) : null,
+  cuenta: () => null,
+  conDatos: el => !!el.querySelector('.dgrid, .vacio'),
+  rapidos: [],
+  q: () => { const i = o.buscador && $(o.buscador); if (i) return i.value || ''; const g = document.querySelector(`#v-${o.tab} .dgrid`); return g ? ((HT_ESTADO[htTipo(g)] || {}).texto || '') : ''; },
+  buscarQ: v => {
+    const i = o.buscador && $(o.buscador);
+    if (i) { i.value = v; i.dispatchEvent(new Event('input', { bubbles: true })); return; }
+    const g = document.querySelector(`#v-${o.tab} .dgrid`); if (!g) return;
+    const t = htTipo(g); HT_ESTADO[t] = HT_ESTADO[t] || { texto: '', facetas: {} }; HT_ESTADO[t].texto = v; htAplicarFiltros(g);
+    const sec = $('v-' + o.tab); if (sec) { htContador(sec); }
+  },
+  activos: () => { const sec = $('v-' + o.tab); const n = sec ? sec.querySelectorAll('.htchips .htchip').length : 0; return n; },
+  filtros: () => { const b = document.querySelector(`#v-${o.tab} .htbtn`); if (b) b.click(); },
+  columnas: () => { const b = document.querySelector(`#v-${o.tab} .htbtn`); if (!b) return; b.click(); setTimeout(() => { const c = $('tools') && $('tools').querySelector('.t2abrir'); if (c) c.click(); }, 80); },
+  mapa: () => null,
+  // «⋯»: los botones secundarios de la cabecera (menos «Filtros y columnas»)
+  mas: () => [...document.querySelectorAll(`#v-${o.tab} > .saludo .acts > button.sec:not(.htbtn):not(.plmas)`)].filter(b => !b.classList.contains('hide') && !(o.extra || []).some(([id]) => id === b.id))
+    .map(b => { if (!b.id) b.id = 'plb' + Math.random().toString(36).slice(2, 8); return [b.id, (b.textContent.trim() || b.title || b.getAttribute('aria-label') || '').replace(/\s+/g, ' ')]; })
+    .concat((o.extra || []).filter(([id]) => $(id))),
+  kpis: null, kpiOn: () => false, kpiPulsar: () => {},
+  // Tarjeta del móvil: la primera celda, las dos siguientes con texto y la pastilla de estado (si la hay) a la derecha
+  card: dr => {
+    const c = [...dr.children].filter(x => !x.classList.contains('plcard')), tx = x => x ? x.textContent.trim().replace(/\s+/g, ' ') : '';
+    const est = c.find(x => x.querySelector('.pill, .est, .cirest, [class*="estado"]'));
+    const resto = c.slice(1).filter(x => x !== est).map(tx).filter(x => x && x !== '—').slice(0, 2);
+    return { a: tx(c[0]), b: resto.join(' · '), c: est ? est.innerHTML : '' };
+  }
+}, o);
+
+const plSel = id => id && /^[#.]/.test(id) ? document.querySelector(id) : $(id);
+
+const plEtiq = id => { const s = plSel(id); if (!s) return ''; const l = (s.id && document.querySelector(`label[for="${s.id}"]`)) || (s.closest('div') && s.closest('div').querySelector(':scope > label')); return l ? l.textContent.trim() : ''; };
+
+/* ============================================================
+   v2.239.0 · Modelo «Lista» en Eventos, Intervenciones, Concursos y Parque instalado: los bloques de tarjetas pasan a una tabla con
+   las mismas filas (cada fila conserva su botón y lo que abre). Los bloques (Próximos, Pasados, Reposiciones…) pasan a ser
+   indicadores que filtran y un filtro rápido; si una fila estaba en dos bloques, sale una vez y cuenta en los dos.
+   La acción principal sube a la cabecera; las demás, al «⋯».
+   ============================================================ */
+const PLG = {};   // bloque elegido por pantalla
+
+const plTxt = el => el ? el.textContent.trim().replace(/\s+/g, ' ') : '';
+
+const plSm = el => { const s = el && el.querySelector('.tx .sm, .sm'); return plTxt(s); };
+
+const BLQ = {
+  eventos: { attr: 'ev', que: 'eventos', grupo: 'Cuándo', def: 'Eventos',
+    cols: [['Evento', ''], ['Fecha', ''], ['Tipo', ''], ['Lugar', ''], ['Asistentes', 'num'], ['Gasto', 'num']],
+    celdas: b => {
+      const p = plSm(b).split(' · '), hora = p.find(x => /^\d{1,2}:\d{2}$/.test(x)), tipo = p.find(x => EV_TIPOS.includes(x));
+      const asis = p.find(x => /asistente/.test(x)) || '', lugar = p.filter((x, i) => i > 0 && x !== hora && x !== tipo && x !== asis).join(' · ');
+      return [`<b>${esc(plTxt(b.querySelector('.tx b')))}</b>`, esc(p[0] + (hora ? ' · ' + hora : '')), esc(tipo || '—'), esc(lugar || '—'), esc((asis.match(/\d+/) || ['0'])[0]), esc(plTxt(b.querySelector('.evtot')) || '—')];
+    } },
+  cirugias: { attr: 'cir', que: 'intervenciones', grupo: 'Bloque', def: 'Intervenciones',
+    cols: [['Fecha', ''], ['Intervención', ''], ['Equipo y lugar', ''], ['Estado', '']],
+    celdas: b => [esc(plTxt(b.querySelector('.cirf b')) + (plTxt(b.querySelector('.cirf .sm')) ? ' · ' + plTxt(b.querySelector('.cirf .sm')) : '')),
+      `<b>${esc(plTxt(b.querySelector('.tx b')))}</b>`, esc(plSm(b.querySelector('.tx'))), (b.querySelector('.cirest') || {}).innerHTML || ''] },
+  concursos: { attr: 'con', que: 'concursos', grupo: 'Bloque', def: 'Concursos',
+    cols: [['Concurso', ''], ['Cliente, organismo y lotes', ''], ['Estado y plazos', '']],
+    celdas: b => [`<b>${esc(plTxt(b.querySelector('.tx b')))}</b>`, esc(plSm(b.querySelector('.tx'))), (b.querySelector('.cirest') || {}).innerHTML || ''] },
+  parque: { attr: 'eq', que: 'equipos', grupo: 'Bloque', def: 'Todos los equipos',
+    cols: [['Equipo', ''], ['Serie, centro y contrato', ''], ['Revisión y vencimientos', '']],
+    celdas: b => [`<b>${esc(plTxt(b.querySelector('.tx b')))}</b>`, esc(plSm(b.querySelector('.tx'))), (b.querySelector('.cirest') || {}).innerHTML || ''] }
+};
+
+// Las páginas (Eventos, Intervenciones…) crean su sección al entrar: el observador se engancha entonces (y otra vez si se vuelve a crear)
+const PL_OBSEL = {};
+
+/* ============================================================
+   v2.240.0 · Paneles sin saltos. Grabados con la red lenta, Inicio, Analítica, Agenda, Rutas y Calidad del dato ya llegan
+   de una vez; quedaban tres detalles:
+   - Las cifras que cuentan (mosaico de Inicio, indicadores de Inicio, Pedidos y Analítica) volvían a contar desde cero cada vez
+     que se volvía a la pantalla, y parecía que saltaban: ahora solo cuentan si la cifra ha cambiado desde la última vez.
+   - En el móvil, las cifras grandes de Analítica se partían en dos líneas.
+   - Oportunidades enseñaba los filtros de Pedidos («Mes actual» dos veces): los de la otra sección se apartan del panel.
+   ============================================================ */
+const CONTADO = {};   // última cifra que se ha enseñado contando, por pantalla y grupo
+
+const plYaContado = (clave, valores) => { const k = TAB + ':' + clave, f = valores.join('|'); if (CONTADO[k] === f) return true; CONTADO[k] = f; return false; };
+
+// Pedidos y Oportunidades comparten el panel de filtros: los de la otra sección se apartan (no salen en el panel ni como filtro activo)
+const PL_AJENOS = { pedidos: ['llper', 'llfres'], oport: ['pper', 'pcanal', 'pestado', 'popf', 'porigf', 'prepf'], compras: ['llper', 'llfres', 'pper', 'pcanal', 'pestado', 'popf', 'porigf', 'prepf'], prov: ['llper', 'llfres', 'pper', 'pcanal', 'pestado', 'popf', 'porigf', 'prepf'] };
+
+/* ============================================================
+   v2.262.0 · Facturas y Oportunidades ordenadas de verdad (punto 3 del plan del 11/10/2026). Las dos listas traen ya todo el periodo
+   elegido (la base filtra por fechas, búsqueda y estado) y se paginaban en la pantalla, pero al pulsar una columna solo se ordenaban
+   las filas de la página que se veía. Ahora el orden se aplica a toda la lista del periodo antes de paginar y se vuelve a la primera
+   página: es lo más eficiente (los datos ya están en el móvil; no hace falta otra consulta ni cambiar la base). Si algún día una
+   empresa tiene miles de facturas en un mismo periodo, se pasaría la paginación a la base.
+   ============================================================ */
+const ORD_MEM = {
+  facts: { fn: 'facturas_lista', campos: ['numero', 'fecha', 'cliente', 'nif', 'base', 'cuota_iva', 'total', 'vencimiento', 'estado_cobro'] },
+  llam: { fn: 'llamadas_lista', campos: ['fecha', x => x.cliente || x.nombre, 'importe_estimado', x => x.medico || x.cuenta_texto, x => x.resultado || (x.pedido_id ? 'Pedido hecho' : ''), 'proxima_fecha', 'usuario'] }
+};
 // componentes/pestanas.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -1949,7 +3102,32 @@ function cerrarPickers(salvo) {
 function cerrarSelector() {
   if (SELPOP) { SELPOP.remove(); SELPOP = null; }
   const d = $('seldlg'); if (d && d.open) d.close();
-}// componentes/teclado.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
+}
+
+// Con una ventana abierta, solo se puede pulsar lo que está dentro: el selector se coloca en ella
+const capaSelector = inp => inp.closest('dialog[open]') || [...document.querySelectorAll('dialog[open]')].pop() || document.body;
+
+/* ============================================================
+   v2.101.0 · Fechas, horas y números
+   Los mismos selectores en escritorio y en móvil para todos los campos:
+   fecha, hora, mes (liquidaciones) y fecha con hora (llamadas), que antes
+   abrían el selector del sistema. Calendario con vista de meses y años
+   (se pulsa el título), atajos «Hoy» y «Mañana» y manejo con el teclado.
+   Reloj con «Ahora» y los minutos según el paso del campo. Números con el
+   teclado adecuado en el móvil, mantener pulsado para sumar o restar
+   seguido, la rueda del ratón ya no los cambia sin querer y se respetan
+   el mínimo y el máximo al escribir.
+   ============================================================ */
+const selDos = n => String(n).padStart(2, '0');
+
+const SEL_DIAS = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+
+const selFechaLarga = iso => { const d = new Date(iso + 'T12:00:00'); return `${SEL_DIAS[d.getDay()]}, ${d.getDate()} de ${MESES_L[d.getMonth()]} de ${d.getFullYear()}`; };
+
+const selFechaMedia = iso => { const d = new Date(iso + 'T12:00:00'); return isNaN(d) ? iso : d.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }); };
+
+const selTipo = inp => inp.type === 'month' ? 'mes' : inp.type === 'datetime-local' ? 'fechahora' : inp.type === 'time' ? 'hora' : 'fecha';
+// componentes/teclado.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
 function teclaLista(inp) {
@@ -1973,6 +3151,14 @@ function teclaActivar(x) {
   const b = x.matches('button, a[href], [role=option], tr, .dr') ? x : (x.querySelector('button, a[href], [data-inificha]') || x);
   b.click();
 }
+
+/* v2.111.0 · Teclado en escritorio.
+   1. Buscadores: con las flechas se recorren los resultados (el desplegable de sugerencias o, en los buscadores que filtran
+      una lista o una tabla, sus filas) e Intro abre el marcado. El elemento marcado lleva la clase .activo.
+   2. F5 (o Ctrl+R) recarga la app y vuelve a la pantalla en la que se estaba; Ctrl+F5 (o Ctrl+Mayús+R) entra de cero. */
+const TECLA_LISTAS = '.gsug, .cpres, .lista, .dgrid, [role=listbox], table';
+
+const teclaVisible = x => x.offsetParent !== null && !x.classList.contains('hide');
 // componentes/ventana.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -2074,6 +3260,32 @@ function hayBotonGuardar(d) {
   return [...d.querySelectorAll('button, .btn')].some(b => b.offsetParent && !b.disabled && !b.classList.contains('sec')
     && /^(guardar|validar|crear|añadir|enviar|aplicar|aceptar|confirmar|registrar|emitir|dar de alta)/i.test((b.textContent || '').trim()));
 }
+
+const preguntar = (msg, o = {}) => appVentana({ msg, titulo: o.titulo, ok: o.ok, peligro: o.peligro });
+
+const pedirTexto = (msg, valor, o = {}) => appVentana({ msg, titulo: o.titulo, ok: o.ok || 'Guardar', campo: { valor, placeholder: o.placeholder, tipo: o.tipo }, opciones: o.opciones });
+
+// Pequeña (confirmaciones y citas), normal (fichas y formularios) y amplia (pedidos, compras y facturas)
+const VENT_AMPLIA = ['editorPedido', 'verPedido', 'editorCompra', 'verFactura'];
+
+// Ventanas integradas: en escritorio, dentro de Configuración y de las páginas propias, una ventana ocupa el área de contenido
+// (sin fondo oscuro ni ventana flotante); al cerrarla vuelve el apartado. En el móvil las ventanas ya ocupan la pantalla.
+const ENCAJE_MIN = 900;
+
+const cerrarEncajadas = () => ['dlg2', 'dlg'].forEach(id => { const d = $(id); if (d && d.open && d.classList.contains('encajada')) d.close(); });
+
+let DATOS_CAMBIADOS = false;
+
+const GUARDA_TXT = /^(\+\s*)?(guardar|crear|añadir|enviar|validar|aplicar|confirmar|emitir|cobrar|registrar|marcar|asignar|unificar|cambiar|borrar|eliminar|quitar|anular|rectificar|liquidar|pedir|actualizar)\b/i;
+
+const esBotonGuardar = b => {
+  if (!b || b.matches('.sec, .x, .kmv, .plic, [data-cerrar], [data-cerrar2], .vueltabtn, .guardando')) return false;
+  if (!b.closest('dialog[open], #v-config')) return false;
+  const t = (b.textContent || '').trim();
+  return /ok$|guardar|enviar/i.test(b.id || '') || GUARDA_TXT.test(t);
+};
+
+let ULT_ACCION = 0;
 // pantallas/acceso.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -2183,6 +3395,22 @@ async function reenviarActivacion(email, o = {}) {
   (o.ok || toast)('Correo de activación enviado a ' + email + '. El enlace nuevo sustituye al anterior.');
   return true;
 }
+
+/* v2.181.0 · Nombres neutros en las respuestas de la base (decisión de Eric: dos versiones). Desde la v2.182.0 (SQL 116) estas funciones
+   responden con nombres neutros (cuenta, ubicaciones, actividades…) en lugar de los de DLC (medico, consultas, visitas…). La app sigue usando
+   por dentro los de siempre: al recibir la respuesta de una de ellas, cada clave nueva se copia también con su nombre antiguo (si no viene ya).
+   Con la base todavía en los nombres antiguos no hace nada. Para una función nueva que use estos nombres, añadirla a FN_NEUTRAS. */
+const CLAVES_NEUTRAS = { cuenta: 'medico', cuentas: 'medicos', ubicaciones: 'consultas', actividades: 'visitas', cuenta_codigo: 'medico_codigo',
+  clientes: 'pacientes', ultima_actividad: 'ultima_visita', actividades_mes: 'visitas_mes', actividades_semana: 'visitas_semana',
+  ubicacion_telefono: 'consulta_telefono', dias_con_actividad: 'dias_con_visitas', dias_sin_actividad: 'dias_sin_visita',
+  cuentas_visitadas: 'medicos_visitados', n_ubicaciones: 'n_consultas', n_actividades: 'n_visitas', por_cuenta: 'por_medico',
+  ultimas_actividades: 'ultimas_visitas', actividades_dia: 'visitas_dia', actividades_total: 'visitas_total' };
+
+let MED_ACCESO = null;
+
+const claveAnchos = tipo => `ht-anchos-${(PERFIL || {}).id || ''}-${tipo}`;
+
+let PAG_CLAVE = '';
 // pantallas/agenda.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -3157,6 +4385,111 @@ function asegurarEquipo() {
   b.classList.toggle('sec', !eq);
   b.title = eq ? 'Volver a tu agenda' : 'Ver el cumplimiento del equipo';
 }
+
+const horDeCitas = l => { const c = (l || []).find(x => x && (x.salida || x.vuelta)); return c ? { salida: c.salida || null, vuelta: c.vuelta || null } : null; };
+
+const CITA_ABIERTA = ['Planificada', 'Confirmada'];
+
+const pillCita = e => `<span class="pill cest" style="background:color-mix(in srgb, ${EST_COL[e] || 'var(--muted)'} 12%, transparent);color:${EST_COL[e] || 'var(--muted)'}">${esc(e)}</span>`;
+
+const JKEY = () => 'dlc-jornada-' + (PERFIL ? PERFIL.id : '');
+
+const xyCita = c => c.lat != null && c.lon != null ? [+c.lat, +c.lon] : null;
+
+let TD_CITAS = [];
+
+let TD_INFO = {};
+
+let AG_VISTA = null;   // { id, nombre, rol, preferencias } cuando administración mira la agenda de otra persona
+
+// Agenda del día: paradas abiertas en orden (se preparan al pintar para abrir la navegación al pulsar)
+let TD_PARADAS = [];
+
+/* v2.143.0 · Agenda en una sola pantalla (decisión de Eric, 3/10/2026): sin flechas ni Día/Semana/Mes. Arriba, una línea fina con
+   cuatro métricas; luego Hoy («Tu día») con las sugerencias al lado; debajo, la semana en curso en 7 columnas y el mes con puntos.
+   Al pulsar un día se ven sus citas ahí mismo (sin cambiar de pantalla). La semana detallada (arrastrar, planificar, bloquear días)
+   sigue a un clic con «Planificar la semana», y vuelve con «Agenda de hoy». */
+const AG_DIAS_TXT = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
+
+const agUnida = () => TAB === 'agenda' && AG_MODO === 'dia';   // v2.146.0: también con otro día elegido (antes solo hoy)
+
+const RP_JORNADA = 300;   // minutos de una jornada de propuestas (5 h) si la ruta no dice otra cosa
+
+// «⋯»: pulsar el mismo botón con su menú abierto lo cierra (antes lo volvía a abrir)
+let TDM_BOTON = null;
+
+// ---- 2. El mes de la Agenda, en cualquier mes y año
+let AG_MES = null;
+
+// ---- 1. La franja de la semana, en cualquier semana
+let AG_SEMANA = null;
+
+// ---- 2 y 3. Cabecera del día: moverse de día y apuntar tareas
+// Se guardan las del día en memoria: mover una cita repinta el día sin volver a pedirlas (solo se piden al cambiar de día, recargar o editarlas)
+let TAREAS_DIA = null;
+
+/* v2.220.0: la pastilla «Pendientes» y las líneas de aviso usaban la clase .av, que es la del avatar redondo de la app (salía un círculo
+   cortado en lugar de la pastilla): ahora .agp-pend y .tdav.
+   v2.219.0 · Agenda con tarjetas y cinta de 14 días (decisión de Eric, prototipo «versión D»).
+   - Las cifras pasan a pastillas junto al título (#aghud, leídas de #agmet, que queda oculto).
+   - La semana y el mes se sustituyen por una cinta de 14 días (.cinta): un punto por cita (hecha, por hacer, sin cerrar),
+     ‹ › de semana en semana, «Hoy» para volver, el mes completo al pulsar su nombre (#agmes flotando) y «Planificar la semana».
+   - Tu día a todo el ancho: cada cita es una tarjeta (.tdu) con el nivel de la ficha y adónde llevarla, la clase, la anterior
+     y lo que se apuntó para esta (SQL 131: estado_comercial, clase y anterior en agenda_rango), el horario y los avisos.
+     Las tarjetas se construyen desde la lista de siempre (.tdlista, que queda oculta): heredan su hora estimada, sus avisos
+     y sus botones (los mismos data-td, que atiende el mismo listener).
+   - En el móvil: cifras en 2 × 2, la cinta semana a semana (deslizando), «Registrar» a todo el ancho. */
+const citaAnulada = e => EST_COL[e] === 'var(--muted)';
+
+const agConCinta = () => TAB === 'agenda' && AG_MODO === 'dia' && !!$('v-agenda');
+
+let CINTA_INI = null;
+
+/* v2.229.0 · Agenda en una sola pantalla (decisión de Eric, 10/10/2026: variante B de https://claude.ai/artifact/7iht52N5whHBhAueRH7pso).
+   - Cinta: cada día lleva su «⋯» (nueva cita, ver el día, bloquear o desbloquear: festivo, vacaciones, formación…) y los bloqueados se ven
+     rayados con su motivo. «Planificar la semana» pasa a «Ver la semana»: despliega la semana debajo de la cinta, en la misma pantalla, con la
+     rejilla de siempre (pintarSemanaAgenda pintada en #agsemexp: citas, arrastrar, «⋯» por día) y un solo botón, «Repartir la semana» (el
+     planificador; su propuesta se guarda o descarta allí mismo).
+   - Las sugerencias van dentro de «Tu día»: cada cita lleva «En este centro también» con los profesionales del mismo centro (un toque, su
+     «+ Cita» de siempre). «Les toca visita» y «Pendientes de días anteriores» pasan a dos bandejas con su número bajo «Tu día», que abren el
+     panel lateral con su lista.
+   - La columna derecha es «Tu semana» (#agsemlat): día a día con sus citas, su «⋯» y «Repartir la semana». */
+let AG_SEM_ABIERTA = false;
+
+const citaHecha = e => EST_COL[e] === 'var(--ok)';
+
+/* ============================================================
+   v2.244.0 · Agenda reescrita (1 de 3): «Tu día» sale directamente de los datos (Eric eligió reescribir la Agenda entera).
+   Hasta ahora las tarjetas (.tdu) se construían leyendo una lista antigua (.tdlista) que se pintaba y se escondía, con seis capas
+   encima (avisos con su «i», «no cabe», tareas, tarjetas, menú…). En la vista de día con cinta, tdPintar() pinta de una vez:
+   cabecera (título, «⋯» del día, cifras, botones), jornada, aviso «no cabe», tareas, tarjetas, vacío y citas de otras personas.
+   Los botones de cada cita llevan los mismos data-td de siempre (los atiende el mismo listener) y se ponen solo si tocan. El
+   orden y los refrescos animan las tarjetas (antes animaban las filas ocultas). Semana, Mes y Equipo siguen como estaban.
+   ============================================================ */
+// Estados de una cita sin escribir sus nombres (la prueba de literales los cuenta): por su color
+const citaAusente = e => EST_COL[e] === 'var(--warn)' && !CITA_ABIERTA.includes(e);   // «no estaba»
+
+const tdHm = h => esc(String(h).slice(0, 5));
+
+const agN = () => agConCinta() && $('v-agenda').classList.contains('agn');
+
+// Quién ya tiene cita ese día (no se le propone)
+const agConCitaHoy = () => new Set((TD_CITAS || []).filter(c => !citaAnulada(c.estado)).map(c => c.cuenta_id));
+
+const agImp = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+
+// Subir o bajar una cita no recarga la Agenda aunque otra pantalla (Inicio pide las citas de hoy) haya pedido otro día entretanto:
+// se guarda lo último de cada día y se usa el del día que se ve
+const AG_DIAS_DATOS = {};
+
+const agK = (fn, d, h, u) => [fn, d, h, u || ''].join('|');
+
+const tdClaveXY = (a, b) => a && b && a[0] != null && b[0] != null ? `${(+a[0]).toFixed(5)},${(+a[1]).toFixed(5)}>${(+b[0]).toFixed(5)},${(+b[1]).toFixed(5)}` : '';
+
+const tdRealVigente = () => TD_REAL && Date.now() - TD_REAL.t < 600000;
+
+// Tareas del día plegables: un clic en su título las oculta todas y se ven solo las citas (se recuerda en este dispositivo)
+const tdTareasPlegadas = () => { try { return localStorage.getItem('delcos-tareas-plegadas') === '1'; } catch (e) { return false; } };
 // pantallas/analitica.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -3502,6 +4835,68 @@ function tvTipos(d) {
       <tbody>${eq.map(u => `<tr><td>${esc(u.nombre)}</td>${TV_TIPOS.map(x => `<td>${par(u[x[0]])}</td>`).join('')}</tr>`).join('')}</tbody></table>
       <div class="tvlbl">Con pedido de cada tipo, de las ${TT('visita', 'p', '', 'l', 'l')} que registró cada persona</div></div>` : ''}`;
 }
+
+const AN = { dim: 'medico', desde: '', hasta: '', canal: '', producto: '' };
+
+let AN_MED = null;
+
+let ANSEC = 'resumen';
+
+/* v2.148.0 · Analítica: panel de indicadores por áreas (decisión de Eric, 3/10/2026: «Panel por áreas + Explorar», engranaje con
+   filtro propio que se guarda y las cuatro familias nuevas). Resumen: indicadores de Ventas, Clientes, Equipo, Oportunidades, Cobros y
+   Stock (cada uno según su módulo y permisos) con la comparación elegida; cada tarjeta tiene su engranaje (comercial, producto, canal,
+   municipio, comparación y nombre; se puede duplicar con otro filtro) y «Personalizar» elige cuáles se ven. El periodo y la comparación
+   van en «Filtros y columnas»; en Explorar, también todos sus filtros (a la vista quedan «Ver por», «Ordenar por» y la búsqueda).
+   Las cifras salen de analitica_kpis (SQL 96), una llamada por filtro distinto. */
+const AN_FAM = [
+  ['ventas', 'Ventas', () => puedeModulo('ventas')],
+  ['clientes', 'Clientes', () => puedeModulo('ventas')],
+  ['equipo', () => 'Equipo y ' + TT('visita', 'p', '', 'l', 'l'), () => puedeModulo('agenda')],
+  ['oportunidades', 'Oportunidades', () => puedeModulo('ventas') && hayOportunidades()],
+  ['cobros', 'Cobros', () => puedeModulo('facturacion')],
+  ['stock', 'Stock y compras', () => puedeModulo('productos') && nivelDe2('P') >= 1]
+];
+
+// Qué filtros tienen sentido en cada área
+const AN_FILTROS = { ventas: ['comercial', 'producto', 'canal', 'municipio'], clientes: ['comercial', 'producto', 'canal', 'municipio'],
+  equipo: ['comercial', 'municipio'], oportunidades: ['comercial', 'producto'], cobros: [], stock: ['producto'] };
+
+const anFamNombre = f => { const x = AN_FAM.find(a => a[0] === f); return x ? (typeof x[1] === 'function' ? x[1]() : x[1]) : f; };
+
+const anFamVisible = f => { const x = AN_FAM.find(a => a[0] === f); return !!x && x[2](); };
+
+const anKpiVisible = k => anFamVisible(k.fam) && (!k.imp || verImportes());
+
+const AN_MES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+
+/* ============================================================
+   v2.320.0 · Ventas tras la visita (petición de Eric, 16/10/2026; SQL 163). En Analítica → Resumen, arriba, una tarjeta con
+   flechas ‹ › que enseña el mismo dato de tres maneras (le gustaban las tres propuestas por igual):
+     1. Embudo: visitas, profesionales visitados y los que tienen una venta en los 30 días siguientes; % grande, unidades y días.
+     2. El efecto de la visita: unidades por visita y día, 30 días antes y después (media de 7 días), con el día de la visita.
+     3. Mes a mes: visitas y visitas con venta de los 6 últimos meses, con la línea del %.
+   Usa el periodo de Analítica y lo compara con el anterior. La vista elegida se recuerda (localStorage delcos-tvvista).
+   Solo para el equipo: nunca en el portal del profesional.
+   ============================================================ */
+const TV_VISTAS = [['embudo', 'Embudo'], ['efecto', 'El efecto'], ['meses', 'Mes a mes'], ['tipos', 'Por tipo']];
+
+const tvPct = (a, b) => b ? Math.round(a / b * 100) : 0;
+
+const tvSub = () => {
+  const d = TV_DATOS || {};
+  return [`${TT('visita', 'p', '', 'l', 'C')} del ${fechaCorta(d.desde)} al ${fechaCorta(d.hasta)} y pedidos atribuidos ${TT('medico', 's', 'al', 'l', 'l')} en los ${d.dias || 30} días siguientes`,
+    `Unidades pedidas por ${TT('visita', 's', '', 'l', 'l')}, de media, en los ${d.dias || 30} días antes y después de ella`,
+    `Por mes: ${TT('visita', 'p', '', 'l', 'l')} hechas y cuántas tienen un pedido atribuido ${TT('medico', 's', 'al', 'l', 'l')} en los ${d.dias || 30} días siguientes`,
+    `${TT('visita', 'p', 'el', 'C', 'l')} de captación, de presentación y de seguimiento, y cuántas tienen un pedido en los ${d.dias || 30} días siguientes`][TV_I];
+};
+
+/* ============================================================
+   v2.326.0 · Pedidos tras la visita, por tipo (petición de Eric, 16/10/2026; SQL 168). La tarjeta de Analítica se llama ya
+   «Pedidos tras la visita» y no habla de ventas (regla de Eric: nunca «venta» al hablar de pedidos y profesionales). Cuarta
+   vista «Por tipo»: visitas de captación (la primera a cada profesional), de presentación (resultado que avanza la ficha o un
+   producto nuevo presentado) y de seguimiento, cuántas acaban en pedido, y lo mismo por persona del equipo.
+   ============================================================ */
+const TV_TIPOS = [['captacion', 'Captación'], ['presentacion', 'Presentación'], ['seguimiento', 'Seguimiento']];
 // pantallas/calidad.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -3753,6 +5148,11 @@ async function revisarPendientes() {
   });
   $('dbody').querySelectorAll('[data-dficha]').forEach(b => b.onclick = () => { $('dlg').close(); abrirFicha(b.dataset.dficha); });
 }
+
+// (R-12: listasDuplicados se definía aquí otra vez; ahora está en su sitio, más arriba)
+const dupTipoDe = id => DUP_TIPO[id] === 'Centro' ? 'Centro' : 'Persona';
+
+let DUP_TRAS = null;
 // pantallas/ciclo.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -3898,6 +5298,26 @@ async function pintarCobertura() {
   caja.querySelectorAll('[data-cfi]').forEach(b => b.onclick = () => abrirFicha(b.dataset.cfi));
   caja.querySelectorAll('[data-ccita]').forEach(b => b.onclick = () => nuevaCita(b.dataset.ccita));
 }
+
+/* v2.197.0 · Ciclo de visitas con clasificación A/B/C (segunda tanda del estudio por sectores, SQL 123). Decisiones de Eric: cada ficha en A,
+   B o C, cada clase con sus visitas por ciclo y el ciclo configurable (de partida, trimestral: A = 3, B = 2, C = 1).
+   - Menú «Ciclo de visitas» (en «Tu día»): «Este ciclo» (cómo va cada clase y a quién le faltan visitas, con «+ Cita»), «Clasificar»
+     (A, B o C en cada ficha, con sus visitas de los últimos 12 meses como ayuda) y, para quien ve todo el equipo, «Equipo».
+   - Ficha: en el bloque «Estado», la clase (A, B, C; pulsar la marcada la quita) y las visitas de este ciclo.
+   - Configuración → Cartera y visitas → «Ciclo A/B/C» (administración): duración del ciclo y visitas de cada clase. */
+const CIC_CLASES = ['A', 'B', 'C'];
+
+const cicNombre = m => ({ 1: 'mes', 2: 'bimestre', 3: 'trimestre', 4: 'cuatrimestre', 6: 'semestre', 12: 'año' })[m] || 'ciclo';
+
+const cicVis = n => `${n} ${TT('visita', n === 1 ? 's' : 'p', '', 'l', 'l')}`;
+
+const cicPill = k => k ? `<span class="cicl c${k}">${k}</span>` : '<span class="cicl csin">—</span>';
+
+const cicSegs = (id, k, dis) => `<span class="segs cicsegs" role="group" aria-label="Clase">${CIC_CLASES.map(x => `<button type="button" data-ccl="${id}|${x}" class="${x === k ? 'on' : ''}" aria-pressed="${x === k}" ${dis ? 'disabled' : ''}>${x}</button>`).join('')}</span>`;
+
+const cicUsuario = () => VE_TODO() ? (CIC_DE || null) : PERFIL.id;
+
+const cicIrA = tab => { PAG_TAB.ciclo = tab; cargarPagina('ciclo'); };
 // pantallas/cirugias.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -4043,6 +5463,30 @@ function pintarUsoCirugia(c, st) {
     verCirugia(c.id, `<div class="banda-ok depaviso">${r.pedido_id ? 'Queda un pedido en borrador al centro para confirmarlo y la' : 'Guardado lo usado. Queda la'} reposición pendiente: hay 48 horas para reponer lo usado.</div>`);
   };
 }
+
+/* v2.199.0 · Intervenciones con lote y número de serie (tercera tanda del estudio por sectores, SQL 125). Decisiones de Eric: sección propia y
+   cada intervención también en la Agenda de quien asiste; el material se elige en cada intervención (depósito del centro o el de quien asiste); el
+   número de serie se apunta al usar; lo usado crea el pedido en borrador al centro y una reposición con plazo de 48 horas que avisa.
+   - Menú «Intervenciones» (en «Tu día»): reposiciones pendientes (las vencidas, marcadas), próximas y hechas en los últimos 30 días; «+ Nueva intervención».
+   - Ventana de la cirugía: datos, «Registrar lo usado» (por lote, con un número de serie por unidad y la referencia del paciente sin
+     datos de salud), lo usado con su lote y serie, el pedido y «Reponer ahora».
+   - Ficha del responsable o del centro: sus últimas intervenciones. Los avisos de reposición vencida abren la intervención. */
+const CIR_ORIGEN = [['deposito', 'Depósito del centro'], ['personal', 'Material de quien asiste']];
+
+const cirRepo = c => c.reposicion === 'vencida' ? '<span class="pill p-urg">Reposición vencida</span>'
+  : c.reposicion === 'pendiente' ? `<span class="pill p-warn">Reponer antes del ${esc(new Date(c.reposicion_limite).toLocaleString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }))}</span>`
+  : c.reposicion === 'repuesta' ? '<span class="pill p-est">Repuesta</span>' : '';
+
+const cirEstado = c => `<span class="pill ${c.estado === 'Hecha' ? 'p-est' : c.estado === 'Anulada' ? 'p-anu' : 'p-per'}">${esc(c.estado)}</span>`;
+
+const CIR_ERR = { permiso: 'No puedes cambiar esta intervención', faltan: 'Faltan la fecha, el centro o el responsable', hospital: 'El centro tiene que ser una ficha de tipo centro',
+  sin_deposito: 'Este centro no tiene depósito: déjale material desde su ficha o elige el material de quien asiste', sin_almacen: 'Quien asiste no tiene almacén propio con material',
+  hecha: 'La intervención ya está hecha: no se puede cambiar', sin_stock: 'No hay bastante en el almacén de la intervención', series: 'Hay más números de serie que unidades',
+  linea: 'Revisa las unidades de cada línea', vacio: 'Apunta al menos una unidad usada', anulada: 'La intervención está anulada', no_hecha: 'Primero registra lo usado',
+  sin_origen: 'No hay almacén central del que reponer', cirujano: 'Elige un responsable de tu empresa', asistente: 'Quien asiste tiene que ser una persona activa del equipo',
+  valores: 'Revisa de dónde sale el material' };
+
+const cirError = r => CIR_ERR[r && r.error] || 'No se ha podido guardar';
 // pantallas/clientes.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -4185,6 +5629,29 @@ async function bajaCliente(id, baja) {
   if (TAB === 'pacientes' && typeof listaPacientes === 'function') listaPacientes();
   return true;
 }
+
+const PAC = { q: '', medico: null, medicoNombre: '', pagina: 0 };
+
+const tarjetaPaciente = c => `<div class="selcard"><span class="ic">🧑</span>
+  <span class="tx"><b>${esc(c.nombre)}</b>
+    ${[c.direccion, [c.cp, c.municipio].filter(Boolean).join(' '), c.provincia].filter(Boolean).length
+      ? `<span class="sm">📦 ${esc([c.direccion, [c.cp, c.municipio].filter(Boolean).join(' '), c.provincia].filter(Boolean).join(', '))}</span>`
+      : '<span class="sm" style="color:var(--warn)">Sin dirección de entrega</span>'}
+    <span class="sm">${esc([c.nif ? (c.tipo === 'Empresa' ? 'CIF ' : 'DNI ') + c.nif : 'Sin DNI', c.email, c.telefono || c.movil].filter(Boolean).join(' · '))}</span>
+    ${c.medico ? `<span class="sm">${TT('medico', 's', '', 'l', 'C')}: ${esc(c.medico)}</span>` : ''}</span>
+  <button type="button" class="sx" aria-label="Quitar">✕</button></div>`;
+
+// Los mismos parámetros con que listaPacientes pide la lista
+const pacParams = () => ({ q: PAC.q || null, p_medico: PAC.medico,
+  lim: tamPagina(), desplaz: PAC.pagina * tamPagina(), p_tipo: PAC.tipo || null, p_pedidos: PAC.pedidos || null,
+  p_municipio: PAC.municipio || null, ...(Object.keys(PAC.campos || {}).length ? { f_campos: PAC.campos } : {}) });
+
+/* ============================================================
+   v2.311.0 · Dar de baja y eliminar fichas (decisión de Eric; SQL 159). Al pie de la ficha de un profesional o de un centro:
+   «Dar de baja» (siempre; se deshace desde Cuentas → «⋯» → «Fichas dadas de baja») y «Eliminar la ficha» (administración o
+   nivel completo en fichas; solo si no tiene visitas, ventas, muestras, eventos… — si tiene, lo dice y ofrece la baja).
+   ============================================================ */
+const BAJA_QUE = { visitas: 'visitas', ventas: 'ventas', muestras: 'muestras entregadas', eventos: 'eventos', cirugias: 'intervenciones', concursos: 'concursos', equipos: 'equipos', portal: 'acceso al portal' };
 // pantallas/comisiones.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -4487,6 +5954,21 @@ async function cargarComerciales() {
   $('fcom').innerHTML = '<option value="">Todos</option><option value="ninguno">Sin comercial</option>' +
     COMS.map(u => `<option value="${u.id}" ${F.com === u.id ? 'selected' : ''}>${esc(u.nombre)}</option>`).join('');
 }
+
+let ESQUEMAS = [];
+
+let COMS = [];
+
+/* ============================================================
+   v2.263.0 · Liquidaciones por persona (punto 4 del plan del 11/10/2026; auditoría del manual).
+   - «Calcular el periodo» buscaba a quién liquidar por el NOMBRE (dos personas con el mismo nombre se confundían) y solo a quien
+     tenía el esquema abierto hoy. Ahora va por la persona (su id) y liquida a todos los que tuvieron un esquema vigente algún día
+     de ese mes (también a quien dejó de cobrar a mitad de mes).
+   - Además, volver a calcular un mes devolvía a «Borrador» las liquidaciones ya aprobadas o pagadas (y las descongelaba). Ahora
+     solo se recalculan las que siguen en borrador; las aprobadas y pagadas no se tocan.
+   - La lista de liquidaciones se puede ver por persona y por mes, con el total de lo que se ve.
+   ============================================================ */
+let LIQ_FIL = { u: '', p: '' };
 // pantallas/compras.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -4683,6 +6165,17 @@ function editorProveedor(p) {
     if (TAB === 'ventas' && PEDSEC === 'proveedores') pintarProveedores();
   };
 }
+
+const pillCompra = e => `<span class="pill ${e === 'Recibido' ? 'p-est' : e === 'Cancelado' ? 'p-anu' : e === 'Borrador' ? 'p-bor' : 'p-per'}">${esc(e)}</span>`;
+
+const PROVEEDORES_CORREO = {
+  google: { n: 'Google Workspace o Gmail', host: 'smtp.gmail.com', puerto: 465, seg: 'ssl', ayuda: 'Identificador: la dirección de correo. Clave: una «contraseña de aplicación» (Cuenta de Google → Seguridad → Verificación en dos pasos → Contraseñas de aplicaciones), no la contraseña normal.' },
+  microsoft: { n: 'Microsoft 365 u Outlook', host: 'smtp.office365.com', puerto: 587, seg: 'starttls', ayuda: 'La cuenta debe tener activado «SMTP autenticado» (lo activa el administrador de Microsoft 365).' },
+  mailjet: { n: 'Mailjet', host: 'in-v3.mailjet.com', puerto: 465, seg: 'ssl', ayuda: 'Identificador: la «API Key». Clave: la «Secret Key» (Mailjet → Account settings → API Key Management). El email del remitente debe estar validado en Mailjet.' },
+  ionos: { n: 'IONOS', host: 'smtp.ionos.es', puerto: 465, seg: 'ssl', ayuda: 'Identificador: la dirección de correo completa. Clave: la contraseña del buzón.' },
+  ovh: { n: 'OVHcloud', host: 'ssl0.ovh.net', puerto: 465, seg: 'ssl', ayuda: 'Identificador: la dirección de correo completa. Clave: la contraseña del buzón.' },
+  otro: { n: 'Otro proveedor', host: '', puerto: 465, seg: 'ssl', ayuda: 'Pide a tu proveedor el servidor de salida (SMTP), el puerto y el tipo de seguridad.' }
+};
 // pantallas/concursos.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -4877,6 +6370,28 @@ function editorAvisosVencimiento() {
     CON_AVISOS = dias; $('dlg').close(); toast('Avisos guardados');
   };
 }
+
+/* v2.200.0 · Concursos y contratos (tercera tanda del estudio por sectores, SQL 126). Decisiones de Eric: al ganar un lote, sus precios se
+   aplican solos en los pedidos de esa ficha mientras el contrato está en vigor; los días de aviso antes de que venza los elige cada empresa.
+   - Menú «Concursos» (en «Ventas»): «En marcha» (en estudio y con la oferta enviada, por fecha límite), «Contratos» (adjudicados, con lo que les queda)
+     y «Cerrados»; «+ Nuevo concurso» y, para la administración, «Avisos de vencimiento».
+   - Ventana del concurso: datos, estado, fechas del contrato y sus lotes (estado, importes, adjudicatario si se pierde) con los productos
+     y precios de cada lote.
+   - Pedidos: si la ficha tiene un contrato en vigor, el precio de sus productos es el adjudicado («Precio de concurso»).
+   - Ficha: sus concursos. Los avisos de vencimiento abren el concurso. */
+const CON_ESTADOS = ['En estudio', 'Oferta enviada', 'Adjudicado', 'Perdido', 'Desierto'];
+
+const conPill = e => `<span class="pill ${e === 'Adjudicado' ? 'p-est' : e === 'Perdido' || e === 'Desierto' ? 'p-anu' : e === 'Oferta enviada' ? 'p-per' : 'p-warn'}">${esc(e)}</span>`;
+
+const conVence = c => c.prorroga_hasta || c.fin || null;
+
+const conQuedan = c => { const v = conVence(c); return v ? Math.round((new Date(v + 'T12:00:00') - new Date(hoyISO() + 'T12:00:00')) / 864e5) : null; };
+
+let CON_AVISOS = [90, 30];
+
+const conPrecioContrato = p => { const x = p && p.id && PED_PRECIOS.precios[p.id]; return x ? Object.assign({}, p, { precio: +x.precio, contrato: x.concurso }) : p; };
+
+const EQ_CONTRATOS = ['Venta', 'Alquiler', 'Cesión'];
 // pantallas/configuracion.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -6785,6 +8300,223 @@ async function facccon(uid) {
   const a = (data || []).find(x => x.id === uid);
   el.textContent = a ? conexionTxt(a, true) : '';
 }
+
+/* v2.69.0 · Permisos por capacidad. El código pregunta qué puede hacer una persona (puede('administrar')),
+   nunca cómo se llama su rol: los roles y sus capacidades son datos de cada cliente (tablas roles y roles_capacidades). */
+const ROLKEY = 'dlc-roles';
+
+let ROLES_DEF = [];
+
+const rolDef = r => ROLES_DEF.find(x => x.nombre === r) || null;
+
+const rolPuede = (r, c) => { const d = rolDef(r); return !!(d && (d.capacidades || []).includes(c)); };
+
+const rolesNombres = () => ROLES_DEF.map(x => x.nombre);
+
+const rolCon = c => (ROLES_DEF.find(x => (x.capacidades || []).includes(c)) || {}).nombre || '';
+
+const rolPorDefecto = () => (ROLES_DEF.find(x => x.por_defecto) || ROLES_DEF.find(x => !(x.capacidades || []).includes('administrar')) || {}).nombre || '';
+
+let CATS_ABIERTOS = {};
+
+const marca = paso => console.info(`[App] ${paso} · ${Math.round(performance.now() - T0)} ms`);
+
+let AJUSTES = {};
+
+const salidaUsuario = () => prefsActivas().salida || { nombre: `la ${TT('visita', 's', 'primer', 'l', 'l')}`, lat: null, lon: null, falta: true };
+
+let ABRIR_PLAN_SEMANA = false;
+
+const zonasMarcadas = () => [...$('dbody').querySelectorAll('#uzonas [data-zp]:checked')].map(x => x.dataset.zp).sort();
+
+let LOGO_DATA = null;
+
+let PANEL_ACTIVO = null;
+
+const CFG_DE_MODULO = { agenda: 'horario', rutas: 'horario', admin: 'usuarios', facturacion: 'fiscal', inicio: 'kpis', config: 'prefs', directorio: 'cat', ventas: 'cat', permisos: 'usuarios', medico: 'usuarios', roles: 'usuarios' };
+
+let USR_F = { q: '', rol: '', est: 'activos' };
+
+const plantillaRol = r => Object.assign({}, (rolDef(r) || {}).plantilla || {}, (AJUSTES.roles || {})[r] || {});
+
+const CFG_ADMIN = { usuarios: 'usuarios', comisiones: 'comis', accesos: 'accesos', auditoria: 'auditoria' };
+
+let NOTIF_N = 0;
+
+const LOGO_NEUTRO = 'logo-app.png';
+
+let CFG_SUB = null;
+
+// Nombres anteriores de cada apartado → dónde está ahora
+const CFG_ANTES = { prefs: ['perfil'], horario: ['rutas', 'horario'], kpis: ['inicio', 'kpis'], usuarios: ['equipo', 'usuarios'],
+  roles: ['equipo', 'roles'], reglas: ['cartera', 'reglas'], frec: ['cartera', 'frec'], accesos: ['seguridad', 'accesos'], auditoria: ['seguridad', 'auditoria'],
+  alm: ['stock', 'alm'], mues: ['stock', 'mues'], fiscal: ['fact', 'fiscal'], series: ['fact', 'series'], vf: ['fact', 'vf'] };
+
+// Registro de facturación: el detalle de cada evento en texto legible
+const NOMBRES_DETALLE = { importe: 'Importe', forma: 'Forma de pago', motivo: 'Motivo', para: 'Para', asunto: 'Asunto', clave: 'Ajuste', total: 'Total', serie: 'Serie', numero: 'Número' };
+
+/* ============================================================
+   v2.72.0 · Motor de campos personalizados (fase 2 de la auditoría)
+   Cada cliente define sus campos (tipo, obligatorio, dónde se ven) en
+   Configuración → Catálogos, y la plataforma genera los formularios,
+   las columnas y los filtros. Los valores se guardan con guardar_campos().
+   ============================================================ */
+const CAMPOS = { medico: [], cliente: [], producto: [], pedido: [] };
+
+// Campos de la pantalla: primero los marcados como «Filtro», después el resto (en su orden)
+const clasCampos = amb => [...(CAMPOS[amb] || [])].sort((a, b) => (b.en_filtro ? 1 : 0) - (a.en_filtro ? 1 : 0));
+
+const PUESTA_EN_MARCHA = 490;
+
+const precioPlan = p => p.presupuesto ? 'presupuesto a medida' : `${eurI(p.precio)} por usuario al mes, ${eurI(p.anual)} con pago anual`;
+
+// Usuarios contratados (A medida o sin dato: sin límite)
+const usuariosContratados = () => PLAN_ACTUAL.plan === 'medida' || PLAN_ACTUAL.usuarios == null ? Infinity : +PLAN_ACTUAL.usuarios;
+
+/* v2.123.0 · Historial de cambios y deshacer (administración). La base guarda cada cambio con su valor de antes; aquí se ve por
+   ficha y se deshace: un cambio, o todo lo que una persona cambió desde una fecha. Solo fichas, consultas, clientes, productos y
+   rutas (pedidos, facturas, usuarios y cartera tienen efectos en stock, facturación, comisiones o permisos). */
+const DESHACIBLES = ['cuentas', 'ubicaciones', 'contactos', 'productos', 'rutas'];
+
+const deshacible = a => DESHACIBLES.includes(a.entidad) && ['Edición', 'Baja'].includes(a.accion);
+
+const MOTIVO_DESHACER = { permiso: 'No tienes permiso', no_existe: 'Ese cambio ya no está en el registro', no_deshacible: 'Ese tipo de cambio no se puede deshacer',
+  ya_no_existe: 'El registro ya no existe', ya_existe: 'Ya estaba recuperado' };
+
+/* v2.133.0 · Entorno de pruebas: «Traer los datos de producción». Junto a «Volver a los datos de partida» (y para quien puede
+   usarlo), pide a la función «refrescar-pruebas» de Supabase que lance el proceso de GitHub que copia los datos actuales de
+   producción (solo los lee) y los deja como nuevos datos de partida. La franja enseña en qué punto está y recarga al terminar. */
+const MOTIVO_REFRESCO = { permiso: 'Solo la administración puede traer los datos de producción', responsable: 'Solo la persona responsable del entorno de pruebas puede hacerlo',
+  en_marcha: 'Ya se están copiando los datos de producción', github: 'No se ha podido lanzar la copia en GitHub', no_es_pruebas: 'Esto solo funciona en el entorno de pruebas' };
+
+let REFRESCO_VIGILA = null;
+
+const NOTIF_AREAS = [
+  ['ventas', 'Ventas', ['reponer', 'caida_ventas', 'pedido_portal', 'venta_cartera', 'pauta', 'pedido_validado', 'pago_recibido', 'borrador_nuevo', 'cliente_nuevo']],
+  ['cartera', 'Cartera y agenda', ['citas_hoy', 'visita_sin_registrar', 'seguimientos_hoy', 'sin_visitar', 'cartera', 'cruce', 'duplicado', 'portal']],
+  ['cobros', 'Cobros y stock', ['pagos_pendientes', 'facturas_vencidas', 'stock_minimo', 'lotes_caducan', 'compra_recibida', 'rectificativa']],
+  ['equipo', 'Equipo', ['usuario_nuevo', 'esquema']]
+];
+
+// Los que se preparan al empezar el día: solo tienen «en el resumen»
+const NOTIF_DIARIOS = ['citas_hoy', 'seguimientos_hoy', 'pagos_pendientes', 'facturas_vencidas', 'lotes_caducan', 'sin_visitar', 'reponer', 'caida_ventas', 'visita_sin_registrar'];
+
+const notifArea = t => (NOTIF_AREAS.find(a => a[2].includes(t)) || ['otros'])[0];
+
+/* v2.167.0 · «Pedir presupuesto» dentro de delcos (petición de Eric: nada de abrir el correo ni llevar al cliente fuera). Un formulario con
+   la imagen de la plataforma: el contacto ya relleno, qué buscan (opciones que se marcan, sin cerrar nada: siempre hay «Cuéntanos con tus
+   palabras»), tamaño, cuándo y cómo prefieren que les contactemos. Se guarda (pedir_presupuesto, SQL 104), delcos recibe un aviso al
+   momento y la empresa ve en «Plan y suscripción» en qué punto está. Con A medida, el mismo formulario sirve para hablar del contrato.
+   En el panel de delcos, pestaña «Solicitudes» con su estado y una nota. */
+const PRESU_NECESITA = [
+  ['usuarios', 'Más de 50 usuarios'], ['migracion', 'Migrar nuestros datos'], ['conexion', 'Conectar con nuestro programa (ERP, CRM, contabilidad…)'],
+  ['portal', 'Portal para muchos profesionales o centros'], ['desarrollo', 'Algo hecho a nuestra medida'], ['formacion', 'Formación del equipo'],
+  ['soporte', 'Soporte prioritario'], ['otro', 'Otra cosa']];
+
+const PRESU_CUANDO = ['Lo antes posible', 'Este trimestre', 'Más adelante', 'Solo me estoy informando'];
+
+const PRESU_ESTADO = { 'Nueva': 'Recibida', 'En curso': 'En curso', 'Cerrada': 'Atendida' };
+
+const CFG_VIEJO = { prefs: 'rutas.salida', perfil: 'datos', datos: 'datos', notif: 'notif', horario: 'rutas.horario', kpis: 'inicio.kpis', usuarios: 'usuarios',
+  roles: 'roles', equipo: 'usuarios', reglas: 'cartera.reglas', frec: 'cartera.frec', accesos: 'seguridad.accesos', auditoria: 'seguridad.auditoria',
+  alm: 'stock.alm', mues: 'stock.mues', marca: 'o.marca', __empresa: 'o.marca', empresa: 'o.marca', correo: 'o.correo', copias: 'o.copias', plan: 'o.plan',
+  fact: 'o.fiscal', fiscal: 'o.fiscal', series: 'o.series', vf: 'o.vf', pdf: 'o.pdf', orgs: 'o.orgs' };
+
+const CFG_CLAVES = { datos: 'nombre teléfono idioma perfil contraseña sesión cerrar', notif: 'avisos campana silencio resumen',
+  'rutas.salida': 'salida llegada casa oficina navegar google maps waze', 'rutas.horario': 'tiempos minutos duración parada',
+  'inicio.kpis': 'indicadores kpi inicio', usuarios: 'personas equipo alta invitar cartera zona', roles: 'permisos capacidades',
+  comis: 'comisiones esquemas tramos', 'o.marca': 'logo nombre vocabulario términos palabras', 'o.correo': 'smtp firma remitente email correo',
+  'o.plan': 'suscripción pago tarjeta usuarios precio', 'o.copias': 'copia seguridad descargar exportar', 'o.fiscal': 'nif razón social dirección',
+  'o.series': 'numeración factura', 'o.vf': 'verifactu hacienda', 'o.pdf': 'factura diseño logo colores', cat: 'clasificadores listas valores especialidades motivos',
+  portal: 'portal material pedir' };
+
+// v2.340.0 (Eric): cada apartado es una sola entrada del índice; sus partes (Rutas: salida y tiempos…) van dentro, en pestañas
+const hojasCfg = arbol => arbol.flatMap(([gr, l]) => l.map(it => Object.assign({ gr }, it)));
+
+let CFG_PEND = { t: 0, l: {} };
+
+const LUPA_CFG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>';
+
+let CFG_DETALLE = false;
+
+let CFU_RAF = 0;
+
+/* v2.216.0 · Tu cuenta y Empresa en filas de ajuste (segunda versión del rediseño de Configuración).
+   pulirCfg() se aplica al contenido de cada apartado mientras se pinta (MutationObserver de #cfgcuerpo), sin tocar cómo guarda cada uno:
+   - Las tarjetas que solo presentan el apartado desaparecen y su texto pasa a la cabecera; el título repetido de la primera tarjeta se oculta.
+   - Tiempos de visita y el aviso de Salida y llegada: filas de ajuste con el número compacto a la derecha.
+   - Marca y vocabulario: el vocabulario, en su propia tarjeta como tabla (singular, plural y género por fila), con el nombre del módulo.
+   - Correo y firma: arriba, el estado del correo y «Enviar un correo de prueba»; la vista previa de la firma acompaña al desplazarse.
+   - Copias de seguridad: el estado y «Descargar copia completa» en la misma fila. */
+const CFG_PULIR = ['datos', 'rutas.salida', 'rutas.horario', 'inicio.kpis', 'o.marca', 'o.correo', 'o.plan', 'o.copias'];
+
+const notifIco = t => (TIPOS_NOTIF.find(x => x[0] === t) || [])[1] || '🔔';
+
+/* v2.235.0 · Textos personalizados (Eric eligió la A de https://claude.ai/artifact/6uxwD5zLEbd3krk1QMeoPF; SQL 140).
+   - Configuración → Empresa → «Textos personalizados»: una lista con buscador y filtros con todo lo que cada empresa puede llamar a
+     su manera: vocabulario (ajuste terminos), nombres del menú (ajuste menu_nombres; el de las fichas es marca.etiqueta), estados
+     comerciales y resultados de visita (renombrar_texto: también en las fichas y en las visitas ya registradas), roles y campos.
+   - Los nombres del menú se aplican en el menú lateral, la barra del móvil, «Más» y el título de cada pantalla. */
+const TX_IC = { rv: '<path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/>', lupa: '<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>' };
+
+const txSV = d => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + d + '</svg>';
+
+let TX_OBS = 0;
+
+let TX = null;   // {filas, filtro, q}
+
+const TX_G = [['voc', 'Vocabulario', 'Las palabras que salen en todos los textos. En blanco, la de siempre.'],
+  ['menu', 'Menú', 'El nombre de cada apartado del menú y de su pantalla. En blanco, el de siempre.'],
+  ['est', 'Estados y resultados', 'Al cambiar un nombre, se cambia también en las fichas y en las visitas que ya lo tienen.'],
+  ['rol', 'Roles', 'El nombre de cada rol. Sus usuarios y permisos siguen igual.'],
+  ['campo', 'Campos de la ficha', 'El nombre de cada campo personalizado.']];
+
+const txCambiada = f => f.g === 'voc' ? (f.s !== f.s0 || f.p !== f.p0) : (f.v || '') !== (f.v0 || '');
+
+const txPersonal = f => f.g === 'voc' ? !!(f.s || f.p) : f.g === 'menu' ? !!f.v : false;
+
+/* ============================================================
+   v2.306.0 · Textos de los correos a los clientes (revisión de Eric con un correo real: al cliente le llegó «IBAN: (añade el
+   IBAN…)», la despedida repetía lo que ya dice la firma y el concepto no era su nombre). Cada empresa escribe sus textos en
+   Configuración → Correo y firma → «Textos de los correos», con huecos como [nombre] o [iban] que se rellenan al enviar.
+   Se guardan en el ajuste plantillas_correo. Sin IBAN no se envían los datos de pago. La despedida y los teléfonos van solo en la firma.
+   ============================================================ */
+const PLANT_CORREO = {
+  pago: { titulo: 'Datos de pago por transferencia', asunto: '[Documento] [numero] de [empresa] para [nombre]',
+    texto: 'Hola [nombre_pila]:\n\nGracias por tu pedido [numero], por un importe de [importe].\n\nPara completarlo, haz una transferencia bancaria con estos datos:\n\nBeneficiario: [beneficiario]\nIBAN: [iban]\nImporte: [importe]\nConcepto: [nombre]\n\nIndica el concepto tal como aparece arriba: así identificamos el pago enseguida y no se retrasa la preparación del pedido.\n\nEn cuanto recibamos el pago preparamos el envío.' },
+  factura: { titulo: 'Envío de la factura', asunto: '[Documento] [numero] de [empresa] para [nombre]',
+    texto: 'Hola [nombre_pila]:\n\nTe adjuntamos la [documento] [numero] de tu pedido, por un importe de [importe].\n\nGracias por tu confianza. Si tienes cualquier duda, estaremos encantados de ayudarte.' }
+};
+
+const VARS_CORREO = [['nombre', 'Nombre completo del cliente'], ['nombre_pila', 'Solo el nombre de pila'], ['empresa', 'Vuestra razón social'], ['documento', 'pedido o factura'],
+  ['Documento', 'Pedido o Factura'], ['numero', 'Número del pedido o la factura'], ['importe', 'Importe total'], ['beneficiario', 'Titular de la cuenta (razón social)'], ['iban', 'IBAN de los datos fiscales']];
+
+/* ============================================================
+   v2.342.0 · Plantillas de correo y de PDF (Eric, 20/10/2026: «que el usuario vaya creando las que quiera, con el nombre que quiera»;
+   eligió que al enviar salga la de por defecto y se pueda cambiar).
+   - Correo: ajuste plantillas_correo.lista = [{ id, nombre, uso: pago|factura, asunto, texto, defecto }]. Sin lista, las dos de
+     siempre (y los textos guardados antes). Configuración → Correo y firma → «Plantillas de correo»: crear, editar, duplicar,
+     eliminar y elegir la de por defecto de cada uso. Al enviar los datos de pago o la factura, si hay más de una, se elige.
+   - PDF: ajuste factura_pdf_plantillas = { lista: [{ id, nombre, cfg }], defecto }. factura_pdf sigue siendo el de por defecto (lo usa
+     también la base, en la proforma del portal). En «Diseño del PDF», una barra para elegir la plantilla, crear, renombrar, eliminar
+     y hacerla la de por defecto. Al descargar o enviar una factura, si hay más de una, se elige.
+   ============================================================ */
+const USOS_CORREO = { pago: 'Datos de pago', factura: 'Envío de la factura' };
+
+const idPlant = () => 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
+
+const plantillasCorreo = uso => listaCorreos().filter(x => x.uso === uso);
+
+const cfgDePlantilla = id => { const p = listaPDF().lista.find(x => x.id === id); const c = (p && p.cfg) || {};
+  return Object.assign({}, PDF_DEF, c, { cols: Object.assign({}, PDF_DEF.cols, c.cols || {}) }); };
+
+let CFG_SEC_ACT = null;
+
+const cfgEstable = (el, max) => new Promise(ok => {
+  let t = 0, fin = 0; const ob = new MutationObserver(() => { clearTimeout(t); t = setTimeout(listo, 150); });
+  const listo = () => { if (el.querySelector('.cfgcarga, .giro, .spin')) { t = setTimeout(listo, 150); return; } ob.disconnect(); clearTimeout(fin); ok(); };
+  ob.observe(el, { childList: true, subtree: true, attributes: true }); t = setTimeout(listo, 200); fin = setTimeout(() => { ob.disconnect(); clearTimeout(t); ok(); }, max || 5000);
+});
 // pantallas/cuentas.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -7733,6 +9465,65 @@ function fila(m) {
     <span class="pill p-est">${esc(m.estado_comercial)}</span>
   </button>`;
 }
+
+const consultaPrivada = (cn = 'C') => TT('consulta', 's', '', 'l', cn, 'privado');
+
+const F = { q: '', prov: '', muni: '', esp: '', est: '', urg: false, orden: 'nombre', pagina: 0, total: 0, campos: {} };
+
+let FICHA_ID = null;
+
+let CERCA = null;
+
+let OPF = { provincias: [], municipios: [], especialidades: [], estados: [], centros: [] };
+
+const optFiltro = (lista, v, todo) => `<option value="">${todo}</option>` +
+  (lista || []).map(o => `<option ${v === o.v ? 'selected' : ''}>${esc(o.v)} (${o.n})</option>`).join('');
+
+let FICHA_PAC = null;
+
+const tarjetaMedico = m => `<div class="selcard"><span class="ic">👤</span>
+  <span class="tx"><b>${esc(m.nombre)}</b>
+    <span class="sm">${esc([m.especialidad, m.centro_nombre || m.centro, m.municipio].filter(Boolean).join(' · '))}</span>
+    ${m.codigo ? `<span class="sm">Código ${esc(m.codigo)}</span>` : ''}</span>
+  <button type="button" class="sx" aria-label="Quitar">✕</button></div>`;
+
+const ES_MEDICO = () => puede('portal_prescriptor');
+
+const cpCampo = (box, i, f) => box.querySelector(`[data-cf="${i}|${f}"]`);
+
+/* ============================================================
+   v2.102.0 · «Tu día» por centros
+   Las citas seguidas en un mismo centro se agrupan bajo el centro (como las
+   paradas del plan). Y la ficha abierta desde una cita muestra en «Para la
+   visita» la consulta de ESE centro. (El SQL 79 pone la base en hora de España.)
+   ============================================================ */
+let FICHA_CENTRO = null;   // centro de la cita desde la que se abre la ficha
+
+const NOMBRE_ESTADO_CENTRO = { 'Pendiente de confirmar': 'p-warn', Confirmado: 'p-est', 'Pendiente de validar': 'p-warn', Validado: 'p-est',   // v2.349.0 (SQL 176); los dos de antes, por si la base aún no lo tiene
+  Preparado: 'p-per', Anulado: 'p-anu' };
+
+/* v2.177.0 · Ficha de centro (decisión de Eric, 5/10/2026): los centros dados de alta salen en el buscador (SQL 111, buscar_global con id) y al
+   pulsarlos se abre su ficha: dirección, teléfono, cómo llegar, horario y la lista de profesionales que atienden allí (ficha_centro), con
+   «+ Añadir» (centro_anadir_profesional: enlaza o crea su consulta en el centro), y en cada uno Ficha, «+ Cita» en ese centro y «Quitar»
+   (centro_quitar_profesional: quita esa consulta de su ficha). «Editar centro» corrige sus datos y su horario (guardar_centro). */
+const HOR_TXT = h => DIAS_SEM.filter(([d]) => h && h[d]).map(([d, n]) => `${n} ${h[d]}`).join(' · ');
+
+/* v2.189.0 · La consulta privada tiene su propia ficha (aviso de Eric: al elegir «Consulta privada (sin centro)» no se podía poner ni la dirección:
+   esos datos de la consulta solo los rellenaba un centro). Ahora una consulta sin centro cuyo nombre empieza por «Consulta privada» se ve como tal
+   (no como «Sin enlazar») y tiene «Editar la consulta» / «Añadir la dirección»: dirección, código postal, población, provincia y su punto en el mapa
+   (buscando la dirección o con «Estoy aquí»). Planta, sala, indicaciones, teléfono y horario siguen debajo, como en cualquier consulta.
+   Se guarda con la ficha (en la consulta del profesional; no crea un centro compartido). */
+const esConsultaPrivada = c => { if (c && c.id) return false; const n = String((c && c.nombre) || '').trim().toLowerCase();   // v2.347.0: con cualquier palabra del vocabulario
+  return /^(consulta|ubicaci[oó]n) privad[ao]/.test(n) || n.startsWith(consultaPrivada('l').toLowerCase()); };
+
+/* ============================================================
+   v2.241.0 · Volver, pestañas, pasos y fichas: una sola forma (Eric eligió la A «Ligera» de
+   https://claude.ai/artifact/SYZkDbbm8dtSRTUWEN5TE4). «‹ Destino» como enlace encima del título; pestañas en caja segmentada;
+   pasos de los asistentes en barra numerada; y la ficha de un registro (pedido, factura, evento, intervención, concurso, equipo, centro,
+   stock, depósito) en panel lateral en el ordenador, como la de un contacto: la lista sigue a la vista. Los formularios y las
+   ventanas anchas (comparar, importar…) siguen como estaban, y Configuración sigue sin ventanas emergentes.
+   ============================================================ */
+let FX_FICHA = 0;
 // pantallas/eventos.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -7880,6 +9671,29 @@ async function pintarTransparencia(anio) {
     a.download = `informe de gastos-${anio}.csv`; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
   };
 }
+
+/* v2.195.0 · Eventos, formación e informe de gastos (última pieza de la primera tanda del estudio por sectores, SQL 121). Decisiones de Eric:
+   sección propia «Eventos» (en el bloque Cartera del menú), importe por concepto por asistente con informe anual de gastos, y en los
+   planes Comercial, Empresa y A medida (candado en Campo, como Compras).
+   - Eventos → «Eventos»: próximos y pasados; «+ Nuevo evento» (título, tipo, fecha, hora, lugar o en línea, nota); al abrir uno, sus
+     asistentes con su estado y lo que se le da a cada uno (inscripción, viaje y alojamiento, comidas, honorarios), con aviso si una comida
+     pasa de 60 € por persona.
+   - Eventos → «Informe de gastos» (administración o quien ve todo el equipo): por año, lo dado a cada profesional por concepto, para descargar.
+   - Ficha: bloque «Eventos» con los últimos a los que ha ido o está invitado. */
+const EV_TIPOS = ['Taller', 'Curso', 'Congreso', 'Webinar', 'Reunión científica', 'Comida de trabajo', 'Otro'];
+
+const EV_ESTADOS = ['Invitado', 'Confirmado', 'Asistió', 'No asistió'];
+
+const EV_CONCEPTOS = [['inscripcion', 'Inscripción'], ['viaje', 'Viaje y alojamiento'], ['comida', 'Comidas'], ['honorarios', 'Honorarios']];
+
+const EV_COMIDA_MAX = 60;
+
+const evTotal = a => EV_CONCEPTOS.reduce((s, [k]) => s + (+a[k] || 0), 0);
+
+const verTransparencia = () => puede('administrar') || VE_TODO();
+
+// Editar una visita: cómo fue y productos presentados (actualizar_actividad los guarda desde el SQL 128)
+let EV_EXTRA = null;
 // pantallas/facturacion.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -8291,6 +10105,43 @@ async function elegirPlantillaPDF() {
 }
 
 function emitir(inp) { inp.dispatchEvent(new Event('input', { bubbles: true })); inp.dispatchEvent(new Event('change', { bubbles: true })); }
+
+// v2.113.0 · Unidades de la ficha por semana (12), mes (12) o año (5)
+const UDS_SERIES = [['semana', 'Semana'], ['mes', 'Mes'], ['anio', 'Año']];
+
+let FSEC = 'facturas';
+
+const pillCobro = e => `<span class="pill ${e === 'Cobrada' ? 'p-est' : e === 'Vencida' ? 'p-anu' : 'p-bor'}">${esc(e)}</span>`;
+
+const refrescarFacturas = () => { if (TAB === 'facturacion' && FSEC === 'facturas' && $('flista')) pintarFacturas(); };
+
+const fac = fn => () => { $('cfgcuerpo').innerHTML = '<div id="fcuerpo"></div>'; fn(); };
+
+const FAC_CONFIG = [['empresa', 'Datos fiscales'], ['series', 'Series y numeración'], ['verifactu', 'VeriFactu'], ['registro', 'Registro']];
+
+let FAC_ULTIMA = 'empresa';
+
+/* v2.121.0 · Página «Organización» (menú de usuario, arriba): marca, correo, copias, plan y facturación de la empresa, solo para el
+   Propietario (configurar_organizacion) y el Administrador de la plataforma (gestionar_plataforma). Empresa y Plan pasan a ser
+   pestañas suyas; Configuración se queda con lo del día a día. Y en escritorio, las ventanas de Configuración y de estas páginas
+   se abren dentro del área de contenido, no por encima. */
+// Las pestañas de facturación usan #fcuerpo, como el módulo Facturación: su pantalla se vacía para no tener dos (se rehace al volver)
+const facOrg = fn => () => { const v = $('v-facturacion'); if (v) v.innerHTML = ''; fac(fn)(); };
+
+const facSinPlan = () => { try { return !['empresa', 'medida'].includes((PLAN_ACTUAL || {}).plan); } catch (e) { return false; } };
+
+/* ---------------- Analítica: cifras que cuentan y línea de seis meses ---------------- */
+const AN_SERIE = new Map();
+
+/* ============================================================
+   v2.348.0 · Estados del pedido (Eric: A + B de https://claude.ai/artifact/TNX2JSHkXP6thEzunyUZ8b). «Validado» decía que el
+   pedido estaba bien hecho, no que estuviera cobrado, y el indicador «Pagos por validar» usaba la misma palabra. Ahora:
+   A · el estado es «Confirmado» y el cobro va aparte (Pendiente de cobro / Cobrado / Sin cargo);
+   B · en la lista, el estado dice qué le falta: Borrador, Esperando pago, Por cobrar, Por preparar, Por facturar, Completado
+   o Anulado. Se calcula con lo que ya se guarda. Con contrarreembolso se prepara antes de cobrar; con las demás formas de
+   pago, primero se cobra (así, en «Pendientes de cobro» todos dicen «Por cobrar»).
+   ============================================================ */
+const cobroDe = p => p.sin_cargo || sinCargoP(p, p.total) ? 'Sin cargo' : p.pago_estado === 'Cobrado' || p.pago_validado_en ? 'Cobrado' : 'Pendiente de cobro';
 // pantallas/importar.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -8518,6 +10369,20 @@ async function pintarImportaciones() {
       ${x.estado !== 'Deshecha' ? `<button class="btn sec" type="button" data-impdes="${x.id}">${svgIco(ICON_NOM['undo-2'])} Deshacer</button>` : '<span></span>'}</div>`).join('') || '<div class="vacio">Aún no se ha importado ningún archivo.</div>'}</div></div>`;
   $('cfgcuerpo').querySelectorAll('[data-impdes]').forEach(b => b.onclick = () => impDeshacer(b.dataset.impdes));
 }
+
+const IMP_TIPOS = () => [
+  ['clientes', 'Clientes', `${TT('paciente', 'p', '', 'l', 'C')} y empresas: datos de contacto y facturación`, 'users'],
+  ['productos', 'Productos', 'Catálogo: referencias, precios, IVA y costes', 'package'],
+  ['prescriptores', etiquetaContactos(), `${TT('medico', 'p', '', 'l', 'C')} y sus centros`, 'stethoscope'],
+  ['ventas', 'Ventas', 'Histórico de ventas con sus líneas de producto', 'shopping-cart']];
+
+const impNorm = t => String(t == null ? '' : t).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
+
+const impClave = t => impNorm(t).toUpperCase().replace(/ /g, '_').slice(0, 40) || 'CAMPO';
+
+const impHash = s => { let h = 5381; for (const c of s) h = ((h << 5) + h + c.charCodeAt(0)) | 0; return (h >>> 0).toString(36); };
+
+let IMP = null;   // estado del asistente
 // pantallas/inicio.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -9042,6 +10907,32 @@ async function verOcultas() {
     if (TAB === 'inicio') cargarInicio();
   });
 }
+
+let ALERTAS_OCULTAS = null;
+
+const tituloAlerta = s => s.textContent.replace(/\s+/g, ' ').replace(/^\s*\d+\s*/, '').replace(/\bequipo\b\s*$/, '').trim();
+
+const normAl = t => String(t).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').slice(0, 60);
+
+const SALUDOS = { en: ['Good morning', 'Good afternoon', 'Good evening'], de: ['Guten Morgen', 'Guten Tag', 'Guten Abend'], fr: ['Bonjour', 'Bon après-midi', 'Bonsoir'], it: ['Buongiorno', 'Buon pomeriggio', 'Buonasera'] };
+
+const kvSvg = (d, w = 2.4) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+
+const kvMas = (f, n) => { const d = new Date(f + 'T12:00:00'); d.setDate(d.getDate() + n); return isoLocal(d); };
+
+const kvLunes = f => { const d = new Date(f + 'T12:00:00'); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return isoLocal(d); };
+
+const kvMin = h => { const m = String(h || '').match(/(\d{1,2}):(\d{2})/); return m ? +m[1] * 60 + +m[2] : null; };
+
+const KV_COL = { inicial: '#C9D7E6', avance: '#3F82C0', interes: '#17457A', positivo: '#1E7A4C', negativo: '#94A3B8' };
+
+const KV_DN = ['D', 'L', 'M', 'X', 'J', 'V', 'S'];
+
+const mosEur = n => Math.round(+n || 0).toLocaleString('es-ES') + ' €';
+
+const mosIco = n => svgIco(ICON_NOM[n] || ICON_NOM.info);
+
+let MOS_TURNO = 0;
 // pantallas/manual.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -9197,6 +11088,30 @@ async function volverDelManual() {
   }
   window.scrollTo(0, v.y);
 }
+
+const MOD_DE_MANUAL = { agenda: 'agenda', rutas: 'rutas', directorio: 'directorio', ventas: 'ventas', facturacion: 'facturacion', analitica: 'analitica', productos: 'productos', pacientes: 'pacientes', seguimiento: 'seguimiento' };
+
+/* v2.204.0 · Manual nuevo: un libro aparte en manual/ (decisiones de Eric: se abre desde la app, fotos y vídeos de la empresa de demostración,
+   con el vocabulario de cada empresa, y por capítulos; el primero, «Tu día»).
+   - «Manual de uso» abre el libro en otra pestaña; antes deja en el navegador las palabras de la empresa (médico, visita, paciente) y su nombre.
+   - Cada pantalla lleva un «?» junto al título que abre el manual en su capítulo (los que aún no están escritos abren la portada).
+   - El portal del profesional sigue con su manual de siempre hasta que tenga capítulo. */
+const MANUAL_ANCLA = { inicio: 'inicio', agenda: 'agenda', rutas: 'rutas', ciclo: 'ciclo', cirugias: 'cirugias', directorio: 'directorio', seguimiento: 'calidad',
+  duplicados: 'duplicados', eventos: 'eventos', pacientes: 'clientes', ventas: 'pedidos', oportunidades: 'oportunidades', compras: 'compras', proveedores: 'proveedores', concursos: 'concursos', parque: 'parque', productos: 'productos',
+  facturacion: 'facturacion', analitica: 'analitica', config: 'ajustes', perfil: 'perfil', empresa: 'organizacion', plan: 'plan', organizacion: 'organizacion', usuarios: 'usuarios' };
+
+/* v2.211.0 · El manual, dentro de la app (decisión de Eric, opción B: sin abrir otra pestaña y con el mismo peso).
+   - «Manual de uso» y el «?» de cada pantalla llevan a la pantalla «manual», que enseña el libro (manual/index.html?app=1) en un marco a todo el
+     ancho; el libro solo se descarga al abrirlo, capítulo a capítulo. Si ya se está en el manual, el «?» solo mueve el libro a su sección.
+   - El portal del médico sigue con su manual de siempre (cargarManual original).
+   - window.MANUAL_ULTIMA guarda la última dirección pedida (la usan las pruebas). */
+let MANUAL_DESTINO = '';
+
+/* v2.224.0 · Volver desde el manual al punto exacto (aviso de Eric: al pulsar un «?» y llegar al manual faltaba una flecha para volver).
+   - Al entrar en el manual desde otra pantalla se guarda dónde estaba (MANUAL_VUELTA: pantalla y desplazamiento); la pestaña de cada página,
+     el apartado de Configuración y el día de la Agenda ya se recuerdan solos (PAG_TAB, CFG_KEY, AG_FECHA).
+   - La cabecera del manual lleva «‹ Volver a …» (#manvolver): vuelve a esa pantalla y, cuando ha terminado de pintarse, al mismo punto. */
+let MANUAL_VUELTA = null;
 // pantallas/oportunidades.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -9466,6 +11381,10 @@ async function editorOportunidad(l, previa) {
     $('dlg').close(); toast('Oportunidad guardada'); refrescar();
   };
 }
+
+let LLAMADA_PEND = null;
+
+let LL_ALTA = { motivo: '', resultado: '' };
 // pantallas/panel_delcos.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -9792,6 +11711,29 @@ async function pintarSolicitudesPlan() {
     if (r && r.ok) pintarSolicitudesPlan();
   });
 }
+
+// Empresa y Plan (y los apartados de Configuración que se han movido) llevan a su pestaña de Organización
+const ORG_DESDE = { marca: 'marca', correo: 'correo', copias: 'copias', __empresa: 'marca', empresa: 'marca', plan: 'plan', fact: 'fiscal', fiscal: 'fiscal',
+  series: 'series', vf: 'vf', pdf: 'pdf', orgs: 'orgs' };
+
+// Franja «Estás viendo X · Salir» cuando el Administrador de delcos está dentro de otra organización
+let VISTA_ORG = null;
+
+/* v2.171.0 · Panel delcos fuera de las empresas (decisión de Eric, 4/10/2026). El equipo de delcos entra con su propio usuario, que vive en
+   la organización de plataforma (SQL 107); allí la app enseña SOLO el Panel delcos, con su menú: Clientes, Solicitudes, Errores, Accesos,
+   Auditoría, Equipo delcos y Plantilla (roles y catálogos que reciben las empresas nuevas). Para ayudar a una empresa, «Entrar» desde
+   Clientes (la app normal de esa empresa, con la franja «Estás viendo…») y «Salir» vuelve al panel. plan_uso dice si es la de plataforma. */
+let MODO_PLATAFORMA = false;
+
+const PANEL_SECCIONES = [['pd-orgs', 'orgs', 'Clientes', 'building-2'], ['pd-solicitudes', 'solicitudes', 'Solicitudes', 'mail'],
+  ['pd-errores', 'errores', 'Errores', 'bug'], ['pd-accesos', 'accesos', 'Accesos', 'lock-keyhole'], ['pd-auditoria', 'auditoria', 'Auditoría', 'history'],
+  ['pd-equipo', 'equipo', 'Equipo delcos', 'users'], ['pd-plantilla', 'plantilla', 'Plantilla', 'clipboard-list']];
+
+const PANEL_DESC = { orgs: 'Las empresas que usan delcos: plan, dominios, extras y entrar a ayudarlas', cobros: 'Quién paga, quién está en prueba y qué recibos vienen',
+  altas: 'Empresas que se han dado de alta desde www.delcos.app', solicitudes: 'Presupuestos A medida y conversaciones sobre el contrato',
+  errores: 'Errores de la plataforma agrupados, de todas las empresas', estado: 'Versiones en uso, SQL aplicado y cifras generales',
+  accesos: 'Entradas y salidas de la plataforma', auditoria: 'Cambios hechos en el panel', equipo: 'Las personas de delcos con acceso al panel',
+  plantilla: 'Roles y catálogos que recibe cada empresa nueva' };
 // pantallas/parque.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -9924,6 +11866,21 @@ async function verEquipo(id) {
     verEquipo(id);
   });
 }
+
+const EQ_REV = ['Preventiva', 'Correctiva', 'Instalación'];
+
+const eqVence = e => e.contrato !== 'Venta' ? e.contrato_fin : e.garantia_hasta;
+
+const eqDias = f => f ? Math.round((new Date(f + 'T12:00:00') - new Date(hoyISO() + 'T12:00:00')) / 864e5) : null;
+
+const eqRevPill = e => { const d = eqDias(e.proxima_revision); if (e.estado === 'Retirado') return '<span class="pill p-anu">Retirado</span>';
+  return d == null ? '' : d < 0 ? `<span class="pill p-urg">Revisión pasada (${fechaCorta(e.proxima_revision)})</span>` : d <= 30 ? `<span class="pill p-warn">Revisar el ${fechaCorta(e.proxima_revision)}</span>` : `<span class="pill p-per">Próxima revisión ${fechaCorta(e.proxima_revision)}</span>`; };
+
+const eqVencePill = e => { const f = eqVence(e), d = eqDias(f); if (d == null || e.estado === 'Retirado') return '';
+  const que = e.contrato !== 'Venta' ? 'Contrato' : 'Garantía';
+  return d < 0 ? `<span class="pill p-anu">${que} vencido</span>` : d <= Math.max(...CON_AVISOS, 0) ? `<span class="pill p-urg">${que}: ${d === 0 ? 'vence hoy' : `vence en ${num(d)} ${d === 1 ? 'día' : 'días'}`}</span>` : ''; };
+
+let EQ_Q = '';
 // pantallas/pedidos.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -10715,6 +12672,127 @@ function bloqueTotales(t) {
     ${t.envio ? `<div class="sm" style="justify-content:flex-end"><span>Incluye ${esc(t.envio.nombre.toLowerCase())} de ${eurI(t.envio.con)} con IVA</span></div>` : ''}
     <div class="tot"><span>Total con IVA</span><b>${eurI(t.total)}</b></div>`;
 }
+
+const veVentas = () => PERFIL && (puede('administrar') || ((PERFIL.areas || {}).V || 0) >= 1 || puede('cartera'));
+
+let VSEC = 'pedidos';
+
+const pillEstado = e => `<span class="pill ${e === 'Borrador' ? 'p-bor' : e === 'Anulado' ? 'p-anu' : 'p-est'}">${esc(e)}</span>`;
+
+const txtVentanas = v => v && v.length ? v.map(([a, b]) => `${txtMin(a)}–${txtMin(b)}`).join(' y ') : '';
+
+const OPS = [['pago', 'Cobrado', 'pago_estado', '💳'], ['paquete', 'Paquete preparado', 'paquete_en', '📦'],
+  ['email_factura', 'Email con la factura enviado', 'email_factura_en', '🧾'], ['email_pago', 'Email con los datos de pago enviado', 'email_pago_en', '✉️']];
+
+const opHecho = (p, k) => k === 'pago' ? p.pago_estado === 'Cobrado' : !!p[OPS.find(o => o[0] === k)[2]];
+
+let PEDPAG = 0;
+
+let PEDF = {};   // v2.88.0: filtros por campos del pedido (Clasificadores)
+
+const NV_DIAS = [['Mañana', 1], ['En 3 días', 3], ['En una semana', 7], ['En un mes', 30]];
+
+const nvLinea = (pid, u) => { const p = PRODUCTOS.find(x => x.id === pid) || {}; return p.precio != null ? r2(p.precio * (1 + (+p.iva || 0) / 100) * (+u || 0)) : 0; };
+
+// Pestaña «Oportunidades» (antes «Llamadas»): volver a llamar, métricas y lista
+const NV_DIA_TXT = ['', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+
+// Pedidos, Oportunidades, Compras y Proveedores: cada uno su entrada en el menú (por dentro, el mismo módulo con su sección)
+const ALIAS_PEDIDOS = { oportunidades: 'llamadas', compras: 'compras', proveedores: 'proveedores' };
+
+const TITULO_PEDSEC = { ventas: ['Pedidos', 'Pedidos de tus clientes, con sus unidades e importes'], llamadas: ['Oportunidades', 'Cada venta, se cierre con pedido o no, y por qué'],
+  compras: ['Compras', 'Pedidos a proveedores y mercancía en camino'], proveedores: ['Proveedores', 'A quién compras y en qué condiciones'] };
+
+// «Por hacer» de pedidos, configurable
+const AVISOS_PED = [['pago', 'Pendientes de cobro', '💳'], ['paquete', 'Paquetes por preparar', '📦'], ['email_factura', 'Facturas por enviar', '🧾'], ['email_pago', 'Datos de pago por enviar', '✉️']];
+
+/* v2.162.0 · Suscripciones y pagos con Stripe (decisiones de Eric, 4/10/2026). «Plan y suscripción» ya no manda correos: «Contratar»
+   abre el pago seguro de Stripe (tarjeta), «Cambiar a…» y «Añadir o quitar usuarios» cambian la suscripción con
+   prorrateo y «Gestionar el pago» abre el portal de Stripe (tarjeta, recibos, cancelar). Todo pasa por la función de Supabase
+   «pagos»; Stripe avisa a «stripe-webhook» y la base (aplicar_suscripcion, SQL 102) activa o cambia el plan. Si un cobro falla, aviso
+   arriba durante 14 días y después la empresa queda en solo lectura (la base no deja crear, cambiar ni borrar) hasta que pague. */
+const PAGO_PLANES = ['campo', 'comercial', 'empresa'];
+
+let PAGO_ESTADO = null;   // la respuesta de plan_uso (plan, usuarios, solo_lectura)
+
+const pagoAlPlan = () => {
+  PAGO_IR_PLAN = false;
+  try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
+};
+
+const pdHace = v => { if (!v) return '—'; const m = Math.round((Date.now() - new Date(v)) / 60000);
+  return m < 60 ? `hace ${Math.max(1, m)} min` : m < 1440 ? `hace ${Math.round(m / 60)} h` : `hace ${Math.round(m / 1440)} días`; };
+
+const pdKpis = l => `<div class="pdkpis">${l.map(([v, t, cls]) => `<div class="pdkpi${cls ? ' ' + cls : ''}"><b>${v}</b><span>${esc(t)}</span></div>`).join('')}</div>`;
+
+const pdEsqueleto = () => `<div class="card cfgpanel"><div class="pdkpis">${'<div class="pdkpi"><div class="skel" style="width:50%"></div><div class="skel" style="width:70%"></div></div>'.repeat(4)}</div><div class="skel"></div><div class="skel" style="width:80%"></div></div>`;
+
+/* v2.173.0 · El próximo recibo con IVA en «Plan y suscripción» (petición de Eric por la sesión de la web: que la web, Stripe y la app digan lo mismo).
+   Durante la prueba: hoy 0 €, el primer recibo con IVA (con la puesta en marcha si el pago es mensual) y lo que viene después; fuera de ella, el
+   próximo recibo y su fecha. Se pinta al momento con la misma cuenta que la web (IVA = redondeo de base × 21 / 100) y, si la función «pagos»
+   devuelve el recibo de Stripe (acción datos, campo proximo), se cambia por ese (lleva descuentos y lo ya apuntado). */
+let PAGO_PROXIMO = null;
+
+// Pedidos: el precio del contrato en vigor de la ficha (editorPedido lo consulta en su sitio)
+let PED_PRECIOS = { cuenta: null, precios: {} };
+
+/* v2.230.0 · KPIs de Pedidos y Analítica (Eric eligió la A de https://claude.ai/artifact/PTBZBvZ3yZrQxpxXCNKyrs).
+   - Pedidos: #operativa deja de ser el cartel con los avisos desplegables y pasa a tres tarjetas vivas (pagos por validar, paquetes por
+     preparar y facturas por enviar) con su número que cuenta, una frase y la entrada de los últimos 10 días. Pulsar una pone el filtro
+     «Operativa» (#popf) de la tabla; volver a pulsarla lo quita. Las cifras son las de la tabla (todos los pendientes). El engranaje
+     (#opcfg) sigue eligiendo qué tarjetas se ven.
+   - Analítica: cada indicador cuenta hasta su cifra y dibuja la línea de los últimos seis meses (analitica_kpis_periodo por mes, con
+     el filtro propio del indicador). Sin línea los de «a día de hoy» y los de texto. */
+const PK_TARJ = [['pago', 'pago', 'Pendientes de cobro', 'credit-card'], ['paquete', 'paquete', 'Paquetes por preparar', 'package'],
+  ['email_factura', 'email', 'Facturas por enviar', 'mail']];
+
+const pkMovimiento = () => !matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+let DIS_TODOS = null;
+
+/* ============================================================
+   v2.265.0 · Transfer completo con el distribuidor (grupo 4 del plan del 11/10/2026; necesita el SQL 142).
+   - Ver pedido → bloque «Distribuidor»: en qué punto está el transfer (Enviado, Aceptado, Servido o Incidencia, con su nota) y
+     «Descargar transfer», un PDF con el cliente, su código en el distribuidor y las líneas con referencia y código de barras.
+   - Configuración → Datos → Distribuidores: cada distribuidor con sus transfers (cuántos sin enviar, en marcha, servidos y con
+     incidencia); al pulsar uno se abre el pedido.
+   ============================================================ */
+const TRF_EST = [['Enviado', 'Enviado'], ['Aceptado', 'Aceptado'], ['Servido', 'Servido'], ['Incidencia', 'Incidencia']];
+
+const trfPill = e => e ? `<span class="pill ${e === 'Servido' ? 'p-trfok' : e === 'Incidencia' ? 'p-urg' : 'p-per'}">${esc(e)}</span>` : '<span class="pill">Sin enviar</span>';
+
+const PK_FESTIVOS = ['01-01', '01-06', '05-01', '08-15', '10-12', '11-01', '12-06', '12-08', '12-25'];
+
+/* ============================================================
+   v2.331.0 · Cobro con tarjeta o Bizum desde el pedido (petición de Eric, 20/10/2026; SQL 171 y función del servidor «cobro_tpv»).
+   - Al confirmar un pedido con forma de pago tarjeta o Bizum (y el cobro configurado), delcos pide a Redsys un cobro PayGold y el banco
+     envía al móvil del cliente un SMS con el enlace; en esa página paga con tarjeta o Bizum. Cuando paga, Redsys avisa y el pedido pasa
+     solo a «Cobrado» (y, si tiene factura, se apunta el cobro). Nadie coge el TPV ni mira la cuenta.
+   - En el pedido, dentro de «Pago», el cobro con tarjeta o Bizum: estado del envío (enviado, pagado, no pagado, caducado),
+     «Volver a enviar» y, en el entorno de pruebas, «Abrir la página de pago» (el banco de pruebas no envía SMS).
+   - Configuración → Facturación → «Cobro con tarjeta y Bizum» (quien configura la empresa): número de comercio, terminal, clave
+     secreta, entorno pruebas/real, «Probar» y la dirección de aviso para el banco.
+   ============================================================ */
+const tpvCfg = () => AJUSTES.cobro_tpv || {};
+
+const tpvActivo = () => !!(TPV_VISIBLE && tpvCfg().activo && puedeModulo('ventas'));
+
+const esPagoTpv = fp => /tarjeta|bizum/i.test(fp || '');
+
+const tpvMovil = t => { let m = String(t || '').replace(/\D/g, ''); m = m.replace(/^(0034|34)(?=[67]\d{8}$)/, ''); return /^[67]\d{8}$/.test(m) ? m : ''; };
+
+const TPV_ERR = {
+  permiso: 'No tienes permiso para enviar cobros', estado: 'El pedido tiene que estar confirmado', pagado: 'Este pedido ya está cobrado',
+  sin_cargo: 'Una entrega sin cargo no se cobra', importe: 'El pedido no tiene importe', sesion: 'La sesión ha caducado: vuelve a entrar',
+  sin_configurar: 'El cobro con tarjeta o Bizum no está configurado (Configuración → Facturación)', no_encontrado: 'No se encuentra el pedido'
+};
+
+const TPV_EST = { Enviado: ['Enviado', 'p-est'], Pagado: ['Pagado', 'p-trfok'], Fallido: ['No pagado', 'p-urg'], Caducado: ['Caducado', 'p-urg'], Preparado: ['Enviando…', 'p-warn'] };
+
+let TPV_MIRA = null;
+
+// Datos públicos del entorno de pruebas de Redsys (no cobran nada)
+const TPV_PRUEBAS = { comercio: '999008881', terminal: '1', clave: 'sq7HjrUOBfKmC576ILgskD5srU870gJ7' };
 // pantallas/portal.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -11210,6 +13288,75 @@ async function cargarInforme2271() {
   await pinta();
   portalMedico();
 }
+
+/* v2.126.0 · Portal del médico (extra «Portal» de la organización). En «Mi informe», además: la constancia de sus pacientes solo en
+   cifras (sin ninguna fila por paciente), pedir material de lo que la empresa permite y escribir dudas a su comercial. En la ficha,
+   quien la lleva entrega el material y contesta. En Configuración → Portal del médico, qué material se puede pedir y cuánto. */
+// v2.242.0: aquí iba la primera versión de hayExtra (se redefine entera más abajo)
+const MOTIVO_PORTAL = { permiso: 'No tienes permiso', extra: 'Tu empresa no tiene el portal activado', material: 'Ese material ya no se puede pedir',
+  cantidad: 'Esa cantidad supera el máximo', vacio: 'Escribe el mensaje', cerrada: 'Ya estaba cerrado', no_existe: 'Ya no existe' };
+
+const motivoPortal = r => MOTIVO_PORTAL[(r && r.motivo) || ''] || 'No se ha podido hacer';
+
+/* ============================================================
+   v2.271.0 · Portal del profesional en una sola página (revisión de Eric, 12/10/2026; variante C elegida; necesita el SQL 146).
+   - Pestañas dentro de la página: «Resumen», «Mi ficha» y «Material y dudas». Sin «Inicio», sin manual y, en Configuración, solo
+     «Mis datos» (sin módulos, actividad, rol ni «al entrar, abrir») y «Notificaciones».
+   - Resumen: 4 indicadores y debajo, en dos columnas iguales alineadas con ellos, «Tu evolución» (un solo gráfico: unidades por mes y,
+     debajo, cuántas ventas), «Por producto», «Llamadas recibidas a tu nombre» y «Constancia». Sin posición entre profesionales.
+     Cada bloque se explica en su ayuda «i».
+   - Mi ficha: contacto, dónde pasa consulta (centros de la base, sin más datos que nombre y dirección, o uno nuevo), un horario
+     flexible y rápido por centro (días, varias franjas con horas libres y botones para rellenar de golpe), cómo prefiere las visitas
+     y notas. Se envía como propuesta a su comercial (portal_guardar_ficha); si le falta algo, aviso arriba y notificación (SQL 146).
+   - En la ficha del equipo: «Datos enviados desde su portal» con lo que tenéis y lo que propone, «Editar la ficha» y «Marcar como
+     revisado».
+   ============================================================ */
+const PM = { tab: 'res', ficha: null, faltan: [], prop: null, ubic: [] };
+
+const pmAyu = (t, x) => `<button type="button" class="ai" data-ayuda-tit="${esc(t)}" data-ayuda-txt="${esc(x)}" aria-label="Qué es">i</button>`;
+
+const PM_DIAS = ['L', 'M', 'X', 'J', 'V', 'S'];
+
+const PM_DIAN = { L: 'Lunes', M: 'Martes', X: 'Miércoles', J: 'Jueves', V: 'Viernes', S: 'Sábado' };
+
+const PM_COMO = ['Con cita previa', 'Sin cita, al final de la consulta', 'Sin cita, en cualquier hueco', 'Por teléfono o videollamada', 'Prefiero que me escribáis antes'];
+
+const pmFaltaTxt = () => {
+  const t = { horario: typeof PM_CENTRO === 'function' && PM_CENTRO() ? 'dónde y cuándo atendéis' : 'dónde y cuándo atiendes', telefono: 'un teléfono de contacto', visitas: `cómo prefieres ${TT('visita', 'p', 'el', 'l', 'l')}` };
+  const l = PM.faltan.map(x => t[x]).filter(Boolean);
+  return l.length > 1 ? l.slice(0, -1).join(', ') + ' y ' + l[l.length - 1] : l[0] || 'algún dato';
+};
+
+/* ============================================================
+   v2.282.0 · Portal del centro con el mismo modelo que el del profesional (petición de Eric, 12/10/2026).
+   Una sola página con pestañas: «Resumen» (4 indicadores; «Tus pedidos» y «Lo que has comprado» del mismo tamaño, con su «i»),
+   «Pedir reposición» (sus productos con su precio; sin máximo en el campo: por encima de 1.000 unidades —lo que acepta
+   pedido_portal, que descartaba en silencio— avisa en la fila y no envía), «Mi centro» (la misma ficha que el profesional, con
+   sus textos) y «Material y dudas». Configuración, ayudas y navegación, como el portal del profesional.
+   ============================================================ */
+const PM_CENTRO = () => typeof puede === 'function' && puede('portal_centro');
+
+const PC_MAX = 1000;
+
+/* ============================================================
+   v2.283.0 · Packs para los centros (petición de Eric, 12/10/2026, con las directrices comerciales de los centros; SQL 151).
+   - Producto: «Packs para los centros» (compras N, te regalan M) y PVP de referencia con IVA. Con packs, el centro pide ese
+     producto solo por packs desde su portal; el regalo va en el pedido como línea aparte al 100 % de descuento.
+   - Portal del centro, «Pedir reposición»: cada pack con sus unidades, su importe, el coste real por unidad y el margen sobre el
+     PVP de referencia; cuántos packs de cada (0 a 50, avisando en la fila si no vale); entrega en la dirección del centro o
+     repartida entre varias direcciones (las unidades repartidas tienen que cuadrar). La bonificación es de cada pedido.
+   ============================================================ */
+const PC_PACK_MAX = 50;
+
+const pcPct = v => (Math.round(v * 1000) / 10).toLocaleString('es-ES', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' %';
+
+/* ============================================================
+   v2.353.0 · Portal del profesional: la actividad del periodo, de un vistazo (Eric, 22/10/2026). Al entrar el periodo es «Esta semana».
+   Con alguna solicitud completada: «Esta semana se han activado 2 …», escueto. Sin ninguna: lo dice y ofrece «Material y dudas».
+   Solo cuenta lo completado (SQL 177): nunca se enseña nada que no lo esté.
+   ============================================================ */
+const PM_PER_TXT = { hoy: 'Hoy', ayer: 'Ayer', semana: 'Esta semana', '7d': 'En los últimos 7 días', mes: 'Este mes', mesant: 'El mes pasado',
+  tri: 'Este trimestre', triant: 'El trimestre pasado', anio: 'Este año', anioant: 'El año pasado', todo: 'En total', pers: 'En estas fechas' };
 // pantallas/productos.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -11639,6 +13786,46 @@ function editorServicio(s) {
     await cargarProductos(); if (TAB === 'productos') pintarServicios();
   };
 }
+
+let SERVICIOS = [];
+
+let PSEC = 'productos';
+
+let PRODF = {};   // v2.88.0: filtros por campos del producto (Clasificadores)
+
+const estadoStock = s => {
+  if (s.stock <= 0) return ['Sin stock', 'p-anu'];
+  if (s.stock_minimo != null && s.stock < s.stock_minimo) return ['Bajo mínimo', 'p-bor'];
+  if (s.dias_cobertura != null && s.dias_cobertura <= s.plazo_dias + 14 && !s.en_camino) return ['Pedir ya', 'p-bor'];
+  return ['Correcto', 'p-est'];
+};
+
+const cadClase = f => !f ? '' : f < hoyISO() ? 'cad-pasada' : f <= isoMas(hoyISO(), 90) ? 'cad-pronto' : '';
+
+let ESTADO_PROD = {};
+
+const vendible = p => (p.estado || 'Activo') === 'Activo';
+
+const pillMaterial = e => `<span class="pill ${e === 'Pendiente' ? 'p-warn' : e === 'Entregado' ? 'p-est' : 'p-anu'}">${esc(e)}</span>`;
+
+/* v2.196.0 · Material en depósito en el cliente (segunda tanda del estudio por sectores, SQL 122). Decisiones de Eric: solo en fichas de tipo
+   Centro; lo usado se sabe por recuento o apuntando cada uso; lo usado crea un pedido en borrador y se propone reponerlo.
+   - Ficha de un centro: bloque «Material en depósito» (unidades y productos) con «Abrir el depósito» o «Dejar material en depósito».
+   - Ventana del depósito: lo que hay por lote y caducidad (aviso si caduca en menos de 60 días), lo usado en 90 días y los últimos
+     movimientos; «Reponer» (de tu maletín o del almacén central), «Apuntar uso» (con referencia, sin datos del paciente) y «Recuento».
+     Lo usado deja un pedido en borrador del centro («Ver el pedido») y ofrece «Reponer lo usado». */
+let DEP = null;   // { cuenta, nombre, estado }
+
+const depCaducaPronto = f => f && f <= isoMas(hoyISO(), 60);
+
+/* v2.198.0 · Cobertura por producto en el ciclo (segunda tanda, «Panel y ciclos», SQL 124). Decisiones de Eric: la cobertura mide los
+   productos presentados en las visitas, y solo salen los que la administración marca como «Se promociona en las visitas».
+   - Producto: casilla «Se promociona en las visitas».
+   - Registrar visita: «Productos presentados» (los que se promocionan); el historial de la ficha dice qué se presentó.
+   - Ciclo de visitas → «Por producto»: por cada producto, cuántos de A, B y C lo han oído este ciclo y a quiénes les falta (con «+ Cita»). */
+let PROMO_PRODS = null;   // [{ id, nombre }] de los productos que se promocionan (última lista leída)
+
+const CON_LOTE_EST = ['Pendiente', 'Ganado', 'Perdido'];
 // pantallas/rutas.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -13204,6 +15391,85 @@ async function rpCargar(manana) {
   RPROP = Object.assign(obj, { datos: data || {}, lista: rpArmar((data || {}).candidatos || [], obj) });
   rpPintar();
 }
+
+const rutaActiva = () => { try { return JSON.parse(localStorage.getItem(RKEY()) || 'null'); } catch (e) { return null; } };
+
+/* v2.76.0 · La salida y la vuelta son de cada ruta (o del día planificado), no un ajuste general.
+   HOR = horario del plan en curso; sin él se estima desde las 9:00 (o desde ahora) y no hay hora de vuelta. */
+let HOR = null;
+
+const TIEMPOS = () => { const p = prefsActivas().plan || {}; return { visita: +p.visita || 15, parada: p.parada != null && p.parada !== '' ? +p.parada : 10 }; };
+
+const PLANCFG = () => Object.assign({}, TIEMPOS(), { salida: (HOR && HOR.salida) || '09:00', tope: (HOR && HOR.vuelta) || '23:59',
+  conSalida: !!(HOR && HOR.salida), conTope: !!(HOR && HOR.vuelta) });
+
+const horDeRuta = id => { const r = (RUTAS || []).find(x => x.id === id); return r && (r.salida || r.vuelta) ? { salida: r.salida || null, vuelta: r.vuelta || null } : null; };
+
+const RPKEY = () => 'dlc-ruta-pausa-' + (PERFIL ? PERFIL.id : '');
+
+let ULTIMO_PLAN = null;
+
+let SEM_BORRADOR = null;   // propuesta del planificador aún sin guardar
+
+/* v2.145.0 · Rutas en una sola pantalla (decisión de Eric, 3/10/2026: «Propuestas del día y mis rutas al lado» y propuestas que
+   aprenden de lo que hace). Sin pestañas: a la izquierda 2 o 3 rutas ya armadas para el día (por zona y llenas hasta la jornada,
+   con sus motivos y un croquis), a la derecha las rutas guardadas, y el plan se abre debajo al pulsar. Los candidatos y su
+   puntuación vienen de rutas_candidatos (SQL 95): urgentes, consulta ese día, interesados que se enfrían, pendientes, buenos
+   clientes sin visita y nunca visitados, más las zonas y días en que sueles visitar y quién más compra. */
+let RPROP = null;   // { manana, fecha, datos, lista: [{ sel, ini, fin, km, zona }] }
+
+const RP_DIAS = { L: 'lunes', M: 'martes', X: 'miércoles', J: 'jueves', V: 'viernes' };
+
+const rpNombreDia = f => {
+  const man = new Date(); man.setDate(man.getDate() + 1);
+  return f === hoyISO() ? 'hoy' : f === isoLocal(man) ? 'mañana' : 'el ' + fechaLarga(new Date(f + 'T00:00:00')).replace(/,.*/, '');
+};
+
+/* v2.233.0 · Tu día en el mapa, en Rutas (decisión de Eric: servicio de rutas TomTom, mapa en Rutas; SQL 138 y función «rutas»).
+   - Arriba de Rutas, «Tu día en el mapa»: las citas de hoy numeradas en un mapa plano (MapLibre + OpenFreeMap, colores de delcos),
+     la ruta por las calles y la jornada en una pista con la hora; «Ver el día» mueve el marcador por las calles y la cámara lo sigue.
+   - La ruta y los tiempos los da la función «rutas» (TomTom, con tráfico). Antes de cada petición la base comprueba el tope
+     (2.000 al día entre todas las empresas y 30 por usuario y día); si no cabe, o no está activada, la ruta va en línea recta con
+     los tiempos aproximados de siempre y se dice. No se guarda nada de TomTom: solo se recuerda en memoria 10 minutos.
+   - Pulsar una parada abre la cita (verCita). */
+const RM_SV = d => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + d + '</svg>';
+
+const RM_COCHE = '<path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/>';
+
+const RM_PAL = { tierra: '#F1F3F4', zona: '#ECEEF0', parque: '#D6EDDA', agua: '#AFD3F2', edif: '#E4E6EA', calle: '#FFFFFF', borde: '#DADCE0', via: '#FFF1C2', viaBorde: '#F2D27A', texto: '#5F6368', ruta: '#3F82C0', rutaBorde: '#1F5A99', hecho: '#A8BCD2' };
+
+const RM_MEM = new Map();   // ruta pedida → {t, r}: solo en memoria y 10 minutos
+
+const rmDur = m => m >= 60 ? `${Math.floor(m / 60)} h ${String(Math.round(m % 60)).padStart(2, '0')}` : `${Math.round(m)} min`;
+
+const rmKm = (a, b) => Math.hypot((b[1] - a[1]) * 111.32 * Math.cos(a[0] * Math.PI / 180), (b[0] - a[0]) * 111.32);
+
+const RM_MOTIVO = {
+  empresa: 'Hoy tu empresa ya ha usado su cupo de rutas por calles', global: 'Hoy ya se ha usado el cupo de rutas por calles',
+  apagado: 'Las rutas por calles están desactivadas', sin_clave: 'Las rutas por calles aún no están activadas',
+  servicio: 'El servicio de rutas no ha contestado', sesion: 'No se ha podido comprobar tu sesión', datos: 'Alguna parada no tiene una ubicación válida'
+};
+
+const RN_SEM = { 1: 'primer', 2: 'segundo', 3: 'tercer', 4: 'cuarto', 5: 'último' };
+
+let RN = null;          // la ruta que se está creando o editando
+
+const rnSV = d => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + d + '</svg>';
+
+const RN_IC = { up: '<path d="m18 15-6-6-6 6"/>', down: '<path d="m6 9 6 6 6-6"/>', x: '<path d="M18 6 6 18M6 6l12 12"/>', lupa: '<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>',
+  lapiz: '<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>', papelera: '<path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>',
+  reloj: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>', varita: '<path d="m15 4 5 5"/><path d="M3 21 15 9"/><path d="M19 3v4M17 5h4M7 3v2M6 4h2"/>', check: '<path d="M20 6 9 17l-5-5"/>' };
+
+// ---------- fechas de una ruta que se repite ----------
+const rnDiaSem = d => RN_DIAS.indexOf(d) + 1;   // L = 1 … V = 5 (getDay)
+
+const rnHorizonte = rep => isoMas(hoyISO(), rep && rep.tipo === 'mensual' ? 92 : 56);
+
+const rnProxima = rep => rnFechas(rep, hoyISO(), isoMas(hoyISO(), 120))[0] || null;
+
+const rnPie = (izq, der) => `<div class="rnpie"><span>${izq}</span><span class="rnpieb">${der}</span></div>`;
+
+const rnFC = l => ({ type: 'FeatureCollection', features: l });
 // pantallas/visita.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -13422,6 +15688,58 @@ function presentarSolo(p, idm) {
   const l = (PRES_MAT || []).filter(m => m.producto_id === p.id); if (!l.length) return;
   presAbrir(p.nombre || 'Material', l, Math.max(0, l.findIndex(m => m.id === idm)));
 }
+
+const esMuestras = d => (CAT.resultado_visita || []).some(x => x.valor === d.valor && x.papel === 'muestras');
+
+/* v2.191.0 · Visita a distancia y fotos de la visita (primera tanda del estudio por sectores, SQL 118).
+   - Al registrar una visita se elige cómo fue: Presencial (por defecto), Por teléfono o Por videollamada (actividades.modo). En el historial
+     de la ficha, las que no son presenciales lo dicen.
+   - Fotos de la visita (lineal, exposición, material colocado…): se reducen a 1600 px en JPEG como los justificantes y se guardan en
+     actividad_fotos al registrar la visita. Sin conexión la visita se guarda igual y las fotos se añaden después desde su historial
+     («📷 Fotos»), donde también se ven y se borran. */
+const MODOS_VISITA = [['presencial', 'Presencial'], ['telefono', 'Teléfono'], ['video', 'Videollamada']];
+
+let VISITA_ACTUAL = null;   // { id, modo, fotos } de la ventana «Registrar visita» abierta
+
+/* v2.192.0 · Muestras con control legal (primera tanda del estudio por sectores, SQL 119; RD 1416/1994, art. 16).
+   - Producto: «Muestra con control legal» con fecha de autorización (se pueden dar los 2 años siguientes) y máximo por profesional y año.
+   - Registrar visita: si la empresa tiene productos regulados, bloque «Muestras de medicamento» con lo que queda este año para ese
+     profesional; si se entrega alguna, pide la firma (con el dedo o el ratón) y el nombre de quien firma. Se comprueba antes de guardar
+     la visita; después, registrar_muestras guarda todo o nada (también desde la cola sin conexión, enlazada por el op_id de la visita).
+   - Ficha: «Muestras este año» con lo entregado y lo que queda de cada producto regulado. */
+const MUESTRA_ERR = { firma: 'Falta la firma de quien recibe las muestras', profesional: 'Las muestras solo se entregan a profesionales, no a un centro',
+  plazo: 'Ese producto ya no se puede dar como muestra (han pasado 2 años desde su autorización)', limite: 'Se pasa del máximo de muestras de este año',
+  permiso: 'No puedes registrar muestras de esta ficha', producto: 'Producto no encontrado', no_existe: 'Ficha no encontrada' };
+
+const muestraError = r => (MUESTRA_ERR[r && r.error] || 'No se han podido guardar las muestras') +
+  (r && r.error === 'limite' ? ` (${r.producto}: quedan ${r.quedan} de ${r.max})` : r && r.error === 'plazo' ? ` (${r.producto})` : '');
+
+/* ============================================================
+   v2.259.0 · Visita sin conexión (pendiente de la auditoría del 8/10, cerrado el 11/10/2026). Antes, sin cobertura la ventana
+   «Registrar visita» ni se abría; si la red caía al guardar, la visita podía rechazarse al reenviarla otro día (por la fecha) y
+   perderse sin aviso, o duplicarse al repetir. Ahora:
+   - La visita se abre sin conexión con la última copia de la ficha (la misma de la ficha) y de sus resultados, y los catálogos
+     quedan guardados en el móvil.
+   - Al guardar sin conexión: a la cola con «sin conexión» (el servidor no la rechaza por la fecha), con el mismo op_id aunque se
+     repita, y las fotos se guardan en el móvil (IndexedDB) y se suben solas cuando se envía la visita.
+   - «Tu día» marca la cita «Registrada en el móvil · pendiente de enviar» y quita «Registrar».
+   - La cola se envía de una en una (sin dos envíos a la vez); lo que el servidor rechaza no se pierde: queda en «sin enviar», con
+     aviso y la opción de reintentar o descartar; el tiempo agotado cuenta como fallo de red.
+   - Sin conexión, la app arranca con el perfil guardado aunque no pueda comprobar la sesión.
+   - Las muestras siguen necesitando conexión (el límite legal se comprueba en el servidor): la ventana lo avisa.
+   ============================================================ */
+let VISITA_OP = null;   // op_id de la ventana abierta (el mismo si se pulsa Guardar dos veces)
+
+/* ============================================================
+   v2.266.0 · Presentaciones de producto en la visita (grupo 4 del plan del 11/10/2026; necesita el SQL 143).
+   - Ficha del producto (administración): «Material para presentar», imágenes o PDF (fichas técnicas, estudios, catálogo).
+   - «Registrar visita»: bajo «Productos presentados», «Presentar» con los productos que tienen material; se ve a pantalla completa
+     (con flechas y teclado) y el producto queda marcado como presentado (cuenta en la cobertura del ciclo).
+   - El material se descarga al enseñarlo y se queda en memoria mientras la app está abierta; sin conexión, solo lo ya visto.
+   ============================================================ */
+const PRES_MAX = 8 * 1024 * 1024;
+
+const PRES_DATOS = new Map();               // id → datos (base64) ya descargados
 /* v2.305.0: si el enlace del correo de activación ha caducado, Supabase vuelve a la app con el error en la dirección
    (#error_code=otp_expired o ?error_code=…): se lee antes de nada para avisar en el acceso y ofrecer un enlace nuevo */
 const ENLACE_ERROR = (() => { try { const p = new URLSearchParams((location.hash || '').replace(/^#/, '') + '&' + (location.search || '').replace(/^\?/, ''));
@@ -13439,8 +15757,6 @@ const ENLACE_ERROR = (() => { try { const p = new URLSearchParams((location.hash
    DLC OS 2.0 · Entrega 2: inicio, navegación y directorio
    ============================================================ */
 
-const $ = id => document.getElementById(id);
-const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const CFG = window.DLC_CONFIG;
 // Enlace del correo de recuperación: se detecta antes de que se procese, para no arrancar la app con esa sesión
 // v2.168.0: también el enlace de bienvenida (invitación) de quien se da de alta desde la web: primero crea su contraseña
@@ -13450,15 +15766,6 @@ const ENLACE_CADUCADO = /(^#|&)error_code=/.test(location.hash) || /(^#|&)error=
 /* Sesión: si al entrar se desmarcó «Mantener la sesión iniciada», al cerrar el navegador hay que volver a entrar */
 try { if (localStorage.getItem('dlc-no-recordar') && !/(^|; )dlc-sesion-viva=1/.test(document.cookie)) localStorage.removeItem('dlc-os-sesion'); } catch (e) {}
 
-/* v2.181.0 · Nombres neutros en las respuestas de la base (decisión de Eric: dos versiones). Desde la v2.182.0 (SQL 116) estas funciones
-   responden con nombres neutros (cuenta, ubicaciones, actividades…) en lugar de los de DLC (medico, consultas, visitas…). La app sigue usando
-   por dentro los de siempre: al recibir la respuesta de una de ellas, cada clave nueva se copia también con su nombre antiguo (si no viene ya).
-   Con la base todavía en los nombres antiguos no hace nada. Para una función nueva que use estos nombres, añadirla a FN_NEUTRAS. */
-const CLAVES_NEUTRAS = { cuenta: 'medico', cuentas: 'medicos', ubicaciones: 'consultas', actividades: 'visitas', cuenta_codigo: 'medico_codigo',
-  clientes: 'pacientes', ultima_actividad: 'ultima_visita', actividades_mes: 'visitas_mes', actividades_semana: 'visitas_semana',
-  ubicacion_telefono: 'consulta_telefono', dias_con_actividad: 'dias_con_visitas', dias_sin_actividad: 'dias_sin_visita',
-  cuentas_visitadas: 'medicos_visitados', n_ubicaciones: 'n_consultas', n_actividades: 'n_visitas', por_cuenta: 'por_medico',
-  ultimas_actividades: 'ultimas_visitas', actividades_dia: 'visitas_dia', actividades_total: 'visitas_total' };
 const FN_NEUTRAS = new Set(['actividad_mensual', 'agenda_metricas', 'analitica_kpis', 'analitica_kpis_periodo', 'analitica_v2', 'buscar_centros', 'buscar_cuentas',
   'buscar_global', 'cartera_usuario', 'clientes_lista', 'constancia_pacientes', 'contacto_detalle', 'contactos_lista', 'ficha_centro', 'ficha_cuenta', 'guardar_cuenta',
   'importar_lote', 'informe_cuenta', 'llamadas_lista', 'llamadas_resumen', 'llamadas_seguimiento', 'panel_inicio', 'pedido_detalle', 'pedidos_lista',
@@ -13487,61 +15794,12 @@ const db = window.supabase.createClient(CFG.url, CFG.anon, {
 
 let PERFIL = null, TAB = 'inicio';
 
-/* v2.71.0 · Diccionario de términos. Los textos no escriben «médico», «paciente» ni «visita»: los piden a TT(),
-   que los saca del vocabulario de cada cliente (ajuste «terminos») con su plural, su género y el artículo que concuerda.
-   TT(término, 's'|'p', determinante, mayúsculas del determinante, mayúsculas del nombre[, adjetivo en masculino singular]) · 'l' minúscula, 'C' inicial, 'U' todo. */
-// v2.224.0: palabras de partida genéricas (antes «médico» y «paciente»: DLC las tiene como vocabulario propio desde el SQL 133)
-const TERM_DEF = { medico: { s: 'profesional', p: 'profesionales', g: 'm' }, paciente: { s: 'cliente', p: 'clientes', g: 'm' }, visita: { s: 'visita', p: 'visitas', g: 'f' }, pauta: { s: 'solicitud', p: 'solicitudes', g: 'f' },
-  consulta: { s: 'ubicación', p: 'ubicaciones', g: 'f' }, especialidad: { s: 'segmento', p: 'segmentos', g: 'm' } };   // v2.347.0
-const TERM_DET = { el: ['el', 'los', 'la', 'las'], un: ['un', 'unos', 'una', 'unas'], del: ['del', 'de los', 'de la', 'de las'], al: ['al', 'a los', 'a la', 'a las'],
-  este: ['este', 'estos', 'esta', 'estas'], ningun: ['ningún', 'ningunos', 'ninguna', 'ningunas'], otro: ['otro', 'otros', 'otra', 'otras'],
-  nuevo: ['nuevo', 'nuevos', 'nueva', 'nuevas'], primer: ['primer', 'primeros', 'primera', 'primeras'], ultimo: ['último', 'últimos', 'última', 'últimas'],
-  proximo: ['próximo', 'próximos', 'próxima', 'próximas'] };
-const TERMKEY = 'dlc-terminos';
-let TERMINOS = {};
 try { TERMINOS = JSON.parse(localStorage.getItem(TERMKEY) || '{}') || {}; } catch (e) { TERMINOS = {}; }
-const terminoDe = k => { const d = TERM_DEF[k] || { s: k, p: k + 's', g: 'm' }, t = TERMINOS[k] || {};
-  return { s: String(t.s || '').trim() || d.s, p: String(t.p || '').trim() || d.p, g: t.g === 'f' || t.g === 'm' ? t.g : d.g }; };
-const casoTermino = (t, c) => c === 'U' ? t.toUpperCase() : c === 'C' ? t.charAt(0).toUpperCase() + t.slice(1) : t;
-// v2.347.0: «Todos los segmentos» / «Todas las especialidades»
-const todosLos = k => (terminoDe(k).g === 'f' ? 'Todas ' : 'Todos ') + TT(k, 'p', 'el', 'l', 'l');
-const consultaPrivada = (cn = 'C') => TT('consulta', 's', '', 'l', cn, 'privado');
 
-/* v2.69.0 · Permisos por capacidad. El código pregunta qué puede hacer una persona (puede('administrar')),
-   nunca cómo se llama su rol: los roles y sus capacidades son datos de cada cliente (tablas roles y roles_capacidades). */
-const ROLKEY = 'dlc-roles';
-let ROLES_DEF = [];
 try { ROLES_DEF = JSON.parse(localStorage.getItem(ROLKEY) || '[]') || []; } catch (e) { ROLES_DEF = []; }
-const puede = c => !!(PERFIL && (PERFIL.capacidades || []).includes(c));
-const rolDef = r => ROLES_DEF.find(x => x.nombre === r) || null;
-const rolPuede = (r, c) => { const d = rolDef(r); return !!(d && (d.capacidades || []).includes(c)); };
-const rolesNombres = () => ROLES_DEF.map(x => x.nombre);
-const rolCon = c => (ROLES_DEF.find(x => (x.capacidades || []).includes(c)) || {}).nombre || '';
-const rolPorDefecto = () => (ROLES_DEF.find(x => x.por_defecto) || ROLES_DEF.find(x => !(x.capacidades || []).includes('administrar')) || {}).nombre || '';
-/* v2.70.0 · Estados comerciales como catálogo: el código conoce su papel (inicial, avance, interes, positivo, negativo), no su nombre */
-const ESTKEY = 'dlc-estados';
-let ESTADOS_DEF = [];
 try { ESTADOS_DEF = JSON.parse(localStorage.getItem(ESTKEY) || '[]') || []; } catch (e) { ESTADOS_DEF = []; }
-const estados = () => ESTADOS_DEF.map(x => x.valor);
-const estadoPapel = p => (ESTADOS_DEF.find(x => x.papel === p) || {}).valor || '';
-const papelEstado = v => (ESTADOS_DEF.find(x => x.valor === v) || {}).papel || '';
-// v2.97.0: colores del sistema de diseño por papel (pendiente ámbar, avance azul, interés marino, positivo verde, negativo gris)
-const COL_PAPEL = { inicial: '#8A4B0B', avance: '#3F82C0', interes: '#17457A', positivo: '#0E6B4C', negativo: '#4A5868' };
-const colEstado = v => COL_PAPEL[papelEstado(v)] || '';
-const F = { q: '', prov: '', muni: '', esp: '', est: '', urg: false, orden: 'nombre', pagina: 0, total: 0, campos: {} };
 const PASO = 50;
 
-// Fechas SIEMPRE en hora local (España): convertir a hora universal restaba un día de 00:00 a 02:00
-const isoLocal = d => { const x = new Date(d.getTime() - d.getTimezoneOffset() * 60000); return x.toISOString().slice(0, 10); };
-const hoyISO = () => isoLocal(new Date());
-let fechaLarga = d => d.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
-const fechaCorta = s => { const d = new Date(s + 'T00:00:00'); return d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }); };
-// Nombre sin tratamiento delante («Dr. Gonzalo Serrano» → Gonzalo, iniciales GS)
-const TRATAMIENTO = /^(dr|dra|d|dña|dª|sr|sra|srta|prof|profa|lic|ldo|lda)\.?$/i;
-const partesNombre = n => { const p = String(n || '').trim().split(/\s+/); while (p.length > 1 && TRATAMIENTO.test(p[0])) p.shift(); return p; };
-const nombrePila = n => partesNombre(n)[0] || '';
-const iniciales = n => partesNombre(n).slice(0, 2).map(x => x[0] || '').join('').toUpperCase();
-const num = n => Number(n || 0).toLocaleString('es');
 
 /* ---------------- acceso ---------------- */
 
@@ -13637,9 +15895,6 @@ var ir = function (t) {
 /* ---------------- inicio ---------------- */
 
 
-const itemHTML = (id, ico, clase, titulo, sub) =>
-  `<button class="item" data-id="${id}"><span class="ic ${clase || ''}">${ico}</span>
-   <span class="tx"><b>${esc(titulo)}</b><span class="sm">${sub}</span></span></button>`;
 
 
 $('v-inicio').addEventListener('click', e => {
@@ -13664,7 +15919,6 @@ $('v-inicio').addEventListener('click', e => {
 /* ---------------- filtros ---------------- */
 
 
-let temporizador;
 $('q').addEventListener('input', e => {
   clearTimeout(temporizador);
   temporizador = setTimeout(() => {
@@ -13707,7 +15961,6 @@ $('chips').addEventListener('click', e => {
 
 /* ---------------- directorio ---------------- */
 
-let BUSQ_N = 0;   // solo cuenta la última búsqueda: las anteriores se descartan aunque respondan después
 async function buscar(reiniciar) {
   if (typeof MODO_MAPA !== 'undefined' && MODO_MAPA && reiniciar) setTimeout(() => pintarMapa(), 10);
   if (reiniciar) F.pagina = 0;
@@ -13782,8 +16035,6 @@ async function abrirFicha(id, ...r) {
 
 
 
-// v2.113.0 · Unidades de la ficha por semana (12), mes (12) o año (5)
-const UDS_SERIES = [['semana', 'Semana'], ['mes', 'Mes'], ['anio', 'Año']];
 let UDS_SERIE = (() => { try { const v = localStorage.getItem('dlc-uds-serie'); return ['semana', 'mes', 'anio'].includes(v) ? v : 'mes'; } catch (e) { return 'mes'; } })();
 const leyendaUnidades = k => ({ semana: 'barras: últimas 12 semanas', mes: 'barras: últimos 12 meses', anio: 'barras: últimos 5 años' })[k];
 
@@ -13811,21 +16062,8 @@ if ('serviceWorker' in navigator) {
    DLC OS 2.0 · Entrega 3: registrar visitas, editar fichas y altas
    ============================================================ */
 
-// Catálogos por su papel en la plataforma (clasificadores.papel), nunca por la clave que les ponga cada cliente
-const CAT = { resultado_visita: [], especialidad: [], area: [], motivo_urgencia: [], forma_pago: [] };
-const DIAS = ['L', 'M', 'X', 'J', 'V'];
-const DIAN = { L: 'Lunes', M: 'Martes', X: 'Miércoles', J: 'Jueves', V: 'Viernes' };
-const HM = ['09:00-13:00', '09:30-13:30', '10:00-14:00', '08:00-15:00'];
-const HT = ['15:00-19:00', '16:00-19:00', '16:00-20:00', '17:00-20:00'];
-let FICHA_ID = null;
 
-const puedeEditar = () => PERFIL && (puede('administrar') || ((PERFIL.areas || {}).M || 0) >= 2);
-const puedeEditarTipo = t => PERFIL && (puede('administrar') || ((PERFIL.areas || {})[t === 'Centro' ? 'C' : 'M'] || 0) >= 2);
-const puedeCrearTipo = t => PERFIL && (puede('administrar') || ((PERFIL.areas || {})[t === 'Centro' ? 'C' : 'M'] || 0) >= 3);
-const puedeCrear = () => puedeCrearTipo('Persona') || puedeCrearTipo('Centro');
-const puedeRegistrar = () => PERFIL && (puede('administrar') || ((PERFIL.areas || {}).S || 0) >= 2);
 
-let tToast;
 function toast(msg, err) {
   const t = $('toast');
   t.textContent = msg; t.className = 'toast' + (err ? ' err' : '');
@@ -14055,9 +16293,6 @@ $('nuevoBtn').addEventListener('click', () => {
 
 /* ---------------- cola sin conexión ---------------- */
 
-const COLA = 'dlc-cola';
-const colaLeer = () => { try { return JSON.parse(localStorage.getItem(COLA) || '[]'); } catch (e) { return []; } };
-const colaGuardar = c => localStorage.setItem(COLA, JSON.stringify(c));
 
 function pintarConexion() {
   const n = colaLeer().length;
@@ -14093,9 +16328,6 @@ setInterval(() => vaciarCola(), 60000);
 
 let AG_MODO = 'dia', AG_FECHA = null;
 
-const isoMas = (iso, n) => { const d = new Date(iso + 'T12:00:00'); d.setDate(d.getDate() + n); return isoLocal(d); };
-const lunesDe = iso => { const d = new Date(iso + 'T12:00:00'); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return isoLocal(d); };
-const EST_COL = { Planificada: 'var(--navy)', Visitada: 'var(--ok)', Pendiente: 'var(--warn)', Reprogramada: 'var(--sky)', Descartada: 'var(--muted)' };
 
 /* Agenda: pinta la vista base (día, semana o mes) y le añade, en orden, lo que antes eran 8 capas separadas. */
 
@@ -14154,11 +16386,6 @@ function km(a, b) {
   const s = Math.sin(dLat / 2) ** 2 + Math.cos(a[0] * r) * Math.cos(b[0] * r) * Math.sin(dLon / 2) ** 2;
   return 2 * R * Math.asin(Math.sqrt(s));
 }
-// v2.175.0 (decisión de Eric: autopista a 120 km/h): los primeros 30 km en línea recta a 40 km/h (ciudad) y lo que pase de 30 km a 100 km/h en línea
-// recta (la carretera es ~1,2 veces más larga: unos 120 km/h por autopista); antes, todo a 40
-const minutosEntre = (a, b) => { if (!a || !b || a[0] == null || b[0] == null) return 0; const d = km(a, b);
-  return Math.max(6, Math.round(Math.min(d, 30) / 40 * 60 + Math.max(d - 30, 0) / 100 * 60) + 5); };
-const hm = m => String(Math.floor(m / 60) % 24).padStart(2, '0') + ':' + String(Math.round(m) % 60).padStart(2, '0');
 
 
 /* pintarPlan: la parte base y, en orden, cada paso que se le añade (antes eran 6 capas separadas). */
@@ -14203,9 +16430,6 @@ document.addEventListener('click', async e => {
 
 let CFG_SEC = 'prefs', ADM_SEC = 'usuarios', USUARIOS = [], CATS = [];
 const AREAS = [['H', 'Inicio'], ['G', 'Agenda'], ['R', 'Rutas'], ['M', `${TT('medico', 'p', '', 'l', 'C')}`], ['C', 'Centros'], ['S', `${TT('visita', 'p', '', 'l', 'C')}`], ['V', `Ventas y ${TT('paciente', 'p', '', 'l', 'l')}`], ['K', 'Configuración']];
-const NIVELES = ['Sin acceso', 'Ver', 'Editar', 'Completo'];
-// v2.109.0: los clasificadores son un permiso del rol (antes, administrar o nivel 2 en Configuración)
-const puedeCatalogos = () => PERFIL && puede('gestionar_clasificadores');
 
 /* ---------------- configuración ---------------- */
 
@@ -14456,13 +16680,7 @@ const KPI_CAT = [
   { id: 'cartera',      t: `${TT('medico', 'p', '', 'l', 'l')} en tu cartera`,    v: k => k.medicos, h: 'todos' },
   { id: 'dups',         t: 'pendientes de unificar',   v: k => k.pendientes_unificar, cls: () => 'warn', admin: true, h: 'dups' }
 ];
-const KPI_DEF = ['citas', 'urgentes', 'visitas_sem', 'visitas_mes', 'interesados', 'sin_contactar', 'cartera', 'dups'];
 
-const kpiConfig = () => {
-  const p = (PERFIL.preferencias || {}).kpis;
-  if (Array.isArray(p) && p.length) return p;
-  return KPI_CAT.map(k => ({ id: k.id, on: KPI_DEF.includes(k.id), t: '' }));
-};
 
 
 
@@ -14487,8 +16705,6 @@ $('guardarFiltro').addEventListener('click', async ev => {
 /* ---------------- ruta en curso ---------------- */
 
 const RKEY = () => 'dlc-ruta-' + (PERFIL ? PERFIL.id : '');
-const rutaActiva = () => { try { return JSON.parse(localStorage.getItem(RKEY()) || 'null'); } catch (e) { return null; } };
-const durTxt = ms => { const m = Math.floor(ms / 60000); return (m >= 60 ? Math.floor(m / 60) + ' h ' : '') + (m % 60) + ' min'; };
 
 
 
@@ -14527,9 +16743,6 @@ function appVentana({ titulo, msg, ok, cancel, campo, opciones, peligro }) {
   });
 }
 
-const preguntar = (msg, o = {}) => appVentana({ msg, titulo: o.titulo, ok: o.ok, peligro: o.peligro });
-const pedirTexto = (msg, valor, o = {}) => appVentana({ msg, titulo: o.titulo, ok: o.ok || 'Guardar', campo: { valor, placeholder: o.placeholder, tipo: o.tipo }, opciones: o.opciones });
-const pedirFecha = (msg, valor, o = {}) => appVentana({ msg, titulo: o.titulo || 'Elige la fecha', ok: o.ok || 'Aceptar', campo: { valor, tipo: 'date' } });
 
 /* ---------------- tabla del directorio con columnas ---------------- */
 
@@ -14544,10 +16757,7 @@ const COLS = [
   { k: 'ultima_visita', t: `${TT('visita', 's', 'ultimo', 'C', 'l')}`, w: 130 },
   { k: 'estado_comercial', t: 'Estado', w: 150 }
 ];
-const COLS_DEF = ['nombre', 'especialidad', 'centro_nombre', 'municipio', 'dias', 'estado_comercial'];
-const colKey = () => 'dlc-cols-' + (PERFIL ? PERFIL.id : '');
 
-const colsGuardar = c => localStorage.setItem(colKey(), JSON.stringify(c));
 
 
 function filaTabla(m) {
@@ -14604,10 +16814,6 @@ $('dirtools').addEventListener('click', () => abrirHerramientas('directorio'));
    ============================================================ */
 
 let PRODUCTOS = [], PEDIDOS = [], SIN_ATRIB = [];
-const AN = { dim: 'medico', desde: '', hasta: '', canal: '', producto: '' };
-// Crear o cambiar pedidos y pacientes: administración y televenta (el comercial solo consulta lo suyo)
-const puedeVentas = () => PERFIL && (puede('administrar') || (((PERFIL.areas || {}).V || 0) >= 2 && puede('televenta')));
-const veVentas = () => PERFIL && (puede('administrar') || ((PERFIL.areas || {}).V || 0) >= 1 || puede('cartera'));
 
 
 /* ---------------- pedidos ---------------- */
@@ -14650,13 +16856,6 @@ async function pintarSinAtribuir() {
    DLC OS 2.0 · Entrega 11: comisiones
    ============================================================ */
 
-let ESQUEMAS = [];
-const eur = n => Number(n || 0).toLocaleString('es', { style: 'currency', currency: 'EUR', maximumFractionDigits: 2 });
-const periodoActual = () => hoyISO().slice(0, 7);
-const periodoTxt = p => {
-  const [a, m] = p.split('-');
-  return ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'][+m - 1] + ' ' + a;
-};
 
 /* ---------------- panel personal en Inicio ---------------- */
 
@@ -14723,31 +16922,17 @@ async function pintarComisionesBase() {
    ============================================================ */
 
 let RSEC = 'mis', PROPUESTAS = null;
-/* v2.76.0 · La salida y la vuelta son de cada ruta (o del día planificado), no un ajuste general.
-   HOR = horario del plan en curso; sin él se estima desde las 9:00 (o desde ahora) y no hay hora de vuelta. */
-let HOR = null;
-const TIEMPOS = () => { const p = prefsActivas().plan || {}; return { visita: +p.visita || 15, parada: p.parada != null && p.parada !== '' ? +p.parada : 10 }; };
-const PLANCFG = () => Object.assign({}, TIEMPOS(), { salida: (HOR && HOR.salida) || '09:00', tope: (HOR && HOR.vuelta) || '23:59',
-  conSalida: !!(HOR && HOR.salida), conTope: !!(HOR && HOR.vuelta) });
-const horDeCitas = l => { const c = (l || []).find(x => x && (x.salida || x.vuelta)); return c ? { salida: c.salida || null, vuelta: c.vuelta || null } : null; };
-const horDeRuta = id => { const r = (RUTAS || []).find(x => x.id === id); return r && (r.salida || r.vuelta) ? { salida: r.salida || null, vuelta: r.vuelta || null } : null; };
 
 /* ---------------- navegador de mapas ---------------- */
 
-const NAVEGADORES = [['google', 'Google Maps'], ['apple', 'Apple Maps'], ['waze', 'Waze']];
-const navActual = () => (PERFIL.preferencias || {}).navegador || 'google';
 
 
 
-// Cada navegación pregunta con qué app abrirla (Google Maps admite la ruta con todas sus paradas)
-const navAttr = (d, p) => esc(JSON.stringify({ d, p: p && p.length ? p : null }));
 document.addEventListener('click', e => {
   const b = e.target.closest('[data-nav]'); if (!b) return;
   e.preventDefault();
   try { const v = JSON.parse(b.dataset.nav); navegarA(v.d, v.p); } catch (x) { /* dato de navegación no válido */ }
 });
-const selectorNav = () => `<select id="navsel" title="Navegador de mapas" style="max-width:160px">${
-  NAVEGADORES.map(([v, t]) => `<option value="${v}" ${navActual() === v ? 'selected' : ''}>${t}</option>`).join('')}</select>`;
 
 /* ---------------- pantalla de rutas ---------------- */
 
@@ -14821,7 +17006,6 @@ function abrirHorarioPlan() {
    DLC OS 2.0 · Entrega 13 · Bloque B: ficha, seguimiento y agenda
    ============================================================ */
 
-let CERCA = null;
 
 /* ---------------- editar y borrar visitas ---------------- */
 
@@ -14896,8 +17080,6 @@ async function editarVisita(v, medicoId) {
 
 /* ---------------- spinner y descargas ---------------- */
 
-const cargando = (el, texto) => { if (el) el.innerHTML =
-  `<div class="cargador"><span class="spin"></span><span class="sm">${esc(texto || 'Cargando…')}</span></div>`; };
 
 
 document.addEventListener('click', e => {
@@ -15013,7 +17195,6 @@ async function pintarTablaAnalitica() {
 
 /* ---------------- panel lateral de herramientas ---------------- */
 
-let HERR_CTX = null;
 function abrirHerramientas(contexto) {
   const d = $('tools');
   if (d.classList.contains('abierto') && HERR_CTX === contexto) { d.classList.remove('abierto'); return; }
@@ -15072,16 +17253,12 @@ function abrirHerramientas(contexto) {
   });
 }
 
-let OPF = { provincias: [], municipios: [], especialidades: [], estados: [], centros: [] };
-const optFiltro = (lista, v, todo) => `<option value="">${todo}</option>` +
-  (lista || []).map(o => `<option ${v === o.v ? 'selected' : ''}>${esc(o.v)} (${o.n})</option>`).join('');
 
 /* ---------------- contactos: alta completa y buscador ---------------- */
 
 
 /* ---------------- clasificadores por grupos ---------------- */
 
-let CATS_ABIERTOS = {};
 
 
 function abrirClasificador(id) {
@@ -15195,9 +17372,6 @@ function abrirClasificador(id) {
 
 /* ---------------- copia local para consultar sin conexión ---------------- */
 
-const CKEY = k => 'dlc-cache-' + (PERFIL ? PERFIL.id : '') + '-' + k;
-const guardarCache = (k, d) => { try { localStorage.setItem(CKEY(k), JSON.stringify({ t: Date.now(), d })); } catch (e) {} };
-const leerCache = k => { try { const x = JSON.parse(localStorage.getItem(CKEY(k)) || 'null'); return x ? x : null; } catch (e) { return null; } };
 
 /** Llama a una función del servidor y guarda copia; sin conexión devuelve la última copia. */
 async function rpcCache(fn, params, clave) {
@@ -15234,31 +17408,10 @@ async function rpcCache(fn, params, clave) {
 
 const RPC_ORIG = db.rpc.bind(db);
 const FROM_ORIG = db.from.bind(db);
-const RPC_TTL = {                 // segundos
-  panel_inicio: 60, propuestas_rutas: 120, comision_periodo: 120, resumen_duplicados: 600,
-  agenda_rango: 60, agenda_mes: 60, pendientes_ruta: 60, rutas_visibles: 120,
-  buscar_cuentas: 60, buscar_global: 60, opciones_filtros: 600, mapa_cuentas: 120,
-  ficha_cuenta: 30, seguimiento_lista: 60, resumen_seguimiento: 120,
-  catalogo: 900, catalogos_todos: 900, productos_lista: 600, usuarios_lista: 300,
-  esquemas_lista: 300, liquidaciones_lista: 120, pedidos_lista: 60, contactos_lista: 60,
-  analitica_tabla: 120, analitica_unidades: 120, cartera_usuario: 60, duplicados_pendientes: 30
-};
-const RPC_ESCRITURA = /^(actualizar_|anular_|aplazar_|asignar_|recibir_|movimiento_|atribuir_|borrar_|crear_|estado_cita|guardar_|liquidar|ordenar_|perfil_nuevo|quitar_|registrar_actividad|registrar_visita|resolver_accion|tocar|unificar_|descartar_)/;
 
 const RC = new Map(), RC_VUELO = new Map();
-let RC_EPOCA = 0;
-const rcLS = k => 'dlc-rc-' + (PERFIL ? PERFIL.id : '') + '-' + k;
-const rcCopia = r => ({ data: r.data == null ? r.data : JSON.parse(JSON.stringify(r.data)), error: r.error || null });
 
 
-// Las peticiones de Supabase no traen .catch ni .finally: se añaden para que el código que los usa no falle.
-const conCatch = b => {
-  if (b && typeof b.then === 'function' && typeof b.catch !== 'function') {
-    b.catch = f => Promise.resolve(b).catch(f);
-    b.finally = f => Promise.resolve(b).finally(f);
-  }
-  return b;
-};
 db.rpc = function (fn, params, opts) {
   if (RPC_ESCRITURA.test(fn)) { invalidarCache(); return conCatch(RPC_ORIG(fn, params, opts)); }
   const ttl = RPC_TTL[fn];
@@ -15297,7 +17450,6 @@ db.from = function (tabla) {
 
 /* ---------------- navegación: recordar de dónde venimos ---------------- */
 
-let TAB_ANTERIOR = 'inicio';
 
 /* ---------------- inicio: un único cargador hasta tenerlo todo ---------------- */
 
@@ -15348,8 +17500,6 @@ document.addEventListener('keydown', e => {
 
 /* ---------------- paginación ---------------- */
 
-const TAMKEY = () => 'dlc-tam-' + (PERFIL ? PERFIL.id : '');
-const TAMANOS = [20, 50, 100];
 
 
 /** Paginador para listas que se piden al servidor por páginas. */
@@ -15362,9 +17512,6 @@ function paginador(el, total, pagina, alCambiar, alCambiarTam) {
   el.querySelector('[data-pgtam]').onchange = e => { fijarTam(+e.target.value); alCambiarTam(); };
 }
 
-/* Paginación automática de cualquier otra lista o tabla con más de 20 filas. */
-const PAG_MEM = {};
-const PAG_EXCLUIR = '.carsel, .picker, #lista, #slista, #kpis, .gsug, .umenu, .dl-menu, #tools, .opciones, .chips, .pag, #c-agenda, #c-acciones, #c-urgentes, #c-ultimas, #c-recom, #c-pend';
 
 
 let T_OBS = null;
@@ -15594,14 +17741,6 @@ const AYUDA = {
     '«No son duplicados» guarda la pareja como distinta y no vuelve a salir.']]
 };
 
-const ANCLAS_AYUDA = [
-  ['#v-inicio .saludo h1', 'inicio'], ['#c-agenda > h2', 'ini_agenda'], ['#c-acciones > h2', 'ini_acciones'],
-  ['#c-urgentes > h2', 'ini_urgentes'], ['#c-ultimas > h2', 'ini_ultimas'], ['#c-recom > h2', 'ini_recom'],
-  ['#c-pend > h2', 'ini_pend'], ['#c-comision > h2', 'ini_comision'],
-  ['#v-agenda .saludo h1', 'agenda'], ['#v-rutas .saludo h1', 'rutas'], ['#v-seguimiento .saludo h1', 'seguimiento'],
-  ['#v-ventas .saludo h1', 'ventas'], ['#v-analitica .saludo h1', 'analitica'], ['#v-config .saludo h1', 'config'],
-  ['#v-admin .saludo h1', 'admin'], ['#v-duplicados .saludo h1', 'duplicados']
-];
 
 
 document.addEventListener('click', e => {
@@ -15638,9 +17777,7 @@ Object.assign(RPC_TTL, { clientes_lista: 30, responsable_de_cuenta: 60 });
    después. En la consola del navegador queda el tiempo de cada paso: [DLC OS] … ms */
 
 const T0 = performance.now();
-const marca = paso => console.info(`[App] ${paso} · ${Math.round(performance.now() - T0)} ms`);
 const PKEY = 'dlc-perfil';
-let APP_VISIBLE = false;
 
 /* Entrada en la plataforma con el perfil de la persona.
    Reúne en una sola función lo que antes estaba repartido en 21 capas añadidas versión a versión,
@@ -15797,7 +17934,6 @@ async function arrancar() {
 
 /* ---------------- inicio: esqueleto y carga por partes ---------------- */
 
-const skelCard = t => `<h2>${esc(t)}</h2><div class="skel" style="width:45%"></div><div class="skel"></div><div class="skel" style="width:70%"></div>`;
 
 /* pintarInicio: la parte base y, en orden, cada paso que se le añade (antes eran 5 capas separadas). */
 async function pintarInicio() {
@@ -15817,8 +17953,6 @@ async function pintarInicio() {
 
 /* ---------------- cálculos de IVA ---------------- */
 
-const r2 = n => Math.round((+n || 0) * 100) / 100;
-const eurI = n => eur(r2(n));
 
 /** Mismo cálculo que la base de datos: descuento de línea, descuento general y luego IVA. */
 
@@ -15826,9 +17960,6 @@ const eurI = n => eur(r2(n));
 
 /* ---------------- ventas: pedidos, pacientes y productos ---------------- */
 
-let VSEC = 'pedidos';
-const PAC = { q: '', medico: null, medicoNombre: '', pagina: 0 };
-const pillEstado = e => `<span class="pill ${e === 'Borrador' ? 'p-bor' : e === 'Anulado' ? 'p-anu' : 'p-est'}">${esc(e)}</span>`;
 
 
 
@@ -16205,7 +18336,6 @@ async function verPedidoBase(id) {
 
 /* ---------------- pacientes ---------------- */
 
-let FICHA_PAC = null;
 
 
 
@@ -16371,8 +18501,6 @@ Object.assign(AYUDA, {
    cambios sin guardar y protección de datos
    ============================================================ */
 
-const VE_TODO = () => puede('ver_todo');
-const puedeMedicoLibre = () => puede('administrar') || nivelDe2('V') >= 2;   // v2.329.0
 
 /* ---------------- fechas y horas: todo el campo abre el selector ---------------- */
 
@@ -16409,25 +18537,12 @@ document.addEventListener('click', e => {
 
 /* ---------------- selector de médico (igual que el buscador principal) ---------------- */
 
-const tarjetaMedico = m => `<div class="selcard"><span class="ic">👤</span>
-  <span class="tx"><b>${esc(m.nombre)}</b>
-    <span class="sm">${esc([m.especialidad, m.centro_nombre || m.centro, m.municipio].filter(Boolean).join(' · '))}</span>
-    ${m.codigo ? `<span class="sm">Código ${esc(m.codigo)}</span>` : ''}</span>
-  <button type="button" class="sx" aria-label="Quitar">✕</button></div>`;
 
 document.addEventListener('pointerdown', e => { if (!e.target.closest('.picker')) cerrarPickers(); });
 
 
 /* ---------------- selector de paciente ---------------- */
 
-const tarjetaPaciente = c => `<div class="selcard"><span class="ic">🧑</span>
-  <span class="tx"><b>${esc(c.nombre)}</b>
-    ${[c.direccion, [c.cp, c.municipio].filter(Boolean).join(' '), c.provincia].filter(Boolean).length
-      ? `<span class="sm">📦 ${esc([c.direccion, [c.cp, c.municipio].filter(Boolean).join(' '), c.provincia].filter(Boolean).join(', '))}</span>`
-      : '<span class="sm" style="color:var(--warn)">Sin dirección de entrega</span>'}
-    <span class="sm">${esc([c.nif ? (c.tipo === 'Empresa' ? 'CIF ' : 'DNI ') + c.nif : 'Sin DNI', c.email, c.telefono || c.movil].filter(Boolean).join(' · '))}</span>
-    ${c.medico ? `<span class="sm">${TT('medico', 's', '', 'l', 'C')}: ${esc(c.medico)}</span>` : ''}</span>
-  <button type="button" class="sx" aria-label="Quitar">✕</button></div>`;
 
 
 /* ---------------- nueva cita con el selector de médico ---------------- */
@@ -16472,7 +18587,6 @@ async function nuevaCita(medicoId, fecha) {
 
 /* ---------------- documento de identidad ---------------- */
 
-const LETRAS_DNI = 'TRWAGMYFPDXBNJZSQVHLCKE';
 
 /* ---------------- alta y edición de paciente ---------------- */
 
@@ -16609,7 +18723,6 @@ function editorContacto(c, alGuardar, op) {
 
 /* ---------------- módulos Pacientes y Productos ---------------- */
 
-const vaciarModulos = salvo => ['v-pacientes', 'v-productos', 'v-ventas'].forEach(k => { if (k !== salvo) $(k).innerHTML = ''; });
 
 
 
@@ -16619,7 +18732,6 @@ const vaciarModulos = salvo => ['v-pacientes', 'v-productos', 'v-ventas'].forEac
 
 /* ---------------- directorio: comerciales ---------------- */
 
-let COMS = [];
 $('fcom').addEventListener('change', e => { F.com = e.target.value; buscar(true); });
 
 COLS.push({ k: 'comerciales', t: 'Comerciales', w: 190 });
@@ -16739,7 +18851,6 @@ async function asignarCartera(id) {
 
 /* ---------------- rutas: plan desde ahora, ruta en curso, pausar y reanudar ---------------- */
 
-const RPKEY = () => 'dlc-ruta-pausa-' + (PERFIL ? PERFIL.id : '');
 // v2.242.0: aquí iba rutaPausada (nadie la usaba)
 
 
@@ -16803,7 +18914,6 @@ ANCLAS_AYUDA.push(['#v-pacientes .saludo h1', 'pacientes'], ['#v-productos .salu
 
 /* ---------------- ajustes generales (envío) ---------------- */
 
-let AJUSTES = {};
 // v2.242.0: aquí iba envioCfg (nadie la usaba)
 async function cargarAjustes() {
   const { data } = await db.rpc('ajustes_lista');
@@ -16826,11 +18936,6 @@ async function cargarAjustes() {
 
 /* ---------------- rutas: horario siempre a mano ---------------- */
 
-let ULTIMO_PLAN = null;
-const siguienteLaborable = () => {
-  const d = new Date(); do { d.setDate(d.getDate() + 1); } while (d.getDay() === 0 || d.getDay() === 6);
-  return isoLocal(d);
-};
 
 
 
@@ -16848,21 +18953,9 @@ AYUDA.ventas[2].push('Si marcas <b>Incluir envío</b>, el importe (con IVA) se s
    con totales, indicadores en tarjetas, ruta en curso reordenable
    ============================================================ */
 
-const ICO = {
-  gear: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>',
-  ojo: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>',
-  ojoNo: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.9 17.9A10.1 10.1 0 0 1 12 20c-7 0-11-8-11-8a18.5 18.5 0 0 1 5.1-5.9M9.9 4.2A9.1 9.1 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.2 3.2M14.1 14.1a3 3 0 1 1-4.2-4.2"/><line x1="1" y1="1" x2="23" y2="23"/></svg>',
-  nav: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>',
-  arriba: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="18 15 12 9 6 15"/></svg>',
-  abajo: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>'
-};
 
 /* ---------------- periodos de fechas ---------------- */
 
-const fechaLocal = d => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
-const PERIODOS = [['todo', 'Todo'], ['hoy', 'Hoy'], ['ayer', 'Ayer'], ['semana', 'Esta semana'], ['7d', 'Últimos 7 días'],
-  ['mes', 'Mes actual'], ['mesant', 'Mes anterior'], ['tri', 'Trimestre actual'], ['triant', 'Trimestre anterior'],
-  ['anio', 'Año actual'], ['anioant', 'Año anterior'], ['pers', 'Personalizado']];
 
 
 /** Selector de periodo. el.__rango() devuelve { desde, hasta } (null = sin límite). */
@@ -16916,7 +19009,6 @@ var PEDSEC_CARGA = null;
 
 /* ---------------- analítica con totales y filtros ---------------- */
 
-let AN_MED = null;
 async function cargarAnalitica() {
   if (!COMS.length && VE_TODO()) await cargarComerciales();
   await cargarProductos();
@@ -17003,17 +19095,14 @@ AYUDA.ventas[2].push('Arriba tienes los totales del periodo (solo pedidos comple
 
 /* ---------------- estados de cita ---------------- */
 
-const CITA_ABIERTA = ['Planificada', 'Confirmada'];
 Object.assign(EST_COL, { Planificada: 'var(--navy)', Confirmada: 'var(--sky)', Visitada: 'var(--ok)',
   'No estaba': 'var(--warn)', Aplazada: 'var(--muted)', Descartada: 'var(--muted)' });
-const pillCita = e => `<span class="pill cest" style="background:color-mix(in srgb, ${EST_COL[e] || 'var(--muted)'} 12%, transparent);color:${EST_COL[e] || 'var(--muted)'}">${esc(e)}</span>`;
 
 // La ruta en curso de versiones anteriores se sustituye por la jornada
 try { Object.keys(localStorage).filter(k => k.startsWith('dlc-ruta-')).forEach(k => localStorage.removeItem(k)); } catch (e) {}
 
 /* ---------------- jornada ---------------- */
 
-const JKEY = () => 'dlc-jornada-' + (PERFIL ? PERFIL.id : '');
 
 
 async function empezarJornada() {
@@ -17030,9 +19119,6 @@ async function empezarJornada() {
 
 /* ---------------- orden y horas estimadas ---------------- */
 
-const minHora = h => h ? (+String(h).slice(0, 2) * 60 + +String(h).slice(3, 5)) : null;
-const xyCita = c => c.lat != null && c.lon != null ? [+c.lat, +c.lon] : null;
-const salidaUsuario = () => prefsActivas().salida || { nombre: `la ${TT('visita', 's', 'primer', 'l', 'l')}`, lat: null, lon: null, falta: true };
 
 /** Calcula la hora estimada de cada cita abierta siguiendo el orden actual. */
 
@@ -17042,7 +19128,6 @@ const salidaUsuario = () => prefsActivas().salida || { nombre: `la ${TT('visita'
 
 /* ---------------- «Tu día» en la agenda ---------------- */
 
-let TD_CITAS = [];
 
 
 // (v2.183.0: aquí iba la primera versión de menuCita; se redefine entera más abajo)
@@ -17176,7 +19261,6 @@ Object.assign(AYUDA, {
    ============================================================ */
 
 const EN_PRUEBAS = CFG.entorno === 'pruebas';
-const RPC_ORIG_FROM = t => FROM_ORIG(t);
 
 function pintarFranjaPruebas() {
   if (!EN_PRUEBAS) return;
@@ -17243,10 +19327,7 @@ if (EN_PRUEBAS) {
 
 /* ---------------- horarios de atención ---------------- */
 
-const LETRA_DIA = f => 'DLMXJVS'[new Date(f + 'T12:00:00').getDay()];
-const txtMin = m => hm(m);
 
-const txtVentanas = v => v && v.length ? v.map(([a, b]) => `${txtMin(a)}–${txtMin(b)}`).join(' y ') : '';
 
 
 
@@ -17257,7 +19338,6 @@ const txtVentanas = v => v && v.length ? v.map(([a, b]) => `${txtMin(a)}–${txt
 
 /* ---------------- Tu día: horas estimadas respetando las consultas ---------------- */
 
-let TD_INFO = {};
 
 function estimarDia(citas, fecha) {
   const h = horDeCitas(citas);
@@ -17331,7 +19411,6 @@ AYUDA.rutas[2].splice(1, 1,
 
 /* ---------------- qué agenda se está viendo ---------------- */
 
-let AG_VISTA = null;   // { id, nombre, rol, preferencias } cuando administración mira la agenda de otra persona
 
 
 /* ---------------- días bloqueados ---------------- */
@@ -17345,7 +19424,6 @@ async function bloqueadosSemana(desde, hasta) {
 
 /* ---------------- semana: carga, bloqueos, arrastrar y planificador ---------------- */
 
-let SEM_BORRADOR = null;   // propuesta del planificador aún sin guardar
 
 
 
@@ -17424,7 +19502,6 @@ Object.assign(RPC_TTL, { clasificadores_actividad: 300, municipios_clientes: 300
 
 /* ---------------- registrar visita con datos ---------------- */
 
-const esMuestras = d => (CAT.resultado_visita || []).some(x => x.valor === d.valor && x.papel === 'muestras');
 // v2.205.0: los resultados sin dato ya salen en la línea de la visita; no son material
 const detTxt = v => (v.detalles || []).filter(d => !esMuestras(d) && !(!d.dato && (v.resultados || []).includes(d.valor)))
   .map(d => d.valor + (d.dato ? ' (' + d.dato + ')' : '')).join(', ');
@@ -17688,7 +19765,6 @@ AYUDA.agenda[2].push(`Si añades una cita a ${TT('medico', 's', 'un', 'l', 'l')}
    ============================================================ */
 
 Object.assign(RPC_TTL, { alertas_mias: 60, alertas_cruce: 120, actividades_recientes: 30 });
-let SERVICIOS = [];
 
 async function cargarProductos() {
   const { data } = await db.rpc('productos_lista');
@@ -17713,9 +19789,6 @@ function pintarBnav() {
 /* ---------------- entrar como otro usuario ---------------- */
 
 const SKEY = 'dlc-suplantador';
-const suplantando = () => { try { return JSON.parse(localStorage.getItem(SKEY) || 'null'); } catch (e) { return null; } };
-// v2.117.0: «Entrar como otro usuario» es del plan A medida
-const puedeSuplantar = () => PERFIL && (puede('administrar') || ((PERFIL.areas || {}).U || 0) >= 3) && !suplantando() && PLAN_ACTUAL.plan === 'medida';
 
 
 
@@ -17738,8 +19811,6 @@ AREAS.push(['U', 'Impersonalizar usuarios']);
 
 /* ---------------- manual de uso ---------------- */
 
-const NIVEL_TXT = ['Sin acceso', 'Ver', 'Editar', 'Completo'];
-const nivelDe = a => puede('administrar') ? 3 : ((PERFIL.areas || {})[a] || 0);
 
 const MANUAL = [
   { id: 'inicio', t: 'Inicio', a: 'H', para: 'El resumen de tu día y de tu semana: indicadores, alertas, tu agenda de hoy y lo que conviene hacer.',
@@ -17801,10 +19872,8 @@ pintarEquipo = (orig => async function () {
 
 /* ---------------- aviso de visita reciente ---------------- */
 
-const avisoRevisita = () => Object.assign({ on: true, dias: 7 }, ((PERFIL.preferencias || {}).avisos || {}).revisita || {});
 
 
-const txtReciente = l => l.map(x => `${x.tipo === 'visita' ? 'visitado' : 'cita'} el ${fechaCorta(x.fecha)}${x.usuario ? ' (' + x.usuario + ')' : ''}`).join(', ');
 
 citaRepetida = (orig => async function (medicoId, fecha) {
   const r = await orig(medicoId, fecha);
@@ -17825,8 +19894,6 @@ citaRepetida = (orig => async function (medicoId, fecha) {
 
 /* ---------------- servicios en Productos ---------------- */
 
-let PSEC = 'productos';
-let PRODF = {};   // v2.88.0: filtros por campos del producto (Clasificadores)
 async function cargarProductosModulo() {
   const esAdmin = puede('administrar');
   vaciarModulos('v-productos');
@@ -17873,7 +19940,6 @@ AYUDA.rutas[2].unshift('La pestaña <b>Resumen</b> muestra tu día, las propuest
 
 /* ---------------- pantalla de carga a pantalla completa ---------------- */
 
-const quitarCarga = () => { const o = $('cargatotal'); if (o) o.classList.add('hide'); };
 
 
 
@@ -17885,7 +19951,6 @@ volverAMiSesion = (orig => async function () {
 
 /* ---------------- agenda: una sola transición al cambiar de vista ---------------- */
 
-let ABRIR_PLAN_SEMANA = false;
 
 
 // Desde Rutas: «Planificar la semana» abre el planificador cuando la semana ya está pintada
@@ -17898,7 +19963,6 @@ document.addEventListener('click', e => {
 
 /* ---------------- Inicio: más indicadores ---------------- */
 
-const pct = (a, b) => b ? Math.round(a / b * 100) : 0;
 KPI_CAT.push(
   { id: 'uds_mes', t: 'unidades vendidas este mes', v: k => k.uds_mes, cls: k => k.uds_mes >= k.uds_mes_ant ? 'ok' : 'warn', h: 'x-analitica' },
   { id: 'importe_mes', t: 'ventas del mes sin IVA', v: k => eurI(k.importe_mes || 0).replace(',00', ''), h: 'x-analitica' },
@@ -17945,14 +20009,10 @@ document.addEventListener('click', e => {
 
 /* ---------------- Analítica: resumen visual ---------------- */
 
-let ANSEC = 'resumen';
-const MESES_C = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
-const mesTxt = m => MESES_C[+m.slice(5, 7) - 1] + ' ' + m.slice(2, 4);
 
 
 
 
-const vacioGrafico = t => `<div class="gvacio"><span>📊</span><b>Aún no hay datos para este gráfico</b><span class="sm">${esc(t)}</span></div>`;
 
 // (v2.183.0: aquí iba la primera versión de pintarResumenAnalitica; se redefine entera más abajo)
 
@@ -17984,9 +20044,7 @@ AYUDA.analitica[2].unshift(`<b>Resumen</b>: indicadores con la comparación fren
 
 Object.assign(RPC_TTL, { stock_resumen: 30, compras_lista: 30, proveedores_lista: 60, almacenes_lista: 60, alertas_stock: 60 });
 
-const puedeCompras = () => PERFIL && (puede('administrar') || ((PERFIL.areas || {}).V || 0) >= 3);
 let PEDSEC = 'ventas', PROVEEDORES = [], ALMACENES = [];
-const pillCompra = e => `<span class="pill ${e === 'Recibido' ? 'p-est' : e === 'Cancelado' ? 'p-anu' : e === 'Borrador' ? 'p-bor' : 'p-per'}">${esc(e)}</span>`;
 
 /* ---------------- módulo Pedidos ---------------- */
 
@@ -18019,13 +20077,6 @@ cargarProductosModulo = (orig => async function () {
   }
 })(cargarProductosModulo);
 
-const estadoStock = s => {
-  if (s.stock <= 0) return ['Sin stock', 'p-anu'];
-  if (s.stock_minimo != null && s.stock < s.stock_minimo) return ['Bajo mínimo', 'p-bor'];
-  if (s.dias_cobertura != null && s.dias_cobertura <= s.plazo_dias + 14 && !s.en_camino) return ['Pedir ya', 'p-bor'];
-  return ['Correcto', 'p-est'];
-};
-const cadClase = f => !f ? '' : f < hoyISO() ? 'cad-pasada' : f <= isoMas(hoyISO(), 90) ? 'cad-pronto' : '';
 
 
 
@@ -18053,9 +20104,6 @@ MANUAL.forEach(s => { if (s.id === 'ventas') { s.t = 'Pedidos, Clientes y Produc
    ============================================================ */
 
 Object.assign(RPC_TTL, { facturas_lista: 20, series_lista: 60, eventos_facturacion_lista: 20 });
-let FSEC = 'facturas';
-const puedeFacturar = () => PERFIL && (puede('administrar') || (VE_TODO() && ((PERFIL.areas || {}).V || 0) >= 2));
-const pillCobro = e => `<span class="pill ${e === 'Cobrada' ? 'p-est' : e === 'Vencida' ? 'p-anu' : 'p-bor'}">${esc(e)}</span>`;
 
 /* ---------------- navegación ---------------- */
 
@@ -18082,7 +20130,6 @@ async function cargarFacturacion() {
 
 
 
-const refrescarFacturas = () => { if (TAB === 'facturacion' && FSEC === 'facturas' && $('flista')) pintarFacturas(); };
 
 
 
@@ -18229,18 +20276,7 @@ Object.assign(RPC_TTL, { operativa_pendiente: 20, llamadas_lista: 20, llamadas_r
   AREAS.splice(i + 1, 0, ['L', 'Clientes'], ['P', 'Productos y stock'], ['F', 'Facturación'], ['A', 'Analítica'],
     ['E', 'Importes de ventas'], ['Q', 'Calidad del dato']);
 })();
-const nivelDe2 = a => !PERFIL ? 0 : puede('administrar') ? 3 : +((PERFIL.areas || {})[a] || 0);
-const verImportes = () => nivelDe2('E') >= 1;
 
-// Qué permiso abre cada módulo
-const MODULO_AREA = { inicio: 'H', agenda: 'G', rutas: 'R', directorio: 'M', pacientes: 'L', productos: 'P', seguimiento: 'Q',
-  ventas: 'V', analitica: 'A', facturacion: 'F' };
-const puedeModulo = t => {
-  if (!PERFIL) return false;
-  if (t === 'facturacion' && !VE_TODO()) return false;
-  const a = MODULO_AREA[t];
-  return !a || nivelDe2(a) >= 1;
-};
 /* aplicarPermisosMenu: la parte base y, en orden, cada paso que se le añade (antes eran 3 capas separadas). */
 function aplicarPermisosMenu() {
   aplicarPermisosMenuBase();
@@ -18255,20 +20291,6 @@ function aplicarPermisosMenu() {
 
 /* ---------------- indicadores con su categoría y permiso ---------------- */
 
-const KPI_CATEGORIA = {
-  citas: 'Agenda', citas_7d: 'Agenda', urgentes: 'Cartera', interesados: 'Cartera', sin_contactar: 'Cartera', cartera: 'Cartera',
-  sin_visita_60: 'Cartera', sin_horario: 'Calidad del dato', dups: 'Calidad del dato', visitas_sem: 'Actividad', visitas_mes: 'Actividad',
-  visitas_7d: 'Actividad', muestras_mes: 'Actividad', material_mes: 'Actividad', uds_mes: 'Ventas (unidades)', prescriptores: 'Ventas (unidades)',
-  nuevos_presc: 'Ventas (unidades)', activos_90: 'Ventas (unidades)', conversion: 'Cartera', importe_mes: 'Ventas (importes)', borradores: 'Pedidos'
-};
-const KPI_PERMISO = { importe_mes: ['E', 1], borradores: ['V', 1], dups: ['Q', 1], sin_horario: ['M', 1] };
-/* v2.87.0 · Cada indicador pertenece a un módulo: solo lo ve quien tiene acceso a ese módulo */
-const KPI_MOD = {
-  citas: 'agenda', visitas_sem: 'agenda', visitas_mes: 'agenda', visitas_7d: 'agenda', citas_7d: 'agenda', muestras_mes: 'agenda', material_mes: 'agenda',
-  urgentes: 'directorio', interesados: 'directorio', sin_contactar: 'directorio', cartera: 'directorio', dups: 'directorio', sin_visita_60: 'directorio', sin_horario: 'directorio',
-  uds_mes: 'ventas', importe_mes: 'ventas', prescriptores: 'ventas', nuevos_presc: 'ventas', activos_90: 'ventas', borradores: 'ventas',
-  conversion: 'analitica'
-};
 function kpiPermitido(c) {
   if (!c) return false;
   if (c.admin && !puede('administrar')) return false;
@@ -18279,15 +20301,10 @@ function kpiPermitido(c) {
 
 /* ---------------- zonas de cada comercial ---------------- */
 
-let PROV_CCAA = null;
-const zonasMarcadas = () => [...$('dbody').querySelectorAll('#uzonas [data-zp]:checked')].map(x => x.dataset.zp).sort();
 
 
 /* ---------------- operativa de los pedidos ---------------- */
 
-const OPS = [['pago', 'Cobrado', 'pago_estado', '💳'], ['paquete', 'Paquete preparado', 'paquete_en', '📦'],
-  ['email_factura', 'Email con la factura enviado', 'email_factura_en', '🧾'], ['email_pago', 'Email con los datos de pago enviado', 'email_pago_en', '✉️']];
-const opHecho = (p, k) => k === 'pago' ? p.pago_estado === 'Cobrado' : !!p[OPS.find(o => o[0] === k)[2]];
 
 
 
@@ -18379,8 +20396,6 @@ document.addEventListener('click', e => { if (e.target.closest('[data-irprefs]')
 
 /* ---------------- Pedidos → Ventas: por páginas y guardado en el dispositivo ---------------- */
 
-let PEDPAG = 0;
-let PEDF = {};   // v2.88.0: filtros por campos del pedido (Clasificadores)
 // Cualquier cambio de filtro vuelve a la primera página
 document.addEventListener('change', e => { if (e.target.closest('#pper, #pcanal, #pestado')) PEDPAG = 0; }, true);
 document.addEventListener('input', e => { if (e.target.id === 'pq') PEDPAG = 0; }, true);
@@ -18391,10 +20406,7 @@ let FACPAG = 0, LLPAG = 0;
 
 /* ---------------- factura en PDF (mismo formato que Holded) ---------------- */
 
-let LOGO_DATA = null;
 
-// (v2.183.0: aquí iba la primera versión de facturaPDF; se redefine entera más abajo)
-const nombrePDF = f => `${f.numero}_${String((f.cliente || {}).nombre || 'cliente').replace(/[^\p{L}\p{N} ]/gu, '').trim().replace(/\s+/g, '_')}.pdf`;
 
 async function descargarFacturaPDF(f, rn) {
   const doc = await facturaPDF(f, rn); doc.save(nombrePDF(f));
@@ -18474,8 +20486,6 @@ pintarEmpresa = (orig => async function () {
 
 /* ---------------- manual de uso renovado ---------------- */
 
-const ICONOS_MANUAL = { roles: '👥', inicio: '🏠', agenda: '📅', rutas: '🧭', directorio: '🩺', centros: '🏥', visitas: '📝', ventas: '🛒',
-  config: '⚙️', admin: '🛡️', facturacion: '🧾', permisos: '🔐' };
 const PRIMEROS_PASOS = {
   cartera: [['📍', 'Configura tu punto de salida', 'Configuración → Preferencias. Con él se calculan las horas de tus rutas.', 'config'],
     ['📅', 'Planifica tu semana', `Agenda → Semana → «Planificar la semana». Reparte a tus ${TT('medico', 'p', '', 'l', 'l')} por días.`, 'agenda'],
@@ -18519,10 +20529,7 @@ Object.assign(RPC_TTL, { informe_cuenta: 60, mis_notificaciones: 20, asignacione
 
 /* ---------------- selectores propios: fecha, hora y número ---------------- */
 
-const MESES_L = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
 let SELPOP = null, LOGO_CIRC = false;
-// Con una ventana abierta, solo se puede pulsar lo que está dentro: el selector se coloca en ella
-const capaSelector = inp => inp.closest('dialog[open]') || [...document.querySelectorAll('dialog[open]')].pop() || document.body;
 
 // (v2.183.0: aquí iba la primera versión de abrirCalendario; se redefine entera más abajo)
 
@@ -18646,7 +20653,6 @@ if (EN_PRUEBAS) {
 
 /* ---------------- espacio del médico ---------------- */
 
-const ES_MEDICO = () => puede('portal_prescriptor');
 
 
 async function pintarAvisos() {
@@ -18699,15 +20705,10 @@ document.addEventListener('focusout', () => {
    WhatsApp con el menú del sistema y unidades por periodo en la ficha
    ============================================================ */
 
-const ES_MOVIL = () => matchMedia('(max-width: 760px)').matches;
 
 /* ---------------- navegación: cada cambio de módulo descarta lo pendiente ---------------- */
 
 let NAV_CTRL = new AbortController(), NAV_GEN = 0;
-// Las consultas de lectura de un módulo que ya no está en pantalla se descartan: nunca pintan ni devuelven la vista
-const TURNOS = {};
-const pedirTurno = k => (TURNOS[k] = (TURNOS[k] || 0) + 1);
-const esMiTurno = (k, t) => TURNOS[k] === t;
 const SOLO_ULTIMA = new Set(['pedidos_pagina', 'facturas_lista', 'llamadas_lista', 'clientes_lista', 'analitica_tabla', 'compras_lista', 'stock_resumen']);
 const RPC_V2361 = db.rpc;
 db.rpc = function (fn, params, opts) {
@@ -18781,8 +20782,6 @@ window.addEventListener('resize', () => { if (!ES_MOVIL()) document.querySelecto
 
 /* ---------------- menú «Más» del móvil con el mismo estilo ---------------- */
 
-const ICO_MOD = { inicio: '◉', agenda: '▤', rutas: '➤', directorio: '☰', pacientes: '👥', productos: '📦', seguimiento: '✔︎', ventas: '🛒',
-  analitica: '📊', facturacion: '🧾', informe: '◉' };
 function abrirMasMovil() {
   const principales = ['inicio', 'agenda', 'rutas', 'directorio'];
   const mods = [...document.querySelectorAll('nav.main [data-t]')]
@@ -18804,10 +20803,6 @@ pintarBnav = (orig => function () { orig(); const m = $('bmasbtn'); if (m) m.onc
 /* ---------------- Inicio: tarjeta de bienvenida con lo importante de hoy ---------------- */
 
 
-// Indicadores con icono, explicación breve y, cuando se puede, comparación
-const KPI_ICO = { citas: '📅', urgentes: '⚠️', visitas_sem: '📝', visitas_mes: '🗓️', interesados: '✨', sin_contactar: '📇', cartera: '🩺', dups: '🧩',
-  sin_visita_60: '⏳', sin_horario: '🕘', uds_mes: '📦', prescriptores: '👥', nuevos_presc: '🌱', activos_90: '🔁', conversion: '📈',
-  importe_mes: '€', borradores: '✏️', muestras_mes: '🎁', material_mes: '📚', citas_7d: '📆', visitas_7d: '🧭' };
 // v2.105.0: los subtítulos que dependen del vocabulario o del nombre de un estado se calculan al pintarlos (get)
 const KPI_TXT = { citas: 'Visitadas de las citas de hoy', urgentes: `${TT('medico', 'p', '', 'l', 'C', 'marcado')} urgentes sin ${TT('visita', 's', '', 'l', 'l')}`, visitas_sem: 'Registradas de lunes a hoy',
   visitas_mes: 'Registradas en el mes', get interesados() { return `En estado «${estadoPapel('interes') || 'interés'}»`; }, sin_contactar: `Todavía sin ${TT('visita', 's', 'primer', 'l', 'l')}`, get cartera() { return `Asignad${terminoDe('medico').g === 'f' ? 'a' : 'o'}s a ti`; },
@@ -18955,7 +20950,6 @@ db.rpc = function (fn, params, opts) {
     return res;
   }));
 };
-let LLAMADA_PEND = null;
 
 /* ---------------- selector de fecha: siempre junto a su campo ---------------- */
 
@@ -19151,7 +21145,6 @@ if (window.L && L.map) {
 
 /* ---------------- Configuración: todo se muestra en el panel de la derecha ---------------- */
 
-let PANEL_ACTIVO = null;
 function panelDeModulo(sec) {
   salirPanel();
   const r = $('v-admin'); r.id = 'v-admin-real';
@@ -19218,7 +21211,6 @@ pintarVerifactu = async function () {
 
 /* ---------------- Manual: se explica antes de llevarte a ningún sitio ---------------- */
 
-const CFG_DE_MODULO = { agenda: 'horario', rutas: 'horario', admin: 'usuarios', facturacion: 'fiscal', inicio: 'kpis', config: 'prefs', directorio: 'cat', ventas: 'cat', permisos: 'usuarios', medico: 'usuarios', roles: 'usuarios' };
 document.addEventListener('click', e => { const r = $('manres'); if (r && !e.target.closest('.manbusca')) r.classList.add('hide'); });
 
 
@@ -19248,9 +21240,6 @@ db.rpc = function (fn, params, opts) {
 
 /* ---------------- alertas: ocultar y recuperar ---------------- */
 
-let ALERTAS_OCULTAS = null;
-const tituloAlerta = s => s.textContent.replace(/\s+/g, ' ').replace(/^\s*\d+\s*/, '').replace(/\bequipo\b\s*$/, '').trim();
-const normAl = t => String(t).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').slice(0, 60);
 
 // Ocultar desde la ventana de la alerta
 document.addEventListener('click', async e => {
@@ -19305,7 +21294,6 @@ Object.assign(RPC_TTL, { usuarios_resumen: 30, plan_uso: 60 });
 /* ---------------- marca de la empresa ---------------- */
 
 let MARCA = (() => { try { return JSON.parse(localStorage.getItem('app-marca')) || {}; } catch (e) { return {}; } })();
-const nombreApp = () => MARCA.nombre || 'Mi empresa';
 function aplicarMarca() {
   const n = nombreApp();
   document.title = n;
@@ -19374,11 +21362,6 @@ const PLANES = [
     modulos: ['inicio', 'agenda', 'rutas', 'directorio', 'seguimiento', 'ventas', 'pacientes', 'productos', 'analitica', 'facturacion'],
     ventajas: ['Todo lo de Avanzado', `Espacio ${TT('medico', 's', 'del', 'l', 'l')} sin límite`, 'Impersonalización de usuarios y auditoría completa', 'Puesta en marcha y migración de datos incluidas', 'Soporte prioritario'] }
 ];
-let PLAN_ACTUAL = { plan: 'medida' };   // v2.117.0: hasta que llega el de la base, el completo
-const planDe = id => PLANES.find(p => p.id === id) || PLANES[3];
-// v2.165.0: sin Facturación en el plan pero con facturas, se entra en solo consulta (facConsulta, al final)
-const planIncluye = mod => !(mod in MODULO_AREA) || planDe(PLAN_ACTUAL.plan).modulos.includes(mod) || (mod === 'facturacion' && facConsulta());
-const planMinimo = mod => PLANES.find(p => p.modulos.includes(mod));
 Promise.resolve(RPC_ORIG('plan_uso', {})).then(r => { if (r && r.data && r.data.plan) { PLAN_ACTUAL = r.data.plan; if (PERFIL) aplicarPermisosMenu(); } }, () => {});
 
 // Los módulos que no entran en el plan se ven con candado y explican cómo conseguirlos
@@ -19433,7 +21416,6 @@ async function pintarPlan2() {
 
 /* ---------------- Usuarios renovado ---------------- */
 
-let USR_F = { q: '', rol: '', est: 'activos' };
 
 /* ---------------- Roles y permisos ---------------- */
 
@@ -19441,7 +21423,6 @@ const QUE_ABRE = { H: 'Inicio: indicadores, alertas y resumen', G: 'Agenda, cita
   C: 'Centros y sus datos', S: `Registro de ${TT('visita', 'p', '', 'l', 'l')}`, V: 'Pedidos: ventas, compras y llamadas', L: `Clientes (${TT('paciente', 'p', '', 'l', 'l')} y empresas)`, P: 'Productos, servicios y stock',
   F: 'Facturación, cobros y rectificativas', A: 'Analítica y rankings', E: 'Importes en euros (si no, solo unidades)', Q: 'Calidad del dato y duplicados',
   K: 'Clasificadores y listas de valores', U: 'Impersonalizar a otros usuarios' };
-const plantillaRol = r => Object.assign({}, (rolDef(r) || {}).plantilla || {}, (AJUSTES.roles || {})[r] || {});
 async function pintarRoles() {
   await cargarAjustes();
   const roles = rolesNombres().filter(r => !rolPuede(r, 'portal_prescriptor'));
@@ -19469,7 +21450,6 @@ async function pintarRoles() {
 
 /* ---------------- Configuración única (Administración queda integrada) ---------------- */
 
-const CFG_ADMIN = { usuarios: 'usuarios', comisiones: 'comis', accesos: 'accesos', auditoria: 'auditoria' };
 document.querySelectorAll('[data-u="adm"]').forEach(b => b.classList.add('hide'));
 // Dentro de Configuración no se repiten menús interiores
 panelDeModulo = (orig => function (sec) {
@@ -19509,8 +21489,6 @@ const TIPOS_NOTIF = [
   ['cruce', '🔁', `${TT('visita', 'p', '', 'l', 'C')} de otros a mi cartera`, `Cuando otra persona ${TT('visita', 's', '', 'l', 'l')} a ${TT('medico', 's', 'un', 'l', 'l')} que llevas`],
   ['pedido_validado', '📦', 'Pedidos confirmados', 'Cada pedido que se confirma (menos los tuyos)']
 ];
-const tiposDeMiRol = () => TIPOS_NOTIF.filter(t => puede('aviso_' + t[0]));
-let NOTIF_N = 0;
 pintarAvisos = refrescarCampana;
 function irEnlace(e) {
   if (!e) return;
@@ -19628,7 +21606,6 @@ async function pintarMaterial() {
 
 /* ---------------- logo: el de la empresa o uno neutro ---------------- */
 
-const LOGO_NEUTRO = 'logo-app.png';
 aplicarMarca = (orig => function () {
   orig();
   if (!MARCA.logo) document.querySelectorAll('header .logo, .lbox img, #bootsplash img').forEach(i => { i.src = LOGO_NEUTRO; });
@@ -19706,63 +21683,7 @@ pintarNotif = (orig => function () {
 
 /* ---------------- idiomas ---------------- */
 
-const IDIOMAS = [['es', 'Castellano'], ['en', 'English'], ['de', 'Deutsch'], ['fr', 'Français'], ['it', 'Italiano']];
-const LOCALES = { es: 'es-ES', en: 'en-GB', de: 'de-DE', fr: 'fr-FR', it: 'it-IT' };
-// [castellano, inglés, alemán, francés, italiano]
-const I18N = [
-  ['Inicio', 'Home', 'Start', 'Accueil', 'Home'], ['Agenda', 'Calendar', 'Kalender', 'Agenda', 'Agenda'], ['Rutas', 'Routes', 'Routen', 'Itinéraires', 'Percorsi'],
-  ['Médicos', 'Doctors', 'Ärzte', 'Médecins', 'Medici'], ['Directorio', 'Directory', 'Verzeichnis', 'Annuaire', 'Elenco'], ['Clientes', 'Customers', 'Kunden', 'Clients', 'Clienti'], ['Productos', 'Products', 'Produkte', 'Produits', 'Prodotti'],
-  ['Calidad del dato', 'Data quality', 'Datenqualität', 'Qualité des données', 'Qualità dei dati'], ['Pedidos', 'Orders', 'Bestellungen', 'Commandes', 'Ordini'],
-  ['Analítica', 'Analytics', 'Analysen', 'Analyses', 'Analisi'], ['Facturación', 'Invoicing', 'Rechnungen', 'Facturation', 'Fatturazione'], ['Más', 'More', 'Mehr', 'Plus', 'Altro'],
-  ['Mi informe', 'My report', 'Mein Bericht', 'Mon rapport', 'Il mio report'], ['Mi centro', 'My centre', 'Mein Zentrum', 'Mon centre', 'Il mio centro'], ['Configuración', 'Settings', 'Einstellungen', 'Paramètres', 'Impostazioni'],
-  ['Manual de uso', 'User guide', 'Handbuch', 'Guide d’utilisation', 'Manuale'], ['Cerrar sesión', 'Sign out', 'Abmelden', 'Se déconnecter', 'Esci'],
-  ['Cambiar contraseña', 'Change password', 'Passwort ändern', 'Changer le mot de passe', 'Cambia password'],
-  ['Guardar', 'Save', 'Speichern', 'Enregistrer', 'Salva'], ['Cancelar', 'Cancel', 'Abbrechen', 'Annuler', 'Annulla'], ['Cerrar', 'Close', 'Schließen', 'Fermer', 'Chiudi'],
-  ['Editar', 'Edit', 'Bearbeiten', 'Modifier', 'Modifica'], ['Eliminar', 'Delete', 'Löschen', 'Supprimer', 'Elimina'], ['Buscar', 'Search', 'Suchen', 'Rechercher', 'Cerca'],
-  ['Añadir', 'Add', 'Hinzufügen', 'Ajouter', 'Aggiungi'], ['Volver', 'Back', 'Zurück', 'Retour', 'Indietro'], ['Hoy', 'Today', 'Heute', 'Aujourd’hui', 'Oggi'],
-  ['Día', 'Day', 'Tag', 'Jour', 'Giorno'], ['Semana', 'Week', 'Woche', 'Semaine', 'Settimana'], ['Mes', 'Month', 'Monat', 'Mois', 'Mese'], ['Equipo', 'Team', 'Team', 'Équipe', 'Team'],
-  ['Aceptar', 'OK', 'OK', 'OK', 'OK'], ['Borrar', 'Clear', 'Leeren', 'Effacer', 'Cancella'], ['Sí', 'Yes', 'Ja', 'Oui', 'Sì'], ['No', 'No', 'Nein', 'Non', 'No'],
-  ['Entrar', 'Sign in', 'Anmelden', 'Se connecter', 'Accedi'], ['Correo', 'Email', 'E-Mail', 'E-mail', 'Email'], ['Contraseña', 'Password', 'Passwort', 'Mot de passe', 'Password'],
-  ['He olvidado la contraseña', 'I forgot my password', 'Passwort vergessen', 'Mot de passe oublié', 'Ho dimenticato la password'], ['Bienvenido', 'Welcome', 'Willkommen', 'Bienvenue', 'Benvenuto'],
-  ['Buscar médico, centro o municipio', 'Search doctor, centre or town', 'Arzt, Zentrum oder Ort suchen', 'Rechercher médecin, centre ou ville', 'Cerca medico, centro o comune'], ['Buscar profesional, centro o municipio', 'Search professional, centre or town', 'Fachkraft, Zentrum oder Ort suchen', 'Rechercher professionnel, centre ou ville', 'Cerca professionista, centro o comune'], ['Profesionales', 'Professionals', 'Fachkräfte', 'Professionnels', 'Professionisti'], ['Buscar profesional, centro o municipio', 'Search professional, centre or town', 'Fachkraft, Zentrum oder Ort suchen', 'Rechercher professionnel, centre ou ville', 'Cerca professionista, centro o comune'], ['Profesionales', 'Professionals', 'Fachkräfte', 'Professionnels', 'Professionisti'], ['Buscar profesional, centro o municipio', 'Search professional, centre or town', 'Fachkraft, Zentrum oder Ort suchen', 'Rechercher professionnel, centre ou ville', 'Cerca professionista, centro o comune'], ['Profesionales', 'Professionals', 'Fachkräfte', 'Professionnels', 'Professionisti'],
-  ['Tu día', 'Your day', 'Dein Tag', 'Votre journée', 'La tua giornata'], ['Alertas', 'Alerts', 'Warnungen', 'Alertes', 'Avvisi'], ['Mi semana', 'My week', 'Meine Woche', 'Ma semaine', 'La mia settimana'],
-  ['Ventas del mes', 'Sales this month', 'Umsatz des Monats', 'Ventes du mois', 'Vendite del mese'], ['Operativa de pedidos', 'Order operations', 'Bestellabwicklung', 'Suivi des commandes', 'Gestione ordini'],
-  ['Notificaciones', 'Notifications', 'Benachrichtigungen', 'Notifications', 'Notifiche'], ['Idioma', 'Language', 'Sprache', 'Langue', 'Lingua'],
-  ['Tu cuenta', 'Your account', 'Dein Konto', 'Votre compte', 'Il tuo account'], ['Mi perfil', 'My profile', 'Mein Profil', 'Mon profil', 'Il mio profilo'],
-  ['Rutas y desplazamientos', 'Routes and travel', 'Routen und Fahrten', 'Itinéraires et déplacements', 'Percorsi e spostamenti'], ['Horario de las rutas', 'Route schedule', 'Routenzeiten', 'Horaires des itinéraires', 'Orari dei percorsi'],
-  ['Indicadores de Inicio', 'Home indicators', 'Start-Kennzahlen', 'Indicateurs d’accueil', 'Indicatori della home'], ['Mensajes', 'Messages', 'Nachrichten', 'Messages', 'Messaggi'],
-  ['Base de datos', 'Database', 'Datenbank', 'Base de données', 'Database'], ['Clasificadores', 'Lists', 'Listen', 'Listes', 'Elenchi'], ['Equipo y cartera', 'Team and portfolio', 'Team und Portfolio', 'Équipe et portefeuille', 'Team e portafoglio'],
-  ['Usuarios y permisos', 'Users and permissions', 'Benutzer und Rechte', 'Utilisateurs et droits', 'Utenti e permessi'], ['Roles y permisos', 'Roles and permissions', 'Rollen und Rechte', 'Rôles et droits', 'Ruoli e permessi'],
-  ['Reglas de cartera', 'Portfolio rules', 'Portfolio-Regeln', 'Règles de portefeuille', 'Regole del portafoglio'], ['Frecuencia de visita', 'Visit frequency', 'Besuchshäufigkeit', 'Fréquence des visites', 'Frequenza delle visite'],
-  ['Comisiones', 'Commissions', 'Provisionen', 'Commissions', 'Provvigioni'], ['Accesos', 'Sign-ins', 'Anmeldungen', 'Connexions', 'Accessi'], ['Auditoría', 'Audit log', 'Protokoll', 'Journal d’audit', 'Registro attività'],
-  ['Stock', 'Stock', 'Bestand', 'Stock', 'Magazzino'], ['Almacenes', 'Warehouses', 'Lager', 'Entrepôts', 'Magazzini'], ['Material de visita', 'Visit materials', 'Besuchsmaterial', 'Matériel de visite', 'Materiale di visita'],
-  ['Datos fiscales', 'Tax details', 'Steuerdaten', 'Données fiscales', 'Dati fiscali'], ['Series y numeración', 'Series and numbering', 'Serien und Nummerierung', 'Séries et numérotation', 'Serie e numerazione'],
-  ['Empresa', 'Company', 'Unternehmen', 'Entreprise', 'Azienda'], ['Marca y logo', 'Brand and logo', 'Marke und Logo', 'Marque et logo', 'Marchio e logo'], ['Plan y suscripción', 'Plan and subscription', 'Tarif und Abo', 'Offre et abonnement', 'Piano e abbonamento'],
-  ['Mis datos', 'My details', 'Meine Daten', 'Mes données', 'I miei dati'], ['Nombre visible', 'Display name', 'Anzeigename', 'Nom affiché', 'Nome visualizzato'], ['Teléfono', 'Phone', 'Telefon', 'Téléphone', 'Telefono'],
-  ['Al entrar, abrir', 'Open on sign-in', 'Beim Start öffnen', 'Ouvrir à la connexion', 'Apri all’accesso'], ['Nueva contraseña', 'New password', 'Neues Passwort', 'Nouveau mot de passe', 'Nuova password'],
-  ['Repítela', 'Repeat it', 'Wiederholen', 'Répétez-le', 'Ripetila'], ['Punto de salida', 'Starting point', 'Startpunkt', 'Point de départ', 'Punto di partenza'], ['Punto de llegada', 'End point', 'Zielpunkt', 'Point d’arrivée', 'Punto di arrivo'],
-  ['Navegación', 'Navigation', 'Navigation', 'Navigation', 'Navigazione'], ['Nombre', 'Name', 'Name', 'Nom', 'Nome'], ['Dirección', 'Address', 'Adresse', 'Adresse', 'Indirizzo'],
-  ['Buscar dirección', 'Find address', 'Adresse suchen', 'Chercher l’adresse', 'Cerca indirizzo'], ['Usar mi ubicación', 'Use my location', 'Meinen Standort verwenden', 'Utiliser ma position', 'Usa la mia posizione'],
-  ['Guardar preferencias', 'Save preferences', 'Einstellungen speichern', 'Enregistrer', 'Salva preferenze'], ['Nuevo usuario', 'New user', 'Neuer Benutzer', 'Nouvel utilisateur', 'Nuovo utente'],
-  ['+ Nuevo usuario', '+ New user', '+ Neuer Benutzer', '+ Nouvel utilisateur', '+ Nuovo utente'], ['+ Nueva cita', '+ New appointment', '+ Neuer Termin', '+ Nouveau rendez-vous', '+ Nuovo appuntamento'],
-  ['+ Nuevo pedido', '+ New order', '+ Neue Bestellung', '+ Nouvelle commande', '+ Nuovo ordine'], ['+ Nuevo cliente', '+ New customer', '+ Neuer Kunde', '+ Nouveau client', '+ Nuovo cliente'],
-  ['Registrar visita', 'Log visit', 'Besuch erfassen', 'Enregistrer la visite', 'Registra visita'], ['Editar ficha', 'Edit record', 'Datensatz bearbeiten', 'Modifier la fiche', 'Modifica scheda'],
-  ['Marcar urgente', 'Mark urgent', 'Als dringend markieren', 'Marquer urgent', 'Segna urgente'], ['+ Añadir a mi agenda', '+ Add to my calendar', '+ Zu meinem Kalender', '+ Ajouter à mon agenda', '+ Aggiungi alla mia agenda'],
-  ['Estado', 'Status', 'Status', 'Statut', 'Stato'], ['Visitas', 'Visits', 'Besuche', 'Visites', 'Visite'], ['Comercial asignado', 'Assigned rep', 'Zuständiger Vertreter', 'Commercial assigné', 'Agente assegnato'],
-  ['Unidades pautadas', 'Units prescribed', 'Verordnete Einheiten', 'Unités prescrites', 'Unità prescritte'], ['Unidades atribuidas', 'Attributed units', 'Zugeordnete Einheiten', 'Unités attribuées', 'Unità attribuite'], ['Unidades atribuidas', 'Attributed units', 'Zugeordnete Einheiten', 'Unités attribuées', 'Unità attribuite'], ['Unidades atribuidas', 'Attributed units', 'Zugeordnete Einheiten', 'Unités attribuées', 'Unità attribuite'], ['Empezar jornada', 'Start day', 'Tag beginnen', 'Commencer la journée', 'Inizia la giornata'],
-  ['Ordenar por cercanía', 'Sort by distance', 'Nach Entfernung sortieren', 'Trier par proximité', 'Ordina per vicinanza'], ['Ventas', 'Sales', 'Verkäufe', 'Ventes', 'Vendite'],
-  ['Compras', 'Purchases', 'Einkäufe', 'Achats', 'Acquisti'], ['Proveedores', 'Suppliers', 'Lieferanten', 'Fournisseurs', 'Fornitori'], ['Llamadas', 'Calls', 'Anrufe', 'Appels', 'Chiamate'], ['Oportunidades', 'Opportunities', 'Verkaufschancen', 'Opportunités', 'Opportunità'], ['+ Nueva venta', '+ New sale', '+ Neuer Verkauf', '+ Nouvelle vente', '+ Nuova vendita'],
-  ['Resumen', 'Summary', 'Übersicht', 'Résumé', 'Riepilogo'], ['Explorar', 'Explore', 'Erkunden', 'Explorer', 'Esplora'], ['Facturas', 'Invoices', 'Rechnungen', 'Factures', 'Fatture'],
-  ['Mis rutas', 'My routes', 'Meine Routen', 'Mes itinéraires', 'I miei percorsi'], ['Propuestas automáticas', 'Suggested routes', 'Vorgeschlagene Routen', 'Itinéraires proposés', 'Percorsi suggeriti'],
-  ['Todos los módulos', 'All modules', 'Alle Module', 'Tous les modules', 'Tutti i moduli'], ['Gira el móvil', 'Rotate your phone', 'Handy drehen', 'Tournez votre téléphone', 'Ruota il telefono'],
-  ['Estás al día', 'You’re all caught up', 'Alles erledigt', 'Vous êtes à jour', 'Sei aggiornato'], ['Marcar todas como leídas', 'Mark all as read', 'Alle als gelesen markieren', 'Tout marquer comme lu', 'Segna tutte come lette'],
-  ['citas de hoy visitadas', 'today’s visits done', 'heutige Besuche erledigt', 'visites du jour faites', 'visite di oggi fatte'], ['urgentes sin visitar', 'urgent, not visited', 'dringend, nicht besucht', 'urgents non visités', 'urgenti non visitati'],
-  ['visitas esta semana', 'visits this week', 'Besuche diese Woche', 'visites cette semaine', 'visite questa settimana'], ['visitas este mes', 'visits this month', 'Besuche diesen Monat', 'visites ce mois-ci', 'visite questo mese'],
-  ['médicos interesados', 'interested doctors', 'interessierte Ärzte', 'médecins intéressés', 'medici interessati'], ['sin contactar', 'not contacted', 'nicht kontaktiert', 'non contactés', 'non contattati'],
-  ['médicos en tu cartera', 'doctors in your portfolio', 'Ärzte in deinem Portfolio', 'médecins de votre portefeuille', 'medici nel tuo portafoglio'], ['pendientes de unificar', 'pending merge', 'zusammenzuführen', 'à fusionner', 'da unire']
-];
 let IDIOMA = 'es', MAPA_I18N = null;
-const SALUDOS = { en: ['Good morning', 'Good afternoon', 'Good evening'], de: ['Guten Morgen', 'Guten Tag', 'Guten Abend'], fr: ['Bonjour', 'Bon après-midi', 'Bonsoir'], it: ['Buongiorno', 'Buon pomeriggio', 'Buonasera'] };
 let TR_PEND = new Set(), TR_RAF = 0;
 new MutationObserver(ms => {
   if (!MAPA_I18N) return;
@@ -19856,14 +21777,6 @@ document.addEventListener('click', async e => {
    plataforma, con envío de prueba; copias de seguridad descargables
    ============================================================ */
 
-const PROVEEDORES_CORREO = {
-  google: { n: 'Google Workspace o Gmail', host: 'smtp.gmail.com', puerto: 465, seg: 'ssl', ayuda: 'Identificador: la dirección de correo. Clave: una «contraseña de aplicación» (Cuenta de Google → Seguridad → Verificación en dos pasos → Contraseñas de aplicaciones), no la contraseña normal.' },
-  microsoft: { n: 'Microsoft 365 u Outlook', host: 'smtp.office365.com', puerto: 587, seg: 'starttls', ayuda: 'La cuenta debe tener activado «SMTP autenticado» (lo activa el administrador de Microsoft 365).' },
-  mailjet: { n: 'Mailjet', host: 'in-v3.mailjet.com', puerto: 465, seg: 'ssl', ayuda: 'Identificador: la «API Key». Clave: la «Secret Key» (Mailjet → Account settings → API Key Management). El email del remitente debe estar validado en Mailjet.' },
-  ionos: { n: 'IONOS', host: 'smtp.ionos.es', puerto: 465, seg: 'ssl', ayuda: 'Identificador: la dirección de correo completa. Clave: la contraseña del buzón.' },
-  ovh: { n: 'OVHcloud', host: 'ssl0.ovh.net', puerto: 465, seg: 'ssl', ayuda: 'Identificador: la dirección de correo completa. Clave: la contraseña del buzón.' },
-  otro: { n: 'Otro proveedor', host: '', puerto: 465, seg: 'ssl', ayuda: 'Pide a tu proveedor el servidor de salida (SMTP), el puerto y el tipo de seguridad.' }
-};
 
 
 
@@ -19981,10 +21894,6 @@ async function conCarga(btn, texto, fn) {
    sin «Cambiar contraseña» en el menú ni en el perfil
    ============================================================ */
 
-const ICON_EMOJI = {"🆕": "<path d=\"M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z\" /> <line x1=\"12\" x2=\"12\" y1=\"8\" y2=\"16\" /> <line x1=\"8\" x2=\"16\" y1=\"12\" y2=\"12\" />", "★": "<path d=\"M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z\" />", "☆": "<path d=\"M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z\" />", "🔒": "<rect width=\"18\" height=\"11\" x=\"3\" y=\"11\" rx=\"2\" ry=\"2\" /> <path d=\"M7 11V7a5 5 0 0 1 10 0v4\" />", "👤": "<path d=\"M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2\" /> <circle cx=\"12\" cy=\"7\" r=\"4\" />", "📦": "<path d=\"M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z\" /> <path d=\"M12 22V12\" /> <path d=\"m3.3 7 7.703 4.734a2 2 0 0 0 1.994 0L20.7 7\" /> <path d=\"m7.5 4.27 9 5.15\" />", "📅": "<path d=\"M8 2v4\" /> <path d=\"M16 2v4\" /> <rect width=\"18\" height=\"18\" x=\"3\" y=\"4\" rx=\"2\" /> <path d=\"M3 10h18\" />", "🧾": "<path d=\"M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z\" /> <path d=\"M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8\" /> <path d=\"M12 17.5v-11\" />", "📍": "<path d=\"M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0\" /> <circle cx=\"12\" cy=\"10\" r=\"3\" />", "⚠️": "<path d=\"m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3\" /> <path d=\"M12 9v4\" /> <path d=\"M12 17h.01\" />", "⚠": "<path d=\"m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3\" /> <path d=\"M12 9v4\" /> <path d=\"M12 17h.01\" />", "🩺": "<path d=\"M11 2v2\" /> <path d=\"M5 2v2\" /> <path d=\"M5 3H4a2 2 0 0 0-2 2v4a6 6 0 0 0 12 0V5a2 2 0 0 0-2-2h-1\" /> <path d=\"M8 15a6 6 0 0 0 12 0v-3\" /> <circle cx=\"20\" cy=\"10\" r=\"2\" />", "❗": "<circle cx=\"12\" cy=\"12\" r=\"10\" /> <line x1=\"12\" x2=\"12\" y1=\"8\" y2=\"12\" /> <line x1=\"12\" x2=\"12.01\" y1=\"16\" y2=\"16\" />", "💳": "<rect width=\"20\" height=\"14\" x=\"2\" y=\"5\" rx=\"2\" /> <line x1=\"2\" x2=\"22\" y1=\"10\" y2=\"10\" />", "✉️": "<rect width=\"20\" height=\"16\" x=\"2\" y=\"4\" rx=\"2\" /> <path d=\"m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7\" />", "✉": "<rect width=\"20\" height=\"16\" x=\"2\" y=\"4\" rx=\"2\" /> <path d=\"m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7\" />", "👥": "<path d=\"M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2\" /> <circle cx=\"9\" cy=\"7\" r=\"4\" /> <path d=\"M22 21v-2a4 4 0 0 0-3-3.87\" /> <path d=\"M16 3.13a4 4 0 0 1 0 7.75\" />", "◧": "<rect width=\"18\" height=\"18\" x=\"3\" y=\"3\" rx=\"2\" /> <path d=\"M9 3v18\" />", "◉": "<path d=\"M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8\" /> <path d=\"M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z\" />", "📊": "<path d=\"M3 3v16a2 2 0 0 0 2 2h16\" /> <path d=\"M18 17V9\" /> <path d=\"M13 17V5\" /> <path d=\"M8 17v-3\" />", "🏢": "<path d=\"M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z\" /> <path d=\"M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2\" /> <path d=\"M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2\" /> <path d=\"M10 6h4\" /> <path d=\"M10 10h4\" /> <path d=\"M10 14h4\" /> <path d=\"M10 18h4\" />", "⬇": "<path d=\"M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4\" /> <polyline points=\"7 10 12 15 17 10\" /> <line x1=\"12\" x2=\"12\" y1=\"15\" y2=\"3\" />", "⭳": "<path d=\"M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4\" /> <polyline points=\"7 10 12 15 17 10\" /> <line x1=\"12\" x2=\"12\" y1=\"15\" y2=\"3\" />", "🛒": "<circle cx=\"8\" cy=\"21\" r=\"1\" /> <circle cx=\"19\" cy=\"21\" r=\"1\" /> <path d=\"M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12\" />", "🔔": "<path d=\"M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9\" /> <path d=\"M10.3 21a1.94 1.94 0 0 0 3.4 0\" />", "💊": "<path d=\"m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z\" /> <path d=\"m8.5 8.5 7 7\" />", "↻": "<path d=\"M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8\" /> <path d=\"M21 3v5h-5\" />", "▶": "<polygon points=\"6 3 20 12 6 21 6 3\" />", "🔥": "<path d=\"M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z\" />", "✎": "<path d=\"M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z\" /> <path d=\"m15 5 4 4\" />", "✏️": "<path d=\"M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z\" /> <path d=\"m15 5 4 4\" />", "✏": "<path d=\"M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z\" /> <path d=\"m15 5 4 4\" />", "🧭": "<path d=\"m16.24 7.76-1.804 5.411a2 2 0 0 1-1.265 1.265L7.76 16.24l1.804-5.411a2 2 0 0 1 1.265-1.265z\" /> <circle cx=\"12\" cy=\"12\" r=\"10\" />", "📝": "<path d=\"M13.4 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7.4\" /> <path d=\"M2 6h4\" /> <path d=\"M2 10h4\" /> <path d=\"M2 14h4\" /> <path d=\"M2 18h4\" /> <path d=\"M21.378 5.626a1 1 0 1 0-3.004-3.004l-5.01 5.012a2 2 0 0 0-.506.854l-.837 2.87a.5.5 0 0 0 .62.62l2.87-.837a2 2 0 0 0 .854-.506z\" />", "🛡️": "<path d=\"M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z\" />", "🛡": "<path d=\"M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z\" />", "🔐": "<circle cx=\"12\" cy=\"16\" r=\"1\" /> <rect x=\"3\" y=\"10\" width=\"18\" height=\"12\" rx=\"2\" /> <path d=\"M7 10V7a5 5 0 0 1 10 0v3\" />", "📞": "<path d=\"M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z\" />", "🔁": "<path d=\"m17 2 4 4-4 4\" /> <path d=\"M3 11v-1a4 4 0 0 1 4-4h14\" /> <path d=\"m7 22-4-4 4-4\" /> <path d=\"M21 13v1a4 4 0 0 1-4 4H3\" />", "▤": "<path d=\"M8 2v4\" /> <path d=\"M16 2v4\" /> <rect width=\"18\" height=\"18\" x=\"3\" y=\"4\" rx=\"2\" /> <path d=\"M3 10h18\" /> <path d=\"M8 14h.01\" /> <path d=\"M12 14h.01\" /> <path d=\"M16 14h.01\" /> <path d=\"M8 18h.01\" /> <path d=\"M12 18h.01\" /> <path d=\"M16 18h.01\" />", "⏳": "<path d=\"M5 22h14\" /> <path d=\"M5 2h14\" /> <path d=\"M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22\" /> <path d=\"M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2\" />", "⌛": "<path d=\"M5 22h14\" /> <path d=\"M5 2h14\" /> <path d=\"M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22\" /> <path d=\"M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2\" />", "🏥": "<path d=\"M12 6v4\" /> <path d=\"M14 14h-4\" /> <path d=\"M14 18h-4\" /> <path d=\"M14 8h-4\" /> <path d=\"M18 12h2a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-9a2 2 0 0 1 2-2h2\" /> <path d=\"M18 22V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v18\" />", "🧑‍⚕️": "<path d=\"M11 2v2\" /> <path d=\"M5 2v2\" /> <path d=\"M5 3H4a2 2 0 0 0-2 2v4a6 6 0 0 0 12 0V5a2 2 0 0 0-2-2h-1\" /> <path d=\"M8 15a6 6 0 0 0 12 0v-3\" /> <circle cx=\"20\" cy=\"10\" r=\"2\" />", "⚕️": "<path d=\"M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z\" /> <path d=\"M3.22 12H9.5l.5-1 2 4.5 2-7 1.5 3.5h5.27\" />", "🧑": "<circle cx=\"12\" cy=\"8\" r=\"5\" /> <path d=\"M20 21a8 8 0 0 0-16 0\" />", "➤": "<circle cx=\"6\" cy=\"19\" r=\"3\" /> <path d=\"M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15\" /> <circle cx=\"18\" cy=\"5\" r=\"3\" />", "💼": "<path d=\"M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16\" /> <rect width=\"20\" height=\"14\" x=\"2\" y=\"6\" rx=\"2\" />", "🧩": "<path d=\"M15.39 4.39a1 1 0 0 0 1.68-.474 2.5 2.5 0 1 1 3.014 3.015 1 1 0 0 0-.474 1.68l1.683 1.682a2.414 2.414 0 0 1 0 3.414L19.61 15.39a1 1 0 0 1-1.68-.474 2.5 2.5 0 1 0-3.014 3.015 1 1 0 0 1 .474 1.68l-1.683 1.682a2.414 2.414 0 0 1-3.414 0L8.61 19.61a1 1 0 0 0-1.68.474 2.5 2.5 0 1 1-3.014-3.015 1 1 0 0 0 .474-1.68l-1.683-1.682a2.414 2.414 0 0 1 0-3.414L4.39 8.61a1 1 0 0 1 1.68.474 2.5 2.5 0 1 0 3.014-3.015 1 1 0 0 1-.474-1.68l1.683-1.682a2.414 2.414 0 0 1 3.414 0z\" />", "📘": "<path d=\"M12 7v14\" /> <path d=\"M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z\" />", "🕘": "<circle cx=\"12\" cy=\"12\" r=\"10\" /> <polyline points=\"12 6 12 12 16 14\" />", "🕒": "<circle cx=\"12\" cy=\"12\" r=\"10\" /> <polyline points=\"12 6 12 12 16 14\" />", "🎁": "<rect x=\"3\" y=\"8\" width=\"18\" height=\"4\" rx=\"1\" /> <path d=\"M12 8v13\" /> <path d=\"M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7\" /> <path d=\"M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5\" />", "📚": "<path d=\"m16 6 4 14\" /> <path d=\"M12 6v14\" /> <path d=\"M8 8v12\" /> <path d=\"M4 4v16\" />", "✅": "<circle cx=\"12\" cy=\"12\" r=\"10\" /> <path d=\"m9 12 2 2 4-4\" />", "📈": "<polyline points=\"22 7 13.5 15.5 8.5 10.5 2 17\" /> <polyline points=\"16 7 22 7 22 13\" />", "📉": "<polyline points=\"22 17 13.5 8.5 8.5 13.5 2 7\" /> <polyline points=\"16 17 22 17 22 11\" />", "↺": "<path d=\"M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8\" /> <path d=\"M3 3v5h5\" />", "📎": "<path d=\"m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48\" />", "☰": "<path d=\"M16 2v2\" /> <path d=\"M7 22v-2a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v2\" /> <path d=\"M8 2v2\" /> <circle cx=\"12\" cy=\"11\" r=\"3\" /> <rect x=\"3\" y=\"4\" width=\"18\" height=\"18\" rx=\"2\" />", "🏠": "<path d=\"M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8\" /> <path d=\"M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z\" />", "🏷️": "<path d=\"M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z\" /> <circle cx=\"7.5\" cy=\"7.5\" r=\".5\" fill=\"currentColor\" />", "🏷": "<path d=\"M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z\" /> <circle cx=\"7.5\" cy=\"7.5\" r=\".5\" fill=\"currentColor\" />", "🏬": "<path d=\"M22 8.35V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8.35A2 2 0 0 1 3.26 6.5l8-3.2a2 2 0 0 1 1.48 0l8 3.2A2 2 0 0 1 22 8.35Z\" /> <path d=\"M6 18h12\" /> <path d=\"M6 14h12\" /> <rect width=\"12\" height=\"12\" x=\"6\" y=\"10\" />", "🚫": "<circle cx=\"12\" cy=\"12\" r=\"10\" /> <path d=\"m4.9 4.9 14.2 14.2\" />", "↩️": "<path d=\"M9 14 4 9l5-5\" /> <path d=\"M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5a5.5 5.5 0 0 1-5.5 5.5H11\" />", "↩": "<path d=\"M9 14 4 9l5-5\" /> <path d=\"M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5a5.5 5.5 0 0 1-5.5 5.5H11\" />", "🎫": "<path d=\"M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z\" /> <path d=\"M13 5v2\" /> <path d=\"M13 17v2\" /> <path d=\"M13 11v2\" />", "🏆": "<path d=\"M6 9H4.5a2.5 2.5 0 0 1 0-5H6\" /> <path d=\"M18 9h1.5a2.5 2.5 0 0 0 0-5H18\" /> <path d=\"M4 22h16\" /> <path d=\"M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22\" /> <path d=\"M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22\" /> <path d=\"M18 2H6v7a6 6 0 0 0 12 0V2Z\" />", "🗓️": "<rect width=\"18\" height=\"18\" x=\"3\" y=\"4\" rx=\"2\" /> <path d=\"M16 2v4\" /> <path d=\"M3 10h18\" /> <path d=\"M8 2v4\" /> <path d=\"M17 14h-6\" /> <path d=\"M13 18H7\" /> <path d=\"M7 14h.01\" /> <path d=\"M17 18h.01\" />", "🗓": "<rect width=\"18\" height=\"18\" x=\"3\" y=\"4\" rx=\"2\" /> <path d=\"M16 2v4\" /> <path d=\"M3 10h18\" /> <path d=\"M8 2v4\" /> <path d=\"M17 14h-6\" /> <path d=\"M13 18H7\" /> <path d=\"M7 14h.01\" /> <path d=\"M17 18h.01\" />", "✨": "<path d=\"M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z\" /> <path d=\"M20 3v4\" /> <path d=\"M22 5h-4\" /> <path d=\"M4 17v2\" /> <path d=\"M5 18H3\" />", "📇": "<path d=\"M16 2v2\" /> <path d=\"M7 22v-2a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v2\" /> <path d=\"M8 2v2\" /> <circle cx=\"12\" cy=\"11\" r=\"3\" /> <rect x=\"3\" y=\"4\" width=\"18\" height=\"18\" rx=\"2\" />", "🌱": "<path d=\"M7 20h10\" /> <path d=\"M10 20c5.5-2.5.8-6.4 3-10\" /> <path d=\"M9.5 9.4c1.1.8 1.8 2.2 2.3 3.7-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2 2.8-.5 4.4 0 5.5.8z\" /> <path d=\"M14.1 6a7 7 0 0 0-1.1 4c1.9-.1 3.3-.6 4.3-1.4 1-1 1.6-2.3 1.7-4.6-2.7.1-4 1-4.9 2z\" />", "📆": "<path d=\"M8 2v4\" /> <path d=\"M16 2v4\" /> <rect width=\"18\" height=\"18\" x=\"3\" y=\"4\" rx=\"2\" /> <path d=\"M3 10h18\" /> <path d=\"M8 14h.01\" /> <path d=\"M12 14h.01\" /> <path d=\"M16 14h.01\" /> <path d=\"M8 18h.01\" /> <path d=\"M12 18h.01\" /> <path d=\"M16 18h.01\" />", "🔢": "<line x1=\"4\" x2=\"20\" y1=\"9\" y2=\"9\" /> <line x1=\"4\" x2=\"20\" y1=\"15\" y2=\"15\" /> <line x1=\"10\" x2=\"8\" y1=\"3\" y2=\"21\" /> <line x1=\"16\" x2=\"14\" y1=\"3\" y2=\"21\" />", "#️⃣": "<line x1=\"4\" x2=\"20\" y1=\"9\" y2=\"9\" /> <line x1=\"4\" x2=\"20\" y1=\"15\" y2=\"15\" /> <line x1=\"10\" x2=\"8\" y1=\"3\" y2=\"21\" /> <line x1=\"16\" x2=\"14\" y1=\"3\" y2=\"21\" />", "🔗": "<path d=\"M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71\" /> <path d=\"M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71\" />", "📋": "<rect width=\"8\" height=\"4\" x=\"8\" y=\"2\" rx=\"1\" ry=\"1\" /> <path d=\"M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2\" /> <path d=\"M12 11h4\" /> <path d=\"M12 16h4\" /> <path d=\"M8 11h.01\" /> <path d=\"M8 16h.01\" />", "🔄": "<path d=\"M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8\" /> <path d=\"M21 3v5h-5\" /> <path d=\"M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16\" /> <path d=\"M8 16H3v5\" />", "🔑": "<path d=\"M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z\" /> <circle cx=\"16.5\" cy=\"7.5\" r=\".5\" fill=\"currentColor\" />", "📜": "<path d=\"M15 12h-5\" /> <path d=\"M15 8h-5\" /> <path d=\"M19 17V5a2 2 0 0 0-2-2H4\" /> <path d=\"M8 21h12a2 2 0 0 0 2-2v-1a1 1 0 0 0-1-1H11a1 1 0 0 0-1 1v1a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v2a1 1 0 0 0 1 1h3\" />", "🎨": "<circle cx=\"13.5\" cy=\"6.5\" r=\".5\" fill=\"currentColor\" /> <circle cx=\"17.5\" cy=\"10.5\" r=\".5\" fill=\"currentColor\" /> <circle cx=\"8.5\" cy=\"7.5\" r=\".5\" fill=\"currentColor\" /> <circle cx=\"6.5\" cy=\"12.5\" r=\".5\" fill=\"currentColor\" /> <path d=\"M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z\" />", "💬": "<path d=\"M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z\" />", "🚚": "<path d=\"M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2\" /> <path d=\"M15 18H9\" /> <path d=\"M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14\" /> <circle cx=\"17\" cy=\"18\" r=\"2\" /> <circle cx=\"7\" cy=\"18\" r=\"2\" />", "🔎": "<circle cx=\"11\" cy=\"11\" r=\"8\" /> <path d=\"m21 21-4.3-4.3\" />", "🤖": "<path d=\"M12 8V4H8\" /> <rect width=\"16\" height=\"12\" x=\"4\" y=\"8\" rx=\"2\" /> <path d=\"M2 14h2\" /> <path d=\"M20 14h2\" /> <path d=\"M15 13v2\" /> <path d=\"M9 13v2\" />", "💾": "<path d=\"M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z\" /> <path d=\"M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7\" /> <path d=\"M7 3v4a1 1 0 0 0 1 1h7\" />", "⚙️": "<path d=\"M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z\" /> <circle cx=\"12\" cy=\"12\" r=\"3\" />", "⚙": "<path d=\"M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z\" /> <circle cx=\"12\" cy=\"12\" r=\"3\" />", "⋯": "<circle cx=\"12\" cy=\"12\" r=\"1\" /> <circle cx=\"19\" cy=\"12\" r=\"1\" /> <circle cx=\"5\" cy=\"12\" r=\"1\" />", "🔍": "<circle cx=\"11\" cy=\"11\" r=\"8\" /> <path d=\"m21 21-4.3-4.3\" />", "⬆": "<path d=\"M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4\" /> <polyline points=\"17 8 12 3 7 8\" /> <line x1=\"12\" x2=\"12\" y1=\"3\" y2=\"15\" />", "📱": "<rect width=\"14\" height=\"20\" x=\"5\" y=\"2\" rx=\"2\" ry=\"2\" /> <path d=\"M12 18h.01\" />", "🗂️": "<path d=\"M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z\" />", "🗂": "<path d=\"M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z\" />", "📄": "<path d=\"M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z\" /> <path d=\"M14 2v4a2 2 0 0 0 2 2h4\" /> <path d=\"M10 9H8\" /> <path d=\"M16 13H8\" /> <path d=\"M16 17H8\" />", "📤": "<path d=\"M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z\" /> <path d=\"m21.854 2.147-10.94 10.939\" />", "📥": "<polyline points=\"22 12 16 12 14 15 10 15 8 12 2 12\" /> <path d=\"M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z\" />", "💡": "<path d=\"M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5\" /> <path d=\"M9 18h6\" /> <path d=\"M10 22h4\" />", "🙂": "<circle cx=\"12\" cy=\"12\" r=\"10\" /> <path d=\"M8 14s1.5 2 4 2 4-2 4-2\" /> <line x1=\"9\" x2=\"9.01\" y1=\"9\" y2=\"9\" /> <line x1=\"15\" x2=\"15.01\" y1=\"9\" y2=\"9\" />", "👋": "<path d=\"M18 11V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2\" /> <path d=\"M14 10V4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v2\" /> <path d=\"M10 10.5V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2v8\" /> <path d=\"M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15\" />", "⭐": "<path d=\"M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z\" />", "❌": "<circle cx=\"12\" cy=\"12\" r=\"10\" /> <path d=\"m15 9-6 6\" /> <path d=\"m9 9 6 6\" />", "➕": "<path d=\"M5 12h14\" /> <path d=\"M12 5v14\" />", "🗑️": "<path d=\"M3 6h18\" /> <path d=\"M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6\" /> <path d=\"M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2\" /> <line x1=\"10\" x2=\"10\" y1=\"11\" y2=\"17\" /> <line x1=\"14\" x2=\"14\" y1=\"11\" y2=\"17\" />", "🗑": "<path d=\"M3 6h18\" /> <path d=\"M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6\" /> <path d=\"M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2\" /> <line x1=\"10\" x2=\"10\" y1=\"11\" y2=\"17\" /> <line x1=\"14\" x2=\"14\" y1=\"11\" y2=\"17\" />", "🧪": "<path d=\"M10 2v7.527a2 2 0 0 1-.211.896L4.72 20.55a1 1 0 0 0 .9 1.45h12.76a1 1 0 0 0 .9-1.45l-5.069-10.127A2 2 0 0 1 14 9.527V2\" /> <path d=\"M8.5 2h7\" /> <path d=\"M7 16h10\" />", "🚀": "<path d=\"M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z\" /> <path d=\"m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z\" /> <path d=\"M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0\" /> <path d=\"M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5\" />", "📌": "<path d=\"M12 17v5\" /> <path d=\"M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z\" />", "🔓": "<rect width=\"18\" height=\"11\" x=\"3\" y=\"11\" rx=\"2\" ry=\"2\" /> <path d=\"M7 11V7a5 5 0 0 1 9.9-1\" />", "ⓘ": "<circle cx=\"12\" cy=\"12\" r=\"10\" /> <path d=\"M12 16v-4\" /> <path d=\"M12 8h.01\" />", "ℹ️": "<circle cx=\"12\" cy=\"12\" r=\"10\" /> <path d=\"M12 16v-4\" /> <path d=\"M12 8h.01\" />"};
-const ICON_NOM = {"info": "<circle cx=\"12\" cy=\"12\" r=\"10\" /> <path d=\"M12 16v-4\" /> <path d=\"M12 8h.01\" />", "x": "<path d=\"M18 6 6 18\" /> <path d=\"m6 6 12 12\" />", "check": "<path d=\"M20 6 9 17l-5-5\" />", "ellipsis": "<circle cx=\"12\" cy=\"12\" r=\"1\" /> <circle cx=\"19\" cy=\"12\" r=\"1\" /> <circle cx=\"5\" cy=\"12\" r=\"1\" />", "house": "<path d=\"M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8\" /> <path d=\"M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z\" />", "calendar-days": "<path d=\"M8 2v4\" /> <path d=\"M16 2v4\" /> <rect width=\"18\" height=\"18\" x=\"3\" y=\"4\" rx=\"2\" /> <path d=\"M3 10h18\" /> <path d=\"M8 14h.01\" /> <path d=\"M12 14h.01\" /> <path d=\"M16 14h.01\" /> <path d=\"M8 18h.01\" /> <path d=\"M12 18h.01\" /> <path d=\"M16 18h.01\" />", "route": "<circle cx=\"6\" cy=\"19\" r=\"3\" /> <path d=\"M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15\" /> <circle cx=\"18\" cy=\"5\" r=\"3\" />", "contact": "<path d=\"M16 2v2\" /> <path d=\"M7 22v-2a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v2\" /> <path d=\"M8 2v2\" /> <circle cx=\"12\" cy=\"11\" r=\"3\" /> <rect x=\"3\" y=\"4\" width=\"18\" height=\"18\" rx=\"2\" />", "users": "<path d=\"M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2\" /> <circle cx=\"9\" cy=\"7\" r=\"4\" /> <path d=\"M22 21v-2a4 4 0 0 0-3-3.87\" /> <path d=\"M16 3.13a4 4 0 0 1 0 7.75\" />", "package": "<path d=\"M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z\" /> <path d=\"M12 22V12\" /> <path d=\"m3.3 7 7.703 4.734a2 2 0 0 0 1.994 0L20.7 7\" /> <path d=\"m7.5 4.27 9 5.15\" />", "stethoscope": "<path d=\"M11 2v2\" /> <path d=\"M5 2v2\" /> <path d=\"M5 3H4a2 2 0 0 0-2 2v4a6 6 0 0 0 12 0V5a2 2 0 0 0-2-2h-1\" /> <path d=\"M8 15a6 6 0 0 0 12 0v-3\" /> <circle cx=\"20\" cy=\"10\" r=\"2\" />", "shopping-cart": "<circle cx=\"8\" cy=\"21\" r=\"1\" /> <circle cx=\"19\" cy=\"21\" r=\"1\" /> <path d=\"M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12\" />", "chart-column": "<path d=\"M3 3v16a2 2 0 0 0 2 2h16\" /> <path d=\"M18 17V9\" /> <path d=\"M13 17V5\" /> <path d=\"M8 17v-3\" />", "receipt": "<path d=\"M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z\" /> <path d=\"M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8\" /> <path d=\"M12 17.5v-11\" />", "shield-check": "<path d=\"M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z\" /> <path d=\"m9 12 2 2 4-4\" />", "file-text": "<path d=\"M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z\" /> <path d=\"M14 2v4a2 2 0 0 0 2 2h4\" /> <path d=\"M10 9H8\" /> <path d=\"M16 13H8\" /> <path d=\"M16 17H8\" />"};
-const svgIco = inner => `<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${inner}</svg>`;
-const icono = n => `<span class="icw">${svgIco(ICON_NOM[n] || ICON_EMOJI[n] || '')}</span>`;
 const RE_ICO = new RegExp(Object.keys(ICON_EMOJI).sort((a, b) => b.length - a.length).map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') + '|\ufe0f', 'g');
 
 let ICO_PEND = new Set(), ICO_RAF = 0;
@@ -19995,9 +21904,6 @@ new MutationObserver(ms => {
 }).observe(document.body, { childList: true, subtree: true });
 iconizar(document.body);
 
-// Menú principal de escritorio con los mismos iconos que el móvil
-const ICO_NAV = { inicio: 'house', agenda: 'calendar-days', rutas: 'route', directorio: 'contact', pacientes: 'users', productos: 'package',
-  seguimiento: 'shield-check', ventas: 'shopping-cart', analitica: 'chart-column', facturacion: 'receipt', informe: 'file-text' };
 // El menú «Más» del móvil usa exactamente los mismos iconos
 Object.keys(ICO_NAV).forEach(k => { ICO_MOD[k] = svgIco(ICON_NOM[ICO_NAV[k]]); });
 iconosMenu();
@@ -20040,7 +21946,6 @@ Object.assign(ICON_NOM, {"euro": "<path d=\"M4 10h12\" /> <path d=\"M4 14h9\" />
 
 /* ---------------- menú principal: orden y «Médicos» ---------------- */
 
-const ORDEN_MENU = ['inicio', 'agenda', 'rutas', 'directorio', 'ventas', 'pacientes', 'productos', 'facturacion', 'analitica', 'informe'];
 ordenarMenu();
 // «Calidad del dato» pasa a ser un botón dentro de Médicos
 function botonCalidad() {
@@ -20066,8 +21971,6 @@ function botonCalidad() {
 
 /* ---------------- Configuración por bloques con subapartados ---------------- */
 
-let CFG_SUB = null;
-const fac = fn => () => { $('cfgcuerpo').innerHTML = '<div id="fcuerpo"></div>'; fn(); };
 function arbolConfig() {
   const admin = puede('administrar');
   return [
@@ -20094,10 +21997,6 @@ function arbolConfig() {
       { k: 'orgs', ic: 'building', t: 'Organizaciones', d: 'Empresas de la plataforma y alta de nuevas', r: pintarOrganizaciones }] : []]
   ].filter(g => g[1].length);
 }
-// Nombres anteriores de cada apartado → dónde está ahora
-const CFG_ANTES = { prefs: ['perfil'], horario: ['rutas', 'horario'], kpis: ['inicio', 'kpis'], usuarios: ['equipo', 'usuarios'],
-  roles: ['equipo', 'roles'], reglas: ['cartera', 'reglas'], frec: ['cartera', 'frec'], accesos: ['seguridad', 'accesos'], auditoria: ['seguridad', 'auditoria'],
-  alm: ['stock', 'alm'], mues: ['stock', 'mues'], fiscal: ['fact', 'fiscal'], series: ['fact', 'series'], vf: ['fact', 'vf'] };
 async function cargarConfig() {
   salirPanel();
   if (CFG_ANTES[CFG_SEC]) { const [k, s] = CFG_ANTES[CFG_SEC]; CFG_SEC = k; if (s) CFG_SUB = s; }
@@ -20154,7 +22053,6 @@ async function cargarConfig() {
 
 /* ---------------- manual: qué incluye tu plan ---------------- */
 
-const MOD_DE_MANUAL = { agenda: 'agenda', rutas: 'rutas', directorio: 'directorio', ventas: 'ventas', facturacion: 'facturacion', analitica: 'analitica', productos: 'productos', pacientes: 'pacientes', seguimiento: 'seguimiento' };
 
 /* ---------------- notificaciones mejor explicadas ---------------- */
 
@@ -20206,8 +22104,6 @@ db.rpc = (orig => function (fn, params, opts) {
 /* ---------------- nombre del módulo de contactos ---------------- */
 
 const ETIQUETAS = [...new Set([`${TT('medico', 'p', '', 'l', 'C')}`, 'Profesionales', 'Cuentas', 'Contactos', 'Clientes potenciales', 'Puntos de venta', 'Prescriptores'])];
-// v2.105.0: sin etiqueta propia, el nombre sale del vocabulario de la empresa («Farmacias», «Contactos»…); con el vocabulario por defecto, «Prescriptores»
-const etiquetaContactos = () => ((AJUSTES.marca || {}).etiqueta || TT('medico', 'p', '', 'l', 'C'));
 function aplicarEtiqueta() {
   const n = etiquetaContactos();
   document.querySelectorAll('nav.main [data-t="directorio"], #bnav [data-t="directorio"], .bmasgrid [data-bm="directorio"]').forEach(b => {
@@ -20316,8 +22212,6 @@ asignarCartera = (orig => async function (id, ...r) { await asegurarUsuario(id);
 // Una llamada sin fecha se abre con la fecha de ahora (antes fallaba al abrirse)
 editorLlamada = (orig => function (l, ...r) { if (l && !l.fecha) l = Object.assign({}, l, { fecha: new Date().toISOString() }); return orig(l, ...r); })(editorLlamada);
 
-// Registro de facturación: el detalle de cada evento en texto legible
-const NOMBRES_DETALLE = { importe: 'Importe', forma: 'Forma de pago', motivo: 'Motivo', para: 'Para', asunto: 'Asunto', clave: 'Ajuste', total: 'Total', serie: 'Serie', numero: 'Número' };
 
 
 /* ============================================================
@@ -20332,8 +22226,6 @@ const VERSION_APP = (((document.querySelector('script[src*="app.js"]') || {}).sr
 
 /* ---------------- registro de errores ---------------- */
 
-const ERRORES_SESION = [];
-let ERR_ENVIADOS = new Set();
 function registrarError(tipo, mensaje, detalle) {
   try {
     const m = String(mensaje || '').slice(0, 500);
@@ -20425,14 +22317,12 @@ document.addEventListener('click', e => {
 
 /* ---------------- estados de producto ---------------- */
 
-let ESTADO_PROD = {};
 cargarProductos = (orig => async function () {
   await orig();
   const { data } = await db.from('productos').select('id,estado');
   ESTADO_PROD = {}; (data || []).forEach(x => { ESTADO_PROD[x.id] = x.estado || 'Activo'; });
   [...PRODUCTOS, ...SERVICIOS].forEach(p => { p.estado = ESTADO_PROD[p.id] || 'Activo'; });
 })(cargarProductos);
-const vendible = p => (p.estado || 'Activo') === 'Activo';
 productoPorDefecto = function () {
   const lista = PRODUCTOS.filter(p => p.tipo !== 'servicio' && vendible(p));
   const hab = localStorage.getItem('dlc-prod-habitual');
@@ -20473,9 +22363,6 @@ editorProducto = (orig => function (p, ...r) {
 
 /* ---------------- componente común: «Filtros y columnas» ---------------- */
 
-// Pantallas con filtros propios que pasan al panel (la búsqueda por texto sigue a la vista)
-const HT_FILTROS = { pacientes: '#v-pacientes .filtros', facturacion: '#v-facturacion .filtros', analitica: '#anper' };
-const HT_ESTADO = {};   // por tabla: { texto, facetas: {col: valor} }
 // Columnas: se quitan de la rejilla conservando las proporciones del resto
 function htAplicarColumnas(g) {
   const tipo = htTipo(g), ocultas = htOcultas(tipo);
@@ -20566,7 +22453,6 @@ function htPreparar(sec) {
   if (g && !g.dataset.ht) { g.dataset.ht = '1'; htAplicarColumnas(g); htAplicarFiltros(g); if (!panel.classList.contains('hide')) htPintarPanel(sec); }
   htContador(sec);
 }
-let HT_PEND = false;
 new MutationObserver(() => {
   if (HT_PEND) return; HT_PEND = true;
   queueMicrotask(() => { HT_PEND = false; const sec = $('v-' + TAB); if (sec && !sec.classList.contains('hide')) htPreparar(sec); });
@@ -20574,7 +22460,6 @@ new MutationObserver(() => {
 
 /* ---------------- Prescriptores: columna «Acceso a la plataforma» ---------------- */
 
-let MED_ACCESO = null;
 COLS.push({ k: 'acceso', t: 'Acceso a la plataforma', w: 170 });
 celda = (orig => function (m, k) {
   if (k !== 'acceso') return orig(m, k);
@@ -20585,11 +22470,6 @@ celda = (orig => function (m, k) {
 
 /* ---------------- páginas propias: Perfil, Empresa y Plan ---------------- */
 
-const PAGINAS = {
-  perfil: { t: 'Mi perfil', d: 'Tus datos, idioma, qué abrir al entrar y tus notificaciones', tabs: [['datos', 'Mis datos', () => pintarPerfil()], ['notif', 'Notificaciones', () => pintarNotif()]] },
-  empresa: { t: 'Empresa', d: 'Marca, correo de la empresa y copias de seguridad', admin: true, tabs: [['marca', 'Marca y logo', () => pintarMarca()], ['correo', 'Correo y firma', () => pintarCorreo()], ['copias', 'Copias de seguridad', () => pintarCopias()]] },
-  plan: { t: 'Plan y suscripción', d: '', admin: true, tabs: [['plan', 'Plan', () => pintarPaginaPlan()]] }
-};
 let PAG_TAB = {};
 function cargarPagina(t) {
   const P = PAGINAS[t];
@@ -20711,7 +22591,6 @@ htActivos = (orig => function (sec) {
   if (htLateralAbierto() && HERR_CTX === 'ht-' + sec.id.replace('v-', '')) $('tools').querySelectorAll('.htpropios.lat select').forEach(s => { if (s.selectedIndex > 0) n++; });
   return n;
 })(htActivos);
-let HT2_PEND = false;
 new MutationObserver(() => {
   if (HT2_PEND) return; HT2_PEND = true;
   queueMicrotask(() => { HT2_PEND = false; const sec = $('v-' + TAB); if (sec) htColocarBoton(sec); });
@@ -20728,7 +22607,6 @@ document.addEventListener('click', e => {
 
 /* ---------------- IVA: selector con los tipos legales ---------------- */
 
-const TIPOS_IVA = [[21, 'General · 21 %'], [10, 'Reducido · 10 %'], [4, 'Superreducido · 4 %'], [0, 'Exento · 0 %']];
 function ivaSelector(inp) {
   if (!inp || inp.dataset.ivasel || inp.type === 'hidden') return;
   inp.dataset.ivasel = '1';
@@ -20926,8 +22804,6 @@ Object.assign(ICON_NOM, {"upload": "<path d=\"M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1
 
 /* ---------------- 1. Escrituras: saber si algo ha cambiado ---------------- */
 
-let ESCRITURAS = 0;
-const ES_ESCRITURA = /^(guardar|registrar_(?!error)|emitir|rectificar|marcar|borrar|eliminar|asignar|unificar|validar|anular|crear|descartar|restaurar|estado_|recibir|traspasar|vincular|mover|aplicar|reprogramar|cancelar|confirmar|terminar)/;
 db.rpc = (orig => function (fn, params, opts) {
   const r = orig.call(db, fn, params, opts);
   if (ES_ESCRITURA.test(fn) && r && typeof r.then === 'function') Promise.resolve(r).then(x => { if (!x || !x.error) ESCRITURAS++; }, () => {});
@@ -20943,13 +22819,11 @@ new MutationObserver(() => {
 
 /* ---------------- 2. Pantallas ya cargadas: no se recargan sin motivo ---------------- */
 
-const CACHE_MOD = {};   // módulo → { clave, t, esc }
 const ESTADO_MOD = {
   inicio: () => '', ventas: () => PEDSEC, productos: () => PSEC, facturacion: () => FSEC,
   analitica: () => (typeof ASEC !== 'undefined' ? ASEC : ''), pacientes: () => '',
   agenda: () => [AG_MODO, AG_FECHA, AG_VISTA ? AG_VISTA.id : ''].join('|')
 };
-let VIA_IR = null;
 [['inicio', 'cargarInicio'], ['ventas', 'cargarVentas'], ['productos', 'cargarProductosModulo'], ['facturacion', 'cargarFacturacion'],
  ['analitica', 'cargarAnalitica'], ['pacientes', 'cargarPacientes'], ['agenda', 'cargarAgenda']].forEach(([t, fn]) => {
   const orig = window[fn] || eval(fn);
@@ -21015,7 +22889,6 @@ congelar = function (sec) {
 
 /* ---------------- 4. Tablas: anchos de columna ajustables y recordados por persona ---------------- */
 
-const claveAnchos = tipo => `ht-anchos-${(PERFIL || {}).id || ''}-${tipo}`;
 htAplicarColumnas = (orig => function (g) {
   orig(g);
   const tipo = htTipo(g), an = anchosGuardados(tipo);
@@ -21055,8 +22928,6 @@ panelColumnas = (orig => function (titulo, cols, alCambiar) {
 
 /* ---------------- 5. Campos de formulario ---------------- */
 
-// IVA: siempre una lista con los tipos legales, en cualquier ventana (se detecta por su nombre o su etiqueta)
-const ES_IVA = i => /iva/i.test(i.id + ' ' + (i.dataset.f || '') + ' ' + (i.name || '')) || /\bIVA\s*\(%\)|tipo de iva/i.test(((i.id && document.querySelector(`label[for="${i.id}"]`)) || {}).textContent || '');
 ivaSelector = (orig => function (inp) {
   if (!inp || inp.dataset.ivasel) return;
   inp.dataset.sel = '1';                                   // sin botones de sumar y restar
@@ -21128,8 +22999,6 @@ new MutationObserver(() => { if (TAB === 'directorio') barraCuentas(); }).observ
 
 /* ---------------- 7. Facturación: «Facturas» y «Configuración» ---------------- */
 
-const FAC_CONFIG = [['empresa', 'Datos fiscales'], ['series', 'Series y numeración'], ['verifactu', 'VeriFactu'], ['registro', 'Registro']];
-let FAC_ULTIMA = 'empresa';
 new MutationObserver(() => { if (TAB === 'facturacion') subnavFacturacion(); }).observe($('v-facturacion'), { childList: true, subtree: true });
 cargarFacturacion = (orig => async function (...a) { const r = await orig.apply(this, a); requestAnimationFrame(() => { if (TAB === 'facturacion') subnavFacturacion(); }); return r; })(cargarFacturacion);
 
@@ -21206,7 +23075,6 @@ cargarSeguimiento = (orig => async function (...a) { await orig(...a); const v =
 
 /* ---------------- 4. IVA: solo los porcentajes (nunca un importe «con IVA») ---------------- */
 
-const ES_IMPORTE = /imp|importe|total|base|precio|pvp|coste|cobro|con_iva|conIva|sin_iva/i;
 // Se deshace cualquier conversión errónea (un importe convertido en lista de IVA)
 new MutationObserver(() => {
   document.querySelectorAll('select.ivasel').forEach(sel => {
@@ -21233,8 +23101,6 @@ new MutationObserver(ms => { for (const m of ms) for (const n of m.addedNodes) i
 
 /* ---------------- 6. Ventanas: tres tamaños según su contenido ---------------- */
 
-// Pequeña (confirmaciones y citas), normal (fichas y formularios) y amplia (pedidos, compras y facturas)
-const VENT_AMPLIA = ['editorPedido', 'verPedido', 'editorCompra', 'verFactura'];
 VENT_AMPLIA.forEach(fn => {
   const orig = eval(fn);
   const nueva = function (...a) { $('dlg').classList.add('amplia'); return orig.apply(this, a); };
@@ -21399,13 +23265,9 @@ nombreEnTextos(document.body);
    dejado de cambiar (sin estados intermedios a la vista)
    ============================================================ */
 
-// 1. Todas las consultas a la base de datos, cuenten desde donde se hagan (también las que no pasan por los atajos)
-let RED_PEND = 0;
 // Contador en la salida a la red (lo llama el envío de peticiones del cliente de la base de datos)
 window.__redIni = () => { RED_PEND++; const m = performance.now() + Math.random() / 1000; RED_EN_CURSO.add(m); return m; };
 window.__redFin = m => { if (RED_EN_CURSO.delete(m)) { RED_PEND--; RED_ULTIMO_FIN = performance.now(); } };
-const RED_EN_CURSO = new Set();   // momento de inicio de cada consulta en curso
-let RED_ULTIMO_FIN = 0;   // cuándo terminó la última consulta
 // Cuentan todas las consultas en curso, también las precargas lanzadas poco antes de entrar (Analítica las aprovecha);
 // solo se ignoran las que llevan más de 3 s en marcha (un refresco de fondo colgado no debe bloquear la pantalla)
 const pendientesDesde = t0 => { const lim = performance.now() - (Date.now() - t0) - 3000; let n = 0; RED_EN_CURSO.forEach(t => { if (t >= lim) n++; }); return n; };
@@ -21423,8 +23285,6 @@ const pendientesDesde = t0 => { const lim = performance.now() - (Date.now() - t0
 })();
 
 
-// 3. Pantallas: se preparan ocultas y se muestran de golpe
-let REVELADO = 0;
 function revelar(el, max, desde) {
   if (!el) return; const turno = ++REVELADO;
   el.classList.add('preparando');
@@ -21467,7 +23327,6 @@ congelar = function (sec) {
 
 /* ---------------- 1. Cambio de pestaña: respuesta inmediata y vista anterior atenuada ---------------- */
 
-let CLIC_PESTANA = null;
 // Se registra al apoyar el dedo o el ratón (antes del clic), para que la vista fija sepa qué botón se ha pulsado
 document.addEventListener('pointerdown', e => { CLIC_PESTANA = e.target.closest('button, [data-ag]'); }, true);
 document.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') CLIC_PESTANA = e.target.closest && e.target.closest('button, [data-ag]'); }, true);
@@ -21540,11 +23399,6 @@ barraCuentas = (orig => function () {
 
 /* ---------------- 5. Diseño del PDF de la factura ---------------- */
 
-const PDF_DEF = { logo: true, logoPos: 'izq', logoTam: 'm', color: '#1C2733', titulo: 'FACTURA', fuente: 'helvetica', empresaCab: false, clientePos: 'der',
-  cols: { precio: true, unidades: true, subtotal: true, iva: true, total: true }, fotos: true, vencimiento: true, formaPago: true, iban: true, direccion: true,
-  pieTel: true, pieWeb: true, pieTexto: true, paginas: true, qrPos: 'abajo' };
-const cfgPDF = () => Object.assign({}, PDF_DEF, (AJUSTES || {}).factura_pdf || {}, { cols: Object.assign({}, PDF_DEF.cols, ((AJUSTES || {}).factura_pdf || {}).cols || {}) });
-const hexRGB = h => { const x = (h || '#1C2733').replace('#', ''); return [0, 2, 4].map(i => parseInt(x.substr(i, 2), 16)); };
 facturaPDF = async function (f, rectificaNum, cfgPrueba) {
   const C = cfgPrueba || cfgPDF();
   const JsPDF = await cargarJsPDF();
@@ -21738,8 +23592,6 @@ pintarPlan = (orig => function (...a) {
   return r;
 })(pintarPlan);
 
-// Agenda del día: paradas abiertas en orden (se preparan al pintar para abrir la navegación al pulsar)
-let TD_PARADAS = [];
 
 
 /* ============================================================
@@ -21808,15 +23660,6 @@ const IMP_CAMPOS = {
     ['cobrado', 'Cobrado (sí o no)', 0, ['cobrado', 'pagado', 'estado cobro']],
     ['canal', 'Canal', 0, ['canal']]]
 };
-const IMP_TIPOS = () => [
-  ['clientes', 'Clientes', `${TT('paciente', 'p', '', 'l', 'C')} y empresas: datos de contacto y facturación`, 'users'],
-  ['productos', 'Productos', 'Catálogo: referencias, precios, IVA y costes', 'package'],
-  ['prescriptores', etiquetaContactos(), `${TT('medico', 'p', '', 'l', 'C')} y sus centros`, 'stethoscope'],
-  ['ventas', 'Ventas', 'Histórico de ventas con sus líneas de producto', 'shopping-cart']];
-const impNorm = t => String(t == null ? '' : t).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
-const impClave = t => impNorm(t).toUpperCase().replace(/ /g, '_').slice(0, 40) || 'CAMPO';
-const impHash = s => { let h = 5381; for (const c of s) h = ((h << 5) + h + c.charCodeAt(0)) | 0; return (h >>> 0).toString(36); };
-let IMP = null;   // estado del asistente
 
 
 // Configuración → Datos → Importar datos (administración)
@@ -21832,17 +23675,6 @@ arbolConfig = (orig => function () {
 })(arbolConfig);
 
 
-/* ============================================================
-   v2.72.0 · Motor de campos personalizados (fase 2 de la auditoría)
-   Cada cliente define sus campos (tipo, obligatorio, dónde se ven) en
-   Configuración → Catálogos, y la plataforma genera los formularios,
-   las columnas y los filtros. Los valores se guardan con guardar_campos().
-   ============================================================ */
-const CAMPOS = { medico: [], cliente: [], producto: [], pedido: [] };
-const CAMPO_TABLA = { medico: 'cuentas', cliente: 'contactos', producto: 'productos', pedido: 'pedidos' };
-const TIPOS_CAMPO = [['lista', 'Lista de valores'], ['texto', 'Texto'], ['numero', 'Número'], ['fecha', 'Fecha'], ['si_no', 'Sí / No']];
-const campoTexto = (c, v) => v == null || v === '' ? '' : c && c.tipo === 'si_no' ? (v === true || v === 'true' ? 'Sí' : 'No')
-  : c && c.tipo === 'fecha' ? fechaCorta(String(v)) : c && c.tipo === 'numero' ? String(v).replace('.', ',') : String(v);
 // Filtros generados (listas y sí/no) para una zona de filtros; al cambiar, actualiza «estado» y llama a «alCambiar»
 function camposFiltros(amb, estado, pref) {
   return (CAMPOS[amb] || []).filter(c => c.en_filtro && ['lista', 'si_no'].includes(c.tipo)).map((c, i) => {
@@ -21864,9 +23696,6 @@ abrirFicha = (orig => async function (id, ...a) { const r = await orig.call(this
    que rellena los datos solo, centro nuevo con horario de apertura
    ============================================================ */
 
-const DIAS_SEM = [['L', 'Lunes'], ['M', 'Martes'], ['X', 'Miércoles'], ['J', 'Jueves'], ['V', 'Viernes'], ['S', 'Sábado'], ['D', 'Domingo']];
-const hoyLetra = () => 'DLMXJVS'[new Date().getDay()];
-const cpCampo = (box, i, f) => box.querySelector(`[data-cf="${i}|${f}"]`);
 function tarjetaCentro(c, enlazado) {
   const hor = c.horario && Object.keys(c.horario).length ? c.horario : null;
   const hoy = hor && hor[hoyLetra()];
@@ -21958,33 +23787,7 @@ abrirVisita = (orig => async function (id, ...a) {
 })(abrirVisita);
 
 
-/* ============================================================
-   v2.88.0 · «Clasificadores» en «Filtros y columnas»
-   Todos los campos personalizados de Cuentas, Clientes, Pedidos y Productos
-   se pueden usar como filtro y como columna desde el panel. Listas y textos
-   con pocos valores: desplegable; con muchos: buscador. Números y fechas:
-   desde / hasta. «Columna en la tabla» decide si la columna se ve de entrada
-   y «Filtro» coloca el campo el primero de la sección.
-   ============================================================ */
-const CLAS_MAX_LISTA = 15;   // hasta este número de valores, desplegable; con más, buscador
-const CLAS_VALORES = {};     // por ámbito: valores que ya tienen las fichas en cada campo
-const clasNorm = s => String(s == null ? '' : s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-// Campos de la pantalla: primero los marcados como «Filtro», después el resto (en su orden)
-const clasCampos = amb => [...(CAMPOS[amb] || [])].sort((a, b) => (b.en_filtro ? 1 : 0) - (a.en_filtro ? 1 : 0));
-const clasCabeceras = cols => cols.map(c => `<span class="cpcol">${esc(c.nombre)}</span>`).join('');
-const clasCeldas = (cols, v) => cols.map(c => { const t = campoTexto(c, (v || {})[c.clave]); return `<span class="sm">${t ? esc(t) : '<span class="vac">—</span>'}</span>`; }).join('');
-const clasChips = (amb, estado) => Object.keys(estado || {}).map(k => {
-  const c = (CAMPOS[amb] || []).find(x => x.clave === k) || { clave: k, nombre: k };
-  return { k, t: clasTextoFiltro(c, estado[k]) };
-});
 
-/* ---------- Clientes, Pedidos y Productos: la sección va en el panel lateral ---------- */
-const CLAS_PANT = {
-  pacientes: { amb: 'cliente', estado: () => (PAC.campos = PAC.campos || {}), recargar: () => { PAC.pagina = 0; listaPacientes(); } },
-  ventas: { amb: 'pedido', estado: () => PEDF, recargar: () => { PEDPAG = 0; listaPedidos(); }, activo: () => !!$('pedlista') },
-  productos: { amb: 'producto', estado: () => PRODF, recargar: () => pintarProductos(), activo: () => PSEC === 'productos' }
-};
-const clasPantalla = sec => { const P = sec && CLAS_PANT[sec.id.replace('v-', '')]; return P && (!P.activo || P.activo()) ? P : null; };
 htAbrirLateral = (orig => function (sec) {
   orig(sec);
   const d = $('tools'), auto = d.querySelector('.htauto');
@@ -22082,13 +23885,6 @@ Object.assign(ICON_NOM, {"building-2":"<path d=\"M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0
 if (AYUDA.rutas) AYUDA.rutas[2].push(`Con <b>Añadir un centro</b> entran todos sus ${TT('medico', 'p', '', 'l', 'l')}: quita los que no vayas a ver. En el plan, los de un mismo centro forman una sola parada y se les planifica en ese centro aunque atiendan en otros.`);
 
 
-/* ============================================================
-   v2.102.0 · «Tu día» por centros
-   Las citas seguidas en un mismo centro se agrupan bajo el centro (como las
-   paradas del plan). Y la ficha abierta desde una cita muestra en «Para la
-   visita» la consulta de ESE centro. (El SQL 79 pone la base en hora de España.)
-   ============================================================ */
-let FICHA_CENTRO = null;   // centro de la cita desde la que se abre la ficha
 // La consulta de la visita: la del centro de la cita; si no, la que tiene consulta hoy; si no, la principal
 consultaDeLaVisita = (orig => function (cons) {
   const pref = FICHA_CENTRO ? clasNorm(FICHA_CENTRO) : '';
@@ -22120,22 +23916,6 @@ verPedido = (orig => async function (id, ...a) { const r = await orig.call(this,
 
 
 
-/* ============================================================
-   v2.101.0 · Fechas, horas y números
-   Los mismos selectores en escritorio y en móvil para todos los campos:
-   fecha, hora, mes (liquidaciones) y fecha con hora (llamadas), que antes
-   abrían el selector del sistema. Calendario con vista de meses y años
-   (se pulsa el título), atajos «Hoy» y «Mañana» y manejo con el teclado.
-   Reloj con «Ahora» y los minutos según el paso del campo. Números con el
-   teclado adecuado en el móvil, mantener pulsado para sumar o restar
-   seguido, la rueda del ratón ya no los cambia sin querer y se respetan
-   el mínimo y el máximo al escribir.
-   ============================================================ */
-const selDos = n => String(n).padStart(2, '0');
-const SEL_DIAS = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
-const selFechaLarga = iso => { const d = new Date(iso + 'T12:00:00'); return `${SEL_DIAS[d.getDay()]}, ${d.getDate()} de ${MESES_L[d.getMonth()]} de ${d.getFullYear()}`; };
-const selFechaMedia = iso => { const d = new Date(iso + 'T12:00:00'); return isNaN(d) ? iso : d.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }); };
-const selTipo = inp => inp.type === 'month' ? 'mes' : inp.type === 'datetime-local' ? 'fechahora' : inp.type === 'time' ? 'hora' : 'fecha';
 
 // ---------- Calendario: días, meses y años ----------
 abrirCalendario = function (inp, o) {
@@ -22298,9 +24078,6 @@ document.addEventListener('change', e => {
   if (n !== +i.value) { i.value = n; i.dispatchEvent(new Event('input', { bubbles: true })); }
 }, true);
 
-// Una pasada por fotograma como mucho, aunque la pantalla cambie muchas veces seguidas
-let sinHistorialPend = false;
-const sinHistorialLuego = () => { if (sinHistorialPend) return; sinHistorialPend = true; requestAnimationFrame(() => { sinHistorialPend = false; sinHistorial(document.body); }); };
 new MutationObserver(sinHistorialLuego).observe(document.body, { childList: true, subtree: true });
 sinHistorial(document.body);
 
@@ -22337,14 +24114,6 @@ pintarRoles = (orig => async function (...a) {
 })(pintarRoles);
 
 
-/* v2.111.0 · Teclado en escritorio.
-   1. Buscadores: con las flechas se recorren los resultados (el desplegable de sugerencias o, en los buscadores que filtran
-      una lista o una tabla, sus filas) e Intro abre el marcado. El elemento marcado lleva la clase .activo.
-   2. F5 (o Ctrl+R) recarga la app y vuelve a la pantalla en la que se estaba; Ctrl+F5 (o Ctrl+Mayús+R) entra de cero. */
-const TECLA_LISTAS = '.gsug, .cpres, .lista, .dgrid, [role=listbox], table';
-const teclaVisible = x => x.offsetParent !== null && !x.classList.contains('hide');
-// Solo los buscadores: los de tipo búsqueda y los campos con su lista de resultados justo debajo
-const esBuscador = i => i && i.matches && i.matches('input') && !i.list && (i.type === 'search' || (!!i.nextElementSibling && i.nextElementSibling.matches('.gsug, .cpres, .lista, [role=listbox]')));
 document.addEventListener('keydown', e => {
   if (!['ArrowDown', 'ArrowUp', 'Enter'].includes(e.key) || e.altKey || e.ctrlKey || e.metaKey || !esBuscador(e.target)) return;
   const l = teclaLista(e.target); if (!l) return;
@@ -22406,10 +24175,6 @@ document.addEventListener('keydown', e => {
 })();
 
 
-/* v2.115.0 · Justificante del pago: una foto (se reduce a 1600 px en JPEG antes de subirla) o un PDF de hasta 3 MB,
-   guardado en la tabla pedidos_justificantes. Lo ve quien ve el pedido. */
-const JUSTIF_MAX = 3000000;
-const aBase64 = blob => new Promise((ok, mal) => { const fr = new FileReader(); fr.onload = () => ok(String(fr.result).split(',')[1] || ''); fr.onerror = mal; fr.readAsDataURL(blob); });
 
 // Ver pedido · Pago: origen, referencia (editable por quien lleva la operativa) y justificantes (añadir, ver y quitar)
 async function pedidoPago(id) {
@@ -22477,10 +24242,6 @@ PLANES.splice(0, PLANES.length,
     modulos: ['inicio', 'agenda', 'rutas', 'directorio', 'seguimiento', 'ventas', 'pacientes', 'productos', 'analitica', 'facturacion'],
     ventajas: ['Todo lo de Empresa', 'Migración de datos', 'Conexión con tu programa de gestión', `Espacio ${TT('medico', 's', 'del', 'l', 'l')} sin límite`,
       'Ver la plataforma como cada persona de tu equipo, para ayudarla', 'Soporte prioritario'] });
-const PUESTA_EN_MARCHA = 490;
-const precioPlan = p => p.presupuesto ? 'presupuesto a medida' : `${eurI(p.precio)} por usuario al mes, ${eurI(p.anual)} con pago anual`;
-// Usuarios contratados (A medida o sin dato: sin límite)
-const usuariosContratados = () => PLAN_ACTUAL.plan === 'medida' || PLAN_ACTUAL.usuarios == null ? Infinity : +PLAN_ACTUAL.usuarios;
 
 // Plan y suscripción: tu plan (usuarios contratados, pago, prueba), los cuatro planes y la comparativa por módulos
 pintarPaginaPlan = async function () {
@@ -22607,16 +24368,8 @@ ir = function (t, ...a) {
 };
 
 
-let LL_ALTA = { motivo: '', resultado: '' };
 
 
-/* v2.121.0 · Página «Organización» (menú de usuario, arriba): marca, correo, copias, plan y facturación de la empresa, solo para el
-   Propietario (configurar_organizacion) y el Administrador de la plataforma (gestionar_plataforma). Empresa y Plan pasan a ser
-   pestañas suyas; Configuración se queda con lo del día a día. Y en escritorio, las ventanas de Configuración y de estas páginas
-   se abren dentro del área de contenido, no por encima. */
-// Las pestañas de facturación usan #fcuerpo, como el módulo Facturación: su pantalla se vacía para no tener dos (se rehace al volver)
-const facOrg = fn => () => { const v = $('v-facturacion'); if (v) v.innerHTML = ''; fac(fn)(); };
-const puedeOrganizacion = () => puede('configurar_organizacion') || puede('gestionar_plataforma');
 PAGINAS.organizacion = {
   t: 'Organización', d: 'Marca, correo, copias de seguridad, plan y facturación de la empresa', permiso: puedeOrganizacion,
   get tabs() {
@@ -22627,9 +24380,6 @@ PAGINAS.organizacion = {
       ...(puede('gestionar_plataforma') ? [['orgs', 'Organizaciones', () => pintarOrganizaciones()]] : [])];
   }
 };
-// Empresa y Plan (y los apartados de Configuración que se han movido) llevan a su pestaña de Organización
-const ORG_DESDE = { marca: 'marca', correo: 'correo', copias: 'copias', __empresa: 'marca', empresa: 'marca', plan: 'plan', fact: 'fiscal', fiscal: 'fiscal',
-  series: 'series', vf: 'vf', pdf: 'pdf', orgs: 'orgs' };
 const IR_V2121 = ir;
 ir = function (t, ...a) {
   if (t === 'empresa') { PAG_TAB.organizacion = PAG_TAB.empresa || 'marca'; t = 'organizacion'; }
@@ -22650,9 +24400,6 @@ document.addEventListener('click', e => {
   ir('organizacion');
 }, true);
 
-// Ventanas integradas: en escritorio, dentro de Configuración y de las páginas propias, una ventana ocupa el área de contenido
-// (sin fondo oscuro ni ventana flotante); al cerrarla vuelve el apartado. En el móvil las ventanas ya ocupan la pantalla.
-const ENCAJE_MIN = 900;
 function areaEncaje() {
   if (innerWidth < ENCAJE_MIN) return null;
   if (TAB === 'config') return $('cfgcuerpo-hub') || $('cfgcuerpo');
@@ -22696,7 +24443,6 @@ function areaEncaje() {
     if (area && !document.querySelector('dialog.encajada[open]')) { area.classList.remove('con-ventana'); area.style.minHeight = ''; }
   });
 });
-const cerrarEncajadas = () => ['dlg2', 'dlg'].forEach(id => { const d = $(id); if (d && d.open && d.classList.contains('encajada')) d.close(); });
 // Escape cierra la de arriba; cambiar de apartado, de pestaña o de pantalla las cierra
 document.addEventListener('keydown', e => {
   if (e.key !== 'Escape') return;
@@ -22713,28 +24459,16 @@ if (typeof PERFIL !== 'undefined' && PERFIL) menuOrganizacion();
 cargarAjustes = (orig => async function (...a) { const r = await orig(...a); if (PERFIL) menuOrganizacion(); return r; })(cargarAjustes);
 
 
-/* v2.123.0 · Historial de cambios y deshacer (administración). La base guarda cada cambio con su valor de antes; aquí se ve por
-   ficha y se deshace: un cambio, o todo lo que una persona cambió desde una fecha. Solo fichas, consultas, clientes, productos y
-   rutas (pedidos, facturas, usuarios y cartera tienen efectos en stock, facturación, comisiones o permisos). */
-const DESHACIBLES = ['cuentas', 'ubicaciones', 'contactos', 'productos', 'rutas'];
-const deshacible = a => DESHACIBLES.includes(a.entidad) && ['Edición', 'Baja'].includes(a.accion);
 const CAMPO_TXT = { nombre: 'Nombre', estado_comercial: 'Estado', get especialidad() { return TT('especialidad', 's', '', 'l', 'C'); }, area: 'Área', telefono: 'Teléfono', movil: 'Móvil', email: 'Email',
   direccion: 'Dirección', cp: 'Código postal', municipio: 'Población', provincia: 'Provincia', nota: 'Nota', urgente: 'Urgente', centro_nombre: 'Centro',
   dias: 'Horario', principal: 'Principal', nif: 'DNI / CIF', cuenta_id: TT('medico', 's', '', 'l', 'C'), codigo: 'Código', precio: 'Precio', estado: 'Estado',
   sin_reporting: 'Sin reporting', clasificadores: 'Campos propios', planta: 'Planta', sala: 'Sala', indicaciones: 'Cómo llegar', lat: 'Latitud', lon: 'Longitud' };
-const campoTxt = k => CAMPO_TXT[k] || (k.charAt(0).toUpperCase() + k.slice(1).replace(/_/g, ' '));
-const MOTIVO_DESHACER = { permiso: 'No tienes permiso', no_existe: 'Ese cambio ya no está en el registro', no_deshacible: 'Ese tipo de cambio no se puede deshacer',
-  ya_no_existe: 'El registro ya no existe', ya_existe: 'Ya estaba recuperado' };
 abrirFicha = (orig => async function (id, ...a) { const r = await orig.call(this, id, ...a); fichaHistorial(id); return r; })(abrirFicha);
 
 
-const NV_DIAS = [['Mañana', 1], ['En 3 días', 3], ['En una semana', 7], ['En un mes', 30]];
-const nvLinea = (pid, u) => { const p = PRODUCTOS.find(x => x.id === pid) || {}; return p.precio != null ? r2(p.precio * (1 + (+p.iva || 0) / 100) * (+u || 0)) : 0; };
 
 editorLlamada = editorOportunidad;
 
-// Pestaña «Oportunidades» (antes «Llamadas»): volver a llamar, métricas y lista
-const NV_DIA_TXT = ['', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
 pintarLlamadas = async function () {
   await catOportunidades();
   $('vcuerpo').innerHTML = `<div class="panel">
@@ -22823,15 +24557,6 @@ pintarLlamadas = async function () {
 
 
 
-/* v2.126.0 · Portal del médico (extra «Portal» de la organización). En «Mi informe», además: la constancia de sus pacientes solo en
-   cifras (sin ninguna fila por paciente), pedir material de lo que la empresa permite y escribir dudas a su comercial. En la ficha,
-   quien la lleva entrega el material y contesta. En Configuración → Portal del médico, qué material se puede pedir y cuánto. */
-// v2.242.0: aquí iba la primera versión de hayExtra (se redefine entera más abajo)
-const MOTIVO_PORTAL = { permiso: 'No tienes permiso', extra: 'Tu empresa no tiene el portal activado', material: 'Ese material ya no se puede pedir',
-  cantidad: 'Esa cantidad supera el máximo', vacio: 'Escribe el mensaje', cerrada: 'Ya estaba cerrado', no_existe: 'Ya no existe' };
-const motivoPortal = r => MOTIVO_PORTAL[(r && r.motivo) || ''] || 'No se ha podido hacer';
-const horaCorta = f => new Date(f).toLocaleString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
-const pillMaterial = e => `<span class="pill ${e === 'Pendiente' ? 'p-warn' : e === 'Entregado' ? 'p-est' : 'p-anu'}">${esc(e)}</span>`;
 
 
 // ——— Lado del médico ———
@@ -22949,8 +24674,6 @@ arbolConfig = (orig => function () {
 })(arbolConfig);
 
 
-const NOMBRE_ESTADO_CENTRO = { 'Pendiente de confirmar': 'p-warn', Confirmado: 'p-est', 'Pendiente de validar': 'p-warn', Validado: 'p-est',   // v2.349.0 (SQL 176); los dos de antes, por si la base aún no lo tiene
-  Preparado: 'p-per', Anulado: 'p-anu' };
 
 abrirFicha = (orig => async function (id, ...a) { const r = await orig.call(this, id, ...a); fichaProductosCentro(id); return r; })(abrirFicha);
 
@@ -22998,31 +24721,10 @@ function menuPaginas2131() {
 }
 aplicarPermisosMenu = (orig => function (...a) { const r = orig.apply(this, a); menuPaginas2131(); franjaVista(); return r; })(aplicarPermisosMenu);
 
-// Franja «Estás viendo X · Salir» cuando el Administrador de delcos está dentro de otra organización
-let VISTA_ORG = null;
 // (v2.183.0: aquí iba la primera versión de entrarEnOrganizacion; se redefine entera más abajo)
 setTimeout(() => { try { menuPaginas2131(); franjaVista(); } catch (e) {} }, 0);
-/* ---------------- v2.132.0 · Menú lateral de escritorio (elegido por Eric: barra a la izquierda, agrupada por áreas) ----------------
-   Los botones siguen siendo los de siempre (nav.main #nav [data-t]): aquí solo se reparten en bloques, se pliega la barra a iconos
-   (por defecto en pantallas de menos de 1440 px; se recuerda en el dispositivo) y cada persona ordena los bloques y oculta secciones
-   («Personalizar menú», guardado en preferencias.menu). Solo en escritorio (≥ 900 px); el móvil sigue con su barra inferior.
-   Un botón nuevo en #nav que no esté en ningún bloque sale en «Otros». «Plataforma» (panel de delcos) va siempre al final, fijo. */
-const MENU_GRUPOS = [
-  { id: 'dia', t: 'Tu día', items: ['inicio', 'agenda', 'rutas'] },
-  { id: 'cartera', t: 'Cartera', items: ['directorio', 'pacientes', 'seguimiento'] },
-  { id: 'ventas', t: 'Ventas', items: ['ventas', 'productos', 'facturacion'] },
-  { id: 'resultados', t: 'Resultados', items: ['analitica', 'informe'] },
-  { id: 'equipo', t: 'Equipo', items: ['usuarios'] }];
-const MENU_FIJO = { id: 'plataforma', t: 'Plataforma', items: ['delcos'] };
-const MENU_PLEGAR_BAJO = 1440;
 // Iconos de las secciones nuevas (v2.131.0): Usuarios y roles con la llave de accesos y el panel de delcos con el escudo
 Object.assign(ICO_NAV, { usuarios: 'key-round', delcos: 'shield' });
-const ICO_SUBIR = '<path d="m18 15-6-6-6 6"/>';
-const ICO_PLEGAR = '<rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/><path d="m16 15-3-3 3-3"/>';
-const menuPrefs = () => ((typeof PERFIL !== 'undefined' && PERFIL && PERFIL.preferencias) || {}).menu || {};
-const menuEscritorio = () => innerWidth >= 900;
-const menuPlegado = () => { try { const v = localStorage.getItem('dlc-menu-plegado'); if (v === '1' || v === '0') return v === '1'; } catch (e) {} return innerWidth < MENU_PLEGAR_BAJO; };
-let MENU_FIRMA = '';
 function montarMenuLateral() {
   const inn = $('nav'); if (!inn) return;
   // Con una sola sección (portal del médico o del centro) no hace falta barra lateral: se queda la cabecera de siempre
@@ -23087,22 +24789,12 @@ function montarMenuLateral() {
   $('mlplegar').dataset.tip = document.body.classList.contains('menupleg') ? 'Desplegar el menú' : 'Plegar el menú';
 }
 document.addEventListener('mouseover', e => { const b = e.target.closest && e.target.closest('nav.main [data-tip]'); menuTip(b || null); });
-// (v2.183.0: aquí iba la primera versión de menuPersonalizar; se redefine entera más abajo)
-// Se monta al arrancar y se rehace si cambian los botones (permisos, módulos, portal), el tamaño de la pantalla o la sesión
-let MENU_RAF = 0;
-const menuRehacer = () => { if (MENU_RAF) return; MENU_RAF = requestAnimationFrame(() => { MENU_RAF = 0; montarMenuLateral(); }); };
 if ($('nav')) new MutationObserver(menuRehacer).observe($('nav'), { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
 addEventListener('resize', menuRehacer);
 if ($('app')) new MutationObserver(menuRehacer).observe($('app'), { attributes: true, attributeFilter: ['class'] });
 menuRehacer();
 
 
-/* v2.133.0 · Entorno de pruebas: «Traer los datos de producción». Junto a «Volver a los datos de partida» (y para quien puede
-   usarlo), pide a la función «refrescar-pruebas» de Supabase que lance el proceso de GitHub que copia los datos actuales de
-   producción (solo los lee) y los deja como nuevos datos de partida. La franja enseña en qué punto está y recarga al terminar. */
-const MOTIVO_REFRESCO = { permiso: 'Solo la administración puede traer los datos de producción', responsable: 'Solo la persona responsable del entorno de pruebas puede hacerlo',
-  en_marcha: 'Ya se están copiando los datos de producción', github: 'No se ha podido lanzar la copia en GitHub', no_es_pruebas: 'Esto solo funciona en el entorno de pruebas' };
-let REFRESCO_VIGILA = null;
 if (EN_PRUEBAS) {
   pintarFranjaPruebas = (orig => async function () {
     await orig();
@@ -23193,11 +24885,6 @@ menuCita = function (boton, c) {
   m.querySelectorAll('[data-tdop]').forEach(b => b.onclick = () => { m.remove(); accionCita(b.dataset.tdop, c); });
 };
 
-// Pedidos, Oportunidades, Compras y Proveedores: cada uno su entrada en el menú (por dentro, el mismo módulo con su sección)
-const ALIAS_PEDIDOS = { oportunidades: 'llamadas', compras: 'compras', proveedores: 'proveedores' };
-const TITULO_PEDSEC = { ventas: ['Pedidos', 'Pedidos de tus clientes, con sus unidades e importes'], llamadas: ['Oportunidades', 'Cada venta, se cierre con pedido o no, y por qué'],
-  compras: ['Compras', 'Pedidos a proveedores y mercancía en camino'], proveedores: ['Proveedores', 'A quién compras y en qué condiciones'] };
-let IR_DESDE_MENU = false;
 document.addEventListener('click', e => {
   if (e.target.closest('nav.main [data-t], #bnav [data-t], [data-bm]')) { IR_DESDE_MENU = true; setTimeout(() => { IR_DESDE_MENU = false; }, 0); }
 }, true);
@@ -23222,8 +24909,6 @@ Object.assign(ICO_NAV, { oportunidades: 'phone', compras: 'clipboard-list', prov
 (() => { const g = MENU_GRUPOS.find(x => x.id === 'ventas'); if (!g) return; ['proveedores', 'compras', 'oportunidades'].forEach(k => { if (!g.items.includes(k)) g.items.splice(g.items.indexOf('ventas') + 1, 0, k); }); })();
 setTimeout(() => { try { menuPedidos2139(); } catch (e) {} }, 0);
 
-// «Por hacer» de pedidos, configurable
-const AVISOS_PED = [['pago', 'Pendientes de cobro', '💳'], ['paquete', 'Paquetes por preparar', '📦'], ['email_factura', 'Facturas por enviar', '🧾'], ['email_pago', 'Datos de pago por enviar', '✉️']];
 pintarOperativa = async function () {
   let c = $('operativa');
   if (!c) { const ref = $('vcuerpo'); if (!ref) return; ref.insertAdjacentHTML('beforebegin', '<div class="card" id="operativa"></div>'); c = $('operativa'); }
@@ -23425,12 +25110,6 @@ menuPersonalizar = function () {
 };
 
 
-/* v2.143.0 · Agenda en una sola pantalla (decisión de Eric, 3/10/2026): sin flechas ni Día/Semana/Mes. Arriba, una línea fina con
-   cuatro métricas; luego Hoy («Tu día») con las sugerencias al lado; debajo, la semana en curso en 7 columnas y el mes con puntos.
-   Al pulsar un día se ven sus citas ahí mismo (sin cambiar de pantalla). La semana detallada (arrastrar, planificar, bloquear días)
-   sigue a un clic con «Planificar la semana», y vuelve con «Agenda de hoy». */
-const AG_DIAS_TXT = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
-const agUnida = () => TAB === 'agenda' && AG_MODO === 'dia';   // v2.146.0: también con otro día elegido (antes solo hoy)
 ir = (orig => function (t, ...a) {
   if (t === 'agenda' && IR_DESDE_MENU) { AG_MODO = 'dia'; AG_FECHA = hoyISO(); }   // la Agenda del menú abre siempre hoy
   return orig.call(this, t, ...a);
@@ -23443,28 +25122,12 @@ document.addEventListener('pointerdown', e => { if (!e.target.closest('.agpop, [
 
 // v2.143.0: en Pedidos y Oportunidades los filtros pasan dentro de «Filtros y columnas» (a la vista queda solo el buscador)
 HT_FILTROS.ventas = "#v-ventas .filtros";
-/* v2.144.0 · Páginas propias: la acción principal («+ Nuevo usuario», «+ Nueva organización») sube a la derecha de la cabecera, como
-   «+ Nueva venta» en el resto de pantallas (regla de Eric: misma posición en todas). Antes iba dentro de la tarjeta, junto al buscador. */
-const ACCION_PAGINA = ['usrnuevo', 'orgnueva'];
-let ACCION_PAG_PEND = false;
 new MutationObserver(() => {
   if (ACCION_PAG_PEND) return; ACCION_PAG_PEND = true;
   queueMicrotask(() => { ACCION_PAG_PEND = false; subirAccionPagina(); });
 }).observe(document.querySelector('main'), { childList: true, subtree: true });
 
 
-/* v2.145.0 · Rutas en una sola pantalla (decisión de Eric, 3/10/2026: «Propuestas del día y mis rutas al lado» y propuestas que
-   aprenden de lo que hace). Sin pestañas: a la izquierda 2 o 3 rutas ya armadas para el día (por zona y llenas hasta la jornada,
-   con sus motivos y un croquis), a la derecha las rutas guardadas, y el plan se abre debajo al pulsar. Los candidatos y su
-   puntuación vienen de rutas_candidatos (SQL 95): urgentes, consulta ese día, interesados que se enfrían, pendientes, buenos
-   clientes sin visita y nunca visitados, más las zonas y días en que sueles visitar y quién más compra. */
-let RPROP = null;   // { manana, fecha, datos, lista: [{ sel, ini, fin, km, zona }] }
-const RP_JORNADA = 300;   // minutos de una jornada de propuestas (5 h) si la ruta no dice otra cosa
-const RP_DIAS = { L: 'lunes', M: 'martes', X: 'miércoles', J: 'jueves', V: 'viernes' };
-const rpNombreDia = f => {
-  const man = new Date(); man.setDate(man.getDate() + 1);
-  return f === hoyISO() ? 'hoy' : f === isoLocal(man) ? 'mañana' : 'el ' + fechaLarga(new Date(f + 'T00:00:00')).replace(/,.*/, '');
-};
 
 
 
@@ -23534,23 +25197,6 @@ function agMarcarDia() {
 
 
 
-/* v2.148.0 · Analítica: panel de indicadores por áreas (decisión de Eric, 3/10/2026: «Panel por áreas + Explorar», engranaje con
-   filtro propio que se guarda y las cuatro familias nuevas). Resumen: indicadores de Ventas, Clientes, Equipo, Oportunidades, Cobros y
-   Stock (cada uno según su módulo y permisos) con la comparación elegida; cada tarjeta tiene su engranaje (comercial, producto, canal,
-   municipio, comparación y nombre; se puede duplicar con otro filtro) y «Personalizar» elige cuáles se ven. El periodo y la comparación
-   van en «Filtros y columnas»; en Explorar, también todos sus filtros (a la vista quedan «Ver por», «Ordenar por» y la búsqueda).
-   Las cifras salen de analitica_kpis (SQL 96), una llamada por filtro distinto. */
-const AN_FAM = [
-  ['ventas', 'Ventas', () => puedeModulo('ventas')],
-  ['clientes', 'Clientes', () => puedeModulo('ventas')],
-  ['equipo', () => 'Equipo y ' + TT('visita', 'p', '', 'l', 'l'), () => puedeModulo('agenda')],
-  ['oportunidades', 'Oportunidades', () => puedeModulo('ventas') && hayOportunidades()],
-  ['cobros', 'Cobros', () => puedeModulo('facturacion')],
-  ['stock', 'Stock y compras', () => puedeModulo('productos') && nivelDe2('P') >= 1]
-];
-// Qué filtros tienen sentido en cada área
-const AN_FILTROS = { ventas: ['comercial', 'producto', 'canal', 'municipio'], clientes: ['comercial', 'producto', 'canal', 'municipio'],
-  equipo: ['comercial', 'municipio'], oportunidades: ['comercial', 'producto'], cobros: [], stock: ['producto'] };
 // [id, área, título, formato, mejor si sube (true/false/null), ayuda, a hoy, solo con importes, por defecto]
 function anCatalogo() {
   const med = TT('medico', 'p', '', 'l', 'l'), vis = TT('visita', 'p', '', 'l', 'l'), vis1 = TT('visita', 's', '', 'l', 'l');
@@ -23589,9 +25235,6 @@ function anCatalogo() {
     ['compras', 'stock', 'Compras del periodo', 'eur', null, 'Importe de los pedidos de compra del periodo (sin los cancelados).', false, true, false]
   ].map(([id, fam, t, fmt, sube, ayuda, hoy, imp, def]) => ({ id, fam, t, fmt, sube, ayuda, hoy, imp, def }));
 }
-const anFamNombre = f => { const x = AN_FAM.find(a => a[0] === f); return x ? (typeof x[1] === 'function' ? x[1]() : x[1]) : f; };
-const anFamVisible = f => { const x = AN_FAM.find(a => a[0] === f); return !!x && x[2](); };
-const anKpiVisible = k => anFamVisible(k.fam) && (!k.imp || verImportes());
 
 let AN_CFG = null, AN_DATOS = {};
 
@@ -23702,15 +25345,6 @@ TIPOS_NOTIF.push(
   ['visita_sin_registrar', '📝', 'Citas sin registrar', `Citas de los últimos 3 días sin ${TT('visita', 's', '', 'l', 'l')} registrada`],
   ['pedido_portal', '🏥', 'Pedidos del portal', 'Cuando un centro pide desde el portal']
 );
-const NOTIF_AREAS = [
-  ['ventas', 'Ventas', ['reponer', 'caida_ventas', 'pedido_portal', 'venta_cartera', 'pauta', 'pedido_validado', 'pago_recibido', 'borrador_nuevo', 'cliente_nuevo']],
-  ['cartera', 'Cartera y agenda', ['citas_hoy', 'visita_sin_registrar', 'seguimientos_hoy', 'sin_visitar', 'cartera', 'cruce', 'duplicado', 'portal']],
-  ['cobros', 'Cobros y stock', ['pagos_pendientes', 'facturas_vencidas', 'stock_minimo', 'lotes_caducan', 'compra_recibida', 'rectificativa']],
-  ['equipo', 'Equipo', ['usuario_nuevo', 'esquema']]
-];
-// Los que se preparan al empezar el día: solo tienen «en el resumen»
-const NOTIF_DIARIOS = ['citas_hoy', 'seguimientos_hoy', 'pagos_pendientes', 'facturas_vencidas', 'lotes_caducan', 'sin_visitar', 'reponer', 'caida_ventas', 'visita_sin_registrar'];
-const notifArea = t => (NOTIF_AREAS.find(a => a[2].includes(t)) || ['otros'])[0];
 let NOTIF_LISTA = [], NOTIF_FILTRO = '';
 
 
@@ -23780,43 +25414,6 @@ Object.keys(ICO_NAV).forEach(k => { if (ICON_NOM[ICO_NAV[k]]) ICO_MOD[k] = svgIc
     empresa: 'Para empresas que facturan y llevan su almacén', medida: 'Para redes de más de 50 personas o con necesidades propias' };
   PLANES.forEach(p => { if (para[p.id]) p.para = para[p.id]; });
 })();
-// Filas de la comparativa: [nombre, detalle, planes que lo incluyen]
-const PLAN_FILAS = () => {
-  const T = ['campo', 'comercial', 'empresa', 'medida'], C = ['comercial', 'empresa', 'medida'], E = ['empresa', 'medida'], M = ['medida'];
-  const med = TT('medico', 'p', '', 'l', 'l'), vis = TT('visita', 'p', '', 'l', 'l'), pac = TT('paciente', 'p', '', 'l', 'l');
-  return [
-    ['Campo', null],
-    [`Cartera de ${med} y centros`, 'Fichas con su historial, horarios, estado comercial y tus campos', T],
-    [`Agenda, «Tu día» y registro de ${vis}`, 'Tu día, tu semana y tu mes en una pantalla, con sugerencias', T],
-    ['Rutas y planificación semanal', 'Rutas propuestas cada mañana, a tu agenda con un clic', T],
-    [`Ciclo de ${vis} A/B/C`, `Cada ficha en A, B o C con sus ${vis} por ciclo, y a quién le faltan`, T],   // v2.199.0
-    ['Muestras y material', `Lo que entregas en cada ${TT('visita', 's', '', 'l', 'l')}, por almacén`, T],
-    ['Calidad del dato y duplicados', 'Qué le falta a cada ficha y fichas repetidas, para unirlas', T],
-    ['Notificaciones', 'Por día y con su acción; cada persona elige qué y cuándo', T],
-    ['Usuarios, roles y permisos', 'Cada persona ve lo suyo y ordena su propio menú', T],
-    ['Importar datos', 'Desde Excel o CSV, con vista previa', T],
-    ['Venta', null],
-    ['Pedidos, televenta y clientes', `Nueva venta: llamada y pedido en un paso; ${pac} y empresas con su historial`, C],
-    ['Pedidos web y pagos', 'Lo que entra por tu web, con referencia y justificante del pago', C],
-    ['Oportunidades', 'Cada venta, se cierre o no, con sus métricas', C],   // v2.158.0: incluida desde Comercial
-    ['Cobertura de cada producto por ciclo', `Qué productos han oído tus ${med} de A, B y C en sus ${vis}`, C],   // v2.199.0
-    ['Eventos e informe de gastos', 'Talleres, cursos y congresos con sus asistentes y el informe anual', C],   // v2.199.0
-    ['Productos y stock por lotes', 'Catálogo, lotes, caducidades y almacenes', C],
-    ['Analítica', 'Indicadores por áreas comparados con el periodo anterior, y explorar tus datos', C],
-    ['Comisiones por tramos', 'Esquemas y liquidaciones de cada mes', C],
-    ['Oficina', null],
-    ['Facturación con VeriFactu y cobros', 'Series, rectificativas y el registro de cada factura', E],
-    ['Compras, proveedores y trazabilidad', 'Lo enviado, lo que está en camino y lo recibido', E],
-    ['Material en depósito', 'Lo que tienes en cada centro, lo usado y su reposición', E],   // v2.201.0
-    ['Intervenciones con lote y número de serie', 'Programación, lo usado por unidad, pedido y reposición en 48 horas', E],   // v2.201.0
-    ['Concursos y contratos', 'Pliegos, lotes adjudicados y precios de contrato en los pedidos', E],   // v2.201.0
-    ['Parque instalado', 'Equipos con su número de serie, contrato, garantía y revisiones', E],   // v2.201.0
-    ['Zonas, supervisión del equipo y auditoría', 'Historial de cambios de cada ficha, con deshacer', E],
-    ['Servicio', null],
-    ['Migración de tus datos', 'Y conexión con tu programa de gestión', M],
-    ['Soporte prioritario', null, M]
-  ];
-};
 pintarPaginaPlan = (orig => async function (...a) {
   const r = await orig.apply(this, a);
   const t = document.querySelector('#cfgcuerpo .planmat'); if (!t) return r;
@@ -23832,10 +25429,6 @@ pintarPaginaPlan = (orig => async function (...a) {
 })(pintarPaginaPlan);
 
 
-/* v2.158.0 · Oportunidades y el portal entran en los planes (decisión de Eric, 3/10/2026; los precios no cambian). Oportunidades en
-   Comercial, Empresa y A medida; el portal del profesional y del centro en Empresa (hasta 50) y A medida (sin límite). El plan los
-   activa y el botón «Extras» del panel delcos queda para excepciones (tiene_extra, SQL 99, hace lo mismo en la base). */
-const PLAN_EXTRAS = { oportunidades: ['comercial', 'empresa', 'medida'], portal: ['empresa', 'medida'] };
 hayExtra = function (k) {
   const p = (typeof PLAN_ACTUAL !== 'undefined' && PLAN_ACTUAL) || {};
   return (p.extras || []).includes(k) || (PLAN_EXTRAS[k] || []).includes(p.plan);
@@ -23921,13 +25514,6 @@ async function escribirRpc(fn, payload) {
 })();
 
 
-/* v2.162.0 · Suscripciones y pagos con Stripe (decisiones de Eric, 4/10/2026). «Plan y suscripción» ya no manda correos: «Contratar»
-   abre el pago seguro de Stripe (tarjeta), «Cambiar a…» y «Añadir o quitar usuarios» cambian la suscripción con
-   prorrateo y «Gestionar el pago» abre el portal de Stripe (tarjeta, recibos, cancelar). Todo pasa por la función de Supabase
-   «pagos»; Stripe avisa a «stripe-webhook» y la base (aplicar_suscripcion, SQL 102) activa o cambia el plan. Si un cobro falla, aviso
-   arriba durante 14 días y después la empresa queda en solo lectura (la base no deja crear, cambiar ni borrar) hasta que pague. */
-const PAGO_PLANES = ['campo', 'comercial', 'empresa'];
-let PAGO_ESTADO = null;   // la respuesta de plan_uso (plan, usuarios, solo_lectura)
 
 
 
@@ -24010,10 +25596,6 @@ orgEstado = (orig => function (o) {
   return orig(o) + (pd.stripe_suscripcion ? '<span class="pill p-est">Stripe</span> ' : '');
 })(orgEstado);
 
-/* v2.163.0 · Compras y Proveedores son del plan Empresa (y A medida): en Campo y Comercial salen con candado y explican cómo
-   conseguirlos, igual que Facturación. Con el plan A medida no se contrata ni se cambia en línea (presupuesto: lo lleva delcos). */
-const PLAN_SECCIONES = { compras: ['empresa', 'medida'], proveedores: ['empresa', 'medida'] };
-const planIncluyeSeccion = t => !(t in PLAN_SECCIONES) || PLAN_SECCIONES[t].includes(PLAN_ACTUAL.plan);
 aplicarPermisosMenu = (orig => function (...a) { const r = orig.apply(this, a); try { candadoSecciones(); } catch (e) {} return r; })(aplicarPermisosMenu);
 avisoPlan = (orig => function (mod) {
   if (!(mod in PLAN_SECCIONES)) return orig.call(this, mod);
@@ -24045,11 +25627,6 @@ pintarPaginaPlan = (orig => async function (...a) {
 })(pintarPaginaPlan);
 setTimeout(() => { try { candadoSecciones(); } catch (e) {} }, 0);
 
-/* v2.164.0 · Lo que no entra en el plan no sale en el menú (petición de Eric): al bajar de plan, los módulos con candado se quitan
-   solos del menú lateral y del «Más» del móvil, y en «Personalizar menú» salen con candado y el interruptor apagado y sin poder
-   encenderlo. No se toca lo que cada uno eligió: al volver a un plan que los incluye, reaparecen como estaban. */
-const fueraDePlan = b => !!b && b.classList.contains('bloq');
-const PLAN_NOMBRE = () => { try { return planDe(PLAN_ACTUAL.plan).nombre; } catch (e) { return ''; } };
 montarMenuLateral = (orig => function (...a) {
   const r = orig.apply(this, a);
   if (!document.body.classList.contains('menulat')) return r;
@@ -24080,7 +25657,6 @@ menuPersonalizar = (orig => function (...a) {
   return r;
 })(menuPersonalizar);
 
-const facSinPlan = () => { try { return !['empresa', 'medida'].includes((PLAN_ACTUAL || {}).plan); } catch (e) { return false; } };
 pagoCargarEstado = (orig => async function (...a) { const r = await orig.apply(this, a); marcarFacPlan(); return r; })(pagoCargarEstado);
 // En solo consulta, la pantalla lo dice arriba y Organización no enseña lo de emitir (datos fiscales, series, VeriFactu, PDF)
 cargarFacturacion = (orig => async function (...a) {
@@ -24101,10 +25677,6 @@ cargarFacturacion = (orig => async function (...a) {
   } });
 })();
 
-const rangoPlan = k => ['campo', 'comercial', 'empresa', 'medida'].indexOf(k);
-// Igual que la función «pagos»: plan menor, menos usuarios o de anual a mensual
-const esBajada = (de, a) => rangoPlan(a.plan) < rangoPlan(de.plan)
-  || (rangoPlan(a.plan) === rangoPlan(de.plan) && (+a.usuarios < +de.usuarios || (de.pago === 'anual' && a.pago === 'mensual')));
 
 // Ventana de contratar o cambiar (la de la v2.162.0, con la bajada al final del periodo y lo que se pierde)
 elegirPago = function (planIni) {
@@ -24242,10 +25814,6 @@ pintarPaginaPlan = (orig => async function (...a) {
 /* v2.167.0 · Al volver de Stripe (pago, baja o el portal) se abre «Plan y suscripción», no Inicio (petición de Eric). Stripe vuelve a
    …/?pago=…#plan o a …/#plan: la primera pantalla tras entrar es la del plan. */
 let PAGO_IR_PLAN = location.hash === '#plan' || new URLSearchParams(location.search).has('pago');
-const pagoAlPlan = () => {
-  PAGO_IR_PLAN = false;
-  try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
-};
 ir = (orig => function (t, ...a) {
   if (PAGO_IR_PLAN && PERFIL) { pagoAlPlan(); if (!ES_MEDICO() && puedeOrganizacion()) t = 'plan'; }
   return orig.call(this, t, ...a);
@@ -24254,17 +25822,6 @@ ir = (orig => function (t, ...a) {
 if (PAGO_IR_PLAN && typeof PERFIL !== 'undefined' && PERFIL) setTimeout(() => { if (PAGO_IR_PLAN) ir('plan'); }, 0);
 setTimeout(() => { PAGO_IR_PLAN = false; }, 30000);
 
-/* v2.167.0 · «Pedir presupuesto» dentro de delcos (petición de Eric: nada de abrir el correo ni llevar al cliente fuera). Un formulario con
-   la imagen de la plataforma: el contacto ya relleno, qué buscan (opciones que se marcan, sin cerrar nada: siempre hay «Cuéntanos con tus
-   palabras»), tamaño, cuándo y cómo prefieren que les contactemos. Se guarda (pedir_presupuesto, SQL 104), delcos recibe un aviso al
-   momento y la empresa ve en «Plan y suscripción» en qué punto está. Con A medida, el mismo formulario sirve para hablar del contrato.
-   En el panel de delcos, pestaña «Solicitudes» con su estado y una nota. */
-const PRESU_NECESITA = [
-  ['usuarios', 'Más de 50 usuarios'], ['migracion', 'Migrar nuestros datos'], ['conexion', 'Conectar con nuestro programa (ERP, CRM, contabilidad…)'],
-  ['portal', 'Portal para muchos profesionales o centros'], ['desarrollo', 'Algo hecho a nuestra medida'], ['formacion', 'Formación del equipo'],
-  ['soporte', 'Soporte prioritario'], ['otro', 'Otra cosa']];
-const PRESU_CUANDO = ['Lo antes posible', 'Este trimestre', 'Más adelante', 'Solo me estoy informando'];
-const PRESU_ESTADO = { 'Nueva': 'Recibida', 'En curso': 'En curso', 'Cerrada': 'Atendida' };
 // «Plan y suscripción»: botones al formulario (en lugar de correos) y la última solicitud con su estado
 pintarPaginaPlan = (orig => async function (...a) {
   const r = await orig.apply(this, a);
@@ -24329,11 +25886,6 @@ pintarPaginaPlan = (orig => async function (...a) {
   return r;
 })(pintarPaginaPlan);
 
-/* v2.169.0 · Datos de facturación bien antes del primer recibo (petición de Eric: «¿quién garantiza que después de la prueba los datos están
-   bien?»). En «Plan y suscripción», con suscripción de Stripe, los datos con los que se factura (razón social, NIF, correo y dirección, de la
-   función «pagos», acción datos) y «Corregir datos» (portal de Stripe); lo que falta, marcado. Durante la prueba, en los 7 últimos días, aviso
-   arriba para revisarlos. El alta se hace en la web (www.delcos.app/empezar.html): el empezar.html del panel lleva allí. */
-const diasHasta = f => f ? Math.round((Date.parse(String(f).slice(0, 10)) - Date.parse(hoyISO())) / 864e5) : null;   // días de calendario
 pintarPaginaPlan = (orig => async function (...a) {
   const r = await orig.apply(this, a);
   const c = $('cfgcuerpo'), pl = PLAN_ACTUAL || {};
@@ -24369,14 +25921,6 @@ pagoAviso = (orig => function (...a) {
   return r;
 })(pagoAviso);
 
-/* v2.171.0 · Panel delcos fuera de las empresas (decisión de Eric, 4/10/2026). El equipo de delcos entra con su propio usuario, que vive en
-   la organización de plataforma (SQL 107); allí la app enseña SOLO el Panel delcos, con su menú: Clientes, Solicitudes, Errores, Accesos,
-   Auditoría, Equipo delcos y Plantilla (roles y catálogos que reciben las empresas nuevas). Para ayudar a una empresa, «Entrar» desde
-   Clientes (la app normal de esa empresa, con la franja «Estás viendo…») y «Salir» vuelve al panel. plan_uso dice si es la de plataforma. */
-let MODO_PLATAFORMA = false;
-const PANEL_SECCIONES = [['pd-orgs', 'orgs', 'Clientes', 'building-2'], ['pd-solicitudes', 'solicitudes', 'Solicitudes', 'mail'],
-  ['pd-errores', 'errores', 'Errores', 'bug'], ['pd-accesos', 'accesos', 'Accesos', 'lock-keyhole'], ['pd-auditoria', 'auditoria', 'Auditoría', 'history'],
-  ['pd-equipo', 'equipo', 'Equipo delcos', 'users'], ['pd-plantilla', 'plantilla', 'Plantilla', 'clipboard-list']];
 // Pestañas propias del panel en modo plataforma: el equipo (los usuarios de la de plataforma) y la plantilla de las empresas nuevas
 (() => {
   const base = PAGINAS.delcos.tabs;
@@ -24455,11 +25999,6 @@ async function moverCitaLocal(orden, id, acc) {
    que no se vea ni un instante lo de la otra. En «Tu día», la cita que se sube o se baja se desliza a su sitio y queda marcada un momento. */
 PANEL_SECCIONES.splice(1, 0, ['pd-cobros', 'cobros', 'Cobros y suscripciones', 'credit-card'], ['pd-altas', 'altas', 'Altas desde la web', 'rocket']);
 PANEL_SECCIONES.splice(5, 0, ['pd-estado', 'estado', 'Estado de la plataforma', 'shield-check']);
-const PANEL_DESC = { orgs: 'Las empresas que usan delcos: plan, dominios, extras y entrar a ayudarlas', cobros: 'Quién paga, quién está en prueba y qué recibos vienen',
-  altas: 'Empresas que se han dado de alta desde www.delcos.app', solicitudes: 'Presupuestos A medida y conversaciones sobre el contrato',
-  errores: 'Errores de la plataforma agrupados, de todas las empresas', estado: 'Versiones en uso, SQL aplicado y cifras generales',
-  accesos: 'Entradas y salidas de la plataforma', auditoria: 'Cambios hechos en el panel', equipo: 'Las personas de delcos con acceso al panel',
-  plantilla: 'Roles y catálogos que recibe cada empresa nueva' };
 (() => {
   const nav = $('nav'); if (!nav) return;
   PANEL_SECCIONES.forEach(([t, , txt, ico]) => {
@@ -24485,11 +26024,6 @@ cargarPagina = (orig => function (t, ...a) {
   return r;
 })(cargarPagina);
 
-const pdFecha = v => v ? new Date(String(v).length === 10 ? v + 'T12:00:00' : v).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
-const pdHace = v => { if (!v) return '—'; const m = Math.round((Date.now() - new Date(v)) / 60000);
-  return m < 60 ? `hace ${Math.max(1, m)} min` : m < 1440 ? `hace ${Math.round(m / 60)} h` : `hace ${Math.round(m / 1440)} días`; };
-const pdKpis = l => `<div class="pdkpis">${l.map(([v, t, cls]) => `<div class="pdkpi${cls ? ' ' + cls : ''}"><b>${v}</b><span>${esc(t)}</span></div>`).join('')}</div>`;
-const pdEsqueleto = () => `<div class="card cfgpanel"><div class="pdkpis">${'<div class="pdkpi"><div class="skel" style="width:50%"></div><div class="skel" style="width:70%"></div></div>'.repeat(4)}</div><div class="skel"></div><div class="skel" style="width:80%"></div></div>`;
 
 
 
@@ -24555,24 +26089,14 @@ try { const m = () => { try { localStorage.setItem('dlc-modo', MODO_PLATAFORMA ?
 
 // ---- «Tu día»: la cita movida se desliza a su sitio (FLIP) y queda resaltada un momento
 
-/* v2.173.0 · El próximo recibo con IVA en «Plan y suscripción» (petición de Eric por la sesión de la web: que la web, Stripe y la app digan lo mismo).
-   Durante la prueba: hoy 0 €, el primer recibo con IVA (con la puesta en marcha si el pago es mensual) y lo que viene después; fuera de ella, el
-   próximo recibo y su fecha. Se pinta al momento con la misma cuenta que la web (IVA = redondeo de base × 21 / 100) y, si la función «pagos»
-   devuelve el recibo de Stripe (acción datos, campo proximo), se cambia por ese (lleva descuentos y lo ya apuntado). */
-let PAGO_PROXIMO = null;
 db.functions.invoke = (orig => async function (fn, op, ...a) {
   const r = await orig.call(this, fn, op, ...a);
   try { if (fn === 'pagos' && op && op.body && op.body.accion === 'datos' && r && r.data && r.data.ok) { PAGO_PROXIMO = r.data.proximo || null; pintarProximoRecibo(); } } catch (e) {}
   return r;
 })(db.functions.invoke.bind(db.functions));
-const ivaDe = x => Math.round(x * 21) / 100;
 // (v2.183.0: aquí iba la primera versión de pintarProximoRecibo; se redefine entera más abajo)
 pintarPaginaPlan = (orig => async function (...a) { const r = await orig.apply(this, a); try { pintarProximoRecibo(); } catch (e) {} return r; })(pintarPaginaPlan);
 
-/* v2.174.0 · Recibo con IVA como en la web (repaso de Web delcos): fecha larga («el 3 de noviembre»), importes enteros sin decimales (490 €), sin la
-   línea «Próximo recibo el …» que repetía la fecha y, bajo la cuota «Al mes, sin IVA», lo mismo con IVA. */
-const eurW = n => { const s = eur(n); return Math.round(+n * 100) % 100 === 0 ? s.replace(/,00(?=\s?€)/, '') : s; };
-const fechaDiaMes = f => f ? new Date(String(f).slice(0, 10) + 'T12:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'long' }) : '';
 pintarProximoRecibo = function () {
   const c = $('cfgcuerpo'), pl = PLAN_ACTUAL || {}, h = c && c.querySelector('#planact h2');
   if (!h) return;
@@ -24641,7 +26165,6 @@ estimarDiaBase = (orig => function (citas, fecha) {
   EST_ULT = r;
   return r;
 })(estimarDiaBase);
-const DIA_NOMBRE = f => new Date(String(f).slice(0, 10) + 'T12:00:00').toLocaleDateString('es-ES', { weekday: 'long' });
 function explicarAviso(inf) {
   const quien = TT('medico', 's', 'el', 'l', 'l');
   if (inf.lejos) return `Esta parada queda a unos ${num(inf.lejos)} km de la anterior (o de tu punto de salida), así que la hora estimada se va muy tarde. Suele ser una dirección mal situada: revisa la ubicación en su ficha o tu punto de salida en Mi perfil.`;
@@ -24680,8 +26203,6 @@ explicarAviso = (orig => function (inf) {
   if (inf.orden && !inf.lejos) return 'La cita tiene hora fija, pero está colocada después de otras sin hora: siguiendo el orden de la lista no llegarías a tiempo. Súbela con las flechas hasta su sitio o pulsa «Ordenar por cercanía», que respeta las horas fijas. Es solo un aviso: la cita se guarda igual.';
   return orig.call(this, inf);
 })(explicarAviso);
-// «⋯»: pulsar el mismo botón con su menú abierto lo cierra (antes lo volvía a abrir)
-let TDM_BOTON = null;
 document.addEventListener('click', e => {
   const b = e.target.closest('button'), m = document.querySelector('.tdmenu');
   if (b && m && m.__de === b) { m.remove(); e.stopImmediatePropagation(); e.preventDefault(); return; }
@@ -24820,8 +26341,6 @@ function verCita(c) {
   $('dlg').showModal();
 }
 
-// ---- 2. El mes de la Agenda, en cualquier mes y año
-let AG_MES = null;
 document.addEventListener('pointerdown', e => { if (!e.target.closest('.agmpop, #agmtit')) document.querySelectorAll('.agmpop').forEach(x => x.remove()); }, true);
 
 // ---- 6. «Esta semana»: toda la celda abre el día (en el móvil, también al tocar un nombre)
@@ -24866,11 +26385,6 @@ document.addEventListener('focusin', e => {
   });
 })();
 
-/* v2.177.0 · Ficha de centro (decisión de Eric, 5/10/2026): los centros dados de alta salen en el buscador (SQL 111, buscar_global con id) y al
-   pulsarlos se abre su ficha: dirección, teléfono, cómo llegar, horario y la lista de profesionales que atienden allí (ficha_centro), con
-   «+ Añadir» (centro_anadir_profesional: enlaza o crea su consulta en el centro), y en cada uno Ficha, «+ Cita» en ese centro y «Quitar»
-   (centro_quitar_profesional: quita esa consulta de su ficha). «Editar centro» corrige sus datos y su horario (guardar_centro). */
-const HOR_TXT = h => DIAS_SEM.filter(([d]) => h && h[d]).map(([d, n]) => `${n} ${h[d]}`).join(' · ');
 // Buscador de arriba: un centro dado de alta abre su ficha
 window.addEventListener('click', e => {
   const b = e.target.closest && e.target.closest('[data-gcid]');
@@ -24889,12 +26403,7 @@ window.addEventListener('click', e => {
    4. Borrar y descartar (decisión de Eric: las dos): en el detalle de la cita, «Descartar» (no se hará; queda en el historial) y «Borrar»
       (fue un error: desaparece; solo de hoy en adelante y si no se ha hecho). */
 
-// ---- 1. La franja de la semana, en cualquier semana
-let AG_SEMANA = null;
 
-// ---- 2 y 3. Cabecera del día: moverse de día y apuntar tareas
-// Se guardan las del día en memoria: mover una cita repinta el día sin volver a pedirlas (solo se piden al cambiar de día, recargar o editarlas)
-let TAREAS_DIA = null;
 function editarTarea(t, fecha) {
   t = t || {};
   $('dbody').innerHTML = `
@@ -24969,13 +26478,6 @@ abrirVisitaBase = (orig => async function (id, ...r) {
     .observe(caja, { childList: true, subtree: true });
 })();
 
-/* v2.180.0 · Direcciones bien situadas (aviso de Eric: el Dr. Margalet, en Barcelona, salía en Marbella).
-   - geocodificar(q, o): busca solo en España y, si se le da el municipio (o.municipio), solo vale un resultado de ese municipio; si el texto libre no
-     lo encuentra, prueba con calle, municipio y código postal por separado. Si solo aparece en otro sitio, devuelve ese resultado con `fuera` (el
-     municipio donde sale) y quien llama no guarda el punto.
-   - «Calidad del dato»: «Direcciones que no cuadran» (SQL 114, ubicaciones_dudosas): consultas a más de 50 km del resto de su municipio, con
-     «Volver a situar» (busca de nuevo con el municipio y guarda el punto si cuadra) y «Ficha». */
-const normGeo = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().replace(/[^A-Z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
 geocodificar = async function (q, o = {}) {
   const base = 'https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=5&countrycodes=es&';
   const pide = async qs => { try { const r = await fetch(base + qs); return r.ok ? await r.json() : []; } catch (e) { return []; } };
@@ -25003,11 +26505,6 @@ cargarSeguimientoPaso1 = (orig => async function (...a) {
   return r;
 })(cargarSeguimientoPaso1);
 
-/* v2.184.0 · La app se pone al día sola (aviso de Eric: con la base ya en nombres neutros, una pestaña abierta desde antes seguía con la app antigua y
-   el buscador no encontraba nada hasta Ctrl+F5). Al volver a la pestaña y cada 10 minutos se mira qué versión está publicada (index.html sin caché);
-   si es otra, la app se recarga sola cuando no hay nada a medias (ninguna ventana abierta ni un campo con el cursor) o, si lo hay, enseña el aviso
-   «Hay una versión nueva» para que se recargue al terminar. */
-let VERSION_VISTA = 0;
 document.addEventListener('visibilitychange', () => { if (!document.hidden) comprobarVersion(); });
 setInterval(comprobarVersion, 10 * 60 * 1000);
 
@@ -25111,13 +26608,6 @@ toast = (orig => function (msg, err) {
   return r;
 })(toast);
 
-/* v2.189.0 · La consulta privada tiene su propia ficha (aviso de Eric: al elegir «Consulta privada (sin centro)» no se podía poner ni la dirección:
-   esos datos de la consulta solo los rellenaba un centro). Ahora una consulta sin centro cuyo nombre empieza por «Consulta privada» se ve como tal
-   (no como «Sin enlazar») y tiene «Editar la consulta» / «Añadir la dirección»: dirección, código postal, población, provincia y su punto en el mapa
-   (buscando la dirección o con «Estoy aquí»). Planta, sala, indicaciones, teléfono y horario siguen debajo, como en cualquier consulta.
-   Se guarda con la ficha (en la consulta del profesional; no crea un centro compartido). */
-const esConsultaPrivada = c => { if (c && c.id) return false; const n = String((c && c.nombre) || '').trim().toLowerCase();   // v2.347.0: con cualquier palabra del vocabulario
-  return /^(consulta|ubicaci[oó]n) privad[ao]/.test(n) || n.startsWith(consultaPrivada('l').toLowerCase()); };
 tarjetaCentro = (orig => function (c, enlazado) {
   if (enlazado || !esConsultaPrivada(c)) return orig.call(this, c, enlazado);
   const dir = [c.direccion, [c.cp, c.municipio].filter(Boolean).join(' ')].filter(Boolean).join(' · ');
@@ -25136,15 +26626,6 @@ formCentro = (orig => function (box, i, c, aviso) {
 
 
 
-/* v2.191.0 · Visita a distancia y fotos de la visita (primera tanda del estudio por sectores, SQL 118).
-   - Al registrar una visita se elige cómo fue: Presencial (por defecto), Por teléfono o Por videollamada (actividades.modo). En el historial
-     de la ficha, las que no son presenciales lo dicen.
-   - Fotos de la visita (lineal, exposición, material colocado…): se reducen a 1600 px en JPEG como los justificantes y se guardan en
-     actividad_fotos al registrar la visita. Sin conexión la visita se guarda igual y las fotos se añaden después desde su historial
-     («📷 Fotos»), donde también se ven y se borran. */
-const MODOS_VISITA = [['presencial', 'Presencial'], ['telefono', 'Teléfono'], ['video', 'Videollamada']];
-const FOTOS_VISITA_MAX = 6;
-let VISITA_ACTUAL = null;   // { id, modo, fotos } de la ventana «Registrar visita» abierta
 
 
 abrirVisitaBase = (orig => async function (id, ...r) {
@@ -25208,17 +26689,6 @@ abrirFicha = (orig => async function (id, ...a) {
 })(abrirFicha);
 
 
-/* v2.192.0 · Muestras con control legal (primera tanda del estudio por sectores, SQL 119; RD 1416/1994, art. 16).
-   - Producto: «Muestra con control legal» con fecha de autorización (se pueden dar los 2 años siguientes) y máximo por profesional y año.
-   - Registrar visita: si la empresa tiene productos regulados, bloque «Muestras de medicamento» con lo que queda este año para ese
-     profesional; si se entrega alguna, pide la firma (con el dedo o el ratón) y el nombre de quien firma. Se comprueba antes de guardar
-     la visita; después, registrar_muestras guarda todo o nada (también desde la cola sin conexión, enlazada por el op_id de la visita).
-   - Ficha: «Muestras este año» con lo entregado y lo que queda de cada producto regulado. */
-const MUESTRA_ERR = { firma: 'Falta la firma de quien recibe las muestras', profesional: 'Las muestras solo se entregan a profesionales, no a un centro',
-  plazo: 'Ese producto ya no se puede dar como muestra (han pasado 2 años desde su autorización)', limite: 'Se pasa del máximo de muestras de este año',
-  permiso: 'No puedes registrar muestras de esta ficha', producto: 'Producto no encontrado', no_existe: 'Ficha no encontrada' };
-const muestraError = r => (MUESTRA_ERR[r && r.error] || 'No se han podido guardar las muestras') +
-  (r && r.error === 'limite' ? ` (${r.producto}: quedan ${r.quedan} de ${r.max})` : r && r.error === 'plazo' ? ` (${r.producto})` : '');
 
 // Producto: datos de la muestra regulada (solo administración; se guardan al cambiarlos)
 editorProducto = (orig => function (p, ...r) {
@@ -25379,25 +26849,11 @@ verPedido = (orig => async function (id, ...a) {
    «Quién los recomienda» pasan a «… de referencia», con el vocabulario de cada empresa; «Recomendaciones de rutas» pasa a «Rutas
    sugeridas». Cambiado en su sitio (reemplazos2194). Las demos (sql/demo/generar_demos.py) usan «Activo» y «Visita con pedido». */
 
-/* v2.195.0 · Eventos, formación e informe de gastos (última pieza de la primera tanda del estudio por sectores, SQL 121). Decisiones de Eric:
-   sección propia «Eventos» (en el bloque Cartera del menú), importe por concepto por asistente con informe anual de gastos, y en los
-   planes Comercial, Empresa y A medida (candado en Campo, como Compras).
-   - Eventos → «Eventos»: próximos y pasados; «+ Nuevo evento» (título, tipo, fecha, hora, lugar o en línea, nota); al abrir uno, sus
-     asistentes con su estado y lo que se le da a cada uno (inscripción, viaje y alojamiento, comidas, honorarios), con aviso si una comida
-     pasa de 60 € por persona.
-   - Eventos → «Informe de gastos» (administración o quien ve todo el equipo): por año, lo dado a cada profesional por concepto, para descargar.
-   - Ficha: bloque «Eventos» con los últimos a los que ha ido o está invitado. */
-const EV_TIPOS = ['Taller', 'Curso', 'Congreso', 'Webinar', 'Reunión científica', 'Comida de trabajo', 'Otro'];
-const EV_ESTADOS = ['Invitado', 'Confirmado', 'Asistió', 'No asistió'];
-const EV_CONCEPTOS = [['inscripcion', 'Inscripción'], ['viaje', 'Viaje y alojamiento'], ['comida', 'Comidas'], ['honorarios', 'Honorarios']];
-const EV_COMIDA_MAX = 60;
-const evTotal = a => EV_CONCEPTOS.reduce((s, [k]) => s + (+a[k] || 0), 0);
 Object.assign(ICON_NOM, { 'graduation-cap': '<path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/>' });
 ICO_NAV.eventos = 'graduation-cap'; ICO_MOD.eventos = svgIco(ICON_NOM['graduation-cap']);
 PLAN_SECCIONES.eventos = ['comercial', 'empresa', 'medida'];
 (() => { const g = MENU_GRUPOS.find(x => x.id === 'cartera'); if (g && !g.items.includes('eventos')) g.items.splice(g.items.indexOf('directorio') + 1, 0, 'eventos'); })();
 aplicarPermisosMenu = (orig => function (...a) { try { menuEventos(); } catch (e) {} const r = orig.apply(this, a); try { menuEventos(); } catch (e) {} return r; })(aplicarPermisosMenu);
-const verTransparencia = () => puede('administrar') || VE_TODO();
 PAGINAS.eventos = { t: 'Eventos', permiso: () => !ES_MEDICO() && puedeModulo('directorio') && planIncluyeSeccion('eventos') };
 Object.defineProperty(PAGINAS.eventos, 'd', { get: () => 'Talleres, cursos y congresos con sus asistentes, inscripciones y gastos' });
 Object.defineProperty(PAGINAS.eventos, 'tabs', { get: () => [['lista', 'Eventos', () => pintarEventos()]].concat(verTransparencia() ? [['transparencia', 'Informe de gastos', () => pintarTransparencia()]] : []) });
@@ -25423,14 +26879,6 @@ abrirFicha = (orig => async function (id, ...a) {
 })(abrirFicha);
 try { menuEventos(); } catch (e) {}
 
-/* v2.196.0 · Material en depósito en el cliente (segunda tanda del estudio por sectores, SQL 122). Decisiones de Eric: solo en fichas de tipo
-   Centro; lo usado se sabe por recuento o apuntando cada uso; lo usado crea un pedido en borrador y se propone reponerlo.
-   - Ficha de un centro: bloque «Material en depósito» (unidades y productos) con «Abrir el depósito» o «Dejar material en depósito».
-   - Ventana del depósito: lo que hay por lote y caducidad (aviso si caduca en menos de 60 días), lo usado en 90 días y los últimos
-     movimientos; «Reponer» (de tu maletín o del almacén central), «Apuntar uso» (con referencia, sin datos del paciente) y «Recuento».
-     Lo usado deja un pedido en borrador del centro («Ver el pedido») y ofrece «Reponer lo usado». */
-let DEP = null;   // { cuenta, nombre, estado }
-const depCaducaPronto = f => f && f <= isoMas(hoyISO(), 60);
 
 
 // Ficha de un centro: su depósito
@@ -25450,17 +26898,6 @@ abrirFicha = (orig => async function (id, ...a) {
   } catch (e) {}
   return r;
 })(abrirFicha);
-/* v2.197.0 · Ciclo de visitas con clasificación A/B/C (segunda tanda del estudio por sectores, SQL 123). Decisiones de Eric: cada ficha en A,
-   B o C, cada clase con sus visitas por ciclo y el ciclo configurable (de partida, trimestral: A = 3, B = 2, C = 1).
-   - Menú «Ciclo de visitas» (en «Tu día»): «Este ciclo» (cómo va cada clase y a quién le faltan visitas, con «+ Cita»), «Clasificar»
-     (A, B o C en cada ficha, con sus visitas de los últimos 12 meses como ayuda) y, para quien ve todo el equipo, «Equipo».
-   - Ficha: en el bloque «Estado», la clase (A, B, C; pulsar la marcada la quita) y las visitas de este ciclo.
-   - Configuración → Cartera y visitas → «Ciclo A/B/C» (administración): duración del ciclo y visitas de cada clase. */
-const CIC_CLASES = ['A', 'B', 'C'];
-const cicNombre = m => ({ 1: 'mes', 2: 'bimestre', 3: 'trimestre', 4: 'cuatrimestre', 6: 'semestre', 12: 'año' })[m] || 'ciclo';
-const cicVis = n => `${n} ${TT('visita', n === 1 ? 's' : 'p', '', 'l', 'l')}`;
-const cicPill = k => k ? `<span class="cicl c${k}">${k}</span>` : '<span class="cicl csin">—</span>';
-const cicSegs = (id, k, dis) => `<span class="segs cicsegs" role="group" aria-label="Clase">${CIC_CLASES.map(x => `<button type="button" data-ccl="${id}|${x}" class="${x === k ? 'on' : ''}" aria-pressed="${x === k}" ${dis ? 'disabled' : ''}>${x}</button>`).join('')}</span>`;
 let CIC_DE = '', CIC_FIL = '', CIC_CLF = 'sin', CIC_Q = '';
 Object.assign(ICON_NOM, { target: '<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>' });
 ICO_NAV.ciclo = 'target'; ICO_MOD.ciclo = svgIco(ICON_NOM.target);
@@ -25470,8 +26907,6 @@ PAGINAS.ciclo = { permiso: () => !ES_MEDICO() && puedeModulo('agenda') };
 Object.defineProperty(PAGINAS.ciclo, 't', { get: () => `Ciclo de ${TT('visita', 'p', '', 'l', 'l')}` });
 Object.defineProperty(PAGINAS.ciclo, 'd', { get: () => `${TT('medico', 'p', '', 'l', 'C')} en A, B y C, y las ${TT('visita', 'p', '', 'l', 'l')} que le tocan a cada uno en cada ciclo` });
 Object.defineProperty(PAGINAS.ciclo, 'tabs', { get: () => [['ciclo', 'Este ciclo', () => pintarCiclo()]].concat(planIncluyeSeccion('cobertura') ? [['cobertura', 'Por producto', () => pintarCobertura()]] : [], [['clasificar', 'Clasificar', () => pintarClasificar()]]).concat(VE_TODO() ? [['equipo', 'Equipo', () => pintarCicloEquipo()]] : []) });
-const cicUsuario = () => VE_TODO() ? (CIC_DE || null) : PERFIL.id;
-const cicIrA = tab => { PAG_TAB.ciclo = tab; cargarPagina('ciclo'); };
 
 
 
@@ -25504,12 +26939,6 @@ abrirFicha = (orig => async function (id, ...a) {
 $('dlg').addEventListener('close', () => { if (TAB === 'ciclo' && $('cfgcuerpo')) setTimeout(() => { if (!$('dlg').open && TAB === 'ciclo') (PAGINAS.ciclo.tabs.find(x => x[0] === (PAG_TAB.ciclo || 'ciclo')) || PAGINAS.ciclo.tabs[0])[2](); }, 300); });
 $('ficha').addEventListener('close', () => { if (TAB === 'ciclo' && $('cfgcuerpo')) setTimeout(() => { if (!$('ficha').open && TAB === 'ciclo') (PAGINAS.ciclo.tabs.find(x => x[0] === (PAG_TAB.ciclo || 'ciclo')) || PAGINAS.ciclo.tabs[0])[2](); }, 300); });
 try { menuCiclo(); } catch (e) {}
-/* v2.198.0 · Cobertura por producto en el ciclo (segunda tanda, «Panel y ciclos», SQL 124). Decisiones de Eric: la cobertura mide los
-   productos presentados en las visitas, y solo salen los que la administración marca como «Se promociona en las visitas».
-   - Producto: casilla «Se promociona en las visitas».
-   - Registrar visita: «Productos presentados» (los que se promocionan); el historial de la ficha dice qué se presentó.
-   - Ciclo de visitas → «Por producto»: por cada producto, cuántos de A, B y C lo han oído este ciclo y a quiénes les falta (con «+ Cita»). */
-let PROMO_PRODS = null;   // [{ id, nombre }] de los productos que se promocionan (última lista leída)
 // v2.199.0: la cobertura por producto va en los planes Comercial, Empresa y A medida (decisión de Eric, como en la web)
 PLAN_SECCIONES.cobertura = ['comercial', 'empresa', 'medida'];
 async function productosPromocionados() {
@@ -25583,26 +27012,6 @@ abrirFicha = (orig => async function (id, ...a) {
   return r;
 })(abrirFicha);
 
-/* v2.199.0 · Intervenciones con lote y número de serie (tercera tanda del estudio por sectores, SQL 125). Decisiones de Eric: sección propia y
-   cada intervención también en la Agenda de quien asiste; el material se elige en cada intervención (depósito del centro o el de quien asiste); el
-   número de serie se apunta al usar; lo usado crea el pedido en borrador al centro y una reposición con plazo de 48 horas que avisa.
-   - Menú «Intervenciones» (en «Tu día»): reposiciones pendientes (las vencidas, marcadas), próximas y hechas en los últimos 30 días; «+ Nueva intervención».
-   - Ventana de la cirugía: datos, «Registrar lo usado» (por lote, con un número de serie por unidad y la referencia del paciente sin
-     datos de salud), lo usado con su lote y serie, el pedido y «Reponer ahora».
-   - Ficha del responsable o del centro: sus últimas intervenciones. Los avisos de reposición vencida abren la intervención. */
-const CIR_ORIGEN = [['deposito', 'Depósito del centro'], ['personal', 'Material de quien asiste']];
-const cirHora = c => c.hora ? String(c.hora).slice(0, 5) : '';
-const cirRepo = c => c.reposicion === 'vencida' ? '<span class="pill p-urg">Reposición vencida</span>'
-  : c.reposicion === 'pendiente' ? `<span class="pill p-warn">Reponer antes del ${esc(new Date(c.reposicion_limite).toLocaleString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }))}</span>`
-  : c.reposicion === 'repuesta' ? '<span class="pill p-est">Repuesta</span>' : '';
-const cirEstado = c => `<span class="pill ${c.estado === 'Hecha' ? 'p-est' : c.estado === 'Anulada' ? 'p-anu' : 'p-per'}">${esc(c.estado)}</span>`;
-const CIR_ERR = { permiso: 'No puedes cambiar esta intervención', faltan: 'Faltan la fecha, el centro o el responsable', hospital: 'El centro tiene que ser una ficha de tipo centro',
-  sin_deposito: 'Este centro no tiene depósito: déjale material desde su ficha o elige el material de quien asiste', sin_almacen: 'Quien asiste no tiene almacén propio con material',
-  hecha: 'La intervención ya está hecha: no se puede cambiar', sin_stock: 'No hay bastante en el almacén de la intervención', series: 'Hay más números de serie que unidades',
-  linea: 'Revisa las unidades de cada línea', vacio: 'Apunta al menos una unidad usada', anulada: 'La intervención está anulada', no_hecha: 'Primero registra lo usado',
-  sin_origen: 'No hay almacén central del que reponer', cirujano: 'Elige un responsable de tu empresa', asistente: 'Quien asiste tiene que ser una persona activa del equipo',
-  valores: 'Revisa de dónde sale el material' };
-const cirError = r => CIR_ERR[r && r.error] || 'No se ha podido guardar';
 Object.assign(ICON_NOM, { scissors: '<circle cx="6" cy="6" r="3"/><path d="M8.12 8.12 12 12"/><path d="M20 4 8.12 15.88"/><circle cx="6" cy="18" r="3"/><path d="M14.8 14.8 20 20"/>' });
 ICO_NAV.cirugias = 'scissors'; ICO_MOD.cirugias = svgIco(ICON_NOM.scissors);
 (() => { const g = MENU_GRUPOS.find(x => x.id === 'dia'); if (g && !g.items.includes('cirugias')) g.items.push('cirugias'); })();
@@ -25635,20 +27044,6 @@ abrirFicha = (orig => async function (id, ...a) {
 })(abrirFicha);
 $('dlg').addEventListener('close', () => { if (TAB === 'cirugias' && $('cfgcuerpo')) setTimeout(() => { if (!$('dlg').open && TAB === 'cirugias') pintarCirugias(); }, 300); });
 try { menuCirugias(); } catch (e) {}
-/* v2.200.0 · Concursos y contratos (tercera tanda del estudio por sectores, SQL 126). Decisiones de Eric: al ganar un lote, sus precios se
-   aplican solos en los pedidos de esa ficha mientras el contrato está en vigor; los días de aviso antes de que venza los elige cada empresa.
-   - Menú «Concursos» (en «Ventas»): «En marcha» (en estudio y con la oferta enviada, por fecha límite), «Contratos» (adjudicados, con lo que les queda)
-     y «Cerrados»; «+ Nuevo concurso» y, para la administración, «Avisos de vencimiento».
-   - Ventana del concurso: datos, estado, fechas del contrato y sus lotes (estado, importes, adjudicatario si se pierde) con los productos
-     y precios de cada lote.
-   - Pedidos: si la ficha tiene un contrato en vigor, el precio de sus productos es el adjudicado («Precio de concurso»).
-   - Ficha: sus concursos. Los avisos de vencimiento abren el concurso. */
-const CON_ESTADOS = ['En estudio', 'Oferta enviada', 'Adjudicado', 'Perdido', 'Desierto'];
-const CON_LOTE_EST = ['Pendiente', 'Ganado', 'Perdido'];
-const conPill = e => `<span class="pill ${e === 'Adjudicado' ? 'p-est' : e === 'Perdido' || e === 'Desierto' ? 'p-anu' : e === 'Oferta enviada' ? 'p-per' : 'p-warn'}">${esc(e)}</span>`;
-const conVence = c => c.prorroga_hasta || c.fin || null;
-const conQuedan = c => { const v = conVence(c); return v ? Math.round((new Date(v + 'T12:00:00') - new Date(hoyISO() + 'T12:00:00')) / 864e5) : null; };
-let CON_AVISOS = [90, 30];
 Object.assign(ICON_NOM, { gavel: '<path d="m14.5 12.5-8 8a2.12 2.12 0 1 1-3-3l8-8"/><path d="m16 16 6-6"/><path d="m8 8 6-6"/><path d="m9 7 8 8"/><path d="m21 11-8-8"/>' });
 ICO_NAV.concursos = 'gavel'; ICO_MOD.concursos = svgIco(ICON_NOM.gavel);
 (() => { const g = MENU_GRUPOS.find(x => x.id === 'ventas'); if (g && !g.items.includes('concursos')) g.items.splice(g.items.indexOf('ventas') + 1, 0, 'concursos'); })();
@@ -25683,9 +27078,6 @@ abrirFicha = (orig => async function (id, ...a) {
 })(abrirFicha);
 try { menuConcursos(); } catch (e) {}
 
-// Pedidos: el precio del contrato en vigor de la ficha (editorPedido lo consulta en su sitio)
-let PED_PRECIOS = { cuenta: null, precios: {} };
-const conPrecioContrato = p => { const x = p && p.id && PED_PRECIOS.precios[p.id]; return x ? Object.assign({}, p, { precio: +x.precio, contrato: x.concurso }) : p; };
 /* v2.201.0 · Parque instalado (última pieza de la tercera tanda del estudio por sectores, SQL 127). Decisiones de Eric: los equipos se dan de
    alta a mano en la ficha o al servir un pedido de un producto «equipo», con su número de serie; los avisos de vencimiento usan los días de la empresa.
    - Producto: «Es un equipo» y «Revisión cada N meses».
@@ -25695,22 +27087,12 @@ const conPrecioContrato = p => { const x = p && p.id && PED_PRECIOS.precios[p.id
    Además (decisión de Eric en Web delcos): Intervenciones, Material en depósito, Concursos y Parque instalado, en los planes Empresa y A medida. */
 Object.assign(PLAN_SECCIONES, { cirugias: ['empresa', 'medida'], deposito: ['empresa', 'medida'], concursos: ['empresa', 'medida'], parque: ['empresa', 'medida'] });
 ['cirugias', 'concursos'].forEach(k => { const o = PAGINAS[k].permiso; PAGINAS[k].permiso = () => o() && planIncluyeSeccion(k); });
-const EQ_CONTRATOS = ['Venta', 'Alquiler', 'Cesión'];
-const EQ_REV = ['Preventiva', 'Correctiva', 'Instalación'];
-const eqVence = e => e.contrato !== 'Venta' ? e.contrato_fin : e.garantia_hasta;
-const eqDias = f => f ? Math.round((new Date(f + 'T12:00:00') - new Date(hoyISO() + 'T12:00:00')) / 864e5) : null;
-const eqRevPill = e => { const d = eqDias(e.proxima_revision); if (e.estado === 'Retirado') return '<span class="pill p-anu">Retirado</span>';
-  return d == null ? '' : d < 0 ? `<span class="pill p-urg">Revisión pasada (${fechaCorta(e.proxima_revision)})</span>` : d <= 30 ? `<span class="pill p-warn">Revisar el ${fechaCorta(e.proxima_revision)}</span>` : `<span class="pill p-per">Próxima revisión ${fechaCorta(e.proxima_revision)}</span>`; };
-const eqVencePill = e => { const f = eqVence(e), d = eqDias(f); if (d == null || e.estado === 'Retirado') return '';
-  const que = e.contrato !== 'Venta' ? 'Contrato' : 'Garantía';
-  return d < 0 ? `<span class="pill p-anu">${que} vencido</span>` : d <= Math.max(...CON_AVISOS, 0) ? `<span class="pill p-urg">${que}: ${d === 0 ? 'vence hoy' : `vence en ${num(d)} ${d === 1 ? 'día' : 'días'}`}</span>` : ''; };
 Object.assign(ICON_NOM, { monitor: '<rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/>' });
 ICO_NAV.parque = 'monitor'; ICO_MOD.parque = svgIco(ICON_NOM.monitor);
 (() => { const g = MENU_GRUPOS.find(x => x.id === 'ventas'); if (g && !g.items.includes('parque')) g.items.splice(g.items.indexOf('concursos') + 1, 0, 'parque'); })();
 aplicarPermisosMenu = (orig => function (...a) { try { menuParque(); } catch (e) {} const r = orig.apply(this, a); try { menuParque(); } catch (e) {} return r; })(aplicarPermisosMenu);
 PAGINAS.parque = { t: 'Parque instalado', permiso: () => !ES_MEDICO() && puedeModulo('ventas') && planIncluyeSeccion('parque'), tabs: [['lista', 'Equipos', () => pintarParque()]] };
 Object.defineProperty(PAGINAS.parque, 'd', { get: () => 'Equipos instalados con su número de serie, contrato, garantía y revisiones' });
-let EQ_Q = '';
 
 
 
@@ -25842,8 +27224,6 @@ cargarAdmin = (orig => async function (...a) {
   return orig.apply(this, a);
 })(cargarAdmin);
 
-// Editar una visita: cómo fue y productos presentados (actualizar_actividad los guarda desde el SQL 128)
-let EV_EXTRA = null;
 editarVisita = (orig => async function (v, ...r) {
   const res = await orig.call(this, v, ...r);
   try {
@@ -25878,14 +27258,6 @@ aplicarPermisosMenu = (orig => function (...a) {
   try { const q = $('q'); if (q && /^Buscar /.test(q.placeholder)) q.placeholder = `Buscar ${TT('medico', 's', '', 'l', 'l')}, centro o municipio`; } catch (e) {}
   return r;
 })(aplicarPermisosMenu);
-/* v2.204.0 · Manual nuevo: un libro aparte en manual/ (decisiones de Eric: se abre desde la app, fotos y vídeos de la empresa de demostración,
-   con el vocabulario de cada empresa, y por capítulos; el primero, «Tu día»).
-   - «Manual de uso» abre el libro en otra pestaña; antes deja en el navegador las palabras de la empresa (médico, visita, paciente) y su nombre.
-   - Cada pantalla lleva un «?» junto al título que abre el manual en su capítulo (los que aún no están escritos abren la portada).
-   - El portal del profesional sigue con su manual de siempre hasta que tenga capítulo. */
-const MANUAL_ANCLA = { inicio: 'inicio', agenda: 'agenda', rutas: 'rutas', ciclo: 'ciclo', cirugias: 'cirugias', directorio: 'directorio', seguimiento: 'calidad',
-  duplicados: 'duplicados', eventos: 'eventos', pacientes: 'clientes', ventas: 'pedidos', oportunidades: 'oportunidades', compras: 'compras', proveedores: 'proveedores', concursos: 'concursos', parque: 'parque', productos: 'productos',
-  facturacion: 'facturacion', analitica: 'analitica', config: 'ajustes', perfil: 'perfil', empresa: 'organizacion', plan: 'plan', organizacion: 'organizacion', usuarios: 'usuarios' };
 // v2.242.0: aquí iba la primera versión de abrirManual (se redefine entera más abajo)
 document.addEventListener('click', e => {
   const b = e.target.closest('#manbtn'); if (!b || ES_MEDICO()) return;
@@ -25929,12 +27301,6 @@ ir = (orig => function (...a) {
   return r;
 })(ir);
 
-/* v2.211.0 · El manual, dentro de la app (decisión de Eric, opción B: sin abrir otra pestaña y con el mismo peso).
-   - «Manual de uso» y el «?» de cada pantalla llevan a la pantalla «manual», que enseña el libro (manual/index.html?app=1) en un marco a todo el
-     ancho; el libro solo se descarga al abrirlo, capítulo a capítulo. Si ya se está en el manual, el «?» solo mueve el libro a su sección.
-   - El portal del médico sigue con su manual de siempre (cargarManual original).
-   - window.MANUAL_ULTIMA guarda la última dirección pedida (la usan las pruebas). */
-let MANUAL_DESTINO = '';
 abrirManual = function (ancla) {
   guardarVocabManual();
   MANUAL_DESTINO = ancla || '';
@@ -25953,13 +27319,6 @@ cargarManual = (orig => async function (...a) {
 })(cargarManual);
 ponerAyudaManual = (orig => function () { if (TAB === 'manual') return; return orig.apply(this, arguments); })(ponerAyudaManual);
 
-/* v2.212.0 · Decisiones de la auditoría (1).
-   - Pedidos: la tarjeta «Pedidos sin atribuir» vuelve a la pestaña Ventas (la pantalla nueva ya no tenía su hueco) para quien
-     puede atribuir (administración o nivel 2 en Pedidos, como atribuir_linea).
-   - Editar usuario: «Qué ve esa persona» de la comisión sale aparte (usuarioComisionInfo ocultaba la fila entera con el esquema).
-   - Duplicados: el botón de Calidad del dato y el indicador de Inicio, también para quien tiene nivel 3 en fichas (como la página). */
-const puedeDuplicados = () => puede('administrar') || ((PERFIL && PERFIL.areas) || {}).M >= 3;
-const puedeAtribuir = () => puede('administrar') || nivelDe2('V') >= 2;
 pintarSinAtribuir = (orig => async function (...a) {
   const r = await orig.apply(this, a);
   const c = $('cardsinatr'); if (c) c.classList.toggle('hide', !c.innerHTML.trim());
@@ -26053,17 +27412,6 @@ cargarManual = (orig => async function (...a) {
    - Piezas de la marca en toda la app: casillas de 18 px con el marino, interruptores en marino.
    - Notificaciones: cada aviso con «Al momento · En el resumen · No», el resumen arriba y el silencio en una fila. */
 var CFG_KEY = '';
-const CFG_VIEJO = { prefs: 'rutas.salida', perfil: 'datos', datos: 'datos', notif: 'notif', horario: 'rutas.horario', kpis: 'inicio.kpis', usuarios: 'usuarios',
-  roles: 'roles', equipo: 'usuarios', reglas: 'cartera.reglas', frec: 'cartera.frec', accesos: 'seguridad.accesos', auditoria: 'seguridad.auditoria',
-  alm: 'stock.alm', mues: 'stock.mues', marca: 'o.marca', __empresa: 'o.marca', empresa: 'o.marca', correo: 'o.correo', copias: 'o.copias', plan: 'o.plan',
-  fact: 'o.fiscal', fiscal: 'o.fiscal', series: 'o.series', vf: 'o.vf', pdf: 'o.pdf', orgs: 'o.orgs' };
-const CFG_CLAVES = { datos: 'nombre teléfono idioma perfil contraseña sesión cerrar', notif: 'avisos campana silencio resumen',
-  'rutas.salida': 'salida llegada casa oficina navegar google maps waze', 'rutas.horario': 'tiempos minutos duración parada',
-  'inicio.kpis': 'indicadores kpi inicio', usuarios: 'personas equipo alta invitar cartera zona', roles: 'permisos capacidades',
-  comis: 'comisiones esquemas tramos', 'o.marca': 'logo nombre vocabulario términos palabras', 'o.correo': 'smtp firma remitente email correo',
-  'o.plan': 'suscripción pago tarjeta usuarios precio', 'o.copias': 'copia seguridad descargar exportar', 'o.fiscal': 'nif razón social dirección',
-  'o.series': 'numeración factura', 'o.vf': 'verifactu hacienda', 'o.pdf': 'factura diseño logo colores', cat: 'clasificadores listas valores especialidades motivos',
-  portal: 'portal material pedir' };
 function arbolCfgUnico() {
   const admin = puede('administrar'), org = puedeOrganizacion();
   const cfg = arbolConfig(), todos = cfg.flatMap(g => g[1]), de = k => todos.find(x => x.k === k);
@@ -26093,11 +27441,6 @@ function arbolCfgUnico() {
     ['Datos', (cfg.find(g => g[0] === 'Datos') || [, []])[1].flatMap(hojas)]
   ].filter(g => g[1].length);
 }
-// v2.340.0 (Eric): cada apartado es una sola entrada del índice; sus partes (Rutas: salida y tiempos…) van dentro, en pestañas
-const hojasCfg = arbol => arbol.flatMap(([gr, l]) => l.map(it => Object.assign({ gr }, it)));
-let CFG_PEND = { t: 0, l: {} };
-const LUPA_CFG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>';
-let CFG_DETALLE = false;
 cargarConfig = async function () {
   // v2.340.0 (avisos de Eric): se abre siempre en «Mis datos» (no en el último apartado); al cambiar de apartado solo cambia la página
   // de la derecha (el índice se queda, con su desplazamiento: antes se volvía a montar todo y daba un salto); los apartados con partes
@@ -26167,7 +27510,6 @@ cargarConfig = async function () {
     if ($('planver')) $('planver').onclick = () => { CFG_KEY = 'o.plan'; cargarConfig(); };
   } else Promise.resolve().then(r);
 };
-let CFU_RAF = 0;
 ['scroll', 'resize'].forEach(ev => addEventListener(ev, () => { cancelAnimationFrame(CFU_RAF); CFU_RAF = requestAnimationFrame(cfuAjustarIndice); }, { passive: true }));
 // Cualquier camino a los ajustes lleva a su entrada de Configuración
 ir = (orig => function (t, ...r) {
@@ -26228,14 +27570,6 @@ pintarNotif = function () {
   ['nsil', 'nsild', 'nsilh', 'nsilf'].forEach(id => { if ($(id)) $(id).onchange = guardarSil; });
 };
 
-/* v2.216.0 · Tu cuenta y Empresa en filas de ajuste (segunda versión del rediseño de Configuración).
-   pulirCfg() se aplica al contenido de cada apartado mientras se pinta (MutationObserver de #cfgcuerpo), sin tocar cómo guarda cada uno:
-   - Las tarjetas que solo presentan el apartado desaparecen y su texto pasa a la cabecera; el título repetido de la primera tarjeta se oculta.
-   - Tiempos de visita y el aviso de Salida y llegada: filas de ajuste con el número compacto a la derecha.
-   - Marca y vocabulario: el vocabulario, en su propia tarjeta como tabla (singular, plural y género por fila), con el nombre del módulo.
-   - Correo y firma: arriba, el estado del correo y «Enviar un correo de prueba»; la vista previa de la firma acompaña al desplazarse.
-   - Copias de seguridad: el estado y «Descargar copia completa» en la misma fila. */
-const CFG_PULIR = ['datos', 'rutas.salida', 'rutas.horario', 'inicio.kpis', 'o.marca', 'o.correo', 'o.plan', 'o.copias'];
 function pulirCfg() {
   const c = $('cfgcuerpo'); if (!c || TAB !== 'config' || !CFG_PULIR.includes(CFG_KEY)) return;
   const cab = document.querySelector('.cfucab'), titulo = impNorm((cab && cab.querySelector('h2') || {}).textContent || '');
@@ -26347,22 +27681,6 @@ htPreparar = (orig => function (sec, ...r) {
   return orig.call(this, sec, ...r);
 })(htPreparar);
 
-/* v2.220.0: la pastilla «Pendientes» y las líneas de aviso usaban la clase .av, que es la del avatar redondo de la app (salía un círculo
-   cortado en lugar de la pastilla): ahora .agp-pend y .tdav.
-   v2.219.0 · Agenda con tarjetas y cinta de 14 días (decisión de Eric, prototipo «versión D»).
-   - Las cifras pasan a pastillas junto al título (#aghud, leídas de #agmet, que queda oculto).
-   - La semana y el mes se sustituyen por una cinta de 14 días (.cinta): un punto por cita (hecha, por hacer, sin cerrar),
-     ‹ › de semana en semana, «Hoy» para volver, el mes completo al pulsar su nombre (#agmes flotando) y «Planificar la semana».
-   - Tu día a todo el ancho: cada cita es una tarjeta (.tdu) con el nivel de la ficha y adónde llevarla, la clase, la anterior
-     y lo que se apuntó para esta (SQL 131: estado_comercial, clase y anterior en agenda_rango), el horario y los avisos.
-     Las tarjetas se construyen desde la lista de siempre (.tdlista, que queda oculta): heredan su hora estimada, sus avisos
-     y sus botones (los mismos data-td, que atiende el mismo listener).
-   - En el móvil: cifras en 2 × 2, la cinta semana a semana (deslizando), «Registrar» a todo el ancho. */
-const citaAnulada = e => EST_COL[e] === 'var(--muted)';
-const agConCinta = () => TAB === 'agenda' && AG_MODO === 'dia' && !!$('v-agenda');
-let CINTA_INI = null;
-const lunesCinta = f => { const d = new Date(f + 'T12:00:00'); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return isoLocal(d); };
-const diasMas = (f, n) => { const d = new Date(f + 'T12:00:00'); d.setDate(d.getDate() + n); return isoLocal(d); };
 const SVA = d => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + d + '</svg>';
 const ICU = {
   toca: '<path d="M4 22V4a1 1 0 0 1 1-1h12l-2.5 4.5L17 12H5"/>',
@@ -26471,12 +27789,6 @@ rpcCache = (orig => async function (fn, params, clave) {
   KV_GRAF = g && g.data && g.data.por_dia ? g.data : null;
   return r;
 })(rpcCache);
-const kvSvg = (d, w = 2.4) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
-const kvMas = (f, n) => { const d = new Date(f + 'T12:00:00'); d.setDate(d.getDate() + n); return isoLocal(d); };
-const kvLunes = f => { const d = new Date(f + 'T12:00:00'); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return isoLocal(d); };
-const kvMin = h => { const m = String(h || '').match(/(\d{1,2}):(\d{2})/); return m ? +m[1] * 60 + +m[2] : null; };
-const KV_COL = { inicial: '#C9D7E6', avance: '#3F82C0', interes: '#17457A', positivo: '#1E7A4C', negativo: '#94A3B8' };
-const KV_DN = ['D', 'L', 'M', 'X', 'J', 'V', 'S'];
 
 function kvContar(raiz) {
   const ns = [...raiz.querySelectorAll('[data-kvn]')];
@@ -26491,11 +27803,6 @@ function kvContar(raiz) {
   enganchar();   // #kpis está en index.html desde el arranque: basta con vigilarlo a él
 })();
 
-/* v2.224.0 · Volver desde el manual al punto exacto (aviso de Eric: al pulsar un «?» y llegar al manual faltaba una flecha para volver).
-   - Al entrar en el manual desde otra pantalla se guarda dónde estaba (MANUAL_VUELTA: pantalla y desplazamiento); la pestaña de cada página,
-     el apartado de Configuración y el día de la Agenda ya se recuerdan solos (PAG_TAB, CFG_KEY, AG_FECHA).
-   - La cabecera del manual lleva «‹ Volver a …» (#manvolver): vuelve a esa pantalla y, cuando ha terminado de pintarse, al mismo punto. */
-let MANUAL_VUELTA = null;
 ir = (orig => function (t, ...r) {
   if (t === 'manual' && TAB !== 'manual') MANUAL_VUELTA = { tab: TAB, y: window.scrollY || 0 };
   return orig.call(this, t, ...r);
@@ -26582,13 +27889,6 @@ ponerAyudaManual = function () {
   const P = (typeof PAGINAS !== 'undefined' && PAGINAS[TAB]) || {};
   h.insertAdjacentHTML('beforeend', `<button class="ai" data-ayuda-tit="${esc(P.t || h.textContent.trim())}" data-ayuda-txt="${esc(P.d || '')}" aria-label="Ayuda">i</button>`);
 };
-const anclaAyuda = b => {
-  const k = b.dataset.ayuda || '';
-  if (b.dataset.manual) return b.dataset.manual;
-  if (MANUAL_ANCLA[k]) return MANUAL_ANCLA[k];
-  if (/^ini_/.test(k)) return MANUAL_ANCLA.inicio;
-  return MANUAL_ANCLA[TAB] || '';
-};
 // La ventanita ya llevaba «Ver más en el manual de uso» (resumirAyuda), que abría el buscador del manual: ahora abre el apartado de esa pantalla
 resumirAyuda = (orig => function (pop) {
   orig.call(this, pop);
@@ -26633,26 +27933,7 @@ editarTarea = (orig => function (t, fecha) {
 
 pintarSinAtribuir = async function () { const c = $('cardsinatr'); if (c) c.remove(); };
 
-/* v2.227.0 · Ordenar cualquier tabla por su columna y filtros por columna según su tipo (lista de Eric del 9/10/2026).
-   - Pulsar el nombre de una columna ordena (▲), volver a pulsar invierte (▼) y una tercera vez quita el orden. Se recuerda por tabla.
-   - Las tablas que se cargan por páginas se ordenan en la base para que valga para todas las páginas (SQL 135): Profesionales
-     (buscar_cuentas: orden), Pedidos (pedidos_pagina: p_orden) y Clientes (clientes_lista: p_orden). El resto, en la pantalla.
-   - «Filtros y columnas»: cada columna con el filtro de su tipo: texto («contiene»), número (desde/hasta) o fecha (desde/hasta, y nada si la
-     pantalla ya tiene su «Periodo»). Fuera los desplegables inventados con lo que se ve: las listas de valores fijos son las de Clasificadores
-     (su apartado propio). Tampoco se repiten columnas que la pantalla ya filtra con lo suyo (Estado, Canal…). */
-const htNorm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\s+/g, ' ').trim();
-const HT_ORDEN = {};   // por tabla: { i, dir: 1 | -1, k }
 try { Object.assign(HT_ORDEN, JSON.parse(localStorage.getItem('delcos-orden') || '{}')); } catch (e) {}
-const htGuardarOrden = () => { try { localStorage.setItem('delcos-orden', JSON.stringify(HT_ORDEN)); } catch (e) {} };
-const MESES_CORTOS = { ene: 1, feb: 2, mar: 3, abr: 4, may: 5, jun: 6, jul: 7, ago: 8, sep: 9, sept: 9, oct: 10, nov: 11, dic: 12 };
-// Tablas que se ordenan en la base: qué clave usa cada columna (por su posición o su nombre)
-const ORD_SRV = {
-  peds2: (i, n) => i === 2 ? 'profesional' : ({ Fecha: 'fecha', Cliente: 'cliente', Comercial: 'comercial', 'Uds.': 'unidades', Base: 'base', Total: 'total', Estado: 'estado' })[n] || null,
-  pacs: (i, n) => i === 6 ? 'profesional' : ({ Cliente: 'nombre', Tipo: 'tipo', 'DNI / CIF': 'nif', Email: 'email', 'Población': 'municipio', Comercial: 'comercial', Pedidos: 'pedidos', 'Uds.': 'unidades', 'Último pedido': 'ultimo' })[n] || null
-};
-const ORD_DIR = { nombre: 'nombre', especialidad: 'especialidad', centro_nombre: 'lugar', municipio: 'municipio', ultima_visita: 'reciente', estado_comercial: 'estado' };
-const htCeldaNoOrdenable = n => !n || /^(operativa|acciones?|productos)$/i.test(n);
-const htNoFiltrable = n => !n || /^(operativa|acciones?)$/i.test(n);
 // Pulsar una cabecera: asc → desc → sin orden
 document.addEventListener('click', e => {
   const c = e.target.closest('.dgrid > .dh > *'); if (!c || e.target.closest('input, button, select, .res')) return;
@@ -26765,21 +28046,7 @@ htPreparar = (orig => function (sec, ...r) {
   return x;
 })(htPreparar);
 
-/* v2.228.0 · Inicio de toda la empresa, en mosaico (decisión de Eric, 10/10/2026: variante «Mosaico» de https://claude.ai/artifact/5UMynF3SKQnJYBVkR6CCk7).
-   - Fuera las listas que solo miraban la Agenda (rutas sugeridas, agenda, próximas acciones, urgentes, últimas visitas, Mi semana…). En su lugar,
-     un mosaico con piezas de distintos tamaños: «Requiere tu atención» (grande: pagos por validar, facturas vencidas, urgentes, paquetes, stock,
-     intervenciones por reponer, concursos que vencen, llamadas, duplicados…; cada línea lleva a su pantalla), Ventas del mes (frente al mes pasado y
-     visitas de los últimos 14 días), Tu día (tus citas y tareas), Cobros, Ciclo, Stock, Cartera y Lo que viene (eventos, concursos, intervenciones
-     y revisiones de equipos).
-   - Cada persona ve solo las áreas de su plan y sus permisos (las mismas del menú) y los importes solo con permiso de importes.
-   - Los indicadores de siempre siguen, plegados al final («Ver tus indicadores»), con su configuración.
-   - Los números cuentan y las gráficas crecen al llegar, todo a la vez; sin animación con «reducir movimiento».
-   - Datos: inicio_areas() (SQL 136) más panel_inicio, inicio_graficas, operativa_pendiente, alertas_stock, ciclo_cuentas y las citas de hoy. */
-const verArea = t => { const b = document.querySelector(`nav.main [data-t="${t}"]`); return !!b && !b.classList.contains('hide') && !b.classList.contains('bloq'); };
 const MOS_MES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'], MOS_DS = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
-const mosEur = n => Math.round(+n || 0).toLocaleString('es-ES') + ' €';
-const mosIco = n => svgIco(ICON_NOM[n] || ICON_NOM.info);
-let MOS_TURNO = 0;
 function mosContar(box) {
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   const els = [...box.querySelectorAll('[data-mcnt], [data-meur]')], t0 = performance.now();
@@ -26794,16 +28061,6 @@ cargarInicio = (orig => function (...a) {
   return r;
 })(cargarInicio);
 
-/* v2.229.0 · Agenda en una sola pantalla (decisión de Eric, 10/10/2026: variante B de https://claude.ai/artifact/7iht52N5whHBhAueRH7pso).
-   - Cinta: cada día lleva su «⋯» (nueva cita, ver el día, bloquear o desbloquear: festivo, vacaciones, formación…) y los bloqueados se ven
-     rayados con su motivo. «Planificar la semana» pasa a «Ver la semana»: despliega la semana debajo de la cinta, en la misma pantalla, con la
-     rejilla de siempre (pintarSemanaAgenda pintada en #agsemexp: citas, arrastrar, «⋯» por día) y un solo botón, «Repartir la semana» (el
-     planificador; su propuesta se guarda o descarta allí mismo).
-   - Las sugerencias van dentro de «Tu día»: cada cita lleva «En este centro también» con los profesionales del mismo centro (un toque, su
-     «+ Cita» de siempre). «Les toca visita» y «Pendientes de días anteriores» pasan a dos bandejas con su número bajo «Tu día», que abren el
-     panel lateral con su lista.
-   - La columna derecha es «Tu semana» (#agsemlat): día a día con sus citas, su «⋯» y «Repartir la semana». */
-let AG_SEM_ABIERTA = false;
 // La semana de siempre, pintada debajo de la cinta (se cambia el id un momento para que pintarSemanaAgenda pinte allí)
 async function agPintarSemanaExp() {
   const cin = $('agcinta'); if (!cin || !AG_SEM_ABIERTA) { const x = $('agsemexp'); if (x) x.remove(); return; }
@@ -26840,16 +28097,6 @@ async function agSemanaLateral() {
 }
 // Sugerencias dentro de tu día y bandejas
 
-/* v2.230.0 · KPIs de Pedidos y Analítica (Eric eligió la A de https://claude.ai/artifact/PTBZBvZ3yZrQxpxXCNKyrs).
-   - Pedidos: #operativa deja de ser el cartel con los avisos desplegables y pasa a tres tarjetas vivas (pagos por validar, paquetes por
-     preparar y facturas por enviar) con su número que cuenta, una frase y la entrada de los últimos 10 días. Pulsar una pone el filtro
-     «Operativa» (#popf) de la tabla; volver a pulsarla lo quita. Las cifras son las de la tabla (todos los pendientes). El engranaje
-     (#opcfg) sigue eligiendo qué tarjetas se ven.
-   - Analítica: cada indicador cuenta hasta su cifra y dibuja la línea de los últimos seis meses (analitica_kpis_periodo por mes, con
-     el filtro propio del indicador). Sin línea los de «a día de hoy» y los de texto. */
-const PK_TARJ = [['pago', 'pago', 'Pendientes de cobro', 'credit-card'], ['paquete', 'paquete', 'Paquetes por preparar', 'package'],
-  ['email_factura', 'email', 'Facturas por enviar', 'mail']];
-const pkMovimiento = () => !matchMedia('(prefers-reduced-motion: reduce)').matches;
 function pkContar(els, fmt) {
   if (!pkMovimiento()) { els.forEach(el => el.textContent = fmt(+el.dataset.v, el)); return; }
   const t0 = performance.now();
@@ -26902,10 +28149,7 @@ pintarOperativa = async function () {
   pkContar([...c.querySelectorAll('.pkn[data-v]')], n => num(Math.round(n)));
 };
 
-/* ---------------- Analítica: cifras que cuentan y línea de seis meses ---------------- */
-const AN_SERIE = new Map();
 var AN_REP = '';   // v2.329.0: Analítica → Resumen, «Reporte»
-const AN_MES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
 anCargarKpis = (orig => async function () {
   await orig.apply(this, arguments);
   const caja = $('anareas'); if (!caja || !AN_CFG || !$('anper')) return;
@@ -26969,7 +28213,6 @@ cargarConfig = (orig => async function (...a) {
   return r;
 })(cargarConfig);
 
-const citaHecha = e => EST_COL[e] === 'var(--ok)';
 
 verCita = (orig => function (c, ...r) {
   const x = orig.call(this, c, ...r);
@@ -27020,7 +28263,6 @@ db.rpc = (orig => function (fn, params, opts) {
    - El panel enseña las de los últimos 7 días en dos bloques: «Nuevas» (sin leer) y «Anteriores» (leídas, más apagadas).
    - Cada notificación se puede borrar con su papelera; abajo, «Marcar todas como leídas», «Borrar las leídas» y «Borrar todas». */
 if (!ICON_NOM['trash-2']) ICON_NOM['trash-2'] = '<path d="M3 6h18" /> <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /> <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" /> <line x1="10" x2="10" y1="11" y2="17" /> <line x1="14" x2="14" y1="11" y2="17" />';
-const notifIco = t => (TIPOS_NOTIF.find(x => x[0] === t) || [])[1] || '🔔';
 notifPintar = function () {
   const l = NOTIF_LISTA;
   const areas = NOTIF_AREAS.filter(a => l.some(x => notifArea(x.tipo) === a[0]));
@@ -27091,20 +28333,7 @@ notifPintar = function () {
   $('notcfg').onclick = () => { $('dlg').close(); CFG_SEC = 'notif'; window.__CFG_DIRECTO = true; ir('config'); };
 };
 
-/* v2.233.0 · Tu día en el mapa, en Rutas (decisión de Eric: servicio de rutas TomTom, mapa en Rutas; SQL 138 y función «rutas»).
-   - Arriba de Rutas, «Tu día en el mapa»: las citas de hoy numeradas en un mapa plano (MapLibre + OpenFreeMap, colores de delcos),
-     la ruta por las calles y la jornada en una pista con la hora; «Ver el día» mueve el marcador por las calles y la cámara lo sigue.
-   - La ruta y los tiempos los da la función «rutas» (TomTom, con tráfico). Antes de cada petición la base comprueba el tope
-     (2.000 al día entre todas las empresas y 30 por usuario y día); si no cabe, o no está activada, la ruta va en línea recta con
-     los tiempos aproximados de siempre y se dice. No se guarda nada de TomTom: solo se recuerda en memoria 10 minutos.
-   - Pulsar una parada abre la cita (verCita). */
-const RM_SV = d => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + d + '</svg>';
-const RM_COCHE = '<path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/>';
-const RM_PAL = { tierra: '#F1F3F4', zona: '#ECEEF0', parque: '#D6EDDA', agua: '#AFD3F2', edif: '#E4E6EA', calle: '#FFFFFF', borde: '#DADCE0', via: '#FFF1C2', viaBorde: '#F2D27A', texto: '#5F6368', ruta: '#3F82C0', rutaBorde: '#1F5A99', hecho: '#A8BCD2' };
 let RM_LIB = null, RM_MAPA = null, RM_ANIM = null;
-const RM_MEM = new Map();   // ruta pedida → {t, r}: solo en memoria y 10 minutos
-const rmDur = m => m >= 60 ? `${Math.floor(m / 60)} h ${String(Math.round(m % 60)).padStart(2, '0')}` : `${Math.round(m)} min`;
-const rmKm = (a, b) => Math.hypot((b[1] - a[1]) * 111.32 * Math.cos(a[0] * Math.PI / 180), (b[0] - a[0]) * 111.32);
 
 // El día: paradas en su orden, la salida (si hay) y los tramos de viaje y de visita
 function rmPlan(citas, fecha, tramos) {
@@ -27129,11 +28358,6 @@ function rmPlan(citas, fecha, tramos) {
   if (casa && pos && t != null) { const tr = tramos && tramos[k], v = tr ? tr.min : minutosEntre(pos, casa); segs.push({ tipo: 'viaje', a: t, b: t + v, de: pos, hasta: casa, k, km: tr ? tr.km : null }); t += v; }
   return { paradas, puntos, segs, casa, ini: segs.length ? segs[0].a : 9 * 60, fin: t || 18 * 60, tope: isFinite(r.tope) ? r.tope : null };
 }
-const RM_MOTIVO = {
-  empresa: 'Hoy tu empresa ya ha usado su cupo de rutas por calles', global: 'Hoy ya se ha usado el cupo de rutas por calles',
-  apagado: 'Las rutas por calles están desactivadas', sin_clave: 'Las rutas por calles aún no están activadas',
-  servicio: 'El servicio de rutas no ha contestado', sesion: 'No se ha podido comprobar tu sesión', datos: 'Alguna parada no tiene una ubicación válida'
-};
 
 async function rutasMapa() {
   if (TAB !== 'rutas' || !$('v-rutas')) return;
@@ -27180,18 +28404,8 @@ cargarRutas = (orig => async function (...a) {
    - Pasar a la agenda: las citas de los días que tocan (8 semanas o 3 meses), sin duplicar (op_id por ruta, ficha y día) y saltando
      los días bloqueados. Las rutas que se repiten se rellenan solas hasta 4 semanas vista (repeticion.hasta guarda hasta dónde). */
 const RN_DIAS = ['L', 'M', 'X', 'J', 'V'], RN_DIAN = { L: 'lunes', M: 'martes', X: 'miércoles', J: 'jueves', V: 'viernes' };
-const RN_SEM = { 1: 'primer', 2: 'segundo', 3: 'tercer', 4: 'cuarto', 5: 'último' };
-let RN = null;          // la ruta que se está creando o editando
 let RN_LISTA = null, RN_MAPA_P = null;    // tarjetas de Mis rutas: [{r, ms}]
-const rnSV = d => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + d + '</svg>';
-const RN_IC = { up: '<path d="m18 15-6-6-6 6"/>', down: '<path d="m6 9 6 6 6-6"/>', x: '<path d="M18 6 6 18M6 6l12 12"/>', lupa: '<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>',
-  lapiz: '<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>', papelera: '<path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>',
-  reloj: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>', varita: '<path d="m15 4 5 5"/><path d="M3 21 15 9"/><path d="M19 3v4M17 5h4M7 3v2M6 4h2"/>', check: '<path d="M20 6 9 17l-5-5"/>' };
 
-// ---------- fechas de una ruta que se repite ----------
-const rnDiaSem = d => RN_DIAS.indexOf(d) + 1;   // L = 1 … V = 5 (getDay)
-const rnHorizonte = rep => isoMas(hoyISO(), rep && rep.tipo === 'mensual' ? 92 : 56);
-const rnProxima = rep => rnFechas(rep, hoyISO(), isoMas(hoyISO(), 120))[0] || null;
 
 
 cargarRutasBase = async function () {
@@ -27231,9 +28445,7 @@ cargarRutasBase = async function () {
 
 setTimeout(() => { if (typeof PERFIL !== 'undefined' && PERFIL && (typeof verArea !== 'function' || verArea('rutas'))) rnRellenar(); }, 8000);
 
-const rnPie = (izq, der) => `<div class="rnpie"><span>${izq}</span><span class="rnpieb">${der}</span></div>`;
 
-const rnFC = l => ({ type: 'FeatureCollection', features: l });
 
 
 // Con la ruta abierta, Rutas solo pinta el editor (sin la jornada en curso ni el mapa de hoy); el menú «Rutas» vuelve a Mis rutas
@@ -27242,20 +28454,11 @@ rutasMapa = (orig => async function (...a) { if (RN) return; const r = await ori
 cargarRutasPaso2 = (orig => function (...a) { if (RN) return; return orig.apply(this, a); })(cargarRutasPaso2);
 document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('nav.main [data-t="rutas"], #bnav [data-t="rutas"], .bmasgrid [data-bm="rutas"]'); if (b && RN) RN = null; }, true);
 
-/* v2.235.0 · Textos personalizados (Eric eligió la A de https://claude.ai/artifact/6uxwD5zLEbd3krk1QMeoPF; SQL 140).
-   - Configuración → Empresa → «Textos personalizados»: una lista con buscador y filtros con todo lo que cada empresa puede llamar a
-     su manera: vocabulario (ajuste terminos), nombres del menú (ajuste menu_nombres; el de las fichas es marca.etiqueta), estados
-     comerciales y resultados de visita (renombrar_texto: también en las fichas y en las visitas ya registradas), roles y campos.
-   - Los nombres del menú se aplican en el menú lateral, la barra del móvil, «Más» y el título de cada pantalla. */
-const TX_IC = { rv: '<path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/>', lupa: '<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>' };
-const txSV = d => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + d + '</svg>';
-const menuNombres = () => (AJUSTES && AJUSTES.menu_nombres) || {};
 
 aplicarEtiqueta = (orig => function (...a) { const r = orig.apply(this, a); try { aplicarNombresMenu(); } catch (e) {} return r; })(aplicarEtiqueta);
 ir = (orig => function (...a) { const r = orig.apply(this, a); setTimeout(() => { try { aplicarNombresMenu(); } catch (e) {} }, 0); Promise.resolve(r).then(() => { try { aplicarNombresMenu(); } catch (e) {} }); return r; })(ir);
 // Cuando el menú se vuelve a montar (al arrancar, al cambiar de tamaño…), se vuelven a poner los nombres
 if (typeof montarMenuLateral === 'function') montarMenuLateral = (orig => function (...a) { const r = orig.apply(this, a); try { aplicarNombresMenu(); } catch (e) {} return r; })(montarMenuLateral);
-let TX_OBS = 0;
 new MutationObserver(() => { if (!Object.keys(menuNombres()).length || TX_OBS) return; TX_OBS = requestAnimationFrame(() => { TX_OBS = 0; try { aplicarNombresMenu(); } catch (e) {} }); })
   .observe(document.body, { childList: true, subtree: true });
 
@@ -27271,91 +28474,8 @@ arbolCfgUnico = (orig => function (...a) {
   return g;
 })(arbolCfgUnico);
 CFG_CLAVES['o.textos'] = 'textos nombres vocabulario menú menu estados resultados roles campos renombrar palabras';
-let TX = null;   // {filas, filtro, q}
-const TX_G = [['voc', 'Vocabulario', 'Las palabras que salen en todos los textos. En blanco, la de siempre.'],
-  ['menu', 'Menú', 'El nombre de cada apartado del menú y de su pantalla. En blanco, el de siempre.'],
-  ['est', 'Estados y resultados', 'Al cambiar un nombre, se cambia también en las fichas y en las visitas que ya lo tienen.'],
-  ['rol', 'Roles', 'El nombre de cada rol. Sus usuarios y permisos siguen igual.'],
-  ['campo', 'Campos de la ficha', 'El nombre de cada campo personalizado.']];
-const txCambiada = f => f.g === 'voc' ? (f.s !== f.s0 || f.p !== f.p0) : (f.v || '') !== (f.v0 || '');
-const txPersonal = f => f.g === 'voc' ? !!(f.s || f.p) : f.g === 'menu' ? !!f.v : false;
 
 
-/* ============================================================
-   v2.236.0 · Modelo de página «Lista» (variante A elegida por Eric): cabecera con la acción principal y «⋯»,
-   indicadores que filtran, barra con buscador, filtros rápidos, «Filtros», «Columnas» y el recuento, tabla con su pie
-   y tarjetas en el móvil. Al llegar no se tapa la pantalla: se ve el esqueleto con la misma forma. Primero en
-   Contactos (directorio) y Clientes; se monta encima de lo que ya pintan sus funciones, sin cambiar su lógica.
-   ============================================================ */
-const plIco = (...n) => svgIco(n.map(k => ICON_NOM[k] || ICON_EMOJI[k]).find(Boolean) || '');
-const PL_KPI = {};   // indicadores por pantalla: {t, epoca, datos}
-const PL = {
-  directorio: {
-    que: () => TT('medico', 'p', '', 'l', 'l'),
-    nuevo: () => $('nuevoBtn'),
-    textoNuevo: () => 'Añadir ' + TT('medico', 's', '', 'l', 'l'),
-    cuerpo: () => $('lista'), tabla: () => $('tabla'), pie: () => $('dirpag'), cuenta: () => $('cuenta'),
-    conDatos: el => !!el.querySelector('.trow, .vacio'),
-    rapidos: [['ftipo', 'Tipo'], ['fest', 'Estado'], ['fcom', ''], ['fprov', 'Provincia'], ['fmuni', 'Municipio'], ['fesp', 'Especialidad']],
-    q: () => F.q || '',
-    buscarQ: v => { F.q = v; buscar(true); },
-    buscaTxt: () => 'Buscar cuentas',
-    nKpis: 5,   // v2.304.0: el esqueleto con los mismos cinco huecos
-    // v2.296: un campo personalizado vaciado se quedaba como clave y contaba como filtro sin verse en el panel
-    activos: () => ['tipo', 'prov', 'muni', 'esp', 'est', 'rep', 'com'].filter(k => F[k]).length + ['urg', 'mios', 'sin'].filter(k => F[k]).length + Object.values(F.campos || {}).filter(filtroConValor).length,
-    quitar: () => {
-      Object.assign(F, { q: '', tipo: '', prov: '', muni: '', esp: '', est: '', urg: false, mios: false, sin: false, com: '', rep: '', campos: {} });
-      ['ftipo', 'fest', 'fprov', 'fmuni', 'fesp', 'fcom', 'frep', 'q'].forEach(id => { if ($(id)) $(id).value = ''; });
-      const t = $('tools'); if (t && t.classList.contains('abierto') && HERR_CTX === 'directorio') t.classList.remove('abierto');
-      cargarFiltros(); buscar(true);
-    },
-    filtros: () => { const b = $('dirtools'); if (b) b.click(); },
-    columnas: () => abrirColumnas(),
-    mapa: () => $('mapaBtn'),
-    mas: () => [['dircalidad', 'Calidad del dato'], ['cercaBtn', 'Cerca de mí']],
-    kpis: async () => {
-      const t = x => RPC_ORIG('buscar_cuentas', { q: null, lim: 1, desplaz: 0, ...x }).then(r => (r.data && r.data.total) || 0, () => 0);
-      // v2.304.0: profesionales y centros por separado (antes una sola cifra con el nombre de los profesionales que contaba también los centros)
-      const [pro, cen, urg, sin, mios] = await Promise.all([t({ f_tipo: 'Persona' }), t({ f_tipo: 'Centro' }), t({ f_urgentes: true }), t({ f_sin_visitar: true }), t({ f_mios: true })]);
-      return [{ k: 'Persona', t: TT('medico', 'p', '', 'l', 'C'), n: pro, s: 'en total' }, { k: 'Centro', t: 'Centros', n: cen, s: 'en total' }, { k: 'urg', t: 'Urgentes', n: urg, s: 'marcados como urgentes' },
-        { k: 'sin', t: 'Sin visitar nunca', n: sin, s: 'todavía sin ' + TT('visita', 'p', '', 'l', 'l') }, { k: 'mios', t: 'De mi cartera', n: mios, s: 'asignados a ti' }];
-    },
-    kpiOn: k => k === 'Persona' || k === 'Centro' ? F.tipo === k : !!F[k],
-    kpiPulsar: k => { if (k === 'Persona' || k === 'Centro') { F.tipo = F.tipo === k ? '' : k; if ($('ftipo')) $('ftipo').value = F.tipo; } else F[k] = !F[k]; buscar(true); },
-    card: null   // las tarjetas del directorio las pone filaTabla (abajo), con los datos de la ficha
-  },
-  pacientes: {
-    que: () => 'clientes',
-    nuevo: () => $('pacnuevo'),
-    cuerpo: () => $('paclista'), tabla: () => $('paclista'), pie: () => $('pacpag'), cuenta: () => $('paccuenta'),
-    conDatos: el => !!el.querySelector('.dgrid, .vacio'),
-    rapidos: [['pactipo', 'Tipo'], ['pacped', 'Pedidos'], ['pacmun', 'Población']],
-    q: () => PAC.q || '',
-    buscarQ: v => { const i = $('pacq'); if (i) { i.value = v; i.dispatchEvent(new Event('input', { bubbles: true })); } else { PAC.q = v; PAC.pagina = 0; listaPacientes(); } },
-    activos: () => (PAC.tipo ? 1 : 0) + (PAC.pedidos ? 1 : 0) + (PAC.municipio ? 1 : 0) + (PAC.medico ? 1 : 0) + Object.keys(PAC.campos || {}).length,
-    filtros: () => { const b = document.querySelector('#v-pacientes .htbtn'); if (b) b.click(); },
-    columnas: () => { const b = document.querySelector('#v-pacientes .htbtn'); if (!b) return; b.click(); setTimeout(() => { const c = $('tools') && $('tools').querySelector('.t2abrir'); if (c) c.click(); }, 80); },
-    mapa: () => null,
-    mas: () => [],
-    kpis: async () => {
-      const t = x => RPC_ORIG('clientes_lista', { q: null, p_medico: null, lim: 1, desplaz: 0, p_tipo: null, p_pedidos: null, p_municipio: null, ...x }).then(r => (r.data && r.data.total) || 0, () => 0);
-      const [tot, con, sin, emp] = await Promise.all([t({}), t({ p_pedidos: 'con' }), t({ p_pedidos: 'sin' }), t({ p_tipo: 'Empresa' })]);
-      return [{ k: 'tot', t: 'Clientes', n: tot, s: 'en total' }, { k: 'con', t: 'Con pedidos', n: con, s: 'han comprado alguna vez' },
-        { k: 'sin', t: 'Sin pedidos', n: sin, s: 'todavía sin compras' }, { k: 'emp', t: 'Empresas', n: emp, s: 'centros, tiendas y otras' }];
-    },
-    kpiOn: k => k === 'tot' ? !PAC.tipo && !PAC.pedidos : k === 'emp' ? PAC.tipo === 'Empresa' : PAC.pedidos === k,
-    kpiPulsar: k => {
-      if (k === 'tot') { PAC.tipo = ''; PAC.pedidos = ''; }
-      else if (k === 'emp') PAC.tipo = PAC.tipo === 'Empresa' ? '' : 'Empresa';
-      else PAC.pedidos = PAC.pedidos === k ? '' : k;
-      if ($('pactipo')) $('pactipo').value = PAC.tipo || ''; if ($('pacped')) $('pacped').value = PAC.pedidos || '';
-      PAC.pagina = 0; listaPacientes();
-    },
-    // Tarjeta del móvil a partir de la fila de la tabla: nombre, población y teléfono, y el tipo a la derecha
-    card: dr => { const c = dr.children, tx = i => c[i] ? c[i].textContent.trim() : '';
-      return { a: tx(0), b: [tx(5), tx(3)].filter(x => x && x !== '—').join(' · '), c: c[1] ? c[1].innerHTML : '' }; }
-  }
-};
 
 // Directorio: cada fila lleva su tarjeta (oculta en el ordenador) con el nombre, centro · municipio y el estado
 filaTabla = (orig => function (m) {
@@ -27387,15 +28507,11 @@ function plCargarKpis(tab) {
   }, () => { PL_KPI[tab].pend = false; });
 }
 
-// Sin nombre propio, el filtro rápido usa la etiqueta de su campo (así no se escribe aquí el nombre de un rol)
-const plEtiqueta = id => { const l = document.querySelector(`label[for="${id}"]`); return l ? l.textContent.trim() : ''; };
 // v2.242.0: aquí iba la primera versión de plToolHtml (se redefine entera más abajo)
 
 // Monta (o vuelve a ajustar) la plantilla sobre lo que haya pintado la pantalla. Se puede llamar las veces que haga falta.
 // v2.242.0: aquí iba la primera versión de plSync (se redefine entera más abajo)
 
-// Un observador por pantalla: cada vez que la pantalla se repinta, la plantilla se ajusta antes de que se vea
-const PL_OBS = {};
 Object.keys(PL).forEach(plObservar);
 
 // Al llegar, sin cargador que tape la pantalla: se ve la plantilla con su esqueleto
@@ -27405,10 +28521,6 @@ revelar = (orig => function (el, max, desde) {
   return orig(el, max, desde);
 })(revelar);
 
-// Los indicadores se piden aparte (RPC_ORIG): las listas «solo la última» descartarían las consultas paralelas
-// Clics de la barra, los indicadores y el menú «⋯»
-// Un filtro de campo personalizado cuenta si tiene algo (texto, lista o rango)
-const filtroConValor = v => v != null && v !== '' && !(Array.isArray(v) && !v.length) && !(typeof v === 'object' && !Array.isArray(v) && !Object.values(v).some(x => x != null && x !== ''));
 const normalizar = typeof quitarAcentos === 'function' ? (s => quitarAcentos(String(s || '').toLowerCase())) : (s => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''));
 document.addEventListener('click', e => {
   if (!e.target.closest('.plpop') && !e.target.closest('.plchip, .plmas')) plCerrarPop();
@@ -27435,8 +28547,6 @@ document.addEventListener('click', e => {
 });
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && document.querySelector('.plpop')) plCerrarPop(); });
 addEventListener('scroll', () => { if (document.querySelector('.plpop')) plCerrarPop(); }, { passive: true });
-// Buscador de la barra
-let PL_TQ;
 document.addEventListener('input', e => {
   const i = e.target.closest('main > section.plantilla .plqi'); if (!i) return;
   const tab = i.closest('section').id.slice(2);
@@ -27446,21 +28556,6 @@ document.addEventListener('input', e => {
 barraCuentas = (orig => function () { orig(); const b = document.querySelector('#v-directorio .plmapa'), m = $('mapaBtn'); if (b && m && b.dataset.modo !== (m.dataset.modo || '')) { b.dataset.modo = m.dataset.modo || ''; b.innerHTML = m.innerHTML; b.title = m.title; b.setAttribute('aria-label', m.title); } })(barraCuentas);
 
 
-/* ============================================================
-   v2.237.0 · Inicio y Agenda aparecen de una vez (aviso de Eric): al abrir la app la primera pantalla se enseñaba
-   sin esperar (salían los indicadores antiguos y luego el mosaico) y la Agenda se daba por lista antes de tener la
-   cinta y «Tu semana». Inicio enseña desde el principio el esqueleto del mosaico; la Agenda sigue con el cargador hasta tener
-   la cinta y «Tu semana» (como mucho 10 s).
-   ============================================================ */
-// Tope de espera por pantalla: en el móvil con mala cobertura la Agenda encadena varias consultas
-const LISTA_ESPERA = { agenda: 10000 };
-const LISTA_PARA = {
-  // Inicio: el mosaico ya pintado (si la persona no tiene mosaico, basta con que no queden esqueletos)
-  inicio: s => !!s.querySelector('#inimos > *') || (!s.classList.contains('conmos') && !s.querySelector('.ksk, .skel') && performance.now() - (s.__t0 || 0) > 1500),
-  // Agenda en vista de día: la cinta y «Tu semana» con sus días (o, si no llega, un respiro de 0,8 s tras la cinta)
-  // v2.248.0: la vista del día avisa cuando está pintada entera (dataset.listo)
-  agenda: s => (typeof AG_MODO !== 'undefined' && AG_MODO !== 'dia') || s.dataset.listo === '1'
-};
 revelar = (orig => function (el, max, desde) {
   const tab = el && el.id && el.id.slice(2), listo = LISTA_PARA[tab];
   if (!listo || !el.matches || !el.matches('main > section')) return orig(el, max, desde);
@@ -27506,53 +28601,6 @@ LISTA_PARA.inicio = s => true;   // con el esqueleto del mosaico se enseña al m
 
 
 
-/* ============================================================
-   v2.238.0 · Modelo «Lista» en Ventas: Pedidos, Oportunidades, Compras, Proveedores, Facturas, Productos, Servicios y Stock.
-   La plantilla pasa a ser genérica: cada pantalla dice sus filtros rápidos (selectores), su buscador si lo tiene, dónde está su
-   lista y su paginador. Los indicadores que filtran (Operativa de Pedidos) van en la banda; los totales (.kpis.vtot) pasan a una
-   franja de resumen compacta encima de la tabla. Sin buscador propio, el de la barra filtra la tabla («Contiene»).
-   ============================================================ */
-// Pantallas con varias secciones: la configuración depende de la sección abierta (null = sin plantilla, p. ej. Configuración de Facturación)
-const PL_SECC = {
-  ventas: () => typeof PEDSEC === 'undefined' ? null : ({ ventas: 'pedidos', llamadas: 'oport', compras: 'compras', proveedores: 'prov' })[PEDSEC] || null,
-  facturacion: () => typeof FSEC !== 'undefined' && FSEC === 'facturas' ? 'facturas' : null,
-  productos: () => typeof PSEC === 'undefined' ? null : ({ catalogo: 'prods', servicios: 'servs', stock: 'stock' })[PSEC] || 'prods'
-};
-// Base común de las listas en rejilla (.dgrid) con «Filtros y columnas»
-const plRejilla = o => Object.assign({
-  rejilla: true,
-  nuevo: () => document.querySelector(`#v-${o.tab} > .saludo .acts > .btn:not(.sec):not(.htbtn):not(.fab)`) || document.querySelector(`#v-${o.tab} .fab`),
-  cuerpo: () => o.lista ? $(o.lista) : null,
-  tabla: () => { const w = document.querySelector(`#v-${o.tab} .dgrid-wrap`); return (o.lista && $(o.lista)) || w; },
-  pie: () => o.pag ? $(o.pag) : null,
-  cuenta: () => null,
-  conDatos: el => !!el.querySelector('.dgrid, .vacio'),
-  rapidos: [],
-  q: () => { const i = o.buscador && $(o.buscador); if (i) return i.value || ''; const g = document.querySelector(`#v-${o.tab} .dgrid`); return g ? ((HT_ESTADO[htTipo(g)] || {}).texto || '') : ''; },
-  buscarQ: v => {
-    const i = o.buscador && $(o.buscador);
-    if (i) { i.value = v; i.dispatchEvent(new Event('input', { bubbles: true })); return; }
-    const g = document.querySelector(`#v-${o.tab} .dgrid`); if (!g) return;
-    const t = htTipo(g); HT_ESTADO[t] = HT_ESTADO[t] || { texto: '', facetas: {} }; HT_ESTADO[t].texto = v; htAplicarFiltros(g);
-    const sec = $('v-' + o.tab); if (sec) { htContador(sec); }
-  },
-  activos: () => { const sec = $('v-' + o.tab); const n = sec ? sec.querySelectorAll('.htchips .htchip').length : 0; return n; },
-  filtros: () => { const b = document.querySelector(`#v-${o.tab} .htbtn`); if (b) b.click(); },
-  columnas: () => { const b = document.querySelector(`#v-${o.tab} .htbtn`); if (!b) return; b.click(); setTimeout(() => { const c = $('tools') && $('tools').querySelector('.t2abrir'); if (c) c.click(); }, 80); },
-  mapa: () => null,
-  // «⋯»: los botones secundarios de la cabecera (menos «Filtros y columnas»)
-  mas: () => [...document.querySelectorAll(`#v-${o.tab} > .saludo .acts > button.sec:not(.htbtn):not(.plmas)`)].filter(b => !b.classList.contains('hide') && !(o.extra || []).some(([id]) => id === b.id))
-    .map(b => { if (!b.id) b.id = 'plb' + Math.random().toString(36).slice(2, 8); return [b.id, (b.textContent.trim() || b.title || b.getAttribute('aria-label') || '').replace(/\s+/g, ' ')]; })
-    .concat((o.extra || []).filter(([id]) => $(id))),
-  kpis: null, kpiOn: () => false, kpiPulsar: () => {},
-  // Tarjeta del móvil: la primera celda, las dos siguientes con texto y la pastilla de estado (si la hay) a la derecha
-  card: dr => {
-    const c = [...dr.children].filter(x => !x.classList.contains('plcard')), tx = x => x ? x.textContent.trim().replace(/\s+/g, ' ') : '';
-    const est = c.find(x => x.querySelector('.pill, .est, .cirest, [class*="estado"]'));
-    const resto = c.slice(1).filter(x => x !== est).map(tx).filter(x => x && x !== '—').slice(0, 2);
-    return { a: tx(c[0]), b: resto.join(' · '), c: est ? est.innerHTML : '' };
-  }
-}, o);
 Object.assign(PL, {
   ventas: {
     pedidos: plRejilla({ tab: 'ventas', que: () => 'pedidos', lista: 'pedlista', pag: 'pedpag', buscador: 'pq', banda: 'operativa', extra: [['opcfg', 'Elegir qué avisos ver']],
@@ -27569,8 +28617,6 @@ Object.assign(PL, {
     stock: plRejilla({ tab: 'productos', que: () => 'productos' })
   }
 });
-const plSel = id => id && /^[#.]/.test(id) ? document.querySelector(id) : $(id);
-const plEtiq = id => { const s = plSel(id); if (!s) return ''; const l = (s.id && document.querySelector(`label[for="${s.id}"]`)) || (s.closest('div') && s.closest('div').querySelector(':scope > label')); return l ? l.textContent.trim() : ''; };
 
 // Recuento: el de la pantalla; si no tiene, el paginador («1–20 de N») o las filas que se ven
 function plRecuento(sec, c) {
@@ -27719,34 +28765,6 @@ document.addEventListener('input', e => {
 }, true);
 
 
-/* ============================================================
-   v2.239.0 · Modelo «Lista» en Eventos, Intervenciones, Concursos y Parque instalado: los bloques de tarjetas pasan a una tabla con
-   las mismas filas (cada fila conserva su botón y lo que abre). Los bloques (Próximos, Pasados, Reposiciones…) pasan a ser
-   indicadores que filtran y un filtro rápido; si una fila estaba en dos bloques, sale una vez y cuenta en los dos.
-   La acción principal sube a la cabecera; las demás, al «⋯».
-   ============================================================ */
-const PLG = {};   // bloque elegido por pantalla
-const plTxt = el => el ? el.textContent.trim().replace(/\s+/g, ' ') : '';
-const plSm = el => { const s = el && el.querySelector('.tx .sm, .sm'); return plTxt(s); };
-const BLQ = {
-  eventos: { attr: 'ev', que: 'eventos', grupo: 'Cuándo', def: 'Eventos',
-    cols: [['Evento', ''], ['Fecha', ''], ['Tipo', ''], ['Lugar', ''], ['Asistentes', 'num'], ['Gasto', 'num']],
-    celdas: b => {
-      const p = plSm(b).split(' · '), hora = p.find(x => /^\d{1,2}:\d{2}$/.test(x)), tipo = p.find(x => EV_TIPOS.includes(x));
-      const asis = p.find(x => /asistente/.test(x)) || '', lugar = p.filter((x, i) => i > 0 && x !== hora && x !== tipo && x !== asis).join(' · ');
-      return [`<b>${esc(plTxt(b.querySelector('.tx b')))}</b>`, esc(p[0] + (hora ? ' · ' + hora : '')), esc(tipo || '—'), esc(lugar || '—'), esc((asis.match(/\d+/) || ['0'])[0]), esc(plTxt(b.querySelector('.evtot')) || '—')];
-    } },
-  cirugias: { attr: 'cir', que: 'intervenciones', grupo: 'Bloque', def: 'Intervenciones',
-    cols: [['Fecha', ''], ['Intervención', ''], ['Equipo y lugar', ''], ['Estado', '']],
-    celdas: b => [esc(plTxt(b.querySelector('.cirf b')) + (plTxt(b.querySelector('.cirf .sm')) ? ' · ' + plTxt(b.querySelector('.cirf .sm')) : '')),
-      `<b>${esc(plTxt(b.querySelector('.tx b')))}</b>`, esc(plSm(b.querySelector('.tx'))), (b.querySelector('.cirest') || {}).innerHTML || ''] },
-  concursos: { attr: 'con', que: 'concursos', grupo: 'Bloque', def: 'Concursos',
-    cols: [['Concurso', ''], ['Cliente, organismo y lotes', ''], ['Estado y plazos', '']],
-    celdas: b => [`<b>${esc(plTxt(b.querySelector('.tx b')))}</b>`, esc(plSm(b.querySelector('.tx'))), (b.querySelector('.cirest') || {}).innerHTML || ''] },
-  parque: { attr: 'eq', que: 'equipos', grupo: 'Bloque', def: 'Todos los equipos',
-    cols: [['Equipo', ''], ['Serie, centro y contrato', ''], ['Revisión y vencimientos', '']],
-    celdas: b => [`<b>${esc(plTxt(b.querySelector('.tx b')))}</b>`, esc(plSm(b.querySelector('.tx'))), (b.querySelector('.cirest') || {}).innerHTML || ''] }
-};
 // Configuración de cada una (Eventos solo en su pestaña «Eventos», no en Informe de gastos)
 Object.assign(PL_SECC, {
   eventos: () => { const on = document.querySelector('#v-eventos .pagtabs button.on'); return !on || on === document.querySelector('#v-eventos .pagtabs button') ? 'lista' : null; },
@@ -27771,8 +28789,6 @@ document.addEventListener('click', e => {
   const tab = k.closest('section').id.slice(2); PLG[tab] = PLG[tab] === k.dataset.plg ? '' : k.dataset.plg; blqFiltrar(tab); plSync(tab);
 });
 Object.keys(BLQ).forEach(plObservar);
-// Las páginas (Eventos, Intervenciones…) crean su sección al entrar: el observador se engancha entonces (y otra vez si se vuelve a crear)
-const PL_OBSEL = {};
 ir = (orig => function (t, ...a) { const r = orig.call(this, t, ...a); if (PL[t]) { plVigilar(t); setTimeout(() => plVigilar(t), 0); } return r; })(ir);
 Object.keys(PL).forEach(plVigilar);
 // Las pestañas de las páginas (.pagtabs) van justo debajo de la cabecera: la banda y la barra, después de ellas
@@ -27784,16 +28800,6 @@ plSync = (orig => function (tab) {
 })(plSync);
 
 
-/* ============================================================
-   v2.240.0 · Paneles sin saltos. Grabados con la red lenta, Inicio, Analítica, Agenda, Rutas y Calidad del dato ya llegan
-   de una vez; quedaban tres detalles:
-   - Las cifras que cuentan (mosaico de Inicio, indicadores de Inicio, Pedidos y Analítica) volvían a contar desde cero cada vez
-     que se volvía a la pantalla, y parecía que saltaban: ahora solo cuentan si la cifra ha cambiado desde la última vez.
-   - En el móvil, las cifras grandes de Analítica se partían en dos líneas.
-   - Oportunidades enseñaba los filtros de Pedidos («Mes actual» dos veces): los de la otra sección se apartan del panel.
-   ============================================================ */
-const CONTADO = {};   // última cifra que se ha enseñado contando, por pantalla y grupo
-const plYaContado = (clave, valores) => { const k = TAB + ':' + clave, f = valores.join('|'); if (CONTADO[k] === f) return true; CONTADO[k] = f; return false; };
 mosContar = (orig => function (box) {
   const els = [...box.querySelectorAll('[data-mcnt], [data-meur]')];
   if (plYaContado('mos', els.map(e => e.dataset.mcnt != null ? e.dataset.mcnt : e.dataset.meur))) return;
@@ -27809,22 +28815,12 @@ pkContar = (orig => function (els, fmt) {
   return orig(els, fmt);
 })(pkContar);
 
-// Pedidos y Oportunidades comparten el panel de filtros: los de la otra sección se apartan (no salen en el panel ni como filtro activo)
-const PL_AJENOS = { pedidos: ['llper', 'llfres'], oport: ['pper', 'pcanal', 'pestado', 'popf', 'porigf', 'prepf'], compras: ['llper', 'llfres', 'pper', 'pcanal', 'pestado', 'popf', 'porigf', 'prepf'], prov: ['llper', 'llfres', 'pper', 'pcanal', 'pestado', 'popf', 'porigf', 'prepf'] };
 plSync = (orig => function (tab) {
   if (tab === 'ventas') { const sec = $('v-ventas'), k = PL_SECC.ventas(); if (sec && k) plAjenos(sec, k); }
   return orig(tab);
 })(plSync);
 
 
-/* ============================================================
-   v2.241.0 · Volver, pestañas, pasos y fichas: una sola forma (Eric eligió la A «Ligera» de
-   https://claude.ai/artifact/SYZkDbbm8dtSRTUWEN5TE4). «‹ Destino» como enlace encima del título; pestañas en caja segmentada;
-   pasos de los asistentes en barra numerada; y la ficha de un registro (pedido, factura, evento, intervención, concurso, equipo, centro,
-   stock, depósito) en panel lateral en el ordenador, como la de un contacto: la lista sigue a la vista. Los formularios y las
-   ventanas anchas (comparar, importar…) siguen como estaban, y Configuración sigue sin ventanas emergentes.
-   ============================================================ */
-let FX_FICHA = 0;
 // Mientras se abre una ficha, no se encaja en la página
 areaEncaje = (orig => function (...a) { return FX_FICHA ? null : orig.apply(this, a); })(areaEncaje);
 (() => {
@@ -27850,17 +28846,6 @@ pintarInicio = (orig => async function () {
 })(pintarInicio);
 
 
-/* ============================================================
-   v2.244.0 · Agenda reescrita (1 de 3): «Tu día» sale directamente de los datos (Eric eligió reescribir la Agenda entera).
-   Hasta ahora las tarjetas (.tdu) se construían leyendo una lista antigua (.tdlista) que se pintaba y se escondía, con seis capas
-   encima (avisos con su «i», «no cabe», tareas, tarjetas, menú…). En la vista de día con cinta, tdPintar() pinta de una vez:
-   cabecera (título, «⋯» del día, cifras, botones), jornada, aviso «no cabe», tareas, tarjetas, vacío y citas de otras personas.
-   Los botones de cada cita llevan los mismos data-td de siempre (los atiende el mismo listener) y se ponen solo si tocan. El
-   orden y los refrescos animan las tarjetas (antes animaban las filas ocultas). Semana, Mes y Equipo siguen como estaban.
-   ============================================================ */
-// Estados de una cita sin escribir sus nombres (la prueba de literales los cuenta): por su color
-const citaAusente = e => EST_COL[e] === 'var(--warn)' && !CITA_ABIERTA.includes(e);   // «no estaba»
-const tdHm = h => esc(String(h).slice(0, 5));
 
 // La «i» del aviso abre su explicación (antes pulsaba la de la fila oculta)
 document.addEventListener('click', e => {
@@ -27902,20 +28887,16 @@ repintarDiaSuave = (orig => async function (id, data) {
    Semana, Mes y Equipo siguen como estaban.
    ============================================================ */
 let AG_MET = null, AG_SUG = null, AG_PEND = null;
-const agN = () => agConCinta() && $('v-agenda').classList.contains('agn');
 
 
 
 
-// Quién ya tiene cita ese día (no se le propone)
-const agConCitaHoy = () => new Set((TD_CITAS || []).filter(c => !citaAnulada(c.estado)).map(c => c.cuenta_id));
 
 document.addEventListener('click', e => {
   const b = e.target.closest('#agcuerpo .agtamb[data-agtc]'); if (!b || e.target.closest('[data-agti]')) return;
   e.stopPropagation(); fichaCentro(b.dataset.agtc);
 }, true);
 document.addEventListener('keydown', e => { const b = e.target.closest && e.target.closest('#agcuerpo .agtamb[data-agtc]'); if (b && e.target === b && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); fichaCentro(b.dataset.agtc); } });
-const agImp = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
 document.addEventListener('click', e => {
   const b = e.target.closest('#agcuerpo .agtamb [data-agti]'); if (!b) return;
   e.stopPropagation();
@@ -27939,9 +28920,6 @@ agMarcarDia = (orig => function (...a) {
   if (agN() && AG_VISTA && $('agtit') && !$('agtit').textContent.includes(AG_VISTA.nombre)) $('agtit').textContent += ' · agenda de ' + AG_VISTA.nombre;
   return r;
 })(agMarcarDia);
-// Subir o bajar una cita no recarga la Agenda aunque otra pantalla (Inicio pide las citas de hoy) haya pedido otro día entretanto:
-// se guarda lo último de cada día y se usa el del día que se ve
-const AG_DIAS_DATOS = {};
 rpcCache = (orig => async function (fn, params, clave) {
   const r = await orig.call(this, fn, params, clave);
   if (fn === 'agenda_rango' && params && params.p_desde === params.p_hasta && r && r.data) AG_DIAS_DATOS[params.p_desde] = r.data;
@@ -27992,7 +28970,6 @@ agPintarSemanaExp = (orig => async function (...a) {
    - «Ver la semana» cambia su texto cuando la semana ya está pintada; el mes se abre ya pintado.
    ============================================================ */
 const AG_PRE = new Map(); let AG_PRE_USO = 0;
-const agK = (fn, d, h, u) => [fn, d, h, u || ''].join('|');
 rpcCache = (orig => function (fn, params, clave, ...x) {
   if (AG_PRE.size && fn === 'agenda_rango' && params) { const k = agK(fn, params.p_desde, params.p_hasta, params.p_usuario); if (AG_PRE.has(k)) return Promise.resolve(AG_PRE.get(k)); }
   return orig.call(this, fn, params, clave, ...x);
@@ -28070,30 +29047,10 @@ agPintarSemanaExp = (orig => function (...a) {
 
 
 
-/* ============================================================
-   v2.249.0 · Contactos y Clientes de una vez (listas sin fantasmas, primer grupo). Se sigue enseñando el esqueleto sin cargador
-   encima (modelo «Lista» de la v2.236), pero ahora es fiel: cada pieza de la estructura (cabecera, indicadores, barra con
-   buscador, filtros rápidos y recuento, tabla) está en su sitio desde el primer momento y al llegar los datos solo cambia lo de
-   dentro. Antes el recuento del esqueleto medía distinto que la cifra y empujaba el buscador y los filtros, y en Clientes los
-   filtros rápidos aparecían tarde (su desplegable se crea al llegar los datos) y salían dos esqueletos seguidos porque la lista
-   esperaba a la de poblaciones. Ahora:
-   - El recuento tiene sitio fijo y los filtros rápidos sin desplegable todavía se ven con su nombre, en espera (plespera).
-   - Clientes pide a la vez las poblaciones y la lista (DB_PRE: lo pedido antes se entrega una vez, sin volver a la red) y el
-     buscador espera 300 ms (antes 600: la barra y el campo oculto esperaban cada uno lo suyo).
-   - Arreglos: «Volver a la búsqueda» de «Cerca de mí» funciona desde la barra (era una copia sin clic y con el id repetido);
-     con el mapa abierto no queda la tabla vacía debajo; el resumen de filtros de antes (#chips) ya no aparece encima
-     de la tabla empujándola (lo dicen los filtros rápidos y el número de la barra).
-   ============================================================ */
-// ---- Lo pedido antes, entregado una vez sin volver a la red
-const DB_PRE = new Map();
 db.rpc = (orig => function (fn, p, ...x) {
   if (DB_PRE.size) { const k = fn + JSON.stringify(p || {}); if (DB_PRE.has(k)) { const r = DB_PRE.get(k); DB_PRE.delete(k); return Promise.resolve(r); } }
   return orig.call(this, fn, p, ...x);
 })(db.rpc);
-// Los mismos parámetros con que listaPacientes pide la lista
-const pacParams = () => ({ q: PAC.q || null, p_medico: PAC.medico,
-  lim: tamPagina(), desplaz: PAC.pagina * tamPagina(), p_tipo: PAC.tipo || null, p_pedidos: PAC.pedidos || null,
-  p_municipio: PAC.municipio || null, ...(Object.keys(PAC.campos || {}).length ? { f_campos: PAC.campos } : {}) });
 pintarPacientes = (orig => async function (...a) {
   const p = pacParams();
   const [m, l] = await Promise.all([db.rpc('municipios_clientes'), db.rpc('clientes_lista', p)]);
@@ -28289,8 +29246,6 @@ pintarEstadoDelcos = (orig => async function (...a) {
    - La cabecera dice si las horas son «con tráfico real» o estimadas.
    ============================================================ */
 let TD_REAL = null, TD_CALC = false;   // { k, mapa: Map('a>b' → minutos), t } · TD_CALC: calculando la clave (sin volver a entrar)
-const tdClaveXY = (a, b) => a && b && a[0] != null && b[0] != null ? `${(+a[0]).toFixed(5)},${(+a[1]).toFixed(5)}>${(+b[0]).toFixed(5)},${(+b[1]).toFixed(5)}` : '';
-const tdRealVigente = () => TD_REAL && Date.now() - TD_REAL.t < 600000;
 // El plan del mapa se calcula siempre con la estimación (así su clave es la misma en Rutas y en «Tu día»)
 rmPlan = (orig => function (...a) {
   if (a[2]) return orig.apply(this, a);
@@ -28342,21 +29297,6 @@ plSync = (orig => function (tab, ...x) {
 
 
 
-/* ============================================================
-   v2.259.0 · Visita sin conexión (pendiente de la auditoría del 8/10, cerrado el 11/10/2026). Antes, sin cobertura la ventana
-   «Registrar visita» ni se abría; si la red caía al guardar, la visita podía rechazarse al reenviarla otro día (por la fecha) y
-   perderse sin aviso, o duplicarse al repetir. Ahora:
-   - La visita se abre sin conexión con la última copia de la ficha (la misma de la ficha) y de sus resultados, y los catálogos
-     quedan guardados en el móvil.
-   - Al guardar sin conexión: a la cola con «sin conexión» (el servidor no la rechaza por la fecha), con el mismo op_id aunque se
-     repita, y las fotos se guardan en el móvil (IndexedDB) y se suben solas cuando se envía la visita.
-   - «Tu día» marca la cita «Registrada en el móvil · pendiente de enviar» y quita «Registrar».
-   - La cola se envía de una en una (sin dos envíos a la vez); lo que el servidor rechaza no se pierde: queda en «sin enviar», con
-     aviso y la opción de reintentar o descartar; el tiempo agotado cuenta como fallo de red.
-   - Sin conexión, la app arranca con el perfil guardado aunque no pueda comprobar la sesión.
-   - Las muestras siguen necesitando conexión (el límite legal se comprueba en el servidor): la ventana lo avisa.
-   ============================================================ */
-let VISITA_OP = null;   // op_id de la ventana abierta (el mismo si se pulsa Guardar dos veces)
 esErrorRed = (orig => function (e) {
   return orig(e) || /ha tardado demasiado|tiempo agotado|timeout|timed out/i.test(String((e && (e.message || e)) || ''));
 })(esErrorRed);
@@ -28381,13 +29321,7 @@ abrirVisitaBase = (orig => async function (...a) {
   return r;
 })(abrirVisitaBase);
 
-// ---- Fotos de una visita guardada sin conexión: en el móvil hasta que la visita se envía
-const FOTOS_IDB = 'delcos-fotos';
 
-// ---- La cola: de una en una, sin perder lo que el servidor rechaza
-const COLA_KO = 'dlc-cola-ko';
-const colaKo = () => { try { return JSON.parse(localStorage.getItem(COLA_KO) || '[]'); } catch (e) { return []; } };
-let COLA_ENVIANDO = false;
 vaciarCola = async function () {
   if (!navigator.onLine || COLA_ENVIANDO) return;
   let c = colaLeer(); if (!c.length) return;
@@ -28457,7 +29391,6 @@ arbolCfgUnico = (orig => function (...a) {
   return g;
 })(arbolCfgUnico);
 CFG_CLAVES.distribuidores = 'distribuidores mayoristas almacenes pedidos transfer servir correo';
-let DIS_TODOS = null;
 async function pintarDistribuidores() {
   const c = $('cfgcuerpo'); if (!c) return;
   cargando(c, 'Cargando los distribuidores…');
@@ -28493,20 +29426,6 @@ async function pintarDistribuidores() {
 
 
 
-/* ============================================================
-   v2.261.0 · Leer lotes, números de serie con la cámara (grupo 4 del plan del 11/10/2026). En el móvil o la tableta, los campos
-   de lote (entrada de stock y recepción de compras) y de número de serie (intervenciones, equipos y equipos de un pedido) llevan un
-   botón de cámara. Se lee el código (DataMatrix, QR, Code 128, EAN…) y, si es GS1 (el de las cajas y la UDI), se separa: el lote
-   (10), el número de serie (21), la caducidad (17) y la fabricación (11); en una entrada de stock también se rellenan las fechas si
-   están vacías. En los números de serie de varias unidades la cámara sigue abierta y va llenando las siguientes (sin repetir).
-   Usa el lector del navegador (BarcodeDetector) y, si no lo tiene (iPhone), una librería que se carga solo al abrir la cámara.
-   ============================================================ */
-const ESC_CAMPOS = [['#mvl', 'lote'], ['[data-r="lote"]', 'lote'], ['[data-cser]', 'serie'], ['[data-pqs]', 'serie'], ['#eqs', 'serie']];
-const ESC_PUEDE = () => !!(window.ESC_FORZAR || (PANTALLA_TACTIL && navigator.mediaDevices && navigator.mediaDevices.getUserMedia));
-// GS1: (01) GTIN, (10) lote, (11) fabricación, (17) caducidad, (21) serie… con paréntesis o con el separador GS
-const GS1_FIJOS = { '00': 18, '01': 14, '02': 14, '11': 6, '12': 6, '13': 6, '15': 6, '16': 6, '17': 6, '20': 2 };
-const GS1_VAR = ['10', '21', '22', '30', '37', '90', '91', '92', '93', '94', '95', '96', '97', '98', '99'];
-let ESC_PEND = false;
 new MutationObserver(() => { if (ESC_PEND) return; ESC_PEND = true; queueMicrotask(() => { ESC_PEND = false; escPoner(); }); })
   .observe(document.body, { childList: true, subtree: true });
 document.addEventListener('click', e => {
@@ -28515,25 +29434,10 @@ document.addEventListener('click', e => {
   const inp = b.parentNode.querySelector('input'); if (inp) abrirEscaner(inp);
 }, true);
 
-// La ventana de la cámara
-let ESC = null;   // { inp, modo, stream, det, zx, vivo, leidos:Set, n }
-const ESC_ULT_N = n => n === 1 ? 'Una unidad' : `${n} unidades`;
-const ESC_ULT_TXT = (v, g) => 'Leído: ' + v + (g && g.cad ? ' · caduca el ' + fechaCorta(g.cad) : '');
 
 
 
 
-/* ============================================================
-   v2.262.0 · Facturas y Oportunidades ordenadas de verdad (punto 3 del plan del 11/10/2026). Las dos listas traen ya todo el periodo
-   elegido (la base filtra por fechas, búsqueda y estado) y se paginaban en la pantalla, pero al pulsar una columna solo se ordenaban
-   las filas de la página que se veía. Ahora el orden se aplica a toda la lista del periodo antes de paginar y se vuelve a la primera
-   página: es lo más eficiente (los datos ya están en el móvil; no hace falta otra consulta ni cambiar la base). Si algún día una
-   empresa tiene miles de facturas en un mismo periodo, se pasaría la paginación a la base.
-   ============================================================ */
-const ORD_MEM = {
-  facts: { fn: 'facturas_lista', campos: ['numero', 'fecha', 'cliente', 'nif', 'base', 'cuota_iva', 'total', 'vencimiento', 'estado_cobro'] },
-  llam: { fn: 'llamadas_lista', campos: ['fecha', x => x.cliente || x.nombre, 'importe_estimado', x => x.medico || x.cuenta_texto, x => x.resultado || (x.pedido_id ? 'Pedido hecho' : ''), 'proxima_fecha', 'usuario'] }
-};
 Object.keys(ORD_MEM).forEach(t => { ORD_SRV[t] = (i, n) => (ORD_MEM[t].campos[i] != null && !htCeldaNoOrdenable(n)) ? 'c' + i : null; });
 // La lista llega ordenada de la base según la columna elegida
 db.rpc = (orig => async function (fn, args, ...r) {
@@ -28553,16 +29457,6 @@ document.addEventListener('click', e => {
 
 
 
-/* ============================================================
-   v2.263.0 · Liquidaciones por persona (punto 4 del plan del 11/10/2026; auditoría del manual).
-   - «Calcular el periodo» buscaba a quién liquidar por el NOMBRE (dos personas con el mismo nombre se confundían) y solo a quien
-     tenía el esquema abierto hoy. Ahora va por la persona (su id) y liquida a todos los que tuvieron un esquema vigente algún día
-     de ese mes (también a quien dejó de cobrar a mitad de mes).
-   - Además, volver a calcular un mes devolvía a «Borrador» las liquidaciones ya aprobadas o pagadas (y las descongelaba). Ahora
-     solo se recalculan las que siguen en borrador; las aprobadas y pagadas no se tocan.
-   - La lista de liquidaciones se puede ver por persona y por mes, con el total de lo que se ve.
-   ============================================================ */
-let LIQ_FIL = { u: '', p: '' };
 // (R-12: calcularLiquidaciones se definía aquí otra vez; ahora está en su sitio, más arriba)
 // La lista, con filtros de persona y mes y el total de lo que se ve
 pintarComisionesBase = (orig => async function (...a) {
@@ -28631,13 +29525,6 @@ db.rpc = (orig => function (fn, args, ...r) {
   return orig.call(this, fn, args, ...r);
 })(db.rpc);
 
-// Estados comerciales: el papel de cada uno
-const PAPELES_ESTADO = [
-  ['inicial', 'Inicial', 'El de las fichas nuevas. Solo hay uno.'],
-  ['avance', 'En avance', 'Ya hay contacto, pero todavía sin interés claro.'],
-  ['interes', 'Con interés', 'Interesado: se le sigue de cerca.'],
-  ['positivo', 'Ya es cliente', 'El objetivo: ya compra o trabaja con vosotros.'],
-  ['negativo', 'Ya no interesa', 'No le interesa o se ha perdido.']];
 arbolCfgUnico = (orig => function (...a) {
   const g = orig.apply(this, a);
   if (!(puedeCatalogos() || puede('administrar'))) return g;
@@ -28682,15 +29569,6 @@ orgAcciones = (orig => function (c, l) {
 
 
 
-/* ============================================================
-   v2.265.0 · Transfer completo con el distribuidor (grupo 4 del plan del 11/10/2026; necesita el SQL 142).
-   - Ver pedido → bloque «Distribuidor»: en qué punto está el transfer (Enviado, Aceptado, Servido o Incidencia, con su nota) y
-     «Descargar transfer», un PDF con el cliente, su código en el distribuidor y las líneas con referencia y código de barras.
-   - Configuración → Datos → Distribuidores: cada distribuidor con sus transfers (cuántos sin enviar, en marcha, servidos y con
-     incidencia); al pulsar uno se abre el pedido.
-   ============================================================ */
-const TRF_EST = [['Enviado', 'Enviado'], ['Aceptado', 'Aceptado'], ['Servido', 'Servido'], ['Incidencia', 'Incidencia']];
-const trfPill = e => e ? `<span class="pill ${e === 'Servido' ? 'p-trfok' : e === 'Incidencia' ? 'p-urg' : 'p-per'}">${esc(e)}</span>` : '<span class="pill">Sin enviar</span>';
 // Distribuidores: los transfers de cada uno
 pintarDistribuidores = (orig => async function (...a) {
   const r = await orig.apply(this, a);
@@ -28706,16 +29584,7 @@ pintarDistribuidores = (orig => async function (...a) {
 
 
 
-/* ============================================================
-   v2.266.0 · Presentaciones de producto en la visita (grupo 4 del plan del 11/10/2026; necesita el SQL 143).
-   - Ficha del producto (administración): «Material para presentar», imágenes o PDF (fichas técnicas, estudios, catálogo).
-   - «Registrar visita»: bajo «Productos presentados», «Presentar» con los productos que tienen material; se ve a pantalla completa
-     (con flechas y teclado) y el producto queda marcado como presentado (cuenta en la cobertura del ciclo).
-   - El material se descarga al enseñarlo y se queda en memoria mientras la app está abierta; sin conexión, solo lo ya visto.
-   ============================================================ */
-const PRES_MAX = 8 * 1024 * 1024;
 let PRES_MAT = null, PRES_T = 0;           // [{id, producto_id, nombre, tipo, orden}] · cuándo se leyó
-const PRES_DATOS = new Map();               // id → datos (base64) ya descargados
 // La lista de material se pide a la vez que los productos promocionados (así «Presentar» sale con ellos, no después)
 productosPromocionados = (orig => async function (...a) {
   const [r] = await Promise.all([orig.apply(this, a), presMateriales()]);
@@ -28796,8 +29665,6 @@ inicioEsqueleto = (orig => function (...a) { const r = orig.apply(this, a); inic
 // Al abrir la app, el esqueleto de Inicio se pinta antes de que llegue esta parte del código: se completa aquí mismo
 if (document.querySelector('#v-inicio.conmos')) inicioCabecera();
 
-// ---- Menú del móvil: la sección que se ve, no la página que la contiene
-const SUBSEC_MENU = { llamadas: 'oportunidades', compras: 'compras', proveedores: 'proveedores' };
 abrirMasMovil = (orig => function (...a) {
   const r = orig.apply(this, a);
   const t = tabDelMenu();
@@ -28832,8 +29699,6 @@ plCargarKpis = (orig => function (tab, ...a) {
   return orig.call(this, tab, ...a);
 })(plCargarKpis);
 
-// ---- Memoria de filtros: lo que se elige en una fila de filtros se vuelve a poner cuando la pantalla se pinta de nuevo
-const FMEM = {};
 document.addEventListener('change', filtroGuardar, true);
 document.addEventListener('input', filtroGuardar, true);
 // Las pantallas montan su periodo justo antes de pedir la lista: es el momento de devolver los filtros
@@ -28847,28 +29712,6 @@ montarPeriodo = (orig => function (el, ...a) {
 
 
 
-/* ============================================================
-   v2.270.0 · «Entrar como» que funciona e invitados en Usuarios (aviso de Eric, 12/10/2026; necesita el SQL 145 y la función de
-   Supabase «impersonar» nueva).
-   - «Entrar como» fallaba: la función antigua solo dejaba entrar al rol «Administrador». Ahora comprueba la base (suplantar_preparar)
-     y, si algo no deja, la app dice por qué (y lo anota en el registro de errores si es un fallo).
-   - Invitados: profesionales y centros con acceso a su portal. En Usuarios van en su propio grupo, con su ficha, cuándo entraron por
-     última vez y qué ven; «Ver lo que ve» abre la plataforma como esa persona (con cualquier plan: solo ve su portal).
-   ============================================================ */
-const esInvitado = u => !!u && (rolPuede(u.rol, 'portal_prescriptor') || rolPuede(u.rol, 'portal_centro'));
-const queVeInvitado = u => rolPuede(u.rol, 'portal_centro')
-  ? 'Pide la reposición de los productos que le des de alta, pide material y escribe a su comercial.'
-  : `Ve su portal (cifras agregadas de ${TT('pauta', 'p', '', 'l', 'l')}, sin importes ni datos de ${TT('paciente', 'p', '', 'l', 'l')}), pide material y escribe sus dudas.`;
-const SUPL_ERR = {
-  administrador: 'No se puede impersonalizar a un usuario que administra',
-  permiso: 'No tienes permiso para impersonalizar usuarios',
-  inactivo: 'Esa persona está desactivada: actívala antes',
-  propio: 'Ya estás en tu propia sesión',
-  otra: 'Esa persona es de otra empresa',
-  no_encontrado: 'No se encuentra a esa persona (o no tiene correo)',
-  plan: 'Impersonalizar a usuarios del equipo es del plan A medida (a los invitados, con cualquier plan)',
-  sesion: 'Tu sesión ha caducado: vuelve a entrar y prueba otra vez',
-};
 
 // (R-12: entrarComo se definía aquí otra vez; ahora está en su sitio, más arriba)
 
@@ -28876,35 +29719,12 @@ const SUPL_ERR = {
 
 
 
-/* ============================================================
-   v2.271.0 · Portal del profesional en una sola página (revisión de Eric, 12/10/2026; variante C elegida; necesita el SQL 146).
-   - Pestañas dentro de la página: «Resumen», «Mi ficha» y «Material y dudas». Sin «Inicio», sin manual y, en Configuración, solo
-     «Mis datos» (sin módulos, actividad, rol ni «al entrar, abrir») y «Notificaciones».
-   - Resumen: 4 indicadores y debajo, en dos columnas iguales alineadas con ellos, «Tu evolución» (un solo gráfico: unidades por mes y,
-     debajo, cuántas ventas), «Por producto», «Llamadas recibidas a tu nombre» y «Constancia». Sin posición entre profesionales.
-     Cada bloque se explica en su ayuda «i».
-   - Mi ficha: contacto, dónde pasa consulta (centros de la base, sin más datos que nombre y dirección, o uno nuevo), un horario
-     flexible y rápido por centro (días, varias franjas con horas libres y botones para rellenar de golpe), cómo prefiere las visitas
-     y notas. Se envía como propuesta a su comercial (portal_guardar_ficha); si le falta algo, aviso arriba y notificación (SQL 146).
-   - En la ficha del equipo: «Datos enviados desde su portal» con lo que tenéis y lo que propone, «Editar la ficha» y «Marcar como
-     revisado».
-   ============================================================ */
-const PM = { tab: 'res', ficha: null, faltan: [], prop: null, ubic: [] };
-const pmAyu = (t, x) => `<button type="button" class="ai" data-ayuda-tit="${esc(t)}" data-ayuda-txt="${esc(x)}" aria-label="Qué es">i</button>`;
-const PM_DIAS = ['L', 'M', 'X', 'J', 'V', 'S'];
-const PM_DIAN = { L: 'Lunes', M: 'Martes', X: 'Miércoles', J: 'Jueves', V: 'Viernes', S: 'Sábado' };
-const PM_COMO = ['Con cita previa', 'Sin cita, al final de la consulta', 'Sin cita, en cualquier hueco', 'Por teléfono o videollamada', 'Prefiero que me escribáis antes'];
 
 window.PM_LISTO = true;
 
 
 
 
-const pmFaltaTxt = () => {
-  const t = { horario: typeof PM_CENTRO === 'function' && PM_CENTRO() ? 'dónde y cuándo atendéis' : 'dónde y cuándo atiendes', telefono: 'un teléfono de contacto', visitas: `cómo prefieres ${TT('visita', 'p', 'el', 'l', 'l')}` };
-  const l = PM.faltan.map(x => t[x]).filter(Boolean);
-  return l.length > 1 ? l.slice(0, -1).join(', ') + ' y ' + l[l.length - 1] : l[0] || 'algún dato';
-};
 
 
 
@@ -29019,8 +29839,6 @@ alternarUrgente = (orig => async function (id, ...x) {
   if (TAB === 'agenda' && typeof agRefrescoQuieto === 'function') agRefrescoQuieto();
   return r;
 })(alternarUrgente);
-// Tareas del día plegables: un clic en su título las oculta todas y se ven solo las citas (se recuerda en este dispositivo)
-const tdTareasPlegadas = () => { try { return localStorage.getItem('delcos-tareas-plegadas') === '1'; } catch (e) { return false; } };
 pintarTuDia = (orig => async function (...x) { const r = await orig.apply(this, x); tdPlegarTareas(); return r; })(pintarTuDia);
 
 
@@ -29049,11 +29867,6 @@ pintarMaterial = (orig => async function (...x) {
 
 
 
-// Ver la contraseña mientras se escribe, en cualquier campo de contraseña
-const OJO_SVG = {
-  ver: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>',
-  ocultar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.9 4.2A10.6 10.6 0 0 1 12 4c6.4 0 10 8 10 8a17.6 17.6 0 0 1-2.2 3.2M6.6 6.6C3.7 8.6 2 12 2 12s3.6 8 10 8a9.7 9.7 0 0 0 5.4-1.6"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/><path d="M2 2l20 20"/></svg>'
-};
 document.querySelectorAll('input[type=password]').forEach(ojoClave);
 new MutationObserver(ms => { for (const m of ms) for (const n of m.addedNodes) {
   if (n.nodeType !== 1) continue;
@@ -29092,23 +29905,12 @@ document.addEventListener('click', e => { if (e.target.closest && e.target.close
   if (!poner()) { let n = 0; const t = setInterval(() => { if (poner() || ++n > 60) clearInterval(t); }, 250); }
 })();
 
-// ——— En vivo ———
-let VIVO = null;
 // Se engancha en cuanto hay perfil (al arrancar llega un momento después)
 (function engancharVivo() { if (PERFIL && PERFIL.id) { avisosEnVivo(); comprobarAcceso(true); } else setTimeout(engancharVivo, 1000); })();
 
 
 
 
-/* ============================================================
-   v2.282.0 · Portal del centro con el mismo modelo que el del profesional (petición de Eric, 12/10/2026).
-   Una sola página con pestañas: «Resumen» (4 indicadores; «Tus pedidos» y «Lo que has comprado» del mismo tamaño, con su «i»),
-   «Pedir reposición» (sus productos con su precio; sin máximo en el campo: por encima de 1.000 unidades —lo que acepta
-   pedido_portal, que descartaba en silencio— avisa en la fila y no envía), «Mi centro» (la misma ficha que el profesional, con
-   sus textos) y «Material y dudas». Configuración, ayudas y navegación, como el portal del profesional.
-   ============================================================ */
-const PM_CENTRO = () => typeof puede === 'function' && puede('portal_centro');
-const PC_MAX = 1000;
 window.PC_LISTO = true;
 
 
@@ -29149,16 +29951,6 @@ async function centroPintar() {
 
 
 
-/* ============================================================
-   v2.283.0 · Packs para los centros (petición de Eric, 12/10/2026, con las directrices comerciales de los centros; SQL 151).
-   - Producto: «Packs para los centros» (compras N, te regalan M) y PVP de referencia con IVA. Con packs, el centro pide ese
-     producto solo por packs desde su portal; el regalo va en el pedido como línea aparte al 100 % de descuento.
-   - Portal del centro, «Pedir reposición»: cada pack con sus unidades, su importe, el coste real por unidad y el margen sobre el
-     PVP de referencia; cuántos packs de cada (0 a 50, avisando en la fila si no vale); entrega en la dirección del centro o
-     repartida entre varias direcciones (las unidades repartidas tienen que cuadrar). La bonificación es de cada pedido.
-   ============================================================ */
-const PC_PACK_MAX = 50;
-const pcPct = v => (Math.round(v * 1000) / 10).toLocaleString('es-ES', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' %';
 
 
 // Producto: packs para los centros y PVP de referencia
@@ -29270,23 +30062,12 @@ document.addEventListener('click', e => {
   tdAplicarCompacto(); b.title = on ? 'Ver el detalle de las citas' : 'Compactar las citas: una línea cada una'; b.setAttribute('aria-label', on ? 'Ver el detalle de las citas' : 'Compactar las citas'); b.innerHTML = plIco(on ? 'file-text' : 'list'); b.setAttribute('aria-pressed', on);
 });
 
-/* ============================================================
-   v2.300.0 · Volver siempre al punto de partida (petición de Eric). Cuando desde una ventana se abre otra (una cita → la
-   ficha del centro → la ficha de un profesional…), la de antes se apunta en una pila. Al cerrar la de dentro (con su ✕,
-   con «‹ Volver» o al guardar y cerrarse), se vuelve a abrir la anterior con sus datos al día, en vez de dejar a la persona
-   en la pantalla de debajo. Cerrar la primera cierra del todo. Cambiar de pantalla vacía la pila.
-   ============================================================ */
-const VUELTA = [];
 let VISTA = null, VUELTA_REABRIENDO = false, VUELTA_CLIC = null, VUELTA_PONER = false;
 // El último clic dentro de una ventana (menos su ✕): así se sabe que la ventana nueva se abrió desde ella aunque el botón la cierre antes
 document.addEventListener('click', e => {
   const d = e.target.closest && e.target.closest('dialog'); if (!d || e.target.closest('[data-cerrar], .x, .vueltabtn')) return;
   VUELTA_CLIC = { d, t: performance.now() };
 }, true);
-const VISTA_TITULO = { verCita: 'la cita', fichaCentro: 'el centro', abrirFicha: 'la ficha', verPedido: 'el pedido', verFactura: 'la factura', verEvento: 'el evento',
-  verCirugia: 'la intervención', verConcurso: 'el concurso', verEquipo: 'el equipo', verDeposito: 'el depósito', fichaStock: 'el producto' };
-const vistaDlg = () => ['ficha', 'dlg'].map($).find(d => d && d.open) || null;
-const vistaIgual = (a, b) => a && b && a.fn === b.fn && JSON.stringify(a.args.map(x => x && x.id || x)) === JSON.stringify(b.args.map(x => x && x.id || x));
 Object.keys(VISTA_TITULO).forEach(fn => {
   const orig = window[fn]; if (typeof orig !== 'function') return;
   window[fn] = async function (...args) {
@@ -29325,7 +30106,6 @@ ir = (orig => function (...a) { VUELTA.length = 0; VISTA = null; return orig.app
    ============================================================ */
 const ESCRITURAS_FICHAS = new Set(['guardar_cuenta', 'guardar_centro', 'centro_anadir_profesional', 'centro_quitar_profesional', 'guardar_campos',
   'unificar_cuentas', 'archivar_cuenta', 'clasificar_cuentas']);
-let DATOS_CAMBIADOS = false;
 db.rpc = (orig => function (fn, args, ...r) {
   const res = orig.call(this, fn, args, ...r);
   if (!ESCRITURAS_FICHAS.has(fn) || !res || typeof res.then !== 'function') return res;
@@ -29397,20 +30177,6 @@ if (ENLACE_ERROR && /otp_expired|access_denied|expired/i.test(ENLACE_ERROR)) {
 }
 
 
-/* ============================================================
-   v2.306.0 · Textos de los correos a los clientes (revisión de Eric con un correo real: al cliente le llegó «IBAN: (añade el
-   IBAN…)», la despedida repetía lo que ya dice la firma y el concepto no era su nombre). Cada empresa escribe sus textos en
-   Configuración → Correo y firma → «Textos de los correos», con huecos como [nombre] o [iban] que se rellenan al enviar.
-   Se guardan en el ajuste plantillas_correo. Sin IBAN no se envían los datos de pago. La despedida y los teléfonos van solo en la firma.
-   ============================================================ */
-const PLANT_CORREO = {
-  pago: { titulo: 'Datos de pago por transferencia', asunto: '[Documento] [numero] de [empresa] para [nombre]',
-    texto: 'Hola [nombre_pila]:\n\nGracias por tu pedido [numero], por un importe de [importe].\n\nPara completarlo, haz una transferencia bancaria con estos datos:\n\nBeneficiario: [beneficiario]\nIBAN: [iban]\nImporte: [importe]\nConcepto: [nombre]\n\nIndica el concepto tal como aparece arriba: así identificamos el pago enseguida y no se retrasa la preparación del pedido.\n\nEn cuanto recibamos el pago preparamos el envío.' },
-  factura: { titulo: 'Envío de la factura', asunto: '[Documento] [numero] de [empresa] para [nombre]',
-    texto: 'Hola [nombre_pila]:\n\nTe adjuntamos la [documento] [numero] de tu pedido, por un importe de [importe].\n\nGracias por tu confianza. Si tienes cualquier duda, estaremos encantados de ayudarte.' }
-};
-const VARS_CORREO = [['nombre', 'Nombre completo del cliente'], ['nombre_pila', 'Solo el nombre de pila'], ['empresa', 'Vuestra razón social'], ['documento', 'pedido o factura'],
-  ['Documento', 'Pedido o Factura'], ['numero', 'Número del pedido o la factura'], ['importe', 'Importe total'], ['beneficiario', 'Titular de la cuenta (razón social)'], ['iban', 'IBAN de los datos fiscales']];
 
 // Aparece en cuanto la página «Correo y firma» está pintada (su botón Guardar, #cook, existe)
 new MutationObserver(() => { if (TAB === 'config' && $('cook') && !$('plcorreo')) pintarPlantillasCorreo(); }).observe(document.querySelector('main') || document.body, { childList: true, subtree: true });
@@ -29433,13 +30199,6 @@ window.fetch = (orig => function (...a) {
   RED_VUELO++; RED_ULT = performance.now();
   return orig.apply(this, a).finally(() => { RED_VUELO = Math.max(0, RED_VUELO - 1); RED_ULT = performance.now(); });
 })(window.fetch);
-const GUARDA_TXT = /^(\+\s*)?(guardar|crear|añadir|enviar|validar|aplicar|confirmar|emitir|cobrar|registrar|marcar|asignar|unificar|cambiar|borrar|eliminar|quitar|anular|rectificar|liquidar|pedir|actualizar)\b/i;
-const esBotonGuardar = b => {
-  if (!b || b.matches('.sec, .x, .kmv, .plic, [data-cerrar], [data-cerrar2], .vueltabtn, .guardando')) return false;
-  if (!b.closest('dialog[open], #v-config')) return false;
-  const t = (b.textContent || '').trim();
-  return /ok$|guardar|enviar/i.test(b.id || '') || GUARDA_TXT.test(t);
-};
 document.addEventListener('click', e => {
   const b = e.target.closest && e.target.closest('button.btn');
   if (!esBotonGuardar(b)) { if (b && b.classList.contains('guardando')) { e.stopImmediatePropagation(); e.preventDefault(); } return; }
@@ -29512,12 +30271,6 @@ document.addEventListener('click', e => {
 });
 
 
-/* ============================================================
-   v2.311.0 · Dar de baja y eliminar fichas (decisión de Eric; SQL 159). Al pie de la ficha de un profesional o de un centro:
-   «Dar de baja» (siempre; se deshace desde Cuentas → «⋯» → «Fichas dadas de baja») y «Eliminar la ficha» (administración o
-   nivel completo en fichas; solo si no tiene visitas, ventas, muestras, eventos… — si tiene, lo dice y ofrece la baja).
-   ============================================================ */
-const BAJA_QUE = { visitas: 'visitas', ventas: 'ventas', muestras: 'muestras entregadas', eventos: 'eventos', cirugias: 'intervenciones', concursos: 'concursos', equipos: 'equipos', portal: 'acceso al portal' };
 abrirFicha = (orig => async function (id, ...a) {
   const r = await orig.call(this, id, ...a);
   try {
@@ -29577,8 +30330,6 @@ PL.directorio.mas = (orig => () => orig().concat([['dirbajas', 'Fichas dadas de 
    Sin SQL: unificar_cuentas ya junta todo lo que cuelga de la ficha (consultas, visitas, citas, cartera…).
    ============================================================ */
 let DUP_TIPO = {}, DUP_PEST = 'Persona';
-// (R-12: listasDuplicados se definía aquí otra vez; ahora está en su sitio, más arriba)
-const dupTipoDe = id => DUP_TIPO[id] === 'Centro' ? 'Centro' : 'Persona';
 pintarListasDup = (orig => function () {
   if (!$('dpendc')) return;
   const p0 = DUP_PEND, q0 = DUP_PARES;
@@ -29638,7 +30389,6 @@ compararEn = (orig => async function (el, idA, idB) {
   };
   el.addEventListener('click', el.__dupClic, true);
 })(compararEn);
-let DUP_TRAS = null;
 db.rpc = (orig => function (fn, args, ...r) {
   const res = orig.call(this, fn, args, ...r);
   if (fn !== 'unificar_cuentas' || !DUP_TRAS || !res || typeof res.then !== 'function') return res;
@@ -29763,26 +30513,8 @@ PL.ventas.pedidos.card = dr => {
    en la lista, la pastilla «Sin cargo» y sin el icono de pago; en el móvil, «Sin cargo (muestra)» en lugar de la forma de pago. */
 
 
-/* ============================================================
-   v2.320.0 · Ventas tras la visita (petición de Eric, 16/10/2026; SQL 163). En Analítica → Resumen, arriba, una tarjeta con
-   flechas ‹ › que enseña el mismo dato de tres maneras (le gustaban las tres propuestas por igual):
-     1. Embudo: visitas, profesionales visitados y los que tienen una venta en los 30 días siguientes; % grande, unidades y días.
-     2. El efecto de la visita: unidades por visita y día, 30 días antes y después (media de 7 días), con el día de la visita.
-     3. Mes a mes: visitas y visitas con venta de los 6 últimos meses, con la línea del %.
-   Usa el periodo de Analítica y lo compara con el anterior. La vista elegida se recuerda (localStorage delcos-tvvista).
-   Solo para el equipo: nunca en el portal del profesional.
-   ============================================================ */
-const TV_VISTAS = [['embudo', 'Embudo'], ['efecto', 'El efecto'], ['meses', 'Mes a mes'], ['tipos', 'Por tipo']];
 let TV_DATOS = null, TV_I = 0;
 try { TV_I = Math.max(0, TV_VISTAS.findIndex(v => v[0] === localStorage.getItem('delcos-tvvista'))); } catch (e) {}
-const tvPct = (a, b) => b ? Math.round(a / b * 100) : 0;
-const tvSub = () => {
-  const d = TV_DATOS || {};
-  return [`${TT('visita', 'p', '', 'l', 'C')} del ${fechaCorta(d.desde)} al ${fechaCorta(d.hasta)} y pedidos atribuidos ${TT('medico', 's', 'al', 'l', 'l')} en los ${d.dias || 30} días siguientes`,
-    `Unidades pedidas por ${TT('visita', 's', '', 'l', 'l')}, de media, en los ${d.dias || 30} días antes y después de ella`,
-    `Por mes: ${TT('visita', 'p', '', 'l', 'l')} hechas y cuántas tienen un pedido atribuido ${TT('medico', 's', 'al', 'l', 'l')} en los ${d.dias || 30} días siguientes`,
-    `${TT('visita', 'p', 'el', 'C', 'l')} de captación, de presentación y de seguimiento, y cuántas tienen un pedido en los ${d.dias || 30} días siguientes`][TV_I];
-};
 document.addEventListener('click', e => {
   const b = e.target.closest('#tvvis [data-tvn]'); if (!b) return;
   TV_I = (TV_I + (+b.dataset.tvn) + TV_VISTAS.length) % TV_VISTAS.length;
@@ -29801,13 +30533,6 @@ anCargarKpis = (orig => async function (...a) {
 anCatalogo = (orig => function (...a) { return orig.apply(this, a).filter(k => k.id !== 'conversion_pct'); })(anCatalogo);
 
 
-/* ============================================================
-   v2.323.0 · Eliminar productos sin romper el histórico (decisión de Eric; SQL 165). En el producto, «Eliminar producto»:
-   si nunca se ha usado se borra; si tiene ventas, compras, lotes, muestras… deja de salir en todas partes pero se conserva
-   para el histórico (pedidos, facturas y lotes siguen con su nombre); con stock disponible no deja. Se recupera desde
-   Productos → «⋯» → «Productos eliminados».
-   ============================================================ */
-const puedeEliminarProducto = () => puede('administrar') || nivelDe2('P') >= 2;
 const PROD_USOS = { ventas: 'pedidos', borradores: 'borradores', servicio: 'pedidos con este servicio', compras: 'compras', lotes: 'lotes',
   movimientos: 'movimientos de stock', muestras: 'entregas de muestras', cirugias: 'intervenciones', concursos: 'precios de concurso', equipos: 'equipos',
   visitas: TT('visita', 'p', '', 'l', 'l'), comisiones: 'esquemas de comisión' };
@@ -29874,13 +30599,6 @@ pedidoPago = async function (id) {
 };
 
 
-/* ============================================================
-   v2.326.0 · Pedidos tras la visita, por tipo (petición de Eric, 16/10/2026; SQL 168). La tarjeta de Analítica se llama ya
-   «Pedidos tras la visita» y no habla de ventas (regla de Eric: nunca «venta» al hablar de pedidos y profesionales). Cuarta
-   vista «Por tipo»: visitas de captación (la primera a cada profesional), de presentación (resultado que avanza la ficha o un
-   producto nuevo presentado) y de seguimiento, cuántas acaban en pedido, y lo mismo por persona del equipo.
-   ============================================================ */
-const TV_TIPOS = [['captacion', 'Captación'], ['presentacion', 'Presentación'], ['seguimiento', 'Seguimiento']];
 
 
 
@@ -29900,33 +30618,11 @@ db.rpc = (orig => function (fn, args, ...r) {
   return orig.call(this, fn, args, ...r);
 })(db.rpc);
 
-const PK_FESTIVOS = ['01-01', '01-06', '05-01', '08-15', '10-12', '11-01', '12-06', '12-08', '12-25'];
 
 
 
-/* ============================================================
-   v2.331.0 · Cobro con tarjeta o Bizum desde el pedido (petición de Eric, 20/10/2026; SQL 171 y función del servidor «cobro_tpv»).
-   - Al confirmar un pedido con forma de pago tarjeta o Bizum (y el cobro configurado), delcos pide a Redsys un cobro PayGold y el banco
-     envía al móvil del cliente un SMS con el enlace; en esa página paga con tarjeta o Bizum. Cuando paga, Redsys avisa y el pedido pasa
-     solo a «Cobrado» (y, si tiene factura, se apunta el cobro). Nadie coge el TPV ni mira la cuenta.
-   - En el pedido, dentro de «Pago», el cobro con tarjeta o Bizum: estado del envío (enviado, pagado, no pagado, caducado),
-     «Volver a enviar» y, en el entorno de pruebas, «Abrir la página de pago» (el banco de pruebas no envía SMS).
-   - Configuración → Facturación → «Cobro con tarjeta y Bizum» (quien configura la empresa): número de comercio, terminal, clave
-     secreta, entorno pruebas/real, «Probar» y la dirección de aviso para el banco.
-   ============================================================ */
-const tpvCfg = () => AJUSTES.cobro_tpv || {};
 // v2.345.0: solo en pruebas hasta tener el terminal del banco (decisión de Eric); para abrirlo en producción, TPV_VISIBLE = true
 const TPV_VISIBLE = EN_PRUEBAS || /^(localhost|127\.)/.test(location.hostname);   // en local, para la batería
-const tpvActivo = () => !!(TPV_VISIBLE && tpvCfg().activo && puedeModulo('ventas'));
-const esPagoTpv = fp => /tarjeta|bizum/i.test(fp || '');
-const tpvMovil = t => { let m = String(t || '').replace(/\D/g, ''); m = m.replace(/^(0034|34)(?=[67]\d{8}$)/, ''); return /^[67]\d{8}$/.test(m) ? m : ''; };
-const TPV_ERR = {
-  permiso: 'No tienes permiso para enviar cobros', estado: 'El pedido tiene que estar confirmado', pagado: 'Este pedido ya está cobrado',
-  sin_cargo: 'Una entrega sin cargo no se cobra', importe: 'El pedido no tiene importe', sesion: 'La sesión ha caducado: vuelve a entrar',
-  sin_configurar: 'El cobro con tarjeta o Bizum no está configurado (Configuración → Facturación)', no_encontrado: 'No se encuentra el pedido'
-};
-const TPV_EST = { Enviado: ['Enviado', 'p-est'], Pagado: ['Pagado', 'p-trfok'], Fallido: ['No pagado', 'p-urg'], Caducado: ['Caducado', 'p-urg'], Preparado: ['Enviando…', 'p-warn'] };
-let TPV_MIRA = null;
 pedidoPago = (orig => async function (id, ...a) {
   const r = await orig.call(this, id, ...a);
   await tpvBloque(id);
@@ -29944,8 +30640,6 @@ arbolCfgUnico = (orig => function (...a) {
   return g;
 })(arbolCfgUnico);
 CFG_CLAVES.tpv = 'tarjeta bizum tpv redsys paygold cobro pago enlace sms banco';
-// Datos públicos del entorno de pruebas de Redsys (no cobran nada)
-const TPV_PRUEBAS = { comercio: '999008881', terminal: '1', clave: 'sq7HjrUOBfKmC576ILgskD5srU870gJ7' };
 
 
 /* ============================================================
@@ -29970,14 +30664,6 @@ CFG_CLAVES['o.pruebas'] = 'pruebas produccion producción datos copia traer part
 /* v2.334.0: al cobrar por el enlace, la forma de pago del pedido pasa a ser la que eligió el cliente (SQL 173); «Abrir la página de pago (pruebas)» centrado como los demás botones. */
 
 
-/* ============================================================
-   v2.335.0 · Menú (peticiones de Eric, 20/10/2026)
-   - «Usuarios» fuera del menú (está en Configuración → Equipo → Usuarios): en el menú de escritorio y en «Más» del móvil.
-   - Móvil: «Personalizar menú» en «Más» (movPersonalizar): qué pantallas van en la barra de abajo (hasta 4; preferencias.menu.barra)
-     y cuáles salen en «Más» (las mismas que se ocultan en el menú de escritorio: preferencias.menu.ocultos). Lo oculto no sale en «Más».
-   ============================================================ */
-const MOV_BARRA_DEF = ['inicio', 'agenda', 'rutas', 'directorio'];
-const MENU_FUERA = ['usuarios'];
 pintarBnav = (orig => function (...a) {
   if (ES_MEDICO()) return orig.apply(this, a);
   const b = $('bnav'); if (!b) return orig.apply(this, a);
@@ -30102,28 +30788,13 @@ plCargarKpis = function (tab) {
 };
 
 
-/* ============================================================
-   v2.342.0 · Plantillas de correo y de PDF (Eric, 20/10/2026: «que el usuario vaya creando las que quiera, con el nombre que quiera»;
-   eligió que al enviar salga la de por defecto y se pueda cambiar).
-   - Correo: ajuste plantillas_correo.lista = [{ id, nombre, uso: pago|factura, asunto, texto, defecto }]. Sin lista, las dos de
-     siempre (y los textos guardados antes). Configuración → Correo y firma → «Plantillas de correo»: crear, editar, duplicar,
-     eliminar y elegir la de por defecto de cada uso. Al enviar los datos de pago o la factura, si hay más de una, se elige.
-   - PDF: ajuste factura_pdf_plantillas = { lista: [{ id, nombre, cfg }], defecto }. factura_pdf sigue siendo el de por defecto (lo usa
-     también la base, en la proforma del portal). En «Diseño del PDF», una barra para elegir la plantilla, crear, renombrar, eliminar
-     y hacerla la de por defecto. Al descargar o enviar una factura, si hay más de una, se elige.
-   ============================================================ */
-const USOS_CORREO = { pago: 'Datos de pago', factura: 'Envío de la factura' };
 let PLANT_ELEGIDA = { pago: null, factura: null }, PDF_ELEGIDO = null, PDF_EDITANDO = null;
-const idPlant = () => 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
-const plantillasCorreo = uso => listaCorreos().filter(x => x.uso === uso);
 enviarDatosPago = (orig => async function (id, ...a) {
   if (!await elegirPlantillaCorreo('pago')) return false;
   try { return await orig.call(this, id, ...a); } finally { PLANT_ELEGIDA.pago = null; }
 })(enviarDatosPago);
 
 
-const cfgDePlantilla = id => { const p = listaPDF().lista.find(x => x.id === id); const c = (p && p.cfg) || {};
-  return Object.assign({}, PDF_DEF, c, { cols: Object.assign({}, PDF_DEF.cols, c.cols || {}) }); };
 facturaPDF = (orig => function (f, rn, cfg, ...a) {
   if (!cfg && PDF_ELEGIDO && PDF_ELEGIDO !== listaPDF().defecto) cfg = cfgDePlantilla(PDF_ELEGIDO);
   return orig.call(this, f, rn, cfg, ...a);
@@ -30207,7 +30878,6 @@ disenoPDF = (orig => async function (...a) {
   return r;
 })(disenoPDF);
 
-let FAB_RZ = 0;
 addEventListener('resize', () => { clearTimeout(FAB_RZ); FAB_RZ = setTimeout(() => { fabAOrdenador(); try { if (typeof plSync === 'function' && TAB) plSync(TAB); } catch (e) {} }, 120); });
 
 
@@ -30219,12 +30889,6 @@ addEventListener('resize', () => { clearTimeout(FAB_RZ); FAB_RZ = setTimeout(() 
    - Mis datos en una sola tarjeta; Datos fiscales y Series juntos; los botones de KPIs de Inicio junto al título.
    ============================================================ */
 const IDS_SEC = ['fcuerpo', 'dbody', 'v-admin'];
-let CFG_SEC_ACT = null;
-const cfgEstable = (el, max) => new Promise(ok => {
-  let t = 0, fin = 0; const ob = new MutationObserver(() => { clearTimeout(t); t = setTimeout(listo, 150); });
-  const listo = () => { if (el.querySelector('.cfgcarga, .giro, .spin')) { t = setTimeout(listo, 150); return; } ob.disconnect(); clearTimeout(fin); ok(); };
-  ob.observe(el, { childList: true, subtree: true, attributes: true }); t = setTimeout(listo, 200); fin = setTimeout(() => { ob.disconnect(); clearTimeout(t); ok(); }, max || 5000);
-});
 // Tocar una parte le devuelve sus piezas (en captura: antes de que su botón haga nada)
 ['pointerdown', 'focusin', 'keydown'].forEach(ev => document.addEventListener(ev, e => {
   const sec = e.target.closest && e.target.closest('#cfgcuerpo-hub .cfgsec'); if (sec) cfgSecDespertar(sec);
@@ -30283,15 +30947,6 @@ new MutationObserver(() => {
 setTimeout(cfgClonarEstilos, 0);
 
 
-/* ============================================================
-   v2.348.0 · Estados del pedido (Eric: A + B de https://claude.ai/artifact/TNX2JSHkXP6thEzunyUZ8b). «Validado» decía que el
-   pedido estaba bien hecho, no que estuviera cobrado, y el indicador «Pagos por validar» usaba la misma palabra. Ahora:
-   A · el estado es «Confirmado» y el cobro va aparte (Pendiente de cobro / Cobrado / Sin cargo);
-   B · en la lista, el estado dice qué le falta: Borrador, Esperando pago, Por cobrar, Por preparar, Por facturar, Completado
-   o Anulado. Se calcula con lo que ya se guarda. Con contrarreembolso se prepara antes de cobrar; con las demás formas de
-   pago, primero se cobra (así, en «Pendientes de cobro» todos dicen «Por cobrar»).
-   ============================================================ */
-const cobroDe = p => p.sin_cargo || sinCargoP(p, p.total) ? 'Sin cargo' : p.pago_estado === 'Cobrado' || p.pago_validado_en ? 'Cobrado' : 'Pendiente de cobro';
 
 
 /* ============================================================
@@ -30307,7 +30962,6 @@ verPedido = (orig => async function (id, ...a) {
   finally { try { await estable($('dbody'), 2500); } catch (e) {} d.classList.remove('pdprep'); }
 })(verPedido);
 
-let ULT_ACCION = 0;
 const CIERRE_USUARIO = {}, CIERRE_PEND = {};
 ['pointerdown', 'keydown'].forEach(t => document.addEventListener(t, () => { ULT_ACCION = performance.now(); }, true));
 ['dlg', 'dlg2', 'ficha'].forEach(id => {
@@ -30326,33 +30980,8 @@ const CIERRE_USUARIO = {}, CIERRE_PEND = {};
 });
 
 
-/* ============================================================
-   v2.353.0 · Portal del profesional: la actividad del periodo, de un vistazo (Eric, 22/10/2026). Al entrar el periodo es «Esta semana».
-   Con alguna solicitud completada: «Esta semana se han activado 2 …», escueto. Sin ninguna: lo dice y ofrece «Material y dudas».
-   Solo cuenta lo completado (SQL 177): nunca se enseña nada que no lo esté.
-   ============================================================ */
-const PM_PER_TXT = { hoy: 'Hoy', ayer: 'Ayer', semana: 'Esta semana', '7d': 'En los últimos 7 días', mes: 'Este mes', mesant: 'El mes pasado',
-  tri: 'Este trimestre', triant: 'El trimestre pasado', anio: 'Este año', anioant: 'El año pasado', todo: 'En total', pers: 'En estas fechas' };
 
-/* ============================================================
-    v2.376.0 · D-042 (Eric): en una página, un solo «Guardar», arriba a la derecha. En Configuración cada bloque traía su
-    propio botón (dentro de la tarjeta o suelto debajo); ahora la cabecera del apartado lleva «Descartar cambios» y «Guardar»,
-    que se activa al cambiar algo y guarda cada bloque modificado con su propio guardado (que queda oculto). Los títulos que
-    repiten el de encima se ocultan. Las acciones que no son guardar (enviar un correo de prueba, añadir…) siguen en su bloque.
-   ============================================================ */
-// Páginas que configuran algo con varios bloques: dónde está su cabecera (donde van los botones) y su contenido. Una ventana que se
-// abre encima es ventana (sus botones, abajo); el contenido de un apartado que se pinta dentro de una ventana encajada lo declara con
-// data-pagina (Diseño del PDF) y cuenta como página.
-const PAG_GUARDA = [
-  // toda la página del apartado (también la ventana encajada, p. ej. Diseño del PDF)
-  { tab: 'config', cab: () => document.querySelector('#v-config .cfucab'), cuerpo: () => document.querySelector('#v-config .cfupag') || $('cfgcuerpo-hub') },
-  { tab: 'facturacion', cab: () => document.querySelector('#v-facturacion .cfgsubs') && document.querySelector('#v-facturacion > .saludo'), cuerpo: () => $('fcuerpo') },
-];
 const PAG_GUARDA_RE = /^guardar(\s|$)/i, PAG_GUARDA_NO = '#coprueba, #copruebaarriba, .cfuguarda .btn';
-// Lo que no cambia datos no activa «Guardar»: buscadores y filtros de la página
-const PAG_NO_CAMBIA = 'input[type=search], #txq, #cfubus, [placeholder^="Busca"]';
-const PAG_SUCIO = new Set();
-let PAG_CLAVE = '';
 ['input', 'change'].forEach(ev => document.addEventListener(ev, e => {
   const p = pagActual(); if (!p || !e.isTrusted) return;
   const t = e.target; if (!t.closest || !p.cuerpo.contains(t) || t.closest('dialog:not(.encajada:has([data-pagina])), .cfucab') || t.matches(PAG_NO_CAMBIA)) return;
@@ -30365,7 +30994,5 @@ document.addEventListener('click', e => {
   if (!b || !p.cuerpo.contains(b) || b.closest('.cfucab, .cfuidx, .pagtabs, .cfgsubs, dialog:not(.encajada:has([data-pagina]))')) return;
   PAG_SUCIO.add(pagBloque(b, p.cuerpo)); pagMarcarSucio();
 }, true);
-// Las páginas se pintan por partes y algunas se repintan al guardar: se vuelve a colocar al cambiar el contenido
-let PAG_GUARDA_RAF = 0;
 new MutationObserver(() => { if (PAG_GUARDA_RAF || !PAG_GUARDA.some(x => x.tab === TAB)) return; PAG_GUARDA_RAF = requestAnimationFrame(() => { PAG_GUARDA_RAF = 0; pagPonerGuardar(); }); })
   .observe(document.body, { childList: true, subtree: true });

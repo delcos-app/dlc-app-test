@@ -29,9 +29,6 @@ function appVentana({ titulo, msg, ok, cancel, campo, opciones, peligro }) {
   });
 }
 
-const preguntar = (msg, o = {}) => appVentana({ msg, titulo: o.titulo, ok: o.ok, peligro: o.peligro });
-const pedirTexto = (msg, valor, o = {}) => appVentana({ msg, titulo: o.titulo, ok: o.ok || 'Guardar', campo: { valor, placeholder: o.placeholder, tipo: o.tipo }, opciones: o.opciones });
-const pedirFecha = (msg, valor, o = {}) => appVentana({ msg, titulo: o.titulo || 'Elige la fecha', ok: o.ok || 'Aceptar', campo: { valor, tipo: 'date' } });
 
 /* ---------------- tabla del directorio con columnas ---------------- */
 
@@ -46,10 +43,7 @@ const COLS = [
   { k: 'ultima_visita', t: `${TT('visita', 's', 'ultimo', 'C', 'l')}`, w: 130 },
   { k: 'estado_comercial', t: 'Estado', w: 150 }
 ];
-const COLS_DEF = ['nombre', 'especialidad', 'centro_nombre', 'municipio', 'dias', 'estado_comercial'];
-const colKey = () => 'dlc-cols-' + (PERFIL ? PERFIL.id : '');
 
-const colsGuardar = c => localStorage.setItem(colKey(), JSON.stringify(c));
 
 
 function filaTabla(m) {

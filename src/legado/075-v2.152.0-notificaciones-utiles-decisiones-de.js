@@ -8,15 +8,6 @@ TIPOS_NOTIF.push(
   ['visita_sin_registrar', '📝', 'Citas sin registrar', `Citas de los últimos 3 días sin ${TT('visita', 's', '', 'l', 'l')} registrada`],
   ['pedido_portal', '🏥', 'Pedidos del portal', 'Cuando un centro pide desde el portal']
 );
-const NOTIF_AREAS = [
-  ['ventas', 'Ventas', ['reponer', 'caida_ventas', 'pedido_portal', 'venta_cartera', 'pauta', 'pedido_validado', 'pago_recibido', 'borrador_nuevo', 'cliente_nuevo']],
-  ['cartera', 'Cartera y agenda', ['citas_hoy', 'visita_sin_registrar', 'seguimientos_hoy', 'sin_visitar', 'cartera', 'cruce', 'duplicado', 'portal']],
-  ['cobros', 'Cobros y stock', ['pagos_pendientes', 'facturas_vencidas', 'stock_minimo', 'lotes_caducan', 'compra_recibida', 'rectificativa']],
-  ['equipo', 'Equipo', ['usuario_nuevo', 'esquema']]
-];
-// Los que se preparan al empezar el día: solo tienen «en el resumen»
-const NOTIF_DIARIOS = ['citas_hoy', 'seguimientos_hoy', 'pagos_pendientes', 'facturas_vencidas', 'lotes_caducan', 'sin_visitar', 'reponer', 'caida_ventas', 'visita_sin_registrar'];
-const notifArea = t => (NOTIF_AREAS.find(a => a[2].includes(t)) || ['otros'])[0];
 let NOTIF_LISTA = [], NOTIF_FILTRO = '';
 
 
@@ -86,43 +77,6 @@ Object.keys(ICO_NAV).forEach(k => { if (ICON_NOM[ICO_NAV[k]]) ICO_MOD[k] = svgIc
     empresa: 'Para empresas que facturan y llevan su almacén', medida: 'Para redes de más de 50 personas o con necesidades propias' };
   PLANES.forEach(p => { if (para[p.id]) p.para = para[p.id]; });
 })();
-// Filas de la comparativa: [nombre, detalle, planes que lo incluyen]
-const PLAN_FILAS = () => {
-  const T = ['campo', 'comercial', 'empresa', 'medida'], C = ['comercial', 'empresa', 'medida'], E = ['empresa', 'medida'], M = ['medida'];
-  const med = TT('medico', 'p', '', 'l', 'l'), vis = TT('visita', 'p', '', 'l', 'l'), pac = TT('paciente', 'p', '', 'l', 'l');
-  return [
-    ['Campo', null],
-    [`Cartera de ${med} y centros`, 'Fichas con su historial, horarios, estado comercial y tus campos', T],
-    [`Agenda, «Tu día» y registro de ${vis}`, 'Tu día, tu semana y tu mes en una pantalla, con sugerencias', T],
-    ['Rutas y planificación semanal', 'Rutas propuestas cada mañana, a tu agenda con un clic', T],
-    [`Ciclo de ${vis} A/B/C`, `Cada ficha en A, B o C con sus ${vis} por ciclo, y a quién le faltan`, T],   // v2.199.0
-    ['Muestras y material', `Lo que entregas en cada ${TT('visita', 's', '', 'l', 'l')}, por almacén`, T],
-    ['Calidad del dato y duplicados', 'Qué le falta a cada ficha y fichas repetidas, para unirlas', T],
-    ['Notificaciones', 'Por día y con su acción; cada persona elige qué y cuándo', T],
-    ['Usuarios, roles y permisos', 'Cada persona ve lo suyo y ordena su propio menú', T],
-    ['Importar datos', 'Desde Excel o CSV, con vista previa', T],
-    ['Venta', null],
-    ['Pedidos, televenta y clientes', `Nueva venta: llamada y pedido en un paso; ${pac} y empresas con su historial`, C],
-    ['Pedidos web y pagos', 'Lo que entra por tu web, con referencia y justificante del pago', C],
-    ['Oportunidades', 'Cada venta, se cierre o no, con sus métricas', C],   // v2.158.0: incluida desde Comercial
-    ['Cobertura de cada producto por ciclo', `Qué productos han oído tus ${med} de A, B y C en sus ${vis}`, C],   // v2.199.0
-    ['Eventos e informe de gastos', 'Talleres, cursos y congresos con sus asistentes y el informe anual', C],   // v2.199.0
-    ['Productos y stock por lotes', 'Catálogo, lotes, caducidades y almacenes', C],
-    ['Analítica', 'Indicadores por áreas comparados con el periodo anterior, y explorar tus datos', C],
-    ['Comisiones por tramos', 'Esquemas y liquidaciones de cada mes', C],
-    ['Oficina', null],
-    ['Facturación con VeriFactu y cobros', 'Series, rectificativas y el registro de cada factura', E],
-    ['Compras, proveedores y trazabilidad', 'Lo enviado, lo que está en camino y lo recibido', E],
-    ['Material en depósito', 'Lo que tienes en cada centro, lo usado y su reposición', E],   // v2.201.0
-    ['Intervenciones con lote y número de serie', 'Programación, lo usado por unidad, pedido y reposición en 48 horas', E],   // v2.201.0
-    ['Concursos y contratos', 'Pliegos, lotes adjudicados y precios de contrato en los pedidos', E],   // v2.201.0
-    ['Parque instalado', 'Equipos con su número de serie, contrato, garantía y revisiones', E],   // v2.201.0
-    ['Zonas, supervisión del equipo y auditoría', 'Historial de cambios de cada ficha, con deshacer', E],
-    ['Servicio', null],
-    ['Migración de tus datos', 'Y conexión con tu programa de gestión', M],
-    ['Soporte prioritario', null, M]
-  ];
-};
 pintarPaginaPlan = (orig => async function (...a) {
   const r = await orig.apply(this, a);
   const t = document.querySelector('#cfgcuerpo .planmat'); if (!t) return r;
@@ -138,10 +92,6 @@ pintarPaginaPlan = (orig => async function (...a) {
 })(pintarPaginaPlan);
 
 
-/* v2.158.0 · Oportunidades y el portal entran en los planes (decisión de Eric, 3/10/2026; los precios no cambian). Oportunidades en
-   Comercial, Empresa y A medida; el portal del profesional y del centro en Empresa (hasta 50) y A medida (sin límite). El plan los
-   activa y el botón «Extras» del panel delcos queda para excepciones (tiene_extra, SQL 99, hace lo mismo en la base). */
-const PLAN_EXTRAS = { oportunidades: ['comercial', 'empresa', 'medida'], portal: ['empresa', 'medida'] };
 hayExtra = function (k) {
   const p = (typeof PLAN_ACTUAL !== 'undefined' && PLAN_ACTUAL) || {};
   return (p.extras || []).includes(k) || (PLAN_EXTRAS[k] || []).includes(p.plan);
@@ -227,13 +177,6 @@ async function escribirRpc(fn, payload) {
 })();
 
 
-/* v2.162.0 · Suscripciones y pagos con Stripe (decisiones de Eric, 4/10/2026). «Plan y suscripción» ya no manda correos: «Contratar»
-   abre el pago seguro de Stripe (tarjeta), «Cambiar a…» y «Añadir o quitar usuarios» cambian la suscripción con
-   prorrateo y «Gestionar el pago» abre el portal de Stripe (tarjeta, recibos, cancelar). Todo pasa por la función de Supabase
-   «pagos»; Stripe avisa a «stripe-webhook» y la base (aplicar_suscripcion, SQL 102) activa o cambia el plan. Si un cobro falla, aviso
-   arriba durante 14 días y después la empresa queda en solo lectura (la base no deja crear, cambiar ni borrar) hasta que pague. */
-const PAGO_PLANES = ['campo', 'comercial', 'empresa'];
-let PAGO_ESTADO = null;   // la respuesta de plan_uso (plan, usuarios, solo_lectura)
 
 
 
@@ -316,10 +259,6 @@ orgEstado = (orig => function (o) {
   return orig(o) + (pd.stripe_suscripcion ? '<span class="pill p-est">Stripe</span> ' : '');
 })(orgEstado);
 
-/* v2.163.0 · Compras y Proveedores son del plan Empresa (y A medida): en Campo y Comercial salen con candado y explican cómo
-   conseguirlos, igual que Facturación. Con el plan A medida no se contrata ni se cambia en línea (presupuesto: lo lleva delcos). */
-const PLAN_SECCIONES = { compras: ['empresa', 'medida'], proveedores: ['empresa', 'medida'] };
-const planIncluyeSeccion = t => !(t in PLAN_SECCIONES) || PLAN_SECCIONES[t].includes(PLAN_ACTUAL.plan);
 aplicarPermisosMenu = (orig => function (...a) { const r = orig.apply(this, a); try { candadoSecciones(); } catch (e) {} return r; })(aplicarPermisosMenu);
 avisoPlan = (orig => function (mod) {
   if (!(mod in PLAN_SECCIONES)) return orig.call(this, mod);
@@ -351,11 +290,6 @@ pintarPaginaPlan = (orig => async function (...a) {
 })(pintarPaginaPlan);
 setTimeout(() => { try { candadoSecciones(); } catch (e) {} }, 0);
 
-/* v2.164.0 · Lo que no entra en el plan no sale en el menú (petición de Eric): al bajar de plan, los módulos con candado se quitan
-   solos del menú lateral y del «Más» del móvil, y en «Personalizar menú» salen con candado y el interruptor apagado y sin poder
-   encenderlo. No se toca lo que cada uno eligió: al volver a un plan que los incluye, reaparecen como estaban. */
-const fueraDePlan = b => !!b && b.classList.contains('bloq');
-const PLAN_NOMBRE = () => { try { return planDe(PLAN_ACTUAL.plan).nombre; } catch (e) { return ''; } };
 montarMenuLateral = (orig => function (...a) {
   const r = orig.apply(this, a);
   if (!document.body.classList.contains('menulat')) return r;
@@ -386,7 +320,6 @@ menuPersonalizar = (orig => function (...a) {
   return r;
 })(menuPersonalizar);
 
-const facSinPlan = () => { try { return !['empresa', 'medida'].includes((PLAN_ACTUAL || {}).plan); } catch (e) { return false; } };
 pagoCargarEstado = (orig => async function (...a) { const r = await orig.apply(this, a); marcarFacPlan(); return r; })(pagoCargarEstado);
 // En solo consulta, la pantalla lo dice arriba y Organización no enseña lo de emitir (datos fiscales, series, VeriFactu, PDF)
 cargarFacturacion = (orig => async function (...a) {
@@ -407,10 +340,6 @@ cargarFacturacion = (orig => async function (...a) {
   } });
 })();
 
-const rangoPlan = k => ['campo', 'comercial', 'empresa', 'medida'].indexOf(k);
-// Igual que la función «pagos»: plan menor, menos usuarios o de anual a mensual
-const esBajada = (de, a) => rangoPlan(a.plan) < rangoPlan(de.plan)
-  || (rangoPlan(a.plan) === rangoPlan(de.plan) && (+a.usuarios < +de.usuarios || (de.pago === 'anual' && a.pago === 'mensual')));
 
 // Ventana de contratar o cambiar (la de la v2.162.0, con la bajada al final del periodo y lo que se pierde)
 elegirPago = function (planIni) {

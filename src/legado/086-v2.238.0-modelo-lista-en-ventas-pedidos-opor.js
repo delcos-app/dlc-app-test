@@ -1,50 +1,3 @@
-/* ============================================================
-   v2.238.0 · Modelo «Lista» en Ventas: Pedidos, Oportunidades, Compras, Proveedores, Facturas, Productos, Servicios y Stock.
-   La plantilla pasa a ser genérica: cada pantalla dice sus filtros rápidos (selectores), su buscador si lo tiene, dónde está su
-   lista y su paginador. Los indicadores que filtran (Operativa de Pedidos) van en la banda; los totales (.kpis.vtot) pasan a una
-   franja de resumen compacta encima de la tabla. Sin buscador propio, el de la barra filtra la tabla («Contiene»).
-   ============================================================ */
-// Pantallas con varias secciones: la configuración depende de la sección abierta (null = sin plantilla, p. ej. Configuración de Facturación)
-const PL_SECC = {
-  ventas: () => typeof PEDSEC === 'undefined' ? null : ({ ventas: 'pedidos', llamadas: 'oport', compras: 'compras', proveedores: 'prov' })[PEDSEC] || null,
-  facturacion: () => typeof FSEC !== 'undefined' && FSEC === 'facturas' ? 'facturas' : null,
-  productos: () => typeof PSEC === 'undefined' ? null : ({ catalogo: 'prods', servicios: 'servs', stock: 'stock' })[PSEC] || 'prods'
-};
-// Base común de las listas en rejilla (.dgrid) con «Filtros y columnas»
-const plRejilla = o => Object.assign({
-  rejilla: true,
-  nuevo: () => document.querySelector(`#v-${o.tab} > .saludo .acts > .btn:not(.sec):not(.htbtn):not(.fab)`) || document.querySelector(`#v-${o.tab} .fab`),
-  cuerpo: () => o.lista ? $(o.lista) : null,
-  tabla: () => { const w = document.querySelector(`#v-${o.tab} .dgrid-wrap`); return (o.lista && $(o.lista)) || w; },
-  pie: () => o.pag ? $(o.pag) : null,
-  cuenta: () => null,
-  conDatos: el => !!el.querySelector('.dgrid, .vacio'),
-  rapidos: [],
-  q: () => { const i = o.buscador && $(o.buscador); if (i) return i.value || ''; const g = document.querySelector(`#v-${o.tab} .dgrid`); return g ? ((HT_ESTADO[htTipo(g)] || {}).texto || '') : ''; },
-  buscarQ: v => {
-    const i = o.buscador && $(o.buscador);
-    if (i) { i.value = v; i.dispatchEvent(new Event('input', { bubbles: true })); return; }
-    const g = document.querySelector(`#v-${o.tab} .dgrid`); if (!g) return;
-    const t = htTipo(g); HT_ESTADO[t] = HT_ESTADO[t] || { texto: '', facetas: {} }; HT_ESTADO[t].texto = v; htAplicarFiltros(g);
-    const sec = $('v-' + o.tab); if (sec) { htContador(sec); }
-  },
-  activos: () => { const sec = $('v-' + o.tab); const n = sec ? sec.querySelectorAll('.htchips .htchip').length : 0; return n; },
-  filtros: () => { const b = document.querySelector(`#v-${o.tab} .htbtn`); if (b) b.click(); },
-  columnas: () => { const b = document.querySelector(`#v-${o.tab} .htbtn`); if (!b) return; b.click(); setTimeout(() => { const c = $('tools') && $('tools').querySelector('.t2abrir'); if (c) c.click(); }, 80); },
-  mapa: () => null,
-  // «⋯»: los botones secundarios de la cabecera (menos «Filtros y columnas»)
-  mas: () => [...document.querySelectorAll(`#v-${o.tab} > .saludo .acts > button.sec:not(.htbtn):not(.plmas)`)].filter(b => !b.classList.contains('hide') && !(o.extra || []).some(([id]) => id === b.id))
-    .map(b => { if (!b.id) b.id = 'plb' + Math.random().toString(36).slice(2, 8); return [b.id, (b.textContent.trim() || b.title || b.getAttribute('aria-label') || '').replace(/\s+/g, ' ')]; })
-    .concat((o.extra || []).filter(([id]) => $(id))),
-  kpis: null, kpiOn: () => false, kpiPulsar: () => {},
-  // Tarjeta del móvil: la primera celda, las dos siguientes con texto y la pastilla de estado (si la hay) a la derecha
-  card: dr => {
-    const c = [...dr.children].filter(x => !x.classList.contains('plcard')), tx = x => x ? x.textContent.trim().replace(/\s+/g, ' ') : '';
-    const est = c.find(x => x.querySelector('.pill, .est, .cirest, [class*="estado"]'));
-    const resto = c.slice(1).filter(x => x !== est).map(tx).filter(x => x && x !== '—').slice(0, 2);
-    return { a: tx(c[0]), b: resto.join(' · '), c: est ? est.innerHTML : '' };
-  }
-}, o);
 Object.assign(PL, {
   ventas: {
     pedidos: plRejilla({ tab: 'ventas', que: () => 'pedidos', lista: 'pedlista', pag: 'pedpag', buscador: 'pq', banda: 'operativa', extra: [['opcfg', 'Elegir qué avisos ver']],
@@ -61,8 +14,6 @@ Object.assign(PL, {
     stock: plRejilla({ tab: 'productos', que: () => 'productos' })
   }
 });
-const plSel = id => id && /^[#.]/.test(id) ? document.querySelector(id) : $(id);
-const plEtiq = id => { const s = plSel(id); if (!s) return ''; const l = (s.id && document.querySelector(`label[for="${s.id}"]`)) || (s.closest('div') && s.closest('div').querySelector(':scope > label')); return l ? l.textContent.trim() : ''; };
 
 // Recuento: el de la pantalla; si no tiene, el paginador («1–20 de N») o las filas que se ven
 function plRecuento(sec, c) {

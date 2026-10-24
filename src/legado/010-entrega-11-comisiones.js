@@ -2,13 +2,6 @@
    DLC OS 2.0 · Entrega 11: comisiones
    ============================================================ */
 
-let ESQUEMAS = [];
-const eur = n => Number(n || 0).toLocaleString('es', { style: 'currency', currency: 'EUR', maximumFractionDigits: 2 });
-const periodoActual = () => hoyISO().slice(0, 7);
-const periodoTxt = p => {
-  const [a, m] = p.split('-');
-  return ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'][+m - 1] + ' ' + a;
-};
 
 /* ---------------- panel personal en Inicio ---------------- */
 

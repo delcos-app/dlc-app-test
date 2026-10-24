@@ -1,9 +1,3 @@
-/* v2.211.0 · El manual, dentro de la app (decisión de Eric, opción B: sin abrir otra pestaña y con el mismo peso).
-   - «Manual de uso» y el «?» de cada pantalla llevan a la pantalla «manual», que enseña el libro (manual/index.html?app=1) en un marco a todo el
-     ancho; el libro solo se descarga al abrirlo, capítulo a capítulo. Si ya se está en el manual, el «?» solo mueve el libro a su sección.
-   - El portal del médico sigue con su manual de siempre (cargarManual original).
-   - window.MANUAL_ULTIMA guarda la última dirección pedida (la usan las pruebas). */
-let MANUAL_DESTINO = '';
 abrirManual = function (ancla) {
   guardarVocabManual();
   MANUAL_DESTINO = ancla || '';
@@ -22,13 +16,6 @@ cargarManual = (orig => async function (...a) {
 })(cargarManual);
 ponerAyudaManual = (orig => function () { if (TAB === 'manual') return; return orig.apply(this, arguments); })(ponerAyudaManual);
 
-/* v2.212.0 · Decisiones de la auditoría (1).
-   - Pedidos: la tarjeta «Pedidos sin atribuir» vuelve a la pestaña Ventas (la pantalla nueva ya no tenía su hueco) para quien
-     puede atribuir (administración o nivel 2 en Pedidos, como atribuir_linea).
-   - Editar usuario: «Qué ve esa persona» de la comisión sale aparte (usuarioComisionInfo ocultaba la fila entera con el esquema).
-   - Duplicados: el botón de Calidad del dato y el indicador de Inicio, también para quien tiene nivel 3 en fichas (como la página). */
-const puedeDuplicados = () => puede('administrar') || ((PERFIL && PERFIL.areas) || {}).M >= 3;
-const puedeAtribuir = () => puede('administrar') || nivelDe2('V') >= 2;
 pintarSinAtribuir = (orig => async function (...a) {
   const r = await orig.apply(this, a);
   const c = $('cardsinatr'); if (c) c.classList.toggle('hide', !c.innerHTML.trim());
@@ -122,17 +109,6 @@ cargarManual = (orig => async function (...a) {
    - Piezas de la marca en toda la app: casillas de 18 px con el marino, interruptores en marino.
    - Notificaciones: cada aviso con «Al momento · En el resumen · No», el resumen arriba y el silencio en una fila. */
 var CFG_KEY = '';
-const CFG_VIEJO = { prefs: 'rutas.salida', perfil: 'datos', datos: 'datos', notif: 'notif', horario: 'rutas.horario', kpis: 'inicio.kpis', usuarios: 'usuarios',
-  roles: 'roles', equipo: 'usuarios', reglas: 'cartera.reglas', frec: 'cartera.frec', accesos: 'seguridad.accesos', auditoria: 'seguridad.auditoria',
-  alm: 'stock.alm', mues: 'stock.mues', marca: 'o.marca', __empresa: 'o.marca', empresa: 'o.marca', correo: 'o.correo', copias: 'o.copias', plan: 'o.plan',
-  fact: 'o.fiscal', fiscal: 'o.fiscal', series: 'o.series', vf: 'o.vf', pdf: 'o.pdf', orgs: 'o.orgs' };
-const CFG_CLAVES = { datos: 'nombre teléfono idioma perfil contraseña sesión cerrar', notif: 'avisos campana silencio resumen',
-  'rutas.salida': 'salida llegada casa oficina navegar google maps waze', 'rutas.horario': 'tiempos minutos duración parada',
-  'inicio.kpis': 'indicadores kpi inicio', usuarios: 'personas equipo alta invitar cartera zona', roles: 'permisos capacidades',
-  comis: 'comisiones esquemas tramos', 'o.marca': 'logo nombre vocabulario términos palabras', 'o.correo': 'smtp firma remitente email correo',
-  'o.plan': 'suscripción pago tarjeta usuarios precio', 'o.copias': 'copia seguridad descargar exportar', 'o.fiscal': 'nif razón social dirección',
-  'o.series': 'numeración factura', 'o.vf': 'verifactu hacienda', 'o.pdf': 'factura diseño logo colores', cat: 'clasificadores listas valores especialidades motivos',
-  portal: 'portal material pedir' };
 function arbolCfgUnico() {
   const admin = puede('administrar'), org = puedeOrganizacion();
   const cfg = arbolConfig(), todos = cfg.flatMap(g => g[1]), de = k => todos.find(x => x.k === k);
@@ -162,11 +138,6 @@ function arbolCfgUnico() {
     ['Datos', (cfg.find(g => g[0] === 'Datos') || [, []])[1].flatMap(hojas)]
   ].filter(g => g[1].length);
 }
-// v2.340.0 (Eric): cada apartado es una sola entrada del índice; sus partes (Rutas: salida y tiempos…) van dentro, en pestañas
-const hojasCfg = arbol => arbol.flatMap(([gr, l]) => l.map(it => Object.assign({ gr }, it)));
-let CFG_PEND = { t: 0, l: {} };
-const LUPA_CFG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>';
-let CFG_DETALLE = false;
 cargarConfig = async function () {
   // v2.340.0 (avisos de Eric): se abre siempre en «Mis datos» (no en el último apartado); al cambiar de apartado solo cambia la página
   // de la derecha (el índice se queda, con su desplazamiento: antes se volvía a montar todo y daba un salto); los apartados con partes
@@ -236,7 +207,6 @@ cargarConfig = async function () {
     if ($('planver')) $('planver').onclick = () => { CFG_KEY = 'o.plan'; cargarConfig(); };
   } else Promise.resolve().then(r);
 };
-let CFU_RAF = 0;
 ['scroll', 'resize'].forEach(ev => addEventListener(ev, () => { cancelAnimationFrame(CFU_RAF); CFU_RAF = requestAnimationFrame(cfuAjustarIndice); }, { passive: true }));
 // Cualquier camino a los ajustes lleva a su entrada de Configuración
 ir = (orig => function (t, ...r) {
@@ -297,14 +267,6 @@ pintarNotif = function () {
   ['nsil', 'nsild', 'nsilh', 'nsilf'].forEach(id => { if ($(id)) $(id).onchange = guardarSil; });
 };
 
-/* v2.216.0 · Tu cuenta y Empresa en filas de ajuste (segunda versión del rediseño de Configuración).
-   pulirCfg() se aplica al contenido de cada apartado mientras se pinta (MutationObserver de #cfgcuerpo), sin tocar cómo guarda cada uno:
-   - Las tarjetas que solo presentan el apartado desaparecen y su texto pasa a la cabecera; el título repetido de la primera tarjeta se oculta.
-   - Tiempos de visita y el aviso de Salida y llegada: filas de ajuste con el número compacto a la derecha.
-   - Marca y vocabulario: el vocabulario, en su propia tarjeta como tabla (singular, plural y género por fila), con el nombre del módulo.
-   - Correo y firma: arriba, el estado del correo y «Enviar un correo de prueba»; la vista previa de la firma acompaña al desplazarse.
-   - Copias de seguridad: el estado y «Descargar copia completa» en la misma fila. */
-const CFG_PULIR = ['datos', 'rutas.salida', 'rutas.horario', 'inicio.kpis', 'o.marca', 'o.correo', 'o.plan', 'o.copias'];
 function pulirCfg() {
   const c = $('cfgcuerpo'); if (!c || TAB !== 'config' || !CFG_PULIR.includes(CFG_KEY)) return;
   const cab = document.querySelector('.cfucab'), titulo = impNorm((cab && cab.querySelector('h2') || {}).textContent || '');
@@ -416,22 +378,6 @@ htPreparar = (orig => function (sec, ...r) {
   return orig.call(this, sec, ...r);
 })(htPreparar);
 
-/* v2.220.0: la pastilla «Pendientes» y las líneas de aviso usaban la clase .av, que es la del avatar redondo de la app (salía un círculo
-   cortado en lugar de la pastilla): ahora .agp-pend y .tdav.
-   v2.219.0 · Agenda con tarjetas y cinta de 14 días (decisión de Eric, prototipo «versión D»).
-   - Las cifras pasan a pastillas junto al título (#aghud, leídas de #agmet, que queda oculto).
-   - La semana y el mes se sustituyen por una cinta de 14 días (.cinta): un punto por cita (hecha, por hacer, sin cerrar),
-     ‹ › de semana en semana, «Hoy» para volver, el mes completo al pulsar su nombre (#agmes flotando) y «Planificar la semana».
-   - Tu día a todo el ancho: cada cita es una tarjeta (.tdu) con el nivel de la ficha y adónde llevarla, la clase, la anterior
-     y lo que se apuntó para esta (SQL 131: estado_comercial, clase y anterior en agenda_rango), el horario y los avisos.
-     Las tarjetas se construyen desde la lista de siempre (.tdlista, que queda oculta): heredan su hora estimada, sus avisos
-     y sus botones (los mismos data-td, que atiende el mismo listener).
-   - En el móvil: cifras en 2 × 2, la cinta semana a semana (deslizando), «Registrar» a todo el ancho. */
-const citaAnulada = e => EST_COL[e] === 'var(--muted)';
-const agConCinta = () => TAB === 'agenda' && AG_MODO === 'dia' && !!$('v-agenda');
-let CINTA_INI = null;
-const lunesCinta = f => { const d = new Date(f + 'T12:00:00'); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return isoLocal(d); };
-const diasMas = (f, n) => { const d = new Date(f + 'T12:00:00'); d.setDate(d.getDate() + n); return isoLocal(d); };
 const SVA = d => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + d + '</svg>';
 const ICU = {
   toca: '<path d="M4 22V4a1 1 0 0 1 1-1h12l-2.5 4.5L17 12H5"/>',
@@ -540,12 +486,6 @@ rpcCache = (orig => async function (fn, params, clave) {
   KV_GRAF = g && g.data && g.data.por_dia ? g.data : null;
   return r;
 })(rpcCache);
-const kvSvg = (d, w = 2.4) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
-const kvMas = (f, n) => { const d = new Date(f + 'T12:00:00'); d.setDate(d.getDate() + n); return isoLocal(d); };
-const kvLunes = f => { const d = new Date(f + 'T12:00:00'); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return isoLocal(d); };
-const kvMin = h => { const m = String(h || '').match(/(\d{1,2}):(\d{2})/); return m ? +m[1] * 60 + +m[2] : null; };
-const KV_COL = { inicial: '#C9D7E6', avance: '#3F82C0', interes: '#17457A', positivo: '#1E7A4C', negativo: '#94A3B8' };
-const KV_DN = ['D', 'L', 'M', 'X', 'J', 'V', 'S'];
 
 function kvContar(raiz) {
   const ns = [...raiz.querySelectorAll('[data-kvn]')];

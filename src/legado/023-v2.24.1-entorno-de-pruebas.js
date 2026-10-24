@@ -3,7 +3,6 @@
    ============================================================ */
 
 const EN_PRUEBAS = CFG.entorno === 'pruebas';
-const RPC_ORIG_FROM = t => FROM_ORIG(t);
 
 function pintarFranjaPruebas() {
   if (!EN_PRUEBAS) return;

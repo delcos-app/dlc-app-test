@@ -14,7 +14,6 @@ arbolCfgUnico = (orig => function (...a) {
   return g;
 })(arbolCfgUnico);
 CFG_CLAVES.distribuidores = 'distribuidores mayoristas almacenes pedidos transfer servir correo';
-let DIS_TODOS = null;
 async function pintarDistribuidores() {
   const c = $('cfgcuerpo'); if (!c) return;
   cargando(c, 'Cargando los distribuidores…');

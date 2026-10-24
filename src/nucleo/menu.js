@@ -270,3 +270,49 @@ function fabAOrdenador() {
     acts.appendChild(f);
   });
 }
+
+const ORDEN_MENU = ['inicio', 'agenda', 'rutas', 'directorio', 'ventas', 'pacientes', 'productos', 'facturacion', 'analitica', 'informe'];
+
+/* ---------------- v2.132.0 · Menú lateral de escritorio (elegido por Eric: barra a la izquierda, agrupada por áreas) ----------------
+   Los botones siguen siendo los de siempre (nav.main #nav [data-t]): aquí solo se reparten en bloques, se pliega la barra a iconos
+   (por defecto en pantallas de menos de 1440 px; se recuerda en el dispositivo) y cada persona ordena los bloques y oculta secciones
+   («Personalizar menú», guardado en preferencias.menu). Solo en escritorio (≥ 900 px); el móvil sigue con su barra inferior.
+   Un botón nuevo en #nav que no esté en ningún bloque sale en «Otros». «Plataforma» (panel de delcos) va siempre al final, fijo. */
+const MENU_GRUPOS = [
+  { id: 'dia', t: 'Tu día', items: ['inicio', 'agenda', 'rutas'] },
+  { id: 'cartera', t: 'Cartera', items: ['directorio', 'pacientes', 'seguimiento'] },
+  { id: 'ventas', t: 'Ventas', items: ['ventas', 'productos', 'facturacion'] },
+  { id: 'resultados', t: 'Resultados', items: ['analitica', 'informe'] },
+  { id: 'equipo', t: 'Equipo', items: ['usuarios'] }];
+
+const MENU_FIJO = { id: 'plataforma', t: 'Plataforma', items: ['delcos'] };
+
+const MENU_PLEGAR_BAJO = 1440;
+
+const menuPrefs = () => ((typeof PERFIL !== 'undefined' && PERFIL && PERFIL.preferencias) || {}).menu || {};
+
+const menuEscritorio = () => innerWidth >= 900;
+
+const menuPlegado = () => { try { const v = localStorage.getItem('dlc-menu-plegado'); if (v === '1' || v === '0') return v === '1'; } catch (e) {} return innerWidth < MENU_PLEGAR_BAJO; };
+
+let MENU_FIRMA = '';
+
+// (v2.183.0: aquí iba la primera versión de menuPersonalizar; se redefine entera más abajo)
+// Se monta al arrancar y se rehace si cambian los botones (permisos, módulos, portal), el tamaño de la pantalla o la sesión
+let MENU_RAF = 0;
+
+const menuRehacer = () => { if (MENU_RAF) return; MENU_RAF = requestAnimationFrame(() => { MENU_RAF = 0; montarMenuLateral(); }); };
+
+const menuNombres = () => (AJUSTES && AJUSTES.menu_nombres) || {};
+
+/* ============================================================
+   v2.335.0 · Menú (peticiones de Eric, 20/10/2026)
+   - «Usuarios» fuera del menú (está en Configuración → Equipo → Usuarios): en el menú de escritorio y en «Más» del móvil.
+   - Móvil: «Personalizar menú» en «Más» (movPersonalizar): qué pantallas van en la barra de abajo (hasta 4; preferencias.menu.barra)
+     y cuáles salen en «Más» (las mismas que se ocultan en el menú de escritorio: preferencias.menu.ocultos). Lo oculto no sale en «Más».
+   ============================================================ */
+const MOV_BARRA_DEF = ['inicio', 'agenda', 'rutas', 'directorio'];
+
+const MENU_FUERA = ['usuarios'];
+
+let FAB_RZ = 0;

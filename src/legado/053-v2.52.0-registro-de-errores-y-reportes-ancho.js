@@ -10,8 +10,6 @@ const VERSION_APP = (((document.querySelector('script[src*="app.js"]') || {}).sr
 
 /* ---------------- registro de errores ---------------- */
 
-const ERRORES_SESION = [];
-let ERR_ENVIADOS = new Set();
 function registrarError(tipo, mensaje, detalle) {
   try {
     const m = String(mensaje || '').slice(0, 500);
@@ -103,14 +101,12 @@ document.addEventListener('click', e => {
 
 /* ---------------- estados de producto ---------------- */
 
-let ESTADO_PROD = {};
 cargarProductos = (orig => async function () {
   await orig();
   const { data } = await db.from('productos').select('id,estado');
   ESTADO_PROD = {}; (data || []).forEach(x => { ESTADO_PROD[x.id] = x.estado || 'Activo'; });
   [...PRODUCTOS, ...SERVICIOS].forEach(p => { p.estado = ESTADO_PROD[p.id] || 'Activo'; });
 })(cargarProductos);
-const vendible = p => (p.estado || 'Activo') === 'Activo';
 productoPorDefecto = function () {
   const lista = PRODUCTOS.filter(p => p.tipo !== 'servicio' && vendible(p));
   const hab = localStorage.getItem('dlc-prod-habitual');

@@ -2,21 +2,8 @@
    DLC OS 2.0 · Entrega 3: registrar visitas, editar fichas y altas
    ============================================================ */
 
-// Catálogos por su papel en la plataforma (clasificadores.papel), nunca por la clave que les ponga cada cliente
-const CAT = { resultado_visita: [], especialidad: [], area: [], motivo_urgencia: [], forma_pago: [] };
-const DIAS = ['L', 'M', 'X', 'J', 'V'];
-const DIAN = { L: 'Lunes', M: 'Martes', X: 'Miércoles', J: 'Jueves', V: 'Viernes' };
-const HM = ['09:00-13:00', '09:30-13:30', '10:00-14:00', '08:00-15:00'];
-const HT = ['15:00-19:00', '16:00-19:00', '16:00-20:00', '17:00-20:00'];
-let FICHA_ID = null;
 
-const puedeEditar = () => PERFIL && (puede('administrar') || ((PERFIL.areas || {}).M || 0) >= 2);
-const puedeEditarTipo = t => PERFIL && (puede('administrar') || ((PERFIL.areas || {})[t === 'Centro' ? 'C' : 'M'] || 0) >= 2);
-const puedeCrearTipo = t => PERFIL && (puede('administrar') || ((PERFIL.areas || {})[t === 'Centro' ? 'C' : 'M'] || 0) >= 3);
-const puedeCrear = () => puedeCrearTipo('Persona') || puedeCrearTipo('Centro');
-const puedeRegistrar = () => PERFIL && (puede('administrar') || ((PERFIL.areas || {}).S || 0) >= 2);
 
-let tToast;
 function toast(msg, err) {
   const t = $('toast');
   t.textContent = msg; t.className = 'toast' + (err ? ' err' : '');

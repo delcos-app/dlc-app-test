@@ -4,8 +4,6 @@
 
 /* ---------------- spinner y descargas ---------------- */
 
-const cargando = (el, texto) => { if (el) el.innerHTML =
-  `<div class="cargador"><span class="spin"></span><span class="sm">${esc(texto || 'Cargando…')}</span></div>`; };
 
 
 document.addEventListener('click', e => {

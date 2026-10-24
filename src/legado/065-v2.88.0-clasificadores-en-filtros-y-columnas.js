@@ -1,30 +1,4 @@
-/* ============================================================
-   v2.88.0 · «Clasificadores» en «Filtros y columnas»
-   Todos los campos personalizados de Cuentas, Clientes, Pedidos y Productos
-   se pueden usar como filtro y como columna desde el panel. Listas y textos
-   con pocos valores: desplegable; con muchos: buscador. Números y fechas:
-   desde / hasta. «Columna en la tabla» decide si la columna se ve de entrada
-   y «Filtro» coloca el campo el primero de la sección.
-   ============================================================ */
-const CLAS_MAX_LISTA = 15;   // hasta este número de valores, desplegable; con más, buscador
-const CLAS_VALORES = {};     // por ámbito: valores que ya tienen las fichas en cada campo
-const clasNorm = s => String(s == null ? '' : s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-// Campos de la pantalla: primero los marcados como «Filtro», después el resto (en su orden)
-const clasCampos = amb => [...(CAMPOS[amb] || [])].sort((a, b) => (b.en_filtro ? 1 : 0) - (a.en_filtro ? 1 : 0));
-const clasCabeceras = cols => cols.map(c => `<span class="cpcol">${esc(c.nombre)}</span>`).join('');
-const clasCeldas = (cols, v) => cols.map(c => { const t = campoTexto(c, (v || {})[c.clave]); return `<span class="sm">${t ? esc(t) : '<span class="vac">—</span>'}</span>`; }).join('');
-const clasChips = (amb, estado) => Object.keys(estado || {}).map(k => {
-  const c = (CAMPOS[amb] || []).find(x => x.clave === k) || { clave: k, nombre: k };
-  return { k, t: clasTextoFiltro(c, estado[k]) };
-});
 
-/* ---------- Clientes, Pedidos y Productos: la sección va en el panel lateral ---------- */
-const CLAS_PANT = {
-  pacientes: { amb: 'cliente', estado: () => (PAC.campos = PAC.campos || {}), recargar: () => { PAC.pagina = 0; listaPacientes(); } },
-  ventas: { amb: 'pedido', estado: () => PEDF, recargar: () => { PEDPAG = 0; listaPedidos(); }, activo: () => !!$('pedlista') },
-  productos: { amb: 'producto', estado: () => PRODF, recargar: () => pintarProductos(), activo: () => PSEC === 'productos' }
-};
-const clasPantalla = sec => { const P = sec && CLAS_PANT[sec.id.replace('v-', '')]; return P && (!P.activo || P.activo()) ? P : null; };
 htAbrirLateral = (orig => function (sec) {
   orig(sec);
   const d = $('tools'), auto = d.querySelector('.htauto');

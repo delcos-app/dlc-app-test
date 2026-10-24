@@ -22,3 +22,11 @@ function teclaActivar(x) {
   const b = x.matches('button, a[href], [role=option], tr, .dr') ? x : (x.querySelector('button, a[href], [data-inificha]') || x);
   b.click();
 }
+
+/* v2.111.0 · Teclado en escritorio.
+   1. Buscadores: con las flechas se recorren los resultados (el desplegable de sugerencias o, en los buscadores que filtran
+      una lista o una tabla, sus filas) e Intro abre el marcado. El elemento marcado lleva la clase .activo.
+   2. F5 (o Ctrl+R) recarga la app y vuelve a la pantalla en la que se estaba; Ctrl+F5 (o Ctrl+Mayús+R) entra de cero. */
+const TECLA_LISTAS = '.gsug, .cpres, .lista, .dgrid, [role=listbox], table';
+
+const teclaVisible = x => x.offsetParent !== null && !x.classList.contains('hide');

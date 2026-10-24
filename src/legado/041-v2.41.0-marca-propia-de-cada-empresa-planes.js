@@ -10,7 +10,6 @@ Object.assign(RPC_TTL, { usuarios_resumen: 30, plan_uso: 60 });
 /* ---------------- marca de la empresa ---------------- */
 
 let MARCA = (() => { try { return JSON.parse(localStorage.getItem('app-marca')) || {}; } catch (e) { return {}; } })();
-const nombreApp = () => MARCA.nombre || 'Mi empresa';
 function aplicarMarca() {
   const n = nombreApp();
   document.title = n;
@@ -79,11 +78,6 @@ const PLANES = [
     modulos: ['inicio', 'agenda', 'rutas', 'directorio', 'seguimiento', 'ventas', 'pacientes', 'productos', 'analitica', 'facturacion'],
     ventajas: ['Todo lo de Avanzado', `Espacio ${TT('medico', 's', 'del', 'l', 'l')} sin límite`, 'Impersonalización de usuarios y auditoría completa', 'Puesta en marcha y migración de datos incluidas', 'Soporte prioritario'] }
 ];
-let PLAN_ACTUAL = { plan: 'medida' };   // v2.117.0: hasta que llega el de la base, el completo
-const planDe = id => PLANES.find(p => p.id === id) || PLANES[3];
-// v2.165.0: sin Facturación en el plan pero con facturas, se entra en solo consulta (facConsulta, al final)
-const planIncluye = mod => !(mod in MODULO_AREA) || planDe(PLAN_ACTUAL.plan).modulos.includes(mod) || (mod === 'facturacion' && facConsulta());
-const planMinimo = mod => PLANES.find(p => p.modulos.includes(mod));
 Promise.resolve(RPC_ORIG('plan_uso', {})).then(r => { if (r && r.data && r.data.plan) { PLAN_ACTUAL = r.data.plan; if (PERFIL) aplicarPermisosMenu(); } }, () => {});
 
 // Los módulos que no entran en el plan se ven con candado y explican cómo conseguirlos
@@ -138,7 +132,6 @@ async function pintarPlan2() {
 
 /* ---------------- Usuarios renovado ---------------- */
 
-let USR_F = { q: '', rol: '', est: 'activos' };
 
 /* ---------------- Roles y permisos ---------------- */
 
@@ -146,7 +139,6 @@ const QUE_ABRE = { H: 'Inicio: indicadores, alertas y resumen', G: 'Agenda, cita
   C: 'Centros y sus datos', S: `Registro de ${TT('visita', 'p', '', 'l', 'l')}`, V: 'Pedidos: ventas, compras y llamadas', L: `Clientes (${TT('paciente', 'p', '', 'l', 'l')} y empresas)`, P: 'Productos, servicios y stock',
   F: 'Facturación, cobros y rectificativas', A: 'Analítica y rankings', E: 'Importes en euros (si no, solo unidades)', Q: 'Calidad del dato y duplicados',
   K: 'Clasificadores y listas de valores', U: 'Impersonalizar a otros usuarios' };
-const plantillaRol = r => Object.assign({}, (rolDef(r) || {}).plantilla || {}, (AJUSTES.roles || {})[r] || {});
 async function pintarRoles() {
   await cargarAjustes();
   const roles = rolesNombres().filter(r => !rolPuede(r, 'portal_prescriptor'));
@@ -174,7 +166,6 @@ async function pintarRoles() {
 
 /* ---------------- Configuración única (Administración queda integrada) ---------------- */
 
-const CFG_ADMIN = { usuarios: 'usuarios', comisiones: 'comis', accesos: 'accesos', auditoria: 'auditoria' };
 document.querySelectorAll('[data-u="adm"]').forEach(b => b.classList.add('hide'));
 // Dentro de Configuración no se repiten menús interiores
 panelDeModulo = (orig => function (sec) {

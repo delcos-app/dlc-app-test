@@ -14,13 +14,7 @@ const KPI_CAT = [
   { id: 'cartera',      t: `${TT('medico', 'p', '', 'l', 'l')} en tu cartera`,    v: k => k.medicos, h: 'todos' },
   { id: 'dups',         t: 'pendientes de unificar',   v: k => k.pendientes_unificar, cls: () => 'warn', admin: true, h: 'dups' }
 ];
-const KPI_DEF = ['citas', 'urgentes', 'visitas_sem', 'visitas_mes', 'interesados', 'sin_contactar', 'cartera', 'dups'];
 
-const kpiConfig = () => {
-  const p = (PERFIL.preferencias || {}).kpis;
-  if (Array.isArray(p) && p.length) return p;
-  return KPI_CAT.map(k => ({ id: k.id, on: KPI_DEF.includes(k.id), t: '' }));
-};
 
 
 
@@ -45,8 +39,6 @@ $('guardarFiltro').addEventListener('click', async ev => {
 /* ---------------- ruta en curso ---------------- */
 
 const RKEY = () => 'dlc-ruta-' + (PERFIL ? PERFIL.id : '');
-const rutaActiva = () => { try { return JSON.parse(localStorage.getItem(RKEY()) || 'null'); } catch (e) { return null; } };
-const durTxt = ms => { const m = Math.floor(ms / 60000); return (m >= 60 ? Math.floor(m / 60) + ' h ' : '') + (m % 60) + ' min'; };
 
 
 
