@@ -111,7 +111,6 @@ plToolHtml = function (tab) {
     ${c.mapa() ? `<button type="button" class="plbtn chico plic plmapa" title="Ver en el mapa" aria-label="Ver en el mapa">${plIco('map')}</button>` : ''}
     <span class="plcnt"><i class="plsk" style="width:90px"></i></span>`;
 };
-plKpisHtml = (orig => function (tab) { return plCfg(tab) && plCfg(tab).kpis ? orig(tab) : ''; })(plKpisHtml);
 plCargarKpis = (orig => function (tab) { const c = plCfg(tab); if (c && c.kpis) return orig(tab); })(plCargarKpis);
 ['ventas', 'facturacion', 'productos'].forEach(plObservar);
 // Revelado de las pantallas con secciones: la primera llegada, de una vez (como siempre), con la plantilla ya puesta

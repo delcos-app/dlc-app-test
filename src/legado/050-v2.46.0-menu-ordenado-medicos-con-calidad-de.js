@@ -28,13 +28,6 @@ Object.assign(ICON_NOM, {"euro": "<path d=\"M4 10h12\" /> <path d=\"M4 14h9\" />
 /* ---------------- menú principal: orden y «Médicos» ---------------- */
 
 ordenarMenu();
-// «Calidad del dato» pasa a ser un botón dentro de Médicos
-function botonCalidad() {
-  const v = $('v-directorio'); if (!v || $('dircab')) return;
-  v.insertAdjacentHTML('afterbegin', `<div class="saludo" id="dircab"><div><h1>${TT('medico', 'p', '', 'l', 'C')}</h1><div class="fecha">${TT('medico', 'p', '', 'l', 'C')}, centros y sus fichas</div></div>
-    <div class="acts">${puedeModulo('seguimiento') ? `<button class="btn sec" id="dircalidad">${svgIco(ICON_NOM['shield-check'])} Calidad del dato</button>` : ''}</div></div>`);
-  if ($('dircalidad')) $('dircalidad').onclick = () => ir('seguimiento');
-}
 
 /* ---------------- menú de usuario: Mi perfil y Plan ---------------- */
 

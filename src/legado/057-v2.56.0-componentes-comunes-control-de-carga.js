@@ -42,7 +42,7 @@ const ESTADO_MOD = {
 const IR_V256 = ir;
 ir = function (t) { VIA_IR = t; try { IR_V256(t); } finally { setTimeout(() => { VIA_IR = null; }, 0); } };
 // Inicio: cuándo se actualizó y botón para actualizar
-function pintarActualizado() {
+function pintarActualizadoBase() {
   const acts = document.querySelector('#v-inicio .saludo .acts, #v-inicio .hero .acts, #v-inicio .inihead .acts') || document.querySelector('#v-inicio .saludo');
   if (!acts) return;
   let b = $('iniact');
@@ -153,38 +153,11 @@ mejorarCampos = (orig => function (raiz) {
 new MutationObserver(ms => { for (const m of ms) for (const n of m.addedNodes) if (n.nodeType === 1)
   (n.matches && n.matches('input[type=number],input[type=text]') ? [n] : [...n.querySelectorAll('input[type=number],input[type=text]')]).forEach(i => { if (!i.dataset.ivasel && ES_IVA(i) && !/iban|precio|importe/i.test(i.id)) ivaSelector(i); });
 }).observe(document.body, { childList: true, subtree: true });
-// Archivos: botón con el diseño de la plataforma, nombre del archivo y miniatura si es una imagen
-function selectorArchivo(inp) {
-  if (!inp || inp.dataset.fp || inp.id === 'mkfile') return;
-  inp.dataset.fp = '1';
-  const img = /image/.test(inp.accept || '');
-  const w = document.createElement('div'); w.className = 'filepick';
-  w.innerHTML = `<span class="fpmini">${svgIco(ICON_NOM[img ? 'image' : 'file'])}</span>
-    <div class="fptx"><b>${img ? 'Ninguna imagen elegida' : 'Ningún archivo elegido'}</b><span class="sm">${img ? 'JPG o PNG. Mejor cuadrada y con buena luz.' : 'Elige un archivo de tu equipo.'}</span></div>
-    <button type="button" class="btn sec">${svgIco(ICON_NOM.upload)} ${img ? 'Elegir imagen' : 'Elegir archivo'}</button>`;
-  inp.parentNode.insertBefore(w, inp); inp.classList.add('hide'); w.appendChild(inp);
-  w.querySelector('button').onclick = () => inp.click();
-  inp.addEventListener('change', () => {
-    const f = inp.files && inp.files[0]; if (!f) return;
-    w.querySelector('.fptx b').textContent = f.name; w.querySelector('.fptx .sm').textContent = Math.round(f.size / 1024) + ' KB';
-    if (img) { const u = URL.createObjectURL(f); w.querySelector('.fpmini').innerHTML = `<img src="${u}" alt="">`; }
-  });
-}
 new MutationObserver(ms => { for (const m of ms) for (const n of m.addedNodes) if (n.nodeType === 1)
   (n.matches && n.matches('input[type=file]') ? [n] : [...n.querySelectorAll('input[type=file]')]).forEach(selectorArchivo);
 }).observe(document.body, { childList: true, subtree: true });
 // Notas y textos largos: crecen al escribir
 document.addEventListener('input', e => { const t = e.target; if (t.tagName === 'TEXTAREA') { t.style.height = 'auto'; t.style.height = Math.min(t.scrollHeight + 2, 420) + 'px'; } });
-// Ventana de texto: «area» para notas (varias líneas y más espacio)
-appVentana = (orig => function (o) {
-  const p = orig(o);
-  if (o && o.campo && o.campo.tipo === 'area') setTimeout(() => {
-    const i = $('mcampo'); if (!i) return;
-    const t = document.createElement('textarea'); t.id = 'mcampo'; t.rows = 6; t.value = i.value; t.placeholder = i.placeholder; i.replaceWith(t);
-    $('mini').classList.add('ancha'); t.focus();
-  }, 0);
-  return p;
-})(appVentana);
 
 /* ---------------- 6. Cuentas: barra ordenada, mapa como icono y ayuda en el título ---------------- */
 

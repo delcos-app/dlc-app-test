@@ -44,7 +44,7 @@ new MutationObserver(ms => {
   d.addEventListener('cancel', e => { e.preventDefault(); cerrarSelector(); });
 })();
 ;
-function colocarPop(pop, ref) {
+function colocarPopBase(pop, ref) {
   const d = $('seldlg');
   if (!d.open) d.showModal();
   if (ES_MOVIL()) { d.classList.add('hoja'); d.style.top = ''; d.style.left = ''; return; }
@@ -177,22 +177,6 @@ new MutationObserver(() => {
 
 /* ---------------- Analítica: la tabla mensual explicada ---------------- */
 
-pintarTablaAnalitica = (orig => async function () {
-  await orig();
-  const caja = $('atabla2'); if (!caja || !caja.querySelector('.thead')) return;
-  const dim = $('adim') ? $('adim').selectedOptions[0].textContent.toLowerCase() : 'concepto';
-  const med = $('amedida') && $('amedida').value === 'importe' ? 'importe sin IVA' : 'unidades vendidas';
-  caja.insertAdjacentHTML('afterbegin', `<div class="tabinfo"><b>Tabla mensual de ${esc(med)} por ${esc(dim.replace(/^por /, ''))}</b>
-    <span>Cada fila es un ${esc(dim.replace(/^por /, ''))} y cada columna un mes del periodo elegido. La última columna suma la fila y la última fila suma cada mes. «·» = sin ventas ese mes. Cuanto más intenso el azul, más alto el valor.</span></div>`);
-  caja.querySelectorAll('.thead .tcell.th').forEach(c => { const m = c.textContent.match(/^(\d{2})\/(\d{2})$/); if (m) c.textContent = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'][+m[1] - 1] + ' ' + m[2]; });
-  const filas = [...caja.querySelectorAll('.trow:not([data-fijo])')], vals = [];
-  filas.forEach(f => [...f.children].slice(1, -1).forEach(c => vals.push(parseFloat(c.textContent.replace(/\./g, '').replace(',', '.').replace(/[^\d.-]/g, '')) || 0)));
-  const max = Math.max(1, ...vals);
-  filas.forEach(f => [...f.children].slice(1, -1).forEach(c => {
-    const v = parseFloat(c.textContent.replace(/\./g, '').replace(',', '.').replace(/[^\d.-]/g, '')) || 0;
-    if (v) c.style.background = `rgba(46,134,201,${(0.08 + v / max * 0.42).toFixed(2)})`;
-  }));
-})(pintarTablaAnalitica);
 
 /* ---------------- Manual: buscador con resultados directos ---------------- */
 

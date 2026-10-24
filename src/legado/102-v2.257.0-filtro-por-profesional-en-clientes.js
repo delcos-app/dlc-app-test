@@ -31,23 +31,6 @@ PL.pacientes.columnas = () => {
   b.click(); setTimeout(abrir, 80);
 };
 
-// ---- Uso del servicio de rutas en Estado de la plataforma
-pintarEstadoDelcos = (orig => async function (...a) {
-  const p = Promise.resolve(RPC_ORIG('rutas_uso_resumen', {})).catch(() => ({}));
-  await orig.apply(this, a);
-  const { data: u } = (await p) || {};
-  const c = $('cfgcuerpo'); if (!c || PAG_TAB.delcos !== 'estado' || !u || !u.ok) return;
-  const card = c.querySelector('.card.cfgpanel'), pie = card && [...card.querySelectorAll(':scope > p.sm')].pop(); if (!card) return;
-  const cfg = u.config || {}, glob = +cfg.global || 2000, emp = u.empresas || [];
-  const html = `<h3 class="pdh3">Servicio de rutas (TomTom)</h3>
-    ${pdKpis([[num(u.hoy || 0) + ' / ' + num(glob), 'peticiones hoy, entre todas las empresas', (u.hoy || 0) >= glob * 0.8 ? 'aviso' : ''],
-      [num(u.mes || 0), 'peticiones este mes'], [cfg.activo === false ? 'Apagado' : 'Activo', 'servicio', cfg.activo === false ? 'aviso' : ''],
-      [num(+cfg.por_usuario || 30), 'por usuario activo y día']])}
-    ${emp.length ? `<div class="tablawrap"><table class="pdtabla"><thead><tr><th>Empresa</th><th class="num">Hoy</th><th class="num">Cupo diario</th><th class="num">Este mes</th></tr></thead><tbody>
-      ${emp.map(x => `<tr><td>${esc(x.nombre)}</td><td class="num" style="${x.hoy >= x.cupo ? 'color:var(--warn);font-weight:700' : ''}">${num(x.hoy)}</td><td class="num">${num(x.cupo)}</td><td class="num">${num(x.mes)}</td></tr>`).join('')}</tbody></table></div>`
-      : '<div class="vacio">Ninguna empresa ha usado el servicio de rutas este mes.</div>'}`;
-  if (pie) pie.insertAdjacentHTML('beforebegin', html); else card.insertAdjacentHTML('beforeend', html);
-})(pintarEstadoDelcos);
 
 
 

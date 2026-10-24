@@ -276,38 +276,6 @@ window.addEventListener('click', e => {
       (fue un error: desaparece; solo de hoy en adelante y si no se ha hecho). */
 
 
-function editarTarea(t, fecha) {
-  t = t || {};
-  $('dbody').innerHTML = `
-    <div class="fh"><div><h2>${t.id ? 'Tarea' : 'Nueva tarea'}</h2><div class="sm">Una nota o tarea tuya para ese día, sin cliente</div></div>
-      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-    <label for="tat">Qué hay que hacer</label><input id="tat" value="${esc(t.titulo || '')}" placeholder="p. ej. Llamar al almacén, reunión de equipo…" maxlength="160">
-    <div class="g2">
-      <div><label for="taf">Día</label><input id="taf" type="date" value="${esc(t.fecha || fecha || hoyISO())}"></div>
-      <div><label for="tah">Hora <span class="sm">(opcional)</span></label><input id="tah" type="time" value="${esc(t.hora ? String(t.hora).slice(0, 5) : '')}"></div>
-    </div>
-    <label for="tan">Notas</label><textarea id="tan" rows="3">${esc(t.nota || '')}</textarea>
-    <div class="acts" style="justify-content:space-between">
-      ${t.id ? '<button type="button" class="btn sec peligro" id="taborrar">Borrar</button>' : '<span></span>'}
-      <span style="display:flex;gap:8px"><button type="button" class="btn sec" data-cerrar>Cancelar</button><button type="button" class="btn" id="taok">${t.id ? 'Guardar' : 'Añadir'}</button></span></div>`;
-  $('taok').onclick = async ev => {
-    const titulo = $('tat').value.trim(); if (!titulo) { toast('Escribe qué hay que hacer', true); $('tat').focus(); return; }
-    const fila = { titulo, fecha: $('taf').value || hoyISO(), hora: $('tah').value || null, nota: $('tan').value.trim() || null, modificado_en: new Date().toISOString() };
-    ev.target.disabled = true;
-    const { error } = t.id ? await db.from('tareas').update(fila).eq('id', t.id) : await db.from('tareas').insert(fila);
-    ev.target.disabled = false;
-    if (error) { toast('No se ha podido guardar: ' + error.message, true); return; }
-    $('dlg').close(); toast(t.id ? 'Tarea guardada' : 'Tarea añadida el ' + fechaDiaMes(fila.fecha)); TAREAS_DIA = null; pintarTuDia();
-  };
-  if ($('taborrar')) $('taborrar').onclick = async () => {
-    if (!await preguntar('La tarea desaparece.', { titulo: '¿Borrar la tarea?', ok: 'Borrar', peligro: true })) return;
-    const { error } = await db.from('tareas').delete().eq('id', t.id);
-    if (error) { toast('No se ha podido borrar', true); return; }
-    $('dlg').close(); toast('Tarea borrada'); TAREAS_DIA = null; pintarTuDia();
-  };
-  $('dlg').classList.add('pequena');
-  $('dlg').showModal();
-}
 
 // ---- 4. Borrar y descartar en el detalle de la cita
 verCita = (orig => function (c) {
@@ -371,9 +339,4 @@ geocodificar = async function (q, o = {}) {
   return l[0] || null;
 };
 
-cargarSeguimientoPaso1 = (orig => async function (...a) {
-  const r = await orig.apply(this, a);
-  try { await pintarDireccionesDudosas(); } catch (e) {}
-  return r;
-})(cargarSeguimientoPaso1);
 

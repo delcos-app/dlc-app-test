@@ -34,7 +34,7 @@ if (window.L && L.map) {
 
 /* ---------------- Configuración: todo se muestra en el panel de la derecha ---------------- */
 
-function panelDeModulo(sec) {
+function panelDeModuloBase(sec) {
   salirPanel();
   const r = $('v-admin'); r.id = 'v-admin-real';
   $('cfgcuerpo').innerHTML = '<div id="v-admin" data-panel="1" class="cfgpanel cfgmod"></div>';

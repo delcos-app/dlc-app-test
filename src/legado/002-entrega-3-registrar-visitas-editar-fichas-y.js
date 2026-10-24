@@ -167,7 +167,7 @@ async function abrirEditor(id, tipo) {
 /* ---------------- acciones desde la ficha ---------------- */
 
 
-async function alternarUrgente(id, esUrgente, nombre) {
+async function alternarUrgenteBase(id, esUrgente, nombre) {
   let motivo = null;
   if (!esUrgente) {
     motivo = await pedirTexto('Motivo (opcional). Puedes escribirlo o elegir uno:', '',

@@ -21,22 +21,6 @@ let PEDSEC = 'ventas', PROVEEDORES = [], ALMACENES = [];
 
 /* ---------------- Productos: pestaña «Stock y lotes» ---------------- */
 
-cargarProductosModulo = (orig => async function () {
-  await orig();
-  const sn = $('v-productos').querySelector('.subnav');
-  if (sn && !sn.querySelector('[data-ps="stock"]')) {
-    sn.insertAdjacentHTML('beforeend', `<button data-ps="stock" aria-pressed="${PSEC === 'stock'}">Stock y lotes</button>`);
-    sn.querySelector('[data-ps="stock"]').onclick = () => { PSEC = 'stock'; cargarProductosModulo(); };
-  }
-  if (PSEC === 'stock') {
-    const acts = $('v-productos').querySelector('.saludo .acts');
-    acts.innerHTML = puedeCompras() ? '<button class="btn sec" id="stalm">Almacenes</button><button class="btn sec" id="stmue">⚙ Muestras</button><button class="btn" id="stini">+ Entrada de stock</button>' : '';
-    if ($('stalm')) $('stalm').onclick = editorAlmacenes;
-    if ($('stmue')) $('stmue').onclick = editorMuestras;
-    if ($('stini')) $('stini').onclick = () => movimientoStock(null, 'inicial');
-    pintarStock();
-  }
-})(cargarProductosModulo);
 
 
 

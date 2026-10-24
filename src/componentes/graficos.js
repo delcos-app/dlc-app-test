@@ -134,3 +134,16 @@ const KPI_MOD = {
 const KPI_ICO = { citas: '📅', urgentes: '⚠️', visitas_sem: '📝', visitas_mes: '🗓️', interesados: '✨', sin_contactar: '📇', cartera: '🩺', dups: '🧩',
   sin_visita_60: '⏳', sin_horario: '🕘', uds_mes: '📦', prescriptores: '👥', nuevos_presc: '🌱', activos_90: '🔁', conversion: '📈',
   importe_mes: '€', borradores: '✏️', muestras_mes: '🎁', material_mes: '📚', citas_7d: '📆', visitas_7d: '🧭' };
+
+function kpiPermitidoBase(c) {
+  if (!c) return false;
+  if (c.admin && !puede('administrar')) return false;
+  if (KPI_MOD[c.id] && !puedeModulo(KPI_MOD[c.id])) return false;
+  const r = KPI_PERMISO[c.id];
+  return !r || nivelDe2(r[0]) >= r[1];
+}
+
+function kpiPermitido(c) {
+  if (c && c.id === 'dups') return puedeDuplicados() && kpiPermitidoBase(Object.assign({}, c, { admin: false }));
+  return kpiPermitidoBase(c);
+}

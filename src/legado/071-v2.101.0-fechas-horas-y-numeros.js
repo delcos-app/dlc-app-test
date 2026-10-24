@@ -163,37 +163,6 @@ document.addEventListener('change', e => {
 new MutationObserver(sinHistorialLuego).observe(document.body, { childList: true, subtree: true });
 sinHistorial(document.body);
 
-/* v2.109.0 · Permisos propios en los roles: importar, clasificadores y dar acceso.
-   Configuración → Usuarios y roles → Roles tiene debajo de las plantillas la tabla «Permisos» (las capacidades del grupo
-   «Permisos»; el resto de capacidades no se cambian desde aquí). Quien tiene «Dar acceso a fichas de su cartera» da acceso
-   al portal desde la ficha, sin pasar por Usuarios: se crea la invitación ligada a la ficha y después el usuario. */
-pintarRoles = (orig => async function (...a) {
-  await orig(...a);
-  if (!puede('administrar') || !$('cfgcuerpo')) return;
-  const { data: caps } = await db.from('capacidades').select('clave,nombre,descripcion,orden').eq('grupo', 'Permisos').order('orden');
-  if (!(caps || []).length || !$('cfgcuerpo') || $('rolperm')) return;
-  const roles = rolesNombres().filter(r => !rolPuede(r, 'portal_prescriptor'));
-  $('cfgcuerpo').insertAdjacentHTML('beforeend', `<div class="card cfgpanel" id="rolperm"><h2>Permisos</h2>
-    <p class="sm">Lo que puede hacer cada rol además de sus módulos. Se aplica a todas las personas del rol al guardar.</p>
-    <div class="dgrid-wrap"><table class="rolmat"><thead><tr><th>Permiso</th>${roles.map(r => `<th>${esc(r)}</th>`).join('')}</tr></thead>
-      <tbody>${caps.map(c => `<tr><td><b>${esc(c.nombre)}</b><span class="sm">${esc(c.descripcion || '')}</span></td>
-        ${roles.map(r => `<td><input type="checkbox" data-prol="${esc(r)}" data-pcap="${esc(c.clave)}" aria-label="${esc(c.nombre)} · ${esc(r)}" ${rolPuede(r, c.clave) ? 'checked' : ''}></td>`).join('')}</tr>`).join('')}</tbody></table></div>
-    <div class="acts" style="justify-content:flex-end"><button class="btn" id="rolpermok">Guardar permisos</button></div></div>`);
-  $('rolpermok').onclick = async ev => {
-    ev.target.disabled = true;
-    let fallo = false;
-    for (const r of roles) {
-      const lista = [...$('rolperm').querySelectorAll(`[data-prol="${CSS.escape(r)}"]:checked`)].map(x => x.dataset.pcap);
-      const { data: x, error } = await db.rpc('guardar_permisos_rol', { p_rol: r, p_permisos: lista });
-      if (error || (x && x.ok === false)) fallo = true;
-    }
-    ev.target.disabled = false;
-    await cargarRoles();
-    const { data: yo } = await db.from('perfiles').select('capacidades').eq('id', PERFIL.id).single();
-    if (yo && Array.isArray(yo.capacidades)) PERFIL.capacidades = yo.capacidades;
-    toast(fallo ? 'No se han podido guardar todos los permisos' : 'Permisos guardados', fallo);
-  };
-})(pintarRoles);
 
 
 document.addEventListener('keydown', e => {
@@ -374,13 +343,6 @@ pintarPaginaPlan = async function () {
 };
 
 
-function orgEstado(o) {
-  const pd = o.plan_datos || {};
-  if (o.bloqueada === 'desactivada') return '<span class="pill p-anu">Desactivada</span> ';
-  if (o.bloqueada === 'prueba_terminada') return `<span class="pill p-warn">Prueba terminada el ${fechaCorta(pd.prueba_hasta)}</span> `;
-  if (pd.estado === 'prueba') return `<span class="pill p-est">Prueba hasta el ${fechaCorta(pd.prueba_hasta)}</span> `;
-  return '';
-}
 function orgAcciones(c, l) {
   const de = id => l.find(x => x.id === id);
   // Plan: el de pago o una prueba (con su fecha de fin)

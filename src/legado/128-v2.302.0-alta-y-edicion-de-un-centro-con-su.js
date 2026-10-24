@@ -46,10 +46,10 @@ abrirEditor = (orig => async function (id, tipo, ...r) {
 // v2.304.0: el filtro rápido «Tipo» de Cuentas
 if ($('ftipo')) $('ftipo').addEventListener('change', e => { F.tipo = e.target.value; buscar(true); });
 // El desplegable sigue a F.tipo (también si se cambia desde el panel o los indicadores) y nombra a los profesionales con el vocabulario de la empresa
-buscar = (orig => function (...a) {
+function buscar(...a) {
   const s = $('ftipo');
   if (s) { if (s.options[1]) s.options[1].text = TT('medico', 'p', '', 'l', 'C'); if (s.value !== (F.tipo || '')) s.value = F.tipo || ''; }
-  return orig.apply(this, a);
-})(buscar);
+  return buscarBase.apply(this, a);
+}
 
 

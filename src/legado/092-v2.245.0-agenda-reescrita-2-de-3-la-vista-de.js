@@ -30,23 +30,9 @@ document.addEventListener('click', e => {
   if (b.dataset.agtv) nuevaCita(b.dataset.agti, AG_FECHA); else abrirFicha(b.dataset.agti);
 }, true);
 
-function agBandejas() {
-  const head = document.querySelector('#agcuerpo .tdhead'); if (!head) return;
-  const old = $('agband'); if (old) old.remove();
-  const nToca = agTocaLista().length, nPend = (AG_PEND || []).length;
-  if (!nToca && !nPend) return;
-  head.insertAdjacentHTML('afterend', `<div class="agband" id="agband">${nToca ? `<button type="button" data-agbd="toca">${svgIco(ICON_NOM.target)} Les toca ${TT('visita', 's', '', 'l', 'l')} <b>${nToca}</b></button>` : ''}${nPend ? `<button type="button" class="urg" data-agbd="pend">${svgIco(ICON_NOM['circle-alert'] || ICON_NOM.info)} Pendientes de días anteriores <b>${nPend}</b></button>` : ''}</div>`);
-  $('agband').querySelectorAll('[data-agbd]').forEach(b => b.onclick = () => agBandeja(b.dataset.agbd));
-}
 
 
 
-// El título conserva «· agenda de …» al ver la de otra persona (agMarcarDia lo dejaba en «Hoy · …»)
-agMarcarDia = (orig => function (...a) {
-  const r = orig.apply(this, a);
-  if (agN() && AG_VISTA && $('agtit') && !$('agtit').textContent.includes(AG_VISTA.nombre)) $('agtit').textContent += ' · agenda de ' + AG_VISTA.nombre;
-  return r;
-})(agMarcarDia);
 rpcCache = (orig => async function (fn, params, clave) {
   const r = await orig.call(this, fn, params, clave);
   if (fn === 'agenda_rango' && params && params.p_desde === params.p_hasta && r && r.data) AG_DIAS_DATOS[params.p_desde] = r.data;

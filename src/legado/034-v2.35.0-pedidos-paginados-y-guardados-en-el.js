@@ -24,54 +24,7 @@ let FACPAG = 0, LLPAG = 0;
 
 
 
-async function descargarFacturaPDF(f, rn) {
-  const doc = await facturaPDF(f, rn); doc.save(nombrePDF(f));
-  await db.from('eventos_facturacion').insert({ tipo: 'PDF descargado', factura_id: f.id, detalle: {} }).then(() => {}, () => {});
-}
 
-async function enviarFacturaEmail(f, rn) {
-  await cargarAjustes();
-  const e = AJUSTES.empresa || {}, c = f.cliente || {};
-  const saludo = c.nombre ? nombrePila(c.nombre) : '';
-  $('dlg2body').innerHTML = `
-    <div class="fh"><div><h2>Enviar ${esc(f.numero)} por email</h2><div class="sm">La factura va adjunta en PDF</div></div>
-      <button class="x" data-cerrar2 aria-label="Cerrar">✕</button></div>
-    <label for="efp">Para</label><input id="efp" type="email" value="${esc(c.email || '')}" placeholder="email del cliente">
-    <label for="efa">Asunto</label><input id="efa" value="${esc(plantillaCorreo('factura', 'asunto', varsCorreo({ documento: 'factura', numero: f.numero, importe: f.total, nombre: c.nombre })))}">
-    <label for="eft">Mensaje</label><textarea id="eft" rows="12">${esc(plantillaCorreo('factura', 'texto', varsCorreo({ documento: 'factura', numero: f.numero, importe: f.total, nombre: c.nombre })))}</textarea>
-    <div class="adjunto">📎 ${esc(nombrePDF(f))}</div>
-    <div class="acts" style="justify-content:flex-end;flex-wrap:wrap"><button class="btn sec" data-cerrar2>Cancelar</button>
-      <button class="btn" id="efok">Enviar</button></div>`;
-  $('dlg2').showModal();
-  $('efok').onclick = async ev => {
-    const para = $('efp').value.trim(); if (!/\S+@\S+\.\S+/.test(para)) { toast('Escribe un email válido', true); return; }
-    ev.target.disabled = true; ev.target.textContent = 'Preparando el PDF…';
-    const doc = await facturaPDF(f, rn), b64 = doc.output('datauristring').split(',')[1];
-    ev.target.textContent = 'Enviando…';
-    let { data, error } = await db.functions.invoke('enviar_email', { body: { para, asunto: $('efa').value.trim(), texto: $('eft').value,
-      adjuntos: [{ nombre: nombrePDF(f), base64: b64, tipo: 'application/pdf' }], factura_id: f.id, pedido_id: f.pedido_id, marca: 'email_factura' } });
-    // Si la función responde con error, su motivo viene en el cuerpo de la respuesta
-    if (error && error.context && typeof error.context.json === 'function') { try { data = await error.context.json(); } catch (x) {} }
-    ev.target.disabled = false; ev.target.textContent = 'Enviar';
-    if (!error && data && data.ok) { $('dlg2').close(); toast('Factura enviada a ' + para); return; }
-    // Sin envío directo configurado: se ofrece compartir el PDF o descargarlo y adjuntarlo
-    const sinSmtp = data && data.error === 'sin_smtp';
-    const archivo = new File([doc.output('blob')], nombrePDF(f), { type: 'application/pdf' });
-    const compartir = navigator.canShare && navigator.canShare({ files: [archivo] });
-    $('dlg2body').innerHTML = `<div class="fh"><div><h2>${sinSmtp ? 'El envío directo aún no está configurado' : 'No se ha podido enviar'}</h2>
-      <div class="sm">${sinSmtp ? 'Falta conectar el correo de la empresa (lo prepara administración).' : esc((error && error.message) || (data && data.error) || '')}</div></div>
-      <button class="x" data-cerrar2 aria-label="Cerrar">✕</button></div>
-      <p>Puedes enviarla desde tu correo con el PDF adjunto:</p>
-      <div class="acts" style="flex-wrap:wrap">${compartir ? '<button class="btn" id="efsh">Compartir el PDF (correo, WhatsApp…)</button>' : ''}
-        <button class="btn ${compartir ? 'sec' : ''}" id="efdl">⬇ Descargar el PDF</button>
-        <a class="btn sec" href="mailto:${esc(para)}?subject=${encodeURIComponent($('efa') ? $('efa').value : f.numero)}&body=${encodeURIComponent('Adjuntamos la factura ' + f.numero + '.')}">Abrir mi correo</a></div>
-      <label class="opt" style="margin-top:12px"><input type="checkbox" id="efmarca"> Ya la he enviado: marcar el pedido como «Email con la factura enviado»</label>
-      <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar2>Cerrar</button></div>`;
-    if ($('efsh')) $('efsh').onclick = () => navigator.share({ files: [archivo], title: f.numero, text: 'Factura ' + f.numero }).catch(() => {});
-    $('efdl').onclick = () => doc.save(nombrePDF(f));
-    $('efmarca').onchange = async ev2 => { if (ev2.target.checked && f.pedido_id) { await db.rpc('marcar_operativa', { p_pedido: f.pedido_id, p_campo: 'email_factura', p_hecho: true }); toast('Marcado como enviado'); } };
-  };
-}
 
 
 /* ---------------- email con los datos de pago: envío directo si está configurado ---------------- */

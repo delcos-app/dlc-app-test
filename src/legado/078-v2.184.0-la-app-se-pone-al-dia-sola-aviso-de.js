@@ -54,7 +54,7 @@ let AGQ_T = null, AGQ_ID = null, DLG_EPOCA = 0;
 new MutationObserver(() => { if ($('dlg').open) DLG_EPOCA = RC_EPOCA; }).observe($('dlg'), { attributes: true, attributeFilter: ['open'] });
 
 // Repinta «Tu día» sin saltos: las citas que cambian de sitio se deslizan y la tocada queda resaltada un momento
-async function repintarDiaSuave(id, data) {
+async function repintarDiaSuaveBase(id, data) {
   // v2.246.0: el deslizamiento de las tarjetas lo pone la envoltura de la v2.244.0 (aquí animaba las filas ocultas)
   agOlvidarAgenda();
   if (data) { TD_PRESET = { fecha: AG_FECHA, data }; TD_ULTIMO = { fecha: AG_FECHA, data }; }
@@ -91,21 +91,6 @@ cambiarHoraCita = async function (id, hora) {
 };
 
 
-tarjetaCentro = (orig => function (c, enlazado) {
-  if (enlazado || !esConsultaPrivada(c)) return orig.call(this, c, enlazado);
-  const dir = [c.direccion, [c.cp, c.municipio].filter(Boolean).join(' ')].filter(Boolean).join(' · ');
-  return `<div class="cpcard cppriv"><div class="cpcab"><b>${consultaPrivada()}</b><span class="pill p-est">Sin centro</span></div>
-    <span class="sm">${esc(dir || 'Sin dirección todavía')}</span>
-    ${c.lat ? '' : `<span class="sm" style="color:var(--warn)">${dir ? 'Sin ubicación: no saldrá en rutas ni en el mapa' : 'Añade la dirección para que salga en rutas y en el mapa'}</span>`}
-    <div class="acts" style="margin:8px 0 0;flex-wrap:wrap">
-      ${c.lat ? `<button type="button" class="btn sec" data-nav="${navAttr([+c.lat, +c.lon])}">Cómo llegar</button>` : ''}
-      <button type="button" class="btn ${dir ? 'sec' : ''}" data-cpeditar>${dir ? 'Editar ' + TT('consulta', 's', 'el', 'l', 'l') : 'Añadir la dirección'}</button>
-      <button type="button" class="btn sec" data-cpcambiar>Cambiar</button></div></div>`;
-})(tarjetaCentro);
-formCentro = (orig => function (box, i, c, aviso) {
-  if (c && (c.privada || esConsultaPrivada(c))) return formPrivada(box, i);
-  return orig.call(this, box, i, c, aviso);
-})(formCentro);
 
 
 
@@ -279,13 +264,6 @@ abrirFicha = (orig => async function (id, ...a) {
    - Ver pedido: bloque «Distribuidor» con «Preparar correo al distribuidor» (el correo de la persona, con las líneas y el código del
      cliente, como los de factura y pago) que deja apuntado que se ha enviado; si lo factura el distribuidor, no se ofrece «Emitir factura». */
 let DISTRIBUIDORES = null, PED_DIST = null;
-editorPedido = (orig => async function (pedido, ...a) {
-  const ped = pedido && pedido.pedido ? pedido.pedido : null;
-  PED_DIST = { on: !!(ped && ped.distribuidor_id), id: (ped && ped.distribuidor_id) || '', codigo: (ped && ped.distribuidor_codigo) || '',
-    factura: ped && ped.distribuidor_id ? !!ped.factura_distribuidor : true };
-  await cargarDistribuidores().catch(() => []);
-  return orig.call(this, pedido, ...a);
-})(editorPedido);
 new MutationObserver(() => { if ($('porig') && !$('pdist')) pintarBloqueDistribuidor(); }).observe($('dbody'), { childList: true, subtree: true });
 
 

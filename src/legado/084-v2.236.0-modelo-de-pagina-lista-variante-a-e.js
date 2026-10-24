@@ -1,17 +1,6 @@
 
-// Directorio: cada fila lleva su tarjeta (oculta en el ordenador) con el nombre, centro · municipio y el estado
-filaTabla = (orig => function (m) {
-  const h = orig(m), i = h.lastIndexOf('</button>'); if (i < 0) return h;
-  const l2 = [m.centro_nombre, m.municipio].filter(Boolean).join(' · ');
-  return h.slice(0, i) + `<span class="plcard"><b>${m.urgente ? '<i class="plurg" aria-label="Urgente"></i>' : ''}${esc(m.nombre || '')}</b><span class="plc2">${esc(l2)}</span><span class="plc3">${celda(m, 'estado_comercial')}</span></span>` + h.slice(i);
-})(filaTabla);
 
 
-function plKpisHtml(tab) {
-  const c = PL[tab], k = PL_KPI[tab];
-  if (!k || !k.datos) return Array(c.nKpis || 4).fill('').map(() => `<div class="plk plcarga"><span class="plkt"><i class="plsk" style="width:46%"></i></span><b><i class="plsk plskv"></i></b><small><i class="plsk" style="width:70%"></i></small></div>`).join('');
-  return k.datos.map(d => `<button type="button" class="plk ${c.kpiOn(d.k) ? 'on' : ''}" data-plk="${d.k}"><span class="plkt">${esc(d.t)}</span><b data-pln="${d.n}">${num(d.n)}</b><small>${esc(d.s)}</small></button>`).join('');
-}
 function plCargarKpis(tab) {
   const c = PL[tab], k = PL_KPI[tab], ep = typeof RC_EPOCA !== 'undefined' ? RC_EPOCA : 0;
   if (k && (k.pend || (k.datos && k.epoca === ep && Date.now() - k.t < 60000))) return;

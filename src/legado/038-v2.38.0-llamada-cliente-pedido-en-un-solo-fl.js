@@ -30,13 +30,13 @@ db.rpc = function (fn, params, opts) {
 
 /* ---------------- selector de fecha: siempre junto a su campo ---------------- */
 
-colocarPop = (orig => function (pop, ref) {
+function colocarPop(pop, ref) {
   const d = $('seldlg');
   // v2.87.0: en móvil es una hoja pegada abajo (su estilo ya la coloca); junto al campo solo en escritorio
   if (ES_MOVIL()) { d.style.right = ''; d.style.bottom = ''; } else { d.style.right = 'auto'; d.style.bottom = 'auto'; }
   if (!d.open) d.__abierto = Date.now();
-  orig(pop, ref);
-})(colocarPop);
+  colocarPopBase(pop, ref);
+}
 
 /* ---------------- llamadas: cliente, médico, resultado y pedido en un flujo ---------------- */
 

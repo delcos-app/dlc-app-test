@@ -173,3 +173,88 @@ const VISTA_TITULO = { verCita: 'la cita', fichaCentro: 'el centro', abrirFicha:
 const vistaDlg = () => ['ficha', 'dlg'].map($).find(d => d && d.open) || null;
 
 const vistaIgual = (a, b) => a && b && a.fn === b.fn && JSON.stringify(a.args.map(x => x && x.id || x)) === JSON.stringify(b.args.map(x => x && x.id || x));
+
+/** Paginador para listas que se piden al servidor por páginas. */
+function paginadorBase(el, total, pagina, alCambiar, alCambiarTam) {
+  if (!el) return;
+  const tam = tamPagina();
+  if (total <= TAMANOS[0]) { el.innerHTML = ''; return; }
+  el.innerHTML = pagHTML(total, pagina, tam);
+  el.querySelectorAll('[data-pg]').forEach(b => b.onclick = () => alCambiar(+b.dataset.pg));
+  el.querySelector('[data-pgtam]').onchange = e => { fijarTam(+e.target.value); alCambiarTam(); };
+}
+
+async function arrancarBase() {
+  marca('inicio del arranque');
+  let guardado = null;
+  try { guardado = JSON.parse(localStorage.getItem(PKEY) || 'null'); } catch (e) {}
+  // v2.69.0: el perfil guardado solo sirve si ya trae sus capacidades y están los roles (si no, se espera al de la red)
+  if (guardado && !Array.isArray(guardado.capacidades)) guardado = null;
+  if (guardado && ROLES_DEF.length && ESTADOS_DEF.length && localStorage.getItem('dlc-os-sesion') && !APP_VISIBLE) {
+    mostrarApp(guardado);
+    marca('app visible con el perfil guardado');
+  }
+
+  const { data: { session } } = await db.auth.getSession();
+  marca('sesión comprobada');
+  if (!session) { if (!navigator.onLine && guardado && APP_VISIBLE) return;   // v2.259.0: sin conexión se sigue con el perfil guardado
+    localStorage.removeItem(PKEY); mostrarLogin(); return; }
+
+  const rolesListos = cargarRoles().catch(() => false);
+  let { data: perfil, error } = await db.from('perfiles').select('*,capacidades').eq('id', session.user.id).single();
+  // Un fallo de conexión no cierra la sesión: se reintenta y, si sigue fallando, se entra con el perfil guardado
+  for (let i = 0; i < 2 && error && error.code !== 'PGRST116'; i++) {
+    await new Promise(r => setTimeout(r, 1500));
+    ({ data: perfil, error } = await db.from('perfiles').select('*,capacidades').eq('id', session.user.id).single());
+  }
+  if (error && error.code !== 'PGRST116' && guardado) { perfil = guardado; error = null; }
+  marca('perfil recibido');
+  if (error || !perfil || !perfil.activo) {
+    // v2.117.0: si su empresa está bloqueada (prueba terminada o desactivada), se dice eso
+    const { data: acc } = await Promise.resolve(RPC_ORIG('acceso_organizacion', {})).catch(() => ({ data: null }));
+    localStorage.removeItem(PKEY);
+    await db.auth.signOut();
+    mostrarLogin(acc && acc.bloqueada ? (acc.motivo === 'prueba_terminada'
+        ? `La prueba de ${acc.organizacion} terminó el ${fechaCorta(acc.prueba_hasta)}. Tus datos se conservan: escríbenos para seguir.`
+        : `${acc.organizacion} está desactivada. Tus datos se conservan: escríbenos para volver a activarla.`)
+      : perfil && !perfil.activo ? 'Tu usuario está desactivado.'
+      : 'Tu usuario no tiene perfil en la plataforma. Avisa a administración.');
+    return;
+  }
+  try { localStorage.setItem(PKEY, JSON.stringify(perfil)); } catch (e) {}
+  if (!(await rolesListos) && !(ROLES_DEF.length && ESTADOS_DEF.length)) await cargarRoles().catch(() => false);
+  const cambio = !guardado || JSON.stringify(guardado) !== JSON.stringify(perfil);
+  if (!APP_VISIBLE) mostrarApp(perfil);
+  else if (cambio) { mostrarApp(perfil); if (TAB === 'inicio') cargarInicio(); }
+  db.rpc('registrar_acceso', { p_evento: 'Entrada', p_agente: navigator.userAgent }).catch(() => {});
+}
+
+async function volverAMiSesionBase() {
+  const s = suplantando(); if (!s) return;
+  const { error } = await db.auth.setSession({ access_token: s.access_token, refresh_token: s.refresh_token });
+  localStorage.removeItem(SKEY);
+  limpiarDatosLocales();
+  if (error) { await db.auth.signOut(); toast('Tu sesión había caducado: vuelve a entrar', true); }
+  location.reload();
+}
+
+async function volverAMiSesion() {
+  const s = suplantando();
+  pantallaCarga('Volviendo a tu sesión' + (s ? ', ' + nombrePila(s.nombre) : '') + '…');
+  await volverAMiSesionBase();
+}
+
+// Con el enlace de recuperación la plataforma no arranca ni se pinta
+async function arrancar(...a) { if (RECUPERANDO) { pantallaRecuperacion(); return; } return arrancarBase.apply(this, a); }
+
+/* ============================================================
+   v2.250.0 · Ventas sin paginadores repetidos (listas sin fantasmas, segundo grupo). Las listas de Ventas (Pedidos,
+   Oportunidades, Compras, Proveedores, Facturas, Catálogo, Servicios y Stock) ya llegaban de una vez (v2.238) y no se
+   recolocan al buscar, filtrar, pulsar un indicador, pasar de página u ordenar (prueba ventas2250). Lo que sí fallaba: en
+   Facturas y Oportunidades el paginador se crea dentro de la lista y la plantilla lo saca al pie de la tabla; al volver a
+   pintar se creaba otro y quedaban dos (con el mismo id). Ahora, antes de pintar un paginador se quita el anterior con su nombre.
+   ============================================================ */
+function paginador(el, ...a) {
+  if (el && el.id) document.querySelectorAll('#' + el.id).forEach(x => { if (x !== el) x.remove(); });
+  return paginadorBase.call(this, el, ...a);
+}

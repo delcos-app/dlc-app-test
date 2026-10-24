@@ -347,3 +347,63 @@ const PANEL_DESC = { orgs: 'Las empresas que usan delcos: plan, dominios, extras
   errores: 'Errores de la plataforma agrupados, de todas las empresas', estado: 'Versiones en uso, SQL aplicado y cifras generales',
   accesos: 'Entradas y salidas de la plataforma', auditoria: 'Cambios hechos en el panel', equipo: 'Las personas de delcos con acceso al panel',
   plantilla: 'Roles y catálogos que recibe cada empresa nueva' };
+
+function orgEstadoBase(o) {
+  const pd = o.plan_datos || {};
+  if (o.bloqueada === 'desactivada') return '<span class="pill p-anu">Desactivada</span> ';
+  if (o.bloqueada === 'prueba_terminada') return `<span class="pill p-warn">Prueba terminada el ${fechaCorta(pd.prueba_hasta)}</span> `;
+  if (pd.estado === 'prueba') return `<span class="pill p-est">Prueba hasta el ${fechaCorta(pd.prueba_hasta)}</span> `;
+  return '';
+}
+
+// Organizaciones (panel delcos): impago y cancelada a la vista
+function orgEstado(o) {
+  const pd = o.plan_datos || {};
+  if (o.bloqueada === 'cancelada') return '<span class="pill p-anu">Cancelada</span> ';
+  if (pd.estado === 'impago') return `<span class="pill p-urg">Impago desde el ${fechaCorta(pd.impago_desde)}</span> `;
+  return orgEstadoBase(o) + (pd.stripe_suscripcion ? '<span class="pill p-est">Stripe</span> ' : '');
+}
+
+// ---- Estado de la plataforma: SQL aplicado, versión publicada y versiones que usa cada empresa
+async function pintarEstadoDelcosBase() {
+  const c = $('cfgcuerpo'); if (!c) return;
+  c.innerHTML = pdEsqueleto();
+  const { data, error } = await RPC_ORIG('estado_plataforma', {});
+  if (!$('cfgcuerpo') || PAG_TAB.delcos !== 'estado') return;
+  const e = (!error && data) || {}, emp = e.empresas || {}, sql = e.sql || [], ver = e.versiones || [];
+  const ult = sql[0] || {};
+  const porVer = {}; ver.forEach(v => { (porVer[v.version] = porVer[v.version] || []).push(v); });
+  const versiones = Object.keys(porVer).sort((a, b) => b.localeCompare(a, 'es', { numeric: true }));
+  c.innerHTML = `<div class="card cfgpanel">
+    ${error ? `<div class="banda-peligro">No se ha podido leer: ${esc(error.message)}</div>` : ''}
+    ${pdKpis([[esc('v' + VERSION_APP), 'versión de esta app'], [ult.numero ? 'SQL ' + ult.numero : '—', ult.version_app ? 'base en ' + ult.version_app : 'base'],
+      [num(emp.activas || 0) + ' / ' + num(emp.total || 0), 'empresas activas'], [num(e.usuarios || 0), 'usuarios activos' + (e.portal ? ' · ' + num(e.portal) + ' del portal' : '')],
+      [num(e.errores || 0), 'errores sin resolver (15 días)', e.errores ? 'aviso' : '']])}
+    <h3 class="pdh3">Versiones en uso (30 días)</h3>
+    ${versiones.length ? versiones.map(v => `<div class="pdver"><div class="pdvercab"><b>v${esc(v.replace(/^v/, ''))}</b>${v.replace(/^v/, '') === VERSION_APP ? ' <span class="pill p-est">la actual</span>' : ' <span class="pill p-warn">anterior</span>'}
+        <span class="sm">${porVer[v].length} ${porVer[v].length === 1 ? 'empresa' : 'empresas'}</span></div>
+      <div class="sm">${porVer[v].map(x => `${esc(x.organizacion)} (${pdHace(x.ultima_vez)})`).join(' · ')}</div></div>`).join('')
+      : '<div class="vacio">Ninguna empresa ha abierto la app en los últimos 30 días.</div>'}
+    <h3 class="pdh3">Últimos SQL aplicados en esta base</h3>
+    <div class="tablawrap"><table class="pdtabla"><thead><tr><th>SQL</th><th>Versión</th><th>Qué cambia</th><th>Aplicado</th></tr></thead><tbody>
+      ${sql.map(s => `<tr><td class="num">${s.numero}</td><td>${esc(s.version_app || '')}</td><td class="sm">${esc(s.descripcion || '')}</td><td class="sm">${pdFecha(s.aplicado_en)}</td></tr>`).join('')}</tbody></table></div>
+    <p class="sm">Esto es la base de ${EN_PRUEBAS ? '<b>pruebas</b>' : '<b>producción</b>'}. La de ${EN_PRUEBAS ? 'producción' : 'pruebas'} se mira desde su propio panel.</p></div>`;
+}
+
+// ---- Uso del servicio de rutas en Estado de la plataforma
+async function pintarEstadoDelcos(...a) {
+  const p = Promise.resolve(RPC_ORIG('rutas_uso_resumen', {})).catch(() => ({}));
+  await pintarEstadoDelcosBase.apply(this, a);
+  const { data: u } = (await p) || {};
+  const c = $('cfgcuerpo'); if (!c || PAG_TAB.delcos !== 'estado' || !u || !u.ok) return;
+  const card = c.querySelector('.card.cfgpanel'), pie = card && [...card.querySelectorAll(':scope > p.sm')].pop(); if (!card) return;
+  const cfg = u.config || {}, glob = +cfg.global || 2000, emp = u.empresas || [];
+  const html = `<h3 class="pdh3">Servicio de rutas (TomTom)</h3>
+    ${pdKpis([[num(u.hoy || 0) + ' / ' + num(glob), 'peticiones hoy, entre todas las empresas', (u.hoy || 0) >= glob * 0.8 ? 'aviso' : ''],
+      [num(u.mes || 0), 'peticiones este mes'], [cfg.activo === false ? 'Apagado' : 'Activo', 'servicio', cfg.activo === false ? 'aviso' : ''],
+      [num(+cfg.por_usuario || 30), 'por usuario activo y día']])}
+    ${emp.length ? `<div class="tablawrap"><table class="pdtabla"><thead><tr><th>Empresa</th><th class="num">Hoy</th><th class="num">Cupo diario</th><th class="num">Este mes</th></tr></thead><tbody>
+      ${emp.map(x => `<tr><td>${esc(x.nombre)}</td><td class="num" style="${x.hoy >= x.cupo ? 'color:var(--warn);font-weight:700' : ''}">${num(x.hoy)}</td><td class="num">${num(x.cupo)}</td><td class="num">${num(x.mes)}</td></tr>`).join('')}</tbody></table></div>`
+      : '<div class="vacio">Ninguna empresa ha usado el servicio de rutas este mes.</div>'}`;
+  if (pie) pie.insertAdjacentHTML('beforebegin', html); else card.insertAdjacentHTML('beforeend', html);
+}

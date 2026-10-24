@@ -14,28 +14,6 @@ async function cargarSeguimiento() {
   await cargarSeguimientoPaso2();
 }
 
-async function cargarSeguimientoPaso1() {
-  const v = $('v-seguimiento');
-  v.querySelector('.saludo h1').firstChild.textContent = 'Calidad del dato';
-  v.querySelector('.saludo .fecha').textContent = `Fichas completas, datos que faltan y avance de cada ${TT('medico', 's', '', 'l', 'l')}`;
-  const { data: q } = await RPC_ORIG('calidad_datos', {});
-  if (!q || $('calidad')) return;
-  const pct = (a, b) => b ? Math.round(a / b * 100) : 0;
-  const item = (n, t, h) => `<div class="kpi ${n ? 'warn' : 'ok'}"><button class="ai" data-ayuda-txt="${esc(h)}" data-ayuda-tit="${esc(t)}" aria-label="Qué es">i</button><b>${num(n)}</b><span>${esc(t)}</span></div>`;
-  v.querySelector('.saludo').insertAdjacentHTML('afterend', `<div class="card" id="calidad" style="padding-bottom:6px">
-    <div class="manh" style="padding:14px 16px 0"><h2 style="padding:0">Fichas completas: ${pct(q.completas, q.total)}%</h2><span class="sm">${num(q.completas)} de ${num(q.total)} ${TT('medico', 'p', '', 'l', 'l')}</span></div>
-    <div class="barra" style="margin:8px 16px 10px"><i style="width:${pct(q.completas, q.total)}%"></i></div>
-    <div class="kpis" style="padding:0 16px 10px">
-      ${item(q.sin_ubicacion, 'sin ubicación', `Sin coordenadas en ${TT('consulta', 's', 'ningun', 'l', 'l')}: no entran en rutas ni en el mapa.`)}
-      ${item(q.sin_horario, 'sin horario de atención', 'Sin días ni horas de atención: las rutas no pueden ajustarse a su horario.')}
-      ${item(q.sin_especialidad, 'sin ' + TT('especialidad', 's', '', 'l', 'l'), `Sin ${TT('especialidad', 's', '', 'l', 'l')} en la ficha: no se pueden filtrar ni analizar por ${TT('especialidad', 's', '', 'l', 'l')}.`)}
-      ${item(q.sin_contacto, 'sin teléfono ni email', `No hay forma de contactar con ellos fuera ${TT('visita', 's', 'del', 'l', 'l')}.`)}
-      ${item(q.sin_provincia, 'sin provincia', 'Sin provincia no se pueden asignar por zona a un comercial.')}
-      ${item(q.sin_comercial, 'sin comercial', `${TT('medico', 'p', '', 'l', 'C')} que no están en ninguna cartera.`)}
-      ${item(q.duplicados, 'pendientes de unificar', 'Fichas marcadas como posibles duplicados.')}
-    </div>
-    <p class="sm" style="padding:0 16px 10px">Una ficha completa tiene ubicación, horario, ${TT('especialidad', 's', '', 'l', 'l')} y teléfono o email. Debajo, el avance de cada ${TT('medico', 's', '', 'l', 'l')}.</p></div>`);
-}
 
 
 

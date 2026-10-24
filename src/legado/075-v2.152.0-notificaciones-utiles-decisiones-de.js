@@ -138,10 +138,6 @@ document.addEventListener('click', e => {
     return prev.apply(this, a);
   };
 });
-refrescarAnalitica = (orig => function (...a) {
-  if (TAB !== 'analitica' || !$('atabla') || !$('atabla2')) return;
-  return orig.apply(this, a);
-})(refrescarAnalitica);
 
 if (PAGINAS.delcos && !PAGINAS.delcos.tabs.some(t => t[0] === 'errores')) PAGINAS.delcos.tabs.push(['errores', 'Errores', () => pintarErroresDelcos()]);
 // Producción (3/10/2026): en el iPhone, sin cobertura, Safari da «Load failed» o «Fetch is aborted». Eso no es un fallo de la plataforma:
@@ -212,17 +208,6 @@ pintarPaginaPlan = (orig => async function (...a) {
   return r;
 })(pintarPaginaPlan);
 
-// Aviso arriba si hay un cobro pendiente o la cuenta está en solo lectura
-function pagoAviso() {
-  const e = PAGO_ESTADO || {}, pl = e.plan || {}; let el = $('pagoaviso');
-  const msg = e.solo_lectura ? 'Tu empresa está en <b>solo lectura</b> porque hay un pago pendiente. Puedes consultar y exportar; para volver a trabajar, actualiza el pago.'
-    : pl.estado === 'impago' ? 'No hemos podido cobrar tu suscripción. Actualiza el método de pago antes de 14 días para no quedarte en solo lectura.' : '';
-  if (!msg) { if (el) el.remove(); return; }
-  const main = document.querySelector('main'); if (!main) return;
-  if (!el) { main.insertAdjacentHTML('afterbegin', '<div id="pagoaviso" class="banda-peligro" role="alert"></div>'); el = $('pagoaviso'); }
-  el.innerHTML = msg + (puedeOrganizacion() ? ' <button type="button" class="btn sec" id="pgavbtn">Gestionar el pago</button>' : ' Avisa a quien gestiona la cuenta de tu empresa.');
-  if ($('pgavbtn')) $('pgavbtn').onclick = ev => pagoPortal(ev.target);
-}
 async function pagoCargarEstado() {
   const { data } = await RPC_ORIG('plan_uso', {});
   if (!data) return;
@@ -247,26 +232,8 @@ registrarError = (orig => function (tipo, mensaje, detalle) {
   if (PAGO_ESTADO && PAGO_ESTADO.solo_lectura && /row-level security|violates row-level/i.test(String(mensaje))) return;
   return orig.call(this, tipo, mensaje, detalle);
 })(registrarError);
-// Organizaciones (panel delcos): impago y cancelada a la vista
-orgEstado = (orig => function (o) {
-  const pd = o.plan_datos || {};
-  if (o.bloqueada === 'cancelada') return '<span class="pill p-anu">Cancelada</span> ';
-  if (pd.estado === 'impago') return `<span class="pill p-urg">Impago desde el ${fechaCorta(pd.impago_desde)}</span> `;
-  return orig(o) + (pd.stripe_suscripcion ? '<span class="pill p-est">Stripe</span> ' : '');
-})(orgEstado);
 
 aplicarPermisosMenu = (orig => function (...a) { const r = orig.apply(this, a); try { candadoSecciones(); } catch (e) {} return r; })(aplicarPermisosMenu);
-avisoPlan = (orig => function (mod) {
-  if (!(mod in PLAN_SECCIONES)) return orig.call(this, mod);
-  const p = planDe(PLAN_SECCIONES[mod][0]), n = TITULO_PEDSEC[mod] ? TITULO_PEDSEC[mod][0] : mod;
-  $('dbody').innerHTML = `<div class="fh"><div><h2>${esc(n)}</h2><div class="sm">No está incluido en tu plan ${esc(planDe(PLAN_ACTUAL.plan).nombre)}</div></div>
-    <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-    <p>Está disponible desde el plan <b>${esc(p.nombre)}</b> (${precioPlan(p)}).</p>
-    <ul class="manlist">${p.ventajas.map(v => `<li><span>✓</span><span>${esc(v)}</span></li>`).join('')}</ul>
-    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>Ahora no</button>${puedeOrganizacion() ? '<button class="btn" id="vplan">Ver planes</button>' : ''}</div>`;
-  $('dlg').showModal();
-  if ($('vplan')) $('vplan').onclick = () => { $('dlg').close(); CFG_SEC = 'plan'; ir('config'); };
-})(avisoPlan);
 ir = (orig => function (t, ...a) {
   if (t in PLAN_SECCIONES && PERFIL && !ES_MEDICO() && !planIncluyeSeccion(t)) { avisoPlan(t); return; }
   return orig.call(this, t, ...a);

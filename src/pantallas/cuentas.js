@@ -1005,3 +1005,134 @@ const esConsultaPrivada = c => { if (c && c.id) return false; const n = String((
    ventanas anchas (comparar, importar…) siguen como estaban, y Configuración sigue sin ventanas emergentes.
    ============================================================ */
 let FX_FICHA = 0;
+
+function abrirHorarioPlan() {
+  abrirHorarioPlanBase();
+  const ayuda = {
+    hsal: `A qué hora sales. La ${TT('visita', 's', 'primer', 'l', 'l')} se calcula desde aquí o desde ahora, si esa hora ya ha pasado.`,
+    htop: `Hora de vuelta de la ruta. No se planifican ${TT('visita', 'p', '', 'l', 'l')} que te hagan volver más tarde; si el día se pasa, se marca en naranja.`,
+    hvis: `Lo que dura de media cada ${TT('visita', 's', '', 'l', 'l')} con ${TT('medico', 's', 'un', 'l', 'l')}, una vez allí.`,
+    hpar: `Tiempo extra cada vez que llegas a un sitio nuevo: aparcar, entrar, esperar en recepción. Si ves a varios ${TT('medico', 'p', '', 'l', 'l')} en el mismo centro, se cuenta una sola vez.`
+  };
+  Object.entries(ayuda).forEach(([id, t]) => { const i = $(id); if (i && !i.parentElement.querySelector('.ayudah')) i.insertAdjacentHTML('afterend', `<span class="sm ayudah">${esc(t)}</span>`); });
+  const fh = $('dbody').querySelector('.fh');
+  if (fh && !$('horinfo')) fh.insertAdjacentHTML('afterend', `<p class="sm" id="horinfo">Con estos datos se calculan las horas estimadas de tus rutas, de «Tu día» y del planificador semanal. Los desplazamientos entre ${TT('visita', 'p', '', 'l', 'l')} se estiman por la distancia.</p>`);
+}
+
+function tarjetaCentroBase(c, enlazado) {
+  const hor = c.horario && Object.keys(c.horario).length ? c.horario : null;
+  const hoy = hor && hor[hoyLetra()];
+  return `<div class="cpcard"><div class="cpcab"><b>${esc(c.nombre || 'Sin nombre')}</b>
+      ${enlazado ? '' : '<span class="pill p-warn" title="' + TT('consulta', 's', 'este', 'C', 'l') + ' aún no está enlazada con un centro de la base">Sin enlazar</span>'}</div>
+    <span class="sm">${esc([c.direccion, [c.cp, c.municipio].filter(Boolean).join(' ')].filter(Boolean).join(' · ') || 'Sin dirección')}</span>
+    ${c.telefono ? `<span class="sm">☎ <a href="tel:${esc(c.telefono)}">${esc(c.telefono)}</a></span>` : ''}
+    ${hor ? `<span class="sm">🕘 ${hoy ? `<b>Hoy ${esc(hoy)}</b> · ` : ''}${esc(txtHorario(hor))}</span>` : enlazado ? '<span class="sm" style="color:var(--muted)">Sin horario de apertura</span>' : ''}
+    ${c.lat ? '' : '<span class="sm" style="color:var(--warn)">Sin ubicación: no saldrá en rutas ni en el mapa</span>'}
+    <div class="acts" style="margin:8px 0 0;flex-wrap:wrap">
+      ${c.lat ? `<button type="button" class="btn sec" data-nav="${navAttr([+c.lat, +c.lon])}">Cómo llegar</button>` : ''}
+      ${enlazado ? '<button type="button" class="btn sec" data-cpeditar>Editar centro</button>' : '<button type="button" class="btn" data-cpenlazar>Enlazar con un centro</button>'}
+      <button type="button" class="btn sec" data-cpcambiar>Cambiar</button></div></div>`;
+}
+
+// Formulario de centro (nuevo o corregir): los mismos datos de siempre, con horario de apertura
+function formCentroBase(box, i, c, aviso) {
+  const cont = box.querySelector(`[data-cp="${i}"]`); if (!cont) return;
+  c = c || {}; const hor = c.horario || {}, k = 'cf' + i + '_';
+  if (c.privada) { pintarCentroSel(box, i); return; }
+  cont.innerHTML = `<div class="cpform">
+    <div class="cpformcab"><b>${c.id ? 'Editar centro' : 'Centro nuevo'}</b>${aviso ? `<span class="sm cpaviso">${esc(aviso)}</span>` : ''}</div>
+    <div class="g2"><div><label for="${k}n">Nombre del centro</label><input id="${k}n" value="${esc(c.nombre || '')}" placeholder="p. ej. Centro Sagrada Família"></div>
+      <div><label for="${k}t">Teléfono</label><input id="${k}t" value="${esc(c.telefono || '')}" inputmode="tel"></div></div>
+    <div class="g2"><div><label for="${k}d">Dirección</label><input id="${k}d" value="${esc(c.direccion || '')}"></div>
+      <div><label for="${k}c">Código postal</label><input id="${k}c" value="${esc(c.cp || '')}" inputmode="numeric"></div></div>
+    <div class="g2"><div><label for="${k}m">Población</label><input id="${k}m" value="${esc(c.municipio || '')}"></div>
+      <div><label for="${k}p">Provincia</label><input id="${k}p" value="${esc(c.provincia || '')}"></div></div>
+    <div class="cpubi sm">${c.lat ? '<b style="color:var(--ok)">✓ Ubicado</b>' : 'Sin ubicación todavía'} <button type="button" class="lnk" data-cpgeo>🔎 Buscar la dirección en el mapa</button></div>
+    <label>Horario de apertura</label>
+    <div class="cphor">${DIAS_SEM.map(([d, n]) => `<div><span>${n}</span><input data-hd="${d}" value="${esc(hor[d] || '')}" placeholder="${d === 'D' ? 'Cerrado' : '8:00-20:00'}"></div>`).join('')}</div>
+    <button type="button" class="lnk" data-cpcopiar>Copiar el horario del lunes al resto de días laborables</button>
+    <div class="acts" style="justify-content:flex-end;margin:10px 0 0"><button type="button" class="btn sec" data-cpcancel>Cancelar</button><button type="button" class="btn" data-cpguardar>${c.id ? 'Guardar cambios' : 'Crear centro'}</button></div></div>`;
+  let lat = c.lat != null && c.lat !== '' ? +c.lat : null, lon = c.lon != null && c.lon !== '' ? +c.lon : null;
+  const val = x => $(k + x).value.trim();
+  cont.querySelector('[data-cpcopiar]').onclick = () => { const l = cont.querySelector('[data-hd="L"]').value; ['M', 'X', 'J', 'V'].forEach(d => { cont.querySelector(`[data-hd="${d}"]`).value = l; }); };
+  cont.querySelector('[data-cpgeo]').onclick = async e => {
+    const q = [val('d'), val('c'), val('m'), val('p'), 'España'].filter(Boolean).join(', ');
+    if (!val('d') && !val('m')) { toast('Escribe la dirección o la población', true); return; }
+    e.target.textContent = 'Buscando…';
+    const r = await geocodificar(q, { direccion: val('d'), municipio: val('m'), cp: val('c') }).catch(() => null);
+    e.target.textContent = '🔎 Buscar la dirección en el mapa';
+    if (!r) { toast('No se ha encontrado esa dirección. Prueba con calle, número y población.', true); return; }
+    if (r.fuera) { toast(`Esa dirección sale en ${r.fuera}, no en ${val('m')}: revísala`, true); return; }
+    lat = +r.lat; lon = +r.lon;
+    const a = r.address || {};
+    if (!val('c') && a.postcode) $(k + 'c').value = a.postcode;
+    if (!val('m')) $(k + 'm').value = (a.city || a.town || a.village || a.municipality || '').toUpperCase();
+    if (!val('p')) $(k + 'p').value = (a.province || a.state_district || a.county || '').toUpperCase();
+    cont.querySelector('.cpubi').firstChild.replaceWith(Object.assign(document.createElement('b'), { style: 'color:var(--ok)', textContent: '✓ Ubicado ' }));
+  };
+  cont.querySelector('[data-cpcancel]').onclick = () => pintarCentroSel(box, i, c.id ? undefined : 'buscar');
+  cont.querySelector('[data-cpguardar]').onclick = async ev => {
+    if (!val('n')) { toast('Escribe el nombre del centro', true); $(k + 'n').focus(); return; }
+    const horario = {}; cont.querySelectorAll('[data-hd]').forEach(x => { if (x.value.trim()) horario[x.dataset.hd] = x.value.trim(); });
+    ev.target.disabled = true;
+    const { data, error } = await RPC_ORIG('guardar_centro', { p: { id: c.id || null, nombre: val('n'), telefono: val('t'), direccion: val('d'), cp: val('c'), municipio: val('m'), provincia: val('p'), lat, lon, horario } });
+    ev.target.disabled = false;
+    if (error || !data || !data.ok) { toast('No se ha podido guardar el centro' + (data && data.error ? ': ' + (data.error === 'permiso' ? 'no tienes permiso' : data.error) : ''), true); return; }
+    cpPoner(box, i, data.centro); pintarCentroSel(box, i);
+    toast(c.id ? 'Centro actualizado' : 'Centro creado y elegido');
+  };
+  $(k + 'n').focus();
+}
+
+function tarjetaCentro(c, enlazado) {
+  if (enlazado || !esConsultaPrivada(c)) return tarjetaCentroBase.call(this, c, enlazado);
+  const dir = [c.direccion, [c.cp, c.municipio].filter(Boolean).join(' ')].filter(Boolean).join(' · ');
+  return `<div class="cpcard cppriv"><div class="cpcab"><b>${consultaPrivada()}</b><span class="pill p-est">Sin centro</span></div>
+    <span class="sm">${esc(dir || 'Sin dirección todavía')}</span>
+    ${c.lat ? '' : `<span class="sm" style="color:var(--warn)">${dir ? 'Sin ubicación: no saldrá en rutas ni en el mapa' : 'Añade la dirección para que salga en rutas y en el mapa'}</span>`}
+    <div class="acts" style="margin:8px 0 0;flex-wrap:wrap">
+      ${c.lat ? `<button type="button" class="btn sec" data-nav="${navAttr([+c.lat, +c.lon])}">Cómo llegar</button>` : ''}
+      <button type="button" class="btn ${dir ? 'sec' : ''}" data-cpeditar>${dir ? 'Editar ' + TT('consulta', 's', 'el', 'l', 'l') : 'Añadir la dirección'}</button>
+      <button type="button" class="btn sec" data-cpcambiar>Cambiar</button></div></div>`;
+}
+
+function formCentro(box, i, c, aviso) {
+  if (c && (c.privada || esConsultaPrivada(c))) return formPrivada(box, i);
+  return formCentroBase.call(this, box, i, c, aviso);
+}
+
+async function centroPintarBase() {
+  if (!$('mdcuerpo')) return;
+  const [{ data: prods }, { data: mp }, { data: f }] = await Promise.all([RPC_ORIG('productos_portal', {}), RPC_ORIG('mis_pedidos_portal', {}),
+    PM.ficha ? Promise.resolve({ data: null }) : RPC_ORIG('portal_mi_ficha', {})]);
+  if (f && f.ok) pmFichaDatos(f);
+  if (!$('mdcuerpo')) return;
+  if (mp && mp.nombre) $('ctnom').textContent = mp.nombre;
+  const lp = Array.isArray(prods) ? prods : [], peds = (mp && mp.pedidos) || [], pp = (mp && mp.por_producto) || [];
+  window.PC_ANT = !!(mp && mp.pago_anticipado);   // v2.284.0
+  const conIva = x => r2((+x.precio || 0) * (1 + (+x.iva || 0) / 100));
+  const enMarcha = peds.filter(p => p.estado !== 'Anulado' && p.estado !== 'Preparado').length;
+  const uds = pp.reduce((s, x) => s + (+x.unidades || 0), 0);
+  const ult = peds.length ? String(peds[0].fecha).slice(0, 10) : null;
+  const falta = PM.faltan.length ? `<div class="pmaviso"><div><b>Completa la ficha de tu centro</b><span class="sm">Falta ${esc(pmFaltaTxt())}. Así tu comercial sabe cuándo os va mejor que pase.</span></div>
+      <button type="button" class="btn" data-pmir="ficha">Completar la ficha</button></div>` : '';
+  $('mdcuerpo').innerHTML = `${pcDebeHtml(peds)}${falta}
+    <div class="pmk">
+      <div class="kpi"><b>${num(enMarcha)}</b><span>pedidos en marcha</span></div>
+      <div class="kpi"><b>${ult ? fechaCorta(ult) : '—'}</b><span>último pedido</span></div>
+      <div class="kpi"><b>${num(uds)}</b><span>unidades en 12 meses</span></div>
+      <div class="kpi"><b>${num(lp.length)}</b><span>productos para pedir</span></div></div>
+    <div class="pmfila">
+      <div class="card ancard pcpeds"><h2>Tus pedidos ${pmAyu('Tus pedidos', 'Los pedidos de reposición que habéis hecho y en qué punto están: pendiente de confirmar por tu comercial, pendiente de pago (si se paga por adelantado), confirmado, preparado o anulado. Cada pedido lleva los lotes que se os han enviado y sus facturas para descargar.')}</h2>
+        ${peds.length ? `<div class="lista">${peds.slice(0, 8).map(p => `<div class="item"><span class="tx">
+            <b>${p.numero ? esc(p.numero) + ' · ' : ''}${fechaCorta(String(p.fecha).slice(0, 10))}</b>
+            <span class="sm">${esc((p.lineas || []).map(l => `${l.producto} × ${num(l.unidades)}${l.regalo ? ' de regalo' : ''}`).join(', '))}${p.total != null ? ' · ' + eurI(p.total) : ''}</span>${pcExtraPed(p)}</span>
+            <span class="pcpst"><span class="pill ${NOMBRE_ESTADO_CENTRO[p.estado] || ''}">${esc(p.estado)}</span>${p.proforma ? `<button type="button" class="btn sec chico" data-pcpro="${p.id}">Factura proforma</button>` : ''}</span></div>`).join('')}</div>` : '<p class="sm">Todavía no hay pedidos.</p>'}</div>
+      <div class="card ancard"><h2>Lo que habéis comprado ${pmAyu('Lo que habéis comprado', 'Unidades de los últimos 12 meses por producto, de los pedidos confirmados.')}</h2>
+        ${pp.length ? barrasH(pp.map(x => ({ n: x.producto, v: x.unidades })), v => num(v) + ' uds.') : vacioGrafico('Aparecerá cuando tengáis pedidos confirmados.')}</div></div>`;
+  $('mdcuerpo').querySelectorAll('[data-pmir]').forEach(b => b.onclick = () => pmTab(b.dataset.pmir));
+  pcPintarPedido(lp);   // v2.283.0: por packs
+  pmPintarFicha();
+}
+
+async function centroPintar(...a) { const r = await centroPintarBase.apply(this, a); try { await pcDescargas(); } catch (e) {} return r; }

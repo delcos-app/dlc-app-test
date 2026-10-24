@@ -405,3 +405,110 @@ const tvSub = () => {
    producto nuevo presentado) y de seguimiento, cuántas acaban en pedido, y lo mismo por persona del equipo.
    ============================================================ */
 const TV_TIPOS = [['captacion', 'Captación'], ['presentacion', 'Presentación'], ['seguimiento', 'Seguimiento']];
+
+async function pintarTablaAnaliticaBase() {
+  const caja = $('atabla2');
+  cargando(caja, 'Calculando la tabla…');
+  const { data, error } = await db.rpc('analitica_tabla', {
+    p_dim: $('adim').value === 'mes' ? 'producto' : $('adim').value,
+    p_desde: $('adesde').value || null, p_hasta: $('ahasta').value || null,
+    p_canal: $('acanal').value || null, p_medida: $('amedida') ? $('amedida').value : 'unidades', lim: 30
+  });
+  if (error) { caja.innerHTML = `<div class="vacio">${esc(error.message)}</div>`; return; }
+  const meses = data.meses || [], filas = data.filas || [];
+  if (!filas.length) { caja.innerHTML = '<div class="vacio">Sin datos en este periodo.</div>'; return; }
+  const fmt = v => data.medida === 'importe' ? eur(v) : num(v);
+  const totMes = {};
+  filas.forEach(f => meses.forEach(m => totMes[m] = (totMes[m] || 0) + (+(f.meses || {})[m] || 0)));
+
+  caja.innerHTML = `<div class="tabla"><div style="min-width:${180 + meses.length * 110}px">
+    <div class="thead"><span class="tcell th" style="width:220px;min-width:220px">Concepto</span>
+      ${meses.map(m => `<span class="tcell th" style="width:110px;min-width:110px;text-align:right">${esc(m.slice(5))}/${esc(m.slice(2, 4))}</span>`).join('')}
+      <span class="tcell th" style="width:120px;min-width:120px;text-align:right">Total</span></div>
+    ${filas.map(f => `<div class="trow" style="cursor:default">
+      <span class="tcell" style="width:220px;min-width:220px"><b>${esc(f.nombre)}</b></span>
+      ${meses.map(m => `<span class="tcell" style="width:110px;min-width:110px;text-align:right">${
+        (f.meses || {})[m] ? fmt((f.meses || {})[m]) : '<span class="sm">·</span>'}</span>`).join('')}
+      <span class="tcell" style="width:120px;min-width:120px;text-align:right"><b>${fmt(f.total)}</b></span></div>`).join('')}
+    <div class="trow" data-fijo style="cursor:default;background:var(--bg)">
+      <span class="tcell" style="width:220px;min-width:220px"><b>Total</b></span>
+      ${meses.map(m => `<span class="tcell" style="width:110px;min-width:110px;text-align:right"><b>${fmt(totMes[m] || 0)}</b></span>`).join('')}
+      <span class="tcell" style="width:120px;min-width:120px;text-align:right"><b>${fmt(filas.reduce((n, f) => n + (+f.total || 0), 0))}</b></span></div>
+  </div></div>`;
+
+  window.__ANTABLA = filas.map(f => {
+    const o = { concepto: f.nombre };
+    meses.forEach(m => o[m] = (f.meses || {})[m] || 0);
+    o.total = f.total;
+    return o;
+  });
+}
+
+function refrescarAnaliticaBase() {
+  pintarAnalitica();
+  if (!$('atabla2').classList.contains('hide')) pintarTablaAnalitica();
+}
+
+async function pintarTablaAnalitica() {
+  await pintarTablaAnaliticaBase();
+  const caja = $('atabla2'); if (!caja || !caja.querySelector('.thead')) return;
+  const dim = $('adim') ? $('adim').selectedOptions[0].textContent.toLowerCase() : 'concepto';
+  const med = $('amedida') && $('amedida').value === 'importe' ? 'importe sin IVA' : 'unidades vendidas';
+  caja.insertAdjacentHTML('afterbegin', `<div class="tabinfo"><b>Tabla mensual de ${esc(med)} por ${esc(dim.replace(/^por /, ''))}</b>
+    <span>Cada fila es un ${esc(dim.replace(/^por /, ''))} y cada columna un mes del periodo elegido. La última columna suma la fila y la última fila suma cada mes. «·» = sin ventas ese mes. Cuanto más intenso el azul, más alto el valor.</span></div>`);
+  caja.querySelectorAll('.thead .tcell.th').forEach(c => { const m = c.textContent.match(/^(\d{2})\/(\d{2})$/); if (m) c.textContent = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'][+m[1] - 1] + ' ' + m[2]; });
+  const filas = [...caja.querySelectorAll('.trow:not([data-fijo])')], vals = [];
+  filas.forEach(f => [...f.children].slice(1, -1).forEach(c => vals.push(parseFloat(c.textContent.replace(/\./g, '').replace(',', '.').replace(/[^\d.-]/g, '')) || 0)));
+  const max = Math.max(1, ...vals);
+  filas.forEach(f => [...f.children].slice(1, -1).forEach(c => {
+    const v = parseFloat(c.textContent.replace(/\./g, '').replace(',', '.').replace(/[^\d.-]/g, '')) || 0;
+    if (v) c.style.background = `rgba(46,134,201,${(0.08 + v / max * 0.42).toFixed(2)})`;
+  }));
+}
+
+// [id, área, título, formato, mejor si sube (true/false/null), ayuda, a hoy, solo con importes, por defecto]
+function anCatalogoBase() {
+  const med = TT('medico', 'p', '', 'l', 'l'), vis = TT('visita', 'p', '', 'l', 'l'), vis1 = TT('visita', 's', '', 'l', 'l');
+  return [
+    ['importe', 'ventas', 'Ventas sin IVA', 'eur', true, 'Importe sin IVA de los pedidos completados, con el descuento de cada línea.', false, true, true],
+    ['unidades', 'ventas', 'Unidades vendidas', 'num', true, 'Unidades de los pedidos completados.', false, false, true],
+    ['pedidos', 'ventas', 'Pedidos', 'num', true, 'Pedidos completados en el periodo.', false, false, false],
+    ['ticket', 'ventas', 'Ticket medio', 'eur', true, 'Importe medio de cada pedido.', false, true, true],
+    ['web_pct', 'ventas', 'Ventas por la web', 'pct', true, 'Parte del importe que llega en pedidos marcados como «por la web».', false, true, true],
+    ['margen', 'ventas', 'Margen bruto', 'eur', true, 'Ventas menos el coste de los productos vendidos. Solo cuenta los productos con coste: ponlo en cada producto.', false, true, false],
+    ['margen_pct', 'ventas', 'Margen bruto (%)', 'pct', true, 'Margen bruto sobre las ventas de los productos con coste.', false, true, false],
+    ['top10_pct', 'ventas', `Peso de los 10 primeros ${med}`, 'pct', false, `Qué parte de las ventas atribuidas hacen los 10 ${med} que más venden. Cuanto más alto, más depende el negocio de pocos.`, false, true, false],
+    ['clientes', 'clientes', 'Clientes que compran', 'num', true, 'Clientes distintos con algún pedido confirmado en el periodo.', false, false, true],
+    ['clientes_nuevos', 'clientes', 'Clientes nuevos', 'num', true, 'Clientes cuyo primer pedido es de este periodo.', false, false, false],
+    ['repiten_pct', 'clientes', 'Clientes que repiten', 'pct', true, 'De los que compran en el periodo, cuántos ya habían comprado antes.', false, false, true],
+    ['perdidos', 'clientes', 'Clientes perdidos', 'num', false, 'Compraron en el último año y llevan más de 90 días sin comprar (al final del periodo).', false, false, true],
+    ['valor_cliente', 'clientes', 'Valor por cliente', 'eur', true, 'Importe medio comprado por cada cliente en el periodo.', false, true, false],
+    ['visitas', 'equipo', `${TT('visita', 'p', '', 'l', 'C')}`, 'num', true, `${TT('visita', 'p', '', 'l', 'C', 'registrado')} en el periodo.`, false, false, false],
+    ['visitas_dia', 'equipo', `${TT('visita', 'p', '', 'l', 'C')} por día`, 'dec', true, `Media de ${vis} de cada persona en los días que trabaja en la calle.`, false, false, true],
+    ['citas_pct', 'equipo', 'Citas cumplidas', 'pct', true, `De las citas del periodo hasta hoy (sin contar las aplazadas), cuántas acabaron en ${vis1}.`, false, false, false],
+    ['cobertura_pct', 'equipo', 'Cobertura de la cartera', 'pct', true, `Parte de la cartera con alguna ${vis1} en los 60 días anteriores al final del periodo.`, false, false, true],
+    ['conversion_pct', 'equipo', `Conversión ${vis1} → venta`, 'pct', true, `De ${TT('medico', 'p', 'el', 'l', 'l', 'visitado')} en el periodo, cuántos tienen ventas atribuidas en los 30 días siguientes a la primera ${vis1}.`, false, false, true],
+    ['activados', 'equipo', `${TT('medico', 'p', '', 'l', 'C')} activados`, 'num', true, `${TT('medico', 'p', '', 'l', 'C')} cuya primera venta atribuida es de este periodo.`, false, false, false],
+    ['op_abiertas', 'oportunidades', 'Oportunidades abiertas', 'num', null, 'Oportunidades del periodo que aún no se han cerrado.', false, false, false],
+    ['cierre_pct', 'oportunidades', 'Tasa de cierre', 'pct', true, 'De las oportunidades cerradas, cuántas acabaron en pedido.', false, false, true],
+    ['ganado', 'oportunidades', 'Importe ganado', 'eur', true, 'Importe estimado de las oportunidades que acabaron en pedido.', false, true, true],
+    ['perdido', 'oportunidades', 'Importe perdido', 'eur', false, 'Importe estimado de las oportunidades que no compraron.', false, true, false],
+    ['motivo_perdida', 'oportunidades', 'Motivo principal de pérdida', 'txt', null, 'El resultado más repetido entre las oportunidades que no compraron.', false, false, false],
+    ['facturado', 'cobros', 'Facturado', 'eur', true, 'Total de las facturas emitidas en el periodo (las rectificativas restan).', false, true, false],
+    ['pendiente', 'cobros', 'Pendiente de cobro', 'eur', null, 'Lo que falta por cobrar de todas las facturas, a día de hoy.', true, true, true],
+    ['vencido', 'cobros', 'Vencido', 'eur', false, 'Lo pendiente de cobro con el vencimiento ya pasado, a día de hoy.', true, true, true],
+    ['dias_cobro', 'cobros', 'Días medios de cobro', 'dias', false, 'Días entre la factura y su cobro, de las cobradas en el periodo.', false, true, false],
+    ['valor_stock', 'stock', 'Valor del stock', 'eur', null, 'Unidades en almacén por el coste de cada producto, a día de hoy.', true, true, true],
+    ['bajo_minimo', 'stock', 'Productos bajo mínimo', 'num', false, 'Productos activos con menos stock que su mínimo, a día de hoy.', true, false, true],
+    ['caducan', 'stock', 'Lotes que caducan en 90 días', 'num', false, 'Lotes con unidades que caducan en los próximos 90 días.', true, false, false],
+    ['compras', 'stock', 'Compras del periodo', 'eur', null, 'Importe de los pedidos de compra del periodo (sin los cancelados).', false, true, false]
+  ].map(([id, fam, t, fmt, sube, ayuda, hoy, imp, def]) => ({ id, fam, t, fmt, sube, ayuda, hoy, imp, def }));
+}
+
+function refrescarAnalitica(...a) {
+  if (TAB !== 'analitica' || !$('atabla') || !$('atabla2')) return;
+  return refrescarAnaliticaBase.apply(this, a);
+}
+
+// v2.320.0 · Fuera el indicador «Conversión visita → venta» (decisión de Eric): lo mide, más completo, la tarjeta «Ventas tras la visita»
+function anCatalogo(...a) { return anCatalogoBase.apply(this, a).filter(k => k.id !== 'conversion_pct'); }

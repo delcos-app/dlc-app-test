@@ -75,3 +75,25 @@ const rangoPlan = k => ['campo', 'comercial', 'empresa', 'medida'].indexOf(k);
 // Igual que la función «pagos»: plan menor, menos usuarios o de anual a mensual
 const esBajada = (de, a) => rangoPlan(a.plan) < rangoPlan(de.plan)
   || (rangoPlan(a.plan) === rangoPlan(de.plan) && (+a.usuarios < +de.usuarios || (de.pago === 'anual' && a.pago === 'mensual')));
+
+function avisoPlanBase(mod) {
+  const p = planMinimo(mod), n = (document.querySelector(`nav.main [data-t="${mod}"]`) || {}).textContent || mod;
+  $('dbody').innerHTML = `<div class="fh"><div><h2>🔒 ${esc(n.replace('🔒', '').trim())}</h2><div class="sm">No está incluido en tu plan ${esc(planDe(PLAN_ACTUAL.plan).nombre)}</div></div>
+    <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
+    <p>Está disponible desde el plan <b>${esc(p ? p.nombre : 'A medida')}</b>${p ? ` (${precioPlan(p)})` : ''}.</p>
+    ${p ? `<ul class="manlist">${p.ventajas.map(v => `<li><span>✓</span><span>${esc(v)}</span></li>`).join('')}</ul>` : ''}
+    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>Ahora no</button>${puede('administrar') ? '<button class="btn" id="vplan">Ver planes</button>' : ''}</div>`;
+  $('dlg').showModal();
+  if ($('vplan')) $('vplan').onclick = () => { $('dlg').close(); CFG_SEC = 'plan'; ir('config'); };
+}
+function avisoPlan(mod) {
+  if (!(mod in PLAN_SECCIONES)) return avisoPlanBase.call(this, mod);
+  const p = planDe(PLAN_SECCIONES[mod][0]), n = TITULO_PEDSEC[mod] ? TITULO_PEDSEC[mod][0] : mod;
+  $('dbody').innerHTML = `<div class="fh"><div><h2>${esc(n)}</h2><div class="sm">No está incluido en tu plan ${esc(planDe(PLAN_ACTUAL.plan).nombre)}</div></div>
+    <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
+    <p>Está disponible desde el plan <b>${esc(p.nombre)}</b> (${precioPlan(p)}).</p>
+    <ul class="manlist">${p.ventajas.map(v => `<li><span>✓</span><span>${esc(v)}</span></li>`).join('')}</ul>
+    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>Ahora no</button>${puedeOrganizacion() ? '<button class="btn" id="vplan">Ver planes</button>' : ''}</div>`;
+  $('dlg').showModal();
+  if ($('vplan')) $('vplan').onclick = () => { $('dlg').close(); CFG_SEC = 'plan'; ir('config'); };
+}

@@ -14,12 +14,12 @@ moverCitaLocal = (orig => async function (orden, id, acc) {
   if (b) b.focus({ preventScroll: true });
   return r;
 })(moverCitaLocal);
-repintarDiaSuave = (orig => async function (id, data) {
+async function repintarDiaSuave(id, data) {
   const antes = tdPosiciones();
-  const r = await orig.call(this, id, data);
+  const r = await repintarDiaSuaveBase.call(this, id, data);
   tdAnimar(antes, id, 320);
   return r;
-})(repintarDiaSuave);
+}
 
 
 

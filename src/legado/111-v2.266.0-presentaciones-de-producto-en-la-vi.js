@@ -1,9 +1,4 @@
 let PRES_MAT = null, PRES_T = 0;           // [{id, producto_id, nombre, tipo, orden}] · cuándo se leyó
-// La lista de material se pide a la vez que los productos promocionados (así «Presentar» sale con ellos, no después)
-productosPromocionados = (orig => async function (...a) {
-  const [r] = await Promise.all([orig.apply(this, a), presMateriales()]);
-  return r;
-})(productosPromocionados);
 abrirVisitaBase = (orig => async function (id, ...r) {
   const res = await orig.call(this, id, ...r);
   try {

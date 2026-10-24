@@ -13,13 +13,6 @@ const detTxt = v => (v.detalles || []).filter(d => !esMuestras(d) && !(!d.dato &
   .map(d => d.valor + (d.dato ? ' (' + d.dato + ')' : '')).join(', ');
 
 
-/* Registrar visita: la ventana base y el aviso si falta el horario de atención (antes eran 3 capas). */
-async function abrirVisita(id) {
-  return ventanaCargando(async () => {
-    await abrirVisitaBase(id);
-    await visitaAvisoHorario(id);
-  });
-}
 
 
 /* Parte base; abrirVisita le añade el resto */
@@ -118,35 +111,6 @@ async function abrirVisitaBase(id) {
 /* ---------------- clasificadores: configurar el dato de cada valor ---------------- */
 
 
-abrirClasificador = (orig => function (id) {
-  orig(id);
-  const c = CATS.find(x => x.id === id);
-  const permitido = puede('administrar') || ((PERFIL.areas || {}).K || 0) >= 2;
-  if (!c || !permitido || !['visita'].includes(c.ambito) && c.papel !== 'resultado_visita') return;
-  // Cada vez que se repinta la ventana, se añaden los botones de dato
-  const decorar = () => {
-    const items = $('dbody').querySelectorAll('.lista > .item');
-    (c.valores || []).forEach((v, i) => {
-      const it = items[i]; if (!it || it.querySelector('[data-vdato]')) return;
-      const tx = it.querySelector('.tx');
-      if (v.dato_tipo) tx.insertAdjacentHTML('beforeend', `<span class="sm">Pide: ${esc(v.dato_etiqueta || v.dato_tipo)}${v.dato_tipo === 'lista' ? ' (' + (v.dato_opciones || []).length + ' opciones)' : ''}</span>`);
-      const acts = it.querySelector('.acts');
-      if (acts) acts.insertAdjacentHTML('afterbegin', `<button class="btn sec" data-vdato="${v.id}">${v.dato_tipo ? 'Cambiar dato' : '+ Dato'}</button>`);
-    });
-    $('dbody').querySelectorAll('[data-vdato]').forEach(b => b.onclick = () => {
-      const v = (c.valores || []).find(x => x.id === b.dataset.vdato);
-      editorDato(v, async () => {
-        const { data } = await db.rpc('catalogos_todos'); CATS = data || [];
-        cargarCatalogos(); abrirClasificador(id);
-      });
-    });
-    if (!$('dbody').querySelector('.datoinfo')) $('dbody').querySelector('.fh').insertAdjacentHTML('afterend',
-      `<p class="sm datoinfo">Con <b>+ Dato</b>, al marcar ese valor en ${TT('visita', 's', 'un', 'l', 'l')} se pedirá también una cantidad, un texto o una opción de una lista.</p>`);
-  };
-  decorar();
-  new MutationObserver((_, obs) => { if (!$('dlg').open) { obs.disconnect(); return; } decorar(); })
-    .observe($('dbody'), { childList: true });
-})(abrirClasificador);
 
 /* ---------------- ficha: material y datos en el historial de visitas ---------------- */
 
@@ -156,7 +120,7 @@ abrirClasificador = (orig => function (id) {
 
 /* ---------------- columnas dentro del panel lateral ---------------- */
 
-function abrirColumnas() {
+function abrirColumnasBase() {
   const d = $('tools');
   let D = colsConfig();
   const pinta = () => {
@@ -199,57 +163,12 @@ function abrirColumnas() {
 Object.assign(PAC, { tipo: '', pedidos: '', municipio: '' });
 
 
-async function pintarPacientes() {
-  const { data: munis } = await db.rpc('municipios_clientes');
-  $('vcuerpo').innerHTML = `
-    <div class="panel">
-      <div class="filtros">
-        <div><label for="pacq">Buscar</label><input id="pacq" type="search" value="${esc(PAC.q)}" placeholder="Nombre, teléfono, email, DNI o CIF"></div>
-        <div><label for="pactipo">Tipo</label><select id="pactipo">
-          <option value="">Todos</option><option value="Persona" ${PAC.tipo === 'Persona' ? 'selected' : ''}>Personas (${TT('paciente', 'p', '', 'l', 'l')})</option>
-          <option value="Empresa" ${PAC.tipo === 'Empresa' ? 'selected' : ''}>Empresas</option></select></div>
-        <div><label for="pacped">Pedidos</label><select id="pacped">
-          <option value="">Todos</option><option value="con" ${PAC.pedidos === 'con' ? 'selected' : ''}>Con pedidos</option>
-          <option value="sin" ${PAC.pedidos === 'sin' ? 'selected' : ''}>Sin pedidos</option></select></div>
-        <div><label for="pacmun">Población</label><select id="pacmun"><option value="">Todas</option>
-          ${(munis || []).map(x => `<option value="${esc(x.v)}" ${PAC.municipio === x.v ? 'selected' : ''}>${esc(x.v)} (${x.n})</option>`).join('')}</select></div>
-        ${camposFiltros('cliente', PAC.campos = PAC.campos || {}, 'pfcp')}
-        ${PAC.medico ? `<div><label>${TT('medico', 's', '', 'l', 'C')}</label><div style="min-height:44px;display:flex;align-items:center"><button class="chip" id="pacmedx">${esc(PAC.medicoNombre)} ✕</button></div></div>` : ''}
-      </div>
-      <div class="cuenta" id="paccuenta">Cargando…</div>
-      <div id="paclista"></div>
-      <div id="pacpag"></div>
-    </div>`;
-  let tq;
-  $('pacq').oninput = e => { clearTimeout(tq); tq = setTimeout(() => { PAC.q = e.target.value.trim(); PAC.pagina = 0; listaPacientes(); }, 300); };
-  $('pactipo').onchange = e => { PAC.tipo = e.target.value; PAC.pagina = 0; listaPacientes(); };
-  $('pacped').onchange = e => { PAC.pedidos = e.target.value; PAC.pagina = 0; listaPacientes(); };
-  $('pacmun').onchange = e => { PAC.municipio = e.target.value; PAC.pagina = 0; listaPacientes(); };
-  camposFiltrosActivar($('vcuerpo'), PAC.campos, () => { PAC.pagina = 0; listaPacientes(); });
-  if ($('pacmedx')) $('pacmedx').onclick = () => { PAC.medico = null; PAC.medicoNombre = ''; PAC.pagina = 0; pintarPacientes(); };
-  listaPacientes();
-}
 
 
 document.querySelectorAll('#nav [data-t="pacientes"]').forEach(b => b.textContent = 'Clientes');
 
 /* ---------------- nueva cita: aviso si ya tiene cita ese día ---------------- */
 
-async function citaRepetida(medicoId, fecha) {
-  const uid = TAB === 'agenda' && AG_VISTA ? AG_VISTA.id : PERFIL.id;
-  const { data } = await RPC_ORIG('agenda_rango', { p_desde: fecha, p_hasta: fecha, p_usuario: uid });
-  const ya = (data || []).find(c => c.cuenta_id === medicoId && CITA_ABIERTA.includes(c.estado));
-  if (!ya) return 'nueva';
-  const op = await elegirOpcion('Ya tiene una cita ese día',
-    `${ya.nombre}\n${fechaLarga(new Date(fecha + 'T00:00:00'))}${ya.hora ? ' a las ' + String(ya.hora).slice(0, 5) : ''} · ${ya.estado}${ya.origen ? ' · ' + ya.origen : ''}\n\n¿Qué quieres hacer?`,
-    [{ k: 'no', t: 'Cancelar', cls: 'sec' }, { k: 'dos', t: 'Mantener las dos', cls: 'sec' }, { k: 'sust', t: 'Quedarme solo con la nueva' }]);
-  if (!op) return null;
-  if (op === 'sust') {
-    const { data: r } = await db.rpc('borrar_cita', { p_id: ya.id });
-    if (r && r.ok === false) { toast('No se ha podido quitar la cita anterior', true); return null; }
-  }
-  return op;
-}
 
 /* ---------------- ayudas ---------------- */
 

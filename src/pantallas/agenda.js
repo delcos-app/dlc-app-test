@@ -1077,3 +1077,254 @@ const tdRealVigente = () => TD_REAL && Date.now() - TD_REAL.t < 600000;
 
 // Tareas del día plegables: un clic en su título las oculta todas y se ven solo las citas (se recuerda en este dispositivo)
 const tdTareasPlegadas = () => { try { return localStorage.getItem('delcos-tareas-plegadas') === '1'; } catch (e) { return false; } };
+
+async function empezarJornadaBase() {
+  const citas = await citasDelDia(hoyISO());
+  if (!citas.some(c => CITA_ABIERTA.includes(c.estado))) { toast('No tienes citas abiertas hoy. Añade citas o planifica una ruta.', true); return; }
+  localStorage.setItem(JKEY(), JSON.stringify({ fecha: hoyISO(), inicio: Date.now() }));
+  pintarRutaBarra();
+  toast('Jornada iniciada');
+  AG_MODO = 'dia'; AG_FECHA = hoyISO();
+  if (TAB === 'agenda') cargarAgenda(); else ir('agenda');
+}
+
+async function bloqueadosSemanaBase(desde, hasta) {
+  const { data } = await RPC_ORIG('dias_bloqueados_rango', { p_desde: desde, p_hasta: hasta, p_usuario: agUid() });
+  const b = {}; (data || []).forEach(x => b[x.fecha] = x.motivo || 'Día bloqueado');
+  return b;
+}
+
+async function citaRepetidaBase(medicoId, fecha) {
+  const uid = TAB === 'agenda' && AG_VISTA ? AG_VISTA.id : PERFIL.id;
+  const { data } = await RPC_ORIG('agenda_rango', { p_desde: fecha, p_hasta: fecha, p_usuario: uid });
+  const ya = (data || []).find(c => c.cuenta_id === medicoId && CITA_ABIERTA.includes(c.estado));
+  if (!ya) return 'nueva';
+  const op = await elegirOpcion('Ya tiene una cita ese día',
+    `${ya.nombre}\n${fechaLarga(new Date(fecha + 'T00:00:00'))}${ya.hora ? ' a las ' + String(ya.hora).slice(0, 5) : ''} · ${ya.estado}${ya.origen ? ' · ' + ya.origen : ''}\n\n¿Qué quieres hacer?`,
+    [{ k: 'no', t: 'Cancelar', cls: 'sec' }, { k: 'dos', t: 'Mantener las dos', cls: 'sec' }, { k: 'sust', t: 'Quedarme solo con la nueva' }]);
+  if (!op) return null;
+  if (op === 'sust') {
+    const { data: r } = await db.rpc('borrar_cita', { p_id: ya.id });
+    if (r && r.ok === false) { toast('No se ha podido quitar la cita anterior', true); return null; }
+  }
+  return op;
+}
+
+async function citaRepetida(medicoId, fecha) {
+  const r = await citaRepetidaBase(medicoId, fecha);
+  if (!r) return r;
+  const por = await recientesDe([medicoId], fecha);
+  const l = por[medicoId];
+  if (!l || !l.length) return r;
+  const op = await elegirOpcion('Ya se ha visto hace poco', `${txtReciente(l.slice(0, 3))}.\n\n¿Añades la cita igualmente?`,
+    [{ k: 'no', t: 'Cancelar', cls: 'sec' }, { k: 'nomas', t: 'Sí, y no volver a avisarme', cls: 'sec' }, { k: 'si', t: 'Añadir igualmente' }]);
+  if (!op) return null;
+  if (op === 'nomas') { await guardarAvisoRevisita(Object.assign(avisoRevisita(), { on: false })); toast('Aviso desactivado. Puedes activarlo en Configuración → Rutas'); }
+  return r;
+}
+
+/* v2.146.0 · Agenda: al pulsar un día de la semana o del mes, «Tu día» pasa a ese día (petición de Eric: antes se abría un desplegable).
+   El título de «Tu día» es la fecha elegida y al lado está «Volver a hoy»; el día elegido queda marcado en la semana y en el mes.
+   Las cifras de arriba, la semana y el mes siguen siendo los de hoy. */
+function agMarcarDiaBase() {
+  const v = $('v-agenda'); if (!v || !v.classList.contains('agunida')) return;
+  const hoy = hoyISO(), otro = AG_FECHA !== hoy;
+  if ($('agtit')) $('agtit').textContent = 'Hoy · ' + fechaLarga(new Date(hoy + 'T00:00:00'));
+  const h = v.querySelector('#agcuerpo .tdhead h2'); if (!h) return;
+  const caja = h.parentElement;
+  let b = $('agahoy');
+  if (!otro) { if (b) b.remove(); return; }
+  h.textContent = fechaLarga(new Date(AG_FECHA + 'T00:00:00')).replace(/^./, c => c.toUpperCase());
+  if (!b) {
+    h.insertAdjacentHTML('afterend', '<button type="button" class="btn sec" id="agahoy">Volver a hoy</button>');
+    b = $('agahoy'); b.onclick = () => agVerDia(hoyISO());
+  }
+  // v2.338.0: en el móvil va delante de «+ Tarea», en la misma fila (Eric)
+  const acts = !matchMedia('(min-width: 761px)').matches && v.querySelector('#agcuerpo .tdhead .acts');
+  if (acts && acts.firstElementChild !== b) acts.prepend(b);
+  caja.classList.add('agtitdia');
+}
+
+function editarTareaBase(t, fecha) {
+  t = t || {};
+  $('dbody').innerHTML = `
+    <div class="fh"><div><h2>${t.id ? 'Tarea' : 'Nueva tarea'}</h2><div class="sm">Una nota o tarea tuya para ese día, sin cliente</div></div>
+      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
+    <label for="tat">Qué hay que hacer</label><input id="tat" value="${esc(t.titulo || '')}" placeholder="p. ej. Llamar al almacén, reunión de equipo…" maxlength="160">
+    <div class="g2">
+      <div><label for="taf">Día</label><input id="taf" type="date" value="${esc(t.fecha || fecha || hoyISO())}"></div>
+      <div><label for="tah">Hora <span class="sm">(opcional)</span></label><input id="tah" type="time" value="${esc(t.hora ? String(t.hora).slice(0, 5) : '')}"></div>
+    </div>
+    <label for="tan">Notas</label><textarea id="tan" rows="3">${esc(t.nota || '')}</textarea>
+    <div class="acts" style="justify-content:space-between">
+      ${t.id ? '<button type="button" class="btn sec peligro" id="taborrar">Borrar</button>' : '<span></span>'}
+      <span style="display:flex;gap:8px"><button type="button" class="btn sec" data-cerrar>Cancelar</button><button type="button" class="btn" id="taok">${t.id ? 'Guardar' : 'Añadir'}</button></span></div>`;
+  $('taok').onclick = async ev => {
+    const titulo = $('tat').value.trim(); if (!titulo) { toast('Escribe qué hay que hacer', true); $('tat').focus(); return; }
+    const fila = { titulo, fecha: $('taf').value || hoyISO(), hora: $('tah').value || null, nota: $('tan').value.trim() || null, modificado_en: new Date().toISOString() };
+    ev.target.disabled = true;
+    const { error } = t.id ? await db.from('tareas').update(fila).eq('id', t.id) : await db.from('tareas').insert(fila);
+    ev.target.disabled = false;
+    if (error) { toast('No se ha podido guardar: ' + error.message, true); return; }
+    $('dlg').close(); toast(t.id ? 'Tarea guardada' : 'Tarea añadida el ' + fechaDiaMes(fila.fecha)); TAREAS_DIA = null; pintarTuDia();
+  };
+  if ($('taborrar')) $('taborrar').onclick = async () => {
+    if (!await preguntar('La tarea desaparece.', { titulo: '¿Borrar la tarea?', ok: 'Borrar', peligro: true })) return;
+    const { error } = await db.from('tareas').delete().eq('id', t.id);
+    if (error) { toast('No se ha podido borrar', true); return; }
+    $('dlg').close(); toast('Tarea borrada'); TAREAS_DIA = null; pintarTuDia();
+  };
+  $('dlg').classList.add('pequena');
+  $('dlg').showModal();
+}
+
+// La cinta de 14 días
+async function agCintaBase() {
+  const v = $('v-agenda'); if (!v || !agConCinta() || !$('agcuerpo')) return;
+  const hoy = hoyISO();
+  if (!CINTA_INI) CINTA_INI = lunesCinta(AG_FECHA || hoy);
+  const ini = CINTA_INI, fin = diasMas(ini, 13);
+  const { data } = await rpcCache('agenda_rango', { p_desde: ini, p_hasta: fin, p_usuario: agUid() }, 'agenda-cinta-' + agUid() + '-' + ini);
+  if (!agConCinta() || CINTA_INI !== ini || !$('agcuerpo')) return;
+  const por = {};
+  (data || []).filter(c => c.usuario_id === agUid() && !citaAnulada(c.estado)).forEach(c => { (por[c.fecha] = por[c.fecha] || []).push(c); });
+  const dn = ['D', 'L', 'M', 'X', 'J', 'V', 'S'];
+  const semTxt = l => {
+    const dd = Math.round((new Date(l + 'T12:00:00') - new Date(lunesCinta(hoy) + 'T12:00:00')) / 864e5 / 7);
+    if (dd === 0) return 'Esta semana'; if (dd === 1) return 'La semana que viene'; if (dd === -1) return 'La semana pasada';
+    const d0 = new Date(l + 'T12:00:00'); return 'Semana del ' + d0.getDate() + ' de ' + d0.toLocaleDateString('es-ES', { month: 'long' });
+  };
+  const dia = f => {
+    const l = por[f] || [], d = new Date(f + 'T12:00:00');
+    const tipo = c => !CITA_ABIERTA.includes(c.estado) ? 'ch' : f < hoy ? 'cx' : 'cp';
+    const pts = l.slice(0, 6).map(c => `<i class="${tipo(c)}"></i>`).join('') + (l.length > 6 ? `<em>+${l.length - 6}</em>` : '');
+    const n = `${l.length} ${l.length === 1 ? 'cita' : 'citas'}`;
+    return `<button type="button" class="cdia ${f === hoy ? 'hoy' : ''} ${f === AG_FECHA ? 'sel' : ''} ${[0, 6].includes(d.getDay()) ? 'finde' : ''}" data-cf="${f}" aria-label="${esc(fechaLarga(d))}: ${n}" title="${n}">
+      <span class="dn">${dn[d.getDay()]}</span><span class="dd">${d.getDate()}</span><span class="cpts">${pts || '<b></b>'}</span></button>`;
+  };
+  const mes = new Date(diasMas(ini, 3) + 'T12:00:00').toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
+  const html = `<div class="cinta" id="agcinta" data-ini="${ini}"><div class="ccab">
+      <div class="cnav"><button type="button" class="kmv" data-cm="-7" aria-label="Semana anterior" title="Semana anterior">‹</button><button type="button" id="cmesb" class="cmesb" aria-expanded="false" title="Ver el mes">${esc(mes.charAt(0).toUpperCase() + mes.slice(1))} <span aria-hidden="true">▾</span></button><button type="button" class="kmv" data-cm="7" aria-label="Semana siguiente" title="Semana siguiente">›</button>${ini !== lunesCinta(hoy) ? '<button type="button" class="btn sec chico" id="choy">Hoy</button>' : ''}</div>
+      <div class="cley" aria-hidden="true"><span><i class="ch"></i>Hecha</span><span><i class="cp"></i>Por hacer</span><span><i class="cx"></i>Sin cerrar</span></div>
+      <button type="button" class="btn sec chico" id="cplan" title="Planificar la semana">${SVA(ICU.plan)}<span>Planificar la semana</span></button></div>
+    <div class="csems">${[0, 7].map(o => `<div class="csem"><span class="csemt">${semTxt(diasMas(ini, o))}</span><div class="c7">${Array.from({ length: 7 }, (_, k) => dia(diasMas(ini, o + k))).join('')}</div></div>`).join('')}</div></div>`;
+  const vieja = $('agcinta');
+  if (vieja) vieja.outerHTML = html; else $('agcuerpo').insertAdjacentHTML('beforebegin', html);
+  const c = $('agcinta');
+  c.querySelectorAll('[data-cf]').forEach(b => b.onclick = () => { cerrarMesCinta(); c.querySelectorAll('.cdia').forEach(x => x.classList.toggle('sel', x === b)); agVerDia(b.dataset.cf); });
+  c.querySelectorAll('[data-cm]').forEach(b => b.onclick = () => { CINTA_INI = diasMas(CINTA_INI, +b.dataset.cm); agCinta(); });
+  if ($('choy')) $('choy').onclick = () => { CINTA_INI = lunesCinta(hoy); agCinta(); agVerDia(hoy); };
+  $('cmesb').onclick = e => { e.stopPropagation(); const m = $('agmes'); if (!m) return; const ab = !m.classList.contains('pop'); m.classList.toggle('pop', ab); $('cmesb').setAttribute('aria-expanded', String(ab));
+    // El mes se abre bajo su botón (en el móvil, centrado)
+    if (ab) { const r = $('cmesb').getBoundingClientRect(), w = Math.min(380, innerWidth - 32); m.style.top = Math.round(r.bottom + 8) + 'px'; m.style.left = Math.round(Math.max(16, Math.min(r.left, innerWidth - w - 16))) + 'px'; m.style.bottom = 'auto'; m.style.right = 'auto'; } };
+  // En el móvil, la cinta se abre en la semana del día elegido
+  const sems = c.querySelector('.csems'); if (sems && AG_FECHA >= diasMas(ini, 7)) sems.scrollLeft = sems.scrollWidth;
+}
+
+function editarTarea(t, fecha) {
+  if (!t || !t.id || !t.hecha) return editarTareaBase.apply(this, arguments);
+  $('dbody').innerHTML = `
+    <div class="fh"><div><h2>Tarea hecha</h2><div class="sm">${esc(fechaLarga(new Date(t.fecha + 'T00:00:00')))}${t.hora ? ' · ' + esc(String(t.hora).slice(0, 5)) : ''}</div></div>
+      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
+    <div class="tarlec"><span class="tarok">Hecha</span><b>${esc(t.titulo || '')}</b>${t.nota ? `<p>${esc(t.nota)}</p>` : ''}</div>
+    <div class="acts" style="justify-content:space-between">
+      <button type="button" class="btn sec peligro" id="taborrar">Borrar</button>
+      <span style="display:flex;gap:8px"><button type="button" class="btn sec" data-cerrar>Cerrar</button><button type="button" class="btn" id="tareabrir">Volver a pendiente</button></span></div>`;
+  $('tareabrir').onclick = async ev => {
+    ev.target.disabled = true;
+    const { error } = await db.from('tareas').update({ hecha: false, modificado_en: new Date().toISOString() }).eq('id', t.id);
+    ev.target.disabled = false;
+    if (error) { toast('No se ha podido cambiar', true); return; }
+    TAREAS_DIA = null; pintarTuDia(); editarTareaBase.call(this, Object.assign({}, t, { hecha: false }), fecha);
+  };
+  $('taborrar').onclick = async () => {
+    if (!await preguntar('La tarea desaparece.', { titulo: '¿Borrar la tarea?', ok: 'Borrar', peligro: true })) return;
+    const { error } = await db.from('tareas').delete().eq('id', t.id);
+    if (error) { toast('No se ha podido borrar', true); return; }
+    $('dlg').close(); toast('Tarea borrada'); TAREAS_DIA = null; pintarTuDia();
+  };
+  $('dlg').classList.add('pequena');
+  $('dlg').showModal();
+}
+
+// Columna derecha: tu semana
+async function agSemanaLateralBase() {
+  if (TAB !== 'agenda' || AG_MODO !== 'dia') return;
+  const v = $('v-agenda'); if (!v || !v.classList.contains('agcinta')) return;
+  let box = $('agsemlat');
+  if (!box) { $('agcuerpo').insertAdjacentHTML('afterend', '<div class="card" id="agsemlat"></div>'); box = $('agsemlat'); }
+  const desde = lunesDe(AG_FECHA || hoyISO()), hasta = isoMas(desde, 6);
+  const [r, bloq] = await Promise.all([rpcCache('agenda_rango', { p_desde: desde, p_hasta: hasta, p_usuario: agUsuarioFiltro() }, 'agenda-' + desde), agBloqueos(desde, 7)]);
+  if (!$('agsemlat')) return;
+  const por = {}; ((r && r.data) || []).filter(c => !citaAnulada(c.estado)).forEach(c => (por[c.fecha] = por[c.fecha] || []).push(c));
+  const DS = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
+  box.innerHTML = `<h2>Tu semana</h2><p class="sm agslnota">«⋯» en un día para bloquearlo (festivo, vacaciones, formación) o añadir una cita.</p>
+    <div class="agsl">${[...Array(7)].map((_, i) => { const f = isoMas(desde, i), d = new Date(f + 'T12:00:00'), l = (por[f] || []).sort((a, b) => String(a.hora || '').localeCompare(String(b.hora || '')));
+      return `<div class="agsld ${f === hoyISO() ? 'hoy' : ''} ${f === AG_FECHA ? 'sel' : ''} ${bloq[f] ? 'bloq' : ''}" data-agsl="${f}" role="button" tabindex="0" aria-label="Ver el ${fechaCorta(f)}">
+        <span class="agslf">${d.getDate()}<small>${DS[d.getDay()]}</small></span>
+        <span class="agslc">${bloq[f] ? `<span class="agslb">${esc(bloq[f])}</span>` : ''}${l.slice(0, 3).map(c => `<span class="agslx"><b>${esc(String(c.hora || '').slice(0, 5))}</b>${esc(c.medico || c.nombre || '')}</span>`).join('')}${l.length > 3 ? `<span class="agslv">y ${l.length - 3} más</span>` : ''}${!l.length && !bloq[f] ? '<span class="agslv">Libre</span>' : ''}</span>
+        ${f >= hoyISO() ? `<button type="button" class="agslm" data-agslm="${f}" aria-label="Opciones del ${fechaCorta(f)}">⋯</button>` : '<span></span>'}</div>`; }).join('')}</div>
+    ${[...Array(7)].some((_, i) => isoMas(desde, i) >= hoyISO()) ? '<div class="acts agslacts"><button type="button" class="btn sec" id="agslrep">Repartir la semana</button></div>' : ''}`;
+  box.querySelectorAll('[data-agslm]').forEach(b => b.onclick = ev => { ev.stopPropagation(); menuDiaSemana(b, b.dataset.agslm, !!bloq[b.dataset.agslm]); });
+  box.querySelectorAll('[data-agsl]').forEach(d => { const ver = () => agVerDia(d.dataset.agsl); d.onclick = ver; d.onkeydown = e => { if (e.key === 'Enter') ver(); }; });
+  if ($('agslrep')) $('agslrep').onclick = agRepartirSemana;
+}
+
+function agBandejasBase() {
+  const head = document.querySelector('#agcuerpo .tdhead'); if (!head) return;
+  const old = $('agband'); if (old) old.remove();
+  const nToca = agTocaLista().length, nPend = (AG_PEND || []).length;
+  if (!nToca && !nPend) return;
+  head.insertAdjacentHTML('afterend', `<div class="agband" id="agband">${nToca ? `<button type="button" data-agbd="toca">${svgIco(ICON_NOM.target)} Les toca ${TT('visita', 's', '', 'l', 'l')} <b>${nToca}</b></button>` : ''}${nPend ? `<button type="button" class="urg" data-agbd="pend">${svgIco(ICON_NOM['circle-alert'] || ICON_NOM.info)} Pendientes de días anteriores <b>${nPend}</b></button>` : ''}</div>`);
+  $('agband').querySelectorAll('[data-agbd]').forEach(b => b.onclick = () => agBandeja(b.dataset.agbd));
+}
+
+// El título conserva «· agenda de …» al ver la de otra persona (agMarcarDia lo dejaba en «Hoy · …»)
+function agMarcarDia(...a) {
+  const r = agMarcarDiaBase.apply(this, a);
+  if (agN() && AG_VISTA && $('agtit') && !$('agtit').textContent.includes(AG_VISTA.nombre)) $('agtit').textContent += ' · agenda de ' + AG_VISTA.nombre;
+  return r;
+}
+
+function bloqueadosSemana(d, h, ...x) {
+  const k = agK('bloq', d, h, agUid()); if (AG_PRE.has(k)) return Promise.resolve(AG_PRE.get(k));
+  return bloqueadosSemanaBase.call(this, d, h, ...x);
+}
+
+// ---- Cinta: datos, «⋯» de cada día y semana desplegada, de una vez
+async function agCinta() {
+  if (!agN()) return;
+  if (!CINTA_INI) CINTA_INI = lunesCinta(AG_FECHA || hoyISO());
+  return agConDatos([...agCintaCargas(), ...(AG_SEM_ABIERTA ? agSemCargas(AG_FECHA) : [])], async () => {
+    await agCintaBase();
+    if (!agN() || !$('agcinta')) return;
+    await agMenusCinta();
+    if (AG_SEM_ABIERTA) await agPintarSemanaExp();
+    agBotonSemana();
+    const b = $('cmesb'); if (b) b.onclick = e => { e.stopPropagation(); agMesPop(); };
+    const h = $('choy'); if (h) h.onclick = () => { CINTA_INI = null; agVerDia(hoyISO()); };
+  });
+}
+
+function agSemanaLateral(...a) {
+  if (!agN()) return agSemanaLateralBase.apply(this, a);
+  return agConDatos(agSemCargas(AG_FECHA), () => agSemanaLateralBase.apply(this, a));
+}
+
+async function empezarJornada(...a) {
+  const r = await empezarJornadaBase.apply(this, a);
+  try { if (AG_FECHA === hoyISO()) tdTrafico(true); } catch (e) {}
+  return r;
+}
+
+function agBandejas(...x) {
+  const r = agBandejasBase.apply(this, x);
+  const b = $('agband'), acts = document.querySelector('#agcuerpo .tdhead .acts');
+  // v2.338.0 (Eric): en el móvil también en una fila (antes, cada uno en la suya); «Volver a hoy» va delante
+  const hoy = $('agahoy'); if (hoy && acts && !matchMedia('(min-width: 761px)').matches && acts.firstElementChild !== hoy) acts.prepend(hoy);
+  if (b && acts) {
+    b.classList.add('agbandin'); acts.appendChild(b);
+    b.querySelectorAll('button').forEach(x => x.childNodes.forEach(n => { if (n.nodeType === 3 && /días anteriores/.test(n.textContent)) n.textContent = n.textContent.replace('de días anteriores', 'anteriores'); }));
+  }
+  return r;
+}

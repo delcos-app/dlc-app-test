@@ -466,3 +466,24 @@ const ORD_MEM = {
   facts: { fn: 'facturas_lista', campos: ['numero', 'fecha', 'cliente', 'nif', 'base', 'cuota_iva', 'total', 'vencimiento', 'estado_cobro'] },
   llam: { fn: 'llamadas_lista', campos: ['fecha', x => x.cliente || x.nombre, 'importe_estimado', x => x.medico || x.cuenta_texto, x => x.resultado || (x.pedido_id ? 'Pedido hecho' : ''), 'proxima_fecha', 'usuario'] }
 };
+
+function filaTablaBase(m) {
+  const cfg = colsConfig().filter(c => c.on);
+  return `<button class="trow" data-id="${m.id}">${cfg.map(c =>
+    `<span class="tcell" style="width:${c.w}px;min-width:${c.w}px">${celda(m, c.k)}</span>`).join('')}</button>`;
+}
+
+// Directorio: cada fila lleva su tarjeta (oculta en el ordenador) con el nombre, centro · municipio y el estado
+function filaTabla(m) {
+  const h = filaTablaBase(m), i = h.lastIndexOf('</button>'); if (i < 0) return h;
+  const l2 = [m.centro_nombre, m.municipio].filter(Boolean).join(' · ');
+  return h.slice(0, i) + `<span class="plcard"><b>${m.urgente ? '<i class="plurg" aria-label="Urgente"></i>' : ''}${esc(m.nombre || '')}</b><span class="plc2">${esc(l2)}</span><span class="plc3">${celda(m, 'estado_comercial')}</span></span>` + h.slice(i);
+}
+
+function plKpisHtmlBase(tab) {
+  const c = PL[tab], k = PL_KPI[tab];
+  if (!k || !k.datos) return Array(c.nKpis || 4).fill('').map(() => `<div class="plk plcarga"><span class="plkt"><i class="plsk" style="width:46%"></i></span><b><i class="plsk plskv"></i></b><small><i class="plsk" style="width:70%"></i></small></div>`).join('');
+  return k.datos.map(d => `<button type="button" class="plk ${c.kpiOn(d.k) ? 'on' : ''}" data-plk="${d.k}"><span class="plkt">${esc(d.t)}</span><b data-pln="${d.n}">${num(d.n)}</b><small>${esc(d.s)}</small></button>`).join('');
+}
+
+function plKpisHtml(tab) { return plCfg(tab) && plCfg(tab).kpis ? plKpisHtmlBase(tab) : ''; }

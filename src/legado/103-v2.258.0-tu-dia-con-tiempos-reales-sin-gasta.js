@@ -8,30 +8,19 @@
    - La cabecera dice si las horas son «con tráfico real» o estimadas.
    ============================================================ */
 let TD_REAL = null, TD_CALC = false;   // { k, mapa: Map('a>b' → minutos), t } · TD_CALC: calculando la clave (sin volver a entrar)
-// El plan del mapa se calcula siempre con la estimación (así su clave es la misma en Rutas y en «Tu día»)
-rmPlan = (orig => function (...a) {
-  if (a[2]) return orig.apply(this, a);
-  const r0 = TD_REAL; TD_REAL = null;
-  try { return orig.apply(this, a); } finally { TD_REAL = r0; }
-})(rmPlan);
 // Antes de estimar el día de hoy: si el mapa ya tiene la ruta de este orden, se usa (sin consulta)
-estimarDia = (orig => function (citas, fecha, ...x) {
+function estimarDia(citas, fecha, ...x) {
   // Solo la estimación de «Tu día» (TD_CITAS); las demás (mapa, planificador) siguen como estaban
-  if (TD_CALC || citas !== TD_CITAS) return orig.call(this, citas, fecha, ...x);
+  if (TD_CALC || citas !== TD_CITAS) return estimarDiaBase2.call(this, citas, fecha, ...x);
   const ruta = tdRutaDia(citas, fecha);
-  if (!ruta) { if (TD_REAL && fecha === hoyISO()) TD_REAL = null; return orig.call(this, citas, fecha, ...x); }
+  if (!ruta) { if (TD_REAL && fecha === hoyISO()) TD_REAL = null; return estimarDiaBase2.call(this, citas, fecha, ...x); }
   if (!(tdRealVigente() && TD_REAL.k === ruta.k)) {
     TD_REAL = null;
     const m = RM_MEM.get(ruta.k);
     if (m && Date.now() - m.t < 600000) tdPonerReal(ruta, m.r);
   }
-  return orig.call(this, citas, fecha, ...x);
-})(estimarDia);
-empezarJornada = (orig => async function (...a) {
-  const r = await orig.apply(this, a);
-  try { if (AG_FECHA === hoyISO()) tdTrafico(true); } catch (e) {}
-  return r;
-})(empezarJornada);
+  return estimarDiaBase2.call(this, citas, fecha, ...x);
+}
 pintarTuDia = (orig => async function (...a) {
   const r = await orig.apply(this, a);
   if (agConCinta()) tdMarcaTrafico();

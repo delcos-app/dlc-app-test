@@ -6,12 +6,6 @@
 
 Object.assign(RPC_TTL, { alertas_mias: 60, alertas_cruce: 120, actividades_recientes: 30 });
 
-async function cargarProductos() {
-  const { data } = await db.rpc('productos_lista');
-  const l = data || [];
-  PRODUCTOS = l.filter(p => (p.tipo || 'producto') === 'producto');
-  SERVICIOS = l.filter(p => p.tipo === 'servicio');
-}
 
 /* ---------------- móvil: los cuatro principales y «Más» ---------------- */
 
@@ -32,14 +26,6 @@ const SKEY = 'dlc-suplantador';
 
 
 
-async function volverAMiSesion() {
-  const s = suplantando(); if (!s) return;
-  const { error } = await db.auth.setSession({ access_token: s.access_token, refresh_token: s.refresh_token });
-  localStorage.removeItem(SKEY);
-  limpiarDatosLocales();
-  if (error) { await db.auth.signOut(); toast('Tu sesión había caducado: vuelve a entrar', true); }
-  location.reload();
-}
 
 
 document.addEventListener('click', e => {
@@ -101,32 +87,20 @@ document.addEventListener('click', e => {
 /* ---------------- reglas de cartera ---------------- */
 
 
-pintarEquipo = (orig => async function () {
-  await orig();
+async function pintarEquipo() {
+  await pintarEquipoBase();
   const h = $('agcuerpo').querySelector('.semhead');
   if (h && puede('administrar') && !$('eqcart')) {
     h.insertAdjacentHTML('beforeend', '<button class="btn sec" id="eqcart">⚙ Reglas de cartera</button>');
     $('eqcart').onclick = editorReglasCartera;
   }
-})(pintarEquipo);
+}
 
 /* ---------------- aviso de visita reciente ---------------- */
 
 
 
 
-citaRepetida = (orig => async function (medicoId, fecha) {
-  const r = await orig(medicoId, fecha);
-  if (!r) return r;
-  const por = await recientesDe([medicoId], fecha);
-  const l = por[medicoId];
-  if (!l || !l.length) return r;
-  const op = await elegirOpcion('Ya se ha visto hace poco', `${txtReciente(l.slice(0, 3))}.\n\n¿Añades la cita igualmente?`,
-    [{ k: 'no', t: 'Cancelar', cls: 'sec' }, { k: 'nomas', t: 'Sí, y no volver a avisarme', cls: 'sec' }, { k: 'si', t: 'Añadir igualmente' }]);
-  if (!op) return null;
-  if (op === 'nomas') { await guardarAvisoRevisita(Object.assign(avisoRevisita(), { on: false })); toast('Aviso desactivado. Puedes activarlo en Configuración → Rutas'); }
-  return r;
-})(citaRepetida);
 
 // Plan de ruta: marca a quien ya se ha visto hace poco y permite quitarlo
 
@@ -134,19 +108,6 @@ citaRepetida = (orig => async function (medicoId, fecha) {
 
 /* ---------------- servicios en Productos ---------------- */
 
-async function cargarProductosModulo() {
-  const esAdmin = puede('administrar');
-  vaciarModulos('v-productos');
-  $('v-productos').innerHTML = `
-    <div class="saludo"><div><h1>Productos</h1><div class="fecha">Catálogo de productos y servicios, con precios sin IVA y con IVA</div></div>
-      <div class="acts" style="margin:0">${esAdmin ? `<button class="btn" id="prodnuevo">+ Nuevo ${PSEC === 'servicios' ? 'servicio' : 'producto'}</button>` : ''}</div></div>
-    <div class="subnav"><button data-ps="productos" aria-pressed="${PSEC === 'productos'}">Productos</button>
-      <button data-ps="servicios" aria-pressed="${PSEC === 'servicios'}">Servicios</button></div>
-    <div id="vcuerpo"></div>`;
-  $('v-productos').querySelectorAll('[data-ps]').forEach(b => b.onclick = () => { PSEC = b.dataset.ps; cargarProductosModulo(); });
-  if ($('prodnuevo')) $('prodnuevo').onclick = () => PSEC === 'servicios' ? editorServicio(null) : editorProducto(null);
-  if (PSEC === 'servicios') pintarServicios(); else pintarProductos();
-}
 
 
 

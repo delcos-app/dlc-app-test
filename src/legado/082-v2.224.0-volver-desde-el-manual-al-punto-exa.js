@@ -13,57 +13,6 @@ cargarManual = (orig => async function (...a) {
 })(cargarManual);
 
 
-/* v2.225.0 · Clientes sin duplicados (aviso de Eric: no se puede dar de alta otra vez a un cliente con el mismo NIF/CIF, correo o móvil).
-   - La base no lo deja (disparador contactos_sin_duplicados, SQL 134); aquí se avisa mientras se escribe: clientes_coincidencias con lo que
-     hay en NIF, correo, móvil y teléfono (sin contar el propio cliente al editarlo).
-   - Aviso #kodup encima de los botones: «Este cliente ya existe · mismo móvil», con su nombre y datos y un botón:
-     «Usar este cliente» si se viene de un pedido o de una nueva venta (carga sus datos de un clic), «Ver su ficha» en el resto.
-     Si lo lleva otra persona y no se puede ver, solo se dice que existe. Mientras haya coincidencia, Crear queda desactivado. */
-editorContacto = (orig => function (c, alGuardar, op) {
-  const r = orig.apply(this, arguments);
-  c = c || {};
-  if (!$('konif') || !$('kook')) return r;
-  const acts = $('kook').closest('.acts');
-  if (acts && !$('kodup')) acts.insertAdjacentHTML('beforebegin', '<div id="kodup" class="kodup hide" role="alert" aria-live="polite"></div>');
-  const ids = ['konif', 'komail', 'komov', 'kotel'];
-  const leer = () => ({ nif: $('konif').value, email: $('komail').value, movil: $('komov').value, telefono: $('kotel').value, excluir: c.id || null });
-  const hayDato = d => d.nif.replace(/[^A-Za-z0-9]/g, '').length >= 8 || /.@.+\../.test(d.email) || [d.movil, d.telefono].some(x => x.replace(/\D/g, '').length >= 9);
-  const usar = !c.id && !!alGuardar && TAB !== 'pacientes';
-  let t = null, turno = 0;
-  const pintar = x => {
-    const k = $('kodup'); if (!k) return;
-    ids.forEach(id => $(id) && $(id).classList.remove('campodup'));
-    [$('kook'), $('kopedido')].filter(Boolean).forEach(b => { b.disabled = !!x; });
-    if (!x) { k.classList.add('hide'); k.innerHTML = ''; return; }
-    const marca = { NIF: ['konif'], correo: ['komail'] }[x.campo] || ['komov', 'kotel'].filter(id => $(id).value.replace(/\D/g, '').length >= 9);
-    marca.forEach(id => $(id) && $(id).classList.add('campodup'));
-    k.innerHTML = x.visible
-      ? `<div class="kodupt"><b>${TT('paciente', 's', 'este', 'C', 'l')} ya existe</b><span>mismo ${esc(x.campo)}</span></div>
-         <div class="kodupc"><b>${esc(x.nombre || '')}</b><span class="sm">${esc([x.nif, x.movil || x.telefono, x.email, x.municipio].filter(Boolean).join(' · '))}</span></div>
-         <button type="button" class="btn" id="kodupusar">${usar ? `Usar ${TT('paciente', 's', 'este', 'l', 'l')}` : 'Ver su ficha'}</button>`
-      : `<div class="kodupt"><b>Ya existe ${TT('paciente', 's', 'un', 'l', 'l')} con ese ${esc(x.campo)}</b></div>
-         <div class="sm">Lo lleva otra persona del equipo: pide que te lo asignen en lugar de crearlo de nuevo.</div>`;
-    k.classList.remove('hide');
-    if ($('kodupusar')) $('kodupusar').onclick = () => {
-      $('dlg2').close();
-      const res = Object.assign({}, x, x.cuenta_id ? { medico: x.cuenta, medico_codigo: x.cuenta_codigo } : {});
-      if (usar) alGuardar(res); else fichaPaciente(x.id);
-    };
-  };
-  const comprobar = () => {
-    clearTimeout(t);
-    t = setTimeout(async () => {
-      const d = leer(), mio = ++turno;
-      if (!hayDato(d)) { pintar(null); return; }
-      const { data } = await db.rpc('clientes_coincidencias', { p: d });
-      if (mio !== turno || !$('kodup')) return;
-      pintar(Array.isArray(data) && data.length ? data[0] : null);
-    }, 350);
-  };
-  ids.forEach(id => $(id) && $(id).addEventListener('input', comprobar));
-  if (!c.id && hayDato(leer())) comprobar();
-  return r;
-})(editorContacto);
 
 /* v2.226.0 · Arreglos de la lista de Eric (9/10/2026).
    1. Una sola ayuda por pantalla: fuera el «?» del manual (.manq); cada título lleva su «i» (las páginas nuevas también: Ciclo, Intervenciones,
@@ -100,31 +49,6 @@ window.addEventListener('click', e => {
   cargarAgenda();
 }, true);
 
-editarTarea = (orig => function (t, fecha) {
-  if (!t || !t.id || !t.hecha) return orig.apply(this, arguments);
-  $('dbody').innerHTML = `
-    <div class="fh"><div><h2>Tarea hecha</h2><div class="sm">${esc(fechaLarga(new Date(t.fecha + 'T00:00:00')))}${t.hora ? ' · ' + esc(String(t.hora).slice(0, 5)) : ''}</div></div>
-      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-    <div class="tarlec"><span class="tarok">Hecha</span><b>${esc(t.titulo || '')}</b>${t.nota ? `<p>${esc(t.nota)}</p>` : ''}</div>
-    <div class="acts" style="justify-content:space-between">
-      <button type="button" class="btn sec peligro" id="taborrar">Borrar</button>
-      <span style="display:flex;gap:8px"><button type="button" class="btn sec" data-cerrar>Cerrar</button><button type="button" class="btn" id="tareabrir">Volver a pendiente</button></span></div>`;
-  $('tareabrir').onclick = async ev => {
-    ev.target.disabled = true;
-    const { error } = await db.from('tareas').update({ hecha: false, modificado_en: new Date().toISOString() }).eq('id', t.id);
-    ev.target.disabled = false;
-    if (error) { toast('No se ha podido cambiar', true); return; }
-    TAREAS_DIA = null; pintarTuDia(); orig.call(this, Object.assign({}, t, { hecha: false }), fecha);
-  };
-  $('taborrar').onclick = async () => {
-    if (!await preguntar('La tarea desaparece.', { titulo: '¿Borrar la tarea?', ok: 'Borrar', peligro: true })) return;
-    const { error } = await db.from('tareas').delete().eq('id', t.id);
-    if (error) { toast('No se ha podido borrar', true); return; }
-    $('dlg').close(); toast('Tarea borrada'); TAREAS_DIA = null; pintarTuDia();
-  };
-  $('dlg').classList.add('pequena');
-  $('dlg').showModal();
-})(editarTarea);
 
 pintarSinAtribuir = async function () { const c = $('cardsinatr'); if (c) c.remove(); };
 
@@ -157,8 +81,8 @@ rpcCache = (orig => function (fn, params, clave, ...r) {
   return orig.call(this, fn, params, o && clave ? clave + '|orden:' + o.k + o.dir : clave, ...r);
 })(rpcCache);
 // Profesionales: su cabecera es propia y el orden va en F.orden (buscar_cuentas)
-cabeceraTabla = (orig => function (...a) {
-  const r = orig.apply(this, a);
+function cabeceraTabla(...a) {
+  const r = cabeceraTablaBase.apply(this, a);
   const cfg = colsConfig().filter(c => c.on), cab = $('thead'); if (!cab) return r;
   const [k, dir] = String(F.orden || '').split(':');
   [...cab.querySelectorAll('.th')].forEach((th, i) => {
@@ -169,7 +93,7 @@ cabeceraTabla = (orig => function (...a) {
     th.classList.toggle('ord-desc', actual && dir === 'desc');
   });
   return r;
-})(cabeceraTabla);
+}
 document.addEventListener('click', e => {
   const th = e.target.closest('#thead .th[data-ordk]'); if (!th || e.target.closest('.res')) return;
   const k = ORD_DIR[th.dataset.ordk], [ak, ad] = String(F.orden || '').split(':');
@@ -242,14 +166,6 @@ htPreparar = (orig => function (sec, ...r) {
 })(htPreparar);
 
 const MOS_MES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'], MOS_DS = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
-function mosContar(box) {
-  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  const els = [...box.querySelectorAll('[data-mcnt], [data-meur]')], t0 = performance.now();
-  const paso = t => { const p = Math.min(1, (t - t0) / 900), e = 1 - Math.pow(1 - p, 3);
-    els.forEach(el => { if (el.dataset.meur != null) el.textContent = mosEur(+el.dataset.meur * e); else el.textContent = num(Math.round(+el.dataset.mcnt * e)); });
-    if (p < 1) requestAnimationFrame(paso); };
-  requestAnimationFrame(paso);
-}
 cargarInicio = (orig => function (...a) {
   const r = orig.apply(this, a);
   Promise.resolve(r).then(() => pintarMosaico()).catch(() => {});
@@ -268,36 +184,8 @@ async function agPintarSemanaExp() {
   const p = cont.querySelector('#semplan'); if (p) p.textContent = 'Repartir la semana';
   const head = cont.querySelector('.semhead'); if (head) head.insertAdjacentHTML('afterbegin', '<span class="sm">Arrastra una cita a otro día para moverla · «⋯» en un día para bloquearlo o añadir una cita</span>');
 }
-// Columna derecha: tu semana
-async function agSemanaLateral() {
-  if (TAB !== 'agenda' || AG_MODO !== 'dia') return;
-  const v = $('v-agenda'); if (!v || !v.classList.contains('agcinta')) return;
-  let box = $('agsemlat');
-  if (!box) { $('agcuerpo').insertAdjacentHTML('afterend', '<div class="card" id="agsemlat"></div>'); box = $('agsemlat'); }
-  const desde = lunesDe(AG_FECHA || hoyISO()), hasta = isoMas(desde, 6);
-  const [r, bloq] = await Promise.all([rpcCache('agenda_rango', { p_desde: desde, p_hasta: hasta, p_usuario: agUsuarioFiltro() }, 'agenda-' + desde), agBloqueos(desde, 7)]);
-  if (!$('agsemlat')) return;
-  const por = {}; ((r && r.data) || []).filter(c => !citaAnulada(c.estado)).forEach(c => (por[c.fecha] = por[c.fecha] || []).push(c));
-  const DS = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
-  box.innerHTML = `<h2>Tu semana</h2><p class="sm agslnota">«⋯» en un día para bloquearlo (festivo, vacaciones, formación) o añadir una cita.</p>
-    <div class="agsl">${[...Array(7)].map((_, i) => { const f = isoMas(desde, i), d = new Date(f + 'T12:00:00'), l = (por[f] || []).sort((a, b) => String(a.hora || '').localeCompare(String(b.hora || '')));
-      return `<div class="agsld ${f === hoyISO() ? 'hoy' : ''} ${f === AG_FECHA ? 'sel' : ''} ${bloq[f] ? 'bloq' : ''}" data-agsl="${f}" role="button" tabindex="0" aria-label="Ver el ${fechaCorta(f)}">
-        <span class="agslf">${d.getDate()}<small>${DS[d.getDay()]}</small></span>
-        <span class="agslc">${bloq[f] ? `<span class="agslb">${esc(bloq[f])}</span>` : ''}${l.slice(0, 3).map(c => `<span class="agslx"><b>${esc(String(c.hora || '').slice(0, 5))}</b>${esc(c.medico || c.nombre || '')}</span>`).join('')}${l.length > 3 ? `<span class="agslv">y ${l.length - 3} más</span>` : ''}${!l.length && !bloq[f] ? '<span class="agslv">Libre</span>' : ''}</span>
-        ${f >= hoyISO() ? `<button type="button" class="agslm" data-agslm="${f}" aria-label="Opciones del ${fechaCorta(f)}">⋯</button>` : '<span></span>'}</div>`; }).join('')}</div>
-    ${[...Array(7)].some((_, i) => isoMas(desde, i) >= hoyISO()) ? '<div class="acts agslacts"><button type="button" class="btn sec" id="agslrep">Repartir la semana</button></div>' : ''}`;
-  box.querySelectorAll('[data-agslm]').forEach(b => b.onclick = ev => { ev.stopPropagation(); menuDiaSemana(b, b.dataset.agslm, !!bloq[b.dataset.agslm]); });
-  box.querySelectorAll('[data-agsl]').forEach(d => { const ver = () => agVerDia(d.dataset.agsl); d.onclick = ver; d.onkeydown = e => { if (e.key === 'Enter') ver(); }; });
-  if ($('agslrep')) $('agslrep').onclick = agRepartirSemana;
-}
 // Sugerencias dentro de tu día y bandejas
 
-function pkContar(els, fmt) {
-  if (!pkMovimiento()) { els.forEach(el => el.textContent = fmt(+el.dataset.v, el)); return; }
-  const t0 = performance.now();
-  const paso = t => { const p = Math.min(1, (t - t0) / 900), e = 1 - Math.pow(1 - p, 3); els.forEach(el => { if (el.isConnected) el.textContent = fmt(+el.dataset.v * e, el); }); if (p < 1) requestAnimationFrame(paso); };
-  requestAnimationFrame(paso);
-}
 document.addEventListener('change', e => { if (e.target && e.target.id === 'popf') pkMarcar(); });
 pintarOperativa = async function () {
   let c = $('operativa');

@@ -9,7 +9,7 @@
 
 
 /** Selector de periodo. el.__rango() devuelve { desde, hasta } (null = sin límite). */
-function montarPeriodo(el, o) {
+function montarPeriodoBase(el, o) {
   const clave = 'dlc-per-' + (o.id || el.id) + '-' + (PERFIL ? PERFIL.id : '');
   let v = localStorage.getItem(clave) || o.valor || 'mes';
   el.innerHTML = `<label>Periodo</label>
@@ -109,10 +109,6 @@ async function cargarAnalitica() {
   pintarAnalitica();
 }
 
-function refrescarAnalitica() {
-  pintarAnalitica();
-  if (!$('atabla2').classList.contains('hide')) pintarTablaAnalitica();
-}
 
 
 /* ---------------- auditoría con periodo ---------------- */

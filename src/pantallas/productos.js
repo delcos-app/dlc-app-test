@@ -467,3 +467,113 @@ const depCaducaPronto = f => f && f <= isoMas(hoyISO(), 60);
 let PROMO_PRODS = null;   // [{ id, nombre }] de los productos que se promocionan (última lista leída)
 
 const CON_LOTE_EST = ['Pendiente', 'Ganado', 'Perdido'];
+
+async function cargarProductosBase() {
+  const { data } = await db.rpc('productos_lista');
+  const l = data || [];
+  PRODUCTOS = l.filter(p => (p.tipo || 'producto') === 'producto');
+  SERVICIOS = l.filter(p => p.tipo === 'servicio');
+}
+
+async function cargarProductosModuloBase() {
+  const esAdmin = puede('administrar');
+  vaciarModulos('v-productos');
+  $('v-productos').innerHTML = `
+    <div class="saludo"><div><h1>Productos</h1><div class="fecha">Catálogo de productos y servicios, con precios sin IVA y con IVA</div></div>
+      <div class="acts" style="margin:0">${esAdmin ? `<button class="btn" id="prodnuevo">+ Nuevo ${PSEC === 'servicios' ? 'servicio' : 'producto'}</button>` : ''}</div></div>
+    <div class="subnav"><button data-ps="productos" aria-pressed="${PSEC === 'productos'}">Productos</button>
+      <button data-ps="servicios" aria-pressed="${PSEC === 'servicios'}">Servicios</button></div>
+    <div id="vcuerpo"></div>`;
+  $('v-productos').querySelectorAll('[data-ps]').forEach(b => b.onclick = () => { PSEC = b.dataset.ps; cargarProductosModulo(); });
+  if ($('prodnuevo')) $('prodnuevo').onclick = () => PSEC === 'servicios' ? editorServicio(null) : editorProducto(null);
+  if (PSEC === 'servicios') pintarServicios(); else pintarProductos();
+}
+
+async function cargarProductosModulo() {
+  await cargarProductosModuloBase();
+  const sn = $('v-productos').querySelector('.subnav');
+  if (sn && !sn.querySelector('[data-ps="stock"]')) {
+    sn.insertAdjacentHTML('beforeend', `<button data-ps="stock" aria-pressed="${PSEC === 'stock'}">Stock y lotes</button>`);
+    sn.querySelector('[data-ps="stock"]').onclick = () => { PSEC = 'stock'; cargarProductosModulo(); };
+  }
+  if (PSEC === 'stock') {
+    const acts = $('v-productos').querySelector('.saludo .acts');
+    acts.innerHTML = puedeCompras() ? '<button class="btn sec" id="stalm">Almacenes</button><button class="btn sec" id="stmue">⚙ Muestras</button><button class="btn" id="stini">+ Entrada de stock</button>' : '';
+    if ($('stalm')) $('stalm').onclick = editorAlmacenes;
+    if ($('stmue')) $('stmue').onclick = editorMuestras;
+    if ($('stini')) $('stini').onclick = () => movimientoStock(null, 'inicial');
+    pintarStock();
+  }
+}
+
+async function pintarMaterialBase() {
+  await Promise.all([cargarAjustes(), cargarProductos()]);
+  const m = Object.assign({ producto_id: null, restar_stock: false }, AJUSTES.muestras || {});
+  const { data: clas } = await db.rpc('clasificadores_actividad');
+  const mat = (clas || []).find(c => c.papel === 'material_visita');
+  const { data: cid } = await db.from('clasificadores').select('id').eq('papel', 'material_visita').maybeSingle();
+  const { data: vals } = cid ? await db.from('valores_clasificador').select('id,valor,activo,dato_tipo').eq('clasificador_id', cid.id).order('orden') : { data: [] };
+  $('cfgcuerpo').innerHTML = `
+    <div class="card cfgpanel"><h2>Material de ${TT('visita', 's', '', 'l', 'l')}</h2>
+      <p class="sm">Todo lo que un comercial puede dejar en ${TT('visita', 's', 'un', 'l', 'l')}. Al registrar ${TT('visita', 's', 'el', 'l', 'l')} se marca qué se entregó y cuánto, y queda en la ficha ${TT('medico', 's', 'del', 'l', 'l')} y en Analítica (material por comercial, por ${TT('medico', 's', '', 'l', 'l')} y por mes).</p>
+      <div class="mattipos"><div><b>📦 Muestras de producto</b><span>Unidades de un producto del catálogo. Pueden descontarse del stock.</span></div>
+        <div><b>📚 Material promocional</b><span>Dípticos, catálogos, flyers, tarjetas… Se cuentan, pero no descuentan stock.</span></div></div></div>
+    <div class="card cfgpanel"><h2>📦 Muestras de producto</h2>
+      <div class="g2"><div><label for="muprod">Producto que se entrega como muestra</label><select id="muprod"><option value="">— Ninguno —</option>${PRODUCTOS.filter(p => p.tipo !== 'servicio').map(p => `<option value="${p.id}" ${p.id === m.producto_id ? 'selected' : ''}>${esc(p.nombre)}</option>`).join('')}</select></div><div></div></div>
+      <label class="vfswitch" style="margin-top:10px"><input type="checkbox" id="murest" ${m.restar_stock ? 'checked' : ''}><span class="sw"></span>
+        <span><b>Descontar las muestras del stock</b><br><span class="sm">Salen del maletín de quien registra ${TT('visita', 's', 'el', 'l', 'l')} (o del almacén central si no tiene), empezando por el lote que caduca antes. Así sabes cuántas muestras quedan y a quién llegó cada lote.</span></span></label>
+      <div class="acts" style="justify-content:flex-end"><button class="btn" id="muok">Guardar</button></div></div>
+    <div class="card cfgpanel"><h2>📚 Material promocional</h2>
+      <p class="sm">Lo que aparece para marcar al registrar ${TT('visita', 's', 'un', 'l', 'l')}. En cada uno eliges si al registrar se anotan las unidades entregadas y, con el portal, si se puede pedir desde él y cuántas como máximo por petición.</p>
+      <div class="matlista">${(vals || []).map(v => `<div class="matfila ${v.activo ? '' : 'off'}"><b>${esc(v.valor)}</b><span class="sm">${v.dato_tipo === 'numero' ? 'Pide cantidad' : 'Solo se marca'}</span>
+        <label class="vfswitch mini"><input type="checkbox" data-mact="${v.id}" ${v.activo ? 'checked' : ''}><span class="sw"></span><span class="sm">${v.activo ? 'Activo' : 'Oculto'}</span></label></div>`).join('') || '<div class="sm">Todavía no hay material.</div>'}</div>
+      <div class="matadd"><input id="matn" placeholder="Nuevo material, p. ej. Cartel para el mostrador"><label class="opt" style="margin:0"><input type="checkbox" id="matq" checked> Anotar cuántas se entregan</label>
+        <button class="btn sec" id="matok" ${cid ? '' : 'disabled'}>Añadir</button></div></div>`;
+  $('muok').onclick = async () => {
+    if ($('murest').checked && !$('muprod').value) { toast('Elige el producto de las muestras', true); return; }
+    const { error } = await db.rpc('guardar_ajuste', { p_clave: 'muestras', p_valor: { producto_id: $('muprod').value || null, restar_stock: $('murest').checked } });
+    if (error) { toast('No se ha podido guardar', true); return; } AJUSTES.muestras = { producto_id: $('muprod').value || null, restar_stock: $('murest').checked }; toast('Guardado');
+  };
+  $('cfgcuerpo').querySelectorAll('[data-mact]').forEach(c => c.onchange = async () => { await db.rpc('guardar_valor', { p: { id: c.dataset.mact, activo: c.checked } }); toast(c.checked ? `Visible en ${TT('visita', 'p', 'el', 'l', 'l')}` : `Oculto en ${TT('visita', 'p', 'el', 'l', 'l')}`); cargarCatalogos(); pintarMaterial(); });
+  $('matok').onclick = async () => {
+    const v = $('matn').value.trim(); if (!v) return;
+    const { error } = await db.rpc('guardar_valor', { p: Object.assign({ clasificador_id: cid.id, valor: v }, $('matq').checked ? { dato_tipo: 'numero', dato_etiqueta: 'Unidades' } : {}) });
+    if (error) { toast('No se ha podido: ' + error.message, true); return; } toast('Añadido'); cargarCatalogos(); pintarMaterial();
+  };
+}
+
+async function cargarProductos() {
+  await cargarProductosBase();
+  const { data } = await db.from('productos').select('id,estado');
+  ESTADO_PROD = {}; (data || []).forEach(x => { ESTADO_PROD[x.id] = x.estado || 'Activo'; });
+  [...PRODUCTOS, ...SERVICIOS].forEach(p => { p.estado = ESTADO_PROD[p.id] || 'Activo'; });
+}
+
+async function productosPromocionadosBase() {
+  if (!navigator.onLine) return PROMO_PRODS || [];   // v2.259.0: sin red, la última lista leída
+  try {
+    const { data, error } = await db.from('productos').select('id,nombre,estado').eq('promocionado', true).order('nombre');
+    if (!error) PROMO_PRODS = (data || []).filter(p => (p.estado || 'Activo') !== 'Descatalogado').map(p => ({ id: p.id, nombre: p.nombre }));
+  } catch (e) {}
+  return PROMO_PRODS || [];
+}
+
+// La lista de material se pide a la vez que los productos promocionados (así «Presentar» sale con ellos, no después)
+async function productosPromocionados(...a) {
+  const [r] = await Promise.all([productosPromocionadosBase.apply(this, a), presMateriales()]);
+  return r;
+}
+
+/* ============================================================
+   v2.278.0 · Material de visita: cada material con su cantidad y su máximo en el portal (aviso de Eric, 12/10/2026).
+   Antes, «Pide cantidad» solo se elegía al añadir y el máximo que puede pedir el profesional desde su portal (20 si nadie lo
+   cambiaba) estaba en otro apartado. Ahora cada fila de «Material promocional» lleva:
+   - Al registrar: «Anotar cuántas se entregan» o «Solo marcar que se entregó» (guardar_valor dato_tipo).
+   - Con el portal: «Se puede pedir desde el portal» y «Máximo por petición» (1 a 1.000; vacío o fuera de rango avisa en la fila
+     y no se guarda). Se guarda en el mismo ajuste que «Portal del profesional» (portal.material).
+   ============================================================ */
+async function pintarMaterial(...x) {
+  const r = await pintarMaterialBase.apply(this, x);
+  try { await matMejorar(); } catch (e) { registrarError('error', 'Material promocional: ' + e.message); }
+  return r;
+}

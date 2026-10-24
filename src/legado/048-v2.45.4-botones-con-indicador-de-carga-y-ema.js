@@ -3,7 +3,7 @@
    ============================================================ */
 
 // Botón en espera: se desactiva, muestra un indicador y recupera su texto al terminar
-async function conCarga(btn, texto, fn) {
+async function conCargaBase(btn, texto, fn) {
   if (!btn || btn.dataset.cargando) return;
   const antes = btn.innerHTML; btn.dataset.cargando = '1'; btn.disabled = true; btn.classList.add('btncarga');
   btn.innerHTML = `<span class="giro"></span>${esc(texto)}`;

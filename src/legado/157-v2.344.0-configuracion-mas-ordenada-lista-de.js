@@ -45,13 +45,6 @@ pintarPerfil = (orig => function (...a) {
   c.prepend(u);
   return r;
 })(pintarPerfil);
-// pintarPrefsPerfil pone la tarjeta de la persona después: va a su sitio dentro de la tarjeta única
-pintarPrefsPerfil = (orig => async function (...a) {
-  const p = orig.apply(this, a);
-  const mp = $('miperfil'), row = document.querySelector('#cfgcuerpo .perfunorow');
-  if (mp && row && mp.parentElement !== row) { mp.classList.remove('card', 'cfgpanel'); mp.classList.add('perfparte'); row.prepend(mp); }
-  return p;
-})(pintarPrefsPerfil);
 
 // KPIs de Inicio: Restaurar y Guardar junto al título
 new MutationObserver(() => {

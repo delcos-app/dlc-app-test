@@ -2123,3 +2123,252 @@ const cfgEstable = (el, max) => new Promise(ok => {
   const listo = () => { if (el.querySelector('.cfgcarga, .giro, .spin')) { t = setTimeout(listo, 150); return; } ob.disconnect(); clearTimeout(fin); ok(); };
   ob.observe(el, { childList: true, subtree: true, attributes: true }); t = setTimeout(listo, 200); fin = setTimeout(() => { ob.disconnect(); clearTimeout(t); ok(); }, max || 5000);
 });
+
+/* pintarPlan: la parte base y, en orden, cada paso que se le añade (antes eran 6 capas separadas). */
+function pintarPlanBase2() {
+  pintarPlanBase();
+  planBotonesAgenda();
+  planHorasYFueraDePlan();
+  planMapaYDescartar();
+  planVisitadosRecientes();
+  planAvisoSinSalida();
+  planFichasYNotas();
+}
+
+function abrirHorarioPlanBase() {
+  const c = PLANCFG();
+  $('dbody').innerHTML = `
+    <div class="fh"><div><h2>Tiempos de ${TT('visita', 's', '', 'l', 'l')}</h2><div class="sm">Se guardan en tus preferencias. La hora de salida y la de vuelta se ponen en cada ruta.</div></div>
+      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
+    <div class="g2">
+      <div><label for="hvis">Minutos por ${TT('medico', 's', '', 'l', 'l')}</label><input id="hvis" type="number" min="5" max="60" value="${c.visita}"></div>
+      <div><label for="hpar">Minutos fijos por parada</label><input id="hpar" type="number" min="0" max="40" value="${c.parada}"></div>
+    </div>
+    <div class="acts" style="justify-content:flex-end">
+      <button class="btn sec" data-cerrar>Cancelar</button>
+      <button class="btn" id="hok">Guardar</button></div>`;
+  $('hok').onclick = async ev => {
+    ev.target.disabled = true;
+    const plan = { visita: +$('hvis').value || 15, parada: $('hpar').value === '' ? 10 : +$('hpar').value };
+    const prefs = Object.assign({}, PERFIL.preferencias || {}, { plan });
+    const { data } = await db.rpc('guardar_preferencias', { p: prefs });
+    PERFIL.preferencias = data || prefs;
+    $('dlg').close(); toast('Horario guardado');
+    if (ULTIMO_PLAN) construirPlan(ULTIMO_PLAN.conXY, ULTIMO_PLAN.rutaId, null, ULTIMO_PLAN.opts);
+    else if (PLAN && PLAN.rutaId) {
+      if (typeof PLAN.rutaId === 'string' && PROPUESTAS && PROPUESTAS[PLAN.rutaId]) planDesdeLista(PROPUESTAS[PLAN.rutaId], PLAN.rutaId);
+      else planificar(PLAN.rutaId, $('rnueva') || document.createElement('button'));
+    }
+  };
+  $('dlg').showModal();
+}
+
+function abrirClasificadorBase(id) {
+  const c = CATS.find(x => x.id === id); if (!c) return;
+  const puedeEditar = puede('administrar') || ((PERFIL.areas || {}).K || 0) >= 2;
+  const completo = puede('administrar') || ((PERFIL.areas || {}).K || 0) >= 3;
+
+  const pinta = () => {
+    $('dbody').innerHTML = `
+      <div class="fh"><div><h2>${esc(c.nombre)}</h2>
+        <div class="sm">Grupo ${esc(c.grupo || 'General')} · se usa en ${esc(c.ambito === 'pedido' ? 'pedidos' : c.ambito === 'visita' ? 'visitas' : `fichas de ${TT('medico', 's', '', 'l', 'l')}`)}
+        ${puedeEditar ? '' : ' · <b>solo lectura</b>'}</div></div>
+        <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
+      ${cajaCampo(c, completo)}
+      <div class="lista ${!c.papel && CAMPO_TABLA[c.ambito] && (c.tipo_campo || 'lista') !== 'lista' ? 'hide' : ''}">${(c.valores || []).map(v => `<div class="item ${v.padre ? 'vsub' : ''}" style="cursor:default">
+        <span class="ic">${v.activo ? '●' : '○'}</span>
+        <span class="tx"><b style="${v.activo ? '' : 'opacity:.5;text-decoration:line-through'}">${esc(v.valor)}</b>
+          ${v.extra ? `<span class="sm">${v.extra === 'neg' ? `sin ${TT('visita', 's', '', 'l', 'l')}` : `${TT('visita', 's', '', 'l', 'l', 'realizado')}`}${v.destino ? ' · pasa a ' + esc(v.destino) : ''}</span>` : ''}</span>
+        ${puedeEditar ? `<span class="acts" style="margin:0">
+          <button class="btn sec" data-vren="${v.id}|${esc(v.valor)}">Renombrar</button>
+          ${c.papel === 'resultado_visita' ? `<select data-vdest="${v.id}" title="Estado al que pasa la ficha con este resultado" style="max-width:170px"><option value="">No cambia el estado</option>${estados().map(x => `<option value="${esc(x)}" ${v.destino === x ? 'selected' : ''}>Pasa a ${esc(x)}</option>`).join('')}</select>` : ''}
+          <button class="btn sec" data-vtog="${v.id}|${v.activo ? 0 : 1}">${v.activo ? 'Desactivar' : 'Activar'}</button>
+          ${completo ? `<button class="btn sec dang" data-vdel="${v.id}">Eliminar</button>` : ''}</span>` : ''}
+      </div>`).join('') || '<div class="vacio">Sin valores todavía.</div>'}</div>
+      ${puedeEditar ? `<div class="acts"><input id="cvnew" placeholder="Nuevo valor" style="flex:1;min-width:160px">
+        ${c.papel === 'resultado_visita' ? `<select id="cvextra" style="max-width:170px"><option value="pos">${TT('visita', 's', '', 'l', 'C', 'realizado')}</option><option value="neg">Sin ${TT('visita', 's', '', 'l', 'l')}</option></select>
+          <select id="cvdest" style="max-width:190px" title="Estado al que pasa la ficha con este resultado"><option value="">No cambia el estado</option>${estados().map(x => `<option value="${esc(x)}">Pasa a ${esc(x)}</option>`).join('')}</select>` : ''}
+        ${(c.valores || []).some(v => v.padre) ? `<select id="cvpadre" style="max-width:210px" title="Categoría del valor"><option value="">Sin categoría (es una categoría)</option>${(c.valores || []).filter(v => !v.padre).map(v => `<option value="${esc(v.valor)}">Dentro de ${esc(v.valor)}</option>`).join('')}</select>` : ''}
+        <button class="btn" id="cvadd">Añadir</button></div>` : ''}
+      ${completo && !c.sistema ? `<div class="acts" style="justify-content:flex-end;border-top:1px solid var(--line);padding-top:12px">
+        <button class="btn sec dang" id="cdel">Eliminar clasificador</button></div>` : ''}`;
+
+    if ($('cfcok')) $('cfcok').onclick = async () => {
+      const v = { tipo: $('cfctipo').value };
+      ['obligatorio', 'solo_lectura', 'en_ficha', 'en_tabla', 'en_filtro'].forEach(k => { v[k] = $('cfc_' + k).checked; });
+      const { data: r, error } = await db.rpc('configurar_campo', { p_id: id, p: v });
+      if (error || !r || !r.ok) { toast('No se ha podido guardar el campo', true); return; }
+      toast('Campo guardado'); recarga(); cargarCampos().catch(() => {});
+    };
+    const recarga = async () => {
+      const { data } = await db.rpc('catalogos_todos');
+      CATS = data || [];
+      Object.assign(c, CATS.find(x => x.id === id) || c);
+      pinta(); cargarCatalogos();
+    };
+
+    if ($('cvadd')) $('cvadd').onclick = async () => {
+      const v = $('cvnew').value.trim(); if (!v) return;
+      const { error } = await db.rpc('guardar_valor', { p: { clasificador_id: id, valor: v,
+        extra: $('cvextra') ? $('cvextra').value : null, destino: $('cvdest') ? $('cvdest').value : null,
+        ...($('cvpadre') && $('cvpadre').value ? { padre: $('cvpadre').value, valor: v.startsWith($('cvpadre').value + ' · ') ? v : $('cvpadre').value + ' · ' + v } : {}) } });
+      if (error) { toast('No se ha podido añadir', true); return; }
+      toast('Valor añadido'); recarga();
+    };
+    $('dbody').querySelectorAll('[data-vtog]').forEach(b => b.onclick = async () => {
+      const [vid, activo] = b.dataset.vtog.split('|');
+      await db.rpc('guardar_valor', { p: { id: vid, activo: activo === '1' } });
+      recarga();
+    });
+    $('dbody').querySelectorAll('[data-vren]').forEach(b => b.onclick = async () => {
+      const [vid, actual] = b.dataset.vren.split('|');
+      const nuevo = await pedirTexto('Nuevo nombre', actual, { titulo: 'Renombrar valor', ok: 'Guardar' });
+      if (!nuevo) return;
+      await db.rpc('guardar_valor', { p: { id: vid, valor: nuevo } });
+      toast('Renombrado'); recarga();
+    });
+    // v2.87.0: el estado al que lleva cada resultado se puede cambiar en cualquier momento
+    $('dbody').querySelectorAll('[data-vdest]').forEach(sel => sel.onchange = async () => {
+      const { data: r, error } = await db.rpc('guardar_valor', { p: { id: sel.dataset.vdest, destino: sel.value } });
+      if (error || (r && r.ok === false)) { toast('No se ha podido cambiar', true); return; }
+      toast(sel.value ? `Ahora pasa a ${sel.value}` : 'Ya no cambia el estado');
+    });
+    $('dbody').querySelectorAll('[data-vdel]').forEach(b => b.onclick = async () => {
+      if (!await preguntar(`Las fichas y ${TT('visita', 'p', '', 'l', 'l')} que ya lo usan lo conservan, pero dejará de aparecer.`,
+        { titulo: '¿Eliminar el valor?', ok: 'Eliminar', peligro: true })) return;
+      const { data: r } = await db.rpc('borrar_valor', { p_id: b.dataset.vdel });
+      if (r && r.ok === false) { toast('No tienes permiso', true); return; }
+      toast('Eliminado'); recarga();
+    });
+    if ($('cdel')) $('cdel').onclick = async () => {
+      if (!await preguntar(`Se elimina "${c.nombre}" y todos sus valores.`,
+        { titulo: '¿Eliminar el clasificador?', ok: 'Eliminar', peligro: true })) return;
+      const { data: r } = await db.rpc('borrar_clasificador', { p_id: id });
+      if (r && r.ok === false) { toast(r.error === 'sistema' ? 'Los del sistema no se pueden eliminar' : 'Sin permiso', true); return; }
+      $('dlg').close(); toast('Clasificador eliminado'); pintarCatalogos(); cargarCatalogos();
+    };
+  };
+  pinta();
+  $('dlg').showModal();
+}
+
+function colsConfigBase() {
+  let g = null;
+  try { g = JSON.parse(localStorage.getItem(colKey()) || 'null'); } catch (e) {}
+  if (!g || !g.length) g = COLS.map(c => ({ k: c.k, on: COLS_DEF.includes(c.k) || (c.k === 'comerciales' && VE_TODO()), w: c.w }));
+  COLS.forEach(c => { if (!g.some(x => x.k === c.k)) g.push({ k: c.k, on: c.k === 'comerciales' && VE_TODO(), w: c.w }); });
+  return g.filter(x => x.k !== 'comerciales' || VE_TODO());
+}
+
+function abrirClasificador(id) {
+  abrirClasificadorBase(id);
+  const c = CATS.find(x => x.id === id);
+  const permitido = puede('administrar') || ((PERFIL.areas || {}).K || 0) >= 2;
+  if (!c || !permitido || !['visita'].includes(c.ambito) && c.papel !== 'resultado_visita') return;
+  // Cada vez que se repinta la ventana, se añaden los botones de dato
+  const decorar = () => {
+    const items = $('dbody').querySelectorAll('.lista > .item');
+    (c.valores || []).forEach((v, i) => {
+      const it = items[i]; if (!it || it.querySelector('[data-vdato]')) return;
+      const tx = it.querySelector('.tx');
+      if (v.dato_tipo) tx.insertAdjacentHTML('beforeend', `<span class="sm">Pide: ${esc(v.dato_etiqueta || v.dato_tipo)}${v.dato_tipo === 'lista' ? ' (' + (v.dato_opciones || []).length + ' opciones)' : ''}</span>`);
+      const acts = it.querySelector('.acts');
+      if (acts) acts.insertAdjacentHTML('afterbegin', `<button class="btn sec" data-vdato="${v.id}">${v.dato_tipo ? 'Cambiar dato' : '+ Dato'}</button>`);
+    });
+    $('dbody').querySelectorAll('[data-vdato]').forEach(b => b.onclick = () => {
+      const v = (c.valores || []).find(x => x.id === b.dataset.vdato);
+      editorDato(v, async () => {
+        const { data } = await db.rpc('catalogos_todos'); CATS = data || [];
+        cargarCatalogos(); abrirClasificador(id);
+      });
+    });
+    if (!$('dbody').querySelector('.datoinfo')) $('dbody').querySelector('.fh').insertAdjacentHTML('afterend',
+      `<p class="sm datoinfo">Con <b>+ Dato</b>, al marcar ese valor en ${TT('visita', 's', 'un', 'l', 'l')} se pedirá también una cantidad, un texto o una opción de una lista.</p>`);
+  };
+  decorar();
+  new MutationObserver((_, obs) => { if (!$('dlg').open) { obs.disconnect(); return; } decorar(); })
+    .observe($('dbody'), { childList: true });
+}
+
+async function pintarRolesBase() {
+  await cargarAjustes();
+  const roles = rolesNombres().filter(r => !rolPuede(r, 'portal_prescriptor'));
+  $('cfgcuerpo').innerHTML = `<div class="card cfgpanel"><h2>Roles y permisos</h2>
+    <p class="sm">Cada rol tiene una plantilla de permisos que se aplica al dar de alta a una persona o al cambiarle el rol. Después se puede ajustar persona a persona en Usuarios. ${TT('medico', 'p', 'el', 'C', 'l')} con acceso solo ven su informe.</p>
+    <div class="nivleg">${NIVEL_TXT.map((t, i) => `<span class="nv${i}"><b>${esc(t)}</b>${['No ve el módulo ni aparece en el menú', 'Lo ve, pero no cambia nada', 'Crea y edita lo suyo', 'Todo, incluido borrar y configurar'][i]}</span>`).join('')}</div>
+    <div class="dgrid-wrap"><table class="rolmat"><thead><tr><th>Permiso</th>${roles.map(r => `<th>${esc(r)}</th>`).join('')}</tr></thead>
+      <tbody>${AREAS.map(([k, n]) => `<tr><td><b>${esc(n)}</b><span class="sm">${esc(QUE_ABRE[k] || '')}</span></td>
+        ${roles.map(r => `<td><select data-rol="${esc(r)}" data-ar="${k}" class="nvsel chico" ${rolPuede(r, 'administrar') ? 'disabled' : ''}>${NIVEL_TXT.map((t, i) => `<option value="${i}" ${+(plantillaRol(r)[k] || 0) === i ? 'selected' : ''}>${esc(t)}</option>`).join('')}</select></td>`).join('')}</tr>`).join('')}</tbody></table></div>
+    <div class="acts" style="justify-content:flex-end;flex-wrap:wrap"><button class="btn sec" id="rolrest">Volver a los valores de partida</button><button class="btn" id="rolok">Guardar plantillas</button></div></div>`;
+  const colorea = () => $('cfgcuerpo').querySelectorAll('.nvsel').forEach(s => s.className = 'nvsel chico nv' + s.value);
+  $('cfgcuerpo').addEventListener('change', colorea); colorea();
+  const leer = () => { const o = {}; $('cfgcuerpo').querySelectorAll('[data-rol]:not([disabled])').forEach(s => { (o[s.dataset.rol] = o[s.dataset.rol] || {})[s.dataset.ar] = +s.value; }); return o; };
+  $('rolrest').onclick = async () => { await db.rpc('guardar_ajuste', { p_clave: 'roles', p_valor: {} }); AJUSTES.roles = {}; toast('Valores de partida'); pintarRoles(); };
+  $('rolok').onclick = async () => {
+    const v = leer(); const { error } = await db.rpc('guardar_ajuste', { p_clave: 'roles', p_valor: v });
+    if (error) { toast('No se ha podido guardar', true); return; }
+    AJUSTES.roles = v;
+    if (await preguntar('Las plantillas se usan en las altas y cambios de rol. ¿Quieres aplicarlas también ahora a todas las personas que ya tienen esos roles? Se sustituirán sus permisos actuales.', { titulo: '¿Aplicar a las personas actuales?', ok: 'Aplicar a todos' })) {
+      let n = 0; for (const [r, a] of Object.entries(v)) { const { data: x } = await db.rpc('aplicar_plantilla_rol', { p_rol: r, p_areas: a }); n += (x && x.personas) || 0; }
+      toast(`Plantillas guardadas y aplicadas a ${n} personas`);
+    } else toast('Plantillas guardadas');
+  };
+}
+
+async function pintarPrefsPerfilBase() {
+  // v2.340.0: la tarjeta de la persona se pinta directamente en su sitio (antes, en un contenedor escondido esperando a pintarPrefs:
+  // llegaba tarde o, si quedaba otra #miperfil en la copia fija, no llegaba y dejaba el hueco)
+  document.querySelectorAll('#miperfil, #mpextra').forEach(x => { if (x.closest('.congelada')) x.removeAttribute('id'); else x.remove(); });
+  if (!$('perfilcab')) return;
+  const p = pintarPrefsPaso2();
+  const mp = $('miperfil');
+  if (mp && $('perfilcab')) $('perfilcab').replaceWith(mp); else if ($('perfilcab')) $('perfilcab').remove();
+  try { await p; } catch (e) {}
+}
+
+function colsConfig() {
+  let guardada = null;
+  try { guardada = JSON.parse(localStorage.getItem(colKey()) || 'null'); } catch (e) { /* sin almacenamiento */ }
+  return colsConfigBase().map(c => c.k.startsWith('cp:') && !(guardada || []).some(x => x.k === c.k)
+    ? { ...c, on: !!((CAMPOS.medico || []).find(x => 'cp:' + x.clave === c.k) || {}).en_tabla } : c);
+}
+
+/* v2.109.0 · Permisos propios en los roles: importar, clasificadores y dar acceso.
+   Configuración → Usuarios y roles → Roles tiene debajo de las plantillas la tabla «Permisos» (las capacidades del grupo
+   «Permisos»; el resto de capacidades no se cambian desde aquí). Quien tiene «Dar acceso a fichas de su cartera» da acceso
+   al portal desde la ficha, sin pasar por Usuarios: se crea la invitación ligada a la ficha y después el usuario. */
+async function pintarRoles(...a) {
+  await pintarRolesBase(...a);
+  if (!puede('administrar') || !$('cfgcuerpo')) return;
+  const { data: caps } = await db.from('capacidades').select('clave,nombre,descripcion,orden').eq('grupo', 'Permisos').order('orden');
+  if (!(caps || []).length || !$('cfgcuerpo') || $('rolperm')) return;
+  const roles = rolesNombres().filter(r => !rolPuede(r, 'portal_prescriptor'));
+  $('cfgcuerpo').insertAdjacentHTML('beforeend', `<div class="card cfgpanel" id="rolperm"><h2>Permisos</h2>
+    <p class="sm">Lo que puede hacer cada rol además de sus módulos. Se aplica a todas las personas del rol al guardar.</p>
+    <div class="dgrid-wrap"><table class="rolmat"><thead><tr><th>Permiso</th>${roles.map(r => `<th>${esc(r)}</th>`).join('')}</tr></thead>
+      <tbody>${caps.map(c => `<tr><td><b>${esc(c.nombre)}</b><span class="sm">${esc(c.descripcion || '')}</span></td>
+        ${roles.map(r => `<td><input type="checkbox" data-prol="${esc(r)}" data-pcap="${esc(c.clave)}" aria-label="${esc(c.nombre)} · ${esc(r)}" ${rolPuede(r, c.clave) ? 'checked' : ''}></td>`).join('')}</tr>`).join('')}</tbody></table></div>
+    <div class="acts" style="justify-content:flex-end"><button class="btn" id="rolpermok">Guardar permisos</button></div></div>`);
+  $('rolpermok').onclick = async ev => {
+    ev.target.disabled = true;
+    let fallo = false;
+    for (const r of roles) {
+      const lista = [...$('rolperm').querySelectorAll(`[data-prol="${CSS.escape(r)}"]:checked`)].map(x => x.dataset.pcap);
+      const { data: x, error } = await db.rpc('guardar_permisos_rol', { p_rol: r, p_permisos: lista });
+      if (error || (x && x.ok === false)) fallo = true;
+    }
+    ev.target.disabled = false;
+    await cargarRoles();
+    const { data: yo } = await db.from('perfiles').select('capacidades').eq('id', PERFIL.id).single();
+    if (yo && Array.isArray(yo.capacidades)) PERFIL.capacidades = yo.capacidades;
+    toast(fallo ? 'No se han podido guardar todos los permisos' : 'Permisos guardados', fallo);
+  };
+}
+
+// pintarPrefsPerfil pone la tarjeta de la persona después: va a su sitio dentro de la tarjeta única
+async function pintarPrefsPerfil(...a) {
+  const p = pintarPrefsPerfilBase.apply(this, a);
+  const mp = $('miperfil'), row = document.querySelector('#cfgcuerpo .perfunorow');
+  if (mp && row && mp.parentElement !== row) { mp.classList.remove('card', 'cfgpanel'); mp.classList.add('perfparte'); row.prepend(mp); }
+  return p;
+}

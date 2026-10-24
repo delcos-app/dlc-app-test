@@ -42,7 +42,6 @@ document.addEventListener('click', async e => {
 
 /* ---------------- acceso y cierre de sesión: sin menú ---------------- */
 
-mostrarLogin = (orig => function (...a) { document.body.classList.add('sin-sesion'); return orig.apply(this, a); })(mostrarLogin);
 if (!PERFIL) document.body.classList.add('sin-sesion');
 
 /* ---------------- pruebas: volver a los datos de partida con confirmación ---------------- */

@@ -32,15 +32,15 @@ ordenarBotones = function (sec) {
 
 /* ---------------- 2. Inicio: actualizar como icono, igual que los de al lado ---------------- */
 
-pintarActualizado = (orig => function () {
-  orig();
+function pintarActualizado() {
+  pintarActualizadoBase();
   const b = $('iniact'); if (!b) return;
   b.classList.add('icoredondo', 'icoonly');   // v2.337.0: botón de icono del sistema delcos (con el relleno de un botón normal el icono quedaba 3 px a la derecha)
   const c = CACHE_MOD.inicio; const m = c ? Math.floor((Date.now() - c.t) / 60000) : 0;
   b.title = (m < 1 ? 'Datos actualizados ahora' : `Datos actualizados hace ${m} min`) + ' · Pulsa para actualizar';
   b.setAttribute('aria-label', b.title);
   const sp = b.querySelector('span'); if (sp) sp.textContent = '';
-})(pintarActualizado);
+}
 
 /* ---------------- 3. Cuentas: una sola ayuda junto al título; nombre configurable en Calidad ---------------- */
 
@@ -75,14 +75,6 @@ ivaSelector = (orig => function (inp) { if (!inp || !esPorcentajeIva(inp)) retur
 
 /* ---------------- 5. Archivos: sin el recuadro antiguo; notas de varias líneas ---------------- */
 
-selectorArchivo = (orig => function (inp) {
-  orig(inp);
-  const w = inp && inp.closest('.filepick'); if (!w) return;
-  // El recuadro de vista previa antiguo (al lado) se oculta: la miniatura ya está en el selector
-  const cont = w.parentElement, prev = cont && cont.parentElement && [...cont.parentElement.children].find(x => x !== cont && !x.contains(w) && x.querySelector && (x.querySelector('img') || /foto|prev/i.test(x.className + x.id)) && x.getBoundingClientRect().width < 120);
-  if (prev) { const im = prev.querySelector('img'); if (im && im.src) w.querySelector('.fpmini').innerHTML = `<img src="${im.src}" alt="">`; prev.classList.add('hide'); }
-  const lab = cont.querySelector(`label[for="${inp.id}"]`); if (lab) lab.classList.add('hide');
-})(selectorArchivo);
 new MutationObserver(ms => { for (const m of ms) for (const n of m.addedNodes) if (n.nodeType === 1)
   (n.matches && n.matches('input[type=text]') ? [n] : [...n.querySelectorAll('input[type=text]')]).forEach(notaAmplia);
 }).observe(document.body, { childList: true, subtree: true });
@@ -107,18 +99,6 @@ $('dlg').addEventListener('close', () => {
   b.replaceChildren(...prev.nodos); d.className = prev.clases;
   setTimeout(() => { if (!d.open) d.showModal(); }, 0);
 });
-// Desde el pedido: la factura se abre encima y al cerrarla vuelve el pedido tal como estaba
-pedidoFacturas = (orig => async function (id) {
-  await orig(id);
-  $('dbody').querySelectorAll('[data-pvfac]').forEach(b => b.onclick = () => abrirApilada(() => verFactura(b.dataset.pvfac), 'Volver al pedido'));
-})(pedidoFacturas);
-// Desde el pedido: la ficha del cliente se abre como panel encima, sin cerrar el pedido
-verPedidoBase = (orig => async function (...a) {
-  const r = await orig.apply(this, a);
-  const vp = $('dbody').querySelector('[data-vpac]');
-  if (vp) vp.onclick = () => fichaPaciente(vp.dataset.vpac);
-  return r;
-})(verPedidoBase);
 
 /* ---------------- 8. Mi perfil y Empresa: pantallas completas ---------------- */
 

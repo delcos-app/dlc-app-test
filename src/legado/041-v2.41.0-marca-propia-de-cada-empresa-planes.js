@@ -82,18 +82,8 @@ Promise.resolve(RPC_ORIG('plan_uso', {})).then(r => { if (r && r.data && r.data.
 
 // Los módulos que no entran en el plan se ven con candado y explican cómo conseguirlos
 const puedeModuloV2400 = puedeModulo;
-function avisoPlan(mod) {
-  const p = planMinimo(mod), n = (document.querySelector(`nav.main [data-t="${mod}"]`) || {}).textContent || mod;
-  $('dbody').innerHTML = `<div class="fh"><div><h2>🔒 ${esc(n.replace('🔒', '').trim())}</h2><div class="sm">No está incluido en tu plan ${esc(planDe(PLAN_ACTUAL.plan).nombre)}</div></div>
-    <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-    <p>Está disponible desde el plan <b>${esc(p ? p.nombre : 'A medida')}</b>${p ? ` (${precioPlan(p)})` : ''}.</p>
-    ${p ? `<ul class="manlist">${p.ventajas.map(v => `<li><span>✓</span><span>${esc(v)}</span></li>`).join('')}</ul>` : ''}
-    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>Ahora no</button>${puede('administrar') ? '<button class="btn" id="vplan">Ver planes</button>' : ''}</div>`;
-  $('dlg').showModal();
-  if ($('vplan')) $('vplan').onclick = () => { $('dlg').close(); CFG_SEC = 'plan'; ir('config'); };
-}
 
-async function pintarPlan2() {
+async function pintarPlan2Base() {
   const { data } = await RPC_ORIG('plan_uso', {});
   const d = data || {}, act = planDe((d.plan || {}).plan), bloques = +((d.plan || {}).bloques_extra || 0);
   const maxU = act.incluidos + bloques * act.bloque[0], enlaces = ((d.pagos || {}).enlaces) || {};
@@ -139,40 +129,16 @@ const QUE_ABRE = { H: 'Inicio: indicadores, alertas y resumen', G: 'Agenda, cita
   C: 'Centros y sus datos', S: `Registro de ${TT('visita', 'p', '', 'l', 'l')}`, V: 'Pedidos: ventas, compras y llamadas', L: `Clientes (${TT('paciente', 'p', '', 'l', 'l')} y empresas)`, P: 'Productos, servicios y stock',
   F: 'Facturación, cobros y rectificativas', A: 'Analítica y rankings', E: 'Importes en euros (si no, solo unidades)', Q: 'Calidad del dato y duplicados',
   K: 'Clasificadores y listas de valores', U: 'Impersonalizar a otros usuarios' };
-async function pintarRoles() {
-  await cargarAjustes();
-  const roles = rolesNombres().filter(r => !rolPuede(r, 'portal_prescriptor'));
-  $('cfgcuerpo').innerHTML = `<div class="card cfgpanel"><h2>Roles y permisos</h2>
-    <p class="sm">Cada rol tiene una plantilla de permisos que se aplica al dar de alta a una persona o al cambiarle el rol. Después se puede ajustar persona a persona en Usuarios. ${TT('medico', 'p', 'el', 'C', 'l')} con acceso solo ven su informe.</p>
-    <div class="nivleg">${NIVEL_TXT.map((t, i) => `<span class="nv${i}"><b>${esc(t)}</b>${['No ve el módulo ni aparece en el menú', 'Lo ve, pero no cambia nada', 'Crea y edita lo suyo', 'Todo, incluido borrar y configurar'][i]}</span>`).join('')}</div>
-    <div class="dgrid-wrap"><table class="rolmat"><thead><tr><th>Permiso</th>${roles.map(r => `<th>${esc(r)}</th>`).join('')}</tr></thead>
-      <tbody>${AREAS.map(([k, n]) => `<tr><td><b>${esc(n)}</b><span class="sm">${esc(QUE_ABRE[k] || '')}</span></td>
-        ${roles.map(r => `<td><select data-rol="${esc(r)}" data-ar="${k}" class="nvsel chico" ${rolPuede(r, 'administrar') ? 'disabled' : ''}>${NIVEL_TXT.map((t, i) => `<option value="${i}" ${+(plantillaRol(r)[k] || 0) === i ? 'selected' : ''}>${esc(t)}</option>`).join('')}</select></td>`).join('')}</tr>`).join('')}</tbody></table></div>
-    <div class="acts" style="justify-content:flex-end;flex-wrap:wrap"><button class="btn sec" id="rolrest">Volver a los valores de partida</button><button class="btn" id="rolok">Guardar plantillas</button></div></div>`;
-  const colorea = () => $('cfgcuerpo').querySelectorAll('.nvsel').forEach(s => s.className = 'nvsel chico nv' + s.value);
-  $('cfgcuerpo').addEventListener('change', colorea); colorea();
-  const leer = () => { const o = {}; $('cfgcuerpo').querySelectorAll('[data-rol]:not([disabled])').forEach(s => { (o[s.dataset.rol] = o[s.dataset.rol] || {})[s.dataset.ar] = +s.value; }); return o; };
-  $('rolrest').onclick = async () => { await db.rpc('guardar_ajuste', { p_clave: 'roles', p_valor: {} }); AJUSTES.roles = {}; toast('Valores de partida'); pintarRoles(); };
-  $('rolok').onclick = async () => {
-    const v = leer(); const { error } = await db.rpc('guardar_ajuste', { p_clave: 'roles', p_valor: v });
-    if (error) { toast('No se ha podido guardar', true); return; }
-    AJUSTES.roles = v;
-    if (await preguntar('Las plantillas se usan en las altas y cambios de rol. ¿Quieres aplicarlas también ahora a todas las personas que ya tienen esos roles? Se sustituirán sus permisos actuales.', { titulo: '¿Aplicar a las personas actuales?', ok: 'Aplicar a todos' })) {
-      let n = 0; for (const [r, a] of Object.entries(v)) { const { data: x } = await db.rpc('aplicar_plantilla_rol', { p_rol: r, p_areas: a }); n += (x && x.personas) || 0; }
-      toast(`Plantillas guardadas y aplicadas a ${n} personas`);
-    } else toast('Plantillas guardadas');
-  };
-}
 
 /* ---------------- Configuración única (Administración queda integrada) ---------------- */
 
 document.querySelectorAll('[data-u="adm"]').forEach(b => b.classList.add('hide'));
 // Dentro de Configuración no se repiten menús interiores
-panelDeModulo = (orig => function (sec) {
-  orig(sec);
+function panelDeModulo(sec) {
+  panelDeModuloBase(sec);
   const quitar = () => { const p = document.querySelector('#cfgcuerpo .cfgmod'); if (p) p.querySelectorAll('.subnav').forEach(s => s.remove()); };
   quitar(); setTimeout(quitar, 300); setTimeout(quitar, 1200);
-})(panelDeModulo);
+}
 
 /* ---------------- menú «Más» del móvil: continuación de la barra ---------------- */
 

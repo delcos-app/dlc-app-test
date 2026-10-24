@@ -15,15 +15,6 @@ try { Object.keys(localStorage).filter(k => k.startsWith('dlc-ruta-')).forEach(k
 
 
 
-async function empezarJornada() {
-  const citas = await citasDelDia(hoyISO());
-  if (!citas.some(c => CITA_ABIERTA.includes(c.estado))) { toast('No tienes citas abiertas hoy. Añade citas o planifica una ruta.', true); return; }
-  localStorage.setItem(JKEY(), JSON.stringify({ fecha: hoyISO(), inicio: Date.now() }));
-  pintarRutaBarra();
-  toast('Jornada iniciada');
-  AG_MODO = 'dia'; AG_FECHA = hoyISO();
-  if (TAB === 'agenda') cargarAgenda(); else ir('agenda');
-}
 
 
 
@@ -134,17 +125,6 @@ document.addEventListener('click', async e => {
 
 
 
-// En Rutas, la ruta en curso se ve en «Tu día»
-async function pintarRutaEnCurso() {
-  if (TAB !== 'rutas') return;
-  if (!$('renc')) $('v-rutas').querySelector('.saludo').insertAdjacentHTML('afterend', '<div id="renc"></div>');
-  const j = jornadaActiva();
-  $('renc').innerHTML = j ? `<div class="card renc"><h2>Jornada en curso</h2>
-    <p class="sm">Empezaste hace ${durTxt(Date.now() - j.inicio)}. El orden, las horas y el registro de ${TT('visita', 'p', '', 'l', 'l')} están en tu agenda de hoy.</p>
-    <div class="acts" style="padding:0 16px 16px"><button class="btn" id="rencver">Ver mi día</button>
-      <button class="btn sec dang" id="rencfin">Terminar jornada</button></div></div>` : '';
-  if (j) { $('rencver').onclick = () => { AG_MODO = 'dia'; AG_FECHA = hoyISO(); ir('agenda'); }; $('rencfin').onclick = terminarJornada; }
-}
 
 /* ---------------- ayudas ---------------- */
 

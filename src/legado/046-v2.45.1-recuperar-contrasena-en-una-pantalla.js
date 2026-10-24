@@ -44,8 +44,6 @@ function pantallaRecuperacion() {
   };
   if ($('rcancel')) $('rcancel').onclick = () => salir('');
 }
-// Con el enlace de recuperación la plataforma no arranca ni se pinta
-arrancar = (orig => async function (...a) { if (RECUPERANDO) { pantallaRecuperacion(); return; } return orig.apply(this, a); })(arrancar);
 // Avisos en la pantalla de acceso: contraseña cambiada o enlace caducado
 (function () {
   const q = new URLSearchParams(location.search);

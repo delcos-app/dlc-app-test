@@ -104,15 +104,6 @@ document.addEventListener('keydown', e => {
 
 
 
-/** Paginador para listas que se piden al servidor por páginas. */
-function paginador(el, total, pagina, alCambiar, alCambiarTam) {
-  if (!el) return;
-  const tam = tamPagina();
-  if (total <= TAMANOS[0]) { el.innerHTML = ''; return; }
-  el.innerHTML = pagHTML(total, pagina, tam);
-  el.querySelectorAll('[data-pg]').forEach(b => b.onclick = () => alCambiar(+b.dataset.pg));
-  el.querySelector('[data-pgtam]').onchange = e => { fijarTam(+e.target.value); alCambiarTam(); };
-}
 
 
 
@@ -127,27 +118,9 @@ new MutationObserver(muts => {
 
 let DUP_PEND = [], DUP_PARES = [], DUP_ACTUAL = null;
 
-async function cargarDuplicados() {
-  const v = $('v-duplicados');
-  const permitido = puede('administrar') || ((PERFIL.areas || {}).M || 0) >= 3;
-  v.innerHTML = `
-    <div class="saludo"><div><h1>Duplicados</h1>
-      <div class="fecha">Revisa fichas repetidas y unifícalas sin perder la lista</div></div>
-      <div class="acts" style="margin:0">
-        <button class="btn sec" id="dvolver">← Volver</button>
-        <button class="btn sec" id="dbuscar">Volver a buscar parecidos</button></div></div>
-    ${permitido ? `<div class="dupgrid">
-      <div><div class="card" id="dpendc"></div><div class="card" id="dparc"></div></div>
-      <div class="card dupcmp" id="dcmp"><div class="vacio vguia"><b>Elige una pareja para revisarla</b><span>Pulsa «Comparar» en la lista de la izquierda y aquí verás las dos fichas lado a lado. Al terminar, pasas a la siguiente.</span></div></div>
-    </div>` : '<div class="card"><div class="vacio">Solo administración puede unificar fichas.</div></div>'}`;
-  $('dvolver').onclick = () => ir(TAB_ANTERIOR && TAB_ANTERIOR !== 'duplicados' ? TAB_ANTERIOR : 'directorio');
-  if (!permitido) { $('dbuscar').classList.add('hide'); return; }
-  $('dbuscar').onclick = () => { invalidarCache(); listasDuplicados(); };
-  listasDuplicados();
-}
 
 
-function pintarListasDup() {
+function pintarListasDupBase() {
   if (!$('dpendc')) return;
   const sel = DUP_ACTUAL ? DUP_ACTUAL.join('|') : '';
   $('dpendc').innerHTML = `<h2>Pendientes de unificar<span class="n">${DUP_PEND.length}</span></h2>
@@ -199,7 +172,7 @@ document.addEventListener('click', async e => {
 });
 
 
-async function compararEn(el, idA, idB) {
+async function compararEnBase(el, idA, idB) {
   cargando(el, 'Cargando las dos fichas…');
   const [{ data: A }, { data: B }] = await Promise.all([
     db.rpc('ficha_cuenta', { p_id: idA }), db.rpc('ficha_cuenta', { p_id: idB })

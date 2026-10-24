@@ -56,13 +56,6 @@ function htPintarPanel(sec) {
     };
   }
 }
-function htContador(sec) {
-  const b = sec.querySelector('.htbtn'); if (!b) return;
-  // Solo se toca si cambia el número (cualquier cambio en la pantalla vuelve a avisar al observador)
-  const n = htActivos(sec), txt = n ? String(n) : '', el = b.querySelector('.htn');
-  if (el.textContent !== txt) el.textContent = txt;
-  if (b.classList.contains('conf') !== n > 0) b.classList.toggle('conf', n > 0);
-}
 function htPreparar(sec) {
   const id = sec.id.replace('v-', '');
   if (id === 'directorio') { const f = sec.querySelector('.panel > .filtros'); if (f) f.classList.add('hide'); return; }
@@ -103,12 +96,12 @@ new MutationObserver(() => {
 /* ---------------- Prescriptores: columna «Acceso a la plataforma» ---------------- */
 
 COLS.push({ k: 'acceso', t: 'Acceso a la plataforma', w: 170 });
-celda = (orig => function (m, k) {
-  if (k !== 'acceso') return orig(m, k);
+function celda(m, k) {
+  if (k !== 'acceso') return celdaBase(m, k);
   if (!MED_ACCESO) { cargarAccesoMedicos().then(() => { if (TAB === 'directorio') buscar(true); }); return ''; }
   const a = MED_ACCESO[m.id];
   return a ? `<span class="pill ${a.activo ? 'p-est' : 'p-anu'}">${a.activo ? 'Con acceso' : 'Acceso desactivado'}</span>` : '<span class="sm">Sin acceso</span>';
-})(celda);
+}
 
 /* ---------------- páginas propias: Perfil, Empresa y Plan ---------------- */
 

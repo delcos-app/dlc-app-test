@@ -2,12 +2,6 @@ db.rpc = (orig => function (fn, p, ...x) {
   if (DB_PRE.size) { const k = fn + JSON.stringify(p || {}); if (DB_PRE.has(k)) { const r = DB_PRE.get(k); DB_PRE.delete(k); return Promise.resolve(r); } }
   return orig.call(this, fn, p, ...x);
 })(db.rpc);
-pintarPacientes = (orig => async function (...a) {
-  const p = pacParams();
-  const [m, l] = await Promise.all([db.rpc('municipios_clientes'), db.rpc('clientes_lista', p)]);
-  DB_PRE.set('municipios_clientes{}', m); DB_PRE.set('clientes_lista' + JSON.stringify(p), l);
-  return orig.apply(this, a);
-})(pintarPacientes);
 // El buscador de la barra busca directamente (antes pasaba por el campo oculto y esperaba dos veces)
 PL.pacientes.buscarQ = v => { const i = $('pacq'); if (i) i.value = v; PAC.q = (v || '').trim(); PAC.pagina = 0; listaPacientes(); };
 

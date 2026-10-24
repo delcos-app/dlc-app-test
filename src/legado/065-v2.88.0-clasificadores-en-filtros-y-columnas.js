@@ -1,25 +1,6 @@
 
-htAbrirLateral = (orig => function (sec) {
-  orig(sec);
-  const d = $('tools'), auto = d.querySelector('.htauto');
-  if (!clasPantalla(sec) || !htLateralAbierto() || !auto || d.querySelector('.htclas')) return;
-  auto.insertAdjacentHTML('beforebegin', '<div class="htclas"></div>');
-  clasPintarLateral(sec);
-})(htAbrirLateral);
 // El contador del botón suma los filtros de Clasificadores
 htActivos = (orig => function (sec) { const P = clasPantalla(sec); return orig(sec) + (P ? Object.keys(P.estado()).length : 0); })(htActivos);
-// Chips de los filtros de Clasificadores junto al buscador (en su propio contenedor)
-htChips = (orig => function (sec) {
-  orig(sec);
-  const P = clasPantalla(sec), c = sec.querySelector('.htchips'); if (!c) return;
-  let c2 = sec.querySelector('.htchips2');
-  if (!c2) { c.insertAdjacentHTML('afterend', '<div class="htchips htchips2"></div>'); c2 = sec.querySelector('.htchips2'); }
-  const est = P ? P.estado() : {}, chips = P ? clasChips(P.amb, est) : [];
-  const html = chips.map(x => `<button class="htchip" type="button" data-hcp="${esc(x.k)}">${esc(x.t)} <span aria-hidden="true">✕</span></button>`).join('');
-  if (c2.innerHTML === html) return;
-  c2.innerHTML = html;
-  c2.querySelectorAll('[data-hcp]').forEach(b => b.onclick = () => { delete est[b.dataset.hcp]; P.recargar(); clasPintarLateral(sec); htContador(sec); });
-})(htChips);
 // El botón «Filtros y columnas» vive en la barra de la tabla: si la tabla se vuelve a pintar entera
 // (Productos al filtrar o guardar), el botón desaparecía con ella. Se vuelve a crear si falta.
 htPreparar = (orig => function (sec) {
@@ -48,12 +29,6 @@ panelColumnas = (orig => function (titulo, cols, alCambiar) {
 camposEnDirectorio = function () {
   (CAMPOS.medico || []).forEach(c => { if (!COLS.some(x => x.k === 'cp:' + c.clave)) COLS.push({ k: 'cp:' + c.clave, t: c.nombre, w: 150 }); });
 };
-colsConfig = (orig => function () {
-  let guardada = null;
-  try { guardada = JSON.parse(localStorage.getItem(colKey()) || 'null'); } catch (e) { /* sin almacenamiento */ }
-  return orig().map(c => c.k.startsWith('cp:') && !(guardada || []).some(x => x.k === c.k)
-    ? { ...c, on: !!((CAMPOS.medico || []).find(x => 'cp:' + x.clave === c.k) || {}).en_tabla } : c);
-})(colsConfig);
 abrirHerramientas = (orig => function (ctx, ...r) {
   const x = orig(ctx, ...r);
   const d = $('tools'), z = d.querySelector('.tfcampos');
@@ -65,11 +40,11 @@ abrirHerramientas = (orig => function (ctx, ...r) {
   }
   return x;
 })(abrirHerramientas);
-pintarChips = (orig => function () {
-  orig();
+function pintarChips() {
+  pintarChipsBase();
   const cs = clasChips('medico', F.campos);
   if (cs.length) $('chips').insertAdjacentHTML('beforeend', cs.map(x => `<button class="chip" data-xcp="${esc(x.k)}">${esc(x.t)} ✕</button>`).join(''));
-})(pintarChips);
+}
 $('chips').addEventListener('click', e => {
   const b = e.target.closest('[data-xcp]'); if (!b) return;
   delete F.campos[b.dataset.xcp]; buscar(true);

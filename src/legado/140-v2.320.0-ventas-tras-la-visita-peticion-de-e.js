@@ -14,7 +14,5 @@ anCargarKpis = (orig => async function (...a) {
   if (TAB === 'analitica') tvTarjeta(d);
   return res;
 })(anCargarKpis);
-// v2.320.0 · Fuera el indicador «Conversión visita → venta» (decisión de Eric): lo mide, más completo, la tarjeta «Ventas tras la visita»
-anCatalogo = (orig => function (...a) { return orig.apply(this, a).filter(k => k.id !== 'conversion_pct'); })(anCatalogo);
 
 

@@ -30,21 +30,6 @@ cargarVentas = (orig => async function (...a) {
   }
   return r;
 })(cargarVentas);
-usuarioComisionInfo = (orig => async function (...a) {
-  const r = await orig.apply(this, a);
-  const s = $('uverc'), info = $('ucominfo');
-  if (s && info && !$('uvercw')) {
-    const w = s.parentElement; w.id = 'uvercw';
-    const l = w.querySelector('label'); if (l) l.classList.remove('sm');
-    w.insertAdjacentHTML('beforeend', '<div class="sm">Lo que ve en Inicio de su comisión: nada, solo sus unidades o también el importe.</div>');
-    info.insertAdjacentElement('afterend', w);
-  }
-  return r;
-})(usuarioComisionInfo);
-kpiPermitido = (orig => function (c) {
-  if (c && c.id === 'dups') return puedeDuplicados() && orig(Object.assign({}, c, { admin: false }));
-  return orig(c);
-})(kpiPermitido);
 cargarSeguimiento = (orig => async function (...a) {
   const r = await orig.apply(this, a);
   const acts = document.querySelector('#v-seguimiento .saludo .acts');
@@ -267,7 +252,7 @@ pintarNotif = function () {
   ['nsil', 'nsild', 'nsilh', 'nsilf'].forEach(id => { if ($(id)) $(id).onchange = guardarSil; });
 };
 
-function pulirCfg() {
+function pulirCfgBase() {
   const c = $('cfgcuerpo'); if (!c || TAB !== 'config' || !CFG_PULIR.includes(CFG_KEY)) return;
   const cab = document.querySelector('.cfucab'), titulo = impNorm((cab && cab.querySelector('h2') || {}).textContent || '');
   // Tarjetas que solo presentan el apartado (título y texto): el texto pasa a la cabecera
@@ -341,10 +326,10 @@ new MutationObserver(() => { if (TAB === 'config') requestAnimationFrame(pulirCf
    - pulirCfg se aplica ya a todos los apartados: fuera las tarjetas que solo presentan y los títulos repetidos.
    - Usuarios: las cifras (plan, cada rol, sin actividad, con acceso al portal) en una línea; pulsar un rol filtra la lista por él.
    - Las casillas sueltas (Cartera exclusiva, Emitir la factura al validar…) sin el recuadro de más. */
-pulirCfg = (orig => function () {
+function pulirCfg() {
   if (TAB !== 'config' || !CFG_KEY) return;
   if (!CFG_PULIR.includes(CFG_KEY)) CFG_PULIR.push(CFG_KEY);
-  orig();
+  pulirCfgBase();
   const c = $('cfgcuerpo'); if (!c) return;
   if (CFG_KEY === 'usuarios') {
     const k = c.querySelector('.cfgpanel > .kpis.vtot:not([data-pul])');
@@ -368,7 +353,7 @@ pulirCfg = (orig => function () {
       }
     }
   }
-})(pulirCfg);
+}
 
 /* v2.218.0 · Roles y Series (lo que quedaba del rediseño de Configuración).
    - «Filtros y columnas» no se engancha a Configuración (salía suelto en la cabecera al abrir Series).
@@ -391,48 +376,6 @@ const ICU = {
 
 // Pastillas con las cifras (de #agmet, que se sigue pintando igual)
 
-// La cinta de 14 días
-async function agCinta() {
-  const v = $('v-agenda'); if (!v || !agConCinta() || !$('agcuerpo')) return;
-  const hoy = hoyISO();
-  if (!CINTA_INI) CINTA_INI = lunesCinta(AG_FECHA || hoy);
-  const ini = CINTA_INI, fin = diasMas(ini, 13);
-  const { data } = await rpcCache('agenda_rango', { p_desde: ini, p_hasta: fin, p_usuario: agUid() }, 'agenda-cinta-' + agUid() + '-' + ini);
-  if (!agConCinta() || CINTA_INI !== ini || !$('agcuerpo')) return;
-  const por = {};
-  (data || []).filter(c => c.usuario_id === agUid() && !citaAnulada(c.estado)).forEach(c => { (por[c.fecha] = por[c.fecha] || []).push(c); });
-  const dn = ['D', 'L', 'M', 'X', 'J', 'V', 'S'];
-  const semTxt = l => {
-    const dd = Math.round((new Date(l + 'T12:00:00') - new Date(lunesCinta(hoy) + 'T12:00:00')) / 864e5 / 7);
-    if (dd === 0) return 'Esta semana'; if (dd === 1) return 'La semana que viene'; if (dd === -1) return 'La semana pasada';
-    const d0 = new Date(l + 'T12:00:00'); return 'Semana del ' + d0.getDate() + ' de ' + d0.toLocaleDateString('es-ES', { month: 'long' });
-  };
-  const dia = f => {
-    const l = por[f] || [], d = new Date(f + 'T12:00:00');
-    const tipo = c => !CITA_ABIERTA.includes(c.estado) ? 'ch' : f < hoy ? 'cx' : 'cp';
-    const pts = l.slice(0, 6).map(c => `<i class="${tipo(c)}"></i>`).join('') + (l.length > 6 ? `<em>+${l.length - 6}</em>` : '');
-    const n = `${l.length} ${l.length === 1 ? 'cita' : 'citas'}`;
-    return `<button type="button" class="cdia ${f === hoy ? 'hoy' : ''} ${f === AG_FECHA ? 'sel' : ''} ${[0, 6].includes(d.getDay()) ? 'finde' : ''}" data-cf="${f}" aria-label="${esc(fechaLarga(d))}: ${n}" title="${n}">
-      <span class="dn">${dn[d.getDay()]}</span><span class="dd">${d.getDate()}</span><span class="cpts">${pts || '<b></b>'}</span></button>`;
-  };
-  const mes = new Date(diasMas(ini, 3) + 'T12:00:00').toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
-  const html = `<div class="cinta" id="agcinta" data-ini="${ini}"><div class="ccab">
-      <div class="cnav"><button type="button" class="kmv" data-cm="-7" aria-label="Semana anterior" title="Semana anterior">‹</button><button type="button" id="cmesb" class="cmesb" aria-expanded="false" title="Ver el mes">${esc(mes.charAt(0).toUpperCase() + mes.slice(1))} <span aria-hidden="true">▾</span></button><button type="button" class="kmv" data-cm="7" aria-label="Semana siguiente" title="Semana siguiente">›</button>${ini !== lunesCinta(hoy) ? '<button type="button" class="btn sec chico" id="choy">Hoy</button>' : ''}</div>
-      <div class="cley" aria-hidden="true"><span><i class="ch"></i>Hecha</span><span><i class="cp"></i>Por hacer</span><span><i class="cx"></i>Sin cerrar</span></div>
-      <button type="button" class="btn sec chico" id="cplan" title="Planificar la semana">${SVA(ICU.plan)}<span>Planificar la semana</span></button></div>
-    <div class="csems">${[0, 7].map(o => `<div class="csem"><span class="csemt">${semTxt(diasMas(ini, o))}</span><div class="c7">${Array.from({ length: 7 }, (_, k) => dia(diasMas(ini, o + k))).join('')}</div></div>`).join('')}</div></div>`;
-  const vieja = $('agcinta');
-  if (vieja) vieja.outerHTML = html; else $('agcuerpo').insertAdjacentHTML('beforebegin', html);
-  const c = $('agcinta');
-  c.querySelectorAll('[data-cf]').forEach(b => b.onclick = () => { cerrarMesCinta(); c.querySelectorAll('.cdia').forEach(x => x.classList.toggle('sel', x === b)); agVerDia(b.dataset.cf); });
-  c.querySelectorAll('[data-cm]').forEach(b => b.onclick = () => { CINTA_INI = diasMas(CINTA_INI, +b.dataset.cm); agCinta(); });
-  if ($('choy')) $('choy').onclick = () => { CINTA_INI = lunesCinta(hoy); agCinta(); agVerDia(hoy); };
-  $('cmesb').onclick = e => { e.stopPropagation(); const m = $('agmes'); if (!m) return; const ab = !m.classList.contains('pop'); m.classList.toggle('pop', ab); $('cmesb').setAttribute('aria-expanded', String(ab));
-    // El mes se abre bajo su botón (en el móvil, centrado)
-    if (ab) { const r = $('cmesb').getBoundingClientRect(), w = Math.min(380, innerWidth - 32); m.style.top = Math.round(r.bottom + 8) + 'px'; m.style.left = Math.round(Math.max(16, Math.min(r.left, innerWidth - w - 16))) + 'px'; m.style.bottom = 'auto'; m.style.right = 'auto'; } };
-  // En el móvil, la cinta se abre en la semana del día elegido
-  const sems = c.querySelector('.csems'); if (sems && AG_FECHA >= diasMas(ini, 7)) sems.scrollLeft = sems.scrollWidth;
-}
 document.addEventListener('click', e => { const m = $('agmes'); if (m && m.classList.contains('pop') && !e.target.closest('#agmes, #cmesb, .agmpop, .agpop')) cerrarMesCinta(); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrarMesCinta(); });
 
@@ -487,13 +430,6 @@ rpcCache = (orig => async function (fn, params, clave) {
   return r;
 })(rpcCache);
 
-function kvContar(raiz) {
-  const ns = [...raiz.querySelectorAll('[data-kvn]')];
-  if (matchMedia('(prefers-reduced-motion: reduce)').matches) { ns.forEach(n => n.textContent = num(+n.dataset.kvn)); return; }
-  const t0 = performance.now(), dur = 900;
-  const paso = t => { const f = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - f, 3); ns.forEach(n => { if (n.isConnected) n.textContent = num(Math.round(+n.dataset.kvn * e)); }); if (f < 1) requestAnimationFrame(paso); };
-  requestAnimationFrame(paso);
-}
 (() => {
   const ob = new MutationObserver(() => { if ($('kpis')) kpisVivos(); });
   const enganchar = () => { const c = $('kpis'); if (c && !c.__kv) { c.__kv = true; ob.observe(c, { childList: true }); kpisVivos(); } };

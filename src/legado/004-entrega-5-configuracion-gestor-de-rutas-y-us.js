@@ -28,7 +28,7 @@ const punto = k => (PERFIL.preferencias || {})[k] || null;
 
 /* ---------------- administración de usuarios ---------------- */
 
-async function cargarAdmin() {
+async function cargarAdminBase() {
   $('v-admin').innerHTML = `
     <div class="saludo"><div><h1>Administración</h1><div class="fecha">Usuarios, permisos, cartera y comisiones</div></div>
       <div class="acts" style="margin:0">${ADM_SEC === 'usuarios' ? '<button class="btn" id="unuevo">+ Nuevo usuario</button>' : ''}</div></div>
@@ -68,15 +68,6 @@ async function cargarAdmin() {
 
 
 
-// Editar usuario · La comisión se muestra como información: se asigna dentro de cada esquema
-async function usuarioComisionInfo(id) {
-  for (let i = 0; i < 30 && !$('ucom') && $('dlg').open; i++) await new Promise(r => setTimeout(r, 100));
-  const s = $('ucom'); if (!s || $('ucominfo')) return;
-  const g = s.closest('.g2') || s.parentElement;
-  const txt = s.selectedOptions[0] && s.value ? s.selectedOptions[0].textContent : 'Sin comisión';
-  g.classList.add('hide'); if ($('ucdesde')) $('ucdesde').classList.add('hide'); if ($('uchist')) $('uchist').classList.add('hide');
-  g.insertAdjacentHTML('afterend', `<div class="avisoh" id="ucominfo"><span>Comisión: <b>${esc(txt)}</b>. Se asigna dentro de cada esquema en Configuración → Equipo → Comisiones.</span></div>`);
-}
 
 
 

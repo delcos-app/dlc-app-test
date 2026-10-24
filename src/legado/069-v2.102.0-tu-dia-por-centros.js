@@ -1,8 +1,3 @@
-// La consulta de la visita: la del centro de la cita; si no, la que tiene consulta hoy; si no, la principal
-consultaDeLaVisita = (orig => function (cons) {
-  const pref = FICHA_CENTRO ? clasNorm(FICHA_CENTRO) : '';
-  return (pref && (cons || []).find(c => clasNorm(c.centro_nombre) === pref)) || orig(cons);
-})(consultaDeLaVisita);
 abrirFicha = (orig => async function (...a) { try { return await orig.apply(this, a); } finally { FICHA_CENTRO = null; } })(abrirFicha);
 accionCita = (orig => function (k, c, ...r) { if (k === 'ficha') FICHA_CENTRO = c.centro_nombre || null; return orig(k, c, ...r); })(accionCita);
 

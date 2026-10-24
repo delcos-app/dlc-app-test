@@ -1,5 +1,3 @@
-// Mientras se abre una ficha, no se encaja en la página
-areaEncaje = (orig => function (...a) { return FX_FICHA ? null : orig.apply(this, a); })(areaEncaje);
 (() => {
   const d = $('dlg'); if (!d) return;
   const sm = d.showModal;

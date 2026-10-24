@@ -83,16 +83,6 @@ function km(a, b) {
 }
 
 
-/* pintarPlan: la parte base y, en orden, cada paso que se le añade (antes eran 6 capas separadas). */
-function pintarPlan() {
-  pintarPlanBase();
-  planBotonesAgenda();
-  planHorasYFueraDePlan();
-  planMapaYDescartar();
-  planVisitadosRecientes();
-  planAvisoSinSalida();
-  planFichasYNotas();
-}
 
 
 

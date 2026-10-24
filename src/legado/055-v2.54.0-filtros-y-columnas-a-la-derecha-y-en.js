@@ -7,19 +7,6 @@
 /* ---------------- «Filtros y columnas» en el panel lateral ---------------- */
 
 new MutationObserver(() => { if (!$('tools').classList.contains('abierto')) htDevolver(); }).observe($('tools'), { attributes: true, attributeFilter: ['class'] });
-function htAbrirLateral(sec) {
-  const d = $('tools'), id = sec.id.replace('v-', '');
-  if (htLateralAbierto() && HERR_CTX === 'ht-' + id) { d.classList.remove('abierto'); return; }
-  htDevolver();
-  HERR_CTX = 'ht-' + id;
-  d.innerHTML = `<div class="tbox"><div class="fh"><h2>Filtros y columnas</h2><button class="x" id="tclose" aria-label="Cerrar">✕</button></div>
-    <div class="htpropios lat"></div><div class="htauto"></div></div>`;
-  const hold = sec.querySelector('.htpanel .htpropios');
-  if (hold) [...hold.children].forEach(ch => d.querySelector('.htpropios.lat').appendChild(chicoEn(ch, false)));
-  $('tclose').onclick = () => d.classList.remove('abierto');
-  d.classList.add('abierto');
-  htPintarPanel(sec);
-}
 // El contenido automático (buscar, filtrar por columna, columnas) se pinta en el panel lateral
 htPintarPanel = (orig => function (sec) {
   const d = $('tools');

@@ -562,3 +562,138 @@ const pcPct = v => (Math.round(v * 1000) / 10).toLocaleString('es-ES', { minimum
    ============================================================ */
 const PM_PER_TXT = { hoy: 'Hoy', ayer: 'Ayer', semana: 'Esta semana', '7d': 'En los últimos 7 días', mes: 'Este mes', mesant: 'El mes pasado',
   tri: 'Este trimestre', triant: 'El trimestre pasado', anio: 'Este año', anioant: 'El año pasado', todo: 'En total', pers: 'En estas fechas' };
+
+// ——— Lado del médico ———
+async function portalMedicoBase() {
+  // Al arrancar, «Mi informe» se pinta antes de leerse el final de este archivo y antes de tener el plan: se espera a los dos
+  try { void MOTIVO_PORTAL; void PLAN_ACTUAL; } catch (e) { setTimeout(portalMedico, 300); return; }
+  if (!('estado' in PLAN_ACTUAL)) { const { data } = await RPC_ORIG('plan_uso', {}); if (data && data.plan) PLAN_ACTUAL = data.plan; }
+  if (!ES_MEDICO() || !hayExtra('portal') || !$('v-informe')) return;
+  let caja = $('mdportal');
+  if (!caja) { $('v-informe').insertAdjacentHTML('beforeend', '<div id="mdportal" class="angrid"></div>'); caja = $('mdportal'); }
+  const [{ data: c }, { data: perm }, { data: sols }, { data: msgs }] = await Promise.all([
+    puede('portal_centro') ? Promise.resolve({ data: null }) : RPC_ORIG('constancia_pacientes', { p_meses: 12 }), RPC_ORIG('portal_material_permitido', {}),
+    db.from('solicitudes_material').select('id,material,cantidad,nota,estado,creado_en,cerrado_en').order('creado_en', { ascending: false }).limit(20),
+    db.from('mensajes_cuenta').select('id,texto,del_portal,creado_en,leido_en').order('creado_en', { ascending: true }).limit(200)]);
+  caja = $('mdportal'); if (!caja) return;   // v2.318.0: si se ha vuelto a pintar mientras llegaban los datos, la caja de ahora
+  const pac = TT('paciente', 'p', '', 'l', 'l'), k = c || {};
+  const pct = (a, b) => b ? Math.round(a / b * 100) + '%' : '—';
+  const constancia = !k.ok ? '<div class="sm">No disponible.</div>' : k.pocos
+    ? `<p class="sm" style="padding:0 16px">En los últimos ${num(k.meses || 12)} meses han empezado ${num(k.empezaron)} ${pac}. A partir de ${num(k.minimo || 5)} verás aquí su constancia (con menos no se muestra, para que nadie pueda reconocerlos).</p>`
+    : `<div class="minis cons">
+        <div><b>${num(k.empezaron)}</b><span>empezaron</span></div>
+        <div><b>${pct(k.repiten, k.empezaron)}</b><span>repiten (${num(k.repiten)})</span></div>
+        <div><b>${k.dias_entre ? num(k.dias_entre) + ' días' : '—'}</b><span>entre pedidos</span></div>
+        <div><b>${num(k.dejaron)}</b><span>lo dejaron tras el primero</span></div>
+        <div><b>${num(k.sin_pedir)}</b><span>llevan más de 60 días sin pedir</span></div></div>
+      ${(k.por_producto || []).length ? barrasH(k.por_producto.map(x => ({ n: x.producto, v: Math.round(x.repiten / x.pacientes * 100) })), v => v + '% repiten') : ''}`;
+  const lp = Array.isArray(perm) ? perm : [];
+  const ls = sols || [], lm = msgs || [];
+  caja.innerHTML = `
+    <div class="card ancard ancha" id="mdcons"><h2>Continuidad de las ${TT('pauta', 'p', '', 'l', 'l')}</h2>${constancia}
+      <p class="leer">En los últimos 12 meses: cuántas ${TT('pauta', 'p', '', 'l', 'l')} han empezado, qué parte se ha repetido y cada cuántos días.</p></div>
+    <div class="card ancard" id="mdmat"><h2>Pedir material</h2>
+      ${lp.length ? `<div class="g2"><div><label for="mdmatm">Material</label><select id="mdmatm">${lp.map(x => `<option value="${esc(x.valor)}" data-max="${x.max}">${esc(x.valor)}</option>`).join('')}</select></div>
+        <div><label for="mdmatn">Cantidad</label><input id="mdmatn" type="number" min="1" value="1"><span class="sm" id="mdmatmax">Máximo ${num(lp[0].max)} por petición</span></div></div>
+        <label for="mdmatt">Nota para tu comercial</label><input id="mdmatt" placeholder="Opcional">
+        <div class="acts" style="justify-content:flex-start"><button type="button" class="btn" id="mdmatok">Pedir</button></div>`
+      : '<p class="sm" style="padding:0 16px">Tu empresa todavía no ofrece material para pedir.</p>'}
+      ${ls.length ? `<div class="lista" id="mdmatl">${ls.map(x => `<div class="item" style="cursor:default"><span class="tx"><b>${num(x.cantidad)} × ${esc(x.material)}</b>
+          <span class="sm">${horaCorta(x.creado_en)}${x.nota ? ' · ' + esc(x.nota) : ''}</span></span>${pillMaterial(x.estado)}
+          ${x.estado === 'Pendiente' ? `<button type="button" class="btn sec chico" data-mdanu="${x.id}">Anular</button>` : ''}</div>`).join('')}</div>` : ''}</div>
+    <div class="card ancard" id="mdmsg"><h2>Dudas a tu comercial</h2>
+      <div id="mdhilo">${hiloMensajes(lm, true)}</div>
+      <textarea id="mdmsgt" rows="2" placeholder="Escribe tu duda" aria-label="Tu mensaje"></textarea>
+      <div class="acts" style="justify-content:flex-start"><button type="button" class="btn" id="mdmsgok">Enviar</button></div></div>`;
+  if (puede('portal_centro') && $('mdcons')) $('mdcons').remove();
+  // v2.277.0: sin máximo en el campo (rebajaba en silencio lo escrito); en cuanto lo escrito pasa del máximo, el aviso se pone en rojo
+  const mdMatAviso = () => {
+    const w = $('mdmatmax'), o = $('mdmatm') && $('mdmatm').selectedOptions[0]; if (!w || !o) return;
+    const m = +o.dataset.max, n = +$('mdmatn').value || 0;
+    w.classList.toggle('mdmatpasa', n > m); w.textContent = (n > m ? 'Como máximo ' : 'Máximo ') + num(m) + ' por petición';
+  };
+  if ($('mdmatm')) $('mdmatm').onchange = mdMatAviso;
+  if ($('mdmatn')) $('mdmatn').addEventListener('input', mdMatAviso);
+  if ($('mdmatok')) $('mdmatok').onclick = async ev => {
+    ev.target.disabled = true;
+    const mx = +$('mdmatm').selectedOptions[0].dataset.max, n = +$('mdmatn').value || 0;
+    if (n < 1 || n > mx) { ev.target.disabled = false; mdMatAviso(); toast(n < 1 ? 'Indica cuántos necesitas' : `Como máximo ${num(mx)} por petición: pide ${num(mx)} o escribe en la nota cuántos necesitas`, true); return; }
+    const { data: r } = await db.rpc('pedir_material', { p_material: $('mdmatm').value, p_cantidad: n, p_nota: $('mdmatt').value.trim() || null });
+    ev.target.disabled = false;
+    if (!r || !r.ok) { toast(r && r.motivo === 'cantidad' ? `Como máximo ${num(r.max)}` : motivoPortal(r), true); return; }
+    toast('Pedido enviado a tu comercial'); portalMedico();
+  };
+  caja.querySelectorAll('[data-mdanu]').forEach(b => b.onclick = async () => {
+    const { data: r } = await db.rpc('cerrar_material', { p_id: b.dataset.mdanu, p_estado: 'Anulado' });
+    if (!r || !r.ok) { toast(motivoPortal(r), true); return; }
+    toast('Pedido de material anulado'); portalMedico();
+  });
+  if ($('mdmsgok')) $('mdmsgok').onclick = async ev => {
+    const t = $('mdmsgt').value.trim(); if (!t) { toast('Escribe el mensaje', true); return; }
+    ev.target.disabled = true;
+    const { data: r } = await db.rpc('enviar_mensaje_cuenta', { p_cuenta: null, p_texto: t });
+    ev.target.disabled = false;
+    if (!r || !r.ok) { toast(motivoPortal(r), true); return; }
+    toast('Mensaje enviado'); portalMedico();
+  };
+  if (lm.some(x => !x.del_portal && !x.leido_en)) RPC_ORIG('leer_mensajes_cuenta', { p_cuenta: null });
+}
+
+// ——— Configuración: qué material se puede pedir y cuánto ———
+async function pintarCfgPortalBase() {
+  const c = $('cfgcuerpo'); if (!c) return;
+  c.innerHTML = `<div class="card">${skelCard('Cargando…')}</div>`;
+  const [{ data: cat }, { data: perm }, { data: aj }] = await Promise.all([
+    db.rpc('catalogo_papel', { p_papel: 'material_visita' }), RPC_ORIG('portal_material_permitido', {}),
+    db.from('ajustes').select('valor').eq('clave', 'portal').maybeSingle()]);
+  if (!$('cfgcuerpo')) return;
+  const l = cat || [], p = Array.isArray(perm) ? perm : [], conAjuste = !!(aj && aj.valor && aj.valor.material);
+  const de = v => p.find(x => x.valor === v);
+  c.innerHTML = `<div class="card"><div class="fh"><div><h2>Portal ${TT('medico', 's', 'del', 'l', 'l')}</h2>
+      <div class="sm">Qué material pueden pedir ${TT('medico', 'p', 'el', 'l', 'l')} desde su portal y cuánto como máximo cada vez. Les llega a su comercial.</div></div></div>
+    ${l.length ? `<div class="lista" id="cfpmat">${l.map(x => { const d = de(x.valor); return `<label class="item" style="cursor:default">
+        <input type="checkbox" data-cfpm="${esc(x.valor)}" ${d ? 'checked' : ''}> <span class="tx"><b>${esc(x.valor)}</b></span>
+        <span class="sm">Máximo</span> <input type="number" min="1" max="1000" value="${d ? d.max : 20}" data-cfpx="${esc(x.valor)}" style="max-width:110px" aria-label="Máximo de ${esc(x.valor)}"></label>`; }).join('')}</div>
+      ${conAjuste ? '' : '<p class="sm" style="padding:0 16px">Ahora mismo se puede pedir todo el material, hasta 20 de cada. Guarda para decidirlo tú.</p>'}
+      <div class="acts" style="justify-content:flex-end"><button class="btn" id="cfpok">Guardar</button></div>`
+      : '<div class="vacio">No hay material en el catálogo «Material comercial entregado». Añádelo en Clasificadores.</div>'}</div>`;
+  if ($('cfpok')) $('cfpok').onclick = async () => {
+    const material = [...c.querySelectorAll('[data-cfpm]')].filter(x => x.checked)
+      .map(x => ({ valor: x.dataset.cfpm, max: Math.max(1, Math.min(1000, +c.querySelector(`[data-cfpx="${CSS.escape(x.dataset.cfpm)}"]`).value || 20)) }));
+    const { data: r, error } = await db.rpc('guardar_ajuste', { p_clave: 'portal', p_valor: Object.assign({}, (aj && aj.valor) || {}, { material }) });   // v2.284.0: sin borrar el resto del ajuste
+    if (error || (r && r.ok === false)) { toast('No se ha podido guardar', true); return; }
+    toast('Guardado'); pintarCfgPortal();
+  };
+}
+
+// ——— Material y dudas: las tarjetas de siempre, en su pestaña, con su ayuda ———
+async function portalMedico(...a) {
+  const r = await portalMedicoBase.apply(this, a);
+  if (!ES_MEDICO()) return r;   // v2.282.0: también el centro
+  const c = $('mdcons'); if (c) c.remove();   // la constancia va en el Resumen
+  const ay = { mdmat: ['Pedir material', 'Pide el material que te ofrece la empresa (folletos, catálogos…). Le llega a tu comercial, que te lo entrega; mientras está pendiente lo puedes anular.'],
+    mdmsg: ['Dudas a tu comercial', 'Escribe a tu comercial cualquier duda. Te contestará aquí y te llegará un aviso.'] };
+  Object.entries(ay).forEach(([id, [t, x]]) => { const h = document.querySelector('#' + id + ' > h2'); if (h && !h.querySelector('.ai')) h.insertAdjacentHTML('beforeend', ' ' + pmAyu(t, x)); });
+  return r;
+}
+
+// Configuración → Portal: pago por adelantado de los pedidos del centro
+async function pintarCfgPortal(...a) {
+  const r = await pintarCfgPortalBase.apply(this, a);
+  const c = $('cfgcuerpo'); if (!c || $('cfpant')) return r;
+  const { data: aj } = await db.from('ajustes').select('valor').eq('clave', 'portal').maybeSingle();
+  if (!$('cfgcuerpo') || $('cfpant')) return r;
+  const on = !!(aj && aj.valor && aj.valor.pago_anticipado);
+  c.insertAdjacentHTML('beforeend', `<div class="card" id="cfpantc"><div class="fh"><div><h2>Pedidos del portal del centro ${typeof pmAyu === 'function' ? pmAyu('Pago por adelantado', 'Con el pago por adelantado, al confirmar un pedido del portal el centro lo ve «Pendiente de pago» y descarga la factura proforma con vuestros datos y el IBAN para hacer la transferencia. Cuando la recibáis, marcad el pago como cobrado en el pedido: el centro recibe el aviso y el pedido se prepara como siempre. El IBAN y los datos salen de Facturación → Datos fiscales.') : ''}</h2></div></div>
+    <label class="opt"><input type="checkbox" id="cfpant" ${on ? 'checked' : ''}> Pago por adelantado (transferencia antes de preparar el pedido)</label>
+    <div class="acts" style="justify-content:flex-end"><button class="btn" id="cfpantok" type="button">Guardar</button></div></div>`);
+  $('cfpantok').onclick = async ev => {
+    ev.target.disabled = true;
+    const { data: a2 } = await db.from('ajustes').select('valor').eq('clave', 'portal').maybeSingle();
+    const { data: x, error } = await db.rpc('guardar_ajuste', { p_clave: 'portal', p_valor: Object.assign({}, (a2 && a2.valor) || {}, { pago_anticipado: $('cfpant').checked }) });
+    ev.target.disabled = false;
+    if (error || (x && x.ok === false)) { toast('No se ha podido guardar', true); return; }
+    toast($('cfpant').checked ? 'Guardado: los centros pagarán por adelantado' : 'Guardado: sin pago por adelantado');
+  };
+  return r;
+}

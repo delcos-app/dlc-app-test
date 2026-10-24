@@ -548,3 +548,32 @@ const mosEur = n => Math.round(+n || 0).toLocaleString('es-ES') + ' €';
 const mosIco = n => svgIco(ICON_NOM[n] || ICON_NOM.info);
 
 let MOS_TURNO = 0;
+
+function kvContarBase(raiz) {
+  const ns = [...raiz.querySelectorAll('[data-kvn]')];
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) { ns.forEach(n => n.textContent = num(+n.dataset.kvn)); return; }
+  const t0 = performance.now(), dur = 900;
+  const paso = t => { const f = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - f, 3); ns.forEach(n => { if (n.isConnected) n.textContent = num(Math.round(+n.dataset.kvn * e)); }); if (f < 1) requestAnimationFrame(paso); };
+  requestAnimationFrame(paso);
+}
+
+function mosContarBase(box) {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const els = [...box.querySelectorAll('[data-mcnt], [data-meur]')], t0 = performance.now();
+  const paso = t => { const p = Math.min(1, (t - t0) / 900), e = 1 - Math.pow(1 - p, 3);
+    els.forEach(el => { if (el.dataset.meur != null) el.textContent = mosEur(+el.dataset.meur * e); else el.textContent = num(Math.round(+el.dataset.mcnt * e)); });
+    if (p < 1) requestAnimationFrame(paso); };
+  requestAnimationFrame(paso);
+}
+
+function mosContar(box) {
+  const els = [...box.querySelectorAll('[data-mcnt], [data-meur]')];
+  if (plYaContado('mos', els.map(e => e.dataset.mcnt != null ? e.dataset.mcnt : e.dataset.meur))) return;
+  return mosContarBase(box);
+}
+
+function kvContar(raiz) {
+  const ns = [...raiz.querySelectorAll('[data-kvn]')];
+  if (plYaContado('kv', ns.map(n => n.dataset.kvn))) { ns.forEach(n => n.textContent = num(+n.dataset.kvn)); return; }
+  return kvContarBase(raiz);
+}

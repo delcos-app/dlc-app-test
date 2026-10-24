@@ -623,6 +623,91 @@ const VISTA_TITULO = { verCita: 'la cita', fichaCentro: 'el centro', abrirFicha:
 const vistaDlg = () => ['ficha', 'dlg'].map($).find(d => d && d.open) || null;
 
 const vistaIgual = (a, b) => a && b && a.fn === b.fn && JSON.stringify(a.args.map(x => x && x.id || x)) === JSON.stringify(b.args.map(x => x && x.id || x));
+
+/** Paginador para listas que se piden al servidor por páginas. */
+function paginadorBase(el, total, pagina, alCambiar, alCambiarTam) {
+  if (!el) return;
+  const tam = tamPagina();
+  if (total <= TAMANOS[0]) { el.innerHTML = ''; return; }
+  el.innerHTML = pagHTML(total, pagina, tam);
+  el.querySelectorAll('[data-pg]').forEach(b => b.onclick = () => alCambiar(+b.dataset.pg));
+  el.querySelector('[data-pgtam]').onchange = e => { fijarTam(+e.target.value); alCambiarTam(); };
+}
+
+async function arrancarBase() {
+  marca('inicio del arranque');
+  let guardado = null;
+  try { guardado = JSON.parse(localStorage.getItem(PKEY) || 'null'); } catch (e) {}
+  // v2.69.0: el perfil guardado solo sirve si ya trae sus capacidades y están los roles (si no, se espera al de la red)
+  if (guardado && !Array.isArray(guardado.capacidades)) guardado = null;
+  if (guardado && ROLES_DEF.length && ESTADOS_DEF.length && localStorage.getItem('dlc-os-sesion') && !APP_VISIBLE) {
+    mostrarApp(guardado);
+    marca('app visible con el perfil guardado');
+  }
+
+  const { data: { session } } = await db.auth.getSession();
+  marca('sesión comprobada');
+  if (!session) { if (!navigator.onLine && guardado && APP_VISIBLE) return;   // v2.259.0: sin conexión se sigue con el perfil guardado
+    localStorage.removeItem(PKEY); mostrarLogin(); return; }
+
+  const rolesListos = cargarRoles().catch(() => false);
+  let { data: perfil, error } = await db.from('perfiles').select('*,capacidades').eq('id', session.user.id).single();
+  // Un fallo de conexión no cierra la sesión: se reintenta y, si sigue fallando, se entra con el perfil guardado
+  for (let i = 0; i < 2 && error && error.code !== 'PGRST116'; i++) {
+    await new Promise(r => setTimeout(r, 1500));
+    ({ data: perfil, error } = await db.from('perfiles').select('*,capacidades').eq('id', session.user.id).single());
+  }
+  if (error && error.code !== 'PGRST116' && guardado) { perfil = guardado; error = null; }
+  marca('perfil recibido');
+  if (error || !perfil || !perfil.activo) {
+    // v2.117.0: si su empresa está bloqueada (prueba terminada o desactivada), se dice eso
+    const { data: acc } = await Promise.resolve(RPC_ORIG('acceso_organizacion', {})).catch(() => ({ data: null }));
+    localStorage.removeItem(PKEY);
+    await db.auth.signOut();
+    mostrarLogin(acc && acc.bloqueada ? (acc.motivo === 'prueba_terminada'
+        ? `La prueba de ${acc.organizacion} terminó el ${fechaCorta(acc.prueba_hasta)}. Tus datos se conservan: escríbenos para seguir.`
+        : `${acc.organizacion} está desactivada. Tus datos se conservan: escríbenos para volver a activarla.`)
+      : perfil && !perfil.activo ? 'Tu usuario está desactivado.'
+      : 'Tu usuario no tiene perfil en la plataforma. Avisa a administración.');
+    return;
+  }
+  try { localStorage.setItem(PKEY, JSON.stringify(perfil)); } catch (e) {}
+  if (!(await rolesListos) && !(ROLES_DEF.length && ESTADOS_DEF.length)) await cargarRoles().catch(() => false);
+  const cambio = !guardado || JSON.stringify(guardado) !== JSON.stringify(perfil);
+  if (!APP_VISIBLE) mostrarApp(perfil);
+  else if (cambio) { mostrarApp(perfil); if (TAB === 'inicio') cargarInicio(); }
+  db.rpc('registrar_acceso', { p_evento: 'Entrada', p_agente: navigator.userAgent }).catch(() => {});
+}
+
+async function volverAMiSesionBase() {
+  const s = suplantando(); if (!s) return;
+  const { error } = await db.auth.setSession({ access_token: s.access_token, refresh_token: s.refresh_token });
+  localStorage.removeItem(SKEY);
+  limpiarDatosLocales();
+  if (error) { await db.auth.signOut(); toast('Tu sesión había caducado: vuelve a entrar', true); }
+  location.reload();
+}
+
+async function volverAMiSesion() {
+  const s = suplantando();
+  pantallaCarga('Volviendo a tu sesión' + (s ? ', ' + nombrePila(s.nombre) : '') + '…');
+  await volverAMiSesionBase();
+}
+
+// Con el enlace de recuperación la plataforma no arranca ni se pinta
+async function arrancar(...a) { if (RECUPERANDO) { pantallaRecuperacion(); return; } return arrancarBase.apply(this, a); }
+
+/* ============================================================
+   v2.250.0 · Ventas sin paginadores repetidos (listas sin fantasmas, segundo grupo). Las listas de Ventas (Pedidos,
+   Oportunidades, Compras, Proveedores, Facturas, Catálogo, Servicios y Stock) ya llegaban de una vez (v2.238) y no se
+   recolocan al buscar, filtrar, pulsar un indicador, pasar de página u ordenar (prueba ventas2250). Lo que sí fallaba: en
+   Facturas y Oportunidades el paginador se crea dentro de la lista y la plantilla lo saca al pie de la tabla; al volver a
+   pintar se creaba otro y quedaban dos (con el mismo id). Ahora, antes de pintar un paginador se quita el anterior con su nombre.
+   ============================================================ */
+function paginador(el, ...a) {
+  if (el && el.id) document.querySelectorAll('#' + el.id).forEach(x => { if (x !== el) x.remove(); });
+  return paginadorBase.call(this, el, ...a);
+}
 // nucleo/notificaciones.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -744,6 +829,7 @@ const SUPL_ERR = {
 // nucleo/utilidades.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función y constantes de valor puro: su sitio no cambia lo que hace la app. Normas: docs/normas_codigo.md.
 
+/** Elemento por id. Devuelve any: cada id es un tipo distinto (dialog, input, select…) y se resuelve al ejecutar. @type {(id: string) => any} */
 const $ = id => document.getElementById(id);
 
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -1047,6 +1133,33 @@ const FOTOS_VISITA_MAX = 6;
 
 // ---- Fotos de una visita guardada sin conexión: en el móvil hasta que la visita se envía
 const FOTOS_IDB = 'delcos-fotos';
+
+// Archivos: botón con el diseño de la plataforma, nombre del archivo y miniatura si es una imagen
+function selectorArchivoBase(inp) {
+  if (!inp || inp.dataset.fp || inp.id === 'mkfile') return;
+  inp.dataset.fp = '1';
+  const img = /image/.test(inp.accept || '');
+  const w = document.createElement('div'); w.className = 'filepick';
+  w.innerHTML = `<span class="fpmini">${svgIco(ICON_NOM[img ? 'image' : 'file'])}</span>
+    <div class="fptx"><b>${img ? 'Ninguna imagen elegida' : 'Ningún archivo elegido'}</b><span class="sm">${img ? 'JPG o PNG. Mejor cuadrada y con buena luz.' : 'Elige un archivo de tu equipo.'}</span></div>
+    <button type="button" class="btn sec">${svgIco(ICON_NOM.upload)} ${img ? 'Elegir imagen' : 'Elegir archivo'}</button>`;
+  inp.parentNode.insertBefore(w, inp); inp.classList.add('hide'); w.appendChild(inp);
+  w.querySelector('button').onclick = () => inp.click();
+  inp.addEventListener('change', () => {
+    const f = inp.files && inp.files[0]; if (!f) return;
+    w.querySelector('.fptx b').textContent = f.name; w.querySelector('.fptx .sm').textContent = Math.round(f.size / 1024) + ' KB';
+    if (img) { const u = URL.createObjectURL(f); w.querySelector('.fpmini').innerHTML = `<img src="${u}" alt="">`; }
+  });
+}
+
+function selectorArchivo(inp) {
+  selectorArchivoBase(inp);
+  const w = inp && inp.closest('.filepick'); if (!w) return;
+  // El recuadro de vista previa antiguo (al lado) se oculta: la miniatura ya está en el selector
+  const cont = w.parentElement, prev = cont && cont.parentElement && [...cont.parentElement.children].find(x => x !== cont && !x.contains(w) && x.querySelector && (x.querySelector('img') || /foto|prev/i.test(x.className + x.id)) && x.getBoundingClientRect().width < 120);
+  if (prev) { const im = prev.querySelector('img'); if (im && im.src) w.querySelector('.fpmini').innerHTML = `<img src="${im.src}" alt="">`; prev.classList.add('hide'); }
+  const lab = cont.querySelector(`label[for="${inp.id}"]`); if (lab) lab.classList.add('hide');
+}
 // servicios/camara.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -1557,6 +1670,8 @@ const selectorNav = () => `<select id="navsel" title="Navegador de mapas" style=
    - «Calidad del dato»: «Direcciones que no cuadran» (SQL 114, ubicaciones_dudosas): consultas a más de 50 km del resto de su municipio, con
      «Volver a situar» (busca de nuevo con el municipio y guarda el punto si cuadra) y «Ficha». */
 const normGeo = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().replace(/[^A-Z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
+
+async function rutasMapa(...a) { if (RN) return; const r = await rutasMapaBase.apply(this, a); const m = $('rmapa'), g = $('rngrid'); if (m && g && g.nextElementSibling !== m) { g.after(m); if (RM_MAPA) setTimeout(() => { try { RM_MAPA.resize(); } catch (e) {} }, 50); } return r; }
 // servicios/pdf.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -1574,6 +1689,109 @@ const PDF_DEF = { logo: true, logoPos: 'izq', logoTam: 'm', color: '#1C2733', ti
   pieTel: true, pieWeb: true, pieTexto: true, paginas: true, qrPos: 'abajo' };
 
 const cfgPDF = () => Object.assign({}, PDF_DEF, (AJUSTES || {}).factura_pdf || {}, { cols: Object.assign({}, PDF_DEF.cols, ((AJUSTES || {}).factura_pdf || {}).cols || {}) });
+
+async function descargarFacturaPDFBase(f, rn) {
+  const doc = await facturaPDF(f, rn); doc.save(nombrePDF(f));
+  await db.from('eventos_facturacion').insert({ tipo: 'PDF descargado', factura_id: f.id, detalle: {} }).then(() => {}, () => {});
+}
+
+async function disenoPDFBase() {
+  const C = cfgPDF();
+  await cargarAjustes();
+  const sel = (k, ops) => `<div class="segs" data-pk="${k}">${ops.map(([v, t]) => `<button type="button" data-v="${v}" class="${C[k] === v ? 'on' : ''}">${t}</button>`).join('')}</div>`;
+  const chk = (k, t, sub) => `<label class="opt"><input type="checkbox" data-pc="${sub ? sub + '.' : ''}${k}" ${(sub ? C[sub][k] : C[k]) ? 'checked' : ''}> ${t}</label>`;
+  $('dbody').innerHTML = `<div class="fh"><div><h2>Diseño del PDF de la factura</h2><div class="sm">Los cambios se ven al momento en la vista previa. Las facturas ya emitidas se descargan con el diseño que haya en ese momento.</div></div>
+    <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
+    <div class="pdfcfg" data-pagina="1"><div class="pdfops">
+      <h4>Logo</h4>${chk('logo', 'Mostrar el logo')}<div class="g2"><div><label>Posición</label>${sel('logoPos', [['izq', 'Izquierda'], ['der', 'Derecha']])}</div><div><label>Tamaño</label>${sel('logoTam', [['s', 'Pequeño'], ['m', 'Mediano'], ['l', 'Grande']])}</div></div>
+      <h4>Estilo</h4><div class="g2"><div><label for="pcol">Color de títulos y líneas</label><input type="color" id="pcol" value="${esc(C.color)}"></div><div><label>Tipografía</label>${sel('fuente', [['helvetica', 'Moderna'], ['times', 'Clásica']])}</div></div>
+      <label for="ptit">Título del documento</label><input id="ptit" value="${esc(C.titulo)}" maxlength="24">
+      <h4>Cabecera</h4>${chk('empresaCab', 'Datos de la empresa también en la cabecera (además del pie)')}<label>Cliente</label>${sel('clientePos', [['der', 'A la derecha'], ['izq', 'A la izquierda']])}
+      ${chk('vencimiento', 'Fecha de vencimiento')}${chk('direccion', 'Dirección de envío como referencia')}
+      <h4>Líneas</h4>${chk('fotos', 'Foto de cada producto')}<div class="pcols">${chk('precio', 'Precio', 'cols')}${chk('unidades', 'Unidades', 'cols')}${chk('subtotal', 'Subtotal', 'cols')}${chk('iva', 'IVA', 'cols')}${chk('total', 'Total', 'cols')}</div>
+      <h4>Pago y pie</h4>${chk('formaPago', 'Forma de pago')}${chk('iban', 'IBAN si se paga por transferencia')}${chk('pieTel', 'Teléfono de atención')}${chk('pieWeb', 'Web')}${chk('pieTexto', 'Texto del pie (Datos fiscales)')}${chk('paginas', 'Número de página')}
+      <h4>VeriFactu</h4><div class="sm">El código QR es obligatorio cuando VeriFactu está activo. Puedes elegir dónde va.</div>${sel('qrPos', [['abajo', 'Abajo'], ['arriba', 'Arriba']])}
+    </div><div class="pdfprev"><iframe id="pdfif" title="Vista previa del PDF"></iframe></div></div>
+    <div class="acts" style="justify-content:space-between"><button class="btn sec" id="pdfdef" type="button">Volver al diseño original</button>
+      <div style="display:flex;gap:8px"><button class="btn sec" data-cerrar>Cancelar</button><button class="btn" id="pdfok">Guardar diseño</button></div></div>`;
+  $('dlg').classList.add('amplia'); if (!$('dlg').open) $('dlg').showModal();
+  // v2.122.0: integrado en su pestaña (ordenador): sin cerrar, «Descartar cambios» vuelve a lo guardado y al guardar se queda
+  const enPagina = $('dlg').classList.contains('encajada');
+  if (enPagina) {
+    $('dlg').dataset.fija = '1';
+    $('dbody').querySelector('.fh .x').remove();
+    const c = $('dbody').querySelector('.acts [data-cerrar]'); c.removeAttribute('data-cerrar'); c.textContent = 'Descartar cambios';
+    c.onclick = () => disenoPDF();
+  } else if ((TAB === 'organizacion' && PAG_TAB.organizacion === 'pdf') || (TAB === 'config' && CFG_KEY === 'o.pdf')) {
+    // v2.124.0: en el móvil el diseño es una ventana; al cerrarla, la pestaña no se queda vacía con el cargador girando
+    $('dlg').dataset.depagina = '1';   // v2.136.0: se cierra al cambiar de pantalla
+    $('dlg').addEventListener('close', () => {
+      delete $('dlg').dataset.depagina;
+      const area = document.querySelector('#v-organizacion .pagcuerpo') || (TAB === 'config' ? $('cfgcuerpo') : null);
+      if (!area || !((TAB === 'organizacion' && PAG_TAB.organizacion === 'pdf') || (TAB === 'config' && CFG_KEY === 'o.pdf'))) return;
+      area.innerHTML = `<div class="card cfgpanel"><h2>Diseño del PDF de la factura</h2><p class="sm">Logo, colores, columnas y pie de las facturas, con vista previa.</p>
+        <div class="acts"><button class="btn" id="pdfabrir" type="button">Abrir el diseño del PDF</button></div></div>`;
+      $('pdfabrir').onclick = () => disenoPDF();
+    }, { once: true });
+  }
+  let T = null;
+  const pinta = () => { clearTimeout(T); T = setTimeout(async () => { const d = await facturaPDF(facturaEjemplo(), '', C); const u = d.output('bloburl'); $('pdfif').src = u + '#toolbar=0&navpanes=0&view=FitH'; }, 250); };
+  $('dbody').querySelectorAll('[data-pk]').forEach(g => g.querySelectorAll('button').forEach(b => b.onclick = () => { C[g.dataset.pk] = b.dataset.v; g.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); pinta(); }));
+  $('dbody').querySelectorAll('[data-pc]').forEach(i => i.onchange = () => { const [a, b] = i.dataset.pc.split('.'); if (b) C[a][b] = i.checked; else C[a] = i.checked; pinta(); });
+  $('pcol').oninput = () => { C.color = $('pcol').value; pinta(); };
+  $('ptit').oninput = () => { C.titulo = $('ptit').value.trim() || 'FACTURA'; pinta(); };
+  $('pdfdef').onclick = () => { Object.assign(C, JSON.parse(JSON.stringify(PDF_DEF))); disenoPDFCon(C); };
+  const disenoPDFCon = nuevo => { AJUSTES.__pdfTmp = nuevo; $('dlg').close(); setTimeout(() => { const g = AJUSTES.factura_pdf; AJUSTES.factura_pdf = nuevo; disenoPDF().then(() => { AJUSTES.factura_pdf = g; }); }, 50); };
+  $('pdfok').onclick = () => conCarga($('pdfok'), 'Guardando…', async () => {
+    const { data: r, error } = await db.rpc('guardar_ajuste', { p_clave: 'factura_pdf', p_valor: C });
+    if (error || !r || !r.ok) { toast('No se ha podido guardar el diseño', true); return; }
+    AJUSTES.factura_pdf = JSON.parse(JSON.stringify(C)); delete $('dlg').dataset.sucio; if (!enPagina) $('dlg').close(); toast('Diseño del PDF guardado');
+  });
+  pinta();
+}
+
+async function descargarFacturaPDF(...a) {
+  if (!await elegirPlantillaPDF()) return;
+  try { return await descargarFacturaPDFBase.apply(this, a); } finally { PDF_ELEGIDO = null; }
+}
+
+async function disenoPDF(...a) {
+  const v = listaPDF(); if (!PDF_EDITANDO || !v.lista.some(x => x.id === PDF_EDITANDO)) PDF_EDITANDO = v.defecto;
+  const g = AJUSTES.factura_pdf, tmp = !!AJUSTES.__pdfTmp; delete AJUSTES.__pdfTmp;   // «Volver al diseño original» pinta su diseño provisional
+  if (!tmp) AJUSTES.factura_pdf = (v.lista.find(x => x.id === PDF_EDITANDO) || {}).cfg || g;
+  let r; try { r = await disenoPDFBase.apply(this, a); } finally { if (!tmp) AJUSTES.factura_pdf = (v.lista.find(x => x.id === v.defecto) || {}).cfg || g; }
+  const fh = $('dbody') && $('dbody').querySelector('.fh'); if (!fh || $('pdfplbar')) return r;
+  const actual = v.lista.find(x => x.id === PDF_EDITANDO) || v.lista[0];
+  fh.insertAdjacentHTML('afterend', `<div class="pdfplbar" id="pdfplbar"><div><label for="pdfplsel">Plantilla</label><select id="pdfplsel">${v.lista.map(x => `<option value="${x.id}" ${x.id === actual.id ? 'selected' : ''}>${esc(x.nombre)}${x.id === v.defecto ? ' · por defecto' : ''}</option>`).join('')}</select></div>
+    <div class="pdfplacts"><button type="button" class="btn sec chico" id="pdfplnueva">+ Nueva</button><button type="button" class="btn sec chico" id="pdfplren">Renombrar</button>
+      ${actual.id !== v.defecto ? '<button type="button" class="btn sec chico" id="pdfpldef">Usar por defecto</button>' : ''}${v.lista.length > 1 ? '<button type="button" class="btn sec chico dang" id="pdfplx">Eliminar</button>' : ''}
+      ${pmAyu('Plantillas del PDF', 'Guarda varios diseños con el nombre que quieras. El de por defecto es el que sale siempre; si hay más, al descargar o enviar una factura se puede elegir otro. «Guardar diseño» guarda la plantilla elegida.')}</div></div>`);
+  const otra = id => { PDF_EDITANDO = id; disenoPDF(); };
+  $('pdfplsel').onchange = () => otra($('pdfplsel').value);
+  $('pdfplnueva').onclick = async () => {
+    const n = await pedirTexto('Nombre de la plantilla', actual.nombre + ' (copia)', { titulo: 'Nueva plantilla del PDF', ok: 'Crear' }); if (n === null || !n.trim()) return;
+    const id = idPlant(); v.lista.push({ id, nombre: n.trim(), cfg: JSON.parse(JSON.stringify(actual.cfg || {})) });
+    if (await guardarPDFPlantillas({ lista: v.lista, defecto: v.defecto })) otra(id);
+  };
+  $('pdfplren').onclick = async () => {
+    const n = await pedirTexto('Nombre de la plantilla', actual.nombre, { titulo: 'Renombrar', ok: 'Guardar' }); if (n === null || !n.trim()) return;
+    actual.nombre = n.trim(); if (await guardarPDFPlantillas({ lista: v.lista, defecto: v.defecto })) otra(actual.id);
+  };
+  if ($('pdfpldef')) $('pdfpldef').onclick = async () => {
+    if (!await guardarPDFPlantillas({ lista: v.lista, defecto: actual.id })) return;
+    const { data: r2 } = await RPC_V2342('guardar_ajuste', { p_clave: 'factura_pdf', p_valor: actual.cfg || {} });
+    if (r2 && r2.ok !== false) AJUSTES.factura_pdf = actual.cfg || {};
+    toast(`«${actual.nombre}» es ahora el diseño por defecto`); otra(actual.id);
+  };
+  if ($('pdfplx')) $('pdfplx').onclick = async () => {
+    if (!await preguntar(`Se elimina la plantilla «${actual.nombre}».`, { titulo: '¿Eliminar la plantilla?', ok: 'Eliminar' })) return;
+    const l = v.lista.filter(x => x !== actual), def = actual.id === v.defecto ? l[0].id : v.defecto;
+    if (!await guardarPDFPlantillas({ lista: l, defecto: def })) return;
+    if (def !== v.defecto) { await RPC_V2342('guardar_ajuste', { p_clave: 'factura_pdf', p_valor: (l[0].cfg || {}) }); AJUSTES.factura_pdf = l[0].cfg || {}; }
+    toast('Plantilla eliminada'); otra(def);
+  };
+  return r;
+}
 // @ts-check
 // servicios/permisos.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
@@ -1734,6 +1952,28 @@ const rangoPlan = k => ['campo', 'comercial', 'empresa', 'medida'].indexOf(k);
 // Igual que la función «pagos»: plan menor, menos usuarios o de anual a mensual
 const esBajada = (de, a) => rangoPlan(a.plan) < rangoPlan(de.plan)
   || (rangoPlan(a.plan) === rangoPlan(de.plan) && (+a.usuarios < +de.usuarios || (de.pago === 'anual' && a.pago === 'mensual')));
+
+function avisoPlanBase(mod) {
+  const p = planMinimo(mod), n = (document.querySelector(`nav.main [data-t="${mod}"]`) || {}).textContent || mod;
+  $('dbody').innerHTML = `<div class="fh"><div><h2>🔒 ${esc(n.replace('🔒', '').trim())}</h2><div class="sm">No está incluido en tu plan ${esc(planDe(PLAN_ACTUAL.plan).nombre)}</div></div>
+    <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
+    <p>Está disponible desde el plan <b>${esc(p ? p.nombre : 'A medida')}</b>${p ? ` (${precioPlan(p)})` : ''}.</p>
+    ${p ? `<ul class="manlist">${p.ventajas.map(v => `<li><span>✓</span><span>${esc(v)}</span></li>`).join('')}</ul>` : ''}
+    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>Ahora no</button>${puede('administrar') ? '<button class="btn" id="vplan">Ver planes</button>' : ''}</div>`;
+  $('dlg').showModal();
+  if ($('vplan')) $('vplan').onclick = () => { $('dlg').close(); CFG_SEC = 'plan'; ir('config'); };
+}
+function avisoPlan(mod) {
+  if (!(mod in PLAN_SECCIONES)) return avisoPlanBase.call(this, mod);
+  const p = planDe(PLAN_SECCIONES[mod][0]), n = TITULO_PEDSEC[mod] ? TITULO_PEDSEC[mod][0] : mod;
+  $('dbody').innerHTML = `<div class="fh"><div><h2>${esc(n)}</h2><div class="sm">No está incluido en tu plan ${esc(planDe(PLAN_ACTUAL.plan).nombre)}</div></div>
+    <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
+    <p>Está disponible desde el plan <b>${esc(p.nombre)}</b> (${precioPlan(p)}).</p>
+    <ul class="manlist">${p.ventajas.map(v => `<li><span>✓</span><span>${esc(v)}</span></li>`).join('')}</ul>
+    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>Ahora no</button>${puedeOrganizacion() ? '<button class="btn" id="vplan">Ver planes</button>' : ''}</div>`;
+  $('dlg').showModal();
+  if ($('vplan')) $('vplan').onclick = () => { $('dlg').close(); CFG_SEC = 'plan'; ir('config'); };
+}
 // @ts-check
 // servicios/vocabulario.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
@@ -1824,6 +2064,8 @@ function toast(msg, err) {
     try { if (!t.hasAttribute('popover')) t.setAttribute('popover', 'manual'); if (t.matches(':popover-open')) t.hidePopover(); t.showPopover(); } catch (e) {}
   }
 }
+
+
 // @ts-check
 // componentes/ayuda.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
@@ -1890,6 +2132,51 @@ let BUSQ_N = 0;   // solo cuenta la última búsqueda: las anteriores se descart
 
 // Solo los buscadores: los de tipo búsqueda y los campos con su lista de resultados justo debajo
 const esBuscador = i => i && i.matches && i.matches('input') && !i.list && (i.type === 'search' || (!!i.nextElementSibling && i.nextElementSibling.matches('.gsug, .cpres, .lista, [role=listbox]')));
+
+async function buscarBase(reiniciar) {
+  if (typeof MODO_MAPA !== 'undefined' && MODO_MAPA && reiniciar) setTimeout(() => pintarMapa(), 10);
+  if (reiniciar) F.pagina = 0;
+  const yo = ++BUSQ_N;
+  cargando($('lista'), 'Buscando ' + etiquetaContactos().toLowerCase() + '…');
+  $('cuenta').textContent = 'Buscando…';
+  const t0 = performance.now();
+  const params = {
+    q: F.q || null, f_provincia: F.prov || null, f_municipio: F.muni || null,
+    f_estado: F.est || null, f_especialidad: F.esp || null, f_area: null,
+    f_urgentes: F.urg, f_mios: !!F.mios, f_sin_visitar: !!F.sin, f_comercial: F.com || null, f_reporting: F.rep || null,
+    ...(F.tipo ? { f_tipo: F.tipo } : {}),
+    orden: F.orden, lim: tamPagina(), desplaz: F.pagina * tamPagina(),
+    ...(Object.keys(F.campos || {}).length ? { f_campos: F.campos } : {})
+  };
+  let { data, error } = await db.rpc('buscar_cuentas', params);
+  if (yo !== BUSQ_N) return;   // ya hay una búsqueda más reciente
+  // Si falla (móvil que vuelve del segundo plano, cobertura), se reintenta una vez al momento antes de avisar
+  if (error || !data) {
+    ({ data, error } = await db.rpc('buscar_cuentas', params));
+    if (yo !== BUSQ_N) return;
+  }
+
+  if (error || !data) {
+    $('cuenta').textContent = '';
+    $('lista').innerHTML = `<div class="vacio">No se ha podido cargar la lista${error && /abort/i.test(error.message || '') ? ' (la conexión no responde)' : ''}.<br><button class="btn sec" type="button" id="dirreint" style="margin-top:10px">Reintentar</button></div>`;
+    $('dirreint').onclick = () => buscar(true);
+    return;
+  }
+
+  F.total = data.total;
+  const ms = Math.round(performance.now() - t0);
+  $('cuenta').innerHTML = `<b>${num(data.total)}</b> ${esc(etiquetaContactos().toLowerCase())} <span class="sm">· ${ms} ms</span>`;
+  pintarChips();
+
+  const filas = data.filas || [];
+  if (!filas.length) { $('lista').innerHTML = `<div class="vacio">Ningún registro cumple estos filtros.</div>`; $('thead').innerHTML = ''; }
+  else { cabeceraTabla(); $('lista').innerHTML = filas.map(filaTabla).join(''); }
+
+  paginador($('dirpag'), data.total, F.pagina, p => {
+    F.pagina = p; buscar(false);
+    $('tabla').scrollIntoView({ block: 'start', behavior: 'smooth' });
+  }, () => buscar(true));
+}
 // @ts-check
 // componentes/campos.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
@@ -2334,6 +2621,71 @@ const filtroConValor = v => v != null && v !== '' && !(Array.isArray(v) && !v.le
 
 // ---- Memoria de filtros: lo que se elige en una fila de filtros se vuelve a poner cuando la pantalla se pinta de nuevo
 const FMEM = {};
+
+function htContadorBase(sec) {
+  const b = sec.querySelector('.htbtn'); if (!b) return;
+  // Solo se toca si cambia el número (cualquier cambio en la pantalla vuelve a avisar al observador)
+  const n = htActivos(sec), txt = n ? String(n) : '', el = b.querySelector('.htn');
+  if (el.textContent !== txt) el.textContent = txt;
+  if (b.classList.contains('conf') !== n > 0) b.classList.toggle('conf', n > 0);
+}
+
+function htAbrirLateralBase(sec) {
+  const d = $('tools'), id = sec.id.replace('v-', '');
+  if (htLateralAbierto() && HERR_CTX === 'ht-' + id) { d.classList.remove('abierto'); return; }
+  htDevolver();
+  HERR_CTX = 'ht-' + id;
+  d.innerHTML = `<div class="tbox"><div class="fh"><h2>Filtros y columnas</h2><button class="x" id="tclose" aria-label="Cerrar">✕</button></div>
+    <div class="htpropios lat"></div><div class="htauto"></div></div>`;
+  const hold = sec.querySelector('.htpanel .htpropios');
+  if (hold) [...hold.children].forEach(ch => d.querySelector('.htpropios.lat').appendChild(chicoEn(ch, false)));
+  $('tclose').onclick = () => d.classList.remove('abierto');
+  d.classList.add('abierto');
+  htPintarPanel(sec);
+}
+
+function htChipsBase(sec) {
+  const fil = sec.querySelector('.filtros'); if (!fil || fil.classList.contains('hide')) return;
+  let c = sec.querySelector('.htchips');
+  if (!c) { fil.insertAdjacentHTML('beforeend', '<div class="htchips"></div>'); c = sec.querySelector('.htchips'); fil.classList.add('filbusca'); }
+  const chips = [];
+  const selects = [...sec.querySelectorAll('.htpanel .htpropios select'), ...(htLateralAbierto() ? [...$('tools').querySelectorAll('.htpropios.lat select')] : [])];
+  selects.forEach(s => { if (s.selectedIndex > 0) { const l = s.id && document.querySelector(`label[for="${s.id}"]`); chips.push({ t: (l ? l.textContent.trim() + ': ' : '') + s.options[s.selectedIndex].text, quitar: () => { s.selectedIndex = 0; s.dispatchEvent(new Event('change', { bubbles: true })); } }); } });
+  const g = sec.querySelector('.dgrid'), st = g ? HT_ESTADO[htTipo(g)] : null;
+  if (st) {
+    const cab = [...(g.querySelector(':scope > .dh') || { children: [] }).children].map(x => x.textContent.trim());
+    Object.entries(st.facetas || {}).forEach(([i, v]) => { if (v) chips.push({ t: `${cab[i] || 'Columna'}: ${v}`, quitar: () => { st.facetas[i] = ''; htAplicarFiltros(g); } }); });
+    if (st.texto) chips.push({ t: `Contiene «${st.texto}»`, quitar: () => { st.texto = ''; htAplicarFiltros(g); } });
+  }
+  const html = chips.map((x, i) => `<button class="htchip" type="button" data-hchip="${i}">${esc(x.t)} <span aria-hidden="true">✕</span></button>`).join('');
+  if (c.innerHTML !== html) {
+    c.innerHTML = html;
+    c.querySelectorAll('[data-hchip]').forEach(b => b.onclick = () => { chips[+b.dataset.hchip].quitar(); htContador(sec); htChips(sec); });
+  }
+}
+
+function htContador(sec) { htContadorBase(sec); htChips(sec); }
+
+function htAbrirLateral(sec) {
+  htAbrirLateralBase(sec);
+  const d = $('tools'), auto = d.querySelector('.htauto');
+  if (!clasPantalla(sec) || !htLateralAbierto() || !auto || d.querySelector('.htclas')) return;
+  auto.insertAdjacentHTML('beforebegin', '<div class="htclas"></div>');
+  clasPintarLateral(sec);
+}
+
+// Chips de los filtros de Clasificadores junto al buscador (en su propio contenedor)
+function htChips(sec) {
+  htChipsBase(sec);
+  const P = clasPantalla(sec), c = sec.querySelector('.htchips'); if (!c) return;
+  let c2 = sec.querySelector('.htchips2');
+  if (!c2) { c.insertAdjacentHTML('afterend', '<div class="htchips htchips2"></div>'); c2 = sec.querySelector('.htchips2'); }
+  const est = P ? P.estado() : {}, chips = P ? clasChips(P.amb, est) : [];
+  const html = chips.map(x => `<button class="htchip" type="button" data-hcp="${esc(x.k)}">${esc(x.t)} <span aria-hidden="true">✕</span></button>`).join('');
+  if (c2.innerHTML === html) return;
+  c2.innerHTML = html;
+  c2.querySelectorAll('[data-hcp]').forEach(b => b.onclick = () => { delete est[b.dataset.hcp]; P.recargar(); clasPintarLateral(sec); htContador(sec); });
+}
 // @ts-check
 // componentes/firma.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
@@ -2485,6 +2837,19 @@ const KPI_MOD = {
 const KPI_ICO = { citas: '📅', urgentes: '⚠️', visitas_sem: '📝', visitas_mes: '🗓️', interesados: '✨', sin_contactar: '📇', cartera: '🩺', dups: '🧩',
   sin_visita_60: '⏳', sin_horario: '🕘', uds_mes: '📦', prescriptores: '👥', nuevos_presc: '🌱', activos_90: '🔁', conversion: '📈',
   importe_mes: '€', borradores: '✏️', muestras_mes: '🎁', material_mes: '📚', citas_7d: '📆', visitas_7d: '🧭' };
+
+function kpiPermitidoBase(c) {
+  if (!c) return false;
+  if (c.admin && !puede('administrar')) return false;
+  if (KPI_MOD[c.id] && !puedeModulo(KPI_MOD[c.id])) return false;
+  const r = KPI_PERMISO[c.id];
+  return !r || nivelDe2(r[0]) >= r[1];
+}
+
+function kpiPermitido(c) {
+  if (c && c.id === 'dups') return puedeDuplicados() && kpiPermitidoBase(Object.assign({}, c, { admin: false }));
+  return kpiPermitidoBase(c);
+}
 // componentes/guardar_pagina.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -3105,6 +3470,27 @@ const ORD_MEM = {
   facts: { fn: 'facturas_lista', campos: ['numero', 'fecha', 'cliente', 'nif', 'base', 'cuota_iva', 'total', 'vencimiento', 'estado_cobro'] },
   llam: { fn: 'llamadas_lista', campos: ['fecha', x => x.cliente || x.nombre, 'importe_estimado', x => x.medico || x.cuenta_texto, x => x.resultado || (x.pedido_id ? 'Pedido hecho' : ''), 'proxima_fecha', 'usuario'] }
 };
+
+function filaTablaBase(m) {
+  const cfg = colsConfig().filter(c => c.on);
+  return `<button class="trow" data-id="${m.id}">${cfg.map(c =>
+    `<span class="tcell" style="width:${c.w}px;min-width:${c.w}px">${celda(m, c.k)}</span>`).join('')}</button>`;
+}
+
+// Directorio: cada fila lleva su tarjeta (oculta en el ordenador) con el nombre, centro · municipio y el estado
+function filaTabla(m) {
+  const h = filaTablaBase(m), i = h.lastIndexOf('</button>'); if (i < 0) return h;
+  const l2 = [m.centro_nombre, m.municipio].filter(Boolean).join(' · ');
+  return h.slice(0, i) + `<span class="plcard"><b>${m.urgente ? '<i class="plurg" aria-label="Urgente"></i>' : ''}${esc(m.nombre || '')}</b><span class="plc2">${esc(l2)}</span><span class="plc3">${celda(m, 'estado_comercial')}</span></span>` + h.slice(i);
+}
+
+function plKpisHtmlBase(tab) {
+  const c = PL[tab], k = PL_KPI[tab];
+  if (!k || !k.datos) return Array(c.nKpis || 4).fill('').map(() => `<div class="plk plcarga"><span class="plkt"><i class="plsk" style="width:46%"></i></span><b><i class="plsk plskv"></i></b><small><i class="plsk" style="width:70%"></i></small></div>`).join('');
+  return k.datos.map(d => `<button type="button" class="plk ${c.kpiOn(d.k) ? 'on' : ''}" data-plk="${d.k}"><span class="plkt">${esc(d.t)}</span><b data-pln="${d.n}">${num(d.n)}</b><small>${esc(d.s)}</small></button>`).join('');
+}
+
+function plKpisHtml(tab) { return plCfg(tab) && plCfg(tab).kpis ? plKpisHtmlBase(tab) : ''; }
 // componentes/pestanas.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -3358,6 +3744,56 @@ const esBotonGuardar = b => {
 };
 
 let ULT_ACCION = 0;
+
+/**
+ * Ventana propia (aviso, confirmación o pregunta con un campo).
+ * @param {{ titulo?: string, msg?: string, ok?: string, cancel?: string, campo?: any, opciones?: any, peligro?: boolean }} o
+ */
+function appVentanaBase({ titulo, msg, ok, cancel, campo, opciones, peligro }) {
+  return new Promise(res => {
+    const d = $('mini');
+    d.innerHTML = `<div class="fbox">
+      <div class="fh"><h2>${esc(titulo || 'Confirmar')}</h2></div>
+      ${msg ? `<p style="margin:0 0 10px;white-space:pre-line">${esc(msg)}</p>` : ''}
+      ${campo ? `<input id="mcampo" type="${campo.tipo || 'text'}" value="${esc(campo.valor || '')}"
+                   placeholder="${esc(campo.placeholder || '')}" ${campo.min ? `min="${campo.min}"` : ''}>` : ''}
+      ${opciones && opciones.length ? `<div class="chips" style="padding:10px 0 0">${
+        opciones.map(o => `<button type="button" class="chip" data-mop="${esc(o)}">${esc(o)}</button>`).join('')}</div>` : ''}
+      <div class="acts" style="justify-content:flex-end">
+        ${cancel === false ? '' : `<button class="btn sec" id="mno">${esc(cancel || 'Cancelar')}</button>`}
+        <button class="btn ${peligro ? 'dang' : ''}" id="mok">${esc(ok || 'Aceptar')}</button></div></div>`;
+
+    const fin = v => { d.close(); res(v); };
+    $('mok').onclick = () => fin(campo ? ($('mcampo').value || '') : true);
+    if ($('mno')) $('mno').onclick = () => fin(campo ? null : false);
+    d.querySelectorAll('[data-mop]').forEach(b => b.onclick = () => { $('mcampo').value = b.dataset.mop; });
+    d.onclick = e => { if (e.target === d) fin(campo ? null : false); };
+    d.oncancel = e => { e.preventDefault(); fin(campo ? null : false); };
+    d.showModal();
+    setTimeout(() => { const i = $('mcampo'); if (i) { i.focus(); i.onkeydown = ev => { if (ev.key === 'Enter') fin(i.value); }; } else $('mok').focus(); }, 30);
+  });
+}
+
+// Ventana de texto: «area» para notas (varias líneas y más espacio)
+function appVentana(o) {
+  const p = appVentanaBase(o);
+  if (o && o.campo && o.campo.tipo === 'area') setTimeout(() => {
+    const i = $('mcampo'); if (!i) return;
+    const t = document.createElement('textarea'); t.id = 'mcampo'; t.rows = 6; t.value = i.value; t.placeholder = i.placeholder; i.replaceWith(t);
+    $('mini').classList.add('ancha'); t.focus();
+  }, 0);
+  return p;
+}
+
+function areaEncajeBase() {
+  if (innerWidth < ENCAJE_MIN) return null;
+  if (TAB === 'config') return $('cfgcuerpo-hub') || $('cfgcuerpo');
+  if (PAGINAS[TAB]) return document.querySelector(`#v-${TAB} .pagcuerpo`) || $('cfgcuerpo');
+  return null;
+}
+
+// Mientras se abre una ficha, no se encaja en la página
+function areaEncaje(...a) { return FX_FICHA ? null : areaEncajeBase.apply(this, a); }
 // pantallas/acceso.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -3483,6 +3919,16 @@ let MED_ACCESO = null;
 const claveAnchos = tipo => `ht-anchos-${(PERFIL || {}).id || ''}-${tipo}`;
 
 let PAG_CLAVE = '';
+
+function mostrarLoginBase(msg) {
+  $('bootsplash').classList.add('hide');
+  $('app').classList.add('hide');
+  $('login').classList.remove('hide');
+  if (msg) $('lmsg').textContent = msg;
+  APP_VISIBLE = false;
+}
+
+function mostrarLogin(...a) { document.body.classList.add('sin-sesion'); return mostrarLoginBase.apply(this, a); }
 // pantallas/agenda.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -4562,6 +5008,257 @@ const tdRealVigente = () => TD_REAL && Date.now() - TD_REAL.t < 600000;
 
 // Tareas del día plegables: un clic en su título las oculta todas y se ven solo las citas (se recuerda en este dispositivo)
 const tdTareasPlegadas = () => { try { return localStorage.getItem('delcos-tareas-plegadas') === '1'; } catch (e) { return false; } };
+
+async function empezarJornadaBase() {
+  const citas = await citasDelDia(hoyISO());
+  if (!citas.some(c => CITA_ABIERTA.includes(c.estado))) { toast('No tienes citas abiertas hoy. Añade citas o planifica una ruta.', true); return; }
+  localStorage.setItem(JKEY(), JSON.stringify({ fecha: hoyISO(), inicio: Date.now() }));
+  pintarRutaBarra();
+  toast('Jornada iniciada');
+  AG_MODO = 'dia'; AG_FECHA = hoyISO();
+  if (TAB === 'agenda') cargarAgenda(); else ir('agenda');
+}
+
+async function bloqueadosSemanaBase(desde, hasta) {
+  const { data } = await RPC_ORIG('dias_bloqueados_rango', { p_desde: desde, p_hasta: hasta, p_usuario: agUid() });
+  const b = {}; (data || []).forEach(x => b[x.fecha] = x.motivo || 'Día bloqueado');
+  return b;
+}
+
+async function citaRepetidaBase(medicoId, fecha) {
+  const uid = TAB === 'agenda' && AG_VISTA ? AG_VISTA.id : PERFIL.id;
+  const { data } = await RPC_ORIG('agenda_rango', { p_desde: fecha, p_hasta: fecha, p_usuario: uid });
+  const ya = (data || []).find(c => c.cuenta_id === medicoId && CITA_ABIERTA.includes(c.estado));
+  if (!ya) return 'nueva';
+  const op = await elegirOpcion('Ya tiene una cita ese día',
+    `${ya.nombre}\n${fechaLarga(new Date(fecha + 'T00:00:00'))}${ya.hora ? ' a las ' + String(ya.hora).slice(0, 5) : ''} · ${ya.estado}${ya.origen ? ' · ' + ya.origen : ''}\n\n¿Qué quieres hacer?`,
+    [{ k: 'no', t: 'Cancelar', cls: 'sec' }, { k: 'dos', t: 'Mantener las dos', cls: 'sec' }, { k: 'sust', t: 'Quedarme solo con la nueva' }]);
+  if (!op) return null;
+  if (op === 'sust') {
+    const { data: r } = await db.rpc('borrar_cita', { p_id: ya.id });
+    if (r && r.ok === false) { toast('No se ha podido quitar la cita anterior', true); return null; }
+  }
+  return op;
+}
+
+async function citaRepetida(medicoId, fecha) {
+  const r = await citaRepetidaBase(medicoId, fecha);
+  if (!r) return r;
+  const por = await recientesDe([medicoId], fecha);
+  const l = por[medicoId];
+  if (!l || !l.length) return r;
+  const op = await elegirOpcion('Ya se ha visto hace poco', `${txtReciente(l.slice(0, 3))}.\n\n¿Añades la cita igualmente?`,
+    [{ k: 'no', t: 'Cancelar', cls: 'sec' }, { k: 'nomas', t: 'Sí, y no volver a avisarme', cls: 'sec' }, { k: 'si', t: 'Añadir igualmente' }]);
+  if (!op) return null;
+  if (op === 'nomas') { await guardarAvisoRevisita(Object.assign(avisoRevisita(), { on: false })); toast('Aviso desactivado. Puedes activarlo en Configuración → Rutas'); }
+  return r;
+}
+
+/* v2.146.0 · Agenda: al pulsar un día de la semana o del mes, «Tu día» pasa a ese día (petición de Eric: antes se abría un desplegable).
+   El título de «Tu día» es la fecha elegida y al lado está «Volver a hoy»; el día elegido queda marcado en la semana y en el mes.
+   Las cifras de arriba, la semana y el mes siguen siendo los de hoy. */
+function agMarcarDiaBase() {
+  const v = $('v-agenda'); if (!v || !v.classList.contains('agunida')) return;
+  const hoy = hoyISO(), otro = AG_FECHA !== hoy;
+  if ($('agtit')) $('agtit').textContent = 'Hoy · ' + fechaLarga(new Date(hoy + 'T00:00:00'));
+  const h = v.querySelector('#agcuerpo .tdhead h2'); if (!h) return;
+  const caja = h.parentElement;
+  let b = $('agahoy');
+  if (!otro) { if (b) b.remove(); return; }
+  h.textContent = fechaLarga(new Date(AG_FECHA + 'T00:00:00')).replace(/^./, c => c.toUpperCase());
+  if (!b) {
+    h.insertAdjacentHTML('afterend', '<button type="button" class="btn sec" id="agahoy">Volver a hoy</button>');
+    b = $('agahoy'); b.onclick = () => agVerDia(hoyISO());
+  }
+  // v2.338.0: en el móvil va delante de «+ Tarea», en la misma fila (Eric)
+  const acts = !matchMedia('(min-width: 761px)').matches && v.querySelector('#agcuerpo .tdhead .acts');
+  if (acts && acts.firstElementChild !== b) acts.prepend(b);
+  caja.classList.add('agtitdia');
+}
+
+function editarTareaBase(t, fecha) {
+  t = t || {};
+  $('dbody').innerHTML = `
+    <div class="fh"><div><h2>${t.id ? 'Tarea' : 'Nueva tarea'}</h2><div class="sm">Una nota o tarea tuya para ese día, sin cliente</div></div>
+      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
+    <label for="tat">Qué hay que hacer</label><input id="tat" value="${esc(t.titulo || '')}" placeholder="p. ej. Llamar al almacén, reunión de equipo…" maxlength="160">
+    <div class="g2">
+      <div><label for="taf">Día</label><input id="taf" type="date" value="${esc(t.fecha || fecha || hoyISO())}"></div>
+      <div><label for="tah">Hora <span class="sm">(opcional)</span></label><input id="tah" type="time" value="${esc(t.hora ? String(t.hora).slice(0, 5) : '')}"></div>
+    </div>
+    <label for="tan">Notas</label><textarea id="tan" rows="3">${esc(t.nota || '')}</textarea>
+    <div class="acts" style="justify-content:space-between">
+      ${t.id ? '<button type="button" class="btn sec peligro" id="taborrar">Borrar</button>' : '<span></span>'}
+      <span style="display:flex;gap:8px"><button type="button" class="btn sec" data-cerrar>Cancelar</button><button type="button" class="btn" id="taok">${t.id ? 'Guardar' : 'Añadir'}</button></span></div>`;
+  $('taok').onclick = async ev => {
+    const titulo = $('tat').value.trim(); if (!titulo) { toast('Escribe qué hay que hacer', true); $('tat').focus(); return; }
+    const fila = { titulo, fecha: $('taf').value || hoyISO(), hora: $('tah').value || null, nota: $('tan').value.trim() || null, modificado_en: new Date().toISOString() };
+    ev.target.disabled = true;
+    const { error } = t.id ? await db.from('tareas').update(fila).eq('id', t.id) : await db.from('tareas').insert(fila);
+    ev.target.disabled = false;
+    if (error) { toast('No se ha podido guardar: ' + error.message, true); return; }
+    $('dlg').close(); toast(t.id ? 'Tarea guardada' : 'Tarea añadida el ' + fechaDiaMes(fila.fecha)); TAREAS_DIA = null; pintarTuDia();
+  };
+  if ($('taborrar')) $('taborrar').onclick = async () => {
+    if (!await preguntar('La tarea desaparece.', { titulo: '¿Borrar la tarea?', ok: 'Borrar', peligro: true })) return;
+    const { error } = await db.from('tareas').delete().eq('id', t.id);
+    if (error) { toast('No se ha podido borrar', true); return; }
+    $('dlg').close(); toast('Tarea borrada'); TAREAS_DIA = null; pintarTuDia();
+  };
+  $('dlg').classList.add('pequena');
+  $('dlg').showModal();
+}
+
+// La cinta de 14 días
+async function agCintaBase() {
+  const v = $('v-agenda'); if (!v || !agConCinta() || !$('agcuerpo')) return;
+  const hoy = hoyISO();
+  if (!CINTA_INI) CINTA_INI = lunesCinta(AG_FECHA || hoy);
+  const ini = CINTA_INI, fin = diasMas(ini, 13);
+  const { data } = await rpcCache('agenda_rango', { p_desde: ini, p_hasta: fin, p_usuario: agUid() }, 'agenda-cinta-' + agUid() + '-' + ini);
+  if (!agConCinta() || CINTA_INI !== ini || !$('agcuerpo')) return;
+  const por = {};
+  (data || []).filter(c => c.usuario_id === agUid() && !citaAnulada(c.estado)).forEach(c => { (por[c.fecha] = por[c.fecha] || []).push(c); });
+  const dn = ['D', 'L', 'M', 'X', 'J', 'V', 'S'];
+  const semTxt = l => {
+    const dd = Math.round((new Date(l + 'T12:00:00') - new Date(lunesCinta(hoy) + 'T12:00:00')) / 864e5 / 7);
+    if (dd === 0) return 'Esta semana'; if (dd === 1) return 'La semana que viene'; if (dd === -1) return 'La semana pasada';
+    const d0 = new Date(l + 'T12:00:00'); return 'Semana del ' + d0.getDate() + ' de ' + d0.toLocaleDateString('es-ES', { month: 'long' });
+  };
+  const dia = f => {
+    const l = por[f] || [], d = new Date(f + 'T12:00:00');
+    const tipo = c => !CITA_ABIERTA.includes(c.estado) ? 'ch' : f < hoy ? 'cx' : 'cp';
+    const pts = l.slice(0, 6).map(c => `<i class="${tipo(c)}"></i>`).join('') + (l.length > 6 ? `<em>+${l.length - 6}</em>` : '');
+    const n = `${l.length} ${l.length === 1 ? 'cita' : 'citas'}`;
+    return `<button type="button" class="cdia ${f === hoy ? 'hoy' : ''} ${f === AG_FECHA ? 'sel' : ''} ${[0, 6].includes(d.getDay()) ? 'finde' : ''}" data-cf="${f}" aria-label="${esc(fechaLarga(d))}: ${n}" title="${n}">
+      <span class="dn">${dn[d.getDay()]}</span><span class="dd">${d.getDate()}</span><span class="cpts">${pts || '<b></b>'}</span></button>`;
+  };
+  const mes = new Date(diasMas(ini, 3) + 'T12:00:00').toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
+  const html = `<div class="cinta" id="agcinta" data-ini="${ini}"><div class="ccab">
+      <div class="cnav"><button type="button" class="kmv" data-cm="-7" aria-label="Semana anterior" title="Semana anterior">‹</button><button type="button" id="cmesb" class="cmesb" aria-expanded="false" title="Ver el mes">${esc(mes.charAt(0).toUpperCase() + mes.slice(1))} <span aria-hidden="true">▾</span></button><button type="button" class="kmv" data-cm="7" aria-label="Semana siguiente" title="Semana siguiente">›</button>${ini !== lunesCinta(hoy) ? '<button type="button" class="btn sec chico" id="choy">Hoy</button>' : ''}</div>
+      <div class="cley" aria-hidden="true"><span><i class="ch"></i>Hecha</span><span><i class="cp"></i>Por hacer</span><span><i class="cx"></i>Sin cerrar</span></div>
+      <button type="button" class="btn sec chico" id="cplan" title="Planificar la semana">${SVA(ICU.plan)}<span>Planificar la semana</span></button></div>
+    <div class="csems">${[0, 7].map(o => `<div class="csem"><span class="csemt">${semTxt(diasMas(ini, o))}</span><div class="c7">${Array.from({ length: 7 }, (_, k) => dia(diasMas(ini, o + k))).join('')}</div></div>`).join('')}</div></div>`;
+  const vieja = $('agcinta');
+  if (vieja) vieja.outerHTML = html; else $('agcuerpo').insertAdjacentHTML('beforebegin', html);
+  const c = $('agcinta');
+  c.querySelectorAll('[data-cf]').forEach(b => b.onclick = () => { cerrarMesCinta(); c.querySelectorAll('.cdia').forEach(x => x.classList.toggle('sel', x === b)); agVerDia(b.dataset.cf); });
+  c.querySelectorAll('[data-cm]').forEach(b => b.onclick = () => { CINTA_INI = diasMas(CINTA_INI, +b.dataset.cm); agCinta(); });
+  if ($('choy')) $('choy').onclick = () => { CINTA_INI = lunesCinta(hoy); agCinta(); agVerDia(hoy); };
+  $('cmesb').onclick = e => { e.stopPropagation(); const m = $('agmes'); if (!m) return; const ab = !m.classList.contains('pop'); m.classList.toggle('pop', ab); $('cmesb').setAttribute('aria-expanded', String(ab));
+    // El mes se abre bajo su botón (en el móvil, centrado)
+    if (ab) { const r = $('cmesb').getBoundingClientRect(), w = Math.min(380, innerWidth - 32); m.style.top = Math.round(r.bottom + 8) + 'px'; m.style.left = Math.round(Math.max(16, Math.min(r.left, innerWidth - w - 16))) + 'px'; m.style.bottom = 'auto'; m.style.right = 'auto'; } };
+  // En el móvil, la cinta se abre en la semana del día elegido
+  const sems = c.querySelector('.csems'); if (sems && AG_FECHA >= diasMas(ini, 7)) sems.scrollLeft = sems.scrollWidth;
+}
+
+function editarTarea(t, fecha) {
+  if (!t || !t.id || !t.hecha) return editarTareaBase.apply(this, arguments);
+  $('dbody').innerHTML = `
+    <div class="fh"><div><h2>Tarea hecha</h2><div class="sm">${esc(fechaLarga(new Date(t.fecha + 'T00:00:00')))}${t.hora ? ' · ' + esc(String(t.hora).slice(0, 5)) : ''}</div></div>
+      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
+    <div class="tarlec"><span class="tarok">Hecha</span><b>${esc(t.titulo || '')}</b>${t.nota ? `<p>${esc(t.nota)}</p>` : ''}</div>
+    <div class="acts" style="justify-content:space-between">
+      <button type="button" class="btn sec peligro" id="taborrar">Borrar</button>
+      <span style="display:flex;gap:8px"><button type="button" class="btn sec" data-cerrar>Cerrar</button><button type="button" class="btn" id="tareabrir">Volver a pendiente</button></span></div>`;
+  $('tareabrir').onclick = async ev => {
+    ev.target.disabled = true;
+    const { error } = await db.from('tareas').update({ hecha: false, modificado_en: new Date().toISOString() }).eq('id', t.id);
+    ev.target.disabled = false;
+    if (error) { toast('No se ha podido cambiar', true); return; }
+    TAREAS_DIA = null; pintarTuDia(); editarTareaBase.call(this, Object.assign({}, t, { hecha: false }), fecha);
+  };
+  $('taborrar').onclick = async () => {
+    if (!await preguntar('La tarea desaparece.', { titulo: '¿Borrar la tarea?', ok: 'Borrar', peligro: true })) return;
+    const { error } = await db.from('tareas').delete().eq('id', t.id);
+    if (error) { toast('No se ha podido borrar', true); return; }
+    $('dlg').close(); toast('Tarea borrada'); TAREAS_DIA = null; pintarTuDia();
+  };
+  $('dlg').classList.add('pequena');
+  $('dlg').showModal();
+}
+
+// Columna derecha: tu semana
+async function agSemanaLateralBase() {
+  if (TAB !== 'agenda' || AG_MODO !== 'dia') return;
+  const v = $('v-agenda'); if (!v || !v.classList.contains('agcinta')) return;
+  let box = $('agsemlat');
+  if (!box) { $('agcuerpo').insertAdjacentHTML('afterend', '<div class="card" id="agsemlat"></div>'); box = $('agsemlat'); }
+  const desde = lunesDe(AG_FECHA || hoyISO()), hasta = isoMas(desde, 6);
+  const [r, bloq] = await Promise.all([rpcCache('agenda_rango', { p_desde: desde, p_hasta: hasta, p_usuario: agUsuarioFiltro() }, 'agenda-' + desde), agBloqueos(desde, 7)]);
+  if (!$('agsemlat')) return;
+  const por = {}; ((r && r.data) || []).filter(c => !citaAnulada(c.estado)).forEach(c => (por[c.fecha] = por[c.fecha] || []).push(c));
+  const DS = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
+  box.innerHTML = `<h2>Tu semana</h2><p class="sm agslnota">«⋯» en un día para bloquearlo (festivo, vacaciones, formación) o añadir una cita.</p>
+    <div class="agsl">${[...Array(7)].map((_, i) => { const f = isoMas(desde, i), d = new Date(f + 'T12:00:00'), l = (por[f] || []).sort((a, b) => String(a.hora || '').localeCompare(String(b.hora || '')));
+      return `<div class="agsld ${f === hoyISO() ? 'hoy' : ''} ${f === AG_FECHA ? 'sel' : ''} ${bloq[f] ? 'bloq' : ''}" data-agsl="${f}" role="button" tabindex="0" aria-label="Ver el ${fechaCorta(f)}">
+        <span class="agslf">${d.getDate()}<small>${DS[d.getDay()]}</small></span>
+        <span class="agslc">${bloq[f] ? `<span class="agslb">${esc(bloq[f])}</span>` : ''}${l.slice(0, 3).map(c => `<span class="agslx"><b>${esc(String(c.hora || '').slice(0, 5))}</b>${esc(c.medico || c.nombre || '')}</span>`).join('')}${l.length > 3 ? `<span class="agslv">y ${l.length - 3} más</span>` : ''}${!l.length && !bloq[f] ? '<span class="agslv">Libre</span>' : ''}</span>
+        ${f >= hoyISO() ? `<button type="button" class="agslm" data-agslm="${f}" aria-label="Opciones del ${fechaCorta(f)}">⋯</button>` : '<span></span>'}</div>`; }).join('')}</div>
+    ${[...Array(7)].some((_, i) => isoMas(desde, i) >= hoyISO()) ? '<div class="acts agslacts"><button type="button" class="btn sec" id="agslrep">Repartir la semana</button></div>' : ''}`;
+  box.querySelectorAll('[data-agslm]').forEach(b => b.onclick = ev => { ev.stopPropagation(); menuDiaSemana(b, b.dataset.agslm, !!bloq[b.dataset.agslm]); });
+  box.querySelectorAll('[data-agsl]').forEach(d => { const ver = () => agVerDia(d.dataset.agsl); d.onclick = ver; d.onkeydown = e => { if (e.key === 'Enter') ver(); }; });
+  if ($('agslrep')) $('agslrep').onclick = agRepartirSemana;
+}
+
+function agBandejasBase() {
+  const head = document.querySelector('#agcuerpo .tdhead'); if (!head) return;
+  const old = $('agband'); if (old) old.remove();
+  const nToca = agTocaLista().length, nPend = (AG_PEND || []).length;
+  if (!nToca && !nPend) return;
+  head.insertAdjacentHTML('afterend', `<div class="agband" id="agband">${nToca ? `<button type="button" data-agbd="toca">${svgIco(ICON_NOM.target)} Les toca ${TT('visita', 's', '', 'l', 'l')} <b>${nToca}</b></button>` : ''}${nPend ? `<button type="button" class="urg" data-agbd="pend">${svgIco(ICON_NOM['circle-alert'] || ICON_NOM.info)} Pendientes de días anteriores <b>${nPend}</b></button>` : ''}</div>`);
+  $('agband').querySelectorAll('[data-agbd]').forEach(b => b.onclick = () => agBandeja(b.dataset.agbd));
+}
+
+// El título conserva «· agenda de …» al ver la de otra persona (agMarcarDia lo dejaba en «Hoy · …»)
+function agMarcarDia(...a) {
+  const r = agMarcarDiaBase.apply(this, a);
+  if (agN() && AG_VISTA && $('agtit') && !$('agtit').textContent.includes(AG_VISTA.nombre)) $('agtit').textContent += ' · agenda de ' + AG_VISTA.nombre;
+  return r;
+}
+
+function bloqueadosSemana(d, h, ...x) {
+  const k = agK('bloq', d, h, agUid()); if (AG_PRE.has(k)) return Promise.resolve(AG_PRE.get(k));
+  return bloqueadosSemanaBase.call(this, d, h, ...x);
+}
+
+// ---- Cinta: datos, «⋯» de cada día y semana desplegada, de una vez
+async function agCinta() {
+  if (!agN()) return;
+  if (!CINTA_INI) CINTA_INI = lunesCinta(AG_FECHA || hoyISO());
+  return agConDatos([...agCintaCargas(), ...(AG_SEM_ABIERTA ? agSemCargas(AG_FECHA) : [])], async () => {
+    await agCintaBase();
+    if (!agN() || !$('agcinta')) return;
+    await agMenusCinta();
+    if (AG_SEM_ABIERTA) await agPintarSemanaExp();
+    agBotonSemana();
+    const b = $('cmesb'); if (b) b.onclick = e => { e.stopPropagation(); agMesPop(); };
+    const h = $('choy'); if (h) h.onclick = () => { CINTA_INI = null; agVerDia(hoyISO()); };
+  });
+}
+
+function agSemanaLateral(...a) {
+  if (!agN()) return agSemanaLateralBase.apply(this, a);
+  return agConDatos(agSemCargas(AG_FECHA), () => agSemanaLateralBase.apply(this, a));
+}
+
+async function empezarJornada(...a) {
+  const r = await empezarJornadaBase.apply(this, a);
+  try { if (AG_FECHA === hoyISO()) tdTrafico(true); } catch (e) {}
+  return r;
+}
+
+function agBandejas(...x) {
+  const r = agBandejasBase.apply(this, x);
+  const b = $('agband'), acts = document.querySelector('#agcuerpo .tdhead .acts');
+  // v2.338.0 (Eric): en el móvil también en una fila (antes, cada uno en la suya); «Volver a hoy» va delante
+  const hoy = $('agahoy'); if (hoy && acts && !matchMedia('(min-width: 761px)').matches && acts.firstElementChild !== hoy) acts.prepend(hoy);
+  if (b && acts) {
+    b.classList.add('agbandin'); acts.appendChild(b);
+    b.querySelectorAll('button').forEach(x => x.childNodes.forEach(n => { if (n.nodeType === 3 && /días anteriores/.test(n.textContent)) n.textContent = n.textContent.replace('de días anteriores', 'anteriores'); }));
+  }
+  return r;
+}
 // pantallas/analitica.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -4969,6 +5666,113 @@ const tvSub = () => {
    producto nuevo presentado) y de seguimiento, cuántas acaban en pedido, y lo mismo por persona del equipo.
    ============================================================ */
 const TV_TIPOS = [['captacion', 'Captación'], ['presentacion', 'Presentación'], ['seguimiento', 'Seguimiento']];
+
+async function pintarTablaAnaliticaBase() {
+  const caja = $('atabla2');
+  cargando(caja, 'Calculando la tabla…');
+  const { data, error } = await db.rpc('analitica_tabla', {
+    p_dim: $('adim').value === 'mes' ? 'producto' : $('adim').value,
+    p_desde: $('adesde').value || null, p_hasta: $('ahasta').value || null,
+    p_canal: $('acanal').value || null, p_medida: $('amedida') ? $('amedida').value : 'unidades', lim: 30
+  });
+  if (error) { caja.innerHTML = `<div class="vacio">${esc(error.message)}</div>`; return; }
+  const meses = data.meses || [], filas = data.filas || [];
+  if (!filas.length) { caja.innerHTML = '<div class="vacio">Sin datos en este periodo.</div>'; return; }
+  const fmt = v => data.medida === 'importe' ? eur(v) : num(v);
+  const totMes = {};
+  filas.forEach(f => meses.forEach(m => totMes[m] = (totMes[m] || 0) + (+(f.meses || {})[m] || 0)));
+
+  caja.innerHTML = `<div class="tabla"><div style="min-width:${180 + meses.length * 110}px">
+    <div class="thead"><span class="tcell th" style="width:220px;min-width:220px">Concepto</span>
+      ${meses.map(m => `<span class="tcell th" style="width:110px;min-width:110px;text-align:right">${esc(m.slice(5))}/${esc(m.slice(2, 4))}</span>`).join('')}
+      <span class="tcell th" style="width:120px;min-width:120px;text-align:right">Total</span></div>
+    ${filas.map(f => `<div class="trow" style="cursor:default">
+      <span class="tcell" style="width:220px;min-width:220px"><b>${esc(f.nombre)}</b></span>
+      ${meses.map(m => `<span class="tcell" style="width:110px;min-width:110px;text-align:right">${
+        (f.meses || {})[m] ? fmt((f.meses || {})[m]) : '<span class="sm">·</span>'}</span>`).join('')}
+      <span class="tcell" style="width:120px;min-width:120px;text-align:right"><b>${fmt(f.total)}</b></span></div>`).join('')}
+    <div class="trow" data-fijo style="cursor:default;background:var(--bg)">
+      <span class="tcell" style="width:220px;min-width:220px"><b>Total</b></span>
+      ${meses.map(m => `<span class="tcell" style="width:110px;min-width:110px;text-align:right"><b>${fmt(totMes[m] || 0)}</b></span>`).join('')}
+      <span class="tcell" style="width:120px;min-width:120px;text-align:right"><b>${fmt(filas.reduce((n, f) => n + (+f.total || 0), 0))}</b></span></div>
+  </div></div>`;
+
+  window.__ANTABLA = filas.map(f => {
+    const o = { concepto: f.nombre };
+    meses.forEach(m => o[m] = (f.meses || {})[m] || 0);
+    o.total = f.total;
+    return o;
+  });
+}
+
+function refrescarAnaliticaBase() {
+  pintarAnalitica();
+  if (!$('atabla2').classList.contains('hide')) pintarTablaAnalitica();
+}
+
+async function pintarTablaAnalitica() {
+  await pintarTablaAnaliticaBase();
+  const caja = $('atabla2'); if (!caja || !caja.querySelector('.thead')) return;
+  const dim = $('adim') ? $('adim').selectedOptions[0].textContent.toLowerCase() : 'concepto';
+  const med = $('amedida') && $('amedida').value === 'importe' ? 'importe sin IVA' : 'unidades vendidas';
+  caja.insertAdjacentHTML('afterbegin', `<div class="tabinfo"><b>Tabla mensual de ${esc(med)} por ${esc(dim.replace(/^por /, ''))}</b>
+    <span>Cada fila es un ${esc(dim.replace(/^por /, ''))} y cada columna un mes del periodo elegido. La última columna suma la fila y la última fila suma cada mes. «·» = sin ventas ese mes. Cuanto más intenso el azul, más alto el valor.</span></div>`);
+  caja.querySelectorAll('.thead .tcell.th').forEach(c => { const m = c.textContent.match(/^(\d{2})\/(\d{2})$/); if (m) c.textContent = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'][+m[1] - 1] + ' ' + m[2]; });
+  const filas = [...caja.querySelectorAll('.trow:not([data-fijo])')], vals = [];
+  filas.forEach(f => [...f.children].slice(1, -1).forEach(c => vals.push(parseFloat(c.textContent.replace(/\./g, '').replace(',', '.').replace(/[^\d.-]/g, '')) || 0)));
+  const max = Math.max(1, ...vals);
+  filas.forEach(f => [...f.children].slice(1, -1).forEach(c => {
+    const v = parseFloat(c.textContent.replace(/\./g, '').replace(',', '.').replace(/[^\d.-]/g, '')) || 0;
+    if (v) c.style.background = `rgba(46,134,201,${(0.08 + v / max * 0.42).toFixed(2)})`;
+  }));
+}
+
+// [id, área, título, formato, mejor si sube (true/false/null), ayuda, a hoy, solo con importes, por defecto]
+function anCatalogoBase() {
+  const med = TT('medico', 'p', '', 'l', 'l'), vis = TT('visita', 'p', '', 'l', 'l'), vis1 = TT('visita', 's', '', 'l', 'l');
+  return [
+    ['importe', 'ventas', 'Ventas sin IVA', 'eur', true, 'Importe sin IVA de los pedidos completados, con el descuento de cada línea.', false, true, true],
+    ['unidades', 'ventas', 'Unidades vendidas', 'num', true, 'Unidades de los pedidos completados.', false, false, true],
+    ['pedidos', 'ventas', 'Pedidos', 'num', true, 'Pedidos completados en el periodo.', false, false, false],
+    ['ticket', 'ventas', 'Ticket medio', 'eur', true, 'Importe medio de cada pedido.', false, true, true],
+    ['web_pct', 'ventas', 'Ventas por la web', 'pct', true, 'Parte del importe que llega en pedidos marcados como «por la web».', false, true, true],
+    ['margen', 'ventas', 'Margen bruto', 'eur', true, 'Ventas menos el coste de los productos vendidos. Solo cuenta los productos con coste: ponlo en cada producto.', false, true, false],
+    ['margen_pct', 'ventas', 'Margen bruto (%)', 'pct', true, 'Margen bruto sobre las ventas de los productos con coste.', false, true, false],
+    ['top10_pct', 'ventas', `Peso de los 10 primeros ${med}`, 'pct', false, `Qué parte de las ventas atribuidas hacen los 10 ${med} que más venden. Cuanto más alto, más depende el negocio de pocos.`, false, true, false],
+    ['clientes', 'clientes', 'Clientes que compran', 'num', true, 'Clientes distintos con algún pedido confirmado en el periodo.', false, false, true],
+    ['clientes_nuevos', 'clientes', 'Clientes nuevos', 'num', true, 'Clientes cuyo primer pedido es de este periodo.', false, false, false],
+    ['repiten_pct', 'clientes', 'Clientes que repiten', 'pct', true, 'De los que compran en el periodo, cuántos ya habían comprado antes.', false, false, true],
+    ['perdidos', 'clientes', 'Clientes perdidos', 'num', false, 'Compraron en el último año y llevan más de 90 días sin comprar (al final del periodo).', false, false, true],
+    ['valor_cliente', 'clientes', 'Valor por cliente', 'eur', true, 'Importe medio comprado por cada cliente en el periodo.', false, true, false],
+    ['visitas', 'equipo', `${TT('visita', 'p', '', 'l', 'C')}`, 'num', true, `${TT('visita', 'p', '', 'l', 'C', 'registrado')} en el periodo.`, false, false, false],
+    ['visitas_dia', 'equipo', `${TT('visita', 'p', '', 'l', 'C')} por día`, 'dec', true, `Media de ${vis} de cada persona en los días que trabaja en la calle.`, false, false, true],
+    ['citas_pct', 'equipo', 'Citas cumplidas', 'pct', true, `De las citas del periodo hasta hoy (sin contar las aplazadas), cuántas acabaron en ${vis1}.`, false, false, false],
+    ['cobertura_pct', 'equipo', 'Cobertura de la cartera', 'pct', true, `Parte de la cartera con alguna ${vis1} en los 60 días anteriores al final del periodo.`, false, false, true],
+    ['conversion_pct', 'equipo', `Conversión ${vis1} → venta`, 'pct', true, `De ${TT('medico', 'p', 'el', 'l', 'l', 'visitado')} en el periodo, cuántos tienen ventas atribuidas en los 30 días siguientes a la primera ${vis1}.`, false, false, true],
+    ['activados', 'equipo', `${TT('medico', 'p', '', 'l', 'C')} activados`, 'num', true, `${TT('medico', 'p', '', 'l', 'C')} cuya primera venta atribuida es de este periodo.`, false, false, false],
+    ['op_abiertas', 'oportunidades', 'Oportunidades abiertas', 'num', null, 'Oportunidades del periodo que aún no se han cerrado.', false, false, false],
+    ['cierre_pct', 'oportunidades', 'Tasa de cierre', 'pct', true, 'De las oportunidades cerradas, cuántas acabaron en pedido.', false, false, true],
+    ['ganado', 'oportunidades', 'Importe ganado', 'eur', true, 'Importe estimado de las oportunidades que acabaron en pedido.', false, true, true],
+    ['perdido', 'oportunidades', 'Importe perdido', 'eur', false, 'Importe estimado de las oportunidades que no compraron.', false, true, false],
+    ['motivo_perdida', 'oportunidades', 'Motivo principal de pérdida', 'txt', null, 'El resultado más repetido entre las oportunidades que no compraron.', false, false, false],
+    ['facturado', 'cobros', 'Facturado', 'eur', true, 'Total de las facturas emitidas en el periodo (las rectificativas restan).', false, true, false],
+    ['pendiente', 'cobros', 'Pendiente de cobro', 'eur', null, 'Lo que falta por cobrar de todas las facturas, a día de hoy.', true, true, true],
+    ['vencido', 'cobros', 'Vencido', 'eur', false, 'Lo pendiente de cobro con el vencimiento ya pasado, a día de hoy.', true, true, true],
+    ['dias_cobro', 'cobros', 'Días medios de cobro', 'dias', false, 'Días entre la factura y su cobro, de las cobradas en el periodo.', false, true, false],
+    ['valor_stock', 'stock', 'Valor del stock', 'eur', null, 'Unidades en almacén por el coste de cada producto, a día de hoy.', true, true, true],
+    ['bajo_minimo', 'stock', 'Productos bajo mínimo', 'num', false, 'Productos activos con menos stock que su mínimo, a día de hoy.', true, false, true],
+    ['caducan', 'stock', 'Lotes que caducan en 90 días', 'num', false, 'Lotes con unidades que caducan en los próximos 90 días.', true, false, false],
+    ['compras', 'stock', 'Compras del periodo', 'eur', null, 'Importe de los pedidos de compra del periodo (sin los cancelados).', false, true, false]
+  ].map(([id, fam, t, fmt, sube, ayuda, hoy, imp, def]) => ({ id, fam, t, fmt, sube, ayuda, hoy, imp, def }));
+}
+
+function refrescarAnalitica(...a) {
+  if (TAB !== 'analitica' || !$('atabla') || !$('atabla2')) return;
+  return refrescarAnaliticaBase.apply(this, a);
+}
+
+// v2.320.0 · Fuera el indicador «Conversión visita → venta» (decisión de Eric): lo mide, más completo, la tarjeta «Ventas tras la visita»
+function anCatalogo(...a) { return anCatalogoBase.apply(this, a).filter(k => k.id !== 'conversion_pct'); }
 // pantallas/calidad.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -5225,6 +6029,72 @@ async function revisarPendientes() {
 const dupTipoDe = id => DUP_TIPO[id] === 'Centro' ? 'Centro' : 'Persona';
 
 let DUP_TRAS = null;
+
+async function cargarSeguimientoPaso1Base() {
+  const v = $('v-seguimiento');
+  v.querySelector('.saludo h1').firstChild.textContent = 'Calidad del dato';
+  v.querySelector('.saludo .fecha').textContent = `Fichas completas, datos que faltan y avance de cada ${TT('medico', 's', '', 'l', 'l')}`;
+  const { data: q } = await RPC_ORIG('calidad_datos', {});
+  if (!q || $('calidad')) return;
+  const pct = (a, b) => b ? Math.round(a / b * 100) : 0;
+  const item = (n, t, h) => `<div class="kpi ${n ? 'warn' : 'ok'}"><button class="ai" data-ayuda-txt="${esc(h)}" data-ayuda-tit="${esc(t)}" aria-label="Qué es">i</button><b>${num(n)}</b><span>${esc(t)}</span></div>`;
+  v.querySelector('.saludo').insertAdjacentHTML('afterend', `<div class="card" id="calidad" style="padding-bottom:6px">
+    <div class="manh" style="padding:14px 16px 0"><h2 style="padding:0">Fichas completas: ${pct(q.completas, q.total)}%</h2><span class="sm">${num(q.completas)} de ${num(q.total)} ${TT('medico', 'p', '', 'l', 'l')}</span></div>
+    <div class="barra" style="margin:8px 16px 10px"><i style="width:${pct(q.completas, q.total)}%"></i></div>
+    <div class="kpis" style="padding:0 16px 10px">
+      ${item(q.sin_ubicacion, 'sin ubicación', `Sin coordenadas en ${TT('consulta', 's', 'ningun', 'l', 'l')}: no entran en rutas ni en el mapa.`)}
+      ${item(q.sin_horario, 'sin horario de atención', 'Sin días ni horas de atención: las rutas no pueden ajustarse a su horario.')}
+      ${item(q.sin_especialidad, 'sin ' + TT('especialidad', 's', '', 'l', 'l'), `Sin ${TT('especialidad', 's', '', 'l', 'l')} en la ficha: no se pueden filtrar ni analizar por ${TT('especialidad', 's', '', 'l', 'l')}.`)}
+      ${item(q.sin_contacto, 'sin teléfono ni email', `No hay forma de contactar con ellos fuera ${TT('visita', 's', 'del', 'l', 'l')}.`)}
+      ${item(q.sin_provincia, 'sin provincia', 'Sin provincia no se pueden asignar por zona a un comercial.')}
+      ${item(q.sin_comercial, 'sin comercial', `${TT('medico', 'p', '', 'l', 'C')} que no están en ninguna cartera.`)}
+      ${item(q.duplicados, 'pendientes de unificar', 'Fichas marcadas como posibles duplicados.')}
+    </div>
+    <p class="sm" style="padding:0 16px 10px">Una ficha completa tiene ubicación, horario, ${TT('especialidad', 's', '', 'l', 'l')} y teléfono o email. Debajo, el avance de cada ${TT('medico', 's', '', 'l', 'l')}.</p></div>`);
+}
+
+async function cargarDuplicadosBase() {
+  const v = $('v-duplicados');
+  const permitido = puede('administrar') || ((PERFIL.areas || {}).M || 0) >= 3;
+  v.innerHTML = `
+    <div class="saludo"><div><h1>Duplicados</h1>
+      <div class="fecha">Revisa fichas repetidas y unifícalas sin perder la lista</div></div>
+      <div class="acts" style="margin:0">
+        <button class="btn sec" id="dvolver">← Volver</button>
+        <button class="btn sec" id="dbuscar">Volver a buscar parecidos</button></div></div>
+    ${permitido ? `<div class="dupgrid">
+      <div><div class="card" id="dpendc"></div><div class="card" id="dparc"></div></div>
+      <div class="card dupcmp" id="dcmp"><div class="vacio vguia"><b>Elige una pareja para revisarla</b><span>Pulsa «Comparar» en la lista de la izquierda y aquí verás las dos fichas lado a lado. Al terminar, pasas a la siguiente.</span></div></div>
+    </div>` : '<div class="card"><div class="vacio">Solo administración puede unificar fichas.</div></div>'}`;
+  $('dvolver').onclick = () => ir(TAB_ANTERIOR && TAB_ANTERIOR !== 'duplicados' ? TAB_ANTERIOR : 'directorio');
+  if (!permitido) { $('dbuscar').classList.add('hide'); return; }
+  $('dbuscar').onclick = () => { invalidarCache(); listasDuplicados(); };
+  listasDuplicados();
+}
+
+// «Calidad del dato» pasa a ser un botón dentro de Médicos
+function botonCalidadBase() {
+  const v = $('v-directorio'); if (!v || $('dircab')) return;
+  v.insertAdjacentHTML('afterbegin', `<div class="saludo" id="dircab"><div><h1>${TT('medico', 'p', '', 'l', 'C')}</h1><div class="fecha">${TT('medico', 'p', '', 'l', 'C')}, centros y sus fichas</div></div>
+    <div class="acts">${puedeModulo('seguimiento') ? `<button class="btn sec" id="dircalidad">${svgIco(ICON_NOM['shield-check'])} Calidad del dato</button>` : ''}</div></div>`);
+  if ($('dircalidad')) $('dircalidad').onclick = () => ir('seguimiento');
+}
+
+function botonCalidad() { botonCalidadBase(); ordenarCabeceraCuentas(); }
+
+async function cargarDuplicados(...a) {
+  const r = await cargarDuplicadosBase.apply(this, a);
+  const s = document.querySelector('#v-duplicados .saludo');
+  if (s && !$('dupvolver')) s.insertAdjacentHTML('beforebegin', '<button class="cfgvolver visible" id="dupvolver" type="button">‹ Calidad del dato</button>');
+  if ($('dupvolver')) $('dupvolver').onclick = () => ir('seguimiento');
+  return r;
+}
+
+async function cargarSeguimientoPaso1(...a) {
+  const r = await cargarSeguimientoPaso1Base.apply(this, a);
+  try { await pintarDireccionesDudosas(); } catch (e) {}
+  return r;
+}
 // pantallas/ciclo.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -5724,6 +6594,227 @@ const pacParams = () => ({ q: PAC.q || null, p_medico: PAC.medico,
    nivel completo en fichas; solo si no tiene visitas, ventas, muestras, eventos… — si tiene, lo dice y ofrece la baja).
    ============================================================ */
 const BAJA_QUE = { visitas: 'visitas', ventas: 'ventas', muestras: 'muestras entregadas', eventos: 'eventos', cirugias: 'intervenciones', concursos: 'concursos', equipos: 'equipos', portal: 'acceso al portal' };
+
+function editorContactoBase(c, alGuardar, op) {
+  c = c || {}; op = op || {};
+  // v2.119.0: en un cliente nuevo, desplegable «Registro de llamada» (abierto si se viene de registrar una llamada)
+  const conLlamada = !c.id && !!op.llamada;   // v2.125.0: solo si se viene de una llamada antigua; el recorrido es «Nueva venta»
+  let tipo = c.tipo || 'Persona';
+  let medico = c.cuenta_id ? { id: c.cuenta_id, nombre: c.medico || `${TT('medico', 's', '', 'l', 'C', 'asignado')}`, codigo: c.medico_codigo || '' } : null;
+  $('dlg2body').innerHTML = `
+    <div class="fh"><div><h2>${c.id ? `Editar ${TT('paciente', 's', '', 'l', 'l')}` : `${TT('paciente', 's', 'nuevo', 'C', 'l')}`}</h2>
+      <div class="sm">Datos de entrega y facturación</div></div>
+      <button class="x" data-cerrar2 aria-label="Cerrar">✕</button></div>
+    <div class="subnav" style="margin:6px 0 4px"><button type="button" data-ktipo="Persona" aria-pressed="${tipo === 'Persona'}">Persona</button>
+      <button type="button" data-ktipo="Empresa" aria-pressed="${tipo === 'Empresa'}">Empresa</button></div>
+    <div class="g2">
+      <div><label for="konom" id="konoml">${tipo === 'Empresa' ? 'Razón social' : 'Nombre y apellidos'}</label><input id="konom" value="${esc(c.nombre || '')}"></div>
+      <div><label for="konif" id="konifl">${tipo === 'Empresa' ? 'CIF' : 'DNI o NIE'}</label>
+        <input id="konif" value="${esc(c.nif || '')}" placeholder="${tipo === 'Empresa' ? 'B12345678' : '12345678Z'}" autocapitalize="characters">
+        <div class="sm" id="konifm" style="margin-top:4px"></div></div>
+    </div>
+    <label>${TT('medico', 's', '', 'l', 'C')} que lo trata</label><div id="kosel"></div>
+    <div class="sm" style="margin-top:4px" id="komsm">Las unidades de sus pedidos se atribuyen a ${TT('medico', 's', 'este', 'l', 'l')} y a su comercial.</div>
+    ${puedeMedicoLibre() ? `<label class="opt prepbox"><input type="checkbox" id="komlibre"> ${esc(TT('medico', 's', '', 'l', 'C'))} distinto en cada pedido (no se guarda en la ficha)</label>` : ''}
+    <div class="g2">
+      <div><label for="kodir">Dirección de entrega</label><input id="kodir" value="${esc(c.direccion || '')}"></div>
+      <div><label for="kocp">Código postal</label><input id="kocp" value="${esc(c.cp || '')}" inputmode="numeric"></div>
+    </div>
+    <div class="g2">
+      <div><label for="komun">Población</label><input id="komun" value="${esc(c.municipio || '')}"></div>
+      <div><label for="kopro">Provincia</label><input id="kopro" value="${esc(c.provincia || '')}"></div>
+    </div>
+    <div class="g2">
+      <div><label for="kotel">Teléfono</label><input id="kotel" value="${esc(c.telefono || '')}" inputmode="tel"></div>
+      <div><label for="komov">Móvil</label><input id="komov" value="${esc(c.movil || '')}" inputmode="tel"></div>
+    </div>
+    <div class="g2">
+      <div><label for="komail">Email</label><input id="komail" type="email" value="${esc(c.email || '')}"></div>
+      <div id="koempw" class="${tipo === 'Empresa' ? 'koinv' : ''}"><label for="koemp">Empresa ${pmAyu('Empresa', 'Si la persona factura a nombre de una empresa, escribe aquí su nombre. Con «Empresa» arriba no hace falta.')}</label><input id="koemp" value="${esc(c.empresa || '')}"></div>
+    </div>
+    <label for="konota">Nota</label><input id="konota" value="${esc(c.nota || '')}">
+    ${conLlamada ? llamadaAltaHTML(op.llamada) : ''}
+    <div class="acts" style="justify-content:flex-end;flex-wrap:wrap">
+      <button class="btn sec" id="kocancel">Cancelar</button>
+      <button class="btn ${conLlamada && op.llamada ? 'sec' : ''}" id="kook">${c.id ? 'Guardar' : `Crear ${TT('paciente', 's', '', 'l', 'l')}`}</button>
+      ${conLlamada && op.llamada ? '<button class="btn" id="kopedido">🛒 Crear y hacer pedido</button>' : ''}</div>`;
+
+  selectorMedico($('kosel'), { valor: medico, alElegir: m => { medico = m; } });
+  // v2.329.0: clientes como un equipo comercial, con un profesional distinto en cada pedido
+  let libreAntes = false;
+  const libreVer = () => { const on = !!($('komlibre') && $('komlibre').checked); $('kosel').classList.toggle('hide', on); $('komsm').classList.toggle('hide', on); if ($('kosel').previousElementSibling) $('kosel').previousElementSibling.classList.toggle('hide', on); };
+  if ($('komlibre')) {
+    $('komlibre').onchange = libreVer;
+    if (c.id) db.from('contactos').select('cuenta_por_pedido').eq('id', c.id).maybeSingle().then(({ data }) => { libreAntes = !!(data && data.cuenta_por_pedido); if ($('komlibre')) { $('komlibre').checked = libreAntes; libreVer(); } });
+  }
+  const revisaDoc = () => {
+    const r = validarDoc($('konif').value, tipo);
+    $('konifm').innerHTML = r.ok ? '' : `<span style="color:var(--danger)">${esc(r.msg)}</span>`;
+    return r;
+  };
+  $('konif').oninput = revisaDoc;
+  $('dlg2body').querySelectorAll('[data-ktipo]').forEach(b => b.onclick = () => {
+    tipo = b.dataset.ktipo;
+    $('dlg2body').querySelectorAll('[data-ktipo]').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+    $('konifl').textContent = tipo === 'Empresa' ? 'CIF' : 'DNI o NIE';
+    $('konoml').textContent = tipo === 'Empresa' ? 'Razón social' : 'Nombre y apellidos';
+    $('konif').placeholder = tipo === 'Empresa' ? 'B12345678' : '12345678Z';
+    $('koempw').classList.toggle('koinv', tipo === 'Empresa');   // v2.341.0: el hueco se queda (antes desaparecía y todo lo de debajo saltaba)
+    if ($('konif').value) revisaDoc();
+  });
+  $('kocancel').onclick = () => $('dlg2').close();
+  camposInsertar($('dlg2body'), 'cliente', c.id, $('kook') && $('kook').closest('.acts'));
+  if (conLlamada) llamadaAltaActivar(() => medico, op.llamada);
+  const crear = async (ev, conPedido) => {
+    if (!$('konom').value.trim()) { toast('Escribe el nombre', true); return; }
+    const ll = conLlamada ? llamadaAltaLeer() : null;
+    const cps = camposLeer($('dlg2'));
+    if (cps && cps.falta.length) { toast(`Rellena «${cps.falta[0]}»`, true); return; }
+    const doc = revisaDoc();
+    if (!doc.ok) { toast(tipo === 'Empresa' ? 'Revisa el CIF' : 'Revisa el DNI o NIE', true); return; }
+    ev.target.disabled = true; ev.target.textContent = 'Guardando…';
+    const { data: r, error } = await db.rpc('guardar_contacto', { p: {
+      id: c.id || null, nombre: $('konom').value.trim(), nif: doc.v, tipo,
+      direccion: $('kodir').value.trim(), cp: $('kocp').value.trim(), municipio: $('komun').value.trim(),
+      provincia: $('kopro').value.trim(), telefono: $('kotel').value.trim(), movil: $('komov').value.trim(),
+      email: $('komail').value.trim(), empresa: tipo === 'Empresa' ? '' : $('koemp').value.trim(), nota: $('konota').value.trim(),
+      cuenta_id: medico && !($('komlibre') && $('komlibre').checked) ? medico.id : null
+    }});
+    ev.target.disabled = false; ev.target.textContent = c.id ? 'Guardar' : conPedido ? '🛒 Crear y hacer pedido' : `Crear ${TT('paciente', 's', '', 'l', 'l')}`;
+    if (error && /cliente_duplicado/.test(error.hint || '')) { toast(error.message, true); if ($('konif')) $('konif').dispatchEvent(new Event('input')); return; }   // v2.225.0
+    if (error || (r && r.ok === false)) { toast('No se ha podido guardar', true); return; }
+    if (cps && !(await camposGuardar(cps, (r && r.contacto && r.contacto.id) || c.id))) return;
+    const libre = !!($('komlibre') && $('komlibre').checked);
+    if ($('komlibre') && libre !== libreAntes) {
+      const { data: ml, error: me } = await db.rpc('guardar_cuenta_por_pedido', { p_id: (r && r.contacto && r.contacto.id) || c.id, p_valor: libre });
+      if (me || (ml && ml.ok === false)) { toast('No se ha podido guardar la opción del profesional', true); return; }
+      if (libre && r && r.contacto) r.contacto.cuenta_id = null;
+    }
+    if (libre) medico = null;
+    $('dlg2').close(); toast(c.id ? `${TT('paciente', 's', '', 'l', 'C', 'guardado')}` : `${TT('paciente', 's', '', 'l', 'C', 'creado')}`);
+    const res = Object.assign({}, r.contacto, medico ? { medico: medico.nombre, medico_codigo: medico.codigo } : {});
+    // v2.119.0: la llamada queda registrada con el cliente recién creado (si se ha apuntado algo o se viene de una llamada)
+    let lid = null;
+    if (ll && (conPedido || ll.motivo || ll.resultado || ll.nota || op.llamada)) lid = await llamadaAltaGuardar(ll, { contacto_id: res.id, nombre: res.nombre,
+      telefono: res.movil || res.telefono || '', medico, resultado: conPedido ? (ll.resultado || 'Pedido hecho') : ll.resultado }, op.llamada);
+    if (conPedido) {
+      if (lid) LLAMADA_PEND = lid;
+      await editorPedido({ contacto: res, medico: medico ? { id: medico.id, nombre: medico.nombre } : null });
+      return;
+    }
+    if (alGuardar) alGuardar(res);
+    if (TAB === 'pacientes') listaPacientes();
+    if (lid && TAB === 'ventas' && PEDSEC === 'llamadas') pintarLlamadas();
+  };
+  $('kook').onclick = ev => crear(ev, false);
+  if ($('kopedido')) $('kopedido').onclick = ev => crear(ev, true);
+  // «No compra»: solo la llamada, sin crear el cliente, con lo apuntado de él
+  if ($('kosolo')) $('kosolo').onclick = async ev => {
+    const ll = llamadaAltaLeer();
+    const nombre = $('konom').value.trim(), telefono = $('komov').value.trim() || $('kotel').value.trim();
+    if (!nombre && !telefono) { toast('Apunta al menos su nombre o su teléfono', true); return; }
+    ev.target.disabled = true;
+    const datos = { tipo, nif: $('konif').value.trim(), email: $('komail').value.trim(), direccion: $('kodir').value.trim(), cp: $('kocp').value.trim(),
+      municipio: $('komun').value.trim(), provincia: $('kopro').value.trim(), empresa: $('koemp').value.trim(), nota: $('konota').value.trim() };
+    Object.keys(datos).forEach(k => { if (!datos[k]) delete datos[k]; });
+    const lid = await llamadaAltaGuardar(ll, { contacto_id: null, nombre, telefono, medico, resultado: ll.resultado, datos }, op.llamada);
+    ev.target.disabled = false;
+    if (!lid) return;
+    $('dlg2').close(); toast('Llamada registrada (sin crear cliente)');
+    if (TAB === 'ventas' && PEDSEC === 'llamadas') pintarLlamadas();
+  };
+  $('dlg2').showModal();
+}
+
+async function pintarPacientesBase() {
+  const { data: munis } = await db.rpc('municipios_clientes');
+  $('vcuerpo').innerHTML = `
+    <div class="panel">
+      <div class="filtros">
+        <div><label for="pacq">Buscar</label><input id="pacq" type="search" value="${esc(PAC.q)}" placeholder="Nombre, teléfono, email, DNI o CIF"></div>
+        <div><label for="pactipo">Tipo</label><select id="pactipo">
+          <option value="">Todos</option><option value="Persona" ${PAC.tipo === 'Persona' ? 'selected' : ''}>Personas (${TT('paciente', 'p', '', 'l', 'l')})</option>
+          <option value="Empresa" ${PAC.tipo === 'Empresa' ? 'selected' : ''}>Empresas</option></select></div>
+        <div><label for="pacped">Pedidos</label><select id="pacped">
+          <option value="">Todos</option><option value="con" ${PAC.pedidos === 'con' ? 'selected' : ''}>Con pedidos</option>
+          <option value="sin" ${PAC.pedidos === 'sin' ? 'selected' : ''}>Sin pedidos</option></select></div>
+        <div><label for="pacmun">Población</label><select id="pacmun"><option value="">Todas</option>
+          ${(munis || []).map(x => `<option value="${esc(x.v)}" ${PAC.municipio === x.v ? 'selected' : ''}>${esc(x.v)} (${x.n})</option>`).join('')}</select></div>
+        ${camposFiltros('cliente', PAC.campos = PAC.campos || {}, 'pfcp')}
+        ${PAC.medico ? `<div><label>${TT('medico', 's', '', 'l', 'C')}</label><div style="min-height:44px;display:flex;align-items:center"><button class="chip" id="pacmedx">${esc(PAC.medicoNombre)} ✕</button></div></div>` : ''}
+      </div>
+      <div class="cuenta" id="paccuenta">Cargando…</div>
+      <div id="paclista"></div>
+      <div id="pacpag"></div>
+    </div>`;
+  let tq;
+  $('pacq').oninput = e => { clearTimeout(tq); tq = setTimeout(() => { PAC.q = e.target.value.trim(); PAC.pagina = 0; listaPacientes(); }, 300); };
+  $('pactipo').onchange = e => { PAC.tipo = e.target.value; PAC.pagina = 0; listaPacientes(); };
+  $('pacped').onchange = e => { PAC.pedidos = e.target.value; PAC.pagina = 0; listaPacientes(); };
+  $('pacmun').onchange = e => { PAC.municipio = e.target.value; PAC.pagina = 0; listaPacientes(); };
+  camposFiltrosActivar($('vcuerpo'), PAC.campos, () => { PAC.pagina = 0; listaPacientes(); });
+  if ($('pacmedx')) $('pacmedx').onclick = () => { PAC.medico = null; PAC.medicoNombre = ''; PAC.pagina = 0; pintarPacientes(); };
+  listaPacientes();
+}
+
+/* v2.225.0 · Clientes sin duplicados (aviso de Eric: no se puede dar de alta otra vez a un cliente con el mismo NIF/CIF, correo o móvil).
+   - La base no lo deja (disparador contactos_sin_duplicados, SQL 134); aquí se avisa mientras se escribe: clientes_coincidencias con lo que
+     hay en NIF, correo, móvil y teléfono (sin contar el propio cliente al editarlo).
+   - Aviso #kodup encima de los botones: «Este cliente ya existe · mismo móvil», con su nombre y datos y un botón:
+     «Usar este cliente» si se viene de un pedido o de una nueva venta (carga sus datos de un clic), «Ver su ficha» en el resto.
+     Si lo lleva otra persona y no se puede ver, solo se dice que existe. Mientras haya coincidencia, Crear queda desactivado. */
+function editorContacto(c, alGuardar, op) {
+  const r = editorContactoBase.apply(this, arguments);
+  c = c || {};
+  if (!$('konif') || !$('kook')) return r;
+  const acts = $('kook').closest('.acts');
+  if (acts && !$('kodup')) acts.insertAdjacentHTML('beforebegin', '<div id="kodup" class="kodup hide" role="alert" aria-live="polite"></div>');
+  const ids = ['konif', 'komail', 'komov', 'kotel'];
+  const leer = () => ({ nif: $('konif').value, email: $('komail').value, movil: $('komov').value, telefono: $('kotel').value, excluir: c.id || null });
+  const hayDato = d => d.nif.replace(/[^A-Za-z0-9]/g, '').length >= 8 || /.@.+\../.test(d.email) || [d.movil, d.telefono].some(x => x.replace(/\D/g, '').length >= 9);
+  const usar = !c.id && !!alGuardar && TAB !== 'pacientes';
+  let t = null, turno = 0;
+  const pintar = x => {
+    const k = $('kodup'); if (!k) return;
+    ids.forEach(id => $(id) && $(id).classList.remove('campodup'));
+    [$('kook'), $('kopedido')].filter(Boolean).forEach(b => { b.disabled = !!x; });
+    if (!x) { k.classList.add('hide'); k.innerHTML = ''; return; }
+    const marca = { NIF: ['konif'], correo: ['komail'] }[x.campo] || ['komov', 'kotel'].filter(id => $(id).value.replace(/\D/g, '').length >= 9);
+    marca.forEach(id => $(id) && $(id).classList.add('campodup'));
+    k.innerHTML = x.visible
+      ? `<div class="kodupt"><b>${TT('paciente', 's', 'este', 'C', 'l')} ya existe</b><span>mismo ${esc(x.campo)}</span></div>
+         <div class="kodupc"><b>${esc(x.nombre || '')}</b><span class="sm">${esc([x.nif, x.movil || x.telefono, x.email, x.municipio].filter(Boolean).join(' · '))}</span></div>
+         <button type="button" class="btn" id="kodupusar">${usar ? `Usar ${TT('paciente', 's', 'este', 'l', 'l')}` : 'Ver su ficha'}</button>`
+      : `<div class="kodupt"><b>Ya existe ${TT('paciente', 's', 'un', 'l', 'l')} con ese ${esc(x.campo)}</b></div>
+         <div class="sm">Lo lleva otra persona del equipo: pide que te lo asignen en lugar de crearlo de nuevo.</div>`;
+    k.classList.remove('hide');
+    if ($('kodupusar')) $('kodupusar').onclick = () => {
+      $('dlg2').close();
+      const res = Object.assign({}, x, x.cuenta_id ? { medico: x.cuenta, medico_codigo: x.cuenta_codigo } : {});
+      if (usar) alGuardar(res); else fichaPaciente(x.id);
+    };
+  };
+  const comprobar = () => {
+    clearTimeout(t);
+    t = setTimeout(async () => {
+      const d = leer(), mio = ++turno;
+      if (!hayDato(d)) { pintar(null); return; }
+      const { data } = await db.rpc('clientes_coincidencias', { p: d });
+      if (mio !== turno || !$('kodup')) return;
+      pintar(Array.isArray(data) && data.length ? data[0] : null);
+    }, 350);
+  };
+  ids.forEach(id => $(id) && $(id).addEventListener('input', comprobar));
+  if (!c.id && hayDato(leer())) comprobar();
+  return r;
+}
+
+async function pintarPacientes(...a) {
+  const p = pacParams();
+  const [m, l] = await Promise.all([db.rpc('municipios_clientes'), db.rpc('clientes_lista', p)]);
+  DB_PRE.set('municipios_clientes{}', m); DB_PRE.set('clientes_lista' + JSON.stringify(p), l);
+  return pintarPacientesBase.apply(this, a);
+}
 // pantallas/comisiones.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -6041,6 +7132,118 @@ let COMS = [];
    - La lista de liquidaciones se puede ver por persona y por mes, con el total de lo que se ve.
    ============================================================ */
 let LIQ_FIL = { u: '', p: '' };
+
+// Editar usuario · La comisión se muestra como información: se asigna dentro de cada esquema
+async function usuarioComisionInfoBase(id) {
+  for (let i = 0; i < 30 && !$('ucom') && $('dlg').open; i++) await new Promise(r => setTimeout(r, 100));
+  const s = $('ucom'); if (!s || $('ucominfo')) return;
+  const g = s.closest('.g2') || s.parentElement;
+  const txt = s.selectedOptions[0] && s.value ? s.selectedOptions[0].textContent : 'Sin comisión';
+  g.classList.add('hide'); if ($('ucdesde')) $('ucdesde').classList.add('hide'); if ($('uchist')) $('uchist').classList.add('hide');
+  g.insertAdjacentHTML('afterend', `<div class="avisoh" id="ucominfo"><span>Comisión: <b>${esc(txt)}</b>. Se asigna dentro de cada esquema en Configuración → Equipo → Comisiones.</span></div>`);
+}
+
+async function pintarComisionesBaseBase() {
+  ($('admcuerpo') || document.createElement('div')).innerHTML = '<div class="skel"></div><div class="skel" style="width:60%"></div>';
+  const [{ data: esq }, { data: liq }] = await Promise.all([
+    db.rpc('esquemas_lista'), db.rpc('liquidaciones_lista', { p_periodo: null })
+  ]);
+  ESQUEMAS = esq || [];
+
+  ($('admcuerpo') || document.createElement('div')).innerHTML = `
+    <h2>Esquemas de comisión<span class="n">${ESQUEMAS.length}</span></h2>
+    <p class="sm">El tramo alcanzado se aplica a todas las unidades del periodo. Televenta suele ir con importe fijo por unidad.</p>
+    <div class="lista">${ESQUEMAS.map(e => `<div class="item" style="cursor:default">
+      <span class="ic">${e.calculo === 'fijo' ? '€' : '▤'}</span>
+      <span class="tx"><b>${esc(e.nombre)}</b><span class="sm">
+        ${e.atribucion === 'cierra' ? 'Por venta cerrada' : 'Por cartera'} ·
+        ${e.calculo === 'fijo' ? eur(e.valor_fijo) + ' por unidad'
+          : (e.tramos || []).map(t => `${t.desde_u}${t.hasta_u ? '-' + t.hasta_u : '+'}: ${eur(t.valor)}`).join(' · ') || 'sin tramos'}
+        ${(e.personas || []).length ? ' · ' + e.personas.map(esc).join(', ') : ' · sin asignar'}</span></span>
+      <span class="acts" style="margin:0"><button class="btn sec chico" data-esq="${e.id}">Editar</button></span></div>`).join('')
+      || '<div class="vacio">Todavía no hay esquemas.</div>'}</div>
+    <div class="acts" style="padding:0 16px 14px"><button class="btn" id="esqnuevo">+ Nuevo esquema</button></div>
+
+    <h2>Liquidaciones</h2>
+    <div class="acts" style="padding:0 16px">
+      <input id="liqper" type="month" value="${periodoActual()}" style="max-width:190px">
+      <button class="btn sec" id="liqcalc">Calcular el periodo</button></div>
+    <div class="lista">${(liq || []).map(l => `<div class="item" style="cursor:default">
+      <span class="ic ${l.estado === 'Pagada' ? 'o' : ''}">${l.estado === 'Borrador' ? '○' : '✓'}</span>
+      <span class="tx"><b>${esc(l.nombre)}</b><span class="sm">${periodoTxt(l.periodo)} · ${num(l.unidades)} unidades · ${eur(l.importe)} · ${esc(l.estado)}</span></span>
+      <span class="acts" style="margin:0">
+        ${l.estado === 'Borrador' ? `<button class="btn sec" data-liq="${l.usuario_id}|${l.periodo}|Aprobada">Aprobar</button>` : ''}
+        ${l.estado === 'Aprobada' ? `<button class="btn sec" data-liq="${l.usuario_id}|${l.periodo}|Pagada">Marcar pagada</button>` : ''}
+      </span></div>`).join('') || '<div class="vacio">Sin liquidaciones todavía.</div>'}</div>`;
+
+  $('esqnuevo').onclick = () => editorEsquema(null);
+  ($('admcuerpo') || document.createElement('div')).querySelectorAll('[data-esq]').forEach(b => b.onclick = () => editorEsquema(b.dataset.esq));
+  $('liqcalc').onclick = calcularLiquidaciones;
+  ($('admcuerpo') || document.createElement('div')).querySelectorAll('[data-liq]').forEach(b => b.onclick = async () => {
+    const [u, p, estado] = b.dataset.liq.split('|');
+    if (!await preguntar(`La liquidación quedará ${estado === 'Aprobada' ? 'aprobada y congelada' : 'marcada como pagada'}.`,
+      { titulo: '¿' + (estado === 'Aprobada' ? 'Aprobar' : 'Marcar pagada') + '?', ok: estado === 'Aprobada' ? 'Aprobar' : 'Marcar pagada' })) return;
+    await db.rpc('liquidar', { p_usuario: u, p_periodo: p, p_estado: estado });
+    toast('Liquidación ' + estado.toLowerCase()); pintarComisiones();
+  });
+}
+
+async function usuarioComisionInfo(...a) {
+  const r = await usuarioComisionInfoBase.apply(this, a);
+  const s = $('uverc'), info = $('ucominfo');
+  if (s && info && !$('uvercw')) {
+    const w = s.parentElement; w.id = 'uvercw';
+    const l = w.querySelector('label'); if (l) l.classList.remove('sm');
+    w.insertAdjacentHTML('beforeend', '<div class="sm">Lo que ve en Inicio de su comisión: nada, solo sus unidades o también el importe.</div>');
+    info.insertAdjacentElement('afterend', w);
+  }
+  return r;
+}
+
+// (R-12: calcularLiquidaciones se definía aquí otra vez; ahora está en su sitio, más arriba)
+// La lista, con filtros de persona y mes y el total de lo que se ve
+async function pintarComisionesBase(...a) {
+  const r = await pintarComisionesBaseBase.apply(this, a);
+  const c = $('admcuerpo'), boton = $('liqcalc'); if (!c || !boton) return r;
+  const lista = boton.closest('.acts') && boton.closest('.acts').nextElementSibling;
+  if (!lista || !lista.classList.contains('lista') || $('liqfil')) return r;
+  const { data } = await db.rpc('liquidaciones_lista', { p_periodo: null });   // la misma de la pantalla (en memoria): se pinta en el mismo momento
+  if (!$('admcuerpo') || !lista.isConnected) return r;
+  const l = data || [];
+  const personas = [...new Map(l.map(x => [x.usuario_id, x.nombre])).entries()].sort((x, y) => String(x[1]).localeCompare(String(y[1]), 'es'));
+  const meses = [...new Set(l.map(x => x.periodo))].sort().reverse();
+  if (LIQ_FIL.u && !personas.some(p => p[0] === LIQ_FIL.u)) LIQ_FIL.u = '';
+  if (LIQ_FIL.p && !meses.includes(LIQ_FIL.p)) LIQ_FIL.p = '';
+  const fila = x => `<div class="item" style="cursor:default" data-liqu="${x.usuario_id}" data-liqp="${x.periodo}">
+      <span class="ic ${x.estado === 'Pagada' ? 'o' : ''}">${x.estado === 'Borrador' ? '○' : '✓'}</span>
+      <span class="tx"><b>${esc(x.nombre)}</b><span class="sm">${periodoTxt(x.periodo)} · ${num(x.unidades)} unidades · ${eur(x.importe)} · ${esc(x.estado)}</span></span>
+      <span class="acts" style="margin:0">
+        ${x.estado === 'Borrador' ? `<button class="btn sec" data-liq="${x.usuario_id}|${x.periodo}|Aprobada">Aprobar</button>` : ''}
+        ${x.estado === 'Aprobada' ? `<button class="btn sec" data-liq="${x.usuario_id}|${x.periodo}|Pagada">Marcar pagada</button>` : ''}
+      </span></div>`;
+  const pinta = () => {
+    const v = l.filter(x => (!LIQ_FIL.u || x.usuario_id === LIQ_FIL.u) && (!LIQ_FIL.p || x.periodo === LIQ_FIL.p));
+    const tot = v.reduce((n, x) => n + (+x.importe || 0), 0), uds = v.reduce((n, x) => n + (+x.unidades || 0), 0);
+    const pend = v.filter(x => x.estado !== 'Pagada').reduce((n, x) => n + (+x.importe || 0), 0);
+    $('liqres').textContent = v.length ? `${num(v.length)} ${v.length === 1 ? 'liquidación' : 'liquidaciones'} · ${num(uds)} unidades · ${eur(tot)}${pend && pend !== tot ? ' · ' + eur(pend) + ' sin pagar' : ''}` : '';
+    lista.innerHTML = v.map(fila).join('') || `<div class="vacio">${l.length ? 'Sin liquidaciones con estos filtros.' : 'Sin liquidaciones todavía.'}</div>`;
+    lista.querySelectorAll('[data-liq]').forEach(b => b.onclick = async () => {
+      const [u, p, estado] = b.dataset.liq.split('|');
+      if (!await preguntar(`La liquidación quedará ${estado === 'Aprobada' ? 'aprobada y congelada' : 'marcada como pagada'}.`,
+        { titulo: '¿' + (estado === 'Aprobada' ? 'Aprobar' : 'Marcar pagada') + '?', ok: estado === 'Aprobada' ? 'Aprobar' : 'Marcar pagada' })) return;
+      await db.rpc('liquidar', { p_usuario: u, p_periodo: p, p_estado: estado });
+      toast('Liquidación ' + estado.toLowerCase()); pintarComisiones();
+    });
+  };
+  lista.insertAdjacentHTML('beforebegin', `<div class="liqfil" id="liqfil">
+      <div><label for="liqfu">Persona</label><select id="liqfu"><option value="">Todas</option>${personas.map(([id, n]) => `<option value="${id}" ${id === LIQ_FIL.u ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select></div>
+      <div><label for="liqfp">Mes</label><select id="liqfp"><option value="">Todos</option>${meses.map(m => `<option value="${m}" ${m === LIQ_FIL.p ? 'selected' : ''}>${esc(periodoTxt(m))}</option>`).join('')}</select></div>
+      <p class="sm" id="liqres"></p></div>`);
+  $('liqfu').onchange = e => { LIQ_FIL.u = e.target.value; pinta(); };
+  $('liqfp').onchange = e => { LIQ_FIL.p = e.target.value; pinta(); };
+  pinta();
+  return r;
+}
 // pantallas/compras.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -8589,6 +9792,255 @@ const cfgEstable = (el, max) => new Promise(ok => {
   const listo = () => { if (el.querySelector('.cfgcarga, .giro, .spin')) { t = setTimeout(listo, 150); return; } ob.disconnect(); clearTimeout(fin); ok(); };
   ob.observe(el, { childList: true, subtree: true, attributes: true }); t = setTimeout(listo, 200); fin = setTimeout(() => { ob.disconnect(); clearTimeout(t); ok(); }, max || 5000);
 });
+
+/* pintarPlan: la parte base y, en orden, cada paso que se le añade (antes eran 6 capas separadas). */
+function pintarPlanBase2() {
+  pintarPlanBase();
+  planBotonesAgenda();
+  planHorasYFueraDePlan();
+  planMapaYDescartar();
+  planVisitadosRecientes();
+  planAvisoSinSalida();
+  planFichasYNotas();
+}
+
+function abrirHorarioPlanBase() {
+  const c = PLANCFG();
+  $('dbody').innerHTML = `
+    <div class="fh"><div><h2>Tiempos de ${TT('visita', 's', '', 'l', 'l')}</h2><div class="sm">Se guardan en tus preferencias. La hora de salida y la de vuelta se ponen en cada ruta.</div></div>
+      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
+    <div class="g2">
+      <div><label for="hvis">Minutos por ${TT('medico', 's', '', 'l', 'l')}</label><input id="hvis" type="number" min="5" max="60" value="${c.visita}"></div>
+      <div><label for="hpar">Minutos fijos por parada</label><input id="hpar" type="number" min="0" max="40" value="${c.parada}"></div>
+    </div>
+    <div class="acts" style="justify-content:flex-end">
+      <button class="btn sec" data-cerrar>Cancelar</button>
+      <button class="btn" id="hok">Guardar</button></div>`;
+  $('hok').onclick = async ev => {
+    ev.target.disabled = true;
+    const plan = { visita: +$('hvis').value || 15, parada: $('hpar').value === '' ? 10 : +$('hpar').value };
+    const prefs = Object.assign({}, PERFIL.preferencias || {}, { plan });
+    const { data } = await db.rpc('guardar_preferencias', { p: prefs });
+    PERFIL.preferencias = data || prefs;
+    $('dlg').close(); toast('Horario guardado');
+    if (ULTIMO_PLAN) construirPlan(ULTIMO_PLAN.conXY, ULTIMO_PLAN.rutaId, null, ULTIMO_PLAN.opts);
+    else if (PLAN && PLAN.rutaId) {
+      if (typeof PLAN.rutaId === 'string' && PROPUESTAS && PROPUESTAS[PLAN.rutaId]) planDesdeLista(PROPUESTAS[PLAN.rutaId], PLAN.rutaId);
+      else planificar(PLAN.rutaId, $('rnueva') || document.createElement('button'));
+    }
+  };
+  $('dlg').showModal();
+}
+
+function abrirClasificadorBase(id) {
+  const c = CATS.find(x => x.id === id); if (!c) return;
+  const puedeEditar = puede('administrar') || ((PERFIL.areas || {}).K || 0) >= 2;
+  const completo = puede('administrar') || ((PERFIL.areas || {}).K || 0) >= 3;
+
+  const pinta = () => {
+    $('dbody').innerHTML = `
+      <div class="fh"><div><h2>${esc(c.nombre)}</h2>
+        <div class="sm">Grupo ${esc(c.grupo || 'General')} · se usa en ${esc(c.ambito === 'pedido' ? 'pedidos' : c.ambito === 'visita' ? 'visitas' : `fichas de ${TT('medico', 's', '', 'l', 'l')}`)}
+        ${puedeEditar ? '' : ' · <b>solo lectura</b>'}</div></div>
+        <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
+      ${cajaCampo(c, completo)}
+      <div class="lista ${!c.papel && CAMPO_TABLA[c.ambito] && (c.tipo_campo || 'lista') !== 'lista' ? 'hide' : ''}">${(c.valores || []).map(v => `<div class="item ${v.padre ? 'vsub' : ''}" style="cursor:default">
+        <span class="ic">${v.activo ? '●' : '○'}</span>
+        <span class="tx"><b style="${v.activo ? '' : 'opacity:.5;text-decoration:line-through'}">${esc(v.valor)}</b>
+          ${v.extra ? `<span class="sm">${v.extra === 'neg' ? `sin ${TT('visita', 's', '', 'l', 'l')}` : `${TT('visita', 's', '', 'l', 'l', 'realizado')}`}${v.destino ? ' · pasa a ' + esc(v.destino) : ''}</span>` : ''}</span>
+        ${puedeEditar ? `<span class="acts" style="margin:0">
+          <button class="btn sec" data-vren="${v.id}|${esc(v.valor)}">Renombrar</button>
+          ${c.papel === 'resultado_visita' ? `<select data-vdest="${v.id}" title="Estado al que pasa la ficha con este resultado" style="max-width:170px"><option value="">No cambia el estado</option>${estados().map(x => `<option value="${esc(x)}" ${v.destino === x ? 'selected' : ''}>Pasa a ${esc(x)}</option>`).join('')}</select>` : ''}
+          <button class="btn sec" data-vtog="${v.id}|${v.activo ? 0 : 1}">${v.activo ? 'Desactivar' : 'Activar'}</button>
+          ${completo ? `<button class="btn sec dang" data-vdel="${v.id}">Eliminar</button>` : ''}</span>` : ''}
+      </div>`).join('') || '<div class="vacio">Sin valores todavía.</div>'}</div>
+      ${puedeEditar ? `<div class="acts"><input id="cvnew" placeholder="Nuevo valor" style="flex:1;min-width:160px">
+        ${c.papel === 'resultado_visita' ? `<select id="cvextra" style="max-width:170px"><option value="pos">${TT('visita', 's', '', 'l', 'C', 'realizado')}</option><option value="neg">Sin ${TT('visita', 's', '', 'l', 'l')}</option></select>
+          <select id="cvdest" style="max-width:190px" title="Estado al que pasa la ficha con este resultado"><option value="">No cambia el estado</option>${estados().map(x => `<option value="${esc(x)}">Pasa a ${esc(x)}</option>`).join('')}</select>` : ''}
+        ${(c.valores || []).some(v => v.padre) ? `<select id="cvpadre" style="max-width:210px" title="Categoría del valor"><option value="">Sin categoría (es una categoría)</option>${(c.valores || []).filter(v => !v.padre).map(v => `<option value="${esc(v.valor)}">Dentro de ${esc(v.valor)}</option>`).join('')}</select>` : ''}
+        <button class="btn" id="cvadd">Añadir</button></div>` : ''}
+      ${completo && !c.sistema ? `<div class="acts" style="justify-content:flex-end;border-top:1px solid var(--line);padding-top:12px">
+        <button class="btn sec dang" id="cdel">Eliminar clasificador</button></div>` : ''}`;
+
+    if ($('cfcok')) $('cfcok').onclick = async () => {
+      const v = { tipo: $('cfctipo').value };
+      ['obligatorio', 'solo_lectura', 'en_ficha', 'en_tabla', 'en_filtro'].forEach(k => { v[k] = $('cfc_' + k).checked; });
+      const { data: r, error } = await db.rpc('configurar_campo', { p_id: id, p: v });
+      if (error || !r || !r.ok) { toast('No se ha podido guardar el campo', true); return; }
+      toast('Campo guardado'); recarga(); cargarCampos().catch(() => {});
+    };
+    const recarga = async () => {
+      const { data } = await db.rpc('catalogos_todos');
+      CATS = data || [];
+      Object.assign(c, CATS.find(x => x.id === id) || c);
+      pinta(); cargarCatalogos();
+    };
+
+    if ($('cvadd')) $('cvadd').onclick = async () => {
+      const v = $('cvnew').value.trim(); if (!v) return;
+      const { error } = await db.rpc('guardar_valor', { p: { clasificador_id: id, valor: v,
+        extra: $('cvextra') ? $('cvextra').value : null, destino: $('cvdest') ? $('cvdest').value : null,
+        ...($('cvpadre') && $('cvpadre').value ? { padre: $('cvpadre').value, valor: v.startsWith($('cvpadre').value + ' · ') ? v : $('cvpadre').value + ' · ' + v } : {}) } });
+      if (error) { toast('No se ha podido añadir', true); return; }
+      toast('Valor añadido'); recarga();
+    };
+    $('dbody').querySelectorAll('[data-vtog]').forEach(b => b.onclick = async () => {
+      const [vid, activo] = b.dataset.vtog.split('|');
+      await db.rpc('guardar_valor', { p: { id: vid, activo: activo === '1' } });
+      recarga();
+    });
+    $('dbody').querySelectorAll('[data-vren]').forEach(b => b.onclick = async () => {
+      const [vid, actual] = b.dataset.vren.split('|');
+      const nuevo = await pedirTexto('Nuevo nombre', actual, { titulo: 'Renombrar valor', ok: 'Guardar' });
+      if (!nuevo) return;
+      await db.rpc('guardar_valor', { p: { id: vid, valor: nuevo } });
+      toast('Renombrado'); recarga();
+    });
+    // v2.87.0: el estado al que lleva cada resultado se puede cambiar en cualquier momento
+    $('dbody').querySelectorAll('[data-vdest]').forEach(sel => sel.onchange = async () => {
+      const { data: r, error } = await db.rpc('guardar_valor', { p: { id: sel.dataset.vdest, destino: sel.value } });
+      if (error || (r && r.ok === false)) { toast('No se ha podido cambiar', true); return; }
+      toast(sel.value ? `Ahora pasa a ${sel.value}` : 'Ya no cambia el estado');
+    });
+    $('dbody').querySelectorAll('[data-vdel]').forEach(b => b.onclick = async () => {
+      if (!await preguntar(`Las fichas y ${TT('visita', 'p', '', 'l', 'l')} que ya lo usan lo conservan, pero dejará de aparecer.`,
+        { titulo: '¿Eliminar el valor?', ok: 'Eliminar', peligro: true })) return;
+      const { data: r } = await db.rpc('borrar_valor', { p_id: b.dataset.vdel });
+      if (r && r.ok === false) { toast('No tienes permiso', true); return; }
+      toast('Eliminado'); recarga();
+    });
+    if ($('cdel')) $('cdel').onclick = async () => {
+      if (!await preguntar(`Se elimina "${c.nombre}" y todos sus valores.`,
+        { titulo: '¿Eliminar el clasificador?', ok: 'Eliminar', peligro: true })) return;
+      const { data: r } = await db.rpc('borrar_clasificador', { p_id: id });
+      if (r && r.ok === false) { toast(r.error === 'sistema' ? 'Los del sistema no se pueden eliminar' : 'Sin permiso', true); return; }
+      $('dlg').close(); toast('Clasificador eliminado'); pintarCatalogos(); cargarCatalogos();
+    };
+  };
+  pinta();
+  $('dlg').showModal();
+}
+
+function colsConfigBase() {
+  let g = null;
+  try { g = JSON.parse(localStorage.getItem(colKey()) || 'null'); } catch (e) {}
+  if (!g || !g.length) g = COLS.map(c => ({ k: c.k, on: COLS_DEF.includes(c.k) || (c.k === 'comerciales' && VE_TODO()), w: c.w }));
+  COLS.forEach(c => { if (!g.some(x => x.k === c.k)) g.push({ k: c.k, on: c.k === 'comerciales' && VE_TODO(), w: c.w }); });
+  return g.filter(x => x.k !== 'comerciales' || VE_TODO());
+}
+
+function abrirClasificador(id) {
+  abrirClasificadorBase(id);
+  const c = CATS.find(x => x.id === id);
+  const permitido = puede('administrar') || ((PERFIL.areas || {}).K || 0) >= 2;
+  if (!c || !permitido || !['visita'].includes(c.ambito) && c.papel !== 'resultado_visita') return;
+  // Cada vez que se repinta la ventana, se añaden los botones de dato
+  const decorar = () => {
+    const items = $('dbody').querySelectorAll('.lista > .item');
+    (c.valores || []).forEach((v, i) => {
+      const it = items[i]; if (!it || it.querySelector('[data-vdato]')) return;
+      const tx = it.querySelector('.tx');
+      if (v.dato_tipo) tx.insertAdjacentHTML('beforeend', `<span class="sm">Pide: ${esc(v.dato_etiqueta || v.dato_tipo)}${v.dato_tipo === 'lista' ? ' (' + (v.dato_opciones || []).length + ' opciones)' : ''}</span>`);
+      const acts = it.querySelector('.acts');
+      if (acts) acts.insertAdjacentHTML('afterbegin', `<button class="btn sec" data-vdato="${v.id}">${v.dato_tipo ? 'Cambiar dato' : '+ Dato'}</button>`);
+    });
+    $('dbody').querySelectorAll('[data-vdato]').forEach(b => b.onclick = () => {
+      const v = (c.valores || []).find(x => x.id === b.dataset.vdato);
+      editorDato(v, async () => {
+        const { data } = await db.rpc('catalogos_todos'); CATS = data || [];
+        cargarCatalogos(); abrirClasificador(id);
+      });
+    });
+    if (!$('dbody').querySelector('.datoinfo')) $('dbody').querySelector('.fh').insertAdjacentHTML('afterend',
+      `<p class="sm datoinfo">Con <b>+ Dato</b>, al marcar ese valor en ${TT('visita', 's', 'un', 'l', 'l')} se pedirá también una cantidad, un texto o una opción de una lista.</p>`);
+  };
+  decorar();
+  new MutationObserver((_, obs) => { if (!$('dlg').open) { obs.disconnect(); return; } decorar(); })
+    .observe($('dbody'), { childList: true });
+}
+
+async function pintarRolesBase() {
+  await cargarAjustes();
+  const roles = rolesNombres().filter(r => !rolPuede(r, 'portal_prescriptor'));
+  $('cfgcuerpo').innerHTML = `<div class="card cfgpanel"><h2>Roles y permisos</h2>
+    <p class="sm">Cada rol tiene una plantilla de permisos que se aplica al dar de alta a una persona o al cambiarle el rol. Después se puede ajustar persona a persona en Usuarios. ${TT('medico', 'p', 'el', 'C', 'l')} con acceso solo ven su informe.</p>
+    <div class="nivleg">${NIVEL_TXT.map((t, i) => `<span class="nv${i}"><b>${esc(t)}</b>${['No ve el módulo ni aparece en el menú', 'Lo ve, pero no cambia nada', 'Crea y edita lo suyo', 'Todo, incluido borrar y configurar'][i]}</span>`).join('')}</div>
+    <div class="dgrid-wrap"><table class="rolmat"><thead><tr><th>Permiso</th>${roles.map(r => `<th>${esc(r)}</th>`).join('')}</tr></thead>
+      <tbody>${AREAS.map(([k, n]) => `<tr><td><b>${esc(n)}</b><span class="sm">${esc(QUE_ABRE[k] || '')}</span></td>
+        ${roles.map(r => `<td><select data-rol="${esc(r)}" data-ar="${k}" class="nvsel chico" ${rolPuede(r, 'administrar') ? 'disabled' : ''}>${NIVEL_TXT.map((t, i) => `<option value="${i}" ${+(plantillaRol(r)[k] || 0) === i ? 'selected' : ''}>${esc(t)}</option>`).join('')}</select></td>`).join('')}</tr>`).join('')}</tbody></table></div>
+    <div class="acts" style="justify-content:flex-end;flex-wrap:wrap"><button class="btn sec" id="rolrest">Volver a los valores de partida</button><button class="btn" id="rolok">Guardar plantillas</button></div></div>`;
+  const colorea = () => $('cfgcuerpo').querySelectorAll('.nvsel').forEach(s => s.className = 'nvsel chico nv' + s.value);
+  $('cfgcuerpo').addEventListener('change', colorea); colorea();
+  const leer = () => { const o = {}; $('cfgcuerpo').querySelectorAll('[data-rol]:not([disabled])').forEach(s => { (o[s.dataset.rol] = o[s.dataset.rol] || {})[s.dataset.ar] = +s.value; }); return o; };
+  $('rolrest').onclick = async () => { await db.rpc('guardar_ajuste', { p_clave: 'roles', p_valor: {} }); AJUSTES.roles = {}; toast('Valores de partida'); pintarRoles(); };
+  $('rolok').onclick = async () => {
+    const v = leer(); const { error } = await db.rpc('guardar_ajuste', { p_clave: 'roles', p_valor: v });
+    if (error) { toast('No se ha podido guardar', true); return; }
+    AJUSTES.roles = v;
+    if (await preguntar('Las plantillas se usan en las altas y cambios de rol. ¿Quieres aplicarlas también ahora a todas las personas que ya tienen esos roles? Se sustituirán sus permisos actuales.', { titulo: '¿Aplicar a las personas actuales?', ok: 'Aplicar a todos' })) {
+      let n = 0; for (const [r, a] of Object.entries(v)) { const { data: x } = await db.rpc('aplicar_plantilla_rol', { p_rol: r, p_areas: a }); n += (x && x.personas) || 0; }
+      toast(`Plantillas guardadas y aplicadas a ${n} personas`);
+    } else toast('Plantillas guardadas');
+  };
+}
+
+async function pintarPrefsPerfilBase() {
+  // v2.340.0: la tarjeta de la persona se pinta directamente en su sitio (antes, en un contenedor escondido esperando a pintarPrefs:
+  // llegaba tarde o, si quedaba otra #miperfil en la copia fija, no llegaba y dejaba el hueco)
+  document.querySelectorAll('#miperfil, #mpextra').forEach(x => { if (x.closest('.congelada')) x.removeAttribute('id'); else x.remove(); });
+  if (!$('perfilcab')) return;
+  const p = pintarPrefsPaso2();
+  const mp = $('miperfil');
+  if (mp && $('perfilcab')) $('perfilcab').replaceWith(mp); else if ($('perfilcab')) $('perfilcab').remove();
+  try { await p; } catch (e) {}
+}
+
+function colsConfig() {
+  let guardada = null;
+  try { guardada = JSON.parse(localStorage.getItem(colKey()) || 'null'); } catch (e) { /* sin almacenamiento */ }
+  return colsConfigBase().map(c => c.k.startsWith('cp:') && !(guardada || []).some(x => x.k === c.k)
+    ? { ...c, on: !!((CAMPOS.medico || []).find(x => 'cp:' + x.clave === c.k) || {}).en_tabla } : c);
+}
+
+/* v2.109.0 · Permisos propios en los roles: importar, clasificadores y dar acceso.
+   Configuración → Usuarios y roles → Roles tiene debajo de las plantillas la tabla «Permisos» (las capacidades del grupo
+   «Permisos»; el resto de capacidades no se cambian desde aquí). Quien tiene «Dar acceso a fichas de su cartera» da acceso
+   al portal desde la ficha, sin pasar por Usuarios: se crea la invitación ligada a la ficha y después el usuario. */
+async function pintarRoles(...a) {
+  await pintarRolesBase(...a);
+  if (!puede('administrar') || !$('cfgcuerpo')) return;
+  const { data: caps } = await db.from('capacidades').select('clave,nombre,descripcion,orden').eq('grupo', 'Permisos').order('orden');
+  if (!(caps || []).length || !$('cfgcuerpo') || $('rolperm')) return;
+  const roles = rolesNombres().filter(r => !rolPuede(r, 'portal_prescriptor'));
+  $('cfgcuerpo').insertAdjacentHTML('beforeend', `<div class="card cfgpanel" id="rolperm"><h2>Permisos</h2>
+    <p class="sm">Lo que puede hacer cada rol además de sus módulos. Se aplica a todas las personas del rol al guardar.</p>
+    <div class="dgrid-wrap"><table class="rolmat"><thead><tr><th>Permiso</th>${roles.map(r => `<th>${esc(r)}</th>`).join('')}</tr></thead>
+      <tbody>${caps.map(c => `<tr><td><b>${esc(c.nombre)}</b><span class="sm">${esc(c.descripcion || '')}</span></td>
+        ${roles.map(r => `<td><input type="checkbox" data-prol="${esc(r)}" data-pcap="${esc(c.clave)}" aria-label="${esc(c.nombre)} · ${esc(r)}" ${rolPuede(r, c.clave) ? 'checked' : ''}></td>`).join('')}</tr>`).join('')}</tbody></table></div>
+    <div class="acts" style="justify-content:flex-end"><button class="btn" id="rolpermok">Guardar permisos</button></div></div>`);
+  $('rolpermok').onclick = async ev => {
+    ev.target.disabled = true;
+    let fallo = false;
+    for (const r of roles) {
+      const lista = [...$('rolperm').querySelectorAll(`[data-prol="${CSS.escape(r)}"]:checked`)].map(x => x.dataset.pcap);
+      const { data: x, error } = await db.rpc('guardar_permisos_rol', { p_rol: r, p_permisos: lista });
+      if (error || (x && x.ok === false)) fallo = true;
+    }
+    ev.target.disabled = false;
+    await cargarRoles();
+    const { data: yo } = await db.from('perfiles').select('capacidades').eq('id', PERFIL.id).single();
+    if (yo && Array.isArray(yo.capacidades)) PERFIL.capacidades = yo.capacidades;
+    toast(fallo ? 'No se han podido guardar todos los permisos' : 'Permisos guardados', fallo);
+  };
+}
+
+// pintarPrefsPerfil pone la tarjeta de la persona después: va a su sitio dentro de la tarjeta única
+async function pintarPrefsPerfil(...a) {
+  const p = pintarPrefsPerfilBase.apply(this, a);
+  const mp = $('miperfil'), row = document.querySelector('#cfgcuerpo .perfunorow');
+  if (mp && row && mp.parentElement !== row) { mp.classList.remove('card', 'cfgpanel'); mp.classList.add('perfparte'); row.prepend(mp); }
+  return p;
+}
 // pantallas/cuentas.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -9596,6 +11048,137 @@ const esConsultaPrivada = c => { if (c && c.id) return false; const n = String((
    ventanas anchas (comparar, importar…) siguen como estaban, y Configuración sigue sin ventanas emergentes.
    ============================================================ */
 let FX_FICHA = 0;
+
+function abrirHorarioPlan() {
+  abrirHorarioPlanBase();
+  const ayuda = {
+    hsal: `A qué hora sales. La ${TT('visita', 's', 'primer', 'l', 'l')} se calcula desde aquí o desde ahora, si esa hora ya ha pasado.`,
+    htop: `Hora de vuelta de la ruta. No se planifican ${TT('visita', 'p', '', 'l', 'l')} que te hagan volver más tarde; si el día se pasa, se marca en naranja.`,
+    hvis: `Lo que dura de media cada ${TT('visita', 's', '', 'l', 'l')} con ${TT('medico', 's', 'un', 'l', 'l')}, una vez allí.`,
+    hpar: `Tiempo extra cada vez que llegas a un sitio nuevo: aparcar, entrar, esperar en recepción. Si ves a varios ${TT('medico', 'p', '', 'l', 'l')} en el mismo centro, se cuenta una sola vez.`
+  };
+  Object.entries(ayuda).forEach(([id, t]) => { const i = $(id); if (i && !i.parentElement.querySelector('.ayudah')) i.insertAdjacentHTML('afterend', `<span class="sm ayudah">${esc(t)}</span>`); });
+  const fh = $('dbody').querySelector('.fh');
+  if (fh && !$('horinfo')) fh.insertAdjacentHTML('afterend', `<p class="sm" id="horinfo">Con estos datos se calculan las horas estimadas de tus rutas, de «Tu día» y del planificador semanal. Los desplazamientos entre ${TT('visita', 'p', '', 'l', 'l')} se estiman por la distancia.</p>`);
+}
+
+function tarjetaCentroBase(c, enlazado) {
+  const hor = c.horario && Object.keys(c.horario).length ? c.horario : null;
+  const hoy = hor && hor[hoyLetra()];
+  return `<div class="cpcard"><div class="cpcab"><b>${esc(c.nombre || 'Sin nombre')}</b>
+      ${enlazado ? '' : '<span class="pill p-warn" title="' + TT('consulta', 's', 'este', 'C', 'l') + ' aún no está enlazada con un centro de la base">Sin enlazar</span>'}</div>
+    <span class="sm">${esc([c.direccion, [c.cp, c.municipio].filter(Boolean).join(' ')].filter(Boolean).join(' · ') || 'Sin dirección')}</span>
+    ${c.telefono ? `<span class="sm">☎ <a href="tel:${esc(c.telefono)}">${esc(c.telefono)}</a></span>` : ''}
+    ${hor ? `<span class="sm">🕘 ${hoy ? `<b>Hoy ${esc(hoy)}</b> · ` : ''}${esc(txtHorario(hor))}</span>` : enlazado ? '<span class="sm" style="color:var(--muted)">Sin horario de apertura</span>' : ''}
+    ${c.lat ? '' : '<span class="sm" style="color:var(--warn)">Sin ubicación: no saldrá en rutas ni en el mapa</span>'}
+    <div class="acts" style="margin:8px 0 0;flex-wrap:wrap">
+      ${c.lat ? `<button type="button" class="btn sec" data-nav="${navAttr([+c.lat, +c.lon])}">Cómo llegar</button>` : ''}
+      ${enlazado ? '<button type="button" class="btn sec" data-cpeditar>Editar centro</button>' : '<button type="button" class="btn" data-cpenlazar>Enlazar con un centro</button>'}
+      <button type="button" class="btn sec" data-cpcambiar>Cambiar</button></div></div>`;
+}
+
+// Formulario de centro (nuevo o corregir): los mismos datos de siempre, con horario de apertura
+function formCentroBase(box, i, c, aviso) {
+  const cont = box.querySelector(`[data-cp="${i}"]`); if (!cont) return;
+  c = c || {}; const hor = c.horario || {}, k = 'cf' + i + '_';
+  if (c.privada) { pintarCentroSel(box, i); return; }
+  cont.innerHTML = `<div class="cpform">
+    <div class="cpformcab"><b>${c.id ? 'Editar centro' : 'Centro nuevo'}</b>${aviso ? `<span class="sm cpaviso">${esc(aviso)}</span>` : ''}</div>
+    <div class="g2"><div><label for="${k}n">Nombre del centro</label><input id="${k}n" value="${esc(c.nombre || '')}" placeholder="p. ej. Centro Sagrada Família"></div>
+      <div><label for="${k}t">Teléfono</label><input id="${k}t" value="${esc(c.telefono || '')}" inputmode="tel"></div></div>
+    <div class="g2"><div><label for="${k}d">Dirección</label><input id="${k}d" value="${esc(c.direccion || '')}"></div>
+      <div><label for="${k}c">Código postal</label><input id="${k}c" value="${esc(c.cp || '')}" inputmode="numeric"></div></div>
+    <div class="g2"><div><label for="${k}m">Población</label><input id="${k}m" value="${esc(c.municipio || '')}"></div>
+      <div><label for="${k}p">Provincia</label><input id="${k}p" value="${esc(c.provincia || '')}"></div></div>
+    <div class="cpubi sm">${c.lat ? '<b style="color:var(--ok)">✓ Ubicado</b>' : 'Sin ubicación todavía'} <button type="button" class="lnk" data-cpgeo>🔎 Buscar la dirección en el mapa</button></div>
+    <label>Horario de apertura</label>
+    <div class="cphor">${DIAS_SEM.map(([d, n]) => `<div><span>${n}</span><input data-hd="${d}" value="${esc(hor[d] || '')}" placeholder="${d === 'D' ? 'Cerrado' : '8:00-20:00'}"></div>`).join('')}</div>
+    <button type="button" class="lnk" data-cpcopiar>Copiar el horario del lunes al resto de días laborables</button>
+    <div class="acts" style="justify-content:flex-end;margin:10px 0 0"><button type="button" class="btn sec" data-cpcancel>Cancelar</button><button type="button" class="btn" data-cpguardar>${c.id ? 'Guardar cambios' : 'Crear centro'}</button></div></div>`;
+  let lat = c.lat != null && c.lat !== '' ? +c.lat : null, lon = c.lon != null && c.lon !== '' ? +c.lon : null;
+  const val = x => $(k + x).value.trim();
+  cont.querySelector('[data-cpcopiar]').onclick = () => { const l = cont.querySelector('[data-hd="L"]').value; ['M', 'X', 'J', 'V'].forEach(d => { cont.querySelector(`[data-hd="${d}"]`).value = l; }); };
+  cont.querySelector('[data-cpgeo]').onclick = async e => {
+    const q = [val('d'), val('c'), val('m'), val('p'), 'España'].filter(Boolean).join(', ');
+    if (!val('d') && !val('m')) { toast('Escribe la dirección o la población', true); return; }
+    e.target.textContent = 'Buscando…';
+    const r = await geocodificar(q, { direccion: val('d'), municipio: val('m'), cp: val('c') }).catch(() => null);
+    e.target.textContent = '🔎 Buscar la dirección en el mapa';
+    if (!r) { toast('No se ha encontrado esa dirección. Prueba con calle, número y población.', true); return; }
+    if (r.fuera) { toast(`Esa dirección sale en ${r.fuera}, no en ${val('m')}: revísala`, true); return; }
+    lat = +r.lat; lon = +r.lon;
+    const a = r.address || {};
+    if (!val('c') && a.postcode) $(k + 'c').value = a.postcode;
+    if (!val('m')) $(k + 'm').value = (a.city || a.town || a.village || a.municipality || '').toUpperCase();
+    if (!val('p')) $(k + 'p').value = (a.province || a.state_district || a.county || '').toUpperCase();
+    cont.querySelector('.cpubi').firstChild.replaceWith(Object.assign(document.createElement('b'), { style: 'color:var(--ok)', textContent: '✓ Ubicado ' }));
+  };
+  cont.querySelector('[data-cpcancel]').onclick = () => pintarCentroSel(box, i, c.id ? undefined : 'buscar');
+  cont.querySelector('[data-cpguardar]').onclick = async ev => {
+    if (!val('n')) { toast('Escribe el nombre del centro', true); $(k + 'n').focus(); return; }
+    const horario = {}; cont.querySelectorAll('[data-hd]').forEach(x => { if (x.value.trim()) horario[x.dataset.hd] = x.value.trim(); });
+    ev.target.disabled = true;
+    const { data, error } = await RPC_ORIG('guardar_centro', { p: { id: c.id || null, nombre: val('n'), telefono: val('t'), direccion: val('d'), cp: val('c'), municipio: val('m'), provincia: val('p'), lat, lon, horario } });
+    ev.target.disabled = false;
+    if (error || !data || !data.ok) { toast('No se ha podido guardar el centro' + (data && data.error ? ': ' + (data.error === 'permiso' ? 'no tienes permiso' : data.error) : ''), true); return; }
+    cpPoner(box, i, data.centro); pintarCentroSel(box, i);
+    toast(c.id ? 'Centro actualizado' : 'Centro creado y elegido');
+  };
+  $(k + 'n').focus();
+}
+
+function tarjetaCentro(c, enlazado) {
+  if (enlazado || !esConsultaPrivada(c)) return tarjetaCentroBase.call(this, c, enlazado);
+  const dir = [c.direccion, [c.cp, c.municipio].filter(Boolean).join(' ')].filter(Boolean).join(' · ');
+  return `<div class="cpcard cppriv"><div class="cpcab"><b>${consultaPrivada()}</b><span class="pill p-est">Sin centro</span></div>
+    <span class="sm">${esc(dir || 'Sin dirección todavía')}</span>
+    ${c.lat ? '' : `<span class="sm" style="color:var(--warn)">${dir ? 'Sin ubicación: no saldrá en rutas ni en el mapa' : 'Añade la dirección para que salga en rutas y en el mapa'}</span>`}
+    <div class="acts" style="margin:8px 0 0;flex-wrap:wrap">
+      ${c.lat ? `<button type="button" class="btn sec" data-nav="${navAttr([+c.lat, +c.lon])}">Cómo llegar</button>` : ''}
+      <button type="button" class="btn ${dir ? 'sec' : ''}" data-cpeditar>${dir ? 'Editar ' + TT('consulta', 's', 'el', 'l', 'l') : 'Añadir la dirección'}</button>
+      <button type="button" class="btn sec" data-cpcambiar>Cambiar</button></div></div>`;
+}
+
+function formCentro(box, i, c, aviso) {
+  if (c && (c.privada || esConsultaPrivada(c))) return formPrivada(box, i);
+  return formCentroBase.call(this, box, i, c, aviso);
+}
+
+async function centroPintarBase() {
+  if (!$('mdcuerpo')) return;
+  const [{ data: prods }, { data: mp }, { data: f }] = await Promise.all([RPC_ORIG('productos_portal', {}), RPC_ORIG('mis_pedidos_portal', {}),
+    PM.ficha ? Promise.resolve({ data: null }) : RPC_ORIG('portal_mi_ficha', {})]);
+  if (f && f.ok) pmFichaDatos(f);
+  if (!$('mdcuerpo')) return;
+  if (mp && mp.nombre) $('ctnom').textContent = mp.nombre;
+  const lp = Array.isArray(prods) ? prods : [], peds = (mp && mp.pedidos) || [], pp = (mp && mp.por_producto) || [];
+  window.PC_ANT = !!(mp && mp.pago_anticipado);   // v2.284.0
+  const conIva = x => r2((+x.precio || 0) * (1 + (+x.iva || 0) / 100));
+  const enMarcha = peds.filter(p => p.estado !== 'Anulado' && p.estado !== 'Preparado').length;
+  const uds = pp.reduce((s, x) => s + (+x.unidades || 0), 0);
+  const ult = peds.length ? String(peds[0].fecha).slice(0, 10) : null;
+  const falta = PM.faltan.length ? `<div class="pmaviso"><div><b>Completa la ficha de tu centro</b><span class="sm">Falta ${esc(pmFaltaTxt())}. Así tu comercial sabe cuándo os va mejor que pase.</span></div>
+      <button type="button" class="btn" data-pmir="ficha">Completar la ficha</button></div>` : '';
+  $('mdcuerpo').innerHTML = `${pcDebeHtml(peds)}${falta}
+    <div class="pmk">
+      <div class="kpi"><b>${num(enMarcha)}</b><span>pedidos en marcha</span></div>
+      <div class="kpi"><b>${ult ? fechaCorta(ult) : '—'}</b><span>último pedido</span></div>
+      <div class="kpi"><b>${num(uds)}</b><span>unidades en 12 meses</span></div>
+      <div class="kpi"><b>${num(lp.length)}</b><span>productos para pedir</span></div></div>
+    <div class="pmfila">
+      <div class="card ancard pcpeds"><h2>Tus pedidos ${pmAyu('Tus pedidos', 'Los pedidos de reposición que habéis hecho y en qué punto están: pendiente de confirmar por tu comercial, pendiente de pago (si se paga por adelantado), confirmado, preparado o anulado. Cada pedido lleva los lotes que se os han enviado y sus facturas para descargar.')}</h2>
+        ${peds.length ? `<div class="lista">${peds.slice(0, 8).map(p => `<div class="item"><span class="tx">
+            <b>${p.numero ? esc(p.numero) + ' · ' : ''}${fechaCorta(String(p.fecha).slice(0, 10))}</b>
+            <span class="sm">${esc((p.lineas || []).map(l => `${l.producto} × ${num(l.unidades)}${l.regalo ? ' de regalo' : ''}`).join(', '))}${p.total != null ? ' · ' + eurI(p.total) : ''}</span>${pcExtraPed(p)}</span>
+            <span class="pcpst"><span class="pill ${NOMBRE_ESTADO_CENTRO[p.estado] || ''}">${esc(p.estado)}</span>${p.proforma ? `<button type="button" class="btn sec chico" data-pcpro="${p.id}">Factura proforma</button>` : ''}</span></div>`).join('')}</div>` : '<p class="sm">Todavía no hay pedidos.</p>'}</div>
+      <div class="card ancard"><h2>Lo que habéis comprado ${pmAyu('Lo que habéis comprado', 'Unidades de los últimos 12 meses por producto, de los pedidos confirmados.')}</h2>
+        ${pp.length ? barrasH(pp.map(x => ({ n: x.producto, v: x.unidades })), v => num(v) + ' uds.') : vacioGrafico('Aparecerá cuando tengáis pedidos confirmados.')}</div></div>`;
+  $('mdcuerpo').querySelectorAll('[data-pmir]').forEach(b => b.onclick = () => pmTab(b.dataset.pmir));
+  pcPintarPedido(lp);   // v2.283.0: por packs
+  pmPintarFicha();
+}
+
+async function centroPintar(...a) { const r = await centroPintarBase.apply(this, a); try { await pcDescargas(); } catch (e) {} return r; }
 // pantallas/eventos.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -10214,6 +11797,94 @@ const AN_SERIE = new Map();
    pago, primero se cobra (así, en «Pendientes de cobro» todos dicen «Por cobrar»).
    ============================================================ */
 const cobroDe = p => p.sin_cargo || sinCargoP(p, p.total) ? 'Sin cargo' : p.pago_estado === 'Cobrado' || p.pago_validado_en ? 'Cobrado' : 'Pendiente de cobro';
+
+// Ver pedido · Facturas del pedido, o botón para emitirla
+async function pedidoFacturasBase(id) {
+  if (!VE_TODO() || !$('dlg').open) return;
+  const acts = $('dbody').querySelector('.acts:last-of-type'); if (!acts) return;
+  const { data } = await RPC_ORIG('pedido_detalle', { p_id: id });
+  const p = data && data.pedido; if (!p) return;
+  const { data: fs } = await db.from('facturas').select('id,numero,pedido_id').eq('pedido_id', id);   // v2.350.0: solo las de este pedido
+  const fac = fs || [];
+  if (fac.length) {
+    acts.insertAdjacentHTML('afterbegin', fac.map(f => `<button class="btn sec" data-pvfac="${f.id}">🧾 ${esc(f.numero)}</button>`).join(''));
+    acts.querySelectorAll('[data-pvfac]').forEach(b => b.onclick = () => verFactura(b.dataset.pvfac));
+  } else if (p.estado === 'Confirmado' && !p.sin_cargo && puedeFacturar()) {
+    acts.insertAdjacentHTML('afterbegin', '<button class="btn" id="pvemitir">🧾 Ver la factura</button>');   // v2.339.0: primero la vista previa
+    acts.querySelector('#pvemitir').onclick = () => previaFacturaPedido(id);
+  }
+}
+
+async function enviarFacturaEmailBase(f, rn) {
+  await cargarAjustes();
+  const e = AJUSTES.empresa || {}, c = f.cliente || {};
+  const saludo = c.nombre ? nombrePila(c.nombre) : '';
+  $('dlg2body').innerHTML = `
+    <div class="fh"><div><h2>Enviar ${esc(f.numero)} por email</h2><div class="sm">La factura va adjunta en PDF</div></div>
+      <button class="x" data-cerrar2 aria-label="Cerrar">✕</button></div>
+    <label for="efp">Para</label><input id="efp" type="email" value="${esc(c.email || '')}" placeholder="email del cliente">
+    <label for="efa">Asunto</label><input id="efa" value="${esc(plantillaCorreo('factura', 'asunto', varsCorreo({ documento: 'factura', numero: f.numero, importe: f.total, nombre: c.nombre })))}">
+    <label for="eft">Mensaje</label><textarea id="eft" rows="12">${esc(plantillaCorreo('factura', 'texto', varsCorreo({ documento: 'factura', numero: f.numero, importe: f.total, nombre: c.nombre })))}</textarea>
+    <div class="adjunto">📎 ${esc(nombrePDF(f))}</div>
+    <div class="acts" style="justify-content:flex-end;flex-wrap:wrap"><button class="btn sec" data-cerrar2>Cancelar</button>
+      <button class="btn" id="efok">Enviar</button></div>`;
+  $('dlg2').showModal();
+  $('efok').onclick = async ev => {
+    const para = $('efp').value.trim(); if (!/\S+@\S+\.\S+/.test(para)) { toast('Escribe un email válido', true); return; }
+    ev.target.disabled = true; ev.target.textContent = 'Preparando el PDF…';
+    const doc = await facturaPDF(f, rn), b64 = doc.output('datauristring').split(',')[1];
+    ev.target.textContent = 'Enviando…';
+    let { data, error } = await db.functions.invoke('enviar_email', { body: { para, asunto: $('efa').value.trim(), texto: $('eft').value,
+      adjuntos: [{ nombre: nombrePDF(f), base64: b64, tipo: 'application/pdf' }], factura_id: f.id, pedido_id: f.pedido_id, marca: 'email_factura' } });
+    // Si la función responde con error, su motivo viene en el cuerpo de la respuesta
+    if (error && error.context && typeof error.context.json === 'function') { try { data = await error.context.json(); } catch (x) {} }
+    ev.target.disabled = false; ev.target.textContent = 'Enviar';
+    if (!error && data && data.ok) { $('dlg2').close(); toast('Factura enviada a ' + para); return; }
+    // Sin envío directo configurado: se ofrece compartir el PDF o descargarlo y adjuntarlo
+    const sinSmtp = data && data.error === 'sin_smtp';
+    const archivo = new File([doc.output('blob')], nombrePDF(f), { type: 'application/pdf' });
+    const compartir = navigator.canShare && navigator.canShare({ files: [archivo] });
+    $('dlg2body').innerHTML = `<div class="fh"><div><h2>${sinSmtp ? 'El envío directo aún no está configurado' : 'No se ha podido enviar'}</h2>
+      <div class="sm">${sinSmtp ? 'Falta conectar el correo de la empresa (lo prepara administración).' : esc((error && error.message) || (data && data.error) || '')}</div></div>
+      <button class="x" data-cerrar2 aria-label="Cerrar">✕</button></div>
+      <p>Puedes enviarla desde tu correo con el PDF adjunto:</p>
+      <div class="acts" style="flex-wrap:wrap">${compartir ? '<button class="btn" id="efsh">Compartir el PDF (correo, WhatsApp…)</button>' : ''}
+        <button class="btn ${compartir ? 'sec' : ''}" id="efdl">⬇ Descargar el PDF</button>
+        <a class="btn sec" href="mailto:${esc(para)}?subject=${encodeURIComponent($('efa') ? $('efa').value : f.numero)}&body=${encodeURIComponent('Adjuntamos la factura ' + f.numero + '.')}">Abrir mi correo</a></div>
+      <label class="opt" style="margin-top:12px"><input type="checkbox" id="efmarca"> Ya la he enviado: marcar el pedido como «Email con la factura enviado»</label>
+      <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar2>Cerrar</button></div>`;
+    if ($('efsh')) $('efsh').onclick = () => navigator.share({ files: [archivo], title: f.numero, text: 'Factura ' + f.numero }).catch(() => {});
+    $('efdl').onclick = () => doc.save(nombrePDF(f));
+    $('efmarca').onchange = async ev2 => { if (ev2.target.checked && f.pedido_id) { await db.rpc('marcar_operativa', { p_pedido: f.pedido_id, p_campo: 'email_factura', p_hecho: true }); toast('Marcado como enviado'); } };
+  };
+}
+
+// Desde el pedido: la factura se abre encima y al cerrarla vuelve el pedido tal como estaba
+async function pedidoFacturas(id) {
+  await pedidoFacturasBase(id);
+  $('dbody').querySelectorAll('[data-pvfac]').forEach(b => b.onclick = () => abrirApilada(() => verFactura(b.dataset.pvfac), 'Volver al pedido'));
+}
+
+// Enviar la factura: plantilla del correo y diseño del PDF, en la propia ventana (si hay más de uno)
+async function enviarFacturaEmail(f, rn, ...a) {
+  PLANT_ELEGIDA.factura = null; PDF_ELEGIDO = null;
+  const r = await enviarFacturaEmailBase.call(this, f, rn, ...a);
+  const pl = plantillasCorreo('factura'), { lista, defecto } = listaPDF(), c = f.cliente || {};
+  const sel = [];
+  if (pl.length > 1) sel.push(`<div><label for="efplant">Plantilla del correo</label><select id="efplant">${pl.map(x => `<option value="${x.id}" ${x.defecto ? 'selected' : ''}>${esc(x.nombre)}</option>`).join('')}</select></div>`);
+  if (lista.length > 1) sel.push(`<div><label for="efdis">Diseño del PDF</label><select id="efdis">${lista.map(x => `<option value="${x.id}" ${x.id === defecto ? 'selected' : ''}>${esc(x.nombre)}</option>`).join('')}</select></div>`);
+  if (sel.length && $('efp')) {
+    $('efp').insertAdjacentHTML('afterend', `<div class="g2 efplants">${sel.join('')}</div>`);
+    if ($('efplant')) $('efplant').onchange = () => {
+      PLANT_ELEGIDA.factura = $('efplant').value;
+      const v = varsCorreo({ documento: 'factura', numero: f.numero, importe: f.total, nombre: c.nombre });
+      $('efa').value = plantillaCorreo('factura', 'asunto', v); $('eft').value = plantillaCorreo('factura', 'texto', v);
+    };
+    if ($('efdis')) $('efdis').onchange = () => { PDF_ELEGIDO = $('efdis').value; };
+    $('dlg2').addEventListener('close', () => { PLANT_ELEGIDA.factura = null; PDF_ELEGIDO = null; }, { once: true });
+  }
+  return r;
+}
 // pantallas/importar.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -11005,6 +12676,35 @@ const mosEur = n => Math.round(+n || 0).toLocaleString('es-ES') + ' €';
 const mosIco = n => svgIco(ICON_NOM[n] || ICON_NOM.info);
 
 let MOS_TURNO = 0;
+
+function kvContarBase(raiz) {
+  const ns = [...raiz.querySelectorAll('[data-kvn]')];
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) { ns.forEach(n => n.textContent = num(+n.dataset.kvn)); return; }
+  const t0 = performance.now(), dur = 900;
+  const paso = t => { const f = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - f, 3); ns.forEach(n => { if (n.isConnected) n.textContent = num(Math.round(+n.dataset.kvn * e)); }); if (f < 1) requestAnimationFrame(paso); };
+  requestAnimationFrame(paso);
+}
+
+function mosContarBase(box) {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const els = [...box.querySelectorAll('[data-mcnt], [data-meur]')], t0 = performance.now();
+  const paso = t => { const p = Math.min(1, (t - t0) / 900), e = 1 - Math.pow(1 - p, 3);
+    els.forEach(el => { if (el.dataset.meur != null) el.textContent = mosEur(+el.dataset.meur * e); else el.textContent = num(Math.round(+el.dataset.mcnt * e)); });
+    if (p < 1) requestAnimationFrame(paso); };
+  requestAnimationFrame(paso);
+}
+
+function mosContar(box) {
+  const els = [...box.querySelectorAll('[data-mcnt], [data-meur]')];
+  if (plYaContado('mos', els.map(e => e.dataset.mcnt != null ? e.dataset.mcnt : e.dataset.meur))) return;
+  return mosContarBase(box);
+}
+
+function kvContar(raiz) {
+  const ns = [...raiz.querySelectorAll('[data-kvn]')];
+  if (plYaContado('kv', ns.map(n => n.dataset.kvn))) { ns.forEach(n => n.textContent = num(+n.dataset.kvn)); return; }
+  return kvContarBase(raiz);
+}
 // pantallas/manual.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -11806,6 +13506,66 @@ const PANEL_DESC = { orgs: 'Las empresas que usan delcos: plan, dominios, extras
   errores: 'Errores de la plataforma agrupados, de todas las empresas', estado: 'Versiones en uso, SQL aplicado y cifras generales',
   accesos: 'Entradas y salidas de la plataforma', auditoria: 'Cambios hechos en el panel', equipo: 'Las personas de delcos con acceso al panel',
   plantilla: 'Roles y catálogos que recibe cada empresa nueva' };
+
+function orgEstadoBase(o) {
+  const pd = o.plan_datos || {};
+  if (o.bloqueada === 'desactivada') return '<span class="pill p-anu">Desactivada</span> ';
+  if (o.bloqueada === 'prueba_terminada') return `<span class="pill p-warn">Prueba terminada el ${fechaCorta(pd.prueba_hasta)}</span> `;
+  if (pd.estado === 'prueba') return `<span class="pill p-est">Prueba hasta el ${fechaCorta(pd.prueba_hasta)}</span> `;
+  return '';
+}
+
+// Organizaciones (panel delcos): impago y cancelada a la vista
+function orgEstado(o) {
+  const pd = o.plan_datos || {};
+  if (o.bloqueada === 'cancelada') return '<span class="pill p-anu">Cancelada</span> ';
+  if (pd.estado === 'impago') return `<span class="pill p-urg">Impago desde el ${fechaCorta(pd.impago_desde)}</span> `;
+  return orgEstadoBase(o) + (pd.stripe_suscripcion ? '<span class="pill p-est">Stripe</span> ' : '');
+}
+
+// ---- Estado de la plataforma: SQL aplicado, versión publicada y versiones que usa cada empresa
+async function pintarEstadoDelcosBase() {
+  const c = $('cfgcuerpo'); if (!c) return;
+  c.innerHTML = pdEsqueleto();
+  const { data, error } = await RPC_ORIG('estado_plataforma', {});
+  if (!$('cfgcuerpo') || PAG_TAB.delcos !== 'estado') return;
+  const e = (!error && data) || {}, emp = e.empresas || {}, sql = e.sql || [], ver = e.versiones || [];
+  const ult = sql[0] || {};
+  const porVer = {}; ver.forEach(v => { (porVer[v.version] = porVer[v.version] || []).push(v); });
+  const versiones = Object.keys(porVer).sort((a, b) => b.localeCompare(a, 'es', { numeric: true }));
+  c.innerHTML = `<div class="card cfgpanel">
+    ${error ? `<div class="banda-peligro">No se ha podido leer: ${esc(error.message)}</div>` : ''}
+    ${pdKpis([[esc('v' + VERSION_APP), 'versión de esta app'], [ult.numero ? 'SQL ' + ult.numero : '—', ult.version_app ? 'base en ' + ult.version_app : 'base'],
+      [num(emp.activas || 0) + ' / ' + num(emp.total || 0), 'empresas activas'], [num(e.usuarios || 0), 'usuarios activos' + (e.portal ? ' · ' + num(e.portal) + ' del portal' : '')],
+      [num(e.errores || 0), 'errores sin resolver (15 días)', e.errores ? 'aviso' : '']])}
+    <h3 class="pdh3">Versiones en uso (30 días)</h3>
+    ${versiones.length ? versiones.map(v => `<div class="pdver"><div class="pdvercab"><b>v${esc(v.replace(/^v/, ''))}</b>${v.replace(/^v/, '') === VERSION_APP ? ' <span class="pill p-est">la actual</span>' : ' <span class="pill p-warn">anterior</span>'}
+        <span class="sm">${porVer[v].length} ${porVer[v].length === 1 ? 'empresa' : 'empresas'}</span></div>
+      <div class="sm">${porVer[v].map(x => `${esc(x.organizacion)} (${pdHace(x.ultima_vez)})`).join(' · ')}</div></div>`).join('')
+      : '<div class="vacio">Ninguna empresa ha abierto la app en los últimos 30 días.</div>'}
+    <h3 class="pdh3">Últimos SQL aplicados en esta base</h3>
+    <div class="tablawrap"><table class="pdtabla"><thead><tr><th>SQL</th><th>Versión</th><th>Qué cambia</th><th>Aplicado</th></tr></thead><tbody>
+      ${sql.map(s => `<tr><td class="num">${s.numero}</td><td>${esc(s.version_app || '')}</td><td class="sm">${esc(s.descripcion || '')}</td><td class="sm">${pdFecha(s.aplicado_en)}</td></tr>`).join('')}</tbody></table></div>
+    <p class="sm">Esto es la base de ${EN_PRUEBAS ? '<b>pruebas</b>' : '<b>producción</b>'}. La de ${EN_PRUEBAS ? 'producción' : 'pruebas'} se mira desde su propio panel.</p></div>`;
+}
+
+// ---- Uso del servicio de rutas en Estado de la plataforma
+async function pintarEstadoDelcos(...a) {
+  const p = Promise.resolve(RPC_ORIG('rutas_uso_resumen', {})).catch(() => ({}));
+  await pintarEstadoDelcosBase.apply(this, a);
+  const { data: u } = (await p) || {};
+  const c = $('cfgcuerpo'); if (!c || PAG_TAB.delcos !== 'estado' || !u || !u.ok) return;
+  const card = c.querySelector('.card.cfgpanel'), pie = card && [...card.querySelectorAll(':scope > p.sm')].pop(); if (!card) return;
+  const cfg = u.config || {}, glob = +cfg.global || 2000, emp = u.empresas || [];
+  const html = `<h3 class="pdh3">Servicio de rutas (TomTom)</h3>
+    ${pdKpis([[num(u.hoy || 0) + ' / ' + num(glob), 'peticiones hoy, entre todas las empresas', (u.hoy || 0) >= glob * 0.8 ? 'aviso' : ''],
+      [num(u.mes || 0), 'peticiones este mes'], [cfg.activo === false ? 'Apagado' : 'Activo', 'servicio', cfg.activo === false ? 'aviso' : ''],
+      [num(+cfg.por_usuario || 30), 'por usuario activo y día']])}
+    ${emp.length ? `<div class="tablawrap"><table class="pdtabla"><thead><tr><th>Empresa</th><th class="num">Hoy</th><th class="num">Cupo diario</th><th class="num">Este mes</th></tr></thead><tbody>
+      ${emp.map(x => `<tr><td>${esc(x.nombre)}</td><td class="num" style="${x.hoy >= x.cupo ? 'color:var(--warn);font-weight:700' : ''}">${num(x.hoy)}</td><td class="num">${num(x.cupo)}</td><td class="num">${num(x.mes)}</td></tr>`).join('')}</tbody></table></div>`
+      : '<div class="vacio">Ninguna empresa ha usado el servicio de rutas este mes.</div>'}`;
+  if (pie) pie.insertAdjacentHTML('beforebegin', html); else card.insertAdjacentHTML('beforeend', html);
+}
 // pantallas/parque.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -11953,6 +13713,41 @@ const eqVencePill = e => { const f = eqVence(e), d = eqDias(f); if (d == null ||
   return d < 0 ? `<span class="pill p-anu">${que} vencido</span>` : d <= Math.max(...CON_AVISOS, 0) ? `<span class="pill p-urg">${que}: ${d === 0 ? 'vence hoy' : `vence en ${num(d)} ${d === 1 ? 'día' : 'días'}`}</span>` : ''; };
 
 let EQ_Q = '';
+
+async function pintarEquipoBase() {
+  $('agcuerpo').innerHTML = `<div class="semhead"><h2 style="padding:0">Equipo y cumplimiento</h2>
+      ${puede('administrar') ? '<button class="btn sec" id="eqfrec">⚙ Frecuencia objetivo</button>' : ''}</div>
+    <div class="filtros" style="border:0;padding:4px 16px 10px"><div id="eqper"></div></div>
+    <div id="eqtabla"></div>`;
+  if ($('eqfrec')) $('eqfrec').onclick = editorFrecuencia;
+  const pinta = async () => {
+    cargando($('eqtabla'), 'Calculando…');
+    const r = $('eqper').__rango();
+    const { data, error } = await RPC_ORIG('supervision_equipo', { p_desde: r.desde || '2000-01-01', p_hasta: r.hasta || isoMas(hoyISO(), 365) });
+    if (error) { $('eqtabla').innerHTML = `<div class="vacio">${esc(error.message)}</div>`; return; }
+    const l = data || [];
+    const pct = x => { const base = x.visitadas + x.no_estaba + x.aplazadas + x.sin_hacer; return base ? Math.round(x.visitadas / base * 100) : null; };
+    $('eqtabla').innerHTML = l.length ? `<div class="dgrid-wrap"><div class="dgrid eq">
+      <div class="dh"><span>Persona</span><span class="num">Cartera</span><span class="num">Citas</span><span class="num">Visitadas</span>
+        <span class="num">No estaba</span><span class="num">Aplazadas</span><span class="num">Sin hacer</span><span>Cumplimiento</span>
+        <span class="num">${TT('visita', 'p', '', 'l', 'C')}</span><span class="num">Les toca</span></div>
+      ${l.map(x => { const p = pct(x); return `<button class="dr" data-eqver="${x.id}" title="Ver su agenda">
+        <span><b>${esc(x.nombre)}</b><span class="sm">${esc(x.rol)}</span></span>
+        <span class="num">${num(x.cartera)}</span><span class="num">${num(x.citas)}</span>
+        <span class="num"><b style="color:var(--ok)">${num(x.visitadas)}</b></span><span class="num">${num(x.no_estaba)}</span>
+        <span class="num">${num(x.aplazadas)}</span><span class="num" style="${x.sin_hacer ? 'color:var(--warn);font-weight:700' : ''}">${num(x.sin_hacer)}</span>
+        <span>${p == null ? '<span class="vac">—</span>' : `<span class="barra"><i style="width:${p}%;${p < 60 ? 'background:var(--warn)' : ''}"></i><em>${p}%</em></span>`}</span>
+        <span class="num">${num(x.visitas)}</span>
+        <span class="num" style="${x.atrasados ? 'color:var(--warn);font-weight:700' : ''}">${num(x.atrasados)}</span></button>`; }).join('')}
+    </div></div>
+    <p class="sm" style="padding:10px 16px 14px"><b>Cumplimiento</b> = visitadas sobre las citas de días ya pasados (visitadas, no estaba, aplazadas y sin hacer).
+      <b>Les toca</b> = ${TT('medico', 'p', '', 'l', 'l')} de su cartera que llevan más tiempo sin ${TT('visita', 's', '', 'l', 'l')} que su frecuencia objetivo. Pulsa una persona para ver su agenda.</p>`
+      : '<div class="vacio">Sin actividad en este periodo.</div>';
+    $('eqtabla').querySelectorAll('[data-eqver]').forEach(b => b.onclick = () => { AG_MODO = 'semana'; AG_FECHA = hoyISO(); verAgendaDe(b.dataset.eqver); });
+  };
+  montarPeriodo($('eqper'), { id: 'equipo', valor: 'semana', alCambiar: pinta });
+  pinta();
+}
 // pantallas/pedidos.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -12865,6 +14660,463 @@ let TPV_MIRA = null;
 
 // Datos públicos del entorno de pruebas de Redsys (no cobran nada)
 const TPV_PRUEBAS = { comercio: '999008881', terminal: '1', clave: 'sq7HjrUOBfKmC576ILgskD5srU870gJ7' };
+
+async function editorPedidoBase(pedido) {
+  if (!PRODUCTOS.length) await cargarProductos();
+  const ped = pedido && pedido.pedido ? pedido.pedido : null;
+  // v2.322.0: un pedido confirmado se edita entero mientras no tenga factura
+  if (ped && (ped.estado === 'Anulado' || (ped.estado !== 'Borrador' && ped.factura_id))) { toast(ped.factura_id ? 'Ese pedido ya tiene factura: para cambiarlo, haz una rectificativa' : 'Un pedido anulado no se puede editar', true); return; }
+  // v2.200.0: con un contrato en vigor de la ficha, el precio es el adjudicado
+  await cargarPreciosContrato((pedido && ((pedido.medico && pedido.medico.id) || (pedido.lineas && pedido.lineas[0] && pedido.lineas[0].cuenta_id) || (pedido.contacto && pedido.contacto.cuenta_id))) || null);
+  const prod = id => conPrecioContrato(PRODUCTOS.find(p => p.id === id) || {});
+  let lineas = pedido && pedido.lineas && pedido.lineas.length
+    ? pedido.lineas.map(l => ({ producto_id: l.producto_id, producto: l.producto, unidades: l.unidades, importe: l.importe,
+        descuento: l.descuento || 0, iva: l.iva != null ? +l.iva : prod(l.producto_id).iva,
+        // Solo es manual si el importe no coincide con precio × unidades
+        manual: prod(l.producto_id).precio == null || r2(prod(l.producto_id).precio * l.unidades) !== r2(l.importe) }))
+    : [{ producto_id: productoPorDefecto(), unidades: 1, descuento: 0 }];
+  let medico = pedido && pedido.medico ? pedido.medico
+    : (pedido && pedido.lineas && pedido.lineas[0] && pedido.lineas[0].cuenta_id ? { id: pedido.lineas[0].cuenta_id, nombre: pedido.lineas[0].medico } : null);
+  let contacto = pedido && pedido.contacto ? pedido.contacto : null;
+  if (!medico && contacto && contacto.cuenta_id) medico = { id: contacto.cuenta_id, nombre: contacto.medico || `${TT('medico', 's', '', 'l', 'C')} ${TT('paciente', 's', 'del', 'l', 'l')}`, codigo: contacto.medico_codigo || '' };
+  const autoImporte = l => { const p = prod(l.producto_id); if (!l.manual && p.precio != null) l.importe = r2(p.precio * (+l.unidades || 0)); if (l.iva == null || !l.manualIva) l.iva = p.iva != null ? +p.iva : l.iva; };
+  lineas.forEach(l => { if (l.importe == null) autoImporte(l); if (l.iva == null) l.iva = prod(l.producto_id).iva || 0; });
+  // Datos del formulario que se conservan al repintar
+  const form = { fecha: ped ? ped.fecha : hoyISO(), canal: ped ? ped.canal : 'paciente', forma_pago: ped ? ped.forma_pago : '',
+    descuento: ped ? (ped.descuento || 0) : 0, descuento_tipo: ped ? ped.descuento_tipo : 'porcentaje', nota: ped ? ped.nota || '' : '',
+    cuenta_texto: ped ? ped.cuenta_texto || '' : '',
+    servicio_id: ped ? (ped.envio ? (ped.servicio_id || ((SERVICIOS[0] || {}).id) || '') : '') : ((SERVICIOS.find(x => x.por_defecto && x.activo) || {}).id || ''),
+    envio: ped ? !!ped.envio : !!SERVICIOS.find(x => x.por_defecto && x.activo),
+    envio_iva: ped && ped.envio ? +ped.envio_iva : +((SERVICIOS.find(x => x.por_defecto && x.activo) || {}).iva ?? 21),
+    envio_con: ped && ped.envio ? r2(+ped.envio_base * (1 + (+ped.envio_iva || 0) / 100)) : +((SERVICIOS.find(x => x.por_defecto && x.activo) || {}).pvp || 0),
+    // v2.115.0: origen (web o no) y referencia del pago
+    origen: ['web', 'portal'].includes((ped || pedido || {}).origen) ? (ped || pedido).origen : 'manual', pago_referencia: ped ? ped.pago_referencia || '' : '',
+    sin_cargo: ped ? !!ped.sin_cargo : false,   // v2.317.0
+    reportar: ped ? !!ped.reportar_profesional : false };   // v2.328.0: por defecto no se reporta
+  const justifs = [];   // v2.115.0: justificantes elegidos, se suben al guardar
+  const leerForm = () => {
+    if (!$('pfecha')) return;
+    Object.assign(form, { fecha: $('pfecha').value, canal: $('pcan').value, forma_pago: $('ppago').value,
+      descuento: $('pdto').value, descuento_tipo: $('pdtot').value, nota: $('pnota').value,
+      envio: $('penv').checked, envio_con: +$('penvi').value || 0, envio_iva: +$('penvv').value || 0, servicio_id: $('pserv').value,
+      cuenta_texto: $('pselmed') ? ($('pselmed').__texto || '') : form.cuenta_texto,
+      origen: $('porig') ? $('porig').value : form.origen, pago_referencia: $('pref') ? $('pref').value : form.pago_referencia,
+      sin_cargo: $('psincargo') ? $('psincargo').checked : form.sin_cargo, reportar: $('prepprof') ? $('prepprof').checked : form.reportar });
+  };
+
+  const pinta = () => {
+    leerForm();
+    $('dbody').innerHTML = `
+      <div class="fh"><div><h2>${ped ? (ped.estado === 'Confirmado' ? 'Editar pedido' : 'Editar borrador') : 'Nuevo pedido'}</h2>
+        <div class="sm">Escribe los importes con IVA: la base y el IVA se calculan solos.</div></div>
+        <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
+      <div class="g2">
+        <div><label for="pfecha">Fecha</label><input id="pfecha" type="date" value="${esc(form.fecha)}"></div>
+        <div><label for="pcan">Canal</label><select id="pcan">
+          <option value="paciente" ${form.canal !== 'centro' ? 'selected' : ''}>Venta ${TT('paciente', 's', 'al', 'l', 'l')}</option>
+          <option value="centro" ${form.canal === 'centro' ? 'selected' : ''}>Venta a centro (con descuento)</option></select></div>
+      </div>
+      <div class="g2"><div><label for="porig">Origen</label><select id="porig">
+          <option value="manual">Comercial, teléfono o correo</option>
+          <option value="web" ${form.origen === 'web' ? 'selected' : ''}>Pedido por la web</option>${form.origen === 'portal' ? '<option value="portal" selected>Portal del centro</option>' : ''}</select></div><div></div></div>
+      <div id="zonapac" class="${form.canal === 'centro' ? 'escentro' : ''}">
+        <label class="solopac">${TT('paciente', 's', '', 'l', 'C')}</label><div id="pselpac" class="solopac"></div>
+        <label><span class="solopac">${TT('medico', 's', '', 'l', 'C')} de referencia</span><span class="solocen">Centro que compra</span></label><div id="pselmed"></div>
+        <div class="sm" style="margin-top:4px"><span class="solopac">Si no lo encuentras, deja el nombre escrito: el pedido quedará pendiente de atribuir.</span><span class="solocen">Elige su ficha (de tipo centro): las unidades cuentan para el centro y su comercial.</span></div>
+        <label class="opt solopac prepbox"><input type="checkbox" id="prepprof" ${form.reportar ? 'checked' : ''}> Reportar ${esc(TT('medico', 's', 'al', 'l', 'l'))}</label>
+      </div>
+      <label>Líneas</label>
+      <div id="plineas">${lineas.map((l, i) => `<div class="lin" data-li="${i}">
+        <div class="lrow">
+          <div><label>Producto</label><select data-f="producto_id">${opcionesProducto(l.producto_id, l.producto)}</select></div>
+          <div><label>Unidades</label><input data-f="unidades" type="number" min="1" value="${l.unidades}"></div>
+          <div><label>Importe con IVA</label><input data-f="importeiva" type="number" step="0.01" min="0" value="${l.importe != null ? r2(l.importe * (1 + (+l.iva || 0) / 100)) : ''}"></div>
+          <div><label>% dto.</label><input data-f="descuento" type="number" step="1" min="0" max="100" value="${l.descuento || 0}"></div>
+          <div>${lineas.length > 1 ? `<button type="button" class="btn sec" data-lx="${i}" aria-label="Quitar línea">✕</button>` : ''}</div>
+        </div>
+        <div class="ldes" data-des="${i}"></div></div>`).join('')}</div>
+      <div class="acts" style="margin-top:0"><button type="button" class="btn sec" id="plmas">+ Añadir línea</button></div>
+      <div class="pscbox"><label class="opt"><input type="checkbox" id="psincargo" ${form.sin_cargo ? 'checked' : ''}> Entrega sin cargo (muestra)</label>
+        <span class="sm">Las unidades cuentan ${esc(TT('medico', 's', 'al', 'l', 'l'))} de referencia y salen del stock, pero no es una venta: 0 €, sin factura, sin cobro y sin comisión.</span></div>
+      <div class="g2 pscg2">
+        <div><label for="ppago">Forma de pago</label><select id="ppago"><option value=""></option>
+          ${(CAT.forma_pago || []).map(x => `<option ${form.forma_pago === x.valor ? 'selected' : ''}>${esc(x.valor)}</option>`).join('')}</select></div>
+        <div><label for="pdto">Descuento general</label>
+          <div style="display:flex;gap:6px"><input id="pdto" type="number" min="0" step="0.01" value="${esc(form.descuento)}">
+            <select id="pdtot" style="max-width:110px"><option value="porcentaje">%</option>
+              <option value="importe" ${form.descuento_tipo === 'importe' ? 'selected' : ''}>€</option></select></div></div>
+      </div>
+      <div id="ppagox" class="pagofila ${form.forma_pago ? '' : 'hide'}">
+        <div class="pagoref"><label for="pref">Referencia del pago</label><input id="pref" value="${esc(form.pago_referencia)}" placeholder="Código de la transferencia, bizum…"></div>
+        <span id="ptrfbox" class="pagoacc ${esTransferencia(form.forma_pago) && !(ped && ped.estado === 'Confirmado') ? '' : 'hide'}"><button type="button" class="btn sec" id="ptrfmail">Enviar los datos de pago</button>
+          ${pmAyu('Pago por transferencia', 'Envía al cliente los datos de pago y el pedido se guarda en borrador. Cuando llegue el pago, lo confirmas desde el pedido.')}</span>
+        <span id="ptpvbox" class="pagoacc ${tpvActivo() && esPagoTpv(form.forma_pago) && !(ped && ped.estado === 'Confirmado') ? '' : 'hide'}"><button type="button" class="btn sec" id="ptpvenv">Enviar enlace de pago</button>
+          ${pmAyu('Pago con tarjeta o Bizum', 'Al cliente le llega por SMS el enlace y elige cómo pagar. El pedido espera en borrador y, cuando paga, se confirma solo y queda cobrado con la forma de pago que haya usado.')}</span>
+        <div><label>Justificante (foto o PDF)</label><label class="btn sec" style="display:inline-flex">📎 Adjuntar<input id="pjus" type="file" accept="image/*,application/pdf" data-fp="1" hidden></label>
+          <div class="sm" id="pjusl">${justifs.map((j, i) => `<span class="jusp">📎 ${esc(j.nombre)} <button type="button" class="lnk" data-jx="${i}" aria-label="Quitar ${esc(j.nombre)}">quitar</button></span>`).join(' ')}</div></div>
+      </div>
+      <div class="envbox">
+        <label for="pserv" style="margin-top:0">Servicio</label>
+        <select id="pserv"><option value="">Sin servicio</option>${SERVICIOS.filter(x => x.activo || x.id === form.servicio_id).map(x =>
+          `<option value="${x.id}" ${form.servicio_id === x.id ? 'selected' : ''}>${esc(x.nombre)} · ${eurI(x.pvp || 0)} con IVA</option>`).join('')}</select>
+        <input type="checkbox" id="penv" class="hide" ${form.envio ? 'checked' : ''}>
+        <div class="g2 ${form.envio ? '' : 'hide'}" id="penvd">
+          <div><label for="penvi">Importe del servicio con IVA (€)</label><input id="penvi" type="number" step="0.01" min="0" value="${esc(form.envio_con)}"></div>
+          <div><label for="penvv">IVA del servicio (%)</label><input id="penvv" type="number" step="1" min="0" max="21" value="${esc(form.envio_iva)}"></div></div>
+      </div>
+      <div class="totbox" id="ptot"></div>
+      <label for="pnota">Nota</label><input id="pnota" value="${esc(form.nota)}">
+      <div class="acts" style="justify-content:flex-end">
+        <button class="btn sec" data-cerrar>Cancelar</button>
+        <button class="btn sec ${ped && ped.estado === 'Confirmado' ? 'hide' : ''}" id="pborr">Guardar borrador</button>
+        <button class="btn" id="pvalid">${ped && ped.estado === 'Confirmado' ? 'Guardar cambios' : 'Guardar y confirmar'}</button></div>`;   // v2.322.0
+
+    const desglose = () => {
+      if ($('psincargo') && $('psincargo').checked) lineas.forEach(l => { l.descuento = 100; });   // v2.317.0
+      lineas.forEach((l, i) => {
+        const d = lineaDesglose(l), el = $('plineas').querySelector(`[data-des="${i}"]`);
+        if (el) el.innerHTML = `<span>Base <b>${eurI(d.base)}</b></span><span>IVA ${num(l.iva || 0)}% <b>${eurI(d.iva)}</b></span><span>Total <b>${eurI(d.total)}</b></span>
+          ${prod(l.producto_id).precio != null ? `<span>Precio unidad ${eurI(prod(l.producto_id).precio * (1 + (+prod(l.producto_id).iva || 0) / 100))} con IVA</span>` : ''}${prod(l.producto_id).contrato ? `<span class="pill p-est" title="${esc(prod(l.producto_id).contrato)}">Precio de concurso</span>` : ''}`;
+      });
+      $('penvd').classList.toggle('hide', !$('penv').checked);
+      $('ptot').innerHTML = bloqueTotales(totalesPedido(lineas, +$('pdto').value || 0, $('pdtot').value,
+        { on: $('penv').checked, con: +$('penvi').value || 0, iva: +$('penvv').value || 0,
+          nombre: ((SERVICIOS.find(x => x.id === $('pserv').value) || {}).nombre) || 'Servicio' }));
+    };
+
+    $('plineas').oninput = $('plineas').onchange = e => {
+      const box = e.target.closest('[data-li]'); if (!box) return;
+      const l = lineas[+box.dataset.li], f = e.target.dataset.f;
+      if (!f) return;
+      l[f] = f === 'producto_id' ? e.target.value : (e.target.value === '' ? null : +e.target.value);
+      if (f === 'importeiva') { l.importe = e.target.value === '' ? null : +e.target.value / (1 + (+l.iva || 0) / 100); delete l.importeiva; l.manual = true; }
+      if (f === 'producto_id') { l.manual = false; l.iva = prod(l.producto_id).iva || 0; }
+      if (f === 'producto_id' || f === 'unidades') {
+        autoImporte(l);
+        box.querySelector('[data-f="importeiva"]').value = l.importe != null ? r2(l.importe * (1 + (+l.iva || 0) / 100)) : '';
+      }
+      desglose();
+    };
+    $('plmas').onclick = () => { lineas.push({ producto_id: productoPorDefecto(), unidades: 1, descuento: 0 }); autoImporte(lineas[lineas.length - 1]); pinta(); };
+    $('plineas').querySelectorAll('[data-lx]').forEach(b => b.onclick = () => { lineas.splice(+b.dataset.lx, 1); pinta(); });
+    $('pcan').onchange = () => $('zonapac').classList.toggle('escentro', $('pcan').value === 'centro');
+    $('ppago').onchange = () => { $('ppagox').classList.toggle('hide', !$('ppago').value); $('ptrfbox').classList.toggle('hide', !esTransferencia($('ppago').value) || !!(ped && ped.estado === 'Confirmado'));
+      $('ptpvbox').classList.toggle('hide', !(tpvActivo() && esPagoTpv($('ppago').value)) || !!(ped && ped.estado === 'Confirmado')); };   // v2.314.0 y v2.333.0
+    $('pjus').onchange = async e => {
+      const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+      const j = await leerJustificante(f); if (!j) return;
+      justifs.push(j); pinta();
+    };
+    $('dbody').querySelectorAll('[data-jx]').forEach(b => b.onclick = () => { justifs.splice(+b.dataset.jx, 1); pinta(); });
+    ['pdto', 'pdtot', 'penv', 'penvi', 'penvv'].forEach(id => $(id).oninput = $(id).onchange = desglose);
+    $('pserv').onchange = () => {
+      const sv = SERVICIOS.find(x => x.id === $('pserv').value);
+      $('penv').checked = !!sv;
+      if (sv) { $('penvi').value = r2(sv.pvp || 0); $('penvv').value = sv.iva != null ? sv.iva : 21; }
+      desglose();
+    };
+    desglose();
+
+    // v2.200.0: al cambiar de ficha, los precios de su contrato (si lo hay) en las líneas que no se han tocado a mano
+    const precios = () => cargarPreciosContrato(medico && medico.id).then(c => { if (c) { lineas.forEach(l => { if (!l.manual) autoImporte(l); }); pinta(); } });
+    const montarMed = () => {
+      $('pselmed').__texto = medico ? '' : form.cuenta_texto;
+      selectorMedico($('pselmed'), { valor: medico, placeholder: 'Nombre, código, centro o municipio', alElegir: m => { medico = m; precios(); } });
+    };
+    selectorPaciente($('pselpac'), { valor: contacto, alElegir: c => {
+      contacto = c;
+      if (c && !medico && c.cuenta_id) { medico = { id: c.cuenta_id, nombre: c.medico, codigo: c.medico_codigo }; montarMed(); precios(); }
+    } });
+    montarMed();
+
+    const guardar = async (estado, btn, o = {}) => {
+      if (!lineas.some(l => l.producto_id)) { toast('Añade al menos un producto', true); return; }
+      const cps = camposLeer($('dbody'));
+      if (cps && cps.falta.length) { toast(`Rellena «${cps.falta[0]}»`, true); return; }
+      let trfVal = false;   // v2.314.0: con transferencia, el pedido puede esperar al pago en borrador
+      const sc = !!($('psincargo') && $('psincargo').checked);   // v2.317.0: entrega sin cargo
+      const yaVal = !!(ped && ped.estado === 'Confirmado');   // v2.322.0: validado y sin factura: se guarda tal cual, sin volver a preguntar
+      // v2.333.0: con tarjeta o Bizum (y el cobro activo) se elige: enviar el enlace (el pedido espera al pago en borrador y se confirma solo
+      // al pagar) o validar ya (cobrado de otra forma). Sin móvil del cliente, se confirma como siempre y se avisa.
+      let tpvSinMovil = false;
+      if (!sc && !yaVal && estado === 'Confirmado' && !o.alGuardar && tpvActivo() && esPagoTpv($('ppago').value)) {
+        if (!await tpvMovilDe(contacto)) tpvSinMovil = true;
+        else {
+          const v = await elegirOpcion('Pago con tarjeta o Bizum', `Se le puede enviar por SMS el enlace de pago: el pedido espera en borrador y, cuando paga, se confirma solo y queda cobrado. Si ya lo habéis cobrado de otra forma, valídalo ya.`,
+            [{ k: 'no', t: 'Cancelar', cls: 'sec' }, { k: 'validar', t: 'Confirmar ya', cls: 'sec' }, { k: 'enlace', t: 'Enviar enlace de pago' }]);
+          if (!v) return;
+          if (v === 'enlace') { estado = 'Borrador'; o = Object.assign({}, o, { alGuardar: tpvTrasGuardar }); } else trfVal = true;
+        }
+      }
+      if (!medico && contacto && contacto.id && !$('zonapac').classList.contains('escentro')) {   // v2.329.0
+        const { data: kc } = await db.from('contactos').select('cuenta_id, cuenta_por_pedido').eq('id', contacto.id).maybeSingle();
+        if (kc && kc.cuenta_id && !kc.cuenta_por_pedido) medico = { id: kc.cuenta_id, nombre: contacto.medico || '' };
+      }
+      if (sc && !medico && !await preguntar(`Sin ${TT('medico', 's', '', 'l', 'l')} de referencia, estas unidades no cuentan a nadie.`, { titulo: 'Entrega sin cargo', ok: 'Guardar igualmente' })) return;
+      if (!sc && !yaVal && estado === 'Confirmado' && esTransferencia($('ppago').value)) {
+        const v = await elegirOpcion('Pago por transferencia', 'Este pedido se puede guardar en borrador hasta que llegue el pago: no cuenta en métricas ni comisiones y aún se puede cambiar. Cuando llegue la transferencia, lo confirmas desde el pedido.',
+          [{ k: 'no', t: 'Cancelar', cls: 'sec' }, { k: 'validar', t: 'Confirmar ya', cls: 'sec' }, { k: 'borrador', t: 'Guardar en borrador' }]);
+        if (!v) return;
+        if (v === 'borrador') estado = 'Borrador'; else trfVal = true;
+      }
+      if (estado === 'Confirmado' && !trfVal && !yaVal && !await preguntar('Una vez confirmado, el pedido cuenta en métricas y comisiones y ya no se puede editar ni eliminar: solo anular.',
+        { titulo: '¿Confirmar el pedido?', ok: 'Confirmar' })) return;
+      btn.disabled = true; const txt = btn.textContent; btn.textContent = 'Guardando…';
+      const { data: r, error } = await db.rpc('guardar_pedido', { p: {
+        id: ped ? ped.id : null, estado,
+        fecha: $('pfecha').value, canal: $('pcan').value,
+        cuenta_id: medico ? medico.id : null, cuenta_texto: medico ? '' : ($('pselmed').__texto || '').trim(),
+        contacto_id: contacto ? contacto.id : null, nota: $('pnota').value.trim(),
+        forma_pago: $('ppago').value || null, origen: $('porig').value, pago_referencia: $('ppago').value ? $('pref').value.trim() : '',
+        descuento: +$('pdto').value || 0, descuento_tipo: $('pdtot').value,
+        envio: $('penv').checked, envio_con_iva: +$('penvi').value || 0, envio_iva: +$('penvv').value || 0, servicio_id: $('pserv').value || null,
+        sin_cargo: sc,
+        lineas: lineas.filter(l => l.producto_id).map(l => ({ producto_id: l.producto_id, unidades: l.unidades || 1,
+          importe: l.importe, descuento: l.descuento || 0, iva: l.iva })),
+        op_id: 'p-' + Date.now()
+      }});
+      btn.disabled = false; btn.textContent = txt;
+      if (error || (r && r.ok === false)) {
+        toast(r && r.error === 'facturado' ? 'Ese pedido ya tiene factura: para cambiarlo, haz una rectificativa' : r && r.error === 'validado' ? 'Ese pedido ya no se puede editar'
+          : 'No se ha podido guardar: ' + ((error && error.message) || 'sin permiso'), true);
+        return;
+      }
+      if (cps && !(await camposGuardar(cps, (r && r.id) || (ped && ped.id)))) return;
+      {   // v2.328.0: reportar al profesional solo si se marca (por defecto, no)
+        const rid = (r && r.id) || (ped && ped.id), rep = !!($('prepprof') && $('prepprof').checked) && !$('zonapac').classList.contains('escentro');
+        if (rid && (rep || (ped && ped.reportar_profesional))) {
+          const { data: mr, error: me } = await db.rpc('marcar_reporte', { p_id: rid, p_valor: rep });
+          if (me || (mr && mr.ok === false)) toast('El pedido se ha guardado, pero no se ha podido cambiar «Reportar»', true);
+        }
+      }
+      if (justifs.length && !(await subirJustificantes((r && r.id) || (ped && ped.id), justifs))) return;
+      $('dlg').close();
+      if (o.alGuardar) { await o.alGuardar((r && r.id) || (ped && ped.id)); return; }   // v2.314.0
+      toast(yaVal ? 'Pedido actualizado' : sc ? (estado === 'Borrador' ? 'Entrega sin cargo guardada en borrador' : 'Entrega sin cargo confirmada') : estado === 'Borrador' ? (esTransferencia($('ppago').value) ? 'Guardado en borrador hasta que llegue el pago' : 'Borrador guardado') : (medico ? 'Pedido confirmado y atribuido' : 'Pedido confirmado · pendiente de atribuir'));
+      if (tpvSinMovil) toast(`Pedido confirmado. Sin móvil ${TT('paciente', 's', 'del', 'l', 'l')} no se puede enviar el enlace de pago: cóbralo como siempre`);   // v2.333.0
+      if (estado === 'Borrador' && ped && ped.id) tpvAvisoImporte(ped.id);
+      if (TAB === 'ventas') cargarVentas();
+      if (TAB === 'pacientes') listaPacientes();
+      if ($('ficha').open && FICHA_PAC) fichaPaciente(FICHA_PAC);
+    };
+    $('pborr').onclick = e => guardar('Borrador', e.target);
+    $('psincargo').onchange = () => { leerForm(); lineas.forEach(l => { l.descuento = form.sin_cargo ? 100 : 0; }); pinta(); };   // v2.317.0
+    $('ptrfmail').onclick = e => {   // v2.314.0: guarda en borrador y envía los datos de pago
+      if (!contacto) { toast(`Elige ${TT('paciente', 's', 'el', 'l', 'l')} para enviarle los datos de pago`, true); return; }
+      if (!((AJUSTES.empresa || {}).iban || '').trim()) { toast('Falta el IBAN: ponlo en Configuración → Facturación → Datos fiscales antes de enviar los datos de pago', true); return; }
+      guardar('Borrador', e.target, { alGuardar: async id => { await enviarDatosPago(id); verPedido(id); if (TAB === 'ventas') cargarVentas(); } });
+    };
+    $('ptpvenv').onclick = async e => {   // v2.333.0: guarda en borrador y envía el enlace de pago
+      if (!contacto) { toast(`Elige ${TT('paciente', 's', 'el', 'l', 'l')} para enviarle el enlace de pago`, true); return; }
+      if (!await tpvMovilDe(contacto)) { toast(`${TT('paciente', 's', '', 'l', 'C')} no tiene móvil: añádelo en su ficha para enviarle el enlace de pago`, true); return; }
+      guardar('Borrador', e.target, { alGuardar: tpvTrasGuardar });
+    };
+    $('pvalid').onclick = e => guardar('Confirmado', e.target);
+    // Campos personalizados del pedido: se conservan al repintar
+    if ((CAMPOS.pedido || []).some(c => c.en_ficha) && $('pnota')) {
+      const poner = () => { if ($('dbody').querySelector('.cpersform')) return;
+        $('pnota').insertAdjacentHTML('afterend', camposHTML('pedido', cpPed));
+        $('dbody').querySelector('.cpersform').addEventListener('input', e => { const i = e.target.closest('[data-cpk]'); if (i) cpPed[i.dataset.cpk] = i.value; });
+        $('dbody').querySelector('.cpersform').addEventListener('change', e => { const i = e.target.closest('[data-cpk]'); if (i) cpPed[i.dataset.cpk] = i.value; }); };
+      if (cpPed) poner();
+      else if (ped && ped.id) db.from('pedidos').select('clasificadores').eq('id', ped.id).maybeSingle().then(({ data }) => { cpPed = Object.assign({}, (data && data.clasificadores) || {}); poner(); });
+      else { cpPed = {}; poner(); }
+    }
+  };
+  let cpPed = null;
+  pinta();
+  $('dlg').showModal();
+}
+
+/* Parte base; verPedido le añade el resto */
+async function verPedidoBaseBase(id) {
+  cargando($('dbody'), 'Abriendo el pedido…');
+  $('dlg').showModal();
+  const { data, error } = await RPC_ORIG('pedido_detalle', { p_id: id });
+  if (error || !data || !data.pedido) { $('dbody').innerHTML = `<div class="vacio">${esc(error ? error.message : 'No se ha encontrado el pedido.')}</div>`; return; }
+  const p = data.pedido, l = data.lineas || [], c = data.contacto;
+  const t = totalesPedido(l, +p.descuento || 0, p.descuento_tipo,
+    { on: !!p.envio, con: r2(+p.envio_base * (1 + (+p.envio_iva || 0) / 100)), iva: +p.envio_iva || 0,
+      nombre: ((SERVICIOS.find(x => x.id === p.servicio_id) || {}).nombre) || 'Envío' });
+  const bor = p.estado === 'Borrador', anulado = p.estado === 'Anulado';
+
+  $('dbody').innerHTML = `
+    <div class="fh pdcab"><div class="pdcabt"><h2>Pedido${p.numero ? ' ' + esc(p.numero) : ''}</h2>${pillEstado(p.estado)}${pillCobroPed(p)}
+      <span class="sm pdmeta">${fechaCorta(p.fecha)} · ${etiquetaCanal(p, t.total)}${p.forma_pago ? ' · ' + esc(p.forma_pago) : ''}</span></div>
+      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
+    ${bor ? '<div class="cacheaviso" style="margin-top:10px">Borrador: todavía no cuenta en métricas ni en comisiones.</div>' : ''}
+    ${c ? `<div class="blk"><h3>${TT('paciente', 's', '', 'l', 'C')}</h3><div><b>${esc(c.nombre)}</b></div>
+      <div class="sm">${esc(c.telefono || c.movil || '')} ${esc(c.email || '')}</div>
+      <div class="acts"><button class="btn sec" data-vpac="${c.id}">Ver ficha ${TT('paciente', 's', 'del', 'l', 'l')}</button></div></div>` : ''}
+    ${data.medico ? `<div class="blk"><h3>${TT('medico', 's', '', 'l', 'C')}</h3><div><b>${esc(data.medico.nombre)}</b> <span class="sm">· código ${esc(data.medico.codigo)}</span></div>
+      ${l[0] && l[0].comercial ? `<div class="sm">Comercial: ${esc(l[0].comercial)}</div>` : ''}</div>` : ''}
+    <div class="blk"><h3>Líneas</h3>
+      ${l.map(x => { const d = lineaDesglose(x); return `<div style="display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid var(--line)">
+        <span><b>${esc(x.producto || 'Sin producto')}</b> · ${num(x.unidades)} uds.
+          <div class="sm">Base ${eurI(d.base)}${+x.descuento ? ` (dto. ${num(x.descuento)}%)` : ''} · IVA ${num(x.iva || 0)}% ${eurI(d.iva)}</div></span>
+        <b style="white-space:nowrap">${eurI(d.total)}</b></div>`; }).join('') || '<div class="sm">Sin líneas.</div>'}
+      <div class="totbox">${bloqueTotales(t)}</div></div>
+    ${p.nota ? `<div class="blk"><h3>Nota</h3><div>${esc(p.nota)}</div></div>` : ''}
+    <div class="acts" style="justify-content:flex-end">
+      ${puedeVentas() && bor ? `<button class="btn sec dang" id="pdborrar">Eliminar borrador</button>
+        <button class="btn sec" id="pdeditar">Editar</button>
+        <button class="btn" id="pdvalidar">Confirmar pedido</button>` : ''}
+      ${puedeVentas() && !bor && !anulado ? (p.factura_id ? '<button class="btn sec" id="pdeditnf">Editar datos</button>' : '<button class="btn sec" id="pdeditar">Editar pedido</button>') : ''}
+      ${puedeVentas() && !bor && !anulado ? '<button class="btn sec dang" id="pdanular">Anular pedido</button>' : ''}
+      <button class="btn sec" data-cerrar>Cerrar</button></div>`;
+
+  const vp = $('dbody').querySelector('[data-vpac]');
+  if (vp) vp.onclick = () => { $('dlg').close(); fichaPaciente(vp.dataset.vpac); };
+  if ($('pdeditar')) $('pdeditar').onclick = () => editorPedido(data);
+  if ($('pdeditnf')) $('pdeditnf').onclick = () => editarPedidoNoFiscal(data);   // v2.307.0
+  if ($('pdborrar')) $('pdborrar').onclick = async () => {
+    if (!await preguntar('El borrador desaparece por completo.', { titulo: '¿Eliminar el borrador?', ok: 'Eliminar', peligro: true })) return;
+    const { data: r, error: e } = await db.rpc('borrar_pedido', { p_id: id });
+    if (e || (r && r.ok === false)) { toast(r && r.error === 'validado' ? 'Solo se pueden eliminar borradores' : 'No se ha podido eliminar', true); return; }
+    $('dlg').close(); toast('Borrador eliminado'); if (TAB === 'ventas') cargarVentas();
+  };
+  if ($('pdvalidar')) $('pdvalidar').onclick = async e => {
+    if (!await preguntar((e.target.dataset.pago ? 'Se anota el pago como recibido. ' : '') + 'Una vez confirmado, el pedido cuenta en métricas y comisiones y ya no se puede editar ni eliminar: solo anular.',
+      { titulo: '¿Confirmar el pedido?', ok: 'Confirmar' })) return;
+    e.target.disabled = true;
+    const { data: r, error: er } = await db.rpc('guardar_pedido', { p: {
+      id, estado: 'Confirmado', fecha: p.fecha, canal: p.canal, contacto_id: p.contacto_id, centro_id: p.centro_id,
+      cuenta_id: data.medico ? data.medico.id : null, cuenta_texto: p.cuenta_texto, nota: p.nota, forma_pago: p.forma_pago, pago_referencia: p.pago_referencia || '',
+      descuento: p.descuento || 0, descuento_tipo: p.descuento_tipo,
+      envio: !!p.envio, envio_con_iva: p.envio ? r2(+p.envio_base * (1 + (+p.envio_iva || 0) / 100)) : 0, envio_iva: p.envio_iva, servicio_id: p.servicio_id,
+      lineas: l.map(x => ({ producto_id: x.producto_id, unidades: x.unidades, importe: x.importe, descuento: x.descuento, iva: x.iva })) } });
+    e.target.disabled = false;
+    if (er || (r && r.ok === false)) { toast('No se ha podido confirmar: ' + ((er && er.message) || (r && r.error) || ''), true); return; }
+    if (e.target.dataset.pago) await db.rpc('marcar_operativa', { p_pedido: id, p_campo: 'pago', p_hecho: true });   // v2.314.0
+    toast(e.target.dataset.pago ? 'Pedido confirmado y cobrado' : 'Pedido confirmado'); verPedido(id); if (TAB === 'ventas') cargarVentas();
+  };
+  if ($('pdanular')) $('pdanular').onclick = async () => {
+    const motivo = await pedirTexto('Motivo de la anulación (opcional)', '', { titulo: '¿Anular el pedido?', ok: 'Anular' });
+    if (motivo === null) return;
+    const { data: r, error: er } = await db.rpc('anular_pedido', { p_id: id, p_motivo: motivo || null });
+    if (er || (r && r.ok === false)) { toast(r && r.error === 'facturado' ? 'Tiene factura: emite antes una rectificativa de toda la factura y marca «Anular también el pedido»' : 'No se ha podido anular: ' + ((er && er.message) || (r && r.error) || ''), true); return; }
+    $('dlg').close(); toast('Pedido anulado'); if (TAB === 'ventas') cargarVentas();
+  };
+}
+
+// Desde el pedido: la ficha del cliente se abre como panel encima, sin cerrar el pedido
+async function verPedidoBase(...a) {
+  const r = await verPedidoBaseBase.apply(this, a);
+  const vp = $('dbody').querySelector('[data-vpac]');
+  if (vp) vp.onclick = () => fichaPaciente(vp.dataset.vpac);
+  return r;
+}
+
+// Aviso arriba si hay un cobro pendiente o la cuenta está en solo lectura
+function pagoAvisoBase() {
+  const e = PAGO_ESTADO || {}, pl = e.plan || {}; let el = $('pagoaviso');
+  const msg = e.solo_lectura ? 'Tu empresa está en <b>solo lectura</b> porque hay un pago pendiente. Puedes consultar y exportar; para volver a trabajar, actualiza el pago.'
+    : pl.estado === 'impago' ? 'No hemos podido cobrar tu suscripción. Actualiza el método de pago antes de 14 días para no quedarte en solo lectura.' : '';
+  if (!msg) { if (el) el.remove(); return; }
+  const main = document.querySelector('main'); if (!main) return;
+  if (!el) { main.insertAdjacentHTML('afterbegin', '<div id="pagoaviso" class="banda-peligro" role="alert"></div>'); el = $('pagoaviso'); }
+  el.innerHTML = msg + (puedeOrganizacion() ? ' <button type="button" class="btn sec" id="pgavbtn">Gestionar el pago</button>' : ' Avisa a quien gestiona la cuenta de tu empresa.');
+  if ($('pgavbtn')) $('pgavbtn').onclick = ev => pagoPortal(ev.target);
+}
+
+// En los 7 últimos días de la prueba, aviso arriba (no tapa los de impago o solo lectura)
+function pagoAviso(...a) {
+  const r = pagoAvisoBase.apply(this, a);
+  const pl = (PAGO_ESTADO || {}).plan || PLAN_ACTUAL || {}, n = diasHasta(pl.periodo_fin);
+  let el = $('pruebaaviso');
+  const ver = pl.en_prueba && !pl.baja_al_final && n != null && n >= 0 && n <= 7 && !$('pagoaviso') && puedeOrganizacion();
+  if (!ver) { if (el) el.remove(); return r; }
+  const main = document.querySelector('main'); if (!main) return r;
+  if (!el) { main.insertAdjacentHTML('afterbegin', '<div id="pruebaaviso" class="banda-info" role="status"></div>'); el = $('pruebaaviso'); }
+  el.innerHTML = `Tu prueba termina ${n === 0 ? 'hoy' : n === 1 ? 'mañana' : `en ${n} días`} (${fechaCorta(pl.periodo_fin)}): ese día se pasa el primer recibo.
+    Revisa que tus datos de facturación están bien. <button type="button" class="btn sec" id="pruebaver">Revisar mis datos</button>`;
+  $('pruebaver').onclick = () => ir('plan');
+  return r;
+}
+
+async function editorPedido(pedido, ...a) {
+  const ped = pedido && pedido.pedido ? pedido.pedido : null;
+  PED_DIST = { on: !!(ped && ped.distribuidor_id), id: (ped && ped.distribuidor_id) || '', codigo: (ped && ped.distribuidor_codigo) || '',
+    factura: ped && ped.distribuidor_id ? !!ped.factura_distribuidor : true };
+  await cargarDistribuidores().catch(() => []);
+  return editorPedidoBase.call(this, pedido, ...a);
+}
+
+function pkContarBase(els, fmt) {
+  if (!pkMovimiento()) { els.forEach(el => el.textContent = fmt(+el.dataset.v, el)); return; }
+  const t0 = performance.now();
+  const paso = t => { const p = Math.min(1, (t - t0) / 900), e = 1 - Math.pow(1 - p, 3); els.forEach(el => { if (el.isConnected) el.textContent = fmt(+el.dataset.v * e, el); }); if (p < 1) requestAnimationFrame(paso); };
+  requestAnimationFrame(paso);
+}
+
+function pkContar(els, fmt) {
+  if (plYaContado('pk' + els.length, els.map(e => e.dataset.v))) { els.forEach(el => el.textContent = fmt(+el.dataset.v, el)); return; }
+  return pkContarBase(els, fmt);
+}
+
+async function pintarDistribuidoresBase() {
+  const c = $('cfgcuerpo'); if (!c) return;
+  cargando(c, 'Cargando los distribuidores…');
+  const { data, error } = await db.from('distribuidores').select('id,nombre,email,telefono,nota,activo').order('nombre');
+  if (!$('cfgcuerpo') || CFG_KEY !== 'distribuidores') return;
+  if (error) { c.innerHTML = `<div class="card"><p class="sm">No se han podido leer los distribuidores: ${esc(error.message)}</p></div>`; return; }
+  DIS_TODOS = data || [];
+  const fila = d => `<div class="ajfila disfila${d.activo ? '' : ' disoff'}" data-disid="${d.id}">
+      <div><b>${esc(d.nombre)}${d.activo ? '' : ' <span class="pill">No se usa</span>'}</b>
+        <span class="sm">${[d.email, d.telefono].filter(Boolean).map(esc).join(' · ') || 'Sin correo ni teléfono'}${d.nota ? ' · ' + esc(d.nota) : ''}</span></div>
+      <div class="ajctl"><button type="button" class="btn sec" data-dised="${d.id}">Editar</button>
+        <button type="button" class="btn sec" data-disact="${d.id}">${d.activo ? 'Dejar de usar' : 'Volver a usar'}</button></div></div>`;
+  const act = DIS_TODOS.filter(d => d.activo), off = DIS_TODOS.filter(d => !d.activo);
+  c.innerHTML = `<div class="card disw">
+      <div class="discab"><p class="sm">Mayoristas o depósitos que sirven pedidos a vuestros clientes. Al hacer un pedido se elige si lo servís vosotros o uno de ellos; el suyo no descuenta stock de vuestro almacén.</p>
+        <button type="button" class="btn" id="disnuevo">+ Nuevo distribuidor</button></div>
+      ${DIS_TODOS.length ? act.map(fila).join('') + (off.length ? `<h3 class="dissub">Que ya no se usan</h3>` + off.map(fila).join('') : '')
+        : '<p class="vacio" id="disvacio">Todavía no hay distribuidores.</p>'}</div>`;
+  $('disnuevo').onclick = () => editarDistribuidor(null);
+  c.querySelectorAll('[data-dised]').forEach(b => b.onclick = () => editarDistribuidor(DIS_TODOS.find(d => d.id === b.dataset.dised)));
+  c.querySelectorAll('[data-disact]').forEach(b => b.onclick = async () => {
+    const d = DIS_TODOS.find(x => x.id === b.dataset.disact); if (!d) return;
+    if (d.activo && !await preguntar('No saldrá al hacer pedidos nuevos. Los pedidos que ya sirvió siguen diciendo que fue él.', { titulo: `¿Dejar de usar ${d.nombre}?`, ok: 'Dejar de usar' })) return;
+    b.disabled = true;
+    const { error } = await db.from('distribuidores').update({ activo: !d.activo }).eq('id', d.id);
+    if (error) { b.disabled = false; toast('No se ha podido cambiar: ' + error.message, true); return; }
+    toast(d.activo ? 'Ya no se usa' : 'Se vuelve a usar');
+    await cargarDistribuidores(true).catch(() => []);
+    pintarDistribuidores();
+  });
+}
+
+// Distribuidores: los transfers de cada uno
+async function pintarDistribuidores(...a) {
+  const r = await pintarDistribuidoresBase.apply(this, a);
+  const c = $('cfgcuerpo'); if (!c || CFG_KEY !== 'distribuidores') return r;
+  c.querySelectorAll('.disfila[data-disid] .ajctl').forEach(x => {
+    if (x.querySelector('[data-distrf]')) return;
+    x.insertAdjacentHTML('afterbegin', `<button type="button" class="btn sec" data-distrf="${x.closest('.disfila').dataset.disid}">Transfers</button>`);
+  });
+  c.querySelectorAll('[data-distrf]').forEach(b => b.onclick = () => verTransfers(b.dataset.distrf));
+  return r;
+}
+
+async function enviarDatosPagoBase(id) {
+  if (!((AJUSTES.empresa || {}).iban || '').trim()) { toast('Falta el IBAN: ponlo en Configuración → Facturación → Datos fiscales antes de enviar los datos de pago', true); return false; }
+  const { data } = await RPC_ORIG('pedido_detalle', { p_id: id });
+  const p = data && data.pedido; if (!p) { toast('No se ha encontrado el pedido', true); return false; }
+  const cli = data.contacto || {}, total = +((data.totales || {}).total || 0);
+  if (!cli.email) { toast(`${TT('paciente', 's', '', 'l', 'C')} no tiene email en su ficha`, true); return false; }
+  const asunto = asuntoEmailPago(p, total, cli.nombre), texto = textoEmailPago(p, total, cli.nombre);
+  const { data: r, error } = await db.functions.invoke('enviar_email', { body: { para: cli.email, asunto, texto, pedido_id: id, marca: 'email_pago' } });
+  if (!error && r && r.ok) { toast('Datos de pago enviados · el pedido espera al pago en borrador'); return true; }
+  location.href = `mailto:${cli.email}?subject=${encodeURIComponent(asunto)}&body=${encodeURIComponent(texto)}`;   // sin envío directo: el correo del dispositivo
+  if (await preguntar('¿Has enviado el email con los datos de pago?', { titulo: 'Email de pago', ok: 'Sí, marcar como enviado' }))
+    await db.rpc('marcar_operativa', { p_pedido: id, p_campo: 'email_pago', p_hecho: true });
+  return true;
+}
+
+async function enviarDatosPago(id, ...a) {
+  if (!await elegirPlantillaCorreo('pago')) return false;
+  try { return await enviarDatosPagoBase.call(this, id, ...a); } finally { PLANT_ELEGIDA.pago = null; }
+}
 // pantallas/portal.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -13429,6 +15681,141 @@ const pcPct = v => (Math.round(v * 1000) / 10).toLocaleString('es-ES', { minimum
    ============================================================ */
 const PM_PER_TXT = { hoy: 'Hoy', ayer: 'Ayer', semana: 'Esta semana', '7d': 'En los últimos 7 días', mes: 'Este mes', mesant: 'El mes pasado',
   tri: 'Este trimestre', triant: 'El trimestre pasado', anio: 'Este año', anioant: 'El año pasado', todo: 'En total', pers: 'En estas fechas' };
+
+// ——— Lado del médico ———
+async function portalMedicoBase() {
+  // Al arrancar, «Mi informe» se pinta antes de leerse el final de este archivo y antes de tener el plan: se espera a los dos
+  try { void MOTIVO_PORTAL; void PLAN_ACTUAL; } catch (e) { setTimeout(portalMedico, 300); return; }
+  if (!('estado' in PLAN_ACTUAL)) { const { data } = await RPC_ORIG('plan_uso', {}); if (data && data.plan) PLAN_ACTUAL = data.plan; }
+  if (!ES_MEDICO() || !hayExtra('portal') || !$('v-informe')) return;
+  let caja = $('mdportal');
+  if (!caja) { $('v-informe').insertAdjacentHTML('beforeend', '<div id="mdportal" class="angrid"></div>'); caja = $('mdportal'); }
+  const [{ data: c }, { data: perm }, { data: sols }, { data: msgs }] = await Promise.all([
+    puede('portal_centro') ? Promise.resolve({ data: null }) : RPC_ORIG('constancia_pacientes', { p_meses: 12 }), RPC_ORIG('portal_material_permitido', {}),
+    db.from('solicitudes_material').select('id,material,cantidad,nota,estado,creado_en,cerrado_en').order('creado_en', { ascending: false }).limit(20),
+    db.from('mensajes_cuenta').select('id,texto,del_portal,creado_en,leido_en').order('creado_en', { ascending: true }).limit(200)]);
+  caja = $('mdportal'); if (!caja) return;   // v2.318.0: si se ha vuelto a pintar mientras llegaban los datos, la caja de ahora
+  const pac = TT('paciente', 'p', '', 'l', 'l'), k = c || {};
+  const pct = (a, b) => b ? Math.round(a / b * 100) + '%' : '—';
+  const constancia = !k.ok ? '<div class="sm">No disponible.</div>' : k.pocos
+    ? `<p class="sm" style="padding:0 16px">En los últimos ${num(k.meses || 12)} meses han empezado ${num(k.empezaron)} ${pac}. A partir de ${num(k.minimo || 5)} verás aquí su constancia (con menos no se muestra, para que nadie pueda reconocerlos).</p>`
+    : `<div class="minis cons">
+        <div><b>${num(k.empezaron)}</b><span>empezaron</span></div>
+        <div><b>${pct(k.repiten, k.empezaron)}</b><span>repiten (${num(k.repiten)})</span></div>
+        <div><b>${k.dias_entre ? num(k.dias_entre) + ' días' : '—'}</b><span>entre pedidos</span></div>
+        <div><b>${num(k.dejaron)}</b><span>lo dejaron tras el primero</span></div>
+        <div><b>${num(k.sin_pedir)}</b><span>llevan más de 60 días sin pedir</span></div></div>
+      ${(k.por_producto || []).length ? barrasH(k.por_producto.map(x => ({ n: x.producto, v: Math.round(x.repiten / x.pacientes * 100) })), v => v + '% repiten') : ''}`;
+  const lp = Array.isArray(perm) ? perm : [];
+  const ls = sols || [], lm = msgs || [];
+  caja.innerHTML = `
+    <div class="card ancard ancha" id="mdcons"><h2>Continuidad de las ${TT('pauta', 'p', '', 'l', 'l')}</h2>${constancia}
+      <p class="leer">En los últimos 12 meses: cuántas ${TT('pauta', 'p', '', 'l', 'l')} han empezado, qué parte se ha repetido y cada cuántos días.</p></div>
+    <div class="card ancard" id="mdmat"><h2>Pedir material</h2>
+      ${lp.length ? `<div class="g2"><div><label for="mdmatm">Material</label><select id="mdmatm">${lp.map(x => `<option value="${esc(x.valor)}" data-max="${x.max}">${esc(x.valor)}</option>`).join('')}</select></div>
+        <div><label for="mdmatn">Cantidad</label><input id="mdmatn" type="number" min="1" value="1"><span class="sm" id="mdmatmax">Máximo ${num(lp[0].max)} por petición</span></div></div>
+        <label for="mdmatt">Nota para tu comercial</label><input id="mdmatt" placeholder="Opcional">
+        <div class="acts" style="justify-content:flex-start"><button type="button" class="btn" id="mdmatok">Pedir</button></div>`
+      : '<p class="sm" style="padding:0 16px">Tu empresa todavía no ofrece material para pedir.</p>'}
+      ${ls.length ? `<div class="lista" id="mdmatl">${ls.map(x => `<div class="item" style="cursor:default"><span class="tx"><b>${num(x.cantidad)} × ${esc(x.material)}</b>
+          <span class="sm">${horaCorta(x.creado_en)}${x.nota ? ' · ' + esc(x.nota) : ''}</span></span>${pillMaterial(x.estado)}
+          ${x.estado === 'Pendiente' ? `<button type="button" class="btn sec chico" data-mdanu="${x.id}">Anular</button>` : ''}</div>`).join('')}</div>` : ''}</div>
+    <div class="card ancard" id="mdmsg"><h2>Dudas a tu comercial</h2>
+      <div id="mdhilo">${hiloMensajes(lm, true)}</div>
+      <textarea id="mdmsgt" rows="2" placeholder="Escribe tu duda" aria-label="Tu mensaje"></textarea>
+      <div class="acts" style="justify-content:flex-start"><button type="button" class="btn" id="mdmsgok">Enviar</button></div></div>`;
+  if (puede('portal_centro') && $('mdcons')) $('mdcons').remove();
+  // v2.277.0: sin máximo en el campo (rebajaba en silencio lo escrito); en cuanto lo escrito pasa del máximo, el aviso se pone en rojo
+  const mdMatAviso = () => {
+    const w = $('mdmatmax'), o = $('mdmatm') && $('mdmatm').selectedOptions[0]; if (!w || !o) return;
+    const m = +o.dataset.max, n = +$('mdmatn').value || 0;
+    w.classList.toggle('mdmatpasa', n > m); w.textContent = (n > m ? 'Como máximo ' : 'Máximo ') + num(m) + ' por petición';
+  };
+  if ($('mdmatm')) $('mdmatm').onchange = mdMatAviso;
+  if ($('mdmatn')) $('mdmatn').addEventListener('input', mdMatAviso);
+  if ($('mdmatok')) $('mdmatok').onclick = async ev => {
+    ev.target.disabled = true;
+    const mx = +$('mdmatm').selectedOptions[0].dataset.max, n = +$('mdmatn').value || 0;
+    if (n < 1 || n > mx) { ev.target.disabled = false; mdMatAviso(); toast(n < 1 ? 'Indica cuántos necesitas' : `Como máximo ${num(mx)} por petición: pide ${num(mx)} o escribe en la nota cuántos necesitas`, true); return; }
+    const { data: r } = await db.rpc('pedir_material', { p_material: $('mdmatm').value, p_cantidad: n, p_nota: $('mdmatt').value.trim() || null });
+    ev.target.disabled = false;
+    if (!r || !r.ok) { toast(r && r.motivo === 'cantidad' ? `Como máximo ${num(r.max)}` : motivoPortal(r), true); return; }
+    toast('Pedido enviado a tu comercial'); portalMedico();
+  };
+  caja.querySelectorAll('[data-mdanu]').forEach(b => b.onclick = async () => {
+    const { data: r } = await db.rpc('cerrar_material', { p_id: b.dataset.mdanu, p_estado: 'Anulado' });
+    if (!r || !r.ok) { toast(motivoPortal(r), true); return; }
+    toast('Pedido de material anulado'); portalMedico();
+  });
+  if ($('mdmsgok')) $('mdmsgok').onclick = async ev => {
+    const t = $('mdmsgt').value.trim(); if (!t) { toast('Escribe el mensaje', true); return; }
+    ev.target.disabled = true;
+    const { data: r } = await db.rpc('enviar_mensaje_cuenta', { p_cuenta: null, p_texto: t });
+    ev.target.disabled = false;
+    if (!r || !r.ok) { toast(motivoPortal(r), true); return; }
+    toast('Mensaje enviado'); portalMedico();
+  };
+  if (lm.some(x => !x.del_portal && !x.leido_en)) RPC_ORIG('leer_mensajes_cuenta', { p_cuenta: null });
+}
+
+// ——— Configuración: qué material se puede pedir y cuánto ———
+async function pintarCfgPortalBase() {
+  const c = $('cfgcuerpo'); if (!c) return;
+  c.innerHTML = `<div class="card">${skelCard('Cargando…')}</div>`;
+  const [{ data: cat }, { data: perm }, { data: aj }] = await Promise.all([
+    db.rpc('catalogo_papel', { p_papel: 'material_visita' }), RPC_ORIG('portal_material_permitido', {}),
+    db.from('ajustes').select('valor').eq('clave', 'portal').maybeSingle()]);
+  if (!$('cfgcuerpo')) return;
+  const l = cat || [], p = Array.isArray(perm) ? perm : [], conAjuste = !!(aj && aj.valor && aj.valor.material);
+  const de = v => p.find(x => x.valor === v);
+  c.innerHTML = `<div class="card"><div class="fh"><div><h2>Portal ${TT('medico', 's', 'del', 'l', 'l')}</h2>
+      <div class="sm">Qué material pueden pedir ${TT('medico', 'p', 'el', 'l', 'l')} desde su portal y cuánto como máximo cada vez. Les llega a su comercial.</div></div></div>
+    ${l.length ? `<div class="lista" id="cfpmat">${l.map(x => { const d = de(x.valor); return `<label class="item" style="cursor:default">
+        <input type="checkbox" data-cfpm="${esc(x.valor)}" ${d ? 'checked' : ''}> <span class="tx"><b>${esc(x.valor)}</b></span>
+        <span class="sm">Máximo</span> <input type="number" min="1" max="1000" value="${d ? d.max : 20}" data-cfpx="${esc(x.valor)}" style="max-width:110px" aria-label="Máximo de ${esc(x.valor)}"></label>`; }).join('')}</div>
+      ${conAjuste ? '' : '<p class="sm" style="padding:0 16px">Ahora mismo se puede pedir todo el material, hasta 20 de cada. Guarda para decidirlo tú.</p>'}
+      <div class="acts" style="justify-content:flex-end"><button class="btn" id="cfpok">Guardar</button></div>`
+      : '<div class="vacio">No hay material en el catálogo «Material comercial entregado». Añádelo en Clasificadores.</div>'}</div>`;
+  if ($('cfpok')) $('cfpok').onclick = async () => {
+    const material = [...c.querySelectorAll('[data-cfpm]')].filter(x => x.checked)
+      .map(x => ({ valor: x.dataset.cfpm, max: Math.max(1, Math.min(1000, +c.querySelector(`[data-cfpx="${CSS.escape(x.dataset.cfpm)}"]`).value || 20)) }));
+    const { data: r, error } = await db.rpc('guardar_ajuste', { p_clave: 'portal', p_valor: Object.assign({}, (aj && aj.valor) || {}, { material }) });   // v2.284.0: sin borrar el resto del ajuste
+    if (error || (r && r.ok === false)) { toast('No se ha podido guardar', true); return; }
+    toast('Guardado'); pintarCfgPortal();
+  };
+}
+
+// ——— Material y dudas: las tarjetas de siempre, en su pestaña, con su ayuda ———
+async function portalMedico(...a) {
+  const r = await portalMedicoBase.apply(this, a);
+  if (!ES_MEDICO()) return r;   // v2.282.0: también el centro
+  const c = $('mdcons'); if (c) c.remove();   // la constancia va en el Resumen
+  const ay = { mdmat: ['Pedir material', 'Pide el material que te ofrece la empresa (folletos, catálogos…). Le llega a tu comercial, que te lo entrega; mientras está pendiente lo puedes anular.'],
+    mdmsg: ['Dudas a tu comercial', 'Escribe a tu comercial cualquier duda. Te contestará aquí y te llegará un aviso.'] };
+  Object.entries(ay).forEach(([id, [t, x]]) => { const h = document.querySelector('#' + id + ' > h2'); if (h && !h.querySelector('.ai')) h.insertAdjacentHTML('beforeend', ' ' + pmAyu(t, x)); });
+  return r;
+}
+
+// Configuración → Portal: pago por adelantado de los pedidos del centro
+async function pintarCfgPortal(...a) {
+  const r = await pintarCfgPortalBase.apply(this, a);
+  const c = $('cfgcuerpo'); if (!c || $('cfpant')) return r;
+  const { data: aj } = await db.from('ajustes').select('valor').eq('clave', 'portal').maybeSingle();
+  if (!$('cfgcuerpo') || $('cfpant')) return r;
+  const on = !!(aj && aj.valor && aj.valor.pago_anticipado);
+  c.insertAdjacentHTML('beforeend', `<div class="card" id="cfpantc"><div class="fh"><div><h2>Pedidos del portal del centro ${typeof pmAyu === 'function' ? pmAyu('Pago por adelantado', 'Con el pago por adelantado, al confirmar un pedido del portal el centro lo ve «Pendiente de pago» y descarga la factura proforma con vuestros datos y el IBAN para hacer la transferencia. Cuando la recibáis, marcad el pago como cobrado en el pedido: el centro recibe el aviso y el pedido se prepara como siempre. El IBAN y los datos salen de Facturación → Datos fiscales.') : ''}</h2></div></div>
+    <label class="opt"><input type="checkbox" id="cfpant" ${on ? 'checked' : ''}> Pago por adelantado (transferencia antes de preparar el pedido)</label>
+    <div class="acts" style="justify-content:flex-end"><button class="btn" id="cfpantok" type="button">Guardar</button></div></div>`);
+  $('cfpantok').onclick = async ev => {
+    ev.target.disabled = true;
+    const { data: a2 } = await db.from('ajustes').select('valor').eq('clave', 'portal').maybeSingle();
+    const { data: x, error } = await db.rpc('guardar_ajuste', { p_clave: 'portal', p_valor: Object.assign({}, (a2 && a2.valor) || {}, { pago_anticipado: $('cfpant').checked }) });
+    ev.target.disabled = false;
+    if (error || (x && x.ok === false)) { toast('No se ha podido guardar', true); return; }
+    toast($('cfpant').checked ? 'Guardado: los centros pagarán por adelantado' : 'Guardado: sin pago por adelantado');
+  };
+  return r;
+}
 // pantallas/productos.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -13898,6 +16285,116 @@ const depCaducaPronto = f => f && f <= isoMas(hoyISO(), 60);
 let PROMO_PRODS = null;   // [{ id, nombre }] de los productos que se promocionan (última lista leída)
 
 const CON_LOTE_EST = ['Pendiente', 'Ganado', 'Perdido'];
+
+async function cargarProductosBase() {
+  const { data } = await db.rpc('productos_lista');
+  const l = data || [];
+  PRODUCTOS = l.filter(p => (p.tipo || 'producto') === 'producto');
+  SERVICIOS = l.filter(p => p.tipo === 'servicio');
+}
+
+async function cargarProductosModuloBase() {
+  const esAdmin = puede('administrar');
+  vaciarModulos('v-productos');
+  $('v-productos').innerHTML = `
+    <div class="saludo"><div><h1>Productos</h1><div class="fecha">Catálogo de productos y servicios, con precios sin IVA y con IVA</div></div>
+      <div class="acts" style="margin:0">${esAdmin ? `<button class="btn" id="prodnuevo">+ Nuevo ${PSEC === 'servicios' ? 'servicio' : 'producto'}</button>` : ''}</div></div>
+    <div class="subnav"><button data-ps="productos" aria-pressed="${PSEC === 'productos'}">Productos</button>
+      <button data-ps="servicios" aria-pressed="${PSEC === 'servicios'}">Servicios</button></div>
+    <div id="vcuerpo"></div>`;
+  $('v-productos').querySelectorAll('[data-ps]').forEach(b => b.onclick = () => { PSEC = b.dataset.ps; cargarProductosModulo(); });
+  if ($('prodnuevo')) $('prodnuevo').onclick = () => PSEC === 'servicios' ? editorServicio(null) : editorProducto(null);
+  if (PSEC === 'servicios') pintarServicios(); else pintarProductos();
+}
+
+async function cargarProductosModulo() {
+  await cargarProductosModuloBase();
+  const sn = $('v-productos').querySelector('.subnav');
+  if (sn && !sn.querySelector('[data-ps="stock"]')) {
+    sn.insertAdjacentHTML('beforeend', `<button data-ps="stock" aria-pressed="${PSEC === 'stock'}">Stock y lotes</button>`);
+    sn.querySelector('[data-ps="stock"]').onclick = () => { PSEC = 'stock'; cargarProductosModulo(); };
+  }
+  if (PSEC === 'stock') {
+    const acts = $('v-productos').querySelector('.saludo .acts');
+    acts.innerHTML = puedeCompras() ? '<button class="btn sec" id="stalm">Almacenes</button><button class="btn sec" id="stmue">⚙ Muestras</button><button class="btn" id="stini">+ Entrada de stock</button>' : '';
+    if ($('stalm')) $('stalm').onclick = editorAlmacenes;
+    if ($('stmue')) $('stmue').onclick = editorMuestras;
+    if ($('stini')) $('stini').onclick = () => movimientoStock(null, 'inicial');
+    pintarStock();
+  }
+}
+
+async function pintarMaterialBase() {
+  await Promise.all([cargarAjustes(), cargarProductos()]);
+  const m = Object.assign({ producto_id: null, restar_stock: false }, AJUSTES.muestras || {});
+  const { data: clas } = await db.rpc('clasificadores_actividad');
+  const mat = (clas || []).find(c => c.papel === 'material_visita');
+  const { data: cid } = await db.from('clasificadores').select('id').eq('papel', 'material_visita').maybeSingle();
+  const { data: vals } = cid ? await db.from('valores_clasificador').select('id,valor,activo,dato_tipo').eq('clasificador_id', cid.id).order('orden') : { data: [] };
+  $('cfgcuerpo').innerHTML = `
+    <div class="card cfgpanel"><h2>Material de ${TT('visita', 's', '', 'l', 'l')}</h2>
+      <p class="sm">Todo lo que un comercial puede dejar en ${TT('visita', 's', 'un', 'l', 'l')}. Al registrar ${TT('visita', 's', 'el', 'l', 'l')} se marca qué se entregó y cuánto, y queda en la ficha ${TT('medico', 's', 'del', 'l', 'l')} y en Analítica (material por comercial, por ${TT('medico', 's', '', 'l', 'l')} y por mes).</p>
+      <div class="mattipos"><div><b>📦 Muestras de producto</b><span>Unidades de un producto del catálogo. Pueden descontarse del stock.</span></div>
+        <div><b>📚 Material promocional</b><span>Dípticos, catálogos, flyers, tarjetas… Se cuentan, pero no descuentan stock.</span></div></div></div>
+    <div class="card cfgpanel"><h2>📦 Muestras de producto</h2>
+      <div class="g2"><div><label for="muprod">Producto que se entrega como muestra</label><select id="muprod"><option value="">— Ninguno —</option>${PRODUCTOS.filter(p => p.tipo !== 'servicio').map(p => `<option value="${p.id}" ${p.id === m.producto_id ? 'selected' : ''}>${esc(p.nombre)}</option>`).join('')}</select></div><div></div></div>
+      <label class="vfswitch" style="margin-top:10px"><input type="checkbox" id="murest" ${m.restar_stock ? 'checked' : ''}><span class="sw"></span>
+        <span><b>Descontar las muestras del stock</b><br><span class="sm">Salen del maletín de quien registra ${TT('visita', 's', 'el', 'l', 'l')} (o del almacén central si no tiene), empezando por el lote que caduca antes. Así sabes cuántas muestras quedan y a quién llegó cada lote.</span></span></label>
+      <div class="acts" style="justify-content:flex-end"><button class="btn" id="muok">Guardar</button></div></div>
+    <div class="card cfgpanel"><h2>📚 Material promocional</h2>
+      <p class="sm">Lo que aparece para marcar al registrar ${TT('visita', 's', 'un', 'l', 'l')}. En cada uno eliges si al registrar se anotan las unidades entregadas y, con el portal, si se puede pedir desde él y cuántas como máximo por petición.</p>
+      <div class="matlista">${(vals || []).map(v => `<div class="matfila ${v.activo ? '' : 'off'}"><b>${esc(v.valor)}</b><span class="sm">${v.dato_tipo === 'numero' ? 'Pide cantidad' : 'Solo se marca'}</span>
+        <label class="vfswitch mini"><input type="checkbox" data-mact="${v.id}" ${v.activo ? 'checked' : ''}><span class="sw"></span><span class="sm">${v.activo ? 'Activo' : 'Oculto'}</span></label></div>`).join('') || '<div class="sm">Todavía no hay material.</div>'}</div>
+      <div class="matadd"><input id="matn" placeholder="Nuevo material, p. ej. Cartel para el mostrador"><label class="opt" style="margin:0"><input type="checkbox" id="matq" checked> Anotar cuántas se entregan</label>
+        <button class="btn sec" id="matok" ${cid ? '' : 'disabled'}>Añadir</button></div></div>`;
+  $('muok').onclick = async () => {
+    if ($('murest').checked && !$('muprod').value) { toast('Elige el producto de las muestras', true); return; }
+    const { error } = await db.rpc('guardar_ajuste', { p_clave: 'muestras', p_valor: { producto_id: $('muprod').value || null, restar_stock: $('murest').checked } });
+    if (error) { toast('No se ha podido guardar', true); return; } AJUSTES.muestras = { producto_id: $('muprod').value || null, restar_stock: $('murest').checked }; toast('Guardado');
+  };
+  $('cfgcuerpo').querySelectorAll('[data-mact]').forEach(c => c.onchange = async () => { await db.rpc('guardar_valor', { p: { id: c.dataset.mact, activo: c.checked } }); toast(c.checked ? `Visible en ${TT('visita', 'p', 'el', 'l', 'l')}` : `Oculto en ${TT('visita', 'p', 'el', 'l', 'l')}`); cargarCatalogos(); pintarMaterial(); });
+  $('matok').onclick = async () => {
+    const v = $('matn').value.trim(); if (!v) return;
+    const { error } = await db.rpc('guardar_valor', { p: Object.assign({ clasificador_id: cid.id, valor: v }, $('matq').checked ? { dato_tipo: 'numero', dato_etiqueta: 'Unidades' } : {}) });
+    if (error) { toast('No se ha podido: ' + error.message, true); return; } toast('Añadido'); cargarCatalogos(); pintarMaterial();
+  };
+}
+
+async function cargarProductos() {
+  await cargarProductosBase();
+  const { data } = await db.from('productos').select('id,estado');
+  ESTADO_PROD = {}; (data || []).forEach(x => { ESTADO_PROD[x.id] = x.estado || 'Activo'; });
+  [...PRODUCTOS, ...SERVICIOS].forEach(p => { p.estado = ESTADO_PROD[p.id] || 'Activo'; });
+}
+
+async function productosPromocionadosBase() {
+  if (!navigator.onLine) return PROMO_PRODS || [];   // v2.259.0: sin red, la última lista leída
+  try {
+    const { data, error } = await db.from('productos').select('id,nombre,estado').eq('promocionado', true).order('nombre');
+    if (!error) PROMO_PRODS = (data || []).filter(p => (p.estado || 'Activo') !== 'Descatalogado').map(p => ({ id: p.id, nombre: p.nombre }));
+  } catch (e) {}
+  return PROMO_PRODS || [];
+}
+
+// La lista de material se pide a la vez que los productos promocionados (así «Presentar» sale con ellos, no después)
+async function productosPromocionados(...a) {
+  const [r] = await Promise.all([productosPromocionadosBase.apply(this, a), presMateriales()]);
+  return r;
+}
+
+/* ============================================================
+   v2.278.0 · Material de visita: cada material con su cantidad y su máximo en el portal (aviso de Eric, 12/10/2026).
+   Antes, «Pide cantidad» solo se elegía al añadir y el máximo que puede pedir el profesional desde su portal (20 si nadie lo
+   cambiaba) estaba en otro apartado. Ahora cada fila de «Material promocional» lleva:
+   - Al registrar: «Anotar cuántas se entregan» o «Solo marcar que se entregó» (guardar_valor dato_tipo).
+   - Con el portal: «Se puede pedir desde el portal» y «Máximo por petición» (1 a 1.000; vacío o fuera de rango avisa en la fila
+     y no se guarda). Se guarda en el mismo ajuste que «Portal del profesional» (portal.material).
+   ============================================================ */
+async function pintarMaterial(...x) {
+  const r = await pintarMaterialBase.apply(this, x);
+  try { await matMejorar(); } catch (e) { registrarError('error', 'Material promocional: ' + e.message); }
+  return r;
+}
 // pantallas/rutas.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -15542,6 +18039,94 @@ const rnProxima = rep => rnFechas(rep, hoyISO(), isoMas(hoyISO(), 120))[0] || nu
 const rnPie = (izq, der) => `<div class="rnpie"><span>${izq}</span><span class="rnpieb">${der}</span></div>`;
 
 const rnFC = l => ({ type: 'FeatureCollection', features: l });
+
+/* cargarRutas: la parte base y, en orden, cada paso que se le añade (antes eran 2 capas separadas). */
+async function cargarRutasBase2() {
+  await cargarRutasBase();
+  await cargarRutasPaso1();
+  await cargarRutasPaso2();
+}
+
+// En Rutas, la ruta en curso se ve en «Tu día»
+async function pintarRutaEnCursoBase() {
+  if (TAB !== 'rutas') return;
+  if (!$('renc')) $('v-rutas').querySelector('.saludo').insertAdjacentHTML('afterend', '<div id="renc"></div>');
+  const j = jornadaActiva();
+  $('renc').innerHTML = j ? `<div class="card renc"><h2>Jornada en curso</h2>
+    <p class="sm">Empezaste hace ${durTxt(Date.now() - j.inicio)}. El orden, las horas y el registro de ${TT('visita', 'p', '', 'l', 'l')} están en tu agenda de hoy.</p>
+    <div class="acts" style="padding:0 16px 16px"><button class="btn" id="rencver">Ver mi día</button>
+      <button class="btn sec dang" id="rencfin">Terminar jornada</button></div></div>` : '';
+  if (j) { $('rencver').onclick = () => { AG_MODO = 'dia'; AG_FECHA = hoyISO(); ir('agenda'); }; $('rencfin').onclick = terminarJornada; }
+}
+
+// El día: paradas en su orden, la salida (si hay) y los tramos de viaje y de visita
+function rmPlanBase(citas, fecha, tramos) {
+  const vivas = citas.filter(c => xyCita(c) && (CITA_ABIERTA.includes(c.estado) || citaHecha(c.estado)));
+  const r = estimarDia(vivas, fecha), dura = PLANCFG().visita || 15, aparcar = +PLANCFG().parada || 0, sal = salidaUsuario();
+  const casa = sal && sal.lat != null && sal.lon != null ? [+sal.lat, +sal.lon] : null;
+  const paradas = vivas.map((c, i) => ({ c, i, xy: xyCita(c), ini: r.est[c.id] != null ? r.est[c.id] : minHora(c.hora) })).filter(p => p.ini != null);
+  const puntos = (casa ? [casa] : []).concat(paradas.map(p => p.xy)).concat(casa && paradas.length ? [casa] : []);
+  const segs = []; let pos = casa, t = null, k = 0;
+  paradas.forEach((p, j) => {
+    const mismo = pos && pos[0] === p.xy[0] && pos[1] === p.xy[1];
+    let ini = p.ini;
+    if (pos && !mismo) {
+      const tr = tramos && tramos[k], v = tr ? tr.min + aparcar : minutosEntre(pos, p.xy);
+      const sale = t != null ? t : ini - v;
+      if (tramos) ini = Math.max(sale + v, minHora(p.c.hora) || 0);   // con tiempos reales, la hora sale del viaje (las fijas se respetan)
+      segs.push({ tipo: 'viaje', a: sale, b: sale + v, de: pos, hasta: p.xy, k, km: tr ? tr.km : null });
+    }
+    if (pos && (casa || j > 0)) k++;
+    p.ini = ini; segs.push({ tipo: 'vis', a: ini, b: ini + dura, p }); pos = p.xy; t = ini + dura;
+  });
+  if (casa && pos && t != null) { const tr = tramos && tramos[k], v = tr ? tr.min : minutosEntre(pos, casa); segs.push({ tipo: 'viaje', a: t, b: t + v, de: pos, hasta: casa, k, km: tr ? tr.km : null }); t += v; }
+  return { paradas, puntos, segs, casa, ini: segs.length ? segs[0].a : 9 * 60, fin: t || 18 * 60, tope: isFinite(r.tope) ? r.tope : null };
+}
+
+async function rutasMapaBase() {
+  if (TAB !== 'rutas' || !$('v-rutas')) return;
+  const ref = $('renc') || $('v-rutas').querySelector('.saludo'); if (!ref) return;
+  const fecha = hoyISO(), citas = await citasDelDia(fecha);
+  if (TAB !== 'rutas' || !ref.isConnected) return;
+  let caja = $('rmapa');
+  const P0 = rmPlan(citas, fecha, null);
+  if (!P0.paradas.length) { if (caja) caja.remove(); return; }
+  if (!caja) { ref.insertAdjacentHTML('afterend', '<section class="card rmapa" id="rmapa" aria-label="Tu día en el mapa"></section>'); caja = $('rmapa'); }
+  caja.innerHTML = `<div class="rmcab"><div><h2>Tu día en el mapa</h2><span class="sm" id="rmsub">Buscando la ruta por las calles…</span></div>
+      <button type="button" class="btn" id="rmplay">${RM_SV('<path d="M6 4l14 8-14 8z"/>')}<span>Ver el día</span></button></div>
+    <div class="rmwrap"><div class="rmc" id="rmc"></div><div class="rmnav" id="rmnav"></div></div>
+    <div class="rmjorn"><div class="rmpista" id="rmpista"></div><div class="rmhoras" id="rmhoras"></div>
+      <input type="range" class="rmscrub" id="rmscrub" step="5" aria-label="Hora del día"><div class="rmtx sm" id="rmtx"></div></div>`;
+  let ml;
+  try { ml = await rmLib(); } catch (e) { $('rmc').innerHTML = '<div class="vacio">No se ha podido cargar el mapa. Comprueba la conexión.</div>'; return; }
+  if (!$('rmc')) return;
+  const salida = P0.segs.length ? `${fecha}T${hm(Math.max(0, P0.segs[0].a))}:00` : null;
+  const lineaRecta = P0.puntos.length > 1 && P0.puntos.length <= 30 ? null : 'datos';
+  const res = lineaRecta ? { ok: false, motivo: lineaRecta } : await rmRuta(P0.puntos, salida);
+  if (!$('rmc')) return;
+  const P = res.ok && res.tramos && res.tramos.length === P0.puntos.length - 1 ? rmPlan(citas, fecha, res.tramos) : P0;
+  const real = P !== P0;
+  $('rmsub').innerHTML = real
+    ? `Por las calles, con tráfico · <b>${String(res.km).replace('.', ',')} km</b> · <b>${rmDur(res.min)}</b> al volante${res.retraso_min ? ` (${res.retraso_min} min por el tráfico)` : ''} · fin hacia las <b>${hm(P.fin)}</b> <span class="rmfuente">Ruta: © TomTom</span>`
+    : `${esc(RM_MOTIVO[res.motivo] || RM_MOTIVO.servicio)}: tiempos aproximados en línea recta · fin hacia las <b>${hm(P.fin)}</b>`;
+  pintarRutasMapa(ml, P, real ? res.tramos : null);
+}
+
+async function cargarRutas(...a) {
+  const r = await cargarRutasBase2.apply(this, a);
+  rutasMapa();
+  return r;
+}
+
+// Con la ruta abierta, Rutas solo pinta el editor (sin la jornada en curso ni el mapa de hoy); el menú «Rutas» vuelve a Mis rutas
+function pintarRutaEnCurso(...a) { if (RN) return; return pintarRutaEnCursoBase.apply(this, a); }
+
+// El plan del mapa se calcula siempre con la estimación (así su clave es la misma en Rutas y en «Tu día»)
+function rmPlan(...a) {
+  if (a[2]) return rmPlanBase.apply(this, a);
+  const r0 = TD_REAL; TD_REAL = null;
+  try { return rmPlanBase.apply(this, a); } finally { TD_REAL = r0; }
+}
 // pantallas/visita.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -15812,6 +18397,121 @@ let VISITA_OP = null;   // op_id de la ventana abierta (el mismo si se pulsa Gua
 const PRES_MAX = 8 * 1024 * 1024;
 
 const PRES_DATOS = new Map();               // id → datos (base64) ya descargados
+
+/* v2.96.0 · «Para la visita»: lo que hace falta al llegar, arriba del todo.
+   Dónde (centro, planta, sala, cómo llegar), cuándo (su horario de hoy y el del centro), cómo entrar,
+   lo que quedó pendiente en la última visita, las notas y a quién llamar. Las ventas van al final. */
+// La consulta de la visita: la que tiene consulta hoy; si ninguna, la principal
+function consultaDeLaVisitaBase(cons) {
+  const hoy = hoyLetra();
+  return (cons || []).find(c => (c.dias || {})[hoy]) || (cons || [])[0] || null;
+}
+
+async function editarVisitaBase(v, medicoId) {
+  const pos = CAT.resultado_visita.filter(r => r.extra !== 'neg'), neg = CAT.resultado_visita.filter(r => r.extra === 'neg');
+  const marcados = v.resultados || [];
+  $('dbody').innerHTML = `
+    <div class="fh"><div><h2>Editar ${TT('visita', 's', '', 'l', 'l')}</h2><div class="sm">Registrada el ${fechaCorta(v.fecha)}</div></div>
+      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
+    <div class="g2">
+      <div><label for="evf">Fecha</label><input id="evf" type="date" value="${esc(v.fecha)}"></div>
+      <div><label for="evm">Muestras</label><input id="evm" type="number" min="0" value="${v.muestras || 0}"></div>
+    </div>
+    <label>Resultado</label>
+    <div class="opciones">${pos.map(r => `<button type="button" class="opt" data-res="${esc(r.valor)}"
+      aria-pressed="${marcados.includes(r.valor)}"><span class="mk"></span>${esc(r.valor)}</button>`).join('')}</div>
+    <div class="opciones" style="margin-top:8px">${neg.map(r => `<button type="button" class="opt neg" data-res="${esc(r.valor)}" data-neg="1"
+      aria-pressed="${marcados.includes(r.valor)}"><span class="mk"></span>${esc(r.valor)}</button>`).join('')}</div>
+    <div class="g2" style="margin-top:6px">
+      <div><label for="evpa">Próxima acción</label><input id="evpa" value="${esc(v.proxima_accion || '')}"></div>
+      <div><label for="evpf">Fecha</label><input id="evpf" type="date" value="${esc(v.proxima_fecha || '')}"></div>
+    </div>
+    <label for="evn">Nota</label><textarea id="evn" rows="3">${esc(v.nota || '')}</textarea>
+    <div class="acts" style="justify-content:space-between">
+      <button class="btn sec dang" id="evborrar">Borrar ${TT('visita', 's', '', 'l', 'l')}</button>
+      <span class="acts" style="margin:0"><button class="btn sec" data-cerrar>Cancelar</button>
+        <button class="btn" id="evok">Guardar</button></span></div>`;
+
+  $('dbody').querySelectorAll('[data-res]').forEach(b => b.onclick = () => {
+    const esNeg = b.dataset.neg === '1', on = b.getAttribute('aria-pressed') === 'true';
+    $('dbody').querySelectorAll('[data-res]').forEach(x => { if (esNeg || x.dataset.neg === '1') x.setAttribute('aria-pressed', 'false'); });
+    b.setAttribute('aria-pressed', String(!on));
+  });
+
+  $('evok').onclick = async ev => {
+    const res = [...$('dbody').querySelectorAll('[data-res][aria-pressed=true]')].map(b => b.dataset.res);
+    ev.target.disabled = true; ev.target.textContent = 'Guardando…';
+    const { data: r, error } = await db.rpc('actualizar_actividad', { p: {
+      id: v.id, fecha: $('evf').value, resultados: res, muestras: +$('evm').value || 0,
+      nota: $('evn').value.trim(), proxima_accion: $('evpa').value.trim(), proxima_fecha: $('evpf').value || ''
+    }});
+    ev.target.disabled = false; ev.target.textContent = 'Guardar';
+    if (error || (r && r.ok === false)) { toast('No se ha podido guardar', true); return; }
+    $('dlg').close(); toast(`${TT('visita', 's', '', 'l', 'C', 'actualizado')}`); abrirFicha(medicoId); cargarInicio();
+  };
+
+  $('evborrar').onclick = async () => {
+    if (!await preguntar(`${TT('visita', 's', 'el', 'C', 'l')} desaparece del historial ${TT('medico', 's', 'del', 'l', 'l')}.\nQueda constancia en la auditoría.`,
+      { titulo: `¿Borrar ${TT('visita', 's', 'el', 'l', 'l')}?`, ok: 'Borrar', peligro: true })) return;
+    const { data: r, error } = await db.rpc('borrar_actividad', { p_id: v.id });
+    if (error || (r && r.ok === false)) { toast('No se ha podido borrar', true); return; }
+    $('dlg').close(); toast(`${TT('visita', 's', '', 'l', 'C', 'borrado')}`); abrirFicha(medicoId); cargarInicio();
+  };
+  $('dlg').showModal();
+}
+
+/* Registrar visita: la ventana base y el aviso si falta el horario de atención (antes eran 3 capas). */
+async function abrirVisitaBase2(id) {
+  return ventanaCargando(async () => {
+    await abrirVisitaBase(id);
+    await visitaAvisoHorario(id);
+  });
+}
+
+// Médico «sin reporting»: la ventana de visita no ofrece los resultados de reporting
+async function abrirVisita(id, ...a) {
+  const r = await abrirVisitaBase2.call(this, id, ...a);
+  try {
+    const { data } = await db.from('cuentas').select('sin_reporting').eq('id', id).maybeSingle();
+    const d = $('dlg');
+    if (data && data.sin_reporting && d && d.open) {
+      let n = 0;
+      d.querySelectorAll('.chips button, [data-res], .chip').forEach(b => { if (/reporting/i.test(b.textContent)) { b.style.display = 'none'; n++; } });
+      if (n && !d.querySelector('.srnota')) {
+        const ch = d.querySelector('.chips, [data-res]'); const cont = ch && (ch.classList.contains('chips') ? ch : ch.parentElement);
+        if (cont) cont.insertAdjacentHTML('afterend', `<p class="sm srnota">${TT('medico', 's', 'este', 'C', 'l')} no quiere reporting: solo ${TT('visita', 's', '', 'l', 'l')} presencial.</p>`);
+      }
+    }
+  } catch (e) { /* si no se puede comprobar, la ventana queda como siempre */ }
+  return r;
+}
+
+// La consulta de la visita: la del centro de la cita; si no, la que tiene consulta hoy; si no, la principal
+function consultaDeLaVisita(cons) {
+  const pref = FICHA_CENTRO ? clasNorm(FICHA_CENTRO) : '';
+  return (pref && (cons || []).find(c => clasNorm(c.centro_nombre) === pref)) || consultaDeLaVisitaBase(cons);
+}
+
+async function editarVisita(v, ...r) {
+  const res = await editarVisitaBase.call(this, v, ...r);
+  try {
+    const ok = $('evok'), d = $('dbody'); if (!ok || !d || $('evmodo')) return res;
+    const { data: act } = await db.from('actividades').select('modo,productos').eq('id', v.id).maybeSingle();
+    const modo = (act && act.modo) || 'presencial', sel = (act && act.productos) || [];
+    let prods = [];
+    if (planIncluyeSeccion('cobertura')) { prods = await productosPromocionados(); const falta = sel.filter(id => !prods.some(p => p.id === id));
+      if (falta.length) { const { data: x } = await db.from('productos').select('id,nombre').in('id', falta); prods = prods.concat(x || []); } }
+    if (!$('evok') || $('evmodo')) return res;
+    EV_EXTRA = { id: v.id, modo, productos: sel.slice() };
+    const ancla = $('evf') ? $('evf').closest('.g2') : null; if (!ancla) return res;
+    ancla.insertAdjacentHTML('afterend', `<label>Cómo fue</label>
+      <div class="segs" id="evmodo" role="group" aria-label="Cómo fue">${MODOS_VISITA.map(([k, t]) => `<button type="button" data-evmodo="${k}" class="${k === modo ? 'on' : ''}" aria-pressed="${k === modo}">${t}</button>`).join('')}</div>
+      ${prods.length ? `<label>Productos presentados</label><div class="opciones" id="evprods">${prods.map(p => `<button type="button" class="opt" data-evprod="${p.id}" aria-pressed="${sel.includes(p.id)}"><span class="mk"></span>${esc(p.nombre)}</button>`).join('')}</div>` : ''}`);
+    d.querySelectorAll('[data-evmodo]').forEach(b => b.onclick = () => { EV_EXTRA.modo = b.dataset.evmodo; d.querySelectorAll('[data-evmodo]').forEach(x => { x.classList.toggle('on', x === b); x.setAttribute('aria-pressed', String(x === b)); }); });
+    d.querySelectorAll('[data-evprod]').forEach(b => b.onclick = () => { b.setAttribute('aria-pressed', String(b.getAttribute('aria-pressed') !== 'true')); EV_EXTRA.productos = [...d.querySelectorAll('[data-evprod][aria-pressed=true]')].map(x => x.dataset.evprod); });
+  } catch (e) {}
+  return res;
+}
 /* v2.305.0: si el enlace del correo de activación ha caducado, Supabase vuelve a la app con el error en la dirección
    (#error_code=otp_expired o ?error_code=…): se lee antes de nada para avisar en el acceso y ofrecer un enlace nuevo */
 const ENLACE_ERROR = (() => { try { const p = new URLSearchParams((location.hash || '').replace(/^#/, '') + '&' + (location.search || '').replace(/^\?/, ''));
@@ -16008,7 +18708,7 @@ $('frep').addEventListener('change', e => { F.rep = e.target.value; buscar(true)
 $('fest').addEventListener('change', e => { F.est = e.target.value; buscar(true); });
 $('forden').addEventListener('change', e => { F.orden = e.target.value; buscar(true); });
 
-function pintarChips() {
+function pintarChipsBase() {
   const c = [];
   if (F.q) c.push(['q', 'Búsqueda: ' + F.q]);
   if (F.prov) c.push(['prov', F.prov]);
@@ -16033,50 +18733,6 @@ $('chips').addEventListener('click', e => {
 
 /* ---------------- directorio ---------------- */
 
-async function buscar(reiniciar) {
-  if (typeof MODO_MAPA !== 'undefined' && MODO_MAPA && reiniciar) setTimeout(() => pintarMapa(), 10);
-  if (reiniciar) F.pagina = 0;
-  const yo = ++BUSQ_N;
-  cargando($('lista'), 'Buscando ' + etiquetaContactos().toLowerCase() + '…');
-  $('cuenta').textContent = 'Buscando…';
-  const t0 = performance.now();
-  const params = {
-    q: F.q || null, f_provincia: F.prov || null, f_municipio: F.muni || null,
-    f_estado: F.est || null, f_especialidad: F.esp || null, f_area: null,
-    f_urgentes: F.urg, f_mios: !!F.mios, f_sin_visitar: !!F.sin, f_comercial: F.com || null, f_reporting: F.rep || null,
-    ...(F.tipo ? { f_tipo: F.tipo } : {}),
-    orden: F.orden, lim: tamPagina(), desplaz: F.pagina * tamPagina(),
-    ...(Object.keys(F.campos || {}).length ? { f_campos: F.campos } : {})
-  };
-  let { data, error } = await db.rpc('buscar_cuentas', params);
-  if (yo !== BUSQ_N) return;   // ya hay una búsqueda más reciente
-  // Si falla (móvil que vuelve del segundo plano, cobertura), se reintenta una vez al momento antes de avisar
-  if (error || !data) {
-    ({ data, error } = await db.rpc('buscar_cuentas', params));
-    if (yo !== BUSQ_N) return;
-  }
-
-  if (error || !data) {
-    $('cuenta').textContent = '';
-    $('lista').innerHTML = `<div class="vacio">No se ha podido cargar la lista${error && /abort/i.test(error.message || '') ? ' (la conexión no responde)' : ''}.<br><button class="btn sec" type="button" id="dirreint" style="margin-top:10px">Reintentar</button></div>`;
-    $('dirreint').onclick = () => buscar(true);
-    return;
-  }
-
-  F.total = data.total;
-  const ms = Math.round(performance.now() - t0);
-  $('cuenta').innerHTML = `<b>${num(data.total)}</b> ${esc(etiquetaContactos().toLowerCase())} <span class="sm">· ${ms} ms</span>`;
-  pintarChips();
-
-  const filas = data.filas || [];
-  if (!filas.length) { $('lista').innerHTML = `<div class="vacio">Ningún registro cumple estos filtros.</div>`; $('thead').innerHTML = ''; }
-  else { cabeceraTabla(); $('lista').innerHTML = filas.map(filaTabla).join(''); }
-
-  paginador($('dirpag'), data.total, F.pagina, p => {
-    F.pagina = p; buscar(false);
-    $('tabla').scrollIntoView({ block: 'start', behavior: 'smooth' });
-  }, () => buscar(true));
-}
 
 
 
@@ -16113,14 +18769,6 @@ const leyendaUnidades = k => ({ semana: 'barras: últimas 12 semanas', mes: 'bar
 
 
 
-/* v2.96.0 · «Para la visita»: lo que hace falta al llegar, arriba del todo.
-   Dónde (centro, planta, sala, cómo llegar), cuándo (su horario de hoy y el del centro), cómo entrar,
-   lo que quedó pendiente en la última visita, las notas y a quién llamar. Las ventas van al final. */
-// La consulta de la visita: la que tiene consulta hoy; si ninguna, la principal
-function consultaDeLaVisita(cons) {
-  const hoy = hoyLetra();
-  return (cons || []).find(c => (c.dias || {})[hoy]) || (cons || [])[0] || null;
-}
 
 $('ficha').addEventListener('click', e => { if (e.target.id === 'ficha') $('ficha').close(); });
 
@@ -16299,7 +18947,7 @@ async function abrirEditor(id, tipo) {
 /* ---------------- acciones desde la ficha ---------------- */
 
 
-async function alternarUrgente(id, esUrgente, nombre) {
+async function alternarUrgenteBase(id, esUrgente, nombre) {
   let motivo = null;
   if (!esUrgente) {
     motivo = await pedirTexto('Motivo (opcional). Puedes escribirlo o elegir uno:', '',
@@ -16439,16 +19087,6 @@ function km(a, b) {
 }
 
 
-/* pintarPlan: la parte base y, en orden, cada paso que se le añade (antes eran 6 capas separadas). */
-function pintarPlan() {
-  pintarPlanBase();
-  planBotonesAgenda();
-  planHorasYFueraDePlan();
-  planMapaYDescartar();
-  planVisitadosRecientes();
-  planAvisoSinSalida();
-  planFichasYNotas();
-}
 
 
 
@@ -16505,7 +19143,7 @@ const punto = k => (PERFIL.preferencias || {})[k] || null;
 
 /* ---------------- administración de usuarios ---------------- */
 
-async function cargarAdmin() {
+async function cargarAdminBase() {
   $('v-admin').innerHTML = `
     <div class="saludo"><div><h1>Administración</h1><div class="fecha">Usuarios, permisos, cartera y comisiones</div></div>
       <div class="acts" style="margin:0">${ADM_SEC === 'usuarios' ? '<button class="btn" id="unuevo">+ Nuevo usuario</button>' : ''}</div></div>
@@ -16545,15 +19183,6 @@ async function cargarAdmin() {
 
 
 
-// Editar usuario · La comisión se muestra como información: se asigna dentro de cada esquema
-async function usuarioComisionInfo(id) {
-  for (let i = 0; i < 30 && !$('ucom') && $('dlg').open; i++) await new Promise(r => setTimeout(r, 100));
-  const s = $('ucom'); if (!s || $('ucominfo')) return;
-  const g = s.closest('.g2') || s.parentElement;
-  const txt = s.selectedOptions[0] && s.value ? s.selectedOptions[0].textContent : 'Sin comisión';
-  g.classList.add('hide'); if ($('ucdesde')) $('ucdesde').classList.add('hide'); if ($('uchist')) $('uchist').classList.add('hide');
-  g.insertAdjacentHTML('afterend', `<div class="avisoh" id="ucominfo"><span>Comisión: <b>${esc(txt)}</b>. Se asigna dentro de cada esquema en Configuración → Equipo → Comisiones.</span></div>`);
-}
 
 
 
@@ -16579,28 +19208,6 @@ async function cargarSeguimiento() {
   await cargarSeguimientoPaso2();
 }
 
-async function cargarSeguimientoPaso1() {
-  const v = $('v-seguimiento');
-  v.querySelector('.saludo h1').firstChild.textContent = 'Calidad del dato';
-  v.querySelector('.saludo .fecha').textContent = `Fichas completas, datos que faltan y avance de cada ${TT('medico', 's', '', 'l', 'l')}`;
-  const { data: q } = await RPC_ORIG('calidad_datos', {});
-  if (!q || $('calidad')) return;
-  const pct = (a, b) => b ? Math.round(a / b * 100) : 0;
-  const item = (n, t, h) => `<div class="kpi ${n ? 'warn' : 'ok'}"><button class="ai" data-ayuda-txt="${esc(h)}" data-ayuda-tit="${esc(t)}" aria-label="Qué es">i</button><b>${num(n)}</b><span>${esc(t)}</span></div>`;
-  v.querySelector('.saludo').insertAdjacentHTML('afterend', `<div class="card" id="calidad" style="padding-bottom:6px">
-    <div class="manh" style="padding:14px 16px 0"><h2 style="padding:0">Fichas completas: ${pct(q.completas, q.total)}%</h2><span class="sm">${num(q.completas)} de ${num(q.total)} ${TT('medico', 'p', '', 'l', 'l')}</span></div>
-    <div class="barra" style="margin:8px 16px 10px"><i style="width:${pct(q.completas, q.total)}%"></i></div>
-    <div class="kpis" style="padding:0 16px 10px">
-      ${item(q.sin_ubicacion, 'sin ubicación', `Sin coordenadas en ${TT('consulta', 's', 'ningun', 'l', 'l')}: no entran en rutas ni en el mapa.`)}
-      ${item(q.sin_horario, 'sin horario de atención', 'Sin días ni horas de atención: las rutas no pueden ajustarse a su horario.')}
-      ${item(q.sin_especialidad, 'sin ' + TT('especialidad', 's', '', 'l', 'l'), `Sin ${TT('especialidad', 's', '', 'l', 'l')} en la ficha: no se pueden filtrar ni analizar por ${TT('especialidad', 's', '', 'l', 'l')}.`)}
-      ${item(q.sin_contacto, 'sin teléfono ni email', `No hay forma de contactar con ellos fuera ${TT('visita', 's', 'del', 'l', 'l')}.`)}
-      ${item(q.sin_provincia, 'sin provincia', 'Sin provincia no se pueden asignar por zona a un comercial.')}
-      ${item(q.sin_comercial, 'sin comercial', `${TT('medico', 'p', '', 'l', 'C')} que no están en ninguna cartera.`)}
-      ${item(q.duplicados, 'pendientes de unificar', 'Fichas marcadas como posibles duplicados.')}
-    </div>
-    <p class="sm" style="padding:0 16px 10px">Una ficha completa tiene ubicación, horario, ${TT('especialidad', 's', '', 'l', 'l')} y teléfono o email. Debajo, el avance de cada ${TT('medico', 's', '', 'l', 'l')}.</p></div>`);
-}
 
 
 
@@ -16769,34 +19376,6 @@ setInterval(() => { if (rutaActiva()) pintarRutaBarra(); }, 60000);
 
 /* ---------------- ventanas propias ---------------- */
 
-/**
- * Ventana propia (aviso, confirmación o pregunta con un campo).
- * @param {{ titulo?: string, msg?: string, ok?: string, cancel?: string, campo?: any, opciones?: any, peligro?: boolean }} o
- */
-function appVentana({ titulo, msg, ok, cancel, campo, opciones, peligro }) {
-  return new Promise(res => {
-    const d = $('mini');
-    d.innerHTML = `<div class="fbox">
-      <div class="fh"><h2>${esc(titulo || 'Confirmar')}</h2></div>
-      ${msg ? `<p style="margin:0 0 10px;white-space:pre-line">${esc(msg)}</p>` : ''}
-      ${campo ? `<input id="mcampo" type="${campo.tipo || 'text'}" value="${esc(campo.valor || '')}"
-                   placeholder="${esc(campo.placeholder || '')}" ${campo.min ? `min="${campo.min}"` : ''}>` : ''}
-      ${opciones && opciones.length ? `<div class="chips" style="padding:10px 0 0">${
-        opciones.map(o => `<button type="button" class="chip" data-mop="${esc(o)}">${esc(o)}</button>`).join('')}</div>` : ''}
-      <div class="acts" style="justify-content:flex-end">
-        ${cancel === false ? '' : `<button class="btn sec" id="mno">${esc(cancel || 'Cancelar')}</button>`}
-        <button class="btn ${peligro ? 'dang' : ''}" id="mok">${esc(ok || 'Aceptar')}</button></div></div>`;
-
-    const fin = v => { d.close(); res(v); };
-    $('mok').onclick = () => fin(campo ? ($('mcampo').value || '') : true);
-    if ($('mno')) $('mno').onclick = () => fin(campo ? null : false);
-    d.querySelectorAll('[data-mop]').forEach(b => b.onclick = () => { $('mcampo').value = b.dataset.mop; });
-    d.onclick = e => { if (e.target === d) fin(campo ? null : false); };
-    d.oncancel = e => { e.preventDefault(); fin(campo ? null : false); };
-    d.showModal();
-    setTimeout(() => { const i = $('mcampo'); if (i) { i.focus(); i.onkeydown = ev => { if (ev.key === 'Enter') fin(i.value); }; } else $('mok').focus(); }, 30);
-  });
-}
 
 
 /* ---------------- tabla del directorio con columnas ---------------- */
@@ -16815,13 +19394,8 @@ const COLS = [
 
 
 
-function filaTabla(m) {
-  const cfg = colsConfig().filter(c => c.on);
-  return `<button class="trow" data-id="${m.id}">${cfg.map(c =>
-    `<span class="tcell" style="width:${c.w}px;min-width:${c.w}px">${celda(m, c.k)}</span>`).join('')}</button>`;
-}
 
-function cabeceraTabla() {
+function cabeceraTablaBase() {
   const cfg = colsConfig().filter(c => c.on);
   const ancho = cfg.reduce((n, c) => n + c.w, 0);
   $('thead').innerHTML = cfg.map(c => {
@@ -16920,50 +19494,6 @@ async function pintarSinAtribuir() {
 
 
 
-async function pintarComisionesBase() {
-  ($('admcuerpo') || document.createElement('div')).innerHTML = '<div class="skel"></div><div class="skel" style="width:60%"></div>';
-  const [{ data: esq }, { data: liq }] = await Promise.all([
-    db.rpc('esquemas_lista'), db.rpc('liquidaciones_lista', { p_periodo: null })
-  ]);
-  ESQUEMAS = esq || [];
-
-  ($('admcuerpo') || document.createElement('div')).innerHTML = `
-    <h2>Esquemas de comisión<span class="n">${ESQUEMAS.length}</span></h2>
-    <p class="sm">El tramo alcanzado se aplica a todas las unidades del periodo. Televenta suele ir con importe fijo por unidad.</p>
-    <div class="lista">${ESQUEMAS.map(e => `<div class="item" style="cursor:default">
-      <span class="ic">${e.calculo === 'fijo' ? '€' : '▤'}</span>
-      <span class="tx"><b>${esc(e.nombre)}</b><span class="sm">
-        ${e.atribucion === 'cierra' ? 'Por venta cerrada' : 'Por cartera'} ·
-        ${e.calculo === 'fijo' ? eur(e.valor_fijo) + ' por unidad'
-          : (e.tramos || []).map(t => `${t.desde_u}${t.hasta_u ? '-' + t.hasta_u : '+'}: ${eur(t.valor)}`).join(' · ') || 'sin tramos'}
-        ${(e.personas || []).length ? ' · ' + e.personas.map(esc).join(', ') : ' · sin asignar'}</span></span>
-      <span class="acts" style="margin:0"><button class="btn sec chico" data-esq="${e.id}">Editar</button></span></div>`).join('')
-      || '<div class="vacio">Todavía no hay esquemas.</div>'}</div>
-    <div class="acts" style="padding:0 16px 14px"><button class="btn" id="esqnuevo">+ Nuevo esquema</button></div>
-
-    <h2>Liquidaciones</h2>
-    <div class="acts" style="padding:0 16px">
-      <input id="liqper" type="month" value="${periodoActual()}" style="max-width:190px">
-      <button class="btn sec" id="liqcalc">Calcular el periodo</button></div>
-    <div class="lista">${(liq || []).map(l => `<div class="item" style="cursor:default">
-      <span class="ic ${l.estado === 'Pagada' ? 'o' : ''}">${l.estado === 'Borrador' ? '○' : '✓'}</span>
-      <span class="tx"><b>${esc(l.nombre)}</b><span class="sm">${periodoTxt(l.periodo)} · ${num(l.unidades)} unidades · ${eur(l.importe)} · ${esc(l.estado)}</span></span>
-      <span class="acts" style="margin:0">
-        ${l.estado === 'Borrador' ? `<button class="btn sec" data-liq="${l.usuario_id}|${l.periodo}|Aprobada">Aprobar</button>` : ''}
-        ${l.estado === 'Aprobada' ? `<button class="btn sec" data-liq="${l.usuario_id}|${l.periodo}|Pagada">Marcar pagada</button>` : ''}
-      </span></div>`).join('') || '<div class="vacio">Sin liquidaciones todavía.</div>'}</div>`;
-
-  $('esqnuevo').onclick = () => editorEsquema(null);
-  ($('admcuerpo') || document.createElement('div')).querySelectorAll('[data-esq]').forEach(b => b.onclick = () => editorEsquema(b.dataset.esq));
-  $('liqcalc').onclick = calcularLiquidaciones;
-  ($('admcuerpo') || document.createElement('div')).querySelectorAll('[data-liq]').forEach(b => b.onclick = async () => {
-    const [u, p, estado] = b.dataset.liq.split('|');
-    if (!await preguntar(`La liquidación quedará ${estado === 'Aprobada' ? 'aprobada y congelada' : 'marcada como pagada'}.`,
-      { titulo: '¿' + (estado === 'Aprobada' ? 'Aprobar' : 'Marcar pagada') + '?', ok: estado === 'Aprobada' ? 'Aprobar' : 'Marcar pagada' })) return;
-    await db.rpc('liquidar', { p_usuario: u, p_periodo: p, p_estado: estado });
-    toast('Liquidación ' + estado.toLowerCase()); pintarComisiones();
-  });
-}
 
 
 
@@ -16991,12 +19521,6 @@ document.addEventListener('click', e => {
 
 /* ---------------- pantalla de rutas ---------------- */
 
-/* cargarRutas: la parte base y, en orden, cada paso que se le añade (antes eran 2 capas separadas). */
-async function cargarRutas() {
-  await cargarRutasBase();
-  await cargarRutasPaso1();
-  await cargarRutasPaso2();
-}
 
 
 async function cargarRutasPaso2() {
@@ -17027,33 +19551,6 @@ async function cargarRutasPaso2() {
 
 
 
-function abrirHorarioPlan() {
-  const c = PLANCFG();
-  $('dbody').innerHTML = `
-    <div class="fh"><div><h2>Tiempos de ${TT('visita', 's', '', 'l', 'l')}</h2><div class="sm">Se guardan en tus preferencias. La hora de salida y la de vuelta se ponen en cada ruta.</div></div>
-      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-    <div class="g2">
-      <div><label for="hvis">Minutos por ${TT('medico', 's', '', 'l', 'l')}</label><input id="hvis" type="number" min="5" max="60" value="${c.visita}"></div>
-      <div><label for="hpar">Minutos fijos por parada</label><input id="hpar" type="number" min="0" max="40" value="${c.parada}"></div>
-    </div>
-    <div class="acts" style="justify-content:flex-end">
-      <button class="btn sec" data-cerrar>Cancelar</button>
-      <button class="btn" id="hok">Guardar</button></div>`;
-  $('hok').onclick = async ev => {
-    ev.target.disabled = true;
-    const plan = { visita: +$('hvis').value || 15, parada: $('hpar').value === '' ? 10 : +$('hpar').value };
-    const prefs = Object.assign({}, PERFIL.preferencias || {}, { plan });
-    const { data } = await db.rpc('guardar_preferencias', { p: prefs });
-    PERFIL.preferencias = data || prefs;
-    $('dlg').close(); toast('Horario guardado');
-    if (ULTIMO_PLAN) construirPlan(ULTIMO_PLAN.conXY, ULTIMO_PLAN.rutaId, null, ULTIMO_PLAN.opts);
-    else if (PLAN && PLAN.rutaId) {
-      if (typeof PLAN.rutaId === 'string' && PROPUESTAS && PROPUESTAS[PLAN.rutaId]) planDesdeLista(PROPUESTAS[PLAN.rutaId], PLAN.rutaId);
-      else planificar(PLAN.rutaId, $('rnueva') || document.createElement('button'));
-    }
-  };
-  $('dlg').showModal();
-}
 
 
 
@@ -17064,58 +19561,6 @@ function abrirHorarioPlan() {
 
 /* ---------------- editar y borrar visitas ---------------- */
 
-async function editarVisita(v, medicoId) {
-  const pos = CAT.resultado_visita.filter(r => r.extra !== 'neg'), neg = CAT.resultado_visita.filter(r => r.extra === 'neg');
-  const marcados = v.resultados || [];
-  $('dbody').innerHTML = `
-    <div class="fh"><div><h2>Editar ${TT('visita', 's', '', 'l', 'l')}</h2><div class="sm">Registrada el ${fechaCorta(v.fecha)}</div></div>
-      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-    <div class="g2">
-      <div><label for="evf">Fecha</label><input id="evf" type="date" value="${esc(v.fecha)}"></div>
-      <div><label for="evm">Muestras</label><input id="evm" type="number" min="0" value="${v.muestras || 0}"></div>
-    </div>
-    <label>Resultado</label>
-    <div class="opciones">${pos.map(r => `<button type="button" class="opt" data-res="${esc(r.valor)}"
-      aria-pressed="${marcados.includes(r.valor)}"><span class="mk"></span>${esc(r.valor)}</button>`).join('')}</div>
-    <div class="opciones" style="margin-top:8px">${neg.map(r => `<button type="button" class="opt neg" data-res="${esc(r.valor)}" data-neg="1"
-      aria-pressed="${marcados.includes(r.valor)}"><span class="mk"></span>${esc(r.valor)}</button>`).join('')}</div>
-    <div class="g2" style="margin-top:6px">
-      <div><label for="evpa">Próxima acción</label><input id="evpa" value="${esc(v.proxima_accion || '')}"></div>
-      <div><label for="evpf">Fecha</label><input id="evpf" type="date" value="${esc(v.proxima_fecha || '')}"></div>
-    </div>
-    <label for="evn">Nota</label><textarea id="evn" rows="3">${esc(v.nota || '')}</textarea>
-    <div class="acts" style="justify-content:space-between">
-      <button class="btn sec dang" id="evborrar">Borrar ${TT('visita', 's', '', 'l', 'l')}</button>
-      <span class="acts" style="margin:0"><button class="btn sec" data-cerrar>Cancelar</button>
-        <button class="btn" id="evok">Guardar</button></span></div>`;
-
-  $('dbody').querySelectorAll('[data-res]').forEach(b => b.onclick = () => {
-    const esNeg = b.dataset.neg === '1', on = b.getAttribute('aria-pressed') === 'true';
-    $('dbody').querySelectorAll('[data-res]').forEach(x => { if (esNeg || x.dataset.neg === '1') x.setAttribute('aria-pressed', 'false'); });
-    b.setAttribute('aria-pressed', String(!on));
-  });
-
-  $('evok').onclick = async ev => {
-    const res = [...$('dbody').querySelectorAll('[data-res][aria-pressed=true]')].map(b => b.dataset.res);
-    ev.target.disabled = true; ev.target.textContent = 'Guardando…';
-    const { data: r, error } = await db.rpc('actualizar_actividad', { p: {
-      id: v.id, fecha: $('evf').value, resultados: res, muestras: +$('evm').value || 0,
-      nota: $('evn').value.trim(), proxima_accion: $('evpa').value.trim(), proxima_fecha: $('evpf').value || ''
-    }});
-    ev.target.disabled = false; ev.target.textContent = 'Guardar';
-    if (error || (r && r.ok === false)) { toast('No se ha podido guardar', true); return; }
-    $('dlg').close(); toast(`${TT('visita', 's', '', 'l', 'C', 'actualizado')}`); abrirFicha(medicoId); cargarInicio();
-  };
-
-  $('evborrar').onclick = async () => {
-    if (!await preguntar(`${TT('visita', 's', 'el', 'C', 'l')} desaparece del historial ${TT('medico', 's', 'del', 'l', 'l')}.\nQueda constancia en la auditoría.`,
-      { titulo: `¿Borrar ${TT('visita', 's', 'el', 'l', 'l')}?`, ok: 'Borrar', peligro: true })) return;
-    const { data: r, error } = await db.rpc('borrar_actividad', { p_id: v.id });
-    if (error || (r && r.ok === false)) { toast('No se ha podido borrar', true); return; }
-    $('dlg').close(); toast(`${TT('visita', 's', '', 'l', 'C', 'borrado')}`); abrirFicha(medicoId); cargarInicio();
-  };
-  $('dlg').showModal();
-}
 
 /* ---------------- cerca de mí ---------------- */
 
@@ -17204,43 +19649,6 @@ document.addEventListener('click', e => {
 
 /* ---------------- analítica en tabla ---------------- */
 
-async function pintarTablaAnalitica() {
-  const caja = $('atabla2');
-  cargando(caja, 'Calculando la tabla…');
-  const { data, error } = await db.rpc('analitica_tabla', {
-    p_dim: $('adim').value === 'mes' ? 'producto' : $('adim').value,
-    p_desde: $('adesde').value || null, p_hasta: $('ahasta').value || null,
-    p_canal: $('acanal').value || null, p_medida: $('amedida') ? $('amedida').value : 'unidades', lim: 30
-  });
-  if (error) { caja.innerHTML = `<div class="vacio">${esc(error.message)}</div>`; return; }
-  const meses = data.meses || [], filas = data.filas || [];
-  if (!filas.length) { caja.innerHTML = '<div class="vacio">Sin datos en este periodo.</div>'; return; }
-  const fmt = v => data.medida === 'importe' ? eur(v) : num(v);
-  const totMes = {};
-  filas.forEach(f => meses.forEach(m => totMes[m] = (totMes[m] || 0) + (+(f.meses || {})[m] || 0)));
-
-  caja.innerHTML = `<div class="tabla"><div style="min-width:${180 + meses.length * 110}px">
-    <div class="thead"><span class="tcell th" style="width:220px;min-width:220px">Concepto</span>
-      ${meses.map(m => `<span class="tcell th" style="width:110px;min-width:110px;text-align:right">${esc(m.slice(5))}/${esc(m.slice(2, 4))}</span>`).join('')}
-      <span class="tcell th" style="width:120px;min-width:120px;text-align:right">Total</span></div>
-    ${filas.map(f => `<div class="trow" style="cursor:default">
-      <span class="tcell" style="width:220px;min-width:220px"><b>${esc(f.nombre)}</b></span>
-      ${meses.map(m => `<span class="tcell" style="width:110px;min-width:110px;text-align:right">${
-        (f.meses || {})[m] ? fmt((f.meses || {})[m]) : '<span class="sm">·</span>'}</span>`).join('')}
-      <span class="tcell" style="width:120px;min-width:120px;text-align:right"><b>${fmt(f.total)}</b></span></div>`).join('')}
-    <div class="trow" data-fijo style="cursor:default;background:var(--bg)">
-      <span class="tcell" style="width:220px;min-width:220px"><b>Total</b></span>
-      ${meses.map(m => `<span class="tcell" style="width:110px;min-width:110px;text-align:right"><b>${fmt(totMes[m] || 0)}</b></span>`).join('')}
-      <span class="tcell" style="width:120px;min-width:120px;text-align:right"><b>${fmt(filas.reduce((n, f) => n + (+f.total || 0), 0))}</b></span></div>
-  </div></div>`;
-
-  window.__ANTABLA = filas.map(f => {
-    const o = { concepto: f.nombre };
-    meses.forEach(m => o[m] = (f.meses || {})[m] || 0);
-    o.total = f.total;
-    return o;
-  });
-}
 
 
 
@@ -17316,94 +19724,6 @@ function abrirHerramientas(contexto) {
 
 
 
-function abrirClasificador(id) {
-  const c = CATS.find(x => x.id === id); if (!c) return;
-  const puedeEditar = puede('administrar') || ((PERFIL.areas || {}).K || 0) >= 2;
-  const completo = puede('administrar') || ((PERFIL.areas || {}).K || 0) >= 3;
-
-  const pinta = () => {
-    $('dbody').innerHTML = `
-      <div class="fh"><div><h2>${esc(c.nombre)}</h2>
-        <div class="sm">Grupo ${esc(c.grupo || 'General')} · se usa en ${esc(c.ambito === 'pedido' ? 'pedidos' : c.ambito === 'visita' ? 'visitas' : `fichas de ${TT('medico', 's', '', 'l', 'l')}`)}
-        ${puedeEditar ? '' : ' · <b>solo lectura</b>'}</div></div>
-        <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-      ${cajaCampo(c, completo)}
-      <div class="lista ${!c.papel && CAMPO_TABLA[c.ambito] && (c.tipo_campo || 'lista') !== 'lista' ? 'hide' : ''}">${(c.valores || []).map(v => `<div class="item ${v.padre ? 'vsub' : ''}" style="cursor:default">
-        <span class="ic">${v.activo ? '●' : '○'}</span>
-        <span class="tx"><b style="${v.activo ? '' : 'opacity:.5;text-decoration:line-through'}">${esc(v.valor)}</b>
-          ${v.extra ? `<span class="sm">${v.extra === 'neg' ? `sin ${TT('visita', 's', '', 'l', 'l')}` : `${TT('visita', 's', '', 'l', 'l', 'realizado')}`}${v.destino ? ' · pasa a ' + esc(v.destino) : ''}</span>` : ''}</span>
-        ${puedeEditar ? `<span class="acts" style="margin:0">
-          <button class="btn sec" data-vren="${v.id}|${esc(v.valor)}">Renombrar</button>
-          ${c.papel === 'resultado_visita' ? `<select data-vdest="${v.id}" title="Estado al que pasa la ficha con este resultado" style="max-width:170px"><option value="">No cambia el estado</option>${estados().map(x => `<option value="${esc(x)}" ${v.destino === x ? 'selected' : ''}>Pasa a ${esc(x)}</option>`).join('')}</select>` : ''}
-          <button class="btn sec" data-vtog="${v.id}|${v.activo ? 0 : 1}">${v.activo ? 'Desactivar' : 'Activar'}</button>
-          ${completo ? `<button class="btn sec dang" data-vdel="${v.id}">Eliminar</button>` : ''}</span>` : ''}
-      </div>`).join('') || '<div class="vacio">Sin valores todavía.</div>'}</div>
-      ${puedeEditar ? `<div class="acts"><input id="cvnew" placeholder="Nuevo valor" style="flex:1;min-width:160px">
-        ${c.papel === 'resultado_visita' ? `<select id="cvextra" style="max-width:170px"><option value="pos">${TT('visita', 's', '', 'l', 'C', 'realizado')}</option><option value="neg">Sin ${TT('visita', 's', '', 'l', 'l')}</option></select>
-          <select id="cvdest" style="max-width:190px" title="Estado al que pasa la ficha con este resultado"><option value="">No cambia el estado</option>${estados().map(x => `<option value="${esc(x)}">Pasa a ${esc(x)}</option>`).join('')}</select>` : ''}
-        ${(c.valores || []).some(v => v.padre) ? `<select id="cvpadre" style="max-width:210px" title="Categoría del valor"><option value="">Sin categoría (es una categoría)</option>${(c.valores || []).filter(v => !v.padre).map(v => `<option value="${esc(v.valor)}">Dentro de ${esc(v.valor)}</option>`).join('')}</select>` : ''}
-        <button class="btn" id="cvadd">Añadir</button></div>` : ''}
-      ${completo && !c.sistema ? `<div class="acts" style="justify-content:flex-end;border-top:1px solid var(--line);padding-top:12px">
-        <button class="btn sec dang" id="cdel">Eliminar clasificador</button></div>` : ''}`;
-
-    if ($('cfcok')) $('cfcok').onclick = async () => {
-      const v = { tipo: $('cfctipo').value };
-      ['obligatorio', 'solo_lectura', 'en_ficha', 'en_tabla', 'en_filtro'].forEach(k => { v[k] = $('cfc_' + k).checked; });
-      const { data: r, error } = await db.rpc('configurar_campo', { p_id: id, p: v });
-      if (error || !r || !r.ok) { toast('No se ha podido guardar el campo', true); return; }
-      toast('Campo guardado'); recarga(); cargarCampos().catch(() => {});
-    };
-    const recarga = async () => {
-      const { data } = await db.rpc('catalogos_todos');
-      CATS = data || [];
-      Object.assign(c, CATS.find(x => x.id === id) || c);
-      pinta(); cargarCatalogos();
-    };
-
-    if ($('cvadd')) $('cvadd').onclick = async () => {
-      const v = $('cvnew').value.trim(); if (!v) return;
-      const { error } = await db.rpc('guardar_valor', { p: { clasificador_id: id, valor: v,
-        extra: $('cvextra') ? $('cvextra').value : null, destino: $('cvdest') ? $('cvdest').value : null,
-        ...($('cvpadre') && $('cvpadre').value ? { padre: $('cvpadre').value, valor: v.startsWith($('cvpadre').value + ' · ') ? v : $('cvpadre').value + ' · ' + v } : {}) } });
-      if (error) { toast('No se ha podido añadir', true); return; }
-      toast('Valor añadido'); recarga();
-    };
-    $('dbody').querySelectorAll('[data-vtog]').forEach(b => b.onclick = async () => {
-      const [vid, activo] = b.dataset.vtog.split('|');
-      await db.rpc('guardar_valor', { p: { id: vid, activo: activo === '1' } });
-      recarga();
-    });
-    $('dbody').querySelectorAll('[data-vren]').forEach(b => b.onclick = async () => {
-      const [vid, actual] = b.dataset.vren.split('|');
-      const nuevo = await pedirTexto('Nuevo nombre', actual, { titulo: 'Renombrar valor', ok: 'Guardar' });
-      if (!nuevo) return;
-      await db.rpc('guardar_valor', { p: { id: vid, valor: nuevo } });
-      toast('Renombrado'); recarga();
-    });
-    // v2.87.0: el estado al que lleva cada resultado se puede cambiar en cualquier momento
-    $('dbody').querySelectorAll('[data-vdest]').forEach(sel => sel.onchange = async () => {
-      const { data: r, error } = await db.rpc('guardar_valor', { p: { id: sel.dataset.vdest, destino: sel.value } });
-      if (error || (r && r.ok === false)) { toast('No se ha podido cambiar', true); return; }
-      toast(sel.value ? `Ahora pasa a ${sel.value}` : 'Ya no cambia el estado');
-    });
-    $('dbody').querySelectorAll('[data-vdel]').forEach(b => b.onclick = async () => {
-      if (!await preguntar(`Las fichas y ${TT('visita', 'p', '', 'l', 'l')} que ya lo usan lo conservan, pero dejará de aparecer.`,
-        { titulo: '¿Eliminar el valor?', ok: 'Eliminar', peligro: true })) return;
-      const { data: r } = await db.rpc('borrar_valor', { p_id: b.dataset.vdel });
-      if (r && r.ok === false) { toast('No tienes permiso', true); return; }
-      toast('Eliminado'); recarga();
-    });
-    if ($('cdel')) $('cdel').onclick = async () => {
-      if (!await preguntar(`Se elimina "${c.nombre}" y todos sus valores.`,
-        { titulo: '¿Eliminar el clasificador?', ok: 'Eliminar', peligro: true })) return;
-      const { data: r } = await db.rpc('borrar_clasificador', { p_id: id });
-      if (r && r.ok === false) { toast(r.error === 'sistema' ? 'Los del sistema no se pueden eliminar' : 'Sin permiso', true); return; }
-      $('dlg').close(); toast('Clasificador eliminado'); pintarCatalogos(); cargarCatalogos();
-    };
-  };
-  pinta();
-  $('dlg').showModal();
-}
 
 
 /* ---------------- duplicados pendientes con su pareja ---------------- */
@@ -17557,15 +19877,6 @@ document.addEventListener('keydown', e => {
 
 
 
-/** Paginador para listas que se piden al servidor por páginas. */
-function paginador(el, total, pagina, alCambiar, alCambiarTam) {
-  if (!el) return;
-  const tam = tamPagina();
-  if (total <= TAMANOS[0]) { el.innerHTML = ''; return; }
-  el.innerHTML = pagHTML(total, pagina, tam);
-  el.querySelectorAll('[data-pg]').forEach(b => b.onclick = () => alCambiar(+b.dataset.pg));
-  el.querySelector('[data-pgtam]').onchange = e => { fijarTam(+e.target.value); alCambiarTam(); };
-}
 
 
 
@@ -17580,27 +19891,9 @@ new MutationObserver(muts => {
 
 let DUP_PEND = [], DUP_PARES = [], DUP_ACTUAL = null;
 
-async function cargarDuplicados() {
-  const v = $('v-duplicados');
-  const permitido = puede('administrar') || ((PERFIL.areas || {}).M || 0) >= 3;
-  v.innerHTML = `
-    <div class="saludo"><div><h1>Duplicados</h1>
-      <div class="fecha">Revisa fichas repetidas y unifícalas sin perder la lista</div></div>
-      <div class="acts" style="margin:0">
-        <button class="btn sec" id="dvolver">← Volver</button>
-        <button class="btn sec" id="dbuscar">Volver a buscar parecidos</button></div></div>
-    ${permitido ? `<div class="dupgrid">
-      <div><div class="card" id="dpendc"></div><div class="card" id="dparc"></div></div>
-      <div class="card dupcmp" id="dcmp"><div class="vacio vguia"><b>Elige una pareja para revisarla</b><span>Pulsa «Comparar» en la lista de la izquierda y aquí verás las dos fichas lado a lado. Al terminar, pasas a la siguiente.</span></div></div>
-    </div>` : '<div class="card"><div class="vacio">Solo administración puede unificar fichas.</div></div>'}`;
-  $('dvolver').onclick = () => ir(TAB_ANTERIOR && TAB_ANTERIOR !== 'duplicados' ? TAB_ANTERIOR : 'directorio');
-  if (!permitido) { $('dbuscar').classList.add('hide'); return; }
-  $('dbuscar').onclick = () => { invalidarCache(); listasDuplicados(); };
-  listasDuplicados();
-}
 
 
-function pintarListasDup() {
+function pintarListasDupBase() {
   if (!$('dpendc')) return;
   const sel = DUP_ACTUAL ? DUP_ACTUAL.join('|') : '';
   $('dpendc').innerHTML = `<h2>Pendientes de unificar<span class="n">${DUP_PEND.length}</span></h2>
@@ -17652,7 +19945,7 @@ document.addEventListener('click', async e => {
 });
 
 
-async function compararEn(el, idA, idB) {
+async function compararEnBase(el, idA, idB) {
   cargando(el, 'Cargando las dos fichas…');
   const [{ data: A }, { data: B }] = await Promise.all([
     db.rpc('ficha_cuenta', { p_id: idA }), db.rpc('ficha_cuenta', { p_id: idB })
@@ -17934,58 +20227,7 @@ function mostrarApp(perfil) {
   setTimeout(() => { ordenarMenu(); botonCalidad(); }, 0);
 }
 
-function mostrarLogin(msg) {
-  $('bootsplash').classList.add('hide');
-  $('app').classList.add('hide');
-  $('login').classList.remove('hide');
-  if (msg) $('lmsg').textContent = msg;
-  APP_VISIBLE = false;
-}
 
-async function arrancar() {
-  marca('inicio del arranque');
-  let guardado = null;
-  try { guardado = JSON.parse(localStorage.getItem(PKEY) || 'null'); } catch (e) {}
-  // v2.69.0: el perfil guardado solo sirve si ya trae sus capacidades y están los roles (si no, se espera al de la red)
-  if (guardado && !Array.isArray(guardado.capacidades)) guardado = null;
-  if (guardado && ROLES_DEF.length && ESTADOS_DEF.length && localStorage.getItem('dlc-os-sesion') && !APP_VISIBLE) {
-    mostrarApp(guardado);
-    marca('app visible con el perfil guardado');
-  }
-
-  const { data: { session } } = await db.auth.getSession();
-  marca('sesión comprobada');
-  if (!session) { if (!navigator.onLine && guardado && APP_VISIBLE) return;   // v2.259.0: sin conexión se sigue con el perfil guardado
-    localStorage.removeItem(PKEY); mostrarLogin(); return; }
-
-  const rolesListos = cargarRoles().catch(() => false);
-  let { data: perfil, error } = await db.from('perfiles').select('*,capacidades').eq('id', session.user.id).single();
-  // Un fallo de conexión no cierra la sesión: se reintenta y, si sigue fallando, se entra con el perfil guardado
-  for (let i = 0; i < 2 && error && error.code !== 'PGRST116'; i++) {
-    await new Promise(r => setTimeout(r, 1500));
-    ({ data: perfil, error } = await db.from('perfiles').select('*,capacidades').eq('id', session.user.id).single());
-  }
-  if (error && error.code !== 'PGRST116' && guardado) { perfil = guardado; error = null; }
-  marca('perfil recibido');
-  if (error || !perfil || !perfil.activo) {
-    // v2.117.0: si su empresa está bloqueada (prueba terminada o desactivada), se dice eso
-    const { data: acc } = await Promise.resolve(RPC_ORIG('acceso_organizacion', {})).catch(() => ({ data: null }));
-    localStorage.removeItem(PKEY);
-    await db.auth.signOut();
-    mostrarLogin(acc && acc.bloqueada ? (acc.motivo === 'prueba_terminada'
-        ? `La prueba de ${acc.organizacion} terminó el ${fechaCorta(acc.prueba_hasta)}. Tus datos se conservan: escríbenos para seguir.`
-        : `${acc.organizacion} está desactivada. Tus datos se conservan: escríbenos para volver a activarla.`)
-      : perfil && !perfil.activo ? 'Tu usuario está desactivado.'
-      : 'Tu usuario no tiene perfil en la plataforma. Avisa a administración.');
-    return;
-  }
-  try { localStorage.setItem(PKEY, JSON.stringify(perfil)); } catch (e) {}
-  if (!(await rolesListos) && !(ROLES_DEF.length && ESTADOS_DEF.length)) await cargarRoles().catch(() => false);
-  const cambio = !guardado || JSON.stringify(guardado) !== JSON.stringify(perfil);
-  if (!APP_VISIBLE) mostrarApp(perfil);
-  else if (cambio) { mostrarApp(perfil); if (TAB === 'inicio') cargarInicio(); }
-  db.rpc('registrar_acceso', { p_evento: 'Entrada', p_agente: navigator.userAgent }).catch(() => {});
-}
 
 /* ---------------- inicio: esqueleto y carga por partes ---------------- */
 
@@ -18020,272 +20262,6 @@ async function pintarInicio() {
 
 /* ---------------- editor de pedido ---------------- */
 
-async function editorPedido(pedido) {
-  if (!PRODUCTOS.length) await cargarProductos();
-  const ped = pedido && pedido.pedido ? pedido.pedido : null;
-  // v2.322.0: un pedido confirmado se edita entero mientras no tenga factura
-  if (ped && (ped.estado === 'Anulado' || (ped.estado !== 'Borrador' && ped.factura_id))) { toast(ped.factura_id ? 'Ese pedido ya tiene factura: para cambiarlo, haz una rectificativa' : 'Un pedido anulado no se puede editar', true); return; }
-  // v2.200.0: con un contrato en vigor de la ficha, el precio es el adjudicado
-  await cargarPreciosContrato((pedido && ((pedido.medico && pedido.medico.id) || (pedido.lineas && pedido.lineas[0] && pedido.lineas[0].cuenta_id) || (pedido.contacto && pedido.contacto.cuenta_id))) || null);
-  const prod = id => conPrecioContrato(PRODUCTOS.find(p => p.id === id) || {});
-  let lineas = pedido && pedido.lineas && pedido.lineas.length
-    ? pedido.lineas.map(l => ({ producto_id: l.producto_id, producto: l.producto, unidades: l.unidades, importe: l.importe,
-        descuento: l.descuento || 0, iva: l.iva != null ? +l.iva : prod(l.producto_id).iva,
-        // Solo es manual si el importe no coincide con precio × unidades
-        manual: prod(l.producto_id).precio == null || r2(prod(l.producto_id).precio * l.unidades) !== r2(l.importe) }))
-    : [{ producto_id: productoPorDefecto(), unidades: 1, descuento: 0 }];
-  let medico = pedido && pedido.medico ? pedido.medico
-    : (pedido && pedido.lineas && pedido.lineas[0] && pedido.lineas[0].cuenta_id ? { id: pedido.lineas[0].cuenta_id, nombre: pedido.lineas[0].medico } : null);
-  let contacto = pedido && pedido.contacto ? pedido.contacto : null;
-  if (!medico && contacto && contacto.cuenta_id) medico = { id: contacto.cuenta_id, nombre: contacto.medico || `${TT('medico', 's', '', 'l', 'C')} ${TT('paciente', 's', 'del', 'l', 'l')}`, codigo: contacto.medico_codigo || '' };
-  const autoImporte = l => { const p = prod(l.producto_id); if (!l.manual && p.precio != null) l.importe = r2(p.precio * (+l.unidades || 0)); if (l.iva == null || !l.manualIva) l.iva = p.iva != null ? +p.iva : l.iva; };
-  lineas.forEach(l => { if (l.importe == null) autoImporte(l); if (l.iva == null) l.iva = prod(l.producto_id).iva || 0; });
-  // Datos del formulario que se conservan al repintar
-  const form = { fecha: ped ? ped.fecha : hoyISO(), canal: ped ? ped.canal : 'paciente', forma_pago: ped ? ped.forma_pago : '',
-    descuento: ped ? (ped.descuento || 0) : 0, descuento_tipo: ped ? ped.descuento_tipo : 'porcentaje', nota: ped ? ped.nota || '' : '',
-    cuenta_texto: ped ? ped.cuenta_texto || '' : '',
-    servicio_id: ped ? (ped.envio ? (ped.servicio_id || ((SERVICIOS[0] || {}).id) || '') : '') : ((SERVICIOS.find(x => x.por_defecto && x.activo) || {}).id || ''),
-    envio: ped ? !!ped.envio : !!SERVICIOS.find(x => x.por_defecto && x.activo),
-    envio_iva: ped && ped.envio ? +ped.envio_iva : +((SERVICIOS.find(x => x.por_defecto && x.activo) || {}).iva ?? 21),
-    envio_con: ped && ped.envio ? r2(+ped.envio_base * (1 + (+ped.envio_iva || 0) / 100)) : +((SERVICIOS.find(x => x.por_defecto && x.activo) || {}).pvp || 0),
-    // v2.115.0: origen (web o no) y referencia del pago
-    origen: ['web', 'portal'].includes((ped || pedido || {}).origen) ? (ped || pedido).origen : 'manual', pago_referencia: ped ? ped.pago_referencia || '' : '',
-    sin_cargo: ped ? !!ped.sin_cargo : false,   // v2.317.0
-    reportar: ped ? !!ped.reportar_profesional : false };   // v2.328.0: por defecto no se reporta
-  const justifs = [];   // v2.115.0: justificantes elegidos, se suben al guardar
-  const leerForm = () => {
-    if (!$('pfecha')) return;
-    Object.assign(form, { fecha: $('pfecha').value, canal: $('pcan').value, forma_pago: $('ppago').value,
-      descuento: $('pdto').value, descuento_tipo: $('pdtot').value, nota: $('pnota').value,
-      envio: $('penv').checked, envio_con: +$('penvi').value || 0, envio_iva: +$('penvv').value || 0, servicio_id: $('pserv').value,
-      cuenta_texto: $('pselmed') ? ($('pselmed').__texto || '') : form.cuenta_texto,
-      origen: $('porig') ? $('porig').value : form.origen, pago_referencia: $('pref') ? $('pref').value : form.pago_referencia,
-      sin_cargo: $('psincargo') ? $('psincargo').checked : form.sin_cargo, reportar: $('prepprof') ? $('prepprof').checked : form.reportar });
-  };
-
-  const pinta = () => {
-    leerForm();
-    $('dbody').innerHTML = `
-      <div class="fh"><div><h2>${ped ? (ped.estado === 'Confirmado' ? 'Editar pedido' : 'Editar borrador') : 'Nuevo pedido'}</h2>
-        <div class="sm">Escribe los importes con IVA: la base y el IVA se calculan solos.</div></div>
-        <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-      <div class="g2">
-        <div><label for="pfecha">Fecha</label><input id="pfecha" type="date" value="${esc(form.fecha)}"></div>
-        <div><label for="pcan">Canal</label><select id="pcan">
-          <option value="paciente" ${form.canal !== 'centro' ? 'selected' : ''}>Venta ${TT('paciente', 's', 'al', 'l', 'l')}</option>
-          <option value="centro" ${form.canal === 'centro' ? 'selected' : ''}>Venta a centro (con descuento)</option></select></div>
-      </div>
-      <div class="g2"><div><label for="porig">Origen</label><select id="porig">
-          <option value="manual">Comercial, teléfono o correo</option>
-          <option value="web" ${form.origen === 'web' ? 'selected' : ''}>Pedido por la web</option>${form.origen === 'portal' ? '<option value="portal" selected>Portal del centro</option>' : ''}</select></div><div></div></div>
-      <div id="zonapac" class="${form.canal === 'centro' ? 'escentro' : ''}">
-        <label class="solopac">${TT('paciente', 's', '', 'l', 'C')}</label><div id="pselpac" class="solopac"></div>
-        <label><span class="solopac">${TT('medico', 's', '', 'l', 'C')} de referencia</span><span class="solocen">Centro que compra</span></label><div id="pselmed"></div>
-        <div class="sm" style="margin-top:4px"><span class="solopac">Si no lo encuentras, deja el nombre escrito: el pedido quedará pendiente de atribuir.</span><span class="solocen">Elige su ficha (de tipo centro): las unidades cuentan para el centro y su comercial.</span></div>
-        <label class="opt solopac prepbox"><input type="checkbox" id="prepprof" ${form.reportar ? 'checked' : ''}> Reportar ${esc(TT('medico', 's', 'al', 'l', 'l'))}</label>
-      </div>
-      <label>Líneas</label>
-      <div id="plineas">${lineas.map((l, i) => `<div class="lin" data-li="${i}">
-        <div class="lrow">
-          <div><label>Producto</label><select data-f="producto_id">${opcionesProducto(l.producto_id, l.producto)}</select></div>
-          <div><label>Unidades</label><input data-f="unidades" type="number" min="1" value="${l.unidades}"></div>
-          <div><label>Importe con IVA</label><input data-f="importeiva" type="number" step="0.01" min="0" value="${l.importe != null ? r2(l.importe * (1 + (+l.iva || 0) / 100)) : ''}"></div>
-          <div><label>% dto.</label><input data-f="descuento" type="number" step="1" min="0" max="100" value="${l.descuento || 0}"></div>
-          <div>${lineas.length > 1 ? `<button type="button" class="btn sec" data-lx="${i}" aria-label="Quitar línea">✕</button>` : ''}</div>
-        </div>
-        <div class="ldes" data-des="${i}"></div></div>`).join('')}</div>
-      <div class="acts" style="margin-top:0"><button type="button" class="btn sec" id="plmas">+ Añadir línea</button></div>
-      <div class="pscbox"><label class="opt"><input type="checkbox" id="psincargo" ${form.sin_cargo ? 'checked' : ''}> Entrega sin cargo (muestra)</label>
-        <span class="sm">Las unidades cuentan ${esc(TT('medico', 's', 'al', 'l', 'l'))} de referencia y salen del stock, pero no es una venta: 0 €, sin factura, sin cobro y sin comisión.</span></div>
-      <div class="g2 pscg2">
-        <div><label for="ppago">Forma de pago</label><select id="ppago"><option value=""></option>
-          ${(CAT.forma_pago || []).map(x => `<option ${form.forma_pago === x.valor ? 'selected' : ''}>${esc(x.valor)}</option>`).join('')}</select></div>
-        <div><label for="pdto">Descuento general</label>
-          <div style="display:flex;gap:6px"><input id="pdto" type="number" min="0" step="0.01" value="${esc(form.descuento)}">
-            <select id="pdtot" style="max-width:110px"><option value="porcentaje">%</option>
-              <option value="importe" ${form.descuento_tipo === 'importe' ? 'selected' : ''}>€</option></select></div></div>
-      </div>
-      <div id="ppagox" class="pagofila ${form.forma_pago ? '' : 'hide'}">
-        <div class="pagoref"><label for="pref">Referencia del pago</label><input id="pref" value="${esc(form.pago_referencia)}" placeholder="Código de la transferencia, bizum…"></div>
-        <span id="ptrfbox" class="pagoacc ${esTransferencia(form.forma_pago) && !(ped && ped.estado === 'Confirmado') ? '' : 'hide'}"><button type="button" class="btn sec" id="ptrfmail">Enviar los datos de pago</button>
-          ${pmAyu('Pago por transferencia', 'Envía al cliente los datos de pago y el pedido se guarda en borrador. Cuando llegue el pago, lo confirmas desde el pedido.')}</span>
-        <span id="ptpvbox" class="pagoacc ${tpvActivo() && esPagoTpv(form.forma_pago) && !(ped && ped.estado === 'Confirmado') ? '' : 'hide'}"><button type="button" class="btn sec" id="ptpvenv">Enviar enlace de pago</button>
-          ${pmAyu('Pago con tarjeta o Bizum', 'Al cliente le llega por SMS el enlace y elige cómo pagar. El pedido espera en borrador y, cuando paga, se confirma solo y queda cobrado con la forma de pago que haya usado.')}</span>
-        <div><label>Justificante (foto o PDF)</label><label class="btn sec" style="display:inline-flex">📎 Adjuntar<input id="pjus" type="file" accept="image/*,application/pdf" data-fp="1" hidden></label>
-          <div class="sm" id="pjusl">${justifs.map((j, i) => `<span class="jusp">📎 ${esc(j.nombre)} <button type="button" class="lnk" data-jx="${i}" aria-label="Quitar ${esc(j.nombre)}">quitar</button></span>`).join(' ')}</div></div>
-      </div>
-      <div class="envbox">
-        <label for="pserv" style="margin-top:0">Servicio</label>
-        <select id="pserv"><option value="">Sin servicio</option>${SERVICIOS.filter(x => x.activo || x.id === form.servicio_id).map(x =>
-          `<option value="${x.id}" ${form.servicio_id === x.id ? 'selected' : ''}>${esc(x.nombre)} · ${eurI(x.pvp || 0)} con IVA</option>`).join('')}</select>
-        <input type="checkbox" id="penv" class="hide" ${form.envio ? 'checked' : ''}>
-        <div class="g2 ${form.envio ? '' : 'hide'}" id="penvd">
-          <div><label for="penvi">Importe del servicio con IVA (€)</label><input id="penvi" type="number" step="0.01" min="0" value="${esc(form.envio_con)}"></div>
-          <div><label for="penvv">IVA del servicio (%)</label><input id="penvv" type="number" step="1" min="0" max="21" value="${esc(form.envio_iva)}"></div></div>
-      </div>
-      <div class="totbox" id="ptot"></div>
-      <label for="pnota">Nota</label><input id="pnota" value="${esc(form.nota)}">
-      <div class="acts" style="justify-content:flex-end">
-        <button class="btn sec" data-cerrar>Cancelar</button>
-        <button class="btn sec ${ped && ped.estado === 'Confirmado' ? 'hide' : ''}" id="pborr">Guardar borrador</button>
-        <button class="btn" id="pvalid">${ped && ped.estado === 'Confirmado' ? 'Guardar cambios' : 'Guardar y confirmar'}</button></div>`;   // v2.322.0
-
-    const desglose = () => {
-      if ($('psincargo') && $('psincargo').checked) lineas.forEach(l => { l.descuento = 100; });   // v2.317.0
-      lineas.forEach((l, i) => {
-        const d = lineaDesglose(l), el = $('plineas').querySelector(`[data-des="${i}"]`);
-        if (el) el.innerHTML = `<span>Base <b>${eurI(d.base)}</b></span><span>IVA ${num(l.iva || 0)}% <b>${eurI(d.iva)}</b></span><span>Total <b>${eurI(d.total)}</b></span>
-          ${prod(l.producto_id).precio != null ? `<span>Precio unidad ${eurI(prod(l.producto_id).precio * (1 + (+prod(l.producto_id).iva || 0) / 100))} con IVA</span>` : ''}${prod(l.producto_id).contrato ? `<span class="pill p-est" title="${esc(prod(l.producto_id).contrato)}">Precio de concurso</span>` : ''}`;
-      });
-      $('penvd').classList.toggle('hide', !$('penv').checked);
-      $('ptot').innerHTML = bloqueTotales(totalesPedido(lineas, +$('pdto').value || 0, $('pdtot').value,
-        { on: $('penv').checked, con: +$('penvi').value || 0, iva: +$('penvv').value || 0,
-          nombre: ((SERVICIOS.find(x => x.id === $('pserv').value) || {}).nombre) || 'Servicio' }));
-    };
-
-    $('plineas').oninput = $('plineas').onchange = e => {
-      const box = e.target.closest('[data-li]'); if (!box) return;
-      const l = lineas[+box.dataset.li], f = e.target.dataset.f;
-      if (!f) return;
-      l[f] = f === 'producto_id' ? e.target.value : (e.target.value === '' ? null : +e.target.value);
-      if (f === 'importeiva') { l.importe = e.target.value === '' ? null : +e.target.value / (1 + (+l.iva || 0) / 100); delete l.importeiva; l.manual = true; }
-      if (f === 'producto_id') { l.manual = false; l.iva = prod(l.producto_id).iva || 0; }
-      if (f === 'producto_id' || f === 'unidades') {
-        autoImporte(l);
-        box.querySelector('[data-f="importeiva"]').value = l.importe != null ? r2(l.importe * (1 + (+l.iva || 0) / 100)) : '';
-      }
-      desglose();
-    };
-    $('plmas').onclick = () => { lineas.push({ producto_id: productoPorDefecto(), unidades: 1, descuento: 0 }); autoImporte(lineas[lineas.length - 1]); pinta(); };
-    $('plineas').querySelectorAll('[data-lx]').forEach(b => b.onclick = () => { lineas.splice(+b.dataset.lx, 1); pinta(); });
-    $('pcan').onchange = () => $('zonapac').classList.toggle('escentro', $('pcan').value === 'centro');
-    $('ppago').onchange = () => { $('ppagox').classList.toggle('hide', !$('ppago').value); $('ptrfbox').classList.toggle('hide', !esTransferencia($('ppago').value) || !!(ped && ped.estado === 'Confirmado'));
-      $('ptpvbox').classList.toggle('hide', !(tpvActivo() && esPagoTpv($('ppago').value)) || !!(ped && ped.estado === 'Confirmado')); };   // v2.314.0 y v2.333.0
-    $('pjus').onchange = async e => {
-      const f = e.target.files[0]; e.target.value = ''; if (!f) return;
-      const j = await leerJustificante(f); if (!j) return;
-      justifs.push(j); pinta();
-    };
-    $('dbody').querySelectorAll('[data-jx]').forEach(b => b.onclick = () => { justifs.splice(+b.dataset.jx, 1); pinta(); });
-    ['pdto', 'pdtot', 'penv', 'penvi', 'penvv'].forEach(id => $(id).oninput = $(id).onchange = desglose);
-    $('pserv').onchange = () => {
-      const sv = SERVICIOS.find(x => x.id === $('pserv').value);
-      $('penv').checked = !!sv;
-      if (sv) { $('penvi').value = r2(sv.pvp || 0); $('penvv').value = sv.iva != null ? sv.iva : 21; }
-      desglose();
-    };
-    desglose();
-
-    // v2.200.0: al cambiar de ficha, los precios de su contrato (si lo hay) en las líneas que no se han tocado a mano
-    const precios = () => cargarPreciosContrato(medico && medico.id).then(c => { if (c) { lineas.forEach(l => { if (!l.manual) autoImporte(l); }); pinta(); } });
-    const montarMed = () => {
-      $('pselmed').__texto = medico ? '' : form.cuenta_texto;
-      selectorMedico($('pselmed'), { valor: medico, placeholder: 'Nombre, código, centro o municipio', alElegir: m => { medico = m; precios(); } });
-    };
-    selectorPaciente($('pselpac'), { valor: contacto, alElegir: c => {
-      contacto = c;
-      if (c && !medico && c.cuenta_id) { medico = { id: c.cuenta_id, nombre: c.medico, codigo: c.medico_codigo }; montarMed(); precios(); }
-    } });
-    montarMed();
-
-    const guardar = async (estado, btn, o = {}) => {
-      if (!lineas.some(l => l.producto_id)) { toast('Añade al menos un producto', true); return; }
-      const cps = camposLeer($('dbody'));
-      if (cps && cps.falta.length) { toast(`Rellena «${cps.falta[0]}»`, true); return; }
-      let trfVal = false;   // v2.314.0: con transferencia, el pedido puede esperar al pago en borrador
-      const sc = !!($('psincargo') && $('psincargo').checked);   // v2.317.0: entrega sin cargo
-      const yaVal = !!(ped && ped.estado === 'Confirmado');   // v2.322.0: validado y sin factura: se guarda tal cual, sin volver a preguntar
-      // v2.333.0: con tarjeta o Bizum (y el cobro activo) se elige: enviar el enlace (el pedido espera al pago en borrador y se confirma solo
-      // al pagar) o validar ya (cobrado de otra forma). Sin móvil del cliente, se confirma como siempre y se avisa.
-      let tpvSinMovil = false;
-      if (!sc && !yaVal && estado === 'Confirmado' && !o.alGuardar && tpvActivo() && esPagoTpv($('ppago').value)) {
-        if (!await tpvMovilDe(contacto)) tpvSinMovil = true;
-        else {
-          const v = await elegirOpcion('Pago con tarjeta o Bizum', `Se le puede enviar por SMS el enlace de pago: el pedido espera en borrador y, cuando paga, se confirma solo y queda cobrado. Si ya lo habéis cobrado de otra forma, valídalo ya.`,
-            [{ k: 'no', t: 'Cancelar', cls: 'sec' }, { k: 'validar', t: 'Confirmar ya', cls: 'sec' }, { k: 'enlace', t: 'Enviar enlace de pago' }]);
-          if (!v) return;
-          if (v === 'enlace') { estado = 'Borrador'; o = Object.assign({}, o, { alGuardar: tpvTrasGuardar }); } else trfVal = true;
-        }
-      }
-      if (!medico && contacto && contacto.id && !$('zonapac').classList.contains('escentro')) {   // v2.329.0
-        const { data: kc } = await db.from('contactos').select('cuenta_id, cuenta_por_pedido').eq('id', contacto.id).maybeSingle();
-        if (kc && kc.cuenta_id && !kc.cuenta_por_pedido) medico = { id: kc.cuenta_id, nombre: contacto.medico || '' };
-      }
-      if (sc && !medico && !await preguntar(`Sin ${TT('medico', 's', '', 'l', 'l')} de referencia, estas unidades no cuentan a nadie.`, { titulo: 'Entrega sin cargo', ok: 'Guardar igualmente' })) return;
-      if (!sc && !yaVal && estado === 'Confirmado' && esTransferencia($('ppago').value)) {
-        const v = await elegirOpcion('Pago por transferencia', 'Este pedido se puede guardar en borrador hasta que llegue el pago: no cuenta en métricas ni comisiones y aún se puede cambiar. Cuando llegue la transferencia, lo confirmas desde el pedido.',
-          [{ k: 'no', t: 'Cancelar', cls: 'sec' }, { k: 'validar', t: 'Confirmar ya', cls: 'sec' }, { k: 'borrador', t: 'Guardar en borrador' }]);
-        if (!v) return;
-        if (v === 'borrador') estado = 'Borrador'; else trfVal = true;
-      }
-      if (estado === 'Confirmado' && !trfVal && !yaVal && !await preguntar('Una vez confirmado, el pedido cuenta en métricas y comisiones y ya no se puede editar ni eliminar: solo anular.',
-        { titulo: '¿Confirmar el pedido?', ok: 'Confirmar' })) return;
-      btn.disabled = true; const txt = btn.textContent; btn.textContent = 'Guardando…';
-      const { data: r, error } = await db.rpc('guardar_pedido', { p: {
-        id: ped ? ped.id : null, estado,
-        fecha: $('pfecha').value, canal: $('pcan').value,
-        cuenta_id: medico ? medico.id : null, cuenta_texto: medico ? '' : ($('pselmed').__texto || '').trim(),
-        contacto_id: contacto ? contacto.id : null, nota: $('pnota').value.trim(),
-        forma_pago: $('ppago').value || null, origen: $('porig').value, pago_referencia: $('ppago').value ? $('pref').value.trim() : '',
-        descuento: +$('pdto').value || 0, descuento_tipo: $('pdtot').value,
-        envio: $('penv').checked, envio_con_iva: +$('penvi').value || 0, envio_iva: +$('penvv').value || 0, servicio_id: $('pserv').value || null,
-        sin_cargo: sc,
-        lineas: lineas.filter(l => l.producto_id).map(l => ({ producto_id: l.producto_id, unidades: l.unidades || 1,
-          importe: l.importe, descuento: l.descuento || 0, iva: l.iva })),
-        op_id: 'p-' + Date.now()
-      }});
-      btn.disabled = false; btn.textContent = txt;
-      if (error || (r && r.ok === false)) {
-        toast(r && r.error === 'facturado' ? 'Ese pedido ya tiene factura: para cambiarlo, haz una rectificativa' : r && r.error === 'validado' ? 'Ese pedido ya no se puede editar'
-          : 'No se ha podido guardar: ' + ((error && error.message) || 'sin permiso'), true);
-        return;
-      }
-      if (cps && !(await camposGuardar(cps, (r && r.id) || (ped && ped.id)))) return;
-      {   // v2.328.0: reportar al profesional solo si se marca (por defecto, no)
-        const rid = (r && r.id) || (ped && ped.id), rep = !!($('prepprof') && $('prepprof').checked) && !$('zonapac').classList.contains('escentro');
-        if (rid && (rep || (ped && ped.reportar_profesional))) {
-          const { data: mr, error: me } = await db.rpc('marcar_reporte', { p_id: rid, p_valor: rep });
-          if (me || (mr && mr.ok === false)) toast('El pedido se ha guardado, pero no se ha podido cambiar «Reportar»', true);
-        }
-      }
-      if (justifs.length && !(await subirJustificantes((r && r.id) || (ped && ped.id), justifs))) return;
-      $('dlg').close();
-      if (o.alGuardar) { await o.alGuardar((r && r.id) || (ped && ped.id)); return; }   // v2.314.0
-      toast(yaVal ? 'Pedido actualizado' : sc ? (estado === 'Borrador' ? 'Entrega sin cargo guardada en borrador' : 'Entrega sin cargo confirmada') : estado === 'Borrador' ? (esTransferencia($('ppago').value) ? 'Guardado en borrador hasta que llegue el pago' : 'Borrador guardado') : (medico ? 'Pedido confirmado y atribuido' : 'Pedido confirmado · pendiente de atribuir'));
-      if (tpvSinMovil) toast(`Pedido confirmado. Sin móvil ${TT('paciente', 's', 'del', 'l', 'l')} no se puede enviar el enlace de pago: cóbralo como siempre`);   // v2.333.0
-      if (estado === 'Borrador' && ped && ped.id) tpvAvisoImporte(ped.id);
-      if (TAB === 'ventas') cargarVentas();
-      if (TAB === 'pacientes') listaPacientes();
-      if ($('ficha').open && FICHA_PAC) fichaPaciente(FICHA_PAC);
-    };
-    $('pborr').onclick = e => guardar('Borrador', e.target);
-    $('psincargo').onchange = () => { leerForm(); lineas.forEach(l => { l.descuento = form.sin_cargo ? 100 : 0; }); pinta(); };   // v2.317.0
-    $('ptrfmail').onclick = e => {   // v2.314.0: guarda en borrador y envía los datos de pago
-      if (!contacto) { toast(`Elige ${TT('paciente', 's', 'el', 'l', 'l')} para enviarle los datos de pago`, true); return; }
-      if (!((AJUSTES.empresa || {}).iban || '').trim()) { toast('Falta el IBAN: ponlo en Configuración → Facturación → Datos fiscales antes de enviar los datos de pago', true); return; }
-      guardar('Borrador', e.target, { alGuardar: async id => { await enviarDatosPago(id); verPedido(id); if (TAB === 'ventas') cargarVentas(); } });
-    };
-    $('ptpvenv').onclick = async e => {   // v2.333.0: guarda en borrador y envía el enlace de pago
-      if (!contacto) { toast(`Elige ${TT('paciente', 's', 'el', 'l', 'l')} para enviarle el enlace de pago`, true); return; }
-      if (!await tpvMovilDe(contacto)) { toast(`${TT('paciente', 's', '', 'l', 'C')} no tiene móvil: añádelo en su ficha para enviarle el enlace de pago`, true); return; }
-      guardar('Borrador', e.target, { alGuardar: tpvTrasGuardar });
-    };
-    $('pvalid').onclick = e => guardar('Confirmado', e.target);
-    // Campos personalizados del pedido: se conservan al repintar
-    if ((CAMPOS.pedido || []).some(c => c.en_ficha) && $('pnota')) {
-      const poner = () => { if ($('dbody').querySelector('.cpersform')) return;
-        $('pnota').insertAdjacentHTML('afterend', camposHTML('pedido', cpPed));
-        $('dbody').querySelector('.cpersform').addEventListener('input', e => { const i = e.target.closest('[data-cpk]'); if (i) cpPed[i.dataset.cpk] = i.value; });
-        $('dbody').querySelector('.cpersform').addEventListener('change', e => { const i = e.target.closest('[data-cpk]'); if (i) cpPed[i.dataset.cpk] = i.value; }); };
-      if (cpPed) poner();
-      else if (ped && ped.id) db.from('pedidos').select('clasificadores').eq('id', ped.id).maybeSingle().then(({ data }) => { cpPed = Object.assign({}, (data && data.clasificadores) || {}); poner(); });
-      else { cpPed = {}; poner(); }
-    }
-  };
-  let cpPed = null;
-  pinta();
-  $('dlg').showModal();
-}
 
 /* ---------------- detalle de pedido ---------------- */
 
@@ -18300,94 +20276,8 @@ async function verPedido(id) {
   });
 }
 
-// Ver pedido · Facturas del pedido, o botón para emitirla
-async function pedidoFacturas(id) {
-  if (!VE_TODO() || !$('dlg').open) return;
-  const acts = $('dbody').querySelector('.acts:last-of-type'); if (!acts) return;
-  const { data } = await RPC_ORIG('pedido_detalle', { p_id: id });
-  const p = data && data.pedido; if (!p) return;
-  const { data: fs } = await db.from('facturas').select('id,numero,pedido_id').eq('pedido_id', id);   // v2.350.0: solo las de este pedido
-  const fac = fs || [];
-  if (fac.length) {
-    acts.insertAdjacentHTML('afterbegin', fac.map(f => `<button class="btn sec" data-pvfac="${f.id}">🧾 ${esc(f.numero)}</button>`).join(''));
-    acts.querySelectorAll('[data-pvfac]').forEach(b => b.onclick = () => verFactura(b.dataset.pvfac));
-  } else if (p.estado === 'Confirmado' && !p.sin_cargo && puedeFacturar()) {
-    acts.insertAdjacentHTML('afterbegin', '<button class="btn" id="pvemitir">🧾 Ver la factura</button>');   // v2.339.0: primero la vista previa
-    acts.querySelector('#pvemitir').onclick = () => previaFacturaPedido(id);
-  }
-}
 
 
-/* Parte base; verPedido le añade el resto */
-async function verPedidoBase(id) {
-  cargando($('dbody'), 'Abriendo el pedido…');
-  $('dlg').showModal();
-  const { data, error } = await RPC_ORIG('pedido_detalle', { p_id: id });
-  if (error || !data || !data.pedido) { $('dbody').innerHTML = `<div class="vacio">${esc(error ? error.message : 'No se ha encontrado el pedido.')}</div>`; return; }
-  const p = data.pedido, l = data.lineas || [], c = data.contacto;
-  const t = totalesPedido(l, +p.descuento || 0, p.descuento_tipo,
-    { on: !!p.envio, con: r2(+p.envio_base * (1 + (+p.envio_iva || 0) / 100)), iva: +p.envio_iva || 0,
-      nombre: ((SERVICIOS.find(x => x.id === p.servicio_id) || {}).nombre) || 'Envío' });
-  const bor = p.estado === 'Borrador', anulado = p.estado === 'Anulado';
-
-  $('dbody').innerHTML = `
-    <div class="fh pdcab"><div class="pdcabt"><h2>Pedido${p.numero ? ' ' + esc(p.numero) : ''}</h2>${pillEstado(p.estado)}${pillCobroPed(p)}
-      <span class="sm pdmeta">${fechaCorta(p.fecha)} · ${etiquetaCanal(p, t.total)}${p.forma_pago ? ' · ' + esc(p.forma_pago) : ''}</span></div>
-      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-    ${bor ? '<div class="cacheaviso" style="margin-top:10px">Borrador: todavía no cuenta en métricas ni en comisiones.</div>' : ''}
-    ${c ? `<div class="blk"><h3>${TT('paciente', 's', '', 'l', 'C')}</h3><div><b>${esc(c.nombre)}</b></div>
-      <div class="sm">${esc(c.telefono || c.movil || '')} ${esc(c.email || '')}</div>
-      <div class="acts"><button class="btn sec" data-vpac="${c.id}">Ver ficha ${TT('paciente', 's', 'del', 'l', 'l')}</button></div></div>` : ''}
-    ${data.medico ? `<div class="blk"><h3>${TT('medico', 's', '', 'l', 'C')}</h3><div><b>${esc(data.medico.nombre)}</b> <span class="sm">· código ${esc(data.medico.codigo)}</span></div>
-      ${l[0] && l[0].comercial ? `<div class="sm">Comercial: ${esc(l[0].comercial)}</div>` : ''}</div>` : ''}
-    <div class="blk"><h3>Líneas</h3>
-      ${l.map(x => { const d = lineaDesglose(x); return `<div style="display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid var(--line)">
-        <span><b>${esc(x.producto || 'Sin producto')}</b> · ${num(x.unidades)} uds.
-          <div class="sm">Base ${eurI(d.base)}${+x.descuento ? ` (dto. ${num(x.descuento)}%)` : ''} · IVA ${num(x.iva || 0)}% ${eurI(d.iva)}</div></span>
-        <b style="white-space:nowrap">${eurI(d.total)}</b></div>`; }).join('') || '<div class="sm">Sin líneas.</div>'}
-      <div class="totbox">${bloqueTotales(t)}</div></div>
-    ${p.nota ? `<div class="blk"><h3>Nota</h3><div>${esc(p.nota)}</div></div>` : ''}
-    <div class="acts" style="justify-content:flex-end">
-      ${puedeVentas() && bor ? `<button class="btn sec dang" id="pdborrar">Eliminar borrador</button>
-        <button class="btn sec" id="pdeditar">Editar</button>
-        <button class="btn" id="pdvalidar">Confirmar pedido</button>` : ''}
-      ${puedeVentas() && !bor && !anulado ? (p.factura_id ? '<button class="btn sec" id="pdeditnf">Editar datos</button>' : '<button class="btn sec" id="pdeditar">Editar pedido</button>') : ''}
-      ${puedeVentas() && !bor && !anulado ? '<button class="btn sec dang" id="pdanular">Anular pedido</button>' : ''}
-      <button class="btn sec" data-cerrar>Cerrar</button></div>`;
-
-  const vp = $('dbody').querySelector('[data-vpac]');
-  if (vp) vp.onclick = () => { $('dlg').close(); fichaPaciente(vp.dataset.vpac); };
-  if ($('pdeditar')) $('pdeditar').onclick = () => editorPedido(data);
-  if ($('pdeditnf')) $('pdeditnf').onclick = () => editarPedidoNoFiscal(data);   // v2.307.0
-  if ($('pdborrar')) $('pdborrar').onclick = async () => {
-    if (!await preguntar('El borrador desaparece por completo.', { titulo: '¿Eliminar el borrador?', ok: 'Eliminar', peligro: true })) return;
-    const { data: r, error: e } = await db.rpc('borrar_pedido', { p_id: id });
-    if (e || (r && r.ok === false)) { toast(r && r.error === 'validado' ? 'Solo se pueden eliminar borradores' : 'No se ha podido eliminar', true); return; }
-    $('dlg').close(); toast('Borrador eliminado'); if (TAB === 'ventas') cargarVentas();
-  };
-  if ($('pdvalidar')) $('pdvalidar').onclick = async e => {
-    if (!await preguntar((e.target.dataset.pago ? 'Se anota el pago como recibido. ' : '') + 'Una vez confirmado, el pedido cuenta en métricas y comisiones y ya no se puede editar ni eliminar: solo anular.',
-      { titulo: '¿Confirmar el pedido?', ok: 'Confirmar' })) return;
-    e.target.disabled = true;
-    const { data: r, error: er } = await db.rpc('guardar_pedido', { p: {
-      id, estado: 'Confirmado', fecha: p.fecha, canal: p.canal, contacto_id: p.contacto_id, centro_id: p.centro_id,
-      cuenta_id: data.medico ? data.medico.id : null, cuenta_texto: p.cuenta_texto, nota: p.nota, forma_pago: p.forma_pago, pago_referencia: p.pago_referencia || '',
-      descuento: p.descuento || 0, descuento_tipo: p.descuento_tipo,
-      envio: !!p.envio, envio_con_iva: p.envio ? r2(+p.envio_base * (1 + (+p.envio_iva || 0) / 100)) : 0, envio_iva: p.envio_iva, servicio_id: p.servicio_id,
-      lineas: l.map(x => ({ producto_id: x.producto_id, unidades: x.unidades, importe: x.importe, descuento: x.descuento, iva: x.iva })) } });
-    e.target.disabled = false;
-    if (er || (r && r.ok === false)) { toast('No se ha podido confirmar: ' + ((er && er.message) || (r && r.error) || ''), true); return; }
-    if (e.target.dataset.pago) await db.rpc('marcar_operativa', { p_pedido: id, p_campo: 'pago', p_hecho: true });   // v2.314.0
-    toast(e.target.dataset.pago ? 'Pedido confirmado y cobrado' : 'Pedido confirmado'); verPedido(id); if (TAB === 'ventas') cargarVentas();
-  };
-  if ($('pdanular')) $('pdanular').onclick = async () => {
-    const motivo = await pedirTexto('Motivo de la anulación (opcional)', '', { titulo: '¿Anular el pedido?', ok: 'Anular' });
-    if (motivo === null) return;
-    const { data: r, error: er } = await db.rpc('anular_pedido', { p_id: id, p_motivo: motivo || null });
-    if (er || (r && r.ok === false)) { toast(r && r.error === 'facturado' ? 'Tiene factura: emite antes una rectificativa de toda la factura y marca «Anular también el pedido»' : 'No se ha podido anular: ' + ((er && er.message) || (r && r.error) || ''), true); return; }
-    $('dlg').close(); toast('Pedido anulado'); if (TAB === 'ventas') cargarVentas();
-  };
-}
 
 /* ---------------- pacientes ---------------- */
 
@@ -18645,136 +20535,6 @@ async function nuevaCita(medicoId, fecha) {
 
 /* ---------------- alta y edición de paciente ---------------- */
 
-function editorContacto(c, alGuardar, op) {
-  c = c || {}; op = op || {};
-  // v2.119.0: en un cliente nuevo, desplegable «Registro de llamada» (abierto si se viene de registrar una llamada)
-  const conLlamada = !c.id && !!op.llamada;   // v2.125.0: solo si se viene de una llamada antigua; el recorrido es «Nueva venta»
-  let tipo = c.tipo || 'Persona';
-  let medico = c.cuenta_id ? { id: c.cuenta_id, nombre: c.medico || `${TT('medico', 's', '', 'l', 'C', 'asignado')}`, codigo: c.medico_codigo || '' } : null;
-  $('dlg2body').innerHTML = `
-    <div class="fh"><div><h2>${c.id ? `Editar ${TT('paciente', 's', '', 'l', 'l')}` : `${TT('paciente', 's', 'nuevo', 'C', 'l')}`}</h2>
-      <div class="sm">Datos de entrega y facturación</div></div>
-      <button class="x" data-cerrar2 aria-label="Cerrar">✕</button></div>
-    <div class="subnav" style="margin:6px 0 4px"><button type="button" data-ktipo="Persona" aria-pressed="${tipo === 'Persona'}">Persona</button>
-      <button type="button" data-ktipo="Empresa" aria-pressed="${tipo === 'Empresa'}">Empresa</button></div>
-    <div class="g2">
-      <div><label for="konom" id="konoml">${tipo === 'Empresa' ? 'Razón social' : 'Nombre y apellidos'}</label><input id="konom" value="${esc(c.nombre || '')}"></div>
-      <div><label for="konif" id="konifl">${tipo === 'Empresa' ? 'CIF' : 'DNI o NIE'}</label>
-        <input id="konif" value="${esc(c.nif || '')}" placeholder="${tipo === 'Empresa' ? 'B12345678' : '12345678Z'}" autocapitalize="characters">
-        <div class="sm" id="konifm" style="margin-top:4px"></div></div>
-    </div>
-    <label>${TT('medico', 's', '', 'l', 'C')} que lo trata</label><div id="kosel"></div>
-    <div class="sm" style="margin-top:4px" id="komsm">Las unidades de sus pedidos se atribuyen a ${TT('medico', 's', 'este', 'l', 'l')} y a su comercial.</div>
-    ${puedeMedicoLibre() ? `<label class="opt prepbox"><input type="checkbox" id="komlibre"> ${esc(TT('medico', 's', '', 'l', 'C'))} distinto en cada pedido (no se guarda en la ficha)</label>` : ''}
-    <div class="g2">
-      <div><label for="kodir">Dirección de entrega</label><input id="kodir" value="${esc(c.direccion || '')}"></div>
-      <div><label for="kocp">Código postal</label><input id="kocp" value="${esc(c.cp || '')}" inputmode="numeric"></div>
-    </div>
-    <div class="g2">
-      <div><label for="komun">Población</label><input id="komun" value="${esc(c.municipio || '')}"></div>
-      <div><label for="kopro">Provincia</label><input id="kopro" value="${esc(c.provincia || '')}"></div>
-    </div>
-    <div class="g2">
-      <div><label for="kotel">Teléfono</label><input id="kotel" value="${esc(c.telefono || '')}" inputmode="tel"></div>
-      <div><label for="komov">Móvil</label><input id="komov" value="${esc(c.movil || '')}" inputmode="tel"></div>
-    </div>
-    <div class="g2">
-      <div><label for="komail">Email</label><input id="komail" type="email" value="${esc(c.email || '')}"></div>
-      <div id="koempw" class="${tipo === 'Empresa' ? 'koinv' : ''}"><label for="koemp">Empresa ${pmAyu('Empresa', 'Si la persona factura a nombre de una empresa, escribe aquí su nombre. Con «Empresa» arriba no hace falta.')}</label><input id="koemp" value="${esc(c.empresa || '')}"></div>
-    </div>
-    <label for="konota">Nota</label><input id="konota" value="${esc(c.nota || '')}">
-    ${conLlamada ? llamadaAltaHTML(op.llamada) : ''}
-    <div class="acts" style="justify-content:flex-end;flex-wrap:wrap">
-      <button class="btn sec" id="kocancel">Cancelar</button>
-      <button class="btn ${conLlamada && op.llamada ? 'sec' : ''}" id="kook">${c.id ? 'Guardar' : `Crear ${TT('paciente', 's', '', 'l', 'l')}`}</button>
-      ${conLlamada && op.llamada ? '<button class="btn" id="kopedido">🛒 Crear y hacer pedido</button>' : ''}</div>`;
-
-  selectorMedico($('kosel'), { valor: medico, alElegir: m => { medico = m; } });
-  // v2.329.0: clientes como un equipo comercial, con un profesional distinto en cada pedido
-  let libreAntes = false;
-  const libreVer = () => { const on = !!($('komlibre') && $('komlibre').checked); $('kosel').classList.toggle('hide', on); $('komsm').classList.toggle('hide', on); if ($('kosel').previousElementSibling) $('kosel').previousElementSibling.classList.toggle('hide', on); };
-  if ($('komlibre')) {
-    $('komlibre').onchange = libreVer;
-    if (c.id) db.from('contactos').select('cuenta_por_pedido').eq('id', c.id).maybeSingle().then(({ data }) => { libreAntes = !!(data && data.cuenta_por_pedido); if ($('komlibre')) { $('komlibre').checked = libreAntes; libreVer(); } });
-  }
-  const revisaDoc = () => {
-    const r = validarDoc($('konif').value, tipo);
-    $('konifm').innerHTML = r.ok ? '' : `<span style="color:var(--danger)">${esc(r.msg)}</span>`;
-    return r;
-  };
-  $('konif').oninput = revisaDoc;
-  $('dlg2body').querySelectorAll('[data-ktipo]').forEach(b => b.onclick = () => {
-    tipo = b.dataset.ktipo;
-    $('dlg2body').querySelectorAll('[data-ktipo]').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
-    $('konifl').textContent = tipo === 'Empresa' ? 'CIF' : 'DNI o NIE';
-    $('konoml').textContent = tipo === 'Empresa' ? 'Razón social' : 'Nombre y apellidos';
-    $('konif').placeholder = tipo === 'Empresa' ? 'B12345678' : '12345678Z';
-    $('koempw').classList.toggle('koinv', tipo === 'Empresa');   // v2.341.0: el hueco se queda (antes desaparecía y todo lo de debajo saltaba)
-    if ($('konif').value) revisaDoc();
-  });
-  $('kocancel').onclick = () => $('dlg2').close();
-  camposInsertar($('dlg2body'), 'cliente', c.id, $('kook') && $('kook').closest('.acts'));
-  if (conLlamada) llamadaAltaActivar(() => medico, op.llamada);
-  const crear = async (ev, conPedido) => {
-    if (!$('konom').value.trim()) { toast('Escribe el nombre', true); return; }
-    const ll = conLlamada ? llamadaAltaLeer() : null;
-    const cps = camposLeer($('dlg2'));
-    if (cps && cps.falta.length) { toast(`Rellena «${cps.falta[0]}»`, true); return; }
-    const doc = revisaDoc();
-    if (!doc.ok) { toast(tipo === 'Empresa' ? 'Revisa el CIF' : 'Revisa el DNI o NIE', true); return; }
-    ev.target.disabled = true; ev.target.textContent = 'Guardando…';
-    const { data: r, error } = await db.rpc('guardar_contacto', { p: {
-      id: c.id || null, nombre: $('konom').value.trim(), nif: doc.v, tipo,
-      direccion: $('kodir').value.trim(), cp: $('kocp').value.trim(), municipio: $('komun').value.trim(),
-      provincia: $('kopro').value.trim(), telefono: $('kotel').value.trim(), movil: $('komov').value.trim(),
-      email: $('komail').value.trim(), empresa: tipo === 'Empresa' ? '' : $('koemp').value.trim(), nota: $('konota').value.trim(),
-      cuenta_id: medico && !($('komlibre') && $('komlibre').checked) ? medico.id : null
-    }});
-    ev.target.disabled = false; ev.target.textContent = c.id ? 'Guardar' : conPedido ? '🛒 Crear y hacer pedido' : `Crear ${TT('paciente', 's', '', 'l', 'l')}`;
-    if (error && /cliente_duplicado/.test(error.hint || '')) { toast(error.message, true); if ($('konif')) $('konif').dispatchEvent(new Event('input')); return; }   // v2.225.0
-    if (error || (r && r.ok === false)) { toast('No se ha podido guardar', true); return; }
-    if (cps && !(await camposGuardar(cps, (r && r.contacto && r.contacto.id) || c.id))) return;
-    const libre = !!($('komlibre') && $('komlibre').checked);
-    if ($('komlibre') && libre !== libreAntes) {
-      const { data: ml, error: me } = await db.rpc('guardar_cuenta_por_pedido', { p_id: (r && r.contacto && r.contacto.id) || c.id, p_valor: libre });
-      if (me || (ml && ml.ok === false)) { toast('No se ha podido guardar la opción del profesional', true); return; }
-      if (libre && r && r.contacto) r.contacto.cuenta_id = null;
-    }
-    if (libre) medico = null;
-    $('dlg2').close(); toast(c.id ? `${TT('paciente', 's', '', 'l', 'C', 'guardado')}` : `${TT('paciente', 's', '', 'l', 'C', 'creado')}`);
-    const res = Object.assign({}, r.contacto, medico ? { medico: medico.nombre, medico_codigo: medico.codigo } : {});
-    // v2.119.0: la llamada queda registrada con el cliente recién creado (si se ha apuntado algo o se viene de una llamada)
-    let lid = null;
-    if (ll && (conPedido || ll.motivo || ll.resultado || ll.nota || op.llamada)) lid = await llamadaAltaGuardar(ll, { contacto_id: res.id, nombre: res.nombre,
-      telefono: res.movil || res.telefono || '', medico, resultado: conPedido ? (ll.resultado || 'Pedido hecho') : ll.resultado }, op.llamada);
-    if (conPedido) {
-      if (lid) LLAMADA_PEND = lid;
-      await editorPedido({ contacto: res, medico: medico ? { id: medico.id, nombre: medico.nombre } : null });
-      return;
-    }
-    if (alGuardar) alGuardar(res);
-    if (TAB === 'pacientes') listaPacientes();
-    if (lid && TAB === 'ventas' && PEDSEC === 'llamadas') pintarLlamadas();
-  };
-  $('kook').onclick = ev => crear(ev, false);
-  if ($('kopedido')) $('kopedido').onclick = ev => crear(ev, true);
-  // «No compra»: solo la llamada, sin crear el cliente, con lo apuntado de él
-  if ($('kosolo')) $('kosolo').onclick = async ev => {
-    const ll = llamadaAltaLeer();
-    const nombre = $('konom').value.trim(), telefono = $('komov').value.trim() || $('kotel').value.trim();
-    if (!nombre && !telefono) { toast('Apunta al menos su nombre o su teléfono', true); return; }
-    ev.target.disabled = true;
-    const datos = { tipo, nif: $('konif').value.trim(), email: $('komail').value.trim(), direccion: $('kodir').value.trim(), cp: $('kocp').value.trim(),
-      municipio: $('komun').value.trim(), provincia: $('kopro').value.trim(), empresa: $('koemp').value.trim(), nota: $('konota').value.trim() };
-    Object.keys(datos).forEach(k => { if (!datos[k]) delete datos[k]; });
-    const lid = await llamadaAltaGuardar(ll, { contacto_id: null, nombre, telefono, medico, resultado: ll.resultado, datos }, op.llamada);
-    ev.target.disabled = false;
-    if (!lid) return;
-    $('dlg2').close(); toast('Llamada registrada (sin crear cliente)');
-    if (TAB === 'ventas' && PEDSEC === 'llamadas') pintarLlamadas();
-  };
-  $('dlg2').showModal();
-}
 
 /* ---------------- módulos Pacientes y Productos ---------------- */
 
@@ -18790,14 +20550,7 @@ function editorContacto(c, alGuardar, op) {
 $('fcom').addEventListener('change', e => { F.com = e.target.value; buscar(true); });
 
 COLS.push({ k: 'comerciales', t: 'Comerciales', w: 190 });
-function colsConfig() {
-  let g = null;
-  try { g = JSON.parse(localStorage.getItem(colKey()) || 'null'); } catch (e) {}
-  if (!g || !g.length) g = COLS.map(c => ({ k: c.k, on: COLS_DEF.includes(c.k) || (c.k === 'comerciales' && VE_TODO()), w: c.w }));
-  COLS.forEach(c => { if (!g.some(x => x.k === c.k)) g.push({ k: c.k, on: c.k === 'comerciales' && VE_TODO(), w: c.w }); });
-  return g.filter(x => x.k !== 'comerciales' || VE_TODO());
-}
-function celda(m, k) {
+function celdaBase(m, k) {
   if (k === 'nombre') return `<span class="nm">${m.urgente ? '<span class="pill p-urg">Urgente</span> ' : ''}${m.sin_reporting ? `<span class="pill p-sr" title="Solo ${TT('visita', 's', '', 'l', 'l')} presencial: sin informes ni feedback">Sin reporting</span> ` : ''}${esc(m.nombre)}</span>`;
   if (k === 'dias') return `<span class="dias">${['L', 'M', 'X', 'J', 'V'].map(d =>
     `<span class="${(m.dias || {})[d] ? 'on' : ''}" title="${esc((m.dias || {})[d] || '')}">${d}</span>`).join('')}</span>`;
@@ -18837,7 +20590,7 @@ abrirEditor = (orig => async function (id, tipo) {
 
 /* ---------------- administración: asignar cartera viendo la lista ---------------- */
 
-async function asignarCartera(id) {
+async function asignarCarteraBase(id) {
   const u = USUARIOS.find(x => x.id === id); if (!u) return;
   const { data: op } = await db.rpc('opciones_filtros', {});
   const sel = lista => '<option value=""></option>' + ((lista || []).map(o => `<option value="${esc(o.v)}">${esc(o.v)} (${o.n})</option>`).join(''));
@@ -19014,7 +20767,7 @@ AYUDA.ventas[2].push('Si marcas <b>Incluir envío</b>, el importe (con IVA) se s
 
 
 /** Selector de periodo. el.__rango() devuelve { desde, hasta } (null = sin límite). */
-function montarPeriodo(el, o) {
+function montarPeriodoBase(el, o) {
   const clave = 'dlc-per-' + (o.id || el.id) + '-' + (PERFIL ? PERFIL.id : '');
   let v = localStorage.getItem(clave) || o.valor || 'mes';
   el.innerHTML = `<label>Periodo</label>
@@ -19114,10 +20867,6 @@ async function cargarAnalitica() {
   pintarAnalitica();
 }
 
-function refrescarAnalitica() {
-  pintarAnalitica();
-  if (!$('atabla2').classList.contains('hide')) pintarTablaAnalitica();
-}
 
 
 /* ---------------- auditoría con periodo ---------------- */
@@ -19160,15 +20909,6 @@ try { Object.keys(localStorage).filter(k => k.startsWith('dlc-ruta-')).forEach(k
 
 
 
-async function empezarJornada() {
-  const citas = await citasDelDia(hoyISO());
-  if (!citas.some(c => CITA_ABIERTA.includes(c.estado))) { toast('No tienes citas abiertas hoy. Añade citas o planifica una ruta.', true); return; }
-  localStorage.setItem(JKEY(), JSON.stringify({ fecha: hoyISO(), inicio: Date.now() }));
-  pintarRutaBarra();
-  toast('Jornada iniciada');
-  AG_MODO = 'dia'; AG_FECHA = hoyISO();
-  if (TAB === 'agenda') cargarAgenda(); else ir('agenda');
-}
 
 
 
@@ -19279,17 +21019,6 @@ document.addEventListener('click', async e => {
 
 
 
-// En Rutas, la ruta en curso se ve en «Tu día»
-async function pintarRutaEnCurso() {
-  if (TAB !== 'rutas') return;
-  if (!$('renc')) $('v-rutas').querySelector('.saludo').insertAdjacentHTML('afterend', '<div id="renc"></div>');
-  const j = jornadaActiva();
-  $('renc').innerHTML = j ? `<div class="card renc"><h2>Jornada en curso</h2>
-    <p class="sm">Empezaste hace ${durTxt(Date.now() - j.inicio)}. El orden, las horas y el registro de ${TT('visita', 'p', '', 'l', 'l')} están en tu agenda de hoy.</p>
-    <div class="acts" style="padding:0 16px 16px"><button class="btn" id="rencver">Ver mi día</button>
-      <button class="btn sec dang" id="rencfin">Terminar jornada</button></div></div>` : '';
-  if (j) { $('rencver').onclick = () => { AG_MODO = 'dia'; AG_FECHA = hoyISO(); ir('agenda'); }; $('rencfin').onclick = terminarJornada; }
-}
 
 /* ---------------- ayudas ---------------- */
 
@@ -19394,7 +21123,7 @@ if (EN_PRUEBAS) {
 /* ---------------- Tu día: horas estimadas respetando las consultas ---------------- */
 
 
-function estimarDia(citas, fecha) {
+function estimarDiaBase2(citas, fecha) {
   const h = horDeCitas(citas);
   const r = conHor(h, () => estimarDiaBase(citas, fecha));
   if (!h || !h.vuelta) r.tope = Infinity;   // sin hora de vuelta planificada no hay aviso
@@ -19470,11 +21199,6 @@ AYUDA.rutas[2].splice(1, 1,
 
 /* ---------------- días bloqueados ---------------- */
 
-async function bloqueadosSemana(desde, hasta) {
-  const { data } = await RPC_ORIG('dias_bloqueados_rango', { p_desde: desde, p_hasta: hasta, p_usuario: agUid() });
-  const b = {}; (data || []).forEach(x => b[x.fecha] = x.motivo || 'Día bloqueado');
-  return b;
-}
 
 
 /* ---------------- semana: carga, bloqueos, arrastrar y planificador ---------------- */
@@ -19486,40 +21210,6 @@ async function bloqueadosSemana(desde, hasta) {
 
 /* ---------------- supervisión del equipo ---------------- */
 
-async function pintarEquipo() {
-  $('agcuerpo').innerHTML = `<div class="semhead"><h2 style="padding:0">Equipo y cumplimiento</h2>
-      ${puede('administrar') ? '<button class="btn sec" id="eqfrec">⚙ Frecuencia objetivo</button>' : ''}</div>
-    <div class="filtros" style="border:0;padding:4px 16px 10px"><div id="eqper"></div></div>
-    <div id="eqtabla"></div>`;
-  if ($('eqfrec')) $('eqfrec').onclick = editorFrecuencia;
-  const pinta = async () => {
-    cargando($('eqtabla'), 'Calculando…');
-    const r = $('eqper').__rango();
-    const { data, error } = await RPC_ORIG('supervision_equipo', { p_desde: r.desde || '2000-01-01', p_hasta: r.hasta || isoMas(hoyISO(), 365) });
-    if (error) { $('eqtabla').innerHTML = `<div class="vacio">${esc(error.message)}</div>`; return; }
-    const l = data || [];
-    const pct = x => { const base = x.visitadas + x.no_estaba + x.aplazadas + x.sin_hacer; return base ? Math.round(x.visitadas / base * 100) : null; };
-    $('eqtabla').innerHTML = l.length ? `<div class="dgrid-wrap"><div class="dgrid eq">
-      <div class="dh"><span>Persona</span><span class="num">Cartera</span><span class="num">Citas</span><span class="num">Visitadas</span>
-        <span class="num">No estaba</span><span class="num">Aplazadas</span><span class="num">Sin hacer</span><span>Cumplimiento</span>
-        <span class="num">${TT('visita', 'p', '', 'l', 'C')}</span><span class="num">Les toca</span></div>
-      ${l.map(x => { const p = pct(x); return `<button class="dr" data-eqver="${x.id}" title="Ver su agenda">
-        <span><b>${esc(x.nombre)}</b><span class="sm">${esc(x.rol)}</span></span>
-        <span class="num">${num(x.cartera)}</span><span class="num">${num(x.citas)}</span>
-        <span class="num"><b style="color:var(--ok)">${num(x.visitadas)}</b></span><span class="num">${num(x.no_estaba)}</span>
-        <span class="num">${num(x.aplazadas)}</span><span class="num" style="${x.sin_hacer ? 'color:var(--warn);font-weight:700' : ''}">${num(x.sin_hacer)}</span>
-        <span>${p == null ? '<span class="vac">—</span>' : `<span class="barra"><i style="width:${p}%;${p < 60 ? 'background:var(--warn)' : ''}"></i><em>${p}%</em></span>`}</span>
-        <span class="num">${num(x.visitas)}</span>
-        <span class="num" style="${x.atrasados ? 'color:var(--warn);font-weight:700' : ''}">${num(x.atrasados)}</span></button>`; }).join('')}
-    </div></div>
-    <p class="sm" style="padding:10px 16px 14px"><b>Cumplimiento</b> = visitadas sobre las citas de días ya pasados (visitadas, no estaba, aplazadas y sin hacer).
-      <b>Les toca</b> = ${TT('medico', 'p', '', 'l', 'l')} de su cartera que llevan más tiempo sin ${TT('visita', 's', '', 'l', 'l')} que su frecuencia objetivo. Pulsa una persona para ver su agenda.</p>`
-      : '<div class="vacio">Sin actividad en este periodo.</div>';
-    $('eqtabla').querySelectorAll('[data-eqver]').forEach(b => b.onclick = () => { AG_MODO = 'semana'; AG_FECHA = hoyISO(); verAgendaDe(b.dataset.eqver); });
-  };
-  montarPeriodo($('eqper'), { id: 'equipo', valor: 'semana', alCambiar: pinta });
-  pinta();
-}
 
 
 /* ---------------- cabecera de la agenda: de quién es y equipo ---------------- */
@@ -19562,13 +21252,6 @@ const detTxt = v => (v.detalles || []).filter(d => !esMuestras(d) && !(!d.dato &
   .map(d => d.valor + (d.dato ? ' (' + d.dato + ')' : '')).join(', ');
 
 
-/* Registrar visita: la ventana base y el aviso si falta el horario de atención (antes eran 3 capas). */
-async function abrirVisita(id) {
-  return ventanaCargando(async () => {
-    await abrirVisitaBase(id);
-    await visitaAvisoHorario(id);
-  });
-}
 
 
 /* Parte base; abrirVisita le añade el resto */
@@ -19667,35 +21350,6 @@ async function abrirVisitaBase(id) {
 /* ---------------- clasificadores: configurar el dato de cada valor ---------------- */
 
 
-abrirClasificador = (orig => function (id) {
-  orig(id);
-  const c = CATS.find(x => x.id === id);
-  const permitido = puede('administrar') || ((PERFIL.areas || {}).K || 0) >= 2;
-  if (!c || !permitido || !['visita'].includes(c.ambito) && c.papel !== 'resultado_visita') return;
-  // Cada vez que se repinta la ventana, se añaden los botones de dato
-  const decorar = () => {
-    const items = $('dbody').querySelectorAll('.lista > .item');
-    (c.valores || []).forEach((v, i) => {
-      const it = items[i]; if (!it || it.querySelector('[data-vdato]')) return;
-      const tx = it.querySelector('.tx');
-      if (v.dato_tipo) tx.insertAdjacentHTML('beforeend', `<span class="sm">Pide: ${esc(v.dato_etiqueta || v.dato_tipo)}${v.dato_tipo === 'lista' ? ' (' + (v.dato_opciones || []).length + ' opciones)' : ''}</span>`);
-      const acts = it.querySelector('.acts');
-      if (acts) acts.insertAdjacentHTML('afterbegin', `<button class="btn sec" data-vdato="${v.id}">${v.dato_tipo ? 'Cambiar dato' : '+ Dato'}</button>`);
-    });
-    $('dbody').querySelectorAll('[data-vdato]').forEach(b => b.onclick = () => {
-      const v = (c.valores || []).find(x => x.id === b.dataset.vdato);
-      editorDato(v, async () => {
-        const { data } = await db.rpc('catalogos_todos'); CATS = data || [];
-        cargarCatalogos(); abrirClasificador(id);
-      });
-    });
-    if (!$('dbody').querySelector('.datoinfo')) $('dbody').querySelector('.fh').insertAdjacentHTML('afterend',
-      `<p class="sm datoinfo">Con <b>+ Dato</b>, al marcar ese valor en ${TT('visita', 's', 'un', 'l', 'l')} se pedirá también una cantidad, un texto o una opción de una lista.</p>`);
-  };
-  decorar();
-  new MutationObserver((_, obs) => { if (!$('dlg').open) { obs.disconnect(); return; } decorar(); })
-    .observe($('dbody'), { childList: true });
-})(abrirClasificador);
 
 /* ---------------- ficha: material y datos en el historial de visitas ---------------- */
 
@@ -19705,7 +21359,7 @@ abrirClasificador = (orig => function (id) {
 
 /* ---------------- columnas dentro del panel lateral ---------------- */
 
-function abrirColumnas() {
+function abrirColumnasBase() {
   const d = $('tools');
   let D = colsConfig();
   const pinta = () => {
@@ -19748,57 +21402,12 @@ function abrirColumnas() {
 Object.assign(PAC, { tipo: '', pedidos: '', municipio: '' });
 
 
-async function pintarPacientes() {
-  const { data: munis } = await db.rpc('municipios_clientes');
-  $('vcuerpo').innerHTML = `
-    <div class="panel">
-      <div class="filtros">
-        <div><label for="pacq">Buscar</label><input id="pacq" type="search" value="${esc(PAC.q)}" placeholder="Nombre, teléfono, email, DNI o CIF"></div>
-        <div><label for="pactipo">Tipo</label><select id="pactipo">
-          <option value="">Todos</option><option value="Persona" ${PAC.tipo === 'Persona' ? 'selected' : ''}>Personas (${TT('paciente', 'p', '', 'l', 'l')})</option>
-          <option value="Empresa" ${PAC.tipo === 'Empresa' ? 'selected' : ''}>Empresas</option></select></div>
-        <div><label for="pacped">Pedidos</label><select id="pacped">
-          <option value="">Todos</option><option value="con" ${PAC.pedidos === 'con' ? 'selected' : ''}>Con pedidos</option>
-          <option value="sin" ${PAC.pedidos === 'sin' ? 'selected' : ''}>Sin pedidos</option></select></div>
-        <div><label for="pacmun">Población</label><select id="pacmun"><option value="">Todas</option>
-          ${(munis || []).map(x => `<option value="${esc(x.v)}" ${PAC.municipio === x.v ? 'selected' : ''}>${esc(x.v)} (${x.n})</option>`).join('')}</select></div>
-        ${camposFiltros('cliente', PAC.campos = PAC.campos || {}, 'pfcp')}
-        ${PAC.medico ? `<div><label>${TT('medico', 's', '', 'l', 'C')}</label><div style="min-height:44px;display:flex;align-items:center"><button class="chip" id="pacmedx">${esc(PAC.medicoNombre)} ✕</button></div></div>` : ''}
-      </div>
-      <div class="cuenta" id="paccuenta">Cargando…</div>
-      <div id="paclista"></div>
-      <div id="pacpag"></div>
-    </div>`;
-  let tq;
-  $('pacq').oninput = e => { clearTimeout(tq); tq = setTimeout(() => { PAC.q = e.target.value.trim(); PAC.pagina = 0; listaPacientes(); }, 300); };
-  $('pactipo').onchange = e => { PAC.tipo = e.target.value; PAC.pagina = 0; listaPacientes(); };
-  $('pacped').onchange = e => { PAC.pedidos = e.target.value; PAC.pagina = 0; listaPacientes(); };
-  $('pacmun').onchange = e => { PAC.municipio = e.target.value; PAC.pagina = 0; listaPacientes(); };
-  camposFiltrosActivar($('vcuerpo'), PAC.campos, () => { PAC.pagina = 0; listaPacientes(); });
-  if ($('pacmedx')) $('pacmedx').onclick = () => { PAC.medico = null; PAC.medicoNombre = ''; PAC.pagina = 0; pintarPacientes(); };
-  listaPacientes();
-}
 
 
 document.querySelectorAll('#nav [data-t="pacientes"]').forEach(b => b.textContent = 'Clientes');
 
 /* ---------------- nueva cita: aviso si ya tiene cita ese día ---------------- */
 
-async function citaRepetida(medicoId, fecha) {
-  const uid = TAB === 'agenda' && AG_VISTA ? AG_VISTA.id : PERFIL.id;
-  const { data } = await RPC_ORIG('agenda_rango', { p_desde: fecha, p_hasta: fecha, p_usuario: uid });
-  const ya = (data || []).find(c => c.cuenta_id === medicoId && CITA_ABIERTA.includes(c.estado));
-  if (!ya) return 'nueva';
-  const op = await elegirOpcion('Ya tiene una cita ese día',
-    `${ya.nombre}\n${fechaLarga(new Date(fecha + 'T00:00:00'))}${ya.hora ? ' a las ' + String(ya.hora).slice(0, 5) : ''} · ${ya.estado}${ya.origen ? ' · ' + ya.origen : ''}\n\n¿Qué quieres hacer?`,
-    [{ k: 'no', t: 'Cancelar', cls: 'sec' }, { k: 'dos', t: 'Mantener las dos', cls: 'sec' }, { k: 'sust', t: 'Quedarme solo con la nueva' }]);
-  if (!op) return null;
-  if (op === 'sust') {
-    const { data: r } = await db.rpc('borrar_cita', { p_id: ya.id });
-    if (r && r.ok === false) { toast('No se ha podido quitar la cita anterior', true); return null; }
-  }
-  return op;
-}
 
 /* ---------------- ayudas ---------------- */
 
@@ -19821,12 +21430,6 @@ AYUDA.agenda[2].push(`Si añades una cita a ${TT('medico', 's', 'un', 'l', 'l')}
 
 Object.assign(RPC_TTL, { alertas_mias: 60, alertas_cruce: 120, actividades_recientes: 30 });
 
-async function cargarProductos() {
-  const { data } = await db.rpc('productos_lista');
-  const l = data || [];
-  PRODUCTOS = l.filter(p => (p.tipo || 'producto') === 'producto');
-  SERVICIOS = l.filter(p => p.tipo === 'servicio');
-}
 
 /* ---------------- móvil: los cuatro principales y «Más» ---------------- */
 
@@ -19847,14 +21450,6 @@ const SKEY = 'dlc-suplantador';
 
 
 
-async function volverAMiSesion() {
-  const s = suplantando(); if (!s) return;
-  const { error } = await db.auth.setSession({ access_token: s.access_token, refresh_token: s.refresh_token });
-  localStorage.removeItem(SKEY);
-  limpiarDatosLocales();
-  if (error) { await db.auth.signOut(); toast('Tu sesión había caducado: vuelve a entrar', true); }
-  location.reload();
-}
 
 
 document.addEventListener('click', e => {
@@ -19916,32 +21511,20 @@ document.addEventListener('click', e => {
 /* ---------------- reglas de cartera ---------------- */
 
 
-pintarEquipo = (orig => async function () {
-  await orig();
+async function pintarEquipo() {
+  await pintarEquipoBase();
   const h = $('agcuerpo').querySelector('.semhead');
   if (h && puede('administrar') && !$('eqcart')) {
     h.insertAdjacentHTML('beforeend', '<button class="btn sec" id="eqcart">⚙ Reglas de cartera</button>');
     $('eqcart').onclick = editorReglasCartera;
   }
-})(pintarEquipo);
+}
 
 /* ---------------- aviso de visita reciente ---------------- */
 
 
 
 
-citaRepetida = (orig => async function (medicoId, fecha) {
-  const r = await orig(medicoId, fecha);
-  if (!r) return r;
-  const por = await recientesDe([medicoId], fecha);
-  const l = por[medicoId];
-  if (!l || !l.length) return r;
-  const op = await elegirOpcion('Ya se ha visto hace poco', `${txtReciente(l.slice(0, 3))}.\n\n¿Añades la cita igualmente?`,
-    [{ k: 'no', t: 'Cancelar', cls: 'sec' }, { k: 'nomas', t: 'Sí, y no volver a avisarme', cls: 'sec' }, { k: 'si', t: 'Añadir igualmente' }]);
-  if (!op) return null;
-  if (op === 'nomas') { await guardarAvisoRevisita(Object.assign(avisoRevisita(), { on: false })); toast('Aviso desactivado. Puedes activarlo en Configuración → Rutas'); }
-  return r;
-})(citaRepetida);
 
 // Plan de ruta: marca a quien ya se ha visto hace poco y permite quitarlo
 
@@ -19949,19 +21532,6 @@ citaRepetida = (orig => async function (medicoId, fecha) {
 
 /* ---------------- servicios en Productos ---------------- */
 
-async function cargarProductosModulo() {
-  const esAdmin = puede('administrar');
-  vaciarModulos('v-productos');
-  $('v-productos').innerHTML = `
-    <div class="saludo"><div><h1>Productos</h1><div class="fecha">Catálogo de productos y servicios, con precios sin IVA y con IVA</div></div>
-      <div class="acts" style="margin:0">${esAdmin ? `<button class="btn" id="prodnuevo">+ Nuevo ${PSEC === 'servicios' ? 'servicio' : 'producto'}</button>` : ''}</div></div>
-    <div class="subnav"><button data-ps="productos" aria-pressed="${PSEC === 'productos'}">Productos</button>
-      <button data-ps="servicios" aria-pressed="${PSEC === 'servicios'}">Servicios</button></div>
-    <div id="vcuerpo"></div>`;
-  $('v-productos').querySelectorAll('[data-ps]').forEach(b => b.onclick = () => { PSEC = b.dataset.ps; cargarProductosModulo(); });
-  if ($('prodnuevo')) $('prodnuevo').onclick = () => PSEC === 'servicios' ? editorServicio(null) : editorProducto(null);
-  if (PSEC === 'servicios') pintarServicios(); else pintarProductos();
-}
 
 
 
@@ -19998,11 +21568,6 @@ AYUDA.rutas[2].unshift('La pestaña <b>Resumen</b> muestra tu día, las propuest
 
 
 
-volverAMiSesion = (orig => async function () {
-  const s = suplantando();
-  pantallaCarga('Volviendo a tu sesión' + (s ? ', ' + nombrePila(s.nombre) : '') + '…');
-  await orig();
-})(volverAMiSesion);
 
 /* ---------------- agenda: una sola transición al cambiar de vista ---------------- */
 
@@ -20115,22 +21680,6 @@ let PEDSEC = 'ventas', PROVEEDORES = [], ALMACENES = [];
 
 /* ---------------- Productos: pestaña «Stock y lotes» ---------------- */
 
-cargarProductosModulo = (orig => async function () {
-  await orig();
-  const sn = $('v-productos').querySelector('.subnav');
-  if (sn && !sn.querySelector('[data-ps="stock"]')) {
-    sn.insertAdjacentHTML('beforeend', `<button data-ps="stock" aria-pressed="${PSEC === 'stock'}">Stock y lotes</button>`);
-    sn.querySelector('[data-ps="stock"]').onclick = () => { PSEC = 'stock'; cargarProductosModulo(); };
-  }
-  if (PSEC === 'stock') {
-    const acts = $('v-productos').querySelector('.saludo .acts');
-    acts.innerHTML = puedeCompras() ? '<button class="btn sec" id="stalm">Almacenes</button><button class="btn sec" id="stmue">⚙ Muestras</button><button class="btn" id="stini">+ Entrada de stock</button>' : '';
-    if ($('stalm')) $('stalm').onclick = editorAlmacenes;
-    if ($('stmue')) $('stmue').onclick = editorMuestras;
-    if ($('stini')) $('stini').onclick = () => movimientoStock(null, 'inicial');
-    pintarStock();
-  }
-})(cargarProductosModulo);
 
 
 
@@ -20274,18 +21823,6 @@ MANUAL.push({ id: 'facturacion', t: 'Facturación', a: 'V', para: 'Facturas desd
 
 /* ---------------- horario de rutas con explicaciones ---------------- */
 
-abrirHorarioPlan = (orig => function () {
-  orig();
-  const ayuda = {
-    hsal: `A qué hora sales. La ${TT('visita', 's', 'primer', 'l', 'l')} se calcula desde aquí o desde ahora, si esa hora ya ha pasado.`,
-    htop: `Hora de vuelta de la ruta. No se planifican ${TT('visita', 'p', '', 'l', 'l')} que te hagan volver más tarde; si el día se pasa, se marca en naranja.`,
-    hvis: `Lo que dura de media cada ${TT('visita', 's', '', 'l', 'l')} con ${TT('medico', 's', 'un', 'l', 'l')}, una vez allí.`,
-    hpar: `Tiempo extra cada vez que llegas a un sitio nuevo: aparcar, entrar, esperar en recepción. Si ves a varios ${TT('medico', 'p', '', 'l', 'l')} en el mismo centro, se cuenta una sola vez.`
-  };
-  Object.entries(ayuda).forEach(([id, t]) => { const i = $(id); if (i && !i.parentElement.querySelector('.ayudah')) i.insertAdjacentHTML('afterend', `<span class="sm ayudah">${esc(t)}</span>`); });
-  const fh = $('dbody').querySelector('.fh');
-  if (fh && !$('horinfo')) fh.insertAdjacentHTML('afterend', `<p class="sm" id="horinfo">Con estos datos se calculan las horas estimadas de tus rutas, de «Tu día» y del planificador semanal. Los desplazamientos entre ${TT('visita', 'p', '', 'l', 'l')} se estiman por la distancia.</p>`);
-})(abrirHorarioPlan);
 
 /* ---------------- mapa del directorio: botón de cerrar siempre visible ---------------- */
 
@@ -20346,13 +21883,6 @@ function aplicarPermisosMenu() {
 
 /* ---------------- indicadores con su categoría y permiso ---------------- */
 
-function kpiPermitido(c) {
-  if (!c) return false;
-  if (c.admin && !puede('administrar')) return false;
-  if (KPI_MOD[c.id] && !puedeModulo(KPI_MOD[c.id])) return false;
-  const r = KPI_PERMISO[c.id];
-  return !r || nivelDe2(r[0]) >= r[1];
-}
 
 /* ---------------- zonas de cada comercial ---------------- */
 
@@ -20463,54 +21993,7 @@ let FACPAG = 0, LLPAG = 0;
 
 
 
-async function descargarFacturaPDF(f, rn) {
-  const doc = await facturaPDF(f, rn); doc.save(nombrePDF(f));
-  await db.from('eventos_facturacion').insert({ tipo: 'PDF descargado', factura_id: f.id, detalle: {} }).then(() => {}, () => {});
-}
 
-async function enviarFacturaEmail(f, rn) {
-  await cargarAjustes();
-  const e = AJUSTES.empresa || {}, c = f.cliente || {};
-  const saludo = c.nombre ? nombrePila(c.nombre) : '';
-  $('dlg2body').innerHTML = `
-    <div class="fh"><div><h2>Enviar ${esc(f.numero)} por email</h2><div class="sm">La factura va adjunta en PDF</div></div>
-      <button class="x" data-cerrar2 aria-label="Cerrar">✕</button></div>
-    <label for="efp">Para</label><input id="efp" type="email" value="${esc(c.email || '')}" placeholder="email del cliente">
-    <label for="efa">Asunto</label><input id="efa" value="${esc(plantillaCorreo('factura', 'asunto', varsCorreo({ documento: 'factura', numero: f.numero, importe: f.total, nombre: c.nombre })))}">
-    <label for="eft">Mensaje</label><textarea id="eft" rows="12">${esc(plantillaCorreo('factura', 'texto', varsCorreo({ documento: 'factura', numero: f.numero, importe: f.total, nombre: c.nombre })))}</textarea>
-    <div class="adjunto">📎 ${esc(nombrePDF(f))}</div>
-    <div class="acts" style="justify-content:flex-end;flex-wrap:wrap"><button class="btn sec" data-cerrar2>Cancelar</button>
-      <button class="btn" id="efok">Enviar</button></div>`;
-  $('dlg2').showModal();
-  $('efok').onclick = async ev => {
-    const para = $('efp').value.trim(); if (!/\S+@\S+\.\S+/.test(para)) { toast('Escribe un email válido', true); return; }
-    ev.target.disabled = true; ev.target.textContent = 'Preparando el PDF…';
-    const doc = await facturaPDF(f, rn), b64 = doc.output('datauristring').split(',')[1];
-    ev.target.textContent = 'Enviando…';
-    let { data, error } = await db.functions.invoke('enviar_email', { body: { para, asunto: $('efa').value.trim(), texto: $('eft').value,
-      adjuntos: [{ nombre: nombrePDF(f), base64: b64, tipo: 'application/pdf' }], factura_id: f.id, pedido_id: f.pedido_id, marca: 'email_factura' } });
-    // Si la función responde con error, su motivo viene en el cuerpo de la respuesta
-    if (error && error.context && typeof error.context.json === 'function') { try { data = await error.context.json(); } catch (x) {} }
-    ev.target.disabled = false; ev.target.textContent = 'Enviar';
-    if (!error && data && data.ok) { $('dlg2').close(); toast('Factura enviada a ' + para); return; }
-    // Sin envío directo configurado: se ofrece compartir el PDF o descargarlo y adjuntarlo
-    const sinSmtp = data && data.error === 'sin_smtp';
-    const archivo = new File([doc.output('blob')], nombrePDF(f), { type: 'application/pdf' });
-    const compartir = navigator.canShare && navigator.canShare({ files: [archivo] });
-    $('dlg2body').innerHTML = `<div class="fh"><div><h2>${sinSmtp ? 'El envío directo aún no está configurado' : 'No se ha podido enviar'}</h2>
-      <div class="sm">${sinSmtp ? 'Falta conectar el correo de la empresa (lo prepara administración).' : esc((error && error.message) || (data && data.error) || '')}</div></div>
-      <button class="x" data-cerrar2 aria-label="Cerrar">✕</button></div>
-      <p>Puedes enviarla desde tu correo con el PDF adjunto:</p>
-      <div class="acts" style="flex-wrap:wrap">${compartir ? '<button class="btn" id="efsh">Compartir el PDF (correo, WhatsApp…)</button>' : ''}
-        <button class="btn ${compartir ? 'sec' : ''}" id="efdl">⬇ Descargar el PDF</button>
-        <a class="btn sec" href="mailto:${esc(para)}?subject=${encodeURIComponent($('efa') ? $('efa').value : f.numero)}&body=${encodeURIComponent('Adjuntamos la factura ' + f.numero + '.')}">Abrir mi correo</a></div>
-      <label class="opt" style="margin-top:12px"><input type="checkbox" id="efmarca"> Ya la he enviado: marcar el pedido como «Email con la factura enviado»</label>
-      <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar2>Cerrar</button></div>`;
-    if ($('efsh')) $('efsh').onclick = () => navigator.share({ files: [archivo], title: f.numero, text: 'Factura ' + f.numero }).catch(() => {});
-    $('efdl').onclick = () => doc.save(nombrePDF(f));
-    $('efmarca').onchange = async ev2 => { if (ev2.target.checked && f.pedido_id) { await db.rpc('marcar_operativa', { p_pedido: f.pedido_id, p_campo: 'email_factura', p_hecho: true }); toast('Marcado como enviado'); } };
-  };
-}
 
 
 /* ---------------- email con los datos de pago: envío directo si está configurado ---------------- */
@@ -20799,7 +22282,7 @@ new MutationObserver(ms => {
   d.addEventListener('cancel', e => { e.preventDefault(); cerrarSelector(); });
 })();
 ;
-function colocarPop(pop, ref) {
+function colocarPopBase(pop, ref) {
   const d = $('seldlg');
   if (!d.open) d.showModal();
   if (ES_MOVIL()) { d.classList.add('hoja'); d.style.top = ''; d.style.left = ''; return; }
@@ -20932,22 +22415,6 @@ new MutationObserver(() => {
 
 /* ---------------- Analítica: la tabla mensual explicada ---------------- */
 
-pintarTablaAnalitica = (orig => async function () {
-  await orig();
-  const caja = $('atabla2'); if (!caja || !caja.querySelector('.thead')) return;
-  const dim = $('adim') ? $('adim').selectedOptions[0].textContent.toLowerCase() : 'concepto';
-  const med = $('amedida') && $('amedida').value === 'importe' ? 'importe sin IVA' : 'unidades vendidas';
-  caja.insertAdjacentHTML('afterbegin', `<div class="tabinfo"><b>Tabla mensual de ${esc(med)} por ${esc(dim.replace(/^por /, ''))}</b>
-    <span>Cada fila es un ${esc(dim.replace(/^por /, ''))} y cada columna un mes del periodo elegido. La última columna suma la fila y la última fila suma cada mes. «·» = sin ventas ese mes. Cuanto más intenso el azul, más alto el valor.</span></div>`);
-  caja.querySelectorAll('.thead .tcell.th').forEach(c => { const m = c.textContent.match(/^(\d{2})\/(\d{2})$/); if (m) c.textContent = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'][+m[1] - 1] + ' ' + m[2]; });
-  const filas = [...caja.querySelectorAll('.trow:not([data-fijo])')], vals = [];
-  filas.forEach(f => [...f.children].slice(1, -1).forEach(c => vals.push(parseFloat(c.textContent.replace(/\./g, '').replace(',', '.').replace(/[^\d.-]/g, '')) || 0)));
-  const max = Math.max(1, ...vals);
-  filas.forEach(f => [...f.children].slice(1, -1).forEach(c => {
-    const v = parseFloat(c.textContent.replace(/\./g, '').replace(',', '.').replace(/[^\d.-]/g, '')) || 0;
-    if (v) c.style.background = `rgba(46,134,201,${(0.08 + v / max * 0.42).toFixed(2)})`;
-  }));
-})(pintarTablaAnalitica);
 
 /* ---------------- Manual: buscador con resultados directos ---------------- */
 
@@ -21008,13 +22475,13 @@ db.rpc = function (fn, params, opts) {
 
 /* ---------------- selector de fecha: siempre junto a su campo ---------------- */
 
-colocarPop = (orig => function (pop, ref) {
+function colocarPop(pop, ref) {
   const d = $('seldlg');
   // v2.87.0: en móvil es una hoja pegada abajo (su estilo ya la coloca); junto al campo solo en escritorio
   if (ES_MOVIL()) { d.style.right = ''; d.style.bottom = ''; } else { d.style.right = 'auto'; d.style.bottom = 'auto'; }
   if (!d.open) d.__abierto = Date.now();
-  orig(pop, ref);
-})(colocarPop);
+  colocarPopBase(pop, ref);
+}
 
 /* ---------------- llamadas: cliente, médico, resultado y pedido en un flujo ---------------- */
 
@@ -21200,7 +22667,7 @@ if (window.L && L.map) {
 
 /* ---------------- Configuración: todo se muestra en el panel de la derecha ---------------- */
 
-function panelDeModulo(sec) {
+function panelDeModuloBase(sec) {
   salirPanel();
   const r = $('v-admin'); r.id = 'v-admin-real';
   $('cfgcuerpo').innerHTML = '<div id="v-admin" data-panel="1" class="cfgpanel cfgmod"></div>';
@@ -21313,7 +22780,6 @@ document.addEventListener('click', async e => {
 
 /* ---------------- acceso y cierre de sesión: sin menú ---------------- */
 
-mostrarLogin = (orig => function (...a) { document.body.classList.add('sin-sesion'); return orig.apply(this, a); })(mostrarLogin);
 if (!PERFIL) document.body.classList.add('sin-sesion');
 
 /* ---------------- pruebas: volver a los datos de partida con confirmación ---------------- */
@@ -21421,18 +22887,8 @@ Promise.resolve(RPC_ORIG('plan_uso', {})).then(r => { if (r && r.data && r.data.
 
 // Los módulos que no entran en el plan se ven con candado y explican cómo conseguirlos
 const puedeModuloV2400 = puedeModulo;
-function avisoPlan(mod) {
-  const p = planMinimo(mod), n = (document.querySelector(`nav.main [data-t="${mod}"]`) || {}).textContent || mod;
-  $('dbody').innerHTML = `<div class="fh"><div><h2>🔒 ${esc(n.replace('🔒', '').trim())}</h2><div class="sm">No está incluido en tu plan ${esc(planDe(PLAN_ACTUAL.plan).nombre)}</div></div>
-    <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-    <p>Está disponible desde el plan <b>${esc(p ? p.nombre : 'A medida')}</b>${p ? ` (${precioPlan(p)})` : ''}.</p>
-    ${p ? `<ul class="manlist">${p.ventajas.map(v => `<li><span>✓</span><span>${esc(v)}</span></li>`).join('')}</ul>` : ''}
-    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>Ahora no</button>${puede('administrar') ? '<button class="btn" id="vplan">Ver planes</button>' : ''}</div>`;
-  $('dlg').showModal();
-  if ($('vplan')) $('vplan').onclick = () => { $('dlg').close(); CFG_SEC = 'plan'; ir('config'); };
-}
 
-async function pintarPlan2() {
+async function pintarPlan2Base() {
   const { data } = await RPC_ORIG('plan_uso', {});
   const d = data || {}, act = planDe((d.plan || {}).plan), bloques = +((d.plan || {}).bloques_extra || 0);
   const maxU = act.incluidos + bloques * act.bloque[0], enlaces = ((d.pagos || {}).enlaces) || {};
@@ -21478,40 +22934,16 @@ const QUE_ABRE = { H: 'Inicio: indicadores, alertas y resumen', G: 'Agenda, cita
   C: 'Centros y sus datos', S: `Registro de ${TT('visita', 'p', '', 'l', 'l')}`, V: 'Pedidos: ventas, compras y llamadas', L: `Clientes (${TT('paciente', 'p', '', 'l', 'l')} y empresas)`, P: 'Productos, servicios y stock',
   F: 'Facturación, cobros y rectificativas', A: 'Analítica y rankings', E: 'Importes en euros (si no, solo unidades)', Q: 'Calidad del dato y duplicados',
   K: 'Clasificadores y listas de valores', U: 'Impersonalizar a otros usuarios' };
-async function pintarRoles() {
-  await cargarAjustes();
-  const roles = rolesNombres().filter(r => !rolPuede(r, 'portal_prescriptor'));
-  $('cfgcuerpo').innerHTML = `<div class="card cfgpanel"><h2>Roles y permisos</h2>
-    <p class="sm">Cada rol tiene una plantilla de permisos que se aplica al dar de alta a una persona o al cambiarle el rol. Después se puede ajustar persona a persona en Usuarios. ${TT('medico', 'p', 'el', 'C', 'l')} con acceso solo ven su informe.</p>
-    <div class="nivleg">${NIVEL_TXT.map((t, i) => `<span class="nv${i}"><b>${esc(t)}</b>${['No ve el módulo ni aparece en el menú', 'Lo ve, pero no cambia nada', 'Crea y edita lo suyo', 'Todo, incluido borrar y configurar'][i]}</span>`).join('')}</div>
-    <div class="dgrid-wrap"><table class="rolmat"><thead><tr><th>Permiso</th>${roles.map(r => `<th>${esc(r)}</th>`).join('')}</tr></thead>
-      <tbody>${AREAS.map(([k, n]) => `<tr><td><b>${esc(n)}</b><span class="sm">${esc(QUE_ABRE[k] || '')}</span></td>
-        ${roles.map(r => `<td><select data-rol="${esc(r)}" data-ar="${k}" class="nvsel chico" ${rolPuede(r, 'administrar') ? 'disabled' : ''}>${NIVEL_TXT.map((t, i) => `<option value="${i}" ${+(plantillaRol(r)[k] || 0) === i ? 'selected' : ''}>${esc(t)}</option>`).join('')}</select></td>`).join('')}</tr>`).join('')}</tbody></table></div>
-    <div class="acts" style="justify-content:flex-end;flex-wrap:wrap"><button class="btn sec" id="rolrest">Volver a los valores de partida</button><button class="btn" id="rolok">Guardar plantillas</button></div></div>`;
-  const colorea = () => $('cfgcuerpo').querySelectorAll('.nvsel').forEach(s => s.className = 'nvsel chico nv' + s.value);
-  $('cfgcuerpo').addEventListener('change', colorea); colorea();
-  const leer = () => { const o = {}; $('cfgcuerpo').querySelectorAll('[data-rol]:not([disabled])').forEach(s => { (o[s.dataset.rol] = o[s.dataset.rol] || {})[s.dataset.ar] = +s.value; }); return o; };
-  $('rolrest').onclick = async () => { await db.rpc('guardar_ajuste', { p_clave: 'roles', p_valor: {} }); AJUSTES.roles = {}; toast('Valores de partida'); pintarRoles(); };
-  $('rolok').onclick = async () => {
-    const v = leer(); const { error } = await db.rpc('guardar_ajuste', { p_clave: 'roles', p_valor: v });
-    if (error) { toast('No se ha podido guardar', true); return; }
-    AJUSTES.roles = v;
-    if (await preguntar('Las plantillas se usan en las altas y cambios de rol. ¿Quieres aplicarlas también ahora a todas las personas que ya tienen esos roles? Se sustituirán sus permisos actuales.', { titulo: '¿Aplicar a las personas actuales?', ok: 'Aplicar a todos' })) {
-      let n = 0; for (const [r, a] of Object.entries(v)) { const { data: x } = await db.rpc('aplicar_plantilla_rol', { p_rol: r, p_areas: a }); n += (x && x.personas) || 0; }
-      toast(`Plantillas guardadas y aplicadas a ${n} personas`);
-    } else toast('Plantillas guardadas');
-  };
-}
 
 /* ---------------- Configuración única (Administración queda integrada) ---------------- */
 
 document.querySelectorAll('[data-u="adm"]').forEach(b => b.classList.add('hide'));
 // Dentro de Configuración no se repiten menús interiores
-panelDeModulo = (orig => function (sec) {
-  orig(sec);
+function panelDeModulo(sec) {
+  panelDeModuloBase(sec);
   const quitar = () => { const p = document.querySelector('#cfgcuerpo .cfgmod'); if (p) p.querySelectorAll('.subnav').forEach(s => s.remove()); };
   quitar(); setTimeout(quitar, 300); setTimeout(quitar, 1200);
-})(panelDeModulo);
+}
 
 /* ---------------- menú «Más» del móvil: continuación de la barra ---------------- */
 
@@ -21590,16 +23022,6 @@ function pintarPerfil() {
 
 
 
-async function pintarPrefsPerfil() {
-  // v2.340.0: la tarjeta de la persona se pinta directamente en su sitio (antes, en un contenedor escondido esperando a pintarPrefs:
-  // llegaba tarde o, si quedaba otra #miperfil en la copia fija, no llegaba y dejaba el hueco)
-  document.querySelectorAll('#miperfil, #mpextra').forEach(x => { if (x.closest('.congelada')) x.removeAttribute('id'); else x.remove(); });
-  if (!$('perfilcab')) return;
-  const p = pintarPrefsPaso2();
-  const mp = $('miperfil');
-  if (mp && $('perfilcab')) $('perfilcab').replaceWith(mp); else if ($('perfilcab')) $('perfilcab').remove();
-  try { await p; } catch (e) {}
-}
 // Al entrar, se abre el módulo elegido
 
 /* ---------------- Rutas y desplazamientos ---------------- */
@@ -21607,41 +23029,6 @@ async function pintarPrefsPerfil() {
 
 /* ---------------- Material de visita ---------------- */
 
-async function pintarMaterial() {
-  await Promise.all([cargarAjustes(), cargarProductos()]);
-  const m = Object.assign({ producto_id: null, restar_stock: false }, AJUSTES.muestras || {});
-  const { data: clas } = await db.rpc('clasificadores_actividad');
-  const mat = (clas || []).find(c => c.papel === 'material_visita');
-  const { data: cid } = await db.from('clasificadores').select('id').eq('papel', 'material_visita').maybeSingle();
-  const { data: vals } = cid ? await db.from('valores_clasificador').select('id,valor,activo,dato_tipo').eq('clasificador_id', cid.id).order('orden') : { data: [] };
-  $('cfgcuerpo').innerHTML = `
-    <div class="card cfgpanel"><h2>Material de ${TT('visita', 's', '', 'l', 'l')}</h2>
-      <p class="sm">Todo lo que un comercial puede dejar en ${TT('visita', 's', 'un', 'l', 'l')}. Al registrar ${TT('visita', 's', 'el', 'l', 'l')} se marca qué se entregó y cuánto, y queda en la ficha ${TT('medico', 's', 'del', 'l', 'l')} y en Analítica (material por comercial, por ${TT('medico', 's', '', 'l', 'l')} y por mes).</p>
-      <div class="mattipos"><div><b>📦 Muestras de producto</b><span>Unidades de un producto del catálogo. Pueden descontarse del stock.</span></div>
-        <div><b>📚 Material promocional</b><span>Dípticos, catálogos, flyers, tarjetas… Se cuentan, pero no descuentan stock.</span></div></div></div>
-    <div class="card cfgpanel"><h2>📦 Muestras de producto</h2>
-      <div class="g2"><div><label for="muprod">Producto que se entrega como muestra</label><select id="muprod"><option value="">— Ninguno —</option>${PRODUCTOS.filter(p => p.tipo !== 'servicio').map(p => `<option value="${p.id}" ${p.id === m.producto_id ? 'selected' : ''}>${esc(p.nombre)}</option>`).join('')}</select></div><div></div></div>
-      <label class="vfswitch" style="margin-top:10px"><input type="checkbox" id="murest" ${m.restar_stock ? 'checked' : ''}><span class="sw"></span>
-        <span><b>Descontar las muestras del stock</b><br><span class="sm">Salen del maletín de quien registra ${TT('visita', 's', 'el', 'l', 'l')} (o del almacén central si no tiene), empezando por el lote que caduca antes. Así sabes cuántas muestras quedan y a quién llegó cada lote.</span></span></label>
-      <div class="acts" style="justify-content:flex-end"><button class="btn" id="muok">Guardar</button></div></div>
-    <div class="card cfgpanel"><h2>📚 Material promocional</h2>
-      <p class="sm">Lo que aparece para marcar al registrar ${TT('visita', 's', 'un', 'l', 'l')}. En cada uno eliges si al registrar se anotan las unidades entregadas y, con el portal, si se puede pedir desde él y cuántas como máximo por petición.</p>
-      <div class="matlista">${(vals || []).map(v => `<div class="matfila ${v.activo ? '' : 'off'}"><b>${esc(v.valor)}</b><span class="sm">${v.dato_tipo === 'numero' ? 'Pide cantidad' : 'Solo se marca'}</span>
-        <label class="vfswitch mini"><input type="checkbox" data-mact="${v.id}" ${v.activo ? 'checked' : ''}><span class="sw"></span><span class="sm">${v.activo ? 'Activo' : 'Oculto'}</span></label></div>`).join('') || '<div class="sm">Todavía no hay material.</div>'}</div>
-      <div class="matadd"><input id="matn" placeholder="Nuevo material, p. ej. Cartel para el mostrador"><label class="opt" style="margin:0"><input type="checkbox" id="matq" checked> Anotar cuántas se entregan</label>
-        <button class="btn sec" id="matok" ${cid ? '' : 'disabled'}>Añadir</button></div></div>`;
-  $('muok').onclick = async () => {
-    if ($('murest').checked && !$('muprod').value) { toast('Elige el producto de las muestras', true); return; }
-    const { error } = await db.rpc('guardar_ajuste', { p_clave: 'muestras', p_valor: { producto_id: $('muprod').value || null, restar_stock: $('murest').checked } });
-    if (error) { toast('No se ha podido guardar', true); return; } AJUSTES.muestras = { producto_id: $('muprod').value || null, restar_stock: $('murest').checked }; toast('Guardado');
-  };
-  $('cfgcuerpo').querySelectorAll('[data-mact]').forEach(c => c.onchange = async () => { await db.rpc('guardar_valor', { p: { id: c.dataset.mact, activo: c.checked } }); toast(c.checked ? `Visible en ${TT('visita', 'p', 'el', 'l', 'l')}` : `Oculto en ${TT('visita', 'p', 'el', 'l', 'l')}`); cargarCatalogos(); pintarMaterial(); });
-  $('matok').onclick = async () => {
-    const v = $('matn').value.trim(); if (!v) return;
-    const { error } = await db.rpc('guardar_valor', { p: Object.assign({ clasificador_id: cid.id, valor: v }, $('matq').checked ? { dato_tipo: 'numero', dato_etiqueta: 'Unidades' } : {}) });
-    if (error) { toast('No se ha podido: ' + error.message, true); return; } toast('Añadido'); cargarCatalogos(); pintarMaterial();
-  };
-}
 
 /* ---------------- Almacenes ---------------- */
 
@@ -21683,8 +23070,8 @@ PLANES.splice(0, PLANES.length,
   { id: 'premium', nombre: 'Premium', precio: 179, incluidos: 15, bloque: [1, 8], medicos: null, para: 'Redes comerciales completas',
     modulos: ['inicio', 'agenda', 'rutas', 'directorio', 'seguimiento', 'ventas', 'pacientes', 'productos', 'analitica', 'facturacion'],
     ventajas: ['Todo lo de Avanzado', `Espacio ${TT('medico', 's', 'del', 'l', 'l')} sin límite`, 'Impersonalización de usuarios y auditoría', 'Soporte prioritario y ayuda con la migración'] });
-pintarPlan2 = (orig => async function () {
-  await orig();
+async function pintarPlan2() {
+  await pintarPlan2Base();
   const c = $('cfgcuerpo'); if (!c) return;
   // Textos del modelo por usuario (en lugar de bloques)
   c.querySelectorAll('.plan .sm').forEach(s => { s.textContent = s.textContent.replace(/\+1 usuarios por (.+?)\/mes/, 'usuario extra: $1/mes'); });
@@ -21694,7 +23081,7 @@ pintarPlan2 = (orig => async function () {
     if (/dos meses gratis/.test(li.textContent)) li.textContent = 'Pago mensual con tarjeta, sin permanencia.';
   });
   const act = c.querySelector('.planact .sm'); if (act) act.textContent = act.textContent.replace(/ \+ (\d+) bloques? de 1/, ' + $1 extra');
-})(pintarPlan2);
+}
 
 /* ---------------- notificaciones ampliadas ---------------- */
 
@@ -21883,8 +23270,6 @@ function pantallaRecuperacion() {
   };
   if ($('rcancel')) $('rcancel').onclick = () => salir('');
 }
-// Con el enlace de recuperación la plataforma no arranca ni se pinta
-arrancar = (orig => async function (...a) { if (RECUPERANDO) { pantallaRecuperacion(); return; } return orig.apply(this, a); })(arrancar);
 // Avisos en la pantalla de acceso: contraseña cambiada o enlace caducado
 (function () {
   const q = new URLSearchParams(location.search);
@@ -21935,7 +23320,7 @@ if ($('rform')) { $('rform').noValidate = true; medidorClave($('rp1'), $('rp2'),
    ============================================================ */
 
 // Botón en espera: se desactiva, muestra un indicador y recupera su texto al terminar
-async function conCarga(btn, texto, fn) {
+async function conCargaBase(btn, texto, fn) {
   if (!btn || btn.dataset.cargando) return;
   const antes = btn.innerHTML; btn.dataset.cargando = '1'; btn.disabled = true; btn.classList.add('btncarga');
   btn.innerHTML = `<span class="giro"></span>${esc(texto)}`;
@@ -22002,13 +23387,6 @@ Object.assign(ICON_NOM, {"euro": "<path d=\"M4 10h12\" /> <path d=\"M4 14h9\" />
 /* ---------------- menú principal: orden y «Médicos» ---------------- */
 
 ordenarMenu();
-// «Calidad del dato» pasa a ser un botón dentro de Médicos
-function botonCalidad() {
-  const v = $('v-directorio'); if (!v || $('dircab')) return;
-  v.insertAdjacentHTML('afterbegin', `<div class="saludo" id="dircab"><div><h1>${TT('medico', 'p', '', 'l', 'C')}</h1><div class="fecha">${TT('medico', 'p', '', 'l', 'C')}, centros y sus fichas</div></div>
-    <div class="acts">${puedeModulo('seguimiento') ? `<button class="btn sec" id="dircalidad">${svgIco(ICON_NOM['shield-check'])} Calidad del dato</button>` : ''}</div></div>`);
-  if ($('dircalidad')) $('dircalidad').onclick = () => ir('seguimiento');
-}
 
 /* ---------------- menú de usuario: Mi perfil y Plan ---------------- */
 
@@ -22159,7 +23537,7 @@ db.rpc = (orig => function (fn, params, opts) {
 /* ---------------- nombre del módulo de contactos ---------------- */
 
 const ETIQUETAS = [...new Set([`${TT('medico', 'p', '', 'l', 'C')}`, 'Profesionales', 'Cuentas', 'Contactos', 'Clientes potenciales', 'Puntos de venta', 'Prescriptores'])];
-function aplicarEtiqueta() {
+function aplicarEtiquetaBase() {
   const n = etiquetaContactos();
   document.querySelectorAll('nav.main [data-t="directorio"], #bnav [data-t="directorio"], .bmasgrid [data-bm="directorio"]').forEach(b => {
     [...b.childNodes].forEach(x => { if (x.nodeType === 3 && x.nodeValue.trim()) x.nodeValue = n; });
@@ -22263,7 +23641,7 @@ pintarMarca = (orig => async function () {
 
 ;
 
-asignarCartera = (orig => async function (id, ...r) { await asegurarUsuario(id); return orig(id, ...r); })(asignarCartera);
+async function asignarCartera(id, ...r) { await asegurarUsuario(id); return asignarCarteraBase(id, ...r); }
 // Una llamada sin fecha se abre con la fecha de ahora (antes fallaba al abrirse)
 editorLlamada = (orig => function (l, ...r) { if (l && !l.fecha) l = Object.assign({}, l, { fecha: new Date().toISOString() }); return orig(l, ...r); })(editorLlamada);
 
@@ -22331,7 +23709,6 @@ ventanaCargando = async function (fn) {
 
 /* ---------------- Cuentas: cabecera ordenada; Duplicados dentro de Calidad del dato ---------------- */
 
-botonCalidad = (orig => function () { orig(); ordenarCabeceraCuentas(); })(botonCalidad);
 // «Guardar filtro» pasa al panel de filtros y columnas
 abrirHerramientas = (orig => function (ctx, ...r) {
   const x = orig(ctx, ...r);
@@ -22353,13 +23730,6 @@ cargarSeguimiento = (orig => async function () {
     $('caldup').onclick = () => ir('duplicados');
   }
 })(cargarSeguimiento);
-cargarDuplicados = (orig => async function (...a) {
-  const r = await orig.apply(this, a);
-  const s = document.querySelector('#v-duplicados .saludo');
-  if (s && !$('dupvolver')) s.insertAdjacentHTML('beforebegin', '<button class="cfgvolver visible" id="dupvolver" type="button">‹ Calidad del dato</button>');
-  if ($('dupvolver')) $('dupvolver').onclick = () => ir('seguimiento');
-  return r;
-})(cargarDuplicados);
 
 /* ---------------- listas completas donde antes ponía «y N más» ---------------- */
 
@@ -22372,12 +23742,6 @@ document.addEventListener('click', e => {
 
 /* ---------------- estados de producto ---------------- */
 
-cargarProductos = (orig => async function () {
-  await orig();
-  const { data } = await db.from('productos').select('id,estado');
-  ESTADO_PROD = {}; (data || []).forEach(x => { ESTADO_PROD[x.id] = x.estado || 'Activo'; });
-  [...PRODUCTOS, ...SERVICIOS].forEach(p => { p.estado = ESTADO_PROD[p.id] || 'Activo'; });
-})(cargarProductos);
 productoPorDefecto = function () {
   const lista = PRODUCTOS.filter(p => p.tipo !== 'servicio' && vendible(p));
   const hab = localStorage.getItem('dlc-prod-habitual');
@@ -22469,13 +23833,6 @@ function htPintarPanel(sec) {
     };
   }
 }
-function htContador(sec) {
-  const b = sec.querySelector('.htbtn'); if (!b) return;
-  // Solo se toca si cambia el número (cualquier cambio en la pantalla vuelve a avisar al observador)
-  const n = htActivos(sec), txt = n ? String(n) : '', el = b.querySelector('.htn');
-  if (el.textContent !== txt) el.textContent = txt;
-  if (b.classList.contains('conf') !== n > 0) b.classList.toggle('conf', n > 0);
-}
 function htPreparar(sec) {
   const id = sec.id.replace('v-', '');
   if (id === 'directorio') { const f = sec.querySelector('.panel > .filtros'); if (f) f.classList.add('hide'); return; }
@@ -22516,12 +23873,12 @@ new MutationObserver(() => {
 /* ---------------- Prescriptores: columna «Acceso a la plataforma» ---------------- */
 
 COLS.push({ k: 'acceso', t: 'Acceso a la plataforma', w: 170 });
-celda = (orig => function (m, k) {
-  if (k !== 'acceso') return orig(m, k);
+function celda(m, k) {
+  if (k !== 'acceso') return celdaBase(m, k);
   if (!MED_ACCESO) { cargarAccesoMedicos().then(() => { if (TAB === 'directorio') buscar(true); }); return ''; }
   const a = MED_ACCESO[m.id];
   return a ? `<span class="pill ${a.activo ? 'p-est' : 'p-anu'}">${a.activo ? 'Con acceso' : 'Acceso desactivado'}</span>` : '<span class="sm">Sin acceso</span>';
-})(celda);
+}
 
 /* ---------------- páginas propias: Perfil, Empresa y Plan ---------------- */
 
@@ -22614,19 +23971,6 @@ async function pintarPaginaPlan() {
 /* ---------------- «Filtros y columnas» en el panel lateral ---------------- */
 
 new MutationObserver(() => { if (!$('tools').classList.contains('abierto')) htDevolver(); }).observe($('tools'), { attributes: true, attributeFilter: ['class'] });
-function htAbrirLateral(sec) {
-  const d = $('tools'), id = sec.id.replace('v-', '');
-  if (htLateralAbierto() && HERR_CTX === 'ht-' + id) { d.classList.remove('abierto'); return; }
-  htDevolver();
-  HERR_CTX = 'ht-' + id;
-  d.innerHTML = `<div class="tbox"><div class="fh"><h2>Filtros y columnas</h2><button class="x" id="tclose" aria-label="Cerrar">✕</button></div>
-    <div class="htpropios lat"></div><div class="htauto"></div></div>`;
-  const hold = sec.querySelector('.htpanel .htpropios');
-  if (hold) [...hold.children].forEach(ch => d.querySelector('.htpropios.lat').appendChild(chicoEn(ch, false)));
-  $('tclose').onclick = () => d.classList.remove('abierto');
-  d.classList.add('abierto');
-  htPintarPanel(sec);
-}
 // El contenido automático (buscar, filtrar por columna, columnas) se pinta en el panel lateral
 htPintarPanel = (orig => function (sec) {
   const d = $('tools');
@@ -22745,11 +24089,11 @@ htPintarPanel = (orig => function (sec) {
   });
 })(htPintarPanel);
 // Prescriptores: sus columnas se abren en el segundo panel, encima del de filtros
-abrirColumnas = (orig => function () {
+function abrirColumnas() {
   const t1 = $('tools'), t2 = $('tools2');
   // La función original pinta en el panel que se llama «tools»: durante la llamada, ese es el segundo
   t1.id = 'tools_1'; t2.id = 'tools';
-  try { orig(); } finally { t2.id = 'tools2'; t1.id = 'tools'; }
+  try { abrirColumnasBase(); } finally { t2.id = 'tools2'; t1.id = 'tools'; }
   t1.classList.add('abierto'); t2.classList.add('abierto');
   const ajustar = () => {
     const v = t2.querySelector('#tcvolver'); if (v && !v.dataset.v255) { v.dataset.v255 = '1'; v.textContent = '‹ Volver'; v.className = 't2volver'; v.onclick = () => t2.classList.remove('abierto'); }
@@ -22757,32 +24101,12 @@ abrirColumnas = (orig => function () {
   };
   ajustar();
   if (!t2.dataset.obs) { t2.dataset.obs = '1'; new MutationObserver(ajustar).observe(t2, { childList: true, subtree: true }); }
-})(abrirColumnas);
+}
 // Si se vuelve a los filtros desde cualquier sitio, el segundo panel se cierra
 abrirHerramientas = (orig => function (...a) { $('tools2').classList.remove('abierto'); return orig(...a); })(abrirHerramientas);
 
 /* ---------------- buscador con los filtros activos al lado ---------------- */
 
-function htChips(sec) {
-  const fil = sec.querySelector('.filtros'); if (!fil || fil.classList.contains('hide')) return;
-  let c = sec.querySelector('.htchips');
-  if (!c) { fil.insertAdjacentHTML('beforeend', '<div class="htchips"></div>'); c = sec.querySelector('.htchips'); fil.classList.add('filbusca'); }
-  const chips = [];
-  const selects = [...sec.querySelectorAll('.htpanel .htpropios select'), ...(htLateralAbierto() ? [...$('tools').querySelectorAll('.htpropios.lat select')] : [])];
-  selects.forEach(s => { if (s.selectedIndex > 0) { const l = s.id && document.querySelector(`label[for="${s.id}"]`); chips.push({ t: (l ? l.textContent.trim() + ': ' : '') + s.options[s.selectedIndex].text, quitar: () => { s.selectedIndex = 0; s.dispatchEvent(new Event('change', { bubbles: true })); } }); } });
-  const g = sec.querySelector('.dgrid'), st = g ? HT_ESTADO[htTipo(g)] : null;
-  if (st) {
-    const cab = [...(g.querySelector(':scope > .dh') || { children: [] }).children].map(x => x.textContent.trim());
-    Object.entries(st.facetas || {}).forEach(([i, v]) => { if (v) chips.push({ t: `${cab[i] || 'Columna'}: ${v}`, quitar: () => { st.facetas[i] = ''; htAplicarFiltros(g); } }); });
-    if (st.texto) chips.push({ t: `Contiene «${st.texto}»`, quitar: () => { st.texto = ''; htAplicarFiltros(g); } });
-  }
-  const html = chips.map((x, i) => `<button class="htchip" type="button" data-hchip="${i}">${esc(x.t)} <span aria-hidden="true">✕</span></button>`).join('');
-  if (c.innerHTML !== html) {
-    c.innerHTML = html;
-    c.querySelectorAll('[data-hchip]').forEach(b => b.onclick = () => { chips[+b.dataset.hchip].quitar(); htContador(sec); htChips(sec); });
-  }
-}
-htContador = (orig => function (sec) { orig(sec); htChips(sec); })(htContador);
 
 /* ---------------- Datos fiscales: vista previa de la factura ---------------- */
 
@@ -22892,7 +24216,7 @@ const ESTADO_MOD = {
 const IR_V256 = ir;
 ir = function (t) { VIA_IR = t; try { IR_V256(t); } finally { setTimeout(() => { VIA_IR = null; }, 0); } };
 // Inicio: cuándo se actualizó y botón para actualizar
-function pintarActualizado() {
+function pintarActualizadoBase() {
   const acts = document.querySelector('#v-inicio .saludo .acts, #v-inicio .hero .acts, #v-inicio .inihead .acts') || document.querySelector('#v-inicio .saludo');
   if (!acts) return;
   let b = $('iniact');
@@ -23003,38 +24327,11 @@ mejorarCampos = (orig => function (raiz) {
 new MutationObserver(ms => { for (const m of ms) for (const n of m.addedNodes) if (n.nodeType === 1)
   (n.matches && n.matches('input[type=number],input[type=text]') ? [n] : [...n.querySelectorAll('input[type=number],input[type=text]')]).forEach(i => { if (!i.dataset.ivasel && ES_IVA(i) && !/iban|precio|importe/i.test(i.id)) ivaSelector(i); });
 }).observe(document.body, { childList: true, subtree: true });
-// Archivos: botón con el diseño de la plataforma, nombre del archivo y miniatura si es una imagen
-function selectorArchivo(inp) {
-  if (!inp || inp.dataset.fp || inp.id === 'mkfile') return;
-  inp.dataset.fp = '1';
-  const img = /image/.test(inp.accept || '');
-  const w = document.createElement('div'); w.className = 'filepick';
-  w.innerHTML = `<span class="fpmini">${svgIco(ICON_NOM[img ? 'image' : 'file'])}</span>
-    <div class="fptx"><b>${img ? 'Ninguna imagen elegida' : 'Ningún archivo elegido'}</b><span class="sm">${img ? 'JPG o PNG. Mejor cuadrada y con buena luz.' : 'Elige un archivo de tu equipo.'}</span></div>
-    <button type="button" class="btn sec">${svgIco(ICON_NOM.upload)} ${img ? 'Elegir imagen' : 'Elegir archivo'}</button>`;
-  inp.parentNode.insertBefore(w, inp); inp.classList.add('hide'); w.appendChild(inp);
-  w.querySelector('button').onclick = () => inp.click();
-  inp.addEventListener('change', () => {
-    const f = inp.files && inp.files[0]; if (!f) return;
-    w.querySelector('.fptx b').textContent = f.name; w.querySelector('.fptx .sm').textContent = Math.round(f.size / 1024) + ' KB';
-    if (img) { const u = URL.createObjectURL(f); w.querySelector('.fpmini').innerHTML = `<img src="${u}" alt="">`; }
-  });
-}
 new MutationObserver(ms => { for (const m of ms) for (const n of m.addedNodes) if (n.nodeType === 1)
   (n.matches && n.matches('input[type=file]') ? [n] : [...n.querySelectorAll('input[type=file]')]).forEach(selectorArchivo);
 }).observe(document.body, { childList: true, subtree: true });
 // Notas y textos largos: crecen al escribir
 document.addEventListener('input', e => { const t = e.target; if (t.tagName === 'TEXTAREA') { t.style.height = 'auto'; t.style.height = Math.min(t.scrollHeight + 2, 420) + 'px'; } });
-// Ventana de texto: «area» para notas (varias líneas y más espacio)
-appVentana = (orig => function (o) {
-  const p = orig(o);
-  if (o && o.campo && o.campo.tipo === 'area') setTimeout(() => {
-    const i = $('mcampo'); if (!i) return;
-    const t = document.createElement('textarea'); t.id = 'mcampo'; t.rows = 6; t.value = i.value; t.placeholder = i.placeholder; i.replaceWith(t);
-    $('mini').classList.add('ancha'); t.focus();
-  }, 0);
-  return p;
-})(appVentana);
 
 /* ---------------- 6. Cuentas: barra ordenada, mapa como icono y ayuda en el título ---------------- */
 
@@ -23099,15 +24396,15 @@ ordenarBotones = function (sec) {
 
 /* ---------------- 2. Inicio: actualizar como icono, igual que los de al lado ---------------- */
 
-pintarActualizado = (orig => function () {
-  orig();
+function pintarActualizado() {
+  pintarActualizadoBase();
   const b = $('iniact'); if (!b) return;
   b.classList.add('icoredondo', 'icoonly');   // v2.337.0: botón de icono del sistema delcos (con el relleno de un botón normal el icono quedaba 3 px a la derecha)
   const c = CACHE_MOD.inicio; const m = c ? Math.floor((Date.now() - c.t) / 60000) : 0;
   b.title = (m < 1 ? 'Datos actualizados ahora' : `Datos actualizados hace ${m} min`) + ' · Pulsa para actualizar';
   b.setAttribute('aria-label', b.title);
   const sp = b.querySelector('span'); if (sp) sp.textContent = '';
-})(pintarActualizado);
+}
 
 /* ---------------- 3. Cuentas: una sola ayuda junto al título; nombre configurable en Calidad ---------------- */
 
@@ -23142,14 +24439,6 @@ ivaSelector = (orig => function (inp) { if (!inp || !esPorcentajeIva(inp)) retur
 
 /* ---------------- 5. Archivos: sin el recuadro antiguo; notas de varias líneas ---------------- */
 
-selectorArchivo = (orig => function (inp) {
-  orig(inp);
-  const w = inp && inp.closest('.filepick'); if (!w) return;
-  // El recuadro de vista previa antiguo (al lado) se oculta: la miniatura ya está en el selector
-  const cont = w.parentElement, prev = cont && cont.parentElement && [...cont.parentElement.children].find(x => x !== cont && !x.contains(w) && x.querySelector && (x.querySelector('img') || /foto|prev/i.test(x.className + x.id)) && x.getBoundingClientRect().width < 120);
-  if (prev) { const im = prev.querySelector('img'); if (im && im.src) w.querySelector('.fpmini').innerHTML = `<img src="${im.src}" alt="">`; prev.classList.add('hide'); }
-  const lab = cont.querySelector(`label[for="${inp.id}"]`); if (lab) lab.classList.add('hide');
-})(selectorArchivo);
 new MutationObserver(ms => { for (const m of ms) for (const n of m.addedNodes) if (n.nodeType === 1)
   (n.matches && n.matches('input[type=text]') ? [n] : [...n.querySelectorAll('input[type=text]')]).forEach(notaAmplia);
 }).observe(document.body, { childList: true, subtree: true });
@@ -23174,18 +24463,6 @@ $('dlg').addEventListener('close', () => {
   b.replaceChildren(...prev.nodos); d.className = prev.clases;
   setTimeout(() => { if (!d.open) d.showModal(); }, 0);
 });
-// Desde el pedido: la factura se abre encima y al cerrarla vuelve el pedido tal como estaba
-pedidoFacturas = (orig => async function (id) {
-  await orig(id);
-  $('dbody').querySelectorAll('[data-pvfac]').forEach(b => b.onclick = () => abrirApilada(() => verFactura(b.dataset.pvfac), 'Volver al pedido'));
-})(pedidoFacturas);
-// Desde el pedido: la ficha del cliente se abre como panel encima, sin cerrar el pedido
-verPedidoBase = (orig => async function (...a) {
-  const r = await orig.apply(this, a);
-  const vp = $('dbody').querySelector('[data-vpac]');
-  if (vp) vp.onclick = () => fichaPaciente(vp.dataset.vpac);
-  return r;
-})(verPedidoBase);
 
 /* ---------------- 8. Mi perfil y Empresa: pantallas completas ---------------- */
 
@@ -23556,60 +24833,6 @@ facturaPDF = async function (f, rectificaNum, cfgPrueba) {
   }
   return doc;
 };
-async function disenoPDF() {
-  const C = cfgPDF();
-  await cargarAjustes();
-  const sel = (k, ops) => `<div class="segs" data-pk="${k}">${ops.map(([v, t]) => `<button type="button" data-v="${v}" class="${C[k] === v ? 'on' : ''}">${t}</button>`).join('')}</div>`;
-  const chk = (k, t, sub) => `<label class="opt"><input type="checkbox" data-pc="${sub ? sub + '.' : ''}${k}" ${(sub ? C[sub][k] : C[k]) ? 'checked' : ''}> ${t}</label>`;
-  $('dbody').innerHTML = `<div class="fh"><div><h2>Diseño del PDF de la factura</h2><div class="sm">Los cambios se ven al momento en la vista previa. Las facturas ya emitidas se descargan con el diseño que haya en ese momento.</div></div>
-    <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-    <div class="pdfcfg" data-pagina="1"><div class="pdfops">
-      <h4>Logo</h4>${chk('logo', 'Mostrar el logo')}<div class="g2"><div><label>Posición</label>${sel('logoPos', [['izq', 'Izquierda'], ['der', 'Derecha']])}</div><div><label>Tamaño</label>${sel('logoTam', [['s', 'Pequeño'], ['m', 'Mediano'], ['l', 'Grande']])}</div></div>
-      <h4>Estilo</h4><div class="g2"><div><label for="pcol">Color de títulos y líneas</label><input type="color" id="pcol" value="${esc(C.color)}"></div><div><label>Tipografía</label>${sel('fuente', [['helvetica', 'Moderna'], ['times', 'Clásica']])}</div></div>
-      <label for="ptit">Título del documento</label><input id="ptit" value="${esc(C.titulo)}" maxlength="24">
-      <h4>Cabecera</h4>${chk('empresaCab', 'Datos de la empresa también en la cabecera (además del pie)')}<label>Cliente</label>${sel('clientePos', [['der', 'A la derecha'], ['izq', 'A la izquierda']])}
-      ${chk('vencimiento', 'Fecha de vencimiento')}${chk('direccion', 'Dirección de envío como referencia')}
-      <h4>Líneas</h4>${chk('fotos', 'Foto de cada producto')}<div class="pcols">${chk('precio', 'Precio', 'cols')}${chk('unidades', 'Unidades', 'cols')}${chk('subtotal', 'Subtotal', 'cols')}${chk('iva', 'IVA', 'cols')}${chk('total', 'Total', 'cols')}</div>
-      <h4>Pago y pie</h4>${chk('formaPago', 'Forma de pago')}${chk('iban', 'IBAN si se paga por transferencia')}${chk('pieTel', 'Teléfono de atención')}${chk('pieWeb', 'Web')}${chk('pieTexto', 'Texto del pie (Datos fiscales)')}${chk('paginas', 'Número de página')}
-      <h4>VeriFactu</h4><div class="sm">El código QR es obligatorio cuando VeriFactu está activo. Puedes elegir dónde va.</div>${sel('qrPos', [['abajo', 'Abajo'], ['arriba', 'Arriba']])}
-    </div><div class="pdfprev"><iframe id="pdfif" title="Vista previa del PDF"></iframe></div></div>
-    <div class="acts" style="justify-content:space-between"><button class="btn sec" id="pdfdef" type="button">Volver al diseño original</button>
-      <div style="display:flex;gap:8px"><button class="btn sec" data-cerrar>Cancelar</button><button class="btn" id="pdfok">Guardar diseño</button></div></div>`;
-  $('dlg').classList.add('amplia'); if (!$('dlg').open) $('dlg').showModal();
-  // v2.122.0: integrado en su pestaña (ordenador): sin cerrar, «Descartar cambios» vuelve a lo guardado y al guardar se queda
-  const enPagina = $('dlg').classList.contains('encajada');
-  if (enPagina) {
-    $('dlg').dataset.fija = '1';
-    $('dbody').querySelector('.fh .x').remove();
-    const c = $('dbody').querySelector('.acts [data-cerrar]'); c.removeAttribute('data-cerrar'); c.textContent = 'Descartar cambios';
-    c.onclick = () => disenoPDF();
-  } else if ((TAB === 'organizacion' && PAG_TAB.organizacion === 'pdf') || (TAB === 'config' && CFG_KEY === 'o.pdf')) {
-    // v2.124.0: en el móvil el diseño es una ventana; al cerrarla, la pestaña no se queda vacía con el cargador girando
-    $('dlg').dataset.depagina = '1';   // v2.136.0: se cierra al cambiar de pantalla
-    $('dlg').addEventListener('close', () => {
-      delete $('dlg').dataset.depagina;
-      const area = document.querySelector('#v-organizacion .pagcuerpo') || (TAB === 'config' ? $('cfgcuerpo') : null);
-      if (!area || !((TAB === 'organizacion' && PAG_TAB.organizacion === 'pdf') || (TAB === 'config' && CFG_KEY === 'o.pdf'))) return;
-      area.innerHTML = `<div class="card cfgpanel"><h2>Diseño del PDF de la factura</h2><p class="sm">Logo, colores, columnas y pie de las facturas, con vista previa.</p>
-        <div class="acts"><button class="btn" id="pdfabrir" type="button">Abrir el diseño del PDF</button></div></div>`;
-      $('pdfabrir').onclick = () => disenoPDF();
-    }, { once: true });
-  }
-  let T = null;
-  const pinta = () => { clearTimeout(T); T = setTimeout(async () => { const d = await facturaPDF(facturaEjemplo(), '', C); const u = d.output('bloburl'); $('pdfif').src = u + '#toolbar=0&navpanes=0&view=FitH'; }, 250); };
-  $('dbody').querySelectorAll('[data-pk]').forEach(g => g.querySelectorAll('button').forEach(b => b.onclick = () => { C[g.dataset.pk] = b.dataset.v; g.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); pinta(); }));
-  $('dbody').querySelectorAll('[data-pc]').forEach(i => i.onchange = () => { const [a, b] = i.dataset.pc.split('.'); if (b) C[a][b] = i.checked; else C[a] = i.checked; pinta(); });
-  $('pcol').oninput = () => { C.color = $('pcol').value; pinta(); };
-  $('ptit').oninput = () => { C.titulo = $('ptit').value.trim() || 'FACTURA'; pinta(); };
-  $('pdfdef').onclick = () => { Object.assign(C, JSON.parse(JSON.stringify(PDF_DEF))); disenoPDFCon(C); };
-  const disenoPDFCon = nuevo => { AJUSTES.__pdfTmp = nuevo; $('dlg').close(); setTimeout(() => { const g = AJUSTES.factura_pdf; AJUSTES.factura_pdf = nuevo; disenoPDF().then(() => { AJUSTES.factura_pdf = g; }); }, 50); };
-  $('pdfok').onclick = () => conCarga($('pdfok'), 'Guardando…', async () => {
-    const { data: r, error } = await db.rpc('guardar_ajuste', { p_clave: 'factura_pdf', p_valor: C });
-    if (error || !r || !r.ok) { toast('No se ha podido guardar el diseño', true); return; }
-    AJUSTES.factura_pdf = JSON.parse(JSON.stringify(C)); delete $('dlg').dataset.sucio; if (!enPagina) $('dlg').close(); toast('Diseño del PDF guardado');
-  });
-  pinta();
-}
 new MutationObserver(botonDisenoPDF).observe($('v-facturacion'), { childList: true, subtree: true });
 
 
@@ -23635,8 +24858,8 @@ new MutationObserver(botonDisenoPDF).observe($('v-facturacion'), { childList: tr
    ============================================================ */
 
 // El plan muestra aparte a los médicos que ya tienen cita
-pintarPlan = (orig => function (...a) {
-  const r = orig.apply(this, a);
+function pintarPlan(...a) {
+  const r = pintarPlanBase2.apply(this, a);
   const box = $('rplan');
   if (box && PLAN && PLAN.citados && PLAN.citados.length && !box.querySelector('.plancitados')) {
     box.insertAdjacentHTML('beforeend', `<div class="plancitados"><h3>Ya citados · ${PLAN.citados.length}</h3>
@@ -23645,7 +24868,7 @@ pintarPlan = (orig => function (...a) {
         <span class="sm">Cita el ${esc(fechaLarga(new Date(x.fecha + 'T12:00:00')))}${x.m.municipio ? ' · ' + esc(x.m.municipio) : ''}</span></span></div>`).join('')}</div></div>`);
   }
   return r;
-})(pintarPlan);
+}
 
 
 
@@ -23751,69 +24974,6 @@ abrirFicha = (orig => async function (id, ...a) { const r = await orig.call(this
    que rellena los datos solo, centro nuevo con horario de apertura
    ============================================================ */
 
-function tarjetaCentro(c, enlazado) {
-  const hor = c.horario && Object.keys(c.horario).length ? c.horario : null;
-  const hoy = hor && hor[hoyLetra()];
-  return `<div class="cpcard"><div class="cpcab"><b>${esc(c.nombre || 'Sin nombre')}</b>
-      ${enlazado ? '' : '<span class="pill p-warn" title="' + TT('consulta', 's', 'este', 'C', 'l') + ' aún no está enlazada con un centro de la base">Sin enlazar</span>'}</div>
-    <span class="sm">${esc([c.direccion, [c.cp, c.municipio].filter(Boolean).join(' ')].filter(Boolean).join(' · ') || 'Sin dirección')}</span>
-    ${c.telefono ? `<span class="sm">☎ <a href="tel:${esc(c.telefono)}">${esc(c.telefono)}</a></span>` : ''}
-    ${hor ? `<span class="sm">🕘 ${hoy ? `<b>Hoy ${esc(hoy)}</b> · ` : ''}${esc(txtHorario(hor))}</span>` : enlazado ? '<span class="sm" style="color:var(--muted)">Sin horario de apertura</span>' : ''}
-    ${c.lat ? '' : '<span class="sm" style="color:var(--warn)">Sin ubicación: no saldrá en rutas ni en el mapa</span>'}
-    <div class="acts" style="margin:8px 0 0;flex-wrap:wrap">
-      ${c.lat ? `<button type="button" class="btn sec" data-nav="${navAttr([+c.lat, +c.lon])}">Cómo llegar</button>` : ''}
-      ${enlazado ? '<button type="button" class="btn sec" data-cpeditar>Editar centro</button>' : '<button type="button" class="btn" data-cpenlazar>Enlazar con un centro</button>'}
-      <button type="button" class="btn sec" data-cpcambiar>Cambiar</button></div></div>`;
-}
-// Formulario de centro (nuevo o corregir): los mismos datos de siempre, con horario de apertura
-function formCentro(box, i, c, aviso) {
-  const cont = box.querySelector(`[data-cp="${i}"]`); if (!cont) return;
-  c = c || {}; const hor = c.horario || {}, k = 'cf' + i + '_';
-  if (c.privada) { pintarCentroSel(box, i); return; }
-  cont.innerHTML = `<div class="cpform">
-    <div class="cpformcab"><b>${c.id ? 'Editar centro' : 'Centro nuevo'}</b>${aviso ? `<span class="sm cpaviso">${esc(aviso)}</span>` : ''}</div>
-    <div class="g2"><div><label for="${k}n">Nombre del centro</label><input id="${k}n" value="${esc(c.nombre || '')}" placeholder="p. ej. Centro Sagrada Família"></div>
-      <div><label for="${k}t">Teléfono</label><input id="${k}t" value="${esc(c.telefono || '')}" inputmode="tel"></div></div>
-    <div class="g2"><div><label for="${k}d">Dirección</label><input id="${k}d" value="${esc(c.direccion || '')}"></div>
-      <div><label for="${k}c">Código postal</label><input id="${k}c" value="${esc(c.cp || '')}" inputmode="numeric"></div></div>
-    <div class="g2"><div><label for="${k}m">Población</label><input id="${k}m" value="${esc(c.municipio || '')}"></div>
-      <div><label for="${k}p">Provincia</label><input id="${k}p" value="${esc(c.provincia || '')}"></div></div>
-    <div class="cpubi sm">${c.lat ? '<b style="color:var(--ok)">✓ Ubicado</b>' : 'Sin ubicación todavía'} <button type="button" class="lnk" data-cpgeo>🔎 Buscar la dirección en el mapa</button></div>
-    <label>Horario de apertura</label>
-    <div class="cphor">${DIAS_SEM.map(([d, n]) => `<div><span>${n}</span><input data-hd="${d}" value="${esc(hor[d] || '')}" placeholder="${d === 'D' ? 'Cerrado' : '8:00-20:00'}"></div>`).join('')}</div>
-    <button type="button" class="lnk" data-cpcopiar>Copiar el horario del lunes al resto de días laborables</button>
-    <div class="acts" style="justify-content:flex-end;margin:10px 0 0"><button type="button" class="btn sec" data-cpcancel>Cancelar</button><button type="button" class="btn" data-cpguardar>${c.id ? 'Guardar cambios' : 'Crear centro'}</button></div></div>`;
-  let lat = c.lat != null && c.lat !== '' ? +c.lat : null, lon = c.lon != null && c.lon !== '' ? +c.lon : null;
-  const val = x => $(k + x).value.trim();
-  cont.querySelector('[data-cpcopiar]').onclick = () => { const l = cont.querySelector('[data-hd="L"]').value; ['M', 'X', 'J', 'V'].forEach(d => { cont.querySelector(`[data-hd="${d}"]`).value = l; }); };
-  cont.querySelector('[data-cpgeo]').onclick = async e => {
-    const q = [val('d'), val('c'), val('m'), val('p'), 'España'].filter(Boolean).join(', ');
-    if (!val('d') && !val('m')) { toast('Escribe la dirección o la población', true); return; }
-    e.target.textContent = 'Buscando…';
-    const r = await geocodificar(q, { direccion: val('d'), municipio: val('m'), cp: val('c') }).catch(() => null);
-    e.target.textContent = '🔎 Buscar la dirección en el mapa';
-    if (!r) { toast('No se ha encontrado esa dirección. Prueba con calle, número y población.', true); return; }
-    if (r.fuera) { toast(`Esa dirección sale en ${r.fuera}, no en ${val('m')}: revísala`, true); return; }
-    lat = +r.lat; lon = +r.lon;
-    const a = r.address || {};
-    if (!val('c') && a.postcode) $(k + 'c').value = a.postcode;
-    if (!val('m')) $(k + 'm').value = (a.city || a.town || a.village || a.municipality || '').toUpperCase();
-    if (!val('p')) $(k + 'p').value = (a.province || a.state_district || a.county || '').toUpperCase();
-    cont.querySelector('.cpubi').firstChild.replaceWith(Object.assign(document.createElement('b'), { style: 'color:var(--ok)', textContent: '✓ Ubicado ' }));
-  };
-  cont.querySelector('[data-cpcancel]').onclick = () => pintarCentroSel(box, i, c.id ? undefined : 'buscar');
-  cont.querySelector('[data-cpguardar]').onclick = async ev => {
-    if (!val('n')) { toast('Escribe el nombre del centro', true); $(k + 'n').focus(); return; }
-    const horario = {}; cont.querySelectorAll('[data-hd]').forEach(x => { if (x.value.trim()) horario[x.dataset.hd] = x.value.trim(); });
-    ev.target.disabled = true;
-    const { data, error } = await RPC_ORIG('guardar_centro', { p: { id: c.id || null, nombre: val('n'), telefono: val('t'), direccion: val('d'), cp: val('c'), municipio: val('m'), provincia: val('p'), lat, lon, horario } });
-    ev.target.disabled = false;
-    if (error || !data || !data.ok) { toast('No se ha podido guardar el centro' + (data && data.error ? ': ' + (data.error === 'permiso' ? 'no tienes permiso' : data.error) : ''), true); return; }
-    cpPoner(box, i, data.centro); pintarCentroSel(box, i);
-    toast(c.id ? 'Centro actualizado' : 'Centro creado y elegido');
-  };
-  $(k + 'n').focus();
-}
 // Cada consulta del editor de la ficha pinta su selector al aparecer
 new MutationObserver(() => {
   const cons = $('econs'); if (!cons) return;
@@ -23823,47 +24983,11 @@ new MutationObserver(() => {
   });
 }).observe(document.body, { childList: true, subtree: true });
 
-// Médico «sin reporting»: la ventana de visita no ofrece los resultados de reporting
-abrirVisita = (orig => async function (id, ...a) {
-  const r = await orig.call(this, id, ...a);
-  try {
-    const { data } = await db.from('cuentas').select('sin_reporting').eq('id', id).maybeSingle();
-    const d = $('dlg');
-    if (data && data.sin_reporting && d && d.open) {
-      let n = 0;
-      d.querySelectorAll('.chips button, [data-res], .chip').forEach(b => { if (/reporting/i.test(b.textContent)) { b.style.display = 'none'; n++; } });
-      if (n && !d.querySelector('.srnota')) {
-        const ch = d.querySelector('.chips, [data-res]'); const cont = ch && (ch.classList.contains('chips') ? ch : ch.parentElement);
-        if (cont) cont.insertAdjacentHTML('afterend', `<p class="sm srnota">${TT('medico', 's', 'este', 'C', 'l')} no quiere reporting: solo ${TT('visita', 's', '', 'l', 'l')} presencial.</p>`);
-      }
-    }
-  } catch (e) { /* si no se puede comprobar, la ventana queda como siempre */ }
-  return r;
-})(abrirVisita);
 
 
 
-htAbrirLateral = (orig => function (sec) {
-  orig(sec);
-  const d = $('tools'), auto = d.querySelector('.htauto');
-  if (!clasPantalla(sec) || !htLateralAbierto() || !auto || d.querySelector('.htclas')) return;
-  auto.insertAdjacentHTML('beforebegin', '<div class="htclas"></div>');
-  clasPintarLateral(sec);
-})(htAbrirLateral);
 // El contador del botón suma los filtros de Clasificadores
 htActivos = (orig => function (sec) { const P = clasPantalla(sec); return orig(sec) + (P ? Object.keys(P.estado()).length : 0); })(htActivos);
-// Chips de los filtros de Clasificadores junto al buscador (en su propio contenedor)
-htChips = (orig => function (sec) {
-  orig(sec);
-  const P = clasPantalla(sec), c = sec.querySelector('.htchips'); if (!c) return;
-  let c2 = sec.querySelector('.htchips2');
-  if (!c2) { c.insertAdjacentHTML('afterend', '<div class="htchips htchips2"></div>'); c2 = sec.querySelector('.htchips2'); }
-  const est = P ? P.estado() : {}, chips = P ? clasChips(P.amb, est) : [];
-  const html = chips.map(x => `<button class="htchip" type="button" data-hcp="${esc(x.k)}">${esc(x.t)} <span aria-hidden="true">✕</span></button>`).join('');
-  if (c2.innerHTML === html) return;
-  c2.innerHTML = html;
-  c2.querySelectorAll('[data-hcp]').forEach(b => b.onclick = () => { delete est[b.dataset.hcp]; P.recargar(); clasPintarLateral(sec); htContador(sec); });
-})(htChips);
 // El botón «Filtros y columnas» vive en la barra de la tabla: si la tabla se vuelve a pintar entera
 // (Productos al filtrar o guardar), el botón desaparecía con ella. Se vuelve a crear si falta.
 htPreparar = (orig => function (sec) {
@@ -23892,12 +25016,6 @@ panelColumnas = (orig => function (titulo, cols, alCambiar) {
 camposEnDirectorio = function () {
   (CAMPOS.medico || []).forEach(c => { if (!COLS.some(x => x.k === 'cp:' + c.clave)) COLS.push({ k: 'cp:' + c.clave, t: c.nombre, w: 150 }); });
 };
-colsConfig = (orig => function () {
-  let guardada = null;
-  try { guardada = JSON.parse(localStorage.getItem(colKey()) || 'null'); } catch (e) { /* sin almacenamiento */ }
-  return orig().map(c => c.k.startsWith('cp:') && !(guardada || []).some(x => x.k === c.k)
-    ? { ...c, on: !!((CAMPOS.medico || []).find(x => 'cp:' + x.clave === c.k) || {}).en_tabla } : c);
-})(colsConfig);
 abrirHerramientas = (orig => function (ctx, ...r) {
   const x = orig(ctx, ...r);
   const d = $('tools'), z = d.querySelector('.tfcampos');
@@ -23909,11 +25027,11 @@ abrirHerramientas = (orig => function (ctx, ...r) {
   }
   return x;
 })(abrirHerramientas);
-pintarChips = (orig => function () {
-  orig();
+function pintarChips() {
+  pintarChipsBase();
   const cs = clasChips('medico', F.campos);
   if (cs.length) $('chips').insertAdjacentHTML('beforeend', cs.map(x => `<button class="chip" data-xcp="${esc(x.k)}">${esc(x.t)} ✕</button>`).join(''));
-})(pintarChips);
+}
 $('chips').addEventListener('click', e => {
   const b = e.target.closest('[data-xcp]'); if (!b) return;
   delete F.campos[b.dataset.xcp]; buscar(true);
@@ -23940,11 +25058,6 @@ Object.assign(ICON_NOM, {"building-2":"<path d=\"M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0
 if (AYUDA.rutas) AYUDA.rutas[2].push(`Con <b>Añadir un centro</b> entran todos sus ${TT('medico', 'p', '', 'l', 'l')}: quita los que no vayas a ver. En el plan, los de un mismo centro forman una sola parada y se les planifica en ese centro aunque atiendan en otros.`);
 
 
-// La consulta de la visita: la del centro de la cita; si no, la que tiene consulta hoy; si no, la principal
-consultaDeLaVisita = (orig => function (cons) {
-  const pref = FICHA_CENTRO ? clasNorm(FICHA_CENTRO) : '';
-  return (pref && (cons || []).find(c => clasNorm(c.centro_nombre) === pref)) || orig(cons);
-})(consultaDeLaVisita);
 abrirFicha = (orig => async function (...a) { try { return await orig.apply(this, a); } finally { FICHA_CENTRO = null; } })(abrirFicha);
 accionCita = (orig => function (k, c, ...r) { if (k === 'ficha') FICHA_CENTRO = c.centro_nombre || null; return orig(k, c, ...r); })(accionCita);
 
@@ -24136,37 +25249,6 @@ document.addEventListener('change', e => {
 new MutationObserver(sinHistorialLuego).observe(document.body, { childList: true, subtree: true });
 sinHistorial(document.body);
 
-/* v2.109.0 · Permisos propios en los roles: importar, clasificadores y dar acceso.
-   Configuración → Usuarios y roles → Roles tiene debajo de las plantillas la tabla «Permisos» (las capacidades del grupo
-   «Permisos»; el resto de capacidades no se cambian desde aquí). Quien tiene «Dar acceso a fichas de su cartera» da acceso
-   al portal desde la ficha, sin pasar por Usuarios: se crea la invitación ligada a la ficha y después el usuario. */
-pintarRoles = (orig => async function (...a) {
-  await orig(...a);
-  if (!puede('administrar') || !$('cfgcuerpo')) return;
-  const { data: caps } = await db.from('capacidades').select('clave,nombre,descripcion,orden').eq('grupo', 'Permisos').order('orden');
-  if (!(caps || []).length || !$('cfgcuerpo') || $('rolperm')) return;
-  const roles = rolesNombres().filter(r => !rolPuede(r, 'portal_prescriptor'));
-  $('cfgcuerpo').insertAdjacentHTML('beforeend', `<div class="card cfgpanel" id="rolperm"><h2>Permisos</h2>
-    <p class="sm">Lo que puede hacer cada rol además de sus módulos. Se aplica a todas las personas del rol al guardar.</p>
-    <div class="dgrid-wrap"><table class="rolmat"><thead><tr><th>Permiso</th>${roles.map(r => `<th>${esc(r)}</th>`).join('')}</tr></thead>
-      <tbody>${caps.map(c => `<tr><td><b>${esc(c.nombre)}</b><span class="sm">${esc(c.descripcion || '')}</span></td>
-        ${roles.map(r => `<td><input type="checkbox" data-prol="${esc(r)}" data-pcap="${esc(c.clave)}" aria-label="${esc(c.nombre)} · ${esc(r)}" ${rolPuede(r, c.clave) ? 'checked' : ''}></td>`).join('')}</tr>`).join('')}</tbody></table></div>
-    <div class="acts" style="justify-content:flex-end"><button class="btn" id="rolpermok">Guardar permisos</button></div></div>`);
-  $('rolpermok').onclick = async ev => {
-    ev.target.disabled = true;
-    let fallo = false;
-    for (const r of roles) {
-      const lista = [...$('rolperm').querySelectorAll(`[data-prol="${CSS.escape(r)}"]:checked`)].map(x => x.dataset.pcap);
-      const { data: x, error } = await db.rpc('guardar_permisos_rol', { p_rol: r, p_permisos: lista });
-      if (error || (x && x.ok === false)) fallo = true;
-    }
-    ev.target.disabled = false;
-    await cargarRoles();
-    const { data: yo } = await db.from('perfiles').select('capacidades').eq('id', PERFIL.id).single();
-    if (yo && Array.isArray(yo.capacidades)) PERFIL.capacidades = yo.capacidades;
-    toast(fallo ? 'No se han podido guardar todos los permisos' : 'Permisos guardados', fallo);
-  };
-})(pintarRoles);
 
 
 document.addEventListener('keydown', e => {
@@ -24347,13 +25429,6 @@ pintarPaginaPlan = async function () {
 };
 
 
-function orgEstado(o) {
-  const pd = o.plan_datos || {};
-  if (o.bloqueada === 'desactivada') return '<span class="pill p-anu">Desactivada</span> ';
-  if (o.bloqueada === 'prueba_terminada') return `<span class="pill p-warn">Prueba terminada el ${fechaCorta(pd.prueba_hasta)}</span> `;
-  if (pd.estado === 'prueba') return `<span class="pill p-est">Prueba hasta el ${fechaCorta(pd.prueba_hasta)}</span> `;
-  return '';
-}
 function orgAcciones(c, l) {
   const de = id => l.find(x => x.id === id);
   // Plan: el de pago o una prueba (con su fecha de fin)
@@ -24455,12 +25530,6 @@ document.addEventListener('click', e => {
   ir('organizacion');
 }, true);
 
-function areaEncaje() {
-  if (innerWidth < ENCAJE_MIN) return null;
-  if (TAB === 'config') return $('cfgcuerpo-hub') || $('cfgcuerpo');
-  if (PAGINAS[TAB]) return document.querySelector(`#v-${TAB} .pagcuerpo`) || $('cfgcuerpo');
-  return null;
-}
 ['dlg', 'dlg2'].forEach(id => {
   const d = $(id); if (!d) return;
   const modal = d.showModal.bind(d);
@@ -24614,110 +25683,9 @@ pintarLlamadas = async function () {
 
 
 
-// ——— Lado del médico ———
-async function portalMedico() {
-  // Al arrancar, «Mi informe» se pinta antes de leerse el final de este archivo y antes de tener el plan: se espera a los dos
-  try { void MOTIVO_PORTAL; void PLAN_ACTUAL; } catch (e) { setTimeout(portalMedico, 300); return; }
-  if (!('estado' in PLAN_ACTUAL)) { const { data } = await RPC_ORIG('plan_uso', {}); if (data && data.plan) PLAN_ACTUAL = data.plan; }
-  if (!ES_MEDICO() || !hayExtra('portal') || !$('v-informe')) return;
-  let caja = $('mdportal');
-  if (!caja) { $('v-informe').insertAdjacentHTML('beforeend', '<div id="mdportal" class="angrid"></div>'); caja = $('mdportal'); }
-  const [{ data: c }, { data: perm }, { data: sols }, { data: msgs }] = await Promise.all([
-    puede('portal_centro') ? Promise.resolve({ data: null }) : RPC_ORIG('constancia_pacientes', { p_meses: 12 }), RPC_ORIG('portal_material_permitido', {}),
-    db.from('solicitudes_material').select('id,material,cantidad,nota,estado,creado_en,cerrado_en').order('creado_en', { ascending: false }).limit(20),
-    db.from('mensajes_cuenta').select('id,texto,del_portal,creado_en,leido_en').order('creado_en', { ascending: true }).limit(200)]);
-  caja = $('mdportal'); if (!caja) return;   // v2.318.0: si se ha vuelto a pintar mientras llegaban los datos, la caja de ahora
-  const pac = TT('paciente', 'p', '', 'l', 'l'), k = c || {};
-  const pct = (a, b) => b ? Math.round(a / b * 100) + '%' : '—';
-  const constancia = !k.ok ? '<div class="sm">No disponible.</div>' : k.pocos
-    ? `<p class="sm" style="padding:0 16px">En los últimos ${num(k.meses || 12)} meses han empezado ${num(k.empezaron)} ${pac}. A partir de ${num(k.minimo || 5)} verás aquí su constancia (con menos no se muestra, para que nadie pueda reconocerlos).</p>`
-    : `<div class="minis cons">
-        <div><b>${num(k.empezaron)}</b><span>empezaron</span></div>
-        <div><b>${pct(k.repiten, k.empezaron)}</b><span>repiten (${num(k.repiten)})</span></div>
-        <div><b>${k.dias_entre ? num(k.dias_entre) + ' días' : '—'}</b><span>entre pedidos</span></div>
-        <div><b>${num(k.dejaron)}</b><span>lo dejaron tras el primero</span></div>
-        <div><b>${num(k.sin_pedir)}</b><span>llevan más de 60 días sin pedir</span></div></div>
-      ${(k.por_producto || []).length ? barrasH(k.por_producto.map(x => ({ n: x.producto, v: Math.round(x.repiten / x.pacientes * 100) })), v => v + '% repiten') : ''}`;
-  const lp = Array.isArray(perm) ? perm : [];
-  const ls = sols || [], lm = msgs || [];
-  caja.innerHTML = `
-    <div class="card ancard ancha" id="mdcons"><h2>Continuidad de las ${TT('pauta', 'p', '', 'l', 'l')}</h2>${constancia}
-      <p class="leer">En los últimos 12 meses: cuántas ${TT('pauta', 'p', '', 'l', 'l')} han empezado, qué parte se ha repetido y cada cuántos días.</p></div>
-    <div class="card ancard" id="mdmat"><h2>Pedir material</h2>
-      ${lp.length ? `<div class="g2"><div><label for="mdmatm">Material</label><select id="mdmatm">${lp.map(x => `<option value="${esc(x.valor)}" data-max="${x.max}">${esc(x.valor)}</option>`).join('')}</select></div>
-        <div><label for="mdmatn">Cantidad</label><input id="mdmatn" type="number" min="1" value="1"><span class="sm" id="mdmatmax">Máximo ${num(lp[0].max)} por petición</span></div></div>
-        <label for="mdmatt">Nota para tu comercial</label><input id="mdmatt" placeholder="Opcional">
-        <div class="acts" style="justify-content:flex-start"><button type="button" class="btn" id="mdmatok">Pedir</button></div>`
-      : '<p class="sm" style="padding:0 16px">Tu empresa todavía no ofrece material para pedir.</p>'}
-      ${ls.length ? `<div class="lista" id="mdmatl">${ls.map(x => `<div class="item" style="cursor:default"><span class="tx"><b>${num(x.cantidad)} × ${esc(x.material)}</b>
-          <span class="sm">${horaCorta(x.creado_en)}${x.nota ? ' · ' + esc(x.nota) : ''}</span></span>${pillMaterial(x.estado)}
-          ${x.estado === 'Pendiente' ? `<button type="button" class="btn sec chico" data-mdanu="${x.id}">Anular</button>` : ''}</div>`).join('')}</div>` : ''}</div>
-    <div class="card ancard" id="mdmsg"><h2>Dudas a tu comercial</h2>
-      <div id="mdhilo">${hiloMensajes(lm, true)}</div>
-      <textarea id="mdmsgt" rows="2" placeholder="Escribe tu duda" aria-label="Tu mensaje"></textarea>
-      <div class="acts" style="justify-content:flex-start"><button type="button" class="btn" id="mdmsgok">Enviar</button></div></div>`;
-  if (puede('portal_centro') && $('mdcons')) $('mdcons').remove();
-  // v2.277.0: sin máximo en el campo (rebajaba en silencio lo escrito); en cuanto lo escrito pasa del máximo, el aviso se pone en rojo
-  const mdMatAviso = () => {
-    const w = $('mdmatmax'), o = $('mdmatm') && $('mdmatm').selectedOptions[0]; if (!w || !o) return;
-    const m = +o.dataset.max, n = +$('mdmatn').value || 0;
-    w.classList.toggle('mdmatpasa', n > m); w.textContent = (n > m ? 'Como máximo ' : 'Máximo ') + num(m) + ' por petición';
-  };
-  if ($('mdmatm')) $('mdmatm').onchange = mdMatAviso;
-  if ($('mdmatn')) $('mdmatn').addEventListener('input', mdMatAviso);
-  if ($('mdmatok')) $('mdmatok').onclick = async ev => {
-    ev.target.disabled = true;
-    const mx = +$('mdmatm').selectedOptions[0].dataset.max, n = +$('mdmatn').value || 0;
-    if (n < 1 || n > mx) { ev.target.disabled = false; mdMatAviso(); toast(n < 1 ? 'Indica cuántos necesitas' : `Como máximo ${num(mx)} por petición: pide ${num(mx)} o escribe en la nota cuántos necesitas`, true); return; }
-    const { data: r } = await db.rpc('pedir_material', { p_material: $('mdmatm').value, p_cantidad: n, p_nota: $('mdmatt').value.trim() || null });
-    ev.target.disabled = false;
-    if (!r || !r.ok) { toast(r && r.motivo === 'cantidad' ? `Como máximo ${num(r.max)}` : motivoPortal(r), true); return; }
-    toast('Pedido enviado a tu comercial'); portalMedico();
-  };
-  caja.querySelectorAll('[data-mdanu]').forEach(b => b.onclick = async () => {
-    const { data: r } = await db.rpc('cerrar_material', { p_id: b.dataset.mdanu, p_estado: 'Anulado' });
-    if (!r || !r.ok) { toast(motivoPortal(r), true); return; }
-    toast('Pedido de material anulado'); portalMedico();
-  });
-  if ($('mdmsgok')) $('mdmsgok').onclick = async ev => {
-    const t = $('mdmsgt').value.trim(); if (!t) { toast('Escribe el mensaje', true); return; }
-    ev.target.disabled = true;
-    const { data: r } = await db.rpc('enviar_mensaje_cuenta', { p_cuenta: null, p_texto: t });
-    ev.target.disabled = false;
-    if (!r || !r.ok) { toast(motivoPortal(r), true); return; }
-    toast('Mensaje enviado'); portalMedico();
-  };
-  if (lm.some(x => !x.del_portal && !x.leido_en)) RPC_ORIG('leer_mensajes_cuenta', { p_cuenta: null });
-}
 
 abrirFicha = (orig => async function (id, ...a) { const r = await orig.call(this, id, ...a); fichaPortal(id); return r; })(abrirFicha);
 
-// ——— Configuración: qué material se puede pedir y cuánto ———
-async function pintarCfgPortal() {
-  const c = $('cfgcuerpo'); if (!c) return;
-  c.innerHTML = `<div class="card">${skelCard('Cargando…')}</div>`;
-  const [{ data: cat }, { data: perm }, { data: aj }] = await Promise.all([
-    db.rpc('catalogo_papel', { p_papel: 'material_visita' }), RPC_ORIG('portal_material_permitido', {}),
-    db.from('ajustes').select('valor').eq('clave', 'portal').maybeSingle()]);
-  if (!$('cfgcuerpo')) return;
-  const l = cat || [], p = Array.isArray(perm) ? perm : [], conAjuste = !!(aj && aj.valor && aj.valor.material);
-  const de = v => p.find(x => x.valor === v);
-  c.innerHTML = `<div class="card"><div class="fh"><div><h2>Portal ${TT('medico', 's', 'del', 'l', 'l')}</h2>
-      <div class="sm">Qué material pueden pedir ${TT('medico', 'p', 'el', 'l', 'l')} desde su portal y cuánto como máximo cada vez. Les llega a su comercial.</div></div></div>
-    ${l.length ? `<div class="lista" id="cfpmat">${l.map(x => { const d = de(x.valor); return `<label class="item" style="cursor:default">
-        <input type="checkbox" data-cfpm="${esc(x.valor)}" ${d ? 'checked' : ''}> <span class="tx"><b>${esc(x.valor)}</b></span>
-        <span class="sm">Máximo</span> <input type="number" min="1" max="1000" value="${d ? d.max : 20}" data-cfpx="${esc(x.valor)}" style="max-width:110px" aria-label="Máximo de ${esc(x.valor)}"></label>`; }).join('')}</div>
-      ${conAjuste ? '' : '<p class="sm" style="padding:0 16px">Ahora mismo se puede pedir todo el material, hasta 20 de cada. Guarda para decidirlo tú.</p>'}
-      <div class="acts" style="justify-content:flex-end"><button class="btn" id="cfpok">Guardar</button></div>`
-      : '<div class="vacio">No hay material en el catálogo «Material comercial entregado». Añádelo en Clasificadores.</div>'}</div>`;
-  if ($('cfpok')) $('cfpok').onclick = async () => {
-    const material = [...c.querySelectorAll('[data-cfpm]')].filter(x => x.checked)
-      .map(x => ({ valor: x.dataset.cfpm, max: Math.max(1, Math.min(1000, +c.querySelector(`[data-cfpx="${CSS.escape(x.dataset.cfpm)}"]`).value || 20)) }));
-    const { data: r, error } = await db.rpc('guardar_ajuste', { p_clave: 'portal', p_valor: Object.assign({}, (aj && aj.valor) || {}, { material }) });   // v2.284.0: sin borrar el resto del ajuste
-    if (error || (r && r.ok === false)) { toast('No se ha podido guardar', true); return; }
-    toast('Guardado'); pintarCfgPortal();
-  };
-}
 arbolConfig = (orig => function () {
   const g = orig();
   if (puede('administrar') && hayExtra('portal')) {
@@ -25036,12 +26004,12 @@ barraTabla = function (sec) {
 
 // v2.140.0 · Botones de solo icono (Actualizar de Inicio): al pulsarlos gira el icono y no aparece ningún texto (antes salía
 // «Actualizando…» dentro del botón redondo)
-conCarga = (orig => async function (btn, texto, fn) {
-  if (!btn || !(btn.id === 'iniact' || btn.classList.contains('icoredondo') || btn.classList.contains('icobtn'))) return orig(btn, texto, fn);
+async function conCarga(btn, texto, fn) {
+  if (!btn || !(btn.id === 'iniact' || btn.classList.contains('icoredondo') || btn.classList.contains('icobtn'))) return conCargaBase(btn, texto, fn);
   if (btn.dataset.cargando) return;
   btn.dataset.cargando = '1'; btn.disabled = true; btn.classList.add('icogira'); btn.setAttribute('aria-busy', 'true');
   try { return await fn(); } finally { btn.disabled = false; btn.classList.remove('icogira'); btn.removeAttribute('aria-busy'); delete btn.dataset.cargando; }
-})(conCarga);
+}
 
 /* v2.140.0 · «Personalizar menú» rehecho (petición de Eric: la selección se veía «de 2010»). Cada bloque y cada sección se arrastran
    por su asa para ordenarlos (también con el teclado: asa con el foco y flechas ↑ ↓); cada sección tiene un interruptor como los de
@@ -25228,68 +26196,9 @@ cargarRutasPaso2 = (orig => async function (...a) {
   return r;
 })(cargarRutasPaso2);
 
-/* v2.146.0 · Agenda: al pulsar un día de la semana o del mes, «Tu día» pasa a ese día (petición de Eric: antes se abría un desplegable).
-   El título de «Tu día» es la fecha elegida y al lado está «Volver a hoy»; el día elegido queda marcado en la semana y en el mes.
-   Las cifras de arriba, la semana y el mes siguen siendo los de hoy. */
-function agMarcarDia() {
-  const v = $('v-agenda'); if (!v || !v.classList.contains('agunida')) return;
-  const hoy = hoyISO(), otro = AG_FECHA !== hoy;
-  if ($('agtit')) $('agtit').textContent = 'Hoy · ' + fechaLarga(new Date(hoy + 'T00:00:00'));
-  const h = v.querySelector('#agcuerpo .tdhead h2'); if (!h) return;
-  const caja = h.parentElement;
-  let b = $('agahoy');
-  if (!otro) { if (b) b.remove(); return; }
-  h.textContent = fechaLarga(new Date(AG_FECHA + 'T00:00:00')).replace(/^./, c => c.toUpperCase());
-  if (!b) {
-    h.insertAdjacentHTML('afterend', '<button type="button" class="btn sec" id="agahoy">Volver a hoy</button>');
-    b = $('agahoy'); b.onclick = () => agVerDia(hoyISO());
-  }
-  // v2.338.0: en el móvil va delante de «+ Tarea», en la misma fila (Eric)
-  const acts = !matchMedia('(min-width: 761px)').matches && v.querySelector('#agcuerpo .tdhead .acts');
-  if (acts && acts.firstElementChild !== b) acts.prepend(b);
-  caja.classList.add('agtitdia');
-}
 
 
 
-// [id, área, título, formato, mejor si sube (true/false/null), ayuda, a hoy, solo con importes, por defecto]
-function anCatalogo() {
-  const med = TT('medico', 'p', '', 'l', 'l'), vis = TT('visita', 'p', '', 'l', 'l'), vis1 = TT('visita', 's', '', 'l', 'l');
-  return [
-    ['importe', 'ventas', 'Ventas sin IVA', 'eur', true, 'Importe sin IVA de los pedidos completados, con el descuento de cada línea.', false, true, true],
-    ['unidades', 'ventas', 'Unidades vendidas', 'num', true, 'Unidades de los pedidos completados.', false, false, true],
-    ['pedidos', 'ventas', 'Pedidos', 'num', true, 'Pedidos completados en el periodo.', false, false, false],
-    ['ticket', 'ventas', 'Ticket medio', 'eur', true, 'Importe medio de cada pedido.', false, true, true],
-    ['web_pct', 'ventas', 'Ventas por la web', 'pct', true, 'Parte del importe que llega en pedidos marcados como «por la web».', false, true, true],
-    ['margen', 'ventas', 'Margen bruto', 'eur', true, 'Ventas menos el coste de los productos vendidos. Solo cuenta los productos con coste: ponlo en cada producto.', false, true, false],
-    ['margen_pct', 'ventas', 'Margen bruto (%)', 'pct', true, 'Margen bruto sobre las ventas de los productos con coste.', false, true, false],
-    ['top10_pct', 'ventas', `Peso de los 10 primeros ${med}`, 'pct', false, `Qué parte de las ventas atribuidas hacen los 10 ${med} que más venden. Cuanto más alto, más depende el negocio de pocos.`, false, true, false],
-    ['clientes', 'clientes', 'Clientes que compran', 'num', true, 'Clientes distintos con algún pedido confirmado en el periodo.', false, false, true],
-    ['clientes_nuevos', 'clientes', 'Clientes nuevos', 'num', true, 'Clientes cuyo primer pedido es de este periodo.', false, false, false],
-    ['repiten_pct', 'clientes', 'Clientes que repiten', 'pct', true, 'De los que compran en el periodo, cuántos ya habían comprado antes.', false, false, true],
-    ['perdidos', 'clientes', 'Clientes perdidos', 'num', false, 'Compraron en el último año y llevan más de 90 días sin comprar (al final del periodo).', false, false, true],
-    ['valor_cliente', 'clientes', 'Valor por cliente', 'eur', true, 'Importe medio comprado por cada cliente en el periodo.', false, true, false],
-    ['visitas', 'equipo', `${TT('visita', 'p', '', 'l', 'C')}`, 'num', true, `${TT('visita', 'p', '', 'l', 'C', 'registrado')} en el periodo.`, false, false, false],
-    ['visitas_dia', 'equipo', `${TT('visita', 'p', '', 'l', 'C')} por día`, 'dec', true, `Media de ${vis} de cada persona en los días que trabaja en la calle.`, false, false, true],
-    ['citas_pct', 'equipo', 'Citas cumplidas', 'pct', true, `De las citas del periodo hasta hoy (sin contar las aplazadas), cuántas acabaron en ${vis1}.`, false, false, false],
-    ['cobertura_pct', 'equipo', 'Cobertura de la cartera', 'pct', true, `Parte de la cartera con alguna ${vis1} en los 60 días anteriores al final del periodo.`, false, false, true],
-    ['conversion_pct', 'equipo', `Conversión ${vis1} → venta`, 'pct', true, `De ${TT('medico', 'p', 'el', 'l', 'l', 'visitado')} en el periodo, cuántos tienen ventas atribuidas en los 30 días siguientes a la primera ${vis1}.`, false, false, true],
-    ['activados', 'equipo', `${TT('medico', 'p', '', 'l', 'C')} activados`, 'num', true, `${TT('medico', 'p', '', 'l', 'C')} cuya primera venta atribuida es de este periodo.`, false, false, false],
-    ['op_abiertas', 'oportunidades', 'Oportunidades abiertas', 'num', null, 'Oportunidades del periodo que aún no se han cerrado.', false, false, false],
-    ['cierre_pct', 'oportunidades', 'Tasa de cierre', 'pct', true, 'De las oportunidades cerradas, cuántas acabaron en pedido.', false, false, true],
-    ['ganado', 'oportunidades', 'Importe ganado', 'eur', true, 'Importe estimado de las oportunidades que acabaron en pedido.', false, true, true],
-    ['perdido', 'oportunidades', 'Importe perdido', 'eur', false, 'Importe estimado de las oportunidades que no compraron.', false, true, false],
-    ['motivo_perdida', 'oportunidades', 'Motivo principal de pérdida', 'txt', null, 'El resultado más repetido entre las oportunidades que no compraron.', false, false, false],
-    ['facturado', 'cobros', 'Facturado', 'eur', true, 'Total de las facturas emitidas en el periodo (las rectificativas restan).', false, true, false],
-    ['pendiente', 'cobros', 'Pendiente de cobro', 'eur', null, 'Lo que falta por cobrar de todas las facturas, a día de hoy.', true, true, true],
-    ['vencido', 'cobros', 'Vencido', 'eur', false, 'Lo pendiente de cobro con el vencimiento ya pasado, a día de hoy.', true, true, true],
-    ['dias_cobro', 'cobros', 'Días medios de cobro', 'dias', false, 'Días entre la factura y su cobro, de las cobradas en el periodo.', false, true, false],
-    ['valor_stock', 'stock', 'Valor del stock', 'eur', null, 'Unidades en almacén por el coste de cada producto, a día de hoy.', true, true, true],
-    ['bajo_minimo', 'stock', 'Productos bajo mínimo', 'num', false, 'Productos activos con menos stock que su mínimo, a día de hoy.', true, false, true],
-    ['caducan', 'stock', 'Lotes que caducan en 90 días', 'num', false, 'Lotes con unidades que caducan en los próximos 90 días.', true, false, false],
-    ['compras', 'stock', 'Compras del periodo', 'eur', null, 'Importe de los pedidos de compra del periodo (sin los cancelados).', false, true, false]
-  ].map(([id, fam, t, fmt, sube, ayuda, hoy, imp, def]) => ({ id, fam, t, fmt, sube, ayuda, hoy, imp, def }));
-}
 
 let AN_CFG = null, AN_DATOS = {};
 
@@ -25530,10 +26439,6 @@ document.addEventListener('click', e => {
     return prev.apply(this, a);
   };
 });
-refrescarAnalitica = (orig => function (...a) {
-  if (TAB !== 'analitica' || !$('atabla') || !$('atabla2')) return;
-  return orig.apply(this, a);
-})(refrescarAnalitica);
 
 if (PAGINAS.delcos && !PAGINAS.delcos.tabs.some(t => t[0] === 'errores')) PAGINAS.delcos.tabs.push(['errores', 'Errores', () => pintarErroresDelcos()]);
 // Producción (3/10/2026): en el iPhone, sin cobertura, Safari da «Load failed» o «Fetch is aborted». Eso no es un fallo de la plataforma:
@@ -25604,17 +26509,6 @@ pintarPaginaPlan = (orig => async function (...a) {
   return r;
 })(pintarPaginaPlan);
 
-// Aviso arriba si hay un cobro pendiente o la cuenta está en solo lectura
-function pagoAviso() {
-  const e = PAGO_ESTADO || {}, pl = e.plan || {}; let el = $('pagoaviso');
-  const msg = e.solo_lectura ? 'Tu empresa está en <b>solo lectura</b> porque hay un pago pendiente. Puedes consultar y exportar; para volver a trabajar, actualiza el pago.'
-    : pl.estado === 'impago' ? 'No hemos podido cobrar tu suscripción. Actualiza el método de pago antes de 14 días para no quedarte en solo lectura.' : '';
-  if (!msg) { if (el) el.remove(); return; }
-  const main = document.querySelector('main'); if (!main) return;
-  if (!el) { main.insertAdjacentHTML('afterbegin', '<div id="pagoaviso" class="banda-peligro" role="alert"></div>'); el = $('pagoaviso'); }
-  el.innerHTML = msg + (puedeOrganizacion() ? ' <button type="button" class="btn sec" id="pgavbtn">Gestionar el pago</button>' : ' Avisa a quien gestiona la cuenta de tu empresa.');
-  if ($('pgavbtn')) $('pgavbtn').onclick = ev => pagoPortal(ev.target);
-}
 async function pagoCargarEstado() {
   const { data } = await RPC_ORIG('plan_uso', {});
   if (!data) return;
@@ -25639,26 +26533,8 @@ registrarError = (orig => function (tipo, mensaje, detalle) {
   if (PAGO_ESTADO && PAGO_ESTADO.solo_lectura && /row-level security|violates row-level/i.test(String(mensaje))) return;
   return orig.call(this, tipo, mensaje, detalle);
 })(registrarError);
-// Organizaciones (panel delcos): impago y cancelada a la vista
-orgEstado = (orig => function (o) {
-  const pd = o.plan_datos || {};
-  if (o.bloqueada === 'cancelada') return '<span class="pill p-anu">Cancelada</span> ';
-  if (pd.estado === 'impago') return `<span class="pill p-urg">Impago desde el ${fechaCorta(pd.impago_desde)}</span> `;
-  return orig(o) + (pd.stripe_suscripcion ? '<span class="pill p-est">Stripe</span> ' : '');
-})(orgEstado);
 
 aplicarPermisosMenu = (orig => function (...a) { const r = orig.apply(this, a); try { candadoSecciones(); } catch (e) {} return r; })(aplicarPermisosMenu);
-avisoPlan = (orig => function (mod) {
-  if (!(mod in PLAN_SECCIONES)) return orig.call(this, mod);
-  const p = planDe(PLAN_SECCIONES[mod][0]), n = TITULO_PEDSEC[mod] ? TITULO_PEDSEC[mod][0] : mod;
-  $('dbody').innerHTML = `<div class="fh"><div><h2>${esc(n)}</h2><div class="sm">No está incluido en tu plan ${esc(planDe(PLAN_ACTUAL.plan).nombre)}</div></div>
-    <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-    <p>Está disponible desde el plan <b>${esc(p.nombre)}</b> (${precioPlan(p)}).</p>
-    <ul class="manlist">${p.ventajas.map(v => `<li><span>✓</span><span>${esc(v)}</span></li>`).join('')}</ul>
-    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>Ahora no</button>${puedeOrganizacion() ? '<button class="btn" id="vplan">Ver planes</button>' : ''}</div>`;
-  $('dlg').showModal();
-  if ($('vplan')) $('vplan').onclick = () => { $('dlg').close(); CFG_SEC = 'plan'; ir('config'); };
-})(avisoPlan);
 ir = (orig => function (t, ...a) {
   if (t in PLAN_SECCIONES && PERFIL && !ES_MEDICO() && !planIncluyeSeccion(t)) { avisoPlan(t); return; }
   return orig.call(this, t, ...a);
@@ -25957,20 +26833,6 @@ pintarPaginaPlan = (orig => async function (...a) {
     + (faltan ? `<div class="banda-aviso" style="margin-top:8px">Faltan datos para poder facturarte: complétalos con «Corregir datos».</div>` : '');
   return r;
 })(pintarPaginaPlan);
-// En los 7 últimos días de la prueba, aviso arriba (no tapa los de impago o solo lectura)
-pagoAviso = (orig => function (...a) {
-  const r = orig.apply(this, a);
-  const pl = (PAGO_ESTADO || {}).plan || PLAN_ACTUAL || {}, n = diasHasta(pl.periodo_fin);
-  let el = $('pruebaaviso');
-  const ver = pl.en_prueba && !pl.baja_al_final && n != null && n >= 0 && n <= 7 && !$('pagoaviso') && puedeOrganizacion();
-  if (!ver) { if (el) el.remove(); return r; }
-  const main = document.querySelector('main'); if (!main) return r;
-  if (!el) { main.insertAdjacentHTML('afterbegin', '<div id="pruebaaviso" class="banda-info" role="status"></div>'); el = $('pruebaaviso'); }
-  el.innerHTML = `Tu prueba termina ${n === 0 ? 'hoy' : n === 1 ? 'mañana' : `en ${n} días`} (${fechaCorta(pl.periodo_fin)}): ese día se pasa el primer recibo.
-    Revisa que tus datos de facturación están bien. <button type="button" class="btn sec" id="pruebaver">Revisar mis datos</button>`;
-  $('pruebaver').onclick = () => ir('plan');
-  return r;
-})(pagoAviso);
 
 // Pestañas propias del panel en modo plataforma: el equipo (los usuarios de la de plataforma) y la plantilla de las empresas nuevas
 (() => {
@@ -26078,31 +26940,6 @@ cargarPagina = (orig => function (t, ...a) {
 
 
 
-// ---- Estado de la plataforma: SQL aplicado, versión publicada y versiones que usa cada empresa
-async function pintarEstadoDelcos() {
-  const c = $('cfgcuerpo'); if (!c) return;
-  c.innerHTML = pdEsqueleto();
-  const { data, error } = await RPC_ORIG('estado_plataforma', {});
-  if (!$('cfgcuerpo') || PAG_TAB.delcos !== 'estado') return;
-  const e = (!error && data) || {}, emp = e.empresas || {}, sql = e.sql || [], ver = e.versiones || [];
-  const ult = sql[0] || {};
-  const porVer = {}; ver.forEach(v => { (porVer[v.version] = porVer[v.version] || []).push(v); });
-  const versiones = Object.keys(porVer).sort((a, b) => b.localeCompare(a, 'es', { numeric: true }));
-  c.innerHTML = `<div class="card cfgpanel">
-    ${error ? `<div class="banda-peligro">No se ha podido leer: ${esc(error.message)}</div>` : ''}
-    ${pdKpis([[esc('v' + VERSION_APP), 'versión de esta app'], [ult.numero ? 'SQL ' + ult.numero : '—', ult.version_app ? 'base en ' + ult.version_app : 'base'],
-      [num(emp.activas || 0) + ' / ' + num(emp.total || 0), 'empresas activas'], [num(e.usuarios || 0), 'usuarios activos' + (e.portal ? ' · ' + num(e.portal) + ' del portal' : '')],
-      [num(e.errores || 0), 'errores sin resolver (15 días)', e.errores ? 'aviso' : '']])}
-    <h3 class="pdh3">Versiones en uso (30 días)</h3>
-    ${versiones.length ? versiones.map(v => `<div class="pdver"><div class="pdvercab"><b>v${esc(v.replace(/^v/, ''))}</b>${v.replace(/^v/, '') === VERSION_APP ? ' <span class="pill p-est">la actual</span>' : ' <span class="pill p-warn">anterior</span>'}
-        <span class="sm">${porVer[v].length} ${porVer[v].length === 1 ? 'empresa' : 'empresas'}</span></div>
-      <div class="sm">${porVer[v].map(x => `${esc(x.organizacion)} (${pdHace(x.ultima_vez)})`).join(' · ')}</div></div>`).join('')
-      : '<div class="vacio">Ninguna empresa ha abierto la app en los últimos 30 días.</div>'}
-    <h3 class="pdh3">Últimos SQL aplicados en esta base</h3>
-    <div class="tablawrap"><table class="pdtabla"><thead><tr><th>SQL</th><th>Versión</th><th>Qué cambia</th><th>Aplicado</th></tr></thead><tbody>
-      ${sql.map(s => `<tr><td class="num">${s.numero}</td><td>${esc(s.version_app || '')}</td><td class="sm">${esc(s.descripcion || '')}</td><td class="sm">${pdFecha(s.aplicado_en)}</td></tr>`).join('')}</tbody></table></div>
-    <p class="sm">Esto es la base de ${EN_PRUEBAS ? '<b>pruebas</b>' : '<b>producción</b>'}. La de ${EN_PRUEBAS ? 'producción' : 'pruebas'} se mira desde su propio panel.</p></div>`;
-}
 
 entrarEnOrganizacion = async function (o) {
   if (!await preguntar(`Vas a ver la plataforma como ${o.nombre}: sus datos, su configuración y su plan. Lo que cambies se guarda en su empresa y queda registrado. Para volver, «Salir» en la franja de arriba.`, { titulo: 'Entrar en ' + o.nombre, ok: 'Entrar' })) return;
@@ -26455,38 +27292,6 @@ window.addEventListener('click', e => {
       (fue un error: desaparece; solo de hoy en adelante y si no se ha hecho). */
 
 
-function editarTarea(t, fecha) {
-  t = t || {};
-  $('dbody').innerHTML = `
-    <div class="fh"><div><h2>${t.id ? 'Tarea' : 'Nueva tarea'}</h2><div class="sm">Una nota o tarea tuya para ese día, sin cliente</div></div>
-      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-    <label for="tat">Qué hay que hacer</label><input id="tat" value="${esc(t.titulo || '')}" placeholder="p. ej. Llamar al almacén, reunión de equipo…" maxlength="160">
-    <div class="g2">
-      <div><label for="taf">Día</label><input id="taf" type="date" value="${esc(t.fecha || fecha || hoyISO())}"></div>
-      <div><label for="tah">Hora <span class="sm">(opcional)</span></label><input id="tah" type="time" value="${esc(t.hora ? String(t.hora).slice(0, 5) : '')}"></div>
-    </div>
-    <label for="tan">Notas</label><textarea id="tan" rows="3">${esc(t.nota || '')}</textarea>
-    <div class="acts" style="justify-content:space-between">
-      ${t.id ? '<button type="button" class="btn sec peligro" id="taborrar">Borrar</button>' : '<span></span>'}
-      <span style="display:flex;gap:8px"><button type="button" class="btn sec" data-cerrar>Cancelar</button><button type="button" class="btn" id="taok">${t.id ? 'Guardar' : 'Añadir'}</button></span></div>`;
-  $('taok').onclick = async ev => {
-    const titulo = $('tat').value.trim(); if (!titulo) { toast('Escribe qué hay que hacer', true); $('tat').focus(); return; }
-    const fila = { titulo, fecha: $('taf').value || hoyISO(), hora: $('tah').value || null, nota: $('tan').value.trim() || null, modificado_en: new Date().toISOString() };
-    ev.target.disabled = true;
-    const { error } = t.id ? await db.from('tareas').update(fila).eq('id', t.id) : await db.from('tareas').insert(fila);
-    ev.target.disabled = false;
-    if (error) { toast('No se ha podido guardar: ' + error.message, true); return; }
-    $('dlg').close(); toast(t.id ? 'Tarea guardada' : 'Tarea añadida el ' + fechaDiaMes(fila.fecha)); TAREAS_DIA = null; pintarTuDia();
-  };
-  if ($('taborrar')) $('taborrar').onclick = async () => {
-    if (!await preguntar('La tarea desaparece.', { titulo: '¿Borrar la tarea?', ok: 'Borrar', peligro: true })) return;
-    const { error } = await db.from('tareas').delete().eq('id', t.id);
-    if (error) { toast('No se ha podido borrar', true); return; }
-    $('dlg').close(); toast('Tarea borrada'); TAREAS_DIA = null; pintarTuDia();
-  };
-  $('dlg').classList.add('pequena');
-  $('dlg').showModal();
-}
 
 // ---- 4. Borrar y descartar en el detalle de la cita
 verCita = (orig => function (c) {
@@ -26550,11 +27355,6 @@ geocodificar = async function (q, o = {}) {
   return l[0] || null;
 };
 
-cargarSeguimientoPaso1 = (orig => async function (...a) {
-  const r = await orig.apply(this, a);
-  try { await pintarDireccionesDudosas(); } catch (e) {}
-  return r;
-})(cargarSeguimientoPaso1);
 
 document.addEventListener('visibilitychange', () => { if (!document.hidden) comprobarVersion(); });
 setInterval(comprobarVersion, 10 * 60 * 1000);
@@ -26612,7 +27412,7 @@ let AGQ_T = null, AGQ_ID = null, DLG_EPOCA = 0;
 new MutationObserver(() => { if ($('dlg').open) DLG_EPOCA = RC_EPOCA; }).observe($('dlg'), { attributes: true, attributeFilter: ['open'] });
 
 // Repinta «Tu día» sin saltos: las citas que cambian de sitio se deslizan y la tocada queda resaltada un momento
-async function repintarDiaSuave(id, data) {
+async function repintarDiaSuaveBase(id, data) {
   // v2.246.0: el deslizamiento de las tarjetas lo pone la envoltura de la v2.244.0 (aquí animaba las filas ocultas)
   agOlvidarAgenda();
   if (data) { TD_PRESET = { fecha: AG_FECHA, data }; TD_ULTIMO = { fecha: AG_FECHA, data }; }
@@ -26649,21 +27449,6 @@ cambiarHoraCita = async function (id, hora) {
 };
 
 
-tarjetaCentro = (orig => function (c, enlazado) {
-  if (enlazado || !esConsultaPrivada(c)) return orig.call(this, c, enlazado);
-  const dir = [c.direccion, [c.cp, c.municipio].filter(Boolean).join(' ')].filter(Boolean).join(' · ');
-  return `<div class="cpcard cppriv"><div class="cpcab"><b>${consultaPrivada()}</b><span class="pill p-est">Sin centro</span></div>
-    <span class="sm">${esc(dir || 'Sin dirección todavía')}</span>
-    ${c.lat ? '' : `<span class="sm" style="color:var(--warn)">${dir ? 'Sin ubicación: no saldrá en rutas ni en el mapa' : 'Añade la dirección para que salga en rutas y en el mapa'}</span>`}
-    <div class="acts" style="margin:8px 0 0;flex-wrap:wrap">
-      ${c.lat ? `<button type="button" class="btn sec" data-nav="${navAttr([+c.lat, +c.lon])}">Cómo llegar</button>` : ''}
-      <button type="button" class="btn ${dir ? 'sec' : ''}" data-cpeditar>${dir ? 'Editar ' + TT('consulta', 's', 'el', 'l', 'l') : 'Añadir la dirección'}</button>
-      <button type="button" class="btn sec" data-cpcambiar>Cambiar</button></div></div>`;
-})(tarjetaCentro);
-formCentro = (orig => function (box, i, c, aviso) {
-  if (c && (c.privada || esConsultaPrivada(c))) return formPrivada(box, i);
-  return orig.call(this, box, i, c, aviso);
-})(formCentro);
 
 
 
@@ -26837,13 +27622,6 @@ abrirFicha = (orig => async function (id, ...a) {
    - Ver pedido: bloque «Distribuidor» con «Preparar correo al distribuidor» (el correo de la persona, con las líneas y el código del
      cliente, como los de factura y pago) que deja apuntado que se ha enviado; si lo factura el distribuidor, no se ofrece «Emitir factura». */
 let DISTRIBUIDORES = null, PED_DIST = null;
-editorPedido = (orig => async function (pedido, ...a) {
-  const ped = pedido && pedido.pedido ? pedido.pedido : null;
-  PED_DIST = { on: !!(ped && ped.distribuidor_id), id: (ped && ped.distribuidor_id) || '', codigo: (ped && ped.distribuidor_codigo) || '',
-    factura: ped && ped.distribuidor_id ? !!ped.factura_distribuidor : true };
-  await cargarDistribuidores().catch(() => []);
-  return orig.call(this, pedido, ...a);
-})(editorPedido);
 new MutationObserver(() => { if ($('porig') && !$('pdist')) pintarBloqueDistribuidor(); }).observe($('dbody'), { childList: true, subtree: true });
 
 
@@ -26982,14 +27760,6 @@ $('ficha').addEventListener('close', () => { if (TAB === 'ciclo' && $('cfgcuerpo
 try { menuCiclo(); } catch (e) {}
 // v2.199.0: la cobertura por producto va en los planes Comercial, Empresa y A medida (decisión de Eric, como en la web)
 PLAN_SECCIONES.cobertura = ['comercial', 'empresa', 'medida'];
-async function productosPromocionados() {
-  if (!navigator.onLine) return PROMO_PRODS || [];   // v2.259.0: sin red, la última lista leída
-  try {
-    const { data, error } = await db.from('productos').select('id,nombre,estado').eq('promocionado', true).order('nombre');
-    if (!error) PROMO_PRODS = (data || []).filter(p => (p.estado || 'Activo') !== 'Descatalogado').map(p => ({ id: p.id, nombre: p.nombre }));
-  } catch (e) {}
-  return PROMO_PRODS || [];
-}
 editorProducto = (orig => function (p, ...r) {
   const x = orig.call(this, p, ...r);
   setTimeout(async () => {
@@ -27258,33 +28028,13 @@ irEnlace = (orig => function (e) {
   return orig.call(this, e);
 })(irEnlace);
 
-cargarAdmin = (orig => async function (...a) {
+async function cargarAdmin(...a) {
   if (TAB === 'usuarios' && PAGINAS.usuarios) { cargarPagina('usuarios'); return; }
   if (TAB === 'config' && ['usuarios', 'roles'].includes(CFG_KEY)) { cargarConfig(); return; }
   if (!$('v-admin')) return;
-  return orig.apply(this, a);
-})(cargarAdmin);
+  return cargarAdminBase.apply(this, a);
+}
 
-editarVisita = (orig => async function (v, ...r) {
-  const res = await orig.call(this, v, ...r);
-  try {
-    const ok = $('evok'), d = $('dbody'); if (!ok || !d || $('evmodo')) return res;
-    const { data: act } = await db.from('actividades').select('modo,productos').eq('id', v.id).maybeSingle();
-    const modo = (act && act.modo) || 'presencial', sel = (act && act.productos) || [];
-    let prods = [];
-    if (planIncluyeSeccion('cobertura')) { prods = await productosPromocionados(); const falta = sel.filter(id => !prods.some(p => p.id === id));
-      if (falta.length) { const { data: x } = await db.from('productos').select('id,nombre').in('id', falta); prods = prods.concat(x || []); } }
-    if (!$('evok') || $('evmodo')) return res;
-    EV_EXTRA = { id: v.id, modo, productos: sel.slice() };
-    const ancla = $('evf') ? $('evf').closest('.g2') : null; if (!ancla) return res;
-    ancla.insertAdjacentHTML('afterend', `<label>Cómo fue</label>
-      <div class="segs" id="evmodo" role="group" aria-label="Cómo fue">${MODOS_VISITA.map(([k, t]) => `<button type="button" data-evmodo="${k}" class="${k === modo ? 'on' : ''}" aria-pressed="${k === modo}">${t}</button>`).join('')}</div>
-      ${prods.length ? `<label>Productos presentados</label><div class="opciones" id="evprods">${prods.map(p => `<button type="button" class="opt" data-evprod="${p.id}" aria-pressed="${sel.includes(p.id)}"><span class="mk"></span>${esc(p.nombre)}</button>`).join('')}</div>` : ''}`);
-    d.querySelectorAll('[data-evmodo]').forEach(b => b.onclick = () => { EV_EXTRA.modo = b.dataset.evmodo; d.querySelectorAll('[data-evmodo]').forEach(x => { x.classList.toggle('on', x === b); x.setAttribute('aria-pressed', String(x === b)); }); });
-    d.querySelectorAll('[data-evprod]').forEach(b => b.onclick = () => { b.setAttribute('aria-pressed', String(b.getAttribute('aria-pressed') !== 'true')); EV_EXTRA.productos = [...d.querySelectorAll('[data-evprod][aria-pressed=true]')].map(x => x.dataset.evprod); });
-  } catch (e) {}
-  return res;
-})(editarVisita);
 db.rpc = (orig => function (fn, args, ...r) {
   if (fn === 'actualizar_actividad' && EV_EXTRA && args && args.p && args.p.id === EV_EXTRA.id) {
     args = Object.assign({}, args, { p: Object.assign({}, args.p, { modo: EV_EXTRA.modo }, $('evprods') ? { productos: EV_EXTRA.productos } : {}) });
@@ -27374,21 +28124,6 @@ cargarVentas = (orig => async function (...a) {
   }
   return r;
 })(cargarVentas);
-usuarioComisionInfo = (orig => async function (...a) {
-  const r = await orig.apply(this, a);
-  const s = $('uverc'), info = $('ucominfo');
-  if (s && info && !$('uvercw')) {
-    const w = s.parentElement; w.id = 'uvercw';
-    const l = w.querySelector('label'); if (l) l.classList.remove('sm');
-    w.insertAdjacentHTML('beforeend', '<div class="sm">Lo que ve en Inicio de su comisión: nada, solo sus unidades o también el importe.</div>');
-    info.insertAdjacentElement('afterend', w);
-  }
-  return r;
-})(usuarioComisionInfo);
-kpiPermitido = (orig => function (c) {
-  if (c && c.id === 'dups') return puedeDuplicados() && orig(Object.assign({}, c, { admin: false }));
-  return orig(c);
-})(kpiPermitido);
 cargarSeguimiento = (orig => async function (...a) {
   const r = await orig.apply(this, a);
   const acts = document.querySelector('#v-seguimiento .saludo .acts');
@@ -27611,7 +28346,7 @@ pintarNotif = function () {
   ['nsil', 'nsild', 'nsilh', 'nsilf'].forEach(id => { if ($(id)) $(id).onchange = guardarSil; });
 };
 
-function pulirCfg() {
+function pulirCfgBase() {
   const c = $('cfgcuerpo'); if (!c || TAB !== 'config' || !CFG_PULIR.includes(CFG_KEY)) return;
   const cab = document.querySelector('.cfucab'), titulo = impNorm((cab && cab.querySelector('h2') || {}).textContent || '');
   // Tarjetas que solo presentan el apartado (título y texto): el texto pasa a la cabecera
@@ -27685,10 +28420,10 @@ new MutationObserver(() => { if (TAB === 'config') requestAnimationFrame(pulirCf
    - pulirCfg se aplica ya a todos los apartados: fuera las tarjetas que solo presentan y los títulos repetidos.
    - Usuarios: las cifras (plan, cada rol, sin actividad, con acceso al portal) en una línea; pulsar un rol filtra la lista por él.
    - Las casillas sueltas (Cartera exclusiva, Emitir la factura al validar…) sin el recuadro de más. */
-pulirCfg = (orig => function () {
+function pulirCfg() {
   if (TAB !== 'config' || !CFG_KEY) return;
   if (!CFG_PULIR.includes(CFG_KEY)) CFG_PULIR.push(CFG_KEY);
-  orig();
+  pulirCfgBase();
   const c = $('cfgcuerpo'); if (!c) return;
   if (CFG_KEY === 'usuarios') {
     const k = c.querySelector('.cfgpanel > .kpis.vtot:not([data-pul])');
@@ -27712,7 +28447,7 @@ pulirCfg = (orig => function () {
       }
     }
   }
-})(pulirCfg);
+}
 
 /* v2.218.0 · Roles y Series (lo que quedaba del rediseño de Configuración).
    - «Filtros y columnas» no se engancha a Configuración (salía suelto en la cabecera al abrir Series).
@@ -27735,48 +28470,6 @@ const ICU = {
 
 // Pastillas con las cifras (de #agmet, que se sigue pintando igual)
 
-// La cinta de 14 días
-async function agCinta() {
-  const v = $('v-agenda'); if (!v || !agConCinta() || !$('agcuerpo')) return;
-  const hoy = hoyISO();
-  if (!CINTA_INI) CINTA_INI = lunesCinta(AG_FECHA || hoy);
-  const ini = CINTA_INI, fin = diasMas(ini, 13);
-  const { data } = await rpcCache('agenda_rango', { p_desde: ini, p_hasta: fin, p_usuario: agUid() }, 'agenda-cinta-' + agUid() + '-' + ini);
-  if (!agConCinta() || CINTA_INI !== ini || !$('agcuerpo')) return;
-  const por = {};
-  (data || []).filter(c => c.usuario_id === agUid() && !citaAnulada(c.estado)).forEach(c => { (por[c.fecha] = por[c.fecha] || []).push(c); });
-  const dn = ['D', 'L', 'M', 'X', 'J', 'V', 'S'];
-  const semTxt = l => {
-    const dd = Math.round((new Date(l + 'T12:00:00') - new Date(lunesCinta(hoy) + 'T12:00:00')) / 864e5 / 7);
-    if (dd === 0) return 'Esta semana'; if (dd === 1) return 'La semana que viene'; if (dd === -1) return 'La semana pasada';
-    const d0 = new Date(l + 'T12:00:00'); return 'Semana del ' + d0.getDate() + ' de ' + d0.toLocaleDateString('es-ES', { month: 'long' });
-  };
-  const dia = f => {
-    const l = por[f] || [], d = new Date(f + 'T12:00:00');
-    const tipo = c => !CITA_ABIERTA.includes(c.estado) ? 'ch' : f < hoy ? 'cx' : 'cp';
-    const pts = l.slice(0, 6).map(c => `<i class="${tipo(c)}"></i>`).join('') + (l.length > 6 ? `<em>+${l.length - 6}</em>` : '');
-    const n = `${l.length} ${l.length === 1 ? 'cita' : 'citas'}`;
-    return `<button type="button" class="cdia ${f === hoy ? 'hoy' : ''} ${f === AG_FECHA ? 'sel' : ''} ${[0, 6].includes(d.getDay()) ? 'finde' : ''}" data-cf="${f}" aria-label="${esc(fechaLarga(d))}: ${n}" title="${n}">
-      <span class="dn">${dn[d.getDay()]}</span><span class="dd">${d.getDate()}</span><span class="cpts">${pts || '<b></b>'}</span></button>`;
-  };
-  const mes = new Date(diasMas(ini, 3) + 'T12:00:00').toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
-  const html = `<div class="cinta" id="agcinta" data-ini="${ini}"><div class="ccab">
-      <div class="cnav"><button type="button" class="kmv" data-cm="-7" aria-label="Semana anterior" title="Semana anterior">‹</button><button type="button" id="cmesb" class="cmesb" aria-expanded="false" title="Ver el mes">${esc(mes.charAt(0).toUpperCase() + mes.slice(1))} <span aria-hidden="true">▾</span></button><button type="button" class="kmv" data-cm="7" aria-label="Semana siguiente" title="Semana siguiente">›</button>${ini !== lunesCinta(hoy) ? '<button type="button" class="btn sec chico" id="choy">Hoy</button>' : ''}</div>
-      <div class="cley" aria-hidden="true"><span><i class="ch"></i>Hecha</span><span><i class="cp"></i>Por hacer</span><span><i class="cx"></i>Sin cerrar</span></div>
-      <button type="button" class="btn sec chico" id="cplan" title="Planificar la semana">${SVA(ICU.plan)}<span>Planificar la semana</span></button></div>
-    <div class="csems">${[0, 7].map(o => `<div class="csem"><span class="csemt">${semTxt(diasMas(ini, o))}</span><div class="c7">${Array.from({ length: 7 }, (_, k) => dia(diasMas(ini, o + k))).join('')}</div></div>`).join('')}</div></div>`;
-  const vieja = $('agcinta');
-  if (vieja) vieja.outerHTML = html; else $('agcuerpo').insertAdjacentHTML('beforebegin', html);
-  const c = $('agcinta');
-  c.querySelectorAll('[data-cf]').forEach(b => b.onclick = () => { cerrarMesCinta(); c.querySelectorAll('.cdia').forEach(x => x.classList.toggle('sel', x === b)); agVerDia(b.dataset.cf); });
-  c.querySelectorAll('[data-cm]').forEach(b => b.onclick = () => { CINTA_INI = diasMas(CINTA_INI, +b.dataset.cm); agCinta(); });
-  if ($('choy')) $('choy').onclick = () => { CINTA_INI = lunesCinta(hoy); agCinta(); agVerDia(hoy); };
-  $('cmesb').onclick = e => { e.stopPropagation(); const m = $('agmes'); if (!m) return; const ab = !m.classList.contains('pop'); m.classList.toggle('pop', ab); $('cmesb').setAttribute('aria-expanded', String(ab));
-    // El mes se abre bajo su botón (en el móvil, centrado)
-    if (ab) { const r = $('cmesb').getBoundingClientRect(), w = Math.min(380, innerWidth - 32); m.style.top = Math.round(r.bottom + 8) + 'px'; m.style.left = Math.round(Math.max(16, Math.min(r.left, innerWidth - w - 16))) + 'px'; m.style.bottom = 'auto'; m.style.right = 'auto'; } };
-  // En el móvil, la cinta se abre en la semana del día elegido
-  const sems = c.querySelector('.csems'); if (sems && AG_FECHA >= diasMas(ini, 7)) sems.scrollLeft = sems.scrollWidth;
-}
 document.addEventListener('click', e => { const m = $('agmes'); if (m && m.classList.contains('pop') && !e.target.closest('#agmes, #cmesb, .agmpop, .agpop')) cerrarMesCinta(); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrarMesCinta(); });
 
@@ -27831,13 +28524,6 @@ rpcCache = (orig => async function (fn, params, clave) {
   return r;
 })(rpcCache);
 
-function kvContar(raiz) {
-  const ns = [...raiz.querySelectorAll('[data-kvn]')];
-  if (matchMedia('(prefers-reduced-motion: reduce)').matches) { ns.forEach(n => n.textContent = num(+n.dataset.kvn)); return; }
-  const t0 = performance.now(), dur = 900;
-  const paso = t => { const f = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - f, 3); ns.forEach(n => { if (n.isConnected) n.textContent = num(Math.round(+n.dataset.kvn * e)); }); if (f < 1) requestAnimationFrame(paso); };
-  requestAnimationFrame(paso);
-}
 (() => {
   const ob = new MutationObserver(() => { if ($('kpis')) kpisVivos(); });
   const enganchar = () => { const c = $('kpis'); if (c && !c.__kv) { c.__kv = true; ob.observe(c, { childList: true }); kpisVivos(); } };
@@ -27859,57 +28545,6 @@ cargarManual = (orig => async function (...a) {
 })(cargarManual);
 
 
-/* v2.225.0 · Clientes sin duplicados (aviso de Eric: no se puede dar de alta otra vez a un cliente con el mismo NIF/CIF, correo o móvil).
-   - La base no lo deja (disparador contactos_sin_duplicados, SQL 134); aquí se avisa mientras se escribe: clientes_coincidencias con lo que
-     hay en NIF, correo, móvil y teléfono (sin contar el propio cliente al editarlo).
-   - Aviso #kodup encima de los botones: «Este cliente ya existe · mismo móvil», con su nombre y datos y un botón:
-     «Usar este cliente» si se viene de un pedido o de una nueva venta (carga sus datos de un clic), «Ver su ficha» en el resto.
-     Si lo lleva otra persona y no se puede ver, solo se dice que existe. Mientras haya coincidencia, Crear queda desactivado. */
-editorContacto = (orig => function (c, alGuardar, op) {
-  const r = orig.apply(this, arguments);
-  c = c || {};
-  if (!$('konif') || !$('kook')) return r;
-  const acts = $('kook').closest('.acts');
-  if (acts && !$('kodup')) acts.insertAdjacentHTML('beforebegin', '<div id="kodup" class="kodup hide" role="alert" aria-live="polite"></div>');
-  const ids = ['konif', 'komail', 'komov', 'kotel'];
-  const leer = () => ({ nif: $('konif').value, email: $('komail').value, movil: $('komov').value, telefono: $('kotel').value, excluir: c.id || null });
-  const hayDato = d => d.nif.replace(/[^A-Za-z0-9]/g, '').length >= 8 || /.@.+\../.test(d.email) || [d.movil, d.telefono].some(x => x.replace(/\D/g, '').length >= 9);
-  const usar = !c.id && !!alGuardar && TAB !== 'pacientes';
-  let t = null, turno = 0;
-  const pintar = x => {
-    const k = $('kodup'); if (!k) return;
-    ids.forEach(id => $(id) && $(id).classList.remove('campodup'));
-    [$('kook'), $('kopedido')].filter(Boolean).forEach(b => { b.disabled = !!x; });
-    if (!x) { k.classList.add('hide'); k.innerHTML = ''; return; }
-    const marca = { NIF: ['konif'], correo: ['komail'] }[x.campo] || ['komov', 'kotel'].filter(id => $(id).value.replace(/\D/g, '').length >= 9);
-    marca.forEach(id => $(id) && $(id).classList.add('campodup'));
-    k.innerHTML = x.visible
-      ? `<div class="kodupt"><b>${TT('paciente', 's', 'este', 'C', 'l')} ya existe</b><span>mismo ${esc(x.campo)}</span></div>
-         <div class="kodupc"><b>${esc(x.nombre || '')}</b><span class="sm">${esc([x.nif, x.movil || x.telefono, x.email, x.municipio].filter(Boolean).join(' · '))}</span></div>
-         <button type="button" class="btn" id="kodupusar">${usar ? `Usar ${TT('paciente', 's', 'este', 'l', 'l')}` : 'Ver su ficha'}</button>`
-      : `<div class="kodupt"><b>Ya existe ${TT('paciente', 's', 'un', 'l', 'l')} con ese ${esc(x.campo)}</b></div>
-         <div class="sm">Lo lleva otra persona del equipo: pide que te lo asignen en lugar de crearlo de nuevo.</div>`;
-    k.classList.remove('hide');
-    if ($('kodupusar')) $('kodupusar').onclick = () => {
-      $('dlg2').close();
-      const res = Object.assign({}, x, x.cuenta_id ? { medico: x.cuenta, medico_codigo: x.cuenta_codigo } : {});
-      if (usar) alGuardar(res); else fichaPaciente(x.id);
-    };
-  };
-  const comprobar = () => {
-    clearTimeout(t);
-    t = setTimeout(async () => {
-      const d = leer(), mio = ++turno;
-      if (!hayDato(d)) { pintar(null); return; }
-      const { data } = await db.rpc('clientes_coincidencias', { p: d });
-      if (mio !== turno || !$('kodup')) return;
-      pintar(Array.isArray(data) && data.length ? data[0] : null);
-    }, 350);
-  };
-  ids.forEach(id => $(id) && $(id).addEventListener('input', comprobar));
-  if (!c.id && hayDato(leer())) comprobar();
-  return r;
-})(editorContacto);
 
 /* v2.226.0 · Arreglos de la lista de Eric (9/10/2026).
    1. Una sola ayuda por pantalla: fuera el «?» del manual (.manq); cada título lleva su «i» (las páginas nuevas también: Ciclo, Intervenciones,
@@ -27946,31 +28581,6 @@ window.addEventListener('click', e => {
   cargarAgenda();
 }, true);
 
-editarTarea = (orig => function (t, fecha) {
-  if (!t || !t.id || !t.hecha) return orig.apply(this, arguments);
-  $('dbody').innerHTML = `
-    <div class="fh"><div><h2>Tarea hecha</h2><div class="sm">${esc(fechaLarga(new Date(t.fecha + 'T00:00:00')))}${t.hora ? ' · ' + esc(String(t.hora).slice(0, 5)) : ''}</div></div>
-      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-    <div class="tarlec"><span class="tarok">Hecha</span><b>${esc(t.titulo || '')}</b>${t.nota ? `<p>${esc(t.nota)}</p>` : ''}</div>
-    <div class="acts" style="justify-content:space-between">
-      <button type="button" class="btn sec peligro" id="taborrar">Borrar</button>
-      <span style="display:flex;gap:8px"><button type="button" class="btn sec" data-cerrar>Cerrar</button><button type="button" class="btn" id="tareabrir">Volver a pendiente</button></span></div>`;
-  $('tareabrir').onclick = async ev => {
-    ev.target.disabled = true;
-    const { error } = await db.from('tareas').update({ hecha: false, modificado_en: new Date().toISOString() }).eq('id', t.id);
-    ev.target.disabled = false;
-    if (error) { toast('No se ha podido cambiar', true); return; }
-    TAREAS_DIA = null; pintarTuDia(); orig.call(this, Object.assign({}, t, { hecha: false }), fecha);
-  };
-  $('taborrar').onclick = async () => {
-    if (!await preguntar('La tarea desaparece.', { titulo: '¿Borrar la tarea?', ok: 'Borrar', peligro: true })) return;
-    const { error } = await db.from('tareas').delete().eq('id', t.id);
-    if (error) { toast('No se ha podido borrar', true); return; }
-    $('dlg').close(); toast('Tarea borrada'); TAREAS_DIA = null; pintarTuDia();
-  };
-  $('dlg').classList.add('pequena');
-  $('dlg').showModal();
-})(editarTarea);
 
 pintarSinAtribuir = async function () { const c = $('cardsinatr'); if (c) c.remove(); };
 
@@ -28003,8 +28613,8 @@ rpcCache = (orig => function (fn, params, clave, ...r) {
   return orig.call(this, fn, params, o && clave ? clave + '|orden:' + o.k + o.dir : clave, ...r);
 })(rpcCache);
 // Profesionales: su cabecera es propia y el orden va en F.orden (buscar_cuentas)
-cabeceraTabla = (orig => function (...a) {
-  const r = orig.apply(this, a);
+function cabeceraTabla(...a) {
+  const r = cabeceraTablaBase.apply(this, a);
   const cfg = colsConfig().filter(c => c.on), cab = $('thead'); if (!cab) return r;
   const [k, dir] = String(F.orden || '').split(':');
   [...cab.querySelectorAll('.th')].forEach((th, i) => {
@@ -28015,7 +28625,7 @@ cabeceraTabla = (orig => function (...a) {
     th.classList.toggle('ord-desc', actual && dir === 'desc');
   });
   return r;
-})(cabeceraTabla);
+}
 document.addEventListener('click', e => {
   const th = e.target.closest('#thead .th[data-ordk]'); if (!th || e.target.closest('.res')) return;
   const k = ORD_DIR[th.dataset.ordk], [ak, ad] = String(F.orden || '').split(':');
@@ -28088,14 +28698,6 @@ htPreparar = (orig => function (sec, ...r) {
 })(htPreparar);
 
 const MOS_MES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'], MOS_DS = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
-function mosContar(box) {
-  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  const els = [...box.querySelectorAll('[data-mcnt], [data-meur]')], t0 = performance.now();
-  const paso = t => { const p = Math.min(1, (t - t0) / 900), e = 1 - Math.pow(1 - p, 3);
-    els.forEach(el => { if (el.dataset.meur != null) el.textContent = mosEur(+el.dataset.meur * e); else el.textContent = num(Math.round(+el.dataset.mcnt * e)); });
-    if (p < 1) requestAnimationFrame(paso); };
-  requestAnimationFrame(paso);
-}
 cargarInicio = (orig => function (...a) {
   const r = orig.apply(this, a);
   Promise.resolve(r).then(() => pintarMosaico()).catch(() => {});
@@ -28114,36 +28716,8 @@ async function agPintarSemanaExp() {
   const p = cont.querySelector('#semplan'); if (p) p.textContent = 'Repartir la semana';
   const head = cont.querySelector('.semhead'); if (head) head.insertAdjacentHTML('afterbegin', '<span class="sm">Arrastra una cita a otro día para moverla · «⋯» en un día para bloquearlo o añadir una cita</span>');
 }
-// Columna derecha: tu semana
-async function agSemanaLateral() {
-  if (TAB !== 'agenda' || AG_MODO !== 'dia') return;
-  const v = $('v-agenda'); if (!v || !v.classList.contains('agcinta')) return;
-  let box = $('agsemlat');
-  if (!box) { $('agcuerpo').insertAdjacentHTML('afterend', '<div class="card" id="agsemlat"></div>'); box = $('agsemlat'); }
-  const desde = lunesDe(AG_FECHA || hoyISO()), hasta = isoMas(desde, 6);
-  const [r, bloq] = await Promise.all([rpcCache('agenda_rango', { p_desde: desde, p_hasta: hasta, p_usuario: agUsuarioFiltro() }, 'agenda-' + desde), agBloqueos(desde, 7)]);
-  if (!$('agsemlat')) return;
-  const por = {}; ((r && r.data) || []).filter(c => !citaAnulada(c.estado)).forEach(c => (por[c.fecha] = por[c.fecha] || []).push(c));
-  const DS = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
-  box.innerHTML = `<h2>Tu semana</h2><p class="sm agslnota">«⋯» en un día para bloquearlo (festivo, vacaciones, formación) o añadir una cita.</p>
-    <div class="agsl">${[...Array(7)].map((_, i) => { const f = isoMas(desde, i), d = new Date(f + 'T12:00:00'), l = (por[f] || []).sort((a, b) => String(a.hora || '').localeCompare(String(b.hora || '')));
-      return `<div class="agsld ${f === hoyISO() ? 'hoy' : ''} ${f === AG_FECHA ? 'sel' : ''} ${bloq[f] ? 'bloq' : ''}" data-agsl="${f}" role="button" tabindex="0" aria-label="Ver el ${fechaCorta(f)}">
-        <span class="agslf">${d.getDate()}<small>${DS[d.getDay()]}</small></span>
-        <span class="agslc">${bloq[f] ? `<span class="agslb">${esc(bloq[f])}</span>` : ''}${l.slice(0, 3).map(c => `<span class="agslx"><b>${esc(String(c.hora || '').slice(0, 5))}</b>${esc(c.medico || c.nombre || '')}</span>`).join('')}${l.length > 3 ? `<span class="agslv">y ${l.length - 3} más</span>` : ''}${!l.length && !bloq[f] ? '<span class="agslv">Libre</span>' : ''}</span>
-        ${f >= hoyISO() ? `<button type="button" class="agslm" data-agslm="${f}" aria-label="Opciones del ${fechaCorta(f)}">⋯</button>` : '<span></span>'}</div>`; }).join('')}</div>
-    ${[...Array(7)].some((_, i) => isoMas(desde, i) >= hoyISO()) ? '<div class="acts agslacts"><button type="button" class="btn sec" id="agslrep">Repartir la semana</button></div>' : ''}`;
-  box.querySelectorAll('[data-agslm]').forEach(b => b.onclick = ev => { ev.stopPropagation(); menuDiaSemana(b, b.dataset.agslm, !!bloq[b.dataset.agslm]); });
-  box.querySelectorAll('[data-agsl]').forEach(d => { const ver = () => agVerDia(d.dataset.agsl); d.onclick = ver; d.onkeydown = e => { if (e.key === 'Enter') ver(); }; });
-  if ($('agslrep')) $('agslrep').onclick = agRepartirSemana;
-}
 // Sugerencias dentro de tu día y bandejas
 
-function pkContar(els, fmt) {
-  if (!pkMovimiento()) { els.forEach(el => el.textContent = fmt(+el.dataset.v, el)); return; }
-  const t0 = performance.now();
-  const paso = t => { const p = Math.min(1, (t - t0) / 900), e = 1 - Math.pow(1 - p, 3); els.forEach(el => { if (el.isConnected) el.textContent = fmt(+el.dataset.v * e, el); }); if (p < 1) requestAnimationFrame(paso); };
-  requestAnimationFrame(paso);
-}
 document.addEventListener('change', e => { if (e.target && e.target.id === 'popf') pkMarcar(); });
 pintarOperativa = async function () {
   let c = $('operativa');
@@ -28376,64 +28950,8 @@ notifPintar = function () {
 
 let RM_LIB = null, RM_MAPA = null, RM_ANIM = null;
 
-// El día: paradas en su orden, la salida (si hay) y los tramos de viaje y de visita
-function rmPlan(citas, fecha, tramos) {
-  const vivas = citas.filter(c => xyCita(c) && (CITA_ABIERTA.includes(c.estado) || citaHecha(c.estado)));
-  const r = estimarDia(vivas, fecha), dura = PLANCFG().visita || 15, aparcar = +PLANCFG().parada || 0, sal = salidaUsuario();
-  const casa = sal && sal.lat != null && sal.lon != null ? [+sal.lat, +sal.lon] : null;
-  const paradas = vivas.map((c, i) => ({ c, i, xy: xyCita(c), ini: r.est[c.id] != null ? r.est[c.id] : minHora(c.hora) })).filter(p => p.ini != null);
-  const puntos = (casa ? [casa] : []).concat(paradas.map(p => p.xy)).concat(casa && paradas.length ? [casa] : []);
-  const segs = []; let pos = casa, t = null, k = 0;
-  paradas.forEach((p, j) => {
-    const mismo = pos && pos[0] === p.xy[0] && pos[1] === p.xy[1];
-    let ini = p.ini;
-    if (pos && !mismo) {
-      const tr = tramos && tramos[k], v = tr ? tr.min + aparcar : minutosEntre(pos, p.xy);
-      const sale = t != null ? t : ini - v;
-      if (tramos) ini = Math.max(sale + v, minHora(p.c.hora) || 0);   // con tiempos reales, la hora sale del viaje (las fijas se respetan)
-      segs.push({ tipo: 'viaje', a: sale, b: sale + v, de: pos, hasta: p.xy, k, km: tr ? tr.km : null });
-    }
-    if (pos && (casa || j > 0)) k++;
-    p.ini = ini; segs.push({ tipo: 'vis', a: ini, b: ini + dura, p }); pos = p.xy; t = ini + dura;
-  });
-  if (casa && pos && t != null) { const tr = tramos && tramos[k], v = tr ? tr.min : minutosEntre(pos, casa); segs.push({ tipo: 'viaje', a: t, b: t + v, de: pos, hasta: casa, k, km: tr ? tr.km : null }); t += v; }
-  return { paradas, puntos, segs, casa, ini: segs.length ? segs[0].a : 9 * 60, fin: t || 18 * 60, tope: isFinite(r.tope) ? r.tope : null };
-}
 
-async function rutasMapa() {
-  if (TAB !== 'rutas' || !$('v-rutas')) return;
-  const ref = $('renc') || $('v-rutas').querySelector('.saludo'); if (!ref) return;
-  const fecha = hoyISO(), citas = await citasDelDia(fecha);
-  if (TAB !== 'rutas' || !ref.isConnected) return;
-  let caja = $('rmapa');
-  const P0 = rmPlan(citas, fecha, null);
-  if (!P0.paradas.length) { if (caja) caja.remove(); return; }
-  if (!caja) { ref.insertAdjacentHTML('afterend', '<section class="card rmapa" id="rmapa" aria-label="Tu día en el mapa"></section>'); caja = $('rmapa'); }
-  caja.innerHTML = `<div class="rmcab"><div><h2>Tu día en el mapa</h2><span class="sm" id="rmsub">Buscando la ruta por las calles…</span></div>
-      <button type="button" class="btn" id="rmplay">${RM_SV('<path d="M6 4l14 8-14 8z"/>')}<span>Ver el día</span></button></div>
-    <div class="rmwrap"><div class="rmc" id="rmc"></div><div class="rmnav" id="rmnav"></div></div>
-    <div class="rmjorn"><div class="rmpista" id="rmpista"></div><div class="rmhoras" id="rmhoras"></div>
-      <input type="range" class="rmscrub" id="rmscrub" step="5" aria-label="Hora del día"><div class="rmtx sm" id="rmtx"></div></div>`;
-  let ml;
-  try { ml = await rmLib(); } catch (e) { $('rmc').innerHTML = '<div class="vacio">No se ha podido cargar el mapa. Comprueba la conexión.</div>'; return; }
-  if (!$('rmc')) return;
-  const salida = P0.segs.length ? `${fecha}T${hm(Math.max(0, P0.segs[0].a))}:00` : null;
-  const lineaRecta = P0.puntos.length > 1 && P0.puntos.length <= 30 ? null : 'datos';
-  const res = lineaRecta ? { ok: false, motivo: lineaRecta } : await rmRuta(P0.puntos, salida);
-  if (!$('rmc')) return;
-  const P = res.ok && res.tramos && res.tramos.length === P0.puntos.length - 1 ? rmPlan(citas, fecha, res.tramos) : P0;
-  const real = P !== P0;
-  $('rmsub').innerHTML = real
-    ? `Por las calles, con tráfico · <b>${String(res.km).replace('.', ',')} km</b> · <b>${rmDur(res.min)}</b> al volante${res.retraso_min ? ` (${res.retraso_min} min por el tráfico)` : ''} · fin hacia las <b>${hm(P.fin)}</b> <span class="rmfuente">Ruta: © TomTom</span>`
-    : `${esc(RM_MOTIVO[res.motivo] || RM_MOTIVO.servicio)}: tiempos aproximados en línea recta · fin hacia las <b>${hm(P.fin)}</b>`;
-  pintarRutasMapa(ml, P, real ? res.tramos : null);
-}
 
-cargarRutas = (orig => async function (...a) {
-  const r = await orig.apply(this, a);
-  rutasMapa();
-  return r;
-})(cargarRutas);
 
 /* v2.234.0 · Rutas paso a paso (Eric eligió la B de https://claude.ai/artifact/1Ggx6ScuLR1Ad1kfmbQ6t1; SQL 139).
    - Fuera las propuestas automáticas. «Mis rutas» en tarjetas: recorrido dibujado, cuándo se hace, próxima fecha, a cuántos ves,
@@ -28489,14 +29007,11 @@ setTimeout(() => { if (typeof PERFIL !== 'undefined' && PERFIL && (typeof verAre
 
 
 
-// Con la ruta abierta, Rutas solo pinta el editor (sin la jornada en curso ni el mapa de hoy); el menú «Rutas» vuelve a Mis rutas
-pintarRutaEnCurso = (orig => function (...a) { if (RN) return; return orig.apply(this, a); })(pintarRutaEnCurso);
-rutasMapa = (orig => async function (...a) { if (RN) return; const r = await orig.apply(this, a); const m = $('rmapa'), g = $('rngrid'); if (m && g && g.nextElementSibling !== m) { g.after(m); if (RM_MAPA) setTimeout(() => { try { RM_MAPA.resize(); } catch (e) {} }, 50); } return r; })(rutasMapa);
 cargarRutasPaso2 = (orig => function (...a) { if (RN) return; return orig.apply(this, a); })(cargarRutasPaso2);
 document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('nav.main [data-t="rutas"], #bnav [data-t="rutas"], .bmasgrid [data-bm="rutas"]'); if (b && RN) RN = null; }, true);
 
 
-aplicarEtiqueta = (orig => function (...a) { const r = orig.apply(this, a); try { aplicarNombresMenu(); } catch (e) {} return r; })(aplicarEtiqueta);
+function aplicarEtiqueta(...a) { const r = aplicarEtiquetaBase.apply(this, a); try { aplicarNombresMenu(); } catch (e) {} return r; }
 ir = (orig => function (...a) { const r = orig.apply(this, a); setTimeout(() => { try { aplicarNombresMenu(); } catch (e) {} }, 0); Promise.resolve(r).then(() => { try { aplicarNombresMenu(); } catch (e) {} }); return r; })(ir);
 // Cuando el menú se vuelve a montar (al arrancar, al cambiar de tamaño…), se vuelven a poner los nombres
 if (typeof montarMenuLateral === 'function') montarMenuLateral = (orig => function (...a) { const r = orig.apply(this, a); try { aplicarNombresMenu(); } catch (e) {} return r; })(montarMenuLateral);
@@ -28518,19 +29033,8 @@ CFG_CLAVES['o.textos'] = 'textos nombres vocabulario menú menu estados resultad
 
 
 
-// Directorio: cada fila lleva su tarjeta (oculta en el ordenador) con el nombre, centro · municipio y el estado
-filaTabla = (orig => function (m) {
-  const h = orig(m), i = h.lastIndexOf('</button>'); if (i < 0) return h;
-  const l2 = [m.centro_nombre, m.municipio].filter(Boolean).join(' · ');
-  return h.slice(0, i) + `<span class="plcard"><b>${m.urgente ? '<i class="plurg" aria-label="Urgente"></i>' : ''}${esc(m.nombre || '')}</b><span class="plc2">${esc(l2)}</span><span class="plc3">${celda(m, 'estado_comercial')}</span></span>` + h.slice(i);
-})(filaTabla);
 
 
-function plKpisHtml(tab) {
-  const c = PL[tab], k = PL_KPI[tab];
-  if (!k || !k.datos) return Array(c.nKpis || 4).fill('').map(() => `<div class="plk plcarga"><span class="plkt"><i class="plsk" style="width:46%"></i></span><b><i class="plsk plskv"></i></b><small><i class="plsk" style="width:70%"></i></small></div>`).join('');
-  return k.datos.map(d => `<button type="button" class="plk ${c.kpiOn(d.k) ? 'on' : ''}" data-plk="${d.k}"><span class="plkt">${esc(d.t)}</span><b data-pln="${d.n}">${num(d.n)}</b><small>${esc(d.s)}</small></button>`).join('');
-}
 function plCargarKpis(tab) {
   const c = PL[tab], k = PL_KPI[tab], ep = typeof RC_EPOCA !== 'undefined' ? RC_EPOCA : 0;
   if (k && (k.pend || (k.datos && k.epoca === ep && Date.now() - k.t < 60000))) return;
@@ -28755,7 +29259,6 @@ plToolHtml = function (tab) {
     ${c.mapa() ? `<button type="button" class="plbtn chico plic plmapa" title="Ver en el mapa" aria-label="Ver en el mapa">${plIco('map')}</button>` : ''}
     <span class="plcnt"><i class="plsk" style="width:90px"></i></span>`;
 };
-plKpisHtml = (orig => function (tab) { return plCfg(tab) && plCfg(tab).kpis ? orig(tab) : ''; })(plKpisHtml);
 plCargarKpis = (orig => function (tab) { const c = plCfg(tab); if (c && c.kpis) return orig(tab); })(plCargarKpis);
 ['ventas', 'facturacion', 'productos'].forEach(plObservar);
 // Revelado de las pantallas con secciones: la primera llegada, de una vez (como siempre), con la plantilla ya puesta
@@ -28841,20 +29344,6 @@ plSync = (orig => function (tab) {
 })(plSync);
 
 
-mosContar = (orig => function (box) {
-  const els = [...box.querySelectorAll('[data-mcnt], [data-meur]')];
-  if (plYaContado('mos', els.map(e => e.dataset.mcnt != null ? e.dataset.mcnt : e.dataset.meur))) return;
-  return orig(box);
-})(mosContar);
-kvContar = (orig => function (raiz) {
-  const ns = [...raiz.querySelectorAll('[data-kvn]')];
-  if (plYaContado('kv', ns.map(n => n.dataset.kvn))) { ns.forEach(n => n.textContent = num(+n.dataset.kvn)); return; }
-  return orig(raiz);
-})(kvContar);
-pkContar = (orig => function (els, fmt) {
-  if (plYaContado('pk' + els.length, els.map(e => e.dataset.v))) { els.forEach(el => el.textContent = fmt(+el.dataset.v, el)); return; }
-  return orig(els, fmt);
-})(pkContar);
 
 plSync = (orig => function (tab) {
   if (tab === 'ventas') { const sec = $('v-ventas'), k = PL_SECC.ventas(); if (sec && k) plAjenos(sec, k); }
@@ -28862,8 +29351,6 @@ plSync = (orig => function (tab) {
 })(plSync);
 
 
-// Mientras se abre una ficha, no se encaja en la página
-areaEncaje = (orig => function (...a) { return FX_FICHA ? null : orig.apply(this, a); })(areaEncaje);
 (() => {
   const d = $('dlg'); if (!d) return;
   const sm = d.showModal;
@@ -28903,12 +29390,12 @@ moverCitaLocal = (orig => async function (orden, id, acc) {
   if (b) b.focus({ preventScroll: true });
   return r;
 })(moverCitaLocal);
-repintarDiaSuave = (orig => async function (id, data) {
+async function repintarDiaSuave(id, data) {
   const antes = tdPosiciones();
-  const r = await orig.call(this, id, data);
+  const r = await repintarDiaSuaveBase.call(this, id, data);
   tdAnimar(antes, id, 320);
   return r;
-})(repintarDiaSuave);
+}
 
 
 
@@ -28944,23 +29431,9 @@ document.addEventListener('click', e => {
   if (b.dataset.agtv) nuevaCita(b.dataset.agti, AG_FECHA); else abrirFicha(b.dataset.agti);
 }, true);
 
-function agBandejas() {
-  const head = document.querySelector('#agcuerpo .tdhead'); if (!head) return;
-  const old = $('agband'); if (old) old.remove();
-  const nToca = agTocaLista().length, nPend = (AG_PEND || []).length;
-  if (!nToca && !nPend) return;
-  head.insertAdjacentHTML('afterend', `<div class="agband" id="agband">${nToca ? `<button type="button" data-agbd="toca">${svgIco(ICON_NOM.target)} Les toca ${TT('visita', 's', '', 'l', 'l')} <b>${nToca}</b></button>` : ''}${nPend ? `<button type="button" class="urg" data-agbd="pend">${svgIco(ICON_NOM['circle-alert'] || ICON_NOM.info)} Pendientes de días anteriores <b>${nPend}</b></button>` : ''}</div>`);
-  $('agband').querySelectorAll('[data-agbd]').forEach(b => b.onclick = () => agBandeja(b.dataset.agbd));
-}
 
 
 
-// El título conserva «· agenda de …» al ver la de otra persona (agMarcarDia lo dejaba en «Hoy · …»)
-agMarcarDia = (orig => function (...a) {
-  const r = orig.apply(this, a);
-  if (agN() && AG_VISTA && $('agtit') && !$('agtit').textContent.includes(AG_VISTA.nombre)) $('agtit').textContent += ' · agenda de ' + AG_VISTA.nombre;
-  return r;
-})(agMarcarDia);
 rpcCache = (orig => async function (fn, params, clave) {
   const r = await orig.call(this, fn, params, clave);
   if (fn === 'agenda_rango' && params && params.p_desde === params.p_hasta && r && r.data) AG_DIAS_DATOS[params.p_desde] = r.data;
@@ -29015,10 +29488,6 @@ rpcCache = (orig => function (fn, params, clave, ...x) {
   if (AG_PRE.size && fn === 'agenda_rango' && params) { const k = agK(fn, params.p_desde, params.p_hasta, params.p_usuario); if (AG_PRE.has(k)) return Promise.resolve(AG_PRE.get(k)); }
   return orig.call(this, fn, params, clave, ...x);
 })(rpcCache);
-bloqueadosSemana = (orig => function (d, h, ...x) {
-  const k = agK('bloq', d, h, agUid()); if (AG_PRE.has(k)) return Promise.resolve(AG_PRE.get(k));
-  return orig.call(this, d, h, ...x);
-})(bloqueadosSemana);
 
 
 // ---- «Tu día» con sus bandejas y «En este centro también», de una vez
@@ -29062,24 +29531,6 @@ agVerDia = async function (f) {
   if (top < 80 || top > innerHeight * 0.6) scrollTo({ top: scrollY + top - 90, behavior: 'smooth' });
 };
 
-// ---- Cinta: datos, «⋯» de cada día y semana desplegada, de una vez
-agCinta = (orig => async function () {
-  if (!agN()) return;
-  if (!CINTA_INI) CINTA_INI = lunesCinta(AG_FECHA || hoyISO());
-  return agConDatos([...agCintaCargas(), ...(AG_SEM_ABIERTA ? agSemCargas(AG_FECHA) : [])], async () => {
-    await orig();
-    if (!agN() || !$('agcinta')) return;
-    await agMenusCinta();
-    if (AG_SEM_ABIERTA) await agPintarSemanaExp();
-    agBotonSemana();
-    const b = $('cmesb'); if (b) b.onclick = e => { e.stopPropagation(); agMesPop(); };
-    const h = $('choy'); if (h) h.onclick = () => { CINTA_INI = null; agVerDia(hoyISO()); };
-  });
-})(agCinta);
-agSemanaLateral = (orig => function (...a) {
-  if (!agN()) return orig.apply(this, a);
-  return agConDatos(agSemCargas(AG_FECHA), () => orig.apply(this, a));
-})(agSemanaLateral);
 agPintarSemanaExp = (orig => function (...a) {
   if (!agN()) return orig.apply(this, a);
   return agConDatos(AG_SEM_ABIERTA ? agSemCargas(AG_FECHA) : [], () => orig.apply(this, a));
@@ -29092,12 +29543,6 @@ db.rpc = (orig => function (fn, p, ...x) {
   if (DB_PRE.size) { const k = fn + JSON.stringify(p || {}); if (DB_PRE.has(k)) { const r = DB_PRE.get(k); DB_PRE.delete(k); return Promise.resolve(r); } }
   return orig.call(this, fn, p, ...x);
 })(db.rpc);
-pintarPacientes = (orig => async function (...a) {
-  const p = pacParams();
-  const [m, l] = await Promise.all([db.rpc('municipios_clientes'), db.rpc('clientes_lista', p)]);
-  DB_PRE.set('municipios_clientes{}', m); DB_PRE.set('clientes_lista' + JSON.stringify(p), l);
-  return orig.apply(this, a);
-})(pintarPacientes);
 // El buscador de la barra busca directamente (antes pasaba por el campo oculto y esperaba dos veces)
 PL.pacientes.buscarQ = v => { const i = $('pacq'); if (i) i.value = v; PAC.q = (v || '').trim(); PAC.pagina = 0; listaPacientes(); };
 
@@ -29127,17 +29572,6 @@ plSync = (orig => function (tab, ...x) {
 })(plSync);
 
 
-/* ============================================================
-   v2.250.0 · Ventas sin paginadores repetidos (listas sin fantasmas, segundo grupo). Las listas de Ventas (Pedidos,
-   Oportunidades, Compras, Proveedores, Facturas, Catálogo, Servicios y Stock) ya llegaban de una vez (v2.238) y no se
-   recolocan al buscar, filtrar, pulsar un indicador, pasar de página u ordenar (prueba ventas2250). Lo que sí fallaba: en
-   Facturas y Oportunidades el paginador se crea dentro de la lista y la plantilla lo saca al pie de la tabla; al volver a
-   pintar se creaba otro y quedaban dos (con el mismo id). Ahora, antes de pintar un paginador se quita el anterior con su nombre.
-   ============================================================ */
-paginador = (orig => function (el, ...a) {
-  if (el && el.id) document.querySelectorAll('#' + el.id).forEach(x => { if (x !== el) x.remove(); });
-  return orig.call(this, el, ...a);
-})(paginador);
 
 
 /* ============================================================
@@ -29257,23 +29691,6 @@ PL.pacientes.columnas = () => {
   b.click(); setTimeout(abrir, 80);
 };
 
-// ---- Uso del servicio de rutas en Estado de la plataforma
-pintarEstadoDelcos = (orig => async function (...a) {
-  const p = Promise.resolve(RPC_ORIG('rutas_uso_resumen', {})).catch(() => ({}));
-  await orig.apply(this, a);
-  const { data: u } = (await p) || {};
-  const c = $('cfgcuerpo'); if (!c || PAG_TAB.delcos !== 'estado' || !u || !u.ok) return;
-  const card = c.querySelector('.card.cfgpanel'), pie = card && [...card.querySelectorAll(':scope > p.sm')].pop(); if (!card) return;
-  const cfg = u.config || {}, glob = +cfg.global || 2000, emp = u.empresas || [];
-  const html = `<h3 class="pdh3">Servicio de rutas (TomTom)</h3>
-    ${pdKpis([[num(u.hoy || 0) + ' / ' + num(glob), 'peticiones hoy, entre todas las empresas', (u.hoy || 0) >= glob * 0.8 ? 'aviso' : ''],
-      [num(u.mes || 0), 'peticiones este mes'], [cfg.activo === false ? 'Apagado' : 'Activo', 'servicio', cfg.activo === false ? 'aviso' : ''],
-      [num(+cfg.por_usuario || 30), 'por usuario activo y día']])}
-    ${emp.length ? `<div class="tablawrap"><table class="pdtabla"><thead><tr><th>Empresa</th><th class="num">Hoy</th><th class="num">Cupo diario</th><th class="num">Este mes</th></tr></thead><tbody>
-      ${emp.map(x => `<tr><td>${esc(x.nombre)}</td><td class="num" style="${x.hoy >= x.cupo ? 'color:var(--warn);font-weight:700' : ''}">${num(x.hoy)}</td><td class="num">${num(x.cupo)}</td><td class="num">${num(x.mes)}</td></tr>`).join('')}</tbody></table></div>`
-      : '<div class="vacio">Ninguna empresa ha usado el servicio de rutas este mes.</div>'}`;
-  if (pie) pie.insertAdjacentHTML('beforebegin', html); else card.insertAdjacentHTML('beforeend', html);
-})(pintarEstadoDelcos);
 
 
 
@@ -29287,30 +29704,19 @@ pintarEstadoDelcos = (orig => async function (...a) {
    - La cabecera dice si las horas son «con tráfico real» o estimadas.
    ============================================================ */
 let TD_REAL = null, TD_CALC = false;   // { k, mapa: Map('a>b' → minutos), t } · TD_CALC: calculando la clave (sin volver a entrar)
-// El plan del mapa se calcula siempre con la estimación (así su clave es la misma en Rutas y en «Tu día»)
-rmPlan = (orig => function (...a) {
-  if (a[2]) return orig.apply(this, a);
-  const r0 = TD_REAL; TD_REAL = null;
-  try { return orig.apply(this, a); } finally { TD_REAL = r0; }
-})(rmPlan);
 // Antes de estimar el día de hoy: si el mapa ya tiene la ruta de este orden, se usa (sin consulta)
-estimarDia = (orig => function (citas, fecha, ...x) {
+function estimarDia(citas, fecha, ...x) {
   // Solo la estimación de «Tu día» (TD_CITAS); las demás (mapa, planificador) siguen como estaban
-  if (TD_CALC || citas !== TD_CITAS) return orig.call(this, citas, fecha, ...x);
+  if (TD_CALC || citas !== TD_CITAS) return estimarDiaBase2.call(this, citas, fecha, ...x);
   const ruta = tdRutaDia(citas, fecha);
-  if (!ruta) { if (TD_REAL && fecha === hoyISO()) TD_REAL = null; return orig.call(this, citas, fecha, ...x); }
+  if (!ruta) { if (TD_REAL && fecha === hoyISO()) TD_REAL = null; return estimarDiaBase2.call(this, citas, fecha, ...x); }
   if (!(tdRealVigente() && TD_REAL.k === ruta.k)) {
     TD_REAL = null;
     const m = RM_MEM.get(ruta.k);
     if (m && Date.now() - m.t < 600000) tdPonerReal(ruta, m.r);
   }
-  return orig.call(this, citas, fecha, ...x);
-})(estimarDia);
-empezarJornada = (orig => async function (...a) {
-  const r = await orig.apply(this, a);
-  try { if (AG_FECHA === hoyISO()) tdTrafico(true); } catch (e) {}
-  return r;
-})(empezarJornada);
+  return estimarDiaBase2.call(this, citas, fecha, ...x);
+}
 pintarTuDia = (orig => async function (...a) {
   const r = await orig.apply(this, a);
   if (agConCinta()) tdMarcaTrafico();
@@ -29411,37 +29817,6 @@ arbolCfgUnico = (orig => function (...a) {
   return g;
 })(arbolCfgUnico);
 CFG_CLAVES.distribuidores = 'distribuidores mayoristas almacenes pedidos transfer servir correo';
-async function pintarDistribuidores() {
-  const c = $('cfgcuerpo'); if (!c) return;
-  cargando(c, 'Cargando los distribuidores…');
-  const { data, error } = await db.from('distribuidores').select('id,nombre,email,telefono,nota,activo').order('nombre');
-  if (!$('cfgcuerpo') || CFG_KEY !== 'distribuidores') return;
-  if (error) { c.innerHTML = `<div class="card"><p class="sm">No se han podido leer los distribuidores: ${esc(error.message)}</p></div>`; return; }
-  DIS_TODOS = data || [];
-  const fila = d => `<div class="ajfila disfila${d.activo ? '' : ' disoff'}" data-disid="${d.id}">
-      <div><b>${esc(d.nombre)}${d.activo ? '' : ' <span class="pill">No se usa</span>'}</b>
-        <span class="sm">${[d.email, d.telefono].filter(Boolean).map(esc).join(' · ') || 'Sin correo ni teléfono'}${d.nota ? ' · ' + esc(d.nota) : ''}</span></div>
-      <div class="ajctl"><button type="button" class="btn sec" data-dised="${d.id}">Editar</button>
-        <button type="button" class="btn sec" data-disact="${d.id}">${d.activo ? 'Dejar de usar' : 'Volver a usar'}</button></div></div>`;
-  const act = DIS_TODOS.filter(d => d.activo), off = DIS_TODOS.filter(d => !d.activo);
-  c.innerHTML = `<div class="card disw">
-      <div class="discab"><p class="sm">Mayoristas o depósitos que sirven pedidos a vuestros clientes. Al hacer un pedido se elige si lo servís vosotros o uno de ellos; el suyo no descuenta stock de vuestro almacén.</p>
-        <button type="button" class="btn" id="disnuevo">+ Nuevo distribuidor</button></div>
-      ${DIS_TODOS.length ? act.map(fila).join('') + (off.length ? `<h3 class="dissub">Que ya no se usan</h3>` + off.map(fila).join('') : '')
-        : '<p class="vacio" id="disvacio">Todavía no hay distribuidores.</p>'}</div>`;
-  $('disnuevo').onclick = () => editarDistribuidor(null);
-  c.querySelectorAll('[data-dised]').forEach(b => b.onclick = () => editarDistribuidor(DIS_TODOS.find(d => d.id === b.dataset.dised)));
-  c.querySelectorAll('[data-disact]').forEach(b => b.onclick = async () => {
-    const d = DIS_TODOS.find(x => x.id === b.dataset.disact); if (!d) return;
-    if (d.activo && !await preguntar('No saldrá al hacer pedidos nuevos. Los pedidos que ya sirvió siguen diciendo que fue él.', { titulo: `¿Dejar de usar ${d.nombre}?`, ok: 'Dejar de usar' })) return;
-    b.disabled = true;
-    const { error } = await db.from('distribuidores').update({ activo: !d.activo }).eq('id', d.id);
-    if (error) { b.disabled = false; toast('No se ha podido cambiar: ' + error.message, true); return; }
-    toast(d.activo ? 'Ya no se usa' : 'Se vuelve a usar');
-    await cargarDistribuidores(true).catch(() => []);
-    pintarDistribuidores();
-  });
-}
 
 
 
@@ -29477,50 +29852,6 @@ document.addEventListener('click', e => {
 
 
 
-// (R-12: calcularLiquidaciones se definía aquí otra vez; ahora está en su sitio, más arriba)
-// La lista, con filtros de persona y mes y el total de lo que se ve
-pintarComisionesBase = (orig => async function (...a) {
-  const r = await orig.apply(this, a);
-  const c = $('admcuerpo'), boton = $('liqcalc'); if (!c || !boton) return r;
-  const lista = boton.closest('.acts') && boton.closest('.acts').nextElementSibling;
-  if (!lista || !lista.classList.contains('lista') || $('liqfil')) return r;
-  const { data } = await db.rpc('liquidaciones_lista', { p_periodo: null });   // la misma de la pantalla (en memoria): se pinta en el mismo momento
-  if (!$('admcuerpo') || !lista.isConnected) return r;
-  const l = data || [];
-  const personas = [...new Map(l.map(x => [x.usuario_id, x.nombre])).entries()].sort((x, y) => String(x[1]).localeCompare(String(y[1]), 'es'));
-  const meses = [...new Set(l.map(x => x.periodo))].sort().reverse();
-  if (LIQ_FIL.u && !personas.some(p => p[0] === LIQ_FIL.u)) LIQ_FIL.u = '';
-  if (LIQ_FIL.p && !meses.includes(LIQ_FIL.p)) LIQ_FIL.p = '';
-  const fila = x => `<div class="item" style="cursor:default" data-liqu="${x.usuario_id}" data-liqp="${x.periodo}">
-      <span class="ic ${x.estado === 'Pagada' ? 'o' : ''}">${x.estado === 'Borrador' ? '○' : '✓'}</span>
-      <span class="tx"><b>${esc(x.nombre)}</b><span class="sm">${periodoTxt(x.periodo)} · ${num(x.unidades)} unidades · ${eur(x.importe)} · ${esc(x.estado)}</span></span>
-      <span class="acts" style="margin:0">
-        ${x.estado === 'Borrador' ? `<button class="btn sec" data-liq="${x.usuario_id}|${x.periodo}|Aprobada">Aprobar</button>` : ''}
-        ${x.estado === 'Aprobada' ? `<button class="btn sec" data-liq="${x.usuario_id}|${x.periodo}|Pagada">Marcar pagada</button>` : ''}
-      </span></div>`;
-  const pinta = () => {
-    const v = l.filter(x => (!LIQ_FIL.u || x.usuario_id === LIQ_FIL.u) && (!LIQ_FIL.p || x.periodo === LIQ_FIL.p));
-    const tot = v.reduce((n, x) => n + (+x.importe || 0), 0), uds = v.reduce((n, x) => n + (+x.unidades || 0), 0);
-    const pend = v.filter(x => x.estado !== 'Pagada').reduce((n, x) => n + (+x.importe || 0), 0);
-    $('liqres').textContent = v.length ? `${num(v.length)} ${v.length === 1 ? 'liquidación' : 'liquidaciones'} · ${num(uds)} unidades · ${eur(tot)}${pend && pend !== tot ? ' · ' + eur(pend) + ' sin pagar' : ''}` : '';
-    lista.innerHTML = v.map(fila).join('') || `<div class="vacio">${l.length ? 'Sin liquidaciones con estos filtros.' : 'Sin liquidaciones todavía.'}</div>`;
-    lista.querySelectorAll('[data-liq]').forEach(b => b.onclick = async () => {
-      const [u, p, estado] = b.dataset.liq.split('|');
-      if (!await preguntar(`La liquidación quedará ${estado === 'Aprobada' ? 'aprobada y congelada' : 'marcada como pagada'}.`,
-        { titulo: '¿' + (estado === 'Aprobada' ? 'Aprobar' : 'Marcar pagada') + '?', ok: estado === 'Aprobada' ? 'Aprobar' : 'Marcar pagada' })) return;
-      await db.rpc('liquidar', { p_usuario: u, p_periodo: p, p_estado: estado });
-      toast('Liquidación ' + estado.toLowerCase()); pintarComisiones();
-    });
-  };
-  lista.insertAdjacentHTML('beforebegin', `<div class="liqfil" id="liqfil">
-      <div><label for="liqfu">Persona</label><select id="liqfu"><option value="">Todas</option>${personas.map(([id, n]) => `<option value="${id}" ${id === LIQ_FIL.u ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select></div>
-      <div><label for="liqfp">Mes</label><select id="liqfp"><option value="">Todos</option>${meses.map(m => `<option value="${m}" ${m === LIQ_FIL.p ? 'selected' : ''}>${esc(periodoTxt(m))}</option>`).join('')}</select></div>
-      <p class="sm" id="liqres"></p></div>`);
-  $('liqfu').onchange = e => { LIQ_FIL.u = e.target.value; pinta(); };
-  $('liqfp').onchange = e => { LIQ_FIL.p = e.target.value; pinta(); };
-  pinta();
-  return r;
-})(pintarComisionesBase);
 
 
 
@@ -29589,27 +29920,11 @@ orgAcciones = (orig => function (c, l) {
 
 
 
-// Distribuidores: los transfers de cada uno
-pintarDistribuidores = (orig => async function (...a) {
-  const r = await orig.apply(this, a);
-  const c = $('cfgcuerpo'); if (!c || CFG_KEY !== 'distribuidores') return r;
-  c.querySelectorAll('.disfila[data-disid] .ajctl').forEach(x => {
-    if (x.querySelector('[data-distrf]')) return;
-    x.insertAdjacentHTML('afterbegin', `<button type="button" class="btn sec" data-distrf="${x.closest('.disfila').dataset.disid}">Transfers</button>`);
-  });
-  c.querySelectorAll('[data-distrf]').forEach(b => b.onclick = () => verTransfers(b.dataset.distrf));
-  return r;
-})(pintarDistribuidores);
 
 
 
 
 let PRES_MAT = null, PRES_T = 0;           // [{id, producto_id, nombre, tipo, orden}] · cuándo se leyó
-// La lista de material se pide a la vez que los productos promocionados (así «Presentar» sale con ellos, no después)
-productosPromocionados = (orig => async function (...a) {
-  const [r] = await Promise.all([orig.apply(this, a), presMateriales()]);
-  return r;
-})(productosPromocionados);
 abrirVisitaBase = (orig => async function (id, ...r) {
   const res = await orig.call(this, id, ...r);
   try {
@@ -29722,11 +30037,11 @@ plCargarKpis = (orig => function (tab, ...a) {
 document.addEventListener('change', filtroGuardar, true);
 document.addEventListener('input', filtroGuardar, true);
 // Las pantallas montan su periodo justo antes de pedir la lista: es el momento de devolver los filtros
-montarPeriodo = (orig => function (el, ...a) {
-  const r = orig.call(this, el, ...a);
+function montarPeriodo(el, ...a) {
+  const r = montarPeriodoBase.call(this, el, ...a);
   try { filtrosRestaurar(el && el.closest('main > section')); } catch (e) {}
   return r;
-})(montarPeriodo);
+}
 
 
 
@@ -29781,16 +30096,6 @@ document.addEventListener('focusout', e => { const x = e.target.closest && e.tar
 
 
 
-// ——— Material y dudas: las tarjetas de siempre, en su pestaña, con su ayuda ———
-portalMedico = (orig => async function (...a) {
-  const r = await orig.apply(this, a);
-  if (!ES_MEDICO()) return r;   // v2.282.0: también el centro
-  const c = $('mdcons'); if (c) c.remove();   // la constancia va en el Resumen
-  const ay = { mdmat: ['Pedir material', 'Pide el material que te ofrece la empresa (folletos, catálogos…). Le llega a tu comercial, que te lo entrega; mientras está pendiente lo puedes anular.'],
-    mdmsg: ['Dudas a tu comercial', 'Escribe a tu comercial cualquier duda. Te contestará aquí y te llegará un aviso.'] };
-  Object.entries(ay).forEach(([id, [t, x]]) => { const h = document.querySelector('#' + id + ' > h2'); if (h && !h.querySelector('.ai')) h.insertAdjacentHTML('beforeend', ' ' + pmAyu(t, x)); });
-  return r;
-})(portalMedico);
 
 // ——— Sin manual, sin «Inicio» y Configuración con lo suyo ———
 arbolCfgUnico = (orig => function (...a) {
@@ -29841,24 +30146,13 @@ abrirFicha = (orig => async function (id, ...a) { const r = await orig.call(this
    - Fuera «Repartir la semana» (Eric: no aporta).
    ============================================================ */
 var AG_HOY_VISTO = null;
-agBandejas = (orig => function (...x) {
-  const r = orig.apply(this, x);
-  const b = $('agband'), acts = document.querySelector('#agcuerpo .tdhead .acts');
-  // v2.338.0 (Eric): en el móvil también en una fila (antes, cada uno en la suya); «Volver a hoy» va delante
-  const hoy = $('agahoy'); if (hoy && acts && !matchMedia('(min-width: 761px)').matches && acts.firstElementChild !== hoy) acts.prepend(hoy);
-  if (b && acts) {
-    b.classList.add('agbandin'); acts.appendChild(b);
-    b.querySelectorAll('button').forEach(x => x.childNodes.forEach(n => { if (n.nodeType === 3 && /días anteriores/.test(n.textContent)) n.textContent = n.textContent.replace('de días anteriores', 'anteriores'); }));
-  }
-  return r;
-})(agBandejas);
-alternarUrgente = (orig => async function (id, ...x) {
-  const r = await orig.call(this, id, ...x);
+async function alternarUrgente(id, ...x) {
+  const r = await alternarUrgenteBase.call(this, id, ...x);
   invalidarCache(); try { DB_PRE.clear(); } catch (e) {}
   if (TAB === 'directorio') buscar(true);
   if (TAB === 'agenda' && typeof agRefrescoQuieto === 'function') agRefrescoQuieto();
   return r;
-})(alternarUrgente);
+}
 pintarTuDia = (orig => async function (...x) { const r = await orig.apply(this, x); tdPlegarTareas(); return r; })(pintarTuDia);
 
 
@@ -29867,19 +30161,6 @@ pintarTuDia = (orig => async function (...x) { const r = await orig.apply(this, 
 
 
 
-/* ============================================================
-   v2.278.0 · Material de visita: cada material con su cantidad y su máximo en el portal (aviso de Eric, 12/10/2026).
-   Antes, «Pide cantidad» solo se elegía al añadir y el máximo que puede pedir el profesional desde su portal (20 si nadie lo
-   cambiaba) estaba en otro apartado. Ahora cada fila de «Material promocional» lleva:
-   - Al registrar: «Anotar cuántas se entregan» o «Solo marcar que se entregó» (guardar_valor dato_tipo).
-   - Con el portal: «Se puede pedir desde el portal» y «Máximo por petición» (1 a 1.000; vacío o fuera de rango avisa en la fila
-     y no se guarda). Se guarda en el mismo ajuste que «Portal del profesional» (portal.material).
-   ============================================================ */
-pintarMaterial = (orig => async function (...x) {
-  const r = await orig.apply(this, x);
-  try { await matMejorar(); } catch (e) { registrarError('error', 'Material promocional: ' + e.message); }
-  return r;
-})(pintarMaterial);
 
 
 
@@ -29934,39 +30215,6 @@ document.addEventListener('click', e => { if (e.target.closest && e.target.close
 window.PC_LISTO = true;
 
 
-async function centroPintar() {
-  if (!$('mdcuerpo')) return;
-  const [{ data: prods }, { data: mp }, { data: f }] = await Promise.all([RPC_ORIG('productos_portal', {}), RPC_ORIG('mis_pedidos_portal', {}),
-    PM.ficha ? Promise.resolve({ data: null }) : RPC_ORIG('portal_mi_ficha', {})]);
-  if (f && f.ok) pmFichaDatos(f);
-  if (!$('mdcuerpo')) return;
-  if (mp && mp.nombre) $('ctnom').textContent = mp.nombre;
-  const lp = Array.isArray(prods) ? prods : [], peds = (mp && mp.pedidos) || [], pp = (mp && mp.por_producto) || [];
-  window.PC_ANT = !!(mp && mp.pago_anticipado);   // v2.284.0
-  const conIva = x => r2((+x.precio || 0) * (1 + (+x.iva || 0) / 100));
-  const enMarcha = peds.filter(p => p.estado !== 'Anulado' && p.estado !== 'Preparado').length;
-  const uds = pp.reduce((s, x) => s + (+x.unidades || 0), 0);
-  const ult = peds.length ? String(peds[0].fecha).slice(0, 10) : null;
-  const falta = PM.faltan.length ? `<div class="pmaviso"><div><b>Completa la ficha de tu centro</b><span class="sm">Falta ${esc(pmFaltaTxt())}. Así tu comercial sabe cuándo os va mejor que pase.</span></div>
-      <button type="button" class="btn" data-pmir="ficha">Completar la ficha</button></div>` : '';
-  $('mdcuerpo').innerHTML = `${pcDebeHtml(peds)}${falta}
-    <div class="pmk">
-      <div class="kpi"><b>${num(enMarcha)}</b><span>pedidos en marcha</span></div>
-      <div class="kpi"><b>${ult ? fechaCorta(ult) : '—'}</b><span>último pedido</span></div>
-      <div class="kpi"><b>${num(uds)}</b><span>unidades en 12 meses</span></div>
-      <div class="kpi"><b>${num(lp.length)}</b><span>productos para pedir</span></div></div>
-    <div class="pmfila">
-      <div class="card ancard pcpeds"><h2>Tus pedidos ${pmAyu('Tus pedidos', 'Los pedidos de reposición que habéis hecho y en qué punto están: pendiente de confirmar por tu comercial, pendiente de pago (si se paga por adelantado), confirmado, preparado o anulado. Cada pedido lleva los lotes que se os han enviado y sus facturas para descargar.')}</h2>
-        ${peds.length ? `<div class="lista">${peds.slice(0, 8).map(p => `<div class="item"><span class="tx">
-            <b>${p.numero ? esc(p.numero) + ' · ' : ''}${fechaCorta(String(p.fecha).slice(0, 10))}</b>
-            <span class="sm">${esc((p.lineas || []).map(l => `${l.producto} × ${num(l.unidades)}${l.regalo ? ' de regalo' : ''}`).join(', '))}${p.total != null ? ' · ' + eurI(p.total) : ''}</span>${pcExtraPed(p)}</span>
-            <span class="pcpst"><span class="pill ${NOMBRE_ESTADO_CENTRO[p.estado] || ''}">${esc(p.estado)}</span>${p.proforma ? `<button type="button" class="btn sec chico" data-pcpro="${p.id}">Factura proforma</button>` : ''}</span></div>`).join('')}</div>` : '<p class="sm">Todavía no hay pedidos.</p>'}</div>
-      <div class="card ancard"><h2>Lo que habéis comprado ${pmAyu('Lo que habéis comprado', 'Unidades de los últimos 12 meses por producto, de los pedidos confirmados.')}</h2>
-        ${pp.length ? barrasH(pp.map(x => ({ n: x.producto, v: x.unidades })), v => num(v) + ' uds.') : vacioGrafico('Aparecerá cuando tengáis pedidos confirmados.')}</div></div>`;
-  $('mdcuerpo').querySelectorAll('[data-pmir]').forEach(b => b.onclick = () => pmTab(b.dataset.pmir));
-  pcPintarPedido(lp);   // v2.283.0: por packs
-  pmPintarFicha();
-}
 
 
 
@@ -30027,26 +30275,6 @@ window.PC_ANT = false;
 
 document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('[data-pcpro]'); if (b) pcProforma(b.dataset.pcpro, b); });
 
-// Configuración → Portal: pago por adelantado de los pedidos del centro
-pintarCfgPortal = (orig => async function (...a) {
-  const r = await orig.apply(this, a);
-  const c = $('cfgcuerpo'); if (!c || $('cfpant')) return r;
-  const { data: aj } = await db.from('ajustes').select('valor').eq('clave', 'portal').maybeSingle();
-  if (!$('cfgcuerpo') || $('cfpant')) return r;
-  const on = !!(aj && aj.valor && aj.valor.pago_anticipado);
-  c.insertAdjacentHTML('beforeend', `<div class="card" id="cfpantc"><div class="fh"><div><h2>Pedidos del portal del centro ${typeof pmAyu === 'function' ? pmAyu('Pago por adelantado', 'Con el pago por adelantado, al confirmar un pedido del portal el centro lo ve «Pendiente de pago» y descarga la factura proforma con vuestros datos y el IBAN para hacer la transferencia. Cuando la recibáis, marcad el pago como cobrado en el pedido: el centro recibe el aviso y el pedido se prepara como siempre. El IBAN y los datos salen de Facturación → Datos fiscales.') : ''}</h2></div></div>
-    <label class="opt"><input type="checkbox" id="cfpant" ${on ? 'checked' : ''}> Pago por adelantado (transferencia antes de preparar el pedido)</label>
-    <div class="acts" style="justify-content:flex-end"><button class="btn" id="cfpantok" type="button">Guardar</button></div></div>`);
-  $('cfpantok').onclick = async ev => {
-    ev.target.disabled = true;
-    const { data: a2 } = await db.from('ajustes').select('valor').eq('clave', 'portal').maybeSingle();
-    const { data: x, error } = await db.rpc('guardar_ajuste', { p_clave: 'portal', p_valor: Object.assign({}, (a2 && a2.valor) || {}, { pago_anticipado: $('cfpant').checked }) });
-    ev.target.disabled = false;
-    if (error || (x && x.ok === false)) { toast('No se ha podido guardar', true); return; }
-    toast($('cfpant').checked ? 'Guardado: los centros pagarán por adelantado' : 'Guardado: sin pago por adelantado');
-  };
-  return r;
-})(pintarCfgPortal);
 
 
 
@@ -30060,7 +30288,6 @@ document.addEventListener('click', e => {
   if (t.dataset.pcfac) pcFactura(t.dataset.pcfac, t); else pcMaterialBajar(t.dataset.pcmat, t);
 });
 
-centroPintar = (orig => async function (...a) { const r = await orig.apply(this, a); try { await pcDescargas(); } catch (e) {} return r; })(centroPintar);
 
 // Producto: el material, también para los centros
 document.addEventListener('change', async e => {
@@ -30184,11 +30411,11 @@ abrirEditor = (orig => async function (id, tipo, ...r) {
 // v2.304.0: el filtro rápido «Tipo» de Cuentas
 if ($('ftipo')) $('ftipo').addEventListener('change', e => { F.tipo = e.target.value; buscar(true); });
 // El desplegable sigue a F.tipo (también si se cambia desde el panel o los indicadores) y nombra a los profesionales con el vocabulario de la empresa
-buscar = (orig => function (...a) {
+function buscar(...a) {
   const s = $('ftipo');
   if (s) { if (s.options[1]) s.options[1].text = TT('medico', 'p', '', 'l', 'C'); if (s.value !== (F.tipo || '')) s.value = F.tipo || ''; }
-  return orig.apply(this, a);
-})(buscar);
+  return buscarBase.apply(this, a);
+}
 
 
 if (ENLACE_ERROR && /otp_expired|access_denied|expired/i.test(ENLACE_ERROR)) {
@@ -30340,25 +30567,25 @@ PL.directorio.mas = (orig => () => orig().concat([['dirbajas', 'Fichas dadas de 
    Sin SQL: unificar_cuentas ya junta todo lo que cuelga de la ficha (consultas, visitas, citas, cartera…).
    ============================================================ */
 let DUP_TIPO = {}, DUP_PEST = 'Persona';
-pintarListasDup = (orig => function () {
+function pintarListasDup() {
   if (!$('dpendc')) return;
   const p0 = DUP_PEND, q0 = DUP_PARES;
   const cuenta = t => p0.filter(x => dupTipoDe(x.id) === t).length + q0.filter(p => dupTipoDe(p.a_id) === t).length;
   DUP_PEND = p0.filter(x => dupTipoDe(x.id) === DUP_PEST); DUP_PARES = q0.filter(p => dupTipoDe(p.a_id) === DUP_PEST);
-  try { orig(); } finally { DUP_PEND = p0; DUP_PARES = q0; }
+  try { pintarListasDupBase(); } finally { DUP_PEND = p0; DUP_PARES = q0; }
   const grid = document.querySelector('#v-duplicados .dupgrid');
   if (grid && !$('duppest')) grid.insertAdjacentHTML('beforebegin', '<div class="segs duppest" id="duppest" role="group" aria-label="Tipo de ficha"></div>');
   if ($('duppest')) $('duppest').innerHTML = [['Persona', TT('medico', 'p', '', 'l', 'C')], ['Centro', 'Centros']].map(([k, t]) =>
     `<button type="button" data-dpest="${k}" class="${DUP_PEST === k ? 'on' : ''}" aria-pressed="${DUP_PEST === k}">${esc(t)} <span class="n">${num(cuenta(k))}</span></button>`).join('');
-})(pintarListasDup);
+}
 document.addEventListener('click', e => {
   const b = e.target.closest('#duppest [data-dpest]'); if (!b) return;
   DUP_PEST = b.dataset.dpest; DUP_ACTUAL = null; pintarListasDup(); panelDupVacio('');
 });
 
 // Comparar: los centros (consultas) a conservar y, si son centros, su dirección y sus profesionales
-compararEn = (orig => async function (el, idA, idB) {
-  await orig.call(this, el, idA, idB);
+async function compararEn(el, idA, idB) {
+  await compararEnBase.call(this, el, idA, idB);
   const btn = el.querySelector('#duniok'); if (!btn) return;
   const [{ data: A }, { data: B }, { data: tip }] = await Promise.all([db.rpc('ficha_cuenta', { p_id: idA }), db.rpc('ficha_cuenta', { p_id: idB }),
     db.from('cuentas').select('id, tipo, centro_id, nombre').in('id', [idA, idB])]);
@@ -30398,7 +30625,7 @@ compararEn = (orig => async function (el, idA, idB) {
     DUP_TRAS = { quitar: q, esCentro, a: t[idA] || {}, b: t[idB] || {} };
   };
   el.addEventListener('click', el.__dupClic, true);
-})(compararEn);
+}
 db.rpc = (orig => function (fn, args, ...r) {
   const res = orig.call(this, fn, args, ...r);
   if (fn !== 'unificar_cuentas' || !DUP_TRAS || !res || typeof res.then !== 'function') return res;
@@ -30469,20 +30696,6 @@ document.addEventListener('click', e => { const b = e.target.closest('#clibajasl
 PL.pacientes.mas = (orig => () => orig().concat([['clibajas', `${TT('paciente', 'p', '', 'l', 'C')} dados de baja`]]))(PL.pacientes.mas);
 
 
-async function enviarDatosPago(id) {
-  if (!((AJUSTES.empresa || {}).iban || '').trim()) { toast('Falta el IBAN: ponlo en Configuración → Facturación → Datos fiscales antes de enviar los datos de pago', true); return false; }
-  const { data } = await RPC_ORIG('pedido_detalle', { p_id: id });
-  const p = data && data.pedido; if (!p) { toast('No se ha encontrado el pedido', true); return false; }
-  const cli = data.contacto || {}, total = +((data.totales || {}).total || 0);
-  if (!cli.email) { toast(`${TT('paciente', 's', '', 'l', 'C')} no tiene email en su ficha`, true); return false; }
-  const asunto = asuntoEmailPago(p, total, cli.nombre), texto = textoEmailPago(p, total, cli.nombre);
-  const { data: r, error } = await db.functions.invoke('enviar_email', { body: { para: cli.email, asunto, texto, pedido_id: id, marca: 'email_pago' } });
-  if (!error && r && r.ok) { toast('Datos de pago enviados · el pedido espera al pago en borrador'); return true; }
-  location.href = `mailto:${cli.email}?subject=${encodeURIComponent(asunto)}&body=${encodeURIComponent(texto)}`;   // sin envío directo: el correo del dispositivo
-  if (await preguntar('¿Has enviado el email con los datos de pago?', { titulo: 'Email de pago', ok: 'Sí, marcar como enviado' }))
-    await db.rpc('marcar_operativa', { p_pedido: id, p_campo: 'email_pago', p_hecho: true });
-  return true;
-}
 verPedido = (orig => async function (id, ...a) {
   const r = await orig.call(this, id, ...a);
   try {
@@ -30539,8 +30752,6 @@ anCargarKpis = (orig => async function (...a) {
   if (TAB === 'analitica') tvTarjeta(d);
   return res;
 })(anCargarKpis);
-// v2.320.0 · Fuera el indicador «Conversión visita → venta» (decisión de Eric): lo mide, más completo, la tarjeta «Ventas tras la visita»
-anCatalogo = (orig => function (...a) { return orig.apply(this, a).filter(k => k.id !== 'conversion_pct'); })(anCatalogo);
 
 
 const PROD_USOS = { ventas: 'pedidos', borradores: 'borradores', servicio: 'pedidos con este servicio', compras: 'compras', lotes: 'lotes',
@@ -30799,40 +31010,12 @@ plCargarKpis = function (tab) {
 
 
 let PLANT_ELEGIDA = { pago: null, factura: null }, PDF_ELEGIDO = null, PDF_EDITANDO = null;
-enviarDatosPago = (orig => async function (id, ...a) {
-  if (!await elegirPlantillaCorreo('pago')) return false;
-  try { return await orig.call(this, id, ...a); } finally { PLANT_ELEGIDA.pago = null; }
-})(enviarDatosPago);
 
 
 facturaPDF = (orig => function (f, rn, cfg, ...a) {
   if (!cfg && PDF_ELEGIDO && PDF_ELEGIDO !== listaPDF().defecto) cfg = cfgDePlantilla(PDF_ELEGIDO);
   return orig.call(this, f, rn, cfg, ...a);
 })(facturaPDF);
-descargarFacturaPDF = (orig => async function (...a) {
-  if (!await elegirPlantillaPDF()) return;
-  try { return await orig.apply(this, a); } finally { PDF_ELEGIDO = null; }
-})(descargarFacturaPDF);
-// Enviar la factura: plantilla del correo y diseño del PDF, en la propia ventana (si hay más de uno)
-enviarFacturaEmail = (orig => async function (f, rn, ...a) {
-  PLANT_ELEGIDA.factura = null; PDF_ELEGIDO = null;
-  const r = await orig.call(this, f, rn, ...a);
-  const pl = plantillasCorreo('factura'), { lista, defecto } = listaPDF(), c = f.cliente || {};
-  const sel = [];
-  if (pl.length > 1) sel.push(`<div><label for="efplant">Plantilla del correo</label><select id="efplant">${pl.map(x => `<option value="${x.id}" ${x.defecto ? 'selected' : ''}>${esc(x.nombre)}</option>`).join('')}</select></div>`);
-  if (lista.length > 1) sel.push(`<div><label for="efdis">Diseño del PDF</label><select id="efdis">${lista.map(x => `<option value="${x.id}" ${x.id === defecto ? 'selected' : ''}>${esc(x.nombre)}</option>`).join('')}</select></div>`);
-  if (sel.length && $('efp')) {
-    $('efp').insertAdjacentHTML('afterend', `<div class="g2 efplants">${sel.join('')}</div>`);
-    if ($('efplant')) $('efplant').onchange = () => {
-      PLANT_ELEGIDA.factura = $('efplant').value;
-      const v = varsCorreo({ documento: 'factura', numero: f.numero, importe: f.total, nombre: c.nombre });
-      $('efa').value = plantillaCorreo('factura', 'asunto', v); $('eft').value = plantillaCorreo('factura', 'texto', v);
-    };
-    if ($('efdis')) $('efdis').onchange = () => { PDF_ELEGIDO = $('efdis').value; };
-    $('dlg2').addEventListener('close', () => { PLANT_ELEGIDA.factura = null; PDF_ELEGIDO = null; }, { once: true });
-  }
-  return r;
-})(enviarFacturaEmail);
 // «Diseño del PDF»: barra de plantillas. Guardar un diseño que no es el de por defecto lo guarda en su plantilla (no en factura_pdf).
 const RPC_V2342 = db.rpc;
 db.rpc = function (fn, params, ...a) {
@@ -30850,43 +31033,6 @@ db.rpc = function (fn, params, ...a) {
   }
   return RPC_V2342.call(db, fn, params, ...a);
 };
-disenoPDF = (orig => async function (...a) {
-  const v = listaPDF(); if (!PDF_EDITANDO || !v.lista.some(x => x.id === PDF_EDITANDO)) PDF_EDITANDO = v.defecto;
-  const g = AJUSTES.factura_pdf, tmp = !!AJUSTES.__pdfTmp; delete AJUSTES.__pdfTmp;   // «Volver al diseño original» pinta su diseño provisional
-  if (!tmp) AJUSTES.factura_pdf = (v.lista.find(x => x.id === PDF_EDITANDO) || {}).cfg || g;
-  let r; try { r = await orig.apply(this, a); } finally { if (!tmp) AJUSTES.factura_pdf = (v.lista.find(x => x.id === v.defecto) || {}).cfg || g; }
-  const fh = $('dbody') && $('dbody').querySelector('.fh'); if (!fh || $('pdfplbar')) return r;
-  const actual = v.lista.find(x => x.id === PDF_EDITANDO) || v.lista[0];
-  fh.insertAdjacentHTML('afterend', `<div class="pdfplbar" id="pdfplbar"><div><label for="pdfplsel">Plantilla</label><select id="pdfplsel">${v.lista.map(x => `<option value="${x.id}" ${x.id === actual.id ? 'selected' : ''}>${esc(x.nombre)}${x.id === v.defecto ? ' · por defecto' : ''}</option>`).join('')}</select></div>
-    <div class="pdfplacts"><button type="button" class="btn sec chico" id="pdfplnueva">+ Nueva</button><button type="button" class="btn sec chico" id="pdfplren">Renombrar</button>
-      ${actual.id !== v.defecto ? '<button type="button" class="btn sec chico" id="pdfpldef">Usar por defecto</button>' : ''}${v.lista.length > 1 ? '<button type="button" class="btn sec chico dang" id="pdfplx">Eliminar</button>' : ''}
-      ${pmAyu('Plantillas del PDF', 'Guarda varios diseños con el nombre que quieras. El de por defecto es el que sale siempre; si hay más, al descargar o enviar una factura se puede elegir otro. «Guardar diseño» guarda la plantilla elegida.')}</div></div>`);
-  const otra = id => { PDF_EDITANDO = id; disenoPDF(); };
-  $('pdfplsel').onchange = () => otra($('pdfplsel').value);
-  $('pdfplnueva').onclick = async () => {
-    const n = await pedirTexto('Nombre de la plantilla', actual.nombre + ' (copia)', { titulo: 'Nueva plantilla del PDF', ok: 'Crear' }); if (n === null || !n.trim()) return;
-    const id = idPlant(); v.lista.push({ id, nombre: n.trim(), cfg: JSON.parse(JSON.stringify(actual.cfg || {})) });
-    if (await guardarPDFPlantillas({ lista: v.lista, defecto: v.defecto })) otra(id);
-  };
-  $('pdfplren').onclick = async () => {
-    const n = await pedirTexto('Nombre de la plantilla', actual.nombre, { titulo: 'Renombrar', ok: 'Guardar' }); if (n === null || !n.trim()) return;
-    actual.nombre = n.trim(); if (await guardarPDFPlantillas({ lista: v.lista, defecto: v.defecto })) otra(actual.id);
-  };
-  if ($('pdfpldef')) $('pdfpldef').onclick = async () => {
-    if (!await guardarPDFPlantillas({ lista: v.lista, defecto: actual.id })) return;
-    const { data: r2 } = await RPC_V2342('guardar_ajuste', { p_clave: 'factura_pdf', p_valor: actual.cfg || {} });
-    if (r2 && r2.ok !== false) AJUSTES.factura_pdf = actual.cfg || {};
-    toast(`«${actual.nombre}» es ahora el diseño por defecto`); otra(actual.id);
-  };
-  if ($('pdfplx')) $('pdfplx').onclick = async () => {
-    if (!await preguntar(`Se elimina la plantilla «${actual.nombre}».`, { titulo: '¿Eliminar la plantilla?', ok: 'Eliminar' })) return;
-    const l = v.lista.filter(x => x !== actual), def = actual.id === v.defecto ? l[0].id : v.defecto;
-    if (!await guardarPDFPlantillas({ lista: l, defecto: def })) return;
-    if (def !== v.defecto) { await RPC_V2342('guardar_ajuste', { p_clave: 'factura_pdf', p_valor: (l[0].cfg || {}) }); AJUSTES.factura_pdf = l[0].cfg || {}; }
-    toast('Plantilla eliminada'); otra(def);
-  };
-  return r;
-})(disenoPDF);
 
 addEventListener('resize', () => { clearTimeout(FAB_RZ); FAB_RZ = setTimeout(() => { fabAOrdenador(); try { if (typeof plSync === 'function' && TAB) plSync(TAB); } catch (e) {} }, 120); });
 
@@ -30938,13 +31084,6 @@ pintarPerfil = (orig => function (...a) {
   c.prepend(u);
   return r;
 })(pintarPerfil);
-// pintarPrefsPerfil pone la tarjeta de la persona después: va a su sitio dentro de la tarjeta única
-pintarPrefsPerfil = (orig => async function (...a) {
-  const p = orig.apply(this, a);
-  const mp = $('miperfil'), row = document.querySelector('#cfgcuerpo .perfunorow');
-  if (mp && row && mp.parentElement !== row) { mp.classList.remove('card', 'cfgpanel'); mp.classList.add('perfparte'); row.prepend(mp); }
-  return p;
-})(pintarPrefsPerfil);
 
 // KPIs de Inicio: Restaurar y Guardar junto al título
 new MutationObserver(() => {

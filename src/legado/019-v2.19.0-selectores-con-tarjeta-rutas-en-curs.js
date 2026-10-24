@@ -93,136 +93,6 @@ async function nuevaCita(medicoId, fecha) {
 
 /* ---------------- alta y edición de paciente ---------------- */
 
-function editorContacto(c, alGuardar, op) {
-  c = c || {}; op = op || {};
-  // v2.119.0: en un cliente nuevo, desplegable «Registro de llamada» (abierto si se viene de registrar una llamada)
-  const conLlamada = !c.id && !!op.llamada;   // v2.125.0: solo si se viene de una llamada antigua; el recorrido es «Nueva venta»
-  let tipo = c.tipo || 'Persona';
-  let medico = c.cuenta_id ? { id: c.cuenta_id, nombre: c.medico || `${TT('medico', 's', '', 'l', 'C', 'asignado')}`, codigo: c.medico_codigo || '' } : null;
-  $('dlg2body').innerHTML = `
-    <div class="fh"><div><h2>${c.id ? `Editar ${TT('paciente', 's', '', 'l', 'l')}` : `${TT('paciente', 's', 'nuevo', 'C', 'l')}`}</h2>
-      <div class="sm">Datos de entrega y facturación</div></div>
-      <button class="x" data-cerrar2 aria-label="Cerrar">✕</button></div>
-    <div class="subnav" style="margin:6px 0 4px"><button type="button" data-ktipo="Persona" aria-pressed="${tipo === 'Persona'}">Persona</button>
-      <button type="button" data-ktipo="Empresa" aria-pressed="${tipo === 'Empresa'}">Empresa</button></div>
-    <div class="g2">
-      <div><label for="konom" id="konoml">${tipo === 'Empresa' ? 'Razón social' : 'Nombre y apellidos'}</label><input id="konom" value="${esc(c.nombre || '')}"></div>
-      <div><label for="konif" id="konifl">${tipo === 'Empresa' ? 'CIF' : 'DNI o NIE'}</label>
-        <input id="konif" value="${esc(c.nif || '')}" placeholder="${tipo === 'Empresa' ? 'B12345678' : '12345678Z'}" autocapitalize="characters">
-        <div class="sm" id="konifm" style="margin-top:4px"></div></div>
-    </div>
-    <label>${TT('medico', 's', '', 'l', 'C')} que lo trata</label><div id="kosel"></div>
-    <div class="sm" style="margin-top:4px" id="komsm">Las unidades de sus pedidos se atribuyen a ${TT('medico', 's', 'este', 'l', 'l')} y a su comercial.</div>
-    ${puedeMedicoLibre() ? `<label class="opt prepbox"><input type="checkbox" id="komlibre"> ${esc(TT('medico', 's', '', 'l', 'C'))} distinto en cada pedido (no se guarda en la ficha)</label>` : ''}
-    <div class="g2">
-      <div><label for="kodir">Dirección de entrega</label><input id="kodir" value="${esc(c.direccion || '')}"></div>
-      <div><label for="kocp">Código postal</label><input id="kocp" value="${esc(c.cp || '')}" inputmode="numeric"></div>
-    </div>
-    <div class="g2">
-      <div><label for="komun">Población</label><input id="komun" value="${esc(c.municipio || '')}"></div>
-      <div><label for="kopro">Provincia</label><input id="kopro" value="${esc(c.provincia || '')}"></div>
-    </div>
-    <div class="g2">
-      <div><label for="kotel">Teléfono</label><input id="kotel" value="${esc(c.telefono || '')}" inputmode="tel"></div>
-      <div><label for="komov">Móvil</label><input id="komov" value="${esc(c.movil || '')}" inputmode="tel"></div>
-    </div>
-    <div class="g2">
-      <div><label for="komail">Email</label><input id="komail" type="email" value="${esc(c.email || '')}"></div>
-      <div id="koempw" class="${tipo === 'Empresa' ? 'koinv' : ''}"><label for="koemp">Empresa ${pmAyu('Empresa', 'Si la persona factura a nombre de una empresa, escribe aquí su nombre. Con «Empresa» arriba no hace falta.')}</label><input id="koemp" value="${esc(c.empresa || '')}"></div>
-    </div>
-    <label for="konota">Nota</label><input id="konota" value="${esc(c.nota || '')}">
-    ${conLlamada ? llamadaAltaHTML(op.llamada) : ''}
-    <div class="acts" style="justify-content:flex-end;flex-wrap:wrap">
-      <button class="btn sec" id="kocancel">Cancelar</button>
-      <button class="btn ${conLlamada && op.llamada ? 'sec' : ''}" id="kook">${c.id ? 'Guardar' : `Crear ${TT('paciente', 's', '', 'l', 'l')}`}</button>
-      ${conLlamada && op.llamada ? '<button class="btn" id="kopedido">🛒 Crear y hacer pedido</button>' : ''}</div>`;
-
-  selectorMedico($('kosel'), { valor: medico, alElegir: m => { medico = m; } });
-  // v2.329.0: clientes como un equipo comercial, con un profesional distinto en cada pedido
-  let libreAntes = false;
-  const libreVer = () => { const on = !!($('komlibre') && $('komlibre').checked); $('kosel').classList.toggle('hide', on); $('komsm').classList.toggle('hide', on); if ($('kosel').previousElementSibling) $('kosel').previousElementSibling.classList.toggle('hide', on); };
-  if ($('komlibre')) {
-    $('komlibre').onchange = libreVer;
-    if (c.id) db.from('contactos').select('cuenta_por_pedido').eq('id', c.id).maybeSingle().then(({ data }) => { libreAntes = !!(data && data.cuenta_por_pedido); if ($('komlibre')) { $('komlibre').checked = libreAntes; libreVer(); } });
-  }
-  const revisaDoc = () => {
-    const r = validarDoc($('konif').value, tipo);
-    $('konifm').innerHTML = r.ok ? '' : `<span style="color:var(--danger)">${esc(r.msg)}</span>`;
-    return r;
-  };
-  $('konif').oninput = revisaDoc;
-  $('dlg2body').querySelectorAll('[data-ktipo]').forEach(b => b.onclick = () => {
-    tipo = b.dataset.ktipo;
-    $('dlg2body').querySelectorAll('[data-ktipo]').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
-    $('konifl').textContent = tipo === 'Empresa' ? 'CIF' : 'DNI o NIE';
-    $('konoml').textContent = tipo === 'Empresa' ? 'Razón social' : 'Nombre y apellidos';
-    $('konif').placeholder = tipo === 'Empresa' ? 'B12345678' : '12345678Z';
-    $('koempw').classList.toggle('koinv', tipo === 'Empresa');   // v2.341.0: el hueco se queda (antes desaparecía y todo lo de debajo saltaba)
-    if ($('konif').value) revisaDoc();
-  });
-  $('kocancel').onclick = () => $('dlg2').close();
-  camposInsertar($('dlg2body'), 'cliente', c.id, $('kook') && $('kook').closest('.acts'));
-  if (conLlamada) llamadaAltaActivar(() => medico, op.llamada);
-  const crear = async (ev, conPedido) => {
-    if (!$('konom').value.trim()) { toast('Escribe el nombre', true); return; }
-    const ll = conLlamada ? llamadaAltaLeer() : null;
-    const cps = camposLeer($('dlg2'));
-    if (cps && cps.falta.length) { toast(`Rellena «${cps.falta[0]}»`, true); return; }
-    const doc = revisaDoc();
-    if (!doc.ok) { toast(tipo === 'Empresa' ? 'Revisa el CIF' : 'Revisa el DNI o NIE', true); return; }
-    ev.target.disabled = true; ev.target.textContent = 'Guardando…';
-    const { data: r, error } = await db.rpc('guardar_contacto', { p: {
-      id: c.id || null, nombre: $('konom').value.trim(), nif: doc.v, tipo,
-      direccion: $('kodir').value.trim(), cp: $('kocp').value.trim(), municipio: $('komun').value.trim(),
-      provincia: $('kopro').value.trim(), telefono: $('kotel').value.trim(), movil: $('komov').value.trim(),
-      email: $('komail').value.trim(), empresa: tipo === 'Empresa' ? '' : $('koemp').value.trim(), nota: $('konota').value.trim(),
-      cuenta_id: medico && !($('komlibre') && $('komlibre').checked) ? medico.id : null
-    }});
-    ev.target.disabled = false; ev.target.textContent = c.id ? 'Guardar' : conPedido ? '🛒 Crear y hacer pedido' : `Crear ${TT('paciente', 's', '', 'l', 'l')}`;
-    if (error && /cliente_duplicado/.test(error.hint || '')) { toast(error.message, true); if ($('konif')) $('konif').dispatchEvent(new Event('input')); return; }   // v2.225.0
-    if (error || (r && r.ok === false)) { toast('No se ha podido guardar', true); return; }
-    if (cps && !(await camposGuardar(cps, (r && r.contacto && r.contacto.id) || c.id))) return;
-    const libre = !!($('komlibre') && $('komlibre').checked);
-    if ($('komlibre') && libre !== libreAntes) {
-      const { data: ml, error: me } = await db.rpc('guardar_cuenta_por_pedido', { p_id: (r && r.contacto && r.contacto.id) || c.id, p_valor: libre });
-      if (me || (ml && ml.ok === false)) { toast('No se ha podido guardar la opción del profesional', true); return; }
-      if (libre && r && r.contacto) r.contacto.cuenta_id = null;
-    }
-    if (libre) medico = null;
-    $('dlg2').close(); toast(c.id ? `${TT('paciente', 's', '', 'l', 'C', 'guardado')}` : `${TT('paciente', 's', '', 'l', 'C', 'creado')}`);
-    const res = Object.assign({}, r.contacto, medico ? { medico: medico.nombre, medico_codigo: medico.codigo } : {});
-    // v2.119.0: la llamada queda registrada con el cliente recién creado (si se ha apuntado algo o se viene de una llamada)
-    let lid = null;
-    if (ll && (conPedido || ll.motivo || ll.resultado || ll.nota || op.llamada)) lid = await llamadaAltaGuardar(ll, { contacto_id: res.id, nombre: res.nombre,
-      telefono: res.movil || res.telefono || '', medico, resultado: conPedido ? (ll.resultado || 'Pedido hecho') : ll.resultado }, op.llamada);
-    if (conPedido) {
-      if (lid) LLAMADA_PEND = lid;
-      await editorPedido({ contacto: res, medico: medico ? { id: medico.id, nombre: medico.nombre } : null });
-      return;
-    }
-    if (alGuardar) alGuardar(res);
-    if (TAB === 'pacientes') listaPacientes();
-    if (lid && TAB === 'ventas' && PEDSEC === 'llamadas') pintarLlamadas();
-  };
-  $('kook').onclick = ev => crear(ev, false);
-  if ($('kopedido')) $('kopedido').onclick = ev => crear(ev, true);
-  // «No compra»: solo la llamada, sin crear el cliente, con lo apuntado de él
-  if ($('kosolo')) $('kosolo').onclick = async ev => {
-    const ll = llamadaAltaLeer();
-    const nombre = $('konom').value.trim(), telefono = $('komov').value.trim() || $('kotel').value.trim();
-    if (!nombre && !telefono) { toast('Apunta al menos su nombre o su teléfono', true); return; }
-    ev.target.disabled = true;
-    const datos = { tipo, nif: $('konif').value.trim(), email: $('komail').value.trim(), direccion: $('kodir').value.trim(), cp: $('kocp').value.trim(),
-      municipio: $('komun').value.trim(), provincia: $('kopro').value.trim(), empresa: $('koemp').value.trim(), nota: $('konota').value.trim() };
-    Object.keys(datos).forEach(k => { if (!datos[k]) delete datos[k]; });
-    const lid = await llamadaAltaGuardar(ll, { contacto_id: null, nombre, telefono, medico, resultado: ll.resultado, datos }, op.llamada);
-    ev.target.disabled = false;
-    if (!lid) return;
-    $('dlg2').close(); toast('Llamada registrada (sin crear cliente)');
-    if (TAB === 'ventas' && PEDSEC === 'llamadas') pintarLlamadas();
-  };
-  $('dlg2').showModal();
-}
 
 /* ---------------- módulos Pacientes y Productos ---------------- */
 
@@ -238,14 +108,7 @@ function editorContacto(c, alGuardar, op) {
 $('fcom').addEventListener('change', e => { F.com = e.target.value; buscar(true); });
 
 COLS.push({ k: 'comerciales', t: 'Comerciales', w: 190 });
-function colsConfig() {
-  let g = null;
-  try { g = JSON.parse(localStorage.getItem(colKey()) || 'null'); } catch (e) {}
-  if (!g || !g.length) g = COLS.map(c => ({ k: c.k, on: COLS_DEF.includes(c.k) || (c.k === 'comerciales' && VE_TODO()), w: c.w }));
-  COLS.forEach(c => { if (!g.some(x => x.k === c.k)) g.push({ k: c.k, on: c.k === 'comerciales' && VE_TODO(), w: c.w }); });
-  return g.filter(x => x.k !== 'comerciales' || VE_TODO());
-}
-function celda(m, k) {
+function celdaBase(m, k) {
   if (k === 'nombre') return `<span class="nm">${m.urgente ? '<span class="pill p-urg">Urgente</span> ' : ''}${m.sin_reporting ? `<span class="pill p-sr" title="Solo ${TT('visita', 's', '', 'l', 'l')} presencial: sin informes ni feedback">Sin reporting</span> ` : ''}${esc(m.nombre)}</span>`;
   if (k === 'dias') return `<span class="dias">${['L', 'M', 'X', 'J', 'V'].map(d =>
     `<span class="${(m.dias || {})[d] ? 'on' : ''}" title="${esc((m.dias || {})[d] || '')}">${d}</span>`).join('')}</span>`;
@@ -285,7 +148,7 @@ abrirEditor = (orig => async function (id, tipo) {
 
 /* ---------------- administración: asignar cartera viendo la lista ---------------- */
 
-async function asignarCartera(id) {
+async function asignarCarteraBase(id) {
   const u = USUARIOS.find(x => x.id === id); if (!u) return;
   const { data: op } = await db.rpc('opciones_filtros', {});
   const sel = lista => '<option value=""></option>' + ((lista || []).map(o => `<option value="${esc(o.v)}">${esc(o.v)} (${o.n})</option>`).join(''));

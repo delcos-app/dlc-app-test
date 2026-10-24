@@ -180,60 +180,6 @@ facturaPDF = async function (f, rectificaNum, cfgPrueba) {
   }
   return doc;
 };
-async function disenoPDF() {
-  const C = cfgPDF();
-  await cargarAjustes();
-  const sel = (k, ops) => `<div class="segs" data-pk="${k}">${ops.map(([v, t]) => `<button type="button" data-v="${v}" class="${C[k] === v ? 'on' : ''}">${t}</button>`).join('')}</div>`;
-  const chk = (k, t, sub) => `<label class="opt"><input type="checkbox" data-pc="${sub ? sub + '.' : ''}${k}" ${(sub ? C[sub][k] : C[k]) ? 'checked' : ''}> ${t}</label>`;
-  $('dbody').innerHTML = `<div class="fh"><div><h2>Diseño del PDF de la factura</h2><div class="sm">Los cambios se ven al momento en la vista previa. Las facturas ya emitidas se descargan con el diseño que haya en ese momento.</div></div>
-    <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-    <div class="pdfcfg" data-pagina="1"><div class="pdfops">
-      <h4>Logo</h4>${chk('logo', 'Mostrar el logo')}<div class="g2"><div><label>Posición</label>${sel('logoPos', [['izq', 'Izquierda'], ['der', 'Derecha']])}</div><div><label>Tamaño</label>${sel('logoTam', [['s', 'Pequeño'], ['m', 'Mediano'], ['l', 'Grande']])}</div></div>
-      <h4>Estilo</h4><div class="g2"><div><label for="pcol">Color de títulos y líneas</label><input type="color" id="pcol" value="${esc(C.color)}"></div><div><label>Tipografía</label>${sel('fuente', [['helvetica', 'Moderna'], ['times', 'Clásica']])}</div></div>
-      <label for="ptit">Título del documento</label><input id="ptit" value="${esc(C.titulo)}" maxlength="24">
-      <h4>Cabecera</h4>${chk('empresaCab', 'Datos de la empresa también en la cabecera (además del pie)')}<label>Cliente</label>${sel('clientePos', [['der', 'A la derecha'], ['izq', 'A la izquierda']])}
-      ${chk('vencimiento', 'Fecha de vencimiento')}${chk('direccion', 'Dirección de envío como referencia')}
-      <h4>Líneas</h4>${chk('fotos', 'Foto de cada producto')}<div class="pcols">${chk('precio', 'Precio', 'cols')}${chk('unidades', 'Unidades', 'cols')}${chk('subtotal', 'Subtotal', 'cols')}${chk('iva', 'IVA', 'cols')}${chk('total', 'Total', 'cols')}</div>
-      <h4>Pago y pie</h4>${chk('formaPago', 'Forma de pago')}${chk('iban', 'IBAN si se paga por transferencia')}${chk('pieTel', 'Teléfono de atención')}${chk('pieWeb', 'Web')}${chk('pieTexto', 'Texto del pie (Datos fiscales)')}${chk('paginas', 'Número de página')}
-      <h4>VeriFactu</h4><div class="sm">El código QR es obligatorio cuando VeriFactu está activo. Puedes elegir dónde va.</div>${sel('qrPos', [['abajo', 'Abajo'], ['arriba', 'Arriba']])}
-    </div><div class="pdfprev"><iframe id="pdfif" title="Vista previa del PDF"></iframe></div></div>
-    <div class="acts" style="justify-content:space-between"><button class="btn sec" id="pdfdef" type="button">Volver al diseño original</button>
-      <div style="display:flex;gap:8px"><button class="btn sec" data-cerrar>Cancelar</button><button class="btn" id="pdfok">Guardar diseño</button></div></div>`;
-  $('dlg').classList.add('amplia'); if (!$('dlg').open) $('dlg').showModal();
-  // v2.122.0: integrado en su pestaña (ordenador): sin cerrar, «Descartar cambios» vuelve a lo guardado y al guardar se queda
-  const enPagina = $('dlg').classList.contains('encajada');
-  if (enPagina) {
-    $('dlg').dataset.fija = '1';
-    $('dbody').querySelector('.fh .x').remove();
-    const c = $('dbody').querySelector('.acts [data-cerrar]'); c.removeAttribute('data-cerrar'); c.textContent = 'Descartar cambios';
-    c.onclick = () => disenoPDF();
-  } else if ((TAB === 'organizacion' && PAG_TAB.organizacion === 'pdf') || (TAB === 'config' && CFG_KEY === 'o.pdf')) {
-    // v2.124.0: en el móvil el diseño es una ventana; al cerrarla, la pestaña no se queda vacía con el cargador girando
-    $('dlg').dataset.depagina = '1';   // v2.136.0: se cierra al cambiar de pantalla
-    $('dlg').addEventListener('close', () => {
-      delete $('dlg').dataset.depagina;
-      const area = document.querySelector('#v-organizacion .pagcuerpo') || (TAB === 'config' ? $('cfgcuerpo') : null);
-      if (!area || !((TAB === 'organizacion' && PAG_TAB.organizacion === 'pdf') || (TAB === 'config' && CFG_KEY === 'o.pdf'))) return;
-      area.innerHTML = `<div class="card cfgpanel"><h2>Diseño del PDF de la factura</h2><p class="sm">Logo, colores, columnas y pie de las facturas, con vista previa.</p>
-        <div class="acts"><button class="btn" id="pdfabrir" type="button">Abrir el diseño del PDF</button></div></div>`;
-      $('pdfabrir').onclick = () => disenoPDF();
-    }, { once: true });
-  }
-  let T = null;
-  const pinta = () => { clearTimeout(T); T = setTimeout(async () => { const d = await facturaPDF(facturaEjemplo(), '', C); const u = d.output('bloburl'); $('pdfif').src = u + '#toolbar=0&navpanes=0&view=FitH'; }, 250); };
-  $('dbody').querySelectorAll('[data-pk]').forEach(g => g.querySelectorAll('button').forEach(b => b.onclick = () => { C[g.dataset.pk] = b.dataset.v; g.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); pinta(); }));
-  $('dbody').querySelectorAll('[data-pc]').forEach(i => i.onchange = () => { const [a, b] = i.dataset.pc.split('.'); if (b) C[a][b] = i.checked; else C[a] = i.checked; pinta(); });
-  $('pcol').oninput = () => { C.color = $('pcol').value; pinta(); };
-  $('ptit').oninput = () => { C.titulo = $('ptit').value.trim() || 'FACTURA'; pinta(); };
-  $('pdfdef').onclick = () => { Object.assign(C, JSON.parse(JSON.stringify(PDF_DEF))); disenoPDFCon(C); };
-  const disenoPDFCon = nuevo => { AJUSTES.__pdfTmp = nuevo; $('dlg').close(); setTimeout(() => { const g = AJUSTES.factura_pdf; AJUSTES.factura_pdf = nuevo; disenoPDF().then(() => { AJUSTES.factura_pdf = g; }); }, 50); };
-  $('pdfok').onclick = () => conCarga($('pdfok'), 'Guardando…', async () => {
-    const { data: r, error } = await db.rpc('guardar_ajuste', { p_clave: 'factura_pdf', p_valor: C });
-    if (error || !r || !r.ok) { toast('No se ha podido guardar el diseño', true); return; }
-    AJUSTES.factura_pdf = JSON.parse(JSON.stringify(C)); delete $('dlg').dataset.sucio; if (!enPagina) $('dlg').close(); toast('Diseño del PDF guardado');
-  });
-  pinta();
-}
 new MutationObserver(botonDisenoPDF).observe($('v-facturacion'), { childList: true, subtree: true });
 
 

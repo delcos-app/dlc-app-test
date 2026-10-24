@@ -181,7 +181,7 @@ $('frep').addEventListener('change', e => { F.rep = e.target.value; buscar(true)
 $('fest').addEventListener('change', e => { F.est = e.target.value; buscar(true); });
 $('forden').addEventListener('change', e => { F.orden = e.target.value; buscar(true); });
 
-function pintarChips() {
+function pintarChipsBase() {
   const c = [];
   if (F.q) c.push(['q', 'Búsqueda: ' + F.q]);
   if (F.prov) c.push(['prov', F.prov]);
@@ -206,50 +206,6 @@ $('chips').addEventListener('click', e => {
 
 /* ---------------- directorio ---------------- */
 
-async function buscar(reiniciar) {
-  if (typeof MODO_MAPA !== 'undefined' && MODO_MAPA && reiniciar) setTimeout(() => pintarMapa(), 10);
-  if (reiniciar) F.pagina = 0;
-  const yo = ++BUSQ_N;
-  cargando($('lista'), 'Buscando ' + etiquetaContactos().toLowerCase() + '…');
-  $('cuenta').textContent = 'Buscando…';
-  const t0 = performance.now();
-  const params = {
-    q: F.q || null, f_provincia: F.prov || null, f_municipio: F.muni || null,
-    f_estado: F.est || null, f_especialidad: F.esp || null, f_area: null,
-    f_urgentes: F.urg, f_mios: !!F.mios, f_sin_visitar: !!F.sin, f_comercial: F.com || null, f_reporting: F.rep || null,
-    ...(F.tipo ? { f_tipo: F.tipo } : {}),
-    orden: F.orden, lim: tamPagina(), desplaz: F.pagina * tamPagina(),
-    ...(Object.keys(F.campos || {}).length ? { f_campos: F.campos } : {})
-  };
-  let { data, error } = await db.rpc('buscar_cuentas', params);
-  if (yo !== BUSQ_N) return;   // ya hay una búsqueda más reciente
-  // Si falla (móvil que vuelve del segundo plano, cobertura), se reintenta una vez al momento antes de avisar
-  if (error || !data) {
-    ({ data, error } = await db.rpc('buscar_cuentas', params));
-    if (yo !== BUSQ_N) return;
-  }
-
-  if (error || !data) {
-    $('cuenta').textContent = '';
-    $('lista').innerHTML = `<div class="vacio">No se ha podido cargar la lista${error && /abort/i.test(error.message || '') ? ' (la conexión no responde)' : ''}.<br><button class="btn sec" type="button" id="dirreint" style="margin-top:10px">Reintentar</button></div>`;
-    $('dirreint').onclick = () => buscar(true);
-    return;
-  }
-
-  F.total = data.total;
-  const ms = Math.round(performance.now() - t0);
-  $('cuenta').innerHTML = `<b>${num(data.total)}</b> ${esc(etiquetaContactos().toLowerCase())} <span class="sm">· ${ms} ms</span>`;
-  pintarChips();
-
-  const filas = data.filas || [];
-  if (!filas.length) { $('lista').innerHTML = `<div class="vacio">Ningún registro cumple estos filtros.</div>`; $('thead').innerHTML = ''; }
-  else { cabeceraTabla(); $('lista').innerHTML = filas.map(filaTabla).join(''); }
-
-  paginador($('dirpag'), data.total, F.pagina, p => {
-    F.pagina = p; buscar(false);
-    $('tabla').scrollIntoView({ block: 'start', behavior: 'smooth' });
-  }, () => buscar(true));
-}
 
 
 
@@ -286,14 +242,6 @@ const leyendaUnidades = k => ({ semana: 'barras: últimas 12 semanas', mes: 'bar
 
 
 
-/* v2.96.0 · «Para la visita»: lo que hace falta al llegar, arriba del todo.
-   Dónde (centro, planta, sala, cómo llegar), cuándo (su horario de hoy y el del centro), cómo entrar,
-   lo que quedó pendiente en la última visita, las notas y a quién llamar. Las ventas van al final. */
-// La consulta de la visita: la que tiene consulta hoy; si ninguna, la principal
-function consultaDeLaVisita(cons) {
-  const hoy = hoyLetra();
-  return (cons || []).find(c => (c.dias || {})[hoy]) || (cons || [])[0] || null;
-}
 
 $('ficha').addEventListener('click', e => { if (e.target.id === 'ficha') $('ficha').close(); });
 

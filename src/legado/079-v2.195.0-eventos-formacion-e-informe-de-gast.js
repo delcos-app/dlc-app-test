@@ -90,14 +90,6 @@ $('ficha').addEventListener('close', () => { if (TAB === 'ciclo' && $('cfgcuerpo
 try { menuCiclo(); } catch (e) {}
 // v2.199.0: la cobertura por producto va en los planes Comercial, Empresa y A medida (decisión de Eric, como en la web)
 PLAN_SECCIONES.cobertura = ['comercial', 'empresa', 'medida'];
-async function productosPromocionados() {
-  if (!navigator.onLine) return PROMO_PRODS || [];   // v2.259.0: sin red, la última lista leída
-  try {
-    const { data, error } = await db.from('productos').select('id,nombre,estado').eq('promocionado', true).order('nombre');
-    if (!error) PROMO_PRODS = (data || []).filter(p => (p.estado || 'Activo') !== 'Descatalogado').map(p => ({ id: p.id, nombre: p.nombre }));
-  } catch (e) {}
-  return PROMO_PRODS || [];
-}
 editorProducto = (orig => function (p, ...r) {
   const x = orig.call(this, p, ...r);
   setTimeout(async () => {

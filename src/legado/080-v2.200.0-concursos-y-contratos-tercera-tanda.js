@@ -171,33 +171,13 @@ irEnlace = (orig => function (e) {
   return orig.call(this, e);
 })(irEnlace);
 
-cargarAdmin = (orig => async function (...a) {
+async function cargarAdmin(...a) {
   if (TAB === 'usuarios' && PAGINAS.usuarios) { cargarPagina('usuarios'); return; }
   if (TAB === 'config' && ['usuarios', 'roles'].includes(CFG_KEY)) { cargarConfig(); return; }
   if (!$('v-admin')) return;
-  return orig.apply(this, a);
-})(cargarAdmin);
+  return cargarAdminBase.apply(this, a);
+}
 
-editarVisita = (orig => async function (v, ...r) {
-  const res = await orig.call(this, v, ...r);
-  try {
-    const ok = $('evok'), d = $('dbody'); if (!ok || !d || $('evmodo')) return res;
-    const { data: act } = await db.from('actividades').select('modo,productos').eq('id', v.id).maybeSingle();
-    const modo = (act && act.modo) || 'presencial', sel = (act && act.productos) || [];
-    let prods = [];
-    if (planIncluyeSeccion('cobertura')) { prods = await productosPromocionados(); const falta = sel.filter(id => !prods.some(p => p.id === id));
-      if (falta.length) { const { data: x } = await db.from('productos').select('id,nombre').in('id', falta); prods = prods.concat(x || []); } }
-    if (!$('evok') || $('evmodo')) return res;
-    EV_EXTRA = { id: v.id, modo, productos: sel.slice() };
-    const ancla = $('evf') ? $('evf').closest('.g2') : null; if (!ancla) return res;
-    ancla.insertAdjacentHTML('afterend', `<label>Cómo fue</label>
-      <div class="segs" id="evmodo" role="group" aria-label="Cómo fue">${MODOS_VISITA.map(([k, t]) => `<button type="button" data-evmodo="${k}" class="${k === modo ? 'on' : ''}" aria-pressed="${k === modo}">${t}</button>`).join('')}</div>
-      ${prods.length ? `<label>Productos presentados</label><div class="opciones" id="evprods">${prods.map(p => `<button type="button" class="opt" data-evprod="${p.id}" aria-pressed="${sel.includes(p.id)}"><span class="mk"></span>${esc(p.nombre)}</button>`).join('')}</div>` : ''}`);
-    d.querySelectorAll('[data-evmodo]').forEach(b => b.onclick = () => { EV_EXTRA.modo = b.dataset.evmodo; d.querySelectorAll('[data-evmodo]').forEach(x => { x.classList.toggle('on', x === b); x.setAttribute('aria-pressed', String(x === b)); }); });
-    d.querySelectorAll('[data-evprod]').forEach(b => b.onclick = () => { b.setAttribute('aria-pressed', String(b.getAttribute('aria-pressed') !== 'true')); EV_EXTRA.productos = [...d.querySelectorAll('[data-evprod][aria-pressed=true]')].map(x => x.dataset.evprod); });
-  } catch (e) {}
-  return res;
-})(editarVisita);
 db.rpc = (orig => function (fn, args, ...r) {
   if (fn === 'actualizar_actividad' && EV_EXTRA && args && args.p && args.p.id === EV_EXTRA.id) {
     args = Object.assign({}, args, { p: Object.assign({}, args.p, { modo: EV_EXTRA.modo }, $('evprods') ? { productos: EV_EXTRA.productos } : {}) });

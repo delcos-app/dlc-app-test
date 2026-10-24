@@ -7,25 +7,25 @@
    Sin SQL: unificar_cuentas ya junta todo lo que cuelga de la ficha (consultas, visitas, citas, cartera…).
    ============================================================ */
 let DUP_TIPO = {}, DUP_PEST = 'Persona';
-pintarListasDup = (orig => function () {
+function pintarListasDup() {
   if (!$('dpendc')) return;
   const p0 = DUP_PEND, q0 = DUP_PARES;
   const cuenta = t => p0.filter(x => dupTipoDe(x.id) === t).length + q0.filter(p => dupTipoDe(p.a_id) === t).length;
   DUP_PEND = p0.filter(x => dupTipoDe(x.id) === DUP_PEST); DUP_PARES = q0.filter(p => dupTipoDe(p.a_id) === DUP_PEST);
-  try { orig(); } finally { DUP_PEND = p0; DUP_PARES = q0; }
+  try { pintarListasDupBase(); } finally { DUP_PEND = p0; DUP_PARES = q0; }
   const grid = document.querySelector('#v-duplicados .dupgrid');
   if (grid && !$('duppest')) grid.insertAdjacentHTML('beforebegin', '<div class="segs duppest" id="duppest" role="group" aria-label="Tipo de ficha"></div>');
   if ($('duppest')) $('duppest').innerHTML = [['Persona', TT('medico', 'p', '', 'l', 'C')], ['Centro', 'Centros']].map(([k, t]) =>
     `<button type="button" data-dpest="${k}" class="${DUP_PEST === k ? 'on' : ''}" aria-pressed="${DUP_PEST === k}">${esc(t)} <span class="n">${num(cuenta(k))}</span></button>`).join('');
-})(pintarListasDup);
+}
 document.addEventListener('click', e => {
   const b = e.target.closest('#duppest [data-dpest]'); if (!b) return;
   DUP_PEST = b.dataset.dpest; DUP_ACTUAL = null; pintarListasDup(); panelDupVacio('');
 });
 
 // Comparar: los centros (consultas) a conservar y, si son centros, su dirección y sus profesionales
-compararEn = (orig => async function (el, idA, idB) {
-  await orig.call(this, el, idA, idB);
+async function compararEn(el, idA, idB) {
+  await compararEnBase.call(this, el, idA, idB);
   const btn = el.querySelector('#duniok'); if (!btn) return;
   const [{ data: A }, { data: B }, { data: tip }] = await Promise.all([db.rpc('ficha_cuenta', { p_id: idA }), db.rpc('ficha_cuenta', { p_id: idB }),
     db.from('cuentas').select('id, tipo, centro_id, nombre').in('id', [idA, idB])]);
@@ -65,7 +65,7 @@ compararEn = (orig => async function (el, idA, idB) {
     DUP_TRAS = { quitar: q, esCentro, a: t[idA] || {}, b: t[idB] || {} };
   };
   el.addEventListener('click', el.__dupClic, true);
-})(compararEn);
+}
 db.rpc = (orig => function (fn, args, ...r) {
   const res = orig.call(this, fn, args, ...r);
   if (fn !== 'unificar_cuentas' || !DUP_TRAS || !res || typeof res.then !== 'function') return res;

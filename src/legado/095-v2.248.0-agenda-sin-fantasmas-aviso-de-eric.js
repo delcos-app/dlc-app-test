@@ -15,10 +15,6 @@ rpcCache = (orig => function (fn, params, clave, ...x) {
   if (AG_PRE.size && fn === 'agenda_rango' && params) { const k = agK(fn, params.p_desde, params.p_hasta, params.p_usuario); if (AG_PRE.has(k)) return Promise.resolve(AG_PRE.get(k)); }
   return orig.call(this, fn, params, clave, ...x);
 })(rpcCache);
-bloqueadosSemana = (orig => function (d, h, ...x) {
-  const k = agK('bloq', d, h, agUid()); if (AG_PRE.has(k)) return Promise.resolve(AG_PRE.get(k));
-  return orig.call(this, d, h, ...x);
-})(bloqueadosSemana);
 
 
 // ---- «Tu día» con sus bandejas y «En este centro también», de una vez
@@ -62,24 +58,6 @@ agVerDia = async function (f) {
   if (top < 80 || top > innerHeight * 0.6) scrollTo({ top: scrollY + top - 90, behavior: 'smooth' });
 };
 
-// ---- Cinta: datos, «⋯» de cada día y semana desplegada, de una vez
-agCinta = (orig => async function () {
-  if (!agN()) return;
-  if (!CINTA_INI) CINTA_INI = lunesCinta(AG_FECHA || hoyISO());
-  return agConDatos([...agCintaCargas(), ...(AG_SEM_ABIERTA ? agSemCargas(AG_FECHA) : [])], async () => {
-    await orig();
-    if (!agN() || !$('agcinta')) return;
-    await agMenusCinta();
-    if (AG_SEM_ABIERTA) await agPintarSemanaExp();
-    agBotonSemana();
-    const b = $('cmesb'); if (b) b.onclick = e => { e.stopPropagation(); agMesPop(); };
-    const h = $('choy'); if (h) h.onclick = () => { CINTA_INI = null; agVerDia(hoyISO()); };
-  });
-})(agCinta);
-agSemanaLateral = (orig => function (...a) {
-  if (!agN()) return orig.apply(this, a);
-  return agConDatos(agSemCargas(AG_FECHA), () => orig.apply(this, a));
-})(agSemanaLateral);
 agPintarSemanaExp = (orig => function (...a) {
   if (!agN()) return orig.apply(this, a);
   return agConDatos(AG_SEM_ABIERTA ? agSemCargas(AG_FECHA) : [], () => orig.apply(this, a));

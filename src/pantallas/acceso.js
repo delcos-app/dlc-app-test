@@ -123,3 +123,13 @@ let MED_ACCESO = null;
 const claveAnchos = tipo => `ht-anchos-${(PERFIL || {}).id || ''}-${tipo}`;
 
 let PAG_CLAVE = '';
+
+function mostrarLoginBase(msg) {
+  $('bootsplash').classList.add('hide');
+  $('app').classList.add('hide');
+  $('login').classList.remove('hide');
+  if (msg) $('lmsg').textContent = msg;
+  APP_VISIBLE = false;
+}
+
+function mostrarLogin(...a) { document.body.classList.add('sin-sesion'); return mostrarLoginBase.apply(this, a); }

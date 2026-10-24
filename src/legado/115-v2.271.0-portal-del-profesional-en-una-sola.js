@@ -40,16 +40,6 @@ document.addEventListener('focusout', e => { const x = e.target.closest && e.tar
 
 
 
-// ——— Material y dudas: las tarjetas de siempre, en su pestaña, con su ayuda ———
-portalMedico = (orig => async function (...a) {
-  const r = await orig.apply(this, a);
-  if (!ES_MEDICO()) return r;   // v2.282.0: también el centro
-  const c = $('mdcons'); if (c) c.remove();   // la constancia va en el Resumen
-  const ay = { mdmat: ['Pedir material', 'Pide el material que te ofrece la empresa (folletos, catálogos…). Le llega a tu comercial, que te lo entrega; mientras está pendiente lo puedes anular.'],
-    mdmsg: ['Dudas a tu comercial', 'Escribe a tu comercial cualquier duda. Te contestará aquí y te llegará un aviso.'] };
-  Object.entries(ay).forEach(([id, [t, x]]) => { const h = document.querySelector('#' + id + ' > h2'); if (h && !h.querySelector('.ai')) h.insertAdjacentHTML('beforeend', ' ' + pmAyu(t, x)); });
-  return r;
-})(portalMedico);
 
 // ——— Sin manual, sin «Inicio» y Configuración con lo suyo ———
 arbolCfgUnico = (orig => function (...a) {

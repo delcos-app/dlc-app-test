@@ -10,24 +10,13 @@
    - Fuera «Repartir la semana» (Eric: no aporta).
    ============================================================ */
 var AG_HOY_VISTO = null;
-agBandejas = (orig => function (...x) {
-  const r = orig.apply(this, x);
-  const b = $('agband'), acts = document.querySelector('#agcuerpo .tdhead .acts');
-  // v2.338.0 (Eric): en el móvil también en una fila (antes, cada uno en la suya); «Volver a hoy» va delante
-  const hoy = $('agahoy'); if (hoy && acts && !matchMedia('(min-width: 761px)').matches && acts.firstElementChild !== hoy) acts.prepend(hoy);
-  if (b && acts) {
-    b.classList.add('agbandin'); acts.appendChild(b);
-    b.querySelectorAll('button').forEach(x => x.childNodes.forEach(n => { if (n.nodeType === 3 && /días anteriores/.test(n.textContent)) n.textContent = n.textContent.replace('de días anteriores', 'anteriores'); }));
-  }
-  return r;
-})(agBandejas);
-alternarUrgente = (orig => async function (id, ...x) {
-  const r = await orig.call(this, id, ...x);
+async function alternarUrgente(id, ...x) {
+  const r = await alternarUrgenteBase.call(this, id, ...x);
   invalidarCache(); try { DB_PRE.clear(); } catch (e) {}
   if (TAB === 'directorio') buscar(true);
   if (TAB === 'agenda' && typeof agRefrescoQuieto === 'function') agRefrescoQuieto();
   return r;
-})(alternarUrgente);
+}
 pintarTuDia = (orig => async function (...x) { const r = await orig.apply(this, x); tdPlegarTareas(); return r; })(pintarTuDia);
 
 

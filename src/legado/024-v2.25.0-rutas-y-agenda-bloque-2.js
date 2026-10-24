@@ -18,7 +18,7 @@
 /* ---------------- Tu día: horas estimadas respetando las consultas ---------------- */
 
 
-function estimarDia(citas, fecha) {
+function estimarDiaBase2(citas, fecha) {
   const h = horDeCitas(citas);
   const r = conHor(h, () => estimarDiaBase(citas, fecha));
   if (!h || !h.vuelta) r.tope = Infinity;   // sin hora de vuelta planificada no hay aviso

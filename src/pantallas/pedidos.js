@@ -910,3 +910,460 @@ let TPV_MIRA = null;
 
 // Datos públicos del entorno de pruebas de Redsys (no cobran nada)
 const TPV_PRUEBAS = { comercio: '999008881', terminal: '1', clave: 'sq7HjrUOBfKmC576ILgskD5srU870gJ7' };
+
+async function editorPedidoBase(pedido) {
+  if (!PRODUCTOS.length) await cargarProductos();
+  const ped = pedido && pedido.pedido ? pedido.pedido : null;
+  // v2.322.0: un pedido confirmado se edita entero mientras no tenga factura
+  if (ped && (ped.estado === 'Anulado' || (ped.estado !== 'Borrador' && ped.factura_id))) { toast(ped.factura_id ? 'Ese pedido ya tiene factura: para cambiarlo, haz una rectificativa' : 'Un pedido anulado no se puede editar', true); return; }
+  // v2.200.0: con un contrato en vigor de la ficha, el precio es el adjudicado
+  await cargarPreciosContrato((pedido && ((pedido.medico && pedido.medico.id) || (pedido.lineas && pedido.lineas[0] && pedido.lineas[0].cuenta_id) || (pedido.contacto && pedido.contacto.cuenta_id))) || null);
+  const prod = id => conPrecioContrato(PRODUCTOS.find(p => p.id === id) || {});
+  let lineas = pedido && pedido.lineas && pedido.lineas.length
+    ? pedido.lineas.map(l => ({ producto_id: l.producto_id, producto: l.producto, unidades: l.unidades, importe: l.importe,
+        descuento: l.descuento || 0, iva: l.iva != null ? +l.iva : prod(l.producto_id).iva,
+        // Solo es manual si el importe no coincide con precio × unidades
+        manual: prod(l.producto_id).precio == null || r2(prod(l.producto_id).precio * l.unidades) !== r2(l.importe) }))
+    : [{ producto_id: productoPorDefecto(), unidades: 1, descuento: 0 }];
+  let medico = pedido && pedido.medico ? pedido.medico
+    : (pedido && pedido.lineas && pedido.lineas[0] && pedido.lineas[0].cuenta_id ? { id: pedido.lineas[0].cuenta_id, nombre: pedido.lineas[0].medico } : null);
+  let contacto = pedido && pedido.contacto ? pedido.contacto : null;
+  if (!medico && contacto && contacto.cuenta_id) medico = { id: contacto.cuenta_id, nombre: contacto.medico || `${TT('medico', 's', '', 'l', 'C')} ${TT('paciente', 's', 'del', 'l', 'l')}`, codigo: contacto.medico_codigo || '' };
+  const autoImporte = l => { const p = prod(l.producto_id); if (!l.manual && p.precio != null) l.importe = r2(p.precio * (+l.unidades || 0)); if (l.iva == null || !l.manualIva) l.iva = p.iva != null ? +p.iva : l.iva; };
+  lineas.forEach(l => { if (l.importe == null) autoImporte(l); if (l.iva == null) l.iva = prod(l.producto_id).iva || 0; });
+  // Datos del formulario que se conservan al repintar
+  const form = { fecha: ped ? ped.fecha : hoyISO(), canal: ped ? ped.canal : 'paciente', forma_pago: ped ? ped.forma_pago : '',
+    descuento: ped ? (ped.descuento || 0) : 0, descuento_tipo: ped ? ped.descuento_tipo : 'porcentaje', nota: ped ? ped.nota || '' : '',
+    cuenta_texto: ped ? ped.cuenta_texto || '' : '',
+    servicio_id: ped ? (ped.envio ? (ped.servicio_id || ((SERVICIOS[0] || {}).id) || '') : '') : ((SERVICIOS.find(x => x.por_defecto && x.activo) || {}).id || ''),
+    envio: ped ? !!ped.envio : !!SERVICIOS.find(x => x.por_defecto && x.activo),
+    envio_iva: ped && ped.envio ? +ped.envio_iva : +((SERVICIOS.find(x => x.por_defecto && x.activo) || {}).iva ?? 21),
+    envio_con: ped && ped.envio ? r2(+ped.envio_base * (1 + (+ped.envio_iva || 0) / 100)) : +((SERVICIOS.find(x => x.por_defecto && x.activo) || {}).pvp || 0),
+    // v2.115.0: origen (web o no) y referencia del pago
+    origen: ['web', 'portal'].includes((ped || pedido || {}).origen) ? (ped || pedido).origen : 'manual', pago_referencia: ped ? ped.pago_referencia || '' : '',
+    sin_cargo: ped ? !!ped.sin_cargo : false,   // v2.317.0
+    reportar: ped ? !!ped.reportar_profesional : false };   // v2.328.0: por defecto no se reporta
+  const justifs = [];   // v2.115.0: justificantes elegidos, se suben al guardar
+  const leerForm = () => {
+    if (!$('pfecha')) return;
+    Object.assign(form, { fecha: $('pfecha').value, canal: $('pcan').value, forma_pago: $('ppago').value,
+      descuento: $('pdto').value, descuento_tipo: $('pdtot').value, nota: $('pnota').value,
+      envio: $('penv').checked, envio_con: +$('penvi').value || 0, envio_iva: +$('penvv').value || 0, servicio_id: $('pserv').value,
+      cuenta_texto: $('pselmed') ? ($('pselmed').__texto || '') : form.cuenta_texto,
+      origen: $('porig') ? $('porig').value : form.origen, pago_referencia: $('pref') ? $('pref').value : form.pago_referencia,
+      sin_cargo: $('psincargo') ? $('psincargo').checked : form.sin_cargo, reportar: $('prepprof') ? $('prepprof').checked : form.reportar });
+  };
+
+  const pinta = () => {
+    leerForm();
+    $('dbody').innerHTML = `
+      <div class="fh"><div><h2>${ped ? (ped.estado === 'Confirmado' ? 'Editar pedido' : 'Editar borrador') : 'Nuevo pedido'}</h2>
+        <div class="sm">Escribe los importes con IVA: la base y el IVA se calculan solos.</div></div>
+        <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
+      <div class="g2">
+        <div><label for="pfecha">Fecha</label><input id="pfecha" type="date" value="${esc(form.fecha)}"></div>
+        <div><label for="pcan">Canal</label><select id="pcan">
+          <option value="paciente" ${form.canal !== 'centro' ? 'selected' : ''}>Venta ${TT('paciente', 's', 'al', 'l', 'l')}</option>
+          <option value="centro" ${form.canal === 'centro' ? 'selected' : ''}>Venta a centro (con descuento)</option></select></div>
+      </div>
+      <div class="g2"><div><label for="porig">Origen</label><select id="porig">
+          <option value="manual">Comercial, teléfono o correo</option>
+          <option value="web" ${form.origen === 'web' ? 'selected' : ''}>Pedido por la web</option>${form.origen === 'portal' ? '<option value="portal" selected>Portal del centro</option>' : ''}</select></div><div></div></div>
+      <div id="zonapac" class="${form.canal === 'centro' ? 'escentro' : ''}">
+        <label class="solopac">${TT('paciente', 's', '', 'l', 'C')}</label><div id="pselpac" class="solopac"></div>
+        <label><span class="solopac">${TT('medico', 's', '', 'l', 'C')} de referencia</span><span class="solocen">Centro que compra</span></label><div id="pselmed"></div>
+        <div class="sm" style="margin-top:4px"><span class="solopac">Si no lo encuentras, deja el nombre escrito: el pedido quedará pendiente de atribuir.</span><span class="solocen">Elige su ficha (de tipo centro): las unidades cuentan para el centro y su comercial.</span></div>
+        <label class="opt solopac prepbox"><input type="checkbox" id="prepprof" ${form.reportar ? 'checked' : ''}> Reportar ${esc(TT('medico', 's', 'al', 'l', 'l'))}</label>
+      </div>
+      <label>Líneas</label>
+      <div id="plineas">${lineas.map((l, i) => `<div class="lin" data-li="${i}">
+        <div class="lrow">
+          <div><label>Producto</label><select data-f="producto_id">${opcionesProducto(l.producto_id, l.producto)}</select></div>
+          <div><label>Unidades</label><input data-f="unidades" type="number" min="1" value="${l.unidades}"></div>
+          <div><label>Importe con IVA</label><input data-f="importeiva" type="number" step="0.01" min="0" value="${l.importe != null ? r2(l.importe * (1 + (+l.iva || 0) / 100)) : ''}"></div>
+          <div><label>% dto.</label><input data-f="descuento" type="number" step="1" min="0" max="100" value="${l.descuento || 0}"></div>
+          <div>${lineas.length > 1 ? `<button type="button" class="btn sec" data-lx="${i}" aria-label="Quitar línea">✕</button>` : ''}</div>
+        </div>
+        <div class="ldes" data-des="${i}"></div></div>`).join('')}</div>
+      <div class="acts" style="margin-top:0"><button type="button" class="btn sec" id="plmas">+ Añadir línea</button></div>
+      <div class="pscbox"><label class="opt"><input type="checkbox" id="psincargo" ${form.sin_cargo ? 'checked' : ''}> Entrega sin cargo (muestra)</label>
+        <span class="sm">Las unidades cuentan ${esc(TT('medico', 's', 'al', 'l', 'l'))} de referencia y salen del stock, pero no es una venta: 0 €, sin factura, sin cobro y sin comisión.</span></div>
+      <div class="g2 pscg2">
+        <div><label for="ppago">Forma de pago</label><select id="ppago"><option value=""></option>
+          ${(CAT.forma_pago || []).map(x => `<option ${form.forma_pago === x.valor ? 'selected' : ''}>${esc(x.valor)}</option>`).join('')}</select></div>
+        <div><label for="pdto">Descuento general</label>
+          <div style="display:flex;gap:6px"><input id="pdto" type="number" min="0" step="0.01" value="${esc(form.descuento)}">
+            <select id="pdtot" style="max-width:110px"><option value="porcentaje">%</option>
+              <option value="importe" ${form.descuento_tipo === 'importe' ? 'selected' : ''}>€</option></select></div></div>
+      </div>
+      <div id="ppagox" class="pagofila ${form.forma_pago ? '' : 'hide'}">
+        <div class="pagoref"><label for="pref">Referencia del pago</label><input id="pref" value="${esc(form.pago_referencia)}" placeholder="Código de la transferencia, bizum…"></div>
+        <span id="ptrfbox" class="pagoacc ${esTransferencia(form.forma_pago) && !(ped && ped.estado === 'Confirmado') ? '' : 'hide'}"><button type="button" class="btn sec" id="ptrfmail">Enviar los datos de pago</button>
+          ${pmAyu('Pago por transferencia', 'Envía al cliente los datos de pago y el pedido se guarda en borrador. Cuando llegue el pago, lo confirmas desde el pedido.')}</span>
+        <span id="ptpvbox" class="pagoacc ${tpvActivo() && esPagoTpv(form.forma_pago) && !(ped && ped.estado === 'Confirmado') ? '' : 'hide'}"><button type="button" class="btn sec" id="ptpvenv">Enviar enlace de pago</button>
+          ${pmAyu('Pago con tarjeta o Bizum', 'Al cliente le llega por SMS el enlace y elige cómo pagar. El pedido espera en borrador y, cuando paga, se confirma solo y queda cobrado con la forma de pago que haya usado.')}</span>
+        <div><label>Justificante (foto o PDF)</label><label class="btn sec" style="display:inline-flex">📎 Adjuntar<input id="pjus" type="file" accept="image/*,application/pdf" data-fp="1" hidden></label>
+          <div class="sm" id="pjusl">${justifs.map((j, i) => `<span class="jusp">📎 ${esc(j.nombre)} <button type="button" class="lnk" data-jx="${i}" aria-label="Quitar ${esc(j.nombre)}">quitar</button></span>`).join(' ')}</div></div>
+      </div>
+      <div class="envbox">
+        <label for="pserv" style="margin-top:0">Servicio</label>
+        <select id="pserv"><option value="">Sin servicio</option>${SERVICIOS.filter(x => x.activo || x.id === form.servicio_id).map(x =>
+          `<option value="${x.id}" ${form.servicio_id === x.id ? 'selected' : ''}>${esc(x.nombre)} · ${eurI(x.pvp || 0)} con IVA</option>`).join('')}</select>
+        <input type="checkbox" id="penv" class="hide" ${form.envio ? 'checked' : ''}>
+        <div class="g2 ${form.envio ? '' : 'hide'}" id="penvd">
+          <div><label for="penvi">Importe del servicio con IVA (€)</label><input id="penvi" type="number" step="0.01" min="0" value="${esc(form.envio_con)}"></div>
+          <div><label for="penvv">IVA del servicio (%)</label><input id="penvv" type="number" step="1" min="0" max="21" value="${esc(form.envio_iva)}"></div></div>
+      </div>
+      <div class="totbox" id="ptot"></div>
+      <label for="pnota">Nota</label><input id="pnota" value="${esc(form.nota)}">
+      <div class="acts" style="justify-content:flex-end">
+        <button class="btn sec" data-cerrar>Cancelar</button>
+        <button class="btn sec ${ped && ped.estado === 'Confirmado' ? 'hide' : ''}" id="pborr">Guardar borrador</button>
+        <button class="btn" id="pvalid">${ped && ped.estado === 'Confirmado' ? 'Guardar cambios' : 'Guardar y confirmar'}</button></div>`;   // v2.322.0
+
+    const desglose = () => {
+      if ($('psincargo') && $('psincargo').checked) lineas.forEach(l => { l.descuento = 100; });   // v2.317.0
+      lineas.forEach((l, i) => {
+        const d = lineaDesglose(l), el = $('plineas').querySelector(`[data-des="${i}"]`);
+        if (el) el.innerHTML = `<span>Base <b>${eurI(d.base)}</b></span><span>IVA ${num(l.iva || 0)}% <b>${eurI(d.iva)}</b></span><span>Total <b>${eurI(d.total)}</b></span>
+          ${prod(l.producto_id).precio != null ? `<span>Precio unidad ${eurI(prod(l.producto_id).precio * (1 + (+prod(l.producto_id).iva || 0) / 100))} con IVA</span>` : ''}${prod(l.producto_id).contrato ? `<span class="pill p-est" title="${esc(prod(l.producto_id).contrato)}">Precio de concurso</span>` : ''}`;
+      });
+      $('penvd').classList.toggle('hide', !$('penv').checked);
+      $('ptot').innerHTML = bloqueTotales(totalesPedido(lineas, +$('pdto').value || 0, $('pdtot').value,
+        { on: $('penv').checked, con: +$('penvi').value || 0, iva: +$('penvv').value || 0,
+          nombre: ((SERVICIOS.find(x => x.id === $('pserv').value) || {}).nombre) || 'Servicio' }));
+    };
+
+    $('plineas').oninput = $('plineas').onchange = e => {
+      const box = e.target.closest('[data-li]'); if (!box) return;
+      const l = lineas[+box.dataset.li], f = e.target.dataset.f;
+      if (!f) return;
+      l[f] = f === 'producto_id' ? e.target.value : (e.target.value === '' ? null : +e.target.value);
+      if (f === 'importeiva') { l.importe = e.target.value === '' ? null : +e.target.value / (1 + (+l.iva || 0) / 100); delete l.importeiva; l.manual = true; }
+      if (f === 'producto_id') { l.manual = false; l.iva = prod(l.producto_id).iva || 0; }
+      if (f === 'producto_id' || f === 'unidades') {
+        autoImporte(l);
+        box.querySelector('[data-f="importeiva"]').value = l.importe != null ? r2(l.importe * (1 + (+l.iva || 0) / 100)) : '';
+      }
+      desglose();
+    };
+    $('plmas').onclick = () => { lineas.push({ producto_id: productoPorDefecto(), unidades: 1, descuento: 0 }); autoImporte(lineas[lineas.length - 1]); pinta(); };
+    $('plineas').querySelectorAll('[data-lx]').forEach(b => b.onclick = () => { lineas.splice(+b.dataset.lx, 1); pinta(); });
+    $('pcan').onchange = () => $('zonapac').classList.toggle('escentro', $('pcan').value === 'centro');
+    $('ppago').onchange = () => { $('ppagox').classList.toggle('hide', !$('ppago').value); $('ptrfbox').classList.toggle('hide', !esTransferencia($('ppago').value) || !!(ped && ped.estado === 'Confirmado'));
+      $('ptpvbox').classList.toggle('hide', !(tpvActivo() && esPagoTpv($('ppago').value)) || !!(ped && ped.estado === 'Confirmado')); };   // v2.314.0 y v2.333.0
+    $('pjus').onchange = async e => {
+      const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+      const j = await leerJustificante(f); if (!j) return;
+      justifs.push(j); pinta();
+    };
+    $('dbody').querySelectorAll('[data-jx]').forEach(b => b.onclick = () => { justifs.splice(+b.dataset.jx, 1); pinta(); });
+    ['pdto', 'pdtot', 'penv', 'penvi', 'penvv'].forEach(id => $(id).oninput = $(id).onchange = desglose);
+    $('pserv').onchange = () => {
+      const sv = SERVICIOS.find(x => x.id === $('pserv').value);
+      $('penv').checked = !!sv;
+      if (sv) { $('penvi').value = r2(sv.pvp || 0); $('penvv').value = sv.iva != null ? sv.iva : 21; }
+      desglose();
+    };
+    desglose();
+
+    // v2.200.0: al cambiar de ficha, los precios de su contrato (si lo hay) en las líneas que no se han tocado a mano
+    const precios = () => cargarPreciosContrato(medico && medico.id).then(c => { if (c) { lineas.forEach(l => { if (!l.manual) autoImporte(l); }); pinta(); } });
+    const montarMed = () => {
+      $('pselmed').__texto = medico ? '' : form.cuenta_texto;
+      selectorMedico($('pselmed'), { valor: medico, placeholder: 'Nombre, código, centro o municipio', alElegir: m => { medico = m; precios(); } });
+    };
+    selectorPaciente($('pselpac'), { valor: contacto, alElegir: c => {
+      contacto = c;
+      if (c && !medico && c.cuenta_id) { medico = { id: c.cuenta_id, nombre: c.medico, codigo: c.medico_codigo }; montarMed(); precios(); }
+    } });
+    montarMed();
+
+    const guardar = async (estado, btn, o = {}) => {
+      if (!lineas.some(l => l.producto_id)) { toast('Añade al menos un producto', true); return; }
+      const cps = camposLeer($('dbody'));
+      if (cps && cps.falta.length) { toast(`Rellena «${cps.falta[0]}»`, true); return; }
+      let trfVal = false;   // v2.314.0: con transferencia, el pedido puede esperar al pago en borrador
+      const sc = !!($('psincargo') && $('psincargo').checked);   // v2.317.0: entrega sin cargo
+      const yaVal = !!(ped && ped.estado === 'Confirmado');   // v2.322.0: validado y sin factura: se guarda tal cual, sin volver a preguntar
+      // v2.333.0: con tarjeta o Bizum (y el cobro activo) se elige: enviar el enlace (el pedido espera al pago en borrador y se confirma solo
+      // al pagar) o validar ya (cobrado de otra forma). Sin móvil del cliente, se confirma como siempre y se avisa.
+      let tpvSinMovil = false;
+      if (!sc && !yaVal && estado === 'Confirmado' && !o.alGuardar && tpvActivo() && esPagoTpv($('ppago').value)) {
+        if (!await tpvMovilDe(contacto)) tpvSinMovil = true;
+        else {
+          const v = await elegirOpcion('Pago con tarjeta o Bizum', `Se le puede enviar por SMS el enlace de pago: el pedido espera en borrador y, cuando paga, se confirma solo y queda cobrado. Si ya lo habéis cobrado de otra forma, valídalo ya.`,
+            [{ k: 'no', t: 'Cancelar', cls: 'sec' }, { k: 'validar', t: 'Confirmar ya', cls: 'sec' }, { k: 'enlace', t: 'Enviar enlace de pago' }]);
+          if (!v) return;
+          if (v === 'enlace') { estado = 'Borrador'; o = Object.assign({}, o, { alGuardar: tpvTrasGuardar }); } else trfVal = true;
+        }
+      }
+      if (!medico && contacto && contacto.id && !$('zonapac').classList.contains('escentro')) {   // v2.329.0
+        const { data: kc } = await db.from('contactos').select('cuenta_id, cuenta_por_pedido').eq('id', contacto.id).maybeSingle();
+        if (kc && kc.cuenta_id && !kc.cuenta_por_pedido) medico = { id: kc.cuenta_id, nombre: contacto.medico || '' };
+      }
+      if (sc && !medico && !await preguntar(`Sin ${TT('medico', 's', '', 'l', 'l')} de referencia, estas unidades no cuentan a nadie.`, { titulo: 'Entrega sin cargo', ok: 'Guardar igualmente' })) return;
+      if (!sc && !yaVal && estado === 'Confirmado' && esTransferencia($('ppago').value)) {
+        const v = await elegirOpcion('Pago por transferencia', 'Este pedido se puede guardar en borrador hasta que llegue el pago: no cuenta en métricas ni comisiones y aún se puede cambiar. Cuando llegue la transferencia, lo confirmas desde el pedido.',
+          [{ k: 'no', t: 'Cancelar', cls: 'sec' }, { k: 'validar', t: 'Confirmar ya', cls: 'sec' }, { k: 'borrador', t: 'Guardar en borrador' }]);
+        if (!v) return;
+        if (v === 'borrador') estado = 'Borrador'; else trfVal = true;
+      }
+      if (estado === 'Confirmado' && !trfVal && !yaVal && !await preguntar('Una vez confirmado, el pedido cuenta en métricas y comisiones y ya no se puede editar ni eliminar: solo anular.',
+        { titulo: '¿Confirmar el pedido?', ok: 'Confirmar' })) return;
+      btn.disabled = true; const txt = btn.textContent; btn.textContent = 'Guardando…';
+      const { data: r, error } = await db.rpc('guardar_pedido', { p: {
+        id: ped ? ped.id : null, estado,
+        fecha: $('pfecha').value, canal: $('pcan').value,
+        cuenta_id: medico ? medico.id : null, cuenta_texto: medico ? '' : ($('pselmed').__texto || '').trim(),
+        contacto_id: contacto ? contacto.id : null, nota: $('pnota').value.trim(),
+        forma_pago: $('ppago').value || null, origen: $('porig').value, pago_referencia: $('ppago').value ? $('pref').value.trim() : '',
+        descuento: +$('pdto').value || 0, descuento_tipo: $('pdtot').value,
+        envio: $('penv').checked, envio_con_iva: +$('penvi').value || 0, envio_iva: +$('penvv').value || 0, servicio_id: $('pserv').value || null,
+        sin_cargo: sc,
+        lineas: lineas.filter(l => l.producto_id).map(l => ({ producto_id: l.producto_id, unidades: l.unidades || 1,
+          importe: l.importe, descuento: l.descuento || 0, iva: l.iva })),
+        op_id: 'p-' + Date.now()
+      }});
+      btn.disabled = false; btn.textContent = txt;
+      if (error || (r && r.ok === false)) {
+        toast(r && r.error === 'facturado' ? 'Ese pedido ya tiene factura: para cambiarlo, haz una rectificativa' : r && r.error === 'validado' ? 'Ese pedido ya no se puede editar'
+          : 'No se ha podido guardar: ' + ((error && error.message) || 'sin permiso'), true);
+        return;
+      }
+      if (cps && !(await camposGuardar(cps, (r && r.id) || (ped && ped.id)))) return;
+      {   // v2.328.0: reportar al profesional solo si se marca (por defecto, no)
+        const rid = (r && r.id) || (ped && ped.id), rep = !!($('prepprof') && $('prepprof').checked) && !$('zonapac').classList.contains('escentro');
+        if (rid && (rep || (ped && ped.reportar_profesional))) {
+          const { data: mr, error: me } = await db.rpc('marcar_reporte', { p_id: rid, p_valor: rep });
+          if (me || (mr && mr.ok === false)) toast('El pedido se ha guardado, pero no se ha podido cambiar «Reportar»', true);
+        }
+      }
+      if (justifs.length && !(await subirJustificantes((r && r.id) || (ped && ped.id), justifs))) return;
+      $('dlg').close();
+      if (o.alGuardar) { await o.alGuardar((r && r.id) || (ped && ped.id)); return; }   // v2.314.0
+      toast(yaVal ? 'Pedido actualizado' : sc ? (estado === 'Borrador' ? 'Entrega sin cargo guardada en borrador' : 'Entrega sin cargo confirmada') : estado === 'Borrador' ? (esTransferencia($('ppago').value) ? 'Guardado en borrador hasta que llegue el pago' : 'Borrador guardado') : (medico ? 'Pedido confirmado y atribuido' : 'Pedido confirmado · pendiente de atribuir'));
+      if (tpvSinMovil) toast(`Pedido confirmado. Sin móvil ${TT('paciente', 's', 'del', 'l', 'l')} no se puede enviar el enlace de pago: cóbralo como siempre`);   // v2.333.0
+      if (estado === 'Borrador' && ped && ped.id) tpvAvisoImporte(ped.id);
+      if (TAB === 'ventas') cargarVentas();
+      if (TAB === 'pacientes') listaPacientes();
+      if ($('ficha').open && FICHA_PAC) fichaPaciente(FICHA_PAC);
+    };
+    $('pborr').onclick = e => guardar('Borrador', e.target);
+    $('psincargo').onchange = () => { leerForm(); lineas.forEach(l => { l.descuento = form.sin_cargo ? 100 : 0; }); pinta(); };   // v2.317.0
+    $('ptrfmail').onclick = e => {   // v2.314.0: guarda en borrador y envía los datos de pago
+      if (!contacto) { toast(`Elige ${TT('paciente', 's', 'el', 'l', 'l')} para enviarle los datos de pago`, true); return; }
+      if (!((AJUSTES.empresa || {}).iban || '').trim()) { toast('Falta el IBAN: ponlo en Configuración → Facturación → Datos fiscales antes de enviar los datos de pago', true); return; }
+      guardar('Borrador', e.target, { alGuardar: async id => { await enviarDatosPago(id); verPedido(id); if (TAB === 'ventas') cargarVentas(); } });
+    };
+    $('ptpvenv').onclick = async e => {   // v2.333.0: guarda en borrador y envía el enlace de pago
+      if (!contacto) { toast(`Elige ${TT('paciente', 's', 'el', 'l', 'l')} para enviarle el enlace de pago`, true); return; }
+      if (!await tpvMovilDe(contacto)) { toast(`${TT('paciente', 's', '', 'l', 'C')} no tiene móvil: añádelo en su ficha para enviarle el enlace de pago`, true); return; }
+      guardar('Borrador', e.target, { alGuardar: tpvTrasGuardar });
+    };
+    $('pvalid').onclick = e => guardar('Confirmado', e.target);
+    // Campos personalizados del pedido: se conservan al repintar
+    if ((CAMPOS.pedido || []).some(c => c.en_ficha) && $('pnota')) {
+      const poner = () => { if ($('dbody').querySelector('.cpersform')) return;
+        $('pnota').insertAdjacentHTML('afterend', camposHTML('pedido', cpPed));
+        $('dbody').querySelector('.cpersform').addEventListener('input', e => { const i = e.target.closest('[data-cpk]'); if (i) cpPed[i.dataset.cpk] = i.value; });
+        $('dbody').querySelector('.cpersform').addEventListener('change', e => { const i = e.target.closest('[data-cpk]'); if (i) cpPed[i.dataset.cpk] = i.value; }); };
+      if (cpPed) poner();
+      else if (ped && ped.id) db.from('pedidos').select('clasificadores').eq('id', ped.id).maybeSingle().then(({ data }) => { cpPed = Object.assign({}, (data && data.clasificadores) || {}); poner(); });
+      else { cpPed = {}; poner(); }
+    }
+  };
+  let cpPed = null;
+  pinta();
+  $('dlg').showModal();
+}
+
+/* Parte base; verPedido le añade el resto */
+async function verPedidoBaseBase(id) {
+  cargando($('dbody'), 'Abriendo el pedido…');
+  $('dlg').showModal();
+  const { data, error } = await RPC_ORIG('pedido_detalle', { p_id: id });
+  if (error || !data || !data.pedido) { $('dbody').innerHTML = `<div class="vacio">${esc(error ? error.message : 'No se ha encontrado el pedido.')}</div>`; return; }
+  const p = data.pedido, l = data.lineas || [], c = data.contacto;
+  const t = totalesPedido(l, +p.descuento || 0, p.descuento_tipo,
+    { on: !!p.envio, con: r2(+p.envio_base * (1 + (+p.envio_iva || 0) / 100)), iva: +p.envio_iva || 0,
+      nombre: ((SERVICIOS.find(x => x.id === p.servicio_id) || {}).nombre) || 'Envío' });
+  const bor = p.estado === 'Borrador', anulado = p.estado === 'Anulado';
+
+  $('dbody').innerHTML = `
+    <div class="fh pdcab"><div class="pdcabt"><h2>Pedido${p.numero ? ' ' + esc(p.numero) : ''}</h2>${pillEstado(p.estado)}${pillCobroPed(p)}
+      <span class="sm pdmeta">${fechaCorta(p.fecha)} · ${etiquetaCanal(p, t.total)}${p.forma_pago ? ' · ' + esc(p.forma_pago) : ''}</span></div>
+      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
+    ${bor ? '<div class="cacheaviso" style="margin-top:10px">Borrador: todavía no cuenta en métricas ni en comisiones.</div>' : ''}
+    ${c ? `<div class="blk"><h3>${TT('paciente', 's', '', 'l', 'C')}</h3><div><b>${esc(c.nombre)}</b></div>
+      <div class="sm">${esc(c.telefono || c.movil || '')} ${esc(c.email || '')}</div>
+      <div class="acts"><button class="btn sec" data-vpac="${c.id}">Ver ficha ${TT('paciente', 's', 'del', 'l', 'l')}</button></div></div>` : ''}
+    ${data.medico ? `<div class="blk"><h3>${TT('medico', 's', '', 'l', 'C')}</h3><div><b>${esc(data.medico.nombre)}</b> <span class="sm">· código ${esc(data.medico.codigo)}</span></div>
+      ${l[0] && l[0].comercial ? `<div class="sm">Comercial: ${esc(l[0].comercial)}</div>` : ''}</div>` : ''}
+    <div class="blk"><h3>Líneas</h3>
+      ${l.map(x => { const d = lineaDesglose(x); return `<div style="display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid var(--line)">
+        <span><b>${esc(x.producto || 'Sin producto')}</b> · ${num(x.unidades)} uds.
+          <div class="sm">Base ${eurI(d.base)}${+x.descuento ? ` (dto. ${num(x.descuento)}%)` : ''} · IVA ${num(x.iva || 0)}% ${eurI(d.iva)}</div></span>
+        <b style="white-space:nowrap">${eurI(d.total)}</b></div>`; }).join('') || '<div class="sm">Sin líneas.</div>'}
+      <div class="totbox">${bloqueTotales(t)}</div></div>
+    ${p.nota ? `<div class="blk"><h3>Nota</h3><div>${esc(p.nota)}</div></div>` : ''}
+    <div class="acts" style="justify-content:flex-end">
+      ${puedeVentas() && bor ? `<button class="btn sec dang" id="pdborrar">Eliminar borrador</button>
+        <button class="btn sec" id="pdeditar">Editar</button>
+        <button class="btn" id="pdvalidar">Confirmar pedido</button>` : ''}
+      ${puedeVentas() && !bor && !anulado ? (p.factura_id ? '<button class="btn sec" id="pdeditnf">Editar datos</button>' : '<button class="btn sec" id="pdeditar">Editar pedido</button>') : ''}
+      ${puedeVentas() && !bor && !anulado ? '<button class="btn sec dang" id="pdanular">Anular pedido</button>' : ''}
+      <button class="btn sec" data-cerrar>Cerrar</button></div>`;
+
+  const vp = $('dbody').querySelector('[data-vpac]');
+  if (vp) vp.onclick = () => { $('dlg').close(); fichaPaciente(vp.dataset.vpac); };
+  if ($('pdeditar')) $('pdeditar').onclick = () => editorPedido(data);
+  if ($('pdeditnf')) $('pdeditnf').onclick = () => editarPedidoNoFiscal(data);   // v2.307.0
+  if ($('pdborrar')) $('pdborrar').onclick = async () => {
+    if (!await preguntar('El borrador desaparece por completo.', { titulo: '¿Eliminar el borrador?', ok: 'Eliminar', peligro: true })) return;
+    const { data: r, error: e } = await db.rpc('borrar_pedido', { p_id: id });
+    if (e || (r && r.ok === false)) { toast(r && r.error === 'validado' ? 'Solo se pueden eliminar borradores' : 'No se ha podido eliminar', true); return; }
+    $('dlg').close(); toast('Borrador eliminado'); if (TAB === 'ventas') cargarVentas();
+  };
+  if ($('pdvalidar')) $('pdvalidar').onclick = async e => {
+    if (!await preguntar((e.target.dataset.pago ? 'Se anota el pago como recibido. ' : '') + 'Una vez confirmado, el pedido cuenta en métricas y comisiones y ya no se puede editar ni eliminar: solo anular.',
+      { titulo: '¿Confirmar el pedido?', ok: 'Confirmar' })) return;
+    e.target.disabled = true;
+    const { data: r, error: er } = await db.rpc('guardar_pedido', { p: {
+      id, estado: 'Confirmado', fecha: p.fecha, canal: p.canal, contacto_id: p.contacto_id, centro_id: p.centro_id,
+      cuenta_id: data.medico ? data.medico.id : null, cuenta_texto: p.cuenta_texto, nota: p.nota, forma_pago: p.forma_pago, pago_referencia: p.pago_referencia || '',
+      descuento: p.descuento || 0, descuento_tipo: p.descuento_tipo,
+      envio: !!p.envio, envio_con_iva: p.envio ? r2(+p.envio_base * (1 + (+p.envio_iva || 0) / 100)) : 0, envio_iva: p.envio_iva, servicio_id: p.servicio_id,
+      lineas: l.map(x => ({ producto_id: x.producto_id, unidades: x.unidades, importe: x.importe, descuento: x.descuento, iva: x.iva })) } });
+    e.target.disabled = false;
+    if (er || (r && r.ok === false)) { toast('No se ha podido confirmar: ' + ((er && er.message) || (r && r.error) || ''), true); return; }
+    if (e.target.dataset.pago) await db.rpc('marcar_operativa', { p_pedido: id, p_campo: 'pago', p_hecho: true });   // v2.314.0
+    toast(e.target.dataset.pago ? 'Pedido confirmado y cobrado' : 'Pedido confirmado'); verPedido(id); if (TAB === 'ventas') cargarVentas();
+  };
+  if ($('pdanular')) $('pdanular').onclick = async () => {
+    const motivo = await pedirTexto('Motivo de la anulación (opcional)', '', { titulo: '¿Anular el pedido?', ok: 'Anular' });
+    if (motivo === null) return;
+    const { data: r, error: er } = await db.rpc('anular_pedido', { p_id: id, p_motivo: motivo || null });
+    if (er || (r && r.ok === false)) { toast(r && r.error === 'facturado' ? 'Tiene factura: emite antes una rectificativa de toda la factura y marca «Anular también el pedido»' : 'No se ha podido anular: ' + ((er && er.message) || (r && r.error) || ''), true); return; }
+    $('dlg').close(); toast('Pedido anulado'); if (TAB === 'ventas') cargarVentas();
+  };
+}
+
+// Desde el pedido: la ficha del cliente se abre como panel encima, sin cerrar el pedido
+async function verPedidoBase(...a) {
+  const r = await verPedidoBaseBase.apply(this, a);
+  const vp = $('dbody').querySelector('[data-vpac]');
+  if (vp) vp.onclick = () => fichaPaciente(vp.dataset.vpac);
+  return r;
+}
+
+// Aviso arriba si hay un cobro pendiente o la cuenta está en solo lectura
+function pagoAvisoBase() {
+  const e = PAGO_ESTADO || {}, pl = e.plan || {}; let el = $('pagoaviso');
+  const msg = e.solo_lectura ? 'Tu empresa está en <b>solo lectura</b> porque hay un pago pendiente. Puedes consultar y exportar; para volver a trabajar, actualiza el pago.'
+    : pl.estado === 'impago' ? 'No hemos podido cobrar tu suscripción. Actualiza el método de pago antes de 14 días para no quedarte en solo lectura.' : '';
+  if (!msg) { if (el) el.remove(); return; }
+  const main = document.querySelector('main'); if (!main) return;
+  if (!el) { main.insertAdjacentHTML('afterbegin', '<div id="pagoaviso" class="banda-peligro" role="alert"></div>'); el = $('pagoaviso'); }
+  el.innerHTML = msg + (puedeOrganizacion() ? ' <button type="button" class="btn sec" id="pgavbtn">Gestionar el pago</button>' : ' Avisa a quien gestiona la cuenta de tu empresa.');
+  if ($('pgavbtn')) $('pgavbtn').onclick = ev => pagoPortal(ev.target);
+}
+
+// En los 7 últimos días de la prueba, aviso arriba (no tapa los de impago o solo lectura)
+function pagoAviso(...a) {
+  const r = pagoAvisoBase.apply(this, a);
+  const pl = (PAGO_ESTADO || {}).plan || PLAN_ACTUAL || {}, n = diasHasta(pl.periodo_fin);
+  let el = $('pruebaaviso');
+  const ver = pl.en_prueba && !pl.baja_al_final && n != null && n >= 0 && n <= 7 && !$('pagoaviso') && puedeOrganizacion();
+  if (!ver) { if (el) el.remove(); return r; }
+  const main = document.querySelector('main'); if (!main) return r;
+  if (!el) { main.insertAdjacentHTML('afterbegin', '<div id="pruebaaviso" class="banda-info" role="status"></div>'); el = $('pruebaaviso'); }
+  el.innerHTML = `Tu prueba termina ${n === 0 ? 'hoy' : n === 1 ? 'mañana' : `en ${n} días`} (${fechaCorta(pl.periodo_fin)}): ese día se pasa el primer recibo.
+    Revisa que tus datos de facturación están bien. <button type="button" class="btn sec" id="pruebaver">Revisar mis datos</button>`;
+  $('pruebaver').onclick = () => ir('plan');
+  return r;
+}
+
+async function editorPedido(pedido, ...a) {
+  const ped = pedido && pedido.pedido ? pedido.pedido : null;
+  PED_DIST = { on: !!(ped && ped.distribuidor_id), id: (ped && ped.distribuidor_id) || '', codigo: (ped && ped.distribuidor_codigo) || '',
+    factura: ped && ped.distribuidor_id ? !!ped.factura_distribuidor : true };
+  await cargarDistribuidores().catch(() => []);
+  return editorPedidoBase.call(this, pedido, ...a);
+}
+
+function pkContarBase(els, fmt) {
+  if (!pkMovimiento()) { els.forEach(el => el.textContent = fmt(+el.dataset.v, el)); return; }
+  const t0 = performance.now();
+  const paso = t => { const p = Math.min(1, (t - t0) / 900), e = 1 - Math.pow(1 - p, 3); els.forEach(el => { if (el.isConnected) el.textContent = fmt(+el.dataset.v * e, el); }); if (p < 1) requestAnimationFrame(paso); };
+  requestAnimationFrame(paso);
+}
+
+function pkContar(els, fmt) {
+  if (plYaContado('pk' + els.length, els.map(e => e.dataset.v))) { els.forEach(el => el.textContent = fmt(+el.dataset.v, el)); return; }
+  return pkContarBase(els, fmt);
+}
+
+async function pintarDistribuidoresBase() {
+  const c = $('cfgcuerpo'); if (!c) return;
+  cargando(c, 'Cargando los distribuidores…');
+  const { data, error } = await db.from('distribuidores').select('id,nombre,email,telefono,nota,activo').order('nombre');
+  if (!$('cfgcuerpo') || CFG_KEY !== 'distribuidores') return;
+  if (error) { c.innerHTML = `<div class="card"><p class="sm">No se han podido leer los distribuidores: ${esc(error.message)}</p></div>`; return; }
+  DIS_TODOS = data || [];
+  const fila = d => `<div class="ajfila disfila${d.activo ? '' : ' disoff'}" data-disid="${d.id}">
+      <div><b>${esc(d.nombre)}${d.activo ? '' : ' <span class="pill">No se usa</span>'}</b>
+        <span class="sm">${[d.email, d.telefono].filter(Boolean).map(esc).join(' · ') || 'Sin correo ni teléfono'}${d.nota ? ' · ' + esc(d.nota) : ''}</span></div>
+      <div class="ajctl"><button type="button" class="btn sec" data-dised="${d.id}">Editar</button>
+        <button type="button" class="btn sec" data-disact="${d.id}">${d.activo ? 'Dejar de usar' : 'Volver a usar'}</button></div></div>`;
+  const act = DIS_TODOS.filter(d => d.activo), off = DIS_TODOS.filter(d => !d.activo);
+  c.innerHTML = `<div class="card disw">
+      <div class="discab"><p class="sm">Mayoristas o depósitos que sirven pedidos a vuestros clientes. Al hacer un pedido se elige si lo servís vosotros o uno de ellos; el suyo no descuenta stock de vuestro almacén.</p>
+        <button type="button" class="btn" id="disnuevo">+ Nuevo distribuidor</button></div>
+      ${DIS_TODOS.length ? act.map(fila).join('') + (off.length ? `<h3 class="dissub">Que ya no se usan</h3>` + off.map(fila).join('') : '')
+        : '<p class="vacio" id="disvacio">Todavía no hay distribuidores.</p>'}</div>`;
+  $('disnuevo').onclick = () => editarDistribuidor(null);
+  c.querySelectorAll('[data-dised]').forEach(b => b.onclick = () => editarDistribuidor(DIS_TODOS.find(d => d.id === b.dataset.dised)));
+  c.querySelectorAll('[data-disact]').forEach(b => b.onclick = async () => {
+    const d = DIS_TODOS.find(x => x.id === b.dataset.disact); if (!d) return;
+    if (d.activo && !await preguntar('No saldrá al hacer pedidos nuevos. Los pedidos que ya sirvió siguen diciendo que fue él.', { titulo: `¿Dejar de usar ${d.nombre}?`, ok: 'Dejar de usar' })) return;
+    b.disabled = true;
+    const { error } = await db.from('distribuidores').update({ activo: !d.activo }).eq('id', d.id);
+    if (error) { b.disabled = false; toast('No se ha podido cambiar: ' + error.message, true); return; }
+    toast(d.activo ? 'Ya no se usa' : 'Se vuelve a usar');
+    await cargarDistribuidores(true).catch(() => []);
+    pintarDistribuidores();
+  });
+}
+
+// Distribuidores: los transfers de cada uno
+async function pintarDistribuidores(...a) {
+  const r = await pintarDistribuidoresBase.apply(this, a);
+  const c = $('cfgcuerpo'); if (!c || CFG_KEY !== 'distribuidores') return r;
+  c.querySelectorAll('.disfila[data-disid] .ajctl').forEach(x => {
+    if (x.querySelector('[data-distrf]')) return;
+    x.insertAdjacentHTML('afterbegin', `<button type="button" class="btn sec" data-distrf="${x.closest('.disfila').dataset.disid}">Transfers</button>`);
+  });
+  c.querySelectorAll('[data-distrf]').forEach(b => b.onclick = () => verTransfers(b.dataset.distrf));
+  return r;
+}
+
+async function enviarDatosPagoBase(id) {
+  if (!((AJUSTES.empresa || {}).iban || '').trim()) { toast('Falta el IBAN: ponlo en Configuración → Facturación → Datos fiscales antes de enviar los datos de pago', true); return false; }
+  const { data } = await RPC_ORIG('pedido_detalle', { p_id: id });
+  const p = data && data.pedido; if (!p) { toast('No se ha encontrado el pedido', true); return false; }
+  const cli = data.contacto || {}, total = +((data.totales || {}).total || 0);
+  if (!cli.email) { toast(`${TT('paciente', 's', '', 'l', 'C')} no tiene email en su ficha`, true); return false; }
+  const asunto = asuntoEmailPago(p, total, cli.nombre), texto = textoEmailPago(p, total, cli.nombre);
+  const { data: r, error } = await db.functions.invoke('enviar_email', { body: { para: cli.email, asunto, texto, pedido_id: id, marca: 'email_pago' } });
+  if (!error && r && r.ok) { toast('Datos de pago enviados · el pedido espera al pago en borrador'); return true; }
+  location.href = `mailto:${cli.email}?subject=${encodeURIComponent(asunto)}&body=${encodeURIComponent(texto)}`;   // sin envío directo: el correo del dispositivo
+  if (await preguntar('¿Has enviado el email con los datos de pago?', { titulo: 'Email de pago', ok: 'Sí, marcar como enviado' }))
+    await db.rpc('marcar_operativa', { p_pedido: id, p_campo: 'email_pago', p_hecho: true });
+  return true;
+}
+
+async function enviarDatosPago(id, ...a) {
+  if (!await elegirPlantillaCorreo('pago')) return false;
+  try { return await enviarDatosPagoBase.call(this, id, ...a); } finally { PLANT_ELEGIDA.pago = null; }
+}

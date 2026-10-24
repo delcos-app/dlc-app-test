@@ -268,3 +268,118 @@ let VISITA_OP = null;   // op_id de la ventana abierta (el mismo si se pulsa Gua
 const PRES_MAX = 8 * 1024 * 1024;
 
 const PRES_DATOS = new Map();               // id → datos (base64) ya descargados
+
+/* v2.96.0 · «Para la visita»: lo que hace falta al llegar, arriba del todo.
+   Dónde (centro, planta, sala, cómo llegar), cuándo (su horario de hoy y el del centro), cómo entrar,
+   lo que quedó pendiente en la última visita, las notas y a quién llamar. Las ventas van al final. */
+// La consulta de la visita: la que tiene consulta hoy; si ninguna, la principal
+function consultaDeLaVisitaBase(cons) {
+  const hoy = hoyLetra();
+  return (cons || []).find(c => (c.dias || {})[hoy]) || (cons || [])[0] || null;
+}
+
+async function editarVisitaBase(v, medicoId) {
+  const pos = CAT.resultado_visita.filter(r => r.extra !== 'neg'), neg = CAT.resultado_visita.filter(r => r.extra === 'neg');
+  const marcados = v.resultados || [];
+  $('dbody').innerHTML = `
+    <div class="fh"><div><h2>Editar ${TT('visita', 's', '', 'l', 'l')}</h2><div class="sm">Registrada el ${fechaCorta(v.fecha)}</div></div>
+      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
+    <div class="g2">
+      <div><label for="evf">Fecha</label><input id="evf" type="date" value="${esc(v.fecha)}"></div>
+      <div><label for="evm">Muestras</label><input id="evm" type="number" min="0" value="${v.muestras || 0}"></div>
+    </div>
+    <label>Resultado</label>
+    <div class="opciones">${pos.map(r => `<button type="button" class="opt" data-res="${esc(r.valor)}"
+      aria-pressed="${marcados.includes(r.valor)}"><span class="mk"></span>${esc(r.valor)}</button>`).join('')}</div>
+    <div class="opciones" style="margin-top:8px">${neg.map(r => `<button type="button" class="opt neg" data-res="${esc(r.valor)}" data-neg="1"
+      aria-pressed="${marcados.includes(r.valor)}"><span class="mk"></span>${esc(r.valor)}</button>`).join('')}</div>
+    <div class="g2" style="margin-top:6px">
+      <div><label for="evpa">Próxima acción</label><input id="evpa" value="${esc(v.proxima_accion || '')}"></div>
+      <div><label for="evpf">Fecha</label><input id="evpf" type="date" value="${esc(v.proxima_fecha || '')}"></div>
+    </div>
+    <label for="evn">Nota</label><textarea id="evn" rows="3">${esc(v.nota || '')}</textarea>
+    <div class="acts" style="justify-content:space-between">
+      <button class="btn sec dang" id="evborrar">Borrar ${TT('visita', 's', '', 'l', 'l')}</button>
+      <span class="acts" style="margin:0"><button class="btn sec" data-cerrar>Cancelar</button>
+        <button class="btn" id="evok">Guardar</button></span></div>`;
+
+  $('dbody').querySelectorAll('[data-res]').forEach(b => b.onclick = () => {
+    const esNeg = b.dataset.neg === '1', on = b.getAttribute('aria-pressed') === 'true';
+    $('dbody').querySelectorAll('[data-res]').forEach(x => { if (esNeg || x.dataset.neg === '1') x.setAttribute('aria-pressed', 'false'); });
+    b.setAttribute('aria-pressed', String(!on));
+  });
+
+  $('evok').onclick = async ev => {
+    const res = [...$('dbody').querySelectorAll('[data-res][aria-pressed=true]')].map(b => b.dataset.res);
+    ev.target.disabled = true; ev.target.textContent = 'Guardando…';
+    const { data: r, error } = await db.rpc('actualizar_actividad', { p: {
+      id: v.id, fecha: $('evf').value, resultados: res, muestras: +$('evm').value || 0,
+      nota: $('evn').value.trim(), proxima_accion: $('evpa').value.trim(), proxima_fecha: $('evpf').value || ''
+    }});
+    ev.target.disabled = false; ev.target.textContent = 'Guardar';
+    if (error || (r && r.ok === false)) { toast('No se ha podido guardar', true); return; }
+    $('dlg').close(); toast(`${TT('visita', 's', '', 'l', 'C', 'actualizado')}`); abrirFicha(medicoId); cargarInicio();
+  };
+
+  $('evborrar').onclick = async () => {
+    if (!await preguntar(`${TT('visita', 's', 'el', 'C', 'l')} desaparece del historial ${TT('medico', 's', 'del', 'l', 'l')}.\nQueda constancia en la auditoría.`,
+      { titulo: `¿Borrar ${TT('visita', 's', 'el', 'l', 'l')}?`, ok: 'Borrar', peligro: true })) return;
+    const { data: r, error } = await db.rpc('borrar_actividad', { p_id: v.id });
+    if (error || (r && r.ok === false)) { toast('No se ha podido borrar', true); return; }
+    $('dlg').close(); toast(`${TT('visita', 's', '', 'l', 'C', 'borrado')}`); abrirFicha(medicoId); cargarInicio();
+  };
+  $('dlg').showModal();
+}
+
+/* Registrar visita: la ventana base y el aviso si falta el horario de atención (antes eran 3 capas). */
+async function abrirVisitaBase2(id) {
+  return ventanaCargando(async () => {
+    await abrirVisitaBase(id);
+    await visitaAvisoHorario(id);
+  });
+}
+
+// Médico «sin reporting»: la ventana de visita no ofrece los resultados de reporting
+async function abrirVisita(id, ...a) {
+  const r = await abrirVisitaBase2.call(this, id, ...a);
+  try {
+    const { data } = await db.from('cuentas').select('sin_reporting').eq('id', id).maybeSingle();
+    const d = $('dlg');
+    if (data && data.sin_reporting && d && d.open) {
+      let n = 0;
+      d.querySelectorAll('.chips button, [data-res], .chip').forEach(b => { if (/reporting/i.test(b.textContent)) { b.style.display = 'none'; n++; } });
+      if (n && !d.querySelector('.srnota')) {
+        const ch = d.querySelector('.chips, [data-res]'); const cont = ch && (ch.classList.contains('chips') ? ch : ch.parentElement);
+        if (cont) cont.insertAdjacentHTML('afterend', `<p class="sm srnota">${TT('medico', 's', 'este', 'C', 'l')} no quiere reporting: solo ${TT('visita', 's', '', 'l', 'l')} presencial.</p>`);
+      }
+    }
+  } catch (e) { /* si no se puede comprobar, la ventana queda como siempre */ }
+  return r;
+}
+
+// La consulta de la visita: la del centro de la cita; si no, la que tiene consulta hoy; si no, la principal
+function consultaDeLaVisita(cons) {
+  const pref = FICHA_CENTRO ? clasNorm(FICHA_CENTRO) : '';
+  return (pref && (cons || []).find(c => clasNorm(c.centro_nombre) === pref)) || consultaDeLaVisitaBase(cons);
+}
+
+async function editarVisita(v, ...r) {
+  const res = await editarVisitaBase.call(this, v, ...r);
+  try {
+    const ok = $('evok'), d = $('dbody'); if (!ok || !d || $('evmodo')) return res;
+    const { data: act } = await db.from('actividades').select('modo,productos').eq('id', v.id).maybeSingle();
+    const modo = (act && act.modo) || 'presencial', sel = (act && act.productos) || [];
+    let prods = [];
+    if (planIncluyeSeccion('cobertura')) { prods = await productosPromocionados(); const falta = sel.filter(id => !prods.some(p => p.id === id));
+      if (falta.length) { const { data: x } = await db.from('productos').select('id,nombre').in('id', falta); prods = prods.concat(x || []); } }
+    if (!$('evok') || $('evmodo')) return res;
+    EV_EXTRA = { id: v.id, modo, productos: sel.slice() };
+    const ancla = $('evf') ? $('evf').closest('.g2') : null; if (!ancla) return res;
+    ancla.insertAdjacentHTML('afterend', `<label>Cómo fue</label>
+      <div class="segs" id="evmodo" role="group" aria-label="Cómo fue">${MODOS_VISITA.map(([k, t]) => `<button type="button" data-evmodo="${k}" class="${k === modo ? 'on' : ''}" aria-pressed="${k === modo}">${t}</button>`).join('')}</div>
+      ${prods.length ? `<label>Productos presentados</label><div class="opciones" id="evprods">${prods.map(p => `<button type="button" class="opt" data-evprod="${p.id}" aria-pressed="${sel.includes(p.id)}"><span class="mk"></span>${esc(p.nombre)}</button>`).join('')}</div>` : ''}`);
+    d.querySelectorAll('[data-evmodo]').forEach(b => b.onclick = () => { EV_EXTRA.modo = b.dataset.evmodo; d.querySelectorAll('[data-evmodo]').forEach(x => { x.classList.toggle('on', x === b); x.setAttribute('aria-pressed', String(x === b)); }); });
+    d.querySelectorAll('[data-evprod]').forEach(b => b.onclick = () => { b.setAttribute('aria-pressed', String(b.getAttribute('aria-pressed') !== 'true')); EV_EXTRA.productos = [...d.querySelectorAll('[data-evprod][aria-pressed=true]')].map(x => x.dataset.evprod); });
+  } catch (e) {}
+  return res;
+}

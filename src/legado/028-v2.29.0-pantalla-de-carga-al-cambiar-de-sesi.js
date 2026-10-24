@@ -8,11 +8,6 @@
 
 
 
-volverAMiSesion = (orig => async function () {
-  const s = suplantando();
-  pantallaCarga('Volviendo a tu sesión' + (s ? ', ' + nombrePila(s.nombre) : '') + '…');
-  await orig();
-})(volverAMiSesion);
 
 /* ---------------- agenda: una sola transición al cambiar de vista ---------------- */
 

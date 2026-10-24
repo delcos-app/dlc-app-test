@@ -73,43 +73,6 @@ document.addEventListener('click', e => {
 
 /* ---------------- analítica en tabla ---------------- */
 
-async function pintarTablaAnalitica() {
-  const caja = $('atabla2');
-  cargando(caja, 'Calculando la tabla…');
-  const { data, error } = await db.rpc('analitica_tabla', {
-    p_dim: $('adim').value === 'mes' ? 'producto' : $('adim').value,
-    p_desde: $('adesde').value || null, p_hasta: $('ahasta').value || null,
-    p_canal: $('acanal').value || null, p_medida: $('amedida') ? $('amedida').value : 'unidades', lim: 30
-  });
-  if (error) { caja.innerHTML = `<div class="vacio">${esc(error.message)}</div>`; return; }
-  const meses = data.meses || [], filas = data.filas || [];
-  if (!filas.length) { caja.innerHTML = '<div class="vacio">Sin datos en este periodo.</div>'; return; }
-  const fmt = v => data.medida === 'importe' ? eur(v) : num(v);
-  const totMes = {};
-  filas.forEach(f => meses.forEach(m => totMes[m] = (totMes[m] || 0) + (+(f.meses || {})[m] || 0)));
-
-  caja.innerHTML = `<div class="tabla"><div style="min-width:${180 + meses.length * 110}px">
-    <div class="thead"><span class="tcell th" style="width:220px;min-width:220px">Concepto</span>
-      ${meses.map(m => `<span class="tcell th" style="width:110px;min-width:110px;text-align:right">${esc(m.slice(5))}/${esc(m.slice(2, 4))}</span>`).join('')}
-      <span class="tcell th" style="width:120px;min-width:120px;text-align:right">Total</span></div>
-    ${filas.map(f => `<div class="trow" style="cursor:default">
-      <span class="tcell" style="width:220px;min-width:220px"><b>${esc(f.nombre)}</b></span>
-      ${meses.map(m => `<span class="tcell" style="width:110px;min-width:110px;text-align:right">${
-        (f.meses || {})[m] ? fmt((f.meses || {})[m]) : '<span class="sm">·</span>'}</span>`).join('')}
-      <span class="tcell" style="width:120px;min-width:120px;text-align:right"><b>${fmt(f.total)}</b></span></div>`).join('')}
-    <div class="trow" data-fijo style="cursor:default;background:var(--bg)">
-      <span class="tcell" style="width:220px;min-width:220px"><b>Total</b></span>
-      ${meses.map(m => `<span class="tcell" style="width:110px;min-width:110px;text-align:right"><b>${fmt(totMes[m] || 0)}</b></span>`).join('')}
-      <span class="tcell" style="width:120px;min-width:120px;text-align:right"><b>${fmt(filas.reduce((n, f) => n + (+f.total || 0), 0))}</b></span></div>
-  </div></div>`;
-
-  window.__ANTABLA = filas.map(f => {
-    const o = { concepto: f.nombre };
-    meses.forEach(m => o[m] = (f.meses || {})[m] || 0);
-    o.total = f.total;
-    return o;
-  });
-}
 
 
 

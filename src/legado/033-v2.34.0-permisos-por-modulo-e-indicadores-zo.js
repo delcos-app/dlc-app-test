@@ -30,13 +30,6 @@ function aplicarPermisosMenu() {
 
 /* ---------------- indicadores con su categoría y permiso ---------------- */
 
-function kpiPermitido(c) {
-  if (!c) return false;
-  if (c.admin && !puede('administrar')) return false;
-  if (KPI_MOD[c.id] && !puedeModulo(KPI_MOD[c.id])) return false;
-  const r = KPI_PERMISO[c.id];
-  return !r || nivelDe2(r[0]) >= r[1];
-}
 
 /* ---------------- zonas de cada comercial ---------------- */
 

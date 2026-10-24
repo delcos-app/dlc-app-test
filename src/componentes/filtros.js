@@ -141,3 +141,68 @@ const filtroConValor = v => v != null && v !== '' && !(Array.isArray(v) && !v.le
 
 // ---- Memoria de filtros: lo que se elige en una fila de filtros se vuelve a poner cuando la pantalla se pinta de nuevo
 const FMEM = {};
+
+function htContadorBase(sec) {
+  const b = sec.querySelector('.htbtn'); if (!b) return;
+  // Solo se toca si cambia el número (cualquier cambio en la pantalla vuelve a avisar al observador)
+  const n = htActivos(sec), txt = n ? String(n) : '', el = b.querySelector('.htn');
+  if (el.textContent !== txt) el.textContent = txt;
+  if (b.classList.contains('conf') !== n > 0) b.classList.toggle('conf', n > 0);
+}
+
+function htAbrirLateralBase(sec) {
+  const d = $('tools'), id = sec.id.replace('v-', '');
+  if (htLateralAbierto() && HERR_CTX === 'ht-' + id) { d.classList.remove('abierto'); return; }
+  htDevolver();
+  HERR_CTX = 'ht-' + id;
+  d.innerHTML = `<div class="tbox"><div class="fh"><h2>Filtros y columnas</h2><button class="x" id="tclose" aria-label="Cerrar">✕</button></div>
+    <div class="htpropios lat"></div><div class="htauto"></div></div>`;
+  const hold = sec.querySelector('.htpanel .htpropios');
+  if (hold) [...hold.children].forEach(ch => d.querySelector('.htpropios.lat').appendChild(chicoEn(ch, false)));
+  $('tclose').onclick = () => d.classList.remove('abierto');
+  d.classList.add('abierto');
+  htPintarPanel(sec);
+}
+
+function htChipsBase(sec) {
+  const fil = sec.querySelector('.filtros'); if (!fil || fil.classList.contains('hide')) return;
+  let c = sec.querySelector('.htchips');
+  if (!c) { fil.insertAdjacentHTML('beforeend', '<div class="htchips"></div>'); c = sec.querySelector('.htchips'); fil.classList.add('filbusca'); }
+  const chips = [];
+  const selects = [...sec.querySelectorAll('.htpanel .htpropios select'), ...(htLateralAbierto() ? [...$('tools').querySelectorAll('.htpropios.lat select')] : [])];
+  selects.forEach(s => { if (s.selectedIndex > 0) { const l = s.id && document.querySelector(`label[for="${s.id}"]`); chips.push({ t: (l ? l.textContent.trim() + ': ' : '') + s.options[s.selectedIndex].text, quitar: () => { s.selectedIndex = 0; s.dispatchEvent(new Event('change', { bubbles: true })); } }); } });
+  const g = sec.querySelector('.dgrid'), st = g ? HT_ESTADO[htTipo(g)] : null;
+  if (st) {
+    const cab = [...(g.querySelector(':scope > .dh') || { children: [] }).children].map(x => x.textContent.trim());
+    Object.entries(st.facetas || {}).forEach(([i, v]) => { if (v) chips.push({ t: `${cab[i] || 'Columna'}: ${v}`, quitar: () => { st.facetas[i] = ''; htAplicarFiltros(g); } }); });
+    if (st.texto) chips.push({ t: `Contiene «${st.texto}»`, quitar: () => { st.texto = ''; htAplicarFiltros(g); } });
+  }
+  const html = chips.map((x, i) => `<button class="htchip" type="button" data-hchip="${i}">${esc(x.t)} <span aria-hidden="true">✕</span></button>`).join('');
+  if (c.innerHTML !== html) {
+    c.innerHTML = html;
+    c.querySelectorAll('[data-hchip]').forEach(b => b.onclick = () => { chips[+b.dataset.hchip].quitar(); htContador(sec); htChips(sec); });
+  }
+}
+
+function htContador(sec) { htContadorBase(sec); htChips(sec); }
+
+function htAbrirLateral(sec) {
+  htAbrirLateralBase(sec);
+  const d = $('tools'), auto = d.querySelector('.htauto');
+  if (!clasPantalla(sec) || !htLateralAbierto() || !auto || d.querySelector('.htclas')) return;
+  auto.insertAdjacentHTML('beforebegin', '<div class="htclas"></div>');
+  clasPintarLateral(sec);
+}
+
+// Chips de los filtros de Clasificadores junto al buscador (en su propio contenedor)
+function htChips(sec) {
+  htChipsBase(sec);
+  const P = clasPantalla(sec), c = sec.querySelector('.htchips'); if (!c) return;
+  let c2 = sec.querySelector('.htchips2');
+  if (!c2) { c.insertAdjacentHTML('afterend', '<div class="htchips htchips2"></div>'); c2 = sec.querySelector('.htchips2'); }
+  const est = P ? P.estado() : {}, chips = P ? clasChips(P.amb, est) : [];
+  const html = chips.map(x => `<button class="htchip" type="button" data-hcp="${esc(x.k)}">${esc(x.t)} <span aria-hidden="true">✕</span></button>`).join('');
+  if (c2.innerHTML === html) return;
+  c2.innerHTML = html;
+  c2.querySelectorAll('[data-hcp]').forEach(b => b.onclick = () => { delete est[b.dataset.hcp]; P.recargar(); clasPintarLateral(sec); htContador(sec); });
+}

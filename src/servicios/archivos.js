@@ -73,3 +73,30 @@ const FOTOS_VISITA_MAX = 6;
 
 // ---- Fotos de una visita guardada sin conexión: en el móvil hasta que la visita se envía
 const FOTOS_IDB = 'delcos-fotos';
+
+// Archivos: botón con el diseño de la plataforma, nombre del archivo y miniatura si es una imagen
+function selectorArchivoBase(inp) {
+  if (!inp || inp.dataset.fp || inp.id === 'mkfile') return;
+  inp.dataset.fp = '1';
+  const img = /image/.test(inp.accept || '');
+  const w = document.createElement('div'); w.className = 'filepick';
+  w.innerHTML = `<span class="fpmini">${svgIco(ICON_NOM[img ? 'image' : 'file'])}</span>
+    <div class="fptx"><b>${img ? 'Ninguna imagen elegida' : 'Ningún archivo elegido'}</b><span class="sm">${img ? 'JPG o PNG. Mejor cuadrada y con buena luz.' : 'Elige un archivo de tu equipo.'}</span></div>
+    <button type="button" class="btn sec">${svgIco(ICON_NOM.upload)} ${img ? 'Elegir imagen' : 'Elegir archivo'}</button>`;
+  inp.parentNode.insertBefore(w, inp); inp.classList.add('hide'); w.appendChild(inp);
+  w.querySelector('button').onclick = () => inp.click();
+  inp.addEventListener('change', () => {
+    const f = inp.files && inp.files[0]; if (!f) return;
+    w.querySelector('.fptx b').textContent = f.name; w.querySelector('.fptx .sm').textContent = Math.round(f.size / 1024) + ' KB';
+    if (img) { const u = URL.createObjectURL(f); w.querySelector('.fpmini').innerHTML = `<img src="${u}" alt="">`; }
+  });
+}
+
+function selectorArchivo(inp) {
+  selectorArchivoBase(inp);
+  const w = inp && inp.closest('.filepick'); if (!w) return;
+  // El recuadro de vista previa antiguo (al lado) se oculta: la miniatura ya está en el selector
+  const cont = w.parentElement, prev = cont && cont.parentElement && [...cont.parentElement.children].find(x => x !== cont && !x.contains(w) && x.querySelector && (x.querySelector('img') || /foto|prev/i.test(x.className + x.id)) && x.getBoundingClientRect().width < 120);
+  if (prev) { const im = prev.querySelector('img'); if (im && im.src) w.querySelector('.fpmini').innerHTML = `<img src="${im.src}" alt="">`; prev.classList.add('hide'); }
+  const lab = cont.querySelector(`label[for="${inp.id}"]`); if (lab) lab.classList.add('hide');
+}

@@ -60,7 +60,6 @@ ventanaCargando = async function (fn) {
 
 /* ---------------- Cuentas: cabecera ordenada; Duplicados dentro de Calidad del dato ---------------- */
 
-botonCalidad = (orig => function () { orig(); ordenarCabeceraCuentas(); })(botonCalidad);
 // «Guardar filtro» pasa al panel de filtros y columnas
 abrirHerramientas = (orig => function (ctx, ...r) {
   const x = orig(ctx, ...r);
@@ -82,13 +81,6 @@ cargarSeguimiento = (orig => async function () {
     $('caldup').onclick = () => ir('duplicados');
   }
 })(cargarSeguimiento);
-cargarDuplicados = (orig => async function (...a) {
-  const r = await orig.apply(this, a);
-  const s = document.querySelector('#v-duplicados .saludo');
-  if (s && !$('dupvolver')) s.insertAdjacentHTML('beforebegin', '<button class="cfgvolver visible" id="dupvolver" type="button">‹ Calidad del dato</button>');
-  if ($('dupvolver')) $('dupvolver').onclick = () => ir('seguimiento');
-  return r;
-})(cargarDuplicados);
 
 /* ---------------- listas completas donde antes ponía «y N más» ---------------- */
 
@@ -101,12 +93,6 @@ document.addEventListener('click', e => {
 
 /* ---------------- estados de producto ---------------- */
 
-cargarProductos = (orig => async function () {
-  await orig();
-  const { data } = await db.from('productos').select('id,estado');
-  ESTADO_PROD = {}; (data || []).forEach(x => { ESTADO_PROD[x.id] = x.estado || 'Activo'; });
-  [...PRODUCTOS, ...SERVICIOS].forEach(p => { p.estado = ESTADO_PROD[p.id] || 'Activo'; });
-})(cargarProductos);
 productoPorDefecto = function () {
   const lista = PRODUCTOS.filter(p => p.tipo !== 'servicio' && vendible(p));
   const hab = localStorage.getItem('dlc-prod-habitual');

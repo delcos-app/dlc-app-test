@@ -6,7 +6,6 @@ document.addEventListener('click', e => {
   if (t.dataset.pcfac) pcFactura(t.dataset.pcfac, t); else pcMaterialBajar(t.dataset.pcmat, t);
 });
 
-centroPintar = (orig => async function (...a) { const r = await orig.apply(this, a); try { await pcDescargas(); } catch (e) {} return r; })(centroPintar);
 
 // Producto: el material, también para los centros
 document.addEventListener('change', async e => {

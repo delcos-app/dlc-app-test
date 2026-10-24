@@ -21,7 +21,7 @@ db.rpc = (orig => function (fn, params, opts) {
 /* ---------------- nombre del módulo de contactos ---------------- */
 
 const ETIQUETAS = [...new Set([`${TT('medico', 'p', '', 'l', 'C')}`, 'Profesionales', 'Cuentas', 'Contactos', 'Clientes potenciales', 'Puntos de venta', 'Prescriptores'])];
-function aplicarEtiqueta() {
+function aplicarEtiquetaBase() {
   const n = etiquetaContactos();
   document.querySelectorAll('nav.main [data-t="directorio"], #bnav [data-t="directorio"], .bmasgrid [data-bm="directorio"]').forEach(b => {
     [...b.childNodes].forEach(x => { if (x.nodeType === 3 && x.nodeValue.trim()) x.nodeValue = n; });

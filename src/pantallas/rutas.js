@@ -1642,3 +1642,91 @@ const rnProxima = rep => rnFechas(rep, hoyISO(), isoMas(hoyISO(), 120))[0] || nu
 const rnPie = (izq, der) => `<div class="rnpie"><span>${izq}</span><span class="rnpieb">${der}</span></div>`;
 
 const rnFC = l => ({ type: 'FeatureCollection', features: l });
+
+/* cargarRutas: la parte base y, en orden, cada paso que se le añade (antes eran 2 capas separadas). */
+async function cargarRutasBase2() {
+  await cargarRutasBase();
+  await cargarRutasPaso1();
+  await cargarRutasPaso2();
+}
+
+// En Rutas, la ruta en curso se ve en «Tu día»
+async function pintarRutaEnCursoBase() {
+  if (TAB !== 'rutas') return;
+  if (!$('renc')) $('v-rutas').querySelector('.saludo').insertAdjacentHTML('afterend', '<div id="renc"></div>');
+  const j = jornadaActiva();
+  $('renc').innerHTML = j ? `<div class="card renc"><h2>Jornada en curso</h2>
+    <p class="sm">Empezaste hace ${durTxt(Date.now() - j.inicio)}. El orden, las horas y el registro de ${TT('visita', 'p', '', 'l', 'l')} están en tu agenda de hoy.</p>
+    <div class="acts" style="padding:0 16px 16px"><button class="btn" id="rencver">Ver mi día</button>
+      <button class="btn sec dang" id="rencfin">Terminar jornada</button></div></div>` : '';
+  if (j) { $('rencver').onclick = () => { AG_MODO = 'dia'; AG_FECHA = hoyISO(); ir('agenda'); }; $('rencfin').onclick = terminarJornada; }
+}
+
+// El día: paradas en su orden, la salida (si hay) y los tramos de viaje y de visita
+function rmPlanBase(citas, fecha, tramos) {
+  const vivas = citas.filter(c => xyCita(c) && (CITA_ABIERTA.includes(c.estado) || citaHecha(c.estado)));
+  const r = estimarDia(vivas, fecha), dura = PLANCFG().visita || 15, aparcar = +PLANCFG().parada || 0, sal = salidaUsuario();
+  const casa = sal && sal.lat != null && sal.lon != null ? [+sal.lat, +sal.lon] : null;
+  const paradas = vivas.map((c, i) => ({ c, i, xy: xyCita(c), ini: r.est[c.id] != null ? r.est[c.id] : minHora(c.hora) })).filter(p => p.ini != null);
+  const puntos = (casa ? [casa] : []).concat(paradas.map(p => p.xy)).concat(casa && paradas.length ? [casa] : []);
+  const segs = []; let pos = casa, t = null, k = 0;
+  paradas.forEach((p, j) => {
+    const mismo = pos && pos[0] === p.xy[0] && pos[1] === p.xy[1];
+    let ini = p.ini;
+    if (pos && !mismo) {
+      const tr = tramos && tramos[k], v = tr ? tr.min + aparcar : minutosEntre(pos, p.xy);
+      const sale = t != null ? t : ini - v;
+      if (tramos) ini = Math.max(sale + v, minHora(p.c.hora) || 0);   // con tiempos reales, la hora sale del viaje (las fijas se respetan)
+      segs.push({ tipo: 'viaje', a: sale, b: sale + v, de: pos, hasta: p.xy, k, km: tr ? tr.km : null });
+    }
+    if (pos && (casa || j > 0)) k++;
+    p.ini = ini; segs.push({ tipo: 'vis', a: ini, b: ini + dura, p }); pos = p.xy; t = ini + dura;
+  });
+  if (casa && pos && t != null) { const tr = tramos && tramos[k], v = tr ? tr.min : minutosEntre(pos, casa); segs.push({ tipo: 'viaje', a: t, b: t + v, de: pos, hasta: casa, k, km: tr ? tr.km : null }); t += v; }
+  return { paradas, puntos, segs, casa, ini: segs.length ? segs[0].a : 9 * 60, fin: t || 18 * 60, tope: isFinite(r.tope) ? r.tope : null };
+}
+
+async function rutasMapaBase() {
+  if (TAB !== 'rutas' || !$('v-rutas')) return;
+  const ref = $('renc') || $('v-rutas').querySelector('.saludo'); if (!ref) return;
+  const fecha = hoyISO(), citas = await citasDelDia(fecha);
+  if (TAB !== 'rutas' || !ref.isConnected) return;
+  let caja = $('rmapa');
+  const P0 = rmPlan(citas, fecha, null);
+  if (!P0.paradas.length) { if (caja) caja.remove(); return; }
+  if (!caja) { ref.insertAdjacentHTML('afterend', '<section class="card rmapa" id="rmapa" aria-label="Tu día en el mapa"></section>'); caja = $('rmapa'); }
+  caja.innerHTML = `<div class="rmcab"><div><h2>Tu día en el mapa</h2><span class="sm" id="rmsub">Buscando la ruta por las calles…</span></div>
+      <button type="button" class="btn" id="rmplay">${RM_SV('<path d="M6 4l14 8-14 8z"/>')}<span>Ver el día</span></button></div>
+    <div class="rmwrap"><div class="rmc" id="rmc"></div><div class="rmnav" id="rmnav"></div></div>
+    <div class="rmjorn"><div class="rmpista" id="rmpista"></div><div class="rmhoras" id="rmhoras"></div>
+      <input type="range" class="rmscrub" id="rmscrub" step="5" aria-label="Hora del día"><div class="rmtx sm" id="rmtx"></div></div>`;
+  let ml;
+  try { ml = await rmLib(); } catch (e) { $('rmc').innerHTML = '<div class="vacio">No se ha podido cargar el mapa. Comprueba la conexión.</div>'; return; }
+  if (!$('rmc')) return;
+  const salida = P0.segs.length ? `${fecha}T${hm(Math.max(0, P0.segs[0].a))}:00` : null;
+  const lineaRecta = P0.puntos.length > 1 && P0.puntos.length <= 30 ? null : 'datos';
+  const res = lineaRecta ? { ok: false, motivo: lineaRecta } : await rmRuta(P0.puntos, salida);
+  if (!$('rmc')) return;
+  const P = res.ok && res.tramos && res.tramos.length === P0.puntos.length - 1 ? rmPlan(citas, fecha, res.tramos) : P0;
+  const real = P !== P0;
+  $('rmsub').innerHTML = real
+    ? `Por las calles, con tráfico · <b>${String(res.km).replace('.', ',')} km</b> · <b>${rmDur(res.min)}</b> al volante${res.retraso_min ? ` (${res.retraso_min} min por el tráfico)` : ''} · fin hacia las <b>${hm(P.fin)}</b> <span class="rmfuente">Ruta: © TomTom</span>`
+    : `${esc(RM_MOTIVO[res.motivo] || RM_MOTIVO.servicio)}: tiempos aproximados en línea recta · fin hacia las <b>${hm(P.fin)}</b>`;
+  pintarRutasMapa(ml, P, real ? res.tramos : null);
+}
+
+async function cargarRutas(...a) {
+  const r = await cargarRutasBase2.apply(this, a);
+  rutasMapa();
+  return r;
+}
+
+// Con la ruta abierta, Rutas solo pinta el editor (sin la jornada en curso ni el mapa de hoy); el menú «Rutas» vuelve a Mis rutas
+function pintarRutaEnCurso(...a) { if (RN) return; return pintarRutaEnCursoBase.apply(this, a); }
+
+// El plan del mapa se calcula siempre con la estimación (así su clave es la misma en Rutas y en «Tu día»)
+function rmPlan(...a) {
+  if (a[2]) return rmPlanBase.apply(this, a);
+  const r0 = TD_REAL; TD_REAL = null;
+  try { return rmPlanBase.apply(this, a); } finally { TD_REAL = r0; }
+}

@@ -4,34 +4,6 @@
 
 /* ---------------- ventanas propias ---------------- */
 
-/**
- * Ventana propia (aviso, confirmación o pregunta con un campo).
- * @param {{ titulo?: string, msg?: string, ok?: string, cancel?: string, campo?: any, opciones?: any, peligro?: boolean }} o
- */
-function appVentana({ titulo, msg, ok, cancel, campo, opciones, peligro }) {
-  return new Promise(res => {
-    const d = $('mini');
-    d.innerHTML = `<div class="fbox">
-      <div class="fh"><h2>${esc(titulo || 'Confirmar')}</h2></div>
-      ${msg ? `<p style="margin:0 0 10px;white-space:pre-line">${esc(msg)}</p>` : ''}
-      ${campo ? `<input id="mcampo" type="${campo.tipo || 'text'}" value="${esc(campo.valor || '')}"
-                   placeholder="${esc(campo.placeholder || '')}" ${campo.min ? `min="${campo.min}"` : ''}>` : ''}
-      ${opciones && opciones.length ? `<div class="chips" style="padding:10px 0 0">${
-        opciones.map(o => `<button type="button" class="chip" data-mop="${esc(o)}">${esc(o)}</button>`).join('')}</div>` : ''}
-      <div class="acts" style="justify-content:flex-end">
-        ${cancel === false ? '' : `<button class="btn sec" id="mno">${esc(cancel || 'Cancelar')}</button>`}
-        <button class="btn ${peligro ? 'dang' : ''}" id="mok">${esc(ok || 'Aceptar')}</button></div></div>`;
-
-    const fin = v => { d.close(); res(v); };
-    $('mok').onclick = () => fin(campo ? ($('mcampo').value || '') : true);
-    if ($('mno')) $('mno').onclick = () => fin(campo ? null : false);
-    d.querySelectorAll('[data-mop]').forEach(b => b.onclick = () => { $('mcampo').value = b.dataset.mop; });
-    d.onclick = e => { if (e.target === d) fin(campo ? null : false); };
-    d.oncancel = e => { e.preventDefault(); fin(campo ? null : false); };
-    d.showModal();
-    setTimeout(() => { const i = $('mcampo'); if (i) { i.focus(); i.onkeydown = ev => { if (ev.key === 'Enter') fin(i.value); }; } else $('mok').focus(); }, 30);
-  });
-}
 
 
 /* ---------------- tabla del directorio con columnas ---------------- */
@@ -50,13 +22,8 @@ const COLS = [
 
 
 
-function filaTabla(m) {
-  const cfg = colsConfig().filter(c => c.on);
-  return `<button class="trow" data-id="${m.id}">${cfg.map(c =>
-    `<span class="tcell" style="width:${c.w}px;min-width:${c.w}px">${celda(m, c.k)}</span>`).join('')}</button>`;
-}
 
-function cabeceraTabla() {
+function cabeceraTablaBase() {
   const cfg = colsConfig().filter(c => c.on);
   const ancho = cfg.reduce((n, c) => n + c.w, 0);
   $('thead').innerHTML = cfg.map(c => {

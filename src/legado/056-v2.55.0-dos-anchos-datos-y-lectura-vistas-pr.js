@@ -61,11 +61,11 @@ htPintarPanel = (orig => function (sec) {
   });
 })(htPintarPanel);
 // Prescriptores: sus columnas se abren en el segundo panel, encima del de filtros
-abrirColumnas = (orig => function () {
+function abrirColumnas() {
   const t1 = $('tools'), t2 = $('tools2');
   // La función original pinta en el panel que se llama «tools»: durante la llamada, ese es el segundo
   t1.id = 'tools_1'; t2.id = 'tools';
-  try { orig(); } finally { t2.id = 'tools2'; t1.id = 'tools'; }
+  try { abrirColumnasBase(); } finally { t2.id = 'tools2'; t1.id = 'tools'; }
   t1.classList.add('abierto'); t2.classList.add('abierto');
   const ajustar = () => {
     const v = t2.querySelector('#tcvolver'); if (v && !v.dataset.v255) { v.dataset.v255 = '1'; v.textContent = '‹ Volver'; v.className = 't2volver'; v.onclick = () => t2.classList.remove('abierto'); }
@@ -73,32 +73,12 @@ abrirColumnas = (orig => function () {
   };
   ajustar();
   if (!t2.dataset.obs) { t2.dataset.obs = '1'; new MutationObserver(ajustar).observe(t2, { childList: true, subtree: true }); }
-})(abrirColumnas);
+}
 // Si se vuelve a los filtros desde cualquier sitio, el segundo panel se cierra
 abrirHerramientas = (orig => function (...a) { $('tools2').classList.remove('abierto'); return orig(...a); })(abrirHerramientas);
 
 /* ---------------- buscador con los filtros activos al lado ---------------- */
 
-function htChips(sec) {
-  const fil = sec.querySelector('.filtros'); if (!fil || fil.classList.contains('hide')) return;
-  let c = sec.querySelector('.htchips');
-  if (!c) { fil.insertAdjacentHTML('beforeend', '<div class="htchips"></div>'); c = sec.querySelector('.htchips'); fil.classList.add('filbusca'); }
-  const chips = [];
-  const selects = [...sec.querySelectorAll('.htpanel .htpropios select'), ...(htLateralAbierto() ? [...$('tools').querySelectorAll('.htpropios.lat select')] : [])];
-  selects.forEach(s => { if (s.selectedIndex > 0) { const l = s.id && document.querySelector(`label[for="${s.id}"]`); chips.push({ t: (l ? l.textContent.trim() + ': ' : '') + s.options[s.selectedIndex].text, quitar: () => { s.selectedIndex = 0; s.dispatchEvent(new Event('change', { bubbles: true })); } }); } });
-  const g = sec.querySelector('.dgrid'), st = g ? HT_ESTADO[htTipo(g)] : null;
-  if (st) {
-    const cab = [...(g.querySelector(':scope > .dh') || { children: [] }).children].map(x => x.textContent.trim());
-    Object.entries(st.facetas || {}).forEach(([i, v]) => { if (v) chips.push({ t: `${cab[i] || 'Columna'}: ${v}`, quitar: () => { st.facetas[i] = ''; htAplicarFiltros(g); } }); });
-    if (st.texto) chips.push({ t: `Contiene «${st.texto}»`, quitar: () => { st.texto = ''; htAplicarFiltros(g); } });
-  }
-  const html = chips.map((x, i) => `<button class="htchip" type="button" data-hchip="${i}">${esc(x.t)} <span aria-hidden="true">✕</span></button>`).join('');
-  if (c.innerHTML !== html) {
-    c.innerHTML = html;
-    c.querySelectorAll('[data-hchip]').forEach(b => b.onclick = () => { chips[+b.dataset.hchip].quitar(); htContador(sec); htChips(sec); });
-  }
-}
-htContador = (orig => function (sec) { orig(sec); htChips(sec); })(htContador);
 
 /* ---------------- Datos fiscales: vista previa de la factura ---------------- */
 

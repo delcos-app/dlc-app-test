@@ -125,3 +125,53 @@ const esBotonGuardar = b => {
 };
 
 let ULT_ACCION = 0;
+
+/**
+ * Ventana propia (aviso, confirmación o pregunta con un campo).
+ * @param {{ titulo?: string, msg?: string, ok?: string, cancel?: string, campo?: any, opciones?: any, peligro?: boolean }} o
+ */
+function appVentanaBase({ titulo, msg, ok, cancel, campo, opciones, peligro }) {
+  return new Promise(res => {
+    const d = $('mini');
+    d.innerHTML = `<div class="fbox">
+      <div class="fh"><h2>${esc(titulo || 'Confirmar')}</h2></div>
+      ${msg ? `<p style="margin:0 0 10px;white-space:pre-line">${esc(msg)}</p>` : ''}
+      ${campo ? `<input id="mcampo" type="${campo.tipo || 'text'}" value="${esc(campo.valor || '')}"
+                   placeholder="${esc(campo.placeholder || '')}" ${campo.min ? `min="${campo.min}"` : ''}>` : ''}
+      ${opciones && opciones.length ? `<div class="chips" style="padding:10px 0 0">${
+        opciones.map(o => `<button type="button" class="chip" data-mop="${esc(o)}">${esc(o)}</button>`).join('')}</div>` : ''}
+      <div class="acts" style="justify-content:flex-end">
+        ${cancel === false ? '' : `<button class="btn sec" id="mno">${esc(cancel || 'Cancelar')}</button>`}
+        <button class="btn ${peligro ? 'dang' : ''}" id="mok">${esc(ok || 'Aceptar')}</button></div></div>`;
+
+    const fin = v => { d.close(); res(v); };
+    $('mok').onclick = () => fin(campo ? ($('mcampo').value || '') : true);
+    if ($('mno')) $('mno').onclick = () => fin(campo ? null : false);
+    d.querySelectorAll('[data-mop]').forEach(b => b.onclick = () => { $('mcampo').value = b.dataset.mop; });
+    d.onclick = e => { if (e.target === d) fin(campo ? null : false); };
+    d.oncancel = e => { e.preventDefault(); fin(campo ? null : false); };
+    d.showModal();
+    setTimeout(() => { const i = $('mcampo'); if (i) { i.focus(); i.onkeydown = ev => { if (ev.key === 'Enter') fin(i.value); }; } else $('mok').focus(); }, 30);
+  });
+}
+
+// Ventana de texto: «area» para notas (varias líneas y más espacio)
+function appVentana(o) {
+  const p = appVentanaBase(o);
+  if (o && o.campo && o.campo.tipo === 'area') setTimeout(() => {
+    const i = $('mcampo'); if (!i) return;
+    const t = document.createElement('textarea'); t.id = 'mcampo'; t.rows = 6; t.value = i.value; t.placeholder = i.placeholder; i.replaceWith(t);
+    $('mini').classList.add('ancha'); t.focus();
+  }, 0);
+  return p;
+}
+
+function areaEncajeBase() {
+  if (innerWidth < ENCAJE_MIN) return null;
+  if (TAB === 'config') return $('cfgcuerpo-hub') || $('cfgcuerpo');
+  if (PAGINAS[TAB]) return document.querySelector(`#v-${TAB} .pagcuerpo`) || $('cfgcuerpo');
+  return null;
+}
+
+// Mientras se abre una ficha, no se encaja en la página
+function areaEncaje(...a) { return FX_FICHA ? null : areaEncajeBase.apply(this, a); }

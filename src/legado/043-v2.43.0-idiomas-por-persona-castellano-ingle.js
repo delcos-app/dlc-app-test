@@ -28,8 +28,8 @@ PLANES.splice(0, PLANES.length,
   { id: 'premium', nombre: 'Premium', precio: 179, incluidos: 15, bloque: [1, 8], medicos: null, para: 'Redes comerciales completas',
     modulos: ['inicio', 'agenda', 'rutas', 'directorio', 'seguimiento', 'ventas', 'pacientes', 'productos', 'analitica', 'facturacion'],
     ventajas: ['Todo lo de Avanzado', `Espacio ${TT('medico', 's', 'del', 'l', 'l')} sin límite`, 'Impersonalización de usuarios y auditoría', 'Soporte prioritario y ayuda con la migración'] });
-pintarPlan2 = (orig => async function () {
-  await orig();
+async function pintarPlan2() {
+  await pintarPlan2Base();
   const c = $('cfgcuerpo'); if (!c) return;
   // Textos del modelo por usuario (en lugar de bloques)
   c.querySelectorAll('.plan .sm').forEach(s => { s.textContent = s.textContent.replace(/\+1 usuarios por (.+?)\/mes/, 'usuario extra: $1/mes'); });
@@ -39,7 +39,7 @@ pintarPlan2 = (orig => async function () {
     if (/dos meses gratis/.test(li.textContent)) li.textContent = 'Pago mensual con tarjeta, sin permanencia.';
   });
   const act = c.querySelector('.planact .sm'); if (act) act.textContent = act.textContent.replace(/ \+ (\d+) bloques? de 1/, ' + $1 extra');
-})(pintarPlan2);
+}
 
 /* ---------------- notificaciones ampliadas ---------------- */
 
