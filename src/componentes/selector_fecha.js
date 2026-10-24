@@ -186,3 +186,57 @@ function abrirReloj(inp, o) {
   });
   $('seldlg') ? $('seldlg').appendChild(pop) : capaSelector(inp).appendChild(pop); pinta();
 }
+
+// Cada campo de fecha, hora o número se mejora al aparecer en pantalla
+function mejorarCamposBase(raiz) {
+  (raiz || document).querySelectorAll('input[type=date]:not([data-sel]), input[type=time]:not([data-sel]), input[type=number]:not([data-sel])').forEach(inp => {
+    inp.dataset.sel = '1';
+    if (inp.closest('.selpop')) return;
+    if (inp.type === 'number') {
+      if (inp.closest('.lrow') && inp.offsetWidth && inp.offsetWidth < 70) return;
+      const w = document.createElement('span'); w.className = 'numw';
+      inp.parentNode.insertBefore(w, inp); w.appendChild(inp);
+      w.insertAdjacentHTML('afterbegin', '<button type="button" class="nb" data-nd="-1" aria-label="Menos" tabindex="-1">−</button>');
+      w.insertAdjacentHTML('beforeend', '<button type="button" class="nb" data-nd="1" aria-label="Más" tabindex="-1">+</button>');
+      if (inp.disabled) w.classList.add('dis');
+      return;
+    }
+    const w = document.createElement('span'); w.className = 'selw ' + (inp.type === 'date' ? 'fecha' : 'hora');
+    inp.parentNode.insertBefore(w, inp); w.appendChild(inp);
+    w.insertAdjacentHTML('beforeend', `<span class="selico" aria-hidden="true">${inp.type === 'date' ? '📅' : '🕒'}</span>`);
+    inp.dataset.ro = inp.readOnly ? '1' : '';
+    inp.readOnly = true; inp.setAttribute('inputmode', 'none');
+    // Se muestra el valor en formato español, sin depender del idioma del navegador
+    w.insertAdjacentHTML('afterbegin', '<span class="selval"></span>');
+    const desc = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value');
+    Object.defineProperty(inp, 'value', { configurable: true, get() { return desc.get.call(this); }, set(v) { desc.set.call(this, v); valorVisible(this); } });
+    inp.addEventListener('change', () => valorVisible(inp)); inp.addEventListener('input', () => valorVisible(inp));
+    valorVisible(inp);
+  });
+}
+
+function mejorarCamposBase2(raiz) {
+  if (!raiz || raiz === document) return mejorarCamposBase(raiz);
+  if (raiz.nodeType !== 1 || !raiz.querySelector && raiz.tagName !== 'INPUT') return;
+  MEJ_PEND.add(raiz);
+  if (MEJ_RAF) return;
+  MEJ_RAF = 1; queueMicrotask(() => {
+    MEJ_RAF = 0; const l = [...MEJ_PEND]; MEJ_PEND.clear();
+    l.forEach(n => { if (n.isConnected && (n.tagName === 'INPUT' ? n.parentNode : n.querySelector('input[type=date],input[type=time],input[type=number]'))) mejorarCamposBase(n.tagName === 'INPUT' ? n.parentNode : n); });
+  });
+}
+
+// Cantidades con botones; importes y porcentajes sin ellos (sumar de uno en uno a un importe no tiene sentido)
+function mejorarCamposBase3(raiz) {
+  (raiz || document).querySelectorAll('input[type=number]:not([data-sel])').forEach(i => {
+    if (ES_IVA(i)) { ivaSelector(i); return; }
+    const txt = (i.id + ' ' + (i.dataset.f || '') + ' ' + (i.placeholder || '') + ' ' + (((i.id && document.querySelector(`label[for="${i.id}"]`)) || i.closest('label') || {}).textContent || '')).toLowerCase();
+    const decimal = /^(0?\.\d+|any)$/.test(i.getAttribute('step') || '');
+    if (decimal || /€|precio|importe|coste|portes|env[ií]o|descuento|pvp|cobro|total|base/.test(txt)) { i.dataset.sel = '1'; i.classList.add('numdec'); }
+  });
+  return mejorarCamposBase2(raiz);
+}
+
+function mejorarCamposBase4(raiz) { mejorarCamposBase3(raiz); mejorarCamposNuevos(raiz); }
+
+function mejorarCampos(raiz) { const r = mejorarCamposBase4(raiz); try { sinSelectorDelSistema(raiz || document); } catch (e) {} return r; }

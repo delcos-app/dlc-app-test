@@ -109,56 +109,6 @@ function explicarAviso(inf) {
   return inf.otroCentro ? t.replace('Según su ficha,', `Ese día atiende en ${inf.otroCentro} (no en el centro de la cita). Según su ficha,`) : t;
 }
 
-// ---- 3. Una sola ventana de cita, con centro y notas
-nuevaCita = async function (medicoId, fecha, op = {}) {
-  let elegido = null, consultas = [];
-  const traer = async id => { const { data } = await db.rpc('ficha_cuenta', { p_id: id }); consultas = (data && data.consultas) || []; return data; };
-  if (medicoId) { const data = await traer(medicoId); if (data && data.medico) elegido = data.medico; }
-  const dia = fecha || (TAB === 'agenda' && AG_FECHA && AG_FECHA >= hoyISO() ? AG_FECHA : hoyISO());
-  $('dbody').innerHTML = `
-    <div class="fh"><div><h2>Nueva cita</h2><div class="sm">Se añade a tu agenda</div></div>
-      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-    <label>${TT('medico', 's', '', 'l', 'C')}</label><div id="ncsel"></div>
-    <div class="g2">
-      <div><label for="ncf">Día</label><input id="ncf" type="date" value="${esc(dia)}"></div>
-      <div><label for="nch">Hora <span class="sm">(opcional)</span></label><input id="nch" type="time"></div>
-    </div>
-    <div id="nccw"></div>
-    <label for="ncn">Notas</label><textarea id="ncn" rows="3" placeholder="p. ej. quedamos en el bar de enfrente, llevar el reporting…"></textarea>
-    <div class="acts" style="justify-content:flex-end">
-      <button class="btn sec" data-cerrar>Cancelar</button>
-      <button class="btn" id="ncok">Añadir a la agenda</button></div>`;
-  const pintarCentros = () => {
-    const w = $('nccw'); if (!w) return;
-    const l = consultas.filter(x => x && x.centro_nombre);
-    if (l.length < 2) { w.innerHTML = ''; return; }
-    const pref = (typeof FICHA_CENTRO !== 'undefined' && FICHA_CENTRO) || (l.find(x => x.principal) || l[0]).centro_nombre;
-    w.innerHTML = `<label for="ncc">Centro</label><select id="ncc">${l.map(x => `<option value="${esc(x.centro_nombre)}" ${x.centro_nombre === pref ? 'selected' : ''}>${esc([x.centro_nombre, x.municipio].filter(Boolean).join(' · '))}</option>`).join('')}</select>`;
-  };
-  pintarCentros();
-  selectorMedico($('ncsel'), { valor: elegido, alElegir: async m => { elegido = m; await traer(m.id); pintarCentros(); } });
-  $('ncok').onclick = async ev => {
-    if (!elegido) { toast(`Elige ${TT('medico', 's', 'un', 'l', 'l')}`, true); return; }
-    const f = $('ncf').value;
-    const decision = await citaRepetida(elegido.id, f);
-    if (!decision) return;
-    const c0 = consultas.find(x => x && x.principal) || consultas[0] || {};
-    const centro = ($('ncc') && $('ncc').value) || c0.centro_nombre || elegido.centro_nombre || elegido.centro || null;
-    ev.target.disabled = true;
-    const r = await escribir('guardar_cita', { p: {
-      cuenta_id: elegido.id, fecha: f, hora: $('nch').value || null, centro_nombre: centro, estado: 'Planificada',
-      origen: op.origen || (TAB === 'agenda' ? 'Agenda' : 'Ficha'), usuario_id: TAB === 'agenda' && AG_VISTA ? AG_VISTA.id : null,
-      nota: $('ncn').value.trim(), op_id: 'c-' + elegido.id + '-' + f + '-' + Date.now()
-    }});
-    ev.target.disabled = false;
-    if (r.error) { toast('No se ha podido: ' + r.error.message, true); return; }
-    // v2.298: con hora, la cita nueva se coloca entre las del día según su hora (antes quedaba la última)
-    if ($('nch').value) await colocarPorHora(f, TAB === 'agenda' && AG_VISTA ? AG_VISTA.id : PERFIL.id, elegido.id, $('nch').value);
-    $('dlg').close(); toast('Cita añadida el ' + fechaDiaMes(f)); if (TAB === 'agenda') agRefrescoQuieto(); else cargarInicio();
-  };
-  $('dlg').classList.add('pequena');
-  $('dlg').showModal();
-};
 // «Añadir a mi agenda» de la ficha abre la misma ventana (antes solo pedía el día). Va en la fase de captura de window, antes que la de la v2.174.0.
 window.addEventListener('click', e => {
   const b = e.target.closest && e.target.closest('[data-agendar]');

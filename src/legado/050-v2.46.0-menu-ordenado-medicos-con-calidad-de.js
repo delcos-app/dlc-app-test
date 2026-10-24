@@ -45,58 +45,7 @@ ordenarMenu();
 
 /* ---------------- Configuración por bloques con subapartados ---------------- */
 
-async function cargarConfig() {
-  salirPanel();
-  if (CFG_ANTES[CFG_SEC]) { const [k, s] = CFG_ANTES[CFG_SEC]; CFG_SEC = k; if (s) CFG_SUB = s; }
-  const grupos = arbolConfig(), todos = grupos.flatMap(g => g[1]);
-  const plan = { k: 'plan', r: pintarPlan2 };
-  if (CFG_SEC !== 'plan' && !todos.some(x => x.k === CFG_SEC)) CFG_SEC = 'perfil';
-  $('v-config').innerHTML = `
-    <div class="saludo"><div><h1>Configuración</h1><div class="fecha">Todos los ajustes de tu cuenta y de la plataforma, en un solo sitio</div></div></div>
-    <div class="cfghub">
-      <nav class="cfgnav">${grupos.map(([g, l]) => `<div class="cfgg"><h3>${esc(g)}</h3>${l.map(x => {
-        const bloq = x.mod && !planIncluye(x.mod);
-        return `<button data-cfg="${x.k}"><span class="ci">${svgIco(ICON_NOM[x.ic] || '')}</span><span><b>${esc(x.t)}${bloq ? ` <span class="pill p-plan">${esc(planMinimo(x.mod) ? planMinimo(x.mod).nombre : 'Premium')}</span>` : ''}</b><em>${esc(x.d)}</em></span></button>`;
-      }).join('')}</div>`).join('')}</nav>
-      <div class="cfgcuerpo" id="cfgcuerpo-hub"><div class="cfgsubs hide" id="cfgsubs"></div><div id="cfgcuerpo"></div></div></div>`;
-  const abrir = (k, sub, desplazar) => {
-    salirPanel();
-    const it = k === 'plan' ? plan : todos.find(x => x.k === k); if (!it) return;
-    CFG_SEC = k; document.querySelectorAll('.cfgnav [data-cfg]').forEach(b => b.classList.toggle('on', b.dataset.cfg === k));
-    const subs = $('cfgsubs');
-    if (it.sub) {
-      CFG_SUB = it.sub.some(s => s[0] === sub) ? sub : it.sub[0][0];
-      subs.classList.remove('hide');
-      subs.innerHTML = it.sub.map(([s, t]) => `<button data-csub="${s}" class="${s === CFG_SUB ? 'on' : ''}">${esc(t)}</button>`).join('');
-      subs.querySelectorAll('[data-csub]').forEach(b => b.onclick = () => abrir(k, b.dataset.csub, false));
-    } else { subs.classList.add('hide'); subs.innerHTML = ''; CFG_SUB = null; }
-    $('cfgcuerpo').innerHTML = '';
-    // Apartado de un módulo que no incluye el plan: se explica en lugar de mostrarlo
-    if (it.mod && !planIncluye(it.mod)) {
-      const p = planMinimo(it.mod);
-      $('cfgcuerpo').innerHTML = `<div class="card cfgpanel planup"><div class="planupico">${svgIco(ICON_NOM.lock)}</div><h2>${esc(it.t)} está en el plan ${esc(p ? p.nombre : 'A medida')}</h2>
-        <p class="sm">Tu plan ${esc(planDe(PLAN_ACTUAL.plan).nombre)} no lo incluye. ${p ? `Con ${esc(p.nombre)} (${precioPlan(p)}) tienes:` : ''}</p>
-        ${p ? `<ul class="manlist">${p.ventajas.map(v => `<li><span>✓</span><span>${esc(v)}</span></li>`).join('')}</ul>` : ''}
-        ${puede('administrar') ? '<div class="acts"><button class="btn" id="planver">Ver planes</button></div>' : ''}</div>`;
-      if ($('planver')) $('planver').onclick = () => abrir('plan', null, true);
-    } else {
-      const r = it.sub ? it.sub.find(s => s[0] === CFG_SUB)[2] : it.r;
-      Promise.resolve().then(r);
-    }
-    if (ES_MOVIL()) { const hub = document.querySelector('.cfghub'); hub.classList.add('detalle'); cfgMovil(); }
-    if (desplazar) {
-      // Con margen bajo la cabecera, para que el primer bloque se vea entero
-      const cab = Math.max(0, ...['header', 'nav.main'].map(s => { const e = document.querySelector(s); return e ? e.getBoundingClientRect().bottom : 0; }));
-      const y = document.getElementById('cfgcuerpo-hub').getBoundingClientRect().top + scrollY - cab - 24;
-      if (Math.abs(scrollY - y) > 20) scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
-    }
-  };
-  document.querySelectorAll('.cfgnav [data-cfg]').forEach(b => b.onclick = () => abrir(b.dataset.cfg, null, true));
-  abrir(CFG_SEC, CFG_SUB, false);
-  cfgMovil();
-  if (ES_MOVIL() && !window.__CFG_DIRECTO) document.querySelector('.cfghub').classList.remove('detalle');
-  window.__CFG_DIRECTO = false;
-};
+;
 ;
 
 /* ---------------- manual: qué incluye tu plan ---------------- */

@@ -4,7 +4,6 @@ setInterval(comprobarVersion, 10 * 60 * 1000);
 
 // Fechas y horas en pantallas táctiles: sin foco, sin selector del sistema
 const PANTALLA_TACTIL = !!(window.matchMedia && matchMedia('(pointer: coarse)').matches);
-mejorarCampos = (orig => function (raiz) { const r = orig(raiz); try { sinSelectorDelSistema(raiz || document); } catch (e) {} return r; })(mejorarCampos);
 sinSelectorDelSistema(document);
 
 /* v2.186.0 · Editar una cita no rehace la Agenda (aviso de Eric: al editar una cita se movía todo el panel). Antes, cerrar cualquier ventana en la

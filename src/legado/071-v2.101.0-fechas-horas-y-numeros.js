@@ -2,18 +2,17 @@
 
 
 // ---------- Valor visible de mes y de fecha con hora ----------
-valorVisible = (orig => function (inp) {
+function valorVisible(inp) {
   const t = selTipo(inp);
-  if (t !== 'mes' && t !== 'fechahora') return orig(inp);
+  if (t !== 'mes' && t !== 'fechahora') return valorVisibleBase(inp);
   const w = inp.closest('.selw'), sp = w && w.querySelector('.selval'); if (!sp) return;
   const v = inp.value;
   if (!v) { sp.textContent = t === 'mes' ? 'Elige un mes' : 'Elige fecha y hora'; sp.classList.add('vacio'); return; }
   sp.classList.remove('vacio');
   if (t === 'mes') { const [y, mm] = v.split('-'); sp.textContent = `${MESES_L[+mm - 1] || ''} ${y}`; return; }
   sp.textContent = `${selFechaMedia(v.slice(0, 10))} · ${v.slice(11, 16)}`;
-})(valorVisible);
+}
 
-mejorarCampos = (orig => function (raiz) { orig(raiz); mejorarCamposNuevos(raiz); })(mejorarCampos);
 mejorarCamposNuevos(document);
 
 // Números: mantener pulsado «+» o «−» repite; el último clic no suma otra vez
@@ -135,53 +134,6 @@ PLANES.splice(0, PLANES.length,
     ventajas: ['Todo lo de Empresa', 'Migración de datos', 'Conexión con tu programa de gestión', `Espacio ${TT('medico', 's', 'del', 'l', 'l')} sin límite`,
       'Ver la plataforma como cada persona de tu equipo, para ayudarla', 'Soporte prioritario'] });
 
-// Plan y suscripción: tu plan (usuarios contratados, pago, prueba), los cuatro planes y la comparativa por módulos
-pintarPaginaPlan = async function () {
-  const { data } = await RPC_ORIG('plan_uso', {});
-  const d = data || {}, pl = d.plan || {}; if (pl.plan) PLAN_ACTUAL = pl;
-  const act = planDe(pl.plan), contr = usuariosContratados(), usados = +d.usuarios || 0, anual = pl.pago === 'anual';
-  const pct = contr === Infinity ? 0 : Math.min(100, Math.round(usados / contr * 100));
-  // Con pago anual se pagan 10 meses de 12: la cuota mensual equivalente es precio × 10 / 12
-  const cuota = act.presupuesto || contr === Infinity ? null : contr * (anual ? act.precio * 10 / 12 : act.precio);
-  const mailto = asunto => 'mailto:?subject=' + encodeURIComponent(asunto + ' · ' + ((AJUSTES.marca || {}).nombre || ''));
-  const cont = $('cfgcuerpo'); if (!cont) return;
-  // El plan que se destaca es el siguiente al tuyo (con A medida, ninguno)
-  const siguiente = PLANES[PLANES.indexOf(act) + 1] || null;
-  // v2.120.0: «incluido» y «no incluido» como icono y raya suave, con su texto para lectores de pantalla
-  const celda = (p, v) => `<td class="${p.id === act.id ? 'act' : ''}">${v === '✓' ? `<span class="si" role="img" aria-label="Incluido">${svgIco(ICON_NOM.check)}</span>`
-    : v === '—' ? '<span class="no" role="img" aria-label="No incluido">—</span>' : v}</td>`;
-  cont.innerHTML = `${TAB === 'organizacion' || TAB === 'config' ? '<p class="sm">Precio por usuario y mes, IVA no incluido. Con pago anual pagas 10 meses de 12.</p>' : '<div class="saludo"><div><h1>Plan y suscripción</h1><div class="fecha">Precio por usuario y mes, IVA no incluido. Con pago anual pagas 10 meses de 12.</div></div></div>'}
-    <div class="card" id="planact"><h2>Tu plan: ${esc(act.nombre)}</h2>
-      ${pl.estado === 'prueba' ? `<div class="banda-aviso">Estás en la prueba gratuita hasta el <b>${fechaCorta(pl.prueba_hasta)}</b>. Sin permanencia: si no sigues, te llevas tus datos.</div>` : ''}
-      <div class="kpis">
-        <div class="kpi"><b>${contr === Infinity ? 'Sin límite' : num(contr)}</b><span>Usuarios contratados</span></div>
-        <div class="kpi"><b>${num(usados)}</b><span>Usuarios en uso</span></div>
-        <div class="kpi"><b>${act.presupuesto ? 'A medida' : anual ? 'Anual' : 'Mensual'}</b><span>Pago</span></div>
-        ${cuota != null ? `<div class="kpi"><b>${eurI(cuota)}</b><span>Al mes, sin IVA</span></div>` : ''}
-        ${act.medicos !== 0 ? `<div class="kpi"><b>${num(d.medicos || 0)}${act.medicos ? ' / ' + act.medicos : ''}</b><span>${TT('medico', 'p', '', 'l', 'C')} con acceso</span></div>` : ''}
-      </div>
-      ${contr !== Infinity ? `<div class="barrauso" title="${num(usados)} de ${num(contr)}"><i style="width:${pct}%"></i></div>` : ''}
-      ${contr !== Infinity && usados > contr ? `<div class="banda-aviso" id="plansobre">Tienes ${usados - contr === 1 ? '1 usuario' : num(usados - contr) + ' usuarios'} más de ${num(contr)} contratados. Añádelos a tu plan o desactiva los que ya no usen la plataforma.</div>` : ''}
-      <div class="acts"><a class="btn sec" href="${mailto('Cambiar el número de usuarios')}">Añadir o quitar usuarios</a></div></div>
-    <div class="planes">${PLANES.map(p => `<div class="plan ${p.id === act.id ? 'actual' : ''} ${p === siguiente ? 'dest' : ''}" data-plan="${p.id}">
-      <h3>${esc(p.nombre)}</h3><div class="sm">${esc(p.para)}</div>
-      <div class="precio">${p.presupuesto ? '<b>A medida</b> <span class="sm">Presupuesto · desde 50 usuarios</span>'
-        : `<b>${eurI(p.precio)}</b> <span class="sm">por usuario al mes · ${eurI(p.anual)} con pago anual (${eurI(p.precio * 10)} al año)</span>`}</div>
-      <ul class="manlist">${p.ventajas.map(v => `<li><span>✓</span><span>${esc(v)}</span></li>`).join('')}</ul>
-      ${p.id === act.id ? '<button class="btn sec" disabled>Tu plan actual</button>'
-        : `<a class="btn ${p === siguiente ? '' : 'sec'}" href="${mailto(p.presupuesto ? 'Presupuesto del plan A medida' : 'Cambiar al plan ' + p.nombre)}">${p.presupuesto ? 'Pedir presupuesto' : 'Cambiar a ' + esc(p.nombre)}</a>`}</div>`).join('')}</div>
-    <div class="card" id="plancond"><h2>Condiciones</h2><ul class="manlist">
-      <li><span>✓</span><span>Mínimo 3 usuarios en Campo, Comercial y Empresa. Añades o quitas usuarios cuando quieras.</span></li>
-      <li><span>✓</span><span>Puesta en marcha (importar tus Excel, configurar la empresa y formar al equipo): incluida con pago anual; con pago mensual, ${eurI(PUESTA_EN_MARCHA)} una sola vez.</span></li>
-      <li><span>✓</span><span>Prueba de 30 días con tus propios datos, sin permanencia. Si no sigues, te llevas tus datos.</span></li>
-      <li><span>✓</span><span>Desarrollos y configuraciones a medida: presupuesto según lo que necesites.</span></li></ul></div>
-    <div class="card"><h2>Qué incluye cada plan</h2><div class="dgrid-wrap"><table class="planmat"><thead><tr><th>Módulo</th>${PLANES.map(p => `<th class="${p.id === act.id ? 'act' : ''}">${esc(p.nombre)}</th>`).join('')}</tr></thead>
-      <tbody>${MOD_PLAN.map(([m, n, desc]) => `<tr><td><b>${esc(n)}</b><span class="sm">${esc(desc)}</span></td>${PLANES.map(p => celda(p, p.modulos.includes(m) ? '✓' : '—')).join('')}</tr>`).join('')}
-        <tr><td><b>Espacio ${TT('medico', 's', 'del', 'l', 'l')}</b><span class="sm">Su informe y sus avisos</span></td>${PLANES.map(p => celda(p, p.medicos === 0 ? '—' : p.medicos ? 'Hasta ' + p.medicos : 'Sin límite')).join('')}</tr>
-        <tr><td><b>Ver la plataforma como cada persona</b><span class="sm">De tu equipo, para ayudarla</span></td>${PLANES.map(p => celda(p, p.id === 'medida' ? '✓' : '—')).join('')}</tr>
-        <tr><td><b>Precio por usuario</b><span class="sm">Al mes, IVA no incluido</span></td>${PLANES.map(p => celda(p, p.presupuesto ? 'A medida' : eurI(p.precio) + ' · ' + eurI(p.anual) + ' anual')).join('')}</tr>
-      </tbody></table></div></div>`;
-};
 
 
 

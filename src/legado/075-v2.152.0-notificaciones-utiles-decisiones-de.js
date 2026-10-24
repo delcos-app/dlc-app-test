@@ -13,44 +13,6 @@ let NOTIF_LISTA = [], NOTIF_FILTRO = '';
 
 
 
-pintarNotif = function () {
-  const tipos = tiposDeMiRol(), s = (PERFIL.preferencias || {}).notif_silencio || {};
-  const filas = NOTIF_AREAS.map(([a, t, ks]) => [t, tipos.filter(x => ks.includes(x[0]))]).filter(([, l]) => l.length);
-  const sueltos = tipos.filter(x => !NOTIF_AREAS.some(a => a[2].includes(x[0])));
-  if (sueltos.length) filas.push(['Otros', sueltos]);
-  $('cfgcuerpo').innerHTML = `<div class="card cfgpanel notcfg2"><h2 style="padding:0 0 4px">Notificaciones</h2>
-    <p class="sm">Te llegan a la campana de arriba. Elige para cada aviso si lo quieres al momento o en el resumen de cada mañana; sin marcar ninguna, no lo recibes.</p>
-    ${tipos.length ? `<div class="notsil"><label class="chk"><input type="checkbox" id="nsil" ${s.activo ? 'checked' : ''}> Silenciar de</label>
-        <input type="time" id="nsild" value="${esc(s.desde || '20:00')}" aria-label="Desde"> a <input type="time" id="nsilh" value="${esc(s.hasta || '08:00')}" aria-label="Hasta">
-        <label class="chk"><input type="checkbox" id="nsilf" ${s.finde !== false ? 'checked' : ''}> y los fines de semana</label>
-        <span class="sm">Lo que llegue en ese tiempo lo verás al terminar el silencio.</span></div>
-      <div class="dgrid-wrap"><table class="nottab"><thead><tr><th>Aviso</th><th>Al momento</th><th>En el resumen del día</th></tr></thead>
-      <tbody>${filas.map(([t, l]) => `<tr class="notarea"><th colspan="3">${esc(t)}</th></tr>${l.map(([k, ic, tt, d]) => {
-        const m = notifModo(k), diario = NOTIF_DIARIOS.includes(k);
-        return `<tr><td><b>${ic} ${esc(tt)}</b><span class="sm">${esc(d)}</span></td>
-          <td>${diario ? '<span class="sm" title="Se prepara al empezar el día">—</span>' : `<input type="checkbox" data-ntm="${k}" ${m === 'm' ? 'checked' : ''} aria-label="${esc(tt)}: al momento">`}</td>
-          <td><input type="checkbox" data-ntr="${k}" ${m === 'r' ? 'checked' : ''} aria-label="${esc(tt)}: en el resumen del día"></td></tr>`; }).join('')}`).join('')}</tbody></table></div>`
-      : '<div class="vacio">Tu perfil no tiene notificaciones disponibles todavía.</div>'}</div>`;
-  const guardarTipo = async k => {
-    const m = $('cfgcuerpo').querySelector(`[data-ntm="${k}"]`), r = $('cfgcuerpo').querySelector(`[data-ntr="${k}"]`);
-    const notif = Object.assign({}, (PERFIL.preferencias || {}).notif || {});
-    const diario = NOTIF_DIARIOS.includes(k), om = m ? m.checked : false, or = r.checked;
-    if (diario ? or : (om && !or)) delete notif[k];          // lo de siempre: no hace falta guardarlo
-    else notif[k] = { m: om, r: or };
-    await notifGuardarPrefs({ notif }, om || or ? 'Guardado' : 'No lo recibirás');
-  };
-  $('cfgcuerpo').querySelectorAll('[data-ntm]').forEach(c => c.onchange = () => {
-    if (c.checked) { const r = $('cfgcuerpo').querySelector(`[data-ntr="${c.dataset.ntm}"]`); if (r) r.checked = false; }
-    guardarTipo(c.dataset.ntm);
-  });
-  $('cfgcuerpo').querySelectorAll('[data-ntr]').forEach(c => c.onchange = () => {
-    if (c.checked) { const m = $('cfgcuerpo').querySelector(`[data-ntm="${c.dataset.ntr}"]`); if (m) m.checked = false; }
-    guardarTipo(c.dataset.ntr);
-  });
-  const guardarSil = () => notifGuardarPrefs({ notif_silencio: { activo: $('nsil').checked, desde: $('nsild').value || '20:00', hasta: $('nsilh').value || '08:00', finde: $('nsilf').checked } },
-    $('nsil').checked ? 'Silencio guardado' : 'Sin silencio');
-  ['nsil', 'nsild', 'nsilh', 'nsilf'].forEach(id => { if ($(id)) $(id).onchange = guardarSil; });
-};
 
 
 // v2.154.0 · Iconos del menú «Más» del móvil (y de «Tus módulos» en Mi perfil): las secciones añadidas después (Oportunidades, Compras,
@@ -64,26 +26,12 @@ Object.keys(ICO_NAV).forEach(k => { if (ICON_NOM[ICO_NAV[k]]) ICO_MOD[k] = svgIc
     empresa: 'Para empresas que facturan y llevan su almacén', medida: 'Para redes de más de 50 personas o con necesidades propias' };
   PLANES.forEach(p => { if (para[p.id]) p.para = para[p.id]; });
 })();
-pintarPaginaPlan = (orig => async function (...a) {
-  const r = await orig.apply(this, a);
-  const t = document.querySelector('#cfgcuerpo .planmat'); if (!t) return r;
-  const act = planDe((PLAN_ACTUAL || {}).plan);
-  const celda = (p, v) => `<td class="${p.id === act.id ? 'act' : ''}">${v === true ? `<span class="si" role="img" aria-label="Incluido">${svgIco(ICON_NOM.check)}</span>`
-    : v === false ? '<span class="no" role="img" aria-label="No incluido">—</span>' : v}</td>`;
-  const filas = PLAN_FILAS().map(([n, d, pl]) => pl === null || pl === undefined && d === null
-    ? `<tr class="plangrupo"><td colspan="${PLANES.length + 1}">${esc(n)}</td></tr>`
-    : `<tr><td><b>${esc(n)}</b>${d ? `<span class="sm">${esc(d)}</span>` : ''}</td>${PLANES.map(p => celda(p, pl.includes(p.id))).join('')}</tr>`).join('');
-  const extra = [...t.querySelectorAll('tbody tr')].filter(tr => /Espacio|Ver la plataforma|Precio por usuario/.test(tr.textContent)).map(tr => tr.outerHTML).join('');
-  t.querySelector('tbody').innerHTML = filas + extra;
-  return r;
-})(pintarPaginaPlan);
 
 
-hayExtra = function (k) {
+function hayExtra(k) {
   const p = (typeof PLAN_ACTUAL !== 'undefined' && PLAN_ACTUAL) || {};
   return (p.extras || []).includes(k) || (PLAN_EXTRAS[k] || []).includes(p.plan);
-};
-hayOportunidades = function () { return hayExtra('oportunidades'); };
+}
 (() => {
   const portal = `Portal ${TT('medico', 's', 'del', 'l', 'l')} y del centro`;
   const pl = id => PLANES.find(p => p.id === id) || { ventajas: [] };
@@ -92,13 +40,6 @@ hayOportunidades = function () { return hayExtra('oportunidades'); };
   const iE = emp.findIndex(v => /^Espacio /.test(v)); if (iE >= 0) emp[iE] = portal + ' (hasta 50)'; else emp.push(portal + ' (hasta 50)');
   const iM = med.findIndex(v => /^Espacio /.test(v)); if (iM >= 0) med[iM] = portal + ', sin límite'; else med.push(portal + ', sin límite');
 })();
-// Comparativa de «Plan y suscripción»: la fila del espacio del profesional pasa a ser la del portal (Oportunidades va en PLAN_FILAS)
-pintarPaginaPlan = (orig => async function (...a) {
-  const r = await orig.apply(this, a);
-  const fp = [...document.querySelectorAll('.planmat tbody tr')].find(tr => /Su informe y sus avisos/.test(tr.textContent));
-  if (fp) fp.querySelector('td').innerHTML = `<b>Portal ${TT('medico', 's', 'del', 'l', 'l')} y del centro</b><span class="sm">Informe, constancia, material, mensajes y pedidos del centro</span>`;
-  return r;
-})(pintarPaginaPlan);
 // Organizaciones → Extras: ahora son excepciones a lo que incluye el plan
 document.addEventListener('click', e => {
   if (!e.target.closest('[data-orgext]')) return;
@@ -127,10 +68,6 @@ document.addEventListener('click', e => {
 });
 
 if (PAGINAS.delcos && !PAGINAS.delcos.tabs.some(t => t[0] === 'errores')) PAGINAS.delcos.tabs.push(['errores', 'Errores', () => pintarErroresDelcos()]);
-// Producción (3/10/2026): en el iPhone, sin cobertura, Safari da «Load failed» o «Fetch is aborted». Eso no es un fallo de la plataforma:
-// no se apunta en el registro de errores, y la visita (registrar_actividad, que no se duplica gracias a su op_id) se guarda en la cola
-// del dispositivo y se envía al recuperar la conexión, en lugar de pedir que se repita.
-function esErrorRed(e) { return /failed to fetch|load failed|networkerror|network request failed|aborterror|fetch is aborted|internet connection|err_internet|err_network/i.test(String((e && (e.message || e)) || '')); }
 
 /* v2.161.0 · Los errores corregidos se dan por resueltos solos (petición de Eric, 3/10/2026). Al abrirse, la app avisa una vez de su
    versión (version_en_uso, SQL 101): así se sabe desde cuándo se usa cada versión en cada empresa, y los errores que no han vuelto a
@@ -149,37 +86,6 @@ function esErrorRed(e) { return /failed to fetch|load failed|networkerror|networ
 
 
 
-// «Plan y suscripción»: los botones reales en lugar de correos
-pintarPaginaPlan = (orig => async function (...a) {
-  const r = await orig.apply(this, a);
-  const c = $('cfgcuerpo'); if (!c) return r;
-  const pl = PLAN_ACTUAL || {}, conSus = !!pl.stripe_suscripcion, puedePagar = puedeOrganizacion();
-  c.querySelectorAll('.plan[data-plan]').forEach(card => {
-    const k = card.dataset.plan, a2 = card.querySelector('a.btn[href^="mailto"]');
-    if (!a2 || !PAGO_PLANES.includes(k)) return;
-    if (!puedePagar) { a2.remove(); return; }
-    const b = document.createElement('button'); b.type = 'button'; b.className = a2.className; b.dataset.pgplan = k;
-    b.textContent = conSus ? 'Cambiar a ' + planDe(k).nombre : 'Contratar ' + planDe(k).nombre;
-    a2.replaceWith(b); b.onclick = () => elegirPago(k);
-  });
-  const acts = c.querySelector('#planact .acts');
-  if (acts) {
-    const usu = acts.querySelector('a.btn[href^="mailto"]'); if (usu) usu.remove();
-    if (puedePagar && pl.plan !== 'medida') acts.insertAdjacentHTML('beforeend', conSus
-      ? '<button type="button" class="btn sec" id="pgusu2">Añadir o quitar usuarios</button><button type="button" class="btn sec" id="pgportal">Gestionar el pago</button>'
-      : '<button type="button" class="btn" id="pgelegir">Elegir plan y pagar</button>');
-    if ($('pgusu2')) $('pgusu2').onclick = () => elegirPago(pl.plan);
-    if ($('pgportal')) $('pgportal').onclick = ev => pagoPortal(ev.target);
-    if ($('pgelegir')) $('pgelegir').onclick = () => elegirPago();
-  }
-  const act = c.querySelector('#planact h2');
-  if (act && pl.estado === 'impago') act.insertAdjacentHTML('afterend', `<div class="banda-peligro">No hemos podido cobrar el último recibo${pl.impago_desde ? ' (desde el ' + fechaCorta(pl.impago_desde) + ')' : ''}.
-    Actualiza el método de pago con «Gestionar el pago»; si en 14 días no se puede cobrar, la cuenta queda en solo lectura.</div>`);
-  if (act && pl.estado === 'cancelada') act.insertAdjacentHTML('afterend', `<div class="banda-aviso">Suscripción cancelada: puedes usar la plataforma hasta el
-    <b>${fechaCorta(pl.periodo_fin)}</b> y descargar tus datos. Para seguir, vuelve a contratar.</div>`);
-  if (act && conSus && pl.periodo_fin && pl.estado === 'activo') act.insertAdjacentHTML('afterend', `<p class="sm">Próximo recibo el ${fechaCorta(pl.periodo_fin)}.</p>`);
-  return r;
-})(pintarPaginaPlan);
 
 (function pagoArranque() {
   let n = 0;
@@ -195,28 +101,15 @@ pintarPaginaPlan = (orig => async function (...a) {
   }, 1500);
 })();
 
-aplicarPermisosMenu = (orig => function (...a) { const r = orig.apply(this, a); try { candadoSecciones(); } catch (e) {} return r; })(aplicarPermisosMenu);
+function aplicarPermisosMenuBase5(...a) { const r = aplicarPermisosMenuBase4.apply(this, a); try { candadoSecciones(); } catch (e) {} return r; }
 ir = (orig => function (t, ...a) {
   if (t in PLAN_SECCIONES && PERFIL && !ES_MEDICO() && !planIncluyeSeccion(t)) { avisoPlan(t); return; }
   return orig.call(this, t, ...a);
 })(ir);
-abrirMasMovil = (orig => function (...a) {
-  const r = orig.apply(this, a);
-  document.querySelectorAll('.bmasgrid [data-bm]').forEach(b => { const t = b.dataset.bm; if (!planIncluyeSeccion(t)) {
-    b.classList.add('bloq'); b.onclick = () => { const s = $('bmas'); if (s) s.classList.add('hide'); document.body.classList.remove('masabierto'); avisoPlan(t); }; } });
-  return r;
-})(abrirMasMovil);
-// A medida (como la empresa principal): sin botones de contratar ni de cambiar en línea, salvo que ya pague con Stripe
-pintarPaginaPlan = (orig => async function (...a) {
-  const r = await orig.apply(this, a);
-  const c = $('cfgcuerpo'), pl = PLAN_ACTUAL || {};
-  if (c && pl.plan === 'medida' && !pl.stripe_suscripcion) c.querySelectorAll('[data-pgplan], #pgelegir, #pgusu2').forEach(b => b.remove());
-  return r;
-})(pintarPaginaPlan);
 setTimeout(() => { try { candadoSecciones(); } catch (e) {} }, 0);
 
-montarMenuLateral = (orig => function (...a) {
-  const r = orig.apply(this, a);
+function montarMenuLateral(...a) {
+  const r = montarMenuLateralBase2.apply(this, a);
   if (!document.body.classList.contains('menulat')) return r;
   const inn = $('nav'); if (!inn) return r;
   // (solo se toca la clase si cambia: el observador del menú vuelve a llamar aquí con cada cambio de clase)
@@ -228,12 +121,7 @@ montarMenuLateral = (orig => function (...a) {
   inn.querySelectorAll('.mlgrupo').forEach(g => g.classList.toggle('vacio', ![...g.querySelectorAll('button[data-t]')]
     .some(b => !b.classList.contains('hide') && !b.classList.contains('mloculto') && b.dataset.t !== 'seguimiento' && getComputedStyle(b).display !== 'none')));
   return r;
-})(montarMenuLateral);
-abrirMasMovil = (orig => function (...a) {
-  const r = orig.apply(this, a);
-  document.querySelectorAll('.bmasgrid [data-bm].bloq').forEach(b => b.remove());
-  return r;
-})(abrirMasMovil);
+}
 
 (() => {
   const d = Object.getOwnPropertyDescriptor(PAGINAS.organizacion, 'tabs'); if (!d || !d.get) return;
@@ -245,22 +133,5 @@ abrirMasMovil = (orig => function (...a) {
 
 
 
-// «Plan y suscripción»: cambio previsto (con «Anular el cambio»), baja pedida y compromiso de A medida
-pintarPaginaPlan = (orig => async function (...a) {
-  const r = await orig.apply(this, a);
-  const c = $('cfgcuerpo'), pl = PLAN_ACTUAL || {}, h = c && c.querySelector('#planact h2'); if (!h) return r;
-  const cp = pl.cambio_previsto;
-  if (cp && cp.plan) h.insertAdjacentHTML('afterend', `<div class="banda-info" id="pgprevisto">El <b>${fechaCorta(cp.desde)}</b> pasarás al plan
-    <b>${esc(planDe(cp.plan).nombre)}</b> con ${num(cp.usuarios)} usuarios y pago ${cp.pago === 'anual' ? 'anual' : 'mensual'}.
-    ${puedeOrganizacion() ? '<button type="button" class="btn sec" id="pganular">Anular el cambio</button>' : ''}</div>`);
-  if (pl.baja_al_final && pl.estado === 'activo') h.insertAdjacentHTML('afterend', `<div class="banda-aviso" id="pgbajafin">Has pedido la baja: puedes usar la plataforma
-    hasta el <b>${fechaCorta(pl.periodo_fin)}</b>. Si quieres seguir, entra en «Gestionar el pago» y renueva la suscripción.</div>`);
-  if (pl.plan === 'medida' && pl.compromiso_hasta) h.insertAdjacentHTML('afterend', `<p class="sm" id="pgcomp">Contrato A medida hasta el ${fechaCorta(pl.compromiso_hasta)}. Para cambiarlo, habla con delcos.</p>`);
-  if ($('pganular')) $('pganular').onclick = async ev => {
-    const d = await pagoLlamar({ accion: 'anular_cambio' }, ev.target); if (!d) return;
-    toast('Cambio anulado: sigues con tu plan'); await pagoCargarEstado(); ir(TAB);
-  };
-  return r;
-})(pintarPaginaPlan);
 
 

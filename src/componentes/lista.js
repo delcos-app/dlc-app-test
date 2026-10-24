@@ -681,3 +681,27 @@ function plSync(tab, ...x) {
   });
   return r;
 }
+
+function plCargarKpis(tab) {
+  if (tab !== TAB) return;
+  const c = plCfg(tab); if (!c || !c.kpis) return;
+  const ep = typeof RC_EPOCA !== 'undefined' ? RC_EPOCA : 0, f = c.kpiFirma ? c.kpiFirma() : '';
+  let k = PL_KPI[tab];
+  if (k && k.pend) { if (f !== k.firma) k.otra = true; return; }
+  if (k && k.datos && k.epoca === ep && k.firma === f && Date.now() - k.t < 60000) return;
+  PL_KPI[tab] = k = Object.assign(k || {}, { pend: true, firma: f, otra: false });
+  c.kpis().then(datos => {
+    const nuevo = !k.datos;
+    Object.assign(k, { datos, t: Date.now(), epoca: ep, pend: false });
+    const box = document.querySelector(`#v-${tab} .plkpis`);
+    if (box) {
+      box.innerHTML = plKpisHtml(tab);
+      if (nuevo && !matchMedia('(prefers-reduced-motion: reduce)').matches) box.querySelectorAll('b[data-pln]').forEach(b => {
+        const n = +b.dataset.pln, t0 = performance.now(); if (!n) return;
+        const paso = () => { const p = Math.min(1, (performance.now() - t0) / 700); b.textContent = num(Math.round(n * (1 - Math.pow(1 - p, 3)))); if (p < 1) requestAnimationFrame(paso); };
+        paso();
+      });
+    }
+    if (k.otra) { k.otra = false; plCargarKpis(tab); }
+  }, () => { k.pend = false; });
+}

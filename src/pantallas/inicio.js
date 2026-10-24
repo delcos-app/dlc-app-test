@@ -577,3 +577,55 @@ function kvContar(raiz) {
   if (plYaContado('kv', ns.map(n => n.dataset.kvn))) { ns.forEach(n => n.textContent = num(+n.dataset.kvn)); return; }
   return kvContarBase(raiz);
 }
+
+function cargarInicioBase() {
+  if (TAB !== 'inicio') return Promise.resolve();       // se cargará al entrar en Inicio
+  if (INI_EN_CURSO) { INI_OTRA = true; return INI_EN_CURSO; }
+  INI_OTRA = false;
+  INI_EN_CURSO = pintarInicio().catch(err => console.error(err)).finally(() => {
+    INI_EN_CURSO = null;
+    if (INI_OTRA && TAB === 'inicio') cargarInicio();
+  });
+  return INI_EN_CURSO;
+}
+
+/* pintarInicio: la parte base y, en orden, cada paso que se le añade (antes eran 5 capas separadas). */
+async function pintarInicioBase2() {
+  await pintarInicioBase();
+  await inicioResumenSemanaYVentas();
+  await inicioOperativaPedidos();
+  await inicioVistazoEIndicadores();
+  await inicioLlamadasHoy();
+  await inicioFiltrarAlertas();
+}
+
+function cargarInicioBase2(...a) {
+  const r = cargarInicioBase.apply(this, a);
+  Promise.resolve(r).then(() => pintarMosaico()).catch(() => {});
+  return r;
+}
+
+// Inicio: el mosaico está desde el primer momento (en esqueleto) y lo de antes no se pinta nunca; así no hace falta tapar la pantalla
+function inicioEsqueletoBase() {
+  if (ES_MEDICO()) return;
+  const sec = $('v-inicio'), sal = sec && sec.querySelector(':scope > .saludo'); if (!sal) return;
+  sec.classList.add('conmos');
+  if (!$('inimos')) {
+    sal.insertAdjacentHTML('afterend', '<div id="inimos" class="inimos"></div><div class="inikpisb"><button type="button" class="btn sec" id="inikpisver">Ver tus indicadores</button></div>');
+    $('inikpisver').onclick = () => { const on = !sec.classList.contains('conkpis'); sec.classList.toggle('conkpis', on); $('inikpisver').textContent = on ? 'Ocultar tus indicadores' : 'Ver tus indicadores'; };
+  }
+  const box = $('inimos'); if (box.children.length) return;
+  const t = (c, n) => `<div class="mt ${c} mtsk"><i class="plsk" style="width:38%"></i>${[...Array(n)].map((_, i) => `<i class="plsk" style="width:${[64, 82, 56, 74, 60][i % 5]}%"></i>`).join('')}</div>`;
+  box.innerHTML = t('mtat', 6) + t('mthoy', 4) + t('', 2) + t('', 2) + t('mtprox', 3);
+}
+
+function cargarInicio(...a) { if (TAB === 'inicio') inicioEsqueleto(); return cargarInicioBase2.apply(this, a); }
+
+async function pintarInicio() {
+  if (ES_MEDICO()) return pintarInicioBase2();
+  $('v-inicio').classList.remove('ini-cargando');
+  inicioQuitarAntiguo();
+  await inicioIndicadores();
+}
+
+function inicioEsqueleto(...a) { const r = inicioEsqueletoBase.apply(this, a); inicioCabecera(); return r; }

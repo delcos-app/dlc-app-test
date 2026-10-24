@@ -1,7 +1,7 @@
 Object.assign(ICON_NOM, { gavel: '<path d="m14.5 12.5-8 8a2.12 2.12 0 1 1-3-3l8-8"/><path d="m16 16 6-6"/><path d="m8 8 6-6"/><path d="m9 7 8 8"/><path d="m21 11-8-8"/>' });
 ICO_NAV.concursos = 'gavel'; ICO_MOD.concursos = svgIco(ICON_NOM.gavel);
 (() => { const g = MENU_GRUPOS.find(x => x.id === 'ventas'); if (g && !g.items.includes('concursos')) g.items.splice(g.items.indexOf('ventas') + 1, 0, 'concursos'); })();
-aplicarPermisosMenu = (orig => function (...a) { try { menuConcursos(); } catch (e) {} const r = orig.apply(this, a); try { menuConcursos(); } catch (e) {} return r; })(aplicarPermisosMenu);
+function aplicarPermisosMenuBase10(...a) { try { menuConcursos(); } catch (e) {} const r = aplicarPermisosMenuBase9.apply(this, a); try { menuConcursos(); } catch (e) {} return r; }
 PAGINAS.concursos = { t: 'Concursos', permiso: () => !ES_MEDICO() && puedeModulo('ventas'),
   tabs: [['marcha', 'En marcha', () => pintarConcursos('marcha')], ['contratos', 'Contratos', () => pintarConcursos('contratos')], ['cerrados', 'Cerrados', () => pintarConcursos('cerrados')]] };
 Object.defineProperty(PAGINAS.concursos, 'd', { get: () => 'Pliegos, lotes adjudicados y contratos con sus precios y vencimientos' });
@@ -26,7 +26,7 @@ Object.assign(PLAN_SECCIONES, { cirugias: ['empresa', 'medida'], deposito: ['emp
 Object.assign(ICON_NOM, { monitor: '<rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/>' });
 ICO_NAV.parque = 'monitor'; ICO_MOD.parque = svgIco(ICON_NOM.monitor);
 (() => { const g = MENU_GRUPOS.find(x => x.id === 'ventas'); if (g && !g.items.includes('parque')) g.items.splice(g.items.indexOf('concursos') + 1, 0, 'parque'); })();
-aplicarPermisosMenu = (orig => function (...a) { try { menuParque(); } catch (e) {} const r = orig.apply(this, a); try { menuParque(); } catch (e) {} return r; })(aplicarPermisosMenu);
+function aplicarPermisosMenuBase11(...a) { try { menuParque(); } catch (e) {} const r = aplicarPermisosMenuBase10.apply(this, a); try { menuParque(); } catch (e) {} return r; }
 PAGINAS.parque = { t: 'Parque instalado', permiso: () => !ES_MEDICO() && puedeModulo('ventas') && planIncluyeSeccion('parque'), tabs: [['lista', 'Equipos', () => pintarParque()]] };
 Object.defineProperty(PAGINAS.parque, 'd', { get: () => 'Equipos instalados con su número de serie, contrato, garantía y revisiones' });
 
@@ -82,11 +82,11 @@ db.rpc = (orig => function (fn, args, ...r) {
 $('dlg').addEventListener('close', () => { setTimeout(() => { if (!$('dlg').open) EV_EXTRA = null; }, 0); });
 
 // El buscador de arriba, con el vocabulario de la empresa
-aplicarPermisosMenu = (orig => function (...a) {
-  const r = orig.apply(this, a);
+function aplicarPermisosMenu(...a) {
+  const r = aplicarPermisosMenuBase11.apply(this, a);
   try { const q = $('q'); if (q && /^Buscar /.test(q.placeholder)) q.placeholder = `Buscar ${TT('medico', 's', '', 'l', 'l')}, centro o municipio`; } catch (e) {}
   return r;
-})(aplicarPermisosMenu);
+}
 // v2.242.0: aquí iba la primera versión de abrirManual (se redefine entera más abajo)
 document.addEventListener('click', e => {
   const b = e.target.closest('#manbtn'); if (!b || ES_MEDICO()) return;
@@ -94,12 +94,6 @@ document.addEventListener('click', e => {
   document.querySelectorAll('.umenu, #umenu').forEach(m => m.classList.add('hide'));
   abrirManual(MANUAL_ANCLA[TAB] || '');
 }, true);
-function ponerAyudaManual() {
-  if (ES_MEDICO()) return;
-  const v = $('v-' + TAB); const h = v && v.querySelector('.saludo h1'); if (!h || h.querySelector('.manq')) return;
-  h.insertAdjacentHTML('beforeend', `<button type="button" class="manq" title="Abrir el manual de esta pantalla" aria-label="Abrir el manual de esta pantalla"></button>`);
-  h.querySelector('.manq').onclick = ev => { ev.stopPropagation(); abrirManual(MANUAL_ANCLA[TAB] || ''); };
-}
 ir = (orig => function (...a) {
   const r = orig.apply(this, a);
   [400, 1200, 2500].forEach(ms => setTimeout(() => { try { ponerAyudaManual(); } catch (e) {} }, ms));

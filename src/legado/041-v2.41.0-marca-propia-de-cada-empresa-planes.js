@@ -10,16 +10,6 @@ Object.assign(RPC_TTL, { usuarios_resumen: 30, plan_uso: 60 });
 /* ---------------- marca de la empresa ---------------- */
 
 let MARCA = (() => { try { return JSON.parse(localStorage.getItem('app-marca')) || {}; } catch (e) { return {}; } })();
-function aplicarMarca() {
-  const n = nombreApp();
-  document.title = n;
-  document.querySelectorAll('meta[name="apple-mobile-web-app-title"]').forEach(m => m.content = n);
-  const logo = MARCA.logo;
-  document.querySelectorAll('header .logo, .lbox img, #bootsplash img').forEach(i => { if (logo) i.src = logo; i.alt = n; });
-  const h = document.querySelector('.lbox h1'); if (h) h.textContent = n;
-  const g = document.querySelector('#girar span:last-child'); if (g) g.textContent = n + ' se usa en vertical.';
-}
-aplicarMarca();
 // v2.103.0: la marca del dominio desde el que se abre (con varias empresas, cada una la suya)
 // v2.170.0: quien vuelve de darse de alta (?alta=ok) ve la marca de delcos, aunque la dirección sea la de otra empresa
 Promise.resolve(RPC_ORIG('marca_publica', { p_dominio: /[?&]alta=ok/.test(location.search) ? null : location.hostname })).then(r => {
@@ -112,15 +102,6 @@ function panelDeModulo(sec) {
 
 /* ---------------- menú «Más» del móvil: continuación de la barra ---------------- */
 
-abrirMasMovil = (orig => function () {
-  orig();
-  const s = $('bmas'); if (!s) return;
-  s.querySelectorAll('.bmasbox > .sm').forEach(x => x.remove());
-  s.querySelectorAll('[data-bm]').forEach(b => { const t = b.dataset.bm; if (!planIncluye(t)) { b.classList.add('bloq'); b.onclick = () => { s.classList.add('hide'); avisoPlan(t); }; } });
-  document.body.classList.add('masabierto');
-  const obs = new MutationObserver(() => { if (s.classList.contains('hide')) { document.body.classList.remove('masabierto'); obs.disconnect(); } });
-  obs.observe(s, { attributes: true, attributeFilter: ['class'] });
-})(abrirMasMovil);
 
 // Intentar entrar en un módulo que no incluye el plan
 

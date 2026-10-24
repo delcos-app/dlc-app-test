@@ -9,7 +9,7 @@ Object.assign(RPC_TTL, { alertas_mias: 60, alertas_cruce: 120, actividades_recie
 
 /* ---------------- móvil: los cuatro principales y «Más» ---------------- */
 
-function pintarBnav() {
+function pintarBnavBase() {
   const b = $('bnav'); if (!b) return;
   const principales = ['inicio', 'agenda', 'rutas', 'directorio'];
   const iconos = { inicio: '◉', agenda: '▤', rutas: '➤', directorio: '☰' };

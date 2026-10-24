@@ -50,43 +50,6 @@ document.addEventListener('pointerdown', e => { if (!e.target.closest('.picker')
 
 /* ---------------- nueva cita con el selector de médico ---------------- */
 
-async function nuevaCita(medicoId, fecha) {
-  let elegido = null;
-  if (medicoId) {
-    const { data } = await db.rpc('ficha_cuenta', { p_id: medicoId });
-    const m = data && data.medico, c = data && (data.consultas || [])[0];
-    if (m) elegido = Object.assign({}, m, { centro_nombre: c ? c.centro_nombre : '', municipio: c ? c.municipio : '' });
-  }
-  $('dbody').innerHTML = `
-    <div class="fh"><div><h2>Nueva cita</h2><div class="sm">Se añade a tu agenda</div></div>
-      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-    <label>${TT('medico', 's', '', 'l', 'C')}</label><div id="ncsel"></div>
-    <div class="g2">
-      <div><label for="ncf">Día</label><input id="ncf" type="date" value="${esc(fecha || hoyISO())}"></div>
-      <div><label for="nch">Hora</label><input id="nch" type="time"></div>
-    </div>
-    <label for="ncn">Nota</label><input id="ncn" placeholder="p. ej. llevar reporting">
-    <div class="acts" style="justify-content:flex-end">
-      <button class="btn sec" data-cerrar>Cancelar</button>
-      <button class="btn" id="ncok">Añadir a la agenda</button></div>`;
-  selectorMedico($('ncsel'), { valor: elegido, alElegir: m => { elegido = m; } });
-  $('ncok').onclick = async ev => {
-    if (!elegido) { toast(`Elige ${TT('medico', 's', 'un', 'l', 'l')}`, true); return; }
-    const decision = await citaRepetida(elegido.id, $('ncf').value);
-    if (!decision) return;
-    ev.target.disabled = true;
-    const r = await escribir('guardar_cita', { p: {
-      cuenta_id: elegido.id, fecha: $('ncf').value, hora: $('nch').value || null,
-      centro_nombre: elegido.centro_nombre || elegido.centro || null, estado: 'Planificada', origen: 'Agenda',
-      usuario_id: TAB === 'agenda' && AG_VISTA ? AG_VISTA.id : null,
-      nota: $('ncn').value.trim(), op_id: 'c-' + elegido.id + '-' + $('ncf').value + '-' + Date.now()
-    }});
-    ev.target.disabled = false;
-    if (r.error) { toast('No se ha podido: ' + r.error.message, true); return; }
-    $('dlg').close(); toast('Cita añadida'); if (TAB === 'agenda') cargarAgenda(); cargarInicio();
-  };
-  $('dlg').showModal();
-}
 
 /* ---------------- documento de identidad ---------------- */
 

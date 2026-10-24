@@ -440,3 +440,53 @@ function menuPersonalizar(...a) {
   }
   return r;
 }
+
+function abrirMasMovilBase2() {
+  abrirMasMovilBase();
+  const s = $('bmas'); if (!s) return;
+  s.querySelectorAll('.bmasbox > .sm').forEach(x => x.remove());
+  s.querySelectorAll('[data-bm]').forEach(b => { const t = b.dataset.bm; if (!planIncluye(t)) { b.classList.add('bloq'); b.onclick = () => { s.classList.add('hide'); avisoPlan(t); }; } });
+  document.body.classList.add('masabierto');
+  const obs = new MutationObserver(() => { if (s.classList.contains('hide')) { document.body.classList.remove('masabierto'); obs.disconnect(); } });
+  obs.observe(s, { attributes: true, attributeFilter: ['class'] });
+}
+
+function abrirMasMovilBase3(...a) {
+  const r = abrirMasMovilBase2.apply(this, a);
+  document.querySelectorAll('.bmasgrid [data-bm]').forEach(b => { const t = b.dataset.bm; if (!planIncluyeSeccion(t)) {
+    b.classList.add('bloq'); b.onclick = () => { const s = $('bmas'); if (s) s.classList.add('hide'); document.body.classList.remove('masabierto'); avisoPlan(t); }; } });
+  return r;
+}
+
+function abrirMasMovilBase4(...a) {
+  const r = abrirMasMovilBase3.apply(this, a);
+  document.querySelectorAll('.bmasgrid [data-bm].bloq').forEach(b => b.remove());
+  return r;
+}
+
+function abrirMasMovilBase5(...a) {
+  const r = abrirMasMovilBase4.apply(this, a);
+  const t = tabDelMenu();
+  document.querySelectorAll('#bmas [data-bm]').forEach(b => { const on = b.dataset.bm === t; if (b.classList.contains('on') !== on) b.classList.toggle('on', on); });
+  return r;
+}
+
+function abrirMasMovil(...a) {
+  const r = abrirMasMovilBase5.apply(this, a);
+  const s = $('bmas'), g = s && s.querySelector('.bmasgrid'); if (!g) return r;
+  const barra = movBarra(), ocultos = menuPrefs().ocultos || [];
+  const quiero = movMasOrden(movDisponibles().filter(t => !barra.includes(t) && !ocultos.includes(t)));
+  const cerrar = () => { s.classList.remove('abierto'); setTimeout(() => s.classList.add('hide'), 180); };
+  g.querySelectorAll('[data-bm]').forEach(x => { if (!quiero.includes(x.dataset.bm)) x.remove(); });
+  quiero.forEach(t => {
+    if (g.querySelector(`[data-bm="${t}"]`)) return;
+    g.insertAdjacentHTML('beforeend', `<button data-bm="${t}" class="${tabDelMenu() === t ? 'on' : ''}"><span>${ICO_MOD[t] || '•'}</span>${esc(movNombre(t))}</button>`);
+    g.querySelector(`[data-bm="${t}"]`).onclick = () => { cerrar(); ir(t); };
+  });
+  quiero.forEach(t => { const x = g.querySelector(`[data-bm="${t}"]`); if (x) g.appendChild(x); });   // en el orden elegido
+  if (!s.querySelector('#bmaspers')) {
+    g.insertAdjacentHTML('afterend', '<div class="acts bmaspers"><button type="button" class="btn sec chico" id="bmaspers">Personalizar menú</button></div>');
+    $('bmaspers').onclick = () => { cerrar(); movPersonalizar(); };
+  }
+  return r;
+}

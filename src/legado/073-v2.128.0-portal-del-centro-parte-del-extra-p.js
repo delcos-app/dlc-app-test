@@ -22,24 +22,13 @@ ir = (orig => function (t, ...a) {
   return orig.call(this, t, ...a);
 })(ir);
 
-// Menú: «Usuarios y roles» (quien administra) y «Panel delcos» (quien gestiona la plataforma)
-function menuPaginas2131() {
-  const nav = document.querySelector('nav.main .in'); if (!nav || ES_MEDICO()) return;
-  const pon = (t, txt, ve) => {
-    let b = nav.querySelector(`[data-t="${t}"]`);
-    if (!b && ve) { nav.insertAdjacentHTML('beforeend', `<button data-t="${t}" aria-selected="false">${txt}</button>`); b = nav.querySelector(`[data-t="${t}"]`); }
-    if (b) { b.classList.toggle('hide', !ve); if (!b.closest('.mlbs') && b !== nav.lastElementChild) nav.appendChild(b); }   // v2.132.0: si ya está en su bloque del menú lateral, se queda
-  };
-  pon('usuarios', 'Usuarios y roles', puede('administrar'));
-  pon('delcos', 'Panel delcos', puede('gestionar_plataforma'));
-}
-aplicarPermisosMenu = (orig => function (...a) { const r = orig.apply(this, a); menuPaginas2131(); franjaVista(); return r; })(aplicarPermisosMenu);
+function aplicarPermisosMenuBase3(...a) { const r = aplicarPermisosMenuBase2.apply(this, a); menuPaginas2131(); franjaVista(); return r; }
 
 // (v2.183.0: aquí iba la primera versión de entrarEnOrganizacion; se redefine entera más abajo)
 setTimeout(() => { try { menuPaginas2131(); franjaVista(); } catch (e) {} }, 0);
 // Iconos de las secciones nuevas (v2.131.0): Usuarios y roles con la llave de accesos y el panel de delcos con el escudo
 Object.assign(ICO_NAV, { usuarios: 'key-round', delcos: 'shield' });
-function montarMenuLateral() {
+function montarMenuLateralBase() {
   const inn = $('nav'); if (!inn) return;
   // Con una sola sección (portal del médico o del centro) no hace falta barra lateral: se queda la cabecera de siempre
   const visibles = [...inn.querySelectorAll('button[data-t]')].filter(b => !b.classList.contains('hide') && b.dataset.t !== 'seguimiento' && b.style.display !== 'none' && (b.classList.contains('mloculto') || getComputedStyle(b).display !== 'none' || document.body.classList.contains('menulat')));
@@ -166,7 +155,7 @@ if (EN_PRUEBAS) {
   pintarFranjaPruebas();
 }
 
-montarMenuLateral = (orig => function (...a) { const r = orig.apply(this, a); colocarIndPruebas(); return r; })(montarMenuLateral);
+function montarMenuLateralBase2(...a) { const r = montarMenuLateralBase.apply(this, a); colocarIndPruebas(); return r; }
 colocarIndPruebas();
 
 
@@ -188,7 +177,7 @@ ir = (orig => function (t, ...a) {
   return r;
 })(ir);
 // Los botones se crean antes de que el menú lateral reparta los bloques (y se vuelve a mirar su permiso después)
-aplicarPermisosMenu = (orig => function (...a) { try { menuPedidos2139(); } catch (e) {} const r = orig.apply(this, a); menuPedidos2139(); return r; })(aplicarPermisosMenu);
+function aplicarPermisosMenuBase4(...a) { try { menuPedidos2139(); } catch (e) {} const r = aplicarPermisosMenuBase3.apply(this, a); menuPedidos2139(); return r; }
 Object.assign(ICO_NAV, { oportunidades: 'phone', compras: 'clipboard-list', proveedores: 'building' });
 (() => { const g = MENU_GRUPOS.find(x => x.id === 'ventas'); if (!g) return; ['proveedores', 'compras', 'oportunidades'].forEach(k => { if (!g.items.includes(k)) g.items.splice(g.items.indexOf('ventas') + 1, 0, k); }); })();
 setTimeout(() => { try { menuPedidos2139(); } catch (e) {} }, 0);
@@ -241,8 +230,7 @@ async function pintarOperativa() {
    «+ Nuevo producto»…), a su derecha (decisión de Eric, 3/10/2026: misma posición en todas las
    pantallas). Va el último por la derecha, para caer siempre en el mismo sitio aunque cambie la acción principal o no la haya. Antes iba en la barra de la tabla
    (v2.57.0) y en cada pantalla caía en un sitio distinto. */
-const BARRA_TABLA_V257 = barraTabla;
-barraTabla = function (sec) {
+function barraTabla(sec) {
   // v2.142.0: también en el móvil (antes quedaba una fila casi vacía solo para el botón en Compras, Proveedores, Productos…)
   const b = sec.querySelector('.htbtn'), sal = sec.querySelector('.saludo');
   if (b && sal) {
@@ -263,5 +251,5 @@ barraTabla = function (sec) {
     dacts.insertAdjacentHTML('beforeend', '<span class="ai ai-hueco hide" aria-hidden="true"></span>');
     dacts.appendChild(dt);
   }
-};
+}
 

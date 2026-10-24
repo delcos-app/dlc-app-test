@@ -57,16 +57,6 @@ db.from = function (tabla) {
 
 let INI_LISTO = false, INI_EN_CURSO = null, INI_OTRA = false, DUP_RES = null;
 
-function cargarInicio() {
-  if (TAB !== 'inicio') return Promise.resolve();       // se cargará al entrar en Inicio
-  if (INI_EN_CURSO) { INI_OTRA = true; return INI_EN_CURSO; }
-  INI_OTRA = false;
-  INI_EN_CURSO = pintarInicio().catch(err => console.error(err)).finally(() => {
-    INI_EN_CURSO = null;
-    if (INI_OTRA && TAB === 'inicio') cargarInicio();
-  });
-  return INI_EN_CURSO;
-}
 
 
 /* ---------------- ventanas y paneles: se cierran al pulsar fuera ---------------- */

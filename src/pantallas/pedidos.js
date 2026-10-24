@@ -100,7 +100,7 @@ async function pedidosBotonLlamada() {
   const acts = $('v-ventas').querySelector('.saludo .acts');
   if (acts && !$('pedllam')) {
     acts.insertAdjacentHTML('afterbegin', '<button class="btn sec" id="pedllam">📞 Registrar llamada</button>');
-    $('pedllam').onclick = () => editorLlamada(null);
+    $('pedllam').onclick = () => editorOportunidad(null);
   }
 }
 

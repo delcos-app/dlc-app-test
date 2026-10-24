@@ -1,7 +1,3 @@
-plCargarKpis = (orig => function (tab, ...a) {
-  if (tab !== TAB) return;   // en otra pantalla, no (se piden al llegar a la suya)
-  return orig.call(this, tab, ...a);
-})(plCargarKpis);
 
 document.addEventListener('change', filtroGuardar, true);
 document.addEventListener('input', filtroGuardar, true);

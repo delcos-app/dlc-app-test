@@ -1,10 +1,4 @@
-ponerAyudaManual = (orig => function () { if (TAB === 'manual') return; return orig.apply(this, arguments); })(ponerAyudaManual);
 
-pintarSinAtribuir = (orig => async function (...a) {
-  const r = await orig.apply(this, a);
-  const c = $('cardsinatr'); if (c) c.classList.toggle('hide', !c.innerHTML.trim());
-  return r;
-})(pintarSinAtribuir);
 
 
 /* v2.214.0 · Visita del día, resultados que hacen avanzar y manual en el iPhone (peticiones de Eric; SQL 130).
@@ -57,75 +51,6 @@ function arbolCfgUnicoBase() {
     ['Datos', (cfg.find(g => g[0] === 'Datos') || [, []])[1].flatMap(hojas)]
   ].filter(g => g[1].length);
 }
-cargarConfig = async function () {
-  // v2.340.0 (avisos de Eric): se abre siempre en «Mis datos» (no en el último apartado); al cambiar de apartado solo cambia la página
-  // de la derecha (el índice se queda, con su desplazamiento: antes se volvía a montar todo y daba un salto); los apartados con partes
-  // son una sola entrada y las partes, pestañas dentro de la página.
-  if (typeof salirPanel === 'function') salirPanel();
-  const arbol = arbolCfgUnico(), hojas = hojasCfg(arbol);
-  const pedida = CFG_KEY || 'datos';
-  const it = hojas.find(x => x.k === pedida) || hojas.find(x => x.hijos && x.hijos.some(h => h.k === pedida)) || hojas.find(x => pedida.startsWith(x.k + '.'))
-    || hojas.find(x => x.k === 'datos') || hojas[0];
-  if (!it) return;
-  const hijo = it.hijos ? (it.hijos.find(h => h.k === pedida) || it.hijos[0]) : null;
-  CFG_KEY = hijo ? hijo.k : it.k;
-  const movil = ES_MOVIL(), v = $('v-config');
-  const firma = hojas.map(x => x.k + (x.hijos ? '(' + x.hijos.map(h => h.k).join(',') + ')' : '')).join('|') + '|' + movil;
-  if (!(v.dataset.cfgfirma === firma && $('cfulista') && v.querySelector('.cfupag'))) {
-    const ind = arbol.map(([gr, l]) => `<h4>${esc(gr)}</h4>${l.map(x => `<button type="button" data-ck="${x.k}">${svgIco(ICON_NOM[x.ic] || '')}<span>${esc(x.t)}</span>${x.mod && !planIncluye(x.mod) ? `<span class="pill p-plan">${esc(planMinimo(x.mod) ? planMinimo(x.mod).nombre : 'Plan')}</span>` : ''}</button>`).join('')}`).join('');
-    v.innerHTML = `<div class="saludo"><div><h1>Configuración</h1><div class="fecha">Tu cuenta${arbol.length > 1 ? ', tu equipo y tu empresa, en un solo sitio' : ' y tus preferencias'}</div></div></div>
-      <div class="cfu">
-        <nav class="cfuidx" aria-label="Apartados de configuración"><div class="cfubusca">${LUPA_CFG}<input id="cfubus" type="search" placeholder="Buscar un ajuste" autocomplete="off" aria-label="Buscar un ajuste"></div>
-          <div id="cfulista">${ind}</div><div class="cfusin hide" id="cfusin">Ningún ajuste con esas palabras</div></nav>
-        <section class="cfupag"><button type="button" class="cfuvolver" id="cfuvolver">‹ Configuración</button>
-          <div class="cfucab"></div><div class="cfupend hide" id="cfupend"></div>
-          <div id="cfgcuerpo-hub"><div id="cfgcuerpo"></div></div></section></div>`;
-    v.dataset.cfgfirma = firma;
-    v.querySelectorAll('#cfulista [data-ck]').forEach(b => b.onclick = () => { CFG_KEY = b.dataset.ck; CFG_DETALLE = true; cargarConfig(); if (ES_MOVIL()) scrollTo(0, 0); });
-    $('cfuvolver').onclick = () => { CFG_DETALLE = false; v.querySelector('.cfu').classList.remove('det'); scrollTo(0, 0); };
-    // Buscador: por nombre, apartado, partes y palabras clave; Intro abre el primero
-    const busca = $('cfubus');
-    busca.oninput = () => {
-      const q = impNorm(busca.value.trim());
-      let vis = 0;
-      v.querySelectorAll('#cfulista [data-ck]').forEach(b => {
-        const h = hojasCfg(arbolCfgUnico()).find(x => x.k === b.dataset.ck) || {};
-        const partes = (h.hijos || []).map(x => x.t + ' ' + (CFG_CLAVES[x.k] || '')).join(' ');
-        const txt = impNorm([h.t, h.gr, h.d, partes, CFG_CLAVES[h.k] || ''].join(' '));
-        const ok = !q || q.split(/\s+/).every(p => txt.includes(p)); b.classList.toggle('hide', !ok); if (ok) vis++;
-      });
-      v.querySelectorAll('#cfulista h4').forEach(e => {
-        let x = e.nextElementSibling, alguno = false;
-        while (x && x.tagName !== 'H4') { if (x.matches('[data-ck]:not(.hide)')) alguno = true; x = x.nextElementSibling; }
-        e.classList.toggle('hide', !!q && !alguno);
-      });
-      $('cfusin').classList.toggle('hide', vis > 0);
-    };
-    busca.onkeydown = e => { if (e.key === 'Enter') { const b = v.querySelector('#cfulista [data-ck]:not(.hide)'); if (b) { e.preventDefault(); b.click(); } } };
-    cfuAjustarIndice();
-  }
-  v.querySelector('.cfu').classList.toggle('det', movil && CFG_DETALLE);
-  v.querySelectorAll('#cfulista [data-ck]').forEach(b => b.classList.toggle('on', b.dataset.ck === it.k));
-  // Cabecera de la página y, si tiene partes, sus pestañas
-  v.querySelector('.cfucab').innerHTML = `<div class="miga">${esc(it.gr)}</div><h2>${esc(it.t)}</h2>${it.d ? `<p>${esc(it.d)}</p>` : ''}`;   // v2.344.0: sin pestañas: las partes, una debajo de otra
-  v.querySelectorAll('.cfucab [data-cks]').forEach(b => b.onclick = () => { if (b.dataset.cks === CFG_KEY) return; CFG_KEY = b.dataset.cks; cargarConfig(); });
-  $('cfupend').classList.add('hide'); $('cfupend').innerHTML = '';
-  $('cfgcuerpo-hub').innerHTML = '<div id="cfgcuerpo"></div>';
-  // Lo pendiente: punto en el índice (en el apartado que lo contiene) y aviso en la página
-  pendientesCfg().then(l => {
-    if (!$('cfulista')) return;
-    Object.entries(l).forEach(([k, t]) => { const b = [...v.querySelectorAll('#cfulista [data-ck]')].find(x => k === x.dataset.ck || k.startsWith(x.dataset.ck + '.')); if (b && !b.querySelector('.cfupt')) { b.insertAdjacentHTML('beforeend', '<span class="cfupt"></span>'); b.title = t; } });
-    if (l[CFG_KEY] && $('cfupend')) { $('cfupend').innerHTML = `<span class="cfupt"></span>${esc(l[CFG_KEY])}`; $('cfupend').classList.remove('hide'); }
-  });
-  // El apartado (o, si el plan no lo incluye, qué plan lo trae)
-  const r = it.hijos ? () => cfgApilar(it, hijo) : it.r;
-  if (it.mod && !planIncluye(it.mod)) {
-    const p = planMinimo(it.mod);
-    $('cfgcuerpo').innerHTML = `<div class="card cfgpanel planup"><div class="planupico">${svgIco(ICON_NOM.lock)}</div><h2>${esc(it.t)} está en el plan ${esc(p ? p.nombre : 'A medida')}</h2>
-      <p class="sm">Tu plan ${esc(planDe(PLAN_ACTUAL.plan).nombre)} no lo incluye.</p>${puedeOrganizacion() ? '<div class="acts"><button class="btn" id="planver">Ver planes</button></div>' : ''}</div>`;
-    if ($('planver')) $('planver').onclick = () => { CFG_KEY = 'o.plan'; cargarConfig(); };
-  } else Promise.resolve().then(r);
-};
 ['scroll', 'resize'].forEach(ev => addEventListener(ev, () => { cancelAnimationFrame(CFU_RAF); CFU_RAF = requestAnimationFrame(cfuAjustarIndice); }, { passive: true }));
 // Cualquier camino a los ajustes lleva a su entrada de Configuración
 ir = (orig => function (t, ...r) {
@@ -151,40 +76,6 @@ Object.defineProperty(MANUAL_ANCLA, 'config', { configurable: true, enumerable: 
   return ['datos', 'notif'].includes(k) ? 'perfil' : k === 'o.plan' ? 'plan' : k.startsWith('o.') ? 'organizacion' : ['usuarios', 'roles'].includes(k) ? 'usuarios' : 'ajustes';
 } });
 
-// Notificaciones: cada aviso con «Al momento · En el resumen · No»
-pintarNotif = function () {
-  const tipos = tiposDeMiRol(), s = (PERFIL.preferencias || {}).notif_silencio || {};
-  const filas = NOTIF_AREAS.map(([, t, ks]) => [t, tipos.filter(x => ks.includes(x[0]))]).filter(([, l]) => l.length);
-  const sueltos = tipos.filter(x => !NOTIF_AREAS.some(ar => ar[2].includes(x[0])));
-  if (sueltos.length) filas.push(['Otros', sueltos]);
-  const modo = k => { const m = notifModo(k); return m === 'm' || m === 'r' ? m : 'n'; };
-  const resumen = () => { const c = { m: 0, r: 0, n: 0 }; tipos.forEach(([k]) => c[modo(k)]++);
-    return `<span><b>${c.m}</b> al momento</span><span><b>${c.r}</b> en el resumen de la mañana</span><span><b>${c.n}</b> desactivados</span>`; };
-  $('cfgcuerpo').innerHTML = tipos.length ? `<div class="card cfgpanel ntf">
-    <div class="ntfres" id="ntfres">${resumen()}</div>
-    <div class="ajfila ntfsil"><div><div class="ntfsilt"><label class="vfswitch mini" title="Activar las horas de silencio"><input type="checkbox" id="nsil" ${s.activo ? 'checked' : ''} aria-label="Activar las horas de silencio"><span class="sw"></span></label><b>Horas de silencio</b></div><span class="sm">Lo que llegue en ese tiempo lo verás al terminar el silencio.</span></div>
-      <div class="ajctl">
-        <input type="time" id="nsild" value="${esc(s.desde || '20:00')}" aria-label="Desde"> a <input type="time" id="nsilh" value="${esc(s.hasta || '08:00')}" aria-label="Hasta">
-        <label class="ntffin"><input type="checkbox" id="nsilf" ${s.finde !== false ? 'checked' : ''}> Fines de semana</label></div></div>
-    ${filas.map(([t, l]) => `<h3 class="ntfarea">${esc(t)}</h3>${l.map(([k, ic, tt, d]) => {
-      const m = modo(k), diario = NOTIF_DIARIOS.includes(k);
-      return `<div class="ntfrow"><span class="ntfic">${ic}</span><div><b>${esc(tt)}</b><span class="sm">${esc(d)}</span></div>
-        <div class="segs ntfseg" role="group" aria-label="${esc(tt)}" data-nk="${k}">${diario ? '' : `<button type="button" data-v="m" class="${m === 'm' ? 'on' : ''}" aria-pressed="${m === 'm'}">Al momento</button>`}<button type="button" data-v="r" class="${m === 'r' ? 'on' : ''}" aria-pressed="${m === 'r'}">En el resumen</button><button type="button" data-v="n" class="${m === 'n' ? 'on' : ''}" aria-pressed="${m === 'n'}">No</button></div></div>`; }).join('')}`).join('')}
-  </div>` : '<div class="card cfgpanel"><div class="vacio">Tu perfil no tiene notificaciones disponibles todavía.</div></div>';
-  $('cfgcuerpo').querySelectorAll('.ntfseg button').forEach(b => b.onclick = async () => {
-    const g = b.closest('.ntfseg'), k = g.dataset.nk, v = b.dataset.v;
-    if (b.classList.contains('on')) return;
-    g.querySelectorAll('button').forEach(x => { x.classList.toggle('on', x === b); x.setAttribute('aria-pressed', String(x === b)); });
-    const notif = Object.assign({}, (PERFIL.preferencias || {}).notif || {});
-    const diario = NOTIF_DIARIOS.includes(k), om = v === 'm', or = v === 'r';
-    if (diario ? or : (om && !or)) delete notif[k]; else notif[k] = { m: om, r: or };
-    await notifGuardarPrefs({ notif }, v === 'n' ? 'No lo recibirás' : v === 'm' ? 'Te llegará al momento' : 'Irá en el resumen de la mañana');
-    if ($('ntfres')) $('ntfres').innerHTML = resumen();
-  });
-  const guardarSil = () => notifGuardarPrefs({ notif_silencio: { activo: $('nsil').checked, desde: $('nsild').value || '20:00', hasta: $('nsilh').value || '08:00', finde: $('nsilf').checked } },
-    $('nsil').checked ? 'Silencio guardado' : 'Sin silencio');
-  ['nsil', 'nsild', 'nsilh', 'nsilf'].forEach(id => { if ($(id)) $(id).onchange = guardarSil; });
-};
 
 function pulirCfgBase() {
   const c = $('cfgcuerpo'); if (!c || TAB !== 'config' || !CFG_PULIR.includes(CFG_KEY)) return;
@@ -349,13 +240,6 @@ document.addEventListener('keydown', e => {
      punto final de la línea siguen vivos. Sin animación con «reducir movimiento».
    - Las tarjetas se transforman en cuanto se pintan (MutationObserver de #kpis: va antes de que se vean). */
 let KV_INI = null, KV_GRAF = null;
-rpcCache = (orig => async function (fn, params, clave) {
-  if (fn !== 'panel_inicio') return orig.call(this, fn, params, clave);
-  const [r, g] = await Promise.all([orig.call(this, fn, params, clave), orig.call(this, 'inicio_graficas', {}, 'inicio-graficas').catch(() => null)]);
-  KV_INI = r && r.data ? r.data : null;
-  KV_GRAF = g && g.data && g.data.por_dia ? g.data : null;
-  return r;
-})(rpcCache);
 
 (() => {
   const ob = new MutationObserver(() => { if ($('kpis')) kpisVivos(); });

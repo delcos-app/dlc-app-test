@@ -227,7 +227,8 @@
    "src/legado/158-v2.348.0-estados-del-pedido-eric-a-b-de-http.js",
    "src/legado/159-v2.350.0-ventanas-de-pedidos-sin-saltos-avis.js",
    "src/legado/160-v2.353.0-portal-del-profesional-la-actividad.js",
-   "src/legado/161-v2.376.0-d-042-eric-en-una-pagina-un-solo-gu.js"
+   "src/legado/161-v2.376.0-d-042-eric-en-una-pagina-un-solo-gu.js",
+   "src/nucleo/arranque.js"
   ],
   "index.html": [
    "src/index/cabeza.html",

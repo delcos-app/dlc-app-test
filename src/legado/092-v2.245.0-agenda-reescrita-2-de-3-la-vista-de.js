@@ -33,10 +33,5 @@ document.addEventListener('click', e => {
 
 
 
-rpcCache = (orig => async function (fn, params, clave) {
-  const r = await orig.call(this, fn, params, clave);
-  if (fn === 'agenda_rango' && params && params.p_desde === params.p_hasta && r && r.data) AG_DIAS_DATOS[params.p_desde] = r.data;
-  return r;
-})(rpcCache);
 
 

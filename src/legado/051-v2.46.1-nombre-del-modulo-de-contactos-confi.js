@@ -31,7 +31,6 @@ function aplicarEtiquetaBase() {
   if (h) { const tn = [...h.childNodes].find(x => x.nodeType === 3 && x.nodeValue.trim()); if (tn) tn.nodeValue = n; else h.insertAdjacentText('afterbegin', n); }
   const v = $('calvolver'); if (v) v.textContent = '‹ ' + n;
 }
-async function cargarAjustes() { await cargarAjustesBase(); aplicarEtiqueta(); }
 new MutationObserver(() => { const b = document.querySelector('#bnav [data-t="directorio"]'); if (b && !b.textContent.includes(etiquetaContactos())) aplicarEtiqueta(); })
   .observe(document.body, { childList: true, subtree: true });
 
@@ -46,11 +45,6 @@ Object.assign(CFG_ANTES, { marca: ['__empresa', 'marca'], correo: ['__empresa', 
 
 /* ---------------- Configuración: carga visible y errores claros ---------------- */
 
-cargarConfig = (orig => async function () {
-  // «Empresa» y «Plan» no están en el menú lateral: se abren desde el menú de usuario
-  if (CFG_SEC === 'empresa') CFG_SEC = '__empresa';
-  await orig();
-})(cargarConfig);
 // El grupo oculto no se pinta en el menú lateral
 new MutationObserver(() => document.querySelectorAll('.cfgnav .cfgg').forEach(g => { if (g.querySelector('h3') && g.querySelector('h3').textContent === '__oculto') g.remove(); }))
   .observe(document.body, { childList: true, subtree: true });

@@ -1,26 +1,13 @@
-esErrorRed = (orig => function (e) {
-  return orig(e) || /ha tardado demasiado|tiempo agotado|timeout|timed out/i.test(String((e && (e.message || e)) || ''));
-})(esErrorRed);
-// Catálogos guardados en el móvil (resultado por defecto de la visita, «No estaba»…)
-cargarCatalogos = (orig => async function (...a) {
-  const r = await orig.apply(this, a);
-  try {
-    const vacio = Object.values(CAT).every(v => !v || !v.length);
-    if (!vacio) localStorage.setItem('dlc-cat', JSON.stringify(CAT));
-    else { const g = JSON.parse(localStorage.getItem('dlc-cat') || 'null'); if (g) Object.keys(CAT).forEach(k => { if (g[k] && g[k].length) CAT[k] = g[k]; }); }
-  } catch (e) {}
-  return r;
-})(cargarCatalogos);
 
 
 // (R-12: vaciarCola se definía aquí otra vez; ahora está en su sitio, más arriba)
 // El aviso de conexión también dice lo que no se ha podido enviar (y al pulsarlo, se ve y se decide)
-pintarConexion = (orig => function (...a) {
-  const r = orig.apply(this, a);
+function pintarConexion(...a) {
+  const r = pintarConexionBase.apply(this, a);
   const el = $('conex'), ko = colaKo().length;
   if (el && navigator.onLine && !colaLeer().length && ko) { el.className = 'conex err'; el.textContent = `${ko} ${ko === 1 ? 'cambio sin enviar' : 'cambios sin enviar'} · ver`; }
   return r;
-})(pintarConexion);
+}
 document.addEventListener('click', async e => {
   if (!e.target.closest('#conex.err')) return;
   const l = colaKo(); if (!l.length) return;

@@ -5,25 +5,6 @@ ir = (orig => function (t, ...r) {
 
 
 
-/* v2.226.0 · Arreglos de la lista de Eric (9/10/2026).
-   1. Una sola ayuda por pantalla: fuera el «?» del manual (.manq); cada título lleva su «i» (las páginas nuevas también: Ciclo, Intervenciones,
-      Eventos…) y la ventanita de la «i» termina con «Ver en el manual de uso», que abre el manual en el apartado de esa pantalla; desde allí,
-      «‹ Volver a …» devuelve al mismo punto (v2.224.0).
-   2. Agenda: el selector «Mi agenda» y el botón «Equipo» se reponen siempre que la cabecera se vuelve a pintar (al pulsar Día se pintaba dos
-      veces seguidas y se perdían) y, dentro de Equipo, el botón pasa a «Mi agenda» para volver de un clic.
-   3. Una tarea hecha se abre en modo lectura, con «Volver a pendiente» y «Borrar».
-   4. Pedidos: fuera la tarjeta «Pedidos sin atribuir».
-   5. Menú de la persona: sin «Organización» (está dentro de Configuración); «Manual de uso» y «Reportar un problema», aparte, como ayuda. */
-ponerAyudaManual = function () {
-  document.querySelectorAll('.manq').forEach(b => b.remove());
-  if (ES_MEDICO() || TAB === 'manual' || TAB === 'delcos' || /^pd-/.test(TAB)) return;   // el Panel delcos es interno
-  const v = $('v-' + TAB), h = v && v.querySelector('.saludo h1'); if (!h) return;
-  const sal = h.closest('.saludo') || h;
-  if (sal.querySelector('.ai')) return;
-  if (AYUDA[TAB]) { h.insertAdjacentHTML('beforeend', `<button class="ai" data-ayuda="${TAB}" aria-label="Ayuda">i</button>`); return; }
-  const P = (typeof PAGINAS !== 'undefined' && PAGINAS[TAB]) || {};
-  h.insertAdjacentHTML('beforeend', `<button class="ai" data-ayuda-tit="${esc(P.t || h.textContent.trim())}" data-ayuda-txt="${esc(P.d || '')}" aria-label="Ayuda">i</button>`);
-};
 // La ventanita ya llevaba «Ver más en el manual de uso» (resumirAyuda), que abría el buscador del manual: ahora abre el apartado de esa pantalla
 function resumirAyudaBase2(pop) {
   resumirAyudaBase.call(this, pop);
@@ -41,7 +22,7 @@ window.addEventListener('click', e => {
 }, true);
 
 
-pintarSinAtribuir = async function () { const c = $('cardsinatr'); if (c) c.remove(); };
+async function pintarSinAtribuir() { const c = $('cardsinatr'); if (c) c.remove(); }
 
 try { Object.assign(HT_ORDEN, JSON.parse(localStorage.getItem('delcos-orden') || '{}')); } catch (e) {}
 // Pulsar una cabecera: asc → desc → sin orden
@@ -66,11 +47,6 @@ db.rpc = (orig => function (fn, args, ...r) {
   if (o && o.k && args && !('p_orden' in args) && (fn !== 'clientes_lista' || args.lim > 5)) args = Object.assign({}, args, { p_orden: o.k + (o.dir === -1 ? ':desc' : ':asc') });
   return orig.call(this, fn, args, ...r);
 })(db.rpc);
-// La memoria de resultados de Pedidos distingue el orden
-rpcCache = (orig => function (fn, params, clave, ...r) {
-  const o = fn === 'pedidos_pagina' ? HT_ORDEN.peds2 : null;
-  return orig.call(this, fn, params, o && clave ? clave + '|orden:' + o.k + o.dir : clave, ...r);
-})(rpcCache);
 // Profesionales: su cabecera es propia y el orden va en F.orden (buscar_cuentas)
 function cabeceraTabla(...a) {
   const r = cabeceraTablaBase.apply(this, a);
@@ -95,11 +71,6 @@ document.addEventListener('click', e => {
 
 
 const MOS_MES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'], MOS_DS = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
-cargarInicio = (orig => function (...a) {
-  const r = orig.apply(this, a);
-  Promise.resolve(r).then(() => pintarMosaico()).catch(() => {});
-  return r;
-})(cargarInicio);
 
 // Sugerencias dentro de tu día y bandejas
 

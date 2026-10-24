@@ -6,7 +6,6 @@
 
 async function asignarCartera(id, ...r) { await asegurarUsuario(id); return asignarCarteraBase(id, ...r); }
 // Una llamada sin fecha se abre con la fecha de ahora (antes fallaba al abrirse)
-editorLlamada = (orig => function (l, ...r) { if (l && !l.fecha) l = Object.assign({}, l, { fecha: new Date().toISOString() }); return orig(l, ...r); })(editorLlamada);
 
 
 

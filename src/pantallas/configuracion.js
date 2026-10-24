@@ -2689,3 +2689,371 @@ function notifPintar() {
   };
   $('notcfg').onclick = () => { $('dlg').close(); CFG_SEC = 'notif'; window.__CFG_DIRECTO = true; ir('config'); };
 }
+
+async function cargarCatalogosBase() {
+  const claves = Object.keys(CAT);
+  const res = await Promise.all(claves.map(k => db.rpc('catalogo_papel', { p_papel: k })));
+  claves.forEach((k, i) => { CAT[k] = res[i].data || []; });
+  cargarCampos().catch(() => {});
+}
+
+function aplicarMarcaBase() {
+  const n = nombreApp();
+  document.title = n;
+  document.querySelectorAll('meta[name="apple-mobile-web-app-title"]').forEach(m => m.content = n);
+  const logo = MARCA.logo;
+  document.querySelectorAll('header .logo, .lbox img, #bootsplash img').forEach(i => { if (logo) i.src = logo; i.alt = n; });
+  const h = document.querySelector('.lbox h1'); if (h) h.textContent = n;
+  const g = document.querySelector('#girar span:last-child'); if (g) g.textContent = n + ' se usa en vertical.';
+}
+
+function aplicarMarca() {
+  aplicarMarcaBase();
+  if (!MARCA.logo) document.querySelectorAll('header .logo, .lbox img, #bootsplash img').forEach(i => { i.src = LOGO_NEUTRO; });
+}
+
+async function cargarAjustesBase2() { await cargarAjustesBase(); aplicarEtiqueta(); }
+
+// Plan y suscripción: tu plan (usuarios contratados, pago, prueba), los cuatro planes y la comparativa por módulos
+async function pintarPaginaPlanBase() {
+  const { data } = await RPC_ORIG('plan_uso', {});
+  const d = data || {}, pl = d.plan || {}; if (pl.plan) PLAN_ACTUAL = pl;
+  const act = planDe(pl.plan), contr = usuariosContratados(), usados = +d.usuarios || 0, anual = pl.pago === 'anual';
+  const pct = contr === Infinity ? 0 : Math.min(100, Math.round(usados / contr * 100));
+  // Con pago anual se pagan 10 meses de 12: la cuota mensual equivalente es precio × 10 / 12
+  const cuota = act.presupuesto || contr === Infinity ? null : contr * (anual ? act.precio * 10 / 12 : act.precio);
+  const mailto = asunto => 'mailto:?subject=' + encodeURIComponent(asunto + ' · ' + ((AJUSTES.marca || {}).nombre || ''));
+  const cont = $('cfgcuerpo'); if (!cont) return;
+  // El plan que se destaca es el siguiente al tuyo (con A medida, ninguno)
+  const siguiente = PLANES[PLANES.indexOf(act) + 1] || null;
+  // v2.120.0: «incluido» y «no incluido» como icono y raya suave, con su texto para lectores de pantalla
+  const celda = (p, v) => `<td class="${p.id === act.id ? 'act' : ''}">${v === '✓' ? `<span class="si" role="img" aria-label="Incluido">${svgIco(ICON_NOM.check)}</span>`
+    : v === '—' ? '<span class="no" role="img" aria-label="No incluido">—</span>' : v}</td>`;
+  cont.innerHTML = `${TAB === 'organizacion' || TAB === 'config' ? '<p class="sm">Precio por usuario y mes, IVA no incluido. Con pago anual pagas 10 meses de 12.</p>' : '<div class="saludo"><div><h1>Plan y suscripción</h1><div class="fecha">Precio por usuario y mes, IVA no incluido. Con pago anual pagas 10 meses de 12.</div></div></div>'}
+    <div class="card" id="planact"><h2>Tu plan: ${esc(act.nombre)}</h2>
+      ${pl.estado === 'prueba' ? `<div class="banda-aviso">Estás en la prueba gratuita hasta el <b>${fechaCorta(pl.prueba_hasta)}</b>. Sin permanencia: si no sigues, te llevas tus datos.</div>` : ''}
+      <div class="kpis">
+        <div class="kpi"><b>${contr === Infinity ? 'Sin límite' : num(contr)}</b><span>Usuarios contratados</span></div>
+        <div class="kpi"><b>${num(usados)}</b><span>Usuarios en uso</span></div>
+        <div class="kpi"><b>${act.presupuesto ? 'A medida' : anual ? 'Anual' : 'Mensual'}</b><span>Pago</span></div>
+        ${cuota != null ? `<div class="kpi"><b>${eurI(cuota)}</b><span>Al mes, sin IVA</span></div>` : ''}
+        ${act.medicos !== 0 ? `<div class="kpi"><b>${num(d.medicos || 0)}${act.medicos ? ' / ' + act.medicos : ''}</b><span>${TT('medico', 'p', '', 'l', 'C')} con acceso</span></div>` : ''}
+      </div>
+      ${contr !== Infinity ? `<div class="barrauso" title="${num(usados)} de ${num(contr)}"><i style="width:${pct}%"></i></div>` : ''}
+      ${contr !== Infinity && usados > contr ? `<div class="banda-aviso" id="plansobre">Tienes ${usados - contr === 1 ? '1 usuario' : num(usados - contr) + ' usuarios'} más de ${num(contr)} contratados. Añádelos a tu plan o desactiva los que ya no usen la plataforma.</div>` : ''}
+      <div class="acts"><a class="btn sec" href="${mailto('Cambiar el número de usuarios')}">Añadir o quitar usuarios</a></div></div>
+    <div class="planes">${PLANES.map(p => `<div class="plan ${p.id === act.id ? 'actual' : ''} ${p === siguiente ? 'dest' : ''}" data-plan="${p.id}">
+      <h3>${esc(p.nombre)}</h3><div class="sm">${esc(p.para)}</div>
+      <div class="precio">${p.presupuesto ? '<b>A medida</b> <span class="sm">Presupuesto · desde 50 usuarios</span>'
+        : `<b>${eurI(p.precio)}</b> <span class="sm">por usuario al mes · ${eurI(p.anual)} con pago anual (${eurI(p.precio * 10)} al año)</span>`}</div>
+      <ul class="manlist">${p.ventajas.map(v => `<li><span>✓</span><span>${esc(v)}</span></li>`).join('')}</ul>
+      ${p.id === act.id ? '<button class="btn sec" disabled>Tu plan actual</button>'
+        : `<a class="btn ${p === siguiente ? '' : 'sec'}" href="${mailto(p.presupuesto ? 'Presupuesto del plan A medida' : 'Cambiar al plan ' + p.nombre)}">${p.presupuesto ? 'Pedir presupuesto' : 'Cambiar a ' + esc(p.nombre)}</a>`}</div>`).join('')}</div>
+    <div class="card" id="plancond"><h2>Condiciones</h2><ul class="manlist">
+      <li><span>✓</span><span>Mínimo 3 usuarios en Campo, Comercial y Empresa. Añades o quitas usuarios cuando quieras.</span></li>
+      <li><span>✓</span><span>Puesta en marcha (importar tus Excel, configurar la empresa y formar al equipo): incluida con pago anual; con pago mensual, ${eurI(PUESTA_EN_MARCHA)} una sola vez.</span></li>
+      <li><span>✓</span><span>Prueba de 30 días con tus propios datos, sin permanencia. Si no sigues, te llevas tus datos.</span></li>
+      <li><span>✓</span><span>Desarrollos y configuraciones a medida: presupuesto según lo que necesites.</span></li></ul></div>
+    <div class="card"><h2>Qué incluye cada plan</h2><div class="dgrid-wrap"><table class="planmat"><thead><tr><th>Módulo</th>${PLANES.map(p => `<th class="${p.id === act.id ? 'act' : ''}">${esc(p.nombre)}</th>`).join('')}</tr></thead>
+      <tbody>${MOD_PLAN.map(([m, n, desc]) => `<tr><td><b>${esc(n)}</b><span class="sm">${esc(desc)}</span></td>${PLANES.map(p => celda(p, p.modulos.includes(m) ? '✓' : '—')).join('')}</tr>`).join('')}
+        <tr><td><b>Espacio ${TT('medico', 's', 'del', 'l', 'l')}</b><span class="sm">Su informe y sus avisos</span></td>${PLANES.map(p => celda(p, p.medicos === 0 ? '—' : p.medicos ? 'Hasta ' + p.medicos : 'Sin límite')).join('')}</tr>
+        <tr><td><b>Ver la plataforma como cada persona</b><span class="sm">De tu equipo, para ayudarla</span></td>${PLANES.map(p => celda(p, p.id === 'medida' ? '✓' : '—')).join('')}</tr>
+        <tr><td><b>Precio por usuario</b><span class="sm">Al mes, IVA no incluido</span></td>${PLANES.map(p => celda(p, p.presupuesto ? 'A medida' : eurI(p.precio) + ' · ' + eurI(p.anual) + ' anual')).join('')}</tr>
+      </tbody></table></div></div>`;
+}
+
+// Si la app ya estaba a la vista al cargar este bloque (arranque con el perfil guardado), el menú se ajusta igualmente
+async function cargarAjustes(...a) { const r = await cargarAjustesBase2(...a); if (PERFIL) menuOrganizacion(); return r; }
+
+async function pintarPaginaPlanBase2(...a) {
+  const r = await pintarPaginaPlanBase.apply(this, a);
+  const t = document.querySelector('#cfgcuerpo .planmat'); if (!t) return r;
+  const act = planDe((PLAN_ACTUAL || {}).plan);
+  const celda = (p, v) => `<td class="${p.id === act.id ? 'act' : ''}">${v === true ? `<span class="si" role="img" aria-label="Incluido">${svgIco(ICON_NOM.check)}</span>`
+    : v === false ? '<span class="no" role="img" aria-label="No incluido">—</span>' : v}</td>`;
+  const filas = PLAN_FILAS().map(([n, d, pl]) => pl === null || pl === undefined && d === null
+    ? `<tr class="plangrupo"><td colspan="${PLANES.length + 1}">${esc(n)}</td></tr>`
+    : `<tr><td><b>${esc(n)}</b>${d ? `<span class="sm">${esc(d)}</span>` : ''}</td>${PLANES.map(p => celda(p, pl.includes(p.id))).join('')}</tr>`).join('');
+  const extra = [...t.querySelectorAll('tbody tr')].filter(tr => /Espacio|Ver la plataforma|Precio por usuario/.test(tr.textContent)).map(tr => tr.outerHTML).join('');
+  t.querySelector('tbody').innerHTML = filas + extra;
+  return r;
+}
+
+// Comparativa de «Plan y suscripción»: la fila del espacio del profesional pasa a ser la del portal (Oportunidades va en PLAN_FILAS)
+async function pintarPaginaPlanBase3(...a) {
+  const r = await pintarPaginaPlanBase2.apply(this, a);
+  const fp = [...document.querySelectorAll('.planmat tbody tr')].find(tr => /Su informe y sus avisos/.test(tr.textContent));
+  if (fp) fp.querySelector('td').innerHTML = `<b>Portal ${TT('medico', 's', 'del', 'l', 'l')} y del centro</b><span class="sm">Informe, constancia, material, mensajes y pedidos del centro</span>`;
+  return r;
+}
+
+// «Plan y suscripción»: los botones reales en lugar de correos
+async function pintarPaginaPlanBase4(...a) {
+  const r = await pintarPaginaPlanBase3.apply(this, a);
+  const c = $('cfgcuerpo'); if (!c) return r;
+  const pl = PLAN_ACTUAL || {}, conSus = !!pl.stripe_suscripcion, puedePagar = puedeOrganizacion();
+  c.querySelectorAll('.plan[data-plan]').forEach(card => {
+    const k = card.dataset.plan, a2 = card.querySelector('a.btn[href^="mailto"]');
+    if (!a2 || !PAGO_PLANES.includes(k)) return;
+    if (!puedePagar) { a2.remove(); return; }
+    const b = document.createElement('button'); b.type = 'button'; b.className = a2.className; b.dataset.pgplan = k;
+    b.textContent = conSus ? 'Cambiar a ' + planDe(k).nombre : 'Contratar ' + planDe(k).nombre;
+    a2.replaceWith(b); b.onclick = () => elegirPago(k);
+  });
+  const acts = c.querySelector('#planact .acts');
+  if (acts) {
+    const usu = acts.querySelector('a.btn[href^="mailto"]'); if (usu) usu.remove();
+    if (puedePagar && pl.plan !== 'medida') acts.insertAdjacentHTML('beforeend', conSus
+      ? '<button type="button" class="btn sec" id="pgusu2">Añadir o quitar usuarios</button><button type="button" class="btn sec" id="pgportal">Gestionar el pago</button>'
+      : '<button type="button" class="btn" id="pgelegir">Elegir plan y pagar</button>');
+    if ($('pgusu2')) $('pgusu2').onclick = () => elegirPago(pl.plan);
+    if ($('pgportal')) $('pgportal').onclick = ev => pagoPortal(ev.target);
+    if ($('pgelegir')) $('pgelegir').onclick = () => elegirPago();
+  }
+  const act = c.querySelector('#planact h2');
+  if (act && pl.estado === 'impago') act.insertAdjacentHTML('afterend', `<div class="banda-peligro">No hemos podido cobrar el último recibo${pl.impago_desde ? ' (desde el ' + fechaCorta(pl.impago_desde) + ')' : ''}.
+    Actualiza el método de pago con «Gestionar el pago»; si en 14 días no se puede cobrar, la cuenta queda en solo lectura.</div>`);
+  if (act && pl.estado === 'cancelada') act.insertAdjacentHTML('afterend', `<div class="banda-aviso">Suscripción cancelada: puedes usar la plataforma hasta el
+    <b>${fechaCorta(pl.periodo_fin)}</b> y descargar tus datos. Para seguir, vuelve a contratar.</div>`);
+  if (act && conSus && pl.periodo_fin && pl.estado === 'activo') act.insertAdjacentHTML('afterend', `<p class="sm">Próximo recibo el ${fechaCorta(pl.periodo_fin)}.</p>`);
+  return r;
+}
+
+// A medida (como la empresa principal): sin botones de contratar ni de cambiar en línea, salvo que ya pague con Stripe
+async function pintarPaginaPlanBase5(...a) {
+  const r = await pintarPaginaPlanBase4.apply(this, a);
+  const c = $('cfgcuerpo'), pl = PLAN_ACTUAL || {};
+  if (c && pl.plan === 'medida' && !pl.stripe_suscripcion) c.querySelectorAll('[data-pgplan], #pgelegir, #pgusu2').forEach(b => b.remove());
+  return r;
+}
+
+// «Plan y suscripción»: cambio previsto (con «Anular el cambio»), baja pedida y compromiso de A medida
+async function pintarPaginaPlanBase6(...a) {
+  const r = await pintarPaginaPlanBase5.apply(this, a);
+  const c = $('cfgcuerpo'), pl = PLAN_ACTUAL || {}, h = c && c.querySelector('#planact h2'); if (!h) return r;
+  const cp = pl.cambio_previsto;
+  if (cp && cp.plan) h.insertAdjacentHTML('afterend', `<div class="banda-info" id="pgprevisto">El <b>${fechaCorta(cp.desde)}</b> pasarás al plan
+    <b>${esc(planDe(cp.plan).nombre)}</b> con ${num(cp.usuarios)} usuarios y pago ${cp.pago === 'anual' ? 'anual' : 'mensual'}.
+    ${puedeOrganizacion() ? '<button type="button" class="btn sec" id="pganular">Anular el cambio</button>' : ''}</div>`);
+  if (pl.baja_al_final && pl.estado === 'activo') h.insertAdjacentHTML('afterend', `<div class="banda-aviso" id="pgbajafin">Has pedido la baja: puedes usar la plataforma
+    hasta el <b>${fechaCorta(pl.periodo_fin)}</b>. Si quieres seguir, entra en «Gestionar el pago» y renueva la suscripción.</div>`);
+  if (pl.plan === 'medida' && pl.compromiso_hasta) h.insertAdjacentHTML('afterend', `<p class="sm" id="pgcomp">Contrato A medida hasta el ${fechaCorta(pl.compromiso_hasta)}. Para cambiarlo, habla con delcos.</p>`);
+  if ($('pganular')) $('pganular').onclick = async ev => {
+    const d = await pagoLlamar({ accion: 'anular_cambio' }, ev.target); if (!d) return;
+    toast('Cambio anulado: sigues con tu plan'); await pagoCargarEstado(); ir(TAB);
+  };
+  return r;
+}
+
+async function pintarPaginaPlanBase7(...a) {
+  const r = await pintarPaginaPlanBase6.apply(this, a);
+  const c = $('cfgcuerpo'), pl = PLAN_ACTUAL || {}; if (!c || !puedeOrganizacion() || !pl.stripe_suscripcion) return r;
+  const acts = c.querySelector('#planact .acts');
+  if (acts && pl.estado === 'activo' && !pl.baja_al_final && !$('pgdarbaja'))
+    acts.insertAdjacentHTML('beforeend', '<button type="button" class="btn sec" id="pgdarbaja">Darme de baja</button>');
+  const bf = $('pgbajafin');
+  if (bf) {
+    bf.innerHTML = `Has pedido la baja: puedes usar la plataforma hasta el <b>${fechaCorta(pl.periodo_fin)}</b>.
+      <button type="button" class="btn sec" id="pgseguir">Seguir con la suscripción</button>`;
+  }
+  if ($('pgdarbaja')) $('pgdarbaja').onclick = async ev => { const d = await pagoLlamar({ accion: 'baja' }, ev.target); if (d && d.url) location.href = d.url; };
+  if ($('pgseguir')) $('pgseguir').onclick = async ev => {
+    const d = await pagoLlamar({ accion: 'reanudar' }, ev.target); if (!d) return;
+    toast('Seguimos: tu suscripción continúa'); await pagoCargarEstado(); ir(TAB);
+  };
+  return r;
+}
+
+// «Plan y suscripción»: botones al formulario (en lugar de correos) y la última solicitud con su estado
+async function pintarPaginaPlanBase8(...a) {
+  const r = await pintarPaginaPlanBase7.apply(this, a);
+  const c = $('cfgcuerpo'); if (!c || !c.querySelector('#planact')) return r;
+  const pl = PLAN_ACTUAL || {};
+  c.querySelectorAll('a[href^="mailto"]').forEach(x => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = x.className;
+    b.textContent = x.closest('.plan[data-plan="medida"]') ? 'Pedir presupuesto' : 'Hablar con delcos';
+    b.dataset.presu = x.closest('.plan[data-plan="medida"]') && pl.plan !== 'medida' ? 'presupuesto' : 'contrato';
+    x.replaceWith(b);
+  });
+  const comp = $('pgcomp');
+  if (pl.plan === 'medida' && !c.querySelector('[data-presu]') && !puede('gestionar_plataforma')) {
+    const acts = c.querySelector('#planact .acts');
+    if (acts) acts.insertAdjacentHTML('beforeend', '<button type="button" class="btn sec" data-presu="contrato">Hablar con delcos</button>');
+  }
+  if (comp) comp.textContent = comp.textContent.replace(' Para cambiarlo, habla con delcos.', '');
+  c.querySelectorAll('[data-presu]').forEach(b => b.onclick = () => pedirPresupuesto(b.dataset.presu));
+  try {
+    const { data } = await db.from('solicitudes_plan').select('creado_en,estado,tipo').order('creado_en', { ascending: false }).limit(1);
+    const s = (data || [])[0], h = c.querySelector('#planact h2');
+    if (s && h && !$('presuest') && (s.estado !== 'Cerrada' || Date.now() - new Date(s.creado_en) < 30 * 864e5))
+      h.insertAdjacentHTML('afterend', `<div class="banda-info" id="presuest">Tu solicitud ${s.tipo === 'contrato' ? 'sobre el contrato' : 'de presupuesto'} del
+        ${fechaCorta(s.creado_en.slice(0, 10))}: <b>${esc(PRESU_ESTADO[s.estado] || s.estado)}</b>.${s.estado === 'Nueva' ? ' Te contestamos en un día laborable.' : ''}</div>`);
+  } catch (e) {}
+  return r;
+}
+
+// «Plan y suscripción»: periodo de prueba de Stripe
+async function pintarPaginaPlanBase9(...a) {
+  const r = await pintarPaginaPlanBase8.apply(this, a);
+  const c = $('cfgcuerpo'), pl = PLAN_ACTUAL || {}, h = c && c.querySelector('#planact h2');
+  if (h && pl.en_prueba && pl.periodo_fin && !$('pgprueba') && !pl.baja_al_final)
+    h.insertAdjacentHTML('afterend', `<div class="banda-info" id="pgprueba">Estás en el periodo de prueba hasta el <b>${fechaCorta(pl.periodo_fin)}</b>:
+      hasta entonces no se cobra nada. Ese día se pasará el primer recibo, salvo que te des de baja antes.</div>`);
+  return r;
+}
+
+async function pintarPaginaPlanBase10(...a) {
+  const r = await pintarPaginaPlanBase9.apply(this, a);
+  const c = $('cfgcuerpo'), pl = PLAN_ACTUAL || {};
+  if (!c || !c.querySelector('#planact') || !pl.stripe_cliente || !puedeOrganizacion() || $('pgdatos')) return r;
+  c.querySelector('#planact').insertAdjacentHTML('afterend', `<div class="card cfgpanel" id="pgdatos"><h2 style="padding:0 0 4px">Datos de facturación</h2>
+    <p class="sm">Con estos datos se hacen tus recibos y facturas. ${pl.en_prueba ? `Revísalos antes del ${fechaCorta(pl.periodo_fin)}, cuando se pasa el primer recibo.` : ''}</p>
+    <div class="pgdlista"><div class="skel"></div></div>
+    <div class="acts"><button type="button" class="btn sec" id="pgdcorr">Corregir datos</button></div></div>`);
+  $('pgdcorr').onclick = ev => pagoPortal(ev.target);
+  // Sin avisos si falla (se ve «Falta» y se puede corregir igual)
+  const d = await db.functions.invoke('pagos', { body: { accion: 'datos' } }).then(x => x.data, () => null).catch(() => null);
+  const l = c.querySelector('#pgdatos .pgdlista'); if (!l) return r;
+  if (!d || !d.ok) { l.innerHTML = '<p class="sm">No se han podido leer ahora. Puedes verlos y cambiarlos con «Corregir datos».</p>'; return r; }
+  const x = d.datos || {};
+  const filas = [['Razón social', x.nombre], ['NIF o CIF', x.nif], ['Correo para los recibos', x.email], ['Dirección fiscal', x.direccion]];
+  const faltan = filas.filter(f => !f[1]).length;
+  l.innerHTML = filas.map(([k, v]) => `<div class="pgdfila${v ? '' : ' falta'}"><span>${esc(k)}</span><b>${v ? esc(v) : 'Falta'}</b></div>`).join('')
+    + (faltan ? `<div class="banda-aviso" style="margin-top:8px">Faltan datos para poder facturarte: complétalos con «Corregir datos».</div>` : '');
+  return r;
+}
+
+async function cargarConfigBase() {
+  // v2.340.0 (avisos de Eric): se abre siempre en «Mis datos» (no en el último apartado); al cambiar de apartado solo cambia la página
+  // de la derecha (el índice se queda, con su desplazamiento: antes se volvía a montar todo y daba un salto); los apartados con partes
+  // son una sola entrada y las partes, pestañas dentro de la página.
+  if (typeof salirPanel === 'function') salirPanel();
+  const arbol = arbolCfgUnico(), hojas = hojasCfg(arbol);
+  const pedida = CFG_KEY || 'datos';
+  const it = hojas.find(x => x.k === pedida) || hojas.find(x => x.hijos && x.hijos.some(h => h.k === pedida)) || hojas.find(x => pedida.startsWith(x.k + '.'))
+    || hojas.find(x => x.k === 'datos') || hojas[0];
+  if (!it) return;
+  const hijo = it.hijos ? (it.hijos.find(h => h.k === pedida) || it.hijos[0]) : null;
+  CFG_KEY = hijo ? hijo.k : it.k;
+  const movil = ES_MOVIL(), v = $('v-config');
+  const firma = hojas.map(x => x.k + (x.hijos ? '(' + x.hijos.map(h => h.k).join(',') + ')' : '')).join('|') + '|' + movil;
+  if (!(v.dataset.cfgfirma === firma && $('cfulista') && v.querySelector('.cfupag'))) {
+    const ind = arbol.map(([gr, l]) => `<h4>${esc(gr)}</h4>${l.map(x => `<button type="button" data-ck="${x.k}">${svgIco(ICON_NOM[x.ic] || '')}<span>${esc(x.t)}</span>${x.mod && !planIncluye(x.mod) ? `<span class="pill p-plan">${esc(planMinimo(x.mod) ? planMinimo(x.mod).nombre : 'Plan')}</span>` : ''}</button>`).join('')}`).join('');
+    v.innerHTML = `<div class="saludo"><div><h1>Configuración</h1><div class="fecha">Tu cuenta${arbol.length > 1 ? ', tu equipo y tu empresa, en un solo sitio' : ' y tus preferencias'}</div></div></div>
+      <div class="cfu">
+        <nav class="cfuidx" aria-label="Apartados de configuración"><div class="cfubusca">${LUPA_CFG}<input id="cfubus" type="search" placeholder="Buscar un ajuste" autocomplete="off" aria-label="Buscar un ajuste"></div>
+          <div id="cfulista">${ind}</div><div class="cfusin hide" id="cfusin">Ningún ajuste con esas palabras</div></nav>
+        <section class="cfupag"><button type="button" class="cfuvolver" id="cfuvolver">‹ Configuración</button>
+          <div class="cfucab"></div><div class="cfupend hide" id="cfupend"></div>
+          <div id="cfgcuerpo-hub"><div id="cfgcuerpo"></div></div></section></div>`;
+    v.dataset.cfgfirma = firma;
+    v.querySelectorAll('#cfulista [data-ck]').forEach(b => b.onclick = () => { CFG_KEY = b.dataset.ck; CFG_DETALLE = true; cargarConfig(); if (ES_MOVIL()) scrollTo(0, 0); });
+    $('cfuvolver').onclick = () => { CFG_DETALLE = false; v.querySelector('.cfu').classList.remove('det'); scrollTo(0, 0); };
+    // Buscador: por nombre, apartado, partes y palabras clave; Intro abre el primero
+    const busca = $('cfubus');
+    busca.oninput = () => {
+      const q = impNorm(busca.value.trim());
+      let vis = 0;
+      v.querySelectorAll('#cfulista [data-ck]').forEach(b => {
+        const h = hojasCfg(arbolCfgUnico()).find(x => x.k === b.dataset.ck) || {};
+        const partes = (h.hijos || []).map(x => x.t + ' ' + (CFG_CLAVES[x.k] || '')).join(' ');
+        const txt = impNorm([h.t, h.gr, h.d, partes, CFG_CLAVES[h.k] || ''].join(' '));
+        const ok = !q || q.split(/\s+/).every(p => txt.includes(p)); b.classList.toggle('hide', !ok); if (ok) vis++;
+      });
+      v.querySelectorAll('#cfulista h4').forEach(e => {
+        let x = e.nextElementSibling, alguno = false;
+        while (x && x.tagName !== 'H4') { if (x.matches('[data-ck]:not(.hide)')) alguno = true; x = x.nextElementSibling; }
+        e.classList.toggle('hide', !!q && !alguno);
+      });
+      $('cfusin').classList.toggle('hide', vis > 0);
+    };
+    busca.onkeydown = e => { if (e.key === 'Enter') { const b = v.querySelector('#cfulista [data-ck]:not(.hide)'); if (b) { e.preventDefault(); b.click(); } } };
+    cfuAjustarIndice();
+  }
+  v.querySelector('.cfu').classList.toggle('det', movil && CFG_DETALLE);
+  v.querySelectorAll('#cfulista [data-ck]').forEach(b => b.classList.toggle('on', b.dataset.ck === it.k));
+  // Cabecera de la página y, si tiene partes, sus pestañas
+  v.querySelector('.cfucab').innerHTML = `<div class="miga">${esc(it.gr)}</div><h2>${esc(it.t)}</h2>${it.d ? `<p>${esc(it.d)}</p>` : ''}`;   // v2.344.0: sin pestañas: las partes, una debajo de otra
+  v.querySelectorAll('.cfucab [data-cks]').forEach(b => b.onclick = () => { if (b.dataset.cks === CFG_KEY) return; CFG_KEY = b.dataset.cks; cargarConfig(); });
+  $('cfupend').classList.add('hide'); $('cfupend').innerHTML = '';
+  $('cfgcuerpo-hub').innerHTML = '<div id="cfgcuerpo"></div>';
+  // Lo pendiente: punto en el índice (en el apartado que lo contiene) y aviso en la página
+  pendientesCfg().then(l => {
+    if (!$('cfulista')) return;
+    Object.entries(l).forEach(([k, t]) => { const b = [...v.querySelectorAll('#cfulista [data-ck]')].find(x => k === x.dataset.ck || k.startsWith(x.dataset.ck + '.')); if (b && !b.querySelector('.cfupt')) { b.insertAdjacentHTML('beforeend', '<span class="cfupt"></span>'); b.title = t; } });
+    if (l[CFG_KEY] && $('cfupend')) { $('cfupend').innerHTML = `<span class="cfupt"></span>${esc(l[CFG_KEY])}`; $('cfupend').classList.remove('hide'); }
+  });
+  // El apartado (o, si el plan no lo incluye, qué plan lo trae)
+  const r = it.hijos ? () => cfgApilar(it, hijo) : it.r;
+  if (it.mod && !planIncluye(it.mod)) {
+    const p = planMinimo(it.mod);
+    $('cfgcuerpo').innerHTML = `<div class="card cfgpanel planup"><div class="planupico">${svgIco(ICON_NOM.lock)}</div><h2>${esc(it.t)} está en el plan ${esc(p ? p.nombre : 'A medida')}</h2>
+      <p class="sm">Tu plan ${esc(planDe(PLAN_ACTUAL.plan).nombre)} no lo incluye.</p>${puedeOrganizacion() ? '<div class="acts"><button class="btn" id="planver">Ver planes</button></div>' : ''}</div>`;
+    if ($('planver')) $('planver').onclick = () => { CFG_KEY = 'o.plan'; cargarConfig(); };
+  } else Promise.resolve().then(r);
+}
+
+// Notificaciones: cada aviso con «Al momento · En el resumen · No»
+function pintarNotif() {
+  const tipos = tiposDeMiRol(), s = (PERFIL.preferencias || {}).notif_silencio || {};
+  const filas = NOTIF_AREAS.map(([, t, ks]) => [t, tipos.filter(x => ks.includes(x[0]))]).filter(([, l]) => l.length);
+  const sueltos = tipos.filter(x => !NOTIF_AREAS.some(ar => ar[2].includes(x[0])));
+  if (sueltos.length) filas.push(['Otros', sueltos]);
+  const modo = k => { const m = notifModo(k); return m === 'm' || m === 'r' ? m : 'n'; };
+  const resumen = () => { const c = { m: 0, r: 0, n: 0 }; tipos.forEach(([k]) => c[modo(k)]++);
+    return `<span><b>${c.m}</b> al momento</span><span><b>${c.r}</b> en el resumen de la mañana</span><span><b>${c.n}</b> desactivados</span>`; };
+  $('cfgcuerpo').innerHTML = tipos.length ? `<div class="card cfgpanel ntf">
+    <div class="ntfres" id="ntfres">${resumen()}</div>
+    <div class="ajfila ntfsil"><div><div class="ntfsilt"><label class="vfswitch mini" title="Activar las horas de silencio"><input type="checkbox" id="nsil" ${s.activo ? 'checked' : ''} aria-label="Activar las horas de silencio"><span class="sw"></span></label><b>Horas de silencio</b></div><span class="sm">Lo que llegue en ese tiempo lo verás al terminar el silencio.</span></div>
+      <div class="ajctl">
+        <input type="time" id="nsild" value="${esc(s.desde || '20:00')}" aria-label="Desde"> a <input type="time" id="nsilh" value="${esc(s.hasta || '08:00')}" aria-label="Hasta">
+        <label class="ntffin"><input type="checkbox" id="nsilf" ${s.finde !== false ? 'checked' : ''}> Fines de semana</label></div></div>
+    ${filas.map(([t, l]) => `<h3 class="ntfarea">${esc(t)}</h3>${l.map(([k, ic, tt, d]) => {
+      const m = modo(k), diario = NOTIF_DIARIOS.includes(k);
+      return `<div class="ntfrow"><span class="ntfic">${ic}</span><div><b>${esc(tt)}</b><span class="sm">${esc(d)}</span></div>
+        <div class="segs ntfseg" role="group" aria-label="${esc(tt)}" data-nk="${k}">${diario ? '' : `<button type="button" data-v="m" class="${m === 'm' ? 'on' : ''}" aria-pressed="${m === 'm'}">Al momento</button>`}<button type="button" data-v="r" class="${m === 'r' ? 'on' : ''}" aria-pressed="${m === 'r'}">En el resumen</button><button type="button" data-v="n" class="${m === 'n' ? 'on' : ''}" aria-pressed="${m === 'n'}">No</button></div></div>`; }).join('')}`).join('')}
+  </div>` : '<div class="card cfgpanel"><div class="vacio">Tu perfil no tiene notificaciones disponibles todavía.</div></div>';
+  $('cfgcuerpo').querySelectorAll('.ntfseg button').forEach(b => b.onclick = async () => {
+    const g = b.closest('.ntfseg'), k = g.dataset.nk, v = b.dataset.v;
+    if (b.classList.contains('on')) return;
+    g.querySelectorAll('button').forEach(x => { x.classList.toggle('on', x === b); x.setAttribute('aria-pressed', String(x === b)); });
+    const notif = Object.assign({}, (PERFIL.preferencias || {}).notif || {});
+    const diario = NOTIF_DIARIOS.includes(k), om = v === 'm', or = v === 'r';
+    if (diario ? or : (om && !or)) delete notif[k]; else notif[k] = { m: om, r: or };
+    await notifGuardarPrefs({ notif }, v === 'n' ? 'No lo recibirás' : v === 'm' ? 'Te llegará al momento' : 'Irá en el resumen de la mañana');
+    if ($('ntfres')) $('ntfres').innerHTML = resumen();
+  });
+  const guardarSil = () => notifGuardarPrefs({ notif_silencio: { activo: $('nsil').checked, desde: $('nsild').value || '20:00', hasta: $('nsilh').value || '08:00', finde: $('nsilf').checked } },
+    $('nsil').checked ? 'Silencio guardado' : 'Sin silencio');
+  ['nsil', 'nsild', 'nsilh', 'nsilf'].forEach(id => { if ($(id)) $(id).onchange = guardarSil; });
+}
+
+// Configuración: botón de volver
+async function cargarConfigBase2(...a) {
+  const r = await cargarConfigBase.apply(this, a);
+  const b = $('cfuvolver');
+  if (b && !b.classList.contains('manvuelta')) { b.classList.add('manvuelta'); b.innerHTML = '<b aria-hidden="true">‹</b> Volver'; b.setAttribute('aria-label', 'Volver a Configuración'); }
+  return r;
+}
+
+// Catálogos guardados en el móvil (resultado por defecto de la visita, «No estaba»…)
+async function cargarCatalogos(...a) {
+  const r = await cargarCatalogosBase.apply(this, a);
+  try {
+    const vacio = Object.values(CAT).every(v => !v || !v.length);
+    if (!vacio) localStorage.setItem('dlc-cat', JSON.stringify(CAT));
+    else { const g = JSON.parse(localStorage.getItem('dlc-cat') || 'null'); if (g) Object.keys(CAT).forEach(k => { if (g[k] && g[k].length) CAT[k] = g[k]; }); }
+  } catch (e) {}
+  return r;
+}
+
+// Al cambiar de apartado, la ventana de siempre vuelve a su sitio
+async function cargarConfig(...a) {
+  const hub = $('cfgcuerpo-hub');
+  if (hub && hub.dataset.apilado) {
+    hub.querySelectorAll('[data-idd]').forEach(e => e.removeAttribute('data-idd'));
+    const m = $('dbody-modal'); if (m) { const p = document.querySelector('#dbody[data-panel]'); if (p) p.removeAttribute('id'); m.id = 'dbody'; }
+    PANEL_ACTIVO = null; CFG_SEC_ACT = null; delete hub.dataset.apilado;
+  }
+  return cargarConfigBase2.apply(this, a);
+}

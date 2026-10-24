@@ -232,3 +232,23 @@ function abrirManual(ancla) {
   if (TAB === 'manual' && f) { try { f.contentWindow.location.hash = ancla || 'portada'; } catch (e) {} return; }
   ir('manual');
 }
+
+/* v2.226.0 · Arreglos de la lista de Eric (9/10/2026).
+   1. Una sola ayuda por pantalla: fuera el «?» del manual (.manq); cada título lleva su «i» (las páginas nuevas también: Ciclo, Intervenciones,
+      Eventos…) y la ventanita de la «i» termina con «Ver en el manual de uso», que abre el manual en el apartado de esa pantalla; desde allí,
+      «‹ Volver a …» devuelve al mismo punto (v2.224.0).
+   2. Agenda: el selector «Mi agenda» y el botón «Equipo» se reponen siempre que la cabecera se vuelve a pintar (al pulsar Día se pintaba dos
+      veces seguidas y se perdían) y, dentro de Equipo, el botón pasa a «Mi agenda» para volver de un clic.
+   3. Una tarea hecha se abre en modo lectura, con «Volver a pendiente» y «Borrar».
+   4. Pedidos: fuera la tarjeta «Pedidos sin atribuir».
+   5. Menú de la persona: sin «Organización» (está dentro de Configuración); «Manual de uso» y «Reportar un problema», aparte, como ayuda. */
+function ponerAyudaManual() {
+  document.querySelectorAll('.manq').forEach(b => b.remove());
+  if (ES_MEDICO() || TAB === 'manual' || TAB === 'delcos' || /^pd-/.test(TAB)) return;   // el Panel delcos es interno
+  const v = $('v-' + TAB), h = v && v.querySelector('.saludo h1'); if (!h) return;
+  const sal = h.closest('.saludo') || h;
+  if (sal.querySelector('.ai')) return;
+  if (AYUDA[TAB]) { h.insertAdjacentHTML('beforeend', `<button class="ai" data-ayuda="${TAB}" aria-label="Ayuda">i</button>`); return; }
+  const P = (typeof PAGINAS !== 'undefined' && PAGINAS[TAB]) || {};
+  h.insertAdjacentHTML('beforeend', `<button class="ai" data-ayuda-tit="${esc(P.t || h.textContent.trim())}" data-ayuda-txt="${esc(P.d || '')}" aria-label="Ayuda">i</button>`);
+}

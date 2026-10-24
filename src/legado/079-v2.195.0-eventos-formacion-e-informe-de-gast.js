@@ -2,7 +2,7 @@ Object.assign(ICON_NOM, { 'graduation-cap': '<path d="M21.42 10.922a1 1 0 0 0-.0
 ICO_NAV.eventos = 'graduation-cap'; ICO_MOD.eventos = svgIco(ICON_NOM['graduation-cap']);
 PLAN_SECCIONES.eventos = ['comercial', 'empresa', 'medida'];
 (() => { const g = MENU_GRUPOS.find(x => x.id === 'cartera'); if (g && !g.items.includes('eventos')) g.items.splice(g.items.indexOf('directorio') + 1, 0, 'eventos'); })();
-aplicarPermisosMenu = (orig => function (...a) { try { menuEventos(); } catch (e) {} const r = orig.apply(this, a); try { menuEventos(); } catch (e) {} return r; })(aplicarPermisosMenu);
+function aplicarPermisosMenuBase7(...a) { try { menuEventos(); } catch (e) {} const r = aplicarPermisosMenuBase6.apply(this, a); try { menuEventos(); } catch (e) {} return r; }
 PAGINAS.eventos = { t: 'Eventos', permiso: () => !ES_MEDICO() && puedeModulo('directorio') && planIncluyeSeccion('eventos') };
 Object.defineProperty(PAGINAS.eventos, 'd', { get: () => 'Talleres, cursos y congresos con sus asistentes, inscripciones y gastos' });
 Object.defineProperty(PAGINAS.eventos, 'tabs', { get: () => [['lista', 'Eventos', () => pintarEventos()]].concat(verTransparencia() ? [['transparencia', 'Informe de gastos', () => pintarTransparencia()]] : []) });
@@ -20,7 +20,7 @@ let CIC_DE = '', CIC_FIL = '', CIC_CLF = 'sin', CIC_Q = '';
 Object.assign(ICON_NOM, { target: '<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>' });
 ICO_NAV.ciclo = 'target'; ICO_MOD.ciclo = svgIco(ICON_NOM.target);
 (() => { const g = MENU_GRUPOS.find(x => x.id === 'dia'); if (g && !g.items.includes('ciclo')) g.items.push('ciclo'); })();
-aplicarPermisosMenu = (orig => function (...a) { try { menuCiclo(); } catch (e) {} const r = orig.apply(this, a); try { menuCiclo(); } catch (e) {} return r; })(aplicarPermisosMenu);
+function aplicarPermisosMenuBase8(...a) { try { menuCiclo(); } catch (e) {} const r = aplicarPermisosMenuBase7.apply(this, a); try { menuCiclo(); } catch (e) {} return r; }
 PAGINAS.ciclo = { permiso: () => !ES_MEDICO() && puedeModulo('agenda') };
 Object.defineProperty(PAGINAS.ciclo, 't', { get: () => `Ciclo de ${TT('visita', 'p', '', 'l', 'l')}` });
 Object.defineProperty(PAGINAS.ciclo, 'd', { get: () => `${TT('medico', 'p', '', 'l', 'C')} en A, B y C, y las ${TT('visita', 'p', '', 'l', 'l')} que le tocan a cada uno en cada ciclo` });
@@ -54,7 +54,7 @@ PLAN_SECCIONES.cobertura = ['comercial', 'empresa', 'medida'];
 Object.assign(ICON_NOM, { scissors: '<circle cx="6" cy="6" r="3"/><path d="M8.12 8.12 12 12"/><path d="M20 4 8.12 15.88"/><circle cx="6" cy="18" r="3"/><path d="M14.8 14.8 20 20"/>' });
 ICO_NAV.cirugias = 'scissors'; ICO_MOD.cirugias = svgIco(ICON_NOM.scissors);
 (() => { const g = MENU_GRUPOS.find(x => x.id === 'dia'); if (g && !g.items.includes('cirugias')) g.items.push('cirugias'); })();
-aplicarPermisosMenu = (orig => function (...a) { try { menuCirugias(); } catch (e) {} const r = orig.apply(this, a); try { menuCirugias(); } catch (e) {} return r; })(aplicarPermisosMenu);
+function aplicarPermisosMenuBase9(...a) { try { menuCirugias(); } catch (e) {} const r = aplicarPermisosMenuBase8.apply(this, a); try { menuCirugias(); } catch (e) {} return r; }
 PAGINAS.cirugias = { t: 'Intervenciones', permiso: () => !ES_MEDICO() && puedeModulo('agenda'), tabs: [['lista', 'Intervenciones', () => pintarCirugias()]] };
 Object.defineProperty(PAGINAS.cirugias, 'd', { get: () => 'Programación, material usado con lote y número de serie, y reposición en 48 horas' });
 

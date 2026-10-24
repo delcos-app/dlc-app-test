@@ -11,10 +11,6 @@
    - «Ver la semana» cambia su texto cuando la semana ya está pintada; el mes se abre ya pintado.
    ============================================================ */
 const AG_PRE = new Map(); let AG_PRE_USO = 0;
-rpcCache = (orig => function (fn, params, clave, ...x) {
-  if (AG_PRE.size && fn === 'agenda_rango' && params) { const k = agK(fn, params.p_desde, params.p_hasta, params.p_usuario); if (AG_PRE.has(k)) return Promise.resolve(AG_PRE.get(k)); }
-  return orig.call(this, fn, params, clave, ...x);
-})(rpcCache);
 
 
 

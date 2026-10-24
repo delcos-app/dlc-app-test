@@ -102,23 +102,13 @@ function panelColumnasBase2(titulo, cols, alCambiar) {
 
 /* ---------------- 5. Campos de formulario ---------------- */
 
-ivaSelector = (orig => function (inp) {
+function ivaSelectorBase2(inp) {
   if (!inp || inp.dataset.ivasel) return;
   inp.dataset.sel = '1';                                   // sin botones de sumar y restar
   const w = inp.closest('.numw');
   if (w) { w.parentNode.insertBefore(inp, w); w.remove(); }   // si ya los tenía, se quitan
-  orig(inp);
-})(ivaSelector);
-// Cantidades con botones; importes y porcentajes sin ellos (sumar de uno en uno a un importe no tiene sentido)
-mejorarCampos = (orig => function (raiz) {
-  (raiz || document).querySelectorAll('input[type=number]:not([data-sel])').forEach(i => {
-    if (ES_IVA(i)) { ivaSelector(i); return; }
-    const txt = (i.id + ' ' + (i.dataset.f || '') + ' ' + (i.placeholder || '') + ' ' + (((i.id && document.querySelector(`label[for="${i.id}"]`)) || i.closest('label') || {}).textContent || '')).toLowerCase();
-    const decimal = /^(0?\.\d+|any)$/.test(i.getAttribute('step') || '');
-    if (decimal || /€|precio|importe|coste|portes|env[ií]o|descuento|pvp|cobro|total|base/.test(txt)) { i.dataset.sel = '1'; i.classList.add('numdec'); }
-  });
-  return orig(raiz);
-})(mejorarCampos);
+  ivaSelectorBase(inp);
+}
 new MutationObserver(ms => { for (const m of ms) for (const n of m.addedNodes) if (n.nodeType === 1)
   (n.matches && n.matches('input[type=number],input[type=text]') ? [n] : [...n.querySelectorAll('input[type=number],input[type=text]')]).forEach(i => { if (!i.dataset.ivasel && ES_IVA(i) && !/iban|precio|importe/i.test(i.id)) ivaSelector(i); });
 }).observe(document.body, { childList: true, subtree: true });

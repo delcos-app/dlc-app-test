@@ -5,7 +5,7 @@
    ============================================================ */
 
 let RECUPERANDO = RECUPERACION_URL;
-function pantallaRecuperacion() {
+function pantallaRecuperacionBase() {
   RECUPERANDO = true;
   document.documentElement.classList.add('recuperando');
   ['dlg', 'dlg2', 'ficha', 'mini'].forEach(id => { const d = $(id); if (d && d.open) try { d.close(); } catch (e) {} });
@@ -51,6 +51,5 @@ function pantallaRecuperacion() {
   if (q.get('clave') === 'cambiada') { setTimeout(() => avisar('Contraseña cambiada. Entra con tu contraseña nueva.', true), 300); history.replaceState(null, '', location.pathname); }
   if (ENLACE_CADUCADO) { setTimeout(() => avisar('El enlace ha caducado o ya se ha usado. Pide otro con «He olvidado la contraseña».', false), 300); history.replaceState(null, '', location.pathname); }
 })();
-if (RECUPERANDO) pantallaRecuperacion();
 
 

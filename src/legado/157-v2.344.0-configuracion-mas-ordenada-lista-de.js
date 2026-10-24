@@ -10,16 +10,6 @@ const IDS_SEC = ['fcuerpo', 'dbody', 'v-admin'];
 ['pointerdown', 'focusin', 'keydown'].forEach(ev => document.addEventListener(ev, e => {
   const sec = e.target.closest && e.target.closest('#cfgcuerpo-hub .cfgsec'); if (sec) cfgSecDespertar(sec);
 }, true));
-// Al cambiar de apartado, la ventana de siempre vuelve a su sitio
-cargarConfig = (orig => async function (...a) {
-  const hub = $('cfgcuerpo-hub');
-  if (hub && hub.dataset.apilado) {
-    hub.querySelectorAll('[data-idd]').forEach(e => e.removeAttribute('data-idd'));
-    const m = $('dbody-modal'); if (m) { const p = document.querySelector('#dbody[data-panel]'); if (p) p.removeAttribute('id'); m.id = 'dbody'; }
-    PANEL_ACTIVO = null; CFG_SEC_ACT = null; delete hub.dataset.apilado;
-  }
-  return orig.apply(this, a);
-})(cargarConfig);
 
 // Datos fiscales y Series, juntos
 function arbolCfgUnico(...a) {

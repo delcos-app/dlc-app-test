@@ -23,7 +23,7 @@ document.addEventListener('click', e => {
 
 /* ---------------- IVA: selector con los tipos legales ---------------- */
 
-function ivaSelector(inp) {
+function ivaSelectorBase(inp) {
   if (!inp || inp.dataset.ivasel || inp.type === 'hidden') return;
   inp.dataset.ivasel = '1';
   const v = inp.value === '' ? '' : +inp.value;

@@ -92,6 +92,15 @@ function reportarProblema() {
     delete $('dlg').dataset.sucio; $('dlg').close(); toast('Gracias: el problema queda registrado con todos los detalles');
   });
 }
+
+// Producción (3/10/2026): en el iPhone, sin cobertura, Safari da «Load failed» o «Fetch is aborted». Eso no es un fallo de la plataforma:
+// no se apunta en el registro de errores, y la visita (registrar_actividad, que no se duplica gracias a su op_id) se guarda en la cola
+// del dispositivo y se envía al recuperar la conexión, en lugar de pedir que se repita.
+function esErrorRedBase(e) { return /failed to fetch|load failed|networkerror|network request failed|aborterror|fetch is aborted|internet connection|err_internet|err_network/i.test(String((e && (e.message || e)) || '')); }
+
+function esErrorRed(e) {
+  return esErrorRedBase(e) || /ha tardado demasiado|tiempo agotado|timeout|timed out/i.test(String((e && (e.message || e)) || ''));
+}
 // @ts-check
 // nucleo/idioma.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
@@ -629,6 +638,56 @@ function menuPersonalizar(...a) {
   }
   return r;
 }
+
+function abrirMasMovilBase2() {
+  abrirMasMovilBase();
+  const s = $('bmas'); if (!s) return;
+  s.querySelectorAll('.bmasbox > .sm').forEach(x => x.remove());
+  s.querySelectorAll('[data-bm]').forEach(b => { const t = b.dataset.bm; if (!planIncluye(t)) { b.classList.add('bloq'); b.onclick = () => { s.classList.add('hide'); avisoPlan(t); }; } });
+  document.body.classList.add('masabierto');
+  const obs = new MutationObserver(() => { if (s.classList.contains('hide')) { document.body.classList.remove('masabierto'); obs.disconnect(); } });
+  obs.observe(s, { attributes: true, attributeFilter: ['class'] });
+}
+
+function abrirMasMovilBase3(...a) {
+  const r = abrirMasMovilBase2.apply(this, a);
+  document.querySelectorAll('.bmasgrid [data-bm]').forEach(b => { const t = b.dataset.bm; if (!planIncluyeSeccion(t)) {
+    b.classList.add('bloq'); b.onclick = () => { const s = $('bmas'); if (s) s.classList.add('hide'); document.body.classList.remove('masabierto'); avisoPlan(t); }; } });
+  return r;
+}
+
+function abrirMasMovilBase4(...a) {
+  const r = abrirMasMovilBase3.apply(this, a);
+  document.querySelectorAll('.bmasgrid [data-bm].bloq').forEach(b => b.remove());
+  return r;
+}
+
+function abrirMasMovilBase5(...a) {
+  const r = abrirMasMovilBase4.apply(this, a);
+  const t = tabDelMenu();
+  document.querySelectorAll('#bmas [data-bm]').forEach(b => { const on = b.dataset.bm === t; if (b.classList.contains('on') !== on) b.classList.toggle('on', on); });
+  return r;
+}
+
+function abrirMasMovil(...a) {
+  const r = abrirMasMovilBase5.apply(this, a);
+  const s = $('bmas'), g = s && s.querySelector('.bmasgrid'); if (!g) return r;
+  const barra = movBarra(), ocultos = menuPrefs().ocultos || [];
+  const quiero = movMasOrden(movDisponibles().filter(t => !barra.includes(t) && !ocultos.includes(t)));
+  const cerrar = () => { s.classList.remove('abierto'); setTimeout(() => s.classList.add('hide'), 180); };
+  g.querySelectorAll('[data-bm]').forEach(x => { if (!quiero.includes(x.dataset.bm)) x.remove(); });
+  quiero.forEach(t => {
+    if (g.querySelector(`[data-bm="${t}"]`)) return;
+    g.insertAdjacentHTML('beforeend', `<button data-bm="${t}" class="${tabDelMenu() === t ? 'on' : ''}"><span>${ICO_MOD[t] || '•'}</span>${esc(movNombre(t))}</button>`);
+    g.querySelector(`[data-bm="${t}"]`).onclick = () => { cerrar(); ir(t); };
+  });
+  quiero.forEach(t => { const x = g.querySelector(`[data-bm="${t}"]`); if (x) g.appendChild(x); });   // en el orden elegido
+  if (!s.querySelector('#bmaspers')) {
+    g.insertAdjacentHTML('afterend', '<div class="acts bmaspers"><button type="button" class="btn sec chico" id="bmaspers">Personalizar menú</button></div>');
+    $('bmaspers').onclick = () => { cerrar(); movPersonalizar(); };
+  }
+  return r;
+}
 // nucleo/navegacion.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -1067,6 +1126,25 @@ function congelar(sec) {
   document.body.appendChild(c); sec.style.minHeight = r.height + 'px';
   setTimeout(() => estable(sec, 3000, t0).then(() => { c.remove(); requestAnimationFrame(() => { sec.style.minHeight = ''; }); }), 0);
 }
+
+// Menú: «Usuarios y roles» (quien administra) y «Panel delcos» (quien gestiona la plataforma)
+function menuPaginas2131Base() {
+  const nav = document.querySelector('nav.main .in'); if (!nav || ES_MEDICO()) return;
+  const pon = (t, txt, ve) => {
+    let b = nav.querySelector(`[data-t="${t}"]`);
+    if (!b && ve) { nav.insertAdjacentHTML('beforeend', `<button data-t="${t}" aria-selected="false">${txt}</button>`); b = nav.querySelector(`[data-t="${t}"]`); }
+    if (b) { b.classList.toggle('hide', !ve); if (!b.closest('.mlbs') && b !== nav.lastElementChild) nav.appendChild(b); }   // v2.132.0: si ya está en su bloque del menú lateral, se queda
+  };
+  pon('usuarios', 'Usuarios y roles', puede('administrar'));
+  pon('delcos', 'Panel delcos', puede('gestionar_plataforma'));
+}
+
+function menuPaginas2131(...a) {
+  const r = menuPaginas2131Base.apply(this, a);
+  const b = document.querySelector('nav.main [data-t="usuarios"]');
+  if (b) { const x = typeof txTexto === 'function' ? txTexto(b) : null; if (x && /roles/i.test(x.get())) x.set('Usuarios'); else if (!x && /roles/i.test(b.textContent)) b.textContent = 'Usuarios'; if (b.dataset.txdef) b.dataset.txdef = 'Usuarios'; }
+  return r;
+}
 // nucleo/notificaciones.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -1468,6 +1546,51 @@ async function escribirRpc(fn, payload, ...a) {
   const r = await escribirRpcBase4.call(this, fn, payload, ...a);
   if (fn === 'registrar_actividad' && r && r.data && r.data.encolada) setTimeout(() => { if (TAB === 'agenda') tdMarcarPendientes(); }, 0);
   return r;
+}
+
+/** Llama a una función del servidor y guarda copia; sin conexión devuelve la última copia. */
+async function rpcCacheBase(fn, params, clave) {
+  if (navigator.onLine) {
+    const { data, error } = await db.rpc(fn, params);
+    if (!error) { guardarCache(clave, data); return { data, cache: false }; }
+  }
+  const c = leerCache(clave);
+  if (c) return { data: c.d, cache: true, fecha: c.t };
+  return { data: null, cache: true };
+}
+
+async function rpcCacheBase2(fn, params, clave) {
+  if (fn === 'agenda_rango' && TD_PRESET && params && params.p_desde === TD_PRESET.fecha && params.p_hasta === TD_PRESET.fecha) {
+    const d = TD_PRESET.data; TD_PRESET = null; return { data: d, cache: false };
+  }
+  const r = await rpcCacheBase.call(this, fn, params, clave);
+  if (fn === 'agenda_rango' && params && params.p_desde === params.p_hasta && r && r.data) TD_ULTIMO = { fecha: params.p_desde, data: r.data };
+  return r;
+}
+
+async function rpcCacheBase3(fn, params, clave) {
+  if (fn !== 'panel_inicio') return rpcCacheBase2.call(this, fn, params, clave);
+  const [r, g] = await Promise.all([rpcCacheBase2.call(this, fn, params, clave), rpcCacheBase2.call(this, 'inicio_graficas', {}, 'inicio-graficas').catch(() => null)]);
+  KV_INI = r && r.data ? r.data : null;
+  KV_GRAF = g && g.data && g.data.por_dia ? g.data : null;
+  return r;
+}
+
+// La memoria de resultados de Pedidos distingue el orden
+function rpcCacheBase4(fn, params, clave, ...r) {
+  const o = fn === 'pedidos_pagina' ? HT_ORDEN.peds2 : null;
+  return rpcCacheBase3.call(this, fn, params, o && clave ? clave + '|orden:' + o.k + o.dir : clave, ...r);
+}
+
+async function rpcCacheBase5(fn, params, clave) {
+  const r = await rpcCacheBase4.call(this, fn, params, clave);
+  if (fn === 'agenda_rango' && params && params.p_desde === params.p_hasta && r && r.data) AG_DIAS_DATOS[params.p_desde] = r.data;
+  return r;
+}
+
+function rpcCache(fn, params, clave, ...x) {
+  if (AG_PRE.size && fn === 'agenda_rango' && params) { const k = agK(fn, params.p_desde, params.p_hasta, params.p_usuario); if (AG_PRE.has(k)) return Promise.resolve(AG_PRE.get(k)); }
+  return rpcCacheBase5.call(this, fn, params, clave, ...x);
 }
 // servicios/archivos.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
@@ -4471,6 +4594,30 @@ function plSync(tab, ...x) {
   });
   return r;
 }
+
+function plCargarKpis(tab) {
+  if (tab !== TAB) return;
+  const c = plCfg(tab); if (!c || !c.kpis) return;
+  const ep = typeof RC_EPOCA !== 'undefined' ? RC_EPOCA : 0, f = c.kpiFirma ? c.kpiFirma() : '';
+  let k = PL_KPI[tab];
+  if (k && k.pend) { if (f !== k.firma) k.otra = true; return; }
+  if (k && k.datos && k.epoca === ep && k.firma === f && Date.now() - k.t < 60000) return;
+  PL_KPI[tab] = k = Object.assign(k || {}, { pend: true, firma: f, otra: false });
+  c.kpis().then(datos => {
+    const nuevo = !k.datos;
+    Object.assign(k, { datos, t: Date.now(), epoca: ep, pend: false });
+    const box = document.querySelector(`#v-${tab} .plkpis`);
+    if (box) {
+      box.innerHTML = plKpisHtml(tab);
+      if (nuevo && !matchMedia('(prefers-reduced-motion: reduce)').matches) box.querySelectorAll('b[data-pln]').forEach(b => {
+        const n = +b.dataset.pln, t0 = performance.now(); if (!n) return;
+        const paso = () => { const p = Math.min(1, (performance.now() - t0) / 700); b.textContent = num(Math.round(n * (1 - Math.pow(1 - p, 3)))); if (p < 1) requestAnimationFrame(paso); };
+        paso();
+      });
+    }
+    if (k.otra) { k.otra = false; plCargarKpis(tab); }
+  }, () => { k.pend = false; });
+}
 // componentes/pestanas.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -4685,6 +4832,60 @@ function abrirReloj(inp, o) {
   });
   $('seldlg') ? $('seldlg').appendChild(pop) : capaSelector(inp).appendChild(pop); pinta();
 }
+
+// Cada campo de fecha, hora o número se mejora al aparecer en pantalla
+function mejorarCamposBase(raiz) {
+  (raiz || document).querySelectorAll('input[type=date]:not([data-sel]), input[type=time]:not([data-sel]), input[type=number]:not([data-sel])').forEach(inp => {
+    inp.dataset.sel = '1';
+    if (inp.closest('.selpop')) return;
+    if (inp.type === 'number') {
+      if (inp.closest('.lrow') && inp.offsetWidth && inp.offsetWidth < 70) return;
+      const w = document.createElement('span'); w.className = 'numw';
+      inp.parentNode.insertBefore(w, inp); w.appendChild(inp);
+      w.insertAdjacentHTML('afterbegin', '<button type="button" class="nb" data-nd="-1" aria-label="Menos" tabindex="-1">−</button>');
+      w.insertAdjacentHTML('beforeend', '<button type="button" class="nb" data-nd="1" aria-label="Más" tabindex="-1">+</button>');
+      if (inp.disabled) w.classList.add('dis');
+      return;
+    }
+    const w = document.createElement('span'); w.className = 'selw ' + (inp.type === 'date' ? 'fecha' : 'hora');
+    inp.parentNode.insertBefore(w, inp); w.appendChild(inp);
+    w.insertAdjacentHTML('beforeend', `<span class="selico" aria-hidden="true">${inp.type === 'date' ? '📅' : '🕒'}</span>`);
+    inp.dataset.ro = inp.readOnly ? '1' : '';
+    inp.readOnly = true; inp.setAttribute('inputmode', 'none');
+    // Se muestra el valor en formato español, sin depender del idioma del navegador
+    w.insertAdjacentHTML('afterbegin', '<span class="selval"></span>');
+    const desc = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value');
+    Object.defineProperty(inp, 'value', { configurable: true, get() { return desc.get.call(this); }, set(v) { desc.set.call(this, v); valorVisible(this); } });
+    inp.addEventListener('change', () => valorVisible(inp)); inp.addEventListener('input', () => valorVisible(inp));
+    valorVisible(inp);
+  });
+}
+
+function mejorarCamposBase2(raiz) {
+  if (!raiz || raiz === document) return mejorarCamposBase(raiz);
+  if (raiz.nodeType !== 1 || !raiz.querySelector && raiz.tagName !== 'INPUT') return;
+  MEJ_PEND.add(raiz);
+  if (MEJ_RAF) return;
+  MEJ_RAF = 1; queueMicrotask(() => {
+    MEJ_RAF = 0; const l = [...MEJ_PEND]; MEJ_PEND.clear();
+    l.forEach(n => { if (n.isConnected && (n.tagName === 'INPUT' ? n.parentNode : n.querySelector('input[type=date],input[type=time],input[type=number]'))) mejorarCamposBase(n.tagName === 'INPUT' ? n.parentNode : n); });
+  });
+}
+
+// Cantidades con botones; importes y porcentajes sin ellos (sumar de uno en uno a un importe no tiene sentido)
+function mejorarCamposBase3(raiz) {
+  (raiz || document).querySelectorAll('input[type=number]:not([data-sel])').forEach(i => {
+    if (ES_IVA(i)) { ivaSelector(i); return; }
+    const txt = (i.id + ' ' + (i.dataset.f || '') + ' ' + (i.placeholder || '') + ' ' + (((i.id && document.querySelector(`label[for="${i.id}"]`)) || i.closest('label') || {}).textContent || '')).toLowerCase();
+    const decimal = /^(0?\.\d+|any)$/.test(i.getAttribute('step') || '');
+    if (decimal || /€|precio|importe|coste|portes|env[ií]o|descuento|pvp|cobro|total|base/.test(txt)) { i.dataset.sel = '1'; i.classList.add('numdec'); }
+  });
+  return mejorarCamposBase2(raiz);
+}
+
+function mejorarCamposBase4(raiz) { mejorarCamposBase3(raiz); mejorarCamposNuevos(raiz); }
+
+function mejorarCampos(raiz) { const r = mejorarCamposBase4(raiz); try { sinSelectorDelSistema(raiz || document); } catch (e) {} return r; }
 // @ts-check
 // componentes/teclado.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
@@ -6698,6 +6899,57 @@ async function agVerDia(f) {
   const cc = $('agcuerpo'); if (!cc) return;
   const top = cc.getBoundingClientRect().top;
   if (top < 80 || top > innerHeight * 0.6) scrollTo({ top: scrollY + top - 90, behavior: 'smooth' });
+}
+
+// ---- 3. Una sola ventana de cita, con centro y notas
+async function nuevaCita(medicoId, fecha, op = {}) {
+  let elegido = null, consultas = [];
+  const traer = async id => { const { data } = await db.rpc('ficha_cuenta', { p_id: id }); consultas = (data && data.consultas) || []; return data; };
+  if (medicoId) { const data = await traer(medicoId); if (data && data.medico) elegido = data.medico; }
+  const dia = fecha || (TAB === 'agenda' && AG_FECHA && AG_FECHA >= hoyISO() ? AG_FECHA : hoyISO());
+  $('dbody').innerHTML = `
+    <div class="fh"><div><h2>Nueva cita</h2><div class="sm">Se añade a tu agenda</div></div>
+      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
+    <label>${TT('medico', 's', '', 'l', 'C')}</label><div id="ncsel"></div>
+    <div class="g2">
+      <div><label for="ncf">Día</label><input id="ncf" type="date" value="${esc(dia)}"></div>
+      <div><label for="nch">Hora <span class="sm">(opcional)</span></label><input id="nch" type="time"></div>
+    </div>
+    <div id="nccw"></div>
+    <label for="ncn">Notas</label><textarea id="ncn" rows="3" placeholder="p. ej. quedamos en el bar de enfrente, llevar el reporting…"></textarea>
+    <div class="acts" style="justify-content:flex-end">
+      <button class="btn sec" data-cerrar>Cancelar</button>
+      <button class="btn" id="ncok">Añadir a la agenda</button></div>`;
+  const pintarCentros = () => {
+    const w = $('nccw'); if (!w) return;
+    const l = consultas.filter(x => x && x.centro_nombre);
+    if (l.length < 2) { w.innerHTML = ''; return; }
+    const pref = (typeof FICHA_CENTRO !== 'undefined' && FICHA_CENTRO) || (l.find(x => x.principal) || l[0]).centro_nombre;
+    w.innerHTML = `<label for="ncc">Centro</label><select id="ncc">${l.map(x => `<option value="${esc(x.centro_nombre)}" ${x.centro_nombre === pref ? 'selected' : ''}>${esc([x.centro_nombre, x.municipio].filter(Boolean).join(' · '))}</option>`).join('')}</select>`;
+  };
+  pintarCentros();
+  selectorMedico($('ncsel'), { valor: elegido, alElegir: async m => { elegido = m; await traer(m.id); pintarCentros(); } });
+  $('ncok').onclick = async ev => {
+    if (!elegido) { toast(`Elige ${TT('medico', 's', 'un', 'l', 'l')}`, true); return; }
+    const f = $('ncf').value;
+    const decision = await citaRepetida(elegido.id, f);
+    if (!decision) return;
+    const c0 = consultas.find(x => x && x.principal) || consultas[0] || {};
+    const centro = ($('ncc') && $('ncc').value) || c0.centro_nombre || elegido.centro_nombre || elegido.centro || null;
+    ev.target.disabled = true;
+    const r = await escribir('guardar_cita', { p: {
+      cuenta_id: elegido.id, fecha: f, hora: $('nch').value || null, centro_nombre: centro, estado: 'Planificada',
+      origen: op.origen || (TAB === 'agenda' ? 'Agenda' : 'Ficha'), usuario_id: TAB === 'agenda' && AG_VISTA ? AG_VISTA.id : null,
+      nota: $('ncn').value.trim(), op_id: 'c-' + elegido.id + '-' + f + '-' + Date.now()
+    }});
+    ev.target.disabled = false;
+    if (r.error) { toast('No se ha podido: ' + r.error.message, true); return; }
+    // v2.298: con hora, la cita nueva se coloca entre las del día según su hora (antes quedaba la última)
+    if ($('nch').value) await colocarPorHora(f, TAB === 'agenda' && AG_VISTA ? AG_VISTA.id : PERFIL.id, elegido.id, $('nch').value);
+    $('dlg').close(); toast('Cita añadida el ' + fechaDiaMes(f)); if (TAB === 'agenda') agRefrescoQuieto(); else cargarInicio();
+  };
+  $('dlg').classList.add('pequena');
+  $('dlg').showModal();
 }
 // pantallas/analitica.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
@@ -12106,6 +12358,374 @@ function notifPintar() {
   };
   $('notcfg').onclick = () => { $('dlg').close(); CFG_SEC = 'notif'; window.__CFG_DIRECTO = true; ir('config'); };
 }
+
+async function cargarCatalogosBase() {
+  const claves = Object.keys(CAT);
+  const res = await Promise.all(claves.map(k => db.rpc('catalogo_papel', { p_papel: k })));
+  claves.forEach((k, i) => { CAT[k] = res[i].data || []; });
+  cargarCampos().catch(() => {});
+}
+
+function aplicarMarcaBase() {
+  const n = nombreApp();
+  document.title = n;
+  document.querySelectorAll('meta[name="apple-mobile-web-app-title"]').forEach(m => m.content = n);
+  const logo = MARCA.logo;
+  document.querySelectorAll('header .logo, .lbox img, #bootsplash img').forEach(i => { if (logo) i.src = logo; i.alt = n; });
+  const h = document.querySelector('.lbox h1'); if (h) h.textContent = n;
+  const g = document.querySelector('#girar span:last-child'); if (g) g.textContent = n + ' se usa en vertical.';
+}
+
+function aplicarMarca() {
+  aplicarMarcaBase();
+  if (!MARCA.logo) document.querySelectorAll('header .logo, .lbox img, #bootsplash img').forEach(i => { i.src = LOGO_NEUTRO; });
+}
+
+async function cargarAjustesBase2() { await cargarAjustesBase(); aplicarEtiqueta(); }
+
+// Plan y suscripción: tu plan (usuarios contratados, pago, prueba), los cuatro planes y la comparativa por módulos
+async function pintarPaginaPlanBase() {
+  const { data } = await RPC_ORIG('plan_uso', {});
+  const d = data || {}, pl = d.plan || {}; if (pl.plan) PLAN_ACTUAL = pl;
+  const act = planDe(pl.plan), contr = usuariosContratados(), usados = +d.usuarios || 0, anual = pl.pago === 'anual';
+  const pct = contr === Infinity ? 0 : Math.min(100, Math.round(usados / contr * 100));
+  // Con pago anual se pagan 10 meses de 12: la cuota mensual equivalente es precio × 10 / 12
+  const cuota = act.presupuesto || contr === Infinity ? null : contr * (anual ? act.precio * 10 / 12 : act.precio);
+  const mailto = asunto => 'mailto:?subject=' + encodeURIComponent(asunto + ' · ' + ((AJUSTES.marca || {}).nombre || ''));
+  const cont = $('cfgcuerpo'); if (!cont) return;
+  // El plan que se destaca es el siguiente al tuyo (con A medida, ninguno)
+  const siguiente = PLANES[PLANES.indexOf(act) + 1] || null;
+  // v2.120.0: «incluido» y «no incluido» como icono y raya suave, con su texto para lectores de pantalla
+  const celda = (p, v) => `<td class="${p.id === act.id ? 'act' : ''}">${v === '✓' ? `<span class="si" role="img" aria-label="Incluido">${svgIco(ICON_NOM.check)}</span>`
+    : v === '—' ? '<span class="no" role="img" aria-label="No incluido">—</span>' : v}</td>`;
+  cont.innerHTML = `${TAB === 'organizacion' || TAB === 'config' ? '<p class="sm">Precio por usuario y mes, IVA no incluido. Con pago anual pagas 10 meses de 12.</p>' : '<div class="saludo"><div><h1>Plan y suscripción</h1><div class="fecha">Precio por usuario y mes, IVA no incluido. Con pago anual pagas 10 meses de 12.</div></div></div>'}
+    <div class="card" id="planact"><h2>Tu plan: ${esc(act.nombre)}</h2>
+      ${pl.estado === 'prueba' ? `<div class="banda-aviso">Estás en la prueba gratuita hasta el <b>${fechaCorta(pl.prueba_hasta)}</b>. Sin permanencia: si no sigues, te llevas tus datos.</div>` : ''}
+      <div class="kpis">
+        <div class="kpi"><b>${contr === Infinity ? 'Sin límite' : num(contr)}</b><span>Usuarios contratados</span></div>
+        <div class="kpi"><b>${num(usados)}</b><span>Usuarios en uso</span></div>
+        <div class="kpi"><b>${act.presupuesto ? 'A medida' : anual ? 'Anual' : 'Mensual'}</b><span>Pago</span></div>
+        ${cuota != null ? `<div class="kpi"><b>${eurI(cuota)}</b><span>Al mes, sin IVA</span></div>` : ''}
+        ${act.medicos !== 0 ? `<div class="kpi"><b>${num(d.medicos || 0)}${act.medicos ? ' / ' + act.medicos : ''}</b><span>${TT('medico', 'p', '', 'l', 'C')} con acceso</span></div>` : ''}
+      </div>
+      ${contr !== Infinity ? `<div class="barrauso" title="${num(usados)} de ${num(contr)}"><i style="width:${pct}%"></i></div>` : ''}
+      ${contr !== Infinity && usados > contr ? `<div class="banda-aviso" id="plansobre">Tienes ${usados - contr === 1 ? '1 usuario' : num(usados - contr) + ' usuarios'} más de ${num(contr)} contratados. Añádelos a tu plan o desactiva los que ya no usen la plataforma.</div>` : ''}
+      <div class="acts"><a class="btn sec" href="${mailto('Cambiar el número de usuarios')}">Añadir o quitar usuarios</a></div></div>
+    <div class="planes">${PLANES.map(p => `<div class="plan ${p.id === act.id ? 'actual' : ''} ${p === siguiente ? 'dest' : ''}" data-plan="${p.id}">
+      <h3>${esc(p.nombre)}</h3><div class="sm">${esc(p.para)}</div>
+      <div class="precio">${p.presupuesto ? '<b>A medida</b> <span class="sm">Presupuesto · desde 50 usuarios</span>'
+        : `<b>${eurI(p.precio)}</b> <span class="sm">por usuario al mes · ${eurI(p.anual)} con pago anual (${eurI(p.precio * 10)} al año)</span>`}</div>
+      <ul class="manlist">${p.ventajas.map(v => `<li><span>✓</span><span>${esc(v)}</span></li>`).join('')}</ul>
+      ${p.id === act.id ? '<button class="btn sec" disabled>Tu plan actual</button>'
+        : `<a class="btn ${p === siguiente ? '' : 'sec'}" href="${mailto(p.presupuesto ? 'Presupuesto del plan A medida' : 'Cambiar al plan ' + p.nombre)}">${p.presupuesto ? 'Pedir presupuesto' : 'Cambiar a ' + esc(p.nombre)}</a>`}</div>`).join('')}</div>
+    <div class="card" id="plancond"><h2>Condiciones</h2><ul class="manlist">
+      <li><span>✓</span><span>Mínimo 3 usuarios en Campo, Comercial y Empresa. Añades o quitas usuarios cuando quieras.</span></li>
+      <li><span>✓</span><span>Puesta en marcha (importar tus Excel, configurar la empresa y formar al equipo): incluida con pago anual; con pago mensual, ${eurI(PUESTA_EN_MARCHA)} una sola vez.</span></li>
+      <li><span>✓</span><span>Prueba de 30 días con tus propios datos, sin permanencia. Si no sigues, te llevas tus datos.</span></li>
+      <li><span>✓</span><span>Desarrollos y configuraciones a medida: presupuesto según lo que necesites.</span></li></ul></div>
+    <div class="card"><h2>Qué incluye cada plan</h2><div class="dgrid-wrap"><table class="planmat"><thead><tr><th>Módulo</th>${PLANES.map(p => `<th class="${p.id === act.id ? 'act' : ''}">${esc(p.nombre)}</th>`).join('')}</tr></thead>
+      <tbody>${MOD_PLAN.map(([m, n, desc]) => `<tr><td><b>${esc(n)}</b><span class="sm">${esc(desc)}</span></td>${PLANES.map(p => celda(p, p.modulos.includes(m) ? '✓' : '—')).join('')}</tr>`).join('')}
+        <tr><td><b>Espacio ${TT('medico', 's', 'del', 'l', 'l')}</b><span class="sm">Su informe y sus avisos</span></td>${PLANES.map(p => celda(p, p.medicos === 0 ? '—' : p.medicos ? 'Hasta ' + p.medicos : 'Sin límite')).join('')}</tr>
+        <tr><td><b>Ver la plataforma como cada persona</b><span class="sm">De tu equipo, para ayudarla</span></td>${PLANES.map(p => celda(p, p.id === 'medida' ? '✓' : '—')).join('')}</tr>
+        <tr><td><b>Precio por usuario</b><span class="sm">Al mes, IVA no incluido</span></td>${PLANES.map(p => celda(p, p.presupuesto ? 'A medida' : eurI(p.precio) + ' · ' + eurI(p.anual) + ' anual')).join('')}</tr>
+      </tbody></table></div></div>`;
+}
+
+// Si la app ya estaba a la vista al cargar este bloque (arranque con el perfil guardado), el menú se ajusta igualmente
+async function cargarAjustes(...a) { const r = await cargarAjustesBase2(...a); if (PERFIL) menuOrganizacion(); return r; }
+
+async function pintarPaginaPlanBase2(...a) {
+  const r = await pintarPaginaPlanBase.apply(this, a);
+  const t = document.querySelector('#cfgcuerpo .planmat'); if (!t) return r;
+  const act = planDe((PLAN_ACTUAL || {}).plan);
+  const celda = (p, v) => `<td class="${p.id === act.id ? 'act' : ''}">${v === true ? `<span class="si" role="img" aria-label="Incluido">${svgIco(ICON_NOM.check)}</span>`
+    : v === false ? '<span class="no" role="img" aria-label="No incluido">—</span>' : v}</td>`;
+  const filas = PLAN_FILAS().map(([n, d, pl]) => pl === null || pl === undefined && d === null
+    ? `<tr class="plangrupo"><td colspan="${PLANES.length + 1}">${esc(n)}</td></tr>`
+    : `<tr><td><b>${esc(n)}</b>${d ? `<span class="sm">${esc(d)}</span>` : ''}</td>${PLANES.map(p => celda(p, pl.includes(p.id))).join('')}</tr>`).join('');
+  const extra = [...t.querySelectorAll('tbody tr')].filter(tr => /Espacio|Ver la plataforma|Precio por usuario/.test(tr.textContent)).map(tr => tr.outerHTML).join('');
+  t.querySelector('tbody').innerHTML = filas + extra;
+  return r;
+}
+
+// Comparativa de «Plan y suscripción»: la fila del espacio del profesional pasa a ser la del portal (Oportunidades va en PLAN_FILAS)
+async function pintarPaginaPlanBase3(...a) {
+  const r = await pintarPaginaPlanBase2.apply(this, a);
+  const fp = [...document.querySelectorAll('.planmat tbody tr')].find(tr => /Su informe y sus avisos/.test(tr.textContent));
+  if (fp) fp.querySelector('td').innerHTML = `<b>Portal ${TT('medico', 's', 'del', 'l', 'l')} y del centro</b><span class="sm">Informe, constancia, material, mensajes y pedidos del centro</span>`;
+  return r;
+}
+
+// «Plan y suscripción»: los botones reales en lugar de correos
+async function pintarPaginaPlanBase4(...a) {
+  const r = await pintarPaginaPlanBase3.apply(this, a);
+  const c = $('cfgcuerpo'); if (!c) return r;
+  const pl = PLAN_ACTUAL || {}, conSus = !!pl.stripe_suscripcion, puedePagar = puedeOrganizacion();
+  c.querySelectorAll('.plan[data-plan]').forEach(card => {
+    const k = card.dataset.plan, a2 = card.querySelector('a.btn[href^="mailto"]');
+    if (!a2 || !PAGO_PLANES.includes(k)) return;
+    if (!puedePagar) { a2.remove(); return; }
+    const b = document.createElement('button'); b.type = 'button'; b.className = a2.className; b.dataset.pgplan = k;
+    b.textContent = conSus ? 'Cambiar a ' + planDe(k).nombre : 'Contratar ' + planDe(k).nombre;
+    a2.replaceWith(b); b.onclick = () => elegirPago(k);
+  });
+  const acts = c.querySelector('#planact .acts');
+  if (acts) {
+    const usu = acts.querySelector('a.btn[href^="mailto"]'); if (usu) usu.remove();
+    if (puedePagar && pl.plan !== 'medida') acts.insertAdjacentHTML('beforeend', conSus
+      ? '<button type="button" class="btn sec" id="pgusu2">Añadir o quitar usuarios</button><button type="button" class="btn sec" id="pgportal">Gestionar el pago</button>'
+      : '<button type="button" class="btn" id="pgelegir">Elegir plan y pagar</button>');
+    if ($('pgusu2')) $('pgusu2').onclick = () => elegirPago(pl.plan);
+    if ($('pgportal')) $('pgportal').onclick = ev => pagoPortal(ev.target);
+    if ($('pgelegir')) $('pgelegir').onclick = () => elegirPago();
+  }
+  const act = c.querySelector('#planact h2');
+  if (act && pl.estado === 'impago') act.insertAdjacentHTML('afterend', `<div class="banda-peligro">No hemos podido cobrar el último recibo${pl.impago_desde ? ' (desde el ' + fechaCorta(pl.impago_desde) + ')' : ''}.
+    Actualiza el método de pago con «Gestionar el pago»; si en 14 días no se puede cobrar, la cuenta queda en solo lectura.</div>`);
+  if (act && pl.estado === 'cancelada') act.insertAdjacentHTML('afterend', `<div class="banda-aviso">Suscripción cancelada: puedes usar la plataforma hasta el
+    <b>${fechaCorta(pl.periodo_fin)}</b> y descargar tus datos. Para seguir, vuelve a contratar.</div>`);
+  if (act && conSus && pl.periodo_fin && pl.estado === 'activo') act.insertAdjacentHTML('afterend', `<p class="sm">Próximo recibo el ${fechaCorta(pl.periodo_fin)}.</p>`);
+  return r;
+}
+
+// A medida (como la empresa principal): sin botones de contratar ni de cambiar en línea, salvo que ya pague con Stripe
+async function pintarPaginaPlanBase5(...a) {
+  const r = await pintarPaginaPlanBase4.apply(this, a);
+  const c = $('cfgcuerpo'), pl = PLAN_ACTUAL || {};
+  if (c && pl.plan === 'medida' && !pl.stripe_suscripcion) c.querySelectorAll('[data-pgplan], #pgelegir, #pgusu2').forEach(b => b.remove());
+  return r;
+}
+
+// «Plan y suscripción»: cambio previsto (con «Anular el cambio»), baja pedida y compromiso de A medida
+async function pintarPaginaPlanBase6(...a) {
+  const r = await pintarPaginaPlanBase5.apply(this, a);
+  const c = $('cfgcuerpo'), pl = PLAN_ACTUAL || {}, h = c && c.querySelector('#planact h2'); if (!h) return r;
+  const cp = pl.cambio_previsto;
+  if (cp && cp.plan) h.insertAdjacentHTML('afterend', `<div class="banda-info" id="pgprevisto">El <b>${fechaCorta(cp.desde)}</b> pasarás al plan
+    <b>${esc(planDe(cp.plan).nombre)}</b> con ${num(cp.usuarios)} usuarios y pago ${cp.pago === 'anual' ? 'anual' : 'mensual'}.
+    ${puedeOrganizacion() ? '<button type="button" class="btn sec" id="pganular">Anular el cambio</button>' : ''}</div>`);
+  if (pl.baja_al_final && pl.estado === 'activo') h.insertAdjacentHTML('afterend', `<div class="banda-aviso" id="pgbajafin">Has pedido la baja: puedes usar la plataforma
+    hasta el <b>${fechaCorta(pl.periodo_fin)}</b>. Si quieres seguir, entra en «Gestionar el pago» y renueva la suscripción.</div>`);
+  if (pl.plan === 'medida' && pl.compromiso_hasta) h.insertAdjacentHTML('afterend', `<p class="sm" id="pgcomp">Contrato A medida hasta el ${fechaCorta(pl.compromiso_hasta)}. Para cambiarlo, habla con delcos.</p>`);
+  if ($('pganular')) $('pganular').onclick = async ev => {
+    const d = await pagoLlamar({ accion: 'anular_cambio' }, ev.target); if (!d) return;
+    toast('Cambio anulado: sigues con tu plan'); await pagoCargarEstado(); ir(TAB);
+  };
+  return r;
+}
+
+async function pintarPaginaPlanBase7(...a) {
+  const r = await pintarPaginaPlanBase6.apply(this, a);
+  const c = $('cfgcuerpo'), pl = PLAN_ACTUAL || {}; if (!c || !puedeOrganizacion() || !pl.stripe_suscripcion) return r;
+  const acts = c.querySelector('#planact .acts');
+  if (acts && pl.estado === 'activo' && !pl.baja_al_final && !$('pgdarbaja'))
+    acts.insertAdjacentHTML('beforeend', '<button type="button" class="btn sec" id="pgdarbaja">Darme de baja</button>');
+  const bf = $('pgbajafin');
+  if (bf) {
+    bf.innerHTML = `Has pedido la baja: puedes usar la plataforma hasta el <b>${fechaCorta(pl.periodo_fin)}</b>.
+      <button type="button" class="btn sec" id="pgseguir">Seguir con la suscripción</button>`;
+  }
+  if ($('pgdarbaja')) $('pgdarbaja').onclick = async ev => { const d = await pagoLlamar({ accion: 'baja' }, ev.target); if (d && d.url) location.href = d.url; };
+  if ($('pgseguir')) $('pgseguir').onclick = async ev => {
+    const d = await pagoLlamar({ accion: 'reanudar' }, ev.target); if (!d) return;
+    toast('Seguimos: tu suscripción continúa'); await pagoCargarEstado(); ir(TAB);
+  };
+  return r;
+}
+
+// «Plan y suscripción»: botones al formulario (en lugar de correos) y la última solicitud con su estado
+async function pintarPaginaPlanBase8(...a) {
+  const r = await pintarPaginaPlanBase7.apply(this, a);
+  const c = $('cfgcuerpo'); if (!c || !c.querySelector('#planact')) return r;
+  const pl = PLAN_ACTUAL || {};
+  c.querySelectorAll('a[href^="mailto"]').forEach(x => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = x.className;
+    b.textContent = x.closest('.plan[data-plan="medida"]') ? 'Pedir presupuesto' : 'Hablar con delcos';
+    b.dataset.presu = x.closest('.plan[data-plan="medida"]') && pl.plan !== 'medida' ? 'presupuesto' : 'contrato';
+    x.replaceWith(b);
+  });
+  const comp = $('pgcomp');
+  if (pl.plan === 'medida' && !c.querySelector('[data-presu]') && !puede('gestionar_plataforma')) {
+    const acts = c.querySelector('#planact .acts');
+    if (acts) acts.insertAdjacentHTML('beforeend', '<button type="button" class="btn sec" data-presu="contrato">Hablar con delcos</button>');
+  }
+  if (comp) comp.textContent = comp.textContent.replace(' Para cambiarlo, habla con delcos.', '');
+  c.querySelectorAll('[data-presu]').forEach(b => b.onclick = () => pedirPresupuesto(b.dataset.presu));
+  try {
+    const { data } = await db.from('solicitudes_plan').select('creado_en,estado,tipo').order('creado_en', { ascending: false }).limit(1);
+    const s = (data || [])[0], h = c.querySelector('#planact h2');
+    if (s && h && !$('presuest') && (s.estado !== 'Cerrada' || Date.now() - new Date(s.creado_en) < 30 * 864e5))
+      h.insertAdjacentHTML('afterend', `<div class="banda-info" id="presuest">Tu solicitud ${s.tipo === 'contrato' ? 'sobre el contrato' : 'de presupuesto'} del
+        ${fechaCorta(s.creado_en.slice(0, 10))}: <b>${esc(PRESU_ESTADO[s.estado] || s.estado)}</b>.${s.estado === 'Nueva' ? ' Te contestamos en un día laborable.' : ''}</div>`);
+  } catch (e) {}
+  return r;
+}
+
+// «Plan y suscripción»: periodo de prueba de Stripe
+async function pintarPaginaPlanBase9(...a) {
+  const r = await pintarPaginaPlanBase8.apply(this, a);
+  const c = $('cfgcuerpo'), pl = PLAN_ACTUAL || {}, h = c && c.querySelector('#planact h2');
+  if (h && pl.en_prueba && pl.periodo_fin && !$('pgprueba') && !pl.baja_al_final)
+    h.insertAdjacentHTML('afterend', `<div class="banda-info" id="pgprueba">Estás en el periodo de prueba hasta el <b>${fechaCorta(pl.periodo_fin)}</b>:
+      hasta entonces no se cobra nada. Ese día se pasará el primer recibo, salvo que te des de baja antes.</div>`);
+  return r;
+}
+
+async function pintarPaginaPlanBase10(...a) {
+  const r = await pintarPaginaPlanBase9.apply(this, a);
+  const c = $('cfgcuerpo'), pl = PLAN_ACTUAL || {};
+  if (!c || !c.querySelector('#planact') || !pl.stripe_cliente || !puedeOrganizacion() || $('pgdatos')) return r;
+  c.querySelector('#planact').insertAdjacentHTML('afterend', `<div class="card cfgpanel" id="pgdatos"><h2 style="padding:0 0 4px">Datos de facturación</h2>
+    <p class="sm">Con estos datos se hacen tus recibos y facturas. ${pl.en_prueba ? `Revísalos antes del ${fechaCorta(pl.periodo_fin)}, cuando se pasa el primer recibo.` : ''}</p>
+    <div class="pgdlista"><div class="skel"></div></div>
+    <div class="acts"><button type="button" class="btn sec" id="pgdcorr">Corregir datos</button></div></div>`);
+  $('pgdcorr').onclick = ev => pagoPortal(ev.target);
+  // Sin avisos si falla (se ve «Falta» y se puede corregir igual)
+  const d = await db.functions.invoke('pagos', { body: { accion: 'datos' } }).then(x => x.data, () => null).catch(() => null);
+  const l = c.querySelector('#pgdatos .pgdlista'); if (!l) return r;
+  if (!d || !d.ok) { l.innerHTML = '<p class="sm">No se han podido leer ahora. Puedes verlos y cambiarlos con «Corregir datos».</p>'; return r; }
+  const x = d.datos || {};
+  const filas = [['Razón social', x.nombre], ['NIF o CIF', x.nif], ['Correo para los recibos', x.email], ['Dirección fiscal', x.direccion]];
+  const faltan = filas.filter(f => !f[1]).length;
+  l.innerHTML = filas.map(([k, v]) => `<div class="pgdfila${v ? '' : ' falta'}"><span>${esc(k)}</span><b>${v ? esc(v) : 'Falta'}</b></div>`).join('')
+    + (faltan ? `<div class="banda-aviso" style="margin-top:8px">Faltan datos para poder facturarte: complétalos con «Corregir datos».</div>` : '');
+  return r;
+}
+
+async function cargarConfigBase() {
+  // v2.340.0 (avisos de Eric): se abre siempre en «Mis datos» (no en el último apartado); al cambiar de apartado solo cambia la página
+  // de la derecha (el índice se queda, con su desplazamiento: antes se volvía a montar todo y daba un salto); los apartados con partes
+  // son una sola entrada y las partes, pestañas dentro de la página.
+  if (typeof salirPanel === 'function') salirPanel();
+  const arbol = arbolCfgUnico(), hojas = hojasCfg(arbol);
+  const pedida = CFG_KEY || 'datos';
+  const it = hojas.find(x => x.k === pedida) || hojas.find(x => x.hijos && x.hijos.some(h => h.k === pedida)) || hojas.find(x => pedida.startsWith(x.k + '.'))
+    || hojas.find(x => x.k === 'datos') || hojas[0];
+  if (!it) return;
+  const hijo = it.hijos ? (it.hijos.find(h => h.k === pedida) || it.hijos[0]) : null;
+  CFG_KEY = hijo ? hijo.k : it.k;
+  const movil = ES_MOVIL(), v = $('v-config');
+  const firma = hojas.map(x => x.k + (x.hijos ? '(' + x.hijos.map(h => h.k).join(',') + ')' : '')).join('|') + '|' + movil;
+  if (!(v.dataset.cfgfirma === firma && $('cfulista') && v.querySelector('.cfupag'))) {
+    const ind = arbol.map(([gr, l]) => `<h4>${esc(gr)}</h4>${l.map(x => `<button type="button" data-ck="${x.k}">${svgIco(ICON_NOM[x.ic] || '')}<span>${esc(x.t)}</span>${x.mod && !planIncluye(x.mod) ? `<span class="pill p-plan">${esc(planMinimo(x.mod) ? planMinimo(x.mod).nombre : 'Plan')}</span>` : ''}</button>`).join('')}`).join('');
+    v.innerHTML = `<div class="saludo"><div><h1>Configuración</h1><div class="fecha">Tu cuenta${arbol.length > 1 ? ', tu equipo y tu empresa, en un solo sitio' : ' y tus preferencias'}</div></div></div>
+      <div class="cfu">
+        <nav class="cfuidx" aria-label="Apartados de configuración"><div class="cfubusca">${LUPA_CFG}<input id="cfubus" type="search" placeholder="Buscar un ajuste" autocomplete="off" aria-label="Buscar un ajuste"></div>
+          <div id="cfulista">${ind}</div><div class="cfusin hide" id="cfusin">Ningún ajuste con esas palabras</div></nav>
+        <section class="cfupag"><button type="button" class="cfuvolver" id="cfuvolver">‹ Configuración</button>
+          <div class="cfucab"></div><div class="cfupend hide" id="cfupend"></div>
+          <div id="cfgcuerpo-hub"><div id="cfgcuerpo"></div></div></section></div>`;
+    v.dataset.cfgfirma = firma;
+    v.querySelectorAll('#cfulista [data-ck]').forEach(b => b.onclick = () => { CFG_KEY = b.dataset.ck; CFG_DETALLE = true; cargarConfig(); if (ES_MOVIL()) scrollTo(0, 0); });
+    $('cfuvolver').onclick = () => { CFG_DETALLE = false; v.querySelector('.cfu').classList.remove('det'); scrollTo(0, 0); };
+    // Buscador: por nombre, apartado, partes y palabras clave; Intro abre el primero
+    const busca = $('cfubus');
+    busca.oninput = () => {
+      const q = impNorm(busca.value.trim());
+      let vis = 0;
+      v.querySelectorAll('#cfulista [data-ck]').forEach(b => {
+        const h = hojasCfg(arbolCfgUnico()).find(x => x.k === b.dataset.ck) || {};
+        const partes = (h.hijos || []).map(x => x.t + ' ' + (CFG_CLAVES[x.k] || '')).join(' ');
+        const txt = impNorm([h.t, h.gr, h.d, partes, CFG_CLAVES[h.k] || ''].join(' '));
+        const ok = !q || q.split(/\s+/).every(p => txt.includes(p)); b.classList.toggle('hide', !ok); if (ok) vis++;
+      });
+      v.querySelectorAll('#cfulista h4').forEach(e => {
+        let x = e.nextElementSibling, alguno = false;
+        while (x && x.tagName !== 'H4') { if (x.matches('[data-ck]:not(.hide)')) alguno = true; x = x.nextElementSibling; }
+        e.classList.toggle('hide', !!q && !alguno);
+      });
+      $('cfusin').classList.toggle('hide', vis > 0);
+    };
+    busca.onkeydown = e => { if (e.key === 'Enter') { const b = v.querySelector('#cfulista [data-ck]:not(.hide)'); if (b) { e.preventDefault(); b.click(); } } };
+    cfuAjustarIndice();
+  }
+  v.querySelector('.cfu').classList.toggle('det', movil && CFG_DETALLE);
+  v.querySelectorAll('#cfulista [data-ck]').forEach(b => b.classList.toggle('on', b.dataset.ck === it.k));
+  // Cabecera de la página y, si tiene partes, sus pestañas
+  v.querySelector('.cfucab').innerHTML = `<div class="miga">${esc(it.gr)}</div><h2>${esc(it.t)}</h2>${it.d ? `<p>${esc(it.d)}</p>` : ''}`;   // v2.344.0: sin pestañas: las partes, una debajo de otra
+  v.querySelectorAll('.cfucab [data-cks]').forEach(b => b.onclick = () => { if (b.dataset.cks === CFG_KEY) return; CFG_KEY = b.dataset.cks; cargarConfig(); });
+  $('cfupend').classList.add('hide'); $('cfupend').innerHTML = '';
+  $('cfgcuerpo-hub').innerHTML = '<div id="cfgcuerpo"></div>';
+  // Lo pendiente: punto en el índice (en el apartado que lo contiene) y aviso en la página
+  pendientesCfg().then(l => {
+    if (!$('cfulista')) return;
+    Object.entries(l).forEach(([k, t]) => { const b = [...v.querySelectorAll('#cfulista [data-ck]')].find(x => k === x.dataset.ck || k.startsWith(x.dataset.ck + '.')); if (b && !b.querySelector('.cfupt')) { b.insertAdjacentHTML('beforeend', '<span class="cfupt"></span>'); b.title = t; } });
+    if (l[CFG_KEY] && $('cfupend')) { $('cfupend').innerHTML = `<span class="cfupt"></span>${esc(l[CFG_KEY])}`; $('cfupend').classList.remove('hide'); }
+  });
+  // El apartado (o, si el plan no lo incluye, qué plan lo trae)
+  const r = it.hijos ? () => cfgApilar(it, hijo) : it.r;
+  if (it.mod && !planIncluye(it.mod)) {
+    const p = planMinimo(it.mod);
+    $('cfgcuerpo').innerHTML = `<div class="card cfgpanel planup"><div class="planupico">${svgIco(ICON_NOM.lock)}</div><h2>${esc(it.t)} está en el plan ${esc(p ? p.nombre : 'A medida')}</h2>
+      <p class="sm">Tu plan ${esc(planDe(PLAN_ACTUAL.plan).nombre)} no lo incluye.</p>${puedeOrganizacion() ? '<div class="acts"><button class="btn" id="planver">Ver planes</button></div>' : ''}</div>`;
+    if ($('planver')) $('planver').onclick = () => { CFG_KEY = 'o.plan'; cargarConfig(); };
+  } else Promise.resolve().then(r);
+}
+
+// Notificaciones: cada aviso con «Al momento · En el resumen · No»
+function pintarNotif() {
+  const tipos = tiposDeMiRol(), s = (PERFIL.preferencias || {}).notif_silencio || {};
+  const filas = NOTIF_AREAS.map(([, t, ks]) => [t, tipos.filter(x => ks.includes(x[0]))]).filter(([, l]) => l.length);
+  const sueltos = tipos.filter(x => !NOTIF_AREAS.some(ar => ar[2].includes(x[0])));
+  if (sueltos.length) filas.push(['Otros', sueltos]);
+  const modo = k => { const m = notifModo(k); return m === 'm' || m === 'r' ? m : 'n'; };
+  const resumen = () => { const c = { m: 0, r: 0, n: 0 }; tipos.forEach(([k]) => c[modo(k)]++);
+    return `<span><b>${c.m}</b> al momento</span><span><b>${c.r}</b> en el resumen de la mañana</span><span><b>${c.n}</b> desactivados</span>`; };
+  $('cfgcuerpo').innerHTML = tipos.length ? `<div class="card cfgpanel ntf">
+    <div class="ntfres" id="ntfres">${resumen()}</div>
+    <div class="ajfila ntfsil"><div><div class="ntfsilt"><label class="vfswitch mini" title="Activar las horas de silencio"><input type="checkbox" id="nsil" ${s.activo ? 'checked' : ''} aria-label="Activar las horas de silencio"><span class="sw"></span></label><b>Horas de silencio</b></div><span class="sm">Lo que llegue en ese tiempo lo verás al terminar el silencio.</span></div>
+      <div class="ajctl">
+        <input type="time" id="nsild" value="${esc(s.desde || '20:00')}" aria-label="Desde"> a <input type="time" id="nsilh" value="${esc(s.hasta || '08:00')}" aria-label="Hasta">
+        <label class="ntffin"><input type="checkbox" id="nsilf" ${s.finde !== false ? 'checked' : ''}> Fines de semana</label></div></div>
+    ${filas.map(([t, l]) => `<h3 class="ntfarea">${esc(t)}</h3>${l.map(([k, ic, tt, d]) => {
+      const m = modo(k), diario = NOTIF_DIARIOS.includes(k);
+      return `<div class="ntfrow"><span class="ntfic">${ic}</span><div><b>${esc(tt)}</b><span class="sm">${esc(d)}</span></div>
+        <div class="segs ntfseg" role="group" aria-label="${esc(tt)}" data-nk="${k}">${diario ? '' : `<button type="button" data-v="m" class="${m === 'm' ? 'on' : ''}" aria-pressed="${m === 'm'}">Al momento</button>`}<button type="button" data-v="r" class="${m === 'r' ? 'on' : ''}" aria-pressed="${m === 'r'}">En el resumen</button><button type="button" data-v="n" class="${m === 'n' ? 'on' : ''}" aria-pressed="${m === 'n'}">No</button></div></div>`; }).join('')}`).join('')}
+  </div>` : '<div class="card cfgpanel"><div class="vacio">Tu perfil no tiene notificaciones disponibles todavía.</div></div>';
+  $('cfgcuerpo').querySelectorAll('.ntfseg button').forEach(b => b.onclick = async () => {
+    const g = b.closest('.ntfseg'), k = g.dataset.nk, v = b.dataset.v;
+    if (b.classList.contains('on')) return;
+    g.querySelectorAll('button').forEach(x => { x.classList.toggle('on', x === b); x.setAttribute('aria-pressed', String(x === b)); });
+    const notif = Object.assign({}, (PERFIL.preferencias || {}).notif || {});
+    const diario = NOTIF_DIARIOS.includes(k), om = v === 'm', or = v === 'r';
+    if (diario ? or : (om && !or)) delete notif[k]; else notif[k] = { m: om, r: or };
+    await notifGuardarPrefs({ notif }, v === 'n' ? 'No lo recibirás' : v === 'm' ? 'Te llegará al momento' : 'Irá en el resumen de la mañana');
+    if ($('ntfres')) $('ntfres').innerHTML = resumen();
+  });
+  const guardarSil = () => notifGuardarPrefs({ notif_silencio: { activo: $('nsil').checked, desde: $('nsild').value || '20:00', hasta: $('nsilh').value || '08:00', finde: $('nsilf').checked } },
+    $('nsil').checked ? 'Silencio guardado' : 'Sin silencio');
+  ['nsil', 'nsild', 'nsilh', 'nsilf'].forEach(id => { if ($(id)) $(id).onchange = guardarSil; });
+}
+
+// Configuración: botón de volver
+async function cargarConfigBase2(...a) {
+  const r = await cargarConfigBase.apply(this, a);
+  const b = $('cfuvolver');
+  if (b && !b.classList.contains('manvuelta')) { b.classList.add('manvuelta'); b.innerHTML = '<b aria-hidden="true">‹</b> Volver'; b.setAttribute('aria-label', 'Volver a Configuración'); }
+  return r;
+}
+
+// Catálogos guardados en el móvil (resultado por defecto de la visita, «No estaba»…)
+async function cargarCatalogos(...a) {
+  const r = await cargarCatalogosBase.apply(this, a);
+  try {
+    const vacio = Object.values(CAT).every(v => !v || !v.length);
+    if (!vacio) localStorage.setItem('dlc-cat', JSON.stringify(CAT));
+    else { const g = JSON.parse(localStorage.getItem('dlc-cat') || 'null'); if (g) Object.keys(CAT).forEach(k => { if (g[k] && g[k].length) CAT[k] = g[k]; }); }
+  } catch (e) {}
+  return r;
+}
+
+// Al cambiar de apartado, la ventana de siempre vuelve a su sitio
+async function cargarConfig(...a) {
+  const hub = $('cfgcuerpo-hub');
+  if (hub && hub.dataset.apilado) {
+    hub.querySelectorAll('[data-idd]').forEach(e => e.removeAttribute('data-idd'));
+    const m = $('dbody-modal'); if (m) { const p = document.querySelector('#dbody[data-panel]'); if (p) p.removeAttribute('id'); m.id = 'dbody'; }
+    PANEL_ACTIVO = null; CFG_SEC_ACT = null; delete hub.dataset.apilado;
+  }
+  return cargarConfigBase2.apply(this, a);
+}
 // pantallas/cuentas.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -15087,6 +15707,58 @@ function kvContar(raiz) {
   if (plYaContado('kv', ns.map(n => n.dataset.kvn))) { ns.forEach(n => n.textContent = num(+n.dataset.kvn)); return; }
   return kvContarBase(raiz);
 }
+
+function cargarInicioBase() {
+  if (TAB !== 'inicio') return Promise.resolve();       // se cargará al entrar en Inicio
+  if (INI_EN_CURSO) { INI_OTRA = true; return INI_EN_CURSO; }
+  INI_OTRA = false;
+  INI_EN_CURSO = pintarInicio().catch(err => console.error(err)).finally(() => {
+    INI_EN_CURSO = null;
+    if (INI_OTRA && TAB === 'inicio') cargarInicio();
+  });
+  return INI_EN_CURSO;
+}
+
+/* pintarInicio: la parte base y, en orden, cada paso que se le añade (antes eran 5 capas separadas). */
+async function pintarInicioBase2() {
+  await pintarInicioBase();
+  await inicioResumenSemanaYVentas();
+  await inicioOperativaPedidos();
+  await inicioVistazoEIndicadores();
+  await inicioLlamadasHoy();
+  await inicioFiltrarAlertas();
+}
+
+function cargarInicioBase2(...a) {
+  const r = cargarInicioBase.apply(this, a);
+  Promise.resolve(r).then(() => pintarMosaico()).catch(() => {});
+  return r;
+}
+
+// Inicio: el mosaico está desde el primer momento (en esqueleto) y lo de antes no se pinta nunca; así no hace falta tapar la pantalla
+function inicioEsqueletoBase() {
+  if (ES_MEDICO()) return;
+  const sec = $('v-inicio'), sal = sec && sec.querySelector(':scope > .saludo'); if (!sal) return;
+  sec.classList.add('conmos');
+  if (!$('inimos')) {
+    sal.insertAdjacentHTML('afterend', '<div id="inimos" class="inimos"></div><div class="inikpisb"><button type="button" class="btn sec" id="inikpisver">Ver tus indicadores</button></div>');
+    $('inikpisver').onclick = () => { const on = !sec.classList.contains('conkpis'); sec.classList.toggle('conkpis', on); $('inikpisver').textContent = on ? 'Ocultar tus indicadores' : 'Ver tus indicadores'; };
+  }
+  const box = $('inimos'); if (box.children.length) return;
+  const t = (c, n) => `<div class="mt ${c} mtsk"><i class="plsk" style="width:38%"></i>${[...Array(n)].map((_, i) => `<i class="plsk" style="width:${[64, 82, 56, 74, 60][i % 5]}%"></i>`).join('')}</div>`;
+  box.innerHTML = t('mtat', 6) + t('mthoy', 4) + t('', 2) + t('', 2) + t('mtprox', 3);
+}
+
+function cargarInicio(...a) { if (TAB === 'inicio') inicioEsqueleto(); return cargarInicioBase2.apply(this, a); }
+
+async function pintarInicio() {
+  if (ES_MEDICO()) return pintarInicioBase2();
+  $('v-inicio').classList.remove('ini-cargando');
+  inicioQuitarAntiguo();
+  await inicioIndicadores();
+}
+
+function inicioEsqueleto(...a) { const r = inicioEsqueletoBase.apply(this, a); inicioCabecera(); return r; }
 // pantallas/manual.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -15320,6 +15992,26 @@ function abrirManual(ancla) {
   const f = $('manlibro');
   if (TAB === 'manual' && f) { try { f.contentWindow.location.hash = ancla || 'portada'; } catch (e) {} return; }
   ir('manual');
+}
+
+/* v2.226.0 · Arreglos de la lista de Eric (9/10/2026).
+   1. Una sola ayuda por pantalla: fuera el «?» del manual (.manq); cada título lleva su «i» (las páginas nuevas también: Ciclo, Intervenciones,
+      Eventos…) y la ventanita de la «i» termina con «Ver en el manual de uso», que abre el manual en el apartado de esa pantalla; desde allí,
+      «‹ Volver a …» devuelve al mismo punto (v2.224.0).
+   2. Agenda: el selector «Mi agenda» y el botón «Equipo» se reponen siempre que la cabecera se vuelve a pintar (al pulsar Día se pintaba dos
+      veces seguidas y se perdían) y, dentro de Equipo, el botón pasa a «Mi agenda» para volver de un clic.
+   3. Una tarea hecha se abre en modo lectura, con «Volver a pendiente» y «Borrar».
+   4. Pedidos: fuera la tarjeta «Pedidos sin atribuir».
+   5. Menú de la persona: sin «Organización» (está dentro de Configuración); «Manual de uso» y «Reportar un problema», aparte, como ayuda. */
+function ponerAyudaManual() {
+  document.querySelectorAll('.manq').forEach(b => b.remove());
+  if (ES_MEDICO() || TAB === 'manual' || TAB === 'delcos' || /^pd-/.test(TAB)) return;   // el Panel delcos es interno
+  const v = $('v-' + TAB), h = v && v.querySelector('.saludo h1'); if (!h) return;
+  const sal = h.closest('.saludo') || h;
+  if (sal.querySelector('.ai')) return;
+  if (AYUDA[TAB]) { h.insertAdjacentHTML('beforeend', `<button class="ai" data-ayuda="${TAB}" aria-label="Ayuda">i</button>`); return; }
+  const P = (typeof PAGINAS !== 'undefined' && PAGINAS[TAB]) || {};
+  h.insertAdjacentHTML('beforeend', `<button class="ai" data-ayuda-tit="${esc(P.t || h.textContent.trim())}" data-ayuda-txt="${esc(P.d || '')}" aria-label="Ayuda">i</button>`);
 }
 // pantallas/oportunidades.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
@@ -15594,6 +16286,94 @@ async function editorOportunidad(l, previa) {
 let LLAMADA_PEND = null;
 
 let LL_ALTA = { motivo: '', resultado: '' };
+
+async function pintarLlamadas() {
+  await catOportunidades();
+  $('vcuerpo').innerHTML = `<div class="panel">
+    <div id="llsegz"></div>
+    <div class="filtros"><div id="llper"></div>
+      <div><label for="llq">Buscar</label><input id="llq" type="search" placeholder="Cliente, teléfono o ${TT('medico', 's', '', 'l', 'l')}"></div>
+      <div><label for="llfres">Resultado</label><select id="llfres"><option value="">Todos</option><option>Sin cerrar</option>${(CAT.resultado_llamada || []).map(x => `<option>${esc(x.valor)}</option>`).join('')}</select></div></div>
+    <div class="kpis vtot" id="lltot"></div>
+    <div class="angrid" id="llres2" style="margin:0 0 14px"></div>
+    <div id="lllista"></div></div>`;
+  let tq;
+  const segs = async () => {
+    const { data: seg } = await RPC_ORIG('llamadas_seguimiento', {});
+    const l = seg || [], hoy = hoyISO();
+    if (!$('llsegz')) return;
+    $('llsegz').innerHTML = !l.length ? '' : `<div class="card" id="llsegs"><h2>Volver a llamar<span class="n">${l.length}</span></h2>
+      <p class="sm" style="padding:0 16px">Clientes que no compraron y a los que quedaste en volver a llamar.</p>
+      <div class="lista">${l.slice(0, 20).map(x => `<div class="item" style="cursor:default">
+        <span class="ic" style="${x.proxima_fecha < hoy ? 'background:#FDECEC;color:var(--dang)' : x.proxima_fecha === hoy ? 'background:#FFF4E5;color:var(--warn)' : ''}">📞</span>
+        <span class="tx"><b>${esc(x.cliente || x.nombre || 'Sin nombre')}</b>
+          <span class="sm">${x.proxima_fecha < hoy ? '<b style="color:var(--dang)">Atrasada · </b>' : x.proxima_fecha === hoy ? '<b style="color:var(--warn)">Hoy · </b>' : fechaCorta(x.proxima_fecha) + ' · '}${esc(x.resultado || '')}${x.proxima_accion ? ' · ' + esc(x.proxima_accion) : ''}${x.medico ? ' · de ' + esc(x.medico) : ''}</span></span>
+        <span class="acts" style="margin:0;flex-wrap:nowrap">${(x.tel_cliente || x.telefono) ? `<a class="btn sec chico" href="tel:${esc(x.tel_cliente || x.telefono)}">Llamar</a>` : ''}
+          <button class="btn chico" data-llseg="${x.id}">Registrar</button><button class="btn sec chico" data-llok="${x.id}" title="Ya no hace falta">✓</button></span></div>`).join('')}</div></div>`;
+    $('llsegz').querySelectorAll('[data-llseg]').forEach(b => b.onclick = async () => {
+      const x = l.find(y => y.id === b.dataset.llseg);
+      const { data: an } = await db.from('llamadas').select('interes').eq('id', x.id).maybeSingle();
+      editorOportunidad({ contacto_id: x.contacto_id, cliente: x.cliente, nombre: x.nombre, telefono: x.telefono, tel_cliente: x.tel_cliente, cuenta_id: x.cuenta_id, medico: x.medico,
+        motivo: 'Seguimiento de televenta', origen: 'Llamada saliente', interes: (an && an.interes) || [] }, x);
+    });
+    $('llsegz').querySelectorAll('[data-llok]').forEach(b => b.onclick = async () => { await db.rpc('marcar_seguimiento', { p_id: b.dataset.llok, p_hecho: true }); toast('Seguimiento cerrado'); segs(); });
+  };
+  const pinta = async () => {
+    const r = $('llper').__rango();
+    const [{ data: l }, { data: s }] = await Promise.all([
+      db.rpc('llamadas_lista', { p_desde: r.desde, p_hasta: r.hasta, q: $('llq').value.trim() || null, p_resultado: $('llfres').value || null }),
+      db.rpc('llamadas_resumen', { p_desde: r.desde, p_hasta: r.hasta })]);
+    if (!$('lllista')) return;
+    const res = s || {}, lista = l || [], cerradas = (res.total || 0) - (res.sin_cerrar || 0);
+    $('lltot').innerHTML = `<div class="kpi"><b>${num(res.total || 0)}</b><span>Oportunidades</span></div>
+      <div class="kpi"><b>${num(res.con_pedido || 0)}</b><span>Acaban en pedido</span></div>
+      <div class="kpi"><b>${cerradas ? Math.round((res.con_pedido || 0) / cerradas * 100) + '%' : '—'}</b><span>Conversión</span></div>
+      <div class="kpi"><b>${eurI(res.importe_ganado || 0)}</b><span>Vendido</span></div>
+      <div class="kpi"><b>${eurI(res.importe_perdido || 0)}</b><span>Sin vender</span></div>
+      <div class="kpi"><b>${num(res.sin_cerrar || 0)}</b><span>Sin cerrar</span></div>`;
+    // v2.127.0: la barra es el total (azul suave) y dentro, en azul, la parte que acaba en pedido; el texto dice «ganadas de total»
+    const ratio = (x, i, max) => `<div class="bh bhr"><span class="bhn">${esc(x.n)}</span><span class="bhb" title="${num(x.p)} de ${num(x.t)} acaban en pedido"><i style="width:${Math.max(3, x.t / max * 100)}%"><em style="width:${x.t ? Math.round(x.p / x.t * 100) : 0}%"></em></i></span><b>${num(x.p)}<span>/${num(x.t)}</span></b></div>`;
+    const barrasR = items => { const max = Math.max(1, ...items.map(x => x.t)); return `<div class="barrash">${items.map((x, i) => ratio(x, i, max)).join('')}</div>`; };
+    const card = (id, t, cuerpo, leer) => `<div class="card ancard" id="${id}"><h2>${t}</h2>${cuerpo}<p class="leer">${leer}</p></div>`;
+    $('llres2').innerHTML =
+      card('llgprod', 'Qué piden', (res.por_producto || []).length ? barrasR(res.por_producto.map(x => ({ n: x.producto, p: +x.unidades_ganadas || 0, t: +x.unidades || 0 })))
+        : vacioGrafico('Apunta qué producto y cuántas unidades quiere cada cliente.'),
+        '<b>Cómo leerlo:</b> unidades vendidas sobre las que pidieron. Mucha diferencia en un producto señala precio, stock o argumentario.') +
+      card('llgres', 'Cómo terminan', (res.por_resultado || []).length ? barrasH(res.por_resultado.map(x => ({ n: x.resultado, v: x.n })), num) : vacioGrafico('Aparecerá con las primeras oportunidades.'),
+        '<b>Cómo leerlo:</b> si pesan «El precio no le convence» o «Solo quería información», conviene revisar el argumentario o las condiciones.') +
+      card('llghora', 'A qué hora', (res.por_hora || []).length ? barrasR(res.por_hora.map(x => ({ n: `${String(x.hora).padStart(2, '0')}:00`, p: x.pedidos, t: x.n }))) : vacioGrafico('Verás en qué horas llegan y cuáles venden más.'),
+        '<b>Para qué sirve:</b> poner más gente al teléfono en las horas con más oportunidades.') +
+      card('llgdia', 'Qué día', (res.por_dia || []).length ? barrasR(res.por_dia.map(x => ({ n: NV_DIA_TXT[x.dia] || '', p: x.pedidos, t: x.n }))) : vacioGrafico('Verás qué días de la semana llegan más.'),
+        '<b>Cómo leerlo:</b> pedidos sobre oportunidades de cada día de la semana.') +
+      card('llgori', 'Cómo llegan', (res.por_origen || []).length ? barrasR(res.por_origen.map(x => ({ n: x.origen, p: x.pedidos, t: x.n }))) : vacioGrafico('Marca en cada venta cómo llegó el cliente.'),
+        '<b>Cómo leerlo:</b> pedidos sobre oportunidades por canal: dónde merece la pena invertir.') +
+      card('llgmed', `Por ${TT('medico', 's', '', 'l', 'l')} de referencia`, (res.por_medico || []).length ? barrasR(res.por_medico.map(x => ({ n: x.medico, p: x.pedidos, t: x.n }))) : vacioGrafico(`Verás qué ${TT('medico', 'p', '', 'l', 'l')} y centros mandan clientes.`),
+        `<b>Cómo leerlo:</b> ${TT('medico', 's', 'un', 'C', 'l')} con muchas oportunidades y pocos pedidos es una oportunidad de seguimiento.`) +
+      card('llcom', `Por comercial ${TT('medico', 's', 'del', 'l', 'l')}`, (res.por_comercial || []).length ? barrasR(res.por_comercial.map(x => ({ n: x.comercial, p: x.pedidos, t: x.n }))) : vacioGrafico(`Aparecerá cuando las oportunidades tengan ${TT('medico', 's', '', 'l', 'l')} de referencia.`),
+        `<b>Cómo leerlo:</b> el volumen que genera el trabajo de cada zona.`);
+    const tamL = tamPagina(); LLPAG = Math.min(LLPAG, Math.max(0, Math.ceil(lista.length / tamL) - 1));
+    const lvis = lista.slice(LLPAG * tamL, LLPAG * tamL + tamL);
+    const interes = x => (x.interes || []).map(y => `${y.producto} × ${num(y.unidades)}`).join(', ');
+    $('lllista').innerHTML = lista.length ? `<div class="dgrid-wrap"><div class="dgrid llam opor">
+      <div class="dh"><span>Fecha</span><span>Cliente</span><span>Qué quiere</span><span>${TT('medico', 's', '', 'l', 'C')}</span><span>Cómo termina</span><span>Próximo paso</span><span>Atendió</span></div>
+      ${lvis.map(x => `<button class="dr" data-ll="${x.id}"><span>${new Date(x.fecha).toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' })}<span class="sm">${esc(x.origen || x.direccion || '')}</span></span>
+        <span><b>${esc(x.cliente || x.nombre || '—')}</b><span class="sm">${esc(x.tel_cliente || x.telefono || '')}</span></span>
+        <span class="corta">${esc(interes(x) || '—')}${x.importe_estimado ? `<span class="sm">${eurI(x.importe_estimado)}</span>` : ''}</span>
+        <span class="corta">${esc(x.medico || x.cuenta_texto || '—')}</span>
+        <span>${x.pedido_id || x.resultado ? esc(x.resultado || 'Pedido hecho') : '<span class="pill p-warn">Sin cerrar</span>'}${x.pedido ? `<span class="sm">Pedido ${esc(x.pedido)}</span>` : ''}</span>
+        <span class="sm">${x.proxima_fecha ? fechaCorta(x.proxima_fecha) + ' · ' : ''}${esc(x.proxima_accion || '')}</span><span class="sm">${esc(x.usuario || '')}</span></button>`).join('')}</div></div>`
+      : '<div class="vacio">Sin oportunidades en este periodo. Empieza con «+ Nueva venta»: queda registrada aunque no acabe en pedido.</div>';
+    $('lllista').querySelectorAll('[data-ll]').forEach(b => b.onclick = () => editorOportunidad(lista.find(x => x.id === b.dataset.ll)));
+    $('lllista').insertAdjacentHTML('beforeend', '<div id="llpag"></div>');
+    paginador($('llpag'), lista.length, LLPAG, p => { LLPAG = p; pinta(); }, () => { LLPAG = 0; pinta(); });
+  };
+  montarPeriodo($('llper'), { id: 'llamadas', valor: 'mes', alCambiar: pinta });
+  $('llq').oninput = () => { clearTimeout(tq); tq = setTimeout(pinta, 300); };
+  $('llfres').onchange = pinta;
+  segs(); pinta();
+}
+
+function hayOportunidades() { return hayExtra('oportunidades'); }
 // pantallas/panel_delcos.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -16422,7 +17202,7 @@ async function pedidosBotonLlamada() {
   const acts = $('v-ventas').querySelector('.saludo .acts');
   if (acts && !$('pedllam')) {
     acts.insertAdjacentHTML('afterbegin', '<button class="btn sec" id="pedllam">📞 Registrar llamada</button>');
-    $('pedllam').onclick = () => editorLlamada(null);
+    $('pedllam').onclick = () => editorOportunidad(null);
   }
 }
 
@@ -22153,12 +22933,6 @@ if ('serviceWorker' in navigator) {
 
 
 
-async function cargarCatalogos() {
-  const claves = Object.keys(CAT);
-  const res = await Promise.all(claves.map(k => db.rpc('catalogo_papel', { p_papel: k })));
-  claves.forEach((k, i) => { CAT[k] = res[i].data || []; });
-  cargarCampos().catch(() => {});
-}
 
 /* ---------------- selector de días ---------------- */
 
@@ -22377,7 +23151,7 @@ $('nuevoBtn').addEventListener('click', () => {
 /* ---------------- cola sin conexión ---------------- */
 
 
-function pintarConexion() {
+function pintarConexionBase() {
   const n = colaLeer().length;
   const el = $('conex');
   if (!navigator.onLine) { el.className = 'conex off'; el.textContent = n ? `Sin conexión · ${n} ${n === 1 ? 'cambio' : 'cambios'} en espera` : 'Sin conexión'; }
@@ -22811,24 +23585,6 @@ let PRODUCTOS = [], PEDIDOS = [], SIN_ATRIB = [];
 
 
 
-async function pintarSinAtribuir() {
-  if (!$('cardsinatr')) return;
-  const { data } = await db.rpc('lineas_sin_atribuir');
-  if (!$('cardsinatr')) return;
-  SIN_ATRIB = data || [];
-  if (!SIN_ATRIB.length) { $('cardsinatr').innerHTML = ''; return; }
-  $('cardsinatr').innerHTML = `<h2><span style="color:var(--warn)">Pedidos sin atribuir</span><span class="n">${SIN_ATRIB.length}</span></h2>
-    <p class="sm">No hemos podido identificar ${TT('medico', 's', 'al', 'l', 'l')}. Asígnalo y las métricas se corrigen solas.</p>
-    <div class="lista">${SIN_ATRIB.map(l => `<div class="item" style="cursor:default">
-      <span class="ic w">?</span>
-      <span class="tx"><b>${esc(l.cuenta_texto || 'Sin indicar')}</b>
-        <span class="sm">${fechaCorta(l.fecha)} · ${num(l.unidades)} uds. · ${esc(l.producto || '')} · ${esc(l.contacto || '')}</span></span>
-      <span class="acts" style="margin:0"><button class="btn sec" data-atr="${l.id}|${esc(l.cuenta_texto || '')}">Atribuir</button></span>
-    </div>`).join('')}</div>`;
-  $('cardsinatr').querySelectorAll('[data-atr]').forEach(b => b.onclick = () => {
-    const [id, texto] = b.dataset.atr.split('|'); atribuir(id, texto);
-  });
-}
 
 
 /* ---------------- alta de pedido ---------------- */
@@ -23100,16 +23856,6 @@ function abrirHerramientasBase(contexto) {
 /* ---------------- copia local para consultar sin conexión ---------------- */
 
 
-/** Llama a una función del servidor y guarda copia; sin conexión devuelve la última copia. */
-async function rpcCache(fn, params, clave) {
-  if (navigator.onLine) {
-    const { data, error } = await db.rpc(fn, params);
-    if (!error) { guardarCache(clave, data); return { data, cache: false }; }
-  }
-  const c = leerCache(clave);
-  if (c) return { data: c.d, cache: true, fecha: c.t };
-  return { data: null, cache: true };
-}
 
 
 /* ---------------- administración: secciones nuevas ---------------- */
@@ -23182,16 +23928,6 @@ db.from = function (tabla) {
 
 let INI_LISTO = false, INI_EN_CURSO = null, INI_OTRA = false, DUP_RES = null;
 
-function cargarInicio() {
-  if (TAB !== 'inicio') return Promise.resolve();       // se cargará al entrar en Inicio
-  if (INI_EN_CURSO) { INI_OTRA = true; return INI_EN_CURSO; }
-  INI_OTRA = false;
-  INI_EN_CURSO = pintarInicio().catch(err => console.error(err)).finally(() => {
-    INI_EN_CURSO = null;
-    if (INI_OTRA && TAB === 'inicio') cargarInicio();
-  });
-  return INI_EN_CURSO;
-}
 
 
 /* ---------------- ventanas y paneles: se cierran al pulsar fuera ---------------- */
@@ -23482,7 +24218,7 @@ const PKEY = 'dlc-perfil';
 /* Entrada en la plataforma con el perfil de la persona.
    Reúne en una sola función lo que antes estaba repartido en 21 capas añadidas versión a versión,
    con el mismo orden de ejecución. */
-function mostrarApp(perfil) {
+function mostrarAppBase(perfil) {
   const p = perfil, pref = p.preferencias || {};
 
   // 1. Con el enlace de recuperación de contraseña no se abre la plataforma
@@ -23552,7 +24288,7 @@ function mostrarApp(perfil) {
     if (!bi) { document.querySelector('nav.main .in').insertAdjacentHTML('afterbegin', `<button data-t="informe" aria-selected="true">${puede('portal_centro') ? 'Mi centro' : 'Mi informe'}</button>`); bi = document.querySelector('nav.main [data-t="informe"]'); }
     bi.classList.remove('hide');
     if (!$('mdavisos')) $('ubtn').insertAdjacentHTML('beforebegin', '<button class="mdavisos" id="mdavisos" aria-label="Avisos"></button>');
-    pintarAvisos();
+    refrescarCampana();
     if ($('q')) $('q').closest('.gsearch').classList.add('hide');
     setTimeout(() => ir('informe'), 0);
   }
@@ -23584,15 +24320,6 @@ function mostrarApp(perfil) {
 /* ---------------- inicio: esqueleto y carga por partes ---------------- */
 
 
-/* pintarInicio: la parte base y, en orden, cada paso que se le añade (antes eran 5 capas separadas). */
-async function pintarInicio() {
-  await pintarInicioBase();
-  await inicioResumenSemanaYVentas();
-  await inicioOperativaPedidos();
-  await inicioVistazoEIndicadores();
-  await inicioLlamadasHoy();
-  await inicioFiltrarAlertas();
-}
 
 
 
@@ -23715,43 +24442,6 @@ document.addEventListener('pointerdown', e => { if (!e.target.closest('.picker')
 
 /* ---------------- nueva cita con el selector de médico ---------------- */
 
-async function nuevaCita(medicoId, fecha) {
-  let elegido = null;
-  if (medicoId) {
-    const { data } = await db.rpc('ficha_cuenta', { p_id: medicoId });
-    const m = data && data.medico, c = data && (data.consultas || [])[0];
-    if (m) elegido = Object.assign({}, m, { centro_nombre: c ? c.centro_nombre : '', municipio: c ? c.municipio : '' });
-  }
-  $('dbody').innerHTML = `
-    <div class="fh"><div><h2>Nueva cita</h2><div class="sm">Se añade a tu agenda</div></div>
-      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-    <label>${TT('medico', 's', '', 'l', 'C')}</label><div id="ncsel"></div>
-    <div class="g2">
-      <div><label for="ncf">Día</label><input id="ncf" type="date" value="${esc(fecha || hoyISO())}"></div>
-      <div><label for="nch">Hora</label><input id="nch" type="time"></div>
-    </div>
-    <label for="ncn">Nota</label><input id="ncn" placeholder="p. ej. llevar reporting">
-    <div class="acts" style="justify-content:flex-end">
-      <button class="btn sec" data-cerrar>Cancelar</button>
-      <button class="btn" id="ncok">Añadir a la agenda</button></div>`;
-  selectorMedico($('ncsel'), { valor: elegido, alElegir: m => { elegido = m; } });
-  $('ncok').onclick = async ev => {
-    if (!elegido) { toast(`Elige ${TT('medico', 's', 'un', 'l', 'l')}`, true); return; }
-    const decision = await citaRepetida(elegido.id, $('ncf').value);
-    if (!decision) return;
-    ev.target.disabled = true;
-    const r = await escribir('guardar_cita', { p: {
-      cuenta_id: elegido.id, fecha: $('ncf').value, hora: $('nch').value || null,
-      centro_nombre: elegido.centro_nombre || elegido.centro || null, estado: 'Planificada', origen: 'Agenda',
-      usuario_id: TAB === 'agenda' && AG_VISTA ? AG_VISTA.id : null,
-      nota: $('ncn').value.trim(), op_id: 'c-' + elegido.id + '-' + $('ncf').value + '-' + Date.now()
-    }});
-    ev.target.disabled = false;
-    if (r.error) { toast('No se ha podido: ' + r.error.message, true); return; }
-    $('dlg').close(); toast('Cita añadida'); if (TAB === 'agenda') cargarAgenda(); cargarInicio();
-  };
-  $('dlg').showModal();
-}
 
 /* ---------------- documento de identidad ---------------- */
 
@@ -24453,7 +25143,7 @@ Object.assign(RPC_TTL, { alertas_mias: 60, alertas_cruce: 120, actividades_recie
 
 /* ---------------- móvil: los cuatro principales y «Más» ---------------- */
 
-function pintarBnav() {
+function pintarBnavBase() {
   const b = $('bnav'); if (!b) return;
   const principales = ['inicio', 'agenda', 'rutas', 'directorio'];
   const iconos = { inicio: '◉', agenda: '▤', rutas: '➤', directorio: '☰' };
@@ -24857,7 +25547,7 @@ Object.assign(RPC_TTL, { operativa_pendiente: 20, llamadas_lista: 20, llamadas_r
 })();
 
 /* aplicarPermisosMenu: la parte base y, en orden, cada paso que se le añade (antes eran 3 capas separadas). */
-function aplicarPermisosMenu() {
+function aplicarPermisosMenuBase2() {
   aplicarPermisosMenuBase();
   aplicarPermisosMenuPaso1();
   aplicarPermisosMenuPaso2();
@@ -24885,49 +25575,6 @@ function aplicarPermisosMenu() {
 /* ---------------- Pedidos: pestaña «Llamadas» ---------------- */
 
 
-async function pintarLlamadas() {
-  await catLlamadas();
-  $('vcuerpo').innerHTML = `<div class="panel">
-    <div class="filtros"><div id="llper"></div>
-      <div><label for="llq">Buscar</label><input id="llq" type="search" placeholder="Nombre, teléfono o ${TT('medico', 's', '', 'l', 'l')}"></div>
-      <div><label for="llfres">Resultado</label><select id="llfres"><option value="">Todos</option>${(CAT.resultado_llamada || []).map(x => `<option>${esc(x.valor)}</option>`).join('')}</select></div></div>
-    <div class="kpis vtot" id="lltot"></div>
-    <div class="angrid" id="llres2" style="margin:0 0 14px"></div>
-    <div id="lllista"></div></div>`;
-  let tq;
-  const pinta = async () => {
-    const r = $('llper').__rango();
-    const [{ data: l }, { data: s }] = await Promise.all([
-      db.rpc('llamadas_lista', { p_desde: r.desde, p_hasta: r.hasta, q: $('llq').value.trim() || null, p_resultado: $('llfres').value || null }),
-      db.rpc('llamadas_resumen', { p_desde: r.desde, p_hasta: r.hasta })]);
-    if (!$('lllista')) return;
-    const res = s || {}, lista = l || [];
-    $('lltot').innerHTML = `<div class="kpi"><b>${num(res.total || 0)}</b><span>Llamadas</span></div>
-      <div class="kpi"><b>${num(res.con_pedido || 0)}</b><span>Acaban en pedido</span></div>
-      <div class="kpi"><b>${res.total ? Math.round(res.con_pedido / res.total * 100) + '%' : '—'}</b><span>Conversión</span></div>`;
-    $('llres2').innerHTML = `<div class="card ancard"><h2>Cómo terminan</h2>${(res.por_resultado || []).length ? barrasH(res.por_resultado.map(x => ({ n: x.resultado, v: x.n })), num) : vacioGrafico('Registra llamadas para ver cómo terminan.')}
-        <p class="leer"><b>Cómo leerlo:</b> si pesan «El precio no le convence» o «Solo quería información», conviene revisar el argumentario o las condiciones.</p></div>
-      <div class="card ancard"><h2>De qué ${TT('medico', 's', '', 'l', 'l')} vienen</h2>${(res.por_medico || []).length ? `<div class="barrash">${res.por_medico.map((x, i) => `<div class="bh"><span class="bhn">${i + 1}. ${esc(x.medico)}</span>
-          <span class="bhb"><i style="width:${Math.max(3, x.n / res.por_medico[0].n * 100)}%"></i></span><b>${num(x.pedidos)}/${num(x.n)}</b></div>`).join('')}</div>` : vacioGrafico(`Verás qué ${TT('medico', 'p', '', 'l', 'l')} generan llamadas y cuántas acaban en pedido.`)}
-        <p class="leer"><b>Cómo leerlo:</b> pedidos sobre llamadas por ${TT('medico', 's', '', 'l', 'l')}. ${TT('medico', 's', 'un', 'C', 'l')} con muchas llamadas y pocos pedidos es una oportunidad de seguimiento.</p></div>`;
-    const tamL = tamPagina(); LLPAG = Math.min(LLPAG, Math.max(0, Math.ceil(lista.length / tamL) - 1));
-    const lvis = lista.slice(LLPAG * tamL, LLPAG * tamL + tamL);
-    $('lllista').innerHTML = lista.length ? `<div class="dgrid-wrap"><div class="dgrid llam">
-      <div class="dh"><span>Fecha</span><span>Quién llama</span><span>${TT('medico', 's', '', 'l', 'C')}</span><span>Motivo</span><span>Resultado</span><span>Próximo paso</span><span>Atendió</span></div>
-      ${lvis.map(x => `<button class="dr" data-ll="${x.id}"><span>${new Date(x.fecha).toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' })}<span class="sm">${esc(x.direccion || '')}</span></span>
-        <span><b>${esc(x.nombre || x.cliente || '—')}</b><span class="sm">${esc(x.telefono || '')}</span></span><span class="corta">${esc(x.medico || x.cuenta_texto || '—')}</span>
-        <span class="sm">${esc(x.motivo || '—')}</span><span>${esc(x.resultado || '—')}${x.pedido ? `<span class="sm">Pedido ${esc(x.pedido)}</span>` : ''}</span>
-        <span class="sm">${x.proxima_fecha ? fechaCorta(x.proxima_fecha) + ' · ' : ''}${esc(x.proxima_accion || '')}</span><span class="sm">${esc(x.usuario || '')}</span></button>`).join('')}</div></div>`
-      : '<div class="vacio">Sin llamadas en este periodo. Regístralas con «+ Registrar llamada», aunque no acaben en pedido: así se puede analizar por qué.</div>';
-    $('lllista').querySelectorAll('[data-ll]').forEach(b => b.onclick = () => editorLlamada(lista.find(x => x.id === b.dataset.ll)));
-    $('lllista').insertAdjacentHTML('beforeend', '<div id="llpag"></div>');
-    paginador($('llpag'), lista.length, LLPAG, p => { LLPAG = p; pinta(); }, () => { LLPAG = 0; pinta(); });
-  };
-  montarPeriodo($('llper'), { id: 'llamadas', valor: 'mes', alCambiar: pinta });
-  $('llq').oninput = () => { clearTimeout(tq); tq = setTimeout(pinta, 300); };
-  $('llfres').onchange = pinta;
-  pinta();
-}
 
 
 /* ---------------- Inicio: operativa pendiente para televenta y administración ---------------- */
@@ -25053,7 +25700,7 @@ let SELPOP = null, LOGO_CIRC = false;
 
 // (v2.183.0: aquí iba la primera versión de abrirReloj; se redefine entera más abajo)
 
-function valorVisible(inp) {
+function valorVisibleBase(inp) {
   const w = inp.closest('.selw'), sp = w && w.querySelector('.selval'); if (!sp) return;
   const v = inp.value;
   if (!v) { sp.textContent = inp.type === 'date' ? 'Elige una fecha' : 'Elige una hora'; sp.classList.add('vacio'); return; }
@@ -25061,33 +25708,6 @@ function valorVisible(inp) {
   if (inp.type === 'time') { sp.textContent = v.slice(0, 5); return; }
   const d = new Date(v + 'T12:00:00');
   sp.textContent = isNaN(d) ? v : d.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
-}
-// Cada campo de fecha, hora o número se mejora al aparecer en pantalla
-function mejorarCampos(raiz) {
-  (raiz || document).querySelectorAll('input[type=date]:not([data-sel]), input[type=time]:not([data-sel]), input[type=number]:not([data-sel])').forEach(inp => {
-    inp.dataset.sel = '1';
-    if (inp.closest('.selpop')) return;
-    if (inp.type === 'number') {
-      if (inp.closest('.lrow') && inp.offsetWidth && inp.offsetWidth < 70) return;
-      const w = document.createElement('span'); w.className = 'numw';
-      inp.parentNode.insertBefore(w, inp); w.appendChild(inp);
-      w.insertAdjacentHTML('afterbegin', '<button type="button" class="nb" data-nd="-1" aria-label="Menos" tabindex="-1">−</button>');
-      w.insertAdjacentHTML('beforeend', '<button type="button" class="nb" data-nd="1" aria-label="Más" tabindex="-1">+</button>');
-      if (inp.disabled) w.classList.add('dis');
-      return;
-    }
-    const w = document.createElement('span'); w.className = 'selw ' + (inp.type === 'date' ? 'fecha' : 'hora');
-    inp.parentNode.insertBefore(w, inp); w.appendChild(inp);
-    w.insertAdjacentHTML('beforeend', `<span class="selico" aria-hidden="true">${inp.type === 'date' ? '📅' : '🕒'}</span>`);
-    inp.dataset.ro = inp.readOnly ? '1' : '';
-    inp.readOnly = true; inp.setAttribute('inputmode', 'none');
-    // Se muestra el valor en formato español, sin depender del idioma del navegador
-    w.insertAdjacentHTML('afterbegin', '<span class="selval"></span>');
-    const desc = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value');
-    Object.defineProperty(inp, 'value', { configurable: true, get() { return desc.get.call(this); }, set(v) { desc.set.call(this, v); valorVisible(this); } });
-    inp.addEventListener('change', () => valorVisible(inp)); inp.addEventListener('input', () => valorVisible(inp));
-    valorVisible(inp);
-  });
 }
 document.addEventListener('click', e => {
   const nb = e.target.closest('.numw .nb');
@@ -25117,7 +25737,6 @@ document.addEventListener('scroll', e => { if (SELPOP && Date.now() - (SELPOP.__
 new MutationObserver(ms => { for (const m of ms) for (const n of m.addedNodes) if (n.nodeType === 1) mejorarCampos(n); })
   .observe(document.body, { childList: true, subtree: true });
 ['dlg', 'dlg2', 'ficha', 'mini'].forEach(id => { const d = $(id); if (d) d.addEventListener('close', cerrarSelector); });
-mejorarCampos(document);
 
 /* ---------------- alertas: el detalle se abre en una ventana ---------------- */
 
@@ -25173,25 +25792,11 @@ if (EN_PRUEBAS) {
 
 
 
-async function pintarAvisos() {
-  const b = $('mdavisos'); if (!b) return;
-  const { data } = await RPC_ORIG('mis_notificaciones', { lim: 30 });
-  const n = (data && data.sin_leer) || 0;
-  b.innerHTML = `🔔${n ? `<span class="nb2">${n > 9 ? '9+' : n}</span>` : ''}`;
-  b.onclick = async () => {
-    const l = (data && data.lista) || [];
-    $('dbody').innerHTML = `<div class="fh"><div><h2>Avisos</h2><div class="sm">Cada vez que se registra ${TT('pauta', 's', 'un', 'l', 'l')}</div></div><button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-      <div class="lista">${l.map(x => `<div class="item ${x.leida_en ? '' : 'nuevo'}" style="cursor:default"><span class="ic">💊</span>
-        <span class="tx"><b>${esc(x.titulo)}</b><span class="sm">${esc(x.cuerpo || '')} · ${new Date(x.creado_en).toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' })}</span></span></div>`).join('') || '<div class="vacio">Sin avisos todavía.</div>'}</div>`;
-    $('dlg').showModal();
-    if (n) { await db.rpc('leer_notificaciones'); pintarAvisos(); }
-  };
-}
 
-if (typeof pintarBnav === 'function') pintarBnav = (orig => function () {
+function pintarBnavBase2() {
   if (ES_MEDICO()) { const b = $('bnav'); if (b) b.innerHTML = `<button data-t="informe" aria-selected="true"><span>◉</span>${puede('portal_centro') ? 'Mi centro' : 'Mi informe'}</button>`; if (b) b.firstChild.onclick = () => ir('informe'); return; }
-  orig();
-})(pintarBnav);
+  pintarBnavBase();
+}
 
 // Vincular un usuario de tipo Médico con su ficha (Administración → Usuarios → Editar)
 
@@ -25276,16 +25881,6 @@ function colocarPopBase(pop, ref) {
 /* ---------------- rendimiento: los campos se mejoran por lotes ---------------- */
 
 let MEJ_PEND = new Set(), MEJ_RAF = 0;
-mejorarCampos = (orig => function (raiz) {
-  if (!raiz || raiz === document) return orig(raiz);
-  if (raiz.nodeType !== 1 || !raiz.querySelector && raiz.tagName !== 'INPUT') return;
-  MEJ_PEND.add(raiz);
-  if (MEJ_RAF) return;
-  MEJ_RAF = 1; queueMicrotask(() => {
-    MEJ_RAF = 0; const l = [...MEJ_PEND]; MEJ_PEND.clear();
-    l.forEach(n => { if (n.isConnected && (n.tagName === 'INPUT' ? n.parentNode : n.querySelector('input[type=date],input[type=time],input[type=number]'))) orig(n.tagName === 'INPUT' ? n.parentNode : n); });
-  });
-})(mejorarCampos);
 
 /* ---------------- barra de herramientas ordenada en el móvil ---------------- */
 
@@ -25300,7 +25895,7 @@ window.addEventListener('resize', () => { if (!ES_MOVIL()) document.querySelecto
 
 /* ---------------- menú «Más» del móvil con el mismo estilo ---------------- */
 
-function abrirMasMovil() {
+function abrirMasMovilBase() {
   const principales = ['inicio', 'agenda', 'rutas', 'directorio'];
   const mods = [...document.querySelectorAll('nav.main [data-t]')]
     .filter(x => !x.classList.contains('hide') && !x.disabled && !principales.includes(x.dataset.t))
@@ -25316,7 +25911,7 @@ function abrirMasMovil() {
   s.onclick = e => { if (e.target === s) cerrar(); };
   s.querySelectorAll('[data-bm]').forEach(x => x.onclick = () => { cerrar(); ir(x.dataset.bm); });
 };
-pintarBnav = (orig => function () { orig(); const m = $('bmasbtn'); if (m) m.onclick = abrirMasMovil; })(pintarBnav);
+function pintarBnavBase3() { pintarBnavBase2(); const m = $('bmasbtn'); if (m) m.onclick = abrirMasMovil; }
 
 /* ---------------- Inicio: tarjeta de bienvenida con lo importante de hoy ---------------- */
 
@@ -25466,139 +26061,8 @@ function colocarPop(pop, ref) {
 /* ---------------- llamadas: cliente, médico, resultado y pedido en un flujo ---------------- */
 
 
-async function editorLlamada(l, previa) {
-  await catLlamadas();
-  l = l || { direccion: 'Entrante', fecha: new Date().toISOString() };
-  let cliente = l.contacto_id ? { id: l.contacto_id, nombre: l.cliente || l.nombre } : null, nuevo = !cliente && !l.id;
-  let medico = l.cuenta_id ? { id: l.cuenta_id, nombre: l.medico } : null;
-  const f = new Date(l.fecha), local = new Date(f.getTime() - f.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
-  const chips = (cat, v, attr) => (CAT[cat] || []).map(x => `<button type="button" class="chipsel ${x.valor === v ? 'on' : ''} ${x.extra === 'neg' ? 'neg' : x.extra === 'pos' ? 'pos' : ''}" ${attr}="${esc(x.valor)}">${esc(x.valor)}</button>`).join('');
-  $('dbody').innerHTML = `
-    <div class="fh"><div><h2>${l.id ? 'Llamada' : previa ? 'Seguimiento de la llamada' : 'Registrar llamada'}</h2>
-      <div class="sm">${previa ? 'Vuelves a llamar a ' + esc(previa.cliente || previa.nombre || '') : 'Aunque no acabe en pedido: así se ve por qué no compran'}</div></div>
-      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-    <div class="llpaso"><span class="lln">1</span><b>Quién llama</b>
-      <div class="segm2"><button type="button" data-lmodo="exist" class="${nuevo ? '' : 'on'}">Cliente existente</button><button type="button" data-lmodo="nuevo" class="${nuevo ? 'on' : ''}">Cliente nuevo</button></div>
-      <div id="llcli"></div></div>
-    <div class="llpaso"><span class="lln">2</span><b>${TT('medico', 's', '', 'l', 'C')} de referencia</b><div id="llmed"></div>
-      <div class="sm" style="margin-top:4px">Si no está en la base, escribe su nombre: se guarda igualmente para las métricas.</div></div>
-    <div class="llpaso"><span class="lln">3</span><b>Motivo</b><div class="chipsw" id="llmot">${chips('motivo_llamada', l.motivo, 'data-lm')}</div></div>
-    <div class="llpaso"><span class="lln">4</span><b>Resultado</b><div class="chipsw" id="llres">${chips('resultado_llamada', l.resultado, 'data-lr')}</div>
-      <div id="llseg" class="${!l.resultado || l.resultado === 'Pedido hecho' ? 'hide' : ''}">
-        <div class="sm" style="margin:8px 0 4px">¿Cuándo volver a llamar?</div>
-        <div class="chipsw">${[['Mañana', 1], ['En 3 días', 3], ['En una semana', 7], ['En un mes', 30]].map(([t, d]) => `<button type="button" class="chipsel" data-ld="${d}">${t}</button>`).join('')}</div>
-        <div class="g2" style="margin-top:6px"><div><input id="llpf" type="date" value="${esc(l.proxima_fecha || '')}"></div>
-          <div><input id="llpa" value="${esc(l.proxima_accion || '')}" placeholder="p. ej. Enviarle el precio por WhatsApp"></div></div></div></div>
-    <details class="llmas"><summary>Más detalles</summary>
-      <div class="g2"><div><label for="llf">Fecha y hora</label><input id="llf" type="datetime-local" value="${local}"></div>
-        <div><label for="lld">Tipo</label><select id="lld"><option ${l.direccion === 'Entrante' ? 'selected' : ''}>Entrante</option><option ${l.direccion === 'Saliente' || previa ? 'selected' : ''}>Saliente</option></select></div></div>
-      <label for="llno">Nota</label><textarea id="llno" rows="2">${esc(l.nota || '')}</textarea></details>
-    <div class="acts" style="justify-content:flex-end;flex-wrap:wrap"><button class="btn sec" data-cerrar>Cancelar</button>
-      <button class="btn sec" id="llok">Guardar</button>${l.pedido_id ? '' : '<button class="btn" id="llped">🛒 Guardar y crear pedido</button>'}</div>`;
-  $('dlg').showModal();
-  let motivo = l.motivo || '', resultado = l.resultado || '';
-  const pintaCli = () => {
-    const c = $('llcli');
-    if (nuevo) {
-      // v2.119.0: un cliente nuevo se rellena siempre en su ficha completa (antes, cuatro campos y un cliente a medias)
-      c.innerHTML = `<button type="button" class="btn" id="llalta">Rellenar los datos del cliente nuevo</button>
-        <div class="sm" style="margin-top:6px">Se abre su ficha completa con esta llamada: si compra, queda dado de alta con todos sus datos; si no, se guarda solo la llamada con lo apuntado.</div>`;
-      $('llalta').onclick = () => aAltaCompleta();
-    } else if (cliente) {
-      c.innerHTML = `<div class="clisel"><span><b>${esc(cliente.nombre)}</b><span class="sm">${esc(cliente.tel || cliente.telefono || '')}</span></span><button type="button" class="btn sec" id="lccambia">Cambiar</button></div>`;
-      $('lccambia').onclick = () => { cliente = null; pintaCli(); };
-    } else {
-      c.innerHTML = `<input id="lcq" type="search" placeholder="Nombre, teléfono o DNI" autocomplete="off"><div class="lista" id="lcres"></div>`;
-      let tq;
-      $('lcq').oninput = () => { clearTimeout(tq); tq = setTimeout(async () => {
-        const r = await buscarClientes($('lcq').value);
-        $('lcres').innerHTML = r.map(x => `<button type="button" class="item" data-lcid="${x.id}"><span class="tx"><b>${esc(x.nombre)}</b><span class="sm">${esc([x.movil || x.telefono, x.nif].filter(Boolean).join(' · '))}</span></span></button>`).join('')
-          || ($('lcq').value.trim().length > 1 ? '<div class="sm" style="padding:6px">No existe: usa «Cliente nuevo».</div>' : '');
-        $('lcres').querySelectorAll('[data-lcid]').forEach(b => b.onclick = async () => {
-          const x = r.find(y => y.id === b.dataset.lcid); cliente = { id: x.id, nombre: x.nombre, tel: x.movil || x.telefono };
-          if (x.cuenta_id && !medico) { const { data: m } = await db.from('cuentas').select('id,nombre').eq('id', x.cuenta_id).single(); if (m) { medico = m; pintaMed(); } }
-          pintaCli();
-        });
-      }, 250); };
-    }
-  };
-  const pintaMed = () => { $('llmed').innerHTML = ''; $('llmed').__texto = medico ? '' : (l.cuenta_texto || ''); selectorMedico($('llmed'), { valor: medico, placeholder: 'Nombre, código, centro o municipio', alElegir: m => { medico = m; } }); };
-  pintaCli(); pintaMed();
-  $('dbody').querySelectorAll('[data-lmodo]').forEach(b => b.onclick = () => { nuevo = b.dataset.lmodo === 'nuevo'; if (!nuevo) cliente = null;
-    $('dbody').querySelectorAll('[data-lmodo]').forEach(x => x.classList.toggle('on', x === b)); pintaCli(); });
-  $('llmot').onclick = e => { const b = e.target.closest('[data-lm]'); if (!b) return; motivo = motivo === b.dataset.lm ? '' : b.dataset.lm;
-    $('llmot').querySelectorAll('[data-lm]').forEach(x => x.classList.toggle('on', x.dataset.lm === motivo)); };
-  const pasoRes = $('llres').closest('.llpaso');
-  pasoRes.onclick = e => {
-    const d = e.target.closest('[data-ld]');
-    if (d) { const f2 = new Date(); f2.setDate(f2.getDate() + +d.dataset.ld); $('llpf').value = fechaLocal(f2); pasoRes.querySelectorAll('[data-ld]').forEach(x => x.classList.toggle('on', x === d)); return; }
-    const b = e.target.closest('[data-lr]'); if (!b) return; resultado = resultado === b.dataset.lr ? '' : b.dataset.lr;
-    $('llres').querySelectorAll('[data-lr]').forEach(x => x.classList.toggle('on', x.dataset.lr === resultado));
-    $('llseg').classList.toggle('hide', !resultado || resultado === 'Pedido hecho');
-  };
-  // Pasa a la ficha completa del cliente nuevo con lo ya marcado en la llamada
-  const aAltaCompleta = () => {
-    const est = { motivo, resultado, nota: $('llno').value.trim(), direccion: $('lld').value, fecha: $('llf').value ? new Date($('llf').value).toISOString() : null,
-      proxima_fecha: $('llpf') ? $('llpf').value : '', proxima_accion: $('llpa') ? $('llpa').value.trim() : '', previa: previa ? previa.id : null, id: l.id || null,
-      cuenta_texto: medico ? '' : ($('llmed').__texto || '').trim() };
-    $('dlg').close();
-    editorContacto(medico ? { cuenta_id: medico.id, medico: medico.nombre } : {}, null, { llamada: est });
-  };
-  const guardar = async conPedido => {
-    if (conPedido && nuevo) { aAltaCompleta(); return null; }
-    const datosNuevo = nuevo && $('lcn') ? { nombre: $('lcn').value.trim(), telefono: $('lct').value.trim(), email: $('lce').value.trim(), nif: $('lcd').value.trim() } : null;
-    if (conPedido && !cliente && !(datosNuevo && datosNuevo.nombre)) { toast('Indica el cliente: búscalo o escribe su nombre', true); return null; }
-    const { data: r, error } = await db.rpc('guardar_llamada', { p: { id: l.id || null, fecha: $('llf').value ? new Date($('llf').value).toISOString() : null,
-      direccion: $('lld').value, nombre: datosNuevo ? datosNuevo.nombre : (cliente ? cliente.nombre : l.nombre || ''), telefono: datosNuevo ? datosNuevo.telefono : (cliente ? cliente.tel || '' : l.telefono || ''),
-      contacto_id: cliente ? cliente.id : null, cliente_nuevo: conPedido ? datosNuevo : null, cuenta_id: medico ? medico.id : null,
-      cuenta_texto: medico ? '' : ($('llmed').__texto || '').trim(), motivo, resultado: conPedido ? (resultado || 'Pedido hecho') : resultado,
-      proxima_accion: $('llpa') ? $('llpa').value.trim() : '', proxima_fecha: resultado && resultado !== 'Pedido hecho' && !conPedido ? ($('llpf').value || '') : '',
-      nota: $('llno').value.trim(), pedido_id: l.pedido_id || null, llamada_origen: previa ? previa.id : null } });
-    if (error || (r && r.ok === false)) { toast('No se ha podido guardar' + (error ? ': ' + error.message : ''), true); return null; }
-    return r;
-  };
-  $('llok').onclick = async () => { const r = await guardar(false); if (!r) return; $('dlg').close(); toast('Llamada registrada'); if (TAB === 'ventas' && PEDSEC === 'llamadas') pintarLlamadas(); };
-  if ($('llped')) $('llped').onclick = async () => {
-    const r = await guardar(true); if (!r) return;
-    LLAMADA_PEND = r.id;
-    let cli = null;
-    if (r.contacto_id) { const { data: c } = await db.from('contactos').select('id,nombre,nif,email,telefono,movil,cuenta_id').eq('id', r.contacto_id).single(); cli = c; }
-    $('dlg').close();
-    await editorPedido({ contacto: cli ? Object.assign(cli, { medico: medico ? medico.nombre : '' }) : null, medico: medico ? { id: medico.id, nombre: medico.nombre } : null });
-  };
-};
 
 // Pestaña Llamadas: seguimientos pendientes arriba y análisis ampliado
-pintarLlamadas = (orig => async function () {
-  await orig();
-  const { data: seg } = await RPC_ORIG('llamadas_seguimiento', {});
-  const l = seg || [], hoy = hoyISO();
-  if (!$('lltot')) return;
-  if (l.length && !$('llsegs')) {
-    $('lltot').insertAdjacentHTML('beforebegin', `<div class="card" id="llsegs"><h2>Llamadas por hacer<span class="n">${l.length}</span></h2>
-      <p class="sm" style="padding:0 16px">Clientes que no compraron y a los que quedaste en volver a llamar.</p>
-      <div class="lista">${l.slice(0, 20).map(x => `<div class="item" style="cursor:default">
-        <span class="ic" style="${x.proxima_fecha < hoy ? 'background:#FDECEC;color:var(--dang)' : x.proxima_fecha === hoy ? 'background:#FFF4E5;color:var(--warn)' : ''}">📞</span>
-        <span class="tx"><b>${esc(x.cliente || x.nombre || 'Sin nombre')}</b>
-          <span class="sm">${x.proxima_fecha < hoy ? '<b style="color:var(--dang)">Atrasada · </b>' : x.proxima_fecha === hoy ? '<b style="color:var(--warn)">Hoy · </b>' : fechaCorta(x.proxima_fecha) + ' · '}${esc(x.resultado || '')}${x.proxima_accion ? ' · ' + esc(x.proxima_accion) : ''}${x.medico ? ' · de ' + esc(x.medico) : ''}</span></span>
-        <span class="acts" style="margin:0;flex-wrap:nowrap">${(x.tel_cliente || x.telefono) ? `<a class="btn sec chico" href="tel:${esc(x.tel_cliente || x.telefono)}">Llamar</a>` : ''}
-          <button class="btn chico" data-llseg="${x.id}">Registrar</button><button class="btn sec chico" data-llok="${x.id}" title="Ya no hace falta">✓</button></span></div>`).join('')}</div></div>`);
-    $('llsegs').querySelectorAll('[data-llseg]').forEach(b => b.onclick = () => { const x = l.find(y => y.id === b.dataset.llseg);
-      editorLlamada({ direccion: 'Saliente', fecha: new Date().toISOString(), contacto_id: x.contacto_id, cliente: x.cliente, nombre: x.nombre, telefono: x.telefono, cuenta_id: x.cuenta_id, medico: x.medico, motivo: 'Seguimiento de televenta' }, x); });
-    $('llsegs').querySelectorAll('[data-llok]').forEach(b => b.onclick = async () => { await db.rpc('marcar_seguimiento', { p_id: b.dataset.llok, p_hecho: true }); toast('Seguimiento cerrado'); pintarLlamadas(); });
-  }
-  // Se espera a que la pestaña termine de pintar su análisis para añadir el resto
-  for (let i = 0; i < 40 && $('llres2') && $('llres2').children.length < 2; i++) await new Promise(r => setTimeout(r, 100));
-  const r = $('llper').__rango();
-  const { data: s } = await RPC_ORIG('llamadas_resumen', { p_desde: r.desde, p_hasta: r.hasta });
-  if (!s || !$('llres2') || $('llcom')) return;
-  $('llres2').insertAdjacentHTML('beforeend', `
-    <div class="card ancard" id="llcom"><h2>Por comercial ${TT('medico', 's', 'del', 'l', 'l')}</h2>${(s.por_comercial || []).length ? `<div class="barrash">${s.por_comercial.map(x => `<div class="bh"><span class="bhn">${esc(x.comercial)}</span>
-        <span class="bhb"><i style="width:${Math.max(3, x.n / s.por_comercial[0].n * 100)}%"></i></span><b>${num(x.pedidos)}/${num(x.n)}</b></div>`).join('')}</div>` : vacioGrafico(`Aparecerá cuando haya llamadas con ${TT('medico', 's', '', 'l', 'l')}.`)}
-      <p class="leer"><b>Cómo leerlo:</b> pedidos sobre llamadas de ${TT('paciente', 'p', '', 'l', 'l')} que vienen de ${TT('medico', 'p', '', 'l', 'l')} de cada comercial. Mide el volumen que genera el trabajo de cada zona.</p></div>
-    <div class="card ancard"><h2>Por qué no compran</h2>${(s.no_compra || []).length ? barrasH(s.no_compra.map(x => ({ n: x.resultado, v: x.n })), num) : vacioGrafico('Sin llamadas sin compra en el periodo.')}
-      <p class="leer"><b>Qué hacer:</b> «Precio» pide revisar condiciones o argumentario; «Se lo piensa» y «Pagará más tarde» deben tener seguimiento programado (${num(s.seguimientos || 0)} pendientes).</p></div>`);
-})(pintarLlamadas);
 
 // Accesos a «Registrar llamada» desde Pedidos (ventas) y desde la ficha del cliente
 
@@ -25754,16 +26218,6 @@ Object.assign(RPC_TTL, { usuarios_resumen: 30, plan_uso: 60 });
 /* ---------------- marca de la empresa ---------------- */
 
 let MARCA = (() => { try { return JSON.parse(localStorage.getItem('app-marca')) || {}; } catch (e) { return {}; } })();
-function aplicarMarca() {
-  const n = nombreApp();
-  document.title = n;
-  document.querySelectorAll('meta[name="apple-mobile-web-app-title"]').forEach(m => m.content = n);
-  const logo = MARCA.logo;
-  document.querySelectorAll('header .logo, .lbox img, #bootsplash img').forEach(i => { if (logo) i.src = logo; i.alt = n; });
-  const h = document.querySelector('.lbox h1'); if (h) h.textContent = n;
-  const g = document.querySelector('#girar span:last-child'); if (g) g.textContent = n + ' se usa en vertical.';
-}
-aplicarMarca();
 // v2.103.0: la marca del dominio desde el que se abre (con varias empresas, cada una la suya)
 // v2.170.0: quien vuelve de darse de alta (?alta=ok) ve la marca de delcos, aunque la dirección sea la de otra empresa
 Promise.resolve(RPC_ORIG('marca_publica', { p_dominio: /[?&]alta=ok/.test(location.search) ? null : location.hostname })).then(r => {
@@ -25856,15 +26310,6 @@ function panelDeModulo(sec) {
 
 /* ---------------- menú «Más» del móvil: continuación de la barra ---------------- */
 
-abrirMasMovil = (orig => function () {
-  orig();
-  const s = $('bmas'); if (!s) return;
-  s.querySelectorAll('.bmasbox > .sm').forEach(x => x.remove());
-  s.querySelectorAll('[data-bm]').forEach(b => { const t = b.dataset.bm; if (!planIncluye(t)) { b.classList.add('bloq'); b.onclick = () => { s.classList.add('hide'); avisoPlan(t); }; } });
-  document.body.classList.add('masabierto');
-  const obs = new MutationObserver(() => { if (s.classList.contains('hide')) { document.body.classList.remove('masabierto'); obs.disconnect(); } });
-  obs.observe(s, { attributes: true, attributeFilter: ['class'] });
-})(abrirMasMovil);
 
 // Intentar entrar en un módulo que no incluye el plan
 
@@ -25885,7 +26330,6 @@ const TIPOS_NOTIF = [
   ['cruce', '🔁', `${TT('visita', 'p', '', 'l', 'C')} de otros a mi cartera`, `Cuando otra persona ${TT('visita', 's', '', 'l', 'l')} a ${TT('medico', 's', 'un', 'l', 'l')} que llevas`],
   ['pedido_validado', '📦', 'Pedidos confirmados', 'Cada pedido que se confirma (menos los tuyos)']
 ];
-pintarAvisos = refrescarCampana;
 // (v2.183.0: aquí iba la primera versión de panelNotificaciones; se redefine entera más abajo)
 
 // v2.242.0: aquí iba panelNotificacionesPaso1 (nadie la usaba)
@@ -25895,20 +26339,6 @@ pintarAvisos = refrescarCampana;
 // v2.242.0: aquí iba panelNotificacionesBase (nadie la usaba)
 setInterval(refrescarCampana, 30000);   // v2.281.0: cada 30 s (además, en vivo con el SQL 150)
 
-function pintarNotif() {
-  const pref = (PERFIL.preferencias || {}).notif || {}, tipos = tiposDeMiRol();
-  $('cfgcuerpo').innerHTML = `<div class="card cfgpanel"><h2>Notificaciones</h2>
-    <p class="sm">Te llegan a la campana 🔔 de arriba. Elige cuáles quieres recibir.</p>
-    ${tipos.length ? `<div class="notcfg">${tipos.map(([k, ic, t, d]) => `<label class="vfswitch"><input type="checkbox" data-nt="${k}" ${pref[k] === false ? '' : 'checked'}><span class="sw"></span>
-      <span><b>${ic} ${esc(t)}</b><br><span class="sm">${esc(d)}</span></span></label>`).join('')}</div>` : '<div class="vacio">Tu perfil no tiene notificaciones disponibles todavía.</div>'}</div>`;
-  $('cfgcuerpo').querySelectorAll('[data-nt]').forEach(c => c.onchange = async () => {
-    const notif = Object.assign({}, (PERFIL.preferencias || {}).notif || {}, { [c.dataset.nt]: c.checked });
-    const prefs = Object.assign({}, PERFIL.preferencias || {}, { notif });
-    const { data, error } = await db.rpc('guardar_preferencias', { p: prefs });
-    if (error) { toast('No se ha podido guardar', true); c.checked = !c.checked; return; }
-    PERFIL.preferencias = data || prefs; toast(c.checked ? 'Activada' : 'Desactivada');
-  });
-}
 
 /* ---------------- Mi perfil ---------------- */
 
@@ -25943,11 +26373,6 @@ function pintarNotif() {
 
 /* ---------------- logo: el de la empresa o uno neutro ---------------- */
 
-aplicarMarca = (orig => function () {
-  orig();
-  if (!MARCA.logo) document.querySelectorAll('header .logo, .lbox img, #bootsplash img').forEach(i => { i.src = LOGO_NEUTRO; });
-})(aplicarMarca);
-aplicarMarca();
 ;
 
 /* ---------------- planes alineados con el mercado ---------------- */
@@ -25998,15 +26423,6 @@ TIPOS_NOTIF.push(
   ['esquema', '€', 'Mi comisión', 'Cuando te asignan un esquema de comisión']);
 // Resumen del día: se genera la primera vez que se abre la plataforma cada día
 // Configuración de notificaciones agrupada
-pintarNotif = (orig => function () {
-  orig();
-  const c = $('cfgcuerpo').querySelector('.notcfg'); if (!c) return;
-  const al = ['citas_hoy', 'seguimientos_hoy', 'pagos_pendientes', 'facturas_vencidas', 'lotes_caducan', 'sin_visitar'];
-  const labels = [...c.children];
-  const dia = labels.filter(l => al.includes(l.querySelector('[data-nt]').dataset.nt));
-  if (dia.length) { c.insertAdjacentHTML('beforeend', '<h3 class="mansub">Resumen al empezar el día</h3>'); dia.forEach(l => c.appendChild(l)); }
-  if (labels.length > dia.length) c.insertAdjacentHTML('afterbegin', '<h3 class="mansub" style="margin-top:0">Al momento</h3>');
-})(pintarNotif);
 
 /* ---------------- idiomas ---------------- */
 
@@ -26116,7 +26532,7 @@ document.addEventListener('click', async e => {
    ============================================================ */
 
 let RECUPERANDO = RECUPERACION_URL;
-function pantallaRecuperacion() {
+function pantallaRecuperacionBase() {
   RECUPERANDO = true;
   document.documentElement.classList.add('recuperando');
   ['dlg', 'dlg2', 'ficha', 'mini'].forEach(id => { const d = $(id); if (d && d.open) try { d.close(); } catch (e) {} });
@@ -26162,7 +26578,6 @@ function pantallaRecuperacion() {
   if (q.get('clave') === 'cambiada') { setTimeout(() => avisar('Contraseña cambiada. Entra con tu contraseña nueva.', true), 300); history.replaceState(null, '', location.pathname); }
   if (ENLACE_CADUCADO) { setTimeout(() => avisar('El enlace ha caducado o ya se ha usado. Pide otro con «He olvidado la contraseña».', false), 300); history.replaceState(null, '', location.pathname); }
 })();
-if (RECUPERANDO) pantallaRecuperacion();
 
 
 /* ============================================================
@@ -26172,12 +26587,12 @@ if (RECUPERANDO) pantallaRecuperacion();
 
 
 // Pantalla de contraseña nueva: indicador y botón activo solo cuando es válida
-pantallaRecuperacion = (orig => function () {
-  orig();
+function pantallaRecuperacion() {
+  pantallaRecuperacionBase();
   const f = $('rform'); if (!f) return;
   f.noValidate = true;
   medidorClave($('rp1'), $('rp2'), $('rok'));
-})(pantallaRecuperacion);
+}
 // Si la pantalla ya se abrió al cargar (antes de este punto), se completa ahora
 if ($('rform')) { $('rform').noValidate = true; medidorClave($('rp1'), $('rp2'), $('rok')); }
 // Mi perfil → contraseña
@@ -26289,58 +26704,7 @@ ordenarMenu();
 
 /* ---------------- Configuración por bloques con subapartados ---------------- */
 
-async function cargarConfig() {
-  salirPanel();
-  if (CFG_ANTES[CFG_SEC]) { const [k, s] = CFG_ANTES[CFG_SEC]; CFG_SEC = k; if (s) CFG_SUB = s; }
-  const grupos = arbolConfig(), todos = grupos.flatMap(g => g[1]);
-  const plan = { k: 'plan', r: pintarPlan2 };
-  if (CFG_SEC !== 'plan' && !todos.some(x => x.k === CFG_SEC)) CFG_SEC = 'perfil';
-  $('v-config').innerHTML = `
-    <div class="saludo"><div><h1>Configuración</h1><div class="fecha">Todos los ajustes de tu cuenta y de la plataforma, en un solo sitio</div></div></div>
-    <div class="cfghub">
-      <nav class="cfgnav">${grupos.map(([g, l]) => `<div class="cfgg"><h3>${esc(g)}</h3>${l.map(x => {
-        const bloq = x.mod && !planIncluye(x.mod);
-        return `<button data-cfg="${x.k}"><span class="ci">${svgIco(ICON_NOM[x.ic] || '')}</span><span><b>${esc(x.t)}${bloq ? ` <span class="pill p-plan">${esc(planMinimo(x.mod) ? planMinimo(x.mod).nombre : 'Premium')}</span>` : ''}</b><em>${esc(x.d)}</em></span></button>`;
-      }).join('')}</div>`).join('')}</nav>
-      <div class="cfgcuerpo" id="cfgcuerpo-hub"><div class="cfgsubs hide" id="cfgsubs"></div><div id="cfgcuerpo"></div></div></div>`;
-  const abrir = (k, sub, desplazar) => {
-    salirPanel();
-    const it = k === 'plan' ? plan : todos.find(x => x.k === k); if (!it) return;
-    CFG_SEC = k; document.querySelectorAll('.cfgnav [data-cfg]').forEach(b => b.classList.toggle('on', b.dataset.cfg === k));
-    const subs = $('cfgsubs');
-    if (it.sub) {
-      CFG_SUB = it.sub.some(s => s[0] === sub) ? sub : it.sub[0][0];
-      subs.classList.remove('hide');
-      subs.innerHTML = it.sub.map(([s, t]) => `<button data-csub="${s}" class="${s === CFG_SUB ? 'on' : ''}">${esc(t)}</button>`).join('');
-      subs.querySelectorAll('[data-csub]').forEach(b => b.onclick = () => abrir(k, b.dataset.csub, false));
-    } else { subs.classList.add('hide'); subs.innerHTML = ''; CFG_SUB = null; }
-    $('cfgcuerpo').innerHTML = '';
-    // Apartado de un módulo que no incluye el plan: se explica en lugar de mostrarlo
-    if (it.mod && !planIncluye(it.mod)) {
-      const p = planMinimo(it.mod);
-      $('cfgcuerpo').innerHTML = `<div class="card cfgpanel planup"><div class="planupico">${svgIco(ICON_NOM.lock)}</div><h2>${esc(it.t)} está en el plan ${esc(p ? p.nombre : 'A medida')}</h2>
-        <p class="sm">Tu plan ${esc(planDe(PLAN_ACTUAL.plan).nombre)} no lo incluye. ${p ? `Con ${esc(p.nombre)} (${precioPlan(p)}) tienes:` : ''}</p>
-        ${p ? `<ul class="manlist">${p.ventajas.map(v => `<li><span>✓</span><span>${esc(v)}</span></li>`).join('')}</ul>` : ''}
-        ${puede('administrar') ? '<div class="acts"><button class="btn" id="planver">Ver planes</button></div>' : ''}</div>`;
-      if ($('planver')) $('planver').onclick = () => abrir('plan', null, true);
-    } else {
-      const r = it.sub ? it.sub.find(s => s[0] === CFG_SUB)[2] : it.r;
-      Promise.resolve().then(r);
-    }
-    if (ES_MOVIL()) { const hub = document.querySelector('.cfghub'); hub.classList.add('detalle'); cfgMovil(); }
-    if (desplazar) {
-      // Con margen bajo la cabecera, para que el primer bloque se vea entero
-      const cab = Math.max(0, ...['header', 'nav.main'].map(s => { const e = document.querySelector(s); return e ? e.getBoundingClientRect().bottom : 0; }));
-      const y = document.getElementById('cfgcuerpo-hub').getBoundingClientRect().top + scrollY - cab - 24;
-      if (Math.abs(scrollY - y) > 20) scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
-    }
-  };
-  document.querySelectorAll('.cfgnav [data-cfg]').forEach(b => b.onclick = () => abrir(b.dataset.cfg, null, true));
-  abrir(CFG_SEC, CFG_SUB, false);
-  cfgMovil();
-  if (ES_MOVIL() && !window.__CFG_DIRECTO) document.querySelector('.cfghub').classList.remove('detalle');
-  window.__CFG_DIRECTO = false;
-};
+;
 ;
 
 /* ---------------- manual: qué incluye tu plan ---------------- */
@@ -26406,7 +26770,6 @@ function aplicarEtiquetaBase() {
   if (h) { const tn = [...h.childNodes].find(x => x.nodeType === 3 && x.nodeValue.trim()); if (tn) tn.nodeValue = n; else h.insertAdjacentText('afterbegin', n); }
   const v = $('calvolver'); if (v) v.textContent = '‹ ' + n;
 }
-async function cargarAjustes() { await cargarAjustesBase(); aplicarEtiqueta(); }
 new MutationObserver(() => { const b = document.querySelector('#bnav [data-t="directorio"]'); if (b && !b.textContent.includes(etiquetaContactos())) aplicarEtiqueta(); })
   .observe(document.body, { childList: true, subtree: true });
 
@@ -26421,11 +26784,6 @@ Object.assign(CFG_ANTES, { marca: ['__empresa', 'marca'], correo: ['__empresa', 
 
 /* ---------------- Configuración: carga visible y errores claros ---------------- */
 
-cargarConfig = (orig => async function () {
-  // «Empresa» y «Plan» no están en el menú lateral: se abren desde el menú de usuario
-  if (CFG_SEC === 'empresa') CFG_SEC = '__empresa';
-  await orig();
-})(cargarConfig);
 // El grupo oculto no se pinta en el menú lateral
 new MutationObserver(() => document.querySelectorAll('.cfgnav .cfgg').forEach(g => { if (g.querySelector('h3') && g.querySelector('h3').textContent === '__oculto') g.remove(); }))
   .observe(document.body, { childList: true, subtree: true });
@@ -26447,7 +26805,6 @@ new MutationObserver(() => document.querySelectorAll('.cfgnav .cfgg').forEach(g 
 
 async function asignarCartera(id, ...r) { await asegurarUsuario(id); return asignarCarteraBase(id, ...r); }
 // Una llamada sin fecha se abre con la fecha de ahora (antes fallaba al abrirse)
-editorLlamada = (orig => function (l, ...r) { if (l && !l.fecha) l = Object.assign({}, l, { fecha: new Date().toISOString() }); return orig(l, ...r); })(editorLlamada);
 
 
 
@@ -26571,40 +26928,6 @@ const MOD_PLAN = [
   ['ventas', 'Pedidos y llamadas', 'Ventas, compras, proveedores y televenta'], ['pacientes', 'Clientes', `${TT('paciente', 'p', '', 'l', 'C')} y empresas con su historial`],
   ['productos', 'Productos y stock', 'Catálogo, lotes, caducidades y almacenes'], ['analitica', 'Analítica', `Ventas, ranking de ${TT('medico', 'p', '', 'l', 'l')} y comisiones`],
   ['facturacion', 'Facturación', 'Facturas con VeriFactu, cobros y rectificativas']];
-async function pintarPaginaPlan() {
-  const { data } = await RPC_ORIG('plan_uso', {});
-  const d = data || {}, act = planDe((d.plan || {}).plan), bloques = +((d.plan || {}).bloques_extra || 0);
-  const maxU = act.incluidos + bloques * act.bloque[0], pct = Math.min(100, Math.round((d.usuarios || 0) / maxU * 100));
-  const enlaces = ((d.pagos || {}).enlaces) || {};
-  $('cfgcuerpo').innerHTML = `
-    <div class="planhero"><div><div class="planeti">Tu plan</div><h1>${esc(act.nombre)}</h1><p>${esc(act.para)}</p></div>
-      <div class="planheronum"><b>${num(d.usuarios || 0)} <span>/ ${num(maxU)}</span></b><span>usuarios activos</span><div class="barra"><i style="width:${pct}%"></i></div>
-        <span class="sm">${eurI(act.precio)}/mes · ${act.incluidos} usuarios incluidos${bloques ? ` + ${bloques} extra` : ''}</span></div></div>
-    <h2 class="plantit">Elige cómo crece tu equipo</h2>
-    <div class="planes">${PLANES.map((p, i) => `<div class="plan ${p.id === act.id ? 'actual' : ''} ${p.id === 'avanzado' ? 'dest' : ''}">
-      ${p.id === 'avanzado' ? '<span class="plancinta">El más elegido</span>' : ''}${p.id === act.id ? '<span class="plancinta actualc">Tu plan</span>' : ''}
-      <h3>${esc(p.nombre)}</h3><div class="sm">${esc(p.para)}</div>
-      <div class="planprecio"><b>${eurI(p.precio)}</b><span>/mes</span></div>
-      <div class="sm">${p.incluidos} usuarios · usuario extra ${eurI(p.bloque[1])}/mes</div>
-      <ul class="manlist">${p.ventajas.map(v => `<li><span>✓</span><span>${esc(v)}</span></li>`).join('')}</ul>
-      ${p.id === act.id ? '<button class="btn sec" disabled>Tu plan actual</button>' : `<button class="btn ${p.id === 'avanzado' ? '' : 'sec'}" data-pcontratar="${p.id}">${i > PLANES.indexOf(act) ? 'Mejorar a ' : 'Cambiar a '}${esc(p.nombre)}</button>`}
-    </div>`).join('')}</div>
-    <h2 class="plantit">Qué incluye cada plan</h2>
-    <div class="card"><div class="dgrid-wrap"><table class="planmat"><thead><tr><th>Módulo</th>${PLANES.map(p => `<th class="${p.id === act.id ? 'act' : ''}">${esc(p.nombre)}</th>`).join('')}</tr></thead>
-      <tbody>${MOD_PLAN.map(([m, n, desc]) => `<tr><td><b>${esc(n)}</b><span class="sm">${esc(desc)}</span></td>${PLANES.map(p => `<td class="${p.id === act.id ? 'act' : ''}">${p.modulos.includes(m) ? '<span class="si">✓</span>' : '<span class="no">—</span>'}</td>`).join('')}</tr>`).join('')}
-        <tr><td><b>Usuarios incluidos</b></td>${PLANES.map(p => `<td class="${p.id === act.id ? 'act' : ''}"><b>${p.incluidos}</b></td>`).join('')}</tr>
-        <tr><td><b>${TT('medico', 'p', '', 'l', 'C')} con acceso a su informe</b></td>${PLANES.map(p => `<td class="${p.id === act.id ? 'act' : ''}">${p.medicos === null ? 'Sin límite' : p.medicos ? p.medicos : '—'}</td>`).join('')}</tr></tbody></table></div></div>
-    <div class="card cfgpanel"><h3 style="margin-top:0">Cómo funciona</h3><ul class="manlist">
-      <li><span>💳</span><span>Pago mensual con tarjeta, sin permanencia.</span></li>
-      <li><span>👥</span><span>Si el equipo crece, se añaden usuarios sueltos sin cambiar de plan.</span></li>
-      <li><span>🩺</span><span>${TT('medico', 'p', 'el', 'C', 'l')} con acceso a su informe no cuentan como usuarios.</span></li>
-      <li><span>🔄</span><span>El cambio de plan se aplica en cuanto se confirma el pago.</span></li></ul>
-      <div class="acts"><button class="btn sec" id="pextra">+ Añadir un usuario (${eurI(act.bloque[1])}/mes)</button></div></div>`;
-  const contratar = clave => { if (enlaces[clave]) { window.open(enlaces[clave], '_blank', 'noopener'); return; }
-    location.href = `mailto:${encodeURIComponent((d.pagos || {}).contacto || '')}?subject=${encodeURIComponent('Contratación: ' + clave)}&body=${encodeURIComponent('Empresa: ' + nombreApp() + '\nQuiero: ' + clave)}`; };
-  $('cfgcuerpo').querySelectorAll('[data-pcontratar]').forEach(b => b.onclick = () => contratar(b.dataset.pcontratar));
-  $('pextra').onclick = () => contratar('usuario-' + act.id);
-}
 
 
 /* ============================================================
@@ -26632,7 +26955,7 @@ document.addEventListener('click', e => {
 
 /* ---------------- IVA: selector con los tipos legales ---------------- */
 
-function ivaSelector(inp) {
+function ivaSelectorBase(inp) {
   if (!inp || inp.dataset.ivasel || inp.type === 'hidden') return;
   inp.dataset.ivasel = '1';
   const v = inp.value === '' ? '' : +inp.value;
@@ -26851,23 +27174,13 @@ function panelColumnasBase2(titulo, cols, alCambiar) {
 
 /* ---------------- 5. Campos de formulario ---------------- */
 
-ivaSelector = (orig => function (inp) {
+function ivaSelectorBase2(inp) {
   if (!inp || inp.dataset.ivasel) return;
   inp.dataset.sel = '1';                                   // sin botones de sumar y restar
   const w = inp.closest('.numw');
   if (w) { w.parentNode.insertBefore(inp, w); w.remove(); }   // si ya los tenía, se quitan
-  orig(inp);
-})(ivaSelector);
-// Cantidades con botones; importes y porcentajes sin ellos (sumar de uno en uno a un importe no tiene sentido)
-mejorarCampos = (orig => function (raiz) {
-  (raiz || document).querySelectorAll('input[type=number]:not([data-sel])').forEach(i => {
-    if (ES_IVA(i)) { ivaSelector(i); return; }
-    const txt = (i.id + ' ' + (i.dataset.f || '') + ' ' + (i.placeholder || '') + ' ' + (((i.id && document.querySelector(`label[for="${i.id}"]`)) || i.closest('label') || {}).textContent || '')).toLowerCase();
-    const decimal = /^(0?\.\d+|any)$/.test(i.getAttribute('step') || '');
-    if (decimal || /€|precio|importe|coste|portes|env[ií]o|descuento|pvp|cobro|total|base/.test(txt)) { i.dataset.sel = '1'; i.classList.add('numdec'); }
-  });
-  return orig(raiz);
-})(mejorarCampos);
+  ivaSelectorBase(inp);
+}
 new MutationObserver(ms => { for (const m of ms) for (const n of m.addedNodes) if (n.nodeType === 1)
   (n.matches && n.matches('input[type=number],input[type=text]') ? [n] : [...n.querySelectorAll('input[type=number],input[type=text]')]).forEach(i => { if (!i.dataset.ivasel && ES_IVA(i) && !/iban|precio|importe/i.test(i.id)) ivaSelector(i); });
 }).observe(document.body, { childList: true, subtree: true });
@@ -26905,14 +27218,6 @@ Object.assign(ICON_NOM, {"arrow-left": "<path d=\"m12 19-7-7 7-7\" /> <path d=\"
 
 // La cabecera de la pantalla es para acciones (crear, registrar…). Buscar, filtros y columnas
 // van en la barra de la propia tabla, a la derecha, como en Prescriptores
-function barraTabla(sec) {
-  const b = sec.querySelector('.htbtn'), g = sec.querySelector('.dgrid');
-  if (!b || !g || b.closest('.tbarra, .filtros')) return;
-  const caja = g.closest('.card, .panel') || g.parentElement;
-  let barra = caja.querySelector(':scope > .filtros:not(.hide)') || caja.querySelector(':scope > .tbarra');
-  if (!barra) { caja.insertAdjacentHTML('afterbegin', '<div class="tbarra"></div>'); barra = caja.querySelector(':scope > .tbarra'); }
-  barra.classList.add('conbtn'); barra.appendChild(b); b.classList.add('aderecha');
-}
 function ordenarBotones(sec) {
   // Cabecera: secundarios → acción principal → «Filtros y columnas» (el último: el mismo sitio en todas las pantallas)
   sec.querySelectorAll('.saludo .acts, #dircab .acts').forEach(acts => {
@@ -26955,7 +27260,7 @@ new MutationObserver(() => {
     if (inp.id) { const l = document.querySelector(`label[for="${inp.id}_sel"]`); if (l) l.setAttribute('for', inp.id); }
   });
 }).observe(document.body, { childList: true, subtree: true });
-ivaSelector = (orig => function (inp) { if (!inp || !esPorcentajeIva(inp)) return; return orig(inp); })(ivaSelector);
+function ivaSelector(inp) { if (!inp || !esPorcentajeIva(inp)) return; return ivaSelectorBase2(inp); }
 
 /* ---------------- 5. Archivos: sin el recuadro antiguo; notas de varias líneas ---------------- */
 
@@ -26971,7 +27276,6 @@ VENT_AMPLIA.forEach(fn => {
   eval(`${fn} = nueva`);
 });
 new MutationObserver(() => { if (!$('dlg').open) $('dlg').classList.remove('amplia'); }).observe($('dlg'), { attributes: true, attributeFilter: ['open'] });
-nuevaCita = (orig => function (...a) { const r = orig.apply(this, a); $('dlg').classList.add('pequena'); return r; })(nuevaCita);
 new MutationObserver(() => { if (!$('dlg').open) $('dlg').classList.remove('pequena'); }).observe($('dlg'), { attributes: true, attributeFilter: ['open'] });
 
 /* ---------------- 7. Pila de ventanas: abrir una encima de otra sin perder la anterior ---------------- */
@@ -26989,29 +27293,6 @@ $('dlg').addEventListener('close', () => {
 
 /* ---------------- 9. Plan: «Cómo funciona» explicado paso a paso ---------------- */
 
-pintarPaginaPlan = (orig => async function () {
-  await orig();
-  const cont = $('cfgcuerpo'); const viejo = [...cont.querySelectorAll('.card.cfgpanel')].find(c => /Cómo funciona/.test(c.textContent)); if (!viejo) return;
-  const act = planDe(PLAN_ACTUAL.plan);
-  viejo.outerHTML = `<h2 class="plantit">Cómo funciona</h2>
-    <div class="pasosplan">
-      ${[['mouse-pointer-click', 'Eliges tu plan', 'Según los módulos que necesitas. Puedes empezar por uno pequeño y crecer después.'],
-         ['credit-card', 'Pagas de forma segura', 'Con tarjeta, cada mes y sin permanencia. Recibes la factura por correo.'],
-         ['zap', 'Se activa al momento', 'En cuanto se confirma el pago, los módulos del plan se desbloquean para todo tu equipo.'],
-         ['users', 'Creces cuando quieras', `Añade usuarios sueltos (${eurI(act.bloque[1])}/mes cada uno) o cambia de plan. ${TT('medico', 'p', 'el', 'C', 'l')} con acceso a su informe no cuentan.`]]
-        .map(([ic, t, d], i) => `<div class="pasoplan"><span class="pasonum">${i + 1}</span><span class="pasoico">${svgIco(ICON_NOM[ic])}</span><b>${t}</b><p>${d}</p></div>`).join('')}
-    </div>
-    <h2 class="plantit">Preguntas frecuentes</h2>
-    <div class="card faqplan">${[
-      ['¿Puedo cambiar de plan en cualquier momento?', 'Sí. Al mejorar, los módulos nuevos se activan en cuanto se confirma el pago. Al bajar de plan, el cambio se aplica al siguiente mes y tus datos se conservan.'],
-      ['¿Qué pasa con mis datos si dejo de pagar o me doy de baja?', 'Tus datos son tuyos: antes de la baja puedes descargar una copia completa desde Empresa → Copias de seguridad.'],
-      ['¿Cómo se cuentan los usuarios?', `Cuenta cada persona activa del equipo. ${TT('medico', 'p', 'el', 'C', 'l')} que solo ven su informe no cuentan, y las personas desactivadas tampoco.`],
-      ['¿Los precios incluyen IVA?', 'No. Los precios son sin IVA; en la factura se añade el IVA que corresponda.'],
-      ['¿Hay permanencia?', 'No. El pago es mensual y puedes cancelar cuando quieras.']]
-      .map(([q, a]) => `<details><summary>${esc(q)}${svgIco(ICON_NOM['chevron-down'])}</summary><p>${esc(a)}</p></details>`).join('')}</div>
-    <div class="acts" style="justify-content:flex-start"><button class="btn sec" id="pextra">+ Añadir un usuario (${eurI(act.bloque[1])}/mes)</button></div>`;
-  const b = $('pextra'); if (b) b.onclick = () => { const d = document.querySelector('[data-pcontratar]'); location.href = 'mailto:?subject=' + encodeURIComponent('Añadir un usuario · ' + nombreApp()); };
-})(pintarPaginaPlan);
 
 /* ---------------- 10. Reportar un problema: guiado y útil para quien lo resuelve ---------------- */
 
@@ -27327,11 +27608,7 @@ if (AYUDA.rutas) AYUDA.rutas[2].push(`Con <b>Añadir un centro</b> entran todos 
 
 
 // Barra inferior del móvil y barra de «Entrar como» desde el primer momento
-pintarBnav();
 
-pintarConexion();
-vaciarCola();
-arrancar();
 
 /* v2.71.0 · Textos fijos de index.html con el vocabulario del cliente (solo si lo ha cambiado) */
 (function () {
@@ -27350,18 +27627,17 @@ arrancar();
 
 
 // ---------- Valor visible de mes y de fecha con hora ----------
-valorVisible = (orig => function (inp) {
+function valorVisible(inp) {
   const t = selTipo(inp);
-  if (t !== 'mes' && t !== 'fechahora') return orig(inp);
+  if (t !== 'mes' && t !== 'fechahora') return valorVisibleBase(inp);
   const w = inp.closest('.selw'), sp = w && w.querySelector('.selval'); if (!sp) return;
   const v = inp.value;
   if (!v) { sp.textContent = t === 'mes' ? 'Elige un mes' : 'Elige fecha y hora'; sp.classList.add('vacio'); return; }
   sp.classList.remove('vacio');
   if (t === 'mes') { const [y, mm] = v.split('-'); sp.textContent = `${MESES_L[+mm - 1] || ''} ${y}`; return; }
   sp.textContent = `${selFechaMedia(v.slice(0, 10))} · ${v.slice(11, 16)}`;
-})(valorVisible);
+}
 
-mejorarCampos = (orig => function (raiz) { orig(raiz); mejorarCamposNuevos(raiz); })(mejorarCampos);
 mejorarCamposNuevos(document);
 
 // Números: mantener pulsado «+» o «−» repite; el último clic no suma otra vez
@@ -27483,53 +27759,6 @@ PLANES.splice(0, PLANES.length,
     ventajas: ['Todo lo de Empresa', 'Migración de datos', 'Conexión con tu programa de gestión', `Espacio ${TT('medico', 's', 'del', 'l', 'l')} sin límite`,
       'Ver la plataforma como cada persona de tu equipo, para ayudarla', 'Soporte prioritario'] });
 
-// Plan y suscripción: tu plan (usuarios contratados, pago, prueba), los cuatro planes y la comparativa por módulos
-pintarPaginaPlan = async function () {
-  const { data } = await RPC_ORIG('plan_uso', {});
-  const d = data || {}, pl = d.plan || {}; if (pl.plan) PLAN_ACTUAL = pl;
-  const act = planDe(pl.plan), contr = usuariosContratados(), usados = +d.usuarios || 0, anual = pl.pago === 'anual';
-  const pct = contr === Infinity ? 0 : Math.min(100, Math.round(usados / contr * 100));
-  // Con pago anual se pagan 10 meses de 12: la cuota mensual equivalente es precio × 10 / 12
-  const cuota = act.presupuesto || contr === Infinity ? null : contr * (anual ? act.precio * 10 / 12 : act.precio);
-  const mailto = asunto => 'mailto:?subject=' + encodeURIComponent(asunto + ' · ' + ((AJUSTES.marca || {}).nombre || ''));
-  const cont = $('cfgcuerpo'); if (!cont) return;
-  // El plan que se destaca es el siguiente al tuyo (con A medida, ninguno)
-  const siguiente = PLANES[PLANES.indexOf(act) + 1] || null;
-  // v2.120.0: «incluido» y «no incluido» como icono y raya suave, con su texto para lectores de pantalla
-  const celda = (p, v) => `<td class="${p.id === act.id ? 'act' : ''}">${v === '✓' ? `<span class="si" role="img" aria-label="Incluido">${svgIco(ICON_NOM.check)}</span>`
-    : v === '—' ? '<span class="no" role="img" aria-label="No incluido">—</span>' : v}</td>`;
-  cont.innerHTML = `${TAB === 'organizacion' || TAB === 'config' ? '<p class="sm">Precio por usuario y mes, IVA no incluido. Con pago anual pagas 10 meses de 12.</p>' : '<div class="saludo"><div><h1>Plan y suscripción</h1><div class="fecha">Precio por usuario y mes, IVA no incluido. Con pago anual pagas 10 meses de 12.</div></div></div>'}
-    <div class="card" id="planact"><h2>Tu plan: ${esc(act.nombre)}</h2>
-      ${pl.estado === 'prueba' ? `<div class="banda-aviso">Estás en la prueba gratuita hasta el <b>${fechaCorta(pl.prueba_hasta)}</b>. Sin permanencia: si no sigues, te llevas tus datos.</div>` : ''}
-      <div class="kpis">
-        <div class="kpi"><b>${contr === Infinity ? 'Sin límite' : num(contr)}</b><span>Usuarios contratados</span></div>
-        <div class="kpi"><b>${num(usados)}</b><span>Usuarios en uso</span></div>
-        <div class="kpi"><b>${act.presupuesto ? 'A medida' : anual ? 'Anual' : 'Mensual'}</b><span>Pago</span></div>
-        ${cuota != null ? `<div class="kpi"><b>${eurI(cuota)}</b><span>Al mes, sin IVA</span></div>` : ''}
-        ${act.medicos !== 0 ? `<div class="kpi"><b>${num(d.medicos || 0)}${act.medicos ? ' / ' + act.medicos : ''}</b><span>${TT('medico', 'p', '', 'l', 'C')} con acceso</span></div>` : ''}
-      </div>
-      ${contr !== Infinity ? `<div class="barrauso" title="${num(usados)} de ${num(contr)}"><i style="width:${pct}%"></i></div>` : ''}
-      ${contr !== Infinity && usados > contr ? `<div class="banda-aviso" id="plansobre">Tienes ${usados - contr === 1 ? '1 usuario' : num(usados - contr) + ' usuarios'} más de ${num(contr)} contratados. Añádelos a tu plan o desactiva los que ya no usen la plataforma.</div>` : ''}
-      <div class="acts"><a class="btn sec" href="${mailto('Cambiar el número de usuarios')}">Añadir o quitar usuarios</a></div></div>
-    <div class="planes">${PLANES.map(p => `<div class="plan ${p.id === act.id ? 'actual' : ''} ${p === siguiente ? 'dest' : ''}" data-plan="${p.id}">
-      <h3>${esc(p.nombre)}</h3><div class="sm">${esc(p.para)}</div>
-      <div class="precio">${p.presupuesto ? '<b>A medida</b> <span class="sm">Presupuesto · desde 50 usuarios</span>'
-        : `<b>${eurI(p.precio)}</b> <span class="sm">por usuario al mes · ${eurI(p.anual)} con pago anual (${eurI(p.precio * 10)} al año)</span>`}</div>
-      <ul class="manlist">${p.ventajas.map(v => `<li><span>✓</span><span>${esc(v)}</span></li>`).join('')}</ul>
-      ${p.id === act.id ? '<button class="btn sec" disabled>Tu plan actual</button>'
-        : `<a class="btn ${p === siguiente ? '' : 'sec'}" href="${mailto(p.presupuesto ? 'Presupuesto del plan A medida' : 'Cambiar al plan ' + p.nombre)}">${p.presupuesto ? 'Pedir presupuesto' : 'Cambiar a ' + esc(p.nombre)}</a>`}</div>`).join('')}</div>
-    <div class="card" id="plancond"><h2>Condiciones</h2><ul class="manlist">
-      <li><span>✓</span><span>Mínimo 3 usuarios en Campo, Comercial y Empresa. Añades o quitas usuarios cuando quieras.</span></li>
-      <li><span>✓</span><span>Puesta en marcha (importar tus Excel, configurar la empresa y formar al equipo): incluida con pago anual; con pago mensual, ${eurI(PUESTA_EN_MARCHA)} una sola vez.</span></li>
-      <li><span>✓</span><span>Prueba de 30 días con tus propios datos, sin permanencia. Si no sigues, te llevas tus datos.</span></li>
-      <li><span>✓</span><span>Desarrollos y configuraciones a medida: presupuesto según lo que necesites.</span></li></ul></div>
-    <div class="card"><h2>Qué incluye cada plan</h2><div class="dgrid-wrap"><table class="planmat"><thead><tr><th>Módulo</th>${PLANES.map(p => `<th class="${p.id === act.id ? 'act' : ''}">${esc(p.nombre)}</th>`).join('')}</tr></thead>
-      <tbody>${MOD_PLAN.map(([m, n, desc]) => `<tr><td><b>${esc(n)}</b><span class="sm">${esc(desc)}</span></td>${PLANES.map(p => celda(p, p.modulos.includes(m) ? '✓' : '—')).join('')}</tr>`).join('')}
-        <tr><td><b>Espacio ${TT('medico', 's', 'del', 'l', 'l')}</b><span class="sm">Su informe y sus avisos</span></td>${PLANES.map(p => celda(p, p.medicos === 0 ? '—' : p.medicos ? 'Hasta ' + p.medicos : 'Sin límite')).join('')}</tr>
-        <tr><td><b>Ver la plataforma como cada persona</b><span class="sm">De tu equipo, para ayudarla</span></td>${PLANES.map(p => celda(p, p.id === 'medida' ? '✓' : '—')).join('')}</tr>
-        <tr><td><b>Precio por usuario</b><span class="sm">Al mes, IVA no incluido</span></td>${PLANES.map(p => celda(p, p.presupuesto ? 'A medida' : eurI(p.precio) + ' · ' + eurI(p.anual) + ' anual')).join('')}</tr>
-      </tbody></table></div></div>`;
-};
 
 
 
@@ -27562,7 +27791,7 @@ ir = function (t, ...a) {
   if (t === 'organizacion' && !puedeOrganizacion()) t = 'inicio';
   return IR_V2121(t, ...a);
 };
-mostrarApp = (orig => function (...a) { const r = orig(...a); menuOrganizacion(); return r; })(mostrarApp);
+function mostrarApp(...a) { const r = mostrarAppBase(...a); menuOrganizacion(); return r; }
 document.addEventListener('click', e => {
   const b = e.target.closest('[data-u="organizacion"]'); if (!b) return;
   e.stopImmediatePropagation(); e.preventDefault();
@@ -27618,9 +27847,6 @@ document.addEventListener('click', e => { if (e.target.closest('.cfgnav [data-cf
 const IR_ENCAJE = ir;
 ir = function (...a) { cerrarEncajadas(); return IR_ENCAJE(...a); };
 addEventListener('resize', () => ['dlg', 'dlg2'].forEach(id => { const d = $(id); if (d && d.open && d.__area) { if (innerWidth < ENCAJE_MIN) d.close(); else colocarEncajada(d, d.__area); } }));
-// Si la app ya estaba a la vista al cargar este bloque (arranque con el perfil guardado), el menú se ajusta igualmente
-if (typeof PERFIL !== 'undefined' && PERFIL) menuOrganizacion();
-cargarAjustes = (orig => async function (...a) { const r = await orig(...a); if (PERFIL) menuOrganizacion(); return r; })(cargarAjustes);
 
 
 const CAMPO_TXT = { nombre: 'Nombre', estado_comercial: 'Estado', get especialidad() { return TT('especialidad', 's', '', 'l', 'C'); }, area: 'Área', telefono: 'Teléfono', movil: 'Móvil', email: 'Email',
@@ -27630,93 +27856,7 @@ const CAMPO_TXT = { nombre: 'Nombre', estado_comercial: 'Estado', get especialid
 
 
 
-editorLlamada = editorOportunidad;
 
-pintarLlamadas = async function () {
-  await catOportunidades();
-  $('vcuerpo').innerHTML = `<div class="panel">
-    <div id="llsegz"></div>
-    <div class="filtros"><div id="llper"></div>
-      <div><label for="llq">Buscar</label><input id="llq" type="search" placeholder="Cliente, teléfono o ${TT('medico', 's', '', 'l', 'l')}"></div>
-      <div><label for="llfres">Resultado</label><select id="llfres"><option value="">Todos</option><option>Sin cerrar</option>${(CAT.resultado_llamada || []).map(x => `<option>${esc(x.valor)}</option>`).join('')}</select></div></div>
-    <div class="kpis vtot" id="lltot"></div>
-    <div class="angrid" id="llres2" style="margin:0 0 14px"></div>
-    <div id="lllista"></div></div>`;
-  let tq;
-  const segs = async () => {
-    const { data: seg } = await RPC_ORIG('llamadas_seguimiento', {});
-    const l = seg || [], hoy = hoyISO();
-    if (!$('llsegz')) return;
-    $('llsegz').innerHTML = !l.length ? '' : `<div class="card" id="llsegs"><h2>Volver a llamar<span class="n">${l.length}</span></h2>
-      <p class="sm" style="padding:0 16px">Clientes que no compraron y a los que quedaste en volver a llamar.</p>
-      <div class="lista">${l.slice(0, 20).map(x => `<div class="item" style="cursor:default">
-        <span class="ic" style="${x.proxima_fecha < hoy ? 'background:#FDECEC;color:var(--dang)' : x.proxima_fecha === hoy ? 'background:#FFF4E5;color:var(--warn)' : ''}">📞</span>
-        <span class="tx"><b>${esc(x.cliente || x.nombre || 'Sin nombre')}</b>
-          <span class="sm">${x.proxima_fecha < hoy ? '<b style="color:var(--dang)">Atrasada · </b>' : x.proxima_fecha === hoy ? '<b style="color:var(--warn)">Hoy · </b>' : fechaCorta(x.proxima_fecha) + ' · '}${esc(x.resultado || '')}${x.proxima_accion ? ' · ' + esc(x.proxima_accion) : ''}${x.medico ? ' · de ' + esc(x.medico) : ''}</span></span>
-        <span class="acts" style="margin:0;flex-wrap:nowrap">${(x.tel_cliente || x.telefono) ? `<a class="btn sec chico" href="tel:${esc(x.tel_cliente || x.telefono)}">Llamar</a>` : ''}
-          <button class="btn chico" data-llseg="${x.id}">Registrar</button><button class="btn sec chico" data-llok="${x.id}" title="Ya no hace falta">✓</button></span></div>`).join('')}</div></div>`;
-    $('llsegz').querySelectorAll('[data-llseg]').forEach(b => b.onclick = async () => {
-      const x = l.find(y => y.id === b.dataset.llseg);
-      const { data: an } = await db.from('llamadas').select('interes').eq('id', x.id).maybeSingle();
-      editorOportunidad({ contacto_id: x.contacto_id, cliente: x.cliente, nombre: x.nombre, telefono: x.telefono, tel_cliente: x.tel_cliente, cuenta_id: x.cuenta_id, medico: x.medico,
-        motivo: 'Seguimiento de televenta', origen: 'Llamada saliente', interes: (an && an.interes) || [] }, x);
-    });
-    $('llsegz').querySelectorAll('[data-llok]').forEach(b => b.onclick = async () => { await db.rpc('marcar_seguimiento', { p_id: b.dataset.llok, p_hecho: true }); toast('Seguimiento cerrado'); segs(); });
-  };
-  const pinta = async () => {
-    const r = $('llper').__rango();
-    const [{ data: l }, { data: s }] = await Promise.all([
-      db.rpc('llamadas_lista', { p_desde: r.desde, p_hasta: r.hasta, q: $('llq').value.trim() || null, p_resultado: $('llfres').value || null }),
-      db.rpc('llamadas_resumen', { p_desde: r.desde, p_hasta: r.hasta })]);
-    if (!$('lllista')) return;
-    const res = s || {}, lista = l || [], cerradas = (res.total || 0) - (res.sin_cerrar || 0);
-    $('lltot').innerHTML = `<div class="kpi"><b>${num(res.total || 0)}</b><span>Oportunidades</span></div>
-      <div class="kpi"><b>${num(res.con_pedido || 0)}</b><span>Acaban en pedido</span></div>
-      <div class="kpi"><b>${cerradas ? Math.round((res.con_pedido || 0) / cerradas * 100) + '%' : '—'}</b><span>Conversión</span></div>
-      <div class="kpi"><b>${eurI(res.importe_ganado || 0)}</b><span>Vendido</span></div>
-      <div class="kpi"><b>${eurI(res.importe_perdido || 0)}</b><span>Sin vender</span></div>
-      <div class="kpi"><b>${num(res.sin_cerrar || 0)}</b><span>Sin cerrar</span></div>`;
-    // v2.127.0: la barra es el total (azul suave) y dentro, en azul, la parte que acaba en pedido; el texto dice «ganadas de total»
-    const ratio = (x, i, max) => `<div class="bh bhr"><span class="bhn">${esc(x.n)}</span><span class="bhb" title="${num(x.p)} de ${num(x.t)} acaban en pedido"><i style="width:${Math.max(3, x.t / max * 100)}%"><em style="width:${x.t ? Math.round(x.p / x.t * 100) : 0}%"></em></i></span><b>${num(x.p)}<span>/${num(x.t)}</span></b></div>`;
-    const barrasR = items => { const max = Math.max(1, ...items.map(x => x.t)); return `<div class="barrash">${items.map((x, i) => ratio(x, i, max)).join('')}</div>`; };
-    const card = (id, t, cuerpo, leer) => `<div class="card ancard" id="${id}"><h2>${t}</h2>${cuerpo}<p class="leer">${leer}</p></div>`;
-    $('llres2').innerHTML =
-      card('llgprod', 'Qué piden', (res.por_producto || []).length ? barrasR(res.por_producto.map(x => ({ n: x.producto, p: +x.unidades_ganadas || 0, t: +x.unidades || 0 })))
-        : vacioGrafico('Apunta qué producto y cuántas unidades quiere cada cliente.'),
-        '<b>Cómo leerlo:</b> unidades vendidas sobre las que pidieron. Mucha diferencia en un producto señala precio, stock o argumentario.') +
-      card('llgres', 'Cómo terminan', (res.por_resultado || []).length ? barrasH(res.por_resultado.map(x => ({ n: x.resultado, v: x.n })), num) : vacioGrafico('Aparecerá con las primeras oportunidades.'),
-        '<b>Cómo leerlo:</b> si pesan «El precio no le convence» o «Solo quería información», conviene revisar el argumentario o las condiciones.') +
-      card('llghora', 'A qué hora', (res.por_hora || []).length ? barrasR(res.por_hora.map(x => ({ n: `${String(x.hora).padStart(2, '0')}:00`, p: x.pedidos, t: x.n }))) : vacioGrafico('Verás en qué horas llegan y cuáles venden más.'),
-        '<b>Para qué sirve:</b> poner más gente al teléfono en las horas con más oportunidades.') +
-      card('llgdia', 'Qué día', (res.por_dia || []).length ? barrasR(res.por_dia.map(x => ({ n: NV_DIA_TXT[x.dia] || '', p: x.pedidos, t: x.n }))) : vacioGrafico('Verás qué días de la semana llegan más.'),
-        '<b>Cómo leerlo:</b> pedidos sobre oportunidades de cada día de la semana.') +
-      card('llgori', 'Cómo llegan', (res.por_origen || []).length ? barrasR(res.por_origen.map(x => ({ n: x.origen, p: x.pedidos, t: x.n }))) : vacioGrafico('Marca en cada venta cómo llegó el cliente.'),
-        '<b>Cómo leerlo:</b> pedidos sobre oportunidades por canal: dónde merece la pena invertir.') +
-      card('llgmed', `Por ${TT('medico', 's', '', 'l', 'l')} de referencia`, (res.por_medico || []).length ? barrasR(res.por_medico.map(x => ({ n: x.medico, p: x.pedidos, t: x.n }))) : vacioGrafico(`Verás qué ${TT('medico', 'p', '', 'l', 'l')} y centros mandan clientes.`),
-        `<b>Cómo leerlo:</b> ${TT('medico', 's', 'un', 'C', 'l')} con muchas oportunidades y pocos pedidos es una oportunidad de seguimiento.`) +
-      card('llcom', `Por comercial ${TT('medico', 's', 'del', 'l', 'l')}`, (res.por_comercial || []).length ? barrasR(res.por_comercial.map(x => ({ n: x.comercial, p: x.pedidos, t: x.n }))) : vacioGrafico(`Aparecerá cuando las oportunidades tengan ${TT('medico', 's', '', 'l', 'l')} de referencia.`),
-        `<b>Cómo leerlo:</b> el volumen que genera el trabajo de cada zona.`);
-    const tamL = tamPagina(); LLPAG = Math.min(LLPAG, Math.max(0, Math.ceil(lista.length / tamL) - 1));
-    const lvis = lista.slice(LLPAG * tamL, LLPAG * tamL + tamL);
-    const interes = x => (x.interes || []).map(y => `${y.producto} × ${num(y.unidades)}`).join(', ');
-    $('lllista').innerHTML = lista.length ? `<div class="dgrid-wrap"><div class="dgrid llam opor">
-      <div class="dh"><span>Fecha</span><span>Cliente</span><span>Qué quiere</span><span>${TT('medico', 's', '', 'l', 'C')}</span><span>Cómo termina</span><span>Próximo paso</span><span>Atendió</span></div>
-      ${lvis.map(x => `<button class="dr" data-ll="${x.id}"><span>${new Date(x.fecha).toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' })}<span class="sm">${esc(x.origen || x.direccion || '')}</span></span>
-        <span><b>${esc(x.cliente || x.nombre || '—')}</b><span class="sm">${esc(x.tel_cliente || x.telefono || '')}</span></span>
-        <span class="corta">${esc(interes(x) || '—')}${x.importe_estimado ? `<span class="sm">${eurI(x.importe_estimado)}</span>` : ''}</span>
-        <span class="corta">${esc(x.medico || x.cuenta_texto || '—')}</span>
-        <span>${x.pedido_id || x.resultado ? esc(x.resultado || 'Pedido hecho') : '<span class="pill p-warn">Sin cerrar</span>'}${x.pedido ? `<span class="sm">Pedido ${esc(x.pedido)}</span>` : ''}</span>
-        <span class="sm">${x.proxima_fecha ? fechaCorta(x.proxima_fecha) + ' · ' : ''}${esc(x.proxima_accion || '')}</span><span class="sm">${esc(x.usuario || '')}</span></button>`).join('')}</div></div>`
-      : '<div class="vacio">Sin oportunidades en este periodo. Empieza con «+ Nueva venta»: queda registrada aunque no acabe en pedido.</div>';
-    $('lllista').querySelectorAll('[data-ll]').forEach(b => b.onclick = () => editorOportunidad(lista.find(x => x.id === b.dataset.ll)));
-    $('lllista').insertAdjacentHTML('beforeend', '<div id="llpag"></div>');
-    paginador($('llpag'), lista.length, LLPAG, p => { LLPAG = p; pinta(); }, () => { LLPAG = 0; pinta(); });
-  };
-  montarPeriodo($('llper'), { id: 'llamadas', valor: 'mes', alCambiar: pinta });
-  $('llq').oninput = () => { clearTimeout(tq); tq = setTimeout(pinta, 300); };
-  $('llfres').onchange = pinta;
-  segs(); pinta();
-};
 
 
 
@@ -27750,24 +27890,13 @@ ir = (orig => function (t, ...a) {
   return orig.call(this, t, ...a);
 })(ir);
 
-// Menú: «Usuarios y roles» (quien administra) y «Panel delcos» (quien gestiona la plataforma)
-function menuPaginas2131() {
-  const nav = document.querySelector('nav.main .in'); if (!nav || ES_MEDICO()) return;
-  const pon = (t, txt, ve) => {
-    let b = nav.querySelector(`[data-t="${t}"]`);
-    if (!b && ve) { nav.insertAdjacentHTML('beforeend', `<button data-t="${t}" aria-selected="false">${txt}</button>`); b = nav.querySelector(`[data-t="${t}"]`); }
-    if (b) { b.classList.toggle('hide', !ve); if (!b.closest('.mlbs') && b !== nav.lastElementChild) nav.appendChild(b); }   // v2.132.0: si ya está en su bloque del menú lateral, se queda
-  };
-  pon('usuarios', 'Usuarios y roles', puede('administrar'));
-  pon('delcos', 'Panel delcos', puede('gestionar_plataforma'));
-}
-aplicarPermisosMenu = (orig => function (...a) { const r = orig.apply(this, a); menuPaginas2131(); franjaVista(); return r; })(aplicarPermisosMenu);
+function aplicarPermisosMenuBase3(...a) { const r = aplicarPermisosMenuBase2.apply(this, a); menuPaginas2131(); franjaVista(); return r; }
 
 // (v2.183.0: aquí iba la primera versión de entrarEnOrganizacion; se redefine entera más abajo)
 setTimeout(() => { try { menuPaginas2131(); franjaVista(); } catch (e) {} }, 0);
 // Iconos de las secciones nuevas (v2.131.0): Usuarios y roles con la llave de accesos y el panel de delcos con el escudo
 Object.assign(ICO_NAV, { usuarios: 'key-round', delcos: 'shield' });
-function montarMenuLateral() {
+function montarMenuLateralBase() {
   const inn = $('nav'); if (!inn) return;
   // Con una sola sección (portal del médico o del centro) no hace falta barra lateral: se queda la cabecera de siempre
   const visibles = [...inn.querySelectorAll('button[data-t]')].filter(b => !b.classList.contains('hide') && b.dataset.t !== 'seguimiento' && b.style.display !== 'none' && (b.classList.contains('mloculto') || getComputedStyle(b).display !== 'none' || document.body.classList.contains('menulat')));
@@ -27894,7 +28023,7 @@ if (EN_PRUEBAS) {
   pintarFranjaPruebas();
 }
 
-montarMenuLateral = (orig => function (...a) { const r = orig.apply(this, a); colocarIndPruebas(); return r; })(montarMenuLateral);
+function montarMenuLateralBase2(...a) { const r = montarMenuLateralBase.apply(this, a); colocarIndPruebas(); return r; }
 colocarIndPruebas();
 
 
@@ -27916,7 +28045,7 @@ ir = (orig => function (t, ...a) {
   return r;
 })(ir);
 // Los botones se crean antes de que el menú lateral reparta los bloques (y se vuelve a mirar su permiso después)
-aplicarPermisosMenu = (orig => function (...a) { try { menuPedidos2139(); } catch (e) {} const r = orig.apply(this, a); menuPedidos2139(); return r; })(aplicarPermisosMenu);
+function aplicarPermisosMenuBase4(...a) { try { menuPedidos2139(); } catch (e) {} const r = aplicarPermisosMenuBase3.apply(this, a); menuPedidos2139(); return r; }
 Object.assign(ICO_NAV, { oportunidades: 'phone', compras: 'clipboard-list', proveedores: 'building' });
 (() => { const g = MENU_GRUPOS.find(x => x.id === 'ventas'); if (!g) return; ['proveedores', 'compras', 'oportunidades'].forEach(k => { if (!g.items.includes(k)) g.items.splice(g.items.indexOf('ventas') + 1, 0, k); }); })();
 setTimeout(() => { try { menuPedidos2139(); } catch (e) {} }, 0);
@@ -27969,8 +28098,7 @@ async function pintarOperativa() {
    «+ Nuevo producto»…), a su derecha (decisión de Eric, 3/10/2026: misma posición en todas las
    pantallas). Va el último por la derecha, para caer siempre en el mismo sitio aunque cambie la acción principal o no la haya. Antes iba en la barra de la tabla
    (v2.57.0) y en cada pantalla caía en un sitio distinto. */
-const BARRA_TABLA_V257 = barraTabla;
-barraTabla = function (sec) {
+function barraTabla(sec) {
   // v2.142.0: también en el móvil (antes quedaba una fila casi vacía solo para el botón en Compras, Proveedores, Productos…)
   const b = sec.querySelector('.htbtn'), sal = sec.querySelector('.saludo');
   if (b && sal) {
@@ -27991,7 +28119,7 @@ barraTabla = function (sec) {
     dacts.insertAdjacentHTML('beforeend', '<span class="ai ai-hueco hide" aria-hidden="true"></span>');
     dacts.appendChild(dt);
   }
-};
+}
 
 // v2.140.0 · Botones de solo icono (Actualizar de Inicio): al pulsarlos gira el icono y no aparece ningún texto (antes salía
 // «Actualizando…» dentro del botón redondo)
@@ -28076,44 +28204,6 @@ let NOTIF_LISTA = [], NOTIF_FILTRO = '';
 
 
 
-pintarNotif = function () {
-  const tipos = tiposDeMiRol(), s = (PERFIL.preferencias || {}).notif_silencio || {};
-  const filas = NOTIF_AREAS.map(([a, t, ks]) => [t, tipos.filter(x => ks.includes(x[0]))]).filter(([, l]) => l.length);
-  const sueltos = tipos.filter(x => !NOTIF_AREAS.some(a => a[2].includes(x[0])));
-  if (sueltos.length) filas.push(['Otros', sueltos]);
-  $('cfgcuerpo').innerHTML = `<div class="card cfgpanel notcfg2"><h2 style="padding:0 0 4px">Notificaciones</h2>
-    <p class="sm">Te llegan a la campana de arriba. Elige para cada aviso si lo quieres al momento o en el resumen de cada mañana; sin marcar ninguna, no lo recibes.</p>
-    ${tipos.length ? `<div class="notsil"><label class="chk"><input type="checkbox" id="nsil" ${s.activo ? 'checked' : ''}> Silenciar de</label>
-        <input type="time" id="nsild" value="${esc(s.desde || '20:00')}" aria-label="Desde"> a <input type="time" id="nsilh" value="${esc(s.hasta || '08:00')}" aria-label="Hasta">
-        <label class="chk"><input type="checkbox" id="nsilf" ${s.finde !== false ? 'checked' : ''}> y los fines de semana</label>
-        <span class="sm">Lo que llegue en ese tiempo lo verás al terminar el silencio.</span></div>
-      <div class="dgrid-wrap"><table class="nottab"><thead><tr><th>Aviso</th><th>Al momento</th><th>En el resumen del día</th></tr></thead>
-      <tbody>${filas.map(([t, l]) => `<tr class="notarea"><th colspan="3">${esc(t)}</th></tr>${l.map(([k, ic, tt, d]) => {
-        const m = notifModo(k), diario = NOTIF_DIARIOS.includes(k);
-        return `<tr><td><b>${ic} ${esc(tt)}</b><span class="sm">${esc(d)}</span></td>
-          <td>${diario ? '<span class="sm" title="Se prepara al empezar el día">—</span>' : `<input type="checkbox" data-ntm="${k}" ${m === 'm' ? 'checked' : ''} aria-label="${esc(tt)}: al momento">`}</td>
-          <td><input type="checkbox" data-ntr="${k}" ${m === 'r' ? 'checked' : ''} aria-label="${esc(tt)}: en el resumen del día"></td></tr>`; }).join('')}`).join('')}</tbody></table></div>`
-      : '<div class="vacio">Tu perfil no tiene notificaciones disponibles todavía.</div>'}</div>`;
-  const guardarTipo = async k => {
-    const m = $('cfgcuerpo').querySelector(`[data-ntm="${k}"]`), r = $('cfgcuerpo').querySelector(`[data-ntr="${k}"]`);
-    const notif = Object.assign({}, (PERFIL.preferencias || {}).notif || {});
-    const diario = NOTIF_DIARIOS.includes(k), om = m ? m.checked : false, or = r.checked;
-    if (diario ? or : (om && !or)) delete notif[k];          // lo de siempre: no hace falta guardarlo
-    else notif[k] = { m: om, r: or };
-    await notifGuardarPrefs({ notif }, om || or ? 'Guardado' : 'No lo recibirás');
-  };
-  $('cfgcuerpo').querySelectorAll('[data-ntm]').forEach(c => c.onchange = () => {
-    if (c.checked) { const r = $('cfgcuerpo').querySelector(`[data-ntr="${c.dataset.ntm}"]`); if (r) r.checked = false; }
-    guardarTipo(c.dataset.ntm);
-  });
-  $('cfgcuerpo').querySelectorAll('[data-ntr]').forEach(c => c.onchange = () => {
-    if (c.checked) { const m = $('cfgcuerpo').querySelector(`[data-ntm="${c.dataset.ntr}"]`); if (m) m.checked = false; }
-    guardarTipo(c.dataset.ntr);
-  });
-  const guardarSil = () => notifGuardarPrefs({ notif_silencio: { activo: $('nsil').checked, desde: $('nsild').value || '20:00', hasta: $('nsilh').value || '08:00', finde: $('nsilf').checked } },
-    $('nsil').checked ? 'Silencio guardado' : 'Sin silencio');
-  ['nsil', 'nsild', 'nsilh', 'nsilf'].forEach(id => { if ($(id)) $(id).onchange = guardarSil; });
-};
 
 
 // v2.154.0 · Iconos del menú «Más» del móvil (y de «Tus módulos» en Mi perfil): las secciones añadidas después (Oportunidades, Compras,
@@ -28127,26 +28217,12 @@ Object.keys(ICO_NAV).forEach(k => { if (ICON_NOM[ICO_NAV[k]]) ICO_MOD[k] = svgIc
     empresa: 'Para empresas que facturan y llevan su almacén', medida: 'Para redes de más de 50 personas o con necesidades propias' };
   PLANES.forEach(p => { if (para[p.id]) p.para = para[p.id]; });
 })();
-pintarPaginaPlan = (orig => async function (...a) {
-  const r = await orig.apply(this, a);
-  const t = document.querySelector('#cfgcuerpo .planmat'); if (!t) return r;
-  const act = planDe((PLAN_ACTUAL || {}).plan);
-  const celda = (p, v) => `<td class="${p.id === act.id ? 'act' : ''}">${v === true ? `<span class="si" role="img" aria-label="Incluido">${svgIco(ICON_NOM.check)}</span>`
-    : v === false ? '<span class="no" role="img" aria-label="No incluido">—</span>' : v}</td>`;
-  const filas = PLAN_FILAS().map(([n, d, pl]) => pl === null || pl === undefined && d === null
-    ? `<tr class="plangrupo"><td colspan="${PLANES.length + 1}">${esc(n)}</td></tr>`
-    : `<tr><td><b>${esc(n)}</b>${d ? `<span class="sm">${esc(d)}</span>` : ''}</td>${PLANES.map(p => celda(p, pl.includes(p.id))).join('')}</tr>`).join('');
-  const extra = [...t.querySelectorAll('tbody tr')].filter(tr => /Espacio|Ver la plataforma|Precio por usuario/.test(tr.textContent)).map(tr => tr.outerHTML).join('');
-  t.querySelector('tbody').innerHTML = filas + extra;
-  return r;
-})(pintarPaginaPlan);
 
 
-hayExtra = function (k) {
+function hayExtra(k) {
   const p = (typeof PLAN_ACTUAL !== 'undefined' && PLAN_ACTUAL) || {};
   return (p.extras || []).includes(k) || (PLAN_EXTRAS[k] || []).includes(p.plan);
-};
-hayOportunidades = function () { return hayExtra('oportunidades'); };
+}
 (() => {
   const portal = `Portal ${TT('medico', 's', 'del', 'l', 'l')} y del centro`;
   const pl = id => PLANES.find(p => p.id === id) || { ventajas: [] };
@@ -28155,13 +28231,6 @@ hayOportunidades = function () { return hayExtra('oportunidades'); };
   const iE = emp.findIndex(v => /^Espacio /.test(v)); if (iE >= 0) emp[iE] = portal + ' (hasta 50)'; else emp.push(portal + ' (hasta 50)');
   const iM = med.findIndex(v => /^Espacio /.test(v)); if (iM >= 0) med[iM] = portal + ', sin límite'; else med.push(portal + ', sin límite');
 })();
-// Comparativa de «Plan y suscripción»: la fila del espacio del profesional pasa a ser la del portal (Oportunidades va en PLAN_FILAS)
-pintarPaginaPlan = (orig => async function (...a) {
-  const r = await orig.apply(this, a);
-  const fp = [...document.querySelectorAll('.planmat tbody tr')].find(tr => /Su informe y sus avisos/.test(tr.textContent));
-  if (fp) fp.querySelector('td').innerHTML = `<b>Portal ${TT('medico', 's', 'del', 'l', 'l')} y del centro</b><span class="sm">Informe, constancia, material, mensajes y pedidos del centro</span>`;
-  return r;
-})(pintarPaginaPlan);
 // Organizaciones → Extras: ahora son excepciones a lo que incluye el plan
 document.addEventListener('click', e => {
   if (!e.target.closest('[data-orgext]')) return;
@@ -28190,10 +28259,6 @@ document.addEventListener('click', e => {
 });
 
 if (PAGINAS.delcos && !PAGINAS.delcos.tabs.some(t => t[0] === 'errores')) PAGINAS.delcos.tabs.push(['errores', 'Errores', () => pintarErroresDelcos()]);
-// Producción (3/10/2026): en el iPhone, sin cobertura, Safari da «Load failed» o «Fetch is aborted». Eso no es un fallo de la plataforma:
-// no se apunta en el registro de errores, y la visita (registrar_actividad, que no se duplica gracias a su op_id) se guarda en la cola
-// del dispositivo y se envía al recuperar la conexión, en lugar de pedir que se repita.
-function esErrorRed(e) { return /failed to fetch|load failed|networkerror|network request failed|aborterror|fetch is aborted|internet connection|err_internet|err_network/i.test(String((e && (e.message || e)) || '')); }
 
 /* v2.161.0 · Los errores corregidos se dan por resueltos solos (petición de Eric, 3/10/2026). Al abrirse, la app avisa una vez de su
    versión (version_en_uso, SQL 101): así se sabe desde cuándo se usa cada versión en cada empresa, y los errores que no han vuelto a
@@ -28212,37 +28277,6 @@ function esErrorRed(e) { return /failed to fetch|load failed|networkerror|networ
 
 
 
-// «Plan y suscripción»: los botones reales en lugar de correos
-pintarPaginaPlan = (orig => async function (...a) {
-  const r = await orig.apply(this, a);
-  const c = $('cfgcuerpo'); if (!c) return r;
-  const pl = PLAN_ACTUAL || {}, conSus = !!pl.stripe_suscripcion, puedePagar = puedeOrganizacion();
-  c.querySelectorAll('.plan[data-plan]').forEach(card => {
-    const k = card.dataset.plan, a2 = card.querySelector('a.btn[href^="mailto"]');
-    if (!a2 || !PAGO_PLANES.includes(k)) return;
-    if (!puedePagar) { a2.remove(); return; }
-    const b = document.createElement('button'); b.type = 'button'; b.className = a2.className; b.dataset.pgplan = k;
-    b.textContent = conSus ? 'Cambiar a ' + planDe(k).nombre : 'Contratar ' + planDe(k).nombre;
-    a2.replaceWith(b); b.onclick = () => elegirPago(k);
-  });
-  const acts = c.querySelector('#planact .acts');
-  if (acts) {
-    const usu = acts.querySelector('a.btn[href^="mailto"]'); if (usu) usu.remove();
-    if (puedePagar && pl.plan !== 'medida') acts.insertAdjacentHTML('beforeend', conSus
-      ? '<button type="button" class="btn sec" id="pgusu2">Añadir o quitar usuarios</button><button type="button" class="btn sec" id="pgportal">Gestionar el pago</button>'
-      : '<button type="button" class="btn" id="pgelegir">Elegir plan y pagar</button>');
-    if ($('pgusu2')) $('pgusu2').onclick = () => elegirPago(pl.plan);
-    if ($('pgportal')) $('pgportal').onclick = ev => pagoPortal(ev.target);
-    if ($('pgelegir')) $('pgelegir').onclick = () => elegirPago();
-  }
-  const act = c.querySelector('#planact h2');
-  if (act && pl.estado === 'impago') act.insertAdjacentHTML('afterend', `<div class="banda-peligro">No hemos podido cobrar el último recibo${pl.impago_desde ? ' (desde el ' + fechaCorta(pl.impago_desde) + ')' : ''}.
-    Actualiza el método de pago con «Gestionar el pago»; si en 14 días no se puede cobrar, la cuenta queda en solo lectura.</div>`);
-  if (act && pl.estado === 'cancelada') act.insertAdjacentHTML('afterend', `<div class="banda-aviso">Suscripción cancelada: puedes usar la plataforma hasta el
-    <b>${fechaCorta(pl.periodo_fin)}</b> y descargar tus datos. Para seguir, vuelve a contratar.</div>`);
-  if (act && conSus && pl.periodo_fin && pl.estado === 'activo') act.insertAdjacentHTML('afterend', `<p class="sm">Próximo recibo el ${fechaCorta(pl.periodo_fin)}.</p>`);
-  return r;
-})(pintarPaginaPlan);
 
 (function pagoArranque() {
   let n = 0;
@@ -28258,28 +28292,15 @@ pintarPaginaPlan = (orig => async function (...a) {
   }, 1500);
 })();
 
-aplicarPermisosMenu = (orig => function (...a) { const r = orig.apply(this, a); try { candadoSecciones(); } catch (e) {} return r; })(aplicarPermisosMenu);
+function aplicarPermisosMenuBase5(...a) { const r = aplicarPermisosMenuBase4.apply(this, a); try { candadoSecciones(); } catch (e) {} return r; }
 ir = (orig => function (t, ...a) {
   if (t in PLAN_SECCIONES && PERFIL && !ES_MEDICO() && !planIncluyeSeccion(t)) { avisoPlan(t); return; }
   return orig.call(this, t, ...a);
 })(ir);
-abrirMasMovil = (orig => function (...a) {
-  const r = orig.apply(this, a);
-  document.querySelectorAll('.bmasgrid [data-bm]').forEach(b => { const t = b.dataset.bm; if (!planIncluyeSeccion(t)) {
-    b.classList.add('bloq'); b.onclick = () => { const s = $('bmas'); if (s) s.classList.add('hide'); document.body.classList.remove('masabierto'); avisoPlan(t); }; } });
-  return r;
-})(abrirMasMovil);
-// A medida (como la empresa principal): sin botones de contratar ni de cambiar en línea, salvo que ya pague con Stripe
-pintarPaginaPlan = (orig => async function (...a) {
-  const r = await orig.apply(this, a);
-  const c = $('cfgcuerpo'), pl = PLAN_ACTUAL || {};
-  if (c && pl.plan === 'medida' && !pl.stripe_suscripcion) c.querySelectorAll('[data-pgplan], #pgelegir, #pgusu2').forEach(b => b.remove());
-  return r;
-})(pintarPaginaPlan);
 setTimeout(() => { try { candadoSecciones(); } catch (e) {} }, 0);
 
-montarMenuLateral = (orig => function (...a) {
-  const r = orig.apply(this, a);
+function montarMenuLateral(...a) {
+  const r = montarMenuLateralBase2.apply(this, a);
   if (!document.body.classList.contains('menulat')) return r;
   const inn = $('nav'); if (!inn) return r;
   // (solo se toca la clase si cambia: el observador del menú vuelve a llamar aquí con cada cambio de clase)
@@ -28291,12 +28312,7 @@ montarMenuLateral = (orig => function (...a) {
   inn.querySelectorAll('.mlgrupo').forEach(g => g.classList.toggle('vacio', ![...g.querySelectorAll('button[data-t]')]
     .some(b => !b.classList.contains('hide') && !b.classList.contains('mloculto') && b.dataset.t !== 'seguimiento' && getComputedStyle(b).display !== 'none')));
   return r;
-})(montarMenuLateral);
-abrirMasMovil = (orig => function (...a) {
-  const r = orig.apply(this, a);
-  document.querySelectorAll('.bmasgrid [data-bm].bloq').forEach(b => b.remove());
-  return r;
-})(abrirMasMovil);
+}
 
 (() => {
   const d = Object.getOwnPropertyDescriptor(PAGINAS.organizacion, 'tabs'); if (!d || !d.get) return;
@@ -28308,23 +28324,6 @@ abrirMasMovil = (orig => function (...a) {
 
 
 
-// «Plan y suscripción»: cambio previsto (con «Anular el cambio»), baja pedida y compromiso de A medida
-pintarPaginaPlan = (orig => async function (...a) {
-  const r = await orig.apply(this, a);
-  const c = $('cfgcuerpo'), pl = PLAN_ACTUAL || {}, h = c && c.querySelector('#planact h2'); if (!h) return r;
-  const cp = pl.cambio_previsto;
-  if (cp && cp.plan) h.insertAdjacentHTML('afterend', `<div class="banda-info" id="pgprevisto">El <b>${fechaCorta(cp.desde)}</b> pasarás al plan
-    <b>${esc(planDe(cp.plan).nombre)}</b> con ${num(cp.usuarios)} usuarios y pago ${cp.pago === 'anual' ? 'anual' : 'mensual'}.
-    ${puedeOrganizacion() ? '<button type="button" class="btn sec" id="pganular">Anular el cambio</button>' : ''}</div>`);
-  if (pl.baja_al_final && pl.estado === 'activo') h.insertAdjacentHTML('afterend', `<div class="banda-aviso" id="pgbajafin">Has pedido la baja: puedes usar la plataforma
-    hasta el <b>${fechaCorta(pl.periodo_fin)}</b>. Si quieres seguir, entra en «Gestionar el pago» y renueva la suscripción.</div>`);
-  if (pl.plan === 'medida' && pl.compromiso_hasta) h.insertAdjacentHTML('afterend', `<p class="sm" id="pgcomp">Contrato A medida hasta el ${fechaCorta(pl.compromiso_hasta)}. Para cambiarlo, habla con delcos.</p>`);
-  if ($('pganular')) $('pganular').onclick = async ev => {
-    const d = await pagoLlamar({ accion: 'anular_cambio' }, ev.target); if (!d) return;
-    toast('Cambio anulado: sigues con tu plan'); await pagoCargarEstado(); ir(TAB);
-  };
-  return r;
-})(pintarPaginaPlan);
 
 
 /* v2.166.0 · «Darme de baja» en Plan y suscripción (petición de Eric): abre directamente la pantalla de cancelar de Stripe y, al confirmar,
@@ -28337,24 +28336,6 @@ if (PAGO_VUELTA_BAJA) {
     else if (++n > 90) clearInterval(t);
   }, 1500);
 }
-pintarPaginaPlan = (orig => async function (...a) {
-  const r = await orig.apply(this, a);
-  const c = $('cfgcuerpo'), pl = PLAN_ACTUAL || {}; if (!c || !puedeOrganizacion() || !pl.stripe_suscripcion) return r;
-  const acts = c.querySelector('#planact .acts');
-  if (acts && pl.estado === 'activo' && !pl.baja_al_final && !$('pgdarbaja'))
-    acts.insertAdjacentHTML('beforeend', '<button type="button" class="btn sec" id="pgdarbaja">Darme de baja</button>');
-  const bf = $('pgbajafin');
-  if (bf) {
-    bf.innerHTML = `Has pedido la baja: puedes usar la plataforma hasta el <b>${fechaCorta(pl.periodo_fin)}</b>.
-      <button type="button" class="btn sec" id="pgseguir">Seguir con la suscripción</button>`;
-  }
-  if ($('pgdarbaja')) $('pgdarbaja').onclick = async ev => { const d = await pagoLlamar({ accion: 'baja' }, ev.target); if (d && d.url) location.href = d.url; };
-  if ($('pgseguir')) $('pgseguir').onclick = async ev => {
-    const d = await pagoLlamar({ accion: 'reanudar' }, ev.target); if (!d) return;
-    toast('Seguimos: tu suscripción continúa'); await pagoCargarEstado(); ir(TAB);
-  };
-  return r;
-})(pintarPaginaPlan);
 
 /* v2.167.0 · Al volver de Stripe (pago, baja o el portal) se abre «Plan y suscripción», no Inicio (petición de Eric). Stripe vuelve a
    …/?pago=…#plan o a …/#plan: la primera pantalla tras entrar es la del plan. */
@@ -28363,37 +28344,9 @@ ir = (orig => function (t, ...a) {
   if (PAGO_IR_PLAN && PERFIL) { pagoAlPlan(); if (!ES_MEDICO() && puedeOrganizacion()) t = 'plan'; }
   return orig.call(this, t, ...a);
 })(ir);
-// Si la app ya había entrado antes de llegar aquí, se va ahora
-if (PAGO_IR_PLAN && typeof PERFIL !== 'undefined' && PERFIL) setTimeout(() => { if (PAGO_IR_PLAN) ir('plan'); }, 0);
+// (si la app ya ha entrado al llegar aquí, se va al plan: lo hace nucleo/arranque.js justo después de arrancar)
 setTimeout(() => { PAGO_IR_PLAN = false; }, 30000);
 
-// «Plan y suscripción»: botones al formulario (en lugar de correos) y la última solicitud con su estado
-pintarPaginaPlan = (orig => async function (...a) {
-  const r = await orig.apply(this, a);
-  const c = $('cfgcuerpo'); if (!c || !c.querySelector('#planact')) return r;
-  const pl = PLAN_ACTUAL || {};
-  c.querySelectorAll('a[href^="mailto"]').forEach(x => {
-    const b = document.createElement('button'); b.type = 'button'; b.className = x.className;
-    b.textContent = x.closest('.plan[data-plan="medida"]') ? 'Pedir presupuesto' : 'Hablar con delcos';
-    b.dataset.presu = x.closest('.plan[data-plan="medida"]') && pl.plan !== 'medida' ? 'presupuesto' : 'contrato';
-    x.replaceWith(b);
-  });
-  const comp = $('pgcomp');
-  if (pl.plan === 'medida' && !c.querySelector('[data-presu]') && !puede('gestionar_plataforma')) {
-    const acts = c.querySelector('#planact .acts');
-    if (acts) acts.insertAdjacentHTML('beforeend', '<button type="button" class="btn sec" data-presu="contrato">Hablar con delcos</button>');
-  }
-  if (comp) comp.textContent = comp.textContent.replace(' Para cambiarlo, habla con delcos.', '');
-  c.querySelectorAll('[data-presu]').forEach(b => b.onclick = () => pedirPresupuesto(b.dataset.presu));
-  try {
-    const { data } = await db.from('solicitudes_plan').select('creado_en,estado,tipo').order('creado_en', { ascending: false }).limit(1);
-    const s = (data || [])[0], h = c.querySelector('#planact h2');
-    if (s && h && !$('presuest') && (s.estado !== 'Cerrada' || Date.now() - new Date(s.creado_en) < 30 * 864e5))
-      h.insertAdjacentHTML('afterend', `<div class="banda-info" id="presuest">Tu solicitud ${s.tipo === 'contrato' ? 'sobre el contrato' : 'de presupuesto'} del
-        ${fechaCorta(s.creado_en.slice(0, 10))}: <b>${esc(PRESU_ESTADO[s.estado] || s.estado)}</b>.${s.estado === 'Nueva' ? ' Te contestamos en un día laborable.' : ''}</div>`);
-  } catch (e) {}
-  return r;
-})(pintarPaginaPlan);
 
 if (PAGINAS.delcos && !PAGINAS.delcos.tabs.some(t => t[0] === 'solicitudes')) PAGINAS.delcos.tabs.splice(1, 0, ['solicitudes', 'Solicitudes', () => pintarSolicitudesPlan()]);
 
@@ -28421,36 +28374,7 @@ if (PAGINAS.delcos && !PAGINAS.delcos.tabs.some(t => t[0] === 'solicitudes')) PA
     }, 1000);
   }
 })();
-// «Plan y suscripción»: periodo de prueba de Stripe
-pintarPaginaPlan = (orig => async function (...a) {
-  const r = await orig.apply(this, a);
-  const c = $('cfgcuerpo'), pl = PLAN_ACTUAL || {}, h = c && c.querySelector('#planact h2');
-  if (h && pl.en_prueba && pl.periodo_fin && !$('pgprueba') && !pl.baja_al_final)
-    h.insertAdjacentHTML('afterend', `<div class="banda-info" id="pgprueba">Estás en el periodo de prueba hasta el <b>${fechaCorta(pl.periodo_fin)}</b>:
-      hasta entonces no se cobra nada. Ese día se pasará el primer recibo, salvo que te des de baja antes.</div>`);
-  return r;
-})(pintarPaginaPlan);
 
-pintarPaginaPlan = (orig => async function (...a) {
-  const r = await orig.apply(this, a);
-  const c = $('cfgcuerpo'), pl = PLAN_ACTUAL || {};
-  if (!c || !c.querySelector('#planact') || !pl.stripe_cliente || !puedeOrganizacion() || $('pgdatos')) return r;
-  c.querySelector('#planact').insertAdjacentHTML('afterend', `<div class="card cfgpanel" id="pgdatos"><h2 style="padding:0 0 4px">Datos de facturación</h2>
-    <p class="sm">Con estos datos se hacen tus recibos y facturas. ${pl.en_prueba ? `Revísalos antes del ${fechaCorta(pl.periodo_fin)}, cuando se pasa el primer recibo.` : ''}</p>
-    <div class="pgdlista"><div class="skel"></div></div>
-    <div class="acts"><button type="button" class="btn sec" id="pgdcorr">Corregir datos</button></div></div>`);
-  $('pgdcorr').onclick = ev => pagoPortal(ev.target);
-  // Sin avisos si falla (se ve «Falta» y se puede corregir igual)
-  const d = await db.functions.invoke('pagos', { body: { accion: 'datos' } }).then(x => x.data, () => null).catch(() => null);
-  const l = c.querySelector('#pgdatos .pgdlista'); if (!l) return r;
-  if (!d || !d.ok) { l.innerHTML = '<p class="sm">No se han podido leer ahora. Puedes verlos y cambiarlos con «Corregir datos».</p>'; return r; }
-  const x = d.datos || {};
-  const filas = [['Razón social', x.nombre], ['NIF o CIF', x.nif], ['Correo para los recibos', x.email], ['Dirección fiscal', x.direccion]];
-  const faltan = filas.filter(f => !f[1]).length;
-  l.innerHTML = filas.map(([k, v]) => `<div class="pgdfila${v ? '' : ' falta'}"><span>${esc(k)}</span><b>${v ? esc(v) : 'Falta'}</b></div>`).join('')
-    + (faltan ? `<div class="banda-aviso" style="margin-top:8px">Faltan datos para poder facturarte: complétalos con «Corregir datos».</div>` : '');
-  return r;
-})(pintarPaginaPlan);
 
 // Pestañas propias del panel en modo plataforma: el equipo (los usuarios de la de plataforma) y la plantilla de las empresas nuevas
 (() => {
@@ -28485,20 +28409,12 @@ function aplicarModoPlataforma() {
   if (MODO_PLATAFORMA) document.querySelectorAll('[data-u="organizacion"], [data-u="plan"], [data-u="empresa"]').forEach(b => b.classList.add('hide'));
   try { MENU_FIRMA = ''; montarMenuLateral(); } catch (e) {}
 }
-aplicarPermisosMenu = (orig => function (...a) { const r = orig.apply(this, a); try { aplicarModoPlataforma(); } catch (e) {} return r; })(aplicarPermisosMenu);
+function aplicarPermisosMenuBase6(...a) { const r = aplicarPermisosMenuBase5.apply(this, a); try { aplicarModoPlataforma(); } catch (e) {} return r; }
 
 /* v2.172.0 · «Tu día»: subir o bajar una cita la mueve al momento, sin recargar la agenda (aviso de Eric: antes se recargaban métricas,
    semana, mes y sugerencias). La lista se repinta con el orden nuevo a partir de lo que ya hay (agenda_rango no se vuelve a pedir) y el orden
    se guarda por detrás; si no se puede guardar, vuelve a lo guardado. El foco se queda en la flecha de la cita movida. */
 let TD_ULTIMO = null, TD_PRESET = null;
-rpcCache = (orig => async function (fn, params, clave) {
-  if (fn === 'agenda_rango' && TD_PRESET && params && params.p_desde === TD_PRESET.fecha && params.p_hasta === TD_PRESET.fecha) {
-    const d = TD_PRESET.data; TD_PRESET = null; return { data: d, cache: false };
-  }
-  const r = await orig.call(this, fn, params, clave);
-  if (fn === 'agenda_rango' && params && params.p_desde === params.p_hasta && r && r.data) TD_ULTIMO = { fecha: params.p_desde, data: r.data };
-  return r;
-})(rpcCache);
 
 /* v2.173.0 · Panel delcos completo (SQL 108): Cobros y suscripciones, Altas desde la web y Estado de la plataforma, en el menú del panel.
    Con el menú lateral, el panel ya no repite sus apartados como pestañas (aviso de Eric): el título dice dónde estás. Al entrar en una
@@ -28562,7 +28478,7 @@ db.functions.invoke = (orig => async function (fn, op, ...a) {
   return r;
 })(db.functions.invoke.bind(db.functions));
 // (v2.183.0: aquí iba la primera versión de pintarProximoRecibo; se redefine entera más abajo)
-pintarPaginaPlan = (orig => async function (...a) { const r = await orig.apply(this, a); try { pintarProximoRecibo(); } catch (e) {} return r; })(pintarPaginaPlan);
+async function pintarPaginaPlan(...a) { const r = await pintarPaginaPlanBase10.apply(this, a); try { pintarProximoRecibo(); } catch (e) {} return r; }
 
 function pintarProximoReciboBase() {
   const c = $('cfgcuerpo'), pl = PLAN_ACTUAL || {}, h = c && c.querySelector('#planact h2');
@@ -28704,56 +28620,6 @@ function explicarAviso(inf) {
   return inf.otroCentro ? t.replace('Según su ficha,', `Ese día atiende en ${inf.otroCentro} (no en el centro de la cita). Según su ficha,`) : t;
 }
 
-// ---- 3. Una sola ventana de cita, con centro y notas
-nuevaCita = async function (medicoId, fecha, op = {}) {
-  let elegido = null, consultas = [];
-  const traer = async id => { const { data } = await db.rpc('ficha_cuenta', { p_id: id }); consultas = (data && data.consultas) || []; return data; };
-  if (medicoId) { const data = await traer(medicoId); if (data && data.medico) elegido = data.medico; }
-  const dia = fecha || (TAB === 'agenda' && AG_FECHA && AG_FECHA >= hoyISO() ? AG_FECHA : hoyISO());
-  $('dbody').innerHTML = `
-    <div class="fh"><div><h2>Nueva cita</h2><div class="sm">Se añade a tu agenda</div></div>
-      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-    <label>${TT('medico', 's', '', 'l', 'C')}</label><div id="ncsel"></div>
-    <div class="g2">
-      <div><label for="ncf">Día</label><input id="ncf" type="date" value="${esc(dia)}"></div>
-      <div><label for="nch">Hora <span class="sm">(opcional)</span></label><input id="nch" type="time"></div>
-    </div>
-    <div id="nccw"></div>
-    <label for="ncn">Notas</label><textarea id="ncn" rows="3" placeholder="p. ej. quedamos en el bar de enfrente, llevar el reporting…"></textarea>
-    <div class="acts" style="justify-content:flex-end">
-      <button class="btn sec" data-cerrar>Cancelar</button>
-      <button class="btn" id="ncok">Añadir a la agenda</button></div>`;
-  const pintarCentros = () => {
-    const w = $('nccw'); if (!w) return;
-    const l = consultas.filter(x => x && x.centro_nombre);
-    if (l.length < 2) { w.innerHTML = ''; return; }
-    const pref = (typeof FICHA_CENTRO !== 'undefined' && FICHA_CENTRO) || (l.find(x => x.principal) || l[0]).centro_nombre;
-    w.innerHTML = `<label for="ncc">Centro</label><select id="ncc">${l.map(x => `<option value="${esc(x.centro_nombre)}" ${x.centro_nombre === pref ? 'selected' : ''}>${esc([x.centro_nombre, x.municipio].filter(Boolean).join(' · '))}</option>`).join('')}</select>`;
-  };
-  pintarCentros();
-  selectorMedico($('ncsel'), { valor: elegido, alElegir: async m => { elegido = m; await traer(m.id); pintarCentros(); } });
-  $('ncok').onclick = async ev => {
-    if (!elegido) { toast(`Elige ${TT('medico', 's', 'un', 'l', 'l')}`, true); return; }
-    const f = $('ncf').value;
-    const decision = await citaRepetida(elegido.id, f);
-    if (!decision) return;
-    const c0 = consultas.find(x => x && x.principal) || consultas[0] || {};
-    const centro = ($('ncc') && $('ncc').value) || c0.centro_nombre || elegido.centro_nombre || elegido.centro || null;
-    ev.target.disabled = true;
-    const r = await escribir('guardar_cita', { p: {
-      cuenta_id: elegido.id, fecha: f, hora: $('nch').value || null, centro_nombre: centro, estado: 'Planificada',
-      origen: op.origen || (TAB === 'agenda' ? 'Agenda' : 'Ficha'), usuario_id: TAB === 'agenda' && AG_VISTA ? AG_VISTA.id : null,
-      nota: $('ncn').value.trim(), op_id: 'c-' + elegido.id + '-' + f + '-' + Date.now()
-    }});
-    ev.target.disabled = false;
-    if (r.error) { toast('No se ha podido: ' + r.error.message, true); return; }
-    // v2.298: con hora, la cita nueva se coloca entre las del día según su hora (antes quedaba la última)
-    if ($('nch').value) await colocarPorHora(f, TAB === 'agenda' && AG_VISTA ? AG_VISTA.id : PERFIL.id, elegido.id, $('nch').value);
-    $('dlg').close(); toast('Cita añadida el ' + fechaDiaMes(f)); if (TAB === 'agenda') agRefrescoQuieto(); else cargarInicio();
-  };
-  $('dlg').classList.add('pequena');
-  $('dlg').showModal();
-};
 // «Añadir a mi agenda» de la ficha abre la misma ventana (antes solo pedía el día). Va en la fase de captura de window, antes que la de la v2.174.0.
 window.addEventListener('click', e => {
   const b = e.target.closest && e.target.closest('[data-agendar]');
@@ -28843,7 +28709,6 @@ setInterval(comprobarVersion, 10 * 60 * 1000);
 
 // Fechas y horas en pantallas táctiles: sin foco, sin selector del sistema
 const PANTALLA_TACTIL = !!(window.matchMedia && matchMedia('(pointer: coarse)').matches);
-mejorarCampos = (orig => function (raiz) { const r = orig(raiz); try { sinSelectorDelSistema(raiz || document); } catch (e) {} return r; })(mejorarCampos);
 sinSelectorDelSistema(document);
 
 /* v2.186.0 · Editar una cita no rehace la Agenda (aviso de Eric: al editar una cita se movía todo el panel). Antes, cerrar cualquier ventana en la
@@ -28921,7 +28786,7 @@ Object.assign(ICON_NOM, { 'graduation-cap': '<path d="M21.42 10.922a1 1 0 0 0-.0
 ICO_NAV.eventos = 'graduation-cap'; ICO_MOD.eventos = svgIco(ICON_NOM['graduation-cap']);
 PLAN_SECCIONES.eventos = ['comercial', 'empresa', 'medida'];
 (() => { const g = MENU_GRUPOS.find(x => x.id === 'cartera'); if (g && !g.items.includes('eventos')) g.items.splice(g.items.indexOf('directorio') + 1, 0, 'eventos'); })();
-aplicarPermisosMenu = (orig => function (...a) { try { menuEventos(); } catch (e) {} const r = orig.apply(this, a); try { menuEventos(); } catch (e) {} return r; })(aplicarPermisosMenu);
+function aplicarPermisosMenuBase7(...a) { try { menuEventos(); } catch (e) {} const r = aplicarPermisosMenuBase6.apply(this, a); try { menuEventos(); } catch (e) {} return r; }
 PAGINAS.eventos = { t: 'Eventos', permiso: () => !ES_MEDICO() && puedeModulo('directorio') && planIncluyeSeccion('eventos') };
 Object.defineProperty(PAGINAS.eventos, 'd', { get: () => 'Talleres, cursos y congresos con sus asistentes, inscripciones y gastos' });
 Object.defineProperty(PAGINAS.eventos, 'tabs', { get: () => [['lista', 'Eventos', () => pintarEventos()]].concat(verTransparencia() ? [['transparencia', 'Informe de gastos', () => pintarTransparencia()]] : []) });
@@ -28939,7 +28804,7 @@ let CIC_DE = '', CIC_FIL = '', CIC_CLF = 'sin', CIC_Q = '';
 Object.assign(ICON_NOM, { target: '<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>' });
 ICO_NAV.ciclo = 'target'; ICO_MOD.ciclo = svgIco(ICON_NOM.target);
 (() => { const g = MENU_GRUPOS.find(x => x.id === 'dia'); if (g && !g.items.includes('ciclo')) g.items.push('ciclo'); })();
-aplicarPermisosMenu = (orig => function (...a) { try { menuCiclo(); } catch (e) {} const r = orig.apply(this, a); try { menuCiclo(); } catch (e) {} return r; })(aplicarPermisosMenu);
+function aplicarPermisosMenuBase8(...a) { try { menuCiclo(); } catch (e) {} const r = aplicarPermisosMenuBase7.apply(this, a); try { menuCiclo(); } catch (e) {} return r; }
 PAGINAS.ciclo = { permiso: () => !ES_MEDICO() && puedeModulo('agenda') };
 Object.defineProperty(PAGINAS.ciclo, 't', { get: () => `Ciclo de ${TT('visita', 'p', '', 'l', 'l')}` });
 Object.defineProperty(PAGINAS.ciclo, 'd', { get: () => `${TT('medico', 'p', '', 'l', 'C')} en A, B y C, y las ${TT('visita', 'p', '', 'l', 'l')} que le tocan a cada uno en cada ciclo` });
@@ -28973,7 +28838,7 @@ PLAN_SECCIONES.cobertura = ['comercial', 'empresa', 'medida'];
 Object.assign(ICON_NOM, { scissors: '<circle cx="6" cy="6" r="3"/><path d="M8.12 8.12 12 12"/><path d="M20 4 8.12 15.88"/><circle cx="6" cy="18" r="3"/><path d="M14.8 14.8 20 20"/>' });
 ICO_NAV.cirugias = 'scissors'; ICO_MOD.cirugias = svgIco(ICON_NOM.scissors);
 (() => { const g = MENU_GRUPOS.find(x => x.id === 'dia'); if (g && !g.items.includes('cirugias')) g.items.push('cirugias'); })();
-aplicarPermisosMenu = (orig => function (...a) { try { menuCirugias(); } catch (e) {} const r = orig.apply(this, a); try { menuCirugias(); } catch (e) {} return r; })(aplicarPermisosMenu);
+function aplicarPermisosMenuBase9(...a) { try { menuCirugias(); } catch (e) {} const r = aplicarPermisosMenuBase8.apply(this, a); try { menuCirugias(); } catch (e) {} return r; }
 PAGINAS.cirugias = { t: 'Intervenciones', permiso: () => !ES_MEDICO() && puedeModulo('agenda'), tabs: [['lista', 'Intervenciones', () => pintarCirugias()]] };
 Object.defineProperty(PAGINAS.cirugias, 'd', { get: () => 'Programación, material usado con lote y número de serie, y reposición en 48 horas' });
 
@@ -28987,7 +28852,7 @@ try { menuCirugias(); } catch (e) {}
 Object.assign(ICON_NOM, { gavel: '<path d="m14.5 12.5-8 8a2.12 2.12 0 1 1-3-3l8-8"/><path d="m16 16 6-6"/><path d="m8 8 6-6"/><path d="m9 7 8 8"/><path d="m21 11-8-8"/>' });
 ICO_NAV.concursos = 'gavel'; ICO_MOD.concursos = svgIco(ICON_NOM.gavel);
 (() => { const g = MENU_GRUPOS.find(x => x.id === 'ventas'); if (g && !g.items.includes('concursos')) g.items.splice(g.items.indexOf('ventas') + 1, 0, 'concursos'); })();
-aplicarPermisosMenu = (orig => function (...a) { try { menuConcursos(); } catch (e) {} const r = orig.apply(this, a); try { menuConcursos(); } catch (e) {} return r; })(aplicarPermisosMenu);
+function aplicarPermisosMenuBase10(...a) { try { menuConcursos(); } catch (e) {} const r = aplicarPermisosMenuBase9.apply(this, a); try { menuConcursos(); } catch (e) {} return r; }
 PAGINAS.concursos = { t: 'Concursos', permiso: () => !ES_MEDICO() && puedeModulo('ventas'),
   tabs: [['marcha', 'En marcha', () => pintarConcursos('marcha')], ['contratos', 'Contratos', () => pintarConcursos('contratos')], ['cerrados', 'Cerrados', () => pintarConcursos('cerrados')]] };
 Object.defineProperty(PAGINAS.concursos, 'd', { get: () => 'Pliegos, lotes adjudicados y contratos con sus precios y vencimientos' });
@@ -29012,7 +28877,7 @@ Object.assign(PLAN_SECCIONES, { cirugias: ['empresa', 'medida'], deposito: ['emp
 Object.assign(ICON_NOM, { monitor: '<rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/>' });
 ICO_NAV.parque = 'monitor'; ICO_MOD.parque = svgIco(ICON_NOM.monitor);
 (() => { const g = MENU_GRUPOS.find(x => x.id === 'ventas'); if (g && !g.items.includes('parque')) g.items.splice(g.items.indexOf('concursos') + 1, 0, 'parque'); })();
-aplicarPermisosMenu = (orig => function (...a) { try { menuParque(); } catch (e) {} const r = orig.apply(this, a); try { menuParque(); } catch (e) {} return r; })(aplicarPermisosMenu);
+function aplicarPermisosMenuBase11(...a) { try { menuParque(); } catch (e) {} const r = aplicarPermisosMenuBase10.apply(this, a); try { menuParque(); } catch (e) {} return r; }
 PAGINAS.parque = { t: 'Parque instalado', permiso: () => !ES_MEDICO() && puedeModulo('ventas') && planIncluyeSeccion('parque'), tabs: [['lista', 'Equipos', () => pintarParque()]] };
 Object.defineProperty(PAGINAS.parque, 'd', { get: () => 'Equipos instalados con su número de serie, contrato, garantía y revisiones' });
 
@@ -29068,11 +28933,11 @@ db.rpc = (orig => function (fn, args, ...r) {
 $('dlg').addEventListener('close', () => { setTimeout(() => { if (!$('dlg').open) EV_EXTRA = null; }, 0); });
 
 // El buscador de arriba, con el vocabulario de la empresa
-aplicarPermisosMenu = (orig => function (...a) {
-  const r = orig.apply(this, a);
+function aplicarPermisosMenu(...a) {
+  const r = aplicarPermisosMenuBase11.apply(this, a);
   try { const q = $('q'); if (q && /^Buscar /.test(q.placeholder)) q.placeholder = `Buscar ${TT('medico', 's', '', 'l', 'l')}, centro o municipio`; } catch (e) {}
   return r;
-})(aplicarPermisosMenu);
+}
 // v2.242.0: aquí iba la primera versión de abrirManual (se redefine entera más abajo)
 document.addEventListener('click', e => {
   const b = e.target.closest('#manbtn'); if (!b || ES_MEDICO()) return;
@@ -29080,12 +28945,6 @@ document.addEventListener('click', e => {
   document.querySelectorAll('.umenu, #umenu').forEach(m => m.classList.add('hide'));
   abrirManual(MANUAL_ANCLA[TAB] || '');
 }, true);
-function ponerAyudaManual() {
-  if (ES_MEDICO()) return;
-  const v = $('v-' + TAB); const h = v && v.querySelector('.saludo h1'); if (!h || h.querySelector('.manq')) return;
-  h.insertAdjacentHTML('beforeend', `<button type="button" class="manq" title="Abrir el manual de esta pantalla" aria-label="Abrir el manual de esta pantalla"></button>`);
-  h.querySelector('.manq').onclick = ev => { ev.stopPropagation(); abrirManual(MANUAL_ANCLA[TAB] || ''); };
-}
 ir = (orig => function (...a) {
   const r = orig.apply(this, a);
   [400, 1200, 2500].forEach(ms => setTimeout(() => { try { ponerAyudaManual(); } catch (e) {} }, ms));
@@ -29116,13 +28975,7 @@ ir = (orig => function (...a) {
   return r;
 })(ir);
 
-ponerAyudaManual = (orig => function () { if (TAB === 'manual') return; return orig.apply(this, arguments); })(ponerAyudaManual);
 
-pintarSinAtribuir = (orig => async function (...a) {
-  const r = await orig.apply(this, a);
-  const c = $('cardsinatr'); if (c) c.classList.toggle('hide', !c.innerHTML.trim());
-  return r;
-})(pintarSinAtribuir);
 
 
 /* v2.214.0 · Visita del día, resultados que hacen avanzar y manual en el iPhone (peticiones de Eric; SQL 130).
@@ -29175,75 +29028,6 @@ function arbolCfgUnicoBase() {
     ['Datos', (cfg.find(g => g[0] === 'Datos') || [, []])[1].flatMap(hojas)]
   ].filter(g => g[1].length);
 }
-cargarConfig = async function () {
-  // v2.340.0 (avisos de Eric): se abre siempre en «Mis datos» (no en el último apartado); al cambiar de apartado solo cambia la página
-  // de la derecha (el índice se queda, con su desplazamiento: antes se volvía a montar todo y daba un salto); los apartados con partes
-  // son una sola entrada y las partes, pestañas dentro de la página.
-  if (typeof salirPanel === 'function') salirPanel();
-  const arbol = arbolCfgUnico(), hojas = hojasCfg(arbol);
-  const pedida = CFG_KEY || 'datos';
-  const it = hojas.find(x => x.k === pedida) || hojas.find(x => x.hijos && x.hijos.some(h => h.k === pedida)) || hojas.find(x => pedida.startsWith(x.k + '.'))
-    || hojas.find(x => x.k === 'datos') || hojas[0];
-  if (!it) return;
-  const hijo = it.hijos ? (it.hijos.find(h => h.k === pedida) || it.hijos[0]) : null;
-  CFG_KEY = hijo ? hijo.k : it.k;
-  const movil = ES_MOVIL(), v = $('v-config');
-  const firma = hojas.map(x => x.k + (x.hijos ? '(' + x.hijos.map(h => h.k).join(',') + ')' : '')).join('|') + '|' + movil;
-  if (!(v.dataset.cfgfirma === firma && $('cfulista') && v.querySelector('.cfupag'))) {
-    const ind = arbol.map(([gr, l]) => `<h4>${esc(gr)}</h4>${l.map(x => `<button type="button" data-ck="${x.k}">${svgIco(ICON_NOM[x.ic] || '')}<span>${esc(x.t)}</span>${x.mod && !planIncluye(x.mod) ? `<span class="pill p-plan">${esc(planMinimo(x.mod) ? planMinimo(x.mod).nombre : 'Plan')}</span>` : ''}</button>`).join('')}`).join('');
-    v.innerHTML = `<div class="saludo"><div><h1>Configuración</h1><div class="fecha">Tu cuenta${arbol.length > 1 ? ', tu equipo y tu empresa, en un solo sitio' : ' y tus preferencias'}</div></div></div>
-      <div class="cfu">
-        <nav class="cfuidx" aria-label="Apartados de configuración"><div class="cfubusca">${LUPA_CFG}<input id="cfubus" type="search" placeholder="Buscar un ajuste" autocomplete="off" aria-label="Buscar un ajuste"></div>
-          <div id="cfulista">${ind}</div><div class="cfusin hide" id="cfusin">Ningún ajuste con esas palabras</div></nav>
-        <section class="cfupag"><button type="button" class="cfuvolver" id="cfuvolver">‹ Configuración</button>
-          <div class="cfucab"></div><div class="cfupend hide" id="cfupend"></div>
-          <div id="cfgcuerpo-hub"><div id="cfgcuerpo"></div></div></section></div>`;
-    v.dataset.cfgfirma = firma;
-    v.querySelectorAll('#cfulista [data-ck]').forEach(b => b.onclick = () => { CFG_KEY = b.dataset.ck; CFG_DETALLE = true; cargarConfig(); if (ES_MOVIL()) scrollTo(0, 0); });
-    $('cfuvolver').onclick = () => { CFG_DETALLE = false; v.querySelector('.cfu').classList.remove('det'); scrollTo(0, 0); };
-    // Buscador: por nombre, apartado, partes y palabras clave; Intro abre el primero
-    const busca = $('cfubus');
-    busca.oninput = () => {
-      const q = impNorm(busca.value.trim());
-      let vis = 0;
-      v.querySelectorAll('#cfulista [data-ck]').forEach(b => {
-        const h = hojasCfg(arbolCfgUnico()).find(x => x.k === b.dataset.ck) || {};
-        const partes = (h.hijos || []).map(x => x.t + ' ' + (CFG_CLAVES[x.k] || '')).join(' ');
-        const txt = impNorm([h.t, h.gr, h.d, partes, CFG_CLAVES[h.k] || ''].join(' '));
-        const ok = !q || q.split(/\s+/).every(p => txt.includes(p)); b.classList.toggle('hide', !ok); if (ok) vis++;
-      });
-      v.querySelectorAll('#cfulista h4').forEach(e => {
-        let x = e.nextElementSibling, alguno = false;
-        while (x && x.tagName !== 'H4') { if (x.matches('[data-ck]:not(.hide)')) alguno = true; x = x.nextElementSibling; }
-        e.classList.toggle('hide', !!q && !alguno);
-      });
-      $('cfusin').classList.toggle('hide', vis > 0);
-    };
-    busca.onkeydown = e => { if (e.key === 'Enter') { const b = v.querySelector('#cfulista [data-ck]:not(.hide)'); if (b) { e.preventDefault(); b.click(); } } };
-    cfuAjustarIndice();
-  }
-  v.querySelector('.cfu').classList.toggle('det', movil && CFG_DETALLE);
-  v.querySelectorAll('#cfulista [data-ck]').forEach(b => b.classList.toggle('on', b.dataset.ck === it.k));
-  // Cabecera de la página y, si tiene partes, sus pestañas
-  v.querySelector('.cfucab').innerHTML = `<div class="miga">${esc(it.gr)}</div><h2>${esc(it.t)}</h2>${it.d ? `<p>${esc(it.d)}</p>` : ''}`;   // v2.344.0: sin pestañas: las partes, una debajo de otra
-  v.querySelectorAll('.cfucab [data-cks]').forEach(b => b.onclick = () => { if (b.dataset.cks === CFG_KEY) return; CFG_KEY = b.dataset.cks; cargarConfig(); });
-  $('cfupend').classList.add('hide'); $('cfupend').innerHTML = '';
-  $('cfgcuerpo-hub').innerHTML = '<div id="cfgcuerpo"></div>';
-  // Lo pendiente: punto en el índice (en el apartado que lo contiene) y aviso en la página
-  pendientesCfg().then(l => {
-    if (!$('cfulista')) return;
-    Object.entries(l).forEach(([k, t]) => { const b = [...v.querySelectorAll('#cfulista [data-ck]')].find(x => k === x.dataset.ck || k.startsWith(x.dataset.ck + '.')); if (b && !b.querySelector('.cfupt')) { b.insertAdjacentHTML('beforeend', '<span class="cfupt"></span>'); b.title = t; } });
-    if (l[CFG_KEY] && $('cfupend')) { $('cfupend').innerHTML = `<span class="cfupt"></span>${esc(l[CFG_KEY])}`; $('cfupend').classList.remove('hide'); }
-  });
-  // El apartado (o, si el plan no lo incluye, qué plan lo trae)
-  const r = it.hijos ? () => cfgApilar(it, hijo) : it.r;
-  if (it.mod && !planIncluye(it.mod)) {
-    const p = planMinimo(it.mod);
-    $('cfgcuerpo').innerHTML = `<div class="card cfgpanel planup"><div class="planupico">${svgIco(ICON_NOM.lock)}</div><h2>${esc(it.t)} está en el plan ${esc(p ? p.nombre : 'A medida')}</h2>
-      <p class="sm">Tu plan ${esc(planDe(PLAN_ACTUAL.plan).nombre)} no lo incluye.</p>${puedeOrganizacion() ? '<div class="acts"><button class="btn" id="planver">Ver planes</button></div>' : ''}</div>`;
-    if ($('planver')) $('planver').onclick = () => { CFG_KEY = 'o.plan'; cargarConfig(); };
-  } else Promise.resolve().then(r);
-};
 ['scroll', 'resize'].forEach(ev => addEventListener(ev, () => { cancelAnimationFrame(CFU_RAF); CFU_RAF = requestAnimationFrame(cfuAjustarIndice); }, { passive: true }));
 // Cualquier camino a los ajustes lleva a su entrada de Configuración
 ir = (orig => function (t, ...r) {
@@ -29269,40 +29053,6 @@ Object.defineProperty(MANUAL_ANCLA, 'config', { configurable: true, enumerable: 
   return ['datos', 'notif'].includes(k) ? 'perfil' : k === 'o.plan' ? 'plan' : k.startsWith('o.') ? 'organizacion' : ['usuarios', 'roles'].includes(k) ? 'usuarios' : 'ajustes';
 } });
 
-// Notificaciones: cada aviso con «Al momento · En el resumen · No»
-pintarNotif = function () {
-  const tipos = tiposDeMiRol(), s = (PERFIL.preferencias || {}).notif_silencio || {};
-  const filas = NOTIF_AREAS.map(([, t, ks]) => [t, tipos.filter(x => ks.includes(x[0]))]).filter(([, l]) => l.length);
-  const sueltos = tipos.filter(x => !NOTIF_AREAS.some(ar => ar[2].includes(x[0])));
-  if (sueltos.length) filas.push(['Otros', sueltos]);
-  const modo = k => { const m = notifModo(k); return m === 'm' || m === 'r' ? m : 'n'; };
-  const resumen = () => { const c = { m: 0, r: 0, n: 0 }; tipos.forEach(([k]) => c[modo(k)]++);
-    return `<span><b>${c.m}</b> al momento</span><span><b>${c.r}</b> en el resumen de la mañana</span><span><b>${c.n}</b> desactivados</span>`; };
-  $('cfgcuerpo').innerHTML = tipos.length ? `<div class="card cfgpanel ntf">
-    <div class="ntfres" id="ntfres">${resumen()}</div>
-    <div class="ajfila ntfsil"><div><div class="ntfsilt"><label class="vfswitch mini" title="Activar las horas de silencio"><input type="checkbox" id="nsil" ${s.activo ? 'checked' : ''} aria-label="Activar las horas de silencio"><span class="sw"></span></label><b>Horas de silencio</b></div><span class="sm">Lo que llegue en ese tiempo lo verás al terminar el silencio.</span></div>
-      <div class="ajctl">
-        <input type="time" id="nsild" value="${esc(s.desde || '20:00')}" aria-label="Desde"> a <input type="time" id="nsilh" value="${esc(s.hasta || '08:00')}" aria-label="Hasta">
-        <label class="ntffin"><input type="checkbox" id="nsilf" ${s.finde !== false ? 'checked' : ''}> Fines de semana</label></div></div>
-    ${filas.map(([t, l]) => `<h3 class="ntfarea">${esc(t)}</h3>${l.map(([k, ic, tt, d]) => {
-      const m = modo(k), diario = NOTIF_DIARIOS.includes(k);
-      return `<div class="ntfrow"><span class="ntfic">${ic}</span><div><b>${esc(tt)}</b><span class="sm">${esc(d)}</span></div>
-        <div class="segs ntfseg" role="group" aria-label="${esc(tt)}" data-nk="${k}">${diario ? '' : `<button type="button" data-v="m" class="${m === 'm' ? 'on' : ''}" aria-pressed="${m === 'm'}">Al momento</button>`}<button type="button" data-v="r" class="${m === 'r' ? 'on' : ''}" aria-pressed="${m === 'r'}">En el resumen</button><button type="button" data-v="n" class="${m === 'n' ? 'on' : ''}" aria-pressed="${m === 'n'}">No</button></div></div>`; }).join('')}`).join('')}
-  </div>` : '<div class="card cfgpanel"><div class="vacio">Tu perfil no tiene notificaciones disponibles todavía.</div></div>';
-  $('cfgcuerpo').querySelectorAll('.ntfseg button').forEach(b => b.onclick = async () => {
-    const g = b.closest('.ntfseg'), k = g.dataset.nk, v = b.dataset.v;
-    if (b.classList.contains('on')) return;
-    g.querySelectorAll('button').forEach(x => { x.classList.toggle('on', x === b); x.setAttribute('aria-pressed', String(x === b)); });
-    const notif = Object.assign({}, (PERFIL.preferencias || {}).notif || {});
-    const diario = NOTIF_DIARIOS.includes(k), om = v === 'm', or = v === 'r';
-    if (diario ? or : (om && !or)) delete notif[k]; else notif[k] = { m: om, r: or };
-    await notifGuardarPrefs({ notif }, v === 'n' ? 'No lo recibirás' : v === 'm' ? 'Te llegará al momento' : 'Irá en el resumen de la mañana');
-    if ($('ntfres')) $('ntfres').innerHTML = resumen();
-  });
-  const guardarSil = () => notifGuardarPrefs({ notif_silencio: { activo: $('nsil').checked, desde: $('nsild').value || '20:00', hasta: $('nsilh').value || '08:00', finde: $('nsilf').checked } },
-    $('nsil').checked ? 'Silencio guardado' : 'Sin silencio');
-  ['nsil', 'nsild', 'nsilh', 'nsilf'].forEach(id => { if ($(id)) $(id).onchange = guardarSil; });
-};
 
 function pulirCfgBase() {
   const c = $('cfgcuerpo'); if (!c || TAB !== 'config' || !CFG_PULIR.includes(CFG_KEY)) return;
@@ -29467,13 +29217,6 @@ document.addEventListener('keydown', e => {
      punto final de la línea siguen vivos. Sin animación con «reducir movimiento».
    - Las tarjetas se transforman en cuanto se pintan (MutationObserver de #kpis: va antes de que se vean). */
 let KV_INI = null, KV_GRAF = null;
-rpcCache = (orig => async function (fn, params, clave) {
-  if (fn !== 'panel_inicio') return orig.call(this, fn, params, clave);
-  const [r, g] = await Promise.all([orig.call(this, fn, params, clave), orig.call(this, 'inicio_graficas', {}, 'inicio-graficas').catch(() => null)]);
-  KV_INI = r && r.data ? r.data : null;
-  KV_GRAF = g && g.data && g.data.por_dia ? g.data : null;
-  return r;
-})(rpcCache);
 
 (() => {
   const ob = new MutationObserver(() => { if ($('kpis')) kpisVivos(); });
@@ -29488,25 +29231,6 @@ ir = (orig => function (t, ...r) {
 
 
 
-/* v2.226.0 · Arreglos de la lista de Eric (9/10/2026).
-   1. Una sola ayuda por pantalla: fuera el «?» del manual (.manq); cada título lleva su «i» (las páginas nuevas también: Ciclo, Intervenciones,
-      Eventos…) y la ventanita de la «i» termina con «Ver en el manual de uso», que abre el manual en el apartado de esa pantalla; desde allí,
-      «‹ Volver a …» devuelve al mismo punto (v2.224.0).
-   2. Agenda: el selector «Mi agenda» y el botón «Equipo» se reponen siempre que la cabecera se vuelve a pintar (al pulsar Día se pintaba dos
-      veces seguidas y se perdían) y, dentro de Equipo, el botón pasa a «Mi agenda» para volver de un clic.
-   3. Una tarea hecha se abre en modo lectura, con «Volver a pendiente» y «Borrar».
-   4. Pedidos: fuera la tarjeta «Pedidos sin atribuir».
-   5. Menú de la persona: sin «Organización» (está dentro de Configuración); «Manual de uso» y «Reportar un problema», aparte, como ayuda. */
-ponerAyudaManual = function () {
-  document.querySelectorAll('.manq').forEach(b => b.remove());
-  if (ES_MEDICO() || TAB === 'manual' || TAB === 'delcos' || /^pd-/.test(TAB)) return;   // el Panel delcos es interno
-  const v = $('v-' + TAB), h = v && v.querySelector('.saludo h1'); if (!h) return;
-  const sal = h.closest('.saludo') || h;
-  if (sal.querySelector('.ai')) return;
-  if (AYUDA[TAB]) { h.insertAdjacentHTML('beforeend', `<button class="ai" data-ayuda="${TAB}" aria-label="Ayuda">i</button>`); return; }
-  const P = (typeof PAGINAS !== 'undefined' && PAGINAS[TAB]) || {};
-  h.insertAdjacentHTML('beforeend', `<button class="ai" data-ayuda-tit="${esc(P.t || h.textContent.trim())}" data-ayuda-txt="${esc(P.d || '')}" aria-label="Ayuda">i</button>`);
-};
 // La ventanita ya llevaba «Ver más en el manual de uso» (resumirAyuda), que abría el buscador del manual: ahora abre el apartado de esa pantalla
 function resumirAyudaBase2(pop) {
   resumirAyudaBase.call(this, pop);
@@ -29524,7 +29248,7 @@ window.addEventListener('click', e => {
 }, true);
 
 
-pintarSinAtribuir = async function () { const c = $('cardsinatr'); if (c) c.remove(); };
+async function pintarSinAtribuir() { const c = $('cardsinatr'); if (c) c.remove(); }
 
 try { Object.assign(HT_ORDEN, JSON.parse(localStorage.getItem('delcos-orden') || '{}')); } catch (e) {}
 // Pulsar una cabecera: asc → desc → sin orden
@@ -29549,11 +29273,6 @@ db.rpc = (orig => function (fn, args, ...r) {
   if (o && o.k && args && !('p_orden' in args) && (fn !== 'clientes_lista' || args.lim > 5)) args = Object.assign({}, args, { p_orden: o.k + (o.dir === -1 ? ':desc' : ':asc') });
   return orig.call(this, fn, args, ...r);
 })(db.rpc);
-// La memoria de resultados de Pedidos distingue el orden
-rpcCache = (orig => function (fn, params, clave, ...r) {
-  const o = fn === 'pedidos_pagina' ? HT_ORDEN.peds2 : null;
-  return orig.call(this, fn, params, o && clave ? clave + '|orden:' + o.k + o.dir : clave, ...r);
-})(rpcCache);
 // Profesionales: su cabecera es propia y el orden va en F.orden (buscar_cuentas)
 function cabeceraTabla(...a) {
   const r = cabeceraTablaBase.apply(this, a);
@@ -29578,11 +29297,6 @@ document.addEventListener('click', e => {
 
 
 const MOS_MES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'], MOS_DS = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
-cargarInicio = (orig => function (...a) {
-  const r = orig.apply(this, a);
-  Promise.resolve(r).then(() => pintarMosaico()).catch(() => {});
-  return r;
-})(cargarInicio);
 
 // Sugerencias dentro de tu día y bandejas
 
@@ -29607,13 +29321,6 @@ document.addEventListener('click', e => {
   if (b) { e.preventDefault(); b.click(); }
 });
 
-// Configuración: botón de volver
-cargarConfig = (orig => async function (...a) {
-  const r = await orig.apply(this, a);
-  const b = $('cfuvolver');
-  if (b && !b.classList.contains('manvuelta')) { b.classList.add('manvuelta'); b.innerHTML = '<b aria-hidden="true">‹</b> Volver'; b.setAttribute('aria-label', 'Volver a Configuración'); }
-  return r;
-})(cargarConfig);
 
 
 
@@ -29702,22 +29409,6 @@ CFG_CLAVES['o.textos'] = 'textos nombres vocabulario menú menu estados resultad
 
 
 
-function plCargarKpis(tab) {
-  const c = PL[tab], k = PL_KPI[tab], ep = typeof RC_EPOCA !== 'undefined' ? RC_EPOCA : 0;
-  if (k && (k.pend || (k.datos && k.epoca === ep && Date.now() - k.t < 60000))) return;
-  PL_KPI[tab] = Object.assign(k || {}, { pend: true });
-  c.kpis().then(datos => {
-    const nuevo = !PL_KPI[tab].datos;
-    Object.assign(PL_KPI[tab], { datos, t: Date.now(), epoca: ep, pend: false });
-    const box = document.querySelector(`#v-${tab} .plkpis`); if (!box) return;
-    box.innerHTML = plKpisHtml(tab);
-    if (nuevo && !matchMedia('(prefers-reduced-motion: reduce)').matches) box.querySelectorAll('b[data-pln]').forEach(b => {
-      const n = +b.dataset.pln, t0 = performance.now(); if (!n) return;
-      const paso = () => { const p = Math.min(1, (performance.now() - t0) / 700); b.textContent = num(Math.round(n * (1 - Math.pow(1 - p, 3)))); if (p < 1) requestAnimationFrame(paso); };
-      paso();
-    });
-  }, () => { PL_KPI[tab].pend = false; });
-}
 
 // v2.242.0: aquí iba la primera versión de plToolHtml (se redefine entera más abajo)
 
@@ -29773,20 +29464,6 @@ document.addEventListener('input', e => {
   }).observe(app, { attributes: true, attributeFilter: ['class'] });
 })();
 
-// Inicio: el mosaico está desde el primer momento (en esqueleto) y lo de antes no se pinta nunca; así no hace falta tapar la pantalla
-function inicioEsqueleto() {
-  if (ES_MEDICO()) return;
-  const sec = $('v-inicio'), sal = sec && sec.querySelector(':scope > .saludo'); if (!sal) return;
-  sec.classList.add('conmos');
-  if (!$('inimos')) {
-    sal.insertAdjacentHTML('afterend', '<div id="inimos" class="inimos"></div><div class="inikpisb"><button type="button" class="btn sec" id="inikpisver">Ver tus indicadores</button></div>');
-    $('inikpisver').onclick = () => { const on = !sec.classList.contains('conkpis'); sec.classList.toggle('conkpis', on); $('inikpisver').textContent = on ? 'Ocultar tus indicadores' : 'Ver tus indicadores'; };
-  }
-  const box = $('inimos'); if (box.children.length) return;
-  const t = (c, n) => `<div class="mt ${c} mtsk"><i class="plsk" style="width:38%"></i>${[...Array(n)].map((_, i) => `<i class="plsk" style="width:${[64, 82, 56, 74, 60][i % 5]}%"></i>`).join('')}</div>`;
-  box.innerHTML = t('mtat', 6) + t('mthoy', 4) + t('', 2) + t('', 2) + t('mtprox', 3);
-}
-cargarInicio = (orig => function (...a) { if (TAB === 'inicio') inicioEsqueleto(); return orig.apply(this, a); })(cargarInicio);
 LISTA_PARA.inicio = s => true;   // con el esqueleto del mosaico se enseña al momento
 
 
@@ -29809,7 +29486,6 @@ Object.assign(PL, {
 });
 
 
-plCargarKpis = (orig => function (tab) { const c = plCfg(tab); if (c && c.kpis) return orig(tab); })(plCargarKpis);
 ['ventas', 'facturacion', 'productos'].forEach(plObservar);
 // Clics de la barra: con la configuración de la sección abierta (la v2.236 leía PL[tab] directamente)
 document.addEventListener('click', e => {
@@ -29883,12 +29559,6 @@ Object.keys(PL).forEach(plVigilar);
 /* v2.242.0 · Limpieza segura: fuera funciones sin uso y cuerpos antiguos redefinidos; estilos de clases que ya no existen. */
 
 
-pintarInicio = (orig => async function () {
-  if (ES_MEDICO()) return orig();
-  $('v-inicio').classList.remove('ini-cargando');
-  inicioQuitarAntiguo();
-  await inicioIndicadores();
-})(pintarInicio);
 
 
 
@@ -29943,11 +29613,6 @@ document.addEventListener('click', e => {
 
 
 
-rpcCache = (orig => async function (fn, params, clave) {
-  const r = await orig.call(this, fn, params, clave);
-  if (fn === 'agenda_rango' && params && params.p_desde === params.p_hasta && r && r.data) AG_DIAS_DATOS[params.p_desde] = r.data;
-  return r;
-})(rpcCache);
 
 
 /* ============================================================
@@ -29982,10 +29647,6 @@ rpcCache = (orig => async function (fn, params, clave) {
    - «Ver la semana» cambia su texto cuando la semana ya está pintada; el mes se abre ya pintado.
    ============================================================ */
 const AG_PRE = new Map(); let AG_PRE_USO = 0;
-rpcCache = (orig => function (fn, params, clave, ...x) {
-  if (AG_PRE.size && fn === 'agenda_rango' && params) { const k = agK(fn, params.p_desde, params.p_hasta, params.p_usuario); if (AG_PRE.has(k)) return Promise.resolve(AG_PRE.get(k)); }
-  return orig.call(this, fn, params, clave, ...x);
-})(rpcCache);
 
 
 
@@ -30095,29 +29756,16 @@ function estimarDia(citas, fecha, ...x) {
 
 
 
-esErrorRed = (orig => function (e) {
-  return orig(e) || /ha tardado demasiado|tiempo agotado|timeout|timed out/i.test(String((e && (e.message || e)) || ''));
-})(esErrorRed);
-// Catálogos guardados en el móvil (resultado por defecto de la visita, «No estaba»…)
-cargarCatalogos = (orig => async function (...a) {
-  const r = await orig.apply(this, a);
-  try {
-    const vacio = Object.values(CAT).every(v => !v || !v.length);
-    if (!vacio) localStorage.setItem('dlc-cat', JSON.stringify(CAT));
-    else { const g = JSON.parse(localStorage.getItem('dlc-cat') || 'null'); if (g) Object.keys(CAT).forEach(k => { if (g[k] && g[k].length) CAT[k] = g[k]; }); }
-  } catch (e) {}
-  return r;
-})(cargarCatalogos);
 
 
 // (R-12: vaciarCola se definía aquí otra vez; ahora está en su sitio, más arriba)
 // El aviso de conexión también dice lo que no se ha podido enviar (y al pulsarlo, se ve y se decide)
-pintarConexion = (orig => function (...a) {
-  const r = orig.apply(this, a);
+function pintarConexion(...a) {
+  const r = pintarConexionBase.apply(this, a);
   const el = $('conex'), ko = colaKo().length;
   if (el && navigator.onLine && !colaLeer().length && ko) { el.className = 'conex err'; el.textContent = `${ko} ${ko === 1 ? 'cambio sin enviar' : 'cambios sin enviar'} · ver`; }
   return r;
-})(pintarConexion);
+}
 document.addEventListener('click', async e => {
   if (!e.target.closest('#conex.err')) return;
   const l = colaKo(); if (!l.length) return;
@@ -30240,26 +29888,13 @@ ir = (orig => function (t, ...a) {
   return orig.call(this, t, ...a);
 })(ir);
 
-inicioEsqueleto = (orig => function (...a) { const r = orig.apply(this, a); inicioCabecera(); return r; })(inicioEsqueleto);
 // Al abrir la app, el esqueleto de Inicio se pinta antes de que llegue esta parte del código: se completa aquí mismo
 if (document.querySelector('#v-inicio.conmos')) inicioCabecera();
 
-abrirMasMovil = (orig => function (...a) {
-  const r = orig.apply(this, a);
-  const t = tabDelMenu();
-  document.querySelectorAll('#bmas [data-bm]').forEach(b => { const on = b.dataset.bm === t; if (b.classList.contains('on') !== on) b.classList.toggle('on', on); });
-  return r;
-})(abrirMasMovil);
 // «Usuarios y roles» → «Usuarios»: los roles se gestionan en Configuración
 PAGINAS.usuarios.t = 'Usuarios';
 PAGINAS.usuarios.d = 'Personas de tu equipo, su rol y su cartera';
 PAGINAS.usuarios.tabs = PAGINAS.usuarios.tabs.filter(x => x[0] !== 'roles');
-menuPaginas2131 = (orig => function (...a) {
-  const r = orig.apply(this, a);
-  const b = document.querySelector('nav.main [data-t="usuarios"]');
-  if (b) { const x = typeof txTexto === 'function' ? txTexto(b) : null; if (x && /roles/i.test(x.get())) x.set('Usuarios'); else if (!x && /roles/i.test(b.textContent)) b.textContent = 'Usuarios'; if (b.dataset.txdef) b.dataset.txdef = 'Usuarios'; }
-  return r;
-})(menuPaginas2131);
 
 // ---- El «+» redondo vuelve al volver a vertical
 window.addEventListener('resize', () => {
@@ -30273,10 +29908,6 @@ window.addEventListener('resize', () => {
 
 
 
-plCargarKpis = (orig => function (tab, ...a) {
-  if (tab !== TAB) return;   // en otra pantalla, no (se piden al llegar a la suya)
-  return orig.call(this, tab, ...a);
-})(plCargarKpis);
 
 document.addEventListener('change', filtroGuardar, true);
 document.addEventListener('input', filtroGuardar, true);
@@ -30974,35 +30605,16 @@ CFG_CLAVES['o.pruebas'] = 'pruebas produccion producción datos copia traer part
 /* v2.334.0: al cobrar por el enlace, la forma de pago del pedido pasa a ser la que eligió el cliente (SQL 173); «Abrir la página de pago (pruebas)» centrado como los demás botones. */
 
 
-pintarBnav = (orig => function (...a) {
-  if (ES_MEDICO()) return orig.apply(this, a);
-  const b = $('bnav'); if (!b) return orig.apply(this, a);
+function pintarBnavBase4(...a) {
+  if (ES_MEDICO()) return pintarBnavBase3.apply(this, a);
+  const b = $('bnav'); if (!b) return pintarBnavBase3.apply(this, a);
   const barra = movBarra();
   b.dataset.n = String(barra.length + 1);
   b.innerHTML = barra.map(t => `<button data-t="${t}" aria-selected="${TAB === t}"><span>${ICO_MOD[t] || '•'}</span>${esc(movNombre(t))}</button>`).join('')
     + `<button id="bmasbtn" aria-selected="${!barra.includes(TAB)}"><span>⋯</span>Más</button>`;
   b.querySelectorAll('[data-t]').forEach(x => x.onclick = () => ir(x.dataset.t));
   $('bmasbtn').onclick = abrirMasMovil;
-})(pintarBnav);
-abrirMasMovil = (orig => function (...a) {
-  const r = orig.apply(this, a);
-  const s = $('bmas'), g = s && s.querySelector('.bmasgrid'); if (!g) return r;
-  const barra = movBarra(), ocultos = menuPrefs().ocultos || [];
-  const quiero = movMasOrden(movDisponibles().filter(t => !barra.includes(t) && !ocultos.includes(t)));
-  const cerrar = () => { s.classList.remove('abierto'); setTimeout(() => s.classList.add('hide'), 180); };
-  g.querySelectorAll('[data-bm]').forEach(x => { if (!quiero.includes(x.dataset.bm)) x.remove(); });
-  quiero.forEach(t => {
-    if (g.querySelector(`[data-bm="${t}"]`)) return;
-    g.insertAdjacentHTML('beforeend', `<button data-bm="${t}" class="${tabDelMenu() === t ? 'on' : ''}"><span>${ICO_MOD[t] || '•'}</span>${esc(movNombre(t))}</button>`);
-    g.querySelector(`[data-bm="${t}"]`).onclick = () => { cerrar(); ir(t); };
-  });
-  quiero.forEach(t => { const x = g.querySelector(`[data-bm="${t}"]`); if (x) g.appendChild(x); });   // en el orden elegido
-  if (!s.querySelector('#bmaspers')) {
-    g.insertAdjacentHTML('afterend', '<div class="acts bmaspers"><button type="button" class="btn sec chico" id="bmaspers">Personalizar menú</button></div>');
-    $('bmaspers').onclick = () => { cerrar(); movPersonalizar(); };
-  }
-  return r;
-})(abrirMasMovil);
+}
 
 
 
@@ -31015,7 +30627,7 @@ var USR_ACC = null;
 
 
 addEventListener('resize', medirBnav); setTimeout(medirBnav, 0);
-pintarBnav = (orig => function (...a) { const r = orig.apply(this, a); medirBnav(); return r; })(pintarBnav);
+function pintarBnav(...a) { const r = pintarBnavBase4.apply(this, a); medirBnav(); return r; }
 
 
 
@@ -31073,29 +30685,6 @@ function arbolCfgUnicoBase8(...a) {
     };
   }
 })();
-plCargarKpis = function (tab) {
-  if (tab !== TAB) return;
-  const c = plCfg(tab); if (!c || !c.kpis) return;
-  const ep = typeof RC_EPOCA !== 'undefined' ? RC_EPOCA : 0, f = c.kpiFirma ? c.kpiFirma() : '';
-  let k = PL_KPI[tab];
-  if (k && k.pend) { if (f !== k.firma) k.otra = true; return; }
-  if (k && k.datos && k.epoca === ep && k.firma === f && Date.now() - k.t < 60000) return;
-  PL_KPI[tab] = k = Object.assign(k || {}, { pend: true, firma: f, otra: false });
-  c.kpis().then(datos => {
-    const nuevo = !k.datos;
-    Object.assign(k, { datos, t: Date.now(), epoca: ep, pend: false });
-    const box = document.querySelector(`#v-${tab} .plkpis`);
-    if (box) {
-      box.innerHTML = plKpisHtml(tab);
-      if (nuevo && !matchMedia('(prefers-reduced-motion: reduce)').matches) box.querySelectorAll('b[data-pln]').forEach(b => {
-        const n = +b.dataset.pln, t0 = performance.now(); if (!n) return;
-        const paso = () => { const p = Math.min(1, (performance.now() - t0) / 700); b.textContent = num(Math.round(n * (1 - Math.pow(1 - p, 3)))); if (p < 1) requestAnimationFrame(paso); };
-        paso();
-      });
-    }
-    if (k.otra) { k.otra = false; plCargarKpis(tab); }
-  }, () => { k.pend = false; });
-};
 
 
 let PLANT_ELEGIDA = { pago: null, factura: null }, PDF_ELEGIDO = null, PDF_EDITANDO = null;
@@ -31134,16 +30723,6 @@ const IDS_SEC = ['fcuerpo', 'dbody', 'v-admin'];
 ['pointerdown', 'focusin', 'keydown'].forEach(ev => document.addEventListener(ev, e => {
   const sec = e.target.closest && e.target.closest('#cfgcuerpo-hub .cfgsec'); if (sec) cfgSecDespertar(sec);
 }, true));
-// Al cambiar de apartado, la ventana de siempre vuelve a su sitio
-cargarConfig = (orig => async function (...a) {
-  const hub = $('cfgcuerpo-hub');
-  if (hub && hub.dataset.apilado) {
-    hub.querySelectorAll('[data-idd]').forEach(e => e.removeAttribute('data-idd'));
-    const m = $('dbody-modal'); if (m) { const p = document.querySelector('#dbody[data-panel]'); if (p) p.removeAttribute('id'); m.id = 'dbody'; }
-    PANEL_ACTIVO = null; CFG_SEC_ACT = null; delete hub.dataset.apilado;
-  }
-  return orig.apply(this, a);
-})(cargarConfig);
 
 // Datos fiscales y Series, juntos
 function arbolCfgUnico(...a) {
@@ -31203,3 +30782,18 @@ document.addEventListener('click', e => {
 }, true);
 new MutationObserver(() => { if (PAG_GUARDA_RAF || !PAG_GUARDA.some(x => x.tab === TAB)) return; PAG_GUARDA_RAF = requestAnimationFrame(() => { PAG_GUARDA_RAF = 0; pagPonerGuardar(); }); })
   .observe(document.body, { childList: true, subtree: true });
+// @ts-check
+// nucleo/arranque.js · lo que se ejecuta al abrir la app, en este orden. Va lo último de src/orden.json: cuando se ejecuta, todas las
+// funciones ya tienen su forma final (antes, estas llamadas estaban repartidas por legado y el primer pintado usaba versiones a medias
+// de las funciones que se envolvían más abajo). Plan de migración, bloque 6.
+mejorarCampos(document);   // antes en 035
+aplicarMarca();   // antes en 041
+aplicarMarca();   // antes en 043
+if (RECUPERANDO) pantallaRecuperacion();   // antes en 046
+pintarBnav();   // antes en 069
+pintarConexion();   // antes en 069
+vaciarCola();   // antes en 069
+arrancar();   // antes en 069
+if (typeof PERFIL !== 'undefined' && PERFIL) menuOrganizacion();   // antes en 072
+// Vuelta de Stripe (v2.167.0): si la app ya ha entrado (perfil guardado), se va a «Plan y suscripción»
+if (PAGO_IR_PLAN && typeof PERFIL !== 'undefined' && PERFIL) setTimeout(() => { if (PAGO_IR_PLAN) ir('plan'); }, 0);   // antes en 076

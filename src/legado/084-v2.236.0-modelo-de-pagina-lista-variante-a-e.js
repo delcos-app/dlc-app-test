@@ -1,22 +1,6 @@
 
 
 
-function plCargarKpis(tab) {
-  const c = PL[tab], k = PL_KPI[tab], ep = typeof RC_EPOCA !== 'undefined' ? RC_EPOCA : 0;
-  if (k && (k.pend || (k.datos && k.epoca === ep && Date.now() - k.t < 60000))) return;
-  PL_KPI[tab] = Object.assign(k || {}, { pend: true });
-  c.kpis().then(datos => {
-    const nuevo = !PL_KPI[tab].datos;
-    Object.assign(PL_KPI[tab], { datos, t: Date.now(), epoca: ep, pend: false });
-    const box = document.querySelector(`#v-${tab} .plkpis`); if (!box) return;
-    box.innerHTML = plKpisHtml(tab);
-    if (nuevo && !matchMedia('(prefers-reduced-motion: reduce)').matches) box.querySelectorAll('b[data-pln]').forEach(b => {
-      const n = +b.dataset.pln, t0 = performance.now(); if (!n) return;
-      const paso = () => { const p = Math.min(1, (performance.now() - t0) / 700); b.textContent = num(Math.round(n * (1 - Math.pow(1 - p, 3)))); if (p < 1) requestAnimationFrame(paso); };
-      paso();
-    });
-  }, () => { PL_KPI[tab].pend = false; });
-}
 
 // v2.242.0: aquí iba la primera versión de plToolHtml (se redefine entera más abajo)
 

@@ -11,20 +11,6 @@
   }).observe(app, { attributes: true, attributeFilter: ['class'] });
 })();
 
-// Inicio: el mosaico está desde el primer momento (en esqueleto) y lo de antes no se pinta nunca; así no hace falta tapar la pantalla
-function inicioEsqueleto() {
-  if (ES_MEDICO()) return;
-  const sec = $('v-inicio'), sal = sec && sec.querySelector(':scope > .saludo'); if (!sal) return;
-  sec.classList.add('conmos');
-  if (!$('inimos')) {
-    sal.insertAdjacentHTML('afterend', '<div id="inimos" class="inimos"></div><div class="inikpisb"><button type="button" class="btn sec" id="inikpisver">Ver tus indicadores</button></div>');
-    $('inikpisver').onclick = () => { const on = !sec.classList.contains('conkpis'); sec.classList.toggle('conkpis', on); $('inikpisver').textContent = on ? 'Ocultar tus indicadores' : 'Ver tus indicadores'; };
-  }
-  const box = $('inimos'); if (box.children.length) return;
-  const t = (c, n) => `<div class="mt ${c} mtsk"><i class="plsk" style="width:38%"></i>${[...Array(n)].map((_, i) => `<i class="plsk" style="width:${[64, 82, 56, 74, 60][i % 5]}%"></i>`).join('')}</div>`;
-  box.innerHTML = t('mtat', 6) + t('mthoy', 4) + t('', 2) + t('', 2) + t('mtprox', 3);
-}
-cargarInicio = (orig => function (...a) { if (TAB === 'inicio') inicioEsqueleto(); return orig.apply(this, a); })(cargarInicio);
 LISTA_PARA.inicio = s => true;   // con el esqueleto del mosaico se enseña al momento
 
 

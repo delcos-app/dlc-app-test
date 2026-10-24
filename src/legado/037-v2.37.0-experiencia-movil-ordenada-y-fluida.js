@@ -58,16 +58,6 @@ function colocarPopBase(pop, ref) {
 /* ---------------- rendimiento: los campos se mejoran por lotes ---------------- */
 
 let MEJ_PEND = new Set(), MEJ_RAF = 0;
-mejorarCampos = (orig => function (raiz) {
-  if (!raiz || raiz === document) return orig(raiz);
-  if (raiz.nodeType !== 1 || !raiz.querySelector && raiz.tagName !== 'INPUT') return;
-  MEJ_PEND.add(raiz);
-  if (MEJ_RAF) return;
-  MEJ_RAF = 1; queueMicrotask(() => {
-    MEJ_RAF = 0; const l = [...MEJ_PEND]; MEJ_PEND.clear();
-    l.forEach(n => { if (n.isConnected && (n.tagName === 'INPUT' ? n.parentNode : n.querySelector('input[type=date],input[type=time],input[type=number]'))) orig(n.tagName === 'INPUT' ? n.parentNode : n); });
-  });
-})(mejorarCampos);
 
 /* ---------------- barra de herramientas ordenada en el móvil ---------------- */
 
@@ -82,7 +72,7 @@ window.addEventListener('resize', () => { if (!ES_MOVIL()) document.querySelecto
 
 /* ---------------- menú «Más» del móvil con el mismo estilo ---------------- */
 
-function abrirMasMovil() {
+function abrirMasMovilBase() {
   const principales = ['inicio', 'agenda', 'rutas', 'directorio'];
   const mods = [...document.querySelectorAll('nav.main [data-t]')]
     .filter(x => !x.classList.contains('hide') && !x.disabled && !principales.includes(x.dataset.t))
@@ -98,7 +88,7 @@ function abrirMasMovil() {
   s.onclick = e => { if (e.target === s) cerrar(); };
   s.querySelectorAll('[data-bm]').forEach(x => x.onclick = () => { cerrar(); ir(x.dataset.bm); });
 };
-pintarBnav = (orig => function () { orig(); const m = $('bmasbtn'); if (m) m.onclick = abrirMasMovil; })(pintarBnav);
+function pintarBnavBase3() { pintarBnavBase2(); const m = $('bmasbtn'); if (m) m.onclick = abrirMasMovil; }
 
 /* ---------------- Inicio: tarjeta de bienvenida con lo importante de hoy ---------------- */
 

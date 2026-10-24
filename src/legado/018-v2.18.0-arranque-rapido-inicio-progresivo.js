@@ -15,7 +15,7 @@ const PKEY = 'dlc-perfil';
 /* Entrada en la plataforma con el perfil de la persona.
    Reúne en una sola función lo que antes estaba repartido en 21 capas añadidas versión a versión,
    con el mismo orden de ejecución. */
-function mostrarApp(perfil) {
+function mostrarAppBase(perfil) {
   const p = perfil, pref = p.preferencias || {};
 
   // 1. Con el enlace de recuperación de contraseña no se abre la plataforma
@@ -85,7 +85,7 @@ function mostrarApp(perfil) {
     if (!bi) { document.querySelector('nav.main .in').insertAdjacentHTML('afterbegin', `<button data-t="informe" aria-selected="true">${puede('portal_centro') ? 'Mi centro' : 'Mi informe'}</button>`); bi = document.querySelector('nav.main [data-t="informe"]'); }
     bi.classList.remove('hide');
     if (!$('mdavisos')) $('ubtn').insertAdjacentHTML('beforebegin', '<button class="mdavisos" id="mdavisos" aria-label="Avisos"></button>');
-    pintarAvisos();
+    refrescarCampana();
     if ($('q')) $('q').closest('.gsearch').classList.add('hide');
     setTimeout(() => ir('informe'), 0);
   }
@@ -117,15 +117,6 @@ function mostrarApp(perfil) {
 /* ---------------- inicio: esqueleto y carga por partes ---------------- */
 
 
-/* pintarInicio: la parte base y, en orden, cada paso que se le añade (antes eran 5 capas separadas). */
-async function pintarInicio() {
-  await pintarInicioBase();
-  await inicioResumenSemanaYVentas();
-  await inicioOperativaPedidos();
-  await inicioVistazoEIndicadores();
-  await inicioLlamadasHoy();
-  await inicioFiltrarAlertas();
-}
 
 
 

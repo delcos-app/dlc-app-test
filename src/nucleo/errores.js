@@ -60,3 +60,12 @@ function reportarProblema() {
     delete $('dlg').dataset.sucio; $('dlg').close(); toast('Gracias: el problema queda registrado con todos los detalles');
   });
 }
+
+// Producción (3/10/2026): en el iPhone, sin cobertura, Safari da «Load failed» o «Fetch is aborted». Eso no es un fallo de la plataforma:
+// no se apunta en el registro de errores, y la visita (registrar_actividad, que no se duplica gracias a su op_id) se guarda en la cola
+// del dispositivo y se envía al recuperar la conexión, en lugar de pedir que se repita.
+function esErrorRedBase(e) { return /failed to fetch|load failed|networkerror|network request failed|aborterror|fetch is aborted|internet connection|err_internet|err_network/i.test(String((e && (e.message || e)) || '')); }
+
+function esErrorRed(e) {
+  return esErrorRedBase(e) || /ha tardado demasiado|tiempo agotado|timeout|timed out/i.test(String((e && (e.message || e)) || ''));
+}

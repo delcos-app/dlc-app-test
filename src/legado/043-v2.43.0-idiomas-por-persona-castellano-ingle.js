@@ -6,11 +6,6 @@
 
 /* ---------------- logo: el de la empresa o uno neutro ---------------- */
 
-aplicarMarca = (orig => function () {
-  orig();
-  if (!MARCA.logo) document.querySelectorAll('header .logo, .lbox img, #bootsplash img').forEach(i => { i.src = LOGO_NEUTRO; });
-})(aplicarMarca);
-aplicarMarca();
 ;
 
 /* ---------------- planes alineados con el mercado ---------------- */
@@ -61,15 +56,6 @@ TIPOS_NOTIF.push(
   ['esquema', '€', 'Mi comisión', 'Cuando te asignan un esquema de comisión']);
 // Resumen del día: se genera la primera vez que se abre la plataforma cada día
 // Configuración de notificaciones agrupada
-pintarNotif = (orig => function () {
-  orig();
-  const c = $('cfgcuerpo').querySelector('.notcfg'); if (!c) return;
-  const al = ['citas_hoy', 'seguimientos_hoy', 'pagos_pendientes', 'facturas_vencidas', 'lotes_caducan', 'sin_visitar'];
-  const labels = [...c.children];
-  const dia = labels.filter(l => al.includes(l.querySelector('[data-nt]').dataset.nt));
-  if (dia.length) { c.insertAdjacentHTML('beforeend', '<h3 class="mansub">Resumen al empezar el día</h3>'); dia.forEach(l => c.appendChild(l)); }
-  if (labels.length > dia.length) c.insertAdjacentHTML('afterbegin', '<h3 class="mansub" style="margin-top:0">Al momento</h3>');
-})(pintarNotif);
 
 /* ---------------- idiomas ---------------- */
 

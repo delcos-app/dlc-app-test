@@ -436,3 +436,22 @@ function congelar(sec) {
   document.body.appendChild(c); sec.style.minHeight = r.height + 'px';
   setTimeout(() => estable(sec, 3000, t0).then(() => { c.remove(); requestAnimationFrame(() => { sec.style.minHeight = ''; }); }), 0);
 }
+
+// Menú: «Usuarios y roles» (quien administra) y «Panel delcos» (quien gestiona la plataforma)
+function menuPaginas2131Base() {
+  const nav = document.querySelector('nav.main .in'); if (!nav || ES_MEDICO()) return;
+  const pon = (t, txt, ve) => {
+    let b = nav.querySelector(`[data-t="${t}"]`);
+    if (!b && ve) { nav.insertAdjacentHTML('beforeend', `<button data-t="${t}" aria-selected="false">${txt}</button>`); b = nav.querySelector(`[data-t="${t}"]`); }
+    if (b) { b.classList.toggle('hide', !ve); if (!b.closest('.mlbs') && b !== nav.lastElementChild) nav.appendChild(b); }   // v2.132.0: si ya está en su bloque del menú lateral, se queda
+  };
+  pon('usuarios', 'Usuarios y roles', puede('administrar'));
+  pon('delcos', 'Panel delcos', puede('gestionar_plataforma'));
+}
+
+function menuPaginas2131(...a) {
+  const r = menuPaginas2131Base.apply(this, a);
+  const b = document.querySelector('nav.main [data-t="usuarios"]');
+  if (b) { const x = typeof txTexto === 'function' ? txTexto(b) : null; if (x && /roles/i.test(x.get())) x.set('Usuarios'); else if (!x && /roles/i.test(b.textContent)) b.textContent = 'Usuarios'; if (b.dataset.txdef) b.dataset.txdef = 'Usuarios'; }
+  return r;
+}

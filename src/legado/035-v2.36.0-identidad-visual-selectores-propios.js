@@ -15,7 +15,7 @@ let SELPOP = null, LOGO_CIRC = false;
 
 // (v2.183.0: aquí iba la primera versión de abrirReloj; se redefine entera más abajo)
 
-function valorVisible(inp) {
+function valorVisibleBase(inp) {
   const w = inp.closest('.selw'), sp = w && w.querySelector('.selval'); if (!sp) return;
   const v = inp.value;
   if (!v) { sp.textContent = inp.type === 'date' ? 'Elige una fecha' : 'Elige una hora'; sp.classList.add('vacio'); return; }
@@ -23,33 +23,6 @@ function valorVisible(inp) {
   if (inp.type === 'time') { sp.textContent = v.slice(0, 5); return; }
   const d = new Date(v + 'T12:00:00');
   sp.textContent = isNaN(d) ? v : d.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
-}
-// Cada campo de fecha, hora o número se mejora al aparecer en pantalla
-function mejorarCampos(raiz) {
-  (raiz || document).querySelectorAll('input[type=date]:not([data-sel]), input[type=time]:not([data-sel]), input[type=number]:not([data-sel])').forEach(inp => {
-    inp.dataset.sel = '1';
-    if (inp.closest('.selpop')) return;
-    if (inp.type === 'number') {
-      if (inp.closest('.lrow') && inp.offsetWidth && inp.offsetWidth < 70) return;
-      const w = document.createElement('span'); w.className = 'numw';
-      inp.parentNode.insertBefore(w, inp); w.appendChild(inp);
-      w.insertAdjacentHTML('afterbegin', '<button type="button" class="nb" data-nd="-1" aria-label="Menos" tabindex="-1">−</button>');
-      w.insertAdjacentHTML('beforeend', '<button type="button" class="nb" data-nd="1" aria-label="Más" tabindex="-1">+</button>');
-      if (inp.disabled) w.classList.add('dis');
-      return;
-    }
-    const w = document.createElement('span'); w.className = 'selw ' + (inp.type === 'date' ? 'fecha' : 'hora');
-    inp.parentNode.insertBefore(w, inp); w.appendChild(inp);
-    w.insertAdjacentHTML('beforeend', `<span class="selico" aria-hidden="true">${inp.type === 'date' ? '📅' : '🕒'}</span>`);
-    inp.dataset.ro = inp.readOnly ? '1' : '';
-    inp.readOnly = true; inp.setAttribute('inputmode', 'none');
-    // Se muestra el valor en formato español, sin depender del idioma del navegador
-    w.insertAdjacentHTML('afterbegin', '<span class="selval"></span>');
-    const desc = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value');
-    Object.defineProperty(inp, 'value', { configurable: true, get() { return desc.get.call(this); }, set(v) { desc.set.call(this, v); valorVisible(this); } });
-    inp.addEventListener('change', () => valorVisible(inp)); inp.addEventListener('input', () => valorVisible(inp));
-    valorVisible(inp);
-  });
 }
 document.addEventListener('click', e => {
   const nb = e.target.closest('.numw .nb');
@@ -79,7 +52,6 @@ document.addEventListener('scroll', e => { if (SELPOP && Date.now() - (SELPOP.__
 new MutationObserver(ms => { for (const m of ms) for (const n of m.addedNodes) if (n.nodeType === 1) mejorarCampos(n); })
   .observe(document.body, { childList: true, subtree: true });
 ['dlg', 'dlg2', 'ficha', 'mini'].forEach(id => { const d = $(id); if (d) d.addEventListener('close', cerrarSelector); });
-mejorarCampos(document);
 
 /* ---------------- alertas: el detalle se abre en una ventana ---------------- */
 
@@ -135,25 +107,11 @@ if (EN_PRUEBAS) {
 
 
 
-async function pintarAvisos() {
-  const b = $('mdavisos'); if (!b) return;
-  const { data } = await RPC_ORIG('mis_notificaciones', { lim: 30 });
-  const n = (data && data.sin_leer) || 0;
-  b.innerHTML = `🔔${n ? `<span class="nb2">${n > 9 ? '9+' : n}</span>` : ''}`;
-  b.onclick = async () => {
-    const l = (data && data.lista) || [];
-    $('dbody').innerHTML = `<div class="fh"><div><h2>Avisos</h2><div class="sm">Cada vez que se registra ${TT('pauta', 's', 'un', 'l', 'l')}</div></div><button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-      <div class="lista">${l.map(x => `<div class="item ${x.leida_en ? '' : 'nuevo'}" style="cursor:default"><span class="ic">💊</span>
-        <span class="tx"><b>${esc(x.titulo)}</b><span class="sm">${esc(x.cuerpo || '')} · ${new Date(x.creado_en).toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' })}</span></span></div>`).join('') || '<div class="vacio">Sin avisos todavía.</div>'}</div>`;
-    $('dlg').showModal();
-    if (n) { await db.rpc('leer_notificaciones'); pintarAvisos(); }
-  };
-}
 
-if (typeof pintarBnav === 'function') pintarBnav = (orig => function () {
+function pintarBnavBase2() {
   if (ES_MEDICO()) { const b = $('bnav'); if (b) b.innerHTML = `<button data-t="informe" aria-selected="true"><span>◉</span>${puede('portal_centro') ? 'Mi centro' : 'Mi informe'}</button>`; if (b) b.firstChild.onclick = () => ir('informe'); return; }
-  orig();
-})(pintarBnav);
+  pintarBnavBase();
+}
 
 // Vincular un usuario de tipo Médico con su ficha (Administración → Usuarios → Editar)
 

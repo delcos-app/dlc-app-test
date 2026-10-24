@@ -10,14 +10,6 @@ Object.assign(ICON_NOM, {"arrow-left": "<path d=\"m12 19-7-7 7-7\" /> <path d=\"
 
 // La cabecera de la pantalla es para acciones (crear, registrar…). Buscar, filtros y columnas
 // van en la barra de la propia tabla, a la derecha, como en Prescriptores
-function barraTabla(sec) {
-  const b = sec.querySelector('.htbtn'), g = sec.querySelector('.dgrid');
-  if (!b || !g || b.closest('.tbarra, .filtros')) return;
-  const caja = g.closest('.card, .panel') || g.parentElement;
-  let barra = caja.querySelector(':scope > .filtros:not(.hide)') || caja.querySelector(':scope > .tbarra');
-  if (!barra) { caja.insertAdjacentHTML('afterbegin', '<div class="tbarra"></div>'); barra = caja.querySelector(':scope > .tbarra'); }
-  barra.classList.add('conbtn'); barra.appendChild(b); b.classList.add('aderecha');
-}
 function ordenarBotones(sec) {
   // Cabecera: secundarios → acción principal → «Filtros y columnas» (el último: el mismo sitio en todas las pantallas)
   sec.querySelectorAll('.saludo .acts, #dircab .acts').forEach(acts => {
@@ -60,7 +52,7 @@ new MutationObserver(() => {
     if (inp.id) { const l = document.querySelector(`label[for="${inp.id}_sel"]`); if (l) l.setAttribute('for', inp.id); }
   });
 }).observe(document.body, { childList: true, subtree: true });
-ivaSelector = (orig => function (inp) { if (!inp || !esPorcentajeIva(inp)) return; return orig(inp); })(ivaSelector);
+function ivaSelector(inp) { if (!inp || !esPorcentajeIva(inp)) return; return ivaSelectorBase2(inp); }
 
 /* ---------------- 5. Archivos: sin el recuadro antiguo; notas de varias líneas ---------------- */
 
@@ -76,7 +68,6 @@ VENT_AMPLIA.forEach(fn => {
   eval(`${fn} = nueva`);
 });
 new MutationObserver(() => { if (!$('dlg').open) $('dlg').classList.remove('amplia'); }).observe($('dlg'), { attributes: true, attributeFilter: ['open'] });
-nuevaCita = (orig => function (...a) { const r = orig.apply(this, a); $('dlg').classList.add('pequena'); return r; })(nuevaCita);
 new MutationObserver(() => { if (!$('dlg').open) $('dlg').classList.remove('pequena'); }).observe($('dlg'), { attributes: true, attributeFilter: ['open'] });
 
 /* ---------------- 7. Pila de ventanas: abrir una encima de otra sin perder la anterior ---------------- */
@@ -94,29 +85,6 @@ $('dlg').addEventListener('close', () => {
 
 /* ---------------- 9. Plan: «Cómo funciona» explicado paso a paso ---------------- */
 
-pintarPaginaPlan = (orig => async function () {
-  await orig();
-  const cont = $('cfgcuerpo'); const viejo = [...cont.querySelectorAll('.card.cfgpanel')].find(c => /Cómo funciona/.test(c.textContent)); if (!viejo) return;
-  const act = planDe(PLAN_ACTUAL.plan);
-  viejo.outerHTML = `<h2 class="plantit">Cómo funciona</h2>
-    <div class="pasosplan">
-      ${[['mouse-pointer-click', 'Eliges tu plan', 'Según los módulos que necesitas. Puedes empezar por uno pequeño y crecer después.'],
-         ['credit-card', 'Pagas de forma segura', 'Con tarjeta, cada mes y sin permanencia. Recibes la factura por correo.'],
-         ['zap', 'Se activa al momento', 'En cuanto se confirma el pago, los módulos del plan se desbloquean para todo tu equipo.'],
-         ['users', 'Creces cuando quieras', `Añade usuarios sueltos (${eurI(act.bloque[1])}/mes cada uno) o cambia de plan. ${TT('medico', 'p', 'el', 'C', 'l')} con acceso a su informe no cuentan.`]]
-        .map(([ic, t, d], i) => `<div class="pasoplan"><span class="pasonum">${i + 1}</span><span class="pasoico">${svgIco(ICON_NOM[ic])}</span><b>${t}</b><p>${d}</p></div>`).join('')}
-    </div>
-    <h2 class="plantit">Preguntas frecuentes</h2>
-    <div class="card faqplan">${[
-      ['¿Puedo cambiar de plan en cualquier momento?', 'Sí. Al mejorar, los módulos nuevos se activan en cuanto se confirma el pago. Al bajar de plan, el cambio se aplica al siguiente mes y tus datos se conservan.'],
-      ['¿Qué pasa con mis datos si dejo de pagar o me doy de baja?', 'Tus datos son tuyos: antes de la baja puedes descargar una copia completa desde Empresa → Copias de seguridad.'],
-      ['¿Cómo se cuentan los usuarios?', `Cuenta cada persona activa del equipo. ${TT('medico', 'p', 'el', 'C', 'l')} que solo ven su informe no cuentan, y las personas desactivadas tampoco.`],
-      ['¿Los precios incluyen IVA?', 'No. Los precios son sin IVA; en la factura se añade el IVA que corresponda.'],
-      ['¿Hay permanencia?', 'No. El pago es mensual y puedes cancelar cuando quieras.']]
-      .map(([q, a]) => `<details><summary>${esc(q)}${svgIco(ICON_NOM['chevron-down'])}</summary><p>${esc(a)}</p></details>`).join('')}</div>
-    <div class="acts" style="justify-content:flex-start"><button class="btn sec" id="pextra">+ Añadir un usuario (${eurI(act.bloque[1])}/mes)</button></div>`;
-  const b = $('pextra'); if (b) b.onclick = () => { const d = document.querySelector('[data-pcontratar]'); location.href = 'mailto:?subject=' + encodeURIComponent('Añadir un usuario · ' + nombreApp()); };
-})(pintarPaginaPlan);
 
 /* ---------------- 10. Reportar un problema: guiado y útil para quien lo resuelve ---------------- */
 

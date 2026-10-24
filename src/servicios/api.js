@@ -221,3 +221,48 @@ async function escribirRpc(fn, payload, ...a) {
   if (fn === 'registrar_actividad' && r && r.data && r.data.encolada) setTimeout(() => { if (TAB === 'agenda') tdMarcarPendientes(); }, 0);
   return r;
 }
+
+/** Llama a una función del servidor y guarda copia; sin conexión devuelve la última copia. */
+async function rpcCacheBase(fn, params, clave) {
+  if (navigator.onLine) {
+    const { data, error } = await db.rpc(fn, params);
+    if (!error) { guardarCache(clave, data); return { data, cache: false }; }
+  }
+  const c = leerCache(clave);
+  if (c) return { data: c.d, cache: true, fecha: c.t };
+  return { data: null, cache: true };
+}
+
+async function rpcCacheBase2(fn, params, clave) {
+  if (fn === 'agenda_rango' && TD_PRESET && params && params.p_desde === TD_PRESET.fecha && params.p_hasta === TD_PRESET.fecha) {
+    const d = TD_PRESET.data; TD_PRESET = null; return { data: d, cache: false };
+  }
+  const r = await rpcCacheBase.call(this, fn, params, clave);
+  if (fn === 'agenda_rango' && params && params.p_desde === params.p_hasta && r && r.data) TD_ULTIMO = { fecha: params.p_desde, data: r.data };
+  return r;
+}
+
+async function rpcCacheBase3(fn, params, clave) {
+  if (fn !== 'panel_inicio') return rpcCacheBase2.call(this, fn, params, clave);
+  const [r, g] = await Promise.all([rpcCacheBase2.call(this, fn, params, clave), rpcCacheBase2.call(this, 'inicio_graficas', {}, 'inicio-graficas').catch(() => null)]);
+  KV_INI = r && r.data ? r.data : null;
+  KV_GRAF = g && g.data && g.data.por_dia ? g.data : null;
+  return r;
+}
+
+// La memoria de resultados de Pedidos distingue el orden
+function rpcCacheBase4(fn, params, clave, ...r) {
+  const o = fn === 'pedidos_pagina' ? HT_ORDEN.peds2 : null;
+  return rpcCacheBase3.call(this, fn, params, o && clave ? clave + '|orden:' + o.k + o.dir : clave, ...r);
+}
+
+async function rpcCacheBase5(fn, params, clave) {
+  const r = await rpcCacheBase4.call(this, fn, params, clave);
+  if (fn === 'agenda_rango' && params && params.p_desde === params.p_hasta && r && r.data) AG_DIAS_DATOS[params.p_desde] = r.data;
+  return r;
+}
+
+function rpcCache(fn, params, clave, ...x) {
+  if (AG_PRE.size && fn === 'agenda_rango' && params) { const k = agK(fn, params.p_desde, params.p_hasta, params.p_usuario); if (AG_PRE.has(k)) return Promise.resolve(AG_PRE.get(k)); }
+  return rpcCacheBase5.call(this, fn, params, clave, ...x);
+}

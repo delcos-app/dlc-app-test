@@ -1,11 +1,7 @@
 
 
 // Barra inferior del móvil y barra de «Entrar como» desde el primer momento
-pintarBnav();
 
-pintarConexion();
-vaciarCola();
-arrancar();
 
 /* v2.71.0 · Textos fijos de index.html con el vocabulario del cliente (solo si lo ha cambiado) */
 (function () {

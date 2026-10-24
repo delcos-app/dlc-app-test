@@ -5,7 +5,7 @@
 /* ---------------- cola sin conexión ---------------- */
 
 
-function pintarConexion() {
+function pintarConexionBase() {
   const n = colaLeer().length;
   const el = $('conex');
   if (!navigator.onLine) { el.className = 'conex off'; el.textContent = n ? `Sin conexión · ${n} ${n === 1 ? 'cambio' : 'cambios'} en espera` : 'Sin conexión'; }

@@ -5,12 +5,12 @@
 
 
 // Pantalla de contraseña nueva: indicador y botón activo solo cuando es válida
-pantallaRecuperacion = (orig => function () {
-  orig();
+function pantallaRecuperacion() {
+  pantallaRecuperacionBase();
   const f = $('rform'); if (!f) return;
   f.noValidate = true;
   medidorClave($('rp1'), $('rp2'), $('rok'));
-})(pantallaRecuperacion);
+}
 // Si la pantalla ya se abrió al cargar (antes de este punto), se completa ahora
 if ($('rform')) { $('rform').noValidate = true; medidorClave($('rp1'), $('rp2'), $('rok')); }
 // Mi perfil → contraseña

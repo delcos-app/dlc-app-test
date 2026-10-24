@@ -16,7 +16,6 @@ Object.assign(PL, {
 });
 
 
-plCargarKpis = (orig => function (tab) { const c = plCfg(tab); if (c && c.kpis) return orig(tab); })(plCargarKpis);
 ['ventas', 'facturacion', 'productos'].forEach(plObservar);
 // Clics de la barra: con la configuración de la sección abierta (la v2.236 leía PL[tab] directamente)
 document.addEventListener('click', e => {

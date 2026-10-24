@@ -15,13 +15,6 @@ document.addEventListener('click', e => {
   if (b) { e.preventDefault(); b.click(); }
 });
 
-// Configuración: botón de volver
-cargarConfig = (orig => async function (...a) {
-  const r = await orig.apply(this, a);
-  const b = $('cfuvolver');
-  if (b && !b.classList.contains('manvuelta')) { b.classList.add('manvuelta'); b.innerHTML = '<b aria-hidden="true">‹</b> Volver'; b.setAttribute('aria-label', 'Volver a Configuración'); }
-  return r;
-})(cargarConfig);
 
 
 

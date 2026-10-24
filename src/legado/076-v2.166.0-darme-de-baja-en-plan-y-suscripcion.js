@@ -8,24 +8,6 @@ if (PAGO_VUELTA_BAJA) {
     else if (++n > 90) clearInterval(t);
   }, 1500);
 }
-pintarPaginaPlan = (orig => async function (...a) {
-  const r = await orig.apply(this, a);
-  const c = $('cfgcuerpo'), pl = PLAN_ACTUAL || {}; if (!c || !puedeOrganizacion() || !pl.stripe_suscripcion) return r;
-  const acts = c.querySelector('#planact .acts');
-  if (acts && pl.estado === 'activo' && !pl.baja_al_final && !$('pgdarbaja'))
-    acts.insertAdjacentHTML('beforeend', '<button type="button" class="btn sec" id="pgdarbaja">Darme de baja</button>');
-  const bf = $('pgbajafin');
-  if (bf) {
-    bf.innerHTML = `Has pedido la baja: puedes usar la plataforma hasta el <b>${fechaCorta(pl.periodo_fin)}</b>.
-      <button type="button" class="btn sec" id="pgseguir">Seguir con la suscripción</button>`;
-  }
-  if ($('pgdarbaja')) $('pgdarbaja').onclick = async ev => { const d = await pagoLlamar({ accion: 'baja' }, ev.target); if (d && d.url) location.href = d.url; };
-  if ($('pgseguir')) $('pgseguir').onclick = async ev => {
-    const d = await pagoLlamar({ accion: 'reanudar' }, ev.target); if (!d) return;
-    toast('Seguimos: tu suscripción continúa'); await pagoCargarEstado(); ir(TAB);
-  };
-  return r;
-})(pintarPaginaPlan);
 
 /* v2.167.0 · Al volver de Stripe (pago, baja o el portal) se abre «Plan y suscripción», no Inicio (petición de Eric). Stripe vuelve a
    …/?pago=…#plan o a …/#plan: la primera pantalla tras entrar es la del plan. */
@@ -34,37 +16,9 @@ ir = (orig => function (t, ...a) {
   if (PAGO_IR_PLAN && PERFIL) { pagoAlPlan(); if (!ES_MEDICO() && puedeOrganizacion()) t = 'plan'; }
   return orig.call(this, t, ...a);
 })(ir);
-// Si la app ya había entrado antes de llegar aquí, se va ahora
-if (PAGO_IR_PLAN && typeof PERFIL !== 'undefined' && PERFIL) setTimeout(() => { if (PAGO_IR_PLAN) ir('plan'); }, 0);
+// (si la app ya ha entrado al llegar aquí, se va al plan: lo hace nucleo/arranque.js justo después de arrancar)
 setTimeout(() => { PAGO_IR_PLAN = false; }, 30000);
 
-// «Plan y suscripción»: botones al formulario (en lugar de correos) y la última solicitud con su estado
-pintarPaginaPlan = (orig => async function (...a) {
-  const r = await orig.apply(this, a);
-  const c = $('cfgcuerpo'); if (!c || !c.querySelector('#planact')) return r;
-  const pl = PLAN_ACTUAL || {};
-  c.querySelectorAll('a[href^="mailto"]').forEach(x => {
-    const b = document.createElement('button'); b.type = 'button'; b.className = x.className;
-    b.textContent = x.closest('.plan[data-plan="medida"]') ? 'Pedir presupuesto' : 'Hablar con delcos';
-    b.dataset.presu = x.closest('.plan[data-plan="medida"]') && pl.plan !== 'medida' ? 'presupuesto' : 'contrato';
-    x.replaceWith(b);
-  });
-  const comp = $('pgcomp');
-  if (pl.plan === 'medida' && !c.querySelector('[data-presu]') && !puede('gestionar_plataforma')) {
-    const acts = c.querySelector('#planact .acts');
-    if (acts) acts.insertAdjacentHTML('beforeend', '<button type="button" class="btn sec" data-presu="contrato">Hablar con delcos</button>');
-  }
-  if (comp) comp.textContent = comp.textContent.replace(' Para cambiarlo, habla con delcos.', '');
-  c.querySelectorAll('[data-presu]').forEach(b => b.onclick = () => pedirPresupuesto(b.dataset.presu));
-  try {
-    const { data } = await db.from('solicitudes_plan').select('creado_en,estado,tipo').order('creado_en', { ascending: false }).limit(1);
-    const s = (data || [])[0], h = c.querySelector('#planact h2');
-    if (s && h && !$('presuest') && (s.estado !== 'Cerrada' || Date.now() - new Date(s.creado_en) < 30 * 864e5))
-      h.insertAdjacentHTML('afterend', `<div class="banda-info" id="presuest">Tu solicitud ${s.tipo === 'contrato' ? 'sobre el contrato' : 'de presupuesto'} del
-        ${fechaCorta(s.creado_en.slice(0, 10))}: <b>${esc(PRESU_ESTADO[s.estado] || s.estado)}</b>.${s.estado === 'Nueva' ? ' Te contestamos en un día laborable.' : ''}</div>`);
-  } catch (e) {}
-  return r;
-})(pintarPaginaPlan);
 
 if (PAGINAS.delcos && !PAGINAS.delcos.tabs.some(t => t[0] === 'solicitudes')) PAGINAS.delcos.tabs.splice(1, 0, ['solicitudes', 'Solicitudes', () => pintarSolicitudesPlan()]);
 
@@ -92,36 +46,7 @@ if (PAGINAS.delcos && !PAGINAS.delcos.tabs.some(t => t[0] === 'solicitudes')) PA
     }, 1000);
   }
 })();
-// «Plan y suscripción»: periodo de prueba de Stripe
-pintarPaginaPlan = (orig => async function (...a) {
-  const r = await orig.apply(this, a);
-  const c = $('cfgcuerpo'), pl = PLAN_ACTUAL || {}, h = c && c.querySelector('#planact h2');
-  if (h && pl.en_prueba && pl.periodo_fin && !$('pgprueba') && !pl.baja_al_final)
-    h.insertAdjacentHTML('afterend', `<div class="banda-info" id="pgprueba">Estás en el periodo de prueba hasta el <b>${fechaCorta(pl.periodo_fin)}</b>:
-      hasta entonces no se cobra nada. Ese día se pasará el primer recibo, salvo que te des de baja antes.</div>`);
-  return r;
-})(pintarPaginaPlan);
 
-pintarPaginaPlan = (orig => async function (...a) {
-  const r = await orig.apply(this, a);
-  const c = $('cfgcuerpo'), pl = PLAN_ACTUAL || {};
-  if (!c || !c.querySelector('#planact') || !pl.stripe_cliente || !puedeOrganizacion() || $('pgdatos')) return r;
-  c.querySelector('#planact').insertAdjacentHTML('afterend', `<div class="card cfgpanel" id="pgdatos"><h2 style="padding:0 0 4px">Datos de facturación</h2>
-    <p class="sm">Con estos datos se hacen tus recibos y facturas. ${pl.en_prueba ? `Revísalos antes del ${fechaCorta(pl.periodo_fin)}, cuando se pasa el primer recibo.` : ''}</p>
-    <div class="pgdlista"><div class="skel"></div></div>
-    <div class="acts"><button type="button" class="btn sec" id="pgdcorr">Corregir datos</button></div></div>`);
-  $('pgdcorr').onclick = ev => pagoPortal(ev.target);
-  // Sin avisos si falla (se ve «Falta» y se puede corregir igual)
-  const d = await db.functions.invoke('pagos', { body: { accion: 'datos' } }).then(x => x.data, () => null).catch(() => null);
-  const l = c.querySelector('#pgdatos .pgdlista'); if (!l) return r;
-  if (!d || !d.ok) { l.innerHTML = '<p class="sm">No se han podido leer ahora. Puedes verlos y cambiarlos con «Corregir datos».</p>'; return r; }
-  const x = d.datos || {};
-  const filas = [['Razón social', x.nombre], ['NIF o CIF', x.nif], ['Correo para los recibos', x.email], ['Dirección fiscal', x.direccion]];
-  const faltan = filas.filter(f => !f[1]).length;
-  l.innerHTML = filas.map(([k, v]) => `<div class="pgdfila${v ? '' : ' falta'}"><span>${esc(k)}</span><b>${v ? esc(v) : 'Falta'}</b></div>`).join('')
-    + (faltan ? `<div class="banda-aviso" style="margin-top:8px">Faltan datos para poder facturarte: complétalos con «Corregir datos».</div>` : '');
-  return r;
-})(pintarPaginaPlan);
 
 // Pestañas propias del panel en modo plataforma: el equipo (los usuarios de la de plataforma) y la plantilla de las empresas nuevas
 (() => {
@@ -156,20 +81,12 @@ function aplicarModoPlataforma() {
   if (MODO_PLATAFORMA) document.querySelectorAll('[data-u="organizacion"], [data-u="plan"], [data-u="empresa"]').forEach(b => b.classList.add('hide'));
   try { MENU_FIRMA = ''; montarMenuLateral(); } catch (e) {}
 }
-aplicarPermisosMenu = (orig => function (...a) { const r = orig.apply(this, a); try { aplicarModoPlataforma(); } catch (e) {} return r; })(aplicarPermisosMenu);
+function aplicarPermisosMenuBase6(...a) { const r = aplicarPermisosMenuBase5.apply(this, a); try { aplicarModoPlataforma(); } catch (e) {} return r; }
 
 /* v2.172.0 · «Tu día»: subir o bajar una cita la mueve al momento, sin recargar la agenda (aviso de Eric: antes se recargaban métricas,
    semana, mes y sugerencias). La lista se repinta con el orden nuevo a partir de lo que ya hay (agenda_rango no se vuelve a pedir) y el orden
    se guarda por detrás; si no se puede guardar, vuelve a lo guardado. El foco se queda en la flecha de la cita movida. */
 let TD_ULTIMO = null, TD_PRESET = null;
-rpcCache = (orig => async function (fn, params, clave) {
-  if (fn === 'agenda_rango' && TD_PRESET && params && params.p_desde === TD_PRESET.fecha && params.p_hasta === TD_PRESET.fecha) {
-    const d = TD_PRESET.data; TD_PRESET = null; return { data: d, cache: false };
-  }
-  const r = await orig.call(this, fn, params, clave);
-  if (fn === 'agenda_rango' && params && params.p_desde === params.p_hasta && r && r.data) TD_ULTIMO = { fecha: params.p_desde, data: r.data };
-  return r;
-})(rpcCache);
 
 /* v2.173.0 · Panel delcos completo (SQL 108): Cobros y suscripciones, Altas desde la web y Estado de la plataforma, en el menú del panel.
    Con el menú lateral, el panel ya no repite sus apartados como pestañas (aviso de Eric): el título dice dónde estás. Al entrar en una
@@ -233,7 +150,7 @@ db.functions.invoke = (orig => async function (fn, op, ...a) {
   return r;
 })(db.functions.invoke.bind(db.functions));
 // (v2.183.0: aquí iba la primera versión de pintarProximoRecibo; se redefine entera más abajo)
-pintarPaginaPlan = (orig => async function (...a) { const r = await orig.apply(this, a); try { pintarProximoRecibo(); } catch (e) {} return r; })(pintarPaginaPlan);
+async function pintarPaginaPlan(...a) { const r = await pintarPaginaPlanBase10.apply(this, a); try { pintarProximoRecibo(); } catch (e) {} return r; }
 
 function pintarProximoReciboBase() {
   const c = $('cfgcuerpo'), pl = PLAN_ACTUAL || {}, h = c && c.querySelector('#planact h2');

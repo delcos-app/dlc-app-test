@@ -5,12 +5,6 @@
 
 
 
-async function cargarCatalogos() {
-  const claves = Object.keys(CAT);
-  const res = await Promise.all(claves.map(k => db.rpc('catalogo_papel', { p_papel: k })));
-  claves.forEach((k, i) => { CAT[k] = res[i].data || []; });
-  cargarCampos().catch(() => {});
-}
 
 /* ---------------- selector de días ---------------- */
 
