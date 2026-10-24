@@ -53,9 +53,9 @@ h1,h2,h3{margin:0;line-height:1.25;letter-spacing:-.01em}
 label{display:block;font-size:12.5px;color:var(--muted);margin:14px 0 5px;font-weight:600}
 input,select,textarea{width:100%;border:1px solid var(--line);border-radius:10px;padding:11px 12px;background:var(--bg);min-height:44px}
 input:focus,select:focus{outline:2px solid var(--sky);background:#fff}
-.btn{border:1px solid var(--navy);background:var(--navy);color:#fff;font-weight:650;cursor:pointer;}
+.btn{cursor:pointer;}
 .btn:hover{background:var(--navy-2);border-color:var(--navy-2)}
-.btn.sec{background:var(--panel);color:var(--navy)}
+
 .btn.block{width:100%;margin-top:20px}
 
 .msg{margin-top:12px;font-size:13.5px;color:var(--dang);min-height:20px}
@@ -152,8 +152,8 @@ dialog::backdrop{background:rgba(14,47,82,.4)}
 /* ---------- acciones, formularios y avisos ---------- */
 .acts{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 4px}
 .acts .btn{font-size:14px}
-.btn.warn{border-color:var(--warn);color:var(--warn);background:var(--panel)}
-.btn.dang{color:#fff}
+
+
 .g2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
 .opciones{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;margin-top:6px}
 .opt{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--panel);cursor:pointer;text-align:left;font-size:14px}
@@ -249,7 +249,7 @@ body.conruta{padding-top:46px}
 .mesdia:hover{border-color:var(--navy)}.mesdia.hoy{border-color:var(--navy);box-shadow:0 0 0 2px rgba(14,47,82,.12)}
 .mesdia b{font-size:13px;color:var(--ink)}
 .mespunto{font-size:11px;font-weight:700;background:var(--sky-soft);color:var(--navy);border-radius:999px;padding:1px 7px}
-.btn.sec.dang{color:var(--dang);}
+
 
 .gsug{position:absolute;top:46px;left:0;right:0;background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:0 14px 34px rgba(16,32,52,.16);max-height:60vh;overflow:auto;z-index:70}
 .gsug button{display:flex;gap:10px;align-items:center;width:100%;text-align:left;border:0;background:none;padding:9px 12px;cursor:pointer}
@@ -613,7 +613,7 @@ body.conruta{padding-top:46px}
 .renc .parada{display:flex;align-items:center;gap:10px;justify-content:flex-start}
 .renc .parada .ptit{flex:1}
 
-.icobtn{display:inline-grid;place-items:center;background:var(--navy);color:#fff;text-decoration:none;flex:0 0 auto}
+.icobtn{display:inline-grid;place-items:center;flex:0 0 auto}
 .icobtn:hover{background:var(--sky)}
 /* v2.20.0 */
 .dgrid-wrap{overflow-x:auto}
@@ -703,15 +703,15 @@ nav.main button[aria-selected=true]::after{height:3px;bottom:-4px;background:var
 .saludo h1,h1{color:var(--navy);letter-spacing:-.015em}
 .card h2{color:var(--navy)}
 /* Botones */
-.btn{background:var(--navy);border:1px solid transparent;box-shadow:none;transition:background-color var(--t-rapido) var(--ease-sal),border-color var(--t-rapido) var(--ease-sal),color var(--t-rapido) var(--ease-sal),box-shadow var(--t-rapido) var(--ease-sal),transform var(--t-rapido) var(--ease-sal)}
+.btn{border:1px solid transparent;transition:background-color var(--t-rapido) var(--ease-sal),border-color var(--t-rapido) var(--ease-sal),color var(--t-rapido) var(--ease-sal),box-shadow var(--t-rapido) var(--ease-sal),transform var(--t-rapido) var(--ease-sal)}
 .btn:hover{background:var(--navy-2);border-color:transparent;box-shadow:none}
 .btn:active{transform:scale(var(--pulsa))}
 .btn:focus-visible{outline:none;box-shadow:var(--foco)}
-.btn.sec{background:#FFFFFF;color:var(--navy);border:1px solid var(--line-f);box-shadow:none}
+
 .btn.sec:hover{background:var(--hielo);border-color:var(--sky)}
 
 .btn.dang:hover{background:var(--peligro-h)}
-.btn.sec.dang{color:var(--peligro);border-color:#F1C4BF;}
+
 .btn.sec.dang:hover{background:var(--peligro-s)}
 .subnav button{border-color:var(--line-f);background:#FFFFFF}
 
@@ -813,7 +813,7 @@ dialog{overscroll-behavior:contain}
 .vistazo .prox{color:var(--muted)}
 .vistazo .lnk{border:0;background:none;color:var(--sky);font-weight:700;padding:0;cursor:pointer;font:inherit}
 .icoacts{position:absolute;top:14px;right:14px;}
-.icoacts .btn{display:grid;place-items:center;background:rgba(255,255,255,.85)}
+
 #v-inicio .saludo{padding-right:110px}
 .kico{position:absolute;right:12px;bottom:10px;font-size:18px;opacity:.28;pointer-events:none}
 .kdesc{display:block;font-style:normal;font-size:11.5px;color:var(--muted);margin-top:3px;line-height:1.3}
@@ -4013,7 +4013,7 @@ main > section.preparando::after,dialog > .preparando::after{animation:cargaApar
 .plantilla .panel{background:transparent;border:0;box-shadow:none;overflow:visible;border-radius:0;padding:0;display:flex;flex-direction:column;gap:10px}
 .plantilla > .panel,.plantilla #vcuerpo{margin-top:10px}
 .plkpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:4px 0 14px}
-.plk{all:unset;box-sizing:border-box;cursor:pointer;background:#fff;border:1px solid var(--line);padding:13px 16px;display:flex;flex-direction:column;gap:3px;height:100px;min-width:0;transition:border-color var(--t-rapido,100ms),box-shadow var(--t-rapido,100ms)}
+.plk{cursor:pointer;background:#fff;border:1px solid var(--line);padding:13px 16px;display:flex;flex-direction:column;gap:3px;height:100px;min-width:0;transition:border-color var(--t-rapido,100ms),box-shadow var(--t-rapido,100ms)}
 .plk:hover{border-color:#9CC0E4}.plk:focus-visible{outline:2px solid var(--azul,#3F82C0);outline-offset:2px}
 .plk.on{border-color:#17457A;box-shadow:inset 0 0 0 1px #17457A}
 .plk .plkt{font:700 11.5px var(--f-titulo);letter-spacing:.06em;text-transform:uppercase;color:#6A7D93;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;height:16px}
@@ -5030,6 +5030,6 @@ try{var co=sessionStorage.getItem('dlc-cambio-org');if(co!==null||localStorage.g
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.366.0"></script>
+<script src="./app.js?v=2.367.0"></script>
 </body>
 </html>
