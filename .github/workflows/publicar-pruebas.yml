@@ -1,0 +1,36 @@
+# Publica apptest.delcos.cloud desde lo construido (plan de migración, bloque 8; decisión de Eric 24/10/2026).
+# Se activa cuando Eric cambia en GitHub → Settings → Pages la fuente a «GitHub Actions» y crea la variable de repositorio
+# PAGES_DESDE_ACTIONS = si. Hasta entonces GitHub Pages sigue publicando la rama tal cual y este flujo no hace nada.
+name: Publicar pruebas
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: false
+jobs:
+  publicar:
+    if: vars.PAGES_DESDE_ACTIONS == 'si'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.desplegar.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Construir
+        run: node herramientas/construir.mjs
+      - name: Preparar el sitio
+        run: node herramientas/sitio.mjs _sitio
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _sitio
+      - id: desplegar
+        uses: actions/deploy-pages@v4

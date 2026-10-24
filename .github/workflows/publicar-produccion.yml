@@ -1,0 +1,53 @@
+# Publica en producción (app.delcos.cloud) una versión ya probada en apptest. Plan de migración, bloque 8 (decisión de Eric, 24/10/2026).
+# Botón: Actions → «Publicar en producción» → Run workflow (commit o etiqueta; por defecto, lo último de main).
+# El entorno «produccion» exige la aprobación de Eric antes de seguir. Construye, comprueba y copia lo construido a dlc-app-v2
+# (sin config.js, CNAME ni README.md, que son de producción). Necesita el secreto PROD_DEPLOY_TOKEN en el entorno «produccion»:
+# un token de GitHub (fine-grained) con permiso «Contents: read and write» solo sobre delcos-app/dlc-app-v2.
+# El SQL de la versión, si lo hay, va antes: flujo «Aplicar migración» de delcos-qa.
+name: Publicar en producción
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Commit o etiqueta de dlc-app-test que se publica
+        required: false
+        default: main
+permissions:
+  contents: read
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    environment: produccion
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+          path: app
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Comprobar la construcción, los tipos y las librerías
+        working-directory: app
+        run: |
+          node herramientas/construir.mjs --comprobar
+          npx --yes -p typescript@5.6.3 tsc -p tsconfig.json
+          node herramientas/dependencias.mjs
+      - name: Preparar el sitio de producción
+        working-directory: app
+        run: node herramientas/sitio.mjs ../sitio --produccion
+      - uses: actions/checkout@v4
+        with:
+          repository: delcos-app/dlc-app-v2
+          token: ${{ secrets.PROD_DEPLOY_TOKEN }}
+          path: prod
+      - name: Copiar y subir a dlc-app-v2
+        run: |
+          VERSION=$(grep -o 'app.js?v=[0-9.]*' sitio/index.html | cut -d= -f2)
+          rsync -a --delete --exclude '.git' --exclude 'config.js' --exclude 'CNAME' --exclude 'README.md' sitio/ prod/
+          cd prod
+          git config user.name "delcosapp-sys"
+          git config user.email "delcosapp-sys@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then echo "Producción ya está en esta versión"; exit 0; fi
+          git commit -m "v${VERSION} · publicada desde dlc-app-test (${{ inputs.ref }})"
+          git push
