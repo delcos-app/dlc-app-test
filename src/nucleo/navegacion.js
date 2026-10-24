@@ -43,3 +43,90 @@ function cometa() {
 }
 
 function tabDelMenu() { return TAB === 'ventas' && typeof PEDSEC !== 'undefined' && SUBSEC_MENU[pedsecVista()] ? SUBSEC_MENU[pedsecVista()] : TAB; }
+
+// 2. «Estable»: sin consultas pendientes y sin cambios en el elemento durante 120 ms (como mucho, el tiempo indicado)
+function estable(el, max = 4000, desde) {
+  return new Promise(res => {
+    // Las esperas se miden con el cronómetro interno del navegador (siempre avanza; el reloj puede saltar)
+    const t0 = desde || Date.now() - 5, p0 = performance.now(); let ultimo = p0 - 5, fin = false;
+    // Cuentan los cambios dentro del elemento (no los de su propia clase, que son los del mecanismo de carga)
+    const mo = new MutationObserver(ms => { if (ms.some(m => m.target !== el && !cambioDeCifra(m))) ultimo = performance.now(); });   // v2.269.0
+    mo.observe(el, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'style'] });
+    const listo = () => { if (fin) return; fin = true; mo.disconnect(); res(); };
+    // Pantalla ya cargada: si al terminar la tarea actual no hay consultas ni cambios, se muestra al momento
+    // Una pantalla con esqueletos de carga (recuadros «Cargando…») todavía no está lista
+    const conEsqueletos = () => !!el.querySelector('.skel, .ksk, .cargandolocal');
+    setTimeout(() => { if (pendientesDesde(t0) === 0 && ultimo <= p0 && !conEsqueletos()) listo(); }, 0);
+    const w = setInterval(() => {
+      if (fin) { clearInterval(w); return; }
+      // Solo las consultas lanzadas desde que empezó (las que ya estaban en curso, como la campana, no cuentan)
+      // …y con un respiro de 120 ms desde el último cambio y desde la última consulta terminada (las encadenadas no se toman por el final)
+      const ya = performance.now();
+      if ((pendientesDesde(t0) === 0 && ya - Math.max(ultimo, RED_ULTIMO_FIN) >= 50 && !conEsqueletos()) || ya - p0 > max) { clearInterval(w); listo(); }   // v2.269.0: 50 ms (antes 120)
+    }, 15);
+  });
+}
+
+function pantallaTrasF5() {
+  let v = null;
+  try { v = JSON.parse(sessionStorage.getItem('dlc-f5') || 'null'); sessionStorage.removeItem('dlc-f5'); } catch (x) { v = null; }
+  // Solo si se acaba de pulsar (una recarga horas después, o desde el botón del navegador, entra por el inicio)
+  return v && v.t && Date.now() - (v.h || 0) < 60000 ? v : null;
+}
+
+function nombrePantalla(t) {
+  const b = document.querySelector(`nav.main [data-t="${t}"]`);
+  const n = (b && b.textContent.trim()) || (typeof PAGINAS !== 'undefined' && PAGINAS[t] && PAGINAS[t].t) || (t === 'config' ? 'Configuración' : '');
+  return n || 'donde estabas';
+}
+
+/* ============================================================
+   v2.269.0 · Cargas rápidas, filtros que se mantienen y notas en Pedidos (petición de Eric, 11/10/2026; necesita el SQL 144).
+   - Las pantallas se enseñan antes: «estable» espera 50 ms sin cambios (antes 120), mira cada 15 ms (antes 30) y no espera a las
+     cifras que cuentan (Analítica esperaba ~1 s oculta a que terminaran sus indicadores). Con el SQL 144
+     las consultas lentas bajan a 20-60 ms.
+   - Los indicadores de una lista solo se piden en su pantalla (los de Clientes se pedían también en Pedidos, Compras, Productos…).
+   - Los filtros de las listas (los de la fila de filtros y los propios del panel «Filtros») se recuerdan: si la pantalla se vuelve a pintar (al guardar un pedido,
+     al volver a ella…) salen con lo que tenías puesto, hasta que los quites tú.
+   - Pedidos: columna «Notas».
+   ============================================================ */
+// Una cifra que se anima al contar (solo cambia su texto, y son números) no es «la pantalla sigue cargando»: antes, en Analítica,
+// la pantalla esperaba oculta ~1 s a que terminaran de contar los indicadores
+function cambioDeCifra(m) {
+  if (m.type !== 'childList') return false;
+  const ns = [...m.addedNodes, ...m.removedNodes];
+  return ns.length > 0 && ns.every(n => n.nodeType === 3) && /^[\d.,\s%€+\-−]*$/.test(m.target.textContent || '');
+}
+
+function refrescarDebajo() {
+  if (document.querySelector('dialog[open]')) { DATOS_CAMBIADOS = true; return; }
+  DATOS_CAMBIADOS = false;
+  if (TAB === 'agenda' && $('agcuerpo')) agRefrescoQuieto(null, { cifras: false });
+  else if (TAB === 'directorio' && typeof buscar === 'function') buscar(true);
+}
+
+// v2.92.0: la pantalla recién revelada llega con un fundido corto (las repintadas posteriores no se animan)
+function llegar(el) {
+  if (!el || !el.matches('main > section')) return;
+  el.classList.remove('llega'); void el.offsetWidth; el.classList.add('llega');
+  clearTimeout(el._llega); el._llega = setTimeout(() => el.classList.remove('llega'), 700);
+}
+
+function subirAccionPagina() {
+  if (typeof PAGINAS === 'undefined' || !PAGINAS[TAB]) return;
+  const sec = $('v-' + TAB), sal = sec && sec.querySelector(':scope > .saludo'); if (!sal) return;
+  ACCION_PAGINA.forEach(id => {
+    const b = $(id); if (!b || !sec.contains(b) || b.closest('.saludo')) return;
+    let acts = sal.querySelector(':scope > .acts');
+    if (!acts) { sal.insertAdjacentHTML('beforeend', '<div class="acts htacts"></div>'); acts = sal.querySelector(':scope > .acts'); }
+    acts.appendChild(b);
+  });
+}
+
+function vistaBoton(v, d0) {
+  const d = d0 || (v && v.dlg); if (!d || !d.open || !VUELTA.length || d.querySelector('.vueltabtn')) return;
+  const fh = d.querySelector('.fh'); if (!fh) return;
+  const ant = VUELTA[VUELTA.length - 1];
+  const t = fh.firstElementChild, dentro = t && t.tagName !== 'BUTTON' && !t.matches('h2') ? t : fh;
+  dentro.insertAdjacentHTML('afterbegin', `<button type="button" class="btn sec chico vueltabtn" title="Volver a ${esc(VISTA_TITULO[ant.fn] || 'la ventana anterior')}">‹ Volver</button>`);
+}

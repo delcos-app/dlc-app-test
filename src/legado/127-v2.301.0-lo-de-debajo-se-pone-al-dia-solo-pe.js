@@ -6,12 +6,6 @@
 const ESCRITURAS_FICHAS = new Set(['guardar_cuenta', 'guardar_centro', 'centro_anadir_profesional', 'centro_quitar_profesional', 'guardar_campos',
   'unificar_cuentas', 'archivar_cuenta', 'clasificar_cuentas']);
 let DATOS_CAMBIADOS = false;
-function refrescarDebajo() {
-  if (document.querySelector('dialog[open]')) { DATOS_CAMBIADOS = true; return; }
-  DATOS_CAMBIADOS = false;
-  if (TAB === 'agenda' && $('agcuerpo')) agRefrescoQuieto(null, { cifras: false });
-  else if (TAB === 'directorio' && typeof buscar === 'function') buscar(true);
-}
 db.rpc = (orig => function (fn, args, ...r) {
   const res = orig.call(this, fn, args, ...r);
   if (!ESCRITURAS_FICHAS.has(fn) || !res || typeof res.then !== 'function') return res;

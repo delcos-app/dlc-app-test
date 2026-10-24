@@ -27,28 +27,6 @@ const pendientesDesde = t0 => { const lim = performance.now() - (Date.now() - t0
   };
 })();
 
-// 2. «Estable»: sin consultas pendientes y sin cambios en el elemento durante 120 ms (como mucho, el tiempo indicado)
-function estable(el, max = 4000, desde) {
-  return new Promise(res => {
-    // Las esperas se miden con el cronómetro interno del navegador (siempre avanza; el reloj puede saltar)
-    const t0 = desde || Date.now() - 5, p0 = performance.now(); let ultimo = p0 - 5, fin = false;
-    // Cuentan los cambios dentro del elemento (no los de su propia clase, que son los del mecanismo de carga)
-    const mo = new MutationObserver(ms => { if (ms.some(m => m.target !== el && !cambioDeCifra(m))) ultimo = performance.now(); });   // v2.269.0
-    mo.observe(el, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'style'] });
-    const listo = () => { if (fin) return; fin = true; mo.disconnect(); res(); };
-    // Pantalla ya cargada: si al terminar la tarea actual no hay consultas ni cambios, se muestra al momento
-    // Una pantalla con esqueletos de carga (recuadros «Cargando…») todavía no está lista
-    const conEsqueletos = () => !!el.querySelector('.skel, .ksk, .cargandolocal');
-    setTimeout(() => { if (pendientesDesde(t0) === 0 && ultimo <= p0 && !conEsqueletos()) listo(); }, 0);
-    const w = setInterval(() => {
-      if (fin) { clearInterval(w); return; }
-      // Solo las consultas lanzadas desde que empezó (las que ya estaban en curso, como la campana, no cuentan)
-      // …y con un respiro de 120 ms desde el último cambio y desde la última consulta terminada (las encadenadas no se toman por el final)
-      const ya = performance.now();
-      if ((pendientesDesde(t0) === 0 && ya - Math.max(ultimo, RED_ULTIMO_FIN) >= 50 && !conEsqueletos()) || ya - p0 > max) { clearInterval(w); listo(); }   // v2.269.0: 50 ms (antes 120)
-    }, 15);
-  });
-}
 
 // 3. Pantallas: se preparan ocultas y se muestran de golpe
 let REVELADO = 0;
@@ -56,12 +34,6 @@ function revelar(el, max, desde) {
   if (!el) return; const turno = ++REVELADO;
   el.classList.add('preparando');
   estable(el, max, desde).then(() => { if (turno === REVELADO || !el.matches('main > section')) { el.classList.remove('preparando'); llegar(el); } });
-}
-// v2.92.0: la pantalla recién revelada llega con un fundido corto (las repintadas posteriores no se animan)
-function llegar(el) {
-  if (!el || !el.matches('main > section')) return;
-  el.classList.remove('llega'); void el.offsetWidth; el.classList.add('llega');
-  clearTimeout(el._llega); el._llega = setTimeout(() => el.classList.remove('llega'), 700);
 }
 ir = (orig => function (t) {
   const t0 = Date.now() - 2;

@@ -762,3 +762,187 @@ async function bajaCuenta(id, baja) {
   if (TAB === 'directorio' && typeof buscar === 'function') buscar(true);
   return true;
 }
+
+function dpHTML(dias, idx) {
+  const st = {};
+  DIAS.forEach(k => {
+    const t = String((dias || {})[k] || '');
+    const r = /(\d{1,2}:\d{2})\s*-\s*(\d{1,2}:\d{2})/.exec(t);
+    st[k] = {
+      M: /mañana/i.test(t) || (r && +r[1].slice(0, 2) < 14),
+      T: /tarde/i.test(t) || (r && +r[1].slice(0, 2) >= 14),
+      h: r ? r[1] + '-' + r[2] : ''
+    };
+  });
+  const sel = (k, f) => `<select data-dh="${idx}|${k}|${f}"><option value="">Sin hora</option>${
+    (f === 'M' ? HM : HT).map(x => `<option ${st[k].h === x ? 'selected' : ''}>${x.replace('-', ' - ')}</option>`).join('')}</select>`;
+  return `<div class="dp" data-dp="${idx}">
+    <div class="qk"><button type="button" data-qk="${idx}|lvm">L-V mañanas</button>
+      <button type="button" data-qk="${idx}|lvt">L-V tardes</button>
+      <button type="button" data-qk="${idx}|clr">Limpiar</button></div>
+    ${DIAS.map(k => `<div class="dprow"><b>${DIAN[k].slice(0, 3)}</b>
+      <div class="dpc"><button type="button" class="dpt" data-dt="${idx}|${k}|M" aria-pressed="${!!st[k].M}">${st[k].M ? '✓ ' : ''}Mañana</button>${st[k].M ? sel(k, 'M') : ''}</div>
+      <div class="dpc"><button type="button" class="dpt" data-dt="${idx}|${k}|T" aria-pressed="${!!st[k].T}">${st[k].T ? '✓ ' : ''}Tarde</button>${st[k].T ? sel(k, 'T') : ''}</div>
+    </div>`).join('')}</div>`;
+}
+
+function dpLeer(cont, idx) {
+  const out = {};
+  DIAS.forEach(k => {
+    const partes = [];
+    ['M', 'T'].forEach(f => {
+      const b = cont.querySelector(`[data-dt="${idx}|${k}|${f}"]`);
+      if (b && b.getAttribute('aria-pressed') === 'true') {
+        const s = cont.querySelector(`[data-dh="${idx}|${k}|${f}"]`);
+        const h = s && s.value ? ' ' + s.value.replace(/\s/g, '') : '';
+        partes.push((f === 'M' ? 'Mañana' : 'Tarde') + h);
+      }
+    });
+    if (partes.length) out[k] = partes.join('; ');
+  });
+  return out;
+}
+
+function dpEstado(cont, idx) {
+  const st = {};
+  DIAS.forEach(k => {
+    st[k] = { M: false, T: false, h: { M: '', T: '' } };
+    ['M', 'T'].forEach(f => {
+      const b = cont.querySelector(`[data-dt="${idx}|${k}|${f}"]`);
+      if (b) st[k][f] = b.getAttribute('aria-pressed') === 'true';
+      const s = cont.querySelector(`[data-dh="${idx}|${k}|${f}"]`);
+      if (s) st[k].h[f] = s.value;
+    });
+  });
+  return st;
+}
+
+function repintarDp(cont, idx, st) {
+  const dias = {};
+  DIAS.forEach(k => {
+    const p = [];
+    if (st[k].M) p.push('Mañana' + (st[k].h.M ? ' ' + st[k].h.M.replace(/\s/g, '') : ''));
+    if (st[k].T) p.push('Tarde' + (st[k].h.T ? ' ' + st[k].h.T.replace(/\s/g, '') : ''));
+    if (p.length) dias[k] = p.join('; ');
+  });
+  cont.outerHTML = dpHTML(dias, idx);
+}
+
+function consHTML(c, i) {
+  // Los datos del centro van en campos ocultos: los rellena el selector de centros (buscar, «Estoy aquí» o centro nuevo)
+  const h = (f, v) => `<input type="hidden" data-cf="${i}|${f}" value="${esc(v == null ? '' : v)}">`;
+  return `<div class="cons" data-cons="${i}" ${c.lat ? `data-lat="${c.lat}"` : ""}>
+    <span class="consbar"><span class="consprio">Principal</span>
+      <button type="button" class="kmv" data-cmov="-1" title="Subir (más prioridad)" aria-label="Subir">↑</button>
+      <button type="button" class="kmv" data-cmov="1" title="Bajar (menos prioridad)" aria-label="Bajar">↓</button>
+      <button type="button" class="quitar" data-quitar="${i}">Quitar</button></span>
+    <input type="hidden" data-cid="${i}" value="${esc(c.id || '')}">
+    ${h('centro_id', c.centro_id)}${h('centro_nombre', c.centro_nombre)}${h('municipio', c.municipio)}${h('provincia', c.provincia)}
+    ${h('direccion', c.direccion)}${h('cp', c.cp)}${h('lat', c.lat)}${h('lon', c.lon)}
+    <label>Centro</label><div class="cenpick" data-cp="${i}"></div>
+    <div class="g2" style="margin-top:10px">
+      <div><label>Planta</label><input data-cf="${i}|planta" value="${esc(c.planta || '')}" maxlength="60" placeholder="p. ej. 2.ª planta"></div>
+      <div><label>Sala o despacho</label><input data-cf="${i}|sala" value="${esc(c.sala || '')}" maxlength="60" placeholder="p. ej. Despacho 14"></div>
+    </div>
+    <label>Indicaciones para llegar</label><input data-cf="${i}|indicaciones" value="${esc(c.indicaciones || '')}" maxlength="300" placeholder="p. ej. Entrar por la puerta B y preguntar en recepción">
+    <div class="g2" style="margin-top:10px">
+      <div><label>Teléfono ${TT('consulta', 's', 'del', 'l', 'l')}</label><input data-cf="${i}|telefono" value="${esc(c.telefono || '')}" inputmode="tel" placeholder="Si es distinto del del centro"></div><div></div>
+    </div>
+    <label>Días y horario de ${TT('visita', 's', '', 'l', 'l')}</label>${dpHTML(c.dias || {}, i)}
+  </div>`;
+}
+
+async function cambiarEstado(id, estado) {
+  const { error } = await db.from('cuentas').update({ estado_comercial: estado }).eq('id', id);
+  if (error) { toast('No se ha podido cambiar: ' + error.message, true); return; }
+  toast('Estado: ' + estado);
+  buscar(true); cargarInicio();
+}
+
+/* v2.77.0 · Valores con categoría (p. ej. Traumatología › Columna): el selector los agrupa */
+function optsGrupos(lista, v) {
+  const hijos = {}; lista.forEach(x => { if (x.padre) (hijos[x.padre] = hijos[x.padre] || []).push(x); });
+  const op = x => `<option value="${esc(x.valor)}" ${v === x.valor ? 'selected' : ''}>${esc(x.valor)}</option>`;
+  let h = '<option value=""></option>';
+  if (v && !lista.some(x => x.valor === v)) h += `<option selected>${esc(v)}</option>`;
+  lista.filter(x => !x.padre).forEach(x => {
+    h += hijos[x.valor] ? `<optgroup label="${esc(x.valor)}">${op(x)}${hijos[x.valor].map(op).join('')}</optgroup>` : op(x);
+  });
+  // Subcategorías cuya categoría ya no está en la lista
+  Object.keys(hijos).filter(p => !lista.some(x => !x.padre && x.valor === p)).forEach(p => { h += `<optgroup label="${esc(p)}">${hijos[p].map(op).join('')}</optgroup>`; });
+  return h;
+}
+
+async function verCartera(id) {
+  const u = USUARIOS.find(x => x.id === id) || {};
+  cargando($('dbody'), 'Cargando la cartera…');
+  $('dlg').showModal();
+  const pinta = async q => {
+    const { data } = await db.rpc('cartera_usuario', { p_usuario: id, q: q || null, lim: 500 });
+    const l = data || [];
+    $('dbody').innerHTML = `
+      <div class="fh"><div><h2>Cartera de ${esc(u.nombre || '')}</h2>
+        <div class="sm">${num(l.length)} ${TT('medico', 'p', '', 'l', 'l', 'asignado')}</div></div>
+        <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
+      <input id="cbusca" value="${esc(q || '')}" placeholder="Buscar dentro de la cartera">
+      <div class="lista" style="max-height:52vh;overflow:auto">${l.map(m => `<div class="item" style="cursor:default">
+        <span class="ic ${m.urgente ? 'w' : ''}">${m.urgente ? '!' : '·'}</span>
+        <span class="tx"><b>${esc(m.nombre)}</b><span class="sm">${esc(m.especialidad || '')} · ${esc(m.centro || '')} ${esc(m.municipio || '')}
+          ${m.ultima_visita ? ` · ${TT('visita', 's', 'ultimo', 'l', 'l')} ` + fechaCorta(m.ultima_visita) : ' · sin visitar'}</span></span>
+        <span class="acts" style="margin:0">
+          <button class="btn sec" data-cficha="${m.id}">Ficha</button>
+          <button class="btn sec dang" data-cquita="${m.id}">Quitar</button></span></div>`).join('')
+        || `<div class="vacio">Sin ${TT('medico', 'p', '', 'l', 'l', 'asignado')}.</div>`}</div>
+      <div class="acts" style="justify-content:flex-end"><button class="btn sec" id="cmas">Asignar más ${TT('medico', 'p', '', 'l', 'l')}</button></div>`;
+
+    let t;
+    $('cbusca').oninput = e => { clearTimeout(t); t = setTimeout(() => pinta(e.target.value.trim()), 300); };
+    $('dbody').querySelectorAll('[data-cficha]').forEach(b => b.onclick = () => { $('dlg').close(); abrirFicha(b.dataset.cficha); });
+    $('dbody').querySelectorAll('[data-cquita]').forEach(b => b.onclick = async () => {
+      if (!await preguntar(`Dejará de verlo en su cartera. El histórico de ${TT('visita', 'p', '', 'l', 'l')} no cambia.`,
+        { titulo: '¿Quitar de la cartera?', ok: 'Quitar', peligro: true })) return;
+      const { data: r } = await db.rpc('quitar_de_cartera', { p_usuario: id, p_medico: b.dataset.cquita });
+      if (r && r.ok === false) { toast('No tienes permiso', true); return; }
+      toast('Quitado de la cartera'); pinta(q); cargarAdmin();
+    });
+    $('cmas').onclick = () => { $('dlg').close(); asignarCartera(id); };
+  };
+  pinta('');
+}
+
+/** Visitas o citas de estos médicos cerca de la fecha (sin contar ese mismo día). */
+async function recientesDe(ids, fecha) {
+  const a = avisoRevisita(); if (!a.on || !ids.length) return {};
+  const { data } = await db.rpc('actividades_recientes', { p_ids: ids, p_desde: isoMas(fecha, -(a.dias - 1)), p_hasta: isoMas(fecha, a.dias - 1) });
+  const por = {};
+  (data || []).filter(x => x.fecha !== fecha).forEach(x => (por[x.cuenta_id] = por[x.cuenta_id] || []).push(x));
+  return por;
+}
+
+async function cargarFiltros(soloMunicipios) {
+  const { data, error } = await db.rpc('opciones_filtros', { f_provincia: F.prov || null });
+  if (error) return;
+  OPF = data;
+  const pon = (sel, lista, etiqueta, valor) => {
+    $(sel).innerHTML = `<option value="">${etiqueta}</option>` +
+      lista.map(o => `<option value="${esc(o.v)}" ${valor === o.v ? 'selected' : ''}>${esc(o.v)} (${o.n})</option>`).join('');
+  };
+  if (!soloMunicipios) {
+    pon('fprov', data.provincias, 'Todas las provincias', F.prov);
+    pon('fesp', data.especialidades, todosLos('especialidad'), F.esp);
+    pon('fest', data.estados, 'Todos los estados', F.est);
+  }
+  pon('fmuni', data.municipios, 'Todos los municipios', F.muni);
+}
+
+function fila(m) {
+  const d = m.dias || {};
+  return `<button class="fila" data-id="${m.id}">
+    <span><span class="nm">${m.urgente ? '<span class="pill p-urg">Urgente</span> ' : ''}${m.sin_reporting ? `<span class="pill p-sr" title="Solo ${TT('visita', 's', '', 'l', 'l')} presencial: sin informes ni feedback">Sin reporting</span> ` : ''}${esc(m.nombre)}</span>
+      <span class="sm">${esc(m.especialidad || 'Sin ' + TT('especialidad', 's', '', 'l', 'l'))}</span></span>
+    <span class="c2"><span class="nm" style="font-size:13.5px">${esc(m.centro_nombre || consultaPrivada())}</span>
+      <span class="sm">${esc([m.municipio, m.provincia].filter(Boolean).join(' · '))}</span></span>
+    <span class="c3"><span class="dias">${['L','M','X','J','V'].map(k => `<span class="${d[k] ? 'on' : ''}">${k}</span>`).join('')}</span></span>
+    <span class="pill p-est">${esc(m.estado_comercial)}</span>
+  </button>`;
+}

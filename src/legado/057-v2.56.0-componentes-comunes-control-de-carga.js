@@ -33,11 +33,6 @@ const ESTADO_MOD = {
   agenda: () => [AG_MODO, AG_FECHA, AG_VISTA ? AG_VISTA.id : ''].join('|')
 };
 let VIA_IR = null;
-function usarCache(t) {
-  const c = CACHE_MOD[t], sec = $('v-' + t);
-  const ok = VIA_IR === t && c && sec && sec.children.length && c.clave === ESTADO_MOD[t]() && c.esc === ESCRITURAS && Date.now() - c.t < 10 * 60000;
-  return !!ok;
-}
 [['inicio', 'cargarInicio'], ['ventas', 'cargarVentas'], ['productos', 'cargarProductosModulo'], ['facturacion', 'cargarFacturacion'],
  ['analitica', 'cargarAnalitica'], ['pacientes', 'cargarPacientes'], ['agenda', 'cargarAgenda']].forEach(([t, fn]) => {
   const orig = window[fn] || eval(fn);
@@ -82,12 +77,6 @@ new MutationObserver(ms => ms.forEach(m => {
   }
 })).observe(document.body, { attributes: true, attributeFilter: ['class'], subtree: true });
 ventanaCargando = async function (fn) { const d = $('dlg'); d.classList.add('cargando'); try { return await fn(); } finally { d.classList.remove('cargando'); } };
-// Carga dentro de una tarjeta (paginación, cambios de página): mismo criterio
-function cargaLocal(el) {
-  if (!el) return; el.classList.add('cargandolocal');
-  const t0 = performance.now(); let quietos = 0;
-  const w = setInterval(() => { quietos = PEND === 0 ? quietos + 1 : 0; if ((quietos >= 3 && performance.now() - t0 > 80) || performance.now() - t0 > 4000) { clearInterval(w); el.classList.remove('cargandolocal'); } }, 40);
-}
 document.addEventListener('click', e => { const b = e.target.closest('main .pag button:not(:disabled)'); if (b) cargaLocal(b.closest('.card') || b.closest('.pag').parentElement); }, true);
 document.addEventListener('change', e => { if (e.target.closest('main .pag select')) cargaLocal(e.target.closest('.card') || e.target.closest('.pag').parentElement); }, true);
 // Cambio de pestaña: la vista anterior se queda fija hasta que llegan los datos y la pantalla deja de cambiar
@@ -110,7 +99,6 @@ congelar = function (sec) {
 /* ---------------- 4. Tablas: anchos de columna ajustables y recordados por persona ---------------- */
 
 const claveAnchos = tipo => `ht-anchos-${(PERFIL || {}).id || ''}-${tipo}`;
-function anchosGuardados(tipo) { try { return JSON.parse(localStorage.getItem(claveAnchos(tipo))) || null; } catch (e) { return null; } }
 htAplicarColumnas = (orig => function (g) {
   orig(g);
   const tipo = htTipo(g), an = anchosGuardados(tipo);

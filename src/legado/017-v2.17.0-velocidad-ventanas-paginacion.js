@@ -126,28 +126,7 @@ document.addEventListener('keydown', e => {
 
 const TAMKEY = () => 'dlc-tam-' + (PERFIL ? PERFIL.id : '');
 const TAMANOS = [20, 50, 100];
-function tamPagina() { const n = +localStorage.getItem(TAMKEY()); return TAMANOS.includes(n) ? n : 20; }
-function fijarTam(n) { localStorage.setItem(TAMKEY(), String(n)); }
 
-function pagHTML(total, pagina, tam) {
-  const paginas = Math.max(1, Math.ceil(total / tam));
-  const nums = [];
-  for (let i = 0; i < paginas; i++) {
-    if (i === 0 || i === paginas - 1 || Math.abs(i - pagina) <= 1) nums.push(i);
-    else if (nums[nums.length - 1] !== '…') nums.push('…');
-  }
-  const desde = total ? pagina * tam + 1 : 0, hasta = Math.min(total, (pagina + 1) * tam);
-  return `<div class="pag">
-    <span>${num(desde)}–${num(hasta)} de ${num(total)}</span>
-    <span class="pbtns">
-      <button data-pg="${pagina - 1}" ${pagina <= 0 ? 'disabled' : ''} aria-label="Página anterior">‹</button>
-      ${nums.map(n => n === '…' ? '<span class="sm">…</span>'
-        : `<button data-pg="${n}" aria-current="${n === pagina}">${n + 1}</button>`).join('')}
-      <button data-pg="${pagina + 1}" ${pagina >= paginas - 1 ? 'disabled' : ''} aria-label="Página siguiente">›</button>
-    </span>
-    <span class="ptam">Mostrar <select class="chico" data-pgtam>${TAMANOS.map(n =>
-      `<option value="${n}" ${n === tam ? 'selected' : ''}>${n}</option>`).join('')}</select></span></div>`;
-}
 
 /** Paginador para listas que se piden al servidor por páginas. */
 function paginador(el, total, pagina, alCambiar, alCambiarTam) {
@@ -246,9 +225,6 @@ document.addEventListener('click', async e => {
   }
 });
 
-function panelDupVacio(msg) {
-  $('dcmp').innerHTML = `<div class="vacio">${esc(msg)} Elige la siguiente pareja de la lista.</div>`;
-}
 
 async function compararEn(el, idA, idB) {
   cargando(el, 'Cargando las dos fichas…');
@@ -403,15 +379,6 @@ const ANCLAS_AYUDA = [
   ['#v-admin .saludo h1', 'admin'], ['#v-duplicados .saludo h1', 'duplicados']
 ];
 
-function ponerAyudas() {
-  ANCLAS_AYUDA.forEach(([sel, k]) => {
-    const h = document.querySelector(sel);
-    if (h && !h.querySelector(':scope > .ai')) h.insertAdjacentHTML('beforeend', `<button class="ai" data-ayuda="${k}" aria-label="Ayuda">i</button>`);
-  });
-  const dt = $('dirtools');
-  if (dt && !(dt.previousElementSibling && dt.previousElementSibling.matches('.ai')))
-    dt.insertAdjacentHTML('beforebegin', '<button class="ai ai-dir" data-ayuda="directorio" aria-label="Ayuda">i</button>');
-}
 
 document.addEventListener('click', e => {
   const b = e.target.closest('.ai');

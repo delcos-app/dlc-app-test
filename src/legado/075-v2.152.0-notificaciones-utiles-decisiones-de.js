@@ -320,15 +320,6 @@ orgEstado = (orig => function (o) {
    conseguirlos, igual que Facturación. Con el plan A medida no se contrata ni se cambia en línea (presupuesto: lo lleva delcos). */
 const PLAN_SECCIONES = { compras: ['empresa', 'medida'], proveedores: ['empresa', 'medida'] };
 const planIncluyeSeccion = t => !(t in PLAN_SECCIONES) || PLAN_SECCIONES[t].includes(PLAN_ACTUAL.plan);
-function candadoSecciones() {
-  Object.keys(PLAN_SECCIONES).forEach(t => document.querySelectorAll(`nav.main [data-t="${t}"], .bmasgrid [data-bm="${t}"]`).forEach(b => {
-    const bloq = !planIncluyeSeccion(t);
-    b.classList.toggle('bloq', bloq);
-    const c = b.querySelector('.cand');
-    if (bloq && !c && b.matches('nav.main [data-t]')) b.insertAdjacentHTML('beforeend', '<span class="cand">🔒</span>');
-    if (!bloq && c) c.remove();
-  }));
-}
 aplicarPermisosMenu = (orig => function (...a) { const r = orig.apply(this, a); try { candadoSecciones(); } catch (e) {} return r; })(aplicarPermisosMenu);
 avisoPlan = (orig => function (mod) {
   if (!(mod in PLAN_SECCIONES)) return orig.call(this, mod);
@@ -384,20 +375,6 @@ abrirMasMovil = (orig => function (...a) {
   document.querySelectorAll('.bmasgrid [data-bm].bloq').forEach(b => b.remove());
   return r;
 })(abrirMasMovil);
-// «Personalizar menú»: candado, interruptor apagado y bloqueado, y la cuenta «N de M» sin lo que no entra
-function personalizarCandados() {
-  const caja = $('mlpanel'); if (!caja) return;
-  caja.querySelectorAll('.mlpi[data-k]').forEach(f => {
-    const b = document.querySelector(`#nav button[data-t="${f.dataset.k}"]`); if (!fueraDePlan(b)) return;
-    f.classList.add('off', 'fueraplan'); f.title = `No está incluido en tu plan ${PLAN_NOMBRE()}`;
-    const v = f.querySelector('[data-vk]'); if (v) { v.checked = false; v.disabled = true; }
-    if (!f.querySelector('.mlpcand')) f.querySelector('.mlpn').insertAdjacentHTML('afterend', `<span class="mlpcand" aria-label="No incluido en tu plan"></span>`);
-  });
-  caja.querySelectorAll('.mlpg').forEach(g => {
-    const fs = [...g.querySelectorAll('.mlpi[data-k]')], c = g.querySelector('.mlpcnt');
-    if (c) c.textContent = `${fs.filter(f => !f.classList.contains('off')).length} de ${fs.filter(f => !f.classList.contains('fueraplan')).length}`;
-  });
-}
 menuPersonalizar = (orig => function (...a) {
   const r = orig.apply(this, a);
   const caja = $('mlpanel');
@@ -430,23 +407,6 @@ cargarFacturacion = (orig => async function (...a) {
   } });
 })();
 
-// Lo que se deja de tener al pasar de un plan a otro (para avisar antes)
-function perdidasPlan(de, a, datos) {
-  const pd = planDe(de), pa = planDe(a), extras = (datos && datos.extras) || [], l = [];
-  if (de === a) return l;
-  const nombreMod = m => (MOD_PLAN.find(x => x[0] === m) || [m, m])[1];
-  pd.modulos.filter(m => !pa.modulos.includes(m) && m in MODULO_AREA).forEach(m => l.push(m === 'facturacion'
-    ? `Facturación: ${datos && datos.facturas ? 'tus facturas quedan en solo lectura (verlas, descargarlas y cobrarlas, no emitir nuevas)' : 'no podrás emitir facturas'}` : nombreMod(m)));
-  Object.keys(PLAN_SECCIONES).forEach(s => { if (PLAN_SECCIONES[s].includes(de) && !PLAN_SECCIONES[s].includes(a)) l.push(TITULO_PEDSEC[s] ? TITULO_PEDSEC[s][0] : s); });
-  Object.keys(PLAN_EXTRAS).forEach(x => {
-    if (!PLAN_EXTRAS[x].includes(de) || PLAN_EXTRAS[x].includes(a) || extras.includes(x)) return;
-    if (x === 'oportunidades') l.push('Oportunidades');
-    if (x === 'portal') l.push(`Portal ${TT('medico', 's', 'del', 'l', 'l')} y del centro${datos && +datos.medicos ? ` (${num(datos.medicos)} con acceso lo perderán)` : ''}`);
-  });
-  if (de === 'medida' && a === 'empresa' && datos && +datos.medicos > 50) l.push(`Portal: el plan Empresa admite hasta 50 accesos y ahora hay ${num(datos.medicos)}`);
-  if (de === 'medida') l.push('Ver la plataforma como cada persona de tu equipo', 'Soporte prioritario');
-  return l;
-}
 const rangoPlan = k => ['campo', 'comercial', 'empresa', 'medida'].indexOf(k);
 // Igual que la función «pagos»: plan menor, menos usuarios o de anual a mensual
 const esBajada = (de, a) => rangoPlan(a.plan) < rangoPlan(de.plan)

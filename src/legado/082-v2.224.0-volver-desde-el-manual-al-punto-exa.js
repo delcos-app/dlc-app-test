@@ -3,11 +3,6 @@
      el apartado de Configuración y el día de la Agenda ya se recuerdan solos (PAG_TAB, CFG_KEY, AG_FECHA).
    - La cabecera del manual lleva «‹ Volver a …» (#manvolver): vuelve a esa pantalla y, cuando ha terminado de pintarse, al mismo punto. */
 let MANUAL_VUELTA = null;
-function nombrePantalla(t) {
-  const b = document.querySelector(`nav.main [data-t="${t}"]`);
-  const n = (b && b.textContent.trim()) || (typeof PAGINAS !== 'undefined' && PAGINAS[t] && PAGINAS[t].t) || (t === 'config' ? 'Configuración' : '');
-  return n || 'donde estabas';
-}
 ir = (orig => function (t, ...r) {
   if (t === 'manual' && TAB !== 'manual') MANUAL_VUELTA = { tab: TAB, y: window.scrollY || 0 };
   return orig.call(this, t, ...r);
@@ -110,25 +105,6 @@ resumirAyuda = (orig => function (pop) {
   l.onclick = ev => { ev.preventDefault(); ev.stopPropagation(); pop.remove(); abrirManual(ancla); };
 })(resumirAyuda);
 
-function asegurarEquipo() {
-  if (TAB !== 'agenda' || !VE_TODO()) return;
-  // Solo en la cabecera que se ve: mientras se repinta puede quedar una copia congelada con los mismos id
-  const acts = document.querySelector('#v-agenda > .saludo .acts'); if (!acts) return;
-  let sel = acts.querySelector('#agvista');
-  if (!sel) {
-    if (!COMS.length) { cargarComerciales().then(asegurarEquipo); return; }
-    acts.insertAdjacentHTML('afterbegin', `<select id="agvista" aria-label="Agenda de" title="Ver la agenda de otra persona">
-        <option value="">Mi agenda</option>${COMS.filter(u => u.id !== PERFIL.id).map(u => `<option value="${u.id}" ${AG_VISTA && AG_VISTA.id === u.id ? 'selected' : ''}>${esc(u.nombre)}</option>`).join('')}</select>`);
-    sel = acts.querySelector('#agvista');
-    sel.onchange = e => verAgendaDe(e.target.value);
-  }
-  let b = acts.querySelector('[data-ag="equipo"]');
-  if (!b) { sel.insertAdjacentHTML('afterend', '<button class="btn sec" data-ag="equipo">Equipo</button>'); b = acts.querySelector('[data-ag="equipo"]'); }
-  const eq = AG_MODO === 'equipo';
-  b.textContent = eq ? 'Mi agenda' : 'Equipo';
-  b.classList.toggle('sec', !eq);
-  b.title = eq ? 'Volver a tu agenda' : 'Ver el cumplimiento del equipo';
-}
 window.addEventListener('click', e => {
   const b = e.target.closest('[data-ag="equipo"]'); if (!b || AG_MODO !== 'equipo') return;
   e.stopImmediatePropagation(); e.preventDefault();

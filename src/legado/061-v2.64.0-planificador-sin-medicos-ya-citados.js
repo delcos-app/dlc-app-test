@@ -18,10 +18,5 @@ pintarPlan = (orig => function (...a) {
 
 // Agenda del día: paradas abiertas en orden (se preparan al pintar para abrir la navegación al pulsar)
 let TD_PARADAS = [];
-async function prepararParadas(fecha) {
-  // «Tu día» ya tiene sus citas (de la persona y en el orden de la ruta): se usan tal cual
-  TD_PARADAS = (typeof TD_CITAS !== 'undefined' && Array.isArray(TD_CITAS) ? TD_CITAS : []).filter(c => CITA_ABIERTA.includes(c.estado) && xyCita(c));
-  pintarBotonesRuta(fecha);
-}
 
 

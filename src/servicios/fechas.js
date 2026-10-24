@@ -32,3 +32,9 @@ function pkPascua(y) {   // domingo de Pascua (algoritmo anónimo gregoriano)
     mes = Math.floor((h + l - 7 * m + 114) / 31), dia = ((h + l - 7 * m + 114) % 31) + 1;
   return `${y}-${String(mes).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
 }
+
+function mesesEntre(d, h) {
+  const out = []; const x = new Date(d.slice(0, 7) + '-01T12:00:00'), fin = new Date(h.slice(0, 7) + '-01T12:00:00');
+  while (x <= fin && out.length < 36) { out.push(fechaLocal(x).slice(0, 7)); x.setMonth(x.getMonth() + 1); }
+  return out;
+}

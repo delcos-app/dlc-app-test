@@ -1,12 +1,3 @@
-/* ============================================================
-   v2.325.0 · Pedidos: pago solo de lectura y entregas sin cargo (aviso de Eric, 16/10/2026).
-   - El bloque «Pago» del pedido ya no se edita a medias: enseña la referencia y los justificantes que haya; se cambian con
-     «Editar» (o «Editar datos» si ya tiene factura). Fuera «Guardar referencia» y «Añadir justificante» (basta el check de
-     «Pago recibido»); en el editor tampoco se adjuntan justificantes.
-   - Un pedido sin cargo (marcado así o a 0 € con unidades) se describe como «Entrega sin cargo» y no como «Venta al …»: no es una
-     venta (también los que se hicieron antes al 100 % de descuento).
-   ============================================================ */
-function sinCargoP(p, total) { return !!(p && (p.sin_cargo || (total != null && Math.abs(+total) < 0.005 && (p.unidades == null || +p.unidades > 0)))); }
 pedidoPago = async function (id) {
   if (!$('dlg').open || $('pdpago')) return;
   const [{ data }, { data: js }] = await Promise.all([RPC_ORIG('pedido_detalle', { p_id: id }),

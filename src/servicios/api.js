@@ -56,3 +56,16 @@ function colaPoner(op) {
 }
 
 function colaKoPoner(op, motivo) { try { localStorage.setItem(COLA_KO, JSON.stringify(colaKo().concat([Object.assign({}, op, { motivo, falla: Date.now() })]))); } catch (e) {} }
+
+function usarCache(t) {
+  const c = CACHE_MOD[t], sec = $('v-' + t);
+  const ok = VIA_IR === t && c && sec && sec.children.length && c.clave === ESTADO_MOD[t]() && c.esc === ESCRITURAS && Date.now() - c.t < 10 * 60000;
+  return !!ok;
+}
+
+// Carga dentro de una tarjeta (paginación, cambios de página): mismo criterio
+function cargaLocal(el) {
+  if (!el) return; el.classList.add('cargandolocal');
+  const t0 = performance.now(); let quietos = 0;
+  const w = setInterval(() => { quietos = PEND === 0 ? quietos + 1 : 0; if ((quietos >= 3 && performance.now() - t0 > 80) || performance.now() - t0 > 4000) { clearInterval(w); el.classList.remove('cargandolocal'); } }, 40);
+}

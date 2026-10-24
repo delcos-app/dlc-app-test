@@ -84,3 +84,22 @@ function htTipoColumna(vals) {
   if (v.every(x => 'n' in x)) return 'numero';
   return 'texto';
 }
+
+// Los filtros propios de cada pantalla se guardan en un contenedor oculto de la pantalla
+// y se llevan al panel lateral al abrirlo (y vuelven al cerrarlo)
+// v2.294 (R-02): los filtros propios son compactos en el panel de la pantalla y normales en el panel lateral: se marca al moverlos
+function chicoEn(el, si) { [el, ...el.querySelectorAll('input, select')].forEach(x => { if (x.matches('input, select')) x.classList.toggle('chico', si); }); return el; }
+
+function filtroGuardar(e) {
+  const el = e.target; if (!el || !el.id || !/^(SELECT|INPUT)$/.test(el.tagName) || !el.closest('main .filtros, main .htpropios')) return;   // la fila de filtros o, con el modelo de página, el panel
+  if (el.type === 'checkbox' || el.type === 'radio') return;
+  FMEM[el.id] = el.value;
+}
+
+function filtrosRestaurar(root) {
+  (root || document).querySelectorAll('.filtros select[id], .filtros input[id], .htpropios select[id], .htpropios input[id]').forEach(el => {
+    if (!(el.id in FMEM) || el.value === FMEM[el.id] || el.type === 'checkbox' || el.type === 'radio') return;
+    if (el.tagName === 'SELECT' && ![...el.options].some(o => o.value === FMEM[el.id])) return;
+    el.value = FMEM[el.id];
+  });
+}

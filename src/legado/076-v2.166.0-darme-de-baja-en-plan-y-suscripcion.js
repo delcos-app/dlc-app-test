@@ -81,40 +81,6 @@ pintarPaginaPlan = (orig => async function (...a) {
   return r;
 })(pintarPaginaPlan);
 
-// Panel delcos → Solicitudes
-async function pintarSolicitudesPlan() {
-  const c = $('cfgcuerpo'); if (!c) return;
-  c.innerHTML = `<div class="card cfgpanel"><div class="skel" style="width:40%"></div><div class="skel"></div></div>`;
-  const { data, error } = await RPC_ORIG('solicitudes_plan_lista', {});
-  if (!$('cfgcuerpo')) return;
-  const l = error ? [] : (data || []);
-  const f = v => new Date(v).toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' });
-  const cont = { correo: 'Por correo', llamada: 'Por teléfono', video: 'Videollamada' };
-  c.innerHTML = `<div class="card cfgpanel"><h2>Solicitudes de las empresas</h2>
-    <p class="sm">Presupuestos A medida y conversaciones sobre el contrato. Llegan también como aviso. Cambia el estado cuando las atiendas: la empresa lo ve en su Plan.</p>
-    ${error ? `<div class="banda-peligro">No se han podido leer: ${esc(error.message)}</div>` : ''}
-    <div class="presulista">${l.map((s, i) => { const d = s.datos || {};
-      return `<div class="presufila${s.estado === 'Cerrada' ? ' cerrada' : ''}">
-        <div class="presucab"><b>${esc(s.organizacion)}</b> <span class="pill p-est">${esc(planDe(s.plan).nombre)}</span>
-          <span class="pill ${s.estado === 'Nueva' ? 'p-warn' : s.estado === 'En curso' ? 'p-est' : 'p-anu'}">${esc(s.estado)}</span>
-          <span class="sm">${s.tipo === 'contrato' ? 'Contrato A medida' : 'Presupuesto A medida'} · ${f(s.creado_en)}</span></div>
-        ${(d.necesita_txt || []).length ? `<div class="chips">${d.necesita_txt.map(x => `<span class="chip">${esc(x)}</span>`).join('')}</div>` : ''}
-        ${d.programa ? `<div class="sm">Programa: <b>${esc(d.programa)}</b></div>` : ''}
-        ${d.mensaje ? `<p class="presumsg">${esc(d.mensaje)}</p>` : ''}
-        <div class="sm">${d.usuarios ? num(d.usuarios) + ' usuarios' : ''}${d.portal ? ' · ' + num(d.portal) + ' con portal' : ''}${d.cuando ? ' · ' + esc(d.cuando) : ''}</div>
-        <div class="sm">${esc(d.nombre || s.persona || '')}${d.correo ? ` · <a href="mailto:${esc(d.correo)}">${esc(d.correo)}</a>` : ''}${d.telefono ? ` · <a href="tel:${esc(d.telefono)}">${esc(d.telefono)}</a>` : ''}
-          · ${esc(cont[d.contacto] || '')}${d.horario ? ' (' + esc(d.horario) + ')' : ''}</div>
-        <div class="presuges"><select data-psest="${i}" aria-label="Estado">${['Nueva', 'En curso', 'Cerrada'].map(e => `<option ${s.estado === e ? 'selected' : ''}>${e}</option>`).join('')}</select>
-          <input data-psnota="${i}" placeholder="Nota interna (qué se ha hablado, próximos pasos…)" value="${esc(s.nota || '')}">
-          <button type="button" class="btn sec" data-psok="${i}">Guardar</button></div></div>`; }).join('')
-      || '<div class="vacio">Todavía no ha llegado ninguna solicitud.</div>'}</div></div>`;
-  c.querySelectorAll('[data-psok]').forEach(b => b.onclick = async () => {
-    const i = +b.dataset.psok, s = l[i];
-    const { data: r } = await RPC_ORIG('marcar_solicitud_plan', { p_id: s.id, p_estado: c.querySelector(`[data-psest="${i}"]`).value, p_nota: c.querySelector(`[data-psnota="${i}"]`).value });
-    toast(r && r.ok ? 'Solicitud actualizada' : 'No se ha podido guardar', !(r && r.ok));
-    if (r && r.ok) pintarSolicitudesPlan();
-  });
-}
 if (PAGINAS.delcos && !PAGINAS.delcos.tabs.some(t => t[0] === 'solicitudes')) PAGINAS.delcos.tabs.splice(1, 0, ['solicitudes', 'Solicitudes', () => pintarSolicitudesPlan()]);
 
 /* v2.168.0 · Alta de empresas desde la web (decisiones de Eric: prueba de 30 días con tarjeta, formulario en delcos.app). Quien vuelve de
@@ -141,30 +107,6 @@ if (PAGINAS.delcos && !PAGINAS.delcos.tabs.some(t => t[0] === 'solicitudes')) PA
     }, 1000);
   }
 })();
-async function bienvenidaAlta() {
-  try { await pagoCargarEstado(); } catch (e) {}
-  const pl = PLAN_ACTUAL || {};
-  const pasos = [
-    ['importar', 'Trae tus datos', `Sube tu Excel de ${TT('medico', 'p', '', 'l', 'l')}, centros o clientes y los ordenamos por ti.`],
-    ['equipo', 'Invita a tu equipo', 'Da acceso a las personas que van a usar delcos, cada una con su rol.'],
-    ['marca', 'Pon tu marca', 'Tu logotipo y tu nombre en la plataforma y en los documentos.']];
-  $('dbody').innerHTML = `<div class="fh"><div><h2>Te damos la bienvenida a delcos</h2>
-      <div class="sm">${esc(nombreApp())} ya está en marcha${pl.en_prueba && pl.periodo_fin ? ` · prueba gratis hasta el ${fechaCorta(pl.periodo_fin)}` : ''}</div></div>
-      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-    <p>Tres pasos para empezar con buen pie (los puedes hacer cuando quieras):</p>
-    <div class="bienpasos">${pasos.map(([k, t, d], i) => `<button type="button" class="bienpaso" data-bien="${k}"><span class="bienn">${i + 1}</span>
-      <span><b>${esc(t)}</b><span class="sm">${esc(d)}</span></span></button>`).join('')}</div>
-    ${pl.en_prueba ? `<p class="sm">Durante la prueba no se cobra nada. Si decides no seguir, date de baja en Organización → Plan y suscripción antes del ${fechaCorta(pl.periodo_fin)}.</p>` : ''}
-    <div class="acts" style="justify-content:flex-end"><button class="btn" data-cerrar>Empezar</button></div>`;
-  $('dbody').querySelectorAll('[data-bien]').forEach(b => b.onclick = () => {
-    $('dlg').close();
-    const k = b.dataset.bien;
-    if (k === 'importar') { CFG_SEC = 'importar'; ir('config'); }
-    else if (k === 'equipo') ir('usuarios');
-    else ir('organizacion');
-  });
-  $('dlg').showModal();
-}
 // «Plan y suscripción»: periodo de prueba de Stripe
 pintarPaginaPlan = (orig => async function (...a) {
   const r = await orig.apply(this, a);
@@ -365,10 +307,6 @@ async function pintarEstadoDelcos() {
     <p class="sm">Esto es la base de ${EN_PRUEBAS ? '<b>pruebas</b>' : '<b>producción</b>'}. La de ${EN_PRUEBAS ? 'producción' : 'pruebas'} se mira desde su propio panel.</p></div>`;
 }
 
-// ---- Cambiar de organización sin heredar nada: la recarga va tapada hasta tener el menú, la marca y la pantalla de la organización nueva
-function prepararCambioOrg(destino) {
-  try { sessionStorage.setItem('dlc-cambio-org', destino || ''); sessionStorage.removeItem('dlc-f5'); localStorage.removeItem('app-marca'); } catch (e) {}
-}
 entrarEnOrganizacion = async function (o) {
   if (!await preguntar(`Vas a ver la plataforma como ${o.nombre}: sus datos, su configuración y su plan. Lo que cambies se guarda en su empresa y queda registrado. Para volver, «Salir» en la franja de arriba.`, { titulo: 'Entrar en ' + o.nombre, ok: 'Entrar' })) return;
   const { data: r } = await db.rpc('entrar_organizacion', { p_org: o.id });
@@ -416,12 +354,6 @@ db.functions.invoke = (orig => async function (fn, op, ...a) {
   return r;
 })(db.functions.invoke.bind(db.functions));
 const ivaDe = x => Math.round(x * 21) / 100;
-function reciboCalculado(pl) {
-  const p = planDe(pl.plan), u = Math.max(+pl.usuarios || 0, p.minimo || 3), anual = pl.pago === 'anual';
-  const cuota = u * p.precio * (anual ? 10 : 1);
-  const puesta = pl.en_prueba && !anual ? PUESTA_EN_MARCHA : 0;
-  return { primero: cuota + puesta + ivaDe(cuota + puesta), despues: cuota + ivaDe(cuota), puesta, anual };
-}
 // (v2.183.0: aquí iba la primera versión de pintarProximoRecibo; se redefine entera más abajo)
 pintarPaginaPlan = (orig => async function (...a) { const r = await orig.apply(this, a); try { pintarProximoRecibo(); } catch (e) {} return r; })(pintarPaginaPlan);
 

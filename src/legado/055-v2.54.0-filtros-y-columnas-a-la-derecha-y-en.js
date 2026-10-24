@@ -6,10 +6,6 @@
 
 /* ---------------- «Filtros y columnas» en el panel lateral ---------------- */
 
-// Los filtros propios de cada pantalla se guardan en un contenedor oculto de la pantalla
-// y se llevan al panel lateral al abrirlo (y vuelven al cerrarlo)
-// v2.294 (R-02): los filtros propios son compactos en el panel de la pantalla y normales en el panel lateral: se marca al moverlos
-function chicoEn(el, si) { [el, ...el.querySelectorAll('input, select')].forEach(x => { if (x.matches('input, select')) x.classList.toggle('chico', si); }); return el; }
 new MutationObserver(() => { if (!$('tools').classList.contains('abierto')) htDevolver(); }).observe($('tools'), { attributes: true, attributeFilter: ['class'] });
 function htAbrirLateral(sec) {
   const d = $('tools'), id = sec.id.replace('v-', '');

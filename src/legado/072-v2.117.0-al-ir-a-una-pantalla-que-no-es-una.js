@@ -59,16 +59,6 @@ function areaEncaje() {
   if (PAGINAS[TAB]) return document.querySelector(`#v-${TAB} .pagcuerpo`) || $('cfgcuerpo');
   return null;
 }
-// v2.122.0: la ventana va EN la página, en el sitio del apartado (antes flotaba encima con posición absoluta y su propio desplazamiento).
-// Se devuelve a <body> antes de cerrarse, para que los repintados del apartado no se la lleven por delante.
-function colocarEncajada(d, area) {
-  // v2.134.0: con el menú lateral, nav.main ocupa toda la altura y no es cabecera (daba el alto de la pantalla)
-  const cab = Math.max(0, ...['header', '.top', document.body.classList.contains('menulat') ? '' : 'nav.main'].filter(Boolean).map(q => { const e = document.querySelector(q); return e && getComputedStyle(e).position.match(/fixed|sticky/) ? e.getBoundingClientRect().bottom : 0; }));
-  document.documentElement.style.setProperty('--alto-cab', cab + 'px');
-}
-function devolverEncajada(d) {
-  if (d.__casa && d.parentNode !== d.__casa) d.__casa.appendChild(d);
-}
 ['dlg', 'dlg2'].forEach(id => {
   const d = $(id); if (!d) return;
   const modal = d.showModal.bind(d);
@@ -135,49 +125,9 @@ const CAMPO_TXT = { nombre: 'Nombre', estado_comercial: 'Estado', get especialid
 const campoTxt = k => CAMPO_TXT[k] || (k.charAt(0).toUpperCase() + k.slice(1).replace(/_/g, ' '));
 const MOTIVO_DESHACER = { permiso: 'No tienes permiso', no_existe: 'Ese cambio ya no está en el registro', no_deshacible: 'Ese tipo de cambio no se puede deshacer',
   ya_no_existe: 'El registro ya no existe', ya_existe: 'Ya estaba recuperado' };
-async function deshacerUno(id, despues) {
-  const { data: s } = await db.rpc('deshacer_cambio', { p_id: id, p_simular: true });
-  if (!s || !s.ok) { toast(MOTIVO_DESHACER[(s && s.motivo) || ''] || (s && s.motivo) || 'No se puede deshacer', true); return; }
-  if (!(s.campos || []).length) { toast('No hay nada que deshacer: esos datos se han vuelto a cambiar después', true); return; }
-  if (!await preguntar(`Volverán a su valor de antes: ${s.campos.map(campoTxt).join(', ')}. Lo que se haya cambiado después no se toca.`, { titulo: 'Deshacer el cambio', ok: 'Deshacer' })) return;
-  const { data: r, error } = await db.rpc('deshacer_cambio', { p_id: id, p_simular: false });
-  if (error || !r || !r.ok) { toast('No se ha podido deshacer: ' + ((r && (MOTIVO_DESHACER[r.motivo] || r.motivo)) || (error && error.message) || ''), true); return; }
-  toast('Cambio deshecho'); if (despues) despues();
-}
-function cajaDeshacerPersona(caja, usuario, desde, nombre, despues) {
-  if (!caja) return;
-  if (!usuario || !desde) { caja.innerHTML = ''; return; }
-  caja.innerHTML = `<div class="card" id="audpersona" style="margin:0 16px 10px"><h3>Deshacer los cambios de ${esc(nombre.trim())}</h3>
-    <p class="sm">Todo lo que cambió o borró en fichas, ${TT('consulta', 'p', '', 'l', 'l')}, clientes, productos y rutas desde el ${fechaCorta(desde)}. Lo que otra persona haya cambiado después no se toca.</p>
-    <div class="acts" style="margin:6px 0 0"><button type="button" class="btn sec" id="audsim">Ver qué se desharía</button></div><div id="audres" class="sm"></div></div>`;
-  $('audsim').onclick = async ev => {
-    ev.target.disabled = true;
-    const { data: s } = await db.rpc('deshacer_persona', { p_usuario: usuario, p_desde: desde + 'T00:00:00', p_simular: true });
-    ev.target.disabled = false;
-    if (!s || !s.ok) { toast('No se ha podido calcular', true); return; }
-    const nom = { cuentas: 'fichas', ubicaciones: TT('consulta', 'p', '', 'l', 'l'), contactos: 'clientes', productos: 'productos', rutas: 'rutas' };
-    if (!s.cambios) { $('audres').textContent = 'No hay nada que deshacer en ese periodo (o ya se ha vuelto a cambiar).'; return; }
-    $('audres').innerHTML = `Se desharían <b>${num(s.cambios)}</b> cambios (${num(s.campos)} datos): ${Object.entries(s.por_entidad || {}).map(([k, n]) => `${num(n)} en ${nom[k] || k}`).join(', ')}.
-      ${s.sin_deshacer ? ` ${num(s.sin_deshacer)} no se pueden deshacer porque se han vuelto a cambiar después.` : ''}
-      <div class="acts" style="margin:8px 0 0"><button type="button" class="btn" id="audok">Deshacer ${num(s.cambios)} cambios</button></div>`;
-    $('audok').onclick = async ev2 => {
-      if (!await preguntar(`Se desharán ${num(s.cambios)} cambios de ${nombre.trim()} desde el ${fechaCorta(desde)}. Queda registrado y cada uno se puede volver a cambiar a mano.`, { titulo: 'Deshacer sus cambios', ok: 'Deshacer' })) return;
-      ev2.target.disabled = true;
-      const { data: r } = await db.rpc('deshacer_persona', { p_usuario: usuario, p_desde: desde + 'T00:00:00', p_simular: false });
-      if (!r || !r.ok) { ev2.target.disabled = false; toast('No se ha podido deshacer', true); return; }
-      toast(`Deshechos ${num(r.cambios)} cambios`); if (despues) despues();
-    };
-  };
-}
 abrirFicha = (orig => async function (id, ...a) { const r = await orig.call(this, id, ...a); fichaHistorial(id); return r; })(abrirFicha);
 
 
-/* v2.125.0 · Nueva venta y Oportunidades. Un solo recorrido para vender (antes «Registrar llamada» y «+ Nuevo pedido» por separado):
-   1 cliente (buscar o ficha nueva, con lo que ya sabemos de él), 2 qué quiere (productos y unidades, médico de referencia, cómo llegó),
-   3 cómo termina (pedido o motivo de no compra y cuándo volver a llamar). Con el extra «Oportunidades» de la organización, cada venta
-   queda registrada con su día y hora, lo que quería y cuánto, se cierre con pedido o no; sin él, el recorrido lleva al pedido. */
-// v2.242.0: aquí iba la primera versión de hayOportunidades (se redefine entera más abajo)
-function extraNombre(k) { return { oportunidades: 'Oportunidades', portal: 'Portal' }[k] || k; }
 const NV_DIAS = [['Mañana', 1], ['En 3 días', 3], ['En una semana', 7], ['En un mes', 30]];
 const nvLinea = (pid, u) => { const p = PRODUCTOS.find(x => x.id === pid) || {}; return p.precio != null ? r2(p.precio * (1 + (+p.iva || 0) / 100) * (+u || 0)) : 0; };
 
@@ -283,12 +233,6 @@ const motivoPortal = r => MOTIVO_PORTAL[(r && r.motivo) || ''] || 'No se ha podi
 const horaCorta = f => new Date(f).toLocaleString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
 const pillMaterial = e => `<span class="pill ${e === 'Pendiente' ? 'p-warn' : e === 'Entregado' ? 'p-est' : 'p-anu'}">${esc(e)}</span>`;
 
-// Mensajes: el hilo de una ficha (el médico ve los suyos; quien lleva la ficha, los de esa ficha)
-function hiloMensajes(l, yoMedico) {
-  return l.length ? `<div class="hilo">${l.map(x => `<div class="msj ${x.del_portal === yoMedico ? 'mio' : 'suyo'}"><div>${esc(x.texto)}</div>
-      <span class="sm">${x.del_portal ? TT('medico', 's', '', 'l', 'C') : 'Equipo'} · ${horaCorta(x.creado_en)}</span></div>`).join('')}</div>`
-    : '<div class="sm">Todavía no hay mensajes.</div>';
-}
 
 // ——— Lado del médico ———
 async function portalMedico() {

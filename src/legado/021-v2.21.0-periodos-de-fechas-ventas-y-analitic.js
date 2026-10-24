@@ -63,7 +63,6 @@ async function cargarVentas() {
   await pedidosBotonLlamada();
 }
 var PEDSEC_CARGA = null;
-function pedsecVista() { return PEDSEC_CARGA || PEDSEC; }
 
 
 
@@ -134,52 +133,6 @@ function refrescarAnalitica() {
 
 /* ---------------- indicadores: configurador en tarjetas ---------------- */
 
-function abrirKpis() {
-  let D = kpiConfig().slice();
-  KPI_CAT.forEach(k => { if (!D.some(x => x.id === k.id)) D.push({ id: k.id, on: false, t: '' }); });
-  const esAdmin = puede('administrar');
-  const pinta = () => {
-    $('dbody').innerHTML = `
-      <div class="fh"><div><h2>Indicadores de Inicio</h2>
-        <div class="sm">Pulsa el ojo para mostrar u ocultar. Ordénalos con las flechas y cambia el nombre si quieres.</div></div>
-        <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-      <div class="kcards">${D.map((x, i) => {
-        const k = KPI_CAT.find(y => y.id === x.id);
-        if (!k && !x.filtro) return '';
-        if (k && !kpiPermitido(k)) return '';
-        const desc = x.filtro ? 'Filtro guardado del Directorio: ' + textoFiltro(x.filtro) + '.' : (AYUDA_KPI[x.id] || '');
-        return `<div class="kcard ${x.on ? 'on' : ''}">
-          <button type="button" class="kojo" data-kon="${i}" aria-pressed="${x.on}" title="${x.on ? 'Visible: pulsa para ocultar' : 'Oculto: pulsa para mostrar'}">${x.on ? ICO.ojo : ICO.ojoNo}</button>
-          <div class="ktx"><input class="chico" data-kt="${i}" value="${esc(x.t)}" placeholder="${esc(k ? k.t.charAt(0).toUpperCase() + k.t.slice(1) : textoFiltro(x.filtro))}" aria-label="Nombre del indicador">
-            <span class="sm">${esc(desc)}</span></div>
-          <div class="kord">
-            <button type="button" class="kmv" data-kmv="${i}|-1" aria-label="Subir" ${i === 0 ? 'disabled' : ''}>${ICO.arriba}</button>
-            <button type="button" class="kmv" data-kmv="${i}|1" aria-label="Bajar" ${i === D.length - 1 ? 'disabled' : ''}>${ICO.abajo}</button>
-            ${x.filtro ? `<button type="button" class="kmv" data-kdel="${i}" aria-label="Eliminar" title="Eliminar">✕</button>` : ''}</div>
-        </div>`;
-      }).join('')}</div>
-      <div class="acts" style="justify-content:flex-end">
-        <button class="btn sec" id="kres">Restaurar</button>
-        <button class="btn" id="kok">Guardar</button></div>`;
-    const leer = () => $('dbody').querySelectorAll('[data-kt]').forEach(i => D[+i.dataset.kt].t = i.value.trim());
-    $('dbody').querySelectorAll('[data-kon]').forEach(b => b.onclick = () => { leer(); D[+b.dataset.kon].on = !D[+b.dataset.kon].on; $('dlg').dataset.sucio = '1'; pinta(); });
-    $('dbody').querySelectorAll('[data-kmv]').forEach(b => b.onclick = () => {
-      leer(); const [i, dir] = b.dataset.kmv.split('|').map(Number), j = i + dir;
-      if (j < 0 || j >= D.length) return; [D[i], D[j]] = [D[j], D[i]]; $('dlg').dataset.sucio = '1'; pinta();
-    });
-    $('dbody').querySelectorAll('[data-kdel]').forEach(b => b.onclick = () => { leer(); D.splice(+b.dataset.kdel, 1); $('dlg').dataset.sucio = '1'; pinta(); });
-    $('kres').onclick = () => { D = KPI_CAT.map(k => ({ id: k.id, on: KPI_DEF.includes(k.id), t: '' })); $('dlg').dataset.sucio = '1'; pinta(); };
-    $('kok').onclick = async ev => {
-      leer(); ev.target.disabled = true; ev.target.textContent = 'Guardando…';
-      const ok = await guardarKpis(D.map(x => ({ id: x.id, on: x.on, t: x.t, ...(x.filtro ? { filtro: x.filtro } : {}) })));
-      ev.target.disabled = false; ev.target.textContent = 'Guardar';
-      if (!ok) return;
-      $('dlg').close(); toast('Indicadores guardados'); cargarInicio();
-    };
-  };
-  pinta();
-  $('dlg').showModal();
-}
 
 /* ---------------- ruta en curso: ficha al pulsar, acciones y orden ---------------- */
 

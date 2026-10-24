@@ -48,9 +48,6 @@ const tarjetaMedico = m => `<div class="selcard"><span class="ic">👤</span>
     ${m.codigo ? `<span class="sm">Código ${esc(m.codigo)}</span>` : ''}</span>
   <button type="button" class="sx" aria-label="Quitar">✕</button></div>`;
 
-function cerrarPickers(salvo) {
-  document.querySelectorAll('.picker .gsug').forEach(g => { if (!salvo || !salvo.contains(g)) g.classList.add('hide'); });
-}
 document.addEventListener('pointerdown', e => { if (!e.target.closest('.picker')) cerrarPickers(); });
 
 
@@ -109,22 +106,6 @@ async function nuevaCita(medicoId, fecha) {
 /* ---------------- documento de identidad ---------------- */
 
 const LETRAS_DNI = 'TRWAGMYFPDXBNJZSQVHLCKE';
-function validarDoc(v, tipo) {
-  v = (v || '').toUpperCase().replace(/[\s-]/g, '');
-  if (!v) return { ok: true, v };
-  if (tipo === 'Empresa') {
-    const m = v.match(/^([ABCDEFGHJKLMNPQRSUVW])(\d{7})([0-9A-J])$/);
-    if (!m) return { ok: false, v, msg: 'El CIF son una letra, 7 números y un dígito o letra de control (p. ej. B24920548).' };
-    let a = 0, b = 0;
-    m[2].split('').forEach((d, i) => { if (i % 2) a += +d; else { const x = 2 * d; b += Math.floor(x / 10) + x % 10; } });
-    const c = (10 - (a + b) % 10) % 10, letra = 'JABCDEFGHI'[c];
-    return (m[3] === String(c) || m[3] === letra) ? { ok: true, v } : { ok: false, v, msg: 'El dígito de control del CIF no es correcto.' };
-  }
-  let n = v;
-  if (/^[XYZ]\d{7}[A-Z]$/.test(n)) n = 'XYZ'.indexOf(n[0]) + n.slice(1);
-  if (!/^\d{8}[A-Z]$/.test(n)) return { ok: false, v, msg: 'El DNI son 8 números y una letra; el NIE, X, Y o Z seguida de 7 números y una letra.' };
-  return LETRAS_DNI[+n.slice(0, 8) % 23] === n[8] ? { ok: true, v } : { ok: false, v, msg: 'La letra no corresponde a ese número.' };
-}
 
 /* ---------------- alta y edición de paciente ---------------- */
 
@@ -272,13 +253,6 @@ const vaciarModulos = salvo => ['v-pacientes', 'v-productos', 'v-ventas'].forEac
 /* ---------------- directorio: comerciales ---------------- */
 
 let COMS = [];
-async function cargarComerciales() {
-  const { data } = await db.from('perfiles').select('id,nombre,rol,activo').order('nombre');
-  // Solo quien lleva cartera o agenda comercial (no Dirección, Solo consulta ni médicos)
-  COMS = (data || []).filter(u => u.activo && rolPuede(u.rol, 'equipo_comercial'));
-  $('fcom').innerHTML = '<option value="">Todos</option><option value="ninguno">Sin comercial</option>' +
-    COMS.map(u => `<option value="${u.id}" ${F.com === u.id ? 'selected' : ''}>${esc(u.nombre)}</option>`).join('');
-}
 $('fcom').addEventListener('change', e => { F.com = e.target.value; buscar(true); });
 
 COLS.push({ k: 'comerciales', t: 'Comerciales', w: 190 });

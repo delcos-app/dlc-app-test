@@ -199,11 +199,6 @@ var ir = function (t) {
 
 /* ---------------- inicio ---------------- */
 
-function tarjeta(el, titulo, n, items, pie, vacio) {
-  el.innerHTML = `<h2>${titulo}${n != null ? `<span class="n">${num(n)}</span>` : ''}</h2>` +
-    (items.length ? `<div class="lista">${items.join('')}</div>` : `<div class="vacio">${vacio}</div>`) +
-    (pie && items.length ? pie : '');
-}
 
 const itemHTML = (id, ico, clase, titulo, sub) =>
   `<button class="item" data-id="${id}"><span class="ic ${clase || ''}">${ico}</span>
@@ -231,21 +226,6 @@ $('v-inicio').addEventListener('click', e => {
 
 /* ---------------- filtros ---------------- */
 
-async function cargarFiltros(soloMunicipios) {
-  const { data, error } = await db.rpc('opciones_filtros', { f_provincia: F.prov || null });
-  if (error) return;
-  OPF = data;
-  const pon = (sel, lista, etiqueta, valor) => {
-    $(sel).innerHTML = `<option value="">${etiqueta}</option>` +
-      lista.map(o => `<option value="${esc(o.v)}" ${valor === o.v ? 'selected' : ''}>${esc(o.v)} (${o.n})</option>`).join('');
-  };
-  if (!soloMunicipios) {
-    pon('fprov', data.provincias, 'Todas las provincias', F.prov);
-    pon('fesp', data.especialidades, todosLos('especialidad'), F.esp);
-    pon('fest', data.estados, 'Todos los estados', F.est);
-  }
-  pon('fmuni', data.municipios, 'Todos los municipios', F.muni);
-}
 
 let temporizador;
 $('q').addEventListener('input', e => {
@@ -336,17 +316,6 @@ async function buscar(reiniciar) {
   }, () => buscar(true));
 }
 
-function fila(m) {
-  const d = m.dias || {};
-  return `<button class="fila" data-id="${m.id}">
-    <span><span class="nm">${m.urgente ? '<span class="pill p-urg">Urgente</span> ' : ''}${m.sin_reporting ? `<span class="pill p-sr" title="Solo ${TT('visita', 's', '', 'l', 'l')} presencial: sin informes ni feedback">Sin reporting</span> ` : ''}${esc(m.nombre)}</span>
-      <span class="sm">${esc(m.especialidad || 'Sin ' + TT('especialidad', 's', '', 'l', 'l'))}</span></span>
-    <span class="c2"><span class="nm" style="font-size:13.5px">${esc(m.centro_nombre || consultaPrivada())}</span>
-      <span class="sm">${esc([m.municipio, m.provincia].filter(Boolean).join(' · '))}</span></span>
-    <span class="c3"><span class="dias">${['L','M','X','J','V'].map(k => `<span class="${d[k] ? 'on' : ''}">${k}</span>`).join('')}</span></span>
-    <span class="pill p-est">${esc(m.estado_comercial)}</span>
-  </button>`;
-}
 
 
 $('lista').addEventListener('click', e => { const b = e.target.closest('[data-id]'); if (b) abrirFicha(b.dataset.id); });
@@ -380,15 +349,6 @@ async function abrirFicha(id, ...r) {
 const UDS_SERIES = [['semana', 'Semana'], ['mes', 'Mes'], ['anio', 'Año']];
 let UDS_SERIE = (() => { try { const v = localStorage.getItem('dlc-uds-serie'); return ['semana', 'mes', 'anio'].includes(v) ? v : 'mes'; } catch (e) { return 'mes'; } })();
 const leyendaUnidades = k => ({ semana: 'barras: últimas 12 semanas', mes: 'barras: últimos 12 meses', anio: 'barras: últimos 5 años' })[k];
-function sparkUnidades(u, k) {
-  const s = k === 'semana' ? (u.semanas || []).map(x => [x.unidades, 'Semana del ' + fechaCorta(x.semana), fechaCorta(x.semana)])
-    : k === 'anio' ? (u.anios || []).map(x => [x.unidades, x.anio, x.anio])
-    : (u.meses || []).map(x => [x.unidades, periodoTxt(x.mes), periodoTxt(x.mes)]);
-  const max = Math.max(1, ...s.map(x => x[0]));
-  // v2.118.0: barra vacía como línea de base, la del periodo actual resaltada y las fechas de los extremos debajo
-  // (las fechas van como atributo de la primera y la última barra: el gráfico solo tiene barras)
-  return s.map(([n, t, c], i) => `<i class="${n ? '' : 'cero'}${i === s.length - 1 ? ' actual' : ''}" style="height:${Math.round(n / max * 100)}%" title="${esc(t)}: ${num(n)}"${i === 0 ? ` data-ini="${esc(c)}"` : ''}${i === s.length - 1 ? ` data-fin="${esc(c)}"` : ''}></i>`).join('');
-}
 
 
 

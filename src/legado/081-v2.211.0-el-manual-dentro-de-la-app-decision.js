@@ -165,21 +165,6 @@ function arbolCfgUnico() {
 // v2.340.0 (Eric): cada apartado es una sola entrada del índice; sus partes (Rutas: salida y tiempos…) van dentro, en pestañas
 const hojasCfg = arbol => arbol.flatMap(([gr, l]) => l.map(it => Object.assign({ gr }, it)));
 let CFG_PEND = { t: 0, l: {} };
-async function pendientesCfg() {
-  if (Date.now() - CFG_PEND.t < 60000) return CFG_PEND.l;
-  const l = {};
-  try { if (!prefsActivas().salida && puedeModulo('agenda')) l['rutas.salida'] = 'Sin punto de salida: las horas del día salen sin el primer trayecto'; } catch (e) {}
-  if (puedeOrganizacion()) {
-    try { const { data: c } = await RPC_ORIG('correo_config', {}); if (!c || !c.host) l['o.correo'] = 'Sin configurar: los correos de la empresa no salen'; } catch (e) {}
-    try {
-      const { data: au } = await db.from('auditoria').select('creado_en').eq('accion', 'Copia de seguridad').order('creado_en', { ascending: false }).limit(1);
-      const d = au && au[0] ? Math.floor((Date.now() - new Date(au[0].creado_en)) / 864e5) : null;
-      if (d == null) l['o.copias'] = 'Todavía no hay ninguna copia'; else if (d > 7) l['o.copias'] = `La última copia es de hace ${d} días`;
-    } catch (e) {}
-  }
-  CFG_PEND = { t: Date.now(), l };
-  return l;
-}
 const LUPA_CFG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>';
 let CFG_DETALLE = false;
 cargarConfig = async function () {
@@ -502,7 +487,6 @@ async function agCinta() {
   // En el móvil, la cinta se abre en la semana del día elegido
   const sems = c.querySelector('.csems'); if (sems && AG_FECHA >= diasMas(ini, 7)) sems.scrollLeft = sems.scrollWidth;
 }
-function cerrarMesCinta() { const m = $('agmes'); if (m) m.classList.remove('pop'); if ($('cmesb')) $('cmesb').setAttribute('aria-expanded', 'false'); }
 document.addEventListener('click', e => { const m = $('agmes'); if (m && m.classList.contains('pop') && !e.target.closest('#agmes, #cmesb, .agmpop, .agpop')) cerrarMesCinta(); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrarMesCinta(); });
 

@@ -9,16 +9,6 @@ const CAMPO_TABLA = { medico: 'cuentas', cliente: 'contactos', producto: 'produc
 const TIPOS_CAMPO = [['lista', 'Lista de valores'], ['texto', 'Texto'], ['numero', 'Número'], ['fecha', 'Fecha'], ['si_no', 'Sí / No']];
 const campoTexto = (c, v) => v == null || v === '' ? '' : c && c.tipo === 'si_no' ? (v === true || v === 'true' ? 'Sí' : 'No')
   : c && c.tipo === 'fecha' ? fechaCorta(String(v)) : c && c.tipo === 'numero' ? String(v).replace('.', ',') : String(v);
-function campoInput(c, v) {
-  const a = `data-cpk="${esc(c.clave)}" ${c.solo_lectura ? 'disabled' : ''}`;
-  const val = v == null ? '' : v;
-  if (c.tipo === 'lista') return `<select ${a}><option value=""></option>${(c.valores || []).concat(val && !(c.valores || []).includes(val) ? [val] : [])
-    .map(x => `<option ${x === val ? 'selected' : ''}>${esc(x)}</option>`).join('')}</select>`;
-  if (c.tipo === 'si_no') return `<select ${a}><option value=""></option><option value="true" ${val === true ? 'selected' : ''}>Sí</option><option value="false" ${val === false ? 'selected' : ''}>No</option></select>`;
-  if (c.tipo === 'fecha') return `<input type="date" ${a} value="${esc(String(val))}">`;
-  if (c.tipo === 'numero') return `<input type="text" inputmode="decimal" ${a} value="${esc(String(val).replace('.', ','))}">`;
-  return `<input ${a} value="${esc(String(val))}" maxlength="500" placeholder="${esc(c.descripcion || '')}">`;
-}
 // Filtros generados (listas y sí/no) para una zona de filtros; al cambiar, actualiza «estado» y llama a «alCambiar»
 function camposFiltros(amb, estado, pref) {
   return (CAMPOS[amb] || []).filter(c => c.en_filtro && ['lista', 'si_no'].includes(c.tipo)).map((c, i) => {

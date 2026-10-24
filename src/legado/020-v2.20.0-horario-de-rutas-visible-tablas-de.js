@@ -15,18 +15,6 @@ async function cargarAjustes() {
 /* ---------------- totales con envío ---------------- */
 
 
-function bloqueTotales(t) {
-  const tipos = Object.keys(t.porIva).sort((a, b) => a - b);
-  return `<div><span>Unidades</span><b>${num(t.unidades)}</b></div>
-    ${t.descuento > 0.004 ? `<div><span>Suma de líneas</span><b>${eurI(t.bruto)}</b></div>
-      <div><span>Descuento general</span><b>−${eurI(t.descuento)}</b></div>` : ''}
-    ${t.envio ? `<div><span>Productos sin IVA</span><b>${eurI(t.baseProd)}</b></div>
-      <div><span>${esc(t.envio.nombre)} sin IVA</span><b>${eurI(t.envio.base)}</b></div>` : ''}
-    <div><span>Base imponible</span><b>${eurI(t.base)}</b></div>
-    ${tipos.filter(k => t.porIva[k] > 0.004 || tipos.length === 1).map(k => `<div><span>IVA ${k}%</span><b>${eurI(t.porIva[k])}</b></div>`).join('')}
-    ${t.envio ? `<div class="sm" style="justify-content:flex-end"><span>Incluye ${esc(t.envio.nombre.toLowerCase())} de ${eurI(t.envio.con)} con IVA</span></div>` : ''}
-    <div class="tot"><span>Total con IVA</span><b>${eurI(t.total)}</b></div>`;
-}
 
 /* ---------------- configuración del envío ---------------- */
 

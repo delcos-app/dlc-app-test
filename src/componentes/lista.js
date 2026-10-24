@@ -140,3 +140,83 @@ function ordMemOrdenar(tipo, l) {
     return o.dir * ordMemComparar(a, b) || (p[1] - q[1]);
   }).map(p => p[0]);
 }
+
+function tamPagina() { const n = +localStorage.getItem(TAMKEY()); return TAMANOS.includes(n) ? n : 20; }
+
+function fijarTam(n) { localStorage.setItem(TAMKEY(), String(n)); }
+
+function pagHTML(total, pagina, tam) {
+  const paginas = Math.max(1, Math.ceil(total / tam));
+  const nums = [];
+  for (let i = 0; i < paginas; i++) {
+    if (i === 0 || i === paginas - 1 || Math.abs(i - pagina) <= 1) nums.push(i);
+    else if (nums[nums.length - 1] !== '…') nums.push('…');
+  }
+  const desde = total ? pagina * tam + 1 : 0, hasta = Math.min(total, (pagina + 1) * tam);
+  return `<div class="pag">
+    <span>${num(desde)}–${num(hasta)} de ${num(total)}</span>
+    <span class="pbtns">
+      <button data-pg="${pagina - 1}" ${pagina <= 0 ? 'disabled' : ''} aria-label="Página anterior">‹</button>
+      ${nums.map(n => n === '…' ? '<span class="sm">…</span>'
+        : `<button data-pg="${n}" aria-current="${n === pagina}">${n + 1}</button>`).join('')}
+      <button data-pg="${pagina + 1}" ${pagina >= paginas - 1 ? 'disabled' : ''} aria-label="Página siguiente">›</button>
+    </span>
+    <span class="ptam">Mostrar <select class="chico" data-pgtam>${TAMANOS.map(n =>
+      `<option value="${n}" ${n === tam ? 'selected' : ''}>${n}</option>`).join('')}</select></span></div>`;
+}
+
+function anchosGuardados(tipo) { try { return JSON.parse(localStorage.getItem(claveAnchos(tipo))) || null; } catch (e) { return null; } }
+
+// Pasa los bloques de tarjetas de la pantalla a una tabla (cada vez que la pantalla los vuelve a pintar)
+function blqConvertir(tab) {
+  const o = BLQ[tab], sec = $('v-' + tab), caja = sec && sec.querySelector('#cfgcuerpo'); if (!o || !caja) return;
+  const items = [...caja.querySelectorAll('.lista > .item[data-' + o.attr + ']')];
+  const yaTabla = caja.querySelector('.dgrid.blq-' + tab);
+  if (!items.length && (yaTabla || !caja.querySelector('.cirpag, .evpag'))) return;
+  // Acciones: la principal a la cabecera; las demás, al «⋯» (también en la cabecera, ocultas)
+  const sal = sec.querySelector(':scope > .saludo');
+  let acts = sal && sal.querySelector(':scope > .acts');
+  if (sal && !acts) { sal.insertAdjacentHTML('beforeend', '<div class="acts"></div>'); acts = sal.querySelector(':scope > .acts'); }
+  const cab = caja.querySelector('.evcab');
+  // las de la vez anterior (también el «+» del móvil, que va al final de la sección) se quitan: si no, se repetirían sus id
+  if (cab && acts) { sec.querySelectorAll('[data-plmov]').forEach(b => b.remove()); [...cab.querySelectorAll('button')].forEach(b => { b.dataset.plmov = '1'; acts.appendChild(b); }); cab.remove(); }
+  // Filas: una por registro, con los bloques en que sale
+  const filas = new Map(), grupos = [];
+  caja.querySelectorAll('section.card, .card').forEach(card => {
+    const h = card.querySelector('h2'), g = h ? plTxt(h).replace(/\s*·\s*[\d.]+$/, '') : o.def;
+    const its = [...card.querySelectorAll('.lista > .item[data-' + o.attr + ']')]; if (!its.length) return;
+    if (!grupos.includes(g)) grupos.push(g);
+    its.forEach(b => { const k = b.dataset[o.attr]; if (filas.has(k)) { filas.get(k).g.add(g); b.remove(); } else filas.set(k, { b, g: new Set([g]) }); });
+  });
+  const vacio = caja.querySelector('.vacio');
+  const nota = [...caja.querySelectorAll('.cirpag > p.sm, .evpag > p.sm')];
+  const wrap = document.createElement('div'); wrap.className = 'dgrid-wrap';
+  wrap.innerHTML = `<div class="dgrid blq-${tab}"><div class="dh">${o.cols.map(([t, k]) => `<span class="${k}">${esc(t)}</span>`).join('')}</div></div>`;
+  const g = wrap.firstElementChild;
+  filas.forEach(({ b, g: gs }) => {
+    const cel = o.celdas(b), click = b.onclick;
+    b.className = 'dr'; b.innerHTML = cel.map((x, i) => `<span class="${o.cols[i][1]}">${x || '<span class="vac">—</span>'}</span>`).join('');
+    b.dataset.grupos = [...gs].join('|'); b.onclick = click; g.appendChild(b);
+  });
+  if (!filas.size) wrap.innerHTML = `<div class="vacio">${esc(vacio ? plTxt(vacio) : 'Todavía no hay nada aquí.')}</div>`;
+  caja.innerHTML = ''; nota.forEach(p => caja.appendChild(p)); caja.appendChild(wrap);
+  // Bloque elegido (filtro rápido y banda de indicadores)
+  if (PLG[tab] && !grupos.includes(PLG[tab])) PLG[tab] = '';
+  let sel = $('plg-' + tab);
+  if (!sel) { sec.insertAdjacentHTML('beforeend', `<div class="plgsel hide"><label for="plg-${tab}">${esc(o.grupo)}</label><select id="plg-${tab}"></select></div>`); sel = $('plg-' + tab); sel.onchange = () => { PLG[tab] = sel.value; blqFiltrar(tab); }; }
+  sel.innerHTML = '<option value="">Todos</option>' + (grupos.length > 1 ? grupos.map(x => `<option ${PLG[tab] === x ? 'selected' : ''}>${esc(x)}</option>`).join('') : '');
+  let band = $('plgb-' + tab);
+  if (!band) { band = document.createElement('div'); band.id = 'plgb-' + tab; band.className = 'plgband'; sec.appendChild(band); }
+  const cuenta = x => [...filas.values()].filter(f => f.g.has(x)).length;
+  band.innerHTML = grupos.length > 1 ? grupos.map(x => `<button type="button" class="plk ${PLG[tab] === x ? 'on' : ''}" data-plg="${esc(x)}"><span class="plkt">${esc(x)}</span><b>${num(cuenta(x))}</b><small>${cuenta(x) === 1 ? '1 ' + esc(o.que.replace(/s$/, '')) : esc(o.que)}</small></button>`).join('') : '';
+  band.classList.toggle('hide', grupos.length < 2);
+  blqFiltrar(tab);
+}
+
+function blqFiltrar(tab) {
+  const v = PLG[tab] || '', sec = $('v-' + tab); if (!sec) return;
+  sec.querySelectorAll('.dgrid.blq-' + tab + ' > .dr').forEach(r => r.classList.toggle('plgfuera', !!v && !(r.dataset.grupos || '').split('|').includes(v)));
+  sec.querySelectorAll('[data-plg]').forEach(b => b.classList.toggle('on', b.dataset.plg === v));
+  const s = $('plg-' + tab); if (s && s.value !== v) s.value = v;
+  const cnt = sec.querySelector('.plcnt'); if (cnt) { cnt.dataset.h = ''; }
+}

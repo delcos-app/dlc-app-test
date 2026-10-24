@@ -35,30 +35,9 @@ function aplicarPermisosMenu() {
   aplicarPermisosMenuPaso3();
 }
 
-function aplicarPermisosMenuPaso1() {
-  document.querySelectorAll('nav.main [data-t]').forEach(b => {
-    const t = b.dataset.t; if (!(t in MODULO_AREA)) return;
-    const bloqueado = puedeModuloV2400(t) && !planIncluye(t);
-    b.classList.toggle('bloq', bloqueado);
-    if (bloqueado) { b.classList.remove('hide'); if (!b.querySelector('.cand')) b.insertAdjacentHTML('beforeend', '<span class="cand">🔒</span>'); }
-    else { const c = b.querySelector('.cand'); if (c) c.remove(); }
-  });
-}
 
-function aplicarPermisosMenuPaso2() {
- iconosMenu();
-}
 
-function aplicarPermisosMenuPaso3() {
- ordenarMenu(); const c = document.querySelector('nav.main [data-t="seguimiento"]'); if (c) c.classList.add('hide');
-}
 
-function aplicarPermisosMenuBase() {
-  document.querySelectorAll('nav.main [data-t]').forEach(b => {
-    if (b.dataset.t in MODULO_AREA) b.classList.toggle('hide', !puedeModulo(b.dataset.t));
-  });
-  if (typeof pintarBnav === 'function') pintarBnav();
-}
 
 /* ---------------- indicadores con su categoría y permiso ---------------- */
 
@@ -88,26 +67,6 @@ function kpiPermitido(c) {
 
 let PROV_CCAA = null;
 const zonasMarcadas = () => [...$('dbody').querySelectorAll('#uzonas [data-zp]:checked')].map(x => x.dataset.zp).sort();
-async function bloqueZonas(u) {
-  if (!PROV_CCAA) {
-    const [{ data: pc }, { data: rz }] = await Promise.all([db.from('provincias_ccaa').select('provincia,comunidad'), db.rpc('zonas_resumen')]);
-    const cuenta = {}; (rz || []).forEach(x => cuenta[x.provincia] = x.medicos);
-    PROV_CCAA = {};
-    (pc || []).forEach(x => (PROV_CCAA[x.comunidad] = PROV_CCAA[x.comunidad] || []).push({ p: x.provincia, n: cuenta[x.provincia] || 0 }));
-  }
-  const { data: yo } = await db.from('perfiles').select('zonas').eq('id', u.id).single();
-  const sel = new Set((yo && yo.zonas) || []);
-  const bonito = p => p.charAt(0) + p.slice(1).toLowerCase();
-  return `<div class="blk" id="uzonas"><h3>Zona de trabajo</h3>
-    <p class="sm">Marca las provincias de su zona. Al guardar, ${TT('medico', 'p', 'el', 'l', 'l')} de esas provincias que no tengan comercial entran en su cartera, y los que se den de alta después entran solos. Solo verá ${TT('medico', 'p', 'el', 'l', 'l')} de su cartera.</p>
-    <div class="zonas">${Object.keys(PROV_CCAA).sort().map(cc => {
-      const ps = PROV_CCAA[cc].filter((x, i, a) => a.findIndex(y => y.n === x.n && bonito(y.p).slice(0, 4) === bonito(x.p).slice(0, 4)) === i || x.n || sel.has(x.p));
-      return `<details ${ps.some(x => sel.has(x.p)) ? 'open' : ''}><summary><label onclick="event.stopPropagation()"><input type="checkbox" data-zcc="${esc(cc)}" ${ps.every(x => sel.has(x.p)) ? 'checked' : ''}> ${esc(cc)}</label>
-        <span class="sm">${num(ps.reduce((n, x) => n + x.n, 0))} ${TT('medico', 'p', '', 'l', 'l')}</span></summary>
-        <div class="zprov">${ps.map(x => `<label><input type="checkbox" data-zp="${esc(x.p)}" data-zpc="${esc(cc)}" ${sel.has(x.p) ? 'checked' : ''}> ${esc(bonito(x.p))} <span class="sm">${num(x.n)}</span></label>`).join('')}</div></details>`;
-    }).join('')}</div>
-    <div class="acts" style="margin-top:8px"><button class="btn sec" id="uzok">Guardar zona y asignar sus ${TT('medico', 'p', '', 'l', 'l')}</button></div></div>`;
-}
 
 
 /* ---------------- operativa de los pedidos ---------------- */

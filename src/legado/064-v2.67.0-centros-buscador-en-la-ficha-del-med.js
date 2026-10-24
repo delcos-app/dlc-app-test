@@ -20,25 +20,6 @@ function tarjetaCentro(c, enlazado) {
       ${enlazado ? '<button type="button" class="btn sec" data-cpeditar>Editar centro</button>' : '<button type="button" class="btn" data-cpenlazar>Enlazar con un centro</button>'}
       <button type="button" class="btn sec" data-cpcambiar>Cambiar</button></div></div>`;
 }
-// «Estoy aquí»: primero los centros que ya tenemos a menos de 250 m; si no, centro nuevo con los datos del mapa
-async function estoyAqui(box, i, b) {
-  if (!navigator.geolocation) { toast('Este dispositivo no da la ubicación', true); return; }
-  const txt = b.textContent; b.disabled = true; b.textContent = 'Localizando…';
-  try {
-    const pos = await new Promise((ok, ko) => navigator.geolocation.getCurrentPosition(ok, ko, { enableHighAccuracy: true, timeout: 12000, maximumAge: 30000 }));
-    const lat = +pos.coords.latitude.toFixed(6), lon = +pos.coords.longitude.toFixed(6);
-    const { data } = await RPC_ORIG('buscar_centros', { p_q: null, p_lat: lat, p_lon: lon, p_radio: 250, p_lim: 6 });
-    const cerca = data || [];
-    const res = box.querySelector(`[data-cp="${i}"] .cpres`);
-    if (cerca.length && res) {
-      res.innerHTML = '<div class="sm cpaviso">¿Estás en uno de estos centros?</div>';
-      const cont = document.createElement('div'); res.appendChild(cont);
-      listaCentros(cont, cerca, cen => { cpPoner(box, i, cen); pintarCentroSel(box, i); toast('Centro elegido: ' + cen.nombre); },
-        '<button type="button" class="cpitem cpnuevo">No, es otro centro: crearlo con mi ubicación</button>', () => centroDesdeUbicacion(box, i, lat, lon));
-    } else await centroDesdeUbicacion(box, i, lat, lon);
-  } catch (err) { toast('No se ha podido obtener tu ubicación: revisa el permiso de ubicación del navegador', true); }
-  finally { b.disabled = false; b.textContent = txt; }
-}
 // Formulario de centro (nuevo o corregir): los mismos datos de siempre, con horario de apertura
 function formCentro(box, i, c, aviso) {
   const cont = box.querySelector(`[data-cp="${i}"]`); if (!cont) return;

@@ -177,3 +177,18 @@ async function cargarPreciosContrato(cuenta) {
   PED_PRECIOS = { cuenta, precios };
   return JSON.stringify(precios) !== antes;
 }
+
+function editorAvisosVencimiento() {
+  $('dbody').innerHTML = `<div class="fh"><div><h2>Avisos de vencimiento</h2><div class="sm">Cuántos días antes de que venza un contrato se avisa</div></div>
+      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
+    <label for="convd">Días antes (separados por comas)</label><input id="convd" value="${esc(CON_AVISOS.slice().sort((a, b) => b - a).join(', '))}" placeholder="90, 30">
+    <p class="sm">El aviso llega a quien lleva la ficha, al responsable del concurso y a la administración, una vez por cada plazo. Vacío: sin avisos.</p>
+    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>Cancelar</button><button class="btn" id="convok">Guardar</button></div>`;
+  if (!$('dlg').open) $('dlg').showModal();
+  $('convok').onclick = async () => {
+    const dias = [...new Set($('convd').value.split(/[^0-9]+/).map(Number).filter(n => n > 0 && n <= 999))].sort((a, b) => b - a);
+    const { data: r, error } = await db.rpc('guardar_ajuste', { p_clave: 'avisos_vencimiento', p_valor: { dias } });
+    if (error || (r && r.ok === false)) { toast('No se ha podido guardar', true); return; }
+    CON_AVISOS = dias; $('dlg').close(); toast('Avisos guardados');
+  };
+}

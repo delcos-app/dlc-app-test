@@ -403,3 +403,93 @@ function pmActividad(d) {
     ¿Necesitas material, información o resolver alguna duda? Escríbenos y te ayudamos.
     <button type="button" class="btn sec chico" data-pmir="mat">Material y dudas</button></div>`;
 }
+
+async function cargarInforme() {
+  if (puede('portal_centro')) return cargarCentro();   // v2.128.0: el portal del centro
+  // v2.271.0: página nueva (al final del archivo); al arrancar se espera a que esté leída
+  if (!window.PM_LISTO) { const v0 = $('v-informe'); if (v0 && !v0.innerHTML.trim()) v0.innerHTML = '<div class="card">' + skelCard('Cargando tu informe…') + '</div>'; setTimeout(cargarInforme, 30); return; }
+  return cargarInforme2271();
+  const v = $('v-informe');
+  v.innerHTML = `<div class="medhero"><div><div class="sm" style="color:rgba(255,255,255,.8)">Tu portal</div><h1 id="mdnom">…</h1><div id="mdesp" class="sm" style="color:rgba(255,255,255,.85)"></div></div>
+      <div class="medper"><div id="mdper"></div></div></div>
+    <div id="mdcuerpo"><div class="card">${skelCard('Cargando tu informe…')}</div></div>`;
+  const pinta = async () => {
+    const r = $('mdper').__rango();
+    const { data: d } = await RPC_ORIG('informe_cuenta', { p_desde: r.desde, p_hasta: r.hasta });
+    if (!d || !d.ok) {
+      // v2.291: sin ficha vinculada, las dos pestañas lo dicen (antes «Mi ficha» se quedaba cargando) y la cabecera lleva su nombre
+      const sin = `<div class="card"><div class="vacio">Tu usuario todavía no está vinculado a tu ficha de ${TT('medico', 's', '', 'l', 'l')}. Avisa a la empresa para activarlo.</div></div>`;
+      $('mdcuerpo').innerHTML = sin; if ($('pmficha')) $('pmficha').innerHTML = sin;
+      $('mdnom').textContent = (PERFIL && PERFIL.nombre) || ''; return;
+    }
+    $('mdnom').textContent = d.medico.nombre; $('mdesp').textContent = d.medico.especialidad || '';
+    const top = d.posicion && d.posicion <= 3 ? 'Top 3' : d.posicion && d.posicion <= 5 ? 'Top 5' : d.posicion && d.posicion <= 10 ? 'Top 10' : null;
+    const ll = d.llamadas || {}, conv = ll.total ? Math.round(ll.con_pedido / ll.total * 100) : null;
+    const meses = mesesEntre(d.desde, d.hasta), serie = {}; (d.serie || []).forEach(s => serie[s.mes] = s);
+    $('mdcuerpo').innerHTML = `
+      <div class="kpis vtot mdk">
+        <div class="kpi"><b>${num(d.unidades)}</b><span>unidades atribuidas</span></div>
+        <div class="kpi"><b>${num(d.pautas)}</b><span>${TT('pauta', 'p', '', 'l', 'l')} (pedidos)</span></div>
+        <div class="kpi"><b>${num(d.pacientes)}</b><span>${TT('paciente', 'p', '', 'l', 'l')}</span></div>
+        <div class="kpi"><b>${num(d.repiten)}</b><span>${TT('paciente', 'p', '', 'l', 'l')} que repiten</span></div>
+        <div class="kpi ${top ? 'ok' : ''}"><b>${top ? '🏆 ' + top : d.posicion ? 'Nº ' + d.posicion : '—'}</b><span>${d.posicion ? `de ${num(d.prescriptores)} ${TT('medico', 'p', '', 'l', 'l')}` : 'sin ventas en el periodo'}</span></div>
+      </div>
+      <div class="angrid">
+        <div class="card ancard ancha"><h2>Tus ${TT('pauta', 'p', '', 'l', 'l')} mes a mes</h2>
+          ${d.unidades ? svgBarras(meses, meses.map(m => (serie[m] || {}).unidades || 0), meses.map(m => (serie[m] || {}).pautas || 0), ['Unidades', TT('pauta', 'p', '', 'l', 'C')])
+            : vacioGrafico(`Cuando tus ${TT('paciente', 'p', '', 'l', 'l')} hagan su pedido, verás aquí la evolución.`)}
+          <p class="leer">Cada barra son las unidades atribuidas en el mes y la línea, el número de ventas.${d.ultima_pauta ? ' Última venta: ' + fechaCorta(d.ultima_pauta) + '.' : ''}</p></div>
+        <div class="card ancard"><h2>Qué ${TT('pauta', 'p', '', 'l', 'l')}</h2>
+          ${(d.productos || []).length ? svgDonut(d.productos.map(x => ({ n: x.nombre, v: x.unidades }))) : vacioGrafico('Aparecerá el reparto por producto.')}</div>
+        <div class="card ancard"><h2>Llamadas de tus ${TT('paciente', 'p', '', 'l', 'l')}</h2>
+          <div class="minis"><div><b>${num(ll.total || 0)}</b><span>llamadas</span></div><div><b>${conv == null ? '—' : conv + '%'}</b><span>acaban en pedido</span></div></div>
+          ${(ll.por_resultado || []).length ? barrasH(ll.por_resultado.map(x => ({ n: x.resultado, v: x.n })), num) : `<p class="sm" style="padding:0 16px">Todavía no hay llamadas registradas en el periodo.</p>`}
+          <p class="leer">${TT('paciente', 'p', '', 'l', 'C')} que llaman a la empresa. Si muchos llaman por dudas o por precio, podemos darte material para explicarlo.</p></div>
+      </div>
+      <p class="sm" style="text-align:center;margin:18px 0">Por confidencialidad no se muestran datos de tus ${TT('paciente', 'p', '', 'l', 'l')} ni importes.</p>`;
+  };
+  montarPeriodo($('mdper'), { id: 'informe', valor: 'anio', alCambiar: pinta });
+  pinta();
+  portalMedico();   // v2.126.0
+}
+
+// Mensajes: el hilo de una ficha (el médico ve los suyos; quien lleva la ficha, los de esa ficha)
+function hiloMensajes(l, yoMedico) {
+  return l.length ? `<div class="hilo">${l.map(x => `<div class="msj ${x.del_portal === yoMedico ? 'mio' : 'suyo'}"><div>${esc(x.texto)}</div>
+      <span class="sm">${x.del_portal ? TT('medico', 's', '', 'l', 'C') : 'Equipo'} · ${horaCorta(x.creado_en)}</span></div>`).join('')}</div>`
+    : '<div class="sm">Todavía no hay mensajes.</div>';
+}
+
+// cargarInforme (en su sitio) espera a que se lea este final y llama aquí: al arrancar, «Mi informe» se pinta antes
+async function cargarInforme2271() {
+  const v = $('v-informe'), pac = TT('paciente', 'p', '', 'l', 'l');
+  v.innerHTML = `<div class="medhero"><div><div class="sm" style="color:rgba(255,255,255,.8)">Tu portal</div><h1 id="mdnom">…</h1><div id="mdesp" class="sm" style="color:rgba(255,255,255,.85)"></div></div>
+      <div class="medper"><div id="mdper"></div></div></div>
+    <div class="pmtabs" role="tablist">${[['res', 'Resumen'], ['ficha', 'Mi ficha'], ['mat', 'Material y dudas']].map(([k, t]) =>
+      `<button type="button" role="tab" data-pmt="${k}" class="${PM.tab === k ? 'on' : ''}" aria-selected="${PM.tab === k}">${t}<span class="pmtpunto" hidden></span></button>`).join('')}</div>
+    <div data-pmp="res" id="mdcuerpo" ${PM.tab === 'res' ? '' : 'hidden'}>${pmEsqueleto()}</div>
+    <div data-pmp="ficha" id="pmficha" ${PM.tab === 'ficha' ? '' : 'hidden'}>${pmEsqueleto(true)}</div>
+    <div data-pmp="mat" id="pmmat" ${PM.tab === 'mat' ? '' : 'hidden'}><div id="mdportal" class="pmfila"></div></div>`;
+  v.querySelectorAll('[data-pmt]').forEach(b => b.onclick = () => pmTab(b.dataset.pmt));
+  const pinta = async () => {
+    const r = $('mdper').__rango();
+    const [{ data: d }, { data: c }, { data: f }] = await Promise.all([RPC_ORIG('informe_cuenta', { p_desde: r.desde, p_hasta: r.hasta }),
+      RPC_ORIG('constancia_pacientes', { p_meses: 12 }), PM.ficha ? Promise.resolve({ data: null }) : RPC_ORIG('portal_mi_ficha', {})]);
+    if (f && f.ok) pmFichaDatos(f);
+    if (!$('mdcuerpo')) return;
+    if (!d || !d.ok) {
+      // v2.291: sin ficha vinculada, las dos pestañas lo dicen (antes «Mi ficha» se quedaba cargando) y la cabecera lleva su nombre
+      const sin = `<div class="card"><div class="vacio">Tu usuario todavía no está vinculado a tu ficha de ${TT('medico', 's', '', 'l', 'l')}. Avisa a la empresa para activarlo.</div></div>`;
+      $('mdcuerpo').innerHTML = sin; if ($('pmficha')) $('pmficha').innerHTML = sin;
+      $('mdnom').textContent = (PERFIL && PERFIL.nombre) || ''; return;
+    }
+    $('mdnom').textContent = d.medico.nombre; $('mdesp').textContent = d.medico.especialidad || '';
+    $('mdcuerpo').innerHTML = pmResumen(d, c || {}, pac);
+    $('mdcuerpo').querySelectorAll('[data-pmir]').forEach(b => b.onclick = () => pmTab(b.dataset.pmir));
+    pmPintarFicha();
+  };
+  try { localStorage.removeItem('dlc-per-informe-' + (PERFIL ? PERFIL.id : '')); } catch (e) {}   // v2.353.0: al entrar, siempre «Esta semana»
+  montarPeriodo($('mdper'), { id: 'informe', valor: 'semana', alCambiar: pinta });
+  await pinta();
+  portalMedico();
+}

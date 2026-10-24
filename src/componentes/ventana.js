@@ -63,3 +63,39 @@ async function pedirCampo(titulo, tipo, valor, etiqueta) {
     d.showModal();
   });
 }
+
+async function abrirApilada(fn, volverTexto) {
+  const d = $('dlg'), b = $('dbody');
+  PILA_VENT.push({ nodos: [...b.childNodes], clases: d.className, titulo: volverTexto });
+  APILANDO = true;
+  const frag = document.createDocumentFragment(); [...b.childNodes].forEach(n => frag.appendChild(n));
+  if (d.open) d.close();
+  try { await fn(); } finally { APILANDO = false; }
+  if (!d.open) d.showModal();
+  const fh = b.querySelector('.fh');
+  if (fh && !b.querySelector('.pilavolver')) fh.insertAdjacentHTML('beforebegin', `<button class="pilavolver" type="button">${svgIco(ICON_NOM['arrow-left'])} ${esc(volverTexto || 'Volver')}</button>`);
+  const v = b.querySelector('.pilavolver'); if (v) v.onclick = () => d.close();
+}
+
+// v2.122.0: la ventana va EN la página, en el sitio del apartado (antes flotaba encima con posición absoluta y su propio desplazamiento).
+// Se devuelve a <body> antes de cerrarse, para que los repintados del apartado no se la lleven por delante.
+function colocarEncajada(d, area) {
+  // v2.134.0: con el menú lateral, nav.main ocupa toda la altura y no es cabecera (daba el alto de la pantalla)
+  const cab = Math.max(0, ...['header', '.top', document.body.classList.contains('menulat') ? '' : 'nav.main'].filter(Boolean).map(q => { const e = document.querySelector(q); return e && getComputedStyle(e).position.match(/fixed|sticky/) ? e.getBoundingClientRect().bottom : 0; }));
+  document.documentElement.style.setProperty('--alto-cab', cab + 'px');
+}
+
+function devolverEncajada(d) {
+  if (d.__casa && d.parentNode !== d.__casa) d.__casa.appendChild(d);
+}
+
+/* ============================================================
+   v2.327.0 · Sin «¿Salir sin guardar?» donde no hay nada que guardar (aviso de Eric, 16/10/2026). Los checks de
+   «Operativa» del pedido se guardan al momento (data-nosucio) y, además, una ventana solo pregunta al cerrar si tiene
+   a la vista un botón que guarde (Guardar, Validar, Crear, Añadir, Enviar, Aplicar, Aceptar…): si no lo hay, no se
+   ha podido dejar nada a medias.
+   ============================================================ */
+function hayBotonGuardar(d) {
+  return [...d.querySelectorAll('button, .btn')].some(b => b.offsetParent && !b.disabled && !b.classList.contains('sec')
+    && /^(guardar|validar|crear|añadir|enviar|aplicar|aceptar|confirmar|registrar|emitir|dar de alta)/i.test((b.textContent || '').trim()));
+}

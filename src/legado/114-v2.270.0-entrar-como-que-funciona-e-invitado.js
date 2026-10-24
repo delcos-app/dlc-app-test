@@ -23,26 +23,6 @@ const SUPL_ERR = {
 
 // (R-12: entrarComo se definía aquí otra vez; ahora está en su sitio, más arriba)
 
-// Grupo «Invitados» de Usuarios
-function pintarInvitados(lista, acc) {
-  const box = $('usrinv'); if (!box) return;
-  const hace = t => { if (!t) return null; const d = new Date(t); return isNaN(d) ? null : d.toLocaleString('es-ES', { dateStyle: 'medium', timeStyle: 'short' }); };
-  $('usrinvn').textContent = lista.length ? '· ' + num(lista.length) : '';
-  box.innerHTML = lista.map(u => {
-    const a = acc[u.id] || {}, ult = hace(a.ultima_conexion || a.ultimo_acceso);
-    return `<div class="usrinv ${u.activo ? '' : 'off'}">
-      <span class="usrav" style="background:${esc((rolDef(u.rol) || {}).color || '#17457A')}">${esc(iniciales(u.nombre))}</span>
-      <span class="usrtx"><b>${esc(u.nombre)}</b><span class="sm">${esc(u.email || '')}</span>
-        <span class="usrchips">${u.cuenta_id ? `<button class="pill p-per" data-uinvf="${u.cuenta_id}" title="Abrir su ficha">${esc(u.medico || u.cuenta || 'Su ficha')}</button>` : '<span class="pill p-anu">Sin ficha</span>'}
-          ${u.activo ? '' : '<span class="pill p-anu">Desactivado</span>'}
-          <span class="sm usrinvult">${ult ? esc(conexionTxt(a)) : 'Aún no ha entrado'}</span></span>
-        <span class="sm usrinvve">${esc(queVeInvitado(u))}</span></span>
-      <span class="usrinvacts">${puedeVerComo(u) ? `<button class="btn" data-ucomo="${u.id}">👤 Impersonalizar</button>` : ''}
-        <button class="btn sec" data-uinvd="${u.id}">Detalles</button></span></div>`;
-  }).join('') || `<div class="vacio">${Object.keys(acc).length || (USUARIOS || []).some(esInvitado) ? 'Nadie con estos filtros.' : `Todavía no has dado acceso a nadie. Se da desde su ficha: «Acceso a la plataforma» → «Dar acceso».`}</div>`;
-  box.querySelectorAll('[data-uinvf]').forEach(b => b.onclick = () => abrirFicha(b.dataset.uinvf));
-  box.querySelectorAll('[data-uinvd]').forEach(b => b.onclick = () => detalleUsuario((USUARIOS || []).find(x => x.id === b.dataset.uinvd)));
-}
 
 
 

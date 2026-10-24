@@ -176,12 +176,6 @@ document.addEventListener('change', e => {
   if (n !== +i.value) { i.value = n; i.dispatchEvent(new Event('input', { bubbles: true })); }
 }, true);
 
-/* v2.109.0 · Las ventanas no muestran lo escrito en otras ocasiones. El navegador sugería, por ejemplo, la nota del pedido
-   anterior al crear uno nuevo: los campos de las ventanas y de las pantallas no guardan historial (salvo los que lo piden). */
-function sinHistorial(raiz) {
-  (raiz || document).querySelectorAll('input:not([autocomplete]):not([type=checkbox]):not([type=radio]):not([type=file]):not([type=hidden]), textarea:not([autocomplete])')
-    .forEach(i => i.setAttribute('autocomplete', 'off'));
-}
 // Una pasada por fotograma como mucho, aunque la pantalla cambie muchas veces seguidas
 let sinHistorialPend = false;
 const sinHistorialLuego = () => { if (sinHistorialPend) return; sinHistorialPend = true; requestAnimationFrame(() => { sinHistorialPend = false; sinHistorial(document.body); }); };
@@ -227,27 +221,8 @@ pintarRoles = (orig => async function (...a) {
    2. F5 (o Ctrl+R) recarga la app y vuelve a la pantalla en la que se estaba; Ctrl+F5 (o Ctrl+Mayús+R) entra de cero. */
 const TECLA_LISTAS = '.gsug, .cpres, .lista, .dgrid, [role=listbox], table';
 const teclaVisible = x => x.offsetParent !== null && !x.classList.contains('hide');
-function teclaLista(inp) {
-  const caja = inp.closest('.gsearch, .picker, .cpbus');
-  if (caja) return caja.querySelector('.gsug, .cpres');
-  // Lo primero con resultados que haya después del buscador, en su ventana o en su pantalla
-  const zona = inp.closest('dialog, section, .card') || document.body;
-  return [...zona.querySelectorAll(TECLA_LISTAS)].find(l => (inp.compareDocumentPosition(l) & Node.DOCUMENT_POSITION_FOLLOWING)
-    && !l.closest('.hide') && teclaItems(l).length) || null;
-}
-function teclaItems(l) {
-  const xs = l.matches('table') ? [...l.querySelectorAll(':scope > tbody > tr')]
-    : l.matches('.dgrid') ? [...l.querySelectorAll(':scope > .dr')]
-    : l.matches('.lista') ? [...l.children]
-    : [...l.querySelectorAll('button, [role=option], a[href]')];
-  return xs.filter(x => teclaVisible(x) && !x.matches('.gsh, .gload, .vacio, [disabled]'));
-}
 // Solo los buscadores: los de tipo búsqueda y los campos con su lista de resultados justo debajo
 const esBuscador = i => i && i.matches && i.matches('input') && !i.list && (i.type === 'search' || (!!i.nextElementSibling && i.nextElementSibling.matches('.gsug, .cpres, .lista, [role=listbox]')));
-function teclaActivar(x) {
-  const b = x.matches('button, a[href], [role=option], tr, .dr') ? x : (x.querySelector('button, a[href], [data-inificha]') || x);
-  b.click();
-}
 document.addEventListener('keydown', e => {
   if (!['ArrowDown', 'ArrowUp', 'Enter'].includes(e.key) || e.altKey || e.ctrlKey || e.metaKey || !esBuscador(e.target)) return;
   const l = teclaLista(e.target); if (!l) return;
@@ -285,12 +260,6 @@ document.addEventListener('keydown', e => {
   } catch (x) {}
   // La recarga la hace el navegador (en Ctrl+F5, sin caché)
 });
-function pantallaTrasF5() {
-  let v = null;
-  try { v = JSON.parse(sessionStorage.getItem('dlc-f5') || 'null'); sessionStorage.removeItem('dlc-f5'); } catch (x) { v = null; }
-  // Solo si se acaba de pulsar (una recarga horas después, o desde el botón del navegador, entra por el inicio)
-  return v && v.t && Date.now() - (v.h || 0) < 60000 ? v : null;
-}
 
 // v2.112.0 · Ventanas: al abrir, el foco no se queda en la X (se veía un recuadro de foco sin haber usado el teclado)
 // y, al desplazar una ventana larga, la cabecera muestra una línea de separación
@@ -319,16 +288,6 @@ function pantallaTrasF5() {
    guardado en la tabla pedidos_justificantes. Lo ve quien ve el pedido. */
 const JUSTIF_MAX = 3000000;
 const aBase64 = blob => new Promise((ok, mal) => { const fr = new FileReader(); fr.onload = () => ok(String(fr.result).split(',')[1] || ''); fr.onerror = mal; fr.readAsDataURL(blob); });
-async function verJustificante(id) {
-  const { data, error } = await db.from('pedidos_justificantes').select('nombre,tipo,datos').eq('id', id).single();
-  if (error || !data) { toast('No se ha podido abrir el justificante', true); return; }
-  const bin = atob(data.datos), u8 = new Uint8Array(bin.length);
-  for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
-  const url = URL.createObjectURL(new Blob([u8], { type: data.tipo }));
-  const w = window.open(url, '_blank');
-  if (!w) { const a = document.createElement('a'); a.href = url; a.download = data.nombre; a.click(); }
-  setTimeout(() => URL.revokeObjectURL(url), 60000);
-}
 
 // Ver pedido · Pago: origen, referencia (editable por quien lleva la operativa) y justificantes (añadir, ver y quitar)
 async function pedidoPago(id) {

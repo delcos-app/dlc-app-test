@@ -47,3 +47,22 @@ async function comprobarAcceso(forzar) {
   try { await db.auth.signOut(); } catch (e) {}
   location.reload();
 }
+
+function limpiarDatosLocales() {
+  try { Object.keys(localStorage).filter(k => /^dlc-(rc-|perfil|jornada-)/.test(k)).forEach(k => localStorage.removeItem(k)); } catch (e) {}
+}
+
+function pintarBarraSuplantacion() {
+  const s = suplantando();
+  let b = $('barrasup');
+  if (!s) { if (b) b.remove(); return; }
+  if (!b) { document.body.insertAdjacentHTML('afterbegin', '<div id="barrasup"></div>'); b = $('barrasup'); }
+  b.innerHTML = `<span>👤 <b>Impersonalizando a ${esc(PERFIL ? PERFIL.nombre : s.como)}</b>${PERFIL ? ' · ' + esc(PERFIL.rol) : ''} · Sesión con su usuario: lo que hagas queda a su nombre</span>
+    <button class="btn chico" id="supvolver">↩ Terminar la impersonalización (${esc(nombrePila(s.nombre))})</button>`;
+  $('supvolver').onclick = volverAMiSesion;
+}
+
+// ---- Cambiar de organización sin heredar nada: la recarga va tapada hasta tener el menú, la marca y la pantalla de la organización nueva
+function prepararCambioOrg(destino) {
+  try { sessionStorage.setItem('dlc-cambio-org', destino || ''); sessionStorage.removeItem('dlc-f5'); localStorage.removeItem('app-marca'); } catch (e) {}
+}

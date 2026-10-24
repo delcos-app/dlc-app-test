@@ -194,10 +194,6 @@ const eurI = n => eur(r2(n));
 
 /** Mismo cálculo que la base de datos: descuento de línea, descuento general y luego IVA. */
 
-function lineaDesglose(l) {
-  const bruto = +l.importe || 0, base = bruto * (1 - (+l.descuento || 0) / 100), iva = base * (+l.iva || 0) / 100;
-  return { bruto, base, iva, total: base + iva };
-}
 
 
 /* ---------------- ventas: pedidos, pacientes y productos ---------------- */

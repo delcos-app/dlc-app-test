@@ -1523,3 +1523,386 @@ function cfgClonarEstilos() {
 }
 
 function pagMarcarSucio() { const n = PAG_SUCIO.size; ['cfuguardar', 'cfudescartar'].forEach(id => { const b = $(id); if (b) b.disabled = !n; }); }
+
+async function editorReglasCartera() {
+  await cargarAjustes();
+  const excl = !AJUSTES.cartera || AJUSTES.cartera.exclusiva !== false;
+  $('dbody').innerHTML = `
+    <div class="fh"><div><h2>Reglas de cartera</h2><div class="sm">Cómo se reparten ${TT('medico', 'p', 'el', 'l', 'l')} entre el equipo</div></div>
+      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
+    <label class="opt" style="margin-top:10px"><input type="checkbox" id="rcexcl" ${excl ? 'checked' : ''}>
+      <span><b>Cartera exclusiva</b><br><span class="sm">${TT('medico', 's', 'un', 'C', 'l')} solo puede estar en la cartera de una persona. Al asignarlo a alguien, sale de la cartera de quien lo tuviera.</span></span></label>
+    <p class="sm">Si la desactivas, ${TT('medico', 's', 'un', 'l', 'l')} podrá estar en varias carteras y administración verá una alerta «${TT('medico', 'p', '', 'l', 'C')} en más de una cartera» en Inicio.</p>
+    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>Cancelar</button><button class="btn" id="rcok">Guardar</button></div>`;
+  $('dlg').showModal();
+  $('rcok').onclick = async () => {
+    const { data: r, error } = await db.rpc('guardar_ajuste', { p_clave: 'cartera', p_valor: { exclusiva: $('rcexcl').checked } });
+    if (error || (r && r.ok === false)) { toast('No se ha podido guardar', true); return; }
+    AJUSTES.cartera = { exclusiva: $('rcexcl').checked }; $('dlg').close(); toast('Reglas guardadas');
+  };
+}
+
+async function bloqueZonas(u) {
+  if (!PROV_CCAA) {
+    const [{ data: pc }, { data: rz }] = await Promise.all([db.from('provincias_ccaa').select('provincia,comunidad'), db.rpc('zonas_resumen')]);
+    const cuenta = {}; (rz || []).forEach(x => cuenta[x.provincia] = x.medicos);
+    PROV_CCAA = {};
+    (pc || []).forEach(x => (PROV_CCAA[x.comunidad] = PROV_CCAA[x.comunidad] || []).push({ p: x.provincia, n: cuenta[x.provincia] || 0 }));
+  }
+  const { data: yo } = await db.from('perfiles').select('zonas').eq('id', u.id).single();
+  const sel = new Set((yo && yo.zonas) || []);
+  const bonito = p => p.charAt(0) + p.slice(1).toLowerCase();
+  return `<div class="blk" id="uzonas"><h3>Zona de trabajo</h3>
+    <p class="sm">Marca las provincias de su zona. Al guardar, ${TT('medico', 'p', 'el', 'l', 'l')} de esas provincias que no tengan comercial entran en su cartera, y los que se den de alta después entran solos. Solo verá ${TT('medico', 'p', 'el', 'l', 'l')} de su cartera.</p>
+    <div class="zonas">${Object.keys(PROV_CCAA).sort().map(cc => {
+      const ps = PROV_CCAA[cc].filter((x, i, a) => a.findIndex(y => y.n === x.n && bonito(y.p).slice(0, 4) === bonito(x.p).slice(0, 4)) === i || x.n || sel.has(x.p));
+      return `<details ${ps.some(x => sel.has(x.p)) ? 'open' : ''}><summary><label onclick="event.stopPropagation()"><input type="checkbox" data-zcc="${esc(cc)}" ${ps.every(x => sel.has(x.p)) ? 'checked' : ''}> ${esc(cc)}</label>
+        <span class="sm">${num(ps.reduce((n, x) => n + x.n, 0))} ${TT('medico', 'p', '', 'l', 'l')}</span></summary>
+        <div class="zprov">${ps.map(x => `<label><input type="checkbox" data-zp="${esc(x.p)}" data-zpc="${esc(cc)}" ${sel.has(x.p) ? 'checked' : ''}> ${esc(bonito(x.p))} <span class="sm">${num(x.n)}</span></label>`).join('')}</div></details>`;
+    }).join('')}</div>
+    <div class="acts" style="margin-top:8px"><button class="btn sec" id="uzok">Guardar zona y asignar sus ${TT('medico', 'p', '', 'l', 'l')}</button></div></div>`;
+}
+
+// En la factura solo va el logo si la empresa ha subido el suyo
+async function logoData() { if (MARCA.logo && (AJUSTES.marca || {}).logo_factura !== false) { LOGO_DATA = MARCA.logo; LOGO_CIRC = true; return MARCA.logo; } return null; }
+async function pintarCopias() {
+  const { data: au } = await db.from('auditoria').select('creado_en').eq('accion', 'Copia de seguridad').order('creado_en', { ascending: false }).limit(1);
+  const ultima = au && au[0] ? new Date(au[0].creado_en) : null, dias = ultima ? Math.floor((Date.now() - ultima) / 864e5) : null;
+  $('cfgcuerpo').innerHTML = `<div class="card cfgpanel"><h2>Copias de seguridad</h2>
+    <p class="sm">Descarga en un único archivo todos los datos de la empresa: ${TT('medico', 'p', '', 'l', 'l')}, ${TT('visita', 'p', '', 'l', 'l')}, agenda, clientes, pedidos, facturas, stock y configuración. Las contraseñas no se incluyen.</p>
+    <div class="copiaest ${dias == null || dias > 7 ? 'mal' : 'bien'}"><b>${ultima ? 'Última copia: ' + ultima.toLocaleString('es-ES', { dateStyle: 'long', timeStyle: 'short' }) : 'Todavía no se ha hecho ninguna copia'}</b>
+      <span>${dias == null ? 'Haz la primera ahora.' : dias > 7 ? `Hace ${dias} días: conviene hacer una nueva.` : 'Al día.'}</span></div>
+    <div class="acts" style="margin:12px 0 0"><button class="btn" id="copok">⬇ Descargar copia completa</button></div>
+    <h3 class="mansub">Consejos</h3><ul class="manlist">
+      <li><span>📅</span><span>Haz una copia cada semana y guárdala fuera del ordenador (unidad externa o nube de la empresa).</span></li>
+      <li><span>🔐</span><span>El archivo contiene datos personales: guárdalo en un sitio con acceso restringido.</span></li>
+      <li><span>🤖</span><span>Si quieres que se haga sola cada día, hay una copia automática gratuita con GitHub (pídela a quien te da soporte técnico).</span></li></ul></div>`;
+  $('copok').onclick = async ev => {
+    ev.target.disabled = true; ev.target.textContent = 'Preparando la copia…';
+    const { data, error } = await RPC_ORIG('exportar_datos', {});
+    ev.target.disabled = false; ev.target.textContent = '⬇ Descargar copia completa';
+    if (error || !data) { toast('No se ha podido hacer la copia', true); return; }
+    const b = new Blob([JSON.stringify(data)], { type: 'application/json' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = `copia_${nombreApp().replace(/[^\p{L}\p{N}]+/gu, '_')}_${hoyISO()}.json`; a.click();
+    const n = Object.values(data.tablas || {}).reduce((s, t) => s + t.length, 0);
+    toast(`Copia descargada · ${num(n)} registros`); setTimeout(pintarCopias, 800);
+  };
+}
+
+async function deshacerUno(id, despues) {
+  const { data: s } = await db.rpc('deshacer_cambio', { p_id: id, p_simular: true });
+  if (!s || !s.ok) { toast(MOTIVO_DESHACER[(s && s.motivo) || ''] || (s && s.motivo) || 'No se puede deshacer', true); return; }
+  if (!(s.campos || []).length) { toast('No hay nada que deshacer: esos datos se han vuelto a cambiar después', true); return; }
+  if (!await preguntar(`Volverán a su valor de antes: ${s.campos.map(campoTxt).join(', ')}. Lo que se haya cambiado después no se toca.`, { titulo: 'Deshacer el cambio', ok: 'Deshacer' })) return;
+  const { data: r, error } = await db.rpc('deshacer_cambio', { p_id: id, p_simular: false });
+  if (error || !r || !r.ok) { toast('No se ha podido deshacer: ' + ((r && (MOTIVO_DESHACER[r.motivo] || r.motivo)) || (error && error.message) || ''), true); return; }
+  toast('Cambio deshecho'); if (despues) despues();
+}
+
+function cajaDeshacerPersona(caja, usuario, desde, nombre, despues) {
+  if (!caja) return;
+  if (!usuario || !desde) { caja.innerHTML = ''; return; }
+  caja.innerHTML = `<div class="card" id="audpersona" style="margin:0 16px 10px"><h3>Deshacer los cambios de ${esc(nombre.trim())}</h3>
+    <p class="sm">Todo lo que cambió o borró en fichas, ${TT('consulta', 'p', '', 'l', 'l')}, clientes, productos y rutas desde el ${fechaCorta(desde)}. Lo que otra persona haya cambiado después no se toca.</p>
+    <div class="acts" style="margin:6px 0 0"><button type="button" class="btn sec" id="audsim">Ver qué se desharía</button></div><div id="audres" class="sm"></div></div>`;
+  $('audsim').onclick = async ev => {
+    ev.target.disabled = true;
+    const { data: s } = await db.rpc('deshacer_persona', { p_usuario: usuario, p_desde: desde + 'T00:00:00', p_simular: true });
+    ev.target.disabled = false;
+    if (!s || !s.ok) { toast('No se ha podido calcular', true); return; }
+    const nom = { cuentas: 'fichas', ubicaciones: TT('consulta', 'p', '', 'l', 'l'), contactos: 'clientes', productos: 'productos', rutas: 'rutas' };
+    if (!s.cambios) { $('audres').textContent = 'No hay nada que deshacer en ese periodo (o ya se ha vuelto a cambiar).'; return; }
+    $('audres').innerHTML = `Se desharían <b>${num(s.cambios)}</b> cambios (${num(s.campos)} datos): ${Object.entries(s.por_entidad || {}).map(([k, n]) => `${num(n)} en ${nom[k] || k}`).join(', ')}.
+      ${s.sin_deshacer ? ` ${num(s.sin_deshacer)} no se pueden deshacer porque se han vuelto a cambiar después.` : ''}
+      <div class="acts" style="margin:8px 0 0"><button type="button" class="btn" id="audok">Deshacer ${num(s.cambios)} cambios</button></div>`;
+    $('audok').onclick = async ev2 => {
+      if (!await preguntar(`Se desharán ${num(s.cambios)} cambios de ${nombre.trim()} desde el ${fechaCorta(desde)}. Queda registrado y cada uno se puede volver a cambiar a mano.`, { titulo: 'Deshacer sus cambios', ok: 'Deshacer' })) return;
+      ev2.target.disabled = true;
+      const { data: r } = await db.rpc('deshacer_persona', { p_usuario: usuario, p_desde: desde + 'T00:00:00', p_simular: false });
+      if (!r || !r.ok) { ev2.target.disabled = false; toast('No se ha podido deshacer', true); return; }
+      toast(`Deshechos ${num(r.cambios)} cambios`); if (despues) despues();
+    };
+  };
+}
+
+// Lo que se deja de tener al pasar de un plan a otro (para avisar antes)
+function perdidasPlan(de, a, datos) {
+  const pd = planDe(de), pa = planDe(a), extras = (datos && datos.extras) || [], l = [];
+  if (de === a) return l;
+  const nombreMod = m => (MOD_PLAN.find(x => x[0] === m) || [m, m])[1];
+  pd.modulos.filter(m => !pa.modulos.includes(m) && m in MODULO_AREA).forEach(m => l.push(m === 'facturacion'
+    ? `Facturación: ${datos && datos.facturas ? 'tus facturas quedan en solo lectura (verlas, descargarlas y cobrarlas, no emitir nuevas)' : 'no podrás emitir facturas'}` : nombreMod(m)));
+  Object.keys(PLAN_SECCIONES).forEach(s => { if (PLAN_SECCIONES[s].includes(de) && !PLAN_SECCIONES[s].includes(a)) l.push(TITULO_PEDSEC[s] ? TITULO_PEDSEC[s][0] : s); });
+  Object.keys(PLAN_EXTRAS).forEach(x => {
+    if (!PLAN_EXTRAS[x].includes(de) || PLAN_EXTRAS[x].includes(a) || extras.includes(x)) return;
+    if (x === 'oportunidades') l.push('Oportunidades');
+    if (x === 'portal') l.push(`Portal ${TT('medico', 's', 'del', 'l', 'l')} y del centro${datos && +datos.medicos ? ` (${num(datos.medicos)} con acceso lo perderán)` : ''}`);
+  });
+  if (de === 'medida' && a === 'empresa' && datos && +datos.medicos > 50) l.push(`Portal: el plan Empresa admite hasta 50 accesos y ahora hay ${num(datos.medicos)}`);
+  if (de === 'medida') l.push('Ver la plataforma como cada persona de tu equipo', 'Soporte prioritario');
+  return l;
+}
+
+function reciboCalculado(pl) {
+  const p = planDe(pl.plan), u = Math.max(+pl.usuarios || 0, p.minimo || 3), anual = pl.pago === 'anual';
+  const cuota = u * p.precio * (anual ? 10 : 1);
+  const puesta = pl.en_prueba && !anual ? PUESTA_EN_MARCHA : 0;
+  return { primero: cuota + puesta + ivaDe(cuota + puesta), despues: cuota + ivaDe(cuota), puesta, anual };
+}
+
+// Configuración → el catálogo de resultados: en qué estados aparece cada uno
+function enEstadosTxt(l) { return l && l.length ? 'Solo en: ' + l.join(', ') : 'En todos los estados'; }
+
+function decorarResultados() {
+  const caja = $('dbody'); if (!caja) return;
+  caja.querySelectorAll('[data-vdest]').forEach(sel => {
+    const item = sel.closest('.item'); if (!item || item.querySelector('[data-ven]')) return;
+    const vid = sel.dataset.vdest;
+    const v = (CATS || []).flatMap(c => c.valores || []).find(x => x.id === vid); if (!v) return;
+    sel.insertAdjacentHTML('afterend', `<button type="button" class="btn sec" data-ven="${vid}" title="En qué estados de la ficha aparece este resultado">${esc(enEstadosTxt(v.en_estados))}</button>`);
+    item.querySelector('[data-ven]').onclick = () => {
+      const abierta = item.nextElementSibling && item.nextElementSibling.classList.contains('venbox');
+      caja.querySelectorAll('.venbox').forEach(x => x.remove());
+      if (abierta) return;
+      const marcados = new Set(v.en_estados || []);
+      item.insertAdjacentHTML('afterend', `<div class="venbox"><span class="sm">«${esc(v.valor)}» aparece al registrar ${TT('visita', 's', 'el', 'l', 'l')} de las fichas en estos estados (sin marcar ninguno, en todos):</span>
+        <div class="chips">${estados().map(e => `<button type="button" class="chip ${marcados.has(e) ? 'on' : ''}" data-vene="${esc(e)}" aria-pressed="${marcados.has(e)}">${esc(e)}</button>`).join('')}</div>
+        <div class="acts" style="justify-content:flex-end;margin:6px 0 0"><button type="button" class="btn sec" data-vencerrar>Cancelar</button><button type="button" class="btn" data-venok>Guardar</button></div></div>`);
+      const box = item.nextElementSibling;
+      box.querySelectorAll('[data-vene]').forEach(b => b.onclick = () => { const on = b.getAttribute('aria-pressed') !== 'true'; b.setAttribute('aria-pressed', String(on)); b.classList.toggle('on', on); });
+      box.querySelector('[data-vencerrar]').onclick = () => box.remove();
+      box.querySelector('[data-venok]').onclick = async ev => {
+        const l = [...box.querySelectorAll('[data-vene][aria-pressed="true"]')].map(b => b.dataset.vene);
+        ev.target.disabled = true;
+        const { data: r, error } = await db.rpc('guardar_valor', { p: { id: vid, en_estados: l.length === estados().length ? [] : l } });
+        ev.target.disabled = false;
+        if (error || (r && r.ok === false)) { toast('No se ha podido guardar', true); return; }
+        v.en_estados = l.length && l.length < estados().length ? l : null;
+        item.querySelector('[data-ven]').textContent = enEstadosTxt(v.en_estados);
+        box.remove(); toast(v.en_estados ? `«${v.valor}» solo sale en: ${l.join(', ')}` : `«${v.valor}» sale en todos los estados`);
+      };
+    };
+  });
+}
+
+async function pendientesCfg() {
+  if (Date.now() - CFG_PEND.t < 60000) return CFG_PEND.l;
+  const l = {};
+  try { if (!prefsActivas().salida && puedeModulo('agenda')) l['rutas.salida'] = 'Sin punto de salida: las horas del día salen sin el primer trayecto'; } catch (e) {}
+  if (puedeOrganizacion()) {
+    try { const { data: c } = await RPC_ORIG('correo_config', {}); if (!c || !c.host) l['o.correo'] = 'Sin configurar: los correos de la empresa no salen'; } catch (e) {}
+    try {
+      const { data: au } = await db.from('auditoria').select('creado_en').eq('accion', 'Copia de seguridad').order('creado_en', { ascending: false }).limit(1);
+      const d = au && au[0] ? Math.floor((Date.now() - new Date(au[0].creado_en)) / 864e5) : null;
+      if (d == null) l['o.copias'] = 'Todavía no hay ninguna copia'; else if (d > 7) l['o.copias'] = `La última copia es de hace ${d} días`;
+    } catch (e) {}
+  }
+  CFG_PEND = { t: Date.now(), l };
+  return l;
+}
+
+async function pintarEstadosPapel() {
+  const c = $('cfgcuerpo'); if (!c) return;
+  cargando(c, 'Cargando los estados…');
+  const { data: ce } = await db.from('clasificadores').select('id').eq('papel', 'estado_comercial').limit(1);
+  const { data: est, error } = ce && ce[0] ? await db.from('valores_clasificador').select('id,valor,orden,activo,papel').eq('clasificador_id', ce[0].id).order('orden')
+    : { data: [], error: null };
+  if (!$('cfgcuerpo') || CFG_KEY !== 'estados') return;
+  if (error) { c.innerHTML = `<div class="card"><p class="sm">No se han podido leer los estados: ${esc(error.message)}</p></div>`; return; }
+  const l = (est || []).filter(v => v.activo !== false);
+  const opc = v => PAPELES_ESTADO.map(([k, t]) => `<option value="${k}" ${v.papel === k ? 'selected' : ''}>${t}</option>`).join('');
+  c.innerHTML = `<div class="card estw">
+      <p class="sm">Cada estado tiene un papel. Con él, la plataforma sabe qué ficha es nueva, cuál avanza, cuál ya es cliente y cuál se ha perdido:
+        de ahí salen los avisos, los indicadores de Inicio y qué resultados se ofrecen al registrar ${esc(TT('visita', 's', 'una', 'l', 'l'))}. El nombre de cada estado se cambia en «Textos personalizados».</p>
+      ${l.length ? l.map(v => `<div class="ajfila estfila" data-estid="${v.id}"><div><b>${esc(v.valor)}</b>
+          <span class="sm">${esc((PAPELES_ESTADO.find(p => p[0] === v.papel) || [, , 'Sin papel: no cuenta en avisos ni indicadores'])[2])}</span></div>
+        <div class="ajctl"><select data-estpapel="${v.id}" aria-label="Papel de ${esc(v.valor)}" ${v.papel === 'inicial' ? 'title="Para cambiarlo, marca otro estado como Inicial"' : ''}>${v.papel ? '' : '<option value="" selected>Sin papel</option>'}${opc(v)}</select></div></div>`).join('')
+        : '<p class="vacio">Todavía no hay estados comerciales.</p>'}</div>`;
+  c.querySelectorAll('[data-estpapel]').forEach(s => s.onchange = async () => {
+    const v = l.find(x => x.id === s.dataset.estpapel), nuevo = s.value;
+    if (!v || !nuevo || nuevo === v.papel) return;
+    if (v.papel === 'inicial') { s.value = v.papel; toast('Para cambiar el estado inicial, marca otro estado como «Inicial»', true); return; }
+    const ant = l.find(x => x.papel === 'inicial' && x.id !== v.id);
+    if (nuevo === 'inicial' && ant && !await preguntar(`Las fichas nuevas empezarán en «${v.valor}». «${ant.valor}» pasará a «En avance».`, { titulo: '¿Cambiar el estado inicial?', ok: 'Cambiar' })) { s.value = v.papel || ''; return; }
+    s.disabled = true;
+    const { data: r, error } = await db.rpc('guardar_papel_estado', { p_id: v.id, p_papel: nuevo });
+    if (error || !r || !r.ok) {
+      s.disabled = false; s.value = v.papel || '';
+      toast(({ permiso: 'No tienes permiso para cambiarlo', sin_inicial: 'Para cambiar el estado inicial, marca otro estado como «Inicial»', papel: 'Ese papel no existe' })[(r && r.error) || ''] || ('No se ha podido cambiar' + (error ? ': ' + error.message : '')), true);
+      return;
+    }
+    toast('Papel cambiado');
+    invalidarCache(); try { await cargarCatalogos(); } catch (e) {}
+    pintarEstadosPapel();
+  });
+}
+
+// Grupo «Invitados» de Usuarios
+function pintarInvitados(lista, acc) {
+  const box = $('usrinv'); if (!box) return;
+  const hace = t => { if (!t) return null; const d = new Date(t); return isNaN(d) ? null : d.toLocaleString('es-ES', { dateStyle: 'medium', timeStyle: 'short' }); };
+  $('usrinvn').textContent = lista.length ? '· ' + num(lista.length) : '';
+  box.innerHTML = lista.map(u => {
+    const a = acc[u.id] || {}, ult = hace(a.ultima_conexion || a.ultimo_acceso);
+    return `<div class="usrinv ${u.activo ? '' : 'off'}">
+      <span class="usrav" style="background:${esc((rolDef(u.rol) || {}).color || '#17457A')}">${esc(iniciales(u.nombre))}</span>
+      <span class="usrtx"><b>${esc(u.nombre)}</b><span class="sm">${esc(u.email || '')}</span>
+        <span class="usrchips">${u.cuenta_id ? `<button class="pill p-per" data-uinvf="${u.cuenta_id}" title="Abrir su ficha">${esc(u.medico || u.cuenta || 'Su ficha')}</button>` : '<span class="pill p-anu">Sin ficha</span>'}
+          ${u.activo ? '' : '<span class="pill p-anu">Desactivado</span>'}
+          <span class="sm usrinvult">${ult ? esc(conexionTxt(a)) : 'Aún no ha entrado'}</span></span>
+        <span class="sm usrinvve">${esc(queVeInvitado(u))}</span></span>
+      <span class="usrinvacts">${puedeVerComo(u) ? `<button class="btn" data-ucomo="${u.id}">👤 Impersonalizar</button>` : ''}
+        <button class="btn sec" data-uinvd="${u.id}">Detalles</button></span></div>`;
+  }).join('') || `<div class="vacio">${Object.keys(acc).length || (USUARIOS || []).some(esInvitado) ? 'Nadie con estos filtros.' : `Todavía no has dado acceso a nadie. Se da desde su ficha: «Acceso a la plataforma» → «Dar acceso».`}</div>`;
+  box.querySelectorAll('[data-uinvf]').forEach(b => b.onclick = () => abrirFicha(b.dataset.uinvf));
+  box.querySelectorAll('[data-uinvd]').forEach(b => b.onclick = () => detalleUsuario((USUARIOS || []).find(x => x.id === b.dataset.uinvd)));
+}
+
+async function matMejorar() {
+  const lista = document.querySelector('#cfgcuerpo .matlista'); if (!lista) return;
+  const { data: cid } = await db.from('clasificadores').select('id').eq('papel', 'material_visita').maybeSingle();
+  if (!cid) return;
+  const conPortal = typeof hayExtra === 'function' && hayExtra('portal');
+  const [{ data: vals }, rp, ra] = await Promise.all([
+    db.from('valores_clasificador').select('id,valor,activo,dato_tipo').eq('clasificador_id', cid.id).order('orden'),
+    conPortal ? RPC_ORIG('portal_material_permitido', {}) : Promise.resolve({ data: [] }),
+    conPortal ? db.from('ajustes').select('valor').eq('clave', 'portal').maybeSingle() : Promise.resolve({ data: null })]);
+  if (!document.querySelector('#cfgcuerpo .matlista')) return;
+  const perm = Array.isArray(rp && rp.data) ? rp.data : [], conAjuste = !!(ra && ra.data && ra.data.valor && ra.data.valor.material);
+  const de = v => perm.find(p => p.valor === v);
+  const vis = TT('visita', 's', 'la', 'l', 'l');
+  lista.classList.add('matlista2');
+  lista.innerHTML = (vals || []).map(v => { const p = de(v.valor); return `<div class="matfila2 ${v.activo ? '' : 'off'}" data-mv="${v.id}" data-mvv="${esc(v.valor)}" data-mdt0="${v.dato_tipo === 'numero' ? 'numero' : ''}">
+      <b class="mtnom">${esc(v.valor)}</b>
+      <label class="mtcampo"><span class="sm">Al registrar ${vis}</span><select class="chico" data-mdt>
+        <option value="numero" ${v.dato_tipo === 'numero' ? 'selected' : ''}>Anotar cuántas se entregan</option>
+        <option value="" ${v.dato_tipo === 'numero' ? '' : 'selected'}>Solo marcar que se entregó</option></select></label>
+      ${conPortal ? `<label class="opt mtpor"><input type="checkbox" data-mpp ${p ? 'checked' : ''}> Se puede pedir desde el portal</label>
+      <label class="mtcampo mtmax"><span class="sm">Máximo por petición</span><input type="number" step="1" data-mpx value="${p ? p.max : 20}" ${p ? '' : 'disabled'}></label>` : ''}
+      <label class="vfswitch mini"><input type="checkbox" data-mact2="${v.id}" ${v.activo ? 'checked' : ''}><span class="sw"></span><span class="sm">${v.activo ? 'Activo' : 'Oculto'}</span></label>
+      <span class="mterr sm" hidden></span></div>`; }).join('') || '<div class="sm">Todavía no hay material.</div>';
+  if (vals && vals.length) lista.insertAdjacentHTML('afterend', `<div class="acts mtacts" style="justify-content:space-between;align-items:center">
+      <span class="sm">${conPortal && !conAjuste ? 'Ahora el portal permite pedir todo el material, hasta 20 de cada uno. Guarda para decidirlo tú.' : ''}</span>
+      <button class="btn" id="matguardar">Guardar cambios</button></div>`);
+  lista.querySelectorAll('[data-mpp]').forEach(c => c.onchange = () => { const i = c.closest('.matfila2').querySelector('[data-mpx]'); if (i) i.disabled = !c.checked; });
+  lista.querySelectorAll('[data-mact2]').forEach(c => c.onchange = async () => {
+    await db.rpc('guardar_valor', { p: { id: c.dataset.mact2, activo: c.checked } });
+    c.closest('.matfila2').classList.toggle('off', !c.checked); c.parentElement.querySelector('.sm').textContent = c.checked ? 'Activo' : 'Oculto';
+    toast(c.checked ? 'Visible al registrar' : 'Oculto al registrar'); cargarCatalogos();
+  });
+  if ($('matguardar')) $('matguardar').onclick = async ev => {
+    const filas = [...lista.querySelectorAll('.matfila2')];
+    let mal = false; const material = [];
+    filas.forEach(f => {
+      const e = f.querySelector('.mterr'); e.hidden = true; e.textContent = '';
+      const c = f.querySelector('[data-mpp]'), i = f.querySelector('[data-mpx]');
+      if (!c || !c.checked) return;
+      const n = Number(i.value);
+      if (!i.value || !Number.isInteger(n) || n < 1 || n > 1000) { e.hidden = false; e.textContent = 'El máximo por petición tiene que ser un número entero de 1 a 1.000'; mal = true; return; }
+      material.push({ valor: f.dataset.mvv, max: n });
+    });
+    if (mal) { toast('Revisa los máximos marcados en rojo', true); return; }
+    ev.target.disabled = true;
+    try {
+      for (const f of filas) {
+        const s = f.querySelector('[data-mdt]');
+        if (s.value !== f.dataset.mdt0) {
+          const { error } = await db.rpc('guardar_valor', { p: { id: f.dataset.mv, dato_tipo: s.value, dato_etiqueta: s.value ? 'Unidades' : '' } });
+          if (error) { toast('No se ha podido guardar ' + f.dataset.mvv + ': ' + error.message, true); return; }
+          f.dataset.mdt0 = s.value;
+        }
+      }
+      if (conPortal) {
+        const { error } = await db.rpc('guardar_ajuste', { p_clave: 'portal', p_valor: Object.assign({}, (ra && ra.data && ra.data.valor) || {}, { material }) });
+        if (error) { toast('No se ha podido guardar el portal: ' + error.message, true); return; }
+      }
+      toast('Guardado'); cargarCatalogos();
+    } finally { ev.target.disabled = false; }
+  };
+}
+
+function conexionTxt(a, largo) {
+  const t = a && (a.ultima_conexion || a.ultimo_acceso), d = t ? new Date(t) : null;
+  if (!d || isNaN(d)) return a ? 'Nunca se ha conectado' : (largo ? 'Última conexión: sin datos' : '');
+  const min = Math.round((Date.now() - d) / 60000), hora = d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+  const hoy = new Date(); hoy.setHours(0, 0, 0, 0); const ayer = new Date(hoy - 864e5);
+  let x;
+  if (min < 5) x = 'ahora mismo';
+  else if (min < 60) x = 'hace ' + min + ' min';
+  else if (d >= hoy) x = 'hoy a las ' + hora;
+  else if (d >= ayer) x = 'ayer a las ' + hora;
+  else x = 'el ' + d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: d.getFullYear() === hoy.getFullYear() ? undefined : 'numeric' }) + (largo ? ' a las ' + hora : '');
+  return (largo ? 'Última conexión: ' : 'Conectado ') + x;
+}
+
+async function pintarAccesos() {
+  cargando($('admcuerpo'), 'Cargando los accesos…');
+  const { data } = await db.rpc('accesos_lista', { p_usuario: null, lim: 200 });
+  const l = data || [];
+  ($('admcuerpo') || document.createElement('div')).innerHTML = `<h2>Accesos<span class="n">${l.length}</span></h2>
+    <p class="sm">Últimas entradas y salidas de la plataforma.</p>
+    <div class="lista">${l.map(a => `<div class="item" style="cursor:default">
+      <span class="ic ${a.evento === 'Entrada' ? 'o' : ''}">${a.evento === 'Entrada' ? '→' : '←'}</span>
+      <span class="tx"><b>${esc(a.usuario)}</b><span class="sm">${esc(a.evento)} ·
+        ${new Date(a.creado_en).toLocaleString('es', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+        ${a.agente ? ' · ' + esc(String(a.agente).slice(0, 60)) : ''}</span></span></div>`).join('')
+      || '<div class="vacio">Todavía no hay accesos registrados.</div>'}</div>`;
+}
+
+function editorDato(v, alGuardar) {
+  $('dlg2body').innerHTML = `
+    <div class="fh"><div><h2>Dato de «${esc(v.valor)}»</h2>
+      <div class="sm">Al marcar este valor en ${TT('visita', 's', 'un', 'l', 'l')}, se pedirá además este dato</div></div>
+      <button class="x" data-cerrar2 aria-label="Cerrar">✕</button></div>
+    <label for="dtt">Qué dato pide</label>
+    <select id="dtt"><option value="">Ninguno (solo se marca)</option>
+      <option value="numero" ${v.dato_tipo === 'numero' ? 'selected' : ''}>Un número (p. ej. cantidad)</option>
+      <option value="texto" ${v.dato_tipo === 'texto' ? 'selected' : ''}>Un texto libre</option>
+      <option value="lista" ${v.dato_tipo === 'lista' ? 'selected' : ''}>Una opción de una lista</option></select>
+    <div id="dtcfg">
+      <label for="dte">Cómo se llama el dato</label><input id="dte" value="${esc(v.dato_etiqueta || '')}" placeholder="p. ej. Cantidad, A quién, Producto">
+      <div id="dtlw"><label for="dtl">Opciones de la lista <span class="sm">· una por línea</span></label>
+        <textarea id="dtl" rows="4">${esc((v.dato_opciones || []).join('\n'))}</textarea></div>
+    </div>
+    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar2>Cancelar</button><button class="btn" id="dtok">Guardar</button></div>`;
+  const vis = () => { $('dtcfg').classList.toggle('hide', !$('dtt').value); $('dtlw').classList.toggle('hide', $('dtt').value !== 'lista'); };
+  $('dtt').onchange = vis; vis();
+  $('dtok').onclick = async () => {
+    const tipo = $('dtt').value;
+    const ops = $('dtl').value.split('\n').map(x => x.trim()).filter(Boolean);
+    if (tipo === 'lista' && !ops.length) { toast('Escribe al menos una opción', true); return; }
+    const { data: r, error } = await db.rpc('guardar_valor', { p: { id: v.id, dato_tipo: tipo, dato_etiqueta: tipo ? $('dte').value.trim() : '',
+      dato_opciones: tipo === 'lista' ? ops : [] } });
+    if (error || (r && r.ok === false)) { toast('No se ha podido guardar', true); return; }
+    $('dlg2').close(); toast('Dato guardado'); alGuardar();
+  };
+  $('dlg2').showModal();
+}
+
+// Auditoría: los cambios se leen como texto (antes salía «[object Object]» con valores complejos)
+function textoValor(v) {
+  if (v == null || v === '') return '—';
+  if (typeof v === 'boolean') return v ? 'sí' : 'no';
+  if (Array.isArray(v)) return v.length ? v.slice(0, 3).map(textoValor).join(', ') + (v.length > 3 ? '…' : '') : '—';
+  if (typeof v === 'object') {
+    if (v.nombre) return String(v.nombre);
+    const k = Object.keys(v); return k.length ? k.slice(0, 3).map(x => `${x}: ${textoValor(v[x])}`).join(', ') + (k.length > 3 ? '…' : '') : '—';
+  }
+  return String(v);
+}
+
+function resumenDetalle(d) {
+  if (!d) return '';
+  if (typeof d !== 'object') return String(d).slice(0, 120);
+  if (d.nombre && typeof d.nombre !== 'object') return String(d.nombre);
+  const cambios = Object.keys(d).filter(k => Array.isArray(d[k]) && d[k].length === 2).slice(0, 4);
+  if (cambios.length) return cambios.map(k => `${k}: ${textoValor(d[k][0]).slice(0, 24)} → ${textoValor(d[k][1]).slice(0, 24)}`).join(' · ');
+  return Object.keys(d).slice(0, 4).map(k => `${k}: ${textoValor(d[k]).slice(0, 30)}`).join(' · ');
+}
+async function facccon(uid) {
+  if (!puede('administrar')) return;   // la información de sesión, solo para la administración (Eric)
+  const { data } = await RPC_ORIG('ultimas_conexiones', { p_ids: [uid] });
+  const el = document.querySelector(`[data-facccon="${uid}"]`); if (!el) return;
+  const a = (data || []).find(x => x.id === uid);
+  el.textContent = a ? conexionTxt(a, true) : '';
+}

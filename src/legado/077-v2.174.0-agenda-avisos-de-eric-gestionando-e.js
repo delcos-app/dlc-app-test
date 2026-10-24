@@ -359,39 +359,6 @@ abrirVisitaBase = (orig => async function (id, ...r) {
   return res;
 })(abrirVisitaBase);
 
-// Configuración → el catálogo de resultados: en qué estados aparece cada uno
-function enEstadosTxt(l) { return l && l.length ? 'Solo en: ' + l.join(', ') : 'En todos los estados'; }
-function decorarResultados() {
-  const caja = $('dbody'); if (!caja) return;
-  caja.querySelectorAll('[data-vdest]').forEach(sel => {
-    const item = sel.closest('.item'); if (!item || item.querySelector('[data-ven]')) return;
-    const vid = sel.dataset.vdest;
-    const v = (CATS || []).flatMap(c => c.valores || []).find(x => x.id === vid); if (!v) return;
-    sel.insertAdjacentHTML('afterend', `<button type="button" class="btn sec" data-ven="${vid}" title="En qué estados de la ficha aparece este resultado">${esc(enEstadosTxt(v.en_estados))}</button>`);
-    item.querySelector('[data-ven]').onclick = () => {
-      const abierta = item.nextElementSibling && item.nextElementSibling.classList.contains('venbox');
-      caja.querySelectorAll('.venbox').forEach(x => x.remove());
-      if (abierta) return;
-      const marcados = new Set(v.en_estados || []);
-      item.insertAdjacentHTML('afterend', `<div class="venbox"><span class="sm">«${esc(v.valor)}» aparece al registrar ${TT('visita', 's', 'el', 'l', 'l')} de las fichas en estos estados (sin marcar ninguno, en todos):</span>
-        <div class="chips">${estados().map(e => `<button type="button" class="chip ${marcados.has(e) ? 'on' : ''}" data-vene="${esc(e)}" aria-pressed="${marcados.has(e)}">${esc(e)}</button>`).join('')}</div>
-        <div class="acts" style="justify-content:flex-end;margin:6px 0 0"><button type="button" class="btn sec" data-vencerrar>Cancelar</button><button type="button" class="btn" data-venok>Guardar</button></div></div>`);
-      const box = item.nextElementSibling;
-      box.querySelectorAll('[data-vene]').forEach(b => b.onclick = () => { const on = b.getAttribute('aria-pressed') !== 'true'; b.setAttribute('aria-pressed', String(on)); b.classList.toggle('on', on); });
-      box.querySelector('[data-vencerrar]').onclick = () => box.remove();
-      box.querySelector('[data-venok]').onclick = async ev => {
-        const l = [...box.querySelectorAll('[data-vene][aria-pressed="true"]')].map(b => b.dataset.vene);
-        ev.target.disabled = true;
-        const { data: r, error } = await db.rpc('guardar_valor', { p: { id: vid, en_estados: l.length === estados().length ? [] : l } });
-        ev.target.disabled = false;
-        if (error || (r && r.ok === false)) { toast('No se ha podido guardar', true); return; }
-        v.en_estados = l.length && l.length < estados().length ? l : null;
-        item.querySelector('[data-ven]').textContent = enEstadosTxt(v.en_estados);
-        box.remove(); toast(v.en_estados ? `«${v.valor}» solo sale en: ${l.join(', ')}` : `«${v.valor}» sale en todos los estados`);
-      };
-    };
-  });
-}
 (() => {
   const caja = $('dbody'); if (!caja || !window.MutationObserver) return;
   new MutationObserver(() => { if (caja.querySelector('[data-vdest]:not([data-vend])')) { caja.querySelectorAll('[data-vdest]').forEach(s => s.dataset.vend = '1'); decorarResultados(); } })

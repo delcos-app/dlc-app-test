@@ -37,41 +37,6 @@ arbolCfgUnico = (orig => function (...a) {
   return g;
 })(arbolCfgUnico);
 CFG_CLAVES.estados = 'estados comerciales papel inicial avance interés interes cliente activo positivo perdido negativo embudo';
-async function pintarEstadosPapel() {
-  const c = $('cfgcuerpo'); if (!c) return;
-  cargando(c, 'Cargando los estados…');
-  const { data: ce } = await db.from('clasificadores').select('id').eq('papel', 'estado_comercial').limit(1);
-  const { data: est, error } = ce && ce[0] ? await db.from('valores_clasificador').select('id,valor,orden,activo,papel').eq('clasificador_id', ce[0].id).order('orden')
-    : { data: [], error: null };
-  if (!$('cfgcuerpo') || CFG_KEY !== 'estados') return;
-  if (error) { c.innerHTML = `<div class="card"><p class="sm">No se han podido leer los estados: ${esc(error.message)}</p></div>`; return; }
-  const l = (est || []).filter(v => v.activo !== false);
-  const opc = v => PAPELES_ESTADO.map(([k, t]) => `<option value="${k}" ${v.papel === k ? 'selected' : ''}>${t}</option>`).join('');
-  c.innerHTML = `<div class="card estw">
-      <p class="sm">Cada estado tiene un papel. Con él, la plataforma sabe qué ficha es nueva, cuál avanza, cuál ya es cliente y cuál se ha perdido:
-        de ahí salen los avisos, los indicadores de Inicio y qué resultados se ofrecen al registrar ${esc(TT('visita', 's', 'una', 'l', 'l'))}. El nombre de cada estado se cambia en «Textos personalizados».</p>
-      ${l.length ? l.map(v => `<div class="ajfila estfila" data-estid="${v.id}"><div><b>${esc(v.valor)}</b>
-          <span class="sm">${esc((PAPELES_ESTADO.find(p => p[0] === v.papel) || [, , 'Sin papel: no cuenta en avisos ni indicadores'])[2])}</span></div>
-        <div class="ajctl"><select data-estpapel="${v.id}" aria-label="Papel de ${esc(v.valor)}" ${v.papel === 'inicial' ? 'title="Para cambiarlo, marca otro estado como Inicial"' : ''}>${v.papel ? '' : '<option value="" selected>Sin papel</option>'}${opc(v)}</select></div></div>`).join('')
-        : '<p class="vacio">Todavía no hay estados comerciales.</p>'}</div>`;
-  c.querySelectorAll('[data-estpapel]').forEach(s => s.onchange = async () => {
-    const v = l.find(x => x.id === s.dataset.estpapel), nuevo = s.value;
-    if (!v || !nuevo || nuevo === v.papel) return;
-    if (v.papel === 'inicial') { s.value = v.papel; toast('Para cambiar el estado inicial, marca otro estado como «Inicial»', true); return; }
-    const ant = l.find(x => x.papel === 'inicial' && x.id !== v.id);
-    if (nuevo === 'inicial' && ant && !await preguntar(`Las fichas nuevas empezarán en «${v.valor}». «${ant.valor}» pasará a «En avance».`, { titulo: '¿Cambiar el estado inicial?', ok: 'Cambiar' })) { s.value = v.papel || ''; return; }
-    s.disabled = true;
-    const { data: r, error } = await db.rpc('guardar_papel_estado', { p_id: v.id, p_papel: nuevo });
-    if (error || !r || !r.ok) {
-      s.disabled = false; s.value = v.papel || '';
-      toast(({ permiso: 'No tienes permiso para cambiarlo', sin_inicial: 'Para cambiar el estado inicial, marca otro estado como «Inicial»', papel: 'Ese papel no existe' })[(r && r.error) || ''] || ('No se ha podido cambiar' + (error ? ': ' + error.message : '')), true);
-      return;
-    }
-    toast('Papel cambiado');
-    invalidarCache(); try { await cargarCatalogos(); } catch (e) {}
-    pintarEstadosPapel();
-  });
-}
 
 // Panel delcos → Organizaciones: desactivar o volver a activar
 orgAcciones = (orig => function (c, l) {

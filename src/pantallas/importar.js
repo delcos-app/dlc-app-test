@@ -182,3 +182,46 @@ async function impDeshacer(id) {
   toast(`Deshecha: ${data.clientes} clientes, ${data.productos} productos, ${data.prescriptores} ${etiquetaContactos().toLowerCase()} y ${data.pedidos} pedidos borrados`);
   CFG_SUB = 'historial'; pintarImportaciones();
 }
+
+// La fila de títulos es la primera con muchos textos (las exportaciones suelen traer filas de encabezado antes)
+function detectarTitulos(filas) {
+  const puntos = filas.slice(0, 15).map(f => f.filter(c => typeof c === 'string' && c.trim() && isNaN(Number(c.replace(',', '.')))).length);
+  const max = Math.max(0, ...puntos); if (max < 2) return 0;
+  return puntos.findIndex(p => p >= max * 0.8);
+}
+
+// Propone el campo de cada columna: sinónimo exacto, contenido, o parecido
+function proponerCampo(cab, entidad, usados) {
+  const n = impNorm(cab); let mejor = null;
+  const bigr = s => { const r = new Set(); for (let i = 0; i < s.length - 1; i++) r.add(s.slice(i, i + 2)); return r; };
+  const dice = (a, b) => { const A = bigr(a), B = bigr(b); if (!A.size || !B.size) return 0; let c = 0; A.forEach(x => { if (B.has(x)) c++; }); return 2 * c / (A.size + B.size); };
+  for (const [k, , , sin] of IMP_CAMPOS[entidad]) {
+    if (usados.has(k)) continue;
+    let p = 0;
+    for (const s of sin.concat([k])) {
+      const sn = impNorm(s);
+      if (n === sn) p = Math.max(p, 100);
+      else if (n.split(' ').includes(sn) || (sn.length > 3 && n.includes(sn))) p = Math.max(p, 75);
+      else p = Math.max(p, Math.round(dice(n, sn) * 70));
+    }
+    if (p >= 55 && (!mejor || p > mejor.p)) mejor = { k, p };
+  }
+  return mejor ? mejor.k : null;
+}
+
+function valorCelda(v) {
+  if (v == null) return '';
+  if (v instanceof Date) return isNaN(v) ? '' : `${v.getFullYear()}-${String(v.getMonth() + 1).padStart(2, '0')}-${String(v.getDate()).padStart(2, '0')}`;
+  return String(v).trim();
+}
+
+async function pintarImportaciones() {
+  const { data } = await RPC_ORIG('importaciones_lista', {});
+  const l = data || [], nom = Object.fromEntries(IMP_TIPOS().map(x => [x[0], x[1]]));
+  $('cfgcuerpo').innerHTML = `<div class="card cfgpanel"><h2>Importaciones</h2>
+    <p class="sm">Cada importación se puede deshacer: se borra lo que creó (lo que actualizó se conserva, y no se borra lo que ya se use en pedidos, facturas o citas).</p>
+    <div class="errlista">${l.map(x => `<div class="errfila e-${x.estado === 'Deshecha' ? 'api' : 'reporte'}"><div><b>${esc(nom[x.entidad] || x.entidad)} · ${esc(x.archivo || '')}</b>
+      <span class="sm">${new Date(x.creado_en).toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' })} · ${esc(x.usuario || '—')} · ${num(x.filas)} filas: ${num(x.creados)} creados, ${num(x.actualizados)} actualizados, ${num(x.errores)} con errores · <b>${esc(x.estado)}</b></span></div>
+      ${x.estado !== 'Deshecha' ? `<button class="btn sec" type="button" data-impdes="${x.id}">${svgIco(ICON_NOM['undo-2'])} Deshacer</button>` : '<span></span>'}</div>`).join('') || '<div class="vacio">Aún no se ha importado ningún archivo.</div>'}</div></div>`;
+  $('cfgcuerpo').querySelectorAll('[data-impdes]').forEach(b => b.onclick = () => impDeshacer(b.dataset.impdes));
+}

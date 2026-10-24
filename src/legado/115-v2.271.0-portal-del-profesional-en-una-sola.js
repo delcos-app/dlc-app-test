@@ -17,39 +17,6 @@ const PM_DIAS = ['L', 'M', 'X', 'J', 'V', 'S'];
 const PM_DIAN = { L: 'Lunes', M: 'Martes', X: 'Miércoles', J: 'Jueves', V: 'Viernes', S: 'Sábado' };
 const PM_COMO = ['Con cita previa', 'Sin cita, al final de la consulta', 'Sin cita, en cualquier hueco', 'Por teléfono o videollamada', 'Prefiero que me escribáis antes'];
 
-// cargarInforme (en su sitio) espera a que se lea este final y llama aquí: al arrancar, «Mi informe» se pinta antes
-async function cargarInforme2271() {
-  const v = $('v-informe'), pac = TT('paciente', 'p', '', 'l', 'l');
-  v.innerHTML = `<div class="medhero"><div><div class="sm" style="color:rgba(255,255,255,.8)">Tu portal</div><h1 id="mdnom">…</h1><div id="mdesp" class="sm" style="color:rgba(255,255,255,.85)"></div></div>
-      <div class="medper"><div id="mdper"></div></div></div>
-    <div class="pmtabs" role="tablist">${[['res', 'Resumen'], ['ficha', 'Mi ficha'], ['mat', 'Material y dudas']].map(([k, t]) =>
-      `<button type="button" role="tab" data-pmt="${k}" class="${PM.tab === k ? 'on' : ''}" aria-selected="${PM.tab === k}">${t}<span class="pmtpunto" hidden></span></button>`).join('')}</div>
-    <div data-pmp="res" id="mdcuerpo" ${PM.tab === 'res' ? '' : 'hidden'}>${pmEsqueleto()}</div>
-    <div data-pmp="ficha" id="pmficha" ${PM.tab === 'ficha' ? '' : 'hidden'}>${pmEsqueleto(true)}</div>
-    <div data-pmp="mat" id="pmmat" ${PM.tab === 'mat' ? '' : 'hidden'}><div id="mdportal" class="pmfila"></div></div>`;
-  v.querySelectorAll('[data-pmt]').forEach(b => b.onclick = () => pmTab(b.dataset.pmt));
-  const pinta = async () => {
-    const r = $('mdper').__rango();
-    const [{ data: d }, { data: c }, { data: f }] = await Promise.all([RPC_ORIG('informe_cuenta', { p_desde: r.desde, p_hasta: r.hasta }),
-      RPC_ORIG('constancia_pacientes', { p_meses: 12 }), PM.ficha ? Promise.resolve({ data: null }) : RPC_ORIG('portal_mi_ficha', {})]);
-    if (f && f.ok) pmFichaDatos(f);
-    if (!$('mdcuerpo')) return;
-    if (!d || !d.ok) {
-      // v2.291: sin ficha vinculada, las dos pestañas lo dicen (antes «Mi ficha» se quedaba cargando) y la cabecera lleva su nombre
-      const sin = `<div class="card"><div class="vacio">Tu usuario todavía no está vinculado a tu ficha de ${TT('medico', 's', '', 'l', 'l')}. Avisa a la empresa para activarlo.</div></div>`;
-      $('mdcuerpo').innerHTML = sin; if ($('pmficha')) $('pmficha').innerHTML = sin;
-      $('mdnom').textContent = (PERFIL && PERFIL.nombre) || ''; return;
-    }
-    $('mdnom').textContent = d.medico.nombre; $('mdesp').textContent = d.medico.especialidad || '';
-    $('mdcuerpo').innerHTML = pmResumen(d, c || {}, pac);
-    $('mdcuerpo').querySelectorAll('[data-pmir]').forEach(b => b.onclick = () => pmTab(b.dataset.pmir));
-    pmPintarFicha();
-  };
-  try { localStorage.removeItem('dlc-per-informe-' + (PERFIL ? PERFIL.id : '')); } catch (e) {}   // v2.353.0: al entrar, siempre «Esta semana»
-  montarPeriodo($('mdper'), { id: 'informe', valor: 'semana', alCambiar: pinta });
-  await pinta();
-  portalMedico();
-}
 window.PM_LISTO = true;
 
 

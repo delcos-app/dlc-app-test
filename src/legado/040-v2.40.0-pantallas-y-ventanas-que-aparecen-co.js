@@ -27,25 +27,6 @@ db.rpc = function (fn, params, opts) {
 let ALERTAS_OCULTAS = null;
 const tituloAlerta = s => s.textContent.replace(/\s+/g, ' ').replace(/^\s*\d+\s*/, '').replace(/\bequipo\b\s*$/, '').trim();
 const normAl = t => String(t).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').slice(0, 60);
-async function cargarOcultas(forzar) {
-  if (ALERTAS_OCULTAS && !forzar) return ALERTAS_OCULTAS;
-  const { data } = await RPC_ORIG('mis_alertas_descartadas', {});
-  ALERTAS_OCULTAS = data || [];
-  return ALERTAS_OCULTAS;
-}
-async function verOcultas() {
-  const l = await cargarOcultas(true);
-  $('dbody').innerHTML = `<div class="fh"><div><h2>Alertas ocultas</h2><div class="sm">Las que ocultaste. Al recuperarlas vuelven a aparecer en Inicio si siguen pasando.</div></div>
-    <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-    <div class="alcards">${l.map(x => `<div class="alcard"><div class="alc1"><b>${esc(x.detalle || x.clave)}</b>
-      <span class="pill ${x.hasta ? 'p-per' : 'p-anu'}">${x.hasta ? 'Hasta ' + fechaCorta(x.hasta) : 'Para siempre'}</span></div>
-      <div class="sm">${esc(x.titulo || '')}</div><button class="btn sec chico" data-alrec="${esc(x.clave)}">Recuperar</button></div>`).join('') || '<div class="vacio">No tienes alertas ocultas.</div>'}</div>`;
-  $('dlg').showModal();
-  $('dbody').querySelectorAll('[data-alrec]').forEach(b => b.onclick = async () => {
-    await db.rpc('restaurar_alerta', { p_clave: b.dataset.alrec }); b.closest('.alcard').remove(); ALERTAS_OCULTAS = null; toast('Recuperada');
-    if (TAB === 'inicio') cargarInicio();
-  });
-}
 
 // Ocultar desde la ventana de la alerta
 document.addEventListener('click', async e => {

@@ -7,10 +7,5 @@
    pago, primero se cobra (así, en «Pendientes de cobro» todos dicen «Por cobrar»).
    ============================================================ */
 const cobroDe = p => p.sin_cargo || sinCargoP(p, p.total) ? 'Sin cargo' : p.pago_estado === 'Cobrado' || p.pago_validado_en ? 'Cobrado' : 'Pendiente de cobro';
-function pillPaso(p) {
-  const [t, c] = pasoPedido(p);
-  const hechos = p.estado === 'Confirmado' ? ['Confirmado', p.paquete_en ? 'Preparado' : '', cobroDe(p) === 'Cobrado' ? 'Cobrado' : '', p.factura ? 'Facturado' : ''].filter(Boolean).join(' · ') : '';
-  return '<span class="pill ' + c + '"' + (hechos ? ' title="Hecho: ' + hechos + '"' : '') + '>' + t + '</span>';
-}
 
 

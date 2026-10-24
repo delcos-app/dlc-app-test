@@ -214,3 +214,89 @@ async function personasEsquema(id) {
 }
 
 function liqMesFin(per) { const [a, m] = per.split('-').map(Number); return `${per}-${String(new Date(a, m, 0).getDate()).padStart(2, '0')}`; }
+
+function editorEsquema(id) {
+  const e = id ? ESQUEMAS.find(x => x.id === id) : null;
+  let tramos = e && e.tramos && e.tramos.length ? e.tramos.slice() : [{ desde_u: 0, hasta_u: 100, valor: 1 }];
+  let calc = e ? e.calculo : 'tramo_alcanzado';
+  let fijoVal = e && e.valor_fijo ? e.valor_fijo : 1;
+
+  const pinta = () => {
+    const fijo = calc === 'fijo';
+    $('dbody').innerHTML = `
+      <div class="fh"><div><h2>${id ? 'Editar esquema' : 'Nuevo esquema'}</h2>
+        <div class="sm">Define cómo se calcula la comisión y a quién se aplica</div></div>
+        <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
+      <label for="enom">Nombre</label><input id="enom" value="${esc(e ? e.nombre : '')}" placeholder="p. ej. Comercial zona norte">
+      <div class="g2">
+        <div><label for="eatr">Se cuenta por</label><select id="eatr">
+          <option value="comercial" ${e && e.atribucion === 'comercial' ? 'selected' : ''}>Cartera del comercial</option>
+          <option value="cierra" ${e && e.atribucion === 'cierra' ? 'selected' : ''}>Ventas que cierra (televenta)</option></select></div>
+        <div><label for="ecalc">Cálculo</label><select id="ecalc">
+          <option value="tramo_alcanzado" ${calc === 'tramo_alcanzado' ? 'selected' : ''}>Tramo alcanzado a todo el volumen</option>
+          <option value="marginal" ${calc === 'marginal' ? 'selected' : ''}>Por tramos (cada unidad a su tramo)</option>
+          <option value="fijo" ${calc === 'fijo' ? 'selected' : ''}>Importe fijo por unidad</option></select></div>
+      </div>
+      <div class="g2">
+        <div><label for="ecan">Canal</label><select id="ecan">
+          <option value="">Todos</option>
+          <option value="paciente" ${e && e.canal === 'paciente' ? 'selected' : ''}>Solo venta ${TT('paciente', 's', 'al', 'l', 'l')}</option>
+          <option value="centro" ${e && e.canal === 'centro' ? 'selected' : ''}>Solo venta a centro</option></select></div>
+        ${fijo ? `<div><label for="efijo">Euros por unidad</label><input id="efijo" type="number" step="0.01" min="0" value="${fijoVal}"></div>` : '<div></div>'}
+      </div>
+      ${fijo ? '' : `<label>Tramos <span class="sm">· deja vacío el "hasta" del último</span></label>
+      <div class="trcab" aria-hidden="true"><span>Desde (uds.)</span><span>Hasta (uds.)</span><span>€ por unidad</span></div>
+      <div id="etramos">${tramos.map((t, i) => `<div class="g2" style="margin-bottom:8px">
+        <input data-td="${i}" type="number" min="0" value="${t.desde_u}" placeholder="Desde">
+        <input data-th="${i}" type="number" min="0" value="${t.hasta_u == null ? '' : t.hasta_u}" placeholder="Hasta">
+        <input data-tv="${i}" type="number" step="0.01" min="0" value="${t.valor}" placeholder="€/unidad">
+        ${tramos.length > 1 ? `<button type="button" class="btn sec" data-tx="${i}">✕</button>` : ''}</div>`).join('')}</div>
+      <div class="acts"><button type="button" class="btn sec" id="etmas">+ Añadir tramo</button></div>`}
+      <div class="acts" style="justify-content:flex-end">
+        <button class="btn sec" data-cerrar>Cancelar</button>
+        <button class="btn" id="eguardaresq">${id ? 'Guardar' : 'Crear esquema'}</button></div>`;
+
+    const leer = () => {
+      if (fijo) return;
+      tramos = [...$('etramos').children].map((d, i) => ({
+        desde_u: +d.querySelector(`[data-td="${i}"]`).value || 0,
+        hasta_u: d.querySelector(`[data-th="${i}"]`).value === '' ? null : +d.querySelector(`[data-th="${i}"]`).value,
+        valor: +d.querySelector(`[data-tv="${i}"]`).value || 0
+      }));
+    };
+    $('ecalc').onchange = () => { leer(); if ($('efijo')) fijoVal = $('efijo').value; calc = $('ecalc').value; pinta(); };
+    if ($('etmas')) $('etmas').onclick = () => {
+      leer();
+      const ult = tramos[tramos.length - 1];
+      tramos.push({ desde_u: (ult.hasta_u || ult.desde_u) + 1, hasta_u: null, valor: ult.valor });
+      pinta();
+    };
+    $('dbody').querySelectorAll('[data-tx]').forEach(b => b.onclick = () => { leer(); tramos.splice(+b.dataset.tx, 1); pinta(); });
+    personasEsquema(id);
+
+    $('eguardaresq').onclick = async ev => {
+      leer();
+      if (!$('enom').value.trim()) { toast('Ponle un nombre', true); return; }
+      ev.target.disabled = true; ev.target.textContent = 'Guardando…';
+      const { data: r, error } = await db.rpc('guardar_esquema', { p: {
+        id: id || null, nombre: $('enom').value.trim(), atribucion: $('eatr').value,
+        calculo: calc, canal: $('ecan').value || null,
+        valor_fijo: fijo ? $('efijo').value : null,
+        ...(fijo ? {} : { tramos })
+      }});
+      ev.target.disabled = false; ev.target.textContent = id ? 'Guardar' : 'Crear esquema';
+      if (error || (r && r.ok === false)) { toast('No se ha podido guardar', true); return; }
+      $('dlg').close(); toast('Esquema guardado'); pintarComisiones();
+    };
+  };
+  pinta();
+  $('dlg').showModal();
+}
+
+async function cargarComerciales() {
+  const { data } = await db.from('perfiles').select('id,nombre,rol,activo').order('nombre');
+  // Solo quien lleva cartera o agenda comercial (no Dirección, Solo consulta ni médicos)
+  COMS = (data || []).filter(u => u.activo && rolPuede(u.rol, 'equipo_comercial'));
+  $('fcom').innerHTML = '<option value="">Todos</option><option value="ninguno">Sin comercial</option>' +
+    COMS.map(u => `<option value="${u.id}" ${F.com === u.id ? 'selected' : ''}>${esc(u.nombre)}</option>`).join('');
+}

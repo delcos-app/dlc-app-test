@@ -9,7 +9,6 @@ let HOR = null;
 const TIEMPOS = () => { const p = prefsActivas().plan || {}; return { visita: +p.visita || 15, parada: p.parada != null && p.parada !== '' ? +p.parada : 10 }; };
 const PLANCFG = () => Object.assign({}, TIEMPOS(), { salida: (HOR && HOR.salida) || '09:00', tope: (HOR && HOR.vuelta) || '23:59',
   conSalida: !!(HOR && HOR.salida), conTope: !!(HOR && HOR.vuelta) });
-function conHor(h, fn) { const prev = HOR; HOR = h && (h.salida || h.vuelta) ? h : null; try { return fn(); } finally { HOR = prev; } }
 const horDeCitas = l => { const c = (l || []).find(x => x && (x.salida || x.vuelta)); return c ? { salida: c.salida || null, vuelta: c.vuelta || null } : null; };
 const horDeRuta = id => { const r = (RUTAS || []).find(x => x.id === id); return r && (r.salida || r.vuelta) ? { salida: r.salida || null, vuelta: r.vuelta || null } : null; };
 
@@ -19,13 +18,6 @@ const NAVEGADORES = [['google', 'Google Maps'], ['apple', 'Apple Maps'], ['waze'
 const navActual = () => (PERFIL.preferencias || {}).navegador || 'google';
 
 
-async function cambiarNavegador(n) {
-  const prefs = Object.assign({}, PERFIL.preferencias || {}, { navegador: n });
-  const { data } = await db.rpc('guardar_preferencias', { p: prefs });
-  PERFIL.preferencias = data || prefs;
-  toast('Navegación con ' + (NAVEGADORES.find(x => x[0] === n) || [])[1]);
-  if (PLAN) pintarPlan();
-}
 
 // Cada navegación pregunta con qué app abrirla (Google Maps admite la ruta con todas sus paradas)
 const navAttr = (d, p) => esc(JSON.stringify({ d, p: p && p.length ? p : null }));

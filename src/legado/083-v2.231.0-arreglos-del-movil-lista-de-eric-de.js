@@ -305,24 +305,6 @@ const TX_IC = { rv: '<path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/>',
 const txSV = d => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + d + '</svg>';
 const menuNombres = () => (AJUSTES && AJUSTES.menu_nombres) || {};
 
-function aplicarNombresMenu() {
-  const mn = menuNombres();
-  document.querySelectorAll('nav.main [data-t], #bnav [data-t], .bmasgrid [data-bm]').forEach(b => {
-    const t = b.dataset.t || b.dataset.bm; if (!t || t === 'directorio' || /^pd-/.test(t)) return;
-    const x = txTexto(b); if (!x) return;
-    if (!b.dataset.txdef) b.dataset.txdef = x.get();
-    const n = mn[t] || b.dataset.txdef;
-    if (x.get() !== n) x.set(n);
-  });
-  // El título de la pantalla abierta
-  const t = typeof TAB !== 'undefined' ? TAB : null, b = t && document.querySelector(`nav.main [data-t="${t}"]`);
-  if (t && t !== 'directorio' && b && b.dataset.txdef) {
-    const h = document.querySelector(`#v-${t} .saludo h1, #v-${t} .pagcab h1`) || (t === 'ventas' && document.querySelector('#v-ventas .saludo h1'));
-    const tn = h && [...h.childNodes].find(x => x.nodeType === 3 && x.nodeValue.trim());
-    const n = mn[t] || b.dataset.txdef;
-    if (tn && (tn.nodeValue.trim() === b.dataset.txdef || Object.values(mn).includes(tn.nodeValue.trim())) && tn.nodeValue.trim() !== n) tn.nodeValue = tn.nodeValue.replace(tn.nodeValue.trim(), n);
-  }
-}
 aplicarEtiqueta = (orig => function (...a) { const r = orig.apply(this, a); try { aplicarNombresMenu(); } catch (e) {} return r; })(aplicarEtiqueta);
 ir = (orig => function (...a) { const r = orig.apply(this, a); setTimeout(() => { try { aplicarNombresMenu(); } catch (e) {} }, 0); Promise.resolve(r).then(() => { try { aplicarNombresMenu(); } catch (e) {} }); return r; })(ir);
 // Cuando el menú se vuelve a montar (al arrancar, al cambiar de tamaño…), se vuelven a poner los nombres

@@ -32,45 +32,7 @@ async function cargarCatalogos() {
 
 /* ---------------- selector de días ---------------- */
 
-function dpHTML(dias, idx) {
-  const st = {};
-  DIAS.forEach(k => {
-    const t = String((dias || {})[k] || '');
-    const r = /(\d{1,2}:\d{2})\s*-\s*(\d{1,2}:\d{2})/.exec(t);
-    st[k] = {
-      M: /mañana/i.test(t) || (r && +r[1].slice(0, 2) < 14),
-      T: /tarde/i.test(t) || (r && +r[1].slice(0, 2) >= 14),
-      h: r ? r[1] + '-' + r[2] : ''
-    };
-  });
-  const sel = (k, f) => `<select data-dh="${idx}|${k}|${f}"><option value="">Sin hora</option>${
-    (f === 'M' ? HM : HT).map(x => `<option ${st[k].h === x ? 'selected' : ''}>${x.replace('-', ' - ')}</option>`).join('')}</select>`;
-  return `<div class="dp" data-dp="${idx}">
-    <div class="qk"><button type="button" data-qk="${idx}|lvm">L-V mañanas</button>
-      <button type="button" data-qk="${idx}|lvt">L-V tardes</button>
-      <button type="button" data-qk="${idx}|clr">Limpiar</button></div>
-    ${DIAS.map(k => `<div class="dprow"><b>${DIAN[k].slice(0, 3)}</b>
-      <div class="dpc"><button type="button" class="dpt" data-dt="${idx}|${k}|M" aria-pressed="${!!st[k].M}">${st[k].M ? '✓ ' : ''}Mañana</button>${st[k].M ? sel(k, 'M') : ''}</div>
-      <div class="dpc"><button type="button" class="dpt" data-dt="${idx}|${k}|T" aria-pressed="${!!st[k].T}">${st[k].T ? '✓ ' : ''}Tarde</button>${st[k].T ? sel(k, 'T') : ''}</div>
-    </div>`).join('')}</div>`;
-}
 
-function dpLeer(cont, idx) {
-  const out = {};
-  DIAS.forEach(k => {
-    const partes = [];
-    ['M', 'T'].forEach(f => {
-      const b = cont.querySelector(`[data-dt="${idx}|${k}|${f}"]`);
-      if (b && b.getAttribute('aria-pressed') === 'true') {
-        const s = cont.querySelector(`[data-dh="${idx}|${k}|${f}"]`);
-        const h = s && s.value ? ' ' + s.value.replace(/\s/g, '') : '';
-        partes.push((f === 'M' ? 'Mañana' : 'Tarde') + h);
-      }
-    });
-    if (partes.length) out[k] = partes.join('; ');
-  });
-  return out;
-}
 
 document.addEventListener('click', e => {
   const t = e.target.closest('[data-dt]');
@@ -95,59 +57,13 @@ document.addEventListener('click', e => {
   }
 });
 
-function dpEstado(cont, idx) {
-  const st = {};
-  DIAS.forEach(k => {
-    st[k] = { M: false, T: false, h: { M: '', T: '' } };
-    ['M', 'T'].forEach(f => {
-      const b = cont.querySelector(`[data-dt="${idx}|${k}|${f}"]`);
-      if (b) st[k][f] = b.getAttribute('aria-pressed') === 'true';
-      const s = cont.querySelector(`[data-dh="${idx}|${k}|${f}"]`);
-      if (s) st[k].h[f] = s.value;
-    });
-  });
-  return st;
-}
 
-function repintarDp(cont, idx, st) {
-  const dias = {};
-  DIAS.forEach(k => {
-    const p = [];
-    if (st[k].M) p.push('Mañana' + (st[k].h.M ? ' ' + st[k].h.M.replace(/\s/g, '') : ''));
-    if (st[k].T) p.push('Tarde' + (st[k].h.T ? ' ' + st[k].h.T.replace(/\s/g, '') : ''));
-    if (p.length) dias[k] = p.join('; ');
-  });
-  cont.outerHTML = dpHTML(dias, idx);
-}
 
 /* ---------------- registrar visita ---------------- */
 
 
 /* ---------------- editar ficha y altas ---------------- */
 
-function consHTML(c, i) {
-  // Los datos del centro van en campos ocultos: los rellena el selector de centros (buscar, «Estoy aquí» o centro nuevo)
-  const h = (f, v) => `<input type="hidden" data-cf="${i}|${f}" value="${esc(v == null ? '' : v)}">`;
-  return `<div class="cons" data-cons="${i}" ${c.lat ? `data-lat="${c.lat}"` : ""}>
-    <span class="consbar"><span class="consprio">Principal</span>
-      <button type="button" class="kmv" data-cmov="-1" title="Subir (más prioridad)" aria-label="Subir">↑</button>
-      <button type="button" class="kmv" data-cmov="1" title="Bajar (menos prioridad)" aria-label="Bajar">↓</button>
-      <button type="button" class="quitar" data-quitar="${i}">Quitar</button></span>
-    <input type="hidden" data-cid="${i}" value="${esc(c.id || '')}">
-    ${h('centro_id', c.centro_id)}${h('centro_nombre', c.centro_nombre)}${h('municipio', c.municipio)}${h('provincia', c.provincia)}
-    ${h('direccion', c.direccion)}${h('cp', c.cp)}${h('lat', c.lat)}${h('lon', c.lon)}
-    <label>Centro</label><div class="cenpick" data-cp="${i}"></div>
-    <div class="g2" style="margin-top:10px">
-      <div><label>Planta</label><input data-cf="${i}|planta" value="${esc(c.planta || '')}" maxlength="60" placeholder="p. ej. 2.ª planta"></div>
-      <div><label>Sala o despacho</label><input data-cf="${i}|sala" value="${esc(c.sala || '')}" maxlength="60" placeholder="p. ej. Despacho 14"></div>
-    </div>
-    <label>Indicaciones para llegar</label><input data-cf="${i}|indicaciones" value="${esc(c.indicaciones || '')}" maxlength="300" placeholder="p. ej. Entrar por la puerta B y preguntar en recepción">
-    <div class="g2" style="margin-top:10px">
-      <div><label>Teléfono ${TT('consulta', 's', 'del', 'l', 'l')}</label><input data-cf="${i}|telefono" value="${esc(c.telefono || '')}" inputmode="tel" placeholder="Si es distinto del del centro"></div><div></div>
-    </div>
-    <label>Días y horario de ${TT('visita', 's', '', 'l', 'l')}</label>${dpHTML(c.dias || {}, i)}
-  </div>`;
-}
 
 async function abrirEditor(id, tipo) {
   let m = { tipo: tipo || 'Persona', estado_comercial: estadoPapel('inicial') }, cons = [{}];
@@ -268,12 +184,6 @@ async function abrirEditor(id, tipo) {
 
 /* ---------------- acciones desde la ficha ---------------- */
 
-async function cambiarEstado(id, estado) {
-  const { error } = await db.from('cuentas').update({ estado_comercial: estado }).eq('id', id);
-  if (error) { toast('No se ha podido cambiar: ' + error.message, true); return; }
-  toast('Estado: ' + estado);
-  buscar(true); cargarInicio();
-}
 
 async function alternarUrgente(id, esUrgente, nombre) {
   let motivo = null;
@@ -313,19 +223,6 @@ $('dlg2').addEventListener('click', e => {
   else if (e.target.closest('[data-cerrar2]')) $('dlg2').close();
 });
 
-/* v2.77.0 · Valores con categoría (p. ej. Traumatología › Columna): el selector los agrupa */
-function optsGrupos(lista, v) {
-  const hijos = {}; lista.forEach(x => { if (x.padre) (hijos[x.padre] = hijos[x.padre] || []).push(x); });
-  const op = x => `<option value="${esc(x.valor)}" ${v === x.valor ? 'selected' : ''}>${esc(x.valor)}</option>`;
-  let h = '<option value=""></option>';
-  if (v && !lista.some(x => x.valor === v)) h += `<option selected>${esc(v)}</option>`;
-  lista.filter(x => !x.padre).forEach(x => {
-    h += hijos[x.valor] ? `<optgroup label="${esc(x.valor)}">${op(x)}${hijos[x.valor].map(op).join('')}</optgroup>` : op(x);
-  });
-  // Subcategorías cuya categoría ya no está en la lista
-  Object.keys(hijos).filter(p => !lista.some(x => !x.padre && x.valor === p)).forEach(p => { h += `<optgroup label="${esc(p)}">${hijos[p].map(op).join('')}</optgroup>`; });
-  return h;
-}
 $('nuevoBtn').addEventListener('click', () => {
   if (!puedeCrear()) { toast('No tienes permiso para crear fichas', true); return; }
   $('dbody').innerHTML = `

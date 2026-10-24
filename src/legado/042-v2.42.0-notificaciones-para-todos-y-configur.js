@@ -16,15 +16,6 @@ const TIPOS_NOTIF = [
 ];
 const tiposDeMiRol = () => TIPOS_NOTIF.filter(t => puede('aviso_' + t[0]));
 let NOTIF_N = 0;
-async function refrescarCampana() {
-  if (!PERFIL || document.body.classList.contains('sin-sesion')) return;
-  const { data } = await RPC_ORIG('mis_notificaciones', { lim: 30 });
-  const d = data || {}; NOTIF_N = d.sin_leer || 0;
-  let b = $('mdavisos');
-  if (!b) { const u = $('ubtn'); if (!u) return; u.insertAdjacentHTML('beforebegin', '<button class="mdavisos" id="mdavisos" aria-label="Notificaciones"></button>'); b = $('mdavisos'); }
-  b.innerHTML = `🔔${NOTIF_N ? `<span class="nb2">${NOTIF_N > 9 ? '9+' : NOTIF_N}</span>` : ''}`;
-  b.onclick = () => panelNotificaciones(d.lista || []);
-}
 pintarAvisos = refrescarCampana;
 function irEnlace(e) {
   if (!e) return;

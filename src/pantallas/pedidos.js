@@ -650,3 +650,142 @@ function pasoPedido(p) {
   if (p.completado === false || (!p.factura && !p.factura_id && cobroDe(p) !== 'Sin cargo')) return ['Por facturar', 'p-est'];
   return ['Completado', 'p-trfok'];
 }
+
+async function atribuir(lineaId, texto) {
+  const { data } = await db.rpc('resolver_cuenta', { p_texto: texto || '' });
+  const cand = data || [];
+  $('dbody').innerHTML = `
+    <div class="fh"><div><h2>Atribuir a ${TT('medico', 's', 'un', 'l', 'l')}</h2><div class="sm">Texto del pedido: ${esc(texto || '(vacío)')}</div></div>
+      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
+    <label for="abusca">Buscar ${TT('medico', 's', '', 'l', 'l')}</label><input id="abusca" value="${esc(texto || '')}" placeholder="Código o nombre">
+    <div id="acand" class="lista">${cand.map(c => `<button class="item" data-am="${c.id}">
+      <span class="ic">${c.pct}%</span><span class="tx"><b>${esc(c.nombre)}</b><span class="sm">Código ${esc(c.codigo)}</span></span></button>`).join('')
+      || '<div class="vacio">Sin coincidencias. Escribe otro nombre o código.</div>'}</div>`;
+
+  const pintar = lista => {
+    $('acand').innerHTML = lista.length ? lista.map(c => `<button class="item" data-am="${c.id}">
+      <span class="ic">${c.pct}%</span><span class="tx"><b>${esc(c.nombre)}</b><span class="sm">Código ${esc(c.codigo)}</span></span></button>`).join('')
+      : '<div class="vacio">Sin coincidencias.</div>';
+    $('acand').querySelectorAll('[data-am]').forEach(b => b.onclick = async () => {
+      const { data: r, error } = await db.rpc('atribuir_linea', { p_linea: lineaId, p_medico: b.dataset.am });
+      if (error || (r && r.ok === false)) { toast('No se ha podido atribuir', true); return; }
+      $('dlg').close(); toast('Atribuido'); pintarSinAtribuir(); listaPedidos();
+    });
+  };
+  pintar(cand);
+  let t;
+  $('abusca').oninput = e => {
+    clearTimeout(t);
+    t = setTimeout(async () => {
+      const { data: d2 } = await db.rpc('resolver_cuenta', { p_texto: e.target.value });
+      pintar(d2 || []);
+    }, 300);
+  };
+  $('dlg').showModal();
+}
+
+function pedsecVista() { return PEDSEC_CARGA || PEDSEC; }
+
+function abrirKpis() {
+  let D = kpiConfig().slice();
+  KPI_CAT.forEach(k => { if (!D.some(x => x.id === k.id)) D.push({ id: k.id, on: false, t: '' }); });
+  const esAdmin = puede('administrar');
+  const pinta = () => {
+    $('dbody').innerHTML = `
+      <div class="fh"><div><h2>Indicadores de Inicio</h2>
+        <div class="sm">Pulsa el ojo para mostrar u ocultar. Ordénalos con las flechas y cambia el nombre si quieres.</div></div>
+        <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
+      <div class="kcards">${D.map((x, i) => {
+        const k = KPI_CAT.find(y => y.id === x.id);
+        if (!k && !x.filtro) return '';
+        if (k && !kpiPermitido(k)) return '';
+        const desc = x.filtro ? 'Filtro guardado del Directorio: ' + textoFiltro(x.filtro) + '.' : (AYUDA_KPI[x.id] || '');
+        return `<div class="kcard ${x.on ? 'on' : ''}">
+          <button type="button" class="kojo" data-kon="${i}" aria-pressed="${x.on}" title="${x.on ? 'Visible: pulsa para ocultar' : 'Oculto: pulsa para mostrar'}">${x.on ? ICO.ojo : ICO.ojoNo}</button>
+          <div class="ktx"><input class="chico" data-kt="${i}" value="${esc(x.t)}" placeholder="${esc(k ? k.t.charAt(0).toUpperCase() + k.t.slice(1) : textoFiltro(x.filtro))}" aria-label="Nombre del indicador">
+            <span class="sm">${esc(desc)}</span></div>
+          <div class="kord">
+            <button type="button" class="kmv" data-kmv="${i}|-1" aria-label="Subir" ${i === 0 ? 'disabled' : ''}>${ICO.arriba}</button>
+            <button type="button" class="kmv" data-kmv="${i}|1" aria-label="Bajar" ${i === D.length - 1 ? 'disabled' : ''}>${ICO.abajo}</button>
+            ${x.filtro ? `<button type="button" class="kmv" data-kdel="${i}" aria-label="Eliminar" title="Eliminar">✕</button>` : ''}</div>
+        </div>`;
+      }).join('')}</div>
+      <div class="acts" style="justify-content:flex-end">
+        <button class="btn sec" id="kres">Restaurar</button>
+        <button class="btn" id="kok">Guardar</button></div>`;
+    const leer = () => $('dbody').querySelectorAll('[data-kt]').forEach(i => D[+i.dataset.kt].t = i.value.trim());
+    $('dbody').querySelectorAll('[data-kon]').forEach(b => b.onclick = () => { leer(); D[+b.dataset.kon].on = !D[+b.dataset.kon].on; $('dlg').dataset.sucio = '1'; pinta(); });
+    $('dbody').querySelectorAll('[data-kmv]').forEach(b => b.onclick = () => {
+      leer(); const [i, dir] = b.dataset.kmv.split('|').map(Number), j = i + dir;
+      if (j < 0 || j >= D.length) return; [D[i], D[j]] = [D[j], D[i]]; $('dlg').dataset.sucio = '1'; pinta();
+    });
+    $('dbody').querySelectorAll('[data-kdel]').forEach(b => b.onclick = () => { leer(); D.splice(+b.dataset.kdel, 1); $('dlg').dataset.sucio = '1'; pinta(); });
+    $('kres').onclick = () => { D = KPI_CAT.map(k => ({ id: k.id, on: KPI_DEF.includes(k.id), t: '' })); $('dlg').dataset.sucio = '1'; pinta(); };
+    $('kok').onclick = async ev => {
+      leer(); ev.target.disabled = true; ev.target.textContent = 'Guardando…';
+      const ok = await guardarKpis(D.map(x => ({ id: x.id, on: x.on, t: x.t, ...(x.filtro ? { filtro: x.filtro } : {}) })));
+      ev.target.disabled = false; ev.target.textContent = 'Guardar';
+      if (!ok) return;
+      $('dlg').close(); toast('Indicadores guardados'); cargarInicio();
+    };
+  };
+  pinta();
+  $('dlg').showModal();
+}
+
+function esPorcentajeIva(i) {
+  // Una vez decidido, no cambia (evita que la comprobación y la conversión se contradigan en bucle)
+  if (i.dataset.ivaok) return i.dataset.ivaok === '1';
+  // La etiqueta puede apuntar ya a la lista de IVA (id + «_sel») si el campo se convirtió antes
+  const lab = (((i.id && (document.querySelector(`label[for="${i.id}"]`) || document.querySelector(`label[for="${i.id}_sel"]`))) || i.closest('label') || {}).textContent || '').trim();
+  const clave = i.id + ' ' + (i.dataset.f || '') + ' ' + (i.name || '');
+  const r = !(ES_IMPORTE.test(clave) || /importe|precio|total|base|coste/i.test(lab))
+    && (i.dataset.f === 'iva' || /(^|[_-])iva$/i.test(i.id) || /^[a-z]{0,3}iva$|^penvv$/i.test(i.id) || /^IVA(\s*\(%\)|\s+del servicio(\s*\(%\))?|\s+%)?$|tipo de iva/i.test(lab));
+  i.dataset.ivaok = r ? '1' : '0';
+  return r;
+}
+
+async function verJustificante(id) {
+  const { data, error } = await db.from('pedidos_justificantes').select('nombre,tipo,datos').eq('id', id).single();
+  if (error || !data) { toast('No se ha podido abrir el justificante', true); return; }
+  const bin = atob(data.datos), u8 = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
+  const url = URL.createObjectURL(new Blob([u8], { type: data.tipo }));
+  const w = window.open(url, '_blank');
+  if (!w) { const a = document.createElement('a'); a.href = url; a.download = data.nombre; a.click(); }
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
+}
+
+/* ============================================================
+   v2.325.0 · Pedidos: pago solo de lectura y entregas sin cargo (aviso de Eric, 16/10/2026).
+   - El bloque «Pago» del pedido ya no se edita a medias: enseña la referencia y los justificantes que haya; se cambian con
+     «Editar» (o «Editar datos» si ya tiene factura). Fuera «Guardar referencia» y «Añadir justificante» (basta el check de
+     «Pago recibido»); en el editor tampoco se adjuntan justificantes.
+   - Un pedido sin cargo (marcado así o a 0 € con unidades) se describe como «Entrega sin cargo» y no como «Venta al …»: no es una
+     venta (también los que se hicieron antes al 100 % de descuento).
+   ============================================================ */
+function sinCargoP(p, total) { return !!(p && (p.sin_cargo || (total != null && Math.abs(+total) < 0.005 && (p.unidades == null || +p.unidades > 0)))); }
+
+function pillPaso(p) {
+  const [t, c] = pasoPedido(p);
+  const hechos = p.estado === 'Confirmado' ? ['Confirmado', p.paquete_en ? 'Preparado' : '', cobroDe(p) === 'Cobrado' ? 'Cobrado' : '', p.factura ? 'Facturado' : ''].filter(Boolean).join(' · ') : '';
+  return '<span class="pill ' + c + '"' + (hechos ? ' title="Hecho: ' + hechos + '"' : '') + '>' + t + '</span>';
+}
+
+function lineaDesglose(l) {
+  const bruto = +l.importe || 0, base = bruto * (1 - (+l.descuento || 0) / 100), iva = base * (+l.iva || 0) / 100;
+  return { bruto, base, iva, total: base + iva };
+}
+
+function bloqueTotales(t) {
+  const tipos = Object.keys(t.porIva).sort((a, b) => a - b);
+  return `<div><span>Unidades</span><b>${num(t.unidades)}</b></div>
+    ${t.descuento > 0.004 ? `<div><span>Suma de líneas</span><b>${eurI(t.bruto)}</b></div>
+      <div><span>Descuento general</span><b>−${eurI(t.descuento)}</b></div>` : ''}
+    ${t.envio ? `<div><span>Productos sin IVA</span><b>${eurI(t.baseProd)}</b></div>
+      <div><span>${esc(t.envio.nombre)} sin IVA</span><b>${eurI(t.envio.base)}</b></div>` : ''}
+    <div><span>Base imponible</span><b>${eurI(t.base)}</b></div>
+    ${tipos.filter(k => t.porIva[k] > 0.004 || tipos.length === 1).map(k => `<div><span>IVA ${k}%</span><b>${eurI(t.porIva[k])}</b></div>`).join('')}
+    ${t.envio ? `<div class="sm" style="justify-content:flex-end"><span>Incluye ${esc(t.envio.nombre.toLowerCase())} de ${eurI(t.envio.con)} con IVA</span></div>` : ''}
+    <div class="tot"><span>Total con IVA</span><b>${eurI(t.total)}</b></div>`;
+}

@@ -48,10 +48,7 @@ new MutationObserver(ms => {
   d.addEventListener('click', e => { if (e.target === d) cerrarSelector(); });
   d.addEventListener('cancel', e => { e.preventDefault(); cerrarSelector(); });
 })();
-function cerrarSelector() {
-  if (SELPOP) { SELPOP.remove(); SELPOP = null; }
-  const d = $('seldlg'); if (d && d.open) d.close();
-};
+;
 function colocarPop(pop, ref) {
   const d = $('seldlg');
   if (!d.open) d.showModal();
@@ -79,24 +76,6 @@ mejorarCampos = (orig => function (raiz) {
 
 /* ---------------- barra de herramientas ordenada en el móvil ---------------- */
 
-function ordenarCabeceraMovil(sec) {
-  if (!ES_MOVIL() || !sec) return;
-  const sal = sec.querySelector(':scope > .saludo'); if (!sal || sal.dataset.movil) return;
-  const acts = sal.querySelector('.acts'); if (!acts) return;
-  sal.dataset.movil = '1';
-  const hijos = [...acts.children];
-  // Acción principal «+ …» como botón flotante
-  const principal = hijos.find(b => b.tagName === 'BUTTON' && !b.classList.contains('sec') && /^\s*\+/.test(b.textContent));
-  if (principal) {
-    principal.classList.add('fab'); principal.setAttribute('aria-label', principal.textContent.replace('+', '').trim());
-    // v2.95.0: el «+» es el icono de la biblioteca, no un carácter
-    principal.dataset.txt = principal.textContent.replace('+', '').trim(); principal.innerHTML = svgIco(ICON_NOM.plus);
-    sec.appendChild(principal);
-  }
-  // El resto, como fila de controles compactos del mismo tamaño
-  // Se mantiene la fila aunque quede vacía: otras partes añaden controles después (vista de agenda, equipo…)
-  acts.classList.add('chips'); [...acts.children].forEach(b => b.classList.add('chip'));
-}
 const ORDENAR_EN = { agenda: 'v-agenda', rutas: 'v-rutas', productos: 'v-productos', ventas: 'v-ventas', analitica: 'v-analitica',
   facturacion: 'v-facturacion', config: 'v-config', admin: 'v-admin', pacientes: 'v-pacientes', seguimiento: 'v-seguimiento', duplicados: 'v-duplicados' };
 new MutationObserver(() => { if (ORDENAR_EN[TAB]) ordenarCabeceraMovil($(ORDENAR_EN[TAB])); })
@@ -130,25 +109,6 @@ pintarBnav = (orig => function () { orig(); const m = $('bmasbtn'); if (m) m.onc
 
 /* ---------------- Inicio: tarjeta de bienvenida con lo importante de hoy ---------------- */
 
-async function vistazoHoy() {
-  const sal = document.querySelector('#v-inicio .saludo'); if (!sal) return;
-  const acts = sal.querySelector('.acts');
-  if (acts && !acts.dataset.ico) {
-    acts.dataset.ico = '1'; acts.classList.add('icoacts');
-  }
-  let v = $('vistazo');
-  if (!v) { sal.firstElementChild.insertAdjacentHTML('beforeend', '<div id="vistazo" class="vistazo"></div>'); v = $('vistazo'); }
-  if (ES_MEDICO()) return;
-  const citas = await citasDelDia(hoyISO());
-  const abiertas = citas.filter(c => CITA_ABIERTA.includes(c.estado)).sort((a, b) => (a.orden || 0) - (b.orden || 0) || String(a.hora || '').localeCompare(String(b.hora || '')));
-  const hechas = citas.filter(c => c.estado === 'Visitada').length, prox = abiertas[0];
-  if (!$('vistazo')) return;
-  v.innerHTML = citas.length
-    ? `<span><b>${num(citas.length)}</b> ${citas.length === 1 ? 'cita' : 'citas'} hoy · <b>${num(hechas)}</b> visitadas</span>
-       ${prox ? `<span class="prox">Próxima: <b>${esc(prox.medico || prox.nombre || '')}</b>${prox.hora ? ' · ' + String(prox.hora).slice(0, 5) : ''}</span>` : '<span class="prox">Día completado ✓</span>'}`
-    : `<span>Hoy no tienes citas.</span> <button class="lnk" data-irplan>Planifica tu día</button>`;
-  const b = v.querySelector('[data-irplan]'); if (b) b.onclick = () => ir('rutas');
-}
 
 // Indicadores con icono, explicación breve y, cuando se puede, comparación
 const KPI_ICO = { citas: '📅', urgentes: '⚠️', visitas_sem: '📝', visitas_mes: '🗓️', interesados: '✨', sin_contactar: '📇', cartera: '🩺', dups: '🧩',

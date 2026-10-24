@@ -12,8 +12,7 @@ aplicarMarca = (orig => function () {
   if (!MARCA.logo) document.querySelectorAll('header .logo, .lbox img, #bootsplash img').forEach(i => { i.src = LOGO_NEUTRO; });
 })(aplicarMarca);
 aplicarMarca();
-// En la factura solo va el logo si la empresa ha subido el suyo
-async function logoData() { if (MARCA.logo && (AJUSTES.marca || {}).logo_factura !== false) { LOGO_DATA = MARCA.logo; LOGO_CIRC = true; return MARCA.logo; } return null; };
+;
 
 /* ---------------- planes alineados con el mercado ---------------- */
 
@@ -142,31 +141,6 @@ const I18N = [
 ];
 let IDIOMA = 'es', MAPA_I18N = null;
 const SALUDOS = { en: ['Good morning', 'Good afternoon', 'Good evening'], de: ['Guten Morgen', 'Guten Tag', 'Guten Abend'], fr: ['Bonjour', 'Bon après-midi', 'Bonsoir'], it: ['Buongiorno', 'Buon pomeriggio', 'Buonasera'] };
-function prepararIdioma(id) {
-  IDIOMA = LOCALES[id] ? id : 'es'; document.documentElement.lang = IDIOMA;
-  const i = IDIOMAS.findIndex(x => x[0] === IDIOMA);
-  MAPA_I18N = null; if (i <= 0) return;
-  MAPA_I18N = new Map();
-  const may = t => t.charAt(0).toUpperCase() + t.slice(1), min = t => t.charAt(0).toLowerCase() + t.slice(1);
-  I18N.forEach(r => { MAPA_I18N.set(r[0], r[i]); MAPA_I18N.set(min(r[0]), min(r[i])); MAPA_I18N.set(may(r[0]), may(r[i])); });
-}
-function traducirTexto(t) {
-  if (!MAPA_I18N) return null;
-  const k = t.trim(); if (!k || k.length > 90) return null;
-  const v = MAPA_I18N.get(k); if (v) return t.replace(k, v);
-  const m = k.match(/^(Buenos días|Buenas tardes|Buenas noches), (.+)$/);
-  if (m && SALUDOS[IDIOMA]) return t.replace(k, SALUDOS[IDIOMA][['Buenos días', 'Buenas tardes', 'Buenas noches'].indexOf(m[1])] + ', ' + m[2]);
-  return null;
-}
-function traducir(raiz) {
-  if (!MAPA_I18N || !raiz) return;
-  const w = document.createTreeWalker(raiz, NodeFilter.SHOW_TEXT, { acceptNode: n => n.parentElement && n.parentElement.closest('script,style,textarea,[data-notr]') ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT });
-  const nodos = []; while (w.nextNode()) nodos.push(w.currentNode);
-  nodos.forEach(n => { const v = traducirTexto(n.nodeValue); if (v != null && v !== n.nodeValue) n.nodeValue = v; });
-  (raiz.querySelectorAll ? raiz.querySelectorAll('[placeholder],[title],[aria-label]') : []).forEach(e => ['placeholder', 'title', 'aria-label'].forEach(a => {
-    const x = e.getAttribute(a); if (!x) return; const v = traducirTexto(x); if (v != null && v !== x) e.setAttribute(a, v);
-  }));
-}
 let TR_PEND = new Set(), TR_RAF = 0;
 new MutationObserver(ms => {
   if (!MAPA_I18N) return;
@@ -176,11 +150,6 @@ new MutationObserver(ms => {
 }).observe(document.body, { childList: true, subtree: true });
 // Fechas en el idioma elegido
 fechaLarga = (orig => function (d) { return IDIOMA === 'es' ? orig(d) : new Date(d).toLocaleDateString(LOCALES[IDIOMA], { weekday: 'long', day: 'numeric', month: 'long' }); })(fechaLarga);
-function aplicarIdioma(id) {
-  prepararIdioma(id);
-  try { localStorage.setItem('app-idioma', IDIOMA); } catch (e) {}
-  if (MAPA_I18N) traducir(document.body);
-}
 prepararIdioma((() => { try { return localStorage.getItem('app-idioma') || 'es'; } catch (e) { return 'es'; } })());
 if (MAPA_I18N) traducir(document.body);
 // Selector de idioma en Mi perfil

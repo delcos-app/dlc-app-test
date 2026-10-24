@@ -1156,3 +1156,410 @@ async function rnGuardar(agenda) {
   if (agenda) return rnPasarAgenda({ r: Object.assign({}, p, { id: data.id, mia: true }), ms });
   cargarRutas();
 }
+
+async function planificar(rutaId, btn) {
+  const orig = btn.textContent; btn.disabled = true; btn.textContent = 'Calculando…';
+  const { data, error } = await db.rpc('cuentas_de_ruta', { p_id: rutaId });
+  btn.disabled = false; btn.textContent = orig;
+  if (error) { toast('No se ha podido planificar: ' + error.message, true); return; }
+  const conXY = (data || []).filter(m => m.lat && m.lon);
+  if (!conXY.length) { toast(`Esta ruta no tiene ${TT('medico', 'p', '', 'l', 'l')} con ubicación`, true); return; }
+  construirPlan(conXY, rutaId, btn);
+}
+
+function conHor(h, fn) { const prev = HOR; HOR = h && (h.salida || h.vuelta) ? h : null; try { return fn(); } finally { HOR = prev; } }
+
+async function construirPlan(conXY, rutaId, btn, opts) {
+  opts = opts || {};
+  ULTIMO_PLAN = { conXY, rutaId, opts };
+  HOR = opts.horario !== undefined ? opts.horario : horDeRuta(rutaId);
+  const cfg = PLANCFG(), sal = salidaUsuario();
+  const fecha = opts.manana ? siguienteLaborable() : hoyISO();
+  const ahora = new Date(), minAhora = ahora.getHours() * 60 + ahora.getMinutes();
+  const salidaCfg = minHora(cfg.salida), tope = minHora(cfg.tope);
+  const t0 = opts.manana ? salidaCfg : Math.max(salidaCfg, Math.ceil(minAhora / 5) * 5);
+
+  if (t0 >= tope) {
+    const esRuta = !!(RUTAS || []).find(x => x.id === rutaId);
+    const op = await elegirOpcion('Ya ha pasado la hora de vuelta de esta ruta',
+      `Esta ruta sale a las ${cfg.salida} y vuelve como tarde a las ${cfg.tope}, y ahora son las ${hm(minAhora)}.\n\nPuedes planificarla para el ${fechaLarga(new Date(siguienteLaborable() + 'T00:00:00'))}${esRuta ? ' o cambiar el horario de la ruta' : ''}.`,
+      [{ k: 'no', t: 'Cancelar', cls: 'sec' }].concat(esRuta ? [{ k: 'horario', t: 'Cambiar el horario de la ruta', cls: 'sec' }] : []).concat([{ k: 'manana', t: 'Planificar para mañana' }]));
+    if (op === 'horario') editorRuta(rutaId);
+    if (op === 'manana') construirPlan(conXY, rutaId, btn, { manana: true });
+    return;
+  }
+
+  const todos = await conHorarios(conXY);
+  // Médicos con una cita ya planificada (desde hoy): no se proponen; se muestran aparte como «ya citados»
+  const citas = await citasPlanificadasMias();
+  const citados = todos.filter(m => citas[m.id]).map(m => ({ m, fecha: citas[m.id] }));
+  const meds = todos.filter(m => !citas[m.id]);
+  const items = meds.map(m => ({ id: m.id, ref: m, xy: m.lat != null && m.lon != null ? [+m.lat, +m.lon] : null,
+    ventanas: ventanasDe(m.dias, fecha), fija: null }));
+  const { seq, fuera, fin } = programarVisitas(items, t0);
+
+  // Todos los médicos de la ruta ya tienen cita: se dice así y se ofrece ir a la agenda
+  if (!meds.length && citados.length) {
+    const op = await elegirOpcion('Ya están todos citados',
+      `${citados.length === 1 ? `${TT('medico', 's', 'el', 'C', 'l')} de esta ruta ya tiene` : `Los ${citados.length} ${TT('medico', 'p', '', 'l', 'l')} de esta ruta ya tienen`} una cita planificada en tu agenda.`,
+      [{ k: 'no', t: 'Cerrar', cls: 'sec' }, { k: 'agenda', t: 'Ver mi agenda' }]);
+    if (op === 'agenda') { AG_MODO = 'semana'; AG_FECHA = citados.map(x => x.fecha).sort()[0]; ir('agenda'); }
+    return;
+  }
+  if (!seq.length) {
+    const noDia = fuera.filter(f => f.motivo === 'no atiende este día').length;
+    const op = await elegirOpcion(`No cabe ${TT('visita', 's', 'ningun', 'l', 'l')}`,
+      (noDia === fuera.length ? `Ninguno de estos ${fuera.length} ${TT('medico', 'p', '', 'l', 'l')} atiende el ${fechaLarga(new Date(fecha + 'T00:00:00'))}.`
+        : cfg.conTope ? `Con el horario de la ruta (${cfg.salida}–${cfg.tope}) y las horas de atención no da tiempo a ${TT('visita', 's', 'ningun', 'l', 'l')}.`
+        : `Con las horas de atención no da tiempo a ${TT('visita', 's', 'ningun', 'l', 'l')}.`)
+        + (citados.length ? `\n\nAdemás, ${citados.length} ${citados.length === 1 ? 'ya tiene' : 'ya tienen'} una cita planificada y no se proponen.` : ''),
+      [{ k: 'no', t: 'Cancelar', cls: 'sec' }].concat(cfg.conTope && (RUTAS || []).find(x => x.id === rutaId) ? [{ k: 'horario', t: 'Cambiar el horario de la ruta', cls: 'sec' }] : [])
+        .concat(opts.manana ? [] : [{ k: 'manana', t: 'Probar para mañana' }]));
+    if (op === 'horario') editorRuta(rutaId);
+    if (op === 'manana') construirPlan(conXY, rutaId, btn, { manana: true });
+    return;
+  }
+
+  // Visitas seguidas en el mismo sitio forman una parada
+  const paradas = [];
+  seq.forEach(s => {
+    const m = Object.assign({}, s.it.ref, { horaPlan: s.ini, ventanas: s.it.ventanas });
+    const ult = paradas[paradas.length - 1];
+    if (ult && ult.xy[0] === s.it.xy[0] && ult.xy[1] === s.it.xy[1]) { ult.medicos.push(m); ult.fin = s.fin; }
+    else paradas.push({ centro: m.centro_nombre || consultaPrivada(), municipio: m.municipio, dir: m.direccion,
+      xy: s.it.xy, medicos: [m], llegada: s.ini, fin: s.fin });
+  });
+  PLAN = { rutaId, salida: sal, paradas, fin, fecha, inicio: t0, fuera: fuera.map(f => ({ m: f.it.ref, motivo: f.motivo })), citados, horario: HOR };
+  if (TAB !== 'rutas') ir('rutas');
+  pintarPlan();
+  setTimeout(() => $('rplan') && $('rplan').scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
+}
+
+function prefsActivas() { return (TAB === 'agenda' && AG_VISTA && AG_VISTA.preferencias) || PERFIL.preferencias || {}; }
+
+/* Planificador: reparte médicos entre los días de la semana */
+async function planificarSemana(desde, dias, bloq, porDia) {
+  const libres = dias.filter(f => f >= hoyISO() && !bloq[f] && new Date(f + 'T12:00:00').getDay() % 6 !== 0);
+  if (!libres.length) { toast('No quedan días laborables libres esta semana', true); return; }
+  const { data: rutas } = await RPC_ORIG('rutas_visibles', {});
+  const misRutas = (rutas || []).filter(x => !AG_VISTA || x.usuario_id === agUid() || x.visible_para === '*');
+  $('dbody').innerHTML = `
+    <div class="fh"><div><h2>Planificar la semana${AG_VISTA ? ' de ' + esc(AG_VISTA.nombre) : ''}</h2>
+      <div class="sm">Reparte ${TT('medico', 'p', 'el', 'l', 'l')} entre los días, cada uno un día que atienda y agrupados por zona</div></div>
+      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
+    <label for="spfuente">¿A quién?</label>
+    <select id="spfuente">
+      <option value="toca">A quien le toca ${TT('visita', 's', '', 'l', 'l')} (según su frecuencia objetivo)</option>
+      <option value="urgentes">Urgentes sin visitar</option>
+      <option value="interesados">${TT('medico', 'p', '', 'l', 'C', 'interesado')} sin ${TT('visita', 's', '', 'l', 'l')} en 20 días</option>
+      <option value="sin_visitar">Nunca visitados</option>
+      ${misRutas.map(x => `<option value="ruta:${x.id}">Ruta: ${esc(x.nombre)}</option>`).join('')}
+    </select>
+    <label>Días</label>
+    <div class="spdias">${dias.slice(0, 5).map(f => {
+      const ok = libres.includes(f);
+      return `<label class="opt ${ok ? '' : 'off'}" style="margin:0"><input type="checkbox" data-spd="${f}" ${ok ? 'checked' : 'disabled'}>
+        ${DIAN[LETRA_DIA(f)].slice(0, 3)} ${new Date(f + 'T12:00:00').getDate()}${bloq[f] ? ' · bloqueado' : f < hoyISO() ? ' · pasado' : ''}</label>`;
+    }).join('')}</div>
+    <div class="g2">
+      <div><label for="spmax">Máximo de ${TT('visita', 'p', '', 'l', 'l', 'nuevo')} por día</label><input id="spmax" type="number" min="1" max="30" placeholder="Hasta la hora de vuelta"></div>
+      <div><label for="spsal">Hora de salida</label><input id="spsal" type="time" value="${esc((prefsActivas().plan_semana || {}).salida || '')}"></div>
+      <div><label for="spvue">Vuelta como tarde</label><input id="spvue" type="time" value="${esc((prefsActivas().plan_semana || {}).vuelta || '')}"></div>
+      <div><label>Tiempos</label><div class="sm" style="padding-top:12px">${TIEMPOS().visita} min por ${TT('medico', 's', '', 'l', 'l')} · sin hora de vuelta, sin límite</div></div>
+    </div>
+    <p class="sm">Las citas que ya hay en la agenda se respetan y cuentan para el tiempo de cada día. No se proponen ${TT('medico', 'p', '', 'l', 'l')} que ya tienen una cita abierta.</p>
+    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>Cancelar</button>
+      <button class="btn" id="spok">Proponer reparto</button></div>`;
+  $('dlg').showModal();
+  $('spok').onclick = async ev => {
+    const fuente = $('spfuente').value;
+    const usar = [...$('dbody').querySelectorAll('[data-spd]:checked')].map(x => x.dataset.spd);
+    if (!usar.length) { toast('Elige al menos un día', true); return; }
+    const max = +$('spmax').value || null;
+    ev.target.disabled = true; ev.target.textContent = 'Calculando…';
+    let lista = [];
+    if (fuente === 'toca') lista = (await db.rpc('toca_actividad', { p_usuario: agUid() === PERFIL.id && VE_TODO() ? null : agUid(), lim: 300 })).data || [];
+    else if (fuente.startsWith('ruta:')) lista = (await db.rpc('cuentas_de_ruta', { p_id: fuente.slice(5) })).data || [];
+    else lista = ((await db.rpc('propuestas_rutas', { lim: 200 })).data || {})[fuente] || [];
+    // Fuera los que ya tienen cita abierta
+    const { data: futuras } = await RPC_ORIG('agenda_rango', { p_desde: hoyISO(), p_hasta: isoMas(hoyISO(), 60), p_usuario: agUid() });
+    const conCita = new Set((futuras || []).filter(c => CITA_ABIERTA.includes(c.estado)).map(c => c.cuenta_id));
+    lista = await conHorarios(lista.filter(m => !conCita.has(m.id)));
+    // Aviso de visita reciente: fuera los que se han visto hace poco
+    const av = avisoRevisita(); let recientes = [];
+    if (av.on && lista.length) {
+      const { data: rv } = await db.rpc('actividades_recientes', { p_ids: lista.map(m => m.id), p_desde: isoMas(hoyISO(), -av.dias), p_hasta: hoyISO() });
+      const vistos = {}; (rv || []).filter(x => x.tipo === 'visita').forEach(x => { if (!vistos[x.cuenta_id] || x.fecha > vistos[x.cuenta_id].fecha) vistos[x.cuenta_id] = x; });
+      recientes = lista.filter(m => vistos[m.id]).map(m => ({ m, motivo: `visitado el ${fechaCorta(vistos[m.id].fecha)}${vistos[m.id].usuario ? ' (' + vistos[m.id].usuario + ')' : ''}` }));
+      lista = lista.filter(m => !vistos[m.id]);
+    }
+    // v2.76.0: el horario es el de esta planificación (se recuerda como el último usado)
+    const hs = { salida: ($('spsal') || {}).value || null, vuelta: ($('spvue') || {}).value || null };
+    if (JSON.stringify(hs) !== JSON.stringify(prefsActivas().plan_semana || {})) {
+      const prefs = Object.assign({}, PERFIL.preferencias || {}, { plan_semana: hs });
+      db.rpc('guardar_preferencias', { p: prefs }).then(({ data }) => { PERFIL.preferencias = data || prefs; }, () => {});
+    }
+    SEM_BORRADOR = conHor(hs, () => repartirSemana(lista, usar, porDia, max, desde));
+    SEM_BORRADOR.horario = hs.salida || hs.vuelta ? hs : null;
+    SEM_BORRADOR.sinDia = SEM_BORRADOR.sinDia.concat(recientes);
+    ev.target.disabled = false; ev.target.textContent = 'Proponer reparto';
+    $('dlg').close();
+    if (!SEM_BORRADOR.total) toast(`No cabe ${TT('visita', 's', 'ningun', 'l', 'l', 'nuevo')} con estos datos`, true);
+    pintarSemanaAgenda();
+  };
+}
+
+function repartirSemana(lista, usar, porDia, max, desde) {
+  const cfg = PLANCFG(), sal = salidaUsuario(), uid = agUid();
+  let pend = lista.filter(m => m.lat != null && m.lon != null).map(m => ({ m, xy: [+m.lat, +m.lon] }));
+  const sinDia = lista.filter(m => m.lat == null || m.lon == null).map(m => ({ m, motivo: 'sin ubicación' }));
+  const out = { semana: desde, uid, dias: {}, sinDia, total: 0 };
+  usar.forEach(f => {
+    const ahora = new Date(), minAhora = ahora.getHours() * 60 + ahora.getMinutes();
+    const t0 = f === hoyISO() ? Math.max(minHora(cfg.salida), Math.ceil(minAhora / 5) * 5) : minHora(cfg.salida);
+    const disponibles = pend.filter(p => { const v = ventanasDe(p.m.dias, f); return !(v && !v.length); });
+    if (!disponibles.length) { out.dias[f] = []; return; }
+    // Semilla: el que menos días puede ir (y urgente antes), para no dejarlo sin hueco
+    const nDias = p => usar.filter(g => { const v = ventanasDe(p.m.dias, g); return !(v && !v.length); }).length;
+    disponibles.sort((a, b) => nDias(a) - nDias(b) || (b.m.urgente ? 1 : 0) - (a.m.urgente ? 1 : 0) || km([sal.lat, sal.lon], a.xy) - km([sal.lat, sal.lon], b.xy));
+    const semilla = disponibles[0].xy;
+    const cerca = disponibles.slice().sort((a, b) => km(semilla, a.xy) - km(semilla, b.xy)).slice(0, 40);
+    const existentes = (porDia[f] || []).filter(c => c.usuario_id === uid && CITA_ABIERTA.includes(c.estado));
+    const items = existentes.map(c => ({ id: c.id, ref: { existente: c }, xy: xyCita(c), ventanas: ventanasDe(c.dias, f), fija: minHora(c.hora) }))
+      .concat(cerca.map(p => ({ id: p.m.id, ref: { p }, xy: p.xy, ventanas: ventanasDe(p.m.dias, f), fija: null })));
+    const { seq } = programarVisitas(items, t0);
+    let nuevas = seq.filter(s => s.it.ref.p);
+    if (max) nuevas = nuevas.slice(0, max);
+    const elegidos = new Set(nuevas.map(s => s.it.ref.p));
+    out.dias[f] = seq.filter(s => s.it.ref.existente || elegidos.has(s.it.ref.p)).map(s => s.it.ref.existente
+      ? { existente: s.it.ref.existente }
+      : { m: s.it.ref.p.m, ini: s.ini, cita: { id: 'nueva-' + s.it.ref.p.m.id, fecha: f, dias: s.it.ref.p.m.dias, lat: s.it.ref.p.xy[0], lon: s.it.ref.p.xy[1] } });
+    pend = pend.filter(p => !elegidos.has(p));
+  });
+  // Solo las nuevas cuentan en la vista; las existentes se guardan para respetar el orden al guardar
+  out.orden = {};
+  usar.forEach(f => { out.orden[f] = out.dias[f] || []; out.dias[f] = (out.dias[f] || []).filter(x => !x.existente); });
+  out.total = usar.reduce((n, f) => n + out.dias[f].length, 0);
+  pend.forEach(p => {
+    const algun = usar.some(g => { const v = ventanasDe(p.m.dias, g); return !(v && !v.length); });
+    sinDia.push({ m: p.m, motivo: algun ? 'no cabe en los días elegidos' : 'no atiende ninguno de los días elegidos' });
+  });
+  return out;
+}
+
+async function guardarBorradorSemana(btn) {
+  const b = SEM_BORRADOR; if (!b) return;
+  btn.disabled = true; btn.textContent = 'Guardando…';
+  let n = 0;
+  for (const f of Object.keys(b.orden)) {
+    const ids = [];
+    for (const x of b.orden[f]) {
+      if (x.existente) { ids.push(x.existente.id); continue; }
+      const { data: r } = await db.rpc('guardar_cita', { p: { cuenta_id: x.m.id, fecha: f, hora: null,
+        centro_nombre: x.m.centro_nombre || null, estado: 'Planificada', origen: 'Planificador semanal',
+        usuario_id: b.uid !== PERFIL.id ? b.uid : null, op_id: 'ps-' + x.m.id + '-' + f,
+        salida: (b.horario || {}).salida || null, vuelta: (b.horario || {}).vuelta || null } });
+      if (r && r.ok) { ids.push(r.id); n++; }
+    }
+    if (ids.length) await db.rpc('ordenar_citas', { p_ids: ids });
+  }
+  SEM_BORRADOR = null;
+  toast(`${n} citas guardadas en la agenda`);
+  cargarAgenda(); cargarInicio();
+}
+
+async function editorFrecuencia() {
+  await cargarAjustes();
+  const REC = { inicial: 60, avance: 30, interes: 15, positivo: 30, negativo: 0 };
+  const f = Object.assign(Object.fromEntries(ESTADOS_DEF.map(x => [x.valor, REC[x.papel] || 0])), AJUSTES.frecuencia || {});
+  $('dbody').innerHTML = `
+    <div class="fh"><div><h2>Frecuencia objetivo de ${TT('visita', 's', '', 'l', 'l')}</h2>
+      <div class="sm">Cada cuántos días hay que visitar a ${TT('medico', 's', 'un', 'l', 'l')} según su estado. 0 = no se exige.</div></div>
+      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
+    ${Object.keys(f).map(k => `<div class="g2" style="align-items:center"><div><b>${esc(k)}</b></div>
+      <div><input type="number" min="0" max="365" data-frec="${esc(k)}" value="${+f[k] || 0}" aria-label="Días para ${esc(k)}"></div></div>`).join('')}
+    <p class="sm">Se usa en «A quien le toca ${TT('visita', 's', '', 'l', 'l')}» (planificador y sugerencias) y en la columna «Les toca» del equipo.</p>
+    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>Cancelar</button><button class="btn" id="frok">Guardar</button></div>`;
+  $('dlg').showModal();
+  $('frok').onclick = async () => {
+    const v = {}; $('dbody').querySelectorAll('[data-frec]').forEach(i => v[i.dataset.frec] = Math.max(0, +i.value || 0));
+    const { data: r, error } = await db.rpc('guardar_ajuste', { p_clave: 'frecuencia', p_valor: v });
+    if (error || (r && r.ok === false)) { toast('No se ha podido guardar', true); return; }
+    AJUSTES.frecuencia = v; $('dlg').close(); toast('Frecuencia guardada'); invalidarCache();
+    if (AG_MODO === 'equipo') pintarEquipo();
+  };
+}
+
+async function prepararParadas(fecha) {
+  // «Tu día» ya tiene sus citas (de la persona y en el orden de la ruta): se usan tal cual
+  TD_PARADAS = (typeof TD_CITAS !== 'undefined' && Array.isArray(TD_CITAS) ? TD_CITAS : []).filter(c => CITA_ABIERTA.includes(c.estado) && xyCita(c));
+  pintarBotonesRuta(fecha);
+}
+
+function rpMotivos() {
+  const g = terminoDe('medico').g === 'f' ? 'a' : 'o';
+  return {
+    urgente: ['urgente', 'urgentes', 'p-urg'],
+    consulta: ['atiende', 'atienden', 'p-est'],
+    interes: [TT('medico', 's', '', 'l', 'l', 'interesado'), TT('medico', 'p', '', 'l', 'l', 'interesado'), 'p-warn'],
+    pendiente: ['pendiente de otra ruta', 'pendientes de otras rutas', 'p-per'],
+    cliente: ['buen cliente sin ' + TT('visita', 's', '', 'l', 'l'), 'buenos clientes sin ' + TT('visita', 's', '', 'l', 'l'), 'p-est'],
+    nuevo: ['nunca visitad' + g, 'nunca visitad' + g + 's', 'p-anu']
+  };
+}
+
+function rpObjetivo(manana) {
+  const d = new Date(), finde = d.getDay() === 0 || d.getDay() === 6;
+  if (manana === undefined) manana = finde || d.getHours() * 60 + d.getMinutes() >= 13 * 60;
+  if (finde) manana = true;
+  return { manana, finde, fecha: manana ? siguienteLaborable() : hoyISO() };
+}
+
+// Tiempos de una propuesta con los minutos por visita y por parada de cada uno
+function rpTiempos(sel, t0) {
+  const cfg = PLANCFG(), sal = salidaUsuario();
+  let pos = sal.lat != null ? [+sal.lat, +sal.lon] : null, t = t0, kms = 0, paradas = 0;
+  sel.forEach(c => {
+    const xy = [+c.lat, +c.lon], mismo = pos && km(pos, xy) < 0.05;
+    if (!mismo) { if (pos) { t += minutosEntre(pos, xy); kms += km(pos, xy); } t += cfg.parada; paradas++; }
+    t += cfg.visita; pos = xy;
+  });
+  return { fin: t, km: kms, paradas };
+}
+
+// Arma hasta 3 rutas de un día: la zona con más puntos, y desde su mejor candidato se va sumando el que más vale a cada paso
+// (puntos menos 4 por km), sin salir de 25 km ni pasar de la jornada.
+function rpArmar(cand, obj) {
+  const cfg = PLANCFG(), sal = salidaUsuario();
+  const ahora = new Date(), minAhora = ahora.getHours() * 60 + ahora.getMinutes();
+  const t0 = obj.manana ? minHora(cfg.salida) : Math.max(minHora(cfg.salida), Math.ceil(minAhora / 5) * 5);
+  const tfin = Math.min(t0 + RP_JORNADA, 20 * 60);
+  const libres = new Set(cand.map(c => c.id)), lista = [];
+  for (let k = 0; k < 3; k++) {
+    const disp = cand.filter(c => libres.has(c.id));
+    if (!disp.length) break;
+    const porZona = {};
+    disp.forEach(c => { const z = c.municipio || '—'; (porZona[z] = porZona[z] || []).push(c); });
+    const zona = Object.entries(porZona).map(([z, l]) => [z, l.slice(0, 8).reduce((s, c) => s + +c.puntos, 0)]).sort((a, b) => b[1] - a[1])[0][0];
+    const sel = [porZona[zona][0]]; libres.delete(sel[0].id);
+    let pos = [+sel[0].lat, +sel[0].lon];
+    let t = t0 + (sal.lat != null ? minutosEntre([+sal.lat, +sal.lon], pos) : 0) + cfg.parada + cfg.visita;
+    for (;;) {
+      let mejor = null, mv = -Infinity, mt = 0;
+      cand.forEach(c => {
+        if (!libres.has(c.id)) return;
+        const xy = [+c.lat, +c.lon], d = km(pos, xy);
+        if (d > 25) return;
+        const dt = (d < 0.05 ? 0 : minutosEntre(pos, xy) + cfg.parada) + cfg.visita;
+        if (t + dt > tfin) return;
+        const v = +c.puntos - d * 4;
+        if (v > mv) { mv = v; mejor = c; mt = dt; }
+      });
+      if (!mejor) break;
+      sel.push(mejor); libres.delete(mejor.id); pos = [+mejor.lat, +mejor.lon]; t += mt;
+    }
+    if (sel.length < 2 && lista.length) break;
+    lista.push({ sel, ini: t0 });
+  }
+  return lista;
+}
+
+function rpZona(sel) {
+  const n = {};
+  sel.forEach(c => { if (c.municipio) n[c.municipio] = (n[c.municipio] || 0) + 1; });
+  const z = Object.entries(n).sort((a, b) => b[1] - a[1]).map(([m]) => rpTitulo(m));
+  return !z.length ? 'Sin municipio' : z.length === 1 ? z[0] : z.length === 2 ? z.join(' y ') : `${z[0]}, ${z[1]} y ${z.length - 2} más`;
+}
+
+function rpTitulo(s) { return String(s || '').toLowerCase().replace(/(^|[\s\-'·])(\p{L})/gu, (a, b, c) => b + c.toUpperCase()); }
+
+// Por qué esta propuesta: lo aprendido de las visitas y las compras
+function rpPorque(sel, dia) {
+  const media = k => sel.reduce((s, c) => s + (+c[k] || 0), 0) / sel.length;
+  const z = rpZona(sel), out = [];
+  if (dia && media('h_dia') >= 0.5) out.push(`Sueles ir a ${z} los ${RP_DIAS[dia]}`);
+  else if (media('h_zona') >= 0.5) out.push('Es una de tus zonas habituales');
+  const top = sel.filter(c => +c.h_venta >= 0.5).length;
+  if (top) out.push(top === 1 ? 'Incluye a uno de tus mejores clientes' : `Incluye a ${top} de tus mejores clientes`);
+  return out.join(' · ');
+}
+
+// Croquis: los puntos en orden y la línea que los une (sin cargar un mapa por tarjeta)
+function rpCroquis(sel) {
+  const W = 132, H = 92, P = 10, xs = sel.map(c => +c.lon), ys = sel.map(c => +c.lat);
+  const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
+  const esc2 = Math.min((W - 2 * P) / Math.max(x1 - x0, 1e-4), (H - 2 * P) / Math.max(y1 - y0, 1e-4));
+  const pt = c => [P + (+c.lon - x0) * esc2 + ((W - 2 * P) - (x1 - x0) * esc2) / 2, H - P - (+c.lat - y0) * esc2 - ((H - 2 * P) - (y1 - y0) * esc2) / 2];
+  const pts = sel.map(pt);
+  return `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" aria-hidden="true">
+    <polyline points="${pts.map(p => p.map(v => v.toFixed(1)).join(',')).join(' ')}" fill="none" stroke="#17457A" stroke-opacity=".45" stroke-width="2" stroke-linejoin="round"/>
+    ${pts.map((p, i) => `<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="${i ? 4 : 5.5}" fill="${(sel[i].motivos || []).includes('urgente') ? '#B42318' : '#17457A'}" stroke="#fff" stroke-width="1.5"/>`).join('')}
+  </svg>`;
+}
+
+function rpTarjeta(p, i) {
+  const M = rpMotivos(), cuenta = {};
+  p.sel.forEach(c => (c.motivos || []).forEach(m => { cuenta[m] = (cuenta[m] || 0) + 1; }));
+  const t = rpTiempos(p.sel, p.ini), n = p.sel.length;
+  const porque = rpPorque(p.sel, RPROP.datos.dia);
+  const chips = Object.keys(M).filter(k => cuenta[k]).map(k => `<span class="pill ${M[k][2]}">${cuenta[k]} ${cuenta[k] === 1 ? M[k][0] : M[k][1]}</span>`).join('');
+  return `<div class="rprop" data-rp="${i}">
+    <div class="rpcroq">${rpCroquis(p.sel)}</div>
+    <div class="rptx"><b class="rpzona"><span class="rpnum">${i + 1}</span>${esc(rpZona(p.sel))}</b>
+      <span class="sm">${n} ${n === 1 ? TT('medico', 's', '', 'l', 'l') : TT('medico', 'p', '', 'l', 'l')} · ${t.paradas} ${t.paradas === 1 ? 'parada' : 'paradas'} ·
+        ${hm(p.ini)}–${hm(t.fin)}${t.km >= 1 ? ' · ' + Math.round(t.km) + ' km' : ''}</span>
+      <span class="rpmot">${chips}</span>
+      ${porque ? `<span class="sm rpporque">${esc(porque)}</span>` : ''}</div>
+    <div class="acts rpacts"><button class="btn sec" type="button" data-rpver="${i}" aria-expanded="false">Ver ${TT('medico', 'p', '', 'l', 'l')}</button>
+      <button class="btn sec" type="button" data-rpplan="${i}">Planificar</button>
+      <button class="btn" type="button" data-rpag="${i}">A mi agenda</button></div>
+    <div class="rplista" hidden>${p.sel.map(c => `<div class="rpit">
+      <button type="button" class="lnkmed" data-rpficha="${c.id}">${esc(c.nombre)}</button>
+      <span class="sm">${esc([c.centro_nombre, rpTitulo(c.municipio)].filter(Boolean).join(' · '))}</span>
+      <span class="rpmot">${(c.motivos || []).map(m => `<span class="pill ${M[m][2]}">${M[m][0]}</span>`).join('')}</span>
+      <button type="button" class="x rpquitar" data-rpquitar="${i}|${c.id}" title="Quitar de la propuesta" aria-label="Quitar ${esc(c.nombre)}">✕</button></div>`).join('')}</div>
+  </div>`;
+}
+
+function rpPintar() {
+  const caja = $('rprops'); if (!caja || !RPROP) return;
+  const o = RPROP, d = o.datos || {}, quien = rpNombreDia(o.fecha);
+  const man = siguienteLaborable(), etMan = rpNombreDia(man).replace(/^el /, '');
+  const aprende = (d.aprendido || {}).visitas ? `Tienen en cuenta tus ${num(d.aprendido.visitas)} ${TT('visita', 'p', '', 'l', 'l')} de los últimos 4 meses y quién compra más.`
+    : `Aprenden de tus ${TT('visita', 'p', '', 'l', 'l')} y de quién compra más a medida que uses la app.`;
+  caja.innerHTML = `<div class="fh"><div><h2>Propuestas para ${quien}</h2><div class="sm">${aprende}</div></div>
+      <div class="segs" id="rpdia" role="group" aria-label="Día">${o.finde ? '' : `<button type="button" data-rpd="hoy" class="${o.manana ? '' : 'on'}" aria-pressed="${!o.manana}">Hoy</button>`}
+        <button type="button" data-rpd="man" class="${o.manana ? 'on' : ''}" aria-pressed="${o.manana}">${etMan.replace(/^./, c => c.toUpperCase())}</button></div></div>
+    ${o.lista.length ? o.lista.map(rpTarjeta).join('')
+      : `<div class="vacio">No hay a nadie a quien convenga ir ${quien}: ni urgentes, ni quien atienda ese día, ni ${TT('medico', 'p', '', 'l', 'l', 'interesado')} sin ${TT('visita', 's', '', 'l', 'l')}.
+          ${o.manana ? '' : 'Prueba con el día siguiente.'}</div>`}`;
+  caja.querySelectorAll('[data-rpd]').forEach(b => b.onclick = () => rpCargar(b.dataset.rpd === 'man'));
+  caja.querySelectorAll('[data-rpver]').forEach(b => b.onclick = () => {
+    const l = b.closest('.rprop').querySelector('.rplista'); l.hidden = !l.hidden; b.setAttribute('aria-expanded', String(!l.hidden));
+    b.textContent = l.hidden ? `Ver ${TT('medico', 'p', '', 'l', 'l')}` : 'Ocultar';
+  });
+  caja.querySelectorAll('[data-rpficha]').forEach(b => b.onclick = () => abrirFicha(b.dataset.rpficha));
+  caja.querySelectorAll('[data-rpquitar]').forEach(b => b.onclick = () => {
+    const [i, id] = b.dataset.rpquitar.split('|'), p = o.lista[+i];
+    p.sel = p.sel.filter(c => c.id !== id);
+    if (!p.sel.length) o.lista.splice(+i, 1);
+    const abierta = !p.sel.length ? null : +i;
+    rpPintar();
+    if (abierta != null) { const v = caja.querySelector(`[data-rpver="${abierta}"]`); if (v) v.click(); }
+  });
+  caja.querySelectorAll('[data-rpplan]').forEach(b => b.onclick = () => rpPlan(+b.dataset.rpplan, b));
+  caja.querySelectorAll('[data-rpag]').forEach(b => b.onclick = () => rpAgenda(+b.dataset.rpag, b));
+}
+
+async function rpPlan(i, btn) {
+  const p = rpPlanDe(i); if (!p) return;
+  await construirPlan(p.sel, 'prop' + (i + 1), btn, { manana: RPROP.manana, horario: null });
+}
+
+async function rpCargar(manana) {
+  const obj = rpObjetivo(manana);
+  const { data, error } = await db.rpc('rutas_candidatos', { p_fecha: obj.fecha });
+  if (error) { if ($('rprops')) $('rprops').innerHTML = `<div class="vacio">No se han podido calcular las propuestas: ${esc(error.message)}</div>`; return; }
+  RPROP = Object.assign(obj, { datos: data || {}, lista: rpArmar((data || {}).candidatos || [], obj) });
+  rpPintar();
+}

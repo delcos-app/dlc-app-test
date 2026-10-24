@@ -15,13 +15,6 @@ const VISTA_TITULO = { verCita: 'la cita', fichaCentro: 'el centro', abrirFicha:
   verCirugia: 'la intervención', verConcurso: 'el concurso', verEquipo: 'el equipo', verDeposito: 'el depósito', fichaStock: 'el producto' };
 const vistaDlg = () => ['ficha', 'dlg'].map($).find(d => d && d.open) || null;
 const vistaIgual = (a, b) => a && b && a.fn === b.fn && JSON.stringify(a.args.map(x => x && x.id || x)) === JSON.stringify(b.args.map(x => x && x.id || x));
-function vistaBoton(v, d0) {
-  const d = d0 || (v && v.dlg); if (!d || !d.open || !VUELTA.length || d.querySelector('.vueltabtn')) return;
-  const fh = d.querySelector('.fh'); if (!fh) return;
-  const ant = VUELTA[VUELTA.length - 1];
-  const t = fh.firstElementChild, dentro = t && t.tagName !== 'BUTTON' && !t.matches('h2') ? t : fh;
-  dentro.insertAdjacentHTML('afterbegin', `<button type="button" class="btn sec chico vueltabtn" title="Volver a ${esc(VISTA_TITULO[ant.fn] || 'la ventana anterior')}">‹ Volver</button>`);
-}
 Object.keys(VISTA_TITULO).forEach(fn => {
   const orig = window[fn]; if (typeof orig !== 'function') return;
   window[fn] = async function (...args) {

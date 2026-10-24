@@ -75,15 +75,6 @@ const optFiltro = (lista, v, todo) => `<option value="">${todo}</option>` +
 let CATS_ABIERTOS = {};
 
 
-/* v2.72.0 · Un clasificador de ficha, cliente o producto sin papel es un campo personalizado: tipo y dónde se ve */
-function cajaCampo(c, completo) {
-  if (c.papel || !CAMPO_TABLA[c.ambito]) return '';
-  const t = c.tipo_campo || 'lista', chk = (k, txt) => `<label class="chk"><input type="checkbox" id="cfc_${k}" ${c[k] ? 'checked' : ''} ${completo ? '' : 'disabled'}> ${txt}</label>`;
-  return `<div class="cfcampo"><h3>Campo personalizado</h3>
-    <div class="g2"><div><label for="cfctipo">Tipo</label><select id="cfctipo" ${completo ? '' : 'disabled'}>${TIPOS_CAMPO.map(([k, n]) => `<option value="${k}" ${k === t ? 'selected' : ''}>${n}</option>`).join('')}</select></div>
-      <div class="cfchks">${chk('obligatorio', 'Obligatorio')}${chk('solo_lectura', 'Solo lectura')}${chk('en_ficha', 'En la ficha')}${chk('en_tabla', 'Columna en la tabla')}${chk('en_filtro', 'Filtro (listas y sí/no)')}</div></div>
-    ${completo ? '<div class="acts" style="justify-content:flex-end"><button class="btn sec" id="cfcok">Guardar campo</button></div>' : ''}</div>`;
-}
 function abrirClasificador(id) {
   const c = CATS.find(x => x.id === id); if (!c) return;
   const puedeEditar = puede('administrar') || ((PERFIL.areas || {}).K || 0) >= 2;
@@ -176,30 +167,6 @@ function abrirClasificador(id) {
 
 /* ---------------- duplicados pendientes con su pareja ---------------- */
 
-async function revisarPendientes() {
-  cargando($('dbody'), 'Buscando pendientes…');
-  $('dlg').showModal();
-  const { data } = await db.rpc('duplicados_pendientes');
-  const l = data || [];
-  $('dbody').innerHTML = `
-    <div class="fh"><div><h2>Pendientes de unificar</h2>
-      <div class="sm">${l.length} fichas marcadas al darlas de alta</div></div>
-      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-    <div class="lista">${l.map(x => `<div class="item" style="cursor:default">
-      <span class="ic w">${x.pct ? x.pct + '%' : '?'}</span>
-      <span class="tx"><b>${esc(x.nombre)}</b>
-        <span class="sm">Código ${esc(x.codigo)} · ${esc(x.centro || '')} ${esc(x.municipio || '')}</span>
-        <span class="sm">${x.par_nombre ? 'Se parece a ' + esc(x.par_nombre) : 'Sin pareja identificada'}</span></span>
-      <span class="acts" style="margin:0">
-        ${x.par_id ? `<button class="btn" data-cmp="${x.id}|${x.par_id}">Comparar</button>` : ''}
-        <button class="btn sec" data-dficha="${x.id}">Ver ficha</button></span></div>`).join('')
-      || '<div class="vacio">No hay fichas pendientes de unificar.</div>'}</div>`;
-
-  $('dbody').querySelectorAll('[data-cmp]').forEach(b => b.onclick = () => {
-    const [a, c] = b.dataset.cmp.split('|'); compararFichas(a, c);
-  });
-  $('dbody').querySelectorAll('[data-dficha]').forEach(b => b.onclick = () => { $('dlg').close(); abrirFicha(b.dataset.dficha); });
-}
 
 
 

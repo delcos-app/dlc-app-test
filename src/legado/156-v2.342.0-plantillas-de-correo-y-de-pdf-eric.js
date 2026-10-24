@@ -103,18 +103,6 @@ disenoPDF = (orig => async function (...a) {
   return r;
 })(disenoPDF);
 
-/* v2.343.0 · El «+» flotante del móvil vuelve a la cabecera al pasar a tamaño de ordenador (aviso de Eric: «+ Añadir médico» se
-   quedaba debajo de la tabla tras usar el simulador de móvil o estrechar la ventana sin recargar). */
-function fabAOrdenador() {
-  if (ES_MOVIL()) return;
-  document.querySelectorAll('main > section .fab[data-txt], main > section .fab[data-plfab], main > section > button[data-plfab], main > section > button[data-txt]').forEach(f => {
-    const sec = f.closest('main > section'), acts = sec && sec.querySelector(':scope > .saludo .acts'); if (!acts) return;
-    const txt = f.dataset.txt || f.getAttribute('aria-label') || 'Añadir';
-    f.classList.remove('fab', 'plfuera'); delete f.dataset.plfab; delete f.dataset.txt;
-    f.innerHTML = plIco('plus') + ' ' + esc(txt.replace(/^\s*\+\s*/, ''));
-    acts.appendChild(f);
-  });
-}
 let FAB_RZ = 0;
 addEventListener('resize', () => { clearTimeout(FAB_RZ); FAB_RZ = setTimeout(() => { fabAOrdenador(); try { if (typeof plSync === 'function' && TAB) plSync(TAB); } catch (e) {} }, 120); });
 

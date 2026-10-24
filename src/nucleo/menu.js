@@ -151,3 +151,122 @@ function movMasOrden(l) {
   const o = menuPrefs().mas || [];
   return [...l].sort((x, y) => { const a = o.indexOf(x), b = o.indexOf(y); return (a < 0 ? 900 + movOrden(x) : a) - (b < 0 ? 900 + movOrden(y) : b); });
 }
+
+function aplicarPermisosMenuPaso1() {
+  document.querySelectorAll('nav.main [data-t]').forEach(b => {
+    const t = b.dataset.t; if (!(t in MODULO_AREA)) return;
+    const bloqueado = puedeModuloV2400(t) && !planIncluye(t);
+    b.classList.toggle('bloq', bloqueado);
+    if (bloqueado) { b.classList.remove('hide'); if (!b.querySelector('.cand')) b.insertAdjacentHTML('beforeend', '<span class="cand">🔒</span>'); }
+    else { const c = b.querySelector('.cand'); if (c) c.remove(); }
+  });
+}
+
+function aplicarPermisosMenuPaso2() {
+ iconosMenu();
+}
+
+function aplicarPermisosMenuPaso3() {
+ ordenarMenu(); const c = document.querySelector('nav.main [data-t="seguimiento"]'); if (c) c.classList.add('hide');
+}
+
+function aplicarPermisosMenuBase() {
+  document.querySelectorAll('nav.main [data-t]').forEach(b => {
+    if (b.dataset.t in MODULO_AREA) b.classList.toggle('hide', !puedeModulo(b.dataset.t));
+  });
+  if (typeof pintarBnav === 'function') pintarBnav();
+}
+
+function ordenarCabeceraMovil(sec) {
+  if (!ES_MOVIL() || !sec) return;
+  const sal = sec.querySelector(':scope > .saludo'); if (!sal || sal.dataset.movil) return;
+  const acts = sal.querySelector('.acts'); if (!acts) return;
+  sal.dataset.movil = '1';
+  const hijos = [...acts.children];
+  // Acción principal «+ …» como botón flotante
+  const principal = hijos.find(b => b.tagName === 'BUTTON' && !b.classList.contains('sec') && /^\s*\+/.test(b.textContent));
+  if (principal) {
+    principal.classList.add('fab'); principal.setAttribute('aria-label', principal.textContent.replace('+', '').trim());
+    // v2.95.0: el «+» es el icono de la biblioteca, no un carácter
+    principal.dataset.txt = principal.textContent.replace('+', '').trim(); principal.innerHTML = svgIco(ICON_NOM.plus);
+    sec.appendChild(principal);
+  }
+  // El resto, como fila de controles compactos del mismo tamaño
+  // Se mantiene la fila aunque quede vacía: otras partes añaden controles después (vista de agenda, equipo…)
+  acts.classList.add('chips'); [...acts.children].forEach(b => b.classList.add('chip'));
+}
+
+function ordenarMenu() {
+  const nav = document.querySelector('nav.main .in') || document.querySelector('nav.main'); if (!nav) return;
+  ORDEN_MENU.forEach(t => { const b = nav.querySelector(`:scope > [data-t="${t}"]`); if (b) nav.appendChild(b); });
+  const cal = nav.querySelector('[data-t="seguimiento"]'); if (cal) cal.classList.add('hide', 'fuera');
+  const dir = nav.querySelector('[data-t="directorio"]');
+  if (dir) [...dir.childNodes].forEach(n => { if (n.nodeType === 3 && /Directorio/.test(n.nodeValue)) n.nodeValue = n.nodeValue.replace('Directorio', `${TT('medico', 'p', '', 'l', 'C')}`); });
+}
+
+function candadoSecciones() {
+  Object.keys(PLAN_SECCIONES).forEach(t => document.querySelectorAll(`nav.main [data-t="${t}"], .bmasgrid [data-bm="${t}"]`).forEach(b => {
+    const bloq = !planIncluyeSeccion(t);
+    b.classList.toggle('bloq', bloq);
+    const c = b.querySelector('.cand');
+    if (bloq && !c && b.matches('nav.main [data-t]')) b.insertAdjacentHTML('beforeend', '<span class="cand">🔒</span>');
+    if (!bloq && c) c.remove();
+  }));
+}
+
+// «Personalizar menú»: candado, interruptor apagado y bloqueado, y la cuenta «N de M» sin lo que no entra
+function personalizarCandados() {
+  const caja = $('mlpanel'); if (!caja) return;
+  caja.querySelectorAll('.mlpi[data-k]').forEach(f => {
+    const b = document.querySelector(`#nav button[data-t="${f.dataset.k}"]`); if (!fueraDePlan(b)) return;
+    f.classList.add('off', 'fueraplan'); f.title = `No está incluido en tu plan ${PLAN_NOMBRE()}`;
+    const v = f.querySelector('[data-vk]'); if (v) { v.checked = false; v.disabled = true; }
+    if (!f.querySelector('.mlpcand')) f.querySelector('.mlpn').insertAdjacentHTML('afterend', `<span class="mlpcand" aria-label="No incluido en tu plan"></span>`);
+  });
+  caja.querySelectorAll('.mlpg').forEach(g => {
+    const fs = [...g.querySelectorAll('.mlpi[data-k]')], c = g.querySelector('.mlpcnt');
+    if (c) c.textContent = `${fs.filter(f => !f.classList.contains('off')).length} de ${fs.filter(f => !f.classList.contains('fueraplan')).length}`;
+  });
+}
+
+function aplicarNombresMenu() {
+  const mn = menuNombres();
+  document.querySelectorAll('nav.main [data-t], #bnav [data-t], .bmasgrid [data-bm]').forEach(b => {
+    const t = b.dataset.t || b.dataset.bm; if (!t || t === 'directorio' || /^pd-/.test(t)) return;
+    const x = txTexto(b); if (!x) return;
+    if (!b.dataset.txdef) b.dataset.txdef = x.get();
+    const n = mn[t] || b.dataset.txdef;
+    if (x.get() !== n) x.set(n);
+  });
+  // El título de la pantalla abierta
+  const t = typeof TAB !== 'undefined' ? TAB : null, b = t && document.querySelector(`nav.main [data-t="${t}"]`);
+  if (t && t !== 'directorio' && b && b.dataset.txdef) {
+    const h = document.querySelector(`#v-${t} .saludo h1, #v-${t} .pagcab h1`) || (t === 'ventas' && document.querySelector('#v-ventas .saludo h1'));
+    const tn = h && [...h.childNodes].find(x => x.nodeType === 3 && x.nodeValue.trim());
+    const n = mn[t] || b.dataset.txdef;
+    if (tn && (tn.nodeValue.trim() === b.dataset.txdef || Object.values(mn).includes(tn.nodeValue.trim())) && tn.nodeValue.trim() !== n) tn.nodeValue = tn.nodeValue.replace(tn.nodeValue.trim(), n);
+  }
+}
+
+/* ============================================================
+   v2.338.0 · Ventanas completas en el móvil (D-024; petición de Eric, 20/10/2026): #dlg, #dlg2 y #ficha ocupan toda la pantalla menos el
+   menú de abajo, sin esquinas y con su alto final desde que se abren (antes el pedido crecía en blanco mientras cargaba). --bnavh es el
+   alto del menú de abajo, medido.
+   ============================================================ */
+function medirBnav() {
+  const b = $('bnav'), h = b && getComputedStyle(b).display !== 'none' ? Math.round(b.getBoundingClientRect().height) : 0;
+  document.documentElement.style.setProperty('--bnavh', h + 'px');
+}
+
+/* v2.343.0 · El «+» flotante del móvil vuelve a la cabecera al pasar a tamaño de ordenador (aviso de Eric: «+ Añadir médico» se
+   quedaba debajo de la tabla tras usar el simulador de móvil o estrechar la ventana sin recargar). */
+function fabAOrdenador() {
+  if (ES_MOVIL()) return;
+  document.querySelectorAll('main > section .fab[data-txt], main > section .fab[data-plfab], main > section > button[data-plfab], main > section > button[data-txt]').forEach(f => {
+    const sec = f.closest('main > section'), acts = sec && sec.querySelector(':scope > .saludo .acts'); if (!acts) return;
+    const txt = f.dataset.txt || f.getAttribute('aria-label') || 'Añadir';
+    f.classList.remove('fab', 'plfuera'); delete f.dataset.plfab; delete f.dataset.txt;
+    f.innerHTML = plIco('plus') + ' ' + esc(txt.replace(/^\s*\+\s*/, ''));
+    acts.appendChild(f);
+  });
+}

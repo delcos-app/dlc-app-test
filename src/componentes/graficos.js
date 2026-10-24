@@ -62,3 +62,42 @@ function barrasReparto(items) {
     <div class="barrash reparto">${vis.map(x => `<div class="bh"><span class="bhn" title="${esc(x.n)}">${esc(x.n)}</span>
       <svg class="bhsvg" viewBox="0 0 100 12" preserveAspectRatio="none" aria-hidden="true"><rect class="f" width="100" height="12" rx="6"/><rect class="v" width="${Math.max(2, x.v / tot * 100).toFixed(1)}" height="12" rx="6"/></svg><b>${num(x.v)}</b><span class="sm bhp">${pc(x.v)}</span></div>`).join('')}</div>`;
 }
+
+function sparkUnidades(u, k) {
+  const s = k === 'semana' ? (u.semanas || []).map(x => [x.unidades, 'Semana del ' + fechaCorta(x.semana), fechaCorta(x.semana)])
+    : k === 'anio' ? (u.anios || []).map(x => [x.unidades, x.anio, x.anio])
+    : (u.meses || []).map(x => [x.unidades, periodoTxt(x.mes), periodoTxt(x.mes)]);
+  const max = Math.max(1, ...s.map(x => x[0]));
+  // v2.118.0: barra vacía como línea de base, la del periodo actual resaltada y las fechas de los extremos debajo
+  // (las fechas van como atributo de la primera y la última barra: el gráfico solo tiene barras)
+  return s.map(([n, t, c], i) => `<i class="${n ? '' : 'cero'}${i === s.length - 1 ? ' actual' : ''}" style="height:${Math.round(n / max * 100)}%" title="${esc(t)}: ${num(n)}"${i === 0 ? ` data-ini="${esc(c)}"` : ''}${i === s.length - 1 ? ` data-fin="${esc(c)}"` : ''}></i>`).join('');
+}
+
+function svgDonut(items) {
+  const tot = items.reduce((n, x) => n + x.v, 0) || 1, R = 70, C = 2 * Math.PI * R;
+  // v2.107.0: paleta de gráficos de la marca (validada para daltonismo); el gris, para el resto
+  const col = ['#3F82C0', '#E0762B', '#1BAF7A', '#6E5BC4', '#E0A400', '#D9618C', '#94A3B8'];
+  let acc = 0;
+  return `<div class="donutw"><svg viewBox="0 0 200 200" class="donut" role="img" aria-label="Reparto por producto">
+    <circle cx="100" cy="100" r="${R}" class="fondo"/>
+    ${items.map((x, i) => { const l = C * x.v / tot, s = `<circle cx="100" cy="100" r="${R}" stroke="${col[i % col.length]}" stroke-dasharray="${l} ${C - l}" stroke-dashoffset="${-acc}" class="arco"><title>${esc(x.n)}: ${num(x.v)} (${Math.round(x.v / tot * 100)}%)</title></circle>`; acc += l; return s; }).join('')}
+    <text x="100" y="96" class="dn1">${num(tot)}</text><text x="100" y="116" class="dn2">unidades</text></svg>
+    <div class="donutley">${items.map((x, i) => `<span><i style="background:${col[i % col.length]}"></i>${esc(x.n)} <b>${Math.round(x.v / tot * 100)}%</b></span>`).join('')}</div></div>`;
+}
+
+async function graficoCanal() {
+  const emb = [...document.querySelectorAll('#v-analitica .ancard')].find(c => /Embudo comercial/.test(c.querySelector('h2') ? c.querySelector('h2').textContent : ''));
+  if (!emb || $('ancanal')) return;
+  emb.insertAdjacentHTML('afterend', `<div class="card ancard" id="ancanal"><h2>Ventas por canal</h2><div class="cargandolocal" style="min-height:160px"></div>
+    <p class="leer"><b>Cómo leerlo:</b> qué parte de las unidades llega con ${TT('medico', 's', 'un', 'l', 'l')} de referencia y qué parte por venta directa a un centro.</p></div>`);
+  const { data } = await RPC_ORIG('analitica_tabla', { p_dim: 'canal', p_medida: 'unidades' });
+  const filas = (data && data.filas) || [], tot = filas.reduce((s, f) => s + (+f.total || 0), 0);
+  const cols = ['#3F82C0', '#E0762B', '#1BAF7A', '#6E5BC4'];   // v2.107.0: paleta de gráficos de la marca
+  let ang = 0;
+  const arcos = filas.map((f, i) => { const v = (+f.total || 0) / (tot || 1), a0 = ang, a1 = ang + v * 2 * Math.PI; ang = a1;
+    const p = t => [80 + 60 * Math.sin(t), 80 - 60 * Math.cos(t)], [x0, y0] = p(a0), [x1, y1] = p(a1 - 0.0001);
+    return `<path d="M80 80 L${x0} ${y0} A60 60 0 ${a1 - a0 > Math.PI ? 1 : 0} 1 ${x1} ${y1} Z" fill="${cols[i % 4]}"/>`; }).join('');
+  $('ancanal').querySelector('.cargandolocal').outerHTML = tot ? `<div class="donut"><svg viewBox="0 0 160 160" width="160" height="160">${arcos}<circle cx="80" cy="80" r="36" fill="#fff"/><text x="80" y="86" text-anchor="middle" font-size="18" font-weight="700" fill="#0B3A66">${num(tot)}</text></svg>
+      <div class="donutley">${filas.map((f, i) => `<div><i style="background:${cols[i % 4]}"></i><span>${esc(f.nombre)}</span><b>${num(f.total)}</b><span class="sm">${Math.round((+f.total || 0) / tot * 100)}%</span></div>`).join('')}</div></div>`
+    : vacioGrafico('Verás qué parte de las ventas llega por cada canal.');
+}

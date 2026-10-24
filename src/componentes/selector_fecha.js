@@ -32,3 +32,12 @@ function sinSelectorDelSistema(raiz) {
   if (raiz.matches && raiz.matches('input')) l.push(raiz);
   l.forEach(i => { if (/^(date|time|month|datetime-local)$/.test(i.type) && !i.closest('.selpop')) i.inert = true; });
 }
+
+function cerrarPickers(salvo) {
+  document.querySelectorAll('.picker .gsug').forEach(g => { if (!salvo || !salvo.contains(g)) g.classList.add('hide'); });
+}
+
+function cerrarSelector() {
+  if (SELPOP) { SELPOP.remove(); SELPOP = null; }
+  const d = $('seldlg'); if (d && d.open) d.close();
+}

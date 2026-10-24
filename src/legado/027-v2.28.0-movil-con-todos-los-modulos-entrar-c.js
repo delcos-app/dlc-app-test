@@ -34,9 +34,6 @@ const suplantando = () => { try { return JSON.parse(localStorage.getItem(SKEY) |
 // v2.117.0: «Entrar como otro usuario» es del plan A medida
 const puedeSuplantar = () => PERFIL && (puede('administrar') || ((PERFIL.areas || {}).U || 0) >= 3) && !suplantando() && PLAN_ACTUAL.plan === 'medida';
 
-function limpiarDatosLocales() {
-  try { Object.keys(localStorage).filter(k => /^dlc-(rc-|perfil|jornada-)/.test(k)).forEach(k => localStorage.removeItem(k)); } catch (e) {}
-}
 
 
 async function volverAMiSesion() {
@@ -48,15 +45,6 @@ async function volverAMiSesion() {
   location.reload();
 }
 
-function pintarBarraSuplantacion() {
-  const s = suplantando();
-  let b = $('barrasup');
-  if (!s) { if (b) b.remove(); return; }
-  if (!b) { document.body.insertAdjacentHTML('afterbegin', '<div id="barrasup"></div>'); b = $('barrasup'); }
-  b.innerHTML = `<span>👤 <b>Impersonalizando a ${esc(PERFIL ? PERFIL.nombre : s.como)}</b>${PERFIL ? ' · ' + esc(PERFIL.rol) : ''} · Sesión con su usuario: lo que hagas queda a su nombre</span>
-    <button class="btn chico" id="supvolver">↩ Terminar la impersonalización (${esc(nombrePila(s.nombre))})</button>`;
-  $('supvolver').onclick = volverAMiSesion;
-}
 
 document.addEventListener('click', e => {
   const b = e.target.closest('[data-ucomo]');
@@ -118,23 +106,6 @@ document.addEventListener('click', e => {
 
 /* ---------------- reglas de cartera ---------------- */
 
-async function editorReglasCartera() {
-  await cargarAjustes();
-  const excl = !AJUSTES.cartera || AJUSTES.cartera.exclusiva !== false;
-  $('dbody').innerHTML = `
-    <div class="fh"><div><h2>Reglas de cartera</h2><div class="sm">Cómo se reparten ${TT('medico', 'p', 'el', 'l', 'l')} entre el equipo</div></div>
-      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-    <label class="opt" style="margin-top:10px"><input type="checkbox" id="rcexcl" ${excl ? 'checked' : ''}>
-      <span><b>Cartera exclusiva</b><br><span class="sm">${TT('medico', 's', 'un', 'C', 'l')} solo puede estar en la cartera de una persona. Al asignarlo a alguien, sale de la cartera de quien lo tuviera.</span></span></label>
-    <p class="sm">Si la desactivas, ${TT('medico', 's', 'un', 'l', 'l')} podrá estar en varias carteras y administración verá una alerta «${TT('medico', 'p', '', 'l', 'C')} en más de una cartera» en Inicio.</p>
-    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>Cancelar</button><button class="btn" id="rcok">Guardar</button></div>`;
-  $('dlg').showModal();
-  $('rcok').onclick = async () => {
-    const { data: r, error } = await db.rpc('guardar_ajuste', { p_clave: 'cartera', p_valor: { exclusiva: $('rcexcl').checked } });
-    if (error || (r && r.ok === false)) { toast('No se ha podido guardar', true); return; }
-    AJUSTES.cartera = { exclusiva: $('rcexcl').checked }; $('dlg').close(); toast('Reglas guardadas');
-  };
-}
 
 pintarEquipo = (orig => async function () {
   await orig();
@@ -150,14 +121,6 @@ pintarEquipo = (orig => async function () {
 const avisoRevisita = () => Object.assign({ on: true, dias: 7 }, ((PERFIL.preferencias || {}).avisos || {}).revisita || {});
 
 
-/** Visitas o citas de estos médicos cerca de la fecha (sin contar ese mismo día). */
-async function recientesDe(ids, fecha) {
-  const a = avisoRevisita(); if (!a.on || !ids.length) return {};
-  const { data } = await db.rpc('actividades_recientes', { p_ids: ids, p_desde: isoMas(fecha, -(a.dias - 1)), p_hasta: isoMas(fecha, a.dias - 1) });
-  const por = {};
-  (data || []).filter(x => x.fecha !== fecha).forEach(x => (por[x.cuenta_id] = por[x.cuenta_id] || []).push(x));
-  return por;
-}
 const txtReciente = l => l.map(x => `${x.tipo === 'visita' ? 'visitado' : 'cita'} el ${fechaCorta(x.fecha)}${x.usuario ? ' (' + x.usuario + ')' : ''}`).join(', ');
 
 citaRepetida = (orig => async function (medicoId, fecha) {
@@ -196,56 +159,7 @@ async function cargarProductosModulo() {
 }
 
 
-async function pintarServicios() {
-  const esAdmin = puede('administrar');
-  cargando($('vcuerpo'), 'Cargando servicios…');
-  const { data } = await RPC_ORIG('productos_lista', { p_todos: esAdmin });
-  const l = (data || []).filter(p => p.tipo === 'servicio');
-  $('vcuerpo').innerHTML = `<div class="panel">
-    <div class="cuenta"><b>${num(l.filter(p => p.activo).length)}</b> servicios activos · Un pedido puede llevar un servicio (envío, portes urgentes…), que se suma con su propio IVA.</div>
-    <div class="dgrid-wrap"><div class="dgrid servs">
-      <div class="dh"><span>Servicio</span><span class="num">Sin IVA</span><span class="num">IVA</span><span class="num">Con IVA</span><span>En pedidos nuevos</span><span>Estado</span></div>
-      ${l.map(p => `<button class="dr" data-serv="${p.id}" style="${p.activo ? '' : 'opacity:.55'}">
-        <span><b>${esc(p.nombre)}</b></span><span class="num">${p.precio != null ? eurI(p.precio) : '—'}</span>
-        <span class="num">${num(p.iva || 0)}%</span><span class="num"><b>${p.pvp != null ? eurI(p.pvp) : '—'}</b></span>
-        <span>${p.por_defecto ? '<span class="pill p-est">Se propone por defecto</span>' : '<span class="vac">—</span>'}</span>
-        <span><span class="pill ${p.activo ? 'p-est' : 'p-anu'}">${p.activo ? 'Activo' : 'Inactivo'}</span></span></button>`).join('') || '<div class="vacio">Todavía no hay servicios.</div>'}
-    </div></div></div>`;
-  $('vcuerpo').querySelectorAll('[data-serv]').forEach(b => b.onclick = () => editorServicio(l.find(p => p.id === b.dataset.serv)));
-}
 
-function editorServicio(s) {
-  const esAdmin = puede('administrar');
-  s = s || { iva: 21, activo: true };
-  const ro = esAdmin ? '' : 'disabled';
-  $('dbody').innerHTML = `
-    <div class="fh"><div><h2>${s.id ? esc(s.nombre) : 'Nuevo servicio'}</h2>
-      <div class="sm">Escribe el precio sin IVA o con IVA: el otro se calcula solo. En cada pedido se puede cambiar.</div></div>
-      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-    <label for="svn">Nombre</label><input id="svn" value="${esc(s.nombre || '')}" placeholder="p. ej. Envío, Envío urgente" ${ro}>
-    <div class="pvp">
-      <div><label for="svs">Sin IVA (€)</label><input id="svs" type="number" step="0.01" min="0" value="${s.precio != null ? +(+s.precio).toFixed(4) : ''}" ${ro}></div>
-      <div><label for="svi">IVA (%)</label><input id="svi" type="number" step="1" min="0" max="21" value="${s.iva != null ? s.iva : 21}" ${ro}></div>
-      <div><label for="svc">Con IVA (€)</label><input id="svc" type="number" step="0.01" min="0" value="${s.precio != null ? r2(s.precio * (1 + (+s.iva || 0) / 100)) : ''}" ${ro}></div></div>
-    <label class="opt" style="margin-top:12px"><input type="checkbox" id="svdef" ${s.por_defecto ? 'checked' : ''} ${ro}> Proponerlo por defecto en los pedidos nuevos</label>
-    ${s.id ? `<label class="opt" style="margin-top:8px"><input type="checkbox" id="svact" ${s.activo ? 'checked' : ''} ${ro}> Activo</label>` : ''}
-    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>${esAdmin ? 'Cancelar' : 'Cerrar'}</button>
-      ${esAdmin ? `<button class="btn" id="svok">${s.id ? 'Guardar' : 'Crear servicio'}</button>` : ''}</div>`;
-  $('dlg').showModal();
-  if (!esAdmin) return;
-  const iva = () => (+$('svi').value || 0) / 100;
-  $('svs').oninput = () => { $('svc').value = $('svs').value === '' ? '' : r2(+$('svs').value * (1 + iva())); };
-  $('svc').oninput = () => { $('svs').value = $('svc').value === '' ? '' : +(+$('svc').value / (1 + iva())).toFixed(4); };
-  $('svi').oninput = () => { if ($('svs').value !== '') $('svc').value = r2(+$('svs').value * (1 + iva())); };
-  $('svok').onclick = async () => {
-    if (!$('svn').value.trim()) { toast('Escribe el nombre', true); return; }
-    const { data: r, error } = await db.rpc('guardar_producto', { p: { id: s.id || null, tipo: 'servicio', nombre: $('svn').value.trim(),
-      precio: $('svs').value, iva: $('svi').value, por_defecto: $('svdef').checked, ...($('svact') ? { activo: $('svact').checked } : {}) } });
-    if (error || (r && r.ok === false)) { toast('No se ha podido guardar', true); return; }
-    $('dlg').close(); toast(s.id ? 'Servicio guardado' : 'Servicio creado');
-    await cargarProductos(); if (TAB === 'productos') pintarServicios();
-  };
-}
 
 /* ---------------- Rutas: resumen como pantalla de entrada ---------------- */
 

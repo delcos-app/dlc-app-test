@@ -282,3 +282,45 @@ async function pintarAltasDelcos() {
     ${medias.length ? `<h3 class="pdh3">A medias</h3><p class="sm">Rellenaron el formulario pero no terminaron de poner la tarjeta. Puede valer la pena escribirles. Se borran solas a los 7 días.</p>${medias.map(fila).join('')}` : ''}
     <h3 class="pdh3">Completadas</h3>${hechas.map(fila).join('') || '<div class="vacio">Todavía no hay altas completadas desde la web.</div>'}</div>`;
 }
+
+/* v2.125.0 · Nueva venta y Oportunidades. Un solo recorrido para vender (antes «Registrar llamada» y «+ Nuevo pedido» por separado):
+   1 cliente (buscar o ficha nueva, con lo que ya sabemos de él), 2 qué quiere (productos y unidades, médico de referencia, cómo llegó),
+   3 cómo termina (pedido o motivo de no compra y cuándo volver a llamar). Con el extra «Oportunidades» de la organización, cada venta
+   queda registrada con su día y hora, lo que quería y cuánto, se cierre con pedido o no; sin él, el recorrido lleva al pedido. */
+// v2.242.0: aquí iba la primera versión de hayOportunidades (se redefine entera más abajo)
+function extraNombre(k) { return { oportunidades: 'Oportunidades', portal: 'Portal' }[k] || k; }
+
+// Panel delcos → Solicitudes
+async function pintarSolicitudesPlan() {
+  const c = $('cfgcuerpo'); if (!c) return;
+  c.innerHTML = `<div class="card cfgpanel"><div class="skel" style="width:40%"></div><div class="skel"></div></div>`;
+  const { data, error } = await RPC_ORIG('solicitudes_plan_lista', {});
+  if (!$('cfgcuerpo')) return;
+  const l = error ? [] : (data || []);
+  const f = v => new Date(v).toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' });
+  const cont = { correo: 'Por correo', llamada: 'Por teléfono', video: 'Videollamada' };
+  c.innerHTML = `<div class="card cfgpanel"><h2>Solicitudes de las empresas</h2>
+    <p class="sm">Presupuestos A medida y conversaciones sobre el contrato. Llegan también como aviso. Cambia el estado cuando las atiendas: la empresa lo ve en su Plan.</p>
+    ${error ? `<div class="banda-peligro">No se han podido leer: ${esc(error.message)}</div>` : ''}
+    <div class="presulista">${l.map((s, i) => { const d = s.datos || {};
+      return `<div class="presufila${s.estado === 'Cerrada' ? ' cerrada' : ''}">
+        <div class="presucab"><b>${esc(s.organizacion)}</b> <span class="pill p-est">${esc(planDe(s.plan).nombre)}</span>
+          <span class="pill ${s.estado === 'Nueva' ? 'p-warn' : s.estado === 'En curso' ? 'p-est' : 'p-anu'}">${esc(s.estado)}</span>
+          <span class="sm">${s.tipo === 'contrato' ? 'Contrato A medida' : 'Presupuesto A medida'} · ${f(s.creado_en)}</span></div>
+        ${(d.necesita_txt || []).length ? `<div class="chips">${d.necesita_txt.map(x => `<span class="chip">${esc(x)}</span>`).join('')}</div>` : ''}
+        ${d.programa ? `<div class="sm">Programa: <b>${esc(d.programa)}</b></div>` : ''}
+        ${d.mensaje ? `<p class="presumsg">${esc(d.mensaje)}</p>` : ''}
+        <div class="sm">${d.usuarios ? num(d.usuarios) + ' usuarios' : ''}${d.portal ? ' · ' + num(d.portal) + ' con portal' : ''}${d.cuando ? ' · ' + esc(d.cuando) : ''}</div>
+        <div class="sm">${esc(d.nombre || s.persona || '')}${d.correo ? ` · <a href="mailto:${esc(d.correo)}">${esc(d.correo)}</a>` : ''}${d.telefono ? ` · <a href="tel:${esc(d.telefono)}">${esc(d.telefono)}</a>` : ''}
+          · ${esc(cont[d.contacto] || '')}${d.horario ? ' (' + esc(d.horario) + ')' : ''}</div>
+        <div class="presuges"><select data-psest="${i}" aria-label="Estado">${['Nueva', 'En curso', 'Cerrada'].map(e => `<option ${s.estado === e ? 'selected' : ''}>${e}</option>`).join('')}</select>
+          <input data-psnota="${i}" placeholder="Nota interna (qué se ha hablado, próximos pasos…)" value="${esc(s.nota || '')}">
+          <button type="button" class="btn sec" data-psok="${i}">Guardar</button></div></div>`; }).join('')
+      || '<div class="vacio">Todavía no ha llegado ninguna solicitud.</div>'}</div></div>`;
+  c.querySelectorAll('[data-psok]').forEach(b => b.onclick = async () => {
+    const i = +b.dataset.psok, s = l[i];
+    const { data: r } = await RPC_ORIG('marcar_solicitud_plan', { p_id: s.id, p_estado: c.querySelector(`[data-psest="${i}"]`).value, p_nota: c.querySelector(`[data-psnota="${i}"]`).value });
+    toast(r && r.ok ? 'Solicitud actualizada' : 'No se ha podido guardar', !(r && r.ok));
+    if (r && r.ok) pintarSolicitudesPlan();
+  });
+}

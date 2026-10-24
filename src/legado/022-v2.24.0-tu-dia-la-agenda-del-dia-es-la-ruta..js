@@ -40,11 +40,6 @@ const salidaUsuario = () => prefsActivas().salida || { nombre: `la ${TT('visita'
 
 /** Orden por cercanía: las citas con hora fija marcan el esqueleto; las demás se insertan donde menos desvío suman. */
 
-async function guardarOrden(citas) {
-  const { data: r, error } = await db.rpc('ordenar_citas', { p_ids: citas.map(c => c.id) });
-  if (error || (r && r.ok === false)) { toast('No se ha podido guardar el orden', true); return false; }
-  return true;
-}
 
 
 /* ---------------- «Tu día» en la agenda ---------------- */
@@ -103,18 +98,6 @@ async function accionCita(k, c) {
   if (k === 'nueva') return nuevaFechaTrasNoEstaba(c);
 }
 
-async function nuevaFechaTrasNoEstaba(c) {
-  const prop = proximoDiaConsulta(c.dias, c.fecha);
-  const op = await elegirOpcion('¿Le buscamos otro día?', `${c.nombre}\n\nEl próximo día que atiende es el ${fechaLarga(new Date(prop + 'T00:00:00'))}.`,
-    [{ k: 'no', t: 'Ahora no', cls: 'sec' }, { k: 'otra', t: 'Elegir otra fecha', cls: 'sec' }, { k: 'prop', t: 'Cita el ' + fechaCorta(prop) }]);
-  if (!op) return;
-  let f = prop;
-  if (op === 'otra') { f = await pedirFecha('¿Qué día?', prop, { titulo: 'Nueva cita', ok: 'Crear cita' }); if (!f) return; }
-  const { data: r, error } = await db.rpc('guardar_cita', { p: { cuenta_id: c.cuenta_id, fecha: f, centro_nombre: c.centro_nombre,
-    estado: 'Planificada', origen: 'No estaba el ' + fechaCorta(c.fecha), op_id: 'ne-' + c.id + '-' + f } });
-  if (error || (r && r.ok === false)) { toast('No se ha podido crear la cita', true); return; }
-  toast('Nueva cita el ' + fechaCorta(f)); agRefrescoQuieto();
-}
 
 document.addEventListener('click', async e => {
   const b = e.target.closest('[data-td]');

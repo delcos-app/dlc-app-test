@@ -931,3 +931,44 @@ function tdPlegarTareas() {
 function tdCompacto() { try { return localStorage.getItem('delcos-tdcompacto') === '1'; } catch (e) { return false; } }
 
 function tdAplicarCompacto() { document.body.classList.toggle('tdcompacto', tdCompacto()); }
+
+async function guardarOrden(citas) {
+  const { data: r, error } = await db.rpc('ordenar_citas', { p_ids: citas.map(c => c.id) });
+  if (error || (r && r.ok === false)) { toast('No se ha podido guardar el orden', true); return false; }
+  return true;
+}
+
+async function nuevaFechaTrasNoEstaba(c) {
+  const prop = proximoDiaConsulta(c.dias, c.fecha);
+  const op = await elegirOpcion('¿Le buscamos otro día?', `${c.nombre}\n\nEl próximo día que atiende es el ${fechaLarga(new Date(prop + 'T00:00:00'))}.`,
+    [{ k: 'no', t: 'Ahora no', cls: 'sec' }, { k: 'otra', t: 'Elegir otra fecha', cls: 'sec' }, { k: 'prop', t: 'Cita el ' + fechaCorta(prop) }]);
+  if (!op) return;
+  let f = prop;
+  if (op === 'otra') { f = await pedirFecha('¿Qué día?', prop, { titulo: 'Nueva cita', ok: 'Crear cita' }); if (!f) return; }
+  const { data: r, error } = await db.rpc('guardar_cita', { p: { cuenta_id: c.cuenta_id, fecha: f, centro_nombre: c.centro_nombre,
+    estado: 'Planificada', origen: 'No estaba el ' + fechaCorta(c.fecha), op_id: 'ne-' + c.id + '-' + f } });
+  if (error || (r && r.ok === false)) { toast('No se ha podido crear la cita', true); return; }
+  toast('Nueva cita el ' + fechaCorta(f)); agRefrescoQuieto();
+}
+
+function cerrarMesCinta() { const m = $('agmes'); if (m) m.classList.remove('pop'); if ($('cmesb')) $('cmesb').setAttribute('aria-expanded', 'false'); }
+
+function asegurarEquipo() {
+  if (TAB !== 'agenda' || !VE_TODO()) return;
+  // Solo en la cabecera que se ve: mientras se repinta puede quedar una copia congelada con los mismos id
+  const acts = document.querySelector('#v-agenda > .saludo .acts'); if (!acts) return;
+  let sel = acts.querySelector('#agvista');
+  if (!sel) {
+    if (!COMS.length) { cargarComerciales().then(asegurarEquipo); return; }
+    acts.insertAdjacentHTML('afterbegin', `<select id="agvista" aria-label="Agenda de" title="Ver la agenda de otra persona">
+        <option value="">Mi agenda</option>${COMS.filter(u => u.id !== PERFIL.id).map(u => `<option value="${u.id}" ${AG_VISTA && AG_VISTA.id === u.id ? 'selected' : ''}>${esc(u.nombre)}</option>`).join('')}</select>`);
+    sel = acts.querySelector('#agvista');
+    sel.onchange = e => verAgendaDe(e.target.value);
+  }
+  let b = acts.querySelector('[data-ag="equipo"]');
+  if (!b) { sel.insertAdjacentHTML('afterend', '<button class="btn sec" data-ag="equipo">Equipo</button>'); b = acts.querySelector('[data-ag="equipo"]'); }
+  const eq = AG_MODO === 'equipo';
+  b.textContent = eq ? 'Mi agenda' : 'Equipo';
+  b.classList.toggle('sec', !eq);
+  b.title = eq ? 'Volver a tu agenda' : 'Ver el cumplimiento del equipo';
+}

@@ -475,3 +475,50 @@ function inicioCabecera() {
     }
   } catch (e) {}
 }
+
+async function vistazoHoy() {
+  const sal = document.querySelector('#v-inicio .saludo'); if (!sal) return;
+  const acts = sal.querySelector('.acts');
+  if (acts && !acts.dataset.ico) {
+    acts.dataset.ico = '1'; acts.classList.add('icoacts');
+  }
+  let v = $('vistazo');
+  if (!v) { sal.firstElementChild.insertAdjacentHTML('beforeend', '<div id="vistazo" class="vistazo"></div>'); v = $('vistazo'); }
+  if (ES_MEDICO()) return;
+  const citas = await citasDelDia(hoyISO());
+  const abiertas = citas.filter(c => CITA_ABIERTA.includes(c.estado)).sort((a, b) => (a.orden || 0) - (b.orden || 0) || String(a.hora || '').localeCompare(String(b.hora || '')));
+  const hechas = citas.filter(c => c.estado === 'Visitada').length, prox = abiertas[0];
+  if (!$('vistazo')) return;
+  v.innerHTML = citas.length
+    ? `<span><b>${num(citas.length)}</b> ${citas.length === 1 ? 'cita' : 'citas'} hoy · <b>${num(hechas)}</b> visitadas</span>
+       ${prox ? `<span class="prox">Próxima: <b>${esc(prox.medico || prox.nombre || '')}</b>${prox.hora ? ' · ' + String(prox.hora).slice(0, 5) : ''}</span>` : '<span class="prox">Día completado ✓</span>'}`
+    : `<span>Hoy no tienes citas.</span> <button class="lnk" data-irplan>Planifica tu día</button>`;
+  const b = v.querySelector('[data-irplan]'); if (b) b.onclick = () => ir('rutas');
+}
+
+function tarjeta(el, titulo, n, items, pie, vacio) {
+  el.innerHTML = `<h2>${titulo}${n != null ? `<span class="n">${num(n)}</span>` : ''}</h2>` +
+    (items.length ? `<div class="lista">${items.join('')}</div>` : `<div class="vacio">${vacio}</div>`) +
+    (pie && items.length ? pie : '');
+}
+
+async function cargarOcultas(forzar) {
+  if (ALERTAS_OCULTAS && !forzar) return ALERTAS_OCULTAS;
+  const { data } = await RPC_ORIG('mis_alertas_descartadas', {});
+  ALERTAS_OCULTAS = data || [];
+  return ALERTAS_OCULTAS;
+}
+
+async function verOcultas() {
+  const l = await cargarOcultas(true);
+  $('dbody').innerHTML = `<div class="fh"><div><h2>Alertas ocultas</h2><div class="sm">Las que ocultaste. Al recuperarlas vuelven a aparecer en Inicio si siguen pasando.</div></div>
+    <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
+    <div class="alcards">${l.map(x => `<div class="alcard"><div class="alc1"><b>${esc(x.detalle || x.clave)}</b>
+      <span class="pill ${x.hasta ? 'p-per' : 'p-anu'}">${x.hasta ? 'Hasta ' + fechaCorta(x.hasta) : 'Para siempre'}</span></div>
+      <div class="sm">${esc(x.titulo || '')}</div><button class="btn sec chico" data-alrec="${esc(x.clave)}">Recuperar</button></div>`).join('') || '<div class="vacio">No tienes alertas ocultas.</div>'}</div>`;
+  $('dlg').showModal();
+  $('dbody').querySelectorAll('[data-alrec]').forEach(b => b.onclick = async () => {
+    await db.rpc('restaurar_alerta', { p_clave: b.dataset.alrec }); b.closest('.alcard').remove(); ALERTAS_OCULTAS = null; toast('Recuperada');
+    if (TAB === 'inicio') cargarInicio();
+  });
+}

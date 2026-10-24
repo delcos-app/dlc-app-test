@@ -32,38 +32,6 @@ async function pintarSinAtribuir() {
   });
 }
 
-async function atribuir(lineaId, texto) {
-  const { data } = await db.rpc('resolver_cuenta', { p_texto: texto || '' });
-  const cand = data || [];
-  $('dbody').innerHTML = `
-    <div class="fh"><div><h2>Atribuir a ${TT('medico', 's', 'un', 'l', 'l')}</h2><div class="sm">Texto del pedido: ${esc(texto || '(vacío)')}</div></div>
-      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-    <label for="abusca">Buscar ${TT('medico', 's', '', 'l', 'l')}</label><input id="abusca" value="${esc(texto || '')}" placeholder="Código o nombre">
-    <div id="acand" class="lista">${cand.map(c => `<button class="item" data-am="${c.id}">
-      <span class="ic">${c.pct}%</span><span class="tx"><b>${esc(c.nombre)}</b><span class="sm">Código ${esc(c.codigo)}</span></span></button>`).join('')
-      || '<div class="vacio">Sin coincidencias. Escribe otro nombre o código.</div>'}</div>`;
-
-  const pintar = lista => {
-    $('acand').innerHTML = lista.length ? lista.map(c => `<button class="item" data-am="${c.id}">
-      <span class="ic">${c.pct}%</span><span class="tx"><b>${esc(c.nombre)}</b><span class="sm">Código ${esc(c.codigo)}</span></span></button>`).join('')
-      : '<div class="vacio">Sin coincidencias.</div>';
-    $('acand').querySelectorAll('[data-am]').forEach(b => b.onclick = async () => {
-      const { data: r, error } = await db.rpc('atribuir_linea', { p_linea: lineaId, p_medico: b.dataset.am });
-      if (error || (r && r.ok === false)) { toast('No se ha podido atribuir', true); return; }
-      $('dlg').close(); toast('Atribuido'); pintarSinAtribuir(); listaPedidos();
-    });
-  };
-  pintar(cand);
-  let t;
-  $('abusca').oninput = e => {
-    clearTimeout(t);
-    t = setTimeout(async () => {
-      const { data: d2 } = await db.rpc('resolver_cuenta', { p_texto: e.target.value });
-      pintar(d2 || []);
-    }, 300);
-  };
-  $('dlg').showModal();
-}
 
 /* ---------------- alta de pedido ---------------- */
 

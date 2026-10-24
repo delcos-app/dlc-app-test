@@ -30,13 +30,6 @@ window.addEventListener('resize', () => { if (TAB === 'config') cfgMovil(); });
 
 /* ---------------- ubicación de centros y consultas ---------------- */
 
-function rellenarDireccion(box, i, a) {
-  if (!a) return;
-  const set = (f, v) => { const el = box.querySelector(`[data-cf="${i}|${f}"]`); if (el && v && !el.value.trim()) el.value = v; };
-  set('direccion', [a.road, a.house_number].filter(Boolean).join(', '));
-  set('municipio', (a.city || a.town || a.village || a.municipality || '').toUpperCase());
-  set('cp', a.postcode || ''); set('provincia', (a.province || a.state_district || a.county || a.state || '').toUpperCase());
-}
 // Botones en cada consulta del editor de la ficha
 new MutationObserver(() => {
   const cons = $('econs'); if (!cons) return;

@@ -5,12 +5,6 @@
 
 /* ---------------- pantalla de carga a pantalla completa ---------------- */
 
-function pantallaCarga(msg) {
-  let o = $('cargatotal');
-  if (!o) { document.body.insertAdjacentHTML('beforeend', '<div id="cargatotal" class="cargatotal"></div>'); o = $('cargatotal'); }
-  o.innerHTML = `<div><span class="spin"></span><b>${esc(msg)}</b><span class="sm">Un momento: se está cargando todo de nuevo</span></div>`;
-  o.classList.remove('hide');
-}
 const quitarCarga = () => { const o = $('cargatotal'); if (o) o.classList.add('hide'); };
 
 
@@ -86,24 +80,8 @@ document.addEventListener('click', e => {
 let ANSEC = 'resumen';
 const MESES_C = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
 const mesTxt = m => MESES_C[+m.slice(5, 7) - 1] + ' ' + m.slice(2, 4);
-function mesesEntre(d, h) {
-  const out = []; const x = new Date(d.slice(0, 7) + '-01T12:00:00'), fin = new Date(h.slice(0, 7) + '-01T12:00:00');
-  while (x <= fin && out.length < 36) { out.push(fechaLocal(x).slice(0, 7)); x.setMonth(x.getMonth() + 1); }
-  return out;
-}
 
 
-function svgDonut(items) {
-  const tot = items.reduce((n, x) => n + x.v, 0) || 1, R = 70, C = 2 * Math.PI * R;
-  // v2.107.0: paleta de gráficos de la marca (validada para daltonismo); el gris, para el resto
-  const col = ['#3F82C0', '#E0762B', '#1BAF7A', '#6E5BC4', '#E0A400', '#D9618C', '#94A3B8'];
-  let acc = 0;
-  return `<div class="donutw"><svg viewBox="0 0 200 200" class="donut" role="img" aria-label="Reparto por producto">
-    <circle cx="100" cy="100" r="${R}" class="fondo"/>
-    ${items.map((x, i) => { const l = C * x.v / tot, s = `<circle cx="100" cy="100" r="${R}" stroke="${col[i % col.length]}" stroke-dasharray="${l} ${C - l}" stroke-dashoffset="${-acc}" class="arco"><title>${esc(x.n)}: ${num(x.v)} (${Math.round(x.v / tot * 100)}%)</title></circle>`; acc += l; return s; }).join('')}
-    <text x="100" y="96" class="dn1">${num(tot)}</text><text x="100" y="116" class="dn2">unidades</text></svg>
-    <div class="donutley">${items.map((x, i) => `<span><i style="background:${col[i % col.length]}"></i>${esc(x.n)} <b>${Math.round(x.v / tot * 100)}%</b></span>`).join('')}</div></div>`;
-}
 
 
 const vacioGrafico = t => `<div class="gvacio"><span>📊</span><b>Aún no hay datos para este gráfico</b><span class="sm">${esc(t)}</span></div>`;

@@ -150,16 +150,6 @@ HT_FILTROS.ventas = "#v-ventas .filtros";
 /* v2.144.0 · Páginas propias: la acción principal («+ Nuevo usuario», «+ Nueva organización») sube a la derecha de la cabecera, como
    «+ Nueva venta» en el resto de pantallas (regla de Eric: misma posición en todas). Antes iba dentro de la tarjeta, junto al buscador. */
 const ACCION_PAGINA = ['usrnuevo', 'orgnueva'];
-function subirAccionPagina() {
-  if (typeof PAGINAS === 'undefined' || !PAGINAS[TAB]) return;
-  const sec = $('v-' + TAB), sal = sec && sec.querySelector(':scope > .saludo'); if (!sal) return;
-  ACCION_PAGINA.forEach(id => {
-    const b = $(id); if (!b || !sec.contains(b) || b.closest('.saludo')) return;
-    let acts = sal.querySelector(':scope > .acts');
-    if (!acts) { sal.insertAdjacentHTML('beforeend', '<div class="acts htacts"></div>'); acts = sal.querySelector(':scope > .acts'); }
-    acts.appendChild(b);
-  });
-}
 let ACCION_PAG_PEND = false;
 new MutationObserver(() => {
   if (ACCION_PAG_PEND) return; ACCION_PAG_PEND = true;
@@ -175,175 +165,19 @@ new MutationObserver(() => {
 let RPROP = null;   // { manana, fecha, datos, lista: [{ sel, ini, fin, km, zona }] }
 const RP_JORNADA = 300;   // minutos de una jornada de propuestas (5 h) si la ruta no dice otra cosa
 const RP_DIAS = { L: 'lunes', M: 'martes', X: 'miércoles', J: 'jueves', V: 'viernes' };
-function rpMotivos() {
-  const g = terminoDe('medico').g === 'f' ? 'a' : 'o';
-  return {
-    urgente: ['urgente', 'urgentes', 'p-urg'],
-    consulta: ['atiende', 'atienden', 'p-est'],
-    interes: [TT('medico', 's', '', 'l', 'l', 'interesado'), TT('medico', 'p', '', 'l', 'l', 'interesado'), 'p-warn'],
-    pendiente: ['pendiente de otra ruta', 'pendientes de otras rutas', 'p-per'],
-    cliente: ['buen cliente sin ' + TT('visita', 's', '', 'l', 'l'), 'buenos clientes sin ' + TT('visita', 's', '', 'l', 'l'), 'p-est'],
-    nuevo: ['nunca visitad' + g, 'nunca visitad' + g + 's', 'p-anu']
-  };
-}
-function rpObjetivo(manana) {
-  const d = new Date(), finde = d.getDay() === 0 || d.getDay() === 6;
-  if (manana === undefined) manana = finde || d.getHours() * 60 + d.getMinutes() >= 13 * 60;
-  if (finde) manana = true;
-  return { manana, finde, fecha: manana ? siguienteLaborable() : hoyISO() };
-}
 const rpNombreDia = f => {
   const man = new Date(); man.setDate(man.getDate() + 1);
   return f === hoyISO() ? 'hoy' : f === isoLocal(man) ? 'mañana' : 'el ' + fechaLarga(new Date(f + 'T00:00:00')).replace(/,.*/, '');
 };
 
-// Tiempos de una propuesta con los minutos por visita y por parada de cada uno
-function rpTiempos(sel, t0) {
-  const cfg = PLANCFG(), sal = salidaUsuario();
-  let pos = sal.lat != null ? [+sal.lat, +sal.lon] : null, t = t0, kms = 0, paradas = 0;
-  sel.forEach(c => {
-    const xy = [+c.lat, +c.lon], mismo = pos && km(pos, xy) < 0.05;
-    if (!mismo) { if (pos) { t += minutosEntre(pos, xy); kms += km(pos, xy); } t += cfg.parada; paradas++; }
-    t += cfg.visita; pos = xy;
-  });
-  return { fin: t, km: kms, paradas };
-}
 
-// Arma hasta 3 rutas de un día: la zona con más puntos, y desde su mejor candidato se va sumando el que más vale a cada paso
-// (puntos menos 4 por km), sin salir de 25 km ni pasar de la jornada.
-function rpArmar(cand, obj) {
-  const cfg = PLANCFG(), sal = salidaUsuario();
-  const ahora = new Date(), minAhora = ahora.getHours() * 60 + ahora.getMinutes();
-  const t0 = obj.manana ? minHora(cfg.salida) : Math.max(minHora(cfg.salida), Math.ceil(minAhora / 5) * 5);
-  const tfin = Math.min(t0 + RP_JORNADA, 20 * 60);
-  const libres = new Set(cand.map(c => c.id)), lista = [];
-  for (let k = 0; k < 3; k++) {
-    const disp = cand.filter(c => libres.has(c.id));
-    if (!disp.length) break;
-    const porZona = {};
-    disp.forEach(c => { const z = c.municipio || '—'; (porZona[z] = porZona[z] || []).push(c); });
-    const zona = Object.entries(porZona).map(([z, l]) => [z, l.slice(0, 8).reduce((s, c) => s + +c.puntos, 0)]).sort((a, b) => b[1] - a[1])[0][0];
-    const sel = [porZona[zona][0]]; libres.delete(sel[0].id);
-    let pos = [+sel[0].lat, +sel[0].lon];
-    let t = t0 + (sal.lat != null ? minutosEntre([+sal.lat, +sal.lon], pos) : 0) + cfg.parada + cfg.visita;
-    for (;;) {
-      let mejor = null, mv = -Infinity, mt = 0;
-      cand.forEach(c => {
-        if (!libres.has(c.id)) return;
-        const xy = [+c.lat, +c.lon], d = km(pos, xy);
-        if (d > 25) return;
-        const dt = (d < 0.05 ? 0 : minutosEntre(pos, xy) + cfg.parada) + cfg.visita;
-        if (t + dt > tfin) return;
-        const v = +c.puntos - d * 4;
-        if (v > mv) { mv = v; mejor = c; mt = dt; }
-      });
-      if (!mejor) break;
-      sel.push(mejor); libres.delete(mejor.id); pos = [+mejor.lat, +mejor.lon]; t += mt;
-    }
-    if (sel.length < 2 && lista.length) break;
-    lista.push({ sel, ini: t0 });
-  }
-  return lista;
-}
 
-function rpZona(sel) {
-  const n = {};
-  sel.forEach(c => { if (c.municipio) n[c.municipio] = (n[c.municipio] || 0) + 1; });
-  const z = Object.entries(n).sort((a, b) => b[1] - a[1]).map(([m]) => rpTitulo(m));
-  return !z.length ? 'Sin municipio' : z.length === 1 ? z[0] : z.length === 2 ? z.join(' y ') : `${z[0]}, ${z[1]} y ${z.length - 2} más`;
-}
-function rpTitulo(s) { return String(s || '').toLowerCase().replace(/(^|[\s\-'·])(\p{L})/gu, (a, b, c) => b + c.toUpperCase()); }
 
-// Por qué esta propuesta: lo aprendido de las visitas y las compras
-function rpPorque(sel, dia) {
-  const media = k => sel.reduce((s, c) => s + (+c[k] || 0), 0) / sel.length;
-  const z = rpZona(sel), out = [];
-  if (dia && media('h_dia') >= 0.5) out.push(`Sueles ir a ${z} los ${RP_DIAS[dia]}`);
-  else if (media('h_zona') >= 0.5) out.push('Es una de tus zonas habituales');
-  const top = sel.filter(c => +c.h_venta >= 0.5).length;
-  if (top) out.push(top === 1 ? 'Incluye a uno de tus mejores clientes' : `Incluye a ${top} de tus mejores clientes`);
-  return out.join(' · ');
-}
 
-// Croquis: los puntos en orden y la línea que los une (sin cargar un mapa por tarjeta)
-function rpCroquis(sel) {
-  const W = 132, H = 92, P = 10, xs = sel.map(c => +c.lon), ys = sel.map(c => +c.lat);
-  const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
-  const esc2 = Math.min((W - 2 * P) / Math.max(x1 - x0, 1e-4), (H - 2 * P) / Math.max(y1 - y0, 1e-4));
-  const pt = c => [P + (+c.lon - x0) * esc2 + ((W - 2 * P) - (x1 - x0) * esc2) / 2, H - P - (+c.lat - y0) * esc2 - ((H - 2 * P) - (y1 - y0) * esc2) / 2];
-  const pts = sel.map(pt);
-  return `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" aria-hidden="true">
-    <polyline points="${pts.map(p => p.map(v => v.toFixed(1)).join(',')).join(' ')}" fill="none" stroke="#17457A" stroke-opacity=".45" stroke-width="2" stroke-linejoin="round"/>
-    ${pts.map((p, i) => `<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="${i ? 4 : 5.5}" fill="${(sel[i].motivos || []).includes('urgente') ? '#B42318' : '#17457A'}" stroke="#fff" stroke-width="1.5"/>`).join('')}
-  </svg>`;
-}
 
-function rpTarjeta(p, i) {
-  const M = rpMotivos(), cuenta = {};
-  p.sel.forEach(c => (c.motivos || []).forEach(m => { cuenta[m] = (cuenta[m] || 0) + 1; }));
-  const t = rpTiempos(p.sel, p.ini), n = p.sel.length;
-  const porque = rpPorque(p.sel, RPROP.datos.dia);
-  const chips = Object.keys(M).filter(k => cuenta[k]).map(k => `<span class="pill ${M[k][2]}">${cuenta[k]} ${cuenta[k] === 1 ? M[k][0] : M[k][1]}</span>`).join('');
-  return `<div class="rprop" data-rp="${i}">
-    <div class="rpcroq">${rpCroquis(p.sel)}</div>
-    <div class="rptx"><b class="rpzona"><span class="rpnum">${i + 1}</span>${esc(rpZona(p.sel))}</b>
-      <span class="sm">${n} ${n === 1 ? TT('medico', 's', '', 'l', 'l') : TT('medico', 'p', '', 'l', 'l')} · ${t.paradas} ${t.paradas === 1 ? 'parada' : 'paradas'} ·
-        ${hm(p.ini)}–${hm(t.fin)}${t.km >= 1 ? ' · ' + Math.round(t.km) + ' km' : ''}</span>
-      <span class="rpmot">${chips}</span>
-      ${porque ? `<span class="sm rpporque">${esc(porque)}</span>` : ''}</div>
-    <div class="acts rpacts"><button class="btn sec" type="button" data-rpver="${i}" aria-expanded="false">Ver ${TT('medico', 'p', '', 'l', 'l')}</button>
-      <button class="btn sec" type="button" data-rpplan="${i}">Planificar</button>
-      <button class="btn" type="button" data-rpag="${i}">A mi agenda</button></div>
-    <div class="rplista" hidden>${p.sel.map(c => `<div class="rpit">
-      <button type="button" class="lnkmed" data-rpficha="${c.id}">${esc(c.nombre)}</button>
-      <span class="sm">${esc([c.centro_nombre, rpTitulo(c.municipio)].filter(Boolean).join(' · '))}</span>
-      <span class="rpmot">${(c.motivos || []).map(m => `<span class="pill ${M[m][2]}">${M[m][0]}</span>`).join('')}</span>
-      <button type="button" class="x rpquitar" data-rpquitar="${i}|${c.id}" title="Quitar de la propuesta" aria-label="Quitar ${esc(c.nombre)}">✕</button></div>`).join('')}</div>
-  </div>`;
-}
 
-function rpPintar() {
-  const caja = $('rprops'); if (!caja || !RPROP) return;
-  const o = RPROP, d = o.datos || {}, quien = rpNombreDia(o.fecha);
-  const man = siguienteLaborable(), etMan = rpNombreDia(man).replace(/^el /, '');
-  const aprende = (d.aprendido || {}).visitas ? `Tienen en cuenta tus ${num(d.aprendido.visitas)} ${TT('visita', 'p', '', 'l', 'l')} de los últimos 4 meses y quién compra más.`
-    : `Aprenden de tus ${TT('visita', 'p', '', 'l', 'l')} y de quién compra más a medida que uses la app.`;
-  caja.innerHTML = `<div class="fh"><div><h2>Propuestas para ${quien}</h2><div class="sm">${aprende}</div></div>
-      <div class="segs" id="rpdia" role="group" aria-label="Día">${o.finde ? '' : `<button type="button" data-rpd="hoy" class="${o.manana ? '' : 'on'}" aria-pressed="${!o.manana}">Hoy</button>`}
-        <button type="button" data-rpd="man" class="${o.manana ? 'on' : ''}" aria-pressed="${o.manana}">${etMan.replace(/^./, c => c.toUpperCase())}</button></div></div>
-    ${o.lista.length ? o.lista.map(rpTarjeta).join('')
-      : `<div class="vacio">No hay a nadie a quien convenga ir ${quien}: ni urgentes, ni quien atienda ese día, ni ${TT('medico', 'p', '', 'l', 'l', 'interesado')} sin ${TT('visita', 's', '', 'l', 'l')}.
-          ${o.manana ? '' : 'Prueba con el día siguiente.'}</div>`}`;
-  caja.querySelectorAll('[data-rpd]').forEach(b => b.onclick = () => rpCargar(b.dataset.rpd === 'man'));
-  caja.querySelectorAll('[data-rpver]').forEach(b => b.onclick = () => {
-    const l = b.closest('.rprop').querySelector('.rplista'); l.hidden = !l.hidden; b.setAttribute('aria-expanded', String(!l.hidden));
-    b.textContent = l.hidden ? `Ver ${TT('medico', 'p', '', 'l', 'l')}` : 'Ocultar';
-  });
-  caja.querySelectorAll('[data-rpficha]').forEach(b => b.onclick = () => abrirFicha(b.dataset.rpficha));
-  caja.querySelectorAll('[data-rpquitar]').forEach(b => b.onclick = () => {
-    const [i, id] = b.dataset.rpquitar.split('|'), p = o.lista[+i];
-    p.sel = p.sel.filter(c => c.id !== id);
-    if (!p.sel.length) o.lista.splice(+i, 1);
-    const abierta = !p.sel.length ? null : +i;
-    rpPintar();
-    if (abierta != null) { const v = caja.querySelector(`[data-rpver="${abierta}"]`); if (v) v.click(); }
-  });
-  caja.querySelectorAll('[data-rpplan]').forEach(b => b.onclick = () => rpPlan(+b.dataset.rpplan, b));
-  caja.querySelectorAll('[data-rpag]').forEach(b => b.onclick = () => rpAgenda(+b.dataset.rpag, b));
-}
 
-async function rpPlan(i, btn) {
-  const p = rpPlanDe(i); if (!p) return;
-  await construirPlan(p.sel, 'prop' + (i + 1), btn, { manana: RPROP.manana, horario: null });
-}
 
-async function rpCargar(manana) {
-  const obj = rpObjetivo(manana);
-  const { data, error } = await db.rpc('rutas_candidatos', { p_fecha: obj.fecha });
-  if (error) { if ($('rprops')) $('rprops').innerHTML = `<div class="vacio">No se han podido calcular las propuestas: ${esc(error.message)}</div>`; return; }
-  RPROP = Object.assign(obj, { datos: data || {}, lista: rpArmar((data || {}).candidatos || [], obj) });
-  rpPintar();
-}
 
 
 cargarRutasBase = async function () {

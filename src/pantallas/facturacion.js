@@ -407,3 +407,5 @@ async function elegirPlantillaPDF() {
   if (!k) return false;
   PDF_ELEGIDO = k; return true;
 }
+
+function emitir(inp) { inp.dispatchEvent(new Event('input', { bubbles: true })); inp.dispatchEvent(new Event('change', { bubbles: true })); }

@@ -109,15 +109,6 @@ const minutosEntre = (a, b) => { if (!a || !b || a[0] == null || b[0] == null) r
   return Math.max(6, Math.round(Math.min(d, 30) / 40 * 60 + Math.max(d - 30, 0) / 100 * 60) + 5); };
 const hm = m => String(Math.floor(m / 60) % 24).padStart(2, '0') + ':' + String(Math.round(m) % 60).padStart(2, '0');
 
-async function planificar(rutaId, btn) {
-  const orig = btn.textContent; btn.disabled = true; btn.textContent = 'Calculando…';
-  const { data, error } = await db.rpc('cuentas_de_ruta', { p_id: rutaId });
-  btn.disabled = false; btn.textContent = orig;
-  if (error) { toast('No se ha podido planificar: ' + error.message, true); return; }
-  const conXY = (data || []).filter(m => m.lat && m.lon);
-  if (!conXY.length) { toast(`Esta ruta no tiene ${TT('medico', 'p', '', 'l', 'l')} con ubicación`, true); return; }
-  construirPlan(conXY, rutaId, btn);
-}
 
 /* pintarPlan: la parte base y, en orden, cada paso que se le añade (antes eran 6 capas separadas). */
 function pintarPlan() {

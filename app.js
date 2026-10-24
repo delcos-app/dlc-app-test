@@ -21,6 +21,42 @@ function avisosEnVivo() {
       .subscribe();
   } catch (e) { VIVO = null; }
 }
+// nucleo/idioma.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
+// Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
+
+function prepararIdioma(id) {
+  IDIOMA = LOCALES[id] ? id : 'es'; document.documentElement.lang = IDIOMA;
+  const i = IDIOMAS.findIndex(x => x[0] === IDIOMA);
+  MAPA_I18N = null; if (i <= 0) return;
+  MAPA_I18N = new Map();
+  const may = t => t.charAt(0).toUpperCase() + t.slice(1), min = t => t.charAt(0).toLowerCase() + t.slice(1);
+  I18N.forEach(r => { MAPA_I18N.set(r[0], r[i]); MAPA_I18N.set(min(r[0]), min(r[i])); MAPA_I18N.set(may(r[0]), may(r[i])); });
+}
+
+function traducirTexto(t) {
+  if (!MAPA_I18N) return null;
+  const k = t.trim(); if (!k || k.length > 90) return null;
+  const v = MAPA_I18N.get(k); if (v) return t.replace(k, v);
+  const m = k.match(/^(Buenos días|Buenas tardes|Buenas noches), (.+)$/);
+  if (m && SALUDOS[IDIOMA]) return t.replace(k, SALUDOS[IDIOMA][['Buenos días', 'Buenas tardes', 'Buenas noches'].indexOf(m[1])] + ', ' + m[2]);
+  return null;
+}
+
+function traducir(raiz) {
+  if (!MAPA_I18N || !raiz) return;
+  const w = document.createTreeWalker(raiz, NodeFilter.SHOW_TEXT, { acceptNode: n => n.parentElement && n.parentElement.closest('script,style,textarea,[data-notr]') ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT });
+  const nodos = []; while (w.nextNode()) nodos.push(w.currentNode);
+  nodos.forEach(n => { const v = traducirTexto(n.nodeValue); if (v != null && v !== n.nodeValue) n.nodeValue = v; });
+  (raiz.querySelectorAll ? raiz.querySelectorAll('[placeholder],[title],[aria-label]') : []).forEach(e => ['placeholder', 'title', 'aria-label'].forEach(a => {
+    const x = e.getAttribute(a); if (!x) return; const v = traducirTexto(x); if (v != null && v !== x) e.setAttribute(a, v);
+  }));
+}
+
+function aplicarIdioma(id) {
+  prepararIdioma(id);
+  try { localStorage.setItem('app-idioma', IDIOMA); } catch (e) {}
+  if (MAPA_I18N) traducir(document.body);
+}
 // nucleo/menu.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -174,6 +210,125 @@ function movMasOrden(l) {
   const o = menuPrefs().mas || [];
   return [...l].sort((x, y) => { const a = o.indexOf(x), b = o.indexOf(y); return (a < 0 ? 900 + movOrden(x) : a) - (b < 0 ? 900 + movOrden(y) : b); });
 }
+
+function aplicarPermisosMenuPaso1() {
+  document.querySelectorAll('nav.main [data-t]').forEach(b => {
+    const t = b.dataset.t; if (!(t in MODULO_AREA)) return;
+    const bloqueado = puedeModuloV2400(t) && !planIncluye(t);
+    b.classList.toggle('bloq', bloqueado);
+    if (bloqueado) { b.classList.remove('hide'); if (!b.querySelector('.cand')) b.insertAdjacentHTML('beforeend', '<span class="cand">🔒</span>'); }
+    else { const c = b.querySelector('.cand'); if (c) c.remove(); }
+  });
+}
+
+function aplicarPermisosMenuPaso2() {
+ iconosMenu();
+}
+
+function aplicarPermisosMenuPaso3() {
+ ordenarMenu(); const c = document.querySelector('nav.main [data-t="seguimiento"]'); if (c) c.classList.add('hide');
+}
+
+function aplicarPermisosMenuBase() {
+  document.querySelectorAll('nav.main [data-t]').forEach(b => {
+    if (b.dataset.t in MODULO_AREA) b.classList.toggle('hide', !puedeModulo(b.dataset.t));
+  });
+  if (typeof pintarBnav === 'function') pintarBnav();
+}
+
+function ordenarCabeceraMovil(sec) {
+  if (!ES_MOVIL() || !sec) return;
+  const sal = sec.querySelector(':scope > .saludo'); if (!sal || sal.dataset.movil) return;
+  const acts = sal.querySelector('.acts'); if (!acts) return;
+  sal.dataset.movil = '1';
+  const hijos = [...acts.children];
+  // Acción principal «+ …» como botón flotante
+  const principal = hijos.find(b => b.tagName === 'BUTTON' && !b.classList.contains('sec') && /^\s*\+/.test(b.textContent));
+  if (principal) {
+    principal.classList.add('fab'); principal.setAttribute('aria-label', principal.textContent.replace('+', '').trim());
+    // v2.95.0: el «+» es el icono de la biblioteca, no un carácter
+    principal.dataset.txt = principal.textContent.replace('+', '').trim(); principal.innerHTML = svgIco(ICON_NOM.plus);
+    sec.appendChild(principal);
+  }
+  // El resto, como fila de controles compactos del mismo tamaño
+  // Se mantiene la fila aunque quede vacía: otras partes añaden controles después (vista de agenda, equipo…)
+  acts.classList.add('chips'); [...acts.children].forEach(b => b.classList.add('chip'));
+}
+
+function ordenarMenu() {
+  const nav = document.querySelector('nav.main .in') || document.querySelector('nav.main'); if (!nav) return;
+  ORDEN_MENU.forEach(t => { const b = nav.querySelector(`:scope > [data-t="${t}"]`); if (b) nav.appendChild(b); });
+  const cal = nav.querySelector('[data-t="seguimiento"]'); if (cal) cal.classList.add('hide', 'fuera');
+  const dir = nav.querySelector('[data-t="directorio"]');
+  if (dir) [...dir.childNodes].forEach(n => { if (n.nodeType === 3 && /Directorio/.test(n.nodeValue)) n.nodeValue = n.nodeValue.replace('Directorio', `${TT('medico', 'p', '', 'l', 'C')}`); });
+}
+
+function candadoSecciones() {
+  Object.keys(PLAN_SECCIONES).forEach(t => document.querySelectorAll(`nav.main [data-t="${t}"], .bmasgrid [data-bm="${t}"]`).forEach(b => {
+    const bloq = !planIncluyeSeccion(t);
+    b.classList.toggle('bloq', bloq);
+    const c = b.querySelector('.cand');
+    if (bloq && !c && b.matches('nav.main [data-t]')) b.insertAdjacentHTML('beforeend', '<span class="cand">🔒</span>');
+    if (!bloq && c) c.remove();
+  }));
+}
+
+// «Personalizar menú»: candado, interruptor apagado y bloqueado, y la cuenta «N de M» sin lo que no entra
+function personalizarCandados() {
+  const caja = $('mlpanel'); if (!caja) return;
+  caja.querySelectorAll('.mlpi[data-k]').forEach(f => {
+    const b = document.querySelector(`#nav button[data-t="${f.dataset.k}"]`); if (!fueraDePlan(b)) return;
+    f.classList.add('off', 'fueraplan'); f.title = `No está incluido en tu plan ${PLAN_NOMBRE()}`;
+    const v = f.querySelector('[data-vk]'); if (v) { v.checked = false; v.disabled = true; }
+    if (!f.querySelector('.mlpcand')) f.querySelector('.mlpn').insertAdjacentHTML('afterend', `<span class="mlpcand" aria-label="No incluido en tu plan"></span>`);
+  });
+  caja.querySelectorAll('.mlpg').forEach(g => {
+    const fs = [...g.querySelectorAll('.mlpi[data-k]')], c = g.querySelector('.mlpcnt');
+    if (c) c.textContent = `${fs.filter(f => !f.classList.contains('off')).length} de ${fs.filter(f => !f.classList.contains('fueraplan')).length}`;
+  });
+}
+
+function aplicarNombresMenu() {
+  const mn = menuNombres();
+  document.querySelectorAll('nav.main [data-t], #bnav [data-t], .bmasgrid [data-bm]').forEach(b => {
+    const t = b.dataset.t || b.dataset.bm; if (!t || t === 'directorio' || /^pd-/.test(t)) return;
+    const x = txTexto(b); if (!x) return;
+    if (!b.dataset.txdef) b.dataset.txdef = x.get();
+    const n = mn[t] || b.dataset.txdef;
+    if (x.get() !== n) x.set(n);
+  });
+  // El título de la pantalla abierta
+  const t = typeof TAB !== 'undefined' ? TAB : null, b = t && document.querySelector(`nav.main [data-t="${t}"]`);
+  if (t && t !== 'directorio' && b && b.dataset.txdef) {
+    const h = document.querySelector(`#v-${t} .saludo h1, #v-${t} .pagcab h1`) || (t === 'ventas' && document.querySelector('#v-ventas .saludo h1'));
+    const tn = h && [...h.childNodes].find(x => x.nodeType === 3 && x.nodeValue.trim());
+    const n = mn[t] || b.dataset.txdef;
+    if (tn && (tn.nodeValue.trim() === b.dataset.txdef || Object.values(mn).includes(tn.nodeValue.trim())) && tn.nodeValue.trim() !== n) tn.nodeValue = tn.nodeValue.replace(tn.nodeValue.trim(), n);
+  }
+}
+
+/* ============================================================
+   v2.338.0 · Ventanas completas en el móvil (D-024; petición de Eric, 20/10/2026): #dlg, #dlg2 y #ficha ocupan toda la pantalla menos el
+   menú de abajo, sin esquinas y con su alto final desde que se abren (antes el pedido crecía en blanco mientras cargaba). --bnavh es el
+   alto del menú de abajo, medido.
+   ============================================================ */
+function medirBnav() {
+  const b = $('bnav'), h = b && getComputedStyle(b).display !== 'none' ? Math.round(b.getBoundingClientRect().height) : 0;
+  document.documentElement.style.setProperty('--bnavh', h + 'px');
+}
+
+/* v2.343.0 · El «+» flotante del móvil vuelve a la cabecera al pasar a tamaño de ordenador (aviso de Eric: «+ Añadir médico» se
+   quedaba debajo de la tabla tras usar el simulador de móvil o estrechar la ventana sin recargar). */
+function fabAOrdenador() {
+  if (ES_MOVIL()) return;
+  document.querySelectorAll('main > section .fab[data-txt], main > section .fab[data-plfab], main > section > button[data-plfab], main > section > button[data-txt]').forEach(f => {
+    const sec = f.closest('main > section'), acts = sec && sec.querySelector(':scope > .saludo .acts'); if (!acts) return;
+    const txt = f.dataset.txt || f.getAttribute('aria-label') || 'Añadir';
+    f.classList.remove('fab', 'plfuera'); delete f.dataset.plfab; delete f.dataset.txt;
+    f.innerHTML = plIco('plus') + ' ' + esc(txt.replace(/^\s*\+\s*/, ''));
+    acts.appendChild(f);
+  });
+}
 // nucleo/navegacion.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -219,6 +374,105 @@ function cometa() {
 }
 
 function tabDelMenu() { return TAB === 'ventas' && typeof PEDSEC !== 'undefined' && SUBSEC_MENU[pedsecVista()] ? SUBSEC_MENU[pedsecVista()] : TAB; }
+
+// 2. «Estable»: sin consultas pendientes y sin cambios en el elemento durante 120 ms (como mucho, el tiempo indicado)
+function estable(el, max = 4000, desde) {
+  return new Promise(res => {
+    // Las esperas se miden con el cronómetro interno del navegador (siempre avanza; el reloj puede saltar)
+    const t0 = desde || Date.now() - 5, p0 = performance.now(); let ultimo = p0 - 5, fin = false;
+    // Cuentan los cambios dentro del elemento (no los de su propia clase, que son los del mecanismo de carga)
+    const mo = new MutationObserver(ms => { if (ms.some(m => m.target !== el && !cambioDeCifra(m))) ultimo = performance.now(); });   // v2.269.0
+    mo.observe(el, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'style'] });
+    const listo = () => { if (fin) return; fin = true; mo.disconnect(); res(); };
+    // Pantalla ya cargada: si al terminar la tarea actual no hay consultas ni cambios, se muestra al momento
+    // Una pantalla con esqueletos de carga (recuadros «Cargando…») todavía no está lista
+    const conEsqueletos = () => !!el.querySelector('.skel, .ksk, .cargandolocal');
+    setTimeout(() => { if (pendientesDesde(t0) === 0 && ultimo <= p0 && !conEsqueletos()) listo(); }, 0);
+    const w = setInterval(() => {
+      if (fin) { clearInterval(w); return; }
+      // Solo las consultas lanzadas desde que empezó (las que ya estaban en curso, como la campana, no cuentan)
+      // …y con un respiro de 120 ms desde el último cambio y desde la última consulta terminada (las encadenadas no se toman por el final)
+      const ya = performance.now();
+      if ((pendientesDesde(t0) === 0 && ya - Math.max(ultimo, RED_ULTIMO_FIN) >= 50 && !conEsqueletos()) || ya - p0 > max) { clearInterval(w); listo(); }   // v2.269.0: 50 ms (antes 120)
+    }, 15);
+  });
+}
+
+function pantallaTrasF5() {
+  let v = null;
+  try { v = JSON.parse(sessionStorage.getItem('dlc-f5') || 'null'); sessionStorage.removeItem('dlc-f5'); } catch (x) { v = null; }
+  // Solo si se acaba de pulsar (una recarga horas después, o desde el botón del navegador, entra por el inicio)
+  return v && v.t && Date.now() - (v.h || 0) < 60000 ? v : null;
+}
+
+function nombrePantalla(t) {
+  const b = document.querySelector(`nav.main [data-t="${t}"]`);
+  const n = (b && b.textContent.trim()) || (typeof PAGINAS !== 'undefined' && PAGINAS[t] && PAGINAS[t].t) || (t === 'config' ? 'Configuración' : '');
+  return n || 'donde estabas';
+}
+
+/* ============================================================
+   v2.269.0 · Cargas rápidas, filtros que se mantienen y notas en Pedidos (petición de Eric, 11/10/2026; necesita el SQL 144).
+   - Las pantallas se enseñan antes: «estable» espera 50 ms sin cambios (antes 120), mira cada 15 ms (antes 30) y no espera a las
+     cifras que cuentan (Analítica esperaba ~1 s oculta a que terminaran sus indicadores). Con el SQL 144
+     las consultas lentas bajan a 20-60 ms.
+   - Los indicadores de una lista solo se piden en su pantalla (los de Clientes se pedían también en Pedidos, Compras, Productos…).
+   - Los filtros de las listas (los de la fila de filtros y los propios del panel «Filtros») se recuerdan: si la pantalla se vuelve a pintar (al guardar un pedido,
+     al volver a ella…) salen con lo que tenías puesto, hasta que los quites tú.
+   - Pedidos: columna «Notas».
+   ============================================================ */
+// Una cifra que se anima al contar (solo cambia su texto, y son números) no es «la pantalla sigue cargando»: antes, en Analítica,
+// la pantalla esperaba oculta ~1 s a que terminaran de contar los indicadores
+function cambioDeCifra(m) {
+  if (m.type !== 'childList') return false;
+  const ns = [...m.addedNodes, ...m.removedNodes];
+  return ns.length > 0 && ns.every(n => n.nodeType === 3) && /^[\d.,\s%€+\-−]*$/.test(m.target.textContent || '');
+}
+
+function refrescarDebajo() {
+  if (document.querySelector('dialog[open]')) { DATOS_CAMBIADOS = true; return; }
+  DATOS_CAMBIADOS = false;
+  if (TAB === 'agenda' && $('agcuerpo')) agRefrescoQuieto(null, { cifras: false });
+  else if (TAB === 'directorio' && typeof buscar === 'function') buscar(true);
+}
+
+// v2.92.0: la pantalla recién revelada llega con un fundido corto (las repintadas posteriores no se animan)
+function llegar(el) {
+  if (!el || !el.matches('main > section')) return;
+  el.classList.remove('llega'); void el.offsetWidth; el.classList.add('llega');
+  clearTimeout(el._llega); el._llega = setTimeout(() => el.classList.remove('llega'), 700);
+}
+
+function subirAccionPagina() {
+  if (typeof PAGINAS === 'undefined' || !PAGINAS[TAB]) return;
+  const sec = $('v-' + TAB), sal = sec && sec.querySelector(':scope > .saludo'); if (!sal) return;
+  ACCION_PAGINA.forEach(id => {
+    const b = $(id); if (!b || !sec.contains(b) || b.closest('.saludo')) return;
+    let acts = sal.querySelector(':scope > .acts');
+    if (!acts) { sal.insertAdjacentHTML('beforeend', '<div class="acts htacts"></div>'); acts = sal.querySelector(':scope > .acts'); }
+    acts.appendChild(b);
+  });
+}
+
+function vistaBoton(v, d0) {
+  const d = d0 || (v && v.dlg); if (!d || !d.open || !VUELTA.length || d.querySelector('.vueltabtn')) return;
+  const fh = d.querySelector('.fh'); if (!fh) return;
+  const ant = VUELTA[VUELTA.length - 1];
+  const t = fh.firstElementChild, dentro = t && t.tagName !== 'BUTTON' && !t.matches('h2') ? t : fh;
+  dentro.insertAdjacentHTML('afterbegin', `<button type="button" class="btn sec chico vueltabtn" title="Volver a ${esc(VISTA_TITULO[ant.fn] || 'la ventana anterior')}">‹ Volver</button>`);
+}
+// nucleo/notificaciones.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
+// Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
+
+async function refrescarCampana() {
+  if (!PERFIL || document.body.classList.contains('sin-sesion')) return;
+  const { data } = await RPC_ORIG('mis_notificaciones', { lim: 30 });
+  const d = data || {}; NOTIF_N = d.sin_leer || 0;
+  let b = $('mdavisos');
+  if (!b) { const u = $('ubtn'); if (!u) return; u.insertAdjacentHTML('beforebegin', '<button class="mdavisos" id="mdavisos" aria-label="Notificaciones"></button>'); b = $('mdavisos'); }
+  b.innerHTML = `🔔${NOTIF_N ? `<span class="nb2">${NOTIF_N > 9 ? '9+' : NOTIF_N}</span>` : ''}`;
+  b.onclick = () => panelNotificaciones(d.lista || []);
+}
 // nucleo/sesion.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -267,6 +521,25 @@ async function comprobarAcceso(forzar) {
   try { limpiarDatosLocales(); } catch (e) {}
   try { await db.auth.signOut(); } catch (e) {}
   location.reload();
+}
+
+function limpiarDatosLocales() {
+  try { Object.keys(localStorage).filter(k => /^dlc-(rc-|perfil|jornada-)/.test(k)).forEach(k => localStorage.removeItem(k)); } catch (e) {}
+}
+
+function pintarBarraSuplantacion() {
+  const s = suplantando();
+  let b = $('barrasup');
+  if (!s) { if (b) b.remove(); return; }
+  if (!b) { document.body.insertAdjacentHTML('afterbegin', '<div id="barrasup"></div>'); b = $('barrasup'); }
+  b.innerHTML = `<span>👤 <b>Impersonalizando a ${esc(PERFIL ? PERFIL.nombre : s.como)}</b>${PERFIL ? ' · ' + esc(PERFIL.rol) : ''} · Sesión con su usuario: lo que hagas queda a su nombre</span>
+    <button class="btn chico" id="supvolver">↩ Terminar la impersonalización (${esc(nombrePila(s.nombre))})</button>`;
+  $('supvolver').onclick = volverAMiSesion;
+}
+
+// ---- Cambiar de organización sin heredar nada: la recarga va tapada hasta tener el menú, la marca y la pantalla de la organización nueva
+function prepararCambioOrg(destino) {
+  try { sessionStorage.setItem('dlc-cambio-org', destino || ''); sessionStorage.removeItem('dlc-f5'); localStorage.removeItem('app-marca'); } catch (e) {}
 }
 // nucleo/version.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
@@ -352,6 +625,19 @@ function colaPoner(op) {
 }
 
 function colaKoPoner(op, motivo) { try { localStorage.setItem(COLA_KO, JSON.stringify(colaKo().concat([Object.assign({}, op, { motivo, falla: Date.now() })]))); } catch (e) {} }
+
+function usarCache(t) {
+  const c = CACHE_MOD[t], sec = $('v-' + t);
+  const ok = VIA_IR === t && c && sec && sec.children.length && c.clave === ESTADO_MOD[t]() && c.esc === ESCRITURAS && Date.now() - c.t < 10 * 60000;
+  return !!ok;
+}
+
+// Carga dentro de una tarjeta (paginación, cambios de página): mismo criterio
+function cargaLocal(el) {
+  if (!el) return; el.classList.add('cargandolocal');
+  const t0 = performance.now(); let quietos = 0;
+  const w = setInterval(() => { quietos = PEND === 0 ? quietos + 1 : 0; if ((quietos >= 3 && performance.now() - t0 > 80) || performance.now() - t0 > 4000) { clearInterval(w); el.classList.remove('cargandolocal'); } }, 40);
+}
 // servicios/archivos.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -608,6 +894,12 @@ function pkPascua(y) {   // domingo de Pascua (algoritmo anónimo gregoriano)
     mes = Math.floor((h + l - 7 * m + 114) / 31), dia = ((h + l - 7 * m + 114) % 31) + 1;
   return `${y}-${String(mes).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
 }
+
+function mesesEntre(d, h) {
+  const out = []; const x = new Date(d.slice(0, 7) + '-01T12:00:00'), fin = new Date(h.slice(0, 7) + '-01T12:00:00');
+  while (x <= fin && out.length < 36) { out.push(fechaLocal(x).slice(0, 7)); x.setMonth(x.getMonth() + 1); }
+  return out;
+}
 // servicios/mapas.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -688,6 +980,42 @@ function enlaceNavApp(destino, paradas, n) {
   if (ES_ANDROID && !(paradas && paradas.length)) return 'google.navigation:q=' + encodeURIComponent(d) + '&mode=d';
   return null;   // Android con paradas: solo el enlace web admite la ruta entera
 }
+
+async function cambiarNavegador(n) {
+  const prefs = Object.assign({}, PERFIL.preferencias || {}, { navegador: n });
+  const { data } = await db.rpc('guardar_preferencias', { p: prefs });
+  PERFIL.preferencias = data || prefs;
+  toast('Navegación con ' + (NAVEGADORES.find(x => x[0] === n) || [])[1]);
+  if (PLAN) pintarPlan();
+}
+
+function rellenarDireccion(box, i, a) {
+  if (!a) return;
+  const set = (f, v) => { const el = box.querySelector(`[data-cf="${i}|${f}"]`); if (el && v && !el.value.trim()) el.value = v; };
+  set('direccion', [a.road, a.house_number].filter(Boolean).join(', '));
+  set('municipio', (a.city || a.town || a.village || a.municipality || '').toUpperCase());
+  set('cp', a.postcode || ''); set('provincia', (a.province || a.state_district || a.county || a.state || '').toUpperCase());
+}
+
+// «Estoy aquí»: primero los centros que ya tenemos a menos de 250 m; si no, centro nuevo con los datos del mapa
+async function estoyAqui(box, i, b) {
+  if (!navigator.geolocation) { toast('Este dispositivo no da la ubicación', true); return; }
+  const txt = b.textContent; b.disabled = true; b.textContent = 'Localizando…';
+  try {
+    const pos = await new Promise((ok, ko) => navigator.geolocation.getCurrentPosition(ok, ko, { enableHighAccuracy: true, timeout: 12000, maximumAge: 30000 }));
+    const lat = +pos.coords.latitude.toFixed(6), lon = +pos.coords.longitude.toFixed(6);
+    const { data } = await RPC_ORIG('buscar_centros', { p_q: null, p_lat: lat, p_lon: lon, p_radio: 250, p_lim: 6 });
+    const cerca = data || [];
+    const res = box.querySelector(`[data-cp="${i}"] .cpres`);
+    if (cerca.length && res) {
+      res.innerHTML = '<div class="sm cpaviso">¿Estás en uno de estos centros?</div>';
+      const cont = document.createElement('div'); res.appendChild(cont);
+      listaCentros(cont, cerca, cen => { cpPoner(box, i, cen); pintarCentroSel(box, i); toast('Centro elegido: ' + cen.nombre); },
+        '<button type="button" class="cpitem cpnuevo">No, es otro centro: crearlo con mi ubicación</button>', () => centroDesdeUbicacion(box, i, lat, lon));
+    } else await centroDesdeUbicacion(box, i, lat, lon);
+  } catch (err) { toast('No se ha podido obtener tu ubicación: revisa el permiso de ubicación del navegador', true); }
+  finally { b.disabled = false; b.textContent = txt; }
+}
 // servicios/pdf.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -732,6 +1060,18 @@ function avisoSinSalida(el) {
 
 // Si después se abre (o se vuelve a abrir) una ventana con el aviso a la vista, el aviso vuelve a ponerse encima
 function subirAviso() { const t = $('toast'); if (!t || t.classList.contains('hide') || typeof t.showPopover !== 'function' || !t.hasAttribute('popover')) return; try { if (t.matches(':popover-open')) t.hidePopover(); t.showPopover(); } catch (e) {} }
+// componentes/ayuda.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
+// Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
+
+function ponerAyudas() {
+  ANCLAS_AYUDA.forEach(([sel, k]) => {
+    const h = document.querySelector(sel);
+    if (h && !h.querySelector(':scope > .ai')) h.insertAdjacentHTML('beforeend', `<button class="ai" data-ayuda="${k}" aria-label="Ayuda">i</button>`);
+  });
+  const dt = $('dirtools');
+  if (dt && !(dt.previousElementSibling && dt.previousElementSibling.matches('.ai')))
+    dt.insertAdjacentHTML('beforebegin', '<button class="ai ai-dir" data-ayuda="directorio" aria-label="Ayuda">i</button>');
+}
 // componentes/buscador.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -778,6 +1118,226 @@ function ojoClave(inp) {
     inp.focus({ preventScroll: true });
   };
   w.appendChild(b);
+}
+
+/* v2.72.0 · Un clasificador de ficha, cliente o producto sin papel es un campo personalizado: tipo y dónde se ve */
+function cajaCampo(c, completo) {
+  if (c.papel || !CAMPO_TABLA[c.ambito]) return '';
+  const t = c.tipo_campo || 'lista', chk = (k, txt) => `<label class="chk"><input type="checkbox" id="cfc_${k}" ${c[k] ? 'checked' : ''} ${completo ? '' : 'disabled'}> ${txt}</label>`;
+  return `<div class="cfcampo"><h3>Campo personalizado</h3>
+    <div class="g2"><div><label for="cfctipo">Tipo</label><select id="cfctipo" ${completo ? '' : 'disabled'}>${TIPOS_CAMPO.map(([k, n]) => `<option value="${k}" ${k === t ? 'selected' : ''}>${n}</option>`).join('')}</select></div>
+      <div class="cfchks">${chk('obligatorio', 'Obligatorio')}${chk('solo_lectura', 'Solo lectura')}${chk('en_ficha', 'En la ficha')}${chk('en_tabla', 'Columna en la tabla')}${chk('en_filtro', 'Filtro (listas y sí/no)')}</div></div>
+    ${completo ? '<div class="acts" style="justify-content:flex-end"><button class="btn sec" id="cfcok">Guardar campo</button></div>' : ''}</div>`;
+}
+
+function validarDoc(v, tipo) {
+  v = (v || '').toUpperCase().replace(/[\s-]/g, '');
+  if (!v) return { ok: true, v };
+  if (tipo === 'Empresa') {
+    const m = v.match(/^([ABCDEFGHJKLMNPQRSUVW])(\d{7})([0-9A-J])$/);
+    if (!m) return { ok: false, v, msg: 'El CIF son una letra, 7 números y un dígito o letra de control (p. ej. B24920548).' };
+    let a = 0, b = 0;
+    m[2].split('').forEach((d, i) => { if (i % 2) a += +d; else { const x = 2 * d; b += Math.floor(x / 10) + x % 10; } });
+    const c = (10 - (a + b) % 10) % 10, letra = 'JABCDEFGHI'[c];
+    return (m[3] === String(c) || m[3] === letra) ? { ok: true, v } : { ok: false, v, msg: 'El dígito de control del CIF no es correcto.' };
+  }
+  let n = v;
+  if (/^[XYZ]\d{7}[A-Z]$/.test(n)) n = 'XYZ'.indexOf(n[0]) + n.slice(1);
+  if (!/^\d{8}[A-Z]$/.test(n)) return { ok: false, v, msg: 'El DNI son 8 números y una letra; el NIE, X, Y o Z seguida de 7 números y una letra.' };
+  return LETRAS_DNI[+n.slice(0, 8) % 23] === n[8] ? { ok: true, v } : { ok: false, v, msg: 'La letra no corresponde a ese número.' };
+}
+
+function campoDato(v, k, valor) {
+  const lab = esc(v.dato_etiqueta || (v.dato_tipo === 'numero' ? 'Cantidad' : 'Detalle'));
+  if (v.dato_tipo === 'numero') return `<label class="datol">${lab}<input type="number" min="0" step="1" data-dato="${k}" value="${esc(valor || '')}" placeholder="0"></label>`;
+  if (v.dato_tipo === 'lista') return `<label class="datol">${lab}<select data-dato="${k}"><option value=""></option>${(v.dato_opciones || [])
+    .map(o => `<option ${o === valor ? 'selected' : ''}>${esc(o)}</option>`).join('')}</select></label>`;
+  return `<label class="datol">${lab}<input data-dato="${k}" value="${esc(valor || '')}" placeholder="Opcional"></label>`;
+}
+
+// Email comprobado mientras se escribe: ✓ verde si es válido, ✗ rojo si no
+function validarEmailEnVivo(inp) {
+  if (!inp || inp.dataset.vemail) return; inp.dataset.vemail = '1';
+  const w = document.createElement('span'); w.className = 'emailw'; inp.parentNode.insertBefore(w, inp); w.appendChild(inp);
+  w.insertAdjacentHTML('beforeend', '<span class="emailico" aria-hidden="true"></span>');
+  const act = () => {
+    const v = inp.value.trim(), ok = /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(v);
+    w.classList.toggle('ok', !!v && ok); w.classList.toggle('mal', !!v && !ok);
+    w.querySelector('.emailico').textContent = !v ? '' : ok ? '✓' : '✗';
+    const err = w.nextElementSibling && w.nextElementSibling.classList.contains('campoerr') ? w.nextElementSibling : null;
+    if (err && ok) { err.remove(); inp.classList.remove('conerr'); }
+  };
+  inp.addEventListener('input', act); act();
+}
+
+function campoInput(c, v) {
+  const a = `data-cpk="${esc(c.clave)}" ${c.solo_lectura ? 'disabled' : ''}`;
+  const val = v == null ? '' : v;
+  if (c.tipo === 'lista') return `<select ${a}><option value=""></option>${(c.valores || []).concat(val && !(c.valores || []).includes(val) ? [val] : [])
+    .map(x => `<option ${x === val ? 'selected' : ''}>${esc(x)}</option>`).join('')}</select>`;
+  if (c.tipo === 'si_no') return `<select ${a}><option value=""></option><option value="true" ${val === true ? 'selected' : ''}>Sí</option><option value="false" ${val === false ? 'selected' : ''}>No</option></select>`;
+  if (c.tipo === 'fecha') return `<input type="date" ${a} value="${esc(String(val))}">`;
+  if (c.tipo === 'numero') return `<input type="text" inputmode="decimal" ${a} value="${esc(String(val).replace('.', ','))}">`;
+  return `<input ${a} value="${esc(String(val))}" maxlength="500" placeholder="${esc(c.descripcion || '')}">`;
+}
+
+function notaAmplia(i) {
+  if (!i || i.dataset.nota || i.type !== 'text') return;
+  const txt = (i.id + ' ' + (i.placeholder || '') + ' ' + (((i.id && document.querySelector(`label[for="${i.id}"]`)) || {}).textContent || '')).toLowerCase();
+  if (!/\bnota|observac|comentario/.test(txt) || /buscar/.test(txt)) return;
+  const t = document.createElement('textarea'); [...i.attributes].forEach(a => { if (a.name !== 'type' && a.name !== 'value') t.setAttribute(a.name, a.value); });
+  t.value = i.value; t.rows = 3; t.dataset.nota = '1'; t.classList.add('notaamplia'); i.replaceWith(t);
+  const campo = t.closest('.g2 > div, .g3 > div'); if (campo) campo.classList.add('ocupatodo');
+}
+
+/* v2.109.0 · Las ventanas no muestran lo escrito en otras ocasiones. El navegador sugería, por ejemplo, la nota del pedido
+   anterior al crear uno nuevo: los campos de las ventanas y de las pantallas no guardan historial (salvo los que lo piden). */
+function sinHistorial(raiz) {
+  (raiz || document).querySelectorAll('input:not([autocomplete]):not([type=checkbox]):not([type=radio]):not([type=file]):not([type=hidden]), textarea:not([autocomplete])')
+    .forEach(i => i.setAttribute('autocomplete', 'off'));
+}
+// componentes/carga.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
+// Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
+
+function pantallaCarga(msg) {
+  let o = $('cargatotal');
+  if (!o) { document.body.insertAdjacentHTML('beforeend', '<div id="cargatotal" class="cargatotal"></div>'); o = $('cargatotal'); }
+  o.innerHTML = `<div><span class="spin"></span><b>${esc(msg)}</b><span class="sm">Un momento: se está cargando todo de nuevo</span></div>`;
+  o.classList.remove('hide');
+}
+// componentes/clasificadores.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
+// Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
+
+// Los mismos criterios que campos_cumplen() en la base (para Productos, que se filtra aquí)
+function clasCumple(v, f) {
+  v = v || {};
+  return Object.entries(f || {}).every(([k, c]) => {
+    const x = v[k];
+    if (!c || typeof c !== 'object') return x === c;
+    if ('contiene' in c && !clasNorm(x).includes(clasNorm(c.contiene))) return false;
+    for (const op of ['desde', 'hasta']) {
+      if (!(op in c)) continue;
+      if (x == null || x === '') return false;
+      const a = typeof c[op] === 'number' ? +x : String(x);
+      if (typeof a === 'number' && isNaN(a)) return false;
+      if (op === 'desde' ? a < c[op] : a > c[op]) return false;
+    }
+    return true;
+  });
+}
+
+function clasColsGuardadas(amb) { try { return JSON.parse(localStorage.getItem('clas-cols-' + amb)) || {}; } catch (e) { return {}; } }
+
+// Columnas visibles: lo que haya elegido la persona o, si no ha elegido, «Columna en la tabla»
+function clasVisibles(amb) {
+  const g = clasColsGuardadas(amb);
+  return (CAMPOS[amb] || []).filter(c => c.clave in g ? g[c.clave] : c.en_tabla);
+}
+
+function clasVeColumna(amb, clave) {
+  if (amb === 'medico') return !!(colsConfig().find(c => c.k === 'cp:' + clave) || {}).on;
+  return clasVisibles(amb).some(c => c.clave === clave);
+}
+
+function clasPonerColumna(amb, clave, on) {
+  // Cuentas: sus columnas se guardan con las demás de la tabla (Elegir columnas)
+  if (amb === 'medico') {
+    const D = colsConfig(), x = D.find(c => c.k === 'cp:' + clave);
+    if (x) x.on = on; else D.push({ k: 'cp:' + clave, on, w: 150 });
+    colsGuardar(D); return;
+  }
+  const g = clasColsGuardadas(amb); g[clave] = on;
+  try { localStorage.setItem('clas-cols-' + amb, JSON.stringify(g)); } catch (e) { /* sin almacenamiento: dura hasta recargar */ }
+}
+
+// Las columnas de los campos se añaden a la rejilla de la tabla
+function clasRejilla(g, n) {
+  if (!g || !n) return;
+  const cs = getComputedStyle(g);
+  g.style.setProperty('--cols', cs.getPropertyValue('--cols').trim() + ' 130px'.repeat(n));
+  g.style.minWidth = (parseInt(cs.minWidth) || 900) + 140 * n + 'px';
+}
+
+// Texto de un filtro activo (para los chips)
+function clasTextoFiltro(c, f) {
+  if (f && typeof f === 'object') {
+    if ('contiene' in f) return `${c.nombre} contiene «${f.contiene}»`;
+    const t = x => campoTexto(c, x);
+    return 'desde' in f && 'hasta' in f ? `${c.nombre}: de ${t(f.desde)} a ${t(f.hasta)}` : 'desde' in f ? `${c.nombre}: desde ${t(f.desde)}` : `${c.nombre}: hasta ${t(f.hasta)}`;
+  }
+  return `${c.nombre}: ${campoTexto(c, f)}`;
+}
+
+async function clasCargarValores(amb) {
+  const { data } = await db.rpc('valores_campos', { p_ambito: amb });
+  if (data) CLAS_VALORES[amb] = data;
+  return CLAS_VALORES[amb] || {};
+}
+
+// Control de filtro de un campo según su tipo y cuántos valores tiene
+function clasControl(c, act, vals, id) {
+  const a = `id="${id}"`;
+  if (c.tipo === 'si_no') return `<select ${a} data-clv><option value="">Todos</option>${[['true', 'Sí'], ['false', 'No']].map(([v, t]) =>
+    `<option value="${v}" ${act === (v === 'true') ? 'selected' : ''}>${t}</option>`).join('')}</select>`;
+  if (c.tipo === 'numero' || c.tipo === 'fecha') {
+    const r = act && typeof act === 'object' ? act : {}, tipo = c.tipo === 'fecha' ? 'type="date"' : 'type="text" inputmode="decimal"';
+    const val = x => x == null ? '' : esc(c.tipo === 'numero' ? String(x).replace('.', ',') : String(x));
+    return `<div class="clasrango"><input ${a} ${tipo} data-clr="desde" value="${val(r.desde)}" placeholder="Desde" aria-label="${esc(c.nombre)}: desde">
+      <input ${tipo} data-clr="hasta" value="${val(r.hasta)}" placeholder="Hasta" aria-label="${esc(c.nombre)}: hasta"></div>`;
+  }
+  const lista = c.tipo === 'lista' ? (c.valores || []) : (vals[c.clave] || []);
+  if (lista.length <= CLAS_MAX_LISTA) {
+    const ops = typeof act === 'string' && act && !lista.includes(act) ? lista.concat([act]) : lista;
+    return `<select ${a} data-clv><option value="">Todos</option>${ops.map(v => `<option ${act === v ? 'selected' : ''}>${esc(v)}</option>`).join('')}</select>`;
+  }
+  // Muchos valores: buscador con sugerencias
+  const txt = act && typeof act === 'object' ? act.contiene || '' : typeof act === 'string' ? act : '';
+  return `<input ${a} type="search" data-clbus list="${id}_l" value="${esc(txt)}" placeholder="Escribe para buscar" autocomplete="off">
+    <datalist id="${id}_l">${lista.map(v => `<option value="${esc(v)}">`).join('')}</datalist>`;
+}
+
+// Sección «Clasificadores»: un filtro y la casilla «Columna» por cada campo de la pantalla
+async function clasPintar(cont, amb, estado, alCambiar, alColumna, titulo) {
+  if (!cont) return;
+  const campos = clasCampos(amb);
+  const cab = titulo === 'h3' ? '<h3 style="margin-top:18px">Clasificadores</h3>' : '<h4>Clasificadores</h4>';
+  if (!campos.length) {
+    cont.innerHTML = puedeCatalogos() ? `<div class="htbloque clasif">${cab}<p class="sm">Esta pantalla aún no tiene campos propios. Se crean en Configuración → Clasificadores.</p></div>` : '';
+    return;
+  }
+  const vals = campos.some(c => c.tipo === 'texto' || (c.tipo === 'lista' && (c.valores || []).length > CLAS_MAX_LISTA)) ? await clasCargarValores(amb) : {};
+  if (!cont.isConnected) return;
+  const pref = 'clas_' + amb + '_';
+  cont.innerHTML = `<div class="htbloque clasif">${cab}${campos.map((c, i) => `<div class="clascampo" data-clk="${esc(c.clave)}">
+      <div class="clascab"><label for="${pref}${i}">${esc(c.nombre)}</label>
+        <label class="clascol" title="Ver «${esc(c.nombre)}» como columna de la tabla"><input type="checkbox" data-clcol ${clasVeColumna(amb, c.clave) ? 'checked' : ''}> Columna</label></div>
+      ${clasControl(c, estado[c.clave], vals, pref + i)}</div>`).join('')}</div>`;
+  cont.querySelectorAll('[data-clk]').forEach(b => {
+    const k = b.dataset.clk, c = campos.find(x => x.clave === k);
+    const sel = b.querySelector('select[data-clv]');
+    if (sel) sel.onchange = () => { if (!sel.value) delete estado[k]; else estado[k] = c.tipo === 'si_no' ? sel.value === 'true' : sel.value; alCambiar(); };
+    const bus = b.querySelector('input[data-clbus]');
+    if (bus) { let t; bus.oninput = () => { clearTimeout(t); t = setTimeout(() => { const x = bus.value.trim(); if (x) estado[k] = { contiene: x }; else delete estado[k]; alCambiar(); }, 400); }; }
+    const rs = [...b.querySelectorAll('input[data-clr]')];
+    rs.forEach(r => r.onchange = () => {
+      const o = {};
+      for (const z of rs) {
+        const v = z.value.trim(); if (!v) continue;
+        const n = c.tipo === 'numero' ? +v.replace(',', '.') : v;
+        if (c.tipo === 'numero' && isNaN(n)) { toast(`«${c.nombre}» tiene que ser un número`, true); return; }
+        o[z.dataset.clr] = n;
+      }
+      if (Object.keys(o).length) estado[k] = o; else delete estado[k];
+      alCambiar();
+    });
+    const col = b.querySelector('[data-clcol]');
+    if (col) col.onchange = () => { clasPonerColumna(amb, k, col.checked); alColumna(); };
+  });
+}
+
+function clasPintarLateral(sec) {
+  const P = clasPantalla(sec), cont = $('tools').querySelector('.htclas');
+  if (P && cont && htLateralAbierto() && HERR_CTX === 'ht-' + sec.id.replace('v-', '')) clasPintar(cont, P.amb, P.estado(), P.recargar, P.recargar);
 }
 // componentes/filtros.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
@@ -865,6 +1425,25 @@ function htTipoColumna(vals) {
   if (v.every(x => 'n' in x)) return 'numero';
   return 'texto';
 }
+
+// Los filtros propios de cada pantalla se guardan en un contenedor oculto de la pantalla
+// y se llevan al panel lateral al abrirlo (y vuelven al cerrarlo)
+// v2.294 (R-02): los filtros propios son compactos en el panel de la pantalla y normales en el panel lateral: se marca al moverlos
+function chicoEn(el, si) { [el, ...el.querySelectorAll('input, select')].forEach(x => { if (x.matches('input, select')) x.classList.toggle('chico', si); }); return el; }
+
+function filtroGuardar(e) {
+  const el = e.target; if (!el || !el.id || !/^(SELECT|INPUT)$/.test(el.tagName) || !el.closest('main .filtros, main .htpropios')) return;   // la fila de filtros o, con el modelo de página, el panel
+  if (el.type === 'checkbox' || el.type === 'radio') return;
+  FMEM[el.id] = el.value;
+}
+
+function filtrosRestaurar(root) {
+  (root || document).querySelectorAll('.filtros select[id], .filtros input[id], .htpropios select[id], .htpropios input[id]').forEach(el => {
+    if (!(el.id in FMEM) || el.value === FMEM[el.id] || el.type === 'checkbox' || el.type === 'radio') return;
+    if (el.tagName === 'SELECT' && ![...el.options].some(o => o.value === FMEM[el.id])) return;
+    el.value = FMEM[el.id];
+  });
+}
 // componentes/firma.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -943,6 +1522,106 @@ function barrasReparto(items) {
     <div class="barrash reparto">${vis.map(x => `<div class="bh"><span class="bhn" title="${esc(x.n)}">${esc(x.n)}</span>
       <svg class="bhsvg" viewBox="0 0 100 12" preserveAspectRatio="none" aria-hidden="true"><rect class="f" width="100" height="12" rx="6"/><rect class="v" width="${Math.max(2, x.v / tot * 100).toFixed(1)}" height="12" rx="6"/></svg><b>${num(x.v)}</b><span class="sm bhp">${pc(x.v)}</span></div>`).join('')}</div>`;
 }
+
+function sparkUnidades(u, k) {
+  const s = k === 'semana' ? (u.semanas || []).map(x => [x.unidades, 'Semana del ' + fechaCorta(x.semana), fechaCorta(x.semana)])
+    : k === 'anio' ? (u.anios || []).map(x => [x.unidades, x.anio, x.anio])
+    : (u.meses || []).map(x => [x.unidades, periodoTxt(x.mes), periodoTxt(x.mes)]);
+  const max = Math.max(1, ...s.map(x => x[0]));
+  // v2.118.0: barra vacía como línea de base, la del periodo actual resaltada y las fechas de los extremos debajo
+  // (las fechas van como atributo de la primera y la última barra: el gráfico solo tiene barras)
+  return s.map(([n, t, c], i) => `<i class="${n ? '' : 'cero'}${i === s.length - 1 ? ' actual' : ''}" style="height:${Math.round(n / max * 100)}%" title="${esc(t)}: ${num(n)}"${i === 0 ? ` data-ini="${esc(c)}"` : ''}${i === s.length - 1 ? ` data-fin="${esc(c)}"` : ''}></i>`).join('');
+}
+
+function svgDonut(items) {
+  const tot = items.reduce((n, x) => n + x.v, 0) || 1, R = 70, C = 2 * Math.PI * R;
+  // v2.107.0: paleta de gráficos de la marca (validada para daltonismo); el gris, para el resto
+  const col = ['#3F82C0', '#E0762B', '#1BAF7A', '#6E5BC4', '#E0A400', '#D9618C', '#94A3B8'];
+  let acc = 0;
+  return `<div class="donutw"><svg viewBox="0 0 200 200" class="donut" role="img" aria-label="Reparto por producto">
+    <circle cx="100" cy="100" r="${R}" class="fondo"/>
+    ${items.map((x, i) => { const l = C * x.v / tot, s = `<circle cx="100" cy="100" r="${R}" stroke="${col[i % col.length]}" stroke-dasharray="${l} ${C - l}" stroke-dashoffset="${-acc}" class="arco"><title>${esc(x.n)}: ${num(x.v)} (${Math.round(x.v / tot * 100)}%)</title></circle>`; acc += l; return s; }).join('')}
+    <text x="100" y="96" class="dn1">${num(tot)}</text><text x="100" y="116" class="dn2">unidades</text></svg>
+    <div class="donutley">${items.map((x, i) => `<span><i style="background:${col[i % col.length]}"></i>${esc(x.n)} <b>${Math.round(x.v / tot * 100)}%</b></span>`).join('')}</div></div>`;
+}
+
+async function graficoCanal() {
+  const emb = [...document.querySelectorAll('#v-analitica .ancard')].find(c => /Embudo comercial/.test(c.querySelector('h2') ? c.querySelector('h2').textContent : ''));
+  if (!emb || $('ancanal')) return;
+  emb.insertAdjacentHTML('afterend', `<div class="card ancard" id="ancanal"><h2>Ventas por canal</h2><div class="cargandolocal" style="min-height:160px"></div>
+    <p class="leer"><b>Cómo leerlo:</b> qué parte de las unidades llega con ${TT('medico', 's', 'un', 'l', 'l')} de referencia y qué parte por venta directa a un centro.</p></div>`);
+  const { data } = await RPC_ORIG('analitica_tabla', { p_dim: 'canal', p_medida: 'unidades' });
+  const filas = (data && data.filas) || [], tot = filas.reduce((s, f) => s + (+f.total || 0), 0);
+  const cols = ['#3F82C0', '#E0762B', '#1BAF7A', '#6E5BC4'];   // v2.107.0: paleta de gráficos de la marca
+  let ang = 0;
+  const arcos = filas.map((f, i) => { const v = (+f.total || 0) / (tot || 1), a0 = ang, a1 = ang + v * 2 * Math.PI; ang = a1;
+    const p = t => [80 + 60 * Math.sin(t), 80 - 60 * Math.cos(t)], [x0, y0] = p(a0), [x1, y1] = p(a1 - 0.0001);
+    return `<path d="M80 80 L${x0} ${y0} A60 60 0 ${a1 - a0 > Math.PI ? 1 : 0} 1 ${x1} ${y1} Z" fill="${cols[i % 4]}"/>`; }).join('');
+  $('ancanal').querySelector('.cargandolocal').outerHTML = tot ? `<div class="donut"><svg viewBox="0 0 160 160" width="160" height="160">${arcos}<circle cx="80" cy="80" r="36" fill="#fff"/><text x="80" y="86" text-anchor="middle" font-size="18" font-weight="700" fill="#0B3A66">${num(tot)}</text></svg>
+      <div class="donutley">${filas.map((f, i) => `<div><i style="background:${cols[i % 4]}"></i><span>${esc(f.nombre)}</span><b>${num(f.total)}</b><span class="sm">${Math.round((+f.total || 0) / tot * 100)}%</span></div>`).join('')}</div></div>`
+    : vacioGrafico('Verás qué parte de las ventas llega por cada canal.');
+}
+// componentes/guardar_pagina.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
+// Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
+
+function pagActual() { const p = PAG_GUARDA.find(x => x.tab === TAB); if (!p) return null; const cab = p.cab(), cuerpo = p.cuerpo(); return cab && cuerpo ? { cab, cuerpo } : null; }
+
+function pagBloque(el, cuerpo) { return el.closest('.cfgsec') || cuerpo; }
+
+function pagBotonesGuardar(cuerpo) {
+  return [...cuerpo.querySelectorAll('button, a.btn')].filter(b => PAG_GUARDA_RE.test(b.textContent.trim()) && !b.matches(PAG_GUARDA_NO) && !b.closest('dialog:not(.encajada:has([data-pagina])), .cfucab, .saludo'));
+}
+
+// El guardado de cada bloque se queda (con su función) en un contenedor oculto de su mismo bloque; la fila que queda vacía, fuera
+function pagOcultarBoton(b) {
+  if (b.closest('.cfgocultos')) return;
+  const fila = b.parentElement, blq = b.closest('.cfgsecc, .card, #cfgcuerpo, #fcuerpo') || fila;
+  let h = blq.querySelector(':scope > .cfgocultos'); if (!h) { h = document.createElement('div'); h.className = 'cfgocultos'; h.hidden = true; blq.appendChild(h); }
+  h.appendChild(b);
+  if (fila && fila !== blq && ![...fila.children].some(x => x.getClientRects().length)) fila.style.display = 'none';
+}
+
+function pagPonerGuardar() {
+  const p = pagActual();
+  document.querySelectorAll('.cfuguarda').forEach(a => { if (!p || !p.cab.contains(a)) a.remove(); });   // al salir de la configuración (p. ej. a la lista de facturas)
+  if (!p) return;
+  const { cab, cuerpo } = p;
+  // títulos repetidos: el que repite el texto del anterior se oculta
+  let prev = '';
+  for (const h of [...cab.querySelectorAll('h1, h2'), ...[...cuerpo.querySelectorAll('h2, h3')].filter(x => !cab.contains(x))]) {
+    if (!h.getClientRects().length && !h.classList.contains('cfudup')) continue;
+    const t = h.textContent.trim().toLowerCase(); if (t && t === prev) h.classList.add('cfudup'); else prev = t;
+  }
+  if (cab.querySelector('.cfuacts:not(.cfuguarda)')) return;   // el apartado ya trae sus botones en la cabecera (KPIs de Inicio)
+  const bs = pagBotonesGuardar(cuerpo);
+  let a = cab.querySelector('.cfuguarda');
+  if (!bs.length) { if (a) a.remove(); return; }
+  bs.forEach(pagOcultarBoton);
+  if (!a) {
+    // la marca de cambios solo se pierde al cambiar de apartado (una cabecera que se repinta no la borra)
+    const clave = TAB + '|' + (TAB === 'config' ? CFG_KEY : (document.querySelector('#v-facturacion .cfgsubs .on, #v-facturacion .cfgsubs [aria-pressed="true"]') || {}).textContent);
+    if (clave !== PAG_CLAVE) { PAG_SUCIO.clear(); PAG_CLAVE = clave; }
+    a = document.createElement('div'); a.className = 'acts cfuacts cfuguarda';
+    a.innerHTML = '<button type="button" class="btn sec" id="cfudescartar" disabled>Descartar cambios</button><button type="button" class="btn" id="cfuguardar" disabled>Guardar</button>';
+    cab.appendChild(a);
+    $('cfudescartar').onclick = () => { PAG_SUCIO.clear(); if (TAB === 'config') cargarConfig(); else (b => b && b.click())(document.querySelector('#v-facturacion .cfgsubs button.on, #v-facturacion .cfgsubs button[aria-pressed="true"]')); };
+    $('cfuguardar').onclick = pagGuardarTodo;
+  }
+  pagMarcarSucio();
+}
+
+async function pagGuardarTodo() {
+  const g = $('cfuguardar'), p = pagActual(); if (!g || g.disabled || !p) return;
+  g.disabled = true;
+  const todos = pagBotonesGuardar(p.cuerpo), bs = todos.filter(b => [...PAG_SUCIO].some(c => c.contains(b)));
+  for (const b of (bs.length ? bs : todos)) {
+    if (!b.isConnected) continue;
+    b.click();
+    const t0 = Date.now(); await new Promise(r => setTimeout(r, 120));
+    while (Date.now() - t0 < 15000 && (RED_VUELO > 0 || b.classList.contains('guardando'))) await new Promise(r => setTimeout(r, 80));
+  }
+  PAG_SUCIO.clear(); pagMarcarSucio();
+}
 // componentes/iconos.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -950,6 +1629,34 @@ function iconosMenu() {
   document.querySelectorAll('nav.main [data-t]').forEach(b => {
     if (b.querySelector('.navico') || !ICO_NAV[b.dataset.t]) return;
     b.insertAdjacentHTML('afterbegin', `<span class="navico">${svgIco(ICON_NOM[ICO_NAV[b.dataset.t]])}</span>`);
+  });
+}
+
+// Sustituye los emojis y glifos por iconos de línea, en todo lo que se pinta
+function iconizar(raiz) {
+  if (!raiz || !raiz.nodeType) return;
+  const el = raiz.nodeType === 1 ? raiz : raiz.parentElement; if (!el) return;
+  if (el.closest && el.closest('script,style,textarea,svg,[data-noico]')) return;
+  const w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, { acceptNode: n => {
+    const p = n.parentElement; if (!p || p.closest('script,style,textarea,svg,[data-noico]')) return NodeFilter.FILTER_REJECT;
+    RE_ICO.lastIndex = 0; return RE_ICO.test(n.nodeValue) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT; } });
+  const nodos = []; while (w.nextNode()) nodos.push(w.currentNode);
+  nodos.forEach(n => {
+    const p = n.parentElement;
+    if (p.tagName === 'OPTION' || p.tagName === 'TITLE') { n.nodeValue = n.nodeValue.replace(RE_ICO, '').replace(/^\s+/, ''); return; }
+    const frag = document.createDocumentFragment(); let ult = 0, m; RE_ICO.lastIndex = 0;
+    const t = n.nodeValue;
+    while ((m = RE_ICO.exec(t))) {
+      if (m.index > ult) frag.appendChild(document.createTextNode(t.slice(ult, m.index)));
+      if (m[0] !== '\ufe0f') { const s = document.createElement('span'); s.className = 'icw'; s.innerHTML = svgIco(ICON_EMOJI[m[0]]); frag.appendChild(s); }
+      ult = m.index + m[0].length;
+    }
+    if (ult < t.length) frag.appendChild(document.createTextNode(t.slice(ult)));
+    n.replaceWith(frag);
+  });
+  // Ayudas «i»
+  (el.matches && el.matches('.ai') ? [el] : []).concat([...(el.querySelectorAll ? el.querySelectorAll('.ai') : [])]).forEach(b => {
+    if (!b.querySelector('svg') && b.textContent.trim() === 'i') b.innerHTML = svgIco(ICON_NOM.info);
   });
 }
 // componentes/lista.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
@@ -1094,6 +1801,86 @@ function ordMemOrdenar(tipo, l) {
     return o.dir * ordMemComparar(a, b) || (p[1] - q[1]);
   }).map(p => p[0]);
 }
+
+function tamPagina() { const n = +localStorage.getItem(TAMKEY()); return TAMANOS.includes(n) ? n : 20; }
+
+function fijarTam(n) { localStorage.setItem(TAMKEY(), String(n)); }
+
+function pagHTML(total, pagina, tam) {
+  const paginas = Math.max(1, Math.ceil(total / tam));
+  const nums = [];
+  for (let i = 0; i < paginas; i++) {
+    if (i === 0 || i === paginas - 1 || Math.abs(i - pagina) <= 1) nums.push(i);
+    else if (nums[nums.length - 1] !== '…') nums.push('…');
+  }
+  const desde = total ? pagina * tam + 1 : 0, hasta = Math.min(total, (pagina + 1) * tam);
+  return `<div class="pag">
+    <span>${num(desde)}–${num(hasta)} de ${num(total)}</span>
+    <span class="pbtns">
+      <button data-pg="${pagina - 1}" ${pagina <= 0 ? 'disabled' : ''} aria-label="Página anterior">‹</button>
+      ${nums.map(n => n === '…' ? '<span class="sm">…</span>'
+        : `<button data-pg="${n}" aria-current="${n === pagina}">${n + 1}</button>`).join('')}
+      <button data-pg="${pagina + 1}" ${pagina >= paginas - 1 ? 'disabled' : ''} aria-label="Página siguiente">›</button>
+    </span>
+    <span class="ptam">Mostrar <select class="chico" data-pgtam>${TAMANOS.map(n =>
+      `<option value="${n}" ${n === tam ? 'selected' : ''}>${n}</option>`).join('')}</select></span></div>`;
+}
+
+function anchosGuardados(tipo) { try { return JSON.parse(localStorage.getItem(claveAnchos(tipo))) || null; } catch (e) { return null; } }
+
+// Pasa los bloques de tarjetas de la pantalla a una tabla (cada vez que la pantalla los vuelve a pintar)
+function blqConvertir(tab) {
+  const o = BLQ[tab], sec = $('v-' + tab), caja = sec && sec.querySelector('#cfgcuerpo'); if (!o || !caja) return;
+  const items = [...caja.querySelectorAll('.lista > .item[data-' + o.attr + ']')];
+  const yaTabla = caja.querySelector('.dgrid.blq-' + tab);
+  if (!items.length && (yaTabla || !caja.querySelector('.cirpag, .evpag'))) return;
+  // Acciones: la principal a la cabecera; las demás, al «⋯» (también en la cabecera, ocultas)
+  const sal = sec.querySelector(':scope > .saludo');
+  let acts = sal && sal.querySelector(':scope > .acts');
+  if (sal && !acts) { sal.insertAdjacentHTML('beforeend', '<div class="acts"></div>'); acts = sal.querySelector(':scope > .acts'); }
+  const cab = caja.querySelector('.evcab');
+  // las de la vez anterior (también el «+» del móvil, que va al final de la sección) se quitan: si no, se repetirían sus id
+  if (cab && acts) { sec.querySelectorAll('[data-plmov]').forEach(b => b.remove()); [...cab.querySelectorAll('button')].forEach(b => { b.dataset.plmov = '1'; acts.appendChild(b); }); cab.remove(); }
+  // Filas: una por registro, con los bloques en que sale
+  const filas = new Map(), grupos = [];
+  caja.querySelectorAll('section.card, .card').forEach(card => {
+    const h = card.querySelector('h2'), g = h ? plTxt(h).replace(/\s*·\s*[\d.]+$/, '') : o.def;
+    const its = [...card.querySelectorAll('.lista > .item[data-' + o.attr + ']')]; if (!its.length) return;
+    if (!grupos.includes(g)) grupos.push(g);
+    its.forEach(b => { const k = b.dataset[o.attr]; if (filas.has(k)) { filas.get(k).g.add(g); b.remove(); } else filas.set(k, { b, g: new Set([g]) }); });
+  });
+  const vacio = caja.querySelector('.vacio');
+  const nota = [...caja.querySelectorAll('.cirpag > p.sm, .evpag > p.sm')];
+  const wrap = document.createElement('div'); wrap.className = 'dgrid-wrap';
+  wrap.innerHTML = `<div class="dgrid blq-${tab}"><div class="dh">${o.cols.map(([t, k]) => `<span class="${k}">${esc(t)}</span>`).join('')}</div></div>`;
+  const g = wrap.firstElementChild;
+  filas.forEach(({ b, g: gs }) => {
+    const cel = o.celdas(b), click = b.onclick;
+    b.className = 'dr'; b.innerHTML = cel.map((x, i) => `<span class="${o.cols[i][1]}">${x || '<span class="vac">—</span>'}</span>`).join('');
+    b.dataset.grupos = [...gs].join('|'); b.onclick = click; g.appendChild(b);
+  });
+  if (!filas.size) wrap.innerHTML = `<div class="vacio">${esc(vacio ? plTxt(vacio) : 'Todavía no hay nada aquí.')}</div>`;
+  caja.innerHTML = ''; nota.forEach(p => caja.appendChild(p)); caja.appendChild(wrap);
+  // Bloque elegido (filtro rápido y banda de indicadores)
+  if (PLG[tab] && !grupos.includes(PLG[tab])) PLG[tab] = '';
+  let sel = $('plg-' + tab);
+  if (!sel) { sec.insertAdjacentHTML('beforeend', `<div class="plgsel hide"><label for="plg-${tab}">${esc(o.grupo)}</label><select id="plg-${tab}"></select></div>`); sel = $('plg-' + tab); sel.onchange = () => { PLG[tab] = sel.value; blqFiltrar(tab); }; }
+  sel.innerHTML = '<option value="">Todos</option>' + (grupos.length > 1 ? grupos.map(x => `<option ${PLG[tab] === x ? 'selected' : ''}>${esc(x)}</option>`).join('') : '');
+  let band = $('plgb-' + tab);
+  if (!band) { band = document.createElement('div'); band.id = 'plgb-' + tab; band.className = 'plgband'; sec.appendChild(band); }
+  const cuenta = x => [...filas.values()].filter(f => f.g.has(x)).length;
+  band.innerHTML = grupos.length > 1 ? grupos.map(x => `<button type="button" class="plk ${PLG[tab] === x ? 'on' : ''}" data-plg="${esc(x)}"><span class="plkt">${esc(x)}</span><b>${num(cuenta(x))}</b><small>${cuenta(x) === 1 ? '1 ' + esc(o.que.replace(/s$/, '')) : esc(o.que)}</small></button>`).join('') : '';
+  band.classList.toggle('hide', grupos.length < 2);
+  blqFiltrar(tab);
+}
+
+function blqFiltrar(tab) {
+  const v = PLG[tab] || '', sec = $('v-' + tab); if (!sec) return;
+  sec.querySelectorAll('.dgrid.blq-' + tab + ' > .dr').forEach(r => r.classList.toggle('plgfuera', !!v && !(r.dataset.grupos || '').split('|').includes(v)));
+  sec.querySelectorAll('[data-plg]').forEach(b => b.classList.toggle('on', b.dataset.plg === v));
+  const s = $('plg-' + tab); if (s && s.value !== v) s.value = v;
+  const cnt = sec.querySelector('.plcnt'); if (cnt) { cnt.dataset.h = ''; }
+}
 // componentes/pestanas.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -1153,6 +1940,38 @@ function sinSelectorDelSistema(raiz) {
   const l = [...raiz.querySelectorAll('input')];
   if (raiz.matches && raiz.matches('input')) l.push(raiz);
   l.forEach(i => { if (/^(date|time|month|datetime-local)$/.test(i.type) && !i.closest('.selpop')) i.inert = true; });
+}
+
+function cerrarPickers(salvo) {
+  document.querySelectorAll('.picker .gsug').forEach(g => { if (!salvo || !salvo.contains(g)) g.classList.add('hide'); });
+}
+
+function cerrarSelector() {
+  if (SELPOP) { SELPOP.remove(); SELPOP = null; }
+  const d = $('seldlg'); if (d && d.open) d.close();
+}// componentes/teclado.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
+// Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
+
+function teclaLista(inp) {
+  const caja = inp.closest('.gsearch, .picker, .cpbus');
+  if (caja) return caja.querySelector('.gsug, .cpres');
+  // Lo primero con resultados que haya después del buscador, en su ventana o en su pantalla
+  const zona = inp.closest('dialog, section, .card') || document.body;
+  return [...zona.querySelectorAll(TECLA_LISTAS)].find(l => (inp.compareDocumentPosition(l) & Node.DOCUMENT_POSITION_FOLLOWING)
+    && !l.closest('.hide') && teclaItems(l).length) || null;
+}
+
+function teclaItems(l) {
+  const xs = l.matches('table') ? [...l.querySelectorAll(':scope > tbody > tr')]
+    : l.matches('.dgrid') ? [...l.querySelectorAll(':scope > .dr')]
+    : l.matches('.lista') ? [...l.children]
+    : [...l.querySelectorAll('button, [role=option], a[href]')];
+  return xs.filter(x => teclaVisible(x) && !x.matches('.gsh, .gload, .vacio, [disabled]'));
+}
+
+function teclaActivar(x) {
+  const b = x.matches('button, a[href], [role=option], tr, .dr') ? x : (x.querySelector('button, a[href], [data-inificha]') || x);
+  b.click();
 }
 // componentes/ventana.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
@@ -1219,6 +2038,42 @@ async function pedirCampo(titulo, tipo, valor, etiqueta) {
     d.showModal();
   });
 }
+
+async function abrirApilada(fn, volverTexto) {
+  const d = $('dlg'), b = $('dbody');
+  PILA_VENT.push({ nodos: [...b.childNodes], clases: d.className, titulo: volverTexto });
+  APILANDO = true;
+  const frag = document.createDocumentFragment(); [...b.childNodes].forEach(n => frag.appendChild(n));
+  if (d.open) d.close();
+  try { await fn(); } finally { APILANDO = false; }
+  if (!d.open) d.showModal();
+  const fh = b.querySelector('.fh');
+  if (fh && !b.querySelector('.pilavolver')) fh.insertAdjacentHTML('beforebegin', `<button class="pilavolver" type="button">${svgIco(ICON_NOM['arrow-left'])} ${esc(volverTexto || 'Volver')}</button>`);
+  const v = b.querySelector('.pilavolver'); if (v) v.onclick = () => d.close();
+}
+
+// v2.122.0: la ventana va EN la página, en el sitio del apartado (antes flotaba encima con posición absoluta y su propio desplazamiento).
+// Se devuelve a <body> antes de cerrarse, para que los repintados del apartado no se la lleven por delante.
+function colocarEncajada(d, area) {
+  // v2.134.0: con el menú lateral, nav.main ocupa toda la altura y no es cabecera (daba el alto de la pantalla)
+  const cab = Math.max(0, ...['header', '.top', document.body.classList.contains('menulat') ? '' : 'nav.main'].filter(Boolean).map(q => { const e = document.querySelector(q); return e && getComputedStyle(e).position.match(/fixed|sticky/) ? e.getBoundingClientRect().bottom : 0; }));
+  document.documentElement.style.setProperty('--alto-cab', cab + 'px');
+}
+
+function devolverEncajada(d) {
+  if (d.__casa && d.parentNode !== d.__casa) d.__casa.appendChild(d);
+}
+
+/* ============================================================
+   v2.327.0 · Sin «¿Salir sin guardar?» donde no hay nada que guardar (aviso de Eric, 16/10/2026). Los checks de
+   «Operativa» del pedido se guardan al momento (data-nosucio) y, además, una ventana solo pregunta al cerrar si tiene
+   a la vista un botón que guarde (Guardar, Validar, Crear, Añadir, Enviar, Aplicar, Aceptar…): si no lo hay, no se
+   ha podido dejar nada a medias.
+   ============================================================ */
+function hayBotonGuardar(d) {
+  return [...d.querySelectorAll('button, .btn')].some(b => b.offsetParent && !b.disabled && !b.classList.contains('sec')
+    && /^(guardar|validar|crear|añadir|enviar|aplicar|aceptar|confirmar|registrar|emitir|dar de alta)/i.test((b.textContent || '').trim()));
+}
 // pantallas/acceso.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -1273,6 +2128,60 @@ function accesoSinActivar(texto) {
     const b = $('lreenv'); b.disabled = true;
     await reenviarActivacion($('lu').value, { ok: t => { msg.textContent = t; }, err: t => { msg.querySelector('span').textContent = t; b.disabled = false; } });
   };
+}
+
+async function restablecerPassword(u) {
+  if (!u.email) { toast('Ese usuario no tiene correo', true); return; }
+  if (!await preguntar(`Se enviará a ${u.email} un correo para que cree una contraseña nueva.`,
+    { titulo: '¿Restablecer la contraseña?', ok: 'Enviar correo' })) return;
+  const { error } = await db.auth.resetPasswordForEmail(u.email, { redirectTo: location.origin + location.pathname });
+  if (error) { toast('No se ha podido enviar: ' + error.message, true); return; }
+  toast('Correo enviado a ' + u.email);
+}
+
+async function bienvenidaAlta() {
+  try { await pagoCargarEstado(); } catch (e) {}
+  const pl = PLAN_ACTUAL || {};
+  const pasos = [
+    ['importar', 'Trae tus datos', `Sube tu Excel de ${TT('medico', 'p', '', 'l', 'l')}, centros o clientes y los ordenamos por ti.`],
+    ['equipo', 'Invita a tu equipo', 'Da acceso a las personas que van a usar delcos, cada una con su rol.'],
+    ['marca', 'Pon tu marca', 'Tu logotipo y tu nombre en la plataforma y en los documentos.']];
+  $('dbody').innerHTML = `<div class="fh"><div><h2>Te damos la bienvenida a delcos</h2>
+      <div class="sm">${esc(nombreApp())} ya está en marcha${pl.en_prueba && pl.periodo_fin ? ` · prueba gratis hasta el ${fechaCorta(pl.periodo_fin)}` : ''}</div></div>
+      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
+    <p>Tres pasos para empezar con buen pie (los puedes hacer cuando quieras):</p>
+    <div class="bienpasos">${pasos.map(([k, t, d], i) => `<button type="button" class="bienpaso" data-bien="${k}"><span class="bienn">${i + 1}</span>
+      <span><b>${esc(t)}</b><span class="sm">${esc(d)}</span></span></button>`).join('')}</div>
+    ${pl.en_prueba ? `<p class="sm">Durante la prueba no se cobra nada. Si decides no seguir, date de baja en Organización → Plan y suscripción antes del ${fechaCorta(pl.periodo_fin)}.</p>` : ''}
+    <div class="acts" style="justify-content:flex-end"><button class="btn" data-cerrar>Empezar</button></div>`;
+  $('dbody').querySelectorAll('[data-bien]').forEach(b => b.onclick = () => {
+    $('dlg').close();
+    const k = b.dataset.bien;
+    if (k === 'importar') { CFG_SEC = 'importar'; ir('config'); }
+    else if (k === 'equipo') ir('usuarios');
+    else ir('organizacion');
+  });
+  $('dlg').showModal();
+}
+
+/* ============================================================
+   v2.305.0 · Reenviar el correo de activación (aviso de Eric: un profesional abrió el enlace del correo de alta cuando ya
+   había caducado y no tenía forma de pedir otro). Supabase reenvía el correo de confirmación con auth.resend (no hace falta
+   SQL): desde la ficha del usuario (administración) y desde la pantalla de acceso, que avisa si el enlace ha caducado o si
+   la cuenta aún no está activada.
+   ============================================================ */
+async function reenviarActivacion(email, o = {}) {
+  email = String(email || '').trim();
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { (o.err || (t => toast(t, true)))('Escribe tu correo para enviarte un enlace nuevo.'); return false; }
+  const { error } = await db.auth.resend({ type: 'signup', email, options: { emailRedirectTo: location.origin + location.pathname } });
+  if (error) {
+    const t = /rate|seconds|429|security purposes/i.test(error.message + (error.status || '')) ? 'Se acaba de enviar uno: espera un minuto antes de pedir otro.'
+      : /already|confirmed/i.test(error.message) ? 'Esa cuenta ya está activada: puede entrar con su correo y contraseña (o usar «Enviar cambio de contraseña»).'
+      : 'No se ha podido enviar: ' + error.message;
+    (o.err || (x => toast(x, true)))(t); return false;
+  }
+  (o.ok || toast)('Correo de activación enviado a ' + email + '. El enlace nuevo sustituye al anterior.');
+  return true;
 }
 // pantallas/agenda.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
@@ -2207,6 +3116,47 @@ function tdPlegarTareas() {
 function tdCompacto() { try { return localStorage.getItem('delcos-tdcompacto') === '1'; } catch (e) { return false; } }
 
 function tdAplicarCompacto() { document.body.classList.toggle('tdcompacto', tdCompacto()); }
+
+async function guardarOrden(citas) {
+  const { data: r, error } = await db.rpc('ordenar_citas', { p_ids: citas.map(c => c.id) });
+  if (error || (r && r.ok === false)) { toast('No se ha podido guardar el orden', true); return false; }
+  return true;
+}
+
+async function nuevaFechaTrasNoEstaba(c) {
+  const prop = proximoDiaConsulta(c.dias, c.fecha);
+  const op = await elegirOpcion('¿Le buscamos otro día?', `${c.nombre}\n\nEl próximo día que atiende es el ${fechaLarga(new Date(prop + 'T00:00:00'))}.`,
+    [{ k: 'no', t: 'Ahora no', cls: 'sec' }, { k: 'otra', t: 'Elegir otra fecha', cls: 'sec' }, { k: 'prop', t: 'Cita el ' + fechaCorta(prop) }]);
+  if (!op) return;
+  let f = prop;
+  if (op === 'otra') { f = await pedirFecha('¿Qué día?', prop, { titulo: 'Nueva cita', ok: 'Crear cita' }); if (!f) return; }
+  const { data: r, error } = await db.rpc('guardar_cita', { p: { cuenta_id: c.cuenta_id, fecha: f, centro_nombre: c.centro_nombre,
+    estado: 'Planificada', origen: 'No estaba el ' + fechaCorta(c.fecha), op_id: 'ne-' + c.id + '-' + f } });
+  if (error || (r && r.ok === false)) { toast('No se ha podido crear la cita', true); return; }
+  toast('Nueva cita el ' + fechaCorta(f)); agRefrescoQuieto();
+}
+
+function cerrarMesCinta() { const m = $('agmes'); if (m) m.classList.remove('pop'); if ($('cmesb')) $('cmesb').setAttribute('aria-expanded', 'false'); }
+
+function asegurarEquipo() {
+  if (TAB !== 'agenda' || !VE_TODO()) return;
+  // Solo en la cabecera que se ve: mientras se repinta puede quedar una copia congelada con los mismos id
+  const acts = document.querySelector('#v-agenda > .saludo .acts'); if (!acts) return;
+  let sel = acts.querySelector('#agvista');
+  if (!sel) {
+    if (!COMS.length) { cargarComerciales().then(asegurarEquipo); return; }
+    acts.insertAdjacentHTML('afterbegin', `<select id="agvista" aria-label="Agenda de" title="Ver la agenda de otra persona">
+        <option value="">Mi agenda</option>${COMS.filter(u => u.id !== PERFIL.id).map(u => `<option value="${u.id}" ${AG_VISTA && AG_VISTA.id === u.id ? 'selected' : ''}>${esc(u.nombre)}</option>`).join('')}</select>`);
+    sel = acts.querySelector('#agvista');
+    sel.onchange = e => verAgendaDe(e.target.value);
+  }
+  let b = acts.querySelector('[data-ag="equipo"]');
+  if (!b) { sel.insertAdjacentHTML('afterend', '<button class="btn sec" data-ag="equipo">Equipo</button>'); b = acts.querySelector('[data-ag="equipo"]'); }
+  const eq = AG_MODO === 'equipo';
+  b.textContent = eq ? 'Mi agenda' : 'Equipo';
+  b.classList.toggle('sec', !eq);
+  b.title = eq ? 'Volver a tu agenda' : 'Ver el cumplimiento del equipo';
+}
 // pantallas/analitica.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -2773,6 +3723,35 @@ async function dupJuntarCentros(queda, va) {
   (u || []).sort((x, y) => (y.principal ? 1 : 0) - (x.principal ? 1 : 0)).forEach(x => { if (x.cuenta_id === queda.id) return; if (vistos[x.cuenta_id]) sobran.push(x.id); else vistos[x.cuenta_id] = 1; });
   if (sobran.length) await db.from('ubicaciones').delete().in('id', sobran);
   try { invalidarCache(); } catch (e) {}
+}
+
+function panelDupVacio(msg) {
+  $('dcmp').innerHTML = `<div class="vacio">${esc(msg)} Elige la siguiente pareja de la lista.</div>`;
+}
+
+async function revisarPendientes() {
+  cargando($('dbody'), 'Buscando pendientes…');
+  $('dlg').showModal();
+  const { data } = await db.rpc('duplicados_pendientes');
+  const l = data || [];
+  $('dbody').innerHTML = `
+    <div class="fh"><div><h2>Pendientes de unificar</h2>
+      <div class="sm">${l.length} fichas marcadas al darlas de alta</div></div>
+      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
+    <div class="lista">${l.map(x => `<div class="item" style="cursor:default">
+      <span class="ic w">${x.pct ? x.pct + '%' : '?'}</span>
+      <span class="tx"><b>${esc(x.nombre)}</b>
+        <span class="sm">Código ${esc(x.codigo)} · ${esc(x.centro || '')} ${esc(x.municipio || '')}</span>
+        <span class="sm">${x.par_nombre ? 'Se parece a ' + esc(x.par_nombre) : 'Sin pareja identificada'}</span></span>
+      <span class="acts" style="margin:0">
+        ${x.par_id ? `<button class="btn" data-cmp="${x.id}|${x.par_id}">Comparar</button>` : ''}
+        <button class="btn sec" data-dficha="${x.id}">Ver ficha</button></span></div>`).join('')
+      || '<div class="vacio">No hay fichas pendientes de unificar.</div>'}</div>`;
+
+  $('dbody').querySelectorAll('[data-cmp]').forEach(b => b.onclick = () => {
+    const [a, c] = b.dataset.cmp.split('|'); compararFichas(a, c);
+  });
+  $('dbody').querySelectorAll('[data-dficha]').forEach(b => b.onclick = () => { $('dlg').close(); abrirFicha(b.dataset.dficha); });
 }
 // pantallas/ciclo.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
@@ -3422,6 +4401,92 @@ async function personasEsquema(id) {
 }
 
 function liqMesFin(per) { const [a, m] = per.split('-').map(Number); return `${per}-${String(new Date(a, m, 0).getDate()).padStart(2, '0')}`; }
+
+function editorEsquema(id) {
+  const e = id ? ESQUEMAS.find(x => x.id === id) : null;
+  let tramos = e && e.tramos && e.tramos.length ? e.tramos.slice() : [{ desde_u: 0, hasta_u: 100, valor: 1 }];
+  let calc = e ? e.calculo : 'tramo_alcanzado';
+  let fijoVal = e && e.valor_fijo ? e.valor_fijo : 1;
+
+  const pinta = () => {
+    const fijo = calc === 'fijo';
+    $('dbody').innerHTML = `
+      <div class="fh"><div><h2>${id ? 'Editar esquema' : 'Nuevo esquema'}</h2>
+        <div class="sm">Define cómo se calcula la comisión y a quién se aplica</div></div>
+        <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
+      <label for="enom">Nombre</label><input id="enom" value="${esc(e ? e.nombre : '')}" placeholder="p. ej. Comercial zona norte">
+      <div class="g2">
+        <div><label for="eatr">Se cuenta por</label><select id="eatr">
+          <option value="comercial" ${e && e.atribucion === 'comercial' ? 'selected' : ''}>Cartera del comercial</option>
+          <option value="cierra" ${e && e.atribucion === 'cierra' ? 'selected' : ''}>Ventas que cierra (televenta)</option></select></div>
+        <div><label for="ecalc">Cálculo</label><select id="ecalc">
+          <option value="tramo_alcanzado" ${calc === 'tramo_alcanzado' ? 'selected' : ''}>Tramo alcanzado a todo el volumen</option>
+          <option value="marginal" ${calc === 'marginal' ? 'selected' : ''}>Por tramos (cada unidad a su tramo)</option>
+          <option value="fijo" ${calc === 'fijo' ? 'selected' : ''}>Importe fijo por unidad</option></select></div>
+      </div>
+      <div class="g2">
+        <div><label for="ecan">Canal</label><select id="ecan">
+          <option value="">Todos</option>
+          <option value="paciente" ${e && e.canal === 'paciente' ? 'selected' : ''}>Solo venta ${TT('paciente', 's', 'al', 'l', 'l')}</option>
+          <option value="centro" ${e && e.canal === 'centro' ? 'selected' : ''}>Solo venta a centro</option></select></div>
+        ${fijo ? `<div><label for="efijo">Euros por unidad</label><input id="efijo" type="number" step="0.01" min="0" value="${fijoVal}"></div>` : '<div></div>'}
+      </div>
+      ${fijo ? '' : `<label>Tramos <span class="sm">· deja vacío el "hasta" del último</span></label>
+      <div class="trcab" aria-hidden="true"><span>Desde (uds.)</span><span>Hasta (uds.)</span><span>€ por unidad</span></div>
+      <div id="etramos">${tramos.map((t, i) => `<div class="g2" style="margin-bottom:8px">
+        <input data-td="${i}" type="number" min="0" value="${t.desde_u}" placeholder="Desde">
+        <input data-th="${i}" type="number" min="0" value="${t.hasta_u == null ? '' : t.hasta_u}" placeholder="Hasta">
+        <input data-tv="${i}" type="number" step="0.01" min="0" value="${t.valor}" placeholder="€/unidad">
+        ${tramos.length > 1 ? `<button type="button" class="btn sec" data-tx="${i}">✕</button>` : ''}</div>`).join('')}</div>
+      <div class="acts"><button type="button" class="btn sec" id="etmas">+ Añadir tramo</button></div>`}
+      <div class="acts" style="justify-content:flex-end">
+        <button class="btn sec" data-cerrar>Cancelar</button>
+        <button class="btn" id="eguardaresq">${id ? 'Guardar' : 'Crear esquema'}</button></div>`;
+
+    const leer = () => {
+      if (fijo) return;
+      tramos = [...$('etramos').children].map((d, i) => ({
+        desde_u: +d.querySelector(`[data-td="${i}"]`).value || 0,
+        hasta_u: d.querySelector(`[data-th="${i}"]`).value === '' ? null : +d.querySelector(`[data-th="${i}"]`).value,
+        valor: +d.querySelector(`[data-tv="${i}"]`).value || 0
+      }));
+    };
+    $('ecalc').onchange = () => { leer(); if ($('efijo')) fijoVal = $('efijo').value; calc = $('ecalc').value; pinta(); };
+    if ($('etmas')) $('etmas').onclick = () => {
+      leer();
+      const ult = tramos[tramos.length - 1];
+      tramos.push({ desde_u: (ult.hasta_u || ult.desde_u) + 1, hasta_u: null, valor: ult.valor });
+      pinta();
+    };
+    $('dbody').querySelectorAll('[data-tx]').forEach(b => b.onclick = () => { leer(); tramos.splice(+b.dataset.tx, 1); pinta(); });
+    personasEsquema(id);
+
+    $('eguardaresq').onclick = async ev => {
+      leer();
+      if (!$('enom').value.trim()) { toast('Ponle un nombre', true); return; }
+      ev.target.disabled = true; ev.target.textContent = 'Guardando…';
+      const { data: r, error } = await db.rpc('guardar_esquema', { p: {
+        id: id || null, nombre: $('enom').value.trim(), atribucion: $('eatr').value,
+        calculo: calc, canal: $('ecan').value || null,
+        valor_fijo: fijo ? $('efijo').value : null,
+        ...(fijo ? {} : { tramos })
+      }});
+      ev.target.disabled = false; ev.target.textContent = id ? 'Guardar' : 'Crear esquema';
+      if (error || (r && r.ok === false)) { toast('No se ha podido guardar', true); return; }
+      $('dlg').close(); toast('Esquema guardado'); pintarComisiones();
+    };
+  };
+  pinta();
+  $('dlg').showModal();
+}
+
+async function cargarComerciales() {
+  const { data } = await db.from('perfiles').select('id,nombre,rol,activo').order('nombre');
+  // Solo quien lleva cartera o agenda comercial (no Dirección, Solo consulta ni médicos)
+  COMS = (data || []).filter(u => u.activo && rolPuede(u.rol, 'equipo_comercial'));
+  $('fcom').innerHTML = '<option value="">Todos</option><option value="ninguno">Sin comercial</option>' +
+    COMS.map(u => `<option value="${u.id}" ${F.com === u.id ? 'selected' : ''}>${esc(u.nombre)}</option>`).join('');
+}
 // pantallas/compras.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -3796,6 +4861,21 @@ async function cargarPreciosContrato(cuenta) {
   if (cuenta) { try { const { data } = await db.rpc('precios_contrato', { p_cuenta: cuenta }); precios = data || {}; } catch (e) {} }
   PED_PRECIOS = { cuenta, precios };
   return JSON.stringify(precios) !== antes;
+}
+
+function editorAvisosVencimiento() {
+  $('dbody').innerHTML = `<div class="fh"><div><h2>Avisos de vencimiento</h2><div class="sm">Cuántos días antes de que venza un contrato se avisa</div></div>
+      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
+    <label for="convd">Días antes (separados por comas)</label><input id="convd" value="${esc(CON_AVISOS.slice().sort((a, b) => b - a).join(', '))}" placeholder="90, 30">
+    <p class="sm">El aviso llega a quien lleva la ficha, al responsable del concurso y a la administración, una vez por cada plazo. Vacío: sin avisos.</p>
+    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>Cancelar</button><button class="btn" id="convok">Guardar</button></div>`;
+  if (!$('dlg').open) $('dlg').showModal();
+  $('convok').onclick = async () => {
+    const dias = [...new Set($('convd').value.split(/[^0-9]+/).map(Number).filter(n => n > 0 && n <= 999))].sort((a, b) => b - a);
+    const { data: r, error } = await db.rpc('guardar_ajuste', { p_clave: 'avisos_vencimiento', p_valor: { dias } });
+    if (error || (r && r.ok === false)) { toast('No se ha podido guardar', true); return; }
+    CON_AVISOS = dias; $('dlg').close(); toast('Avisos guardados');
+  };
 }
 // pantallas/configuracion.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
@@ -5322,6 +6402,389 @@ function cfgClonarEstilos() {
 }
 
 function pagMarcarSucio() { const n = PAG_SUCIO.size; ['cfuguardar', 'cfudescartar'].forEach(id => { const b = $(id); if (b) b.disabled = !n; }); }
+
+async function editorReglasCartera() {
+  await cargarAjustes();
+  const excl = !AJUSTES.cartera || AJUSTES.cartera.exclusiva !== false;
+  $('dbody').innerHTML = `
+    <div class="fh"><div><h2>Reglas de cartera</h2><div class="sm">Cómo se reparten ${TT('medico', 'p', 'el', 'l', 'l')} entre el equipo</div></div>
+      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
+    <label class="opt" style="margin-top:10px"><input type="checkbox" id="rcexcl" ${excl ? 'checked' : ''}>
+      <span><b>Cartera exclusiva</b><br><span class="sm">${TT('medico', 's', 'un', 'C', 'l')} solo puede estar en la cartera de una persona. Al asignarlo a alguien, sale de la cartera de quien lo tuviera.</span></span></label>
+    <p class="sm">Si la desactivas, ${TT('medico', 's', 'un', 'l', 'l')} podrá estar en varias carteras y administración verá una alerta «${TT('medico', 'p', '', 'l', 'C')} en más de una cartera» en Inicio.</p>
+    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>Cancelar</button><button class="btn" id="rcok">Guardar</button></div>`;
+  $('dlg').showModal();
+  $('rcok').onclick = async () => {
+    const { data: r, error } = await db.rpc('guardar_ajuste', { p_clave: 'cartera', p_valor: { exclusiva: $('rcexcl').checked } });
+    if (error || (r && r.ok === false)) { toast('No se ha podido guardar', true); return; }
+    AJUSTES.cartera = { exclusiva: $('rcexcl').checked }; $('dlg').close(); toast('Reglas guardadas');
+  };
+}
+
+async function bloqueZonas(u) {
+  if (!PROV_CCAA) {
+    const [{ data: pc }, { data: rz }] = await Promise.all([db.from('provincias_ccaa').select('provincia,comunidad'), db.rpc('zonas_resumen')]);
+    const cuenta = {}; (rz || []).forEach(x => cuenta[x.provincia] = x.medicos);
+    PROV_CCAA = {};
+    (pc || []).forEach(x => (PROV_CCAA[x.comunidad] = PROV_CCAA[x.comunidad] || []).push({ p: x.provincia, n: cuenta[x.provincia] || 0 }));
+  }
+  const { data: yo } = await db.from('perfiles').select('zonas').eq('id', u.id).single();
+  const sel = new Set((yo && yo.zonas) || []);
+  const bonito = p => p.charAt(0) + p.slice(1).toLowerCase();
+  return `<div class="blk" id="uzonas"><h3>Zona de trabajo</h3>
+    <p class="sm">Marca las provincias de su zona. Al guardar, ${TT('medico', 'p', 'el', 'l', 'l')} de esas provincias que no tengan comercial entran en su cartera, y los que se den de alta después entran solos. Solo verá ${TT('medico', 'p', 'el', 'l', 'l')} de su cartera.</p>
+    <div class="zonas">${Object.keys(PROV_CCAA).sort().map(cc => {
+      const ps = PROV_CCAA[cc].filter((x, i, a) => a.findIndex(y => y.n === x.n && bonito(y.p).slice(0, 4) === bonito(x.p).slice(0, 4)) === i || x.n || sel.has(x.p));
+      return `<details ${ps.some(x => sel.has(x.p)) ? 'open' : ''}><summary><label onclick="event.stopPropagation()"><input type="checkbox" data-zcc="${esc(cc)}" ${ps.every(x => sel.has(x.p)) ? 'checked' : ''}> ${esc(cc)}</label>
+        <span class="sm">${num(ps.reduce((n, x) => n + x.n, 0))} ${TT('medico', 'p', '', 'l', 'l')}</span></summary>
+        <div class="zprov">${ps.map(x => `<label><input type="checkbox" data-zp="${esc(x.p)}" data-zpc="${esc(cc)}" ${sel.has(x.p) ? 'checked' : ''}> ${esc(bonito(x.p))} <span class="sm">${num(x.n)}</span></label>`).join('')}</div></details>`;
+    }).join('')}</div>
+    <div class="acts" style="margin-top:8px"><button class="btn sec" id="uzok">Guardar zona y asignar sus ${TT('medico', 'p', '', 'l', 'l')}</button></div></div>`;
+}
+
+// En la factura solo va el logo si la empresa ha subido el suyo
+async function logoData() { if (MARCA.logo && (AJUSTES.marca || {}).logo_factura !== false) { LOGO_DATA = MARCA.logo; LOGO_CIRC = true; return MARCA.logo; } return null; }
+async function pintarCopias() {
+  const { data: au } = await db.from('auditoria').select('creado_en').eq('accion', 'Copia de seguridad').order('creado_en', { ascending: false }).limit(1);
+  const ultima = au && au[0] ? new Date(au[0].creado_en) : null, dias = ultima ? Math.floor((Date.now() - ultima) / 864e5) : null;
+  $('cfgcuerpo').innerHTML = `<div class="card cfgpanel"><h2>Copias de seguridad</h2>
+    <p class="sm">Descarga en un único archivo todos los datos de la empresa: ${TT('medico', 'p', '', 'l', 'l')}, ${TT('visita', 'p', '', 'l', 'l')}, agenda, clientes, pedidos, facturas, stock y configuración. Las contraseñas no se incluyen.</p>
+    <div class="copiaest ${dias == null || dias > 7 ? 'mal' : 'bien'}"><b>${ultima ? 'Última copia: ' + ultima.toLocaleString('es-ES', { dateStyle: 'long', timeStyle: 'short' }) : 'Todavía no se ha hecho ninguna copia'}</b>
+      <span>${dias == null ? 'Haz la primera ahora.' : dias > 7 ? `Hace ${dias} días: conviene hacer una nueva.` : 'Al día.'}</span></div>
+    <div class="acts" style="margin:12px 0 0"><button class="btn" id="copok">⬇ Descargar copia completa</button></div>
+    <h3 class="mansub">Consejos</h3><ul class="manlist">
+      <li><span>📅</span><span>Haz una copia cada semana y guárdala fuera del ordenador (unidad externa o nube de la empresa).</span></li>
+      <li><span>🔐</span><span>El archivo contiene datos personales: guárdalo en un sitio con acceso restringido.</span></li>
+      <li><span>🤖</span><span>Si quieres que se haga sola cada día, hay una copia automática gratuita con GitHub (pídela a quien te da soporte técnico).</span></li></ul></div>`;
+  $('copok').onclick = async ev => {
+    ev.target.disabled = true; ev.target.textContent = 'Preparando la copia…';
+    const { data, error } = await RPC_ORIG('exportar_datos', {});
+    ev.target.disabled = false; ev.target.textContent = '⬇ Descargar copia completa';
+    if (error || !data) { toast('No se ha podido hacer la copia', true); return; }
+    const b = new Blob([JSON.stringify(data)], { type: 'application/json' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = `copia_${nombreApp().replace(/[^\p{L}\p{N}]+/gu, '_')}_${hoyISO()}.json`; a.click();
+    const n = Object.values(data.tablas || {}).reduce((s, t) => s + t.length, 0);
+    toast(`Copia descargada · ${num(n)} registros`); setTimeout(pintarCopias, 800);
+  };
+}
+
+async function deshacerUno(id, despues) {
+  const { data: s } = await db.rpc('deshacer_cambio', { p_id: id, p_simular: true });
+  if (!s || !s.ok) { toast(MOTIVO_DESHACER[(s && s.motivo) || ''] || (s && s.motivo) || 'No se puede deshacer', true); return; }
+  if (!(s.campos || []).length) { toast('No hay nada que deshacer: esos datos se han vuelto a cambiar después', true); return; }
+  if (!await preguntar(`Volverán a su valor de antes: ${s.campos.map(campoTxt).join(', ')}. Lo que se haya cambiado después no se toca.`, { titulo: 'Deshacer el cambio', ok: 'Deshacer' })) return;
+  const { data: r, error } = await db.rpc('deshacer_cambio', { p_id: id, p_simular: false });
+  if (error || !r || !r.ok) { toast('No se ha podido deshacer: ' + ((r && (MOTIVO_DESHACER[r.motivo] || r.motivo)) || (error && error.message) || ''), true); return; }
+  toast('Cambio deshecho'); if (despues) despues();
+}
+
+function cajaDeshacerPersona(caja, usuario, desde, nombre, despues) {
+  if (!caja) return;
+  if (!usuario || !desde) { caja.innerHTML = ''; return; }
+  caja.innerHTML = `<div class="card" id="audpersona" style="margin:0 16px 10px"><h3>Deshacer los cambios de ${esc(nombre.trim())}</h3>
+    <p class="sm">Todo lo que cambió o borró en fichas, ${TT('consulta', 'p', '', 'l', 'l')}, clientes, productos y rutas desde el ${fechaCorta(desde)}. Lo que otra persona haya cambiado después no se toca.</p>
+    <div class="acts" style="margin:6px 0 0"><button type="button" class="btn sec" id="audsim">Ver qué se desharía</button></div><div id="audres" class="sm"></div></div>`;
+  $('audsim').onclick = async ev => {
+    ev.target.disabled = true;
+    const { data: s } = await db.rpc('deshacer_persona', { p_usuario: usuario, p_desde: desde + 'T00:00:00', p_simular: true });
+    ev.target.disabled = false;
+    if (!s || !s.ok) { toast('No se ha podido calcular', true); return; }
+    const nom = { cuentas: 'fichas', ubicaciones: TT('consulta', 'p', '', 'l', 'l'), contactos: 'clientes', productos: 'productos', rutas: 'rutas' };
+    if (!s.cambios) { $('audres').textContent = 'No hay nada que deshacer en ese periodo (o ya se ha vuelto a cambiar).'; return; }
+    $('audres').innerHTML = `Se desharían <b>${num(s.cambios)}</b> cambios (${num(s.campos)} datos): ${Object.entries(s.por_entidad || {}).map(([k, n]) => `${num(n)} en ${nom[k] || k}`).join(', ')}.
+      ${s.sin_deshacer ? ` ${num(s.sin_deshacer)} no se pueden deshacer porque se han vuelto a cambiar después.` : ''}
+      <div class="acts" style="margin:8px 0 0"><button type="button" class="btn" id="audok">Deshacer ${num(s.cambios)} cambios</button></div>`;
+    $('audok').onclick = async ev2 => {
+      if (!await preguntar(`Se desharán ${num(s.cambios)} cambios de ${nombre.trim()} desde el ${fechaCorta(desde)}. Queda registrado y cada uno se puede volver a cambiar a mano.`, { titulo: 'Deshacer sus cambios', ok: 'Deshacer' })) return;
+      ev2.target.disabled = true;
+      const { data: r } = await db.rpc('deshacer_persona', { p_usuario: usuario, p_desde: desde + 'T00:00:00', p_simular: false });
+      if (!r || !r.ok) { ev2.target.disabled = false; toast('No se ha podido deshacer', true); return; }
+      toast(`Deshechos ${num(r.cambios)} cambios`); if (despues) despues();
+    };
+  };
+}
+
+// Lo que se deja de tener al pasar de un plan a otro (para avisar antes)
+function perdidasPlan(de, a, datos) {
+  const pd = planDe(de), pa = planDe(a), extras = (datos && datos.extras) || [], l = [];
+  if (de === a) return l;
+  const nombreMod = m => (MOD_PLAN.find(x => x[0] === m) || [m, m])[1];
+  pd.modulos.filter(m => !pa.modulos.includes(m) && m in MODULO_AREA).forEach(m => l.push(m === 'facturacion'
+    ? `Facturación: ${datos && datos.facturas ? 'tus facturas quedan en solo lectura (verlas, descargarlas y cobrarlas, no emitir nuevas)' : 'no podrás emitir facturas'}` : nombreMod(m)));
+  Object.keys(PLAN_SECCIONES).forEach(s => { if (PLAN_SECCIONES[s].includes(de) && !PLAN_SECCIONES[s].includes(a)) l.push(TITULO_PEDSEC[s] ? TITULO_PEDSEC[s][0] : s); });
+  Object.keys(PLAN_EXTRAS).forEach(x => {
+    if (!PLAN_EXTRAS[x].includes(de) || PLAN_EXTRAS[x].includes(a) || extras.includes(x)) return;
+    if (x === 'oportunidades') l.push('Oportunidades');
+    if (x === 'portal') l.push(`Portal ${TT('medico', 's', 'del', 'l', 'l')} y del centro${datos && +datos.medicos ? ` (${num(datos.medicos)} con acceso lo perderán)` : ''}`);
+  });
+  if (de === 'medida' && a === 'empresa' && datos && +datos.medicos > 50) l.push(`Portal: el plan Empresa admite hasta 50 accesos y ahora hay ${num(datos.medicos)}`);
+  if (de === 'medida') l.push('Ver la plataforma como cada persona de tu equipo', 'Soporte prioritario');
+  return l;
+}
+
+function reciboCalculado(pl) {
+  const p = planDe(pl.plan), u = Math.max(+pl.usuarios || 0, p.minimo || 3), anual = pl.pago === 'anual';
+  const cuota = u * p.precio * (anual ? 10 : 1);
+  const puesta = pl.en_prueba && !anual ? PUESTA_EN_MARCHA : 0;
+  return { primero: cuota + puesta + ivaDe(cuota + puesta), despues: cuota + ivaDe(cuota), puesta, anual };
+}
+
+// Configuración → el catálogo de resultados: en qué estados aparece cada uno
+function enEstadosTxt(l) { return l && l.length ? 'Solo en: ' + l.join(', ') : 'En todos los estados'; }
+
+function decorarResultados() {
+  const caja = $('dbody'); if (!caja) return;
+  caja.querySelectorAll('[data-vdest]').forEach(sel => {
+    const item = sel.closest('.item'); if (!item || item.querySelector('[data-ven]')) return;
+    const vid = sel.dataset.vdest;
+    const v = (CATS || []).flatMap(c => c.valores || []).find(x => x.id === vid); if (!v) return;
+    sel.insertAdjacentHTML('afterend', `<button type="button" class="btn sec" data-ven="${vid}" title="En qué estados de la ficha aparece este resultado">${esc(enEstadosTxt(v.en_estados))}</button>`);
+    item.querySelector('[data-ven]').onclick = () => {
+      const abierta = item.nextElementSibling && item.nextElementSibling.classList.contains('venbox');
+      caja.querySelectorAll('.venbox').forEach(x => x.remove());
+      if (abierta) return;
+      const marcados = new Set(v.en_estados || []);
+      item.insertAdjacentHTML('afterend', `<div class="venbox"><span class="sm">«${esc(v.valor)}» aparece al registrar ${TT('visita', 's', 'el', 'l', 'l')} de las fichas en estos estados (sin marcar ninguno, en todos):</span>
+        <div class="chips">${estados().map(e => `<button type="button" class="chip ${marcados.has(e) ? 'on' : ''}" data-vene="${esc(e)}" aria-pressed="${marcados.has(e)}">${esc(e)}</button>`).join('')}</div>
+        <div class="acts" style="justify-content:flex-end;margin:6px 0 0"><button type="button" class="btn sec" data-vencerrar>Cancelar</button><button type="button" class="btn" data-venok>Guardar</button></div></div>`);
+      const box = item.nextElementSibling;
+      box.querySelectorAll('[data-vene]').forEach(b => b.onclick = () => { const on = b.getAttribute('aria-pressed') !== 'true'; b.setAttribute('aria-pressed', String(on)); b.classList.toggle('on', on); });
+      box.querySelector('[data-vencerrar]').onclick = () => box.remove();
+      box.querySelector('[data-venok]').onclick = async ev => {
+        const l = [...box.querySelectorAll('[data-vene][aria-pressed="true"]')].map(b => b.dataset.vene);
+        ev.target.disabled = true;
+        const { data: r, error } = await db.rpc('guardar_valor', { p: { id: vid, en_estados: l.length === estados().length ? [] : l } });
+        ev.target.disabled = false;
+        if (error || (r && r.ok === false)) { toast('No se ha podido guardar', true); return; }
+        v.en_estados = l.length && l.length < estados().length ? l : null;
+        item.querySelector('[data-ven]').textContent = enEstadosTxt(v.en_estados);
+        box.remove(); toast(v.en_estados ? `«${v.valor}» solo sale en: ${l.join(', ')}` : `«${v.valor}» sale en todos los estados`);
+      };
+    };
+  });
+}
+
+async function pendientesCfg() {
+  if (Date.now() - CFG_PEND.t < 60000) return CFG_PEND.l;
+  const l = {};
+  try { if (!prefsActivas().salida && puedeModulo('agenda')) l['rutas.salida'] = 'Sin punto de salida: las horas del día salen sin el primer trayecto'; } catch (e) {}
+  if (puedeOrganizacion()) {
+    try { const { data: c } = await RPC_ORIG('correo_config', {}); if (!c || !c.host) l['o.correo'] = 'Sin configurar: los correos de la empresa no salen'; } catch (e) {}
+    try {
+      const { data: au } = await db.from('auditoria').select('creado_en').eq('accion', 'Copia de seguridad').order('creado_en', { ascending: false }).limit(1);
+      const d = au && au[0] ? Math.floor((Date.now() - new Date(au[0].creado_en)) / 864e5) : null;
+      if (d == null) l['o.copias'] = 'Todavía no hay ninguna copia'; else if (d > 7) l['o.copias'] = `La última copia es de hace ${d} días`;
+    } catch (e) {}
+  }
+  CFG_PEND = { t: Date.now(), l };
+  return l;
+}
+
+async function pintarEstadosPapel() {
+  const c = $('cfgcuerpo'); if (!c) return;
+  cargando(c, 'Cargando los estados…');
+  const { data: ce } = await db.from('clasificadores').select('id').eq('papel', 'estado_comercial').limit(1);
+  const { data: est, error } = ce && ce[0] ? await db.from('valores_clasificador').select('id,valor,orden,activo,papel').eq('clasificador_id', ce[0].id).order('orden')
+    : { data: [], error: null };
+  if (!$('cfgcuerpo') || CFG_KEY !== 'estados') return;
+  if (error) { c.innerHTML = `<div class="card"><p class="sm">No se han podido leer los estados: ${esc(error.message)}</p></div>`; return; }
+  const l = (est || []).filter(v => v.activo !== false);
+  const opc = v => PAPELES_ESTADO.map(([k, t]) => `<option value="${k}" ${v.papel === k ? 'selected' : ''}>${t}</option>`).join('');
+  c.innerHTML = `<div class="card estw">
+      <p class="sm">Cada estado tiene un papel. Con él, la plataforma sabe qué ficha es nueva, cuál avanza, cuál ya es cliente y cuál se ha perdido:
+        de ahí salen los avisos, los indicadores de Inicio y qué resultados se ofrecen al registrar ${esc(TT('visita', 's', 'una', 'l', 'l'))}. El nombre de cada estado se cambia en «Textos personalizados».</p>
+      ${l.length ? l.map(v => `<div class="ajfila estfila" data-estid="${v.id}"><div><b>${esc(v.valor)}</b>
+          <span class="sm">${esc((PAPELES_ESTADO.find(p => p[0] === v.papel) || [, , 'Sin papel: no cuenta en avisos ni indicadores'])[2])}</span></div>
+        <div class="ajctl"><select data-estpapel="${v.id}" aria-label="Papel de ${esc(v.valor)}" ${v.papel === 'inicial' ? 'title="Para cambiarlo, marca otro estado como Inicial"' : ''}>${v.papel ? '' : '<option value="" selected>Sin papel</option>'}${opc(v)}</select></div></div>`).join('')
+        : '<p class="vacio">Todavía no hay estados comerciales.</p>'}</div>`;
+  c.querySelectorAll('[data-estpapel]').forEach(s => s.onchange = async () => {
+    const v = l.find(x => x.id === s.dataset.estpapel), nuevo = s.value;
+    if (!v || !nuevo || nuevo === v.papel) return;
+    if (v.papel === 'inicial') { s.value = v.papel; toast('Para cambiar el estado inicial, marca otro estado como «Inicial»', true); return; }
+    const ant = l.find(x => x.papel === 'inicial' && x.id !== v.id);
+    if (nuevo === 'inicial' && ant && !await preguntar(`Las fichas nuevas empezarán en «${v.valor}». «${ant.valor}» pasará a «En avance».`, { titulo: '¿Cambiar el estado inicial?', ok: 'Cambiar' })) { s.value = v.papel || ''; return; }
+    s.disabled = true;
+    const { data: r, error } = await db.rpc('guardar_papel_estado', { p_id: v.id, p_papel: nuevo });
+    if (error || !r || !r.ok) {
+      s.disabled = false; s.value = v.papel || '';
+      toast(({ permiso: 'No tienes permiso para cambiarlo', sin_inicial: 'Para cambiar el estado inicial, marca otro estado como «Inicial»', papel: 'Ese papel no existe' })[(r && r.error) || ''] || ('No se ha podido cambiar' + (error ? ': ' + error.message : '')), true);
+      return;
+    }
+    toast('Papel cambiado');
+    invalidarCache(); try { await cargarCatalogos(); } catch (e) {}
+    pintarEstadosPapel();
+  });
+}
+
+// Grupo «Invitados» de Usuarios
+function pintarInvitados(lista, acc) {
+  const box = $('usrinv'); if (!box) return;
+  const hace = t => { if (!t) return null; const d = new Date(t); return isNaN(d) ? null : d.toLocaleString('es-ES', { dateStyle: 'medium', timeStyle: 'short' }); };
+  $('usrinvn').textContent = lista.length ? '· ' + num(lista.length) : '';
+  box.innerHTML = lista.map(u => {
+    const a = acc[u.id] || {}, ult = hace(a.ultima_conexion || a.ultimo_acceso);
+    return `<div class="usrinv ${u.activo ? '' : 'off'}">
+      <span class="usrav" style="background:${esc((rolDef(u.rol) || {}).color || '#17457A')}">${esc(iniciales(u.nombre))}</span>
+      <span class="usrtx"><b>${esc(u.nombre)}</b><span class="sm">${esc(u.email || '')}</span>
+        <span class="usrchips">${u.cuenta_id ? `<button class="pill p-per" data-uinvf="${u.cuenta_id}" title="Abrir su ficha">${esc(u.medico || u.cuenta || 'Su ficha')}</button>` : '<span class="pill p-anu">Sin ficha</span>'}
+          ${u.activo ? '' : '<span class="pill p-anu">Desactivado</span>'}
+          <span class="sm usrinvult">${ult ? esc(conexionTxt(a)) : 'Aún no ha entrado'}</span></span>
+        <span class="sm usrinvve">${esc(queVeInvitado(u))}</span></span>
+      <span class="usrinvacts">${puedeVerComo(u) ? `<button class="btn" data-ucomo="${u.id}">👤 Impersonalizar</button>` : ''}
+        <button class="btn sec" data-uinvd="${u.id}">Detalles</button></span></div>`;
+  }).join('') || `<div class="vacio">${Object.keys(acc).length || (USUARIOS || []).some(esInvitado) ? 'Nadie con estos filtros.' : `Todavía no has dado acceso a nadie. Se da desde su ficha: «Acceso a la plataforma» → «Dar acceso».`}</div>`;
+  box.querySelectorAll('[data-uinvf]').forEach(b => b.onclick = () => abrirFicha(b.dataset.uinvf));
+  box.querySelectorAll('[data-uinvd]').forEach(b => b.onclick = () => detalleUsuario((USUARIOS || []).find(x => x.id === b.dataset.uinvd)));
+}
+
+async function matMejorar() {
+  const lista = document.querySelector('#cfgcuerpo .matlista'); if (!lista) return;
+  const { data: cid } = await db.from('clasificadores').select('id').eq('papel', 'material_visita').maybeSingle();
+  if (!cid) return;
+  const conPortal = typeof hayExtra === 'function' && hayExtra('portal');
+  const [{ data: vals }, rp, ra] = await Promise.all([
+    db.from('valores_clasificador').select('id,valor,activo,dato_tipo').eq('clasificador_id', cid.id).order('orden'),
+    conPortal ? RPC_ORIG('portal_material_permitido', {}) : Promise.resolve({ data: [] }),
+    conPortal ? db.from('ajustes').select('valor').eq('clave', 'portal').maybeSingle() : Promise.resolve({ data: null })]);
+  if (!document.querySelector('#cfgcuerpo .matlista')) return;
+  const perm = Array.isArray(rp && rp.data) ? rp.data : [], conAjuste = !!(ra && ra.data && ra.data.valor && ra.data.valor.material);
+  const de = v => perm.find(p => p.valor === v);
+  const vis = TT('visita', 's', 'la', 'l', 'l');
+  lista.classList.add('matlista2');
+  lista.innerHTML = (vals || []).map(v => { const p = de(v.valor); return `<div class="matfila2 ${v.activo ? '' : 'off'}" data-mv="${v.id}" data-mvv="${esc(v.valor)}" data-mdt0="${v.dato_tipo === 'numero' ? 'numero' : ''}">
+      <b class="mtnom">${esc(v.valor)}</b>
+      <label class="mtcampo"><span class="sm">Al registrar ${vis}</span><select class="chico" data-mdt>
+        <option value="numero" ${v.dato_tipo === 'numero' ? 'selected' : ''}>Anotar cuántas se entregan</option>
+        <option value="" ${v.dato_tipo === 'numero' ? '' : 'selected'}>Solo marcar que se entregó</option></select></label>
+      ${conPortal ? `<label class="opt mtpor"><input type="checkbox" data-mpp ${p ? 'checked' : ''}> Se puede pedir desde el portal</label>
+      <label class="mtcampo mtmax"><span class="sm">Máximo por petición</span><input type="number" step="1" data-mpx value="${p ? p.max : 20}" ${p ? '' : 'disabled'}></label>` : ''}
+      <label class="vfswitch mini"><input type="checkbox" data-mact2="${v.id}" ${v.activo ? 'checked' : ''}><span class="sw"></span><span class="sm">${v.activo ? 'Activo' : 'Oculto'}</span></label>
+      <span class="mterr sm" hidden></span></div>`; }).join('') || '<div class="sm">Todavía no hay material.</div>';
+  if (vals && vals.length) lista.insertAdjacentHTML('afterend', `<div class="acts mtacts" style="justify-content:space-between;align-items:center">
+      <span class="sm">${conPortal && !conAjuste ? 'Ahora el portal permite pedir todo el material, hasta 20 de cada uno. Guarda para decidirlo tú.' : ''}</span>
+      <button class="btn" id="matguardar">Guardar cambios</button></div>`);
+  lista.querySelectorAll('[data-mpp]').forEach(c => c.onchange = () => { const i = c.closest('.matfila2').querySelector('[data-mpx]'); if (i) i.disabled = !c.checked; });
+  lista.querySelectorAll('[data-mact2]').forEach(c => c.onchange = async () => {
+    await db.rpc('guardar_valor', { p: { id: c.dataset.mact2, activo: c.checked } });
+    c.closest('.matfila2').classList.toggle('off', !c.checked); c.parentElement.querySelector('.sm').textContent = c.checked ? 'Activo' : 'Oculto';
+    toast(c.checked ? 'Visible al registrar' : 'Oculto al registrar'); cargarCatalogos();
+  });
+  if ($('matguardar')) $('matguardar').onclick = async ev => {
+    const filas = [...lista.querySelectorAll('.matfila2')];
+    let mal = false; const material = [];
+    filas.forEach(f => {
+      const e = f.querySelector('.mterr'); e.hidden = true; e.textContent = '';
+      const c = f.querySelector('[data-mpp]'), i = f.querySelector('[data-mpx]');
+      if (!c || !c.checked) return;
+      const n = Number(i.value);
+      if (!i.value || !Number.isInteger(n) || n < 1 || n > 1000) { e.hidden = false; e.textContent = 'El máximo por petición tiene que ser un número entero de 1 a 1.000'; mal = true; return; }
+      material.push({ valor: f.dataset.mvv, max: n });
+    });
+    if (mal) { toast('Revisa los máximos marcados en rojo', true); return; }
+    ev.target.disabled = true;
+    try {
+      for (const f of filas) {
+        const s = f.querySelector('[data-mdt]');
+        if (s.value !== f.dataset.mdt0) {
+          const { error } = await db.rpc('guardar_valor', { p: { id: f.dataset.mv, dato_tipo: s.value, dato_etiqueta: s.value ? 'Unidades' : '' } });
+          if (error) { toast('No se ha podido guardar ' + f.dataset.mvv + ': ' + error.message, true); return; }
+          f.dataset.mdt0 = s.value;
+        }
+      }
+      if (conPortal) {
+        const { error } = await db.rpc('guardar_ajuste', { p_clave: 'portal', p_valor: Object.assign({}, (ra && ra.data && ra.data.valor) || {}, { material }) });
+        if (error) { toast('No se ha podido guardar el portal: ' + error.message, true); return; }
+      }
+      toast('Guardado'); cargarCatalogos();
+    } finally { ev.target.disabled = false; }
+  };
+}
+
+function conexionTxt(a, largo) {
+  const t = a && (a.ultima_conexion || a.ultimo_acceso), d = t ? new Date(t) : null;
+  if (!d || isNaN(d)) return a ? 'Nunca se ha conectado' : (largo ? 'Última conexión: sin datos' : '');
+  const min = Math.round((Date.now() - d) / 60000), hora = d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+  const hoy = new Date(); hoy.setHours(0, 0, 0, 0); const ayer = new Date(hoy - 864e5);
+  let x;
+  if (min < 5) x = 'ahora mismo';
+  else if (min < 60) x = 'hace ' + min + ' min';
+  else if (d >= hoy) x = 'hoy a las ' + hora;
+  else if (d >= ayer) x = 'ayer a las ' + hora;
+  else x = 'el ' + d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: d.getFullYear() === hoy.getFullYear() ? undefined : 'numeric' }) + (largo ? ' a las ' + hora : '');
+  return (largo ? 'Última conexión: ' : 'Conectado ') + x;
+}
+
+async function pintarAccesos() {
+  cargando($('admcuerpo'), 'Cargando los accesos…');
+  const { data } = await db.rpc('accesos_lista', { p_usuario: null, lim: 200 });
+  const l = data || [];
+  ($('admcuerpo') || document.createElement('div')).innerHTML = `<h2>Accesos<span class="n">${l.length}</span></h2>
+    <p class="sm">Últimas entradas y salidas de la plataforma.</p>
+    <div class="lista">${l.map(a => `<div class="item" style="cursor:default">
+      <span class="ic ${a.evento === 'Entrada' ? 'o' : ''}">${a.evento === 'Entrada' ? '→' : '←'}</span>
+      <span class="tx"><b>${esc(a.usuario)}</b><span class="sm">${esc(a.evento)} ·
+        ${new Date(a.creado_en).toLocaleString('es', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+        ${a.agente ? ' · ' + esc(String(a.agente).slice(0, 60)) : ''}</span></span></div>`).join('')
+      || '<div class="vacio">Todavía no hay accesos registrados.</div>'}</div>`;
+}
+
+function editorDato(v, alGuardar) {
+  $('dlg2body').innerHTML = `
+    <div class="fh"><div><h2>Dato de «${esc(v.valor)}»</h2>
+      <div class="sm">Al marcar este valor en ${TT('visita', 's', 'un', 'l', 'l')}, se pedirá además este dato</div></div>
+      <button class="x" data-cerrar2 aria-label="Cerrar">✕</button></div>
+    <label for="dtt">Qué dato pide</label>
+    <select id="dtt"><option value="">Ninguno (solo se marca)</option>
+      <option value="numero" ${v.dato_tipo === 'numero' ? 'selected' : ''}>Un número (p. ej. cantidad)</option>
+      <option value="texto" ${v.dato_tipo === 'texto' ? 'selected' : ''}>Un texto libre</option>
+      <option value="lista" ${v.dato_tipo === 'lista' ? 'selected' : ''}>Una opción de una lista</option></select>
+    <div id="dtcfg">
+      <label for="dte">Cómo se llama el dato</label><input id="dte" value="${esc(v.dato_etiqueta || '')}" placeholder="p. ej. Cantidad, A quién, Producto">
+      <div id="dtlw"><label for="dtl">Opciones de la lista <span class="sm">· una por línea</span></label>
+        <textarea id="dtl" rows="4">${esc((v.dato_opciones || []).join('\n'))}</textarea></div>
+    </div>
+    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar2>Cancelar</button><button class="btn" id="dtok">Guardar</button></div>`;
+  const vis = () => { $('dtcfg').classList.toggle('hide', !$('dtt').value); $('dtlw').classList.toggle('hide', $('dtt').value !== 'lista'); };
+  $('dtt').onchange = vis; vis();
+  $('dtok').onclick = async () => {
+    const tipo = $('dtt').value;
+    const ops = $('dtl').value.split('\n').map(x => x.trim()).filter(Boolean);
+    if (tipo === 'lista' && !ops.length) { toast('Escribe al menos una opción', true); return; }
+    const { data: r, error } = await db.rpc('guardar_valor', { p: { id: v.id, dato_tipo: tipo, dato_etiqueta: tipo ? $('dte').value.trim() : '',
+      dato_opciones: tipo === 'lista' ? ops : [] } });
+    if (error || (r && r.ok === false)) { toast('No se ha podido guardar', true); return; }
+    $('dlg2').close(); toast('Dato guardado'); alGuardar();
+  };
+  $('dlg2').showModal();
+}
+
+// Auditoría: los cambios se leen como texto (antes salía «[object Object]» con valores complejos)
+function textoValor(v) {
+  if (v == null || v === '') return '—';
+  if (typeof v === 'boolean') return v ? 'sí' : 'no';
+  if (Array.isArray(v)) return v.length ? v.slice(0, 3).map(textoValor).join(', ') + (v.length > 3 ? '…' : '') : '—';
+  if (typeof v === 'object') {
+    if (v.nombre) return String(v.nombre);
+    const k = Object.keys(v); return k.length ? k.slice(0, 3).map(x => `${x}: ${textoValor(v[x])}`).join(', ') + (k.length > 3 ? '…' : '') : '—';
+  }
+  return String(v);
+}
+
+function resumenDetalle(d) {
+  if (!d) return '';
+  if (typeof d !== 'object') return String(d).slice(0, 120);
+  if (d.nombre && typeof d.nombre !== 'object') return String(d.nombre);
+  const cambios = Object.keys(d).filter(k => Array.isArray(d[k]) && d[k].length === 2).slice(0, 4);
+  if (cambios.length) return cambios.map(k => `${k}: ${textoValor(d[k][0]).slice(0, 24)} → ${textoValor(d[k][1]).slice(0, 24)}`).join(' · ');
+  return Object.keys(d).slice(0, 4).map(k => `${k}: ${textoValor(d[k]).slice(0, 30)}`).join(' · ');
+}
+async function facccon(uid) {
+  if (!puede('administrar')) return;   // la información de sesión, solo para la administración (Eric)
+  const { data } = await RPC_ORIG('ultimas_conexiones', { p_ids: [uid] });
+  const el = document.querySelector(`[data-facccon="${uid}"]`); if (!el) return;
+  const a = (data || []).find(x => x.id === uid);
+  el.textContent = a ? conexionTxt(a, true) : '';
+}
 // pantallas/cuentas.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -6086,6 +7549,190 @@ async function bajaCuenta(id, baja) {
   if (TAB === 'directorio' && typeof buscar === 'function') buscar(true);
   return true;
 }
+
+function dpHTML(dias, idx) {
+  const st = {};
+  DIAS.forEach(k => {
+    const t = String((dias || {})[k] || '');
+    const r = /(\d{1,2}:\d{2})\s*-\s*(\d{1,2}:\d{2})/.exec(t);
+    st[k] = {
+      M: /mañana/i.test(t) || (r && +r[1].slice(0, 2) < 14),
+      T: /tarde/i.test(t) || (r && +r[1].slice(0, 2) >= 14),
+      h: r ? r[1] + '-' + r[2] : ''
+    };
+  });
+  const sel = (k, f) => `<select data-dh="${idx}|${k}|${f}"><option value="">Sin hora</option>${
+    (f === 'M' ? HM : HT).map(x => `<option ${st[k].h === x ? 'selected' : ''}>${x.replace('-', ' - ')}</option>`).join('')}</select>`;
+  return `<div class="dp" data-dp="${idx}">
+    <div class="qk"><button type="button" data-qk="${idx}|lvm">L-V mañanas</button>
+      <button type="button" data-qk="${idx}|lvt">L-V tardes</button>
+      <button type="button" data-qk="${idx}|clr">Limpiar</button></div>
+    ${DIAS.map(k => `<div class="dprow"><b>${DIAN[k].slice(0, 3)}</b>
+      <div class="dpc"><button type="button" class="dpt" data-dt="${idx}|${k}|M" aria-pressed="${!!st[k].M}">${st[k].M ? '✓ ' : ''}Mañana</button>${st[k].M ? sel(k, 'M') : ''}</div>
+      <div class="dpc"><button type="button" class="dpt" data-dt="${idx}|${k}|T" aria-pressed="${!!st[k].T}">${st[k].T ? '✓ ' : ''}Tarde</button>${st[k].T ? sel(k, 'T') : ''}</div>
+    </div>`).join('')}</div>`;
+}
+
+function dpLeer(cont, idx) {
+  const out = {};
+  DIAS.forEach(k => {
+    const partes = [];
+    ['M', 'T'].forEach(f => {
+      const b = cont.querySelector(`[data-dt="${idx}|${k}|${f}"]`);
+      if (b && b.getAttribute('aria-pressed') === 'true') {
+        const s = cont.querySelector(`[data-dh="${idx}|${k}|${f}"]`);
+        const h = s && s.value ? ' ' + s.value.replace(/\s/g, '') : '';
+        partes.push((f === 'M' ? 'Mañana' : 'Tarde') + h);
+      }
+    });
+    if (partes.length) out[k] = partes.join('; ');
+  });
+  return out;
+}
+
+function dpEstado(cont, idx) {
+  const st = {};
+  DIAS.forEach(k => {
+    st[k] = { M: false, T: false, h: { M: '', T: '' } };
+    ['M', 'T'].forEach(f => {
+      const b = cont.querySelector(`[data-dt="${idx}|${k}|${f}"]`);
+      if (b) st[k][f] = b.getAttribute('aria-pressed') === 'true';
+      const s = cont.querySelector(`[data-dh="${idx}|${k}|${f}"]`);
+      if (s) st[k].h[f] = s.value;
+    });
+  });
+  return st;
+}
+
+function repintarDp(cont, idx, st) {
+  const dias = {};
+  DIAS.forEach(k => {
+    const p = [];
+    if (st[k].M) p.push('Mañana' + (st[k].h.M ? ' ' + st[k].h.M.replace(/\s/g, '') : ''));
+    if (st[k].T) p.push('Tarde' + (st[k].h.T ? ' ' + st[k].h.T.replace(/\s/g, '') : ''));
+    if (p.length) dias[k] = p.join('; ');
+  });
+  cont.outerHTML = dpHTML(dias, idx);
+}
+
+function consHTML(c, i) {
+  // Los datos del centro van en campos ocultos: los rellena el selector de centros (buscar, «Estoy aquí» o centro nuevo)
+  const h = (f, v) => `<input type="hidden" data-cf="${i}|${f}" value="${esc(v == null ? '' : v)}">`;
+  return `<div class="cons" data-cons="${i}" ${c.lat ? `data-lat="${c.lat}"` : ""}>
+    <span class="consbar"><span class="consprio">Principal</span>
+      <button type="button" class="kmv" data-cmov="-1" title="Subir (más prioridad)" aria-label="Subir">↑</button>
+      <button type="button" class="kmv" data-cmov="1" title="Bajar (menos prioridad)" aria-label="Bajar">↓</button>
+      <button type="button" class="quitar" data-quitar="${i}">Quitar</button></span>
+    <input type="hidden" data-cid="${i}" value="${esc(c.id || '')}">
+    ${h('centro_id', c.centro_id)}${h('centro_nombre', c.centro_nombre)}${h('municipio', c.municipio)}${h('provincia', c.provincia)}
+    ${h('direccion', c.direccion)}${h('cp', c.cp)}${h('lat', c.lat)}${h('lon', c.lon)}
+    <label>Centro</label><div class="cenpick" data-cp="${i}"></div>
+    <div class="g2" style="margin-top:10px">
+      <div><label>Planta</label><input data-cf="${i}|planta" value="${esc(c.planta || '')}" maxlength="60" placeholder="p. ej. 2.ª planta"></div>
+      <div><label>Sala o despacho</label><input data-cf="${i}|sala" value="${esc(c.sala || '')}" maxlength="60" placeholder="p. ej. Despacho 14"></div>
+    </div>
+    <label>Indicaciones para llegar</label><input data-cf="${i}|indicaciones" value="${esc(c.indicaciones || '')}" maxlength="300" placeholder="p. ej. Entrar por la puerta B y preguntar en recepción">
+    <div class="g2" style="margin-top:10px">
+      <div><label>Teléfono ${TT('consulta', 's', 'del', 'l', 'l')}</label><input data-cf="${i}|telefono" value="${esc(c.telefono || '')}" inputmode="tel" placeholder="Si es distinto del del centro"></div><div></div>
+    </div>
+    <label>Días y horario de ${TT('visita', 's', '', 'l', 'l')}</label>${dpHTML(c.dias || {}, i)}
+  </div>`;
+}
+
+async function cambiarEstado(id, estado) {
+  const { error } = await db.from('cuentas').update({ estado_comercial: estado }).eq('id', id);
+  if (error) { toast('No se ha podido cambiar: ' + error.message, true); return; }
+  toast('Estado: ' + estado);
+  buscar(true); cargarInicio();
+}
+
+/* v2.77.0 · Valores con categoría (p. ej. Traumatología › Columna): el selector los agrupa */
+function optsGrupos(lista, v) {
+  const hijos = {}; lista.forEach(x => { if (x.padre) (hijos[x.padre] = hijos[x.padre] || []).push(x); });
+  const op = x => `<option value="${esc(x.valor)}" ${v === x.valor ? 'selected' : ''}>${esc(x.valor)}</option>`;
+  let h = '<option value=""></option>';
+  if (v && !lista.some(x => x.valor === v)) h += `<option selected>${esc(v)}</option>`;
+  lista.filter(x => !x.padre).forEach(x => {
+    h += hijos[x.valor] ? `<optgroup label="${esc(x.valor)}">${op(x)}${hijos[x.valor].map(op).join('')}</optgroup>` : op(x);
+  });
+  // Subcategorías cuya categoría ya no está en la lista
+  Object.keys(hijos).filter(p => !lista.some(x => !x.padre && x.valor === p)).forEach(p => { h += `<optgroup label="${esc(p)}">${hijos[p].map(op).join('')}</optgroup>`; });
+  return h;
+}
+
+async function verCartera(id) {
+  const u = USUARIOS.find(x => x.id === id) || {};
+  cargando($('dbody'), 'Cargando la cartera…');
+  $('dlg').showModal();
+  const pinta = async q => {
+    const { data } = await db.rpc('cartera_usuario', { p_usuario: id, q: q || null, lim: 500 });
+    const l = data || [];
+    $('dbody').innerHTML = `
+      <div class="fh"><div><h2>Cartera de ${esc(u.nombre || '')}</h2>
+        <div class="sm">${num(l.length)} ${TT('medico', 'p', '', 'l', 'l', 'asignado')}</div></div>
+        <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
+      <input id="cbusca" value="${esc(q || '')}" placeholder="Buscar dentro de la cartera">
+      <div class="lista" style="max-height:52vh;overflow:auto">${l.map(m => `<div class="item" style="cursor:default">
+        <span class="ic ${m.urgente ? 'w' : ''}">${m.urgente ? '!' : '·'}</span>
+        <span class="tx"><b>${esc(m.nombre)}</b><span class="sm">${esc(m.especialidad || '')} · ${esc(m.centro || '')} ${esc(m.municipio || '')}
+          ${m.ultima_visita ? ` · ${TT('visita', 's', 'ultimo', 'l', 'l')} ` + fechaCorta(m.ultima_visita) : ' · sin visitar'}</span></span>
+        <span class="acts" style="margin:0">
+          <button class="btn sec" data-cficha="${m.id}">Ficha</button>
+          <button class="btn sec dang" data-cquita="${m.id}">Quitar</button></span></div>`).join('')
+        || `<div class="vacio">Sin ${TT('medico', 'p', '', 'l', 'l', 'asignado')}.</div>`}</div>
+      <div class="acts" style="justify-content:flex-end"><button class="btn sec" id="cmas">Asignar más ${TT('medico', 'p', '', 'l', 'l')}</button></div>`;
+
+    let t;
+    $('cbusca').oninput = e => { clearTimeout(t); t = setTimeout(() => pinta(e.target.value.trim()), 300); };
+    $('dbody').querySelectorAll('[data-cficha]').forEach(b => b.onclick = () => { $('dlg').close(); abrirFicha(b.dataset.cficha); });
+    $('dbody').querySelectorAll('[data-cquita]').forEach(b => b.onclick = async () => {
+      if (!await preguntar(`Dejará de verlo en su cartera. El histórico de ${TT('visita', 'p', '', 'l', 'l')} no cambia.`,
+        { titulo: '¿Quitar de la cartera?', ok: 'Quitar', peligro: true })) return;
+      const { data: r } = await db.rpc('quitar_de_cartera', { p_usuario: id, p_medico: b.dataset.cquita });
+      if (r && r.ok === false) { toast('No tienes permiso', true); return; }
+      toast('Quitado de la cartera'); pinta(q); cargarAdmin();
+    });
+    $('cmas').onclick = () => { $('dlg').close(); asignarCartera(id); };
+  };
+  pinta('');
+}
+
+/** Visitas o citas de estos médicos cerca de la fecha (sin contar ese mismo día). */
+async function recientesDe(ids, fecha) {
+  const a = avisoRevisita(); if (!a.on || !ids.length) return {};
+  const { data } = await db.rpc('actividades_recientes', { p_ids: ids, p_desde: isoMas(fecha, -(a.dias - 1)), p_hasta: isoMas(fecha, a.dias - 1) });
+  const por = {};
+  (data || []).filter(x => x.fecha !== fecha).forEach(x => (por[x.cuenta_id] = por[x.cuenta_id] || []).push(x));
+  return por;
+}
+
+async function cargarFiltros(soloMunicipios) {
+  const { data, error } = await db.rpc('opciones_filtros', { f_provincia: F.prov || null });
+  if (error) return;
+  OPF = data;
+  const pon = (sel, lista, etiqueta, valor) => {
+    $(sel).innerHTML = `<option value="">${etiqueta}</option>` +
+      lista.map(o => `<option value="${esc(o.v)}" ${valor === o.v ? 'selected' : ''}>${esc(o.v)} (${o.n})</option>`).join('');
+  };
+  if (!soloMunicipios) {
+    pon('fprov', data.provincias, 'Todas las provincias', F.prov);
+    pon('fesp', data.especialidades, todosLos('especialidad'), F.esp);
+    pon('fest', data.estados, 'Todos los estados', F.est);
+  }
+  pon('fmuni', data.municipios, 'Todos los municipios', F.muni);
+}
+
+function fila(m) {
+  const d = m.dias || {};
+  return `<button class="fila" data-id="${m.id}">
+    <span><span class="nm">${m.urgente ? '<span class="pill p-urg">Urgente</span> ' : ''}${m.sin_reporting ? `<span class="pill p-sr" title="Solo ${TT('visita', 's', '', 'l', 'l')} presencial: sin informes ni feedback">Sin reporting</span> ` : ''}${esc(m.nombre)}</span>
+      <span class="sm">${esc(m.especialidad || 'Sin ' + TT('especialidad', 's', '', 'l', 'l'))}</span></span>
+    <span class="c2"><span class="nm" style="font-size:13.5px">${esc(m.centro_nombre || consultaPrivada())}</span>
+      <span class="sm">${esc([m.municipio, m.provincia].filter(Boolean).join(' · '))}</span></span>
+    <span class="c3"><span class="dias">${['L','M','X','J','V'].map(k => `<span class="${d[k] ? 'on' : ''}">${k}</span>`).join('')}</span></span>
+    <span class="pill p-est">${esc(m.estado_comercial)}</span>
+  </button>`;
+}
 // pantallas/eventos.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -6642,6 +8289,8 @@ async function elegirPlantillaPDF() {
   if (!k) return false;
   PDF_ELEGIDO = k; return true;
 }
+
+function emitir(inp) { inp.dispatchEvent(new Event('input', { bubbles: true })); inp.dispatchEvent(new Event('change', { bubbles: true })); }
 // pantallas/importar.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -6825,6 +8474,49 @@ async function impDeshacer(id) {
   ESCRITURAS++;
   toast(`Deshecha: ${data.clientes} clientes, ${data.productos} productos, ${data.prescriptores} ${etiquetaContactos().toLowerCase()} y ${data.pedidos} pedidos borrados`);
   CFG_SUB = 'historial'; pintarImportaciones();
+}
+
+// La fila de títulos es la primera con muchos textos (las exportaciones suelen traer filas de encabezado antes)
+function detectarTitulos(filas) {
+  const puntos = filas.slice(0, 15).map(f => f.filter(c => typeof c === 'string' && c.trim() && isNaN(Number(c.replace(',', '.')))).length);
+  const max = Math.max(0, ...puntos); if (max < 2) return 0;
+  return puntos.findIndex(p => p >= max * 0.8);
+}
+
+// Propone el campo de cada columna: sinónimo exacto, contenido, o parecido
+function proponerCampo(cab, entidad, usados) {
+  const n = impNorm(cab); let mejor = null;
+  const bigr = s => { const r = new Set(); for (let i = 0; i < s.length - 1; i++) r.add(s.slice(i, i + 2)); return r; };
+  const dice = (a, b) => { const A = bigr(a), B = bigr(b); if (!A.size || !B.size) return 0; let c = 0; A.forEach(x => { if (B.has(x)) c++; }); return 2 * c / (A.size + B.size); };
+  for (const [k, , , sin] of IMP_CAMPOS[entidad]) {
+    if (usados.has(k)) continue;
+    let p = 0;
+    for (const s of sin.concat([k])) {
+      const sn = impNorm(s);
+      if (n === sn) p = Math.max(p, 100);
+      else if (n.split(' ').includes(sn) || (sn.length > 3 && n.includes(sn))) p = Math.max(p, 75);
+      else p = Math.max(p, Math.round(dice(n, sn) * 70));
+    }
+    if (p >= 55 && (!mejor || p > mejor.p)) mejor = { k, p };
+  }
+  return mejor ? mejor.k : null;
+}
+
+function valorCelda(v) {
+  if (v == null) return '';
+  if (v instanceof Date) return isNaN(v) ? '' : `${v.getFullYear()}-${String(v.getMonth() + 1).padStart(2, '0')}-${String(v.getDate()).padStart(2, '0')}`;
+  return String(v).trim();
+}
+
+async function pintarImportaciones() {
+  const { data } = await RPC_ORIG('importaciones_lista', {});
+  const l = data || [], nom = Object.fromEntries(IMP_TIPOS().map(x => [x[0], x[1]]));
+  $('cfgcuerpo').innerHTML = `<div class="card cfgpanel"><h2>Importaciones</h2>
+    <p class="sm">Cada importación se puede deshacer: se borra lo que creó (lo que actualizó se conserva, y no se borra lo que ya se use en pedidos, facturas o citas).</p>
+    <div class="errlista">${l.map(x => `<div class="errfila e-${x.estado === 'Deshecha' ? 'api' : 'reporte'}"><div><b>${esc(nom[x.entidad] || x.entidad)} · ${esc(x.archivo || '')}</b>
+      <span class="sm">${new Date(x.creado_en).toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' })} · ${esc(x.usuario || '—')} · ${num(x.filas)} filas: ${num(x.creados)} creados, ${num(x.actualizados)} actualizados, ${num(x.errores)} con errores · <b>${esc(x.estado)}</b></span></div>
+      ${x.estado !== 'Deshecha' ? `<button class="btn sec" type="button" data-impdes="${x.id}">${svgIco(ICON_NOM['undo-2'])} Deshacer</button>` : '<span></span>'}</div>`).join('') || '<div class="vacio">Aún no se ha importado ningún archivo.</div>'}</div></div>`;
+  $('cfgcuerpo').querySelectorAll('[data-impdes]').forEach(b => b.onclick = () => impDeshacer(b.dataset.impdes));
 }
 // pantallas/inicio.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
@@ -7302,6 +8994,53 @@ function inicioCabecera() {
       document.body.classList.add('inilisto');
     }
   } catch (e) {}
+}
+
+async function vistazoHoy() {
+  const sal = document.querySelector('#v-inicio .saludo'); if (!sal) return;
+  const acts = sal.querySelector('.acts');
+  if (acts && !acts.dataset.ico) {
+    acts.dataset.ico = '1'; acts.classList.add('icoacts');
+  }
+  let v = $('vistazo');
+  if (!v) { sal.firstElementChild.insertAdjacentHTML('beforeend', '<div id="vistazo" class="vistazo"></div>'); v = $('vistazo'); }
+  if (ES_MEDICO()) return;
+  const citas = await citasDelDia(hoyISO());
+  const abiertas = citas.filter(c => CITA_ABIERTA.includes(c.estado)).sort((a, b) => (a.orden || 0) - (b.orden || 0) || String(a.hora || '').localeCompare(String(b.hora || '')));
+  const hechas = citas.filter(c => c.estado === 'Visitada').length, prox = abiertas[0];
+  if (!$('vistazo')) return;
+  v.innerHTML = citas.length
+    ? `<span><b>${num(citas.length)}</b> ${citas.length === 1 ? 'cita' : 'citas'} hoy · <b>${num(hechas)}</b> visitadas</span>
+       ${prox ? `<span class="prox">Próxima: <b>${esc(prox.medico || prox.nombre || '')}</b>${prox.hora ? ' · ' + String(prox.hora).slice(0, 5) : ''}</span>` : '<span class="prox">Día completado ✓</span>'}`
+    : `<span>Hoy no tienes citas.</span> <button class="lnk" data-irplan>Planifica tu día</button>`;
+  const b = v.querySelector('[data-irplan]'); if (b) b.onclick = () => ir('rutas');
+}
+
+function tarjeta(el, titulo, n, items, pie, vacio) {
+  el.innerHTML = `<h2>${titulo}${n != null ? `<span class="n">${num(n)}</span>` : ''}</h2>` +
+    (items.length ? `<div class="lista">${items.join('')}</div>` : `<div class="vacio">${vacio}</div>`) +
+    (pie && items.length ? pie : '');
+}
+
+async function cargarOcultas(forzar) {
+  if (ALERTAS_OCULTAS && !forzar) return ALERTAS_OCULTAS;
+  const { data } = await RPC_ORIG('mis_alertas_descartadas', {});
+  ALERTAS_OCULTAS = data || [];
+  return ALERTAS_OCULTAS;
+}
+
+async function verOcultas() {
+  const l = await cargarOcultas(true);
+  $('dbody').innerHTML = `<div class="fh"><div><h2>Alertas ocultas</h2><div class="sm">Las que ocultaste. Al recuperarlas vuelven a aparecer en Inicio si siguen pasando.</div></div>
+    <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
+    <div class="alcards">${l.map(x => `<div class="alcard"><div class="alc1"><b>${esc(x.detalle || x.clave)}</b>
+      <span class="pill ${x.hasta ? 'p-per' : 'p-anu'}">${x.hasta ? 'Hasta ' + fechaCorta(x.hasta) : 'Para siempre'}</span></div>
+      <div class="sm">${esc(x.titulo || '')}</div><button class="btn sec chico" data-alrec="${esc(x.clave)}">Recuperar</button></div>`).join('') || '<div class="vacio">No tienes alertas ocultas.</div>'}</div>`;
+  $('dlg').showModal();
+  $('dbody').querySelectorAll('[data-alrec]').forEach(b => b.onclick = async () => {
+    await db.rpc('restaurar_alerta', { p_clave: b.dataset.alrec }); b.closest('.alcard').remove(); ALERTAS_OCULTAS = null; toast('Recuperada');
+    if (TAB === 'inicio') cargarInicio();
+  });
 }
 // pantallas/manual.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
@@ -8011,6 +9750,48 @@ async function pintarAltasDelcos() {
     ${medias.length ? `<h3 class="pdh3">A medias</h3><p class="sm">Rellenaron el formulario pero no terminaron de poner la tarjeta. Puede valer la pena escribirles. Se borran solas a los 7 días.</p>${medias.map(fila).join('')}` : ''}
     <h3 class="pdh3">Completadas</h3>${hechas.map(fila).join('') || '<div class="vacio">Todavía no hay altas completadas desde la web.</div>'}</div>`;
 }
+
+/* v2.125.0 · Nueva venta y Oportunidades. Un solo recorrido para vender (antes «Registrar llamada» y «+ Nuevo pedido» por separado):
+   1 cliente (buscar o ficha nueva, con lo que ya sabemos de él), 2 qué quiere (productos y unidades, médico de referencia, cómo llegó),
+   3 cómo termina (pedido o motivo de no compra y cuándo volver a llamar). Con el extra «Oportunidades» de la organización, cada venta
+   queda registrada con su día y hora, lo que quería y cuánto, se cierre con pedido o no; sin él, el recorrido lleva al pedido. */
+// v2.242.0: aquí iba la primera versión de hayOportunidades (se redefine entera más abajo)
+function extraNombre(k) { return { oportunidades: 'Oportunidades', portal: 'Portal' }[k] || k; }
+
+// Panel delcos → Solicitudes
+async function pintarSolicitudesPlan() {
+  const c = $('cfgcuerpo'); if (!c) return;
+  c.innerHTML = `<div class="card cfgpanel"><div class="skel" style="width:40%"></div><div class="skel"></div></div>`;
+  const { data, error } = await RPC_ORIG('solicitudes_plan_lista', {});
+  if (!$('cfgcuerpo')) return;
+  const l = error ? [] : (data || []);
+  const f = v => new Date(v).toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' });
+  const cont = { correo: 'Por correo', llamada: 'Por teléfono', video: 'Videollamada' };
+  c.innerHTML = `<div class="card cfgpanel"><h2>Solicitudes de las empresas</h2>
+    <p class="sm">Presupuestos A medida y conversaciones sobre el contrato. Llegan también como aviso. Cambia el estado cuando las atiendas: la empresa lo ve en su Plan.</p>
+    ${error ? `<div class="banda-peligro">No se han podido leer: ${esc(error.message)}</div>` : ''}
+    <div class="presulista">${l.map((s, i) => { const d = s.datos || {};
+      return `<div class="presufila${s.estado === 'Cerrada' ? ' cerrada' : ''}">
+        <div class="presucab"><b>${esc(s.organizacion)}</b> <span class="pill p-est">${esc(planDe(s.plan).nombre)}</span>
+          <span class="pill ${s.estado === 'Nueva' ? 'p-warn' : s.estado === 'En curso' ? 'p-est' : 'p-anu'}">${esc(s.estado)}</span>
+          <span class="sm">${s.tipo === 'contrato' ? 'Contrato A medida' : 'Presupuesto A medida'} · ${f(s.creado_en)}</span></div>
+        ${(d.necesita_txt || []).length ? `<div class="chips">${d.necesita_txt.map(x => `<span class="chip">${esc(x)}</span>`).join('')}</div>` : ''}
+        ${d.programa ? `<div class="sm">Programa: <b>${esc(d.programa)}</b></div>` : ''}
+        ${d.mensaje ? `<p class="presumsg">${esc(d.mensaje)}</p>` : ''}
+        <div class="sm">${d.usuarios ? num(d.usuarios) + ' usuarios' : ''}${d.portal ? ' · ' + num(d.portal) + ' con portal' : ''}${d.cuando ? ' · ' + esc(d.cuando) : ''}</div>
+        <div class="sm">${esc(d.nombre || s.persona || '')}${d.correo ? ` · <a href="mailto:${esc(d.correo)}">${esc(d.correo)}</a>` : ''}${d.telefono ? ` · <a href="tel:${esc(d.telefono)}">${esc(d.telefono)}</a>` : ''}
+          · ${esc(cont[d.contacto] || '')}${d.horario ? ' (' + esc(d.horario) + ')' : ''}</div>
+        <div class="presuges"><select data-psest="${i}" aria-label="Estado">${['Nueva', 'En curso', 'Cerrada'].map(e => `<option ${s.estado === e ? 'selected' : ''}>${e}</option>`).join('')}</select>
+          <input data-psnota="${i}" placeholder="Nota interna (qué se ha hablado, próximos pasos…)" value="${esc(s.nota || '')}">
+          <button type="button" class="btn sec" data-psok="${i}">Guardar</button></div></div>`; }).join('')
+      || '<div class="vacio">Todavía no ha llegado ninguna solicitud.</div>'}</div></div>`;
+  c.querySelectorAll('[data-psok]').forEach(b => b.onclick = async () => {
+    const i = +b.dataset.psok, s = l[i];
+    const { data: r } = await RPC_ORIG('marcar_solicitud_plan', { p_id: s.id, p_estado: c.querySelector(`[data-psest="${i}"]`).value, p_nota: c.querySelector(`[data-psnota="${i}"]`).value });
+    toast(r && r.ok ? 'Solicitud actualizada' : 'No se ha podido guardar', !(r && r.ok));
+    if (r && r.ok) pintarSolicitudesPlan();
+  });
+}
 // pantallas/parque.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -8049,6 +9830,99 @@ async function pintarParque() {
   $('eqq').oninput = e => { clearTimeout(t); t = setTimeout(() => { EQ_Q = e.target.value.trim(); pintarParque(); }, 300); };
   if (yaQ) { const i = $('eqq'); i.focus(); i.setSelectionRange(i.value.length, i.value.length); }
   caja.querySelectorAll('[data-eq]').forEach(b => b.onclick = () => verEquipo(b.dataset.eq));
+}
+
+async function editarEquipo(e, cuenta) {
+  if (!PRODUCTOS.length) await cargarProductos();
+  const { data: pe } = await db.from('productos').select('id,nombre,es_equipo,revision_meses').order('nombre');
+  const lista = (pe || []).sort((a, b) => (b.es_equipo - a.es_equipo) || String(a.nombre).localeCompare(String(b.nombre)));
+  const x = e || { instalado: hoyISO(), contrato: 'Venta', producto_id: (lista.find(p => p.es_equipo) || {}).id, revision_meses: (lista.find(p => p.es_equipo) || {}).revision_meses || 0 };
+  $('dbody').innerHTML = `<div class="fh"><div><h2>${e ? 'Cambiar el equipo' : 'Nuevo equipo'}</h2><div class="sm">Dónde está instalado, su número de serie y sus condiciones</div></div>
+      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
+    <label>Dónde está</label><div id="eqcta"></div>
+    <div class="g2"><div><label for="eqp">Equipo</label><select id="eqp">${lista.map(p => `<option value="${p.id}" data-rm="${p.revision_meses || 0}" ${p.id === x.producto_id ? 'selected' : ''}>${esc(p.nombre)}${p.es_equipo ? '' : ' (no marcado como equipo)'}</option>`).join('')}</select></div>
+      <div><label for="eqs">Nº de serie</label><input id="eqs" value="${esc(x.serie || '')}" maxlength="120"></div></div>
+    <div class="g2"><div><label for="equ">Ubicación</label><input id="equ" value="${esc(x.ubicacion || '')}" placeholder="p. ej. Sala 2, planta 3"></div>
+      <div><label for="eqi">Instalado el</label><input id="eqi" type="date" value="${esc(x.instalado || '')}"></div></div>
+    <div class="g2"><div><label for="eqc">Contrato</label><select id="eqc">${EQ_CONTRATOS.map(k => `<option ${k === x.contrato ? 'selected' : ''}>${k}</option>`).join('')}</select></div>
+      <div id="eqcfw"><label for="eqcf">Fin del contrato</label><input id="eqcf" type="date" value="${esc(x.contrato_fin || '')}"></div></div>
+    <div class="g2"><div><label for="eqg">Garantía hasta</label><input id="eqg" type="date" value="${esc(x.garantia_hasta || '')}"></div>
+      <div><label for="eqr">Revisión cada (meses; 0 = sin revisiones)</label><input id="eqr" type="number" min="0" max="120" step="1" value="${+x.revision_meses || 0}"></div></div>
+    <label for="eqn">Nota</label><textarea id="eqn" rows="2">${esc(x.nota || '')}</textarea>
+    <div class="acts" style="justify-content:flex-end">${e && e.estado === 'Instalado' ? '<button type="button" class="btn sec peligro" id="eqretirar">Retirar</button>' : ''}
+      <button type="button" class="btn sec" data-cerrar>Cancelar</button><button type="button" class="btn" id="eqok">${e ? 'Guardar' : 'Dar de alta'}</button></div>`;
+  if (!$('dlg').open) $('dlg').showModal();
+  let cta = e ? { id: e.cuenta_id, nombre: (e.cuentas || {}).nombre || '' } : cuenta || null;
+  selectorMedico($('eqcta'), { valor: cta, placeholder: 'Busca el centro', alElegir: m => { cta = m; } });
+  const verFin = () => $('eqcfw').classList.toggle('hide', $('eqc').value === 'Venta');
+  verFin(); $('eqc').onchange = verFin;
+  $('eqp').onchange = () => { if (!e) $('eqr').value = $('eqp').selectedOptions[0].dataset.rm || 0; };
+  const fallo = er => toast(/row-level|policy/i.test(er.message) ? 'No puedes cambiar los equipos de esta ficha' : 'No se ha podido guardar: ' + er.message, true);
+  $('eqok').onclick = async ev => {
+    if (!cta || !$('eqp').value) { toast('Elige dónde está y qué equipo es', true); return; }
+    const fila = { cuenta_id: cta.id, producto_id: $('eqp').value, serie: $('eqs').value.trim() || null, ubicacion: $('equ').value.trim() || null,
+      instalado: $('eqi').value || hoyISO(), contrato: $('eqc').value, contrato_fin: $('eqc').value === 'Venta' ? null : ($('eqcf').value || null),
+      garantia_hasta: $('eqg').value || null, revision_meses: Math.min(120, Math.max(0, Math.floor(+$('eqr').value || 0))), nota: $('eqn').value.trim() || null };
+    ev.target.disabled = true;
+    const r = e ? await db.from('equipos').update(fila).eq('id', e.id).select('id').single() : await db.from('equipos').insert(fila).select('id').single();
+    ev.target.disabled = false;
+    if (r.error) { fallo(r.error); return; }
+    toast(e ? 'Equipo guardado' : 'Equipo dado de alta'); invalidarCache(); verEquipo(r.data.id);
+  };
+  if ($('eqretirar')) $('eqretirar').onclick = async () => {
+    if (!await preguntar('Queda en el historial como retirado: ya no avisa de revisiones ni vencimientos.', { titulo: '¿Retirar el equipo?', ok: 'Retirar', peligro: true })) return;
+    const { error } = await db.from('equipos').update({ estado: 'Retirado' }).eq('id', e.id);
+    if (error) { fallo(error); return; }
+    toast('Equipo retirado'); verEquipo(e.id);
+  };
+}
+
+async function verEquipo(id) {
+  const [{ data: e, error }, { data: rv }] = await Promise.all([
+    db.from('equipos').select('*,cuentas(nombre),productos(nombre)').eq('id', id).maybeSingle(),
+    db.from('equipo_revisiones').select('id,fecha,tipo,nota,hecha_por').eq('equipo_id', id).order('fecha', { ascending: false }).limit(50)]);
+  if (error || !e) { toast('No se ha encontrado el equipo', true); return; }
+  const vence = eqVence(e);
+  $('dbody').innerHTML = `<div class="fh"><div><h2>${esc((e.productos || {}).nombre || 'Equipo')}</h2><div class="sm">${e.serie ? 'Nº de serie ' + esc(e.serie) + ' · ' : ''}${esc((e.cuentas || {}).nombre || '')}</div></div>
+      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
+    <div class="cirdat"><span>Dónde</span><b><button type="button" class="lnk" data-cfi="${e.cuenta_id}">${esc((e.cuentas || {}).nombre || '')}</button>${e.ubicacion ? ' · ' + esc(e.ubicacion) : ''}</b>
+      <span>Instalado</span><b>${esc(fechaLarga(new Date(e.instalado + 'T12:00:00')))}</b>
+      <span>Contrato</span><b>${esc(e.contrato)}${e.contrato !== 'Venta' && e.contrato_fin ? ' hasta el ' + fechaCorta(e.contrato_fin) : ''}</b>
+      ${e.garantia_hasta ? `<span>Garantía</span><b>hasta el ${fechaCorta(e.garantia_hasta)}</b>` : ''}
+      <span>Revisiones</span><b>${e.revision_meses ? `cada ${e.revision_meses} ${e.revision_meses === 1 ? 'mes' : 'meses'}` : 'sin revisiones periódicas'}</b>
+      <span>Estado</span><b>${eqRevPill(e)} ${eqVencePill(e)}${e.estado === 'Instalado' && !e.proxima_revision && !vence ? '<span class="pill p-est">Instalado</span>' : ''}</b></div>
+    ${e.nota ? `<p class="sm">${esc(e.nota)}</p>` : ''}
+    <div class="evascab"><h3>Revisiones · ${(rv || []).length}</h3>${e.estado === 'Instalado' ? '<button type="button" class="btn sec" id="eqrevmas">Apuntar revisión</button>' : ''}</div>
+    <div id="eqrevf"></div>
+    ${(rv || []).length ? `<div class="lista">${rv.map(x => `<div class="fmrow"><span><b>${fechaCorta(x.fecha)}</b> · ${esc(x.tipo)}${x.nota ? `<span class="sm"> · ${esc(x.nota)}</span>` : ''}</span><button type="button" class="x" data-rvq="${x.id}" aria-label="Borrar la revisión">✕</button></div>`).join('')}</div>`
+      : '<div class="vacio vlinea">Todavía no hay revisiones apuntadas.</div>'}
+    <div class="acts" style="justify-content:flex-end">${e.estado === 'Instalado' && e.revision_meses ? '<button type="button" class="btn sec" id="eqagenda">Programar en la agenda</button>' : ''}
+      <button type="button" class="btn sec" id="eqeditar">Cambiar</button><button type="button" class="btn" data-cerrar>Hecho</button></div>`;
+  if (!$('dlg').open) $('dlg').showModal();
+  const fallo = er => toast(/row-level|policy/i.test(er.message) ? 'No puedes cambiar los equipos de esta ficha' : 'No se ha podido guardar: ' + er.message, true);
+  $('dbody').querySelectorAll('[data-cfi]').forEach(b => b.onclick = () => { $('dlg').close(); abrirFicha(b.dataset.cfi); });
+  $('eqeditar').onclick = () => editarEquipo(e);
+  if ($('eqagenda')) $('eqagenda').onclick = () => nuevaCita(e.cuenta_id, e.proxima_revision && e.proxima_revision > hoyISO() ? e.proxima_revision : hoyISO());
+  if ($('eqrevmas')) $('eqrevmas').onclick = () => {
+    $('eqrevf').innerHTML = `<div class="depbox"><div class="cong3"><div><label for="eqrf">Fecha</label><input id="eqrf" type="date" value="${hoyISO()}"></div>
+        <div><label for="eqrt">Tipo</label><select id="eqrt">${EQ_REV.map(k => `<option>${k}</option>`).join('')}</select></div>
+        <div><label for="eqrn">Nota</label><input id="eqrn" maxlength="300" placeholder="Qué se hizo"></div></div>
+      <div class="acts" style="justify-content:flex-end"><button type="button" class="btn sec" id="eqrcanc">Cancelar</button><button type="button" class="btn" id="eqrok">Apuntar</button></div></div>`;
+    $('eqrcanc').onclick = () => { $('eqrevf').innerHTML = ''; };
+    $('eqrok').onclick = async ev => {
+      ev.target.disabled = true;
+      const { error: er } = await db.from('equipo_revisiones').insert({ equipo_id: id, fecha: $('eqrf').value || hoyISO(), tipo: $('eqrt').value, nota: $('eqrn').value.trim() || null });
+      ev.target.disabled = false;
+      if (er) { fallo(er); return; }
+      toast('Revisión apuntada'); verEquipo(id);
+    };
+  };
+  $('dbody').querySelectorAll('[data-rvq]').forEach(b => b.onclick = async () => {
+    if (!await preguntar('La revisión desaparece del historial del equipo.', { titulo: '¿Borrar la revisión?', ok: 'Borrar', peligro: true })) return;
+    const { error: er } = await db.from('equipo_revisiones').delete().eq('id', b.dataset.rvq);
+    if (er) { fallo(er); return; }
+    verEquipo(id);
+  });
 }
 // pantallas/pedidos.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
@@ -8702,6 +10576,145 @@ function pasoPedido(p) {
   if (p.completado === false || (!p.factura && !p.factura_id && cobroDe(p) !== 'Sin cargo')) return ['Por facturar', 'p-est'];
   return ['Completado', 'p-trfok'];
 }
+
+async function atribuir(lineaId, texto) {
+  const { data } = await db.rpc('resolver_cuenta', { p_texto: texto || '' });
+  const cand = data || [];
+  $('dbody').innerHTML = `
+    <div class="fh"><div><h2>Atribuir a ${TT('medico', 's', 'un', 'l', 'l')}</h2><div class="sm">Texto del pedido: ${esc(texto || '(vacío)')}</div></div>
+      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
+    <label for="abusca">Buscar ${TT('medico', 's', '', 'l', 'l')}</label><input id="abusca" value="${esc(texto || '')}" placeholder="Código o nombre">
+    <div id="acand" class="lista">${cand.map(c => `<button class="item" data-am="${c.id}">
+      <span class="ic">${c.pct}%</span><span class="tx"><b>${esc(c.nombre)}</b><span class="sm">Código ${esc(c.codigo)}</span></span></button>`).join('')
+      || '<div class="vacio">Sin coincidencias. Escribe otro nombre o código.</div>'}</div>`;
+
+  const pintar = lista => {
+    $('acand').innerHTML = lista.length ? lista.map(c => `<button class="item" data-am="${c.id}">
+      <span class="ic">${c.pct}%</span><span class="tx"><b>${esc(c.nombre)}</b><span class="sm">Código ${esc(c.codigo)}</span></span></button>`).join('')
+      : '<div class="vacio">Sin coincidencias.</div>';
+    $('acand').querySelectorAll('[data-am]').forEach(b => b.onclick = async () => {
+      const { data: r, error } = await db.rpc('atribuir_linea', { p_linea: lineaId, p_medico: b.dataset.am });
+      if (error || (r && r.ok === false)) { toast('No se ha podido atribuir', true); return; }
+      $('dlg').close(); toast('Atribuido'); pintarSinAtribuir(); listaPedidos();
+    });
+  };
+  pintar(cand);
+  let t;
+  $('abusca').oninput = e => {
+    clearTimeout(t);
+    t = setTimeout(async () => {
+      const { data: d2 } = await db.rpc('resolver_cuenta', { p_texto: e.target.value });
+      pintar(d2 || []);
+    }, 300);
+  };
+  $('dlg').showModal();
+}
+
+function pedsecVista() { return PEDSEC_CARGA || PEDSEC; }
+
+function abrirKpis() {
+  let D = kpiConfig().slice();
+  KPI_CAT.forEach(k => { if (!D.some(x => x.id === k.id)) D.push({ id: k.id, on: false, t: '' }); });
+  const esAdmin = puede('administrar');
+  const pinta = () => {
+    $('dbody').innerHTML = `
+      <div class="fh"><div><h2>Indicadores de Inicio</h2>
+        <div class="sm">Pulsa el ojo para mostrar u ocultar. Ordénalos con las flechas y cambia el nombre si quieres.</div></div>
+        <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
+      <div class="kcards">${D.map((x, i) => {
+        const k = KPI_CAT.find(y => y.id === x.id);
+        if (!k && !x.filtro) return '';
+        if (k && !kpiPermitido(k)) return '';
+        const desc = x.filtro ? 'Filtro guardado del Directorio: ' + textoFiltro(x.filtro) + '.' : (AYUDA_KPI[x.id] || '');
+        return `<div class="kcard ${x.on ? 'on' : ''}">
+          <button type="button" class="kojo" data-kon="${i}" aria-pressed="${x.on}" title="${x.on ? 'Visible: pulsa para ocultar' : 'Oculto: pulsa para mostrar'}">${x.on ? ICO.ojo : ICO.ojoNo}</button>
+          <div class="ktx"><input class="chico" data-kt="${i}" value="${esc(x.t)}" placeholder="${esc(k ? k.t.charAt(0).toUpperCase() + k.t.slice(1) : textoFiltro(x.filtro))}" aria-label="Nombre del indicador">
+            <span class="sm">${esc(desc)}</span></div>
+          <div class="kord">
+            <button type="button" class="kmv" data-kmv="${i}|-1" aria-label="Subir" ${i === 0 ? 'disabled' : ''}>${ICO.arriba}</button>
+            <button type="button" class="kmv" data-kmv="${i}|1" aria-label="Bajar" ${i === D.length - 1 ? 'disabled' : ''}>${ICO.abajo}</button>
+            ${x.filtro ? `<button type="button" class="kmv" data-kdel="${i}" aria-label="Eliminar" title="Eliminar">✕</button>` : ''}</div>
+        </div>`;
+      }).join('')}</div>
+      <div class="acts" style="justify-content:flex-end">
+        <button class="btn sec" id="kres">Restaurar</button>
+        <button class="btn" id="kok">Guardar</button></div>`;
+    const leer = () => $('dbody').querySelectorAll('[data-kt]').forEach(i => D[+i.dataset.kt].t = i.value.trim());
+    $('dbody').querySelectorAll('[data-kon]').forEach(b => b.onclick = () => { leer(); D[+b.dataset.kon].on = !D[+b.dataset.kon].on; $('dlg').dataset.sucio = '1'; pinta(); });
+    $('dbody').querySelectorAll('[data-kmv]').forEach(b => b.onclick = () => {
+      leer(); const [i, dir] = b.dataset.kmv.split('|').map(Number), j = i + dir;
+      if (j < 0 || j >= D.length) return; [D[i], D[j]] = [D[j], D[i]]; $('dlg').dataset.sucio = '1'; pinta();
+    });
+    $('dbody').querySelectorAll('[data-kdel]').forEach(b => b.onclick = () => { leer(); D.splice(+b.dataset.kdel, 1); $('dlg').dataset.sucio = '1'; pinta(); });
+    $('kres').onclick = () => { D = KPI_CAT.map(k => ({ id: k.id, on: KPI_DEF.includes(k.id), t: '' })); $('dlg').dataset.sucio = '1'; pinta(); };
+    $('kok').onclick = async ev => {
+      leer(); ev.target.disabled = true; ev.target.textContent = 'Guardando…';
+      const ok = await guardarKpis(D.map(x => ({ id: x.id, on: x.on, t: x.t, ...(x.filtro ? { filtro: x.filtro } : {}) })));
+      ev.target.disabled = false; ev.target.textContent = 'Guardar';
+      if (!ok) return;
+      $('dlg').close(); toast('Indicadores guardados'); cargarInicio();
+    };
+  };
+  pinta();
+  $('dlg').showModal();
+}
+
+function esPorcentajeIva(i) {
+  // Una vez decidido, no cambia (evita que la comprobación y la conversión se contradigan en bucle)
+  if (i.dataset.ivaok) return i.dataset.ivaok === '1';
+  // La etiqueta puede apuntar ya a la lista de IVA (id + «_sel») si el campo se convirtió antes
+  const lab = (((i.id && (document.querySelector(`label[for="${i.id}"]`) || document.querySelector(`label[for="${i.id}_sel"]`))) || i.closest('label') || {}).textContent || '').trim();
+  const clave = i.id + ' ' + (i.dataset.f || '') + ' ' + (i.name || '');
+  const r = !(ES_IMPORTE.test(clave) || /importe|precio|total|base|coste/i.test(lab))
+    && (i.dataset.f === 'iva' || /(^|[_-])iva$/i.test(i.id) || /^[a-z]{0,3}iva$|^penvv$/i.test(i.id) || /^IVA(\s*\(%\)|\s+del servicio(\s*\(%\))?|\s+%)?$|tipo de iva/i.test(lab));
+  i.dataset.ivaok = r ? '1' : '0';
+  return r;
+}
+
+async function verJustificante(id) {
+  const { data, error } = await db.from('pedidos_justificantes').select('nombre,tipo,datos').eq('id', id).single();
+  if (error || !data) { toast('No se ha podido abrir el justificante', true); return; }
+  const bin = atob(data.datos), u8 = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
+  const url = URL.createObjectURL(new Blob([u8], { type: data.tipo }));
+  const w = window.open(url, '_blank');
+  if (!w) { const a = document.createElement('a'); a.href = url; a.download = data.nombre; a.click(); }
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
+}
+
+/* ============================================================
+   v2.325.0 · Pedidos: pago solo de lectura y entregas sin cargo (aviso de Eric, 16/10/2026).
+   - El bloque «Pago» del pedido ya no se edita a medias: enseña la referencia y los justificantes que haya; se cambian con
+     «Editar» (o «Editar datos» si ya tiene factura). Fuera «Guardar referencia» y «Añadir justificante» (basta el check de
+     «Pago recibido»); en el editor tampoco se adjuntan justificantes.
+   - Un pedido sin cargo (marcado así o a 0 € con unidades) se describe como «Entrega sin cargo» y no como «Venta al …»: no es una
+     venta (también los que se hicieron antes al 100 % de descuento).
+   ============================================================ */
+function sinCargoP(p, total) { return !!(p && (p.sin_cargo || (total != null && Math.abs(+total) < 0.005 && (p.unidades == null || +p.unidades > 0)))); }
+
+function pillPaso(p) {
+  const [t, c] = pasoPedido(p);
+  const hechos = p.estado === 'Confirmado' ? ['Confirmado', p.paquete_en ? 'Preparado' : '', cobroDe(p) === 'Cobrado' ? 'Cobrado' : '', p.factura ? 'Facturado' : ''].filter(Boolean).join(' · ') : '';
+  return '<span class="pill ' + c + '"' + (hechos ? ' title="Hecho: ' + hechos + '"' : '') + '>' + t + '</span>';
+}
+
+function lineaDesglose(l) {
+  const bruto = +l.importe || 0, base = bruto * (1 - (+l.descuento || 0) / 100), iva = base * (+l.iva || 0) / 100;
+  return { bruto, base, iva, total: base + iva };
+}
+
+function bloqueTotales(t) {
+  const tipos = Object.keys(t.porIva).sort((a, b) => a - b);
+  return `<div><span>Unidades</span><b>${num(t.unidades)}</b></div>
+    ${t.descuento > 0.004 ? `<div><span>Suma de líneas</span><b>${eurI(t.bruto)}</b></div>
+      <div><span>Descuento general</span><b>−${eurI(t.descuento)}</b></div>` : ''}
+    ${t.envio ? `<div><span>Productos sin IVA</span><b>${eurI(t.baseProd)}</b></div>
+      <div><span>${esc(t.envio.nombre)} sin IVA</span><b>${eurI(t.envio.base)}</b></div>` : ''}
+    <div><span>Base imponible</span><b>${eurI(t.base)}</b></div>
+    ${tipos.filter(k => t.porIva[k] > 0.004 || tipos.length === 1).map(k => `<div><span>IVA ${k}%</span><b>${eurI(t.porIva[k])}</b></div>`).join('')}
+    ${t.envio ? `<div class="sm" style="justify-content:flex-end"><span>Incluye ${esc(t.envio.nombre.toLowerCase())} de ${eurI(t.envio.con)} con IVA</span></div>` : ''}
+    <div class="tot"><span>Total con IVA</span><b>${eurI(t.total)}</b></div>`;
+}
 // pantallas/portal.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -9107,6 +11120,96 @@ function pmActividad(d) {
     ¿Necesitas material, información o resolver alguna duda? Escríbenos y te ayudamos.
     <button type="button" class="btn sec chico" data-pmir="mat">Material y dudas</button></div>`;
 }
+
+async function cargarInforme() {
+  if (puede('portal_centro')) return cargarCentro();   // v2.128.0: el portal del centro
+  // v2.271.0: página nueva (al final del archivo); al arrancar se espera a que esté leída
+  if (!window.PM_LISTO) { const v0 = $('v-informe'); if (v0 && !v0.innerHTML.trim()) v0.innerHTML = '<div class="card">' + skelCard('Cargando tu informe…') + '</div>'; setTimeout(cargarInforme, 30); return; }
+  return cargarInforme2271();
+  const v = $('v-informe');
+  v.innerHTML = `<div class="medhero"><div><div class="sm" style="color:rgba(255,255,255,.8)">Tu portal</div><h1 id="mdnom">…</h1><div id="mdesp" class="sm" style="color:rgba(255,255,255,.85)"></div></div>
+      <div class="medper"><div id="mdper"></div></div></div>
+    <div id="mdcuerpo"><div class="card">${skelCard('Cargando tu informe…')}</div></div>`;
+  const pinta = async () => {
+    const r = $('mdper').__rango();
+    const { data: d } = await RPC_ORIG('informe_cuenta', { p_desde: r.desde, p_hasta: r.hasta });
+    if (!d || !d.ok) {
+      // v2.291: sin ficha vinculada, las dos pestañas lo dicen (antes «Mi ficha» se quedaba cargando) y la cabecera lleva su nombre
+      const sin = `<div class="card"><div class="vacio">Tu usuario todavía no está vinculado a tu ficha de ${TT('medico', 's', '', 'l', 'l')}. Avisa a la empresa para activarlo.</div></div>`;
+      $('mdcuerpo').innerHTML = sin; if ($('pmficha')) $('pmficha').innerHTML = sin;
+      $('mdnom').textContent = (PERFIL && PERFIL.nombre) || ''; return;
+    }
+    $('mdnom').textContent = d.medico.nombre; $('mdesp').textContent = d.medico.especialidad || '';
+    const top = d.posicion && d.posicion <= 3 ? 'Top 3' : d.posicion && d.posicion <= 5 ? 'Top 5' : d.posicion && d.posicion <= 10 ? 'Top 10' : null;
+    const ll = d.llamadas || {}, conv = ll.total ? Math.round(ll.con_pedido / ll.total * 100) : null;
+    const meses = mesesEntre(d.desde, d.hasta), serie = {}; (d.serie || []).forEach(s => serie[s.mes] = s);
+    $('mdcuerpo').innerHTML = `
+      <div class="kpis vtot mdk">
+        <div class="kpi"><b>${num(d.unidades)}</b><span>unidades atribuidas</span></div>
+        <div class="kpi"><b>${num(d.pautas)}</b><span>${TT('pauta', 'p', '', 'l', 'l')} (pedidos)</span></div>
+        <div class="kpi"><b>${num(d.pacientes)}</b><span>${TT('paciente', 'p', '', 'l', 'l')}</span></div>
+        <div class="kpi"><b>${num(d.repiten)}</b><span>${TT('paciente', 'p', '', 'l', 'l')} que repiten</span></div>
+        <div class="kpi ${top ? 'ok' : ''}"><b>${top ? '🏆 ' + top : d.posicion ? 'Nº ' + d.posicion : '—'}</b><span>${d.posicion ? `de ${num(d.prescriptores)} ${TT('medico', 'p', '', 'l', 'l')}` : 'sin ventas en el periodo'}</span></div>
+      </div>
+      <div class="angrid">
+        <div class="card ancard ancha"><h2>Tus ${TT('pauta', 'p', '', 'l', 'l')} mes a mes</h2>
+          ${d.unidades ? svgBarras(meses, meses.map(m => (serie[m] || {}).unidades || 0), meses.map(m => (serie[m] || {}).pautas || 0), ['Unidades', TT('pauta', 'p', '', 'l', 'C')])
+            : vacioGrafico(`Cuando tus ${TT('paciente', 'p', '', 'l', 'l')} hagan su pedido, verás aquí la evolución.`)}
+          <p class="leer">Cada barra son las unidades atribuidas en el mes y la línea, el número de ventas.${d.ultima_pauta ? ' Última venta: ' + fechaCorta(d.ultima_pauta) + '.' : ''}</p></div>
+        <div class="card ancard"><h2>Qué ${TT('pauta', 'p', '', 'l', 'l')}</h2>
+          ${(d.productos || []).length ? svgDonut(d.productos.map(x => ({ n: x.nombre, v: x.unidades }))) : vacioGrafico('Aparecerá el reparto por producto.')}</div>
+        <div class="card ancard"><h2>Llamadas de tus ${TT('paciente', 'p', '', 'l', 'l')}</h2>
+          <div class="minis"><div><b>${num(ll.total || 0)}</b><span>llamadas</span></div><div><b>${conv == null ? '—' : conv + '%'}</b><span>acaban en pedido</span></div></div>
+          ${(ll.por_resultado || []).length ? barrasH(ll.por_resultado.map(x => ({ n: x.resultado, v: x.n })), num) : `<p class="sm" style="padding:0 16px">Todavía no hay llamadas registradas en el periodo.</p>`}
+          <p class="leer">${TT('paciente', 'p', '', 'l', 'C')} que llaman a la empresa. Si muchos llaman por dudas o por precio, podemos darte material para explicarlo.</p></div>
+      </div>
+      <p class="sm" style="text-align:center;margin:18px 0">Por confidencialidad no se muestran datos de tus ${TT('paciente', 'p', '', 'l', 'l')} ni importes.</p>`;
+  };
+  montarPeriodo($('mdper'), { id: 'informe', valor: 'anio', alCambiar: pinta });
+  pinta();
+  portalMedico();   // v2.126.0
+}
+
+// Mensajes: el hilo de una ficha (el médico ve los suyos; quien lleva la ficha, los de esa ficha)
+function hiloMensajes(l, yoMedico) {
+  return l.length ? `<div class="hilo">${l.map(x => `<div class="msj ${x.del_portal === yoMedico ? 'mio' : 'suyo'}"><div>${esc(x.texto)}</div>
+      <span class="sm">${x.del_portal ? TT('medico', 's', '', 'l', 'C') : 'Equipo'} · ${horaCorta(x.creado_en)}</span></div>`).join('')}</div>`
+    : '<div class="sm">Todavía no hay mensajes.</div>';
+}
+
+// cargarInforme (en su sitio) espera a que se lea este final y llama aquí: al arrancar, «Mi informe» se pinta antes
+async function cargarInforme2271() {
+  const v = $('v-informe'), pac = TT('paciente', 'p', '', 'l', 'l');
+  v.innerHTML = `<div class="medhero"><div><div class="sm" style="color:rgba(255,255,255,.8)">Tu portal</div><h1 id="mdnom">…</h1><div id="mdesp" class="sm" style="color:rgba(255,255,255,.85)"></div></div>
+      <div class="medper"><div id="mdper"></div></div></div>
+    <div class="pmtabs" role="tablist">${[['res', 'Resumen'], ['ficha', 'Mi ficha'], ['mat', 'Material y dudas']].map(([k, t]) =>
+      `<button type="button" role="tab" data-pmt="${k}" class="${PM.tab === k ? 'on' : ''}" aria-selected="${PM.tab === k}">${t}<span class="pmtpunto" hidden></span></button>`).join('')}</div>
+    <div data-pmp="res" id="mdcuerpo" ${PM.tab === 'res' ? '' : 'hidden'}>${pmEsqueleto()}</div>
+    <div data-pmp="ficha" id="pmficha" ${PM.tab === 'ficha' ? '' : 'hidden'}>${pmEsqueleto(true)}</div>
+    <div data-pmp="mat" id="pmmat" ${PM.tab === 'mat' ? '' : 'hidden'}><div id="mdportal" class="pmfila"></div></div>`;
+  v.querySelectorAll('[data-pmt]').forEach(b => b.onclick = () => pmTab(b.dataset.pmt));
+  const pinta = async () => {
+    const r = $('mdper').__rango();
+    const [{ data: d }, { data: c }, { data: f }] = await Promise.all([RPC_ORIG('informe_cuenta', { p_desde: r.desde, p_hasta: r.hasta }),
+      RPC_ORIG('constancia_pacientes', { p_meses: 12 }), PM.ficha ? Promise.resolve({ data: null }) : RPC_ORIG('portal_mi_ficha', {})]);
+    if (f && f.ok) pmFichaDatos(f);
+    if (!$('mdcuerpo')) return;
+    if (!d || !d.ok) {
+      // v2.291: sin ficha vinculada, las dos pestañas lo dicen (antes «Mi ficha» se quedaba cargando) y la cabecera lleva su nombre
+      const sin = `<div class="card"><div class="vacio">Tu usuario todavía no está vinculado a tu ficha de ${TT('medico', 's', '', 'l', 'l')}. Avisa a la empresa para activarlo.</div></div>`;
+      $('mdcuerpo').innerHTML = sin; if ($('pmficha')) $('pmficha').innerHTML = sin;
+      $('mdnom').textContent = (PERFIL && PERFIL.nombre) || ''; return;
+    }
+    $('mdnom').textContent = d.medico.nombre; $('mdesp').textContent = d.medico.especialidad || '';
+    $('mdcuerpo').innerHTML = pmResumen(d, c || {}, pac);
+    $('mdcuerpo').querySelectorAll('[data-pmir]').forEach(b => b.onclick = () => pmTab(b.dataset.pmir));
+    pmPintarFicha();
+  };
+  try { localStorage.removeItem('dlc-per-informe-' + (PERFIL ? PERFIL.id : '')); } catch (e) {}   // v2.353.0: al entrar, siempre «Esta semana»
+  montarPeriodo($('mdper'), { id: 'informe', valor: 'semana', alCambiar: pinta });
+  await pinta();
+  portalMedico();
+}
 // pantallas/productos.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -9484,6 +11587,57 @@ async function refrescarProductos() {
   try { invalidarCache(); } catch (e) {}
   await cargarProductos();
   if (TAB === 'productos' && typeof cargarProductosModulo === 'function') cargarProductosModulo();
+}
+
+async function pintarServicios() {
+  const esAdmin = puede('administrar');
+  cargando($('vcuerpo'), 'Cargando servicios…');
+  const { data } = await RPC_ORIG('productos_lista', { p_todos: esAdmin });
+  const l = (data || []).filter(p => p.tipo === 'servicio');
+  $('vcuerpo').innerHTML = `<div class="panel">
+    <div class="cuenta"><b>${num(l.filter(p => p.activo).length)}</b> servicios activos · Un pedido puede llevar un servicio (envío, portes urgentes…), que se suma con su propio IVA.</div>
+    <div class="dgrid-wrap"><div class="dgrid servs">
+      <div class="dh"><span>Servicio</span><span class="num">Sin IVA</span><span class="num">IVA</span><span class="num">Con IVA</span><span>En pedidos nuevos</span><span>Estado</span></div>
+      ${l.map(p => `<button class="dr" data-serv="${p.id}" style="${p.activo ? '' : 'opacity:.55'}">
+        <span><b>${esc(p.nombre)}</b></span><span class="num">${p.precio != null ? eurI(p.precio) : '—'}</span>
+        <span class="num">${num(p.iva || 0)}%</span><span class="num"><b>${p.pvp != null ? eurI(p.pvp) : '—'}</b></span>
+        <span>${p.por_defecto ? '<span class="pill p-est">Se propone por defecto</span>' : '<span class="vac">—</span>'}</span>
+        <span><span class="pill ${p.activo ? 'p-est' : 'p-anu'}">${p.activo ? 'Activo' : 'Inactivo'}</span></span></button>`).join('') || '<div class="vacio">Todavía no hay servicios.</div>'}
+    </div></div></div>`;
+  $('vcuerpo').querySelectorAll('[data-serv]').forEach(b => b.onclick = () => editorServicio(l.find(p => p.id === b.dataset.serv)));
+}
+
+function editorServicio(s) {
+  const esAdmin = puede('administrar');
+  s = s || { iva: 21, activo: true };
+  const ro = esAdmin ? '' : 'disabled';
+  $('dbody').innerHTML = `
+    <div class="fh"><div><h2>${s.id ? esc(s.nombre) : 'Nuevo servicio'}</h2>
+      <div class="sm">Escribe el precio sin IVA o con IVA: el otro se calcula solo. En cada pedido se puede cambiar.</div></div>
+      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
+    <label for="svn">Nombre</label><input id="svn" value="${esc(s.nombre || '')}" placeholder="p. ej. Envío, Envío urgente" ${ro}>
+    <div class="pvp">
+      <div><label for="svs">Sin IVA (€)</label><input id="svs" type="number" step="0.01" min="0" value="${s.precio != null ? +(+s.precio).toFixed(4) : ''}" ${ro}></div>
+      <div><label for="svi">IVA (%)</label><input id="svi" type="number" step="1" min="0" max="21" value="${s.iva != null ? s.iva : 21}" ${ro}></div>
+      <div><label for="svc">Con IVA (€)</label><input id="svc" type="number" step="0.01" min="0" value="${s.precio != null ? r2(s.precio * (1 + (+s.iva || 0) / 100)) : ''}" ${ro}></div></div>
+    <label class="opt" style="margin-top:12px"><input type="checkbox" id="svdef" ${s.por_defecto ? 'checked' : ''} ${ro}> Proponerlo por defecto en los pedidos nuevos</label>
+    ${s.id ? `<label class="opt" style="margin-top:8px"><input type="checkbox" id="svact" ${s.activo ? 'checked' : ''} ${ro}> Activo</label>` : ''}
+    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>${esAdmin ? 'Cancelar' : 'Cerrar'}</button>
+      ${esAdmin ? `<button class="btn" id="svok">${s.id ? 'Guardar' : 'Crear servicio'}</button>` : ''}</div>`;
+  $('dlg').showModal();
+  if (!esAdmin) return;
+  const iva = () => (+$('svi').value || 0) / 100;
+  $('svs').oninput = () => { $('svc').value = $('svs').value === '' ? '' : r2(+$('svs').value * (1 + iva())); };
+  $('svc').oninput = () => { $('svs').value = $('svc').value === '' ? '' : +(+$('svc').value / (1 + iva())).toFixed(4); };
+  $('svi').oninput = () => { if ($('svs').value !== '') $('svc').value = r2(+$('svs').value * (1 + iva())); };
+  $('svok').onclick = async () => {
+    if (!$('svn').value.trim()) { toast('Escribe el nombre', true); return; }
+    const { data: r, error } = await db.rpc('guardar_producto', { p: { id: s.id || null, tipo: 'servicio', nombre: $('svn').value.trim(),
+      precio: $('svs').value, iva: $('svi').value, por_defecto: $('svdef').checked, ...($('svact') ? { activo: $('svact').checked } : {}) } });
+    if (error || (r && r.ok === false)) { toast('No se ha podido guardar', true); return; }
+    $('dlg').close(); toast(s.id ? 'Servicio guardado' : 'Servicio creado');
+    await cargarProductos(); if (TAB === 'productos') pintarServicios();
+  };
 }
 // pantallas/rutas.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
@@ -10643,6 +12797,413 @@ async function rnGuardar(agenda) {
   if (agenda) return rnPasarAgenda({ r: Object.assign({}, p, { id: data.id, mia: true }), ms });
   cargarRutas();
 }
+
+async function planificar(rutaId, btn) {
+  const orig = btn.textContent; btn.disabled = true; btn.textContent = 'Calculando…';
+  const { data, error } = await db.rpc('cuentas_de_ruta', { p_id: rutaId });
+  btn.disabled = false; btn.textContent = orig;
+  if (error) { toast('No se ha podido planificar: ' + error.message, true); return; }
+  const conXY = (data || []).filter(m => m.lat && m.lon);
+  if (!conXY.length) { toast(`Esta ruta no tiene ${TT('medico', 'p', '', 'l', 'l')} con ubicación`, true); return; }
+  construirPlan(conXY, rutaId, btn);
+}
+
+function conHor(h, fn) { const prev = HOR; HOR = h && (h.salida || h.vuelta) ? h : null; try { return fn(); } finally { HOR = prev; } }
+
+async function construirPlan(conXY, rutaId, btn, opts) {
+  opts = opts || {};
+  ULTIMO_PLAN = { conXY, rutaId, opts };
+  HOR = opts.horario !== undefined ? opts.horario : horDeRuta(rutaId);
+  const cfg = PLANCFG(), sal = salidaUsuario();
+  const fecha = opts.manana ? siguienteLaborable() : hoyISO();
+  const ahora = new Date(), minAhora = ahora.getHours() * 60 + ahora.getMinutes();
+  const salidaCfg = minHora(cfg.salida), tope = minHora(cfg.tope);
+  const t0 = opts.manana ? salidaCfg : Math.max(salidaCfg, Math.ceil(minAhora / 5) * 5);
+
+  if (t0 >= tope) {
+    const esRuta = !!(RUTAS || []).find(x => x.id === rutaId);
+    const op = await elegirOpcion('Ya ha pasado la hora de vuelta de esta ruta',
+      `Esta ruta sale a las ${cfg.salida} y vuelve como tarde a las ${cfg.tope}, y ahora son las ${hm(minAhora)}.\n\nPuedes planificarla para el ${fechaLarga(new Date(siguienteLaborable() + 'T00:00:00'))}${esRuta ? ' o cambiar el horario de la ruta' : ''}.`,
+      [{ k: 'no', t: 'Cancelar', cls: 'sec' }].concat(esRuta ? [{ k: 'horario', t: 'Cambiar el horario de la ruta', cls: 'sec' }] : []).concat([{ k: 'manana', t: 'Planificar para mañana' }]));
+    if (op === 'horario') editorRuta(rutaId);
+    if (op === 'manana') construirPlan(conXY, rutaId, btn, { manana: true });
+    return;
+  }
+
+  const todos = await conHorarios(conXY);
+  // Médicos con una cita ya planificada (desde hoy): no se proponen; se muestran aparte como «ya citados»
+  const citas = await citasPlanificadasMias();
+  const citados = todos.filter(m => citas[m.id]).map(m => ({ m, fecha: citas[m.id] }));
+  const meds = todos.filter(m => !citas[m.id]);
+  const items = meds.map(m => ({ id: m.id, ref: m, xy: m.lat != null && m.lon != null ? [+m.lat, +m.lon] : null,
+    ventanas: ventanasDe(m.dias, fecha), fija: null }));
+  const { seq, fuera, fin } = programarVisitas(items, t0);
+
+  // Todos los médicos de la ruta ya tienen cita: se dice así y se ofrece ir a la agenda
+  if (!meds.length && citados.length) {
+    const op = await elegirOpcion('Ya están todos citados',
+      `${citados.length === 1 ? `${TT('medico', 's', 'el', 'C', 'l')} de esta ruta ya tiene` : `Los ${citados.length} ${TT('medico', 'p', '', 'l', 'l')} de esta ruta ya tienen`} una cita planificada en tu agenda.`,
+      [{ k: 'no', t: 'Cerrar', cls: 'sec' }, { k: 'agenda', t: 'Ver mi agenda' }]);
+    if (op === 'agenda') { AG_MODO = 'semana'; AG_FECHA = citados.map(x => x.fecha).sort()[0]; ir('agenda'); }
+    return;
+  }
+  if (!seq.length) {
+    const noDia = fuera.filter(f => f.motivo === 'no atiende este día').length;
+    const op = await elegirOpcion(`No cabe ${TT('visita', 's', 'ningun', 'l', 'l')}`,
+      (noDia === fuera.length ? `Ninguno de estos ${fuera.length} ${TT('medico', 'p', '', 'l', 'l')} atiende el ${fechaLarga(new Date(fecha + 'T00:00:00'))}.`
+        : cfg.conTope ? `Con el horario de la ruta (${cfg.salida}–${cfg.tope}) y las horas de atención no da tiempo a ${TT('visita', 's', 'ningun', 'l', 'l')}.`
+        : `Con las horas de atención no da tiempo a ${TT('visita', 's', 'ningun', 'l', 'l')}.`)
+        + (citados.length ? `\n\nAdemás, ${citados.length} ${citados.length === 1 ? 'ya tiene' : 'ya tienen'} una cita planificada y no se proponen.` : ''),
+      [{ k: 'no', t: 'Cancelar', cls: 'sec' }].concat(cfg.conTope && (RUTAS || []).find(x => x.id === rutaId) ? [{ k: 'horario', t: 'Cambiar el horario de la ruta', cls: 'sec' }] : [])
+        .concat(opts.manana ? [] : [{ k: 'manana', t: 'Probar para mañana' }]));
+    if (op === 'horario') editorRuta(rutaId);
+    if (op === 'manana') construirPlan(conXY, rutaId, btn, { manana: true });
+    return;
+  }
+
+  // Visitas seguidas en el mismo sitio forman una parada
+  const paradas = [];
+  seq.forEach(s => {
+    const m = Object.assign({}, s.it.ref, { horaPlan: s.ini, ventanas: s.it.ventanas });
+    const ult = paradas[paradas.length - 1];
+    if (ult && ult.xy[0] === s.it.xy[0] && ult.xy[1] === s.it.xy[1]) { ult.medicos.push(m); ult.fin = s.fin; }
+    else paradas.push({ centro: m.centro_nombre || consultaPrivada(), municipio: m.municipio, dir: m.direccion,
+      xy: s.it.xy, medicos: [m], llegada: s.ini, fin: s.fin });
+  });
+  PLAN = { rutaId, salida: sal, paradas, fin, fecha, inicio: t0, fuera: fuera.map(f => ({ m: f.it.ref, motivo: f.motivo })), citados, horario: HOR };
+  if (TAB !== 'rutas') ir('rutas');
+  pintarPlan();
+  setTimeout(() => $('rplan') && $('rplan').scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
+}
+
+function prefsActivas() { return (TAB === 'agenda' && AG_VISTA && AG_VISTA.preferencias) || PERFIL.preferencias || {}; }
+
+/* Planificador: reparte médicos entre los días de la semana */
+async function planificarSemana(desde, dias, bloq, porDia) {
+  const libres = dias.filter(f => f >= hoyISO() && !bloq[f] && new Date(f + 'T12:00:00').getDay() % 6 !== 0);
+  if (!libres.length) { toast('No quedan días laborables libres esta semana', true); return; }
+  const { data: rutas } = await RPC_ORIG('rutas_visibles', {});
+  const misRutas = (rutas || []).filter(x => !AG_VISTA || x.usuario_id === agUid() || x.visible_para === '*');
+  $('dbody').innerHTML = `
+    <div class="fh"><div><h2>Planificar la semana${AG_VISTA ? ' de ' + esc(AG_VISTA.nombre) : ''}</h2>
+      <div class="sm">Reparte ${TT('medico', 'p', 'el', 'l', 'l')} entre los días, cada uno un día que atienda y agrupados por zona</div></div>
+      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
+    <label for="spfuente">¿A quién?</label>
+    <select id="spfuente">
+      <option value="toca">A quien le toca ${TT('visita', 's', '', 'l', 'l')} (según su frecuencia objetivo)</option>
+      <option value="urgentes">Urgentes sin visitar</option>
+      <option value="interesados">${TT('medico', 'p', '', 'l', 'C', 'interesado')} sin ${TT('visita', 's', '', 'l', 'l')} en 20 días</option>
+      <option value="sin_visitar">Nunca visitados</option>
+      ${misRutas.map(x => `<option value="ruta:${x.id}">Ruta: ${esc(x.nombre)}</option>`).join('')}
+    </select>
+    <label>Días</label>
+    <div class="spdias">${dias.slice(0, 5).map(f => {
+      const ok = libres.includes(f);
+      return `<label class="opt ${ok ? '' : 'off'}" style="margin:0"><input type="checkbox" data-spd="${f}" ${ok ? 'checked' : 'disabled'}>
+        ${DIAN[LETRA_DIA(f)].slice(0, 3)} ${new Date(f + 'T12:00:00').getDate()}${bloq[f] ? ' · bloqueado' : f < hoyISO() ? ' · pasado' : ''}</label>`;
+    }).join('')}</div>
+    <div class="g2">
+      <div><label for="spmax">Máximo de ${TT('visita', 'p', '', 'l', 'l', 'nuevo')} por día</label><input id="spmax" type="number" min="1" max="30" placeholder="Hasta la hora de vuelta"></div>
+      <div><label for="spsal">Hora de salida</label><input id="spsal" type="time" value="${esc((prefsActivas().plan_semana || {}).salida || '')}"></div>
+      <div><label for="spvue">Vuelta como tarde</label><input id="spvue" type="time" value="${esc((prefsActivas().plan_semana || {}).vuelta || '')}"></div>
+      <div><label>Tiempos</label><div class="sm" style="padding-top:12px">${TIEMPOS().visita} min por ${TT('medico', 's', '', 'l', 'l')} · sin hora de vuelta, sin límite</div></div>
+    </div>
+    <p class="sm">Las citas que ya hay en la agenda se respetan y cuentan para el tiempo de cada día. No se proponen ${TT('medico', 'p', '', 'l', 'l')} que ya tienen una cita abierta.</p>
+    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>Cancelar</button>
+      <button class="btn" id="spok">Proponer reparto</button></div>`;
+  $('dlg').showModal();
+  $('spok').onclick = async ev => {
+    const fuente = $('spfuente').value;
+    const usar = [...$('dbody').querySelectorAll('[data-spd]:checked')].map(x => x.dataset.spd);
+    if (!usar.length) { toast('Elige al menos un día', true); return; }
+    const max = +$('spmax').value || null;
+    ev.target.disabled = true; ev.target.textContent = 'Calculando…';
+    let lista = [];
+    if (fuente === 'toca') lista = (await db.rpc('toca_actividad', { p_usuario: agUid() === PERFIL.id && VE_TODO() ? null : agUid(), lim: 300 })).data || [];
+    else if (fuente.startsWith('ruta:')) lista = (await db.rpc('cuentas_de_ruta', { p_id: fuente.slice(5) })).data || [];
+    else lista = ((await db.rpc('propuestas_rutas', { lim: 200 })).data || {})[fuente] || [];
+    // Fuera los que ya tienen cita abierta
+    const { data: futuras } = await RPC_ORIG('agenda_rango', { p_desde: hoyISO(), p_hasta: isoMas(hoyISO(), 60), p_usuario: agUid() });
+    const conCita = new Set((futuras || []).filter(c => CITA_ABIERTA.includes(c.estado)).map(c => c.cuenta_id));
+    lista = await conHorarios(lista.filter(m => !conCita.has(m.id)));
+    // Aviso de visita reciente: fuera los que se han visto hace poco
+    const av = avisoRevisita(); let recientes = [];
+    if (av.on && lista.length) {
+      const { data: rv } = await db.rpc('actividades_recientes', { p_ids: lista.map(m => m.id), p_desde: isoMas(hoyISO(), -av.dias), p_hasta: hoyISO() });
+      const vistos = {}; (rv || []).filter(x => x.tipo === 'visita').forEach(x => { if (!vistos[x.cuenta_id] || x.fecha > vistos[x.cuenta_id].fecha) vistos[x.cuenta_id] = x; });
+      recientes = lista.filter(m => vistos[m.id]).map(m => ({ m, motivo: `visitado el ${fechaCorta(vistos[m.id].fecha)}${vistos[m.id].usuario ? ' (' + vistos[m.id].usuario + ')' : ''}` }));
+      lista = lista.filter(m => !vistos[m.id]);
+    }
+    // v2.76.0: el horario es el de esta planificación (se recuerda como el último usado)
+    const hs = { salida: ($('spsal') || {}).value || null, vuelta: ($('spvue') || {}).value || null };
+    if (JSON.stringify(hs) !== JSON.stringify(prefsActivas().plan_semana || {})) {
+      const prefs = Object.assign({}, PERFIL.preferencias || {}, { plan_semana: hs });
+      db.rpc('guardar_preferencias', { p: prefs }).then(({ data }) => { PERFIL.preferencias = data || prefs; }, () => {});
+    }
+    SEM_BORRADOR = conHor(hs, () => repartirSemana(lista, usar, porDia, max, desde));
+    SEM_BORRADOR.horario = hs.salida || hs.vuelta ? hs : null;
+    SEM_BORRADOR.sinDia = SEM_BORRADOR.sinDia.concat(recientes);
+    ev.target.disabled = false; ev.target.textContent = 'Proponer reparto';
+    $('dlg').close();
+    if (!SEM_BORRADOR.total) toast(`No cabe ${TT('visita', 's', 'ningun', 'l', 'l', 'nuevo')} con estos datos`, true);
+    pintarSemanaAgenda();
+  };
+}
+
+function repartirSemana(lista, usar, porDia, max, desde) {
+  const cfg = PLANCFG(), sal = salidaUsuario(), uid = agUid();
+  let pend = lista.filter(m => m.lat != null && m.lon != null).map(m => ({ m, xy: [+m.lat, +m.lon] }));
+  const sinDia = lista.filter(m => m.lat == null || m.lon == null).map(m => ({ m, motivo: 'sin ubicación' }));
+  const out = { semana: desde, uid, dias: {}, sinDia, total: 0 };
+  usar.forEach(f => {
+    const ahora = new Date(), minAhora = ahora.getHours() * 60 + ahora.getMinutes();
+    const t0 = f === hoyISO() ? Math.max(minHora(cfg.salida), Math.ceil(minAhora / 5) * 5) : minHora(cfg.salida);
+    const disponibles = pend.filter(p => { const v = ventanasDe(p.m.dias, f); return !(v && !v.length); });
+    if (!disponibles.length) { out.dias[f] = []; return; }
+    // Semilla: el que menos días puede ir (y urgente antes), para no dejarlo sin hueco
+    const nDias = p => usar.filter(g => { const v = ventanasDe(p.m.dias, g); return !(v && !v.length); }).length;
+    disponibles.sort((a, b) => nDias(a) - nDias(b) || (b.m.urgente ? 1 : 0) - (a.m.urgente ? 1 : 0) || km([sal.lat, sal.lon], a.xy) - km([sal.lat, sal.lon], b.xy));
+    const semilla = disponibles[0].xy;
+    const cerca = disponibles.slice().sort((a, b) => km(semilla, a.xy) - km(semilla, b.xy)).slice(0, 40);
+    const existentes = (porDia[f] || []).filter(c => c.usuario_id === uid && CITA_ABIERTA.includes(c.estado));
+    const items = existentes.map(c => ({ id: c.id, ref: { existente: c }, xy: xyCita(c), ventanas: ventanasDe(c.dias, f), fija: minHora(c.hora) }))
+      .concat(cerca.map(p => ({ id: p.m.id, ref: { p }, xy: p.xy, ventanas: ventanasDe(p.m.dias, f), fija: null })));
+    const { seq } = programarVisitas(items, t0);
+    let nuevas = seq.filter(s => s.it.ref.p);
+    if (max) nuevas = nuevas.slice(0, max);
+    const elegidos = new Set(nuevas.map(s => s.it.ref.p));
+    out.dias[f] = seq.filter(s => s.it.ref.existente || elegidos.has(s.it.ref.p)).map(s => s.it.ref.existente
+      ? { existente: s.it.ref.existente }
+      : { m: s.it.ref.p.m, ini: s.ini, cita: { id: 'nueva-' + s.it.ref.p.m.id, fecha: f, dias: s.it.ref.p.m.dias, lat: s.it.ref.p.xy[0], lon: s.it.ref.p.xy[1] } });
+    pend = pend.filter(p => !elegidos.has(p));
+  });
+  // Solo las nuevas cuentan en la vista; las existentes se guardan para respetar el orden al guardar
+  out.orden = {};
+  usar.forEach(f => { out.orden[f] = out.dias[f] || []; out.dias[f] = (out.dias[f] || []).filter(x => !x.existente); });
+  out.total = usar.reduce((n, f) => n + out.dias[f].length, 0);
+  pend.forEach(p => {
+    const algun = usar.some(g => { const v = ventanasDe(p.m.dias, g); return !(v && !v.length); });
+    sinDia.push({ m: p.m, motivo: algun ? 'no cabe en los días elegidos' : 'no atiende ninguno de los días elegidos' });
+  });
+  return out;
+}
+
+async function guardarBorradorSemana(btn) {
+  const b = SEM_BORRADOR; if (!b) return;
+  btn.disabled = true; btn.textContent = 'Guardando…';
+  let n = 0;
+  for (const f of Object.keys(b.orden)) {
+    const ids = [];
+    for (const x of b.orden[f]) {
+      if (x.existente) { ids.push(x.existente.id); continue; }
+      const { data: r } = await db.rpc('guardar_cita', { p: { cuenta_id: x.m.id, fecha: f, hora: null,
+        centro_nombre: x.m.centro_nombre || null, estado: 'Planificada', origen: 'Planificador semanal',
+        usuario_id: b.uid !== PERFIL.id ? b.uid : null, op_id: 'ps-' + x.m.id + '-' + f,
+        salida: (b.horario || {}).salida || null, vuelta: (b.horario || {}).vuelta || null } });
+      if (r && r.ok) { ids.push(r.id); n++; }
+    }
+    if (ids.length) await db.rpc('ordenar_citas', { p_ids: ids });
+  }
+  SEM_BORRADOR = null;
+  toast(`${n} citas guardadas en la agenda`);
+  cargarAgenda(); cargarInicio();
+}
+
+async function editorFrecuencia() {
+  await cargarAjustes();
+  const REC = { inicial: 60, avance: 30, interes: 15, positivo: 30, negativo: 0 };
+  const f = Object.assign(Object.fromEntries(ESTADOS_DEF.map(x => [x.valor, REC[x.papel] || 0])), AJUSTES.frecuencia || {});
+  $('dbody').innerHTML = `
+    <div class="fh"><div><h2>Frecuencia objetivo de ${TT('visita', 's', '', 'l', 'l')}</h2>
+      <div class="sm">Cada cuántos días hay que visitar a ${TT('medico', 's', 'un', 'l', 'l')} según su estado. 0 = no se exige.</div></div>
+      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
+    ${Object.keys(f).map(k => `<div class="g2" style="align-items:center"><div><b>${esc(k)}</b></div>
+      <div><input type="number" min="0" max="365" data-frec="${esc(k)}" value="${+f[k] || 0}" aria-label="Días para ${esc(k)}"></div></div>`).join('')}
+    <p class="sm">Se usa en «A quien le toca ${TT('visita', 's', '', 'l', 'l')}» (planificador y sugerencias) y en la columna «Les toca» del equipo.</p>
+    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>Cancelar</button><button class="btn" id="frok">Guardar</button></div>`;
+  $('dlg').showModal();
+  $('frok').onclick = async () => {
+    const v = {}; $('dbody').querySelectorAll('[data-frec]').forEach(i => v[i.dataset.frec] = Math.max(0, +i.value || 0));
+    const { data: r, error } = await db.rpc('guardar_ajuste', { p_clave: 'frecuencia', p_valor: v });
+    if (error || (r && r.ok === false)) { toast('No se ha podido guardar', true); return; }
+    AJUSTES.frecuencia = v; $('dlg').close(); toast('Frecuencia guardada'); invalidarCache();
+    if (AG_MODO === 'equipo') pintarEquipo();
+  };
+}
+
+async function prepararParadas(fecha) {
+  // «Tu día» ya tiene sus citas (de la persona y en el orden de la ruta): se usan tal cual
+  TD_PARADAS = (typeof TD_CITAS !== 'undefined' && Array.isArray(TD_CITAS) ? TD_CITAS : []).filter(c => CITA_ABIERTA.includes(c.estado) && xyCita(c));
+  pintarBotonesRuta(fecha);
+}
+
+function rpMotivos() {
+  const g = terminoDe('medico').g === 'f' ? 'a' : 'o';
+  return {
+    urgente: ['urgente', 'urgentes', 'p-urg'],
+    consulta: ['atiende', 'atienden', 'p-est'],
+    interes: [TT('medico', 's', '', 'l', 'l', 'interesado'), TT('medico', 'p', '', 'l', 'l', 'interesado'), 'p-warn'],
+    pendiente: ['pendiente de otra ruta', 'pendientes de otras rutas', 'p-per'],
+    cliente: ['buen cliente sin ' + TT('visita', 's', '', 'l', 'l'), 'buenos clientes sin ' + TT('visita', 's', '', 'l', 'l'), 'p-est'],
+    nuevo: ['nunca visitad' + g, 'nunca visitad' + g + 's', 'p-anu']
+  };
+}
+
+function rpObjetivo(manana) {
+  const d = new Date(), finde = d.getDay() === 0 || d.getDay() === 6;
+  if (manana === undefined) manana = finde || d.getHours() * 60 + d.getMinutes() >= 13 * 60;
+  if (finde) manana = true;
+  return { manana, finde, fecha: manana ? siguienteLaborable() : hoyISO() };
+}
+
+// Tiempos de una propuesta con los minutos por visita y por parada de cada uno
+function rpTiempos(sel, t0) {
+  const cfg = PLANCFG(), sal = salidaUsuario();
+  let pos = sal.lat != null ? [+sal.lat, +sal.lon] : null, t = t0, kms = 0, paradas = 0;
+  sel.forEach(c => {
+    const xy = [+c.lat, +c.lon], mismo = pos && km(pos, xy) < 0.05;
+    if (!mismo) { if (pos) { t += minutosEntre(pos, xy); kms += km(pos, xy); } t += cfg.parada; paradas++; }
+    t += cfg.visita; pos = xy;
+  });
+  return { fin: t, km: kms, paradas };
+}
+
+// Arma hasta 3 rutas de un día: la zona con más puntos, y desde su mejor candidato se va sumando el que más vale a cada paso
+// (puntos menos 4 por km), sin salir de 25 km ni pasar de la jornada.
+function rpArmar(cand, obj) {
+  const cfg = PLANCFG(), sal = salidaUsuario();
+  const ahora = new Date(), minAhora = ahora.getHours() * 60 + ahora.getMinutes();
+  const t0 = obj.manana ? minHora(cfg.salida) : Math.max(minHora(cfg.salida), Math.ceil(minAhora / 5) * 5);
+  const tfin = Math.min(t0 + RP_JORNADA, 20 * 60);
+  const libres = new Set(cand.map(c => c.id)), lista = [];
+  for (let k = 0; k < 3; k++) {
+    const disp = cand.filter(c => libres.has(c.id));
+    if (!disp.length) break;
+    const porZona = {};
+    disp.forEach(c => { const z = c.municipio || '—'; (porZona[z] = porZona[z] || []).push(c); });
+    const zona = Object.entries(porZona).map(([z, l]) => [z, l.slice(0, 8).reduce((s, c) => s + +c.puntos, 0)]).sort((a, b) => b[1] - a[1])[0][0];
+    const sel = [porZona[zona][0]]; libres.delete(sel[0].id);
+    let pos = [+sel[0].lat, +sel[0].lon];
+    let t = t0 + (sal.lat != null ? minutosEntre([+sal.lat, +sal.lon], pos) : 0) + cfg.parada + cfg.visita;
+    for (;;) {
+      let mejor = null, mv = -Infinity, mt = 0;
+      cand.forEach(c => {
+        if (!libres.has(c.id)) return;
+        const xy = [+c.lat, +c.lon], d = km(pos, xy);
+        if (d > 25) return;
+        const dt = (d < 0.05 ? 0 : minutosEntre(pos, xy) + cfg.parada) + cfg.visita;
+        if (t + dt > tfin) return;
+        const v = +c.puntos - d * 4;
+        if (v > mv) { mv = v; mejor = c; mt = dt; }
+      });
+      if (!mejor) break;
+      sel.push(mejor); libres.delete(mejor.id); pos = [+mejor.lat, +mejor.lon]; t += mt;
+    }
+    if (sel.length < 2 && lista.length) break;
+    lista.push({ sel, ini: t0 });
+  }
+  return lista;
+}
+
+function rpZona(sel) {
+  const n = {};
+  sel.forEach(c => { if (c.municipio) n[c.municipio] = (n[c.municipio] || 0) + 1; });
+  const z = Object.entries(n).sort((a, b) => b[1] - a[1]).map(([m]) => rpTitulo(m));
+  return !z.length ? 'Sin municipio' : z.length === 1 ? z[0] : z.length === 2 ? z.join(' y ') : `${z[0]}, ${z[1]} y ${z.length - 2} más`;
+}
+
+function rpTitulo(s) { return String(s || '').toLowerCase().replace(/(^|[\s\-'·])(\p{L})/gu, (a, b, c) => b + c.toUpperCase()); }
+
+// Por qué esta propuesta: lo aprendido de las visitas y las compras
+function rpPorque(sel, dia) {
+  const media = k => sel.reduce((s, c) => s + (+c[k] || 0), 0) / sel.length;
+  const z = rpZona(sel), out = [];
+  if (dia && media('h_dia') >= 0.5) out.push(`Sueles ir a ${z} los ${RP_DIAS[dia]}`);
+  else if (media('h_zona') >= 0.5) out.push('Es una de tus zonas habituales');
+  const top = sel.filter(c => +c.h_venta >= 0.5).length;
+  if (top) out.push(top === 1 ? 'Incluye a uno de tus mejores clientes' : `Incluye a ${top} de tus mejores clientes`);
+  return out.join(' · ');
+}
+
+// Croquis: los puntos en orden y la línea que los une (sin cargar un mapa por tarjeta)
+function rpCroquis(sel) {
+  const W = 132, H = 92, P = 10, xs = sel.map(c => +c.lon), ys = sel.map(c => +c.lat);
+  const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
+  const esc2 = Math.min((W - 2 * P) / Math.max(x1 - x0, 1e-4), (H - 2 * P) / Math.max(y1 - y0, 1e-4));
+  const pt = c => [P + (+c.lon - x0) * esc2 + ((W - 2 * P) - (x1 - x0) * esc2) / 2, H - P - (+c.lat - y0) * esc2 - ((H - 2 * P) - (y1 - y0) * esc2) / 2];
+  const pts = sel.map(pt);
+  return `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" aria-hidden="true">
+    <polyline points="${pts.map(p => p.map(v => v.toFixed(1)).join(',')).join(' ')}" fill="none" stroke="#17457A" stroke-opacity=".45" stroke-width="2" stroke-linejoin="round"/>
+    ${pts.map((p, i) => `<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="${i ? 4 : 5.5}" fill="${(sel[i].motivos || []).includes('urgente') ? '#B42318' : '#17457A'}" stroke="#fff" stroke-width="1.5"/>`).join('')}
+  </svg>`;
+}
+
+function rpTarjeta(p, i) {
+  const M = rpMotivos(), cuenta = {};
+  p.sel.forEach(c => (c.motivos || []).forEach(m => { cuenta[m] = (cuenta[m] || 0) + 1; }));
+  const t = rpTiempos(p.sel, p.ini), n = p.sel.length;
+  const porque = rpPorque(p.sel, RPROP.datos.dia);
+  const chips = Object.keys(M).filter(k => cuenta[k]).map(k => `<span class="pill ${M[k][2]}">${cuenta[k]} ${cuenta[k] === 1 ? M[k][0] : M[k][1]}</span>`).join('');
+  return `<div class="rprop" data-rp="${i}">
+    <div class="rpcroq">${rpCroquis(p.sel)}</div>
+    <div class="rptx"><b class="rpzona"><span class="rpnum">${i + 1}</span>${esc(rpZona(p.sel))}</b>
+      <span class="sm">${n} ${n === 1 ? TT('medico', 's', '', 'l', 'l') : TT('medico', 'p', '', 'l', 'l')} · ${t.paradas} ${t.paradas === 1 ? 'parada' : 'paradas'} ·
+        ${hm(p.ini)}–${hm(t.fin)}${t.km >= 1 ? ' · ' + Math.round(t.km) + ' km' : ''}</span>
+      <span class="rpmot">${chips}</span>
+      ${porque ? `<span class="sm rpporque">${esc(porque)}</span>` : ''}</div>
+    <div class="acts rpacts"><button class="btn sec" type="button" data-rpver="${i}" aria-expanded="false">Ver ${TT('medico', 'p', '', 'l', 'l')}</button>
+      <button class="btn sec" type="button" data-rpplan="${i}">Planificar</button>
+      <button class="btn" type="button" data-rpag="${i}">A mi agenda</button></div>
+    <div class="rplista" hidden>${p.sel.map(c => `<div class="rpit">
+      <button type="button" class="lnkmed" data-rpficha="${c.id}">${esc(c.nombre)}</button>
+      <span class="sm">${esc([c.centro_nombre, rpTitulo(c.municipio)].filter(Boolean).join(' · '))}</span>
+      <span class="rpmot">${(c.motivos || []).map(m => `<span class="pill ${M[m][2]}">${M[m][0]}</span>`).join('')}</span>
+      <button type="button" class="x rpquitar" data-rpquitar="${i}|${c.id}" title="Quitar de la propuesta" aria-label="Quitar ${esc(c.nombre)}">✕</button></div>`).join('')}</div>
+  </div>`;
+}
+
+function rpPintar() {
+  const caja = $('rprops'); if (!caja || !RPROP) return;
+  const o = RPROP, d = o.datos || {}, quien = rpNombreDia(o.fecha);
+  const man = siguienteLaborable(), etMan = rpNombreDia(man).replace(/^el /, '');
+  const aprende = (d.aprendido || {}).visitas ? `Tienen en cuenta tus ${num(d.aprendido.visitas)} ${TT('visita', 'p', '', 'l', 'l')} de los últimos 4 meses y quién compra más.`
+    : `Aprenden de tus ${TT('visita', 'p', '', 'l', 'l')} y de quién compra más a medida que uses la app.`;
+  caja.innerHTML = `<div class="fh"><div><h2>Propuestas para ${quien}</h2><div class="sm">${aprende}</div></div>
+      <div class="segs" id="rpdia" role="group" aria-label="Día">${o.finde ? '' : `<button type="button" data-rpd="hoy" class="${o.manana ? '' : 'on'}" aria-pressed="${!o.manana}">Hoy</button>`}
+        <button type="button" data-rpd="man" class="${o.manana ? 'on' : ''}" aria-pressed="${o.manana}">${etMan.replace(/^./, c => c.toUpperCase())}</button></div></div>
+    ${o.lista.length ? o.lista.map(rpTarjeta).join('')
+      : `<div class="vacio">No hay a nadie a quien convenga ir ${quien}: ni urgentes, ni quien atienda ese día, ni ${TT('medico', 'p', '', 'l', 'l', 'interesado')} sin ${TT('visita', 's', '', 'l', 'l')}.
+          ${o.manana ? '' : 'Prueba con el día siguiente.'}</div>`}`;
+  caja.querySelectorAll('[data-rpd]').forEach(b => b.onclick = () => rpCargar(b.dataset.rpd === 'man'));
+  caja.querySelectorAll('[data-rpver]').forEach(b => b.onclick = () => {
+    const l = b.closest('.rprop').querySelector('.rplista'); l.hidden = !l.hidden; b.setAttribute('aria-expanded', String(!l.hidden));
+    b.textContent = l.hidden ? `Ver ${TT('medico', 'p', '', 'l', 'l')}` : 'Ocultar';
+  });
+  caja.querySelectorAll('[data-rpficha]').forEach(b => b.onclick = () => abrirFicha(b.dataset.rpficha));
+  caja.querySelectorAll('[data-rpquitar]').forEach(b => b.onclick = () => {
+    const [i, id] = b.dataset.rpquitar.split('|'), p = o.lista[+i];
+    p.sel = p.sel.filter(c => c.id !== id);
+    if (!p.sel.length) o.lista.splice(+i, 1);
+    const abierta = !p.sel.length ? null : +i;
+    rpPintar();
+    if (abierta != null) { const v = caja.querySelector(`[data-rpver="${abierta}"]`); if (v) v.click(); }
+  });
+  caja.querySelectorAll('[data-rpplan]').forEach(b => b.onclick = () => rpPlan(+b.dataset.rpplan, b));
+  caja.querySelectorAll('[data-rpag]').forEach(b => b.onclick = () => rpAgenda(+b.dataset.rpag, b));
+}
+
+async function rpPlan(i, btn) {
+  const p = rpPlanDe(i); if (!p) return;
+  await construirPlan(p.sel, 'prop' + (i + 1), btn, { manana: RPROP.manana, horario: null });
+}
+
+async function rpCargar(manana) {
+  const obj = rpObjetivo(manana);
+  const { data, error } = await db.rpc('rutas_candidatos', { p_fecha: obj.fecha });
+  if (error) { if ($('rprops')) $('rprops').innerHTML = `<div class="vacio">No se han podido calcular las propuestas: ${esc(error.message)}</div>`; return; }
+  RPROP = Object.assign(obj, { datos: data || {}, lista: rpArmar((data || {}).candidatos || [], obj) });
+  rpPintar();
+}
 // pantallas/visita.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -11075,11 +13636,6 @@ var ir = function (t) {
 
 /* ---------------- inicio ---------------- */
 
-function tarjeta(el, titulo, n, items, pie, vacio) {
-  el.innerHTML = `<h2>${titulo}${n != null ? `<span class="n">${num(n)}</span>` : ''}</h2>` +
-    (items.length ? `<div class="lista">${items.join('')}</div>` : `<div class="vacio">${vacio}</div>`) +
-    (pie && items.length ? pie : '');
-}
 
 const itemHTML = (id, ico, clase, titulo, sub) =>
   `<button class="item" data-id="${id}"><span class="ic ${clase || ''}">${ico}</span>
@@ -11107,21 +13663,6 @@ $('v-inicio').addEventListener('click', e => {
 
 /* ---------------- filtros ---------------- */
 
-async function cargarFiltros(soloMunicipios) {
-  const { data, error } = await db.rpc('opciones_filtros', { f_provincia: F.prov || null });
-  if (error) return;
-  OPF = data;
-  const pon = (sel, lista, etiqueta, valor) => {
-    $(sel).innerHTML = `<option value="">${etiqueta}</option>` +
-      lista.map(o => `<option value="${esc(o.v)}" ${valor === o.v ? 'selected' : ''}>${esc(o.v)} (${o.n})</option>`).join('');
-  };
-  if (!soloMunicipios) {
-    pon('fprov', data.provincias, 'Todas las provincias', F.prov);
-    pon('fesp', data.especialidades, todosLos('especialidad'), F.esp);
-    pon('fest', data.estados, 'Todos los estados', F.est);
-  }
-  pon('fmuni', data.municipios, 'Todos los municipios', F.muni);
-}
 
 let temporizador;
 $('q').addEventListener('input', e => {
@@ -11212,17 +13753,6 @@ async function buscar(reiniciar) {
   }, () => buscar(true));
 }
 
-function fila(m) {
-  const d = m.dias || {};
-  return `<button class="fila" data-id="${m.id}">
-    <span><span class="nm">${m.urgente ? '<span class="pill p-urg">Urgente</span> ' : ''}${m.sin_reporting ? `<span class="pill p-sr" title="Solo ${TT('visita', 's', '', 'l', 'l')} presencial: sin informes ni feedback">Sin reporting</span> ` : ''}${esc(m.nombre)}</span>
-      <span class="sm">${esc(m.especialidad || 'Sin ' + TT('especialidad', 's', '', 'l', 'l'))}</span></span>
-    <span class="c2"><span class="nm" style="font-size:13.5px">${esc(m.centro_nombre || consultaPrivada())}</span>
-      <span class="sm">${esc([m.municipio, m.provincia].filter(Boolean).join(' · '))}</span></span>
-    <span class="c3"><span class="dias">${['L','M','X','J','V'].map(k => `<span class="${d[k] ? 'on' : ''}">${k}</span>`).join('')}</span></span>
-    <span class="pill p-est">${esc(m.estado_comercial)}</span>
-  </button>`;
-}
 
 
 $('lista').addEventListener('click', e => { const b = e.target.closest('[data-id]'); if (b) abrirFicha(b.dataset.id); });
@@ -11256,15 +13786,6 @@ async function abrirFicha(id, ...r) {
 const UDS_SERIES = [['semana', 'Semana'], ['mes', 'Mes'], ['anio', 'Año']];
 let UDS_SERIE = (() => { try { const v = localStorage.getItem('dlc-uds-serie'); return ['semana', 'mes', 'anio'].includes(v) ? v : 'mes'; } catch (e) { return 'mes'; } })();
 const leyendaUnidades = k => ({ semana: 'barras: últimas 12 semanas', mes: 'barras: últimos 12 meses', anio: 'barras: últimos 5 años' })[k];
-function sparkUnidades(u, k) {
-  const s = k === 'semana' ? (u.semanas || []).map(x => [x.unidades, 'Semana del ' + fechaCorta(x.semana), fechaCorta(x.semana)])
-    : k === 'anio' ? (u.anios || []).map(x => [x.unidades, x.anio, x.anio])
-    : (u.meses || []).map(x => [x.unidades, periodoTxt(x.mes), periodoTxt(x.mes)]);
-  const max = Math.max(1, ...s.map(x => x[0]));
-  // v2.118.0: barra vacía como línea de base, la del periodo actual resaltada y las fechas de los extremos debajo
-  // (las fechas van como atributo de la primera y la última barra: el gráfico solo tiene barras)
-  return s.map(([n, t, c], i) => `<i class="${n ? '' : 'cero'}${i === s.length - 1 ? ' actual' : ''}" style="height:${Math.round(n / max * 100)}%" title="${esc(t)}: ${num(n)}"${i === 0 ? ` data-ini="${esc(c)}"` : ''}${i === s.length - 1 ? ` data-fin="${esc(c)}"` : ''}></i>`).join('');
-}
 
 
 
@@ -11320,45 +13841,7 @@ async function cargarCatalogos() {
 
 /* ---------------- selector de días ---------------- */
 
-function dpHTML(dias, idx) {
-  const st = {};
-  DIAS.forEach(k => {
-    const t = String((dias || {})[k] || '');
-    const r = /(\d{1,2}:\d{2})\s*-\s*(\d{1,2}:\d{2})/.exec(t);
-    st[k] = {
-      M: /mañana/i.test(t) || (r && +r[1].slice(0, 2) < 14),
-      T: /tarde/i.test(t) || (r && +r[1].slice(0, 2) >= 14),
-      h: r ? r[1] + '-' + r[2] : ''
-    };
-  });
-  const sel = (k, f) => `<select data-dh="${idx}|${k}|${f}"><option value="">Sin hora</option>${
-    (f === 'M' ? HM : HT).map(x => `<option ${st[k].h === x ? 'selected' : ''}>${x.replace('-', ' - ')}</option>`).join('')}</select>`;
-  return `<div class="dp" data-dp="${idx}">
-    <div class="qk"><button type="button" data-qk="${idx}|lvm">L-V mañanas</button>
-      <button type="button" data-qk="${idx}|lvt">L-V tardes</button>
-      <button type="button" data-qk="${idx}|clr">Limpiar</button></div>
-    ${DIAS.map(k => `<div class="dprow"><b>${DIAN[k].slice(0, 3)}</b>
-      <div class="dpc"><button type="button" class="dpt" data-dt="${idx}|${k}|M" aria-pressed="${!!st[k].M}">${st[k].M ? '✓ ' : ''}Mañana</button>${st[k].M ? sel(k, 'M') : ''}</div>
-      <div class="dpc"><button type="button" class="dpt" data-dt="${idx}|${k}|T" aria-pressed="${!!st[k].T}">${st[k].T ? '✓ ' : ''}Tarde</button>${st[k].T ? sel(k, 'T') : ''}</div>
-    </div>`).join('')}</div>`;
-}
 
-function dpLeer(cont, idx) {
-  const out = {};
-  DIAS.forEach(k => {
-    const partes = [];
-    ['M', 'T'].forEach(f => {
-      const b = cont.querySelector(`[data-dt="${idx}|${k}|${f}"]`);
-      if (b && b.getAttribute('aria-pressed') === 'true') {
-        const s = cont.querySelector(`[data-dh="${idx}|${k}|${f}"]`);
-        const h = s && s.value ? ' ' + s.value.replace(/\s/g, '') : '';
-        partes.push((f === 'M' ? 'Mañana' : 'Tarde') + h);
-      }
-    });
-    if (partes.length) out[k] = partes.join('; ');
-  });
-  return out;
-}
 
 document.addEventListener('click', e => {
   const t = e.target.closest('[data-dt]');
@@ -11383,59 +13866,13 @@ document.addEventListener('click', e => {
   }
 });
 
-function dpEstado(cont, idx) {
-  const st = {};
-  DIAS.forEach(k => {
-    st[k] = { M: false, T: false, h: { M: '', T: '' } };
-    ['M', 'T'].forEach(f => {
-      const b = cont.querySelector(`[data-dt="${idx}|${k}|${f}"]`);
-      if (b) st[k][f] = b.getAttribute('aria-pressed') === 'true';
-      const s = cont.querySelector(`[data-dh="${idx}|${k}|${f}"]`);
-      if (s) st[k].h[f] = s.value;
-    });
-  });
-  return st;
-}
 
-function repintarDp(cont, idx, st) {
-  const dias = {};
-  DIAS.forEach(k => {
-    const p = [];
-    if (st[k].M) p.push('Mañana' + (st[k].h.M ? ' ' + st[k].h.M.replace(/\s/g, '') : ''));
-    if (st[k].T) p.push('Tarde' + (st[k].h.T ? ' ' + st[k].h.T.replace(/\s/g, '') : ''));
-    if (p.length) dias[k] = p.join('; ');
-  });
-  cont.outerHTML = dpHTML(dias, idx);
-}
 
 /* ---------------- registrar visita ---------------- */
 
 
 /* ---------------- editar ficha y altas ---------------- */
 
-function consHTML(c, i) {
-  // Los datos del centro van en campos ocultos: los rellena el selector de centros (buscar, «Estoy aquí» o centro nuevo)
-  const h = (f, v) => `<input type="hidden" data-cf="${i}|${f}" value="${esc(v == null ? '' : v)}">`;
-  return `<div class="cons" data-cons="${i}" ${c.lat ? `data-lat="${c.lat}"` : ""}>
-    <span class="consbar"><span class="consprio">Principal</span>
-      <button type="button" class="kmv" data-cmov="-1" title="Subir (más prioridad)" aria-label="Subir">↑</button>
-      <button type="button" class="kmv" data-cmov="1" title="Bajar (menos prioridad)" aria-label="Bajar">↓</button>
-      <button type="button" class="quitar" data-quitar="${i}">Quitar</button></span>
-    <input type="hidden" data-cid="${i}" value="${esc(c.id || '')}">
-    ${h('centro_id', c.centro_id)}${h('centro_nombre', c.centro_nombre)}${h('municipio', c.municipio)}${h('provincia', c.provincia)}
-    ${h('direccion', c.direccion)}${h('cp', c.cp)}${h('lat', c.lat)}${h('lon', c.lon)}
-    <label>Centro</label><div class="cenpick" data-cp="${i}"></div>
-    <div class="g2" style="margin-top:10px">
-      <div><label>Planta</label><input data-cf="${i}|planta" value="${esc(c.planta || '')}" maxlength="60" placeholder="p. ej. 2.ª planta"></div>
-      <div><label>Sala o despacho</label><input data-cf="${i}|sala" value="${esc(c.sala || '')}" maxlength="60" placeholder="p. ej. Despacho 14"></div>
-    </div>
-    <label>Indicaciones para llegar</label><input data-cf="${i}|indicaciones" value="${esc(c.indicaciones || '')}" maxlength="300" placeholder="p. ej. Entrar por la puerta B y preguntar en recepción">
-    <div class="g2" style="margin-top:10px">
-      <div><label>Teléfono ${TT('consulta', 's', 'del', 'l', 'l')}</label><input data-cf="${i}|telefono" value="${esc(c.telefono || '')}" inputmode="tel" placeholder="Si es distinto del del centro"></div><div></div>
-    </div>
-    <label>Días y horario de ${TT('visita', 's', '', 'l', 'l')}</label>${dpHTML(c.dias || {}, i)}
-  </div>`;
-}
 
 async function abrirEditor(id, tipo) {
   let m = { tipo: tipo || 'Persona', estado_comercial: estadoPapel('inicial') }, cons = [{}];
@@ -11556,12 +13993,6 @@ async function abrirEditor(id, tipo) {
 
 /* ---------------- acciones desde la ficha ---------------- */
 
-async function cambiarEstado(id, estado) {
-  const { error } = await db.from('cuentas').update({ estado_comercial: estado }).eq('id', id);
-  if (error) { toast('No se ha podido cambiar: ' + error.message, true); return; }
-  toast('Estado: ' + estado);
-  buscar(true); cargarInicio();
-}
 
 async function alternarUrgente(id, esUrgente, nombre) {
   let motivo = null;
@@ -11601,19 +14032,6 @@ $('dlg2').addEventListener('click', e => {
   else if (e.target.closest('[data-cerrar2]')) $('dlg2').close();
 });
 
-/* v2.77.0 · Valores con categoría (p. ej. Traumatología › Columna): el selector los agrupa */
-function optsGrupos(lista, v) {
-  const hijos = {}; lista.forEach(x => { if (x.padre) (hijos[x.padre] = hijos[x.padre] || []).push(x); });
-  const op = x => `<option value="${esc(x.valor)}" ${v === x.valor ? 'selected' : ''}>${esc(x.valor)}</option>`;
-  let h = '<option value=""></option>';
-  if (v && !lista.some(x => x.valor === v)) h += `<option selected>${esc(v)}</option>`;
-  lista.filter(x => !x.padre).forEach(x => {
-    h += hijos[x.valor] ? `<optgroup label="${esc(x.valor)}">${op(x)}${hijos[x.valor].map(op).join('')}</optgroup>` : op(x);
-  });
-  // Subcategorías cuya categoría ya no está en la lista
-  Object.keys(hijos).filter(p => !lista.some(x => !x.padre && x.valor === p)).forEach(p => { h += `<optgroup label="${esc(p)}">${hijos[p].map(op).join('')}</optgroup>`; });
-  return h;
-}
 $('nuevoBtn').addEventListener('click', () => {
   if (!puedeCrear()) { toast('No tienes permiso para crear fichas', true); return; }
   $('dbody').innerHTML = `
@@ -11742,15 +14160,6 @@ const minutosEntre = (a, b) => { if (!a || !b || a[0] == null || b[0] == null) r
   return Math.max(6, Math.round(Math.min(d, 30) / 40 * 60 + Math.max(d - 30, 0) / 100 * 60) + 5); };
 const hm = m => String(Math.floor(m / 60) % 24).padStart(2, '0') + ':' + String(Math.round(m) % 60).padStart(2, '0');
 
-async function planificar(rutaId, btn) {
-  const orig = btn.textContent; btn.disabled = true; btn.textContent = 'Calculando…';
-  const { data, error } = await db.rpc('cuentas_de_ruta', { p_id: rutaId });
-  btn.disabled = false; btn.textContent = orig;
-  if (error) { toast('No se ha podido planificar: ' + error.message, true); return; }
-  const conXY = (data || []).filter(m => m.lat && m.lon);
-  if (!conXY.length) { toast(`Esta ruta no tiene ${TT('medico', 'p', '', 'l', 'l')} con ubicación`, true); return; }
-  construirPlan(conXY, rutaId, btn);
-}
 
 /* pintarPlan: la parte base y, en orden, cada paso que se le añade (antes eran 6 capas separadas). */
 function pintarPlan() {
@@ -12224,38 +14633,6 @@ async function pintarSinAtribuir() {
   });
 }
 
-async function atribuir(lineaId, texto) {
-  const { data } = await db.rpc('resolver_cuenta', { p_texto: texto || '' });
-  const cand = data || [];
-  $('dbody').innerHTML = `
-    <div class="fh"><div><h2>Atribuir a ${TT('medico', 's', 'un', 'l', 'l')}</h2><div class="sm">Texto del pedido: ${esc(texto || '(vacío)')}</div></div>
-      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-    <label for="abusca">Buscar ${TT('medico', 's', '', 'l', 'l')}</label><input id="abusca" value="${esc(texto || '')}" placeholder="Código o nombre">
-    <div id="acand" class="lista">${cand.map(c => `<button class="item" data-am="${c.id}">
-      <span class="ic">${c.pct}%</span><span class="tx"><b>${esc(c.nombre)}</b><span class="sm">Código ${esc(c.codigo)}</span></span></button>`).join('')
-      || '<div class="vacio">Sin coincidencias. Escribe otro nombre o código.</div>'}</div>`;
-
-  const pintar = lista => {
-    $('acand').innerHTML = lista.length ? lista.map(c => `<button class="item" data-am="${c.id}">
-      <span class="ic">${c.pct}%</span><span class="tx"><b>${esc(c.nombre)}</b><span class="sm">Código ${esc(c.codigo)}</span></span></button>`).join('')
-      : '<div class="vacio">Sin coincidencias.</div>';
-    $('acand').querySelectorAll('[data-am]').forEach(b => b.onclick = async () => {
-      const { data: r, error } = await db.rpc('atribuir_linea', { p_linea: lineaId, p_medico: b.dataset.am });
-      if (error || (r && r.ok === false)) { toast('No se ha podido atribuir', true); return; }
-      $('dlg').close(); toast('Atribuido'); pintarSinAtribuir(); listaPedidos();
-    });
-  };
-  pintar(cand);
-  let t;
-  $('abusca').oninput = e => {
-    clearTimeout(t);
-    t = setTimeout(async () => {
-      const { data: d2 } = await db.rpc('resolver_cuenta', { p_texto: e.target.value });
-      pintar(d2 || []);
-    }, 300);
-  };
-  $('dlg').showModal();
-}
 
 /* ---------------- alta de pedido ---------------- */
 
@@ -12335,83 +14712,6 @@ async function pintarComisionesBase() {
 }
 
 
-function editorEsquema(id) {
-  const e = id ? ESQUEMAS.find(x => x.id === id) : null;
-  let tramos = e && e.tramos && e.tramos.length ? e.tramos.slice() : [{ desde_u: 0, hasta_u: 100, valor: 1 }];
-  let calc = e ? e.calculo : 'tramo_alcanzado';
-  let fijoVal = e && e.valor_fijo ? e.valor_fijo : 1;
-
-  const pinta = () => {
-    const fijo = calc === 'fijo';
-    $('dbody').innerHTML = `
-      <div class="fh"><div><h2>${id ? 'Editar esquema' : 'Nuevo esquema'}</h2>
-        <div class="sm">Define cómo se calcula la comisión y a quién se aplica</div></div>
-        <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-      <label for="enom">Nombre</label><input id="enom" value="${esc(e ? e.nombre : '')}" placeholder="p. ej. Comercial zona norte">
-      <div class="g2">
-        <div><label for="eatr">Se cuenta por</label><select id="eatr">
-          <option value="comercial" ${e && e.atribucion === 'comercial' ? 'selected' : ''}>Cartera del comercial</option>
-          <option value="cierra" ${e && e.atribucion === 'cierra' ? 'selected' : ''}>Ventas que cierra (televenta)</option></select></div>
-        <div><label for="ecalc">Cálculo</label><select id="ecalc">
-          <option value="tramo_alcanzado" ${calc === 'tramo_alcanzado' ? 'selected' : ''}>Tramo alcanzado a todo el volumen</option>
-          <option value="marginal" ${calc === 'marginal' ? 'selected' : ''}>Por tramos (cada unidad a su tramo)</option>
-          <option value="fijo" ${calc === 'fijo' ? 'selected' : ''}>Importe fijo por unidad</option></select></div>
-      </div>
-      <div class="g2">
-        <div><label for="ecan">Canal</label><select id="ecan">
-          <option value="">Todos</option>
-          <option value="paciente" ${e && e.canal === 'paciente' ? 'selected' : ''}>Solo venta ${TT('paciente', 's', 'al', 'l', 'l')}</option>
-          <option value="centro" ${e && e.canal === 'centro' ? 'selected' : ''}>Solo venta a centro</option></select></div>
-        ${fijo ? `<div><label for="efijo">Euros por unidad</label><input id="efijo" type="number" step="0.01" min="0" value="${fijoVal}"></div>` : '<div></div>'}
-      </div>
-      ${fijo ? '' : `<label>Tramos <span class="sm">· deja vacío el "hasta" del último</span></label>
-      <div class="trcab" aria-hidden="true"><span>Desde (uds.)</span><span>Hasta (uds.)</span><span>€ por unidad</span></div>
-      <div id="etramos">${tramos.map((t, i) => `<div class="g2" style="margin-bottom:8px">
-        <input data-td="${i}" type="number" min="0" value="${t.desde_u}" placeholder="Desde">
-        <input data-th="${i}" type="number" min="0" value="${t.hasta_u == null ? '' : t.hasta_u}" placeholder="Hasta">
-        <input data-tv="${i}" type="number" step="0.01" min="0" value="${t.valor}" placeholder="€/unidad">
-        ${tramos.length > 1 ? `<button type="button" class="btn sec" data-tx="${i}">✕</button>` : ''}</div>`).join('')}</div>
-      <div class="acts"><button type="button" class="btn sec" id="etmas">+ Añadir tramo</button></div>`}
-      <div class="acts" style="justify-content:flex-end">
-        <button class="btn sec" data-cerrar>Cancelar</button>
-        <button class="btn" id="eguardaresq">${id ? 'Guardar' : 'Crear esquema'}</button></div>`;
-
-    const leer = () => {
-      if (fijo) return;
-      tramos = [...$('etramos').children].map((d, i) => ({
-        desde_u: +d.querySelector(`[data-td="${i}"]`).value || 0,
-        hasta_u: d.querySelector(`[data-th="${i}"]`).value === '' ? null : +d.querySelector(`[data-th="${i}"]`).value,
-        valor: +d.querySelector(`[data-tv="${i}"]`).value || 0
-      }));
-    };
-    $('ecalc').onchange = () => { leer(); if ($('efijo')) fijoVal = $('efijo').value; calc = $('ecalc').value; pinta(); };
-    if ($('etmas')) $('etmas').onclick = () => {
-      leer();
-      const ult = tramos[tramos.length - 1];
-      tramos.push({ desde_u: (ult.hasta_u || ult.desde_u) + 1, hasta_u: null, valor: ult.valor });
-      pinta();
-    };
-    $('dbody').querySelectorAll('[data-tx]').forEach(b => b.onclick = () => { leer(); tramos.splice(+b.dataset.tx, 1); pinta(); });
-    personasEsquema(id);
-
-    $('eguardaresq').onclick = async ev => {
-      leer();
-      if (!$('enom').value.trim()) { toast('Ponle un nombre', true); return; }
-      ev.target.disabled = true; ev.target.textContent = 'Guardando…';
-      const { data: r, error } = await db.rpc('guardar_esquema', { p: {
-        id: id || null, nombre: $('enom').value.trim(), atribucion: $('eatr').value,
-        calculo: calc, canal: $('ecan').value || null,
-        valor_fijo: fijo ? $('efijo').value : null,
-        ...(fijo ? {} : { tramos })
-      }});
-      ev.target.disabled = false; ev.target.textContent = id ? 'Guardar' : 'Crear esquema';
-      if (error || (r && r.ok === false)) { toast('No se ha podido guardar', true); return; }
-      $('dlg').close(); toast('Esquema guardado'); pintarComisiones();
-    };
-  };
-  pinta();
-  $('dlg').showModal();
-}
 
 /* ---------------- asignar esquema y visibilidad en el editor de usuario ---------------- */
 
@@ -12429,7 +14729,6 @@ let HOR = null;
 const TIEMPOS = () => { const p = prefsActivas().plan || {}; return { visita: +p.visita || 15, parada: p.parada != null && p.parada !== '' ? +p.parada : 10 }; };
 const PLANCFG = () => Object.assign({}, TIEMPOS(), { salida: (HOR && HOR.salida) || '09:00', tope: (HOR && HOR.vuelta) || '23:59',
   conSalida: !!(HOR && HOR.salida), conTope: !!(HOR && HOR.vuelta) });
-function conHor(h, fn) { const prev = HOR; HOR = h && (h.salida || h.vuelta) ? h : null; try { return fn(); } finally { HOR = prev; } }
 const horDeCitas = l => { const c = (l || []).find(x => x && (x.salida || x.vuelta)); return c ? { salida: c.salida || null, vuelta: c.vuelta || null } : null; };
 const horDeRuta = id => { const r = (RUTAS || []).find(x => x.id === id); return r && (r.salida || r.vuelta) ? { salida: r.salida || null, vuelta: r.vuelta || null } : null; };
 
@@ -12439,13 +14738,6 @@ const NAVEGADORES = [['google', 'Google Maps'], ['apple', 'Apple Maps'], ['waze'
 const navActual = () => (PERFIL.preferencias || {}).navegador || 'google';
 
 
-async function cambiarNavegador(n) {
-  const prefs = Object.assign({}, PERFIL.preferencias || {}, { navegador: n });
-  const { data } = await db.rpc('guardar_preferencias', { p: prefs });
-  PERFIL.preferencias = data || prefs;
-  toast('Navegación con ' + (NAVEGADORES.find(x => x[0] === n) || [])[1]);
-  if (PLAN) pintarPlan();
-}
 
 // Cada navegación pregunta con qué app abrirla (Google Maps admite la ruta con todas sus paradas)
 const navAttr = (d, p) => esc(JSON.stringify({ d, p: p && p.length ? p : null }));
@@ -12792,15 +15084,6 @@ const optFiltro = (lista, v, todo) => `<option value="">${todo}</option>` +
 let CATS_ABIERTOS = {};
 
 
-/* v2.72.0 · Un clasificador de ficha, cliente o producto sin papel es un campo personalizado: tipo y dónde se ve */
-function cajaCampo(c, completo) {
-  if (c.papel || !CAMPO_TABLA[c.ambito]) return '';
-  const t = c.tipo_campo || 'lista', chk = (k, txt) => `<label class="chk"><input type="checkbox" id="cfc_${k}" ${c[k] ? 'checked' : ''} ${completo ? '' : 'disabled'}> ${txt}</label>`;
-  return `<div class="cfcampo"><h3>Campo personalizado</h3>
-    <div class="g2"><div><label for="cfctipo">Tipo</label><select id="cfctipo" ${completo ? '' : 'disabled'}>${TIPOS_CAMPO.map(([k, n]) => `<option value="${k}" ${k === t ? 'selected' : ''}>${n}</option>`).join('')}</select></div>
-      <div class="cfchks">${chk('obligatorio', 'Obligatorio')}${chk('solo_lectura', 'Solo lectura')}${chk('en_ficha', 'En la ficha')}${chk('en_tabla', 'Columna en la tabla')}${chk('en_filtro', 'Filtro (listas y sí/no)')}</div></div>
-    ${completo ? '<div class="acts" style="justify-content:flex-end"><button class="btn sec" id="cfcok">Guardar campo</button></div>' : ''}</div>`;
-}
 function abrirClasificador(id) {
   const c = CATS.find(x => x.id === id); if (!c) return;
   const puedeEditar = puede('administrar') || ((PERFIL.areas || {}).K || 0) >= 2;
@@ -12893,30 +15176,6 @@ function abrirClasificador(id) {
 
 /* ---------------- duplicados pendientes con su pareja ---------------- */
 
-async function revisarPendientes() {
-  cargando($('dbody'), 'Buscando pendientes…');
-  $('dlg').showModal();
-  const { data } = await db.rpc('duplicados_pendientes');
-  const l = data || [];
-  $('dbody').innerHTML = `
-    <div class="fh"><div><h2>Pendientes de unificar</h2>
-      <div class="sm">${l.length} fichas marcadas al darlas de alta</div></div>
-      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-    <div class="lista">${l.map(x => `<div class="item" style="cursor:default">
-      <span class="ic w">${x.pct ? x.pct + '%' : '?'}</span>
-      <span class="tx"><b>${esc(x.nombre)}</b>
-        <span class="sm">Código ${esc(x.codigo)} · ${esc(x.centro || '')} ${esc(x.municipio || '')}</span>
-        <span class="sm">${x.par_nombre ? 'Se parece a ' + esc(x.par_nombre) : 'Sin pareja identificada'}</span></span>
-      <span class="acts" style="margin:0">
-        ${x.par_id ? `<button class="btn" data-cmp="${x.id}|${x.par_id}">Comparar</button>` : ''}
-        <button class="btn sec" data-dficha="${x.id}">Ver ficha</button></span></div>`).join('')
-      || '<div class="vacio">No hay fichas pendientes de unificar.</div>'}</div>`;
-
-  $('dbody').querySelectorAll('[data-cmp]').forEach(b => b.onclick = () => {
-    const [a, c] = b.dataset.cmp.split('|'); compararFichas(a, c);
-  });
-  $('dbody').querySelectorAll('[data-dficha]').forEach(b => b.onclick = () => { $('dlg').close(); abrirFicha(b.dataset.dficha); });
-}
 
 
 
@@ -12954,69 +15213,12 @@ async function rpcCache(fn, params, clave) {
 
 /* ---------------- administración: secciones nuevas ---------------- */
 
-async function pintarAccesos() {
-  cargando($('admcuerpo'), 'Cargando los accesos…');
-  const { data } = await db.rpc('accesos_lista', { p_usuario: null, lim: 200 });
-  const l = data || [];
-  ($('admcuerpo') || document.createElement('div')).innerHTML = `<h2>Accesos<span class="n">${l.length}</span></h2>
-    <p class="sm">Últimas entradas y salidas de la plataforma.</p>
-    <div class="lista">${l.map(a => `<div class="item" style="cursor:default">
-      <span class="ic ${a.evento === 'Entrada' ? 'o' : ''}">${a.evento === 'Entrada' ? '→' : '←'}</span>
-      <span class="tx"><b>${esc(a.usuario)}</b><span class="sm">${esc(a.evento)} ·
-        ${new Date(a.creado_en).toLocaleString('es', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
-        ${a.agente ? ' · ' + esc(String(a.agente).slice(0, 60)) : ''}</span></span></div>`).join('')
-      || '<div class="vacio">Todavía no hay accesos registrados.</div>'}</div>`;
-}
 
 
 
 /* ---------------- cartera y contraseña de un usuario ---------------- */
 
-async function verCartera(id) {
-  const u = USUARIOS.find(x => x.id === id) || {};
-  cargando($('dbody'), 'Cargando la cartera…');
-  $('dlg').showModal();
-  const pinta = async q => {
-    const { data } = await db.rpc('cartera_usuario', { p_usuario: id, q: q || null, lim: 500 });
-    const l = data || [];
-    $('dbody').innerHTML = `
-      <div class="fh"><div><h2>Cartera de ${esc(u.nombre || '')}</h2>
-        <div class="sm">${num(l.length)} ${TT('medico', 'p', '', 'l', 'l', 'asignado')}</div></div>
-        <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-      <input id="cbusca" value="${esc(q || '')}" placeholder="Buscar dentro de la cartera">
-      <div class="lista" style="max-height:52vh;overflow:auto">${l.map(m => `<div class="item" style="cursor:default">
-        <span class="ic ${m.urgente ? 'w' : ''}">${m.urgente ? '!' : '·'}</span>
-        <span class="tx"><b>${esc(m.nombre)}</b><span class="sm">${esc(m.especialidad || '')} · ${esc(m.centro || '')} ${esc(m.municipio || '')}
-          ${m.ultima_visita ? ` · ${TT('visita', 's', 'ultimo', 'l', 'l')} ` + fechaCorta(m.ultima_visita) : ' · sin visitar'}</span></span>
-        <span class="acts" style="margin:0">
-          <button class="btn sec" data-cficha="${m.id}">Ficha</button>
-          <button class="btn sec dang" data-cquita="${m.id}">Quitar</button></span></div>`).join('')
-        || `<div class="vacio">Sin ${TT('medico', 'p', '', 'l', 'l', 'asignado')}.</div>`}</div>
-      <div class="acts" style="justify-content:flex-end"><button class="btn sec" id="cmas">Asignar más ${TT('medico', 'p', '', 'l', 'l')}</button></div>`;
 
-    let t;
-    $('cbusca').oninput = e => { clearTimeout(t); t = setTimeout(() => pinta(e.target.value.trim()), 300); };
-    $('dbody').querySelectorAll('[data-cficha]').forEach(b => b.onclick = () => { $('dlg').close(); abrirFicha(b.dataset.cficha); });
-    $('dbody').querySelectorAll('[data-cquita]').forEach(b => b.onclick = async () => {
-      if (!await preguntar(`Dejará de verlo en su cartera. El histórico de ${TT('visita', 'p', '', 'l', 'l')} no cambia.`,
-        { titulo: '¿Quitar de la cartera?', ok: 'Quitar', peligro: true })) return;
-      const { data: r } = await db.rpc('quitar_de_cartera', { p_usuario: id, p_medico: b.dataset.cquita });
-      if (r && r.ok === false) { toast('No tienes permiso', true); return; }
-      toast('Quitado de la cartera'); pinta(q); cargarAdmin();
-    });
-    $('cmas').onclick = () => { $('dlg').close(); asignarCartera(id); };
-  };
-  pinta('');
-}
-
-async function restablecerPassword(u) {
-  if (!u.email) { toast('Ese usuario no tiene correo', true); return; }
-  if (!await preguntar(`Se enviará a ${u.email} un correo para que cree una contraseña nueva.`,
-    { titulo: '¿Restablecer la contraseña?', ok: 'Enviar correo' })) return;
-  const { error } = await db.auth.resetPasswordForEmail(u.email, { redirectTo: location.origin + location.pathname });
-  if (error) { toast('No se ha podido enviar: ' + error.message, true); return; }
-  toast('Correo enviado a ' + u.email);
-}
 
 
 
@@ -13148,28 +15350,7 @@ document.addEventListener('keydown', e => {
 
 const TAMKEY = () => 'dlc-tam-' + (PERFIL ? PERFIL.id : '');
 const TAMANOS = [20, 50, 100];
-function tamPagina() { const n = +localStorage.getItem(TAMKEY()); return TAMANOS.includes(n) ? n : 20; }
-function fijarTam(n) { localStorage.setItem(TAMKEY(), String(n)); }
 
-function pagHTML(total, pagina, tam) {
-  const paginas = Math.max(1, Math.ceil(total / tam));
-  const nums = [];
-  for (let i = 0; i < paginas; i++) {
-    if (i === 0 || i === paginas - 1 || Math.abs(i - pagina) <= 1) nums.push(i);
-    else if (nums[nums.length - 1] !== '…') nums.push('…');
-  }
-  const desde = total ? pagina * tam + 1 : 0, hasta = Math.min(total, (pagina + 1) * tam);
-  return `<div class="pag">
-    <span>${num(desde)}–${num(hasta)} de ${num(total)}</span>
-    <span class="pbtns">
-      <button data-pg="${pagina - 1}" ${pagina <= 0 ? 'disabled' : ''} aria-label="Página anterior">‹</button>
-      ${nums.map(n => n === '…' ? '<span class="sm">…</span>'
-        : `<button data-pg="${n}" aria-current="${n === pagina}">${n + 1}</button>`).join('')}
-      <button data-pg="${pagina + 1}" ${pagina >= paginas - 1 ? 'disabled' : ''} aria-label="Página siguiente">›</button>
-    </span>
-    <span class="ptam">Mostrar <select class="chico" data-pgtam>${TAMANOS.map(n =>
-      `<option value="${n}" ${n === tam ? 'selected' : ''}>${n}</option>`).join('')}</select></span></div>`;
-}
 
 /** Paginador para listas que se piden al servidor por páginas. */
 function paginador(el, total, pagina, alCambiar, alCambiarTam) {
@@ -13268,9 +15449,6 @@ document.addEventListener('click', async e => {
   }
 });
 
-function panelDupVacio(msg) {
-  $('dcmp').innerHTML = `<div class="vacio">${esc(msg)} Elige la siguiente pareja de la lista.</div>`;
-}
 
 async function compararEn(el, idA, idB) {
   cargando(el, 'Cargando las dos fichas…');
@@ -13425,15 +15603,6 @@ const ANCLAS_AYUDA = [
   ['#v-admin .saludo h1', 'admin'], ['#v-duplicados .saludo h1', 'duplicados']
 ];
 
-function ponerAyudas() {
-  ANCLAS_AYUDA.forEach(([sel, k]) => {
-    const h = document.querySelector(sel);
-    if (h && !h.querySelector(':scope > .ai')) h.insertAdjacentHTML('beforeend', `<button class="ai" data-ayuda="${k}" aria-label="Ayuda">i</button>`);
-  });
-  const dt = $('dirtools');
-  if (dt && !(dt.previousElementSibling && dt.previousElementSibling.matches('.ai')))
-    dt.insertAdjacentHTML('beforebegin', '<button class="ai ai-dir" data-ayuda="directorio" aria-label="Ayuda">i</button>');
-}
 
 document.addEventListener('click', e => {
   const b = e.target.closest('.ai');
@@ -13653,10 +15822,6 @@ const eurI = n => eur(r2(n));
 
 /** Mismo cálculo que la base de datos: descuento de línea, descuento general y luego IVA. */
 
-function lineaDesglose(l) {
-  const bruto = +l.importe || 0, base = bruto * (1 - (+l.descuento || 0) / 100), iva = base * (+l.iva || 0) / 100;
-  return { bruto, base, iva, total: base + iva };
-}
 
 
 /* ---------------- ventas: pedidos, pacientes y productos ---------------- */
@@ -14250,9 +16415,6 @@ const tarjetaMedico = m => `<div class="selcard"><span class="ic">👤</span>
     ${m.codigo ? `<span class="sm">Código ${esc(m.codigo)}</span>` : ''}</span>
   <button type="button" class="sx" aria-label="Quitar">✕</button></div>`;
 
-function cerrarPickers(salvo) {
-  document.querySelectorAll('.picker .gsug').forEach(g => { if (!salvo || !salvo.contains(g)) g.classList.add('hide'); });
-}
 document.addEventListener('pointerdown', e => { if (!e.target.closest('.picker')) cerrarPickers(); });
 
 
@@ -14311,22 +16473,6 @@ async function nuevaCita(medicoId, fecha) {
 /* ---------------- documento de identidad ---------------- */
 
 const LETRAS_DNI = 'TRWAGMYFPDXBNJZSQVHLCKE';
-function validarDoc(v, tipo) {
-  v = (v || '').toUpperCase().replace(/[\s-]/g, '');
-  if (!v) return { ok: true, v };
-  if (tipo === 'Empresa') {
-    const m = v.match(/^([ABCDEFGHJKLMNPQRSUVW])(\d{7})([0-9A-J])$/);
-    if (!m) return { ok: false, v, msg: 'El CIF son una letra, 7 números y un dígito o letra de control (p. ej. B24920548).' };
-    let a = 0, b = 0;
-    m[2].split('').forEach((d, i) => { if (i % 2) a += +d; else { const x = 2 * d; b += Math.floor(x / 10) + x % 10; } });
-    const c = (10 - (a + b) % 10) % 10, letra = 'JABCDEFGHI'[c];
-    return (m[3] === String(c) || m[3] === letra) ? { ok: true, v } : { ok: false, v, msg: 'El dígito de control del CIF no es correcto.' };
-  }
-  let n = v;
-  if (/^[XYZ]\d{7}[A-Z]$/.test(n)) n = 'XYZ'.indexOf(n[0]) + n.slice(1);
-  if (!/^\d{8}[A-Z]$/.test(n)) return { ok: false, v, msg: 'El DNI son 8 números y una letra; el NIE, X, Y o Z seguida de 7 números y una letra.' };
-  return LETRAS_DNI[+n.slice(0, 8) % 23] === n[8] ? { ok: true, v } : { ok: false, v, msg: 'La letra no corresponde a ese número.' };
-}
 
 /* ---------------- alta y edición de paciente ---------------- */
 
@@ -14474,13 +16620,6 @@ const vaciarModulos = salvo => ['v-pacientes', 'v-productos', 'v-ventas'].forEac
 /* ---------------- directorio: comerciales ---------------- */
 
 let COMS = [];
-async function cargarComerciales() {
-  const { data } = await db.from('perfiles').select('id,nombre,rol,activo').order('nombre');
-  // Solo quien lleva cartera o agenda comercial (no Dirección, Solo consulta ni médicos)
-  COMS = (data || []).filter(u => u.activo && rolPuede(u.rol, 'equipo_comercial'));
-  $('fcom').innerHTML = '<option value="">Todos</option><option value="ninguno">Sin comercial</option>' +
-    COMS.map(u => `<option value="${u.id}" ${F.com === u.id ? 'selected' : ''}>${esc(u.nombre)}</option>`).join('');
-}
 $('fcom').addEventListener('change', e => { F.com = e.target.value; buscar(true); });
 
 COLS.push({ k: 'comerciales', t: 'Comerciales', w: 190 });
@@ -14674,18 +16813,6 @@ async function cargarAjustes() {
 /* ---------------- totales con envío ---------------- */
 
 
-function bloqueTotales(t) {
-  const tipos = Object.keys(t.porIva).sort((a, b) => a - b);
-  return `<div><span>Unidades</span><b>${num(t.unidades)}</b></div>
-    ${t.descuento > 0.004 ? `<div><span>Suma de líneas</span><b>${eurI(t.bruto)}</b></div>
-      <div><span>Descuento general</span><b>−${eurI(t.descuento)}</b></div>` : ''}
-    ${t.envio ? `<div><span>Productos sin IVA</span><b>${eurI(t.baseProd)}</b></div>
-      <div><span>${esc(t.envio.nombre)} sin IVA</span><b>${eurI(t.envio.base)}</b></div>` : ''}
-    <div><span>Base imponible</span><b>${eurI(t.base)}</b></div>
-    ${tipos.filter(k => t.porIva[k] > 0.004 || tipos.length === 1).map(k => `<div><span>IVA ${k}%</span><b>${eurI(t.porIva[k])}</b></div>`).join('')}
-    ${t.envio ? `<div class="sm" style="justify-content:flex-end"><span>Incluye ${esc(t.envio.nombre.toLowerCase())} de ${eurI(t.envio.con)} con IVA</span></div>` : ''}
-    <div class="tot"><span>Total con IVA</span><b>${eurI(t.total)}</b></div>`;
-}
 
 /* ---------------- configuración del envío ---------------- */
 
@@ -14781,7 +16908,6 @@ async function cargarVentas() {
   await pedidosBotonLlamada();
 }
 var PEDSEC_CARGA = null;
-function pedsecVista() { return PEDSEC_CARGA || PEDSEC; }
 
 
 
@@ -14852,52 +16978,6 @@ function refrescarAnalitica() {
 
 /* ---------------- indicadores: configurador en tarjetas ---------------- */
 
-function abrirKpis() {
-  let D = kpiConfig().slice();
-  KPI_CAT.forEach(k => { if (!D.some(x => x.id === k.id)) D.push({ id: k.id, on: false, t: '' }); });
-  const esAdmin = puede('administrar');
-  const pinta = () => {
-    $('dbody').innerHTML = `
-      <div class="fh"><div><h2>Indicadores de Inicio</h2>
-        <div class="sm">Pulsa el ojo para mostrar u ocultar. Ordénalos con las flechas y cambia el nombre si quieres.</div></div>
-        <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-      <div class="kcards">${D.map((x, i) => {
-        const k = KPI_CAT.find(y => y.id === x.id);
-        if (!k && !x.filtro) return '';
-        if (k && !kpiPermitido(k)) return '';
-        const desc = x.filtro ? 'Filtro guardado del Directorio: ' + textoFiltro(x.filtro) + '.' : (AYUDA_KPI[x.id] || '');
-        return `<div class="kcard ${x.on ? 'on' : ''}">
-          <button type="button" class="kojo" data-kon="${i}" aria-pressed="${x.on}" title="${x.on ? 'Visible: pulsa para ocultar' : 'Oculto: pulsa para mostrar'}">${x.on ? ICO.ojo : ICO.ojoNo}</button>
-          <div class="ktx"><input class="chico" data-kt="${i}" value="${esc(x.t)}" placeholder="${esc(k ? k.t.charAt(0).toUpperCase() + k.t.slice(1) : textoFiltro(x.filtro))}" aria-label="Nombre del indicador">
-            <span class="sm">${esc(desc)}</span></div>
-          <div class="kord">
-            <button type="button" class="kmv" data-kmv="${i}|-1" aria-label="Subir" ${i === 0 ? 'disabled' : ''}>${ICO.arriba}</button>
-            <button type="button" class="kmv" data-kmv="${i}|1" aria-label="Bajar" ${i === D.length - 1 ? 'disabled' : ''}>${ICO.abajo}</button>
-            ${x.filtro ? `<button type="button" class="kmv" data-kdel="${i}" aria-label="Eliminar" title="Eliminar">✕</button>` : ''}</div>
-        </div>`;
-      }).join('')}</div>
-      <div class="acts" style="justify-content:flex-end">
-        <button class="btn sec" id="kres">Restaurar</button>
-        <button class="btn" id="kok">Guardar</button></div>`;
-    const leer = () => $('dbody').querySelectorAll('[data-kt]').forEach(i => D[+i.dataset.kt].t = i.value.trim());
-    $('dbody').querySelectorAll('[data-kon]').forEach(b => b.onclick = () => { leer(); D[+b.dataset.kon].on = !D[+b.dataset.kon].on; $('dlg').dataset.sucio = '1'; pinta(); });
-    $('dbody').querySelectorAll('[data-kmv]').forEach(b => b.onclick = () => {
-      leer(); const [i, dir] = b.dataset.kmv.split('|').map(Number), j = i + dir;
-      if (j < 0 || j >= D.length) return; [D[i], D[j]] = [D[j], D[i]]; $('dlg').dataset.sucio = '1'; pinta();
-    });
-    $('dbody').querySelectorAll('[data-kdel]').forEach(b => b.onclick = () => { leer(); D.splice(+b.dataset.kdel, 1); $('dlg').dataset.sucio = '1'; pinta(); });
-    $('kres').onclick = () => { D = KPI_CAT.map(k => ({ id: k.id, on: KPI_DEF.includes(k.id), t: '' })); $('dlg').dataset.sucio = '1'; pinta(); };
-    $('kok').onclick = async ev => {
-      leer(); ev.target.disabled = true; ev.target.textContent = 'Guardando…';
-      const ok = await guardarKpis(D.map(x => ({ id: x.id, on: x.on, t: x.t, ...(x.filtro ? { filtro: x.filtro } : {}) })));
-      ev.target.disabled = false; ev.target.textContent = 'Guardar';
-      if (!ok) return;
-      $('dlg').close(); toast('Indicadores guardados'); cargarInicio();
-    };
-  };
-  pinta();
-  $('dlg').showModal();
-}
 
 /* ---------------- ruta en curso: ficha al pulsar, acciones y orden ---------------- */
 
@@ -14958,11 +17038,6 @@ const salidaUsuario = () => prefsActivas().salida || { nombre: `la ${TT('visita'
 
 /** Orden por cercanía: las citas con hora fija marcan el esqueleto; las demás se insertan donde menos desvío suman. */
 
-async function guardarOrden(citas) {
-  const { data: r, error } = await db.rpc('ordenar_citas', { p_ids: citas.map(c => c.id) });
-  if (error || (r && r.ok === false)) { toast('No se ha podido guardar el orden', true); return false; }
-  return true;
-}
 
 
 /* ---------------- «Tu día» en la agenda ---------------- */
@@ -15021,18 +17096,6 @@ async function accionCita(k, c) {
   if (k === 'nueva') return nuevaFechaTrasNoEstaba(c);
 }
 
-async function nuevaFechaTrasNoEstaba(c) {
-  const prop = proximoDiaConsulta(c.dias, c.fecha);
-  const op = await elegirOpcion('¿Le buscamos otro día?', `${c.nombre}\n\nEl próximo día que atiende es el ${fechaLarga(new Date(prop + 'T00:00:00'))}.`,
-    [{ k: 'no', t: 'Ahora no', cls: 'sec' }, { k: 'otra', t: 'Elegir otra fecha', cls: 'sec' }, { k: 'prop', t: 'Cita el ' + fechaCorta(prop) }]);
-  if (!op) return;
-  let f = prop;
-  if (op === 'otra') { f = await pedirFecha('¿Qué día?', prop, { titulo: 'Nueva cita', ok: 'Crear cita' }); if (!f) return; }
-  const { data: r, error } = await db.rpc('guardar_cita', { p: { cuenta_id: c.cuenta_id, fecha: f, centro_nombre: c.centro_nombre,
-    estado: 'Planificada', origen: 'No estaba el ' + fechaCorta(c.fecha), op_id: 'ne-' + c.id + '-' + f } });
-  if (error || (r && r.ok === false)) { toast('No se ha podido crear la cita', true); return; }
-  toast('Nueva cita el ' + fechaCorta(f)); agRefrescoQuieto();
-}
 
 document.addEventListener('click', async e => {
   const b = e.target.closest('[data-td]');
@@ -15190,71 +17253,6 @@ const txtVentanas = v => v && v.length ? v.map(([a, b]) => `${txtMin(a)}–${txt
 
 /* ---------------- plan de ruta con horarios ---------------- */
 
-async function construirPlan(conXY, rutaId, btn, opts) {
-  opts = opts || {};
-  ULTIMO_PLAN = { conXY, rutaId, opts };
-  HOR = opts.horario !== undefined ? opts.horario : horDeRuta(rutaId);
-  const cfg = PLANCFG(), sal = salidaUsuario();
-  const fecha = opts.manana ? siguienteLaborable() : hoyISO();
-  const ahora = new Date(), minAhora = ahora.getHours() * 60 + ahora.getMinutes();
-  const salidaCfg = minHora(cfg.salida), tope = minHora(cfg.tope);
-  const t0 = opts.manana ? salidaCfg : Math.max(salidaCfg, Math.ceil(minAhora / 5) * 5);
-
-  if (t0 >= tope) {
-    const esRuta = !!(RUTAS || []).find(x => x.id === rutaId);
-    const op = await elegirOpcion('Ya ha pasado la hora de vuelta de esta ruta',
-      `Esta ruta sale a las ${cfg.salida} y vuelve como tarde a las ${cfg.tope}, y ahora son las ${hm(minAhora)}.\n\nPuedes planificarla para el ${fechaLarga(new Date(siguienteLaborable() + 'T00:00:00'))}${esRuta ? ' o cambiar el horario de la ruta' : ''}.`,
-      [{ k: 'no', t: 'Cancelar', cls: 'sec' }].concat(esRuta ? [{ k: 'horario', t: 'Cambiar el horario de la ruta', cls: 'sec' }] : []).concat([{ k: 'manana', t: 'Planificar para mañana' }]));
-    if (op === 'horario') editorRuta(rutaId);
-    if (op === 'manana') construirPlan(conXY, rutaId, btn, { manana: true });
-    return;
-  }
-
-  const todos = await conHorarios(conXY);
-  // Médicos con una cita ya planificada (desde hoy): no se proponen; se muestran aparte como «ya citados»
-  const citas = await citasPlanificadasMias();
-  const citados = todos.filter(m => citas[m.id]).map(m => ({ m, fecha: citas[m.id] }));
-  const meds = todos.filter(m => !citas[m.id]);
-  const items = meds.map(m => ({ id: m.id, ref: m, xy: m.lat != null && m.lon != null ? [+m.lat, +m.lon] : null,
-    ventanas: ventanasDe(m.dias, fecha), fija: null }));
-  const { seq, fuera, fin } = programarVisitas(items, t0);
-
-  // Todos los médicos de la ruta ya tienen cita: se dice así y se ofrece ir a la agenda
-  if (!meds.length && citados.length) {
-    const op = await elegirOpcion('Ya están todos citados',
-      `${citados.length === 1 ? `${TT('medico', 's', 'el', 'C', 'l')} de esta ruta ya tiene` : `Los ${citados.length} ${TT('medico', 'p', '', 'l', 'l')} de esta ruta ya tienen`} una cita planificada en tu agenda.`,
-      [{ k: 'no', t: 'Cerrar', cls: 'sec' }, { k: 'agenda', t: 'Ver mi agenda' }]);
-    if (op === 'agenda') { AG_MODO = 'semana'; AG_FECHA = citados.map(x => x.fecha).sort()[0]; ir('agenda'); }
-    return;
-  }
-  if (!seq.length) {
-    const noDia = fuera.filter(f => f.motivo === 'no atiende este día').length;
-    const op = await elegirOpcion(`No cabe ${TT('visita', 's', 'ningun', 'l', 'l')}`,
-      (noDia === fuera.length ? `Ninguno de estos ${fuera.length} ${TT('medico', 'p', '', 'l', 'l')} atiende el ${fechaLarga(new Date(fecha + 'T00:00:00'))}.`
-        : cfg.conTope ? `Con el horario de la ruta (${cfg.salida}–${cfg.tope}) y las horas de atención no da tiempo a ${TT('visita', 's', 'ningun', 'l', 'l')}.`
-        : `Con las horas de atención no da tiempo a ${TT('visita', 's', 'ningun', 'l', 'l')}.`)
-        + (citados.length ? `\n\nAdemás, ${citados.length} ${citados.length === 1 ? 'ya tiene' : 'ya tienen'} una cita planificada y no se proponen.` : ''),
-      [{ k: 'no', t: 'Cancelar', cls: 'sec' }].concat(cfg.conTope && (RUTAS || []).find(x => x.id === rutaId) ? [{ k: 'horario', t: 'Cambiar el horario de la ruta', cls: 'sec' }] : [])
-        .concat(opts.manana ? [] : [{ k: 'manana', t: 'Probar para mañana' }]));
-    if (op === 'horario') editorRuta(rutaId);
-    if (op === 'manana') construirPlan(conXY, rutaId, btn, { manana: true });
-    return;
-  }
-
-  // Visitas seguidas en el mismo sitio forman una parada
-  const paradas = [];
-  seq.forEach(s => {
-    const m = Object.assign({}, s.it.ref, { horaPlan: s.ini, ventanas: s.it.ventanas });
-    const ult = paradas[paradas.length - 1];
-    if (ult && ult.xy[0] === s.it.xy[0] && ult.xy[1] === s.it.xy[1]) { ult.medicos.push(m); ult.fin = s.fin; }
-    else paradas.push({ centro: m.centro_nombre || consultaPrivada(), municipio: m.municipio, dir: m.direccion,
-      xy: s.it.xy, medicos: [m], llegada: s.ini, fin: s.fin });
-  });
-  PLAN = { rutaId, salida: sal, paradas, fin, fecha, inicio: t0, fuera: fuera.map(f => ({ m: f.it.ref, motivo: f.motivo })), citados, horario: HOR };
-  if (TAB !== 'rutas') ir('rutas');
-  pintarPlan();
-  setTimeout(() => $('rplan') && $('rplan').scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
-}
 
 
 /* ---------------- Tu día: horas estimadas respetando las consultas ---------------- */
@@ -15334,7 +17332,6 @@ AYUDA.rutas[2].splice(1, 1,
 /* ---------------- qué agenda se está viendo ---------------- */
 
 let AG_VISTA = null;   // { id, nombre, rol, preferencias } cuando administración mira la agenda de otra persona
-function prefsActivas() { return (TAB === 'agenda' && AG_VISTA && AG_VISTA.preferencias) || PERFIL.preferencias || {}; }
 
 
 /* ---------------- días bloqueados ---------------- */
@@ -15351,136 +17348,8 @@ async function bloqueadosSemana(desde, hasta) {
 let SEM_BORRADOR = null;   // propuesta del planificador aún sin guardar
 
 
-/* Planificador: reparte médicos entre los días de la semana */
-async function planificarSemana(desde, dias, bloq, porDia) {
-  const libres = dias.filter(f => f >= hoyISO() && !bloq[f] && new Date(f + 'T12:00:00').getDay() % 6 !== 0);
-  if (!libres.length) { toast('No quedan días laborables libres esta semana', true); return; }
-  const { data: rutas } = await RPC_ORIG('rutas_visibles', {});
-  const misRutas = (rutas || []).filter(x => !AG_VISTA || x.usuario_id === agUid() || x.visible_para === '*');
-  $('dbody').innerHTML = `
-    <div class="fh"><div><h2>Planificar la semana${AG_VISTA ? ' de ' + esc(AG_VISTA.nombre) : ''}</h2>
-      <div class="sm">Reparte ${TT('medico', 'p', 'el', 'l', 'l')} entre los días, cada uno un día que atienda y agrupados por zona</div></div>
-      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-    <label for="spfuente">¿A quién?</label>
-    <select id="spfuente">
-      <option value="toca">A quien le toca ${TT('visita', 's', '', 'l', 'l')} (según su frecuencia objetivo)</option>
-      <option value="urgentes">Urgentes sin visitar</option>
-      <option value="interesados">${TT('medico', 'p', '', 'l', 'C', 'interesado')} sin ${TT('visita', 's', '', 'l', 'l')} en 20 días</option>
-      <option value="sin_visitar">Nunca visitados</option>
-      ${misRutas.map(x => `<option value="ruta:${x.id}">Ruta: ${esc(x.nombre)}</option>`).join('')}
-    </select>
-    <label>Días</label>
-    <div class="spdias">${dias.slice(0, 5).map(f => {
-      const ok = libres.includes(f);
-      return `<label class="opt ${ok ? '' : 'off'}" style="margin:0"><input type="checkbox" data-spd="${f}" ${ok ? 'checked' : 'disabled'}>
-        ${DIAN[LETRA_DIA(f)].slice(0, 3)} ${new Date(f + 'T12:00:00').getDate()}${bloq[f] ? ' · bloqueado' : f < hoyISO() ? ' · pasado' : ''}</label>`;
-    }).join('')}</div>
-    <div class="g2">
-      <div><label for="spmax">Máximo de ${TT('visita', 'p', '', 'l', 'l', 'nuevo')} por día</label><input id="spmax" type="number" min="1" max="30" placeholder="Hasta la hora de vuelta"></div>
-      <div><label for="spsal">Hora de salida</label><input id="spsal" type="time" value="${esc((prefsActivas().plan_semana || {}).salida || '')}"></div>
-      <div><label for="spvue">Vuelta como tarde</label><input id="spvue" type="time" value="${esc((prefsActivas().plan_semana || {}).vuelta || '')}"></div>
-      <div><label>Tiempos</label><div class="sm" style="padding-top:12px">${TIEMPOS().visita} min por ${TT('medico', 's', '', 'l', 'l')} · sin hora de vuelta, sin límite</div></div>
-    </div>
-    <p class="sm">Las citas que ya hay en la agenda se respetan y cuentan para el tiempo de cada día. No se proponen ${TT('medico', 'p', '', 'l', 'l')} que ya tienen una cita abierta.</p>
-    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>Cancelar</button>
-      <button class="btn" id="spok">Proponer reparto</button></div>`;
-  $('dlg').showModal();
-  $('spok').onclick = async ev => {
-    const fuente = $('spfuente').value;
-    const usar = [...$('dbody').querySelectorAll('[data-spd]:checked')].map(x => x.dataset.spd);
-    if (!usar.length) { toast('Elige al menos un día', true); return; }
-    const max = +$('spmax').value || null;
-    ev.target.disabled = true; ev.target.textContent = 'Calculando…';
-    let lista = [];
-    if (fuente === 'toca') lista = (await db.rpc('toca_actividad', { p_usuario: agUid() === PERFIL.id && VE_TODO() ? null : agUid(), lim: 300 })).data || [];
-    else if (fuente.startsWith('ruta:')) lista = (await db.rpc('cuentas_de_ruta', { p_id: fuente.slice(5) })).data || [];
-    else lista = ((await db.rpc('propuestas_rutas', { lim: 200 })).data || {})[fuente] || [];
-    // Fuera los que ya tienen cita abierta
-    const { data: futuras } = await RPC_ORIG('agenda_rango', { p_desde: hoyISO(), p_hasta: isoMas(hoyISO(), 60), p_usuario: agUid() });
-    const conCita = new Set((futuras || []).filter(c => CITA_ABIERTA.includes(c.estado)).map(c => c.cuenta_id));
-    lista = await conHorarios(lista.filter(m => !conCita.has(m.id)));
-    // Aviso de visita reciente: fuera los que se han visto hace poco
-    const av = avisoRevisita(); let recientes = [];
-    if (av.on && lista.length) {
-      const { data: rv } = await db.rpc('actividades_recientes', { p_ids: lista.map(m => m.id), p_desde: isoMas(hoyISO(), -av.dias), p_hasta: hoyISO() });
-      const vistos = {}; (rv || []).filter(x => x.tipo === 'visita').forEach(x => { if (!vistos[x.cuenta_id] || x.fecha > vistos[x.cuenta_id].fecha) vistos[x.cuenta_id] = x; });
-      recientes = lista.filter(m => vistos[m.id]).map(m => ({ m, motivo: `visitado el ${fechaCorta(vistos[m.id].fecha)}${vistos[m.id].usuario ? ' (' + vistos[m.id].usuario + ')' : ''}` }));
-      lista = lista.filter(m => !vistos[m.id]);
-    }
-    // v2.76.0: el horario es el de esta planificación (se recuerda como el último usado)
-    const hs = { salida: ($('spsal') || {}).value || null, vuelta: ($('spvue') || {}).value || null };
-    if (JSON.stringify(hs) !== JSON.stringify(prefsActivas().plan_semana || {})) {
-      const prefs = Object.assign({}, PERFIL.preferencias || {}, { plan_semana: hs });
-      db.rpc('guardar_preferencias', { p: prefs }).then(({ data }) => { PERFIL.preferencias = data || prefs; }, () => {});
-    }
-    SEM_BORRADOR = conHor(hs, () => repartirSemana(lista, usar, porDia, max, desde));
-    SEM_BORRADOR.horario = hs.salida || hs.vuelta ? hs : null;
-    SEM_BORRADOR.sinDia = SEM_BORRADOR.sinDia.concat(recientes);
-    ev.target.disabled = false; ev.target.textContent = 'Proponer reparto';
-    $('dlg').close();
-    if (!SEM_BORRADOR.total) toast(`No cabe ${TT('visita', 's', 'ningun', 'l', 'l', 'nuevo')} con estos datos`, true);
-    pintarSemanaAgenda();
-  };
-}
 
-function repartirSemana(lista, usar, porDia, max, desde) {
-  const cfg = PLANCFG(), sal = salidaUsuario(), uid = agUid();
-  let pend = lista.filter(m => m.lat != null && m.lon != null).map(m => ({ m, xy: [+m.lat, +m.lon] }));
-  const sinDia = lista.filter(m => m.lat == null || m.lon == null).map(m => ({ m, motivo: 'sin ubicación' }));
-  const out = { semana: desde, uid, dias: {}, sinDia, total: 0 };
-  usar.forEach(f => {
-    const ahora = new Date(), minAhora = ahora.getHours() * 60 + ahora.getMinutes();
-    const t0 = f === hoyISO() ? Math.max(minHora(cfg.salida), Math.ceil(minAhora / 5) * 5) : minHora(cfg.salida);
-    const disponibles = pend.filter(p => { const v = ventanasDe(p.m.dias, f); return !(v && !v.length); });
-    if (!disponibles.length) { out.dias[f] = []; return; }
-    // Semilla: el que menos días puede ir (y urgente antes), para no dejarlo sin hueco
-    const nDias = p => usar.filter(g => { const v = ventanasDe(p.m.dias, g); return !(v && !v.length); }).length;
-    disponibles.sort((a, b) => nDias(a) - nDias(b) || (b.m.urgente ? 1 : 0) - (a.m.urgente ? 1 : 0) || km([sal.lat, sal.lon], a.xy) - km([sal.lat, sal.lon], b.xy));
-    const semilla = disponibles[0].xy;
-    const cerca = disponibles.slice().sort((a, b) => km(semilla, a.xy) - km(semilla, b.xy)).slice(0, 40);
-    const existentes = (porDia[f] || []).filter(c => c.usuario_id === uid && CITA_ABIERTA.includes(c.estado));
-    const items = existentes.map(c => ({ id: c.id, ref: { existente: c }, xy: xyCita(c), ventanas: ventanasDe(c.dias, f), fija: minHora(c.hora) }))
-      .concat(cerca.map(p => ({ id: p.m.id, ref: { p }, xy: p.xy, ventanas: ventanasDe(p.m.dias, f), fija: null })));
-    const { seq } = programarVisitas(items, t0);
-    let nuevas = seq.filter(s => s.it.ref.p);
-    if (max) nuevas = nuevas.slice(0, max);
-    const elegidos = new Set(nuevas.map(s => s.it.ref.p));
-    out.dias[f] = seq.filter(s => s.it.ref.existente || elegidos.has(s.it.ref.p)).map(s => s.it.ref.existente
-      ? { existente: s.it.ref.existente }
-      : { m: s.it.ref.p.m, ini: s.ini, cita: { id: 'nueva-' + s.it.ref.p.m.id, fecha: f, dias: s.it.ref.p.m.dias, lat: s.it.ref.p.xy[0], lon: s.it.ref.p.xy[1] } });
-    pend = pend.filter(p => !elegidos.has(p));
-  });
-  // Solo las nuevas cuentan en la vista; las existentes se guardan para respetar el orden al guardar
-  out.orden = {};
-  usar.forEach(f => { out.orden[f] = out.dias[f] || []; out.dias[f] = (out.dias[f] || []).filter(x => !x.existente); });
-  out.total = usar.reduce((n, f) => n + out.dias[f].length, 0);
-  pend.forEach(p => {
-    const algun = usar.some(g => { const v = ventanasDe(p.m.dias, g); return !(v && !v.length); });
-    sinDia.push({ m: p.m, motivo: algun ? 'no cabe en los días elegidos' : 'no atiende ninguno de los días elegidos' });
-  });
-  return out;
-}
 
-async function guardarBorradorSemana(btn) {
-  const b = SEM_BORRADOR; if (!b) return;
-  btn.disabled = true; btn.textContent = 'Guardando…';
-  let n = 0;
-  for (const f of Object.keys(b.orden)) {
-    const ids = [];
-    for (const x of b.orden[f]) {
-      if (x.existente) { ids.push(x.existente.id); continue; }
-      const { data: r } = await db.rpc('guardar_cita', { p: { cuenta_id: x.m.id, fecha: f, hora: null,
-        centro_nombre: x.m.centro_nombre || null, estado: 'Planificada', origen: 'Planificador semanal',
-        usuario_id: b.uid !== PERFIL.id ? b.uid : null, op_id: 'ps-' + x.m.id + '-' + f,
-        salida: (b.horario || {}).salida || null, vuelta: (b.horario || {}).vuelta || null } });
-      if (r && r.ok) { ids.push(r.id); n++; }
-    }
-    if (ids.length) await db.rpc('ordenar_citas', { p_ids: ids });
-  }
-  SEM_BORRADOR = null;
-  toast(`${n} citas guardadas en la agenda`);
-  cargarAgenda(); cargarInicio();
-}
 
 /* ---------------- supervisión del equipo ---------------- */
 
@@ -15519,27 +17388,6 @@ async function pintarEquipo() {
   pinta();
 }
 
-async function editorFrecuencia() {
-  await cargarAjustes();
-  const REC = { inicial: 60, avance: 30, interes: 15, positivo: 30, negativo: 0 };
-  const f = Object.assign(Object.fromEntries(ESTADOS_DEF.map(x => [x.valor, REC[x.papel] || 0])), AJUSTES.frecuencia || {});
-  $('dbody').innerHTML = `
-    <div class="fh"><div><h2>Frecuencia objetivo de ${TT('visita', 's', '', 'l', 'l')}</h2>
-      <div class="sm">Cada cuántos días hay que visitar a ${TT('medico', 's', 'un', 'l', 'l')} según su estado. 0 = no se exige.</div></div>
-      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-    ${Object.keys(f).map(k => `<div class="g2" style="align-items:center"><div><b>${esc(k)}</b></div>
-      <div><input type="number" min="0" max="365" data-frec="${esc(k)}" value="${+f[k] || 0}" aria-label="Días para ${esc(k)}"></div></div>`).join('')}
-    <p class="sm">Se usa en «A quien le toca ${TT('visita', 's', '', 'l', 'l')}» (planificador y sugerencias) y en la columna «Les toca» del equipo.</p>
-    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>Cancelar</button><button class="btn" id="frok">Guardar</button></div>`;
-  $('dlg').showModal();
-  $('frok').onclick = async () => {
-    const v = {}; $('dbody').querySelectorAll('[data-frec]').forEach(i => v[i.dataset.frec] = Math.max(0, +i.value || 0));
-    const { data: r, error } = await db.rpc('guardar_ajuste', { p_clave: 'frecuencia', p_valor: v });
-    if (error || (r && r.ok === false)) { toast('No se ha podido guardar', true); return; }
-    AJUSTES.frecuencia = v; $('dlg').close(); toast('Frecuencia guardada'); invalidarCache();
-    if (AG_MODO === 'equipo') pintarEquipo();
-  };
-}
 
 /* ---------------- cabecera de la agenda: de quién es y equipo ---------------- */
 
@@ -15581,13 +17429,6 @@ const esMuestras = d => (CAT.resultado_visita || []).some(x => x.valor === d.val
 const detTxt = v => (v.detalles || []).filter(d => !esMuestras(d) && !(!d.dato && (v.resultados || []).includes(d.valor)))
   .map(d => d.valor + (d.dato ? ' (' + d.dato + ')' : '')).join(', ');
 
-function campoDato(v, k, valor) {
-  const lab = esc(v.dato_etiqueta || (v.dato_tipo === 'numero' ? 'Cantidad' : 'Detalle'));
-  if (v.dato_tipo === 'numero') return `<label class="datol">${lab}<input type="number" min="0" step="1" data-dato="${k}" value="${esc(valor || '')}" placeholder="0"></label>`;
-  if (v.dato_tipo === 'lista') return `<label class="datol">${lab}<select data-dato="${k}"><option value=""></option>${(v.dato_opciones || [])
-    .map(o => `<option ${o === valor ? 'selected' : ''}>${esc(o)}</option>`).join('')}</select></label>`;
-  return `<label class="datol">${lab}<input data-dato="${k}" value="${esc(valor || '')}" placeholder="Opcional"></label>`;
-}
 
 /* Registrar visita: la ventana base y el aviso si falta el horario de atención (antes eran 3 capas). */
 async function abrirVisita(id) {
@@ -15693,35 +17534,6 @@ async function abrirVisitaBase(id) {
 
 /* ---------------- clasificadores: configurar el dato de cada valor ---------------- */
 
-function editorDato(v, alGuardar) {
-  $('dlg2body').innerHTML = `
-    <div class="fh"><div><h2>Dato de «${esc(v.valor)}»</h2>
-      <div class="sm">Al marcar este valor en ${TT('visita', 's', 'un', 'l', 'l')}, se pedirá además este dato</div></div>
-      <button class="x" data-cerrar2 aria-label="Cerrar">✕</button></div>
-    <label for="dtt">Qué dato pide</label>
-    <select id="dtt"><option value="">Ninguno (solo se marca)</option>
-      <option value="numero" ${v.dato_tipo === 'numero' ? 'selected' : ''}>Un número (p. ej. cantidad)</option>
-      <option value="texto" ${v.dato_tipo === 'texto' ? 'selected' : ''}>Un texto libre</option>
-      <option value="lista" ${v.dato_tipo === 'lista' ? 'selected' : ''}>Una opción de una lista</option></select>
-    <div id="dtcfg">
-      <label for="dte">Cómo se llama el dato</label><input id="dte" value="${esc(v.dato_etiqueta || '')}" placeholder="p. ej. Cantidad, A quién, Producto">
-      <div id="dtlw"><label for="dtl">Opciones de la lista <span class="sm">· una por línea</span></label>
-        <textarea id="dtl" rows="4">${esc((v.dato_opciones || []).join('\n'))}</textarea></div>
-    </div>
-    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar2>Cancelar</button><button class="btn" id="dtok">Guardar</button></div>`;
-  const vis = () => { $('dtcfg').classList.toggle('hide', !$('dtt').value); $('dtlw').classList.toggle('hide', $('dtt').value !== 'lista'); };
-  $('dtt').onchange = vis; vis();
-  $('dtok').onclick = async () => {
-    const tipo = $('dtt').value;
-    const ops = $('dtl').value.split('\n').map(x => x.trim()).filter(Boolean);
-    if (tipo === 'lista' && !ops.length) { toast('Escribe al menos una opción', true); return; }
-    const { data: r, error } = await db.rpc('guardar_valor', { p: { id: v.id, dato_tipo: tipo, dato_etiqueta: tipo ? $('dte').value.trim() : '',
-      dato_opciones: tipo === 'lista' ? ops : [] } });
-    if (error || (r && r.ok === false)) { toast('No se ha podido guardar', true); return; }
-    $('dlg2').close(); toast('Dato guardado'); alGuardar();
-  };
-  $('dlg2').showModal();
-}
 
 abrirClasificador = (orig => function (id) {
   orig(id);
@@ -15905,9 +17717,6 @@ const suplantando = () => { try { return JSON.parse(localStorage.getItem(SKEY) |
 // v2.117.0: «Entrar como otro usuario» es del plan A medida
 const puedeSuplantar = () => PERFIL && (puede('administrar') || ((PERFIL.areas || {}).U || 0) >= 3) && !suplantando() && PLAN_ACTUAL.plan === 'medida';
 
-function limpiarDatosLocales() {
-  try { Object.keys(localStorage).filter(k => /^dlc-(rc-|perfil|jornada-)/.test(k)).forEach(k => localStorage.removeItem(k)); } catch (e) {}
-}
 
 
 async function volverAMiSesion() {
@@ -15919,15 +17728,6 @@ async function volverAMiSesion() {
   location.reload();
 }
 
-function pintarBarraSuplantacion() {
-  const s = suplantando();
-  let b = $('barrasup');
-  if (!s) { if (b) b.remove(); return; }
-  if (!b) { document.body.insertAdjacentHTML('afterbegin', '<div id="barrasup"></div>'); b = $('barrasup'); }
-  b.innerHTML = `<span>👤 <b>Impersonalizando a ${esc(PERFIL ? PERFIL.nombre : s.como)}</b>${PERFIL ? ' · ' + esc(PERFIL.rol) : ''} · Sesión con su usuario: lo que hagas queda a su nombre</span>
-    <button class="btn chico" id="supvolver">↩ Terminar la impersonalización (${esc(nombrePila(s.nombre))})</button>`;
-  $('supvolver').onclick = volverAMiSesion;
-}
 
 document.addEventListener('click', e => {
   const b = e.target.closest('[data-ucomo]');
@@ -15989,23 +17789,6 @@ document.addEventListener('click', e => {
 
 /* ---------------- reglas de cartera ---------------- */
 
-async function editorReglasCartera() {
-  await cargarAjustes();
-  const excl = !AJUSTES.cartera || AJUSTES.cartera.exclusiva !== false;
-  $('dbody').innerHTML = `
-    <div class="fh"><div><h2>Reglas de cartera</h2><div class="sm">Cómo se reparten ${TT('medico', 'p', 'el', 'l', 'l')} entre el equipo</div></div>
-      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-    <label class="opt" style="margin-top:10px"><input type="checkbox" id="rcexcl" ${excl ? 'checked' : ''}>
-      <span><b>Cartera exclusiva</b><br><span class="sm">${TT('medico', 's', 'un', 'C', 'l')} solo puede estar en la cartera de una persona. Al asignarlo a alguien, sale de la cartera de quien lo tuviera.</span></span></label>
-    <p class="sm">Si la desactivas, ${TT('medico', 's', 'un', 'l', 'l')} podrá estar en varias carteras y administración verá una alerta «${TT('medico', 'p', '', 'l', 'C')} en más de una cartera» en Inicio.</p>
-    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>Cancelar</button><button class="btn" id="rcok">Guardar</button></div>`;
-  $('dlg').showModal();
-  $('rcok').onclick = async () => {
-    const { data: r, error } = await db.rpc('guardar_ajuste', { p_clave: 'cartera', p_valor: { exclusiva: $('rcexcl').checked } });
-    if (error || (r && r.ok === false)) { toast('No se ha podido guardar', true); return; }
-    AJUSTES.cartera = { exclusiva: $('rcexcl').checked }; $('dlg').close(); toast('Reglas guardadas');
-  };
-}
 
 pintarEquipo = (orig => async function () {
   await orig();
@@ -16021,14 +17804,6 @@ pintarEquipo = (orig => async function () {
 const avisoRevisita = () => Object.assign({ on: true, dias: 7 }, ((PERFIL.preferencias || {}).avisos || {}).revisita || {});
 
 
-/** Visitas o citas de estos médicos cerca de la fecha (sin contar ese mismo día). */
-async function recientesDe(ids, fecha) {
-  const a = avisoRevisita(); if (!a.on || !ids.length) return {};
-  const { data } = await db.rpc('actividades_recientes', { p_ids: ids, p_desde: isoMas(fecha, -(a.dias - 1)), p_hasta: isoMas(fecha, a.dias - 1) });
-  const por = {};
-  (data || []).filter(x => x.fecha !== fecha).forEach(x => (por[x.cuenta_id] = por[x.cuenta_id] || []).push(x));
-  return por;
-}
 const txtReciente = l => l.map(x => `${x.tipo === 'visita' ? 'visitado' : 'cita'} el ${fechaCorta(x.fecha)}${x.usuario ? ' (' + x.usuario + ')' : ''}`).join(', ');
 
 citaRepetida = (orig => async function (medicoId, fecha) {
@@ -16067,56 +17842,7 @@ async function cargarProductosModulo() {
 }
 
 
-async function pintarServicios() {
-  const esAdmin = puede('administrar');
-  cargando($('vcuerpo'), 'Cargando servicios…');
-  const { data } = await RPC_ORIG('productos_lista', { p_todos: esAdmin });
-  const l = (data || []).filter(p => p.tipo === 'servicio');
-  $('vcuerpo').innerHTML = `<div class="panel">
-    <div class="cuenta"><b>${num(l.filter(p => p.activo).length)}</b> servicios activos · Un pedido puede llevar un servicio (envío, portes urgentes…), que se suma con su propio IVA.</div>
-    <div class="dgrid-wrap"><div class="dgrid servs">
-      <div class="dh"><span>Servicio</span><span class="num">Sin IVA</span><span class="num">IVA</span><span class="num">Con IVA</span><span>En pedidos nuevos</span><span>Estado</span></div>
-      ${l.map(p => `<button class="dr" data-serv="${p.id}" style="${p.activo ? '' : 'opacity:.55'}">
-        <span><b>${esc(p.nombre)}</b></span><span class="num">${p.precio != null ? eurI(p.precio) : '—'}</span>
-        <span class="num">${num(p.iva || 0)}%</span><span class="num"><b>${p.pvp != null ? eurI(p.pvp) : '—'}</b></span>
-        <span>${p.por_defecto ? '<span class="pill p-est">Se propone por defecto</span>' : '<span class="vac">—</span>'}</span>
-        <span><span class="pill ${p.activo ? 'p-est' : 'p-anu'}">${p.activo ? 'Activo' : 'Inactivo'}</span></span></button>`).join('') || '<div class="vacio">Todavía no hay servicios.</div>'}
-    </div></div></div>`;
-  $('vcuerpo').querySelectorAll('[data-serv]').forEach(b => b.onclick = () => editorServicio(l.find(p => p.id === b.dataset.serv)));
-}
 
-function editorServicio(s) {
-  const esAdmin = puede('administrar');
-  s = s || { iva: 21, activo: true };
-  const ro = esAdmin ? '' : 'disabled';
-  $('dbody').innerHTML = `
-    <div class="fh"><div><h2>${s.id ? esc(s.nombre) : 'Nuevo servicio'}</h2>
-      <div class="sm">Escribe el precio sin IVA o con IVA: el otro se calcula solo. En cada pedido se puede cambiar.</div></div>
-      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-    <label for="svn">Nombre</label><input id="svn" value="${esc(s.nombre || '')}" placeholder="p. ej. Envío, Envío urgente" ${ro}>
-    <div class="pvp">
-      <div><label for="svs">Sin IVA (€)</label><input id="svs" type="number" step="0.01" min="0" value="${s.precio != null ? +(+s.precio).toFixed(4) : ''}" ${ro}></div>
-      <div><label for="svi">IVA (%)</label><input id="svi" type="number" step="1" min="0" max="21" value="${s.iva != null ? s.iva : 21}" ${ro}></div>
-      <div><label for="svc">Con IVA (€)</label><input id="svc" type="number" step="0.01" min="0" value="${s.precio != null ? r2(s.precio * (1 + (+s.iva || 0) / 100)) : ''}" ${ro}></div></div>
-    <label class="opt" style="margin-top:12px"><input type="checkbox" id="svdef" ${s.por_defecto ? 'checked' : ''} ${ro}> Proponerlo por defecto en los pedidos nuevos</label>
-    ${s.id ? `<label class="opt" style="margin-top:8px"><input type="checkbox" id="svact" ${s.activo ? 'checked' : ''} ${ro}> Activo</label>` : ''}
-    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>${esAdmin ? 'Cancelar' : 'Cerrar'}</button>
-      ${esAdmin ? `<button class="btn" id="svok">${s.id ? 'Guardar' : 'Crear servicio'}</button>` : ''}</div>`;
-  $('dlg').showModal();
-  if (!esAdmin) return;
-  const iva = () => (+$('svi').value || 0) / 100;
-  $('svs').oninput = () => { $('svc').value = $('svs').value === '' ? '' : r2(+$('svs').value * (1 + iva())); };
-  $('svc').oninput = () => { $('svs').value = $('svc').value === '' ? '' : +(+$('svc').value / (1 + iva())).toFixed(4); };
-  $('svi').oninput = () => { if ($('svs').value !== '') $('svc').value = r2(+$('svs').value * (1 + iva())); };
-  $('svok').onclick = async () => {
-    if (!$('svn').value.trim()) { toast('Escribe el nombre', true); return; }
-    const { data: r, error } = await db.rpc('guardar_producto', { p: { id: s.id || null, tipo: 'servicio', nombre: $('svn').value.trim(),
-      precio: $('svs').value, iva: $('svi').value, por_defecto: $('svdef').checked, ...($('svact') ? { activo: $('svact').checked } : {}) } });
-    if (error || (r && r.ok === false)) { toast('No se ha podido guardar', true); return; }
-    $('dlg').close(); toast(s.id ? 'Servicio guardado' : 'Servicio creado');
-    await cargarProductos(); if (TAB === 'productos') pintarServicios();
-  };
-}
 
 /* ---------------- Rutas: resumen como pantalla de entrada ---------------- */
 
@@ -16147,12 +17873,6 @@ AYUDA.rutas[2].unshift('La pestaña <b>Resumen</b> muestra tu día, las propuest
 
 /* ---------------- pantalla de carga a pantalla completa ---------------- */
 
-function pantallaCarga(msg) {
-  let o = $('cargatotal');
-  if (!o) { document.body.insertAdjacentHTML('beforeend', '<div id="cargatotal" class="cargatotal"></div>'); o = $('cargatotal'); }
-  o.innerHTML = `<div><span class="spin"></span><b>${esc(msg)}</b><span class="sm">Un momento: se está cargando todo de nuevo</span></div>`;
-  o.classList.remove('hide');
-}
 const quitarCarga = () => { const o = $('cargatotal'); if (o) o.classList.add('hide'); };
 
 
@@ -16228,24 +17948,8 @@ document.addEventListener('click', e => {
 let ANSEC = 'resumen';
 const MESES_C = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
 const mesTxt = m => MESES_C[+m.slice(5, 7) - 1] + ' ' + m.slice(2, 4);
-function mesesEntre(d, h) {
-  const out = []; const x = new Date(d.slice(0, 7) + '-01T12:00:00'), fin = new Date(h.slice(0, 7) + '-01T12:00:00');
-  while (x <= fin && out.length < 36) { out.push(fechaLocal(x).slice(0, 7)); x.setMonth(x.getMonth() + 1); }
-  return out;
-}
 
 
-function svgDonut(items) {
-  const tot = items.reduce((n, x) => n + x.v, 0) || 1, R = 70, C = 2 * Math.PI * R;
-  // v2.107.0: paleta de gráficos de la marca (validada para daltonismo); el gris, para el resto
-  const col = ['#3F82C0', '#E0762B', '#1BAF7A', '#6E5BC4', '#E0A400', '#D9618C', '#94A3B8'];
-  let acc = 0;
-  return `<div class="donutw"><svg viewBox="0 0 200 200" class="donut" role="img" aria-label="Reparto por producto">
-    <circle cx="100" cy="100" r="${R}" class="fondo"/>
-    ${items.map((x, i) => { const l = C * x.v / tot, s = `<circle cx="100" cy="100" r="${R}" stroke="${col[i % col.length]}" stroke-dasharray="${l} ${C - l}" stroke-dashoffset="${-acc}" class="arco"><title>${esc(x.n)}: ${num(x.v)} (${Math.round(x.v / tot * 100)}%)</title></circle>`; acc += l; return s; }).join('')}
-    <text x="100" y="96" class="dn1">${num(tot)}</text><text x="100" y="116" class="dn2">unidades</text></svg>
-    <div class="donutley">${items.map((x, i) => `<span><i style="background:${col[i % col.length]}"></i>${esc(x.n)} <b>${Math.round(x.v / tot * 100)}%</b></span>`).join('')}</div></div>`;
-}
 
 
 const vacioGrafico = t => `<div class="gvacio"><span>📊</span><b>Aún no hay datos para este gráfico</b><span class="sm">${esc(t)}</span></div>`;
@@ -16545,30 +18249,9 @@ function aplicarPermisosMenu() {
   aplicarPermisosMenuPaso3();
 }
 
-function aplicarPermisosMenuPaso1() {
-  document.querySelectorAll('nav.main [data-t]').forEach(b => {
-    const t = b.dataset.t; if (!(t in MODULO_AREA)) return;
-    const bloqueado = puedeModuloV2400(t) && !planIncluye(t);
-    b.classList.toggle('bloq', bloqueado);
-    if (bloqueado) { b.classList.remove('hide'); if (!b.querySelector('.cand')) b.insertAdjacentHTML('beforeend', '<span class="cand">🔒</span>'); }
-    else { const c = b.querySelector('.cand'); if (c) c.remove(); }
-  });
-}
 
-function aplicarPermisosMenuPaso2() {
- iconosMenu();
-}
 
-function aplicarPermisosMenuPaso3() {
- ordenarMenu(); const c = document.querySelector('nav.main [data-t="seguimiento"]'); if (c) c.classList.add('hide');
-}
 
-function aplicarPermisosMenuBase() {
-  document.querySelectorAll('nav.main [data-t]').forEach(b => {
-    if (b.dataset.t in MODULO_AREA) b.classList.toggle('hide', !puedeModulo(b.dataset.t));
-  });
-  if (typeof pintarBnav === 'function') pintarBnav();
-}
 
 /* ---------------- indicadores con su categoría y permiso ---------------- */
 
@@ -16598,26 +18281,6 @@ function kpiPermitido(c) {
 
 let PROV_CCAA = null;
 const zonasMarcadas = () => [...$('dbody').querySelectorAll('#uzonas [data-zp]:checked')].map(x => x.dataset.zp).sort();
-async function bloqueZonas(u) {
-  if (!PROV_CCAA) {
-    const [{ data: pc }, { data: rz }] = await Promise.all([db.from('provincias_ccaa').select('provincia,comunidad'), db.rpc('zonas_resumen')]);
-    const cuenta = {}; (rz || []).forEach(x => cuenta[x.provincia] = x.medicos);
-    PROV_CCAA = {};
-    (pc || []).forEach(x => (PROV_CCAA[x.comunidad] = PROV_CCAA[x.comunidad] || []).push({ p: x.provincia, n: cuenta[x.provincia] || 0 }));
-  }
-  const { data: yo } = await db.from('perfiles').select('zonas').eq('id', u.id).single();
-  const sel = new Set((yo && yo.zonas) || []);
-  const bonito = p => p.charAt(0) + p.slice(1).toLowerCase();
-  return `<div class="blk" id="uzonas"><h3>Zona de trabajo</h3>
-    <p class="sm">Marca las provincias de su zona. Al guardar, ${TT('medico', 'p', 'el', 'l', 'l')} de esas provincias que no tengan comercial entran en su cartera, y los que se den de alta después entran solos. Solo verá ${TT('medico', 'p', 'el', 'l', 'l')} de su cartera.</p>
-    <div class="zonas">${Object.keys(PROV_CCAA).sort().map(cc => {
-      const ps = PROV_CCAA[cc].filter((x, i, a) => a.findIndex(y => y.n === x.n && bonito(y.p).slice(0, 4) === bonito(x.p).slice(0, 4)) === i || x.n || sel.has(x.p));
-      return `<details ${ps.some(x => sel.has(x.p)) ? 'open' : ''}><summary><label onclick="event.stopPropagation()"><input type="checkbox" data-zcc="${esc(cc)}" ${ps.every(x => sel.has(x.p)) ? 'checked' : ''}> ${esc(cc)}</label>
-        <span class="sm">${num(ps.reduce((n, x) => n + x.n, 0))} ${TT('medico', 'p', '', 'l', 'l')}</span></summary>
-        <div class="zprov">${ps.map(x => `<label><input type="checkbox" data-zp="${esc(x.p)}" data-zpc="${esc(cc)}" ${sel.has(x.p) ? 'checked' : ''}> ${esc(bonito(x.p))} <span class="sm">${num(x.n)}</span></label>`).join('')}</div></details>`;
-    }).join('')}</div>
-    <div class="acts" style="margin-top:8px"><button class="btn sec" id="uzok">Guardar zona y asignar sus ${TT('medico', 'p', '', 'l', 'l')}</button></div></div>`;
-}
 
 
 /* ---------------- operativa de los pedidos ---------------- */
@@ -16860,7 +18523,6 @@ const MESES_L = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio',
 let SELPOP = null, LOGO_CIRC = false;
 // Con una ventana abierta, solo se puede pulsar lo que está dentro: el selector se coloca en ella
 const capaSelector = inp => inp.closest('dialog[open]') || [...document.querySelectorAll('dialog[open]')].pop() || document.body;
-function emitir(inp) { inp.dispatchEvent(new Event('input', { bubbles: true })); inp.dispatchEvent(new Event('change', { bubbles: true })); }
 
 // (v2.183.0: aquí iba la primera versión de abrirCalendario; se redefine entera más abajo)
 
@@ -16986,54 +18648,6 @@ if (EN_PRUEBAS) {
 
 const ES_MEDICO = () => puede('portal_prescriptor');
 
-async function cargarInforme() {
-  if (puede('portal_centro')) return cargarCentro();   // v2.128.0: el portal del centro
-  // v2.271.0: página nueva (al final del archivo); al arrancar se espera a que esté leída
-  if (!window.PM_LISTO) { const v0 = $('v-informe'); if (v0 && !v0.innerHTML.trim()) v0.innerHTML = '<div class="card">' + skelCard('Cargando tu informe…') + '</div>'; setTimeout(cargarInforme, 30); return; }
-  return cargarInforme2271();
-  const v = $('v-informe');
-  v.innerHTML = `<div class="medhero"><div><div class="sm" style="color:rgba(255,255,255,.8)">Tu portal</div><h1 id="mdnom">…</h1><div id="mdesp" class="sm" style="color:rgba(255,255,255,.85)"></div></div>
-      <div class="medper"><div id="mdper"></div></div></div>
-    <div id="mdcuerpo"><div class="card">${skelCard('Cargando tu informe…')}</div></div>`;
-  const pinta = async () => {
-    const r = $('mdper').__rango();
-    const { data: d } = await RPC_ORIG('informe_cuenta', { p_desde: r.desde, p_hasta: r.hasta });
-    if (!d || !d.ok) {
-      // v2.291: sin ficha vinculada, las dos pestañas lo dicen (antes «Mi ficha» se quedaba cargando) y la cabecera lleva su nombre
-      const sin = `<div class="card"><div class="vacio">Tu usuario todavía no está vinculado a tu ficha de ${TT('medico', 's', '', 'l', 'l')}. Avisa a la empresa para activarlo.</div></div>`;
-      $('mdcuerpo').innerHTML = sin; if ($('pmficha')) $('pmficha').innerHTML = sin;
-      $('mdnom').textContent = (PERFIL && PERFIL.nombre) || ''; return;
-    }
-    $('mdnom').textContent = d.medico.nombre; $('mdesp').textContent = d.medico.especialidad || '';
-    const top = d.posicion && d.posicion <= 3 ? 'Top 3' : d.posicion && d.posicion <= 5 ? 'Top 5' : d.posicion && d.posicion <= 10 ? 'Top 10' : null;
-    const ll = d.llamadas || {}, conv = ll.total ? Math.round(ll.con_pedido / ll.total * 100) : null;
-    const meses = mesesEntre(d.desde, d.hasta), serie = {}; (d.serie || []).forEach(s => serie[s.mes] = s);
-    $('mdcuerpo').innerHTML = `
-      <div class="kpis vtot mdk">
-        <div class="kpi"><b>${num(d.unidades)}</b><span>unidades atribuidas</span></div>
-        <div class="kpi"><b>${num(d.pautas)}</b><span>${TT('pauta', 'p', '', 'l', 'l')} (pedidos)</span></div>
-        <div class="kpi"><b>${num(d.pacientes)}</b><span>${TT('paciente', 'p', '', 'l', 'l')}</span></div>
-        <div class="kpi"><b>${num(d.repiten)}</b><span>${TT('paciente', 'p', '', 'l', 'l')} que repiten</span></div>
-        <div class="kpi ${top ? 'ok' : ''}"><b>${top ? '🏆 ' + top : d.posicion ? 'Nº ' + d.posicion : '—'}</b><span>${d.posicion ? `de ${num(d.prescriptores)} ${TT('medico', 'p', '', 'l', 'l')}` : 'sin ventas en el periodo'}</span></div>
-      </div>
-      <div class="angrid">
-        <div class="card ancard ancha"><h2>Tus ${TT('pauta', 'p', '', 'l', 'l')} mes a mes</h2>
-          ${d.unidades ? svgBarras(meses, meses.map(m => (serie[m] || {}).unidades || 0), meses.map(m => (serie[m] || {}).pautas || 0), ['Unidades', TT('pauta', 'p', '', 'l', 'C')])
-            : vacioGrafico(`Cuando tus ${TT('paciente', 'p', '', 'l', 'l')} hagan su pedido, verás aquí la evolución.`)}
-          <p class="leer">Cada barra son las unidades atribuidas en el mes y la línea, el número de ventas.${d.ultima_pauta ? ' Última venta: ' + fechaCorta(d.ultima_pauta) + '.' : ''}</p></div>
-        <div class="card ancard"><h2>Qué ${TT('pauta', 'p', '', 'l', 'l')}</h2>
-          ${(d.productos || []).length ? svgDonut(d.productos.map(x => ({ n: x.nombre, v: x.unidades }))) : vacioGrafico('Aparecerá el reparto por producto.')}</div>
-        <div class="card ancard"><h2>Llamadas de tus ${TT('paciente', 'p', '', 'l', 'l')}</h2>
-          <div class="minis"><div><b>${num(ll.total || 0)}</b><span>llamadas</span></div><div><b>${conv == null ? '—' : conv + '%'}</b><span>acaban en pedido</span></div></div>
-          ${(ll.por_resultado || []).length ? barrasH(ll.por_resultado.map(x => ({ n: x.resultado, v: x.n })), num) : `<p class="sm" style="padding:0 16px">Todavía no hay llamadas registradas en el periodo.</p>`}
-          <p class="leer">${TT('paciente', 'p', '', 'l', 'C')} que llaman a la empresa. Si muchos llaman por dudas o por precio, podemos darte material para explicarlo.</p></div>
-      </div>
-      <p class="sm" style="text-align:center;margin:18px 0">Por confidencialidad no se muestran datos de tus ${TT('paciente', 'p', '', 'l', 'l')} ni importes.</p>`;
-  };
-  montarPeriodo($('mdper'), { id: 'informe', valor: 'anio', alCambiar: pinta });
-  pinta();
-  portalMedico();   // v2.126.0
-}
 
 async function pintarAvisos() {
   const b = $('mdavisos'); if (!b) return;
@@ -17128,10 +18742,7 @@ new MutationObserver(ms => {
   d.addEventListener('click', e => { if (e.target === d) cerrarSelector(); });
   d.addEventListener('cancel', e => { e.preventDefault(); cerrarSelector(); });
 })();
-function cerrarSelector() {
-  if (SELPOP) { SELPOP.remove(); SELPOP = null; }
-  const d = $('seldlg'); if (d && d.open) d.close();
-};
+;
 function colocarPop(pop, ref) {
   const d = $('seldlg');
   if (!d.open) d.showModal();
@@ -17159,24 +18770,6 @@ mejorarCampos = (orig => function (raiz) {
 
 /* ---------------- barra de herramientas ordenada en el móvil ---------------- */
 
-function ordenarCabeceraMovil(sec) {
-  if (!ES_MOVIL() || !sec) return;
-  const sal = sec.querySelector(':scope > .saludo'); if (!sal || sal.dataset.movil) return;
-  const acts = sal.querySelector('.acts'); if (!acts) return;
-  sal.dataset.movil = '1';
-  const hijos = [...acts.children];
-  // Acción principal «+ …» como botón flotante
-  const principal = hijos.find(b => b.tagName === 'BUTTON' && !b.classList.contains('sec') && /^\s*\+/.test(b.textContent));
-  if (principal) {
-    principal.classList.add('fab'); principal.setAttribute('aria-label', principal.textContent.replace('+', '').trim());
-    // v2.95.0: el «+» es el icono de la biblioteca, no un carácter
-    principal.dataset.txt = principal.textContent.replace('+', '').trim(); principal.innerHTML = svgIco(ICON_NOM.plus);
-    sec.appendChild(principal);
-  }
-  // El resto, como fila de controles compactos del mismo tamaño
-  // Se mantiene la fila aunque quede vacía: otras partes añaden controles después (vista de agenda, equipo…)
-  acts.classList.add('chips'); [...acts.children].forEach(b => b.classList.add('chip'));
-}
 const ORDENAR_EN = { agenda: 'v-agenda', rutas: 'v-rutas', productos: 'v-productos', ventas: 'v-ventas', analitica: 'v-analitica',
   facturacion: 'v-facturacion', config: 'v-config', admin: 'v-admin', pacientes: 'v-pacientes', seguimiento: 'v-seguimiento', duplicados: 'v-duplicados' };
 new MutationObserver(() => { if (ORDENAR_EN[TAB]) ordenarCabeceraMovil($(ORDENAR_EN[TAB])); })
@@ -17210,25 +18803,6 @@ pintarBnav = (orig => function () { orig(); const m = $('bmasbtn'); if (m) m.onc
 
 /* ---------------- Inicio: tarjeta de bienvenida con lo importante de hoy ---------------- */
 
-async function vistazoHoy() {
-  const sal = document.querySelector('#v-inicio .saludo'); if (!sal) return;
-  const acts = sal.querySelector('.acts');
-  if (acts && !acts.dataset.ico) {
-    acts.dataset.ico = '1'; acts.classList.add('icoacts');
-  }
-  let v = $('vistazo');
-  if (!v) { sal.firstElementChild.insertAdjacentHTML('beforeend', '<div id="vistazo" class="vistazo"></div>'); v = $('vistazo'); }
-  if (ES_MEDICO()) return;
-  const citas = await citasDelDia(hoyISO());
-  const abiertas = citas.filter(c => CITA_ABIERTA.includes(c.estado)).sort((a, b) => (a.orden || 0) - (b.orden || 0) || String(a.hora || '').localeCompare(String(b.hora || '')));
-  const hechas = citas.filter(c => c.estado === 'Visitada').length, prox = abiertas[0];
-  if (!$('vistazo')) return;
-  v.innerHTML = citas.length
-    ? `<span><b>${num(citas.length)}</b> ${citas.length === 1 ? 'cita' : 'citas'} hoy · <b>${num(hechas)}</b> visitadas</span>
-       ${prox ? `<span class="prox">Próxima: <b>${esc(prox.medico || prox.nombre || '')}</b>${prox.hora ? ' · ' + String(prox.hora).slice(0, 5) : ''}</span>` : '<span class="prox">Día completado ✓</span>'}`
-    : `<span>Hoy no tienes citas.</span> <button class="lnk" data-irplan>Planifica tu día</button>`;
-  const b = v.querySelector('[data-irplan]'); if (b) b.onclick = () => ir('rutas');
-}
 
 // Indicadores con icono, explicación breve y, cuando se puede, comparación
 const KPI_ICO = { citas: '📅', urgentes: '⚠️', visitas_sem: '📝', visitas_mes: '🗓️', interesados: '✨', sin_contactar: '📇', cartera: '🩺', dups: '🧩',
@@ -17677,25 +19251,6 @@ db.rpc = function (fn, params, opts) {
 let ALERTAS_OCULTAS = null;
 const tituloAlerta = s => s.textContent.replace(/\s+/g, ' ').replace(/^\s*\d+\s*/, '').replace(/\bequipo\b\s*$/, '').trim();
 const normAl = t => String(t).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').slice(0, 60);
-async function cargarOcultas(forzar) {
-  if (ALERTAS_OCULTAS && !forzar) return ALERTAS_OCULTAS;
-  const { data } = await RPC_ORIG('mis_alertas_descartadas', {});
-  ALERTAS_OCULTAS = data || [];
-  return ALERTAS_OCULTAS;
-}
-async function verOcultas() {
-  const l = await cargarOcultas(true);
-  $('dbody').innerHTML = `<div class="fh"><div><h2>Alertas ocultas</h2><div class="sm">Las que ocultaste. Al recuperarlas vuelven a aparecer en Inicio si siguen pasando.</div></div>
-    <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-    <div class="alcards">${l.map(x => `<div class="alcard"><div class="alc1"><b>${esc(x.detalle || x.clave)}</b>
-      <span class="pill ${x.hasta ? 'p-per' : 'p-anu'}">${x.hasta ? 'Hasta ' + fechaCorta(x.hasta) : 'Para siempre'}</span></div>
-      <div class="sm">${esc(x.titulo || '')}</div><button class="btn sec chico" data-alrec="${esc(x.clave)}">Recuperar</button></div>`).join('') || '<div class="vacio">No tienes alertas ocultas.</div>'}</div>`;
-  $('dlg').showModal();
-  $('dbody').querySelectorAll('[data-alrec]').forEach(b => b.onclick = async () => {
-    await db.rpc('restaurar_alerta', { p_clave: b.dataset.alrec }); b.closest('.alcard').remove(); ALERTAS_OCULTAS = null; toast('Recuperada');
-    if (TAB === 'inicio') cargarInicio();
-  });
-}
 
 // Ocultar desde la ventana de la alerta
 document.addEventListener('click', async e => {
@@ -17956,15 +19511,6 @@ const TIPOS_NOTIF = [
 ];
 const tiposDeMiRol = () => TIPOS_NOTIF.filter(t => puede('aviso_' + t[0]));
 let NOTIF_N = 0;
-async function refrescarCampana() {
-  if (!PERFIL || document.body.classList.contains('sin-sesion')) return;
-  const { data } = await RPC_ORIG('mis_notificaciones', { lim: 30 });
-  const d = data || {}; NOTIF_N = d.sin_leer || 0;
-  let b = $('mdavisos');
-  if (!b) { const u = $('ubtn'); if (!u) return; u.insertAdjacentHTML('beforebegin', '<button class="mdavisos" id="mdavisos" aria-label="Notificaciones"></button>'); b = $('mdavisos'); }
-  b.innerHTML = `🔔${NOTIF_N ? `<span class="nb2">${NOTIF_N > 9 ? '9+' : NOTIF_N}</span>` : ''}`;
-  b.onclick = () => panelNotificaciones(d.lista || []);
-}
 pintarAvisos = refrescarCampana;
 function irEnlace(e) {
   if (!e) return;
@@ -18088,8 +19634,7 @@ aplicarMarca = (orig => function () {
   if (!MARCA.logo) document.querySelectorAll('header .logo, .lbox img, #bootsplash img').forEach(i => { i.src = LOGO_NEUTRO; });
 })(aplicarMarca);
 aplicarMarca();
-// En la factura solo va el logo si la empresa ha subido el suyo
-async function logoData() { if (MARCA.logo && (AJUSTES.marca || {}).logo_factura !== false) { LOGO_DATA = MARCA.logo; LOGO_CIRC = true; return MARCA.logo; } return null; };
+;
 
 /* ---------------- planes alineados con el mercado ---------------- */
 
@@ -18218,31 +19763,6 @@ const I18N = [
 ];
 let IDIOMA = 'es', MAPA_I18N = null;
 const SALUDOS = { en: ['Good morning', 'Good afternoon', 'Good evening'], de: ['Guten Morgen', 'Guten Tag', 'Guten Abend'], fr: ['Bonjour', 'Bon après-midi', 'Bonsoir'], it: ['Buongiorno', 'Buon pomeriggio', 'Buonasera'] };
-function prepararIdioma(id) {
-  IDIOMA = LOCALES[id] ? id : 'es'; document.documentElement.lang = IDIOMA;
-  const i = IDIOMAS.findIndex(x => x[0] === IDIOMA);
-  MAPA_I18N = null; if (i <= 0) return;
-  MAPA_I18N = new Map();
-  const may = t => t.charAt(0).toUpperCase() + t.slice(1), min = t => t.charAt(0).toLowerCase() + t.slice(1);
-  I18N.forEach(r => { MAPA_I18N.set(r[0], r[i]); MAPA_I18N.set(min(r[0]), min(r[i])); MAPA_I18N.set(may(r[0]), may(r[i])); });
-}
-function traducirTexto(t) {
-  if (!MAPA_I18N) return null;
-  const k = t.trim(); if (!k || k.length > 90) return null;
-  const v = MAPA_I18N.get(k); if (v) return t.replace(k, v);
-  const m = k.match(/^(Buenos días|Buenas tardes|Buenas noches), (.+)$/);
-  if (m && SALUDOS[IDIOMA]) return t.replace(k, SALUDOS[IDIOMA][['Buenos días', 'Buenas tardes', 'Buenas noches'].indexOf(m[1])] + ', ' + m[2]);
-  return null;
-}
-function traducir(raiz) {
-  if (!MAPA_I18N || !raiz) return;
-  const w = document.createTreeWalker(raiz, NodeFilter.SHOW_TEXT, { acceptNode: n => n.parentElement && n.parentElement.closest('script,style,textarea,[data-notr]') ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT });
-  const nodos = []; while (w.nextNode()) nodos.push(w.currentNode);
-  nodos.forEach(n => { const v = traducirTexto(n.nodeValue); if (v != null && v !== n.nodeValue) n.nodeValue = v; });
-  (raiz.querySelectorAll ? raiz.querySelectorAll('[placeholder],[title],[aria-label]') : []).forEach(e => ['placeholder', 'title', 'aria-label'].forEach(a => {
-    const x = e.getAttribute(a); if (!x) return; const v = traducirTexto(x); if (v != null && v !== x) e.setAttribute(a, v);
-  }));
-}
 let TR_PEND = new Set(), TR_RAF = 0;
 new MutationObserver(ms => {
   if (!MAPA_I18N) return;
@@ -18252,11 +19772,6 @@ new MutationObserver(ms => {
 }).observe(document.body, { childList: true, subtree: true });
 // Fechas en el idioma elegido
 fechaLarga = (orig => function (d) { return IDIOMA === 'es' ? orig(d) : new Date(d).toLocaleDateString(LOCALES[IDIOMA], { weekday: 'long', day: 'numeric', month: 'long' }); })(fechaLarga);
-function aplicarIdioma(id) {
-  prepararIdioma(id);
-  try { localStorage.setItem('app-idioma', IDIOMA); } catch (e) {}
-  if (MAPA_I18N) traducir(document.body);
-}
 prepararIdioma((() => { try { return localStorage.getItem('app-idioma') || 'es'; } catch (e) { return 'es'; } })());
 if (MAPA_I18N) traducir(document.body);
 // Selector de idioma en Mi perfil
@@ -18294,13 +19809,6 @@ window.addEventListener('resize', () => { if (TAB === 'config') cfgMovil(); });
 
 /* ---------------- ubicación de centros y consultas ---------------- */
 
-function rellenarDireccion(box, i, a) {
-  if (!a) return;
-  const set = (f, v) => { const el = box.querySelector(`[data-cf="${i}|${f}"]`); if (el && v && !el.value.trim()) el.value = v; };
-  set('direccion', [a.road, a.house_number].filter(Boolean).join(', '));
-  set('municipio', (a.city || a.town || a.village || a.municipality || '').toUpperCase());
-  set('cp', a.postcode || ''); set('provincia', (a.province || a.state_district || a.county || a.state || '').toUpperCase());
-}
 // Botones en cada consulta del editor de la ficha
 new MutationObserver(() => {
   const cons = $('econs'); if (!cons) return;
@@ -18358,29 +19866,6 @@ const PROVEEDORES_CORREO = {
 };
 
 
-async function pintarCopias() {
-  const { data: au } = await db.from('auditoria').select('creado_en').eq('accion', 'Copia de seguridad').order('creado_en', { ascending: false }).limit(1);
-  const ultima = au && au[0] ? new Date(au[0].creado_en) : null, dias = ultima ? Math.floor((Date.now() - ultima) / 864e5) : null;
-  $('cfgcuerpo').innerHTML = `<div class="card cfgpanel"><h2>Copias de seguridad</h2>
-    <p class="sm">Descarga en un único archivo todos los datos de la empresa: ${TT('medico', 'p', '', 'l', 'l')}, ${TT('visita', 'p', '', 'l', 'l')}, agenda, clientes, pedidos, facturas, stock y configuración. Las contraseñas no se incluyen.</p>
-    <div class="copiaest ${dias == null || dias > 7 ? 'mal' : 'bien'}"><b>${ultima ? 'Última copia: ' + ultima.toLocaleString('es-ES', { dateStyle: 'long', timeStyle: 'short' }) : 'Todavía no se ha hecho ninguna copia'}</b>
-      <span>${dias == null ? 'Haz la primera ahora.' : dias > 7 ? `Hace ${dias} días: conviene hacer una nueva.` : 'Al día.'}</span></div>
-    <div class="acts" style="margin:12px 0 0"><button class="btn" id="copok">⬇ Descargar copia completa</button></div>
-    <h3 class="mansub">Consejos</h3><ul class="manlist">
-      <li><span>📅</span><span>Haz una copia cada semana y guárdala fuera del ordenador (unidad externa o nube de la empresa).</span></li>
-      <li><span>🔐</span><span>El archivo contiene datos personales: guárdalo en un sitio con acceso restringido.</span></li>
-      <li><span>🤖</span><span>Si quieres que se haga sola cada día, hay una copia automática gratuita con GitHub (pídela a quien te da soporte técnico).</span></li></ul></div>`;
-  $('copok').onclick = async ev => {
-    ev.target.disabled = true; ev.target.textContent = 'Preparando la copia…';
-    const { data, error } = await RPC_ORIG('exportar_datos', {});
-    ev.target.disabled = false; ev.target.textContent = '⬇ Descargar copia completa';
-    if (error || !data) { toast('No se ha podido hacer la copia', true); return; }
-    const b = new Blob([JSON.stringify(data)], { type: 'application/json' });
-    const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = `copia_${nombreApp().replace(/[^\p{L}\p{N}]+/gu, '_')}_${hoyISO()}.json`; a.click();
-    const n = Object.values(data.tablas || {}).reduce((s, t) => s + t.length, 0);
-    toast(`Copia descargada · ${num(n)} registros`); setTimeout(pintarCopias, 800);
-  };
-}
 
 
 
@@ -18488,20 +19973,6 @@ async function conCarga(btn, texto, fn) {
   btn.innerHTML = `<span class="giro"></span>${esc(texto)}`;
   try { return await fn(); } finally { btn.innerHTML = antes; btn.disabled = false; btn.classList.remove('btncarga'); delete btn.dataset.cargando; }
 }
-// Email comprobado mientras se escribe: ✓ verde si es válido, ✗ rojo si no
-function validarEmailEnVivo(inp) {
-  if (!inp || inp.dataset.vemail) return; inp.dataset.vemail = '1';
-  const w = document.createElement('span'); w.className = 'emailw'; inp.parentNode.insertBefore(w, inp); w.appendChild(inp);
-  w.insertAdjacentHTML('beforeend', '<span class="emailico" aria-hidden="true"></span>');
-  const act = () => {
-    const v = inp.value.trim(), ok = /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(v);
-    w.classList.toggle('ok', !!v && ok); w.classList.toggle('mal', !!v && !ok);
-    w.querySelector('.emailico').textContent = !v ? '' : ok ? '✓' : '✗';
-    const err = w.nextElementSibling && w.nextElementSibling.classList.contains('campoerr') ? w.nextElementSibling : null;
-    if (err && ok) { err.remove(); inp.classList.remove('conerr'); }
-  };
-  inp.addEventListener('input', act); act();
-}
 
 
 /* ============================================================
@@ -18516,33 +19987,6 @@ const svgIco = inner => `<svg class="ico" viewBox="0 0 24 24" fill="none" stroke
 const icono = n => `<span class="icw">${svgIco(ICON_NOM[n] || ICON_EMOJI[n] || '')}</span>`;
 const RE_ICO = new RegExp(Object.keys(ICON_EMOJI).sort((a, b) => b.length - a.length).map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') + '|\ufe0f', 'g');
 
-// Sustituye los emojis y glifos por iconos de línea, en todo lo que se pinta
-function iconizar(raiz) {
-  if (!raiz || !raiz.nodeType) return;
-  const el = raiz.nodeType === 1 ? raiz : raiz.parentElement; if (!el) return;
-  if (el.closest && el.closest('script,style,textarea,svg,[data-noico]')) return;
-  const w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, { acceptNode: n => {
-    const p = n.parentElement; if (!p || p.closest('script,style,textarea,svg,[data-noico]')) return NodeFilter.FILTER_REJECT;
-    RE_ICO.lastIndex = 0; return RE_ICO.test(n.nodeValue) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT; } });
-  const nodos = []; while (w.nextNode()) nodos.push(w.currentNode);
-  nodos.forEach(n => {
-    const p = n.parentElement;
-    if (p.tagName === 'OPTION' || p.tagName === 'TITLE') { n.nodeValue = n.nodeValue.replace(RE_ICO, '').replace(/^\s+/, ''); return; }
-    const frag = document.createDocumentFragment(); let ult = 0, m; RE_ICO.lastIndex = 0;
-    const t = n.nodeValue;
-    while ((m = RE_ICO.exec(t))) {
-      if (m.index > ult) frag.appendChild(document.createTextNode(t.slice(ult, m.index)));
-      if (m[0] !== '\ufe0f') { const s = document.createElement('span'); s.className = 'icw'; s.innerHTML = svgIco(ICON_EMOJI[m[0]]); frag.appendChild(s); }
-      ult = m.index + m[0].length;
-    }
-    if (ult < t.length) frag.appendChild(document.createTextNode(t.slice(ult)));
-    n.replaceWith(frag);
-  });
-  // Ayudas «i»
-  (el.matches && el.matches('.ai') ? [el] : []).concat([...(el.querySelectorAll ? el.querySelectorAll('.ai') : [])]).forEach(b => {
-    if (!b.querySelector('svg') && b.textContent.trim() === 'i') b.innerHTML = svgIco(ICON_NOM.info);
-  });
-}
 let ICO_PEND = new Set(), ICO_RAF = 0;
 new MutationObserver(ms => {
   ms.forEach(m => m.addedNodes.forEach(n => ICO_PEND.add(n.nodeType === 1 ? n : n.parentElement)));
@@ -18597,13 +20041,6 @@ Object.assign(ICON_NOM, {"euro": "<path d=\"M4 10h12\" /> <path d=\"M4 14h9\" />
 /* ---------------- menú principal: orden y «Médicos» ---------------- */
 
 const ORDEN_MENU = ['inicio', 'agenda', 'rutas', 'directorio', 'ventas', 'pacientes', 'productos', 'facturacion', 'analitica', 'informe'];
-function ordenarMenu() {
-  const nav = document.querySelector('nav.main .in') || document.querySelector('nav.main'); if (!nav) return;
-  ORDEN_MENU.forEach(t => { const b = nav.querySelector(`:scope > [data-t="${t}"]`); if (b) nav.appendChild(b); });
-  const cal = nav.querySelector('[data-t="seguimiento"]'); if (cal) cal.classList.add('hide', 'fuera');
-  const dir = nav.querySelector('[data-t="directorio"]');
-  if (dir) [...dir.childNodes].forEach(n => { if (n.nodeType === 3 && /Directorio/.test(n.nodeValue)) n.nodeValue = n.nodeValue.replace('Directorio', `${TT('medico', 'p', '', 'l', 'C')}`); });
-}
 ordenarMenu();
 // «Calidad del dato» pasa a ser un botón dentro de Médicos
 function botonCalidad() {
@@ -18873,25 +20310,7 @@ pintarMarca = (orig => async function () {
    v2.47.0 · Correcciones encontradas por la batería de QA
    ============================================================ */
 
-// Auditoría: los cambios se leen como texto (antes salía «[object Object]» con valores complejos)
-function textoValor(v) {
-  if (v == null || v === '') return '—';
-  if (typeof v === 'boolean') return v ? 'sí' : 'no';
-  if (Array.isArray(v)) return v.length ? v.slice(0, 3).map(textoValor).join(', ') + (v.length > 3 ? '…' : '') : '—';
-  if (typeof v === 'object') {
-    if (v.nombre) return String(v.nombre);
-    const k = Object.keys(v); return k.length ? k.slice(0, 3).map(x => `${x}: ${textoValor(v[x])}`).join(', ') + (k.length > 3 ? '…' : '') : '—';
-  }
-  return String(v);
-}
-function resumenDetalle(d) {
-  if (!d) return '';
-  if (typeof d !== 'object') return String(d).slice(0, 120);
-  if (d.nombre && typeof d.nombre !== 'object') return String(d.nombre);
-  const cambios = Object.keys(d).filter(k => Array.isArray(d[k]) && d[k].length === 2).slice(0, 4);
-  if (cambios.length) return cambios.map(k => `${k}: ${textoValor(d[k][0]).slice(0, 24)} → ${textoValor(d[k][1]).slice(0, 24)}`).join(' · ');
-  return Object.keys(d).slice(0, 4).map(k => `${k}: ${textoValor(d[k]).slice(0, 30)}`).join(' · ');
-};
+;
 
 asignarCartera = (orig => async function (id, ...r) { await asegurarUsuario(id); return orig(id, ...r); })(asignarCartera);
 // Una llamada sin fecha se abre con la fecha de ahora (antes fallaba al abrirse)
@@ -19259,10 +20678,6 @@ async function pintarPaginaPlan() {
 
 /* ---------------- «Filtros y columnas» en el panel lateral ---------------- */
 
-// Los filtros propios de cada pantalla se guardan en un contenedor oculto de la pantalla
-// y se llevan al panel lateral al abrirlo (y vuelven al cerrarlo)
-// v2.294 (R-02): los filtros propios son compactos en el panel de la pantalla y normales en el panel lateral: se marca al moverlos
-function chicoEn(el, si) { [el, ...el.querySelectorAll('input, select')].forEach(x => { if (x.matches('input, select')) x.classList.toggle('chico', si); }); return el; }
 new MutationObserver(() => { if (!$('tools').classList.contains('abierto')) htDevolver(); }).observe($('tools'), { attributes: true, attributeFilter: ['class'] });
 function htAbrirLateral(sec) {
   const d = $('tools'), id = sec.id.replace('v-', '');
@@ -19535,11 +20950,6 @@ const ESTADO_MOD = {
   agenda: () => [AG_MODO, AG_FECHA, AG_VISTA ? AG_VISTA.id : ''].join('|')
 };
 let VIA_IR = null;
-function usarCache(t) {
-  const c = CACHE_MOD[t], sec = $('v-' + t);
-  const ok = VIA_IR === t && c && sec && sec.children.length && c.clave === ESTADO_MOD[t]() && c.esc === ESCRITURAS && Date.now() - c.t < 10 * 60000;
-  return !!ok;
-}
 [['inicio', 'cargarInicio'], ['ventas', 'cargarVentas'], ['productos', 'cargarProductosModulo'], ['facturacion', 'cargarFacturacion'],
  ['analitica', 'cargarAnalitica'], ['pacientes', 'cargarPacientes'], ['agenda', 'cargarAgenda']].forEach(([t, fn]) => {
   const orig = window[fn] || eval(fn);
@@ -19584,12 +20994,6 @@ new MutationObserver(ms => ms.forEach(m => {
   }
 })).observe(document.body, { attributes: true, attributeFilter: ['class'], subtree: true });
 ventanaCargando = async function (fn) { const d = $('dlg'); d.classList.add('cargando'); try { return await fn(); } finally { d.classList.remove('cargando'); } };
-// Carga dentro de una tarjeta (paginación, cambios de página): mismo criterio
-function cargaLocal(el) {
-  if (!el) return; el.classList.add('cargandolocal');
-  const t0 = performance.now(); let quietos = 0;
-  const w = setInterval(() => { quietos = PEND === 0 ? quietos + 1 : 0; if ((quietos >= 3 && performance.now() - t0 > 80) || performance.now() - t0 > 4000) { clearInterval(w); el.classList.remove('cargandolocal'); } }, 40);
-}
 document.addEventListener('click', e => { const b = e.target.closest('main .pag button:not(:disabled)'); if (b) cargaLocal(b.closest('.card') || b.closest('.pag').parentElement); }, true);
 document.addEventListener('change', e => { if (e.target.closest('main .pag select')) cargaLocal(e.target.closest('.card') || e.target.closest('.pag').parentElement); }, true);
 // Cambio de pestaña: la vista anterior se queda fija hasta que llegan los datos y la pantalla deja de cambiar
@@ -19612,7 +21016,6 @@ congelar = function (sec) {
 /* ---------------- 4. Tablas: anchos de columna ajustables y recordados por persona ---------------- */
 
 const claveAnchos = tipo => `ht-anchos-${(PERFIL || {}).id || ''}-${tipo}`;
-function anchosGuardados(tipo) { try { return JSON.parse(localStorage.getItem(claveAnchos(tipo))) || null; } catch (e) { return null; } }
 htAplicarColumnas = (orig => function (g) {
   orig(g);
   const tipo = htTipo(g), an = anchosGuardados(tipo);
@@ -19804,17 +21207,6 @@ cargarSeguimiento = (orig => async function (...a) { await orig(...a); const v =
 /* ---------------- 4. IVA: solo los porcentajes (nunca un importe «con IVA») ---------------- */
 
 const ES_IMPORTE = /imp|importe|total|base|precio|pvp|coste|cobro|con_iva|conIva|sin_iva/i;
-function esPorcentajeIva(i) {
-  // Una vez decidido, no cambia (evita que la comprobación y la conversión se contradigan en bucle)
-  if (i.dataset.ivaok) return i.dataset.ivaok === '1';
-  // La etiqueta puede apuntar ya a la lista de IVA (id + «_sel») si el campo se convirtió antes
-  const lab = (((i.id && (document.querySelector(`label[for="${i.id}"]`) || document.querySelector(`label[for="${i.id}_sel"]`))) || i.closest('label') || {}).textContent || '').trim();
-  const clave = i.id + ' ' + (i.dataset.f || '') + ' ' + (i.name || '');
-  const r = !(ES_IMPORTE.test(clave) || /importe|precio|total|base|coste/i.test(lab))
-    && (i.dataset.f === 'iva' || /(^|[_-])iva$/i.test(i.id) || /^[a-z]{0,3}iva$|^penvv$/i.test(i.id) || /^IVA(\s*\(%\)|\s+del servicio(\s*\(%\))?|\s+%)?$|tipo de iva/i.test(lab));
-  i.dataset.ivaok = r ? '1' : '0';
-  return r;
-}
 // Se deshace cualquier conversión errónea (un importe convertido en lista de IVA)
 new MutationObserver(() => {
   document.querySelectorAll('select.ivasel').forEach(sel => {
@@ -19835,14 +21227,6 @@ selectorArchivo = (orig => function (inp) {
   if (prev) { const im = prev.querySelector('img'); if (im && im.src) w.querySelector('.fpmini').innerHTML = `<img src="${im.src}" alt="">`; prev.classList.add('hide'); }
   const lab = cont.querySelector(`label[for="${inp.id}"]`); if (lab) lab.classList.add('hide');
 })(selectorArchivo);
-function notaAmplia(i) {
-  if (!i || i.dataset.nota || i.type !== 'text') return;
-  const txt = (i.id + ' ' + (i.placeholder || '') + ' ' + (((i.id && document.querySelector(`label[for="${i.id}"]`)) || {}).textContent || '')).toLowerCase();
-  if (!/\bnota|observac|comentario/.test(txt) || /buscar/.test(txt)) return;
-  const t = document.createElement('textarea'); [...i.attributes].forEach(a => { if (a.name !== 'type' && a.name !== 'value') t.setAttribute(a.name, a.value); });
-  t.value = i.value; t.rows = 3; t.dataset.nota = '1'; t.classList.add('notaamplia'); i.replaceWith(t);
-  const campo = t.closest('.g2 > div, .g3 > div'); if (campo) campo.classList.add('ocupatodo');
-}
 new MutationObserver(ms => { for (const m of ms) for (const n of m.addedNodes) if (n.nodeType === 1)
   (n.matches && n.matches('input[type=text]') ? [n] : [...n.querySelectorAll('input[type=text]')]).forEach(notaAmplia);
 }).observe(document.body, { childList: true, subtree: true });
@@ -19863,18 +21247,6 @@ new MutationObserver(() => { if (!$('dlg').open) $('dlg').classList.remove('pequ
 /* ---------------- 7. Pila de ventanas: abrir una encima de otra sin perder la anterior ---------------- */
 
 const PILA_VENT = []; let APILANDO = false;
-async function abrirApilada(fn, volverTexto) {
-  const d = $('dlg'), b = $('dbody');
-  PILA_VENT.push({ nodos: [...b.childNodes], clases: d.className, titulo: volverTexto });
-  APILANDO = true;
-  const frag = document.createDocumentFragment(); [...b.childNodes].forEach(n => frag.appendChild(n));
-  if (d.open) d.close();
-  try { await fn(); } finally { APILANDO = false; }
-  if (!d.open) d.showModal();
-  const fh = b.querySelector('.fh');
-  if (fh && !b.querySelector('.pilavolver')) fh.insertAdjacentHTML('beforebegin', `<button class="pilavolver" type="button">${svgIco(ICON_NOM['arrow-left'])} ${esc(volverTexto || 'Volver')}</button>`);
-  const v = b.querySelector('.pilavolver'); if (v) v.onclick = () => d.close();
-}
 $('dlg').addEventListener('close', () => {
   if (APILANDO || !PILA_VENT.length) return;
   const prev = PILA_VENT.pop(), d = $('dlg'), b = $('dbody');
@@ -19986,22 +21358,6 @@ reportarProblema = function () {
 
 /* ---------------- 11. Analítica: «Ventas por canal» junto al embudo ---------------- */
 
-async function graficoCanal() {
-  const emb = [...document.querySelectorAll('#v-analitica .ancard')].find(c => /Embudo comercial/.test(c.querySelector('h2') ? c.querySelector('h2').textContent : ''));
-  if (!emb || $('ancanal')) return;
-  emb.insertAdjacentHTML('afterend', `<div class="card ancard" id="ancanal"><h2>Ventas por canal</h2><div class="cargandolocal" style="min-height:160px"></div>
-    <p class="leer"><b>Cómo leerlo:</b> qué parte de las unidades llega con ${TT('medico', 's', 'un', 'l', 'l')} de referencia y qué parte por venta directa a un centro.</p></div>`);
-  const { data } = await RPC_ORIG('analitica_tabla', { p_dim: 'canal', p_medida: 'unidades' });
-  const filas = (data && data.filas) || [], tot = filas.reduce((s, f) => s + (+f.total || 0), 0);
-  const cols = ['#3F82C0', '#E0762B', '#1BAF7A', '#6E5BC4'];   // v2.107.0: paleta de gráficos de la marca
-  let ang = 0;
-  const arcos = filas.map((f, i) => { const v = (+f.total || 0) / (tot || 1), a0 = ang, a1 = ang + v * 2 * Math.PI; ang = a1;
-    const p = t => [80 + 60 * Math.sin(t), 80 - 60 * Math.cos(t)], [x0, y0] = p(a0), [x1, y1] = p(a1 - 0.0001);
-    return `<path d="M80 80 L${x0} ${y0} A60 60 0 ${a1 - a0 > Math.PI ? 1 : 0} 1 ${x1} ${y1} Z" fill="${cols[i % 4]}"/>`; }).join('');
-  $('ancanal').querySelector('.cargandolocal').outerHTML = tot ? `<div class="donut"><svg viewBox="0 0 160 160" width="160" height="160">${arcos}<circle cx="80" cy="80" r="36" fill="#fff"/><text x="80" y="86" text-anchor="middle" font-size="18" font-weight="700" fill="#0B3A66">${num(tot)}</text></svg>
-      <div class="donutley">${filas.map((f, i) => `<div><i style="background:${cols[i % 4]}"></i><span>${esc(f.nombre)}</span><b>${num(f.total)}</b><span class="sm">${Math.round((+f.total || 0) / tot * 100)}%</span></div>`).join('')}</div></div>`
-    : vacioGrafico('Verás qué parte de las ventas llega por cada canal.');
-}
 new MutationObserver(() => { if (TAB === 'analitica' && !$('ancanal')) graficoCanal(); }).observe($('v-analitica'), { childList: true, subtree: true });
 
 /* ---------------- se aplica en cada pantalla ---------------- */
@@ -20066,28 +21422,6 @@ const pendientesDesde = t0 => { const lim = performance.now() - (Date.now() - t0
   };
 })();
 
-// 2. «Estable»: sin consultas pendientes y sin cambios en el elemento durante 120 ms (como mucho, el tiempo indicado)
-function estable(el, max = 4000, desde) {
-  return new Promise(res => {
-    // Las esperas se miden con el cronómetro interno del navegador (siempre avanza; el reloj puede saltar)
-    const t0 = desde || Date.now() - 5, p0 = performance.now(); let ultimo = p0 - 5, fin = false;
-    // Cuentan los cambios dentro del elemento (no los de su propia clase, que son los del mecanismo de carga)
-    const mo = new MutationObserver(ms => { if (ms.some(m => m.target !== el && !cambioDeCifra(m))) ultimo = performance.now(); });   // v2.269.0
-    mo.observe(el, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'style'] });
-    const listo = () => { if (fin) return; fin = true; mo.disconnect(); res(); };
-    // Pantalla ya cargada: si al terminar la tarea actual no hay consultas ni cambios, se muestra al momento
-    // Una pantalla con esqueletos de carga (recuadros «Cargando…») todavía no está lista
-    const conEsqueletos = () => !!el.querySelector('.skel, .ksk, .cargandolocal');
-    setTimeout(() => { if (pendientesDesde(t0) === 0 && ultimo <= p0 && !conEsqueletos()) listo(); }, 0);
-    const w = setInterval(() => {
-      if (fin) { clearInterval(w); return; }
-      // Solo las consultas lanzadas desde que empezó (las que ya estaban en curso, como la campana, no cuentan)
-      // …y con un respiro de 120 ms desde el último cambio y desde la última consulta terminada (las encadenadas no se toman por el final)
-      const ya = performance.now();
-      if ((pendientesDesde(t0) === 0 && ya - Math.max(ultimo, RED_ULTIMO_FIN) >= 50 && !conEsqueletos()) || ya - p0 > max) { clearInterval(w); listo(); }   // v2.269.0: 50 ms (antes 120)
-    }, 15);
-  });
-}
 
 // 3. Pantallas: se preparan ocultas y se muestran de golpe
 let REVELADO = 0;
@@ -20095,12 +21429,6 @@ function revelar(el, max, desde) {
   if (!el) return; const turno = ++REVELADO;
   el.classList.add('preparando');
   estable(el, max, desde).then(() => { if (turno === REVELADO || !el.matches('main > section')) { el.classList.remove('preparando'); llegar(el); } });
-}
-// v2.92.0: la pantalla recién revelada llega con un fundido corto (las repintadas posteriores no se animan)
-function llegar(el) {
-  if (!el || !el.matches('main > section')) return;
-  el.classList.remove('llega'); void el.offsetWidth; el.classList.add('llega');
-  clearTimeout(el._llega); el._llega = setTimeout(() => el.classList.remove('llega'), 700);
 }
 ir = (orig => function (t) {
   const t0 = Date.now() - 2;
@@ -20412,11 +21740,6 @@ pintarPlan = (orig => function (...a) {
 
 // Agenda del día: paradas abiertas en orden (se preparan al pintar para abrir la navegación al pulsar)
 let TD_PARADAS = [];
-async function prepararParadas(fecha) {
-  // «Tu día» ya tiene sus citas (de la persona y en el orden de la ruta): se usan tal cual
-  TD_PARADAS = (typeof TD_CITAS !== 'undefined' && Array.isArray(TD_CITAS) ? TD_CITAS : []).filter(c => CITA_ABIERTA.includes(c.estado) && xyCita(c));
-  pintarBotonesRuta(fecha);
-}
 
 
 /* ============================================================
@@ -20495,46 +21818,7 @@ const impClave = t => impNorm(t).toUpperCase().replace(/ /g, '_').slice(0, 40) |
 const impHash = s => { let h = 5381; for (const c of s) h = ((h << 5) + h + c.charCodeAt(0)) | 0; return (h >>> 0).toString(36); };
 let IMP = null;   // estado del asistente
 
-// La fila de títulos es la primera con muchos textos (las exportaciones suelen traer filas de encabezado antes)
-function detectarTitulos(filas) {
-  const puntos = filas.slice(0, 15).map(f => f.filter(c => typeof c === 'string' && c.trim() && isNaN(Number(c.replace(',', '.')))).length);
-  const max = Math.max(0, ...puntos); if (max < 2) return 0;
-  return puntos.findIndex(p => p >= max * 0.8);
-}
-// Propone el campo de cada columna: sinónimo exacto, contenido, o parecido
-function proponerCampo(cab, entidad, usados) {
-  const n = impNorm(cab); let mejor = null;
-  const bigr = s => { const r = new Set(); for (let i = 0; i < s.length - 1; i++) r.add(s.slice(i, i + 2)); return r; };
-  const dice = (a, b) => { const A = bigr(a), B = bigr(b); if (!A.size || !B.size) return 0; let c = 0; A.forEach(x => { if (B.has(x)) c++; }); return 2 * c / (A.size + B.size); };
-  for (const [k, , , sin] of IMP_CAMPOS[entidad]) {
-    if (usados.has(k)) continue;
-    let p = 0;
-    for (const s of sin.concat([k])) {
-      const sn = impNorm(s);
-      if (n === sn) p = Math.max(p, 100);
-      else if (n.split(' ').includes(sn) || (sn.length > 3 && n.includes(sn))) p = Math.max(p, 75);
-      else p = Math.max(p, Math.round(dice(n, sn) * 70));
-    }
-    if (p >= 55 && (!mejor || p > mejor.p)) mejor = { k, p };
-  }
-  return mejor ? mejor.k : null;
-}
-function valorCelda(v) {
-  if (v == null) return '';
-  if (v instanceof Date) return isNaN(v) ? '' : `${v.getFullYear()}-${String(v.getMonth() + 1).padStart(2, '0')}-${String(v.getDate()).padStart(2, '0')}`;
-  return String(v).trim();
-}
 
-async function pintarImportaciones() {
-  const { data } = await RPC_ORIG('importaciones_lista', {});
-  const l = data || [], nom = Object.fromEntries(IMP_TIPOS().map(x => [x[0], x[1]]));
-  $('cfgcuerpo').innerHTML = `<div class="card cfgpanel"><h2>Importaciones</h2>
-    <p class="sm">Cada importación se puede deshacer: se borra lo que creó (lo que actualizó se conserva, y no se borra lo que ya se use en pedidos, facturas o citas).</p>
-    <div class="errlista">${l.map(x => `<div class="errfila e-${x.estado === 'Deshecha' ? 'api' : 'reporte'}"><div><b>${esc(nom[x.entidad] || x.entidad)} · ${esc(x.archivo || '')}</b>
-      <span class="sm">${new Date(x.creado_en).toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' })} · ${esc(x.usuario || '—')} · ${num(x.filas)} filas: ${num(x.creados)} creados, ${num(x.actualizados)} actualizados, ${num(x.errores)} con errores · <b>${esc(x.estado)}</b></span></div>
-      ${x.estado !== 'Deshecha' ? `<button class="btn sec" type="button" data-impdes="${x.id}">${svgIco(ICON_NOM['undo-2'])} Deshacer</button>` : '<span></span>'}</div>`).join('') || '<div class="vacio">Aún no se ha importado ningún archivo.</div>'}</div></div>`;
-  $('cfgcuerpo').querySelectorAll('[data-impdes]').forEach(b => b.onclick = () => impDeshacer(b.dataset.impdes));
-}
 // Configuración → Datos → Importar datos (administración)
 arbolConfig = (orig => function () {
   const g = orig();
@@ -20559,16 +21843,6 @@ const CAMPO_TABLA = { medico: 'cuentas', cliente: 'contactos', producto: 'produc
 const TIPOS_CAMPO = [['lista', 'Lista de valores'], ['texto', 'Texto'], ['numero', 'Número'], ['fecha', 'Fecha'], ['si_no', 'Sí / No']];
 const campoTexto = (c, v) => v == null || v === '' ? '' : c && c.tipo === 'si_no' ? (v === true || v === 'true' ? 'Sí' : 'No')
   : c && c.tipo === 'fecha' ? fechaCorta(String(v)) : c && c.tipo === 'numero' ? String(v).replace('.', ',') : String(v);
-function campoInput(c, v) {
-  const a = `data-cpk="${esc(c.clave)}" ${c.solo_lectura ? 'disabled' : ''}`;
-  const val = v == null ? '' : v;
-  if (c.tipo === 'lista') return `<select ${a}><option value=""></option>${(c.valores || []).concat(val && !(c.valores || []).includes(val) ? [val] : [])
-    .map(x => `<option ${x === val ? 'selected' : ''}>${esc(x)}</option>`).join('')}</select>`;
-  if (c.tipo === 'si_no') return `<select ${a}><option value=""></option><option value="true" ${val === true ? 'selected' : ''}>Sí</option><option value="false" ${val === false ? 'selected' : ''}>No</option></select>`;
-  if (c.tipo === 'fecha') return `<input type="date" ${a} value="${esc(String(val))}">`;
-  if (c.tipo === 'numero') return `<input type="text" inputmode="decimal" ${a} value="${esc(String(val).replace('.', ','))}">`;
-  return `<input ${a} value="${esc(String(val))}" maxlength="500" placeholder="${esc(c.descripcion || '')}">`;
-}
 // Filtros generados (listas y sí/no) para una zona de filtros; al cambiar, actualiza «estado» y llama a «alCambiar»
 function camposFiltros(amb, estado, pref) {
   return (CAMPOS[amb] || []).filter(c => c.en_filtro && ['lista', 'si_no'].includes(c.tipo)).map((c, i) => {
@@ -20606,25 +21880,6 @@ function tarjetaCentro(c, enlazado) {
       ${c.lat ? `<button type="button" class="btn sec" data-nav="${navAttr([+c.lat, +c.lon])}">Cómo llegar</button>` : ''}
       ${enlazado ? '<button type="button" class="btn sec" data-cpeditar>Editar centro</button>' : '<button type="button" class="btn" data-cpenlazar>Enlazar con un centro</button>'}
       <button type="button" class="btn sec" data-cpcambiar>Cambiar</button></div></div>`;
-}
-// «Estoy aquí»: primero los centros que ya tenemos a menos de 250 m; si no, centro nuevo con los datos del mapa
-async function estoyAqui(box, i, b) {
-  if (!navigator.geolocation) { toast('Este dispositivo no da la ubicación', true); return; }
-  const txt = b.textContent; b.disabled = true; b.textContent = 'Localizando…';
-  try {
-    const pos = await new Promise((ok, ko) => navigator.geolocation.getCurrentPosition(ok, ko, { enableHighAccuracy: true, timeout: 12000, maximumAge: 30000 }));
-    const lat = +pos.coords.latitude.toFixed(6), lon = +pos.coords.longitude.toFixed(6);
-    const { data } = await RPC_ORIG('buscar_centros', { p_q: null, p_lat: lat, p_lon: lon, p_radio: 250, p_lim: 6 });
-    const cerca = data || [];
-    const res = box.querySelector(`[data-cp="${i}"] .cpres`);
-    if (cerca.length && res) {
-      res.innerHTML = '<div class="sm cpaviso">¿Estás en uno de estos centros?</div>';
-      const cont = document.createElement('div'); res.appendChild(cont);
-      listaCentros(cont, cerca, cen => { cpPoner(box, i, cen); pintarCentroSel(box, i); toast('Centro elegido: ' + cen.nombre); },
-        '<button type="button" class="cpitem cpnuevo">No, es otro centro: crearlo con mi ubicación</button>', () => centroDesdeUbicacion(box, i, lat, lon));
-    } else await centroDesdeUbicacion(box, i, lat, lon);
-  } catch (err) { toast('No se ha podido obtener tu ubicación: revisa el permiso de ubicación del navegador', true); }
-  finally { b.disabled = false; b.textContent = txt; }
 }
 // Formulario de centro (nuevo o corregir): los mismos datos de siempre, con horario de apertura
 function formCentro(box, i, c, aviso) {
@@ -20714,131 +21969,14 @@ abrirVisita = (orig => async function (id, ...a) {
 const CLAS_MAX_LISTA = 15;   // hasta este número de valores, desplegable; con más, buscador
 const CLAS_VALORES = {};     // por ámbito: valores que ya tienen las fichas en cada campo
 const clasNorm = s => String(s == null ? '' : s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-// Los mismos criterios que campos_cumplen() en la base (para Productos, que se filtra aquí)
-function clasCumple(v, f) {
-  v = v || {};
-  return Object.entries(f || {}).every(([k, c]) => {
-    const x = v[k];
-    if (!c || typeof c !== 'object') return x === c;
-    if ('contiene' in c && !clasNorm(x).includes(clasNorm(c.contiene))) return false;
-    for (const op of ['desde', 'hasta']) {
-      if (!(op in c)) continue;
-      if (x == null || x === '') return false;
-      const a = typeof c[op] === 'number' ? +x : String(x);
-      if (typeof a === 'number' && isNaN(a)) return false;
-      if (op === 'desde' ? a < c[op] : a > c[op]) return false;
-    }
-    return true;
-  });
-}
 // Campos de la pantalla: primero los marcados como «Filtro», después el resto (en su orden)
 const clasCampos = amb => [...(CAMPOS[amb] || [])].sort((a, b) => (b.en_filtro ? 1 : 0) - (a.en_filtro ? 1 : 0));
-function clasColsGuardadas(amb) { try { return JSON.parse(localStorage.getItem('clas-cols-' + amb)) || {}; } catch (e) { return {}; } }
-// Columnas visibles: lo que haya elegido la persona o, si no ha elegido, «Columna en la tabla»
-function clasVisibles(amb) {
-  const g = clasColsGuardadas(amb);
-  return (CAMPOS[amb] || []).filter(c => c.clave in g ? g[c.clave] : c.en_tabla);
-}
-function clasVeColumna(amb, clave) {
-  if (amb === 'medico') return !!(colsConfig().find(c => c.k === 'cp:' + clave) || {}).on;
-  return clasVisibles(amb).some(c => c.clave === clave);
-}
-function clasPonerColumna(amb, clave, on) {
-  // Cuentas: sus columnas se guardan con las demás de la tabla (Elegir columnas)
-  if (amb === 'medico') {
-    const D = colsConfig(), x = D.find(c => c.k === 'cp:' + clave);
-    if (x) x.on = on; else D.push({ k: 'cp:' + clave, on, w: 150 });
-    colsGuardar(D); return;
-  }
-  const g = clasColsGuardadas(amb); g[clave] = on;
-  try { localStorage.setItem('clas-cols-' + amb, JSON.stringify(g)); } catch (e) { /* sin almacenamiento: dura hasta recargar */ }
-}
 const clasCabeceras = cols => cols.map(c => `<span class="cpcol">${esc(c.nombre)}</span>`).join('');
 const clasCeldas = (cols, v) => cols.map(c => { const t = campoTexto(c, (v || {})[c.clave]); return `<span class="sm">${t ? esc(t) : '<span class="vac">—</span>'}</span>`; }).join('');
-// Las columnas de los campos se añaden a la rejilla de la tabla
-function clasRejilla(g, n) {
-  if (!g || !n) return;
-  const cs = getComputedStyle(g);
-  g.style.setProperty('--cols', cs.getPropertyValue('--cols').trim() + ' 130px'.repeat(n));
-  g.style.minWidth = (parseInt(cs.minWidth) || 900) + 140 * n + 'px';
-}
-// Texto de un filtro activo (para los chips)
-function clasTextoFiltro(c, f) {
-  if (f && typeof f === 'object') {
-    if ('contiene' in f) return `${c.nombre} contiene «${f.contiene}»`;
-    const t = x => campoTexto(c, x);
-    return 'desde' in f && 'hasta' in f ? `${c.nombre}: de ${t(f.desde)} a ${t(f.hasta)}` : 'desde' in f ? `${c.nombre}: desde ${t(f.desde)}` : `${c.nombre}: hasta ${t(f.hasta)}`;
-  }
-  return `${c.nombre}: ${campoTexto(c, f)}`;
-}
 const clasChips = (amb, estado) => Object.keys(estado || {}).map(k => {
   const c = (CAMPOS[amb] || []).find(x => x.clave === k) || { clave: k, nombre: k };
   return { k, t: clasTextoFiltro(c, estado[k]) };
 });
-async function clasCargarValores(amb) {
-  const { data } = await db.rpc('valores_campos', { p_ambito: amb });
-  if (data) CLAS_VALORES[amb] = data;
-  return CLAS_VALORES[amb] || {};
-}
-// Control de filtro de un campo según su tipo y cuántos valores tiene
-function clasControl(c, act, vals, id) {
-  const a = `id="${id}"`;
-  if (c.tipo === 'si_no') return `<select ${a} data-clv><option value="">Todos</option>${[['true', 'Sí'], ['false', 'No']].map(([v, t]) =>
-    `<option value="${v}" ${act === (v === 'true') ? 'selected' : ''}>${t}</option>`).join('')}</select>`;
-  if (c.tipo === 'numero' || c.tipo === 'fecha') {
-    const r = act && typeof act === 'object' ? act : {}, tipo = c.tipo === 'fecha' ? 'type="date"' : 'type="text" inputmode="decimal"';
-    const val = x => x == null ? '' : esc(c.tipo === 'numero' ? String(x).replace('.', ',') : String(x));
-    return `<div class="clasrango"><input ${a} ${tipo} data-clr="desde" value="${val(r.desde)}" placeholder="Desde" aria-label="${esc(c.nombre)}: desde">
-      <input ${tipo} data-clr="hasta" value="${val(r.hasta)}" placeholder="Hasta" aria-label="${esc(c.nombre)}: hasta"></div>`;
-  }
-  const lista = c.tipo === 'lista' ? (c.valores || []) : (vals[c.clave] || []);
-  if (lista.length <= CLAS_MAX_LISTA) {
-    const ops = typeof act === 'string' && act && !lista.includes(act) ? lista.concat([act]) : lista;
-    return `<select ${a} data-clv><option value="">Todos</option>${ops.map(v => `<option ${act === v ? 'selected' : ''}>${esc(v)}</option>`).join('')}</select>`;
-  }
-  // Muchos valores: buscador con sugerencias
-  const txt = act && typeof act === 'object' ? act.contiene || '' : typeof act === 'string' ? act : '';
-  return `<input ${a} type="search" data-clbus list="${id}_l" value="${esc(txt)}" placeholder="Escribe para buscar" autocomplete="off">
-    <datalist id="${id}_l">${lista.map(v => `<option value="${esc(v)}">`).join('')}</datalist>`;
-}
-// Sección «Clasificadores»: un filtro y la casilla «Columna» por cada campo de la pantalla
-async function clasPintar(cont, amb, estado, alCambiar, alColumna, titulo) {
-  if (!cont) return;
-  const campos = clasCampos(amb);
-  const cab = titulo === 'h3' ? '<h3 style="margin-top:18px">Clasificadores</h3>' : '<h4>Clasificadores</h4>';
-  if (!campos.length) {
-    cont.innerHTML = puedeCatalogos() ? `<div class="htbloque clasif">${cab}<p class="sm">Esta pantalla aún no tiene campos propios. Se crean en Configuración → Clasificadores.</p></div>` : '';
-    return;
-  }
-  const vals = campos.some(c => c.tipo === 'texto' || (c.tipo === 'lista' && (c.valores || []).length > CLAS_MAX_LISTA)) ? await clasCargarValores(amb) : {};
-  if (!cont.isConnected) return;
-  const pref = 'clas_' + amb + '_';
-  cont.innerHTML = `<div class="htbloque clasif">${cab}${campos.map((c, i) => `<div class="clascampo" data-clk="${esc(c.clave)}">
-      <div class="clascab"><label for="${pref}${i}">${esc(c.nombre)}</label>
-        <label class="clascol" title="Ver «${esc(c.nombre)}» como columna de la tabla"><input type="checkbox" data-clcol ${clasVeColumna(amb, c.clave) ? 'checked' : ''}> Columna</label></div>
-      ${clasControl(c, estado[c.clave], vals, pref + i)}</div>`).join('')}</div>`;
-  cont.querySelectorAll('[data-clk]').forEach(b => {
-    const k = b.dataset.clk, c = campos.find(x => x.clave === k);
-    const sel = b.querySelector('select[data-clv]');
-    if (sel) sel.onchange = () => { if (!sel.value) delete estado[k]; else estado[k] = c.tipo === 'si_no' ? sel.value === 'true' : sel.value; alCambiar(); };
-    const bus = b.querySelector('input[data-clbus]');
-    if (bus) { let t; bus.oninput = () => { clearTimeout(t); t = setTimeout(() => { const x = bus.value.trim(); if (x) estado[k] = { contiene: x }; else delete estado[k]; alCambiar(); }, 400); }; }
-    const rs = [...b.querySelectorAll('input[data-clr]')];
-    rs.forEach(r => r.onchange = () => {
-      const o = {};
-      for (const z of rs) {
-        const v = z.value.trim(); if (!v) continue;
-        const n = c.tipo === 'numero' ? +v.replace(',', '.') : v;
-        if (c.tipo === 'numero' && isNaN(n)) { toast(`«${c.nombre}» tiene que ser un número`, true); return; }
-        o[z.dataset.clr] = n;
-      }
-      if (Object.keys(o).length) estado[k] = o; else delete estado[k];
-      alCambiar();
-    });
-    const col = b.querySelector('[data-clcol]');
-    if (col) col.onchange = () => { clasPonerColumna(amb, k, col.checked); alColumna(); };
-  });
-}
 
 /* ---------- Clientes, Pedidos y Productos: la sección va en el panel lateral ---------- */
 const CLAS_PANT = {
@@ -20847,10 +21985,6 @@ const CLAS_PANT = {
   productos: { amb: 'producto', estado: () => PRODF, recargar: () => pintarProductos(), activo: () => PSEC === 'productos' }
 };
 const clasPantalla = sec => { const P = sec && CLAS_PANT[sec.id.replace('v-', '')]; return P && (!P.activo || P.activo()) ? P : null; };
-function clasPintarLateral(sec) {
-  const P = clasPantalla(sec), cont = $('tools').querySelector('.htclas');
-  if (P && cont && htLateralAbierto() && HERR_CTX === 'ht-' + sec.id.replace('v-', '')) clasPintar(cont, P.amb, P.estado(), P.recargar, P.recargar);
-}
 htAbrirLateral = (orig => function (sec) {
   orig(sec);
   const d = $('tools'), auto = d.querySelector('.htauto');
@@ -21164,12 +22298,6 @@ document.addEventListener('change', e => {
   if (n !== +i.value) { i.value = n; i.dispatchEvent(new Event('input', { bubbles: true })); }
 }, true);
 
-/* v2.109.0 · Las ventanas no muestran lo escrito en otras ocasiones. El navegador sugería, por ejemplo, la nota del pedido
-   anterior al crear uno nuevo: los campos de las ventanas y de las pantallas no guardan historial (salvo los que lo piden). */
-function sinHistorial(raiz) {
-  (raiz || document).querySelectorAll('input:not([autocomplete]):not([type=checkbox]):not([type=radio]):not([type=file]):not([type=hidden]), textarea:not([autocomplete])')
-    .forEach(i => i.setAttribute('autocomplete', 'off'));
-}
 // Una pasada por fotograma como mucho, aunque la pantalla cambie muchas veces seguidas
 let sinHistorialPend = false;
 const sinHistorialLuego = () => { if (sinHistorialPend) return; sinHistorialPend = true; requestAnimationFrame(() => { sinHistorialPend = false; sinHistorial(document.body); }); };
@@ -21215,27 +22343,8 @@ pintarRoles = (orig => async function (...a) {
    2. F5 (o Ctrl+R) recarga la app y vuelve a la pantalla en la que se estaba; Ctrl+F5 (o Ctrl+Mayús+R) entra de cero. */
 const TECLA_LISTAS = '.gsug, .cpres, .lista, .dgrid, [role=listbox], table';
 const teclaVisible = x => x.offsetParent !== null && !x.classList.contains('hide');
-function teclaLista(inp) {
-  const caja = inp.closest('.gsearch, .picker, .cpbus');
-  if (caja) return caja.querySelector('.gsug, .cpres');
-  // Lo primero con resultados que haya después del buscador, en su ventana o en su pantalla
-  const zona = inp.closest('dialog, section, .card') || document.body;
-  return [...zona.querySelectorAll(TECLA_LISTAS)].find(l => (inp.compareDocumentPosition(l) & Node.DOCUMENT_POSITION_FOLLOWING)
-    && !l.closest('.hide') && teclaItems(l).length) || null;
-}
-function teclaItems(l) {
-  const xs = l.matches('table') ? [...l.querySelectorAll(':scope > tbody > tr')]
-    : l.matches('.dgrid') ? [...l.querySelectorAll(':scope > .dr')]
-    : l.matches('.lista') ? [...l.children]
-    : [...l.querySelectorAll('button, [role=option], a[href]')];
-  return xs.filter(x => teclaVisible(x) && !x.matches('.gsh, .gload, .vacio, [disabled]'));
-}
 // Solo los buscadores: los de tipo búsqueda y los campos con su lista de resultados justo debajo
 const esBuscador = i => i && i.matches && i.matches('input') && !i.list && (i.type === 'search' || (!!i.nextElementSibling && i.nextElementSibling.matches('.gsug, .cpres, .lista, [role=listbox]')));
-function teclaActivar(x) {
-  const b = x.matches('button, a[href], [role=option], tr, .dr') ? x : (x.querySelector('button, a[href], [data-inificha]') || x);
-  b.click();
-}
 document.addEventListener('keydown', e => {
   if (!['ArrowDown', 'ArrowUp', 'Enter'].includes(e.key) || e.altKey || e.ctrlKey || e.metaKey || !esBuscador(e.target)) return;
   const l = teclaLista(e.target); if (!l) return;
@@ -21273,12 +22382,6 @@ document.addEventListener('keydown', e => {
   } catch (x) {}
   // La recarga la hace el navegador (en Ctrl+F5, sin caché)
 });
-function pantallaTrasF5() {
-  let v = null;
-  try { v = JSON.parse(sessionStorage.getItem('dlc-f5') || 'null'); sessionStorage.removeItem('dlc-f5'); } catch (x) { v = null; }
-  // Solo si se acaba de pulsar (una recarga horas después, o desde el botón del navegador, entra por el inicio)
-  return v && v.t && Date.now() - (v.h || 0) < 60000 ? v : null;
-}
 
 // v2.112.0 · Ventanas: al abrir, el foco no se queda en la X (se veía un recuadro de foco sin haber usado el teclado)
 // y, al desplazar una ventana larga, la cabecera muestra una línea de separación
@@ -21307,16 +22410,6 @@ function pantallaTrasF5() {
    guardado en la tabla pedidos_justificantes. Lo ve quien ve el pedido. */
 const JUSTIF_MAX = 3000000;
 const aBase64 = blob => new Promise((ok, mal) => { const fr = new FileReader(); fr.onload = () => ok(String(fr.result).split(',')[1] || ''); fr.onerror = mal; fr.readAsDataURL(blob); });
-async function verJustificante(id) {
-  const { data, error } = await db.from('pedidos_justificantes').select('nombre,tipo,datos').eq('id', id).single();
-  if (error || !data) { toast('No se ha podido abrir el justificante', true); return; }
-  const bin = atob(data.datos), u8 = new Uint8Array(bin.length);
-  for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
-  const url = URL.createObjectURL(new Blob([u8], { type: data.tipo }));
-  const w = window.open(url, '_blank');
-  if (!w) { const a = document.createElement('a'); a.href = url; a.download = data.nombre; a.click(); }
-  setTimeout(() => URL.revokeObjectURL(url), 60000);
-}
 
 // Ver pedido · Pago: origen, referencia (editable por quien lleva la operativa) y justificantes (añadir, ver y quitar)
 async function pedidoPago(id) {
@@ -21566,16 +22659,6 @@ function areaEncaje() {
   if (PAGINAS[TAB]) return document.querySelector(`#v-${TAB} .pagcuerpo`) || $('cfgcuerpo');
   return null;
 }
-// v2.122.0: la ventana va EN la página, en el sitio del apartado (antes flotaba encima con posición absoluta y su propio desplazamiento).
-// Se devuelve a <body> antes de cerrarse, para que los repintados del apartado no se la lleven por delante.
-function colocarEncajada(d, area) {
-  // v2.134.0: con el menú lateral, nav.main ocupa toda la altura y no es cabecera (daba el alto de la pantalla)
-  const cab = Math.max(0, ...['header', '.top', document.body.classList.contains('menulat') ? '' : 'nav.main'].filter(Boolean).map(q => { const e = document.querySelector(q); return e && getComputedStyle(e).position.match(/fixed|sticky/) ? e.getBoundingClientRect().bottom : 0; }));
-  document.documentElement.style.setProperty('--alto-cab', cab + 'px');
-}
-function devolverEncajada(d) {
-  if (d.__casa && d.parentNode !== d.__casa) d.__casa.appendChild(d);
-}
 ['dlg', 'dlg2'].forEach(id => {
   const d = $(id); if (!d) return;
   const modal = d.showModal.bind(d);
@@ -21642,49 +22725,9 @@ const CAMPO_TXT = { nombre: 'Nombre', estado_comercial: 'Estado', get especialid
 const campoTxt = k => CAMPO_TXT[k] || (k.charAt(0).toUpperCase() + k.slice(1).replace(/_/g, ' '));
 const MOTIVO_DESHACER = { permiso: 'No tienes permiso', no_existe: 'Ese cambio ya no está en el registro', no_deshacible: 'Ese tipo de cambio no se puede deshacer',
   ya_no_existe: 'El registro ya no existe', ya_existe: 'Ya estaba recuperado' };
-async function deshacerUno(id, despues) {
-  const { data: s } = await db.rpc('deshacer_cambio', { p_id: id, p_simular: true });
-  if (!s || !s.ok) { toast(MOTIVO_DESHACER[(s && s.motivo) || ''] || (s && s.motivo) || 'No se puede deshacer', true); return; }
-  if (!(s.campos || []).length) { toast('No hay nada que deshacer: esos datos se han vuelto a cambiar después', true); return; }
-  if (!await preguntar(`Volverán a su valor de antes: ${s.campos.map(campoTxt).join(', ')}. Lo que se haya cambiado después no se toca.`, { titulo: 'Deshacer el cambio', ok: 'Deshacer' })) return;
-  const { data: r, error } = await db.rpc('deshacer_cambio', { p_id: id, p_simular: false });
-  if (error || !r || !r.ok) { toast('No se ha podido deshacer: ' + ((r && (MOTIVO_DESHACER[r.motivo] || r.motivo)) || (error && error.message) || ''), true); return; }
-  toast('Cambio deshecho'); if (despues) despues();
-}
-function cajaDeshacerPersona(caja, usuario, desde, nombre, despues) {
-  if (!caja) return;
-  if (!usuario || !desde) { caja.innerHTML = ''; return; }
-  caja.innerHTML = `<div class="card" id="audpersona" style="margin:0 16px 10px"><h3>Deshacer los cambios de ${esc(nombre.trim())}</h3>
-    <p class="sm">Todo lo que cambió o borró en fichas, ${TT('consulta', 'p', '', 'l', 'l')}, clientes, productos y rutas desde el ${fechaCorta(desde)}. Lo que otra persona haya cambiado después no se toca.</p>
-    <div class="acts" style="margin:6px 0 0"><button type="button" class="btn sec" id="audsim">Ver qué se desharía</button></div><div id="audres" class="sm"></div></div>`;
-  $('audsim').onclick = async ev => {
-    ev.target.disabled = true;
-    const { data: s } = await db.rpc('deshacer_persona', { p_usuario: usuario, p_desde: desde + 'T00:00:00', p_simular: true });
-    ev.target.disabled = false;
-    if (!s || !s.ok) { toast('No se ha podido calcular', true); return; }
-    const nom = { cuentas: 'fichas', ubicaciones: TT('consulta', 'p', '', 'l', 'l'), contactos: 'clientes', productos: 'productos', rutas: 'rutas' };
-    if (!s.cambios) { $('audres').textContent = 'No hay nada que deshacer en ese periodo (o ya se ha vuelto a cambiar).'; return; }
-    $('audres').innerHTML = `Se desharían <b>${num(s.cambios)}</b> cambios (${num(s.campos)} datos): ${Object.entries(s.por_entidad || {}).map(([k, n]) => `${num(n)} en ${nom[k] || k}`).join(', ')}.
-      ${s.sin_deshacer ? ` ${num(s.sin_deshacer)} no se pueden deshacer porque se han vuelto a cambiar después.` : ''}
-      <div class="acts" style="margin:8px 0 0"><button type="button" class="btn" id="audok">Deshacer ${num(s.cambios)} cambios</button></div>`;
-    $('audok').onclick = async ev2 => {
-      if (!await preguntar(`Se desharán ${num(s.cambios)} cambios de ${nombre.trim()} desde el ${fechaCorta(desde)}. Queda registrado y cada uno se puede volver a cambiar a mano.`, { titulo: 'Deshacer sus cambios', ok: 'Deshacer' })) return;
-      ev2.target.disabled = true;
-      const { data: r } = await db.rpc('deshacer_persona', { p_usuario: usuario, p_desde: desde + 'T00:00:00', p_simular: false });
-      if (!r || !r.ok) { ev2.target.disabled = false; toast('No se ha podido deshacer', true); return; }
-      toast(`Deshechos ${num(r.cambios)} cambios`); if (despues) despues();
-    };
-  };
-}
 abrirFicha = (orig => async function (id, ...a) { const r = await orig.call(this, id, ...a); fichaHistorial(id); return r; })(abrirFicha);
 
 
-/* v2.125.0 · Nueva venta y Oportunidades. Un solo recorrido para vender (antes «Registrar llamada» y «+ Nuevo pedido» por separado):
-   1 cliente (buscar o ficha nueva, con lo que ya sabemos de él), 2 qué quiere (productos y unidades, médico de referencia, cómo llegó),
-   3 cómo termina (pedido o motivo de no compra y cuándo volver a llamar). Con el extra «Oportunidades» de la organización, cada venta
-   queda registrada con su día y hora, lo que quería y cuánto, se cierre con pedido o no; sin él, el recorrido lleva al pedido. */
-// v2.242.0: aquí iba la primera versión de hayOportunidades (se redefine entera más abajo)
-function extraNombre(k) { return { oportunidades: 'Oportunidades', portal: 'Portal' }[k] || k; }
 const NV_DIAS = [['Mañana', 1], ['En 3 días', 3], ['En una semana', 7], ['En un mes', 30]];
 const nvLinea = (pid, u) => { const p = PRODUCTOS.find(x => x.id === pid) || {}; return p.precio != null ? r2(p.precio * (1 + (+p.iva || 0) / 100) * (+u || 0)) : 0; };
 
@@ -21790,12 +22833,6 @@ const motivoPortal = r => MOTIVO_PORTAL[(r && r.motivo) || ''] || 'No se ha podi
 const horaCorta = f => new Date(f).toLocaleString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
 const pillMaterial = e => `<span class="pill ${e === 'Pendiente' ? 'p-warn' : e === 'Entregado' ? 'p-est' : 'p-anu'}">${esc(e)}</span>`;
 
-// Mensajes: el hilo de una ficha (el médico ve los suyos; quien lleva la ficha, los de esa ficha)
-function hiloMensajes(l, yoMedico) {
-  return l.length ? `<div class="hilo">${l.map(x => `<div class="msj ${x.del_portal === yoMedico ? 'mio' : 'suyo'}"><div>${esc(x.texto)}</div>
-      <span class="sm">${x.del_portal ? TT('medico', 's', '', 'l', 'C') : 'Equipo'} · ${horaCorta(x.creado_en)}</span></div>`).join('')}</div>`
-    : '<div class="sm">Todavía no hay mensajes.</div>';
-}
 
 // ——— Lado del médico ———
 async function portalMedico() {
@@ -22409,16 +23446,6 @@ HT_FILTROS.ventas = "#v-ventas .filtros";
 /* v2.144.0 · Páginas propias: la acción principal («+ Nuevo usuario», «+ Nueva organización») sube a la derecha de la cabecera, como
    «+ Nueva venta» en el resto de pantallas (regla de Eric: misma posición en todas). Antes iba dentro de la tarjeta, junto al buscador. */
 const ACCION_PAGINA = ['usrnuevo', 'orgnueva'];
-function subirAccionPagina() {
-  if (typeof PAGINAS === 'undefined' || !PAGINAS[TAB]) return;
-  const sec = $('v-' + TAB), sal = sec && sec.querySelector(':scope > .saludo'); if (!sal) return;
-  ACCION_PAGINA.forEach(id => {
-    const b = $(id); if (!b || !sec.contains(b) || b.closest('.saludo')) return;
-    let acts = sal.querySelector(':scope > .acts');
-    if (!acts) { sal.insertAdjacentHTML('beforeend', '<div class="acts htacts"></div>'); acts = sal.querySelector(':scope > .acts'); }
-    acts.appendChild(b);
-  });
-}
 let ACCION_PAG_PEND = false;
 new MutationObserver(() => {
   if (ACCION_PAG_PEND) return; ACCION_PAG_PEND = true;
@@ -22434,175 +23461,19 @@ new MutationObserver(() => {
 let RPROP = null;   // { manana, fecha, datos, lista: [{ sel, ini, fin, km, zona }] }
 const RP_JORNADA = 300;   // minutos de una jornada de propuestas (5 h) si la ruta no dice otra cosa
 const RP_DIAS = { L: 'lunes', M: 'martes', X: 'miércoles', J: 'jueves', V: 'viernes' };
-function rpMotivos() {
-  const g = terminoDe('medico').g === 'f' ? 'a' : 'o';
-  return {
-    urgente: ['urgente', 'urgentes', 'p-urg'],
-    consulta: ['atiende', 'atienden', 'p-est'],
-    interes: [TT('medico', 's', '', 'l', 'l', 'interesado'), TT('medico', 'p', '', 'l', 'l', 'interesado'), 'p-warn'],
-    pendiente: ['pendiente de otra ruta', 'pendientes de otras rutas', 'p-per'],
-    cliente: ['buen cliente sin ' + TT('visita', 's', '', 'l', 'l'), 'buenos clientes sin ' + TT('visita', 's', '', 'l', 'l'), 'p-est'],
-    nuevo: ['nunca visitad' + g, 'nunca visitad' + g + 's', 'p-anu']
-  };
-}
-function rpObjetivo(manana) {
-  const d = new Date(), finde = d.getDay() === 0 || d.getDay() === 6;
-  if (manana === undefined) manana = finde || d.getHours() * 60 + d.getMinutes() >= 13 * 60;
-  if (finde) manana = true;
-  return { manana, finde, fecha: manana ? siguienteLaborable() : hoyISO() };
-}
 const rpNombreDia = f => {
   const man = new Date(); man.setDate(man.getDate() + 1);
   return f === hoyISO() ? 'hoy' : f === isoLocal(man) ? 'mañana' : 'el ' + fechaLarga(new Date(f + 'T00:00:00')).replace(/,.*/, '');
 };
 
-// Tiempos de una propuesta con los minutos por visita y por parada de cada uno
-function rpTiempos(sel, t0) {
-  const cfg = PLANCFG(), sal = salidaUsuario();
-  let pos = sal.lat != null ? [+sal.lat, +sal.lon] : null, t = t0, kms = 0, paradas = 0;
-  sel.forEach(c => {
-    const xy = [+c.lat, +c.lon], mismo = pos && km(pos, xy) < 0.05;
-    if (!mismo) { if (pos) { t += minutosEntre(pos, xy); kms += km(pos, xy); } t += cfg.parada; paradas++; }
-    t += cfg.visita; pos = xy;
-  });
-  return { fin: t, km: kms, paradas };
-}
 
-// Arma hasta 3 rutas de un día: la zona con más puntos, y desde su mejor candidato se va sumando el que más vale a cada paso
-// (puntos menos 4 por km), sin salir de 25 km ni pasar de la jornada.
-function rpArmar(cand, obj) {
-  const cfg = PLANCFG(), sal = salidaUsuario();
-  const ahora = new Date(), minAhora = ahora.getHours() * 60 + ahora.getMinutes();
-  const t0 = obj.manana ? minHora(cfg.salida) : Math.max(minHora(cfg.salida), Math.ceil(minAhora / 5) * 5);
-  const tfin = Math.min(t0 + RP_JORNADA, 20 * 60);
-  const libres = new Set(cand.map(c => c.id)), lista = [];
-  for (let k = 0; k < 3; k++) {
-    const disp = cand.filter(c => libres.has(c.id));
-    if (!disp.length) break;
-    const porZona = {};
-    disp.forEach(c => { const z = c.municipio || '—'; (porZona[z] = porZona[z] || []).push(c); });
-    const zona = Object.entries(porZona).map(([z, l]) => [z, l.slice(0, 8).reduce((s, c) => s + +c.puntos, 0)]).sort((a, b) => b[1] - a[1])[0][0];
-    const sel = [porZona[zona][0]]; libres.delete(sel[0].id);
-    let pos = [+sel[0].lat, +sel[0].lon];
-    let t = t0 + (sal.lat != null ? minutosEntre([+sal.lat, +sal.lon], pos) : 0) + cfg.parada + cfg.visita;
-    for (;;) {
-      let mejor = null, mv = -Infinity, mt = 0;
-      cand.forEach(c => {
-        if (!libres.has(c.id)) return;
-        const xy = [+c.lat, +c.lon], d = km(pos, xy);
-        if (d > 25) return;
-        const dt = (d < 0.05 ? 0 : minutosEntre(pos, xy) + cfg.parada) + cfg.visita;
-        if (t + dt > tfin) return;
-        const v = +c.puntos - d * 4;
-        if (v > mv) { mv = v; mejor = c; mt = dt; }
-      });
-      if (!mejor) break;
-      sel.push(mejor); libres.delete(mejor.id); pos = [+mejor.lat, +mejor.lon]; t += mt;
-    }
-    if (sel.length < 2 && lista.length) break;
-    lista.push({ sel, ini: t0 });
-  }
-  return lista;
-}
 
-function rpZona(sel) {
-  const n = {};
-  sel.forEach(c => { if (c.municipio) n[c.municipio] = (n[c.municipio] || 0) + 1; });
-  const z = Object.entries(n).sort((a, b) => b[1] - a[1]).map(([m]) => rpTitulo(m));
-  return !z.length ? 'Sin municipio' : z.length === 1 ? z[0] : z.length === 2 ? z.join(' y ') : `${z[0]}, ${z[1]} y ${z.length - 2} más`;
-}
-function rpTitulo(s) { return String(s || '').toLowerCase().replace(/(^|[\s\-'·])(\p{L})/gu, (a, b, c) => b + c.toUpperCase()); }
 
-// Por qué esta propuesta: lo aprendido de las visitas y las compras
-function rpPorque(sel, dia) {
-  const media = k => sel.reduce((s, c) => s + (+c[k] || 0), 0) / sel.length;
-  const z = rpZona(sel), out = [];
-  if (dia && media('h_dia') >= 0.5) out.push(`Sueles ir a ${z} los ${RP_DIAS[dia]}`);
-  else if (media('h_zona') >= 0.5) out.push('Es una de tus zonas habituales');
-  const top = sel.filter(c => +c.h_venta >= 0.5).length;
-  if (top) out.push(top === 1 ? 'Incluye a uno de tus mejores clientes' : `Incluye a ${top} de tus mejores clientes`);
-  return out.join(' · ');
-}
 
-// Croquis: los puntos en orden y la línea que los une (sin cargar un mapa por tarjeta)
-function rpCroquis(sel) {
-  const W = 132, H = 92, P = 10, xs = sel.map(c => +c.lon), ys = sel.map(c => +c.lat);
-  const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
-  const esc2 = Math.min((W - 2 * P) / Math.max(x1 - x0, 1e-4), (H - 2 * P) / Math.max(y1 - y0, 1e-4));
-  const pt = c => [P + (+c.lon - x0) * esc2 + ((W - 2 * P) - (x1 - x0) * esc2) / 2, H - P - (+c.lat - y0) * esc2 - ((H - 2 * P) - (y1 - y0) * esc2) / 2];
-  const pts = sel.map(pt);
-  return `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" aria-hidden="true">
-    <polyline points="${pts.map(p => p.map(v => v.toFixed(1)).join(',')).join(' ')}" fill="none" stroke="#17457A" stroke-opacity=".45" stroke-width="2" stroke-linejoin="round"/>
-    ${pts.map((p, i) => `<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="${i ? 4 : 5.5}" fill="${(sel[i].motivos || []).includes('urgente') ? '#B42318' : '#17457A'}" stroke="#fff" stroke-width="1.5"/>`).join('')}
-  </svg>`;
-}
 
-function rpTarjeta(p, i) {
-  const M = rpMotivos(), cuenta = {};
-  p.sel.forEach(c => (c.motivos || []).forEach(m => { cuenta[m] = (cuenta[m] || 0) + 1; }));
-  const t = rpTiempos(p.sel, p.ini), n = p.sel.length;
-  const porque = rpPorque(p.sel, RPROP.datos.dia);
-  const chips = Object.keys(M).filter(k => cuenta[k]).map(k => `<span class="pill ${M[k][2]}">${cuenta[k]} ${cuenta[k] === 1 ? M[k][0] : M[k][1]}</span>`).join('');
-  return `<div class="rprop" data-rp="${i}">
-    <div class="rpcroq">${rpCroquis(p.sel)}</div>
-    <div class="rptx"><b class="rpzona"><span class="rpnum">${i + 1}</span>${esc(rpZona(p.sel))}</b>
-      <span class="sm">${n} ${n === 1 ? TT('medico', 's', '', 'l', 'l') : TT('medico', 'p', '', 'l', 'l')} · ${t.paradas} ${t.paradas === 1 ? 'parada' : 'paradas'} ·
-        ${hm(p.ini)}–${hm(t.fin)}${t.km >= 1 ? ' · ' + Math.round(t.km) + ' km' : ''}</span>
-      <span class="rpmot">${chips}</span>
-      ${porque ? `<span class="sm rpporque">${esc(porque)}</span>` : ''}</div>
-    <div class="acts rpacts"><button class="btn sec" type="button" data-rpver="${i}" aria-expanded="false">Ver ${TT('medico', 'p', '', 'l', 'l')}</button>
-      <button class="btn sec" type="button" data-rpplan="${i}">Planificar</button>
-      <button class="btn" type="button" data-rpag="${i}">A mi agenda</button></div>
-    <div class="rplista" hidden>${p.sel.map(c => `<div class="rpit">
-      <button type="button" class="lnkmed" data-rpficha="${c.id}">${esc(c.nombre)}</button>
-      <span class="sm">${esc([c.centro_nombre, rpTitulo(c.municipio)].filter(Boolean).join(' · '))}</span>
-      <span class="rpmot">${(c.motivos || []).map(m => `<span class="pill ${M[m][2]}">${M[m][0]}</span>`).join('')}</span>
-      <button type="button" class="x rpquitar" data-rpquitar="${i}|${c.id}" title="Quitar de la propuesta" aria-label="Quitar ${esc(c.nombre)}">✕</button></div>`).join('')}</div>
-  </div>`;
-}
 
-function rpPintar() {
-  const caja = $('rprops'); if (!caja || !RPROP) return;
-  const o = RPROP, d = o.datos || {}, quien = rpNombreDia(o.fecha);
-  const man = siguienteLaborable(), etMan = rpNombreDia(man).replace(/^el /, '');
-  const aprende = (d.aprendido || {}).visitas ? `Tienen en cuenta tus ${num(d.aprendido.visitas)} ${TT('visita', 'p', '', 'l', 'l')} de los últimos 4 meses y quién compra más.`
-    : `Aprenden de tus ${TT('visita', 'p', '', 'l', 'l')} y de quién compra más a medida que uses la app.`;
-  caja.innerHTML = `<div class="fh"><div><h2>Propuestas para ${quien}</h2><div class="sm">${aprende}</div></div>
-      <div class="segs" id="rpdia" role="group" aria-label="Día">${o.finde ? '' : `<button type="button" data-rpd="hoy" class="${o.manana ? '' : 'on'}" aria-pressed="${!o.manana}">Hoy</button>`}
-        <button type="button" data-rpd="man" class="${o.manana ? 'on' : ''}" aria-pressed="${o.manana}">${etMan.replace(/^./, c => c.toUpperCase())}</button></div></div>
-    ${o.lista.length ? o.lista.map(rpTarjeta).join('')
-      : `<div class="vacio">No hay a nadie a quien convenga ir ${quien}: ni urgentes, ni quien atienda ese día, ni ${TT('medico', 'p', '', 'l', 'l', 'interesado')} sin ${TT('visita', 's', '', 'l', 'l')}.
-          ${o.manana ? '' : 'Prueba con el día siguiente.'}</div>`}`;
-  caja.querySelectorAll('[data-rpd]').forEach(b => b.onclick = () => rpCargar(b.dataset.rpd === 'man'));
-  caja.querySelectorAll('[data-rpver]').forEach(b => b.onclick = () => {
-    const l = b.closest('.rprop').querySelector('.rplista'); l.hidden = !l.hidden; b.setAttribute('aria-expanded', String(!l.hidden));
-    b.textContent = l.hidden ? `Ver ${TT('medico', 'p', '', 'l', 'l')}` : 'Ocultar';
-  });
-  caja.querySelectorAll('[data-rpficha]').forEach(b => b.onclick = () => abrirFicha(b.dataset.rpficha));
-  caja.querySelectorAll('[data-rpquitar]').forEach(b => b.onclick = () => {
-    const [i, id] = b.dataset.rpquitar.split('|'), p = o.lista[+i];
-    p.sel = p.sel.filter(c => c.id !== id);
-    if (!p.sel.length) o.lista.splice(+i, 1);
-    const abierta = !p.sel.length ? null : +i;
-    rpPintar();
-    if (abierta != null) { const v = caja.querySelector(`[data-rpver="${abierta}"]`); if (v) v.click(); }
-  });
-  caja.querySelectorAll('[data-rpplan]').forEach(b => b.onclick = () => rpPlan(+b.dataset.rpplan, b));
-  caja.querySelectorAll('[data-rpag]').forEach(b => b.onclick = () => rpAgenda(+b.dataset.rpag, b));
-}
 
-async function rpPlan(i, btn) {
-  const p = rpPlanDe(i); if (!p) return;
-  await construirPlan(p.sel, 'prop' + (i + 1), btn, { manana: RPROP.manana, horario: null });
-}
 
-async function rpCargar(manana) {
-  const obj = rpObjetivo(manana);
-  const { data, error } = await db.rpc('rutas_candidatos', { p_fecha: obj.fecha });
-  if (error) { if ($('rprops')) $('rprops').innerHTML = `<div class="vacio">No se han podido calcular las propuestas: ${esc(error.message)}</div>`; return; }
-  RPROP = Object.assign(obj, { datos: data || {}, lista: rpArmar((data || {}).candidatos || [], obj) });
-  rpPintar();
-}
 
 
 cargarRutasBase = async function () {
@@ -23143,15 +24014,6 @@ orgEstado = (orig => function (o) {
    conseguirlos, igual que Facturación. Con el plan A medida no se contrata ni se cambia en línea (presupuesto: lo lleva delcos). */
 const PLAN_SECCIONES = { compras: ['empresa', 'medida'], proveedores: ['empresa', 'medida'] };
 const planIncluyeSeccion = t => !(t in PLAN_SECCIONES) || PLAN_SECCIONES[t].includes(PLAN_ACTUAL.plan);
-function candadoSecciones() {
-  Object.keys(PLAN_SECCIONES).forEach(t => document.querySelectorAll(`nav.main [data-t="${t}"], .bmasgrid [data-bm="${t}"]`).forEach(b => {
-    const bloq = !planIncluyeSeccion(t);
-    b.classList.toggle('bloq', bloq);
-    const c = b.querySelector('.cand');
-    if (bloq && !c && b.matches('nav.main [data-t]')) b.insertAdjacentHTML('beforeend', '<span class="cand">🔒</span>');
-    if (!bloq && c) c.remove();
-  }));
-}
 aplicarPermisosMenu = (orig => function (...a) { const r = orig.apply(this, a); try { candadoSecciones(); } catch (e) {} return r; })(aplicarPermisosMenu);
 avisoPlan = (orig => function (mod) {
   if (!(mod in PLAN_SECCIONES)) return orig.call(this, mod);
@@ -23207,20 +24069,6 @@ abrirMasMovil = (orig => function (...a) {
   document.querySelectorAll('.bmasgrid [data-bm].bloq').forEach(b => b.remove());
   return r;
 })(abrirMasMovil);
-// «Personalizar menú»: candado, interruptor apagado y bloqueado, y la cuenta «N de M» sin lo que no entra
-function personalizarCandados() {
-  const caja = $('mlpanel'); if (!caja) return;
-  caja.querySelectorAll('.mlpi[data-k]').forEach(f => {
-    const b = document.querySelector(`#nav button[data-t="${f.dataset.k}"]`); if (!fueraDePlan(b)) return;
-    f.classList.add('off', 'fueraplan'); f.title = `No está incluido en tu plan ${PLAN_NOMBRE()}`;
-    const v = f.querySelector('[data-vk]'); if (v) { v.checked = false; v.disabled = true; }
-    if (!f.querySelector('.mlpcand')) f.querySelector('.mlpn').insertAdjacentHTML('afterend', `<span class="mlpcand" aria-label="No incluido en tu plan"></span>`);
-  });
-  caja.querySelectorAll('.mlpg').forEach(g => {
-    const fs = [...g.querySelectorAll('.mlpi[data-k]')], c = g.querySelector('.mlpcnt');
-    if (c) c.textContent = `${fs.filter(f => !f.classList.contains('off')).length} de ${fs.filter(f => !f.classList.contains('fueraplan')).length}`;
-  });
-}
 menuPersonalizar = (orig => function (...a) {
   const r = orig.apply(this, a);
   const caja = $('mlpanel');
@@ -23253,23 +24101,6 @@ cargarFacturacion = (orig => async function (...a) {
   } });
 })();
 
-// Lo que se deja de tener al pasar de un plan a otro (para avisar antes)
-function perdidasPlan(de, a, datos) {
-  const pd = planDe(de), pa = planDe(a), extras = (datos && datos.extras) || [], l = [];
-  if (de === a) return l;
-  const nombreMod = m => (MOD_PLAN.find(x => x[0] === m) || [m, m])[1];
-  pd.modulos.filter(m => !pa.modulos.includes(m) && m in MODULO_AREA).forEach(m => l.push(m === 'facturacion'
-    ? `Facturación: ${datos && datos.facturas ? 'tus facturas quedan en solo lectura (verlas, descargarlas y cobrarlas, no emitir nuevas)' : 'no podrás emitir facturas'}` : nombreMod(m)));
-  Object.keys(PLAN_SECCIONES).forEach(s => { if (PLAN_SECCIONES[s].includes(de) && !PLAN_SECCIONES[s].includes(a)) l.push(TITULO_PEDSEC[s] ? TITULO_PEDSEC[s][0] : s); });
-  Object.keys(PLAN_EXTRAS).forEach(x => {
-    if (!PLAN_EXTRAS[x].includes(de) || PLAN_EXTRAS[x].includes(a) || extras.includes(x)) return;
-    if (x === 'oportunidades') l.push('Oportunidades');
-    if (x === 'portal') l.push(`Portal ${TT('medico', 's', 'del', 'l', 'l')} y del centro${datos && +datos.medicos ? ` (${num(datos.medicos)} con acceso lo perderán)` : ''}`);
-  });
-  if (de === 'medida' && a === 'empresa' && datos && +datos.medicos > 50) l.push(`Portal: el plan Empresa admite hasta 50 accesos y ahora hay ${num(datos.medicos)}`);
-  if (de === 'medida') l.push('Ver la plataforma como cada persona de tu equipo', 'Soporte prioritario');
-  return l;
-}
 const rangoPlan = k => ['campo', 'comercial', 'empresa', 'medida'].indexOf(k);
 // Igual que la función «pagos»: plan menor, menos usuarios o de anual a mensual
 const esBajada = (de, a) => rangoPlan(a.plan) < rangoPlan(de.plan)
@@ -23462,40 +24293,6 @@ pintarPaginaPlan = (orig => async function (...a) {
   return r;
 })(pintarPaginaPlan);
 
-// Panel delcos → Solicitudes
-async function pintarSolicitudesPlan() {
-  const c = $('cfgcuerpo'); if (!c) return;
-  c.innerHTML = `<div class="card cfgpanel"><div class="skel" style="width:40%"></div><div class="skel"></div></div>`;
-  const { data, error } = await RPC_ORIG('solicitudes_plan_lista', {});
-  if (!$('cfgcuerpo')) return;
-  const l = error ? [] : (data || []);
-  const f = v => new Date(v).toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' });
-  const cont = { correo: 'Por correo', llamada: 'Por teléfono', video: 'Videollamada' };
-  c.innerHTML = `<div class="card cfgpanel"><h2>Solicitudes de las empresas</h2>
-    <p class="sm">Presupuestos A medida y conversaciones sobre el contrato. Llegan también como aviso. Cambia el estado cuando las atiendas: la empresa lo ve en su Plan.</p>
-    ${error ? `<div class="banda-peligro">No se han podido leer: ${esc(error.message)}</div>` : ''}
-    <div class="presulista">${l.map((s, i) => { const d = s.datos || {};
-      return `<div class="presufila${s.estado === 'Cerrada' ? ' cerrada' : ''}">
-        <div class="presucab"><b>${esc(s.organizacion)}</b> <span class="pill p-est">${esc(planDe(s.plan).nombre)}</span>
-          <span class="pill ${s.estado === 'Nueva' ? 'p-warn' : s.estado === 'En curso' ? 'p-est' : 'p-anu'}">${esc(s.estado)}</span>
-          <span class="sm">${s.tipo === 'contrato' ? 'Contrato A medida' : 'Presupuesto A medida'} · ${f(s.creado_en)}</span></div>
-        ${(d.necesita_txt || []).length ? `<div class="chips">${d.necesita_txt.map(x => `<span class="chip">${esc(x)}</span>`).join('')}</div>` : ''}
-        ${d.programa ? `<div class="sm">Programa: <b>${esc(d.programa)}</b></div>` : ''}
-        ${d.mensaje ? `<p class="presumsg">${esc(d.mensaje)}</p>` : ''}
-        <div class="sm">${d.usuarios ? num(d.usuarios) + ' usuarios' : ''}${d.portal ? ' · ' + num(d.portal) + ' con portal' : ''}${d.cuando ? ' · ' + esc(d.cuando) : ''}</div>
-        <div class="sm">${esc(d.nombre || s.persona || '')}${d.correo ? ` · <a href="mailto:${esc(d.correo)}">${esc(d.correo)}</a>` : ''}${d.telefono ? ` · <a href="tel:${esc(d.telefono)}">${esc(d.telefono)}</a>` : ''}
-          · ${esc(cont[d.contacto] || '')}${d.horario ? ' (' + esc(d.horario) + ')' : ''}</div>
-        <div class="presuges"><select data-psest="${i}" aria-label="Estado">${['Nueva', 'En curso', 'Cerrada'].map(e => `<option ${s.estado === e ? 'selected' : ''}>${e}</option>`).join('')}</select>
-          <input data-psnota="${i}" placeholder="Nota interna (qué se ha hablado, próximos pasos…)" value="${esc(s.nota || '')}">
-          <button type="button" class="btn sec" data-psok="${i}">Guardar</button></div></div>`; }).join('')
-      || '<div class="vacio">Todavía no ha llegado ninguna solicitud.</div>'}</div></div>`;
-  c.querySelectorAll('[data-psok]').forEach(b => b.onclick = async () => {
-    const i = +b.dataset.psok, s = l[i];
-    const { data: r } = await RPC_ORIG('marcar_solicitud_plan', { p_id: s.id, p_estado: c.querySelector(`[data-psest="${i}"]`).value, p_nota: c.querySelector(`[data-psnota="${i}"]`).value });
-    toast(r && r.ok ? 'Solicitud actualizada' : 'No se ha podido guardar', !(r && r.ok));
-    if (r && r.ok) pintarSolicitudesPlan();
-  });
-}
 if (PAGINAS.delcos && !PAGINAS.delcos.tabs.some(t => t[0] === 'solicitudes')) PAGINAS.delcos.tabs.splice(1, 0, ['solicitudes', 'Solicitudes', () => pintarSolicitudesPlan()]);
 
 /* v2.168.0 · Alta de empresas desde la web (decisiones de Eric: prueba de 30 días con tarjeta, formulario en delcos.app). Quien vuelve de
@@ -23522,30 +24319,6 @@ if (PAGINAS.delcos && !PAGINAS.delcos.tabs.some(t => t[0] === 'solicitudes')) PA
     }, 1000);
   }
 })();
-async function bienvenidaAlta() {
-  try { await pagoCargarEstado(); } catch (e) {}
-  const pl = PLAN_ACTUAL || {};
-  const pasos = [
-    ['importar', 'Trae tus datos', `Sube tu Excel de ${TT('medico', 'p', '', 'l', 'l')}, centros o clientes y los ordenamos por ti.`],
-    ['equipo', 'Invita a tu equipo', 'Da acceso a las personas que van a usar delcos, cada una con su rol.'],
-    ['marca', 'Pon tu marca', 'Tu logotipo y tu nombre en la plataforma y en los documentos.']];
-  $('dbody').innerHTML = `<div class="fh"><div><h2>Te damos la bienvenida a delcos</h2>
-      <div class="sm">${esc(nombreApp())} ya está en marcha${pl.en_prueba && pl.periodo_fin ? ` · prueba gratis hasta el ${fechaCorta(pl.periodo_fin)}` : ''}</div></div>
-      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-    <p>Tres pasos para empezar con buen pie (los puedes hacer cuando quieras):</p>
-    <div class="bienpasos">${pasos.map(([k, t, d], i) => `<button type="button" class="bienpaso" data-bien="${k}"><span class="bienn">${i + 1}</span>
-      <span><b>${esc(t)}</b><span class="sm">${esc(d)}</span></span></button>`).join('')}</div>
-    ${pl.en_prueba ? `<p class="sm">Durante la prueba no se cobra nada. Si decides no seguir, date de baja en Organización → Plan y suscripción antes del ${fechaCorta(pl.periodo_fin)}.</p>` : ''}
-    <div class="acts" style="justify-content:flex-end"><button class="btn" data-cerrar>Empezar</button></div>`;
-  $('dbody').querySelectorAll('[data-bien]').forEach(b => b.onclick = () => {
-    $('dlg').close();
-    const k = b.dataset.bien;
-    if (k === 'importar') { CFG_SEC = 'importar'; ir('config'); }
-    else if (k === 'equipo') ir('usuarios');
-    else ir('organizacion');
-  });
-  $('dlg').showModal();
-}
 // «Plan y suscripción»: periodo de prueba de Stripe
 pintarPaginaPlan = (orig => async function (...a) {
   const r = await orig.apply(this, a);
@@ -23746,10 +24519,6 @@ async function pintarEstadoDelcos() {
     <p class="sm">Esto es la base de ${EN_PRUEBAS ? '<b>pruebas</b>' : '<b>producción</b>'}. La de ${EN_PRUEBAS ? 'producción' : 'pruebas'} se mira desde su propio panel.</p></div>`;
 }
 
-// ---- Cambiar de organización sin heredar nada: la recarga va tapada hasta tener el menú, la marca y la pantalla de la organización nueva
-function prepararCambioOrg(destino) {
-  try { sessionStorage.setItem('dlc-cambio-org', destino || ''); sessionStorage.removeItem('dlc-f5'); localStorage.removeItem('app-marca'); } catch (e) {}
-}
 entrarEnOrganizacion = async function (o) {
   if (!await preguntar(`Vas a ver la plataforma como ${o.nombre}: sus datos, su configuración y su plan. Lo que cambies se guarda en su empresa y queda registrado. Para volver, «Salir» en la franja de arriba.`, { titulo: 'Entrar en ' + o.nombre, ok: 'Entrar' })) return;
   const { data: r } = await db.rpc('entrar_organizacion', { p_org: o.id });
@@ -23797,12 +24566,6 @@ db.functions.invoke = (orig => async function (fn, op, ...a) {
   return r;
 })(db.functions.invoke.bind(db.functions));
 const ivaDe = x => Math.round(x * 21) / 100;
-function reciboCalculado(pl) {
-  const p = planDe(pl.plan), u = Math.max(+pl.usuarios || 0, p.minimo || 3), anual = pl.pago === 'anual';
-  const cuota = u * p.precio * (anual ? 10 : 1);
-  const puesta = pl.en_prueba && !anual ? PUESTA_EN_MARCHA : 0;
-  return { primero: cuota + puesta + ivaDe(cuota + puesta), despues: cuota + ivaDe(cuota), puesta, anual };
-}
 // (v2.183.0: aquí iba la primera versión de pintarProximoRecibo; se redefine entera más abajo)
 pintarPaginaPlan = (orig => async function (...a) { const r = await orig.apply(this, a); try { pintarProximoRecibo(); } catch (e) {} return r; })(pintarPaginaPlan);
 
@@ -24200,39 +24963,6 @@ abrirVisitaBase = (orig => async function (id, ...r) {
   return res;
 })(abrirVisitaBase);
 
-// Configuración → el catálogo de resultados: en qué estados aparece cada uno
-function enEstadosTxt(l) { return l && l.length ? 'Solo en: ' + l.join(', ') : 'En todos los estados'; }
-function decorarResultados() {
-  const caja = $('dbody'); if (!caja) return;
-  caja.querySelectorAll('[data-vdest]').forEach(sel => {
-    const item = sel.closest('.item'); if (!item || item.querySelector('[data-ven]')) return;
-    const vid = sel.dataset.vdest;
-    const v = (CATS || []).flatMap(c => c.valores || []).find(x => x.id === vid); if (!v) return;
-    sel.insertAdjacentHTML('afterend', `<button type="button" class="btn sec" data-ven="${vid}" title="En qué estados de la ficha aparece este resultado">${esc(enEstadosTxt(v.en_estados))}</button>`);
-    item.querySelector('[data-ven]').onclick = () => {
-      const abierta = item.nextElementSibling && item.nextElementSibling.classList.contains('venbox');
-      caja.querySelectorAll('.venbox').forEach(x => x.remove());
-      if (abierta) return;
-      const marcados = new Set(v.en_estados || []);
-      item.insertAdjacentHTML('afterend', `<div class="venbox"><span class="sm">«${esc(v.valor)}» aparece al registrar ${TT('visita', 's', 'el', 'l', 'l')} de las fichas en estos estados (sin marcar ninguno, en todos):</span>
-        <div class="chips">${estados().map(e => `<button type="button" class="chip ${marcados.has(e) ? 'on' : ''}" data-vene="${esc(e)}" aria-pressed="${marcados.has(e)}">${esc(e)}</button>`).join('')}</div>
-        <div class="acts" style="justify-content:flex-end;margin:6px 0 0"><button type="button" class="btn sec" data-vencerrar>Cancelar</button><button type="button" class="btn" data-venok>Guardar</button></div></div>`);
-      const box = item.nextElementSibling;
-      box.querySelectorAll('[data-vene]').forEach(b => b.onclick = () => { const on = b.getAttribute('aria-pressed') !== 'true'; b.setAttribute('aria-pressed', String(on)); b.classList.toggle('on', on); });
-      box.querySelector('[data-vencerrar]').onclick = () => box.remove();
-      box.querySelector('[data-venok]').onclick = async ev => {
-        const l = [...box.querySelectorAll('[data-vene][aria-pressed="true"]')].map(b => b.dataset.vene);
-        ev.target.disabled = true;
-        const { data: r, error } = await db.rpc('guardar_valor', { p: { id: vid, en_estados: l.length === estados().length ? [] : l } });
-        ev.target.disabled = false;
-        if (error || (r && r.ok === false)) { toast('No se ha podido guardar', true); return; }
-        v.en_estados = l.length && l.length < estados().length ? l : null;
-        item.querySelector('[data-ven]').textContent = enEstadosTxt(v.en_estados);
-        box.remove(); toast(v.en_estados ? `«${v.valor}» solo sale en: ${l.join(', ')}` : `«${v.valor}» sale en todos los estados`);
-      };
-    };
-  });
-}
 (() => {
   const caja = $('dbody'); if (!caja || !window.MutationObserver) return;
   new MutationObserver(() => { if (caja.querySelector('[data-vdest]:not([data-vend])')) { caja.querySelectorAll('[data-vdest]').forEach(s => s.dataset.vend = '1'); decorarResultados(); } })
@@ -24928,20 +25658,6 @@ PAGINAS.concursos = { t: 'Concursos', permiso: () => !ES_MEDICO() && puedeModulo
 Object.defineProperty(PAGINAS.concursos, 'd', { get: () => 'Pliegos, lotes adjudicados y contratos con sus precios y vencimientos' });
 
 
-function editorAvisosVencimiento() {
-  $('dbody').innerHTML = `<div class="fh"><div><h2>Avisos de vencimiento</h2><div class="sm">Cuántos días antes de que venza un contrato se avisa</div></div>
-      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-    <label for="convd">Días antes (separados por comas)</label><input id="convd" value="${esc(CON_AVISOS.slice().sort((a, b) => b - a).join(', '))}" placeholder="90, 30">
-    <p class="sm">El aviso llega a quien lleva la ficha, al responsable del concurso y a la administración, una vez por cada plazo. Vacío: sin avisos.</p>
-    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>Cancelar</button><button class="btn" id="convok">Guardar</button></div>`;
-  if (!$('dlg').open) $('dlg').showModal();
-  $('convok').onclick = async () => {
-    const dias = [...new Set($('convd').value.split(/[^0-9]+/).map(Number).filter(n => n > 0 && n <= 999))].sort((a, b) => b - a);
-    const { data: r, error } = await db.rpc('guardar_ajuste', { p_clave: 'avisos_vencimiento', p_valor: { dias } });
-    if (error || (r && r.ok === false)) { toast('No se ha podido guardar', true); return; }
-    CON_AVISOS = dias; $('dlg').close(); toast('Avisos guardados');
-  };
-}
 
 
 $('dlg').addEventListener('close', () => { if (TAB === 'concursos' && $('cfgcuerpo')) setTimeout(() => { if (!$('dlg').open && TAB === 'concursos') pintarConcursos(PAG_TAB.concursos || 'marcha'); }, 300); });
@@ -24997,98 +25713,7 @@ Object.defineProperty(PAGINAS.parque, 'd', { get: () => 'Equipos instalados con 
 let EQ_Q = '';
 
 
-async function editarEquipo(e, cuenta) {
-  if (!PRODUCTOS.length) await cargarProductos();
-  const { data: pe } = await db.from('productos').select('id,nombre,es_equipo,revision_meses').order('nombre');
-  const lista = (pe || []).sort((a, b) => (b.es_equipo - a.es_equipo) || String(a.nombre).localeCompare(String(b.nombre)));
-  const x = e || { instalado: hoyISO(), contrato: 'Venta', producto_id: (lista.find(p => p.es_equipo) || {}).id, revision_meses: (lista.find(p => p.es_equipo) || {}).revision_meses || 0 };
-  $('dbody').innerHTML = `<div class="fh"><div><h2>${e ? 'Cambiar el equipo' : 'Nuevo equipo'}</h2><div class="sm">Dónde está instalado, su número de serie y sus condiciones</div></div>
-      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-    <label>Dónde está</label><div id="eqcta"></div>
-    <div class="g2"><div><label for="eqp">Equipo</label><select id="eqp">${lista.map(p => `<option value="${p.id}" data-rm="${p.revision_meses || 0}" ${p.id === x.producto_id ? 'selected' : ''}>${esc(p.nombre)}${p.es_equipo ? '' : ' (no marcado como equipo)'}</option>`).join('')}</select></div>
-      <div><label for="eqs">Nº de serie</label><input id="eqs" value="${esc(x.serie || '')}" maxlength="120"></div></div>
-    <div class="g2"><div><label for="equ">Ubicación</label><input id="equ" value="${esc(x.ubicacion || '')}" placeholder="p. ej. Sala 2, planta 3"></div>
-      <div><label for="eqi">Instalado el</label><input id="eqi" type="date" value="${esc(x.instalado || '')}"></div></div>
-    <div class="g2"><div><label for="eqc">Contrato</label><select id="eqc">${EQ_CONTRATOS.map(k => `<option ${k === x.contrato ? 'selected' : ''}>${k}</option>`).join('')}</select></div>
-      <div id="eqcfw"><label for="eqcf">Fin del contrato</label><input id="eqcf" type="date" value="${esc(x.contrato_fin || '')}"></div></div>
-    <div class="g2"><div><label for="eqg">Garantía hasta</label><input id="eqg" type="date" value="${esc(x.garantia_hasta || '')}"></div>
-      <div><label for="eqr">Revisión cada (meses; 0 = sin revisiones)</label><input id="eqr" type="number" min="0" max="120" step="1" value="${+x.revision_meses || 0}"></div></div>
-    <label for="eqn">Nota</label><textarea id="eqn" rows="2">${esc(x.nota || '')}</textarea>
-    <div class="acts" style="justify-content:flex-end">${e && e.estado === 'Instalado' ? '<button type="button" class="btn sec peligro" id="eqretirar">Retirar</button>' : ''}
-      <button type="button" class="btn sec" data-cerrar>Cancelar</button><button type="button" class="btn" id="eqok">${e ? 'Guardar' : 'Dar de alta'}</button></div>`;
-  if (!$('dlg').open) $('dlg').showModal();
-  let cta = e ? { id: e.cuenta_id, nombre: (e.cuentas || {}).nombre || '' } : cuenta || null;
-  selectorMedico($('eqcta'), { valor: cta, placeholder: 'Busca el centro', alElegir: m => { cta = m; } });
-  const verFin = () => $('eqcfw').classList.toggle('hide', $('eqc').value === 'Venta');
-  verFin(); $('eqc').onchange = verFin;
-  $('eqp').onchange = () => { if (!e) $('eqr').value = $('eqp').selectedOptions[0].dataset.rm || 0; };
-  const fallo = er => toast(/row-level|policy/i.test(er.message) ? 'No puedes cambiar los equipos de esta ficha' : 'No se ha podido guardar: ' + er.message, true);
-  $('eqok').onclick = async ev => {
-    if (!cta || !$('eqp').value) { toast('Elige dónde está y qué equipo es', true); return; }
-    const fila = { cuenta_id: cta.id, producto_id: $('eqp').value, serie: $('eqs').value.trim() || null, ubicacion: $('equ').value.trim() || null,
-      instalado: $('eqi').value || hoyISO(), contrato: $('eqc').value, contrato_fin: $('eqc').value === 'Venta' ? null : ($('eqcf').value || null),
-      garantia_hasta: $('eqg').value || null, revision_meses: Math.min(120, Math.max(0, Math.floor(+$('eqr').value || 0))), nota: $('eqn').value.trim() || null };
-    ev.target.disabled = true;
-    const r = e ? await db.from('equipos').update(fila).eq('id', e.id).select('id').single() : await db.from('equipos').insert(fila).select('id').single();
-    ev.target.disabled = false;
-    if (r.error) { fallo(r.error); return; }
-    toast(e ? 'Equipo guardado' : 'Equipo dado de alta'); invalidarCache(); verEquipo(r.data.id);
-  };
-  if ($('eqretirar')) $('eqretirar').onclick = async () => {
-    if (!await preguntar('Queda en el historial como retirado: ya no avisa de revisiones ni vencimientos.', { titulo: '¿Retirar el equipo?', ok: 'Retirar', peligro: true })) return;
-    const { error } = await db.from('equipos').update({ estado: 'Retirado' }).eq('id', e.id);
-    if (error) { fallo(error); return; }
-    toast('Equipo retirado'); verEquipo(e.id);
-  };
-}
 
-async function verEquipo(id) {
-  const [{ data: e, error }, { data: rv }] = await Promise.all([
-    db.from('equipos').select('*,cuentas(nombre),productos(nombre)').eq('id', id).maybeSingle(),
-    db.from('equipo_revisiones').select('id,fecha,tipo,nota,hecha_por').eq('equipo_id', id).order('fecha', { ascending: false }).limit(50)]);
-  if (error || !e) { toast('No se ha encontrado el equipo', true); return; }
-  const vence = eqVence(e);
-  $('dbody').innerHTML = `<div class="fh"><div><h2>${esc((e.productos || {}).nombre || 'Equipo')}</h2><div class="sm">${e.serie ? 'Nº de serie ' + esc(e.serie) + ' · ' : ''}${esc((e.cuentas || {}).nombre || '')}</div></div>
-      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-    <div class="cirdat"><span>Dónde</span><b><button type="button" class="lnk" data-cfi="${e.cuenta_id}">${esc((e.cuentas || {}).nombre || '')}</button>${e.ubicacion ? ' · ' + esc(e.ubicacion) : ''}</b>
-      <span>Instalado</span><b>${esc(fechaLarga(new Date(e.instalado + 'T12:00:00')))}</b>
-      <span>Contrato</span><b>${esc(e.contrato)}${e.contrato !== 'Venta' && e.contrato_fin ? ' hasta el ' + fechaCorta(e.contrato_fin) : ''}</b>
-      ${e.garantia_hasta ? `<span>Garantía</span><b>hasta el ${fechaCorta(e.garantia_hasta)}</b>` : ''}
-      <span>Revisiones</span><b>${e.revision_meses ? `cada ${e.revision_meses} ${e.revision_meses === 1 ? 'mes' : 'meses'}` : 'sin revisiones periódicas'}</b>
-      <span>Estado</span><b>${eqRevPill(e)} ${eqVencePill(e)}${e.estado === 'Instalado' && !e.proxima_revision && !vence ? '<span class="pill p-est">Instalado</span>' : ''}</b></div>
-    ${e.nota ? `<p class="sm">${esc(e.nota)}</p>` : ''}
-    <div class="evascab"><h3>Revisiones · ${(rv || []).length}</h3>${e.estado === 'Instalado' ? '<button type="button" class="btn sec" id="eqrevmas">Apuntar revisión</button>' : ''}</div>
-    <div id="eqrevf"></div>
-    ${(rv || []).length ? `<div class="lista">${rv.map(x => `<div class="fmrow"><span><b>${fechaCorta(x.fecha)}</b> · ${esc(x.tipo)}${x.nota ? `<span class="sm"> · ${esc(x.nota)}</span>` : ''}</span><button type="button" class="x" data-rvq="${x.id}" aria-label="Borrar la revisión">✕</button></div>`).join('')}</div>`
-      : '<div class="vacio vlinea">Todavía no hay revisiones apuntadas.</div>'}
-    <div class="acts" style="justify-content:flex-end">${e.estado === 'Instalado' && e.revision_meses ? '<button type="button" class="btn sec" id="eqagenda">Programar en la agenda</button>' : ''}
-      <button type="button" class="btn sec" id="eqeditar">Cambiar</button><button type="button" class="btn" data-cerrar>Hecho</button></div>`;
-  if (!$('dlg').open) $('dlg').showModal();
-  const fallo = er => toast(/row-level|policy/i.test(er.message) ? 'No puedes cambiar los equipos de esta ficha' : 'No se ha podido guardar: ' + er.message, true);
-  $('dbody').querySelectorAll('[data-cfi]').forEach(b => b.onclick = () => { $('dlg').close(); abrirFicha(b.dataset.cfi); });
-  $('eqeditar').onclick = () => editarEquipo(e);
-  if ($('eqagenda')) $('eqagenda').onclick = () => nuevaCita(e.cuenta_id, e.proxima_revision && e.proxima_revision > hoyISO() ? e.proxima_revision : hoyISO());
-  if ($('eqrevmas')) $('eqrevmas').onclick = () => {
-    $('eqrevf').innerHTML = `<div class="depbox"><div class="cong3"><div><label for="eqrf">Fecha</label><input id="eqrf" type="date" value="${hoyISO()}"></div>
-        <div><label for="eqrt">Tipo</label><select id="eqrt">${EQ_REV.map(k => `<option>${k}</option>`).join('')}</select></div>
-        <div><label for="eqrn">Nota</label><input id="eqrn" maxlength="300" placeholder="Qué se hizo"></div></div>
-      <div class="acts" style="justify-content:flex-end"><button type="button" class="btn sec" id="eqrcanc">Cancelar</button><button type="button" class="btn" id="eqrok">Apuntar</button></div></div>`;
-    $('eqrcanc').onclick = () => { $('eqrevf').innerHTML = ''; };
-    $('eqrok').onclick = async ev => {
-      ev.target.disabled = true;
-      const { error: er } = await db.from('equipo_revisiones').insert({ equipo_id: id, fecha: $('eqrf').value || hoyISO(), tipo: $('eqrt').value, nota: $('eqrn').value.trim() || null });
-      ev.target.disabled = false;
-      if (er) { fallo(er); return; }
-      toast('Revisión apuntada'); verEquipo(id);
-    };
-  };
-  $('dbody').querySelectorAll('[data-rvq]').forEach(b => b.onclick = async () => {
-    if (!await preguntar('La revisión desaparece del historial del equipo.', { titulo: '¿Borrar la revisión?', ok: 'Borrar', peligro: true })) return;
-    const { error: er } = await db.from('equipo_revisiones').delete().eq('id', b.dataset.rvq);
-    if (er) { fallo(er); return; }
-    verEquipo(id);
-  });
-}
 $('dlg').addEventListener('close', () => { if (TAB === 'parque' && $('cfgcuerpo')) setTimeout(() => { if (!$('dlg').open && TAB === 'parque') pintarParque(); }, 300); });
 
 irEnlace = (orig => function (e) {
@@ -25471,21 +26096,6 @@ function arbolCfgUnico() {
 // v2.340.0 (Eric): cada apartado es una sola entrada del índice; sus partes (Rutas: salida y tiempos…) van dentro, en pestañas
 const hojasCfg = arbol => arbol.flatMap(([gr, l]) => l.map(it => Object.assign({ gr }, it)));
 let CFG_PEND = { t: 0, l: {} };
-async function pendientesCfg() {
-  if (Date.now() - CFG_PEND.t < 60000) return CFG_PEND.l;
-  const l = {};
-  try { if (!prefsActivas().salida && puedeModulo('agenda')) l['rutas.salida'] = 'Sin punto de salida: las horas del día salen sin el primer trayecto'; } catch (e) {}
-  if (puedeOrganizacion()) {
-    try { const { data: c } = await RPC_ORIG('correo_config', {}); if (!c || !c.host) l['o.correo'] = 'Sin configurar: los correos de la empresa no salen'; } catch (e) {}
-    try {
-      const { data: au } = await db.from('auditoria').select('creado_en').eq('accion', 'Copia de seguridad').order('creado_en', { ascending: false }).limit(1);
-      const d = au && au[0] ? Math.floor((Date.now() - new Date(au[0].creado_en)) / 864e5) : null;
-      if (d == null) l['o.copias'] = 'Todavía no hay ninguna copia'; else if (d > 7) l['o.copias'] = `La última copia es de hace ${d} días`;
-    } catch (e) {}
-  }
-  CFG_PEND = { t: Date.now(), l };
-  return l;
-}
 const LUPA_CFG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>';
 let CFG_DETALLE = false;
 cargarConfig = async function () {
@@ -25808,7 +26418,6 @@ async function agCinta() {
   // En el móvil, la cinta se abre en la semana del día elegido
   const sems = c.querySelector('.csems'); if (sems && AG_FECHA >= diasMas(ini, 7)) sems.scrollLeft = sems.scrollWidth;
 }
-function cerrarMesCinta() { const m = $('agmes'); if (m) m.classList.remove('pop'); if ($('cmesb')) $('cmesb').setAttribute('aria-expanded', 'false'); }
 document.addEventListener('click', e => { const m = $('agmes'); if (m && m.classList.contains('pop') && !e.target.closest('#agmes, #cmesb, .agmpop, .agpop')) cerrarMesCinta(); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrarMesCinta(); });
 
@@ -25887,11 +26496,6 @@ function kvContar(raiz) {
      el apartado de Configuración y el día de la Agenda ya se recuerdan solos (PAG_TAB, CFG_KEY, AG_FECHA).
    - La cabecera del manual lleva «‹ Volver a …» (#manvolver): vuelve a esa pantalla y, cuando ha terminado de pintarse, al mismo punto. */
 let MANUAL_VUELTA = null;
-function nombrePantalla(t) {
-  const b = document.querySelector(`nav.main [data-t="${t}"]`);
-  const n = (b && b.textContent.trim()) || (typeof PAGINAS !== 'undefined' && PAGINAS[t] && PAGINAS[t].t) || (t === 'config' ? 'Configuración' : '');
-  return n || 'donde estabas';
-}
 ir = (orig => function (t, ...r) {
   if (t === 'manual' && TAB !== 'manual') MANUAL_VUELTA = { tab: TAB, y: window.scrollY || 0 };
   return orig.call(this, t, ...r);
@@ -25994,25 +26598,6 @@ resumirAyuda = (orig => function (pop) {
   l.onclick = ev => { ev.preventDefault(); ev.stopPropagation(); pop.remove(); abrirManual(ancla); };
 })(resumirAyuda);
 
-function asegurarEquipo() {
-  if (TAB !== 'agenda' || !VE_TODO()) return;
-  // Solo en la cabecera que se ve: mientras se repinta puede quedar una copia congelada con los mismos id
-  const acts = document.querySelector('#v-agenda > .saludo .acts'); if (!acts) return;
-  let sel = acts.querySelector('#agvista');
-  if (!sel) {
-    if (!COMS.length) { cargarComerciales().then(asegurarEquipo); return; }
-    acts.insertAdjacentHTML('afterbegin', `<select id="agvista" aria-label="Agenda de" title="Ver la agenda de otra persona">
-        <option value="">Mi agenda</option>${COMS.filter(u => u.id !== PERFIL.id).map(u => `<option value="${u.id}" ${AG_VISTA && AG_VISTA.id === u.id ? 'selected' : ''}>${esc(u.nombre)}</option>`).join('')}</select>`);
-    sel = acts.querySelector('#agvista');
-    sel.onchange = e => verAgendaDe(e.target.value);
-  }
-  let b = acts.querySelector('[data-ag="equipo"]');
-  if (!b) { sel.insertAdjacentHTML('afterend', '<button class="btn sec" data-ag="equipo">Equipo</button>'); b = acts.querySelector('[data-ag="equipo"]'); }
-  const eq = AG_MODO === 'equipo';
-  b.textContent = eq ? 'Mi agenda' : 'Equipo';
-  b.classList.toggle('sec', !eq);
-  b.title = eq ? 'Volver a tu agenda' : 'Ver el cumplimiento del equipo';
-}
 window.addEventListener('click', e => {
   const b = e.target.closest('[data-ag="equipo"]'); if (!b || AG_MODO !== 'equipo') return;
   e.stopImmediatePropagation(); e.preventDefault();
@@ -26666,24 +27251,6 @@ const TX_IC = { rv: '<path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/>',
 const txSV = d => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + d + '</svg>';
 const menuNombres = () => (AJUSTES && AJUSTES.menu_nombres) || {};
 
-function aplicarNombresMenu() {
-  const mn = menuNombres();
-  document.querySelectorAll('nav.main [data-t], #bnav [data-t], .bmasgrid [data-bm]').forEach(b => {
-    const t = b.dataset.t || b.dataset.bm; if (!t || t === 'directorio' || /^pd-/.test(t)) return;
-    const x = txTexto(b); if (!x) return;
-    if (!b.dataset.txdef) b.dataset.txdef = x.get();
-    const n = mn[t] || b.dataset.txdef;
-    if (x.get() !== n) x.set(n);
-  });
-  // El título de la pantalla abierta
-  const t = typeof TAB !== 'undefined' ? TAB : null, b = t && document.querySelector(`nav.main [data-t="${t}"]`);
-  if (t && t !== 'directorio' && b && b.dataset.txdef) {
-    const h = document.querySelector(`#v-${t} .saludo h1, #v-${t} .pagcab h1`) || (t === 'ventas' && document.querySelector('#v-ventas .saludo h1'));
-    const tn = h && [...h.childNodes].find(x => x.nodeType === 3 && x.nodeValue.trim());
-    const n = mn[t] || b.dataset.txdef;
-    if (tn && (tn.nodeValue.trim() === b.dataset.txdef || Object.values(mn).includes(tn.nodeValue.trim())) && tn.nodeValue.trim() !== n) tn.nodeValue = tn.nodeValue.replace(tn.nodeValue.trim(), n);
-  }
-}
 aplicarEtiqueta = (orig => function (...a) { const r = orig.apply(this, a); try { aplicarNombresMenu(); } catch (e) {} return r; })(aplicarEtiqueta);
 ir = (orig => function (...a) { const r = orig.apply(this, a); setTimeout(() => { try { aplicarNombresMenu(); } catch (e) {} }, 0); Promise.resolve(r).then(() => { try { aplicarNombresMenu(); } catch (e) {} }); return r; })(ir);
 // Cuando el menú se vuelve a montar (al arrancar, al cambiar de tamaño…), se vuelven a poner los nombres
@@ -27191,58 +27758,6 @@ Object.keys(BLQ).forEach(tab => {
     activos: () => { const sec = $('v-' + tab); return (PLG[tab] ? 1 : 0) + (sec ? sec.querySelectorAll('.htchips .htchip').length : 0); } }) };
 });
 
-// Pasa los bloques de tarjetas de la pantalla a una tabla (cada vez que la pantalla los vuelve a pintar)
-function blqConvertir(tab) {
-  const o = BLQ[tab], sec = $('v-' + tab), caja = sec && sec.querySelector('#cfgcuerpo'); if (!o || !caja) return;
-  const items = [...caja.querySelectorAll('.lista > .item[data-' + o.attr + ']')];
-  const yaTabla = caja.querySelector('.dgrid.blq-' + tab);
-  if (!items.length && (yaTabla || !caja.querySelector('.cirpag, .evpag'))) return;
-  // Acciones: la principal a la cabecera; las demás, al «⋯» (también en la cabecera, ocultas)
-  const sal = sec.querySelector(':scope > .saludo');
-  let acts = sal && sal.querySelector(':scope > .acts');
-  if (sal && !acts) { sal.insertAdjacentHTML('beforeend', '<div class="acts"></div>'); acts = sal.querySelector(':scope > .acts'); }
-  const cab = caja.querySelector('.evcab');
-  // las de la vez anterior (también el «+» del móvil, que va al final de la sección) se quitan: si no, se repetirían sus id
-  if (cab && acts) { sec.querySelectorAll('[data-plmov]').forEach(b => b.remove()); [...cab.querySelectorAll('button')].forEach(b => { b.dataset.plmov = '1'; acts.appendChild(b); }); cab.remove(); }
-  // Filas: una por registro, con los bloques en que sale
-  const filas = new Map(), grupos = [];
-  caja.querySelectorAll('section.card, .card').forEach(card => {
-    const h = card.querySelector('h2'), g = h ? plTxt(h).replace(/\s*·\s*[\d.]+$/, '') : o.def;
-    const its = [...card.querySelectorAll('.lista > .item[data-' + o.attr + ']')]; if (!its.length) return;
-    if (!grupos.includes(g)) grupos.push(g);
-    its.forEach(b => { const k = b.dataset[o.attr]; if (filas.has(k)) { filas.get(k).g.add(g); b.remove(); } else filas.set(k, { b, g: new Set([g]) }); });
-  });
-  const vacio = caja.querySelector('.vacio');
-  const nota = [...caja.querySelectorAll('.cirpag > p.sm, .evpag > p.sm')];
-  const wrap = document.createElement('div'); wrap.className = 'dgrid-wrap';
-  wrap.innerHTML = `<div class="dgrid blq-${tab}"><div class="dh">${o.cols.map(([t, k]) => `<span class="${k}">${esc(t)}</span>`).join('')}</div></div>`;
-  const g = wrap.firstElementChild;
-  filas.forEach(({ b, g: gs }) => {
-    const cel = o.celdas(b), click = b.onclick;
-    b.className = 'dr'; b.innerHTML = cel.map((x, i) => `<span class="${o.cols[i][1]}">${x || '<span class="vac">—</span>'}</span>`).join('');
-    b.dataset.grupos = [...gs].join('|'); b.onclick = click; g.appendChild(b);
-  });
-  if (!filas.size) wrap.innerHTML = `<div class="vacio">${esc(vacio ? plTxt(vacio) : 'Todavía no hay nada aquí.')}</div>`;
-  caja.innerHTML = ''; nota.forEach(p => caja.appendChild(p)); caja.appendChild(wrap);
-  // Bloque elegido (filtro rápido y banda de indicadores)
-  if (PLG[tab] && !grupos.includes(PLG[tab])) PLG[tab] = '';
-  let sel = $('plg-' + tab);
-  if (!sel) { sec.insertAdjacentHTML('beforeend', `<div class="plgsel hide"><label for="plg-${tab}">${esc(o.grupo)}</label><select id="plg-${tab}"></select></div>`); sel = $('plg-' + tab); sel.onchange = () => { PLG[tab] = sel.value; blqFiltrar(tab); }; }
-  sel.innerHTML = '<option value="">Todos</option>' + (grupos.length > 1 ? grupos.map(x => `<option ${PLG[tab] === x ? 'selected' : ''}>${esc(x)}</option>`).join('') : '');
-  let band = $('plgb-' + tab);
-  if (!band) { band = document.createElement('div'); band.id = 'plgb-' + tab; band.className = 'plgband'; sec.appendChild(band); }
-  const cuenta = x => [...filas.values()].filter(f => f.g.has(x)).length;
-  band.innerHTML = grupos.length > 1 ? grupos.map(x => `<button type="button" class="plk ${PLG[tab] === x ? 'on' : ''}" data-plg="${esc(x)}"><span class="plkt">${esc(x)}</span><b>${num(cuenta(x))}</b><small>${cuenta(x) === 1 ? '1 ' + esc(o.que.replace(/s$/, '')) : esc(o.que)}</small></button>`).join('') : '';
-  band.classList.toggle('hide', grupos.length < 2);
-  blqFiltrar(tab);
-}
-function blqFiltrar(tab) {
-  const v = PLG[tab] || '', sec = $('v-' + tab); if (!sec) return;
-  sec.querySelectorAll('.dgrid.blq-' + tab + ' > .dr').forEach(r => r.classList.toggle('plgfuera', !!v && !(r.dataset.grupos || '').split('|').includes(v)));
-  sec.querySelectorAll('[data-plg]').forEach(b => b.classList.toggle('on', b.dataset.plg === v));
-  const s = $('plg-' + tab); if (s && s.value !== v) s.value = v;
-  const cnt = sec.querySelector('.plcnt'); if (cnt) { cnt.dataset.h = ''; }
-}
 // Antes de ajustar la plantilla, los bloques se convierten en tabla
 plSync = (orig => function (tab) { if (BLQ[tab] && plCfg(tab)) blqConvertir(tab); return orig(tab); })(plSync);
 // El recuento de estas tablas cuenta solo las filas que se ven (bloque y búsqueda)
@@ -28135,41 +28650,6 @@ arbolCfgUnico = (orig => function (...a) {
   return g;
 })(arbolCfgUnico);
 CFG_CLAVES.estados = 'estados comerciales papel inicial avance interés interes cliente activo positivo perdido negativo embudo';
-async function pintarEstadosPapel() {
-  const c = $('cfgcuerpo'); if (!c) return;
-  cargando(c, 'Cargando los estados…');
-  const { data: ce } = await db.from('clasificadores').select('id').eq('papel', 'estado_comercial').limit(1);
-  const { data: est, error } = ce && ce[0] ? await db.from('valores_clasificador').select('id,valor,orden,activo,papel').eq('clasificador_id', ce[0].id).order('orden')
-    : { data: [], error: null };
-  if (!$('cfgcuerpo') || CFG_KEY !== 'estados') return;
-  if (error) { c.innerHTML = `<div class="card"><p class="sm">No se han podido leer los estados: ${esc(error.message)}</p></div>`; return; }
-  const l = (est || []).filter(v => v.activo !== false);
-  const opc = v => PAPELES_ESTADO.map(([k, t]) => `<option value="${k}" ${v.papel === k ? 'selected' : ''}>${t}</option>`).join('');
-  c.innerHTML = `<div class="card estw">
-      <p class="sm">Cada estado tiene un papel. Con él, la plataforma sabe qué ficha es nueva, cuál avanza, cuál ya es cliente y cuál se ha perdido:
-        de ahí salen los avisos, los indicadores de Inicio y qué resultados se ofrecen al registrar ${esc(TT('visita', 's', 'una', 'l', 'l'))}. El nombre de cada estado se cambia en «Textos personalizados».</p>
-      ${l.length ? l.map(v => `<div class="ajfila estfila" data-estid="${v.id}"><div><b>${esc(v.valor)}</b>
-          <span class="sm">${esc((PAPELES_ESTADO.find(p => p[0] === v.papel) || [, , 'Sin papel: no cuenta en avisos ni indicadores'])[2])}</span></div>
-        <div class="ajctl"><select data-estpapel="${v.id}" aria-label="Papel de ${esc(v.valor)}" ${v.papel === 'inicial' ? 'title="Para cambiarlo, marca otro estado como Inicial"' : ''}>${v.papel ? '' : '<option value="" selected>Sin papel</option>'}${opc(v)}</select></div></div>`).join('')
-        : '<p class="vacio">Todavía no hay estados comerciales.</p>'}</div>`;
-  c.querySelectorAll('[data-estpapel]').forEach(s => s.onchange = async () => {
-    const v = l.find(x => x.id === s.dataset.estpapel), nuevo = s.value;
-    if (!v || !nuevo || nuevo === v.papel) return;
-    if (v.papel === 'inicial') { s.value = v.papel; toast('Para cambiar el estado inicial, marca otro estado como «Inicial»', true); return; }
-    const ant = l.find(x => x.papel === 'inicial' && x.id !== v.id);
-    if (nuevo === 'inicial' && ant && !await preguntar(`Las fichas nuevas empezarán en «${v.valor}». «${ant.valor}» pasará a «En avance».`, { titulo: '¿Cambiar el estado inicial?', ok: 'Cambiar' })) { s.value = v.papel || ''; return; }
-    s.disabled = true;
-    const { data: r, error } = await db.rpc('guardar_papel_estado', { p_id: v.id, p_papel: nuevo });
-    if (error || !r || !r.ok) {
-      s.disabled = false; s.value = v.papel || '';
-      toast(({ permiso: 'No tienes permiso para cambiarlo', sin_inicial: 'Para cambiar el estado inicial, marca otro estado como «Inicial»', papel: 'Ese papel no existe' })[(r && r.error) || ''] || ('No se ha podido cambiar' + (error ? ': ' + error.message : '')), true);
-      return;
-    }
-    toast('Papel cambiado');
-    invalidarCache(); try { await cargarCatalogos(); } catch (e) {}
-    pintarEstadosPapel();
-  });
-}
 
 // Panel delcos → Organizaciones: desactivar o volver a activar
 orgAcciones = (orig => function (c, l) {
@@ -28347,23 +28827,6 @@ window.addEventListener('resize', () => {
 
 
 
-/* ============================================================
-   v2.269.0 · Cargas rápidas, filtros que se mantienen y notas en Pedidos (petición de Eric, 11/10/2026; necesita el SQL 144).
-   - Las pantallas se enseñan antes: «estable» espera 50 ms sin cambios (antes 120), mira cada 15 ms (antes 30) y no espera a las
-     cifras que cuentan (Analítica esperaba ~1 s oculta a que terminaran sus indicadores). Con el SQL 144
-     las consultas lentas bajan a 20-60 ms.
-   - Los indicadores de una lista solo se piden en su pantalla (los de Clientes se pedían también en Pedidos, Compras, Productos…).
-   - Los filtros de las listas (los de la fila de filtros y los propios del panel «Filtros») se recuerdan: si la pantalla se vuelve a pintar (al guardar un pedido,
-     al volver a ella…) salen con lo que tenías puesto, hasta que los quites tú.
-   - Pedidos: columna «Notas».
-   ============================================================ */
-// Una cifra que se anima al contar (solo cambia su texto, y son números) no es «la pantalla sigue cargando»: antes, en Analítica,
-// la pantalla esperaba oculta ~1 s a que terminaran de contar los indicadores
-function cambioDeCifra(m) {
-  if (m.type !== 'childList') return false;
-  const ns = [...m.addedNodes, ...m.removedNodes];
-  return ns.length > 0 && ns.every(n => n.nodeType === 3) && /^[\d.,\s%€+\-−]*$/.test(m.target.textContent || '');
-}
 plCargarKpis = (orig => function (tab, ...a) {
   if (tab !== TAB) return;   // en otra pantalla, no (se piden al llegar a la suya)
   return orig.call(this, tab, ...a);
@@ -28371,20 +28834,8 @@ plCargarKpis = (orig => function (tab, ...a) {
 
 // ---- Memoria de filtros: lo que se elige en una fila de filtros se vuelve a poner cuando la pantalla se pinta de nuevo
 const FMEM = {};
-function filtroGuardar(e) {
-  const el = e.target; if (!el || !el.id || !/^(SELECT|INPUT)$/.test(el.tagName) || !el.closest('main .filtros, main .htpropios')) return;   // la fila de filtros o, con el modelo de página, el panel
-  if (el.type === 'checkbox' || el.type === 'radio') return;
-  FMEM[el.id] = el.value;
-}
 document.addEventListener('change', filtroGuardar, true);
 document.addEventListener('input', filtroGuardar, true);
-function filtrosRestaurar(root) {
-  (root || document).querySelectorAll('.filtros select[id], .filtros input[id], .htpropios select[id], .htpropios input[id]').forEach(el => {
-    if (!(el.id in FMEM) || el.value === FMEM[el.id] || el.type === 'checkbox' || el.type === 'radio') return;
-    if (el.tagName === 'SELECT' && ![...el.options].some(o => o.value === FMEM[el.id])) return;
-    el.value = FMEM[el.id];
-  });
-}
 // Las pantallas montan su periodo justo antes de pedir la lista: es el momento de devolver los filtros
 montarPeriodo = (orig => function (el, ...a) {
   const r = orig.call(this, el, ...a);
@@ -28421,26 +28872,6 @@ const SUPL_ERR = {
 
 // (R-12: entrarComo se definía aquí otra vez; ahora está en su sitio, más arriba)
 
-// Grupo «Invitados» de Usuarios
-function pintarInvitados(lista, acc) {
-  const box = $('usrinv'); if (!box) return;
-  const hace = t => { if (!t) return null; const d = new Date(t); return isNaN(d) ? null : d.toLocaleString('es-ES', { dateStyle: 'medium', timeStyle: 'short' }); };
-  $('usrinvn').textContent = lista.length ? '· ' + num(lista.length) : '';
-  box.innerHTML = lista.map(u => {
-    const a = acc[u.id] || {}, ult = hace(a.ultima_conexion || a.ultimo_acceso);
-    return `<div class="usrinv ${u.activo ? '' : 'off'}">
-      <span class="usrav" style="background:${esc((rolDef(u.rol) || {}).color || '#17457A')}">${esc(iniciales(u.nombre))}</span>
-      <span class="usrtx"><b>${esc(u.nombre)}</b><span class="sm">${esc(u.email || '')}</span>
-        <span class="usrchips">${u.cuenta_id ? `<button class="pill p-per" data-uinvf="${u.cuenta_id}" title="Abrir su ficha">${esc(u.medico || u.cuenta || 'Su ficha')}</button>` : '<span class="pill p-anu">Sin ficha</span>'}
-          ${u.activo ? '' : '<span class="pill p-anu">Desactivado</span>'}
-          <span class="sm usrinvult">${ult ? esc(conexionTxt(a)) : 'Aún no ha entrado'}</span></span>
-        <span class="sm usrinvve">${esc(queVeInvitado(u))}</span></span>
-      <span class="usrinvacts">${puedeVerComo(u) ? `<button class="btn" data-ucomo="${u.id}">👤 Impersonalizar</button>` : ''}
-        <button class="btn sec" data-uinvd="${u.id}">Detalles</button></span></div>`;
-  }).join('') || `<div class="vacio">${Object.keys(acc).length || (USUARIOS || []).some(esInvitado) ? 'Nadie con estos filtros.' : `Todavía no has dado acceso a nadie. Se da desde su ficha: «Acceso a la plataforma» → «Dar acceso».`}</div>`;
-  box.querySelectorAll('[data-uinvf]').forEach(b => b.onclick = () => abrirFicha(b.dataset.uinvf));
-  box.querySelectorAll('[data-uinvd]').forEach(b => b.onclick = () => detalleUsuario((USUARIOS || []).find(x => x.id === b.dataset.uinvd)));
-}
 
 
 
@@ -28464,39 +28895,6 @@ const PM_DIAS = ['L', 'M', 'X', 'J', 'V', 'S'];
 const PM_DIAN = { L: 'Lunes', M: 'Martes', X: 'Miércoles', J: 'Jueves', V: 'Viernes', S: 'Sábado' };
 const PM_COMO = ['Con cita previa', 'Sin cita, al final de la consulta', 'Sin cita, en cualquier hueco', 'Por teléfono o videollamada', 'Prefiero que me escribáis antes'];
 
-// cargarInforme (en su sitio) espera a que se lea este final y llama aquí: al arrancar, «Mi informe» se pinta antes
-async function cargarInforme2271() {
-  const v = $('v-informe'), pac = TT('paciente', 'p', '', 'l', 'l');
-  v.innerHTML = `<div class="medhero"><div><div class="sm" style="color:rgba(255,255,255,.8)">Tu portal</div><h1 id="mdnom">…</h1><div id="mdesp" class="sm" style="color:rgba(255,255,255,.85)"></div></div>
-      <div class="medper"><div id="mdper"></div></div></div>
-    <div class="pmtabs" role="tablist">${[['res', 'Resumen'], ['ficha', 'Mi ficha'], ['mat', 'Material y dudas']].map(([k, t]) =>
-      `<button type="button" role="tab" data-pmt="${k}" class="${PM.tab === k ? 'on' : ''}" aria-selected="${PM.tab === k}">${t}<span class="pmtpunto" hidden></span></button>`).join('')}</div>
-    <div data-pmp="res" id="mdcuerpo" ${PM.tab === 'res' ? '' : 'hidden'}>${pmEsqueleto()}</div>
-    <div data-pmp="ficha" id="pmficha" ${PM.tab === 'ficha' ? '' : 'hidden'}>${pmEsqueleto(true)}</div>
-    <div data-pmp="mat" id="pmmat" ${PM.tab === 'mat' ? '' : 'hidden'}><div id="mdportal" class="pmfila"></div></div>`;
-  v.querySelectorAll('[data-pmt]').forEach(b => b.onclick = () => pmTab(b.dataset.pmt));
-  const pinta = async () => {
-    const r = $('mdper').__rango();
-    const [{ data: d }, { data: c }, { data: f }] = await Promise.all([RPC_ORIG('informe_cuenta', { p_desde: r.desde, p_hasta: r.hasta }),
-      RPC_ORIG('constancia_pacientes', { p_meses: 12 }), PM.ficha ? Promise.resolve({ data: null }) : RPC_ORIG('portal_mi_ficha', {})]);
-    if (f && f.ok) pmFichaDatos(f);
-    if (!$('mdcuerpo')) return;
-    if (!d || !d.ok) {
-      // v2.291: sin ficha vinculada, las dos pestañas lo dicen (antes «Mi ficha» se quedaba cargando) y la cabecera lleva su nombre
-      const sin = `<div class="card"><div class="vacio">Tu usuario todavía no está vinculado a tu ficha de ${TT('medico', 's', '', 'l', 'l')}. Avisa a la empresa para activarlo.</div></div>`;
-      $('mdcuerpo').innerHTML = sin; if ($('pmficha')) $('pmficha').innerHTML = sin;
-      $('mdnom').textContent = (PERFIL && PERFIL.nombre) || ''; return;
-    }
-    $('mdnom').textContent = d.medico.nombre; $('mdesp').textContent = d.medico.especialidad || '';
-    $('mdcuerpo').innerHTML = pmResumen(d, c || {}, pac);
-    $('mdcuerpo').querySelectorAll('[data-pmir]').forEach(b => b.onclick = () => pmTab(b.dataset.pmir));
-    pmPintarFicha();
-  };
-  try { localStorage.removeItem('dlc-per-informe-' + (PERFIL ? PERFIL.id : '')); } catch (e) {}   // v2.353.0: al entrar, siempre «Esta semana»
-  montarPeriodo($('mdper'), { id: 'informe', valor: 'semana', alCambiar: pinta });
-  await pinta();
-  portalMedico();
-}
 window.PM_LISTO = true;
 
 
@@ -28645,68 +29043,6 @@ pintarMaterial = (orig => async function (...x) {
   return r;
 })(pintarMaterial);
 
-async function matMejorar() {
-  const lista = document.querySelector('#cfgcuerpo .matlista'); if (!lista) return;
-  const { data: cid } = await db.from('clasificadores').select('id').eq('papel', 'material_visita').maybeSingle();
-  if (!cid) return;
-  const conPortal = typeof hayExtra === 'function' && hayExtra('portal');
-  const [{ data: vals }, rp, ra] = await Promise.all([
-    db.from('valores_clasificador').select('id,valor,activo,dato_tipo').eq('clasificador_id', cid.id).order('orden'),
-    conPortal ? RPC_ORIG('portal_material_permitido', {}) : Promise.resolve({ data: [] }),
-    conPortal ? db.from('ajustes').select('valor').eq('clave', 'portal').maybeSingle() : Promise.resolve({ data: null })]);
-  if (!document.querySelector('#cfgcuerpo .matlista')) return;
-  const perm = Array.isArray(rp && rp.data) ? rp.data : [], conAjuste = !!(ra && ra.data && ra.data.valor && ra.data.valor.material);
-  const de = v => perm.find(p => p.valor === v);
-  const vis = TT('visita', 's', 'la', 'l', 'l');
-  lista.classList.add('matlista2');
-  lista.innerHTML = (vals || []).map(v => { const p = de(v.valor); return `<div class="matfila2 ${v.activo ? '' : 'off'}" data-mv="${v.id}" data-mvv="${esc(v.valor)}" data-mdt0="${v.dato_tipo === 'numero' ? 'numero' : ''}">
-      <b class="mtnom">${esc(v.valor)}</b>
-      <label class="mtcampo"><span class="sm">Al registrar ${vis}</span><select class="chico" data-mdt>
-        <option value="numero" ${v.dato_tipo === 'numero' ? 'selected' : ''}>Anotar cuántas se entregan</option>
-        <option value="" ${v.dato_tipo === 'numero' ? '' : 'selected'}>Solo marcar que se entregó</option></select></label>
-      ${conPortal ? `<label class="opt mtpor"><input type="checkbox" data-mpp ${p ? 'checked' : ''}> Se puede pedir desde el portal</label>
-      <label class="mtcampo mtmax"><span class="sm">Máximo por petición</span><input type="number" step="1" data-mpx value="${p ? p.max : 20}" ${p ? '' : 'disabled'}></label>` : ''}
-      <label class="vfswitch mini"><input type="checkbox" data-mact2="${v.id}" ${v.activo ? 'checked' : ''}><span class="sw"></span><span class="sm">${v.activo ? 'Activo' : 'Oculto'}</span></label>
-      <span class="mterr sm" hidden></span></div>`; }).join('') || '<div class="sm">Todavía no hay material.</div>';
-  if (vals && vals.length) lista.insertAdjacentHTML('afterend', `<div class="acts mtacts" style="justify-content:space-between;align-items:center">
-      <span class="sm">${conPortal && !conAjuste ? 'Ahora el portal permite pedir todo el material, hasta 20 de cada uno. Guarda para decidirlo tú.' : ''}</span>
-      <button class="btn" id="matguardar">Guardar cambios</button></div>`);
-  lista.querySelectorAll('[data-mpp]').forEach(c => c.onchange = () => { const i = c.closest('.matfila2').querySelector('[data-mpx]'); if (i) i.disabled = !c.checked; });
-  lista.querySelectorAll('[data-mact2]').forEach(c => c.onchange = async () => {
-    await db.rpc('guardar_valor', { p: { id: c.dataset.mact2, activo: c.checked } });
-    c.closest('.matfila2').classList.toggle('off', !c.checked); c.parentElement.querySelector('.sm').textContent = c.checked ? 'Activo' : 'Oculto';
-    toast(c.checked ? 'Visible al registrar' : 'Oculto al registrar'); cargarCatalogos();
-  });
-  if ($('matguardar')) $('matguardar').onclick = async ev => {
-    const filas = [...lista.querySelectorAll('.matfila2')];
-    let mal = false; const material = [];
-    filas.forEach(f => {
-      const e = f.querySelector('.mterr'); e.hidden = true; e.textContent = '';
-      const c = f.querySelector('[data-mpp]'), i = f.querySelector('[data-mpx]');
-      if (!c || !c.checked) return;
-      const n = Number(i.value);
-      if (!i.value || !Number.isInteger(n) || n < 1 || n > 1000) { e.hidden = false; e.textContent = 'El máximo por petición tiene que ser un número entero de 1 a 1.000'; mal = true; return; }
-      material.push({ valor: f.dataset.mvv, max: n });
-    });
-    if (mal) { toast('Revisa los máximos marcados en rojo', true); return; }
-    ev.target.disabled = true;
-    try {
-      for (const f of filas) {
-        const s = f.querySelector('[data-mdt]');
-        if (s.value !== f.dataset.mdt0) {
-          const { error } = await db.rpc('guardar_valor', { p: { id: f.dataset.mv, dato_tipo: s.value, dato_etiqueta: s.value ? 'Unidades' : '' } });
-          if (error) { toast('No se ha podido guardar ' + f.dataset.mvv + ': ' + error.message, true); return; }
-          f.dataset.mdt0 = s.value;
-        }
-      }
-      if (conPortal) {
-        const { error } = await db.rpc('guardar_ajuste', { p_clave: 'portal', p_valor: Object.assign({}, (ra && ra.data && ra.data.valor) || {}, { material }) });
-        if (error) { toast('No se ha podido guardar el portal: ' + error.message, true); return; }
-      }
-      toast('Guardado'); cargarCatalogos();
-    } finally { ev.target.disabled = false; }
-  };
-}
 
 
 
@@ -28951,13 +29287,6 @@ const VISTA_TITULO = { verCita: 'la cita', fichaCentro: 'el centro', abrirFicha:
   verCirugia: 'la intervención', verConcurso: 'el concurso', verEquipo: 'el equipo', verDeposito: 'el depósito', fichaStock: 'el producto' };
 const vistaDlg = () => ['ficha', 'dlg'].map($).find(d => d && d.open) || null;
 const vistaIgual = (a, b) => a && b && a.fn === b.fn && JSON.stringify(a.args.map(x => x && x.id || x)) === JSON.stringify(b.args.map(x => x && x.id || x));
-function vistaBoton(v, d0) {
-  const d = d0 || (v && v.dlg); if (!d || !d.open || !VUELTA.length || d.querySelector('.vueltabtn')) return;
-  const fh = d.querySelector('.fh'); if (!fh) return;
-  const ant = VUELTA[VUELTA.length - 1];
-  const t = fh.firstElementChild, dentro = t && t.tagName !== 'BUTTON' && !t.matches('h2') ? t : fh;
-  dentro.insertAdjacentHTML('afterbegin', `<button type="button" class="btn sec chico vueltabtn" title="Volver a ${esc(VISTA_TITULO[ant.fn] || 'la ventana anterior')}">‹ Volver</button>`);
-}
 Object.keys(VISTA_TITULO).forEach(fn => {
   const orig = window[fn]; if (typeof orig !== 'function') return;
   window[fn] = async function (...args) {
@@ -28997,12 +29326,6 @@ ir = (orig => function (...a) { VUELTA.length = 0; VISTA = null; return orig.app
 const ESCRITURAS_FICHAS = new Set(['guardar_cuenta', 'guardar_centro', 'centro_anadir_profesional', 'centro_quitar_profesional', 'guardar_campos',
   'unificar_cuentas', 'archivar_cuenta', 'clasificar_cuentas']);
 let DATOS_CAMBIADOS = false;
-function refrescarDebajo() {
-  if (document.querySelector('dialog[open]')) { DATOS_CAMBIADOS = true; return; }
-  DATOS_CAMBIADOS = false;
-  if (TAB === 'agenda' && $('agcuerpo')) agRefrescoQuieto(null, { cifras: false });
-  else if (TAB === 'directorio' && typeof buscar === 'function') buscar(true);
-}
 db.rpc = (orig => function (fn, args, ...r) {
   const res = orig.call(this, fn, args, ...r);
   if (!ESCRITURAS_FICHAS.has(fn) || !res || typeof res.then !== 'function') return res;
@@ -29068,25 +29391,6 @@ buscar = (orig => function (...a) {
 })(buscar);
 
 
-/* ============================================================
-   v2.305.0 · Reenviar el correo de activación (aviso de Eric: un profesional abrió el enlace del correo de alta cuando ya
-   había caducado y no tenía forma de pedir otro). Supabase reenvía el correo de confirmación con auth.resend (no hace falta
-   SQL): desde la ficha del usuario (administración) y desde la pantalla de acceso, que avisa si el enlace ha caducado o si
-   la cuenta aún no está activada.
-   ============================================================ */
-async function reenviarActivacion(email, o = {}) {
-  email = String(email || '').trim();
-  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { (o.err || (t => toast(t, true)))('Escribe tu correo para enviarte un enlace nuevo.'); return false; }
-  const { error } = await db.auth.resend({ type: 'signup', email, options: { emailRedirectTo: location.origin + location.pathname } });
-  if (error) {
-    const t = /rate|seconds|429|security purposes/i.test(error.message + (error.status || '')) ? 'Se acaba de enviar uno: espera un minuto antes de pedir otro.'
-      : /already|confirmed/i.test(error.message) ? 'Esa cuenta ya está activada: puede entrar con su correo y contraseña (o usar «Enviar cambio de contraseña»).'
-      : 'No se ha podido enviar: ' + error.message;
-    (o.err || (x => toast(x, true)))(t); return false;
-  }
-  (o.ok || toast)('Correo de activación enviado a ' + email + '. El enlace nuevo sustituye al anterior.');
-  return true;
-}
 if (ENLACE_ERROR && /otp_expired|access_denied|expired/i.test(ENLACE_ERROR)) {
   accesoSinActivar('El enlace de activación ha caducado o ya se usó. Escribe tu correo y te enviamos uno nuevo.');
   try { history.replaceState(null, '', location.pathname); } catch (e) {}
@@ -29553,15 +29857,6 @@ document.addEventListener('click', async e => {
 if (PL.productos && PL.productos.prods) PL.productos.prods.mas = (orig => () => orig().concat(puedeEliminarProducto() ? [['prodelim', 'Productos eliminados']] : []))(PL.productos.prods.mas);
 
 
-/* ============================================================
-   v2.325.0 · Pedidos: pago solo de lectura y entregas sin cargo (aviso de Eric, 16/10/2026).
-   - El bloque «Pago» del pedido ya no se edita a medias: enseña la referencia y los justificantes que haya; se cambian con
-     «Editar» (o «Editar datos» si ya tiene factura). Fuera «Guardar referencia» y «Añadir justificante» (basta el check de
-     «Pago recibido»); en el editor tampoco se adjuntan justificantes.
-   - Un pedido sin cargo (marcado así o a 0 € con unidades) se describe como «Entrega sin cargo» y no como «Venta al …»: no es una
-     venta (también los que se hicieron antes al 100 % de descuento).
-   ============================================================ */
-function sinCargoP(p, total) { return !!(p && (p.sin_cargo || (total != null && Math.abs(+total) < 0.005 && (p.unidades == null || +p.unidades > 0)))); }
 pedidoPago = async function (id) {
   if (!$('dlg').open || $('pdpago')) return;
   const [{ data }, { data: js }] = await Promise.all([RPC_ORIG('pedido_detalle', { p_id: id }),
@@ -29588,16 +29883,6 @@ pedidoPago = async function (id) {
 const TV_TIPOS = [['captacion', 'Captación'], ['presentacion', 'Presentación'], ['seguimiento', 'Seguimiento']];
 
 
-/* ============================================================
-   v2.327.0 · Sin «¿Salir sin guardar?» donde no hay nada que guardar (aviso de Eric, 16/10/2026). Los checks de
-   «Operativa» del pedido se guardan al momento (data-nosucio) y, además, una ventana solo pregunta al cerrar si tiene
-   a la vista un botón que guarde (Guardar, Validar, Crear, Añadir, Enviar, Aplicar, Aceptar…): si no lo hay, no se
-   ha podido dejar nada a medias.
-   ============================================================ */
-function hayBotonGuardar(d) {
-  return [...d.querySelectorAll('button, .btn')].some(b => b.offsetParent && !b.disabled && !b.classList.contains('sec')
-    && /^(guardar|validar|crear|añadir|enviar|aplicar|aceptar|confirmar|registrar|emitir|dar de alta)/i.test((b.textContent || '').trim()));
-}
 
 /* ============================================================
    v2.329.0 · Reportados al profesional, a la vista en Pedidos y en Analítica (interno: solo quien ve todo)
@@ -29731,37 +30016,8 @@ abrirMasMovil = (orig => function (...a) {
    sesión (la app la renueva sola mientras está abierta). Sin el SQL 174, el último inicio de sesión. Solo la ve la administración.
    ============================================================ */
 var USR_ACC = null;
-function conexionTxt(a, largo) {
-  const t = a && (a.ultima_conexion || a.ultimo_acceso), d = t ? new Date(t) : null;
-  if (!d || isNaN(d)) return a ? 'Nunca se ha conectado' : (largo ? 'Última conexión: sin datos' : '');
-  const min = Math.round((Date.now() - d) / 60000), hora = d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
-  const hoy = new Date(); hoy.setHours(0, 0, 0, 0); const ayer = new Date(hoy - 864e5);
-  let x;
-  if (min < 5) x = 'ahora mismo';
-  else if (min < 60) x = 'hace ' + min + ' min';
-  else if (d >= hoy) x = 'hoy a las ' + hora;
-  else if (d >= ayer) x = 'ayer a las ' + hora;
-  else x = 'el ' + d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: d.getFullYear() === hoy.getFullYear() ? undefined : 'numeric' }) + (largo ? ' a las ' + hora : '');
-  return (largo ? 'Última conexión: ' : 'Conectado ') + x;
-}
-async function facccon(uid) {
-  if (!puede('administrar')) return;   // la información de sesión, solo para la administración (Eric)
-  const { data } = await RPC_ORIG('ultimas_conexiones', { p_ids: [uid] });
-  const el = document.querySelector(`[data-facccon="${uid}"]`); if (!el) return;
-  const a = (data || []).find(x => x.id === uid);
-  el.textContent = a ? conexionTxt(a, true) : '';
-}
 
 
-/* ============================================================
-   v2.338.0 · Ventanas completas en el móvil (D-024; petición de Eric, 20/10/2026): #dlg, #dlg2 y #ficha ocupan toda la pantalla menos el
-   menú de abajo, sin esquinas y con su alto final desde que se abren (antes el pedido crecía en blanco mientras cargaba). --bnavh es el
-   alto del menú de abajo, medido.
-   ============================================================ */
-function medirBnav() {
-  const b = $('bnav'), h = b && getComputedStyle(b).display !== 'none' ? Math.round(b.getBoundingClientRect().height) : 0;
-  document.documentElement.style.setProperty('--bnavh', h + 'px');
-}
 addEventListener('resize', medirBnav); setTimeout(medirBnav, 0);
 pintarBnav = (orig => function (...a) { const r = orig.apply(this, a); medirBnav(); return r; })(pintarBnav);
 
@@ -29951,18 +30207,6 @@ disenoPDF = (orig => async function (...a) {
   return r;
 })(disenoPDF);
 
-/* v2.343.0 · El «+» flotante del móvil vuelve a la cabecera al pasar a tamaño de ordenador (aviso de Eric: «+ Añadir médico» se
-   quedaba debajo de la tabla tras usar el simulador de móvil o estrechar la ventana sin recargar). */
-function fabAOrdenador() {
-  if (ES_MOVIL()) return;
-  document.querySelectorAll('main > section .fab[data-txt], main > section .fab[data-plfab], main > section > button[data-plfab], main > section > button[data-txt]').forEach(f => {
-    const sec = f.closest('main > section'), acts = sec && sec.querySelector(':scope > .saludo .acts'); if (!acts) return;
-    const txt = f.dataset.txt || f.getAttribute('aria-label') || 'Añadir';
-    f.classList.remove('fab', 'plfuera'); delete f.dataset.plfab; delete f.dataset.txt;
-    f.innerHTML = plIco('plus') + ' ' + esc(txt.replace(/^\s*\+\s*/, ''));
-    acts.appendChild(f);
-  });
-}
 let FAB_RZ = 0;
 addEventListener('resize', () => { clearTimeout(FAB_RZ); FAB_RZ = setTimeout(() => { fabAOrdenador(); try { if (typeof plSync === 'function' && TAB) plSync(TAB); } catch (e) {} }, 120); });
 
@@ -30048,11 +30292,6 @@ setTimeout(cfgClonarEstilos, 0);
    pago, primero se cobra (así, en «Pendientes de cobro» todos dicen «Por cobrar»).
    ============================================================ */
 const cobroDe = p => p.sin_cargo || sinCargoP(p, p.total) ? 'Sin cargo' : p.pago_estado === 'Cobrado' || p.pago_validado_en ? 'Cobrado' : 'Pendiente de cobro';
-function pillPaso(p) {
-  const [t, c] = pasoPedido(p);
-  const hechos = p.estado === 'Confirmado' ? ['Confirmado', p.paquete_en ? 'Preparado' : '', cobroDe(p) === 'Cobrado' ? 'Cobrado' : '', p.factura ? 'Facturado' : ''].filter(Boolean).join(' · ') : '';
-  return '<span class="pill ' + c + '"' + (hechos ? ' title="Hecho: ' + hechos + '"' : '') + '>' + t + '</span>';
-}
 
 
 /* ============================================================
@@ -30114,59 +30353,6 @@ const PAG_GUARDA_RE = /^guardar(\s|$)/i, PAG_GUARDA_NO = '#coprueba, #copruebaar
 const PAG_NO_CAMBIA = 'input[type=search], #txq, #cfubus, [placeholder^="Busca"]';
 const PAG_SUCIO = new Set();
 let PAG_CLAVE = '';
-function pagActual() { const p = PAG_GUARDA.find(x => x.tab === TAB); if (!p) return null; const cab = p.cab(), cuerpo = p.cuerpo(); return cab && cuerpo ? { cab, cuerpo } : null; }
-function pagBloque(el, cuerpo) { return el.closest('.cfgsec') || cuerpo; }
-function pagBotonesGuardar(cuerpo) {
-  return [...cuerpo.querySelectorAll('button, a.btn')].filter(b => PAG_GUARDA_RE.test(b.textContent.trim()) && !b.matches(PAG_GUARDA_NO) && !b.closest('dialog:not(.encajada:has([data-pagina])), .cfucab, .saludo'));
-}
-// El guardado de cada bloque se queda (con su función) en un contenedor oculto de su mismo bloque; la fila que queda vacía, fuera
-function pagOcultarBoton(b) {
-  if (b.closest('.cfgocultos')) return;
-  const fila = b.parentElement, blq = b.closest('.cfgsecc, .card, #cfgcuerpo, #fcuerpo') || fila;
-  let h = blq.querySelector(':scope > .cfgocultos'); if (!h) { h = document.createElement('div'); h.className = 'cfgocultos'; h.hidden = true; blq.appendChild(h); }
-  h.appendChild(b);
-  if (fila && fila !== blq && ![...fila.children].some(x => x.getClientRects().length)) fila.style.display = 'none';
-}
-function pagPonerGuardar() {
-  const p = pagActual();
-  document.querySelectorAll('.cfuguarda').forEach(a => { if (!p || !p.cab.contains(a)) a.remove(); });   // al salir de la configuración (p. ej. a la lista de facturas)
-  if (!p) return;
-  const { cab, cuerpo } = p;
-  // títulos repetidos: el que repite el texto del anterior se oculta
-  let prev = '';
-  for (const h of [...cab.querySelectorAll('h1, h2'), ...[...cuerpo.querySelectorAll('h2, h3')].filter(x => !cab.contains(x))]) {
-    if (!h.getClientRects().length && !h.classList.contains('cfudup')) continue;
-    const t = h.textContent.trim().toLowerCase(); if (t && t === prev) h.classList.add('cfudup'); else prev = t;
-  }
-  if (cab.querySelector('.cfuacts:not(.cfuguarda)')) return;   // el apartado ya trae sus botones en la cabecera (KPIs de Inicio)
-  const bs = pagBotonesGuardar(cuerpo);
-  let a = cab.querySelector('.cfuguarda');
-  if (!bs.length) { if (a) a.remove(); return; }
-  bs.forEach(pagOcultarBoton);
-  if (!a) {
-    // la marca de cambios solo se pierde al cambiar de apartado (una cabecera que se repinta no la borra)
-    const clave = TAB + '|' + (TAB === 'config' ? CFG_KEY : (document.querySelector('#v-facturacion .cfgsubs .on, #v-facturacion .cfgsubs [aria-pressed="true"]') || {}).textContent);
-    if (clave !== PAG_CLAVE) { PAG_SUCIO.clear(); PAG_CLAVE = clave; }
-    a = document.createElement('div'); a.className = 'acts cfuacts cfuguarda';
-    a.innerHTML = '<button type="button" class="btn sec" id="cfudescartar" disabled>Descartar cambios</button><button type="button" class="btn" id="cfuguardar" disabled>Guardar</button>';
-    cab.appendChild(a);
-    $('cfudescartar').onclick = () => { PAG_SUCIO.clear(); if (TAB === 'config') cargarConfig(); else (b => b && b.click())(document.querySelector('#v-facturacion .cfgsubs button.on, #v-facturacion .cfgsubs button[aria-pressed="true"]')); };
-    $('cfuguardar').onclick = pagGuardarTodo;
-  }
-  pagMarcarSucio();
-}
-async function pagGuardarTodo() {
-  const g = $('cfuguardar'), p = pagActual(); if (!g || g.disabled || !p) return;
-  g.disabled = true;
-  const todos = pagBotonesGuardar(p.cuerpo), bs = todos.filter(b => [...PAG_SUCIO].some(c => c.contains(b)));
-  for (const b of (bs.length ? bs : todos)) {
-    if (!b.isConnected) continue;
-    b.click();
-    const t0 = Date.now(); await new Promise(r => setTimeout(r, 120));
-    while (Date.now() - t0 < 15000 && (RED_VUELO > 0 || b.classList.contains('guardando'))) await new Promise(r => setTimeout(r, 80));
-  }
-  PAG_SUCIO.clear(); pagMarcarSucio();
-}
 ['input', 'change'].forEach(ev => document.addEventListener(ev, e => {
   const p = pagActual(); if (!p || !e.isTrusted) return;
   const t = e.target; if (!t.closest || !p.cuerpo.contains(t) || t.closest('dialog:not(.encajada:has([data-pagina])), .cfucab') || t.matches(PAG_NO_CAMBIA)) return;

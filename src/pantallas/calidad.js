@@ -220,3 +220,32 @@ async function dupJuntarCentros(queda, va) {
   if (sobran.length) await db.from('ubicaciones').delete().in('id', sobran);
   try { invalidarCache(); } catch (e) {}
 }
+
+function panelDupVacio(msg) {
+  $('dcmp').innerHTML = `<div class="vacio">${esc(msg)} Elige la siguiente pareja de la lista.</div>`;
+}
+
+async function revisarPendientes() {
+  cargando($('dbody'), 'Buscando pendientes…');
+  $('dlg').showModal();
+  const { data } = await db.rpc('duplicados_pendientes');
+  const l = data || [];
+  $('dbody').innerHTML = `
+    <div class="fh"><div><h2>Pendientes de unificar</h2>
+      <div class="sm">${l.length} fichas marcadas al darlas de alta</div></div>
+      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
+    <div class="lista">${l.map(x => `<div class="item" style="cursor:default">
+      <span class="ic w">${x.pct ? x.pct + '%' : '?'}</span>
+      <span class="tx"><b>${esc(x.nombre)}</b>
+        <span class="sm">Código ${esc(x.codigo)} · ${esc(x.centro || '')} ${esc(x.municipio || '')}</span>
+        <span class="sm">${x.par_nombre ? 'Se parece a ' + esc(x.par_nombre) : 'Sin pareja identificada'}</span></span>
+      <span class="acts" style="margin:0">
+        ${x.par_id ? `<button class="btn" data-cmp="${x.id}|${x.par_id}">Comparar</button>` : ''}
+        <button class="btn sec" data-dficha="${x.id}">Ver ficha</button></span></div>`).join('')
+      || '<div class="vacio">No hay fichas pendientes de unificar.</div>'}</div>`;
+
+  $('dbody').querySelectorAll('[data-cmp]').forEach(b => b.onclick = () => {
+    const [a, c] = b.dataset.cmp.split('|'); compararFichas(a, c);
+  });
+  $('dbody').querySelectorAll('[data-dficha]').forEach(b => b.onclick = () => { $('dlg').close(); abrirFicha(b.dataset.dficha); });
+}

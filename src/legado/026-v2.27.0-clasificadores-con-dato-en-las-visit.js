@@ -13,13 +13,6 @@ const esMuestras = d => (CAT.resultado_visita || []).some(x => x.valor === d.val
 const detTxt = v => (v.detalles || []).filter(d => !esMuestras(d) && !(!d.dato && (v.resultados || []).includes(d.valor)))
   .map(d => d.valor + (d.dato ? ' (' + d.dato + ')' : '')).join(', ');
 
-function campoDato(v, k, valor) {
-  const lab = esc(v.dato_etiqueta || (v.dato_tipo === 'numero' ? 'Cantidad' : 'Detalle'));
-  if (v.dato_tipo === 'numero') return `<label class="datol">${lab}<input type="number" min="0" step="1" data-dato="${k}" value="${esc(valor || '')}" placeholder="0"></label>`;
-  if (v.dato_tipo === 'lista') return `<label class="datol">${lab}<select data-dato="${k}"><option value=""></option>${(v.dato_opciones || [])
-    .map(o => `<option ${o === valor ? 'selected' : ''}>${esc(o)}</option>`).join('')}</select></label>`;
-  return `<label class="datol">${lab}<input data-dato="${k}" value="${esc(valor || '')}" placeholder="Opcional"></label>`;
-}
 
 /* Registrar visita: la ventana base y el aviso si falta el horario de atención (antes eran 3 capas). */
 async function abrirVisita(id) {
@@ -125,35 +118,6 @@ async function abrirVisitaBase(id) {
 
 /* ---------------- clasificadores: configurar el dato de cada valor ---------------- */
 
-function editorDato(v, alGuardar) {
-  $('dlg2body').innerHTML = `
-    <div class="fh"><div><h2>Dato de «${esc(v.valor)}»</h2>
-      <div class="sm">Al marcar este valor en ${TT('visita', 's', 'un', 'l', 'l')}, se pedirá además este dato</div></div>
-      <button class="x" data-cerrar2 aria-label="Cerrar">✕</button></div>
-    <label for="dtt">Qué dato pide</label>
-    <select id="dtt"><option value="">Ninguno (solo se marca)</option>
-      <option value="numero" ${v.dato_tipo === 'numero' ? 'selected' : ''}>Un número (p. ej. cantidad)</option>
-      <option value="texto" ${v.dato_tipo === 'texto' ? 'selected' : ''}>Un texto libre</option>
-      <option value="lista" ${v.dato_tipo === 'lista' ? 'selected' : ''}>Una opción de una lista</option></select>
-    <div id="dtcfg">
-      <label for="dte">Cómo se llama el dato</label><input id="dte" value="${esc(v.dato_etiqueta || '')}" placeholder="p. ej. Cantidad, A quién, Producto">
-      <div id="dtlw"><label for="dtl">Opciones de la lista <span class="sm">· una por línea</span></label>
-        <textarea id="dtl" rows="4">${esc((v.dato_opciones || []).join('\n'))}</textarea></div>
-    </div>
-    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar2>Cancelar</button><button class="btn" id="dtok">Guardar</button></div>`;
-  const vis = () => { $('dtcfg').classList.toggle('hide', !$('dtt').value); $('dtlw').classList.toggle('hide', $('dtt').value !== 'lista'); };
-  $('dtt').onchange = vis; vis();
-  $('dtok').onclick = async () => {
-    const tipo = $('dtt').value;
-    const ops = $('dtl').value.split('\n').map(x => x.trim()).filter(Boolean);
-    if (tipo === 'lista' && !ops.length) { toast('Escribe al menos una opción', true); return; }
-    const { data: r, error } = await db.rpc('guardar_valor', { p: { id: v.id, dato_tipo: tipo, dato_etiqueta: tipo ? $('dte').value.trim() : '',
-      dato_opciones: tipo === 'lista' ? ops : [] } });
-    if (error || (r && r.ok === false)) { toast('No se ha podido guardar', true); return; }
-    $('dlg2').close(); toast('Dato guardado'); alGuardar();
-  };
-  $('dlg2').showModal();
-}
 
 abrirClasificador = (orig => function (id) {
   orig(id);

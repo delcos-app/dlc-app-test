@@ -64,17 +64,6 @@ cargarSeguimiento = (orig => async function (...a) { await orig(...a); const v =
 /* ---------------- 4. IVA: solo los porcentajes (nunca un importe «con IVA») ---------------- */
 
 const ES_IMPORTE = /imp|importe|total|base|precio|pvp|coste|cobro|con_iva|conIva|sin_iva/i;
-function esPorcentajeIva(i) {
-  // Una vez decidido, no cambia (evita que la comprobación y la conversión se contradigan en bucle)
-  if (i.dataset.ivaok) return i.dataset.ivaok === '1';
-  // La etiqueta puede apuntar ya a la lista de IVA (id + «_sel») si el campo se convirtió antes
-  const lab = (((i.id && (document.querySelector(`label[for="${i.id}"]`) || document.querySelector(`label[for="${i.id}_sel"]`))) || i.closest('label') || {}).textContent || '').trim();
-  const clave = i.id + ' ' + (i.dataset.f || '') + ' ' + (i.name || '');
-  const r = !(ES_IMPORTE.test(clave) || /importe|precio|total|base|coste/i.test(lab))
-    && (i.dataset.f === 'iva' || /(^|[_-])iva$/i.test(i.id) || /^[a-z]{0,3}iva$|^penvv$/i.test(i.id) || /^IVA(\s*\(%\)|\s+del servicio(\s*\(%\))?|\s+%)?$|tipo de iva/i.test(lab));
-  i.dataset.ivaok = r ? '1' : '0';
-  return r;
-}
 // Se deshace cualquier conversión errónea (un importe convertido en lista de IVA)
 new MutationObserver(() => {
   document.querySelectorAll('select.ivasel').forEach(sel => {
@@ -95,14 +84,6 @@ selectorArchivo = (orig => function (inp) {
   if (prev) { const im = prev.querySelector('img'); if (im && im.src) w.querySelector('.fpmini').innerHTML = `<img src="${im.src}" alt="">`; prev.classList.add('hide'); }
   const lab = cont.querySelector(`label[for="${inp.id}"]`); if (lab) lab.classList.add('hide');
 })(selectorArchivo);
-function notaAmplia(i) {
-  if (!i || i.dataset.nota || i.type !== 'text') return;
-  const txt = (i.id + ' ' + (i.placeholder || '') + ' ' + (((i.id && document.querySelector(`label[for="${i.id}"]`)) || {}).textContent || '')).toLowerCase();
-  if (!/\bnota|observac|comentario/.test(txt) || /buscar/.test(txt)) return;
-  const t = document.createElement('textarea'); [...i.attributes].forEach(a => { if (a.name !== 'type' && a.name !== 'value') t.setAttribute(a.name, a.value); });
-  t.value = i.value; t.rows = 3; t.dataset.nota = '1'; t.classList.add('notaamplia'); i.replaceWith(t);
-  const campo = t.closest('.g2 > div, .g3 > div'); if (campo) campo.classList.add('ocupatodo');
-}
 new MutationObserver(ms => { for (const m of ms) for (const n of m.addedNodes) if (n.nodeType === 1)
   (n.matches && n.matches('input[type=text]') ? [n] : [...n.querySelectorAll('input[type=text]')]).forEach(notaAmplia);
 }).observe(document.body, { childList: true, subtree: true });
@@ -123,18 +104,6 @@ new MutationObserver(() => { if (!$('dlg').open) $('dlg').classList.remove('pequ
 /* ---------------- 7. Pila de ventanas: abrir una encima de otra sin perder la anterior ---------------- */
 
 const PILA_VENT = []; let APILANDO = false;
-async function abrirApilada(fn, volverTexto) {
-  const d = $('dlg'), b = $('dbody');
-  PILA_VENT.push({ nodos: [...b.childNodes], clases: d.className, titulo: volverTexto });
-  APILANDO = true;
-  const frag = document.createDocumentFragment(); [...b.childNodes].forEach(n => frag.appendChild(n));
-  if (d.open) d.close();
-  try { await fn(); } finally { APILANDO = false; }
-  if (!d.open) d.showModal();
-  const fh = b.querySelector('.fh');
-  if (fh && !b.querySelector('.pilavolver')) fh.insertAdjacentHTML('beforebegin', `<button class="pilavolver" type="button">${svgIco(ICON_NOM['arrow-left'])} ${esc(volverTexto || 'Volver')}</button>`);
-  const v = b.querySelector('.pilavolver'); if (v) v.onclick = () => d.close();
-}
 $('dlg').addEventListener('close', () => {
   if (APILANDO || !PILA_VENT.length) return;
   const prev = PILA_VENT.pop(), d = $('dlg'), b = $('dbody');
@@ -246,22 +215,6 @@ reportarProblema = function () {
 
 /* ---------------- 11. Analítica: «Ventas por canal» junto al embudo ---------------- */
 
-async function graficoCanal() {
-  const emb = [...document.querySelectorAll('#v-analitica .ancard')].find(c => /Embudo comercial/.test(c.querySelector('h2') ? c.querySelector('h2').textContent : ''));
-  if (!emb || $('ancanal')) return;
-  emb.insertAdjacentHTML('afterend', `<div class="card ancard" id="ancanal"><h2>Ventas por canal</h2><div class="cargandolocal" style="min-height:160px"></div>
-    <p class="leer"><b>Cómo leerlo:</b> qué parte de las unidades llega con ${TT('medico', 's', 'un', 'l', 'l')} de referencia y qué parte por venta directa a un centro.</p></div>`);
-  const { data } = await RPC_ORIG('analitica_tabla', { p_dim: 'canal', p_medida: 'unidades' });
-  const filas = (data && data.filas) || [], tot = filas.reduce((s, f) => s + (+f.total || 0), 0);
-  const cols = ['#3F82C0', '#E0762B', '#1BAF7A', '#6E5BC4'];   // v2.107.0: paleta de gráficos de la marca
-  let ang = 0;
-  const arcos = filas.map((f, i) => { const v = (+f.total || 0) / (tot || 1), a0 = ang, a1 = ang + v * 2 * Math.PI; ang = a1;
-    const p = t => [80 + 60 * Math.sin(t), 80 - 60 * Math.cos(t)], [x0, y0] = p(a0), [x1, y1] = p(a1 - 0.0001);
-    return `<path d="M80 80 L${x0} ${y0} A60 60 0 ${a1 - a0 > Math.PI ? 1 : 0} 1 ${x1} ${y1} Z" fill="${cols[i % 4]}"/>`; }).join('');
-  $('ancanal').querySelector('.cargandolocal').outerHTML = tot ? `<div class="donut"><svg viewBox="0 0 160 160" width="160" height="160">${arcos}<circle cx="80" cy="80" r="36" fill="#fff"/><text x="80" y="86" text-anchor="middle" font-size="18" font-weight="700" fill="#0B3A66">${num(tot)}</text></svg>
-      <div class="donutley">${filas.map((f, i) => `<div><i style="background:${cols[i % 4]}"></i><span>${esc(f.nombre)}</span><b>${num(f.total)}</b><span class="sm">${Math.round((+f.total || 0) / tot * 100)}%</span></div>`).join('')}</div></div>`
-    : vacioGrafico('Verás qué parte de las ventas llega por cada canal.');
-}
 new MutationObserver(() => { if (TAB === 'analitica' && !$('ancanal')) graficoCanal(); }).observe($('v-analitica'), { childList: true, subtree: true });
 
 /* ---------------- se aplica en cada pantalla ---------------- */

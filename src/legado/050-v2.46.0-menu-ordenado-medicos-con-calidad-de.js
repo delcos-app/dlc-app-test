@@ -28,13 +28,6 @@ Object.assign(ICON_NOM, {"euro": "<path d=\"M4 10h12\" /> <path d=\"M4 14h9\" />
 /* ---------------- menú principal: orden y «Médicos» ---------------- */
 
 const ORDEN_MENU = ['inicio', 'agenda', 'rutas', 'directorio', 'ventas', 'pacientes', 'productos', 'facturacion', 'analitica', 'informe'];
-function ordenarMenu() {
-  const nav = document.querySelector('nav.main .in') || document.querySelector('nav.main'); if (!nav) return;
-  ORDEN_MENU.forEach(t => { const b = nav.querySelector(`:scope > [data-t="${t}"]`); if (b) nav.appendChild(b); });
-  const cal = nav.querySelector('[data-t="seguimiento"]'); if (cal) cal.classList.add('hide', 'fuera');
-  const dir = nav.querySelector('[data-t="directorio"]');
-  if (dir) [...dir.childNodes].forEach(n => { if (n.nodeType === 3 && /Directorio/.test(n.nodeValue)) n.nodeValue = n.nodeValue.replace('Directorio', `${TT('medico', 'p', '', 'l', 'C')}`); });
-}
 ordenarMenu();
 // «Calidad del dato» pasa a ser un botón dentro de Médicos
 function botonCalidad() {

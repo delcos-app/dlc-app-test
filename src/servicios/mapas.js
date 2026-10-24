@@ -78,3 +78,39 @@ function enlaceNavApp(destino, paradas, n) {
   if (ES_ANDROID && !(paradas && paradas.length)) return 'google.navigation:q=' + encodeURIComponent(d) + '&mode=d';
   return null;   // Android con paradas: solo el enlace web admite la ruta entera
 }
+
+async function cambiarNavegador(n) {
+  const prefs = Object.assign({}, PERFIL.preferencias || {}, { navegador: n });
+  const { data } = await db.rpc('guardar_preferencias', { p: prefs });
+  PERFIL.preferencias = data || prefs;
+  toast('Navegación con ' + (NAVEGADORES.find(x => x[0] === n) || [])[1]);
+  if (PLAN) pintarPlan();
+}
+
+function rellenarDireccion(box, i, a) {
+  if (!a) return;
+  const set = (f, v) => { const el = box.querySelector(`[data-cf="${i}|${f}"]`); if (el && v && !el.value.trim()) el.value = v; };
+  set('direccion', [a.road, a.house_number].filter(Boolean).join(', '));
+  set('municipio', (a.city || a.town || a.village || a.municipality || '').toUpperCase());
+  set('cp', a.postcode || ''); set('provincia', (a.province || a.state_district || a.county || a.state || '').toUpperCase());
+}
+
+// «Estoy aquí»: primero los centros que ya tenemos a menos de 250 m; si no, centro nuevo con los datos del mapa
+async function estoyAqui(box, i, b) {
+  if (!navigator.geolocation) { toast('Este dispositivo no da la ubicación', true); return; }
+  const txt = b.textContent; b.disabled = true; b.textContent = 'Localizando…';
+  try {
+    const pos = await new Promise((ok, ko) => navigator.geolocation.getCurrentPosition(ok, ko, { enableHighAccuracy: true, timeout: 12000, maximumAge: 30000 }));
+    const lat = +pos.coords.latitude.toFixed(6), lon = +pos.coords.longitude.toFixed(6);
+    const { data } = await RPC_ORIG('buscar_centros', { p_q: null, p_lat: lat, p_lon: lon, p_radio: 250, p_lim: 6 });
+    const cerca = data || [];
+    const res = box.querySelector(`[data-cp="${i}"] .cpres`);
+    if (cerca.length && res) {
+      res.innerHTML = '<div class="sm cpaviso">¿Estás en uno de estos centros?</div>';
+      const cont = document.createElement('div'); res.appendChild(cont);
+      listaCentros(cont, cerca, cen => { cpPoner(box, i, cen); pintarCentroSel(box, i); toast('Centro elegido: ' + cen.nombre); },
+        '<button type="button" class="cpitem cpnuevo">No, es otro centro: crearlo con mi ubicación</button>', () => centroDesdeUbicacion(box, i, lat, lon));
+    } else await centroDesdeUbicacion(box, i, lat, lon);
+  } catch (err) { toast('No se ha podido obtener tu ubicación: revisa el permiso de ubicación del navegador', true); }
+  finally { b.disabled = false; b.textContent = txt; }
+}
