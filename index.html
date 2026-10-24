@@ -2872,7 +2872,10 @@ label.chk > span{display:flex;flex-direction:column;gap:3px;min-width:0;line-hei
 #atot.kpis > .kpi > span{font-size:12.5px;color:var(--muted)}
 @media (max-width:760px){#atot.kpis > .kpi{flex:1 1 45%;border-left:0;}}
 /* v2.152.0 · Notificaciones: bandeja con acciones y tabla de ajustes */
-.notfil{margin:0 16px 8px;flex-wrap:wrap}
+/* v2.369.0: sin margen lateral: el segmentado mide como mucho el 100 % y el margen lo sacaba de la ventana en el móvil */
+.notfil{margin:0 0 8px}
+/* v2.369.0: Puerto y Seguridad del correo: la columna del puerto se adapta a su campo (a 900 px el «+» pisaba Seguridad) */
+.copuerg{margin:0;grid-template-columns:auto minmax(0,1fr)}
 .notlista2{display:flex;flex-direction:column;padding:0 16px}
 .notdia{font-family:Manrope,system-ui,sans-serif;font-size:12.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin:12px 0 4px}
 .notit2{display:flex;gap:12px;padding:10px 8px;border-radius:10px;cursor:pointer;border-top:1px solid var(--line)}
@@ -5033,6 +5036,6 @@ try{var co=sessionStorage.getItem('dlc-cambio-org');if(co!==null||localStorage.g
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.368.0"></script>
+<script src="./app.js?v=2.369.0"></script>
 </body>
 </html>
