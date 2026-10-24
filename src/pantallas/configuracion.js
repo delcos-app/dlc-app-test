@@ -2603,3 +2603,89 @@ function pintarPerfil(...a) {
   c.prepend(u);
   return r;
 }
+
+// Filtros generados (listas y sí/no) para una zona de filtros; al cambiar, actualiza «estado» y llama a «alCambiar»
+function camposFiltros() { return ''; }
+
+/* ---------- Cuentas: la sección va en su panel de filtros, con sus columnas ---------- */
+// Todos los campos pueden ser columna; de entrada se ven los que tienen «Columna en la tabla»
+function camposEnDirectorio() {
+  (CAMPOS.medico || []).forEach(c => { if (!COLS.some(x => x.k === 'cp:' + c.clave)) COLS.push({ k: 'cp:' + c.clave, t: c.nombre, w: 150 }); });
+}
+
+// v2.242.0: aquí iba la primera versión de notifPintar (se redefine entera más abajo)
+function panelNotificaciones(l) {
+  NOTIF_LISTA = l || [];
+  notifPintar();
+  if (!$('dlg').open) $('dlg').showModal();
+}
+
+function notifPintar() {
+  const l = NOTIF_LISTA;
+  const areas = NOTIF_AREAS.filter(a => l.some(x => notifArea(x.tipo) === a[0]));
+  if (NOTIF_FILTRO && !areas.some(a => a[0] === NOTIF_FILTRO)) NOTIF_FILTRO = '';
+  const vis = l.filter(x => !NOTIF_FILTRO || notifArea(x.tipo) === NOTIF_FILTRO);
+  const nuevas = vis.filter(x => !x.leida_en), viejas = vis.filter(x => x.leida_en);
+  const fila = x => {
+    const acc = notifAcciones(x), cuando = new Date(x.visible_desde || x.creado_en), g = notifDia(x.visible_desde || x.creado_en);
+    return `<div class="notit2 ${x.leida_en ? '' : 'nuevo'}" data-nidx="${l.indexOf(x)}">
+      <span class="ic" aria-hidden="true">${notifIco(x.tipo)}</span>
+      <div class="tx"><b>${esc(x.titulo)}</b>${x.cuerpo ? `<span class="sm">${esc(x.cuerpo)}</span>` : ''}
+        <span class="sm notcuando">${g === 'Hoy' ? cuando.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) : g === 'Ayer' ? 'Ayer' : cuando.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' })}${x.resumen ? ' · del resumen del día' : ''}</span>
+        <div class="notacts">${acc.map(([t, , p], j) => `<button type="button" class="btn chico ${p ? '' : 'sec'}" data-nacc="${j}">${esc(t)}</button>`).join('')}
+          ${x.leida_en ? '' : '<button type="button" class="btn sec chico" data-npos>Posponer a mañana</button>'}
+          <button type="button" class="notbor" data-nbor aria-label="Borrar esta notificación" title="Borrar">${svgIco(ICON_NOM['trash-2'])}</button></div></div></div>`;
+  };
+  $('dbody').innerHTML = `<div class="fh"><div><h2>Notificaciones</h2><div class="sm">${NOTIF_N ? `${NOTIF_N} sin leer` : 'Estás al día'} · últimos 7 días</div></div>
+      <span class="acts" style="margin:0"><button type="button" class="icobtn notcfgb" id="notcfg" title="Elegir qué recibo y cuándo" aria-label="Elegir qué recibo y cuándo">${svgIco(ICON_NOM.settings)}</button>
+      <button class="x" data-cerrar aria-label="Cerrar">✕</button></span></div>
+    ${areas.length > 1 ? `<div class="segs notfil" role="group" aria-label="Filtrar">${[['', 'Todas']].concat(areas.map(a => [a[0], a[1]])).map(([k, t]) =>
+      `<button type="button" data-nfil="${k}" class="${NOTIF_FILTRO === k ? 'on' : ''}" aria-pressed="${NOTIF_FILTRO === k}">${esc(t)}</button>`).join('')}</div>` : ''}
+    <div class="notlista2">
+      ${nuevas.length ? `<h3 class="notdia">Nuevas · ${nuevas.length}</h3>${nuevas.map(fila).join('')}` : ''}
+      ${viejas.length ? `<h3 class="notdia">Anteriores</h3>${viejas.map(fila).join('')}` : ''}
+      ${vis.length ? '' : `<div class="vacio">${NOTIF_FILTRO ? 'No hay avisos de esta área.' : 'No tienes notificaciones de los últimos 7 días.'}</div>`}</div>
+    <p class="sm notpie">Se guardan las de los últimos 7 días. Las que borras no vuelven a salir.</p>
+    <div class="acts" style="justify-content:flex-end;flex-wrap:wrap">
+      ${NOTIF_N ? '<button class="btn sec" id="notleer">Marcar todas como leídas</button>' : ''}
+      ${l.some(x => x.leida_en) ? '<button class="btn sec" id="notlimpiar">Borrar las leídas</button>' : ''}
+      ${l.length ? '<button class="btn sec dang" id="notvaciar">Borrar todas</button>' : ''}</div>`;
+  const cerrarYRefrescar = () => { $('dlg').close(); refrescarCampana(); };
+  const quitar = xs => { NOTIF_LISTA = NOTIF_LISTA.filter(y => !xs.includes(y)); NOTIF_N = Math.max(0, NOTIF_N - xs.filter(y => !y.leida_en).length); notifPintar(); refrescarCampana(); };
+  $('dbody').querySelectorAll('[data-nfil]').forEach(b => b.onclick = () => { NOTIF_FILTRO = b.dataset.nfil; notifPintar(); });
+  $('dbody').querySelectorAll('.notit2').forEach(el => {
+    const x = l[+el.dataset.nidx], acc = notifAcciones(x);
+    el.querySelectorAll('[data-nacc]').forEach(b => b.onclick = async e => {
+      e.stopPropagation();
+      await db.rpc('leer_notificacion', { p_id: x.id });
+      cerrarYRefrescar(); acc[+b.dataset.nacc][1]();
+    });
+    const pos = el.querySelector('[data-npos]');
+    if (pos) pos.onclick = async e => {
+      e.stopPropagation();
+      const { data } = await db.rpc('posponer_notificacion', { p_id: x.id });
+      if (!data || !data.ok) { toast('No se ha podido posponer', true); return; }
+      toast('Te lo volvemos a enseñar mañana'); quitar([x]);
+    };
+    el.querySelector('[data-nbor]').onclick = async e => {
+      e.stopPropagation();
+      if (!await notifBorrar([x.id])) return;
+      el.classList.add('notsale'); setTimeout(() => quitar([x]), 220);
+    };
+    el.onclick = async () => {
+      await db.rpc('leer_notificacion', { p_id: x.id });
+      if (acc.length) { cerrarYRefrescar(); (acc.find(a => a[2]) || acc[0])[1](); }
+      else if (!x.leida_en) { x.leida_en = new Date().toISOString(); NOTIF_N = Math.max(0, NOTIF_N - 1); notifPintar(); refrescarCampana(); }
+    };
+  });
+  if ($('notleer')) $('notleer').onclick = async () => {
+    await db.rpc('leer_notificaciones'); const ahora = new Date().toISOString();
+    NOTIF_LISTA.forEach(x => { if (!x.leida_en) x.leida_en = ahora; }); NOTIF_N = 0; notifPintar(); refrescarCampana();
+  };
+  if ($('notlimpiar')) $('notlimpiar').onclick = async () => { if (await notifBorrar(null, true)) { toast('Notificaciones leídas borradas'); quitar(NOTIF_LISTA.filter(x => x.leida_en)); } };
+  if ($('notvaciar')) $('notvaciar').onclick = async () => {
+    const op = await elegirOpcion('Borrar todas las notificaciones', 'Se borran todas, también las que no has leído, y no vuelven a salir.', [{ k: 'no', t: 'Cancelar', cls: 'sec' }, { k: 'si', t: 'Borrar todas' }]);
+    if (op === 'si' && await notifBorrar(null, false)) { toast('Notificaciones borradas'); cerrarYRefrescar(); }
+  };
+  $('notcfg').onclick = () => { $('dlg').close(); CFG_SEC = 'notif'; window.__CFG_DIRECTO = true; ir('config'); };
+}

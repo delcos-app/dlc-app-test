@@ -10,19 +10,5 @@ document.addEventListener('click', e => {
   e.stopPropagation(); CERCA = null; buscar(true);
 });
 
-// ---- La barra tiene sus filtros rápidos desde el primer momento: mientras su desplegable no existe (Clientes lo crea al llegar
-// los datos), el filtro se ve con su nombre y en espera, en vez de aparecer después empujando el buscador
-plSync = (orig => function (tab, ...x) {
-  const r = orig.call(this, tab, ...x);
-  const sec = $('v-' + tab), c = plCfg(tab); if (!sec || !c || !c.rapidos) return r;
-  sec.querySelectorAll(':scope > .pltool [data-plr]').forEach(b => {
-    if (plSel(b.dataset.plr)) { if (b.classList.contains('plespera')) b.classList.remove('plespera'); return; }
-    const nom = (c.rapidos.find(x => x[0] === b.dataset.plr) || [])[1]; if (!nom) return;
-    if (b.classList.contains('hide')) b.classList.remove('hide');
-    if (!b.classList.contains('plespera')) b.classList.add('plespera');
-    if (b.textContent !== nom) b.textContent = nom;
-  });
-  return r;
-})(plSync);
 
 

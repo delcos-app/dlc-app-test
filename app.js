@@ -56,6 +56,42 @@ function registrarError(tipo, mensaje, detalle) {
   if (PAGO_ESTADO && PAGO_ESTADO.solo_lectura && /row-level security|violates row-level/i.test(String(mensaje))) return;
   return registrarErrorBase2.call(this, tipo, mensaje, detalle);
 }
+
+function reportarProblema() {
+  const mods = [...document.querySelectorAll('nav.main [data-t]')].filter(b => !b.classList.contains('hide') && getComputedStyle(b).display !== 'none').map(b => [/** @type {HTMLElement} */ (b).dataset.t, b.textContent.trim()]);
+  const chips = (nombre, ops, sel) => `<div class="rpchips" data-rp="${nombre}">${ops.map(([v, t]) => `<button type="button" data-v="${esc(v)}" class="${v === sel ? 'on' : ''}">${esc(t)}</button>`).join('')}</div>`;
+  $('dbody').innerHTML = `<div class="fh"><div><h2>Reportar un problema</h2><div class="sm">Cuantos más detalles, antes se soluciona. Todo lo técnico se adjunta solo.</div></div>
+    <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
+    <div class="rpgrid">
+      <div><label>¿Qué ha pasado?</label>${chips('tipo', [['error', 'Algo falla o da error'], ['no_esperado', 'No hace lo que esperaba'], ['lento', 'Va lento'], ['visual', 'Se ve mal'], ['datos', 'Datos incorrectos'], ['idea', 'Idea de mejora']], 'error')}</div>
+      <div><label>¿Dónde?</label>${chips('modulo', mods.concat([['config', 'Configuración'], ['otro', 'Otro sitio']]), mods.some(m => m[0] === TAB) ? TAB : (TAB === 'config' ? 'config' : 'otro'))}</div>
+      <div><label>¿Cuánto te afecta?</label>${chips('gravedad', [['bloquea', 'No puedo seguir trabajando'], ['molesta', 'Puedo seguir, pero molesta'], ['menor', 'Es un detalle']], 'molesta')}</div>
+      <div><label>¿Pasa siempre?</label>${chips('frecuencia', [['siempre', 'Siempre'], ['aveces', 'A veces'], ['una', 'Solo una vez']], 'siempre')}</div>
+    </div>
+    <label for="rpque">Cuéntalo con tus palabras</label><textarea id="rpque" rows="4" placeholder="Qué intentabas hacer, qué esperabas y qué ha pasado. Por ejemplo: «Al guardar ${TT('visita', 's', 'un', 'l', 'l')} de ${TT('medico', 's', 'un', 'l', 'l', 'nuevo')}, sale un error y no se guarda»."></textarea>
+    <label>Captura de pantalla (opcional)</label><input type="file" id="rpcap" accept="image/*">
+    <details class="rptec"><summary>Datos técnicos que se adjuntan</summary><div class="sm">Pantalla: ${esc(TAB)} · versión ${esc(VERSION_APP)} · ${innerWidth}×${innerHeight} · ${ERRORES_SESION.length} errores en esta sesión · tus últimas ${RASTRO.length} acciones</div></details>
+    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>Cancelar</button><button class="btn" id="rptok" disabled>Enviar el reporte</button></div>`;
+  $('dlg').classList.add('amplia'); $('dlg').showModal();
+  const val = {};
+  $('dbody').querySelectorAll('.rpchips').forEach(g => { val[g.dataset.rp] = (g.querySelector('.on') || {}).dataset ? g.querySelector('.on').dataset.v : ''; g.querySelectorAll('button').forEach(b => b.onclick = () => { g.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); val[g.dataset.rp] = b.dataset.v; }); });
+  $('rpque').oninput = () => { $('rptok').disabled = $('rpque').value.trim().length < 5; };
+  let captura = null;
+  $('rpcap').onchange = async e => {
+    const f = e.target.files[0]; if (!f) return;
+    const img = new Image(); img.src = URL.createObjectURL(f); await img.decode();
+    const k = Math.min(1, 1280 / img.width), c = document.createElement('canvas'); c.width = img.width * k; c.height = img.height * k;
+    c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); captura = c.toDataURL('image/jpeg', 0.7);
+  };
+  $('rptok').onclick = () => conCarga($('rptok'), 'Enviando…', async () => {
+    const nombres = { tipo: 'Tipo', modulo: 'Dónde', gravedad: 'Gravedad', frecuencia: 'Frecuencia' };
+    const resumen = Object.entries(val).map(([k, v]) => `${nombres[k]}: ${($('dbody').querySelector(`[data-rp="${k}"] [data-v="${v}"]`) || {}).textContent || v}`).join(' · ');
+    const { data, error } = await RPC_ORIG('registrar_error', { p: { tipo: 'reporte', mensaje: `[${resumen}] ${$('rpque').value.trim()}`, pantalla: val.modulo || TAB, version: VERSION_APP, navegador: navigator.userAgent,
+      detalle: Object.assign({}, val, { errores_sesion: ERRORES_SESION, ultimas_acciones: RASTRO, ancho: innerWidth, alto: innerHeight, captura }) } });
+    if (error || !data || !data.ok) { toast('No se ha podido enviar', true); return; }
+    delete $('dlg').dataset.sucio; $('dlg').close(); toast('Gracias: el problema queda registrado con todos los detalles');
+  });
+}
 // @ts-check
 // nucleo/idioma.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
@@ -469,6 +505,130 @@ const MOV_BARRA_DEF = ['inicio', 'agenda', 'rutas', 'directorio'];
 const MENU_FUERA = ['usuarios'];
 
 let FAB_RZ = 0;
+
+function menuPersonalizarBase() {
+  let caja = $('mlpanel'); if (caja) { if (caja.__cerrar) caja.__cerrar(); else caja.remove(); return; }
+  const prefs0 = PERFIL.preferencias, p = menuPrefs();
+  const estado = { orden: menuGrupos().filter(g => g.id !== 'otros').map(g => g.id), items: {}, ocultos: [...(p.ocultos || [])] };
+  menuGrupos().forEach(g => { estado.items[g.id] = [...g.items]; });
+  const boton = k => document.querySelector(`#nav button[data-t="${k}"]`);
+  const nombre = k => { const b = boton(k); return b ? (b.dataset.tip || (b.querySelector('.mllab') || b).textContent.trim()) : ''; };
+  const icono = k => { const b = boton(k), s = b && b.querySelector('svg'); return s ? s.outerHTML : ''; };
+  const disponible = k => { const b = boton(k); return !!b && k !== 'seguimiento' && k !== 'inicio' && !b.classList.contains('hide') && (b.classList.contains('mloculto') || getComputedStyle(b).display !== 'none'); };
+  const tit = id => (MENU_GRUPOS.find(x => x.id === id) || { t: 'Otros' }).t;
+  const bloques = () => estado.orden.filter(id => (estado.items[id] || []).some(disponible));
+  // Vista previa: el menú se monta con lo que hay en el panel; al cerrar sin guardar vuelve a lo guardado
+  const previa = () => {
+    PERFIL.preferencias = Object.assign({}, prefs0 || {}, { menu: Object.assign({}, ((prefs0 || {}).menu) || {}, { orden: [...estado.orden], items: JSON.parse(JSON.stringify(estado.items)), ocultos: [...estado.ocultos] }) });
+    MENU_FIRMA = ''; montarMenuLateral();
+  };
+  let guardado = false;
+  const fuera = ev => { if (!ev.target.closest('#mlpanel, #mlpers')) cerrar(); };
+  const tecla = ev => { if (ev.key === 'Escape') { ev.preventDefault(); ev.stopPropagation(); cerrar(); } };
+  const cerrar = () => {
+    const c = $('mlpanel'); if (!c) return;
+    c.remove(); document.removeEventListener('click', fuera, true); document.removeEventListener('keydown', tecla, true);
+    if (!guardado) { PERFIL.preferencias = prefs0; MENU_FIRMA = ''; montarMenuLateral(); }
+    const b = $('mlpers'); if (b) b.focus();
+  };
+  document.body.insertAdjacentHTML('beforeend', '<div id="mlpanel" class="mlp2" role="dialog" aria-label="Personalizar menú"></div>');
+  caja = $('mlpanel'); caja.__cerrar = cerrar;
+  const asa = (txt, attrs) => `<button type="button" class="mlpasa" ${attrs} aria-label="Mover ${esc(txt)} (flechas arriba y abajo)" title="Arrastra para ordenar">${svgIco(ICON_NOM['grip-vertical'])}</button>`;
+  const pinta = foco => {
+    caja.innerHTML = `<div class="mlph"><div><b>Personalizar menú</b><span class="sm">Arrastra para ordenar y elige qué secciones ves. Solo cambia tu menú.</span></div>
+        <button type="button" class="x" id="mlpx" aria-label="Cerrar">✕</button></div>
+      ${boton('inicio') ? `<div class="mlpi mlpfijo"><span class="mlpico">${icono('inicio')}</span><span class="mlpn">${esc(nombre('inicio'))}</span><span class="sm">Siempre el primero</span></div>` : ''}
+      <div class="mlpl">${bloques().map(id => {
+        const its = estado.items[id].filter(disponible), vis = its.filter(k => !estado.ocultos.includes(k)).length;
+        return `<section class="mlpg" data-g="${id}">
+          <div class="mlpgh">${asa('el bloque ' + tit(id), `data-ag="${id}"`)}<b>${esc(tit(id))}</b><span class="mlpcnt">${vis} de ${its.length}</span></div>
+          <div class="mlpis">${its.map(k => { const on = !estado.ocultos.includes(k);
+            return `<div class="mlpi${on ? '' : ' off'}" data-k="${k}" data-g="${id}">${asa(nombre(k), `data-ak="${k}" data-g="${id}"`)}
+              <span class="mlpico">${icono(k)}</span><span class="mlpn">${esc(nombre(k))}</span>
+              <label class="vfswitch mini"><input type="checkbox" role="switch" data-vk="${k}" ${on ? 'checked' : ''} aria-label="Ver ${esc(nombre(k))} en el menú"><span class="sw"></span></label></div>`; }).join('')}</div></section>`; }).join('')}</div>
+      <div class="mlpacts"><button type="button" class="btn sec mlpdef" id="mlpdef">${svgIco(ICON_NOM['rotate-ccw'])} Restablecer</button><button type="button" class="btn" id="mlpok">Guardar</button></div>`;
+    if (foco) { const f = caja.querySelector(foco); if (f) f.focus(); }
+  };
+  // Mover un bloque entre bloques, o una sección dentro de su bloque
+  const moverBloque = (id, destino, antes) => {
+    if (id === destino) return; const o = estado.orden.filter(x => x !== id), i = o.indexOf(destino); o.splice(antes ? i : i + 1, 0, id); estado.orden = o;
+  };
+  const moverItem = (g, k, destino, antes) => {
+    if (k === destino) return; const l = estado.items[g].filter(x => x !== k), i = l.indexOf(destino); l.splice(antes ? i : i + 1, 0, k); estado.items[g] = l;
+  };
+  pinta(); previa();
+  caja.addEventListener('click', async e => {
+    if (e.target.closest('#mlpx')) { cerrar(); return; }
+    if (e.target.closest('#mlpdef')) { estado.orden = MENU_GRUPOS.map(x => x.id); MENU_GRUPOS.forEach(x => { estado.items[x.id] = [...x.items]; }); estado.ocultos = []; pinta(); previa(); return; }
+    const ok = e.target.closest('#mlpok');
+    if (ok) {
+      const prefs = Object.assign({}, prefs0 || {}, { menu: Object.assign({}, ((prefs0 || {}).menu) || {}, { orden: estado.orden, items: estado.items, ocultos: estado.ocultos }) });   // v2.336.0: conserva la barra del móvil
+      ok.disabled = true;
+      const { data, error } = await db.rpc('guardar_preferencias', { p: prefs });
+      ok.disabled = false;
+      if (error) { toast('No se ha podido guardar el menú', true); return; }
+      PERFIL.preferencias = data || prefs; guardado = true; cerrar(); MENU_FIRMA = ''; montarMenuLateral(); toast('Menú guardado');
+    }
+  });
+  caja.addEventListener('change', e => {
+    const v = e.target.closest('[data-vk]'); if (!v) return; const k = v.dataset.vk;
+    estado.ocultos = v.checked ? estado.ocultos.filter(x => x !== k) : [...new Set([...estado.ocultos, k])];
+    const fila = v.closest('.mlpi'); fila.classList.toggle('off', !v.checked);
+    const g = fila.closest('.mlpg'), its = estado.items[g.dataset.g].filter(disponible);
+    g.querySelector('.mlpcnt').textContent = `${its.filter(x => !estado.ocultos.includes(x)).length} de ${its.length}`;
+    previa();
+  });
+  // Teclado: con el foco en un asa, ↑ ↓ mueven
+  caja.addEventListener('keydown', e => {
+    const a = e.target.closest('.mlpasa'); if (!a || (e.key !== 'ArrowUp' && e.key !== 'ArrowDown')) return;
+    e.preventDefault(); const d = e.key === 'ArrowUp' ? -1 : 1;
+    if (a.dataset.ag) { const bs = bloques(), i = bs.indexOf(a.dataset.ag), o = bs[i + d]; if (!o) return; moverBloque(a.dataset.ag, o, d < 0); pinta(`[data-ag="${a.dataset.ag}"]`); }
+    else { const g = a.dataset.g, its = estado.items[g].filter(disponible), i = its.indexOf(a.dataset.ak), o = its[i + d]; if (!o) return; moverItem(g, a.dataset.ak, o, d < 0); pinta(`[data-ak="${a.dataset.ak}"]`); }
+    previa();
+  });
+  // Arrastrar y soltar, solo desde el asa: al pulsarla, su fila (o su bloque) pasa a ser arrastrable
+  let arr = null;
+  caja.addEventListener('pointerdown', e => {
+    caja.querySelectorAll('[draggable="true"]').forEach(x => x.removeAttribute('draggable'));
+    const a = e.target.closest('.mlpasa'); if (!a) return;
+    const el = a.dataset.ag ? a.closest('.mlpg') : a.closest('.mlpi'); if (el) el.setAttribute('draggable', 'true');
+  });
+  caja.addEventListener('dragstart', e => {
+    const el = e.target.closest('[draggable="true"]'); if (!el) { e.preventDefault(); return; }
+    arr = el.classList.contains('mlpi') ? { tipo: 'i', k: el.dataset.k, g: el.dataset.g, el } : { tipo: 'g', g: el.dataset.g, el };
+    e.dataTransfer.effectAllowed = 'move'; try { e.dataTransfer.setData('text/plain', arr.k || arr.g); } catch (er) {}
+    requestAnimationFrame(() => { if (arr) arr.el.classList.add('arrastrando'); });
+  });
+  const limpiar = () => caja.querySelectorAll('.soltar-antes, .soltar-despues').forEach(x => x.classList.remove('soltar-antes', 'soltar-despues'));
+  caja.addEventListener('dragover', e => {
+    if (!arr) return;
+    const dest = arr.tipo === 'i' ? e.target.closest(`.mlpi[data-g="${arr.g}"]`) : e.target.closest('.mlpg');
+    limpiar(); if (!dest || dest === arr.el) return;
+    e.preventDefault(); const r = dest.getBoundingClientRect();
+    dest.classList.add(e.clientY < r.top + r.height / 2 ? 'soltar-antes' : 'soltar-despues');
+  });
+  caja.addEventListener('drop', e => {
+    if (!arr) return; e.preventDefault();
+    const dest = caja.querySelector('.soltar-antes, .soltar-despues'); if (!dest) return;
+    const antes = dest.classList.contains('soltar-antes');
+    if (arr.tipo === 'i') moverItem(arr.g, arr.k, dest.dataset.k, antes); else moverBloque(arr.g, dest.dataset.g, antes);
+    arr = null; pinta(); previa();
+  });
+  caja.addEventListener('dragend', () => { arr = null; limpiar(); caja.querySelectorAll('.arrastrando').forEach(x => x.classList.remove('arrastrando')); });
+  setTimeout(() => { document.addEventListener('click', fuera, true); document.addEventListener('keydown', tecla, true); }, 0);
+  const f = caja.querySelector('.mlpasa'); if (f) f.focus();
+}
+
+function menuPersonalizar(...a) {
+  const r = menuPersonalizarBase.apply(this, a);
+  const caja = $('mlpanel');
+  if (caja && !caja.__candados) {
+    caja.__candados = true; personalizarCandados();
+    new MutationObserver(() => personalizarCandados()).observe(caja, { childList: true });
+    caja.addEventListener('change', () => personalizarCandados());
+  }
+  return r;
+}
 // nucleo/navegacion.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -881,6 +1041,31 @@ function cargarPagina(t, ...a) {
 function revelar(el, max, desde) {
   if (el && el.id === 'fbody') max = Math.max(max || 0, 5000);
   return revelarBase4.call(this, el, max, desde);
+}
+
+// Cambio de pestaña: la vista anterior se queda fija hasta que llegan los datos y la pantalla deja de cambiar
+function congelar(sec) {
+  if (!sec || sec.classList.contains('hide') || document.querySelector('.congelada')) return;
+  const r = sec.getBoundingClientRect(); if (r.height < 40) return;
+  const t0 = Date.now() - 2;
+  // La copia conserva sus identificadores (así mantiene exactamente su aspecto); al estar al final de la página,
+  // la plataforma sigue encontrando siempre los elementos reales, que van antes
+  const c = sec.cloneNode(true);
+  c.classList.add('congelada', 'atenuada'); c.classList.remove('cargando', 'cargando-pend', 'preparando');
+  Object.assign(c.style, { position: 'absolute', left: (r.left + scrollX) + 'px', top: (r.top + scrollY) + 'px', width: r.width + 'px', margin: 0, zIndex: 45, background: 'var(--bg, #F3F8FC)' });
+  // La pestaña pulsada se marca activa al momento en la copia
+  const b = CLIC_PESTANA;
+  if (b && sec.contains(b)) {
+    const attrs = [...b.attributes].filter(a => a.name.startsWith('data-') && a.name !== 'data-expl');
+    const sel = attrs.length ? attrs.map(a => `[${a.name}="${CSS.escape(a.value)}"]`).join('') : null;
+    const cb = sel && c.querySelector(sel);
+    if (cb) { [...cb.parentElement.children].forEach(x => { x.setAttribute('aria-pressed', String(x === cb)); x.classList.toggle('on', x === cb); if (x !== cb && x.classList.contains('btn') && !x.classList.contains('sec')) x.classList.add('sec'); }); cb.classList.remove('sec'); }
+  }
+  c.insertAdjacentHTML('afterbegin', '<div class="barraprog"><i></i></div>');
+  // Se coloca justo debajo de la fila de botones que se ha pulsado (pestañas, modos de la agenda…)
+  if (b && sec.contains(b)) { const fila = b.closest('.subnav, .cfgsubs, .acts, .segs') || b.parentElement; const rb = fila.getBoundingClientRect(); c.querySelector('.barraprog').style.top = Math.round(rb.bottom - r.top + 4) + 'px'; }
+  document.body.appendChild(c); sec.style.minHeight = r.height + 'px';
+  setTimeout(() => estable(sec, 3000, t0).then(() => { c.remove(); requestAnimationFrame(() => { sec.style.minHeight = ''; }); }), 0);
 }
 // nucleo/notificaciones.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
@@ -1898,6 +2083,27 @@ const selectorNav = () => `<select id="navsel" title="Navegador de mapas" style=
 const normGeo = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().replace(/[^A-Z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
 
 async function rutasMapa(...a) { if (RN) return; const r = await rutasMapaBase.apply(this, a); const m = $('rmapa'), g = $('rngrid'); if (m && g && g.nextElementSibling !== m) { g.after(m); if (RM_MAPA) setTimeout(() => { try { RM_MAPA.resize(); } catch (e) {} }, 50); } return r; }
+
+async function geocodificar(q, o = {}) {
+  const base = 'https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=5&countrycodes=es&';
+  const pide = async qs => { try { const r = await fetch(base + qs); return r.ok ? await r.json() : []; } catch (e) { return []; } };
+  const muni = normGeo(o.municipio);
+  const lugar = x => { const a = (x && x.address) || {}; return a.city || a.town || a.village || a.municipality || a.suburb || a.county || ''; };
+  const cuadra = x => {
+    if (!muni) return true;
+    const a = (x && x.address) || {};
+    return [a.city, a.town, a.village, a.municipality, a.city_district, a.county].some(c => { const n = normGeo(c); return n && (n === muni || n.includes(muni) || muni.includes(n)); });
+  };
+  let l = await pide('q=' + encodeURIComponent(q));
+  let r = l.find(cuadra);
+  if (!r && muni && o.direccion) {
+    const l2 = await pide(`street=${encodeURIComponent(o.direccion)}&city=${encodeURIComponent(o.municipio)}${o.cp ? '&postalcode=' + encodeURIComponent(o.cp) : ''}`);
+    r = l2.find(cuadra); if (!l.length) l = l2;
+  }
+  if (r) return r;
+  if (muni && l.length) return Object.assign({}, l[0], { fuera: lugar(l[0]) || 'otro sitio' });
+  return l[0] || null;
+}
 // servicios/pdf.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -2017,6 +2223,114 @@ async function disenoPDF(...a) {
     toast('Plantilla eliminada'); otra(def);
   };
   return r;
+}
+
+async function facturaPDFBase(f, rectificaNum, cfgPrueba) {
+  const C = cfgPrueba || cfgPDF();
+  const JsPDF = await cargarJsPDF();
+  if (!PRODUCTOS.length) await cargarProductos();
+  const doc = new JsPDF({ unit: 'mm', format: 'a4' });
+  const F = C.fuente === 'times' ? 'times' : 'helvetica';
+  const e = f.emisor || {}, c = f.cliente || {};
+  const gris = [110, 118, 126], negro = [28, 39, 51], claro = [238, 240, 242], acento = hexRGB(C.color);
+  const eur = v => (Math.round((+v || 0) * 100) / 100).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '€';
+  const fecha = x => x ? x.split('-').reverse().join('/') : '';
+  const izqLogo = C.logoPos !== 'der', tam = { s: 22, m: 34, l: 44 }[C.logoTam] || 34;
+  const xLogo = izqLogo ? 17 : 192 - tam, xTit = izqLogo ? 192 : 18, alTit = izqLogo ? 'right' : 'left';
+  // Logo
+  if (C.logo) {
+    const logo = await logoData();
+    if (logo && LOGO_CIRC) doc.addImage(logo, 'PNG', xLogo, 19, tam, tam);
+    else if (logo) { doc.setFillColor(236, 240, 245); doc.circle(xLogo + tam / 2, 19 + tam / 2, tam / 2 - 2, 'F'); doc.addImage(logo, 'PNG', xLogo + tam * .16, 19 + tam * .37, tam * .68, tam * .27); }
+  }
+  // Título y número
+  doc.setFont(F, 'normal'); doc.setTextColor(...acento); doc.setFontSize(f.rectifica_id ? 22 : 28);
+  doc.text(f.rectifica_id ? (C.titulo || 'FACTURA') + ' RECTIFICATIVA' : (C.titulo || 'FACTURA'), xTit, 36, { align: alTit });
+  doc.setFontSize(14); doc.setTextColor(...gris); doc.text(f.numero || '', xTit, 44, { align: alTit });
+  // Empresa en la cabecera (opcional)
+  let yEmp = 19 + (C.logo ? tam : 0) + 6;
+  if (C.empresaCab) {
+    doc.setFontSize(8.8); doc.setTextColor(...negro); doc.setFont(F, 'bold');
+    doc.text(e.razon_social || nombreApp(), izqLogo ? 18 : 192, yEmp, { align: izqLogo ? 'left' : 'right' }); doc.setFont(F, 'normal'); doc.setTextColor(...gris);
+    [e.nif ? 'NIF ' + e.nif : '', [e.direccion, [e.cp, e.municipio].filter(Boolean).join(' ')].filter(Boolean).join(', '), [e.telefono, e.email].filter(Boolean).join(' · ')].filter(Boolean)
+      .forEach((t, i) => doc.text(t, izqLogo ? 18 : 192, yEmp + 4.2 * (i + 1), { align: izqLogo ? 'left' : 'right' }));
+  }
+  // Fechas y cliente
+  doc.setFontSize(9.5); let y = C.empresaCab ? Math.max(76, yEmp + 20) : 70;
+  const cliDer = C.clientePos !== 'izq', xDat = cliDer ? 18 : 110, xCli = cliDer ? 110 : 18;
+  const fila = (etq, val, x, yy) => { doc.setTextColor(...gris); doc.text(etq, x, yy); doc.setTextColor(...negro); doc.text(val || '', x + doc.getTextWidth(etq) + 2, yy); };
+  fila('Fecha:', fecha(f.fecha), xDat, y);
+  if (C.vencimiento && !f.rectifica_id) fila('Fecha vencimiento:', fecha(f.vencimiento), xDat, y + 4.6);
+  const dirCli = [c.direccion, [c.municipio, c.cp ? '(' + c.cp + ')' : '', c.provincia, c.pais].filter(Boolean).join(', ').replace(', (', ' (')].filter(Boolean);
+  if (C.direccion && dirCli.length) { fila('Ref:', dirCli[0], xDat, y + 13.8); if (dirCli[1]) { doc.setTextColor(...negro); doc.text(dirCli[1], xDat, y + 18.4); } }
+  if (f.rectifica_id) { doc.setTextColor(...gris); doc.text('Rectifica la factura ' + (rectificaNum || '') + (f.motivo_rectificacion ? ' · ' + f.motivo_rectificacion : ''), xDat, y + 9.2); }
+  doc.setFont(F, 'bold'); doc.setTextColor(...negro); doc.text(c.nombre || '', xCli, y); doc.setFont(F, 'normal');
+  [c.nif, ...dirCli, c.email].filter(Boolean).forEach((t, i) => doc.text(String(t), xCli, y + 4.6 * (i + 1)));
+  // Tabla con las columnas elegidas
+  y = Math.max(104, y + 34);
+  const cols = [['precio', 'PRECIO', l => eur(l.precio)], ['unidades', 'UNIDADES', l => String(l.unidades)], ['subtotal', 'SUBTOTAL', l => eur(l.base)],
+    ['iva', 'IVA', l => (+l.iva || 0) + '%'], ['total', 'TOTAL', l => eur((+l.base || 0) * (1 + (+l.iva || 0) / 100))]].filter(k => C.cols[k[0]]);
+  const conFoto = C.fotos, xCon = conFoto ? 46 : 20, anchoNum = cols.length ? Math.min(28, 110 / cols.length) : 0;
+  const xs = cols.map((_, i) => 192 - (cols.length - 1 - i) * anchoNum);
+  doc.setFillColor(...claro); doc.rect(conFoto ? 42 : 18, y, conFoto ? 150 : 174, 11, 'F'); if (conFoto) doc.rect(18, y, 22.5, 11, 'F');
+  doc.setFont(F, 'bold'); doc.setFontSize(8.8); doc.setTextColor(...acento);
+  doc.text('CONCEPTO', xCon, y + 7); cols.forEach((k, i) => doc.text(k[1], xs[i], y + 7, { align: 'right' }));
+  doc.setFont(F, 'normal'); doc.setFontSize(9.5); doc.setTextColor(...negro); y += 11;
+  const limCon = (cols.length ? xs[0] - anchoNum : 190) - xCon;
+  for (const l of f.lineas || []) {
+    const p = conFoto && PRODUCTOS.find(x => x.nombre && l.descripcion && l.descripcion.toLowerCase().startsWith(x.nombre.toLowerCase()));
+    const img = p && p.foto_url ? await imagenData(p.foto_url) : null;
+    const alto = img ? 20 : 11;
+    if (y + alto > 250) { doc.addPage(); y = 20; }
+    if (img) { try { doc.addImage(img, 20, y + 3, 18, 13); } catch (er) {} }
+    const ld = doc.splitTextToSize(l.descripcion || '', Math.max(30, limCon));
+    doc.text(ld, xCon, y + 7);
+    cols.forEach((k, i) => doc.text(k[2](l), xs[i], y + 7, { align: 'right' }));
+    y += Math.max(alto, 5 + ld.length * 4.6);
+    doc.setDrawColor(226, 230, 234); doc.line(18, y, 192, y);
+  }
+  // Totales
+  y += 10; doc.setFontSize(9.5);
+  const tot = (etq, val, negrita) => { doc.setTextColor(...gris); doc.text(etq, 150, y, { align: 'right' }); doc.setTextColor(...(negrita ? acento : negro));
+    doc.setFont(F, negrita ? 'bold' : 'normal'); doc.text(val, 190, y, { align: 'right' }); doc.setFont(F, 'normal'); y += 7; };
+  tot('Base imponible', eur(f.base));
+  (f.desglose_iva || []).filter(d => +d.cuota).forEach(d => tot('IVA ' + d.iva + '%', eur(d.cuota)));
+  if (!(f.desglose_iva || []).some(d => +d.cuota)) tot('IVA', eur(0));
+  doc.setFillColor(...claro); doc.rect(152, y - 5, 40, 9, 'F'); tot('Total', eur(f.total), true);
+  y += 4;
+  if (C.formaPago && f.forma_pago) { doc.setTextColor(...gris); doc.text('Forma de pago: ', 18, y); doc.setTextColor(...negro);
+    doc.text(f.forma_pago + (C.iban && /transfer/i.test(f.forma_pago) && e.iban ? ' · IBAN ' + e.iban : ''), 18 + doc.getTextWidth('Forma de pago: ') + 1, y); }
+  // QR VeriFactu (obligatorio si está activo; solo se elige su posición)
+  if ((f.verifactu || {}).activo && f.qr_url) {
+    try {
+      const QR = await cargarQR(), q = QR(0, 'M'); q.addData(f.qr_url); q.make();
+      const n = q.getModuleCount(), t = 26 / n, arriba = C.qrPos === 'arriba', x0 = arriba ? 18 : 18, y0 = arriba ? 52 : 238;
+      if (arriba && C.logo && izqLogo) { /* con el logo a la izquierda, el QR arriba va a la derecha */ }
+      const xq = arriba && izqLogo ? 166 : x0, yq = arriba ? 50 : y0;
+      doc.setFillColor(0, 0, 0);
+      for (let r = 0; r < n; r++) for (let k = 0; k < n; k++) if (q.isDark(r, k)) doc.rect(xq + k * t, yq + r * t, t, t, 'F');
+      doc.setFontSize(8.5); doc.setTextColor(...negro); doc.setFont(F, 'bold');
+      const xt = arriba && izqLogo ? 164 : 48, al = arriba && izqLogo ? 'right' : 'left';
+      doc.text('VERI*FACTU', xt, yq + 10, { align: al }); doc.setFont(F, 'normal'); doc.setTextColor(...gris); doc.text('Factura verificable en la sede electrónica de la AEAT', xt, yq + 15, { align: al });
+    } catch (er) {}
+  }
+  // Pie
+  const pags = doc.getNumberOfPages();
+  for (let i = 1; i <= pags; i++) {
+    doc.setPage(i); doc.setDrawColor(...acento); doc.line(18, 276, 192, 276);
+    doc.setFontSize(8.3); doc.setTextColor(...gris); doc.setFont(F, 'normal');
+    doc.text(`${e.razon_social || nombreApp()} | NIF: ${e.nif || ''} | ${[e.direccion, [e.cp, e.municipio].filter(Boolean).join(' '), e.pais || 'España'].filter(Boolean).join(', ')}`, 105, 281, { align: 'center' });
+    if (C.pieTel && e.telefono) doc.text('Atención al cliente: ' + e.telefono, 105, 285, { align: 'center' });
+    if (C.pieWeb && e.web) doc.text(e.web, 105, 289, { align: 'center' });
+    if (C.pieTexto && e.pie) doc.text(doc.splitTextToSize(e.pie, 170), 105, 293, { align: 'center' });
+    if (C.paginas) doc.text(i + '/' + pags, 192, 289, { align: 'right' });
+  }
+  return doc;
+}
+
+function facturaPDF(f, rn, cfg, ...a) {
+  if (!cfg && PDF_ELEGIDO && PDF_ELEGIDO !== listaPDF().defecto) cfg = cfgDePlantilla(PDF_ELEGIDO);
+  return facturaPDFBase.call(this, f, rn, cfg, ...a);
 }
 // @ts-check
 // servicios/permisos.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
@@ -3141,6 +3455,23 @@ function htPreparar(sec, ...r) {
   sec.querySelectorAll('.dgrid').forEach(g => { const n = g.querySelectorAll(':scope > .dr').length; if (g.dataset.htn != n) { g.dataset.htn = n; htOrdenarFilas(g); } });
   return x;
 }
+
+function htAplicarFiltros(g) {
+  const st = HT_ESTADO[htTipo(g)] || { texto: '', facetas: {} };
+  const t = htNorm(st.texto || ''), fac = Object.entries(st.facetas || {}).filter(([, v]) => v), ran = Object.entries(st.rangos || {}).filter(([, r]) => r.d || r.h);
+  g.querySelectorAll(':scope > .dr').forEach(f => {
+    const celdas = [...f.children];
+    const ok = (!t || htNorm(f.textContent).includes(t))
+      && fac.every(([i, v]) => celdas[i] && htNorm(celdas[i].textContent).includes(htNorm(v)))
+      && ran.every(([i, r]) => {
+        const v = htValor(celdas[i] && celdas[i].textContent), x = r.k === 'fecha' ? v.f : v.n;
+        if (x == null) return false;
+        const d = r.k === 'fecha' ? r.d : (r.d === '' || r.d == null ? null : +r.d), h = r.k === 'fecha' ? r.h : (r.h === '' || r.h == null ? null : +r.h);
+        return (d == null || d === '' || x >= d) && (h == null || h === '' || x <= h);
+      });
+    f.classList.toggle('htfuera', !ok);
+  });
+}
 // @ts-check
 // componentes/firma.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
@@ -3968,6 +4299,178 @@ function plRecuento(sec, c) {
   const r = plRecuentoBase2.call(this, sec, c);
   return typeof r === 'string' ? r.replace(/\sid="cercacerrar"/g, ' data-cercavolver') : r;
 }
+
+function plSyncBase(tab) {
+  const sec = $('v-' + tab), c = plCfg(tab); if (!sec) return;
+  if (!c) {   // sección sin plantilla: fuera lo que se hubiera puesto
+    if (sec.classList.contains('plantilla')) { sec.classList.remove('plantilla'); sec.querySelectorAll(':scope > .plkpis, :scope > .pltool, .plmas').forEach(x => x.remove()); }
+    return;
+  }
+  const clave = PL_SECC[tab] ? PL_SECC[tab]() : tab;
+  sec.classList.add('plantilla'); sec.dataset.plsec = clave;
+  const sal = sec.querySelector(':scope > .saludo');
+  const acts = sal && sal.querySelector('.acts');
+  if (acts && !acts.querySelector('.plmas')) acts.insertAdjacentHTML('afterbegin', `<button type="button" class="btn sec chico plmas" aria-label="Más acciones" title="Más acciones">${plIco('ellipsis', '⋯')}</button>`);
+  const mas = acts && acts.querySelector('.plmas'); if (mas) { const no = !c.mas().length; if (mas.classList.contains('plno') !== no) mas.classList.toggle('plno', no); }
+  const nb = c.nuevo && c.nuevo();
+  if (nb && c.textoNuevo && !ES_MOVIL() && !nb.classList.contains('fab') && nb.textContent.trim() !== c.textoNuevo()) nb.innerHTML = plIco('plus') + ' ' + esc(c.textoNuevo());
+  if (nb && c.textoNuevo && ES_MOVIL() && !nb.dataset.plfab) { nb.dataset.plfab = '1'; nb.classList.add('fab'); nb.dataset.txt = c.textoNuevo(); nb.setAttribute('aria-label', c.textoNuevo()); nb.innerHTML = plIco('plus'); sec.appendChild(nb); }
+  // Móvil: un solo «+», el de la sección abierta (al cambiar de sección quedaba el de la anterior)
+  if (c.rejilla && ES_MOVIL()) {
+    const prim = [...sec.querySelectorAll(':scope > .saludo .acts > .btn:not(.sec):not(.htbtn), :scope > .fab')].find(b => /^\s*\+/.test(b.dataset.txt ? '+' : b.textContent) && (b.classList.contains('fab') ? b.dataset.plsec === clave || !b.dataset.plsec : true));
+    if (prim && !prim.classList.contains('fab')) { prim.dataset.txt = prim.textContent.replace('+', '').trim(); prim.classList.add('fab'); prim.setAttribute('aria-label', prim.dataset.txt); prim.innerHTML = plIco('plus'); sec.appendChild(prim); }
+    if (prim) { prim.dataset.plsec = clave; sec.querySelectorAll(':scope > .fab').forEach(f => { const fuera = f !== prim; if (f.classList.contains('plfuera') !== fuera) f.classList.toggle('plfuera', fuera); }); }
+  }
+  // Debajo de la cabecera (y de las pestañas, si las hay): la banda de indicadores y la barra
+  const ancla = sec.querySelector(':scope > .subnav') || sal;
+  let kp = sec.querySelector(':scope > .plkpis');
+  if (c.kpis || c.banda) {
+    if (!kp) { kp = document.createElement('div'); kp.className = 'plkpis' + (c.banda ? ' plbanda' : ''); if (c.kpis) kp.innerHTML = plKpisHtml(tab); }
+    if (!kp.isConnected) { if (ancla) ancla.after(kp); else sec.prepend(kp); }
+    if (c.kpis) { plCargarKpis(tab); kp.querySelectorAll('[data-plk]').forEach(b => { const on = c.kpiOn(b.dataset.plk); if (b.classList.contains('on') !== on) b.classList.toggle('on', on); }); }
+    if (c.banda) { const b = $(c.banda); if (b && b.parentElement !== kp) kp.appendChild(b); }
+  } else if (kp) kp.remove();
+  let tl = sec.querySelector(':scope > .pltool');
+  if (tl && tl.dataset.plsec !== clave) { tl.remove(); tl = null; }
+  if (!tl) { tl = document.createElement('div'); tl.className = 'pltool'; tl.dataset.plsec = clave; tl.innerHTML = plToolHtml(tab); }
+  if (!tl.isConnected) { const ref = sec.querySelector(':scope > .plkpis') || ancla; if (ref) ref.after(tl); else sec.prepend(tl); }
+  const qi = tl.querySelector('.plqi'); if (qi && document.activeElement !== qi && qi.value !== c.q()) qi.value = c.q();
+  tl.querySelectorAll('[data-plr]').forEach(b => {
+    const s = plSel(b.dataset.plr), w = s && s.closest('#fcomwrap');
+    const ver = !!s && !(w && w.classList.contains('hide')) && s.options.length > 1;
+    if (b.classList.contains('hide') === ver) b.classList.toggle('hide', !ver); if (!ver) return;
+    if (!b.dataset.plt) b.dataset.plt = plEtiq(b.dataset.plr);
+    const on = s.selectedIndex > 0 && !(b.dataset.plt === 'Periodo');
+    const txt = s.selectedIndex > 0 || b.dataset.plt === 'Periodo' ? `${b.dataset.plt}: ${s.options[s.selectedIndex].text.replace(/\s*\(\d[\d.]*\)\s*$/, '')}` : b.dataset.plt;
+    if (b.textContent !== txt) b.textContent = txt; if (b.classList.contains('on') !== on) b.classList.toggle('on', on);
+  });
+  const n = c.activos(), pn = tl.querySelector('.pln');
+  if (pn) { const v = String(n || ''); if (pn.textContent !== v) pn.textContent = v; if (pn.classList.contains('hide') !== !n) pn.classList.toggle('hide', !n); }
+  const pq = tl.querySelector('.plquitar'); if (pq && pq.classList.contains('hide') !== !n) pq.classList.toggle('hide', !n);
+  const cnt = tl.querySelector('.plcnt'), h = plRecuento(sec, c);
+  if (cnt && h && cnt.dataset.h !== h) { cnt.dataset.h = h; cnt.innerHTML = h; }
+  // Tabla y pie en una tarjeta; los totales, en la franja de resumen encima
+  const tb = c.tabla(), pie = c.pie();
+  if (tb && tb.parentElement && !tb.parentElement.classList.contains('pltab')) { const w = document.createElement('div'); w.className = 'pltab'; tb.before(w); w.appendChild(tb); if (pie) w.appendChild(pie); }
+  else if (tb && pie && pie.parentElement !== tb.parentElement) tb.parentElement.appendChild(pie);
+  const tab2 = tb && tb.closest('.pltab');
+  if (c.rejilla && tab2) {
+    sec.querySelectorAll('.kpis.vtot:not(.plres)').forEach(k => { if (k.closest('#v-' + tab) && !k.closest('.plkpis')) k.classList.add('plres'); });
+    if (c.despues) { const d = $(c.despues); if (d && tab2.nextElementSibling !== d) tab2.after(d); }
+  }
+  const cuerpo = c.cuerpo();
+  if (cuerpo) {
+    if (cuerpo.querySelector(':scope > .cargador')) {
+      if (cuerpo.__plUlt) { cuerpo.innerHTML = cuerpo.__plUlt; cuerpo.classList.add('platenua'); }
+      else if (tab === 'directorio') { cuerpo.innerHTML = plEsqueleto(tab, false); if (!$('thead').children.length) $('thead').innerHTML = plEsqueleto(tab, true).match(/<div class="plskh">[\s\S]*?<\/div>/)[0]; }
+      else cuerpo.innerHTML = plEsqueleto(tab, true);
+    } else if (c.conDatos(cuerpo)) { cuerpo.classList.remove('platenua'); cuerpo.__plUlt = cuerpo.innerHTML; }
+  }
+  const vc = tab === 'pacientes' && $('vcuerpo');
+  if (vc && !vc.children.length) vc.innerHTML = `<div class="panel plskpanel"><div class="pltab">${plEsqueleto(tab, true)}</div></div>`;
+  // Primera llegada de una pantalla en rejilla: mientras no hay tabla, su esqueleto debajo de la barra
+  if (c.rejilla && !sec.querySelector('.dgrid, .pltab, .vacio') && !sec.querySelector(':scope > .plskpanel')) tl.insertAdjacentHTML('afterend', `<div class="panel plskpanel"><div class="pltab">${plEsqueleto(tab, true)}</div></div>`);
+  if (sec.querySelector('.dgrid, .vacio')) sec.querySelectorAll(':scope > .plskpanel').forEach(x => x.remove());
+  if (c.card) sec.querySelectorAll('.dgrid > .dr:not([data-plc])').forEach(dr => {
+    dr.dataset.plc = '1'; const x = c.card(dr);
+    dr.insertAdjacentHTML('beforeend', `<span class="plcard"><b>${esc(x.a)}</b><span class="plc2">${esc(x.b)}</span><span class="plc3">${x.c}</span>${x.d ? `<span class="plc4">${esc(x.d)}</span>` : ''}</span>`);   // v2.316.0: tercera línea
+  });
+}
+
+// La barra y los clics usan la configuración de la sección abierta
+function plToolHtml(tab) {
+  const c = plCfg(tab);
+  return `<label class="plq">${plIco('search', '🔍')}<input type="search" class="plqi" placeholder="${esc(c.buscaTxt ? c.buscaTxt() : 'Buscar en ' + c.que())}" aria-label="${esc(c.buscaTxt ? c.buscaTxt() : 'Buscar en ' + c.que())}"></label>
+    <div class="plrap">${c.rapidos.map(([id, t]) => { t = t || plEtiq(id); return `<button type="button" class="plchip" data-plr="${esc(id)}" data-plt="${esc(t)}">${esc(t)}</button>`; }).join('')}</div>
+    <button type="button" class="plbtn chico plfil">${plIco('sliders-horizontal')}<span>Filtros</span><span class="pln hide"></span></button>
+    ${c.quitar ? `<button type="button" class="btn sec chico dang plquitar hide">${svgIco(ICON_NOM.x)} Eliminar filtros</button>` : ''}
+    <button type="button" class="plbtn chico plcol">${plIco('columns-3', 'table', 'list')}<span>Columnas</span></button>
+    ${c.mapa() ? `<button type="button" class="plbtn chico plic plmapa" title="Ver en el mapa" aria-label="Ver en el mapa">${plIco('map')}</button>` : ''}
+    <span class="plcnt"><i class="plsk" style="width:90px"></i></span>`;
+}
+
+// Antes de ajustar la plantilla, los bloques se convierten en tabla
+function plSyncBase2(tab) { if (BLQ[tab] && plCfg(tab)) blqConvertir(tab); return plSyncBase(tab); }
+
+// Las pestañas de las páginas (.pagtabs) van justo debajo de la cabecera: la banda y la barra, después de ellas
+function plSyncBase3(tab) {
+  const r = plSyncBase2(tab), sec = $('v-' + tab); if (!sec || !sec.classList.contains('plantilla')) return r;
+  const tabs = sec.querySelector(':scope > .pagtabs, :scope > .subnav'), kp = sec.querySelector(':scope > .plkpis'), tl = sec.querySelector(':scope > .pltool');
+  if (tabs && tl && (tabs.compareDocumentPosition(tl) & 2)) { const ref = kp || tl; ref.before(tabs); }
+  return r;
+}
+
+function plSyncBase4(tab) {
+  if (tab === 'ventas') { const sec = $('v-ventas'), k = PL_SECC.ventas(); if (sec && k) plAjenos(sec, k); }
+  return plSyncBase3(tab);
+}
+
+// ---- La barra tiene sus filtros rápidos desde el primer momento: mientras su desplegable no existe (Clientes lo crea al llegar
+// los datos), el filtro se ve con su nombre y en espera, en vez de aparecer después empujando el buscador
+function plSyncBase5(tab, ...x) {
+  const r = plSyncBase4.call(this, tab, ...x);
+  const sec = $('v-' + tab), c = plCfg(tab); if (!sec || !c || !c.rapidos) return r;
+  sec.querySelectorAll(':scope > .pltool [data-plr]').forEach(b => {
+    if (plSel(b.dataset.plr)) { if (b.classList.contains('plespera')) b.classList.remove('plespera'); return; }
+    const nom = (c.rapidos.find(x => x[0] === b.dataset.plr) || [])[1]; if (!nom) return;
+    if (b.classList.contains('hide')) b.classList.remove('hide');
+    if (!b.classList.contains('plespera')) b.classList.add('plespera');
+    if (b.textContent !== nom) b.textContent = nom;
+  });
+  return r;
+}
+
+// El filtro de bloques no desaparece: con un solo bloque se queda desactivado
+function plSyncBase6(tab, ...x) {
+  const r = plSyncBase5.call(this, tab, ...x);
+  if (!BLQ[tab]) return r;
+  const b = document.querySelector(`#v-${tab} > .pltool [data-plr="#plg-${tab}"]`), s = $('plg-' + tab);
+  if (b && s) {
+    const nada = s.options.length < 2;
+    if (nada && b.classList.contains('hide')) b.classList.remove('hide');
+    if (b.classList.contains('plnada') !== nada) b.classList.toggle('plnada', nada);
+    if (nada && b.textContent !== BLQ[tab].grupo) b.textContent = BLQ[tab].grupo;
+  }
+  return r;
+}
+
+/* ============================================================
+   v2.257.0 · Filtro por profesional en Clientes y uso de TomTom en el Panel delcos (pendientes repasados con Eric, 11/10/2026).
+   - Clientes: el filtro por profesional (al llegar desde su ficha) se aplicaba pero no se veía en la pantalla: ahora es un filtro
+     rápido marcado en la barra, con su «✕» para quitarlo. «Columnas» abría y cerraba el panel según estuviera: ahora siempre lo abre.
+   - Panel delcos → Estado de la plataforma: cuántas consultas de rutas (TomTom) se han hecho hoy frente al tope de todas las empresas,
+     en el mes, y por empresa frente a su cupo (rutas_uso_resumen, SQL 138).
+   ============================================================ */
+function plSyncBase7(tab, ...x) {
+  const r = plSyncBase6.call(this, tab, ...x);
+  if (tab !== 'pacientes') return r;
+  const rap = document.querySelector('#v-pacientes > .pltool .plrap'); if (!rap) return r;
+  let b = rap.querySelector('[data-plmed]');
+  if (!PAC.medico) { if (b) b.remove(); return r; }
+  const txt = `${TT('medico', 's', '', 'l', 'C')}: ${PAC.medicoNombre || '—'}`;
+  if (!b) { rap.insertAdjacentHTML('afterbegin', '<button type="button" class="plchip on plmed" data-plmed title="Quitar este filtro"><span></span><i aria-hidden="true">✕</i></button>'); b = rap.querySelector('[data-plmed]'); }
+  const s = b.querySelector('span'); if (s.textContent !== txt) s.textContent = txt;
+  return r;
+}
+
+// ---- Filtros rápidos que no desaparecen (aviso intermitente de la batería: en Contactos, en el móvil, un filtro aparecía tarde
+// cuando sus opciones llegaban después de entrar). Un filtro rápido cuyo desplegable aún no tiene opciones se ve desactivado en su
+// sitio, en vez de esconderse y aparecer luego empujando el buscador.
+function plSync(tab, ...x) {
+  const r = plSyncBase7.call(this, tab, ...x);
+  const sec = $('v-' + tab); if (!sec || !sec.classList.contains('plantilla')) return r;
+  sec.querySelectorAll(':scope > .pltool [data-plr]').forEach(b => {
+    const s = plSel(b.dataset.plr); if (!s || !s.options) return;
+    const w = s.closest('#fcomwrap'); if (w && w.classList.contains('hide')) return;
+    const nada = s.options.length <= 1;
+    if (nada) {
+      if (b.classList.contains('hide')) b.classList.remove('hide');
+      if (!b.classList.contains('plnada')) b.classList.add('plnada');
+      const t = b.dataset.plt || plEtiq(b.dataset.plr); if (t && b.textContent !== t) b.textContent = t;
+    } else if (b.classList.contains('plnada') && !(BLQ[tab] && b.dataset.plr === '#plg-' + tab)) b.classList.remove('plnada');
+  });
+  return r;
+}
 // componentes/pestanas.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -4061,6 +4564,127 @@ const selFechaLarga = iso => { const d = new Date(iso + 'T12:00:00'); return `${
 const selFechaMedia = iso => { const d = new Date(iso + 'T12:00:00'); return isNaN(d) ? iso : d.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }); };
 
 const selTipo = inp => inp.type === 'month' ? 'mes' : inp.type === 'datetime-local' ? 'fechahora' : inp.type === 'time' ? 'hora' : 'fecha';
+
+// ---------- Calendario: días, meses y años ----------
+function abrirCalendario(inp, o) {
+  o = o || {};
+  // Si viene del reloj (o el reloj de él), se sustituye dentro de la misma ventanita: cerrarla y abrirla haría que el primer toque se ignore
+  if (o.mismo && SELPOP) { SELPOP.remove(); SELPOP = null; } else cerrarSelector();
+  const tipo = selTipo(inp), valor = inp.value || '';
+  const diaIni = o.fecha || (tipo === 'mes' ? (valor ? valor + '-01' : '') : valor.slice(0, 10));
+  let ver = diaIni ? new Date(diaIni + 'T12:00:00') : new Date(hoyISO() + 'T12:00:00');
+  let foco = diaIni || hoyISO();
+  let vista = tipo === 'mes' ? 'meses' : 'dias';
+  const min = (inp.min || '').slice(0, tipo === 'mes' ? 7 : 10) || null, max = (inp.max || '').slice(0, tipo === 'mes' ? 7 : 10) || null;
+  const pop = document.createElement('div'); pop.className = 'selpop cal'; SELPOP = pop; pop.__t = Date.now();
+  pop.setAttribute('role', 'dialog'); pop.setAttribute('aria-label', tipo === 'mes' ? 'Elegir mes' : 'Elegir fecha');
+  const mesActual = hoyISO().slice(0, 7);
+  const elegido = tipo === 'mes' ? valor.slice(0, 7) : valor.slice(0, 10);
+  const pinta = () => {
+    const y = ver.getFullYear(), m = ver.getMonth();
+    let cab = '', cuerpo = '', pie = '';
+    if (vista === 'dias') {
+      const hueco = (new Date(y, m, 1).getDay() + 6) % 7, dias = new Date(y, m + 1, 0).getDate(), hoy = hoyISO();
+      let celdas = '';
+      for (let i = 0; i < hueco; i++) celdas += '<span></span>';
+      for (let d = 1; d <= dias; d++) {
+        const f = `${y}-${selDos(m + 1)}-${selDos(d)}`, fuera = (min && f < min) || (max && f > max);
+        celdas += `<button type="button" data-cd="${f}" class="${f === elegido ? 'sel' : ''} ${f === hoy ? 'hoy' : ''}" tabindex="${f === foco ? 0 : -1}" ${f === foco ? 'autofocus' : ''}
+          aria-label="${selFechaLarga(f)}" aria-pressed="${f === elegido}" ${fuera ? 'disabled' : ''}>${d}</button>`;
+      }
+      cab = `<button type="button" data-cm="-1" aria-label="Mes anterior">‹</button><button type="button" class="caltit" data-cv="meses" aria-label="Elegir mes y año">${MESES_L[m]} ${y}</button><button type="button" data-cm="1" aria-label="Mes siguiente">›</button>`;
+      cuerpo = `<div class="calg">${['L', 'M', 'X', 'J', 'V', 'S', 'D'].map(x => `<i>${x}</i>`).join('')}${celdas}</div>`;
+      pie = `<button type="button" data-cq="hoy">Hoy</button><button type="button" data-cq="manana">Mañana</button>${inp.required ? '' : '<button type="button" data-cq="borrar">Borrar</button>'}`;
+    } else if (vista === 'meses') {
+      cab = `<button type="button" data-cy="-1" aria-label="Año anterior">‹</button><button type="button" class="caltit" data-cv="anios" aria-label="Elegir año">${y}</button><button type="button" data-cy="1" aria-label="Año siguiente">›</button>`;
+      cuerpo = `<div class="calm">${MESES_L.map((n, i) => { const k = `${y}-${selDos(i + 1)}`, fuera = (min && k < min.slice(0, 7)) || (max && k > max.slice(0, 7));
+        return `<button type="button" data-cmes="${i}" class="${k === elegido.slice(0, 7) ? 'sel' : ''} ${k === mesActual ? 'hoy' : ''}" aria-label="${n} de ${y}" ${fuera ? 'disabled' : ''}>${MESES_C[i]}</button>`; }).join('')}</div>`;
+      pie = tipo === 'mes' ? `<button type="button" data-cq="estemes">Este mes</button>${inp.required ? '' : '<button type="button" data-cq="borrar">Borrar</button>'}` : '';
+    } else {
+      const ini = y - 5;
+      cab = `<button type="button" data-cy="-12" aria-label="Años anteriores">‹</button><b>${ini} – ${ini + 11}</b><button type="button" data-cy="12" aria-label="Años siguientes">›</button>`;
+      cuerpo = `<div class="calm">${Array.from({ length: 12 }, (_, i) => ini + i).map(a => `<button type="button" data-canio="${a}" class="${String(a) === elegido.slice(0, 4) ? 'sel' : ''} ${String(a) === mesActual.slice(0, 4) ? 'hoy' : ''}">${a}</button>`).join('')}</div>`;
+    }
+    pop.innerHTML = `<div class="calh">${cab}</div>${cuerpo}${pie ? `<div class="calp">${pie}</div>` : ''}`;
+    colocarPop(pop, inp.closest('.selw') || inp);
+    if (!ES_MOVIL() && vista === 'dias') { const b = pop.querySelector(`[data-cd="${foco}"]`); if (b && pop.contains(document.activeElement) || o.teclado) b && b.focus({ preventScroll: true }); }
+  };
+  const fijar = f => {
+    if (tipo === 'fechahora') { abrirReloj(inp, { fecha: f, desdeCal: true, mismo: true }); return; }
+    inp.value = f; emitir(inp); cerrarSelector(); inp.focus({ preventScroll: true });
+  };
+  pop.addEventListener('pointerdown', () => { pop.__t = Date.now(); });
+  pop.addEventListener('click', e => {
+    e.stopPropagation();
+    const t = e.target.closest('button'); if (!t || t.disabled) return;
+    const ds = t.dataset;
+    if (ds.cd) fijar(ds.cd);
+    else if (ds.cm) { ver = new Date(ver.getFullYear(), ver.getMonth() + +ds.cm, 1); pinta(); }
+    else if (ds.cy) { ver = new Date(ver.getFullYear() + +ds.cy, ver.getMonth(), 1); pinta(); }
+    else if (ds.cv) { vista = ds.cv; pinta(); }
+    else if (ds.cmes !== undefined) {
+      if (tipo === 'mes') { inp.value = `${ver.getFullYear()}-${selDos(+ds.cmes + 1)}`; emitir(inp); cerrarSelector(); return; }
+      ver = new Date(ver.getFullYear(), +ds.cmes, 1); vista = 'dias'; pinta();
+    } else if (ds.canio) { ver = new Date(+ds.canio, ver.getMonth(), 1); vista = 'meses'; pinta(); }
+    else if (ds.cq === 'hoy') fijar(hoyISO());
+    else if (ds.cq === 'manana') fijar(isoMas(hoyISO(), 1));
+    else if (ds.cq === 'estemes') { inp.value = mesActual; emitir(inp); cerrarSelector(); }
+    else if (ds.cq === 'borrar') { inp.value = ''; emitir(inp); cerrarSelector(); }
+  });
+  // Teclado: flechas de día en día y de semana en semana, Re Pág / Av Pág de mes en mes, Inicio / Fin de la semana
+  pop.addEventListener('keydown', e => {
+    if (vista !== 'dias') return;
+    const salto = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -7, ArrowDown: 7 }[e.key];
+    const d = new Date(foco + 'T12:00:00');
+    if (salto) d.setDate(d.getDate() + salto);
+    else if (e.key === 'PageUp' || e.key === 'PageDown') d.setMonth(d.getMonth() + (e.key === 'PageUp' ? -1 : 1));
+    else if (e.key === 'Home') d.setDate(d.getDate() - (d.getDay() + 6) % 7);
+    else if (e.key === 'End') d.setDate(d.getDate() + (6 - (d.getDay() + 6) % 7));
+    else return;
+    e.preventDefault();
+    foco = isoLocal(d); ver = new Date(d.getFullYear(), d.getMonth(), 1); o.teclado = true; pinta();
+  });
+  $('seldlg') ? $('seldlg').appendChild(pop) : capaSelector(inp).appendChild(pop); pinta();
+}
+
+// ---------- Reloj: horas, minutos según el paso, «Ahora» ----------
+function abrirReloj(inp, o) {
+  o = o || {};
+  const tipo = selTipo(inp);
+  if (!o.desdeCal && (tipo === 'mes' || tipo === 'fechahora')) return abrirCalendario(inp);
+  if (o.mismo && SELPOP) { SELPOP.remove(); SELPOP = null; } else cerrarSelector();
+  const actual = tipo === 'fechahora' ? (inp.value || '').slice(11, 16) : (inp.value || '');
+  const pasoMin = (() => { const s = +inp.step; const m = s >= 60 ? Math.round(s / 60) : 5; return [1, 2, 3, 4].includes(m) || m > 30 ? 5 : m; })();
+  const redondea = x => Math.min(60 - pasoMin, Math.round(x / pasoMin) * pasoMin);
+  const [h0, m0] = (actual || '09:00').split(':').map(Number);
+  let h = isNaN(h0) ? 9 : h0, m = isNaN(m0) ? 0 : m0;
+  const pop = document.createElement('div'); pop.className = 'selpop reloj'; SELPOP = pop; pop.__t = Date.now();
+  pop.setAttribute('role', 'dialog'); pop.setAttribute('aria-label', 'Elegir hora');
+  const mins = Array.from({ length: Math.ceil(60 / pasoMin) }, (_, i) => i * pasoMin);
+  const pinta = () => {
+    pop.innerHTML = `${o.fecha ? `<div class="rjfecha"><span>${selFechaMedia(o.fecha)}</span><button type="button" data-rq="dia">Cambiar día</button></div>` : ''}
+      <div class="rjh"><b>${selDos(h)}:${selDos(m)}</b></div>
+      <div class="rjt">Hora</div><div class="rjg">${Array.from({ length: 24 }, (_, i) => `<button type="button" data-rh="${i}" class="${i === h ? 'sel' : ''}" aria-pressed="${i === h}">${selDos(i)}</button>`).join('')}</div>
+      <div class="rjt">Minutos</div><div class="rjg m">${mins.map(i => `<button type="button" data-rm="${i}" class="${i === m ? 'sel' : ''}" aria-pressed="${i === m}">${selDos(i)}</button>`).join('')}</div>
+      <div class="calp"><button type="button" data-rq="ahora">Ahora</button>${inp.required ? '' : '<button type="button" data-rq="borrar">Borrar</button>'}<button type="button" data-rq="ok" class="okb">Aceptar</button></div>`;
+    colocarPop(pop, inp.closest('.selw') || inp);
+  };
+  pop.addEventListener('pointerdown', () => { pop.__t = Date.now(); });
+  pop.addEventListener('click', e => {
+    e.stopPropagation();
+    const a = e.target.closest('[data-rh]'), b = e.target.closest('[data-rm]'), q = e.target.closest('[data-rq]');
+    if (a) { h = +a.dataset.rh; pinta(); }
+    if (b) { m = +b.dataset.rm; pinta(); }
+    if (!q) return;
+    const accion = q.dataset.rq;
+    if (accion === 'dia') { abrirCalendario(inp, { fecha: o.fecha, mismo: true }); return; }
+    if (accion === 'ahora') { const d = new Date(); h = d.getHours(); m = redondea(d.getMinutes()); pinta(); return; }
+    const hora = `${selDos(h)}:${selDos(m)}`;
+    inp.value = accion === 'borrar' ? '' : tipo === 'fechahora' ? `${o.fecha || (inp.value || hoyISO()).slice(0, 10)}T${hora}` : hora;
+    emitir(inp); cerrarSelector(); inp.focus({ preventScroll: true });
+  });
+  $('seldlg') ? $('seldlg').appendChild(pop) : capaSelector(inp).appendChild(pop); pinta();
+}
 // @ts-check
 // componentes/teclado.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
@@ -4271,6 +4895,8 @@ function areaEncajeBase() {
 
 // Mientras se abre una ficha, no se encaja en la página
 function areaEncaje(...a) { return FX_FICHA ? null : areaEncajeBase.apply(this, a); }
+
+async function ventanaCargando(fn) { const d = $('dlg'); d.classList.add('cargando'); try { return await fn(); } finally { d.classList.remove('cargando'); } }
 // pantallas/acceso.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -5978,6 +6604,101 @@ async function pintarTuDiaBase3(...a) {
 }
 
 async function pintarTuDia(...x) { const r = await pintarTuDiaBase3.apply(this, x); tdPlegarTareas(); return r; }
+
+// Menú «⋯» de la cita
+function menuCitaBase(boton, c) {
+  document.querySelectorAll('.tdmenu').forEach(m => m.remove());
+  const abierta = CITA_ABIERTA.includes(c.estado);
+  const ops = [
+    abierta ? ['hora', c.hora ? 'Cambiar la hora' : 'Fijar una hora', ''] : null,
+    abierta ? ['aplazar', 'Aplazar a otro día', 'Queda como aplazada y se crea la cita nueva'] : null,
+    abierta && c.estado === 'Planificada' ? ['confirmar', 'Marcar como confirmada', 'Ya has confirmado la cita'] : null,
+    abierta && c.estado === 'Confirmada' ? ['desconfirmar', 'Quitar la confirmación', ''] : null,
+    abierta ? ['descartar', 'Descartar la cita', 'Ya no hace falta ir'] : null,
+    abierta && c.fecha >= hoyISO() ? ['borrar', 'Eliminar la cita', 'Fue un error: desaparece de la agenda'] : null   // v2.273.0
+  ].filter(Boolean);
+  if (!ops.length) { toast('Esta cita ya está cerrada'); return; }
+  const m = document.createElement('div');
+  m.className = 'tdmenu'; m.__t = Date.now();
+  m.innerHTML = ops.map(([k, t, s]) => `<button data-tdop="${k}" class="${k === 'descartar' || k === 'borrar' ? 'peligro' : ''}"><b>${esc(t)}</b>${s ? `<span>${esc(s)}</span>` : ''}</button>`).join('');
+  document.body.appendChild(m);
+  const r = boton.getBoundingClientRect();
+  m.style.top = Math.min(window.innerHeight - m.offsetHeight - 10, r.bottom + 6) + 'px';
+  m.style.left = Math.max(10, Math.min(window.innerWidth - m.offsetWidth - 10, r.right - m.offsetWidth)) + 'px';
+  m.querySelectorAll('[data-tdop]').forEach(b => b.onclick = () => { m.remove(); accionCita(b.dataset.tdop, c); });
+}
+
+/* v2.185.0 · Citas aplazadas sin duplicar y fechas en el móvil (avisos de Eric):
+   1. Una cita aplazada o descartada de hoy en adelante tiene en «⋯» (y en su detalle) «Volver a planificarla» (reabrir_cita, SQL 116: vuelve a
+      Planificada y quita la cita que se creó al aplazarla). Volver a poner una cita ese día reutiliza la aplazada (aplazar_cita y guardar_cita).
+   2. En pantallas táctiles los campos de fecha y hora son `inert`: no pueden tomar el foco, así que iOS ya no abre su rueda (lo hacía cuando la
+      ventana enfocaba el campo al abrirse y cuando el calendario de delcos le devolvía el foco al elegir el día). El toque lo recoge el envoltorio. */
+function menuCita(boton, c) {
+  if (CITA_ABIERTA.includes(c.estado) || !['Aplazada', 'Descartada'].includes(c.estado) || c.fecha < hoyISO()) return menuCitaBase.call(this, boton, c);
+  document.querySelectorAll('.tdmenu').forEach(m => m.remove());
+  const m = document.createElement('div');
+  m.className = 'tdmenu'; m.__t = Date.now();
+  m.innerHTML = `<button data-tdop="rehacer"><b>Volver a planificarla</b><span>Vuelve a este día${c.estado === 'Aplazada' ? '; si la pasaste a otro, esa se quita' : ''}</span></button>`;
+  document.body.appendChild(m);
+  const r = boton.getBoundingClientRect();
+  m.style.top = Math.min(window.innerHeight - m.offsetHeight - 10, r.bottom + 6) + 'px';
+  m.style.left = Math.max(10, Math.min(window.innerWidth - m.offsetWidth - 10, r.right - m.offsetWidth)) + 'px';
+  m.querySelector('[data-tdop]').onclick = () => { m.remove(); accionCita('rehacer', c); };
+}
+
+// Cambiar la hora: la cita se coloca por su hora entre las demás (y se guarda ese orden)
+async function cambiarHoraCita(id, hora) {
+  const h = await appVentana({ titulo: 'Hora de la cita', ok: 'Guardar', campo: { valor: hora || '', tipo: 'time' } });
+  if (h === null) return;
+  const { error } = await db.from('agenda').update({ hora: h || null }).eq('id', id);
+  if (error) { toast('No se ha podido: ' + error.message, true); return; }
+  toast('Hora actualizada');
+  const u = TD_ULTIMO && TD_ULTIMO.fecha === AG_FECHA ? TD_ULTIMO.data : null;
+  if (TAB !== 'agenda' || !agUnida() || !u || !u.some(c => c.id === id)) { agRefrescoQuieto(id, { cifras: false }); return; }
+  const data = u.map(c => c.id === id ? Object.assign({}, c, { hora: h || null }) : c);
+  const mia = c => c.usuario_id === agUid(), abierta = c => mia(c) && CITA_ABIERTA.includes(c.estado);
+  const ab = data.filter(abierta), yo = ab.find(c => c.id === id);
+  let orden = ab;
+  if (yo && h) {
+    const hh = c => c.hora ? String(c.hora).slice(0, 5) : null;
+    const resto = ab.filter(c => c.id !== id);
+    let i = resto.findIndex(c => hh(c) && hh(c) > h);
+    if (i < 0) { i = 0; resto.forEach((c, k) => { if (hh(c) && hh(c) <= h) i = k + 1; }); }
+    resto.splice(i, 0, yo); orden = resto;
+  }
+  const cambia = orden.some((c, k) => c.id !== ab[k].id);
+  const nueva = cambia ? [...data.filter(c => mia(c) && !abierta(c)), ...orden, ...data.filter(c => !mia(c))] : data;
+  await repintarDiaSuave(id, nueva);
+  if (cambia && !(await guardarOrden(orden))) agRefrescoQuieto(id);
+}
+
+// ---- Elegir otro día: todo lo que cambia (Tu día, bandejas, cinta, «Tu semana», la semana abierta) aparece a la vez
+async function agVerDia(f) {
+  document.querySelectorAll('.agpop').forEach(x => x.remove());
+  cerrarMesCinta();
+  if (!f) return;
+  if (!agN()) { AG_MODO = 'dia'; AG_FECHA = f; return cargarAgenda(); }
+  const antes = AG_FECHA || f; AG_FECHA = f;
+  const c = $('agcuerpo'); if (c) c.classList.add('agcargando');
+  const fuera = !CINTA_INI || f < CINTA_INI || f > diasMas(CINTA_INI, 13); if (fuera) CINTA_INI = lunesCinta(f);
+  const otraSem = lunesDe(f) !== lunesDe(antes);
+  let s = null;
+  try {
+    await agConDatos([...agDiaCargas(f), agSugDatos(f).then(x => { s = x; }), ...(fuera ? agCintaCargas() : []), ...agSemCargas(f)], async () => {
+      if (AG_FECHA !== f || !agN()) return;
+      agPonerSug(f, s);
+      const piezas = [pintarTuDia(), agSemanaLateral()];
+      if (fuera || (otraSem && AG_SEM_ABIERTA)) piezas.push(agCinta());
+      await Promise.all(piezas);
+      if (!fuera) document.querySelectorAll('#agcinta .cdia').forEach(x => x.classList.toggle('sel', x.dataset.cf === f));
+      agMarcarDia(); agDiaVacio(); agPastillas();
+    });
+  } finally { const cc = $('agcuerpo'); if (cc) cc.classList.remove('agcargando'); }
+  if (AG_FECHA !== f) return;
+  const cc = $('agcuerpo'); if (!cc) return;
+  const top = cc.getBoundingClientRect().top;
+  if (top < 80 || top > innerHeight * 0.6) scrollTo({ top: scrollY + top - 90, behavior: 'smooth' });
+}
 // pantallas/analitica.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -6669,6 +7390,31 @@ async function anCargarKpis(...a) {
   const d = p ? await p : null;
   if (TAB === 'analitica') tvTarjeta(d);
   return res;
+}
+
+async function pintarResumenAnalitica() {
+  const cuerpo = $('anres'); if (!cuerpo) return;
+  if (!COMS.length && VE_TODO()) await cargarComerciales();
+  AN_CFG = anConfig();
+  document.querySelectorAll('#v-analitica .htpropios [data-anp="resumen"]').forEach(x => x.remove());   // los de un pintado anterior
+  cuerpo.innerHTML = `<div class="filtros" id="anfil"><div id="anper" data-anp="resumen"></div>
+      <div data-anp="resumen"><label for="ancomp">Comparar con</label><select id="ancomp">
+        <option value="anterior" ${AN_CFG.comp === 'anterior' ? 'selected' : ''}>El periodo anterior</option>
+        <option value="anio" ${AN_CFG.comp === 'anio' ? 'selected' : ''}>El mismo periodo del año pasado</option></select></div>
+      ${VE_TODO() ? `<div data-anp="resumen"><label for="anrep">Reporte</label><select id="anrep"><option value="">Todos</option><option value="si" ${AN_REP === 'si' ? 'selected' : ''}>Reportados</option><option value="no" ${AN_REP === 'no' ? 'selected' : ''}>Sin reportar</option></select></div>` : ''}</div>
+    <p class="sm anresumen" id="anresumen"></p>
+    <div id="ankpis" hidden></div>
+    <div id="anareas"><div class="ankgrid">${Array.from({ length: 4 }, () => '<div class="ankpi"><div class="skel" style="width:60%"></div><div class="skel" style="width:40%;height:24px"></div></div>').join('')}</div></div>
+    <div class="angrid" id="angraf"></div>`;
+  const pinta = () => {
+    const r = $('anper').__rango(), hasta = r.hasta || hoyISO(), desde = r.desde || isoMas(hasta, -364);
+    anCargarKpis(); anGraficos(desde, hasta);
+  };
+  montarPeriodo($('anper'), { id: 'analitica-resumen', valor: 'anio', alCambiar: pinta });
+  $('ancomp').onchange = async () => { AN_CFG.comp = $('ancomp').value; await anGuardar(AN_CFG); anCargarKpis(); };
+  if ($('anrep')) $('anrep').onchange = () => { AN_REP = $('anrep').value; anCargarKpis(); };   // v2.329.0
+  pinta();
+  anMoverFiltros();
 }
 // pantallas/calidad.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
@@ -11274,6 +12020,92 @@ function pintarPerfil(...a) {
   c.prepend(u);
   return r;
 }
+
+// Filtros generados (listas y sí/no) para una zona de filtros; al cambiar, actualiza «estado» y llama a «alCambiar»
+function camposFiltros() { return ''; }
+
+/* ---------- Cuentas: la sección va en su panel de filtros, con sus columnas ---------- */
+// Todos los campos pueden ser columna; de entrada se ven los que tienen «Columna en la tabla»
+function camposEnDirectorio() {
+  (CAMPOS.medico || []).forEach(c => { if (!COLS.some(x => x.k === 'cp:' + c.clave)) COLS.push({ k: 'cp:' + c.clave, t: c.nombre, w: 150 }); });
+}
+
+// v2.242.0: aquí iba la primera versión de notifPintar (se redefine entera más abajo)
+function panelNotificaciones(l) {
+  NOTIF_LISTA = l || [];
+  notifPintar();
+  if (!$('dlg').open) $('dlg').showModal();
+}
+
+function notifPintar() {
+  const l = NOTIF_LISTA;
+  const areas = NOTIF_AREAS.filter(a => l.some(x => notifArea(x.tipo) === a[0]));
+  if (NOTIF_FILTRO && !areas.some(a => a[0] === NOTIF_FILTRO)) NOTIF_FILTRO = '';
+  const vis = l.filter(x => !NOTIF_FILTRO || notifArea(x.tipo) === NOTIF_FILTRO);
+  const nuevas = vis.filter(x => !x.leida_en), viejas = vis.filter(x => x.leida_en);
+  const fila = x => {
+    const acc = notifAcciones(x), cuando = new Date(x.visible_desde || x.creado_en), g = notifDia(x.visible_desde || x.creado_en);
+    return `<div class="notit2 ${x.leida_en ? '' : 'nuevo'}" data-nidx="${l.indexOf(x)}">
+      <span class="ic" aria-hidden="true">${notifIco(x.tipo)}</span>
+      <div class="tx"><b>${esc(x.titulo)}</b>${x.cuerpo ? `<span class="sm">${esc(x.cuerpo)}</span>` : ''}
+        <span class="sm notcuando">${g === 'Hoy' ? cuando.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) : g === 'Ayer' ? 'Ayer' : cuando.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' })}${x.resumen ? ' · del resumen del día' : ''}</span>
+        <div class="notacts">${acc.map(([t, , p], j) => `<button type="button" class="btn chico ${p ? '' : 'sec'}" data-nacc="${j}">${esc(t)}</button>`).join('')}
+          ${x.leida_en ? '' : '<button type="button" class="btn sec chico" data-npos>Posponer a mañana</button>'}
+          <button type="button" class="notbor" data-nbor aria-label="Borrar esta notificación" title="Borrar">${svgIco(ICON_NOM['trash-2'])}</button></div></div></div>`;
+  };
+  $('dbody').innerHTML = `<div class="fh"><div><h2>Notificaciones</h2><div class="sm">${NOTIF_N ? `${NOTIF_N} sin leer` : 'Estás al día'} · últimos 7 días</div></div>
+      <span class="acts" style="margin:0"><button type="button" class="icobtn notcfgb" id="notcfg" title="Elegir qué recibo y cuándo" aria-label="Elegir qué recibo y cuándo">${svgIco(ICON_NOM.settings)}</button>
+      <button class="x" data-cerrar aria-label="Cerrar">✕</button></span></div>
+    ${areas.length > 1 ? `<div class="segs notfil" role="group" aria-label="Filtrar">${[['', 'Todas']].concat(areas.map(a => [a[0], a[1]])).map(([k, t]) =>
+      `<button type="button" data-nfil="${k}" class="${NOTIF_FILTRO === k ? 'on' : ''}" aria-pressed="${NOTIF_FILTRO === k}">${esc(t)}</button>`).join('')}</div>` : ''}
+    <div class="notlista2">
+      ${nuevas.length ? `<h3 class="notdia">Nuevas · ${nuevas.length}</h3>${nuevas.map(fila).join('')}` : ''}
+      ${viejas.length ? `<h3 class="notdia">Anteriores</h3>${viejas.map(fila).join('')}` : ''}
+      ${vis.length ? '' : `<div class="vacio">${NOTIF_FILTRO ? 'No hay avisos de esta área.' : 'No tienes notificaciones de los últimos 7 días.'}</div>`}</div>
+    <p class="sm notpie">Se guardan las de los últimos 7 días. Las que borras no vuelven a salir.</p>
+    <div class="acts" style="justify-content:flex-end;flex-wrap:wrap">
+      ${NOTIF_N ? '<button class="btn sec" id="notleer">Marcar todas como leídas</button>' : ''}
+      ${l.some(x => x.leida_en) ? '<button class="btn sec" id="notlimpiar">Borrar las leídas</button>' : ''}
+      ${l.length ? '<button class="btn sec dang" id="notvaciar">Borrar todas</button>' : ''}</div>`;
+  const cerrarYRefrescar = () => { $('dlg').close(); refrescarCampana(); };
+  const quitar = xs => { NOTIF_LISTA = NOTIF_LISTA.filter(y => !xs.includes(y)); NOTIF_N = Math.max(0, NOTIF_N - xs.filter(y => !y.leida_en).length); notifPintar(); refrescarCampana(); };
+  $('dbody').querySelectorAll('[data-nfil]').forEach(b => b.onclick = () => { NOTIF_FILTRO = b.dataset.nfil; notifPintar(); });
+  $('dbody').querySelectorAll('.notit2').forEach(el => {
+    const x = l[+el.dataset.nidx], acc = notifAcciones(x);
+    el.querySelectorAll('[data-nacc]').forEach(b => b.onclick = async e => {
+      e.stopPropagation();
+      await db.rpc('leer_notificacion', { p_id: x.id });
+      cerrarYRefrescar(); acc[+b.dataset.nacc][1]();
+    });
+    const pos = el.querySelector('[data-npos]');
+    if (pos) pos.onclick = async e => {
+      e.stopPropagation();
+      const { data } = await db.rpc('posponer_notificacion', { p_id: x.id });
+      if (!data || !data.ok) { toast('No se ha podido posponer', true); return; }
+      toast('Te lo volvemos a enseñar mañana'); quitar([x]);
+    };
+    el.querySelector('[data-nbor]').onclick = async e => {
+      e.stopPropagation();
+      if (!await notifBorrar([x.id])) return;
+      el.classList.add('notsale'); setTimeout(() => quitar([x]), 220);
+    };
+    el.onclick = async () => {
+      await db.rpc('leer_notificacion', { p_id: x.id });
+      if (acc.length) { cerrarYRefrescar(); (acc.find(a => a[2]) || acc[0])[1](); }
+      else if (!x.leida_en) { x.leida_en = new Date().toISOString(); NOTIF_N = Math.max(0, NOTIF_N - 1); notifPintar(); refrescarCampana(); }
+    };
+  });
+  if ($('notleer')) $('notleer').onclick = async () => {
+    await db.rpc('leer_notificaciones'); const ahora = new Date().toISOString();
+    NOTIF_LISTA.forEach(x => { if (!x.leida_en) x.leida_en = ahora; }); NOTIF_N = 0; notifPintar(); refrescarCampana();
+  };
+  if ($('notlimpiar')) $('notlimpiar').onclick = async () => { if (await notifBorrar(null, true)) { toast('Notificaciones leídas borradas'); quitar(NOTIF_LISTA.filter(x => x.leida_en)); } };
+  if ($('notvaciar')) $('notvaciar').onclick = async () => {
+    const op = await elegirOpcion('Borrar todas las notificaciones', 'Se borran todas, también las que no has leído, y no vuelven a salir.', [{ k: 'no', t: 'Cancelar', cls: 'sec' }, { k: 'si', t: 'Borrar todas' }]);
+    if (op === 'si' && await notifBorrar(null, false)) { toast('Notificaciones borradas'); cerrarYRefrescar(); }
+  };
+  $('notcfg').onclick = () => { $('dlg').close(); CFG_SEC = 'notif'; window.__CFG_DIRECTO = true; ir('config'); };
+}
 // pantallas/cuentas.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -13393,6 +14225,48 @@ async function cargarFacturacion(...a) {
   }
   return r;
 }
+
+async function pintarVerifactu() {
+  await cargarAjustes();
+  const v = Object.assign({ activo: false, modalidad: 'verifactu', entorno: 'pruebas' }, AJUSTES.verifactu || {});
+  const [{ data: cad }, { data: evs }] = await Promise.all([RPC_ORIG('verificar_cadena', {}), RPC_ORIG('eventos_facturacion_lista', { lim: 1 })]);
+  const c = cad || {}, ok = !c.rotas;
+  $('fcuerpo').innerHTML = `
+    <div class="vfhero ${v.activo ? 'on' : ''}">
+      <div class="vfico">🛡️</div>
+      <div><h2>VeriFactu ${v.activo ? '<span class="pill p-est">Activado</span>' : '<span class="pill p-per">Preparado · desactivado</span>'}</h2>
+        <p>Sistema de la Agencia Tributaria para que las facturas no se puedan alterar y se puedan verificar. La plataforma ya emite cada factura cumpliendo sus requisitos; solo falta conectar el envío cuando decidáis activarlo.</p></div></div>
+    <div class="vfpasos">
+      <div class="vfpaso hecho"><span>✓</span><b>1 · Facturas preparadas</b><em>Numeración sin huecos, facturas inalterables y rectificativas.</em></div>
+      <div class="vfpaso hecho"><span>✓</span><b>2 · Registro encadenado</b><em>${num(c.facturas || 0)} facturas con huella · ${ok ? 'cadena íntegra' : 'revisar desde ' + esc(c.primera_rota || '')}.</em></div>
+      <div class="vfpaso ${v.activo ? 'hecho' : ''}"><span>${v.activo ? '✓' : '3'}</span><b>3 · QR y leyenda</b><em>${v.activo ? 'Las facturas nuevas llevan QR y «VERI*FACTU».' : 'Se añaden al activarlo.'}</em></div>
+      <div class="vfpaso pend"><span>🔒</span><b>4 · Envío a Hacienda</b><em>Requiere el certificado digital de la empresa. Se configura al activarlo.</em></div>
+    </div>
+    <div class="vfgrid">
+      <div class="card vfcard"><h3>Qué hace cada factura</h3><ul class="manlist">
+        <li><span>🔢</span><span>Recibe el siguiente número de su serie: no puede haber huecos ni repetidos.</span></li>
+        <li><span>🔗</span><span>Guarda una <b>huella</b> que la encadena con la anterior: si alguien cambiara una factura, la cadena lo delataría.</span></li>
+        <li><span>🧾</span><span>No se puede modificar ni borrar: los errores se corrigen con una <b>rectificativa</b>.</span></li>
+        <li><span>📋</span><span>Todo queda en el <b>registro de eventos</b>: emisiones, cobros, envíos y cambios de configuración${evs && evs[0] ? ` (último: ${esc(evs[0].tipo)} el ${new Date(evs[0].fecha).toLocaleDateString('es-ES')})` : ''}.</span></li></ul></div>
+      <div class="card vfcard"><h3>Configuración</h3>
+        <label class="vfswitch"><input type="checkbox" id="vfa" ${v.activo ? 'checked' : ''}><span class="sw"></span>
+          <span><b>Activar VeriFactu</b><br><span class="sm">Las facturas nuevas llevarán el QR y la leyenda. Las ya emitidas no cambian.</span></span></label>
+        <label>Modalidad</label>
+        <div class="vfmodos">
+          <label class="vfmodo"><input type="radio" name="vfm" value="verifactu" ${v.modalidad === 'verifactu' ? 'checked' : ''}><b>VeriFactu</b><span>Cada factura se envía a Hacienda al emitirla. La más sencilla de mantener.</span></label>
+          <label class="vfmodo"><input type="radio" name="vfm" value="no_verifactu" ${v.modalidad === 'no_verifactu' ? 'checked' : ''}><b>No VeriFactu</b><span>Las facturas se firman y se guardan; Hacienda puede pedirlas cuando quiera.</span></label></div>
+        <label for="vfe">Entorno</label><select id="vfe"><option value="pruebas" ${v.entorno === 'pruebas' ? 'selected' : ''}>Pruebas de la Agencia Tributaria</option><option value="produccion" ${v.entorno === 'produccion' ? 'selected' : ''}>Producción</option></select>
+        <div class="acts" style="justify-content:flex-end"><button class="btn" id="vfok">Guardar</button></div></div>
+    </div>`;
+  $('vfok').onclick = async () => {
+    const nuevo = { activo: $('vfa').checked, modalidad: document.querySelector('[name=vfm]:checked').value, entorno: $('vfe').value };
+    if (nuevo.activo !== v.activo && !await preguntar(nuevo.activo ? 'Las facturas que se emitan a partir de ahora llevarán el QR y la leyenda VERI*FACTU. El envío a Hacienda necesitará el certificado de la empresa.' : 'Las facturas nuevas dejarán de llevar el QR. Las ya emitidas no cambian.',
+      { titulo: nuevo.activo ? '¿Activar VeriFactu?' : '¿Desactivar VeriFactu?', ok: nuevo.activo ? 'Activar' : 'Desactivar' })) return;
+    const { error } = await db.rpc('guardar_ajuste', { p_clave: 'verifactu', p_valor: nuevo });
+    if (error) { toast('No se ha podido guardar', true); return; }
+    AJUSTES.verifactu = nuevo; toast('Guardado · queda anotado en el registro'); pintarVerifactu();
+  };
+}
 // pantallas/importar.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -14438,6 +15312,15 @@ async function cargarManual(...a) {
   }
   return r;
 }
+
+function abrirManual(ancla) {
+  guardarVocabManual();
+  MANUAL_DESTINO = ancla || '';
+  window.MANUAL_ULTIMA = 'manual/index.html' + (ancla ? '#' + ancla : '');
+  const f = $('manlibro');
+  if (TAB === 'manual' && f) { try { f.contentWindow.location.hash = ancla || 'portada'; } catch (e) {} return; }
+  ir('manual');
+}
 // pantallas/oportunidades.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -15246,6 +16129,14 @@ function orgAcciones(c, l) {
     pintarOrganizaciones();
   });
   return r;
+}
+
+async function entrarEnOrganizacion(o) {
+  if (!await preguntar(`Vas a ver la plataforma como ${o.nombre}: sus datos, su configuración y su plan. Lo que cambies se guarda en su empresa y queda registrado. Para volver, «Salir» en la franja de arriba.`, { titulo: 'Entrar en ' + o.nombre, ok: 'Entrar' })) return;
+  const { data: r } = await db.rpc('entrar_organizacion', { p_org: o.id });
+  if (!r || !r.ok) { toast(r && r.motivo === 'permiso' ? 'Solo el Administrador de delcos puede entrar' : 'No se ha podido entrar', true); return; }
+  prepararCambioOrg(o.nombre);
+  location.reload();
 }
 // pantallas/parque.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
@@ -16966,6 +17857,76 @@ async function verPedido(id, ...a) {
   try { return await verPedidoBase6.call(this, id, ...a); }
   finally { try { await estable($('dbody'), 2500); } catch (e) {} d.classList.remove('pdprep'); }
 }
+
+// Ver pedido · Pago: origen, referencia (editable por quien lleva la operativa) y justificantes (añadir, ver y quitar)
+async function pedidoPagoBase(id) {
+  if (!$('dlg').open || $('pdpago')) return;
+  const [{ data }, { data: js }] = await Promise.all([RPC_ORIG('pedido_detalle', { p_id: id }),
+    db.from('pedidos_justificantes').select('id,nombre,tamano,creado_en').eq('pedido_id', id).order('creado_en')]);
+  const p = data && data.pedido; if (!p || !$('dlg').open || $('pdpago')) return;
+  if (p.sin_cargo) return;
+  const acts = $('dbody').querySelector('.acts:last-of-type'); if (!acts) return;
+  const ref = $('pdops') || acts;
+  ref.insertAdjacentHTML('beforebegin', `<div class="blk" id="pdpago"><h3>Pago</h3>
+    ${p.origen === 'web' ? '<p class="sm"><span class="pill p-est">Pedido por la web</span></p>' : ''}
+    <div class="pdpagof"><span class="sm">Referencia del pago</span><b>${p.pago_referencia ? esc(p.pago_referencia) : '—'}</b></div>
+    ${(js || []).length ? `<div class="lista" id="pdjus">${js.map(j => `<div class="item"><span class="tx"><b>${esc(j.nombre)}</b><span class="sm">${fechaCorta(String(j.creado_en).slice(0, 10))} · ${num(Math.round(j.tamano / 1024))} KB</span></span>
+      <button type="button" class="btn sec chico" data-jver="${j.id}">Ver</button></div>`).join('')}</div>` : ''}</div>`);
+  $('pdpago').querySelectorAll('[data-jver]').forEach(b => b.onclick = () => verJustificante(b.dataset.jver));
+}
+
+// Ventana de contratar o cambiar (la de la v2.162.0, con la bajada al final del periodo y lo que se pierde)
+function elegirPago(planIni) {
+  const pl = PLAN_ACTUAL || {}, conSus = !!pl.stripe_suscripcion, usados = +((PAGO_ESTADO || {}).usuarios || 0);
+  if (pl.plan === 'medida') { toast('Con el plan A medida, los cambios se hacen con delcos'); return; }
+  const est = { plan: PAGO_PLANES.includes(planIni) ? planIni : (PAGO_PLANES.includes(pl.plan) ? pl.plan : 'comercial'),
+    pago: pl.pago === 'anual' ? 'anual' : 'mensual', usuarios: Math.max(3, usados, +pl.usuarios || 0) };
+  const actual = { plan: pl.plan, pago: pl.pago === 'anual' ? 'anual' : 'mensual', usuarios: +pl.usuarios || 0 };
+  const pinta = () => {
+    const p = planDe(est.plan), anual = est.pago === 'anual';
+    const base = anual ? p.precio * 10 * est.usuarios : p.precio * est.usuarios;
+    const puesta = !anual && !conSus ? PUESTA_EN_MARCHA : 0;
+    const iva = Math.round((base + puesta) * 21) / 100;
+    const baja = conSus && esBajada(actual, est), fin = pl.periodo_fin ? fechaCorta(pl.periodo_fin) : 'el final del periodo pagado';
+    const pierde = conSus ? perdidasPlan(pl.plan, est.plan, Object.assign({}, PAGO_ESTADO || {}, { extras: pl.extras })) : [];
+    $('dbody').innerHTML = `<div class="fh"><div><h2>${conSus ? 'Cambiar la suscripción' : 'Contratar delcos'}</h2>
+        <div class="sm">Precios por usuario, IVA no incluido. ${!conSus ? 'El pago se hace en la página segura de Stripe.' : baja ? '' : 'El cambio se aplica ya y se prorratea en el próximo recibo.'}</div></div>
+        <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
+      <label>Plan</label><div class="segs pgplan" role="group">${PAGO_PLANES.map(k => `<button type="button" data-pgp="${k}" class="${est.plan === k ? 'on' : ''}" aria-pressed="${est.plan === k}">${esc(planDe(k).nombre)} · ${eurI(planDe(k).precio)}</button>`).join('')}</div>
+      <label style="margin-top:12px">Pago</label><div class="segs" role="group">
+        <button type="button" data-pga="mensual" class="${anual ? '' : 'on'}" aria-pressed="${!anual}">Mensual</button>
+        <button type="button" data-pga="anual" class="${anual ? 'on' : ''}" aria-pressed="${anual}">Anual · pagas 10 meses de 12</button></div>
+      <label for="pgusu" style="margin-top:12px">Usuarios</label><input id="pgusu" type="number" min="${Math.max(3, usados)}" value="${est.usuarios}" class="numw">
+      <span class="sm">${usados ? `Ahora usáis ${num(usados)}. ` : ''}Mínimo ${Math.max(3, usados)}.</span>
+      ${baja ? `<div class="banda-aviso" id="pgbaja">El cambio se aplicará el <b>${esc(fin)}</b>, al acabar lo que ya has pagado. Hasta entonces sigues con
+        ${esc(planDe(pl.plan).nombre)}${pierde.length ? ` y después dejarás de tener:<ul id="pgpierde">${pierde.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : '.'}</div>` : ''}
+      <div class="pgres">
+        <div><span>${num(est.usuarios)} × ${eurI(anual ? p.precio * 10 : p.precio)} ${anual ? 'al año' : 'al mes'}</span><b>${eurI(base)}</b></div>
+        ${puesta ? `<div><span>Puesta en marcha (una vez; incluida con pago anual)</span><b>${eurI(puesta)}</b></div>` : ''}
+        <div><span>IVA 21 %</span><b>${eurI(iva)}</b></div>
+        <div class="pgtot"><span>${!conSus ? 'Primer cobro' : baja ? 'Importe desde el ' + esc(fin) : 'Nuevo importe'}</span><b>${eurI(base + puesta + iva)}</b></div></div>
+      <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>Cancelar</button>
+        <button class="btn" id="pgok">${!conSus ? 'Ir al pago seguro' : baja ? 'Programar el cambio' : 'Confirmar el cambio'}</button></div>`;
+    $('dbody').querySelectorAll('[data-pgp]').forEach(b => b.onclick = () => { est.plan = b.dataset.pgp; pinta(); });
+    $('dbody').querySelectorAll('[data-pga]').forEach(b => b.onclick = () => { est.pago = b.dataset.pga; pinta(); });
+    $('pgusu').onchange = () => { est.usuarios = Math.max(3, usados, Math.floor(+$('pgusu').value || 0)); pinta(); };
+    $('pgok').onclick = async ev => {
+      const d = await pagoLlamar({ accion: conSus ? 'cambiar' : 'checkout', plan: est.plan, pago: est.pago, usuarios: est.usuarios }, ev.target);
+      if (!d) return;
+      if (d.url) { location.href = d.url; return; }
+      $('dlg').close();
+      if (d.previsto) { toast(`Cambio programado para el ${fechaCorta(d.previsto)}`); await pagoCargarEstado(); if (TAB === 'plan' || TAB === 'organizacion' || TAB === 'config') ir(TAB); return; }
+      toast('Cambio hecho: en unos segundos verás el plan nuevo'); pagoEsperarActivo();
+    };
+  };
+  pinta(); $('dlg').showModal();
+}
+
+async function pedidoPago(id, ...a) {
+  const r = await pedidoPagoBase.call(this, id, ...a);
+  await tpvBloque(id);
+  return r;
+}
 // pantallas/portal.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -18513,6 +19474,21 @@ function editorProducto(p, ...r) {
     };
   }, 0);
   return x;
+}
+
+function productoPorDefecto() {
+  const lista = PRODUCTOS.filter(p => p.tipo !== 'servicio' && vendible(p));
+  const hab = localStorage.getItem('dlc-prod-habitual');
+  return (lista.find(p => p.id === hab) || lista[0] || {}).id || '';
+}
+
+function opcionesProducto(id, nombre) {
+  // En los pedidos solo aparecen los productos activos (y el que ya tuviera la línea)
+  const lista = PRODUCTOS.filter(p => (p.tipo !== 'servicio' && vendible(p)) || p.id === id);
+  const falta = id && !lista.some(p => p.id === id);
+  return (falta ? `<option value="${id}" selected>${esc(nombre || 'Producto del pedido')}</option>` : '') +
+    lista.map(p => `<option value="${p.id}" ${p.id === id ? 'selected' : ''}>${esc(p.nombre)}${vendible(p) ? '' : ' (' + esc(p.estado.toLowerCase()) + ')'}</option>`).join('')
+    || '<option value="">Sin productos activos</option>';
 }
 // pantallas/rutas.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
@@ -20274,6 +21250,41 @@ async function cargarRutasPaso2Base2(...a) {
 }
 
 function cargarRutasPaso2(...a) { if (RN) return; return cargarRutasPaso2Base2.apply(this, a); }
+
+async function cargarRutasBase() {
+  const v = $('v-rutas');
+  if (RN) return rnPintar();
+  const { data: rutas } = await db.rpc('rutas_visibles');
+  RUTAS = rutas || [];
+  const lista = await Promise.all(RUTAS.map(async r => ({ r, ms: await rnMiembros(r) })));
+  RN_LISTA = lista;
+  v.innerHTML = `
+    <div class="saludo"><div><h1>Rutas</h1><div class="fecha">Tus rutas: créalas paso a paso, revísalas y pásalas a tu agenda</div></div>
+      <div class="acts" style="margin:0"><button class="btn" id="rnueva">+ Nueva ruta</button></div></div>
+    <div class="rngrid" id="rngrid">${lista.map(({ r, ms }, i) => {
+      const rep = r.repeticion || null, f = rnFechaRef(rep, r.nombre), h = rnHoras(ms, f, r.salida, r.vuelta, r.fijas), prox = rnProxima(rep);
+      const paradas = new Set(ms.filter(m => m.lat != null).map(m => (+m.lat).toFixed(5) + ',' + (+m.lon).toFixed(5))).size;
+      return `<article class="rncard" data-rni="${i}"><div class="rncro">${rnCroquis(ms)}<span class="rndia">${esc(rnCuando(rep))}</span></div>
+        <div class="rntx"><b>${esc(r.nombre)}</b>
+          <span class="sm">${num(ms.length)} ${ms.length === 1 ? TT('medico', 's', '', 'l', 'l') : TT('medico', 'p', '', 'l', 'l')} · ${paradas} ${paradas === 1 ? 'parada' : 'paradas'}${h.km >= 1 ? ' · ' + Math.round(h.km) + ' km' : ''}</span>
+          <span class="sm">${ms.length ? `De ${r.salida ? String(r.salida).slice(0, 5) : '09:00'} a ${hm(h.fin)}` : 'Todavía sin nadie'}${prox ? ` · próxima: ${esc(fechaCorta(prox))}` : ''}${r.mia ? '' : ' · de ' + esc(r.duenyo || '')}</span></div>
+        <div class="rnacts"><button class="btn chico" type="button" data-rnag="${i}">Pasar a mi agenda</button>
+          ${r.mia || puede('administrar') ? `<button class="btn sec chico" type="button" data-rned="${i}">${rnSV(RN_IC.lapiz)} Editar</button>
+          <button class="btn sec chico rnico" type="button" data-rnbor="${i}" aria-label="Eliminar ${esc(r.nombre)}" title="Eliminar">${rnSV(RN_IC.papelera)}</button>` : `<button class="btn sec chico" type="button" data-rnver="${i}">Ver</button>`}</div></article>`; }).join('')}
+      <button class="rnnueva" type="button" id="rnnueva2"><span><span class="mas">+</span><b>Nueva ruta</b><span class="sm">${lista.length ? 'Elige a quién vas a ver y en qué orden' : `Tu primera ruta: elige a quién vas a ver, el orden y cuándo. La app calcula las horas.`}</span></span></button></div>
+    <div id="rcuerpo" hidden></div><div id="rplan"></div>`;
+  $('rnueva').onclick = $('rnnueva2').onclick = () => rnAbrir(null);
+  v.querySelectorAll('[data-rned]').forEach(b => b.onclick = () => rnAbrir(lista[+b.dataset.rned], 3));
+  v.querySelectorAll('[data-rnver]').forEach(b => b.onclick = () => rnAbrir(lista[+b.dataset.rnver], 3));
+  v.querySelectorAll('[data-rnag]').forEach(b => b.onclick = () => rnPasarAgenda(lista[+b.dataset.rnag], b));
+  v.querySelectorAll('[data-rnbor]').forEach(b => b.onclick = async () => {
+    const { r } = lista[+b.dataset.rnbor];
+    if (!await preguntar(`Se elimina «${r.nombre}». Las citas que ya están en tu agenda no se borran.`, { titulo: '¿Eliminar la ruta?', ok: 'Eliminar', peligro: true })) return;
+    const { error } = await db.rpc('guardar_ruta', { p: { id: r.id, activa: false } });
+    if (error) { toast('No se ha podido eliminar', true); return; }
+    toast('Ruta eliminada'); invalidarCache(); cargarRutas();
+  });
+}
 // pantallas/visita.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -24658,47 +25669,6 @@ function panelDeModuloBase(sec) {
 
 /* ---------------- VeriFactu: explicado y claro ---------------- */
 
-pintarVerifactu = async function () {
-  await cargarAjustes();
-  const v = Object.assign({ activo: false, modalidad: 'verifactu', entorno: 'pruebas' }, AJUSTES.verifactu || {});
-  const [{ data: cad }, { data: evs }] = await Promise.all([RPC_ORIG('verificar_cadena', {}), RPC_ORIG('eventos_facturacion_lista', { lim: 1 })]);
-  const c = cad || {}, ok = !c.rotas;
-  $('fcuerpo').innerHTML = `
-    <div class="vfhero ${v.activo ? 'on' : ''}">
-      <div class="vfico">🛡️</div>
-      <div><h2>VeriFactu ${v.activo ? '<span class="pill p-est">Activado</span>' : '<span class="pill p-per">Preparado · desactivado</span>'}</h2>
-        <p>Sistema de la Agencia Tributaria para que las facturas no se puedan alterar y se puedan verificar. La plataforma ya emite cada factura cumpliendo sus requisitos; solo falta conectar el envío cuando decidáis activarlo.</p></div></div>
-    <div class="vfpasos">
-      <div class="vfpaso hecho"><span>✓</span><b>1 · Facturas preparadas</b><em>Numeración sin huecos, facturas inalterables y rectificativas.</em></div>
-      <div class="vfpaso hecho"><span>✓</span><b>2 · Registro encadenado</b><em>${num(c.facturas || 0)} facturas con huella · ${ok ? 'cadena íntegra' : 'revisar desde ' + esc(c.primera_rota || '')}.</em></div>
-      <div class="vfpaso ${v.activo ? 'hecho' : ''}"><span>${v.activo ? '✓' : '3'}</span><b>3 · QR y leyenda</b><em>${v.activo ? 'Las facturas nuevas llevan QR y «VERI*FACTU».' : 'Se añaden al activarlo.'}</em></div>
-      <div class="vfpaso pend"><span>🔒</span><b>4 · Envío a Hacienda</b><em>Requiere el certificado digital de la empresa. Se configura al activarlo.</em></div>
-    </div>
-    <div class="vfgrid">
-      <div class="card vfcard"><h3>Qué hace cada factura</h3><ul class="manlist">
-        <li><span>🔢</span><span>Recibe el siguiente número de su serie: no puede haber huecos ni repetidos.</span></li>
-        <li><span>🔗</span><span>Guarda una <b>huella</b> que la encadena con la anterior: si alguien cambiara una factura, la cadena lo delataría.</span></li>
-        <li><span>🧾</span><span>No se puede modificar ni borrar: los errores se corrigen con una <b>rectificativa</b>.</span></li>
-        <li><span>📋</span><span>Todo queda en el <b>registro de eventos</b>: emisiones, cobros, envíos y cambios de configuración${evs && evs[0] ? ` (último: ${esc(evs[0].tipo)} el ${new Date(evs[0].fecha).toLocaleDateString('es-ES')})` : ''}.</span></li></ul></div>
-      <div class="card vfcard"><h3>Configuración</h3>
-        <label class="vfswitch"><input type="checkbox" id="vfa" ${v.activo ? 'checked' : ''}><span class="sw"></span>
-          <span><b>Activar VeriFactu</b><br><span class="sm">Las facturas nuevas llevarán el QR y la leyenda. Las ya emitidas no cambian.</span></span></label>
-        <label>Modalidad</label>
-        <div class="vfmodos">
-          <label class="vfmodo"><input type="radio" name="vfm" value="verifactu" ${v.modalidad === 'verifactu' ? 'checked' : ''}><b>VeriFactu</b><span>Cada factura se envía a Hacienda al emitirla. La más sencilla de mantener.</span></label>
-          <label class="vfmodo"><input type="radio" name="vfm" value="no_verifactu" ${v.modalidad === 'no_verifactu' ? 'checked' : ''}><b>No VeriFactu</b><span>Las facturas se firman y se guardan; Hacienda puede pedirlas cuando quiera.</span></label></div>
-        <label for="vfe">Entorno</label><select id="vfe"><option value="pruebas" ${v.entorno === 'pruebas' ? 'selected' : ''}>Pruebas de la Agencia Tributaria</option><option value="produccion" ${v.entorno === 'produccion' ? 'selected' : ''}>Producción</option></select>
-        <div class="acts" style="justify-content:flex-end"><button class="btn" id="vfok">Guardar</button></div></div>
-    </div>`;
-  $('vfok').onclick = async () => {
-    const nuevo = { activo: $('vfa').checked, modalidad: document.querySelector('[name=vfm]:checked').value, entorno: $('vfe').value };
-    if (nuevo.activo !== v.activo && !await preguntar(nuevo.activo ? 'Las facturas que se emitan a partir de ahora llevarán el QR y la leyenda VERI*FACTU. El envío a Hacienda necesitará el certificado de la empresa.' : 'Las facturas nuevas dejarán de llevar el QR. Las ya emitidas no cambian.',
-      { titulo: nuevo.activo ? '¿Activar VeriFactu?' : '¿Desactivar VeriFactu?', ok: nuevo.activo ? 'Activar' : 'Desactivar' })) return;
-    const { error } = await db.rpc('guardar_ajuste', { p_clave: 'verifactu', p_valor: nuevo });
-    if (error) { toast('No se ha podido guardar', true); return; }
-    AJUSTES.verifactu = nuevo; toast('Guardado · queda anotado en el registro'); pintarVerifactu();
-  };
-};
 
 /* ---------------- Manual: se explica antes de llevarte a ningún sitio ---------------- */
 
@@ -25522,10 +26492,6 @@ ir = function (t) {
   sec.classList.remove('cargando'); sec.classList.add('cargando-pend');
   if (PEND > 0) sec.classList.add('cargando'); sec.classList.remove('cargando-pend');
 };
-ventanaCargando = async function (fn) {
-  const d = $('dlg'); const t = setTimeout(() => d.classList.add('cargando'), 250);
-  try { return await fn(); } finally { clearTimeout(t); d.classList.remove('cargando'); }
-};
 
 /* ---------------- Cuentas: cabecera ordenada; Duplicados dentro de Calidad del dato ---------------- */
 
@@ -25553,19 +26519,6 @@ document.addEventListener('click', e => {
 
 /* ---------------- estados de producto ---------------- */
 
-productoPorDefecto = function () {
-  const lista = PRODUCTOS.filter(p => p.tipo !== 'servicio' && vendible(p));
-  const hab = localStorage.getItem('dlc-prod-habitual');
-  return (lista.find(p => p.id === hab) || lista[0] || {}).id || '';
-};
-opcionesProducto = function (id, nombre) {
-  // En los pedidos solo aparecen los productos activos (y el que ya tuviera la línea)
-  const lista = PRODUCTOS.filter(p => (p.tipo !== 'servicio' && vendible(p)) || p.id === id);
-  const falta = id && !lista.some(p => p.id === id);
-  return (falta ? `<option value="${id}" selected>${esc(nombre || 'Producto del pedido')}</option>` : '') +
-    lista.map(p => `<option value="${p.id}" ${p.id === id ? 'selected' : ''}>${esc(p.nombre)}${vendible(p) ? '' : ' (' + esc(p.estado.toLowerCase()) + ')'}</option>`).join('')
-    || '<option value="">Sin productos activos</option>';
-};
 
 
 /* ============================================================
@@ -25868,25 +26821,8 @@ new MutationObserver(ms => ms.forEach(m => {
     if (false) { s.classList.add('cargamin'); setTimeout(() => s.classList.remove('cargamin'), 470 - hecho); }
   }
 })).observe(document.body, { attributes: true, attributeFilter: ['class'], subtree: true });
-ventanaCargando = async function (fn) { const d = $('dlg'); d.classList.add('cargando'); try { return await fn(); } finally { d.classList.remove('cargando'); } };
 document.addEventListener('click', e => { const b = e.target.closest('main .pag button:not(:disabled)'); if (b) cargaLocal(b.closest('.card') || b.closest('.pag').parentElement); }, true);
 document.addEventListener('change', e => { if (e.target.closest('main .pag select')) cargaLocal(e.target.closest('.card') || e.target.closest('.pag').parentElement); }, true);
-// Cambio de pestaña: la vista anterior se queda fija hasta que llegan los datos y la pantalla deja de cambiar
-congelar = function (sec) {
-  if (!sec || sec.classList.contains('hide') || document.querySelector('.congelada')) return;
-  const r = sec.getBoundingClientRect(); if (r.height < 40) return;
-  const c = sec.cloneNode(true); c.removeAttribute('id'); c.querySelectorAll('[id]').forEach(e => e.removeAttribute('id'));
-  c.classList.add('congelada'); c.classList.remove('cargando', 'cargando-pend', 'cargamin');
-  Object.assign(c.style, { position: 'absolute', left: (r.left + scrollX) + 'px', top: (r.top + scrollY) + 'px', width: r.width + 'px', margin: 0, pointerEvents: 'none', zIndex: 40, background: 'var(--bg, #F3F8FC)' });
-  document.body.appendChild(c); sec.style.minHeight = r.height + 'px';
-  let ultimo = performance.now(); const mo = new MutationObserver(() => { ultimo = performance.now(); }); mo.observe(sec, { childList: true, subtree: true });
-  const t0 = performance.now();
-  const w = setInterval(() => {
-    if ((PEND === 0 && performance.now() - ultimo > 120 && performance.now() - t0 > 100) || performance.now() - t0 > 2500) {
-      clearInterval(w); mo.disconnect(); c.remove(); requestAnimationFrame(() => { sec.style.minHeight = ''; });
-    }
-  }, 40);
-};
 
 /* ---------------- 4. Tablas: anchos de columna ajustables y recordados por persona ---------------- */
 
@@ -25977,17 +26913,20 @@ function barraTabla(sec) {
   if (!barra) { caja.insertAdjacentHTML('afterbegin', '<div class="tbarra"></div>'); barra = caja.querySelector(':scope > .tbarra'); }
   barra.classList.add('conbtn'); barra.appendChild(b); b.classList.add('aderecha');
 }
-ordenarBotones = function (sec) {
-  // Cabecera: secundarios y la acción principal siempre la última
-  sec.querySelectorAll('.saludo .acts').forEach(acts => {
+function ordenarBotones(sec) {
+  // Cabecera: secundarios → acción principal → «Filtros y columnas» (el último: el mismo sitio en todas las pantallas)
+  sec.querySelectorAll('.saludo .acts, #dircab .acts').forEach(acts => {
     const bs = [...acts.children].filter(b => b.matches('button, a.btn, select'));
-    // v2.75.0: los selectores de vista (Día, Semana, Mes, Equipo…) no son la acción principal aunque estén marcados: no se mueven
     const vista = b => b.dataset && b.dataset.ag && b.dataset.ag !== 'nueva';
-    const peso = b => (b.matches('.btn:not(.sec)') && !b.classList.contains('icobtn') && !b.classList.contains('iniact') && !vista(b)) ? 3 : b.matches('select') ? 0 : 1;
+    const peso = b => (b.classList.contains('htbtn') || b.id === 'dirtools') ? 4
+      : (b.matches('.btn:not(.sec)') && !b.classList.contains('icobtn') && !b.classList.contains('iniact') && !vista(b)) ? 3 : b.matches('select') ? 0 : 1;
     const orden = [...bs].sort((a, c) => peso(a) - peso(c));
     if (orden.some((b, i) => b !== bs[i])) orden.forEach(b => acts.appendChild(b));
+    const dt = acts.querySelector(':scope > #dirtools'), h = acts.querySelector(':scope > .ai-hueco');
+    if (dt && h && h.nextElementSibling !== dt) acts.insertBefore(h, dt);
+    acts.querySelectorAll(':scope > .ai-dir').forEach(x => x.remove());
   });
-};
+}
 
 /* ---------------- 2. Inicio: actualizar como icono, igual que los de al lado ---------------- */
 
@@ -26082,41 +27021,6 @@ document.addEventListener('click', e => {
   RASTRO.push({ t: new Date().toISOString().slice(11, 19), pantalla: TAB, que: (b.getAttribute('aria-label') || b.title || b.textContent || '').trim().replace(/\s+/g, ' ').slice(0, 50) });
   if (RASTRO.length > 25) RASTRO.shift();
 }, true);
-reportarProblema = function () {
-  const mods = [...document.querySelectorAll('nav.main [data-t]')].filter(b => !b.classList.contains('hide') && getComputedStyle(b).display !== 'none').map(b => [b.dataset.t, b.textContent.trim()]);
-  const chips = (nombre, ops, sel) => `<div class="rpchips" data-rp="${nombre}">${ops.map(([v, t]) => `<button type="button" data-v="${esc(v)}" class="${v === sel ? 'on' : ''}">${esc(t)}</button>`).join('')}</div>`;
-  $('dbody').innerHTML = `<div class="fh"><div><h2>Reportar un problema</h2><div class="sm">Cuantos más detalles, antes se soluciona. Todo lo técnico se adjunta solo.</div></div>
-    <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-    <div class="rpgrid">
-      <div><label>¿Qué ha pasado?</label>${chips('tipo', [['error', 'Algo falla o da error'], ['no_esperado', 'No hace lo que esperaba'], ['lento', 'Va lento'], ['visual', 'Se ve mal'], ['datos', 'Datos incorrectos'], ['idea', 'Idea de mejora']], 'error')}</div>
-      <div><label>¿Dónde?</label>${chips('modulo', mods.concat([['config', 'Configuración'], ['otro', 'Otro sitio']]), mods.some(m => m[0] === TAB) ? TAB : (TAB === 'config' ? 'config' : 'otro'))}</div>
-      <div><label>¿Cuánto te afecta?</label>${chips('gravedad', [['bloquea', 'No puedo seguir trabajando'], ['molesta', 'Puedo seguir, pero molesta'], ['menor', 'Es un detalle']], 'molesta')}</div>
-      <div><label>¿Pasa siempre?</label>${chips('frecuencia', [['siempre', 'Siempre'], ['aveces', 'A veces'], ['una', 'Solo una vez']], 'siempre')}</div>
-    </div>
-    <label for="rpque">Cuéntalo con tus palabras</label><textarea id="rpque" rows="4" placeholder="Qué intentabas hacer, qué esperabas y qué ha pasado. Por ejemplo: «Al guardar ${TT('visita', 's', 'un', 'l', 'l')} de ${TT('medico', 's', 'un', 'l', 'l', 'nuevo')}, sale un error y no se guarda»."></textarea>
-    <label>Captura de pantalla (opcional)</label><input type="file" id="rpcap" accept="image/*">
-    <details class="rptec"><summary>Datos técnicos que se adjuntan</summary><div class="sm">Pantalla: ${esc(TAB)} · versión ${esc(VERSION_APP)} · ${innerWidth}×${innerHeight} · ${ERRORES_SESION.length} errores en esta sesión · tus últimas ${RASTRO.length} acciones</div></details>
-    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>Cancelar</button><button class="btn" id="rptok" disabled>Enviar el reporte</button></div>`;
-  $('dlg').classList.add('amplia'); $('dlg').showModal();
-  const val = {};
-  $('dbody').querySelectorAll('.rpchips').forEach(g => { val[g.dataset.rp] = (g.querySelector('.on') || {}).dataset ? g.querySelector('.on').dataset.v : ''; g.querySelectorAll('button').forEach(b => b.onclick = () => { g.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); val[g.dataset.rp] = b.dataset.v; }); });
-  $('rpque').oninput = () => { $('rptok').disabled = $('rpque').value.trim().length < 5; };
-  let captura = null;
-  $('rpcap').onchange = async e => {
-    const f = e.target.files[0]; if (!f) return;
-    const img = new Image(); img.src = URL.createObjectURL(f); await img.decode();
-    const k = Math.min(1, 1280 / img.width), c = document.createElement('canvas'); c.width = img.width * k; c.height = img.height * k;
-    c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); captura = c.toDataURL('image/jpeg', 0.7);
-  };
-  $('rptok').onclick = () => conCarga($('rptok'), 'Enviando…', async () => {
-    const nombres = { tipo: 'Tipo', modulo: 'Dónde', gravedad: 'Gravedad', frecuencia: 'Frecuencia' };
-    const resumen = Object.entries(val).map(([k, v]) => `${nombres[k]}: ${($('dbody').querySelector(`[data-rp="${k}"] [data-v="${v}"]`) || {}).textContent || v}`).join(' · ');
-    const { data, error } = await RPC_ORIG('registrar_error', { p: { tipo: 'reporte', mensaje: `[${resumen}] ${$('rpque').value.trim()}`, pantalla: val.modulo || TAB, version: VERSION_APP, navegador: navigator.userAgent,
-      detalle: Object.assign({}, val, { errores_sesion: ERRORES_SESION, ultimas_acciones: RASTRO, ancho: innerWidth, alto: innerHeight, captura }) } });
-    if (error || !data || !data.ok) { toast('No se ha podido enviar', true); return; }
-    delete $('dlg').dataset.sucio; $('dlg').close(); toast('Gracias: el problema queda registrado con todos los detalles');
-  });
-};
 
 /* ---------------- 11. Analítica: «Ventas por canal» junto al embudo ---------------- */
 
@@ -26187,17 +27091,6 @@ ir = (orig => function (t) {
 })(ir);
 
 // 4. Pestañas y cambios de vista dentro de una pantalla: la vista anterior se queda fija hasta que la nueva está entera
-congelar = function (sec) {
-  if (!sec || sec.classList.contains('hide') || document.querySelector('.congelada')) return;
-  const r = sec.getBoundingClientRect(); if (r.height < 40) return;
-  const t0 = Date.now() - 2;   // el momento del clic: cuentan todas las consultas que lance
-  const c = sec.cloneNode(true); c.removeAttribute('id'); c.querySelectorAll('[id]').forEach(e => e.removeAttribute('id'));
-  c.classList.add('congelada'); c.classList.remove('cargando', 'cargando-pend', 'preparando');
-  Object.assign(c.style, { position: 'absolute', left: (r.left + scrollX) + 'px', top: (r.top + scrollY) + 'px', width: r.width + 'px', margin: 0, pointerEvents: 'none', zIndex: 40, background: 'var(--bg, #F3F8FC)' });
-  document.body.appendChild(c); sec.style.minHeight = r.height + 'px';
-  // Se espera a que empiece el cambio (el clic lanza la carga justo después) y a que termine
-  setTimeout(() => estable(sec, 3000, t0).then(() => { c.remove(); requestAnimationFrame(() => { sec.style.minHeight = ''; }); }), 0);
-};
 
 // 5. Ventanas: su contenido aparece entero, no bloque a bloque
 ['dlg', 'ficha', 'dlg2'].forEach(id => {
@@ -26218,29 +27111,6 @@ congelar = function (sec) {
 // Se registra al apoyar el dedo o el ratón (antes del clic), para que la vista fija sepa qué botón se ha pulsado
 document.addEventListener('pointerdown', e => { CLIC_PESTANA = e.target.closest('button, [data-ag]'); }, true);
 document.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') CLIC_PESTANA = e.target.closest && e.target.closest('button, [data-ag]'); }, true);
-congelar = function (sec) {
-  if (!sec || sec.classList.contains('hide') || document.querySelector('.congelada')) return;
-  const r = sec.getBoundingClientRect(); if (r.height < 40) return;
-  const t0 = Date.now() - 2;
-  // La copia conserva sus identificadores (así mantiene exactamente su aspecto); al estar al final de la página,
-  // la plataforma sigue encontrando siempre los elementos reales, que van antes
-  const c = sec.cloneNode(true);
-  c.classList.add('congelada', 'atenuada'); c.classList.remove('cargando', 'cargando-pend', 'preparando');
-  Object.assign(c.style, { position: 'absolute', left: (r.left + scrollX) + 'px', top: (r.top + scrollY) + 'px', width: r.width + 'px', margin: 0, zIndex: 45, background: 'var(--bg, #F3F8FC)' });
-  // La pestaña pulsada se marca activa al momento en la copia
-  const b = CLIC_PESTANA;
-  if (b && sec.contains(b)) {
-    const attrs = [...b.attributes].filter(a => a.name.startsWith('data-') && a.name !== 'data-expl');
-    const sel = attrs.length ? attrs.map(a => `[${a.name}="${CSS.escape(a.value)}"]`).join('') : null;
-    const cb = sel && c.querySelector(sel);
-    if (cb) { [...cb.parentElement.children].forEach(x => { x.setAttribute('aria-pressed', String(x === cb)); x.classList.toggle('on', x === cb); if (x !== cb && x.classList.contains('btn') && !x.classList.contains('sec')) x.classList.add('sec'); }); cb.classList.remove('sec'); }
-  }
-  c.insertAdjacentHTML('afterbegin', '<div class="barraprog"><i></i></div>');
-  // Se coloca justo debajo de la fila de botones que se ha pulsado (pestañas, modos de la agenda…)
-  if (b && sec.contains(b)) { const fila = b.closest('.subnav, .cfgsubs, .acts, .segs') || b.parentElement; const rb = fila.getBoundingClientRect(); c.querySelector('.barraprog').style.top = Math.round(rb.bottom - r.top + 4) + 'px'; }
-  document.body.appendChild(c); sec.style.minHeight = r.height + 'px';
-  setTimeout(() => estable(sec, 3000, t0).then(() => { c.remove(); requestAnimationFrame(() => { sec.style.minHeight = ''; }); }), 0);
-};
 // Pestañas de la configuración de Facturación también
 document.addEventListener('click', e => { const b = e.target.closest('main [data-fsub], main [data-faccfg]'); if (b && b.getAttribute('aria-pressed') !== 'true' && !b.classList.contains('on')) congelar(b.closest('main > section')); }, true);
 
@@ -26277,108 +27147,6 @@ new MutationObserver(() => ajustarFacturacion()).observe($('v-facturacion'), { c
 
 /* ---------------- 5. Diseño del PDF de la factura ---------------- */
 
-facturaPDF = async function (f, rectificaNum, cfgPrueba) {
-  const C = cfgPrueba || cfgPDF();
-  const JsPDF = await cargarJsPDF();
-  if (!PRODUCTOS.length) await cargarProductos();
-  const doc = new JsPDF({ unit: 'mm', format: 'a4' });
-  const F = C.fuente === 'times' ? 'times' : 'helvetica';
-  const e = f.emisor || {}, c = f.cliente || {};
-  const gris = [110, 118, 126], negro = [28, 39, 51], claro = [238, 240, 242], acento = hexRGB(C.color);
-  const eur = v => (Math.round((+v || 0) * 100) / 100).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '€';
-  const fecha = x => x ? x.split('-').reverse().join('/') : '';
-  const izqLogo = C.logoPos !== 'der', tam = { s: 22, m: 34, l: 44 }[C.logoTam] || 34;
-  const xLogo = izqLogo ? 17 : 192 - tam, xTit = izqLogo ? 192 : 18, alTit = izqLogo ? 'right' : 'left';
-  // Logo
-  if (C.logo) {
-    const logo = await logoData();
-    if (logo && LOGO_CIRC) doc.addImage(logo, 'PNG', xLogo, 19, tam, tam);
-    else if (logo) { doc.setFillColor(236, 240, 245); doc.circle(xLogo + tam / 2, 19 + tam / 2, tam / 2 - 2, 'F'); doc.addImage(logo, 'PNG', xLogo + tam * .16, 19 + tam * .37, tam * .68, tam * .27); }
-  }
-  // Título y número
-  doc.setFont(F, 'normal'); doc.setTextColor(...acento); doc.setFontSize(f.rectifica_id ? 22 : 28);
-  doc.text(f.rectifica_id ? (C.titulo || 'FACTURA') + ' RECTIFICATIVA' : (C.titulo || 'FACTURA'), xTit, 36, { align: alTit });
-  doc.setFontSize(14); doc.setTextColor(...gris); doc.text(f.numero || '', xTit, 44, { align: alTit });
-  // Empresa en la cabecera (opcional)
-  let yEmp = 19 + (C.logo ? tam : 0) + 6;
-  if (C.empresaCab) {
-    doc.setFontSize(8.8); doc.setTextColor(...negro); doc.setFont(F, 'bold');
-    doc.text(e.razon_social || nombreApp(), izqLogo ? 18 : 192, yEmp, { align: izqLogo ? 'left' : 'right' }); doc.setFont(F, 'normal'); doc.setTextColor(...gris);
-    [e.nif ? 'NIF ' + e.nif : '', [e.direccion, [e.cp, e.municipio].filter(Boolean).join(' ')].filter(Boolean).join(', '), [e.telefono, e.email].filter(Boolean).join(' · ')].filter(Boolean)
-      .forEach((t, i) => doc.text(t, izqLogo ? 18 : 192, yEmp + 4.2 * (i + 1), { align: izqLogo ? 'left' : 'right' }));
-  }
-  // Fechas y cliente
-  doc.setFontSize(9.5); let y = C.empresaCab ? Math.max(76, yEmp + 20) : 70;
-  const cliDer = C.clientePos !== 'izq', xDat = cliDer ? 18 : 110, xCli = cliDer ? 110 : 18;
-  const fila = (etq, val, x, yy) => { doc.setTextColor(...gris); doc.text(etq, x, yy); doc.setTextColor(...negro); doc.text(val || '', x + doc.getTextWidth(etq) + 2, yy); };
-  fila('Fecha:', fecha(f.fecha), xDat, y);
-  if (C.vencimiento && !f.rectifica_id) fila('Fecha vencimiento:', fecha(f.vencimiento), xDat, y + 4.6);
-  const dirCli = [c.direccion, [c.municipio, c.cp ? '(' + c.cp + ')' : '', c.provincia, c.pais].filter(Boolean).join(', ').replace(', (', ' (')].filter(Boolean);
-  if (C.direccion && dirCli.length) { fila('Ref:', dirCli[0], xDat, y + 13.8); if (dirCli[1]) { doc.setTextColor(...negro); doc.text(dirCli[1], xDat, y + 18.4); } }
-  if (f.rectifica_id) { doc.setTextColor(...gris); doc.text('Rectifica la factura ' + (rectificaNum || '') + (f.motivo_rectificacion ? ' · ' + f.motivo_rectificacion : ''), xDat, y + 9.2); }
-  doc.setFont(F, 'bold'); doc.setTextColor(...negro); doc.text(c.nombre || '', xCli, y); doc.setFont(F, 'normal');
-  [c.nif, ...dirCli, c.email].filter(Boolean).forEach((t, i) => doc.text(String(t), xCli, y + 4.6 * (i + 1)));
-  // Tabla con las columnas elegidas
-  y = Math.max(104, y + 34);
-  const cols = [['precio', 'PRECIO', l => eur(l.precio)], ['unidades', 'UNIDADES', l => String(l.unidades)], ['subtotal', 'SUBTOTAL', l => eur(l.base)],
-    ['iva', 'IVA', l => (+l.iva || 0) + '%'], ['total', 'TOTAL', l => eur((+l.base || 0) * (1 + (+l.iva || 0) / 100))]].filter(k => C.cols[k[0]]);
-  const conFoto = C.fotos, xCon = conFoto ? 46 : 20, anchoNum = cols.length ? Math.min(28, 110 / cols.length) : 0;
-  const xs = cols.map((_, i) => 192 - (cols.length - 1 - i) * anchoNum);
-  doc.setFillColor(...claro); doc.rect(conFoto ? 42 : 18, y, conFoto ? 150 : 174, 11, 'F'); if (conFoto) doc.rect(18, y, 22.5, 11, 'F');
-  doc.setFont(F, 'bold'); doc.setFontSize(8.8); doc.setTextColor(...acento);
-  doc.text('CONCEPTO', xCon, y + 7); cols.forEach((k, i) => doc.text(k[1], xs[i], y + 7, { align: 'right' }));
-  doc.setFont(F, 'normal'); doc.setFontSize(9.5); doc.setTextColor(...negro); y += 11;
-  const limCon = (cols.length ? xs[0] - anchoNum : 190) - xCon;
-  for (const l of f.lineas || []) {
-    const p = conFoto && PRODUCTOS.find(x => x.nombre && l.descripcion && l.descripcion.toLowerCase().startsWith(x.nombre.toLowerCase()));
-    const img = p && p.foto_url ? await imagenData(p.foto_url) : null;
-    const alto = img ? 20 : 11;
-    if (y + alto > 250) { doc.addPage(); y = 20; }
-    if (img) { try { doc.addImage(img, 20, y + 3, 18, 13); } catch (er) {} }
-    const ld = doc.splitTextToSize(l.descripcion || '', Math.max(30, limCon));
-    doc.text(ld, xCon, y + 7);
-    cols.forEach((k, i) => doc.text(k[2](l), xs[i], y + 7, { align: 'right' }));
-    y += Math.max(alto, 5 + ld.length * 4.6);
-    doc.setDrawColor(226, 230, 234); doc.line(18, y, 192, y);
-  }
-  // Totales
-  y += 10; doc.setFontSize(9.5);
-  const tot = (etq, val, negrita) => { doc.setTextColor(...gris); doc.text(etq, 150, y, { align: 'right' }); doc.setTextColor(...(negrita ? acento : negro));
-    doc.setFont(F, negrita ? 'bold' : 'normal'); doc.text(val, 190, y, { align: 'right' }); doc.setFont(F, 'normal'); y += 7; };
-  tot('Base imponible', eur(f.base));
-  (f.desglose_iva || []).filter(d => +d.cuota).forEach(d => tot('IVA ' + d.iva + '%', eur(d.cuota)));
-  if (!(f.desglose_iva || []).some(d => +d.cuota)) tot('IVA', eur(0));
-  doc.setFillColor(...claro); doc.rect(152, y - 5, 40, 9, 'F'); tot('Total', eur(f.total), true);
-  y += 4;
-  if (C.formaPago && f.forma_pago) { doc.setTextColor(...gris); doc.text('Forma de pago: ', 18, y); doc.setTextColor(...negro);
-    doc.text(f.forma_pago + (C.iban && /transfer/i.test(f.forma_pago) && e.iban ? ' · IBAN ' + e.iban : ''), 18 + doc.getTextWidth('Forma de pago: ') + 1, y); }
-  // QR VeriFactu (obligatorio si está activo; solo se elige su posición)
-  if ((f.verifactu || {}).activo && f.qr_url) {
-    try {
-      const QR = await cargarQR(), q = QR(0, 'M'); q.addData(f.qr_url); q.make();
-      const n = q.getModuleCount(), t = 26 / n, arriba = C.qrPos === 'arriba', x0 = arriba ? 18 : 18, y0 = arriba ? 52 : 238;
-      if (arriba && C.logo && izqLogo) { /* con el logo a la izquierda, el QR arriba va a la derecha */ }
-      const xq = arriba && izqLogo ? 166 : x0, yq = arriba ? 50 : y0;
-      doc.setFillColor(0, 0, 0);
-      for (let r = 0; r < n; r++) for (let k = 0; k < n; k++) if (q.isDark(r, k)) doc.rect(xq + k * t, yq + r * t, t, t, 'F');
-      doc.setFontSize(8.5); doc.setTextColor(...negro); doc.setFont(F, 'bold');
-      const xt = arriba && izqLogo ? 164 : 48, al = arriba && izqLogo ? 'right' : 'left';
-      doc.text('VERI*FACTU', xt, yq + 10, { align: al }); doc.setFont(F, 'normal'); doc.setTextColor(...gris); doc.text('Factura verificable en la sede electrónica de la AEAT', xt, yq + 15, { align: al });
-    } catch (er) {}
-  }
-  // Pie
-  const pags = doc.getNumberOfPages();
-  for (let i = 1; i <= pags; i++) {
-    doc.setPage(i); doc.setDrawColor(...acento); doc.line(18, 276, 192, 276);
-    doc.setFontSize(8.3); doc.setTextColor(...gris); doc.setFont(F, 'normal');
-    doc.text(`${e.razon_social || nombreApp()} | NIF: ${e.nif || ''} | ${[e.direccion, [e.cp, e.municipio].filter(Boolean).join(' '), e.pais || 'España'].filter(Boolean).join(', ')}`, 105, 281, { align: 'center' });
-    if (C.pieTel && e.telefono) doc.text('Atención al cliente: ' + e.telefono, 105, 285, { align: 'center' });
-    if (C.pieWeb && e.web) doc.text(e.web, 105, 289, { align: 'center' });
-    if (C.pieTexto && e.pie) doc.text(doc.splitTextToSize(e.pie, 170), 105, 293, { align: 'center' });
-    if (C.paginas) doc.text(i + '/' + pags, 192, 289, { align: 'right' });
-  }
-  return doc;
-};
 new MutationObserver(botonDisenoPDF).observe($('v-facturacion'), { childList: true, subtree: true });
 
 
@@ -26488,15 +27256,6 @@ const IMP_CAMPOS = {
 
 
 
-// Filtros generados (listas y sí/no) para una zona de filtros; al cambiar, actualiza «estado» y llama a «alCambiar»
-function camposFiltros(amb, estado, pref) {
-  return (CAMPOS[amb] || []).filter(c => c.en_filtro && ['lista', 'si_no'].includes(c.tipo)).map((c, i) => {
-    const ops = c.tipo === 'si_no' ? [['true', 'Sí'], ['false', 'No']] : (c.valores || []).map(x => [x, x]);
-    const act = estado[c.clave] == null ? '' : String(estado[c.clave]);
-    return `<div class="fcpers"><label for="${pref}${i}">${esc(c.nombre)}</label><select id="${pref}${i}" data-fcp="${esc(c.clave)}" data-fcpt="${c.tipo}">
-      <option value="">Todos</option>${ops.map(([v, t]) => `<option value="${esc(v)}" ${act === v ? 'selected' : ''}>${esc(t)}</option>`).join('')}</select></div>`;
-  }).join('');
-}
 // (v2.183.0: aquí iba la primera versión de camposEnDirectorio; se redefine entera más abajo)
 
 
@@ -26524,11 +27283,6 @@ function panelColumnas(titulo, cols, alCambiar) {
   return panelColumnasBase2(titulo, cols.filter(c => !(cab[c.i] && cab[c.i].classList.contains('cpcol'))), alCambiar);
 }
 
-/* ---------- Cuentas: la sección va en su panel de filtros, con sus columnas ---------- */
-// Todos los campos pueden ser columna; de entrada se ven los que tienen «Columna en la tabla»
-camposEnDirectorio = function () {
-  (CAMPOS.medico || []).forEach(c => { if (!COLS.some(x => x.k === 'cp:' + c.clave)) COLS.push({ k: 'cp:' + c.clave, t: c.nombre, w: 150 }); });
-};
 function abrirHerramientas(ctx, ...r) {
   const x = abrirHerramientasBase3(ctx, ...r);
   const d = $('tools'), z = d.querySelector('.tfcampos');
@@ -26552,7 +27306,6 @@ $('chips').addEventListener('click', e => {
   if (z && $('tools').classList.contains('abierto')) clasPintar(z, 'medico', F.campos, () => buscar(true), () => buscar(true), 'h3');
 });
 // Los filtros de siempre ya están en la sección Clasificadores
-camposFiltros = () => '';
 ['directorio', 'pacientes', 'ventas', 'productos'].forEach(k => { if (AYUDA[k]) AYUDA[k][2].push('En <b>Filtros y columnas → Clasificadores</b> filtras por los campos propios de esta pantalla y eliges cuáles ver como columna. Con pocos valores se eligen de una lista; con muchos, se escribe y se busca.'); });
 
 if (AYUDA.directorio) AYUDA.directorio[2].push('El <b>buscador</b> no necesita el nombre exacto: busca palabra a palabra, sin acentos y en cualquier orden («ped lo» encuentra «López, Pedro») y perdona una letra equivocada. Primero salen los que coinciden en más palabras.');
@@ -26594,126 +27347,7 @@ arrancar();
 
 
 
-// ---------- Calendario: días, meses y años ----------
-abrirCalendario = function (inp, o) {
-  o = o || {};
-  // Si viene del reloj (o el reloj de él), se sustituye dentro de la misma ventanita: cerrarla y abrirla haría que el primer toque se ignore
-  if (o.mismo && SELPOP) { SELPOP.remove(); SELPOP = null; } else cerrarSelector();
-  const tipo = selTipo(inp), valor = inp.value || '';
-  const diaIni = o.fecha || (tipo === 'mes' ? (valor ? valor + '-01' : '') : valor.slice(0, 10));
-  let ver = diaIni ? new Date(diaIni + 'T12:00:00') : new Date(hoyISO() + 'T12:00:00');
-  let foco = diaIni || hoyISO();
-  let vista = tipo === 'mes' ? 'meses' : 'dias';
-  const min = (inp.min || '').slice(0, tipo === 'mes' ? 7 : 10) || null, max = (inp.max || '').slice(0, tipo === 'mes' ? 7 : 10) || null;
-  const pop = document.createElement('div'); pop.className = 'selpop cal'; SELPOP = pop; pop.__t = Date.now();
-  pop.setAttribute('role', 'dialog'); pop.setAttribute('aria-label', tipo === 'mes' ? 'Elegir mes' : 'Elegir fecha');
-  const mesActual = hoyISO().slice(0, 7);
-  const elegido = tipo === 'mes' ? valor.slice(0, 7) : valor.slice(0, 10);
-  const pinta = () => {
-    const y = ver.getFullYear(), m = ver.getMonth();
-    let cab = '', cuerpo = '', pie = '';
-    if (vista === 'dias') {
-      const hueco = (new Date(y, m, 1).getDay() + 6) % 7, dias = new Date(y, m + 1, 0).getDate(), hoy = hoyISO();
-      let celdas = '';
-      for (let i = 0; i < hueco; i++) celdas += '<span></span>';
-      for (let d = 1; d <= dias; d++) {
-        const f = `${y}-${selDos(m + 1)}-${selDos(d)}`, fuera = (min && f < min) || (max && f > max);
-        celdas += `<button type="button" data-cd="${f}" class="${f === elegido ? 'sel' : ''} ${f === hoy ? 'hoy' : ''}" tabindex="${f === foco ? 0 : -1}" ${f === foco ? 'autofocus' : ''}
-          aria-label="${selFechaLarga(f)}" aria-pressed="${f === elegido}" ${fuera ? 'disabled' : ''}>${d}</button>`;
-      }
-      cab = `<button type="button" data-cm="-1" aria-label="Mes anterior">‹</button><button type="button" class="caltit" data-cv="meses" aria-label="Elegir mes y año">${MESES_L[m]} ${y}</button><button type="button" data-cm="1" aria-label="Mes siguiente">›</button>`;
-      cuerpo = `<div class="calg">${['L', 'M', 'X', 'J', 'V', 'S', 'D'].map(x => `<i>${x}</i>`).join('')}${celdas}</div>`;
-      pie = `<button type="button" data-cq="hoy">Hoy</button><button type="button" data-cq="manana">Mañana</button>${inp.required ? '' : '<button type="button" data-cq="borrar">Borrar</button>'}`;
-    } else if (vista === 'meses') {
-      cab = `<button type="button" data-cy="-1" aria-label="Año anterior">‹</button><button type="button" class="caltit" data-cv="anios" aria-label="Elegir año">${y}</button><button type="button" data-cy="1" aria-label="Año siguiente">›</button>`;
-      cuerpo = `<div class="calm">${MESES_L.map((n, i) => { const k = `${y}-${selDos(i + 1)}`, fuera = (min && k < min.slice(0, 7)) || (max && k > max.slice(0, 7));
-        return `<button type="button" data-cmes="${i}" class="${k === elegido.slice(0, 7) ? 'sel' : ''} ${k === mesActual ? 'hoy' : ''}" aria-label="${n} de ${y}" ${fuera ? 'disabled' : ''}>${MESES_C[i]}</button>`; }).join('')}</div>`;
-      pie = tipo === 'mes' ? `<button type="button" data-cq="estemes">Este mes</button>${inp.required ? '' : '<button type="button" data-cq="borrar">Borrar</button>'}` : '';
-    } else {
-      const ini = y - 5;
-      cab = `<button type="button" data-cy="-12" aria-label="Años anteriores">‹</button><b>${ini} – ${ini + 11}</b><button type="button" data-cy="12" aria-label="Años siguientes">›</button>`;
-      cuerpo = `<div class="calm">${Array.from({ length: 12 }, (_, i) => ini + i).map(a => `<button type="button" data-canio="${a}" class="${String(a) === elegido.slice(0, 4) ? 'sel' : ''} ${String(a) === mesActual.slice(0, 4) ? 'hoy' : ''}">${a}</button>`).join('')}</div>`;
-    }
-    pop.innerHTML = `<div class="calh">${cab}</div>${cuerpo}${pie ? `<div class="calp">${pie}</div>` : ''}`;
-    colocarPop(pop, inp.closest('.selw') || inp);
-    if (!ES_MOVIL() && vista === 'dias') { const b = pop.querySelector(`[data-cd="${foco}"]`); if (b && pop.contains(document.activeElement) || o.teclado) b && b.focus({ preventScroll: true }); }
-  };
-  const fijar = f => {
-    if (tipo === 'fechahora') { abrirReloj(inp, { fecha: f, desdeCal: true, mismo: true }); return; }
-    inp.value = f; emitir(inp); cerrarSelector(); inp.focus({ preventScroll: true });
-  };
-  pop.addEventListener('pointerdown', () => { pop.__t = Date.now(); });
-  pop.addEventListener('click', e => {
-    e.stopPropagation();
-    const t = e.target.closest('button'); if (!t || t.disabled) return;
-    const ds = t.dataset;
-    if (ds.cd) fijar(ds.cd);
-    else if (ds.cm) { ver = new Date(ver.getFullYear(), ver.getMonth() + +ds.cm, 1); pinta(); }
-    else if (ds.cy) { ver = new Date(ver.getFullYear() + +ds.cy, ver.getMonth(), 1); pinta(); }
-    else if (ds.cv) { vista = ds.cv; pinta(); }
-    else if (ds.cmes !== undefined) {
-      if (tipo === 'mes') { inp.value = `${ver.getFullYear()}-${selDos(+ds.cmes + 1)}`; emitir(inp); cerrarSelector(); return; }
-      ver = new Date(ver.getFullYear(), +ds.cmes, 1); vista = 'dias'; pinta();
-    } else if (ds.canio) { ver = new Date(+ds.canio, ver.getMonth(), 1); vista = 'meses'; pinta(); }
-    else if (ds.cq === 'hoy') fijar(hoyISO());
-    else if (ds.cq === 'manana') fijar(isoMas(hoyISO(), 1));
-    else if (ds.cq === 'estemes') { inp.value = mesActual; emitir(inp); cerrarSelector(); }
-    else if (ds.cq === 'borrar') { inp.value = ''; emitir(inp); cerrarSelector(); }
-  });
-  // Teclado: flechas de día en día y de semana en semana, Re Pág / Av Pág de mes en mes, Inicio / Fin de la semana
-  pop.addEventListener('keydown', e => {
-    if (vista !== 'dias') return;
-    const salto = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -7, ArrowDown: 7 }[e.key];
-    const d = new Date(foco + 'T12:00:00');
-    if (salto) d.setDate(d.getDate() + salto);
-    else if (e.key === 'PageUp' || e.key === 'PageDown') d.setMonth(d.getMonth() + (e.key === 'PageUp' ? -1 : 1));
-    else if (e.key === 'Home') d.setDate(d.getDate() - (d.getDay() + 6) % 7);
-    else if (e.key === 'End') d.setDate(d.getDate() + (6 - (d.getDay() + 6) % 7));
-    else return;
-    e.preventDefault();
-    foco = isoLocal(d); ver = new Date(d.getFullYear(), d.getMonth(), 1); o.teclado = true; pinta();
-  });
-  $('seldlg') ? $('seldlg').appendChild(pop) : capaSelector(inp).appendChild(pop); pinta();
-};
 
-// ---------- Reloj: horas, minutos según el paso, «Ahora» ----------
-abrirReloj = function (inp, o) {
-  o = o || {};
-  const tipo = selTipo(inp);
-  if (!o.desdeCal && (tipo === 'mes' || tipo === 'fechahora')) return abrirCalendario(inp);
-  if (o.mismo && SELPOP) { SELPOP.remove(); SELPOP = null; } else cerrarSelector();
-  const actual = tipo === 'fechahora' ? (inp.value || '').slice(11, 16) : (inp.value || '');
-  const pasoMin = (() => { const s = +inp.step; const m = s >= 60 ? Math.round(s / 60) : 5; return [1, 2, 3, 4].includes(m) || m > 30 ? 5 : m; })();
-  const redondea = x => Math.min(60 - pasoMin, Math.round(x / pasoMin) * pasoMin);
-  const [h0, m0] = (actual || '09:00').split(':').map(Number);
-  let h = isNaN(h0) ? 9 : h0, m = isNaN(m0) ? 0 : m0;
-  const pop = document.createElement('div'); pop.className = 'selpop reloj'; SELPOP = pop; pop.__t = Date.now();
-  pop.setAttribute('role', 'dialog'); pop.setAttribute('aria-label', 'Elegir hora');
-  const mins = Array.from({ length: Math.ceil(60 / pasoMin) }, (_, i) => i * pasoMin);
-  const pinta = () => {
-    pop.innerHTML = `${o.fecha ? `<div class="rjfecha"><span>${selFechaMedia(o.fecha)}</span><button type="button" data-rq="dia">Cambiar día</button></div>` : ''}
-      <div class="rjh"><b>${selDos(h)}:${selDos(m)}</b></div>
-      <div class="rjt">Hora</div><div class="rjg">${Array.from({ length: 24 }, (_, i) => `<button type="button" data-rh="${i}" class="${i === h ? 'sel' : ''}" aria-pressed="${i === h}">${selDos(i)}</button>`).join('')}</div>
-      <div class="rjt">Minutos</div><div class="rjg m">${mins.map(i => `<button type="button" data-rm="${i}" class="${i === m ? 'sel' : ''}" aria-pressed="${i === m}">${selDos(i)}</button>`).join('')}</div>
-      <div class="calp"><button type="button" data-rq="ahora">Ahora</button>${inp.required ? '' : '<button type="button" data-rq="borrar">Borrar</button>'}<button type="button" data-rq="ok" class="okb">Aceptar</button></div>`;
-    colocarPop(pop, inp.closest('.selw') || inp);
-  };
-  pop.addEventListener('pointerdown', () => { pop.__t = Date.now(); });
-  pop.addEventListener('click', e => {
-    e.stopPropagation();
-    const a = e.target.closest('[data-rh]'), b = e.target.closest('[data-rm]'), q = e.target.closest('[data-rq]');
-    if (a) { h = +a.dataset.rh; pinta(); }
-    if (b) { m = +b.dataset.rm; pinta(); }
-    if (!q) return;
-    const accion = q.dataset.rq;
-    if (accion === 'dia') { abrirCalendario(inp, { fecha: o.fecha, mismo: true }); return; }
-    if (accion === 'ahora') { const d = new Date(); h = d.getHours(); m = redondea(d.getMinutes()); pinta(); return; }
-    const hora = `${selDos(h)}:${selDos(m)}`;
-    inp.value = accion === 'borrar' ? '' : tipo === 'fechahora' ? `${o.fecha || (inp.value || hoyISO()).slice(0, 10)}T${hora}` : hora;
-    emitir(inp); cerrarSelector(); inp.focus({ preventScroll: true });
-  });
-  $('seldlg') ? $('seldlg').appendChild(pop) : capaSelector(inp).appendChild(pop); pinta();
-};
 
 // ---------- Valor visible de mes y de fecha con hora ----------
 valorVisible = (orig => function (inp) {
@@ -26822,46 +27456,6 @@ document.addEventListener('keydown', e => {
 
 
 
-// Ver pedido · Pago: origen, referencia (editable por quien lleva la operativa) y justificantes (añadir, ver y quitar)
-async function pedidoPago(id) {
-  if (!$('dlg').open || $('pdpago')) return;
-  const [{ data }, { data: js }] = await Promise.all([RPC_ORIG('pedido_detalle', { p_id: id }),
-    db.from('pedidos_justificantes').select('id,nombre,tipo,tamano,creado_por,creado_en').eq('pedido_id', id).order('creado_en')]);
-  const p = data && data.pedido; if (!p || !$('dlg').open || $('pdpago')) return;
-  const edita = puede('administrar') || (VE_TODO() && nivelDe2('V') >= 2);
-  const acts = $('dbody').querySelector('.acts:last-of-type'); if (!acts) return;
-  const ref = $('pdops') || acts;
-  ref.insertAdjacentHTML('beforebegin', `<div class="blk" id="pdpago"><h3>Pago</h3>
-    ${p.origen === 'web' ? '<p class="sm"><span class="pill p-est">Pedido por la web</span></p>' : ''}
-    ${edita ? `<div class="g2"><div><label for="pdref">Referencia del pago</label><input id="pdref" value="${esc(p.pago_referencia || '')}" placeholder="Código de la transferencia, bizum…"></div>
-        <div style="align-self:end"><button type="button" class="btn sec" id="pdrefok">Guardar referencia</button></div></div>`
-      : `<p class="sm">Referencia: ${p.pago_referencia ? `<b>${esc(p.pago_referencia)}</b>` : 'sin referencia'}</p>`}
-    <div class="lista" id="pdjus">${(js || []).map(j => `<div class="item"><span class="tx"><b>📎 ${esc(j.nombre)}</b><span class="sm">${fechaCorta(String(j.creado_en).slice(0, 10))} · ${num(Math.round(j.tamano / 1024))} KB</span></span>
-      <button type="button" class="btn sec chico" data-jver="${j.id}">Ver</button>${j.creado_por === PERFIL.id || puede('administrar') ? `<button type="button" class="btn sec chico" data-jdel="${j.id}" aria-label="Quitar ${esc(j.nombre)}">Quitar</button>` : ''}</div>`).join('')
-      || '<div class="sm">Sin justificante.</div>'}</div>
-    <label class="btn sec chico" style="margin-top:8px;display:inline-flex">📎 Añadir justificante<input type="file" id="pdjusf" accept="image/*,application/pdf" data-fp="1" hidden></label></div>`);
-  const repinta = () => { const b = $('pdpago'); if (b) b.remove(); pedidoPago(id); };
-  if ($('pdrefok')) $('pdrefok').onclick = async ev => {
-    ev.target.disabled = true;
-    const { data: r, error } = await db.rpc('guardar_referencia_pago', { p_pedido: id, p_referencia: $('pdref').value });
-    ev.target.disabled = false;
-    toast(error || (r && r.ok === false) ? 'No se ha podido guardar la referencia' : 'Referencia guardada', !!(error || (r && r.ok === false)));
-  };
-  $('pdjusf').onchange = async e => {
-    const f = e.target.files[0]; e.target.value = ''; if (!f) return;
-    const j = await leerJustificante(f); if (!j) return;
-    const { error } = await db.from('pedidos_justificantes').insert({ pedido_id: id, nombre: j.nombre, tipo: j.tipo, tamano: j.tamano, datos: j.datos });
-    if (error) { toast('No se ha podido subir el justificante', true); return; }
-    toast('Justificante añadido'); repinta();
-  };
-  $('pdpago').querySelectorAll('[data-jver]').forEach(b => b.onclick = () => verJustificante(b.dataset.jver));
-  $('pdpago').querySelectorAll('[data-jdel]').forEach(b => b.onclick = async () => {
-    if (!await preguntar('¿Quitar este justificante del pedido?', { titulo: 'Quitar justificante', ok: 'Quitar' })) return;
-    const { error } = await db.from('pedidos_justificantes').delete().eq('id', b.dataset.jdel);
-    if (error) { toast('No se ha podido quitar', true); return; }
-    toast('Justificante quitado'); repinta();
-  });
-}
 
 
 /* v2.117.0 · Planes por usuario: Campo, Comercial, Empresa y A medida (precio por usuario y mes, IVA no incluido; con pago anual
@@ -27310,28 +27904,6 @@ colocarIndPruebas();
    - «Por hacer» de pedidos: título que dice algo, cada persona elige qué avisos ve y descarta los sueltos; la administración puede
      fijar por rol los que son obligatorios (no se ocultan ni se descartan). */
 
-// Menú «⋯» de la cita
-menuCita = function (boton, c) {
-  document.querySelectorAll('.tdmenu').forEach(m => m.remove());
-  const abierta = CITA_ABIERTA.includes(c.estado);
-  const ops = [
-    abierta ? ['hora', c.hora ? 'Cambiar la hora' : 'Fijar una hora', ''] : null,
-    abierta ? ['aplazar', 'Aplazar a otro día', 'Queda como aplazada y se crea la cita nueva'] : null,
-    abierta && c.estado === 'Planificada' ? ['confirmar', 'Marcar como confirmada', 'Ya has confirmado la cita'] : null,
-    abierta && c.estado === 'Confirmada' ? ['desconfirmar', 'Quitar la confirmación', ''] : null,
-    abierta ? ['descartar', 'Descartar la cita', 'Ya no hace falta ir'] : null,
-    abierta && c.fecha >= hoyISO() ? ['borrar', 'Eliminar la cita', 'Fue un error: desaparece de la agenda'] : null   // v2.273.0
-  ].filter(Boolean);
-  if (!ops.length) { toast('Esta cita ya está cerrada'); return; }
-  const m = document.createElement('div');
-  m.className = 'tdmenu'; m.__t = Date.now();
-  m.innerHTML = ops.map(([k, t, s]) => `<button data-tdop="${k}" class="${k === 'descartar' || k === 'borrar' ? 'peligro' : ''}"><b>${esc(t)}</b>${s ? `<span>${esc(s)}</span>` : ''}</button>`).join('');
-  document.body.appendChild(m);
-  const r = boton.getBoundingClientRect();
-  m.style.top = Math.min(window.innerHeight - m.offsetHeight - 10, r.bottom + 6) + 'px';
-  m.style.left = Math.max(10, Math.min(window.innerWidth - m.offsetWidth - 10, r.right - m.offsetWidth)) + 'px';
-  m.querySelectorAll('[data-tdop]').forEach(b => b.onclick = () => { m.remove(); accionCita(b.dataset.tdop, c); });
-};
 
 document.addEventListener('click', e => {
   if (e.target.closest('nav.main [data-t], #bnav [data-t], [data-bm]')) { IR_DESDE_MENU = true; setTimeout(() => { IR_DESDE_MENU = false; }, 0); }
@@ -27349,52 +27921,54 @@ Object.assign(ICO_NAV, { oportunidades: 'phone', compras: 'clipboard-list', prov
 (() => { const g = MENU_GRUPOS.find(x => x.id === 'ventas'); if (!g) return; ['proveedores', 'compras', 'oportunidades'].forEach(k => { if (!g.items.includes(k)) g.items.splice(g.items.indexOf('ventas') + 1, 0, k); }); })();
 setTimeout(() => { try { menuPedidos2139(); } catch (e) {} }, 0);
 
-pintarOperativa = async function () {
+async function pintarOperativa() {
   let c = $('operativa');
-  if (!c) { const ref = $('vcuerpo'); if (!ref) return; ref.insertAdjacentHTML('beforebegin', '<div class="card" id="operativa"></div>'); c = $('operativa'); }
-  const [{ data }, { data: aj }, { data: desc }] = await Promise.all([RPC_ORIG('operativa_pendiente', {}),
-    db.from('ajustes').select('valor').eq('clave', 'avisos_pedidos').maybeSingle(), RPC_ORIG('mis_alertas_descartadas', {})]);
-  if (!$('operativa')) return;
+  if (!c) { const ref = $('vcuerpo'); if (!ref) return; ref.insertAdjacentHTML('beforebegin', '<div id="operativa"></div>'); c = $('operativa'); }
+  const [{ data }, { data: aj }] = await Promise.all([RPC_ORIG('operativa_pendiente', {}),
+    db.from('ajustes').select('valor').eq('clave', 'avisos_pedidos').maybeSingle()]);
+  c = $('operativa'); if (!c) return;
+  c.className = 'pkop';
+  document.querySelectorAll('#opcfg').forEach(x => x.remove());
   const d = data || {}, oblig = (((aj && aj.valor) || {}).obligatorios || {})[PERFIL.rol] || [];
   const pref = ((PERFIL.preferencias || {}).avisos_pedidos) || {};
-  const fuera = new Set((desc || []).map(x => x.clave));
-  const vis = AVISOS_PED.filter(([k]) => oblig.includes(k) || pref[k] !== false);
-  const de = k => (d[k] || []).filter(p => oblig.includes(k) || !fuera.has(`op:${k}:${p.id}`));
-  const tot = vis.reduce((n, [k]) => n + de(k).length, 0);
-  c.innerHTML = `<div class="fh"><h2>${tot ? `${num(tot)} ${tot === 1 ? 'aviso' : 'avisos'} de pedidos` : 'Pedidos al día'}</h2>
-      <button type="button" class="btn sec" id="opcfg" aria-label="Elegir qué avisos ver" title="Elegir qué avisos ver">${svgIco(ICON_NOM.settings || '')}</button></div>
-    ${!vis.length ? '<div class="sm" style="padding:0 16px 12px">Has ocultado todos los avisos de pedidos. Vuelve a elegirlos con el engranaje.</div>'
-      : tot ? `<div class="opgrid">${vis.map(([k, t, ic]) => `<details class="opcol"><summary><b>${num(de(k).length)}</b> ${ic} ${t}</summary>
-        <div class="lista">${de(k).slice(0, 30).map(p => `<div class="item opit" style="padding:6px 8px"><button type="button" class="tx" data-opped="${p.id}"><b>${esc(p.cliente)}</b>
-          <span class="sm">${esc(p.numero || 'Sin número')} · ${fechaCorta(p.fecha)}${verImportes() ? ' · ' + eurI(p.total || 0) : ''}${p.forma_pago ? ' · ' + esc(p.forma_pago) : ''}</span></button>
-          ${oblig.includes(k) ? '' : `<button type="button" class="x opx" data-opx="${k}|${p.id}" aria-label="Quitar este aviso" title="Quitar este aviso">✕</button>`}</div>`).join('') || '<div class="sm">Nada pendiente.</div>'}</div></details>`).join('')}</div>`
-      : '<div class="vacio" style="padding:10px 16px">Nada pendiente: todo cobrado, paquetes preparados y correos enviados.</div>'}`;
-  c.querySelectorAll('[data-opped]').forEach(b => b.onclick = () => verPedido(b.dataset.opped));
-  c.querySelectorAll('[data-opx]').forEach(b => b.onclick = async () => {
-    const [k, id] = b.dataset.opx.split('|'), p = (d[k] || []).find(x => x.id === id) || {};
-    await db.rpc('descartar_alerta', { p_clave: `op:${k}:${id}`, p_dias: null, p_titulo: (AVISOS_PED.find(x => x[0] === k) || [])[1] || 'Aviso de pedido', p_detalle: `${p.cliente || ''} · ${p.numero || ''}` });
-    pintarOperativa();
+  const vis = PK_TARJ.filter(([k]) => oblig.includes(k) || pref[k] !== false);
+  const hoy = hoyISO(), dia = x => String(x.fecha || '').slice(0, 10);
+  const barras = l => { const m = {}; l.forEach(x => { m[dia(x)] = (m[dia(x)] || 0) + 1; }); return [...Array(10)].map((_, i) => m[isoMas(hoy, i - 9)] || 0); };
+  const antig = l => l.length ? Math.max(0, ...l.map(x => Math.round((new Date(hoy) - new Date(dia(x))) / 864e5))) : 0;
+  const hace = n => n === 0 ? 'de hoy' : n === 1 ? 'de ayer' : `de hace ${num(n)} días`;
+  const frase = (k, l) => {
+    if (!l.length) return k === 'pago' ? 'Todo cobrado' : k === 'paquete' ? 'Todo preparado' : 'Todas enviadas';
+    const ant = `el más antiguo, ${hace(antig(l))}`;
+    if (k === 'pago' && verImportes()) return `<b>${eurI(l.reduce((a, x) => a + (+x.total || 0), 0))}</b> por cobrar · ${ant}`;
+    return ant.charAt(0).toUpperCase() + ant.slice(1);
+  };
+  const gear = `<button type="button" class="pkcfg" id="opcfg" aria-label="Elegir qué avisos ver" title="Elegir qué avisos ver">${svgIco(ICON_NOM.settings || '')}</button>`;
+  c.innerHTML = !vis.length
+    ? `<div class="pkvacio">Has ocultado los avisos de pedidos. Vuelve a elegirlos con el engranaje. ${gear}</div>`
+    : `<div class="pk">${vis.map(([k, f, t, ic]) => {
+        const l = d[k] || [], b = barras(l), mx = Math.max(1, ...b), alta = k === 'pago' && l.length;
+        return `<button type="button" class="pkt ${alta ? 'alta' : ''}" data-pk="${f}" aria-pressed="false" ${l.length ? '' : 'data-cero'}>
+          <span class="pkfil">Filtrando</span><span class="pktt">${svgIco(ICON_NOM[ic] || ICON_NOM.info || '')} ${t}</span>
+          <span class="pkn" data-v="${l.length}">${num(l.length)}</span><span class="pks">${frase(k, l)}</span>
+          <span class="pkbars" aria-hidden="true">${b.map((n, i) => `<i class="${i === 9 ? 'u' : pkLibre(isoMas(hoy, i - 9)) ? 'fin' : ''}" style="height:${n ? Math.max(14, 100 * n / mx) : 6}%"></i>`).join('')}</span>
+          <span class="pkdias">${b.map((n, i) => pkDia(isoMas(hoy, i - 9), n, i === 9)).join('')}</span>
+          <span class="pklg">Entrada de los últimos 10 días</span></button>`; }).join('')}${gear}</div>`;
+  c.querySelectorAll('[data-pk]').forEach(b => b.onclick = () => {
+    const s = $('popf'); if (!s) return;
+    s.value = s.value === b.dataset.pk ? '' : b.dataset.pk; s.dispatchEvent(new Event('change', { bubbles: true }));
+    pkMarcar();
   });
+  // El engranaje, junto a «Filtros y columnas» de la cabecera (si está a la vista)
+  const hb = document.querySelector('#v-ventas .htbtn'), g = $('opcfg');
+  if (hb && hb.offsetParent && g && vis.length) { g.className = 'btn sec pkcfg pkcfgcab'; hb.insertAdjacentElement('beforebegin', g); }
   $('opcfg').onclick = () => configurarAvisosPedidos(oblig);
-};
+  pkMarcar();
+  pkContar([...c.querySelectorAll('.pkn[data-v]')], n => num(Math.round(n)));
+}
 /* v2.140.0 · «Filtros y columnas» en la cabecera de cada pantalla, en la misma fila que la acción principal («+ Nueva venta»,
    «+ Nuevo producto»…), a su derecha (decisión de Eric, 3/10/2026: misma posición en todas las
    pantallas). Va el último por la derecha, para caer siempre en el mismo sitio aunque cambie la acción principal o no la haya. Antes iba en la barra de la tabla
    (v2.57.0) y en cada pantalla caía en un sitio distinto. */
-ordenarBotones = function (sec) {
-  // Cabecera: secundarios → acción principal → «Filtros y columnas» (el último: el mismo sitio en todas las pantallas)
-  sec.querySelectorAll('.saludo .acts, #dircab .acts').forEach(acts => {
-    const bs = [...acts.children].filter(b => b.matches('button, a.btn, select'));
-    const vista = b => b.dataset && b.dataset.ag && b.dataset.ag !== 'nueva';
-    const peso = b => (b.classList.contains('htbtn') || b.id === 'dirtools') ? 4
-      : (b.matches('.btn:not(.sec)') && !b.classList.contains('icobtn') && !b.classList.contains('iniact') && !vista(b)) ? 3 : b.matches('select') ? 0 : 1;
-    const orden = [...bs].sort((a, c) => peso(a) - peso(c));
-    if (orden.some((b, i) => b !== bs[i])) orden.forEach(b => acts.appendChild(b));
-    const dt = acts.querySelector(':scope > #dirtools'), h = acts.querySelector(':scope > .ai-hueco');
-    if (dt && h && h.nextElementSibling !== dt) acts.insertBefore(h, dt);
-    acts.querySelectorAll(':scope > .ai-dir').forEach(x => x.remove());
-  });
-};
 const BARRA_TABLA_V257 = barraTabla;
 barraTabla = function (sec) {
   // v2.142.0: también en el móvil (antes quedaba una fila casi vacía solo para el botón en Compras, Proveedores, Productos…)
@@ -27436,118 +28010,6 @@ Object.assign(ICON_NOM, {
   'grip-vertical': '<circle cx="9" cy="5" r="1" /> <circle cx="9" cy="12" r="1" /> <circle cx="9" cy="19" r="1" /> <circle cx="15" cy="5" r="1" /> <circle cx="15" cy="12" r="1" /> <circle cx="15" cy="19" r="1" />',
   'rotate-ccw': '<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /> <path d="M3 3v5h5" />'
 });
-menuPersonalizar = function () {
-  let caja = $('mlpanel'); if (caja) { if (caja.__cerrar) caja.__cerrar(); else caja.remove(); return; }
-  const prefs0 = PERFIL.preferencias, p = menuPrefs();
-  const estado = { orden: menuGrupos().filter(g => g.id !== 'otros').map(g => g.id), items: {}, ocultos: [...(p.ocultos || [])] };
-  menuGrupos().forEach(g => { estado.items[g.id] = [...g.items]; });
-  const boton = k => document.querySelector(`#nav button[data-t="${k}"]`);
-  const nombre = k => { const b = boton(k); return b ? (b.dataset.tip || (b.querySelector('.mllab') || b).textContent.trim()) : ''; };
-  const icono = k => { const b = boton(k), s = b && b.querySelector('svg'); return s ? s.outerHTML : ''; };
-  const disponible = k => { const b = boton(k); return !!b && k !== 'seguimiento' && k !== 'inicio' && !b.classList.contains('hide') && (b.classList.contains('mloculto') || getComputedStyle(b).display !== 'none'); };
-  const tit = id => (MENU_GRUPOS.find(x => x.id === id) || { t: 'Otros' }).t;
-  const bloques = () => estado.orden.filter(id => (estado.items[id] || []).some(disponible));
-  // Vista previa: el menú se monta con lo que hay en el panel; al cerrar sin guardar vuelve a lo guardado
-  const previa = () => {
-    PERFIL.preferencias = Object.assign({}, prefs0 || {}, { menu: Object.assign({}, ((prefs0 || {}).menu) || {}, { orden: [...estado.orden], items: JSON.parse(JSON.stringify(estado.items)), ocultos: [...estado.ocultos] }) });
-    MENU_FIRMA = ''; montarMenuLateral();
-  };
-  let guardado = false;
-  const fuera = ev => { if (!ev.target.closest('#mlpanel, #mlpers')) cerrar(); };
-  const tecla = ev => { if (ev.key === 'Escape') { ev.preventDefault(); ev.stopPropagation(); cerrar(); } };
-  const cerrar = () => {
-    const c = $('mlpanel'); if (!c) return;
-    c.remove(); document.removeEventListener('click', fuera, true); document.removeEventListener('keydown', tecla, true);
-    if (!guardado) { PERFIL.preferencias = prefs0; MENU_FIRMA = ''; montarMenuLateral(); }
-    const b = $('mlpers'); if (b) b.focus();
-  };
-  document.body.insertAdjacentHTML('beforeend', '<div id="mlpanel" class="mlp2" role="dialog" aria-label="Personalizar menú"></div>');
-  caja = $('mlpanel'); caja.__cerrar = cerrar;
-  const asa = (txt, attrs) => `<button type="button" class="mlpasa" ${attrs} aria-label="Mover ${esc(txt)} (flechas arriba y abajo)" title="Arrastra para ordenar">${svgIco(ICON_NOM['grip-vertical'])}</button>`;
-  const pinta = foco => {
-    caja.innerHTML = `<div class="mlph"><div><b>Personalizar menú</b><span class="sm">Arrastra para ordenar y elige qué secciones ves. Solo cambia tu menú.</span></div>
-        <button type="button" class="x" id="mlpx" aria-label="Cerrar">✕</button></div>
-      ${boton('inicio') ? `<div class="mlpi mlpfijo"><span class="mlpico">${icono('inicio')}</span><span class="mlpn">${esc(nombre('inicio'))}</span><span class="sm">Siempre el primero</span></div>` : ''}
-      <div class="mlpl">${bloques().map(id => {
-        const its = estado.items[id].filter(disponible), vis = its.filter(k => !estado.ocultos.includes(k)).length;
-        return `<section class="mlpg" data-g="${id}">
-          <div class="mlpgh">${asa('el bloque ' + tit(id), `data-ag="${id}"`)}<b>${esc(tit(id))}</b><span class="mlpcnt">${vis} de ${its.length}</span></div>
-          <div class="mlpis">${its.map(k => { const on = !estado.ocultos.includes(k);
-            return `<div class="mlpi${on ? '' : ' off'}" data-k="${k}" data-g="${id}">${asa(nombre(k), `data-ak="${k}" data-g="${id}"`)}
-              <span class="mlpico">${icono(k)}</span><span class="mlpn">${esc(nombre(k))}</span>
-              <label class="vfswitch mini"><input type="checkbox" role="switch" data-vk="${k}" ${on ? 'checked' : ''} aria-label="Ver ${esc(nombre(k))} en el menú"><span class="sw"></span></label></div>`; }).join('')}</div></section>`; }).join('')}</div>
-      <div class="mlpacts"><button type="button" class="btn sec mlpdef" id="mlpdef">${svgIco(ICON_NOM['rotate-ccw'])} Restablecer</button><button type="button" class="btn" id="mlpok">Guardar</button></div>`;
-    if (foco) { const f = caja.querySelector(foco); if (f) f.focus(); }
-  };
-  // Mover un bloque entre bloques, o una sección dentro de su bloque
-  const moverBloque = (id, destino, antes) => {
-    if (id === destino) return; const o = estado.orden.filter(x => x !== id), i = o.indexOf(destino); o.splice(antes ? i : i + 1, 0, id); estado.orden = o;
-  };
-  const moverItem = (g, k, destino, antes) => {
-    if (k === destino) return; const l = estado.items[g].filter(x => x !== k), i = l.indexOf(destino); l.splice(antes ? i : i + 1, 0, k); estado.items[g] = l;
-  };
-  pinta(); previa();
-  caja.addEventListener('click', async e => {
-    if (e.target.closest('#mlpx')) { cerrar(); return; }
-    if (e.target.closest('#mlpdef')) { estado.orden = MENU_GRUPOS.map(x => x.id); MENU_GRUPOS.forEach(x => { estado.items[x.id] = [...x.items]; }); estado.ocultos = []; pinta(); previa(); return; }
-    const ok = e.target.closest('#mlpok');
-    if (ok) {
-      const prefs = Object.assign({}, prefs0 || {}, { menu: Object.assign({}, ((prefs0 || {}).menu) || {}, { orden: estado.orden, items: estado.items, ocultos: estado.ocultos }) });   // v2.336.0: conserva la barra del móvil
-      ok.disabled = true;
-      const { data, error } = await db.rpc('guardar_preferencias', { p: prefs });
-      ok.disabled = false;
-      if (error) { toast('No se ha podido guardar el menú', true); return; }
-      PERFIL.preferencias = data || prefs; guardado = true; cerrar(); MENU_FIRMA = ''; montarMenuLateral(); toast('Menú guardado');
-    }
-  });
-  caja.addEventListener('change', e => {
-    const v = e.target.closest('[data-vk]'); if (!v) return; const k = v.dataset.vk;
-    estado.ocultos = v.checked ? estado.ocultos.filter(x => x !== k) : [...new Set([...estado.ocultos, k])];
-    const fila = v.closest('.mlpi'); fila.classList.toggle('off', !v.checked);
-    const g = fila.closest('.mlpg'), its = estado.items[g.dataset.g].filter(disponible);
-    g.querySelector('.mlpcnt').textContent = `${its.filter(x => !estado.ocultos.includes(x)).length} de ${its.length}`;
-    previa();
-  });
-  // Teclado: con el foco en un asa, ↑ ↓ mueven
-  caja.addEventListener('keydown', e => {
-    const a = e.target.closest('.mlpasa'); if (!a || (e.key !== 'ArrowUp' && e.key !== 'ArrowDown')) return;
-    e.preventDefault(); const d = e.key === 'ArrowUp' ? -1 : 1;
-    if (a.dataset.ag) { const bs = bloques(), i = bs.indexOf(a.dataset.ag), o = bs[i + d]; if (!o) return; moverBloque(a.dataset.ag, o, d < 0); pinta(`[data-ag="${a.dataset.ag}"]`); }
-    else { const g = a.dataset.g, its = estado.items[g].filter(disponible), i = its.indexOf(a.dataset.ak), o = its[i + d]; if (!o) return; moverItem(g, a.dataset.ak, o, d < 0); pinta(`[data-ak="${a.dataset.ak}"]`); }
-    previa();
-  });
-  // Arrastrar y soltar, solo desde el asa: al pulsarla, su fila (o su bloque) pasa a ser arrastrable
-  let arr = null;
-  caja.addEventListener('pointerdown', e => {
-    caja.querySelectorAll('[draggable="true"]').forEach(x => x.removeAttribute('draggable'));
-    const a = e.target.closest('.mlpasa'); if (!a) return;
-    const el = a.dataset.ag ? a.closest('.mlpg') : a.closest('.mlpi'); if (el) el.setAttribute('draggable', 'true');
-  });
-  caja.addEventListener('dragstart', e => {
-    const el = e.target.closest('[draggable="true"]'); if (!el) { e.preventDefault(); return; }
-    arr = el.classList.contains('mlpi') ? { tipo: 'i', k: el.dataset.k, g: el.dataset.g, el } : { tipo: 'g', g: el.dataset.g, el };
-    e.dataTransfer.effectAllowed = 'move'; try { e.dataTransfer.setData('text/plain', arr.k || arr.g); } catch (er) {}
-    requestAnimationFrame(() => { if (arr) arr.el.classList.add('arrastrando'); });
-  });
-  const limpiar = () => caja.querySelectorAll('.soltar-antes, .soltar-despues').forEach(x => x.classList.remove('soltar-antes', 'soltar-despues'));
-  caja.addEventListener('dragover', e => {
-    if (!arr) return;
-    const dest = arr.tipo === 'i' ? e.target.closest(`.mlpi[data-g="${arr.g}"]`) : e.target.closest('.mlpg');
-    limpiar(); if (!dest || dest === arr.el) return;
-    e.preventDefault(); const r = dest.getBoundingClientRect();
-    dest.classList.add(e.clientY < r.top + r.height / 2 ? 'soltar-antes' : 'soltar-despues');
-  });
-  caja.addEventListener('drop', e => {
-    if (!arr) return; e.preventDefault();
-    const dest = caja.querySelector('.soltar-antes, .soltar-despues'); if (!dest) return;
-    const antes = dest.classList.contains('soltar-antes');
-    if (arr.tipo === 'i') moverItem(arr.g, arr.k, dest.dataset.k, antes); else moverBloque(arr.g, dest.dataset.g, antes);
-    arr = null; pinta(); previa();
-  });
-  caja.addEventListener('dragend', () => { arr = null; limpiar(); caja.querySelectorAll('.arrastrando').forEach(x => x.classList.remove('arrastrando')); });
-  setTimeout(() => { document.addEventListener('click', fuera, true); document.addEventListener('keydown', tecla, true); }, 0);
-  const f = caja.querySelector('.mlpasa'); if (f) f.focus();
-};
 
 
 ir = (orig => function (t, ...a) {
@@ -27579,24 +28041,6 @@ new MutationObserver(() => {
 
 
 
-cargarRutasBase = async function () {
-  const v = $('v-rutas');
-  const [{ data: rutas }] = await Promise.all([db.rpc('rutas_visibles'), (async () => {
-    const obj = rpObjetivo(RPROP ? RPROP.manana : undefined);
-    const { data } = await db.rpc('rutas_candidatos', { p_fecha: obj.fecha });
-    RPROP = Object.assign(obj, { datos: data || {}, lista: rpArmar((data || {}).candidatos || [], obj) });
-  })()]);
-  RUTAS = rutas || [];
-  v.innerHTML = `
-    <div class="saludo"><div><h1>Rutas</h1><div class="fecha">Crea, edita y planifica tus rutas</div></div>
-      <div class="acts" style="margin:0"><button class="btn" id="rnueva">+ Nueva ruta</button></div></div>
-    <div class="rgrid2"><div class="card rprops" id="rprops"></div><div class="card rmis" id="rmis"></div></div>
-    <div id="rcuerpo" hidden></div>
-    <div id="rplan"></div>`;
-  $('rnueva').onclick = () => editorRuta(null);
-  rpPintar(); rpMisRutas();
-  if (PLAN) pintarPlan();
-};
 
 
 
@@ -27611,30 +28055,6 @@ document.addEventListener('pointerdown', e => { if (!e.target.closest('.ankpop, 
 
 
 
-pintarResumenAnalitica = async function () {
-  const cuerpo = $('anres'); if (!cuerpo) return;
-  if (!COMS.length && VE_TODO()) await cargarComerciales();
-  AN_CFG = anConfig();
-  document.querySelectorAll('#v-analitica .htpropios [data-anp="resumen"]').forEach(x => x.remove());   // los de un pintado anterior
-  cuerpo.innerHTML = `<div class="filtros" id="anfil"><div id="anper" data-anp="resumen"></div>
-      <div data-anp="resumen"><label for="ancomp">Comparar con</label><select id="ancomp">
-        <option value="anterior" ${AN_CFG.comp === 'anterior' ? 'selected' : ''}>El periodo anterior</option>
-        <option value="anio" ${AN_CFG.comp === 'anio' ? 'selected' : ''}>El mismo periodo del año pasado</option></select></div>
-      ${VE_TODO() ? `<div data-anp="resumen"><label for="anrep">Reporte</label><select id="anrep"><option value="">Todos</option><option value="si" ${AN_REP === 'si' ? 'selected' : ''}>Reportados</option><option value="no" ${AN_REP === 'no' ? 'selected' : ''}>Sin reportar</option></select></div>` : ''}</div>
-    <p class="sm anresumen" id="anresumen"></p>
-    <div id="ankpis" hidden></div>
-    <div id="anareas"><div class="ankgrid">${Array.from({ length: 4 }, () => '<div class="ankpi"><div class="skel" style="width:60%"></div><div class="skel" style="width:40%;height:24px"></div></div>').join('')}</div></div>
-    <div class="angrid" id="angraf"></div>`;
-  const pinta = () => {
-    const r = $('anper').__rango(), hasta = r.hasta || hoyISO(), desde = r.desde || isoMas(hasta, -364);
-    anCargarKpis(); anGraficos(desde, hasta);
-  };
-  montarPeriodo($('anper'), { id: 'analitica-resumen', valor: 'anio', alCambiar: pinta });
-  $('ancomp').onchange = async () => { AN_CFG.comp = $('ancomp').value; await anGuardar(AN_CFG); anCargarKpis(); };
-  if ($('anrep')) $('anrep').onchange = () => { AN_REP = $('anrep').value; anCargarKpis(); };   // v2.329.0
-  pinta();
-  anMoverFiltros();
-};
 
 // En «Filtros y columnas» van los del Resumen o los de Explorar según la pestaña
 Object.defineProperty(HT_FILTROS, 'analitica', { configurable: true, enumerable: true,
@@ -27655,12 +28075,6 @@ let NOTIF_LISTA = [], NOTIF_FILTRO = '';
 
 
 
-// v2.242.0: aquí iba la primera versión de notifPintar (se redefine entera más abajo)
-panelNotificaciones = function (l) {
-  NOTIF_LISTA = l || [];
-  notifPintar();
-  if (!$('dlg').open) $('dlg').showModal();
-};
 
 pintarNotif = function () {
   const tipos = tiposDeMiRol(), s = (PERFIL.preferencias || {}).notif_silencio || {};
@@ -27883,16 +28297,6 @@ abrirMasMovil = (orig => function (...a) {
   document.querySelectorAll('.bmasgrid [data-bm].bloq').forEach(b => b.remove());
   return r;
 })(abrirMasMovil);
-menuPersonalizar = (orig => function (...a) {
-  const r = orig.apply(this, a);
-  const caja = $('mlpanel');
-  if (caja && !caja.__candados) {
-    caja.__candados = true; personalizarCandados();
-    new MutationObserver(() => personalizarCandados()).observe(caja, { childList: true });
-    caja.addEventListener('change', () => personalizarCandados());
-  }
-  return r;
-})(menuPersonalizar);
 
 (() => {
   const d = Object.getOwnPropertyDescriptor(PAGINAS.organizacion, 'tabs'); if (!d || !d.get) return;
@@ -27903,52 +28307,6 @@ menuPersonalizar = (orig => function (...a) {
 })();
 
 
-// Ventana de contratar o cambiar (la de la v2.162.0, con la bajada al final del periodo y lo que se pierde)
-elegirPago = function (planIni) {
-  const pl = PLAN_ACTUAL || {}, conSus = !!pl.stripe_suscripcion, usados = +((PAGO_ESTADO || {}).usuarios || 0);
-  if (pl.plan === 'medida') { toast('Con el plan A medida, los cambios se hacen con delcos'); return; }
-  const est = { plan: PAGO_PLANES.includes(planIni) ? planIni : (PAGO_PLANES.includes(pl.plan) ? pl.plan : 'comercial'),
-    pago: pl.pago === 'anual' ? 'anual' : 'mensual', usuarios: Math.max(3, usados, +pl.usuarios || 0) };
-  const actual = { plan: pl.plan, pago: pl.pago === 'anual' ? 'anual' : 'mensual', usuarios: +pl.usuarios || 0 };
-  const pinta = () => {
-    const p = planDe(est.plan), anual = est.pago === 'anual';
-    const base = anual ? p.precio * 10 * est.usuarios : p.precio * est.usuarios;
-    const puesta = !anual && !conSus ? PUESTA_EN_MARCHA : 0;
-    const iva = Math.round((base + puesta) * 21) / 100;
-    const baja = conSus && esBajada(actual, est), fin = pl.periodo_fin ? fechaCorta(pl.periodo_fin) : 'el final del periodo pagado';
-    const pierde = conSus ? perdidasPlan(pl.plan, est.plan, Object.assign({}, PAGO_ESTADO || {}, { extras: pl.extras })) : [];
-    $('dbody').innerHTML = `<div class="fh"><div><h2>${conSus ? 'Cambiar la suscripción' : 'Contratar delcos'}</h2>
-        <div class="sm">Precios por usuario, IVA no incluido. ${!conSus ? 'El pago se hace en la página segura de Stripe.' : baja ? '' : 'El cambio se aplica ya y se prorratea en el próximo recibo.'}</div></div>
-        <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-      <label>Plan</label><div class="segs pgplan" role="group">${PAGO_PLANES.map(k => `<button type="button" data-pgp="${k}" class="${est.plan === k ? 'on' : ''}" aria-pressed="${est.plan === k}">${esc(planDe(k).nombre)} · ${eurI(planDe(k).precio)}</button>`).join('')}</div>
-      <label style="margin-top:12px">Pago</label><div class="segs" role="group">
-        <button type="button" data-pga="mensual" class="${anual ? '' : 'on'}" aria-pressed="${!anual}">Mensual</button>
-        <button type="button" data-pga="anual" class="${anual ? 'on' : ''}" aria-pressed="${anual}">Anual · pagas 10 meses de 12</button></div>
-      <label for="pgusu" style="margin-top:12px">Usuarios</label><input id="pgusu" type="number" min="${Math.max(3, usados)}" value="${est.usuarios}" class="numw">
-      <span class="sm">${usados ? `Ahora usáis ${num(usados)}. ` : ''}Mínimo ${Math.max(3, usados)}.</span>
-      ${baja ? `<div class="banda-aviso" id="pgbaja">El cambio se aplicará el <b>${esc(fin)}</b>, al acabar lo que ya has pagado. Hasta entonces sigues con
-        ${esc(planDe(pl.plan).nombre)}${pierde.length ? ` y después dejarás de tener:<ul id="pgpierde">${pierde.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : '.'}</div>` : ''}
-      <div class="pgres">
-        <div><span>${num(est.usuarios)} × ${eurI(anual ? p.precio * 10 : p.precio)} ${anual ? 'al año' : 'al mes'}</span><b>${eurI(base)}</b></div>
-        ${puesta ? `<div><span>Puesta en marcha (una vez; incluida con pago anual)</span><b>${eurI(puesta)}</b></div>` : ''}
-        <div><span>IVA 21 %</span><b>${eurI(iva)}</b></div>
-        <div class="pgtot"><span>${!conSus ? 'Primer cobro' : baja ? 'Importe desde el ' + esc(fin) : 'Nuevo importe'}</span><b>${eurI(base + puesta + iva)}</b></div></div>
-      <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>Cancelar</button>
-        <button class="btn" id="pgok">${!conSus ? 'Ir al pago seguro' : baja ? 'Programar el cambio' : 'Confirmar el cambio'}</button></div>`;
-    $('dbody').querySelectorAll('[data-pgp]').forEach(b => b.onclick = () => { est.plan = b.dataset.pgp; pinta(); });
-    $('dbody').querySelectorAll('[data-pga]').forEach(b => b.onclick = () => { est.pago = b.dataset.pga; pinta(); });
-    $('pgusu').onchange = () => { est.usuarios = Math.max(3, usados, Math.floor(+$('pgusu').value || 0)); pinta(); };
-    $('pgok').onclick = async ev => {
-      const d = await pagoLlamar({ accion: conSus ? 'cambiar' : 'checkout', plan: est.plan, pago: est.pago, usuarios: est.usuarios }, ev.target);
-      if (!d) return;
-      if (d.url) { location.href = d.url; return; }
-      $('dlg').close();
-      if (d.previsto) { toast(`Cambio programado para el ${fechaCorta(d.previsto)}`); await pagoCargarEstado(); if (TAB === 'plan' || TAB === 'organizacion' || TAB === 'config') ir(TAB); return; }
-      toast('Cambio hecho: en unos segundos verás el plan nuevo'); pagoEsperarActivo();
-    };
-  };
-  pinta(); $('dlg').showModal();
-};
 
 // «Plan y suscripción»: cambio previsto (con «Anular el cambio»), baja pedida y compromiso de A medida
 pintarPaginaPlan = (orig => async function (...a) {
@@ -28169,13 +28527,6 @@ PANEL_SECCIONES.splice(5, 0, ['pd-estado', 'estado', 'Estado de la plataforma', 
 
 
 
-entrarEnOrganizacion = async function (o) {
-  if (!await preguntar(`Vas a ver la plataforma como ${o.nombre}: sus datos, su configuración y su plan. Lo que cambies se guarda en su empresa y queda registrado. Para volver, «Salir» en la franja de arriba.`, { titulo: 'Entrar en ' + o.nombre, ok: 'Entrar' })) return;
-  const { data: r } = await db.rpc('entrar_organizacion', { p_org: o.id });
-  if (!r || !r.ok) { toast(r && r.motivo === 'permiso' ? 'Solo el Administrador de delcos puede entrar' : 'No se ha podido entrar', true); return; }
-  prepararCambioOrg(o.nombre);
-  location.reload();
-};
 document.addEventListener('click', ev => { if (ev.target.closest('#orgvistasal')) prepararCambioOrg('Panel delcos'); }, true);
 (function terminarCambioOrg() {
   let destino = null; try { destino = sessionStorage.getItem('dlc-cambio-org'); } catch (e) {}
@@ -28213,7 +28564,7 @@ db.functions.invoke = (orig => async function (fn, op, ...a) {
 // (v2.183.0: aquí iba la primera versión de pintarProximoRecibo; se redefine entera más abajo)
 pintarPaginaPlan = (orig => async function (...a) { const r = await orig.apply(this, a); try { pintarProximoRecibo(); } catch (e) {} return r; })(pintarPaginaPlan);
 
-pintarProximoRecibo = function () {
+function pintarProximoReciboBase() {
   const c = $('cfgcuerpo'), pl = PLAN_ACTUAL || {}, h = c && c.querySelector('#planact h2');
   if (!h) return;
   // La cuota del plan, también con IVA
@@ -28240,7 +28591,7 @@ pintarProximoRecibo = function () {
   el.dataset.origen = s && s.total != null ? 'stripe' : 'calculo';
   // La fecha ya la dice el aviso: fuera la línea suelta «Próximo recibo el …»
   c.querySelectorAll('#planact > p.sm').forEach(p => { if (/^Próximo recibo el /.test(p.textContent.trim())) p.remove(); });
-};
+}
 
 /* v2.174.0 · Agenda (avisos de Eric, gestionando el lunes desde el domingo):
    - «Añadir a mi agenda» de la ficha propone el día que se está viendo en la Agenda (antes, siempre hoy) y la cita aparece al momento (antes solo
@@ -28292,7 +28643,7 @@ function explicarAvisoBase(inf) {
 
 /* v2.175.0 · Con pago anual, la tarjeta de la cuota enseña lo que se cobra (repaso de Web delcos): «2950 € · Al año, sin IVA · 3569,50 € con IVA»,
    igual que el aviso del recibo (antes, el equivalente mensual). */
-pintarProximoRecibo = (orig => function (...a) {
+function pintarProximoRecibo(...a) {
   const c = $('cfgcuerpo'), pl = PLAN_ACTUAL || {};
   if (c && pl.pago === 'anual' && pl.plan !== 'medida') c.querySelectorAll('#planact .kpi').forEach(k => {
     const sp = k.querySelector(':scope > span'), b = k.querySelector(':scope > b');
@@ -28302,8 +28653,8 @@ pintarProximoRecibo = (orig => function (...a) {
     const iv = k.querySelector('.kpiiva'); if (iv) iv.remove();
     k.insertAdjacentHTML('beforeend', `<span class="sm kpiiva">${eurW(base + ivaDe(base))} con IVA</span>`);
   });
-  return orig.apply(this, a);
-})(pintarProximoRecibo);
+  return pintarProximoReciboBase.apply(this, a);
+}
 
 /* v2.175.0 · Avisos de «Tu día» que ayudan (aviso de Eric: «Llegarías hacia las 06:26 y la cita es a las 10:30» preparando el lunes). Si con el orden
    actual el día no cabe en la jornada (acaba después de la hora de vuelta o, sin ella, de las 21:00), un solo aviso arriba dice qué hacer («Ordenar
@@ -28484,48 +28835,11 @@ window.addEventListener('click', e => {
     .observe(caja, { childList: true, subtree: true });
 })();
 
-geocodificar = async function (q, o = {}) {
-  const base = 'https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=5&countrycodes=es&';
-  const pide = async qs => { try { const r = await fetch(base + qs); return r.ok ? await r.json() : []; } catch (e) { return []; } };
-  const muni = normGeo(o.municipio);
-  const lugar = x => { const a = (x && x.address) || {}; return a.city || a.town || a.village || a.municipality || a.suburb || a.county || ''; };
-  const cuadra = x => {
-    if (!muni) return true;
-    const a = (x && x.address) || {};
-    return [a.city, a.town, a.village, a.municipality, a.city_district, a.county].some(c => { const n = normGeo(c); return n && (n === muni || n.includes(muni) || muni.includes(n)); });
-  };
-  let l = await pide('q=' + encodeURIComponent(q));
-  let r = l.find(cuadra);
-  if (!r && muni && o.direccion) {
-    const l2 = await pide(`street=${encodeURIComponent(o.direccion)}&city=${encodeURIComponent(o.municipio)}${o.cp ? '&postalcode=' + encodeURIComponent(o.cp) : ''}`);
-    r = l2.find(cuadra); if (!l.length) l = l2;
-  }
-  if (r) return r;
-  if (muni && l.length) return Object.assign({}, l[0], { fuera: lugar(l[0]) || 'otro sitio' });
-  return l[0] || null;
-};
 
 
 document.addEventListener('visibilitychange', () => { if (!document.hidden) comprobarVersion(); });
 setInterval(comprobarVersion, 10 * 60 * 1000);
 
-/* v2.185.0 · Citas aplazadas sin duplicar y fechas en el móvil (avisos de Eric):
-   1. Una cita aplazada o descartada de hoy en adelante tiene en «⋯» (y en su detalle) «Volver a planificarla» (reabrir_cita, SQL 116: vuelve a
-      Planificada y quita la cita que se creó al aplazarla). Volver a poner una cita ese día reutiliza la aplazada (aplazar_cita y guardar_cita).
-   2. En pantallas táctiles los campos de fecha y hora son `inert`: no pueden tomar el foco, así que iOS ya no abre su rueda (lo hacía cuando la
-      ventana enfocaba el campo al abrirse y cuando el calendario de delcos le devolvía el foco al elegir el día). El toque lo recoge el envoltorio. */
-menuCita = (orig => function (boton, c) {
-  if (CITA_ABIERTA.includes(c.estado) || !['Aplazada', 'Descartada'].includes(c.estado) || c.fecha < hoyISO()) return orig.call(this, boton, c);
-  document.querySelectorAll('.tdmenu').forEach(m => m.remove());
-  const m = document.createElement('div');
-  m.className = 'tdmenu'; m.__t = Date.now();
-  m.innerHTML = `<button data-tdop="rehacer"><b>Volver a planificarla</b><span>Vuelve a este día${c.estado === 'Aplazada' ? '; si la pasaste a otro, esa se quita' : ''}</span></button>`;
-  document.body.appendChild(m);
-  const r = boton.getBoundingClientRect();
-  m.style.top = Math.min(window.innerHeight - m.offsetHeight - 10, r.bottom + 6) + 'px';
-  m.style.left = Math.max(10, Math.min(window.innerWidth - m.offsetWidth - 10, r.right - m.offsetWidth)) + 'px';
-  m.querySelector('[data-tdop]').onclick = () => { m.remove(); accionCita('rehacer', c); };
-})(menuCita);
 
 // Fechas y horas en pantallas táctiles: sin foco, sin selector del sistema
 const PANTALLA_TACTIL = !!(window.matchMedia && matchMedia('(pointer: coarse)').matches);
@@ -28554,31 +28868,6 @@ async function repintarDiaSuaveBase(id, data) {
   window.scrollTo({ top: y });
 }
 
-// Cambiar la hora: la cita se coloca por su hora entre las demás (y se guarda ese orden)
-cambiarHoraCita = async function (id, hora) {
-  const h = await appVentana({ titulo: 'Hora de la cita', ok: 'Guardar', campo: { valor: hora || '', tipo: 'time' } });
-  if (h === null) return;
-  const { error } = await db.from('agenda').update({ hora: h || null }).eq('id', id);
-  if (error) { toast('No se ha podido: ' + error.message, true); return; }
-  toast('Hora actualizada');
-  const u = TD_ULTIMO && TD_ULTIMO.fecha === AG_FECHA ? TD_ULTIMO.data : null;
-  if (TAB !== 'agenda' || !agUnida() || !u || !u.some(c => c.id === id)) { agRefrescoQuieto(id, { cifras: false }); return; }
-  const data = u.map(c => c.id === id ? Object.assign({}, c, { hora: h || null }) : c);
-  const mia = c => c.usuario_id === agUid(), abierta = c => mia(c) && CITA_ABIERTA.includes(c.estado);
-  const ab = data.filter(abierta), yo = ab.find(c => c.id === id);
-  let orden = ab;
-  if (yo && h) {
-    const hh = c => c.hora ? String(c.hora).slice(0, 5) : null;
-    const resto = ab.filter(c => c.id !== id);
-    let i = resto.findIndex(c => hh(c) && hh(c) > h);
-    if (i < 0) { i = 0; resto.forEach((c, k) => { if (hh(c) && hh(c) <= h) i = k + 1; }); }
-    resto.splice(i, 0, yo); orden = resto;
-  }
-  const cambia = orden.some((c, k) => c.id !== ab[k].id);
-  const nueva = cambia ? [...data.filter(c => mia(c) && !abierta(c)), ...orden, ...data.filter(c => !mia(c))] : data;
-  await repintarDiaSuave(id, nueva);
-  if (cambia && !(await guardarOrden(orden))) agRefrescoQuieto(id);
-};
 
 
 
@@ -28827,14 +29116,6 @@ ir = (orig => function (...a) {
   return r;
 })(ir);
 
-abrirManual = function (ancla) {
-  guardarVocabManual();
-  MANUAL_DESTINO = ancla || '';
-  window.MANUAL_ULTIMA = 'manual/index.html' + (ancla ? '#' + ancla : '');
-  const f = $('manlibro');
-  if (TAB === 'manual' && f) { try { f.contentWindow.location.hash = ancla || 'portada'; } catch (e) {} return; }
-  ir('manual');
-};
 ponerAyudaManual = (orig => function () { if (TAB === 'manual') return; return orig.apply(this, arguments); })(ponerAyudaManual);
 
 pintarSinAtribuir = (orig => async function (...a) {
@@ -29295,22 +29576,6 @@ document.addEventListener('click', e => {
   buscar(true); cabeceraTabla();
 });
 
-htAplicarFiltros = function (g) {
-  const st = HT_ESTADO[htTipo(g)] || { texto: '', facetas: {} };
-  const t = htNorm(st.texto || ''), fac = Object.entries(st.facetas || {}).filter(([, v]) => v), ran = Object.entries(st.rangos || {}).filter(([, r]) => r.d || r.h);
-  g.querySelectorAll(':scope > .dr').forEach(f => {
-    const celdas = [...f.children];
-    const ok = (!t || htNorm(f.textContent).includes(t))
-      && fac.every(([i, v]) => celdas[i] && htNorm(celdas[i].textContent).includes(htNorm(v)))
-      && ran.every(([i, r]) => {
-        const v = htValor(celdas[i] && celdas[i].textContent), x = r.k === 'fecha' ? v.f : v.n;
-        if (x == null) return false;
-        const d = r.k === 'fecha' ? r.d : (r.d === '' || r.d == null ? null : +r.d), h = r.k === 'fecha' ? r.h : (r.h === '' || r.h == null ? null : +r.h);
-        return (d == null || d === '' || x >= d) && (h == null || h === '' || x <= h);
-      });
-    f.classList.toggle('htfuera', !ok);
-  });
-};
 
 const MOS_MES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'], MOS_DS = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
 cargarInicio = (orig => function (...a) {
@@ -29322,50 +29587,6 @@ cargarInicio = (orig => function (...a) {
 // Sugerencias dentro de tu día y bandejas
 
 document.addEventListener('change', e => { if (e.target && e.target.id === 'popf') pkMarcar(); });
-pintarOperativa = async function () {
-  let c = $('operativa');
-  if (!c) { const ref = $('vcuerpo'); if (!ref) return; ref.insertAdjacentHTML('beforebegin', '<div id="operativa"></div>'); c = $('operativa'); }
-  const [{ data }, { data: aj }] = await Promise.all([RPC_ORIG('operativa_pendiente', {}),
-    db.from('ajustes').select('valor').eq('clave', 'avisos_pedidos').maybeSingle()]);
-  c = $('operativa'); if (!c) return;
-  c.className = 'pkop';
-  document.querySelectorAll('#opcfg').forEach(x => x.remove());
-  const d = data || {}, oblig = (((aj && aj.valor) || {}).obligatorios || {})[PERFIL.rol] || [];
-  const pref = ((PERFIL.preferencias || {}).avisos_pedidos) || {};
-  const vis = PK_TARJ.filter(([k]) => oblig.includes(k) || pref[k] !== false);
-  const hoy = hoyISO(), dia = x => String(x.fecha || '').slice(0, 10);
-  const barras = l => { const m = {}; l.forEach(x => { m[dia(x)] = (m[dia(x)] || 0) + 1; }); return [...Array(10)].map((_, i) => m[isoMas(hoy, i - 9)] || 0); };
-  const antig = l => l.length ? Math.max(0, ...l.map(x => Math.round((new Date(hoy) - new Date(dia(x))) / 864e5))) : 0;
-  const hace = n => n === 0 ? 'de hoy' : n === 1 ? 'de ayer' : `de hace ${num(n)} días`;
-  const frase = (k, l) => {
-    if (!l.length) return k === 'pago' ? 'Todo cobrado' : k === 'paquete' ? 'Todo preparado' : 'Todas enviadas';
-    const ant = `el más antiguo, ${hace(antig(l))}`;
-    if (k === 'pago' && verImportes()) return `<b>${eurI(l.reduce((a, x) => a + (+x.total || 0), 0))}</b> por cobrar · ${ant}`;
-    return ant.charAt(0).toUpperCase() + ant.slice(1);
-  };
-  const gear = `<button type="button" class="pkcfg" id="opcfg" aria-label="Elegir qué avisos ver" title="Elegir qué avisos ver">${svgIco(ICON_NOM.settings || '')}</button>`;
-  c.innerHTML = !vis.length
-    ? `<div class="pkvacio">Has ocultado los avisos de pedidos. Vuelve a elegirlos con el engranaje. ${gear}</div>`
-    : `<div class="pk">${vis.map(([k, f, t, ic]) => {
-        const l = d[k] || [], b = barras(l), mx = Math.max(1, ...b), alta = k === 'pago' && l.length;
-        return `<button type="button" class="pkt ${alta ? 'alta' : ''}" data-pk="${f}" aria-pressed="false" ${l.length ? '' : 'data-cero'}>
-          <span class="pkfil">Filtrando</span><span class="pktt">${svgIco(ICON_NOM[ic] || ICON_NOM.info || '')} ${t}</span>
-          <span class="pkn" data-v="${l.length}">${num(l.length)}</span><span class="pks">${frase(k, l)}</span>
-          <span class="pkbars" aria-hidden="true">${b.map((n, i) => `<i class="${i === 9 ? 'u' : pkLibre(isoMas(hoy, i - 9)) ? 'fin' : ''}" style="height:${n ? Math.max(14, 100 * n / mx) : 6}%"></i>`).join('')}</span>
-          <span class="pkdias">${b.map((n, i) => pkDia(isoMas(hoy, i - 9), n, i === 9)).join('')}</span>
-          <span class="pklg">Entrada de los últimos 10 días</span></button>`; }).join('')}${gear}</div>`;
-  c.querySelectorAll('[data-pk]').forEach(b => b.onclick = () => {
-    const s = $('popf'); if (!s) return;
-    s.value = s.value === b.dataset.pk ? '' : b.dataset.pk; s.dispatchEvent(new Event('change', { bubbles: true }));
-    pkMarcar();
-  });
-  // El engranaje, junto a «Filtros y columnas» de la cabecera (si está a la vista)
-  const hb = document.querySelector('#v-ventas .htbtn'), g = $('opcfg');
-  if (hb && hb.offsetParent && g && vis.length) { g.className = 'btn sec pkcfg pkcfgcab'; hb.insertAdjacentElement('beforebegin', g); }
-  $('opcfg').onclick = () => configurarAvisosPedidos(oblig);
-  pkMarcar();
-  pkContar([...c.querySelectorAll('.pkn[data-v]')], n => num(Math.round(n)));
-};
 
 var AN_REP = '';   // v2.329.0: Analítica → Resumen, «Reporte»
 
@@ -29428,75 +29649,6 @@ db.rpc = (orig => function (fn, params, opts) {
    - El panel enseña las de los últimos 7 días en dos bloques: «Nuevas» (sin leer) y «Anteriores» (leídas, más apagadas).
    - Cada notificación se puede borrar con su papelera; abajo, «Marcar todas como leídas», «Borrar las leídas» y «Borrar todas». */
 if (!ICON_NOM['trash-2']) ICON_NOM['trash-2'] = '<path d="M3 6h18" /> <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /> <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" /> <line x1="10" x2="10" y1="11" y2="17" /> <line x1="14" x2="14" y1="11" y2="17" />';
-notifPintar = function () {
-  const l = NOTIF_LISTA;
-  const areas = NOTIF_AREAS.filter(a => l.some(x => notifArea(x.tipo) === a[0]));
-  if (NOTIF_FILTRO && !areas.some(a => a[0] === NOTIF_FILTRO)) NOTIF_FILTRO = '';
-  const vis = l.filter(x => !NOTIF_FILTRO || notifArea(x.tipo) === NOTIF_FILTRO);
-  const nuevas = vis.filter(x => !x.leida_en), viejas = vis.filter(x => x.leida_en);
-  const fila = x => {
-    const acc = notifAcciones(x), cuando = new Date(x.visible_desde || x.creado_en), g = notifDia(x.visible_desde || x.creado_en);
-    return `<div class="notit2 ${x.leida_en ? '' : 'nuevo'}" data-nidx="${l.indexOf(x)}">
-      <span class="ic" aria-hidden="true">${notifIco(x.tipo)}</span>
-      <div class="tx"><b>${esc(x.titulo)}</b>${x.cuerpo ? `<span class="sm">${esc(x.cuerpo)}</span>` : ''}
-        <span class="sm notcuando">${g === 'Hoy' ? cuando.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) : g === 'Ayer' ? 'Ayer' : cuando.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' })}${x.resumen ? ' · del resumen del día' : ''}</span>
-        <div class="notacts">${acc.map(([t, , p], j) => `<button type="button" class="btn chico ${p ? '' : 'sec'}" data-nacc="${j}">${esc(t)}</button>`).join('')}
-          ${x.leida_en ? '' : '<button type="button" class="btn sec chico" data-npos>Posponer a mañana</button>'}
-          <button type="button" class="notbor" data-nbor aria-label="Borrar esta notificación" title="Borrar">${svgIco(ICON_NOM['trash-2'])}</button></div></div></div>`;
-  };
-  $('dbody').innerHTML = `<div class="fh"><div><h2>Notificaciones</h2><div class="sm">${NOTIF_N ? `${NOTIF_N} sin leer` : 'Estás al día'} · últimos 7 días</div></div>
-      <span class="acts" style="margin:0"><button type="button" class="icobtn notcfgb" id="notcfg" title="Elegir qué recibo y cuándo" aria-label="Elegir qué recibo y cuándo">${svgIco(ICON_NOM.settings)}</button>
-      <button class="x" data-cerrar aria-label="Cerrar">✕</button></span></div>
-    ${areas.length > 1 ? `<div class="segs notfil" role="group" aria-label="Filtrar">${[['', 'Todas']].concat(areas.map(a => [a[0], a[1]])).map(([k, t]) =>
-      `<button type="button" data-nfil="${k}" class="${NOTIF_FILTRO === k ? 'on' : ''}" aria-pressed="${NOTIF_FILTRO === k}">${esc(t)}</button>`).join('')}</div>` : ''}
-    <div class="notlista2">
-      ${nuevas.length ? `<h3 class="notdia">Nuevas · ${nuevas.length}</h3>${nuevas.map(fila).join('')}` : ''}
-      ${viejas.length ? `<h3 class="notdia">Anteriores</h3>${viejas.map(fila).join('')}` : ''}
-      ${vis.length ? '' : `<div class="vacio">${NOTIF_FILTRO ? 'No hay avisos de esta área.' : 'No tienes notificaciones de los últimos 7 días.'}</div>`}</div>
-    <p class="sm notpie">Se guardan las de los últimos 7 días. Las que borras no vuelven a salir.</p>
-    <div class="acts" style="justify-content:flex-end;flex-wrap:wrap">
-      ${NOTIF_N ? '<button class="btn sec" id="notleer">Marcar todas como leídas</button>' : ''}
-      ${l.some(x => x.leida_en) ? '<button class="btn sec" id="notlimpiar">Borrar las leídas</button>' : ''}
-      ${l.length ? '<button class="btn sec dang" id="notvaciar">Borrar todas</button>' : ''}</div>`;
-  const cerrarYRefrescar = () => { $('dlg').close(); refrescarCampana(); };
-  const quitar = xs => { NOTIF_LISTA = NOTIF_LISTA.filter(y => !xs.includes(y)); NOTIF_N = Math.max(0, NOTIF_N - xs.filter(y => !y.leida_en).length); notifPintar(); refrescarCampana(); };
-  $('dbody').querySelectorAll('[data-nfil]').forEach(b => b.onclick = () => { NOTIF_FILTRO = b.dataset.nfil; notifPintar(); });
-  $('dbody').querySelectorAll('.notit2').forEach(el => {
-    const x = l[+el.dataset.nidx], acc = notifAcciones(x);
-    el.querySelectorAll('[data-nacc]').forEach(b => b.onclick = async e => {
-      e.stopPropagation();
-      await db.rpc('leer_notificacion', { p_id: x.id });
-      cerrarYRefrescar(); acc[+b.dataset.nacc][1]();
-    });
-    const pos = el.querySelector('[data-npos]');
-    if (pos) pos.onclick = async e => {
-      e.stopPropagation();
-      const { data } = await db.rpc('posponer_notificacion', { p_id: x.id });
-      if (!data || !data.ok) { toast('No se ha podido posponer', true); return; }
-      toast('Te lo volvemos a enseñar mañana'); quitar([x]);
-    };
-    el.querySelector('[data-nbor]').onclick = async e => {
-      e.stopPropagation();
-      if (!await notifBorrar([x.id])) return;
-      el.classList.add('notsale'); setTimeout(() => quitar([x]), 220);
-    };
-    el.onclick = async () => {
-      await db.rpc('leer_notificacion', { p_id: x.id });
-      if (acc.length) { cerrarYRefrescar(); (acc.find(a => a[2]) || acc[0])[1](); }
-      else if (!x.leida_en) { x.leida_en = new Date().toISOString(); NOTIF_N = Math.max(0, NOTIF_N - 1); notifPintar(); refrescarCampana(); }
-    };
-  });
-  if ($('notleer')) $('notleer').onclick = async () => {
-    await db.rpc('leer_notificaciones'); const ahora = new Date().toISOString();
-    NOTIF_LISTA.forEach(x => { if (!x.leida_en) x.leida_en = ahora; }); NOTIF_N = 0; notifPintar(); refrescarCampana();
-  };
-  if ($('notlimpiar')) $('notlimpiar').onclick = async () => { if (await notifBorrar(null, true)) { toast('Notificaciones leídas borradas'); quitar(NOTIF_LISTA.filter(x => x.leida_en)); } };
-  if ($('notvaciar')) $('notvaciar').onclick = async () => {
-    const op = await elegirOpcion('Borrar todas las notificaciones', 'Se borran todas, también las que no has leído, y no vuelven a salir.', [{ k: 'no', t: 'Cancelar', cls: 'sec' }, { k: 'si', t: 'Borrar todas' }]);
-    if (op === 'si' && await notifBorrar(null, false)) { toast('Notificaciones borradas'); cerrarYRefrescar(); }
-  };
-  $('notcfg').onclick = () => { $('dlg').close(); CFG_SEC = 'notif'; window.__CFG_DIRECTO = true; ir('config'); };
-};
 
 let RM_LIB = null, RM_MAPA = null, RM_ANIM = null;
 
@@ -29517,40 +29669,6 @@ let RN_LISTA = null, RN_MAPA_P = null;    // tarjetas de Mis rutas: [{r, ms}]
 
 
 
-cargarRutasBase = async function () {
-  const v = $('v-rutas');
-  if (RN) return rnPintar();
-  const { data: rutas } = await db.rpc('rutas_visibles');
-  RUTAS = rutas || [];
-  const lista = await Promise.all(RUTAS.map(async r => ({ r, ms: await rnMiembros(r) })));
-  RN_LISTA = lista;
-  v.innerHTML = `
-    <div class="saludo"><div><h1>Rutas</h1><div class="fecha">Tus rutas: créalas paso a paso, revísalas y pásalas a tu agenda</div></div>
-      <div class="acts" style="margin:0"><button class="btn" id="rnueva">+ Nueva ruta</button></div></div>
-    <div class="rngrid" id="rngrid">${lista.map(({ r, ms }, i) => {
-      const rep = r.repeticion || null, f = rnFechaRef(rep, r.nombre), h = rnHoras(ms, f, r.salida, r.vuelta, r.fijas), prox = rnProxima(rep);
-      const paradas = new Set(ms.filter(m => m.lat != null).map(m => (+m.lat).toFixed(5) + ',' + (+m.lon).toFixed(5))).size;
-      return `<article class="rncard" data-rni="${i}"><div class="rncro">${rnCroquis(ms)}<span class="rndia">${esc(rnCuando(rep))}</span></div>
-        <div class="rntx"><b>${esc(r.nombre)}</b>
-          <span class="sm">${num(ms.length)} ${ms.length === 1 ? TT('medico', 's', '', 'l', 'l') : TT('medico', 'p', '', 'l', 'l')} · ${paradas} ${paradas === 1 ? 'parada' : 'paradas'}${h.km >= 1 ? ' · ' + Math.round(h.km) + ' km' : ''}</span>
-          <span class="sm">${ms.length ? `De ${r.salida ? String(r.salida).slice(0, 5) : '09:00'} a ${hm(h.fin)}` : 'Todavía sin nadie'}${prox ? ` · próxima: ${esc(fechaCorta(prox))}` : ''}${r.mia ? '' : ' · de ' + esc(r.duenyo || '')}</span></div>
-        <div class="rnacts"><button class="btn chico" type="button" data-rnag="${i}">Pasar a mi agenda</button>
-          ${r.mia || puede('administrar') ? `<button class="btn sec chico" type="button" data-rned="${i}">${rnSV(RN_IC.lapiz)} Editar</button>
-          <button class="btn sec chico rnico" type="button" data-rnbor="${i}" aria-label="Eliminar ${esc(r.nombre)}" title="Eliminar">${rnSV(RN_IC.papelera)}</button>` : `<button class="btn sec chico" type="button" data-rnver="${i}">Ver</button>`}</div></article>`; }).join('')}
-      <button class="rnnueva" type="button" id="rnnueva2"><span><span class="mas">+</span><b>Nueva ruta</b><span class="sm">${lista.length ? 'Elige a quién vas a ver y en qué orden' : `Tu primera ruta: elige a quién vas a ver, el orden y cuándo. La app calcula las horas.`}</span></span></button></div>
-    <div id="rcuerpo" hidden></div><div id="rplan"></div>`;
-  $('rnueva').onclick = $('rnnueva2').onclick = () => rnAbrir(null);
-  v.querySelectorAll('[data-rned]').forEach(b => b.onclick = () => rnAbrir(lista[+b.dataset.rned], 3));
-  v.querySelectorAll('[data-rnver]').forEach(b => b.onclick = () => rnAbrir(lista[+b.dataset.rnver], 3));
-  v.querySelectorAll('[data-rnag]').forEach(b => b.onclick = () => rnPasarAgenda(lista[+b.dataset.rnag], b));
-  v.querySelectorAll('[data-rnbor]').forEach(b => b.onclick = async () => {
-    const { r } = lista[+b.dataset.rnbor];
-    if (!await preguntar(`Se elimina «${r.nombre}». Las citas que ya están en tu agenda no se borran.`, { titulo: '¿Eliminar la ruta?', ok: 'Eliminar', peligro: true })) return;
-    const { error } = await db.rpc('guardar_ruta', { p: { id: r.id, activa: false } });
-    if (error) { toast('No se ha podido eliminar', true); return; }
-    toast('Ruta eliminada'); invalidarCache(); cargarRutas();
-  });
-};
 
 setTimeout(() => { if (typeof PERFIL !== 'undefined' && PERFIL && (typeof verArea !== 'function' || verArea('rutas'))) rnRellenar(); }, 8000);
 
@@ -29691,93 +29809,6 @@ Object.assign(PL, {
 });
 
 
-plSync = function (tab) {
-  const sec = $('v-' + tab), c = plCfg(tab); if (!sec) return;
-  if (!c) {   // sección sin plantilla: fuera lo que se hubiera puesto
-    if (sec.classList.contains('plantilla')) { sec.classList.remove('plantilla'); sec.querySelectorAll(':scope > .plkpis, :scope > .pltool, .plmas').forEach(x => x.remove()); }
-    return;
-  }
-  const clave = PL_SECC[tab] ? PL_SECC[tab]() : tab;
-  sec.classList.add('plantilla'); sec.dataset.plsec = clave;
-  const sal = sec.querySelector(':scope > .saludo');
-  const acts = sal && sal.querySelector('.acts');
-  if (acts && !acts.querySelector('.plmas')) acts.insertAdjacentHTML('afterbegin', `<button type="button" class="btn sec chico plmas" aria-label="Más acciones" title="Más acciones">${plIco('ellipsis', '⋯')}</button>`);
-  const mas = acts && acts.querySelector('.plmas'); if (mas) { const no = !c.mas().length; if (mas.classList.contains('plno') !== no) mas.classList.toggle('plno', no); }
-  const nb = c.nuevo && c.nuevo();
-  if (nb && c.textoNuevo && !ES_MOVIL() && !nb.classList.contains('fab') && nb.textContent.trim() !== c.textoNuevo()) nb.innerHTML = plIco('plus') + ' ' + esc(c.textoNuevo());
-  if (nb && c.textoNuevo && ES_MOVIL() && !nb.dataset.plfab) { nb.dataset.plfab = '1'; nb.classList.add('fab'); nb.dataset.txt = c.textoNuevo(); nb.setAttribute('aria-label', c.textoNuevo()); nb.innerHTML = plIco('plus'); sec.appendChild(nb); }
-  // Móvil: un solo «+», el de la sección abierta (al cambiar de sección quedaba el de la anterior)
-  if (c.rejilla && ES_MOVIL()) {
-    const prim = [...sec.querySelectorAll(':scope > .saludo .acts > .btn:not(.sec):not(.htbtn), :scope > .fab')].find(b => /^\s*\+/.test(b.dataset.txt ? '+' : b.textContent) && (b.classList.contains('fab') ? b.dataset.plsec === clave || !b.dataset.plsec : true));
-    if (prim && !prim.classList.contains('fab')) { prim.dataset.txt = prim.textContent.replace('+', '').trim(); prim.classList.add('fab'); prim.setAttribute('aria-label', prim.dataset.txt); prim.innerHTML = plIco('plus'); sec.appendChild(prim); }
-    if (prim) { prim.dataset.plsec = clave; sec.querySelectorAll(':scope > .fab').forEach(f => { const fuera = f !== prim; if (f.classList.contains('plfuera') !== fuera) f.classList.toggle('plfuera', fuera); }); }
-  }
-  // Debajo de la cabecera (y de las pestañas, si las hay): la banda de indicadores y la barra
-  const ancla = sec.querySelector(':scope > .subnav') || sal;
-  let kp = sec.querySelector(':scope > .plkpis');
-  if (c.kpis || c.banda) {
-    if (!kp) { kp = document.createElement('div'); kp.className = 'plkpis' + (c.banda ? ' plbanda' : ''); if (c.kpis) kp.innerHTML = plKpisHtml(tab); }
-    if (!kp.isConnected) { if (ancla) ancla.after(kp); else sec.prepend(kp); }
-    if (c.kpis) { plCargarKpis(tab); kp.querySelectorAll('[data-plk]').forEach(b => { const on = c.kpiOn(b.dataset.plk); if (b.classList.contains('on') !== on) b.classList.toggle('on', on); }); }
-    if (c.banda) { const b = $(c.banda); if (b && b.parentElement !== kp) kp.appendChild(b); }
-  } else if (kp) kp.remove();
-  let tl = sec.querySelector(':scope > .pltool');
-  if (tl && tl.dataset.plsec !== clave) { tl.remove(); tl = null; }
-  if (!tl) { tl = document.createElement('div'); tl.className = 'pltool'; tl.dataset.plsec = clave; tl.innerHTML = plToolHtml(tab); }
-  if (!tl.isConnected) { const ref = sec.querySelector(':scope > .plkpis') || ancla; if (ref) ref.after(tl); else sec.prepend(tl); }
-  const qi = tl.querySelector('.plqi'); if (qi && document.activeElement !== qi && qi.value !== c.q()) qi.value = c.q();
-  tl.querySelectorAll('[data-plr]').forEach(b => {
-    const s = plSel(b.dataset.plr), w = s && s.closest('#fcomwrap');
-    const ver = !!s && !(w && w.classList.contains('hide')) && s.options.length > 1;
-    if (b.classList.contains('hide') === ver) b.classList.toggle('hide', !ver); if (!ver) return;
-    if (!b.dataset.plt) b.dataset.plt = plEtiq(b.dataset.plr);
-    const on = s.selectedIndex > 0 && !(b.dataset.plt === 'Periodo');
-    const txt = s.selectedIndex > 0 || b.dataset.plt === 'Periodo' ? `${b.dataset.plt}: ${s.options[s.selectedIndex].text.replace(/\s*\(\d[\d.]*\)\s*$/, '')}` : b.dataset.plt;
-    if (b.textContent !== txt) b.textContent = txt; if (b.classList.contains('on') !== on) b.classList.toggle('on', on);
-  });
-  const n = c.activos(), pn = tl.querySelector('.pln');
-  if (pn) { const v = String(n || ''); if (pn.textContent !== v) pn.textContent = v; if (pn.classList.contains('hide') !== !n) pn.classList.toggle('hide', !n); }
-  const pq = tl.querySelector('.plquitar'); if (pq && pq.classList.contains('hide') !== !n) pq.classList.toggle('hide', !n);
-  const cnt = tl.querySelector('.plcnt'), h = plRecuento(sec, c);
-  if (cnt && h && cnt.dataset.h !== h) { cnt.dataset.h = h; cnt.innerHTML = h; }
-  // Tabla y pie en una tarjeta; los totales, en la franja de resumen encima
-  const tb = c.tabla(), pie = c.pie();
-  if (tb && tb.parentElement && !tb.parentElement.classList.contains('pltab')) { const w = document.createElement('div'); w.className = 'pltab'; tb.before(w); w.appendChild(tb); if (pie) w.appendChild(pie); }
-  else if (tb && pie && pie.parentElement !== tb.parentElement) tb.parentElement.appendChild(pie);
-  const tab2 = tb && tb.closest('.pltab');
-  if (c.rejilla && tab2) {
-    sec.querySelectorAll('.kpis.vtot:not(.plres)').forEach(k => { if (k.closest('#v-' + tab) && !k.closest('.plkpis')) k.classList.add('plres'); });
-    if (c.despues) { const d = $(c.despues); if (d && tab2.nextElementSibling !== d) tab2.after(d); }
-  }
-  const cuerpo = c.cuerpo();
-  if (cuerpo) {
-    if (cuerpo.querySelector(':scope > .cargador')) {
-      if (cuerpo.__plUlt) { cuerpo.innerHTML = cuerpo.__plUlt; cuerpo.classList.add('platenua'); }
-      else if (tab === 'directorio') { cuerpo.innerHTML = plEsqueleto(tab, false); if (!$('thead').children.length) $('thead').innerHTML = plEsqueleto(tab, true).match(/<div class="plskh">[\s\S]*?<\/div>/)[0]; }
-      else cuerpo.innerHTML = plEsqueleto(tab, true);
-    } else if (c.conDatos(cuerpo)) { cuerpo.classList.remove('platenua'); cuerpo.__plUlt = cuerpo.innerHTML; }
-  }
-  const vc = tab === 'pacientes' && $('vcuerpo');
-  if (vc && !vc.children.length) vc.innerHTML = `<div class="panel plskpanel"><div class="pltab">${plEsqueleto(tab, true)}</div></div>`;
-  // Primera llegada de una pantalla en rejilla: mientras no hay tabla, su esqueleto debajo de la barra
-  if (c.rejilla && !sec.querySelector('.dgrid, .pltab, .vacio') && !sec.querySelector(':scope > .plskpanel')) tl.insertAdjacentHTML('afterend', `<div class="panel plskpanel"><div class="pltab">${plEsqueleto(tab, true)}</div></div>`);
-  if (sec.querySelector('.dgrid, .vacio')) sec.querySelectorAll(':scope > .plskpanel').forEach(x => x.remove());
-  if (c.card) sec.querySelectorAll('.dgrid > .dr:not([data-plc])').forEach(dr => {
-    dr.dataset.plc = '1'; const x = c.card(dr);
-    dr.insertAdjacentHTML('beforeend', `<span class="plcard"><b>${esc(x.a)}</b><span class="plc2">${esc(x.b)}</span><span class="plc3">${x.c}</span>${x.d ? `<span class="plc4">${esc(x.d)}</span>` : ''}</span>`);   // v2.316.0: tercera línea
-  });
-};
-// La barra y los clics usan la configuración de la sección abierta
-plToolHtml = function (tab) {
-  const c = plCfg(tab);
-  return `<label class="plq">${plIco('search', '🔍')}<input type="search" class="plqi" placeholder="${esc(c.buscaTxt ? c.buscaTxt() : 'Buscar en ' + c.que())}" aria-label="${esc(c.buscaTxt ? c.buscaTxt() : 'Buscar en ' + c.que())}"></label>
-    <div class="plrap">${c.rapidos.map(([id, t]) => { t = t || plEtiq(id); return `<button type="button" class="plchip" data-plr="${esc(id)}" data-plt="${esc(t)}">${esc(t)}</button>`; }).join('')}</div>
-    <button type="button" class="plbtn chico plfil">${plIco('sliders-horizontal')}<span>Filtros</span><span class="pln hide"></span></button>
-    ${c.quitar ? `<button type="button" class="btn sec chico dang plquitar hide">${svgIco(ICON_NOM.x)} Eliminar filtros</button>` : ''}
-    <button type="button" class="plbtn chico plcol">${plIco('columns-3', 'table', 'list')}<span>Columnas</span></button>
-    ${c.mapa() ? `<button type="button" class="plbtn chico plic plmapa" title="Ver en el mapa" aria-label="Ver en el mapa">${plIco('map')}</button>` : ''}
-    <span class="plcnt"><i class="plsk" style="width:90px"></i></span>`;
-};
 plCargarKpis = (orig => function (tab) { const c = plCfg(tab); if (c && c.kpis) return orig(tab); })(plCargarKpis);
 ['ventas', 'facturacion', 'productos'].forEach(plObservar);
 // Clics de la barra: con la configuración de la sección abierta (la v2.236 leía PL[tab] directamente)
@@ -29825,8 +29856,6 @@ Object.keys(BLQ).forEach(tab => {
     activos: () => { const sec = $('v-' + tab); return (PLG[tab] ? 1 : 0) + (sec ? sec.querySelectorAll('.htchips .htchip').length : 0); } }) };
 });
 
-// Antes de ajustar la plantilla, los bloques se convierten en tabla
-plSync = (orig => function (tab) { if (BLQ[tab] && plCfg(tab)) blqConvertir(tab); return orig(tab); })(plSync);
 document.addEventListener('click', e => {
   const k = e.target.closest('main > section.plantilla [data-plg]'); if (!k) return;
   const tab = k.closest('section').id.slice(2); PLG[tab] = PLG[tab] === k.dataset.plg ? '' : k.dataset.plg; blqFiltrar(tab); plSync(tab);
@@ -29834,20 +29863,9 @@ document.addEventListener('click', e => {
 Object.keys(BLQ).forEach(plObservar);
 ir = (orig => function (t, ...a) { const r = orig.call(this, t, ...a); if (PL[t]) { plVigilar(t); setTimeout(() => plVigilar(t), 0); } return r; })(ir);
 Object.keys(PL).forEach(plVigilar);
-// Las pestañas de las páginas (.pagtabs) van justo debajo de la cabecera: la banda y la barra, después de ellas
-plSync = (orig => function (tab) {
-  const r = orig(tab), sec = $('v-' + tab); if (!sec || !sec.classList.contains('plantilla')) return r;
-  const tabs = sec.querySelector(':scope > .pagtabs, :scope > .subnav'), kp = sec.querySelector(':scope > .plkpis'), tl = sec.querySelector(':scope > .pltool');
-  if (tabs && tl && (tabs.compareDocumentPosition(tl) & 2)) { const ref = kp || tl; ref.before(tabs); }
-  return r;
-})(plSync);
 
 
 
-plSync = (orig => function (tab) {
-  if (tab === 'ventas') { const sec = $('v-ventas'), k = PL_SECC.ventas(); if (sec && k) plAjenos(sec, k); }
-  return orig(tab);
-})(plSync);
 
 
 (() => {
@@ -29971,33 +29989,6 @@ rpcCache = (orig => function (fn, params, clave, ...x) {
 
 
 
-// ---- Elegir otro día: todo lo que cambia (Tu día, bandejas, cinta, «Tu semana», la semana abierta) aparece a la vez
-agVerDia = async function (f) {
-  document.querySelectorAll('.agpop').forEach(x => x.remove());
-  cerrarMesCinta();
-  if (!f) return;
-  if (!agN()) { AG_MODO = 'dia'; AG_FECHA = f; return cargarAgenda(); }
-  const antes = AG_FECHA || f; AG_FECHA = f;
-  const c = $('agcuerpo'); if (c) c.classList.add('agcargando');
-  const fuera = !CINTA_INI || f < CINTA_INI || f > diasMas(CINTA_INI, 13); if (fuera) CINTA_INI = lunesCinta(f);
-  const otraSem = lunesDe(f) !== lunesDe(antes);
-  let s = null;
-  try {
-    await agConDatos([...agDiaCargas(f), agSugDatos(f).then(x => { s = x; }), ...(fuera ? agCintaCargas() : []), ...agSemCargas(f)], async () => {
-      if (AG_FECHA !== f || !agN()) return;
-      agPonerSug(f, s);
-      const piezas = [pintarTuDia(), agSemanaLateral()];
-      if (fuera || (otraSem && AG_SEM_ABIERTA)) piezas.push(agCinta());
-      await Promise.all(piezas);
-      if (!fuera) document.querySelectorAll('#agcinta .cdia').forEach(x => x.classList.toggle('sel', x.dataset.cf === f));
-      agMarcarDia(); agDiaVacio(); agPastillas();
-    });
-  } finally { const cc = $('agcuerpo'); if (cc) cc.classList.remove('agcargando'); }
-  if (AG_FECHA !== f) return;
-  const cc = $('agcuerpo'); if (!cc) return;
-  const top = cc.getBoundingClientRect().top;
-  if (top < 80 || top > innerHeight * 0.6) scrollTo({ top: scrollY + top - 90, behavior: 'smooth' });
-};
 
 
 
@@ -30015,37 +30006,10 @@ document.addEventListener('click', e => {
   e.stopPropagation(); CERCA = null; buscar(true);
 });
 
-// ---- La barra tiene sus filtros rápidos desde el primer momento: mientras su desplegable no existe (Clientes lo crea al llegar
-// los datos), el filtro se ve con su nombre y en espera, en vez de aparecer después empujando el buscador
-plSync = (orig => function (tab, ...x) {
-  const r = orig.call(this, tab, ...x);
-  const sec = $('v-' + tab), c = plCfg(tab); if (!sec || !c || !c.rapidos) return r;
-  sec.querySelectorAll(':scope > .pltool [data-plr]').forEach(b => {
-    if (plSel(b.dataset.plr)) { if (b.classList.contains('plespera')) b.classList.remove('plespera'); return; }
-    const nom = (c.rapidos.find(x => x[0] === b.dataset.plr) || [])[1]; if (!nom) return;
-    if (b.classList.contains('hide')) b.classList.remove('hide');
-    if (!b.classList.contains('plespera')) b.classList.add('plespera');
-    if (b.textContent !== nom) b.textContent = nom;
-  });
-  return r;
-})(plSync);
 
 
 
 
-// El filtro de bloques no desaparece: con un solo bloque se queda desactivado
-plSync = (orig => function (tab, ...x) {
-  const r = orig.call(this, tab, ...x);
-  if (!BLQ[tab]) return r;
-  const b = document.querySelector(`#v-${tab} > .pltool [data-plr="#plg-${tab}"]`), s = $('plg-' + tab);
-  if (b && s) {
-    const nada = s.options.length < 2;
-    if (nada && b.classList.contains('hide')) b.classList.remove('hide');
-    if (b.classList.contains('plnada') !== nada) b.classList.toggle('plnada', nada);
-    if (nada && b.textContent !== BLQ[tab].grupo) b.textContent = BLQ[tab].grupo;
-  }
-  return r;
-})(plSync);
 
 
 /* ============================================================
@@ -30086,24 +30050,6 @@ document.addEventListener('click', e => {
 
 
 
-/* ============================================================
-   v2.257.0 · Filtro por profesional en Clientes y uso de TomTom en el Panel delcos (pendientes repasados con Eric, 11/10/2026).
-   - Clientes: el filtro por profesional (al llegar desde su ficha) se aplicaba pero no se veía en la pantalla: ahora es un filtro
-     rápido marcado en la barra, con su «✕» para quitarlo. «Columnas» abría y cerraba el panel según estuviera: ahora siempre lo abre.
-   - Panel delcos → Estado de la plataforma: cuántas consultas de rutas (TomTom) se han hecho hoy frente al tope de todas las empresas,
-     en el mes, y por empresa frente a su cupo (rutas_uso_resumen, SQL 138).
-   ============================================================ */
-plSync = (orig => function (tab, ...x) {
-  const r = orig.call(this, tab, ...x);
-  if (tab !== 'pacientes') return r;
-  const rap = document.querySelector('#v-pacientes > .pltool .plrap'); if (!rap) return r;
-  let b = rap.querySelector('[data-plmed]');
-  if (!PAC.medico) { if (b) b.remove(); return r; }
-  const txt = `${TT('medico', 's', '', 'l', 'C')}: ${PAC.medicoNombre || '—'}`;
-  if (!b) { rap.insertAdjacentHTML('afterbegin', '<button type="button" class="plchip on plmed" data-plmed title="Quitar este filtro"><span></span><i aria-hidden="true">✕</i></button>'); b = rap.querySelector('[data-plmed]'); }
-  const s = b.querySelector('span'); if (s.textContent !== txt) s.textContent = txt;
-  return r;
-})(plSync);
 document.addEventListener('click', e => {
   const b = e.target.closest('#v-pacientes [data-plmed]'); if (!b) return;
   // Solo se vuelve a pedir la lista (volver a pintar los filtros dejaba los de antes en el panel lateral, con los mismos id)
@@ -30146,24 +30092,6 @@ function estimarDia(citas, fecha, ...x) {
   return estimarDiaBase2.call(this, citas, fecha, ...x);
 }
 
-// ---- Filtros rápidos que no desaparecen (aviso intermitente de la batería: en Contactos, en el móvil, un filtro aparecía tarde
-// cuando sus opciones llegaban después de entrar). Un filtro rápido cuyo desplegable aún no tiene opciones se ve desactivado en su
-// sitio, en vez de esconderse y aparecer luego empujando el buscador.
-plSync = (orig => function (tab, ...x) {
-  const r = orig.call(this, tab, ...x);
-  const sec = $('v-' + tab); if (!sec || !sec.classList.contains('plantilla')) return r;
-  sec.querySelectorAll(':scope > .pltool [data-plr]').forEach(b => {
-    const s = plSel(b.dataset.plr); if (!s || !s.options) return;
-    const w = s.closest('#fcomwrap'); if (w && w.classList.contains('hide')) return;
-    const nada = s.options.length <= 1;
-    if (nada) {
-      if (b.classList.contains('hide')) b.classList.remove('hide');
-      if (!b.classList.contains('plnada')) b.classList.add('plnada');
-      const t = b.dataset.plt || plEtiq(b.dataset.plr); if (t && b.textContent !== t) b.textContent = t;
-    } else if (b.classList.contains('plnada') && !(BLQ[tab] && b.dataset.plr === '#plg-' + tab)) b.classList.remove('plnada');
-  });
-  return r;
-})(plSync);
 
 
 
@@ -30984,21 +30912,6 @@ document.addEventListener('click', async e => {
 if (PL.productos && PL.productos.prods) PL.productos.prods.mas = (orig => () => orig().concat(puedeEliminarProducto() ? [['prodelim', 'Productos eliminados']] : []))(PL.productos.prods.mas);
 
 
-pedidoPago = async function (id) {
-  if (!$('dlg').open || $('pdpago')) return;
-  const [{ data }, { data: js }] = await Promise.all([RPC_ORIG('pedido_detalle', { p_id: id }),
-    db.from('pedidos_justificantes').select('id,nombre,tamano,creado_en').eq('pedido_id', id).order('creado_en')]);
-  const p = data && data.pedido; if (!p || !$('dlg').open || $('pdpago')) return;
-  if (p.sin_cargo) return;
-  const acts = $('dbody').querySelector('.acts:last-of-type'); if (!acts) return;
-  const ref = $('pdops') || acts;
-  ref.insertAdjacentHTML('beforebegin', `<div class="blk" id="pdpago"><h3>Pago</h3>
-    ${p.origen === 'web' ? '<p class="sm"><span class="pill p-est">Pedido por la web</span></p>' : ''}
-    <div class="pdpagof"><span class="sm">Referencia del pago</span><b>${p.pago_referencia ? esc(p.pago_referencia) : '—'}</b></div>
-    ${(js || []).length ? `<div class="lista" id="pdjus">${js.map(j => `<div class="item"><span class="tx"><b>${esc(j.nombre)}</b><span class="sm">${fechaCorta(String(j.creado_en).slice(0, 10))} · ${num(Math.round(j.tamano / 1024))} KB</span></span>
-      <button type="button" class="btn sec chico" data-jver="${j.id}">Ver</button></div>`).join('')}</div>` : ''}</div>`);
-  $('pdpago').querySelectorAll('[data-jver]').forEach(b => b.onclick = () => verJustificante(b.dataset.jver));
-};
 
 
 
@@ -31025,11 +30938,6 @@ db.rpc = (orig => function (fn, args, ...r) {
 
 // v2.345.0: solo en pruebas hasta tener el terminal del banco (decisión de Eric); para abrirlo en producción, TPV_VISIBLE = true
 const TPV_VISIBLE = EN_PRUEBAS || /^(localhost|127\.)/.test(location.hostname);   // en local, para la batería
-pedidoPago = (orig => async function (id, ...a) {
-  const r = await orig.call(this, id, ...a);
-  await tpvBloque(id);
-  return r;
-})(pedidoPago);
 
 // Configuración → Facturación → «Cobro con tarjeta y Bizum»
 function arbolCfgUnicoBase6(...a) {
@@ -31193,10 +31101,6 @@ plCargarKpis = function (tab) {
 let PLANT_ELEGIDA = { pago: null, factura: null }, PDF_ELEGIDO = null, PDF_EDITANDO = null;
 
 
-facturaPDF = (orig => function (f, rn, cfg, ...a) {
-  if (!cfg && PDF_ELEGIDO && PDF_ELEGIDO !== listaPDF().defecto) cfg = cfgDePlantilla(PDF_ELEGIDO);
-  return orig.call(this, f, rn, cfg, ...a);
-})(facturaPDF);
 // «Diseño del PDF»: barra de plantillas. Guardar un diseño que no es el de por defecto lo guarda en su plantilla (no en factura_pdf).
 const RPC_V2342 = db.rpc;
 db.rpc = function (fn, params, ...a) {

@@ -411,3 +411,28 @@ function revelar(el, max, desde) {
   if (el && el.id === 'fbody') max = Math.max(max || 0, 5000);
   return revelarBase4.call(this, el, max, desde);
 }
+
+// Cambio de pestaña: la vista anterior se queda fija hasta que llegan los datos y la pantalla deja de cambiar
+function congelar(sec) {
+  if (!sec || sec.classList.contains('hide') || document.querySelector('.congelada')) return;
+  const r = sec.getBoundingClientRect(); if (r.height < 40) return;
+  const t0 = Date.now() - 2;
+  // La copia conserva sus identificadores (así mantiene exactamente su aspecto); al estar al final de la página,
+  // la plataforma sigue encontrando siempre los elementos reales, que van antes
+  const c = sec.cloneNode(true);
+  c.classList.add('congelada', 'atenuada'); c.classList.remove('cargando', 'cargando-pend', 'preparando');
+  Object.assign(c.style, { position: 'absolute', left: (r.left + scrollX) + 'px', top: (r.top + scrollY) + 'px', width: r.width + 'px', margin: 0, zIndex: 45, background: 'var(--bg, #F3F8FC)' });
+  // La pestaña pulsada se marca activa al momento en la copia
+  const b = CLIC_PESTANA;
+  if (b && sec.contains(b)) {
+    const attrs = [...b.attributes].filter(a => a.name.startsWith('data-') && a.name !== 'data-expl');
+    const sel = attrs.length ? attrs.map(a => `[${a.name}="${CSS.escape(a.value)}"]`).join('') : null;
+    const cb = sel && c.querySelector(sel);
+    if (cb) { [...cb.parentElement.children].forEach(x => { x.setAttribute('aria-pressed', String(x === cb)); x.classList.toggle('on', x === cb); if (x !== cb && x.classList.contains('btn') && !x.classList.contains('sec')) x.classList.add('sec'); }); cb.classList.remove('sec'); }
+  }
+  c.insertAdjacentHTML('afterbegin', '<div class="barraprog"><i></i></div>');
+  // Se coloca justo debajo de la fila de botones que se ha pulsado (pestañas, modos de la agenda…)
+  if (b && sec.contains(b)) { const fila = b.closest('.subnav, .cfgsubs, .acts, .segs') || b.parentElement; const rb = fila.getBoundingClientRect(); c.querySelector('.barraprog').style.top = Math.round(rb.bottom - r.top + 4) + 'px'; }
+  document.body.appendChild(c); sec.style.minHeight = r.height + 'px';
+  setTimeout(() => estable(sec, 3000, t0).then(() => { c.remove(); requestAnimationFrame(() => { sec.style.minHeight = ''; }); }), 0);
+}

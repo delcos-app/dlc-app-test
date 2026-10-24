@@ -72,25 +72,8 @@ new MutationObserver(ms => ms.forEach(m => {
     if (false) { s.classList.add('cargamin'); setTimeout(() => s.classList.remove('cargamin'), 470 - hecho); }
   }
 })).observe(document.body, { attributes: true, attributeFilter: ['class'], subtree: true });
-ventanaCargando = async function (fn) { const d = $('dlg'); d.classList.add('cargando'); try { return await fn(); } finally { d.classList.remove('cargando'); } };
 document.addEventListener('click', e => { const b = e.target.closest('main .pag button:not(:disabled)'); if (b) cargaLocal(b.closest('.card') || b.closest('.pag').parentElement); }, true);
 document.addEventListener('change', e => { if (e.target.closest('main .pag select')) cargaLocal(e.target.closest('.card') || e.target.closest('.pag').parentElement); }, true);
-// Cambio de pestaña: la vista anterior se queda fija hasta que llegan los datos y la pantalla deja de cambiar
-congelar = function (sec) {
-  if (!sec || sec.classList.contains('hide') || document.querySelector('.congelada')) return;
-  const r = sec.getBoundingClientRect(); if (r.height < 40) return;
-  const c = sec.cloneNode(true); c.removeAttribute('id'); c.querySelectorAll('[id]').forEach(e => e.removeAttribute('id'));
-  c.classList.add('congelada'); c.classList.remove('cargando', 'cargando-pend', 'cargamin');
-  Object.assign(c.style, { position: 'absolute', left: (r.left + scrollX) + 'px', top: (r.top + scrollY) + 'px', width: r.width + 'px', margin: 0, pointerEvents: 'none', zIndex: 40, background: 'var(--bg, #F3F8FC)' });
-  document.body.appendChild(c); sec.style.minHeight = r.height + 'px';
-  let ultimo = performance.now(); const mo = new MutationObserver(() => { ultimo = performance.now(); }); mo.observe(sec, { childList: true, subtree: true });
-  const t0 = performance.now();
-  const w = setInterval(() => {
-    if ((PEND === 0 && performance.now() - ultimo > 120 && performance.now() - t0 > 100) || performance.now() - t0 > 2500) {
-      clearInterval(w); mo.disconnect(); c.remove(); requestAnimationFrame(() => { sec.style.minHeight = ''; });
-    }
-  }, 40);
-};
 
 /* ---------------- 4. Tablas: anchos de columna ajustables y recordados por persona ---------------- */
 

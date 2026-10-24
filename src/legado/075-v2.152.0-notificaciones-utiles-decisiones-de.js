@@ -12,12 +12,6 @@ let NOTIF_LISTA = [], NOTIF_FILTRO = '';
 
 
 
-// v2.242.0: aquí iba la primera versión de notifPintar (se redefine entera más abajo)
-panelNotificaciones = function (l) {
-  NOTIF_LISTA = l || [];
-  notifPintar();
-  if (!$('dlg').open) $('dlg').showModal();
-};
 
 pintarNotif = function () {
   const tipos = tiposDeMiRol(), s = (PERFIL.preferencias || {}).notif_silencio || {};
@@ -240,16 +234,6 @@ abrirMasMovil = (orig => function (...a) {
   document.querySelectorAll('.bmasgrid [data-bm].bloq').forEach(b => b.remove());
   return r;
 })(abrirMasMovil);
-menuPersonalizar = (orig => function (...a) {
-  const r = orig.apply(this, a);
-  const caja = $('mlpanel');
-  if (caja && !caja.__candados) {
-    caja.__candados = true; personalizarCandados();
-    new MutationObserver(() => personalizarCandados()).observe(caja, { childList: true });
-    caja.addEventListener('change', () => personalizarCandados());
-  }
-  return r;
-})(menuPersonalizar);
 
 (() => {
   const d = Object.getOwnPropertyDescriptor(PAGINAS.organizacion, 'tabs'); if (!d || !d.get) return;
@@ -260,52 +244,6 @@ menuPersonalizar = (orig => function (...a) {
 })();
 
 
-// Ventana de contratar o cambiar (la de la v2.162.0, con la bajada al final del periodo y lo que se pierde)
-elegirPago = function (planIni) {
-  const pl = PLAN_ACTUAL || {}, conSus = !!pl.stripe_suscripcion, usados = +((PAGO_ESTADO || {}).usuarios || 0);
-  if (pl.plan === 'medida') { toast('Con el plan A medida, los cambios se hacen con delcos'); return; }
-  const est = { plan: PAGO_PLANES.includes(planIni) ? planIni : (PAGO_PLANES.includes(pl.plan) ? pl.plan : 'comercial'),
-    pago: pl.pago === 'anual' ? 'anual' : 'mensual', usuarios: Math.max(3, usados, +pl.usuarios || 0) };
-  const actual = { plan: pl.plan, pago: pl.pago === 'anual' ? 'anual' : 'mensual', usuarios: +pl.usuarios || 0 };
-  const pinta = () => {
-    const p = planDe(est.plan), anual = est.pago === 'anual';
-    const base = anual ? p.precio * 10 * est.usuarios : p.precio * est.usuarios;
-    const puesta = !anual && !conSus ? PUESTA_EN_MARCHA : 0;
-    const iva = Math.round((base + puesta) * 21) / 100;
-    const baja = conSus && esBajada(actual, est), fin = pl.periodo_fin ? fechaCorta(pl.periodo_fin) : 'el final del periodo pagado';
-    const pierde = conSus ? perdidasPlan(pl.plan, est.plan, Object.assign({}, PAGO_ESTADO || {}, { extras: pl.extras })) : [];
-    $('dbody').innerHTML = `<div class="fh"><div><h2>${conSus ? 'Cambiar la suscripción' : 'Contratar delcos'}</h2>
-        <div class="sm">Precios por usuario, IVA no incluido. ${!conSus ? 'El pago se hace en la página segura de Stripe.' : baja ? '' : 'El cambio se aplica ya y se prorratea en el próximo recibo.'}</div></div>
-        <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-      <label>Plan</label><div class="segs pgplan" role="group">${PAGO_PLANES.map(k => `<button type="button" data-pgp="${k}" class="${est.plan === k ? 'on' : ''}" aria-pressed="${est.plan === k}">${esc(planDe(k).nombre)} · ${eurI(planDe(k).precio)}</button>`).join('')}</div>
-      <label style="margin-top:12px">Pago</label><div class="segs" role="group">
-        <button type="button" data-pga="mensual" class="${anual ? '' : 'on'}" aria-pressed="${!anual}">Mensual</button>
-        <button type="button" data-pga="anual" class="${anual ? 'on' : ''}" aria-pressed="${anual}">Anual · pagas 10 meses de 12</button></div>
-      <label for="pgusu" style="margin-top:12px">Usuarios</label><input id="pgusu" type="number" min="${Math.max(3, usados)}" value="${est.usuarios}" class="numw">
-      <span class="sm">${usados ? `Ahora usáis ${num(usados)}. ` : ''}Mínimo ${Math.max(3, usados)}.</span>
-      ${baja ? `<div class="banda-aviso" id="pgbaja">El cambio se aplicará el <b>${esc(fin)}</b>, al acabar lo que ya has pagado. Hasta entonces sigues con
-        ${esc(planDe(pl.plan).nombre)}${pierde.length ? ` y después dejarás de tener:<ul id="pgpierde">${pierde.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : '.'}</div>` : ''}
-      <div class="pgres">
-        <div><span>${num(est.usuarios)} × ${eurI(anual ? p.precio * 10 : p.precio)} ${anual ? 'al año' : 'al mes'}</span><b>${eurI(base)}</b></div>
-        ${puesta ? `<div><span>Puesta en marcha (una vez; incluida con pago anual)</span><b>${eurI(puesta)}</b></div>` : ''}
-        <div><span>IVA 21 %</span><b>${eurI(iva)}</b></div>
-        <div class="pgtot"><span>${!conSus ? 'Primer cobro' : baja ? 'Importe desde el ' + esc(fin) : 'Nuevo importe'}</span><b>${eurI(base + puesta + iva)}</b></div></div>
-      <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>Cancelar</button>
-        <button class="btn" id="pgok">${!conSus ? 'Ir al pago seguro' : baja ? 'Programar el cambio' : 'Confirmar el cambio'}</button></div>`;
-    $('dbody').querySelectorAll('[data-pgp]').forEach(b => b.onclick = () => { est.plan = b.dataset.pgp; pinta(); });
-    $('dbody').querySelectorAll('[data-pga]').forEach(b => b.onclick = () => { est.pago = b.dataset.pga; pinta(); });
-    $('pgusu').onchange = () => { est.usuarios = Math.max(3, usados, Math.floor(+$('pgusu').value || 0)); pinta(); };
-    $('pgok').onclick = async ev => {
-      const d = await pagoLlamar({ accion: conSus ? 'cambiar' : 'checkout', plan: est.plan, pago: est.pago, usuarios: est.usuarios }, ev.target);
-      if (!d) return;
-      if (d.url) { location.href = d.url; return; }
-      $('dlg').close();
-      if (d.previsto) { toast(`Cambio programado para el ${fechaCorta(d.previsto)}`); await pagoCargarEstado(); if (TAB === 'plan' || TAB === 'organizacion' || TAB === 'config') ir(TAB); return; }
-      toast('Cambio hecho: en unos segundos verás el plan nuevo'); pagoEsperarActivo();
-    };
-  };
-  pinta(); $('dlg').showModal();
-};
 
 // «Plan y suscripción»: cambio previsto (con «Anular el cambio»), baja pedida y compromiso de A medida
 pintarPaginaPlan = (orig => async function (...a) {

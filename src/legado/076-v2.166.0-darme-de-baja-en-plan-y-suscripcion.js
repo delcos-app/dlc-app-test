@@ -198,13 +198,6 @@ PANEL_SECCIONES.splice(5, 0, ['pd-estado', 'estado', 'Estado de la plataforma', 
 
 
 
-entrarEnOrganizacion = async function (o) {
-  if (!await preguntar(`Vas a ver la plataforma como ${o.nombre}: sus datos, su configuración y su plan. Lo que cambies se guarda en su empresa y queda registrado. Para volver, «Salir» en la franja de arriba.`, { titulo: 'Entrar en ' + o.nombre, ok: 'Entrar' })) return;
-  const { data: r } = await db.rpc('entrar_organizacion', { p_org: o.id });
-  if (!r || !r.ok) { toast(r && r.motivo === 'permiso' ? 'Solo el Administrador de delcos puede entrar' : 'No se ha podido entrar', true); return; }
-  prepararCambioOrg(o.nombre);
-  location.reload();
-};
 document.addEventListener('click', ev => { if (ev.target.closest('#orgvistasal')) prepararCambioOrg('Panel delcos'); }, true);
 (function terminarCambioOrg() {
   let destino = null; try { destino = sessionStorage.getItem('dlc-cambio-org'); } catch (e) {}
@@ -242,7 +235,7 @@ db.functions.invoke = (orig => async function (fn, op, ...a) {
 // (v2.183.0: aquí iba la primera versión de pintarProximoRecibo; se redefine entera más abajo)
 pintarPaginaPlan = (orig => async function (...a) { const r = await orig.apply(this, a); try { pintarProximoRecibo(); } catch (e) {} return r; })(pintarPaginaPlan);
 
-pintarProximoRecibo = function () {
+function pintarProximoReciboBase() {
   const c = $('cfgcuerpo'), pl = PLAN_ACTUAL || {}, h = c && c.querySelector('#planact h2');
   if (!h) return;
   // La cuota del plan, también con IVA
@@ -269,5 +262,5 @@ pintarProximoRecibo = function () {
   el.dataset.origen = s && s.total != null ? 'stripe' : 'calculo';
   // La fecha ya la dice el aviso: fuera la línea suelta «Próximo recibo el …»
   c.querySelectorAll('#planact > p.sm').forEach(p => { if (/^Próximo recibo el /.test(p.textContent.trim())) p.remove(); });
-};
+}
 

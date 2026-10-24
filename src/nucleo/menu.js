@@ -316,3 +316,127 @@ const MOV_BARRA_DEF = ['inicio', 'agenda', 'rutas', 'directorio'];
 const MENU_FUERA = ['usuarios'];
 
 let FAB_RZ = 0;
+
+function menuPersonalizarBase() {
+  let caja = $('mlpanel'); if (caja) { if (caja.__cerrar) caja.__cerrar(); else caja.remove(); return; }
+  const prefs0 = PERFIL.preferencias, p = menuPrefs();
+  const estado = { orden: menuGrupos().filter(g => g.id !== 'otros').map(g => g.id), items: {}, ocultos: [...(p.ocultos || [])] };
+  menuGrupos().forEach(g => { estado.items[g.id] = [...g.items]; });
+  const boton = k => document.querySelector(`#nav button[data-t="${k}"]`);
+  const nombre = k => { const b = boton(k); return b ? (b.dataset.tip || (b.querySelector('.mllab') || b).textContent.trim()) : ''; };
+  const icono = k => { const b = boton(k), s = b && b.querySelector('svg'); return s ? s.outerHTML : ''; };
+  const disponible = k => { const b = boton(k); return !!b && k !== 'seguimiento' && k !== 'inicio' && !b.classList.contains('hide') && (b.classList.contains('mloculto') || getComputedStyle(b).display !== 'none'); };
+  const tit = id => (MENU_GRUPOS.find(x => x.id === id) || { t: 'Otros' }).t;
+  const bloques = () => estado.orden.filter(id => (estado.items[id] || []).some(disponible));
+  // Vista previa: el menú se monta con lo que hay en el panel; al cerrar sin guardar vuelve a lo guardado
+  const previa = () => {
+    PERFIL.preferencias = Object.assign({}, prefs0 || {}, { menu: Object.assign({}, ((prefs0 || {}).menu) || {}, { orden: [...estado.orden], items: JSON.parse(JSON.stringify(estado.items)), ocultos: [...estado.ocultos] }) });
+    MENU_FIRMA = ''; montarMenuLateral();
+  };
+  let guardado = false;
+  const fuera = ev => { if (!ev.target.closest('#mlpanel, #mlpers')) cerrar(); };
+  const tecla = ev => { if (ev.key === 'Escape') { ev.preventDefault(); ev.stopPropagation(); cerrar(); } };
+  const cerrar = () => {
+    const c = $('mlpanel'); if (!c) return;
+    c.remove(); document.removeEventListener('click', fuera, true); document.removeEventListener('keydown', tecla, true);
+    if (!guardado) { PERFIL.preferencias = prefs0; MENU_FIRMA = ''; montarMenuLateral(); }
+    const b = $('mlpers'); if (b) b.focus();
+  };
+  document.body.insertAdjacentHTML('beforeend', '<div id="mlpanel" class="mlp2" role="dialog" aria-label="Personalizar menú"></div>');
+  caja = $('mlpanel'); caja.__cerrar = cerrar;
+  const asa = (txt, attrs) => `<button type="button" class="mlpasa" ${attrs} aria-label="Mover ${esc(txt)} (flechas arriba y abajo)" title="Arrastra para ordenar">${svgIco(ICON_NOM['grip-vertical'])}</button>`;
+  const pinta = foco => {
+    caja.innerHTML = `<div class="mlph"><div><b>Personalizar menú</b><span class="sm">Arrastra para ordenar y elige qué secciones ves. Solo cambia tu menú.</span></div>
+        <button type="button" class="x" id="mlpx" aria-label="Cerrar">✕</button></div>
+      ${boton('inicio') ? `<div class="mlpi mlpfijo"><span class="mlpico">${icono('inicio')}</span><span class="mlpn">${esc(nombre('inicio'))}</span><span class="sm">Siempre el primero</span></div>` : ''}
+      <div class="mlpl">${bloques().map(id => {
+        const its = estado.items[id].filter(disponible), vis = its.filter(k => !estado.ocultos.includes(k)).length;
+        return `<section class="mlpg" data-g="${id}">
+          <div class="mlpgh">${asa('el bloque ' + tit(id), `data-ag="${id}"`)}<b>${esc(tit(id))}</b><span class="mlpcnt">${vis} de ${its.length}</span></div>
+          <div class="mlpis">${its.map(k => { const on = !estado.ocultos.includes(k);
+            return `<div class="mlpi${on ? '' : ' off'}" data-k="${k}" data-g="${id}">${asa(nombre(k), `data-ak="${k}" data-g="${id}"`)}
+              <span class="mlpico">${icono(k)}</span><span class="mlpn">${esc(nombre(k))}</span>
+              <label class="vfswitch mini"><input type="checkbox" role="switch" data-vk="${k}" ${on ? 'checked' : ''} aria-label="Ver ${esc(nombre(k))} en el menú"><span class="sw"></span></label></div>`; }).join('')}</div></section>`; }).join('')}</div>
+      <div class="mlpacts"><button type="button" class="btn sec mlpdef" id="mlpdef">${svgIco(ICON_NOM['rotate-ccw'])} Restablecer</button><button type="button" class="btn" id="mlpok">Guardar</button></div>`;
+    if (foco) { const f = caja.querySelector(foco); if (f) f.focus(); }
+  };
+  // Mover un bloque entre bloques, o una sección dentro de su bloque
+  const moverBloque = (id, destino, antes) => {
+    if (id === destino) return; const o = estado.orden.filter(x => x !== id), i = o.indexOf(destino); o.splice(antes ? i : i + 1, 0, id); estado.orden = o;
+  };
+  const moverItem = (g, k, destino, antes) => {
+    if (k === destino) return; const l = estado.items[g].filter(x => x !== k), i = l.indexOf(destino); l.splice(antes ? i : i + 1, 0, k); estado.items[g] = l;
+  };
+  pinta(); previa();
+  caja.addEventListener('click', async e => {
+    if (e.target.closest('#mlpx')) { cerrar(); return; }
+    if (e.target.closest('#mlpdef')) { estado.orden = MENU_GRUPOS.map(x => x.id); MENU_GRUPOS.forEach(x => { estado.items[x.id] = [...x.items]; }); estado.ocultos = []; pinta(); previa(); return; }
+    const ok = e.target.closest('#mlpok');
+    if (ok) {
+      const prefs = Object.assign({}, prefs0 || {}, { menu: Object.assign({}, ((prefs0 || {}).menu) || {}, { orden: estado.orden, items: estado.items, ocultos: estado.ocultos }) });   // v2.336.0: conserva la barra del móvil
+      ok.disabled = true;
+      const { data, error } = await db.rpc('guardar_preferencias', { p: prefs });
+      ok.disabled = false;
+      if (error) { toast('No se ha podido guardar el menú', true); return; }
+      PERFIL.preferencias = data || prefs; guardado = true; cerrar(); MENU_FIRMA = ''; montarMenuLateral(); toast('Menú guardado');
+    }
+  });
+  caja.addEventListener('change', e => {
+    const v = e.target.closest('[data-vk]'); if (!v) return; const k = v.dataset.vk;
+    estado.ocultos = v.checked ? estado.ocultos.filter(x => x !== k) : [...new Set([...estado.ocultos, k])];
+    const fila = v.closest('.mlpi'); fila.classList.toggle('off', !v.checked);
+    const g = fila.closest('.mlpg'), its = estado.items[g.dataset.g].filter(disponible);
+    g.querySelector('.mlpcnt').textContent = `${its.filter(x => !estado.ocultos.includes(x)).length} de ${its.length}`;
+    previa();
+  });
+  // Teclado: con el foco en un asa, ↑ ↓ mueven
+  caja.addEventListener('keydown', e => {
+    const a = e.target.closest('.mlpasa'); if (!a || (e.key !== 'ArrowUp' && e.key !== 'ArrowDown')) return;
+    e.preventDefault(); const d = e.key === 'ArrowUp' ? -1 : 1;
+    if (a.dataset.ag) { const bs = bloques(), i = bs.indexOf(a.dataset.ag), o = bs[i + d]; if (!o) return; moverBloque(a.dataset.ag, o, d < 0); pinta(`[data-ag="${a.dataset.ag}"]`); }
+    else { const g = a.dataset.g, its = estado.items[g].filter(disponible), i = its.indexOf(a.dataset.ak), o = its[i + d]; if (!o) return; moverItem(g, a.dataset.ak, o, d < 0); pinta(`[data-ak="${a.dataset.ak}"]`); }
+    previa();
+  });
+  // Arrastrar y soltar, solo desde el asa: al pulsarla, su fila (o su bloque) pasa a ser arrastrable
+  let arr = null;
+  caja.addEventListener('pointerdown', e => {
+    caja.querySelectorAll('[draggable="true"]').forEach(x => x.removeAttribute('draggable'));
+    const a = e.target.closest('.mlpasa'); if (!a) return;
+    const el = a.dataset.ag ? a.closest('.mlpg') : a.closest('.mlpi'); if (el) el.setAttribute('draggable', 'true');
+  });
+  caja.addEventListener('dragstart', e => {
+    const el = e.target.closest('[draggable="true"]'); if (!el) { e.preventDefault(); return; }
+    arr = el.classList.contains('mlpi') ? { tipo: 'i', k: el.dataset.k, g: el.dataset.g, el } : { tipo: 'g', g: el.dataset.g, el };
+    e.dataTransfer.effectAllowed = 'move'; try { e.dataTransfer.setData('text/plain', arr.k || arr.g); } catch (er) {}
+    requestAnimationFrame(() => { if (arr) arr.el.classList.add('arrastrando'); });
+  });
+  const limpiar = () => caja.querySelectorAll('.soltar-antes, .soltar-despues').forEach(x => x.classList.remove('soltar-antes', 'soltar-despues'));
+  caja.addEventListener('dragover', e => {
+    if (!arr) return;
+    const dest = arr.tipo === 'i' ? e.target.closest(`.mlpi[data-g="${arr.g}"]`) : e.target.closest('.mlpg');
+    limpiar(); if (!dest || dest === arr.el) return;
+    e.preventDefault(); const r = dest.getBoundingClientRect();
+    dest.classList.add(e.clientY < r.top + r.height / 2 ? 'soltar-antes' : 'soltar-despues');
+  });
+  caja.addEventListener('drop', e => {
+    if (!arr) return; e.preventDefault();
+    const dest = caja.querySelector('.soltar-antes, .soltar-despues'); if (!dest) return;
+    const antes = dest.classList.contains('soltar-antes');
+    if (arr.tipo === 'i') moverItem(arr.g, arr.k, dest.dataset.k, antes); else moverBloque(arr.g, dest.dataset.g, antes);
+    arr = null; pinta(); previa();
+  });
+  caja.addEventListener('dragend', () => { arr = null; limpiar(); caja.querySelectorAll('.arrastrando').forEach(x => x.classList.remove('arrastrando')); });
+  setTimeout(() => { document.addEventListener('click', fuera, true); document.addEventListener('keydown', tecla, true); }, 0);
+  const f = caja.querySelector('.mlpasa'); if (f) f.focus();
+}
+
+function menuPersonalizar(...a) {
+  const r = menuPersonalizarBase.apply(this, a);
+  const caja = $('mlpanel');
+  if (caja && !caja.__candados) {
+    caja.__candados = true; personalizarCandados();
+    new MutationObserver(() => personalizarCandados()).observe(caja, { childList: true });
+    caja.addEventListener('change', () => personalizarCandados());
+  }
+  return r;
+}

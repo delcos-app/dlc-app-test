@@ -509,3 +509,175 @@ function plRecuento(sec, c) {
   const r = plRecuentoBase2.call(this, sec, c);
   return typeof r === 'string' ? r.replace(/\sid="cercacerrar"/g, ' data-cercavolver') : r;
 }
+
+function plSyncBase(tab) {
+  const sec = $('v-' + tab), c = plCfg(tab); if (!sec) return;
+  if (!c) {   // sección sin plantilla: fuera lo que se hubiera puesto
+    if (sec.classList.contains('plantilla')) { sec.classList.remove('plantilla'); sec.querySelectorAll(':scope > .plkpis, :scope > .pltool, .plmas').forEach(x => x.remove()); }
+    return;
+  }
+  const clave = PL_SECC[tab] ? PL_SECC[tab]() : tab;
+  sec.classList.add('plantilla'); sec.dataset.plsec = clave;
+  const sal = sec.querySelector(':scope > .saludo');
+  const acts = sal && sal.querySelector('.acts');
+  if (acts && !acts.querySelector('.plmas')) acts.insertAdjacentHTML('afterbegin', `<button type="button" class="btn sec chico plmas" aria-label="Más acciones" title="Más acciones">${plIco('ellipsis', '⋯')}</button>`);
+  const mas = acts && acts.querySelector('.plmas'); if (mas) { const no = !c.mas().length; if (mas.classList.contains('plno') !== no) mas.classList.toggle('plno', no); }
+  const nb = c.nuevo && c.nuevo();
+  if (nb && c.textoNuevo && !ES_MOVIL() && !nb.classList.contains('fab') && nb.textContent.trim() !== c.textoNuevo()) nb.innerHTML = plIco('plus') + ' ' + esc(c.textoNuevo());
+  if (nb && c.textoNuevo && ES_MOVIL() && !nb.dataset.plfab) { nb.dataset.plfab = '1'; nb.classList.add('fab'); nb.dataset.txt = c.textoNuevo(); nb.setAttribute('aria-label', c.textoNuevo()); nb.innerHTML = plIco('plus'); sec.appendChild(nb); }
+  // Móvil: un solo «+», el de la sección abierta (al cambiar de sección quedaba el de la anterior)
+  if (c.rejilla && ES_MOVIL()) {
+    const prim = [...sec.querySelectorAll(':scope > .saludo .acts > .btn:not(.sec):not(.htbtn), :scope > .fab')].find(b => /^\s*\+/.test(b.dataset.txt ? '+' : b.textContent) && (b.classList.contains('fab') ? b.dataset.plsec === clave || !b.dataset.plsec : true));
+    if (prim && !prim.classList.contains('fab')) { prim.dataset.txt = prim.textContent.replace('+', '').trim(); prim.classList.add('fab'); prim.setAttribute('aria-label', prim.dataset.txt); prim.innerHTML = plIco('plus'); sec.appendChild(prim); }
+    if (prim) { prim.dataset.plsec = clave; sec.querySelectorAll(':scope > .fab').forEach(f => { const fuera = f !== prim; if (f.classList.contains('plfuera') !== fuera) f.classList.toggle('plfuera', fuera); }); }
+  }
+  // Debajo de la cabecera (y de las pestañas, si las hay): la banda de indicadores y la barra
+  const ancla = sec.querySelector(':scope > .subnav') || sal;
+  let kp = sec.querySelector(':scope > .plkpis');
+  if (c.kpis || c.banda) {
+    if (!kp) { kp = document.createElement('div'); kp.className = 'plkpis' + (c.banda ? ' plbanda' : ''); if (c.kpis) kp.innerHTML = plKpisHtml(tab); }
+    if (!kp.isConnected) { if (ancla) ancla.after(kp); else sec.prepend(kp); }
+    if (c.kpis) { plCargarKpis(tab); kp.querySelectorAll('[data-plk]').forEach(b => { const on = c.kpiOn(b.dataset.plk); if (b.classList.contains('on') !== on) b.classList.toggle('on', on); }); }
+    if (c.banda) { const b = $(c.banda); if (b && b.parentElement !== kp) kp.appendChild(b); }
+  } else if (kp) kp.remove();
+  let tl = sec.querySelector(':scope > .pltool');
+  if (tl && tl.dataset.plsec !== clave) { tl.remove(); tl = null; }
+  if (!tl) { tl = document.createElement('div'); tl.className = 'pltool'; tl.dataset.plsec = clave; tl.innerHTML = plToolHtml(tab); }
+  if (!tl.isConnected) { const ref = sec.querySelector(':scope > .plkpis') || ancla; if (ref) ref.after(tl); else sec.prepend(tl); }
+  const qi = tl.querySelector('.plqi'); if (qi && document.activeElement !== qi && qi.value !== c.q()) qi.value = c.q();
+  tl.querySelectorAll('[data-plr]').forEach(b => {
+    const s = plSel(b.dataset.plr), w = s && s.closest('#fcomwrap');
+    const ver = !!s && !(w && w.classList.contains('hide')) && s.options.length > 1;
+    if (b.classList.contains('hide') === ver) b.classList.toggle('hide', !ver); if (!ver) return;
+    if (!b.dataset.plt) b.dataset.plt = plEtiq(b.dataset.plr);
+    const on = s.selectedIndex > 0 && !(b.dataset.plt === 'Periodo');
+    const txt = s.selectedIndex > 0 || b.dataset.plt === 'Periodo' ? `${b.dataset.plt}: ${s.options[s.selectedIndex].text.replace(/\s*\(\d[\d.]*\)\s*$/, '')}` : b.dataset.plt;
+    if (b.textContent !== txt) b.textContent = txt; if (b.classList.contains('on') !== on) b.classList.toggle('on', on);
+  });
+  const n = c.activos(), pn = tl.querySelector('.pln');
+  if (pn) { const v = String(n || ''); if (pn.textContent !== v) pn.textContent = v; if (pn.classList.contains('hide') !== !n) pn.classList.toggle('hide', !n); }
+  const pq = tl.querySelector('.plquitar'); if (pq && pq.classList.contains('hide') !== !n) pq.classList.toggle('hide', !n);
+  const cnt = tl.querySelector('.plcnt'), h = plRecuento(sec, c);
+  if (cnt && h && cnt.dataset.h !== h) { cnt.dataset.h = h; cnt.innerHTML = h; }
+  // Tabla y pie en una tarjeta; los totales, en la franja de resumen encima
+  const tb = c.tabla(), pie = c.pie();
+  if (tb && tb.parentElement && !tb.parentElement.classList.contains('pltab')) { const w = document.createElement('div'); w.className = 'pltab'; tb.before(w); w.appendChild(tb); if (pie) w.appendChild(pie); }
+  else if (tb && pie && pie.parentElement !== tb.parentElement) tb.parentElement.appendChild(pie);
+  const tab2 = tb && tb.closest('.pltab');
+  if (c.rejilla && tab2) {
+    sec.querySelectorAll('.kpis.vtot:not(.plres)').forEach(k => { if (k.closest('#v-' + tab) && !k.closest('.plkpis')) k.classList.add('plres'); });
+    if (c.despues) { const d = $(c.despues); if (d && tab2.nextElementSibling !== d) tab2.after(d); }
+  }
+  const cuerpo = c.cuerpo();
+  if (cuerpo) {
+    if (cuerpo.querySelector(':scope > .cargador')) {
+      if (cuerpo.__plUlt) { cuerpo.innerHTML = cuerpo.__plUlt; cuerpo.classList.add('platenua'); }
+      else if (tab === 'directorio') { cuerpo.innerHTML = plEsqueleto(tab, false); if (!$('thead').children.length) $('thead').innerHTML = plEsqueleto(tab, true).match(/<div class="plskh">[\s\S]*?<\/div>/)[0]; }
+      else cuerpo.innerHTML = plEsqueleto(tab, true);
+    } else if (c.conDatos(cuerpo)) { cuerpo.classList.remove('platenua'); cuerpo.__plUlt = cuerpo.innerHTML; }
+  }
+  const vc = tab === 'pacientes' && $('vcuerpo');
+  if (vc && !vc.children.length) vc.innerHTML = `<div class="panel plskpanel"><div class="pltab">${plEsqueleto(tab, true)}</div></div>`;
+  // Primera llegada de una pantalla en rejilla: mientras no hay tabla, su esqueleto debajo de la barra
+  if (c.rejilla && !sec.querySelector('.dgrid, .pltab, .vacio') && !sec.querySelector(':scope > .plskpanel')) tl.insertAdjacentHTML('afterend', `<div class="panel plskpanel"><div class="pltab">${plEsqueleto(tab, true)}</div></div>`);
+  if (sec.querySelector('.dgrid, .vacio')) sec.querySelectorAll(':scope > .plskpanel').forEach(x => x.remove());
+  if (c.card) sec.querySelectorAll('.dgrid > .dr:not([data-plc])').forEach(dr => {
+    dr.dataset.plc = '1'; const x = c.card(dr);
+    dr.insertAdjacentHTML('beforeend', `<span class="plcard"><b>${esc(x.a)}</b><span class="plc2">${esc(x.b)}</span><span class="plc3">${x.c}</span>${x.d ? `<span class="plc4">${esc(x.d)}</span>` : ''}</span>`);   // v2.316.0: tercera línea
+  });
+}
+
+// La barra y los clics usan la configuración de la sección abierta
+function plToolHtml(tab) {
+  const c = plCfg(tab);
+  return `<label class="plq">${plIco('search', '🔍')}<input type="search" class="plqi" placeholder="${esc(c.buscaTxt ? c.buscaTxt() : 'Buscar en ' + c.que())}" aria-label="${esc(c.buscaTxt ? c.buscaTxt() : 'Buscar en ' + c.que())}"></label>
+    <div class="plrap">${c.rapidos.map(([id, t]) => { t = t || plEtiq(id); return `<button type="button" class="plchip" data-plr="${esc(id)}" data-plt="${esc(t)}">${esc(t)}</button>`; }).join('')}</div>
+    <button type="button" class="plbtn chico plfil">${plIco('sliders-horizontal')}<span>Filtros</span><span class="pln hide"></span></button>
+    ${c.quitar ? `<button type="button" class="btn sec chico dang plquitar hide">${svgIco(ICON_NOM.x)} Eliminar filtros</button>` : ''}
+    <button type="button" class="plbtn chico plcol">${plIco('columns-3', 'table', 'list')}<span>Columnas</span></button>
+    ${c.mapa() ? `<button type="button" class="plbtn chico plic plmapa" title="Ver en el mapa" aria-label="Ver en el mapa">${plIco('map')}</button>` : ''}
+    <span class="plcnt"><i class="plsk" style="width:90px"></i></span>`;
+}
+
+// Antes de ajustar la plantilla, los bloques se convierten en tabla
+function plSyncBase2(tab) { if (BLQ[tab] && plCfg(tab)) blqConvertir(tab); return plSyncBase(tab); }
+
+// Las pestañas de las páginas (.pagtabs) van justo debajo de la cabecera: la banda y la barra, después de ellas
+function plSyncBase3(tab) {
+  const r = plSyncBase2(tab), sec = $('v-' + tab); if (!sec || !sec.classList.contains('plantilla')) return r;
+  const tabs = sec.querySelector(':scope > .pagtabs, :scope > .subnav'), kp = sec.querySelector(':scope > .plkpis'), tl = sec.querySelector(':scope > .pltool');
+  if (tabs && tl && (tabs.compareDocumentPosition(tl) & 2)) { const ref = kp || tl; ref.before(tabs); }
+  return r;
+}
+
+function plSyncBase4(tab) {
+  if (tab === 'ventas') { const sec = $('v-ventas'), k = PL_SECC.ventas(); if (sec && k) plAjenos(sec, k); }
+  return plSyncBase3(tab);
+}
+
+// ---- La barra tiene sus filtros rápidos desde el primer momento: mientras su desplegable no existe (Clientes lo crea al llegar
+// los datos), el filtro se ve con su nombre y en espera, en vez de aparecer después empujando el buscador
+function plSyncBase5(tab, ...x) {
+  const r = plSyncBase4.call(this, tab, ...x);
+  const sec = $('v-' + tab), c = plCfg(tab); if (!sec || !c || !c.rapidos) return r;
+  sec.querySelectorAll(':scope > .pltool [data-plr]').forEach(b => {
+    if (plSel(b.dataset.plr)) { if (b.classList.contains('plespera')) b.classList.remove('plespera'); return; }
+    const nom = (c.rapidos.find(x => x[0] === b.dataset.plr) || [])[1]; if (!nom) return;
+    if (b.classList.contains('hide')) b.classList.remove('hide');
+    if (!b.classList.contains('plespera')) b.classList.add('plespera');
+    if (b.textContent !== nom) b.textContent = nom;
+  });
+  return r;
+}
+
+// El filtro de bloques no desaparece: con un solo bloque se queda desactivado
+function plSyncBase6(tab, ...x) {
+  const r = plSyncBase5.call(this, tab, ...x);
+  if (!BLQ[tab]) return r;
+  const b = document.querySelector(`#v-${tab} > .pltool [data-plr="#plg-${tab}"]`), s = $('plg-' + tab);
+  if (b && s) {
+    const nada = s.options.length < 2;
+    if (nada && b.classList.contains('hide')) b.classList.remove('hide');
+    if (b.classList.contains('plnada') !== nada) b.classList.toggle('plnada', nada);
+    if (nada && b.textContent !== BLQ[tab].grupo) b.textContent = BLQ[tab].grupo;
+  }
+  return r;
+}
+
+/* ============================================================
+   v2.257.0 · Filtro por profesional en Clientes y uso de TomTom en el Panel delcos (pendientes repasados con Eric, 11/10/2026).
+   - Clientes: el filtro por profesional (al llegar desde su ficha) se aplicaba pero no se veía en la pantalla: ahora es un filtro
+     rápido marcado en la barra, con su «✕» para quitarlo. «Columnas» abría y cerraba el panel según estuviera: ahora siempre lo abre.
+   - Panel delcos → Estado de la plataforma: cuántas consultas de rutas (TomTom) se han hecho hoy frente al tope de todas las empresas,
+     en el mes, y por empresa frente a su cupo (rutas_uso_resumen, SQL 138).
+   ============================================================ */
+function plSyncBase7(tab, ...x) {
+  const r = plSyncBase6.call(this, tab, ...x);
+  if (tab !== 'pacientes') return r;
+  const rap = document.querySelector('#v-pacientes > .pltool .plrap'); if (!rap) return r;
+  let b = rap.querySelector('[data-plmed]');
+  if (!PAC.medico) { if (b) b.remove(); return r; }
+  const txt = `${TT('medico', 's', '', 'l', 'C')}: ${PAC.medicoNombre || '—'}`;
+  if (!b) { rap.insertAdjacentHTML('afterbegin', '<button type="button" class="plchip on plmed" data-plmed title="Quitar este filtro"><span></span><i aria-hidden="true">✕</i></button>'); b = rap.querySelector('[data-plmed]'); }
+  const s = b.querySelector('span'); if (s.textContent !== txt) s.textContent = txt;
+  return r;
+}
+
+// ---- Filtros rápidos que no desaparecen (aviso intermitente de la batería: en Contactos, en el móvil, un filtro aparecía tarde
+// cuando sus opciones llegaban después de entrar). Un filtro rápido cuyo desplegable aún no tiene opciones se ve desactivado en su
+// sitio, en vez de esconderse y aparecer luego empujando el buscador.
+function plSync(tab, ...x) {
+  const r = plSyncBase7.call(this, tab, ...x);
+  const sec = $('v-' + tab); if (!sec || !sec.classList.contains('plantilla')) return r;
+  sec.querySelectorAll(':scope > .pltool [data-plr]').forEach(b => {
+    const s = plSel(b.dataset.plr); if (!s || !s.options) return;
+    const w = s.closest('#fcomwrap'); if (w && w.classList.contains('hide')) return;
+    const nada = s.options.length <= 1;
+    if (nada) {
+      if (b.classList.contains('hide')) b.classList.remove('hide');
+      if (!b.classList.contains('plnada')) b.classList.add('plnada');
+      const t = b.dataset.plt || plEtiq(b.dataset.plr); if (t && b.textContent !== t) b.textContent = t;
+    } else if (b.classList.contains('plnada') && !(BLQ[tab] && b.dataset.plr === '#plg-' + tab)) b.classList.remove('plnada');
+  });
+  return r;
+}

@@ -56,47 +56,6 @@ function panelDeModuloBase(sec) {
 
 /* ---------------- VeriFactu: explicado y claro ---------------- */
 
-pintarVerifactu = async function () {
-  await cargarAjustes();
-  const v = Object.assign({ activo: false, modalidad: 'verifactu', entorno: 'pruebas' }, AJUSTES.verifactu || {});
-  const [{ data: cad }, { data: evs }] = await Promise.all([RPC_ORIG('verificar_cadena', {}), RPC_ORIG('eventos_facturacion_lista', { lim: 1 })]);
-  const c = cad || {}, ok = !c.rotas;
-  $('fcuerpo').innerHTML = `
-    <div class="vfhero ${v.activo ? 'on' : ''}">
-      <div class="vfico">🛡️</div>
-      <div><h2>VeriFactu ${v.activo ? '<span class="pill p-est">Activado</span>' : '<span class="pill p-per">Preparado · desactivado</span>'}</h2>
-        <p>Sistema de la Agencia Tributaria para que las facturas no se puedan alterar y se puedan verificar. La plataforma ya emite cada factura cumpliendo sus requisitos; solo falta conectar el envío cuando decidáis activarlo.</p></div></div>
-    <div class="vfpasos">
-      <div class="vfpaso hecho"><span>✓</span><b>1 · Facturas preparadas</b><em>Numeración sin huecos, facturas inalterables y rectificativas.</em></div>
-      <div class="vfpaso hecho"><span>✓</span><b>2 · Registro encadenado</b><em>${num(c.facturas || 0)} facturas con huella · ${ok ? 'cadena íntegra' : 'revisar desde ' + esc(c.primera_rota || '')}.</em></div>
-      <div class="vfpaso ${v.activo ? 'hecho' : ''}"><span>${v.activo ? '✓' : '3'}</span><b>3 · QR y leyenda</b><em>${v.activo ? 'Las facturas nuevas llevan QR y «VERI*FACTU».' : 'Se añaden al activarlo.'}</em></div>
-      <div class="vfpaso pend"><span>🔒</span><b>4 · Envío a Hacienda</b><em>Requiere el certificado digital de la empresa. Se configura al activarlo.</em></div>
-    </div>
-    <div class="vfgrid">
-      <div class="card vfcard"><h3>Qué hace cada factura</h3><ul class="manlist">
-        <li><span>🔢</span><span>Recibe el siguiente número de su serie: no puede haber huecos ni repetidos.</span></li>
-        <li><span>🔗</span><span>Guarda una <b>huella</b> que la encadena con la anterior: si alguien cambiara una factura, la cadena lo delataría.</span></li>
-        <li><span>🧾</span><span>No se puede modificar ni borrar: los errores se corrigen con una <b>rectificativa</b>.</span></li>
-        <li><span>📋</span><span>Todo queda en el <b>registro de eventos</b>: emisiones, cobros, envíos y cambios de configuración${evs && evs[0] ? ` (último: ${esc(evs[0].tipo)} el ${new Date(evs[0].fecha).toLocaleDateString('es-ES')})` : ''}.</span></li></ul></div>
-      <div class="card vfcard"><h3>Configuración</h3>
-        <label class="vfswitch"><input type="checkbox" id="vfa" ${v.activo ? 'checked' : ''}><span class="sw"></span>
-          <span><b>Activar VeriFactu</b><br><span class="sm">Las facturas nuevas llevarán el QR y la leyenda. Las ya emitidas no cambian.</span></span></label>
-        <label>Modalidad</label>
-        <div class="vfmodos">
-          <label class="vfmodo"><input type="radio" name="vfm" value="verifactu" ${v.modalidad === 'verifactu' ? 'checked' : ''}><b>VeriFactu</b><span>Cada factura se envía a Hacienda al emitirla. La más sencilla de mantener.</span></label>
-          <label class="vfmodo"><input type="radio" name="vfm" value="no_verifactu" ${v.modalidad === 'no_verifactu' ? 'checked' : ''}><b>No VeriFactu</b><span>Las facturas se firman y se guardan; Hacienda puede pedirlas cuando quiera.</span></label></div>
-        <label for="vfe">Entorno</label><select id="vfe"><option value="pruebas" ${v.entorno === 'pruebas' ? 'selected' : ''}>Pruebas de la Agencia Tributaria</option><option value="produccion" ${v.entorno === 'produccion' ? 'selected' : ''}>Producción</option></select>
-        <div class="acts" style="justify-content:flex-end"><button class="btn" id="vfok">Guardar</button></div></div>
-    </div>`;
-  $('vfok').onclick = async () => {
-    const nuevo = { activo: $('vfa').checked, modalidad: document.querySelector('[name=vfm]:checked').value, entorno: $('vfe').value };
-    if (nuevo.activo !== v.activo && !await preguntar(nuevo.activo ? 'Las facturas que se emitan a partir de ahora llevarán el QR y la leyenda VERI*FACTU. El envío a Hacienda necesitará el certificado de la empresa.' : 'Las facturas nuevas dejarán de llevar el QR. Las ya emitidas no cambian.',
-      { titulo: nuevo.activo ? '¿Activar VeriFactu?' : '¿Desactivar VeriFactu?', ok: nuevo.activo ? 'Activar' : 'Desactivar' })) return;
-    const { error } = await db.rpc('guardar_ajuste', { p_clave: 'verifactu', p_valor: nuevo });
-    if (error) { toast('No se ha podido guardar', true); return; }
-    AJUSTES.verifactu = nuevo; toast('Guardado · queda anotado en el registro'); pintarVerifactu();
-  };
-};
 
 /* ---------------- Manual: se explica antes de llevarte a ningún sitio ---------------- */
 

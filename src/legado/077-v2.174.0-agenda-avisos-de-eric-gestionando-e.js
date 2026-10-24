@@ -48,7 +48,7 @@ function explicarAvisoBase(inf) {
 
 /* v2.175.0 · Con pago anual, la tarjeta de la cuota enseña lo que se cobra (repaso de Web delcos): «2950 € · Al año, sin IVA · 3569,50 € con IVA»,
    igual que el aviso del recibo (antes, el equivalente mensual). */
-pintarProximoRecibo = (orig => function (...a) {
+function pintarProximoRecibo(...a) {
   const c = $('cfgcuerpo'), pl = PLAN_ACTUAL || {};
   if (c && pl.pago === 'anual' && pl.plan !== 'medida') c.querySelectorAll('#planact .kpi').forEach(k => {
     const sp = k.querySelector(':scope > span'), b = k.querySelector(':scope > b');
@@ -58,8 +58,8 @@ pintarProximoRecibo = (orig => function (...a) {
     const iv = k.querySelector('.kpiiva'); if (iv) iv.remove();
     k.insertAdjacentHTML('beforeend', `<span class="sm kpiiva">${eurW(base + ivaDe(base))} con IVA</span>`);
   });
-  return orig.apply(this, a);
-})(pintarProximoRecibo);
+  return pintarProximoReciboBase.apply(this, a);
+}
 
 /* v2.175.0 · Avisos de «Tu día» que ayudan (aviso de Eric: «Llegarías hacia las 06:26 y la cita es a las 10:30» preparando el lunes). Si con el orden
    actual el día no cabe en la jornada (acaba después de la hora de vuelta o, sin ella, de las 21:00), un solo aviso arriba dice qué hacer («Ordenar
@@ -240,25 +240,5 @@ window.addEventListener('click', e => {
     .observe(caja, { childList: true, subtree: true });
 })();
 
-geocodificar = async function (q, o = {}) {
-  const base = 'https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=5&countrycodes=es&';
-  const pide = async qs => { try { const r = await fetch(base + qs); return r.ok ? await r.json() : []; } catch (e) { return []; } };
-  const muni = normGeo(o.municipio);
-  const lugar = x => { const a = (x && x.address) || {}; return a.city || a.town || a.village || a.municipality || a.suburb || a.county || ''; };
-  const cuadra = x => {
-    if (!muni) return true;
-    const a = (x && x.address) || {};
-    return [a.city, a.town, a.village, a.municipality, a.city_district, a.county].some(c => { const n = normGeo(c); return n && (n === muni || n.includes(muni) || muni.includes(n)); });
-  };
-  let l = await pide('q=' + encodeURIComponent(q));
-  let r = l.find(cuadra);
-  if (!r && muni && o.direccion) {
-    const l2 = await pide(`street=${encodeURIComponent(o.direccion)}&city=${encodeURIComponent(o.municipio)}${o.cp ? '&postalcode=' + encodeURIComponent(o.cp) : ''}`);
-    r = l2.find(cuadra); if (!l.length) l = l2;
-  }
-  if (r) return r;
-  if (muni && l.length) return Object.assign({}, l[0], { fuera: lugar(l[0]) || 'otro sitio' });
-  return l[0] || null;
-};
 
 

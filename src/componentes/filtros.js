@@ -435,3 +435,20 @@ function htPreparar(sec, ...r) {
   sec.querySelectorAll('.dgrid').forEach(g => { const n = g.querySelectorAll(':scope > .dr').length; if (g.dataset.htn != n) { g.dataset.htn = n; htOrdenarFilas(g); } });
   return x;
 }
+
+function htAplicarFiltros(g) {
+  const st = HT_ESTADO[htTipo(g)] || { texto: '', facetas: {} };
+  const t = htNorm(st.texto || ''), fac = Object.entries(st.facetas || {}).filter(([, v]) => v), ran = Object.entries(st.rangos || {}).filter(([, r]) => r.d || r.h);
+  g.querySelectorAll(':scope > .dr').forEach(f => {
+    const celdas = [...f.children];
+    const ok = (!t || htNorm(f.textContent).includes(t))
+      && fac.every(([i, v]) => celdas[i] && htNorm(celdas[i].textContent).includes(htNorm(v)))
+      && ran.every(([i, r]) => {
+        const v = htValor(celdas[i] && celdas[i].textContent), x = r.k === 'fecha' ? v.f : v.n;
+        if (x == null) return false;
+        const d = r.k === 'fecha' ? r.d : (r.d === '' || r.d == null ? null : +r.d), h = r.k === 'fecha' ? r.h : (r.h === '' || r.h == null ? null : +r.h);
+        return (d == null || d === '' || x >= d) && (h == null || h === '' || x <= h);
+      });
+    f.classList.toggle('htfuera', !ok);
+  });
+}

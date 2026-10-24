@@ -1,10 +1,6 @@
 let PLANT_ELEGIDA = { pago: null, factura: null }, PDF_ELEGIDO = null, PDF_EDITANDO = null;
 
 
-facturaPDF = (orig => function (f, rn, cfg, ...a) {
-  if (!cfg && PDF_ELEGIDO && PDF_ELEGIDO !== listaPDF().defecto) cfg = cfgDePlantilla(PDF_ELEGIDO);
-  return orig.call(this, f, rn, cfg, ...a);
-})(facturaPDF);
 // «Diseño del PDF»: barra de plantillas. Guardar un diseño que no es el de por defecto lo guarda en su plantilla (no en factura_pdf).
 const RPC_V2342 = db.rpc;
 db.rpc = function (fn, params, ...a) {

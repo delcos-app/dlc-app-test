@@ -1570,3 +1570,98 @@ async function pintarTuDiaBase3(...a) {
 }
 
 async function pintarTuDia(...x) { const r = await pintarTuDiaBase3.apply(this, x); tdPlegarTareas(); return r; }
+
+// Menú «⋯» de la cita
+function menuCitaBase(boton, c) {
+  document.querySelectorAll('.tdmenu').forEach(m => m.remove());
+  const abierta = CITA_ABIERTA.includes(c.estado);
+  const ops = [
+    abierta ? ['hora', c.hora ? 'Cambiar la hora' : 'Fijar una hora', ''] : null,
+    abierta ? ['aplazar', 'Aplazar a otro día', 'Queda como aplazada y se crea la cita nueva'] : null,
+    abierta && c.estado === 'Planificada' ? ['confirmar', 'Marcar como confirmada', 'Ya has confirmado la cita'] : null,
+    abierta && c.estado === 'Confirmada' ? ['desconfirmar', 'Quitar la confirmación', ''] : null,
+    abierta ? ['descartar', 'Descartar la cita', 'Ya no hace falta ir'] : null,
+    abierta && c.fecha >= hoyISO() ? ['borrar', 'Eliminar la cita', 'Fue un error: desaparece de la agenda'] : null   // v2.273.0
+  ].filter(Boolean);
+  if (!ops.length) { toast('Esta cita ya está cerrada'); return; }
+  const m = document.createElement('div');
+  m.className = 'tdmenu'; m.__t = Date.now();
+  m.innerHTML = ops.map(([k, t, s]) => `<button data-tdop="${k}" class="${k === 'descartar' || k === 'borrar' ? 'peligro' : ''}"><b>${esc(t)}</b>${s ? `<span>${esc(s)}</span>` : ''}</button>`).join('');
+  document.body.appendChild(m);
+  const r = boton.getBoundingClientRect();
+  m.style.top = Math.min(window.innerHeight - m.offsetHeight - 10, r.bottom + 6) + 'px';
+  m.style.left = Math.max(10, Math.min(window.innerWidth - m.offsetWidth - 10, r.right - m.offsetWidth)) + 'px';
+  m.querySelectorAll('[data-tdop]').forEach(b => b.onclick = () => { m.remove(); accionCita(b.dataset.tdop, c); });
+}
+
+/* v2.185.0 · Citas aplazadas sin duplicar y fechas en el móvil (avisos de Eric):
+   1. Una cita aplazada o descartada de hoy en adelante tiene en «⋯» (y en su detalle) «Volver a planificarla» (reabrir_cita, SQL 116: vuelve a
+      Planificada y quita la cita que se creó al aplazarla). Volver a poner una cita ese día reutiliza la aplazada (aplazar_cita y guardar_cita).
+   2. En pantallas táctiles los campos de fecha y hora son `inert`: no pueden tomar el foco, así que iOS ya no abre su rueda (lo hacía cuando la
+      ventana enfocaba el campo al abrirse y cuando el calendario de delcos le devolvía el foco al elegir el día). El toque lo recoge el envoltorio. */
+function menuCita(boton, c) {
+  if (CITA_ABIERTA.includes(c.estado) || !['Aplazada', 'Descartada'].includes(c.estado) || c.fecha < hoyISO()) return menuCitaBase.call(this, boton, c);
+  document.querySelectorAll('.tdmenu').forEach(m => m.remove());
+  const m = document.createElement('div');
+  m.className = 'tdmenu'; m.__t = Date.now();
+  m.innerHTML = `<button data-tdop="rehacer"><b>Volver a planificarla</b><span>Vuelve a este día${c.estado === 'Aplazada' ? '; si la pasaste a otro, esa se quita' : ''}</span></button>`;
+  document.body.appendChild(m);
+  const r = boton.getBoundingClientRect();
+  m.style.top = Math.min(window.innerHeight - m.offsetHeight - 10, r.bottom + 6) + 'px';
+  m.style.left = Math.max(10, Math.min(window.innerWidth - m.offsetWidth - 10, r.right - m.offsetWidth)) + 'px';
+  m.querySelector('[data-tdop]').onclick = () => { m.remove(); accionCita('rehacer', c); };
+}
+
+// Cambiar la hora: la cita se coloca por su hora entre las demás (y se guarda ese orden)
+async function cambiarHoraCita(id, hora) {
+  const h = await appVentana({ titulo: 'Hora de la cita', ok: 'Guardar', campo: { valor: hora || '', tipo: 'time' } });
+  if (h === null) return;
+  const { error } = await db.from('agenda').update({ hora: h || null }).eq('id', id);
+  if (error) { toast('No se ha podido: ' + error.message, true); return; }
+  toast('Hora actualizada');
+  const u = TD_ULTIMO && TD_ULTIMO.fecha === AG_FECHA ? TD_ULTIMO.data : null;
+  if (TAB !== 'agenda' || !agUnida() || !u || !u.some(c => c.id === id)) { agRefrescoQuieto(id, { cifras: false }); return; }
+  const data = u.map(c => c.id === id ? Object.assign({}, c, { hora: h || null }) : c);
+  const mia = c => c.usuario_id === agUid(), abierta = c => mia(c) && CITA_ABIERTA.includes(c.estado);
+  const ab = data.filter(abierta), yo = ab.find(c => c.id === id);
+  let orden = ab;
+  if (yo && h) {
+    const hh = c => c.hora ? String(c.hora).slice(0, 5) : null;
+    const resto = ab.filter(c => c.id !== id);
+    let i = resto.findIndex(c => hh(c) && hh(c) > h);
+    if (i < 0) { i = 0; resto.forEach((c, k) => { if (hh(c) && hh(c) <= h) i = k + 1; }); }
+    resto.splice(i, 0, yo); orden = resto;
+  }
+  const cambia = orden.some((c, k) => c.id !== ab[k].id);
+  const nueva = cambia ? [...data.filter(c => mia(c) && !abierta(c)), ...orden, ...data.filter(c => !mia(c))] : data;
+  await repintarDiaSuave(id, nueva);
+  if (cambia && !(await guardarOrden(orden))) agRefrescoQuieto(id);
+}
+
+// ---- Elegir otro día: todo lo que cambia (Tu día, bandejas, cinta, «Tu semana», la semana abierta) aparece a la vez
+async function agVerDia(f) {
+  document.querySelectorAll('.agpop').forEach(x => x.remove());
+  cerrarMesCinta();
+  if (!f) return;
+  if (!agN()) { AG_MODO = 'dia'; AG_FECHA = f; return cargarAgenda(); }
+  const antes = AG_FECHA || f; AG_FECHA = f;
+  const c = $('agcuerpo'); if (c) c.classList.add('agcargando');
+  const fuera = !CINTA_INI || f < CINTA_INI || f > diasMas(CINTA_INI, 13); if (fuera) CINTA_INI = lunesCinta(f);
+  const otraSem = lunesDe(f) !== lunesDe(antes);
+  let s = null;
+  try {
+    await agConDatos([...agDiaCargas(f), agSugDatos(f).then(x => { s = x; }), ...(fuera ? agCintaCargas() : []), ...agSemCargas(f)], async () => {
+      if (AG_FECHA !== f || !agN()) return;
+      agPonerSug(f, s);
+      const piezas = [pintarTuDia(), agSemanaLateral()];
+      if (fuera || (otraSem && AG_SEM_ABIERTA)) piezas.push(agCinta());
+      await Promise.all(piezas);
+      if (!fuera) document.querySelectorAll('#agcinta .cdia').forEach(x => x.classList.toggle('sel', x.dataset.cf === f));
+      agMarcarDia(); agDiaVacio(); agPastillas();
+    });
+  } finally { const cc = $('agcuerpo'); if (cc) cc.classList.remove('agcargando'); }
+  if (AG_FECHA !== f) return;
+  const cc = $('agcuerpo'); if (!cc) return;
+  const top = cc.getBoundingClientRect().top;
+  if (top < 80 || top > innerHeight * 0.6) scrollTo({ top: scrollY + top - 90, behavior: 'smooth' });
+}

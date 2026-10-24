@@ -9,8 +9,6 @@ Object.keys(BLQ).forEach(tab => {
     activos: () => { const sec = $('v-' + tab); return (PLG[tab] ? 1 : 0) + (sec ? sec.querySelectorAll('.htchips .htchip').length : 0); } }) };
 });
 
-// Antes de ajustar la plantilla, los bloques se convierten en tabla
-plSync = (orig => function (tab) { if (BLQ[tab] && plCfg(tab)) blqConvertir(tab); return orig(tab); })(plSync);
 document.addEventListener('click', e => {
   const k = e.target.closest('main > section.plantilla [data-plg]'); if (!k) return;
   const tab = k.closest('section').id.slice(2); PLG[tab] = PLG[tab] === k.dataset.plg ? '' : k.dataset.plg; blqFiltrar(tab); plSync(tab);
@@ -18,12 +16,5 @@ document.addEventListener('click', e => {
 Object.keys(BLQ).forEach(plObservar);
 ir = (orig => function (t, ...a) { const r = orig.call(this, t, ...a); if (PL[t]) { plVigilar(t); setTimeout(() => plVigilar(t), 0); } return r; })(ir);
 Object.keys(PL).forEach(plVigilar);
-// Las pestañas de las páginas (.pagtabs) van justo debajo de la cabecera: la banda y la barra, después de ellas
-plSync = (orig => function (tab) {
-  const r = orig(tab), sec = $('v-' + tab); if (!sec || !sec.classList.contains('plantilla')) return r;
-  const tabs = sec.querySelector(':scope > .pagtabs, :scope > .subnav'), kp = sec.querySelector(':scope > .plkpis'), tl = sec.querySelector(':scope > .pltool');
-  if (tabs && tl && (tabs.compareDocumentPosition(tl) & 2)) { const ref = kp || tl; ref.before(tabs); }
-  return r;
-})(plSync);
 
 

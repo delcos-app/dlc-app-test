@@ -690,3 +690,28 @@ async function anCargarKpis(...a) {
   if (TAB === 'analitica') tvTarjeta(d);
   return res;
 }
+
+async function pintarResumenAnalitica() {
+  const cuerpo = $('anres'); if (!cuerpo) return;
+  if (!COMS.length && VE_TODO()) await cargarComerciales();
+  AN_CFG = anConfig();
+  document.querySelectorAll('#v-analitica .htpropios [data-anp="resumen"]').forEach(x => x.remove());   // los de un pintado anterior
+  cuerpo.innerHTML = `<div class="filtros" id="anfil"><div id="anper" data-anp="resumen"></div>
+      <div data-anp="resumen"><label for="ancomp">Comparar con</label><select id="ancomp">
+        <option value="anterior" ${AN_CFG.comp === 'anterior' ? 'selected' : ''}>El periodo anterior</option>
+        <option value="anio" ${AN_CFG.comp === 'anio' ? 'selected' : ''}>El mismo periodo del año pasado</option></select></div>
+      ${VE_TODO() ? `<div data-anp="resumen"><label for="anrep">Reporte</label><select id="anrep"><option value="">Todos</option><option value="si" ${AN_REP === 'si' ? 'selected' : ''}>Reportados</option><option value="no" ${AN_REP === 'no' ? 'selected' : ''}>Sin reportar</option></select></div>` : ''}</div>
+    <p class="sm anresumen" id="anresumen"></p>
+    <div id="ankpis" hidden></div>
+    <div id="anareas"><div class="ankgrid">${Array.from({ length: 4 }, () => '<div class="ankpi"><div class="skel" style="width:60%"></div><div class="skel" style="width:40%;height:24px"></div></div>').join('')}</div></div>
+    <div class="angrid" id="angraf"></div>`;
+  const pinta = () => {
+    const r = $('anper').__rango(), hasta = r.hasta || hoyISO(), desde = r.desde || isoMas(hasta, -364);
+    anCargarKpis(); anGraficos(desde, hasta);
+  };
+  montarPeriodo($('anper'), { id: 'analitica-resumen', valor: 'anio', alCambiar: pinta });
+  $('ancomp').onchange = async () => { AN_CFG.comp = $('ancomp').value; await anGuardar(AN_CFG); anCargarKpis(); };
+  if ($('anrep')) $('anrep').onchange = () => { AN_REP = $('anrep').value; anCargarKpis(); };   // v2.329.0
+  pinta();
+  anMoverFiltros();
+}

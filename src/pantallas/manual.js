@@ -223,3 +223,12 @@ async function cargarManual(...a) {
   }
   return r;
 }
+
+function abrirManual(ancla) {
+  guardarVocabManual();
+  MANUAL_DESTINO = ancla || '';
+  window.MANUAL_ULTIMA = 'manual/index.html' + (ancla ? '#' + ancla : '');
+  const f = $('manlibro');
+  if (TAB === 'manual' && f) { try { f.contentWindow.location.hash = ancla || 'portada'; } catch (e) {} return; }
+  ir('manual');
+}

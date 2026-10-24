@@ -1758,3 +1758,38 @@ async function cargarRutasPaso2Base2(...a) {
 }
 
 function cargarRutasPaso2(...a) { if (RN) return; return cargarRutasPaso2Base2.apply(this, a); }
+
+async function cargarRutasBase() {
+  const v = $('v-rutas');
+  if (RN) return rnPintar();
+  const { data: rutas } = await db.rpc('rutas_visibles');
+  RUTAS = rutas || [];
+  const lista = await Promise.all(RUTAS.map(async r => ({ r, ms: await rnMiembros(r) })));
+  RN_LISTA = lista;
+  v.innerHTML = `
+    <div class="saludo"><div><h1>Rutas</h1><div class="fecha">Tus rutas: créalas paso a paso, revísalas y pásalas a tu agenda</div></div>
+      <div class="acts" style="margin:0"><button class="btn" id="rnueva">+ Nueva ruta</button></div></div>
+    <div class="rngrid" id="rngrid">${lista.map(({ r, ms }, i) => {
+      const rep = r.repeticion || null, f = rnFechaRef(rep, r.nombre), h = rnHoras(ms, f, r.salida, r.vuelta, r.fijas), prox = rnProxima(rep);
+      const paradas = new Set(ms.filter(m => m.lat != null).map(m => (+m.lat).toFixed(5) + ',' + (+m.lon).toFixed(5))).size;
+      return `<article class="rncard" data-rni="${i}"><div class="rncro">${rnCroquis(ms)}<span class="rndia">${esc(rnCuando(rep))}</span></div>
+        <div class="rntx"><b>${esc(r.nombre)}</b>
+          <span class="sm">${num(ms.length)} ${ms.length === 1 ? TT('medico', 's', '', 'l', 'l') : TT('medico', 'p', '', 'l', 'l')} · ${paradas} ${paradas === 1 ? 'parada' : 'paradas'}${h.km >= 1 ? ' · ' + Math.round(h.km) + ' km' : ''}</span>
+          <span class="sm">${ms.length ? `De ${r.salida ? String(r.salida).slice(0, 5) : '09:00'} a ${hm(h.fin)}` : 'Todavía sin nadie'}${prox ? ` · próxima: ${esc(fechaCorta(prox))}` : ''}${r.mia ? '' : ' · de ' + esc(r.duenyo || '')}</span></div>
+        <div class="rnacts"><button class="btn chico" type="button" data-rnag="${i}">Pasar a mi agenda</button>
+          ${r.mia || puede('administrar') ? `<button class="btn sec chico" type="button" data-rned="${i}">${rnSV(RN_IC.lapiz)} Editar</button>
+          <button class="btn sec chico rnico" type="button" data-rnbor="${i}" aria-label="Eliminar ${esc(r.nombre)}" title="Eliminar">${rnSV(RN_IC.papelera)}</button>` : `<button class="btn sec chico" type="button" data-rnver="${i}">Ver</button>`}</div></article>`; }).join('')}
+      <button class="rnnueva" type="button" id="rnnueva2"><span><span class="mas">+</span><b>Nueva ruta</b><span class="sm">${lista.length ? 'Elige a quién vas a ver y en qué orden' : `Tu primera ruta: elige a quién vas a ver, el orden y cuándo. La app calcula las horas.`}</span></span></button></div>
+    <div id="rcuerpo" hidden></div><div id="rplan"></div>`;
+  $('rnueva').onclick = $('rnnueva2').onclick = () => rnAbrir(null);
+  v.querySelectorAll('[data-rned]').forEach(b => b.onclick = () => rnAbrir(lista[+b.dataset.rned], 3));
+  v.querySelectorAll('[data-rnver]').forEach(b => b.onclick = () => rnAbrir(lista[+b.dataset.rnver], 3));
+  v.querySelectorAll('[data-rnag]').forEach(b => b.onclick = () => rnPasarAgenda(lista[+b.dataset.rnag], b));
+  v.querySelectorAll('[data-rnbor]').forEach(b => b.onclick = async () => {
+    const { r } = lista[+b.dataset.rnbor];
+    if (!await preguntar(`Se elimina «${r.nombre}». Las citas que ya están en tu agenda no se borran.`, { titulo: '¿Eliminar la ruta?', ok: 'Eliminar', peligro: true })) return;
+    const { error } = await db.rpc('guardar_ruta', { p: { id: r.id, activa: false } });
+    if (error) { toast('No se ha podido eliminar', true); return; }
+    toast('Ruta eliminada'); invalidarCache(); cargarRutas();
+  });
+}

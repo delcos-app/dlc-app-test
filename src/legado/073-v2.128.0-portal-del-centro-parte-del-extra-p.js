@@ -176,28 +176,6 @@ colocarIndPruebas();
    - «Por hacer» de pedidos: título que dice algo, cada persona elige qué avisos ve y descarta los sueltos; la administración puede
      fijar por rol los que son obligatorios (no se ocultan ni se descartan). */
 
-// Menú «⋯» de la cita
-menuCita = function (boton, c) {
-  document.querySelectorAll('.tdmenu').forEach(m => m.remove());
-  const abierta = CITA_ABIERTA.includes(c.estado);
-  const ops = [
-    abierta ? ['hora', c.hora ? 'Cambiar la hora' : 'Fijar una hora', ''] : null,
-    abierta ? ['aplazar', 'Aplazar a otro día', 'Queda como aplazada y se crea la cita nueva'] : null,
-    abierta && c.estado === 'Planificada' ? ['confirmar', 'Marcar como confirmada', 'Ya has confirmado la cita'] : null,
-    abierta && c.estado === 'Confirmada' ? ['desconfirmar', 'Quitar la confirmación', ''] : null,
-    abierta ? ['descartar', 'Descartar la cita', 'Ya no hace falta ir'] : null,
-    abierta && c.fecha >= hoyISO() ? ['borrar', 'Eliminar la cita', 'Fue un error: desaparece de la agenda'] : null   // v2.273.0
-  ].filter(Boolean);
-  if (!ops.length) { toast('Esta cita ya está cerrada'); return; }
-  const m = document.createElement('div');
-  m.className = 'tdmenu'; m.__t = Date.now();
-  m.innerHTML = ops.map(([k, t, s]) => `<button data-tdop="${k}" class="${k === 'descartar' || k === 'borrar' ? 'peligro' : ''}"><b>${esc(t)}</b>${s ? `<span>${esc(s)}</span>` : ''}</button>`).join('');
-  document.body.appendChild(m);
-  const r = boton.getBoundingClientRect();
-  m.style.top = Math.min(window.innerHeight - m.offsetHeight - 10, r.bottom + 6) + 'px';
-  m.style.left = Math.max(10, Math.min(window.innerWidth - m.offsetWidth - 10, r.right - m.offsetWidth)) + 'px';
-  m.querySelectorAll('[data-tdop]').forEach(b => b.onclick = () => { m.remove(); accionCita(b.dataset.tdop, c); });
-};
 
 document.addEventListener('click', e => {
   if (e.target.closest('nav.main [data-t], #bnav [data-t], [data-bm]')) { IR_DESDE_MENU = true; setTimeout(() => { IR_DESDE_MENU = false; }, 0); }
@@ -215,52 +193,54 @@ Object.assign(ICO_NAV, { oportunidades: 'phone', compras: 'clipboard-list', prov
 (() => { const g = MENU_GRUPOS.find(x => x.id === 'ventas'); if (!g) return; ['proveedores', 'compras', 'oportunidades'].forEach(k => { if (!g.items.includes(k)) g.items.splice(g.items.indexOf('ventas') + 1, 0, k); }); })();
 setTimeout(() => { try { menuPedidos2139(); } catch (e) {} }, 0);
 
-pintarOperativa = async function () {
+async function pintarOperativa() {
   let c = $('operativa');
-  if (!c) { const ref = $('vcuerpo'); if (!ref) return; ref.insertAdjacentHTML('beforebegin', '<div class="card" id="operativa"></div>'); c = $('operativa'); }
-  const [{ data }, { data: aj }, { data: desc }] = await Promise.all([RPC_ORIG('operativa_pendiente', {}),
-    db.from('ajustes').select('valor').eq('clave', 'avisos_pedidos').maybeSingle(), RPC_ORIG('mis_alertas_descartadas', {})]);
-  if (!$('operativa')) return;
+  if (!c) { const ref = $('vcuerpo'); if (!ref) return; ref.insertAdjacentHTML('beforebegin', '<div id="operativa"></div>'); c = $('operativa'); }
+  const [{ data }, { data: aj }] = await Promise.all([RPC_ORIG('operativa_pendiente', {}),
+    db.from('ajustes').select('valor').eq('clave', 'avisos_pedidos').maybeSingle()]);
+  c = $('operativa'); if (!c) return;
+  c.className = 'pkop';
+  document.querySelectorAll('#opcfg').forEach(x => x.remove());
   const d = data || {}, oblig = (((aj && aj.valor) || {}).obligatorios || {})[PERFIL.rol] || [];
   const pref = ((PERFIL.preferencias || {}).avisos_pedidos) || {};
-  const fuera = new Set((desc || []).map(x => x.clave));
-  const vis = AVISOS_PED.filter(([k]) => oblig.includes(k) || pref[k] !== false);
-  const de = k => (d[k] || []).filter(p => oblig.includes(k) || !fuera.has(`op:${k}:${p.id}`));
-  const tot = vis.reduce((n, [k]) => n + de(k).length, 0);
-  c.innerHTML = `<div class="fh"><h2>${tot ? `${num(tot)} ${tot === 1 ? 'aviso' : 'avisos'} de pedidos` : 'Pedidos al día'}</h2>
-      <button type="button" class="btn sec" id="opcfg" aria-label="Elegir qué avisos ver" title="Elegir qué avisos ver">${svgIco(ICON_NOM.settings || '')}</button></div>
-    ${!vis.length ? '<div class="sm" style="padding:0 16px 12px">Has ocultado todos los avisos de pedidos. Vuelve a elegirlos con el engranaje.</div>'
-      : tot ? `<div class="opgrid">${vis.map(([k, t, ic]) => `<details class="opcol"><summary><b>${num(de(k).length)}</b> ${ic} ${t}</summary>
-        <div class="lista">${de(k).slice(0, 30).map(p => `<div class="item opit" style="padding:6px 8px"><button type="button" class="tx" data-opped="${p.id}"><b>${esc(p.cliente)}</b>
-          <span class="sm">${esc(p.numero || 'Sin número')} · ${fechaCorta(p.fecha)}${verImportes() ? ' · ' + eurI(p.total || 0) : ''}${p.forma_pago ? ' · ' + esc(p.forma_pago) : ''}</span></button>
-          ${oblig.includes(k) ? '' : `<button type="button" class="x opx" data-opx="${k}|${p.id}" aria-label="Quitar este aviso" title="Quitar este aviso">✕</button>`}</div>`).join('') || '<div class="sm">Nada pendiente.</div>'}</div></details>`).join('')}</div>`
-      : '<div class="vacio" style="padding:10px 16px">Nada pendiente: todo cobrado, paquetes preparados y correos enviados.</div>'}`;
-  c.querySelectorAll('[data-opped]').forEach(b => b.onclick = () => verPedido(b.dataset.opped));
-  c.querySelectorAll('[data-opx]').forEach(b => b.onclick = async () => {
-    const [k, id] = b.dataset.opx.split('|'), p = (d[k] || []).find(x => x.id === id) || {};
-    await db.rpc('descartar_alerta', { p_clave: `op:${k}:${id}`, p_dias: null, p_titulo: (AVISOS_PED.find(x => x[0] === k) || [])[1] || 'Aviso de pedido', p_detalle: `${p.cliente || ''} · ${p.numero || ''}` });
-    pintarOperativa();
+  const vis = PK_TARJ.filter(([k]) => oblig.includes(k) || pref[k] !== false);
+  const hoy = hoyISO(), dia = x => String(x.fecha || '').slice(0, 10);
+  const barras = l => { const m = {}; l.forEach(x => { m[dia(x)] = (m[dia(x)] || 0) + 1; }); return [...Array(10)].map((_, i) => m[isoMas(hoy, i - 9)] || 0); };
+  const antig = l => l.length ? Math.max(0, ...l.map(x => Math.round((new Date(hoy) - new Date(dia(x))) / 864e5))) : 0;
+  const hace = n => n === 0 ? 'de hoy' : n === 1 ? 'de ayer' : `de hace ${num(n)} días`;
+  const frase = (k, l) => {
+    if (!l.length) return k === 'pago' ? 'Todo cobrado' : k === 'paquete' ? 'Todo preparado' : 'Todas enviadas';
+    const ant = `el más antiguo, ${hace(antig(l))}`;
+    if (k === 'pago' && verImportes()) return `<b>${eurI(l.reduce((a, x) => a + (+x.total || 0), 0))}</b> por cobrar · ${ant}`;
+    return ant.charAt(0).toUpperCase() + ant.slice(1);
+  };
+  const gear = `<button type="button" class="pkcfg" id="opcfg" aria-label="Elegir qué avisos ver" title="Elegir qué avisos ver">${svgIco(ICON_NOM.settings || '')}</button>`;
+  c.innerHTML = !vis.length
+    ? `<div class="pkvacio">Has ocultado los avisos de pedidos. Vuelve a elegirlos con el engranaje. ${gear}</div>`
+    : `<div class="pk">${vis.map(([k, f, t, ic]) => {
+        const l = d[k] || [], b = barras(l), mx = Math.max(1, ...b), alta = k === 'pago' && l.length;
+        return `<button type="button" class="pkt ${alta ? 'alta' : ''}" data-pk="${f}" aria-pressed="false" ${l.length ? '' : 'data-cero'}>
+          <span class="pkfil">Filtrando</span><span class="pktt">${svgIco(ICON_NOM[ic] || ICON_NOM.info || '')} ${t}</span>
+          <span class="pkn" data-v="${l.length}">${num(l.length)}</span><span class="pks">${frase(k, l)}</span>
+          <span class="pkbars" aria-hidden="true">${b.map((n, i) => `<i class="${i === 9 ? 'u' : pkLibre(isoMas(hoy, i - 9)) ? 'fin' : ''}" style="height:${n ? Math.max(14, 100 * n / mx) : 6}%"></i>`).join('')}</span>
+          <span class="pkdias">${b.map((n, i) => pkDia(isoMas(hoy, i - 9), n, i === 9)).join('')}</span>
+          <span class="pklg">Entrada de los últimos 10 días</span></button>`; }).join('')}${gear}</div>`;
+  c.querySelectorAll('[data-pk]').forEach(b => b.onclick = () => {
+    const s = $('popf'); if (!s) return;
+    s.value = s.value === b.dataset.pk ? '' : b.dataset.pk; s.dispatchEvent(new Event('change', { bubbles: true }));
+    pkMarcar();
   });
+  // El engranaje, junto a «Filtros y columnas» de la cabecera (si está a la vista)
+  const hb = document.querySelector('#v-ventas .htbtn'), g = $('opcfg');
+  if (hb && hb.offsetParent && g && vis.length) { g.className = 'btn sec pkcfg pkcfgcab'; hb.insertAdjacentElement('beforebegin', g); }
   $('opcfg').onclick = () => configurarAvisosPedidos(oblig);
-};
+  pkMarcar();
+  pkContar([...c.querySelectorAll('.pkn[data-v]')], n => num(Math.round(n)));
+}
 /* v2.140.0 · «Filtros y columnas» en la cabecera de cada pantalla, en la misma fila que la acción principal («+ Nueva venta»,
    «+ Nuevo producto»…), a su derecha (decisión de Eric, 3/10/2026: misma posición en todas las
    pantallas). Va el último por la derecha, para caer siempre en el mismo sitio aunque cambie la acción principal o no la haya. Antes iba en la barra de la tabla
    (v2.57.0) y en cada pantalla caía en un sitio distinto. */
-ordenarBotones = function (sec) {
-  // Cabecera: secundarios → acción principal → «Filtros y columnas» (el último: el mismo sitio en todas las pantallas)
-  sec.querySelectorAll('.saludo .acts, #dircab .acts').forEach(acts => {
-    const bs = [...acts.children].filter(b => b.matches('button, a.btn, select'));
-    const vista = b => b.dataset && b.dataset.ag && b.dataset.ag !== 'nueva';
-    const peso = b => (b.classList.contains('htbtn') || b.id === 'dirtools') ? 4
-      : (b.matches('.btn:not(.sec)') && !b.classList.contains('icobtn') && !b.classList.contains('iniact') && !vista(b)) ? 3 : b.matches('select') ? 0 : 1;
-    const orden = [...bs].sort((a, c) => peso(a) - peso(c));
-    if (orden.some((b, i) => b !== bs[i])) orden.forEach(b => acts.appendChild(b));
-    const dt = acts.querySelector(':scope > #dirtools'), h = acts.querySelector(':scope > .ai-hueco');
-    if (dt && h && h.nextElementSibling !== dt) acts.insertBefore(h, dt);
-    acts.querySelectorAll(':scope > .ai-dir').forEach(x => x.remove());
-  });
-};
 const BARRA_TABLA_V257 = barraTabla;
 barraTabla = function (sec) {
   // v2.142.0: también en el móvil (antes quedaba una fila casi vacía solo para el botón en Compras, Proveedores, Productos…)

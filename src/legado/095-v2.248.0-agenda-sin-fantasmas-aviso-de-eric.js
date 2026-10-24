@@ -18,33 +18,6 @@ rpcCache = (orig => function (fn, params, clave, ...x) {
 
 
 
-// ---- Elegir otro día: todo lo que cambia (Tu día, bandejas, cinta, «Tu semana», la semana abierta) aparece a la vez
-agVerDia = async function (f) {
-  document.querySelectorAll('.agpop').forEach(x => x.remove());
-  cerrarMesCinta();
-  if (!f) return;
-  if (!agN()) { AG_MODO = 'dia'; AG_FECHA = f; return cargarAgenda(); }
-  const antes = AG_FECHA || f; AG_FECHA = f;
-  const c = $('agcuerpo'); if (c) c.classList.add('agcargando');
-  const fuera = !CINTA_INI || f < CINTA_INI || f > diasMas(CINTA_INI, 13); if (fuera) CINTA_INI = lunesCinta(f);
-  const otraSem = lunesDe(f) !== lunesDe(antes);
-  let s = null;
-  try {
-    await agConDatos([...agDiaCargas(f), agSugDatos(f).then(x => { s = x; }), ...(fuera ? agCintaCargas() : []), ...agSemCargas(f)], async () => {
-      if (AG_FECHA !== f || !agN()) return;
-      agPonerSug(f, s);
-      const piezas = [pintarTuDia(), agSemanaLateral()];
-      if (fuera || (otraSem && AG_SEM_ABIERTA)) piezas.push(agCinta());
-      await Promise.all(piezas);
-      if (!fuera) document.querySelectorAll('#agcinta .cdia').forEach(x => x.classList.toggle('sel', x.dataset.cf === f));
-      agMarcarDia(); agDiaVacio(); agPastillas();
-    });
-  } finally { const cc = $('agcuerpo'); if (cc) cc.classList.remove('agcargando'); }
-  if (AG_FECHA !== f) return;
-  const cc = $('agcuerpo'); if (!cc) return;
-  const top = cc.getBoundingClientRect().top;
-  if (top < 80 || top > innerHeight * 0.6) scrollTo({ top: scrollY + top - 90, behavior: 'smooth' });
-};
 
 
 

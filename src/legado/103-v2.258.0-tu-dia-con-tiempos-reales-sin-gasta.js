@@ -22,24 +22,6 @@ function estimarDia(citas, fecha, ...x) {
   return estimarDiaBase2.call(this, citas, fecha, ...x);
 }
 
-// ---- Filtros rápidos que no desaparecen (aviso intermitente de la batería: en Contactos, en el móvil, un filtro aparecía tarde
-// cuando sus opciones llegaban después de entrar). Un filtro rápido cuyo desplegable aún no tiene opciones se ve desactivado en su
-// sitio, en vez de esconderse y aparecer luego empujando el buscador.
-plSync = (orig => function (tab, ...x) {
-  const r = orig.call(this, tab, ...x);
-  const sec = $('v-' + tab); if (!sec || !sec.classList.contains('plantilla')) return r;
-  sec.querySelectorAll(':scope > .pltool [data-plr]').forEach(b => {
-    const s = plSel(b.dataset.plr); if (!s || !s.options) return;
-    const w = s.closest('#fcomwrap'); if (w && w.classList.contains('hide')) return;
-    const nada = s.options.length <= 1;
-    if (nada) {
-      if (b.classList.contains('hide')) b.classList.remove('hide');
-      if (!b.classList.contains('plnada')) b.classList.add('plnada');
-      const t = b.dataset.plt || plEtiq(b.dataset.plr); if (t && b.textContent !== t) b.textContent = t;
-    } else if (b.classList.contains('plnada') && !(BLQ[tab] && b.dataset.plr === '#plg-' + tab)) b.classList.remove('plnada');
-  });
-  return r;
-})(plSync);
 
 
 

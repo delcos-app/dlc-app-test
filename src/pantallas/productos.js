@@ -847,3 +847,18 @@ function editorProducto(p, ...r) {
   }, 0);
   return x;
 }
+
+function productoPorDefecto() {
+  const lista = PRODUCTOS.filter(p => p.tipo !== 'servicio' && vendible(p));
+  const hab = localStorage.getItem('dlc-prod-habitual');
+  return (lista.find(p => p.id === hab) || lista[0] || {}).id || '';
+}
+
+function opcionesProducto(id, nombre) {
+  // En los pedidos solo aparecen los productos activos (y el que ya tuviera la línea)
+  const lista = PRODUCTOS.filter(p => (p.tipo !== 'servicio' && vendible(p)) || p.id === id);
+  const falta = id && !lista.some(p => p.id === id);
+  return (falta ? `<option value="${id}" selected>${esc(nombre || 'Producto del pedido')}</option>` : '') +
+    lista.map(p => `<option value="${p.id}" ${p.id === id ? 'selected' : ''}>${esc(p.nombre)}${vendible(p) ? '' : ' (' + esc(p.estado.toLowerCase()) + ')'}</option>`).join('')
+    || '<option value="">Sin productos activos</option>';
+}

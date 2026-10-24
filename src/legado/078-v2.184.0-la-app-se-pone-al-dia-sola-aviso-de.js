@@ -1,23 +1,6 @@
 document.addEventListener('visibilitychange', () => { if (!document.hidden) comprobarVersion(); });
 setInterval(comprobarVersion, 10 * 60 * 1000);
 
-/* v2.185.0 · Citas aplazadas sin duplicar y fechas en el móvil (avisos de Eric):
-   1. Una cita aplazada o descartada de hoy en adelante tiene en «⋯» (y en su detalle) «Volver a planificarla» (reabrir_cita, SQL 116: vuelve a
-      Planificada y quita la cita que se creó al aplazarla). Volver a poner una cita ese día reutiliza la aplazada (aplazar_cita y guardar_cita).
-   2. En pantallas táctiles los campos de fecha y hora son `inert`: no pueden tomar el foco, así que iOS ya no abre su rueda (lo hacía cuando la
-      ventana enfocaba el campo al abrirse y cuando el calendario de delcos le devolvía el foco al elegir el día). El toque lo recoge el envoltorio. */
-menuCita = (orig => function (boton, c) {
-  if (CITA_ABIERTA.includes(c.estado) || !['Aplazada', 'Descartada'].includes(c.estado) || c.fecha < hoyISO()) return orig.call(this, boton, c);
-  document.querySelectorAll('.tdmenu').forEach(m => m.remove());
-  const m = document.createElement('div');
-  m.className = 'tdmenu'; m.__t = Date.now();
-  m.innerHTML = `<button data-tdop="rehacer"><b>Volver a planificarla</b><span>Vuelve a este día${c.estado === 'Aplazada' ? '; si la pasaste a otro, esa se quita' : ''}</span></button>`;
-  document.body.appendChild(m);
-  const r = boton.getBoundingClientRect();
-  m.style.top = Math.min(window.innerHeight - m.offsetHeight - 10, r.bottom + 6) + 'px';
-  m.style.left = Math.max(10, Math.min(window.innerWidth - m.offsetWidth - 10, r.right - m.offsetWidth)) + 'px';
-  m.querySelector('[data-tdop]').onclick = () => { m.remove(); accionCita('rehacer', c); };
-})(menuCita);
 
 // Fechas y horas en pantallas táctiles: sin foco, sin selector del sistema
 const PANTALLA_TACTIL = !!(window.matchMedia && matchMedia('(pointer: coarse)').matches);
@@ -46,31 +29,6 @@ async function repintarDiaSuaveBase(id, data) {
   window.scrollTo({ top: y });
 }
 
-// Cambiar la hora: la cita se coloca por su hora entre las demás (y se guarda ese orden)
-cambiarHoraCita = async function (id, hora) {
-  const h = await appVentana({ titulo: 'Hora de la cita', ok: 'Guardar', campo: { valor: hora || '', tipo: 'time' } });
-  if (h === null) return;
-  const { error } = await db.from('agenda').update({ hora: h || null }).eq('id', id);
-  if (error) { toast('No se ha podido: ' + error.message, true); return; }
-  toast('Hora actualizada');
-  const u = TD_ULTIMO && TD_ULTIMO.fecha === AG_FECHA ? TD_ULTIMO.data : null;
-  if (TAB !== 'agenda' || !agUnida() || !u || !u.some(c => c.id === id)) { agRefrescoQuieto(id, { cifras: false }); return; }
-  const data = u.map(c => c.id === id ? Object.assign({}, c, { hora: h || null }) : c);
-  const mia = c => c.usuario_id === agUid(), abierta = c => mia(c) && CITA_ABIERTA.includes(c.estado);
-  const ab = data.filter(abierta), yo = ab.find(c => c.id === id);
-  let orden = ab;
-  if (yo && h) {
-    const hh = c => c.hora ? String(c.hora).slice(0, 5) : null;
-    const resto = ab.filter(c => c.id !== id);
-    let i = resto.findIndex(c => hh(c) && hh(c) > h);
-    if (i < 0) { i = 0; resto.forEach((c, k) => { if (hh(c) && hh(c) <= h) i = k + 1; }); }
-    resto.splice(i, 0, yo); orden = resto;
-  }
-  const cambia = orden.some((c, k) => c.id !== ab[k].id);
-  const nueva = cambia ? [...data.filter(c => mia(c) && !abierta(c)), ...orden, ...data.filter(c => !mia(c))] : data;
-  await repintarDiaSuave(id, nueva);
-  if (cambia && !(await guardarOrden(orden))) agRefrescoQuieto(id);
-};
 
 
 

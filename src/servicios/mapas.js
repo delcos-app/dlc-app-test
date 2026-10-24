@@ -139,3 +139,24 @@ const selectorNav = () => `<select id="navsel" title="Navegador de mapas" style=
 const normGeo = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().replace(/[^A-Z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
 
 async function rutasMapa(...a) { if (RN) return; const r = await rutasMapaBase.apply(this, a); const m = $('rmapa'), g = $('rngrid'); if (m && g && g.nextElementSibling !== m) { g.after(m); if (RM_MAPA) setTimeout(() => { try { RM_MAPA.resize(); } catch (e) {} }, 50); } return r; }
+
+async function geocodificar(q, o = {}) {
+  const base = 'https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=5&countrycodes=es&';
+  const pide = async qs => { try { const r = await fetch(base + qs); return r.ok ? await r.json() : []; } catch (e) { return []; } };
+  const muni = normGeo(o.municipio);
+  const lugar = x => { const a = (x && x.address) || {}; return a.city || a.town || a.village || a.municipality || a.suburb || a.county || ''; };
+  const cuadra = x => {
+    if (!muni) return true;
+    const a = (x && x.address) || {};
+    return [a.city, a.town, a.village, a.municipality, a.city_district, a.county].some(c => { const n = normGeo(c); return n && (n === muni || n.includes(muni) || muni.includes(n)); });
+  };
+  let l = await pide('q=' + encodeURIComponent(q));
+  let r = l.find(cuadra);
+  if (!r && muni && o.direccion) {
+    const l2 = await pide(`street=${encodeURIComponent(o.direccion)}&city=${encodeURIComponent(o.municipio)}${o.cp ? '&postalcode=' + encodeURIComponent(o.cp) : ''}`);
+    r = l2.find(cuadra); if (!l.length) l = l2;
+  }
+  if (r) return r;
+  if (muni && l.length) return Object.assign({}, l[0], { fuera: lugar(l[0]) || 'otro sitio' });
+  return l[0] || null;
+}

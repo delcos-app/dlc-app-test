@@ -33,17 +33,6 @@ ir = (orig => function (t) {
 })(ir);
 
 // 4. Pestañas y cambios de vista dentro de una pantalla: la vista anterior se queda fija hasta que la nueva está entera
-congelar = function (sec) {
-  if (!sec || sec.classList.contains('hide') || document.querySelector('.congelada')) return;
-  const r = sec.getBoundingClientRect(); if (r.height < 40) return;
-  const t0 = Date.now() - 2;   // el momento del clic: cuentan todas las consultas que lance
-  const c = sec.cloneNode(true); c.removeAttribute('id'); c.querySelectorAll('[id]').forEach(e => e.removeAttribute('id'));
-  c.classList.add('congelada'); c.classList.remove('cargando', 'cargando-pend', 'preparando');
-  Object.assign(c.style, { position: 'absolute', left: (r.left + scrollX) + 'px', top: (r.top + scrollY) + 'px', width: r.width + 'px', margin: 0, pointerEvents: 'none', zIndex: 40, background: 'var(--bg, #F3F8FC)' });
-  document.body.appendChild(c); sec.style.minHeight = r.height + 'px';
-  // Se espera a que empiece el cambio (el clic lanza la carga justo después) y a que termine
-  setTimeout(() => estable(sec, 3000, t0).then(() => { c.remove(); requestAnimationFrame(() => { sec.style.minHeight = ''; }); }), 0);
-};
 
 // 5. Ventanas: su contenido aparece entero, no bloque a bloque
 ['dlg', 'ficha', 'dlg2'].forEach(id => {

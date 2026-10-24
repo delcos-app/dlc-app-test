@@ -5,11 +5,6 @@ function panelColumnas(titulo, cols, alCambiar) {
   return panelColumnasBase2(titulo, cols.filter(c => !(cab[c.i] && cab[c.i].classList.contains('cpcol'))), alCambiar);
 }
 
-/* ---------- Cuentas: la sección va en su panel de filtros, con sus columnas ---------- */
-// Todos los campos pueden ser columna; de entrada se ven los que tienen «Columna en la tabla»
-camposEnDirectorio = function () {
-  (CAMPOS.medico || []).forEach(c => { if (!COLS.some(x => x.k === 'cp:' + c.clave)) COLS.push({ k: 'cp:' + c.clave, t: c.nombre, w: 150 }); });
-};
 function abrirHerramientas(ctx, ...r) {
   const x = abrirHerramientasBase3(ctx, ...r);
   const d = $('tools'), z = d.querySelector('.tfcampos');
@@ -33,6 +28,5 @@ $('chips').addEventListener('click', e => {
   if (z && $('tools').classList.contains('abierto')) clasPintar(z, 'medico', F.campos, () => buscar(true), () => buscar(true), 'h3');
 });
 // Los filtros de siempre ya están en la sección Clasificadores
-camposFiltros = () => '';
 ['directorio', 'pacientes', 'ventas', 'productos'].forEach(k => { if (AYUDA[k]) AYUDA[k][2].push('En <b>Filtros y columnas → Clasificadores</b> filtras por los campos propios de esta pantalla y eliges cuáles ver como columna. Con pocos valores se eligen de una lista; con muchos, se escribe y se busca.'); });
 

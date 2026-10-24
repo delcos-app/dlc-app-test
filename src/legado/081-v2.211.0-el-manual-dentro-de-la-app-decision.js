@@ -1,11 +1,3 @@
-abrirManual = function (ancla) {
-  guardarVocabManual();
-  MANUAL_DESTINO = ancla || '';
-  window.MANUAL_ULTIMA = 'manual/index.html' + (ancla ? '#' + ancla : '');
-  const f = $('manlibro');
-  if (TAB === 'manual' && f) { try { f.contentWindow.location.hash = ancla || 'portada'; } catch (e) {} return; }
-  ir('manual');
-};
 ponerAyudaManual = (orig => function () { if (TAB === 'manual') return; return orig.apply(this, arguments); })(ponerAyudaManual);
 
 pintarSinAtribuir = (orig => async function (...a) {

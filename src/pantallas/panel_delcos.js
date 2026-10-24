@@ -534,3 +534,11 @@ function orgAcciones(c, l) {
   });
   return r;
 }
+
+async function entrarEnOrganizacion(o) {
+  if (!await preguntar(`Vas a ver la plataforma como ${o.nombre}: sus datos, su configuración y su plan. Lo que cambies se guarda en su empresa y queda registrado. Para volver, «Salir» en la franja de arriba.`, { titulo: 'Entrar en ' + o.nombre, ok: 'Entrar' })) return;
+  const { data: r } = await db.rpc('entrar_organizacion', { p_org: o.id });
+  if (!r || !r.ok) { toast(r && r.motivo === 'permiso' ? 'Solo el Administrador de delcos puede entrar' : 'No se ha podido entrar', true); return; }
+  prepararCambioOrg(o.nombre);
+  location.reload();
+}

@@ -175,3 +175,5 @@ function areaEncajeBase() {
 
 // Mientras se abre una ficha, no se encaja en la página
 function areaEncaje(...a) { return FX_FICHA ? null : areaEncajeBase.apply(this, a); }
+
+async function ventanaCargando(fn) { const d = $('dlg'); d.classList.add('cargando'); try { return await fn(); } finally { d.classList.remove('cargando'); } }
