@@ -1,6 +1,6 @@
 /* Capítulos del manual de delcos. Los que tienen «archivo» ya están escritos; el resto sale como «en preparación». */
 window.MANUAL = {
-  version: 13,
+  version: 14,
   capitulos: [
     { id: 'tu-dia', t: 'Tu día', d: 'Inicio, la Agenda con «Tu día», tareas y citas, y las Rutas', archivo: 'capitulos/tu-dia.html' },
     { id: 'visita', t: 'La visita y lo común', d: 'Registrar la visita, muestras, ciclo A/B/C, intervenciones, buscador, menús, avisos y trabajar sin conexión', archivo: 'capitulos/visita.html' },

@@ -4838,7 +4838,9 @@ html body :is(.fvdonde,.pill,.chip):empty{display:none}
 #v-config .marcaprev img{width:84px;height:84px}
 .cfucab{position:relative}
 .cfucab > .cfuacts{position:absolute;right:0;top:22px;margin:0;display:flex;gap:8px}
-@media (max-width:760px){.cfucab > .cfuacts{position:static;margin-top:10px}}
+/* v2.376.0 (D-042): con los botones de la página en la cabecera, el título y su texto les dejan sitio a la derecha */
+@media (min-width:761px){.cfucab:has(> .cfuacts){padding-right:300px}}
+@media (max-width:760px){.cfucab > .cfuacts{position:static;margin-top:10px;justify-content:flex-end}}
 /* v2.353.0: la actividad del periodo en el portal */
 #v-informe .pmact{margin:16px 0 0;display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px}
 #v-informe .pmact .btn{margin-left:auto}
@@ -5054,6 +5056,6 @@ try{var co=sessionStorage.getItem('dlc-cambio-org');if(co!==null||localStorage.g
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.375.0"></script>
+<script src="./app.js?v=2.376.0"></script>
 </body>
 </html>
