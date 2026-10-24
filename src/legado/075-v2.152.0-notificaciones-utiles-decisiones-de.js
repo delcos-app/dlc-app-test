@@ -242,11 +242,7 @@ async function pagoCargarEstado() {
     } else if (++n > 90) clearInterval(t);
   }, 1500);
 })();
-// En solo lectura, los fallos al guardar se explican (y no cuentan como errores de la plataforma)
-toast = (orig => function (msg, err) {
-  if (err && PAGO_ESTADO && PAGO_ESTADO.solo_lectura) msg = 'Tu empresa está en solo lectura hasta que se actualice el pago (Plan y suscripción)';
-  return orig.call(this, msg, err);
-})(toast);
+// En solo lectura, los fallos al guardar se explican (toast, en componentes/aviso.js) y no cuentan como errores de la plataforma
 registrarError = (orig => function (tipo, mensaje, detalle) {
   if (PAGO_ESTADO && PAGO_ESTADO.solo_lectura && /row-level security|violates row-level/i.test(String(mensaje))) return;
   return orig.call(this, tipo, mensaje, detalle);

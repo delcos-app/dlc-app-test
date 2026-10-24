@@ -4,11 +4,6 @@
 
 
 
-function toast(msg, err) {
-  const t = $('toast');
-  t.textContent = msg; t.className = 'toast' + (err ? ' err' : '');
-  clearTimeout(tToast); tToast = setTimeout(() => t.classList.add('hide'), 3200);
-}
 
 async function cargarCatalogos() {
   const claves = Object.keys(CAT);

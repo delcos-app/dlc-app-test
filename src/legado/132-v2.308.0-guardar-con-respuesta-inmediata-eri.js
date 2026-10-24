@@ -33,15 +33,5 @@ document.addEventListener('click', e => {
   setTimeout(mirar, 80);
 }, true);
 
-// v2.308.0 · El aviso, siempre por encima de todo (aviso de Eric: con una ventana o un panel abierto salía detrás, difuminado).
-// Las ventanas modales van en la capa superior del navegador, que ningún z-index supera: el aviso se abre también ahí
-// (popover manual) y, como se abre después, queda encima de la ventana y de su velo.
-toast = (orig => function (...a) {
-  const r = orig.apply(this, a), t = $('toast');
-  if (t && typeof t.showPopover === 'function') {
-    try { if (!t.hasAttribute('popover')) t.setAttribute('popover', 'manual'); if (t.matches(':popover-open')) t.hidePopover(); t.showPopover(); } catch (e) {}
-  }
-  return r;
-})(toast);
 new MutationObserver(ms => { if (ms.some(m => m.target.tagName === 'DIALOG' && m.target.open)) requestAnimationFrame(subirAviso); }).observe(document.body, { subtree: true, attributes: true, attributeFilter: ['open'] });
 

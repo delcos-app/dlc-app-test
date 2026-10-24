@@ -418,9 +418,9 @@ async function agMenusCinta() {
 // (sin escribir estados: se pregunta al propio menú si tiene algo que ofrecer)
 function citaConMenu(c) {
   if (CITA_ABIERTA.includes(c.estado)) return true;
-  const t0 = toast; let hay = false; toast = () => {};
+  let hay = false; AVISOS_MUDOS = true;   // sin avisos mientras se pregunta al menú
   try { menuCita(document.body, c); hay = !!document.querySelector('.tdmenu'); } catch (e) { hay = true; }
-  finally { toast = t0; document.querySelectorAll('.tdmenu').forEach(m => m.remove()); }
+  finally { AVISOS_MUDOS = false; document.querySelectorAll('.tdmenu').forEach(m => m.remove()); }
   return hay;
 }
 

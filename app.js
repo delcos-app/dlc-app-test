@@ -1797,8 +1797,33 @@ function avisoSinSalida(el) {
 function subirAviso() { const t = $('toast'); if (!t || t.classList.contains('hide') || typeof t.showPopover !== 'function' || !t.hasAttribute('popover')) return; try { if (t.matches(':popover-open')) t.hidePopover(); t.showPopover(); } catch (e) {} }
 
 let tToast;
+let AVISOS_MUDOS = false;   // true mientras se prueba algo que podría avisar sin que deba verse (citaConMenu)
 
 const avisoRevisita = () => Object.assign({ on: true, dias: 7 }, ((PERFIL.preferencias || {}).avisos || {}).revisita || {});
+
+/**
+ * Aviso de la esquina. Fundido de sus capas (R-12):
+ * - en solo lectura (empresa con el pago pendiente), un error se explica con ese motivo (v2.162.0);
+ * - entra deslizándose aunque sustituya a otro que sigue a la vista (un nodo nuevo repite la entrada) y se va desvaneciéndose (.sale,
+ *   260 ms) a los 3,2 s (v2.187.0);
+ * - siempre por encima de todo: las ventanas modales van en la capa superior del navegador, así que se abre también ahí como
+ *   «popover» manual, después de ellas (v2.308.0).
+ * @param {string} msg
+ * @param {boolean} [err]
+ */
+function toast(msg, err) {
+  if (AVISOS_MUDOS) return;
+  if (err && PAGO_ESTADO && PAGO_ESTADO.solo_lectura) msg = 'Tu empresa está en solo lectura hasta que se actualice el pago (Plan y suscripción)';
+  const v = $('toast');
+  if (!v) return;
+  const t = /** @type {HTMLElement} */ (v.cloneNode(true)); v.replaceWith(t);
+  t.textContent = msg; t.className = 'toast' + (err ? ' err' : '');
+  clearTimeout(tToast);
+  tToast = setTimeout(() => { t.classList.add('sale'); tToast = setTimeout(() => { t.classList.add('hide'); t.classList.remove('sale'); }, 260); }, 3200);
+  if (typeof t.showPopover === 'function') {
+    try { if (!t.hasAttribute('popover')) t.setAttribute('popover', 'manual'); if (t.matches(':popover-open')) t.hidePopover(); t.showPopover(); } catch (e) {}
+  }
+}
 // @ts-check
 // componentes/ayuda.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
@@ -3878,9 +3903,9 @@ async function agMenusCinta() {
 // (sin escribir estados: se pregunta al propio menú si tiene algo que ofrecer)
 function citaConMenu(c) {
   if (CITA_ABIERTA.includes(c.estado)) return true;
-  const t0 = toast; let hay = false; toast = () => {};
+  let hay = false; AVISOS_MUDOS = true;   // sin avisos mientras se pregunta al menú
   try { menuCita(document.body, c); hay = !!document.querySelector('.tdmenu'); } catch (e) { hay = true; }
-  finally { toast = t0; document.querySelectorAll('.tdmenu').forEach(m => m.remove()); }
+  finally { AVISOS_MUDOS = false; document.querySelectorAll('.tdmenu').forEach(m => m.remove()); }
   return hay;
 }
 
@@ -16111,11 +16136,6 @@ if ('serviceWorker' in navigator) {
 
 
 
-function toast(msg, err) {
-  const t = $('toast');
-  t.textContent = msg; t.className = 'toast' + (err ? ' err' : '');
-  clearTimeout(tToast); tToast = setTimeout(() => t.classList.add('hide'), 3200);
-}
 
 async function cargarCatalogos() {
   const claves = Object.keys(CAT);
@@ -25614,11 +25634,7 @@ async function pagoCargarEstado() {
     } else if (++n > 90) clearInterval(t);
   }, 1500);
 })();
-// En solo lectura, los fallos al guardar se explican (y no cuentan como errores de la plataforma)
-toast = (orig => function (msg, err) {
-  if (err && PAGO_ESTADO && PAGO_ESTADO.solo_lectura) msg = 'Tu empresa está en solo lectura hasta que se actualice el pago (Plan y suscripción)';
-  return orig.call(this, msg, err);
-})(toast);
+// En solo lectura, los fallos al guardar se explican (toast, en componentes/aviso.js) y no cuentan como errores de la plataforma
 registrarError = (orig => function (tipo, mensaje, detalle) {
   if (PAGO_ESTADO && PAGO_ESTADO.solo_lectura && /row-level security|violates row-level/i.test(String(mensaje))) return;
   return orig.call(this, tipo, mensaje, detalle);
@@ -26632,16 +26648,6 @@ cambiarHoraCita = async function (id, hora) {
   if (cambia && !(await guardarOrden(orden))) agRefrescoQuieto(id);
 };
 
-/* v2.187.0 · Avisos de la esquina (petición de Eric): entran deslizándose también cuando uno sustituye a otro que sigue a la vista (antes el
-   nuevo solo cambiaba el texto) y se van desvaneciéndose (.sale, 260 ms) en vez de desaparecer de golpe. */
-toast = (orig => function (msg, err) {
-  const r = orig.call(this, msg, err), v = $('toast');
-  if (!v) return r;
-  const t = v.cloneNode(true); t.classList.remove('sale'); v.replaceWith(t);   // un nodo nuevo vuelve a hacer la entrada aunque el anterior siga a la vista
-  clearTimeout(tToast);
-  tToast = setTimeout(() => { t.classList.add('sale'); tToast = setTimeout(() => { t.classList.add('hide'); t.classList.remove('sale'); }, 260); }, 3200);
-  return r;
-})(toast);
 
 tarjetaCentro = (orig => function (c, enlazado) {
   if (enlazado || !esConsultaPrivada(c)) return orig.call(this, c, enlazado);
@@ -30233,16 +30239,6 @@ document.addEventListener('click', e => {
   setTimeout(mirar, 80);
 }, true);
 
-// v2.308.0 · El aviso, siempre por encima de todo (aviso de Eric: con una ventana o un panel abierto salía detrás, difuminado).
-// Las ventanas modales van en la capa superior del navegador, que ningún z-index supera: el aviso se abre también ahí
-// (popover manual) y, como se abre después, queda encima de la ventana y de su velo.
-toast = (orig => function (...a) {
-  const r = orig.apply(this, a), t = $('toast');
-  if (t && typeof t.showPopover === 'function') {
-    try { if (!t.hasAttribute('popover')) t.setAttribute('popover', 'manual'); if (t.matches(':popover-open')) t.hidePopover(); t.showPopover(); } catch (e) {}
-  }
-  return r;
-})(toast);
 new MutationObserver(ms => { if (ms.some(m => m.target.tagName === 'DIALOG' && m.target.open)) requestAnimationFrame(subirAviso); }).observe(document.body, { subtree: true, attributes: true, attributeFilter: ['open'] });
 
 /* ============================================================
