@@ -76,7 +76,7 @@ function escGrupo(inp) {
 }
 async function cargarZXing() {
   if (window.ZXing) return window.ZXing;
-  await new Promise((ok, mal) => { const s = document.createElement('script'); s.src = 'https://unpkg.com/@zxing/library@0.21.3/umd/index.min.js'; s.crossOrigin = 'anonymous'; s.onload = ok; s.onerror = mal; document.head.appendChild(s); });
+  await new Promise((ok, mal) => { const s = document.createElement('script'); s.src = 'https://unpkg.com/@zxing/library@0.21.3/umd/index.min.js'; s.integrity = 'sha384-BzBxP10ZE72aitqj5UMmUsbKFliP/DZqA8Wq+BNNhlIJDGoEd1tpkMYXOg9+n6sB'; s.crossOrigin = 'anonymous'; s.onload = ok; s.onerror = mal; document.head.appendChild(s); });
   return window.ZXing;
 }
 function escTexto(t) { const p = $('escest'); if (p && p.textContent !== t) p.textContent = t; }

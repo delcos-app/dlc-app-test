@@ -13917,7 +13917,7 @@ let IMP = null;   // estado del asistente
 // Lector de Excel y CSV (se carga solo al usarlo)
 async function cargarLectorExcel() {
   if (window.XLSX) return window.XLSX;
-  await new Promise((ok, ko) => { const s = document.createElement('script'); s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'; s.onload = ok; s.onerror = ko; document.head.appendChild(s); });
+  await new Promise((ok, ko) => { const s = document.createElement('script'); s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'; s.integrity = 'sha384-vtjasyidUo0kW94K5MXDXntzOJpQgBKXmE7e2Ga4LG0skTTLeBi97eFAXsqewJjw'; s.crossOrigin = 'anonymous'; s.onload = ok; s.onerror = ko; document.head.appendChild(s); });
   return window.XLSX;
 }
 // La fila de títulos es la primera con muchos textos (las exportaciones suelen traer filas de encabezado antes)
@@ -23080,7 +23080,7 @@ function rmLib() {
   if (window.maplibregl) return Promise.resolve(window.maplibregl);
   return RM_LIB || (RM_LIB = new Promise((res, rej) => {
     document.head.insertAdjacentHTML('beforeend', '<style>@import url("https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css") layer(lib);</style>');   // v2.356.0: en la capa de las librerías
-    const s = document.createElement('script'); s.src = 'https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js'; s.crossOrigin = 'anonymous';
+    const s = document.createElement('script'); s.src = 'https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js'; s.integrity = 'sha384-SYKAG6cglRMN0RVvhNeBY0r3FYKNOJtznwA0v7B5Vp9tr31xAHsZC0DqkQ/pZDmj'; s.crossOrigin = 'anonymous';
     s.onload = () => res(window.maplibregl); s.onerror = () => { RM_LIB = null; rej(new Error('mapa')); }; document.head.appendChild(s);
   }));
 }
@@ -25877,7 +25877,7 @@ function escGrupo(inp) {
 }
 async function cargarZXing() {
   if (window.ZXing) return window.ZXing;
-  await new Promise((ok, mal) => { const s = document.createElement('script'); s.src = 'https://unpkg.com/@zxing/library@0.21.3/umd/index.min.js'; s.crossOrigin = 'anonymous'; s.onload = ok; s.onerror = mal; document.head.appendChild(s); });
+  await new Promise((ok, mal) => { const s = document.createElement('script'); s.src = 'https://unpkg.com/@zxing/library@0.21.3/umd/index.min.js'; s.integrity = 'sha384-BzBxP10ZE72aitqj5UMmUsbKFliP/DZqA8Wq+BNNhlIJDGoEd1tpkMYXOg9+n6sB'; s.crossOrigin = 'anonymous'; s.onload = ok; s.onerror = mal; document.head.appendChild(s); });
   return window.ZXing;
 }
 function escTexto(t) { const p = $('escest'); if (p && p.textContent !== t) p.textContent = t; }

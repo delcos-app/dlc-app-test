@@ -77,7 +77,7 @@ let IMP = null;   // estado del asistente
 // Lector de Excel y CSV (se carga solo al usarlo)
 async function cargarLectorExcel() {
   if (window.XLSX) return window.XLSX;
-  await new Promise((ok, ko) => { const s = document.createElement('script'); s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'; s.onload = ok; s.onerror = ko; document.head.appendChild(s); });
+  await new Promise((ok, ko) => { const s = document.createElement('script'); s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'; s.integrity = 'sha384-vtjasyidUo0kW94K5MXDXntzOJpQgBKXmE7e2Ga4LG0skTTLeBi97eFAXsqewJjw'; s.crossOrigin = 'anonymous'; s.onload = ok; s.onerror = ko; document.head.appendChild(s); });
   return window.XLSX;
 }
 // La fila de títulos es la primera con muchos textos (las exportaciones suelen traer filas de encabezado antes)
