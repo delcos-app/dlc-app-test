@@ -3206,10 +3206,10 @@ html.cambiando-org #bootsplash,html.cambiando-org #bootsplash.hide{display:grid!
 .cirdet summary{list-style:none;display:inline-flex;margin-bottom:10px}
 .cirdet summary::-webkit-details-marker{display:none}
 .cirlin{display:grid;gap:10px}
-.cirl label{display:grid;grid-template-columns:minmax(0,1fr) 100px;gap:10px;align-items:center;margin:0}
+.cirl label{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;margin:0}
 .cirser{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:6px;margin-top:6px}
 .deph.cirh,.depf.cirh{grid-template-columns:minmax(0,2fr) minmax(0,1fr) minmax(0,1.4fr) 50px}
-@media (max-width:760px){.cirrow{flex-wrap:wrap}.cirest{width:100%;justify-content:flex-start}.cirdat{grid-template-columns:90px minmax(0,1fr)}.cirl label{grid-template-columns:minmax(0,1fr) 80px}
+@media (max-width:760px){.cirrow{flex-wrap:wrap}.cirest{width:100%;justify-content:flex-start}.cirdat{grid-template-columns:90px minmax(0,1fr)}.cirl label{grid-template-columns:minmax(0,1fr) auto}
   .deph.cirh,.depf.cirh{grid-template-columns:minmax(0,1fr) minmax(0,1fr) 40px}.deph.cirh span:nth-child(2),.depf.cirh span:nth-child(2){display:none}}
 /* v2.200.0 · Concursos */
 .conrow{display:flex;align-items:center;gap:14px;text-align:left;width:100%}
@@ -4688,6 +4688,9 @@ html:not(#_s) body .iniact{background:#FFFFFF}
 /* segmentado: opciones de 32 px dentro de la caja de 40 */
 html body .segs > button{height:32px;min-height:0;padding-top:0;padding-bottom:0;line-height:1;white-space:nowrap;flex:0 0 auto}
 html body .numw > input{height:auto;min-height:0}
+/* v2.368.0: un botón hecho con summary centra su texto como los demás (sin marcador del desplegable) */
+html:not(#_s) body summary.btn{display:inline-flex;align-items:center;justify-content:center;list-style:none}
+html:not(#_s) body summary.btn::-webkit-details-marker{display:none}
 html body :is(.pagtabs, .subnav, .pmtabs)::-webkit-scrollbar{display:none}
 @media (max-width:760px){
   html:not(#_s) body :is(#v-inicio .saludo h1#hola){font-size:24px}
@@ -5030,6 +5033,6 @@ try{var co=sessionStorage.getItem('dlc-cambio-org');if(co!==null||localStorage.g
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.367.0"></script>
+<script src="./app.js?v=2.368.0"></script>
 </body>
 </html>
