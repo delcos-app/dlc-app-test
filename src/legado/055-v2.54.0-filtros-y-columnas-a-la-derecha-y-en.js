@@ -1,0 +1,99 @@
+/* ============================================================
+   v2.54.0 · «Filtros y columnas» a la derecha y en el panel lateral
+   en todas las pantallas, sin parpadeo al cambiar de pestaña, sin
+   saltos por la barra de desplazamiento e IVA con selector
+   ============================================================ */
+
+/* ---------------- «Filtros y columnas» en el panel lateral ---------------- */
+
+// Los filtros propios de cada pantalla se guardan en un contenedor oculto de la pantalla
+// y se llevan al panel lateral al abrirlo (y vuelven al cerrarlo)
+// v2.294 (R-02): los filtros propios son compactos en el panel de la pantalla y normales en el panel lateral: se marca al moverlos
+function chicoEn(el, si) { [el, ...el.querySelectorAll('input, select')].forEach(x => { if (x.matches('input, select')) x.classList.toggle('chico', si); }); return el; }
+function htLateralAbierto() { const d = $('tools'); return d.classList.contains('abierto') && String(HERR_CTX || '').startsWith('ht-'); }
+function htDevolver() {
+  const d = $('tools'), lat = d.querySelector('.htpropios.lat'); if (!lat) return;
+  const sec = $('v-' + String(HERR_CTX || '').replace('ht-', '')), hold = sec && sec.querySelector('.htpanel .htpropios');
+  if (hold) [...lat.children].forEach(ch => hold.appendChild(chicoEn(ch, true)));
+}
+new MutationObserver(() => { if (!$('tools').classList.contains('abierto')) htDevolver(); }).observe($('tools'), { attributes: true, attributeFilter: ['class'] });
+function htAbrirLateral(sec) {
+  const d = $('tools'), id = sec.id.replace('v-', '');
+  if (htLateralAbierto() && HERR_CTX === 'ht-' + id) { d.classList.remove('abierto'); return; }
+  htDevolver();
+  HERR_CTX = 'ht-' + id;
+  d.innerHTML = `<div class="tbox"><div class="fh"><h2>Filtros y columnas</h2><button class="x" id="tclose" aria-label="Cerrar">✕</button></div>
+    <div class="htpropios lat"></div><div class="htauto"></div></div>`;
+  const hold = sec.querySelector('.htpanel .htpropios');
+  if (hold) [...hold.children].forEach(ch => d.querySelector('.htpropios.lat').appendChild(chicoEn(ch, false)));
+  $('tclose').onclick = () => d.classList.remove('abierto');
+  d.classList.add('abierto');
+  htPintarPanel(sec);
+}
+// El contenido automático (buscar, filtrar por columna, columnas) se pinta en el panel lateral
+htPintarPanel = (orig => function (sec) {
+  const d = $('tools');
+  if (!(htLateralAbierto() && HERR_CTX === 'ht-' + sec.id.replace('v-', ''))) return;
+  // Se reutiliza la función anterior pintando sobre un «panel» temporal y se lleva el resultado al lateral
+  const tmp = document.createElement('div'); tmp.className = 'htpanel'; tmp.innerHTML = '<div class="htauto"></div>';
+  const real = sec.querySelector('.htpanel'); if (real) real.classList.add('htreal');
+  sec.appendChild(tmp);
+  const antes = sec.querySelector('.htpanel:not(.htreal)');
+  if (real) real.classList.remove('htpanel');
+  try { orig(sec); } finally { if (real) real.classList.add('htpanel'); }
+  const auto = d.querySelector('.htauto'); auto.replaceWith(tmp.querySelector('.htauto')); tmp.remove();
+  if (real) real.classList.remove('htreal');
+})(htPintarPanel);
+htActivos = (orig => function (sec) {
+  let n = orig(sec);
+  if (htLateralAbierto() && HERR_CTX === 'ht-' + sec.id.replace('v-', '')) $('tools').querySelectorAll('.htpropios.lat select').forEach(s => { if (s.selectedIndex > 0) n++; });
+  return n;
+})(htActivos);
+// El botón va a la derecha de la cabecera y abre el panel lateral
+function htColocarBoton(sec) {
+  const b = sec.querySelector('.htbtn'); if (!b || b.dataset.v254) return;
+  b.dataset.v254 = '1';
+  const acts = b.parentElement; acts.appendChild(b); acts.classList.add('htacts');
+  b.onclick = () => htAbrirLateral(sec);
+  sec.querySelectorAll('.htpanel').forEach(p => p.classList.add('hide'));
+  // Los selectores del panel lateral actualizan el contador
+  $('tools').addEventListener('change', () => htContador(sec));
+}
+let HT2_PEND = false;
+new MutationObserver(() => {
+  if (HT2_PEND) return; HT2_PEND = true;
+  queueMicrotask(() => { HT2_PEND = false; const sec = $('v-' + TAB); if (sec) htColocarBoton(sec); });
+}).observe(document.querySelector('main'), { childList: true, subtree: true });
+
+/* ---------------- sin parpadeo al cambiar de pestaña ---------------- */
+
+// (v2.183.0: aquí iba la primera versión de congelar; se redefine entera más abajo)
+document.addEventListener('click', e => {
+  const b = e.target.closest('main .subnav button, main [data-pedsec], main [data-psec], main [data-fsec], main [data-ansec], main [data-avista], main [data-ag="equipo"]');
+  if (!b || b.getAttribute('aria-pressed') === 'true') return;
+  congelar(b.closest('main > section'));
+}, true);
+
+/* ---------------- IVA: selector con los tipos legales ---------------- */
+
+const TIPOS_IVA = [[21, 'General · 21 %'], [10, 'Reducido · 10 %'], [4, 'Superreducido · 4 %'], [0, 'Exento · 0 %']];
+function ivaSelector(inp) {
+  if (!inp || inp.dataset.ivasel || inp.type === 'hidden') return;
+  inp.dataset.ivasel = '1';
+  const v = inp.value === '' ? '' : +inp.value;
+  const sel = document.createElement('select');
+  sel.className = 'ivasel'; if (inp.disabled || inp.readOnly) sel.disabled = true;
+  sel.innerHTML = TIPOS_IVA.map(([n, t]) => `<option value="${n}" ${n === v ? 'selected' : ''}>${t}</option>`).join('')
+    + (v !== '' && !TIPOS_IVA.some(x => x[0] === v) ? `<option value="${v}" selected>${v} % (no habitual)</option>` : '');
+  if (inp.id) { const l = document.querySelector(`label[for="${inp.id}"]`); if (l) l.setAttribute('for', inp.id + '_sel'); sel.id = inp.id + '_sel'; }
+  inp.classList.add('hide'); inp.after(sel);
+  if (inp.value === '') { inp.value = sel.value; }
+  // El campo original sigue siendo el que lee la plataforma: el selector le pasa el valor y avisa del cambio
+  sel.onchange = () => { inp.value = sel.value; inp.dispatchEvent(new Event('input', { bubbles: true })); inp.dispatchEvent(new Event('change', { bubbles: true })); };
+}
+new MutationObserver(ms => {
+  for (const m of ms) for (const n of m.addedNodes) if (n.nodeType === 1)
+    (n.matches && n.matches('#priva, #penvv, input[data-f="iva"]') ? [n] : [...n.querySelectorAll('#priva, #penvv, input[data-f="iva"]')]).forEach(ivaSelector);
+}).observe(document.body, { childList: true, subtree: true });
+
+

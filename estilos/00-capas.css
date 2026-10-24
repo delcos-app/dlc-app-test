@@ -1,0 +1,6 @@
+/* v2.356.0 y v2.357.0 · Estilo por capas (R-03). Orden: lib (Leaflet y MapLibre) → antiguo (el estilo de siempre) → parches (arreglos que
+   antes ganaban con la marca «important») → sistema (la capa del contrato, sin marca desde la v2.357.0: gana por ir la última). Una capa
+   posterior gana a la anterior sin mirar la fuerza del selector; lo que lleve la marca «important» en una capa anterior sigue ganando: el
+   estilo antiguo con esa marca no puede tocar lo que fija el contrato. */
+@layer lib, antiguo, parches, sistema;
+@import url("https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css") layer(lib);

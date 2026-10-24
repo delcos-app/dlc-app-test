@@ -1,0 +1,723 @@
+/* v2.211.0 · El manual, dentro de la app (decisión de Eric, opción B: sin abrir otra pestaña y con el mismo peso).
+   - «Manual de uso» y el «?» de cada pantalla llevan a la pantalla «manual», que enseña el libro (manual/index.html?app=1) en un marco a todo el
+     ancho; el libro solo se descarga al abrirlo, capítulo a capítulo. Si ya se está en el manual, el «?» solo mueve el libro a su sección.
+   - El portal del médico sigue con su manual de siempre (cargarManual original).
+   - window.MANUAL_ULTIMA guarda la última dirección pedida (la usan las pruebas). */
+let MANUAL_DESTINO = '';
+function guardarVocabManual() {
+  try {
+    localStorage.setItem('delcos-manual', JSON.stringify({ empresa: nombreApp(),
+      terminos: Object.fromEntries(Object.keys(TERM_DEF).map(k => [k, terminoDe(k)])) }));
+  } catch (e) {}
+}
+abrirManual = function (ancla) {
+  guardarVocabManual();
+  MANUAL_DESTINO = ancla || '';
+  window.MANUAL_ULTIMA = 'manual/index.html' + (ancla ? '#' + ancla : '');
+  const f = $('manlibro');
+  if (TAB === 'manual' && f) { try { f.contentWindow.location.hash = ancla || 'portada'; } catch (e) {} return; }
+  ir('manual');
+};
+cargarManual = (orig => async function (...a) {
+  if (ES_MEDICO()) return orig.apply(this, a);
+  const v = $('v-manual'); if (!v) return;
+  guardarVocabManual();
+  const url = 'manual/index.html?app=1' + (MANUAL_DESTINO ? '#' + MANUAL_DESTINO : ''); MANUAL_DESTINO = '';
+  v.innerHTML = `<div class="saludo"><div><h1>Manual de uso</h1><div class="fecha">Todo lo que puedes hacer con delcos, paso a paso, con fotos y vídeos</div></div></div>
+    <iframe id="manlibro" class="manlibro" title="Manual de uso" src="${url}"></iframe>`;
+})(cargarManual);
+ponerAyudaManual = (orig => function () { if (TAB === 'manual') return; return orig.apply(this, arguments); })(ponerAyudaManual);
+
+/* v2.212.0 · Decisiones de la auditoría (1).
+   - Pedidos: la tarjeta «Pedidos sin atribuir» vuelve a la pestaña Ventas (la pantalla nueva ya no tenía su hueco) para quien
+     puede atribuir (administración o nivel 2 en Pedidos, como atribuir_linea).
+   - Editar usuario: «Qué ve esa persona» de la comisión sale aparte (usuarioComisionInfo ocultaba la fila entera con el esquema).
+   - Duplicados: el botón de Calidad del dato y el indicador de Inicio, también para quien tiene nivel 3 en fichas (como la página). */
+const puedeDuplicados = () => puede('administrar') || ((PERFIL && PERFIL.areas) || {}).M >= 3;
+const puedeAtribuir = () => puede('administrar') || nivelDe2('V') >= 2;
+pintarSinAtribuir = (orig => async function (...a) {
+  const r = await orig.apply(this, a);
+  const c = $('cardsinatr'); if (c) c.classList.toggle('hide', !c.innerHTML.trim());
+  return r;
+})(pintarSinAtribuir);
+cargarVentas = (orig => async function (...a) {
+  const r = await orig.apply(this, a);
+  const cuerpo = $('vcuerpo');
+  if (PEDSEC === 'ventas' && cuerpo && puedeAtribuir() && !$('cardsinatr')) {
+    cuerpo.insertAdjacentHTML('afterbegin', '<div class="card hide" id="cardsinatr"></div>');
+    pintarSinAtribuir();
+  }
+  return r;
+})(cargarVentas);
+usuarioComisionInfo = (orig => async function (...a) {
+  const r = await orig.apply(this, a);
+  const s = $('uverc'), info = $('ucominfo');
+  if (s && info && !$('uvercw')) {
+    const w = s.parentElement; w.id = 'uvercw';
+    const l = w.querySelector('label'); if (l) l.classList.remove('sm');
+    w.insertAdjacentHTML('beforeend', '<div class="sm">Lo que ve en Inicio de su comisión: nada, solo sus unidades o también el importe.</div>');
+    info.insertAdjacentElement('afterend', w);
+  }
+  return r;
+})(usuarioComisionInfo);
+kpiPermitido = (orig => function (c) {
+  if (c && c.id === 'dups') return puedeDuplicados() && orig(Object.assign({}, c, { admin: false }));
+  return orig(c);
+})(kpiPermitido);
+cargarSeguimiento = (orig => async function (...a) {
+  const r = await orig.apply(this, a);
+  const acts = document.querySelector('#v-seguimiento .saludo .acts');
+  if (acts && puedeDuplicados() && !$('caldup')) {
+    acts.insertAdjacentHTML('beforeend', `<button class="btn sec" id="caldup">${svgIco(ICON_NOM.copy)} Duplicados</button>`);
+    $('caldup').onclick = () => ir('duplicados');
+  }
+  return r;
+})(cargarSeguimiento);
+
+/* v2.213.0 · Citas aplazadas: adónde fueron y de dónde vienen (petición de Eric; SQL 129).
+   - La cita que queda «Aplazada» dice adónde se movió (siguiendo la cadena si se volvió a aplazar) y cómo está allí si ya se cerró.
+   - La nueva hereda la anterior: de qué día viene y cómo se citó la primera vez (Ruta, Ficha…), en lugar de «Aplazada».
+   - Si vuelve a un día en que estaba aplazada, la base la reactiva y se ve como las demás (aplazar_cita y reabrir_cita).
+   - En la ventana de la cita, botones para ir al día al que se movió o del que viene. */
+function diaCita(f) {
+  const d = new Date(f + 'T12:00:00');
+  return d.toLocaleDateString('es-ES', { weekday: 'long' }) + ' ' + d.getDate() + '/' + (d.getMonth() + 1);
+}
+function textoOrigenCita(c) {
+  const p = [];
+  if (c.estado === 'Aplazada' && c.aplazada_a_fecha) {
+    const fin = c.aplazada_a_estado && !CITA_ABIERTA.includes(c.aplazada_a_estado) && c.aplazada_a_estado !== 'Aplazada' ? ' (' + c.aplazada_a_estado.toLowerCase() + ')' : '';
+    p.push('movida al ' + diaCita(c.aplazada_a_fecha) + fin);
+  }
+  if (c.aplazada_de_fecha) {
+    p.push('viene del ' + diaCita(c.aplazada_de_fecha));
+    if (c.origen_inicial && !['Aplazada', 'Reprogramada'].includes(c.origen_inicial)) p.push(c.origen_inicial);
+  } else if (c.origen && !(c.estado === 'Aplazada' && c.aplazada_a_fecha && c.origen === 'Aplazada')) p.push(c.origen);
+  return p.length ? ' · ' + esc(p.join(' · ')) : '';
+}
+verCita = (orig => function (c, ...r) {
+  const x = orig.call(this, c, ...r);
+  const acts = $('dbody') && $('dbody').querySelector('.vcacts');
+  if (acts && c) {
+    const ir = (f, txt, id) => {
+      if (!f || f === c.fecha || $(id)) return;
+      acts.insertAdjacentHTML('beforeend', `<button type="button" class="btn sec" id="${id}">${esc(txt)}</button>`);
+      $(id).onclick = () => { $('dlg').close(); AG_MODO = 'dia'; agVerDia(f); };
+    };
+    if (c.estado === 'Aplazada') ir(c.aplazada_a_fecha, 'Ir al ' + (c.aplazada_a_fecha ? diaCita(c.aplazada_a_fecha) : ''), 'vcirdest');
+    ir(c.aplazada_de_fecha, 'Ver el ' + (c.aplazada_de_fecha ? diaCita(c.aplazada_de_fecha) : ''), 'vcirorig');
+  }
+  return x;
+})(verCita);
+
+/* v2.214.0 · Visita del día, resultados que hacen avanzar y manual en el iPhone (peticiones de Eric; SQL 130).
+   - Una visita se registra el día de la cita: «Registrar» sale en las citas de hoy; en las de días pasados, solo con el permiso
+     visita_fecha_pasada (y entonces la visita lleva la fecha de la cita); en las futuras, nunca. En la ventana de la visita, la
+     fecha no pasa de hoy y, sin el permiso, queda fija en hoy. La base lo comprueba también (registrar_actividad).
+   - Lo guardado sin conexión lleva sin_conexion: al enviarlo otro día no se rechaza por la fecha.
+   - Los resultados que no hacen avanzar la ficha los oculta la base (clasificadores_actividad).
+   - Manual: en el iPhone y el iPad el libro dentro de un marco sale en blanco con la app instalada; allí se abre a pantalla
+     completa, con «Volver a la app». */
+var VISITA_FECHA = '';
+function puedeRegistrarEnDia(f) {
+  const h = hoyISO();
+  return !f || f === h || (f < h && puede('visita_fecha_pasada'));
+}
+function marcarSinConexion(fn, payload) {
+  if (fn !== 'registrar_actividad' || !payload || !payload.p) return payload;
+  return Object.assign({}, payload, { p: Object.assign({}, payload.p, { sin_conexion: true }) });
+}
+abrirVisitaBase = (orig => async function (...r) {
+  const fecha = VISITA_FECHA; VISITA_FECHA = '';
+  const x = await orig.apply(this, r);
+  const vf = $('vf');
+  if (vf) {
+    vf.max = hoyISO();
+    if (!puede('visita_fecha_pasada')) { vf.value = hoyISO(); vf.min = hoyISO(); vf.disabled = true; vf.title = 'La visita se registra el mismo día'; }
+    else if (fecha && fecha <= hoyISO()) vf.value = fecha;
+  }
+  return x;
+})(abrirVisitaBase);
+const ES_IOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+cargarManual = (orig => async function (...a) {
+  if (!ES_IOS || ES_MEDICO()) return orig.apply(this, a);
+  guardarVocabManual();
+  const url = 'manual/index.html' + (MANUAL_DESTINO ? '#' + MANUAL_DESTINO : ''); MANUAL_DESTINO = '';
+  window.MANUAL_ULTIMA = url;
+  location.href = url;
+})(cargarManual);
+
+/* v2.215.0 · Configuración en un solo sitio (decisión de Eric: propuesta A con los avisos de B; https://claude.ai/artifact/HW1gHEaYPuG3kbCpd2RnzZ).
+   - Mi perfil, Configuración, Organización y Usuarios y roles son una sola pantalla: índice a la izquierda (Tu cuenta, Equipo, Empresa,
+     Facturación, Datos; los subapartados son entradas del índice, sin pestañas dentro) y el apartado a la derecha. Cada persona ve solo
+     lo que le toca. ir('perfil' | 'organizacion' | 'usuarios' | 'empresa' | 'plan') y CFG_SEC/CFG_SUB de antes llevan a su entrada (CFG_KEY).
+   - Buscador del índice por nombre y palabras clave (Intro abre el primero); se abre en el último apartado usado; punto naranja en lo
+     pendiente (punto de salida, correo sin configurar, copia de seguridad antigua).
+   - En el móvil, el índice es una lista y cada apartado se abre con «‹ Configuración».
+   - Piezas de la marca en toda la app: casillas de 18 px con el marino, interruptores en marino.
+   - Notificaciones: cada aviso con «Al momento · En el resumen · No», el resumen arriba y el silencio en una fila. */
+var CFG_KEY = '';
+const CFG_VIEJO = { prefs: 'rutas.salida', perfil: 'datos', datos: 'datos', notif: 'notif', horario: 'rutas.horario', kpis: 'inicio.kpis', usuarios: 'usuarios',
+  roles: 'roles', equipo: 'usuarios', reglas: 'cartera.reglas', frec: 'cartera.frec', accesos: 'seguridad.accesos', auditoria: 'seguridad.auditoria',
+  alm: 'stock.alm', mues: 'stock.mues', marca: 'o.marca', __empresa: 'o.marca', empresa: 'o.marca', correo: 'o.correo', copias: 'o.copias', plan: 'o.plan',
+  fact: 'o.fiscal', fiscal: 'o.fiscal', series: 'o.series', vf: 'o.vf', pdf: 'o.pdf', orgs: 'o.orgs' };
+const CFG_CLAVES = { datos: 'nombre teléfono idioma perfil contraseña sesión cerrar', notif: 'avisos campana silencio resumen',
+  'rutas.salida': 'salida llegada casa oficina navegar google maps waze', 'rutas.horario': 'tiempos minutos duración parada',
+  'inicio.kpis': 'indicadores kpi inicio', usuarios: 'personas equipo alta invitar cartera zona', roles: 'permisos capacidades',
+  comis: 'comisiones esquemas tramos', 'o.marca': 'logo nombre vocabulario términos palabras', 'o.correo': 'smtp firma remitente email correo',
+  'o.plan': 'suscripción pago tarjeta usuarios precio', 'o.copias': 'copia seguridad descargar exportar', 'o.fiscal': 'nif razón social dirección',
+  'o.series': 'numeración factura', 'o.vf': 'verifactu hacienda', 'o.pdf': 'factura diseño logo colores', cat: 'clasificadores listas valores especialidades motivos',
+  portal: 'portal material pedir' };
+function claveCfgVieja(sec, sub) {
+  if (!sec || sec === '__cfg') return '';
+  if (sec === 'equipo') return sub === 'roles' ? 'roles' : 'usuarios';
+  if (sub) return sec + '.' + sub;
+  return CFG_VIEJO[sec] || sec;
+}
+function arbolCfgUnico() {
+  const admin = puede('administrar'), org = puedeOrganizacion();
+  const cfg = arbolConfig(), todos = cfg.flatMap(g => g[1]), de = k => todos.find(x => x.k === k);
+  const hojas = it => {
+    if (!it) return [];
+    if (!it.sub) return [{ k: it.k, t: it.t, ic: it.ic, d: it.d, r: it.r, mod: it.mod }];
+    if (it.sub.length === 1) return [{ k: it.k + '.' + it.sub[0][0], t: it.k === 'inicio' ? 'Indicadores de Inicio' : it.t, ic: it.ic, d: it.d, r: it.sub[0][2], mod: it.mod }];
+    return [{ k: it.k, t: it.t, ic: it.ic, d: it.d, mod: it.mod, hijos: it.sub.map(([s, t, r]) => ({ k: it.k + '.' + s, t, r })) }];
+  };
+  const ot = org && PAGINAS.organizacion ? Object.fromEntries(PAGINAS.organizacion.tabs.map(([k, t, r]) => [k, { t, r }])) : {};
+  const o = (k, ic, d, t) => ot[k] ? [{ k: 'o.' + k, t: t || ot[k].t, ic, d, r: ot[k].r }] : [];
+  const pt = Object.fromEntries((PAGINAS.perfil ? PAGINAS.perfil.tabs : []).map(([k, t, r]) => [k, r]));
+  return [
+    ['Tu cuenta', [
+      { k: 'datos', t: 'Mis datos', ic: 'user', d: 'Nombre, teléfono, idioma, qué abrir al entrar y contraseña', r: pt.datos || (() => pintarPerfil()) },
+      { k: 'notif', t: 'Notificaciones', ic: 'bell', d: 'Qué avisos te llegan y cuándo', r: () => pintarNotif() },
+      ...hojas(de('rutas')), ...hojas(de('inicio'))]],
+    ['Equipo', admin ? [
+      { k: 'usuarios', t: 'Usuarios', ic: 'users', d: 'Personas del equipo, su rol, su cartera y su comisión', r: () => pintarUsuarios2() },
+      { k: 'roles', t: 'Roles y permisos', ic: 'lock-keyhole', d: 'Qué puede ver y hacer cada rol', r: () => pintarRoles() },
+      ...hojas(de('cartera')), ...hojas(de('comis')), ...hojas(de('seguridad'))] : []],
+    ['Empresa', [...o('marca', 'palette', 'Nombre de la plataforma y logo', 'Marca y logo'), ...o('correo', 'mail', 'Cuenta de envío y firma de los correos'),
+      ...o('plan', 'credit-card', 'Tu plan, los usuarios y los pagos'), ...o('copias', 'save', 'Descarga de todos los datos de la empresa'),
+      ...o('orgs', 'building', 'Empresas de la plataforma')]],
+    ['Facturación', [...o('fiscal', 'receipt', 'Razón social, NIF y dirección'), ...o('series', 'receipt', 'Numeración de las facturas'),
+      ...o('vf', 'receipt', 'Huella y QR de cada factura'), ...o('pdf', 'receipt', 'Cómo se ve la factura en PDF')]],
+    ['Datos', (cfg.find(g => g[0] === 'Datos') || [, []])[1].flatMap(hojas)]
+  ].filter(g => g[1].length);
+}
+// v2.340.0 (Eric): cada apartado es una sola entrada del índice; sus partes (Rutas: salida y tiempos…) van dentro, en pestañas
+const hojasCfg = arbol => arbol.flatMap(([gr, l]) => l.map(it => Object.assign({ gr }, it)));
+let CFG_PEND = { t: 0, l: {} };
+async function pendientesCfg() {
+  if (Date.now() - CFG_PEND.t < 60000) return CFG_PEND.l;
+  const l = {};
+  try { if (!prefsActivas().salida && puedeModulo('agenda')) l['rutas.salida'] = 'Sin punto de salida: las horas del día salen sin el primer trayecto'; } catch (e) {}
+  if (puedeOrganizacion()) {
+    try { const { data: c } = await RPC_ORIG('correo_config', {}); if (!c || !c.host) l['o.correo'] = 'Sin configurar: los correos de la empresa no salen'; } catch (e) {}
+    try {
+      const { data: au } = await db.from('auditoria').select('creado_en').eq('accion', 'Copia de seguridad').order('creado_en', { ascending: false }).limit(1);
+      const d = au && au[0] ? Math.floor((Date.now() - new Date(au[0].creado_en)) / 864e5) : null;
+      if (d == null) l['o.copias'] = 'Todavía no hay ninguna copia'; else if (d > 7) l['o.copias'] = `La última copia es de hace ${d} días`;
+    } catch (e) {}
+  }
+  CFG_PEND = { t: Date.now(), l };
+  return l;
+}
+const LUPA_CFG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>';
+let CFG_DETALLE = false;
+cargarConfig = async function () {
+  // v2.340.0 (avisos de Eric): se abre siempre en «Mis datos» (no en el último apartado); al cambiar de apartado solo cambia la página
+  // de la derecha (el índice se queda, con su desplazamiento: antes se volvía a montar todo y daba un salto); los apartados con partes
+  // son una sola entrada y las partes, pestañas dentro de la página.
+  if (typeof salirPanel === 'function') salirPanel();
+  const arbol = arbolCfgUnico(), hojas = hojasCfg(arbol);
+  const pedida = CFG_KEY || 'datos';
+  const it = hojas.find(x => x.k === pedida) || hojas.find(x => x.hijos && x.hijos.some(h => h.k === pedida)) || hojas.find(x => pedida.startsWith(x.k + '.'))
+    || hojas.find(x => x.k === 'datos') || hojas[0];
+  if (!it) return;
+  const hijo = it.hijos ? (it.hijos.find(h => h.k === pedida) || it.hijos[0]) : null;
+  CFG_KEY = hijo ? hijo.k : it.k;
+  const movil = ES_MOVIL(), v = $('v-config');
+  const firma = hojas.map(x => x.k + (x.hijos ? '(' + x.hijos.map(h => h.k).join(',') + ')' : '')).join('|') + '|' + movil;
+  if (!(v.dataset.cfgfirma === firma && $('cfulista') && v.querySelector('.cfupag'))) {
+    const ind = arbol.map(([gr, l]) => `<h4>${esc(gr)}</h4>${l.map(x => `<button type="button" data-ck="${x.k}">${svgIco(ICON_NOM[x.ic] || '')}<span>${esc(x.t)}</span>${x.mod && !planIncluye(x.mod) ? `<span class="pill p-plan">${esc(planMinimo(x.mod) ? planMinimo(x.mod).nombre : 'Plan')}</span>` : ''}</button>`).join('')}`).join('');
+    v.innerHTML = `<div class="saludo"><div><h1>Configuración</h1><div class="fecha">Tu cuenta${arbol.length > 1 ? ', tu equipo y tu empresa, en un solo sitio' : ' y tus preferencias'}</div></div></div>
+      <div class="cfu">
+        <nav class="cfuidx" aria-label="Apartados de configuración"><div class="cfubusca">${LUPA_CFG}<input id="cfubus" type="search" placeholder="Buscar un ajuste" autocomplete="off" aria-label="Buscar un ajuste"></div>
+          <div id="cfulista">${ind}</div><div class="cfusin hide" id="cfusin">Ningún ajuste con esas palabras</div></nav>
+        <section class="cfupag"><button type="button" class="cfuvolver" id="cfuvolver">‹ Configuración</button>
+          <div class="cfucab"></div><div class="cfupend hide" id="cfupend"></div>
+          <div id="cfgcuerpo-hub"><div id="cfgcuerpo"></div></div></section></div>`;
+    v.dataset.cfgfirma = firma;
+    v.querySelectorAll('#cfulista [data-ck]').forEach(b => b.onclick = () => { CFG_KEY = b.dataset.ck; CFG_DETALLE = true; cargarConfig(); if (ES_MOVIL()) scrollTo(0, 0); });
+    $('cfuvolver').onclick = () => { CFG_DETALLE = false; v.querySelector('.cfu').classList.remove('det'); scrollTo(0, 0); };
+    // Buscador: por nombre, apartado, partes y palabras clave; Intro abre el primero
+    const busca = $('cfubus');
+    busca.oninput = () => {
+      const q = impNorm(busca.value.trim());
+      let vis = 0;
+      v.querySelectorAll('#cfulista [data-ck]').forEach(b => {
+        const h = hojasCfg(arbolCfgUnico()).find(x => x.k === b.dataset.ck) || {};
+        const partes = (h.hijos || []).map(x => x.t + ' ' + (CFG_CLAVES[x.k] || '')).join(' ');
+        const txt = impNorm([h.t, h.gr, h.d, partes, CFG_CLAVES[h.k] || ''].join(' '));
+        const ok = !q || q.split(/\s+/).every(p => txt.includes(p)); b.classList.toggle('hide', !ok); if (ok) vis++;
+      });
+      v.querySelectorAll('#cfulista h4').forEach(e => {
+        let x = e.nextElementSibling, alguno = false;
+        while (x && x.tagName !== 'H4') { if (x.matches('[data-ck]:not(.hide)')) alguno = true; x = x.nextElementSibling; }
+        e.classList.toggle('hide', !!q && !alguno);
+      });
+      $('cfusin').classList.toggle('hide', vis > 0);
+    };
+    busca.onkeydown = e => { if (e.key === 'Enter') { const b = v.querySelector('#cfulista [data-ck]:not(.hide)'); if (b) { e.preventDefault(); b.click(); } } };
+    cfuAjustarIndice();
+  }
+  v.querySelector('.cfu').classList.toggle('det', movil && CFG_DETALLE);
+  v.querySelectorAll('#cfulista [data-ck]').forEach(b => b.classList.toggle('on', b.dataset.ck === it.k));
+  // Cabecera de la página y, si tiene partes, sus pestañas
+  v.querySelector('.cfucab').innerHTML = `<div class="miga">${esc(it.gr)}</div><h2>${esc(it.t)}</h2>${it.d ? `<p>${esc(it.d)}</p>` : ''}`;   // v2.344.0: sin pestañas: las partes, una debajo de otra
+  v.querySelectorAll('.cfucab [data-cks]').forEach(b => b.onclick = () => { if (b.dataset.cks === CFG_KEY) return; CFG_KEY = b.dataset.cks; cargarConfig(); });
+  $('cfupend').classList.add('hide'); $('cfupend').innerHTML = '';
+  $('cfgcuerpo-hub').innerHTML = '<div id="cfgcuerpo"></div>';
+  // Lo pendiente: punto en el índice (en el apartado que lo contiene) y aviso en la página
+  pendientesCfg().then(l => {
+    if (!$('cfulista')) return;
+    Object.entries(l).forEach(([k, t]) => { const b = [...v.querySelectorAll('#cfulista [data-ck]')].find(x => k === x.dataset.ck || k.startsWith(x.dataset.ck + '.')); if (b && !b.querySelector('.cfupt')) { b.insertAdjacentHTML('beforeend', '<span class="cfupt"></span>'); b.title = t; } });
+    if (l[CFG_KEY] && $('cfupend')) { $('cfupend').innerHTML = `<span class="cfupt"></span>${esc(l[CFG_KEY])}`; $('cfupend').classList.remove('hide'); }
+  });
+  // El apartado (o, si el plan no lo incluye, qué plan lo trae)
+  const r = it.hijos ? () => cfgApilar(it, hijo) : it.r;
+  if (it.mod && !planIncluye(it.mod)) {
+    const p = planMinimo(it.mod);
+    $('cfgcuerpo').innerHTML = `<div class="card cfgpanel planup"><div class="planupico">${svgIco(ICON_NOM.lock)}</div><h2>${esc(it.t)} está en el plan ${esc(p ? p.nombre : 'A medida')}</h2>
+      <p class="sm">Tu plan ${esc(planDe(PLAN_ACTUAL.plan).nombre)} no lo incluye.</p>${puedeOrganizacion() ? '<div class="acts"><button class="btn" id="planver">Ver planes</button></div>' : ''}</div>`;
+    if ($('planver')) $('planver').onclick = () => { CFG_KEY = 'o.plan'; cargarConfig(); };
+  } else Promise.resolve().then(r);
+};
+// El índice cabe siempre en la pantalla: su alto llega justo al borde de abajo, así la rueda lo recorre entero sin tener que mover la página
+function cfuAjustarIndice() {
+  const n = document.querySelector('#v-config .cfuidx'); if (!n || TAB !== 'config' || ES_MOVIL()) return;
+  const top = Math.max(0, n.getBoundingClientRect().top);
+  n.style.setProperty('--cfuidxh', Math.max(240, innerHeight - top - 12) + 'px');
+}
+let CFU_RAF = 0;
+['scroll', 'resize'].forEach(ev => addEventListener(ev, () => { cancelAnimationFrame(CFU_RAF); CFU_RAF = requestAnimationFrame(cfuAjustarIndice); }, { passive: true }));
+// Cualquier camino a los ajustes lleva a su entrada de Configuración
+ir = (orig => function (t, ...r) {
+  let k = null;
+  // Accesos, auditoría y organizaciones siguen en el Panel delcos
+  if (t === 'config' && ['seguridad', 'orgs'].includes(CFG_SEC)) return orig.call(this, t, ...r);
+  if (t === 'config') k = claveCfgVieja(CFG_SEC, CFG_SUB);
+  else if (t === 'perfil') k = PAG_TAB.perfil === 'notif' ? 'notif' : 'datos';
+  else if (t === 'organizacion' || t === 'empresa') k = 'o.' + (PAG_TAB[t] || 'marca');
+  else if (t === 'plan') k = 'o.plan';
+  else if (t === 'usuarios') k = PAG_TAB.usuarios === 'roles' ? 'roles' : 'usuarios';
+  if (k === null) return orig.call(this, t, ...r);
+  if (k) { CFG_KEY = k; CFG_DETALLE = true; } else if (IR_DESDE_MENU_CFG) { CFG_DETALLE = false; CFG_KEY = 'datos'; }   // v2.340.0: siempre «Mis datos»
+  if (t !== 'config') { PAG_TAB.perfil = PAG_TAB.organizacion = PAG_TAB.empresa = PAG_TAB.usuarios = undefined; }
+  CFG_SEC = '__cfg'; CFG_SUB = null; IR_DESDE_MENU_CFG = false;
+  return orig.call(this, 'config', ...r);
+})(ir);
+var IR_DESDE_MENU_CFG = false;
+document.addEventListener('click', e => { if (e.target.closest('nav.main [data-t="config"], #bnav [data-t="config"], [data-u="cfg"]')) { CFG_SEC = '__cfg'; IR_DESDE_MENU_CFG = true; } }, true);
+// El «?» del manual lleva al capítulo del apartado abierto
+Object.defineProperty(MANUAL_ANCLA, 'config', { configurable: true, enumerable: true, get: () => {
+  const k = CFG_KEY || '';
+  return ['datos', 'notif'].includes(k) ? 'perfil' : k === 'o.plan' ? 'plan' : k.startsWith('o.') ? 'organizacion' : ['usuarios', 'roles'].includes(k) ? 'usuarios' : 'ajustes';
+} });
+
+// Notificaciones: cada aviso con «Al momento · En el resumen · No»
+pintarNotif = function () {
+  const tipos = tiposDeMiRol(), s = (PERFIL.preferencias || {}).notif_silencio || {};
+  const filas = NOTIF_AREAS.map(([, t, ks]) => [t, tipos.filter(x => ks.includes(x[0]))]).filter(([, l]) => l.length);
+  const sueltos = tipos.filter(x => !NOTIF_AREAS.some(ar => ar[2].includes(x[0])));
+  if (sueltos.length) filas.push(['Otros', sueltos]);
+  const modo = k => { const m = notifModo(k); return m === 'm' || m === 'r' ? m : 'n'; };
+  const resumen = () => { const c = { m: 0, r: 0, n: 0 }; tipos.forEach(([k]) => c[modo(k)]++);
+    return `<span><b>${c.m}</b> al momento</span><span><b>${c.r}</b> en el resumen de la mañana</span><span><b>${c.n}</b> desactivados</span>`; };
+  $('cfgcuerpo').innerHTML = tipos.length ? `<div class="card cfgpanel ntf">
+    <div class="ntfres" id="ntfres">${resumen()}</div>
+    <div class="ajfila ntfsil"><div><div class="ntfsilt"><label class="vfswitch mini" title="Activar las horas de silencio"><input type="checkbox" id="nsil" ${s.activo ? 'checked' : ''} aria-label="Activar las horas de silencio"><span class="sw"></span></label><b>Horas de silencio</b></div><span class="sm">Lo que llegue en ese tiempo lo verás al terminar el silencio.</span></div>
+      <div class="ajctl">
+        <input type="time" id="nsild" value="${esc(s.desde || '20:00')}" aria-label="Desde"> a <input type="time" id="nsilh" value="${esc(s.hasta || '08:00')}" aria-label="Hasta">
+        <label class="ntffin"><input type="checkbox" id="nsilf" ${s.finde !== false ? 'checked' : ''}> Fines de semana</label></div></div>
+    ${filas.map(([t, l]) => `<h3 class="ntfarea">${esc(t)}</h3>${l.map(([k, ic, tt, d]) => {
+      const m = modo(k), diario = NOTIF_DIARIOS.includes(k);
+      return `<div class="ntfrow"><span class="ntfic">${ic}</span><div><b>${esc(tt)}</b><span class="sm">${esc(d)}</span></div>
+        <div class="segs ntfseg" role="group" aria-label="${esc(tt)}" data-nk="${k}">${diario ? '' : `<button type="button" data-v="m" class="${m === 'm' ? 'on' : ''}" aria-pressed="${m === 'm'}">Al momento</button>`}<button type="button" data-v="r" class="${m === 'r' ? 'on' : ''}" aria-pressed="${m === 'r'}">En el resumen</button><button type="button" data-v="n" class="${m === 'n' ? 'on' : ''}" aria-pressed="${m === 'n'}">No</button></div></div>`; }).join('')}`).join('')}
+  </div>` : '<div class="card cfgpanel"><div class="vacio">Tu perfil no tiene notificaciones disponibles todavía.</div></div>';
+  $('cfgcuerpo').querySelectorAll('.ntfseg button').forEach(b => b.onclick = async () => {
+    const g = b.closest('.ntfseg'), k = g.dataset.nk, v = b.dataset.v;
+    if (b.classList.contains('on')) return;
+    g.querySelectorAll('button').forEach(x => { x.classList.toggle('on', x === b); x.setAttribute('aria-pressed', String(x === b)); });
+    const notif = Object.assign({}, (PERFIL.preferencias || {}).notif || {});
+    const diario = NOTIF_DIARIOS.includes(k), om = v === 'm', or = v === 'r';
+    if (diario ? or : (om && !or)) delete notif[k]; else notif[k] = { m: om, r: or };
+    await notifGuardarPrefs({ notif }, v === 'n' ? 'No lo recibirás' : v === 'm' ? 'Te llegará al momento' : 'Irá en el resumen de la mañana');
+    if ($('ntfres')) $('ntfres').innerHTML = resumen();
+  });
+  const guardarSil = () => notifGuardarPrefs({ notif_silencio: { activo: $('nsil').checked, desde: $('nsild').value || '20:00', hasta: $('nsilh').value || '08:00', finde: $('nsilf').checked } },
+    $('nsil').checked ? 'Silencio guardado' : 'Sin silencio');
+  ['nsil', 'nsild', 'nsilh', 'nsilf'].forEach(id => { if ($(id)) $(id).onchange = guardarSil; });
+};
+
+/* v2.216.0 · Tu cuenta y Empresa en filas de ajuste (segunda versión del rediseño de Configuración).
+   pulirCfg() se aplica al contenido de cada apartado mientras se pinta (MutationObserver de #cfgcuerpo), sin tocar cómo guarda cada uno:
+   - Las tarjetas que solo presentan el apartado desaparecen y su texto pasa a la cabecera; el título repetido de la primera tarjeta se oculta.
+   - Tiempos de visita y el aviso de Salida y llegada: filas de ajuste con el número compacto a la derecha.
+   - Marca y vocabulario: el vocabulario, en su propia tarjeta como tabla (singular, plural y género por fila), con el nombre del módulo.
+   - Correo y firma: arriba, el estado del correo y «Enviar un correo de prueba»; la vista previa de la firma acompaña al desplazarse.
+   - Copias de seguridad: el estado y «Descargar copia completa» en la misma fila. */
+const CFG_PULIR = ['datos', 'rutas.salida', 'rutas.horario', 'inicio.kpis', 'o.marca', 'o.correo', 'o.plan', 'o.copias'];
+function pulirCfg() {
+  const c = $('cfgcuerpo'); if (!c || TAB !== 'config' || !CFG_PULIR.includes(CFG_KEY)) return;
+  const cab = document.querySelector('.cfucab'), titulo = impNorm((cab && cab.querySelector('h2') || {}).textContent || '');
+  // Tarjetas que solo presentan el apartado (título y texto): el texto pasa a la cabecera
+  c.querySelectorAll(':scope > .card:not([data-pul])').forEach(card => {
+    card.dataset.pul = '1';
+    const h = card.querySelector(':scope > h2');
+    if (h && impNorm(h.textContent) === titulo) h.classList.add('cfudup');
+    const kids = [...card.children];
+    if (kids.length && kids.every(k => k.matches('h2, p'))) {
+      const txt = [...card.querySelectorAll(':scope > p')].map(p => p.textContent.trim()).join(' ');
+      if (cab && txt) { let p = cab.querySelector('p'); if (!p) { p = document.createElement('p'); cab.appendChild(p); } p.textContent = txt; }
+      card.remove();
+    }
+  });
+  // El primer título que repite el del apartado, fuera (esté donde esté)
+  const rep = [...c.querySelectorAll('h2:not(.cfudup)')].find(h => impNorm(h.textContent) === titulo); if (rep) rep.classList.add('cfudup');
+  // Tiempos de visita y aviso de visita reciente: filas de ajuste con el número a la derecha
+  if (['rutas.horario', 'rutas.salida'].includes(CFG_KEY)) {
+    c.querySelectorAll('.g2 > div:not([data-pul])').forEach(d => {
+      const n = d.querySelector(':scope > .numw'); if (!n) return;
+      d.dataset.pul = '1'; d.classList.add('ajfila', 'ajnum');
+      const izq = document.createElement('div'); izq.className = 'ajtxt';
+      [...d.children].filter(x => x !== n).forEach(x => izq.appendChild(x));
+      d.prepend(izq);
+      d.parentElement.classList.add('ajlista');
+    });
+    const av = $('pfaviso');
+    if (av && !av.dataset.pul) { av.dataset.pul = '1'; av.classList.add('card', 'cfgpanel'); }
+  }
+  // Marca y vocabulario: el vocabulario en su tarjeta, como tabla
+  if (CFG_KEY === 'o.marca') {
+    const voc = c.querySelector('.mkvoc'), etq = c.querySelector('.mketqbox');
+    if (voc && !$('mkvoccard')) {
+      c.insertAdjacentHTML('beforeend', `<div class="card cfgpanel" id="mkvoccard"><h2 style="padding:0 0 4px">Cómo se llama cada cosa</h2>
+        <p class="sm">El nombre del módulo y las palabras de todos los textos de la plataforma. En blanco, se usa el nombre de siempre.</p>
+        <div id="mkvochueco"></div><div class="acts" style="justify-content:flex-end"><button type="button" class="btn" id="mkvocok">Guardar</button></div></div>`);
+      const hueco = $('mkvochueco');
+      if (etq) hueco.appendChild(etq);
+      hueco.appendChild(voc);
+      voc.querySelectorAll(':scope > label, :scope > .sm').forEach(x => x.remove());
+      voc.insertAdjacentHTML('afterbegin', '<div class="mkvocf mkvoccab" aria-hidden="true"><span></span><span>Singular</span><span>Plural</span><span>Género</span></div>');
+      voc.querySelectorAll('.mkvocf[data-term]').forEach(f => {
+        const l = f.querySelector('label'); const nom = l ? l.textContent.replace(/\s*·\s*singular\s*$/i, '').trim() : f.dataset.term;
+        f.insertAdjacentHTML('afterbegin', `<b class="mkvocn">${esc(nom)}</b>`);
+        f.querySelectorAll('[data-tf]').forEach(i => { const lb = { s: 'singular', p: 'plural', g: 'género' }[i.dataset.tf]; i.setAttribute('aria-label', nom + ' · ' + lb); });
+      });
+      $('mkvocok').onclick = () => $('mkok') && $('mkok').click();
+    }
+  }
+  // Correo y firma: estado y prueba arriba
+  if (CFG_KEY === 'o.correo' && $('coprueba') && !$('costado')) {
+    const host = (($('cohost') || {}).value || '').trim();
+    const prim = c.querySelector(':scope > .card');
+    if (prim) prim.insertAdjacentHTML('beforebegin', `<div class="card cfgpanel" id="costado"><div class="ajfila"><div><b>${host ? 'Correo conectado' : 'Correo sin configurar'}</b>
+      <span class="sm">${host ? 'Las facturas, los datos de pago y los resúmenes salen desde ' + esc((($('coemail') || {}).value || host).trim()) + '.' : 'Rellena la cuenta de envío: hasta entonces, los correos de la empresa no salen.'}</span></div>
+      <div class="ajctl"><button type="button" class="btn sec" id="copruebaarriba">Enviar un correo de prueba</button></div></div></div>`);
+    if ($('copruebaarriba')) $('copruebaarriba').onclick = () => { $('coprueba').scrollIntoView({ block: 'center', behavior: 'smooth' }); $('coprueba').click(); };
+  }
+  // Correo y Copias enseñan su propio estado: fuera el aviso de arriba, que diría lo mismo
+  if (['o.correo', 'o.copias'].includes(CFG_KEY) && $('cfupend')) $('cfupend').classList.add('hide');
+  // Copias: estado y botón en la misma fila
+  if (CFG_KEY === 'o.copias') {
+    const est = c.querySelector('.copiaest'), b = $('copok');
+    if (est && b && !est.contains(b)) { const acts = b.closest('.acts'); est.classList.add('copiafila'); const t = document.createElement('div'); [...est.children].forEach(x => t.appendChild(x)); est.append(t, b); if (acts && !acts.children.length) acts.remove(); }
+  }
+}
+new MutationObserver(() => { if (TAB === 'config') requestAnimationFrame(pulirCfg); })
+  .observe(document.getElementById('v-config'), { childList: true, subtree: true });
+
+/* v2.217.0 · Equipo, Facturación y Datos (tercera versión del rediseño de Configuración).
+   - pulirCfg se aplica ya a todos los apartados: fuera las tarjetas que solo presentan y los títulos repetidos.
+   - Usuarios: las cifras (plan, cada rol, sin actividad, con acceso al portal) en una línea; pulsar un rol filtra la lista por él.
+   - Las casillas sueltas (Cartera exclusiva, Emitir la factura al validar…) sin el recuadro de más. */
+pulirCfg = (orig => function () {
+  if (TAB !== 'config' || !CFG_KEY) return;
+  if (!CFG_PULIR.includes(CFG_KEY)) CFG_PULIR.push(CFG_KEY);
+  orig();
+  const c = $('cfgcuerpo'); if (!c) return;
+  if (CFG_KEY === 'usuarios') {
+    const k = c.querySelector('.cfgpanel > .kpis.vtot:not([data-pul])');
+    if (k) {
+      k.dataset.pul = '1'; k.classList.add('usrres');
+      const roles = rolesNombres();
+      k.querySelectorAll('.kpi').forEach(x => {
+        const r = (x.querySelector('span') || {}).textContent || '';
+        if (!roles.includes(r.trim())) return;
+        x.classList.add('usrresrol'); x.setAttribute('role', 'button'); x.tabIndex = 0; x.title = 'Ver solo ' + r.trim();
+        const filtra = () => { const s = $('usrrol'); if (!s) return; s.value = s.value === r.trim() ? '' : r.trim(); s.dispatchEvent(new Event('change', { bubbles: true }));
+          k.querySelectorAll('.usrresrol').forEach(y => y.classList.toggle('on', y === x && !!s.value)); };
+        x.onclick = filtra; x.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); filtra(); } };
+      });
+      // v2.297: «Cuentas con acceso» (profesionales y centros con portal) lleva a la tarjeta de invitados
+      const inv = k.querySelector('[data-usrinvk]');
+      if (inv) {
+        inv.classList.add('usrresrol'); inv.setAttribute('role', 'button'); inv.tabIndex = 0; inv.title = 'Ver las cuentas con acceso a su portal';
+        const ir2 = () => { const w = c.querySelector('.usrinvw'); if (!w) return; w.scrollIntoView({ behavior: 'smooth', block: 'start' }); w.classList.remove('usrinvluz'); void w.offsetWidth; w.classList.add('usrinvluz'); };
+        inv.onclick = ir2; inv.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); ir2(); } };
+      }
+    }
+  }
+})(pulirCfg);
+
+/* v2.218.0 · Roles y Series (lo que quedaba del rediseño de Configuración).
+   - «Filtros y columnas» no se engancha a Configuración (salía suelto en la cabecera al abrir Series).
+   - Roles y permisos: la columna del permiso queda fija al desplazarse a los lados y los desplegables son más estrechos (estilo). */
+htPreparar = (orig => function (sec, ...r) {
+  if (sec && sec.id === 'v-config') { sec.querySelectorAll('.htbtn, .htpanel').forEach(x => x.remove()); return; }
+  return orig.call(this, sec, ...r);
+})(htPreparar);
+
+/* v2.220.0: la pastilla «Pendientes» y las líneas de aviso usaban la clase .av, que es la del avatar redondo de la app (salía un círculo
+   cortado en lugar de la pastilla): ahora .agp-pend y .tdav.
+   v2.219.0 · Agenda con tarjetas y cinta de 14 días (decisión de Eric, prototipo «versión D»).
+   - Las cifras pasan a pastillas junto al título (#aghud, leídas de #agmet, que queda oculto).
+   - La semana y el mes se sustituyen por una cinta de 14 días (.cinta): un punto por cita (hecha, por hacer, sin cerrar),
+     ‹ › de semana en semana, «Hoy» para volver, el mes completo al pulsar su nombre (#agmes flotando) y «Planificar la semana».
+   - Tu día a todo el ancho: cada cita es una tarjeta (.tdu) con el nivel de la ficha y adónde llevarla, la clase, la anterior
+     y lo que se apuntó para esta (SQL 131: estado_comercial, clase y anterior en agenda_rango), el horario y los avisos.
+     Las tarjetas se construyen desde la lista de siempre (.tdlista, que queda oculta): heredan su hora estimada, sus avisos
+     y sus botones (los mismos data-td, que atiende el mismo listener).
+   - En el móvil: cifras en 2 × 2, la cinta semana a semana (deslizando), «Registrar» a todo el ancho. */
+const citaAnulada = e => EST_COL[e] === 'var(--muted)';
+const agConCinta = () => TAB === 'agenda' && AG_MODO === 'dia' && !!$('v-agenda');
+let CINTA_INI = null;
+const lunesCinta = f => { const d = new Date(f + 'T12:00:00'); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return isoLocal(d); };
+const diasMas = (f, n) => { const d = new Date(f + 'T12:00:00'); d.setDate(d.getDate() + n); return isoLocal(d); };
+const SVA = d => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + d + '</svg>';
+const ICU = {
+  toca: '<path d="M4 22V4a1 1 0 0 1 1-1h12l-2.5 4.5L17 12H5"/>',
+  reloj: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  puerta: '<path d="M3 21h18"/><path d="M6 21V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v17"/><path d="M14 12h.01"/>',
+  aviso: '<path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/>',
+  nota: '<path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z"/>',
+  mas: '<circle cx="5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="19" cy="12" r="1.3"/>',
+  plan: '<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18M12 14v4M10 16h4"/>'
+};
+
+// Pastillas con las cifras (de #agmet, que se sigue pintando igual)
+
+// La cinta de 14 días
+async function agCinta() {
+  const v = $('v-agenda'); if (!v || !agConCinta() || !$('agcuerpo')) return;
+  const hoy = hoyISO();
+  if (!CINTA_INI) CINTA_INI = lunesCinta(AG_FECHA || hoy);
+  const ini = CINTA_INI, fin = diasMas(ini, 13);
+  const { data } = await rpcCache('agenda_rango', { p_desde: ini, p_hasta: fin, p_usuario: agUid() }, 'agenda-cinta-' + agUid() + '-' + ini);
+  if (!agConCinta() || CINTA_INI !== ini || !$('agcuerpo')) return;
+  const por = {};
+  (data || []).filter(c => c.usuario_id === agUid() && !citaAnulada(c.estado)).forEach(c => { (por[c.fecha] = por[c.fecha] || []).push(c); });
+  const dn = ['D', 'L', 'M', 'X', 'J', 'V', 'S'];
+  const semTxt = l => {
+    const dd = Math.round((new Date(l + 'T12:00:00') - new Date(lunesCinta(hoy) + 'T12:00:00')) / 864e5 / 7);
+    if (dd === 0) return 'Esta semana'; if (dd === 1) return 'La semana que viene'; if (dd === -1) return 'La semana pasada';
+    const d0 = new Date(l + 'T12:00:00'); return 'Semana del ' + d0.getDate() + ' de ' + d0.toLocaleDateString('es-ES', { month: 'long' });
+  };
+  const dia = f => {
+    const l = por[f] || [], d = new Date(f + 'T12:00:00');
+    const tipo = c => !CITA_ABIERTA.includes(c.estado) ? 'ch' : f < hoy ? 'cx' : 'cp';
+    const pts = l.slice(0, 6).map(c => `<i class="${tipo(c)}"></i>`).join('') + (l.length > 6 ? `<em>+${l.length - 6}</em>` : '');
+    const n = `${l.length} ${l.length === 1 ? 'cita' : 'citas'}`;
+    return `<button type="button" class="cdia ${f === hoy ? 'hoy' : ''} ${f === AG_FECHA ? 'sel' : ''} ${[0, 6].includes(d.getDay()) ? 'finde' : ''}" data-cf="${f}" aria-label="${esc(fechaLarga(d))}: ${n}" title="${n}">
+      <span class="dn">${dn[d.getDay()]}</span><span class="dd">${d.getDate()}</span><span class="cpts">${pts || '<b></b>'}</span></button>`;
+  };
+  const mes = new Date(diasMas(ini, 3) + 'T12:00:00').toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
+  const html = `<div class="cinta" id="agcinta" data-ini="${ini}"><div class="ccab">
+      <div class="cnav"><button type="button" class="kmv" data-cm="-7" aria-label="Semana anterior" title="Semana anterior">‹</button><button type="button" id="cmesb" class="cmesb" aria-expanded="false" title="Ver el mes">${esc(mes.charAt(0).toUpperCase() + mes.slice(1))} <span aria-hidden="true">▾</span></button><button type="button" class="kmv" data-cm="7" aria-label="Semana siguiente" title="Semana siguiente">›</button>${ini !== lunesCinta(hoy) ? '<button type="button" class="btn sec chico" id="choy">Hoy</button>' : ''}</div>
+      <div class="cley" aria-hidden="true"><span><i class="ch"></i>Hecha</span><span><i class="cp"></i>Por hacer</span><span><i class="cx"></i>Sin cerrar</span></div>
+      <button type="button" class="btn sec chico" id="cplan" title="Planificar la semana">${SVA(ICU.plan)}<span>Planificar la semana</span></button></div>
+    <div class="csems">${[0, 7].map(o => `<div class="csem"><span class="csemt">${semTxt(diasMas(ini, o))}</span><div class="c7">${Array.from({ length: 7 }, (_, k) => dia(diasMas(ini, o + k))).join('')}</div></div>`).join('')}</div></div>`;
+  const vieja = $('agcinta');
+  if (vieja) vieja.outerHTML = html; else $('agcuerpo').insertAdjacentHTML('beforebegin', html);
+  const c = $('agcinta');
+  c.querySelectorAll('[data-cf]').forEach(b => b.onclick = () => { cerrarMesCinta(); c.querySelectorAll('.cdia').forEach(x => x.classList.toggle('sel', x === b)); agVerDia(b.dataset.cf); });
+  c.querySelectorAll('[data-cm]').forEach(b => b.onclick = () => { CINTA_INI = diasMas(CINTA_INI, +b.dataset.cm); agCinta(); });
+  if ($('choy')) $('choy').onclick = () => { CINTA_INI = lunesCinta(hoy); agCinta(); agVerDia(hoy); };
+  $('cmesb').onclick = e => { e.stopPropagation(); const m = $('agmes'); if (!m) return; const ab = !m.classList.contains('pop'); m.classList.toggle('pop', ab); $('cmesb').setAttribute('aria-expanded', String(ab));
+    // El mes se abre bajo su botón (en el móvil, centrado)
+    if (ab) { const r = $('cmesb').getBoundingClientRect(), w = Math.min(380, innerWidth - 32); m.style.top = Math.round(r.bottom + 8) + 'px'; m.style.left = Math.round(Math.max(16, Math.min(r.left, innerWidth - w - 16))) + 'px'; m.style.bottom = 'auto'; m.style.right = 'auto'; } };
+  // En el móvil, la cinta se abre en la semana del día elegido
+  const sems = c.querySelector('.csems'); if (sems && AG_FECHA >= diasMas(ini, 7)) sems.scrollLeft = sems.scrollWidth;
+}
+function cerrarMesCinta() { const m = $('agmes'); if (m) m.classList.remove('pop'); if ($('cmesb')) $('cmesb').setAttribute('aria-expanded', 'false'); }
+document.addEventListener('click', e => { const m = $('agmes'); if (m && m.classList.contains('pop') && !e.target.closest('#agmes, #cmesb, .agmpop, .agpop')) cerrarMesCinta(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrarMesCinta(); });
+
+
+// Las tarjetas de Tu día, desde la lista de siempre
+// Pulsar la tarjeta (fuera de sus botones) abre la cita, como la fila de antes
+document.addEventListener('click', e => {
+  const t = e.target.closest('.tdu'); if (!t || e.target.closest('button, a, input, select, .agtamb[data-agtc]')) return;
+  const c = (TD_CITAS || []).find(x => x.id === t.dataset.tdu); if (c) verCita(c);
+});
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Enter' || !e.target.matches || !e.target.matches('.tdu')) return;
+  const c = (TD_CITAS || []).find(x => x.id === e.target.dataset.tdu); if (c) verCita(c);
+});
+
+/* v2.221.0 · El «+» flotante del móvil no tapa el contenido (aviso de Eric: tapaba el final de las tarjetas y de la jornada).
+   - Al desplazarse hacia abajo se aparta (baja y se desvanece); al subir, al pararse arriba del todo o al llegar al final, vuelve.
+   - Con «+» en la pantalla, el contenido deja sitio debajo para que lo último no quede bajo el botón (estilo). */
+(() => {
+  let y0 = scrollY, fuera = false, pend = false;
+  const poner = v => { if (v === fuera) return; fuera = v; document.body.classList.toggle('fabfuera', v); };
+  addEventListener('scroll', () => {
+    if (pend) return; pend = true;
+    requestAnimationFrame(() => {
+      pend = false;
+      const y = scrollY, dy = y - y0, alFinal = innerHeight + y >= document.documentElement.scrollHeight - 8;
+      if (y < 40 || alFinal) poner(false);
+      else if (dy > 6) poner(true);
+      else if (dy < -6) poner(false);
+      y0 = y;
+    });
+  }, { passive: true });
+  // Al cambiar de pantalla vuelve a estar a la vista
+  ir = (orig => function (...x) { poner(false); y0 = 0; return orig.apply(this, x); })(ir);
+})();
+
+/* v2.222.0 · KPIs vivos de Inicio (decisión de Eric: variante A «Instrumentos» del prototipo https://claude.ai/artifact/5sCrtXHiW1RvCZ5GLSDDdZ).
+   - Cada KPI de Inicio cuenta su información con su propia gráfica: citas de hoy (un punto por cita con su hora; la siguiente late),
+     urgentes (radar o «todo al día»), semana (barras por día), mes (línea acumulada frente al mes pasado), interesados (escalera de
+     estados), sin contactar (una casilla por ficha), cartera (anillo por estados), próximos 7 días (columnas), sin visita en 60 días
+     (proporción) y unidades del mes (frente al mes pasado). Los demás, el número con la misma tarjeta.
+   - Los datos de las gráficas: inicio_graficas() (SQL 132), pedida a la vez que panel_inicio para que Inicio aparezca entero de una vez.
+   - Al llegar, los números cuentan desde cero y las gráficas crecen, todo a la vez (sin cascadas); la siguiente cita, el radar y el
+     punto final de la línea siguen vivos. Sin animación con «reducir movimiento».
+   - Las tarjetas se transforman en cuanto se pintan (MutationObserver de #kpis: va antes de que se vean). */
+let KV_INI = null, KV_GRAF = null;
+rpcCache = (orig => async function (fn, params, clave) {
+  if (fn !== 'panel_inicio') return orig.call(this, fn, params, clave);
+  const [r, g] = await Promise.all([orig.call(this, fn, params, clave), orig.call(this, 'inicio_graficas', {}, 'inicio-graficas').catch(() => null)]);
+  KV_INI = r && r.data ? r.data : null;
+  KV_GRAF = g && g.data && g.data.por_dia ? g.data : null;
+  return r;
+})(rpcCache);
+const kvSvg = (d, w = 2.4) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+const kvMas = (f, n) => { const d = new Date(f + 'T12:00:00'); d.setDate(d.getDate() + n); return isoLocal(d); };
+const kvLunes = f => { const d = new Date(f + 'T12:00:00'); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return isoLocal(d); };
+const kvMin = h => { const m = String(h || '').match(/(\d{1,2}):(\d{2})/); return m ? +m[1] * 60 + +m[2] : null; };
+const KV_COL = { inicial: '#C9D7E6', avance: '#3F82C0', interes: '#17457A', positivo: '#1E7A4C', negativo: '#94A3B8' };
+const KV_DN = ['D', 'L', 'M', 'X', 'J', 'V', 'S'];
+
+function kvGrafica(id, k) {
+  const h = hoyISO(), G = KV_GRAF, vis = TT('visita', 'p', '', 'l', 'l');
+  const porDia = {}; ((G && G.por_dia) || []).forEach(x => { porDia[x.fecha] = x.n; });
+  const estados = {}; ((G && G.estados) || []).forEach(x => { estados[x.valor] = x.n; });
+  const totalCartera = Object.values(estados).reduce((a, b) => a + b, 0);
+  if (id === 'citas' && KV_INI) {
+    const l = (KV_INI.agenda_hoy || []).filter(a => !citaAnulada(a.estado));
+    const ab = l.filter(a => CITA_ABIERTA.includes(a.estado)), ahora = (() => { const d = new Date(); return d.getHours() * 60 + d.getMinutes(); })();
+    const sig = ab.find(a => (kvMin(a.hora) ?? 9999) >= ahora - 15) || ab[0];
+    const tipo = a => CITA_ABIERTA.includes(a.estado) ? (a === sig ? 'sig' : '') : EST_COL[a.estado] === 'var(--warn)' ? 'no' : 'ok';
+    const s = sig ? `Siguiente <b>${esc(String(sig.hora || '').slice(0, 5) || '—')}</b> · ${esc(sig.nombre)}` : l.length ? 'Todas cerradas' : 'Sin citas hoy';
+    // v2.223.0: como mucho cinco puntos (tres en el móvil, con la siguiente siempre a la vista) y «+N» con el resto; antes saltaban a otra fila y tapaban el texto
+    const nv = matchMedia('(max-width: 760px)').matches ? 3 : 5;
+    const iS = sig ? l.indexOf(sig) : 0, ini = Math.max(0, Math.min(iS - (nv >> 1), l.length - nv)), ver = l.slice(ini, ini + nv);
+    const mas = Math.max(0, (k.citas_hoy || l.length) - ver.length);
+    return { s, z: l.length ? `<div class="kvdots">${ver.map(a => `<span class="kvdot"><i class="${tipo(a)}" title="${esc(a.nombre)}"></i><em>${esc(String(a.hora || '').slice(0, 5) || '·')}</em></span>`).join('')}${mas > 0 ? `<span class="kvdot"><em class="kvmas">+${mas}</em></span>` : ''}</div>` : '' };
+  }
+  if (id === 'urgentes') {
+    return k.urgentes ? { s: `${num(k.urgentes)} por atender`, z: '<div class="kvradar" aria-hidden="true"><i></i><b></b><b></b></div>' }
+      : { s: 'Ninguno pendiente', z: `<div class="kvcalma"><span>${kvSvg('<path d="M20 6 9 17l-5-5"/>')}</span>Todo al día</div>` };
+  }
+  if ((id === 'visitas_sem' || id === 'citas_7d') && G) {
+    const prox = id === 'citas_7d';
+    const dias = Array.from({ length: 7 }, (_, i) => prox ? kvMas(h, i) : kvMas(kvLunes(h), i));
+    const proxD = {}; (G.proximos || []).forEach(x => { proxD[x.fecha] = x.n; });
+    const val = dias.map(f => (prox ? proxD[f] : porDia[f]) || 0);
+    const mx = Math.max(1, ...val), W = 196, bw = 18, gap = (W - 7 * bw) / 6;
+    const bars = val.map((v, i) => { const hh = Math.max(3, v / mx * 40), x = i * (bw + gap), fut = !prox && dias[i] > h, esH = dias[i] === h;
+      return `<rect x="${x}" y="${44 - hh}" width="${bw}" height="${hh}" rx="4" fill="${fut ? '#E3EBF3' : esH ? 'var(--sky)' : 'var(--navy)'}" opacity="${v ? 1 : .35}"/><text x="${x + bw / 2}" y="58" text-anchor="middle" class="${esH ? 'hoy' : ''}">${KV_DN[new Date(dias[i] + 'T12:00:00').getDay()]}</text>`; }).join('');
+    let s;
+    if (prox) { const i = val.indexOf(Math.max(...val)); s = val[i] ? `El ${new Date(dias[i] + 'T12:00:00').toLocaleDateString('es-ES', { weekday: 'long' })}, el día más lleno (<b>${val[i]}</b>)` : 'Semana libre'; }
+    else { const m4 = Array.from({ length: 28 }, (_, i) => porDia[kvMas(kvLunes(h), -28 + i)] || 0).reduce((a, b) => a + b, 0) / 20; s = `Media <b>${String(m4.toFixed(1)).replace('.', ',')}</b> al día las 4 semanas anteriores`; }
+    return { s, z: `<svg class="kvbar" viewBox="0 0 ${W} 60" preserveAspectRatio="xMidYMax meet" aria-hidden="true">${bars}</svg>` };
+  }
+  if (id === 'visitas_mes' && G) {
+    const dHoy = +h.slice(8, 10), ini = h.slice(0, 8) + '01', d0 = new Date(ini + 'T12:00:00'); d0.setMonth(d0.getMonth() - 1); const iniAnt = isoLocal(d0);
+    const acum = f0 => { let a = 0; return Array.from({ length: dHoy }, (_, i) => { a += porDia[kvMas(f0, i)] || 0; return a; }); };
+    const ac = acum(ini), ant = acum(iniAnt);
+    if (dHoy < 2) return { s: '', z: '' };
+    const mx = Math.max(1, ...ant, ...ac), W = 196, H = 46, x = i => i / (dHoy - 1) * W, y = v => H - v / mx * H;
+    const lin = a => a.map((v, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join('');
+    const dif = ac[ac.length - 1] - ant[ant.length - 1];
+    return { s: dif >= 0 ? `<b>+${dif}</b> sobre el mismo día del mes pasado` : `<b>${dif}</b> frente al mismo día del mes pasado`,
+      z: `<svg class="kvlin" viewBox="0 0 ${W} ${H + 12}" preserveAspectRatio="none" aria-hidden="true"><path d="${lin(ant)}" fill="none" stroke="#C9D7E6" stroke-width="2" stroke-dasharray="4 4"/>
+        <path class="l" d="${lin(ac)}" pathLength="100" fill="none" stroke="var(--navy)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+        <text x="0" y="${H + 11}">1</text><text x="${W}" y="${H + 11}" text-anchor="end" class="hoy">hoy</text>
+        <circle class="fin" cx="${x(dHoy - 1)}" cy="${y(ac[ac.length - 1])}" r="4" fill="var(--sky)" stroke="var(--navy)" stroke-width="1.5"/></svg>` };
+  }
+  if ((id === 'interesados' || id === 'cartera') && G && totalCartera) {
+    const esc2 = ESTADOS_DEF.filter(e => e.papel !== 'negativo').map(e => ({ e, n: estados[e.valor] || 0 }));
+    if (id === 'interesados') {
+      const pasos = esc2.filter(c => c.e.papel !== 'inicial'); if (!pasos.length) return { s: '', z: '' };
+      const mx = Math.max(1, ...pasos.map(c => c.n)), W = 196, bw = W / pasos.length;
+      const col = pasos.map((c, i) => { const on = c.e.papel === 'interes', hh = Math.max(4, c.n / mx * 28), nom = c.e.valor.length > 11 ? c.e.valor.slice(0, 10) + '.' : c.e.valor;
+        return `<rect x="${i * bw + 4}" y="${34 - hh}" width="${bw - 8}" height="${hh}" rx="4" fill="${on ? 'var(--navy)' : '#DCE6F1'}"/><text x="${i * bw + bw / 2}" y="${30 - hh}" text-anchor="middle" class="n ${on ? 'on' : ''}">${c.n}</text><text x="${i * bw + bw / 2}" y="48" text-anchor="middle" class="${on ? 'on' : ''}">${esc(nom)}</text>`; }).join('');
+      const pos = esc2.find(c => c.e.papel === 'positivo');
+      return { s: pos ? (pos.n ? `<b>${pos.n}</b> ya en «${esc(pos.e.valor)}»` : `Siguiente paso: «${esc(pos.e.valor)}»`) : '', z: `<svg class="kvbar" viewBox="0 0 ${W} 52" preserveAspectRatio="xMidYMax meet" aria-hidden="true">${col}</svg>` };
+    }
+    const C = 2 * Math.PI * 22; let off = 0;
+    const segs = esc2.filter(c => c.n).map(c => { const l = c.n / totalCartera * C, s = `<circle class="s" cx="29" cy="29" r="22" fill="none" stroke="${KV_COL[c.e.papel] || '#C9D7E6'}" stroke-width="9" stroke-dasharray="${Math.max(0, l - 1.5)} ${C}" stroke-dashoffset="${-off}"/>`; off += l; return s; }).join('');
+    return { s: '', z: `<div class="kvdona"><svg viewBox="0 0 58 58" aria-hidden="true">${segs}</svg><div class="kvley">${esc2.filter(c => c.n).slice(0, 4).map(c => `<span><i style="background:${KV_COL[c.e.papel] || '#C9D7E6'}"></i>${c.n} ${esc(c.e.valor)}</span>`).join('')}</div></div>` };
+  }
+  if (id === 'sin_contactar' && G && totalCartera) {
+    const n = Math.min(totalCartera, ES_MOVIL() ? 64 : 96), sin = Math.round(k.sin_contactar / totalCartera * n);   // v2.338.0: en el móvil, 64 (4 filas); con 96 tapaba la cifra
+    return { s: `${Math.round(k.sin_contactar / totalCartera * 100)} % de tu cartera`, z: `<div class="kvwaf" aria-hidden="true">${Array.from({ length: n }, (_, i) => `<i class="${i >= n - sin ? 'f' : ''}"></i>`).join('')}</div>` };
+  }
+  if (id === 'sin_visita_60' && k.medicos) {
+    const p = Math.round(k.sin_visita_60 / Math.max(1, k.medicos) * 100);
+    return { s: `${p} % de tu cartera`, z: `<div class="kvpropw"><div class="kvprop"><i style="width:${p}%"></i></div><div class="kvpropt"><span><i class="kvq a"></i>Sin ${TT('visita', 's', '', 'l', 'l')} en 60 días</span><span><i class="kvq b"></i>El resto</span></div></div>` };
+  }
+  if (id === 'uds_mes' && k.uds_mes_ant != null && (k.uds_mes || k.uds_mes_ant)) {
+    const a = k.uds_mes || 0, b = k.uds_mes_ant || 0, mx = Math.max(1, a, b), W = 196;
+    return { s: b ? `${a >= b ? '+' : ''}${Math.round((a - b) / b * 100)} % frente al mismo día del mes pasado` : '',
+      z: `<svg class="kvbar" viewBox="0 0 ${W} 44" preserveAspectRatio="none" aria-hidden="true"><rect x="0" y="4" width="${b / mx * W}" height="12" rx="4" fill="#DCE6F1"/><rect x="0" y="24" width="${Math.max(3, a / mx * W)}" height="12" rx="4" fill="var(--navy)"/></svg>` };
+  }
+  return { s: '', z: '' };
+}
+function kvContar(raiz) {
+  const ns = [...raiz.querySelectorAll('[data-kvn]')];
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) { ns.forEach(n => n.textContent = num(+n.dataset.kvn)); return; }
+  const t0 = performance.now(), dur = 900;
+  const paso = t => { const f = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - f, 3); ns.forEach(n => { if (n.isConnected) n.textContent = num(Math.round(+n.dataset.kvn * e)); }); if (f < 1) requestAnimationFrame(paso); };
+  requestAnimationFrame(paso);
+}
+function kpisVivos() {
+  const cont = $('kpis'); if (!cont || !KV_INI || !cont.querySelector('.kpi[data-kid]') || cont.querySelector('.kvt')) return;
+  const k = KV_INI.kpis || {};
+  cont.classList.add('kvivo');
+  cont.querySelectorAll('.kpi[data-kid]').forEach(el => {
+    const id = el.dataset.kid, c = KPI_CAT.find(y => y.id === id); if (!c) return;
+    const raw = c.v(k), m = String(raw).match(/^(\d+)\/(\d+)$/);
+    const { s, z } = kvGrafica(id, k);
+    const ai = el.querySelector('.ai'), t = ((el.querySelector('b + span') || {}).textContent || c.t).trim();
+    el.classList.add('kv');
+    el.innerHTML = `${ai ? ai.outerHTML : ''}<div class="kvt">${esc(t)}</div>
+      <div class="kvn">${m ? `<b data-kvn="${m[1]}">0</b><span class="kvu">/${m[2]}</span>` : /^\d+$/.test(String(raw)) ? `<b data-kvn="${raw}">0</b>` : `<b>${esc(String(raw))}</b>`}</div>
+      <div class="kvs">${s}</div>${z ? `<div class="kvz">${z}</div>` : ''}`;
+  });
+  // Los filtros guardados, con la misma tarjeta
+  cont.querySelectorAll('.kpi[data-kfi]').forEach(el => {
+    el.classList.add('kv'); const b = el.querySelector('b.cont'), sp = el.querySelector('b + span');
+    if (b && sp) { sp.className = 'kvt'; b.insertAdjacentElement('beforebegin', sp); const n = document.createElement('div'); n.className = 'kvn'; b.insertAdjacentElement('beforebegin', n); n.appendChild(b); }
+  });
+  kvContar(cont);
+}
+(() => {
+  const ob = new MutationObserver(() => { if ($('kpis')) kpisVivos(); });
+  const enganchar = () => { const c = $('kpis'); if (c && !c.__kv) { c.__kv = true; ob.observe(c, { childList: true }); kpisVivos(); } };
+  enganchar();   // #kpis está en index.html desde el arranque: basta con vigilarlo a él
+})();
+

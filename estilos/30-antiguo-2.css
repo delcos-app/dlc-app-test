@@ -1,0 +1,122 @@
+@layer antiguo {
+
+/* v2.331.0: cobro con tarjeta o Bizum en el pedido y su configuración */
+#pdtpv{margin-top:12px;padding-top:12px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:6px}
+#pdtpv .pdpagof .pill{align-self:flex-start}
+#pdtpv .acts{margin:0}
+#pdtpv a.btn{display:inline-flex;align-items:center;justify-content:center;text-align:center}
+.tpvok{color:var(--ok)}.tpverr{color:var(--dang)}
+.tpvw{display:flex;flex-direction:column;gap:12px}
+#tpvurl{word-break:break-all}
+/* v2.335.0: barra del móvil con 2 a 5 botones, «Personalizar menú» del móvil */
+@media (max-width:760px){.bnav[data-n="2"]{grid-template-columns:repeat(2,minmax(0,1fr))}.bnav[data-n="3"]{grid-template-columns:repeat(3,minmax(0,1fr))}.bnav[data-n="4"]{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.bmaspers{justify-content:center;margin-top:10px}
+.movpl{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+.movp{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 10px;border:1px solid var(--line);border-radius:12px;background:var(--card)}
+.movp.movp-barra{border-color:var(--navy)}
+.movp.movp-oculta .movpn,.movp.movp-oculta .movpico{opacity:.5}
+.movpn{flex:1;min-width:90px;font-weight:600}
+.movpmv{display:flex;gap:2px}
+.movp .segs{margin-left:auto}
+.movpg{margin-top:12px}
+.movpg h3{margin:0 0 6px}
+.movpg .movpl{margin:0}
+.movpfijo{margin-bottom:6px}
+.movpfijo .sm{margin-left:auto}
+.movpdrag{cursor:grab;touch-action:none;user-select:none;padding:6px 4px;color:var(--muted);font-size:18px;line-height:1}
+.movp.movparr{position:fixed;z-index:10;box-shadow:0 8px 24px rgba(11,37,64,.18);pointer-events:none;opacity:.95;margin:0}
+.movphueco{border:2px dashed var(--line);border-radius:12px}
+.movpvac{padding:12px;border:1px dashed var(--line);border-radius:12px;text-align:center}
+.mlpfijo .sm{margin-left:auto}
+.movpico{width:22px;text-align:center;color:var(--navy)}
+/* v2.338.0 · Arreglos del móvil (avisos de Eric, 20/10/2026) */
+/* Referencia del pago: separada del campo de arriba */
+/* Analítica: la leyenda del gráfico de anillo debajo, sin montarse sobre «Cómo leerlo» */
+.donut:has(.donutley){width:auto;height:auto}
+@media (max-width:760px){.donut:has(.donutley){justify-content:center}.donutley{min-width:0;width:100%}}
+/* Inicio: «Sin contactar» en el móvil, 16 por fila */
+@media (max-width:760px){#kpis.kvivo .kvwaf{grid-template-columns:repeat(16,minmax(0,1fr));gap:2px}}
+/* D-024 · Ventanas completas en el móvil: toda la pantalla menos el menú de abajo, desde que se abren */
+@media (max-width:760px){
+  dialog#dlg[open]:not(.encajada),dialog#dlg2[open]:not(.encajada),dialog#ficha[open]{inset:0 0 auto 0;height:calc(100dvh - var(--bnavh,0px));max-height:calc(100dvh - var(--bnavh,0px));box-shadow:none;animation:uiFunde var(--t-medio) linear}
+  dialog#dlg[open]:not(.encajada)::backdrop,dialog#dlg2[open]:not(.encajada)::backdrop,dialog#ficha[open]::backdrop{background:transparent}
+  dialog#dlg[open]:not(.encajada) > #dbody,dialog#dlg2[open]:not(.encajada) > #dlg2body{min-height:100%;box-sizing:border-box}
+}
+/* v2.339.0 · Cabecera del pedido en una fila */
+.pdcabt{display:flex;align-items:center;flex-wrap:wrap;gap:4px 10px;min-width:0}
+.pdcabt h2{margin:0}
+.pdcabt .pdmeta{white-space:normal}
+/* v2.339.0 · Vista previa de la factura */
+.facprev iframe{width:100%;height:min(70vh,820px);border:1px solid var(--line);border-radius:12px;background:#FFFFFF;display:block}
+.facpaviso{margin:0 0 10px}
+@media (max-width:760px){.facprev iframe{height:calc(100dvh - var(--bnavh,0px) - 230px)}}
+/* v2.339.0 · Reparto por producto en barras */
+.reptot{padding:2px 16px 8px;font-size:13px;color:var(--muted)}
+.reptot b{font:800 18px var(--f-titulo);color:var(--navy);margin-right:2px}
+.barrash.reparto .bh{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) 52px 40px}
+.barrash.reparto .bh b{text-align:right;font-variant-numeric:tabular-nums}
+.bhsvg{width:100%;height:12px;display:block}.bhsvg .f{fill:var(--bg)}.bhsvg .v{fill:var(--sky)}
+.barrash.reparto .bhp{text-align:right;font-variant-numeric:tabular-nums}
+/* v2.340.0 · Configuración: pestañas de las partes de un apartado, Textos personalizados y sin «Cómo se llama cada cosa» */
+#v-config #mkvoccard,#v-config .mkvoc,#v-config .mketqbox{display:none}
+.txmtab{display:flex;flex-direction:column}
+.txmf{display:grid;grid-template-columns:28px minmax(0,1fr) minmax(0,1.4fr);gap:10px;align-items:center;padding:6px 0;border-top:1px solid var(--line)}
+.txmf.txmcab{border-top:0;font:700 11px var(--f-titulo);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.txmico{text-align:center}
+.txmdef{font-weight:600}
+.txmf input{max-width:360px}
+@media (max-width:760px){.txmf{grid-template-columns:24px minmax(0,1fr)}.txmf > span:last-child{grid-column:2}.txmf.txmcab{display:none}}
+/* v2.341.0 · Alta de cliente: el campo «Empresa» guarda su sitio con «Empresa» elegido (sin saltos) */
+#koempw.koinv{visibility:hidden}
+#koempw label .ai{margin-left:4px}
+/* v2.342.0 · Plantillas de correo y del PDF */
+#plcorreo > .fh{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.plclista{display:flex;flex-direction:column;gap:14px;margin-top:6px}
+.plcusot{font:700 11px var(--f-titulo);letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px}
+.plcfila{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-top:1px solid var(--line);flex-wrap:wrap}
+.plcn{display:flex;flex-direction:column;gap:2px;min-width:0}.plcn .sm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:520px}
+.plcb{display:flex;gap:6px;flex-wrap:wrap}
+.pdfplbar{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:0 0 12px;padding:0 0 12px;border-bottom:1px solid var(--line)}
+.pdfplbar > div:first-child{min-width:220px;flex:1 1 220px;max-width:360px}
+.pdfplacts{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.efplants{margin-top:6px}
+/* v2.343.0 · Ninguna pastilla vacía (aviso de Eric: un chip vacío junto a «Cómo llegar») */
+html body :is(.fvdonde,.pill,.chip):empty{display:none}
+.ankpi.anv .avz.avcero .avsp path.l{stroke:#C9D7E6}.ankpi.anv .avz.avcero .avpt{background:#C9D7E6}
+/* v2.344.0 · Configuración más ordenada */
+#cfgcuerpo-hub .cfgsec + .cfgsec{margin-top:22px}
+#cfgcuerpo-hub .cfgsectit{font:800 15px var(--f-titulo);color:var(--navy);margin:0 0 10px}
+#v-config #cfgcuerpo.perfil2{display:block}
+.perfuno .perfunorow{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:24px;align-items:start}
+.perfuno .perfparte{border:0;background:none;box-shadow:none;padding:0;margin:0}
+.perfuno .perfseg{border-top:1px solid var(--line);margin-top:18px;padding-top:16px}
+.perfuno .perfseg > h2{font:800 15px var(--f-titulo);display:flex;align-items:center;gap:8px;margin:0 0 4px}.perfuno .perfseg > h2 svg{width:18px;height:18px}
+.perfuno .perfunorow > .perfparte:not(#miperfil) > h2{display:none}
+@media (max-width:899px){.perfuno .perfunorow{grid-template-columns:minmax(0,1fr)}}
+.ntfsilt{display:flex;align-items:center;justify-content:flex-start;gap:10px}
+.ntfsilt > .vfswitch{flex:0 0 auto;width:auto;margin:0}.ntfsilt > b{flex:0 1 auto}
+.ntfsil .ajctl{display:flex;align-items:center;gap:10px;flex-wrap:nowrap}
+.ntfsil:has(#nsil:not(:checked)) .ajctl{opacity:.45}
+#v-config .usrbar{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;align-items:center}
+#v-config .usrbar > *{width:100%;min-width:0}
+@media (max-width:760px){#v-config .usrbar{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}#v-config .usrbar > #usrq{grid-column:1 / -1}}
+#v-config label.btn{display:inline-flex;align-items:center;justify-content:center}
+#v-config .marcaed{grid-template-columns:150px minmax(0,1fr);gap:18px;align-items:start}
+#v-config .marcaprev{padding:14px}
+#v-config .marcaprev img{width:84px;height:84px}
+.cfucab{position:relative}
+.cfucab > .cfuacts{position:absolute;right:0;top:22px;margin:0;display:flex;gap:8px}
+/* v2.376.0 (D-042): con los botones de la página en la cabecera, el título y su texto les dejan sitio a la derecha */
+@media (min-width:761px){.cfucab:has(> .cfuacts){padding-right:300px}}
+@media (max-width:760px){.cfucab > .cfuacts{position:static;margin-top:10px;justify-content:flex-end}}
+/* v2.353.0: la actividad del periodo en el portal */
+#v-informe .pmact{margin:16px 0 0;display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px}
+#v-informe .pmact .btn{margin-left:auto}
+/* v2.352.0: la vista previa de la factura, con su cargador mientras llega */
+#dlg2 .facprev.facpcarga{display:grid;place-items:center;min-height:min(70vh,820px)}
+@media (max-width:760px){#dlg2 .facprev.facpcarga{min-height:calc(100dvh - var(--bnavh,0px) - 230px)}}
+/* v2.350.0: el pedido se enseña cuando están todas sus partes */
+#dlg.pdprep #dbody{visibility:hidden}
+#dlg.pdprep::after{content:"";position:absolute;inset:0;margin:auto;width:44px;height:44px;background:var(--orbita);animation:gira .9s linear infinite}
+
+}

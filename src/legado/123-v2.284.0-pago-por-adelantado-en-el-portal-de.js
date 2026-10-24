@@ -1,0 +1,54 @@
+/* ============================================================
+   v2.284.0 · Pago por adelantado en el portal del centro (SQL 152).
+   - Configuración → Portal: «Pago por adelantado» (ajuste portal.pago_anticipado). Con él, un pedido del portal validado y sin
+     cobrar sale al centro «Pendiente de pago», con su factura proforma (datos de la empresa e IBAN, líneas, IVA; diseño del PDF de
+     la empresa). Al marcarlo cobrado se prepara como siempre. El centro recibe un aviso al validar, cobrar, preparar o anular.
+   ============================================================ */
+NOMBRE_ESTADO_CENTRO['Pendiente de pago'] = 'p-warn';
+window.PC_ANT = false;
+
+async function pcProforma(id, btn) {
+  if (btn) btn.disabled = true;
+  try {
+    const { data: f } = await RPC_ORIG('portal_proforma', { p_id: id });
+    if (!f || !f.ok) { toast(f && f.motivo === 'no_encontrado' ? 'Ese pedido ya no está pendiente de pago' : motivoPortal(f), true); return; }
+    const d = f.diseno || {};
+    const C = Object.assign({}, PDF_DEF, d, { cols: Object.assign({}, PDF_DEF.cols, d.cols || {}) },
+      { titulo: 'FACTURA PROFORMA', formaPago: true, iban: true, vencimiento: false });
+    const doc = await facturaPDF(f, '', C);
+    doc.save(f.numero + '.pdf');
+    toast(`Proforma descargada. Pon «${f.concepto}» como concepto de la transferencia`);
+  } catch (e) { toast('No se ha podido preparar la proforma', true); registrarError('app', 'Proforma del portal', { e: String(e) }); }
+  finally { if (btn) btn.disabled = false; }
+}
+document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('[data-pcpro]'); if (b) pcProforma(b.dataset.pcpro, b); });
+
+// Configuración → Portal: pago por adelantado de los pedidos del centro
+pintarCfgPortal = (orig => async function (...a) {
+  const r = await orig.apply(this, a);
+  const c = $('cfgcuerpo'); if (!c || $('cfpant')) return r;
+  const { data: aj } = await db.from('ajustes').select('valor').eq('clave', 'portal').maybeSingle();
+  if (!$('cfgcuerpo') || $('cfpant')) return r;
+  const on = !!(aj && aj.valor && aj.valor.pago_anticipado);
+  c.insertAdjacentHTML('beforeend', `<div class="card" id="cfpantc"><div class="fh"><div><h2>Pedidos del portal del centro ${typeof pmAyu === 'function' ? pmAyu('Pago por adelantado', 'Con el pago por adelantado, al confirmar un pedido del portal el centro lo ve «Pendiente de pago» y descarga la factura proforma con vuestros datos y el IBAN para hacer la transferencia. Cuando la recibáis, marcad el pago como cobrado en el pedido: el centro recibe el aviso y el pedido se prepara como siempre. El IBAN y los datos salen de Facturación → Datos fiscales.') : ''}</h2></div></div>
+    <label class="opt"><input type="checkbox" id="cfpant" ${on ? 'checked' : ''}> Pago por adelantado (transferencia antes de preparar el pedido)</label>
+    <div class="acts" style="justify-content:flex-end"><button class="btn" id="cfpantok" type="button">Guardar</button></div></div>`);
+  $('cfpantok').onclick = async ev => {
+    ev.target.disabled = true;
+    const { data: a2 } = await db.from('ajustes').select('valor').eq('clave', 'portal').maybeSingle();
+    const { data: x, error } = await db.rpc('guardar_ajuste', { p_clave: 'portal', p_valor: Object.assign({}, (a2 && a2.valor) || {}, { pago_anticipado: $('cfpant').checked }) });
+    ev.target.disabled = false;
+    if (error || (x && x.ok === false)) { toast('No se ha podido guardar', true); return; }
+    toast($('cfpant').checked ? 'Guardado: los centros pagarán por adelantado' : 'Guardado: sin pago por adelantado');
+  };
+  return r;
+})(pintarCfgPortal);
+
+function pcDebeHtml(peds) {
+  const n = (peds || []).filter(p => p.proforma).length;
+  return n ? `<div class="pmaviso pcdebe"><div><b>${n === 1 ? 'Tienes un pedido pendiente de pago' : `Tienes ${num(n)} pedidos pendientes de pago`}</b><span class="sm">Descarga la factura proforma en «Tus pedidos» y haz la transferencia: lo preparamos en cuanto llegue.</span></div></div>` : '';
+}
+
+
+
+

@@ -10,8 +10,10 @@ visitas, agenda y rutas, pedidos, facturación, comisiones y analítica, en el o
 
 | Archivo | Para qué sirve |
 |---|---|
-| `index.html` | La página de la aplicación y todo su estilo (capas: librerías, estilo antiguo, arreglos y sistema de componentes). |
-| `app.js` | El código de la aplicación (pantallas, ventanas, datos y reglas de cada módulo). |
+| `src/` | El código fuente: núcleo, servicios, componentes y pantallas, más `legado/` (el código de antes en orden, que se va repartiendo). `src/orden.json` dice en qué orden se junta. |
+| `estilos/` | El estilo por capas: librerías, estilo antiguo, sistema de componentes (generado) y arreglos. |
+| `herramientas/construir.mjs` | Junta `src/` y `estilos/` en `app.js` e `index.html` (`node herramientas/construir.mjs`; con `--comprobar`, antes de subir). |
+| `index.html`, `app.js` | **Generados** por la construcción: es lo que se publica. No se editan a mano. |
 | `config.js` | A qué base de datos se conecta según la dirección (pruebas o producción). |
 | `sw.js`, `manifest.webmanifest` | Aplicación instalable en el móvil y uso sin conexión. |
 | `jspdf.umd.min.js`, `qrcode.js` | Librerías para los PDF (facturas) y los códigos QR. |
@@ -19,6 +21,6 @@ visitas, agenda y rutas, pedidos, facturación, comisiones y analítica, en el o
 | `manual/` | El manual de uso (capítulos, fotos y vídeos). |
 | Iconos y logotipo | `favicon.svg`, `icon-192.png`, `icon-512.png`, `apple-touch-180.png`, `logo-app.png`. |
 
-Aplicación web sin compilación: los archivos se publican tal cual. Datos y acceso con Supabase.
+Aplicación web sin dependencias: la construcción solo junta archivos (Node 18 o posterior) y se publica tal cual. Datos y acceso con Supabase.
 
 © Delcoslab S.L.

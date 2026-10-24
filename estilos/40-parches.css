@@ -1,0 +1,67 @@
+@layer parches {
+/* v2.356.0: estos arreglos ganaban con la marca «important» a reglas antiguas más fuertes; en esta capa ganan sin él */
+header .logo{height:46px}
+@media (max-width:760px){input,select,textarea,.selval{font-size:16px}}
+.icoacts{gap:6px}
+@media (max-width:760px){dialog .fbox, #dbody, #dlg2body{padding:16px}}
+@media (max-width:760px){dialog .g2,dialog .g3{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:760px){.chip,.saludo .acts.chips > *{padding:0 12px}}
+@media (max-width:760px){#v-config .g2,#v-config .g3,#v-facturacion .g2{grid-template-columns:minmax(0,1fr)}}
+#cfgcuerpo > .card,#cfgcuerpo > div > .card{margin:12px 0 0}
+.upd{animation:avisoDer .28s cubic-bezier(.2,.8,.2,1)}
+.tools2{z-index:1202}
+.saludo .acts > .btn,.saludo .acts > select{margin:0}
+@media (min-width:1100px){#cfgcuerpo,.pagcuerpo,#fcuerpo{max-width:none}}
+#v-config .numw{max-width:136px}
+#mkvoccard .mkvocf{display:grid}
+#mkvoccard .mkvocf input,#mkvoccard .mkvocf select{max-width:none}
+#v-config .rolmat select{max-width:none}
+@media (max-width:760px){.fab{transition:background-color var(--t-rapido) var(--ease-sal),transform .28s var(--ease-sal),opacity .2s var(--ease-sal)}}
+#kpis.kvivo .kvdona svg{width:58px}
+#kpis.kvivo .kvdona svg{height:58px}
+.spin{animation:gira 1.15s cubic-bezier(.45,.05,.55,.95) infinite}
+.plantilla .kpis.vtot.plres{margin:0 0 2px}
+@media (max-width:760px){.ankpi .ankval{font-size:clamp(17px,5.4vw,22px)}}
+main .subnav button,main .pagtabs button{border:0}
+main .subnav button,main .pagtabs button{background:none}
+main .subnav button,main .pagtabs button{color:#4A6280}
+main .subnav button,main .pagtabs button{box-shadow:none}
+/* v2.359.0: ganaban con la marca «important» solo a otras reglas antiguas (y sus rivales con esa marca, en el mismo orden) */
+@media (max-width:760px){dialog{width:calc(100% - 16px)}}
+@media (max-width:760px){dialog{max-width:calc(100% - 16px)}}
+@media (max-width:760px){#ficha{width:100%}}
+@media (max-width:760px){#ficha{max-width:100%}}
+@media (max-width:760px){.chip:not(button),.saludo .acts.chips > :not(button){font-size:13.5px}}
+.upd{left:auto}
+.upd{right:16px}
+@media (max-width:760px){.upd{left:12px}}
+@media (max-width:760px){.upd{right:12px}}
+.kpi{padding-bottom:38px}
+#dirtools.aderecha{margin-left:auto}
+.upd{animation-duration:var(--t-medio)}
+.kico{color:var(--navy)}
+@media (max-width:760px){.fab{box-shadow:var(--sombra-2)}}
+@media (max-width:760px){.fab{display:grid}}
+@media (max-width:760px){.kpis{gap:10px}}
+dialog.encajada{width:100%}
+@media (min-width:900px){body.menulat nav.main .in{padding:16px 12px 12px}}
+:is(#ptotales,#lltot,#vcuerpo > .panel > .kpis.vtot:not([id])).kpis > .kpi{padding:2px 16px}
+:is(#ptotales,#lltot,#vcuerpo > .panel > .kpis.vtot:not([id])).kpis > .kpi:first-child{padding-left:0}
+#atot.kpis > .kpi{padding:2px 16px}
+#atot.kpis > .kpi:first-child{padding-left:0}
+
+#v-config .cfu #miperfil{display:block}
+@media (min-width:1100px){#v-config #cfgcuerpo.perfil2 > .card{margin:0}}
+#v-config .usrres .kpi{padding:7px 12px}
+#kpis.kvivo .kpi.kv{padding:16px 16px 14px}
+@media (max-width:760px){#kpis.kvivo{gap:8px}}
+@media (max-width:760px){#kpis.kvivo .kpi.kv{padding:12px}}
+.plantilla .fab.plfuera,.plantilla .dgrid > .dr.htfuera{display:none}
+
+
+@media (max-width:760px){main > section.plantilla .kpis.vtot.plres,main > section.plantilla #vcuerpo > .panel > .kpis.vtot.plres{gap:8px}}
+@media (max-width:760px){main > section.plantilla .kpis.vtot.plres > .kpi,main > section.plantilla #vcuerpo > .panel > .kpis.vtot.plres > .kpi{padding:9px 12px}}
+body.modo-medico #v-config .cfu #miperfil,body.modo-medico #v-config #cfgcuerpo #miperfil,body.modo-medico .perfsegf > div:nth-child(2),body.modo-medico #cfgcuerpo .g2 > div:has(#pfi){display:none}
+@media (max-width:760px){dialog#dlg[open]:not(.encajada),dialog#dlg2[open]:not(.encajada),dialog#ficha[open]{width:100%}}
+@media (max-width:760px){dialog#dlg[open]:not(.encajada),dialog#dlg2[open]:not(.encajada),dialog#ficha[open]{max-width:100%}}
+}
