@@ -145,3 +145,26 @@ const COLA_KO = 'dlc-cola-ko';
 const colaKo = () => { try { return JSON.parse(localStorage.getItem(COLA_KO) || '[]'); } catch (e) { return []; } };
 
 let COLA_ENVIANDO = false;
+
+async function vaciarCola() {
+  if (!navigator.onLine || COLA_ENVIANDO) return;
+  let c = colaLeer(); if (!c.length) return;
+  COLA_ENVIANDO = true;
+  const habia = c.length; let fallidos = 0;
+  try {
+    pintarConexion();
+    while (c.length) {
+      const op = c[0];
+      let data = null, error = null;
+      try { ({ data, error } = await db.rpc(op.fn, op.payload)); } catch (e) { error = e; }
+      if (error && esErrorRed(error)) break;                                              // sigue sin red: luego
+      if (error && /jwt|token/i.test(String(error.message || ''))) { try { await db.auth.refreshSession(); } catch (e) {} break; }
+      if (error || (data && data.ok === false)) { colaKoPoner(op, error ? error.message : (data.error || 'rechazado')); fallidos++; }
+      else if (op.fn === 'registrar_actividad' && data && data.id && op.payload && op.payload.p && op.payload.p.op_id) await fotosEnviarPendientes(op.payload.p.op_id, data.id);
+      c = colaLeer().slice(1); colaGuardar(c);
+    }
+  } finally { COLA_ENVIANDO = false; }
+  pintarConexion();
+  if (fallidos) toast(`${fallidos === 1 ? 'Un cambio guardado sin conexión no se ha podido enviar' : fallidos + ' cambios guardados sin conexión no se han podido enviar'}: pulsa el aviso de arriba para verlos`, true);
+  if (colaLeer().length < habia) { invalidarCache(); cargarInicio(); if (TAB === 'agenda') cargarAgenda(); }
+}

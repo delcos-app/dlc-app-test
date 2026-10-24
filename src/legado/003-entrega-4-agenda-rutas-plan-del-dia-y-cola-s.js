@@ -14,22 +14,6 @@ function pintarConexion() {
 }
 
 
-async function vaciarCola() {
-  if (!navigator.onLine) return;
-  let c = colaLeer();
-  if (!c.length) return;
-  const habia = c.length;
-  pintarConexion();
-  while (c.length) {
-    const op = c[0];
-    const { error } = await db.rpc(op.fn, op.payload);
-    if (error && String(error.message || '').match(/fetch|network|Failed/i)) break;
-    c = c.slice(1);
-    colaGuardar(c);
-  }
-  pintarConexion();
-  if (colaLeer().length < habia) { invalidarCache(); cargarInicio(); if (TAB === 'agenda') cargarAgenda(); }
-}
 
 window.addEventListener('online', () => { pintarConexion(); vaciarCola(); });
 window.addEventListener('offline', () => pintarConexion());

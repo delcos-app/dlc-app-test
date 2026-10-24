@@ -941,6 +941,29 @@ const COLA_KO = 'dlc-cola-ko';
 const colaKo = () => { try { return JSON.parse(localStorage.getItem(COLA_KO) || '[]'); } catch (e) { return []; } };
 
 let COLA_ENVIANDO = false;
+
+async function vaciarCola() {
+  if (!navigator.onLine || COLA_ENVIANDO) return;
+  let c = colaLeer(); if (!c.length) return;
+  COLA_ENVIANDO = true;
+  const habia = c.length; let fallidos = 0;
+  try {
+    pintarConexion();
+    while (c.length) {
+      const op = c[0];
+      let data = null, error = null;
+      try { ({ data, error } = await db.rpc(op.fn, op.payload)); } catch (e) { error = e; }
+      if (error && esErrorRed(error)) break;                                              // sigue sin red: luego
+      if (error && /jwt|token/i.test(String(error.message || ''))) { try { await db.auth.refreshSession(); } catch (e) {} break; }
+      if (error || (data && data.ok === false)) { colaKoPoner(op, error ? error.message : (data.error || 'rechazado')); fallidos++; }
+      else if (op.fn === 'registrar_actividad' && data && data.id && op.payload && op.payload.p && op.payload.p.op_id) await fotosEnviarPendientes(op.payload.p.op_id, data.id);
+      c = colaLeer().slice(1); colaGuardar(c);
+    }
+  } finally { COLA_ENVIANDO = false; }
+  pintarConexion();
+  if (fallidos) toast(`${fallidos === 1 ? 'Un cambio guardado sin conexión no se ha podido enviar' : fallidos + ' cambios guardados sin conexión no se han podido enviar'}: pulsa el aviso de arriba para verlos`, true);
+  if (colaLeer().length < habia) { invalidarCache(); cargarInicio(); if (TAB === 'agenda') cargarAgenda(); }
+}
 // servicios/archivos.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -16303,22 +16326,6 @@ function pintarConexion() {
 }
 
 
-async function vaciarCola() {
-  if (!navigator.onLine) return;
-  let c = colaLeer();
-  if (!c.length) return;
-  const habia = c.length;
-  pintarConexion();
-  while (c.length) {
-    const op = c[0];
-    const { error } = await db.rpc(op.fn, op.payload);
-    if (error && String(error.message || '').match(/fetch|network|Failed/i)) break;
-    c = c.slice(1);
-    colaGuardar(c);
-  }
-  pintarConexion();
-  if (colaLeer().length < habia) { invalidarCache(); cargarInicio(); if (TAB === 'agenda') cargarAgenda(); }
-}
 
 window.addEventListener('online', () => { pintarConexion(); vaciarCola(); });
 window.addEventListener('offline', () => pintarConexion());
@@ -29322,28 +29329,7 @@ abrirVisitaBase = (orig => async function (...a) {
 })(abrirVisitaBase);
 
 
-vaciarCola = async function () {
-  if (!navigator.onLine || COLA_ENVIANDO) return;
-  let c = colaLeer(); if (!c.length) return;
-  COLA_ENVIANDO = true;
-  const habia = c.length; let fallidos = 0;
-  try {
-    pintarConexion();
-    while (c.length) {
-      const op = c[0];
-      let data = null, error = null;
-      try { ({ data, error } = await db.rpc(op.fn, op.payload)); } catch (e) { error = e; }
-      if (error && esErrorRed(error)) break;                                              // sigue sin red: luego
-      if (error && /jwt|token/i.test(String(error.message || ''))) { try { await db.auth.refreshSession(); } catch (e) {} break; }
-      if (error || (data && data.ok === false)) { colaKoPoner(op, error ? error.message : (data.error || 'rechazado')); fallidos++; }
-      else if (op.fn === 'registrar_actividad' && data && data.id && op.payload && op.payload.p && op.payload.p.op_id) await fotosEnviarPendientes(op.payload.p.op_id, data.id);
-      c = colaLeer().slice(1); colaGuardar(c);
-    }
-  } finally { COLA_ENVIANDO = false; }
-  pintarConexion();
-  if (fallidos) toast(`${fallidos === 1 ? 'Un cambio guardado sin conexión no se ha podido enviar' : fallidos + ' cambios guardados sin conexión no se han podido enviar'}: pulsa el aviso de arriba para verlos`, true);
-  if (colaLeer().length < habia) { invalidarCache(); cargarInicio(); if (TAB === 'agenda') cargarAgenda(); }
-};
+// (R-12: vaciarCola se definía aquí otra vez; ahora está en su sitio, más arriba)
 // El aviso de conexión también dice lo que no se ha podido enviar (y al pulsarlo, se ve y se decide)
 pintarConexion = (orig => function (...a) {
   const r = orig.apply(this, a);
