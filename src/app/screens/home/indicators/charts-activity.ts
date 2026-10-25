@@ -1,11 +1,11 @@
 /** Indicator charts about activity: today's appointments, urgent accounts, the week, the month and units sold. */
 import { appointments, commercialStates, isMobile } from '../../../legacy/bridge';
-import { addDays, fromIsoDate, toIsoDate } from '../../../services/dates';
+import { addDays, fromIsoDate, mondayOf, toIsoDate } from '../../../services/dates';
 import { escapeHtml, formatNumber } from '../../../services/format';
 import { weekdayName } from '../../../services/date-format';
 import { nonZeroOr, range, sum } from '../../../services/values';
 import { t } from '../../../i18n';
-import { countsByDate, EMPTY_CHART, lineIcon, minutesOf, mondayOf, WEEKDAY_LETTERS, type ChartResult } from './chart-tools';
+import { countsByDate, EMPTY_CHART, lineIcon, minutesOf, WEEKDAY_LETTERS, type ChartResult } from './chart-tools';
 
 type Kpis = Readonly<Record<string, number>>;
 type DayAppointment = NonNullable<HomePanel['agenda_hoy']>[number];

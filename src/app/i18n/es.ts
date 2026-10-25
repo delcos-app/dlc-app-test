@@ -69,6 +69,15 @@ export const es = {
       notVisited: '{count} sin visitar',
       nothingPending: 'Nada pendiente.',
     },
+    week: {
+      title: 'Tu semana',
+      hint: '«⋯» en un día para bloquearlo (festivo, vacaciones, formación) o añadir una cita.',
+      seeDay: 'Ver el {date}',
+      dayOptions: 'Opciones del {date}',
+      andMore: 'y {count} más',
+      free: 'Libre',
+      share: 'Repartir la semana',
+    },
     sameCentre: {
       title: 'En este centro también',
       seeCentre: 'Ver el centro ›',

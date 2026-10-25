@@ -120,3 +120,13 @@ export const sidePanel = {
   context: (): string | null => HERR_CTX,
   setContext: (value: string): void => { HERR_CTX = value; },
 };
+
+/** Agenda pieces and data loading still in legacy (the preload of agConDatos keeps one paint without network waits). */
+export const legacyAgendaParts = {
+  mode: (): string => AG_MODO,
+  blockedDays: (fromIsoDate: string, days: number): Promise<Record<string, string>> => agBloqueos(fromIsoDate, days),
+  dayMenu: (button: HTMLElement, isoDate: string, blocked: boolean): void => { void menuDiaSemana(button, isoDate, blocked); },
+  shareWeek: (): void => { void agRepartirSemana(); },
+  /** Runs `paint` once the data of the week of `isoDate` is preloaded. */
+  withWeekData: <T>(isoDate: string | null, paint: () => Promise<T>): Promise<T> => agConDatos(agSemCargas(isoDate), paint),
+};

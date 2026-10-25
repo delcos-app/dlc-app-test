@@ -631,7 +631,7 @@ async function agCargarDia() {
       <div class="card" id="agcuerpo"></div>
       <div class="card" id="agsemlat"></div>`;
     asegurarEquipo();
-    await Promise.all([pintarTuDia(), agCinta(), agSemanaLateral()]);
+    await Promise.all([pintarTuDia(), agCinta(), window.delcos.screens.agenda.paintWeekSidebar()]);
     agMarcarDia(); agDiaVacio();
     if (!AG_VISTA) avisoSinSalida($('agcuerpo'));
     if (mismo) window.scrollTo(0, y);
@@ -671,7 +671,7 @@ function agCifrasQuietas() {
   agConDatos([...agCintaCargas(), ...agSemCargas(f), agSugDatos(f).then(x => { s = x; })], async () => {
     if (AG_FECHA !== f || !agN()) return;
     agPonerSug(f, s);
-    await Promise.all([agCinta(), agSemanaLateral()]);
+    await Promise.all([agCinta(), window.delcos.screens.agenda.paintWeekSidebar()]);
     window.delcos.screens.agenda.paintSameCentre(); window.delcos.screens.agenda.paintTrayButtons();
   });
   window.delcos.screens.agenda.refreshOpenMonth();
@@ -1072,27 +1072,6 @@ function editarTarea(t, fecha) {
 }
 
 // Columna derecha: tu semana
-async function agSemanaLateralBase() {
-  if (TAB !== 'agenda' || AG_MODO !== 'dia') return;
-  const v = $('v-agenda'); if (!v || !v.classList.contains('agcinta')) return;
-  let box = $('agsemlat');
-  if (!box) { $('agcuerpo').insertAdjacentHTML('afterend', '<div class="card" id="agsemlat"></div>'); box = $('agsemlat'); }
-  const desde = lunesDe(AG_FECHA || hoyISO()), hasta = isoMas(desde, 6);
-  const [r, bloq] = await Promise.all([rpcCache('agenda_rango', { p_desde: desde, p_hasta: hasta, p_usuario: agUsuarioFiltro() }, 'agenda-' + desde), agBloqueos(desde, 7)]);
-  if (!$('agsemlat')) return;
-  const por = {}; ((r && r.data) || []).filter(c => !citaAnulada(c.estado)).forEach(c => (por[c.fecha] = por[c.fecha] || []).push(c));
-  const DS = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
-  box.innerHTML = `<h2>Tu semana</h2><p class="sm agslnota">«⋯» en un día para bloquearlo (festivo, vacaciones, formación) o añadir una cita.</p>
-    <div class="agsl">${[...Array(7)].map((_, i) => { const f = isoMas(desde, i), d = new Date(f + 'T12:00:00'), l = (por[f] || []).sort((a, b) => String(a.hora || '').localeCompare(String(b.hora || '')));
-      return `<div class="agsld ${f === hoyISO() ? 'hoy' : ''} ${f === AG_FECHA ? 'sel' : ''} ${bloq[f] ? 'bloq' : ''}" data-agsl="${f}" role="button" tabindex="0" aria-label="Ver el ${fechaCorta(f)}">
-        <span class="agslf">${d.getDate()}<small>${DS[d.getDay()]}</small></span>
-        <span class="agslc">${bloq[f] ? `<span class="agslb">${esc(bloq[f])}</span>` : ''}${l.slice(0, 3).map(c => `<span class="agslx"><b>${esc(String(c.hora || '').slice(0, 5))}</b>${esc(c.medico || c.nombre || '')}</span>`).join('')}${l.length > 3 ? `<span class="agslv">y ${l.length - 3} más</span>` : ''}${!l.length && !bloq[f] ? '<span class="agslv">Libre</span>' : ''}</span>
-        ${f >= hoyISO() ? `<button type="button" class="agslm" data-agslm="${f}" aria-label="Opciones del ${fechaCorta(f)}">⋯</button>` : '<span></span>'}</div>`; }).join('')}</div>
-    ${[...Array(7)].some((_, i) => isoMas(desde, i) >= hoyISO()) ? '<div class="acts agslacts"><button type="button" class="btn sec" id="agslrep">Repartir la semana</button></div>' : ''}`;
-  box.querySelectorAll('[data-agslm]').forEach(b => b.onclick = ev => { ev.stopPropagation(); menuDiaSemana(b, b.dataset.agslm, !!bloq[b.dataset.agslm]); });
-  box.querySelectorAll('[data-agsl]').forEach(d => { const ver = () => agVerDia(d.dataset.agsl); d.onclick = ver; d.onkeydown = e => { if (e.key === 'Enter') ver(); }; });
-  if ($('agslrep')) $('agslrep').onclick = agRepartirSemana;
-}
 
 
 // El título conserva «· agenda de …» al ver la de otra persona (agMarcarDia lo dejaba en «Hoy · …»)
@@ -1122,10 +1101,6 @@ async function agCinta() {
   });
 }
 
-function agSemanaLateral(...a) {
-  if (!agN()) return agSemanaLateralBase.apply(this, a);
-  return agConDatos(agSemCargas(AG_FECHA), () => agSemanaLateralBase.apply(this, a));
-}
 
 async function empezarJornada(...a) {
   const r = await empezarJornadaBase.apply(this, a);
@@ -1458,7 +1433,7 @@ async function agVerDia(f) {
     await agConDatos([...agDiaCargas(f), agSugDatos(f).then(x => { s = x; }), ...(fuera ? agCintaCargas() : []), ...agSemCargas(f)], async () => {
       if (AG_FECHA !== f || !agN()) return;
       agPonerSug(f, s);
-      const piezas = [pintarTuDia(), agSemanaLateral()];
+      const piezas = [pintarTuDia(), window.delcos.screens.agenda.paintWeekSidebar()];
       if (fuera || (otraSem && AG_SEM_ABIERTA)) piezas.push(agCinta());
       await Promise.all(piezas);
       if (!fuera) document.querySelectorAll('#agcinta .cdia').forEach(x => x.classList.toggle('sel', x.dataset.cf === f));

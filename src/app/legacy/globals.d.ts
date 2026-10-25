@@ -149,3 +149,10 @@ declare function fichaCentro(id: string): Promise<void>;
 declare function nuevaCita(accountId: string, isoDate: string | null): Promise<void>;
 declare function planDesdeLista(list: readonly DueAccount[], name: string, button: HTMLElement): Promise<void>;
 declare function reprogramarCitas(list: readonly PendingAppointment[], title: string, text: string): Promise<void>;
+interface RangeAppointment { fecha: string; estado: string; hora?: string | null; medico?: string | null; nombre?: string | null }
+declare let AG_MODO: string;
+declare function agBloqueos(fromIsoDate: string, days: number): Promise<Record<string, string>>;
+declare function menuDiaSemana(button: HTMLElement, isoDate: string, blocked: boolean): Promise<void>;
+declare function agRepartirSemana(): Promise<void>;
+declare function agConDatos<T>(loads: readonly unknown[], paint: () => Promise<T> | T): Promise<T>;
+declare function agSemCargas(isoDate: string | null): unknown[];

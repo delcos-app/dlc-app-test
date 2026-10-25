@@ -18,3 +18,9 @@ export function addDays(isoDate: string, days: number): string {
 export function fromIsoDate(isoDate: string): Date {
   return new Date(`${isoDate}T12:00:00`);
 }
+
+/** Monday of the week of `isoDate`. */
+export function mondayOf(isoDate: string): string {
+  const date = fromIsoDate(isoDate);
+  return addDays(isoDate, -((date.getDay() + 6) % 7));
+}

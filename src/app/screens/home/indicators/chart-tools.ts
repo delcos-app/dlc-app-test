@@ -1,5 +1,4 @@
 /** Small helpers shared by the indicator charts. */
-import { addDays, fromIsoDate } from '../../../services/dates';
 
 /** What each indicator card shows under its figure: a sentence and a small chart (both may be empty). */
 export interface ChartResult { readonly summary: string; readonly visual: string }
@@ -12,12 +11,6 @@ export const STATE_COLORS: Readonly<Record<string, string>> = {
 
 export function lineIcon(path: string, width = 2.4): string {
   return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${width}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${path}</svg>`;
-}
-
-/** Monday of the week of `isoDate`. */
-export function mondayOf(isoDate: string): string {
-  const date = fromIsoDate(isoDate);
-  return addDays(isoDate, -((date.getDay() + 6) % 7));
 }
 
 /** «09:30» → 570 minutes; null if it is not a time. */
