@@ -434,7 +434,6 @@ const depCaducaPronto = f => f && f <= isoMas(hoyISO(), 60);
    - Ciclo de visitas → «Por producto»: por cada producto, cuántos de A, B y C lo han oído este ciclo y a quiénes les falta (con «+ Cita»). */
 let PROMO_PRODS = null;   // [{ id, nombre }] de los productos que se promocionan (última lista leída)
 
-const CON_LOTE_EST = ['Pendiente', 'Ganado', 'Perdido'];
 
 async function cargarProductosBase() {
   const { data } = await db.rpc('productos_lista');

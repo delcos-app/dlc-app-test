@@ -5,12 +5,18 @@
  * (see i18n/index.ts), so each company sees its own words.
  */
 import { accounts } from './es/accounts';
+import { purchases } from './es/purchases';
+import { tenders } from './es/tenders';
+import { equipment } from './es/equipment';
 import { agenda } from './es/agenda';
 import { events } from './es/events';
 import { surgeries } from './es/surgeries';
 import { cycle } from './es/cycle';
 
 export const es = {
+  equipment,
+  tenders,
+  purchases,
   common: {
     save: 'Guardar',
     cancel: 'Cancelar',

@@ -256,12 +256,8 @@ declare function verDeposito(accountId: string, name: string): Promise<void>;
 declare function depCaducaPronto(isoDate: string | null | undefined): boolean;
 declare function verCirugia(id: string, notice?: string): Promise<void>;
 declare function verConcurso(id: string): Promise<void>;
-declare function conQuedan(tender: object): number | null;
-declare function conVence(tender: object): string | null;
-declare function conPill(state: string): string;
 declare function verEquipo(id: string): Promise<void>;
 declare function editarEquipo(equipment: null, account: { id: string; nombre: string }): Promise<void>;
-declare function eqRevPill(equipment: object): string;
 interface CardAccount { id: string; nombre: string; tipo?: string | null; codigo?: string | null; especialidad?: string | null; area?: string | null; urgente?: boolean | null; sin_reporting?: boolean | null; estado_comercial?: string | null; email?: string | null }
 interface CardConsultation extends Consultation { direccion?: string | null; cp?: string | null; planta?: string | null; sala?: string | null; indicaciones?: string | null; telefono?: string | null; dias?: Record<string, string | null> | null; lat?: number | null; lon?: number | null }
 interface CardVisit { id: string; fecha: string; modo?: string | null; resultados?: string[] | null; muestras?: number | null; nota?: string | null; proxima_fecha?: string | null; proxima_accion?: string | null }
@@ -326,3 +322,23 @@ declare function pintarEventos(): Promise<void>;
 declare function invalidarCache(): void;
 declare function verPedido(id: string): Promise<void>;
 declare function pintarCirugias(): Promise<void>;
+
+// ---- Parque instalado (src/app/screens/equipment): contract warnings and kinds live in Concursos (not migrated yet)
+declare let CON_AVISOS: number[];
+declare const EQ_CONTRATOS: readonly string[];
+
+// ---- Compras (src/app/screens/purchases): the catalogs stay in legacy, Productos uses them too
+interface PurchaseSupplier {
+  id?: string; nombre?: string; activo?: boolean; plazo_dias?: number | null; pais?: string | null; nif?: string | null; municipio?: string | null;
+  contacto?: string | null; email?: string | null; telefono?: string | null; compras?: number; ultima_compra?: string | null; nota?: string | null;
+  [field: string]: unknown;
+}
+interface PurchaseStore { id: string; nombre: string; tipo?: string | null; activo?: boolean }
+declare let PROVEEDORES: PurchaseSupplier[];
+declare let ALMACENES: PurchaseStore[];
+declare function puedeCompras(): boolean | null;
+declare function cargarProveedores(): Promise<void>;
+declare function cargarAlmacenes(): Promise<void>;
+declare function loteRecepcion(line: object, units: number | string, storeId: string | undefined): string;
+declare function cargarVentas(): Promise<void>;
+declare function editorCompra(id: string | null): Promise<void>;

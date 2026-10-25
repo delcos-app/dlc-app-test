@@ -7,7 +7,9 @@ import { t } from '../../../i18n';
 import { formatShortDate } from '../../../services/date-format';
 import { escapeHtml, formatNumber } from '../../../services/format';
 import { orFallback, sum } from '../../../services/values';
+import { reviewPill } from '../../equipment/model';
 import { statePill } from '../../surgeries/model';
+import { contractEnd, daysLeft, statePill as tenderPill } from '../../tenders/model';
 import { accountKind, addBeforeFields, closeCardAnd, fieldsPlace, onEach, stillShown } from './card-tools';
 
 /** Values stored in the database (each module names its states). */
@@ -87,9 +89,9 @@ export async function surgeries(id: string): Promise<void> {
 interface Tender { id: string; titulo: string; estado: string; fin?: string | null; prorroga_hasta?: string | null }
 
 function tenderEnd(tender: Tender): string {
-  const left = relatedLegacy.tenderDaysLeft(tender);
+  const left = daysLeft(tender);
   if (tender.estado !== AWARDED || left === null) return '';
-  return ` · ${left < 0 ? t('accounts.card.tenderExpired') : t('accounts.card.tenderExpiresOn', { date: formatShortDate(relatedLegacy.tenderEnd(tender) ?? '') })}`;
+  return ` · ${left < 0 ? t('accounts.card.tenderExpired') : t('accounts.card.tenderExpiresOn', { date: formatShortDate(contractEnd(tender) ?? '') })}`;
 }
 
 /** Its tenders in progress and contracts. */
@@ -99,7 +101,7 @@ export async function tenders(id: string): Promise<void> {
     .order('creado_en', { ascending: false }).limit(6);
   if (!(data ?? []).length) return;
   const block = addBeforeFields(id, 'fconcursos', `<div class="blk" id="fconcursos"><h3>${t('accounts.card.tendersTitle')}</h3>
-      ${(data ?? []).map(item => `<div class="fmrow"><span><button type="button" class="lnk" data-fcon="${item.id}">${escapeHtml(item.titulo)}</button>${tenderEnd(item) ? `<span class="sm">${tenderEnd(item)}</span>` : ''}</span>${relatedLegacy.tenderPill(item.estado)}</div>`).join('')}</div>`);
+      ${(data ?? []).map(item => `<div class="fmrow"><span><button type="button" class="lnk" data-fcon="${item.id}">${escapeHtml(item.titulo)}</button>${tenderEnd(item) ? `<span class="sm">${tenderEnd(item)}</span>` : ''}</span>${tenderPill(item.estado)}</div>`).join('')}</div>`);
   if (block) onEach(block, 'fcon', tender => { closeCardAnd(() => { relatedLegacy.openTender(tender); }); });
 }
 
@@ -107,7 +109,7 @@ interface Equipment { id: string; serie?: string | null; ubicacion?: string | nu
 
 function equipmentRow(item: Equipment): string {
   const details = (item.serie ? t('accounts.card.serial', { serial: escapeHtml(item.serie) }) : '') + (item.ubicacion ? ` · ${escapeHtml(item.ubicacion)}` : '');
-  return `<div class="fmrow"><span><button type="button" class="lnk" data-feq="${item.id}">${escapeHtml(orFallback(item.productos?.nombre, t('accounts.card.equipment')))}</button><span class="sm">${details}</span></span>${relatedLegacy.equipmentPill(item)}</div>`;
+  return `<div class="fmrow"><span><button type="button" class="lnk" data-feq="${item.id}">${escapeHtml(orFallback(item.productos?.nombre, t('accounts.card.equipment')))}</button><span class="sm">${details}</span></span>${reviewPill(item)}</div>`;
 }
 
 /** Installed equipment (a centre always shows the block, to add the first one). */

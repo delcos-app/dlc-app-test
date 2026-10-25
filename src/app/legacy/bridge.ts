@@ -307,12 +307,8 @@ export const relatedLegacy = {
   /** Opens a surgery through its global name (so «‹ Volver» sees it), optionally with a notice on top. */
   openSurgery: (id: string, notice?: string): void => { void verCirugia(id, notice); },
   openTender: (id: string): void => { void verConcurso(id); },
-  tenderDaysLeft: (tender: object): number | null => conQuedan(tender),
-  tenderEnd: (tender: object): string | null => conVence(tender),
-  tenderPill: (state: string): string => conPill(state),
   openEquipment: (id: string): void => { void verEquipo(id); },
   newEquipment: (account: { id: string; nombre: string }): void => { void editarEquipo(null, account); },
-  equipmentPill: (equipment: object): string => eqRevPill(equipment),
 };
 
 /** What the base of the account card uses from legacy: the «Para la visita» block (Visitas), permissions and the units chart. */
@@ -424,4 +420,35 @@ export const cycleLegacy = {
 /** Intervenciones: the list repaints through its global name (page tab and dialog-close listener of legado 079). */
 export const surgeriesLegacy = {
   repaintList: (): void => { void pintarCirugias(); },
+};
+
+/** Parque instalado: the warning days of contracts (shared with Concursos), the contract kinds and the product catalog. */
+export const equipmentLegacy = {
+  warningDays: (): readonly number[] => CON_AVISOS,
+  setWarningDays: (days: number[]): void => { CON_AVISOS = days; },
+  contracts: (): readonly string[] => EQ_CONTRATOS,
+  loadProducts: async (): Promise<void> => { if (!PRODUCTOS.length) await cargarProductos(); },
+};
+
+/** Concursos: the expiry warning days stay in the legacy CON_AVISOS (Parque uses them too). */
+export const tendersLegacy = {
+  warningDays: (): readonly number[] => CON_AVISOS,
+  setWarningDays: (days: number[]): void => { CON_AVISOS = days; },
+};
+
+/** Compras: the catalogs it shares with Productos (suppliers, stores, products), the permission and the Pedidos tab. */
+export const purchasesLegacy = {
+  section: (): string => PEDSEC,
+  canBuy: (): boolean => Boolean(puedeCompras()),
+  loadSuppliers: (): Promise<void> => cargarProveedores(),
+  suppliers: (): readonly PurchaseSupplier[] => PROVEEDORES,
+  loadStores: (): Promise<void> => cargarAlmacenes(),
+  stores: (): readonly PurchaseStore[] => ALMACENES,
+  loadProducts: (): Promise<void> => cargarProductos(),
+  products: (): readonly (CatalogProduct & { coste?: number | null })[] => PRODUCTOS,
+  /** The batch fields of «Recibir mercancía» (shared with the stock entries of Productos). */
+  batchFields: (line: object, units: number | string, storeId: string | undefined): string => loteRecepcion(line, units, storeId),
+  reloadSales: (): void => { void cargarVentas(); },
+  /** Through the global name: legado 058 wraps it to open the wide window. */
+  openPurchase: (id: string | null): void => { void editorCompra(id); },
 };

@@ -74,15 +74,15 @@
   }
 
   // src/app/services/values.ts
-  function orFallback(value4, fallback) {
-    return value4 === void 0 || value4 === null || value4 === "" ? fallback : value4;
+  function orFallback(value6, fallback) {
+    return value6 === void 0 || value6 === null || value6 === "" ? fallback : value6;
   }
-  function nonZeroOr(value4, fallback) {
-    return value4 === void 0 || value4 === null || value4 === 0 || Number.isNaN(value4) ? fallback : value4;
+  function nonZeroOr(value6, fallback) {
+    return value6 === void 0 || value6 === null || value6 === 0 || Number.isNaN(value6) ? fallback : value6;
   }
   var range = (length) => [...Array(length).keys()];
-  var sum = (values) => values.reduce((total, value4) => total + value4, 0);
-  var isPresent = (value4) => value4 !== null && value4 !== void 0;
+  var sum = (values) => values.reduce((total, value6) => total + value6, 0);
+  var isPresent = (value6) => value6 !== null && value6 !== void 0;
 
   // src/app/core/navigation/steps-outer.ts
   var PORTAL_SCREENS = ["informe", "config", "perfil"];
@@ -661,6 +661,331 @@
       reactivate: "Volver a dar de alta",
       archive: "Dar de baja",
       delete: "Eliminar la ficha"
+    }
+  };
+
+  // src/app/i18n/es/purchases.ts
+  var purchases = {
+    list: {
+      loading: "Cargando compras…",
+      inProgress: "Pedidos de compra en curso",
+      unitsOnTheWay: "Unidades en camino",
+      late: "Con retraso",
+      boughtThisYear: "Comprado este año (sin IVA)",
+      number: "Número",
+      supplier: "Proveedor",
+      products: "Productos",
+      date: "Fecha",
+      expected: "Llegada prevista",
+      units: "Unidades",
+      amount: "Importe",
+      state: "Estado",
+      lateTag: " · retraso",
+      none: "Todavía no hay pedidos de compra.",
+      createFirst: " Crea el primero con «+ Nuevo pedido de compra»."
+    },
+    editor: {
+      title: "Pedido de compra {number}",
+      newTitle: "Nuevo pedido de compra",
+      createdOn: "Creado el {date}",
+      numberedOnSave: "Se numera solo al guardarlo",
+      supplier: "Proveedor",
+      date: "Fecha",
+      expected: "Llegada prevista",
+      products: "Productos",
+      product: "Producto",
+      units: "Unidades",
+      unitCost: "Coste unidad sin IVA",
+      received: "Recibidas",
+      receivedOf: "{received} de {units}",
+      remove: "Quitar",
+      addProduct: "+ Añadir producto",
+      shipping: "Portes sin IVA (€)",
+      note: "Nota",
+      totalUnits: "Unidades",
+      totalAmount: "Importe sin IVA (con portes)",
+      batchesReceived: "Lotes recibidos",
+      batchLine: "📦 <b>{product}</b> · lote {batch} · {units} uds",
+      expires: " · caduca {date}",
+      close: "Cerrar",
+      cancelOrder: "Cancelar pedido",
+      saveDraft: "Guardar borrador",
+      saveChanges: "Guardar cambios",
+      markSent: "Marcar como enviado",
+      inTransit: "En tránsito",
+      receive: "📦 Recibir mercancía",
+      chooseSupplier: "Elige el proveedor (créalo antes en la pestaña Proveedores)",
+      couldNotSave: "No se ha podido guardar: {error}",
+      saved: "Pedido de compra {number} guardado",
+      couldNot: "No se ha podido",
+      markedInTransit: "Marcado en tránsito",
+      cancelText: "El pedido de compra queda cancelado. Lo ya recibido se mantiene en stock.",
+      cancelTitle: "¿Cancelar el pedido de compra?",
+      cancelled: "Pedido de compra cancelado"
+    },
+    receive: {
+      title: "Recibir mercancía · {number}",
+      subtitle: "Anota cada lote con su caducidad. Si llega en varios lotes, usa «+ Otro lote».",
+      pending: "· pendientes {pending} de {units}",
+      otherBatch: "+ Otro lote de este producto",
+      cancel: "Cancelar",
+      record: "Registrar la entrada",
+      writeUnits: "Indica las unidades recibidas",
+      needsBatch: "Cada entrada necesita su número de lote",
+      noExpiryText: "Hay lotes sin fecha de caducidad. Sin ella no se pueden avisar ni ordenar las salidas por caducidad.",
+      noExpiryTitle: "¿Registrar sin caducidad?",
+      noExpiryOk: "Registrar igualmente",
+      couldNot: "No se ha podido: {error}",
+      stillToCome: "Entrada registrada · quedan {units} unidades por llegar",
+      complete: "Pedido recibido completo"
+    },
+    suppliers: {
+      loading: "Cargando proveedores…",
+      supplier: "Proveedor",
+      taxId: "NIF",
+      contact: "Contacto",
+      leadTime: "Plazo",
+      purchases: "Compras",
+      lastPurchase: "Última compra",
+      state: "Estado",
+      days: "{count} días",
+      active: "Activo",
+      inactive: "Inactivo",
+      none: "Todavía no hay proveedores."
+    },
+    supplierEditor: {
+      newTitle: "Nuevo proveedor",
+      subtitle: "Datos para pedidos de compra, lotes y contabilidad",
+      name: "Nombre o razón social",
+      taxId: "NIF / CIF",
+      contact: "Persona de contacto",
+      email: "Email",
+      phone: "Teléfono",
+      address: "Dirección",
+      postcode: "Código postal",
+      town: "Población",
+      province: "Provincia",
+      country: "País",
+      leadTime: "Plazo de entrega habitual (días)",
+      payment: "Forma de pago",
+      conditions: "Condiciones (pedido mínimo, portes…)",
+      account: "Cuenta contable",
+      note: "Nota",
+      active: "Activo",
+      close: "Cerrar",
+      save: "Guardar",
+      create: "Crear proveedor",
+      writeName: "Escribe el nombre",
+      couldNotSave: "No se ha podido guardar",
+      saved: "Proveedor guardado",
+      created: "Proveedor creado",
+      defaultCountry: "España"
+    }
+  };
+
+  // src/app/i18n/es/tenders.ts
+  var tenders = {
+    file: "Exp. {number}",
+    list: {
+      couldNotLoad: "No se han podido cargar los concursos.",
+      newTender: "+ Nuevo concurso",
+      warnings: "Avisos de vencimiento",
+      noEndDate: "Sin fecha de fin",
+      expired: "Vencido",
+      expiresToday: "Vence hoy",
+      expiresInOneDay: "Vence en 1 día",
+      expiresInDays: "Vence en {count} días",
+      submitBy: "Presentar hasta el {date}",
+      oneLot: "1 lote",
+      lots: "{count} lotes",
+      oneWon: ", 1 ganado",
+      won: ", {count} ganados",
+      contractsHint: "Los precios de los lotes ganados se ponen solos en los pedidos de esa ficha mientras el contrato está en vigor. Avisa {when} antes de que venza.",
+      warnDays: "{days} días",
+      warnNever: "nunca",
+      and: " y ",
+      noContracts: "No hay contratos adjudicados.",
+      noClosed: "No hay concursos cerrados.",
+      noOpen: "No hay concursos en marcha."
+    },
+    editor: {
+      changeTitle: "Cambiar el concurso",
+      newTitle: "Nuevo concurso",
+      subtitle: "Pliego, plazos e importe",
+      title: "Título",
+      titlePlaceholder: "p. ej. Suministro de material de osteosíntesis",
+      soldTo: "A quién se vende",
+      soldToPlaceholder: "Busca el centro, la clínica o el organismo",
+      file: "Expediente",
+      body: "Organismo",
+      bodyPlaceholder: "p. ej. Diputación de Barcelona",
+      published: "Publicado",
+      submitBy: "Presentar hasta",
+      amount: "Importe de licitación sin IVA (€)",
+      responsible: "Responsable",
+      note: "Nota",
+      delete: "Borrar",
+      cancel: "Cancelar",
+      save: "Guardar",
+      create: "Crear concurso",
+      missing: "Escribe el título y elige a quién se vende",
+      noPermission: "No puedes crear ni cambiar concursos de esta ficha",
+      couldNotSave: "No se ha podido guardar: {error}",
+      saved: "Concurso guardado",
+      created: "Concurso creado",
+      deleteText: "El concurso desaparece con sus lotes y precios.",
+      deleteTitle: "¿Borrar el concurso?",
+      couldNotDelete: "No se ha podido borrar",
+      deleted: "Concurso borrado"
+    },
+    sheet: {
+      notFound: "No se ha encontrado el concurso",
+      state: "Estado",
+      stateLabel: "Estado del concurso",
+      submitBy: "Presentar hasta",
+      amount: "Licitación",
+      withoutVat: "{amount} sin IVA",
+      contractFrom: "Contrato desde",
+      contractTo: "Hasta",
+      extendedTo: "Prorrogado hasta",
+      pricesApplied: "Los precios de los lotes ganados se aplican en los pedidos de {account}{left}.",
+      thisAccount: "esta ficha",
+      alreadyExpired: " (el contrato ya ha vencido)",
+      oneMoreDay: " durante 1 día más",
+      moreDays: " durante {count} días más",
+      markWon: "Marca como «Ganado» los lotes adjudicados para que sus precios se apliquen en los pedidos.",
+      lots: "Lotes · {count}",
+      addLot: "+ Lote",
+      noLots: "Añade los lotes del pliego a los que te presentas, con sus productos y precios.",
+      change: "Cambiar los datos",
+      done: "Hecho",
+      noPermission: "No puedes cambiar este concurso",
+      couldNotSave: "No se ha podido guardar: {error}",
+      datesSaved: "Fechas del contrato guardadas"
+    },
+    lot: {
+      number: "Nº",
+      numberLabel: "Número de lote",
+      description: "Descripción del lote",
+      stateLabel: "Estado del lote",
+      remove: "Quitar el lote",
+      tenderAmount: "Licitación (€)",
+      awardedAmount: "Adjudicado (€)",
+      winner: "Se lo llevó",
+      winnerPlaceholder: "Empresa que lo ganó",
+      product: "Producto",
+      price: "Precio sin IVA",
+      units: "Unidades",
+      removeProduct: "Quitar el producto",
+      addProduct: "Añadir un producto",
+      addProductOption: "+ Añadir un producto…",
+      removeText: "El lote desaparece con sus productos y precios.",
+      removeTitle: "¿Quitar el lote?",
+      removeOk: "Quitar",
+      writePrice: "Escribe el precio"
+    },
+    warnings: {
+      title: "Avisos de vencimiento",
+      subtitle: "Cuántos días antes de que venza un contrato se avisa",
+      days: "Días antes (separados por comas)",
+      hint: "El aviso llega a quien lleva la ficha, al responsable del concurso y a la administración, una vez por cada plazo. Vacío: sin avisos.",
+      cancel: "Cancelar",
+      save: "Guardar",
+      couldNotSave: "No se ha podido guardar",
+      saved: "Avisos guardados"
+    }
+  };
+
+  // src/app/i18n/es/equipment.ts
+  var equipment = {
+    equipment: "Equipo",
+    noPermission: "No puedes cambiar los equipos de esta ficha",
+    couldNotSave: "No se ha podido guardar: {error}",
+    pills: {
+      retired: "Retirado",
+      reviewPast: "Revisión pasada ({date})",
+      reviewOn: "Revisar el {date}",
+      nextReview: "Próxima revisión {date}",
+      contract: "Contrato",
+      warranty: "Garantía",
+      expired: "{what} vencido",
+      expiresToday: "{what}: vence hoy",
+      expiresInOneDay: "{what}: vence en 1 día",
+      expiresInDays: "{what}: vence en {count} días",
+      installed: "Instalado"
+    },
+    list: {
+      couldNotLoad: "No se ha podido cargar el parque instalado.",
+      newEquipment: "+ Equipo",
+      reviewsSoon: "Revisiones en los próximos 30 días",
+      expiring: "Contratos y garantías que vencen",
+      all: "Todos los equipos · {count}",
+      searchPlaceholder: "Nº de serie, equipo, centro…",
+      searchLabel: "Buscar un equipo",
+      serial: "nº {serial}",
+      since: " · desde el {date}",
+      noneFound: "Ningún equipo con esa búsqueda.",
+      noneYet: "Todavía no hay equipos instalados: dalos de alta aquí, en la ficha del centro o al confirmar el pedido de un producto «equipo»."
+    },
+    editor: {
+      changeTitle: "Cambiar el equipo",
+      newTitle: "Nuevo equipo",
+      subtitle: "Dónde está instalado, su número de serie y sus condiciones",
+      where: "Dónde está",
+      wherePlaceholder: "Busca el centro",
+      equipment: "Equipo",
+      notMarked: " (no marcado como equipo)",
+      serial: "Nº de serie",
+      location: "Ubicación",
+      locationPlaceholder: "p. ej. Sala 2, planta 3",
+      installedOn: "Instalado el",
+      contract: "Contrato",
+      contractEnd: "Fin del contrato",
+      warrantyUntil: "Garantía hasta",
+      reviewEvery: "Revisión cada (meses; 0 = sin revisiones)",
+      note: "Nota",
+      retire: "Retirar",
+      cancel: "Cancelar",
+      save: "Guardar",
+      create: "Dar de alta",
+      missing: "Elige dónde está y qué equipo es",
+      saved: "Equipo guardado",
+      created: "Equipo dado de alta",
+      retireText: "Queda en el historial como retirado: ya no avisa de revisiones ni vencimientos.",
+      retireTitle: "¿Retirar el equipo?",
+      retired: "Equipo retirado"
+    },
+    sheet: {
+      notFound: "No se ha encontrado el equipo",
+      serial: "Nº de serie {serial} · ",
+      where: "Dónde",
+      installed: "Instalado",
+      contract: "Contrato",
+      until: " hasta el {date}",
+      warranty: "Garantía",
+      warrantyUntil: "hasta el {date}",
+      reviews: "Revisiones",
+      everyMonth: "cada 1 mes",
+      everyMonths: "cada {count} meses",
+      noReviews: "sin revisiones periódicas",
+      state: "Estado",
+      reviewsTitle: "Revisiones · {count}",
+      addReview: "Apuntar revisión",
+      deleteReviewLabel: "Borrar la revisión",
+      noReviewsYet: "Todavía no hay revisiones apuntadas.",
+      schedule: "Programar en la agenda",
+      change: "Cambiar",
+      done: "Hecho",
+      date: "Fecha",
+      type: "Tipo",
+      note: "Nota",
+      notePlaceholder: "Qué se hizo",
+      cancel: "Cancelar",
+      record: "Apuntar",
+      reviewRecorded: "Revisión apuntada",
+      deleteReviewText: "La revisión desaparece del historial del equipo.",
+      deleteReviewTitle: "¿Borrar la revisión?",
+      delete: "Borrar"
     }
   };
 
@@ -1296,6 +1621,9 @@
 
   // src/app/i18n/es.ts
   var es = {
+    equipment,
+    tenders,
+    purchases,
     common: {
       save: "Guardar",
       cancel: "Cancelar",
@@ -1448,8 +1776,8 @@
   }
   function fill(text, params) {
     return text.replace(/\{(\w+)\}/g, (whole, name) => {
-      const value4 = params[name] ?? vocabulary[name];
-      return value4 === void 0 ? whole : String(value4);
+      const value6 = params[name] ?? vocabulary[name];
+      return value6 === void 0 ? whole : String(value6);
     });
   }
   function t(key, params = {}) {
@@ -1497,8 +1825,8 @@
   };
   var homeCache = {
     panel: () => KV_INI,
-    setPanel: (value4) => {
-      KV_INI = value4;
+    setPanel: (value6) => {
+      KV_INI = value6;
     },
     charts: () => KV_GRAF
   };
@@ -1549,8 +1877,8 @@
     },
     isDayView: () => agN(),
     metrics: () => AG_MET,
-    setMetrics: (value4) => {
-      AG_MET = value4;
+    setMetrics: (value6) => {
+      AG_MET = value6;
     },
     /** Today's appointments as painted in «Tu día», and the day they were loaded for. */
     dayAppointments: () => TD_CITAS,
@@ -1579,8 +1907,8 @@
   };
   var sidePanel = {
     context: () => HERR_CTX,
-    setContext: (value4) => {
-      HERR_CTX = value4;
+    setContext: (value6) => {
+      HERR_CTX = value6;
     }
   };
   var legacyAgendaParts = {
@@ -1674,8 +2002,8 @@
     },
     confirm: (message, options) => preguntar(message, options),
     choose: (title, message, buttons) => elegirOpcion(title, message, buttons),
-    askDate: (message, value4, options) => pedirFecha(message, value4, options),
-    askTime: async (title, value4, ok) => await appVentana({ titulo: title, ok, campo: { valor: value4, tipo: "time" } })
+    askDate: (message, value6, options) => pedirFecha(message, value6, options),
+    askTime: async (title, value6, ok) => await appVentana({ titulo: title, ok, campo: { valor: value6, tipo: "time" } })
   };
   var initialsOf = (name) => iniciales(name);
   var reloadAgenda = () => {
@@ -1723,8 +2051,8 @@
   };
   var appointmentLegacy = {
     /** Writes through the offline queue (the change is kept if there is no connection). */
-    write: (name, payload2) => escribir(name, payload2),
-    writeRpc: (name, payload2) => escribirRpc(name, payload2),
+    write: (name, payload3) => escribir(name, payload3),
+    writeRpc: (name, payload3) => escribirRpc(name, payload3),
     negativeResults: () => (CAT.resultado_visita ?? []).filter((item) => item.extra === "neg"),
     nextAttendanceDay: (days, from) => proximoDiaConsulta(days, from),
     navigateTo: (point) => {
@@ -1783,8 +2111,8 @@
     void pintarRutaBarra();
   } };
   var editorLegacy = {
-    pickAccount: (element, value4, onPick, placeholder) => {
-      selectorMedico(element, { valor: value4, alElegir: onPick, ...placeholder ? { placeholder } : {} });
+    pickAccount: (element, value6, onPick, placeholder) => {
+      selectorMedico(element, { valor: value6, alElegir: onPick, ...placeholder ? { placeholder } : {} });
     },
     recentContacts: (accountId, isoDate) => recientesDe([accountId], isoDate).then((found) => found[accountId] ?? []),
     recentText: (list) => txtReciente(list),
@@ -1826,16 +2154,12 @@
     openTender: (id) => {
       void verConcurso(id);
     },
-    tenderDaysLeft: (tender) => conQuedan(tender),
-    tenderEnd: (tender) => conVence(tender),
-    tenderPill: (state) => conPill(state),
     openEquipment: (id) => {
       void verEquipo(id);
     },
     newEquipment: (account) => {
       void editarEquipo(null, account);
-    },
-    equipmentPill: (equipment2) => eqRevPill(equipment2)
+    }
   };
   var cardBaseLegacy = {
     visitBlock: (account, consultations, visits2) => fichaVisitaHTML(account, consultations, visits2),
@@ -1877,8 +2201,8 @@
       goTo("pacientes");
     },
     visitDetails: (visit) => detTxt(visit),
-    fieldName: (field) => campoTxt(field),
-    valueText: (value4) => textoValor(value4),
+    fieldName: (field4) => campoTxt(field4),
+    valueText: (value6) => textoValor(value6),
     detailSummary: (detail) => resumenDetalle(detail),
     undo: (id, then) => {
       void deshacerUno(id, then);
@@ -1893,7 +2217,7 @@
       if (!PRODUCTOS.length) await cargarProductos();
       return PRODUCTOS;
     },
-    euros: (value4) => eurI(value4)
+    euros: (value6) => eurI(value6)
   };
   var accessLegacy = {
     connectionInfo: (userId) => {
@@ -1931,7 +2255,7 @@
   };
   var accountColumnsLegacy = {
     customFields: () => CAMPOS.medico ?? [],
-    fieldText: (field, value4) => campoTexto(field, value4),
+    fieldText: (field4, value6) => campoTexto(field4, value6),
     firstName: (name) => nombrePila(name),
     /** Platform access by account (loaded once; null until it arrives). */
     accessOf: () => MED_ACCESO,
@@ -1956,12 +2280,47 @@
   var cycleLegacy = {
     loadSettings: () => cargarAjustes(),
     setting: (key) => AJUSTES[key],
-    setSetting: (key, value4) => {
-      AJUSTES[key] = value4;
+    setSetting: (key, value6) => {
+      AJUSTES[key] = value6;
     },
     openTab: (tab) => {
       PAG_TAB.ciclo = tab;
       cargarPagina("ciclo");
+    }
+  };
+  var equipmentLegacy = {
+    warningDays: () => CON_AVISOS,
+    setWarningDays: (days) => {
+      CON_AVISOS = days;
+    },
+    contracts: () => EQ_CONTRATOS,
+    loadProducts: async () => {
+      if (!PRODUCTOS.length) await cargarProductos();
+    }
+  };
+  var tendersLegacy = {
+    warningDays: () => CON_AVISOS,
+    setWarningDays: (days) => {
+      CON_AVISOS = days;
+    }
+  };
+  var purchasesLegacy = {
+    section: () => PEDSEC,
+    canBuy: () => Boolean(puedeCompras()),
+    loadSuppliers: () => cargarProveedores(),
+    suppliers: () => PROVEEDORES,
+    loadStores: () => cargarAlmacenes(),
+    stores: () => ALMACENES,
+    loadProducts: () => cargarProductos(),
+    products: () => PRODUCTOS,
+    /** The batch fields of «Recibir mercancía» (shared with the stock entries of Productos). */
+    batchFields: (line, units2, storeId) => loteRecepcion(line, units2, storeId),
+    reloadSales: () => {
+      void cargarVentas();
+    },
+    /** Through the global name: legado 058 wraps it to open the wide window. */
+    openPurchase: (id) => {
+      void editorCompra(id);
     }
   };
 
@@ -2023,20 +2382,20 @@
 
   // src/app/services/format.ts
   var HTML_ESCAPES = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
-  function escapeHtml(value4) {
-    return String(value4 ?? "").replace(/[&<>"']/g, (char) => HTML_ESCAPES[char] ?? char);
+  function escapeHtml(value6) {
+    return String(value6 ?? "").replace(/[&<>"']/g, (char) => HTML_ESCAPES[char] ?? char);
   }
-  function formatNumber(value4) {
-    return Number(value4 ?? 0).toLocaleString("es");
+  function formatNumber(value6) {
+    return Number(value6 ?? 0).toLocaleString("es");
   }
-  function formatEuros(value4) {
-    return `${Math.round(Number(value4) || 0).toLocaleString("es-ES")} €`;
+  function formatEuros(value6) {
+    return `${Math.round(Number(value6) || 0).toLocaleString("es-ES")} €`;
   }
   function looseText(text) {
     return String(text ?? "").normalize("NFD").replace(/\p{M}/gu, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
   }
-  function formatCurrency(value4) {
-    return (Number(value4) || 0).toLocaleString("es", { style: "currency", currency: "EUR", maximumFractionDigits: 2 });
+  function formatCurrency(value6) {
+    return (Number(value6) || 0).toLocaleString("es", { style: "currency", currency: "EUR", maximumFractionDigits: 2 });
   }
 
   // src/app/screens/accounts/card/base.ts
@@ -2054,17 +2413,17 @@
     </div>`;
   }
   function actionsHtml(account) {
-    const record = cardBaseLegacy.canRecord(), edit = accountCardLegacy.canEditType(account.tipo);
-    if (!record && !edit) return "";
+    const record2 = cardBaseLegacy.canRecord(), edit = accountCardLegacy.canEditType(account.tipo);
+    if (!record2 && !edit) return "";
     return `<div class="acts">
-      ${record ? `<button class="btn" data-act="visita" data-id="${account.id}">${t("accounts.base.record", { visit: term("visita") })}</button>` : ""}
+      ${record2 ? `<button class="btn" data-act="visita" data-id="${account.id}">${t("accounts.base.record", { visit: term("visita") })}</button>` : ""}
       ${edit ? `<button class="btn sec" data-act="editar" data-id="${account.id}">${t("accounts.base.edit")}</button>` : ""}
       ${edit ? `<button class="btn ${account.urgente ? "sec" : "warn"}" data-act="urgente" data-id="${account.id}" data-urg="${account.urgente ? 1 : 0}">${t(account.urgente ? "accounts.base.unmarkUrgent" : "accounts.base.markUrgent")}</button>` : ""}
       <button class="btn sec" data-agendar="${account.id}">${t("accounts.base.addToAgenda")}</button>
     </div>`;
   }
   function stateHtml(account, salesReps) {
-    const state = cardBaseLegacy.canEdit() ? `<select data-estado="${account.id}" style="max-width:240px">${cardBaseLegacy.states().map((value4) => `<option ${value4 === account.estado_comercial ? "selected" : ""}>${escapeHtml(value4)}</option>`).join("")}</select>` : `<span class="pill p-est">${escapeHtml(account.estado_comercial)}</span>`;
+    const state = cardBaseLegacy.canEdit() ? `<select data-estado="${account.id}" style="max-width:240px">${cardBaseLegacy.states().map((value6) => `<option ${value6 === account.estado_comercial ? "selected" : ""}>${escapeHtml(value6)}</option>`).join("")}</select>` : `<span class="pill p-est">${escapeHtml(account.estado_comercial)}</span>`;
     return `<div class="blk"><h3>${t("accounts.card.stateTitle")}</h3>
       <div>${state}</div>
       ${salesReps.length ? `<div class="sm" style="margin-top:6px">${t("accounts.base.salesRep", { names: salesReps.map(escapeHtml).join(", ") })}</div>` : ""}
@@ -2151,8 +2510,8 @@
     document.getElementById("ficha")?.close();
     open();
   }
-  function onEach(block2, key, action) {
-    block2.querySelectorAll(`[data-${key}]`).forEach((button) => {
+  function onEach(block3, key, action) {
+    block3.querySelectorAll(`[data-${key}]`).forEach((button) => {
       button.onclick = () => {
         action(button.getAttribute(`data-${key}`) ?? "");
       };
@@ -2185,8 +2544,8 @@
     professionals: term("medico", { number: "p" }),
     speciality: term("especialidad")
   });
-  var classPill = (value4) => value4 ? `<span class="cicl c${value4}">${value4}</span>` : '<span class="cicl csin">—</span>';
-  var classButtons = (id, value4) => `<span class="segs cicsegs" role="group" aria-label="${t("cycle.classLabel")}">${CLASSES.map((letter) => `<button type="button" data-ccl="${id}|${letter}" class="${letter === value4 ? "on" : ""}" aria-pressed="${String(letter === value4)}">${letter}</button>`).join("")}</span>`;
+  var classPill = (value6) => value6 ? `<span class="cicl c${value6}">${value6}</span>` : '<span class="cicl csin">—</span>';
+  var classButtons = (id, value6) => `<span class="segs cicsegs" role="group" aria-label="${t("cycle.classLabel")}">${CLASSES.map((letter) => `<button type="button" data-ccl="${id}|${letter}" class="${letter === value6 ? "on" : ""}" aria-pressed="${String(letter === value6)}">${letter}</button>`).join("")}</span>`;
   var ownerParam = () => permissions.seesEverything() ? cycleState.owner || null : salesTeam.currentUserId();
   var goToTab = (tab) => {
     cycleLegacy.openTab(tab);
@@ -2197,11 +2556,11 @@
     if (!salesTeam.members().length) await salesTeam.load().catch(() => void 0);
     return `<select id="cicde" aria-label="${t("cycle.whose")}"><option value="">${t("cycle.allTeam")}</option>${salesTeam.members().map((member) => `<option value="${member.id}" ${cycleState.owner === member.id ? "selected" : ""}>${escapeHtml(member.nombre)}</option>`).join("")}</select>`;
   }
-  function bindOwner(paint3) {
+  function bindOwner(paint4) {
     const select = document.getElementById("cicde");
     if (select) select.onchange = () => {
       cycleState.owner = select.value;
-      void paint3();
+      void paint4();
     };
   }
   var percentOf = (done, goal) => goal ? Math.round(done / goal * 100) : 0;
@@ -2291,7 +2650,7 @@
     return false;
   }
   async function giveAccess(id, account, button) {
-    const field = document.getElementById("faccmail"), email = field?.value.trim() ?? "";
+    const field4 = document.getElementById("faccmail"), email = field4?.value.trim() ?? "";
     if (!EMAIL.test(email)) {
       notices.toast(t("accounts.access.invalidEmail"), true);
       return;
@@ -2309,7 +2668,7 @@
       return;
     }
     button.remove();
-    if (field) field.disabled = true;
+    if (field4) field4.disabled = true;
     accessLegacy.forgetAccessCache();
     const message = document.getElementById("faccmsg");
     if (message) message.innerHTML = t("accounts.access.created", { password: escapeHtml(password) });
@@ -2346,8 +2705,8 @@
   function changeLines(entry) {
     const detail = entry.detalle;
     if (entry.accion !== EDIT || !detail || typeof detail !== "object") return `<span class="sm">${escapeHtml(cardSectionsLegacy.detailSummary(detail))}</span>`;
-    const value4 = (raw) => escapeHtml(orFallback(cardSectionsLegacy.valueText(raw).slice(0, VALUE_LENGTH), "—"));
-    return Object.entries(detail).filter((pair) => Array.isArray(pair[1]) && pair[1].length === 2).map(([field, [before, after]]) => `<span class="sm">${escapeHtml(cardSectionsLegacy.fieldName(field))}: ${value4(before)} → ${value4(after)}</span>`).join("");
+    const value6 = (raw) => escapeHtml(orFallback(cardSectionsLegacy.valueText(raw).slice(0, VALUE_LENGTH), "—"));
+    return Object.entries(detail).filter((pair) => Array.isArray(pair[1]) && pair[1].length === 2).map(([field4, [before, after]]) => `<span class="sm">${escapeHtml(cardSectionsLegacy.fieldName(field4))}: ${value6(before)} → ${value6(after)}</span>`).join("");
   }
   function historyRow(entry) {
     const when = new Date(entry.creado_en).toLocaleString(t("dates.locale"), { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
@@ -2481,17 +2840,17 @@
   async function visitPhotos(id) {
     const rows = historyRows();
     if (!rows.length) return;
-    const { data } = await legacyDb().from("actividad_fotos").select("actividad_id").in("actividad_id", rows.map((row2) => row2.dataset.vrow));
+    const { data } = await legacyDb().from("actividad_fotos").select("actividad_id").in("actividad_id", rows.map((row3) => row3.dataset.vrow));
     const counts = /* @__PURE__ */ new Map();
     (data ?? []).forEach((photo) => {
       counts.set(photo.actividad_id, (counts.get(photo.actividad_id) ?? 0) + 1);
     });
-    rows.forEach((row2) => {
-      if (row2.querySelector("[data-vfotos]")) return;
-      const count2 = counts.get(row2.dataset.vrow ?? "") ?? 0, place = row2.querySelector("span");
-      if (!place || !count2 && !row2.querySelector("[data-editv]")) return;
+    rows.forEach((row3) => {
+      if (row3.querySelector("[data-vfotos]")) return;
+      const count2 = counts.get(row3.dataset.vrow ?? "") ?? 0, place = row3.querySelector("span");
+      if (!place || !count2 && !row3.querySelector("[data-editv]")) return;
       const label = count2 ? count2 === 1 ? t("accounts.card.photo") : t("accounts.card.photos", { count: count2 }) : t("accounts.card.addPhotos");
-      place.insertAdjacentHTML("beforeend", `<div><button type="button" class="lnk vfotoslnk" data-vfotos="${row2.dataset.vrow ?? ""}">${icon("camera")} ${label}</button></div>`);
+      place.insertAdjacentHTML("beforeend", `<div><button type="button" class="lnk vfotoslnk" data-vfotos="${row3.dataset.vrow ?? ""}">${icon("camera")} ${label}</button></div>`);
     });
     document.querySelectorAll("#fbody [data-vfotos]").forEach((button) => {
       button.onclick = () => {
@@ -2502,15 +2861,15 @@
   async function presentedProducts(id) {
     const rows = historyRows();
     if (!rows.length || document.querySelector("#fbody .vprodtx")) return;
-    const { data } = await legacyDb().from("actividades").select("id,productos").in("id", rows.map((row2) => row2.dataset.vrow));
+    const { data } = await legacyDb().from("actividades").select("id,productos").in("id", rows.map((row3) => row3.dataset.vrow));
     const ids = [...new Set((data ?? []).flatMap((visit) => visit.productos ?? []))];
     if (!ids.length || !stillShown(id)) return;
-    const { data: products } = await legacyDb().from("productos").select("id,nombre").in("id", ids);
-    const names = new Map((products ?? []).map((product) => [product.id, product.nombre]));
+    const { data: products2 } = await legacyDb().from("productos").select("id,nombre").in("id", ids);
+    const names = new Map((products2 ?? []).map((product) => [product.id, product.nombre]));
     (data ?? []).forEach((visit) => {
-      const row2 = document.querySelector(`#fbody [data-vrow="${visit.id}"]`), place = row2?.querySelector("span");
+      const row3 = document.querySelector(`#fbody [data-vrow="${visit.id}"]`), place = row3?.querySelector("span");
       const presented = (visit.productos ?? []).map((product) => names.get(product)).filter((name) => Boolean(name));
-      if (place && presented.length && !row2?.querySelector(".vprodtx")) place.insertAdjacentHTML("beforeend", `<div class="sm vprodtx">${t("accounts.card.presented", { list: presented.map(escapeHtml).join(", ") })}</div>`);
+      if (place && presented.length && !row3?.querySelector(".vprodtx")) place.insertAdjacentHTML("beforeend", `<div class="sm vprodtx">${t("accounts.card.presented", { list: presented.map(escapeHtml).join(", ") })}</div>`);
     });
   }
   function visitMaterial(id) {
@@ -2530,13 +2889,45 @@
     return Promise.resolve();
   }
 
+  // src/app/screens/equipment/model.ts
+  var STATES = { installed: "Instalado", retired: "Retirado" };
+  var SALE = "Venta";
+  var REVIEW_TYPES = ["Preventiva", "Correctiva", "Instalación"];
+  var DAY_MS = 864e5;
+  var SOON_DAYS = 30;
+  var expiryOf = (item) => item.contrato !== SALE ? item.contrato_fin : item.garantia_hasta;
+  var daysUntil = (isoDate) => isoDate ? Math.round((fromIsoDate(isoDate).getTime() - fromIsoDate(todayIso()).getTime()) / DAY_MS) : null;
+  var warningLimit = () => Math.max(...equipmentLegacy.warningDays(), 0);
+  function reviewPill(item) {
+    if (item.estado === STATES.retired) return `<span class="pill p-anu">${t("equipment.pills.retired")}</span>`;
+    const days = daysUntil(item.proxima_revision), date = formatShortDate(item.proxima_revision ?? "");
+    if (days === null) return "";
+    if (days < 0) return `<span class="pill p-urg">${t("equipment.pills.reviewPast", { date })}</span>`;
+    return days <= SOON_DAYS ? `<span class="pill p-warn">${t("equipment.pills.reviewOn", { date })}</span>` : `<span class="pill p-per">${t("equipment.pills.nextReview", { date })}</span>`;
+  }
+  function expiresText(what, days) {
+    if (days === 0) return t("equipment.pills.expiresToday", { what });
+    return days === 1 ? t("equipment.pills.expiresInOneDay", { what }) : t("equipment.pills.expiresInDays", { what, count: formatNumber(days) });
+  }
+  function expiryPill(item) {
+    const days = daysUntil(expiryOf(item));
+    if (days === null || item.estado === STATES.retired) return "";
+    const what = t(item.contrato !== SALE ? "equipment.pills.contract" : "equipment.pills.warranty");
+    if (days < 0) return `<span class="pill p-anu">${t("equipment.pills.expired", { what })}</span>`;
+    return days <= warningLimit() ? `<span class="pill p-urg">${expiresText(what, days)}</span>` : "";
+  }
+  var failureText = (error) => {
+    const message = error?.message ?? "";
+    return /row-level|policy/i.test(message) ? t("equipment.noPermission") : t("equipment.couldNotSave", { error: message });
+  };
+
   // src/app/screens/surgeries/model.ts
-  var STATES = { scheduled: "Programada", done: "Hecha", cancelled: "Anulada" };
+  var STATES2 = { scheduled: "Programada", done: "Hecha", cancelled: "Anulada" };
   var ORIGINS = ["deposito", "personal"];
   var originLabel = (origin) => ORIGINS.includes(origin) ? t(`surgeries.origins.${origin}`) : "";
   var timeOf = (surgery) => surgery.hora ? String(surgery.hora).slice(0, 5) : "";
   function statePill(surgery) {
-    const kind = surgery.estado === STATES.done ? "p-est" : surgery.estado === STATES.cancelled ? "p-anu" : "p-per";
+    const kind = surgery.estado === STATES2.done ? "p-est" : surgery.estado === STATES2.cancelled ? "p-anu" : "p-per";
     return `<span class="pill ${kind}">${escapeHtml(surgery.estado)}</span>`;
   }
   function replenishmentPill(surgery) {
@@ -2566,6 +2957,25 @@
   ]);
   var errorText = (result) => t(ERRORS.get(result?.error ?? "") ?? "surgeries.errors.generic");
 
+  // src/app/screens/tenders/model.ts
+  var STATES3 = { studying: "En estudio", offerSent: "Oferta enviada", awarded: "Adjudicado", lost: "Perdido", void: "Desierto" };
+  var TENDER_STATES = [STATES3.studying, STATES3.offerSent, STATES3.awarded, STATES3.lost, STATES3.void];
+  var LOT_STATES = { pending: "Pendiente", won: "Ganado", lost: "Perdido" };
+  var LOT_STATE_LIST = [LOT_STATES.pending, LOT_STATES.won, LOT_STATES.lost];
+  var DAY_MS2 = 864e5;
+  var isClosed = (state) => state === STATES3.lost || state === STATES3.void;
+  function statePill2(state) {
+    const kind = state === STATES3.awarded ? "p-est" : isClosed(state) ? "p-anu" : state === STATES3.offerSent ? "p-per" : "p-warn";
+    return `<span class="pill ${kind}">${escapeHtml(state)}</span>`;
+  }
+  var contractEnd = (tender) => [tender.prorroga_hasta, tender.fin].find(Boolean) ?? null;
+  function daysLeft(tender) {
+    const end = contractEnd(tender);
+    return end ? Math.round(((/* @__PURE__ */ new Date(`${end}T12:00:00`)).getTime() - (/* @__PURE__ */ new Date(`${todayIso()}T12:00:00`)).getTime()) / DAY_MS2) : null;
+  }
+  var tenderLine = (tender) => [tender.cuentas?.nombre, tender.organismo, tender.expediente ? t("tenders.file", { number: tender.expediente }) : ""].filter(Boolean).join(" · ");
+  var writeFailure = (error, noPermission) => /row-level|policy/i.test(error.message ?? "") ? noPermission : t("tenders.sheet.couldNotSave", { error: error.message ?? "" });
+
   // src/app/screens/accounts/card/sections-related.ts
   var ATTENDED = "Asistió";
   var NOT_ATTENDED = "No asistió";
@@ -2592,9 +3002,9 @@
     const list = (data ?? []).filter((item) => item.eventos !== null).sort((first, second) => String(second.eventos.fecha).localeCompare(String(first.eventos.fecha))).slice(0, SHOWN_EVENTS);
     if (!list.length) return;
     const pillClass = (state) => state === ATTENDED ? "p-est" : state === NOT_ATTENDED ? "p-anu" : "p-per";
-    const block2 = addBeforeFields(id, "feventos", `<div class="blk" id="feventos"><h3>${t("accounts.card.eventsTitle")}</h3>
+    const block3 = addBeforeFields(id, "feventos", `<div class="blk" id="feventos"><h3>${t("accounts.card.eventsTitle")}</h3>
       ${list.map((item) => `<div class="fmrow"><span><button type="button" class="lnk" data-fev="${item.eventos.id}">${escapeHtml(item.eventos.titulo)}</button><span class="sm"> · ${formatShortDate(item.eventos.fecha)}</span></span><span class="pill ${pillClass(item.estado)}">${escapeHtml(item.estado)}</span></div>`).join("")}</div>`);
-    if (block2) onEach(block2, "fev", (event) => {
+    if (block3) onEach(block3, "fev", (event) => {
       closeCardAnd(() => {
         relatedLegacy.openEvent(event);
       });
@@ -2604,9 +3014,9 @@
     const lines = (state.lineas ?? []).filter((line) => line.unidades > 0), total = sum(lines.map((line) => line.unidades));
     if (!state.existe || !total) return t("accounts.card.depositNone");
     const productCount = new Set(lines.map((line) => line.producto_id)).size, expiring = lines.filter((line) => relatedLegacy.expiresSoon(line.caducidad)).length;
-    const products = productCount === 1 ? t("accounts.card.oneProduct") : t("accounts.card.products", { count: productCount });
+    const products2 = productCount === 1 ? t("accounts.card.oneProduct") : t("accounts.card.products", { count: productCount });
     const soon = expiring ? ` · <b style="color:var(--warn)">${expiring === 1 ? t("accounts.card.oneBatchExpires") : t("accounts.card.batchesExpire", { count: expiring })}${t("accounts.card.inLessThan60Days")}</b>` : "";
-    return t("accounts.card.depositUnits", { units: formatNumber(total), products }) + soon;
+    return t("accounts.card.depositUnits", { units: formatNumber(total), products: products2 }) + soon;
   }
   async function deposit(id) {
     if (!canAdd("fdeposito", "deposito")) return;
@@ -2628,26 +3038,26 @@
     if (permissions.isProfessionalPortal() || !canAdd("fcirugias", "cirugias")) return;
     const { data } = await legacyDb().from("cirugias").select("id,fecha,procedimiento,estado").or(`cirujano_id.eq.${id},hospital_id.eq.${id}`).order("fecha", { ascending: false }).limit(5);
     if (!(data ?? []).length) return;
-    const block2 = addBeforeFields(id, "fcirugias", `<div class="blk" id="fcirugias"><h3>${t("accounts.card.surgeriesTitle")}</h3>
+    const block3 = addBeforeFields(id, "fcirugias", `<div class="blk" id="fcirugias"><h3>${t("accounts.card.surgeriesTitle")}</h3>
       ${(data ?? []).map((item) => `<div class="fmrow"><span><button type="button" class="lnk" data-fcir="${item.id}">${escapeHtml(orFallback(item.procedimiento, t("accounts.card.surgery")))}</button><span class="sm"> · ${formatShortDate(item.fecha)}</span></span>${statePill(item)}</div>`).join("")}</div>`);
-    if (block2) onEach(block2, "fcir", (surgery) => {
+    if (block3) onEach(block3, "fcir", (surgery) => {
       closeCardAnd(() => {
         relatedLegacy.openSurgery(surgery);
       });
     });
   }
   function tenderEnd(tender) {
-    const left = relatedLegacy.tenderDaysLeft(tender);
+    const left = daysLeft(tender);
     if (tender.estado !== AWARDED || left === null) return "";
-    return ` · ${left < 0 ? t("accounts.card.tenderExpired") : t("accounts.card.tenderExpiresOn", { date: formatShortDate(relatedLegacy.tenderEnd(tender) ?? "") })}`;
+    return ` · ${left < 0 ? t("accounts.card.tenderExpired") : t("accounts.card.tenderExpiresOn", { date: formatShortDate(contractEnd(tender) ?? "") })}`;
   }
-  async function tenders(id) {
+  async function tenders2(id) {
     if (permissions.isProfessionalPortal() || !canAdd("fconcursos", "concursos")) return;
     const { data } = await legacyDb().from("concursos").select("id,titulo,estado,fin,prorroga_hasta").eq("cuenta_id", id).in("estado", OPEN_TENDERS).order("creado_en", { ascending: false }).limit(6);
     if (!(data ?? []).length) return;
-    const block2 = addBeforeFields(id, "fconcursos", `<div class="blk" id="fconcursos"><h3>${t("accounts.card.tendersTitle")}</h3>
-      ${(data ?? []).map((item) => `<div class="fmrow"><span><button type="button" class="lnk" data-fcon="${item.id}">${escapeHtml(item.titulo)}</button>${tenderEnd(item) ? `<span class="sm">${tenderEnd(item)}</span>` : ""}</span>${relatedLegacy.tenderPill(item.estado)}</div>`).join("")}</div>`);
-    if (block2) onEach(block2, "fcon", (tender) => {
+    const block3 = addBeforeFields(id, "fconcursos", `<div class="blk" id="fconcursos"><h3>${t("accounts.card.tendersTitle")}</h3>
+      ${(data ?? []).map((item) => `<div class="fmrow"><span><button type="button" class="lnk" data-fcon="${item.id}">${escapeHtml(item.titulo)}</button>${tenderEnd(item) ? `<span class="sm">${tenderEnd(item)}</span>` : ""}</span>${statePill2(item.estado)}</div>`).join("")}</div>`);
+    if (block3) onEach(block3, "fcon", (tender) => {
       closeCardAnd(() => {
         relatedLegacy.openTender(tender);
       });
@@ -2655,24 +3065,24 @@
   }
   function equipmentRow(item) {
     const details = (item.serie ? t("accounts.card.serial", { serial: escapeHtml(item.serie) }) : "") + (item.ubicacion ? ` · ${escapeHtml(item.ubicacion)}` : "");
-    return `<div class="fmrow"><span><button type="button" class="lnk" data-feq="${item.id}">${escapeHtml(orFallback(item.productos?.nombre, t("accounts.card.equipment")))}</button><span class="sm">${details}</span></span>${relatedLegacy.equipmentPill(item)}</div>`;
+    return `<div class="fmrow"><span><button type="button" class="lnk" data-feq="${item.id}">${escapeHtml(orFallback(item.productos?.nombre, t("accounts.card.equipment")))}</button><span class="sm">${details}</span></span>${reviewPill(item)}</div>`;
   }
-  async function equipment(id) {
+  async function equipment2(id) {
     if (permissions.isProfessionalPortal() || !canAdd("fequipos", "parque")) return;
     const { data } = await legacyDb().from("equipos").select("id,serie,ubicacion,estado,contrato,contrato_fin,garantia_hasta,proxima_revision,productos(nombre)").eq("cuenta_id", id).eq("estado", INSTALLED).order("instalado", { ascending: false }).limit(20);
     if (!canAdd("fequipos") || !stillShown(id)) return;
     const list = data ?? [], account = await accountKind(id);
     if (!list.length && account?.tipo !== CENTRE3) return;
-    const block2 = addBeforeFields(id, "fequipos", equipmentHtml(list));
-    if (block2) bindEquipment(block2, id, account?.nombre ?? "");
+    const block3 = addBeforeFields(id, "fequipos", equipmentHtml(list));
+    if (block3) bindEquipment(block3, id, account?.nombre ?? "");
   }
   function equipmentHtml(list) {
     return `<div class="blk" id="fequipos"><h3>${t("accounts.card.equipmentTitle")}${list.length ? ` <span class="n">${list.length}</span>` : ""}</h3>
       ${list.map(equipmentRow).join("") || `<p class="sm">${t("accounts.card.equipmentNone")}</p>`}
       <button type="button" class="btn sec" id="feqmas">${t("accounts.card.addEquipment")}</button></div>`;
   }
-  function bindEquipment(block2, id, name) {
-    onEach(block2, "feq", (item) => {
+  function bindEquipment(block3, id, name) {
+    onEach(block3, "feq", (item) => {
       closeCardAnd(() => {
         relatedLegacy.openEquipment(item);
       });
@@ -2694,7 +3104,7 @@
   var SHOWN_REQUESTS = 10;
   var MESSAGES_LIMIT = 200;
   var canShow2 = (id, blockId) => !permissions.isProfessionalPortal() && portalLegacy.hasPortal() && stillShown(id) && Boolean(document.getElementById("fbody")) && !document.getElementById(blockId);
-  var shortDateTime = (value4) => new Date(value4).toLocaleString(t("dates.locale"), { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+  var shortDateTime = (value6) => new Date(value6).toLocaleString(t("dates.locale"), { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
   function requestRow(request) {
     return `<div class="item" style="cursor:default"><span class="tx"><b>${formatNumber(request.cantidad)} × ${escapeHtml(request.material)}</b>
         <span class="sm">${t("accounts.portal.requested", { date: shortDateTime(request.creado_en) })}${request.nota ? ` · ${escapeHtml(request.nota)}` : ""}</span></span>${portalLegacy.materialPill(request.estado)}
@@ -2770,11 +3180,11 @@
         <input type="number" min="0" step="0.01" data-fpcx="${product.id}" value="${own?.precio !== null && own?.precio !== void 0 ? Number(own.precio) : ""}" placeholder="${t("accounts.portal.tariffPlaceholder")}" style="max-width:120px" aria-label="${t("accounts.portal.priceFor", { name })}"></label>`;
   }
   async function saveProducts(id, button) {
-    const block2 = document.getElementById("fprodc");
-    if (!block2) return;
-    const items = [...block2.querySelectorAll("[data-fpcp]")].filter((box) => box.checked).map((box) => {
-      const value4 = block2.querySelector(`[data-fpcx="${box.dataset.fpcp ?? ""}"]`)?.value ?? "";
-      return { producto_id: box.dataset.fpcp, precio: value4 === "" ? null : Math.max(0, Number(value4)) };
+    const block3 = document.getElementById("fprodc");
+    if (!block3) return;
+    const items = [...block3.querySelectorAll("[data-fpcp]")].filter((box) => box.checked).map((box) => {
+      const value6 = block3.querySelector(`[data-fpcx="${box.dataset.fpcp ?? ""}"]`)?.value ?? "";
+      return { producto_id: box.dataset.fpcp, precio: value6 === "" ? null : Math.max(0, Number(value6)) };
     });
     button.disabled = true;
     const { data: result } = await legacyDb().rpc("guardar_productos_cuenta", { p_cuenta: id, p_items: items });
@@ -2788,7 +3198,7 @@
     void centreProducts(id);
   }
   function productsHtml(catalog, chosenRows) {
-    const chosen = new Map(chosenRows.map((row2) => [row2.producto_id, row2]));
+    const chosen = new Map(chosenRows.map((row3) => [row3.producto_id, row3]));
     const list = catalog.filter((product) => product.tipo !== SERVICE && (product.estado ?? ACTIVE) === ACTIVE);
     return `<section class="blk" id="fprodc"><h3>${t("accounts.portal.productsTitle")} <span class="n">${formatNumber(chosenRows.length)}</span></h3>
     <p class="sm">${t("accounts.portal.productsNote")}</p>
@@ -2806,9 +3216,9 @@
     const after = document.getElementById("fportal") ?? body2.querySelector("section.fvis");
     if (after) after.insertAdjacentHTML("afterend", html);
     else body2.insertAdjacentHTML("beforeend", html);
-    const save6 = document.getElementById("fpcok");
-    if (save6) save6.onclick = () => {
-      void saveProducts(id, save6);
+    const save11 = document.getElementById("fpcok");
+    if (save11) save11.onclick = () => {
+      void saveProducts(id, save11);
     };
   }
 
@@ -2820,11 +3230,11 @@
     if (!stillShown(id) || !select) return;
     const options = (users ?? []).filter((user) => user.activo && (cardSectionsLegacy.roleCan(user.rol, "cartera") || current?.id === user.id)).map((user) => `<option value="${user.id}" ${current?.id === user.id ? "selected" : ""}>${escapeHtml(user.nombre)} · ${escapeHtml(user.rol)}</option>`).join("");
     select.innerHTML = `<option value="">${t("accounts.sales.noRep")}</option>${options}`;
-    const save6 = document.getElementById("fcomok");
-    if (save6) save6.onclick = async () => {
-      save6.disabled = true;
+    const save11 = document.getElementById("fcomok");
+    if (save11) save11.onclick = async () => {
+      save11.disabled = true;
       const { data: result, error } = await legacyDb().rpc("asignar_responsable_cuenta", { p_medico: id, p_usuario: select.value || null });
-      save6.disabled = false;
+      save11.disabled = false;
       if (error || result?.ok === false) {
         notices.toast(t("accounts.sales.couldNotAssign"), true);
         return;
@@ -2837,8 +3247,8 @@
     const { data } = await legacyDb().rpc("clientes_lista", { q: null, p_medico: id, lim: SHOWN_PATIENTS, desplaz: 0 });
     if (!stillShown(id) || !data?.total) return;
     const plural2 = term("paciente", { number: "p" });
-    const rows = data.filas.map((row2) => `<button class="item" data-fmpac="${row2.id}"><span class="tx"><b>${escapeHtml(row2.nombre)}</b>
-        <span class="sm">${t("accounts.sales.patientLine", { units: formatNumber(row2.unidades), orders: formatNumber(row2.pedidos) })}${row2.ultimo_pedido ? t("accounts.sales.lastOrder", { date: formatShortDate(row2.ultimo_pedido) }) : ""}</span></span></button>`).join("");
+    const rows = data.filas.map((row3) => `<button class="item" data-fmpac="${row3.id}"><span class="tx"><b>${escapeHtml(row3.nombre)}</b>
+        <span class="sm">${t("accounts.sales.patientLine", { units: formatNumber(row3.unidades), orders: formatNumber(row3.pedidos) })}${row3.ultimo_pedido ? t("accounts.sales.lastOrder", { date: formatShortDate(row3.ultimo_pedido) }) : ""}</span></span></button>`).join("");
     (document.getElementById("fventasc") ?? document.getElementById("fbody"))?.insertAdjacentHTML("beforeend", `<div class="blk"><h3>${term("paciente", { number: "p", capital: "C" })}<span class="n" style="margin-left:6px">${formatNumber(data.total)}</span></h3>
       ${rows}
       ${data.total > SHOWN_PATIENTS ? `<button class="verlo" id="fmpactodos" style="border-radius:8px;margin-top:6px">${t("accounts.sales.seeAll", { count: formatNumber(data.total), patients: plural2 })}</button>` : ""}</div>`);
@@ -2875,12 +3285,12 @@
     const sales = document.getElementById("fventasc");
     if (!data?.ok || !stillShown(id) || !sales || document.getElementById("fclientes")) return;
     const figures = [[t("accounts.sales.associated"), data.total], [t("accounts.sales.withOrders"), data.con_pedido], [t("accounts.sales.withoutOrders"), data.sin_pedido]];
-    const block2 = `<div class="blk" id="fclientes"><h3>${t("accounts.sales.associatedTitle", { patients: term("paciente", { number: "p", capital: "C" }) })}</h3>
-    <div class="uper">${figures.map(([label, value4]) => `<div><b>${formatNumber(value4)}</b><span>${label}</span></div>`).join("")}</div>
+    const block3 = `<div class="blk" id="fclientes"><h3>${t("accounts.sales.associatedTitle", { patients: term("paciente", { number: "p", capital: "C" }) })}</h3>
+    <div class="uper">${figures.map(([label, value6]) => `<div><b>${formatNumber(value6)}</b><span>${label}</span></div>`).join("")}</div>
     ${data.total ? "" : `<div class="sm">${t("accounts.sales.noneAssociated", { patients: term("paciente", { number: "p" }) })}</div>`}</div>`;
     const units2 = document.getElementById("fundades");
-    if (units2) units2.insertAdjacentHTML("afterend", block2);
-    else sales.insertAdjacentHTML("afterbegin", block2);
+    if (units2) units2.insertAdjacentHTML("afterend", block3);
+    else sales.insertAdjacentHTML("afterbegin", block3);
   }
 
   // src/app/screens/accounts/card/index.ts
@@ -2910,8 +3320,8 @@
     { name: "cycle", run: cycle2 },
     { name: "presentedProducts", run: presentedProducts },
     { name: "surgeries", run: surgeries2 },
-    { name: "tenders", run: tenders },
-    { name: "equipment", run: equipment },
+    { name: "tenders", run: tenders2 },
+    { name: "equipment", run: equipment2 },
     { name: "portalProposal", run: portalProposal },
     { name: "centreProfessionals", run: centreProfessionals },
     { name: "archiveButtons", run: archiveButtons }
@@ -2953,17 +3363,17 @@
   // src/app/screens/accounts/list/cells.ts
   var WORKDAYS2 = ["L", "M", "X", "J", "V"];
   var CUSTOM_PREFIX = "cp:";
-  function nameCell(row2) {
-    const urgent = row2.urgente ? `<span class="pill p-urg">${t("accounts.list.urgent")}</span> ` : "";
-    const noReporting = row2.sin_reporting ? `<span class="pill p-sr" title="${t("accounts.columns.noReportingTitle", { visit: term("visita") })}">${t("accounts.columns.noReporting")}</span> ` : "";
-    return `<span class="nm">${urgent}${noReporting}${escapeHtml(row2.nombre)}</span>`;
+  function nameCell(row3) {
+    const urgent = row3.urgente ? `<span class="pill p-urg">${t("accounts.list.urgent")}</span> ` : "";
+    const noReporting = row3.sin_reporting ? `<span class="pill p-sr" title="${t("accounts.columns.noReportingTitle", { visit: term("visita") })}">${t("accounts.columns.noReporting")}</span> ` : "";
+    return `<span class="nm">${urgent}${noReporting}${escapeHtml(row3.nombre)}</span>`;
   }
-  var daysCell = (row2) => `<span class="dias">${WORKDAYS2.map((day) => `<span class="${row2.dias?.[day] ? "on" : ""}" title="${escapeHtml(row2.dias?.[day] ?? "")}">${day}</span>`).join("")}</span>`;
-  function salesRepsCell(row2) {
-    const reps = row2.comerciales ?? [];
+  var daysCell = (row3) => `<span class="dias">${WORKDAYS2.map((day) => `<span class="${row3.dias?.[day] ? "on" : ""}" title="${escapeHtml(row3.dias?.[day] ?? "")}">${day}</span>`).join("")}</span>`;
+  function salesRepsCell(row3) {
+    const reps = row3.comerciales ?? [];
     return `<span class="comchips">${reps.length ? reps.map((rep) => `<span>${escapeHtml(accountColumnsLegacy.firstName(rep.nombre))}</span>`).join("") : `<span class="sin">${t("accounts.columns.unassigned")}</span>`}</span>`;
   }
-  function accessCell(row2, onAccessLoaded) {
+  function accessCell(row3, onAccessLoaded) {
     const access = accountColumnsLegacy.accessOf();
     if (!access) {
       void accountColumnsLegacy.loadAccess().then(() => {
@@ -2971,29 +3381,29 @@
       });
       return "";
     }
-    const own = access[row2.id];
+    const own = access[row3.id];
     if (!own) return `<span class="sm">${t("accounts.columns.noAccess")}</span>`;
     return `<span class="pill ${own.activo ? "p-est" : "p-anu"}">${t(own.activo ? "accounts.columns.withAccess" : "accounts.columns.accessDisabled")}</span>`;
   }
-  function customCell(row2, key) {
-    const field = accountColumnsLegacy.customFields().find((item) => item.clave === key);
-    return `<span class="sm">${escapeHtml(accountColumnsLegacy.fieldText(field, row2.clasificadores?.[key]))}</span>`;
+  function customCell(row3, key) {
+    const field4 = accountColumnsLegacy.customFields().find((item) => item.clave === key);
+    return `<span class="sm">${escapeHtml(accountColumnsLegacy.fieldText(field4, row3.clasificadores?.[key]))}</span>`;
   }
   var CELLS = /* @__PURE__ */ new Map([
     ["nombre", nameCell],
     ["dias", daysCell],
-    ["estado_comercial", (row2) => `<span class="pill p-est">${escapeHtml(row2.estado_comercial)}</span>`],
-    ["ultima_visita", (row2) => `<span class="sm">${row2.ultima_visita ? formatShortDate(row2.ultima_visita) : "—"}</span>`],
-    ["telefono", (row2) => `<span class="sm">${escapeHtml(orFallback(row2.telefono, row2.consulta_telefono ?? ""))}</span>`],
+    ["estado_comercial", (row3) => `<span class="pill p-est">${escapeHtml(row3.estado_comercial)}</span>`],
+    ["ultima_visita", (row3) => `<span class="sm">${row3.ultima_visita ? formatShortDate(row3.ultima_visita) : "—"}</span>`],
+    ["telefono", (row3) => `<span class="sm">${escapeHtml(orFallback(row3.telefono, row3.consulta_telefono ?? ""))}</span>`],
     ["comerciales", salesRepsCell]
   ]);
-  function cell(row2, key, onAccessLoaded) {
-    if (key === "acceso") return accessCell(row2, onAccessLoaded);
-    if (key.startsWith(CUSTOM_PREFIX)) return customCell(row2, key.slice(CUSTOM_PREFIX.length));
+  function cell(row3, key, onAccessLoaded) {
+    if (key === "acceso") return accessCell(row3, onAccessLoaded);
+    if (key.startsWith(CUSTOM_PREFIX)) return customCell(row3, key.slice(CUSTOM_PREFIX.length));
     const special = CELLS.get(key);
-    if (special) return special(row2);
-    const value4 = row2[key];
-    return `<span class="sm">${escapeHtml(value4 ? String(value4) : "")}</span>`;
+    if (special) return special(row3);
+    const value6 = row3[key];
+    return `<span class="sm">${escapeHtml(value6 ? String(value6) : "")}</span>`;
   }
 
   // src/app/screens/accounts/list/columns.ts
@@ -3014,7 +3424,7 @@
       { k: "estado_comercial", t: t("accounts.columns.state"), w: 150 },
       { k: SALES_REPS, t: t("accounts.columns.salesReps"), w: 190 },
       { k: "acceso", t: t("accounts.columns.access"), w: 170 },
-      ...accountColumnsLegacy.customFields().map((field) => ({ k: CUSTOM_PREFIX2 + field.clave, t: field.nombre, w: CUSTOM_WIDTH }))
+      ...accountColumnsLegacy.customFields().map((field4) => ({ k: CUSTOM_PREFIX2 + field4.clave, t: field4.nombre, w: CUSTOM_WIDTH }))
     ];
   }
   var columnTitle = (key) => columnDefinitions().find((column) => column.k === key)?.t ?? key;
@@ -3044,7 +3454,7 @@
       if (!settings.some((setting) => setting.k === column.k)) settings.push({ k: column.k, on: column.k === SALES_REPS && everything, w: column.w });
     });
     const fields = accountColumnsLegacy.customFields();
-    return settings.filter((setting) => setting.k !== SALES_REPS || everything).map((setting) => setting.k.startsWith(CUSTOM_PREFIX2) && !(chosen ?? []).some((item) => item.k === setting.k) ? { ...setting, on: Boolean(fields.find((field) => CUSTOM_PREFIX2 + field.clave === setting.k)?.en_tabla) } : setting);
+    return settings.filter((setting) => setting.k !== SALES_REPS || everything).map((setting) => setting.k.startsWith(CUSTOM_PREFIX2) && !(chosen ?? []).some((item) => item.k === setting.k) ? { ...setting, on: Boolean(fields.find((field4) => CUSTOM_PREFIX2 + field4.clave === setting.k)?.en_tabla) } : setting);
   }
   var visibleColumns = () => columnSettings().filter((setting) => setting.on);
 
@@ -3072,11 +3482,11 @@
       header.classList.toggle("ord-desc", current && direction === "desc");
     });
   }
-  function rowHtml(row2, onAccessLoaded) {
-    const cells = visibleColumns().map((column) => `<span class="tcell" style="width:${column.w}px;min-width:${column.w}px">${cell(row2, column.k, onAccessLoaded)}</span>`).join("");
-    const place = [row2.centro_nombre, row2.municipio].filter(Boolean).join(" · ");
-    const card = `<span class="plcard"><b>${row2.urgente ? `<i class="plurg" aria-label="${t("accounts.list.urgent")}"></i>` : ""}${escapeHtml(row2.nombre ?? "")}</b><span class="plc2">${escapeHtml(place)}</span><span class="plc3">${cell(row2, "estado_comercial", onAccessLoaded)}</span></span>`;
-    return `<button class="trow" data-id="${row2.id}">${cells}${card}</button>`;
+  function rowHtml(row3, onAccessLoaded) {
+    const cells = visibleColumns().map((column) => `<span class="tcell" style="width:${column.w}px;min-width:${column.w}px">${cell(row3, column.k, onAccessLoaded)}</span>`).join("");
+    const place = [row3.centro_nombre, row3.municipio].filter(Boolean).join(" · ");
+    const card = `<span class="plcard"><b>${row3.urgente ? `<i class="plurg" aria-label="${t("accounts.list.urgent")}"></i>` : ""}${escapeHtml(row3.nombre ?? "")}</b><span class="plc2">${escapeHtml(place)}</span><span class="plc3">${cell(row3, "estado_comercial", onAccessLoaded)}</span></span>`;
+    return `<button class="trow" data-id="${row3.id}">${cells}${card}</button>`;
   }
   function paintChips() {
     const box = document.getElementById("chips");
@@ -3084,7 +3494,7 @@
     const filters = accountListLegacy.filters();
     const chips = [
       ...filters.q ? [["q", t("accounts.list.chipSearch", { text: filters.q })]] : [],
-      ...[["prov", filters.prov], ["muni", filters.muni], ["esp", filters.esp], ["est", filters.est]].filter(([, value4]) => value4),
+      ...[["prov", filters.prov], ["muni", filters.muni], ["esp", filters.esp], ["est", filters.est]].filter(([, value6]) => value6),
       ...filters.urg ? [["urg", t("accounts.list.chipUrgent")]] : [],
       ...filters.mios ? [["mios", t("accounts.list.chipMine")]] : [],
       ...filters.sin ? [["sin", t("accounts.list.chipNeverVisited")]] : []
@@ -3094,7 +3504,7 @@
 
   // src/app/screens/accounts/list/search.ts
   var lastSearch = 0;
-  var orNull = (value4) => value4 ? value4 : null;
+  var orNull = (value6) => value6 ? value6 : null;
   var loadingHtml = (text) => `<div class="cargador"><span class="spin"></span><span class="sm">${escapeHtml(text)}</span></div>`;
   function searchParams() {
     const filters = accountListLegacy.filters(), size = accountListLegacy.pageSize();
@@ -3146,7 +3556,7 @@
       if (head) head.innerHTML = "";
     } else {
       paintHeader();
-      list.innerHTML = rows.map((row2) => rowHtml(row2, () => {
+      list.innerHTML = rows.map((row3) => rowHtml(row3, () => {
         void searchAccounts(true);
       })).join("");
     }
@@ -3291,8 +3701,8 @@
       saveColumns(settings);
       paintHeader2();
       const visible = settings.filter((item) => item.on);
-      document.querySelectorAll("#lista .trow").forEach((row2) => {
-        [...row2.children].forEach((cellElement, index) => {
+      document.querySelectorAll("#lista .trow").forEach((row3) => {
+        [...row3.children].forEach((cellElement, index) => {
           const column = visible[index];
           if (column && cellElement instanceof HTMLElement) {
             cellElement.style.width = `${column.w}px`;
@@ -3454,7 +3864,7 @@
     const picker = document.createElement("div");
     picker.className = "agmpop";
     const names = shortMonthNames();
-    const paint3 = () => {
+    const paint4 = () => {
       picker.innerHTML = `<div class="agmpoph"><button type="button" class="kmv" data-an="-1" aria-label="${t("agenda.month.previousYear")}">‹</button><b>${year}</b>
       <button type="button" class="kmv" data-an="1" aria-label="${t("agenda.month.nextYear")}">›</button></div>
       <div class="agmpopg">${names.map((name, index) => {
@@ -3464,7 +3874,7 @@
       picker.querySelectorAll("[data-an]").forEach((button) => {
         onClick(button, () => {
           year += Number(button.dataset.an);
-          paint3();
+          paint4();
         });
       });
       picker.querySelectorAll("[data-mk]").forEach((button) => {
@@ -3474,7 +3884,7 @@
         });
       });
     };
-    paint3();
+    paint4();
     document.body.appendChild(picker);
     const rect = anchor.getBoundingClientRect(), width = Math.min(PICKER_WIDTH, innerWidth - 20);
     picker.style.width = `${width}px`;
@@ -3513,8 +3923,8 @@
   }
 
   // src/app/screens/agenda/metrics.ts
-  var count = (value4) => formatNumber(value4 ?? 0);
-  var decimal = (value4) => value4 === void 0 || value4 === null ? "0" : String(value4).replace(".", ",");
+  var count = (value6) => formatNumber(value6 ?? 0);
+  var decimal = (value6) => value6 === void 0 || value6 === null ? "0" : String(value6).replace(".", ",");
   function todayFigures(metrics) {
     const day = legacyAgenda.selectedDate(), today = todayIso();
     if (day === today && legacyAgenda.loadedDay() === day) {
@@ -3602,7 +4012,7 @@
       { title: t("agenda.sameCentre.noTimetable"), people: noTimetable }
     ].filter((group) => group.people.length);
   }
-  var toNumber = (value4) => Number(value4);
+  var toNumber = (value6) => Number(value6);
   function isSameCentre(group, appointment) {
     if (isPresent(group.lat) && isPresent(appointment.lat)) {
       return distanceKm([toNumber(group.lat), toNumber(group.lon)], [toNumber(appointment.lat), toNumber(appointment.lon)]) <= NEAR_KM;
@@ -3655,17 +4065,17 @@
         else agendaActions.openAccount(person.dataset.agti ?? "");
         return;
       }
-      const block2 = target?.closest("#agcuerpo .agtamb[data-agtc]");
-      if (block2) {
+      const block3 = target?.closest("#agcuerpo .agtamb[data-agtc]");
+      if (block3) {
         event.stopPropagation();
-        agendaActions.openCentre(block2.dataset.agtc ?? "");
+        agendaActions.openCentre(block3.dataset.agtc ?? "");
       }
     }, true);
     document.addEventListener("keydown", (event) => {
-      const block2 = event.target instanceof Element ? event.target.closest("#agcuerpo .agtamb[data-agtc]") : null;
-      if (block2 && event.target === block2 && (event.key === "Enter" || event.key === " ")) {
+      const block3 = event.target instanceof Element ? event.target.closest("#agcuerpo .agtamb[data-agtc]") : null;
+      if (block3 && event.target === block3 && (event.key === "Enter" || event.key === " ")) {
         event.preventDefault();
-        agendaActions.openCentre(block2.dataset.agtc ?? "");
+        agendaActions.openCentre(block3.dataset.agtc ?? "");
       }
     });
   }
@@ -3736,11 +4146,11 @@
   function applySuggestions(isoDate, suggestions) {
     if (suggestions?.date === isoDate) agendaSources.setSuggestions(isoDate, suggestions);
   }
-  async function withData(loads, paint3) {
+  async function withData(loads, paint4) {
     painting++;
     try {
       await Promise.all(loads.filter(Boolean).map((load2) => Promise.resolve(load2).catch(() => null)));
-      return await paint3();
+      return await paint4();
     } finally {
       setTimeout(() => {
         painting--;
@@ -3891,9 +4301,9 @@
       weekPlanner.discardDraft();
       reloadAgenda();
     };
-    const save6 = box.querySelector("#semguardar");
-    if (save6) save6.onclick = () => {
-      weekPlanner.saveDraft(save6);
+    const save11 = box.querySelector("#semguardar");
+    if (save11) save11.onclick = () => {
+      weekPlanner.saveDraft(save11);
     };
     box.querySelectorAll("[data-semdia]").forEach((column) => {
       bindDay(column, data);
@@ -3938,7 +4348,7 @@
     bind(box, data);
   }
   function paintOpenWeek() {
-    const paint3 = async () => {
+    const paint4 = async () => {
       const strip = document.getElementById("agcinta");
       if (!legacyAgenda.isDayView() || !strip || !stripState.weekOpen() || document.getElementById("agsemexp")) {
         await render();
@@ -3952,17 +4362,17 @@
         if (box) box.style.display = "";
       }
     };
-    return legacyAgenda.isDayView() ? withData(stripState.weekOpen() ? weekLoads(legacyAgenda.selectedDate()) : [], paint3) : paint3();
+    return legacyAgenda.isDayView() ? withData(stripState.weekOpen() ? weekLoads(legacyAgenda.selectedDate()) : [], paint4) : paint4();
   }
 
   // src/app/screens/agenda/strip.ts
   var STRIP_DAYS2 = 14;
   var WEEK_DAYS3 = 7;
   var MAX_DOTS = 6;
-  var DAY_MS = 864e5;
+  var DAY_MS3 = 864e5;
   var hasStrip = () => currentScreen() === "agenda" && legacyAgendaParts.mode() === "dia" && Boolean(document.getElementById("v-agenda"));
   function weekTitle(monday, today) {
-    const weeks = Math.round((fromIsoDate(monday).getTime() - fromIsoDate(mondayOf(today)).getTime()) / DAY_MS / WEEK_DAYS3);
+    const weeks = Math.round((fromIsoDate(monday).getTime() - fromIsoDate(mondayOf(today)).getTime()) / DAY_MS3 / WEEK_DAYS3);
     if (weeks === 0) return t("agenda.strip.thisWeek");
     if (weeks === 1) return t("agenda.strip.nextWeek");
     if (weeks === -1) return t("agenda.strip.lastWeek");
@@ -4124,10 +4534,10 @@
   }
   function dayContent(items, blockedReason) {
     const blocked = blockedReason ? `<span class="agslb">${escapeHtml(blockedReason)}</span>` : "";
-    const shown = items.slice(0, SHOWN_PER_DAY2).map((item) => `<span class="agslx"><b>${escapeHtml(timeOf2(item).slice(0, 5))}</b>${escapeHtml(orFallback(item.medico, item.nombre ?? ""))}</span>`).join("");
+    const shown2 = items.slice(0, SHOWN_PER_DAY2).map((item) => `<span class="agslx"><b>${escapeHtml(timeOf2(item).slice(0, 5))}</b>${escapeHtml(orFallback(item.medico, item.nombre ?? ""))}</span>`).join("");
     const more = items.length > SHOWN_PER_DAY2 ? `<span class="agslv">${t("agenda.week.andMore", { count: items.length - SHOWN_PER_DAY2 })}</span>` : "";
     const free = !items.length && !blockedReason ? `<span class="agslv">${t("agenda.week.free")}</span>` : "";
-    return blocked + shown + more + free;
+    return blocked + shown2 + more + free;
   }
   function dayHtml(isoDate, items, context) {
     const date = fromIsoDate(isoDate), blockedReason = context.blocked[isoDate];
@@ -4521,15 +4931,15 @@
   var isCancelled = (state) => appointments.isCancelled(state);
   var isDone = (state) => commercialStates.color(state) === "var(--ok)";
   var isAbsent = (state) => commercialStates.color(state) === "var(--warn)" && !isOpen(state);
-  function statePill2(state) {
+  function statePill3(state) {
     const color2 = colorOf(state);
     return `<span class="pill cest" style="background:color-mix(in srgb, ${color2} 12%, transparent);color:${color2}">${escapeHtml(state)}</span>`;
   }
   function pointOf(item) {
     return item.lat !== null && item.lat !== void 0 && item.lon !== null && item.lon !== void 0 ? [Number(item.lat), Number(item.lon)] : null;
   }
-  var STATES2 = { planned: "Planificada", confirmed: "Confirmada", discarded: "Descartada", postponed: "Aplazada" };
-  var canPlanAgain = (item, today) => (item.estado === STATES2.postponed || item.estado === STATES2.discarded) && item.fecha >= today;
+  var STATES4 = { planned: "Planificada", confirmed: "Confirmada", discarded: "Descartada", postponed: "Aplazada" };
+  var canPlanAgain = (item, today) => (item.estado === STATES4.postponed || item.estado === STATES4.discarded) && item.fecha >= today;
 
   // src/app/screens/agenda/appointment-options.ts
   var option = (action, title, detail = "") => ({ action, title: t(title), detail });
@@ -4537,13 +4947,13 @@
     const today = todayIso();
     if (!isOpen(item.estado)) {
       if (!canPlanAgain(item, today)) return [];
-      return [{ action: "rehacer", title: t("agenda.menu.planAgain"), detail: t("agenda.menu.planAgainText") + (item.estado === STATES2.postponed ? t("agenda.menu.planAgainPostponed") : "") }];
+      return [{ action: "rehacer", title: t("agenda.menu.planAgain"), detail: t("agenda.menu.planAgainText") + (item.estado === STATES4.postponed ? t("agenda.menu.planAgainPostponed") : "") }];
     }
     return [
       option("hora", item.hora ? "agenda.menu.changeTime" : "agenda.menu.setTime"),
       { ...option("aplazar", "agenda.menu.postpone"), detail: t("agenda.menu.postponeText") },
-      item.estado === STATES2.planned ? { ...option("confirmar", "agenda.menu.confirm"), detail: t("agenda.menu.confirmText") } : null,
-      item.estado === STATES2.confirmed ? option("desconfirmar", "agenda.menu.unconfirm") : null,
+      item.estado === STATES4.planned ? { ...option("confirmar", "agenda.menu.confirm"), detail: t("agenda.menu.confirmText") } : null,
+      item.estado === STATES4.confirmed ? option("desconfirmar", "agenda.menu.unconfirm") : null,
       { ...option("descartar", "agenda.menu.discard"), detail: t("agenda.menu.discardText") },
       item.fecha >= today ? { ...option("borrar", "agenda.menu.delete"), detail: t("agenda.menu.deleteText") } : null
       // v2.273.0
@@ -4552,7 +4962,7 @@
   var hasMenu = (item) => menuOptions(item).length > 0;
 
   // src/app/screens/agenda/your-day/card.ts
-  var DAY_MS2 = 864e5;
+  var DAY_MS4 = 864e5;
   var NEXT_GRACE_MINUTES = 15;
   var timeText = (time) => escapeHtml(String(time).slice(0, 5));
   function minutesOf(item, estimates) {
@@ -4565,7 +4975,7 @@
       return minutes === null || minutes + NEXT_GRACE_MINUTES >= now;
     }) ?? null;
   }
-  var daysSince = (isoDate) => Math.max(0, Math.round((fromIsoDate(todayIso()).getTime() - fromIsoDate(String(isoDate).slice(0, 10)).getTime()) / DAY_MS2));
+  var daysSince = (isoDate) => Math.max(0, Math.round((fromIsoDate(todayIso()).getTime() - fromIsoDate(String(isoDate).slice(0, 10)).getTime()) / DAY_MS4));
   function shownTime(item, context) {
     const info = context.info[item.id] ?? {}, estimate = context.estimates[item.id];
     if (item.hora) return timeText(item.hora);
@@ -4636,12 +5046,12 @@
     return `<button class="kmv" type="button" data-td="sube|${item.id}" aria-label="${t("agenda.card.moveUp")}" title="${t("agenda.card.moveUp")}" ${position <= 0 ? "disabled" : ""}>${legacyIcons.arrow("arriba")}</button><button class="kmv" type="button" data-td="baja|${item.id}" aria-label="${t("agenda.card.moveDown")}" title="${t("agenda.card.moveDown")}" ${position >= context.open.length - 1 ? "disabled" : ""}>${legacyIcons.arrow("abajo")}</button>`;
   }
   function footHtml(item, context) {
-    const open = isOpen(item.estado), canMove = open && !context.isPast, record = open && yourDayLegacy.canRecordOn(item.fecha);
+    const open = isOpen(item.estado), canMove = open && !context.isPast, record2 = open && yourDayLegacy.canRecordOn(item.fecha);
     const again = isAbsent(item.estado) && !context.isPast;
-    return `<div class="tdu-pie"><span class="tdu-est">${statePill2(item.estado)}<span class="sm">${yourDayLegacy.originText(item)}</span></span>
+    return `<div class="tdu-pie"><span class="tdu-est">${statePill3(item.estado)}<span class="sm">${yourDayLegacy.originText(item)}</span></span>
         <span class="tdu-ops">${canMove ? orderButtons(item, context) : ""}${hasMenu(item) ? `<button class="btn sec tdmas" type="button" data-td="mas|${item.id}" aria-label="${t("agenda.card.moreActions")}">⋯</button>` : ""}</span>
         ${again ? `<button class="btn sec tdu-reg" type="button" data-td="nueva|${item.id}">${t("agenda.card.newAppointment")}</button>` : ""}
-        ${record ? `<button class="btn ${item === context.next ? "" : "sec"} tdu-reg" type="button" data-td="visita|${item.id}">${t("agenda.card.record", { visit: context.visit })}</button>` : ""}</div>`;
+        ${record2 ? `<button class="btn ${item === context.next ? "" : "sec"} tdu-reg" type="button" data-td="visita|${item.id}">${t("agenda.card.record", { visit: context.visit })}</button>` : ""}</div>`;
   }
   function statusClass(state) {
     if (isOpen(state)) return "abierta";
@@ -4722,7 +5132,7 @@
     if (!others.length) return "";
     return `<h3 class="tdotros">${t("agenda.yourDay.othersTitle", { count: others.length })}</h3>
       <div class="lista">${others.map((item) => `<div class="item" style="cursor:default"><span class="ic">${item.hora ? timeText(item.hora) : "·"}</span>
-        <span class="tx"><b>${escapeHtml(item.nombre)}</b><span class="sm">${escapeHtml(item.usuario ?? "")} · ${statePill2(item.estado)}</span></span></div>`).join("")}</div>`;
+        <span class="tx"><b>${escapeHtml(item.nombre)}</b><span class="sm">${escapeHtml(item.usuario ?? "")} · ${statePill3(item.estado)}</span></span></div>`).join("")}</div>`;
   }
 
   // src/app/screens/agenda/your-day/tasks.ts
@@ -4754,8 +5164,8 @@
     box.closest(".tdtarea")?.classList.toggle("hecha", box.checked);
     agendaState.forgetDayTasks();
   }
-  function bind4(block2) {
-    block2.querySelectorAll("[data-tacheck]").forEach((box) => {
+  function bind4(block3) {
+    block3.querySelectorAll("[data-tacheck]").forEach((box) => {
       box.onchange = (event) => {
         event.stopPropagation();
         void markDone(box);
@@ -4769,13 +5179,13 @@
     const html = `<div class="tdtareas" id="tdtareas"><div class="tdtcab">${t("agenda.tasks.title", { count: list.length })}</div>${list.map((task) => taskRow(task, list)).join("")}</div>`;
     if (place) place.insertAdjacentHTML("beforebegin", html);
     else body2.insertAdjacentHTML("beforeend", html);
-    const block2 = document.getElementById("tdtareas");
-    if (block2) bind4(block2);
+    const block3 = document.getElementById("tdtareas");
+    if (block3) bind4(block3);
   }
   function applyTaskFolding() {
-    const block2 = document.getElementById("tdtareas"), header = block2?.querySelector(".tdtcab");
-    if (!block2 || !header) return;
-    block2.classList.toggle("plegadas", folded());
+    const block3 = document.getElementById("tdtareas"), header = block3?.querySelector(".tdtcab");
+    if (!block3 || !header) return;
+    block3.classList.toggle("plegadas", folded());
     header.setAttribute("role", "button");
     header.tabIndex = 0;
     header.setAttribute("aria-expanded", String(!folded()));
@@ -4938,13 +5348,13 @@
     document.addEventListener("click", (event) => {
       const button = event.target instanceof Element ? event.target.closest("#tdcompactar") : null;
       if (!button) return;
-      const value4 = !compact();
+      const value6 = !compact();
       try {
-        localStorage.setItem(COMPACT_KEY, value4 ? "1" : "0");
+        localStorage.setItem(COMPACT_KEY, value6 ? "1" : "0");
       } catch {
       }
       applyCompact();
-      setCompactButton(button, value4);
+      setCompactButton(button, value6);
     });
     document.addEventListener("click", (event) => {
       const button = event.target instanceof Element ? event.target.closest("[data-tdavi]") : null;
@@ -5005,7 +5415,7 @@
     return match ? Number(match[1]) * 60 + Number(match[2]) : null;
   }
   function countsByDate(rows) {
-    return new Map((rows ?? []).map((row2) => [row2.fecha, row2.n]));
+    return new Map((rows ?? []).map((row3) => [row3.fecha, row3.n]));
   }
 
   // src/app/screens/home/indicators/charts-activity.ts
@@ -5022,9 +5432,9 @@
     const summary2 = next ? t("home.indicators.nextAppointment", { time: time(next, "—"), name: escapeHtml(next.nombre) }) : t(list.length ? "home.indicators.allClosed" : "home.indicators.noAppointmentsToday");
     const visible = isMobile() ? 3 : 5;
     const nextIndex = next ? list.indexOf(next) : 0;
-    const start = Math.max(0, Math.min(nextIndex - (visible >> 1), list.length - visible)), shown = list.slice(start, start + visible);
-    const more = Math.max(0, nonZeroOr(kpis.citas_hoy, list.length) - shown.length);
-    const dots = shown.map((item) => `<span class="kvdot"><i class="${dotKind2(item, next)}" title="${escapeHtml(item.nombre)}"></i><em>${time(item, "·")}</em></span>`).join("");
+    const start = Math.max(0, Math.min(nextIndex - (visible >> 1), list.length - visible)), shown2 = list.slice(start, start + visible);
+    const more = Math.max(0, nonZeroOr(kpis.citas_hoy, list.length) - shown2.length);
+    const dots = shown2.map((item) => `<span class="kvdot"><i class="${dotKind2(item, next)}" title="${escapeHtml(item.nombre)}"></i><em>${time(item, "·")}</em></span>`).join("");
     return { summary: summary2, visual: list.length ? `<div class="kvdots">${dots}${more > 0 ? `<span class="kvdot"><em class="kvmas">+${more}</em></span>` : ""}</div>` : "" };
   }
   function urgentChart(kpis) {
@@ -5032,8 +5442,8 @@
     return { summary: t("home.indicators.noneUrgent"), visual: `<div class="kvcalma"><span>${lineIcon('<path d="M20 6 9 17l-5-5"/>')}</span>${t("home.indicators.allUpToDate")}</div>` };
   }
   function weekSummary(week, today) {
-    const { upcoming, days, values, perDay } = week;
-    if (upcoming) {
+    const { upcoming: upcoming2, days, values, perDay } = week;
+    if (upcoming2) {
       const busiest = values.indexOf(Math.max(...values));
       const day = days[busiest];
       return values[busiest] && day ? t("home.indicators.busiestDay", { weekday: weekdayName(day), count: values[busiest] ?? 0 }) : t("home.indicators.freeWeek");
@@ -5042,17 +5452,17 @@
     return t("home.indicators.fourWeekAverage", { average: String(fourWeeks.toFixed(1)).replace(".", ",") });
   }
   function weekChart(id, charts, today) {
-    const upcoming = id === "citas_7d";
-    const days = range(7).map((i) => upcoming ? addDays(today, i) : addDays(mondayOf(today), i));
+    const upcoming2 = id === "citas_7d";
+    const days = range(7).map((i) => upcoming2 ? addDays(today, i) : addDays(mondayOf(today), i));
     const perDay = countsByDate(charts.por_dia), nextDays = countsByDate(charts.proximos);
-    const values = days.map((day) => (upcoming ? nextDays.get(day) : perDay.get(day)) ?? 0);
+    const values = days.map((day) => (upcoming2 ? nextDays.get(day) : perDay.get(day)) ?? 0);
     const max = Math.max(1, ...values), width = 196, barWidth = 18, gap = (width - 7 * barWidth) / 6;
-    const bars = values.map((value4, i) => {
-      const day = days[i] ?? today, height = Math.max(3, value4 / max * 40), x = i * (barWidth + gap), future = !upcoming && day > today, isToday = day === today;
+    const bars = values.map((value6, i) => {
+      const day = days[i] ?? today, height = Math.max(3, value6 / max * 40), x = i * (barWidth + gap), future = !upcoming2 && day > today, isToday = day === today;
       const fill2 = future ? "#E3EBF3" : isToday ? "var(--sky)" : "var(--navy)";
-      return `<rect x="${x}" y="${44 - height}" width="${barWidth}" height="${height}" rx="4" fill="${fill2}" opacity="${value4 ? 1 : 0.35}"/><text x="${x + barWidth / 2}" y="58" text-anchor="middle" class="${isToday ? "hoy" : ""}">${WEEKDAY_LETTERS[fromIsoDate(day).getDay()] ?? ""}</text>`;
+      return `<rect x="${x}" y="${44 - height}" width="${barWidth}" height="${height}" rx="4" fill="${fill2}" opacity="${value6 ? 1 : 0.35}"/><text x="${x + barWidth / 2}" y="58" text-anchor="middle" class="${isToday ? "hoy" : ""}">${WEEKDAY_LETTERS[fromIsoDate(day).getDay()] ?? ""}</text>`;
     }).join("");
-    return { summary: weekSummary({ upcoming, days, values, perDay }, today), visual: `<svg class="kvbar" viewBox="0 0 ${width} 60" preserveAspectRatio="xMidYMax meet" aria-hidden="true">${bars}</svg>` };
+    return { summary: weekSummary({ upcoming: upcoming2, days, values, perDay }, today), visual: `<svg class="kvbar" viewBox="0 0 ${width} 60" preserveAspectRatio="xMidYMax meet" aria-hidden="true">${bars}</svg>` };
   }
   function monthChart(charts, today) {
     const perDay = countsByDate(charts.por_dia), dayOfMonth = Number(today.slice(8, 10)), monthStart = `${today.slice(0, 8)}01`;
@@ -5068,8 +5478,8 @@
     const current = accumulate(monthStart), last = accumulate(toIsoDate(previous));
     if (dayOfMonth < 2) return EMPTY_CHART;
     const max = Math.max(1, ...last, ...current), width = 196, height = 46;
-    const x = (i) => i / (dayOfMonth - 1) * width, y = (value4) => height - value4 / max * height;
-    const line = (values) => values.map((value4, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(value4).toFixed(1)}`).join("");
+    const x = (i) => i / (dayOfMonth - 1) * width, y = (value6) => height - value6 / max * height;
+    const line = (values) => values.map((value6, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(value6).toFixed(1)}`).join("");
     const end = current[current.length - 1] ?? 0, difference2 = end - (last[last.length - 1] ?? 0);
     return {
       summary: t(difference2 >= 0 ? "home.indicators.aboveLastMonth" : "home.indicators.belowLastMonth", { difference: difference2 }),
@@ -5089,11 +5499,11 @@
 
   // src/app/screens/home/indicators/charts-portfolio.ts
   function stateCounts(charts) {
-    const counts = new Map((charts.estados ?? []).map((row2) => [row2.valor, row2.n]));
+    const counts = new Map((charts.estados ?? []).map((row3) => [row3.valor, row3.n]));
     return commercialStates.all().filter((state) => state.papel !== "negativo").map((state) => ({ state, accounts: counts.get(state.valor) ?? 0 }));
   }
   function portfolioTotal(charts) {
-    return sum((charts.estados ?? []).map((row2) => row2.n));
+    return sum((charts.estados ?? []).map((row3) => row3.n));
   }
   var color = (role) => STATE_COLORS[role] ?? "#C9D7E6";
   function interestedChart(charts) {
@@ -5501,7 +5911,7 @@
   function cycleTile(data) {
     const summary2 = data.cycle?.resumen ?? [];
     if (!summary2.length) return "";
-    const done = summary2.reduce((sum2, row2) => sum2 + row2.hechas, 0), target = summary2.reduce((sum2, row2) => sum2 + row2.objetivo, 0);
+    const done = summary2.reduce((sum2, row3) => sum2 + row3.hechas, 0), target = summary2.reduce((sum2, row3) => sum2 + row3.objetivo, 0);
     const percent = target ? Math.round(100 * done / target) : 0, circumference = 2 * Math.PI * 30;
     return `<div class="mt mtcic"><div class="mtt">${icon("target")} ${t("home.cycle.title", { visits: term("visita", { number: "p" }) })}</div>
       <div class="mfila"><svg class="mring" viewBox="0 0 70 70" aria-hidden="true"><circle class="f" cx="35" cy="35" r="30"/><circle class="v" cx="35" cy="35" r="30" style="stroke-dasharray:${circumference * percent / 100} ${circumference}"/></svg>
@@ -5552,9 +5962,9 @@
     const toggle = document.getElementById("inikpisver");
     if (toggle) {
       toggle.onclick = () => {
-        const shown = !section2.classList.contains("conkpis");
-        section2.classList.toggle("conkpis", shown);
-        toggle.textContent = t(shown ? "home.hideIndicators" : "home.showIndicators");
+        const shown2 = !section2.classList.contains("conkpis");
+        section2.classList.toggle("conkpis", shown2);
+        toggle.textContent = t(shown2 ? "home.hideIndicators" : "home.showIndicators");
       };
     }
     return document.getElementById("inimos");
@@ -5580,8 +5990,8 @@
     const step = (now) => {
       const progress = Math.min(1, (now - start) / COUNT_DURATION_MS2), eased = 1 - Math.pow(1 - progress, 3);
       figures.forEach((el) => {
-        const euros = el.dataset.meur;
-        el.textContent = euros === void 0 ? formatNumber(Math.round(Number(el.dataset.mcnt) * eased)) : formatEuros(Number(euros) * eased);
+        const euros2 = el.dataset.meur;
+        el.textContent = euros2 === void 0 ? formatNumber(Math.round(Number(el.dataset.mcnt) * eased)) : formatEuros(Number(euros2) * eased);
       });
       if (progress < 1) requestAnimationFrame(step);
     };
@@ -5775,13 +6185,13 @@
     refreshQuietly(item.id);
   };
   async function setState(action, item) {
-    const state = action === "confirmar" ? STATES2.confirmed : action === "desconfirmar" ? STATES2.planned : STATES2.discarded;
+    const state = action === "confirmar" ? STATES4.confirmed : action === "desconfirmar" ? STATES4.planned : STATES4.discarded;
     const result = await appointmentLegacy.write("estado_cita", { p_id: item.id, p_estado: state });
     if (result?.error) {
       notices.toast(t("agenda.actions.couldNotChange"), true);
       return;
     }
-    notices.toast(t(state === STATES2.confirmed ? "agenda.actions.confirmed" : state === STATES2.discarded ? "agenda.actions.discarded" : "agenda.actions.unconfirmed"));
+    notices.toast(t(state === STATES4.confirmed ? "agenda.actions.confirmed" : state === STATES4.discarded ? "agenda.actions.discarded" : "agenda.actions.unconfirmed"));
     refresh(item);
   }
   async function remove(item) {
@@ -5802,7 +6212,7 @@
   async function postpone(item) {
     const day = await notices.askDate(t("agenda.actions.whichDay"), appointmentLegacy.nextAttendanceDay(item.dias, item.fecha), { titulo: t("agenda.actions.postponeTitle"), ok: t("agenda.actions.postpone") });
     if (!day) return;
-    const { data: result, error } = await legacyDb().rpc("aplazar_cita", { p_id: item.id, p_fecha: day, p_hora: null, p_origen: STATES2.postponed });
+    const { data: result, error } = await legacyDb().rpc("aplazar_cita", { p_id: item.id, p_fecha: day, p_hora: null, p_origen: STATES4.postponed });
     if (error || result?.ok === false) {
       notices.toast(t("agenda.actions.couldNotPostpone"), true);
       return;
@@ -5943,14 +6353,14 @@
     if (!windows.length) return t("agenda.sheet.notAttending");
     return (info.otroCentro ? t("agenda.sheet.atCentre", { centre: info.otroCentro }) : "") + yourDayLegacy.windowsText(windows);
   }
-  var row = (label, value4) => `<div class="vcfila"><span>${label}</span><b>${value4}</b></div>`;
+  var row = (label, value6) => `<div class="vcfila"><span>${label}</span><b>${value6}</b></div>`;
   function dataHtml(item, info) {
     const where = [item.centro_nombre, item.direccion, item.municipio].filter(Boolean).join(" · "), timetable = timetableText2(item, info), origin = yourDayLegacy.originText(item);
     return `<div class="vcdatos">
       ${row(t("agenda.sheet.when"), `${escapeHtml(capitalise(formatLongDate(item.fecha)))} · ${escapeHtml(timeText2(item, info))}`)}
       ${row(t("agenda.sheet.where"), escapeHtml(where || t("agenda.sheet.noCentre")))}
       ${timetable ? row(t("agenda.sheet.timetable"), escapeHtml(timetable)) : ""}
-      ${row(t("agenda.sheet.state"), `${statePill2(item.estado)}${origin ? ` <span class="sm">${origin}</span>` : ""}`)}
+      ${row(t("agenda.sheet.state"), `${statePill3(item.estado)}${origin ? ` <span class="sm">${origin}</span>` : ""}`)}
     </div>`;
   }
   function closedHtml(item) {
@@ -5967,7 +6377,7 @@
       <button type="button" class="btn sec" id="vcficha">${t("agenda.sheet.seeCard")}</button>
       ${pointOf(item) ? `<button type="button" class="btn sec" id="vcllegar">${t("agenda.sheet.directions")}</button>` : ""}
       ${open ? `<button type="button" class="btn sec" id="vchora">${t("agenda.sheet.changeTime")}</button><button type="button" class="btn sec" id="vcmover">${t("agenda.sheet.moveDay")}</button>` : ""}
-    ${canPlanAgain(item, today) ? `<button type="button" class="btn sec" id="vcrehacer">${t("agenda.sheet.planAgain")}</button>` : ""}${item.estado === STATES2.postponed ? goToButton(item.aplazada_a_fecha, "agenda.sheet.goTo", "vcirdest", item) : ""}${goToButton(item.aplazada_de_fecha, "agenda.sheet.seeDay", "vcirorig", item)}</div>
+    ${canPlanAgain(item, today) ? `<button type="button" class="btn sec" id="vcrehacer">${t("agenda.sheet.planAgain")}</button>` : ""}${item.estado === STATES4.postponed ? goToButton(item.aplazada_a_fecha, "agenda.sheet.goTo", "vcirdest", item) : ""}${goToButton(item.aplazada_de_fecha, "agenda.sheet.seeDay", "vcirorig", item)}</div>
     ${open ? `<div class="vcfin">
         <button type="button" class="lnk" id="vcdescartar">${t("agenda.sheet.discard")}</button><span class="sm">${t("agenda.sheet.discardText")}</span>
         ${item.fecha >= today ? `<button type="button" class="lnk peligro" id="vcborrar">${t("agenda.sheet.delete")}</button><span class="sm">${t("agenda.sheet.deleteText")}</span>` : ""}</div>` : ""}
@@ -5992,26 +6402,26 @@
   };
   async function saveNotes(item, notes, button) {
     button.disabled = true;
-    const value4 = notes.value.trim();
-    const { error } = await legacyDb().from("agenda").update({ nota: value4 || null }).eq("id", item.id);
+    const value6 = notes.value.trim();
+    const { error } = await legacyDb().from("agenda").update({ nota: value6 || null }).eq("id", item.id);
     if (error) {
       button.disabled = false;
       notices.toast(t("agenda.sheet.couldNotSave", { error: error.message ?? "" }), true);
       return;
     }
-    item.nota = value4;
+    item.nota = value6;
     close();
     notices.toast(t("agenda.sheet.notesSaved"));
     refreshQuietly(item.id, false);
   }
   function bind5(body2, item) {
-    const notes = body2.querySelector("#vcnota"), save6 = body2.querySelector("#vcok");
-    if (notes && save6) {
+    const notes = body2.querySelector("#vcnota"), save11 = body2.querySelector("#vcok");
+    if (notes && save11) {
       notes.oninput = () => {
-        save6.disabled = notes.value.trim() === (item.nota ?? "").trim();
+        save11.disabled = notes.value.trim() === (item.nota ?? "").trim();
       };
-      save6.onclick = () => {
-        void saveNotes(item, notes, save6);
+      save11.onclick = () => {
+        void saveNotes(item, notes, save11);
       };
     }
     const on2 = (id, action) => {
@@ -6175,7 +6585,7 @@
       fecha: day,
       hora: inputValue("nch") || null,
       centro_nombre: centreOf(draft, picked),
-      estado: STATES2.planned,
+      estado: STATES4.planned,
       origen: orFallback(options.origen, inAgenda ? "Agenda" : "Ficha"),
       usuario_id: editorLegacy.viewedUserId(),
       nota: inputValue("ncn").trim(),
@@ -6206,10 +6616,10 @@
   async function newAppointment(accountId, day, options = {}) {
     const draft = { picked: null, consultations: [] };
     if (accountId) draft.picked = await loadAccount(accountId, draft);
-    const shown = legacyAgenda.selectedDate(), today = todayIso();
+    const shown2 = legacyAgenda.selectedDate(), today = todayIso();
     const body2 = document.getElementById("dbody"), box = document.getElementById("dlg");
     if (!body2 || !box) return;
-    body2.innerHTML = windowHtml(day ?? (currentScreen() === "agenda" && shown && shown >= today ? shown : today));
+    body2.innerHTML = windowHtml(day ?? (currentScreen() === "agenda" && shown2 && shown2 >= today ? shown2 : today));
     paintCentres(draft);
     editorLegacy.pickAccount(document.getElementById("ncsel"), draft.picked, async (account) => {
       draft.picked = account;
@@ -6249,16 +6659,16 @@
       document.getElementById("tat")?.focus();
       return;
     }
-    const row2 = { titulo: title, fecha: value("taf") || todayIso(), hora: value("tah") || null, nota: value("tan").trim() || null, modificado_en: (/* @__PURE__ */ new Date()).toISOString() };
+    const row3 = { titulo: title, fecha: value("taf") || todayIso(), hora: value("tah") || null, nota: value("tan").trim() || null, modificado_en: (/* @__PURE__ */ new Date()).toISOString() };
     button.disabled = true;
     const table = legacyDb().from("tareas");
-    const { error } = task.id ? await table.update(row2).eq("id", task.id) : await table.insert(row2);
+    const { error } = task.id ? await table.update(row3).eq("id", task.id) : await table.insert(row3);
     button.disabled = false;
     if (error) {
       notices.toast(t("agenda.sheet.couldNotSave", { error: error.message ?? "" }), true);
       return;
     }
-    afterChange(task.id ? t("agenda.taskEditor.saved") : t("agenda.taskEditor.addedOn", { date: formatDayMonth(row2.fecha) }));
+    afterChange(task.id ? t("agenda.taskEditor.saved") : t("agenda.taskEditor.addedOn", { date: formatDayMonth(row3.fecha) }));
   }
   function editHtml(task, day) {
     const time = task.hora ? String(task.hora).slice(0, 5) : "";
@@ -6380,10 +6790,10 @@
       notices.toast(t("events.editor.chooseDate"), true);
       return;
     }
-    const row2 = formRow(title);
+    const row3 = formRow(title);
     button.disabled = true;
     const table = legacyDb().from("eventos");
-    const result = existing ? await table.update(row2).eq("id", existing.id).select("id").single() : await table.insert(row2).select("id").single();
+    const result = existing ? await table.update(row3).eq("id", existing.id).select("id").single() : await table.insert(row3).select("id").single();
     button.disabled = false;
     if (result.error || !result.data) {
       notices.toast(t("events.editor.couldNotSave", { error: result.error?.message ?? "" }), true);
@@ -6443,9 +6853,9 @@
       return;
     }
     const today = todayIso(), list = data ?? [];
-    const upcoming = list.filter((event) => event.fecha >= today).reverse(), past = list.filter((event) => event.fecha < today);
+    const upcoming2 = list.filter((event) => event.fecha >= today).reverse(), past = list.filter((event) => event.fecha < today);
     box.innerHTML = `<div class="evpag"><div class="evcab"><button type="button" class="btn" id="evnuevo">${t("events.list.newEvent")}</button></div>
-    ${section(t("events.list.upcoming"), upcoming, t("events.list.noUpcoming"))}
+    ${section(t("events.list.upcoming"), upcoming2, t("events.list.noUpcoming"))}
     ${section(t("events.list.past"), past.slice(0, SHOWN_PAST), t("events.list.noPast"))}</div>`;
     const add = document.getElementById("evnuevo");
     if (add) add.onclick = () => {
@@ -6461,17 +6871,17 @@
   // src/app/screens/events/report.ts
   var YEARS_SHOWN = 4;
   var BOM = String.fromCharCode(65279);
-  var amount = (row2, key) => Number(row2[key]) || 0;
+  var amount = (row3, key) => Number(row3[key]) || 0;
   function tableHtml(rows) {
-    const total = (key) => formatCurrency(sum(rows.map((row2) => amount(row2, key))));
+    const total = (key) => formatCurrency(sum(rows.map((row3) => amount(row3, key))));
     return `<div class="dgrid-wrap"><table class="trtabla"><thead><tr><th>${term("medico", { capital: "C" })}</th><th>${t("events.report.events")}</th>${CONCEPTS.map((concept) => `<th>${conceptLabel(concept)}</th>`).join("")}<th>${t("events.report.total")}</th></tr></thead>
-      <tbody>${rows.map((row2) => `<tr><td><b>${escapeHtml(row2.nombre)}</b>${row2.especialidad ? `<span class="sm"> · ${escapeHtml(row2.especialidad)}</span>` : ""}</td><td>${row2.eventos}</td>${CONCEPTS.map((concept) => `<td>${formatCurrency(amount(row2, concept))}</td>`).join("")}<td><b>${formatCurrency(amount(row2, "total"))}</b></td></tr>`).join("")}</tbody>
+      <tbody>${rows.map((row3) => `<tr><td><b>${escapeHtml(row3.nombre)}</b>${row3.especialidad ? `<span class="sm"> · ${escapeHtml(row3.especialidad)}</span>` : ""}</td><td>${row3.eventos}</td>${CONCEPTS.map((concept) => `<td>${formatCurrency(amount(row3, concept))}</td>`).join("")}<td><b>${formatCurrency(amount(row3, "total"))}</b></td></tr>`).join("")}</tbody>
       <tfoot><tr><td>${t("events.report.total")}</td><td></td>${CONCEPTS.map((concept) => `<td>${total(concept)}</td>`).join("")}<td><b>${total("total")}</b></td></tr></tfoot></table></div>`;
   }
   function download(rows, year) {
-    const quote = (value4) => `"${String(value4 ?? "").replace(/"/g, '""')}"`, decimal2 = (value4) => String(Number(value4) || 0).replace(".", ",");
+    const quote = (value6) => `"${String(value6 ?? "").replace(/"/g, '""')}"`, decimal2 = (value6) => String(Number(value6) || 0).replace(".", ",");
     const header = [term("medico", { capital: "C" }), t("events.report.code"), term("especialidad", { capital: "C" }), t("events.report.events"), ...CONCEPTS.map(conceptLabel), t("events.report.total")].map(quote).join(";");
-    const lines = rows.map((row2) => [quote(row2.nombre), quote(row2.codigo), quote(row2.especialidad), row2.eventos, ...CONCEPTS.map((concept) => decimal2(row2[concept])), decimal2(row2.total)].join(";"));
+    const lines = rows.map((row3) => [quote(row3.nombre), quote(row3.codigo), quote(row3.especialidad), row3.eventos, ...CONCEPTS.map((concept) => decimal2(row3[concept])), decimal2(row3.total)].join(";"));
     const link = document.createElement("a");
     link.href = URL.createObjectURL(new Blob([BOM + [header, ...lines].join("\r\n")], { type: "text/csv;charset=utf-8" }));
     link.download = t("events.report.fileName", { year });
@@ -6484,22 +6894,22 @@
   }
   async function paintExpenseReport(year) {
     if (!document.getElementById("cfgcuerpo")) return;
-    const current = Number(todayIso().slice(0, 4)), shown = year ?? current - 1;
-    const { data } = await legacyDb().rpc("transparencia_anual", { p_anio: shown });
+    const current = Number(todayIso().slice(0, 4)), shown2 = year ?? current - 1;
+    const { data } = await legacyDb().rpc("transparencia_anual", { p_anio: shown2 });
     const box = document.getElementById("cfgcuerpo");
     if (!box || currentScreen() !== "eventos") return;
     const rows = data?.filas ?? [];
-    box.innerHTML = `<div class="evpag"><div class="evcab"><label for="trano">${t("events.report.year")}</label><select id="trano">${range(YEARS_SHOWN).map((back) => current - back).map((option2) => `<option ${option2 === shown ? "selected" : ""}>${option2}</option>`).join("")}</select>
+    box.innerHTML = `<div class="evpag"><div class="evcab"><label for="trano">${t("events.report.year")}</label><select id="trano">${range(YEARS_SHOWN).map((back) => current - back).map((option2) => `<option ${option2 === shown2 ? "selected" : ""}>${option2}</option>`).join("")}</select>
       ${rows.length ? `<button type="button" class="btn sec" id="trcsv">${t("events.report.download")}</button>` : ""}</div>
     <p class="sm">${t("events.report.note", { professional: term("medico") })}</p>
-    ${rows.length ? tableHtml(rows) : `<div class="vacio vlinea">${t("events.report.empty", { year: shown })}</div>`}</div>`;
+    ${rows.length ? tableHtml(rows) : `<div class="vacio vlinea">${t("events.report.empty", { year: shown2 })}</div>`}</div>`;
     const select = box.querySelector("#trano");
     if (select) select.onchange = () => {
       void paintExpenseReport(Number(select.value));
     };
     const csv = box.querySelector("#trcsv");
     if (csv) csv.onclick = () => {
-      download(rows, shown);
+      download(rows, shown2);
     };
   }
 
@@ -6509,8 +6919,8 @@
   };
   function attendeeHtml(attendee) {
     const costs = CONCEPTS.map((concept) => {
-      const amount2 = Number(attendee[concept]) || 0;
-      return `<label class="${concept === "comida" && amount2 > MEAL_MAX ? "evaviso" : ""}"><span>${conceptLabel(concept)}</span><input type="number" min="0" step="0.01" data-asimp="${concept}" value="${amount2 || ""}" placeholder="0"></label>`;
+      const amount3 = Number(attendee[concept]) || 0;
+      return `<label class="${concept === "comida" && amount3 > MEAL_MAX ? "evaviso" : ""}"><span>${conceptLabel(concept)}</span><input type="number" min="0" step="0.01" data-asimp="${concept}" value="${amount3 || ""}" placeholder="0"></label>`;
     }).join("");
     return `<div class="evasf" data-as="${attendee.id}">
         <div class="evasn"><b>${escapeHtml(attendee.cuentas?.nombre ?? "")}</b><span class="sm">${escapeHtml(attendee.cuentas?.especialidad ?? "")}</span></div>
@@ -6541,23 +6951,23 @@
     });
     document.getElementById("evsel")?.querySelector("input")?.focus();
   }
-  async function saveCost(attendee, input, attendees) {
-    const concept = input.dataset.asimp, amount2 = Math.max(0, Math.round((Number(input.value) || 0) * 100) / 100);
-    const { error } = await legacyDb().from("eventos_asistentes").update({ [concept]: amount2 }).eq("id", attendee.id);
+  async function saveCost(attendee, input2, attendees) {
+    const concept = input2.dataset.asimp, amount3 = Math.max(0, Math.round((Number(input2.value) || 0) * 100) / 100);
+    const { error } = await legacyDb().from("eventos_asistentes").update({ [concept]: amount3 }).eq("id", attendee.id);
     if (error) {
       notices.toast(t("events.sheet.couldNotSave"), true);
-      input.value = String(Number(attendee[concept]) || "");
+      input2.value = String(Number(attendee[concept]) || "");
       return;
     }
-    attendee[concept] = amount2;
+    attendee[concept] = amount3;
     const total = document.getElementById("evtotal");
     if (total) total.textContent = formatCurrency(sum(attendees.map(attendeeTotal)));
-    const overMeal = concept === "comida" && amount2 > MEAL_MAX;
-    input.closest("label")?.classList.toggle("evaviso", overMeal);
+    const overMeal = concept === "comida" && amount3 > MEAL_MAX;
+    input2.closest("label")?.classList.toggle("evaviso", overMeal);
     if (overMeal) notices.toast(t("events.sheet.mealOver", { max: MEAL_MAX }), true);
   }
-  function bindAttendee(row2, attendee, attendees, id) {
-    const state = row2.querySelector("[data-asest]");
+  function bindAttendee(row3, attendee, attendees, id) {
+    const state = row3.querySelector("[data-asest]");
     if (state) state.onchange = async () => {
       const { error } = await legacyDb().from("eventos_asistentes").update({ estado: state.value }).eq("id", attendee.id);
       if (error) {
@@ -6567,13 +6977,13 @@
       }
       attendee.estado = state.value;
     };
-    row2.querySelectorAll("[data-asimp]").forEach((input) => {
-      input.onchange = () => {
-        void saveCost(attendee, input, attendees);
+    row3.querySelectorAll("[data-asimp]").forEach((input2) => {
+      input2.onchange = () => {
+        void saveCost(attendee, input2, attendees);
       };
     });
-    const remove4 = row2.querySelector("[data-asq]");
-    if (remove4) remove4.onclick = async () => {
+    const remove5 = row3.querySelector("[data-asq]");
+    if (remove5) remove5.onclick = async () => {
       if (!await notices.confirm(t("events.sheet.removeText", { name: attendee.cuentas?.nombre ?? "" }), { titulo: t("events.sheet.removeTitle"), ok: t("events.sheet.remove"), peligro: true })) return;
       const { error } = await legacyDb().from("eventos_asistentes").delete().eq("id", attendee.id);
       if (error) {
@@ -6606,10 +7016,1223 @@
     if (add) add.onclick = () => {
       startAdding(id);
     };
-    document.querySelectorAll("#evas [data-as]").forEach((row2) => {
-      const attendee = attendees.find((item) => item.id === row2.dataset.as);
-      if (attendee) bindAttendee(row2, attendee, attendees, id);
+    document.querySelectorAll("#evas [data-as]").forEach((row3) => {
+      const attendee = attendees.find((item) => item.id === row3.dataset.as);
+      if (attendee) bindAttendee(row3, attendee, attendees, id);
     });
+  }
+
+  // src/app/screens/purchases/index.ts
+  var purchases_exports = {};
+  __export(purchases_exports, {
+    editPurchase: () => editPurchase,
+    editSupplier: () => editSupplier,
+    paintPurchases: () => paintPurchases,
+    paintSuppliers: () => paintSuppliers
+  });
+
+  // src/app/screens/purchases/model.ts
+  var STATES5 = {
+    draft: "Borrador",
+    sent: "Enviado",
+    inTransit: "En tránsito",
+    partlyReceived: "Recibido parcial",
+    received: "Recibido",
+    cancelled: "Cancelado"
+  };
+  var OPEN_STATES = [STATES5.sent, STATES5.inTransit, STATES5.partlyReceived];
+  var EDITABLE_STATES = [STATES5.draft, STATES5.sent, STATES5.inTransit];
+  var CLOSED_STATES = [STATES5.received, STATES5.cancelled];
+  var DEFAULT_LEAD_DAYS = 90;
+  var errorText2 = (error, result) => error?.message ?? result?.error ?? "";
+  var euros = (value6) => formatCurrency(Math.round((Number(value6) || 0) * 100) / 100);
+  function purchasePill(state) {
+    const kind = state === STATES5.received ? "p-est" : state === STATES5.cancelled ? "p-anu" : state === STATES5.draft ? "p-bor" : "p-per";
+    return `<span class="pill ${kind}">${escapeHtml(state)}</span>`;
+  }
+
+  // src/app/screens/purchases/editor-view.ts
+  var disabled = (editor) => editor.editable ? "" : "disabled";
+  function headerHtml5(editor) {
+    const { id, purchase } = editor;
+    const title = id ? t("purchases.editor.title", { number: escapeHtml(purchase.numero) }) : t("purchases.editor.newTitle");
+    return `<div class="fh"><div><h2>${title} ${id ? purchasePill(purchase.estado) : ""}</h2>
+        <div class="sm">${id ? t("purchases.editor.createdOn", { date: formatShortDate(purchase.fecha) }) : t("purchases.editor.numberedOnSave")}</div></div>
+        <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>`;
+  }
+  function supplierHtml(editor) {
+    const { purchase } = editor, off = disabled(editor);
+    const suppliers = purchasesLegacy.suppliers().filter((supplier) => supplier.activo === true || supplier.id === purchase.proveedor_id).map((supplier) => `<option value="${supplier.id ?? ""}" data-plazo="${nonZeroOr(supplier.plazo_dias, DEFAULT_LEAD_DAYS)}" ${supplier.id === purchase.proveedor_id ? "selected" : ""}>${escapeHtml(supplier.nombre)}</option>`).join("");
+    return `<div class="g2">
+        <div><label for="cpprov">${t("purchases.editor.supplier")}</label><select id="cpprov" ${off}>
+          ${suppliers}</select></div>
+        <div class="g2" style="margin:0">
+          <div><label for="cpfecha">${t("purchases.editor.date")}</label><input id="cpfecha" type="date" value="${escapeHtml(orFallback(purchase.fecha, todayIso()))}" ${off}></div>
+          <div><label for="cpprev">${t("purchases.editor.expected")}</label><input id="cpprev" type="date" value="${escapeHtml(purchase.fecha_prevista ?? "")}" ${off}></div></div>
+      </div>`;
+  }
+  function lineHtml(editor, line, index) {
+    const off = disabled(editor);
+    const products2 = purchasesLegacy.products().map((product) => `<option value="${product.id}" ${product.id === line.producto_id ? "selected" : ""}>${escapeHtml(product.nombre)}</option>`).join("");
+    const received = editor.id ? `<label>${t("purchases.editor.received")}</label><div class="cprec">${t("purchases.editor.receivedOf", { received: formatNumber(line.recibidas ?? 0), units: formatNumber(line.unidades) })}</div>` : "";
+    const remove5 = editor.editable && editor.lines.length > 1 ? `<button type="button" class="btn sec" data-clx="${index}" aria-label="${t("purchases.editor.remove")}">✕</button>` : "";
+    return `<div class="lin"><div class="lrow cprow">
+        <div><label>${t("purchases.editor.product")}</label><select data-cl="${index}|producto_id" ${off}>${products2}</select></div>
+        <div><label>${t("purchases.editor.units")}</label><input type="number" min="1" data-cl="${index}|unidades" value="${line.unidades}" ${off}></div>
+        <div><label>${t("purchases.editor.unitCost")}</label><input type="number" step="0.0001" min="0" data-cl="${index}|coste_unitario" value="${line.coste_unitario ?? ""}" ${off}></div>
+        <div>${received}</div>
+        <div>${remove5}</div></div></div>`;
+  }
+  function batchesHtml(editor) {
+    const batches = editor.detail?.lotes ?? [];
+    if (!batches.length) return "";
+    return `<div class="blk"><h3>${t("purchases.editor.batchesReceived")}</h3>${batches.map((batch) => `<div class="sm">${t("purchases.editor.batchLine", { product: escapeHtml(batch.producto), batch: escapeHtml(batch.numero_lote), units: formatNumber(batch.unidades) })}${batch.caducidad ? t("purchases.editor.expires", { date: formatShortDate(batch.caducidad) }) : ""}</div>`).join("")}</div>`;
+  }
+  function stepButtons(editor) {
+    const state = editor.purchase.estado;
+    if (!purchasesLegacy.canBuy()) return [];
+    return [
+      state === STATES5.draft ? `<button class="btn sec" id="cpenviar">${t("purchases.editor.markSent")}</button>` : "",
+      state === STATES5.sent ? `<button class="btn sec" id="cptransito">${t("purchases.editor.inTransit")}</button>` : "",
+      editor.id && OPEN_STATES.includes(state) ? `<button class="btn" id="cprecibir">${t("purchases.editor.receive")}</button>` : ""
+    ];
+  }
+  function buttonsHtml2(editor) {
+    const { id, purchase, editable } = editor, state = purchase.estado;
+    const buttons = [
+      purchasesLegacy.canBuy() && id && !CLOSED_STATES.includes(state) ? `<button class="btn sec dang" id="cpcancel">${t("purchases.editor.cancelOrder")}</button>` : "",
+      editable ? `<button class="btn sec" id="cpguardar">${t(state === STATES5.draft ? "purchases.editor.saveDraft" : "purchases.editor.saveChanges")}</button>` : "",
+      ...stepButtons(editor)
+    ];
+    return `<div class="acts" style="justify-content:flex-end;flex-wrap:wrap">
+        <button class="btn sec" data-cerrar>${t("purchases.editor.close")}</button>
+        ${buttons.join("\n        ")}
+      </div>`;
+  }
+  function editorHtml2(editor) {
+    const { purchase } = editor, off = disabled(editor);
+    return `
+      ${headerHtml5(editor)}
+      ${supplierHtml(editor)}
+      <label>${t("purchases.editor.products")}</label>
+      <div id="cplin">${editor.lines.map((line, index) => lineHtml(editor, line, index)).join("")}</div>
+      ${editor.editable ? `<div class="acts" style="margin-top:0"><button type="button" class="btn sec" id="cpmas">${t("purchases.editor.addProduct")}</button></div>` : ""}
+      <div class="g2">
+        <div><label for="cpport">${t("purchases.editor.shipping")}</label><input id="cpport" type="number" step="0.01" min="0" value="${purchase.portes ? String(purchase.portes) : 0}" ${off}></div>
+        <div><label for="cpnota">${t("purchases.editor.note")}</label><input id="cpnota" value="${escapeHtml(purchase.nota ?? "")}" ${off}></div></div>
+      <div class="totbox" id="cptot"></div>
+      ${batchesHtml(editor)}
+      ${buttonsHtml2(editor)}`;
+  }
+  function totalsHtml(lines, shipping) {
+    const amount3 = sum(lines.map((line) => (Number(line.unidades) || 0) * (Number(line.coste_unitario) || 0))) + shipping;
+    return `<div><span>${t("purchases.editor.totalUnits")}</span><b>${formatNumber(sum(lines.map((line) => Number(line.unidades) || 0)))}</b></div>
+        <div class="tot"><span>${t("purchases.editor.totalAmount")}</span><b>${euros(amount3)}</b></div>`;
+  }
+
+  // src/app/screens/purchases/receive.ts
+  var field = (row3, name) => row3.querySelector(`[data-r=${name}]`)?.value ?? "";
+  function lineHtml2(line, storeId) {
+    const pending = line.unidades - (line.recibidas ?? 0);
+    return `<div class="lin" data-rl="${line.id ?? ""}">
+      <b>${escapeHtml(line.producto)}</b> <span class="sm">${t("purchases.receive.pending", { pending: formatNumber(pending), units: formatNumber(line.unidades) })}</span>
+      <div class="rclotes">${purchasesLegacy.batchFields(line, pending, storeId)}</div>
+      <button type="button" class="kcfg" data-rlmas="${line.id ?? ""}">${t("purchases.receive.otherBatch")}</button></div>`;
+  }
+  function readRows(box) {
+    return [...box.querySelectorAll(".rcl")].map((row3) => ({
+      linea_id: row3.closest("[data-rl]")?.dataset.rl ?? "",
+      unidades: Number(field(row3, "u")) || 0,
+      numero_lote: field(row3, "lote").trim(),
+      caducidad: field(row3, "cad"),
+      fecha_fabricacion: field(row3, "fab"),
+      almacen_id: field(row3, "alm")
+    })).filter((row3) => row3.unidades > 0);
+  }
+  async function checked(rows) {
+    if (!rows.length) {
+      notices.toast(t("purchases.receive.writeUnits"), true);
+      return false;
+    }
+    if (rows.some((row3) => !row3.numero_lote)) {
+      notices.toast(t("purchases.receive.needsBatch"), true);
+      return false;
+    }
+    if (!rows.some((row3) => !row3.caducidad)) return true;
+    return notices.confirm(t("purchases.receive.noExpiryText"), { titulo: t("purchases.receive.noExpiryTitle"), ok: t("purchases.receive.noExpiryOk") });
+  }
+  async function record(id, box, button) {
+    const rows = readRows(box);
+    if (!await checked(rows)) return;
+    button.disabled = true;
+    const { data: result, error } = await legacyDb().rpc("recibir_compra", { p_compra: id, p_lineas: rows });
+    if (error || !result || result.ok === false) {
+      button.disabled = false;
+      notices.toast(t("purchases.receive.couldNot", { error: errorText2(error, result) }), true);
+      return;
+    }
+    document.getElementById("dlg")?.close();
+    notices.toast(result.pendientes ? t("purchases.receive.stillToCome", { units: formatNumber(result.pendientes) }) : t("purchases.receive.complete"));
+    purchasesLegacy.reloadSales();
+  }
+  function receivePurchase(id, detail) {
+    const pending = detail.lineas.filter((line) => line.unidades > (line.recibidas ?? 0));
+    const stores = purchasesLegacy.stores(), storeId = (stores.find((store) => store.tipo === "central") ?? stores[0])?.id;
+    const body2 = document.getElementById("dbody");
+    if (!body2) return;
+    body2.innerHTML = `
+    <div class="fh"><div><h2>${t("purchases.receive.title", { number: escapeHtml(detail.compra.numero) })}</h2>
+      <div class="sm">${t("purchases.receive.subtitle")}</div></div>
+      <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
+    <div id="rclin">${pending.map((line) => lineHtml2(line, storeId)).join("")}</div>
+    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>${t("purchases.receive.cancel")}</button><button class="btn" id="rcok">${t("purchases.receive.record")}</button></div>`;
+    const box = document.getElementById("rclin");
+    if (!box) return;
+    box.querySelectorAll("[data-rlmas]").forEach((button) => {
+      button.onclick = () => {
+        const line = pending.find((item) => item.id === button.dataset.rlmas);
+        if (line) button.previousElementSibling?.insertAdjacentHTML("beforeend", purchasesLegacy.batchFields(line, "", storeId));
+      };
+    });
+    const ok = document.getElementById("rcok");
+    if (ok) ok.onclick = () => {
+      void record(id, box, ok);
+    };
+  }
+
+  // src/app/screens/purchases/editor.ts
+  var input = (id) => document.getElementById(id);
+  var value3 = (id) => input(id)?.value ?? "";
+  var closeWindow = () => {
+    document.getElementById("dlg")?.close();
+  };
+  function newLine() {
+    const first = purchasesLegacy.products()[0];
+    return { ...first ? { producto_id: first.id } : {}, unidades: 1, coste_unitario: first?.coste };
+  }
+  function paintTotals(editor) {
+    const box = document.getElementById("cptot");
+    if (box) box.innerHTML = totalsHtml(editor.lines, Number(value3("cpport")) || 0);
+  }
+  function onLineChange(editor, target) {
+    const [index = "", field4 = ""] = (target.dataset.cl ?? "").split("|"), line = editor.lines[Number(index)];
+    if (!field4 || !line) return;
+    if (field4 === "producto_id") {
+      line.producto_id = target.value;
+      const product = purchasesLegacy.products().find((item) => item.id === target.value);
+      if (product && product.coste !== null && product.coste !== void 0) {
+        line.coste_unitario = product.coste;
+        paint3(editor);
+        return;
+      }
+    } else if (field4 === "unidades") line.unidades = Number(target.value);
+    else line.coste_unitario = Number(target.value);
+    paintTotals(editor);
+  }
+  function suggestExpected() {
+    const supplier = document.getElementById("cpprov"), expected = input("cpprev");
+    if (!supplier || !expected || expected.value) return;
+    expected.value = addDays(value3("cpfecha") || todayIso(), nonZeroOr(Number(supplier.selectedOptions[0]?.dataset.plazo), DEFAULT_LEAD_DAYS));
+  }
+  function bindLines(editor) {
+    const lines = document.getElementById("cplin");
+    if (lines) lines.oninput = lines.onchange = (event) => {
+      onLineChange(editor, event.target);
+    };
+    const shipping = input("cpport");
+    if (shipping) shipping.oninput = () => {
+      paintTotals(editor);
+    };
+    const add = document.getElementById("cpmas");
+    if (add) add.onclick = () => {
+      editor.lines.push(newLine());
+      paint3(editor);
+    };
+    lines?.querySelectorAll("[data-clx]").forEach((button) => {
+      button.onclick = () => {
+        editor.lines.splice(Number(button.dataset.clx), 1);
+        paint3(editor);
+      };
+    });
+    const supplier = document.getElementById("cpprov");
+    if (supplier) supplier.onchange = suggestExpected;
+    if (!value3("cpprev") && supplier?.value) suggestExpected();
+  }
+  function payload(editor, state) {
+    const lines = editor.lines.filter((line) => line.producto_id && Number(line.unidades) > 0).map((line) => ({ producto_id: line.producto_id, unidades: Number(line.unidades), coste_unitario: line.coste_unitario }));
+    return {
+      id: editor.id ?? null,
+      proveedor_id: value3("cpprov"),
+      fecha: value3("cpfecha"),
+      fecha_prevista: value3("cpprev"),
+      estado: state ?? editor.purchase.estado,
+      portes: value3("cpport"),
+      nota: value3("cpnota").trim(),
+      lineas: lines
+    };
+  }
+  async function save4(editor, state) {
+    if (!value3("cpprov")) {
+      notices.toast(t("purchases.editor.chooseSupplier"), true);
+      return;
+    }
+    const { data: result, error } = await legacyDb().rpc("guardar_compra", { p: payload(editor, state) });
+    if (error || !result || result.ok === false) {
+      notices.toast(t("purchases.editor.couldNotSave", { error: errorText2(error, result) }), true);
+      return;
+    }
+    notices.toast(t("purchases.editor.saved", { number: result.numero ?? "" }));
+    closeWindow();
+    if (currentScreen() === "ventas") purchasesLegacy.reloadSales();
+  }
+  var changeState = (purchase, state) => legacyDb().rpc("guardar_compra", { p: {
+    id: purchase.id,
+    proveedor_id: purchase.proveedor_id,
+    fecha: purchase.fecha,
+    fecha_prevista: purchase.fecha_prevista,
+    estado: state,
+    portes: purchase.portes,
+    nota: purchase.nota
+  } });
+  async function markInTransit(purchase) {
+    const { error } = await changeState(purchase, STATES5.inTransit);
+    if (error) {
+      notices.toast(t("purchases.editor.couldNot"), true);
+      return;
+    }
+    notices.toast(t("purchases.editor.markedInTransit"));
+    closeWindow();
+    purchasesLegacy.reloadSales();
+  }
+  async function cancel(purchase) {
+    if (!await notices.confirm(t("purchases.editor.cancelText"), { titulo: t("purchases.editor.cancelTitle"), ok: t("purchases.editor.cancelOrder"), peligro: true })) return;
+    await changeState(purchase, STATES5.cancelled);
+    notices.toast(t("purchases.editor.cancelled"));
+    closeWindow();
+    purchasesLegacy.reloadSales();
+  }
+  function bindButtons(editor) {
+    const on2 = (id, action) => {
+      const button = document.getElementById(id);
+      if (button) button.onclick = action;
+    };
+    on2("cpguardar", () => {
+      void save4(editor);
+    });
+    on2("cpenviar", () => {
+      void save4(editor, STATES5.sent);
+    });
+    on2("cptransito", () => {
+      void markInTransit(editor.purchase);
+    });
+    on2("cpcancel", () => {
+      void cancel(editor.purchase);
+    });
+    on2("cprecibir", () => {
+      if (editor.id && editor.detail) receivePurchase(editor.id, editor.detail);
+    });
+  }
+  function paint3(editor) {
+    const body2 = document.getElementById("dbody");
+    if (!body2) return;
+    body2.innerHTML = editorHtml2(editor);
+    paintTotals(editor);
+    if (editor.editable) bindLines(editor);
+    bindButtons(editor);
+  }
+  async function editPurchase(id) {
+    await Promise.all([purchasesLegacy.loadProducts(), purchasesLegacy.loadSuppliers(), purchasesLegacy.loadStores()]);
+    const detail = id ? (await callRpc("compra_detalle", { p_id: id })).data : null;
+    const purchase = detail ? detail.compra : { estado: STATES5.draft, fecha: todayIso(), portes: 0 };
+    const editor = {
+      id,
+      purchase,
+      detail,
+      editable: purchasesLegacy.canBuy() && EDITABLE_STATES.includes(purchase.estado),
+      lines: detail ? detail.lineas.map((line) => ({ ...line })) : [newLine()]
+    };
+    paint3(editor);
+    document.getElementById("dlg")?.showModal();
+  }
+
+  // src/app/screens/purchases/list.ts
+  var LATE_STYLE = "color:var(--danger);font-weight:700";
+  var loadingHtml2 = (text) => `<div class="cargador"><span class="spin"></span><span class="sm">${escapeHtml(text)}</span></div>`;
+  function indicatorsHtml(rows) {
+    const open = rows.filter((row3) => OPEN_STATES.includes(row3.estado)), late = rows.filter((row3) => row3.retrasada);
+    const yearStart = `${todayIso().slice(0, 4)}-01-01`;
+    const bought = sum(rows.filter((row3) => row3.estado !== STATES5.cancelled && row3.fecha >= yearStart).map((row3) => Number(row3.importe) || 0));
+    return `<div class="kpis vtot">
+      <div class="kpi"><b>${formatNumber(open.length)}</b><span>${t("purchases.list.inProgress")}</span></div>
+      <div class="kpi"><b>${formatNumber(sum(open.map((row3) => row3.unidades - row3.recibidas)))}</b><span>${t("purchases.list.unitsOnTheWay")}</span></div>
+      <div class="kpi ${late.length ? "warn" : ""}"><b>${formatNumber(late.length)}</b><span>${t("purchases.list.late")}</span></div>
+      <div class="kpi"><b>${euros(bought)}</b><span>${t("purchases.list.boughtThisYear")}</span></div>
+    </div>`;
+  }
+  function rowHtml2(row3) {
+    const expected = row3.fecha_prevista ? formatShortDate(row3.fecha_prevista) + (row3.retrasada ? t("purchases.list.lateTag") : "") : "—";
+    const received = row3.recibidas && row3.recibidas < row3.unidades ? `${formatNumber(row3.recibidas)}/` : "";
+    return `<button class="dr" data-comp="${row3.id}">
+        <span><b>${escapeHtml(row3.numero)}</b></span><span>${escapeHtml(orFallback(row3.proveedor, "—"))}</span><span class="sm">${escapeHtml(row3.productos ?? "")}</span>
+        <span>${formatShortDate(row3.fecha)}</span>
+        <span style="${row3.retrasada ? LATE_STYLE : ""}">${expected}</span>
+        <span class="num">${received}${formatNumber(row3.unidades)}</span>
+        <span class="num">${euros(row3.importe)}</span><span>${purchasePill(row3.estado)}</span></button>`;
+  }
+  function tableHtml2(rows) {
+    if (!rows.length) return `<div class="vacio">${t("purchases.list.none")}${purchasesLegacy.canBuy() ? t("purchases.list.createFirst") : ""}</div>`;
+    const head = [["", "number"], ["", "supplier"], ["", "products"], ["", "date"], ["", "expected"], ["num", "units"], ["num", "amount"], ["", "state"]];
+    return `<div class="dgrid-wrap"><div class="dgrid comps">
+      <div class="dh">${head.map(([kind, key]) => `<span${kind ? ` class="${kind}"` : ""}>${t(`purchases.list.${key}`)}</span>`).join("")}</div>
+      ${rows.map(rowHtml2).join("")}
+    </div></div>`;
+  }
+  async function paintPurchases() {
+    const loading2 = document.getElementById("vcuerpo");
+    if (loading2) loading2.innerHTML = loadingHtml2(t("purchases.list.loading"));
+    const { data, error } = await legacyDb().rpc("compras_lista");
+    if (purchasesLegacy.section() !== "compras") return;
+    const box = document.getElementById("vcuerpo");
+    if (!box) return;
+    if (error) {
+      box.innerHTML = `<div class="vacio">${escapeHtml(error.message)}</div>`;
+      return;
+    }
+    const rows = data ?? [];
+    box.innerHTML = `<div class="panel">
+    ${indicatorsHtml(rows)}
+    ${tableHtml2(rows)}</div>`;
+    box.querySelectorAll("[data-comp]").forEach((button) => {
+      button.onclick = () => {
+        purchasesLegacy.openPurchase(button.dataset.comp ?? null);
+      };
+    });
+  }
+
+  // src/app/screens/purchases/suppliers.ts
+  var joined = (values) => values.filter(Boolean).join(" · ");
+  function rowHtml3(supplier) {
+    return `<button class="dr" data-prov="${supplier.id ?? ""}" style="${supplier.activo ? "" : "opacity:.55"}">
+      <span><b>${escapeHtml(supplier.nombre)}</b><span class="sm">${escapeHtml(joined([supplier.municipio, supplier.pais]))}</span></span>
+      <span>${escapeHtml(orFallback(supplier.nif, "—"))}</span><span class="sm">${escapeHtml(orFallback(joined([supplier.contacto, supplier.email, supplier.telefono]), "—"))}</span>
+      <span class="num">${t("purchases.suppliers.days", { count: formatNumber(supplier.plazo_dias ?? 0) })}</span><span class="num">${formatNumber(supplier.compras)}</span>
+      <span>${supplier.ultima_compra ? formatShortDate(supplier.ultima_compra) : "—"}</span>
+      <span><span class="pill ${supplier.activo ? "p-est" : "p-anu"}">${t(supplier.activo ? "purchases.suppliers.active" : "purchases.suppliers.inactive")}</span></span></button>`;
+  }
+  function listHtml(suppliers) {
+    if (!suppliers.length) return `<div class="vacio">${t("purchases.suppliers.none")}</div>`;
+    const head = [["", "supplier"], ["", "taxId"], ["", "contact"], ["num", "leadTime"], ["num", "purchases"], ["", "lastPurchase"], ["", "state"]];
+    return `<div class="dgrid-wrap"><div class="dgrid provs">
+    <div class="dh">${head.map(([kind, key]) => `<span${kind ? ` class="${kind}"` : ""}>${t(`purchases.suppliers.${key}`)}</span>`).join("")}</div>
+    ${suppliers.map(rowHtml3).join("")}
+  </div></div>`;
+  }
+  async function paintSuppliers() {
+    const loading2 = document.getElementById("vcuerpo");
+    if (loading2) loading2.innerHTML = loadingHtml2(t("purchases.suppliers.loading"));
+    await purchasesLegacy.loadSuppliers();
+    const box = document.getElementById("vcuerpo");
+    if (!box) return;
+    const suppliers = purchasesLegacy.suppliers();
+    box.innerHTML = `<div class="panel">${listHtml(suppliers)}</div>`;
+    box.querySelectorAll("[data-prov]").forEach((button) => {
+      button.onclick = () => {
+        editSupplier(suppliers.find((supplier) => supplier.id === button.dataset.prov) ?? null);
+      };
+    });
+  }
+  var FIELDS = [
+    ["nombre", "purchases.supplierEditor.name"],
+    ["nif", "purchases.supplierEditor.taxId"],
+    ["contacto", "purchases.supplierEditor.contact"],
+    ["email", "purchases.supplierEditor.email", 'type="email"'],
+    ["telefono", "purchases.supplierEditor.phone"],
+    ["direccion", "purchases.supplierEditor.address"],
+    ["cp", "purchases.supplierEditor.postcode"],
+    ["municipio", "purchases.supplierEditor.town"],
+    ["provincia", "purchases.supplierEditor.province"],
+    ["pais", "purchases.supplierEditor.country"],
+    ["plazo_dias", "purchases.supplierEditor.leadTime", 'type="number" min="0"'],
+    ["forma_pago", "purchases.supplierEditor.payment"],
+    ["condiciones", "purchases.supplierEditor.conditions"],
+    ["cuenta_contable", "purchases.supplierEditor.account", 'placeholder="400xxxxx"']
+  ];
+  var SAVED_FIELDS = [...FIELDS.map(([name]) => name), "nota"];
+  function fieldHtml(supplier, [name, label, extra = ""], readOnly) {
+    const current = supplier[name];
+    return `<div><label for="pv_${name}">${t(label)}</label><input id="pv_${name}" value="${escapeHtml(current ?? "")}" ${extra} ${readOnly}></div>`;
+  }
+  function editorHtml3(supplier, canBuy) {
+    const readOnly = canBuy ? "" : "disabled", pairs = [];
+    for (let i = 0; i < FIELDS.length; i += 2) pairs.push(`<div class="g2">${FIELDS.slice(i, i + 2).map((item) => fieldHtml(supplier, item, readOnly)).join("")}</div>`);
+    return `
+    <div class="fh"><div><h2>${supplier.id ? escapeHtml(supplier.nombre) : t("purchases.supplierEditor.newTitle")}</h2><div class="sm">${t("purchases.supplierEditor.subtitle")}</div></div>
+      <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
+    ${pairs.join("\n    ")}
+    <label for="pv_nota">${t("purchases.supplierEditor.note")}</label><input id="pv_nota" value="${escapeHtml(supplier.nota ?? "")}" ${readOnly}>
+    ${supplier.id ? `<label class="opt" style="margin-top:10px"><input type="checkbox" id="pv_activo" ${supplier.activo ? "checked" : ""} ${readOnly}> ${t("purchases.supplierEditor.active")}</label>` : ""}
+    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>${t("purchases.supplierEditor.close")}</button>${canBuy ? `<button class="btn" id="pvok">${t(supplier.id ? "purchases.supplierEditor.save" : "purchases.supplierEditor.create")}</button>` : ""}</div>`;
+  }
+  function readValues(supplier) {
+    const values = { id: supplier.id ?? null };
+    for (const name of SAVED_FIELDS) values[name] = (document.getElementById(`pv_${name}`)?.value ?? "").trim();
+    const active = document.getElementById("pv_activo");
+    if (active) values.activo = active.checked;
+    return values;
+  }
+  async function save5(supplier) {
+    const values = readValues(supplier);
+    if (!values.nombre) {
+      notices.toast(t("purchases.supplierEditor.writeName"), true);
+      return;
+    }
+    const { data: result, error } = await legacyDb().rpc("guardar_proveedor", { p: values });
+    if (error || result?.ok === false) {
+      notices.toast(t("purchases.supplierEditor.couldNotSave"), true);
+      return;
+    }
+    document.getElementById("dlg")?.close();
+    notices.toast(t(supplier.id ? "purchases.supplierEditor.saved" : "purchases.supplierEditor.created"));
+    await purchasesLegacy.loadSuppliers();
+    if (currentScreen() === "ventas" && purchasesLegacy.section() === "proveedores") void paintSuppliers();
+  }
+  function editSupplier(existing) {
+    const supplier = existing ?? { activo: true, plazo_dias: DEFAULT_LEAD_DAYS, pais: t("purchases.supplierEditor.defaultCountry") };
+    const body2 = document.getElementById("dbody"), box = document.getElementById("dlg");
+    if (!body2 || !box) return;
+    body2.innerHTML = editorHtml3(supplier, purchasesLegacy.canBuy());
+    box.showModal();
+    const ok = document.getElementById("pvok");
+    if (ok) ok.onclick = () => {
+      void save5(supplier);
+    };
+  }
+
+  // src/app/screens/tenders/index.ts
+  var tenders_exports = {};
+  __export(tenders_exports, {
+    editTender: () => editTender,
+    editWarnings: () => editWarnings,
+    paintTenders: () => paintTenders,
+    showTender: () => showTender
+  });
+
+  // src/app/screens/tenders/editor.ts
+  var field2 = (id) => document.getElementById(id)?.value ?? "";
+  var textOrNull = (id) => field2(id).trim() || null;
+  async function team() {
+    if (!salesTeam.members().length) await salesTeam.load().catch(() => void 0);
+    const me = salesTeam.currentUserId(), members = salesTeam.members();
+    return members.some((member) => member.id === me) ? members : [{ id: me, nombre: appLegacy.currentUserName() }, ...members];
+  }
+  function editorHtml4(tender, existing, people) {
+    const value6 = (text) => escapeHtml(text ?? "");
+    return `<div class="fh"><div><h2>${t(existing ? "tenders.editor.changeTitle" : "tenders.editor.newTitle")}</h2><div class="sm">${t("tenders.editor.subtitle")}</div></div>
+      <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
+    <label for="cont">${t("tenders.editor.title")}</label><input id="cont" value="${value6(tender.titulo)}" placeholder="${t("tenders.editor.titlePlaceholder")}">
+    <label>${t("tenders.editor.soldTo")}</label><div id="concta"></div>
+    <div class="g2"><div><label for="conexp">${t("tenders.editor.file")}</label><input id="conexp" value="${value6(tender.expediente)}"></div>
+      <div><label for="conorg">${t("tenders.editor.body")}</label><input id="conorg" value="${value6(tender.organismo)}" placeholder="${t("tenders.editor.bodyPlaceholder")}"></div></div>
+    <div class="g2"><div><label for="conpub">${t("tenders.editor.published")}</label><input id="conpub" type="date" value="${value6(tender.publicado)}"></div>
+      <div><label for="conlim">${t("tenders.editor.submitBy")}</label><input id="conlim" type="date" value="${value6(tender.limite)}"></div></div>
+    <div class="g2"><div><label for="conimp">${t("tenders.editor.amount")}</label><input id="conimp" type="number" min="0" step="0.01" value="${isPresent(tender.importe_licitacion) ? Number(tender.importe_licitacion) : ""}"></div>
+      <div><label for="conres">${t("tenders.editor.responsible")}</label><select id="conres">${people.map((person) => `<option value="${person.id}" ${person.id === tender.responsable_id ? "selected" : ""}>${escapeHtml(person.nombre)}</option>`).join("")}</select></div></div>
+    <label for="conn">${t("tenders.editor.note")}</label><textarea id="conn" rows="2">${value6(tender.nota)}</textarea>
+    <div class="acts" style="justify-content:flex-end">${existing ? `<button type="button" class="btn sec peligro" id="conborrar">${t("tenders.editor.delete")}</button>` : ""}
+      <button type="button" class="btn sec" data-cerrar>${t("tenders.editor.cancel")}</button><button type="button" class="btn" id="conok">${t(existing ? "tenders.editor.save" : "tenders.editor.create")}</button></div>`;
+  }
+  function row2(title, account) {
+    const amount3 = field2("conimp");
+    return {
+      titulo: title,
+      cuenta_id: account.id,
+      expediente: textOrNull("conexp"),
+      organismo: textOrNull("conorg"),
+      publicado: field2("conpub") || null,
+      limite: field2("conlim") || null,
+      importe_licitacion: amount3 === "" ? null : Math.max(0, Number(amount3)),
+      responsable_id: field2("conres") || null,
+      nota: textOrNull("conn")
+    };
+  }
+  async function save6(existing, account, button) {
+    const title = field2("cont").trim();
+    if (!title || !account) {
+      notices.toast(t("tenders.editor.missing"), true);
+      return;
+    }
+    button.disabled = true;
+    const table = legacyDb().from("concursos"), values = row2(title, account);
+    const result = existing ? await table.update(values).eq("id", existing.id).select("id").single() : await table.insert(values).select("id").single();
+    button.disabled = false;
+    if (result.error) {
+      notices.toast(writeFailure(result.error, t("tenders.editor.noPermission")), true);
+      return;
+    }
+    notices.toast(t(existing ? "tenders.editor.saved" : "tenders.editor.created"));
+    relatedLegacy.openTender(result.data?.id ?? "");
+  }
+  async function remove4(existing) {
+    if (!await notices.confirm(t("tenders.editor.deleteText"), { titulo: t("tenders.editor.deleteTitle"), ok: t("tenders.editor.delete"), peligro: true })) return;
+    const { error } = await legacyDb().from("concursos").delete().eq("id", existing.id);
+    if (error) {
+      notices.toast(t("tenders.editor.couldNotDelete"), true);
+      return;
+    }
+    document.getElementById("dlg")?.close();
+    notices.toast(t("tenders.editor.deleted"));
+  }
+  async function editTender(existing) {
+    const tender = existing ?? { estado: STATES3.studying, responsable_id: salesTeam.currentUserId() };
+    const people = await team();
+    const body2 = document.getElementById("dbody"), box = document.getElementById("dlg");
+    if (!body2 || !box) return;
+    body2.innerHTML = editorHtml4(tender, existing, people);
+    if (!box.open) box.showModal();
+    let account = existing ? { id: existing.cuenta_id ?? "", nombre: existing.cuentas?.nombre ?? "" } : null;
+    editorLegacy.pickAccount(document.getElementById("concta"), account, (picked) => {
+      account = picked;
+    }, t("tenders.editor.soldToPlaceholder"));
+    const ok = document.getElementById("conok");
+    if (ok) ok.onclick = () => {
+      void save6(existing, account, ok);
+    };
+    const erase = document.getElementById("conborrar");
+    if (erase && existing) erase.onclick = () => {
+      void remove4(existing);
+    };
+  }
+
+  // src/app/screens/tenders/warnings.ts
+  var MAX_DAYS = 999;
+  var newestFirst = (days) => [...days].sort((first, second) => second - first);
+  function warningsHtml() {
+    return `<div class="fh"><div><h2>${t("tenders.warnings.title")}</h2><div class="sm">${t("tenders.warnings.subtitle")}</div></div>
+      <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
+    <label for="convd">${t("tenders.warnings.days")}</label><input id="convd" value="${escapeHtml(newestFirst(tendersLegacy.warningDays()).join(", "))}" placeholder="90, 30">
+    <p class="sm">${t("tenders.warnings.hint")}</p>
+    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>${t("tenders.warnings.cancel")}</button><button class="btn" id="convok">${t("tenders.warnings.save")}</button></div>`;
+  }
+  async function save7(box) {
+    const typed = document.getElementById("convd")?.value ?? "";
+    const days = newestFirst([...new Set(typed.split(/[^0-9]+/).map(Number).filter((day) => day > 0 && day <= MAX_DAYS))]);
+    const { data: result, error } = await legacyDb().rpc("guardar_ajuste", { p_clave: "avisos_vencimiento", p_valor: { dias: days } });
+    if (error || result?.ok === false) {
+      notices.toast(t("tenders.warnings.couldNotSave"), true);
+      return;
+    }
+    tendersLegacy.setWarningDays(days);
+    box.close();
+    notices.toast(t("tenders.warnings.saved"));
+  }
+  function editWarnings() {
+    const body2 = document.getElementById("dbody"), box = document.getElementById("dlg");
+    if (!body2 || !box) return;
+    body2.innerHTML = warningsHtml();
+    if (!box.open) box.showModal();
+    const ok = document.getElementById("convok");
+    if (ok) ok.onclick = () => {
+      void save7(box);
+    };
+  }
+
+  // src/app/screens/tenders/list.ts
+  var LIMIT2 = 300;
+  var URGENT_DAYS = 7;
+  var NO_DATE = "9999";
+  var byDate = (date) => (first, second) => orFallback(date(first), NO_DATE).localeCompare(orFallback(date(second), NO_DATE));
+  function shown(list, view) {
+    if (view === "contratos") return list.filter((item) => item.estado === STATES3.awarded).sort(byDate(contractEnd));
+    if (view === "cerrados") return list.filter((item) => isClosed(item.estado));
+    return list.filter((item) => item.estado === STATES3.studying || item.estado === STATES3.offerSent).sort(byDate((item) => item.limite));
+  }
+  function contractPill(tender, warnDays) {
+    const left = daysLeft(tender);
+    if (left === null) return `<span class="pill p-warn">${t("tenders.list.noEndDate")}</span>`;
+    if (left < 0) return `<span class="pill p-anu">${t("tenders.list.expired")}</span>`;
+    const text = left === 0 ? t("tenders.list.expiresToday") : left === 1 ? t("tenders.list.expiresInOneDay") : t("tenders.list.expiresInDays", { count: formatNumber(left) });
+    return `<span class="pill ${left <= warnDays ? "p-urg" : "p-est"}">${text}</span>`;
+  }
+  function deadlinePill(tender) {
+    if (!tender.limite) return "";
+    const today = todayIso(), studying = tender.estado === STATES3.studying;
+    const kind = studying && tender.limite < today ? "p-anu" : studying && tender.limite <= addDays(today, URGENT_DAYS) ? "p-urg" : "p-per";
+    return `<span class="pill ${kind}">${t("tenders.list.submitBy", { date: formatShortDate(tender.limite) })}</span>`;
+  }
+  function lotsText(tender) {
+    const lots = tender.concurso_lotes ?? [], won = lots.filter((lot) => lot.estado === LOT_STATES.won).length;
+    if (!lots.length) return "";
+    const wonText = won ? won === 1 ? t("tenders.list.oneWon") : t("tenders.list.won", { count: won }) : "";
+    return ` · ${lots.length === 1 ? t("tenders.list.oneLot") : t("tenders.list.lots", { count: lots.length })}${wonText}`;
+  }
+  function rowHtml4(tender, view, warnDays) {
+    const extra = view === "contratos" ? contractPill(tender, warnDays) : view === "marcha" ? deadlinePill(tender) : "";
+    return `<button type="button" class="item conrow" data-con="${tender.id}"><span class="tx"><b>${escapeHtml(tender.titulo)}</b>
+      <span class="sm">${escapeHtml(tenderLine(tender))}${lotsText(tender)}${tender.importe_licitacion ? ` · ${formatCurrency(tender.importe_licitacion)}` : ""}</span></span>
+      <span class="cirest">${statePill2(tender.estado)}${extra}</span></button>`;
+  }
+  function contractsHint(days) {
+    const when = days.length ? t("tenders.list.warnDays", { days: [...days].sort((first, second) => second - first).join(t("tenders.list.and")) }) : t("tenders.list.warnNever");
+    return `<p class="sm">${t("tenders.list.contractsHint", { when })}</p>`;
+  }
+  function pageHtml(list, view) {
+    const days = tendersLegacy.warningDays(), warnDays = Math.max(...days, 0);
+    const empty = t(view === "contratos" ? "tenders.list.noContracts" : view === "cerrados" ? "tenders.list.noClosed" : "tenders.list.noOpen");
+    return `<div class="cirpag"><div class="evcab"><button type="button" class="btn" id="connuevo">${t("tenders.list.newTender")}</button>
+      ${cardSectionsLegacy.can("administrar") ? `<button type="button" class="btn sec" id="conavisos">${t("tenders.list.warnings")}</button>` : ""}</div>
+    ${view === "contratos" ? contractsHint(days) : ""}
+    <section class="card cirbloque">${list.length ? `<div class="lista">${list.map((item) => rowHtml4(item, view, warnDays)).join("")}</div>` : `<div class="vacio vlinea">${empty}</div>`}</section></div>`;
+  }
+  async function paintTenders(view) {
+    if (!document.getElementById("cfgcuerpo")) return;
+    const [{ data, error }, { data: setting }] = await Promise.all([
+      legacyDb().from("concursos").select("id,titulo,expediente,organismo,estado,limite,inicio,fin,prorroga_hasta,importe_licitacion,cuenta_id,cuentas(nombre),concurso_lotes(estado)").order("creado_en", { ascending: false }).limit(LIMIT2),
+      legacyDb().from("ajustes").select("valor").eq("clave", "avisos_vencimiento").maybeSingle()
+    ]);
+    const box = document.getElementById("cfgcuerpo");
+    if (!box || currentScreen() !== "concursos") return;
+    if (error) {
+      box.innerHTML = `<div class="vacio">${t("tenders.list.couldNotLoad")}</div>`;
+      return;
+    }
+    const days = setting?.valor?.dias;
+    if (Array.isArray(days)) tendersLegacy.setWarningDays(days.map(Number).filter((day) => day > 0));
+    box.innerHTML = pageHtml(shown(data ?? [], view), view);
+    const add = document.getElementById("connuevo");
+    if (add) add.onclick = () => {
+      void editTender(null);
+    };
+    const warnings = document.getElementById("conavisos");
+    if (warnings) warnings.onclick = () => {
+      editWarnings();
+    };
+    box.querySelectorAll("[data-con]").forEach((button) => {
+      button.onclick = () => {
+        relatedLegacy.openTender(button.dataset.con ?? "");
+      };
+    });
+  }
+
+  // src/app/screens/tenders/lots.ts
+  var DISCONTINUED = "Descatalogado";
+  var amount2 = (value6) => isPresent(value6) ? String(Number(value6)) : "";
+  function priceHtml(price, products2) {
+    const name = orFallback(products2.find((product) => product.id === price.producto_id)?.nombre, t("tenders.lot.product"));
+    return `<div class="conpf" data-cp="${price.id}"><span>${escapeHtml(name)}</span>
+          <label><span class="sm">${t("tenders.lot.price")}</span><input type="number" min="0" step="0.01" data-cpf="precio" value="${Number(price.precio)}"></label>
+          <label><span class="sm">${t("tenders.lot.units")}</span><input type="number" min="0" step="1" data-cpf="unidades" value="${isPresent(price.unidades) ? price.unidades : ""}"></label>
+          <button type="button" class="x" data-cpq aria-label="${t("tenders.lot.removeProduct")}">✕</button></div>`;
+  }
+  function addProductHtml(lot, products2) {
+    const prices = lot.concurso_precios ?? [];
+    const options = products2.filter((product) => orFallback(product.estado, "Activo") !== DISCONTINUED && !prices.some((price) => price.producto_id === product.id)).map((product) => `<option value="${product.id}">${escapeHtml(product.nombre)}</option>`).join("");
+    return `<div class="conpadd"><select data-cpnuevo aria-label="${t("tenders.lot.addProduct")}"><option value="">${t("tenders.lot.addProductOption")}</option>${options}</select></div>`;
+  }
+  function lotHtml(lot, products2) {
+    const states = LOT_STATE_LIST.map((state) => `<option ${state === lot.estado ? "selected" : ""}>${state}</option>`).join("");
+    return `<div class="conlote" data-lote="${lot.id}">
+      <div class="conlcab"><input data-lf="numero" value="${escapeHtml(lot.numero ?? "")}" placeholder="${t("tenders.lot.number")}" aria-label="${t("tenders.lot.numberLabel")}" class="conln">
+        <input data-lf="descripcion" value="${escapeHtml(lot.descripcion ?? "")}" placeholder="${t("tenders.lot.description")}" aria-label="${t("tenders.lot.description")}">
+        <select data-lf="estado" aria-label="${t("tenders.lot.stateLabel")}">${states}</select>
+        <button type="button" class="x" data-lq aria-label="${t("tenders.lot.remove")}">✕</button></div>
+      <div class="conlimp"><label><span>${t("tenders.lot.tenderAmount")}</span><input type="number" min="0" step="0.01" data-lf="importe_licitacion" value="${amount2(lot.importe_licitacion)}"></label>
+        <label><span>${t("tenders.lot.awardedAmount")}</span><input type="number" min="0" step="0.01" data-lf="importe_adjudicado" value="${amount2(lot.importe_adjudicado)}"></label>
+        <label class="${lot.estado === LOT_STATES.lost ? "" : "hide"}" data-ladj><span>${t("tenders.lot.winner")}</span><input data-lf="adjudicatario" value="${escapeHtml(lot.adjudicatario ?? "")}" placeholder="${t("tenders.lot.winnerPlaceholder")}"></label></div>
+      <div class="conprecios">${(lot.concurso_precios ?? []).map((price) => priceHtml(price, products2)).join("")}
+        ${addProductHtml(lot, products2)}</div></div>`;
+  }
+  function lotValue(input2) {
+    if (input2.dataset.lf === "estado") return input2.value;
+    if (input2.type === "number") return input2.value === "" ? null : Math.max(0, Number(input2.value));
+    return input2.value.trim() || null;
+  }
+  async function removeLot(lotId, context) {
+    if (!await notices.confirm(t("tenders.lot.removeText"), { titulo: t("tenders.lot.removeTitle"), ok: t("tenders.lot.removeOk"), peligro: true })) return;
+    const { error } = await legacyDb().from("concurso_lotes").delete().eq("id", lotId);
+    if (error) {
+      context.fail(error);
+      return;
+    }
+    context.reopen();
+  }
+  async function addProduct(lotId, productId, context) {
+    if (!productId) return;
+    const product = context.products.find((item) => item.id === productId);
+    const { error } = await legacyDb().from("concurso_precios").insert({ lote_id: lotId, producto_id: productId, precio: isPresent(product?.precio) ? Number(product.precio) : 0 });
+    if (error) {
+      context.fail(error);
+      return;
+    }
+    context.reopen();
+  }
+  async function savePrice(row3, input2, context) {
+    const key = input2.dataset.cpf ?? "";
+    const value6 = input2.value === "" ? null : Math.max(0, key === "unidades" ? Math.floor(Number(input2.value)) : Number(input2.value));
+    if (key === "precio" && value6 === null) {
+      notices.toast(t("tenders.lot.writePrice"), true);
+      return;
+    }
+    const { error } = await legacyDb().from("concurso_precios").update({ [key]: value6 }).eq("id", row3.dataset.cp);
+    if (error) context.fail(error);
+  }
+  async function removePrice(row3, context) {
+    const { error } = await legacyDb().from("concurso_precios").delete().eq("id", row3.dataset.cp);
+    if (error) {
+      context.fail(error);
+      return;
+    }
+    context.reopen();
+  }
+  function bindPrices(box, context) {
+    box.querySelectorAll("[data-cp]").forEach((row3) => {
+      row3.querySelectorAll("[data-cpf]").forEach((input2) => {
+        input2.onchange = () => {
+          void savePrice(row3, input2, context);
+        };
+      });
+      const remove5 = row3.querySelector("[data-cpq]");
+      if (remove5) remove5.onclick = () => {
+        void removePrice(row3, context);
+      };
+    });
+  }
+  async function saveLotField(lotId, input2, context) {
+    const key = input2.dataset.lf ?? "";
+    const { error } = await legacyDb().from("concurso_lotes").update({ [key]: lotValue(input2) }).eq("id", lotId);
+    if (error) {
+      context.fail(error);
+      return;
+    }
+    if (key === "estado") context.reopen();
+  }
+  function bindLots(list, context) {
+    list.querySelectorAll("[data-lote]").forEach((box) => {
+      const lotId = box.dataset.lote ?? "";
+      box.querySelectorAll("[data-lf]").forEach((input2) => {
+        input2.onchange = () => {
+          void saveLotField(lotId, input2, context);
+        };
+      });
+      const remove5 = box.querySelector("[data-lq]");
+      if (remove5) remove5.onclick = () => {
+        void removeLot(lotId, context);
+      };
+      const add = box.querySelector("[data-cpnuevo]");
+      if (add) add.onchange = () => {
+        void addProduct(lotId, add.value, context);
+      };
+      bindPrices(box, context);
+    });
+  }
+
+  // src/app/screens/tenders/sheet.ts
+  var DETAIL = "*,cuentas(nombre),concurso_lotes(id,numero,descripcion,importe_licitacion,estado,adjudicatario,importe_adjudicado,creado_en,concurso_precios(id,producto_id,precio,unidades))";
+  var CONTRACT_DATES = [["conini", "inicio"], ["confin", "fin"], ["conpro", "prorroga_hasta"]];
+  var sortedLots = (tender) => [...tender.concurso_lotes ?? []].sort((first, second) => String(first.numero ?? "").localeCompare(String(second.numero ?? ""), "es", { numeric: true }) || String(first.creado_en).localeCompare(String(second.creado_en)));
+  function dataHtml2(tender) {
+    const states = TENDER_STATES.map((state) => `<option ${state === tender.estado ? "selected" : ""}>${state}</option>`).join("");
+    return `<div class="cirdat"><span>${t("tenders.sheet.state")}</span><b><select id="conest" aria-label="${t("tenders.sheet.stateLabel")}">${states}</select></b>
+      ${tender.limite ? `<span>${t("tenders.sheet.submitBy")}</span><b>${escapeHtml(formatLongDate(tender.limite))}</b>` : ""}
+      ${tender.importe_licitacion ? `<span>${t("tenders.sheet.amount")}</span><b>${t("tenders.sheet.withoutVat", { amount: formatCurrency(tender.importe_licitacion) })}</b>` : ""}</div>
+    <div class="cong3 ${tender.estado === STATES3.awarded ? "" : "hide"}" id="confechas"><div><label for="conini">${t("tenders.sheet.contractFrom")}</label><input id="conini" type="date" value="${escapeHtml(tender.inicio ?? "")}"></div>
+      <div><label for="confin">${t("tenders.sheet.contractTo")}</label><input id="confin" type="date" value="${escapeHtml(tender.fin ?? "")}"></div>
+      <div><label for="conpro">${t("tenders.sheet.extendedTo")}</label><input id="conpro" type="date" value="${escapeHtml(tender.prorroga_hasta ?? "")}"></div></div>`;
+  }
+  function leftText(left) {
+    if (left === null) return "";
+    if (left < 0) return t("tenders.sheet.alreadyExpired");
+    return left === 1 ? t("tenders.sheet.oneMoreDay") : t("tenders.sheet.moreDays", { count: formatNumber(left) });
+  }
+  function awardedHtml(tender, lots) {
+    if (tender.estado !== STATES3.awarded) return "";
+    if (!lots.some((lot) => lot.estado === LOT_STATES.won)) return `<div class="banda-aviso conok">${t("tenders.sheet.markWon")}</div>`;
+    const account = escapeHtml(orFallback(tender.cuentas?.nombre, t("tenders.sheet.thisAccount")));
+    return `<div class="banda-ok conok">${t("tenders.sheet.pricesApplied", { account, left: leftText(daysLeft(tender)) })}</div>`;
+  }
+  function sheetHtml3(tender, lots, products2) {
+    return `<div class="fh"><div><h2>${escapeHtml(tender.titulo)}</h2><div class="sm">${escapeHtml(tenderLine(tender))}</div></div>
+      <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
+    ${dataHtml2(tender)}
+    ${awardedHtml(tender, lots)}
+    <div class="evascab"><h3>${t("tenders.sheet.lots", { count: lots.length })}</h3><button type="button" class="btn sec" id="conlmas">${t("tenders.sheet.addLot")}</button></div>
+    <div id="conlotes">${lots.length ? lots.map((lot) => lotHtml(lot, products2)).join("") : `<div class="vacio vlinea">${t("tenders.sheet.noLots")}</div>`}</div>
+    ${tender.nota ? `<p class="sm">${escapeHtml(tender.nota)}</p>` : ""}
+    <div class="acts" style="justify-content:flex-end"><button type="button" class="btn sec" id="coneditar">${t("tenders.sheet.change")}</button><button type="button" class="btn" data-cerrar>${t("tenders.sheet.done")}</button></div>`;
+  }
+  var fail = (error) => {
+    notices.toast(writeFailure(error, t("tenders.sheet.noPermission")), true);
+  };
+  function bindDates(id) {
+    CONTRACT_DATES.forEach(([elementId, column]) => {
+      const input2 = document.getElementById(elementId);
+      if (!input2) return;
+      input2.onchange = async () => {
+        const { error } = await legacyDb().from("concursos").update({ [column]: input2.value || null }).eq("id", id);
+        if (error) {
+          fail(error);
+          return;
+        }
+        notices.toast(t("tenders.sheet.datesSaved"));
+      };
+    });
+  }
+  function bind6(tender, lots, context) {
+    const id = tender.id;
+    const change = document.getElementById("coneditar");
+    if (change) change.onclick = () => {
+      void editTender(tender);
+    };
+    const state = document.getElementById("conest");
+    if (state) state.onchange = async () => {
+      const { error } = await legacyDb().from("concursos").update({ estado: state.value }).eq("id", id);
+      if (error) {
+        fail(error);
+        state.value = tender.estado;
+        return;
+      }
+      context.reopen();
+    };
+    bindDates(id);
+    const addLot = document.getElementById("conlmas");
+    if (addLot) addLot.onclick = async () => {
+      const { error } = await legacyDb().from("concurso_lotes").insert({ concurso_id: id, numero: String(lots.length + 1) });
+      if (error) {
+        fail(error);
+        return;
+      }
+      context.reopen();
+    };
+    const list = document.getElementById("conlotes");
+    if (list) bindLots(list, context);
+  }
+  async function showTender(id) {
+    const { data: tender, error } = await legacyDb().from("concursos").select(DETAIL).eq("id", id).maybeSingle();
+    if (error || !tender) {
+      notices.toast(t("tenders.sheet.notFound"), true);
+      return;
+    }
+    const products2 = await portalLegacy.products(), lots = sortedLots(tender);
+    const body2 = document.getElementById("dbody"), box = document.getElementById("dlg");
+    if (!body2 || !box) return;
+    body2.innerHTML = sheetHtml3(tender, lots, products2);
+    if (!box.open) box.showModal();
+    bind6(tender, lots, { tenderId: id, products: products2, reopen: () => {
+      void showTender(id);
+    }, fail });
+  }
+
+  // src/app/screens/equipment/index.ts
+  var equipment_exports = {};
+  __export(equipment_exports, {
+    editEquipment: () => editEquipment,
+    expiryPill: () => expiryPill,
+    paintEquipment: () => paintEquipment,
+    reviewPill: () => reviewPill,
+    showEquipment: () => showEquipment
+  });
+
+  // src/app/screens/equipment/editor.ts
+  var MAX_REVIEW_MONTHS = 120;
+  var field3 = (id) => document.getElementById(id);
+  var value4 = (id) => field3(id)?.value ?? "";
+  var trimmedOrNull = (id) => value4(id).trim() || null;
+  async function products() {
+    const { data } = await legacyDb().from("productos").select("id,nombre,es_equipo,revision_meses").order("nombre");
+    return (data ?? []).sort((first, second) => Number(second.es_equipo) - Number(first.es_equipo) || String(first.nombre).localeCompare(String(second.nombre)));
+  }
+  function productOptions(list, chosen) {
+    return list.map((product) => `<option value="${product.id}" data-rm="${product.revision_meses ?? 0}" ${product.id === chosen ? "selected" : ""}>${escapeHtml(product.nombre)}${product.es_equipo ? "" : t("equipment.editor.notMarked")}</option>`).join("");
+  }
+  function editorHtml5(item, existing, list) {
+    const contracts = equipmentLegacy.contracts().map((kind) => `<option ${kind === item.contrato ? "selected" : ""}>${kind}</option>`).join("");
+    return `<div class="fh"><div><h2>${t(existing ? "equipment.editor.changeTitle" : "equipment.editor.newTitle")}</h2><div class="sm">${t("equipment.editor.subtitle")}</div></div>
+      <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
+    <label>${t("equipment.editor.where")}</label><div id="eqcta"></div>
+    <div class="g2"><div><label for="eqp">${t("equipment.editor.equipment")}</label><select id="eqp">${productOptions(list, item.producto_id)}</select></div>
+      <div><label for="eqs">${t("equipment.editor.serial")}</label><input id="eqs" value="${escapeHtml(item.serie ?? "")}" maxlength="120"></div></div>
+    <div class="g2"><div><label for="equ">${t("equipment.editor.location")}</label><input id="equ" value="${escapeHtml(item.ubicacion ?? "")}" placeholder="${t("equipment.editor.locationPlaceholder")}"></div>
+      <div><label for="eqi">${t("equipment.editor.installedOn")}</label><input id="eqi" type="date" value="${escapeHtml(item.instalado ?? "")}"></div></div>
+    <div class="g2"><div><label for="eqc">${t("equipment.editor.contract")}</label><select id="eqc">${contracts}</select></div>
+      <div id="eqcfw"><label for="eqcf">${t("equipment.editor.contractEnd")}</label><input id="eqcf" type="date" value="${escapeHtml(item.contrato_fin ?? "")}"></div></div>
+    <div class="g2"><div><label for="eqg">${t("equipment.editor.warrantyUntil")}</label><input id="eqg" type="date" value="${escapeHtml(item.garantia_hasta ?? "")}"></div>
+      <div><label for="eqr">${t("equipment.editor.reviewEvery")}</label><input id="eqr" type="number" min="0" max="${MAX_REVIEW_MONTHS}" step="1" value="${Number(item.revision_meses) || 0}"></div></div>
+    <label for="eqn">${t("equipment.editor.note")}</label><textarea id="eqn" rows="2">${escapeHtml(item.nota ?? "")}</textarea>
+    <div class="acts" style="justify-content:flex-end">${existing?.estado === STATES.installed ? `<button type="button" class="btn sec peligro" id="eqretirar">${t("equipment.editor.retire")}</button>` : ""}
+      <button type="button" class="btn sec" data-cerrar>${t("equipment.editor.cancel")}</button><button type="button" class="btn" id="eqok">${t(existing ? "equipment.editor.save" : "equipment.editor.create")}</button></div>`;
+  }
+  function rowOf(account) {
+    const contract = value4("eqc");
+    return {
+      cuenta_id: account.id,
+      producto_id: value4("eqp"),
+      serie: trimmedOrNull("eqs"),
+      ubicacion: trimmedOrNull("equ"),
+      instalado: value4("eqi") || todayIso(),
+      contrato: contract,
+      contrato_fin: contract === SALE ? null : value4("eqcf") || null,
+      garantia_hasta: value4("eqg") || null,
+      revision_meses: Math.min(MAX_REVIEW_MONTHS, Math.max(0, Math.floor(Number(value4("eqr")) || 0))),
+      nota: trimmedOrNull("eqn")
+    };
+  }
+  async function save8(existing, account, button) {
+    if (!account || !value4("eqp")) {
+      notices.toast(t("equipment.editor.missing"), true);
+      return;
+    }
+    const row3 = rowOf(account), table = legacyDb().from("equipos");
+    button.disabled = true;
+    const result = existing ? await table.update(row3).eq("id", existing.id).select("id").single() : await table.insert(row3).select("id").single();
+    button.disabled = false;
+    if (result.error) {
+      notices.toast(failureText(result.error), true);
+      return;
+    }
+    notices.toast(t(existing ? "equipment.editor.saved" : "equipment.editor.created"));
+    appLegacy.forgetCache();
+    relatedLegacy.openEquipment(result.data?.id ?? "");
+  }
+  async function retire(existing) {
+    if (!await notices.confirm(t("equipment.editor.retireText"), { titulo: t("equipment.editor.retireTitle"), ok: t("equipment.editor.retire"), peligro: true })) return;
+    const { error } = await legacyDb().from("equipos").update({ estado: STATES.retired }).eq("id", existing.id);
+    if (error) {
+      notices.toast(failureText(error), true);
+      return;
+    }
+    notices.toast(t("equipment.editor.retired"));
+    relatedLegacy.openEquipment(existing.id);
+  }
+  function bind7(existing, chosen) {
+    editorLegacy.pickAccount(field3("eqcta"), chosen.account, (account) => {
+      chosen.account = account;
+    }, t("equipment.editor.wherePlaceholder"));
+    const contract = document.getElementById("eqc"), product = document.getElementById("eqp");
+    const showEnd = () => {
+      field3("eqcfw")?.classList.toggle("hide", contract?.value === SALE);
+    };
+    showEnd();
+    if (contract) contract.onchange = showEnd;
+    if (product) product.onchange = () => {
+      const months = field3("eqr");
+      if (!existing && months) months.value = product.selectedOptions[0]?.dataset.rm ?? "0";
+    };
+    const ok = document.getElementById("eqok");
+    if (ok) ok.onclick = () => {
+      void save8(existing, chosen.account, ok);
+    };
+    const retireButton = field3("eqretirar");
+    if (retireButton && existing) retireButton.onclick = () => {
+      void retire(existing);
+    };
+  }
+  function newItem(list) {
+    const first = list.find((product) => product.es_equipo);
+    return { instalado: todayIso(), contrato: SALE, ...first ? { producto_id: first.id } : {}, revision_meses: first?.revision_meses ?? 0 };
+  }
+  async function editEquipment(existing, account) {
+    await equipmentLegacy.loadProducts();
+    const list = await products(), item = existing ?? newItem(list);
+    const body2 = document.getElementById("dbody"), box = document.getElementById("dlg");
+    if (!body2 || !box) return;
+    body2.innerHTML = editorHtml5(item, existing, list);
+    if (!box.open) box.showModal();
+    bind7(existing, { account: existing ? { id: existing.cuenta_id ?? "", nombre: existing.cuentas?.nombre ?? "" } : account ?? null });
+  }
+
+  // src/app/screens/equipment/list.ts
+  var LIMIT3 = 500;
+  var SOON_DAYS2 = 30;
+  var SEARCH_WAIT_MS = 300;
+  var listState = { query: "" };
+  var plain = (text) => String(text ?? "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+  function rowHtml5(item) {
+    const details = [item.serie ? t("equipment.list.serial", { serial: item.serie }) : "", item.cuentas?.nombre, item.ubicacion, item.contrato].filter(Boolean).join(" · ");
+    return `<button type="button" class="item conrow" data-eq="${item.id}"><span class="tx"><b>${escapeHtml(orFallback(item.productos?.nombre, t("equipment.equipment")))}</b>
+      <span class="sm">${escapeHtml(details)}${t("equipment.list.since", { date: formatShortDate(item.instalado ?? "") })}</span></span>
+    <span class="cirest">${reviewPill(item)}${expiryPill(item)}</span></button>`;
+  }
+  var block = (title, list) => `<section class="card cirbloque"><h2>${title}</h2>${list.length ? `<div class="lista">${list.map(rowHtml5).join("")}</div>` : '<div class="vacio vlinea"></div>'}</section>`;
+  function upcoming(list) {
+    const installed = list.filter((item) => item.estado === STATES.installed), limit = addDays(todayIso(), SOON_DAYS2), warning = warningLimit();
+    const reviews = installed.filter((item) => item.proxima_revision && item.proxima_revision <= limit).sort((first, second) => String(first.proxima_revision).localeCompare(String(second.proxima_revision)));
+    const expiring = installed.filter((item) => {
+      const days = daysUntil(expiryOf(item));
+      return days !== null && days <= warning;
+    }).sort((first, second) => String(expiryOf(first)).localeCompare(String(expiryOf(second))));
+    return { reviews, expiring };
+  }
+  function pageHtml2(list) {
+    const { reviews, expiring } = upcoming(list), query = plain(listState.query);
+    const found = list.filter((item) => !listState.query || plain([item.serie, item.productos?.nombre, item.cuentas?.nombre, item.ubicacion].join(" ")).includes(query));
+    const empty = list.length ? t("equipment.list.noneFound") : t("equipment.list.noneYet");
+    return `<div class="cirpag"><div class="evcab"><button type="button" class="btn" id="eqnuevo">${t("equipment.list.newEquipment")}</button></div>
+    ${reviews.length ? block(t("equipment.list.reviewsSoon"), reviews) : ""}
+    ${expiring.length ? block(t("equipment.list.expiring"), expiring) : ""}
+    <section class="card cirbloque"><div class="cicbcab"><h2>${t("equipment.list.all", { count: formatNumber(list.length) })}</h2><input id="eqq" type="search" placeholder="${t("equipment.list.searchPlaceholder")}" value="${escapeHtml(listState.query)}" aria-label="${t("equipment.list.searchLabel")}"></div>
+      ${found.length ? `<div class="lista">${found.map(rowHtml5).join("")}</div>` : `<div class="vacio vlinea">${empty}</div>`}</section></div>`;
+  }
+  var searchTimer;
+  function bind8(box, wasSearching) {
+    const add = document.getElementById("eqnuevo");
+    if (add) add.onclick = () => {
+      void editEquipment(null);
+    };
+    const search = document.getElementById("eqq");
+    if (search) {
+      search.oninput = () => {
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(() => {
+          listState.query = search.value.trim();
+          void paintEquipment();
+        }, SEARCH_WAIT_MS);
+      };
+      if (wasSearching) {
+        search.focus();
+        search.setSelectionRange(search.value.length, search.value.length);
+      }
+    }
+    box.querySelectorAll("[data-eq]").forEach((button) => {
+      button.onclick = () => {
+        relatedLegacy.openEquipment(button.dataset.eq ?? "");
+      };
+    });
+  }
+  function rememberWarningDays(setting) {
+    const days = setting?.valor?.dias;
+    if (Array.isArray(days)) equipmentLegacy.setWarningDays(days.map(Number).filter((day) => day > 0));
+  }
+  async function paintEquipment() {
+    if (!document.getElementById("cfgcuerpo")) return;
+    const [{ data, error }, { data: setting }] = await Promise.all([
+      legacyDb().from("equipos").select("id,serie,ubicacion,instalado,contrato,contrato_fin,garantia_hasta,proxima_revision,estado,cuenta_id,cuentas(nombre),productos(nombre)").order("creado_en", { ascending: false }).limit(LIMIT3),
+      legacyDb().from("ajustes").select("valor").eq("clave", "avisos_vencimiento").maybeSingle()
+    ]);
+    const box = document.getElementById("cfgcuerpo");
+    if (!box || currentScreen() !== "parque") return;
+    if (error) {
+      box.innerHTML = `<div class="vacio">${t("equipment.list.couldNotLoad")}</div>`;
+      return;
+    }
+    rememberWarningDays(setting);
+    const search = document.getElementById("eqq"), wasSearching = Boolean(search) && document.activeElement === search;
+    box.innerHTML = pageHtml2(data ?? []);
+    bind8(box, wasSearching);
+  }
+
+  // src/app/screens/equipment/sheet.ts
+  var REVIEWS_SHOWN = 50;
+  function reviewsText(months) {
+    if (!months) return t("equipment.sheet.noReviews");
+    return months === 1 ? t("equipment.sheet.everyMonth") : t("equipment.sheet.everyMonths", { count: months });
+  }
+  function dataHtml3(item) {
+    const account = escapeHtml(orFallback(item.cuentas?.nombre, "")), installed = item.estado === STATES.installed;
+    const contractEnd2 = item.contrato !== SALE && item.contrato_fin ? t("equipment.sheet.until", { date: formatShortDate(item.contrato_fin) }) : "";
+    const plain2 = installed && !item.proxima_revision && !expiryOf(item) ? `<span class="pill p-est">${t("equipment.pills.installed")}</span>` : "";
+    return `<div class="cirdat"><span>${t("equipment.sheet.where")}</span><b><button type="button" class="lnk" data-cfi="${item.cuenta_id ?? ""}">${account}</button>${item.ubicacion ? ` · ${escapeHtml(item.ubicacion)}` : ""}</b>
+      <span>${t("equipment.sheet.installed")}</span><b>${escapeHtml(formatLongDate(item.instalado ?? ""))}</b>
+      <span>${t("equipment.sheet.contract")}</span><b>${escapeHtml(item.contrato ?? "")}${contractEnd2}</b>
+      ${item.garantia_hasta ? `<span>${t("equipment.sheet.warranty")}</span><b>${t("equipment.sheet.warrantyUntil", { date: formatShortDate(item.garantia_hasta) })}</b>` : ""}
+      <span>${t("equipment.sheet.reviews")}</span><b>${reviewsText(item.revision_meses)}</b>
+      <span>${t("equipment.sheet.state")}</span><b>${reviewPill(item)} ${expiryPill(item)}${plain2}</b></div>`;
+  }
+  function reviewsHtml(reviews) {
+    if (!reviews.length) return `<div class="vacio vlinea">${t("equipment.sheet.noReviewsYet")}</div>`;
+    return `<div class="lista">${reviews.map((review) => `<div class="fmrow"><span><b>${formatShortDate(review.fecha)}</b> · ${escapeHtml(review.tipo)}${review.nota ? `<span class="sm"> · ${escapeHtml(review.nota)}</span>` : ""}</span><button type="button" class="x" data-rvq="${review.id}" aria-label="${t("equipment.sheet.deleteReviewLabel")}">✕</button></div>`).join("")}</div>`;
+  }
+  function sheetHtml4(item, reviews) {
+    const installed = item.estado === STATES.installed;
+    return `<div class="fh"><div><h2>${escapeHtml(orFallback(item.productos?.nombre, t("equipment.equipment")))}</h2><div class="sm">${item.serie ? t("equipment.sheet.serial", { serial: escapeHtml(item.serie) }) : ""}${escapeHtml(orFallback(item.cuentas?.nombre, ""))}</div></div>
+      <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
+    ${dataHtml3(item)}
+    ${item.nota ? `<p class="sm">${escapeHtml(item.nota)}</p>` : ""}
+    <div class="evascab"><h3>${t("equipment.sheet.reviewsTitle", { count: reviews.length })}</h3>${installed ? `<button type="button" class="btn sec" id="eqrevmas">${t("equipment.sheet.addReview")}</button>` : ""}</div>
+    <div id="eqrevf"></div>
+    ${reviewsHtml(reviews)}
+    <div class="acts" style="justify-content:flex-end">${installed && item.revision_meses ? `<button type="button" class="btn sec" id="eqagenda">${t("equipment.sheet.schedule")}</button>` : ""}
+      <button type="button" class="btn sec" id="eqeditar">${t("equipment.sheet.change")}</button><button type="button" class="btn" data-cerrar>${t("equipment.sheet.done")}</button></div>`;
+  }
+  var reviewFormHtml = () => `<div class="depbox"><div class="cong3"><div><label for="eqrf">${t("equipment.sheet.date")}</label><input id="eqrf" type="date" value="${todayIso()}"></div>
+        <div><label for="eqrt">${t("equipment.sheet.type")}</label><select id="eqrt">${REVIEW_TYPES.map((kind) => `<option>${kind}</option>`).join("")}</select></div>
+        <div><label for="eqrn">${t("equipment.sheet.note")}</label><input id="eqrn" maxlength="300" placeholder="${t("equipment.sheet.notePlaceholder")}"></div></div>
+      <div class="acts" style="justify-content:flex-end"><button type="button" class="btn sec" id="eqrcanc">${t("equipment.sheet.cancel")}</button><button type="button" class="btn" id="eqrok">${t("equipment.sheet.record")}</button></div></div>`;
+  var inputValue2 = (id) => document.getElementById(id)?.value ?? "";
+  async function recordReview(id, button) {
+    button.disabled = true;
+    const { error } = await legacyDb().from("equipo_revisiones").insert({ equipo_id: id, fecha: inputValue2("eqrf") || todayIso(), tipo: inputValue2("eqrt"), nota: inputValue2("eqrn").trim() || null });
+    button.disabled = false;
+    if (error) {
+      notices.toast(failureText(error), true);
+      return;
+    }
+    notices.toast(t("equipment.sheet.reviewRecorded"));
+    relatedLegacy.openEquipment(id);
+  }
+  function openReviewForm(id) {
+    const place = document.getElementById("eqrevf");
+    if (!place) return;
+    place.innerHTML = reviewFormHtml();
+    const cancel2 = document.getElementById("eqrcanc");
+    if (cancel2) cancel2.onclick = () => {
+      place.innerHTML = "";
+    };
+    const ok = document.getElementById("eqrok");
+    if (ok) ok.onclick = () => {
+      void recordReview(id, ok);
+    };
+  }
+  async function deleteReview(id, reviewId) {
+    if (!await notices.confirm(t("equipment.sheet.deleteReviewText"), { titulo: t("equipment.sheet.deleteReviewTitle"), ok: t("equipment.sheet.delete"), peligro: true })) return;
+    const { error } = await legacyDb().from("equipo_revisiones").delete().eq("id", reviewId);
+    if (error) {
+      notices.toast(failureText(error), true);
+      return;
+    }
+    relatedLegacy.openEquipment(id);
+  }
+  function bind9(id, item) {
+    const body2 = document.getElementById("dbody");
+    if (!body2) return;
+    const on2 = (elementId, action) => {
+      const button = document.getElementById(elementId);
+      if (button) button.onclick = action;
+    };
+    body2.querySelectorAll("[data-cfi]").forEach((button) => {
+      button.onclick = () => {
+        document.getElementById("dlg")?.close();
+        agendaActions.openAccount(button.dataset.cfi ?? "");
+      };
+    });
+    on2("eqeditar", () => {
+      void editEquipment(item);
+    });
+    on2("eqagenda", () => {
+      const today = todayIso(), next = item.proxima_revision;
+      agendaActions.newAppointment(item.cuenta_id ?? "", next && next > today ? next : today);
+    });
+    on2("eqrevmas", () => {
+      openReviewForm(id);
+    });
+    body2.querySelectorAll("[data-rvq]").forEach((button) => {
+      button.onclick = () => {
+        void deleteReview(id, button.dataset.rvq ?? "");
+      };
+    });
+  }
+  async function showEquipment(id) {
+    const [{ data: item, error }, { data: reviews }] = await Promise.all([
+      legacyDb().from("equipos").select("*,cuentas(nombre),productos(nombre)").eq("id", id).maybeSingle(),
+      legacyDb().from("equipo_revisiones").select("id,fecha,tipo,nota,hecha_por").eq("equipo_id", id).order("fecha", { ascending: false }).limit(REVIEWS_SHOWN)
+    ]);
+    if (error || !item) {
+      notices.toast(t("equipment.sheet.notFound"), true);
+      return;
+    }
+    const body2 = document.getElementById("dbody"), box = document.getElementById("dlg");
+    if (!body2 || !box) return;
+    body2.innerHTML = sheetHtml4(item, reviews ?? []);
+    if (!box.open) box.showModal();
+    bind9(id, item);
   }
 
   // src/app/screens/surgeries/index.ts
@@ -6621,13 +8244,13 @@
   });
 
   // src/app/screens/surgeries/editor.ts
-  var value3 = (id) => document.getElementById(id)?.value ?? "";
-  async function team() {
+  var value5 = (id) => document.getElementById(id)?.value ?? "";
+  async function team2() {
     if (!salesTeam.members().length) await salesTeam.load().catch(() => void 0);
     const me = salesTeam.currentUserId(), members = salesTeam.members();
     return members.some((member) => member.id === me) ? members : [{ id: me, nombre: appLegacy.currentUserName() }, ...members];
   }
-  function editorHtml2(surgery, existing, people) {
+  function editorHtml6(surgery, existing, people) {
     const origins = ORIGINS.map((origin) => `<button type="button" data-o="${origin}" class="${origin === surgery.origen ? "on" : ""}" aria-pressed="${String(origin === surgery.origen)}">${originLabel(origin)}</button>`).join("");
     return `<div class="fh"><div><h2>${t(existing ? "surgeries.editor.changeTitle" : "surgeries.editor.newTitle")}</h2><div class="sm">${t("surgeries.editor.subtitle")}</div></div>
       <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
@@ -6645,41 +8268,41 @@
     <div class="acts" style="justify-content:flex-end">${existing ? `<button type="button" class="btn sec peligro" id="ciranular">${t("surgeries.editor.cancelSurgery")}</button>` : ""}
       <button type="button" class="btn sec" data-cerrar>${t("surgeries.editor.cancel")}</button><button type="button" class="btn" id="cirok">${t(existing ? "surgeries.editor.save" : "surgeries.editor.schedule")}</button></div>`;
   }
-  function payload(existing, centre, responsible, state) {
+  function payload2(existing, centre, responsible, state) {
     return {
       id: existing?.id ?? null,
-      fecha: value3("cirf"),
-      hora: value3("cirh") || null,
+      fecha: value5("cirf"),
+      hora: value5("cirh") || null,
       hospital_id: centre.id,
       cirujano_id: responsible.id,
-      procedimiento: value3("cirp"),
-      quirofano: value3("cirq"),
-      asistente_id: value3("cira"),
+      procedimiento: value5("cirp"),
+      quirofano: value5("cirq"),
+      asistente_id: value5("cira"),
       origen: document.querySelector("#cirori .on")?.dataset.o,
-      referencia_caso: value3("cirref"),
-      nota: value3("cirn"),
+      referencia_caso: value5("cirref"),
+      nota: value5("cirn"),
       estado: state
     };
   }
-  var failureText = (error, result) => error ? t("surgeries.editor.couldNotSave", { error: error.message ?? "" }) : errorText(result);
-  async function save4(existing, choice, state, button) {
-    if (!value3("cirf") || !choice.hos || !choice.cir) {
+  var failureText2 = (error, result) => error ? t("surgeries.editor.couldNotSave", { error: error.message ?? "" }) : errorText(result);
+  async function save9(existing, choice, state, button) {
+    if (!value5("cirf") || !choice.hos || !choice.cir) {
       notices.toast(t("surgeries.editor.missing"), true);
       return;
     }
     button.disabled = true;
-    const { data: result, error } = await legacyDb().rpc("cirugia_guardar", { p: payload(existing, choice.hos, choice.cir, state) });
+    const { data: result, error } = await legacyDb().rpc("cirugia_guardar", { p: payload2(existing, choice.hos, choice.cir, state) });
     button.disabled = false;
     if (error || !result || result.ok === false) {
-      notices.toast(failureText(error, result), true);
+      notices.toast(failureText2(error, result), true);
       return;
     }
-    notices.toast(t(state === STATES.cancelled ? "surgeries.editor.cancelled" : existing ? "surgeries.editor.saved" : "surgeries.editor.scheduled"));
+    notices.toast(t(state === STATES2.cancelled ? "surgeries.editor.cancelled" : existing ? "surgeries.editor.saved" : "surgeries.editor.scheduled"));
     appLegacy.forgetCache();
-    if (state === STATES.cancelled) document.getElementById("dlg")?.close();
+    if (state === STATES2.cancelled) document.getElementById("dlg")?.close();
     else relatedLegacy.openSurgery(result.id ?? "");
   }
-  function bind6(existing, choice) {
+  function bind10(existing, choice) {
     editorLegacy.pickAccount(document.getElementById("cirhos"), choice.hos, (account) => {
       choice.hos = account;
     }, t("surgeries.editor.centrePlaceholder"));
@@ -6697,26 +8320,26 @@
     });
     const ok = document.getElementById("cirok");
     if (ok) ok.onclick = () => {
-      void save4(existing, choice, STATES.scheduled, ok);
+      void save9(existing, choice, STATES2.scheduled, ok);
     };
-    const cancel = document.getElementById("ciranular");
-    if (cancel) cancel.onclick = async () => {
+    const cancel2 = document.getElementById("ciranular");
+    if (cancel2) cancel2.onclick = async () => {
       if (!await notices.confirm(t("surgeries.editor.cancelText"), { titulo: t("surgeries.editor.cancelTitle"), ok: t("surgeries.editor.cancelSurgery"), peligro: true })) return;
-      await save4(existing, choice, STATES.cancelled, cancel);
+      await save9(existing, choice, STATES2.cancelled, cancel2);
     };
   }
   async function editSurgery(existing) {
     const surgery = existing ?? { fecha: addDays(todayIso(), 1), origen: "deposito", asistente_id: salesTeam.currentUserId() };
-    const people = await team();
+    const people = await team2();
     const body2 = document.getElementById("dbody"), box = document.getElementById("dlg");
     if (!body2 || !box) return;
-    body2.innerHTML = editorHtml2(surgery, existing, people);
+    body2.innerHTML = editorHtml6(surgery, existing, people);
     if (!box.open) box.showModal();
     const choice = {
       hos: existing ? { id: existing.hospital_id ?? "", nombre: existing.hospital ?? "" } : null,
       cir: existing ? { id: existing.cirujano_id ?? "", nombre: existing.cirujano ?? "", ...existing.especialidad ? { especialidad: existing.especialidad } : {} } : null
     };
-    bind6(existing, choice);
+    bind10(existing, choice);
   }
 
   // src/app/screens/surgeries/list.ts
@@ -6724,12 +8347,12 @@
   var DAYS_AHEAD = 120;
   function surgeryRow(surgery) {
     const people = [surgery.cirujano, surgery.hospital, surgery.quirofano].filter(Boolean).join(" · ");
-    const noOrder = surgery.estado === STATES.done && !surgery.pedido_id ? `<span class="pill p-warn">${t("surgeries.list.noOrder")}</span>` : "";
+    const noOrder = surgery.estado === STATES2.done && !surgery.pedido_id ? `<span class="pill p-warn">${t("surgeries.list.noOrder")}</span>` : "";
     return `<button type="button" class="item cirrow" data-cir="${surgery.id}"><span class="cirf"><b>${escapeHtml(formatShortDate(surgery.fecha))}</b><span class="sm">${escapeHtml(timeOf(surgery))}</span></span>
     <span class="tx"><b>${escapeHtml(orFallback(surgery.procedimiento, t("surgeries.surgery")))}</b><span class="sm">${escapeHtml(people)}${surgery.asistente ? escapeHtml(t("surgeries.list.assists", { name: surgery.asistente })) : ""}</span></span>
     <span class="cirest">${statePill(surgery)}${noOrder}${replenishmentPill(surgery)}</span></button>`;
   }
-  var block = (title, list, empty) => `<section class="card cirbloque"><h2>${title}</h2>${list.length ? `<div class="lista">${list.map(surgeryRow).join("")}</div>` : `<div class="vacio vlinea">${empty}</div>`}</section>`;
+  var block2 = (title, list, empty) => `<section class="card cirbloque"><h2>${title}</h2>${list.length ? `<div class="lista">${list.map(surgeryRow).join("")}</div>` : `<div class="vacio vlinea">${empty}</div>`}</section>`;
   async function paintSurgeries() {
     if (!document.getElementById("cfgcuerpo")) return;
     const today = todayIso();
@@ -6742,14 +8365,14 @@
     }
     const list = data ?? [];
     const pending = list.filter((item) => item.reposicion === "vencida" || item.reposicion === "pendiente");
-    const scheduled = list.filter((item) => item.estado === STATES.scheduled);
-    const behind = scheduled.filter((item) => item.fecha < today), upcoming = scheduled.filter((item) => item.fecha >= today);
-    const done = list.filter((item) => item.estado !== STATES.scheduled && item.fecha <= today).reverse();
+    const scheduled = list.filter((item) => item.estado === STATES2.scheduled);
+    const behind = scheduled.filter((item) => item.fecha < today), upcoming2 = scheduled.filter((item) => item.fecha >= today);
+    const done = list.filter((item) => item.estado !== STATES2.scheduled && item.fecha <= today).reverse();
     box.innerHTML = `<div class="cirpag"><div class="evcab"><button type="button" class="btn" id="cirnueva">${t("surgeries.list.newSurgery")}</button></div>
-    ${pending.length ? block(t("surgeries.list.replenishmentsPending"), pending, "") : ""}
-    ${behind.length ? block(t("surgeries.list.usedNotRecorded"), behind, "") : ""}
-    ${block(t("surgeries.list.upcoming"), upcoming, t("surgeries.list.noUpcoming"))}
-    ${block(t("surgeries.list.doneLast30"), done, t("surgeries.list.noneDone"))}</div>`;
+    ${pending.length ? block2(t("surgeries.list.replenishmentsPending"), pending, "") : ""}
+    ${behind.length ? block2(t("surgeries.list.usedNotRecorded"), behind, "") : ""}
+    ${block2(t("surgeries.list.upcoming"), upcoming2, t("surgeries.list.noUpcoming"))}
+    ${block2(t("surgeries.list.doneLast30"), done, t("surgeries.list.noneDone"))}</div>`;
     const add = document.getElementById("cirnueva");
     if (add) add.onclick = () => {
       void editSurgery(null);
@@ -6763,16 +8386,16 @@
 
   // src/app/screens/surgeries/use.ts
   var MAX_SERIALS = 30;
-  function lineHtml(line, index) {
+  function lineHtml3(line, index) {
     const details = `${escapeHtml(line.numero_lote ?? t("surgeries.use.noBatch"))}${line.caducidad ? t("surgeries.use.expires", { date: formatShortDate(line.caducidad) }) : ""}${t("surgeries.use.available", { count: formatNumber(line.unidades) })}`;
     return `<div class="cirl" data-ci="${index}"><label><span>${escapeHtml(line.nombre)} <span class="sm">· ${details}</span></span>
       <input type="number" min="0" max="${line.unidades}" step="1" data-cu="${index}" placeholder="0" aria-label="${t("surgeries.use.usedOf", { name: escapeHtml(line.nombre) })}"></label><div class="cirser" data-cs="${index}"></div></div>`;
   }
-  function paintSerials(box, input) {
-    const key = input.dataset.cu ?? "", units2 = Math.min(Number(input.max), Math.max(0, Math.floor(Number(input.value) || 0)));
+  function paintSerials(box, input2) {
+    const key = input2.dataset.cu ?? "", units2 = Math.min(Number(input2.max), Math.max(0, Math.floor(Number(input2.value) || 0)));
     const place = box.querySelector(`[data-cs="${key}"]`);
     if (!place) return;
-    const written = [...place.querySelectorAll("input")].map((field) => field.value);
+    const written = [...place.querySelectorAll("input")].map((field4) => field4.value);
     place.innerHTML = range(Math.min(units2, MAX_SERIALS)).map((index) => `<input data-cser="${key}" maxlength="120" value="${escapeHtml(written[index] ?? "")}" placeholder="${t("surgeries.use.serialOf", { index: index + 1 })}" aria-label="${t("surgeries.use.serialLabel", { index: index + 1 })}">`).join("");
   }
   async function saveUsed(surgery, stock, box, button) {
@@ -6781,7 +8404,7 @@
       lote_id: line.lote_id,
       max: line.unidades,
       unidades: Math.max(0, Math.floor(Number(box.querySelector(`[data-cu="${index}"]`)?.value) || 0)),
-      series: [...box.querySelectorAll(`[data-cser="${index}"]`)].map((field) => field.value.trim()).filter(Boolean)
+      series: [...box.querySelectorAll(`[data-cser="${index}"]`)].map((field4) => field4.value.trim()).filter(Boolean)
     })).filter((item) => item.unidades > 0);
     if (!items.length) {
       notices.toast(t("surgeries.use.writeUsed"), true);
@@ -6816,27 +8439,27 @@
     }
     box.innerHTML = `<details class="cirdet"><summary class="btn">${t("surgeries.use.record")}</summary><div class="depbox">
     <span class="sm">${t("surgeries.use.hint")}</span>
-    <div class="cirlin">${stock.map(lineHtml).join("")}</div>
+    <div class="cirlin">${stock.map(lineHtml3).join("")}</div>
     <label for="cirref2">${t("surgeries.editor.caseReference", { patient: term("paciente", { article: "del" }) })}</label><input id="cirref2" maxlength="60" value="${escapeHtml(surgery.referencia_caso ?? "")}" placeholder="${t("surgeries.editor.caseReferencePlaceholder")}">
     <div class="acts" style="justify-content:flex-end"><button type="button" class="btn" id="cirusok">${t("surgeries.use.save")}</button></div></div></details>`;
-    box.querySelectorAll("[data-cu]").forEach((input) => {
-      input.oninput = () => {
-        paintSerials(box, input);
+    box.querySelectorAll("[data-cu]").forEach((input2) => {
+      input2.oninput = () => {
+        paintSerials(box, input2);
       };
     });
-    const save6 = document.getElementById("cirusok");
-    if (save6) save6.onclick = () => {
-      void saveUsed(surgery, stock, box, save6);
+    const save11 = document.getElementById("cirusok");
+    if (save11) save11.onclick = () => {
+      void saveUsed(surgery, stock, box, save11);
     };
   }
 
   // src/app/screens/surgeries/sheet.ts
   function replenishmentOf(surgery) {
-    if (surgery.estado !== STATES.done) return null;
+    if (surgery.estado !== STATES2.done) return null;
     if (surgery.repuesta_en) return "repuesta";
     return new Date(surgery.reposicion_limite ?? "") < /* @__PURE__ */ new Date() ? "vencida" : "pendiente";
   }
-  function dataHtml2(detail, replenishment) {
+  function dataHtml4(detail, replenishment) {
     const surgery = detail.cirugia;
     return `<div class="cirdat"><span>${t("surgeries.sheet.responsible")}</span><b><button type="button" class="lnk" data-cfi="${surgery.cirujano_id ?? ""}">${escapeHtml(detail.cirujano)}</button>${detail.especialidad ? ` <span class="sm">· ${escapeHtml(detail.especialidad)}</span>` : ""}</b>
       <span>${t("surgeries.sheet.centre")}</span><b><button type="button" class="lnk" data-cfi="${surgery.hospital_id ?? ""}">${escapeHtml(detail.hospital)}</button></b>
@@ -6850,21 +8473,21 @@
     return `<h3>${t("surgeries.sheet.used")}</h3><div class="deptab"><div class="deph cirh"><span>${t("surgeries.sheet.product")}</span><span>${t("surgeries.sheet.batch")}</span><span>${t("surgeries.sheet.serial")}</span><span>${t("surgeries.sheet.units")}</span></div>
       ${used.map((line) => `<div class="depf cirh"><span>${escapeHtml(line.producto)}</span><span>${escapeHtml(orFallback(line.numero_lote, t("surgeries.sheet.noBatch")))}</span><span>${escapeHtml(orFallback(line.serie, "—"))}</span><b>${formatNumber(line.unidades)}</b></div>`).join("")}</div>`;
   }
-  function sheetHtml3(detail, notice) {
-    const surgery = detail.cirugia, scheduled = surgery.estado === STATES.scheduled, replenishment = replenishmentOf(surgery), can = Boolean(detail.puede);
+  function sheetHtml5(detail, notice) {
+    const surgery = detail.cirugia, scheduled = surgery.estado === STATES2.scheduled, replenishment = replenishmentOf(surgery), can = Boolean(detail.puede);
     return `<div class="fh"><div><h2>${escapeHtml(orFallback(surgery.procedimiento, t("surgeries.surgery")))}</h2>
       <div class="sm">${escapeHtml(formatLongDate(surgery.fecha))}${surgery.hora ? ` · ${escapeHtml(timeOf(surgery))}` : ""} · ${escapeHtml(detail.hospital)}${surgery.quirofano ? ` · ${escapeHtml(surgery.quirofano)}` : ""}</div></div>
       <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
     ${notice}
-    ${dataHtml2(detail, replenishment)}
+    ${dataHtml4(detail, replenishment)}
     ${surgery.nota ? `<p class="sm">${escapeHtml(surgery.nota)}</p>` : ""}
-    ${surgery.estado === STATES.done && !surgery.pedido_id ? `<div class="banda-aviso cirsinped">${t("surgeries.sheet.noOrder")} <button type="button" class="btn sec" id="cirhacerped">${t("surgeries.sheet.createOrder")}</button></div>` : ""}
+    ${surgery.estado === STATES2.done && !surgery.pedido_id ? `<div class="banda-aviso cirsinped">${t("surgeries.sheet.noOrder")} <button type="button" class="btn sec" id="cirhacerped">${t("surgeries.sheet.createOrder")}</button></div>` : ""}
     ${scheduled && can ? '<div id="cirusar"></div>' : ""}
     ${usedHtml(detail.consumos ?? [])}
     ${actionsHtml3(surgery, replenishment, can)}`;
   }
   function actionsHtml3(surgery, replenishment, can) {
-    const scheduled = surgery.estado === STATES.scheduled;
+    const scheduled = surgery.estado === STATES2.scheduled;
     return `<div class="acts" style="justify-content:flex-end">${surgery.pedido_id ? `<button type="button" class="btn sec" id="cirped">${t("surgeries.sheet.seeOrder")}</button>` : ""}
       ${replenishment && replenishment !== "repuesta" && can ? `<button type="button" class="btn" id="cirrepo">${t("surgeries.sheet.replenishNow")}</button>` : ""}
       ${scheduled && can ? `<button type="button" class="btn sec" id="cireditar">${t("surgeries.sheet.change")}</button>` : ""}<button type="button" class="btn sec" data-cerrar>${t("common.close")}</button></div>`;
@@ -6891,7 +8514,7 @@
     notices.toast(t(result.a_tiempo === false ? "surgeries.sheet.replenishedLate" : "surgeries.sheet.replenished"));
     relatedLegacy.openSurgery(id);
   }
-  function bind7(id, detail) {
+  function bind11(id, detail) {
     const surgery = detail.cirugia, on2 = (elementId, action) => {
       const button = document.getElementById(elementId);
       if (button) button.onclick = () => {
@@ -6925,9 +8548,9 @@
     }
     const body2 = document.getElementById("dbody"), box = document.getElementById("dlg");
     if (!body2 || !box) return;
-    body2.innerHTML = sheetHtml3(detail, notice);
+    body2.innerHTML = sheetHtml5(detail, notice);
     if (!box.open) box.showModal();
-    bind7(id, detail);
+    bind11(id, detail);
     if (document.getElementById("cirusar")) paintUse(detail.cirugia, detail.stock ?? []);
   }
 
@@ -6955,9 +8578,9 @@
     [6, "cycle.editor.half"],
     [12, "cycle.editor.year"]
   ];
-  var visits = (value4) => Math.min(MAX_VISITS, Math.max(0, Math.floor(Number(value4) || 0)));
-  function editorHtml3(current) {
-    const months = LENGTHS.map(([value4, key]) => `<option value="${value4}" ${Number(current.meses) === value4 ? "selected" : ""}>${t(key)}</option>`).join("");
+  var visits = (value6) => Math.min(MAX_VISITS, Math.max(0, Math.floor(Number(value6) || 0)));
+  function editorHtml7(current) {
+    const months = LENGTHS.map(([value6, key]) => `<option value="${value6}" ${Number(current.meses) === value6 ? "selected" : ""}>${t(key)}</option>`).join("");
     const goals = CLASSES.map((letter) => `<label>${classPill(letter)}<span>${t("cycle.editor.perCycle", words())}</span><input type="number" min="0" max="${MAX_VISITS}" step="1" data-cobj="${letter}" value="${Math.max(0, Number(current[letter]) || 0)}" aria-label="${t("cycle.editor.ofClass", { ...words(), class: letter })}"></label>`).join("");
     return `<div class="fh"><div><h2>${t("cycle.editor.title", words())}</h2>
       <div class="sm">${t("cycle.editor.subtitle", words())}</div></div>
@@ -6967,17 +8590,17 @@
     <p class="sm">${t("cycle.editor.zeroHint", words())}</p>
     <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>${t("common.cancel")}</button><button class="btn" id="cicok">${t("common.save")}</button></div>`;
   }
-  async function save5(body2, box) {
-    const value4 = { meses: Number(document.getElementById("cicmeses")?.value) || DEFAULT_MONTHS };
-    body2.querySelectorAll("[data-cobj]").forEach((input) => {
-      value4[input.dataset.cobj ?? ""] = visits(input.value);
+  async function save10(body2, box) {
+    const value6 = { meses: Number(document.getElementById("cicmeses")?.value) || DEFAULT_MONTHS };
+    body2.querySelectorAll("[data-cobj]").forEach((input2) => {
+      value6[input2.dataset.cobj ?? ""] = visits(input2.value);
     });
-    const { data: result, error } = await legacyDb().rpc("guardar_ajuste", { p_clave: "ciclo_visitas", p_valor: value4 });
+    const { data: result, error } = await legacyDb().rpc("guardar_ajuste", { p_clave: "ciclo_visitas", p_valor: value6 });
     if (error || result?.ok === false) {
       notices.toast(t("cycle.editor.couldNotSave"), true);
       return;
     }
-    cycleLegacy.setSetting("ciclo_visitas", value4);
+    cycleLegacy.setSetting("ciclo_visitas", value6);
     box.close();
     notices.toast(t("cycle.editor.saved"));
     appLegacy.forgetCache();
@@ -6987,11 +8610,11 @@
     const current = { ...DEFAULTS, ...cycleLegacy.setting("ciclo_visitas") };
     const body2 = document.getElementById("dbody"), box = document.getElementById("dlg");
     if (!body2 || !box) return;
-    body2.innerHTML = editorHtml3(current);
+    body2.innerHTML = editorHtml7(current);
     if (!box.open) box.showModal();
     const ok = document.getElementById("cicok");
     if (ok) ok.onclick = () => {
-      void save5(body2, box);
+      void save10(body2, box);
     };
   }
 
@@ -7013,7 +8636,7 @@
         <span class="cicfal"><b>${t("cycle.current.progress", { done: item.hechas, goal: item.objetivo })}</b><span class="sm">${item.faltan === 1 ? t("cycle.current.oneMissing") : t("cycle.current.missing", { count: item.faltan })}</span></span>
         ${item.proxima_cita ? `<span class="pill p-per">${t("cycle.current.appointmentOn", { date: formatShortDate(item.proxima_cita) })}</span>` : `<button type="button" class="btn sec" data-ccita="${item.id}">${t("cycle.current.newAppointment")}</button>`}</div>`;
   }
-  function headerHtml5(data, selector) {
+  function headerHtml6(data, selector) {
     const left = data.quedan_dias === 1 ? t("cycle.current.oneDayLeft") : t("cycle.current.daysLeft", { count: formatNumber(data.quedan_dias) });
     return `<div class="ciccab"><div><b>${escapeHtml(rangeText(data))}</b>
       <span class="sm">${left} · ${t("cycle.current.allCount", words())}</span></div>
@@ -7027,15 +8650,15 @@
   }
   function missingHtml(data) {
     const filter = cycleState.classFilter, pending = (data.pendientes ?? []).filter((item) => !filter || item.clase === filter), cycle3 = cycleName(data.meses);
-    const buttons = [["", t("cycle.current.all")], ...CLASSES.map((letter) => [letter, letter])].map(([value4 = "", label = ""]) => `<button type="button" data-cf="${value4}" class="${value4 === filter ? "on" : ""}" aria-pressed="${String(value4 === filter)}">${label}</button>`).join("");
+    const buttons = [["", t("cycle.current.all")], ...CLASSES.map((letter) => [letter, letter])].map(([value6 = "", label = ""]) => `<button type="button" data-cf="${value6}" class="${value6 === filter ? "on" : ""}" aria-pressed="${String(value6 === filter)}">${label}</button>`).join("");
     const empty = filter ? t("cycle.current.noneMissingIn", { ...words(), class: filter }) : t("cycle.current.allUpToDate", { cycle: cycle3 });
     return `<section class="card cicbloque"><div class="cicbcab"><h2>${t("cycle.current.missingTitle", { ...words(), cycle: cycle3 })}</h2>
         <span class="segs" id="cicfil" role="group" aria-label="${t("cycle.classLabel")}">${buttons}</span></div>
       ${pending.length ? `<div class="lista">${pending.map(pendingRow2).join("")}</div>` : `<div class="vacio vlinea">${empty}</div>`}</section>`;
   }
-  function pageHtml(data, selector) {
+  function pageHtml3(data, selector) {
     const classified = sum((data.resumen ?? []).map((item) => item.cuentas));
-    return `<div class="cicpag">${headerHtml5(data, selector)}
+    return `<div class="cicpag">${headerHtml6(data, selector)}
     ${unclassifiedHtml(data.sin_clase ?? 0)}
     ${classified ? `<div class="cicres">${CLASSES.map((letter) => classCard(letter, data)).join("")}</div>
     ${missingHtml(data)}` : `<div class="vacio">${t("cycle.current.nobodyClassified", words())}</div>`}</div>`;
@@ -7059,7 +8682,7 @@
       goToTab("clasificar");
     };
   }
-  function bind8(box) {
+  function bind12(box) {
     bindOwner(paintCycle);
     const adjust = document.getElementById("cicajustar");
     if (adjust) adjust.onclick = () => {
@@ -7083,33 +8706,33 @@
       box.innerHTML = `<div class="vacio">${t("cycle.current.couldNotLoad")}</div>`;
       return;
     }
-    box.innerHTML = pageHtml(data, selector);
-    bind8(box);
+    box.innerHTML = pageHtml3(data, selector);
+    bind12(box);
   }
 
   // src/app/screens/cycle/classify.ts
   var SHOWN = 300;
-  var SEARCH_WAIT_MS = 350;
-  function rowHtml2(item) {
+  var SEARCH_WAIT_MS2 = 350;
+  function rowHtml6(item) {
     return `<div class="item cicrow" data-cfila="${item.id}">
         <span class="tx"><button type="button" class="lnk" data-cfi="${item.id}"><b>${escapeHtml(item.nombre)}</b></button>
           <span class="sm">${escapeHtml([item.especialidad, item.municipio, item.estado_comercial].filter(Boolean).join(" · "))}</span></span>
         <span class="cicfal"><b>${formatNumber(item.actividades_12m)}</b><span class="sm">${t("cycle.classifyPage.in12Months")}</span></span>
         ${classButtons(item.id, item.clase)}</div>`;
   }
-  function listHtml(rows) {
+  function listHtml2(rows) {
     if (!rows.length) return `<div class="vacio vlinea">${t(cycleState.classifyFilter === "sin" && !cycleState.query ? "cycle.classifyPage.allClassified" : "cycle.classifyPage.noneWithFilter")}</div>`;
-    return `<section class="card cicbloque"><div class="lista">${rows.map(rowHtml2).join("")}</div></section>${rows.length >= SHOWN ? `<p class="sm">${t("cycle.classifyPage.firstOnly")}</p>` : ""}`;
+    return `<section class="card cicbloque"><div class="lista">${rows.map(rowHtml6).join("")}</div></section>${rows.length >= SHOWN ? `<p class="sm">${t("cycle.classifyPage.firstOnly")}</p>` : ""}`;
   }
-  function pageHtml2(rows, selector) {
-    const filters = [["sin", t("cycle.classifyPage.unclassified")], ...CLASSES.map((letter) => [letter, letter]), ["todas", t("cycle.classifyPage.all")]].map(([value4 = "", label = ""]) => `<button type="button" data-cl="${value4}" class="${value4 === cycleState.classifyFilter ? "on" : ""}" aria-pressed="${String(value4 === cycleState.classifyFilter)}">${label}</button>`).join("");
+  function pageHtml4(rows, selector) {
+    const filters = [["sin", t("cycle.classifyPage.unclassified")], ...CLASSES.map((letter) => [letter, letter]), ["todas", t("cycle.classifyPage.all")]].map(([value6 = "", label = ""]) => `<button type="button" data-cl="${value6}" class="${value6 === cycleState.classifyFilter ? "on" : ""}" aria-pressed="${String(value6 === cycleState.classifyFilter)}">${label}</button>`).join("");
     return `<div class="cicpag"><div class="ciccab"><span class="segs" id="cicclf" role="group" aria-label="${t("cycle.classifyPage.show")}">${filters}</span>
       <span class="cicacc"><input id="cicq" type="search" placeholder="${t("cycle.classifyPage.search", words())}" value="${escapeHtml(cycleState.query)}" aria-label="${t("cycle.classifyPage.searchLabel")}">${selector}</span></div>
     <p class="sm">${t("cycle.classifyPage.hint", words())}</p>
-    ${listHtml(rows)}</div>`;
+    ${listHtml2(rows)}</div>`;
   }
-  var searchTimer;
-  function bind9(box, wasSearching) {
+  var searchTimer2;
+  function bind13(box, wasSearching) {
     box.querySelectorAll("#cicclf [data-cl]").forEach((button) => {
       button.onclick = () => {
         cycleState.classifyFilter = button.dataset.cl ?? "sin";
@@ -7119,11 +8742,11 @@
     const search = document.getElementById("cicq");
     if (search) {
       search.oninput = () => {
-        clearTimeout(searchTimer);
-        searchTimer = setTimeout(() => {
+        clearTimeout(searchTimer2);
+        searchTimer2 = setTimeout(() => {
           cycleState.query = search.value.trim();
           void paintClassify();
-        }, SEARCH_WAIT_MS);
+        }, SEARCH_WAIT_MS2);
       };
       if (wasSearching) {
         search.focus();
@@ -7146,8 +8769,8 @@
       return;
     }
     const search = document.getElementById("cicq"), wasSearching = Boolean(search) && document.activeElement === search;
-    box.innerHTML = pageHtml2(data ?? [], selector);
-    bind9(box, wasSearching);
+    box.innerHTML = pageHtml4(data ?? [], selector);
+    bind13(box, wasSearching);
   }
   async function classify(button, onCard) {
     const [id = "", letter = ""] = (button.dataset.ccl ?? "").split("|"), group = button.closest(".cicsegs");
@@ -7201,10 +8824,10 @@
           ${missingHtml2(product, accounts2 - heard, cycle3)}</section>`;
   }
   function bodyHtml(data) {
-    const products = data.productos ?? [];
-    if (!products.length) return `<div class="vacio">${t("cycle.coverage.noProducts")}${cardSectionsLegacy.can("administrar") ? t("cycle.coverage.markIt", words()) : ""}</div>`;
+    const products2 = data.productos ?? [];
+    if (!products2.length) return `<div class="vacio">${t("cycle.coverage.noProducts")}${cardSectionsLegacy.can("administrar") ? t("cycle.coverage.markIt", words()) : ""}</div>`;
     if (!data.cuentas) return `<div class="vacio">${t("cycle.coverage.nobodyClassified", words())} <button type="button" class="btn sec" id="cobclas">${t("cycle.classify")}</button></div>`;
-    return `<div class="cobgrid">${products.map((product) => productCard(product, cycleName(data.meses))).join("")}</div>`;
+    return `<div class="cobgrid">${products2.map((product) => productCard(product, cycleName(data.meses))).join("")}</div>`;
   }
   async function paintCoverage() {
     if (!document.getElementById("cfgcuerpo")) return;
@@ -7226,18 +8849,18 @@
 
   // src/app/screens/cycle/team.ts
   var ofText = (done, goal) => t("cycle.current.progress", { done: formatNumber(done), goal: formatNumber(goal) });
-  function rowHtml3(member) {
+  function rowHtml7(member) {
     const classified = member.a + member.b + member.c, percent = member.objetivo ? percentOf(member.hechas, member.objetivo) : null;
     const progress = percent === null ? "—" : `<span class="cicbarc">${progressBar(percent)}${ofText(member.hechas, member.objetivo)} · ${percent}%</span>`;
     return `<tr><td><button type="button" class="lnk" data-cde="${member.id}"><b>${escapeHtml(member.nombre)}</b></button><span class="sm"> · ${escapeHtml(member.rol)}</span></td><td>${formatNumber(member.cartera)}</td><td>${formatNumber(member.a)}</td><td>${formatNumber(member.b)}</td><td>${formatNumber(member.c)}</td>
           <td class="${member.sin_clase ? "cicaviso" : ""}">${formatNumber(member.sin_clase)}</td><td>${classified ? ofText(member.al_dia, classified) : "—"}</td>
           <td>${progress}</td></tr>`;
   }
-  function tableHtml2(members) {
+  function tableHtml3(members) {
     if (!members.length) return `<div class="vacio">${t("cycle.team.nobody")}</div>`;
     const head = [t("cycle.team.person"), t("cycle.team.portfolio"), "A", "B", "C", t("cycle.team.noClass"), t("cycle.team.upToDate"), t("cycle.team.cycleVisits", words())];
     return `<div class="card cicbloque"><div class="dgrid-wrap"><table class="trtabla cictab"><thead><tr>${head.map((title) => `<th>${title}</th>`).join("")}</tr></thead>
-      <tbody>${members.map(rowHtml3).join("")}</tbody></table></div></div>
+      <tbody>${members.map(rowHtml7).join("")}</tbody></table></div></div>
       <p class="sm">${t("cycle.team.countHint", words())}</p>`;
   }
   async function paintCycleTeam() {
@@ -7248,7 +8871,7 @@
     const range2 = (ranges ?? [])[0];
     const goals = range2 ? `<p class="sm">${escapeHtml(rangeText(range2))}${t("cycle.team.goals", { ...words(), a: visitsText(range2.obj_a), b: range2.obj_b, c: range2.obj_c })}</p>` : "";
     box.innerHTML = `<div class="cicpag">${goals}
-    ${tableHtml2(members ?? [])}</div>`;
+    ${tableHtml3(members ?? [])}</div>`;
     box.querySelectorAll("[data-cde]").forEach((button) => {
       button.onclick = () => {
         cycleState.owner = button.dataset.cde ?? "";
@@ -7277,10 +8900,10 @@
     } else if (action === "nueva") void appointmentLegacy.newDateAfterAbsent(item);
     else if (action === "sube" || action === "baja") swapWithNeighbour(item, action);
   }
-  function taskRow2(row2, target) {
+  function taskRow2(row3, target) {
     if (target.closest(".tdtchk, .tdtmov")) return;
     const day = legacyAgenda.selectedDate();
-    editTask((agendaCache.dayTasks(day ?? "") ?? []).find((task) => task.id === row2.dataset.tarea), day);
+    editTask((agendaCache.dayTasks(day ?? "") ?? []).find((task) => task.id === row3.dataset.tarea), day);
   }
   function taskArrow(arrow) {
     const [direction = "0", id = ""] = (arrow.dataset.tamov ?? "").split("|");
@@ -7303,9 +8926,9 @@
         editTask(null, legacyAgenda.selectedDate());
         return;
       }
-      const row2 = target.closest("#tdtareas .tdtarea");
-      if (row2) {
-        taskRow2(row2, target);
+      const row3 = target.closest("#tdtareas .tdtarea");
+      if (row3) {
+        taskRow2(row3, target);
         return;
       }
       const button = target.closest("[data-td]");
@@ -7330,6 +8953,9 @@
       agenda: agenda_exports,
       accounts: accounts_exports,
       events: events_exports,
+      purchases: purchases_exports,
+      tenders: tenders_exports,
+      equipment: equipment_exports,
       surgeries: surgeries_exports,
       cycle: cycle_exports
     }

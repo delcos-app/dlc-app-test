@@ -8,6 +8,9 @@ import { setLanguage, setVocabulary, t } from './i18n';
 import * as accounts from './screens/accounts';
 import * as agenda from './screens/agenda';
 import * as events from './screens/events';
+import * as purchases from './screens/purchases';
+import * as tenders from './screens/tenders';
+import * as equipment from './screens/equipment';
 import * as surgeries from './screens/surgeries';
 import * as cycle from './screens/cycle';
 import { listenToSameCentre } from './screens/agenda/same-centre';
@@ -31,6 +34,9 @@ export interface DelcosCore {
     readonly agenda: typeof agenda;
     readonly accounts: typeof accounts;
     readonly events: typeof events;
+    readonly purchases: typeof purchases;
+    readonly tenders: typeof tenders;
+    readonly equipment: typeof equipment;
     readonly surgeries: typeof surgeries;
     readonly cycle: typeof cycle;
   };
@@ -56,6 +62,9 @@ window.delcos = {
     agenda,
     accounts,
     events,
+    purchases,
+    tenders,
+    equipment,
     surgeries,
     cycle,
   },
