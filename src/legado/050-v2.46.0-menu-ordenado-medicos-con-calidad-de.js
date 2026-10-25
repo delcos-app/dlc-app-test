@@ -2,4 +2,3 @@
 // y los nombres que siguen usando otros archivos o las pruebas.
 window.delcos.legacyC.start050();
 const EXPLICA_NOTIF = window.delcos.legacyC.notificationExplanations();
-window.delcos.legacyC.explainNotificationTypes(EXPLICA_NOTIF);

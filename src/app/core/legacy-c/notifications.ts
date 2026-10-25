@@ -25,19 +25,3 @@ export function notificationExplanations(): Record<string, [string, string]> {
     t(`legacyC.notifications.${keyOf(id)}.when` as MessageKey, vocabulary), t(`legacyC.notifications.${keyOf(id)}.todo` as MessageKey, vocabulary),
   ]]));
 }
-
-/** v2.46.0: each notification type gets its explanation. */
-export function explainNotificationTypes(explanations: Readonly<Record<string, readonly [string, string]>>): void {
-  TIPOS_NOTIF.forEach(type => { const explanation = explanations[String(type[0])]; if (explanation) type[3] = explanation[0]; });
-}
-
-/** v2.152.0: the new notification types. */
-export function addUsefulNotificationTypes(): void {
-  const vocabulary = words();
-  TIPOS_NOTIF.push(
-    ['reponer', '🔄', t('legacyC.notifications.restock.title'), t('legacyC.notifications.restock.when')],
-    ['caida_ventas', '↘️', t('legacyC.notifications.salesDrop.title'), t('legacyC.notifications.salesDrop.when', vocabulary)],
-    ['visita_sin_registrar', '📝', t('legacyC.notifications.unrecorded.title'), t('legacyC.notifications.unrecorded.when', vocabulary)],
-    ['pedido_portal', '🏥', t('legacyC.notifications.portalOrder.title'), t('legacyC.notifications.portalOrder.when')],
-  );
-}

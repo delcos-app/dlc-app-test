@@ -1,26 +1,9 @@
 // pantallas/concursos.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
-function menuConcursos() {
-  const nav = document.querySelector('nav.main .in'); if (!nav) return;
-  let b = nav.querySelector('[data-t="concursos"]');
-  if (!b) { const tras = nav.querySelector('[data-t="ventas"]'); if (!tras) return; tras.insertAdjacentHTML('afterend', '<button data-t="concursos" aria-selected="false">Concursos</button>'); b = nav.querySelector('[data-t="concursos"]'); }
-  b.classList.toggle('hide', !!(ES_MEDICO() || !puedeModulo('ventas')));
-}
+function menuConcursos() { window.delcos.leftovers.menuTenders(); }
 
-
-
-
-async function cargarPreciosContrato(cuenta) {
-  cuenta = cuenta || null;
-  if (cuenta === PED_PRECIOS.cuenta) return false;
-  const antes = JSON.stringify(PED_PRECIOS.precios);
-  let precios = {};
-  if (cuenta) { try { const { data } = await db.rpc('precios_contrato', { p_cuenta: cuenta }); precios = data || {}; } catch (e) {} }
-  PED_PRECIOS = { cuenta, precios };
-  return JSON.stringify(precios) !== antes;
-}
-
+function cargarPreciosContrato(cuenta) { return window.delcos.leftovers.loadContractPrices(cuenta); }
 
 /* v2.200.0 · Concursos y contratos (tercera tanda del estudio por sectores, SQL 126). Decisiones de Eric: al ganar un lote, sus precios se
    aplican solos en los pedidos de esa ficha mientras el contrato está en vigor; los días de aviso antes de que venza los elige cada empresa.

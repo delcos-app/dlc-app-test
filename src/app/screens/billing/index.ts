@@ -8,3 +8,5 @@ export { loadBilling } from './page';
 export { editSeries, paintSeries } from './series';
 export { showInvoice } from './sheet';
 export { paintVerifactu } from './verifactu';
+// v2.427.0: issuing, the order's invoices, sending by email, the read-only mode and the payment state
+export { arrangeBilling, issueOrderInvoice, paintOrderInvoices, paymentStateOf, previewOrderInvoice, readOnlyBilling, sendInvoiceByEmail } from './issue';

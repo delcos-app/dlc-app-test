@@ -32,12 +32,7 @@ function pintarBnavBase3() { return window.delcos.legacyB.paintBottomNav(); }
 /* ---------------- Inicio: tarjeta de bienvenida con lo importante de hoy ---------------- */
 
 // v2.105.0: los subtítulos que dependen del vocabulario o del nombre de un estado se calculan al pintarlos (get)
-const KPI_TXT = { citas: 'Visitadas de las citas de hoy', urgentes: `${TT('medico', 'p', '', 'l', 'C', 'marcado')} urgentes sin ${TT('visita', 's', '', 'l', 'l')}`, visitas_sem: 'Registradas de lunes a hoy',
-  visitas_mes: 'Registradas en el mes', get interesados() { return `En estado «${estadoPapel('interes') || 'interés'}»`; }, sin_contactar: `Todavía sin ${TT('visita', 's', 'primer', 'l', 'l')}`, get cartera() { return `Asignad${terminoDe('medico').g === 'f' ? 'a' : 'o'}s a ti`; },
-  dups: 'Fichas por revisar', uds_mes: 'Unidades confirmadas en el mes', prescriptores: 'Con algún pedido este mes', nuevos_presc: 'Primer pedido este mes',
-  activos_90: 'Con ventas en 90 días', get conversion() { return `Visitad${terminoDe('medico').g === 'f' ? 'a' : 'o'}s ya en «${estadoPapel('positivo') || 'positivo'}»`; }, importe_mes: 'Base sin IVA del mes', borradores: 'Pedidos sin confirmar',
-  sin_visita_60: 'Hace más de 60 días', sin_horario: 'Sin días de atención', muestras_mes: 'Entregadas este mes', material_mes: 'Entregado este mes',
-  citas_7d: 'Programadas los próximos 7 días', visitas_7d: 'En los últimos 7 días' };
+const KPI_TXT = window.delcos.content.indicatorTexts();
 
 /* ---------------- alertas: ventana clara, con qué significa y qué hacer ---------------- */
 

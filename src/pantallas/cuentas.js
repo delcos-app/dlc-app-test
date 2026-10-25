@@ -1,77 +1,13 @@
 // pantallas/cuentas.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-async function cargarAccesoMedicos() {
-  if (!(PERFIL && (puede('administrar') || VE_TODO() || puede('dar_acceso_cuentas')))) { MED_ACCESO = {}; return; }
-  const { data } = await RPC_ORIG('cuentas_con_acceso', {});
-  MED_ACCESO = {}; (data || []).forEach(x => { MED_ACCESO[x.cuenta_id] = x; });
-}
-
-
-
-
-
-
+function cargarAccesoMedicos() { return window.delcos.leftovers.loadAccountAccess(); }
 
 // Ficha: historial de cambios (de la ficha y de sus consultas), plegado al final; solo administración
 
-
-
-
-
-
-
 // ——— En la ficha del equipo: lo que ha enviado desde su portal ———
 
-
-
-
-
-
-
-
-
-
-
-/** Visitas o citas de estos médicos cerca de la fecha (sin contar ese mismo día). */
-async function recientesDe(ids, fecha) {
-  const a = avisoRevisita(); if (!a.on || !ids.length) return {};
-  const { data } = await db.rpc('actividades_recientes', { p_ids: ids, p_desde: isoMas(fecha, -(a.dias - 1)), p_hasta: isoMas(fecha, a.dias - 1) });
-  const por = {};
-  (data || []).filter(x => x.fecha !== fecha).forEach(x => (por[x.cuenta_id] = por[x.cuenta_id] || []).push(x));
-  return por;
-}
-
-
-function fila(m) {
-  const d = m.dias || {};
-  return `<button class="fila" data-id="${m.id}">
-    <span><span class="nm">${m.urgente ? '<span class="pill p-urg">Urgente</span> ' : ''}${m.sin_reporting ? `<span class="pill p-sr" title="Solo ${TT('visita', 's', '', 'l', 'l')} presencial: sin informes ni feedback">Sin reporting</span> ` : ''}${esc(m.nombre)}</span>
-      <span class="sm">${esc(m.especialidad || 'Sin ' + TT('especialidad', 's', '', 'l', 'l'))}</span></span>
-    <span class="c2"><span class="nm" style="font-size:13.5px">${esc(m.centro_nombre || consultaPrivada())}</span>
-      <span class="sm">${esc([m.municipio, m.provincia].filter(Boolean).join(' · '))}</span></span>
-    <span class="c3"><span class="dias">${['L','M','X','J','V'].map(k => `<span class="${d[k] ? 'on' : ''}">${k}</span>`).join('')}</span></span>
-    <span class="pill p-est">${esc(m.estado_comercial)}</span>
-  </button>`;
-}
+function recientesDe(ids, fecha) { return window.delcos.leftovers.recentContacts(ids, fecha); }
 
 const F = { q: '', prov: '', muni: '', esp: '', est: '', urg: false, orden: 'nombre', pagina: 0, total: 0, campos: {} };
 
@@ -115,45 +51,10 @@ const NOMBRE_ESTADO_CENTRO = { 'Pendiente de confirmar': 'p-warn', Confirmado: '
    ============================================================ */
 let FX_FICHA = 0;
 
-function abrirHorarioPlan() {
-  abrirHorarioPlanBase();
-  const ayuda = {
-    hsal: `A qué hora sales. La ${TT('visita', 's', 'primer', 'l', 'l')} se calcula desde aquí o desde ahora, si esa hora ya ha pasado.`,
-    htop: `Hora de vuelta de la ruta. No se planifican ${TT('visita', 'p', '', 'l', 'l')} que te hagan volver más tarde; si el día se pasa, se marca en naranja.`,
-    hvis: `Lo que dura de media cada ${TT('visita', 's', '', 'l', 'l')} con ${TT('medico', 's', 'un', 'l', 'l')}, una vez allí.`,
-    hpar: `Tiempo extra cada vez que llegas a un sitio nuevo: aparcar, entrar, esperar en recepción. Si ves a varios ${TT('medico', 'p', '', 'l', 'l')} en el mismo centro, se cuenta una sola vez.`
-  };
-  Object.entries(ayuda).forEach(([id, t]) => { const i = $(id); if (i && !i.parentElement.querySelector('.ayudah')) i.insertAdjacentHTML('afterend', `<span class="sm ayudah">${esc(t)}</span>`); });
-  const fh = $('dbody').querySelector('.fh');
-  if (fh && !$('horinfo')) fh.insertAdjacentHTML('afterend', `<p class="sm" id="horinfo">Con estos datos se calculan las horas estimadas de tus rutas, de «Tu día» y del planificador semanal. Los desplazamientos entre ${TT('visita', 'p', '', 'l', 'l')} se estiman por la distancia.</p>`);
-}
-
-
-
-
-
-
+function abrirHorarioPlan() { window.delcos.leftovers.openPlanHours(); }
 
 /* Ficha del prescriptor: la ficha base y, en orden, cada bloque que se le añade
    (antes eran 6 capas separadas). */
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 // La ficha está en src/app/screens/accounts/card (v2.401.0): una lista de secciones con nombre en vez de 18 capas. El nombre
 // global se queda: lo llaman muchas pantallas y «‹ Volver» (legado 126) envuelve las ventanas por su nombre.

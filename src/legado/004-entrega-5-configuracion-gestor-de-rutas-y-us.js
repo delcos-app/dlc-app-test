@@ -5,7 +5,7 @@
    ============================================================ */
 
 let CFG_SEC = 'prefs', ADM_SEC = 'usuarios', USUARIOS = [], CATS = [];
-const AREAS = [['H', 'Inicio'], ['G', 'Agenda'], ['R', 'Rutas'], ['M', `${TT('medico', 'p', '', 'l', 'C')}`], ['C', 'Centros'], ['S', `${TT('visita', 'p', '', 'l', 'C')}`], ['V', `Ventas y ${TT('paciente', 'p', '', 'l', 'l')}`], ['K', 'Configuración']];
+const AREAS = window.delcos.content.areas();
 
 window.delcos.legacyA.listenToSectionButtons();
 

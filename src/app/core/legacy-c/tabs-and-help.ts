@@ -3,7 +3,6 @@
  * (v2.61.0) and the help lines added for Clasificadores, the search and the centres in routes (v2.88.0–v2.98.0); the login remembers the
  * e-mail and keeps the session (v2.62.0). Folded from legado 055, 060, 065, 066 and 068 (v2.425.0).
  */
-import { term } from '../../legacy/bridge';
 import { t } from '../../i18n';
 import { byId, closestTo, observe } from './dom';
 
@@ -60,15 +59,6 @@ export function summariseNewHelps(): void {
     mutations.forEach(mutation => { mutation.addedNodes.forEach(node => { if (node instanceof HTMLElement && node.classList.contains('aipop')) resumirAyuda(node); }); });
   }, { childList: true });
 }
-
-const helpLines = (screen: string): string[] | null => (AYUDA as Record<string, unknown[] | undefined>)[screen]?.[2] as string[] | null ?? null;
-
-/** v2.88.0: Clasificadores in «Filtros y columnas»; v2.94.0: the smart search; v2.98.0: centres in routes. */
-export function addFieldsHelp(): void {
-  ['directorio', 'pacientes', 'ventas', 'productos'].forEach(screen => { helpLines(screen)?.push(t('legacyC.help.classifiers')); });
-}
-export function addSearchHelp(): void { helpLines('directorio')?.push(t('legacyC.help.search')); }
-export function addRouteCentresHelp(): void { helpLines('rutas')?.push(t('legacyC.help.routeCentres', { professionals: term('medico', { number: 'p' }) })); }
 
 /** v2.62.0: the login remembers the last e-mail and keeps the session on this device unless unchecked. */
 export function rememberLogin(): void {

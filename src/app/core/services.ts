@@ -6,6 +6,7 @@ export * as calendar from '../services/calendar';
 export * as money from '../services/money';
 export * as files from '../services/files';
 export * as maps from '../services/maps';
+export * as pdf from '../services/pdf';
 export * as vocabulary from './vocabulary';
 export * as states from './commercial-states';
 export * as permissions from './permissions';

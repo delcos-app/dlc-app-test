@@ -5,13 +5,15 @@
  * (see i18n/index.ts), so each company sees its own words.
  */
 import { accounts } from './es/accounts';
+import { leftovers } from './es/leftovers';
+import { billingMore } from './es/billing-more';
+import { productsMore } from './es/products-more';
 import { navigationCore } from './es/navigation-core';
 import { core } from './es/core';
 import { legacyC } from './es/legacy-c';
 import { legacyD } from './es/legacy-d';
 import { legacyB } from './es/legacy-b';
 import { legacyA } from './es/legacy-a';
-import { legacyAHelp } from './es/legacy-a-help';
 import { settingsShell } from './es/settings-shell';
 import { listBar } from './es/list-bar';
 import { settingsRest } from './es/settings-rest';
@@ -87,12 +89,14 @@ export const es = {
   listBar,
   settingsShell,
   legacyA,
-  legacyAHelp,
   legacyB,
   legacyD,
   legacyC,
   core,
   navigationCore,
+  billingMore,
+  productsMore,
+  leftovers,
   common: {
     save: 'Guardar',
     cancel: 'Cancelar',

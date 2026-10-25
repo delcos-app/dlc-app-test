@@ -1,16 +1,7 @@
 // pantallas/acceso.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
-function claveAlerta(titulo, x) {
-  const id = x.dataset.inificha || x.dataset.iniped || x.dataset.inistock || x.dataset.inicomp;
-  return normAl(titulo) + ':' + (id || normAl((x.querySelector('.tx b') || x).textContent));
-}
-
-
-
-
-
-
+function claveAlerta(titulo, x) { return window.delcos.leftovers.alertKey(titulo, x); }
 
 /* v2.181.0 · Nombres neutros en las respuestas de la base (decisión de Eric: dos versiones). Desde la v2.182.0 (SQL 116) estas funciones
    responden con nombres neutros (cuenta, ubicaciones, actividades…) en lugar de los de DLC (medico, consultas, visitas…). La app sigue usando

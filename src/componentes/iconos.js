@@ -1,40 +1,9 @@
 // componentes/iconos.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
-function iconosMenu() {
-  document.querySelectorAll('nav.main [data-t]').forEach(b => {
-    if (b.querySelector('.navico') || !ICO_NAV[b.dataset.t]) return;
-    b.insertAdjacentHTML('afterbegin', `<span class="navico">${svgIco(ICON_NOM[ICO_NAV[b.dataset.t]])}</span>`);
-  });
-}
+function iconosMenu() { window.delcos.leftovers.menuIcons(); }
 
-// Sustituye los emojis y glifos por iconos de línea, en todo lo que se pinta
-function iconizar(raiz) {
-  if (!raiz || !raiz.nodeType) return;
-  const el = raiz.nodeType === 1 ? raiz : raiz.parentElement; if (!el) return;
-  if (el.closest && el.closest('script,style,textarea,svg,[data-noico]')) return;
-  const w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, { acceptNode: n => {
-    const p = n.parentElement; if (!p || p.closest('script,style,textarea,svg,[data-noico]')) return NodeFilter.FILTER_REJECT;
-    RE_ICO.lastIndex = 0; return RE_ICO.test(n.nodeValue) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT; } });
-  const nodos = []; while (w.nextNode()) nodos.push(w.currentNode);
-  nodos.forEach(n => {
-    const p = n.parentElement;
-    if (p.tagName === 'OPTION' || p.tagName === 'TITLE') { n.nodeValue = n.nodeValue.replace(RE_ICO, '').replace(/^\s+/, ''); return; }
-    const frag = document.createDocumentFragment(); let ult = 0, m; RE_ICO.lastIndex = 0;
-    const t = n.nodeValue;
-    while ((m = RE_ICO.exec(t))) {
-      if (m.index > ult) frag.appendChild(document.createTextNode(t.slice(ult, m.index)));
-      if (m[0] !== '\ufe0f') { const s = document.createElement('span'); s.className = 'icw'; s.innerHTML = svgIco(ICON_EMOJI[m[0]]); frag.appendChild(s); }
-      ult = m.index + m[0].length;
-    }
-    if (ult < t.length) frag.appendChild(document.createTextNode(t.slice(ult)));
-    n.replaceWith(frag);
-  });
-  // Ayudas «i»
-  (el.matches && el.matches('.ai') ? [el] : []).concat([...(el.querySelectorAll ? el.querySelectorAll('.ai') : [])]).forEach(b => {
-    if (!b.querySelector('svg') && b.textContent.trim() === 'i') b.innerHTML = svgIco(ICON_NOM.info);
-  });
-}
+function iconizar(raiz) { window.delcos.leftovers.iconise(raiz); }
 
 const ICO = {
   gear: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>',
@@ -45,8 +14,7 @@ const ICO = {
   abajo: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>'
 };
 
-const ICONOS_MANUAL = { roles: '👥', inicio: '🏠', agenda: '📅', rutas: '🧭', directorio: '🩺', centros: '🏥', visitas: '📝', ventas: '🛒',
-  config: '⚙️', admin: '🛡️', facturacion: '🧾', permisos: '🔐' };
+const ICONOS_MANUAL = window.delcos.content.manualIcons();
 
 const ICO_MOD = { inicio: '◉', agenda: '▤', rutas: '➤', directorio: '☰', pacientes: '👥', productos: '📦', seguimiento: '✔︎', ventas: '🛒',
   analitica: '📊', facturacion: '🧾', informe: '◉' };

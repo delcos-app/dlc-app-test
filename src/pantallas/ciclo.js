@@ -1,17 +1,7 @@
 // pantallas/ciclo.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
-function menuCiclo() {
-  const nav = document.querySelector('nav.main .in'); if (!nav) return;
-  let b = nav.querySelector('[data-t="ciclo"]');
-  if (!b) { const tras = nav.querySelector('[data-t="rutas"]') || nav.querySelector('[data-t="agenda"]'); if (!tras) return; tras.insertAdjacentHTML('afterend', `<button data-t="ciclo" aria-selected="false">Ciclo de ${TT('visita', 'p', '', 'l', 'l')}</button>`); b = nav.querySelector('[data-t="ciclo"]'); }
-  b.classList.toggle('hide', !!(ES_MEDICO() || !puedeModulo('agenda')));
-}
-
-
-
-
-
+function menuCiclo() { window.delcos.leftovers.menuCycle(); }
 
 /* v2.197.0 · Ciclo de visitas con clasificación A/B/C (segunda tanda del estudio por sectores, SQL 123). Decisiones de Eric: cada ficha en A,
    B o C, cada clase con sus visitas por ciclo y el ciclo configurable (de partida, trimestral: A = 3, B = 2, C = 1).

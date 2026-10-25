@@ -221,12 +221,6 @@ export const outsideClicksLegacy = {
   help: (key: string): [string, string, string[]] | undefined => (AYUDA as unknown as LegacyHelp)[key],
 };
 
-/** The help texts. */
-export const helpLegacy = {
-  stateFor: (role: string): string => estadoPapel(role),
-  allOf: (word: string): string => todosLos(word),
-};
-
 export interface Profile {
   id: string; nombre: string; rol: string; email: string;
   preferencias?: { idioma?: string; inicio?: string; kpis?: { id: string; on: boolean; t: string }[] } | null;

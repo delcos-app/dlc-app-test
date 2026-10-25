@@ -20,7 +20,8 @@ const BIG_NETWORK_USERS = 50;
 const lines = (key: 'field' | 'sales' | 'company' | 'custom', words: Record<string, string>): string[] =>
   t(`legacyC.plans.${key}.advantages`, words).split('|');
 
-function definitions(): Plan[] {
+/** The plans with their final texts (the legacy PLANES, built once at legado 041). */
+export function definePlanList(): Plan[] {
   const words = { professionals: term('medico', { number: 'p' }), visits: term('visita', { number: 'p' }), ofTheProfessional: term('medico', { article: 'del' }) };
   return [
     { id: 'campo', nombre: t('legacyC.plans.field.name'), precio: 29, anual: 24, minimo: 3, incluidos: 3, bloque: [1, 29], medicos: 0, para: t('legacyC.plans.field.for'), modulos: [...FIELD], ventajas: lines('field', words) },
@@ -29,12 +30,6 @@ function definitions(): Plan[] {
     { id: 'medida', nombre: t('legacyC.plans.custom.name'), precio: null, anual: null, minimo: BIG_NETWORK_USERS, incluidos: BIG_NETWORK_USERS, bloque: [1, 0], medicos: null, presupuesto: true,
       para: t('legacyC.plans.custom.for'), modulos: [...COMPANY], ventajas: lines('custom', words) },
   ];
-}
-
-/** Puts the plans in the legacy PLANES (the same array other code already holds). */
-export function definePlans(): void {
-  const plans = PLANES as unknown as Plan[];
-  plans.splice(0, plans.length, ...definitions());
 }
 
 /** What each module brings, for the plan page (the legacy MOD_PLAN). */

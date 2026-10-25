@@ -13,8 +13,10 @@ import * as events from './screens/events';
 import * as coreServices from './core/services';
 import * as legacyC from './core/legacy-c';
 import * as layers from './core/layers';
+import * as leftovers from './core/leftovers';
 import * as legacyB from './core/legacy-b';
 import * as legacyA from './core/legacy-a';
+import * as content from './content';
 import * as settingsShell from './screens/settings/shell';
 import * as embeddedWindow from './components/embedded-window';
 import * as settingsRest from './screens/settings/rest';
@@ -74,8 +76,12 @@ export interface DelcosCore {
   readonly legacyC: typeof legacyC;
   /** The legacy layers 080–161 folded into src/app/core/layers (v2.424.0): installed from their legado files, in load order. */
   readonly layers: typeof layers;
+  /** The last pieces moved out of src/pantallas, src/componentes and servicios/camara.js (v2.427.0), called by their legacy adapters. */
+  readonly leftovers: typeof leftovers;
   /** What legado 000–024 did (v2.424.0): each legado file calls it at its place in the load order. */
   readonly legacyA: typeof legacyA;
+  /** Content catalogs (help, manual, indicators, notifications, plans), built once in their final state (v2.427.0). */
+  readonly content: typeof content;
   /** Shared components (src/app/components), called by the legacy adapters in src/componentes. */
   readonly components: typeof components & { readonly embeddedWindow: typeof embeddedWindow; readonly list: typeof listComponents; readonly filters: typeof filterComponents; readonly filtersPanel: typeof filtersPanel; readonly listBar: typeof listBar };
   /** Migrated screens, called by the legacy adapters (e.g. cargarInicio) until navigation moves to the router. */
@@ -134,7 +140,9 @@ window.delcos = {
   core: coreServices,
   legacyC,
   layers,
+  leftovers,
   legacyA,
+  content,
   components: { ...components, embeddedWindow, list: listComponents, filters: filterComponents, filtersPanel, listBar },
   legacyB,
   screens: {

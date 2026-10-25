@@ -103,7 +103,6 @@ export function watchAnalyticsChannel(): void {
 
 export function watchBillingSettings(): void {
   observe(byId('v-facturacion'), () => { ajustarFacturacion(); }, { childList: true, subtree: true });
-  observe(byId('v-facturacion'), () => { botonDisenoPDF(); }, { childList: true, subtree: true });
 }
 
 function renameIn(node: Node): void {

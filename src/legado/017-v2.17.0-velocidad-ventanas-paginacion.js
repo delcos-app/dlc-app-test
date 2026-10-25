@@ -15,6 +15,6 @@ let DUP_RES = null;
 window.delcos.legacyA.listenToOutsideClicks();
 window.delcos.legacyA.watchListsAndHelp();
 
-const AYUDA_KPI = window.delcos.legacyA.indicatorHelp();
-const AYUDA = window.delcos.legacyA.screenHelp();
+const AYUDA_KPI = window.delcos.content.indicatorHelp();
+const AYUDA = window.delcos.content.screenHelp();
 window.delcos.legacyA.listenToHelpButtons();

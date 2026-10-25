@@ -1,7 +1,6 @@
 // pantallas/panel_delcos.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
-
 // (v2.183.0: aquí iba la primera versión de reportarProblema; se redefine entera más abajo)
 // Configuración → Seguridad y registro → Errores (administración)
 
@@ -15,13 +14,7 @@
 // v2.117.0 · Organizaciones: plan de cada empresa, estado (prueba, terminada, desactivada), descargar sus datos y borrar las de prueba
 
 // Menú de usuario: una sola entrada «Organización» en lugar de Empresa y Plan
-function menuOrganizacion() {
-  const plan = document.querySelector('[data-u="plan"]'), emp = document.querySelector('[data-u="empresa"]');
-  if (!document.querySelector('[data-u="organizacion"]') && (emp || plan))
-    (emp || plan).insertAdjacentHTML('beforebegin', `<button data-u="organizacion" class="hide">${svgIco(ICON_NOM.building)} Organización</button>`);
-  [plan, emp].forEach(b => b && b.classList.add('hide'));
-  const o = document.querySelector('[data-u="organizacion"]'); if (o) o.classList.toggle('hide', !puedeOrganizacion());
-}
+function menuOrganizacion() { window.delcos.leftovers.menuOrganization(); }
 
 // Organizaciones: los extras de cada empresa (los activa la plataforma)
 

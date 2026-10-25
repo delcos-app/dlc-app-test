@@ -22,7 +22,3 @@ window.delcos.legacyB.listenToPickers();
 
 // Vincular un usuario de tipo Médico con su ficha (Administración → Usuarios → Editar)
 
-MANUAL.push({ id: 'medico', t: `Espacio ${TT('medico', 's', 'del', 'l', 'l')}`, a: null, para: `${TT('medico', 'p', 'el', 'C', 'l')} con usuario ven su portal: cifras agregadas, sin importes ni datos de personas.`,
-  hacer: [[3, 'Crear el usuario con un rol de portal y vincularlo a su ficha (Configuración → Usuarios → Editar)']],
-  config: [`${TT('medico', 's', 'el', 'C', 'l')} ve unidades, ventas, ${TT('paciente', 'p', '', 'l', 'l')} (solo el número) y las llamadas de sus ${TT('paciente', 'p', '', 'l', 'l')}. Nunca importes ni nombres.`] });
-ICONOS_MANUAL.medico = '🩺';

@@ -12,7 +12,6 @@ export { startPasswordFlows } from './password';
 export { startGlobalSearch } from './global-search';
 export { installRequestCache } from './request-cache';
 export { listenToHelpButtons, listenToOutsideClicks, watchListsAndHelp } from './outside-clicks';
-export { indicatorHelp, screenHelp } from './help-texts';
 export { showApp } from './show-app';
 export { paintTestStrip } from './test-strip';
 export { addHelpAnchors, appointmentStates, cacheMoreRequests, unitsLegend } from './load-time';

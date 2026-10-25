@@ -1,59 +1,23 @@
 // pantallas/agenda.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
-// La precarga de datos de la Agenda está en src/app/screens/agenda/preload.ts (v2.393.0)
-const datosAgenda = window.delcos.screens.agenda.data;
+function citasDelDia(fecha) { return window.delcos.leftovers.appointmentsOfDay(fecha); }
 
+function agUid() { return window.delcos.leftovers.agendaOwnerId(); }
 
-async function citasDelDia(fecha) {
-  const r = await rpcCache('agenda_rango', { p_desde: fecha, p_hasta: fecha, p_usuario: PERFIL.id }, 'agenda-' + fecha);
-  return r.data || [];
-}
+function agUsuarioFiltro() { return window.delcos.leftovers.agendaUserFilter(); }
 
-
-
-
-function agUid() { return AG_VISTA ? AG_VISTA.id : PERFIL.id; }
-
-function agUsuarioFiltro() {
-  if (TAB === 'agenda' && AG_VISTA) return AG_VISTA.id;
-  return puede('administrar') ? null : PERFIL.id;
-}
-
-async function verAgendaDe(id) {
-  if (!id || id === PERFIL.id) { AG_VISTA = null; cargarAgenda(); return; }
-  const { data } = await RPC_ORIG('preferencias_de', { p_usuario: id });
-  if (!data) { toast('No se ha podido abrir su agenda', true); return; }
-  AG_VISTA = { id: data.id, nombre: data.nombre, rol: data.rol, preferencias: data.preferencias || {} };
-  cargarAgenda();
-}
-
-
+function verAgendaDe(id) { return window.delcos.leftovers.showAgendaOf(id); }
 
 // Mis citas pendientes (planificadas o confirmadas) desde hoy: médico → primera fecha
-async function citasPlanificadasMias() {
-  try {
-    const { data } = await db.from('agenda').select('cuenta_id,fecha').eq('usuario_id', PERFIL.id)
-      .in('estado', ['Planificada', 'Confirmada']).gte('fecha', hoyISO()).order('fecha').limit(2000);
-    const r = {}; (data || []).forEach(c => { if (!r[c.cuenta_id]) r[c.cuenta_id] = c.fecha; }); return r;
-  } catch (e) { return {}; }
-}
-
+function citasPlanificadasMias() { return window.delcos.leftovers.myPlannedAppointments(); }
 
 /* v2.147.0 · Agenda: «Tu día» sin citas (petición de Eric). Sin contadores a cero; en un día pasado, «No tuviste citas este día.» (no se
    puede añadir nada); el mensaje, compacto: icono y frase en una línea, centrado. */
 
-async function tareasDelDia(f) {
-  if (AG_VISTA && AG_VISTA.id !== PERFIL.id) return null;   // las tareas son de cada uno: en la agenda de otra persona no se ven
-  if (TAREAS_DIA && TAREAS_DIA.f === f) return TAREAS_DIA.l;
-  const { data, error } = await db.from('tareas').select('*').eq('fecha', f).order('orden', { ascending: true, nullsFirst: false }).order('hora', { ascending: true, nullsFirst: false }).order('creado_en');
-  if (error) return null;
-  TAREAS_DIA = { f, l: data || [] };
-  return TAREAS_DIA.l;
-}
+function tareasDelDia(f) { return window.delcos.leftovers.tasksOfDay(f); }
 
-function agCambiosEnVentana() { return RC_EPOCA !== DLG_EPOCA; }
-
+function agCambiosEnVentana() { return window.delcos.leftovers.changedWhileOpen(); }
 
 // Lo que antes era «cargar la agenda entera» tras un cambio: en la vista del día, solo lo que cambia
 
@@ -67,54 +31,31 @@ function agCambiosEnVentana() { return RC_EPOCA !== DLG_EPOCA; }
    - Si vuelve a un día en que estaba aplazada, la base la reactiva y se ve como las demás (aplazar_cita y reabrir_cita).
    - En la ventana de la cita, botones para ir al día al que se movió o del que viene. */
 
+function puedeRegistrarEnDia(f) { return window.delcos.leftovers.canRecordOn(f); }
 
-function puedeRegistrarEnDia(f) {
-  const h = hoyISO();
-  return !f || f === h || (f < h && puede('visita_fecha_pasada'));
-}
-
-async function agBloqueos(desde, n) { try { return await bloqueadosSemana(desde, isoMas(desde, n - 1)); } catch (e) { return {}; } }
-
-
-
-
-
+function agBloqueos(desde, n) { return window.delcos.leftovers.blockedFrom(desde, n); }
 
 // Las citas que cambian de sitio se deslizan y la tocada se resalta (antes se animaban las filas ocultas)
-
 
 // ---- Pastillas: las cifras de agenda_metricas
 // ---- La Agenda: vista del día (con la semana o el mes abiertos si se piden) o Equipo
 
-
-
-
-
 // ---- Pastillas, cifras y bandejas
 // Tras un cambio (mover, registrar, notas…): cifras, cinta, «Tu semana», bandejas y el mes si está abierto, de una vez
 
-
-
 // La ruta de hoy con los mismos puntos y salida que «Tu día en el mapa»
-
 
 // Pedir los tiempos con tráfico (una consulta) y volver a pintar «Tu día»
 
 // En la cabecera de «Tu día» (hoy): si las horas van con tráfico real o el botón para calcularlas
-
-
 
 /* ============================================================
    v2.299.0 · Tu día compacto (petición de Eric): un botón deja cada cita en una línea con el nombre, la hora y el estado.
    Se recuerda en este dispositivo. Pulsar la cita sigue abriendo su detalle (desde ahí se registra la visita).
    ============================================================ */
 
-
-
-
 // El mes está en src/app/screens/agenda (v2.390.0); este nombre se queda porque lo llaman el escuchador de Escape y las pruebas
 function cerrarMesCinta() { window.delcos.screens.agenda.closeMonth(); }
-
 
 const horDeCitas = l => { const c = (l || []).find(x => x && (x.salida || x.vuelta)); return c ? { salida: c.salida || null, vuelta: c.vuelta || null } : null; };
 
@@ -196,16 +137,13 @@ const citaHecha = e => EST_COL[e] === 'var(--ok)';
 // Estados de una cita sin escribir sus nombres (la prueba de literales los cuenta): por su color
 const citaAusente = e => EST_COL[e] === 'var(--warn)' && !CITA_ABIERTA.includes(e);   // «no estaba»
 
-
 const agN = () => agConCinta() && $('v-agenda').classList.contains('agn');
 
 // Quién ya tiene cita ese día (no se le propone)
 
-
 // Subir o bajar una cita no recarga la Agenda aunque otra pantalla (Inicio pide las citas de hoy) haya pedido otro día entretanto:
 // se guarda lo último de cada día y se usa el del día que se ve
 const AG_DIAS_DATOS = {};
-
 
 const tdClaveXY = (a, b) => a && b && a[0] != null && b[0] != null ? `${(+a[0]).toFixed(5)},${(+a[1]).toFixed(5)}>${(+b[0]).toFixed(5)},${(+b[1]).toFixed(5)}` : '';
 
@@ -213,62 +151,24 @@ const tdRealVigente = () => TD_REAL && Date.now() - TD_REAL.t < 600000;
 
 // Tareas del día plegables: un clic en su título las oculta todas y se ven solo las citas (se recuerda en este dispositivo)
 
-
-async function bloqueadosSemanaBase(desde, hasta) {
-  const { data } = await RPC_ORIG('dias_bloqueados_rango', { p_desde: desde, p_hasta: hasta, p_usuario: agUid() });
-  const b = {}; (data || []).forEach(x => b[x.fecha] = x.motivo || 'Día bloqueado');
-  return b;
-}
-
-
+function bloqueadosSemanaBase(desde, hasta) { return window.delcos.leftovers.readBlockedDays(desde, hasta); }
 
 /* v2.146.0 · Agenda: al pulsar un día de la semana o del mes, «Tu día» pasa a ese día (petición de Eric: antes se abría un desplegable).
    El título de «Tu día» es la fecha elegida y al lado está «Volver a hoy»; el día elegido queda marcado en la semana y en el mes.
    Las cifras de arriba, la semana y el mes siguen siendo los de hoy. */
 
-
 // La cinta de 14 días
 
-
-
-
-
-function bloqueadosSemana(d, h) {
-  const pre = datosAgenda.peekBlocked(d, h); if (pre) return Promise.resolve(pre);
-  return bloqueadosSemanaBase(d, h);
-}
+function bloqueadosSemana(d, h) { return window.delcos.leftovers.blockedDays(d, h); }
 
 // ---- Cinta: datos, «⋯» de cada día y semana desplegada, de una vez
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 // «Ver la semana» aparece de una vez: se pinta escondida y se enseña ya con sus días (antes salía vacía y se llenaba)
-
-
-
-
 
 // «Tu día» está en src/app/screens/agenda/your-day (v2.397.0); el nombre se queda porque lo llaman mucho código antiguo
 function pintarTuDia() { return window.delcos.screens.agenda.paintYourDay(); }
 
-
-
-
 // ---- Elegir otro día: todo lo que cambia (Tu día, bandejas, cinta, «Tu semana», la semana abierta) aparece a la vez
-
 
 // La vista del día y la de equipo están en src/app/screens/agenda (v2.395.0). Estos dos nombres se quedan como adaptadores
 // porque los llaman mucho código antiguo y las pruebas.

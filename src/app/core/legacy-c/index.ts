@@ -13,21 +13,19 @@ import { arrangeEveryScreen, arrangeTableBars, keepOneTitleHelp, listenToSeeMore
 import { improveNumbers, noSystemPickers, undoWrongVat, watchFormFields, watchVatFields, watchWideNotes } from './form-fields';
 import { cacheModuleLoaders, keepUpdateTime, loaderOnPageChange, watchDialogWrites } from './module-cache';
 import { embedWindows, focusOpenedWindows, forgetVisitOnClose, neverHalfOpen, repaintCycleOnClose, repaintEventsOnClose, repaintSurgeriesOnClose, revealWindows, sizeWindows, stackWindows, trackDialogEpoch } from './dialogs';
-import { addFieldsHelp, addRouteCentresHelp, addSearchHelp, freezeOnTabChange, rememberLogin, rememberPressedTab, summariseNewHelps } from './tabs-and-help';
+import { freezeOnTabChange, rememberLogin, rememberPressedTab, summariseNewHelps } from './tabs-and-help';
 import { navigateSuggestions, rememberScreenOnReload } from './keys';
-import { definePlans } from './plans';
 import * as pages from './pages';
 import { buildMenusSoon, buildSalesMenusSoon, cycleMenu, eventsMenu, padlocksSoon, surgeriesMenu } from './menu-permissions';
 import { watchSideMenu } from './side-menu';
 import { markerInsteadOfStrip, stripWithBringButton } from './test-environment';
 import { markPortalOrderRows } from './order-alerts';
-import { addUsefulNotificationTypes } from './notifications';
 import { coverWhenLeavingOrganization, extrasAreExceptions, finishOrganizationChange } from './platform';
 import { cancellationOnStart, forgetPlanReturnLater, paymentOnStart, reportVersionInUse, signUpNotices } from './plan-page';
 import { addToAgendaFromCard, checkSamplesBeforeSaving, closePopupOutside, decorateVisitResults, openCentreFromSearch, pullToReload, toggleDayMenu } from './agenda-extras';
 
 export { addIconsOf } from './icons';
-export { notificationExplanations, explainNotificationTypes } from './notifications';
+export { notificationExplanations } from './notifications';
 export { contactLabels, applyContactsLabel } from './contacts-label';
 export { openTools, showColumnsPanel } from './tools';
 export { vatSelector, visibleValue, withLoading } from './form-fields';
@@ -58,12 +56,10 @@ export function start058(): void {
 }
 export function start059(): void { countNetwork(); runQueriesOnce(); revealWindows(); }
 export function start060(): void { rememberPressedTab(); summariseNewHelps(); watchBillingSettings(); rememberLogin(); }
-export function start065(): void { listenToFieldChips(); addFieldsHelp(); }
-export const start066 = addSearchHelp;
-export const start068 = addRouteCentresHelp;
+export function start065(): void { listenToFieldChips(); }
 export const start069 = applyVocabularyToFixedTexts;
 export function start071(): void {
-  mejorarCamposNuevos(document); improveNumbers(); navigateSuggestions(); rememberScreenOnReload(); focusOpenedWindows(); definePlans();
+  mejorarCamposNuevos(document); improveNumbers(); navigateSuggestions(); rememberScreenOnReload(); focusOpenedWindows();
 }
 export function start072(): void { pages.defineOrganization(); openOrganizationPage(); embedWindows(); }
 export function start073(): void {
@@ -72,7 +68,7 @@ export function start073(): void {
 }
 export function start074(): void { addIconsOf('074'); closePopupOutside('.agpop', '[data-agdia]'); setPanelFilters(); raisePageAction(); closePopupOutside('.ankpop', '[data-ancfg]'); }
 export function start075(): void {
-  addUsefulNotificationTypes(); pages.iconsForAllSections(); extrasAreExceptions(); neverHalfOpen(); pages.addErrorsTab(); reportVersionInUse(); paymentOnStart(); padlocksSoon();
+  pages.iconsForAllSections(); extrasAreExceptions(); neverHalfOpen(); pages.addErrorsTab(); reportVersionInUse(); paymentOnStart(); padlocksSoon();
   pages.hideReadOnlyBillingTabs();
 }
 export function start076(): void {

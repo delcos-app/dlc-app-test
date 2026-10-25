@@ -12,3 +12,5 @@ export { paintStock } from './stock';
 export { stockMovement } from './movement';
 export { showStock, traceability } from './stock-sheet';
 export { editStores, paintStores } from './stores';
+// v2.427.0: the product editor and the visit material
+export { editProduct, paintVisitMaterial, promotedProducts } from './editor';

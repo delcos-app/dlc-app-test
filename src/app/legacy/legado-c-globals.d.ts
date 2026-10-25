@@ -102,7 +102,6 @@ declare function configurarAvisosPedidos(mandatory: unknown): void;
 declare function conCargaBase<T>(button: HTMLElement | null, text: string, work: () => Promise<T>): Promise<T>;
 declare function clasPintar(zone: Element, kind: string, state: Record<string, unknown>, onChange: () => void, onClear: () => void, heading: string): void;
 declare function centroConConsulta(stop: object, isoDate: string): unknown;
-declare function botonDisenoPDF(): void;
 declare function bienvenidaAlta(): void;
 declare function barraCuentas(): void;
 declare function aplicarPermisosMenuBase2(...args: unknown[]): unknown;
