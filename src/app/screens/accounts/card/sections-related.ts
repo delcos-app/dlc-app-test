@@ -7,6 +7,7 @@ import { t } from '../../../i18n';
 import { formatShortDate } from '../../../services/date-format';
 import { escapeHtml, formatNumber } from '../../../services/format';
 import { orFallback, sum } from '../../../services/values';
+import { statePill } from '../../surgeries/model';
 import { accountKind, addBeforeFields, closeCardAnd, fieldsPlace, onEach, stillShown } from './card-tools';
 
 /** Values stored in the database (each module names its states). */
@@ -79,7 +80,7 @@ export async function surgeries(id: string): Promise<void> {
     .or(`cirujano_id.eq.${id},hospital_id.eq.${id}`).order('fecha', { ascending: false }).limit(5);
   if (!(data ?? []).length) return;
   const block = addBeforeFields(id, 'fcirugias', `<div class="blk" id="fcirugias"><h3>${t('accounts.card.surgeriesTitle')}</h3>
-      ${(data ?? []).map(item => `<div class="fmrow"><span><button type="button" class="lnk" data-fcir="${item.id}">${escapeHtml(orFallback(item.procedimiento, t('accounts.card.surgery')))}</button><span class="sm"> · ${formatShortDate(item.fecha)}</span></span>${relatedLegacy.surgeryPill(item)}</div>`).join('')}</div>`);
+      ${(data ?? []).map(item => `<div class="fmrow"><span><button type="button" class="lnk" data-fcir="${item.id}">${escapeHtml(orFallback(item.procedimiento, t('accounts.card.surgery')))}</button><span class="sm"> · ${formatShortDate(item.fecha)}</span></span>${statePill(item)}</div>`).join('')}</div>`);
   if (block) onEach(block, 'fcir', surgery => { closeCardAnd(() => { relatedLegacy.openSurgery(surgery); }); });
 }
 

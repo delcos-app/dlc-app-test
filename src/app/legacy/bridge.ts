@@ -276,7 +276,9 @@ export const routeBar = { paint: (): void => { void pintarRutaBarra(); } };
 
 /** What the appointment and task editors use from legacy: the account picker and the «seen recently» notice (Cuentas). */
 export const editorLegacy = {
-  pickAccount: (element: HTMLElement | null, value: PickedAccount | null, onPick: (account: PickedAccount) => Promise<void>): void => { selectorMedico(element, { valor: value, alElegir: onPick }); },
+  pickAccount: (element: HTMLElement | null, value: PickedAccount | null, onPick: (account: PickedAccount) => Promise<void> | void, placeholder?: string): void => {
+    selectorMedico(element, { valor: value, alElegir: onPick, ...(placeholder ? { placeholder } : {}) });
+  },
   recentContacts: (accountId: string, isoDate: string): Promise<RecentContact[]> => recientesDe([accountId], isoDate).then(found => found[accountId] ?? []),
   recentText: (list: RecentContact[]): string => txtReciente(list),
   turnOffRecentNotice: (): Promise<void> => guardarAvisoRevisita({ ...avisoRevisita(), on: false }),
@@ -303,8 +305,8 @@ export const relatedLegacy = {
   openEvent: (id: string): void => { void verEvento(id); },
   openDeposit: (accountId: string, name: string): void => { void verDeposito(accountId, name); },
   expiresSoon: (isoDate: string | null | undefined): boolean => depCaducaPronto(isoDate),
-  openSurgery: (id: string): void => { void verCirugia(id); },
-  surgeryPill: (surgery: object): string => cirEstado(surgery),
+  /** Opens a surgery through its global name (so «‹ Volver» sees it), optionally with a notice on top. */
+  openSurgery: (id: string, notice?: string): void => { void verCirugia(id, notice); },
   openTender: (id: string): void => { void verConcurso(id); },
   tenderDaysLeft: (tender: object): number | null => conQuedan(tender),
   tenderEnd: (tender: object): string | null => conVence(tender),
@@ -397,4 +399,22 @@ export const accountColumnsLegacy = {
   accessOf: (): Record<string, { activo?: boolean }> | null => MED_ACCESO as Record<string, { activo?: boolean }> | null,
   loadAccess: (): Promise<void> => cargarAccesoMedicos(),
   storageKey: (): string => `dlc-cols-${(PERFIL as { id?: string } | null)?.id ?? ''}`,
+};
+
+/** Eventos: the list repaints through its global name (the page tabs and the dialog-close listener of legado 079 use it). */
+export const eventsLegacy = {
+  repaintList: (): void => { void pintarEventos(); },
+};
+
+/** Shared helpers some screens still need from legacy. */
+export const appLegacy = {
+  /** Forgets every cached read (after a change other screens show). */
+  forgetCache: (): void => { invalidarCache(); },
+  openOrder: (id: string): void => { void verPedido(id); },
+  currentUserName: (): string => (PERFIL as { nombre?: string }).nombre ?? '',
+};
+
+/** Intervenciones: the list repaints through its global name (page tab and dialog-close listener of legado 079). */
+export const surgeriesLegacy = {
+  repaintList: (): void => { void pintarCirugias(); },
 };

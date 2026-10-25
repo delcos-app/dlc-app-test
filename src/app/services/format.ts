@@ -21,3 +21,8 @@ export function formatEuros(value: unknown): string {
 export function looseText(text: string | null | undefined): string {
   return String(text ?? '').normalize('NFD').replace(/\p{M}/gu, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
 }
+
+/** 1234.5 → «1.234,50 €» (up to two decimals). */
+export function formatCurrency(value: unknown): string {
+  return (Number(value) || 0).toLocaleString('es', { style: 'currency', currency: 'EUR', maximumFractionDigits: 2 });
+}

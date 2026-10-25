@@ -6,6 +6,8 @@
  */
 import { accounts } from './es/accounts';
 import { agenda } from './es/agenda';
+import { events } from './es/events';
+import { surgeries } from './es/surgeries';
 
 export const es = {
   common: {
@@ -37,6 +39,8 @@ export const es = {
   },
   agenda,
   accounts,
+  events,
+  surgeries,
   home: {
     showIndicators: 'Ver tus indicadores',
     hideIndicators: 'Ocultar tus indicadores',

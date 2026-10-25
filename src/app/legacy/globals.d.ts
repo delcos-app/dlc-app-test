@@ -15,6 +15,7 @@ interface LegacyQuery<T> extends PromiseLike<LegacyResult<T>> {
   or(filter: string): LegacyQuery<T>;
   order(column: string, options?: { ascending?: boolean }): LegacyQuery<T>;
   maybeSingle(): LegacyQuery<T>;
+  single(): LegacyQuery<T>;
   is(column: string, value: unknown): LegacyQuery<T>;
 }
 interface LegacyDb {
@@ -238,7 +239,7 @@ declare function pintarRutaBarra(): Promise<void>;
 interface PickedAccount { id: string; nombre?: string; centro_nombre?: string | null; centro?: string | null }
 interface Consultation { centro_nombre?: string | null; municipio?: string | null; principal?: boolean | null }
 interface RecentContact { tipo: string; fecha: string; usuario?: string | null }
-declare function selectorMedico(element: HTMLElement | null, options: { valor: PickedAccount | null; alElegir: (account: PickedAccount) => Promise<void> }): void;
+declare function selectorMedico(element: HTMLElement | null, options: { valor: PickedAccount | null; alElegir: (account: PickedAccount) => Promise<void> | void; placeholder?: string }): void;
 declare function recientesDe(ids: string[], isoDate: string): Promise<Record<string, RecentContact[] | undefined>>;
 declare function txtReciente(list: RecentContact[]): string;
 declare function avisoRevisita(): { on: boolean; dias: number };
@@ -252,8 +253,7 @@ declare function verFotosVisita(activityId: string, accountId: string): Promise<
 declare function verEvento(id: string): Promise<void>;
 declare function verDeposito(accountId: string, name: string): Promise<void>;
 declare function depCaducaPronto(isoDate: string | null | undefined): boolean;
-declare function verCirugia(id: string): Promise<void>;
-declare function cirEstado(surgery: object): string;
+declare function verCirugia(id: string, notice?: string): Promise<void>;
 declare function verConcurso(id: string): Promise<void>;
 declare function conQuedan(tender: object): number | null;
 declare function conVence(tender: object): string | null;
@@ -321,3 +321,7 @@ declare const CAMPOS: Record<string, CustomField[] | undefined>;
 declare function campoTexto(field: CustomField | undefined, value: unknown): string;
 declare function nombrePila(name: string): string;
 declare function cargarAccesoMedicos(): Promise<void>;
+declare function pintarEventos(): Promise<void>;
+declare function invalidarCache(): void;
+declare function verPedido(id: string): Promise<void>;
+declare function pintarCirugias(): Promise<void>;

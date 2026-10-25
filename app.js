@@ -74,15 +74,15 @@
   }
 
   // src/app/services/values.ts
-  function orFallback(value2, fallback) {
-    return value2 === void 0 || value2 === null || value2 === "" ? fallback : value2;
+  function orFallback(value4, fallback) {
+    return value4 === void 0 || value4 === null || value4 === "" ? fallback : value4;
   }
-  function nonZeroOr(value2, fallback) {
-    return value2 === void 0 || value2 === null || value2 === 0 || Number.isNaN(value2) ? fallback : value2;
+  function nonZeroOr(value4, fallback) {
+    return value4 === void 0 || value4 === null || value4 === 0 || Number.isNaN(value4) ? fallback : value4;
   }
   var range = (length) => [...Array(length).keys()];
-  var sum = (values) => values.reduce((total, value2) => total + value2, 0);
-  var isPresent = (value2) => value2 !== null && value2 !== void 0;
+  var sum = (values) => values.reduce((total, value4) => total + value4, 0);
+  var isPresent = (value4) => value4 !== null && value4 !== void 0;
 
   // src/app/core/navigation/steps-outer.ts
   var PORTAL_SCREENS = ["informe", "config", "perfil"];
@@ -202,9 +202,9 @@
   var platformPanel = {
     name: "v2.166 · Panel delcos sections, and platform mode only shows the panel",
     before: (nav) => {
-      const section = PANEL_SECCIONES.find((entry) => entry[0] === nav.target);
-      if (section) {
-        PAG_TAB.delcos = section[1];
+      const section2 = PANEL_SECCIONES.find((entry) => entry[0] === nav.target);
+      if (section2) {
+        PAG_TAB.delcos = section2[1];
         nav.target = "delcos";
         return;
       }
@@ -243,9 +243,9 @@
   var ordersSections = {
     name: "v2.128 · Oportunidades, Compras… are sections of Pedidos",
     before: (nav) => {
-      const section = ALIAS_PEDIDOS[nav.target];
-      if (section !== void 0) {
-        PEDSEC = section;
+      const section2 = ALIAS_PEDIDOS[nav.target];
+      if (section2 !== void 0) {
+        PEDSEC = section2;
         nav.target = "ventas";
         return;
       }
@@ -325,8 +325,8 @@
     before: (nav) => {
       if (nav.target in PAGINAS) return;
       Object.keys(PAGINAS).forEach((page) => {
-        const section = document.getElementById(`v-${page}`);
-        if (section) section.innerHTML = "";
+        const section2 = document.getElementById(`v-${page}`);
+        if (section2) section2.innerHTML = "";
       });
     }
   };
@@ -337,13 +337,13 @@
       revealSince.push(Date.now() - 2);
     },
     after: () => {
-      const section = screenSection();
-      if (section) {
-        section.classList.remove("cargando", "cargando-pend");
-        revelar(section, 4e3, revealSince[revealSince.length - 1] ?? Date.now());
+      const section2 = screenSection();
+      if (section2) {
+        section2.classList.remove("cargando", "cargando-pend");
+        revelar(section2, 4e3, revealSince[revealSince.length - 1] ?? Date.now());
       }
       document.querySelectorAll("main > section.preparando").forEach((other) => {
-        if (other !== section) other.classList.remove("preparando");
+        if (other !== section2) other.classList.remove("preparando");
       });
     },
     cleanup: () => {
@@ -352,17 +352,17 @@
   };
   function billingSection() {
     const map = { fiscal: "empresa", series: "series", vf: "verifactu", fact: orFallback(FAC_ULTIMA, "empresa") };
-    const section = CFG_SEC ?? "";
-    if (!(map[section] ?? (section === "fact" ? map[CFG_SUB ?? ""] : void 0))) return void 0;
-    return orFallback(map[section === "fact" ? orFallback(CFG_SUB, "fact") : section], "empresa");
+    const section2 = CFG_SEC ?? "";
+    if (!(map[section2] ?? (section2 === "fact" ? map[CFG_SUB ?? ""] : void 0))) return void 0;
+    return orFallback(map[section2 === "fact" ? orFallback(CFG_SUB, "fact") : section2], "empresa");
   }
   var billingSettings = {
     name: "v2.57 · fiscal data, series and VeriFactu open in Facturación",
     before: (nav) => {
       if (nav.target !== "config") return;
-      const section = billingSection();
-      if (section !== void 0) {
-        FSEC = section;
+      const section2 = billingSection();
+      if (section2 !== void 0) {
+        FSEC = section2;
         CFG_SEC = "rutas";
         nav.target = "facturacion";
       }
@@ -371,10 +371,10 @@
   var loadingIndicatorAfterDelay = {
     name: "v2.56 · the loading indicator only shows while the screen is still requesting data",
     after: () => {
-      const section = screenSection();
-      if (section?.classList.contains("cargando-pend")) {
-        section.classList.remove("cargando-pend");
-        if (PEND > 0) section.classList.add("cargando");
+      const section2 = screenSection();
+      if (section2?.classList.contains("cargando-pend")) {
+        section2.classList.remove("cargando-pend");
+        if (PEND > 0) section2.classList.add("cargando");
       }
     }
   };
@@ -420,12 +420,12 @@
   var noFlashOnFastLoad = {
     name: "v2.52 · fast screens go straight from the old content to the new one, without a flash of the loader",
     after: () => {
-      const section = screenSection();
-      if (!section?.classList.contains("cargando")) return;
-      section.classList.remove("cargando");
-      section.classList.add("cargando-pend");
-      if (PEND > 0) section.classList.add("cargando");
-      section.classList.remove("cargando-pend");
+      const section2 = screenSection();
+      if (!section2?.classList.contains("cargando")) return;
+      section2.classList.remove("cargando");
+      section2.classList.add("cargando-pend");
+      if (PEND > 0) section2.classList.add("cargando");
+      section2.classList.remove("cargando-pend");
     }
   };
 
@@ -994,6 +994,205 @@
     }
   };
 
+  // src/app/i18n/es/events.ts
+  var events = {
+    list: {
+      couldNotLoad: "No se han podido cargar los eventos.",
+      newEvent: "+ Nuevo evento",
+      upcoming: "Próximos",
+      past: "Pasados",
+      noUpcoming: "No hay eventos próximos.",
+      noPast: "Todavía no hay eventos pasados.",
+      online: "En línea",
+      noPlace: "Sin lugar",
+      oneAttendee: "1 asistente",
+      attendees: "{count} asistentes"
+    },
+    editor: {
+      editTitle: "Editar evento",
+      newTitle: "Nuevo evento",
+      subtitle: "Taller, curso, congreso, webinar…",
+      title: "Título",
+      titlePlaceholder: "p. ej. Taller de manejo del dolor articular",
+      type: "Tipo",
+      date: "Fecha",
+      time: "Hora",
+      place: "Lugar",
+      placePlaceholder: "Hotel, centro, sede…",
+      online: "En línea",
+      note: "Nota",
+      delete: "Borrar",
+      cancel: "Cancelar",
+      save: "Guardar",
+      create: "Crear evento",
+      writeTitle: "Escribe el título",
+      chooseDate: "Elige la fecha",
+      couldNotSave: "No se ha podido guardar: {error}",
+      saved: "Evento guardado",
+      created: "Evento creado",
+      deleteText: "El evento desaparece con su lista de asistentes y lo apuntado a cada uno.",
+      deleteTitle: "¿Borrar el evento?",
+      couldNotDelete: "No se ha podido borrar",
+      deleted: "Evento borrado"
+    },
+    sheet: {
+      notFound: "No se ha encontrado el evento",
+      attendees: "Asistentes · {count}",
+      add: "+ Añadir",
+      state: "Estado",
+      remove: "Quitar",
+      noAttendees: "Todavía no hay asistentes: añade los invitados.",
+      total: "Gastos de este evento",
+      note: "Las inscripciones y gastos de cada asistente (inscripción, viaje y alojamiento, comidas y honorarios) salen en el informe anual de gastos. Las comidas no deberían pasar de {max} € por persona.",
+      edit: "Editar evento",
+      done: "Hecho",
+      alreadyIn: "{name} ya está en este evento",
+      couldNotAdd: "No se ha podido añadir: {error}",
+      added: "{name} añadido",
+      couldNotSave: "No se ha podido guardar",
+      mealOver: "La comida pasa de {max} € por persona: revisa que cumpla el código de buenas prácticas",
+      removeText: "{name} deja de estar en este evento, con lo apuntado.",
+      removeTitle: "¿Quitar de la lista?",
+      couldNotRemove: "No se ha podido quitar"
+    },
+    report: {
+      year: "Año",
+      download: "Descargar (CSV)",
+      note: "Los gastos de eventos de cada {professional} durante el año, por concepto (las asistencias marcadas «No asistió» no cuentan). Es la base del informe anual de gastos de los códigos de Farmaindustria y Fenin: revísalo con vuestro responsable de cumplimiento antes de publicarlo.",
+      events: "Eventos",
+      total: "Total",
+      code: "Código",
+      empty: "En {year} no hay gastos de eventos apuntados.",
+      fileName: "informe de gastos-{year}.csv"
+    },
+    /** Labels of the cost concepts (the keys are database columns). */
+    concepts: {
+      inscripcion: "Inscripción",
+      viaje: "Viaje y alojamiento",
+      comida: "Comidas",
+      honorarios: "Honorarios"
+    }
+  };
+
+  // src/app/i18n/es/surgeries.ts
+  var surgeries = {
+    surgery: "Intervención",
+    list: {
+      couldNotLoad: "No se han podido cargar las intervenciones.",
+      newSurgery: "+ Nueva intervención",
+      replenishmentsPending: "Reposiciones pendientes",
+      usedNotRecorded: "Sin registrar lo usado",
+      upcoming: "Próximas",
+      noUpcoming: "No hay intervenciones programadas.",
+      doneLast30: "Hechas en los últimos 30 días",
+      noneDone: "Todavía no hay intervenciones hechas.",
+      assists: " · asiste {name}",
+      noOrder: "Sin pedido"
+    },
+    pills: {
+      overdue: "Reposición vencida",
+      replenishBefore: "Reponer antes del {date}",
+      replenished: "Repuesta"
+    },
+    editor: {
+      changeTitle: "Cambiar la intervención",
+      newTitle: "Nueva intervención",
+      subtitle: "Sale también en la Agenda de quien asiste",
+      date: "Fecha",
+      time: "Hora",
+      centre: "Centro",
+      centrePlaceholder: "Busca el centro o la clínica",
+      responsible: "Responsable",
+      responsiblePlaceholder: "Busca al responsable",
+      procedure: "Procedimiento",
+      procedurePlaceholder: "p. ej. Prótesis de rodilla",
+      room: "Sala",
+      roomPlaceholder: "p. ej. Q3",
+      assists: "Asiste",
+      caseReference: "Referencia {patient}",
+      caseReferencePlaceholder: "Código del centro, sin datos de salud",
+      materialFrom: "De dónde sale el material",
+      note: "Nota",
+      cancelSurgery: "Anular",
+      cancel: "Cancelar",
+      save: "Guardar",
+      schedule: "Programar",
+      missing: "Elige la fecha, el centro y el responsable",
+      couldNotSave: "No se ha podido guardar: {error}",
+      cancelled: "Intervención anulada",
+      saved: "Intervención guardada",
+      scheduled: "Intervención programada",
+      cancelText: "La cita de la Agenda queda descartada.",
+      cancelTitle: "¿Anular la intervención?"
+    },
+    origins: {
+      deposito: "Depósito del centro",
+      personal: "Material de quien asiste"
+    },
+    sheet: {
+      notFound: "No se ha encontrado la intervención",
+      responsible: "Responsable",
+      centre: "Centro",
+      assists: "Asiste",
+      material: "Material",
+      reference: "Ref. {reference}",
+      state: "Estado",
+      noOrder: "Falta el pedido al centro con lo usado.",
+      createOrder: "Crear el pedido",
+      used: "Lo usado",
+      product: "Producto",
+      batch: "Lote",
+      noBatch: "Sin lote",
+      serial: "Nº de serie",
+      units: "Uds",
+      seeOrder: "Ver el pedido",
+      replenishNow: "Reponer ahora",
+      change: "Cambiar",
+      noOrderPermission: "No tienes permiso para crear pedidos: pídeselo a quien lleve los pedidos",
+      orderCreated: "Pedido en borrador creado",
+      notEnoughStock: "No hay bastante en el almacén central para reponerlo todo",
+      replenishedLate: "Repuesto (fuera del plazo de 48 horas)",
+      replenished: "Repuesto lo usado"
+    },
+    use: {
+      noMaterialDeposit: "No hay material en el depósito del centro: repón antes de registrar lo usado.",
+      noMaterialPersonal: "No hay material en el almacén de quien asiste: repón antes de registrar lo usado.",
+      record: "Registrar lo usado",
+      hint: "Escribe las unidades usadas de cada lote. Si llevan número de serie, apúntalo en cada unidad.",
+      noBatch: "sin lote",
+      expires: " · cad. {date}",
+      available: " · hay {count}",
+      usedOf: "Usadas de {name}",
+      serialOf: "Nº de serie de la unidad {index}",
+      serialLabel: "Número de serie de la unidad {index}",
+      save: "Guardar lo usado",
+      writeUsed: "Escribe lo que se ha usado",
+      tooMany: "No se puede usar más de lo que hay",
+      saved: "Guardado lo usado",
+      savedWithOrder: "Queda un pedido en borrador al centro para confirmarlo y la reposición pendiente: hay 48 horas para reponer lo usado.",
+      savedWithoutOrder: "Guardado lo usado. Queda la reposición pendiente: hay 48 horas para reponer lo usado."
+    },
+    errors: {
+      permission: "No puedes cambiar esta intervención",
+      missing: "Faltan la fecha, el centro o el responsable",
+      centre: "El centro tiene que ser una ficha de tipo centro",
+      noDeposit: "Este centro no tiene depósito: déjale material desde su ficha o elige el material de quien asiste",
+      noStore: "Quien asiste no tiene almacén propio con material",
+      done: "La intervención ya está hecha: no se puede cambiar",
+      noStock: "No hay bastante en el almacén de la intervención",
+      serials: "Hay más números de serie que unidades",
+      line: "Revisa las unidades de cada línea",
+      empty: "Apunta al menos una unidad usada",
+      cancelled: "La intervención está anulada",
+      notDone: "Primero registra lo usado",
+      noSource: "No hay almacén central del que reponer",
+      responsible: "Elige un responsable de tu empresa",
+      assistant: "Quien asiste tiene que ser una persona activa del equipo",
+      values: "Revisa de dónde sale el material",
+      generic: "No se ha podido guardar"
+    }
+  };
+
   // src/app/i18n/es.ts
   var es = {
     common: {
@@ -1025,6 +1224,8 @@
     },
     agenda,
     accounts,
+    events,
+    surgeries,
     home: {
       showIndicators: "Ver tus indicadores",
       hideIndicators: "Ocultar tus indicadores",
@@ -1145,8 +1346,8 @@
   }
   function fill(text, params) {
     return text.replace(/\{(\w+)\}/g, (whole, name) => {
-      const value2 = params[name] ?? vocabulary[name];
-      return value2 === void 0 ? whole : String(value2);
+      const value4 = params[name] ?? vocabulary[name];
+      return value4 === void 0 ? whole : String(value4);
     });
   }
   function t(key, params = {}) {
@@ -1173,8 +1374,8 @@
   var goTo = (screen2) => {
     ir(screen2);
   };
-  var goToOrders = (section) => {
-    PEDSEC = section;
+  var goToOrders = (section2) => {
+    PEDSEC = section2;
     ir("ventas");
   };
   function term(word, options = {}) {
@@ -1194,8 +1395,8 @@
   };
   var homeCache = {
     panel: () => KV_INI,
-    setPanel: (value2) => {
-      KV_INI = value2;
+    setPanel: (value4) => {
+      KV_INI = value4;
     },
     charts: () => KV_GRAF
   };
@@ -1246,8 +1447,8 @@
     },
     isDayView: () => agN(),
     metrics: () => AG_MET,
-    setMetrics: (value2) => {
-      AG_MET = value2;
+    setMetrics: (value4) => {
+      AG_MET = value4;
     },
     /** Today's appointments as painted in «Tu día», and the day they were loaded for. */
     dayAppointments: () => TD_CITAS,
@@ -1276,8 +1477,8 @@
   };
   var sidePanel = {
     context: () => HERR_CTX,
-    setContext: (value2) => {
-      HERR_CTX = value2;
+    setContext: (value4) => {
+      HERR_CTX = value4;
     }
   };
   var legacyAgendaParts = {
@@ -1371,8 +1572,8 @@
     },
     confirm: (message, options) => preguntar(message, options),
     choose: (title, message, buttons) => elegirOpcion(title, message, buttons),
-    askDate: (message, value2, options) => pedirFecha(message, value2, options),
-    askTime: async (title, value2, ok) => await appVentana({ titulo: title, ok, campo: { valor: value2, tipo: "time" } })
+    askDate: (message, value4, options) => pedirFecha(message, value4, options),
+    askTime: async (title, value4, ok) => await appVentana({ titulo: title, ok, campo: { valor: value4, tipo: "time" } })
   };
   var initialsOf = (name) => iniciales(name);
   var reloadAgenda = () => {
@@ -1420,8 +1621,8 @@
   };
   var appointmentLegacy = {
     /** Writes through the offline queue (the change is kept if there is no connection). */
-    write: (name, payload) => escribir(name, payload),
-    writeRpc: (name, payload) => escribirRpc(name, payload),
+    write: (name, payload2) => escribir(name, payload2),
+    writeRpc: (name, payload2) => escribirRpc(name, payload2),
     negativeResults: () => (CAT.resultado_visita ?? []).filter((item) => item.extra === "neg"),
     nextAttendanceDay: (days, from) => proximoDiaConsulta(days, from),
     navigateTo: (point) => {
@@ -1480,8 +1681,8 @@
     void pintarRutaBarra();
   } };
   var editorLegacy = {
-    pickAccount: (element, value2, onPick) => {
-      selectorMedico(element, { valor: value2, alElegir: onPick });
+    pickAccount: (element, value4, onPick, placeholder) => {
+      selectorMedico(element, { valor: value4, alElegir: onPick, ...placeholder ? { placeholder } : {} });
     },
     recentContacts: (accountId, isoDate) => recientesDe([accountId], isoDate).then((found) => found[accountId] ?? []),
     recentText: (list) => txtReciente(list),
@@ -1500,7 +1701,7 @@
     forgetCentreFromAppointment: () => {
       FICHA_CENTRO = null;
     },
-    planIncludes: (section) => planIncluyeSeccion(section),
+    planIncludes: (section2) => planIncluyeSeccion(section2),
     canEditType: (type) => puedeEditarTipo(type),
     /** The base sections, in their legacy order (each one paints a block of the card). */
     customFields: (id, container) => bloqueCampos("cuentas", id, container),
@@ -1517,10 +1718,10 @@
       void verDeposito(accountId, name);
     },
     expiresSoon: (isoDate) => depCaducaPronto(isoDate),
-    openSurgery: (id) => {
-      void verCirugia(id);
+    /** Opens a surgery through its global name (so «‹ Volver» sees it), optionally with a notice on top. */
+    openSurgery: (id, notice) => {
+      void verCirugia(id, notice);
     },
-    surgeryPill: (surgery) => cirEstado(surgery),
     openTender: (id) => {
       void verConcurso(id);
     },
@@ -1576,7 +1777,7 @@
     },
     visitDetails: (visit) => detTxt(visit),
     fieldName: (field) => campoTxt(field),
-    valueText: (value2) => textoValor(value2),
+    valueText: (value4) => textoValor(value4),
     detailSummary: (detail) => resumenDetalle(detail),
     undo: (id, then) => {
       void deshacerUno(id, then);
@@ -1591,7 +1792,7 @@
       if (!PRODUCTOS.length) await cargarProductos();
       return PRODUCTOS;
     },
-    euros: (value2) => eurI(value2)
+    euros: (value4) => eurI(value4)
   };
   var accessLegacy = {
     connectionInfo: (userId) => {
@@ -1629,12 +1830,27 @@
   };
   var accountColumnsLegacy = {
     customFields: () => CAMPOS.medico ?? [],
-    fieldText: (field, value2) => campoTexto(field, value2),
+    fieldText: (field, value4) => campoTexto(field, value4),
     firstName: (name) => nombrePila(name),
     /** Platform access by account (loaded once; null until it arrives). */
     accessOf: () => MED_ACCESO,
     loadAccess: () => cargarAccesoMedicos(),
     storageKey: () => `dlc-cols-${PERFIL?.id ?? ""}`
+  };
+  var eventsLegacy = {
+    repaintList: () => {
+      void pintarEventos();
+    }
+  };
+  var appLegacy = {
+    /** Forgets every cached read (after a change other screens show). */
+    forgetCache: () => {
+      invalidarCache();
+    },
+    openOrder: (id) => {
+      void verPedido(id);
+    },
+    currentUserName: () => PERFIL.nombre ?? ""
   };
 
   // src/app/services/dates.ts
@@ -1695,17 +1911,20 @@
 
   // src/app/services/format.ts
   var HTML_ESCAPES = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
-  function escapeHtml(value2) {
-    return String(value2 ?? "").replace(/[&<>"']/g, (char) => HTML_ESCAPES[char] ?? char);
+  function escapeHtml(value4) {
+    return String(value4 ?? "").replace(/[&<>"']/g, (char) => HTML_ESCAPES[char] ?? char);
   }
-  function formatNumber(value2) {
-    return Number(value2 ?? 0).toLocaleString("es");
+  function formatNumber(value4) {
+    return Number(value4 ?? 0).toLocaleString("es");
   }
-  function formatEuros(value2) {
-    return `${Math.round(Number(value2) || 0).toLocaleString("es-ES")} €`;
+  function formatEuros(value4) {
+    return `${Math.round(Number(value4) || 0).toLocaleString("es-ES")} €`;
   }
   function looseText(text) {
     return String(text ?? "").normalize("NFD").replace(/\p{M}/gu, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+  }
+  function formatCurrency(value4) {
+    return (Number(value4) || 0).toLocaleString("es", { style: "currency", currency: "EUR", maximumFractionDigits: 2 });
   }
 
   // src/app/screens/accounts/card/base.ts
@@ -1733,7 +1952,7 @@
     </div>`;
   }
   function stateHtml(account, salesReps) {
-    const state = cardBaseLegacy.canEdit() ? `<select data-estado="${account.id}" style="max-width:240px">${cardBaseLegacy.states().map((value2) => `<option ${value2 === account.estado_comercial ? "selected" : ""}>${escapeHtml(value2)}</option>`).join("")}</select>` : `<span class="pill p-est">${escapeHtml(account.estado_comercial)}</span>`;
+    const state = cardBaseLegacy.canEdit() ? `<select data-estado="${account.id}" style="max-width:240px">${cardBaseLegacy.states().map((value4) => `<option ${value4 === account.estado_comercial ? "selected" : ""}>${escapeHtml(value4)}</option>`).join("")}</select>` : `<span class="pill p-est">${escapeHtml(account.estado_comercial)}</span>`;
     return `<div class="blk"><h3>${t("accounts.card.stateTitle")}</h3>
       <div>${state}</div>
       ${salesReps.length ? `<div class="sm" style="margin-top:6px">${t("accounts.base.salesRep", { names: salesReps.map(escapeHtml).join(", ") })}</div>` : ""}
@@ -1820,8 +2039,8 @@
     document.getElementById("ficha")?.close();
     open();
   }
-  function onEach(block, key, action) {
-    block.querySelectorAll(`[data-${key}]`).forEach((button) => {
+  function onEach(block2, key, action) {
+    block2.querySelectorAll(`[data-${key}]`).forEach((button) => {
       button.onclick = () => {
         action(button.getAttribute(`data-${key}`) ?? "");
       };
@@ -1957,8 +2176,8 @@
   function changeLines(entry) {
     const detail = entry.detalle;
     if (entry.accion !== EDIT || !detail || typeof detail !== "object") return `<span class="sm">${escapeHtml(cardSectionsLegacy.detailSummary(detail))}</span>`;
-    const value2 = (raw) => escapeHtml(orFallback(cardSectionsLegacy.valueText(raw).slice(0, VALUE_LENGTH), "—"));
-    return Object.entries(detail).filter((pair) => Array.isArray(pair[1]) && pair[1].length === 2).map(([field, [before, after]]) => `<span class="sm">${escapeHtml(cardSectionsLegacy.fieldName(field))}: ${value2(before)} → ${value2(after)}</span>`).join("");
+    const value4 = (raw) => escapeHtml(orFallback(cardSectionsLegacy.valueText(raw).slice(0, VALUE_LENGTH), "—"));
+    return Object.entries(detail).filter((pair) => Array.isArray(pair[1]) && pair[1].length === 2).map(([field, [before, after]]) => `<span class="sm">${escapeHtml(cardSectionsLegacy.fieldName(field))}: ${value4(before)} → ${value4(after)}</span>`).join("");
   }
   function historyRow(entry) {
     const when = new Date(entry.creado_en).toLocaleString(t("dates.locale"), { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
@@ -2141,6 +2360,42 @@
     return Promise.resolve();
   }
 
+  // src/app/screens/surgeries/model.ts
+  var STATES = { scheduled: "Programada", done: "Hecha", cancelled: "Anulada" };
+  var ORIGINS = ["deposito", "personal"];
+  var originLabel = (origin) => ORIGINS.includes(origin) ? t(`surgeries.origins.${origin}`) : "";
+  var timeOf = (surgery) => surgery.hora ? String(surgery.hora).slice(0, 5) : "";
+  function statePill(surgery) {
+    const kind = surgery.estado === STATES.done ? "p-est" : surgery.estado === STATES.cancelled ? "p-anu" : "p-per";
+    return `<span class="pill ${kind}">${escapeHtml(surgery.estado)}</span>`;
+  }
+  function replenishmentPill(surgery) {
+    if (surgery.reposicion === "vencida") return `<span class="pill p-urg">${t("surgeries.pills.overdue")}</span>`;
+    if (surgery.reposicion === "repuesta") return `<span class="pill p-est">${t("surgeries.pills.replenished")}</span>`;
+    if (surgery.reposicion !== "pendiente") return "";
+    const deadline = new Date(surgery.reposicion_limite ?? "").toLocaleString(t("dates.locale"), { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+    return `<span class="pill p-warn">${t("surgeries.pills.replenishBefore", { date: escapeHtml(deadline) })}</span>`;
+  }
+  var ERRORS = /* @__PURE__ */ new Map([
+    ["permiso", "surgeries.errors.permission"],
+    ["faltan", "surgeries.errors.missing"],
+    ["hospital", "surgeries.errors.centre"],
+    ["sin_deposito", "surgeries.errors.noDeposit"],
+    ["sin_almacen", "surgeries.errors.noStore"],
+    ["hecha", "surgeries.errors.done"],
+    ["sin_stock", "surgeries.errors.noStock"],
+    ["series", "surgeries.errors.serials"],
+    ["linea", "surgeries.errors.line"],
+    ["vacio", "surgeries.errors.empty"],
+    ["anulada", "surgeries.errors.cancelled"],
+    ["no_hecha", "surgeries.errors.notDone"],
+    ["sin_origen", "surgeries.errors.noSource"],
+    ["cirujano", "surgeries.errors.responsible"],
+    ["asistente", "surgeries.errors.assistant"],
+    ["valores", "surgeries.errors.values"]
+  ]);
+  var errorText = (result) => t(ERRORS.get(result?.error ?? "") ?? "surgeries.errors.generic");
+
   // src/app/screens/accounts/card/sections-related.ts
   var ATTENDED = "Asistió";
   var NOT_ATTENDED = "No asistió";
@@ -2149,7 +2404,7 @@
   var CENTRE3 = "Centro";
   var OPEN_TENDERS = ["En estudio", "Oferta enviada", AWARDED];
   var SHOWN_EVENTS = 5;
-  var canAdd = (blockId, section) => Boolean(fieldsPlace()) && !document.getElementById(blockId) && (!section || accountCardLegacy.planIncludes(section));
+  var canAdd = (blockId, section2) => Boolean(fieldsPlace()) && !document.getElementById(blockId) && (!section2 || accountCardLegacy.planIncludes(section2));
   async function samples(id) {
     if (!canAdd("fmuestras")) return;
     const { data } = await legacyDb().rpc("muestras_de_cuenta", { p_cuenta: id });
@@ -2161,15 +2416,15 @@
     addBeforeFields(id, "fmuestras", `<div class="blk" id="fmuestras"><h3>${t("accounts.card.samplesTitle")}</h3>
       ${data.map((sample) => `<div class="fmrow"><span>${escapeHtml(sample.nombre)}</span><b>${t("accounts.card.samplesGiven", { given: sample.entregadas, max: sample.max })}</b>${pill(sample)}</div>`).join("")}</div>`);
   }
-  async function events(id) {
+  async function events2(id) {
     if (!canAdd("feventos", "eventos")) return;
     const { data } = await legacyDb().from("eventos_asistentes").select("estado,eventos(id,titulo,fecha)").eq("cuenta_id", id).limit(30);
     const list = (data ?? []).filter((item) => item.eventos !== null).sort((first, second) => String(second.eventos.fecha).localeCompare(String(first.eventos.fecha))).slice(0, SHOWN_EVENTS);
     if (!list.length) return;
     const pillClass = (state) => state === ATTENDED ? "p-est" : state === NOT_ATTENDED ? "p-anu" : "p-per";
-    const block = addBeforeFields(id, "feventos", `<div class="blk" id="feventos"><h3>${t("accounts.card.eventsTitle")}</h3>
+    const block2 = addBeforeFields(id, "feventos", `<div class="blk" id="feventos"><h3>${t("accounts.card.eventsTitle")}</h3>
       ${list.map((item) => `<div class="fmrow"><span><button type="button" class="lnk" data-fev="${item.eventos.id}">${escapeHtml(item.eventos.titulo)}</button><span class="sm"> · ${formatShortDate(item.eventos.fecha)}</span></span><span class="pill ${pillClass(item.estado)}">${escapeHtml(item.estado)}</span></div>`).join("")}</div>`);
-    if (block) onEach(block, "fev", (event) => {
+    if (block2) onEach(block2, "fev", (event) => {
       closeCardAnd(() => {
         relatedLegacy.openEvent(event);
       });
@@ -2199,13 +2454,13 @@
       });
     };
   }
-  async function surgeries(id) {
+  async function surgeries2(id) {
     if (permissions.isProfessionalPortal() || !canAdd("fcirugias", "cirugias")) return;
     const { data } = await legacyDb().from("cirugias").select("id,fecha,procedimiento,estado").or(`cirujano_id.eq.${id},hospital_id.eq.${id}`).order("fecha", { ascending: false }).limit(5);
     if (!(data ?? []).length) return;
-    const block = addBeforeFields(id, "fcirugias", `<div class="blk" id="fcirugias"><h3>${t("accounts.card.surgeriesTitle")}</h3>
-      ${(data ?? []).map((item) => `<div class="fmrow"><span><button type="button" class="lnk" data-fcir="${item.id}">${escapeHtml(orFallback(item.procedimiento, t("accounts.card.surgery")))}</button><span class="sm"> · ${formatShortDate(item.fecha)}</span></span>${relatedLegacy.surgeryPill(item)}</div>`).join("")}</div>`);
-    if (block) onEach(block, "fcir", (surgery) => {
+    const block2 = addBeforeFields(id, "fcirugias", `<div class="blk" id="fcirugias"><h3>${t("accounts.card.surgeriesTitle")}</h3>
+      ${(data ?? []).map((item) => `<div class="fmrow"><span><button type="button" class="lnk" data-fcir="${item.id}">${escapeHtml(orFallback(item.procedimiento, t("accounts.card.surgery")))}</button><span class="sm"> · ${formatShortDate(item.fecha)}</span></span>${statePill(item)}</div>`).join("")}</div>`);
+    if (block2) onEach(block2, "fcir", (surgery) => {
       closeCardAnd(() => {
         relatedLegacy.openSurgery(surgery);
       });
@@ -2220,9 +2475,9 @@
     if (permissions.isProfessionalPortal() || !canAdd("fconcursos", "concursos")) return;
     const { data } = await legacyDb().from("concursos").select("id,titulo,estado,fin,prorroga_hasta").eq("cuenta_id", id).in("estado", OPEN_TENDERS).order("creado_en", { ascending: false }).limit(6);
     if (!(data ?? []).length) return;
-    const block = addBeforeFields(id, "fconcursos", `<div class="blk" id="fconcursos"><h3>${t("accounts.card.tendersTitle")}</h3>
+    const block2 = addBeforeFields(id, "fconcursos", `<div class="blk" id="fconcursos"><h3>${t("accounts.card.tendersTitle")}</h3>
       ${(data ?? []).map((item) => `<div class="fmrow"><span><button type="button" class="lnk" data-fcon="${item.id}">${escapeHtml(item.titulo)}</button>${tenderEnd(item) ? `<span class="sm">${tenderEnd(item)}</span>` : ""}</span>${relatedLegacy.tenderPill(item.estado)}</div>`).join("")}</div>`);
-    if (block) onEach(block, "fcon", (tender) => {
+    if (block2) onEach(block2, "fcon", (tender) => {
       closeCardAnd(() => {
         relatedLegacy.openTender(tender);
       });
@@ -2238,16 +2493,16 @@
     if (!canAdd("fequipos") || !stillShown(id)) return;
     const list = data ?? [], account = await accountKind(id);
     if (!list.length && account?.tipo !== CENTRE3) return;
-    const block = addBeforeFields(id, "fequipos", equipmentHtml(list));
-    if (block) bindEquipment(block, id, account?.nombre ?? "");
+    const block2 = addBeforeFields(id, "fequipos", equipmentHtml(list));
+    if (block2) bindEquipment(block2, id, account?.nombre ?? "");
   }
   function equipmentHtml(list) {
     return `<div class="blk" id="fequipos"><h3>${t("accounts.card.equipmentTitle")}${list.length ? ` <span class="n">${list.length}</span>` : ""}</h3>
       ${list.map(equipmentRow).join("") || `<p class="sm">${t("accounts.card.equipmentNone")}</p>`}
       <button type="button" class="btn sec" id="feqmas">${t("accounts.card.addEquipment")}</button></div>`;
   }
-  function bindEquipment(block, id, name) {
-    onEach(block, "feq", (item) => {
+  function bindEquipment(block2, id, name) {
+    onEach(block2, "feq", (item) => {
       closeCardAnd(() => {
         relatedLegacy.openEquipment(item);
       });
@@ -2269,7 +2524,7 @@
   var SHOWN_REQUESTS = 10;
   var MESSAGES_LIMIT = 200;
   var canShow2 = (id, blockId) => !permissions.isProfessionalPortal() && portalLegacy.hasPortal() && stillShown(id) && Boolean(document.getElementById("fbody")) && !document.getElementById(blockId);
-  var shortDateTime = (value2) => new Date(value2).toLocaleString(t("dates.locale"), { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+  var shortDateTime = (value4) => new Date(value4).toLocaleString(t("dates.locale"), { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
   function requestRow(request) {
     return `<div class="item" style="cursor:default"><span class="tx"><b>${formatNumber(request.cantidad)} × ${escapeHtml(request.material)}</b>
         <span class="sm">${t("accounts.portal.requested", { date: shortDateTime(request.creado_en) })}${request.nota ? ` · ${escapeHtml(request.nota)}` : ""}</span></span>${portalLegacy.materialPill(request.estado)}
@@ -2345,11 +2600,11 @@
         <input type="number" min="0" step="0.01" data-fpcx="${product.id}" value="${own?.precio !== null && own?.precio !== void 0 ? Number(own.precio) : ""}" placeholder="${t("accounts.portal.tariffPlaceholder")}" style="max-width:120px" aria-label="${t("accounts.portal.priceFor", { name })}"></label>`;
   }
   async function saveProducts(id, button) {
-    const block = document.getElementById("fprodc");
-    if (!block) return;
-    const items = [...block.querySelectorAll("[data-fpcp]")].filter((box) => box.checked).map((box) => {
-      const value2 = block.querySelector(`[data-fpcx="${box.dataset.fpcp ?? ""}"]`)?.value ?? "";
-      return { producto_id: box.dataset.fpcp, precio: value2 === "" ? null : Math.max(0, Number(value2)) };
+    const block2 = document.getElementById("fprodc");
+    if (!block2) return;
+    const items = [...block2.querySelectorAll("[data-fpcp]")].filter((box) => box.checked).map((box) => {
+      const value4 = block2.querySelector(`[data-fpcx="${box.dataset.fpcp ?? ""}"]`)?.value ?? "";
+      return { producto_id: box.dataset.fpcp, precio: value4 === "" ? null : Math.max(0, Number(value4)) };
     });
     button.disabled = true;
     const { data: result } = await legacyDb().rpc("guardar_productos_cuenta", { p_cuenta: id, p_items: items });
@@ -2381,9 +2636,9 @@
     const after = document.getElementById("fportal") ?? body2.querySelector("section.fvis");
     if (after) after.insertAdjacentHTML("afterend", html);
     else body2.insertAdjacentHTML("beforeend", html);
-    const save3 = document.getElementById("fpcok");
-    if (save3) save3.onclick = () => {
-      void saveProducts(id, save3);
+    const save5 = document.getElementById("fpcok");
+    if (save5) save5.onclick = () => {
+      void saveProducts(id, save5);
     };
   }
 
@@ -2395,11 +2650,11 @@
     if (!stillShown(id) || !select) return;
     const options = (users ?? []).filter((user) => user.activo && (cardSectionsLegacy.roleCan(user.rol, "cartera") || current?.id === user.id)).map((user) => `<option value="${user.id}" ${current?.id === user.id ? "selected" : ""}>${escapeHtml(user.nombre)} · ${escapeHtml(user.rol)}</option>`).join("");
     select.innerHTML = `<option value="">${t("accounts.sales.noRep")}</option>${options}`;
-    const save3 = document.getElementById("fcomok");
-    if (save3) save3.onclick = async () => {
-      save3.disabled = true;
+    const save5 = document.getElementById("fcomok");
+    if (save5) save5.onclick = async () => {
+      save5.disabled = true;
       const { data: result, error } = await legacyDb().rpc("asignar_responsable_cuenta", { p_medico: id, p_usuario: select.value || null });
-      save3.disabled = false;
+      save5.disabled = false;
       if (error || result?.ok === false) {
         notices.toast(t("accounts.sales.couldNotAssign"), true);
         return;
@@ -2450,12 +2705,12 @@
     const sales = document.getElementById("fventasc");
     if (!data?.ok || !stillShown(id) || !sales || document.getElementById("fclientes")) return;
     const figures = [[t("accounts.sales.associated"), data.total], [t("accounts.sales.withOrders"), data.con_pedido], [t("accounts.sales.withoutOrders"), data.sin_pedido]];
-    const block = `<div class="blk" id="fclientes"><h3>${t("accounts.sales.associatedTitle", { patients: term("paciente", { number: "p", capital: "C" }) })}</h3>
-    <div class="uper">${figures.map(([label, value2]) => `<div><b>${formatNumber(value2)}</b><span>${label}</span></div>`).join("")}</div>
+    const block2 = `<div class="blk" id="fclientes"><h3>${t("accounts.sales.associatedTitle", { patients: term("paciente", { number: "p", capital: "C" }) })}</h3>
+    <div class="uper">${figures.map(([label, value4]) => `<div><b>${formatNumber(value4)}</b><span>${label}</span></div>`).join("")}</div>
     ${data.total ? "" : `<div class="sm">${t("accounts.sales.noneAssociated", { patients: term("paciente", { number: "p" }) })}</div>`}</div>`;
     const units2 = document.getElementById("fundades");
-    if (units2) units2.insertAdjacentHTML("afterend", block);
-    else sales.insertAdjacentHTML("afterbegin", block);
+    if (units2) units2.insertAdjacentHTML("afterend", block2);
+    else sales.insertAdjacentHTML("afterbegin", block2);
   }
 
   // src/app/screens/accounts/card/index.ts
@@ -2480,22 +2735,22 @@
     { name: "centreProducts", run: centreProducts, wait: false },
     { name: "visitPhotos", run: visitPhotos },
     { name: "samples", run: samples },
-    { name: "events", run: events },
+    { name: "events", run: events2 },
     { name: "deposit", run: deposit },
     { name: "cycle", run: cycle },
     { name: "presentedProducts", run: presentedProducts },
-    { name: "surgeries", run: surgeries },
+    { name: "surgeries", run: surgeries2 },
     { name: "tenders", run: tenders },
     { name: "equipment", run: equipment },
     { name: "portalProposal", run: portalProposal },
     { name: "centreProfessionals", run: centreProfessionals },
     { name: "archiveButtons", run: archiveButtons }
   ];
-  async function runSection(section, id) {
+  async function runSection(section2, id) {
     try {
-      await section.run(id);
+      await section2.run(id);
     } catch (error) {
-      console.error(`ficha · ${section.name}`, error);
+      console.error(`ficha · ${section2.name}`, error);
     }
   }
   async function paintBase2(id) {
@@ -2504,7 +2759,7 @@
     const limit = setTimeout(() => card?.classList.remove("cargando"), LOADING_LIMIT_MS);
     try {
       accountCardLegacy.forgetPatients();
-      for (const section of BASE) await section.run(id);
+      for (const section2 of BASE) await section2.run(id);
       if (document.getElementById("fventas") && !document.getElementById("fventasc")?.children.length) document.getElementById("fventas")?.remove();
     } finally {
       clearTimeout(limit);
@@ -2519,9 +2774,9 @@
     } finally {
       accountCardLegacy.forgetCentreFromAppointment();
     }
-    for (const section of SECTIONS) {
-      if (section.wait === false) void runSection(section, id);
-      else await runSection(section, id);
+    for (const section2 of SECTIONS) {
+      if (section2.wait === false) void runSection(section2, id);
+      else await runSection(section2, id);
     }
   }
 
@@ -2567,8 +2822,8 @@
     if (key.startsWith(CUSTOM_PREFIX)) return customCell(row2, key.slice(CUSTOM_PREFIX.length));
     const special = CELLS.get(key);
     if (special) return special(row2);
-    const value2 = row2[key];
-    return `<span class="sm">${escapeHtml(value2 ? String(value2) : "")}</span>`;
+    const value4 = row2[key];
+    return `<span class="sm">${escapeHtml(value4 ? String(value4) : "")}</span>`;
   }
 
   // src/app/screens/accounts/list/columns.ts
@@ -2659,7 +2914,7 @@
     const filters = accountListLegacy.filters();
     const chips = [
       ...filters.q ? [["q", t("accounts.list.chipSearch", { text: filters.q })]] : [],
-      ...[["prov", filters.prov], ["muni", filters.muni], ["esp", filters.esp], ["est", filters.est]].filter(([, value2]) => value2),
+      ...[["prov", filters.prov], ["muni", filters.muni], ["esp", filters.esp], ["est", filters.est]].filter(([, value4]) => value4),
       ...filters.urg ? [["urg", t("accounts.list.chipUrgent")]] : [],
       ...filters.mios ? [["mios", t("accounts.list.chipMine")]] : [],
       ...filters.sin ? [["sin", t("accounts.list.chipNeverVisited")]] : []
@@ -2669,7 +2924,7 @@
 
   // src/app/screens/accounts/list/search.ts
   var lastSearch = 0;
-  var orNull = (value2) => value2 ? value2 : null;
+  var orNull = (value4) => value4 ? value4 : null;
   var loadingHtml = (text) => `<div class="cargador"><span class="spin"></span><span class="sm">${escapeHtml(text)}</span></div>`;
   function searchParams() {
     const filters = accountListLegacy.filters(), size = accountListLegacy.pageSize();
@@ -3088,8 +3343,8 @@
   }
 
   // src/app/screens/agenda/metrics.ts
-  var count = (value2) => formatNumber(value2 ?? 0);
-  var decimal = (value2) => value2 === void 0 || value2 === null ? "0" : String(value2).replace(".", ",");
+  var count = (value4) => formatNumber(value4 ?? 0);
+  var decimal = (value4) => value4 === void 0 || value4 === null ? "0" : String(value4).replace(".", ",");
   function todayFigures(metrics) {
     const day = legacyAgenda.selectedDate(), today = todayIso();
     if (day === today && legacyAgenda.loadedDay() === day) {
@@ -3177,7 +3432,7 @@
       { title: t("agenda.sameCentre.noTimetable"), people: noTimetable }
     ].filter((group) => group.people.length);
   }
-  var toNumber = (value2) => Number(value2);
+  var toNumber = (value4) => Number(value4);
   function isSameCentre(group, appointment) {
     if (isPresent(group.lat) && isPresent(appointment.lat)) {
       return distanceKm([toNumber(group.lat), toNumber(group.lon)], [toNumber(appointment.lat), toNumber(appointment.lon)]) <= NEAR_KM;
@@ -3230,17 +3485,17 @@
         else agendaActions.openAccount(person.dataset.agti ?? "");
         return;
       }
-      const block = target?.closest("#agcuerpo .agtamb[data-agtc]");
-      if (block) {
+      const block2 = target?.closest("#agcuerpo .agtamb[data-agtc]");
+      if (block2) {
         event.stopPropagation();
-        agendaActions.openCentre(block.dataset.agtc ?? "");
+        agendaActions.openCentre(block2.dataset.agtc ?? "");
       }
     }, true);
     document.addEventListener("keydown", (event) => {
-      const block = event.target instanceof Element ? event.target.closest("#agcuerpo .agtamb[data-agtc]") : null;
-      if (block && event.target === block && (event.key === "Enter" || event.key === " ")) {
+      const block2 = event.target instanceof Element ? event.target.closest("#agcuerpo .agtamb[data-agtc]") : null;
+      if (block2 && event.target === block2 && (event.key === "Enter" || event.key === " ")) {
         event.preventDefault();
-        agendaActions.openCentre(block.dataset.agtc ?? "");
+        agendaActions.openCentre(block2.dataset.agtc ?? "");
       }
     });
   }
@@ -3466,9 +3721,9 @@
       weekPlanner.discardDraft();
       reloadAgenda();
     };
-    const save3 = box.querySelector("#semguardar");
-    if (save3) save3.onclick = () => {
-      weekPlanner.saveDraft(save3);
+    const save5 = box.querySelector("#semguardar");
+    if (save5) save5.onclick = () => {
+      weekPlanner.saveDraft(save5);
     };
     box.querySelectorAll("[data-semdia]").forEach((column) => {
       bindDay(column, data);
@@ -3688,18 +3943,18 @@
   // src/app/screens/agenda/week-sidebar.ts
   var SHOWN_PER_DAY2 = 3;
   var WEEK_DAYS4 = 7;
-  var timeOf = (item) => String(item.hora ?? "");
+  var timeOf2 = (item) => String(item.hora ?? "");
   function byDay(list) {
     const days = /* @__PURE__ */ new Map();
     list.filter((item) => !appointments.isCancelled(item.estado)).forEach((item) => {
       days.set(item.fecha, [...days.get(item.fecha) ?? [], item]);
     });
-    days.forEach((items) => items.sort((first, second) => timeOf(first).localeCompare(timeOf(second))));
+    days.forEach((items) => items.sort((first, second) => timeOf2(first).localeCompare(timeOf2(second))));
     return days;
   }
   function dayContent(items, blockedReason) {
     const blocked = blockedReason ? `<span class="agslb">${escapeHtml(blockedReason)}</span>` : "";
-    const shown = items.slice(0, SHOWN_PER_DAY2).map((item) => `<span class="agslx"><b>${escapeHtml(timeOf(item).slice(0, 5))}</b>${escapeHtml(orFallback(item.medico, item.nombre ?? ""))}</span>`).join("");
+    const shown = items.slice(0, SHOWN_PER_DAY2).map((item) => `<span class="agslx"><b>${escapeHtml(timeOf2(item).slice(0, 5))}</b>${escapeHtml(orFallback(item.medico, item.nombre ?? ""))}</span>`).join("");
     const more = items.length > SHOWN_PER_DAY2 ? `<span class="agslv">${t("agenda.week.andMore", { count: items.length - SHOWN_PER_DAY2 })}</span>` : "";
     const free = !items.length && !blockedReason ? `<span class="agslv">${t("agenda.week.free")}</span>` : "";
     return blocked + shown + more + free;
@@ -4096,15 +4351,15 @@
   var isCancelled = (state) => appointments.isCancelled(state);
   var isDone = (state) => commercialStates.color(state) === "var(--ok)";
   var isAbsent = (state) => commercialStates.color(state) === "var(--warn)" && !isOpen(state);
-  function statePill(state) {
+  function statePill2(state) {
     const color2 = colorOf(state);
     return `<span class="pill cest" style="background:color-mix(in srgb, ${color2} 12%, transparent);color:${color2}">${escapeHtml(state)}</span>`;
   }
   function pointOf(item) {
     return item.lat !== null && item.lat !== void 0 && item.lon !== null && item.lon !== void 0 ? [Number(item.lat), Number(item.lon)] : null;
   }
-  var STATES = { planned: "Planificada", confirmed: "Confirmada", discarded: "Descartada", postponed: "Aplazada" };
-  var canPlanAgain = (item, today) => (item.estado === STATES.postponed || item.estado === STATES.discarded) && item.fecha >= today;
+  var STATES2 = { planned: "Planificada", confirmed: "Confirmada", discarded: "Descartada", postponed: "Aplazada" };
+  var canPlanAgain = (item, today) => (item.estado === STATES2.postponed || item.estado === STATES2.discarded) && item.fecha >= today;
 
   // src/app/screens/agenda/appointment-options.ts
   var option = (action, title, detail = "") => ({ action, title: t(title), detail });
@@ -4112,13 +4367,13 @@
     const today = todayIso();
     if (!isOpen(item.estado)) {
       if (!canPlanAgain(item, today)) return [];
-      return [{ action: "rehacer", title: t("agenda.menu.planAgain"), detail: t("agenda.menu.planAgainText") + (item.estado === STATES.postponed ? t("agenda.menu.planAgainPostponed") : "") }];
+      return [{ action: "rehacer", title: t("agenda.menu.planAgain"), detail: t("agenda.menu.planAgainText") + (item.estado === STATES2.postponed ? t("agenda.menu.planAgainPostponed") : "") }];
     }
     return [
       option("hora", item.hora ? "agenda.menu.changeTime" : "agenda.menu.setTime"),
       { ...option("aplazar", "agenda.menu.postpone"), detail: t("agenda.menu.postponeText") },
-      item.estado === STATES.planned ? { ...option("confirmar", "agenda.menu.confirm"), detail: t("agenda.menu.confirmText") } : null,
-      item.estado === STATES.confirmed ? option("desconfirmar", "agenda.menu.unconfirm") : null,
+      item.estado === STATES2.planned ? { ...option("confirmar", "agenda.menu.confirm"), detail: t("agenda.menu.confirmText") } : null,
+      item.estado === STATES2.confirmed ? option("desconfirmar", "agenda.menu.unconfirm") : null,
       { ...option("descartar", "agenda.menu.discard"), detail: t("agenda.menu.discardText") },
       item.fecha >= today ? { ...option("borrar", "agenda.menu.delete"), detail: t("agenda.menu.deleteText") } : null
       // v2.273.0
@@ -4213,7 +4468,7 @@
   function footHtml(item, context) {
     const open = isOpen(item.estado), canMove = open && !context.isPast, record = open && yourDayLegacy.canRecordOn(item.fecha);
     const again = isAbsent(item.estado) && !context.isPast;
-    return `<div class="tdu-pie"><span class="tdu-est">${statePill(item.estado)}<span class="sm">${yourDayLegacy.originText(item)}</span></span>
+    return `<div class="tdu-pie"><span class="tdu-est">${statePill2(item.estado)}<span class="sm">${yourDayLegacy.originText(item)}</span></span>
         <span class="tdu-ops">${canMove ? orderButtons(item, context) : ""}${hasMenu(item) ? `<button class="btn sec tdmas" type="button" data-td="mas|${item.id}" aria-label="${t("agenda.card.moreActions")}">⋯</button>` : ""}</span>
         ${again ? `<button class="btn sec tdu-reg" type="button" data-td="nueva|${item.id}">${t("agenda.card.newAppointment")}</button>` : ""}
         ${record ? `<button class="btn ${item === context.next ? "" : "sec"} tdu-reg" type="button" data-td="visita|${item.id}">${t("agenda.card.record", { visit: context.visit })}</button>` : ""}</div>`;
@@ -4297,7 +4552,7 @@
     if (!others.length) return "";
     return `<h3 class="tdotros">${t("agenda.yourDay.othersTitle", { count: others.length })}</h3>
       <div class="lista">${others.map((item) => `<div class="item" style="cursor:default"><span class="ic">${item.hora ? timeText(item.hora) : "·"}</span>
-        <span class="tx"><b>${escapeHtml(item.nombre)}</b><span class="sm">${escapeHtml(item.usuario ?? "")} · ${statePill(item.estado)}</span></span></div>`).join("")}</div>`;
+        <span class="tx"><b>${escapeHtml(item.nombre)}</b><span class="sm">${escapeHtml(item.usuario ?? "")} · ${statePill2(item.estado)}</span></span></div>`).join("")}</div>`;
   }
 
   // src/app/screens/agenda/your-day/tasks.ts
@@ -4329,8 +4584,8 @@
     box.closest(".tdtarea")?.classList.toggle("hecha", box.checked);
     agendaState.forgetDayTasks();
   }
-  function bind4(block) {
-    block.querySelectorAll("[data-tacheck]").forEach((box) => {
+  function bind4(block2) {
+    block2.querySelectorAll("[data-tacheck]").forEach((box) => {
       box.onchange = (event) => {
         event.stopPropagation();
         void markDone(box);
@@ -4344,13 +4599,13 @@
     const html = `<div class="tdtareas" id="tdtareas"><div class="tdtcab">${t("agenda.tasks.title", { count: list.length })}</div>${list.map((task) => taskRow(task, list)).join("")}</div>`;
     if (place) place.insertAdjacentHTML("beforebegin", html);
     else body2.insertAdjacentHTML("beforeend", html);
-    const block = document.getElementById("tdtareas");
-    if (block) bind4(block);
+    const block2 = document.getElementById("tdtareas");
+    if (block2) bind4(block2);
   }
   function applyTaskFolding() {
-    const block = document.getElementById("tdtareas"), header = block?.querySelector(".tdtcab");
-    if (!block || !header) return;
-    block.classList.toggle("plegadas", folded());
+    const block2 = document.getElementById("tdtareas"), header = block2?.querySelector(".tdtcab");
+    if (!block2 || !header) return;
+    block2.classList.toggle("plegadas", folded());
     header.setAttribute("role", "button");
     header.tabIndex = 0;
     header.setAttribute("aria-expanded", String(!folded()));
@@ -4513,13 +4768,13 @@
     document.addEventListener("click", (event) => {
       const button = event.target instanceof Element ? event.target.closest("#tdcompactar") : null;
       if (!button) return;
-      const value2 = !compact();
+      const value4 = !compact();
       try {
-        localStorage.setItem(COMPACT_KEY, value2 ? "1" : "0");
+        localStorage.setItem(COMPACT_KEY, value4 ? "1" : "0");
       } catch {
       }
       applyCompact();
-      setCompactButton(button, value2);
+      setCompactButton(button, value4);
     });
     document.addEventListener("click", (event) => {
       const button = event.target instanceof Element ? event.target.closest("[data-tdavi]") : null;
@@ -4622,10 +4877,10 @@
     const perDay = countsByDate(charts.por_dia), nextDays = countsByDate(charts.proximos);
     const values = days.map((day) => (upcoming ? nextDays.get(day) : perDay.get(day)) ?? 0);
     const max = Math.max(1, ...values), width = 196, barWidth = 18, gap = (width - 7 * barWidth) / 6;
-    const bars = values.map((value2, i) => {
-      const day = days[i] ?? today, height = Math.max(3, value2 / max * 40), x = i * (barWidth + gap), future = !upcoming && day > today, isToday = day === today;
+    const bars = values.map((value4, i) => {
+      const day = days[i] ?? today, height = Math.max(3, value4 / max * 40), x = i * (barWidth + gap), future = !upcoming && day > today, isToday = day === today;
       const fill2 = future ? "#E3EBF3" : isToday ? "var(--sky)" : "var(--navy)";
-      return `<rect x="${x}" y="${44 - height}" width="${barWidth}" height="${height}" rx="4" fill="${fill2}" opacity="${value2 ? 1 : 0.35}"/><text x="${x + barWidth / 2}" y="58" text-anchor="middle" class="${isToday ? "hoy" : ""}">${WEEKDAY_LETTERS[fromIsoDate(day).getDay()] ?? ""}</text>`;
+      return `<rect x="${x}" y="${44 - height}" width="${barWidth}" height="${height}" rx="4" fill="${fill2}" opacity="${value4 ? 1 : 0.35}"/><text x="${x + barWidth / 2}" y="58" text-anchor="middle" class="${isToday ? "hoy" : ""}">${WEEKDAY_LETTERS[fromIsoDate(day).getDay()] ?? ""}</text>`;
     }).join("");
     return { summary: weekSummary({ upcoming, days, values, perDay }, today), visual: `<svg class="kvbar" viewBox="0 0 ${width} 60" preserveAspectRatio="xMidYMax meet" aria-hidden="true">${bars}</svg>` };
   }
@@ -4643,8 +4898,8 @@
     const current = accumulate(monthStart), last = accumulate(toIsoDate(previous));
     if (dayOfMonth < 2) return EMPTY_CHART;
     const max = Math.max(1, ...last, ...current), width = 196, height = 46;
-    const x = (i) => i / (dayOfMonth - 1) * width, y = (value2) => height - value2 / max * height;
-    const line = (values) => values.map((value2, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(value2).toFixed(1)}`).join("");
+    const x = (i) => i / (dayOfMonth - 1) * width, y = (value4) => height - value4 / max * height;
+    const line = (values) => values.map((value4, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(value4).toFixed(1)}`).join("");
     const end = current[current.length - 1] ?? 0, difference2 = end - (last[last.length - 1] ?? 0);
     return {
       summary: t(difference2 >= 0 ? "home.indicators.aboveLastMonth" : "home.indicators.belowLastMonth", { difference: difference2 }),
@@ -5118,17 +5373,17 @@
   function screen() {
     return document.getElementById("v-inicio");
   }
-  function mosaicBox(section) {
+  function mosaicBox(section2) {
     const existing = document.getElementById("inimos");
     if (existing) return existing;
-    const greeting = section.querySelector(":scope > .saludo");
+    const greeting = section2.querySelector(":scope > .saludo");
     if (!greeting) return null;
     greeting.insertAdjacentHTML("afterend", `<div id="inimos" class="inimos"></div><div class="inikpisb"><button type="button" class="btn sec" id="inikpisver">${t("home.showIndicators")}</button></div>`);
     const toggle = document.getElementById("inikpisver");
     if (toggle) {
       toggle.onclick = () => {
-        const shown = !section.classList.contains("conkpis");
-        section.classList.toggle("conkpis", shown);
+        const shown = !section2.classList.contains("conkpis");
+        section2.classList.toggle("conkpis", shown);
         toggle.textContent = t(shown ? "home.hideIndicators" : "home.showIndicators");
       };
     }
@@ -5140,10 +5395,10 @@
   }
   function renderSkeleton() {
     if (permissions.isProfessionalPortal()) return;
-    const section = screen();
-    if (!section?.querySelector(":scope > .saludo")) return;
-    section.classList.add("conmos");
-    const box = mosaicBox(section);
+    const section2 = screen();
+    if (!section2?.querySelector(":scope > .saludo")) return;
+    section2.classList.add("conmos");
+    const box = mosaicBox(section2);
     if (!box || box.children.length) return;
     box.innerHTML = skeletonTile("mtat", 6) + skeletonTile("mthoy", 4) + skeletonTile("", 2) + skeletonTile("", 2) + skeletonTile("mtprox", 3);
   }
@@ -5163,8 +5418,8 @@
     requestAnimationFrame(step);
   }
   function renderMosaic(data) {
-    const section = screen();
-    if (!section) return;
+    const section2 = screen();
+    if (!section2) return;
     const items = attentionItems(data);
     const html = [
       attentionTile(items),
@@ -5176,7 +5431,7 @@
       portfolioTile(data),
       upcomingTile(data)
     ].join("");
-    const box = mosaicBox(section);
+    const box = mosaicBox(section2);
     if (!box) return;
     box.innerHTML = html;
     box.querySelectorAll("[data-mat]").forEach((button) => {
@@ -5188,7 +5443,7 @@
     if (plan) plan.onclick = () => {
       goTo("agenda");
     };
-    section.classList.add("conmos");
+    section2.classList.add("conmos");
     countUp2(box);
   }
 
@@ -5350,13 +5605,13 @@
     refreshQuietly(item.id);
   };
   async function setState(action, item) {
-    const state = action === "confirmar" ? STATES.confirmed : action === "desconfirmar" ? STATES.planned : STATES.discarded;
+    const state = action === "confirmar" ? STATES2.confirmed : action === "desconfirmar" ? STATES2.planned : STATES2.discarded;
     const result = await appointmentLegacy.write("estado_cita", { p_id: item.id, p_estado: state });
     if (result?.error) {
       notices.toast(t("agenda.actions.couldNotChange"), true);
       return;
     }
-    notices.toast(t(state === STATES.confirmed ? "agenda.actions.confirmed" : state === STATES.discarded ? "agenda.actions.discarded" : "agenda.actions.unconfirmed"));
+    notices.toast(t(state === STATES2.confirmed ? "agenda.actions.confirmed" : state === STATES2.discarded ? "agenda.actions.discarded" : "agenda.actions.unconfirmed"));
     refresh(item);
   }
   async function remove(item) {
@@ -5377,7 +5632,7 @@
   async function postpone(item) {
     const day = await notices.askDate(t("agenda.actions.whichDay"), appointmentLegacy.nextAttendanceDay(item.dias, item.fecha), { titulo: t("agenda.actions.postponeTitle"), ok: t("agenda.actions.postpone") });
     if (!day) return;
-    const { data: result, error } = await legacyDb().rpc("aplazar_cita", { p_id: item.id, p_fecha: day, p_hora: null, p_origen: STATES.postponed });
+    const { data: result, error } = await legacyDb().rpc("aplazar_cita", { p_id: item.id, p_fecha: day, p_hora: null, p_origen: STATES2.postponed });
     if (error || result?.ok === false) {
       notices.toast(t("agenda.actions.couldNotPostpone"), true);
       return;
@@ -5436,19 +5691,19 @@
   async function runAction(action, item) {
     await ACTIONS[action](item);
   }
-  var timeOf2 = (item) => item.hora ? String(item.hora).slice(0, 5) : null;
+  var timeOf3 = (item) => item.hora ? String(item.hora).slice(0, 5) : null;
   function orderByTime(open, id, time) {
     const moved = open.find((item) => item.id === id);
     if (!moved || !time) return open;
     const rest = open.filter((item) => item.id !== id);
     let index = rest.findIndex((item) => {
-      const other = timeOf2(item);
+      const other = timeOf3(item);
       return other !== null && other > time;
     });
     if (index < 0) {
       index = 0;
       rest.forEach((item, position) => {
-        const other = timeOf2(item);
+        const other = timeOf3(item);
         if (other !== null && other <= time) index = position + 1;
       });
     }
@@ -5518,14 +5773,14 @@
     if (!windows.length) return t("agenda.sheet.notAttending");
     return (info.otroCentro ? t("agenda.sheet.atCentre", { centre: info.otroCentro }) : "") + yourDayLegacy.windowsText(windows);
   }
-  var row = (label, value2) => `<div class="vcfila"><span>${label}</span><b>${value2}</b></div>`;
+  var row = (label, value4) => `<div class="vcfila"><span>${label}</span><b>${value4}</b></div>`;
   function dataHtml(item, info) {
     const where = [item.centro_nombre, item.direccion, item.municipio].filter(Boolean).join(" · "), timetable = timetableText2(item, info), origin = yourDayLegacy.originText(item);
     return `<div class="vcdatos">
       ${row(t("agenda.sheet.when"), `${escapeHtml(capitalise(formatLongDate(item.fecha)))} · ${escapeHtml(timeText2(item, info))}`)}
       ${row(t("agenda.sheet.where"), escapeHtml(where || t("agenda.sheet.noCentre")))}
       ${timetable ? row(t("agenda.sheet.timetable"), escapeHtml(timetable)) : ""}
-      ${row(t("agenda.sheet.state"), `${statePill(item.estado)}${origin ? ` <span class="sm">${origin}</span>` : ""}`)}
+      ${row(t("agenda.sheet.state"), `${statePill2(item.estado)}${origin ? ` <span class="sm">${origin}</span>` : ""}`)}
     </div>`;
   }
   function closedHtml(item) {
@@ -5542,7 +5797,7 @@
       <button type="button" class="btn sec" id="vcficha">${t("agenda.sheet.seeCard")}</button>
       ${pointOf(item) ? `<button type="button" class="btn sec" id="vcllegar">${t("agenda.sheet.directions")}</button>` : ""}
       ${open ? `<button type="button" class="btn sec" id="vchora">${t("agenda.sheet.changeTime")}</button><button type="button" class="btn sec" id="vcmover">${t("agenda.sheet.moveDay")}</button>` : ""}
-    ${canPlanAgain(item, today) ? `<button type="button" class="btn sec" id="vcrehacer">${t("agenda.sheet.planAgain")}</button>` : ""}${item.estado === STATES.postponed ? goToButton(item.aplazada_a_fecha, "agenda.sheet.goTo", "vcirdest", item) : ""}${goToButton(item.aplazada_de_fecha, "agenda.sheet.seeDay", "vcirorig", item)}</div>
+    ${canPlanAgain(item, today) ? `<button type="button" class="btn sec" id="vcrehacer">${t("agenda.sheet.planAgain")}</button>` : ""}${item.estado === STATES2.postponed ? goToButton(item.aplazada_a_fecha, "agenda.sheet.goTo", "vcirdest", item) : ""}${goToButton(item.aplazada_de_fecha, "agenda.sheet.seeDay", "vcirorig", item)}</div>
     ${open ? `<div class="vcfin">
         <button type="button" class="lnk" id="vcdescartar">${t("agenda.sheet.discard")}</button><span class="sm">${t("agenda.sheet.discardText")}</span>
         ${item.fecha >= today ? `<button type="button" class="lnk peligro" id="vcborrar">${t("agenda.sheet.delete")}</button><span class="sm">${t("agenda.sheet.deleteText")}</span>` : ""}</div>` : ""}
@@ -5567,26 +5822,26 @@
   };
   async function saveNotes(item, notes, button) {
     button.disabled = true;
-    const value2 = notes.value.trim();
-    const { error } = await legacyDb().from("agenda").update({ nota: value2 || null }).eq("id", item.id);
+    const value4 = notes.value.trim();
+    const { error } = await legacyDb().from("agenda").update({ nota: value4 || null }).eq("id", item.id);
     if (error) {
       button.disabled = false;
       notices.toast(t("agenda.sheet.couldNotSave", { error: error.message ?? "" }), true);
       return;
     }
-    item.nota = value2;
+    item.nota = value4;
     close();
     notices.toast(t("agenda.sheet.notesSaved"));
     refreshQuietly(item.id, false);
   }
   function bind5(body2, item) {
-    const notes = body2.querySelector("#vcnota"), save3 = body2.querySelector("#vcok");
-    if (notes && save3) {
+    const notes = body2.querySelector("#vcnota"), save5 = body2.querySelector("#vcok");
+    if (notes && save5) {
       notes.oninput = () => {
-        save3.disabled = notes.value.trim() === (item.nota ?? "").trim();
+        save5.disabled = notes.value.trim() === (item.nota ?? "").trim();
       };
-      save3.onclick = () => {
-        void saveNotes(item, notes, save3);
+      save5.onclick = () => {
+        void saveNotes(item, notes, save5);
       };
     }
     const on2 = (id, action) => {
@@ -5641,7 +5896,7 @@
   }
 
   // src/app/screens/agenda/editors/appointment-editor.ts
-  var timeOf3 = (item) => item.hora ? String(item.hora).slice(0, 5) : null;
+  var timeOf4 = (item) => item.hora ? String(item.hora).slice(0, 5) : null;
   var inputValue = (id) => document.getElementById(id)?.value ?? "";
   async function loadAccount(id, draft) {
     const { data } = await legacyDb().rpc("ficha_cuenta", { p_id: id });
@@ -5719,17 +5974,17 @@
   async function placeByTime(day, owner, accountId, time) {
     const { data } = await callRpc("agenda_rango", { p_desde: day, p_hasta: day, p_usuario: owner });
     const open = (data ?? []).filter((item) => item.usuario_id === owner && isOpen(item.estado));
-    const mine = open.filter((item) => item.cuenta_id === accountId && timeOf3(item) === time).pop();
+    const mine = open.filter((item) => item.cuenta_id === accountId && timeOf4(item) === time).pop();
     if (!mine) return;
     const rest = open.filter((item) => item !== mine);
     let index = rest.findIndex((item) => {
-      const other = timeOf3(item);
+      const other = timeOf4(item);
       return other !== null && other > time;
     });
     if (index < 0) {
       index = 0;
       rest.forEach((item, position) => {
-        const other = timeOf3(item);
+        const other = timeOf4(item);
         if (other !== null && other <= time) index = position + 1;
       });
     }
@@ -5750,7 +6005,7 @@
       fecha: day,
       hora: inputValue("nch") || null,
       centro_nombre: centreOf(draft, picked),
-      estado: STATES.planned,
+      estado: STATES2.planned,
       origen: orFallback(options.origen, inAgenda ? "Agenda" : "Ficha"),
       usuario_id: editorLegacy.viewedUserId(),
       nota: inputValue("ncn").trim(),
@@ -5897,6 +6152,615 @@
     show();
   }
 
+  // src/app/screens/events/index.ts
+  var events_exports = {};
+  __export(events_exports, {
+    EVENT_TYPES: () => EVENT_TYPES,
+    editEvent: () => editEvent,
+    paintEvents: () => paintEvents,
+    paintExpenseReport: () => paintExpenseReport,
+    showEvent: () => showEvent
+  });
+
+  // src/app/screens/events/model.ts
+  var EVENT_TYPES = ["Taller", "Curso", "Congreso", "Webinar", "Reunión científica", "Comida de trabajo", "Otro"];
+  var ATTENDANCE_STATES = ["Invitado", "Confirmado", "Asistió", "No asistió"];
+  var CONCEPTS = ["inscripcion", "viaje", "comida", "honorarios"];
+  var MEAL_MAX = 60;
+  var conceptLabel = (concept) => t(`events.concepts.${concept}`);
+  var attendeeTotal = (attendee) => CONCEPTS.reduce((total, concept) => total + (Number(attendee[concept]) || 0), 0);
+
+  // src/app/screens/events/editor.ts
+  var value2 = (id) => document.getElementById(id)?.value ?? "";
+  function editorHtml(event, existing) {
+    const canDelete = existing && (existing.creado_por === salesTeam.currentUserId() || cardSectionsLegacy.can("administrar"));
+    return `<div class="fh"><div><h2>${t(existing ? "events.editor.editTitle" : "events.editor.newTitle")}</h2><div class="sm">${t("events.editor.subtitle")}</div></div>
+      <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
+    <label for="evt">${t("events.editor.title")}</label><input id="evt" value="${escapeHtml(event.titulo ?? "")}" placeholder="${t("events.editor.titlePlaceholder")}">
+    <div class="g2"><div><label for="evtipo">${t("events.editor.type")}</label><select id="evtipo">${EVENT_TYPES.map((type) => `<option ${type === event.tipo ? "selected" : ""}>${type}</option>`).join("")}</select></div>
+      <div><label for="evf">${t("events.editor.date")}</label><input id="evf" type="date" value="${escapeHtml(event.fecha ?? "")}"></div></div>
+    <div class="g2"><div><label for="evh">${t("events.editor.time")}</label><input id="evh" type="time" value="${escapeHtml(event.hora ? String(event.hora).slice(0, 5) : "")}"></div>
+      <div><label for="evl">${t("events.editor.place")}</label><input id="evl" value="${escapeHtml(event.lugar ?? "")}" placeholder="${t("events.editor.placePlaceholder")}"></div></div>
+    <label class="opt"><input type="checkbox" id="evon" ${event.en_linea ? "checked" : ""}> ${t("events.editor.online")}</label>
+    <label for="evn">${t("events.editor.note")}</label><textarea id="evn" rows="3">${escapeHtml(event.nota ?? "")}</textarea>
+    <div class="acts" style="justify-content:flex-end">${canDelete ? `<button type="button" class="btn sec peligro" id="evborrar">${t("events.editor.delete")}</button>` : ""}
+      <button type="button" class="btn sec" data-cerrar>${t("events.editor.cancel")}</button><button type="button" class="btn" id="evok">${t(existing ? "events.editor.save" : "events.editor.create")}</button></div>`;
+  }
+  var repaintListIfShown = () => {
+    if (currentScreen() === "eventos") eventsLegacy.repaintList();
+  };
+  function formRow(title) {
+    return {
+      titulo: title,
+      tipo: value2("evtipo"),
+      fecha: value2("evf"),
+      hora: value2("evh") || null,
+      lugar: value2("evl").trim() || null,
+      en_linea: Boolean(document.getElementById("evon")?.checked),
+      nota: value2("evn").trim() || null
+    };
+  }
+  async function save3(existing, button) {
+    const title = value2("evt").trim();
+    if (!title) {
+      notices.toast(t("events.editor.writeTitle"), true);
+      return;
+    }
+    if (!value2("evf")) {
+      notices.toast(t("events.editor.chooseDate"), true);
+      return;
+    }
+    const row2 = formRow(title);
+    button.disabled = true;
+    const table = legacyDb().from("eventos");
+    const result = existing ? await table.update(row2).eq("id", existing.id).select("id").single() : await table.insert(row2).select("id").single();
+    button.disabled = false;
+    if (result.error || !result.data) {
+      notices.toast(t("events.editor.couldNotSave", { error: result.error?.message ?? "" }), true);
+      return;
+    }
+    notices.toast(t(existing ? "events.editor.saved" : "events.editor.created"));
+    relatedLegacy.openEvent(result.data.id);
+    repaintListIfShown();
+  }
+  async function remove3(existing) {
+    if (!await notices.confirm(t("events.editor.deleteText"), { titulo: t("events.editor.deleteTitle"), ok: t("events.editor.delete"), peligro: true })) return;
+    const { error } = await legacyDb().from("eventos").delete().eq("id", existing.id);
+    if (error) {
+      notices.toast(t("events.editor.couldNotDelete"), true);
+      return;
+    }
+    document.getElementById("dlg")?.close();
+    notices.toast(t("events.editor.deleted"));
+    repaintListIfShown();
+  }
+  function editEvent(existing) {
+    const body2 = document.getElementById("dbody"), box = document.getElementById("dlg");
+    if (!body2 || !box) return;
+    body2.innerHTML = editorHtml(existing ?? { fecha: todayIso(), tipo: "Taller", en_linea: false }, existing);
+    if (!box.open) box.showModal();
+    const ok = document.getElementById("evok");
+    if (ok) ok.onclick = () => {
+      void save3(existing, ok);
+    };
+    const erase = document.getElementById("evborrar");
+    if (erase && existing) erase.onclick = () => {
+      void remove3(existing);
+    };
+  }
+
+  // src/app/screens/events/list.ts
+  var SHOWN_PAST = 50;
+  var LIMIT = 200;
+  function eventSummary(event) {
+    return `${escapeHtml(formatLongDate(event.fecha))}${event.hora ? ` · ${escapeHtml(String(event.hora).slice(0, 5))}` : ""}${event.tipo ? ` · ${escapeHtml(event.tipo)}` : ""} · ${event.en_linea ? t("events.list.online") : escapeHtml(orFallback(event.lugar, t("events.list.noPlace")))}`;
+  }
+  function eventRow(event) {
+    const attendees = event.eventos_asistentes ?? [], total = sum(attendees.map(attendeeTotal));
+    const count2 = attendees.length === 1 ? t("events.list.oneAttendee") : t("events.list.attendees", { count: attendees.length });
+    return `<button type="button" class="item evrow" data-ev="${event.id}"><span class="tx"><b>${escapeHtml(event.titulo)}</b>
+      <span class="sm">${eventSummary(event)} · ${count2}</span></span>
+      ${total ? `<span class="evtot">${formatCurrency(total)}</span>` : ""}</button>`;
+  }
+  var section = (title, rows, empty) => `<section class="card evbloque"><h2>${title}</h2>${rows.length ? `<div class="lista">${rows.map(eventRow).join("")}</div>` : `<div class="vacio vlinea">${empty}</div>`}</section>`;
+  async function paintEvents() {
+    if (!document.getElementById("cfgcuerpo")) return;
+    const { data, error } = await legacyDb().from("eventos").select("id,titulo,tipo,fecha,hora,lugar,en_linea,creado_por,eventos_asistentes(id,estado,inscripcion,viaje,comida,honorarios)").order("fecha", { ascending: false }).limit(LIMIT);
+    const box = document.getElementById("cfgcuerpo");
+    if (!box || currentScreen() !== "eventos") return;
+    if (error) {
+      box.innerHTML = `<div class="vacio">${t("events.list.couldNotLoad")}</div>`;
+      return;
+    }
+    const today = todayIso(), list = data ?? [];
+    const upcoming = list.filter((event) => event.fecha >= today).reverse(), past = list.filter((event) => event.fecha < today);
+    box.innerHTML = `<div class="evpag"><div class="evcab"><button type="button" class="btn" id="evnuevo">${t("events.list.newEvent")}</button></div>
+    ${section(t("events.list.upcoming"), upcoming, t("events.list.noUpcoming"))}
+    ${section(t("events.list.past"), past.slice(0, SHOWN_PAST), t("events.list.noPast"))}</div>`;
+    const add = document.getElementById("evnuevo");
+    if (add) add.onclick = () => {
+      editEvent(null);
+    };
+    box.querySelectorAll("[data-ev]").forEach((button) => {
+      button.onclick = () => {
+        relatedLegacy.openEvent(button.dataset.ev ?? "");
+      };
+    });
+  }
+
+  // src/app/screens/events/report.ts
+  var YEARS_SHOWN = 4;
+  var BOM = String.fromCharCode(65279);
+  var amount = (row2, key) => Number(row2[key]) || 0;
+  function tableHtml(rows) {
+    const total = (key) => formatCurrency(sum(rows.map((row2) => amount(row2, key))));
+    return `<div class="dgrid-wrap"><table class="trtabla"><thead><tr><th>${term("medico", { capital: "C" })}</th><th>${t("events.report.events")}</th>${CONCEPTS.map((concept) => `<th>${conceptLabel(concept)}</th>`).join("")}<th>${t("events.report.total")}</th></tr></thead>
+      <tbody>${rows.map((row2) => `<tr><td><b>${escapeHtml(row2.nombre)}</b>${row2.especialidad ? `<span class="sm"> · ${escapeHtml(row2.especialidad)}</span>` : ""}</td><td>${row2.eventos}</td>${CONCEPTS.map((concept) => `<td>${formatCurrency(amount(row2, concept))}</td>`).join("")}<td><b>${formatCurrency(amount(row2, "total"))}</b></td></tr>`).join("")}</tbody>
+      <tfoot><tr><td>${t("events.report.total")}</td><td></td>${CONCEPTS.map((concept) => `<td>${total(concept)}</td>`).join("")}<td><b>${total("total")}</b></td></tr></tfoot></table></div>`;
+  }
+  function download(rows, year) {
+    const quote = (value4) => `"${String(value4 ?? "").replace(/"/g, '""')}"`, decimal2 = (value4) => String(Number(value4) || 0).replace(".", ",");
+    const header = [term("medico", { capital: "C" }), t("events.report.code"), term("especialidad", { capital: "C" }), t("events.report.events"), ...CONCEPTS.map(conceptLabel), t("events.report.total")].map(quote).join(";");
+    const lines = rows.map((row2) => [quote(row2.nombre), quote(row2.codigo), quote(row2.especialidad), row2.eventos, ...CONCEPTS.map((concept) => decimal2(row2[concept])), decimal2(row2.total)].join(";"));
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(new Blob([BOM + [header, ...lines].join("\r\n")], { type: "text/csv;charset=utf-8" }));
+    link.download = t("events.report.fileName", { year });
+    document.body.appendChild(link);
+    link.click();
+    setTimeout(() => {
+      URL.revokeObjectURL(link.href);
+      link.remove();
+    }, 1e3);
+  }
+  async function paintExpenseReport(year) {
+    if (!document.getElementById("cfgcuerpo")) return;
+    const current = Number(todayIso().slice(0, 4)), shown = year ?? current - 1;
+    const { data } = await legacyDb().rpc("transparencia_anual", { p_anio: shown });
+    const box = document.getElementById("cfgcuerpo");
+    if (!box || currentScreen() !== "eventos") return;
+    const rows = data?.filas ?? [];
+    box.innerHTML = `<div class="evpag"><div class="evcab"><label for="trano">${t("events.report.year")}</label><select id="trano">${range(YEARS_SHOWN).map((back) => current - back).map((option2) => `<option ${option2 === shown ? "selected" : ""}>${option2}</option>`).join("")}</select>
+      ${rows.length ? `<button type="button" class="btn sec" id="trcsv">${t("events.report.download")}</button>` : ""}</div>
+    <p class="sm">${t("events.report.note", { professional: term("medico") })}</p>
+    ${rows.length ? tableHtml(rows) : `<div class="vacio vlinea">${t("events.report.empty", { year: shown })}</div>`}</div>`;
+    const select = box.querySelector("#trano");
+    if (select) select.onchange = () => {
+      void paintExpenseReport(Number(select.value));
+    };
+    const csv = box.querySelector("#trcsv");
+    if (csv) csv.onclick = () => {
+      download(rows, shown);
+    };
+  }
+
+  // src/app/screens/events/sheet.ts
+  var reopen2 = (id) => {
+    relatedLegacy.openEvent(id);
+  };
+  function attendeeHtml(attendee) {
+    const costs = CONCEPTS.map((concept) => {
+      const amount2 = Number(attendee[concept]) || 0;
+      return `<label class="${concept === "comida" && amount2 > MEAL_MAX ? "evaviso" : ""}"><span>${conceptLabel(concept)}</span><input type="number" min="0" step="0.01" data-asimp="${concept}" value="${amount2 || ""}" placeholder="0"></label>`;
+    }).join("");
+    return `<div class="evasf" data-as="${attendee.id}">
+        <div class="evasn"><b>${escapeHtml(attendee.cuentas?.nombre ?? "")}</b><span class="sm">${escapeHtml(attendee.cuentas?.especialidad ?? "")}</span></div>
+        <select data-asest aria-label="${t("events.sheet.state")}">${ATTENDANCE_STATES.map((state) => `<option ${state === attendee.estado ? "selected" : ""}>${state}</option>`).join("")}</select>
+        <button type="button" class="x" data-asq aria-label="${t("events.sheet.remove")}">✕</button>
+        <div class="evimp">${costs}</div></div>`;
+  }
+  function sheetHtml2(event, attendees, canEdit) {
+    return `<div class="fh"><div><h2>${escapeHtml(event.titulo)}</h2><div class="sm">${eventSummary(event)}</div></div>
+      <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
+    ${event.nota ? `<p class="sm">${escapeHtml(event.nota)}</p>` : ""}
+    <div class="evascab"><h3>${t("events.sheet.attendees", { count: attendees.length })}</h3><button type="button" class="btn sec" id="evanadir">${t("events.sheet.add")}</button></div>
+    <div id="evsel"></div>
+    <div class="evas" id="evas">${attendees.length ? attendees.map(attendeeHtml).join("") : `<div class="vacio vlinea">${t("events.sheet.noAttendees")}</div>`}</div>
+    <div class="evpie"><span>${t("events.sheet.total")}</span><b id="evtotal">${formatCurrency(sum(attendees.map(attendeeTotal)))}</b></div>
+    <p class="sm">${t("events.sheet.note", { max: MEAL_MAX })}</p>
+    <div class="acts" style="justify-content:flex-end">${canEdit ? `<button type="button" class="btn sec" id="eveditar">${t("events.sheet.edit")}</button>` : ""}<button type="button" class="btn" data-cerrar>${t("events.sheet.done")}</button></div>`;
+  }
+  function startAdding(id) {
+    const add = document.getElementById("evanadir");
+    if (add) add.disabled = true;
+    editorLegacy.pickAccount(document.getElementById("evsel"), null, async (account) => {
+      const { error } = await legacyDb().from("eventos_asistentes").insert({ evento_id: id, cuenta_id: account.id });
+      const message = error?.message ?? "";
+      if (error) notices.toast(/duplicate|unique/i.test(message) ? t("events.sheet.alreadyIn", { name: account.nombre ?? "" }) : t("events.sheet.couldNotAdd", { error: message }), true);
+      else notices.toast(t("events.sheet.added", { name: account.nombre ?? "" }));
+      reopen2(id);
+    });
+    document.getElementById("evsel")?.querySelector("input")?.focus();
+  }
+  async function saveCost(attendee, input, attendees) {
+    const concept = input.dataset.asimp, amount2 = Math.max(0, Math.round((Number(input.value) || 0) * 100) / 100);
+    const { error } = await legacyDb().from("eventos_asistentes").update({ [concept]: amount2 }).eq("id", attendee.id);
+    if (error) {
+      notices.toast(t("events.sheet.couldNotSave"), true);
+      input.value = String(Number(attendee[concept]) || "");
+      return;
+    }
+    attendee[concept] = amount2;
+    const total = document.getElementById("evtotal");
+    if (total) total.textContent = formatCurrency(sum(attendees.map(attendeeTotal)));
+    const overMeal = concept === "comida" && amount2 > MEAL_MAX;
+    input.closest("label")?.classList.toggle("evaviso", overMeal);
+    if (overMeal) notices.toast(t("events.sheet.mealOver", { max: MEAL_MAX }), true);
+  }
+  function bindAttendee(row2, attendee, attendees, id) {
+    const state = row2.querySelector("[data-asest]");
+    if (state) state.onchange = async () => {
+      const { error } = await legacyDb().from("eventos_asistentes").update({ estado: state.value }).eq("id", attendee.id);
+      if (error) {
+        notices.toast(t("events.sheet.couldNotSave"), true);
+        state.value = attendee.estado;
+        return;
+      }
+      attendee.estado = state.value;
+    };
+    row2.querySelectorAll("[data-asimp]").forEach((input) => {
+      input.onchange = () => {
+        void saveCost(attendee, input, attendees);
+      };
+    });
+    const remove4 = row2.querySelector("[data-asq]");
+    if (remove4) remove4.onclick = async () => {
+      if (!await notices.confirm(t("events.sheet.removeText", { name: attendee.cuentas?.nombre ?? "" }), { titulo: t("events.sheet.removeTitle"), ok: t("events.sheet.remove"), peligro: true })) return;
+      const { error } = await legacyDb().from("eventos_asistentes").delete().eq("id", attendee.id);
+      if (error) {
+        notices.toast(t("events.sheet.couldNotRemove"), true);
+        return;
+      }
+      reopen2(id);
+    };
+  }
+  async function showEvent(id) {
+    const db2 = legacyDb();
+    const [{ data: event }, { data: attendeeRows }] = await Promise.all([
+      db2.from("eventos").select("*").eq("id", id).maybeSingle(),
+      db2.from("eventos_asistentes").select("id,cuenta_id,estado,inscripcion,viaje,comida,honorarios,cuentas(nombre,especialidad)").eq("evento_id", id).order("creado_en")
+    ]);
+    if (!event) {
+      notices.toast(t("events.sheet.notFound"), true);
+      return;
+    }
+    const body2 = document.getElementById("dbody"), box = document.getElementById("dlg");
+    if (!body2 || !box) return;
+    const attendees = attendeeRows ?? [], canEdit = event.creado_por === salesTeam.currentUserId() || cardSectionsLegacy.can("administrar");
+    body2.innerHTML = sheetHtml2(event, attendees, canEdit);
+    if (!box.open) box.showModal();
+    const edit = document.getElementById("eveditar");
+    if (edit) edit.onclick = () => {
+      editEvent(event);
+    };
+    const add = document.getElementById("evanadir");
+    if (add) add.onclick = () => {
+      startAdding(id);
+    };
+    document.querySelectorAll("#evas [data-as]").forEach((row2) => {
+      const attendee = attendees.find((item) => item.id === row2.dataset.as);
+      if (attendee) bindAttendee(row2, attendee, attendees, id);
+    });
+  }
+
+  // src/app/screens/surgeries/index.ts
+  var surgeries_exports = {};
+  __export(surgeries_exports, {
+    editSurgery: () => editSurgery,
+    paintSurgeries: () => paintSurgeries,
+    showSurgery: () => showSurgery
+  });
+
+  // src/app/screens/surgeries/editor.ts
+  var value3 = (id) => document.getElementById(id)?.value ?? "";
+  async function team() {
+    if (!salesTeam.members().length) await salesTeam.load().catch(() => void 0);
+    const me = salesTeam.currentUserId(), members = salesTeam.members();
+    return members.some((member) => member.id === me) ? members : [{ id: me, nombre: appLegacy.currentUserName() }, ...members];
+  }
+  function editorHtml2(surgery, existing, people) {
+    const origins = ORIGINS.map((origin) => `<button type="button" data-o="${origin}" class="${origin === surgery.origen ? "on" : ""}" aria-pressed="${String(origin === surgery.origen)}">${originLabel(origin)}</button>`).join("");
+    return `<div class="fh"><div><h2>${t(existing ? "surgeries.editor.changeTitle" : "surgeries.editor.newTitle")}</h2><div class="sm">${t("surgeries.editor.subtitle")}</div></div>
+      <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
+    <div class="g2"><div><label for="cirf">${t("surgeries.editor.date")}</label><input id="cirf" type="date" value="${escapeHtml(surgery.fecha ?? "")}"></div>
+      <div><label for="cirh">${t("surgeries.editor.time")}</label><input id="cirh" type="time" value="${escapeHtml(timeOf(surgery))}"></div></div>
+    <label>${t("surgeries.editor.centre")}</label><div id="cirhos"></div>
+    <label>${t("surgeries.editor.responsible")}</label><div id="circir"></div>
+    <div class="g2"><div><label for="cirp">${t("surgeries.editor.procedure")}</label><input id="cirp" value="${escapeHtml(surgery.procedimiento ?? "")}" placeholder="${t("surgeries.editor.procedurePlaceholder")}"></div>
+      <div><label for="cirq">${t("surgeries.editor.room")}</label><input id="cirq" value="${escapeHtml(surgery.quirofano ?? "")}" placeholder="${t("surgeries.editor.roomPlaceholder")}"></div></div>
+    <div class="g2"><div><label for="cira">${t("surgeries.editor.assists")}</label><select id="cira">${people.map((person) => `<option value="${person.id}" ${person.id === surgery.asistente_id ? "selected" : ""}>${escapeHtml(person.nombre)}</option>`).join("")}</select></div>
+      <div><label for="cirref">${t("surgeries.editor.caseReference", { patient: term("paciente", { article: "del" }) })}</label><input id="cirref" maxlength="60" value="${escapeHtml(surgery.referencia_caso ?? "")}" placeholder="${t("surgeries.editor.caseReferencePlaceholder")}"></div></div>
+    <label>${t("surgeries.editor.materialFrom")}</label>
+    <div class="segs" id="cirori" role="group" aria-label="${t("surgeries.editor.materialFrom")}">${origins}</div>
+    <label for="cirn">${t("surgeries.editor.note")}</label><textarea id="cirn" rows="2">${escapeHtml(surgery.nota ?? "")}</textarea>
+    <div class="acts" style="justify-content:flex-end">${existing ? `<button type="button" class="btn sec peligro" id="ciranular">${t("surgeries.editor.cancelSurgery")}</button>` : ""}
+      <button type="button" class="btn sec" data-cerrar>${t("surgeries.editor.cancel")}</button><button type="button" class="btn" id="cirok">${t(existing ? "surgeries.editor.save" : "surgeries.editor.schedule")}</button></div>`;
+  }
+  function payload(existing, centre, responsible, state) {
+    return {
+      id: existing?.id ?? null,
+      fecha: value3("cirf"),
+      hora: value3("cirh") || null,
+      hospital_id: centre.id,
+      cirujano_id: responsible.id,
+      procedimiento: value3("cirp"),
+      quirofano: value3("cirq"),
+      asistente_id: value3("cira"),
+      origen: document.querySelector("#cirori .on")?.dataset.o,
+      referencia_caso: value3("cirref"),
+      nota: value3("cirn"),
+      estado: state
+    };
+  }
+  var failureText = (error, result) => error ? t("surgeries.editor.couldNotSave", { error: error.message ?? "" }) : errorText(result);
+  async function save4(existing, choice, state, button) {
+    if (!value3("cirf") || !choice.hos || !choice.cir) {
+      notices.toast(t("surgeries.editor.missing"), true);
+      return;
+    }
+    button.disabled = true;
+    const { data: result, error } = await legacyDb().rpc("cirugia_guardar", { p: payload(existing, choice.hos, choice.cir, state) });
+    button.disabled = false;
+    if (error || !result || result.ok === false) {
+      notices.toast(failureText(error, result), true);
+      return;
+    }
+    notices.toast(t(state === STATES.cancelled ? "surgeries.editor.cancelled" : existing ? "surgeries.editor.saved" : "surgeries.editor.scheduled"));
+    appLegacy.forgetCache();
+    if (state === STATES.cancelled) document.getElementById("dlg")?.close();
+    else relatedLegacy.openSurgery(result.id ?? "");
+  }
+  function bind6(existing, choice) {
+    editorLegacy.pickAccount(document.getElementById("cirhos"), choice.hos, (account) => {
+      choice.hos = account;
+    }, t("surgeries.editor.centrePlaceholder"));
+    editorLegacy.pickAccount(document.getElementById("circir"), choice.cir, (account) => {
+      choice.cir = account;
+    }, t("surgeries.editor.responsiblePlaceholder"));
+    const origins = document.querySelectorAll("#cirori [data-o]");
+    origins.forEach((button) => {
+      button.onclick = () => {
+        origins.forEach((other) => {
+          other.classList.toggle("on", other === button);
+          other.setAttribute("aria-pressed", String(other === button));
+        });
+      };
+    });
+    const ok = document.getElementById("cirok");
+    if (ok) ok.onclick = () => {
+      void save4(existing, choice, STATES.scheduled, ok);
+    };
+    const cancel = document.getElementById("ciranular");
+    if (cancel) cancel.onclick = async () => {
+      if (!await notices.confirm(t("surgeries.editor.cancelText"), { titulo: t("surgeries.editor.cancelTitle"), ok: t("surgeries.editor.cancelSurgery"), peligro: true })) return;
+      await save4(existing, choice, STATES.cancelled, cancel);
+    };
+  }
+  async function editSurgery(existing) {
+    const surgery = existing ?? { fecha: addDays(todayIso(), 1), origen: "deposito", asistente_id: salesTeam.currentUserId() };
+    const people = await team();
+    const body2 = document.getElementById("dbody"), box = document.getElementById("dlg");
+    if (!body2 || !box) return;
+    body2.innerHTML = editorHtml2(surgery, existing, people);
+    if (!box.open) box.showModal();
+    const choice = {
+      hos: existing ? { id: existing.hospital_id ?? "", nombre: existing.hospital ?? "" } : null,
+      cir: existing ? { id: existing.cirujano_id ?? "", nombre: existing.cirujano ?? "", ...existing.especialidad ? { especialidad: existing.especialidad } : {} } : null
+    };
+    bind6(existing, choice);
+  }
+
+  // src/app/screens/surgeries/list.ts
+  var DAYS_BACK = 30;
+  var DAYS_AHEAD = 120;
+  function surgeryRow(surgery) {
+    const people = [surgery.cirujano, surgery.hospital, surgery.quirofano].filter(Boolean).join(" · ");
+    const noOrder = surgery.estado === STATES.done && !surgery.pedido_id ? `<span class="pill p-warn">${t("surgeries.list.noOrder")}</span>` : "";
+    return `<button type="button" class="item cirrow" data-cir="${surgery.id}"><span class="cirf"><b>${escapeHtml(formatShortDate(surgery.fecha))}</b><span class="sm">${escapeHtml(timeOf(surgery))}</span></span>
+    <span class="tx"><b>${escapeHtml(orFallback(surgery.procedimiento, t("surgeries.surgery")))}</b><span class="sm">${escapeHtml(people)}${surgery.asistente ? escapeHtml(t("surgeries.list.assists", { name: surgery.asistente })) : ""}</span></span>
+    <span class="cirest">${statePill(surgery)}${noOrder}${replenishmentPill(surgery)}</span></button>`;
+  }
+  var block = (title, list, empty) => `<section class="card cirbloque"><h2>${title}</h2>${list.length ? `<div class="lista">${list.map(surgeryRow).join("")}</div>` : `<div class="vacio vlinea">${empty}</div>`}</section>`;
+  async function paintSurgeries() {
+    if (!document.getElementById("cfgcuerpo")) return;
+    const today = todayIso();
+    const { data, error } = await legacyDb().rpc("cirugias_lista", { p_desde: addDays(today, -DAYS_BACK), p_hasta: addDays(today, DAYS_AHEAD) });
+    const box = document.getElementById("cfgcuerpo");
+    if (!box || currentScreen() !== "cirugias") return;
+    if (error) {
+      box.innerHTML = `<div class="vacio">${t("surgeries.list.couldNotLoad")}</div>`;
+      return;
+    }
+    const list = data ?? [];
+    const pending = list.filter((item) => item.reposicion === "vencida" || item.reposicion === "pendiente");
+    const scheduled = list.filter((item) => item.estado === STATES.scheduled);
+    const behind = scheduled.filter((item) => item.fecha < today), upcoming = scheduled.filter((item) => item.fecha >= today);
+    const done = list.filter((item) => item.estado !== STATES.scheduled && item.fecha <= today).reverse();
+    box.innerHTML = `<div class="cirpag"><div class="evcab"><button type="button" class="btn" id="cirnueva">${t("surgeries.list.newSurgery")}</button></div>
+    ${pending.length ? block(t("surgeries.list.replenishmentsPending"), pending, "") : ""}
+    ${behind.length ? block(t("surgeries.list.usedNotRecorded"), behind, "") : ""}
+    ${block(t("surgeries.list.upcoming"), upcoming, t("surgeries.list.noUpcoming"))}
+    ${block(t("surgeries.list.doneLast30"), done, t("surgeries.list.noneDone"))}</div>`;
+    const add = document.getElementById("cirnueva");
+    if (add) add.onclick = () => {
+      void editSurgery(null);
+    };
+    box.querySelectorAll("[data-cir]").forEach((button) => {
+      button.onclick = () => {
+        relatedLegacy.openSurgery(button.dataset.cir ?? "");
+      };
+    });
+  }
+
+  // src/app/screens/surgeries/use.ts
+  var MAX_SERIALS = 30;
+  function lineHtml(line, index) {
+    const details = `${escapeHtml(line.numero_lote ?? t("surgeries.use.noBatch"))}${line.caducidad ? t("surgeries.use.expires", { date: formatShortDate(line.caducidad) }) : ""}${t("surgeries.use.available", { count: formatNumber(line.unidades) })}`;
+    return `<div class="cirl" data-ci="${index}"><label><span>${escapeHtml(line.nombre)} <span class="sm">· ${details}</span></span>
+      <input type="number" min="0" max="${line.unidades}" step="1" data-cu="${index}" placeholder="0" aria-label="${t("surgeries.use.usedOf", { name: escapeHtml(line.nombre) })}"></label><div class="cirser" data-cs="${index}"></div></div>`;
+  }
+  function paintSerials(box, input) {
+    const key = input.dataset.cu ?? "", units2 = Math.min(Number(input.max), Math.max(0, Math.floor(Number(input.value) || 0)));
+    const place = box.querySelector(`[data-cs="${key}"]`);
+    if (!place) return;
+    const written = [...place.querySelectorAll("input")].map((field) => field.value);
+    place.innerHTML = range(Math.min(units2, MAX_SERIALS)).map((index) => `<input data-cser="${key}" maxlength="120" value="${escapeHtml(written[index] ?? "")}" placeholder="${t("surgeries.use.serialOf", { index: index + 1 })}" aria-label="${t("surgeries.use.serialLabel", { index: index + 1 })}">`).join("");
+  }
+  async function saveUsed(surgery, stock, box, button) {
+    const items = stock.map((line, index) => ({
+      producto_id: line.producto_id,
+      lote_id: line.lote_id,
+      max: line.unidades,
+      unidades: Math.max(0, Math.floor(Number(box.querySelector(`[data-cu="${index}"]`)?.value) || 0)),
+      series: [...box.querySelectorAll(`[data-cser="${index}"]`)].map((field) => field.value.trim()).filter(Boolean)
+    })).filter((item) => item.unidades > 0);
+    if (!items.length) {
+      notices.toast(t("surgeries.use.writeUsed"), true);
+      return;
+    }
+    if (items.some((item) => item.unidades > item.max)) {
+      notices.toast(t("surgeries.use.tooMany"), true);
+      return;
+    }
+    button.disabled = true;
+    const reference = document.getElementById("cirref2")?.value ?? "";
+    const { data: result, error } = await legacyDb().rpc("cirugia_consumo", { p: {
+      id: surgery.id,
+      referencia_caso: reference,
+      items: items.map((item) => ({ producto_id: item.producto_id, lote_id: item.lote_id, unidades: item.unidades, series: item.series }))
+    } });
+    button.disabled = false;
+    if (error || !result || result.ok === false) {
+      notices.toast(error ? t("surgeries.editor.couldNotSave", { error: error.message ?? "" }) : errorText(result), true);
+      return;
+    }
+    notices.toast(t("surgeries.use.saved"));
+    appLegacy.forgetCache();
+    relatedLegacy.openSurgery(surgery.id, `<div class="banda-ok depaviso">${t(result.pedido_id ? "surgeries.use.savedWithOrder" : "surgeries.use.savedWithoutOrder")}</div>`);
+  }
+  function paintUse(surgery, stock) {
+    const box = document.getElementById("cirusar");
+    if (!box) return;
+    if (!stock.length) {
+      box.innerHTML = `<div class="banda-aviso">${t(surgery.origen === "deposito" ? "surgeries.use.noMaterialDeposit" : "surgeries.use.noMaterialPersonal")}</div>`;
+      return;
+    }
+    box.innerHTML = `<details class="cirdet"><summary class="btn">${t("surgeries.use.record")}</summary><div class="depbox">
+    <span class="sm">${t("surgeries.use.hint")}</span>
+    <div class="cirlin">${stock.map(lineHtml).join("")}</div>
+    <label for="cirref2">${t("surgeries.editor.caseReference", { patient: term("paciente", { article: "del" }) })}</label><input id="cirref2" maxlength="60" value="${escapeHtml(surgery.referencia_caso ?? "")}" placeholder="${t("surgeries.editor.caseReferencePlaceholder")}">
+    <div class="acts" style="justify-content:flex-end"><button type="button" class="btn" id="cirusok">${t("surgeries.use.save")}</button></div></div></details>`;
+    box.querySelectorAll("[data-cu]").forEach((input) => {
+      input.oninput = () => {
+        paintSerials(box, input);
+      };
+    });
+    const save5 = document.getElementById("cirusok");
+    if (save5) save5.onclick = () => {
+      void saveUsed(surgery, stock, box, save5);
+    };
+  }
+
+  // src/app/screens/surgeries/sheet.ts
+  function replenishmentOf(surgery) {
+    if (surgery.estado !== STATES.done) return null;
+    if (surgery.repuesta_en) return "repuesta";
+    return new Date(surgery.reposicion_limite ?? "") < /* @__PURE__ */ new Date() ? "vencida" : "pendiente";
+  }
+  function dataHtml2(detail, replenishment) {
+    const surgery = detail.cirugia;
+    return `<div class="cirdat"><span>${t("surgeries.sheet.responsible")}</span><b><button type="button" class="lnk" data-cfi="${surgery.cirujano_id ?? ""}">${escapeHtml(detail.cirujano)}</button>${detail.especialidad ? ` <span class="sm">· ${escapeHtml(detail.especialidad)}</span>` : ""}</b>
+      <span>${t("surgeries.sheet.centre")}</span><b><button type="button" class="lnk" data-cfi="${surgery.hospital_id ?? ""}">${escapeHtml(detail.hospital)}</button></b>
+      <span>${t("surgeries.sheet.assists")}</span><b>${escapeHtml(orFallback(detail.asistente, "—"))}</b>
+      <span>${t("surgeries.sheet.material")}</span><b>${escapeHtml(orFallback(detail.almacen, originLabel(surgery.origen ?? "")))}</b>
+      ${surgery.referencia_caso ? `<span>${term("paciente", { capital: "C" })}</span><b>${escapeHtml(t("surgeries.sheet.reference", { reference: surgery.referencia_caso }))}</b>` : ""}
+      <span>${t("surgeries.sheet.state")}</span><b>${statePill(surgery)} ${replenishmentPill({ ...surgery, reposicion: replenishment })}</b></div>`;
+  }
+  function usedHtml(used) {
+    if (!used.length) return "";
+    return `<h3>${t("surgeries.sheet.used")}</h3><div class="deptab"><div class="deph cirh"><span>${t("surgeries.sheet.product")}</span><span>${t("surgeries.sheet.batch")}</span><span>${t("surgeries.sheet.serial")}</span><span>${t("surgeries.sheet.units")}</span></div>
+      ${used.map((line) => `<div class="depf cirh"><span>${escapeHtml(line.producto)}</span><span>${escapeHtml(orFallback(line.numero_lote, t("surgeries.sheet.noBatch")))}</span><span>${escapeHtml(orFallback(line.serie, "—"))}</span><b>${formatNumber(line.unidades)}</b></div>`).join("")}</div>`;
+  }
+  function sheetHtml3(detail, notice) {
+    const surgery = detail.cirugia, scheduled = surgery.estado === STATES.scheduled, replenishment = replenishmentOf(surgery), can = Boolean(detail.puede);
+    return `<div class="fh"><div><h2>${escapeHtml(orFallback(surgery.procedimiento, t("surgeries.surgery")))}</h2>
+      <div class="sm">${escapeHtml(formatLongDate(surgery.fecha))}${surgery.hora ? ` · ${escapeHtml(timeOf(surgery))}` : ""} · ${escapeHtml(detail.hospital)}${surgery.quirofano ? ` · ${escapeHtml(surgery.quirofano)}` : ""}</div></div>
+      <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
+    ${notice}
+    ${dataHtml2(detail, replenishment)}
+    ${surgery.nota ? `<p class="sm">${escapeHtml(surgery.nota)}</p>` : ""}
+    ${surgery.estado === STATES.done && !surgery.pedido_id ? `<div class="banda-aviso cirsinped">${t("surgeries.sheet.noOrder")} <button type="button" class="btn sec" id="cirhacerped">${t("surgeries.sheet.createOrder")}</button></div>` : ""}
+    ${scheduled && can ? '<div id="cirusar"></div>' : ""}
+    ${usedHtml(detail.consumos ?? [])}
+    ${actionsHtml3(surgery, replenishment, can)}`;
+  }
+  function actionsHtml3(surgery, replenishment, can) {
+    const scheduled = surgery.estado === STATES.scheduled;
+    return `<div class="acts" style="justify-content:flex-end">${surgery.pedido_id ? `<button type="button" class="btn sec" id="cirped">${t("surgeries.sheet.seeOrder")}</button>` : ""}
+      ${replenishment && replenishment !== "repuesta" && can ? `<button type="button" class="btn" id="cirrepo">${t("surgeries.sheet.replenishNow")}</button>` : ""}
+      ${scheduled && can ? `<button type="button" class="btn sec" id="cireditar">${t("surgeries.sheet.change")}</button>` : ""}<button type="button" class="btn sec" data-cerrar>${t("common.close")}</button></div>`;
+  }
+  async function createOrder(id, button) {
+    button.disabled = true;
+    const { data: result } = await legacyDb().rpc("cirugia_pedido", { p_id: id });
+    if (!result || result.ok === false) {
+      button.disabled = false;
+      notices.toast(result?.error === "pedido" ? t("surgeries.sheet.noOrderPermission") : errorText(result), true);
+      return;
+    }
+    notices.toast(t("surgeries.sheet.orderCreated"));
+    relatedLegacy.openSurgery(id);
+  }
+  async function replenish(id, button) {
+    button.disabled = true;
+    const { data: result } = await legacyDb().rpc("cirugia_reponer", { p_id: id });
+    if (!result || result.ok === false) {
+      button.disabled = false;
+      notices.toast(result?.error === "sin_stock" ? t("surgeries.sheet.notEnoughStock") : errorText(result), true);
+      return;
+    }
+    notices.toast(t(result.a_tiempo === false ? "surgeries.sheet.replenishedLate" : "surgeries.sheet.replenished"));
+    relatedLegacy.openSurgery(id);
+  }
+  function bind7(id, detail) {
+    const surgery = detail.cirugia, on2 = (elementId, action) => {
+      const button = document.getElementById(elementId);
+      if (button) button.onclick = () => {
+        action(button);
+      };
+    };
+    document.querySelectorAll("#dbody [data-cfi]").forEach((button) => {
+      button.onclick = () => {
+        document.getElementById("dlg")?.close();
+        agendaActions.openAccount(button.dataset.cfi ?? "");
+      };
+    });
+    on2("cirped", () => {
+      appLegacy.openOrder(surgery.pedido_id ?? "");
+    });
+    on2("cirhacerped", (button) => {
+      void createOrder(id, button);
+    });
+    on2("cireditar", () => {
+      void editSurgery({ ...surgery, hospital: detail.hospital, cirujano: detail.cirujano, especialidad: detail.especialidad ?? null });
+    });
+    on2("cirrepo", (button) => {
+      void replenish(id, button);
+    });
+  }
+  async function showSurgery(id, notice = "") {
+    const { data: detail, error } = await legacyDb().rpc("cirugia_detalle", { p_id: id });
+    if (error || !detail) {
+      notices.toast(t("surgeries.sheet.notFound"), true);
+      return;
+    }
+    const body2 = document.getElementById("dbody"), box = document.getElementById("dlg");
+    if (!body2 || !box) return;
+    body2.innerHTML = sheetHtml3(detail, notice);
+    if (!box.open) box.showModal();
+    bind7(id, detail);
+    if (document.getElementById("cirusar")) paintUse(detail.cirugia, detail.stock ?? []);
+  }
+
   // src/app/screens/agenda/your-day/card-buttons.ts
   function swapWithNeighbour(item, action) {
     const all = legacyAgenda.dayAppointments(), open = all.filter((entry) => isOpen(entry.estado));
@@ -5968,7 +6832,9 @@
     screens: {
       home: { load, renderSkeleton, paintIndicators },
       agenda: agenda_exports,
-      accounts: accounts_exports
+      accounts: accounts_exports,
+      events: events_exports,
+      surgeries: surgeries_exports
     }
   };
   listenToSameCentre();
@@ -8013,7 +8879,6 @@ const fechaDiaMes = f => f ? new Date(String(f).slice(0, 10) + 'T12:00:00').toLo
 
 const DIA_NOMBRE = f => new Date(String(f).slice(0, 10) + 'T12:00:00').toLocaleDateString('es-ES', { weekday: 'long' });
 
-const cirHora = c => c.hora ? String(c.hora).slice(0, 5) : '';
 
 const lunesCinta = f => { const d = new Date(f + 'T12:00:00'); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return isoLocal(d); };
 
@@ -10286,7 +11151,7 @@ const BLQ = {
   eventos: { attr: 'ev', que: 'eventos', grupo: 'Cuándo', def: 'Eventos',
     cols: [['Evento', ''], ['Fecha', ''], ['Tipo', ''], ['Lugar', ''], ['Asistentes', 'num'], ['Gasto', 'num']],
     celdas: b => {
-      const p = plSm(b).split(' · '), hora = p.find(x => /^\d{1,2}:\d{2}$/.test(x)), tipo = p.find(x => EV_TIPOS.includes(x));
+      const p = plSm(b).split(' · '), hora = p.find(x => /^\d{1,2}:\d{2}$/.test(x)), tipo = p.find(x => window.delcos.screens.events.EVENT_TYPES.includes(x));
       const asis = p.find(x => /asistente/.test(x)) || '', lugar = p.filter((x, i) => i > 0 && x !== hora && x !== tipo && x !== asis).join(' · ');
       return [`<b>${esc(plTxt(b.querySelector('.tx b')))}</b>`, esc(p[0] + (hora ? ' · ' + hora : '')), esc(tipo || '—'), esc(lugar || '—'), esc((asis.match(/\d+/) || ['0'])[0]), esc(plTxt(b.querySelector('.evtot')) || '—')];
     } },
@@ -12912,141 +13777,9 @@ function menuCirugias() {
   b.classList.toggle('hide', !!(ES_MEDICO() || !puedeModulo('agenda')));
 }
 
-async function pintarCirugias() {
-  const caja = $('cfgcuerpo'); if (!caja) return;
-  const hoy = hoyISO();
-  const { data, error } = await db.rpc('cirugias_lista', { p_desde: isoMas(hoy, -30), p_hasta: isoMas(hoy, 120) });
-  if (!$('cfgcuerpo') || TAB !== 'cirugias') return;
-  if (error) { caja.innerHTML = '<div class="vacio">No se han podido cargar las intervenciones.</div>'; return; }
-  const l = data || [];
-  const repo = l.filter(c => c.reposicion === 'vencida' || c.reposicion === 'pendiente');
-  const prox = l.filter(c => c.estado === 'Programada' && c.fecha >= hoy);
-  const atras = l.filter(c => c.estado === 'Programada' && c.fecha < hoy);
-  const hechas = l.filter(c => c.estado !== 'Programada' && c.fecha <= hoy).reverse();
-  const fila = c => `<button type="button" class="item cirrow" data-cir="${c.id}"><span class="cirf"><b>${esc(fechaCorta(c.fecha))}</b><span class="sm">${esc(cirHora(c))}</span></span>
-    <span class="tx"><b>${esc(c.procedimiento || 'Intervención')}</b><span class="sm">${esc([c.cirujano, c.hospital, c.quirofano].filter(Boolean).join(' · '))}${c.asistente ? ' · asiste ' + esc(c.asistente) : ''}</span></span>
-    <span class="cirest">${cirEstado(c)}${c.estado === 'Hecha' && !c.pedido_id ? '<span class="pill p-warn">Sin pedido</span>' : ''}${cirRepo(c)}</span></button>`;
-  const bloque = (t, l2, vacio) => `<section class="card cirbloque"><h2>${t}</h2>${l2.length ? `<div class="lista">${l2.map(fila).join('')}</div>` : `<div class="vacio vlinea">${vacio}</div>`}</section>`;
-  caja.innerHTML = `<div class="cirpag"><div class="evcab"><button type="button" class="btn" id="cirnueva">+ Nueva intervención</button></div>
-    ${repo.length ? bloque('Reposiciones pendientes', repo, '') : ''}
-    ${atras.length ? bloque('Sin registrar lo usado', atras, '') : ''}
-    ${bloque('Próximas', prox, 'No hay intervenciones programadas.')}
-    ${bloque('Hechas en los últimos 30 días', hechas, 'Todavía no hay intervenciones hechas.')}</div>`;
-  $('cirnueva').onclick = () => editarCirugia(null);
-  caja.querySelectorAll('[data-cir]').forEach(b => b.onclick = () => verCirugia(b.dataset.cir));
-}
 
-async function editarCirugia(c) {
-  const e = c || { fecha: isoMas(hoyISO(), 1), origen: 'deposito', asistente_id: PERFIL.id };
-  if (!COMS.length) { try { await cargarComerciales(); } catch (x) {} }
-  const gente = COMS.some(u => u.id === PERFIL.id) ? COMS : [{ id: PERFIL.id, nombre: PERFIL.nombre }].concat(COMS);
-  $('dbody').innerHTML = `<div class="fh"><div><h2>${c ? 'Cambiar la intervención' : 'Nueva intervención'}</h2><div class="sm">Sale también en la Agenda de quien asiste</div></div>
-      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-    <div class="g2"><div><label for="cirf">Fecha</label><input id="cirf" type="date" value="${esc(e.fecha || '')}"></div>
-      <div><label for="cirh">Hora</label><input id="cirh" type="time" value="${esc(cirHora(e))}"></div></div>
-    <label>Centro</label><div id="cirhos"></div>
-    <label>Responsable</label><div id="circir"></div>
-    <div class="g2"><div><label for="cirp">Procedimiento</label><input id="cirp" value="${esc(e.procedimiento || '')}" placeholder="p. ej. Prótesis de rodilla"></div>
-      <div><label for="cirq">Sala</label><input id="cirq" value="${esc(e.quirofano || '')}" placeholder="p. ej. Q3"></div></div>
-    <div class="g2"><div><label for="cira">Asiste</label><select id="cira">${gente.map(u => `<option value="${u.id}" ${u.id === e.asistente_id ? 'selected' : ''}>${esc(u.nombre)}</option>`).join('')}</select></div>
-      <div><label for="cirref">Referencia ${TT('paciente', 's', 'del', 'l', 'l')}</label><input id="cirref" maxlength="60" value="${esc(e.referencia_caso || '')}" placeholder="Código del centro, sin datos de salud"></div></div>
-    <label>De dónde sale el material</label>
-    <div class="segs" id="cirori" role="group" aria-label="De dónde sale el material">${CIR_ORIGEN.map(([k, t]) => `<button type="button" data-o="${k}" class="${k === e.origen ? 'on' : ''}" aria-pressed="${k === e.origen}">${t}</button>`).join('')}</div>
-    <label for="cirn">Nota</label><textarea id="cirn" rows="2">${esc(e.nota || '')}</textarea>
-    <div class="acts" style="justify-content:flex-end">${c ? '<button type="button" class="btn sec peligro" id="ciranular">Anular</button>' : ''}
-      <button type="button" class="btn sec" data-cerrar>Cancelar</button><button type="button" class="btn" id="cirok">${c ? 'Guardar' : 'Programar'}</button></div>`;
-  if (!$('dlg').open) $('dlg').showModal();
-  const sel = { hos: c ? { id: c.hospital_id, nombre: c.hospital } : null, cir: c ? { id: c.cirujano_id, nombre: c.cirujano, especialidad: c.especialidad } : null };
-  selectorMedico($('cirhos'), { valor: sel.hos, placeholder: 'Busca el centro o la clínica', alElegir: m => { sel.hos = m; } });
-  selectorMedico($('circir'), { valor: sel.cir, placeholder: 'Busca al responsable', alElegir: m => { sel.cir = m; } });
-  $('cirori').querySelectorAll('[data-o]').forEach(b => b.onclick = () => $('cirori').querySelectorAll('[data-o]').forEach(x => { x.classList.toggle('on', x === b); x.setAttribute('aria-pressed', String(x === b)); }));
-  const guardar = async (estado, boton) => {
-    if (!$('cirf').value || !sel.hos || !sel.cir) { toast('Elige la fecha, el centro y el responsable', true); return; }
-    boton.disabled = true;
-    const { data: r, error } = await db.rpc('cirugia_guardar', { p: { id: c ? c.id : null, fecha: $('cirf').value, hora: $('cirh').value || null,
-      hospital_id: sel.hos.id, cirujano_id: sel.cir.id, procedimiento: $('cirp').value, quirofano: $('cirq').value, asistente_id: $('cira').value,
-      origen: $('cirori').querySelector('.on').dataset.o, referencia_caso: $('cirref').value, nota: $('cirn').value, estado } });
-    boton.disabled = false;
-    if (error || !r || r.ok === false) { toast(error ? 'No se ha podido guardar: ' + error.message : cirError(r), true); return; }
-    toast(estado === 'Anulada' ? 'Intervención anulada' : c ? 'Intervención guardada' : 'Intervención programada'); invalidarCache();
-    if (estado === 'Anulada') $('dlg').close(); else verCirugia(r.id);
-  };
-  $('cirok').onclick = ev => guardar('Programada', ev.target);
-  if ($('ciranular')) $('ciranular').onclick = async ev => {
-    if (!await preguntar('La cita de la Agenda queda descartada.', { titulo: '¿Anular la intervención?', ok: 'Anular', peligro: true })) return;
-    guardar('Anulada', ev.target);
-  };
-}
 
-async function verCirugia(id, aviso) {
-  const { data: d, error } = await db.rpc('cirugia_detalle', { p_id: id });
-  if (error || !d) { toast('No se ha encontrado la intervención', true); return; }
-  const c = d.cirugia, prog = c.estado === 'Programada', st = d.stock || [], us = d.consumos || [];
-  const repo = c.estado !== 'Hecha' ? null : c.repuesta_en ? 'repuesta' : new Date(c.reposicion_limite) < new Date() ? 'vencida' : 'pendiente';
-  $('dbody').innerHTML = `<div class="fh"><div><h2>${esc(c.procedimiento || 'Intervención')}</h2>
-      <div class="sm">${esc(fechaLarga(new Date(c.fecha + 'T12:00:00')))}${c.hora ? ' · ' + esc(cirHora(c)) : ''} · ${esc(d.hospital)}${c.quirofano ? ' · ' + esc(c.quirofano) : ''}</div></div>
-      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-    ${aviso || ''}
-    <div class="cirdat"><span>Responsable</span><b><button type="button" class="lnk" data-cfi="${c.cirujano_id}">${esc(d.cirujano)}</button>${d.especialidad ? ` <span class="sm">· ${esc(d.especialidad)}</span>` : ''}</b>
-      <span>Centro</span><b><button type="button" class="lnk" data-cfi="${c.hospital_id}">${esc(d.hospital)}</button></b>
-      <span>Asiste</span><b>${esc(d.asistente || '—')}</b>
-      <span>Material</span><b>${esc(d.almacen || (CIR_ORIGEN.find(x => x[0] === c.origen) || [, ''])[1])}</b>
-      ${c.referencia_caso ? `<span>${TT('paciente', 's', '', 'l', 'C')}</span><b>Ref. ${esc(c.referencia_caso)}</b>` : ''}
-      <span>Estado</span><b>${cirEstado(c)} ${cirRepo(Object.assign({}, c, { reposicion: repo }))}</b></div>
-    ${c.nota ? `<p class="sm">${esc(c.nota)}</p>` : ''}
-    ${c.estado === 'Hecha' && !c.pedido_id ? `<div class="banda-aviso cirsinped">Falta el pedido al centro con lo usado. <button type="button" class="btn sec" id="cirhacerped">Crear el pedido</button></div>` : ''}
-    ${prog && d.puede ? `<div id="cirusar"></div>` : ''}
-    ${us.length ? `<h3>Lo usado</h3><div class="deptab"><div class="deph cirh"><span>Producto</span><span>Lote</span><span>Nº de serie</span><span>Uds</span></div>
-      ${us.map(x => `<div class="depf cirh"><span>${esc(x.producto)}</span><span>${esc(x.numero_lote || 'Sin lote')}</span><span>${esc(x.serie || '—')}</span><b>${num(x.unidades)}</b></div>`).join('')}</div>` : ''}
-    <div class="acts" style="justify-content:flex-end">${c.pedido_id ? '<button type="button" class="btn sec" id="cirped">Ver el pedido</button>' : ''}
-      ${repo && repo !== 'repuesta' && d.puede ? '<button type="button" class="btn" id="cirrepo">Reponer ahora</button>' : ''}
-      ${prog && d.puede ? '<button type="button" class="btn sec" id="cireditar">Cambiar</button>' : ''}<button type="button" class="btn sec" data-cerrar>Cerrar</button></div>`;
-  if (!$('dlg').open) $('dlg').showModal();
-  $('dbody').querySelectorAll('[data-cfi]').forEach(b => b.onclick = () => { $('dlg').close(); abrirFicha(b.dataset.cfi); });
-  if ($('cirped')) $('cirped').onclick = () => verPedido(c.pedido_id);
-  if ($('cirhacerped')) $('cirhacerped').onclick = async ev => {
-    ev.target.disabled = true;
-    const { data: r } = await db.rpc('cirugia_pedido', { p_id: id });
-    if (!r || r.ok === false) { ev.target.disabled = false; toast(r && r.error === 'pedido' ? 'No tienes permiso para crear pedidos: pídeselo a quien lleve los pedidos' : cirError(r), true); return; }
-    toast('Pedido en borrador creado'); verCirugia(id);
-  };
-  if ($('cireditar')) $('cireditar').onclick = () => editarCirugia(Object.assign({}, c, { hospital: d.hospital, cirujano: d.cirujano, especialidad: d.especialidad }));
-  if ($('cirrepo')) $('cirrepo').onclick = async ev => {
-    ev.target.disabled = true;
-    const { data: r } = await db.rpc('cirugia_reponer', { p_id: id });
-    if (!r || r.ok === false) { ev.target.disabled = false; toast(r && r.error === 'sin_stock' ? 'No hay bastante en el almacén central para reponerlo todo' : cirError(r), true); return; }
-    toast(r.a_tiempo === false ? 'Repuesto (fuera del plazo de 48 horas)' : 'Repuesto lo usado'); verCirugia(id);
-  };
-  if ($('cirusar')) pintarUsoCirugia(c, st);
-}
 
-function pintarUsoCirugia(c, st) {
-  const box = $('cirusar');
-  if (!st.length) { box.innerHTML = `<div class="banda-aviso">No hay material en ${c.origen === 'deposito' ? 'el depósito del centro' : 'el almacén de quien asiste'}: repón antes de registrar lo usado.</div>`; return; }
-  box.innerHTML = `<details class="cirdet"><summary class="btn">Registrar lo usado</summary><div class="depbox">
-    <span class="sm">Escribe las unidades usadas de cada lote. Si llevan número de serie, apúntalo en cada unidad.</span>
-    <div class="cirlin">${st.map((x, i) => `<div class="cirl" data-ci="${i}"><label><span>${esc(x.nombre)} <span class="sm">· ${esc(x.numero_lote || 'sin lote')}${x.caducidad ? ' · cad. ' + fechaCorta(x.caducidad) : ''} · hay ${num(x.unidades)}</span></span>
-      <input type="number" min="0" max="${x.unidades}" step="1" data-cu="${i}" placeholder="0" aria-label="Usadas de ${esc(x.nombre)}"></label><div class="cirser" data-cs="${i}"></div></div>`).join('')}</div>
-    <label for="cirref2">Referencia ${TT('paciente', 's', 'del', 'l', 'l')}</label><input id="cirref2" maxlength="60" value="${esc(c.referencia_caso || '')}" placeholder="Código del centro, sin datos de salud">
-    <div class="acts" style="justify-content:flex-end"><button type="button" class="btn" id="cirusok">Guardar lo usado</button></div></div></details>`;
-  box.querySelectorAll('[data-cu]').forEach(i => i.oninput = () => {
-    const k = i.dataset.cu, n = Math.min(+i.max, Math.max(0, Math.floor(+i.value || 0))), s = box.querySelector(`[data-cs="${k}"]`);
-    const ya = [...s.querySelectorAll('input')].map(x => x.value);
-    s.innerHTML = Array.from({ length: Math.min(n, 30) }, (_, j) => `<input data-cser="${k}" maxlength="120" value="${esc(ya[j] || '')}" placeholder="Nº de serie de la unidad ${j + 1}" aria-label="Número de serie de la unidad ${j + 1}">`).join('');
-  });
-  $('cirusok').onclick = async ev => {
-    const items = st.map((x, i) => ({ producto_id: x.producto_id, lote_id: x.lote_id, unidades: Math.max(0, Math.floor(+box.querySelector(`[data-cu="${i}"]`).value || 0)),
-      series: [...box.querySelectorAll(`[data-cser="${i}"]`)].map(y => y.value.trim()).filter(Boolean), max: x.unidades })).filter(x => x.unidades > 0);
-    if (!items.length) { toast('Escribe lo que se ha usado', true); return; }
-    if (items.some(x => x.unidades > x.max)) { toast('No se puede usar más de lo que hay', true); return; }
-    ev.target.disabled = true;
-    const { data: r, error } = await db.rpc('cirugia_consumo', { p: { id: c.id, referencia_caso: $('cirref2').value, items: items.map(({ max, ...x }) => x) } });
-    ev.target.disabled = false;
-    if (error || !r || r.ok === false) { toast(error ? 'No se ha podido guardar: ' + error.message : cirError(r), true); return; }
-    toast('Guardado lo usado'); invalidarCache();
-    verCirugia(c.id, `<div class="banda-ok depaviso">${r.pedido_id ? 'Queda un pedido en borrador al centro para confirmarlo y la' : 'Guardado lo usado. Queda la'} reposición pendiente: hay 48 horas para reponer lo usado.</div>`);
-  };
-}
 
 /* v2.199.0 · Intervenciones con lote y número de serie (tercera tanda del estudio por sectores, SQL 125). Decisiones de Eric: sección propia y
    cada intervención también en la Agenda de quien asiste; el material se elige en cada intervención (depósito del centro o el de quien asiste); el
@@ -13055,22 +13788,12 @@ function pintarUsoCirugia(c, st) {
    - Ventana de la cirugía: datos, «Registrar lo usado» (por lote, con un número de serie por unidad y la referencia del paciente sin
      datos de salud), lo usado con su lote y serie, el pedido y «Reponer ahora».
    - Ficha del responsable o del centro: sus últimas intervenciones. Los avisos de reposición vencida abren la intervención. */
-const CIR_ORIGEN = [['deposito', 'Depósito del centro'], ['personal', 'Material de quien asiste']];
 
-const cirRepo = c => c.reposicion === 'vencida' ? '<span class="pill p-urg">Reposición vencida</span>'
-  : c.reposicion === 'pendiente' ? `<span class="pill p-warn">Reponer antes del ${esc(new Date(c.reposicion_limite).toLocaleString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }))}</span>`
-  : c.reposicion === 'repuesta' ? '<span class="pill p-est">Repuesta</span>' : '';
-
-const cirEstado = c => `<span class="pill ${c.estado === 'Hecha' ? 'p-est' : c.estado === 'Anulada' ? 'p-anu' : 'p-per'}">${esc(c.estado)}</span>`;
-
-const CIR_ERR = { permiso: 'No puedes cambiar esta intervención', faltan: 'Faltan la fecha, el centro o el responsable', hospital: 'El centro tiene que ser una ficha de tipo centro',
-  sin_deposito: 'Este centro no tiene depósito: déjale material desde su ficha o elige el material de quien asiste', sin_almacen: 'Quien asiste no tiene almacén propio con material',
-  hecha: 'La intervención ya está hecha: no se puede cambiar', sin_stock: 'No hay bastante en el almacén de la intervención', series: 'Hay más números de serie que unidades',
-  linea: 'Revisa las unidades de cada línea', vacio: 'Apunta al menos una unidad usada', anulada: 'La intervención está anulada', no_hecha: 'Primero registra lo usado',
-  sin_origen: 'No hay almacén central del que reponer', cirujano: 'Elige un responsable de tu empresa', asistente: 'Quien asiste tiene que ser una persona activa del equipo',
-  valores: 'Revisa de dónde sale el material' };
-
-const cirError = r => CIR_ERR[r && r.error] || 'No se ha podido guardar';
+// Intervenciones está en src/app/screens/surgeries (v2.407.0). Estos nombres se quedan: la pestaña de la página (legado 079),
+// los avisos, la ficha, «‹ Volver» y las pruebas los usan.
+function pintarCirugias() { return window.delcos.screens.surgeries.paintSurgeries(); }
+function editarCirugia(c) { return window.delcos.screens.surgeries.editSurgery(c || null); }
+function verCirugia(id, aviso) { return window.delcos.screens.surgeries.showSurgery(id, aviso || ''); }
 // pantallas/clientes.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -18423,134 +19146,9 @@ function menuEventos() {
   b.classList.toggle('hide', !!(ES_MEDICO() || !puedeModulo('directorio')));
 }
 
-async function pintarEventos() {
-  const caja = $('cfgcuerpo'); if (!caja) return;
-  const { data, error } = await db.from('eventos').select('id,titulo,tipo,fecha,hora,lugar,en_linea,creado_por,eventos_asistentes(id,estado,inscripcion,viaje,comida,honorarios)').order('fecha', { ascending: false }).limit(200);
-  if (!$('cfgcuerpo') || TAB !== 'eventos') return;
-  if (error) { caja.innerHTML = `<div class="vacio">No se han podido cargar los eventos.</div>`; return; }
-  const hoy = hoyISO(), l = data || [], prox = l.filter(e => e.fecha >= hoy).reverse(), pas = l.filter(e => e.fecha < hoy);
-  const fila = e => { const as = e.eventos_asistentes || [], tot = as.reduce((s, a) => s + evTotal(a), 0);
-    return `<button type="button" class="item evrow" data-ev="${e.id}"><span class="tx"><b>${esc(e.titulo)}</b>
-      <span class="sm">${esc(fechaLarga(new Date(e.fecha + 'T12:00:00')))}${e.hora ? ' · ' + esc(String(e.hora).slice(0, 5)) : ''}${e.tipo ? ' · ' + esc(e.tipo) : ''} · ${e.en_linea ? 'En línea' : esc(e.lugar || 'Sin lugar')} · ${as.length === 1 ? '1 asistente' : as.length + ' asistentes'}</span></span>
-      ${tot ? `<span class="evtot">${eur(tot)}</span>` : ''}</button>`; };
-  caja.innerHTML = `<div class="evpag"><div class="evcab"><button type="button" class="btn" id="evnuevo">+ Nuevo evento</button></div>
-    <section class="card evbloque"><h2>Próximos</h2>${prox.length ? `<div class="lista">${prox.map(fila).join('')}</div>` : '<div class="vacio vlinea">No hay eventos próximos.</div>'}</section>
-    <section class="card evbloque"><h2>Pasados</h2>${pas.length ? `<div class="lista">${pas.slice(0, 50).map(fila).join('')}</div>` : '<div class="vacio vlinea">Todavía no hay eventos pasados.</div>'}</section></div>`;
-  $('evnuevo').onclick = () => editarEvento(null);
-  caja.querySelectorAll('[data-ev]').forEach(b => b.onclick = () => verEvento(b.dataset.ev));
-}
 
-function editarEvento(ev) {
-  const e = ev || { fecha: hoyISO(), tipo: 'Taller', en_linea: false };
-  $('dbody').innerHTML = `<div class="fh"><div><h2>${ev ? 'Editar evento' : 'Nuevo evento'}</h2><div class="sm">Taller, curso, congreso, webinar…</div></div>
-      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-    <label for="evt">Título</label><input id="evt" value="${esc(e.titulo || '')}" placeholder="p. ej. Taller de manejo del dolor articular">
-    <div class="g2"><div><label for="evtipo">Tipo</label><select id="evtipo">${EV_TIPOS.map(t => `<option ${t === e.tipo ? 'selected' : ''}>${t}</option>`).join('')}</select></div>
-      <div><label for="evf">Fecha</label><input id="evf" type="date" value="${esc(e.fecha || '')}"></div></div>
-    <div class="g2"><div><label for="evh">Hora</label><input id="evh" type="time" value="${esc(e.hora ? String(e.hora).slice(0, 5) : '')}"></div>
-      <div><label for="evl">Lugar</label><input id="evl" value="${esc(e.lugar || '')}" placeholder="Hotel, centro, sede…"></div></div>
-    <label class="opt"><input type="checkbox" id="evon" ${e.en_linea ? 'checked' : ''}> En línea</label>
-    <label for="evn">Nota</label><textarea id="evn" rows="3">${esc(e.nota || '')}</textarea>
-    <div class="acts" style="justify-content:flex-end">${ev && (ev.creado_por === PERFIL.id || puede('administrar')) ? '<button type="button" class="btn sec peligro" id="evborrar">Borrar</button>' : ''}
-      <button type="button" class="btn sec" data-cerrar>Cancelar</button><button type="button" class="btn" id="evok">${ev ? 'Guardar' : 'Crear evento'}</button></div>`;
-  if (!$('dlg').open) $('dlg').showModal();
-  $('evok').onclick = async b => {
-    const titulo = $('evt').value.trim(); if (!titulo) { toast('Escribe el título', true); return; }
-    if (!$('evf').value) { toast('Elige la fecha', true); return; }
-    const fila = { titulo, tipo: $('evtipo').value, fecha: $('evf').value, hora: $('evh').value || null, lugar: $('evl').value.trim() || null, en_linea: $('evon').checked, nota: $('evn').value.trim() || null };
-    b.target.disabled = true;
-    const r = ev ? await db.from('eventos').update(fila).eq('id', ev.id).select('id').single() : await db.from('eventos').insert(fila).select('id').single();
-    b.target.disabled = false;
-    if (r.error) { toast('No se ha podido guardar: ' + r.error.message, true); return; }
-    toast(ev ? 'Evento guardado' : 'Evento creado'); verEvento(r.data.id); if (TAB === 'eventos') pintarEventos();
-  };
-  if ($('evborrar')) $('evborrar').onclick = async () => {
-    if (!await preguntar('El evento desaparece con su lista de asistentes y lo apuntado a cada uno.', { titulo: '¿Borrar el evento?', ok: 'Borrar', peligro: true })) return;
-    const { error } = await db.from('eventos').delete().eq('id', ev.id);
-    if (error) { toast('No se ha podido borrar', true); return; }
-    $('dlg').close(); toast('Evento borrado'); if (TAB === 'eventos') pintarEventos();
-  };
-}
 
-async function verEvento(id) {
-  const [{ data: e }, { data: as }] = await Promise.all([db.from('eventos').select('*').eq('id', id).maybeSingle(),
-    db.from('eventos_asistentes').select('id,cuenta_id,estado,inscripcion,viaje,comida,honorarios,cuentas(nombre,especialidad)').eq('evento_id', id).order('creado_en')]);
-  if (!e) { toast('No se ha encontrado el evento', true); return; }
-  const l = as || [], edita = e.creado_por === PERFIL.id || puede('administrar');
-  const tot = () => l.reduce((s, a) => s + evTotal(a), 0);
-  $('dbody').innerHTML = `<div class="fh"><div><h2>${esc(e.titulo)}</h2><div class="sm">${esc(fechaLarga(new Date(e.fecha + 'T12:00:00')))}${e.hora ? ' · ' + esc(String(e.hora).slice(0, 5)) : ''}${e.tipo ? ' · ' + esc(e.tipo) : ''} · ${e.en_linea ? 'En línea' : esc(e.lugar || 'Sin lugar')}</div></div>
-      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-    ${e.nota ? `<p class="sm">${esc(e.nota)}</p>` : ''}
-    <div class="evascab"><h3>Asistentes · ${l.length}</h3><button type="button" class="btn sec" id="evanadir">+ Añadir</button></div>
-    <div id="evsel"></div>
-    <div class="evas" id="evas">${l.length ? l.map(a => `<div class="evasf" data-as="${a.id}">
-        <div class="evasn"><b>${esc((a.cuentas || {}).nombre || '')}</b><span class="sm">${esc((a.cuentas || {}).especialidad || '')}</span></div>
-        <select data-asest aria-label="Estado">${EV_ESTADOS.map(s => `<option ${s === a.estado ? 'selected' : ''}>${s}</option>`).join('')}</select>
-        <button type="button" class="x" data-asq aria-label="Quitar">✕</button>
-        <div class="evimp">${EV_CONCEPTOS.map(([k, t]) => `<label><span>${t}</span><input type="number" min="0" step="0.01" data-asimp="${k}" value="${+a[k] ? +a[k] : ''}" placeholder="0"></label>`).join('')}</div></div>`).join('') : '<div class="vacio vlinea">Todavía no hay asistentes: añade los invitados.</div>'}</div>
-    <div class="evpie"><span>Gastos de este evento</span><b id="evtotal">${eur(tot())}</b></div>
-    <p class="sm">Las inscripciones y gastos de cada asistente (inscripción, viaje y alojamiento, comidas y honorarios) salen en el informe anual de gastos. Las comidas no deberían pasar de ${EV_COMIDA_MAX} € por persona.</p>
-    <div class="acts" style="justify-content:flex-end">${edita ? '<button type="button" class="btn sec" id="eveditar">Editar evento</button>' : ''}<button type="button" class="btn" data-cerrar>Hecho</button></div>`;
-  if (!$('dlg').open) $('dlg').showModal();
-  if ($('eveditar')) $('eveditar').onclick = () => editarEvento(e);
-  $('evanadir').onclick = () => {
-    $('evanadir').disabled = true;
-    selectorMedico($('evsel'), { alElegir: async m => {
-      if (!m) return;
-      const { error } = await db.from('eventos_asistentes').insert({ evento_id: id, cuenta_id: m.id });
-      if (error) { toast(/duplicate|unique/i.test(error.message) ? `${m.nombre} ya está en este evento` : 'No se ha podido añadir: ' + error.message, true); verEvento(id); return; }
-      toast(`${m.nombre} añadido`); verEvento(id);
-    } });
-    const i = $('evsel').querySelector('input'); if (i) i.focus();
-  };
-  $('evas').querySelectorAll('[data-as]').forEach(f => {
-    const a = l.find(x => x.id === f.dataset.as);
-    f.querySelector('[data-asest]').onchange = async ev => {
-      const { error } = await db.from('eventos_asistentes').update({ estado: ev.target.value }).eq('id', a.id);
-      if (error) { toast('No se ha podido guardar', true); ev.target.value = a.estado; return; }
-      a.estado = ev.target.value;
-    };
-    f.querySelectorAll('[data-asimp]').forEach(i => i.onchange = async () => {
-      const k = i.dataset.asimp, v = Math.max(0, Math.round((+i.value || 0) * 100) / 100);
-      const { error } = await db.from('eventos_asistentes').update({ [k]: v }).eq('id', a.id);
-      if (error) { toast('No se ha podido guardar', true); i.value = +a[k] || ''; return; }
-      a[k] = v; $('evtotal').textContent = eur(tot());
-      i.closest('label').classList.toggle('evaviso', k === 'comida' && v > EV_COMIDA_MAX);
-      if (k === 'comida' && v > EV_COMIDA_MAX) toast(`La comida pasa de ${EV_COMIDA_MAX} € por persona: revisa que cumpla el código de buenas prácticas`, true);
-    });
-    const c = f.querySelector('[data-asimp="comida"]'); if (c && +a.comida > EV_COMIDA_MAX) c.closest('label').classList.add('evaviso');
-    f.querySelector('[data-asq]').onclick = async () => {
-      if (!await preguntar(`${(a.cuentas || {}).nombre || ''} deja de estar en este evento, con lo apuntado.`, { titulo: '¿Quitar de la lista?', ok: 'Quitar', peligro: true })) return;
-      const { error } = await db.from('eventos_asistentes').delete().eq('id', a.id);
-      if (error) { toast('No se ha podido quitar', true); return; }
-      verEvento(id);
-    };
-  });
-}
 
-async function pintarTransparencia(anio) {
-  const caja = $('cfgcuerpo'); if (!caja) return;
-  const actual = +hoyISO().slice(0, 4); anio = anio || actual - 1;
-  const { data: r } = await db.rpc('transparencia_anual', { p_anio: anio });
-  if (!$('cfgcuerpo') || TAB !== 'eventos') return;
-  const l = (r && r.filas) || [];
-  const suma = k => l.reduce((s, x) => s + (+x[k] || 0), 0);
-  caja.innerHTML = `<div class="evpag"><div class="evcab"><label for="trano">Año</label><select id="trano">${[actual, actual - 1, actual - 2, actual - 3].map(y => `<option ${y === anio ? 'selected' : ''}>${y}</option>`).join('')}</select>
-      ${l.length ? '<button type="button" class="btn sec" id="trcsv">Descargar (CSV)</button>' : ''}</div>
-    <p class="sm">Los gastos de eventos de cada ${TT('medico', 's', '', 'l', 'l')} durante el año, por concepto (las asistencias marcadas «No asistió» no cuentan). Es la base del informe anual de gastos de los códigos de Farmaindustria y Fenin: revísalo con vuestro responsable de cumplimiento antes de publicarlo.</p>
-    ${l.length ? `<div class="dgrid-wrap"><table class="trtabla"><thead><tr><th>${TT('medico', 's', '', 'l', 'C')}</th><th>Eventos</th>${EV_CONCEPTOS.map(([, t]) => `<th>${t}</th>`).join('')}<th>Total</th></tr></thead>
-      <tbody>${l.map(x => `<tr><td><b>${esc(x.nombre)}</b>${x.especialidad ? `<span class="sm"> · ${esc(x.especialidad)}</span>` : ''}</td><td>${x.eventos}</td>${EV_CONCEPTOS.map(([k]) => `<td>${eur(+x[k] || 0)}</td>`).join('')}<td><b>${eur(+x.total || 0)}</b></td></tr>`).join('')}</tbody>
-      <tfoot><tr><td>Total</td><td></td>${EV_CONCEPTOS.map(([k]) => `<td>${eur(suma(k))}</td>`).join('')}<td><b>${eur(suma('total'))}</b></td></tr></tfoot></table></div>`
-      : `<div class="vacio vlinea">En ${anio} no hay gastos de eventos apuntados.</div>`}</div>`;
-  $('trano').onchange = e => pintarTransparencia(+e.target.value);
-  if ($('trcsv')) $('trcsv').onclick = () => {
-    const q = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"', n = v => String(+v || 0).replace('.', ',');
-    const csv = [[TT('medico', 's', '', 'l', 'C'), 'Código', TT('especialidad', 's', '', 'l', 'C'), 'Eventos', ...EV_CONCEPTOS.map(([, t]) => t), 'Total'].map(q).join(';')]
-      .concat(l.map(x => [q(x.nombre), q(x.codigo), q(x.especialidad), x.eventos, ...EV_CONCEPTOS.map(([k]) => n(x[k])), n(x.total)].join(';'))).join('\r\n');
-    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' }));
-    a.download = `informe de gastos-${anio}.csv`; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
-  };
-}
 
 /* v2.195.0 · Eventos, formación e informe de gastos (última pieza de la primera tanda del estudio por sectores, SQL 121). Decisiones de Eric:
    sección propia «Eventos» (en el bloque Cartera del menú), importe por concepto por asistente con informe anual de gastos, y en los
@@ -18560,20 +19158,22 @@ async function pintarTransparencia(anio) {
      pasa de 60 € por persona.
    - Eventos → «Informe de gastos» (administración o quien ve todo el equipo): por año, lo dado a cada profesional por concepto, para descargar.
    - Ficha: bloque «Eventos» con los últimos a los que ha ido o está invitado. */
-const EV_TIPOS = ['Taller', 'Curso', 'Congreso', 'Webinar', 'Reunión científica', 'Comida de trabajo', 'Otro'];
 
-const EV_ESTADOS = ['Invitado', 'Confirmado', 'Asistió', 'No asistió'];
 
-const EV_CONCEPTOS = [['inscripcion', 'Inscripción'], ['viaje', 'Viaje y alojamiento'], ['comida', 'Comidas'], ['honorarios', 'Honorarios']];
 
-const EV_COMIDA_MAX = 60;
 
-const evTotal = a => EV_CONCEPTOS.reduce((s, [k]) => s + (+a[k] || 0), 0);
 
 const verTransparencia = () => puede('administrar') || VE_TODO();
 
 // Editar una visita: cómo fue y productos presentados (actualizar_actividad los guarda desde el SQL 128)
 let EV_EXTRA = null;
+
+// Eventos está en src/app/screens/events (v2.407.0). Estos nombres se quedan: las pestañas de la página (legado 079),
+// «‹ Volver» (envuelve las ventanas por su nombre) y las pruebas los usan.
+function pintarEventos() { return window.delcos.screens.events.paintEvents(); }
+function pintarTransparencia(anio) { return window.delcos.screens.events.paintExpenseReport(anio); }
+function editarEvento(ev) { window.delcos.screens.events.editEvent(ev || null); }
+function verEvento(id) { return window.delcos.screens.events.showEvent(id); }
 // pantallas/facturacion.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 

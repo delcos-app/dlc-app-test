@@ -115,7 +115,6 @@ const fechaDiaMes = f => f ? new Date(String(f).slice(0, 10) + 'T12:00:00').toLo
 
 const DIA_NOMBRE = f => new Date(String(f).slice(0, 10) + 'T12:00:00').toLocaleDateString('es-ES', { weekday: 'long' });
 
-const cirHora = c => c.hora ? String(c.hora).slice(0, 5) : '';
 
 const lunesCinta = f => { const d = new Date(f + 'T12:00:00'); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return isoLocal(d); };
 
