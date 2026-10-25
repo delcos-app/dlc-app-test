@@ -238,17 +238,6 @@ async function pintarAlmacenes2() {
   };
 }
 
-async function impLotes(filas, modo, simular, imp, avance) {
-  const res = { creados: 0, actualizados: 0, omitidos: 0, errores: [], filas: [] };
-  for (let i = 0; i < filas.length; i += 200) {
-    const { data, error } = await RPC_ORIG('importar_lote', { p_imp: imp || null, p_entidad: IMP.entidad, p_filas: filas.slice(i, i + 200), p_modo: modo, p_simular: simular });
-    if (error || !data || !data.ok) throw new Error(error ? error.message : (data && data.error) || 'sin respuesta');
-    res.creados += data.creados; res.actualizados += data.actualizados; res.omitidos += data.omitidos;
-    res.errores.push(...data.errores); res.filas.push(...data.filas);
-    if (avance) avance(Math.min(filas.length, i + 200), filas.length);
-  }
-  return res;
-}
 
 // Ficha de un centro: qué productos puede pedir y a qué precio (sin IVA; vacío = tarifa)
 

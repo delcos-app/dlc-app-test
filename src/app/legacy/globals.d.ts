@@ -342,3 +342,89 @@ declare function cargarAlmacenes(): Promise<void>;
 declare function loteRecepcion(line: object, units: number | string, storeId: string | undefined): string;
 declare function cargarVentas(): Promise<void>;
 declare function editorCompra(id: string | null): Promise<void>;
+
+// ---- Importar datos (src/app/screens/import): the SheetJS reader, loaded by servicios/exportar.js
+
+interface SheetBook { SheetNames: string[]; Sheets: Record<string, unknown> }
+
+interface SheetReader { read(data: ArrayBuffer | string, options: Record<string, unknown>): SheetBook; utils: { sheet_to_json(sheet: unknown, options: Record<string, unknown>): unknown[][] } }
+
+declare function cargarLectorExcel(): Promise<SheetReader>;
+
+declare function registrarError(type: string, message: string, detail?: Record<string, unknown>): void;
+
+declare let ESCRITURAS: number;
+
+// ---- Manual de uso (src/app/screens/manual): the portal manual content and the checks it needs
+
+interface ManualSection { id: string; t: string; a: string | null; para: string; hacer: [number, string][]; config?: string[] }
+
+type FirstStep = readonly [string, string, string, string];
+
+type HelpEntry = readonly [string, string, (readonly string[])?];
+
+declare const MANUAL: ManualSection[];
+
+declare const AYUDA: Readonly<Record<string, HelpEntry | undefined>>;
+
+declare const FAQ: readonly (readonly [string, string])[];
+
+declare const PRIMEROS_PASOS: Readonly<Record<string, readonly FirstStep[] | undefined>>;
+
+declare const ICONOS_MANUAL: Readonly<Record<string, string | undefined>>;
+
+declare const NIVEL_TXT: readonly string[];
+
+declare const MODULO_AREA: Readonly<Record<string, string | undefined>>;
+
+declare const CFG_DE_MODULO: Readonly<Record<string, string | undefined>>;
+
+declare function puedeModulo(screen: string): boolean;
+
+declare function planIncluye(module: string): boolean;
+
+declare function planMinimo(module: string): { nombre: string } | undefined;
+
+declare const TERM_DEF: Readonly<Record<string, unknown>>;
+
+declare function terminoDe(key: string): unknown;
+
+declare function nombreApp(): string;
+
+declare const ES_IOS: boolean;
+
+declare function nombrePantalla(screen: string): string;
+
+declare function pegarAyuda(title: HTMLElement, html: string): void;
+
+interface GeocodeHints { direccion?: string | null | undefined; municipio?: string | null | undefined; cp?: string | null | undefined }
+
+interface GeocodeResult { lat: string | number; lon: string | number; fuera?: string }
+
+declare function geocodificar(query: string, hints: GeocodeHints): Promise<GeocodeResult | null>;
+
+declare function descargar(rows: unknown[], name: string, format: string): void;
+
+declare function ordenarCabeceraCuentas(): void;
+
+declare function productoPorDefecto(): string;
+
+declare function buscarClientes(query: string): Promise<unknown[]>;
+
+declare function editorContacto(preset: Record<string, unknown>, onSave: (client: unknown) => void): void;
+
+declare function editorPedido(preset?: Record<string, unknown>): Promise<void>;
+
+declare let LLAMADA_PEND: string | null;
+
+declare function montarPeriodo(element: HTMLElement | null, options: { id: string; valor: string; alCambiar: () => void }): void;
+
+declare function barrasH(items: { n: string; v: number }[], format: (value: number) => string): string;
+
+declare function vacioGrafico(text: string): string;
+
+declare let LLPAG: number;
+
+declare function pintarLlamadas(): Promise<void>;
+
+interface LegacyQuery<T> { neq(column: string, value: unknown): LegacyQuery<T> }

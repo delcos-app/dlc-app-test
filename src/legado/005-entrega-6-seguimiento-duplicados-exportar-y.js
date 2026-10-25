@@ -2,7 +2,6 @@
    DLC OS 2.0 · Entrega 6: seguimiento, duplicados, exportar y contraseñas
    ============================================================ */
 
-let SEG = { estado: '', prov: '', muni: '', modo: 'todos', pagina: 0 };
 let DUPS = null, PARES = null;
 
 /* ---------------- seguimiento ---------------- */

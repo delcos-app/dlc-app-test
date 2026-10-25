@@ -452,3 +452,76 @@ export const purchasesLegacy = {
   /** Through the global name: legado 058 wraps it to open the wide window. */
   openPurchase: (id: string | null): void => { void editorCompra(id); },
 };
+
+/** Importar datos: the Excel reader (loaded on first use), the error log, the write counter and the «Importaciones» tab. */
+export const importLegacy = {
+  excelReader: (): Promise<SheetReader> => cargarLectorExcel(),
+  reportError: (message: string): void => { registrarError('error', message); },
+  countWrite: (): void => { ESCRITURAS++; },
+  showHistory: (): void => { CFG_SUB = 'historial'; },
+};
+
+/** Manual de uso: the content of the portal manual (legacy data), access and plan checks, navigation and the way back. */
+export const manualLegacy = {
+  sections: (): readonly ManualSection[] => MANUAL,
+  help: (id: string): HelpEntry | undefined => AYUDA[id],
+  faq: (): readonly (readonly [string, string])[] => FAQ,
+  firstSteps: (): Readonly<Record<string, readonly FirstStep[] | undefined>> => PRIMEROS_PASOS,
+  icon: (id: string): string | undefined => ICONOS_MANUAL[id],
+  levelText: (level: number): string => NIVEL_TXT[level] ?? '',
+  can: (capability: string): boolean => puede(capability),
+  isModule: (id: string): boolean => Boolean(MODULO_AREA[id]),
+  canOpenModule: (id: string): boolean => puedeModulo(id),
+  moduleCount: (): number => Object.keys(MODULO_AREA).filter(puedeModulo).length,
+  settingsOf: (id: string): string | undefined => CFG_DE_MODULO[id],
+  profile: (): { nombre: string; rol: string } => PERFIL as { nombre: string; rol: string },
+  planIncludes: (module: string): boolean => planIncluye(module),
+  cheapestPlan: (module: string): string | undefined => planMinimo(module)?.nombre,
+  showPlanNotice: (module: string): void => { avisoPlan(module); },
+  go: (screen: string, configSection?: string): void => { if (configSection !== undefined) CFG_SEC = configSection; ir(screen); },
+  vocabulary: (): { empresa: string; terminos: Record<string, unknown> } => ({ empresa: nombreApp(), terminos: Object.fromEntries(Object.keys(TERM_DEF).map(key => [key, terminoDe(key)])) }),
+  isIos: (): boolean => ES_IOS,
+  back: (): { tab: string; y: number } | null => MANUAL_VUELTA,
+  takeBack: (): { tab: string; y: number } | null => { const back = MANUAL_VUELTA; MANUAL_VUELTA = null; return back; },
+  screenName: (screen: string): string => nombrePantalla(screen),
+  pageInfo: (screen: string): { t?: string; d?: string } => (PAGINAS[screen] ?? {}) as { t?: string; d?: string },
+  attachHelp: (title: HTMLElement, html: string): void => { pegarAyuda(title, html); },
+};
+
+/** Calidad del dato: the address search, the export hook of the tools menu, module permission and the Cuentas header order. */
+export const qualityLegacy = {
+  geocode: (query: string, hints: GeocodeHints): Promise<GeocodeResult | null> => geocodificar(query, hints),
+  /** The «Descargar» entry of the tools menu calls window.__dlSeg (legado 014). */
+  setExport: (exporter: (format: string) => Promise<void>): void => { Reflect.set(window, '__dlSeg', exporter); },
+  download: (rows: unknown[], name: string, format: string): void => { descargar(rows, name, format); },
+  canUseModule: (module: string): boolean => puedeModulo(module),
+  arrangeAccountsHeader: (): void => { ordenarCabeceraCuentas(); },
+};
+
+/** Oportunidades: catalogs, products, clients, orders, the reference picker, the period selector, charts and the list page. */
+export const opportunitiesLegacy = {
+  catalog: (key: string): readonly { valor: string; extra?: string | null }[] => CAT[key] ?? [],
+  setCatalog: (key: string, list: { valor: string; extra?: string | null }[]): void => { CAT[key] = list; },
+  products: (): readonly (CatalogProduct & { iva?: number | null })[] => PRODUCTOS,
+  loadProducts: async (): Promise<void> => { if (!PRODUCTOS.length) await cargarProductos(); },
+  defaultProduct: (): string => productoPorDefecto(),
+  searchClients: <T>(query: string): Promise<T[]> => buscarClientes(query) as Promise<T[]>,
+  editContact: (preset: Record<string, unknown>, onSave: (client: unknown) => void): void => { editorContacto(preset, onSave); },
+  editOrder: (preset?: Record<string, unknown>): void => { void editorPedido(preset); },
+  /** The order saved next is linked to this opportunity (legado 038). */
+  setPendingCall: (id: string): void => { LLAMADA_PEND = id; },
+  /** The account picker; what is typed without choosing is kept in element.__texto. */
+  pickReference: (options: { element: HTMLElement; value: PickedAccount | null; freeText: string; placeholder: string; onPick: (account: PickedAccount) => void }): void => {
+    Reflect.set(options.element, '__texto', options.freeText);
+    selectorMedico(options.element, { valor: options.value, alElegir: options.onPick, placeholder: options.placeholder });
+  },
+  mountPeriod: (element: HTMLElement | null, options: { id: string; valor: string; alCambiar: () => void }): void => { montarPeriodo(element, options); },
+  periodOf: (element: HTMLElement | null): { desde: string | null; hasta: string | null } =>
+    (Reflect.get(element ?? {}, '__rango') as (() => { desde: string | null; hasta: string | null }) | undefined)?.() ?? { desde: null, hasta: null },
+  barChart: (items: { n: string; v: number }[], format: (value: number) => string): string => barrasH(items, format),
+  emptyChart: (text: string): string => vacioGrafico(text),
+  page: (): number => LLPAG,
+  setPage: (page: number): void => { LLPAG = page; },
+  ordersSection: (): string => PEDSEC,
+  repaintList: (): void => { void pintarLlamadas(); },
+};

@@ -8,6 +8,10 @@ import { setLanguage, setVocabulary, t } from './i18n';
 import * as accounts from './screens/accounts';
 import * as agenda from './screens/agenda';
 import * as events from './screens/events';
+import * as opportunities from './screens/opportunities';
+import * as quality from './screens/quality';
+import * as manual from './screens/manual';
+import * as importing from './screens/import';
 import * as purchases from './screens/purchases';
 import * as tenders from './screens/tenders';
 import * as equipment from './screens/equipment';
@@ -34,6 +38,10 @@ export interface DelcosCore {
     readonly agenda: typeof agenda;
     readonly accounts: typeof accounts;
     readonly events: typeof events;
+    readonly opportunities: typeof opportunities;
+    readonly quality: typeof quality;
+    readonly manual: typeof manual;
+    readonly importing: typeof importing;
     readonly purchases: typeof purchases;
     readonly tenders: typeof tenders;
     readonly equipment: typeof equipment;
@@ -62,6 +70,10 @@ window.delcos = {
     agenda,
     accounts,
     events,
+    opportunities,
+    quality,
+    manual,
+    importing,
     purchases,
     tenders,
     equipment,
