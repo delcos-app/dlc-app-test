@@ -34,8 +34,8 @@ export const designerHtml = (design: InvoiceDesign): string => `<div class="fh">
     <div class="pdfcfg" data-pagina="1"><div class="pdfops">
       ${optionsHtml(design)}
     </div><div class="pdfprev"><iframe id="pdfif" title="${t('billingMore.designer.preview')}"></iframe></div></div>
-    <div class="acts" style="justify-content:space-between"><button class="btn sec" id="pdfdef" type="button">${t('billingMore.designer.original')}</button>
-      <div style="display:flex;gap:8px"><button class="btn sec" data-cerrar>${t('billingMore.designer.cancel')}</button><button class="btn" id="pdfok">${t('billingMore.designer.save')}</button></div></div>`;
+    <div class="acts u-between"><button class="btn sec" id="pdfdef" type="button">${t('billingMore.designer.original')}</button>
+      <div class="u-flex u-gap-8"><button class="btn sec" data-cerrar>${t('billingMore.designer.cancel')}</button><button class="btn" id="pdfok">${t('billingMore.designer.save')}</button></div></div>`;
 
 /** The card left on the page (phone) after closing the designer window. */
 export const designerCardHtml = (): string => `<div class="card cfgpanel"><h2>${t('billingMore.designer.title')}</h2><p class="sm">${t('billingMore.designer.cardText')}</p>

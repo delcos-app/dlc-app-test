@@ -33,7 +33,7 @@ async function proposals(list: readonly ReschedulableAppointment[]): Promise<Row
 
 function rowHtml(row: Row, index: number, today: string): string {
   const place = escapeHtml([row.item.centro_nombre, row.item.municipio].filter(Boolean).join(' · '));
-  return `<div class="item" style="cursor:default">
+  return `<div class="item u-cursor-default">
         <input type="checkbox" data-rpi="${index}" checked aria-label="${t('agendaMore.reschedule.move')}">
         <span class="tx"><b>${escapeHtml(row.item.nombre ?? '')}</b>
           <span class="sm">${place}${row.item.fecha < today ? t('agendaMore.reschedule.wasOn', { date: formatShortDate(row.item.fecha) }) : ''}</span>
@@ -48,7 +48,7 @@ function windowHtml(rows: readonly Row[], title: string, text: string): string {
         <button class="x" data-cerrar aria-label="${t('common.close')}">✕</button></div>
       <p class="sm">${t('agendaMore.reschedule.proposal', { professional: term('medico') })}</p>
       <div class="lista reprog" data-nosucio>${rows.map((row, index) => rowHtml(row, index, today)).join('')}</div>
-      <div class="acts" style="justify-content:flex-end">
+      <div class="acts u-end">
         <button class="btn sec" id="rpno">${t('agendaMore.reschedule.leave')}</button>
         <button class="btn" id="rpok">${t('agendaMore.reschedule.moveMarked')}</button></div>`;
 }

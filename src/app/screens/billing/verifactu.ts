@@ -55,7 +55,7 @@ function settingsHtml(settings: VerifactuSettings): string {
         <div class="vfmodos">
           ${modes}</div>
         <label for="vfe">${t('billing.verifactu.environment')}</label><select id="vfe"><option value="pruebas" ${settings.entorno === 'pruebas' ? 'selected' : ''}>${t('billing.verifactu.testing')}</option><option value="produccion" ${settings.entorno === 'produccion' ? 'selected' : ''}>${t('billing.verifactu.production')}</option></select>
-        <div class="acts" style="justify-content:flex-end"><button class="btn" id="vfok">${t('common.save')}</button></div></div>`;
+        <div class="acts u-end"><button class="btn" id="vfok">${t('common.save')}</button></div></div>`;
 }
 
 async function save(current: VerifactuSettings): Promise<void> {

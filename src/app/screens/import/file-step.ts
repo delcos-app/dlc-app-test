@@ -31,7 +31,7 @@ export function paintFileStep(): void {
     <label class="impzona" id="impzona"><input type="file" id="impfile" accept=".xlsx,.xls,.csv,.txt" hidden>
       ${icon('file-spreadsheet')}<b>${t('importing.file.drop')}</b><span class="sm">${t('importing.file.maxRows')}</span></label>
     <div id="imphojas"></div>
-    <div class="acts" style="justify-content:space-between"><button class="btn sec" type="button" id="impvolver">${t('importing.file.back')}</button></div></div>`);
+    <div class="acts u-between"><button class="btn sec" type="button" id="impvolver">${t('importing.file.back')}</button></div></div>`);
   onClick('impvolver', steps.start);
   const zone = document.getElementById('impzona'), input = document.getElementById('impfile') as HTMLInputElement | null;
   if (!zone || !input) return;

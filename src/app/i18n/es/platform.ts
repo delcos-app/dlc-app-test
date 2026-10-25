@@ -105,7 +105,7 @@ export const platform = {
     emailTaken: 'Ese correo ya tiene usuario',
     failed: 'No se ha podido crear: {reason}',
     noUser: 'Organización creada, pero no su usuario: {error}. Queda invitado: puede registrarse con ese correo.',
-    created: '<b style="color:var(--ok)">Organización creada.</b> Usuario de {email} con contraseña temporal <b>{password}</b>. Pásasela y que la cambie al entrar.',
+    created: '<b class="u-ok">Organización creada.</b> Usuario de {email} con contraseña temporal <b>{password}</b>. Pásasela y que la cambie al entrar.',
   },
   plan: {
     title: 'Plan de {name}',

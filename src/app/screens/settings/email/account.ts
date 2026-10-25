@@ -60,7 +60,7 @@ function signatureHtml(config: EmailConfig, signature: Signature): string {
       </div><div><div class="sm" style="margin-bottom:6px">${t('settingsExtra.email.preview')}</div><div class="firmaprev" id="fprev"></div></div></div></div>`;
 }
 
-const buttonsHtml = (): string => `<div class="card cfgpanel"><div class="acts" style="justify-content:flex-end;flex-wrap:wrap;margin:0">
+const buttonsHtml = (): string => `<div class="card cfgpanel"><div class="acts u-end u-wrap u-m-0">
       <button class="btn sec" id="coprueba">${t('settingsExtra.email.sendTest')}</button><button class="btn" id="cook">${t('settingsExtra.email.save')}</button></div>
       <p class="sm" id="comsg"></p></div>`;
 

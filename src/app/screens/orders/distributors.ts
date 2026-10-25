@@ -29,7 +29,7 @@ function editorHtml(distributor: Partial<Distributor>, isNew: boolean): string {
     <div class="g2"><div><label for="dse">${t('orders.distributors.email')}</label><input id="dse" type="email" value="${escapeHtml(distributor.email ?? '')}"></div>
       <div><label for="dst">${t('orders.distributors.phone')}</label><input id="dst" inputmode="tel" value="${escapeHtml(distributor.telefono ?? '')}"></div></div>
     <label for="dsnota">${t('orders.distributors.note')}</label><input id="dsnota" placeholder="${t('orders.distributors.notePlaceholder')}" value="${escapeHtml(distributor.nota ?? '')}">
-    <div class="acts" style="justify-content:flex-end"><button type="button" class="btn sec" data-cerrar2>${t('common.cancel')}</button><button type="button" class="btn" id="dsok">${t(isNew ? 'orders.distributors.add' : 'common.save')}</button></div>`;
+    <div class="acts u-end"><button type="button" class="btn sec" data-cerrar2>${t('common.cancel')}</button><button type="button" class="btn" id="dsok">${t(isNew ? 'orders.distributors.add' : 'common.save')}</button></div>`;
 }
 
 /** The written distributor, or null (with a notice) if something is missing or wrong. */

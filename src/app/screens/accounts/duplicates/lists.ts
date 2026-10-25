@@ -18,12 +18,12 @@ function pendingRow(item: PendingDuplicate): string {
   const place = `${escapeHtml(orFallback(item.centro, ''))} ${escapeHtml(orFallback(item.municipio, ''))}`;
   const buttons = item.par_id ? `<button class="btn" data-dcmp="${item.id}|${item.par_id}">${t('accountsMore.duplicates.compare')}</button>
           <button class="btn sec" data-ddes="${item.id}|${item.par_id}">${t('accountsMore.duplicates.notDuplicate')}</button>` : '';
-  return `<div class="item ${selected}" style="cursor:default">
+  return `<div class="item ${selected} u-cursor-default">
       <span class="ic w">${item.pct ? `${item.pct}%` : '?'}</span>
       <span class="tx"><b>${escapeHtml(item.nombre)}</b>
         <span class="sm">${t('accountsMore.duplicates.code', { code: escapeHtml(item.codigo) })} · ${place}</span>
         <span class="sm">${item.par_nombre ? t('accountsMore.duplicates.looksLike', { name: escapeHtml(item.par_nombre) }) : t('accountsMore.duplicates.noPair')}</span></span>
-      <span class="acts" style="margin:0">
+      <span class="acts u-m-0">
         ${buttons}
         <button class="btn sec" data-dver="${item.id}">${t('accountsMore.duplicates.card')}</button></span></div>`;
 }
@@ -32,7 +32,7 @@ function similarRow(pair: SimilarPair): string {
   return `<div class="item ${selectedPair() === `${pair.a_id}|${pair.b_id}` ? 'sel' : ''}" style="cursor:default">
       <span class="ic">${pair.pct}%</span>
       <span class="tx"><b>${escapeHtml(pair.a_nombre)}</b><span class="sm">${escapeHtml(pair.b_nombre)} · ${t('accountsMore.duplicates.codes', { a: escapeHtml(pair.a_codigo), b: escapeHtml(pair.b_codigo) })}</span></span>
-      <span class="acts" style="margin:0">
+      <span class="acts u-m-0">
         <button class="btn" data-dcmp="${pair.a_id}|${pair.b_id}">${t('accountsMore.duplicates.compare')}</button>
         <button class="btn sec" data-ddes="${pair.a_id}|${pair.b_id}">${t('accountsMore.duplicates.notDuplicates')}</button></span></div>`;
 }

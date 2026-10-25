@@ -111,7 +111,7 @@ function onRead(text: string): void {
 function windowHtml(several: boolean): string {
   return `<div class="escvid"><video id="escv" playsinline muted></video><div class="escmarco"></div></div>
     <div class="escpie"><p id="escest" class="sm">${t('leftovers.scanner.opening')}</p>
-      <div class="acts" style="justify-content:flex-end;margin:0"><button type="button" class="btn sec" id="escfin">${t(several ? 'leftovers.scanner.finish' : 'leftovers.scanner.typeIt')}</button></div></div>`;
+      <div class="acts u-end u-m-0"><button type="button" class="btn sec" id="escfin">${t(several ? 'leftovers.scanner.finish' : 'leftovers.scanner.typeIt')}</button></div></div>`;
 }
 
 function openWindow(input: HTMLInputElement): Session {

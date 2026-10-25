@@ -21,7 +21,7 @@ function changeLines(entry: HistoryEntry): string {
 
 function historyRow(entry: HistoryEntry): string {
   const when = new Date(entry.creado_en).toLocaleString(t('dates.locale'), { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-  return `<div class="item" style="cursor:default"><span class="tx">
+  return `<div class="item u-cursor-default"><span class="tx">
         <b>${escapeHtml(entry.accion)}${entry.entidad === 'ubicaciones' ? ` · ${term('consulta')}` : ''}</b>
         <span class="sm">${escapeHtml(entry.usuario)} · ${when}</span>
         ${changeLines(entry)}</span>${entry.deshacible ? `<button type="button" class="btn sec" data-fhx="${entry.id}">${t('accounts.history.undo')}</button>` : ''}</div>`;

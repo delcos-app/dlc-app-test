@@ -50,7 +50,7 @@ async function zonesHtml(user: UserRow): Promise<string> {
   return `<div class="blk" id="uzonas"><h3>${t('settingsRest.zones.title')}</h3>
     <p class="sm">${t('settingsRest.zones.hint', words())}</p>
     <div class="zonas">${Object.keys(all).sort().map(region => regionHtml(region, all[region] ?? [], marked)).join('')}</div>
-    <div class="acts" style="margin-top:8px"><button class="btn sec" id="uzok">${t('settingsRest.zones.save', words())}</button></div></div>`;
+    <div class="acts u-mt-8"><button class="btn sec" id="uzok">${t('settingsRest.zones.save', words())}</button></div></div>`;
 }
 
 async function saveZones(userId: string, button: HTMLButtonElement): Promise<void> {

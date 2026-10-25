@@ -12,7 +12,7 @@ export async function paintTemplate(section?: string): Promise<void> {
   if (!section) {
     box.innerHTML = `<div class="card cfgpanel"><h2>${t('platform.template.title')}</h2>
       <p class="sm">${t('platform.template.text')}</p>
-      <div class="acts" style="justify-content:flex-start"><button type="button" class="btn sec" data-plsub="roles">${t('platform.template.roles')}</button>
+      <div class="acts u-start"><button type="button" class="btn sec" data-plsub="roles">${t('platform.template.roles')}</button>
         <button type="button" class="btn sec" data-plsub="cat">${t('platform.template.catalogs')}</button></div></div>`;
     box.querySelectorAll<HTMLElement>('[data-plsub]').forEach(button => { button.onclick = (): void => { void paintTemplate(button.dataset.plsub); }; });
     return;

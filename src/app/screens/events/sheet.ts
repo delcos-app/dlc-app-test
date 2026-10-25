@@ -34,7 +34,7 @@ function sheetHtml(event: EventRow, attendees: readonly Attendee[], canEdit: boo
     <div class="evas" id="evas">${attendees.length ? attendees.map(attendeeHtml).join('') : `<div class="vacio vlinea">${t('events.sheet.noAttendees')}</div>`}</div>
     <div class="evpie"><span>${t('events.sheet.total')}</span><b id="evtotal">${formatCurrency(sum(attendees.map(attendeeTotal)))}</b></div>
     <p class="sm">${t('events.sheet.note', { max: MEAL_MAX })}</p>
-    <div class="acts" style="justify-content:flex-end">${canEdit ? `<button type="button" class="btn sec" id="eveditar">${t('events.sheet.edit')}</button>` : ''}<button type="button" class="btn" data-cerrar>${t('events.sheet.done')}</button></div>`;
+    <div class="acts u-end">${canEdit ? `<button type="button" class="btn sec" id="eveditar">${t('events.sheet.edit')}</button>` : ''}<button type="button" class="btn" data-cerrar>${t('events.sheet.done')}</button></div>`;
 }
 
 function startAdding(id: string): void {

@@ -15,8 +15,8 @@ interface PendingCall {
 }
 
 function whenHtml(call: PendingCall, today: string): string {
-  if (call.proxima_fecha < today) return `<b style="color:var(--dang)">${t('opportunities.list.late')}</b>`;
-  return call.proxima_fecha === today ? `<b style="color:var(--warn)">${t('opportunities.list.today')}</b>` : `${formatShortDate(call.proxima_fecha)} · `;
+  if (call.proxima_fecha < today) return `<b class="u-danger">${t('opportunities.list.late')}</b>`;
+  return call.proxima_fecha === today ? `<b class="u-warn">${t('opportunities.list.today')}</b>` : `${formatShortDate(call.proxima_fecha)} · `;
 }
 
 function iconStyle(call: PendingCall, today: string): string {
@@ -27,7 +27,7 @@ function iconStyle(call: PendingCall, today: string): string {
 function rowHtml(call: PendingCall, today: string): string {
   const phone = orFallback(call.tel_cliente, orFallback(call.telefono, ''));
   const details = `${whenHtml(call, today)}${escapeHtml(orFallback(call.resultado, ''))}${call.proxima_accion ? ` · ${escapeHtml(call.proxima_accion)}` : ''}${call.medico ? t('opportunities.list.fromReference', { name: escapeHtml(call.medico) }) : ''}`;
-  return `<div class="item" style="cursor:default">
+  return `<div class="item u-cursor-default">
         <span class="ic" style="${iconStyle(call, today)}">📞</span>
         <span class="tx"><b>${escapeHtml(orFallback(call.cliente, orFallback(call.nombre, t('opportunities.list.noName'))))}</b>
           <span class="sm">${details}</span></span>

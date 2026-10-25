@@ -47,7 +47,7 @@ function resultsHtml(index: ButtonIndex, results: ResultGroup, others: readonly 
   const more = hiddenButton([results, ...others]);
   return `<label>${t('visit.record.resultLabel')} <span class="sm">${t('visit.record.severalResults', { done: term('visita', { adjective: 'realizado' }) })}</span></label>
     <div class="opciones">${positive.map(value => button(index, results, value, true)).join('')}</div>${negative.length ? '' : more}
-    <div class="opciones" style="margin-top:8px">${negative.map(value => button(index, results, value, true)).join('')}</div>${negative.length ? more : ''}
+    <div class="opciones u-mt-8">${negative.map(value => button(index, results, value, true)).join('')}</div>${negative.length ? more : ''}
     ${others.map(group => `<label>${escapeHtml(group.nombre)}${group.descripcion ? ` <span class="sm">· ${escapeHtml(group.descripcion)}</span>` : ''}</label>
       <div class="opciones">${group.valores.map(value => button(index, group, value, false)).join('')}</div>`).join('')}`;
 }
@@ -102,13 +102,13 @@ export function visitHtml(data: VisitData, index: ButtonIndex): string {
     </div><label>${t('visit.record.howItWas')}</label>
     <div class="segs" id="vmodo" role="group" aria-label="${t('visit.record.howItWas')}">${modeButtons('vmodo', 'presencial')}</div>${productsHtml(data.products)}
     ${resultsHtml(index, results, others)}
-    <div class="g2" style="margin-top:6px">
+    <div class="g2 u-mt-6">
       <div><label for="vpa">${t('visit.edit.nextAction')}</label><input id="vpa" placeholder="${t('visit.record.nextActionPlaceholder')}"></div>
       <div><label for="vpf">${t('visit.record.nextActionDate')}</label><input id="vpf" type="date"></div>
     </div>
-    ${samplesHtml(data.samples, data.account.nombre)}<label for="vn">${t('visit.edit.note')}</label><textarea id="vn" rows="3"></textarea><div class="vfotosw"><label class="btn sec" id="vfotobtn" style="display:inline-flex">${icon('camera')} ${t('visit.photos.add')}<input type="file" id="vfotof" accept="image/*" data-fp="1" hidden multiple></label>
+    ${samplesHtml(data.samples, data.account.nombre)}<label for="vn">${t('visit.edit.note')}</label><textarea id="vn" rows="3"></textarea><div class="vfotosw"><label class="btn sec u-inline-flex" id="vfotobtn">${icon('camera')} ${t('visit.photos.add')}<input type="file" id="vfotof" accept="image/*" data-fp="1" hidden multiple></label>
     <span class="sm">${t('visit.photos.hint', { max: visitLegacy.photosMax() })}</span><div class="vfotos" id="vfotos"></div></div>
-    <div class="acts" style="justify-content:flex-end">
+    <div class="acts u-end">
       <button class="btn sec" data-cerrar>${t('common.cancel')}</button>
       <button class="btn" id="vguardar">${t('visit.record.save', { visit })}</button>
     </div>`;

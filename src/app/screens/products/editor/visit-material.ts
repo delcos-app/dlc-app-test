@@ -28,9 +28,9 @@ function samplesHtml(samples: Samples): string {
   const products = billing2Legacy.products().filter(item => item.tipo !== 'servicio');
   return `<div class="card cfgpanel"><h2>${t('productsMore.visitMaterial.samplesKind')}</h2>
       <div class="g2"><div><label for="muprod">${t('productsMore.visitMaterial.sampleProduct')}</label><select id="muprod"><option value="">${t('productsMore.visitMaterial.none')}</option>${products.map(item => `<option value="${item.id}" ${item.id === samples.producto_id ? 'selected' : ''}>${escapeHtml(item.nombre)}</option>`).join('')}</select></div><div></div></div>
-      <label class="vfswitch" style="margin-top:10px"><input type="checkbox" id="murest" ${samples.restar_stock ? 'checked' : ''}><span class="sw"></span>
+      <label class="vfswitch u-mt-10"><input type="checkbox" id="murest" ${samples.restar_stock ? 'checked' : ''}><span class="sw"></span>
         <span><b>${t('productsMore.visitMaterial.discount')}</b><br><span class="sm">${t('productsMore.visitMaterial.discountText', words())}</span></span></label>
-      <div class="acts" style="justify-content:flex-end"><button class="btn" id="muok">${t('productsMore.visitMaterial.save')}</button></div></div>`;
+      <div class="acts u-end"><button class="btn" id="muok">${t('productsMore.visitMaterial.save')}</button></div></div>`;
 }
 
 const valueRow = (value: MaterialValue): string => `<div class="matfila ${value.activo ? '' : 'off'}"><b>${escapeHtml(value.valor)}</b><span class="sm">${t(value.dato_tipo === NUMBER_KIND ? 'productsMore.visitMaterial.asksQuantity' : 'productsMore.visitMaterial.onlyMarked')}</span>
@@ -46,7 +46,7 @@ function pageHtml(samples: Samples, values: readonly MaterialValue[], canAdd: bo
     <div class="card cfgpanel"><h2>${t('productsMore.visitMaterial.promoKind')}</h2>
       <p class="sm">${t('productsMore.visitMaterial.promoText', words())}</p>
       <div class="matlista">${values.map(valueRow).join('') || `<div class="sm">${t('productsMore.visitMaterial.noMaterial')}</div>`}</div>
-      <div class="matadd"><input id="matn" placeholder="${t('productsMore.visitMaterial.newPlaceholder')}"><label class="opt" style="margin:0"><input type="checkbox" id="matq" checked> ${t('productsMore.visitMaterial.countUnits')}</label>
+      <div class="matadd"><input id="matn" placeholder="${t('productsMore.visitMaterial.newPlaceholder')}"><label class="opt u-m-0"><input type="checkbox" id="matq" checked> ${t('productsMore.visitMaterial.countUnits')}</label>
         <button class="btn sec" id="matok" ${canAdd ? '' : 'disabled'}>${t('productsMore.visitMaterial.add')}</button></div></div>`;
 }
 

@@ -39,7 +39,7 @@ function blockHtml(detail: OrderDetail, distributor: Distributor): string {
     + ` · ${t(order.factura_distribuidor ? 'orders.distributor.theyInvoice' : 'orders.distributor.weInvoice')}`;
   const sent = order.transfer_enviado_en ? t('orders.distributor.mailPreparedOn', { date: formatShortDate(String(order.transfer_enviado_en).slice(0, 10)) }) : t('orders.distributor.mailNotPrepared');
   const actions = order.estado === STATES.confirmed
-    ? `<div class="acts" style="justify-content:flex-start;margin-top:6px">${distributor.email ? `<a class="btn sec" id="pdmaild" href="${mailtoLink(escapeHtml(distributor.email), mail.subject, mail.text)}">${t('orders.distributor.prepareMail')}</a>` : `<span class="sm">${t('orders.distributor.noEmail')}</span>`}
+    ? `<div class="acts u-start u-mt-6">${distributor.email ? `<a class="btn sec" id="pdmaild" href="${mailtoLink(escapeHtml(distributor.email), mail.subject, mail.text)}">${t('orders.distributor.prepareMail')}</a>` : `<span class="sm">${t('orders.distributor.noEmail')}</span>`}
         <span class="sm" id="pdmailest">${sent}</span></div>`
     : `<p class="sm">${t('orders.distributor.afterConfirm')}</p>`;
   return `<div class="blk" id="pddist"><h3>${t('orders.distributor.title')}</h3>

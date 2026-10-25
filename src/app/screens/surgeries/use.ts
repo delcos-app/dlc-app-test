@@ -55,7 +55,7 @@ export function paintUse(surgery: Surgery, stock: readonly StockLine[]): void {
     <span class="sm">${t('surgeries.use.hint')}</span>
     <div class="cirlin">${stock.map(lineHtml).join('')}</div>
     <label for="cirref2">${t('surgeries.editor.caseReference', { patient: term('paciente', { article: 'del' }) })}</label><input id="cirref2" maxlength="60" value="${escapeHtml(surgery.referencia_caso ?? '')}" placeholder="${t('surgeries.editor.caseReferencePlaceholder')}">
-    <div class="acts" style="justify-content:flex-end"><button type="button" class="btn" id="cirusok">${t('surgeries.use.save')}</button></div></div></details>`;
+    <div class="acts u-end"><button type="button" class="btn" id="cirusok">${t('surgeries.use.save')}</button></div></div></details>`;
   box.querySelectorAll<HTMLInputElement>('[data-cu]').forEach(input => { input.oninput = (): void => { paintSerials(box, input); }; });
   const save = document.getElementById('cirusok') as HTMLButtonElement | null; if (save) save.onclick = (): void => { void saveUsed(surgery, stock, box, save); };
 }

@@ -63,7 +63,7 @@ export function deleteUser(user: UserRow): void {
       <span>${t('settingsRest.remove.activity', words())}<br><span class="sm">${t('settingsRest.remove.activityHint')}</span></span></label>
     <p class="sm">${t('settingsRest.remove.never')}</p>
     <label for="buconf">${t('settingsRest.remove.confirmLabel')}</label><input id="buconf" autocomplete="off">
-    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>${t('settingsRest.remove.cancel')}</button><button class="btn dang" id="buok">${t('settingsRest.remove.ok')}</button></div>`;
+    <div class="acts u-end"><button class="btn sec" data-cerrar>${t('settingsRest.remove.cancel')}</button><button class="btn dang" id="buok">${t('settingsRest.remove.ok')}</button></div>`;
   dialog()?.showModal();
   const ok = document.getElementById('buok') as HTMLButtonElement | null;
   if (ok) ok.onclick = (): void => { void confirmDelete(user, ok); };

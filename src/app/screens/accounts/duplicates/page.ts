@@ -20,7 +20,7 @@ function pageHtml(allowed: boolean): string {
   return `<button class="cfgvolver visible" id="dupvolver" type="button">${t('accountsMore.duplicates.backToQuality')}</button>
     <div class="saludo"><div><h1>${t('accountsMore.duplicates.title')}</h1>
       <div class="fecha">${t('accountsMore.duplicates.subtitle')}</div></div>
-      <div class="acts" style="margin:0">
+      <div class="acts u-m-0">
         <button class="btn sec" id="dvolver">${t('accountsMore.duplicates.back')}</button>
         <button class="btn sec${allowed ? '' : ' hide'}" id="dbuscar">${t('accountsMore.duplicates.searchAgain')}</button></div></div>
     ${grid}`;

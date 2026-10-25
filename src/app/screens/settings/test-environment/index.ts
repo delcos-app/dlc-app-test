@@ -74,7 +74,7 @@ const when = (date: string | null | undefined): string =>
   (date ? new Date(date).toLocaleString('es', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—');
 
 function pageHtml(environment: TestEnvironment | null, allowed: boolean): string {
-  const actions = allowed ? `<div class="acts" style="justify-content:flex-start;flex-wrap:wrap">
+  const actions = allowed ? `<div class="acts u-start u-wrap">
         <button type="button" class="btn" id="prtraer">${t('settings.testEnvironment.bring')}</button>
         <button type="button" class="btn sec" id="prreset">${t('settings.testEnvironment.reset')}</button></div>
       <p class="leer">${t('settings.testEnvironment.explain')}</p>`

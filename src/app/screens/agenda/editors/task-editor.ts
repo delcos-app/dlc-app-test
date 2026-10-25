@@ -48,9 +48,9 @@ function editHtml(task: TaskData, day: string | null | undefined): string {
       <div><label for="tah">${t('agenda.editor.time')} <span class="sm">${t('agenda.editor.optional')}</span></label><input id="tah" type="time" value="${escapeHtml(time)}"></div>
     </div>
     <label for="tan">${t('agenda.editor.notes')}</label><textarea id="tan" rows="3">${escapeHtml(task.nota ?? '')}</textarea>
-    <div class="acts" style="justify-content:space-between">
+    <div class="acts u-between">
       ${task.id ? `<button type="button" class="btn sec peligro" id="taborrar">${t('agenda.taskEditor.delete')}</button>` : '<span></span>'}
-      <span style="display:flex;gap:8px"><button type="button" class="btn sec" data-cerrar>${t('agenda.editor.cancel')}</button><button type="button" class="btn" id="taok">${t(task.id ? 'agenda.taskEditor.save' : 'agenda.taskEditor.add')}</button></span></div>`;
+      <span class="u-flex u-gap-8"><button type="button" class="btn sec" data-cerrar>${t('agenda.editor.cancel')}</button><button type="button" class="btn" id="taok">${t(task.id ? 'agenda.taskEditor.save' : 'agenda.taskEditor.add')}</button></span></div>`;
 }
 
 function doneHtml(task: TaskData): string {
@@ -58,9 +58,9 @@ function doneHtml(task: TaskData): string {
     <div class="fh"><div><h2>${t('agenda.taskEditor.doneTitle')}</h2><div class="sm">${escapeHtml(formatLongDate(task.fecha ?? todayIso()))}${task.hora ? ` · ${escapeHtml(String(task.hora).slice(0, 5))}` : ''}</div></div>
       <button class="x" data-cerrar aria-label="${t('common.close')}">✕</button></div>
     <div class="tarlec"><span class="tarok">${t('agenda.taskEditor.done')}</span><b>${escapeHtml(task.titulo ?? '')}</b>${task.nota ? `<p>${escapeHtml(task.nota)}</p>` : ''}</div>
-    <div class="acts" style="justify-content:space-between">
+    <div class="acts u-between">
       <button type="button" class="btn sec peligro" id="taborrar">${t('agenda.taskEditor.delete')}</button>
-      <span style="display:flex;gap:8px"><button type="button" class="btn sec" data-cerrar>${t('common.close')}</button><button type="button" class="btn" id="tareabrir">${t('agenda.taskEditor.reopen')}</button></span></div>`;
+      <span class="u-flex u-gap-8"><button type="button" class="btn sec" data-cerrar>${t('common.close')}</button><button type="button" class="btn" id="tareabrir">${t('agenda.taskEditor.reopen')}</button></span></div>`;
 }
 
 async function reopen(task: TaskData, day: string | null | undefined, button: HTMLButtonElement): Promise<void> {

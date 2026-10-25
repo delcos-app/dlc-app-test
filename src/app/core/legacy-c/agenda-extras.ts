@@ -120,7 +120,7 @@ export function paintPlan(args: readonly unknown[]): unknown {
   if (box && booked.length && !box.querySelector('.plancitados')) {
     box.insertAdjacentHTML('beforeend', `<div class="plancitados"><h3>${t('legacyC.plan.booked', { count: booked.length })}</h3>
       <p class="sm">${t('legacyC.plan.bookedHint')}</p>
-      <div class="lista">${booked.map(item => `<div class="item" style="cursor:default"><span class="ic">📅</span><span class="txt"><b>${escapeHtml(item.m.nombre)}</b>
+      <div class="lista">${booked.map(item => `<div class="item u-cursor-default"><span class="ic">📅</span><span class="txt"><b>${escapeHtml(item.m.nombre)}</b>
         <span class="sm">${t('legacyC.plan.bookedOn', { date: escapeHtml(legacyFreeCoreServices.calendar.longDate((new Date(`${item.fecha}T12:00:00`)))) })}${item.m.municipio ? ` · ${escapeHtml(item.m.municipio)}` : ''}</span></span></div>`).join('')}</div></div>`);
   }
   return result;

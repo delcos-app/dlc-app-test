@@ -50,7 +50,7 @@ function formHtml(account: EditedAccount, consultations: readonly ConsultationDa
     <div id="econs">${consultations.map((item, index) => consultationHtml(item, String(index))).join('')}</div>
     <div class="acts"><button type="button" class="btn sec" id="eadd">${t('accountsEditor.editor.addConsultation', { consultation: term('consulta') })}</button></div>
     <div id="edup"></div>
-    <div class="acts" style="justify-content:flex-end">
+    <div class="acts u-end">
       <button class="btn sec" data-cerrar>${t('common.cancel')}</button>
       <button class="btn" id="eguardar">${t(id ? 'accountsEditor.editor.saveChanges' : 'accountsEditor.editor.create')}</button>
     </div>`;

@@ -32,12 +32,12 @@ export function consultationHtml(item: ConsultationData, index: string): string 
     <input type="hidden" data-cid="${index}" value="${escapeHtml(item.id ?? '')}">
     ${HIDDEN.map(name => hidden(index, name, item[name])).join('')}
     <label>${t('accountsEditor.consultation.centre')}</label><div class="cenpick" data-cp="${index}"></div>
-    <div class="g2" style="margin-top:10px">
+    <div class="g2 u-mt-10">
       <div><label>${t('accountsEditor.consultation.floor')}</label>${input(index, 'planta', item.planta, `maxlength="60" placeholder="${t('accountsEditor.consultation.floorPlaceholder')}"`)}</div>
       <div><label>${t('accountsEditor.consultation.room')}</label>${input(index, 'sala', item.sala, `maxlength="60" placeholder="${t('accountsEditor.consultation.roomPlaceholder')}"`)}</div>
     </div>
     <label>${t('accountsEditor.consultation.directions')}</label>${input(index, 'indicaciones', item.indicaciones, `maxlength="300" placeholder="${t('accountsEditor.consultation.directionsPlaceholder')}"`)}
-    <div class="g2" style="margin-top:10px">
+    <div class="g2 u-mt-10">
       <div><label>${t('accountsEditor.consultation.phone', { ofTheConsultation: term('consulta', { article: 'del' }) })}</label>${input(index, 'telefono', item.telefono, `inputmode="tel" placeholder="${t('accountsEditor.consultation.phonePlaceholder')}"`)}</div><div></div>
     </div>
     <label>${t('accountsEditor.consultation.days', { visit: term('visita') })}</label>${dayPickerHtml(item.dias ?? {}, index)}

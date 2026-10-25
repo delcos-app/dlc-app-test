@@ -16,7 +16,7 @@ const PORTAL_ROLE_CAPABILITY = 'portal_prescriptor';
 type Mandatory = Record<string, string[]>;
 
 function ownHtml(mandatory: readonly string[], preferences: Record<string, boolean>): string {
-  return `<div class="lista">${ALERTS.map(([key, label, icon]) => `<label class="item" style="cursor:default"><input type="checkbox" data-avp="${key}" ${mandatory.includes(key) || preferences[key] !== false ? 'checked' : ''} ${mandatory.includes(key) ? 'disabled' : ''}>
+  return `<div class="lista">${ALERTS.map(([key, label, icon]) => `<label class="item u-cursor-default"><input type="checkbox" data-avp="${key}" ${mandatory.includes(key) || preferences[key] !== false ? 'checked' : ''} ${mandatory.includes(key) ? 'disabled' : ''}>
         <span class="tx"><b>${icon} ${t(label)}</b>${mandatory.includes(key) ? `<span class="sm">${t('orders.alerts.mandatoryForRole')}</span>` : ''}</span></label>`).join('')}</div>`;
 }
 
@@ -50,7 +50,7 @@ export async function configureAlerts(mandatory: readonly string[]): Promise<voi
       <button class="x" data-cerrar aria-label="${t('common.close')}">✕</button></div>
     ${ownHtml(mandatory, preferences)}
     ${admin ? rolesHtml(fixed, roles) : ''}
-    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>${t('common.cancel')}</button><button class="btn" id="avpok">${t('common.save')}</button></div>`;
+    <div class="acts u-end"><button class="btn sec" data-cerrar>${t('common.cancel')}</button><button class="btn" id="avpok">${t('common.save')}</button></div>`;
   box.showModal();
   const ok = document.getElementById('avpok'); if (ok) ok.onclick = (): void => { void save(body, admin); };
 }

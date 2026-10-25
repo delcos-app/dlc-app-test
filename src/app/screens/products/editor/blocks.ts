@@ -18,7 +18,7 @@ export interface ProductExtras {
 }
 
 export const stateHtml = (state: string): string => `<div class="blk" id="prestado"><h3>${t('productsMore.state.title')}</h3><div class="segs">${PRODUCT_STATES.map(item => `<button type="button" data-pest="${item}" class="${item === state ? 'on' : ''}">${item}</button>`).join('')}</div>
-      <div class="sm" style="margin-top:6px">${t('productsMore.state.hint')}</div></div>`;
+      <div class="sm u-mt-6">${t('productsMore.state.hint')}</div></div>`;
 
 export const samplesForNewHtml = (): string => `<div class="blk" id="prmuestra"><h3>${t('productsMore.samples.title')}</h3><p class="sm">${t('productsMore.samples.saveFirst')}</p></div>`;
 
@@ -41,7 +41,7 @@ export const equipmentHtml = (extras: ProductExtras): string => `<div class="blk
 export const packsHtml = (extras: ProductExtras): string => `<div class="blk" id="prpacks"><h3>${t('productsMore.packs.title')}</h3>
       <p class="sm">${t('productsMore.packs.hint')}</p>
       <div id="prpkl"></div><button type="button" class="btn sec chico" id="prpkmas">${t('productsMore.packs.add')}</button>
-      <div class="g2" style="margin-top:10px"><div><label for="prpkpvp">${t('productsMore.packs.retailPrice')}</label><input id="prpkpvp" type="number" step="0.01" value="${extras.pvp_recomendado !== null && extras.pvp_recomendado !== undefined ? Number(extras.pvp_recomendado) : ''}" placeholder="${t('productsMore.packs.notSet')}"></div></div>
+      <div class="g2 u-mt-10"><div><label for="prpkpvp">${t('productsMore.packs.retailPrice')}</label><input id="prpkpvp" type="number" step="0.01" value="${extras.pvp_recomendado !== null && extras.pvp_recomendado !== undefined ? Number(extras.pvp_recomendado) : ''}" placeholder="${t('productsMore.packs.notSet')}"></div></div>
       <span class="pcerr" id="prpkerr" hidden></span>
       <div class="prpkacts"><button type="button" class="btn sec" id="prpkok">${t('productsMore.packs.save')}</button></div></div>`;
 

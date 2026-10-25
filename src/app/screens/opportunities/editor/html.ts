@@ -27,7 +27,7 @@ function wantsHtml(draft: Draft): string {
   return `<div class="llpaso" id="nvp2"><span class="lln">2</span><b>${t('opportunities.editor.wants')}</b>
       <div id="nvint"></div>
       <label>${t('opportunities.editor.reference', { Professional: term('medico', { capital: 'C' }) })}</label><div id="nvmed"></div>
-      <div class="sm" style="margin-top:4px">${t('opportunities.editor.referenceHint')}</div>
+      <div class="sm u-mt-4">${t('opportunities.editor.referenceHint')}</div>
       <label>${t('opportunities.editor.howArrived')}</label><div class="chipsw" id="nvori">${chipsHtml(catalog('origen_oportunidad'), draft.origin, 'data-nvo')}</div>
       <label>${t('opportunities.editor.reason')}</label><div class="chipsw" id="nvmot">${chipsHtml(catalog('motivo_llamada'), draft.reason, 'data-nvm')}</div>
       <details class="llmas"><summary>${t('opportunities.editor.moreDetails')}</summary>
@@ -42,9 +42,9 @@ function noSaleHtml(draft: Draft): string {
         <label>${t('opportunities.editor.whyNoSale')}</label><div class="chipsw" id="nvres">${chipsHtml(results, draft.result, 'data-nvr')}</div>
         <div class="sm" style="margin:8px 0 4px">${t('opportunities.callAgainWhen')}</div>
         <div class="chipsw">${followUpButtons('nvd')}</div>
-        <div class="g2" style="margin-top:6px"><div><input id="nvpf" type="date" value="${escapeHtml(orFallback(draft.source.proxima_fecha, ''))}" aria-label="${t('opportunities.callAgainOn')}"></div>
+        <div class="g2 u-mt-6"><div><input id="nvpf" type="date" value="${escapeHtml(orFallback(draft.source.proxima_fecha, ''))}" aria-label="${t('opportunities.callAgainOn')}"></div>
           <div><input id="nvpa" value="${escapeHtml(orFallback(draft.source.proxima_accion, ''))}" placeholder="${t('opportunities.whatToDoPlaceholder')}" aria-label="${t('opportunities.whatToDo')}"></div></div>
-        <div id="nvperd" class="sm" style="margin-top:6px"></div>
+        <div id="nvperd" class="sm u-mt-6"></div>
         <div class="acts" style="margin:8px 0 0;justify-content:flex-start"><button type="button" class="btn" id="nvnook">${t('opportunities.editor.saveWithoutOrder')}</button></div></div>`;
 }
 
@@ -68,6 +68,6 @@ export function editorHtml(draft: Draft): string {
     <div class="llpaso" id="nvp1"><span class="lln">1</span><b>${t('opportunities.editor.client')}</b><div id="nvcli"></div><div id="nvctx" class="nvctx"></div></div>
     ${wantsHtml(draft)}
     ${endsHtml(draft)}
-    <div class="acts" style="justify-content:flex-end;flex-wrap:wrap"><button class="btn sec" data-cerrar>${t('opportunities.editor.close')}</button>
+    <div class="acts u-end u-wrap"><button class="btn sec" data-cerrar>${t('opportunities.editor.close')}</button>
       ${saveChanges}</div>`;
 }

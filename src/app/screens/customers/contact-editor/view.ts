@@ -33,14 +33,14 @@ function headerHtml(state: EditorState): string {
     ${pair(`<div><label for="konom" id="konoml">${texts.name}</label>${input('konom', customer.nombre)}</div>`,
     `<div><label for="konif" id="konifl">${texts.taxId}</label>
         ${input('konif', customer.nif, ` placeholder="${texts.placeholder}" autocapitalize="characters"`)}
-        <div class="sm" id="konifm" style="margin-top:4px"></div></div>`)}`;
+        <div class="sm u-mt-4" id="konifm"></div></div>`)}`;
 }
 
 function accountHtml(): string {
   const free = canUseFreeAccount()
     ? `<label class="opt prepbox"><input type="checkbox" id="komlibre"> ${t('leftovers.customer.freeAccount', { Professional: escapeHtml(term('medico', { capital: 'C' })) })}</label>` : '';
   return `<label>${t('leftovers.customer.treatedBy', words())}</label><div id="kosel"></div>
-    <div class="sm" style="margin-top:4px" id="komsm">${t('leftovers.customer.attribution', { thisProfessional: term('medico', { article: 'este' }) })}</div>
+    <div class="sm u-mt-4" id="komsm">${t('leftovers.customer.attribution', { thisProfessional: term('medico', { article: 'este' }) })}</div>
     ${free}`;
 }
 
@@ -62,7 +62,7 @@ function actionsHtml(state: EditorState): string {
   const call = state.withCall && Boolean(state.options.llamada);
   const save = state.customer.id ? t('common.save') : t('leftovers.customer.create', words());
   return `${state.withCall ? callRecordHtml(state.options.llamada) : ''}
-    <div class="acts" style="justify-content:flex-end;flex-wrap:wrap">
+    <div class="acts u-end u-wrap">
       <button class="btn sec" id="kocancel">${t('common.cancel')}</button>
       <button class="btn ${call ? 'sec' : ''}" id="kook">${save}</button>
       ${call ? `<button class="btn" id="kopedido">${t('leftovers.customer.createAndOrder')}</button>` : ''}</div>`;

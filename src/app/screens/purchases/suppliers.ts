@@ -67,8 +67,8 @@ function editorHtml(supplier: Supplier, canBuy: boolean): string {
       <button class="x" data-cerrar aria-label="${t('common.close')}">✕</button></div>
     ${pairs.join('\n    ')}
     <label for="pv_nota">${t('purchases.supplierEditor.note')}</label><input id="pv_nota" value="${escapeHtml(supplier.nota ?? '')}" ${readOnly}>
-    ${supplier.id ? `<label class="opt" style="margin-top:10px"><input type="checkbox" id="pv_activo" ${supplier.activo ? 'checked' : ''} ${readOnly}> ${t('purchases.supplierEditor.active')}</label>` : ''}
-    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>${t('purchases.supplierEditor.close')}</button>${canBuy ? `<button class="btn" id="pvok">${t(supplier.id ? 'purchases.supplierEditor.save' : 'purchases.supplierEditor.create')}</button>` : ''}</div>`;
+    ${supplier.id ? `<label class="opt u-mt-10"><input type="checkbox" id="pv_activo" ${supplier.activo ? 'checked' : ''} ${readOnly}> ${t('purchases.supplierEditor.active')}</label>` : ''}
+    <div class="acts u-end"><button class="btn sec" data-cerrar>${t('purchases.supplierEditor.close')}</button>${canBuy ? `<button class="btn" id="pvok">${t(supplier.id ? 'purchases.supplierEditor.save' : 'purchases.supplierEditor.create')}</button>` : ''}</div>`;
 }
 
 function readValues(supplier: Supplier): Record<string, unknown> {

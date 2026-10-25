@@ -26,7 +26,7 @@ export function editExtras(organization: Organization, repaint: () => Promise<vo
         <span class="sm">${t('platform.extras.opportunitiesText', { professional: term('medico') })}</span></span></label>
       <label class="chk"><input type="checkbox" id="oxport" ${active.includes('portal') ? 'checked' : ''}> <span><b>${t('platform.extras.portalTitle', { ofProfessional: term('medico', { article: 'del' }) })}</b>
         <span class="sm">${t('platform.extras.portalText', { orders: term('pauta', { number: 'p' }) })}</span></span></label>
-      <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>${t('common.cancel')}</button><button class="btn" id="oxok">${t('common.save')}</button></div>`;
+      <div class="acts u-end"><button class="btn sec" data-cerrar>${t('common.cancel')}</button><button class="btn" id="oxok">${t('common.save')}</button></div>`;
   box.showModal();
   const ok = document.getElementById('oxok'); if (ok) ok.onclick = (): void => { void save(organization, repaint); };
 }

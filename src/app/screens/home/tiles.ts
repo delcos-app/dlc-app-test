@@ -79,7 +79,7 @@ export function cycleTile(data: HomeData): string {
   const percent = target ? Math.round(100 * done / target) : 0, circumference = 2 * Math.PI * 30;
   return `<div class="mt mtcic"><div class="mtt">${icon('target')} ${t('home.cycle.title', { visits: term('visita', { number: 'p' }) })}</div>
       <div class="mfila"><svg class="mring" viewBox="0 0 70 70" aria-hidden="true"><circle class="f" cx="35" cy="35" r="30"/><circle class="v" cx="35" cy="35" r="30" style="stroke-dasharray:${circumference * percent / 100} ${circumference}"/></svg>
-      <div><div class="mn1" style="margin:0"><span data-mcnt="${percent}">${percent}</span> %</div><div class="ms"><b>${done}</b>${t('home.cycle.progress', { target, days: data.cycle?.quedan_dias ?? 0 })}</div></div></div></div>`;
+      <div><div class="mn1 u-m-0"><span data-mcnt="${percent}">${percent}</span> %</div><div class="ms"><b>${done}</b>${t('home.cycle.progress', { target, days: data.cycle?.quedan_dias ?? 0 })}</div></div></div></div>`;
 }
 
 export function stockTile(data: HomeData): string {

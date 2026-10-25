@@ -48,7 +48,7 @@ function windowHtml(list: readonly Setting[]): string {
         <div class="sm">${t('ordersMore.indicators.subtitle')}</div></div>
         <button class="x" data-cerrar aria-label="${t('common.close')}">✕</button></div>
       <div class="kcards">${list.map((item, index) => cardHtml(item, index, list.length)).join('')}</div>
-      <div class="acts" style="justify-content:flex-end">
+      <div class="acts u-end">
         <button class="btn sec" id="kres">${t('ordersMore.indicators.restore')}</button>
         <button class="btn" id="kok">${t('ordersMore.indicators.save')}</button></div>`;
 }

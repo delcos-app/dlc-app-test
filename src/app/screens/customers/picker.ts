@@ -36,7 +36,7 @@ class CustomerPicker {
       const remove = this.element.querySelector<HTMLElement>('.sx'); if (remove) remove.onclick = (): void => { this.choose(null); };
       return;
     }
-    this.element.innerHTML = `<div style="display:flex;gap:8px"><div class="picker" style="flex:1">
+    this.element.innerHTML = `<div class="u-flex u-gap-8"><div class="picker u-flex-1">
         <input type="search" autocomplete="off" placeholder="${t('customers.picker.placeholder')}"><div class="gsug hide"></div></div>
       <button type="button" class="btn sec" data-pnuevo>${t('customers.picker.newOne')}</button></div>`;
     const input = this.element.querySelector('input');

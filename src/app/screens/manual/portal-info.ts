@@ -30,7 +30,7 @@ export function showFirstStep(step: FirstStep): void {
   const [stepIcon, title, text, screen] = step, about = findSection(screen)?.para;
   openDialog(`<div class="fh"><div><h2>${stepIcon} ${escapeHtml(title)}</h2><div class="sm">${t('manual.portal.firstSteps')}</div></div>${close}</div>
       <p>${escapeHtml(text)}</p>${about ? `<p class="sm">${escapeHtml(about)}</p>` : ''}
-      <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>${t('manual.portal.notNow')}</button>
+      <div class="acts u-end"><button class="btn sec" data-cerrar>${t('manual.portal.notNow')}</button>
         ${screen === 'config' || manualLegacy.canOpenModule(screen) ? `<button class="btn" id="mangoir">${t('manual.portal.takeMe')}</button>` : ''}</div>`);
   closeAndGo('mangoir', screen, screen === 'config' ? 'prefs' : undefined);
 }

@@ -129,7 +129,7 @@ export function loadCustomers(): void {
   const page = document.getElementById('v-pacientes'); if (!page) return;
   page.innerHTML = `
     <div class="saludo"><div><h1>${t('customers.list.title')}</h1><div class="fecha">${t('customers.list.subtitle', words())}</div></div>
-      <div class="acts" style="margin:0">${customersLegacy.canSell() ? `<button class="btn" id="pacnuevo">${t('customers.list.newCustomer')}</button>` : ''}</div></div>
+      <div class="acts u-m-0">${customersLegacy.canSell() ? `<button class="btn" id="pacnuevo">${t('customers.list.newCustomer')}</button>` : ''}</div></div>
     <div id="vcuerpo"></div>`;
   const add = document.getElementById('pacnuevo');
   if (add) add.onclick = (): void => { customersLegacy.editCustomer({}, customer => { void showCustomer(customer.id); }); };

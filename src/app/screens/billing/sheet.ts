@@ -54,7 +54,7 @@ function partiesHtml(invoice: Invoice): string {
 
 function linesHtml(invoice: Invoice): string {
   const head = [['', 'concept'], ['num', 'units'], ['num', 'price'], ['num', 'discount'], ['num', 'vat'], ['num', 'base']] as const;
-  const lines = invoice.lineas.map(line => `<div class="dr" style="cursor:default"><span>${escapeHtml(line.descripcion)}</span><span class="num">${formatNumber(line.unidades)}</span>
+  const lines = invoice.lineas.map(line => `<div class="dr u-cursor-default"><span>${escapeHtml(line.descripcion)}</span><span class="num">${formatNumber(line.unidades)}</span>
         <span class="num">${euros(line.precio)}</span><span class="num">${line.descuento ? `${formatNumber(line.descuento)}%` : '—'}</span><span class="num">${formatNumber(line.iva)}%</span><span class="num"><b>${euros(line.base)}</b></span></div>`).join('');
   const breakdown = invoice.desglose_iva.map(item => `<div><span>${t('billing.sheet.baseAt', { rate: formatNumber(item.iva) })}</span><b>${euros(item.base)}</b></div><div><span>${t('billing.sheet.vatAt', { rate: formatNumber(item.iva) })}</span><b>${euros(item.cuota)}</b></div>`).join('');
   return `<div class="dgrid-wrap"><div class="dgrid flin">
@@ -71,7 +71,7 @@ function paymentsHtml(payments: readonly Payment[], pending: number): string {
         ${admin ? `<button class="kcfg" data-bcob="${item.id}">${t('billing.sheet.removePayment')}</button>` : ''}</div>`).join('');
   return `<div class="blk"><h3>${t('billing.sheet.payments')}</h3>
       ${rows || `<div class="sm">${t('billing.sheet.noPayments')}</div>`}
-      ${pending ? `<div class="sm" style="margin-top:4px">${t('billing.sheet.pendingAmount', { amount: euros(pending) })}</div>` : ''}</div>`;
+      ${pending ? `<div class="sm u-mt-4">${t('billing.sheet.pendingAmount', { amount: euros(pending) })}</div>` : ''}</div>`;
 }
 
 function recordHtml(invoice: Invoice): string {
@@ -82,7 +82,7 @@ function recordHtml(invoice: Invoice): string {
 
 function actionsHtml(invoice: Invoice, pending: number): string {
   const can = billingLegacy.canInvoice();
-  return `<div class="acts" style="justify-content:flex-end;flex-wrap:wrap">
+  return `<div class="acts u-end u-wrap">
       <button class="btn sec" data-cerrar>${t('common.close')}</button>
       ${invoice.pedido_id ? `<button class="btn sec" id="fvped">${t('billing.sheet.seeOrder')}</button>` : ''}
       ${can && !invoice.rectifica_id ? `<button class="btn sec dang" id="fvrect">${t('billing.sheet.rectify')}</button>` : ''}

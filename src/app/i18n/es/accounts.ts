@@ -136,7 +136,7 @@ export const accounts = {
     noPortalRole: 'No hay ningún rol con acceso al portal: créalo en Configuración → Roles',
     couldNotGive: 'No se ha podido dar acceso',
     couldNotCreate: 'No se ha podido crear el acceso: {error}',
-    created: '<b style="color:var(--ok)">Acceso creado.</b> Contraseña temporal: <b>{password}</b>. Pásasela y que la cambie al entrar.',
+    created: '<b class="u-ok">Acceso creado.</b> Contraseña temporal: <b>{password}</b>. Pásasela y que la cambie al entrar.',
   },
   history: {
     title: 'Historial de cambios',

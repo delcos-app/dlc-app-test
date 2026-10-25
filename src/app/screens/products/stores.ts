@@ -28,7 +28,7 @@ async function createCase(member: Member): Promise<boolean> {
 const chosenMember = (): Member | undefined => members().find(member => member.id === (document.getElementById('almu') as HTMLSelectElement | null)?.value);
 
 function windowHtml(): string {
-  const list = stores().map(store => `<div class="item" style="cursor:default"><span class="ic">${storeIcon(store)}</span>
+  const list = stores().map(store => `<div class="item u-cursor-default"><span class="ic">${storeIcon(store)}</span>
         <span class="tx"><b>${escapeHtml(store.nombre)}</b><span class="sm">${storeKind(store)}${t('products.stores.unitsTail', { units: formatNumber(store.unidades) })}${store.activo ? '' : t('products.stores.inactive')}</span></span></div>`).join('');
   return `
       <div class="fh"><div><h2>${t('products.stores.title')}</h2><div class="sm">${t('products.stores.subtitle')}</div></div>
@@ -66,7 +66,7 @@ function storeCard(store: Store): string {
 function withoutCaseHtml(withoutCase: readonly Member[]): string {
   if (!withoutCase.length) return '';
   const who = withoutCase.length === 1 ? t('products.stores.oneWithout', { name: escapeHtml(withoutCase[0]?.nombre ?? '') }) : t('products.stores.manyWithout', { count: withoutCase.length });
-  return `<div class="avisoh" style="margin-top:12px"><span>${who}${t('products.stores.withoutCase')}</span></div>`;
+  return `<div class="avisoh u-mt-12"><span>${who}${t('products.stores.withoutCase')}</span></div>`;
 }
 
 /** Configuración → «Almacenes». */
@@ -83,7 +83,7 @@ export async function paintStores(): Promise<void> {
     <div class="card cfgpanel"><h2>${t('products.stores.yours')}</h2>
       <div class="almgrid">${stores().map(storeCard).join('')}</div>
       ${withoutCaseHtml(withoutCase)}
-      <div class="matadd" style="margin-top:12px"><select id="almu">${canHaveCase.map(member => `<option value="${member.id}">${escapeHtml(member.nombre)}</option>`).join('')}</select>
+      <div class="matadd u-mt-12"><select id="almu">${canHaveCase.map(member => `<option value="${member.id}">${escapeHtml(member.nombre)}</option>`).join('')}</select>
         <button class="btn sec" id="almok">${t('products.stores.createCase')}</button></div>
       <p class="sm">${t('products.stores.transferHint')}</p></div>`;
   const ok = document.getElementById('almok');

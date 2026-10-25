@@ -47,14 +47,14 @@ function sheetHtml(item: Equipment, reviews: readonly Review[]): string {
     <div class="evascab"><h3>${t('equipment.sheet.reviewsTitle', { count: reviews.length })}</h3>${installed ? `<button type="button" class="btn sec" id="eqrevmas">${t('equipment.sheet.addReview')}</button>` : ''}</div>
     <div id="eqrevf"></div>
     ${reviewsHtml(reviews)}
-    <div class="acts" style="justify-content:flex-end">${installed && item.revision_meses ? `<button type="button" class="btn sec" id="eqagenda">${t('equipment.sheet.schedule')}</button>` : ''}
+    <div class="acts u-end">${installed && item.revision_meses ? `<button type="button" class="btn sec" id="eqagenda">${t('equipment.sheet.schedule')}</button>` : ''}
       <button type="button" class="btn sec" id="eqeditar">${t('equipment.sheet.change')}</button><button type="button" class="btn" data-cerrar>${t('equipment.sheet.done')}</button></div>`;
 }
 
 const reviewFormHtml = (): string => `<div class="depbox"><div class="cong3"><div><label for="eqrf">${t('equipment.sheet.date')}</label><input id="eqrf" type="date" value="${todayIso()}"></div>
         <div><label for="eqrt">${t('equipment.sheet.type')}</label><select id="eqrt">${REVIEW_TYPES.map(kind => `<option>${kind}</option>`).join('')}</select></div>
         <div><label for="eqrn">${t('equipment.sheet.note')}</label><input id="eqrn" maxlength="300" placeholder="${t('equipment.sheet.notePlaceholder')}"></div></div>
-      <div class="acts" style="justify-content:flex-end"><button type="button" class="btn sec" id="eqrcanc">${t('equipment.sheet.cancel')}</button><button type="button" class="btn" id="eqrok">${t('equipment.sheet.record')}</button></div></div>`;
+      <div class="acts u-end"><button type="button" class="btn sec" id="eqrcanc">${t('equipment.sheet.cancel')}</button><button type="button" class="btn" id="eqrok">${t('equipment.sheet.record')}</button></div></div>`;
 
 const inputValue = (id: string): string => (document.getElementById(id) as HTMLInputElement | null)?.value ?? '';
 

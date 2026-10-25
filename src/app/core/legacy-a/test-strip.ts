@@ -12,7 +12,7 @@ function stripHtml(admin: boolean): string {
   return `<span><b>${t('legacyA.testStrip.title')}</b> · ${t('legacyA.testStrip.subtitle')}
       <button class="ai" data-ayuda="pruebas" aria-label="${t('legacyA.testStrip.whatIs')}">i</button>
       <span class="prpunto" id="prpunto"></span></span>
-    ${admin ? `<span class="acts" style="margin:0">
+    ${admin ? `<span class="acts u-m-0">
       <button class="btn chico" id="prreset" title="${t('legacyA.testStrip.resetHint')}">${t('legacyA.testStrip.reset')}</button></span>` : ''}`;
 }
 

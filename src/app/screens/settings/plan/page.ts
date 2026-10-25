@@ -43,7 +43,7 @@ function billingRows(data: BillingData | null): string {
   const rows: [string, string | undefined][] = [[t('settingsRest.plan.companyName'), fields.nombre], [t('settingsRest.plan.taxId'), fields.nif], [t('settingsRest.plan.receiptEmail'), fields.email], [t('settingsRest.plan.taxAddress'), fields.direccion]];
   const missing = rows.filter(([, value]) => !value).length;
   return rows.map(([name, value]) => `<div class="pgdfila${value ? '' : ' falta'}"><span>${escapeHtml(name)}</span><b>${value ? escapeHtml(value) : t('settingsRest.plan.missing')}</b></div>`).join('')
-    + (missing ? `<div class="banda-aviso" style="margin-top:8px">${t('settingsRest.plan.missingData')}</div>` : '');
+    + (missing ? `<div class="banda-aviso u-mt-8">${t('settingsRest.plan.missingData')}</div>` : '');
 }
 
 function billingHtml(plan: CurrentPlan, data: BillingData | null | undefined): string {

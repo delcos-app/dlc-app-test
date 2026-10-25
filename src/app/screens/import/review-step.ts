@@ -40,7 +40,7 @@ function pageHtml(check: BatchResult, counts: Counts): string {
     ${modeHtml(counts)}
     ${custom.length ? `<p class="sm">${t('importing.review.customFields', { fields: custom.map(escapeHtml).join(', ') })}</p>` : ''}
     ${errors.length ? `<details class="imperr" ${errors.length <= OPEN_ERRORS ? 'open' : ''}><summary>${t('importing.review.seeErrors')}</summary><div>${errorLines(errors)}</div></details>` : ''}
-    <div class="acts" style="justify-content:space-between"><button class="btn sec" type="button" id="impvolver">${t('importing.review.backToColumns')}</button>
+    <div class="acts u-between"><button class="btn sec" type="button" id="impvolver">${t('importing.review.backToColumns')}</button>
       <button class="btn" type="button" id="impok" ${counts.created + counts.existing ? '' : 'disabled'}>${t('importing.review.run', { count: formatNumber(counts.created + counts.existing), unit: counts.unit })}</button></div></div>`;
 }
 

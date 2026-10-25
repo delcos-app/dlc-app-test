@@ -24,7 +24,7 @@ function editorHtml(current: Readonly<Record<string, number>>): string {
     <label for="cicmeses">${t('cycle.editor.length')}</label><select id="cicmeses">${months}</select>
     <div class="cicobj">${goals}</div>
     <p class="sm">${t('cycle.editor.zeroHint', words())}</p>
-    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>${t('common.cancel')}</button><button class="btn" id="cicok">${t('common.save')}</button></div>`;
+    <div class="acts u-end"><button class="btn sec" data-cerrar>${t('common.cancel')}</button><button class="btn" id="cicok">${t('common.save')}</button></div>`;
 }
 
 async function save(body: HTMLElement, box: HTMLDialogElement): Promise<void> {

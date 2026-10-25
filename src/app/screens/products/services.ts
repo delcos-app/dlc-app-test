@@ -59,9 +59,9 @@ function editorHtml(service: Service, admin: boolean): string {
       <div><label for="svs">${t('products.services.withoutVat')}</label><input id="svs" type="number" step="0.01" min="0" value="${price}" ${locked}></div>
       <div><label for="svi">${t('products.services.vat')}</label><input id="svi" type="number" step="1" min="0" max="21" value="${vat}" ${locked}></div>
       <div><label for="svc">${t('products.services.withVat')}</label><input id="svc" type="number" step="0.01" min="0" value="${withVat}" ${locked}></div></div>
-    <label class="opt" style="margin-top:12px">${checkbox('svdef', service.por_defecto, locked)} ${t('products.services.proposeByDefault')}</label>
-    ${service.id ? `<label class="opt" style="margin-top:8px">${checkbox('svact', service.activo, locked)} ${t('products.services.active')}</label>` : ''}
-    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>${t(admin ? 'common.cancel' : 'common.close')}</button>
+    <label class="opt u-mt-12">${checkbox('svdef', service.por_defecto, locked)} ${t('products.services.proposeByDefault')}</label>
+    ${service.id ? `<label class="opt u-mt-8">${checkbox('svact', service.activo, locked)} ${t('products.services.active')}</label>` : ''}
+    <div class="acts u-end"><button class="btn sec" data-cerrar>${t(admin ? 'common.cancel' : 'common.close')}</button>
       ${admin ? `<button class="btn" id="svok">${t(service.id ? 'common.save' : 'products.services.create')}</button>` : ''}</div>`;
 }
 

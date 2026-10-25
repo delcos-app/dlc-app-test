@@ -43,7 +43,7 @@ function stateHtml(account: CardAccount, salesReps: readonly string[]): string {
     : `<span class="pill p-est">${escapeHtml(account.estado_comercial)}</span>`;
   return `<div class="blk"><h3>${t('accounts.card.stateTitle')}</h3>
       <div>${state}</div>
-      ${salesReps.length ? `<div class="sm" style="margin-top:6px">${t('accounts.base.salesRep', { names: salesReps.map(escapeHtml).join(', ') })}</div>` : ''}
+      ${salesReps.length ? `<div class="sm u-mt-6">${t('accounts.base.salesRep', { names: salesReps.map(escapeHtml).join(', ') })}</div>` : ''}
     </div>`;
 }
 
@@ -56,9 +56,9 @@ function consultationHtml(consultation: CardConsultation): string {
       ${room ? `<div class="sm">${escapeHtml(room)}</div>` : ''}
       ${consultation.indicaciones ? `<div class="sm">${escapeHtml(consultation.indicaciones)}</div>` : ''}
       ${consultation.telefono ? `<div class="sm">${t('accounts.base.phone', { phone: escapeHtml(consultation.telefono) })}</div>` : ''}
-      <div class="dias" style="margin-top:8px">${WORKDAYS.map(day => `<span class="${days[day] ? 'on' : ''}">${day}</span>`).join('')}</div>
+      <div class="dias u-mt-8">${WORKDAYS.map(day => `<span class="${days[day] ? 'on' : ''}">${day}</span>`).join('')}</div>
       ${WORKDAYS.filter(day => days[day]).map(day => `<div class="sm">${day}: ${escapeHtml(days[day])}</div>`).join('')}
-      ${consultation.lat ? `<div class="sm" style="margin-top:6px"><button class="lnk" type="button" data-nav="${cardBaseLegacy.directionsAttribute([consultation.lat, consultation.lon ?? 0])}">${t('accounts.base.directions')}</button></div>` : ''}
+      ${consultation.lat ? `<div class="sm u-mt-6"><button class="lnk" type="button" data-nav="${cardBaseLegacy.directionsAttribute([consultation.lat, consultation.lon ?? 0])}">${t('accounts.base.directions')}</button></div>` : ''}
     </div>`;
 }
 

@@ -41,7 +41,7 @@ function paintFailure(body: HTMLElement, user: UserRow, result: TemporaryAccess 
   const text = result ? t(REASONS.get(result.error ?? '') ?? 'settingsRest.access.noPermission') : t('settingsRest.access.unreadable');
   const canSend = result && result.error !== 'permiso';
   body.innerHTML = `${headerHtml(t('settingsRest.access.title'), user)}<p>${escapeHtml(text)}</p>
-      <div class="acts" style="justify-content:flex-end;flex-wrap:wrap">${canSend ? `<button class="btn sec" id="accpass">${t('settingsRest.access.sendPassword')}</button>` : ''}<button class="btn" data-cerrar>${t('settingsRest.access.close')}</button></div>`;
+      <div class="acts u-end u-wrap">${canSend ? `<button class="btn sec" id="accpass">${t('settingsRest.access.sendPassword')}</button>` : ''}<button class="btn" data-cerrar>${t('settingsRest.access.close')}</button></div>`;
   const send = document.getElementById('accpass');
   if (send) send.onclick = (): void => { dialog()?.close(); void resetPassword(user); };
 }
@@ -54,6 +54,6 @@ export async function showTemporaryAccess(user: UserRow): Promise<void> {
   body.innerHTML = `${headerHtml(t('settingsRest.access.title'), user)}
     ${accessDataHtml(data)}
     <p class="sm">${t('settingsRest.access.notYet')}</p>
-    <div class="acts" style="justify-content:flex-end;flex-wrap:wrap"><button class="btn sec" id="acccop">${t('settingsRest.newUser.copy')}</button><button class="btn" data-cerrar>${t('settingsRest.newUser.done')}</button></div>`;
+    <div class="acts u-end u-wrap"><button class="btn sec" id="acccop">${t('settingsRest.newUser.copy')}</button><button class="btn" data-cerrar>${t('settingsRest.newUser.done')}</button></div>`;
   const copy = document.getElementById('acccop'); if (copy) copy.onclick = (): void => { void copyText(welcomeText(data.nombre, data.email, data.pass)); };
 }

@@ -27,7 +27,7 @@ function formHtml(organization: Organization): string {
         <div id="opfinw" class="${data.estado === TRIAL ? '' : 'hide'}"><label for="opfin">${t('platform.plan.trialUntil')}</label><input id="opfin" type="date" value="${escapeHtml(end)}"></div><div id="opcompw"><label for="opcomp">${t('platform.plan.commitment')}</label>
         <input id="opcomp" type="date" value="${escapeHtml(data.compromiso_hasta ?? '')}"><span class="sm">${t('platform.plan.commitmentHint')}</span></div></div>
       ${data.stripe_suscripcion ? `<div class="banda-aviso" id="opstripe">${t('platform.plan.stripe')}</div>` : ''}<div id="opperd"></div>
-      <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>${t('common.cancel')}</button><button class="btn" id="opok">${t('platform.plan.save')}</button></div>`;
+      <div class="acts u-end"><button class="btn sec" data-cerrar>${t('common.cancel')}</button><button class="btn" id="opok">${t('platform.plan.save')}</button></div>`;
 }
 
 /** A medida with a commitment still running cannot go down yet. */

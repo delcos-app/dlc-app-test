@@ -38,7 +38,7 @@ function peopleHtml(detail: OrderDetail): string {
 function actionsHtml(detail: OrderDetail): string {
   const order = detail.pedido, draft = order.estado === STATES.draft, open = !draft && order.estado !== STATES.voided, can = customersLegacy.canSell();
   const editButton = order.factura_id ? `<button class="btn sec" id="pdeditnf">${t('orders.sheet.editData')}</button>` : `<button class="btn sec" id="pdeditar">${t('orders.sheet.editOrder')}</button>`;
-  return `<div class="acts" style="justify-content:flex-end">
+  return `<div class="acts u-end">
       ${can && draft ? `<button class="btn sec dang" id="pdborrar">${t('orders.sheet.deleteDraft')}</button>
         <button class="btn sec" id="pdeditar">${t('orders.sheet.edit')}</button>
         <button class="btn" id="pdvalidar">${t('orders.sheet.confirm')}</button>` : ''}
@@ -53,7 +53,7 @@ function sheetHtml(detail: OrderDetail): string {
     <div class="fh pdcab"><div class="pdcabt"><h2>${t('orders.sheet.title')}${order.numero ? ` ${escapeHtml(order.numero)}` : ''}</h2>${statePill(order.estado)}${paymentPill(order)}
       <span class="sm pdmeta">${formatShortDate(order.fecha)} · ${ordersLegacy.channelLabel(order, totals.total)}${order.forma_pago ? ` · ${escapeHtml(order.forma_pago)}` : ''}</span></div>
       <button class="x" data-cerrar aria-label="${t('common.close')}">✕</button></div>
-    ${order.estado === STATES.draft ? `<div class="cacheaviso" style="margin-top:10px">${t('orders.sheet.draftNotice')}</div>` : ''}
+    ${order.estado === STATES.draft ? `<div class="cacheaviso u-mt-10">${t('orders.sheet.draftNotice')}</div>` : ''}
     ${peopleHtml(detail)}
     <div class="blk"><h3>${t('orders.sheet.lines')}</h3>
       ${lines.map(lineHtml).join('') || `<div class="sm">${t('orders.sheet.noLines')}</div>`}

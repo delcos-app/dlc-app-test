@@ -40,7 +40,7 @@ export function loadProductsModule(): Promise<void> {
   const section = productsLegacy.section();
   screen.innerHTML = `
     <div class="saludo"><div><h1>${t('products.page.title')}</h1><div class="fecha">${t('products.page.subtitle')}</div></div>
-      <div class="acts" style="margin:0">${actionsHtml(section)}</div></div>
+      <div class="acts u-m-0">${actionsHtml(section)}</div></div>
     <div class="subnav">${TABS.map(([key, label]) => `<button data-ps="${key}" aria-pressed="${String(section === key)}">${t(label)}</button>`).join('\n      ')}</div>
     <div id="vcuerpo"></div>`;
   bind(screen, section);

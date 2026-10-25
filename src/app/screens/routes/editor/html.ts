@@ -65,8 +65,8 @@ function criteriaHtml(state: EditorState): string {
           <div><label for="cdia">${t('routesMore.editor.attend')}</label><select id="cdia"><option value=""></option>
             ${days}</select></div>
         </div>
-        <label class="opt" style="margin-top:10px"><input type="checkbox" id="curg" ${rules.urgentes ? 'checked' : ''}> ${t('routesMore.editor.onlyUrgent')}</label>
-        <div id="rprev" class="sm" style="margin-top:10px"></div>`;
+        <label class="opt u-mt-10"><input type="checkbox" id="curg" ${rules.urgentes ? 'checked' : ''}> ${t('routesMore.editor.onlyUrgent')}</label>
+        <div id="rprev" class="sm u-mt-10"></div>`;
 }
 
 export function editorHtml(state: EditorState): string {
@@ -91,7 +91,7 @@ export function editorHtml(state: EditorState): string {
 
       ${mode === 'lista' ? listHtml(state) : criteriaHtml(state)}
 
-      <div class="acts" style="justify-content:flex-end">
+      <div class="acts u-end">
         <button class="btn sec" data-cerrar>${t('common.cancel')}</button>
         ${mode === 'crit' ? `<button class="btn sec" id="rprob">${t('routesMore.editor.howMany')}</button>` : ''}
         <button class="btn" id="rguardar">${t(id ? 'routesMore.editor.save' : 'routesMore.editor.create')}</button></div>`;

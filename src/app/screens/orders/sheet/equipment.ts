@@ -20,7 +20,7 @@ function formHtml(pending: readonly Pending[]): string {
   return `<div class="depbox"><span class="sm">${t('orders.equipment.writeSerials')}</span>
         ${pending.map((item, index) => `<div><b>${escapeHtml(item.nombre)}</b> <span class="sm">· ${escapeHtml(item.cuenta ?? '')}</span><div class="cirser">${range(Math.min(item.faltan, MAX_SERIALS)).map(unit => `<input data-pqs="${index}" maxlength="120" placeholder="${t('orders.equipment.serialOf', { unit: unit + 1 })}" aria-label="${t('orders.equipment.serialLabel', { unit: unit + 1, name: escapeHtml(item.nombre) })}">`).join('')}</div></div>`).join('')}
         <div class="g2"><div><label for="pdeqi">${t('orders.equipment.installedOn')}</label><input id="pdeqi" type="date" value="${todayIso()}"></div><div><label for="pdequ">${t('orders.equipment.place')}</label><input id="pdequ" placeholder="${t('orders.equipment.placePlaceholder')}"></div></div>
-        <div class="acts" style="justify-content:flex-end"><button type="button" class="btn" id="pdeqok">${t('orders.equipment.register')}</button></div></div>`;
+        <div class="acts u-end"><button type="button" class="btn" id="pdeqok">${t('orders.equipment.register')}</button></div></div>`;
 }
 
 function rowsOf(pending: readonly Pending[], orderId: string): Record<string, unknown>[] {

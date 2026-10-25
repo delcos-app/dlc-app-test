@@ -25,7 +25,7 @@ function dataCardHtml(): string {
       <div class="g2"><div><label for="pfn">${t('settingsRest.profile.visibleName')}</label><input id="pfn" value="${escapeHtml(me.nombre)}"></div>
         <div><label for="pft">${t('settingsRest.profile.phone')}</label><input id="pft" inputmode="tel" value="${escapeHtml(preferences.telefono ?? '')}" placeholder="${t('settingsRest.profile.phonePlaceholder')}"></div></div>
       <div class="g2"><div><label for="pfi">${t('settingsRest.profile.openOnStart')}</label><select id="pfi">${starts}</select></div><div><label for="pfl">${t('settingsRest.profile.language')}</label><select id="pfl" data-notr>${languages}</select></div></div>
-      <div class="acts" style="justify-content:flex-end"><button class="btn" id="pfok">${t('settingsRest.profile.save')}</button></div></div>`;
+      <div class="acts u-end"><button class="btn" id="pfok">${t('settingsRest.profile.save')}</button></div></div>`;
 }
 
 /** The new name in the header (first name and initials). */
@@ -72,7 +72,7 @@ function securityHtml(): string {
   return `<div class="card cfgpanel perfseg"><h2 style="padding:0 0 4px">${icon('shield')} ${t('settingsRest.profile.security')}</h2>
     <p class="sm">${t('settingsRest.profile.securityHint')}</p>
     <div class="perfsegf"><div><span class="sm">${t('settingsRest.profile.accessEmail')}</span><b>${escapeHtml(me.email ?? '')}</b></div><div><span class="sm">${t('settingsRest.profile.role')}</span><b>${escapeHtml(me.rol)}</b></div></div>
-    <div class="acts" style="justify-content:flex-start;flex-wrap:wrap"><button class="btn sec" id="perfclave">${icon('key-round')} ${t('settingsRest.profile.sendLink')}</button>
+    <div class="acts u-start u-wrap"><button class="btn sec" id="perfclave">${icon('key-round')} ${t('settingsRest.profile.sendLink')}</button>
       <button class="btn sec" id="perfsalir">${icon('log-out')} ${t('settingsRest.profile.signOut')}</button></div></div>`;
 }
 

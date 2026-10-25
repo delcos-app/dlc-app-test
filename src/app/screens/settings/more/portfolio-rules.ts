@@ -14,10 +14,10 @@ function editorHtml(exclusive: boolean): string {
   return `
     <div class="fh"><div><h2>${t('settingsMore.portfolio.title')}</h2><div class="sm">${t('settingsMore.portfolio.subtitle', words())}</div></div>
       <button class="x" data-cerrar aria-label="${t('common.close')}">✕</button></div>
-    <label class="opt" style="margin-top:10px"><input type="checkbox" id="rcexcl" ${exclusive ? 'checked' : ''}>
+    <label class="opt u-mt-10"><input type="checkbox" id="rcexcl" ${exclusive ? 'checked' : ''}>
       <span><b>${t('settingsMore.portfolio.exclusive')}</b><br><span class="sm">${t('settingsMore.portfolio.exclusiveHint', words())}</span></span></label>
     <p class="sm">${t('settingsMore.portfolio.sharedHint', words())}</p>
-    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>${t('common.cancel')}</button><button class="btn" id="rcok">${t('common.save')}</button></div>`;
+    <div class="acts u-end"><button class="btn sec" data-cerrar>${t('common.cancel')}</button><button class="btn" id="rcok">${t('common.save')}</button></div>`;
 }
 
 async function save(box: HTMLDialogElement): Promise<void> {

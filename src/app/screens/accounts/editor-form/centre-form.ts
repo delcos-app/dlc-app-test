@@ -26,7 +26,7 @@ function formHtml(centre: CentreData, key: string, notice?: string): string {
       <div><label for="${key}c">${t('accountsEditor.centreForm.postcode')}</label>${input('c', centre.cp, ' inputmode="numeric"')}</div></div>
     <div class="g2"><div><label for="${key}m">${t('accountsEditor.centreForm.town')}</label>${input('m', centre.municipio)}</div>
       <div><label for="${key}p">${t('accountsEditor.centreForm.province')}</label>${input('p', centre.provincia)}</div></div>
-    <div class="cpubi sm">${centre.lat ? `<b style="color:var(--ok)">${t('accountsEditor.centreForm.located')}</b>` : t('accountsEditor.centreForm.notLocated')} <button type="button" class="lnk" data-cpgeo>${t('accountsEditor.centreForm.findOnMap')}</button></div>
+    <div class="cpubi sm">${centre.lat ? `<b class="u-ok">${t('accountsEditor.centreForm.located')}</b>` : t('accountsEditor.centreForm.notLocated')} <button type="button" class="lnk" data-cpgeo>${t('accountsEditor.centreForm.findOnMap')}</button></div>
     <label>${t('accountsEditor.centreForm.opening')}</label>
     <div class="cphor">${days}</div>
     <button type="button" class="lnk" data-cpcopiar>${t('accountsEditor.centreForm.copyMonday')}</button>

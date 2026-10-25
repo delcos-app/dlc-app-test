@@ -21,7 +21,7 @@ const isWeekend = (isoDate: string): boolean => new Date(`${isoDate}T12:00:00`).
 function dayOption(isoDate: string, free: readonly string[], blocked: Record<string, string>): string {
   const ok = free.includes(isoDate), date = new Date(`${isoDate}T12:00:00`);
   const note = blocked[isoDate] ? t('routesMore.week.blocked') : isoDate < todayIso() ? t('routesMore.week.past') : '';
-  return `<label class="opt ${ok ? '' : 'off'}" style="margin:0"><input type="checkbox" data-spd="${isoDate}" ${ok ? 'checked' : 'disabled'}>
+  return `<label class="opt ${ok ? '' : 'off'} u-m-0"><input type="checkbox" data-spd="${isoDate}" ${ok ? 'checked' : 'disabled'}>
         ${routes2Legacy.weekdayName(isoDate).slice(0, 3)} ${date.getDate()}${note}</label>`;
 }
 
@@ -48,7 +48,7 @@ function formHtml(days: readonly string[], free: readonly string[], blocked: Rec
       <div><label>${t('routesMore.week.times')}</label><div class="sm" style="padding-top:12px">${t('routesMore.week.timesText', { minutes: visitTimes().visita, professional: term('medico') })}</div></div>
     </div>
     <p class="sm">${t('routesMore.week.hint', { professionals: term('medico', { number: 'p' }) })}</p>
-    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>${t('common.cancel')}</button>
+    <div class="acts u-end"><button class="btn sec" data-cerrar>${t('common.cancel')}</button>
       <button class="btn" id="spok">${t('routesMore.week.propose')}</button></div>`;
 }
 

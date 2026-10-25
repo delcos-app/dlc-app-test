@@ -40,7 +40,7 @@ function cardHtml(card: RouteCard, index: number): string {
 function pageHtml(cards: readonly RouteCard[]): string {
   return `
     <div class="saludo"><div><h1>${t('routes.list.title')}</h1><div class="fecha">${t('routes.list.subtitle')}</div></div>
-      <div class="acts" style="margin:0"><button class="btn" id="rnueva">${t('routes.list.newRoute')}</button></div></div>
+      <div class="acts u-m-0"><button class="btn" id="rnueva">${t('routes.list.newRoute')}</button></div></div>
     <div class="rngrid" id="rngrid">${cards.map(cardHtml).join('')}
       <button class="rnnueva" type="button" id="rnnueva2"><span><span class="mas">+</span><b>${t('routes.list.newRouteCard')}</b><span class="sm">${t(cards.length ? 'routes.list.newRouteHint' : 'routes.list.firstRouteHint')}</span></span></button></div>
     <div id="rcuerpo" hidden></div><div id="rplan"></div>`;

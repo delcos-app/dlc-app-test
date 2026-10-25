@@ -36,7 +36,7 @@ function headerHtml(product: Product, admin: boolean): string {
       <button class="x" data-cerrar aria-label="${t('productsMore.editor.close')}">✕</button></div>
     <div style="display:flex;gap:14px;align-items:center;margin-top:8px">
       <span class="pfoto" id="prfprev" style="width:72px;height:72px;${photo ? `background-image:url('${escapeHtml(photo)}')` : ''}">${photo ? '' : '◧'}</span>
-      ${admin ? `<div style="flex:1"><label for="prfoto" style="margin-top:0">${t('productsMore.editor.photo')}</label><input id="prfoto" type="file" accept="image/*"></div>` : ''}</div>`;
+      ${admin ? `<div class="u-flex-1"><label for="prfoto" class="u-mt-0">${t('productsMore.editor.photo')}</label><input id="prfoto" type="file" accept="image/*"></div>` : ''}</div>`;
 }
 
 /** Price without VAT (4 decimals), VAT (10 by default) and price with VAT, kept in step by bindForm. */
@@ -62,10 +62,10 @@ function formHtml(product: Product, admin: boolean): string {
     <div class="g2">
       <div><label for="prue">${t('productsMore.editor.unitsPerPack')}</label><input id="prue" type="number" min="1" value="${Number(product.unidades_envase) || 1}" ${off}></div>
       <div><label for="prco">${t('productsMore.editor.cost')}</label><input id="prco" type="number" step="0.01" min="0" value="${product.coste ?? ''}" ${off}></div></div>
-    ${admin && product.id ? `<label class="opt" style="margin-top:12px"><input type="checkbox" id="pract" ${product.activo ? 'checked' : ''}> ${t('productsMore.editor.active')}</label>` : ''}`;
+    ${admin && product.id ? `<label class="opt u-mt-12"><input type="checkbox" id="pract" ${product.activo ? 'checked' : ''}> ${t('productsMore.editor.active')}</label>` : ''}`;
 }
 
-const actionsHtml = (product: Product, admin: boolean): string => `<div class="acts" style="justify-content:flex-end">
+const actionsHtml = (product: Product, admin: boolean): string => `<div class="acts u-end">
       <button class="btn sec" data-cerrar>${t(admin ? 'productsMore.editor.cancel' : 'productsMore.editor.close')}</button>
       ${admin ? `<button class="btn" id="prok">${t(product.id ? 'productsMore.editor.save' : 'productsMore.editor.create')}</button>` : ''}</div>`;
 

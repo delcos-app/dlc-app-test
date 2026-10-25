@@ -37,7 +37,7 @@ export function loadBilling(): Promise<void> {
   const current = billingLegacy.section();
   screen.innerHTML = `
     <div class="saludo"><div><h1>${t('billing.page.title')}</h1><div class="fecha">${t('billing.page.subtitle')}</div></div>
-      <div class="acts" style="margin:0"></div></div>
+      <div class="acts u-m-0"></div></div>
     <div class="subnav">${sections.map(([key, label]) => `<button data-fsec="${key}" aria-pressed="${String(current === key)}">${t(label)}</button>`).join('')}</div>${readOnlyHtml()}
     <div id="fcuerpo"></div>`;
   screen.querySelectorAll<HTMLElement>('[data-fsec]').forEach(button => { button.onclick = (): void => { billingLegacy.setSection(button.dataset.fsec ?? 'facturas'); billingLegacy.reload(); }; });

@@ -25,7 +25,7 @@ const MOVEMENTS = new Map<string, MessageKey>([
 const movementName = (type: string): string => { const key = MOVEMENTS.get(type); return key ? t(key, { visit: term('visita') }) : type; };
 
 function traceRow(item: TraceMovement): string {
-  return `<div class="dr" style="cursor:default"><span>${formatShortDate(String(item.fecha).slice(0, 10))}</span><span>${escapeHtml(movementName(item.tipo))}${item.pedido ? `<span class="sm">${t('products.trace.order', { number: escapeHtml(item.pedido) })}</span>` : ''}</span>
+  return `<div class="dr u-cursor-default"><span>${formatShortDate(String(item.fecha).slice(0, 10))}</span><span>${escapeHtml(movementName(item.tipo))}${item.pedido ? `<span class="sm">${t('products.trace.order', { number: escapeHtml(item.pedido) })}</span>` : ''}</span>
         <span class="num" style="color:${item.unidades < 0 ? 'var(--danger)' : 'var(--ok)'}"><b>${item.unidades > 0 ? '+' : ''}${formatNumber(item.unidades)}</b></span>
         <span>${escapeHtml(orFallback(item.cliente, '—'))}${item.telefono ? `<span class="sm">${escapeHtml(item.telefono)}</span>` : ''}</span><span class="sm">${escapeHtml(orFallback(item.medico, '—'))}</span><span class="sm">${escapeHtml(item.almacen)}</span></div>`;
 }
@@ -50,7 +50,7 @@ export async function traceability(batchId: string): Promise<void> {
     <div class="dgrid-wrap"><div class="dgrid traz">
       <div class="dh">${head.map((title, index) => `<span${index === 2 ? ' class="num"' : ''}>${title}</span>`).join('')}</div>
       ${movements.map(traceRow).join('') || `<div class="vacio">${t('products.trace.none')}</div>`}</div></div>
-    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar2>${t('common.close')}</button></div>`;
+    <div class="acts u-end"><button class="btn sec" data-cerrar2>${t('common.close')}</button></div>`;
   box.showModal();
 }
 
@@ -69,11 +69,11 @@ function settingsHtml(line: StockLine): string {
 function batchHtml(batch: StockBatch, canBuy: boolean): string {
   const expiry = expiryClass(batch.caducidad), manyStores = purchasesLegacy.stores().filter(store => store.activo).length > 1;
   const tools = canBuy ? `<button class="btn sec" data-aju="${batch.id}|${batch.almacen_id}">${t('products.sheet.adjust')}</button>${manyStores ? `<button class="btn sec" data-tras="${batch.id}|${batch.almacen_id}">${t('products.sheet.transfer')}</button>` : ''}` : '';
-  return `<div class="item" style="cursor:default">
+  return `<div class="item u-cursor-default">
         <span class="ic ${expiry === 'cad-pasada' ? 'w' : ''}">📦</span>
         <span class="tx"><b>${t('products.sheet.batch', { number: escapeHtml(batch.numero_lote), units: formatNumber(batch.unidades) })}</b>
           <span class="sm"><span class="${expiry}">${batch.caducidad ? t('products.sheet.expiresOn', { date: formatShortDate(batch.caducidad) }) : t('products.sheet.noExpiry')}</span>${batch.fecha_fabricacion ? t('products.sheet.madeOn', { date: formatShortDate(batch.fecha_fabricacion) }) : ''} · ${escapeHtml(batch.almacen)}${batch.proveedor ? ` · ${escapeHtml(batch.proveedor)}` : ''}</span></span>
-        <span class="acts" style="margin:0"><button class="btn sec" data-traz="${batch.id}">${t('products.sheet.traceability')}</button>
+        <span class="acts u-m-0"><button class="btn sec" data-traz="${batch.id}">${t('products.sheet.traceability')}</button>
           ${tools}</span></div>`;
 }
 
@@ -86,7 +86,7 @@ function sheetHtml(line: StockLine, canBuy: boolean): string {
     ${canBuy ? settingsHtml(line) : ''}
     <div class="blk"><h3>${t('products.sheet.batches')}</h3>
       ${batches.length ? `<div class="lista">${batches.map(batch => batchHtml(batch, canBuy)).join('')}</div>` : `<div class="sm">${t('products.sheet.noBatches')}</div>`}</div>
-    <div class="acts" style="justify-content:flex-end">
+    <div class="acts u-end">
       <button class="btn sec" data-cerrar>${t('common.close')}</button>
       ${canBuy ? `<button class="btn sec" id="stent">${t('products.sheet.entry')}</button><button class="btn" id="stgu">${t('products.sheet.saveMinimum')}</button>` : ''}</div>`;
 }

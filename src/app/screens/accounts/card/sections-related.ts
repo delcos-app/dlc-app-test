@@ -57,7 +57,7 @@ function depositText(state: DepositState): string {
   if (!state.existe || !total) return t('accounts.card.depositNone');
   const productCount = new Set(lines.map(line => line.producto_id)).size, expiring = lines.filter(line => relatedLegacy.expiresSoon(line.caducidad)).length;
   const products = productCount === 1 ? t('accounts.card.oneProduct') : t('accounts.card.products', { count: productCount });
-  const soon = expiring ? ` · <b style="color:var(--warn)">${expiring === 1 ? t('accounts.card.oneBatchExpires') : t('accounts.card.batchesExpire', { count: expiring })}${t('accounts.card.inLessThan60Days')}</b>` : '';
+  const soon = expiring ? ` · <b class="u-warn">${expiring === 1 ? t('accounts.card.oneBatchExpires') : t('accounts.card.batchesExpire', { count: expiring })}${t('accounts.card.inLessThan60Days')}</b>` : '';
   return t('accounts.card.depositUnits', { units: formatNumber(total), products }) + soon;
 }
 

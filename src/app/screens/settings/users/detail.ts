@@ -32,7 +32,7 @@ function permissionsHtml(user: UserRow): string {
   }).join('');
   return `<div class="blk"><h3>${t('settingsRest.detail.whatCanDo')}</h3>
       <div class="permtabla">${rows}</div>
-      <div class="sm" style="margin-top:8px">${t(amounts ? 'settingsRest.detail.seesAmounts' : 'settingsRest.detail.unitsOnly')}</div></div>`;
+      <div class="sm u-mt-8">${t(amounts ? 'settingsRest.detail.seesAmounts' : 'settingsRest.detail.unitsOnly')}</div></div>`;
 }
 
 function activityHtml(user: UserRow): string {
@@ -43,7 +43,7 @@ function activityHtml(user: UserRow): string {
   const connection = cardSectionsLegacy.can('administrar') ? `${escapeHtml(connectionText(usersLegacy.connections()[user.id], true))}<br>` : '';
   const when = user.ultima_actividad ? new Date(user.ultima_actividad).toLocaleString('es-ES', { dateStyle: 'medium', timeStyle: 'short' }) : t('settingsRest.detail.noneRecorded');
   return `<div class="blk"><h3>${t('settingsRest.detail.activity')}</h3>${counts}
-      <div class="sm" style="margin-top:6px">${connection}${t('settingsRest.detail.lastActivity', { when })}</div></div>`;
+      <div class="sm u-mt-6">${connection}${t('settingsRest.detail.lastActivity', { when })}</div></div>`;
 }
 
 function actionsHtml(user: UserRow): string {

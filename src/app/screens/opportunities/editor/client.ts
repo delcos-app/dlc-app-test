@@ -104,7 +104,7 @@ function searchHtml(draft: Draft): string {
   return `<input id="nvq" type="search" placeholder="${t('opportunities.editor.searchPlaceholder')}" autocomplete="off" value="${escapeHtml(typed)}"><div class="lista" id="nvres1"></div>
       <div class="acts" style="margin:6px 0 0;justify-content:flex-start"><button type="button" class="btn sec" id="nvalta">${t('opportunities.editor.newCard')}</button>
         ${source.id || draft.previous ? '' : `<button type="button" class="lnk" id="nvsin">${t('opportunities.editor.orderWithoutClient')}</button>`}</div>
-      ${draft.recording ? `<div class="sm" style="margin-top:4px">${t('opportunities.editor.nameIsEnough')}</div>` : ''}`;
+      ${draft.recording ? `<div class="sm u-mt-4">${t('opportunities.editor.nameIsEnough')}</div>` : ''}`;
 }
 
 function bindSearch(draft: Draft): void {

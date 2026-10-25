@@ -18,7 +18,7 @@ interface MoveResult { ok?: boolean; error?: string; usado?: { producto_id: stri
 
 const whole = (input: HTMLInputElement): number => Math.max(0, Math.floor(Number(input.value) || 0));
 const batchOf = (line: DepositLine): string => escapeHtml(orFallback(line.numero_lote, t('products.deposit.noBatchLower')));
-const actsHtml = (ok: string): string => `<div class="acts" style="justify-content:flex-end"><button type="button" class="btn sec" id="depcanc">${t('common.cancel')}</button><button type="button" class="btn" id="depok">${ok}</button></div>`;
+const actsHtml = (ok: string): string => `<div class="acts u-end"><button type="button" class="btn sec" id="depcanc">${t('common.cancel')}</button><button type="button" class="btn" id="depok">${ok}</button></div>`;
 
 function replenishHtml(): string {
   const products = (purchasesLegacy.products() as readonly (CatalogProduct & { activo?: boolean })[]).filter(item => item.activo !== false && orFallback(item.estado, 'Activo') !== 'Descatalogado');

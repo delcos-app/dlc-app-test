@@ -16,11 +16,11 @@ interface PortfolioAccount { id: string; nombre: string; urgente?: boolean; espe
 
 function rowHtml(account: PortfolioAccount): string {
   const last = account.ultima_visita ? ` · ${term('visita', { article: 'ultimo' })} ${formatShortDate(account.ultima_visita)}` : ` · ${t('accountsEditor.portfolio.notVisited')}`;
-  return `<div class="item" style="cursor:default">
+  return `<div class="item u-cursor-default">
         <span class="ic ${account.urgente ? 'w' : ''}">${account.urgente ? '!' : '·'}</span>
         <span class="tx"><b>${escapeHtml(account.nombre)}</b><span class="sm">${escapeHtml(account.especialidad ?? '')} · ${escapeHtml(account.centro ?? '')} ${escapeHtml(account.municipio ?? '')}
           ${last}</span></span>
-        <span class="acts" style="margin:0">
+        <span class="acts u-m-0">
           <button class="btn sec" data-cficha="${account.id}">${t('accountsEditor.portfolio.card')}</button>
           <button class="btn sec dang" data-cquita="${account.id}">${t('accountsEditor.portfolio.remove')}</button></span></div>`;
 }
@@ -33,7 +33,7 @@ function pageHtml(name: string, list: readonly PortfolioAccount[], query: string
         <button class="x" data-cerrar aria-label="${t('common.close')}">✕</button></div>
       <input id="cbusca" value="${escapeHtml(query)}" placeholder="${t('accountsEditor.portfolio.search')}">
       <div class="lista" style="max-height:52vh;overflow:auto">${list.map(rowHtml).join('') || `<div class="vacio">${t('accountsEditor.portfolio.none', { assigned })}</div>`}</div>
-      <div class="acts" style="justify-content:flex-end"><button class="btn sec" id="cmas">${t('accountsEditor.portfolio.assignMore', { professionals: term('medico', { number: 'p' }) })}</button></div>`;
+      <div class="acts u-end"><button class="btn sec" id="cmas">${t('accountsEditor.portfolio.assignMore', { professionals: term('medico', { number: 'p' }) })}</button></div>`;
 }
 
 async function removeFrom(userId: string, accountId: string, repaint: () => void): Promise<void> {

@@ -69,12 +69,12 @@ function draftHtml(draft: WeekDraft): string {
     + (draft.sinDia.length ? t('agenda.openWeek.draftWithoutDay', { count: draft.sinDia.length }) : '');
   return `<div class="semborr">
       <span><b>${t('agenda.openWeek.draft')}</b> · ${summary}</span>
-      <span class="acts" style="margin:0"><button class="btn sec" id="semdescartar">${t('agenda.openWeek.discard')}</button><button class="btn" id="semguardar">${t('agenda.openWeek.save')}</button></span></div>`;
+      <span class="acts u-m-0"><button class="btn sec" id="semdescartar">${t('agenda.openWeek.discard')}</button><button class="btn" id="semguardar">${t('agenda.openWeek.save')}</button></span></div>`;
 }
 
 function withoutDayHtml(draft: WeekDraft | null): string {
   if (!draft?.sinDia.length) return '';
-  const rows = draft.sinDia.slice(0, SHOWN_WITHOUT_DAY).map(item => `<div class="item" style="cursor:default"><span class="ic w">!</span>
+  const rows = draft.sinDia.slice(0, SHOWN_WITHOUT_DAY).map(item => `<div class="item u-cursor-default"><span class="ic w">!</span>
         <span class="tx"><b>${escapeHtml(item.m.nombre)}</b><span class="sm">${escapeHtml(item.motivo)}${item.m.municipio ? ` · ${escapeHtml(item.m.municipio)}` : ''}</span></span></div>`).join('');
   const more = draft.sinDia.length > SHOWN_WITHOUT_DAY ? `<div class="sm" style="padding:6px 12px">${t('agenda.openWeek.andMore', { count: draft.sinDia.length - SHOWN_WITHOUT_DAY })}</div>` : '';
   return `<div class="planfuera" style="margin:0 16px 16px"><h3>${t('agenda.openWeek.withoutDay', { count: draft.sinDia.length })}</h3>

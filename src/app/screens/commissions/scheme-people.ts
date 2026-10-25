@@ -29,7 +29,7 @@ function addHtml(): string {
       <select id="eadm"><option value="hoy">${t('commissions.people.fromToday')}</option><option value="todo">${t('commissions.people.wholeHistory')}</option><option value="fecha">${t('commissions.people.fromDate')}</option></select>
       <span id="eadfw" class="hide"><input id="eadf" type="date" value="${todayIso()}"></span>
       <button type="button" class="btn sec" id="eaok">${t('commissions.people.assign')}</button></div>
-      <p class="sm" style="margin-top:6px">${t('commissions.people.lockedHint')}</p>`;
+      <p class="sm u-mt-6">${t('commissions.people.lockedHint')}</p>`;
 }
 
 const value = (id: string): string => (document.getElementById(id) as HTMLInputElement | null)?.value ?? '';

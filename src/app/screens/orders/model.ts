@@ -75,7 +75,7 @@ export function totalsHtml(totals: OrderTotals): string {
       ${totalRow(t('orders.totals.serviceWithoutVat', { name: escapeHtml(service.nombre) }), euros(service.base))}` : ''}
     ${totalRow(t('orders.totals.taxBase'), euros(totals.base))}
     ${rates.filter(rate => (totals.porIva[rate] ?? 0) > 0.004 || rates.length === 1).map(rate => totalRow(t('orders.totals.vatRate', { rate }), euros(totals.porIva[rate]))).join('')}
-    ${service ? `<div class="sm" style="justify-content:flex-end"><span>${t('orders.totals.includesService', { name: escapeHtml(service.nombre.toLowerCase()), amount: euros(service.con) })}</span></div>` : ''}
+    ${service ? `<div class="sm u-end"><span>${t('orders.totals.includesService', { name: escapeHtml(service.nombre.toLowerCase()), amount: euros(service.con) })}</span></div>` : ''}
     <div class="tot"><span>${t('orders.totals.total')}</span><b>${euros(totals.total)}</b></div>`;
 }
 

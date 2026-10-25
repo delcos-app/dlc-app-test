@@ -44,7 +44,7 @@ function tableHtml(data: MonthlyTable, rows: readonly TableRow[]): string {
     <div class="thead">${cell(NAME_WIDTH, t('analytics.table.concept'), ' th')}
       ${months.map(month => cell(MONTH_WIDTH, escapeHtml(monthHeader(month)), ' th')).join('')}
       ${cell(TOTAL_WIDTH, t('analytics.explore.total'), ' th')}</div>
-    ${rows.map(row => `<div class="trow" style="cursor:default">
+    ${rows.map(row => `<div class="trow u-cursor-default">
       ${cell(NAME_WIDTH, `<b>${escapeHtml(row.nombre)}</b>`)}
       ${months.map(month => monthCell(row, month)).join('')}
       ${cell(TOTAL_WIDTH, `<b>${format(row.total)}</b>`)}</div>`).join('')}

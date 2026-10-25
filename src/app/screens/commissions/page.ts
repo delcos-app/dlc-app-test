@@ -21,13 +21,13 @@ function howItCounts(scheme: Scheme): string {
 
 function schemeRow(scheme: Scheme): string {
   const people = scheme.personas ?? [];
-  return `<div class="item" style="cursor:default">
+  return `<div class="item u-cursor-default">
       <span class="ic">${scheme.calculo === FIXED ? '€' : '▤'}</span>
       <span class="tx"><b>${escapeHtml(scheme.nombre)}</b><span class="sm">
         ${t(scheme.atribucion === CLOSES ? 'commissions.page.perSale' : 'commissions.page.perPortfolio')} ·
         ${howItCounts(scheme)}
         ${people.length ? ` · ${people.map(escapeHtml).join(', ')}` : t('commissions.page.unassigned')}</span></span>
-      <span class="acts" style="margin:0"><button class="btn sec chico" data-esq="${scheme.id}">${t('commissions.page.edit')}</button></span></div>`;
+      <span class="acts u-m-0"><button class="btn sec chico" data-esq="${scheme.id}">${t('commissions.page.edit')}</button></span></div>`;
 }
 
 function pageHtml(all: readonly Settlement[]): string {

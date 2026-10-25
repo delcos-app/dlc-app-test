@@ -53,12 +53,12 @@ function panelHtml(): string {
   if (state.filter && !areas.some(area => area[0] === state.filter)) state.filter = '';
   const shown = list.filter(item => !state.filter || settingsExtraLegacy.areaOf(item.tipo) === state.filter);
   return `<div class="fh"><div><h2>${t('settingsExtra.notifications.title')}</h2><div class="sm">${unread ? t('settingsExtra.notifications.unread', { count: unread }) : t('settingsExtra.notifications.upToDate')}${t('settingsExtra.notifications.lastWeek')}</div></div>
-      <span class="acts" style="margin:0"><button type="button" class="icobtn notcfgb" id="notcfg" title="${t('settingsExtra.notifications.choose')}" aria-label="${t('settingsExtra.notifications.choose')}">${settingsExtraLegacy.icon('settings')}</button>
+      <span class="acts u-m-0"><button type="button" class="icobtn notcfgb" id="notcfg" title="${t('settingsExtra.notifications.choose')}" aria-label="${t('settingsExtra.notifications.choose')}">${settingsExtraLegacy.icon('settings')}</button>
       <button class="x" data-cerrar aria-label="${t('settingsExtra.notifications.close')}">✕</button></span></div>
     ${filterHtml(areas)}
     ${listHtml(shown)}
     <p class="sm notpie">${t('settingsExtra.notifications.keptFor')}</p>
-    <div class="acts" style="justify-content:flex-end;flex-wrap:wrap">
+    <div class="acts u-end u-wrap">
       ${unread ? `<button class="btn sec" id="notleer">${t('settingsExtra.notifications.markAllRead')}</button>` : ''}
       ${list.some(item => item.leida_en) ? `<button class="btn sec" id="notlimpiar">${t('settingsExtra.notifications.removeRead')}</button>` : ''}
       ${list.length ? `<button class="btn sec dang" id="notvaciar">${t('settingsExtra.notifications.removeAll')}</button>` : ''}</div>`;

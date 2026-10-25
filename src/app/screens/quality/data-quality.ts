@@ -37,7 +37,7 @@ const INDICATORS: readonly (readonly [keyof DataQuality, MessageKey, MessageKey]
 function summaryHtml(quality: DataQuality): string {
   const percent = percentOf(quality.completas, quality.total);
   return `<div class="card" id="calidad" style="padding-bottom:6px">
-    <div class="manh" style="padding:14px 16px 0"><h2 style="padding:0">${t('quality.summary.complete', { percent })}</h2><span class="sm">${t('quality.summary.completeOf', { ...words(), done: formatNumber(quality.completas), total: formatNumber(quality.total) })}</span></div>
+    <div class="manh" style="padding:14px 16px 0"><h2 class="u-p-0">${t('quality.summary.complete', { percent })}</h2><span class="sm">${t('quality.summary.completeOf', { ...words(), done: formatNumber(quality.completas), total: formatNumber(quality.total) })}</span></div>
     <div class="barra" style="margin:8px 16px 10px"><i style="width:${percent}%"></i></div>
     <div class="kpis" style="padding:0 16px 10px">
       ${INDICATORS.map(([key, title, help]) => indicator(quality[key], t(title, words()), t(help, words()))).join('')}
@@ -57,11 +57,11 @@ interface DoubtfulPlace { id: string; cuenta_id: string; nombre: string; centro_
 function placeRow(place: DoubtfulPlace): string {
   const address = [place.centro_nombre, place.direccion, [place.cp, place.municipio].filter(Boolean).join(' ')].filter(Boolean).join(' · ');
   const distance = place.km !== null && place.km !== undefined ? t('quality.addresses.farFrom', { km: formatNumber(place.km), municipality: escapeHtml(orFallback(place.municipio, '')) }) : t('quality.addresses.outOfSpain');
-  return `<div class="item cdir" data-cdir="${place.id}" style="cursor:default">
+  return `<div class="item cdir u-cursor-default" data-cdir="${place.id}">
       <span class="tx"><b>${escapeHtml(place.nombre)}</b>
         <span class="sm">${escapeHtml(address || t('quality.addresses.noAddress'))}</span>
         <span class="sm cdirkm">${distance}</span></span>
-      <span class="acts" style="margin:0">
+      <span class="acts u-m-0">
         <button type="button" class="btn sec" data-cdirf="${place.cuenta_id}">${t('quality.addresses.card')}</button>
         ${place.direccion || place.municipio ? `<button type="button" class="btn" data-cdirg="${place.id}">${t('quality.addresses.relocate')}</button>` : ''}</span></div>`;
 }

@@ -31,7 +31,7 @@ function rowHtml(member: Member): string {
   return `<button class="dr" data-eqver="${member.id}" title="${t('leftovers.team.seeAgenda')}">
         <span><b>${escapeHtml(member.nombre)}</b><span class="sm">${escapeHtml(member.rol)}</span></span>
         <span class="num">${formatNumber(member.cartera)}</span><span class="num">${formatNumber(member.citas)}</span>
-        <span class="num"><b style="color:var(--ok)">${formatNumber(member.visitadas)}</b></span><span class="num">${formatNumber(member.no_estaba)}</span>
+        <span class="num"><b class="u-ok">${formatNumber(member.visitadas)}</b></span><span class="num">${formatNumber(member.no_estaba)}</span>
         <span class="num">${formatNumber(member.aplazadas)}</span><span class="num" style="${warned(member.sin_hacer)}">${formatNumber(member.sin_hacer)}</span>
         <span>${complianceCell(compliance(member))}</span>
         <span class="num">${formatNumber(member.visitas)}</span>
@@ -68,7 +68,7 @@ async function paintTable(): Promise<void> {
 export async function paintTeamCompliance(): Promise<void> {
   const body = document.getElementById('agcuerpo');
   if (!body) throw new TypeError('#agcuerpo');
-  body.innerHTML = `<div class="semhead"><h2 style="padding:0">${t('leftovers.team.title')}</h2>
+  body.innerHTML = `<div class="semhead"><h2 class="u-p-0">${t('leftovers.team.title')}</h2>
       ${leftoversLegacy.can('administrar') ? `<button class="btn sec" id="eqfrec">⚙ ${t('leftovers.team.frequency')}</button>` : ''}</div>
     <div class="filtros" style="border:0;padding:4px 16px 10px"><div id="eqper"></div></div>
     <div id="eqtabla"></div>`;

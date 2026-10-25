@@ -27,7 +27,7 @@ function filtersHtml(filters: AccountFilters): string {
   const order = filters.orden;
   return `
     <h3>${t('legacyA.tools.filters')}</h3>${selectsHtml(filters)}
-    <label class="opt" style="margin-top:10px"><input type="checkbox" data-tfc="mios" ${checked(Boolean(filters.mios))}> ${t('legacyA.tools.onlyMine', { theProfessionals: term('medico', { number: 'p', article: 'el' }) })}</label>
+    <label class="opt u-mt-10"><input type="checkbox" data-tfc="mios" ${checked(Boolean(filters.mios))}> ${t('legacyA.tools.onlyMine', { theProfessionals: term('medico', { number: 'p', article: 'el' }) })}</label>
     <label class="opt"><input type="checkbox" data-tfc="sin" ${checked(Boolean(filters.sin))}> ${t('legacyA.tools.neverVisited')}</label>
     <label class="opt"><input type="checkbox" data-tfc="urg" ${checked(filters.urg)}> ${t('legacyA.tools.onlyUrgent')}</label>
     <div class="tfcampos">${toolsPanelLegacy.fieldFilters(filters.campos)}</div>

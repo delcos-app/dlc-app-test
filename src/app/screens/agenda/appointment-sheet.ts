@@ -64,7 +64,7 @@ function buttonsHtml(item: SheetAppointment): string {
     ${open ? `<div class="vcfin">
         <button type="button" class="lnk" id="vcdescartar">${t('agenda.sheet.discard')}</button><span class="sm">${t('agenda.sheet.discardText')}</span>
         ${item.fecha >= today ? `<button type="button" class="lnk peligro" id="vcborrar">${t('agenda.sheet.delete')}</button><span class="sm">${t('agenda.sheet.deleteText')}</span>` : ''}</div>` : ''}
-    <div class="acts" style="justify-content:flex-end">
+    <div class="acts u-end">
       <button type="button" class="btn sec" id="vcok" disabled>${t('agenda.sheet.saveNotes')}</button>
       ${open && yourDayLegacy.canRecordOn(item.fecha) ? `<button type="button" class="btn" id="vcreg">${t('agenda.sheet.record', { visit: term('visita') })}</button>` : ''}</div>`;
 }

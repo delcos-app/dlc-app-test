@@ -71,7 +71,7 @@ function editorHtml(series: Series, admin: boolean): string {
     ${check('ser', series.reinicio_anual, 'billing.series.restartYearly')}
     ${check('sed', series.por_defecto, 'billing.series.defaultForType')}
     ${series.id ? check('seac', series.activa !== false, 'billing.series.active') : ''}
-    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>${t('common.close')}</button>${admin ? `<button class="btn" id="seok">${t('common.save')}</button>` : ''}</div>`;
+    <div class="acts u-end"><button class="btn sec" data-cerrar>${t('common.close')}</button>${admin ? `<button class="btn" id="seok">${t('common.save')}</button>` : ''}</div>`;
 }
 
 /** The number the series would give next («F260408»). */

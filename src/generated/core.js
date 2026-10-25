@@ -312,7 +312,7 @@
       noPortalRole: "No hay ningún rol con acceso al portal: créalo en Configuración → Roles",
       couldNotGive: "No se ha podido dar acceso",
       couldNotCreate: "No se ha podido crear el acceso: {error}",
-      created: '<b style="color:var(--ok)">Acceso creado.</b> Contraseña temporal: <b>{password}</b>. Pásasela y que la cambie al entrar.'
+      created: '<b class="u-ok">Acceso creado.</b> Contraseña temporal: <b>{password}</b>. Pásasela y que la cambie al entrar.'
     },
     history: {
       title: "Historial de cambios",
@@ -2365,7 +2365,7 @@
       complete: "Completa nombre, correo y contraseña",
       couldNotInvite: "No se ha podido invitar: {error}",
       couldNotCreate: "No se ha podido crear: {error}",
-      created: '<b style="color:var(--ok)">Usuario creado.</b> Contraseña temporal: <b>{password}</b>.\n      Pásasela y que la cambie al entrar. Si Supabase tiene activada la confirmación por correo, deberá confirmarlo primero.',
+      created: '<b class="u-ok">Usuario creado.</b> Contraseña temporal: <b>{password}</b>.\n      Pásasela y que la cambie al entrar. Si Supabase tiene activada la confirmación por correo, deberá confirmarlo primero.',
       fromDirectory: "{Professional} del directorio",
       directoryHint: "Tendrá acceso solo a su informe y a sus avisos. No cuenta como usuario del plan.",
       findProfessional: "Busca {toTheProfessional}",
@@ -3166,7 +3166,7 @@
       atTime: "A las <b>{time}</b>"
     },
     page: {
-      bar: '<span class="rbtx">● <b class="rblargo">Jornada en curso · </b><span class="rt">{time}</span> · {done}<span class="rblargo"> de </span><span class="rbcorto">/</span>{total}<span class="rblargo"> hechas</span></span>\n    <span class="acts" style="margin:0"><button class="btn sec chico" id="rbver">Mi día</button><button class="btn dang chico" id="rbfin">Terminar</button></span>',
+      bar: '<span class="rbtx">● <b class="rblargo">Jornada en curso · </b><span class="rt">{time}</span> · {done}<span class="rblargo"> de </span><span class="rbcorto">/</span>{total}<span class="rblargo"> hechas</span></span>\n    <span class="acts u-m-0"><button class="btn sec chico" id="rbver">Mi día</button><button class="btn dang chico" id="rbfin">Terminar</button></span>',
       inProgress: "Jornada en curso",
       startedAgo: "Empezaste hace {time}. El orden, las horas y el registro de {visits} están en tu agenda de hoy.",
       seeDay: "Ver mi día",
@@ -3486,13 +3486,13 @@
       saved: "✓ Guardado.",
       savedToast: "Correo guardado",
       sendingTest: "Enviando el correo de prueba…",
-      testSent: '<b style="color:var(--ok)">✓ Enviado.</b> Revisa tu bandeja de entrada (y la de correo no deseado).',
-      badCredentials: '<b style="color:var(--dang)">El servidor ha rechazado el identificador o la clave de acceso.</b> Revisa los datos que te da tu proveedor.',
-      noConnection: '<b style="color:var(--dang)">No se ha podido conectar con el servidor.</b> Revisa el servidor, el puerto y la seguridad.',
-      noSmtp: '<b style="color:var(--dang)">Falta el servidor, el usuario o la contraseña.</b>',
-      noPermission: '<b style="color:var(--dang)">No tienes permiso para enviar el correo de prueba.</b> Lo envía quien administra la empresa.',
-      sessionExpired: '<b style="color:var(--dang)">Tu sesión ha caducado.</b> Vuelve a entrar y prueba otra vez.',
-      couldNotSend: '<b style="color:var(--dang)">No se ha podido enviar.</b> ',
+      testSent: '<b class="u-ok">✓ Enviado.</b> Revisa tu bandeja de entrada (y la de correo no deseado).',
+      badCredentials: '<b class="u-danger">El servidor ha rechazado el identificador o la clave de acceso.</b> Revisa los datos que te da tu proveedor.',
+      noConnection: '<b class="u-danger">No se ha podido conectar con el servidor.</b> Revisa el servidor, el puerto y la seguridad.',
+      noSmtp: '<b class="u-danger">Falta el servidor, el usuario o la contraseña.</b>',
+      noPermission: '<b class="u-danger">No tienes permiso para enviar el correo de prueba.</b> Lo envía quien administra la empresa.',
+      sessionExpired: '<b class="u-danger">Tu sesión ha caducado.</b> Vuelve a entrar y prueba otra vez.',
+      couldNotSend: '<b class="u-danger">No se ha podido enviar.</b> ',
       noSendFunction: "La función de envío no está instalada en el servidor.",
       hints: {
         google: "Dirección de correo de la cuenta|Contraseña de aplicación",
@@ -5561,7 +5561,7 @@
       emailTaken: "Ese correo ya tiene usuario",
       failed: "No se ha podido crear: {reason}",
       noUser: "Organización creada, pero no su usuario: {error}. Queda invitado: puede registrarse con ese correo.",
-      created: '<b style="color:var(--ok)">Organización creada.</b> Usuario de {email} con contraseña temporal <b>{password}</b>. Pásasela y que la cambie al entrar.'
+      created: '<b class="u-ok">Organización creada.</b> Usuario de {email} con contraseña temporal <b>{password}</b>. Pásasela y que la cambie al entrar.'
     },
     plan: {
       title: "Plan de {name}",
@@ -7250,8 +7250,8 @@
       dayOptions: "Opciones del día",
       dayOptionsTitle: "Opciones del día: nueva cita, bloquear el día…",
       appointments: "<b>{count}</b> citas",
-      visited: '<b style="color:var(--ok)">{count}</b> visitadas',
-      absent: '<b style="color:var(--warn)">{count}</b> no estaban',
+      visited: '<b class="u-ok">{count}</b> visitadas',
+      absent: '<b class="u-warn">{count}</b> no estaban',
       toDo: "<b>{count}</b> por hacer",
       estimatedEnd: "Fin estimado",
       overReturn: " · pasa de la hora de vuelta",
@@ -8329,8 +8329,8 @@
     <h2 style="padding:0 0 4px">${t("importing.columns.title", { name: escapeHtml(wizard.fileName) })}</h2>
     <p class="sm">${intro}</p>
     <div class="impmapa">${wizard.headers.map(columnHtml).join("")}</div>
-    <div id="impaviso" class="sm" style="margin-top:10px"></div>
-    <div class="acts" style="justify-content:space-between"><button class="btn sec" type="button" id="impvolver">${t("importing.file.back")}</button><button class="btn" type="button" id="impsig">${t("importing.columns.next")}</button></div></div>`;
+    <div id="impaviso" class="sm u-mt-10"></div>
+    <div class="acts u-between"><button class="btn sec" type="button" id="impvolver">${t("importing.file.back")}</button><button class="btn" type="button" id="impsig">${t("importing.columns.next")}</button></div></div>`;
   }
   function problems() {
     const entity = wizard.entity, assigned = wizard.mapping.filter((value27) => value27.startsWith("std:")).map((value27) => value27.slice(4));
@@ -8340,7 +8340,7 @@
   }
   function check() {
     const { missing: missing2, repeated } = problems(), notice2 = document.getElementById("impaviso"), next = document.getElementById("impsig");
-    const danger = (text5) => `<span style="color:var(--dang)">${text5}</span>`;
+    const danger = (text5) => `<span class="u-danger">${text5}</span>`;
     if (notice2) {
       notice2.innerHTML = missing2.length ? danger(t("importing.columns.missing", { fields: missing2.map(escapeHtml).join(", ") })) : repeated.length ? danger(t("importing.columns.repeated", { fields: repeated.map(escapeHtml).join(", ") })) : "";
     }
@@ -8440,7 +8440,7 @@
     <label class="impzona" id="impzona"><input type="file" id="impfile" accept=".xlsx,.xls,.csv,.txt" hidden>
       ${icon("file-spreadsheet")}<b>${t("importing.file.drop")}</b><span class="sm">${t("importing.file.maxRows")}</span></label>
     <div id="imphojas"></div>
-    <div class="acts" style="justify-content:space-between"><button class="btn sec" type="button" id="impvolver">${t("importing.file.back")}</button></div></div>`);
+    <div class="acts u-between"><button class="btn sec" type="button" id="impvolver">${t("importing.file.back")}</button></div></div>`);
     onClick("impvolver", steps.start);
     const zone = document.getElementById("impzona"), input12 = document.getElementById("impfile");
     if (!zone || !input12) return;
@@ -8752,7 +8752,7 @@
     ${modeHtml(counts)}
     ${custom.length ? `<p class="sm">${t("importing.review.customFields", { fields: custom.map(escapeHtml).join(", ") })}</p>` : ""}
     ${errors.length ? `<details class="imperr" ${errors.length <= OPEN_ERRORS ? "open" : ""}><summary>${t("importing.review.seeErrors")}</summary><div>${errorLines(errors)}</div></details>` : ""}
-    <div class="acts" style="justify-content:space-between"><button class="btn sec" type="button" id="impvolver">${t("importing.review.backToColumns")}</button>
+    <div class="acts u-between"><button class="btn sec" type="button" id="impvolver">${t("importing.review.backToColumns")}</button>
       <button class="btn" type="button" id="impok" ${counts.created + counts.existing ? "" : "disabled"}>${t("importing.review.run", { count: formatNumber(counts.created + counts.existing), unit: counts.unit })}</button></div></div>`;
   }
   function bind(rows2, counts) {
@@ -10361,7 +10361,7 @@
   function pageHtml3(cards2) {
     return `
     <div class="saludo"><div><h1>${t("routes.list.title")}</h1><div class="fecha">${t("routes.list.subtitle")}</div></div>
-      <div class="acts" style="margin:0"><button class="btn" id="rnueva">${t("routes.list.newRoute")}</button></div></div>
+      <div class="acts u-m-0"><button class="btn" id="rnueva">${t("routes.list.newRoute")}</button></div></div>
     <div class="rngrid" id="rngrid">${cards2.map(cardHtml).join("")}
       <button class="rnnueva" type="button" id="rnnueva2"><span><span class="mas">+</span><b>${t("routes.list.newRouteCard")}</b><span class="sm">${t(cards2.length ? "routes.list.newRouteHint" : "routes.list.firstRouteHint")}</span></span></button></div>
     <div id="rcuerpo" hidden></div><div id="rplan"></div>`;
@@ -10493,8 +10493,8 @@
           <div><label for="cdia">${t("routesMore.editor.attend")}</label><select id="cdia"><option value=""></option>
             ${days}</select></div>
         </div>
-        <label class="opt" style="margin-top:10px"><input type="checkbox" id="curg" ${rules.urgentes ? "checked" : ""}> ${t("routesMore.editor.onlyUrgent")}</label>
-        <div id="rprev" class="sm" style="margin-top:10px"></div>`;
+        <label class="opt u-mt-10"><input type="checkbox" id="curg" ${rules.urgentes ? "checked" : ""}> ${t("routesMore.editor.onlyUrgent")}</label>
+        <div id="rprev" class="sm u-mt-10"></div>`;
   }
   function editorHtml(state2) {
     const { head, id, mode } = state2, accounts2 = term("medico", { number: "p" });
@@ -10518,7 +10518,7 @@
 
       ${mode === "lista" ? listHtml(state2) : criteriaHtml(state2)}
 
-      <div class="acts" style="justify-content:flex-end">
+      <div class="acts u-end">
         <button class="btn sec" data-cerrar>${t("common.cancel")}</button>
         ${mode === "crit" ? `<button class="btn sec" id="rprob">${t("routesMore.editor.howMany")}</button>` : ""}
         <button class="btn" id="rguardar">${t(id ? "routesMore.editor.save" : "routesMore.editor.create")}</button></div>`;
@@ -11420,7 +11420,7 @@
   function dayOption(isoDate, free, blocked) {
     const ok = free.includes(isoDate), date = /* @__PURE__ */ new Date(`${isoDate}T12:00:00`);
     const note = blocked[isoDate] ? t("routesMore.week.blocked") : isoDate < todayIso() ? t("routesMore.week.past") : "";
-    return `<label class="opt ${ok ? "" : "off"}" style="margin:0"><input type="checkbox" data-spd="${isoDate}" ${ok ? "checked" : "disabled"}>
+    return `<label class="opt ${ok ? "" : "off"} u-m-0"><input type="checkbox" data-spd="${isoDate}" ${ok ? "checked" : "disabled"}>
         ${routes2Legacy.weekdayName(isoDate).slice(0, 3)} ${date.getDate()}${note}</label>`;
   }
   function formHtml(days, free, blocked, routes2) {
@@ -11446,7 +11446,7 @@
       <div><label>${t("routesMore.week.times")}</label><div class="sm" style="padding-top:12px">${t("routesMore.week.timesText", { minutes: visitTimes().visita, professional: term("medico") })}</div></div>
     </div>
     <p class="sm">${t("routesMore.week.hint", { professionals: term("medico", { number: "p" }) })}</p>
-    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>${t("common.cancel")}</button>
+    <div class="acts u-end"><button class="btn sec" data-cerrar>${t("common.cancel")}</button>
       <button class="btn" id="spok">${t("routesMore.week.propose")}</button></div>`;
   }
   async function candidates(source) {
@@ -11578,7 +11578,7 @@
     ${Object.keys(days).map((state2) => `<div class="g2" style="align-items:center"><div><b>${escapeHtml(state2)}</b></div>
       <div><input type="number" min="0" max="${MAX_DAYS}" data-frec="${escapeHtml(state2)}" value="${Number(days[state2]) || 0}" aria-label="${t("routesMore.frequency.daysFor", { state: escapeHtml(state2) })}"></div></div>`).join("")}
     <p class="sm">${t("routesMore.frequency.hint", { visit: term("visita") })}</p>
-    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>${t("common.cancel")}</button><button class="btn" id="frok">${t("common.save")}</button></div>`;
+    <div class="acts u-end"><button class="btn sec" data-cerrar>${t("common.cancel")}</button><button class="btn" id="frok">${t("common.save")}</button></div>`;
   }
   async function save3(body4) {
     const value27 = {};
@@ -12120,7 +12120,7 @@
   }
   function pendingHtml(pending) {
     if (!pending.length) return "";
-    return `<h2><span style="color:var(--warn)">${t("routesMore.suggestions.pendingTitle")}</span>
+    return `<h2><span class="u-warn">${t("routesMore.suggestions.pendingTitle")}</span>
       <span class="n">${pending.length}</span></h2>
     <p class="sm">${t("routesMore.suggestions.pendingHint")}</p>
     <div class="lista">${pending.slice(0, SHOWN_PENDING).map((item) => `<button class="item" data-id="${item.id}">
@@ -13265,7 +13265,7 @@
   function entryHtml(entry2) {
     const entering = entry2.evento === "Entrada";
     const when5 = new Date(entry2.creado_en).toLocaleString("es", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
-    return `<div class="item" style="cursor:default">
+    return `<div class="item u-cursor-default">
       <span class="ic ${entering ? "o" : ""}">${entering ? "→" : "←"}</span>
       <span class="tx"><b>${escapeHtml(entry2.usuario)}</b><span class="sm">${escapeHtml(entry2.evento)} ·
         ${when5}
@@ -13459,10 +13459,10 @@
     <div class="marcaed"><div class="marcaprev"><img id="mklogo" src="${escapeHtml(brand2.logo ?? LOGO)}" alt=""><b id="mknomp">${escapeHtml(brand2.nombre)}</b></div>
       <div><label for="mknom">${t("settingsMore.brand.name")}</label><input id="mknom" value="${escapeHtml(brand2.nombre)}" placeholder="${t("settingsMore.brand.namePlaceholder")}">
         <label>${t("settingsMore.brand.logo")} ${settingsMoreLegacy.helpButton(t("settingsMore.brand.logoHelpTitle"), t("settingsMore.brand.logoHelp"))}</label>
-        <div class="acts" style="margin:0"><label class="btn sec" for="mkfile" style="margin:0">${t("settingsMore.brand.upload")}</label><input id="mkfile" type="file" accept="image/*" class="hide">
+        <div class="acts u-m-0"><label class="btn sec u-m-0" for="mkfile">${t("settingsMore.brand.upload")}</label><input id="mkfile" type="file" accept="image/*" class="hide">
           ${brand2.logo ? `<button class="btn sec" id="mkquitar">${t("settingsMore.brand.remove")}</button>` : ""}</div>
-        <label class="opt" style="margin-top:10px"><input type="checkbox" id="mkfac" ${brand2.logo_factura === false ? "" : "checked"}> ${t("settingsMore.brand.onInvoices")}</label></div></div>
-    ${labelHtml()}${vocabularyHtml()}<div class="acts" style="justify-content:flex-end"><button class="btn" id="mkok">${t("common.save")}</button></div></div>
+        <label class="opt u-mt-10"><input type="checkbox" id="mkfac" ${brand2.logo_factura === false ? "" : "checked"}> ${t("settingsMore.brand.onInvoices")}</label></div></div>
+    ${labelHtml()}${vocabularyHtml()}<div class="acts u-end"><button class="btn" id="mkok">${t("common.save")}</button></div></div>
     <div class="previa"><div class="sm previat">${t("settingsMore.brand.previewTitle")}</div><div id="mkprev2"></div></div></div>`;
   }
   async function squareLogo(file) {
@@ -13571,14 +13571,14 @@
     if (!rights.canEdit) return "";
     const data = rights.asksData ? `<button class="btn sec" data-vdato="${value27.id}">${t(value27.dato_tipo ? "settingsMore.classifier.changeData" : "settingsMore.classifier.addData")}</button>` : "";
     const destination2 = classifier.papel === RESULT ? `<select data-vdest="${value27.id}" title="${t("settingsMore.classifier.destinationTitle")}" style="max-width:170px"><option value="">${t("settingsMore.classifier.keepsState")}</option>${stateOptions(value27.destino)}</select>` : "";
-    return `<span class="acts" style="margin:0">${data}
+    return `<span class="acts u-m-0">${data}
           <button class="btn sec" data-vren="${value27.id}|${escapeHtml(value27.valor)}">${t("settingsMore.classifier.rename")}</button>
           ${destination2}
           <button class="btn sec" data-vtog="${value27.id}|${value27.activo ? 0 : 1}">${t(value27.activo ? "settingsMore.classifier.deactivate" : "settingsMore.classifier.activate")}</button>
           ${rights.complete ? `<button class="btn sec dang" data-vdel="${value27.id}">${t("settingsMore.classifier.delete")}</button>` : ""}</span>`;
   }
   function valueHtml(classifier, value27, rights) {
-    return `<div class="item ${value27.padre ? "vsub" : ""}" style="cursor:default">
+    return `<div class="item ${value27.padre ? "vsub" : ""} u-cursor-default">
         <span class="ic">${value27.activo ? "●" : "○"}</span>
         <span class="tx"><b style="${value27.activo ? "" : "opacity:.5;text-decoration:line-through"}">${escapeHtml(value27.valor)}</b>
           ${resultText(value27)}${rights.asksData ? dataText(value27) : ""}</span>
@@ -13765,7 +13765,7 @@
       <div id="dtlw"><label for="dtl">${t("settingsMore.valueData.options")} <span class="sm">${t("settingsMore.valueData.onePerLine")}</span></label>
         <textarea id="dtl" rows="4">${escapeHtml((value27.dato_opciones ?? []).join("\n"))}</textarea></div>
     </div>
-    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar2>${t("common.cancel")}</button><button class="btn" id="dtok">${t("common.save")}</button></div>`;
+    <div class="acts u-end"><button class="btn sec" data-cerrar2>${t("common.cancel")}</button><button class="btn" id="dtok">${t("common.save")}</button></div>`;
   }
   function showParts() {
     const type = valueOf2("dtt");
@@ -13924,10 +13924,10 @@
     return `
     <div class="fh"><div><h2>${t("settingsMore.portfolio.title")}</h2><div class="sm">${t("settingsMore.portfolio.subtitle", words())}</div></div>
       <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
-    <label class="opt" style="margin-top:10px"><input type="checkbox" id="rcexcl" ${exclusive ? "checked" : ""}>
+    <label class="opt u-mt-10"><input type="checkbox" id="rcexcl" ${exclusive ? "checked" : ""}>
       <span><b>${t("settingsMore.portfolio.exclusive")}</b><br><span class="sm">${t("settingsMore.portfolio.exclusiveHint", words())}</span></span></label>
     <p class="sm">${t("settingsMore.portfolio.sharedHint", words())}</p>
-    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>${t("common.cancel")}</button><button class="btn" id="rcok">${t("common.save")}</button></div>`;
+    <div class="acts u-end"><button class="btn sec" data-cerrar>${t("common.cancel")}</button><button class="btn" id="rcok">${t("common.save")}</button></div>`;
   }
   async function save8(box5) {
     const exclusive = Boolean(document.getElementById("rcexcl")?.checked);
@@ -14035,7 +14035,7 @@
     <div class="nivleg">${legend}</div>
     <div class="dgrid-wrap"><table class="rolmat"><thead><tr><th>${t("settingsMore.roles.permission")}</th>${roles2.map((role) => `<th>${escapeHtml(role)}</th>`).join("")}</tr></thead>
       <tbody>${rows2}</tbody></table></div>
-    <div class="acts" style="justify-content:flex-end;flex-wrap:wrap"><button class="btn sec" id="rolrest">${t("settingsMore.roles.reset")}</button><button class="btn" id="rolok">${t("settingsMore.roles.saveTemplates")}</button></div></div>`;
+    <div class="acts u-end u-wrap"><button class="btn sec" id="rolrest">${t("settingsMore.roles.reset")}</button><button class="btn" id="rolok">${t("settingsMore.roles.saveTemplates")}</button></div></div>`;
   }
   function permissionsHtml(roles2, capabilities) {
     const rows2 = capabilities.map((capability) => `<tr><td><b>${escapeHtml(capability.nombre)}</b><span class="sm">${escapeHtml(capability.descripcion ?? "")}</span></td>
@@ -14044,7 +14044,7 @@
     <p class="sm">${t("settingsMore.roles.permissionsHint")}</p>
     <div class="dgrid-wrap"><table class="rolmat"><thead><tr><th>${t("settingsMore.roles.permission")}</th>${roles2.map((role) => `<th>${escapeHtml(role)}</th>`).join("")}</tr></thead>
       <tbody>${rows2}</tbody></table></div>
-    <div class="acts" style="justify-content:flex-end"><button class="btn" id="rolpermok">${t("settingsMore.roles.savePermissions")}</button></div></div>`;
+    <div class="acts u-end"><button class="btn" id="rolpermok">${t("settingsMore.roles.savePermissions")}</button></div></div>`;
   }
   function readTemplates(box5) {
     const templates = {};
@@ -14520,7 +14520,7 @@
       (element4.closest(".selw, .numw") ?? element4).insertAdjacentHTML("afterend", `<span class="campoerr">${t(key)}</span>`);
     }
     if (!errors.length) return;
-    message(`<b style="color:var(--dang)">${errors.length === 1 ? t("settingsExtra.email.oneMissing") : t("settingsExtra.email.manyMissing", { count: errors.length })}</b>${t("settingsExtra.email.reviewMarked")}`);
+    message(`<b class="u-danger">${errors.length === 1 ? t("settingsExtra.email.oneMissing") : t("settingsExtra.email.manyMissing", { count: errors.length })}</b>${t("settingsExtra.email.reviewMarked")}`);
     const first2 = errors[0];
     if (first2) input2(first2[0])?.focus();
   }
@@ -14535,7 +14535,7 @@
   }
   function showFailure(reason) {
     const failure5 = failureText2(reason), detail = reason && !failure5.includes(reason) ? `<span class="errtec">${escapeHtml(t("settingsExtra.email.technicalDetail", { reason }))}</span>` : "";
-    message(`<b style="color:var(--dang)">${escapeHtml(failure5)}</b>${detail}`);
+    message(`<b class="u-danger">${escapeHtml(failure5)}</b>${detail}`);
     notices.toast(failure5, true);
   }
   async function save11(config) {
@@ -14549,7 +14549,7 @@
       return false;
     }
     if (password) config.hay_clave = true;
-    message(`<b style="color:var(--ok)">${t("settingsExtra.email.saved")}</b>`);
+    message(`<b class="u-ok">${t("settingsExtra.email.saved")}</b>`);
     const field22 = input2("copass");
     if (field22) {
       field22.value = "";
@@ -14850,7 +14850,7 @@
           <div><label class="vfswitch"><input type="checkbox" id="flogo" ${signature.logo !== "no" ? "checked" : ""}><span class="sw"></span><span>${t("settingsExtra.email.includeLogo")}</span></label></div></div>
       </div><div><div class="sm" style="margin-bottom:6px">${t("settingsExtra.email.preview")}</div><div class="firmaprev" id="fprev"></div></div></div></div>`;
   }
-  var buttonsHtml = () => `<div class="card cfgpanel"><div class="acts" style="justify-content:flex-end;flex-wrap:wrap;margin:0">
+  var buttonsHtml = () => `<div class="card cfgpanel"><div class="acts u-end u-wrap u-m-0">
       <button class="btn sec" id="coprueba">${t("settingsExtra.email.sendTest")}</button><button class="btn" id="cook">${t("settingsExtra.email.save")}</button></div>
       <p class="sm" id="comsg"></p></div>`;
   var text3 = (id) => (document.getElementById(id)?.value ?? "").trim();
@@ -15016,12 +15016,12 @@
     if (state.filter && !areas3.some((area) => area[0] === state.filter)) state.filter = "";
     const shown5 = list.filter((item) => !state.filter || settingsExtraLegacy.areaOf(item.tipo) === state.filter);
     return `<div class="fh"><div><h2>${t("settingsExtra.notifications.title")}</h2><div class="sm">${unread ? t("settingsExtra.notifications.unread", { count: unread }) : t("settingsExtra.notifications.upToDate")}${t("settingsExtra.notifications.lastWeek")}</div></div>
-      <span class="acts" style="margin:0"><button type="button" class="icobtn notcfgb" id="notcfg" title="${t("settingsExtra.notifications.choose")}" aria-label="${t("settingsExtra.notifications.choose")}">${settingsExtraLegacy.icon("settings")}</button>
+      <span class="acts u-m-0"><button type="button" class="icobtn notcfgb" id="notcfg" title="${t("settingsExtra.notifications.choose")}" aria-label="${t("settingsExtra.notifications.choose")}">${settingsExtraLegacy.icon("settings")}</button>
       <button class="x" data-cerrar aria-label="${t("settingsExtra.notifications.close")}">✕</button></span></div>
     ${filterHtml(areas3)}
     ${listHtml3(shown5)}
     <p class="sm notpie">${t("settingsExtra.notifications.keptFor")}</p>
-    <div class="acts" style="justify-content:flex-end;flex-wrap:wrap">
+    <div class="acts u-end u-wrap">
       ${unread ? `<button class="btn sec" id="notleer">${t("settingsExtra.notifications.markAllRead")}</button>` : ""}
       ${list.some((item) => item.leida_en) ? `<button class="btn sec" id="notlimpiar">${t("settingsExtra.notifications.removeRead")}</button>` : ""}
       ${list.length ? `<button class="btn sec dang" id="notvaciar">${t("settingsExtra.notifications.removeAll")}</button>` : ""}</div>`;
@@ -15931,7 +15931,7 @@
   function showFailure2(list, count2, error) {
     count2.textContent = "";
     const aborted = /abort/i.test(error?.message ?? "");
-    list.innerHTML = `<div class="vacio">${t("accounts.list.couldNotLoad")}${aborted ? t("accounts.list.notResponding") : ""}.<br><button class="btn sec" type="button" id="dirreint" style="margin-top:10px">${t("accounts.list.retry")}</button></div>`;
+    list.innerHTML = `<div class="vacio">${t("accounts.list.couldNotLoad")}${aborted ? t("accounts.list.notResponding") : ""}.<br><button class="btn sec u-mt-10" type="button" id="dirreint">${t("accounts.list.retry")}</button></div>`;
     const retry = document.getElementById("dirreint");
     if (retry) retry.onclick = () => {
       void searchAccounts2(true);
@@ -18634,7 +18634,7 @@
     if (box5 && booked.length && !box5.querySelector(".plancitados")) {
       box5.insertAdjacentHTML("beforeend", `<div class="plancitados"><h3>${t("legacyC.plan.booked", { count: booked.length })}</h3>
       <p class="sm">${t("legacyC.plan.bookedHint")}</p>
-      <div class="lista">${booked.map((item) => `<div class="item" style="cursor:default"><span class="ic">📅</span><span class="txt"><b>${escapeHtml(item.m.nombre)}</b>
+      <div class="lista">${booked.map((item) => `<div class="item u-cursor-default"><span class="ic">📅</span><span class="txt"><b>${escapeHtml(item.m.nombre)}</b>
         <span class="sm">${t("legacyC.plan.bookedOn", { date: escapeHtml(calendar_exports.longDate(/* @__PURE__ */ new Date(`${item.fecha}T12:00:00`))) })}${item.m.municipio ? ` · ${escapeHtml(item.m.municipio)}` : ""}</span></span></div>`).join("")}</div></div>`);
     }
     return result;
@@ -19699,7 +19699,7 @@
     const percent5 = target ? Math.round(100 * done2 / target) : 0, circumference = 2 * Math.PI * 30;
     return `<div class="mt mtcic"><div class="mtt">${icon("target")} ${t("home.cycle.title", { visits: term("visita", { number: "p" }) })}</div>
       <div class="mfila"><svg class="mring" viewBox="0 0 70 70" aria-hidden="true"><circle class="f" cx="35" cy="35" r="30"/><circle class="v" cx="35" cy="35" r="30" style="stroke-dasharray:${circumference * percent5 / 100} ${circumference}"/></svg>
-      <div><div class="mn1" style="margin:0"><span data-mcnt="${percent5}">${percent5}</span> %</div><div class="ms"><b>${done2}</b>${t("home.cycle.progress", { target, days: data.cycle?.quedan_dias ?? 0 })}</div></div></div></div>`;
+      <div><div class="mn1 u-m-0"><span data-mcnt="${percent5}">${percent5}</span> %</div><div class="ms"><b>${done2}</b>${t("home.cycle.progress", { target, days: data.cycle?.quedan_dias ?? 0 })}</div></div></div></div>`;
   }
   function stockTile(data) {
     if (!permissions.canSeeArea("productos")) return "";
@@ -20592,7 +20592,7 @@
     <div class="g2"><div><label for="eqg">${t("equipment.editor.warrantyUntil")}</label><input id="eqg" type="date" value="${escapeHtml(item.garantia_hasta ?? "")}"></div>
       <div><label for="eqr">${t("equipment.editor.reviewEvery")}</label><input id="eqr" type="number" min="0" max="${MAX_REVIEW_MONTHS}" step="1" value="${Number(item.revision_meses) || 0}"></div></div>
     <label for="eqn">${t("equipment.editor.note")}</label><textarea id="eqn" rows="2">${escapeHtml(item.nota ?? "")}</textarea>
-    <div class="acts" style="justify-content:flex-end">${existing?.estado === STATES.installed ? `<button type="button" class="btn sec peligro" id="eqretirar">${t("equipment.editor.retire")}</button>` : ""}
+    <div class="acts u-end">${existing?.estado === STATES.installed ? `<button type="button" class="btn sec peligro" id="eqretirar">${t("equipment.editor.retire")}</button>` : ""}
       <button type="button" class="btn sec" data-cerrar>${t("equipment.editor.cancel")}</button><button type="button" class="btn" id="eqok">${t(existing ? "equipment.editor.save" : "equipment.editor.create")}</button></div>`;
   }
   function rowOf(account) {
@@ -20784,13 +20784,13 @@
     <div class="evascab"><h3>${t("equipment.sheet.reviewsTitle", { count: reviews.length })}</h3>${installed ? `<button type="button" class="btn sec" id="eqrevmas">${t("equipment.sheet.addReview")}</button>` : ""}</div>
     <div id="eqrevf"></div>
     ${reviewsHtml(reviews)}
-    <div class="acts" style="justify-content:flex-end">${installed && item.revision_meses ? `<button type="button" class="btn sec" id="eqagenda">${t("equipment.sheet.schedule")}</button>` : ""}
+    <div class="acts u-end">${installed && item.revision_meses ? `<button type="button" class="btn sec" id="eqagenda">${t("equipment.sheet.schedule")}</button>` : ""}
       <button type="button" class="btn sec" id="eqeditar">${t("equipment.sheet.change")}</button><button type="button" class="btn" data-cerrar>${t("equipment.sheet.done")}</button></div>`;
   }
   var reviewFormHtml = () => `<div class="depbox"><div class="cong3"><div><label for="eqrf">${t("equipment.sheet.date")}</label><input id="eqrf" type="date" value="${todayIso()}"></div>
         <div><label for="eqrt">${t("equipment.sheet.type")}</label><select id="eqrt">${REVIEW_TYPES.map((kind) => `<option>${kind}</option>`).join("")}</select></div>
         <div><label for="eqrn">${t("equipment.sheet.note")}</label><input id="eqrn" maxlength="300" placeholder="${t("equipment.sheet.notePlaceholder")}"></div></div>
-      <div class="acts" style="justify-content:flex-end"><button type="button" class="btn sec" id="eqrcanc">${t("equipment.sheet.cancel")}</button><button type="button" class="btn" id="eqrok">${t("equipment.sheet.record")}</button></div></div>`;
+      <div class="acts u-end"><button type="button" class="btn sec" id="eqrcanc">${t("equipment.sheet.cancel")}</button><button type="button" class="btn" id="eqrok">${t("equipment.sheet.record")}</button></div></div>`;
   var inputValue = (id) => document.getElementById(id)?.value ?? "";
   async function recordReview(id, button3) {
     button3.disabled = true;
@@ -21073,15 +21073,15 @@
     ${extraHtml(extra)}
     <label>${t("visit.edit.result")}</label>
     <div class="opciones">${resultButtons(results.filter((result) => result.extra !== NEGATIVE), marked, false)}</div>
-    <div class="opciones" style="margin-top:8px">${resultButtons(results.filter((result) => result.extra === NEGATIVE), marked, true)}</div>
-    <div class="g2" style="margin-top:6px">
+    <div class="opciones u-mt-8">${resultButtons(results.filter((result) => result.extra === NEGATIVE), marked, true)}</div>
+    <div class="g2 u-mt-6">
       <div><label for="evpa">${t("visit.edit.nextAction")}</label><input id="evpa" value="${escapeHtml(visit2.proxima_accion ?? "")}"></div>
       <div><label for="evpf">${t("visit.edit.date")}</label><input id="evpf" type="date" value="${escapeHtml(visit2.proxima_fecha ?? "")}"></div>
     </div>
     <label for="evn">${t("visit.edit.note")}</label><textarea id="evn" rows="3">${escapeHtml(visit2.nota ?? "")}</textarea>
-    <div class="acts" style="justify-content:space-between">
+    <div class="acts u-between">
       <button class="btn sec dang" id="evborrar">${t("visit.edit.delete", { visit: term("visita") })}</button>
-      <span class="acts" style="margin:0"><button class="btn sec" data-cerrar>${t("common.cancel")}</button>
+      <span class="acts u-m-0"><button class="btn sec" data-cerrar>${t("common.cancel")}</button>
         <button class="btn" id="evok">${t("common.save")}</button></span></div>`;
   }
   async function loadExtra(visitId, planHasCoverage) {
@@ -21210,7 +21210,7 @@
     const state2 = cardBaseLegacy.canEdit() ? `<select data-estado="${account.id}" style="max-width:240px">${cardBaseLegacy.states().map((value27) => `<option ${value27 === account.estado_comercial ? "selected" : ""}>${escapeHtml(value27)}</option>`).join("")}</select>` : `<span class="pill p-est">${escapeHtml(account.estado_comercial)}</span>`;
     return `<div class="blk"><h3>${t("accounts.card.stateTitle")}</h3>
       <div>${state2}</div>
-      ${salesReps.length ? `<div class="sm" style="margin-top:6px">${t("accounts.base.salesRep", { names: salesReps.map(escapeHtml).join(", ") })}</div>` : ""}
+      ${salesReps.length ? `<div class="sm u-mt-6">${t("accounts.base.salesRep", { names: salesReps.map(escapeHtml).join(", ") })}</div>` : ""}
     </div>`;
   }
   function consultationHtml(consultation) {
@@ -21222,9 +21222,9 @@
       ${room ? `<div class="sm">${escapeHtml(room)}</div>` : ""}
       ${consultation.indicaciones ? `<div class="sm">${escapeHtml(consultation.indicaciones)}</div>` : ""}
       ${consultation.telefono ? `<div class="sm">${t("accounts.base.phone", { phone: escapeHtml(consultation.telefono) })}</div>` : ""}
-      <div class="dias" style="margin-top:8px">${WORKDAYS3.map((day) => `<span class="${days[day] ? "on" : ""}">${day}</span>`).join("")}</div>
+      <div class="dias u-mt-8">${WORKDAYS3.map((day) => `<span class="${days[day] ? "on" : ""}">${day}</span>`).join("")}</div>
       ${WORKDAYS3.filter((day) => days[day]).map((day) => `<div class="sm">${day}: ${escapeHtml(days[day])}</div>`).join("")}
-      ${consultation.lat ? `<div class="sm" style="margin-top:6px"><button class="lnk" type="button" data-nav="${cardBaseLegacy.directionsAttribute([consultation.lat, consultation.lon ?? 0])}">${t("accounts.base.directions")}</button></div>` : ""}
+      ${consultation.lat ? `<div class="sm u-mt-6"><button class="lnk" type="button" data-nav="${cardBaseLegacy.directionsAttribute([consultation.lat, consultation.lon ?? 0])}">${t("accounts.base.directions")}</button></div>` : ""}
     </div>`;
   }
   function visitHtml(visit2, canRecord2) {
@@ -21494,7 +21494,7 @@
   }
   function historyRow(entry2) {
     const when5 = new Date(entry2.creado_en).toLocaleString(t("dates.locale"), { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
-    return `<div class="item" style="cursor:default"><span class="tx">
+    return `<div class="item u-cursor-default"><span class="tx">
         <b>${escapeHtml(entry2.accion)}${entry2.entidad === "ubicaciones" ? ` · ${term("consulta")}` : ""}</b>
         <span class="sm">${escapeHtml(entry2.usuario)} · ${when5}</span>
         ${changeLines(entry2)}</span>${entry2.deshacible ? `<button type="button" class="btn sec" data-fhx="${entry2.id}">${t("accounts.history.undo")}</button>` : ""}</div>`;
@@ -21675,7 +21675,7 @@
     <span class="sm">${escapeHtml(placeOf(centre) || t("accountsEditor.centre.noAddress"))}</span>
     ${centre.telefono ? `<span class="sm">☎ <a href="tel:${escapeHtml(centre.telefono)}">${escapeHtml(centre.telefono)}</a></span>` : ""}
     ${hoursLine(centre, linked)}
-    ${centre.lat ? "" : `<span class="sm" style="color:var(--warn)">${t("accountsEditor.centre.noLocation")}</span>`}
+    ${centre.lat ? "" : `<span class="sm u-warn">${t("accountsEditor.centre.noLocation")}</span>`}
     <div class="acts" style="margin:8px 0 0;flex-wrap:wrap">
       ${directionsButton(centre)}
       ${linked ? `<button type="button" class="btn sec" data-cpeditar>${t("accountsEditor.centre.edit")}</button>` : `<button type="button" class="btn" data-cpenlazar>${t("accountsEditor.centre.link")}</button>`}
@@ -21686,7 +21686,7 @@
     const warning = place5 ? t("accountsEditor.centre.noLocation") : t("accountsEditor.private.addAddressHint");
     return `<div class="cpcard cppriv"><div class="cpcab"><b>${privateConsultation()}</b><span class="pill p-est">${t("accountsEditor.private.noCentre")}</span></div>
     <span class="sm">${escapeHtml(place5 || t("accountsEditor.private.noAddressYet"))}</span>
-    ${centre.lat ? "" : `<span class="sm" style="color:var(--warn)">${warning}</span>`}
+    ${centre.lat ? "" : `<span class="sm u-warn">${warning}</span>`}
     <div class="acts" style="margin:8px 0 0;flex-wrap:wrap">
       ${directionsButton(centre)}
       <button type="button" class="btn ${place5 ? "sec" : ""}" data-cpeditar>${place5 ? t("accountsEditor.private.edit", { theConsultation: term("consulta", { article: "el" }) }) : t("accountsEditor.private.addAddress")}</button>
@@ -21709,7 +21709,7 @@
       <div><label for="${key}c">${t("accountsEditor.centreForm.postcode")}</label><input id="${key}c" value="${value27("cp")}" inputmode="numeric"></div></div>
     <div class="g2"><div><label for="${key}m">${t("accountsEditor.centreForm.town")}</label><input id="${key}m" value="${value27("municipio")}"></div>
       <div><label for="${key}p">${t("accountsEditor.centreForm.province")}</label><input id="${key}p" value="${value27("provincia")}"></div></div>
-    <div class="cpubi sm">${located3 ? `<b style="color:var(--ok)">${t("accountsEditor.private.located")}</b>` : t("accountsEditor.centreForm.notLocated")}
+    <div class="cpubi sm">${located3 ? `<b class="u-ok">${t("accountsEditor.private.located")}</b>` : t("accountsEditor.centreForm.notLocated")}
       <button type="button" class="lnk" data-pvgeo>${t("accountsEditor.centreForm.findOnMap")}</button> <button type="button" class="lnk" data-pvaqui>${t("accountsEditor.picker.imHere")}</button></div>
     <div class="acts" style="justify-content:flex-end;margin:10px 0 0"><button type="button" class="btn sec" data-pvcancel>${t("common.cancel")}</button><button type="button" class="btn" data-pvok>${t("common.save")}</button></div></div>`;
   }
@@ -21842,7 +21842,7 @@
       <div><label for="${key}c">${t("accountsEditor.centreForm.postcode")}</label>${input12("c", centre.cp, ' inputmode="numeric"')}</div></div>
     <div class="g2"><div><label for="${key}m">${t("accountsEditor.centreForm.town")}</label>${input12("m", centre.municipio)}</div>
       <div><label for="${key}p">${t("accountsEditor.centreForm.province")}</label>${input12("p", centre.provincia)}</div></div>
-    <div class="cpubi sm">${centre.lat ? `<b style="color:var(--ok)">${t("accountsEditor.centreForm.located")}</b>` : t("accountsEditor.centreForm.notLocated")} <button type="button" class="lnk" data-cpgeo>${t("accountsEditor.centreForm.findOnMap")}</button></div>
+    <div class="cpubi sm">${centre.lat ? `<b class="u-ok">${t("accountsEditor.centreForm.located")}</b>` : t("accountsEditor.centreForm.notLocated")} <button type="button" class="lnk" data-cpgeo>${t("accountsEditor.centreForm.findOnMap")}</button></div>
     <label>${t("accountsEditor.centreForm.opening")}</label>
     <div class="cphor">${days}</div>
     <button type="button" class="lnk" data-cpcopiar>${t("accountsEditor.centreForm.copyMonday")}</button>
@@ -22015,7 +22015,7 @@
     set("lat", point.lat);
     set("lon", point.lon);
     const state2 = box5.querySelector(".cubest");
-    if (state2) state2.innerHTML = `<b style="color:var(--ok)">${t("accountsEditor.picker.located")}</b> ${escapeHtml(text5)} <a href="https://www.openstreetmap.org/?mlat=${point.lat}&mlon=${point.lon}#map=18/${point.lat}/${point.lon}" target="_blank" rel="noopener">${t("accountsEditor.picker.seeOnMap")}</a>`;
+    if (state2) state2.innerHTML = `<b class="u-ok">${t("accountsEditor.picker.located")}</b> ${escapeHtml(text5)} <a href="https://www.openstreetmap.org/?mlat=${point.lat}&mlon=${point.lon}#map=18/${point.lat}/${point.lon}" target="_blank" rel="noopener">${t("accountsEditor.picker.seeOnMap")}</a>`;
     markDirty(box5);
   }
   var chosenOf = (box5, index) => ({
@@ -22305,12 +22305,12 @@
     <input type="hidden" data-cid="${index}" value="${escapeHtml(item.id ?? "")}">
     ${HIDDEN2.map((name) => hidden(index, name, item[name])).join("")}
     <label>${t("accountsEditor.consultation.centre")}</label><div class="cenpick" data-cp="${index}"></div>
-    <div class="g2" style="margin-top:10px">
+    <div class="g2 u-mt-10">
       <div><label>${t("accountsEditor.consultation.floor")}</label>${input3(index, "planta", item.planta, `maxlength="60" placeholder="${t("accountsEditor.consultation.floorPlaceholder")}"`)}</div>
       <div><label>${t("accountsEditor.consultation.room")}</label>${input3(index, "sala", item.sala, `maxlength="60" placeholder="${t("accountsEditor.consultation.roomPlaceholder")}"`)}</div>
     </div>
     <label>${t("accountsEditor.consultation.directions")}</label>${input3(index, "indicaciones", item.indicaciones, `maxlength="300" placeholder="${t("accountsEditor.consultation.directionsPlaceholder")}"`)}
-    <div class="g2" style="margin-top:10px">
+    <div class="g2 u-mt-10">
       <div><label>${t("accountsEditor.consultation.phone", { ofTheConsultation: term("consulta", { article: "del" }) })}</label>${input3(index, "telefono", item.telefono, `inputmode="tel" placeholder="${t("accountsEditor.consultation.phonePlaceholder")}"`)}</div><div></div>
     </div>
     <label>${t("accountsEditor.consultation.days", { visit: term("visita") })}</label>${dayPickerHtml(item.dias ?? {}, index)}
@@ -22360,7 +22360,7 @@
     if (!cardSectionsLegacy.can("administrar") || !button3) return;
     button3.closest(".acts")?.insertAdjacentHTML("beforebegin", `<label for="ecom">${t("accountsEditor.salesperson.label")}</label>
     <select id="ecom"><option>${t("common.loading")}</option></select>
-    <div class="sm" style="margin-top:4px">${t("accountsEditor.salesperson.hint")}</div>`);
+    <div class="sm u-mt-4">${t("accountsEditor.salesperson.hint")}</div>`);
     if (!salesTeam.members().length) await salesTeam.load();
     const { data: current } = await callRpc("responsable_de_cuenta", { p_medico: id });
     const before = current?.id ?? "", select3 = document.getElementById("ecom");
@@ -22500,7 +22500,7 @@
     <div id="econs">${consultations.map((item, index) => consultationHtml2(item, String(index))).join("")}</div>
     <div class="acts"><button type="button" class="btn sec" id="eadd">${t("accountsEditor.editor.addConsultation", { consultation: term("consulta") })}</button></div>
     <div id="edup"></div>
-    <div class="acts" style="justify-content:flex-end">
+    <div class="acts u-end">
       <button class="btn sec" data-cerrar>${t("common.cancel")}</button>
       <button class="btn" id="eguardar">${t(id ? "accountsEditor.editor.saveChanges" : "accountsEditor.editor.create")}</button>
     </div>`;
@@ -22732,7 +22732,7 @@
     if (!state2.existe || !total2) return t("accounts.card.depositNone");
     const productCount = new Set(lines4.map((line3) => line3.producto_id)).size, expiring = lines4.filter((line3) => relatedLegacy.expiresSoon(line3.caducidad)).length;
     const products3 = productCount === 1 ? t("accounts.card.oneProduct") : t("accounts.card.products", { count: productCount });
-    const soon = expiring ? ` · <b style="color:var(--warn)">${expiring === 1 ? t("accounts.card.oneBatchExpires") : t("accounts.card.batchesExpire", { count: expiring })}${t("accounts.card.inLessThan60Days")}</b>` : "";
+    const soon = expiring ? ` · <b class="u-warn">${expiring === 1 ? t("accounts.card.oneBatchExpires") : t("accounts.card.batchesExpire", { count: expiring })}${t("accounts.card.inLessThan60Days")}</b>` : "";
     return t("accounts.card.depositUnits", { units: formatNumber(total2), products: products3 }) + soon;
   }
   async function deposit(id) {
@@ -22881,7 +22881,7 @@
   var canShow2 = (id, blockId) => !permissions.isProfessionalPortal() && portalLegacy.hasPortal() && stillShown(id) && Boolean(document.getElementById("fbody")) && !document.getElementById(blockId);
   var shortDateTime2 = (value27) => new Date(value27).toLocaleString(t("dates.locale"), { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
   function requestRow(request2) {
-    return `<div class="item" style="cursor:default"><span class="tx"><b>${formatNumber(request2.cantidad)} × ${escapeHtml(request2.material)}</b>
+    return `<div class="item u-cursor-default"><span class="tx"><b>${formatNumber(request2.cantidad)} × ${escapeHtml(request2.material)}</b>
         <span class="sm">${t("accounts.portal.requested", { date: shortDateTime2(request2.creado_en) })}${request2.nota ? ` · ${escapeHtml(request2.nota)}` : ""}</span></span>${portalLegacy.materialPill(request2.estado)}
         ${request2.estado === PENDING ? `<button type="button" class="btn chico" data-fpent="${request2.id}">${t("accounts.portal.delivered")}</button>` : ""}</div>`;
   }
@@ -22950,7 +22950,7 @@
   function productRow(product, chosen5) {
     const own = chosen5.get(product.id), name = escapeHtml(product.nombre);
     const tariff = product.precio !== null && product.precio !== void 0 ? portalLegacy.euros(product.precio) : "—";
-    return `<label class="item" style="cursor:default"><input type="checkbox" data-fpcp="${product.id}" ${own ? "checked" : ""}>
+    return `<label class="item u-cursor-default"><input type="checkbox" data-fpcp="${product.id}" ${own ? "checked" : ""}>
         <span class="tx"><b>${name}</b><span class="sm">${t("accounts.portal.tariff", { price: tariff })}</span></span>
         <input type="number" min="0" step="0.01" data-fpcx="${product.id}" value="${own?.precio !== null && own?.precio !== void 0 ? Number(own.precio) : ""}" placeholder="${t("accounts.portal.tariffPlaceholder")}" style="max-width:120px" aria-label="${t("accounts.portal.priceFor", { name })}"></label>`;
   }
@@ -23046,9 +23046,9 @@
     const admin = cardSectionsLegacy.can("administrar");
     if (admin) {
       body4.insertAdjacentHTML("beforeend", `<div class="blk" id="fcomblk"><h3>${t("accounts.sales.repTitle")}</h3>
-      <div style="display:flex;gap:8px"><select id="fcomsel" style="flex:1"><option>${t("accounts.sales.loading")}</option></select>
+      <div class="u-flex u-gap-8"><select id="fcomsel" class="u-flex-1"><option>${t("accounts.sales.loading")}</option></select>
         <button class="btn sec" id="fcomok">${t("accounts.sales.save")}</button></div>
-      <div class="sm" style="margin-top:6px">${t("accounts.sales.repNote")}</div></div>`);
+      <div class="sm u-mt-6">${t("accounts.sales.repNote")}</div></div>`);
       await fillSalesReps(id);
       if (!stillShown(id) || !document.getElementById("fcomsel")) return;
     }
@@ -23353,12 +23353,12 @@
     const place5 = `${escapeHtml(orFallback(item.centro, ""))} ${escapeHtml(orFallback(item.municipio, ""))}`;
     const buttons = item.par_id ? `<button class="btn" data-dcmp="${item.id}|${item.par_id}">${t("accountsMore.duplicates.compare")}</button>
           <button class="btn sec" data-ddes="${item.id}|${item.par_id}">${t("accountsMore.duplicates.notDuplicate")}</button>` : "";
-    return `<div class="item ${selected3}" style="cursor:default">
+    return `<div class="item ${selected3} u-cursor-default">
       <span class="ic w">${item.pct ? `${item.pct}%` : "?"}</span>
       <span class="tx"><b>${escapeHtml(item.nombre)}</b>
         <span class="sm">${t("accountsMore.duplicates.code", { code: escapeHtml(item.codigo) })} · ${place5}</span>
         <span class="sm">${item.par_nombre ? t("accountsMore.duplicates.looksLike", { name: escapeHtml(item.par_nombre) }) : t("accountsMore.duplicates.noPair")}</span></span>
-      <span class="acts" style="margin:0">
+      <span class="acts u-m-0">
         ${buttons}
         <button class="btn sec" data-dver="${item.id}">${t("accountsMore.duplicates.card")}</button></span></div>`;
   }
@@ -23366,7 +23366,7 @@
     return `<div class="item ${selectedPair() === `${pair3.a_id}|${pair3.b_id}` ? "sel" : ""}" style="cursor:default">
       <span class="ic">${pair3.pct}%</span>
       <span class="tx"><b>${escapeHtml(pair3.a_nombre)}</b><span class="sm">${escapeHtml(pair3.b_nombre)} · ${t("accountsMore.duplicates.codes", { a: escapeHtml(pair3.a_codigo), b: escapeHtml(pair3.b_codigo) })}</span></span>
-      <span class="acts" style="margin:0">
+      <span class="acts u-m-0">
         <button class="btn" data-dcmp="${pair3.a_id}|${pair3.b_id}">${t("accountsMore.duplicates.compare")}</button>
         <button class="btn sec" data-ddes="${pair3.a_id}|${pair3.b_id}">${t("accountsMore.duplicates.notDuplicates")}</button></span></div>`;
   }
@@ -23436,7 +23436,7 @@
   function fieldsHtml(view) {
     const { a, b } = view, goes = view.stays === a.id ? b : a, stays = view.stays === a.id ? a : b;
     const different = unifyFields().filter(([key]) => orFallback(a[key], "") !== orFallback(b[key], ""));
-    if (!different.length) return `<p class="sm" style="margin-top:12px">${t("accountsMore.compare.same")}</p>`;
+    if (!different.length) return `<p class="sm u-mt-12">${t("accountsMore.compare.same")}</p>`;
     const option7 = (key, side, account) => `<button class="opt" data-campo="${key}|${side}" aria-pressed="${String(view.fields[key] === side)}"><span class="mk"></span>${escapeHtml(orFallback(account[key], t("accountsMore.compare.empty")))}</button>`;
     return `<div>${different.map(([key, label]) => `
         <label>${label}</label>
@@ -23458,7 +23458,7 @@
         <button class="btn sec" data-dver="${b.id}">${t("accountsMore.compare.seeCard", { code: escapeHtml(b.codigo) })}</button></div>
       ${fieldsHtml(view)}
       ${centresHtml2(view.centres)}
-      <div class="acts" style="justify-content:flex-end">
+      <div class="acts u-end">
         <button class="btn sec" data-ddes="${pair3}">${t("accountsMore.duplicates.notDuplicates")}</button>
         <button class="btn dang" id="duniok">${t("accountsMore.compare.unify")}</button></div></div>`;
   }
@@ -23561,7 +23561,7 @@
     return `<button class="cfgvolver visible" id="dupvolver" type="button">${t("accountsMore.duplicates.backToQuality")}</button>
     <div class="saludo"><div><h1>${t("accountsMore.duplicates.title")}</h1>
       <div class="fecha">${t("accountsMore.duplicates.subtitle")}</div></div>
-      <div class="acts" style="margin:0">
+      <div class="acts u-m-0">
         <button class="btn sec" id="dvolver">${t("accountsMore.duplicates.back")}</button>
         <button class="btn sec${allowed2 ? "" : " hide"}" id="dbuscar">${t("accountsMore.duplicates.searchAgain")}</button></div></div>
     ${grid}`;
@@ -23654,7 +23654,7 @@
       ${field6("ecp", t("accountsMore.centreEditor.province"), centre.provincia)}</div>
     <label>${t("accountsMore.centreEditor.opening")}</label>
     <div class="cphor">${days}</div>
-    <div class="acts" style="justify-content:flex-end"><button type="button" class="btn sec" id="ecvolver">${t("accountsMore.centreEditor.back")}</button><button type="button" class="btn" id="ecok">${t("accountsMore.centreEditor.save")}</button></div>`;
+    <div class="acts u-end"><button type="button" class="btn sec" id="ecvolver">${t("accountsMore.centreEditor.back")}</button><button type="button" class="btn" id="ecok">${t("accountsMore.centreEditor.save")}</button></div>`;
   }
   async function pointOf3(centre) {
     const moved = value7("ecd") !== orFallback(centre.direccion, "") || value7("ecm") !== orFallback(centre.municipio, "") || value7("ecc") !== orFallback(centre.cp, "");
@@ -23722,7 +23722,7 @@
         <span class="tx"><b>${item.urgente ? "❗ " : ""}${escapeHtml(item.nombre)}</b>
           <span class="sm">${escapeHtml([item.especialidad, where].filter(Boolean).join(" · ") || "—")}</span>
           ${days ? `<span class="sm">${escapeHtml(t("accountsMore.centre.attends", { days }))}</span>` : ""}</span>
-        <span class="acts" style="margin:0">
+        <span class="acts u-m-0">
           <button type="button" class="btn sec" data-fcf="${item.id}">${t("accountsMore.centre.card")}</button>
           <button type="button" class="btn sec" data-fcc="${item.id}">${t("accountsMore.centre.appointment")}</button>
           ${canChange2 ? `<button type="button" class="btn sec fcquitar" data-fcq="${item.id}" aria-label="${t("accountsMore.centre.removeLabel", { name: escapeHtml(item.nombre) })}">${t("accountsMore.centre.remove")}</button>` : ""}
@@ -24083,11 +24083,11 @@
   var SEARCH_WAIT_MS5 = 300;
   function rowHtml12(account) {
     const last = account.ultima_visita ? ` · ${term("visita", { article: "ultimo" })} ${formatShortDate(account.ultima_visita)}` : ` · ${t("accountsEditor.portfolio.notVisited")}`;
-    return `<div class="item" style="cursor:default">
+    return `<div class="item u-cursor-default">
         <span class="ic ${account.urgente ? "w" : ""}">${account.urgente ? "!" : "·"}</span>
         <span class="tx"><b>${escapeHtml(account.nombre)}</b><span class="sm">${escapeHtml(account.especialidad ?? "")} · ${escapeHtml(account.centro ?? "")} ${escapeHtml(account.municipio ?? "")}
           ${last}</span></span>
-        <span class="acts" style="margin:0">
+        <span class="acts u-m-0">
           <button class="btn sec" data-cficha="${account.id}">${t("accountsEditor.portfolio.card")}</button>
           <button class="btn sec dang" data-cquita="${account.id}">${t("accountsEditor.portfolio.remove")}</button></span></div>`;
   }
@@ -24099,7 +24099,7 @@
         <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
       <input id="cbusca" value="${escapeHtml(query)}" placeholder="${t("accountsEditor.portfolio.search")}">
       <div class="lista" style="max-height:52vh;overflow:auto">${list.map(rowHtml12).join("") || `<div class="vacio">${t("accountsEditor.portfolio.none", { assigned })}</div>`}</div>
-      <div class="acts" style="justify-content:flex-end"><button class="btn sec" id="cmas">${t("accountsEditor.portfolio.assignMore", { professionals: term("medico", { number: "p" }) })}</button></div>`;
+      <div class="acts u-end"><button class="btn sec" id="cmas">${t("accountsEditor.portfolio.assignMore", { professionals: term("medico", { number: "p" }) })}</button></div>`;
   }
   async function removeFrom(userId, accountId, repaint5) {
     if (!await notices.confirm(t("accountsEditor.portfolio.removeText", { visits: term("visita", { number: "p" }) }), { titulo: t("accountsEditor.portfolio.removeTitle"), ok: t("accountsEditor.portfolio.remove"), peligro: true })) return;
@@ -25733,7 +25733,7 @@
     if (!vocabulary2 || byId5("mkvoccard")) return;
     body4.insertAdjacentHTML("beforeend", `<div class="card cfgpanel" id="mkvoccard"><h2 style="padding:0 0 4px">${t("legacyD.polish.vocabularyTitle")}</h2>
         <p class="sm">${t("legacyD.polish.vocabularyHint")}</p>
-        <div id="mkvochueco"></div><div class="acts" style="justify-content:flex-end"><button type="button" class="btn" id="mkvocok">${t("common.save")}</button></div></div>`);
+        <div id="mkvochueco"></div><div class="acts u-end"><button type="button" class="btn" id="mkvocok">${t("common.save")}</button></div></div>`);
     const place5 = byId5("mkvochueco");
     if (!place5) return;
     if (label) place5.appendChild(label);
@@ -26736,7 +26736,7 @@
     return `<div class="cfcampo"><h3>${t("leftovers.fields.customField")}</h3>
     <div class="g2"><div><label for="cfctipo">${t("leftovers.fields.type")}</label><select id="cfctipo" ${off}>${types2}</select></div>
       <div class="cfchks">${checks}</div></div>
-    ${complete2 ? `<div class="acts" style="justify-content:flex-end"><button class="btn sec" id="cfcok">${t("leftovers.fields.saveField")}</button></div>` : ""}</div>`;
+    ${complete2 ? `<div class="acts u-end"><button class="btn sec" id="cfcok">${t("leftovers.fields.saveField")}</button></div>` : ""}</div>`;
   }
   var DNI_LETTERS = "TRWAGMYFPDXBNJZSQVHLCKE";
   var CIF_LETTERS = "JABCDEFGHI";
@@ -27210,7 +27210,7 @@
   function windowHtml(several) {
     return `<div class="escvid"><video id="escv" playsinline muted></video><div class="escmarco"></div></div>
     <div class="escpie"><p id="escest" class="sm">${t("leftovers.scanner.opening")}</p>
-      <div class="acts" style="justify-content:flex-end;margin:0"><button type="button" class="btn sec" id="escfin">${t(several ? "leftovers.scanner.finish" : "leftovers.scanner.typeIt")}</button></div></div>`;
+      <div class="acts u-end u-m-0"><button type="button" class="btn sec" id="escfin">${t(several ? "leftovers.scanner.finish" : "leftovers.scanner.typeIt")}</button></div></div>`;
   }
   function openWindow(input12) {
     let dialog13 = scannerWindow();
@@ -27473,7 +27473,7 @@
     return `<button class="dr" data-eqver="${member.id}" title="${t("leftovers.team.seeAgenda")}">
         <span><b>${escapeHtml(member.nombre)}</b><span class="sm">${escapeHtml(member.rol)}</span></span>
         <span class="num">${formatNumber(member.cartera)}</span><span class="num">${formatNumber(member.citas)}</span>
-        <span class="num"><b style="color:var(--ok)">${formatNumber(member.visitadas)}</b></span><span class="num">${formatNumber(member.no_estaba)}</span>
+        <span class="num"><b class="u-ok">${formatNumber(member.visitadas)}</b></span><span class="num">${formatNumber(member.no_estaba)}</span>
         <span class="num">${formatNumber(member.aplazadas)}</span><span class="num" style="${warned(member.sin_hacer)}">${formatNumber(member.sin_hacer)}</span>
         <span>${complianceCell(compliance(member))}</span>
         <span class="num">${formatNumber(member.visitas)}</span>
@@ -27514,7 +27514,7 @@
   async function paintTeamCompliance() {
     const body4 = document.getElementById("agcuerpo");
     if (!body4) throw new TypeError("#agcuerpo");
-    body4.innerHTML = `<div class="semhead"><h2 style="padding:0">${t("leftovers.team.title")}</h2>
+    body4.innerHTML = `<div class="semhead"><h2 class="u-p-0">${t("leftovers.team.title")}</h2>
       ${leftoversLegacy.can("administrar") ? `<button class="btn sec" id="eqfrec">⚙ ${t("leftovers.team.frequency")}</button>` : ""}</div>
     <div class="filtros" style="border:0;padding:4px 16px 10px"><div id="eqper"></div></div>
     <div id="eqtabla"></div>`;
@@ -27679,11 +27679,11 @@
     <div id="kolseg" class="${needsFollowUp(call2.resultado) ? "" : "hide"}">
       <div class="sm" style="margin:8px 0 4px">${t("opportunities.callAgainWhen")}</div>
       <div class="chipsw">${followUpButtons("kold")}</div>
-      <div class="g2" style="margin-top:6px"><div><input id="kolpf" type="date" value="${escapeHtml(orFallback(call2.proxima_fecha, ""))}" aria-label="${t("opportunities.callAgainOn")}"></div>
+      <div class="g2 u-mt-6"><div><input id="kolpf" type="date" value="${escapeHtml(orFallback(call2.proxima_fecha, ""))}" aria-label="${t("opportunities.callAgainOn")}"></div>
         <div><input id="kolpa" value="${escapeHtml(orFallback(call2.proxima_accion, ""))}" placeholder="${t("opportunities.whatToDoPlaceholder")}" aria-label="${t("opportunities.whatToDo")}"></div></div></div>
     <div class="g2"><div><label for="kold">${t("opportunities.callRecord.type")}</label><select id="kold"><option value="${INCOMING}" ${outgoing ? "" : "selected"}>${t("opportunities.callRecord.incoming")}</option><option value="${OUTGOING}" ${outgoing ? "selected" : ""}>${t("opportunities.callRecord.outgoing")}</option></select></div>
       <div><label for="kolno">${t("opportunities.callRecord.note")}</label><input id="kolno" value="${escapeHtml(orFallback(call2.nota, ""))}"></div></div>
-    <div class="acts" style="margin-top:8px"><button type="button" class="btn sec" id="kosolo">${t("opportunities.callRecord.callOnly")}</button></div>
+    <div class="acts u-mt-8"><button type="button" class="btn sec" id="kosolo">${t("opportunities.callRecord.callOnly")}</button></div>
   </details>`;
   }
   function onClick4(event) {
@@ -27822,7 +27822,7 @@
     const contact = [taxIdText(customer), customer.email, phoneOf(customer)].filter(Boolean).join(" · ");
     return `<div class="selcard"><span class="ic">🧑</span>
   <span class="tx"><b>${escapeHtml(customer.nombre)}</b>
-    ${address2 ? `<span class="sm">📦 ${escapeHtml(address2)}</span>` : `<span class="sm" style="color:var(--warn)">${t("customers.card.noAddress")}</span>`}
+    ${address2 ? `<span class="sm">📦 ${escapeHtml(address2)}</span>` : `<span class="sm u-warn">${t("customers.card.noAddress")}</span>`}
     <span class="sm">${escapeHtml(contact)}</span>
     ${customer.medico ? `<span class="sm">${term("medico", { capital: "C" })}: ${escapeHtml(customer.medico)}</span>` : ""}</span>
   <button type="button" class="sx" aria-label="${t("customers.card.remove")}">✕</button></div>`;
@@ -28187,7 +28187,7 @@
     if (!page) return;
     page.innerHTML = `
     <div class="saludo"><div><h1>${t("customers.list.title")}</h1><div class="fecha">${t("customers.list.subtitle", words6())}</div></div>
-      <div class="acts" style="margin:0">${customersLegacy.canSell() ? `<button class="btn" id="pacnuevo">${t("customers.list.newCustomer")}</button>` : ""}</div></div>
+      <div class="acts u-m-0">${customersLegacy.canSell() ? `<button class="btn" id="pacnuevo">${t("customers.list.newCustomer")}</button>` : ""}</div></div>
     <div id="vcuerpo"></div>`;
     const add2 = document.getElementById("pacnuevo");
     if (add2) add2.onclick = () => {
@@ -28697,13 +28697,13 @@
       `<div><label for="konom" id="konoml">${texts2.name}</label>${input4("konom", customer.nombre)}</div>`,
       `<div><label for="konif" id="konifl">${texts2.taxId}</label>
         ${input4("konif", customer.nif, ` placeholder="${texts2.placeholder}" autocapitalize="characters"`)}
-        <div class="sm" id="konifm" style="margin-top:4px"></div></div>`
+        <div class="sm u-mt-4" id="konifm"></div></div>`
     )}`;
   }
   function accountHtml2() {
     const free = canUseFreeAccount() ? `<label class="opt prepbox"><input type="checkbox" id="komlibre"> ${t("leftovers.customer.freeAccount", { Professional: escapeHtml(term("medico", { capital: "C" })) })}</label>` : "";
     return `<label>${t("leftovers.customer.treatedBy", words6())}</label><div id="kosel"></div>
-    <div class="sm" style="margin-top:4px" id="komsm">${t("leftovers.customer.attribution", { thisProfessional: term("medico", { article: "este" }) })}</div>
+    <div class="sm u-mt-4" id="komsm">${t("leftovers.customer.attribution", { thisProfessional: term("medico", { article: "este" }) })}</div>
     ${free}`;
   }
   function contactHtml2(state2) {
@@ -28731,7 +28731,7 @@
     const call2 = state2.withCall && Boolean(state2.options.llamada);
     const save48 = state2.customer.id ? t("common.save") : t("leftovers.customer.create", words6());
     return `${state2.withCall ? callRecordHtml(state2.options.llamada) : ""}
-    <div class="acts" style="justify-content:flex-end;flex-wrap:wrap">
+    <div class="acts u-end u-wrap">
       <button class="btn sec" id="kocancel">${t("common.cancel")}</button>
       <button class="btn ${call2 ? "sec" : ""}" id="kook">${save48}</button>
       ${call2 ? `<button class="btn" id="kopedido">${t("leftovers.customer.createAndOrder")}</button>` : ""}</div>`;
@@ -29021,7 +29021,7 @@
   var iconText = (action) => action === ADDED ? "+" : action === REMOVED ? "−" : "✎";
   var when = (date) => new Date(date).toLocaleString("es", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
   function rowHtml15(entry2) {
-    return `<div class="item" style="cursor:default">
+    return `<div class="item u-cursor-default">
       <span class="ic ${iconClass(entry2.accion)}">${iconText(entry2.accion)}</span>
       <span class="tx"><b>${escapeHtml(entry2.accion)} · ${escapeHtml(entityName3(entry2.entidad))}</b>
         <span class="sm">${escapeHtml(entry2.usuario)} · ${when(entry2.creado_en)}</span>
@@ -29084,7 +29084,7 @@
   // src/app/screens/settings/audit/billing-log.ts
   var LIMIT7 = 200;
   var when2 = (date) => new Date(date).toLocaleString("es-ES", { dateStyle: "short", timeStyle: "short" });
-  var rowHtml16 = (event) => `<div class="dr" style="cursor:default"><span>${when2(event.fecha)}</span><span><b>${escapeHtml(event.tipo)}</b></span>
+  var rowHtml16 = (event) => `<div class="dr u-cursor-default"><span>${when2(event.fecha)}</span><span><b>${escapeHtml(event.tipo)}</b></span>
       <span>${escapeHtml(orFallback(event.numero, "—"))}</span><span>${escapeHtml(orFallback(event.usuario, "—"))}</span><span class="sm corta">${escapeHtml(settingsLegacy.billingEventDetail(event.detalle))}</span></div>`;
   async function paintBillingLog() {
     settingsLegacy.showLoading(document.getElementById("fcuerpo"), t("settings.billingLog.loading"));
@@ -29133,7 +29133,7 @@
       <label>${t("settings.newClassifier.values")}</label>
       <div id="ncv">${valuesHtml(values2)}</div>
       <div class="acts"><button type="button" class="btn sec" id="ncmas">${t("settings.newClassifier.addValue")}</button></div>
-      <div class="acts" style="justify-content:flex-end">
+      <div class="acts u-end">
         <button class="btn sec" data-cerrar>${t("settings.newClassifier.cancel")}</button>
         <button class="btn" id="ncok2">${t("settings.newClassifier.create")}</button></div>`;
   }
@@ -29287,15 +29287,15 @@
   var GPS_DECIMALS = 6;
   var SHOWN_ADDRESS_PARTS = 3;
   var KEYS = { start: "salida", end: "llegada" };
-  var located2 = (text5) => `<b style="color:var(--ok)">${t("settings.preferences.located")}</b> ${text5}`;
+  var located2 = (text5) => `<b class="u-ok">${t("settings.preferences.located")}</b> ${text5}`;
   function placeCard(key, place5, title2, hint) {
     return `<div class="card" style="padding-top:16px;padding-bottom:16px">
-    <h2 style="padding:0">${title2}</h2><p class="sm" style="padding:0">${hint}</p>
-    <div class="g2" style="margin-top:10px">
+    <h2 class="u-p-0">${title2}</h2><p class="sm u-p-0">${hint}</p>
+    <div class="g2 u-mt-10">
       <div><label>${t("settings.preferences.name")}</label><input data-pn="${key}" value="${escapeHtml(place5?.nombre ?? "")}" placeholder="${t("settings.preferences.namePlaceholder")}"></div>
       <div><label>${t("settings.preferences.address")}</label><input data-pd="${key}" value="${escapeHtml(place5?.dir ?? "")}" placeholder="${t("settings.preferences.addressPlaceholder")}"></div>
     </div>
-    <div class="sm" style="margin-top:8px" data-pe="${key}">${place5?.lat ? located2(escapeHtml(place5.dir)) : `<span style="color:var(--warn)">${t("settings.preferences.notLocated")}</span>`}</div>
+    <div class="sm u-mt-8" data-pe="${key}">${place5?.lat ? located2(escapeHtml(place5.dir)) : `<span class="u-warn">${t("settings.preferences.notLocated")}</span>`}</div>
     <div class="acts"><button class="btn sec" data-pg="${key}">${t("settings.preferences.findAddress")}</button>
       <button class="btn sec" data-pgps="${key}">${t("settings.preferences.useLocation")}</button></div></div>`;
   }
@@ -29397,7 +29397,7 @@
       ${placeCard(KEYS.start, start4, t("settings.preferences.startTitle"), t("settings.preferences.startHint"))}
       ${placeCard(KEYS.end, end, t("settings.preferences.endTitle"), t("settings.preferences.endHint"))}
     </div>
-    <div class="acts" style="justify-content:flex-end"><button class="btn" id="pfguardar">${t("settings.preferences.save")}</button></div>`;
+    <div class="acts u-end"><button class="btn" id="pfguardar">${t("settings.preferences.save")}</button></div>`;
     const navigatorSelect = document.getElementById("navsel");
     if (navigatorSelect) navigatorSelect.onchange = () => {
       settingsLegacy.changeNavigator(navigatorSelect.value);
@@ -29552,7 +29552,7 @@
   }
   var when3 = (date) => date ? new Date(date).toLocaleString("es", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "—";
   function pageHtml9(environment, allowed2) {
-    const actions = allowed2 ? `<div class="acts" style="justify-content:flex-start;flex-wrap:wrap">
+    const actions = allowed2 ? `<div class="acts u-start u-wrap">
         <button type="button" class="btn" id="prtraer">${t("settings.testEnvironment.bring")}</button>
         <button type="button" class="btn sec" id="prreset">${t("settings.testEnvironment.reset")}</button></div>
       <p class="leer">${t("settings.testEnvironment.explain")}</p>` : `<p class="sm" style="padding:0 16px">${t("settings.testEnvironment.onlyResponsible")}</p>`;
@@ -30188,12 +30188,12 @@
   }
   function stopRow(stop, index) {
     const place5 = escapeHtml([stop.dir, stop.municipio].filter(Boolean).join(", "));
-    return `<div class="item" style="cursor:default">
+    return `<div class="item u-cursor-default">
       <span class="ic">${index + 1}</span>
       <span class="tx"><b>${escapeHtml(stop.centro)}</b>
         <span class="sm">${minutesToTime(stop.llegada)}–${minutesToTime(stop.fin)} · ${place5} · ${professionals3(stop.medicos.length)}</span>
         <span class="sm">${stop.medicos.map((member) => escapeHtml(member.nombre)).join(" · ")}</span></span>
-      <span class="acts" style="margin:0"><button class="btn sec" type="button" data-nav="${navigationAttribute(stop.xy)}">${t("settingsCore.plan.go")}</button></span>
+      <span class="acts u-m-0"><button class="btn sec" type="button" data-nav="${navigationAttribute(stop.xy)}">${t("settingsCore.plan.go")}</button></span>
     </div>`;
   }
   function routeAttribute(plan3) {
@@ -30320,7 +30320,7 @@
       <div><label for="hvis">${t("settingsCore.planHours.perProfessional", { professional: term("medico") })}</label><input id="hvis" type="number" min="5" max="60" value="${settings2.visita}"></div>
       <div><label for="hpar">${t("settingsCore.planHours.perStop")}</label><input id="hpar" type="number" min="0" max="40" value="${settings2.parada}"></div>
     </div>
-    <div class="acts" style="justify-content:flex-end">
+    <div class="acts u-end">
       <button class="btn sec" data-cerrar>${t("common.cancel")}</button>
       <button class="btn" id="hok">${t("common.save")}</button></div>`;
     const ok = byId8("hok");
@@ -31193,8 +31193,8 @@
     <div class="pdfcfg" data-pagina="1"><div class="pdfops">
       ${optionsHtml2(design)}
     </div><div class="pdfprev"><iframe id="pdfif" title="${t("billingMore.designer.preview")}"></iframe></div></div>
-    <div class="acts" style="justify-content:space-between"><button class="btn sec" id="pdfdef" type="button">${t("billingMore.designer.original")}</button>
-      <div style="display:flex;gap:8px"><button class="btn sec" data-cerrar>${t("billingMore.designer.cancel")}</button><button class="btn" id="pdfok">${t("billingMore.designer.save")}</button></div></div>`;
+    <div class="acts u-between"><button class="btn sec" id="pdfdef" type="button">${t("billingMore.designer.original")}</button>
+      <div class="u-flex u-gap-8"><button class="btn sec" data-cerrar>${t("billingMore.designer.cancel")}</button><button class="btn" id="pdfok">${t("billingMore.designer.save")}</button></div></div>`;
   var designerCardHtml = () => `<div class="card cfgpanel"><h2>${t("billingMore.designer.title")}</h2><p class="sm">${t("billingMore.designer.cardText")}</p>
         <div class="acts"><button class="btn" id="pdfabrir" type="button">${t("billingMore.designer.open")}</button></div></div>`;
   function templatesBarHtml(templates, current) {
@@ -31845,7 +31845,7 @@
     <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
     <p>${t("core.plans.availableFrom", { plan: escapeHtml(plan3 ? plan3.nombre : t("core.plans.custom")) })}${plan3 ? ` (${coreLegacy.planPrice(plan3)})` : ""}.</p>
     ${plan3 ? `<ul class="manlist">${plan3.ventajas.map((advantage) => `<li><span>✓</span><span>${escapeHtml(advantage)}</span></li>`).join("")}</ul>` : ""}
-    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>${t("core.plans.notNow")}</button>${canChange2 ? `<button class="btn" id="vplan">${t("core.plans.seePlans")}</button>` : ""}</div>`;
+    <div class="acts u-end"><button class="btn sec" data-cerrar>${t("core.plans.notNow")}</button>${canChange2 ? `<button class="btn" id="vplan">${t("core.plans.seePlans")}</button>` : ""}</div>`;
   }
   function showNotice(html) {
     const body4 = document.getElementById("dbody"), dialog13 = document.getElementById("dlg");
@@ -31937,7 +31937,7 @@
     <label for="rpque">${t("core.report.inYourWords")}</label><textarea id="rpque" rows="4" placeholder="${escapeHtml(example)}"></textarea>
     <label>${t("core.report.screenshot")}</label><input type="file" id="rpcap" accept="image/*">
     <details class="rptec"><summary>${t("core.report.technicalTitle")}</summary><div class="sm">${technical}</div></details>
-    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>${t("common.cancel")}</button><button class="btn" id="rptok" disabled>${t("core.report.send")}</button></div>`;
+    <div class="acts u-end"><button class="btn sec" data-cerrar>${t("common.cancel")}</button><button class="btn" id="rptok" disabled>${t("core.report.send")}</button></div>`;
   }
   async function screenshotOf(file) {
     const image = new Image();
@@ -33946,7 +33946,7 @@
       ${msg ? `<p style="margin:0 0 10px;white-space:pre-line">${escapeHtml(msg)}</p>` : ""}
       ${fieldHtml(campo)}
       ${opciones?.length ? `<div class="chips" style="padding:10px 0 0">${opciones.map((option7) => `<button type="button" class="chip" data-mop="${escapeHtml(option7)}">${escapeHtml(option7)}</button>`).join("")}</div>` : ""}
-      <div class="acts" style="justify-content:flex-end">
+      <div class="acts u-end">
         ${cancel3 === false ? "" : `<button class="btn sec" id="mno">${escapeHtml(cancel3 ?? t("components.dialogs.cancel"))}</button>`}
         <button class="btn ${peligro ? "dang" : ""}" id="mok">${escapeHtml(ok ?? t("components.dialogs.accept"))}</button></div></div>`;
   }
@@ -34021,7 +34021,7 @@
       const dialog13 = mini2();
       dialog13.innerHTML = `<div class="fbox"><div class="fh"><h2>${escapeHtml(title2)}</h2></div>
       <p style="margin:0 0 10px;white-space:pre-line">${escapeHtml(message4)}</p>
-      <div class="acts" style="justify-content:flex-end;flex-wrap:wrap">${buttons.map((button3) => `<button class="btn ${button3.cls ?? ""}" data-op="${button3.k}">${escapeHtml(button3.t)}</button>`).join("")}</div></div>`;
+      <div class="acts u-end u-wrap">${buttons.map((button3) => `<button class="btn ${button3.cls ?? ""}" data-op="${button3.k}">${escapeHtml(button3.t)}</button>`).join("")}</div></div>`;
       const finish = (value27) => {
         dialog13.close();
         resolve(value27);
@@ -34045,7 +34045,7 @@
     return new Promise((resolve) => {
       const dialog13 = mini2();
       dialog13.innerHTML = `<div class="fbox"><div class="fh"><h2>${escapeHtml(title2)}</h2></div><label for="rnpc">${escapeHtml(label)}</label><input id="rnpc" type="${type}" value="${escapeHtml(value27 ?? "")}" min="${todayIso()}">
-      <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-op="no">${t("components.dialogs.cancel")}</button><button class="btn" data-op="si">${t("components.dialogs.accept")}</button></div></div>`;
+      <div class="acts u-end"><button class="btn sec" data-op="no">${t("components.dialogs.cancel")}</button><button class="btn" data-op="si">${t("components.dialogs.accept")}</button></div></div>`;
       const finish = (answer) => {
         dialog13.close();
         resolve(answer);
@@ -35163,11 +35163,11 @@
     const summary5 = t("agenda.openWeek.draftSummary", { count: formatNumber(draft.total), visits: term("visita", { number: "p", adjective: "nuevo" }), days }) + (draft.sinDia.length ? t("agenda.openWeek.draftWithoutDay", { count: draft.sinDia.length }) : "");
     return `<div class="semborr">
       <span><b>${t("agenda.openWeek.draft")}</b> · ${summary5}</span>
-      <span class="acts" style="margin:0"><button class="btn sec" id="semdescartar">${t("agenda.openWeek.discard")}</button><button class="btn" id="semguardar">${t("agenda.openWeek.save")}</button></span></div>`;
+      <span class="acts u-m-0"><button class="btn sec" id="semdescartar">${t("agenda.openWeek.discard")}</button><button class="btn" id="semguardar">${t("agenda.openWeek.save")}</button></span></div>`;
   }
   function withoutDayHtml(draft) {
     if (!draft?.sinDia.length) return "";
-    const rows2 = draft.sinDia.slice(0, SHOWN_WITHOUT_DAY).map((item) => `<div class="item" style="cursor:default"><span class="ic w">!</span>
+    const rows2 = draft.sinDia.slice(0, SHOWN_WITHOUT_DAY).map((item) => `<div class="item u-cursor-default"><span class="ic w">!</span>
         <span class="tx"><b>${escapeHtml(item.m.nombre)}</b><span class="sm">${escapeHtml(item.motivo)}${item.m.municipio ? ` · ${escapeHtml(item.m.municipio)}` : ""}</span></span></div>`).join("");
     const more2 = draft.sinDia.length > SHOWN_WITHOUT_DAY ? `<div class="sm" style="padding:6px 12px">${t("agenda.openWeek.andMore", { count: draft.sinDia.length - SHOWN_WITHOUT_DAY })}</div>` : "";
     return `<div class="planfuera" style="margin:0 16px 16px"><h3>${t("agenda.openWeek.withoutDay", { count: draft.sinDia.length })}</h3>
@@ -35571,7 +35571,7 @@
   }
   function rowHtml17(row4, index, today2) {
     const place5 = escapeHtml([row4.item.centro_nombre, row4.item.municipio].filter(Boolean).join(" · "));
-    return `<div class="item" style="cursor:default">
+    return `<div class="item u-cursor-default">
         <input type="checkbox" data-rpi="${index}" checked aria-label="${t("agendaMore.reschedule.move")}">
         <span class="tx"><b>${escapeHtml(row4.item.nombre ?? "")}</b>
           <span class="sm">${place5}${row4.item.fecha < today2 ? t("agendaMore.reschedule.wasOn", { date: formatShortDate(row4.item.fecha) }) : ""}</span>
@@ -35585,7 +35585,7 @@
         <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
       <p class="sm">${t("agendaMore.reschedule.proposal", { professional: term("medico") })}</p>
       <div class="lista reprog" data-nosucio>${rows2.map((row4, index) => rowHtml17(row4, index, today2)).join("")}</div>
-      <div class="acts" style="justify-content:flex-end">
+      <div class="acts u-end">
         <button class="btn sec" id="rpno">${t("agendaMore.reschedule.leave")}</button>
         <button class="btn" id="rpok">${t("agendaMore.reschedule.moveMarked")}</button></div>`;
   }
@@ -35671,14 +35671,14 @@
   function dueRow(account) {
     const visit2 = term("visita"), id = account.id ?? "";
     const days = isPresent(account.dias_sin_visita) ? t("agenda.trays.daysWithout", { days: account.dias_sin_visita, visit: visit2 }) : t("agenda.trays.neverVisited");
-    return `<div class="item" style="cursor:default"><span class="ic">${icon("target")}</span>
+    return `<div class="item u-cursor-default"><span class="ic">${icon("target")}</span>
         <span class="tx"><b>${escapeHtml(account.nombre)}</b><span class="sm">${escapeHtml([account.estado_comercial, days, account.municipio].filter(Boolean).join(" · "))}</span></span>
-        <span class="acts" style="margin:0"><button class="btn sec" data-agbf="${id}">${t("agenda.trays.card")}</button><button class="btn sec" data-agbc="${id}">${t("agenda.trays.addAppointment")}</button></span></div>`;
+        <span class="acts u-m-0"><button class="btn sec" data-agbf="${id}">${t("agenda.trays.card")}</button><button class="btn sec" data-agbc="${id}">${t("agenda.trays.addAppointment")}</button></span></div>`;
   }
   function pendingRow3(item) {
-    return `<div class="item" style="cursor:default"><span class="ic w">!</span>
+    return `<div class="item u-cursor-default"><span class="ic w">!</span>
         <span class="tx"><b>${escapeHtml(item.nombre)}</b><span class="sm">${formatShortDate(item.fecha)}${item.centro_nombre ? ` · ${escapeHtml(item.centro_nombre)}` : ""}</span></span>
-        <span class="acts" style="margin:0"><button class="btn sec" data-cita="hoy|${item.id}">${t("agenda.trays.moveToToday")}</button><button class="btn sec" data-cita="desc|${item.id}">${t("agenda.trays.discard")}</button></span></div>`;
+        <span class="acts u-m-0"><button class="btn sec" data-cita="hoy|${item.id}">${t("agenda.trays.moveToToday")}</button><button class="btn sec" data-cita="desc|${item.id}">${t("agenda.trays.discard")}</button></span></div>`;
   }
   function trayHtml(tray, due, pending) {
     const isDue = tray === "toca";
@@ -35773,7 +35773,7 @@
     if (permissions.seesEverything() && !salesTeam.members().length) await salesTeam.load().catch(() => void 0);
     if (currentScreen() !== "agenda" || legacyAgendaParts.mode() !== "equipo" || !view) return;
     view.classList.remove("agunida", "agcinta", "agb", "agn");
-    view.innerHTML = `<div class="saludo"><div><h1>${t("agenda.title")}</h1><div class="fecha" id="agtit">${t("agenda.team.title")}</div></div><div class="acts" style="margin:0"></div></div>
+    view.innerHTML = `<div class="saludo"><div><h1>${t("agenda.title")}</h1><div class="fecha" id="agtit">${t("agenda.team.title")}</div></div><div class="acts u-m-0"></div></div>
     <div class="card" id="agcuerpo"></div>`;
     ensureTeamControls();
     await legacyAgendaPaint.team();
@@ -35835,7 +35835,7 @@
     return `
       <div class="saludo"><div><h1>${t("agenda.title")}</h1><div class="fecha" id="agtit">${escapeHtml(titleText2())}</div></div>
         <div class="aghud" id="aghud" aria-label="${t("agenda.yourNumbers")}">${metricsHtml()}</div>
-        <div class="acts" style="margin:0"><button class="btn" data-ag="nueva">${t("agenda.newAppointment")}</button></div></div>
+        <div class="acts u-m-0"><button class="btn" data-ag="nueva">${t("agenda.newAppointment")}</button></div></div>
       <div class="card" id="agcuerpo"></div>
       <div class="card" id="agsemlat"></div>`;
   }
@@ -36171,7 +36171,7 @@
     const dayMenu = summary5.isFutureOrToday ? `<button type="button" class="kmv tddiamas" id="tddiamas" aria-label="${t("agenda.yourDay.dayOptions")}" title="${t("agenda.yourDay.dayOptionsTitle")}">${legacyIcons.line("mas")}</button>` : "";
     return `
     <div class="tdhead">
-      <div class="${summary5.isFutureOrToday ? "tdtitw" : ""}"><h2 style="padding:0">${title2}</h2>${summary5.mine > 1 ? compactButton(summary5.compact) : ""}${dayMenu}
+      <div class="${summary5.isFutureOrToday ? "tdtitw" : ""}"><h2 class="u-p-0">${title2}</h2>${summary5.mine > 1 ? compactButton(summary5.compact) : ""}${dayMenu}
         ${statsHtml(summary5)}</div>
       ${actionsHtml3(summary5)}
     </div>`;
@@ -36191,7 +36191,7 @@
   function othersHtml(others) {
     if (!others.length) return "";
     return `<h3 class="tdotros">${t("agenda.yourDay.othersTitle", { count: others.length })}</h3>
-      <div class="lista">${others.map((item) => `<div class="item" style="cursor:default"><span class="ic">${item.hora ? timeText(item.hora) : "·"}</span>
+      <div class="lista">${others.map((item) => `<div class="item u-cursor-default"><span class="ic">${item.hora ? timeText(item.hora) : "·"}</span>
         <span class="tx"><b>${escapeHtml(item.nombre)}</b><span class="sm">${escapeHtml(item.usuario ?? "")} · ${statePill3(item.estado)}</span></span></div>`).join("")}</div>`;
   }
 
@@ -36966,7 +36966,7 @@
     ${open2 ? `<div class="vcfin">
         <button type="button" class="lnk" id="vcdescartar">${t("agenda.sheet.discard")}</button><span class="sm">${t("agenda.sheet.discardText")}</span>
         ${item.fecha >= today2 ? `<button type="button" class="lnk peligro" id="vcborrar">${t("agenda.sheet.delete")}</button><span class="sm">${t("agenda.sheet.deleteText")}</span>` : ""}</div>` : ""}
-    <div class="acts" style="justify-content:flex-end">
+    <div class="acts u-end">
       <button type="button" class="btn sec" id="vcok" disabled>${t("agenda.sheet.saveNotes")}</button>
       ${open2 && yourDayLegacy.canRecordOn(item.fecha) ? `<button type="button" class="btn" id="vcreg">${t("agenda.sheet.record", { visit: term("visita") })}</button>` : ""}</div>`;
   }
@@ -37090,7 +37090,7 @@
     </div>
     <div id="nccw"></div>
     <label for="ncn">${t("agenda.editor.notes")}</label><textarea id="ncn" rows="3" placeholder="${t("agenda.sheet.notesPlaceholder")}"></textarea>
-    <div class="acts" style="justify-content:flex-end">
+    <div class="acts u-end">
       <button class="btn sec" data-cerrar>${t("agenda.editor.cancel")}</button>
       <button class="btn" id="ncok">${t("agenda.editor.add")}</button></div>`;
   }
@@ -37266,18 +37266,18 @@
       <div><label for="tah">${t("agenda.editor.time")} <span class="sm">${t("agenda.editor.optional")}</span></label><input id="tah" type="time" value="${escapeHtml(time)}"></div>
     </div>
     <label for="tan">${t("agenda.editor.notes")}</label><textarea id="tan" rows="3">${escapeHtml(task.nota ?? "")}</textarea>
-    <div class="acts" style="justify-content:space-between">
+    <div class="acts u-between">
       ${task.id ? `<button type="button" class="btn sec peligro" id="taborrar">${t("agenda.taskEditor.delete")}</button>` : "<span></span>"}
-      <span style="display:flex;gap:8px"><button type="button" class="btn sec" data-cerrar>${t("agenda.editor.cancel")}</button><button type="button" class="btn" id="taok">${t(task.id ? "agenda.taskEditor.save" : "agenda.taskEditor.add")}</button></span></div>`;
+      <span class="u-flex u-gap-8"><button type="button" class="btn sec" data-cerrar>${t("agenda.editor.cancel")}</button><button type="button" class="btn" id="taok">${t(task.id ? "agenda.taskEditor.save" : "agenda.taskEditor.add")}</button></span></div>`;
   }
   function doneHtml(task) {
     return `
     <div class="fh"><div><h2>${t("agenda.taskEditor.doneTitle")}</h2><div class="sm">${escapeHtml(formatLongDate(task.fecha ?? todayIso()))}${task.hora ? ` · ${escapeHtml(String(task.hora).slice(0, 5))}` : ""}</div></div>
       <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
     <div class="tarlec"><span class="tarok">${t("agenda.taskEditor.done")}</span><b>${escapeHtml(task.titulo ?? "")}</b>${task.nota ? `<p>${escapeHtml(task.nota)}</p>` : ""}</div>
-    <div class="acts" style="justify-content:space-between">
+    <div class="acts u-between">
       <button type="button" class="btn sec peligro" id="taborrar">${t("agenda.taskEditor.delete")}</button>
-      <span style="display:flex;gap:8px"><button type="button" class="btn sec" data-cerrar>${t("common.close")}</button><button type="button" class="btn" id="tareabrir">${t("agenda.taskEditor.reopen")}</button></span></div>`;
+      <span class="u-flex u-gap-8"><button type="button" class="btn sec" data-cerrar>${t("common.close")}</button><button type="button" class="btn" id="tareabrir">${t("agenda.taskEditor.reopen")}</button></span></div>`;
   }
   async function reopen(task, day, button3) {
     button3.disabled = true;
@@ -37348,7 +37348,7 @@
       <div><label for="evl">${t("events.editor.place")}</label><input id="evl" value="${escapeHtml(event.lugar ?? "")}" placeholder="${t("events.editor.placePlaceholder")}"></div></div>
     <label class="opt"><input type="checkbox" id="evon" ${event.en_linea ? "checked" : ""}> ${t("events.editor.online")}</label>
     <label for="evn">${t("events.editor.note")}</label><textarea id="evn" rows="3">${escapeHtml(event.nota ?? "")}</textarea>
-    <div class="acts" style="justify-content:flex-end">${canDelete ? `<button type="button" class="btn sec peligro" id="evborrar">${t("events.editor.delete")}</button>` : ""}
+    <div class="acts u-end">${canDelete ? `<button type="button" class="btn sec peligro" id="evborrar">${t("events.editor.delete")}</button>` : ""}
       <button type="button" class="btn sec" data-cerrar>${t("events.editor.cancel")}</button><button type="button" class="btn" id="evok">${t(existing ? "events.editor.save" : "events.editor.create")}</button></div>`;
   }
   var repaintListIfShown = () => {
@@ -37522,7 +37522,7 @@
     <div class="evas" id="evas">${attendees.length ? attendees.map(attendeeHtml).join("") : `<div class="vacio vlinea">${t("events.sheet.noAttendees")}</div>`}</div>
     <div class="evpie"><span>${t("events.sheet.total")}</span><b id="evtotal">${formatCurrency(sum(attendees.map(attendeeTotal)))}</b></div>
     <p class="sm">${t("events.sheet.note", { max: MEAL_MAX })}</p>
-    <div class="acts" style="justify-content:flex-end">${canEdit2 ? `<button type="button" class="btn sec" id="eveditar">${t("events.sheet.edit")}</button>` : ""}<button type="button" class="btn" data-cerrar>${t("events.sheet.done")}</button></div>`;
+    <div class="acts u-end">${canEdit2 ? `<button type="button" class="btn sec" id="eveditar">${t("events.sheet.edit")}</button>` : ""}<button type="button" class="btn" data-cerrar>${t("events.sheet.done")}</button></div>`;
   }
   function startAdding(id) {
     const add2 = document.getElementById("evanadir");
@@ -38647,7 +38647,7 @@
     return `<h2 style="padding:18px 0 8px">${t("legacyB.company.onIssue")}</h2>
     <div class="g2"><div><label for="fcv">${t("legacyB.company.dueDays")}</label><input id="fcv" type="number" min="0" value="${Number(billing2.vencimiento_dias) || 0}"></div>
       <div><label for="fcf">${t("legacyB.company.defaultPayment")}</label><select id="fcf"><option value="">—</option>${methods}</select></div></div>
-    <label class="opt" style="margin-top:10px"><input type="checkbox" id="fce" ${billing2.emitir_al_validar ? "checked" : ""}>
+    <label class="opt u-mt-10"><input type="checkbox" id="fce" ${billing2.emitir_al_validar ? "checked" : ""}>
       <span><b>${t("legacyB.company.autoIssue")}</b><br><span class="sm">${t("legacyB.company.autoIssueHint")}</span></span></label>`;
   }
   var value12 = (id) => document.getElementById(id)?.value.trim() ?? "";
@@ -38678,7 +38678,7 @@
     const settings2 = legacyBState.settings(), company = settings2.empresa ?? {};
     const billing2 = { vencimiento_dias: DEFAULT_DUE_DAYS, forma_pago: "", emitir_al_validar: false, ...settings2.facturacion };
     body4.innerHTML = `<div class="card" style="padding-top:16px;padding-bottom:16px">${issuerHtml(company)}${issuingHtml(billing2)}
-    <div class="acts" style="justify-content:flex-end"><button class="btn" id="emok">${t("legacyB.company.save")}</button></div></div>`;
+    <div class="acts u-end"><button class="btn" id="emok">${t("legacyB.company.save")}</button></div></div>`;
     const ok = document.getElementById("emok");
     if (ok) ok.onclick = () => {
       void save24(company);
@@ -39073,7 +39073,7 @@
   function summaryHtml5(quality2) {
     const percent5 = percentOf2(quality2.completas, quality2.total);
     return `<div class="card" id="calidad" style="padding-bottom:6px">
-    <div class="manh" style="padding:14px 16px 0"><h2 style="padding:0">${t("quality.summary.complete", { percent: percent5 })}</h2><span class="sm">${t("quality.summary.completeOf", { ...words10(), done: formatNumber(quality2.completas), total: formatNumber(quality2.total) })}</span></div>
+    <div class="manh" style="padding:14px 16px 0"><h2 class="u-p-0">${t("quality.summary.complete", { percent: percent5 })}</h2><span class="sm">${t("quality.summary.completeOf", { ...words10(), done: formatNumber(quality2.completas), total: formatNumber(quality2.total) })}</span></div>
     <div class="barra" style="margin:8px 16px 10px"><i style="width:${percent5}%"></i></div>
     <div class="kpis" style="padding:0 16px 10px">
       ${INDICATORS.map(([key, title2, help]) => indicator(quality2[key], t(title2, words10()), t(help, words10()))).join("")}
@@ -39088,11 +39088,11 @@
   function placeRow2(place5) {
     const address2 = [place5.centro_nombre, place5.direccion, [place5.cp, place5.municipio].filter(Boolean).join(" ")].filter(Boolean).join(" · ");
     const distance = place5.km !== null && place5.km !== void 0 ? t("quality.addresses.farFrom", { km: formatNumber(place5.km), municipality: escapeHtml(orFallback(place5.municipio, "")) }) : t("quality.addresses.outOfSpain");
-    return `<div class="item cdir" data-cdir="${place5.id}" style="cursor:default">
+    return `<div class="item cdir u-cursor-default" data-cdir="${place5.id}">
       <span class="tx"><b>${escapeHtml(place5.nombre)}</b>
         <span class="sm">${escapeHtml(address2 || t("quality.addresses.noAddress"))}</span>
         <span class="sm cdirkm">${distance}</span></span>
-      <span class="acts" style="margin:0">
+      <span class="acts u-m-0">
         <button type="button" class="btn sec" data-cdirf="${place5.cuenta_id}">${t("quality.addresses.card")}</button>
         ${place5.direccion || place5.municipio ? `<button type="button" class="btn" data-cdirg="${place5.id}">${t("quality.addresses.relocate")}</button>` : ""}</span></div>`;
   }
@@ -39259,7 +39259,7 @@
     const duplicates = canSeeDuplicates() ? `<button class="btn sec" id="caldup">${icon("copy")} ${t("quality.page.duplicates")}</button>` : "";
     return `<button class="cfgvolver visible" id="calvolver" type="button">‹ ${escapeHtml(accountListLegacy.contactsLabel())}</button>
     <div class="saludo"><div><h1>${t("quality.page.title")}</h1><div class="fecha">${t("quality.page.subtitle", { professional: term("medico") })}</div></div>
-      <div class="acts" style="margin:0">${duplicates}</div></div>`;
+      <div class="acts u-m-0">${duplicates}</div></div>`;
   }
   function pageHtml10() {
     const modes = MODES2.map(([value27, key]) => `<option value="${value27}">${t(key)}</option>`).join("");
@@ -40270,7 +40270,7 @@
     <div class="fh"><div><h2>${t("legacyA.password.newTitle")}</h2><div class="sm">${t("legacyA.password.newHint")}</div></div></div>
     <label for="np1">${t("legacyA.password.password")}</label><input id="np1" type="password">
     <label for="np2">${t("legacyA.password.repeat")}</label><input id="np2" type="password">
-    <div class="acts" style="justify-content:flex-end"><button class="btn" id="npok">${t("common.save")}</button></div>`;
+    <div class="acts u-end"><button class="btn" id="npok">${t("common.save")}</button></div>`;
     box5.showModal();
     const ok = byId13("npok");
     if (ok) ok.onclick = async () => {
@@ -40762,7 +40762,7 @@
     return `<span><b>${t("legacyA.testStrip.title")}</b> · ${t("legacyA.testStrip.subtitle")}
       <button class="ai" data-ayuda="pruebas" aria-label="${t("legacyA.testStrip.whatIs")}">i</button>
       <span class="prpunto" id="prpunto"></span></span>
-    ${admin ? `<span class="acts" style="margin:0">
+    ${admin ? `<span class="acts u-m-0">
       <button class="btn chico" id="prreset" title="${t("legacyA.testStrip.resetHint")}">${t("legacyA.testStrip.reset")}</button></span>` : ""}`;
   }
   async function paintStartingPoint() {
@@ -40899,7 +40899,7 @@
     return `
     <div class="fh"><div><h2>${t("legacyA.create.title")}</h2><div class="sm">${t("legacyA.create.question")}</div></div>
       <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
-    <div class="opciones" style="margin-top:10px">
+    <div class="opciones u-mt-10">
       ${option7(PERSON2, escapeHtml(cardActionsLegacy.newAccountName()), t("legacyA.create.personHint", { Professional: term("medico", { capital: "C" }) }))}
       ${option7(CENTRE10, t("legacyA.create.centre"), t("legacyA.create.centreHint"))}
     </div>`;
@@ -40949,7 +40949,7 @@
     const order = filters3.orden;
     return `
     <h3>${t("legacyA.tools.filters")}</h3>${selectsHtml(filters3)}
-    <label class="opt" style="margin-top:10px"><input type="checkbox" data-tfc="mios" ${checked2(Boolean(filters3.mios))}> ${t("legacyA.tools.onlyMine", { theProfessionals: term("medico", { number: "p", article: "el" }) })}</label>
+    <label class="opt u-mt-10"><input type="checkbox" data-tfc="mios" ${checked2(Boolean(filters3.mios))}> ${t("legacyA.tools.onlyMine", { theProfessionals: term("medico", { number: "p", article: "el" }) })}</label>
     <label class="opt"><input type="checkbox" data-tfc="sin" ${checked2(Boolean(filters3.sin))}> ${t("legacyA.tools.neverVisited")}</label>
     <label class="opt"><input type="checkbox" data-tfc="urg" ${checked2(filters3.urg)}> ${t("legacyA.tools.onlyUrgent")}</label>
     <div class="tfcampos">${toolsPanelLegacy.fieldFilters(filters3.campos)}</div>
@@ -41291,7 +41291,7 @@
     const tab = (key, label) => `<button data-as="${key}" aria-pressed="${String(section2 === key)}">${label}</button>`;
     return `
     <div class="saludo"><div><h1>${t("legacyA.admin.title")}</h1><div class="fecha">${t("legacyA.admin.subtitle")}</div></div>
-      <div class="acts" style="margin:0">${section2 === "usuarios" ? `<button class="btn" id="unuevo">${t("legacyA.admin.newUser")}</button>` : ""}</div></div>
+      <div class="acts u-m-0">${section2 === "usuarios" ? `<button class="btn" id="unuevo">${t("legacyA.admin.newUser")}</button>` : ""}</div></div>
     <div class="subnav">
       ${tab("usuarios", t("legacyA.admin.users"))}
       ${tab("comisiones", t("legacyA.admin.commissions"))}
@@ -41301,11 +41301,11 @@
   }
   function userRow(user) {
     const details2 = `${escapeHtml(user.rol)} · ${escapeHtml(user.email ?? "")} · ${formatNumber(user.medicos)} ${term("medico", { number: "p" })} · ${formatNumber(user.visitas)} ${term("visita", { number: "p" })}`;
-    return `<div class="item" style="cursor:default">
+    return `<div class="item u-cursor-default">
       <span class="ic">${escapeHtml(adminLegacy.initials(user.nombre))}</span>
       <span class="tx"><b>${escapeHtml(user.nombre)}${user.activo ? "" : ` <span class="sm">${t("legacyA.admin.deactivated")}</span>`}</b>
         <span class="sm">${details2}</span></span>
-      <span class="acts" style="margin:0">
+      <span class="acts u-m-0">
         <button class="btn sec" data-uedit="${user.id}">${t("legacyA.admin.edit")}</button>
         <button class="btn sec" data-uver="${user.id}">${t("legacyA.admin.seePortfolio")}</button>
         <button class="btn sec" data-ucart="${user.id}">${t("legacyA.admin.assign")}</button>
@@ -41396,10 +41396,10 @@
     <div class="g2">
       <div><label for="aesp">${term("especialidad", { capital: "C" })}</label><select id="aesp">${optionsHtml3(options5.especialidades)}</select></div>
       <div><label for="aest">${t("legacyA.portfolio.state")}</label><select id="aest">${optionsHtml3(options5.estados)}</select></div></div>
-    <label class="opt" style="margin-top:10px"><input type="checkbox" id="aurg"> ${t("legacyA.tools.onlyUrgent")}</label>
+    <label class="opt u-mt-10"><input type="checkbox" id="aurg"> ${t("legacyA.tools.onlyUrgent")}</label>
     <div id="amsg" class="cuenta" style="padding:10px 0 0"></div>
     <div id="alista"></div>
-    <div class="acts" style="justify-content:flex-end">
+    <div class="acts u-end">
       <button class="btn sec" id="aquitar">${t("legacyA.portfolio.removeSelected", { professionals: professionals4 })}</button>
       <button class="btn" id="aasignar">${t("legacyA.portfolio.assignSelected", { professionals: professionals4 })}</button></div></div>`;
   }
@@ -42046,7 +42046,7 @@
       <div class="g2"><div><label for="pfn">${t("settingsRest.profile.visibleName")}</label><input id="pfn" value="${escapeHtml(me.nombre)}"></div>
         <div><label for="pft">${t("settingsRest.profile.phone")}</label><input id="pft" inputmode="tel" value="${escapeHtml(preferences.telefono ?? "")}" placeholder="${t("settingsRest.profile.phonePlaceholder")}"></div></div>
       <div class="g2"><div><label for="pfi">${t("settingsRest.profile.openOnStart")}</label><select id="pfi">${starts}</select></div><div><label for="pfl">${t("settingsRest.profile.language")}</label><select id="pfl" data-notr>${languages}</select></div></div>
-      <div class="acts" style="justify-content:flex-end"><button class="btn" id="pfok">${t("settingsRest.profile.save")}</button></div></div>`;
+      <div class="acts u-end"><button class="btn" id="pfok">${t("settingsRest.profile.save")}</button></div></div>`;
   }
   function showName(name) {
     profileLegacy.me().nombre = name;
@@ -42102,7 +42102,7 @@
     return `<div class="card cfgpanel perfseg"><h2 style="padding:0 0 4px">${icon("shield")} ${t("settingsRest.profile.security")}</h2>
     <p class="sm">${t("settingsRest.profile.securityHint")}</p>
     <div class="perfsegf"><div><span class="sm">${t("settingsRest.profile.accessEmail")}</span><b>${escapeHtml(me.email ?? "")}</b></div><div><span class="sm">${t("settingsRest.profile.role")}</span><b>${escapeHtml(me.rol)}</b></div></div>
-    <div class="acts" style="justify-content:flex-start;flex-wrap:wrap"><button class="btn sec" id="perfclave">${icon("key-round")} ${t("settingsRest.profile.sendLink")}</button>
+    <div class="acts u-start u-wrap"><button class="btn sec" id="perfclave">${icon("key-round")} ${t("settingsRest.profile.sendLink")}</button>
       <button class="btn sec" id="perfsalir">${icon("log-out")} ${t("settingsRest.profile.signOut")}</button></div></div>`;
   }
   function addSecurity() {
@@ -42572,7 +42572,7 @@
       ${totalRow(t("orders.totals.serviceWithoutVat", { name: escapeHtml(service.nombre) }), euros2(service.base))}` : ""}
     ${totalRow(t("orders.totals.taxBase"), euros2(totals.base))}
     ${rates.filter((rate) => (totals.porIva[rate] ?? 0) > 4e-3 || rates.length === 1).map((rate) => totalRow(t("orders.totals.vatRate", { rate }), euros2(totals.porIva[rate]))).join("")}
-    ${service ? `<div class="sm" style="justify-content:flex-end"><span>${t("orders.totals.includesService", { name: escapeHtml(service.nombre.toLowerCase()), amount: euros2(service.con) })}</span></div>` : ""}
+    ${service ? `<div class="sm u-end"><span>${t("orders.totals.includesService", { name: escapeHtml(service.nombre.toLowerCase()), amount: euros2(service.con) })}</span></div>` : ""}
     <div class="tot"><span>${t("orders.totals.total")}</span><b>${euros2(totals.total)}</b></div>`;
   }
   function storedTotals(detail) {
@@ -42679,10 +42679,10 @@
     const yearly = choice2.pago === YEARLY, minimum = Math.max(MIN_USERS3, context.used);
     const plans2 = subscriptionLegacy.plans().map((key) => `<button type="button" data-pgp="${key}" class="${choice2.plan === key ? "on" : ""}" aria-pressed="${String(choice2.plan === key)}">${escapeHtml(planOf2(key).nombre)} · ${euros2(planOf2(key).precio)}</button>`).join("");
     return `<label>${t("ordersMore.choosePlan.plan")}</label><div class="segs pgplan" role="group">${plans2}</div>
-      <label style="margin-top:12px">${t("ordersMore.choosePlan.payment")}</label><div class="segs" role="group">
+      <label class="u-mt-12">${t("ordersMore.choosePlan.payment")}</label><div class="segs" role="group">
         <button type="button" data-pga="${MONTHLY}" class="${yearly ? "" : "on"}" aria-pressed="${String(!yearly)}">${t("ordersMore.choosePlan.monthly")}</button>
         <button type="button" data-pga="${YEARLY}" class="${yearly ? "on" : ""}" aria-pressed="${String(yearly)}">${t("ordersMore.choosePlan.yearly")}</button></div>
-      <label for="pgusu" style="margin-top:12px">${t("ordersMore.choosePlan.users")}</label><input id="pgusu" type="number" min="${minimum}" value="${choice2.usuarios}" class="numw">
+      <label for="pgusu" class="u-mt-12">${t("ordersMore.choosePlan.users")}</label><input id="pgusu" type="number" min="${minimum}" value="${choice2.usuarios}" class="numw">
       <span class="sm">${context.used ? t("ordersMore.choosePlan.usingNow", { count: formatNumber(context.used) }) : ""}${t("ordersMore.choosePlan.minimum", { count: minimum })}</span>`;
   }
   function windowHtml5(context, choice2) {
@@ -42691,7 +42691,7 @@
       ${choicesHtml(context, choice2)}
       ${downgradeHtml(context, choice2)}
       ${receiptHtml(context, choice2)}
-      <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>${t("ordersMore.choosePlan.cancel")}</button>
+      <div class="acts u-end"><button class="btn sec" data-cerrar>${t("ordersMore.choosePlan.cancel")}</button>
         <button class="btn" id="pgok">${t(okKey)}</button></div>`;
   }
   async function confirm(context, choice2, button3) {
@@ -42932,7 +42932,7 @@
       <div class="presuok"><div class="presuokic">${icon("check")}</div>
         <p>${t("settingsRest.request.thanks", { name: escapeHtml(settingsExtraLegacy.firstName(String(data.nombre || profileLegacy.me().nombre || ""))), how, email })}</p>
         <p class="sm">${t("settingsRest.request.seeState")}</p></div>
-      <div class="acts" style="justify-content:flex-end"><button class="btn" data-cerrar>${t("settingsRest.request.understood")}</button></div>`;
+      <div class="acts u-end"><button class="btn" data-cerrar>${t("settingsRest.request.understood")}</button></div>`;
   }
   function complete(body4) {
     if (!checkedNeeds(body4).length && !text4("presumsg")) {
@@ -42995,7 +42995,7 @@
       ${teamHtml2()}
       ${contactHtml3()}
     </div>
-    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>${t("settingsRest.request.cancel")}</button><button class="btn" id="presuok">${t("settingsRest.request.send")}</button></div>`;
+    <div class="acts u-end"><button class="btn sec" data-cerrar>${t("settingsRest.request.cancel")}</button><button class="btn" id="presuok">${t("settingsRest.request.send")}</button></div>`;
     bind25(kind, body4);
     document.getElementById("dlg")?.showModal();
   }
@@ -43021,7 +43021,7 @@
     const fields = data.datos ?? {};
     const rows2 = [[t("settingsRest.plan.companyName"), fields.nombre], [t("settingsRest.plan.taxId"), fields.nif], [t("settingsRest.plan.receiptEmail"), fields.email], [t("settingsRest.plan.taxAddress"), fields.direccion]];
     const missing2 = rows2.filter(([, value27]) => !value27).length;
-    return rows2.map(([name, value27]) => `<div class="pgdfila${value27 ? "" : " falta"}"><span>${escapeHtml(name)}</span><b>${value27 ? escapeHtml(value27) : t("settingsRest.plan.missing")}</b></div>`).join("") + (missing2 ? `<div class="banda-aviso" style="margin-top:8px">${t("settingsRest.plan.missingData")}</div>` : "");
+    return rows2.map(([name, value27]) => `<div class="pgdfila${value27 ? "" : " falta"}"><span>${escapeHtml(name)}</span><b>${value27 ? escapeHtml(value27) : t("settingsRest.plan.missing")}</b></div>`).join("") + (missing2 ? `<div class="banda-aviso u-mt-8">${t("settingsRest.plan.missingData")}</div>` : "");
   }
   function billingHtml(plan3, data) {
     if (data === void 0) return "";
@@ -43255,7 +43255,7 @@
     <p>${t("access.welcome.intro")}</p>
     <div class="bienpasos">${steps3}</div>
     ${plan3.en_prueba ? `<p class="sm">${t("access.welcome.trialNote", { date: trialEnd })}</p>` : ""}
-    <div class="acts" style="justify-content:flex-end"><button class="btn" data-cerrar>${t("access.welcome.start")}</button></div>`;
+    <div class="acts u-end"><button class="btn" data-cerrar>${t("access.welcome.start")}</button></div>`;
   }
   function openStep(step) {
     if (step === "importar") {
@@ -43347,7 +43347,7 @@
     const text5 = result ? t(REASONS3.get(result.error ?? "") ?? "settingsRest.access.noPermission") : t("settingsRest.access.unreadable");
     const canSend = result && result.error !== "permiso";
     body4.innerHTML = `${headerHtml11(t("settingsRest.access.title"), user)}<p>${escapeHtml(text5)}</p>
-      <div class="acts" style="justify-content:flex-end;flex-wrap:wrap">${canSend ? `<button class="btn sec" id="accpass">${t("settingsRest.access.sendPassword")}</button>` : ""}<button class="btn" data-cerrar>${t("settingsRest.access.close")}</button></div>`;
+      <div class="acts u-end u-wrap">${canSend ? `<button class="btn sec" id="accpass">${t("settingsRest.access.sendPassword")}</button>` : ""}<button class="btn" data-cerrar>${t("settingsRest.access.close")}</button></div>`;
     const send7 = document.getElementById("accpass");
     if (send7) send7.onclick = () => {
       dialog7()?.close();
@@ -43366,7 +43366,7 @@
     body4.innerHTML = `${headerHtml11(t("settingsRest.access.title"), user)}
     ${accessDataHtml(data)}
     <p class="sm">${t("settingsRest.access.notYet")}</p>
-    <div class="acts" style="justify-content:flex-end;flex-wrap:wrap"><button class="btn sec" id="acccop">${t("settingsRest.newUser.copy")}</button><button class="btn" data-cerrar>${t("settingsRest.newUser.done")}</button></div>`;
+    <div class="acts u-end u-wrap"><button class="btn sec" id="acccop">${t("settingsRest.newUser.copy")}</button><button class="btn" data-cerrar>${t("settingsRest.newUser.done")}</button></div>`;
     const copy2 = document.getElementById("acccop");
     if (copy2) copy2.onclick = () => {
       void copyText(welcomeText(data.nombre, data.email, data.pass));
@@ -43454,7 +43454,7 @@
     return `<div class="blk" id="uzonas"><h3>${t("settingsRest.zones.title")}</h3>
     <p class="sm">${t("settingsRest.zones.hint", words11())}</p>
     <div class="zonas">${Object.keys(all2).sort().map((region) => regionHtml(region, all2[region] ?? [], marked)).join("")}</div>
-    <div class="acts" style="margin-top:8px"><button class="btn sec" id="uzok">${t("settingsRest.zones.save", words11())}</button></div></div>`;
+    <div class="acts u-mt-8"><button class="btn sec" id="uzok">${t("settingsRest.zones.save", words11())}</button></div></div>`;
   }
   async function saveZones(userId, button3) {
     const zones = markedZones();
@@ -43529,7 +43529,7 @@
     ${usersLegacy.areas().map(([key, title2]) => `<div class="dprow" style="grid-template-columns:130px minmax(0,1fr)"><b>${title2}</b>
       <select data-area="${key}">${levels(key)}</select></div>`).join("")}
     <div id="ucomzona"></div>
-    <div class="acts" style="justify-content:flex-end">
+    <div class="acts u-end">
       <button class="btn sec" data-cerrar>${t("settingsRest.editor.cancel")}</button>
       <button class="btn" id="uguardar">${t("settingsRest.editor.save")}</button>
     </div>`;
@@ -43608,7 +43608,7 @@
   function linkedHtml(linked) {
     return `<div class="blk" id="umedw"><h3>${t("settingsRest.editor.linkedCard", words11())}</h3>
     <p class="sm">${t("settingsRest.editor.linkedHint", words11())}</p>
-    <div id="umedsel"></div><div class="acts" style="margin-top:8px"><button class="btn sec" id="umedok">${t("settingsRest.editor.saveLink")}</button>
+    <div id="umedsel"></div><div class="acts u-mt-8"><button class="btn sec" id="umedok">${t("settingsRest.editor.saveLink")}</button>
     ${linked ? `<button class="btn sec" id="umedver">${t("settingsRest.editor.seeReport")}</button>` : ""}</div></div>`;
   }
   async function showReport(linked) {
@@ -43727,7 +43727,7 @@
       <span>${t("settingsRest.remove.activity", words11())}<br><span class="sm">${t("settingsRest.remove.activityHint")}</span></span></label>
     <p class="sm">${t("settingsRest.remove.never")}</p>
     <label for="buconf">${t("settingsRest.remove.confirmLabel")}</label><input id="buconf" autocomplete="off">
-    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>${t("settingsRest.remove.cancel")}</button><button class="btn dang" id="buok">${t("settingsRest.remove.ok")}</button></div>`;
+    <div class="acts u-end"><button class="btn sec" data-cerrar>${t("settingsRest.remove.cancel")}</button><button class="btn dang" id="buok">${t("settingsRest.remove.ok")}</button></div>`;
     dialog7()?.showModal();
     const ok = document.getElementById("buok");
     if (ok) ok.onclick = () => {
@@ -43750,7 +43750,7 @@
     }).join("");
     return `<div class="blk"><h3>${t("settingsRest.detail.whatCanDo")}</h3>
       <div class="permtabla">${rows2}</div>
-      <div class="sm" style="margin-top:8px">${t(amounts2 ? "settingsRest.detail.seesAmounts" : "settingsRest.detail.unitsOnly")}</div></div>`;
+      <div class="sm u-mt-8">${t(amounts2 ? "settingsRest.detail.seesAmounts" : "settingsRest.detail.unitsOnly")}</div></div>`;
   }
   function activityHtml2(user) {
     const zones = (user.zonas ?? []).map((zone) => zone.charAt(0) + zone.slice(1).toLowerCase()).join(", ");
@@ -43760,7 +43760,7 @@
     const connection = cardSectionsLegacy.can("administrar") ? `${escapeHtml(connectionText(usersLegacy.connections()[user.id], true))}<br>` : "";
     const when5 = user.ultima_actividad ? new Date(user.ultima_actividad).toLocaleString("es-ES", { dateStyle: "medium", timeStyle: "short" }) : t("settingsRest.detail.noneRecorded");
     return `<div class="blk"><h3>${t("settingsRest.detail.activity")}</h3>${counts}
-      <div class="sm" style="margin-top:6px">${connection}${t("settingsRest.detail.lastActivity", { when: when5 })}</div></div>`;
+      <div class="sm u-mt-6">${connection}${t("settingsRest.detail.lastActivity", { when: when5 })}</div></div>`;
   }
   function actionsHtml5(user) {
     const admin = cardSectionsLegacy.can("administrar"), notMe = user.id !== settingsLegacy.user().id;
@@ -43850,11 +43850,11 @@
       <div><label for="np">${t("settingsRest.newUser.password")}</label><input id="np" value="${temporaryPassword()}"></div>
     </div>
     <div id="nmedw" class="hide"><label>${t("settingsRest.newUser.fromDirectory", words11())}</label><div id="nmed"></div>
-    <div class="sm" style="margin-top:4px">${t("settingsRest.newUser.directoryHint")}</div></div>
-    <div class="acts" style="justify-content:flex-end">
+    <div class="sm u-mt-4">${t("settingsRest.newUser.directoryHint")}</div></div>
+    <div class="acts u-end">
       <button class="btn sec" data-cerrar>${t("settingsRest.newUser.cancel")}</button>
       <button class="btn" id="ncrear">${t("settingsRest.newUser.create")}</button></div>
-    <div id="nmsg" class="sm" style="margin-top:10px"></div>`;
+    <div id="nmsg" class="sm u-mt-10"></div>`;
   }
   function allowed(draft) {
     const plan3 = planLegacy.of(planLegacy.current().plan), max = planLegacy.contractedUsers();
@@ -43871,7 +43871,7 @@
   }
   var showFailure3 = (key, error) => {
     const box5 = message2();
-    if (box5) box5.innerHTML = `<span style="color:var(--dang)">${t(`settingsRest.newUser.${key}`, { error: escapeHtml(error) })}</span>`;
+    if (box5) box5.innerHTML = `<span class="u-danger">${t(`settingsRest.newUser.${key}`, { error: escapeHtml(error) })}</span>`;
   };
   var ready = (button3) => {
     button3.disabled = false;
@@ -43929,7 +43929,7 @@
     body4.innerHTML = `<div class="fh"><div><h2>${t("settingsRest.newUser.doneTitle")}</h2><div class="sm">${t("settingsRest.newUser.doneSubtitle")}</div></div><button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
       ${accessDataHtml({ nombre: draft.nombre, rol: draft.rol, email: draft.email, pass: draft.pass, vinculado: draft.linked })}
       <p class="sm">${t("settingsRest.newUser.confirmEmail")}</p>
-      <div class="acts" style="justify-content:flex-end;flex-wrap:wrap"><button class="btn sec" id="usrcop">${t("settingsRest.newUser.copy")}</button><button class="btn" data-cerrar>${t("settingsRest.newUser.done")}</button></div>`;
+      <div class="acts u-end u-wrap"><button class="btn sec" id="usrcop">${t("settingsRest.newUser.copy")}</button><button class="btn" data-cerrar>${t("settingsRest.newUser.done")}</button></div>`;
     delete box5.dataset.sucio;
     const copy2 = document.getElementById("usrcop");
     if (copy2) copy2.onclick = () => {
@@ -44814,7 +44814,7 @@
       <div class="htbloque"><h4>${t("panels.filters.searchTable")}</h4><input type="search" class="httexto" value="${escapeHtml(state2.texto ?? "")}" placeholder="${t("panels.filters.searchPlaceholder")}"></div>
       ${facets.length ? `<div class="htbloque"><h4>${t("panels.filters.byColumn")}</h4><div class="htfacetas">${facetHtml}</div></div>` : ""}
       ${heads.filter(Boolean).length > 2 ? `<div class="htbloque"><h4>${t("panels.filters.columns")}</h4><div class="htcols">${columnHtml2}</div></div>` : ""}
-      <div class="acts" style="margin:0;justify-content:flex-end"><button class="btn sec dang" type="button" data-htlimpiar>${icon("x")} ${t("panels.filters.clear")}</button></div>`;
+      <div class="acts u-m-0 u-end"><button class="btn sec dang" type="button" data-htlimpiar>${icon("x")} ${t("panels.filters.clear")}</button></div>`;
   }
   function bindAuto(section2, panel, grid, zone) {
     const kind = tableKind(grid), state2 = filtersOf(grid);
@@ -46404,7 +46404,7 @@
   ];
   var PORTAL_ROLE_CAPABILITY = "portal_prescriptor";
   function ownHtml(mandatory, preferences) {
-    return `<div class="lista">${ALERTS.map(([key, label, icon3]) => `<label class="item" style="cursor:default"><input type="checkbox" data-avp="${key}" ${mandatory.includes(key) || preferences[key] !== false ? "checked" : ""} ${mandatory.includes(key) ? "disabled" : ""}>
+    return `<div class="lista">${ALERTS.map(([key, label, icon3]) => `<label class="item u-cursor-default"><input type="checkbox" data-avp="${key}" ${mandatory.includes(key) || preferences[key] !== false ? "checked" : ""} ${mandatory.includes(key) ? "disabled" : ""}>
         <span class="tx"><b>${icon3} ${t(label)}</b>${mandatory.includes(key) ? `<span class="sm">${t("orders.alerts.mandatoryForRole")}</span>` : ""}</span></label>`).join("")}</div>`;
   }
   function rolesHtml(fixed2, roles2) {
@@ -46444,7 +46444,7 @@
       <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
     ${ownHtml(mandatory, preferences)}
     ${admin ? rolesHtml(fixed2, roles2) : ""}
-    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>${t("common.cancel")}</button><button class="btn" id="avpok">${t("common.save")}</button></div>`;
+    <div class="acts u-end"><button class="btn sec" data-cerrar>${t("common.cancel")}</button><button class="btn" id="avpok">${t("common.save")}</button></div>`;
     box5.showModal();
     const ok = document.getElementById("avpok");
     if (ok) ok.onclick = () => {
@@ -46523,7 +46523,7 @@
       <button class="x" data-cerrar2 aria-label="${t("common.close")}">✕</button></div>
     <label for="dsn">${t("ordersMore.distributor.name")}</label><input id="dsn" placeholder="${t("ordersMore.distributor.namePlaceholder")}">
     <div class="g2"><div><label for="dse">${t("ordersMore.distributor.email")}</label><input id="dse" type="email"></div><div><label for="dst">${t("ordersMore.distributor.phone")}</label><input id="dst" inputmode="tel"></div></div>
-    <div class="acts" style="justify-content:flex-end"><button type="button" class="btn sec" data-cerrar2>${t("ordersMore.distributor.cancel")}</button><button type="button" class="btn" id="dsok">${t("ordersMore.distributor.add")}</button></div>`;
+    <div class="acts u-end"><button type="button" class="btn sec" data-cerrar2>${t("ordersMore.distributor.cancel")}</button><button type="button" class="btn" id="dsok">${t("ordersMore.distributor.add")}</button></div>`;
     box5.showModal();
     const ok = document.getElementById("dsok");
     if (ok) ok.onclick = () => {
@@ -46577,7 +46577,7 @@
     <div class="g2"><div><label for="dse">${t("orders.distributors.email")}</label><input id="dse" type="email" value="${escapeHtml(distributor.email ?? "")}"></div>
       <div><label for="dst">${t("orders.distributors.phone")}</label><input id="dst" inputmode="tel" value="${escapeHtml(distributor.telefono ?? "")}"></div></div>
     <label for="dsnota">${t("orders.distributors.note")}</label><input id="dsnota" placeholder="${t("orders.distributors.notePlaceholder")}" value="${escapeHtml(distributor.nota ?? "")}">
-    <div class="acts" style="justify-content:flex-end"><button type="button" class="btn sec" data-cerrar2>${t("common.cancel")}</button><button type="button" class="btn" id="dsok">${t(isNew ? "orders.distributors.add" : "common.save")}</button></div>`;
+    <div class="acts u-end"><button type="button" class="btn sec" data-cerrar2>${t("common.cancel")}</button><button type="button" class="btn" id="dsok">${t(isNew ? "orders.distributors.add" : "common.save")}</button></div>`;
   }
   function readForm() {
     const name = value13("dsn");
@@ -46892,7 +46892,7 @@
     return `<div class="g2">
         <div><label for="cpprov">${t("purchases.editor.supplier")}</label><select id="cpprov" ${off}>
           ${suppliers}</select></div>
-        <div class="g2" style="margin:0">
+        <div class="g2 u-m-0">
           <div><label for="cpfecha">${t("purchases.editor.date")}</label><input id="cpfecha" type="date" value="${escapeHtml(orFallback(purchase.fecha, todayIso()))}" ${off}></div>
           <div><label for="cpprev">${t("purchases.editor.expected")}</label><input id="cpprev" type="date" value="${escapeHtml(purchase.fecha_prevista ?? "")}" ${off}></div></div>
       </div>`;
@@ -46930,7 +46930,7 @@
       editable ? `<button class="btn sec" id="cpguardar">${t(state2 === STATES7.draft ? "purchases.editor.saveDraft" : "purchases.editor.saveChanges")}</button>` : "",
       ...stepButtons(editor)
     ];
-    return `<div class="acts" style="justify-content:flex-end;flex-wrap:wrap">
+    return `<div class="acts u-end u-wrap">
         <button class="btn sec" data-cerrar>${t("purchases.editor.close")}</button>
         ${buttons.join("\n        ")}
       </div>`;
@@ -46942,7 +46942,7 @@
       ${supplierHtml(editor)}
       <label>${t("purchases.editor.products")}</label>
       <div id="cplin">${editor.lines.map((line3, index) => lineHtml(editor, line3, index)).join("")}</div>
-      ${editor.editable ? `<div class="acts" style="margin-top:0"><button type="button" class="btn sec" id="cpmas">${t("purchases.editor.addProduct")}</button></div>` : ""}
+      ${editor.editable ? `<div class="acts u-mt-0"><button type="button" class="btn sec" id="cpmas">${t("purchases.editor.addProduct")}</button></div>` : ""}
       <div class="g2">
         <div><label for="cpport">${t("purchases.editor.shipping")}</label><input id="cpport" type="number" step="0.01" min="0" value="${purchase.portes ? String(purchase.portes) : 0}" ${off}></div>
         <div><label for="cpnota">${t("purchases.editor.note")}</label><input id="cpnota" value="${escapeHtml(purchase.nota ?? "")}" ${off}></div></div>
@@ -47011,7 +47011,7 @@
       <div class="sm">${t("purchases.receive.subtitle")}</div></div>
       <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
     <div id="rclin">${pending.map((line3) => lineHtml2(line3, storeId)).join("")}</div>
-    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>${t("purchases.receive.cancel")}</button><button class="btn" id="rcok">${t("purchases.receive.record")}</button></div>`;
+    <div class="acts u-end"><button class="btn sec" data-cerrar>${t("purchases.receive.cancel")}</button><button class="btn" id="rcok">${t("purchases.receive.record")}</button></div>`;
     const box5 = document.getElementById("rclin");
     if (!box5) return;
     box5.querySelectorAll("[data-rlmas]").forEach((button3) => {
@@ -47296,8 +47296,8 @@
       <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
     ${pairs2.join("\n    ")}
     <label for="pv_nota">${t("purchases.supplierEditor.note")}</label><input id="pv_nota" value="${escapeHtml(supplier.nota ?? "")}" ${readOnly}>
-    ${supplier.id ? `<label class="opt" style="margin-top:10px"><input type="checkbox" id="pv_activo" ${supplier.activo ? "checked" : ""} ${readOnly}> ${t("purchases.supplierEditor.active")}</label>` : ""}
-    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>${t("purchases.supplierEditor.close")}</button>${canBuy2 ? `<button class="btn" id="pvok">${t(supplier.id ? "purchases.supplierEditor.save" : "purchases.supplierEditor.create")}</button>` : ""}</div>`;
+    ${supplier.id ? `<label class="opt u-mt-10"><input type="checkbox" id="pv_activo" ${supplier.activo ? "checked" : ""} ${readOnly}> ${t("purchases.supplierEditor.active")}</label>` : ""}
+    <div class="acts u-end"><button class="btn sec" data-cerrar>${t("purchases.supplierEditor.close")}</button>${canBuy2 ? `<button class="btn" id="pvok">${t(supplier.id ? "purchases.supplierEditor.save" : "purchases.supplierEditor.create")}</button>` : ""}</div>`;
   }
   function readValues(supplier) {
     const values2 = { id: supplier.id ?? null };
@@ -47344,7 +47344,7 @@
   function baseHtml() {
     return `
     <div class="saludo"><div><h1>${t("orders.page.salesTitle")}</h1><div class="fecha">${t("orders.page.salesSubtitle")}</div></div>
-      <div class="acts" style="margin:0">${customersLegacy.canSell() ? `<button class="btn" id="pednuevo">${t("orders.page.newSale")}</button>` : ""}</div></div>
+      <div class="acts u-m-0">${customersLegacy.canSell() ? `<button class="btn" id="pednuevo">${t("orders.page.newSale")}</button>` : ""}</div></div>
     <div id="vcuerpo">
       <div class="panel">
         <div class="filtros">
@@ -47629,7 +47629,7 @@
   function actionsHtml6(detail) {
     const order = detail.pedido, draft = order.estado === STATES6.draft, open2 = !draft && order.estado !== STATES6.voided, can2 = customersLegacy.canSell();
     const editButton = order.factura_id ? `<button class="btn sec" id="pdeditnf">${t("orders.sheet.editData")}</button>` : `<button class="btn sec" id="pdeditar">${t("orders.sheet.editOrder")}</button>`;
-    return `<div class="acts" style="justify-content:flex-end">
+    return `<div class="acts u-end">
       ${can2 && draft ? `<button class="btn sec dang" id="pdborrar">${t("orders.sheet.deleteDraft")}</button>
         <button class="btn sec" id="pdeditar">${t("orders.sheet.edit")}</button>
         <button class="btn" id="pdvalidar">${t("orders.sheet.confirm")}</button>` : ""}
@@ -47643,7 +47643,7 @@
     <div class="fh pdcab"><div class="pdcabt"><h2>${t("orders.sheet.title")}${order.numero ? ` ${escapeHtml(order.numero)}` : ""}</h2>${statePill4(order.estado)}${paymentPill(order)}
       <span class="sm pdmeta">${formatShortDate(order.fecha)} · ${ordersLegacy.channelLabel(order, totals.total)}${order.forma_pago ? ` · ${escapeHtml(order.forma_pago)}` : ""}</span></div>
       <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
-    ${order.estado === STATES6.draft ? `<div class="cacheaviso" style="margin-top:10px">${t("orders.sheet.draftNotice")}</div>` : ""}
+    ${order.estado === STATES6.draft ? `<div class="cacheaviso u-mt-10">${t("orders.sheet.draftNotice")}</div>` : ""}
     ${peopleHtml(detail)}
     <div class="blk"><h3>${t("orders.sheet.lines")}</h3>
       ${lines4.map(lineHtml3).join("") || `<div class="sm">${t("orders.sheet.noLines")}</div>`}
@@ -47890,7 +47890,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     const order = detail.pedido, mail = emailOf(detail);
     const who2 = t("orders.distributor.servedBy", { name: escapeHtml(distributor.nombre) }) + (order.distribuidor_codigo ? t("orders.distributor.customerCode", { code: escapeHtml(order.distribuidor_codigo) }) : "") + ` · ${t(order.factura_distribuidor ? "orders.distributor.theyInvoice" : "orders.distributor.weInvoice")}`;
     const sent2 = order.transfer_enviado_en ? t("orders.distributor.mailPreparedOn", { date: formatShortDate(String(order.transfer_enviado_en).slice(0, 10)) }) : t("orders.distributor.mailNotPrepared");
-    const actions = order.estado === STATES6.confirmed ? `<div class="acts" style="justify-content:flex-start;margin-top:6px">${distributor.email ? `<a class="btn sec" id="pdmaild" href="${mailtoLink(escapeHtml(distributor.email), mail.subject, mail.text)}">${t("orders.distributor.prepareMail")}</a>` : `<span class="sm">${t("orders.distributor.noEmail")}</span>`}
+    const actions = order.estado === STATES6.confirmed ? `<div class="acts u-start u-mt-6">${distributor.email ? `<a class="btn sec" id="pdmaild" href="${mailtoLink(escapeHtml(distributor.email), mail.subject, mail.text)}">${t("orders.distributor.prepareMail")}</a>` : `<span class="sm">${t("orders.distributor.noEmail")}</span>`}
         <span class="sm" id="pdmailest">${sent2}</span></div>` : `<p class="sm">${t("orders.distributor.afterConfirm")}</p>`;
     return `<div class="blk" id="pddist"><h3>${t("orders.distributor.title")}</h3>
       <p>${who2}</p>
@@ -47982,7 +47982,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     return `<div class="depbox"><span class="sm">${t("orders.equipment.writeSerials")}</span>
         ${pending.map((item, index) => `<div><b>${escapeHtml(item.nombre)}</b> <span class="sm">· ${escapeHtml(item.cuenta ?? "")}</span><div class="cirser">${range(Math.min(item.faltan, MAX_SERIALS)).map((unit) => `<input data-pqs="${index}" maxlength="120" placeholder="${t("orders.equipment.serialOf", { unit: unit + 1 })}" aria-label="${t("orders.equipment.serialLabel", { unit: unit + 1, name: escapeHtml(item.nombre) })}">`).join("")}</div></div>`).join("")}
         <div class="g2"><div><label for="pdeqi">${t("orders.equipment.installedOn")}</label><input id="pdeqi" type="date" value="${todayIso()}"></div><div><label for="pdequ">${t("orders.equipment.place")}</label><input id="pdequ" placeholder="${t("orders.equipment.placePlaceholder")}"></div></div>
-        <div class="acts" style="justify-content:flex-end"><button type="button" class="btn" id="pdeqok">${t("orders.equipment.register")}</button></div></div>`;
+        <div class="acts u-end"><button type="button" class="btn" id="pdeqok">${t("orders.equipment.register")}</button></div></div>`;
   }
   function rowsOf3(pending, orderId) {
     const box5 = document.getElementById("pdeqf"), rows2 = [];
@@ -48479,7 +48479,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
         };
         return;
       }
-      this.element.innerHTML = `<div style="display:flex;gap:8px"><div class="picker" style="flex:1">
+      this.element.innerHTML = `<div class="u-flex u-gap-8"><div class="picker u-flex-1">
         <input type="search" autocomplete="off" placeholder="${t("customers.picker.placeholder")}"><div class="gsug hide"></div></div>
       <button type="button" class="btn sec" data-pnuevo>${t("customers.picker.newOne")}</button></div>`;
       const input12 = this.element.querySelector("input");
@@ -48920,7 +48920,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       <div id="zonapac" class="${state2.form.canal === CHANNELS.centre ? "escentro" : ""}">
         <label class="solopac">${term("paciente", { capital: "C" })}</label><div id="pselpac" class="solopac"></div>
         <label><span class="solopac">${t("ordersMore.editor.reference", { Professional: term("medico", { capital: "C" }) })}</span><span class="solocen">${t("ordersMore.editor.buyingCentre")}</span></label><div id="pselmed"></div>
-        <div class="sm" style="margin-top:4px"><span class="solopac">${t("ordersMore.editor.leaveName")}</span><span class="solocen">${t("ordersMore.editor.pickCentre")}</span></div>
+        <div class="sm u-mt-4"><span class="solopac">${t("ordersMore.editor.leaveName")}</span><span class="solocen">${t("ordersMore.editor.pickCentre")}</span></div>
         <label class="opt solopac prepbox"><input type="checkbox" id="prepprof" ${state2.form.reportar ? "checked" : ""}> ${t("ordersMore.editor.report", { toProfessional })}</label>
       </div>`;
   }
@@ -48940,7 +48940,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     return `
       <label>${t("ordersMore.editor.lines")}</label>
       <div id="plineas">${state2.lines.map((line3, index) => lineHtml4(line3, index, state2.lines.length)).join("")}</div>
-      <div class="acts" style="margin-top:0"><button type="button" class="btn sec" id="plmas">${t("ordersMore.editor.addLine")}</button></div>
+      <div class="acts u-mt-0"><button type="button" class="btn sec" id="plmas">${t("ordersMore.editor.addLine")}</button></div>
       <div class="pscbox"><label class="opt"><input type="checkbox" id="psincargo" ${state2.form.sin_cargo ? "checked" : ""}> ${t("ordersMore.editor.free")}</label>
         <span class="sm">${t("ordersMore.editor.freeHint", { toProfessional })}</span></div>`;
   }
@@ -48968,7 +48968,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
           ${orderEditorLegacy.help(t("ordersMore.editor.transferHelpTitle"), t("ordersMore.editor.transferHelp"))}</span>
         <span id="ptpvbox" class="pagoacc ${showsCardLink(state2, form.forma_pago) ? "" : "hide"}"><button type="button" class="btn sec" id="ptpvenv">${t("ordersMore.editor.sendPaymentLink")}</button>
           ${orderEditorLegacy.help(t("ordersMore.editor.cardHelpTitle"), t("ordersMore.editor.cardHelp"))}</span>
-        <div><label>${t("ordersMore.editor.receipt")}</label><label class="btn sec" style="display:inline-flex">${t("ordersMore.editor.attach")}<input id="pjus" type="file" accept="image/*,application/pdf" data-fp="1" hidden></label>
+        <div><label>${t("ordersMore.editor.receipt")}</label><label class="btn sec u-inline-flex">${t("ordersMore.editor.attach")}<input id="pjus" type="file" accept="image/*,application/pdf" data-fp="1" hidden></label>
           <div class="sm" id="pjusl">${receiptsHtml(state2)}</div></div>
       </div>`;
   }
@@ -48977,7 +48977,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     const options5 = orderEditorLegacy.services().filter((service) => Boolean(service.activo) || service.id === form.servicio_id).map((service) => `<option value="${service.id}" ${form.servicio_id === service.id ? "selected" : ""}>${t("ordersMore.editor.serviceOption", { name: escapeHtml(service.nombre), price: euros2(service.pvp ?? 0) })}</option>`).join("");
     return `
       <div class="envbox">
-        <label for="pserv" style="margin-top:0">${t("ordersMore.editor.service")}</label>
+        <label for="pserv" class="u-mt-0">${t("ordersMore.editor.service")}</label>
         <select id="pserv"><option value="">${t("ordersMore.editor.noService")}</option>${options5}</select>
         <input type="checkbox" id="penv" class="hide" ${form.envio ? "checked" : ""}>
         <div class="g2 ${form.envio ? "" : "hide"}" id="penvd">
@@ -48990,7 +48990,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     return `
       <div class="totbox" id="ptot"></div>
       <label for="pnota">${t("ordersMore.editor.note")}</label><input id="pnota" value="${escapeHtml(state2.form.nota)}">
-      <div class="acts" style="justify-content:flex-end">
+      <div class="acts u-end">
         <button class="btn sec" data-cerrar>${t("ordersMore.editor.cancel")}</button>
         <button class="btn sec ${confirmed ? "hide" : ""}" id="pborr">${t("ordersMore.editor.saveDraft")}</button>
         <button class="btn" id="pvalid">${t(confirmed ? "ordersMore.editor.saveChanges" : "ordersMore.editor.saveAndConfirm")}</button></div>`;
@@ -49520,7 +49520,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   // src/app/screens/products/deposit-form.ts
   var whole = (input12) => Math.max(0, Math.floor(Number(input12.value) || 0));
   var batchOf = (line3) => escapeHtml(orFallback(line3.numero_lote, t("products.deposit.noBatchLower")));
-  var actsHtml = (ok) => `<div class="acts" style="justify-content:flex-end"><button type="button" class="btn sec" id="depcanc">${t("common.cancel")}</button><button type="button" class="btn" id="depok">${ok}</button></div>`;
+  var actsHtml = (ok) => `<div class="acts u-end"><button type="button" class="btn sec" id="depcanc">${t("common.cancel")}</button><button type="button" class="btn" id="depok">${ok}</button></div>`;
   function replenishHtml() {
     const products3 = purchasesLegacy.products().filter((item) => item.activo !== false && orFallback(item.estado, "Activo") !== "Descatalogado");
     return `<div class="depbox"><b>${t("products.deposit.replenishTitle")}</b>
@@ -49674,7 +49674,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     <div id="depform"></div>
     ${tableHtml6(lines4)}
     ${historyHtml(detail)}
-    <div class="acts" style="justify-content:flex-end"><button type="button" class="btn sec" data-cerrar>${t("common.close")}</button></div>`;
+    <div class="acts u-end"><button type="button" class="btn sec" data-cerrar>${t("common.close")}</button></div>`;
   }
   async function showDeposit(accountId, name, notice2 = "") {
     const { data: detail, error } = await legacyDb().rpc("deposito_estado", { p_cuenta: accountId });
@@ -49699,7 +49699,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   // src/app/screens/products/stock.ts
   function rowHtml26(line3) {
     const [label, kind] = stockState(line3);
-    const unbatched = line3.sin_lote ? ` · <span style="color:var(--warn)">${t("products.stock.soldWithoutBatch", { units: formatNumber(-line3.sin_lote) })}</span>` : "";
+    const unbatched = line3.sin_lote ? ` · <span class="u-warn">${t("products.stock.soldWithoutBatch", { units: formatNumber(-line3.sin_lote) })}</span>` : "";
     const byStore = (line3.por_almacen ?? []).map((store6) => `${escapeHtml(store6.almacen)}: ${formatNumber(store6.unidades)}`).join(" · ") || "—";
     const coverage = isPresent(line3.dias_cobertura) ? t("products.stock.coverageDays", { days: formatNumber(line3.dias_cobertura), supplier: formatNumber(line3.plazo_dias) }) : t("products.stock.noSales");
     const onTheWay = line3.en_camino ? formatNumber(line3.en_camino) + (line3.llegada ? `<span class="sm">${formatShortDate(line3.llegada)}</span>` : "") : "—";
@@ -49765,7 +49765,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     ${kind === "traspaso" ? `<label for="mvd">${t("products.movement.destination")}</label><select id="mvd">${options4(destinations)}</select>` : ""}
     <div class="g2"><div><label for="mvu">${t(adjust ? "products.movement.unitsSigned" : "products.movement.units")}</label><input id="mvu" type="number" ${adjust ? "" : 'min="1"'}></div>
       <div><label for="mvn">${t("products.movement.note")}</label><input id="mvn" placeholder="${t(adjust ? "products.movement.adjustPlaceholder" : "products.movement.optional")}"></div></div>
-    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar2>${t("common.cancel")}</button><button class="btn" id="mvok">${t("products.movement.register")}</button></div>`;
+    <div class="acts u-end"><button class="btn sec" data-cerrar2>${t("common.cancel")}</button><button class="btn" id="mvok">${t("products.movement.register")}</button></div>`;
   }
   function payload7(line3, kind, place5, units2) {
     const note = value19("mvn").trim();
@@ -49864,9 +49864,9 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       <div><label for="svs">${t("products.services.withoutVat")}</label><input id="svs" type="number" step="0.01" min="0" value="${price}" ${locked}></div>
       <div><label for="svi">${t("products.services.vat")}</label><input id="svi" type="number" step="1" min="0" max="21" value="${vat}" ${locked}></div>
       <div><label for="svc">${t("products.services.withVat")}</label><input id="svc" type="number" step="0.01" min="0" value="${withVat3}" ${locked}></div></div>
-    <label class="opt" style="margin-top:12px">${checkbox("svdef", service.por_defecto, locked)} ${t("products.services.proposeByDefault")}</label>
-    ${service.id ? `<label class="opt" style="margin-top:8px">${checkbox("svact", service.activo, locked)} ${t("products.services.active")}</label>` : ""}
-    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>${t(admin ? "common.cancel" : "common.close")}</button>
+    <label class="opt u-mt-12">${checkbox("svdef", service.por_defecto, locked)} ${t("products.services.proposeByDefault")}</label>
+    ${service.id ? `<label class="opt u-mt-8">${checkbox("svact", service.activo, locked)} ${t("products.services.active")}</label>` : ""}
+    <div class="acts u-end"><button class="btn sec" data-cerrar>${t(admin ? "common.cancel" : "common.close")}</button>
       ${admin ? `<button class="btn" id="svok">${t(service.id ? "common.save" : "products.services.create")}</button>` : ""}</div>`;
   }
   function bindPrices() {
@@ -49943,7 +49943,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   }
   var chosenMember = () => members().find((member) => member.id === document.getElementById("almu")?.value);
   function windowHtml6() {
-    const list = stores().map((store6) => `<div class="item" style="cursor:default"><span class="ic">${storeIcon(store6)}</span>
+    const list = stores().map((store6) => `<div class="item u-cursor-default"><span class="ic">${storeIcon(store6)}</span>
         <span class="tx"><b>${escapeHtml(store6.nombre)}</b><span class="sm">${storeKind(store6)}${t("products.stores.unitsTail", { units: formatNumber(store6.unidades) })}${store6.activo ? "" : t("products.stores.inactive")}</span></span></div>`).join("");
     return `
       <div class="fh"><div><h2>${t("products.stores.title")}</h2><div class="sm">${t("products.stores.subtitle")}</div></div>
@@ -49979,7 +49979,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   function withoutCaseHtml(withoutCase) {
     if (!withoutCase.length) return "";
     const who2 = withoutCase.length === 1 ? t("products.stores.oneWithout", { name: escapeHtml(withoutCase[0]?.nombre ?? "") }) : t("products.stores.manyWithout", { count: withoutCase.length });
-    return `<div class="avisoh" style="margin-top:12px"><span>${who2}${t("products.stores.withoutCase")}</span></div>`;
+    return `<div class="avisoh u-mt-12"><span>${who2}${t("products.stores.withoutCase")}</span></div>`;
   }
   async function paintStores() {
     await load2();
@@ -49995,7 +49995,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     <div class="card cfgpanel"><h2>${t("products.stores.yours")}</h2>
       <div class="almgrid">${stores().map(storeCard).join("")}</div>
       ${withoutCaseHtml(withoutCase)}
-      <div class="matadd" style="margin-top:12px"><select id="almu">${canHaveCase.map((member) => `<option value="${member.id}">${escapeHtml(member.nombre)}</option>`).join("")}</select>
+      <div class="matadd u-mt-12"><select id="almu">${canHaveCase.map((member) => `<option value="${member.id}">${escapeHtml(member.nombre)}</option>`).join("")}</select>
         <button class="btn sec" id="almok">${t("products.stores.createCase")}</button></div>
       <p class="sm">${t("products.stores.transferHint")}</p></div>`;
     const ok = document.getElementById("almok");
@@ -50047,7 +50047,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     const section2 = productsLegacy.section();
     screen3.innerHTML = `
     <div class="saludo"><div><h1>${t("products.page.title")}</h1><div class="fecha">${t("products.page.subtitle")}</div></div>
-      <div class="acts" style="margin:0">${actionsHtml8(section2)}</div></div>
+      <div class="acts u-m-0">${actionsHtml8(section2)}</div></div>
     <div class="subnav">${TABS.map(([key, label]) => `<button data-ps="${key}" aria-pressed="${String(section2 === key)}">${t(label)}</button>`).join("\n      ")}</div>
     <div id="vcuerpo"></div>`;
     bind30(screen3, section2);
@@ -50076,7 +50076,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     return key ? t(key, { visit: term("visita") }) : type;
   };
   function traceRow(item) {
-    return `<div class="dr" style="cursor:default"><span>${formatShortDate(String(item.fecha).slice(0, 10))}</span><span>${escapeHtml(movementName(item.tipo))}${item.pedido ? `<span class="sm">${t("products.trace.order", { number: escapeHtml(item.pedido) })}</span>` : ""}</span>
+    return `<div class="dr u-cursor-default"><span>${formatShortDate(String(item.fecha).slice(0, 10))}</span><span>${escapeHtml(movementName(item.tipo))}${item.pedido ? `<span class="sm">${t("products.trace.order", { number: escapeHtml(item.pedido) })}</span>` : ""}</span>
         <span class="num" style="color:${item.unidades < 0 ? "var(--danger)" : "var(--ok)"}"><b>${item.unidades > 0 ? "+" : ""}${formatNumber(item.unidades)}</b></span>
         <span>${escapeHtml(orFallback(item.cliente, "—"))}${item.telefono ? `<span class="sm">${escapeHtml(item.telefono)}</span>` : ""}</span><span class="sm">${escapeHtml(orFallback(item.medico, "—"))}</span><span class="sm">${escapeHtml(item.almacen)}</span></div>`;
   }
@@ -50098,7 +50098,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     <div class="dgrid-wrap"><div class="dgrid traz">
       <div class="dh">${head.map((title2, index) => `<span${index === 2 ? ' class="num"' : ""}>${title2}</span>`).join("")}</div>
       ${movements.map(traceRow).join("") || `<div class="vacio">${t("products.trace.none")}</div>`}</div></div>
-    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar2>${t("common.close")}</button></div>`;
+    <div class="acts u-end"><button class="btn sec" data-cerrar2>${t("common.close")}</button></div>`;
     box5.showModal();
   }
   function summaryText(line3) {
@@ -50114,11 +50114,11 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   function batchHtml(batch, canBuy2) {
     const expiry = expiryClass(batch.caducidad), manyStores = purchasesLegacy.stores().filter((store6) => store6.activo).length > 1;
     const tools = canBuy2 ? `<button class="btn sec" data-aju="${batch.id}|${batch.almacen_id}">${t("products.sheet.adjust")}</button>${manyStores ? `<button class="btn sec" data-tras="${batch.id}|${batch.almacen_id}">${t("products.sheet.transfer")}</button>` : ""}` : "";
-    return `<div class="item" style="cursor:default">
+    return `<div class="item u-cursor-default">
         <span class="ic ${expiry === "cad-pasada" ? "w" : ""}">📦</span>
         <span class="tx"><b>${t("products.sheet.batch", { number: escapeHtml(batch.numero_lote), units: formatNumber(batch.unidades) })}</b>
           <span class="sm"><span class="${expiry}">${batch.caducidad ? t("products.sheet.expiresOn", { date: formatShortDate(batch.caducidad) }) : t("products.sheet.noExpiry")}</span>${batch.fecha_fabricacion ? t("products.sheet.madeOn", { date: formatShortDate(batch.fecha_fabricacion) }) : ""} · ${escapeHtml(batch.almacen)}${batch.proveedor ? ` · ${escapeHtml(batch.proveedor)}` : ""}</span></span>
-        <span class="acts" style="margin:0"><button class="btn sec" data-traz="${batch.id}">${t("products.sheet.traceability")}</button>
+        <span class="acts u-m-0"><button class="btn sec" data-traz="${batch.id}">${t("products.sheet.traceability")}</button>
           ${tools}</span></div>`;
   }
   function sheetHtml8(line3, canBuy2) {
@@ -50130,7 +50130,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     ${canBuy2 ? settingsHtml(line3) : ""}
     <div class="blk"><h3>${t("products.sheet.batches")}</h3>
       ${batches.length ? `<div class="lista">${batches.map((batch) => batchHtml(batch, canBuy2)).join("")}</div>` : `<div class="sm">${t("products.sheet.noBatches")}</div>`}</div>
-    <div class="acts" style="justify-content:flex-end">
+    <div class="acts u-end">
       <button class="btn sec" data-cerrar>${t("common.close")}</button>
       ${canBuy2 ? `<button class="btn sec" id="stent">${t("products.sheet.entry")}</button><button class="btn" id="stgu">${t("products.sheet.saveMinimum")}</button>` : ""}</div>`;
   }
@@ -50295,7 +50295,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   var PRODUCT_STATES = ["Activo", "En pausa", "Descatalogado"];
   var MAX_SAMPLES = 10;
   var stateHtml3 = (state2) => `<div class="blk" id="prestado"><h3>${t("productsMore.state.title")}</h3><div class="segs">${PRODUCT_STATES.map((item) => `<button type="button" data-pest="${item}" class="${item === state2 ? "on" : ""}">${item}</button>`).join("")}</div>
-      <div class="sm" style="margin-top:6px">${t("productsMore.state.hint")}</div></div>`;
+      <div class="sm u-mt-6">${t("productsMore.state.hint")}</div></div>`;
   var samplesForNewHtml = () => `<div class="blk" id="prmuestra"><h3>${t("productsMore.samples.title")}</h3><p class="sm">${t("productsMore.samples.saveFirst")}</p></div>`;
   var samplesHtml = (extras) => `<div class="blk" id="prmuestra"><h3>${t("productsMore.samples.title")}</h3>
       <label class="opt"><input type="checkbox" id="prmreg" ${extras.muestra_regulada ? "checked" : ""}> ${t("productsMore.samples.regulated")}</label>
@@ -50313,7 +50313,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   var packsHtml = (extras) => `<div class="blk" id="prpacks"><h3>${t("productsMore.packs.title")}</h3>
       <p class="sm">${t("productsMore.packs.hint")}</p>
       <div id="prpkl"></div><button type="button" class="btn sec chico" id="prpkmas">${t("productsMore.packs.add")}</button>
-      <div class="g2" style="margin-top:10px"><div><label for="prpkpvp">${t("productsMore.packs.retailPrice")}</label><input id="prpkpvp" type="number" step="0.01" value="${extras.pvp_recomendado !== null && extras.pvp_recomendado !== void 0 ? Number(extras.pvp_recomendado) : ""}" placeholder="${t("productsMore.packs.notSet")}"></div></div>
+      <div class="g2 u-mt-10"><div><label for="prpkpvp">${t("productsMore.packs.retailPrice")}</label><input id="prpkpvp" type="number" step="0.01" value="${extras.pvp_recomendado !== null && extras.pvp_recomendado !== void 0 ? Number(extras.pvp_recomendado) : ""}" placeholder="${t("productsMore.packs.notSet")}"></div></div>
       <span class="pcerr" id="prpkerr" hidden></span>
       <div class="prpkacts"><button type="button" class="btn sec" id="prpkok">${t("productsMore.packs.save")}</button></div></div>`;
   var materialHtml = () => `<div class="blk" id="prmat"><h3>${t("productsMore.material.title")}</h3>
@@ -50658,7 +50658,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       <button class="x" data-cerrar aria-label="${t("productsMore.editor.close")}">✕</button></div>
     <div style="display:flex;gap:14px;align-items:center;margin-top:8px">
       <span class="pfoto" id="prfprev" style="width:72px;height:72px;${photo ? `background-image:url('${escapeHtml(photo)}')` : ""}">${photo ? "" : "◧"}</span>
-      ${admin ? `<div style="flex:1"><label for="prfoto" style="margin-top:0">${t("productsMore.editor.photo")}</label><input id="prfoto" type="file" accept="image/*"></div>` : ""}</div>`;
+      ${admin ? `<div class="u-flex-1"><label for="prfoto" class="u-mt-0">${t("productsMore.editor.photo")}</label><input id="prfoto" type="file" accept="image/*"></div>` : ""}</div>`;
   }
   function pricesHtml(product, off) {
     const price = product.precio ?? null, vat = product.iva ?? 10;
@@ -50681,9 +50681,9 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     <div class="g2">
       <div><label for="prue">${t("productsMore.editor.unitsPerPack")}</label><input id="prue" type="number" min="1" value="${Number(product.unidades_envase) || 1}" ${off}></div>
       <div><label for="prco">${t("productsMore.editor.cost")}</label><input id="prco" type="number" step="0.01" min="0" value="${product.coste ?? ""}" ${off}></div></div>
-    ${admin && product.id ? `<label class="opt" style="margin-top:12px"><input type="checkbox" id="pract" ${product.activo ? "checked" : ""}> ${t("productsMore.editor.active")}</label>` : ""}`;
+    ${admin && product.id ? `<label class="opt u-mt-12"><input type="checkbox" id="pract" ${product.activo ? "checked" : ""}> ${t("productsMore.editor.active")}</label>` : ""}`;
   }
-  var actionsHtml9 = (product, admin) => `<div class="acts" style="justify-content:flex-end">
+  var actionsHtml9 = (product, admin) => `<div class="acts u-end">
       <button class="btn sec" data-cerrar>${t(admin ? "productsMore.editor.cancel" : "productsMore.editor.close")}</button>
       ${admin ? `<button class="btn" id="prok">${t(product.id ? "productsMore.editor.save" : "productsMore.editor.create")}</button>` : ""}</div>`;
   function blocksHtml(product, loaded) {
@@ -50747,9 +50747,9 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     const products3 = billing2Legacy.products().filter((item) => item.tipo !== "servicio");
     return `<div class="card cfgpanel"><h2>${t("productsMore.visitMaterial.samplesKind")}</h2>
       <div class="g2"><div><label for="muprod">${t("productsMore.visitMaterial.sampleProduct")}</label><select id="muprod"><option value="">${t("productsMore.visitMaterial.none")}</option>${products3.map((item) => `<option value="${item.id}" ${item.id === samples3.producto_id ? "selected" : ""}>${escapeHtml(item.nombre)}</option>`).join("")}</select></div><div></div></div>
-      <label class="vfswitch" style="margin-top:10px"><input type="checkbox" id="murest" ${samples3.restar_stock ? "checked" : ""}><span class="sw"></span>
+      <label class="vfswitch u-mt-10"><input type="checkbox" id="murest" ${samples3.restar_stock ? "checked" : ""}><span class="sw"></span>
         <span><b>${t("productsMore.visitMaterial.discount")}</b><br><span class="sm">${t("productsMore.visitMaterial.discountText", words12())}</span></span></label>
-      <div class="acts" style="justify-content:flex-end"><button class="btn" id="muok">${t("productsMore.visitMaterial.save")}</button></div></div>`;
+      <div class="acts u-end"><button class="btn" id="muok">${t("productsMore.visitMaterial.save")}</button></div></div>`;
   }
   var valueRow = (value27) => `<div class="matfila ${value27.activo ? "" : "off"}"><b>${escapeHtml(value27.valor)}</b><span class="sm">${t(value27.dato_tipo === NUMBER_KIND ? "productsMore.visitMaterial.asksQuantity" : "productsMore.visitMaterial.onlyMarked")}</span>
         <label class="vfswitch mini"><input type="checkbox" data-mact="${value27.id}" ${value27.activo ? "checked" : ""}><span class="sw"></span><span class="sm">${t(value27.activo ? "productsMore.visitMaterial.active" : "productsMore.visitMaterial.hidden")}</span></label></div>`;
@@ -50763,7 +50763,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     <div class="card cfgpanel"><h2>${t("productsMore.visitMaterial.promoKind")}</h2>
       <p class="sm">${t("productsMore.visitMaterial.promoText", words12())}</p>
       <div class="matlista">${values2.map(valueRow).join("") || `<div class="sm">${t("productsMore.visitMaterial.noMaterial")}</div>`}</div>
-      <div class="matadd"><input id="matn" placeholder="${t("productsMore.visitMaterial.newPlaceholder")}"><label class="opt" style="margin:0"><input type="checkbox" id="matq" checked> ${t("productsMore.visitMaterial.countUnits")}</label>
+      <div class="matadd"><input id="matn" placeholder="${t("productsMore.visitMaterial.newPlaceholder")}"><label class="opt u-m-0"><input type="checkbox" id="matq" checked> ${t("productsMore.visitMaterial.countUnits")}</label>
         <button class="btn sec" id="matok" ${canAdd2 ? "" : "disabled"}>${t("productsMore.visitMaterial.add")}</button></div></div>`;
   }
   async function saveSamples2() {
@@ -51088,7 +51088,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     ${check3("ser", series.reinicio_anual, "billing.series.restartYearly")}
     ${check3("sed", series.por_defecto, "billing.series.defaultForType")}
     ${series.id ? check3("seac", series.activa !== false, "billing.series.active") : ""}
-    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>${t("common.close")}</button>${admin ? `<button class="btn" id="seok">${t("common.save")}</button>` : ""}</div>`;
+    <div class="acts u-end"><button class="btn sec" data-cerrar>${t("common.close")}</button>${admin ? `<button class="btn" id="seok">${t("common.save")}</button>` : ""}</div>`;
   }
   function preview3() {
     const code = valueOf13("sec").trim().toUpperCase() || "X", year = Number(valueOf13("sea")) || FALLBACK_YEAR, next = Number(valueOf13("ses")) || 1;
@@ -51176,7 +51176,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
         <div class="vfmodos">
           ${modes}</div>
         <label for="vfe">${t("billing.verifactu.environment")}</label><select id="vfe"><option value="pruebas" ${settings2.entorno === "pruebas" ? "selected" : ""}>${t("billing.verifactu.testing")}</option><option value="produccion" ${settings2.entorno === "produccion" ? "selected" : ""}>${t("billing.verifactu.production")}</option></select>
-        <div class="acts" style="justify-content:flex-end"><button class="btn" id="vfok">${t("common.save")}</button></div></div>`;
+        <div class="acts u-end"><button class="btn" id="vfok">${t("common.save")}</button></div></div>`;
   }
   async function save37(current) {
     const next = {
@@ -51255,7 +51255,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     const current = billingLegacy.section();
     screen3.innerHTML = `
     <div class="saludo"><div><h1>${t("billing.page.title")}</h1><div class="fecha">${t("billing.page.subtitle")}</div></div>
-      <div class="acts" style="margin:0"></div></div>
+      <div class="acts u-m-0"></div></div>
     <div class="subnav">${sections2.map(([key, label]) => `<button data-fsec="${key}" aria-pressed="${String(current === key)}">${t(label)}</button>`).join("")}</div>${readOnlyHtml()}
     <div id="fcuerpo"></div>`;
     screen3.querySelectorAll("[data-fsec]").forEach((button3) => {
@@ -51282,7 +51282,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       <div><label for="cbf">${t("billing.payment.date")}</label><input id="cbf" type="date" value="${todayIso()}"></div></div>
     <div class="g2"><div><label for="cbp">${t("billing.payment.method")}</label><select id="cbp">${methods}</select></div>
       <div><label for="cbn">${t("billing.payment.note")}</label><input id="cbn" placeholder="${t("billing.payment.optional")}"></div></div>
-    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar2>${t("common.cancel")}</button><button class="btn" id="cbok">${t("billing.payment.register")}</button></div>`;
+    <div class="acts u-end"><button class="btn sec" data-cerrar2>${t("common.cancel")}</button><button class="btn" id="cbok">${t("billing.payment.register")}</button></div>`;
   }
   async function save38(invoice2, box5) {
     const amount3 = Number(value20("cbi"));
@@ -51331,8 +51331,8 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     <div class="opciones" style="grid-template-columns:minmax(0,1fr) minmax(0,1fr)"><label class="opt"><input type="radio" name="rft" value="total" checked> ${t("billing.rectify.whole")}</label>
       <label class="opt"><input type="radio" name="rft" value="parcial"> ${t("billing.rectify.someUnits")}</label></div>
     <div id="rflin" class="hide">${lines4}</div>
-    ${invoice2.pedido_id ? `<label class="opt" style="margin-top:10px"><input type="checkbox" id="rfan"> ${t("billing.rectify.cancelOrder")}</label>` : ""}
-    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar2>${t("common.cancel")}</button><button class="btn dang" id="rfok">${t("billing.rectify.issue")}</button></div>`;
+    ${invoice2.pedido_id ? `<label class="opt u-mt-10"><input type="checkbox" id="rfan"> ${t("billing.rectify.cancelOrder")}</label>` : ""}
+    <div class="acts u-end"><button class="btn sec" data-cerrar2>${t("common.cancel")}</button><button class="btn dang" id="rfok">${t("billing.rectify.issue")}</button></div>`;
   }
   var reasonOf3 = () => document.getElementById("rfm")?.value.trim() ?? "";
   function chosenLines(body4) {
@@ -51416,7 +51416,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   }
   function linesHtml2(invoice2) {
     const head = [["", "concept"], ["num", "units"], ["num", "price"], ["num", "discount"], ["num", "vat"], ["num", "base"]];
-    const lines4 = invoice2.lineas.map((line3) => `<div class="dr" style="cursor:default"><span>${escapeHtml(line3.descripcion)}</span><span class="num">${formatNumber(line3.unidades)}</span>
+    const lines4 = invoice2.lineas.map((line3) => `<div class="dr u-cursor-default"><span>${escapeHtml(line3.descripcion)}</span><span class="num">${formatNumber(line3.unidades)}</span>
         <span class="num">${euros5(line3.precio)}</span><span class="num">${line3.descuento ? `${formatNumber(line3.descuento)}%` : "—"}</span><span class="num">${formatNumber(line3.iva)}%</span><span class="num"><b>${euros5(line3.base)}</b></span></div>`).join("");
     const breakdown = invoice2.desglose_iva.map((item) => `<div><span>${t("billing.sheet.baseAt", { rate: formatNumber(item.iva) })}</span><b>${euros5(item.base)}</b></div><div><span>${t("billing.sheet.vatAt", { rate: formatNumber(item.iva) })}</span><b>${euros5(item.cuota)}</b></div>`).join("");
     return `<div class="dgrid-wrap"><div class="dgrid flin">
@@ -51432,7 +51432,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
         ${admin ? `<button class="kcfg" data-bcob="${item.id}">${t("billing.sheet.removePayment")}</button>` : ""}</div>`).join("");
     return `<div class="blk"><h3>${t("billing.sheet.payments")}</h3>
       ${rows2 || `<div class="sm">${t("billing.sheet.noPayments")}</div>`}
-      ${pending ? `<div class="sm" style="margin-top:4px">${t("billing.sheet.pendingAmount", { amount: euros5(pending) })}</div>` : ""}</div>`;
+      ${pending ? `<div class="sm u-mt-4">${t("billing.sheet.pendingAmount", { amount: euros5(pending) })}</div>` : ""}</div>`;
   }
   function recordHtml(invoice2) {
     if (!invoice2.huella) return "";
@@ -51441,7 +51441,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   }
   function actionsHtml10(invoice2, pending) {
     const can2 = billingLegacy.canInvoice();
-    return `<div class="acts" style="justify-content:flex-end;flex-wrap:wrap">
+    return `<div class="acts u-end u-wrap">
       <button class="btn sec" data-cerrar>${t("common.close")}</button>
       ${invoice2.pedido_id ? `<button class="btn sec" id="fvped">${t("billing.sheet.seeOrder")}</button>` : ""}
       ${can2 && !invoice2.rectifica_id ? `<button class="btn sec dang" id="fvrect">${t("billing.sheet.rectify")}</button>` : ""}
@@ -51749,7 +51749,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     <label for="efa">${t("billingMore.email.subject")}</label><input id="efa" value="${escapeHtml(billing2Legacy.mailTemplate("factura", "asunto", values2))}">
     <label for="eft">${t("billingMore.email.message")}</label><textarea id="eft" rows="12">${escapeHtml(billing2Legacy.mailTemplate("factura", "texto", values2))}</textarea>
     <div class="adjunto">📎 ${escapeHtml(pdfFileName(invoice2))}</div>
-    <div class="acts" style="justify-content:flex-end;flex-wrap:wrap"><button class="btn sec" data-cerrar2>${t("billingMore.email.cancel")}</button>
+    <div class="acts u-end u-wrap"><button class="btn sec" data-cerrar2>${t("billingMore.email.cancel")}</button>
       <button class="btn" id="efok">${t("billingMore.email.send")}</button></div>`;
   }
   function choicesHtml3() {
@@ -51783,11 +51783,11 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       <div class="sm">${failure5 === null ? t("billingMore.email.noSmtpText") : escapeHtml(failure5)}</div></div>
       <button class="x" data-cerrar2 aria-label="${t("common.close")}">✕</button></div>
       <p>${t("billingMore.email.fromYourMail")}</p>
-      <div class="acts" style="flex-wrap:wrap">${canShare ? `<button class="btn" id="efsh">${t("billingMore.email.share")}</button>` : ""}
+      <div class="acts u-wrap">${canShare ? `<button class="btn" id="efsh">${t("billingMore.email.share")}</button>` : ""}
         <button class="btn ${canShare ? "sec" : ""}" id="efdl">${t("billingMore.email.download")}</button>
         <a class="btn sec" href="${mailto}">${t("billingMore.email.openMail")}</a></div>
-      <label class="opt" style="margin-top:12px"><input type="checkbox" id="efmarca"> ${t("billingMore.email.alreadySent")}</label>
-      <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar2>${t("billingMore.email.close")}</button></div>`;
+      <label class="opt u-mt-12"><input type="checkbox" id="efmarca"> ${t("billingMore.email.alreadySent")}</label>
+      <div class="acts u-end"><button class="btn sec" data-cerrar2>${t("billingMore.email.close")}</button></div>`;
     const share = byId22("efsh");
     if (share) share.onclick = () => {
       navigator.share({ files: [file], title: invoice2.numero ?? "", text: t("billingMore.email.shareText", { number: invoice2.numero ?? "" }) }).catch(() => void 0);
@@ -52238,7 +52238,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
         <span class="sm">${t("platform.extras.opportunitiesText", { professional: term("medico") })}</span></span></label>
       <label class="chk"><input type="checkbox" id="oxport" ${active.includes("portal") ? "checked" : ""}> <span><b>${t("platform.extras.portalTitle", { ofProfessional: term("medico", { article: "del" }) })}</b>
         <span class="sm">${t("platform.extras.portalText", { orders: term("pauta", { number: "p" }) })}</span></span></label>
-      <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>${t("common.cancel")}</button><button class="btn" id="oxok">${t("common.save")}</button></div>`;
+      <div class="acts u-end"><button class="btn sec" data-cerrar>${t("common.cancel")}</button><button class="btn" id="oxok">${t("common.save")}</button></div>`;
     box5.showModal();
     const ok = document.getElementById("oxok");
     if (ok) ok.onclick = () => {
@@ -52267,8 +52267,8 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       <div class="g2"><div><label for="oanom">${t("platform.newOrg.adminName")}</label><input id="oanom"></div>
         <div><label for="oamail">${t("platform.newOrg.adminEmail")}</label><input id="oamail" type="email"></div>
         <div><label for="oapass">${t("platform.newOrg.password")}</label><input id="oapass" value="Tmp-${Math.random().toString(36).slice(2, 8)}"></div></div>
-      <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>${t("common.cancel")}</button><button class="btn" id="ocrear">${t("platform.newOrg.create")}</button></div>
-      <div id="omsg" class="sm" style="margin-top:10px"></div>`;
+      <div class="acts u-end"><button class="btn sec" data-cerrar>${t("common.cancel")}</button><button class="btn" id="ocrear">${t("platform.newOrg.create")}</button></div>
+      <div id="omsg" class="sm u-mt-10"></div>`;
   }
   var setMessage = (html) => {
     const message4 = document.getElementById("omsg");
@@ -52291,7 +52291,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   }
   function createFailure(code, error) {
     const key = CREATE_ERRORS.get(code ?? ""), reason = key ? t(key) : errorMessage3(error);
-    return `<span style="color:var(--dang)">${t("platform.newOrg.failed", { reason: escapeHtml(reason) })}</span>`;
+    return `<span class="u-danger">${t("platform.newOrg.failed", { reason: escapeHtml(reason) })}</span>`;
   }
   async function create3(button3, repaint5) {
     const name = value21("onom").trim(), email = value21("oamail").trim(), password = value21("oapass"), adminName = value21("oanom").trim();
@@ -52308,7 +52308,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     }
     const failure5 = await accessLegacy.signUp(email, password, adminName);
     busy(button3, false);
-    setMessage(failure5 ? `<span style="color:var(--dang)">${t("platform.newOrg.noUser", { error: escapeHtml(failure5.message ?? "") })}</span>` : t("platform.newOrg.created", { email: escapeHtml(email), password: escapeHtml(password) }));
+    setMessage(failure5 ? `<span class="u-danger">${t("platform.newOrg.noUser", { error: escapeHtml(failure5.message ?? "") })}</span>` : t("platform.newOrg.created", { email: escapeHtml(email), password: escapeHtml(password) }));
     void repaint5();
   }
   function openNewOrganization(repaint5) {
@@ -52340,7 +52340,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
         <div id="opfinw" class="${data.estado === TRIAL2 ? "" : "hide"}"><label for="opfin">${t("platform.plan.trialUntil")}</label><input id="opfin" type="date" value="${escapeHtml(end)}"></div><div id="opcompw"><label for="opcomp">${t("platform.plan.commitment")}</label>
         <input id="opcomp" type="date" value="${escapeHtml(data.compromiso_hasta ?? "")}"><span class="sm">${t("platform.plan.commitmentHint")}</span></div></div>
       ${data.stripe_suscripcion ? `<div class="banda-aviso" id="opstripe">${t("platform.plan.stripe")}</div>` : ""}<div id="opperd"></div>
-      <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>${t("common.cancel")}</button><button class="btn" id="opok">${t("platform.plan.save")}</button></div>`;
+      <div class="acts u-end"><button class="btn sec" data-cerrar>${t("common.cancel")}</button><button class="btn" id="opok">${t("platform.plan.save")}</button></div>`;
   }
   var isCommitted = (data, from2, to) => from2 === MEDIDA2 && to !== MEDIDA2 && Boolean(data.compromiso_hasta) && (data.compromiso_hasta ?? "") > todayIso();
   function paintLosses(organization) {
@@ -52403,7 +52403,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     const inside = organization.id === platformState.viewed?.id, data = planOf3(organization);
     const toggle4 = organization.principal ? "" : `<button class="btn sec" type="button" data-orgact="${organization.id}">${t(organization.activa === false ? "platform.orgs.reactivate" : "platform.orgs.deactivate")}</button>`;
     const remove11 = !organization.principal && (data.estado === "prueba" || !organization.activa) ? `<button class="btn sec" type="button" data-orgdel="${organization.id}">${t("platform.orgs.delete")}</button>` : "";
-    return `<span class="acts" style="margin:0"><span class="sm">${organization.creado_en ? formatShortDate(String(organization.creado_en).slice(0, 10)) : ""}</span>
+    return `<span class="acts u-m-0"><span class="sm">${organization.creado_en ? formatShortDate(String(organization.creado_en).slice(0, 10)) : ""}</span>
         <button class="btn sec chico" type="button" data-orgdom="${organization.id}">${t("platform.orgs.domains")}</button>
         <button class="btn sec chico" type="button" data-orgext="${organization.id}">${t("platform.orgs.extras")}</button>
         <button class="btn chico ${inside ? "sec" : ""}" type="button" data-orgver="${organization.id}">${t(inside ? "platform.orgs.inside" : "platform.orgs.enter")}</button>
@@ -52413,7 +52413,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   }
   function rowHtml32(organization) {
     const domains = organization.dominios ?? [];
-    return `<div class="item" style="cursor:default">
+    return `<div class="item u-cursor-default">
       <span class="tx"><b>${escapeHtml(organization.nombre)}</b>${statePills(organization)}<span class="sm">${detailsText(organization)}</span>
         <span class="sm">${domains.length ? t("platform.orgs.domainList", { domains: domains.map(escapeHtml).join(", ") }) : t("platform.orgs.noDomain")}</span></span>
       ${buttonsHtml4(organization)}</div>`;
@@ -52667,7 +52667,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     if (!section2) {
       box5.innerHTML = `<div class="card cfgpanel"><h2>${t("platform.template.title")}</h2>
       <p class="sm">${t("platform.template.text")}</p>
-      <div class="acts" style="justify-content:flex-start"><button type="button" class="btn sec" data-plsub="roles">${t("platform.template.roles")}</button>
+      <div class="acts u-start"><button type="button" class="btn sec" data-plsub="roles">${t("platform.template.roles")}</button>
         <button type="button" class="btn sec" data-plsub="cat">${t("platform.template.catalogs")}</button></div></div>`;
       box5.querySelectorAll("[data-plsub]").forEach((button3) => {
         button3.onclick = () => {
@@ -53327,7 +53327,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   var PENDING4 = "Pendiente";
   var CANCELLED = "Anulado";
   function requestRow2(request2) {
-    return `<div class="item" style="cursor:default"><span class="tx"><b>${formatNumber(request2.cantidad)} × ${escapeHtml(request2.material)}</b>
+    return `<div class="item u-cursor-default"><span class="tx"><b>${formatNumber(request2.cantidad)} × ${escapeHtml(request2.material)}</b>
           <span class="sm">${shortDateTime(request2.creado_en)}${request2.nota ? ` · ${escapeHtml(request2.nota)}` : ""}</span></span>${portalLegacy.materialPill(request2.estado)}
           ${request2.estado === PENDING4 ? `<button type="button" class="btn sec chico" data-mdanu="${request2.id}">${t("portal.material.cancel")}</button>` : ""}</div>`;
   }
@@ -53337,7 +53337,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     return `<div class="g2"><div><label for="mdmatm">${t("portal.material.material")}</label><select id="mdmatm">${allowed2.map((item) => `<option value="${escapeHtml(item.valor)}" data-max="${item.max}">${escapeHtml(item.valor)}</option>`).join("")}</select></div>
         <div><label for="mdmatn">${t("portal.material.quantity")}</label><input id="mdmatn" type="number" min="1" value="1"><span class="sm" id="mdmatmax">${t("portal.material.max", { max: formatNumber(first2.max) })}</span></div></div>
         <label for="mdmatt">${t("portal.material.note")}</label><input id="mdmatt" placeholder="${t("portal.material.optional")}">
-        <div class="acts" style="justify-content:flex-start"><button type="button" class="btn" id="mdmatok">${t("portal.material.ask")}</button></div>`;
+        <div class="acts u-start"><button type="button" class="btn" id="mdmatok">${t("portal.material.ask")}</button></div>`;
   }
   function cardsHtml(allowed2, requests2, messages) {
     const askTitle = t("portal.material.title"), questionsTitle = t("portal.material.questionsTitle");
@@ -53348,7 +53348,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     <div class="card ancard" id="mdmsg"><h2>${questionsTitle} ${helpButton2(questionsTitle, t("portal.material.questionsHelp"))}</h2>
       <div id="mdhilo">${messageThread(messages, true)}</div>
       <textarea id="mdmsgt" rows="2" placeholder="${t("portal.material.questionPlaceholder")}" aria-label="${t("portal.material.questionLabel")}"></textarea>
-      <div class="acts" style="justify-content:flex-start"><button type="button" class="btn" id="mdmsgok">${t("portal.material.send")}</button></div></div>`;
+      <div class="acts u-start"><button type="button" class="btn" id="mdmsgok">${t("portal.material.send")}</button></div></div>`;
   }
   var value23 = (id) => document.getElementById(id)?.value ?? "";
   var chosenMax = () => Number(document.getElementById("mdmatm")?.selectedOptions[0]?.dataset.max);
@@ -53705,7 +53705,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     return true;
   }
   function materialRow(item, chosen5) {
-    return `<label class="item" style="cursor:default">
+    return `<label class="item u-cursor-default">
         <input type="checkbox" data-cfpm="${escapeHtml(item.valor)}" ${chosen5 ? "checked" : ""}> <span class="tx"><b>${escapeHtml(item.valor)}</b></span>
         <span class="sm">${t("portal.settings.maximum")}</span> <input type="number" min="1" max="${MAX_LIMIT2}" value="${chosen5 ? chosen5.max : DEFAULT_MAX2}" data-cfpx="${escapeHtml(item.valor)}" style="max-width:110px" aria-label="${t("portal.settings.maximumOf", { name: escapeHtml(item.valor) })}"></label>`;
   }
@@ -53713,7 +53713,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     if (!catalog2.length) return `<div class="vacio">${t("portal.settings.noCatalog")}</div>`;
     return `<div class="lista" id="cfpmat">${catalog2.map((item) => materialRow(item, allowed2.find((other) => other.valor === item.valor))).join("")}</div>
       ${saved3 ? "" : `<p class="sm" style="padding:0 16px">${t("portal.settings.everything")}</p>`}
-      <div class="acts" style="justify-content:flex-end"><button class="btn" id="cfpok">${t("common.save")}</button></div>`;
+      <div class="acts u-end"><button class="btn" id="cfpok">${t("common.save")}</button></div>`;
   }
   async function saveMaterial(box5, setting) {
     const material = [...box5.querySelectorAll("[data-cfpm]")].filter((input12) => input12.checked).map((input12) => {
@@ -53727,7 +53727,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   function prepaymentHtml(on6) {
     return `<div class="card" id="cfpantc"><div class="fh"><div><h2>${t("portal.settings.prepaymentTitle")} ${helpButton2(t("portal.settings.prepayment"), t("portal.settings.prepaymentHelp"))}</h2></div></div>
     <label class="opt"><input type="checkbox" id="cfpant" ${on6 ? "checked" : ""}> ${t("portal.settings.prepaymentLabel")}</label>
-    <div class="acts" style="justify-content:flex-end"><button class="btn" id="cfpantok" type="button">${t("common.save")}</button></div></div>`;
+    <div class="acts u-end"><button class="btn" id="cfpantok" type="button">${t("common.save")}</button></div></div>`;
   }
   async function savePrepayment(button3) {
     button3.disabled = true;
@@ -53834,7 +53834,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     <div class="thead">${cell4(NAME_WIDTH2, t("analytics.table.concept"), " th")}
       ${months2.map((month) => cell4(MONTH_WIDTH, escapeHtml(monthHeader(month)), " th")).join("")}
       ${cell4(TOTAL_WIDTH, t("analytics.explore.total"), " th")}</div>
-    ${rows2.map((row4) => `<div class="trow" style="cursor:default">
+    ${rows2.map((row4) => `<div class="trow u-cursor-default">
       ${cell4(NAME_WIDTH2, `<b>${escapeHtml(row4.nombre)}</b>`)}
       ${months2.map((month) => monthCell(row4, month)).join("")}
       ${cell4(TOTAL_WIDTH, `<b>${format(row4.total)}</b>`)}</div>`).join("")}
@@ -53895,7 +53895,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     if (!(products3.length > 1 || products3.length === 1 && dimension !== "producto")) return "";
     return `<div class="dgrid-wrap"><div class="dgrid aprod">
     <div class="dh"><span>${t("analytics.explore.byProduct")}</span><span class="num">${t("analytics.explore.unitsHead")}</span><span class="num">${t("analytics.explore.unitsShare")}</span><span class="num">${t("analytics.explore.amountHead")}</span></div>
-    ${products3.map((product) => `<div class="dr" style="cursor:default"><span><b>${escapeHtml(product.nombre)}</b></span><span class="num">${formatNumber(product.unidades)}</span>
+    ${products3.map((product) => `<div class="dr u-cursor-default"><span><b>${escapeHtml(product.nombre)}</b></span><span class="num">${formatNumber(product.unidades)}</span>
       <span class="num">${Math.round((product.unidades ?? 0) / ((totals.unidades ?? 0) || 1) * 100)}%</span><span class="num">${formatCurrency(product.importe)}</span></div>`).join("")}
   </div></div>`;
   }
@@ -53914,7 +53914,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     return `<div class="dgrid-wrap"><div class="dgrid arank">
     <div class="dh"><span>#</span><span>${escapeHtml(selectedText("adim"))}</span><span class="num">${t("analytics.explore.unitsHead")}</span>
       <span class="num">${t("analytics.explore.amountHead")}</span><span class="num">${t("analytics.explore.orders")}</span><span>${t("analytics.explore.weight")}</span></div>
-    ${rows2.map((row4, index) => `<div class="dr" style="cursor:default"><span class="sm">${index + 1}</span><span><b>${escapeHtml(row4.nombre)}</b></span>
+    ${rows2.map((row4, index) => `<div class="dr u-cursor-default"><span class="sm">${index + 1}</span><span><b>${escapeHtml(row4.nombre)}</b></span>
       <span class="num">${formatNumber(row4.unidades)}</span><span class="num">${formatCurrency(row4.importe)}</span><span class="num">${formatNumber(row4.pedidos)}</span>
       <span class="barra"><i style="width:${share(row4)}%"></i><em>${share(row4)}%</em></span></div>`).join("")}
     <div class="dr dtot"><span></span><span><b>${t("analytics.explore.total")}</b></span><span class="num"><b>${formatNumber(totals.unidades)}</b></span>
@@ -54615,7 +54615,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
         <div class="sm">${t("panels.customise.subtitle")}</div></div>
         <button class="x" data-cerrar aria-label="${t("panels.customise.close")}">✕</button></div>
       ${FAMILIES.filter(([family]) => familyVisible(family)).map(([family]) => areaHtml(family, draft, kpis)).join("")}
-      <div class="acts" style="justify-content:flex-end"><button class="btn sec" id="anres0">${t("panels.customise.reset")}</button><button class="btn" id="anpok">${t("panels.customise.save")}</button></div>`;
+      <div class="acts u-end"><button class="btn sec" id="anres0">${t("panels.customise.reset")}</button><button class="btn" id="anpok">${t("panels.customise.save")}</button></div>`;
     body4.querySelectorAll("[data-anon]").forEach((box5) => {
       box5.onchange = () => {
         const setting = draft[Number(box5.dataset.anon)];
@@ -54701,7 +54701,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
           ${index ? `<span class="sm">${before ? t("panels.charts.advances", { percent: percent4(value27, before + value27) }) : ""}</span>` : '<span class="sm"></span>'}</div>`;
     }).join("");
     return `<div class="embudo">${rows2}
-        ${negative && funnel2[negative] ? `<div class="sm" style="margin-top:6px">${escapeHtml(negative)}: ${formatNumber(funnel2[negative])}</div>` : ""}</div>`;
+        ${negative && funnel2[negative] ? `<div class="sm u-mt-6">${escapeHtml(negative)}: ${formatNumber(funnel2[negative])}</div>` : ""}</div>`;
   }
   function chartsHtml(charts, from2, to) {
     const months2 = panelsLegacy.monthsBetween(from2, to);
@@ -55016,7 +55016,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       <button class="x" data-cerrar2 aria-label="${t("common.close")}">✕</button></div>
     <div class="vfotos grande">${photos.map((photo) => `<span class="vfoto"><img alt="${escapeHtml(orFallback(photo.nombre, t("visit.photos.photoAlt")))}" src="data:${escapeHtml(photo.tipo)};base64,${photo.datos}">
       ${canDelete(photo) ? `<button type="button" class="vfquitar" data-vfdel="${photo.id}" aria-label="${t("visit.photos.delete")}">✕</button>` : ""}</span>`).join("")}</div>
-    <div class="acts" style="justify-content:flex-end"><label class="btn sec" style="display:inline-flex">${icon("camera")} ${t("visit.photos.add")}<input type="file" id="vfmas" accept="image/*" data-fp="1" hidden multiple></label>
+    <div class="acts u-end"><label class="btn sec u-inline-flex">${icon("camera")} ${t("visit.photos.add")}<input type="file" id="vfmas" accept="image/*" data-fp="1" hidden multiple></label>
       <button type="button" class="btn" data-cerrar2>${t("visit.photos.done")}</button></div>`;
   }
   function refresh4(activityId, accountId) {
@@ -55128,7 +55128,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     const more2 = hiddenButton([results, ...others]);
     return `<label>${t("visit.record.resultLabel")} <span class="sm">${t("visit.record.severalResults", { done: term("visita", { adjective: "realizado" }) })}</span></label>
     <div class="opciones">${positive.map((value27) => button2(index, results, value27, true)).join("")}</div>${negative.length ? "" : more2}
-    <div class="opciones" style="margin-top:8px">${negative.map((value27) => button2(index, results, value27, true)).join("")}</div>${negative.length ? more2 : ""}
+    <div class="opciones u-mt-8">${negative.map((value27) => button2(index, results, value27, true)).join("")}</div>${negative.length ? more2 : ""}
     ${others.map((group) => `<label>${escapeHtml(group.nombre)}${group.descripcion ? ` <span class="sm">· ${escapeHtml(group.descripcion)}</span>` : ""}</label>
       <div class="opciones">${group.valores.map((value27) => button2(index, group, value27, false)).join("")}</div>`).join("")}`;
   }
@@ -55174,13 +55174,13 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     </div><label>${t("visit.record.howItWas")}</label>
     <div class="segs" id="vmodo" role="group" aria-label="${t("visit.record.howItWas")}">${modeButtons("vmodo", "presencial")}</div>${productsHtml3(data.products)}
     ${resultsHtml2(index, results, others)}
-    <div class="g2" style="margin-top:6px">
+    <div class="g2 u-mt-6">
       <div><label for="vpa">${t("visit.edit.nextAction")}</label><input id="vpa" placeholder="${t("visit.record.nextActionPlaceholder")}"></div>
       <div><label for="vpf">${t("visit.record.nextActionDate")}</label><input id="vpf" type="date"></div>
     </div>
-    ${samplesHtml3(data.samples, data.account.nombre)}<label for="vn">${t("visit.edit.note")}</label><textarea id="vn" rows="3"></textarea><div class="vfotosw"><label class="btn sec" id="vfotobtn" style="display:inline-flex">${icon("camera")} ${t("visit.photos.add")}<input type="file" id="vfotof" accept="image/*" data-fp="1" hidden multiple></label>
+    ${samplesHtml3(data.samples, data.account.nombre)}<label for="vn">${t("visit.edit.note")}</label><textarea id="vn" rows="3"></textarea><div class="vfotosw"><label class="btn sec u-inline-flex" id="vfotobtn">${icon("camera")} ${t("visit.photos.add")}<input type="file" id="vfotof" accept="image/*" data-fp="1" hidden multiple></label>
     <span class="sm">${t("visit.photos.hint", { max: visitLegacy.photosMax() })}</span><div class="vfotos" id="vfotos"></div></div>
-    <div class="acts" style="justify-content:flex-end">
+    <div class="acts u-end">
       <button class="btn sec" data-cerrar>${t("common.cancel")}</button>
       <button class="btn" id="vguardar">${t("visit.record.save", { visit: visit2 })}</button>
     </div>`;
@@ -55421,10 +55421,10 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     return `
     <div class="fh"><div><h2>${t("visit.settings.samplesTitle")}</h2><div class="sm">${t("visit.settings.samplesSubtitle", { visit: term("visita", { article: "un" }) })}</div></div>
       <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
-    <label class="opt" style="margin-top:10px"><input type="checkbox" id="murest" ${setting.restar_stock ? "checked" : ""}>
+    <label class="opt u-mt-10"><input type="checkbox" id="murest" ${setting.restar_stock ? "checked" : ""}>
       <span><b>${t("visit.settings.fromStock")}</b><br><span class="sm">${t("visit.settings.fromStockHint", { visit: term("visita", { article: "el" }) })}</span></span></label>
     <label for="muprod">${t("visit.settings.product")}</label><select id="muprod"><option value="">—</option>${products3.map((product) => `<option value="${product.id}" ${product.id === setting.producto_id ? "selected" : ""}>${escapeHtml(product.nombre)}</option>`).join("")}</select>
-    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>${t("common.cancel")}</button><button class="btn" id="muok">${t("common.save")}</button></div>`;
+    <div class="acts u-end"><button class="btn sec" data-cerrar>${t("common.cancel")}</button><button class="btn" id="muok">${t("common.save")}</button></div>`;
   }
   async function saveSamples3(box5) {
     const fromStock = document.getElementById("murest")?.checked ?? false, product = document.getElementById("muprod")?.value ?? "";
@@ -55550,7 +55550,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       <select id="eadm"><option value="hoy">${t("commissions.people.fromToday")}</option><option value="todo">${t("commissions.people.wholeHistory")}</option><option value="fecha">${t("commissions.people.fromDate")}</option></select>
       <span id="eadfw" class="hide"><input id="eadf" type="date" value="${todayIso()}"></span>
       <button type="button" class="btn sec" id="eaok">${t("commissions.people.assign")}</button></div>
-      <p class="sm" style="margin-top:6px">${t("commissions.people.lockedHint")}</p>`;
+      <p class="sm u-mt-6">${t("commissions.people.lockedHint")}</p>`;
   }
   var value25 = (id) => document.getElementById(id)?.value ?? "";
   async function assign2(schemeId, repaint5) {
@@ -55677,7 +55677,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
         ${this.fixed ? `<div><label for="efijo">${t("commissions.editor.eurosPerUnit")}</label><input id="efijo" type="number" step="0.01" min="0" value="${this.fixedValue}"></div>` : "<div></div>"}
       </div>
       ${this.tiersHtml()}
-      <div class="acts" style="justify-content:flex-end">
+      <div class="acts u-end">
         <button class="btn sec" data-cerrar>${t("commissions.editor.cancel")}</button>
         <button class="btn" id="eguardaresq">${t(this.id ? "commissions.editor.save" : "commissions.editor.create")}</button></div>`;
     }
@@ -55767,10 +55767,10 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
 
   // src/app/screens/commissions/settlements.ts
   var settlementFilters = { person: "", month: "" };
-  var rowHtml37 = (item) => `<div class="item" style="cursor:default" data-liqu="${item.usuario_id}" data-liqp="${item.periodo}">
+  var rowHtml37 = (item) => `<div class="item u-cursor-default" data-liqu="${item.usuario_id}" data-liqp="${item.periodo}">
       <span class="ic ${item.estado === SETTLEMENT.paid ? "o" : ""}">${item.estado === SETTLEMENT.draft ? "○" : "✓"}</span>
       <span class="tx"><b>${escapeHtml(item.nombre)}</b><span class="sm">${t("commissions.page.settlementLine", { period: formatMonth(item.periodo), units: formatNumber(item.unidades), amount: formatCurrency(item.importe), state: escapeHtml(item.estado) })}</span></span>
-      <span class="acts" style="margin:0">
+      <span class="acts u-m-0">
         ${item.estado === SETTLEMENT.draft ? `<button class="btn sec" data-liq="${item.usuario_id}|${item.periodo}|${SETTLEMENT.approved}">${t("commissions.page.approve")}</button>` : ""}
         ${item.estado === SETTLEMENT.approved ? `<button class="btn sec" data-liq="${item.usuario_id}|${item.periodo}|${SETTLEMENT.paid}">${t("commissions.page.markPaid")}</button>` : ""}
       </span></div>`;
@@ -55879,13 +55879,13 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   }
   function schemeRow(scheme) {
     const people = scheme.personas ?? [];
-    return `<div class="item" style="cursor:default">
+    return `<div class="item u-cursor-default">
       <span class="ic">${scheme.calculo === FIXED2 ? "€" : "▤"}</span>
       <span class="tx"><b>${escapeHtml(scheme.nombre)}</b><span class="sm">
         ${t(scheme.atribucion === CLOSES ? "commissions.page.perSale" : "commissions.page.perPortfolio")} ·
         ${howItCounts(scheme)}
         ${people.length ? ` · ${people.map(escapeHtml).join(", ")}` : t("commissions.page.unassigned")}</span></span>
-      <span class="acts" style="margin:0"><button class="btn sec chico" data-esq="${scheme.id}">${t("commissions.page.edit")}</button></span></div>`;
+      <span class="acts u-m-0"><button class="btn sec chico" data-esq="${scheme.id}">${t("commissions.page.edit")}</button></span></div>`;
   }
   function pageHtml20(all2) {
     const list = schemes2();
@@ -56142,7 +56142,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     return `<input id="nvq" type="search" placeholder="${t("opportunities.editor.searchPlaceholder")}" autocomplete="off" value="${escapeHtml(typed2)}"><div class="lista" id="nvres1"></div>
       <div class="acts" style="margin:6px 0 0;justify-content:flex-start"><button type="button" class="btn sec" id="nvalta">${t("opportunities.editor.newCard")}</button>
         ${source.id || draft.previous ? "" : `<button type="button" class="lnk" id="nvsin">${t("opportunities.editor.orderWithoutClient")}</button>`}</div>
-      ${draft.recording ? `<div class="sm" style="margin-top:4px">${t("opportunities.editor.nameIsEnough")}</div>` : ""}`;
+      ${draft.recording ? `<div class="sm u-mt-4">${t("opportunities.editor.nameIsEnough")}</div>` : ""}`;
   }
   function bindSearch5(draft) {
     const input12 = document.getElementById("nvq");
@@ -56206,7 +56206,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     return `<div class="llpaso" id="nvp2"><span class="lln">2</span><b>${t("opportunities.editor.wants")}</b>
       <div id="nvint"></div>
       <label>${t("opportunities.editor.reference", { Professional: term("medico", { capital: "C" }) })}</label><div id="nvmed"></div>
-      <div class="sm" style="margin-top:4px">${t("opportunities.editor.referenceHint")}</div>
+      <div class="sm u-mt-4">${t("opportunities.editor.referenceHint")}</div>
       <label>${t("opportunities.editor.howArrived")}</label><div class="chipsw" id="nvori">${chipsHtml(catalog("origen_oportunidad"), draft.origin, "data-nvo")}</div>
       <label>${t("opportunities.editor.reason")}</label><div class="chipsw" id="nvmot">${chipsHtml(catalog("motivo_llamada"), draft.reason, "data-nvm")}</div>
       <details class="llmas"><summary>${t("opportunities.editor.moreDetails")}</summary>
@@ -56220,9 +56220,9 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
         <label>${t("opportunities.editor.whyNoSale")}</label><div class="chipsw" id="nvres">${chipsHtml(results, draft.result, "data-nvr")}</div>
         <div class="sm" style="margin:8px 0 4px">${t("opportunities.callAgainWhen")}</div>
         <div class="chipsw">${followUpButtons("nvd")}</div>
-        <div class="g2" style="margin-top:6px"><div><input id="nvpf" type="date" value="${escapeHtml(orFallback(draft.source.proxima_fecha, ""))}" aria-label="${t("opportunities.callAgainOn")}"></div>
+        <div class="g2 u-mt-6"><div><input id="nvpf" type="date" value="${escapeHtml(orFallback(draft.source.proxima_fecha, ""))}" aria-label="${t("opportunities.callAgainOn")}"></div>
           <div><input id="nvpa" value="${escapeHtml(orFallback(draft.source.proxima_accion, ""))}" placeholder="${t("opportunities.whatToDoPlaceholder")}" aria-label="${t("opportunities.whatToDo")}"></div></div>
-        <div id="nvperd" class="sm" style="margin-top:6px"></div>
+        <div id="nvperd" class="sm u-mt-6"></div>
         <div class="acts" style="margin:8px 0 0;justify-content:flex-start"><button type="button" class="btn" id="nvnook">${t("opportunities.editor.saveWithoutOrder")}</button></div></div>`;
   }
   function endsHtml(draft) {
@@ -56243,7 +56243,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     <div class="llpaso" id="nvp1"><span class="lln">1</span><b>${t("opportunities.editor.client")}</b><div id="nvcli"></div><div id="nvctx" class="nvctx"></div></div>
     ${wantsHtml(draft)}
     ${endsHtml(draft)}
-    <div class="acts" style="justify-content:flex-end;flex-wrap:wrap"><button class="btn sec" data-cerrar>${t("opportunities.editor.close")}</button>
+    <div class="acts u-end u-wrap"><button class="btn sec" data-cerrar>${t("opportunities.editor.close")}</button>
       ${saveChanges2}</div>`;
   }
 
@@ -56504,8 +56504,8 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   // src/app/screens/opportunities/follow-ups.ts
   var SHOWN6 = 20;
   function whenHtml(call2, today2) {
-    if (call2.proxima_fecha < today2) return `<b style="color:var(--dang)">${t("opportunities.list.late")}</b>`;
-    return call2.proxima_fecha === today2 ? `<b style="color:var(--warn)">${t("opportunities.list.today")}</b>` : `${formatShortDate(call2.proxima_fecha)} · `;
+    if (call2.proxima_fecha < today2) return `<b class="u-danger">${t("opportunities.list.late")}</b>`;
+    return call2.proxima_fecha === today2 ? `<b class="u-warn">${t("opportunities.list.today")}</b>` : `${formatShortDate(call2.proxima_fecha)} · `;
   }
   function iconStyle(call2, today2) {
     if (call2.proxima_fecha < today2) return "background:#FDECEC;color:var(--dang)";
@@ -56514,7 +56514,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   function rowHtml38(call2, today2) {
     const phone = orFallback(call2.tel_cliente, orFallback(call2.telefono, ""));
     const details2 = `${whenHtml(call2, today2)}${escapeHtml(orFallback(call2.resultado, ""))}${call2.proxima_accion ? ` · ${escapeHtml(call2.proxima_accion)}` : ""}${call2.medico ? t("opportunities.list.fromReference", { name: escapeHtml(call2.medico) }) : ""}`;
-    return `<div class="item" style="cursor:default">
+    return `<div class="item u-cursor-default">
         <span class="ic" style="${iconStyle(call2, today2)}">📞</span>
         <span class="tx"><b>${escapeHtml(orFallback(call2.cliente, orFallback(call2.nombre, t("opportunities.list.noName"))))}</b>
           <span class="sm">${details2}</span></span>
@@ -56692,7 +56692,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     const [stepIcon, title2, text5, screen3] = step, about = findSection(screen3)?.para;
     openDialog2(`<div class="fh"><div><h2>${stepIcon} ${escapeHtml(title2)}</h2><div class="sm">${t("manual.portal.firstSteps")}</div></div>${close4}</div>
       <p>${escapeHtml(text5)}</p>${about ? `<p class="sm">${escapeHtml(about)}</p>` : ""}
-      <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>${t("manual.portal.notNow")}</button>
+      <div class="acts u-end"><button class="btn sec" data-cerrar>${t("manual.portal.notNow")}</button>
         ${screen3 === "config" || manualLegacy.canOpenModule(screen3) ? `<button class="btn" id="mangoir">${t("manual.portal.takeMe")}</button>` : ""}</div>`);
     closeAndGo("mangoir", screen3, screen3 === "config" ? "prefs" : void 0);
   }
@@ -56975,7 +56975,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     <div class="g2"><div><label for="conimp">${t("tenders.editor.amount")}</label><input id="conimp" type="number" min="0" step="0.01" value="${isPresent(tender.importe_licitacion) ? Number(tender.importe_licitacion) : ""}"></div>
       <div><label for="conres">${t("tenders.editor.responsible")}</label><select id="conres">${people.map((person) => `<option value="${person.id}" ${person.id === tender.responsable_id ? "selected" : ""}>${escapeHtml(person.nombre)}</option>`).join("")}</select></div></div>
     <label for="conn">${t("tenders.editor.note")}</label><textarea id="conn" rows="2">${value27(tender.nota)}</textarea>
-    <div class="acts" style="justify-content:flex-end">${existing ? `<button type="button" class="btn sec peligro" id="conborrar">${t("tenders.editor.delete")}</button>` : ""}
+    <div class="acts u-end">${existing ? `<button type="button" class="btn sec peligro" id="conborrar">${t("tenders.editor.delete")}</button>` : ""}
       <button type="button" class="btn sec" data-cerrar>${t("tenders.editor.cancel")}</button><button type="button" class="btn" id="conok">${t(existing ? "tenders.editor.save" : "tenders.editor.create")}</button></div>`;
   }
   function row3(title2, account) {
@@ -57048,7 +57048,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
     <label for="convd">${t("tenders.warnings.days")}</label><input id="convd" value="${escapeHtml(newestFirst(tendersLegacy.warningDays()).join(", "))}" placeholder="90, 30">
     <p class="sm">${t("tenders.warnings.hint")}</p>
-    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>${t("tenders.warnings.cancel")}</button><button class="btn" id="convok">${t("tenders.warnings.save")}</button></div>`;
+    <div class="acts u-end"><button class="btn sec" data-cerrar>${t("tenders.warnings.cancel")}</button><button class="btn" id="convok">${t("tenders.warnings.save")}</button></div>`;
   }
   async function save44(box5) {
     const typed2 = document.getElementById("convd")?.value ?? "";
@@ -57294,7 +57294,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     <div class="evascab"><h3>${t("tenders.sheet.lots", { count: lots.length })}</h3><button type="button" class="btn sec" id="conlmas">${t("tenders.sheet.addLot")}</button></div>
     <div id="conlotes">${lots.length ? lots.map((lot) => lotHtml(lot, products3)).join("") : `<div class="vacio vlinea">${t("tenders.sheet.noLots")}</div>`}</div>
     ${tender.nota ? `<p class="sm">${escapeHtml(tender.nota)}</p>` : ""}
-    <div class="acts" style="justify-content:flex-end"><button type="button" class="btn sec" id="coneditar">${t("tenders.sheet.change")}</button><button type="button" class="btn" data-cerrar>${t("tenders.sheet.done")}</button></div>`;
+    <div class="acts u-end"><button type="button" class="btn sec" id="coneditar">${t("tenders.sheet.change")}</button><button type="button" class="btn" data-cerrar>${t("tenders.sheet.done")}</button></div>`;
   }
   var fail = (error) => {
     notices.toast(writeFailure(error, t("tenders.sheet.noPermission")), true);
@@ -57388,7 +57388,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     <label>${t("surgeries.editor.materialFrom")}</label>
     <div class="segs" id="cirori" role="group" aria-label="${t("surgeries.editor.materialFrom")}">${origins}</div>
     <label for="cirn">${t("surgeries.editor.note")}</label><textarea id="cirn" rows="2">${escapeHtml(surgery.nota ?? "")}</textarea>
-    <div class="acts" style="justify-content:flex-end">${existing ? `<button type="button" class="btn sec peligro" id="ciranular">${t("surgeries.editor.cancelSurgery")}</button>` : ""}
+    <div class="acts u-end">${existing ? `<button type="button" class="btn sec peligro" id="ciranular">${t("surgeries.editor.cancelSurgery")}</button>` : ""}
       <button type="button" class="btn sec" data-cerrar>${t("surgeries.editor.cancel")}</button><button type="button" class="btn" id="cirok">${t(existing ? "surgeries.editor.save" : "surgeries.editor.schedule")}</button></div>`;
   }
   function payload13(existing, centre, responsible, state2) {
@@ -57564,7 +57564,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     <span class="sm">${t("surgeries.use.hint")}</span>
     <div class="cirlin">${stock.map(lineHtml6).join("")}</div>
     <label for="cirref2">${t("surgeries.editor.caseReference", { patient: term("paciente", { article: "del" }) })}</label><input id="cirref2" maxlength="60" value="${escapeHtml(surgery.referencia_caso ?? "")}" placeholder="${t("surgeries.editor.caseReferencePlaceholder")}">
-    <div class="acts" style="justify-content:flex-end"><button type="button" class="btn" id="cirusok">${t("surgeries.use.save")}</button></div></div></details>`;
+    <div class="acts u-end"><button type="button" class="btn" id="cirusok">${t("surgeries.use.save")}</button></div></div></details>`;
     box5.querySelectorAll("[data-cu]").forEach((input12) => {
       input12.oninput = () => {
         paintSerials(box5, input12);
@@ -57611,7 +57611,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   }
   function actionsHtml11(surgery, replenishment, can2) {
     const scheduled = surgery.estado === STATES2.scheduled;
-    return `<div class="acts" style="justify-content:flex-end">${surgery.pedido_id ? `<button type="button" class="btn sec" id="cirped">${t("surgeries.sheet.seeOrder")}</button>` : ""}
+    return `<div class="acts u-end">${surgery.pedido_id ? `<button type="button" class="btn sec" id="cirped">${t("surgeries.sheet.seeOrder")}</button>` : ""}
       ${replenishment && replenishment !== "repuesta" && can2 ? `<button type="button" class="btn" id="cirrepo">${t("surgeries.sheet.replenishNow")}</button>` : ""}
       ${scheduled && can2 ? `<button type="button" class="btn sec" id="cireditar">${t("surgeries.sheet.change")}</button>` : ""}<button type="button" class="btn sec" data-cerrar>${t("common.close")}</button></div>`;
   }
@@ -57711,7 +57711,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     <label for="cicmeses">${t("cycle.editor.length")}</label><select id="cicmeses">${months2}</select>
     <div class="cicobj">${goals}</div>
     <p class="sm">${t("cycle.editor.zeroHint", words3())}</p>
-    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>${t("common.cancel")}</button><button class="btn" id="cicok">${t("common.save")}</button></div>`;
+    <div class="acts u-end"><button class="btn sec" data-cerrar>${t("common.cancel")}</button><button class="btn" id="cicok">${t("common.save")}</button></div>`;
   }
   async function save46(body4, box5) {
     const value27 = { meses: Number(document.getElementById("cicmeses")?.value) || DEFAULT_MONTHS };
@@ -58100,7 +58100,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
         <div class="sm">${t("ordersMore.indicators.subtitle")}</div></div>
         <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
       <div class="kcards">${list.map((item, index) => cardHtml13(item, index, list.length)).join("")}</div>
-      <div class="acts" style="justify-content:flex-end">
+      <div class="acts u-end">
         <button class="btn sec" id="kres">${t("ordersMore.indicators.restore")}</button>
         <button class="btn" id="kok">${t("ordersMore.indicators.save")}</button></div>`;
   }

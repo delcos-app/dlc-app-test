@@ -42,7 +42,7 @@ function formHtml(line: StockLine | null, kind: MovementKind, place: BatchPlace 
     ${kind === 'traspaso' ? `<label for="mvd">${t('products.movement.destination')}</label><select id="mvd">${options(destinations)}</select>` : ''}
     <div class="g2"><div><label for="mvu">${t(adjust ? 'products.movement.unitsSigned' : 'products.movement.units')}</label><input id="mvu" type="number" ${adjust ? '' : 'min="1"'}></div>
       <div><label for="mvn">${t('products.movement.note')}</label><input id="mvn" placeholder="${t(adjust ? 'products.movement.adjustPlaceholder' : 'products.movement.optional')}"></div></div>
-    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar2>${t('common.cancel')}</button><button class="btn" id="mvok">${t('products.movement.register')}</button></div>`;
+    <div class="acts u-end"><button class="btn sec" data-cerrar2>${t('common.cancel')}</button><button class="btn" id="mvok">${t('products.movement.register')}</button></div>`;
 }
 
 function payload(line: StockLine | null, kind: MovementKind, place: BatchPlace | undefined, units: number): Record<string, unknown> {

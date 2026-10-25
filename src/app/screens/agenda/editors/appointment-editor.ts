@@ -47,7 +47,7 @@ function windowHtml(day: string): string {
     </div>
     <div id="nccw"></div>
     <label for="ncn">${t('agenda.editor.notes')}</label><textarea id="ncn" rows="3" placeholder="${t('agenda.sheet.notesPlaceholder')}"></textarea>
-    <div class="acts" style="justify-content:flex-end">
+    <div class="acts u-end">
       <button class="btn sec" data-cerrar>${t('agenda.editor.cancel')}</button>
       <button class="btn" id="ncok">${t('agenda.editor.add')}</button></div>`;
 }

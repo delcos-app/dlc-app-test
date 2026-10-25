@@ -33,7 +33,7 @@ function editorHtml(surgery: Partial<Surgery>, existing: Surgery | null, people:
     <label>${t('surgeries.editor.materialFrom')}</label>
     <div class="segs" id="cirori" role="group" aria-label="${t('surgeries.editor.materialFrom')}">${origins}</div>
     <label for="cirn">${t('surgeries.editor.note')}</label><textarea id="cirn" rows="2">${escapeHtml(surgery.nota ?? '')}</textarea>
-    <div class="acts" style="justify-content:flex-end">${existing ? `<button type="button" class="btn sec peligro" id="ciranular">${t('surgeries.editor.cancelSurgery')}</button>` : ''}
+    <div class="acts u-end">${existing ? `<button type="button" class="btn sec peligro" id="ciranular">${t('surgeries.editor.cancelSurgery')}</button>` : ''}
       <button type="button" class="btn sec" data-cerrar>${t('surgeries.editor.cancel')}</button><button type="button" class="btn" id="cirok">${t(existing ? 'surgeries.editor.save' : 'surgeries.editor.schedule')}</button></div>`;
 }
 

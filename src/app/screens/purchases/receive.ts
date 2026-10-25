@@ -57,7 +57,7 @@ export function receivePurchase(id: string, detail: PurchaseDetail): void {
       <div class="sm">${t('purchases.receive.subtitle')}</div></div>
       <button class="x" data-cerrar aria-label="${t('common.close')}">✕</button></div>
     <div id="rclin">${pending.map(line => lineHtml(line, storeId)).join('')}</div>
-    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>${t('purchases.receive.cancel')}</button><button class="btn" id="rcok">${t('purchases.receive.record')}</button></div>`;
+    <div class="acts u-end"><button class="btn sec" data-cerrar>${t('purchases.receive.cancel')}</button><button class="btn" id="rcok">${t('purchases.receive.record')}</button></div>`;
   const box = document.getElementById('rclin'); if (!box) return;
   box.querySelectorAll<HTMLElement>('[data-rlmas]').forEach(button => {
     button.onclick = (): void => {

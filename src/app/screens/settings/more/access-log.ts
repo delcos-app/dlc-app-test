@@ -37,7 +37,7 @@ interface AccessEntry { usuario: string; evento: string; creado_en: string; agen
 function entryHtml(entry: AccessEntry): string {
   const entering = entry.evento === 'Entrada';
   const when = new Date(entry.creado_en).toLocaleString('es', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
-  return `<div class="item" style="cursor:default">
+  return `<div class="item u-cursor-default">
       <span class="ic ${entering ? 'o' : ''}">${entering ? '→' : '←'}</span>
       <span class="tx"><b>${escapeHtml(entry.usuario)}</b><span class="sm">${escapeHtml(entry.evento)} ·
         ${when}

@@ -44,7 +44,7 @@ function customerZoneHtml(state: EditorState): string {
       <div id="zonapac" class="${state.form.canal === CHANNELS.centre ? 'escentro' : ''}">
         <label class="solopac">${term('paciente', { capital: 'C' })}</label><div id="pselpac" class="solopac"></div>
         <label><span class="solopac">${t('ordersMore.editor.reference', { Professional: term('medico', { capital: 'C' }) })}</span><span class="solocen">${t('ordersMore.editor.buyingCentre')}</span></label><div id="pselmed"></div>
-        <div class="sm" style="margin-top:4px"><span class="solopac">${t('ordersMore.editor.leaveName')}</span><span class="solocen">${t('ordersMore.editor.pickCentre')}</span></div>
+        <div class="sm u-mt-4"><span class="solopac">${t('ordersMore.editor.leaveName')}</span><span class="solocen">${t('ordersMore.editor.pickCentre')}</span></div>
         <label class="opt solopac prepbox"><input type="checkbox" id="prepprof" ${state.form.reportar ? 'checked' : ''}> ${t('ordersMore.editor.report', { toProfessional })}</label>
       </div>`;
 }
@@ -66,7 +66,7 @@ function linesHtml(state: EditorState): string {
   return `
       <label>${t('ordersMore.editor.lines')}</label>
       <div id="plineas">${state.lines.map((line, index) => lineHtml(line, index, state.lines.length)).join('')}</div>
-      <div class="acts" style="margin-top:0"><button type="button" class="btn sec" id="plmas">${t('ordersMore.editor.addLine')}</button></div>
+      <div class="acts u-mt-0"><button type="button" class="btn sec" id="plmas">${t('ordersMore.editor.addLine')}</button></div>
       <div class="pscbox"><label class="opt"><input type="checkbox" id="psincargo" ${state.form.sin_cargo ? 'checked' : ''}> ${t('ordersMore.editor.free')}</label>
         <span class="sm">${t('ordersMore.editor.freeHint', { toProfessional })}</span></div>`;
 }
@@ -100,7 +100,7 @@ function paymentHtml(state: EditorState): string {
           ${orderEditorLegacy.help(t('ordersMore.editor.transferHelpTitle'), t('ordersMore.editor.transferHelp'))}</span>
         <span id="ptpvbox" class="pagoacc ${showsCardLink(state, form.forma_pago) ? '' : 'hide'}"><button type="button" class="btn sec" id="ptpvenv">${t('ordersMore.editor.sendPaymentLink')}</button>
           ${orderEditorLegacy.help(t('ordersMore.editor.cardHelpTitle'), t('ordersMore.editor.cardHelp'))}</span>
-        <div><label>${t('ordersMore.editor.receipt')}</label><label class="btn sec" style="display:inline-flex">${t('ordersMore.editor.attach')}<input id="pjus" type="file" accept="image/*,application/pdf" data-fp="1" hidden></label>
+        <div><label>${t('ordersMore.editor.receipt')}</label><label class="btn sec u-inline-flex">${t('ordersMore.editor.attach')}<input id="pjus" type="file" accept="image/*,application/pdf" data-fp="1" hidden></label>
           <div class="sm" id="pjusl">${receiptsHtml(state)}</div></div>
       </div>`;
 }
@@ -111,7 +111,7 @@ function serviceHtml(state: EditorState): string {
     .map(service => `<option value="${service.id}" ${form.servicio_id === service.id ? 'selected' : ''}>${t('ordersMore.editor.serviceOption', { name: escapeHtml(service.nombre), price: euros(service.pvp ?? 0) })}</option>`).join('');
   return `
       <div class="envbox">
-        <label for="pserv" style="margin-top:0">${t('ordersMore.editor.service')}</label>
+        <label for="pserv" class="u-mt-0">${t('ordersMore.editor.service')}</label>
         <select id="pserv"><option value="">${t('ordersMore.editor.noService')}</option>${options}</select>
         <input type="checkbox" id="penv" class="hide" ${form.envio ? 'checked' : ''}>
         <div class="g2 ${form.envio ? '' : 'hide'}" id="penvd">
@@ -125,7 +125,7 @@ function footerHtml(state: EditorState): string {
   return `
       <div class="totbox" id="ptot"></div>
       <label for="pnota">${t('ordersMore.editor.note')}</label><input id="pnota" value="${escapeHtml(state.form.nota)}">
-      <div class="acts" style="justify-content:flex-end">
+      <div class="acts u-end">
         <button class="btn sec" data-cerrar>${t('ordersMore.editor.cancel')}</button>
         <button class="btn sec ${confirmed ? 'hide' : ''}" id="pborr">${t('ordersMore.editor.saveDraft')}</button>
         <button class="btn" id="pvalid">${t(confirmed ? 'ordersMore.editor.saveChanges' : 'ordersMore.editor.saveAndConfirm')}</button></div>`;

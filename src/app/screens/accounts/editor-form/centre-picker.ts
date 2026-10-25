@@ -62,7 +62,7 @@ export function markLocated(box: HTMLElement, index: string, point: { lat: numbe
   };
   set('lat', point.lat); set('lon', point.lon);
   const state = box.querySelector('.cubest');
-  if (state) state.innerHTML = `<b style="color:var(--ok)">${t('accountsEditor.picker.located')}</b> ${escapeHtml(text)} <a href="https://www.openstreetmap.org/?mlat=${point.lat}&mlon=${point.lon}#map=18/${point.lat}/${point.lon}" target="_blank" rel="noopener">${t('accountsEditor.picker.seeOnMap')}</a>`;
+  if (state) state.innerHTML = `<b class="u-ok">${t('accountsEditor.picker.located')}</b> ${escapeHtml(text)} <a href="https://www.openstreetmap.org/?mlat=${point.lat}&mlon=${point.lon}#map=18/${point.lat}/${point.lon}" target="_blank" rel="noopener">${t('accountsEditor.picker.seeOnMap')}</a>`;
   markDirty(box);
 }
 

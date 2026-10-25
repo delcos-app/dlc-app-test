@@ -43,7 +43,7 @@ export async function loadTeamView(): Promise<void> {
   if (permissions.seesEverything() && !salesTeam.members().length) await salesTeam.load().catch(() => undefined);
   if (currentScreen() !== 'agenda' || legacyAgendaParts.mode() !== 'equipo' || !view) return;
   view.classList.remove('agunida', 'agcinta', 'agb', 'agn');
-  view.innerHTML = `<div class="saludo"><div><h1>${t('agenda.title')}</h1><div class="fecha" id="agtit">${t('agenda.team.title')}</div></div><div class="acts" style="margin:0"></div></div>
+  view.innerHTML = `<div class="saludo"><div><h1>${t('agenda.title')}</h1><div class="fecha" id="agtit">${t('agenda.team.title')}</div></div><div class="acts u-m-0"></div></div>
     <div class="card" id="agcuerpo"></div>`;
   ensureTeamControls();
   await legacyAgendaPaint.team();

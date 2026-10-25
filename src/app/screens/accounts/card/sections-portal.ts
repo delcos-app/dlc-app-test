@@ -20,7 +20,7 @@ const canShow = (id: string, blockId: string): boolean =>
 const shortDateTime = (value: string): string => new Date(value).toLocaleString(t('dates.locale'), { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
 
 function requestRow(request: MaterialRequest): string {
-  return `<div class="item" style="cursor:default"><span class="tx"><b>${formatNumber(request.cantidad)} × ${escapeHtml(request.material)}</b>
+  return `<div class="item u-cursor-default"><span class="tx"><b>${formatNumber(request.cantidad)} × ${escapeHtml(request.material)}</b>
         <span class="sm">${t('accounts.portal.requested', { date: shortDateTime(request.creado_en) })}${request.nota ? ` · ${escapeHtml(request.nota)}` : ''}</span></span>${portalLegacy.materialPill(request.estado)}
         ${request.estado === PENDING ? `<button type="button" class="btn chico" data-fpent="${request.id}">${t('accounts.portal.delivered')}</button>` : ''}</div>`;
 }
@@ -87,7 +87,7 @@ export async function portalActivity(id: string): Promise<void> {
 function productRow(product: CatalogProduct, chosen: ReadonlyMap<string, { precio?: number | null }>): string {
   const own = chosen.get(product.id), name = escapeHtml(product.nombre);
   const tariff = product.precio !== null && product.precio !== undefined ? portalLegacy.euros(product.precio) : '—';
-  return `<label class="item" style="cursor:default"><input type="checkbox" data-fpcp="${product.id}" ${own ? 'checked' : ''}>
+  return `<label class="item u-cursor-default"><input type="checkbox" data-fpcp="${product.id}" ${own ? 'checked' : ''}>
         <span class="tx"><b>${name}</b><span class="sm">${t('accounts.portal.tariff', { price: tariff })}</span></span>
         <input type="number" min="0" step="0.01" data-fpcx="${product.id}" value="${own?.precio !== null && own?.precio !== undefined ? Number(own.precio) : ''}" placeholder="${t('accounts.portal.tariffPlaceholder')}" style="max-width:120px" aria-label="${t('accounts.portal.priceFor', { name })}"></label>`;
 }

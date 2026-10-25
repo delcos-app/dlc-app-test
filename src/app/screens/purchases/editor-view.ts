@@ -27,7 +27,7 @@ function supplierHtml(editor: PurchaseEditor): string {
   return `<div class="g2">
         <div><label for="cpprov">${t('purchases.editor.supplier')}</label><select id="cpprov" ${off}>
           ${suppliers}</select></div>
-        <div class="g2" style="margin:0">
+        <div class="g2 u-m-0">
           <div><label for="cpfecha">${t('purchases.editor.date')}</label><input id="cpfecha" type="date" value="${escapeHtml(orFallback(purchase.fecha, todayIso()))}" ${off}></div>
           <div><label for="cpprev">${t('purchases.editor.expected')}</label><input id="cpprev" type="date" value="${escapeHtml(purchase.fecha_prevista ?? '')}" ${off}></div></div>
       </div>`;
@@ -70,7 +70,7 @@ function buttonsHtml(editor: PurchaseEditor): string {
     editable ? `<button class="btn sec" id="cpguardar">${t(state === STATES.draft ? 'purchases.editor.saveDraft' : 'purchases.editor.saveChanges')}</button>` : '',
     ...stepButtons(editor),
   ];
-  return `<div class="acts" style="justify-content:flex-end;flex-wrap:wrap">
+  return `<div class="acts u-end u-wrap">
         <button class="btn sec" data-cerrar>${t('purchases.editor.close')}</button>
         ${buttons.join('\n        ')}
       </div>`;
@@ -83,7 +83,7 @@ export function editorHtml(editor: PurchaseEditor): string {
       ${supplierHtml(editor)}
       <label>${t('purchases.editor.products')}</label>
       <div id="cplin">${editor.lines.map((line, index) => lineHtml(editor, line, index)).join('')}</div>
-      ${editor.editable ? `<div class="acts" style="margin-top:0"><button type="button" class="btn sec" id="cpmas">${t('purchases.editor.addProduct')}</button></div>` : ''}
+      ${editor.editable ? `<div class="acts u-mt-0"><button type="button" class="btn sec" id="cpmas">${t('purchases.editor.addProduct')}</button></div>` : ''}
       <div class="g2">
         <div><label for="cpport">${t('purchases.editor.shipping')}</label><input id="cpport" type="number" step="0.01" min="0" value="${purchase.portes ? String(purchase.portes) : 0}" ${off}></div>
         <div><label for="cpnota">${t('purchases.editor.note')}</label><input id="cpnota" value="${escapeHtml(purchase.nota ?? '')}" ${off}></div></div>

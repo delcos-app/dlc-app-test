@@ -11,18 +11,18 @@ const SEARCH_URL = 'https://nominatim.openstreetmap.org/search?format=json&limit
 const GPS_TIMEOUT_MS = 15000, GPS_DECIMALS = 6, SHOWN_ADDRESS_PARTS = 3;
 const KEYS = { start: 'salida', end: 'llegada' } as const;
 
-const located = (text: string): string => `<b style="color:var(--ok)">${t('settings.preferences.located')}</b> ${text}`;
+const located = (text: string): string => `<b class="u-ok">${t('settings.preferences.located')}</b> ${text}`;
 
 function placeCard(key: string, place: Place | null, title: string, hint: string): string {
   return `<div class="card" style="padding-top:16px;padding-bottom:16px">
-    <h2 style="padding:0">${title}</h2><p class="sm" style="padding:0">${hint}</p>
-    <div class="g2" style="margin-top:10px">
+    <h2 class="u-p-0">${title}</h2><p class="sm u-p-0">${hint}</p>
+    <div class="g2 u-mt-10">
       <div><label>${t('settings.preferences.name')}</label><input data-pn="${key}" value="${escapeHtml(place?.nombre ?? '')}" placeholder="${t('settings.preferences.namePlaceholder')}"></div>
       <div><label>${t('settings.preferences.address')}</label><input data-pd="${key}" value="${escapeHtml(place?.dir ?? '')}" placeholder="${t('settings.preferences.addressPlaceholder')}"></div>
     </div>
-    <div class="sm" style="margin-top:8px" data-pe="${key}">${place?.lat
+    <div class="sm u-mt-8" data-pe="${key}">${place?.lat
       ? located(escapeHtml(place.dir))
-      : `<span style="color:var(--warn)">${t('settings.preferences.notLocated')}</span>`}</div>
+      : `<span class="u-warn">${t('settings.preferences.notLocated')}</span>`}</div>
     <div class="acts"><button class="btn sec" data-pg="${key}">${t('settings.preferences.findAddress')}</button>
       <button class="btn sec" data-pgps="${key}">${t('settings.preferences.useLocation')}</button></div></div>`;
 }
@@ -100,7 +100,7 @@ export function paintPlaces(box: HTMLElement, repaint: () => void): void {
       ${placeCard(KEYS.start, start, t('settings.preferences.startTitle'), t('settings.preferences.startHint'))}
       ${placeCard(KEYS.end, end, t('settings.preferences.endTitle'), t('settings.preferences.endHint'))}
     </div>
-    <div class="acts" style="justify-content:flex-end"><button class="btn" id="pfguardar">${t('settings.preferences.save')}</button></div>`;
+    <div class="acts u-end"><button class="btn" id="pfguardar">${t('settings.preferences.save')}</button></div>`;
   const navigatorSelect = document.getElementById('navsel') as HTMLSelectElement | null;
   if (navigatorSelect) navigatorSelect.onchange = (): void => { settingsLegacy.changeNavigator(navigatorSelect.value); };
   box.querySelectorAll<HTMLButtonElement>('[data-pg]').forEach(button => { button.onclick = (): void => { void findAddress(box, button); }; });

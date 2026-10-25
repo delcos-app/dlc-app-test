@@ -29,7 +29,7 @@ function editorHtml(value: ClassifierValue): string {
       <div id="dtlw"><label for="dtl">${t('settingsMore.valueData.options')} <span class="sm">${t('settingsMore.valueData.onePerLine')}</span></label>
         <textarea id="dtl" rows="4">${escapeHtml((value.dato_opciones ?? []).join('\n'))}</textarea></div>
     </div>
-    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar2>${t('common.cancel')}</button><button class="btn" id="dtok">${t('common.save')}</button></div>`;
+    <div class="acts u-end"><button class="btn sec" data-cerrar2>${t('common.cancel')}</button><button class="btn" id="dtok">${t('common.save')}</button></div>`;
 }
 
 function showParts(): void {

@@ -14,10 +14,10 @@ function samplesHtml(setting: SamplesSetting, products: readonly CatalogProduct[
   return `
     <div class="fh"><div><h2>${t('visit.settings.samplesTitle')}</h2><div class="sm">${t('visit.settings.samplesSubtitle', { visit: term('visita', { article: 'un' }) })}</div></div>
       <button class="x" data-cerrar aria-label="${t('common.close')}">✕</button></div>
-    <label class="opt" style="margin-top:10px"><input type="checkbox" id="murest" ${setting.restar_stock ? 'checked' : ''}>
+    <label class="opt u-mt-10"><input type="checkbox" id="murest" ${setting.restar_stock ? 'checked' : ''}>
       <span><b>${t('visit.settings.fromStock')}</b><br><span class="sm">${t('visit.settings.fromStockHint', { visit: term('visita', { article: 'el' }) })}</span></span></label>
     <label for="muprod">${t('visit.settings.product')}</label><select id="muprod"><option value="">—</option>${products.map(product => `<option value="${product.id}" ${product.id === setting.producto_id ? 'selected' : ''}>${escapeHtml(product.nombre)}</option>`).join('')}</select>
-    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>${t('common.cancel')}</button><button class="btn" id="muok">${t('common.save')}</button></div>`;
+    <div class="acts u-end"><button class="btn sec" data-cerrar>${t('common.cancel')}</button><button class="btn" id="muok">${t('common.save')}</button></div>`;
 }
 
 async function saveSamples(box: HTMLDialogElement): Promise<void> {

@@ -24,7 +24,7 @@ function welcomeHtml(plan: { en_prueba?: boolean; periodo_fin?: string | null })
     <p>${t('access.welcome.intro')}</p>
     <div class="bienpasos">${steps}</div>
     ${plan.en_prueba ? `<p class="sm">${t('access.welcome.trialNote', { date: trialEnd })}</p>` : ''}
-    <div class="acts" style="justify-content:flex-end"><button class="btn" data-cerrar>${t('access.welcome.start')}</button></div>`;
+    <div class="acts u-end"><button class="btn" data-cerrar>${t('access.welcome.start')}</button></div>`;
 }
 
 function openStep(step: string): void {

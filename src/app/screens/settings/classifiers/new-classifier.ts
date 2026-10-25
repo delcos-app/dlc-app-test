@@ -43,7 +43,7 @@ function formHtml(values: readonly string[]): string {
       <label>${t('settings.newClassifier.values')}</label>
       <div id="ncv">${valuesHtml(values)}</div>
       <div class="acts"><button type="button" class="btn sec" id="ncmas">${t('settings.newClassifier.addValue')}</button></div>
-      <div class="acts" style="justify-content:flex-end">
+      <div class="acts u-end">
         <button class="btn sec" data-cerrar>${t('settings.newClassifier.cancel')}</button>
         <button class="btn" id="ncok2">${t('settings.newClassifier.create')}</button></div>`;
 }

@@ -18,7 +18,7 @@ let searchTimer: ReturnType<typeof setTimeout> | undefined;
 function baseHtml(): string {
   return `
     <div class="saludo"><div><h1>${t('orders.page.salesTitle')}</h1><div class="fecha">${t('orders.page.salesSubtitle')}</div></div>
-      <div class="acts" style="margin:0">${customersLegacy.canSell() ? `<button class="btn" id="pednuevo">${t('orders.page.newSale')}</button>` : ''}</div></div>
+      <div class="acts u-m-0">${customersLegacy.canSell() ? `<button class="btn" id="pednuevo">${t('orders.page.newSale')}</button>` : ''}</div></div>
     <div id="vcuerpo">
       <div class="panel">
         <div class="filtros">

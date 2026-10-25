@@ -15,7 +15,7 @@ interface MaterialRequest { id: string; material: string; cantidad: number; nota
 const PENDING = 'Pendiente', CANCELLED = 'Anulado';
 
 function requestRow(request: MaterialRequest): string {
-  return `<div class="item" style="cursor:default"><span class="tx"><b>${formatNumber(request.cantidad)} × ${escapeHtml(request.material)}</b>
+  return `<div class="item u-cursor-default"><span class="tx"><b>${formatNumber(request.cantidad)} × ${escapeHtml(request.material)}</b>
           <span class="sm">${shortDateTime(request.creado_en)}${request.nota ? ` · ${escapeHtml(request.nota)}` : ''}</span></span>${portalLegacy.materialPill(request.estado)}
           ${request.estado === PENDING ? `<button type="button" class="btn sec chico" data-mdanu="${request.id}">${t('portal.material.cancel')}</button>` : ''}</div>`;
 }
@@ -26,7 +26,7 @@ function askHtml(allowed: readonly Allowed[]): string {
   return `<div class="g2"><div><label for="mdmatm">${t('portal.material.material')}</label><select id="mdmatm">${allowed.map(item => `<option value="${escapeHtml(item.valor)}" data-max="${item.max}">${escapeHtml(item.valor)}</option>`).join('')}</select></div>
         <div><label for="mdmatn">${t('portal.material.quantity')}</label><input id="mdmatn" type="number" min="1" value="1"><span class="sm" id="mdmatmax">${t('portal.material.max', { max: formatNumber(first.max) })}</span></div></div>
         <label for="mdmatt">${t('portal.material.note')}</label><input id="mdmatt" placeholder="${t('portal.material.optional')}">
-        <div class="acts" style="justify-content:flex-start"><button type="button" class="btn" id="mdmatok">${t('portal.material.ask')}</button></div>`;
+        <div class="acts u-start"><button type="button" class="btn" id="mdmatok">${t('portal.material.ask')}</button></div>`;
 }
 
 function cardsHtml(allowed: readonly Allowed[], requests: readonly MaterialRequest[], messages: readonly PortalMessage[]): string {
@@ -38,7 +38,7 @@ function cardsHtml(allowed: readonly Allowed[], requests: readonly MaterialReque
     <div class="card ancard" id="mdmsg"><h2>${questionsTitle} ${helpButton(questionsTitle, t('portal.material.questionsHelp'))}</h2>
       <div id="mdhilo">${messageThread(messages, true)}</div>
       <textarea id="mdmsgt" rows="2" placeholder="${t('portal.material.questionPlaceholder')}" aria-label="${t('portal.material.questionLabel')}"></textarea>
-      <div class="acts" style="justify-content:flex-start"><button type="button" class="btn" id="mdmsgok">${t('portal.material.send')}</button></div></div>`;
+      <div class="acts u-start"><button type="button" class="btn" id="mdmsgok">${t('portal.material.send')}</button></div></div>`;
 }
 
 const value = (id: string): string => (document.getElementById(id) as HTMLInputElement | null)?.value ?? '';

@@ -42,7 +42,7 @@ const iconText = (action: string): string => (action === ADDED ? '+' : action ==
 const when = (date: string): string => new Date(date).toLocaleString('es', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 
 function rowHtml(entry: AuditEntry): string {
-  return `<div class="item" style="cursor:default">
+  return `<div class="item u-cursor-default">
       <span class="ic ${iconClass(entry.accion)}">${iconText(entry.accion)}</span>
       <span class="tx"><b>${escapeHtml(entry.accion)} · ${escapeHtml(entityName(entry.entidad))}</b>
         <span class="sm">${escapeHtml(entry.usuario)} · ${when(entry.creado_en)}</span>

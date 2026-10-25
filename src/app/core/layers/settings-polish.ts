@@ -50,7 +50,7 @@ function vocabularyCard(body: HTMLElement): void {
   if (!vocabulary || byId('mkvoccard')) return;
   body.insertAdjacentHTML('beforeend', `<div class="card cfgpanel" id="mkvoccard"><h2 style="padding:0 0 4px">${t('legacyD.polish.vocabularyTitle')}</h2>
         <p class="sm">${t('legacyD.polish.vocabularyHint')}</p>
-        <div id="mkvochueco"></div><div class="acts" style="justify-content:flex-end"><button type="button" class="btn" id="mkvocok">${t('common.save')}</button></div></div>`);
+        <div id="mkvochueco"></div><div class="acts u-end"><button type="button" class="btn" id="mkvocok">${t('common.save')}</button></div></div>`);
   const place = byId('mkvochueco'); if (!place) return;
   if (label) place.appendChild(label);
   place.appendChild(vocabulary);

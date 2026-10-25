@@ -63,7 +63,7 @@ class SchemeEditor {
         ${this.fixed ? `<div><label for="efijo">${t('commissions.editor.eurosPerUnit')}</label><input id="efijo" type="number" step="0.01" min="0" value="${this.fixedValue}"></div>` : '<div></div>'}
       </div>
       ${this.tiersHtml()}
-      <div class="acts" style="justify-content:flex-end">
+      <div class="acts u-end">
         <button class="btn sec" data-cerrar>${t('commissions.editor.cancel')}</button>
         <button class="btn" id="eguardaresq">${t(this.id ? 'commissions.editor.save' : 'commissions.editor.create')}</button></div>`;
   }

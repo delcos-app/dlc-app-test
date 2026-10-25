@@ -42,7 +42,7 @@ function galleryHtml(photos: readonly StoredPhoto[]): string {
       <button class="x" data-cerrar2 aria-label="${t('common.close')}">✕</button></div>
     <div class="vfotos grande">${photos.map(photo => `<span class="vfoto"><img alt="${escapeHtml(orFallback(photo.nombre, t('visit.photos.photoAlt')))}" src="data:${escapeHtml(photo.tipo)};base64,${photo.datos}">
       ${canDelete(photo) ? `<button type="button" class="vfquitar" data-vfdel="${photo.id}" aria-label="${t('visit.photos.delete')}">✕</button>` : ''}</span>`).join('')}</div>
-    <div class="acts" style="justify-content:flex-end"><label class="btn sec" style="display:inline-flex">${icon('camera')} ${t('visit.photos.add')}<input type="file" id="vfmas" accept="image/*" data-fp="1" hidden multiple></label>
+    <div class="acts u-end"><label class="btn sec u-inline-flex">${icon('camera')} ${t('visit.photos.add')}<input type="file" id="vfmas" accept="image/*" data-fp="1" hidden multiple></label>
       <button type="button" class="btn" data-cerrar2>${t('visit.photos.done')}</button></div>`;
 }
 

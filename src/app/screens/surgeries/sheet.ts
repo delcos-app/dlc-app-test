@@ -53,7 +53,7 @@ function sheetHtml(detail: SurgeryDetail, notice: string): string {
 
 function actionsHtml(surgery: Surgery, replenishment: Replenishment, can: boolean): string {
   const scheduled = surgery.estado === STATES.scheduled;
-  return `<div class="acts" style="justify-content:flex-end">${surgery.pedido_id ? `<button type="button" class="btn sec" id="cirped">${t('surgeries.sheet.seeOrder')}</button>` : ''}
+  return `<div class="acts u-end">${surgery.pedido_id ? `<button type="button" class="btn sec" id="cirped">${t('surgeries.sheet.seeOrder')}</button>` : ''}
       ${replenishment && replenishment !== 'repuesta' && can ? `<button type="button" class="btn" id="cirrepo">${t('surgeries.sheet.replenishNow')}</button>` : ''}
       ${scheduled && can ? `<button type="button" class="btn sec" id="cireditar">${t('surgeries.sheet.change')}</button>` : ''}<button type="button" class="btn sec" data-cerrar>${t('common.close')}</button></div>`;
 }

@@ -55,7 +55,7 @@ function markMissing(errors: readonly (readonly [string, MessageKey])[]): void {
     element.classList.add('conerr'); (element.closest('.selw, .numw') ?? element).insertAdjacentHTML('afterend', `<span class="campoerr">${t(key)}</span>`);
   }
   if (!errors.length) return;
-  message(`<b style="color:var(--dang)">${errors.length === 1 ? t('settingsExtra.email.oneMissing') : t('settingsExtra.email.manyMissing', { count: errors.length })}</b>${t('settingsExtra.email.reviewMarked')}`);
+  message(`<b class="u-danger">${errors.length === 1 ? t('settingsExtra.email.oneMissing') : t('settingsExtra.email.manyMissing', { count: errors.length })}</b>${t('settingsExtra.email.reviewMarked')}`);
   const first = errors[0]; if (first) input(first[0])?.focus();
 }
 
@@ -72,7 +72,7 @@ function reasonOf(error: unknown, result: { error?: string } | null): string {
 
 function showFailure(reason: string): void {
   const failure = failureText(reason), detail = reason && !failure.includes(reason) ? `<span class="errtec">${escapeHtml(t('settingsExtra.email.technicalDetail', { reason }))}</span>` : '';
-  message(`<b style="color:var(--dang)">${escapeHtml(failure)}</b>${detail}`);
+  message(`<b class="u-danger">${escapeHtml(failure)}</b>${detail}`);
   notices.toast(failure, true);
 }
 
@@ -83,7 +83,7 @@ async function save(config: EmailConfig): Promise<boolean> {
   const { data: result, error } = await legacyDb().rpc<{ ok?: boolean; error?: string }>('guardar_correo', { p: value, p_clave: password || null });
   if (error || result?.ok === false) { showFailure(reasonOf(error, result)); return false; }
   if (password) config.hay_clave = true;
-  message(`<b style="color:var(--ok)">${t('settingsExtra.email.saved')}</b>`);
+  message(`<b class="u-ok">${t('settingsExtra.email.saved')}</b>`);
   const field = input('copass'); if (field) { field.value = ''; field.placeholder = t('settingsExtra.email.passwordSaved'); }
   notices.toast(t('settingsExtra.email.savedToast')); return true;
 }

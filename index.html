@@ -4707,6 +4707,27 @@ html body :is(.pagtabs, .subnav, .pmtabs)::-webkit-scrollbar{display:none}
 @media (min-width:761px){
   html:not(#_s) body :is(.vtot:not(.usrres), #atot) > .kpi{font-size:13.5px;color:#4A617A;background:transparent;border-radius:0}
 }
+/* v2.430.0 (D-043): utilidades (una declaración cada una; sustituyen estilos en línea) */
+html:not(#_s) body :is(.u-end, #_u#_u#_u#_u#_u){justify-content:flex-end}
+html:not(#_s) body :is(.u-start, #_u#_u#_u#_u#_u){justify-content:flex-start}
+html:not(#_s) body :is(.u-between, #_u#_u#_u#_u#_u){justify-content:space-between}
+html:not(#_s) body :is(.u-wrap, #_u#_u#_u#_u#_u){flex-wrap:wrap}
+html:not(#_s) body :is(.u-flex, #_u#_u#_u#_u#_u){display:flex}
+html:not(#_s) body :is(.u-inline-flex, #_u#_u#_u#_u#_u){display:inline-flex}
+html:not(#_s) body :is(.u-gap-8, #_u#_u#_u#_u#_u){gap:8px}
+html:not(#_s) body :is(.u-flex-1, #_u#_u#_u#_u#_u){flex:1}
+html:not(#_s) body :is(.u-m-0, #_u#_u#_u#_u#_u){margin:0}
+html:not(#_s) body :is(.u-p-0, #_u#_u#_u#_u#_u){padding:0}
+html:not(#_s) body :is(.u-mt-0, #_u#_u#_u#_u#_u){margin-top:0}
+html:not(#_s) body :is(.u-mt-4, #_u#_u#_u#_u#_u){margin-top:4px}
+html:not(#_s) body :is(.u-mt-6, #_u#_u#_u#_u#_u){margin-top:6px}
+html:not(#_s) body :is(.u-mt-8, #_u#_u#_u#_u#_u){margin-top:8px}
+html:not(#_s) body :is(.u-mt-10, #_u#_u#_u#_u#_u){margin-top:10px}
+html:not(#_s) body :is(.u-mt-12, #_u#_u#_u#_u#_u){margin-top:12px}
+html:not(#_s) body :is(.u-cursor-default, #_u#_u#_u#_u#_u){cursor:default}
+html:not(#_s) body :is(.u-ok, #_u#_u#_u#_u#_u){color:var(--ok)}
+html:not(#_s) body :is(.u-warn, #_u#_u#_u#_u#_u){color:var(--warn)}
+html:not(#_s) body :is(.u-danger, #_u#_u#_u#_u#_u){color:var(--dang)}
 @media (max-width:760px){
   html:not(#_s) body :is(#v-inicio .saludo h1#hola){font-size:24px}
   html:not(#_s) body :is(#v-informe .medhero h1, .planhero h1, .manhero h1):not(:is(#v-inicio .saludo h1#hola)){font-size:24px}
@@ -5058,6 +5079,6 @@ try{var co=sessionStorage.getItem('dlc-cambio-org');if(co!==null||localStorage.g
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" integrity="sha384-NElt3Op+9NBMCYaef5HxeJmU4Xeard/Lku8ek6hoPTvYkQPh3zLIrJP7KiRocsxO" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js" integrity="sha384-TcHRA3zBbn+Lexh5n+Oil4guNPOS3rjNDpGRAN46u/s/mB2IZ50ceC6TYDU2yvgK" crossorigin="anonymous"></script>
 <script src="./config.js"></script>
-<script src="./app.js?v=2.429.0"></script>
+<script src="./app.js?v=2.430.0"></script>
 </body>
 </html>

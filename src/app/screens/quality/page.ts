@@ -21,7 +21,7 @@ function headerHtml(): string {
   const duplicates = canSeeDuplicates() ? `<button class="btn sec" id="caldup">${icon('copy')} ${t('quality.page.duplicates')}</button>` : '';
   return `<button class="cfgvolver visible" id="calvolver" type="button">‹ ${escapeHtml(accountListLegacy.contactsLabel())}</button>
     <div class="saludo"><div><h1>${t('quality.page.title')}</h1><div class="fecha">${t('quality.page.subtitle', { professional: term('medico') })}</div></div>
-      <div class="acts" style="margin:0">${duplicates}</div></div>`;
+      <div class="acts u-m-0">${duplicates}</div></div>`;
 }
 
 function pageHtml(): string {

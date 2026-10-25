@@ -37,7 +37,7 @@ function autoHtml(grid: Element, state: { texto?: string; facetas: Record<string
       <div class="htbloque"><h4>${t('panels.filters.searchTable')}</h4><input type="search" class="httexto" value="${escapeHtml(state.texto ?? '')}" placeholder="${t('panels.filters.searchPlaceholder')}"></div>
       ${facets.length ? `<div class="htbloque"><h4>${t('panels.filters.byColumn')}</h4><div class="htfacetas">${facetHtml}</div></div>` : ''}
       ${heads.filter(Boolean).length > 2 ? `<div class="htbloque"><h4>${t('panels.filters.columns')}</h4><div class="htcols">${columnHtml}</div></div>` : ''}
-      <div class="acts" style="margin:0;justify-content:flex-end"><button class="btn sec dang" type="button" data-htlimpiar>${icon('x')} ${t('panels.filters.clear')}</button></div>`;
+      <div class="acts u-m-0 u-end"><button class="btn sec dang" type="button" data-htlimpiar>${icon('x')} ${t('panels.filters.clear')}</button></div>`;
 }
 
 function bindAuto(section: Element, panel: Element, grid: HTMLElement, zone: Element): void {

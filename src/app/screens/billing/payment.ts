@@ -18,7 +18,7 @@ function formHtml(invoice: Invoice, pending: number): string {
       <div><label for="cbf">${t('billing.payment.date')}</label><input id="cbf" type="date" value="${todayIso()}"></div></div>
     <div class="g2"><div><label for="cbp">${t('billing.payment.method')}</label><select id="cbp">${methods}</select></div>
       <div><label for="cbn">${t('billing.payment.note')}</label><input id="cbn" placeholder="${t('billing.payment.optional')}"></div></div>
-    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar2>${t('common.cancel')}</button><button class="btn" id="cbok">${t('billing.payment.register')}</button></div>`;
+    <div class="acts u-end"><button class="btn sec" data-cerrar2>${t('common.cancel')}</button><button class="btn" id="cbok">${t('billing.payment.register')}</button></div>`;
 }
 
 async function save(invoice: Invoice, box: HTMLDialogElement): Promise<void> {

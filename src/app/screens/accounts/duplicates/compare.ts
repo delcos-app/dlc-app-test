@@ -43,7 +43,7 @@ function optionsHtml(view: Comparison): string {
 function fieldsHtml(view: Comparison): string {
   const { a, b } = view, goes = view.stays === a.id ? b : a, stays = view.stays === a.id ? a : b;
   const different = unifyFields().filter(([key]) => orFallback(a[key], '') !== orFallback(b[key], ''));
-  if (!different.length) return `<p class="sm" style="margin-top:12px">${t('accountsMore.compare.same')}</p>`;
+  if (!different.length) return `<p class="sm u-mt-12">${t('accountsMore.compare.same')}</p>`;
   const option = (key: string, side: 'queda' | 'va', account: Account): string =>
     `<button class="opt" data-campo="${key}|${side}" aria-pressed="${String(view.fields[key] === side)}"><span class="mk"></span>${escapeHtml(orFallback(account[key], t('accountsMore.compare.empty')))}</button>`;
   return `<div>${different.map(([key, label]) => `
@@ -67,7 +67,7 @@ function panelHtml(view: Comparison): string {
         <button class="btn sec" data-dver="${b.id}">${t('accountsMore.compare.seeCard', { code: escapeHtml(b.codigo) })}</button></div>
       ${fieldsHtml(view)}
       ${centresHtml(view.centres)}
-      <div class="acts" style="justify-content:flex-end">
+      <div class="acts u-end">
         <button class="btn sec" data-ddes="${pair}">${t('accountsMore.duplicates.notDuplicates')}</button>
         <button class="btn dang" id="duniok">${t('accountsMore.compare.unify')}</button></div></div>`;
 }

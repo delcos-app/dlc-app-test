@@ -34,11 +34,11 @@ export function callRecordHtml(state: CallState | null | undefined): string {
     <div id="kolseg" class="${needsFollowUp(call.resultado) ? '' : 'hide'}">
       <div class="sm" style="margin:8px 0 4px">${t('opportunities.callAgainWhen')}</div>
       <div class="chipsw">${followUpButtons('kold')}</div>
-      <div class="g2" style="margin-top:6px"><div><input id="kolpf" type="date" value="${escapeHtml(orFallback(call.proxima_fecha, ''))}" aria-label="${t('opportunities.callAgainOn')}"></div>
+      <div class="g2 u-mt-6"><div><input id="kolpf" type="date" value="${escapeHtml(orFallback(call.proxima_fecha, ''))}" aria-label="${t('opportunities.callAgainOn')}"></div>
         <div><input id="kolpa" value="${escapeHtml(orFallback(call.proxima_accion, ''))}" placeholder="${t('opportunities.whatToDoPlaceholder')}" aria-label="${t('opportunities.whatToDo')}"></div></div></div>
     <div class="g2"><div><label for="kold">${t('opportunities.callRecord.type')}</label><select id="kold"><option value="${INCOMING}" ${outgoing ? '' : 'selected'}>${t('opportunities.callRecord.incoming')}</option><option value="${OUTGOING}" ${outgoing ? 'selected' : ''}>${t('opportunities.callRecord.outgoing')}</option></select></div>
       <div><label for="kolno">${t('opportunities.callRecord.note')}</label><input id="kolno" value="${escapeHtml(orFallback(call.nota, ''))}"></div></div>
-    <div class="acts" style="margin-top:8px"><button type="button" class="btn sec" id="kosolo">${t('opportunities.callRecord.callOnly')}</button></div>
+    <div class="acts u-mt-8"><button type="button" class="btn sec" id="kosolo">${t('opportunities.callRecord.callOnly')}</button></div>
   </details>`;
 }
 

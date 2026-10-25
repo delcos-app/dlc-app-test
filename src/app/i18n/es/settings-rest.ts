@@ -117,7 +117,7 @@ export const settingsRest = {
     complete: 'Completa nombre, correo y contraseña',
     couldNotInvite: 'No se ha podido invitar: {error}',
     couldNotCreate: 'No se ha podido crear: {error}',
-    created: '<b style="color:var(--ok)">Usuario creado.</b> Contraseña temporal: <b>{password}</b>.\n      Pásasela y que la cambie al entrar. Si Supabase tiene activada la confirmación por correo, deberá confirmarlo primero.',
+    created: '<b class="u-ok">Usuario creado.</b> Contraseña temporal: <b>{password}</b>.\n      Pásasela y que la cambie al entrar. Si Supabase tiene activada la confirmación por correo, deberá confirmarlo primero.',
     fromDirectory: '{Professional} del directorio',
     directoryHint: 'Tendrá acceso solo a su informe y a sus avisos. No cuenta como usuario del plan.',
     findProfessional: 'Busca {toTheProfessional}',

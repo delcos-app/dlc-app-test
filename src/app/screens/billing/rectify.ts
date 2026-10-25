@@ -27,8 +27,8 @@ function formHtml(invoice: Invoice): string {
     <div class="opciones" style="grid-template-columns:minmax(0,1fr) minmax(0,1fr)"><label class="opt"><input type="radio" name="rft" value="total" checked> ${t('billing.rectify.whole')}</label>
       <label class="opt"><input type="radio" name="rft" value="parcial"> ${t('billing.rectify.someUnits')}</label></div>
     <div id="rflin" class="hide">${lines}</div>
-    ${invoice.pedido_id ? `<label class="opt" style="margin-top:10px"><input type="checkbox" id="rfan"> ${t('billing.rectify.cancelOrder')}</label>` : ''}
-    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar2>${t('common.cancel')}</button><button class="btn dang" id="rfok">${t('billing.rectify.issue')}</button></div>`;
+    ${invoice.pedido_id ? `<label class="opt u-mt-10"><input type="checkbox" id="rfan"> ${t('billing.rectify.cancelOrder')}</label>` : ''}
+    <div class="acts u-end"><button class="btn sec" data-cerrar2>${t('common.cancel')}</button><button class="btn dang" id="rfok">${t('billing.rectify.issue')}</button></div>`;
 }
 
 const reasonOf = (): string => (document.getElementById('rfm') as HTMLInputElement | null)?.value.trim() ?? '';

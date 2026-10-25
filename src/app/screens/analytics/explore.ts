@@ -31,7 +31,7 @@ function productsHtml(products: readonly Row[], totals: Totals, dimension: strin
   if (!(products.length > 1 || (products.length === 1 && dimension !== 'producto'))) return '';
   return `<div class="dgrid-wrap"><div class="dgrid aprod">
     <div class="dh"><span>${t('analytics.explore.byProduct')}</span><span class="num">${t('analytics.explore.unitsHead')}</span><span class="num">${t('analytics.explore.unitsShare')}</span><span class="num">${t('analytics.explore.amountHead')}</span></div>
-    ${products.map(product => `<div class="dr" style="cursor:default"><span><b>${escapeHtml(product.nombre)}</b></span><span class="num">${formatNumber(product.unidades)}</span>
+    ${products.map(product => `<div class="dr u-cursor-default"><span><b>${escapeHtml(product.nombre)}</b></span><span class="num">${formatNumber(product.unidades)}</span>
       <span class="num">${Math.round((product.unidades ?? 0) / ((totals.unidades ?? 0) || 1) * 100)}%</span><span class="num">${formatCurrency(product.importe)}</span></div>`).join('')}
   </div></div>`;
 }
@@ -52,7 +52,7 @@ function rankingHtml(rows: readonly Row[], totals: Totals, measure: string): str
   return `<div class="dgrid-wrap"><div class="dgrid arank">
     <div class="dh"><span>#</span><span>${escapeHtml(selectedText('adim'))}</span><span class="num">${t('analytics.explore.unitsHead')}</span>
       <span class="num">${t('analytics.explore.amountHead')}</span><span class="num">${t('analytics.explore.orders')}</span><span>${t('analytics.explore.weight')}</span></div>
-    ${rows.map((row, index) => `<div class="dr" style="cursor:default"><span class="sm">${index + 1}</span><span><b>${escapeHtml(row.nombre)}</b></span>
+    ${rows.map((row, index) => `<div class="dr u-cursor-default"><span class="sm">${index + 1}</span><span><b>${escapeHtml(row.nombre)}</b></span>
       <span class="num">${formatNumber(row.unidades)}</span><span class="num">${formatCurrency(row.importe)}</span><span class="num">${formatNumber(row.pedidos)}</span>
       <span class="barra"><i style="width:${share(row)}%"></i><em>${share(row)}%</em></span></div>`).join('')}
     <div class="dr dtot"><span></span><span><b>${t('analytics.explore.total')}</b></span><span class="num"><b>${formatNumber(totals.unidades)}</b></span>

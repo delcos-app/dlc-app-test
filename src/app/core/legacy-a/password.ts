@@ -28,7 +28,7 @@ function newPasswordWindow(): void {
     <div class="fh"><div><h2>${t('legacyA.password.newTitle')}</h2><div class="sm">${t('legacyA.password.newHint')}</div></div></div>
     <label for="np1">${t('legacyA.password.password')}</label><input id="np1" type="password">
     <label for="np2">${t('legacyA.password.repeat')}</label><input id="np2" type="password">
-    <div class="acts" style="justify-content:flex-end"><button class="btn" id="npok">${t('common.save')}</button></div>`;
+    <div class="acts u-end"><button class="btn" id="npok">${t('common.save')}</button></div>`;
   box.showModal();
   const ok = (byId('npok') as HTMLButtonElement | null);
   if (ok) ok.onclick = async (): Promise<void> => {

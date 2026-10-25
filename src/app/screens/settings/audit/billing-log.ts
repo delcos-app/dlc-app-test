@@ -11,7 +11,7 @@ interface BillingEvent { fecha: string; tipo: string; numero?: string | null; us
 
 const when = (date: string): string => new Date(date).toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' });
 
-const rowHtml = (event: BillingEvent): string => `<div class="dr" style="cursor:default"><span>${when(event.fecha)}</span><span><b>${escapeHtml(event.tipo)}</b></span>
+const rowHtml = (event: BillingEvent): string => `<div class="dr u-cursor-default"><span>${when(event.fecha)}</span><span><b>${escapeHtml(event.tipo)}</b></span>
       <span>${escapeHtml(orFallback(event.numero, '—'))}</span><span>${escapeHtml(orFallback(event.usuario, '—'))}</span><span class="sm corta">${escapeHtml(settingsLegacy.billingEventDetail(event.detalle))}</span></div>`;
 
 export async function paintBillingLog(): Promise<void> {

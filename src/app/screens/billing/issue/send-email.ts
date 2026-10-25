@@ -32,7 +32,7 @@ function formHtml(invoice: MailInvoice): string {
     <label for="efa">${t('billingMore.email.subject')}</label><input id="efa" value="${escapeHtml(billing2Legacy.mailTemplate('factura', 'asunto', values))}">
     <label for="eft">${t('billingMore.email.message')}</label><textarea id="eft" rows="12">${escapeHtml(billing2Legacy.mailTemplate('factura', 'texto', values))}</textarea>
     <div class="adjunto">📎 ${escapeHtml(pdfFileName(invoice))}</div>
-    <div class="acts" style="justify-content:flex-end;flex-wrap:wrap"><button class="btn sec" data-cerrar2>${t('billingMore.email.cancel')}</button>
+    <div class="acts u-end u-wrap"><button class="btn sec" data-cerrar2>${t('billingMore.email.cancel')}</button>
       <button class="btn" id="efok">${t('billingMore.email.send')}</button></div>`;
 }
 
@@ -67,11 +67,11 @@ function paintFallback({ invoice, doc, to, failure }: Fallback): void {
       <div class="sm">${failure === null ? t('billingMore.email.noSmtpText') : escapeHtml(failure)}</div></div>
       <button class="x" data-cerrar2 aria-label="${t('common.close')}">✕</button></div>
       <p>${t('billingMore.email.fromYourMail')}</p>
-      <div class="acts" style="flex-wrap:wrap">${canShare ? `<button class="btn" id="efsh">${t('billingMore.email.share')}</button>` : ''}
+      <div class="acts u-wrap">${canShare ? `<button class="btn" id="efsh">${t('billingMore.email.share')}</button>` : ''}
         <button class="btn ${canShare ? 'sec' : ''}" id="efdl">${t('billingMore.email.download')}</button>
         <a class="btn sec" href="${mailto}">${t('billingMore.email.openMail')}</a></div>
-      <label class="opt" style="margin-top:12px"><input type="checkbox" id="efmarca"> ${t('billingMore.email.alreadySent')}</label>
-      <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar2>${t('billingMore.email.close')}</button></div>`;
+      <label class="opt u-mt-12"><input type="checkbox" id="efmarca"> ${t('billingMore.email.alreadySent')}</label>
+      <div class="acts u-end"><button class="btn sec" data-cerrar2>${t('billingMore.email.close')}</button></div>`;
   const share = byId('efsh'); if (share) share.onclick = (): void => { navigator.share({ files: [file], title: invoice.numero ?? '', text: t('billingMore.email.shareText', { number: invoice.numero ?? '' }) }).catch(() => undefined); };
   const download = byId('efdl'); if (download) download.onclick = (): void => { doc.save(pdfFileName(invoice)); };
   const mark = byId('efmarca') as HTMLInputElement | null;

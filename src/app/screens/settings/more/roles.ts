@@ -29,7 +29,7 @@ function templatesHtml(roles: readonly string[]): string {
     <div class="nivleg">${legend}</div>
     <div class="dgrid-wrap"><table class="rolmat"><thead><tr><th>${t('settingsMore.roles.permission')}</th>${roles.map(role => `<th>${escapeHtml(role)}</th>`).join('')}</tr></thead>
       <tbody>${rows}</tbody></table></div>
-    <div class="acts" style="justify-content:flex-end;flex-wrap:wrap"><button class="btn sec" id="rolrest">${t('settingsMore.roles.reset')}</button><button class="btn" id="rolok">${t('settingsMore.roles.saveTemplates')}</button></div></div>`;
+    <div class="acts u-end u-wrap"><button class="btn sec" id="rolrest">${t('settingsMore.roles.reset')}</button><button class="btn" id="rolok">${t('settingsMore.roles.saveTemplates')}</button></div></div>`;
 }
 
 function permissionsHtml(roles: readonly string[], capabilities: readonly Capability[]): string {
@@ -39,7 +39,7 @@ function permissionsHtml(roles: readonly string[], capabilities: readonly Capabi
     <p class="sm">${t('settingsMore.roles.permissionsHint')}</p>
     <div class="dgrid-wrap"><table class="rolmat"><thead><tr><th>${t('settingsMore.roles.permission')}</th>${roles.map(role => `<th>${escapeHtml(role)}</th>`).join('')}</tr></thead>
       <tbody>${rows}</tbody></table></div>
-    <div class="acts" style="justify-content:flex-end"><button class="btn" id="rolpermok">${t('settingsMore.roles.savePermissions')}</button></div></div>`;
+    <div class="acts u-end"><button class="btn" id="rolpermok">${t('settingsMore.roles.savePermissions')}</button></div></div>`;
 }
 
 function readTemplates(box: HTMLElement): Record<string, Record<string, number>> {

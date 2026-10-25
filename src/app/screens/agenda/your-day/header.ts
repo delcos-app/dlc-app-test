@@ -63,7 +63,7 @@ export function headerHtml(summary: DaySummary): string {
   const dayMenu = summary.isFutureOrToday ? `<button type="button" class="kmv tddiamas" id="tddiamas" aria-label="${t('agenda.yourDay.dayOptions')}" title="${t('agenda.yourDay.dayOptionsTitle')}">${legacyIcons.line('mas')}</button>` : '';
   return `
     <div class="tdhead">
-      <div class="${summary.isFutureOrToday ? 'tdtitw' : ''}"><h2 style="padding:0">${title}</h2>${summary.mine > 1 ? compactButton(summary.compact) : ''}${dayMenu}
+      <div class="${summary.isFutureOrToday ? 'tdtitw' : ''}"><h2 class="u-p-0">${title}</h2>${summary.mine > 1 ? compactButton(summary.compact) : ''}${dayMenu}
         ${statsHtml(summary)}</div>
       ${actionsHtml(summary)}
     </div>`;
@@ -89,6 +89,6 @@ export function noFitHtml(noFit: NoFit): string {
 export function othersHtml(others: readonly DayAppointmentFull[]): string {
   if (!others.length) return '';
   return `<h3 class="tdotros">${t('agenda.yourDay.othersTitle', { count: others.length })}</h3>
-      <div class="lista">${others.map(item => `<div class="item" style="cursor:default"><span class="ic">${item.hora ? timeText(item.hora) : '·'}</span>
+      <div class="lista">${others.map(item => `<div class="item u-cursor-default"><span class="ic">${item.hora ? timeText(item.hora) : '·'}</span>
         <span class="tx"><b>${escapeHtml(item.nombre)}</b><span class="sm">${escapeHtml(item.usuario ?? '')} · ${statePill(item.estado)}</span></span></div>`).join('')}</div>`;
 }

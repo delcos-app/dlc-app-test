@@ -15,10 +15,10 @@ export interface Settlement { usuario_id: string; nombre: string; periodo: strin
 /** What the list shows (kept while the user moves around). */
 export const settlementFilters = { person: '', month: '' };
 
-const rowHtml = (item: Settlement): string => `<div class="item" style="cursor:default" data-liqu="${item.usuario_id}" data-liqp="${item.periodo}">
+const rowHtml = (item: Settlement): string => `<div class="item u-cursor-default" data-liqu="${item.usuario_id}" data-liqp="${item.periodo}">
       <span class="ic ${item.estado === SETTLEMENT.paid ? 'o' : ''}">${item.estado === SETTLEMENT.draft ? '○' : '✓'}</span>
       <span class="tx"><b>${escapeHtml(item.nombre)}</b><span class="sm">${t('commissions.page.settlementLine', { period: formatMonth(item.periodo), units: formatNumber(item.unidades), amount: formatCurrency(item.importe), state: escapeHtml(item.estado) })}</span></span>
-      <span class="acts" style="margin:0">
+      <span class="acts u-m-0">
         ${item.estado === SETTLEMENT.draft ? `<button class="btn sec" data-liq="${item.usuario_id}|${item.periodo}|${SETTLEMENT.approved}">${t('commissions.page.approve')}</button>` : ''}
         ${item.estado === SETTLEMENT.approved ? `<button class="btn sec" data-liq="${item.usuario_id}|${item.periodo}|${SETTLEMENT.paid}">${t('commissions.page.markPaid')}</button>` : ''}
       </span></div>`;

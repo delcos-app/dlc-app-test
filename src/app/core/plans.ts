@@ -73,7 +73,7 @@ function noticeHtml(title: string, plan: LegacyPlan | undefined, canChange: bool
     <button class="x" data-cerrar aria-label="${t('common.close')}">✕</button></div>
     <p>${t('core.plans.availableFrom', { plan: escapeHtml(plan ? plan.nombre : t('core.plans.custom')) })}${plan ? ` (${coreLegacy.planPrice(plan)})` : ''}.</p>
     ${plan ? `<ul class="manlist">${plan.ventajas.map(advantage => `<li><span>✓</span><span>${escapeHtml(advantage)}</span></li>`).join('')}</ul>` : ''}
-    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>${t('core.plans.notNow')}</button>${canChange ? `<button class="btn" id="vplan">${t('core.plans.seePlans')}</button>` : ''}</div>`;
+    <div class="acts u-end"><button class="btn sec" data-cerrar>${t('core.plans.notNow')}</button>${canChange ? `<button class="btn" id="vplan">${t('core.plans.seePlans')}</button>` : ''}</div>`;
 }
 
 function showNotice(html: string): void {

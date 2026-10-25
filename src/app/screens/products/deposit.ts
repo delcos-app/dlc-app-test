@@ -55,7 +55,7 @@ function sheetHtml(detail: DepositDetail, name: string, notice: string, lines: r
     <div id="depform"></div>
     ${tableHtml(lines)}
     ${historyHtml(detail)}
-    <div class="acts" style="justify-content:flex-end"><button type="button" class="btn sec" data-cerrar>${t('common.close')}</button></div>`;
+    <div class="acts u-end"><button type="button" class="btn sec" data-cerrar>${t('common.close')}</button></div>`;
 }
 
 export async function showDeposit(accountId: string, name: string, notice = ''): Promise<void> {

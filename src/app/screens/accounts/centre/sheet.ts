@@ -20,7 +20,7 @@ function professionalRow(item: CentreProfessional, canChange: boolean): string {
         <span class="tx"><b>${item.urgente ? '❗ ' : ''}${escapeHtml(item.nombre)}</b>
           <span class="sm">${escapeHtml([item.especialidad, where].filter(Boolean).join(' · ') || '—')}</span>
           ${days ? `<span class="sm">${escapeHtml(t('accountsMore.centre.attends', { days }))}</span>` : ''}</span>
-        <span class="acts" style="margin:0">
+        <span class="acts u-m-0">
           <button type="button" class="btn sec" data-fcf="${item.id}">${t('accountsMore.centre.card')}</button>
           <button type="button" class="btn sec" data-fcc="${item.id}">${t('accountsMore.centre.appointment')}</button>
           ${canChange ? `<button type="button" class="btn sec fcquitar" data-fcq="${item.id}" aria-label="${t('accountsMore.centre.removeLabel', { name: escapeHtml(item.nombre) })}">${t('accountsMore.centre.remove')}</button>` : ''}

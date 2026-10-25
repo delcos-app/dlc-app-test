@@ -38,15 +38,15 @@ function editorHtml(visit: CardVisit, extra: Extra): string {
     ${extraHtml(extra)}
     <label>${t('visit.edit.result')}</label>
     <div class="opciones">${resultButtons(results.filter(result => result.extra !== NEGATIVE), marked, false)}</div>
-    <div class="opciones" style="margin-top:8px">${resultButtons(results.filter(result => result.extra === NEGATIVE), marked, true)}</div>
-    <div class="g2" style="margin-top:6px">
+    <div class="opciones u-mt-8">${resultButtons(results.filter(result => result.extra === NEGATIVE), marked, true)}</div>
+    <div class="g2 u-mt-6">
       <div><label for="evpa">${t('visit.edit.nextAction')}</label><input id="evpa" value="${escapeHtml(visit.proxima_accion ?? '')}"></div>
       <div><label for="evpf">${t('visit.edit.date')}</label><input id="evpf" type="date" value="${escapeHtml(visit.proxima_fecha ?? '')}"></div>
     </div>
     <label for="evn">${t('visit.edit.note')}</label><textarea id="evn" rows="3">${escapeHtml(visit.nota ?? '')}</textarea>
-    <div class="acts" style="justify-content:space-between">
+    <div class="acts u-between">
       <button class="btn sec dang" id="evborrar">${t('visit.edit.delete', { visit: term('visita') })}</button>
-      <span class="acts" style="margin:0"><button class="btn sec" data-cerrar>${t('common.cancel')}</button>
+      <span class="acts u-m-0"><button class="btn sec" data-cerrar>${t('common.cancel')}</button>
         <button class="btn" id="evok">${t('common.save')}</button></span></div>`;
 }
 

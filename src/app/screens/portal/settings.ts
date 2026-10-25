@@ -26,7 +26,7 @@ async function saveSetting(value: PortalSetting): Promise<boolean> {
 }
 
 function materialRow(item: { valor: string }, chosen: Allowed | undefined): string {
-  return `<label class="item" style="cursor:default">
+  return `<label class="item u-cursor-default">
         <input type="checkbox" data-cfpm="${escapeHtml(item.valor)}" ${chosen ? 'checked' : ''}> <span class="tx"><b>${escapeHtml(item.valor)}</b></span>
         <span class="sm">${t('portal.settings.maximum')}</span> <input type="number" min="1" max="${MAX_LIMIT}" value="${chosen ? chosen.max : DEFAULT_MAX}" data-cfpx="${escapeHtml(item.valor)}" style="max-width:110px" aria-label="${t('portal.settings.maximumOf', { name: escapeHtml(item.valor) })}"></label>`;
 }
@@ -35,7 +35,7 @@ function materialHtml(catalog: readonly { valor: string }[], allowed: readonly A
   if (!catalog.length) return `<div class="vacio">${t('portal.settings.noCatalog')}</div>`;
   return `<div class="lista" id="cfpmat">${catalog.map(item => materialRow(item, allowed.find(other => other.valor === item.valor))).join('')}</div>
       ${saved ? '' : `<p class="sm" style="padding:0 16px">${t('portal.settings.everything')}</p>`}
-      <div class="acts" style="justify-content:flex-end"><button class="btn" id="cfpok">${t('common.save')}</button></div>`;
+      <div class="acts u-end"><button class="btn" id="cfpok">${t('common.save')}</button></div>`;
 }
 
 async function saveMaterial(box: HTMLElement, setting: PortalSetting): Promise<void> {
@@ -51,7 +51,7 @@ async function saveMaterial(box: HTMLElement, setting: PortalSetting): Promise<v
 function prepaymentHtml(on: boolean): string {
   return `<div class="card" id="cfpantc"><div class="fh"><div><h2>${t('portal.settings.prepaymentTitle')} ${helpButton(t('portal.settings.prepayment'), t('portal.settings.prepaymentHelp'))}</h2></div></div>
     <label class="opt"><input type="checkbox" id="cfpant" ${on ? 'checked' : ''}> ${t('portal.settings.prepaymentLabel')}</label>
-    <div class="acts" style="justify-content:flex-end"><button class="btn" id="cfpantok" type="button">${t('common.save')}</button></div></div>`;
+    <div class="acts u-end"><button class="btn" id="cfpantok" type="button">${t('common.save')}</button></div></div>`;
 }
 
 async function savePrepayment(button: HTMLButtonElement): Promise<void> {

@@ -36,7 +36,7 @@ function editorHtml(user: UserRow): string {
     ${usersLegacy.areas().map(([key, title]) => `<div class="dprow" style="grid-template-columns:130px minmax(0,1fr)"><b>${title}</b>
       <select data-area="${key}">${levels(key)}</select></div>`).join('')}
     <div id="ucomzona"></div>
-    <div class="acts" style="justify-content:flex-end">
+    <div class="acts u-end">
       <button class="btn sec" data-cerrar>${t('settingsRest.editor.cancel')}</button>
       <button class="btn" id="uguardar">${t('settingsRest.editor.save')}</button>
     </div>`;
@@ -101,7 +101,7 @@ async function linkedProfessional(id: string): Promise<PickedAccount | null> {
 function linkedHtml(linked: PickedAccount | null): string {
   return `<div class="blk" id="umedw"><h3>${t('settingsRest.editor.linkedCard', words())}</h3>
     <p class="sm">${t('settingsRest.editor.linkedHint', words())}</p>
-    <div id="umedsel"></div><div class="acts" style="margin-top:8px"><button class="btn sec" id="umedok">${t('settingsRest.editor.saveLink')}</button>
+    <div id="umedsel"></div><div class="acts u-mt-8"><button class="btn sec" id="umedok">${t('settingsRest.editor.saveLink')}</button>
     ${linked ? `<button class="btn sec" id="umedver">${t('settingsRest.editor.seeReport')}</button>` : ''}</div></div>`;
 }
 

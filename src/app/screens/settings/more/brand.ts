@@ -27,10 +27,10 @@ function cardHtml(brand: BrandSettings): string {
     <div class="marcaed"><div class="marcaprev"><img id="mklogo" src="${escapeHtml(brand.logo ?? LOGO)}" alt=""><b id="mknomp">${escapeHtml(brand.nombre)}</b></div>
       <div><label for="mknom">${t('settingsMore.brand.name')}</label><input id="mknom" value="${escapeHtml(brand.nombre)}" placeholder="${t('settingsMore.brand.namePlaceholder')}">
         <label>${t('settingsMore.brand.logo')} ${settingsMoreLegacy.helpButton(t('settingsMore.brand.logoHelpTitle'), t('settingsMore.brand.logoHelp'))}</label>
-        <div class="acts" style="margin:0"><label class="btn sec" for="mkfile" style="margin:0">${t('settingsMore.brand.upload')}</label><input id="mkfile" type="file" accept="image/*" class="hide">
+        <div class="acts u-m-0"><label class="btn sec u-m-0" for="mkfile">${t('settingsMore.brand.upload')}</label><input id="mkfile" type="file" accept="image/*" class="hide">
           ${brand.logo ? `<button class="btn sec" id="mkquitar">${t('settingsMore.brand.remove')}</button>` : ''}</div>
-        <label class="opt" style="margin-top:10px"><input type="checkbox" id="mkfac" ${brand.logo_factura === false ? '' : 'checked'}> ${t('settingsMore.brand.onInvoices')}</label></div></div>
-    ${labelHtml()}${vocabularyHtml()}<div class="acts" style="justify-content:flex-end"><button class="btn" id="mkok">${t('common.save')}</button></div></div>
+        <label class="opt u-mt-10"><input type="checkbox" id="mkfac" ${brand.logo_factura === false ? '' : 'checked'}> ${t('settingsMore.brand.onInvoices')}</label></div></div>
+    ${labelHtml()}${vocabularyHtml()}<div class="acts u-end"><button class="btn" id="mkok">${t('common.save')}</button></div></div>
     <div class="previa"><div class="sm previat">${t('settingsMore.brand.previewTitle')}</div><div id="mkprev2"></div></div></div>`;
 }
 

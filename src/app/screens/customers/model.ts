@@ -44,7 +44,7 @@ export function customerCard(customer: Customer): string {
   const contact = [taxIdText(customer), customer.email, phoneOf(customer)].filter(Boolean).join(' · ');
   return `<div class="selcard"><span class="ic">🧑</span>
   <span class="tx"><b>${escapeHtml(customer.nombre)}</b>
-    ${address ? `<span class="sm">📦 ${escapeHtml(address)}</span>` : `<span class="sm" style="color:var(--warn)">${t('customers.card.noAddress')}</span>`}
+    ${address ? `<span class="sm">📦 ${escapeHtml(address)}</span>` : `<span class="sm u-warn">${t('customers.card.noAddress')}</span>`}
     <span class="sm">${escapeHtml(contact)}</span>
     ${customer.medico ? `<span class="sm">${term('medico', { capital: 'C' })}: ${escapeHtml(customer.medico)}</span>` : ''}</span>
   <button type="button" class="sx" aria-label="${t('customers.card.remove')}">✕</button></div>`;

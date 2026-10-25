@@ -48,7 +48,7 @@ export function customFieldBox(classifier: ClassifierField, complete: boolean): 
   return `<div class="cfcampo"><h3>${t('leftovers.fields.customField')}</h3>
     <div class="g2"><div><label for="cfctipo">${t('leftovers.fields.type')}</label><select id="cfctipo" ${off}>${types}</select></div>
       <div class="cfchks">${checks}</div></div>
-    ${complete ? `<div class="acts" style="justify-content:flex-end"><button class="btn sec" id="cfcok">${t('leftovers.fields.saveField')}</button></div>` : ''}</div>`;
+    ${complete ? `<div class="acts u-end"><button class="btn sec" id="cfcok">${t('leftovers.fields.saveField')}</button></div>` : ''}</div>`;
 }
 
 export interface DocumentCheck { ok: boolean; v: string; msg?: string }

@@ -28,7 +28,7 @@ function editorHtml(centre: Centre): string {
       ${field('ecp', t('accountsMore.centreEditor.province'), centre.provincia)}</div>
     <label>${t('accountsMore.centreEditor.opening')}</label>
     <div class="cphor">${days}</div>
-    <div class="acts" style="justify-content:flex-end"><button type="button" class="btn sec" id="ecvolver">${t('accountsMore.centreEditor.back')}</button><button type="button" class="btn" id="ecok">${t('accountsMore.centreEditor.save')}</button></div>`;
+    <div class="acts u-end"><button type="button" class="btn sec" id="ecvolver">${t('accountsMore.centreEditor.back')}</button><button type="button" class="btn" id="ecok">${t('accountsMore.centreEditor.save')}</button></div>`;
 }
 
 /** The point on the map: located again only when the address changed. */

@@ -31,12 +31,12 @@ function titleOf(plan: DayPlan): string {
 
 function stopRow(stop: PlanStop, index: number): string {
   const place = escapeHtml([stop.dir, stop.municipio].filter(Boolean).join(', '));
-  return `<div class="item" style="cursor:default">
+  return `<div class="item u-cursor-default">
       <span class="ic">${index + 1}</span>
       <span class="tx"><b>${escapeHtml(stop.centro)}</b>
         <span class="sm">${minutesToTime(stop.llegada)}–${minutesToTime(stop.fin)} · ${place} · ${professionals(stop.medicos.length)}</span>
         <span class="sm">${stop.medicos.map(member => escapeHtml(member.nombre)).join(' · ')}</span></span>
-      <span class="acts" style="margin:0"><button class="btn sec" type="button" data-nav="${navigationAttribute(stop.xy)}">${t('settingsCore.plan.go')}</button></span>
+      <span class="acts u-m-0"><button class="btn sec" type="button" data-nav="${navigationAttribute(stop.xy)}">${t('settingsCore.plan.go')}</button></span>
     </div>`;
 }
 
@@ -143,7 +143,7 @@ export function openPlanTimesWindow(): void {
       <div><label for="hvis">${t('settingsCore.planHours.perProfessional', { professional: term('medico') })}</label><input id="hvis" type="number" min="5" max="60" value="${settings.visita}"></div>
       <div><label for="hpar">${t('settingsCore.planHours.perStop')}</label><input id="hpar" type="number" min="0" max="40" value="${settings.parada}"></div>
     </div>
-    <div class="acts" style="justify-content:flex-end">
+    <div class="acts u-end">
       <button class="btn sec" data-cerrar>${t('common.cancel')}</button>
       <button class="btn" id="hok">${t('common.save')}</button></div>`;
   const ok = (byId('hok') as HTMLButtonElement | null); if (ok) ok.onclick = (): void => { void saveTimes(ok); };

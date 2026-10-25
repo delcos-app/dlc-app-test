@@ -57,9 +57,9 @@ export async function salesRepAndPatients(id: string): Promise<void> {
   const admin = cardSectionsLegacy.can('administrar');
   if (admin) {
     body.insertAdjacentHTML('beforeend', `<div class="blk" id="fcomblk"><h3>${t('accounts.sales.repTitle')}</h3>
-      <div style="display:flex;gap:8px"><select id="fcomsel" style="flex:1"><option>${t('accounts.sales.loading')}</option></select>
+      <div class="u-flex u-gap-8"><select id="fcomsel" class="u-flex-1"><option>${t('accounts.sales.loading')}</option></select>
         <button class="btn sec" id="fcomok">${t('accounts.sales.save')}</button></div>
-      <div class="sm" style="margin-top:6px">${t('accounts.sales.repNote')}</div></div>`);
+      <div class="sm u-mt-6">${t('accounts.sales.repNote')}</div></div>`);
     await fillSalesReps(id);
     if (!stillShown(id) || !document.getElementById('fcomsel')) return;
   }

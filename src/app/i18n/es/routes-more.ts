@@ -174,7 +174,7 @@ export const routesMore = {
     atTime: 'A las <b>{time}</b>',
   },
   page: {
-    bar: '<span class="rbtx">● <b class="rblargo">Jornada en curso · </b><span class="rt">{time}</span> · {done}<span class="rblargo"> de </span><span class="rbcorto">/</span>{total}<span class="rblargo"> hechas</span></span>\n    <span class="acts" style="margin:0"><button class="btn sec chico" id="rbver">Mi día</button><button class="btn dang chico" id="rbfin">Terminar</button></span>',
+    bar: '<span class="rbtx">● <b class="rblargo">Jornada en curso · </b><span class="rt">{time}</span> · {done}<span class="rblargo"> de </span><span class="rbcorto">/</span>{total}<span class="rblargo"> hechas</span></span>\n    <span class="acts u-m-0"><button class="btn sec chico" id="rbver">Mi día</button><button class="btn dang chico" id="rbfin">Terminar</button></span>',
     inProgress: 'Jornada en curso',
     startedAgo: 'Empezaste hace {time}. El orden, las horas y el registro de {visits} están en tu agenda de hoy.',
     seeDay: 'Ver mi día',

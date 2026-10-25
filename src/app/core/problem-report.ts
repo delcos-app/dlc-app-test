@@ -45,7 +45,7 @@ function formHtml(): string {
     <label for="rpque">${t('core.report.inYourWords')}</label><textarea id="rpque" rows="4" placeholder="${escapeHtml(example)}"></textarea>
     <label>${t('core.report.screenshot')}</label><input type="file" id="rpcap" accept="image/*">
     <details class="rptec"><summary>${t('core.report.technicalTitle')}</summary><div class="sm">${technical}</div></details>
-    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>${t('common.cancel')}</button><button class="btn" id="rptok" disabled>${t('core.report.send')}</button></div>`;
+    <div class="acts u-end"><button class="btn sec" data-cerrar>${t('common.cancel')}</button><button class="btn" id="rptok" disabled>${t('core.report.send')}</button></div>`;
 }
 
 /** The picture, at most 1280 px wide, as JPEG. */

@@ -15,7 +15,7 @@ export async function addSalesperson(id: string, hooks: SaveHooks): Promise<void
   if (!cardSectionsLegacy.can('administrar') || !button) return;
   button.closest('.acts')?.insertAdjacentHTML('beforebegin', `<label for="ecom">${t('accountsEditor.salesperson.label')}</label>
     <select id="ecom"><option>${t('common.loading')}</option></select>
-    <div class="sm" style="margin-top:4px">${t('accountsEditor.salesperson.hint')}</div>`);
+    <div class="sm u-mt-4">${t('accountsEditor.salesperson.hint')}</div>`);
   if (!salesTeam.members().length) await salesTeam.load();
   const { data: current } = await callRpc<{ id: string } | null>('responsable_de_cuenta', { p_medico: id });
   const before = current?.id ?? '', select = document.getElementById('ecom') as HTMLSelectElement | null;

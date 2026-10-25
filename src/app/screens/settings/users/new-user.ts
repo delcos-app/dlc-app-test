@@ -34,11 +34,11 @@ function formHtml(): string {
       <div><label for="np">${t('settingsRest.newUser.password')}</label><input id="np" value="${temporaryPassword()}"></div>
     </div>
     <div id="nmedw" class="hide"><label>${t('settingsRest.newUser.fromDirectory', words())}</label><div id="nmed"></div>
-    <div class="sm" style="margin-top:4px">${t('settingsRest.newUser.directoryHint')}</div></div>
-    <div class="acts" style="justify-content:flex-end">
+    <div class="sm u-mt-4">${t('settingsRest.newUser.directoryHint')}</div></div>
+    <div class="acts u-end">
       <button class="btn sec" data-cerrar>${t('settingsRest.newUser.cancel')}</button>
       <button class="btn" id="ncrear">${t('settingsRest.newUser.create')}</button></div>
-    <div id="nmsg" class="sm" style="margin-top:10px"></div>`;
+    <div id="nmsg" class="sm u-mt-10"></div>`;
 }
 
 /** The plan's limit and, for a portal role, the chosen professional. */
@@ -51,7 +51,7 @@ function allowed(draft: Draft): boolean {
 }
 
 const showFailure = (key: 'couldNotInvite' | 'couldNotCreate', error: string): void => {
-  const box = message(); if (box) box.innerHTML = `<span style="color:var(--dang)">${t(`settingsRest.newUser.${key}`, { error: escapeHtml(error) })}</span>`;
+  const box = message(); if (box) box.innerHTML = `<span class="u-danger">${t(`settingsRest.newUser.${key}`, { error: escapeHtml(error) })}</span>`;
 };
 
 const ready = (button: HTMLButtonElement): void => { button.disabled = false; button.textContent = t('settingsRest.newUser.create'); };
@@ -101,7 +101,7 @@ function paintSummary(draft: Draft): void {
   body.innerHTML = `<div class="fh"><div><h2>${t('settingsRest.newUser.doneTitle')}</h2><div class="sm">${t('settingsRest.newUser.doneSubtitle')}</div></div><button class="x" data-cerrar aria-label="${t('common.close')}">✕</button></div>
       ${accessDataHtml({ nombre: draft.nombre, rol: draft.rol, email: draft.email, pass: draft.pass, vinculado: draft.linked })}
       <p class="sm">${t('settingsRest.newUser.confirmEmail')}</p>
-      <div class="acts" style="justify-content:flex-end;flex-wrap:wrap"><button class="btn sec" id="usrcop">${t('settingsRest.newUser.copy')}</button><button class="btn" data-cerrar>${t('settingsRest.newUser.done')}</button></div>`;
+      <div class="acts u-end u-wrap"><button class="btn sec" id="usrcop">${t('settingsRest.newUser.copy')}</button><button class="btn" data-cerrar>${t('settingsRest.newUser.done')}</button></div>`;
   delete box.dataset.sucio;
   const copy = document.getElementById('usrcop'); if (copy) copy.onclick = (): void => { void copyText(welcomeText(draft.nombre, draft.email, draft.pass)); };
 }

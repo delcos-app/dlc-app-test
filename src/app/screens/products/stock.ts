@@ -12,7 +12,7 @@ import { errorMessage, expiryClass, stockState, type StockLine } from './model';
 
 function rowHtml(line: StockLine): string {
   const [label, kind] = stockState(line);
-  const unbatched = line.sin_lote ? ` · <span style="color:var(--warn)">${t('products.stock.soldWithoutBatch', { units: formatNumber(-line.sin_lote) })}</span>` : '';
+  const unbatched = line.sin_lote ? ` · <span class="u-warn">${t('products.stock.soldWithoutBatch', { units: formatNumber(-line.sin_lote) })}</span>` : '';
   const byStore = (line.por_almacen ?? []).map(store => `${escapeHtml(store.almacen)}: ${formatNumber(store.unidades)}`).join(' · ') || '—';
   const coverage = isPresent(line.dias_cobertura) ? t('products.stock.coverageDays', { days: formatNumber(line.dias_cobertura), supplier: formatNumber(line.plazo_dias) }) : t('products.stock.noSales');
   const onTheWay = line.en_camino ? formatNumber(line.en_camino) + (line.llegada ? `<span class="sm">${formatShortDate(line.llegada)}</span>` : '') : '—';

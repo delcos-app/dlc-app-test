@@ -57,15 +57,15 @@ export function paintTrayButtons(): void {
 function dueRow(account: DueAccount): string {
   const visit = term('visita'), id = account.id ?? '';
   const days = isPresent(account.dias_sin_visita) ?t('agenda.trays.daysWithout', { days: account.dias_sin_visita, visit }) : t('agenda.trays.neverVisited');
-  return `<div class="item" style="cursor:default"><span class="ic">${icon('target')}</span>
+  return `<div class="item u-cursor-default"><span class="ic">${icon('target')}</span>
         <span class="tx"><b>${escapeHtml(account.nombre)}</b><span class="sm">${escapeHtml([account.estado_comercial, days, account.municipio].filter(Boolean).join(' · '))}</span></span>
-        <span class="acts" style="margin:0"><button class="btn sec" data-agbf="${id}">${t('agenda.trays.card')}</button><button class="btn sec" data-agbc="${id}">${t('agenda.trays.addAppointment')}</button></span></div>`;
+        <span class="acts u-m-0"><button class="btn sec" data-agbf="${id}">${t('agenda.trays.card')}</button><button class="btn sec" data-agbc="${id}">${t('agenda.trays.addAppointment')}</button></span></div>`;
 }
 
 function pendingRow(item: PendingAppointment): string {
-  return `<div class="item" style="cursor:default"><span class="ic w">!</span>
+  return `<div class="item u-cursor-default"><span class="ic w">!</span>
         <span class="tx"><b>${escapeHtml(item.nombre)}</b><span class="sm">${formatShortDate(item.fecha)}${item.centro_nombre ? ` · ${escapeHtml(item.centro_nombre)}` : ''}</span></span>
-        <span class="acts" style="margin:0"><button class="btn sec" data-cita="hoy|${item.id}">${t('agenda.trays.moveToToday')}</button><button class="btn sec" data-cita="desc|${item.id}">${t('agenda.trays.discard')}</button></span></div>`;
+        <span class="acts u-m-0"><button class="btn sec" data-cita="hoy|${item.id}">${t('agenda.trays.moveToToday')}</button><button class="btn sec" data-cita="desc|${item.id}">${t('agenda.trays.discard')}</button></span></div>`;
 }
 
 function trayHtml(tray: Tray, due: readonly DueAccount[], pending: readonly PendingAppointment[]): string {

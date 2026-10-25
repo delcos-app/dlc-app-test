@@ -57,7 +57,7 @@ function funnelHtml(funnel: Readonly<Record<string, number>>): string {
           ${index ? `<span class="sm">${before ? t('panels.charts.advances', { percent: percent(value, before + value) }) : ''}</span>` : '<span class="sm"></span>'}</div>`;
   }).join('');
   return `<div class="embudo">${rows}
-        ${negative && funnel[negative] ? `<div class="sm" style="margin-top:6px">${escapeHtml(negative)}: ${formatNumber(funnel[negative])}</div>` : ''}</div>`;
+        ${negative && funnel[negative] ? `<div class="sm u-mt-6">${escapeHtml(negative)}: ${formatNumber(funnel[negative])}</div>` : ''}</div>`;
 }
 
 function chartsHtml(charts: Charts, from: string, to: string): string {

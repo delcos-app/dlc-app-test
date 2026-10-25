@@ -14,7 +14,7 @@ function warningsHtml(): string {
       <button class="x" data-cerrar aria-label="${t('common.close')}">✕</button></div>
     <label for="convd">${t('tenders.warnings.days')}</label><input id="convd" value="${escapeHtml(newestFirst(tendersLegacy.warningDays()).join(', '))}" placeholder="90, 30">
     <p class="sm">${t('tenders.warnings.hint')}</p>
-    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>${t('tenders.warnings.cancel')}</button><button class="btn" id="convok">${t('tenders.warnings.save')}</button></div>`;
+    <div class="acts u-end"><button class="btn sec" data-cerrar>${t('tenders.warnings.cancel')}</button><button class="btn" id="convok">${t('tenders.warnings.save')}</button></div>`;
 }
 
 async function save(box: HTMLDialogElement): Promise<void> {

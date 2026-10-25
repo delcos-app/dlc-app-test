@@ -14,7 +14,7 @@ function headerHtml(section: string): string {
   const tab = (key: string, label: string): string => `<button data-as="${key}" aria-pressed="${String(section === key)}">${label}</button>`;
   return `
     <div class="saludo"><div><h1>${t('legacyA.admin.title')}</h1><div class="fecha">${t('legacyA.admin.subtitle')}</div></div>
-      <div class="acts" style="margin:0">${section === 'usuarios' ? `<button class="btn" id="unuevo">${t('legacyA.admin.newUser')}</button>` : ''}</div></div>
+      <div class="acts u-m-0">${section === 'usuarios' ? `<button class="btn" id="unuevo">${t('legacyA.admin.newUser')}</button>` : ''}</div></div>
     <div class="subnav">
       ${tab('usuarios', t('legacyA.admin.users'))}
       ${tab('comisiones', t('legacyA.admin.commissions'))}
@@ -25,11 +25,11 @@ function headerHtml(section: string): string {
 
 function userRow(user: AdminUser): string {
   const details = `${escapeHtml(user.rol)} · ${escapeHtml(user.email ?? '')} · ${formatNumber(user.medicos)} ${term('medico', { number: 'p' })} · ${formatNumber(user.visitas)} ${term('visita', { number: 'p' })}`;
-  return `<div class="item" style="cursor:default">
+  return `<div class="item u-cursor-default">
       <span class="ic">${escapeHtml(adminLegacy.initials(user.nombre))}</span>
       <span class="tx"><b>${escapeHtml(user.nombre)}${user.activo ? '' : ` <span class="sm">${t('legacyA.admin.deactivated')}</span>`}</b>
         <span class="sm">${details}</span></span>
-      <span class="acts" style="margin:0">
+      <span class="acts u-m-0">
         <button class="btn sec" data-uedit="${user.id}">${t('legacyA.admin.edit')}</button>
         <button class="btn sec" data-uver="${user.id}">${t('legacyA.admin.seePortfolio')}</button>
         <button class="btn sec" data-ucart="${user.id}">${t('legacyA.admin.assign')}</button>

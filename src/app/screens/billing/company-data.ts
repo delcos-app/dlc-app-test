@@ -34,7 +34,7 @@ function issuingHtml(billing: Billing): string {
   return `<h2 style="padding:18px 0 8px">${t('legacyB.company.onIssue')}</h2>
     <div class="g2"><div><label for="fcv">${t('legacyB.company.dueDays')}</label><input id="fcv" type="number" min="0" value="${Number(billing.vencimiento_dias) || 0}"></div>
       <div><label for="fcf">${t('legacyB.company.defaultPayment')}</label><select id="fcf"><option value="">—</option>${methods}</select></div></div>
-    <label class="opt" style="margin-top:10px"><input type="checkbox" id="fce" ${billing.emitir_al_validar ? 'checked' : ''}>
+    <label class="opt u-mt-10"><input type="checkbox" id="fce" ${billing.emitir_al_validar ? 'checked' : ''}>
       <span><b>${t('legacyB.company.autoIssue')}</b><br><span class="sm">${t('legacyB.company.autoIssueHint')}</span></span></label>`;
 }
 
@@ -59,6 +59,6 @@ export async function paintCompanyData(): Promise<void> {
   const settings = legacyBState.settings(), company = (settings.empresa ?? {}) as Company;
   const billing: Billing = { vencimiento_dias: DEFAULT_DUE_DAYS, forma_pago: '', emitir_al_validar: false, ...(settings.facturacion as Billing | undefined) };
   body.innerHTML = `<div class="card" style="padding-top:16px;padding-bottom:16px">${issuerHtml(company)}${issuingHtml(billing)}
-    <div class="acts" style="justify-content:flex-end"><button class="btn" id="emok">${t('legacyB.company.save')}</button></div></div>`;
+    <div class="acts u-end"><button class="btn" id="emok">${t('legacyB.company.save')}</button></div></div>`;
   const ok = document.getElementById('emok'); if (ok) ok.onclick = (): void => { void save(company); };
 }

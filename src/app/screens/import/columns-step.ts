@@ -31,8 +31,8 @@ function pageHtml(): string {
     <h2 style="padding:0 0 4px">${t('importing.columns.title', { name: escapeHtml(wizard.fileName) })}</h2>
     <p class="sm">${intro}</p>
     <div class="impmapa">${wizard.headers.map(columnHtml).join('')}</div>
-    <div id="impaviso" class="sm" style="margin-top:10px"></div>
-    <div class="acts" style="justify-content:space-between"><button class="btn sec" type="button" id="impvolver">${t('importing.file.back')}</button><button class="btn" type="button" id="impsig">${t('importing.columns.next')}</button></div></div>`;
+    <div id="impaviso" class="sm u-mt-10"></div>
+    <div class="acts u-between"><button class="btn sec" type="button" id="impvolver">${t('importing.file.back')}</button><button class="btn" type="button" id="impsig">${t('importing.columns.next')}</button></div></div>`;
 }
 
 /** The required fields not assigned (in sales, the product can come by its reference) and the fields assigned twice. */
@@ -46,7 +46,7 @@ function problems(): { missing: string[]; repeated: string[] } {
 
 function check(): void {
   const { missing, repeated } = problems(), notice = document.getElementById('impaviso'), next = document.getElementById('impsig') as HTMLButtonElement | null;
-  const danger = (text: string): string => `<span style="color:var(--dang)">${text}</span>`;
+  const danger = (text: string): string => `<span class="u-danger">${text}</span>`;
   if (notice) {
     notice.innerHTML = missing.length ? danger(t('importing.columns.missing', { fields: missing.map(escapeHtml).join(', ') }))
       : repeated.length ? danger(t('importing.columns.repeated', { fields: repeated.map(escapeHtml).join(', ') })) : '';

@@ -60,10 +60,10 @@ function choicesHtml(context: Context, choice: Choice): string {
   const yearly = choice.pago === YEARLY, minimum = Math.max(MIN_USERS, context.used);
   const plans = subscriptionLegacy.plans().map(key => `<button type="button" data-pgp="${key}" class="${choice.plan === key ? 'on' : ''}" aria-pressed="${String(choice.plan === key)}">${escapeHtml(planOf(key).nombre)} · ${euros(planOf(key).precio)}</button>`).join('');
   return `<label>${t('ordersMore.choosePlan.plan')}</label><div class="segs pgplan" role="group">${plans}</div>
-      <label style="margin-top:12px">${t('ordersMore.choosePlan.payment')}</label><div class="segs" role="group">
+      <label class="u-mt-12">${t('ordersMore.choosePlan.payment')}</label><div class="segs" role="group">
         <button type="button" data-pga="${MONTHLY}" class="${yearly ? '' : 'on'}" aria-pressed="${String(!yearly)}">${t('ordersMore.choosePlan.monthly')}</button>
         <button type="button" data-pga="${YEARLY}" class="${yearly ? 'on' : ''}" aria-pressed="${String(yearly)}">${t('ordersMore.choosePlan.yearly')}</button></div>
-      <label for="pgusu" style="margin-top:12px">${t('ordersMore.choosePlan.users')}</label><input id="pgusu" type="number" min="${minimum}" value="${choice.usuarios}" class="numw">
+      <label for="pgusu" class="u-mt-12">${t('ordersMore.choosePlan.users')}</label><input id="pgusu" type="number" min="${minimum}" value="${choice.usuarios}" class="numw">
       <span class="sm">${context.used ? t('ordersMore.choosePlan.usingNow', { count: formatNumber(context.used) }) : ''}${t('ordersMore.choosePlan.minimum', { count: minimum })}</span>`;
 }
 
@@ -73,7 +73,7 @@ function windowHtml(context: Context, choice: Choice): string {
       ${choicesHtml(context, choice)}
       ${downgradeHtml(context, choice)}
       ${receiptHtml(context, choice)}
-      <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>${t('ordersMore.choosePlan.cancel')}</button>
+      <div class="acts u-end"><button class="btn sec" data-cerrar>${t('ordersMore.choosePlan.cancel')}</button>
         <button class="btn" id="pgok">${t(okKey)}</button></div>`;
 }
 

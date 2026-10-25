@@ -41,7 +41,7 @@ function suggestedHtml(data: Proposals): string {
 
 function pendingHtml(pending: NonNullable<Proposals['pendientes']>): string {
   if (!pending.length) return '';
-  return `<h2><span style="color:var(--warn)">${t('routesMore.suggestions.pendingTitle')}</span>
+  return `<h2><span class="u-warn">${t('routesMore.suggestions.pendingTitle')}</span>
       <span class="n">${pending.length}</span></h2>
     <p class="sm">${t('routesMore.suggestions.pendingHint')}</p>
     <div class="lista">${pending.slice(0, SHOWN_PENDING).map(item => `<button class="item" data-id="${item.id}">

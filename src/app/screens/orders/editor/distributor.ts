@@ -79,7 +79,7 @@ function newDistributor(choice: DistributorChoice): void {
       <button class="x" data-cerrar2 aria-label="${t('common.close')}">✕</button></div>
     <label for="dsn">${t('ordersMore.distributor.name')}</label><input id="dsn" placeholder="${t('ordersMore.distributor.namePlaceholder')}">
     <div class="g2"><div><label for="dse">${t('ordersMore.distributor.email')}</label><input id="dse" type="email"></div><div><label for="dst">${t('ordersMore.distributor.phone')}</label><input id="dst" inputmode="tel"></div></div>
-    <div class="acts" style="justify-content:flex-end"><button type="button" class="btn sec" data-cerrar2>${t('ordersMore.distributor.cancel')}</button><button type="button" class="btn" id="dsok">${t('ordersMore.distributor.add')}</button></div>`;
+    <div class="acts u-end"><button type="button" class="btn sec" data-cerrar2>${t('ordersMore.distributor.cancel')}</button><button type="button" class="btn" id="dsok">${t('ordersMore.distributor.add')}</button></div>`;
   box.showModal();
   const ok = document.getElementById('dsok'); if (ok) ok.onclick = (): void => { void addDistributor(choice); };
 }

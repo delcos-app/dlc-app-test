@@ -19,7 +19,7 @@ function formHtml(days: Record<string, number>): string {
     ${Object.keys(days).map(state => `<div class="g2" style="align-items:center"><div><b>${escapeHtml(state)}</b></div>
       <div><input type="number" min="0" max="${MAX_DAYS}" data-frec="${escapeHtml(state)}" value="${Number(days[state]) || 0}" aria-label="${t('routesMore.frequency.daysFor', { state: escapeHtml(state) })}"></div></div>`).join('')}
     <p class="sm">${t('routesMore.frequency.hint', { visit: term('visita') })}</p>
-    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>${t('common.cancel')}</button><button class="btn" id="frok">${t('common.save')}</button></div>`;
+    <div class="acts u-end"><button class="btn sec" data-cerrar>${t('common.cancel')}</button><button class="btn" id="frok">${t('common.save')}</button></div>`;
 }
 
 async function save(body: HTMLElement): Promise<void> {

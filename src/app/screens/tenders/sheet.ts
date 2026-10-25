@@ -49,7 +49,7 @@ function sheetHtml(tender: Tender, lots: readonly TenderLot[], products: readonl
     <div class="evascab"><h3>${t('tenders.sheet.lots', { count: lots.length })}</h3><button type="button" class="btn sec" id="conlmas">${t('tenders.sheet.addLot')}</button></div>
     <div id="conlotes">${lots.length ? lots.map(lot => lotHtml(lot, products)).join('') : `<div class="vacio vlinea">${t('tenders.sheet.noLots')}</div>`}</div>
     ${tender.nota ? `<p class="sm">${escapeHtml(tender.nota)}</p>` : ''}
-    <div class="acts" style="justify-content:flex-end"><button type="button" class="btn sec" id="coneditar">${t('tenders.sheet.change')}</button><button type="button" class="btn" data-cerrar>${t('tenders.sheet.done')}</button></div>`;
+    <div class="acts u-end"><button type="button" class="btn sec" id="coneditar">${t('tenders.sheet.change')}</button><button type="button" class="btn" data-cerrar>${t('tenders.sheet.done')}</button></div>`;
 }
 
 const fail = (error: { message?: string }): void => { notices.toast(writeFailure(error, t('tenders.sheet.noPermission')), true); };

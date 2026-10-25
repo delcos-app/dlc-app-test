@@ -31,7 +31,7 @@ function paint(draft: KpiSetting[], kpis: readonly Kpi[], onSaved: () => void): 
         <div class="sm">${t('panels.customise.subtitle')}</div></div>
         <button class="x" data-cerrar aria-label="${t('panels.customise.close')}">✕</button></div>
       ${FAMILIES.filter(([family]) => familyVisible(family)).map(([family]) => areaHtml(family, draft, kpis)).join('')}
-      <div class="acts" style="justify-content:flex-end"><button class="btn sec" id="anres0">${t('panels.customise.reset')}</button><button class="btn" id="anpok">${t('panels.customise.save')}</button></div>`;
+      <div class="acts u-end"><button class="btn sec" id="anres0">${t('panels.customise.reset')}</button><button class="btn" id="anpok">${t('panels.customise.save')}</button></div>`;
   body.querySelectorAll<HTMLInputElement>('[data-anon]').forEach(box => {
     box.onchange = (): void => { const setting = draft[Number(box.dataset.anon)]; if (setting) setting.on = box.checked; markChanged(); };
   });

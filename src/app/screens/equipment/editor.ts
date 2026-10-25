@@ -40,7 +40,7 @@ function editorHtml(item: Partial<Equipment>, existing: Equipment | null, list: 
     <div class="g2"><div><label for="eqg">${t('equipment.editor.warrantyUntil')}</label><input id="eqg" type="date" value="${escapeHtml(item.garantia_hasta ?? '')}"></div>
       <div><label for="eqr">${t('equipment.editor.reviewEvery')}</label><input id="eqr" type="number" min="0" max="${MAX_REVIEW_MONTHS}" step="1" value="${Number(item.revision_meses) || 0}"></div></div>
     <label for="eqn">${t('equipment.editor.note')}</label><textarea id="eqn" rows="2">${escapeHtml(item.nota ?? '')}</textarea>
-    <div class="acts" style="justify-content:flex-end">${existing?.estado === STATES.installed ? `<button type="button" class="btn sec peligro" id="eqretirar">${t('equipment.editor.retire')}</button>` : ''}
+    <div class="acts u-end">${existing?.estado === STATES.installed ? `<button type="button" class="btn sec peligro" id="eqretirar">${t('equipment.editor.retire')}</button>` : ''}
       <button type="button" class="btn sec" data-cerrar>${t('equipment.editor.cancel')}</button><button type="button" class="btn" id="eqok">${t(existing ? 'equipment.editor.save' : 'equipment.editor.create')}</button></div>`;
 }
 

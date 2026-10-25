@@ -43,7 +43,7 @@ function newChoiceHtml(): string {
   return `
     <div class="fh"><div><h2>${t('legacyA.create.title')}</h2><div class="sm">${t('legacyA.create.question')}</div></div>
       <button class="x" data-cerrar aria-label="${t('common.close')}">✕</button></div>
-    <div class="opciones" style="margin-top:10px">
+    <div class="opciones u-mt-10">
       ${option(PERSON, escapeHtml(cardActionsLegacy.newAccountName()), t('legacyA.create.personHint', { Professional: term('medico', { capital: 'C' }) }))}
       ${option(CENTRE, t('legacyA.create.centre'), t('legacyA.create.centreHint'))}
     </div>`;

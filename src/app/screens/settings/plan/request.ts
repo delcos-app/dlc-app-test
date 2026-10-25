@@ -61,7 +61,7 @@ function sentHtml(data: Record<string, unknown>, contact: string): string {
       <div class="presuok"><div class="presuokic">${icon('check')}</div>
         <p>${t('settingsRest.request.thanks', { name: escapeHtml(settingsExtraLegacy.firstName(String(data.nombre || profileLegacy.me().nombre || ''))), how, email })}</p>
         <p class="sm">${t('settingsRest.request.seeState')}</p></div>
-      <div class="acts" style="justify-content:flex-end"><button class="btn" data-cerrar>${t('settingsRest.request.understood')}</button></div>`;
+      <div class="acts u-end"><button class="btn" data-cerrar>${t('settingsRest.request.understood')}</button></div>`;
 }
 
 /** Something to go on and a way to answer; false (with the notice) if not. */
@@ -105,7 +105,7 @@ export function askBudget(requested: string): void {
       ${teamHtml()}
       ${contactHtml()}
     </div>
-    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>${t('settingsRest.request.cancel')}</button><button class="btn" id="presuok">${t('settingsRest.request.send')}</button></div>`;
+    <div class="acts u-end"><button class="btn sec" data-cerrar>${t('settingsRest.request.cancel')}</button><button class="btn" id="presuok">${t('settingsRest.request.send')}</button></div>`;
   bind(kind, body);
   (document.getElementById('dlg') as HTMLDialogElement | null)?.showModal();
 }

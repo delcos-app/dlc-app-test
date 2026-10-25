@@ -26,7 +26,7 @@ function buttonsHtml(organization: Organization): string {
   const inside = organization.id === platformState.viewed?.id, data = planOf(organization);
   const toggle = organization.principal ? '' : `<button class="btn sec" type="button" data-orgact="${organization.id}">${t(organization.activa === false ? 'platform.orgs.reactivate' : 'platform.orgs.deactivate')}</button>`;
   const remove = !organization.principal && (data.estado === 'prueba' || !organization.activa) ? `<button class="btn sec" type="button" data-orgdel="${organization.id}">${t('platform.orgs.delete')}</button>` : '';
-  return `<span class="acts" style="margin:0"><span class="sm">${organization.creado_en ? formatShortDate(String(organization.creado_en).slice(0, 10)) : ''}</span>
+  return `<span class="acts u-m-0"><span class="sm">${organization.creado_en ? formatShortDate(String(organization.creado_en).slice(0, 10)) : ''}</span>
         <button class="btn sec chico" type="button" data-orgdom="${organization.id}">${t('platform.orgs.domains')}</button>
         <button class="btn sec chico" type="button" data-orgext="${organization.id}">${t('platform.orgs.extras')}</button>
         <button class="btn chico ${inside ? 'sec' : ''}" type="button" data-orgver="${organization.id}">${t(inside ? 'platform.orgs.inside' : 'platform.orgs.enter')}</button>
@@ -37,7 +37,7 @@ function buttonsHtml(organization: Organization): string {
 
 function rowHtml(organization: Organization): string {
   const domains = organization.dominios ?? [];
-  return `<div class="item" style="cursor:default">
+  return `<div class="item u-cursor-default">
       <span class="tx"><b>${escapeHtml(organization.nombre)}</b>${statePills(organization)}<span class="sm">${detailsText(organization)}</span>
         <span class="sm">${domains.length ? t('platform.orgs.domainList', { domains: domains.map(escapeHtml).join(', ') }) : t('platform.orgs.noDomain')}</span></span>
       ${buttonsHtml(organization)}</div>`;

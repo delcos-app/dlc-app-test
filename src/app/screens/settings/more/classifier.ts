@@ -46,7 +46,7 @@ function valueActions(classifier: ClassifierData, value: ClassifierValue, rights
   const data = rights.asksData ? `<button class="btn sec" data-vdato="${value.id}">${t(value.dato_tipo ? 'settingsMore.classifier.changeData' : 'settingsMore.classifier.addData')}</button>` : '';
   const destination = classifier.papel === RESULT
     ? `<select data-vdest="${value.id}" title="${t('settingsMore.classifier.destinationTitle')}" style="max-width:170px"><option value="">${t('settingsMore.classifier.keepsState')}</option>${stateOptions(value.destino)}</select>` : '';
-  return `<span class="acts" style="margin:0">${data}
+  return `<span class="acts u-m-0">${data}
           <button class="btn sec" data-vren="${value.id}|${escapeHtml(value.valor)}">${t('settingsMore.classifier.rename')}</button>
           ${destination}
           <button class="btn sec" data-vtog="${value.id}|${value.activo ? 0 : 1}">${t(value.activo ? 'settingsMore.classifier.deactivate' : 'settingsMore.classifier.activate')}</button>
@@ -54,7 +54,7 @@ function valueActions(classifier: ClassifierData, value: ClassifierValue, rights
 }
 
 function valueHtml(classifier: ClassifierData, value: ClassifierValue, rights: Rights): string {
-  return `<div class="item ${value.padre ? 'vsub' : ''}" style="cursor:default">
+  return `<div class="item ${value.padre ? 'vsub' : ''} u-cursor-default">
         <span class="ic">${value.activo ? '●' : '○'}</span>
         <span class="tx"><b style="${value.activo ? '' : 'opacity:.5;text-decoration:line-through'}">${escapeHtml(value.valor)}</b>
           ${resultText(value)}${rights.asksData ? dataText(value) : ''}</span>

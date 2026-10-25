@@ -27,8 +27,8 @@ function formHtml(): string {
       <div class="g2"><div><label for="oanom">${t('platform.newOrg.adminName')}</label><input id="oanom"></div>
         <div><label for="oamail">${t('platform.newOrg.adminEmail')}</label><input id="oamail" type="email"></div>
         <div><label for="oapass">${t('platform.newOrg.password')}</label><input id="oapass" value="Tmp-${Math.random().toString(36).slice(2, 8)}"></div></div>
-      <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>${t('common.cancel')}</button><button class="btn" id="ocrear">${t('platform.newOrg.create')}</button></div>
-      <div id="omsg" class="sm" style="margin-top:10px"></div>`;
+      <div class="acts u-end"><button class="btn sec" data-cerrar>${t('common.cancel')}</button><button class="btn" id="ocrear">${t('platform.newOrg.create')}</button></div>
+      <div id="omsg" class="sm u-mt-10"></div>`;
 }
 
 const setMessage = (html: string): void => { const message = document.getElementById('omsg'); if (message) message.innerHTML = html; };
@@ -43,7 +43,7 @@ function newCompany(name: string, email: string): Record<string, unknown> {
 
 function createFailure(code: string | undefined, error: unknown): string {
   const key = CREATE_ERRORS.get(code ?? ''), reason = key ? t(key) : errorMessage(error);
-  return `<span style="color:var(--dang)">${t('platform.newOrg.failed', { reason: escapeHtml(reason) })}</span>`;
+  return `<span class="u-danger">${t('platform.newOrg.failed', { reason: escapeHtml(reason) })}</span>`;
 }
 
 async function create(button: HTMLButtonElement, repaint: () => Promise<void>): Promise<void> {
@@ -55,7 +55,7 @@ async function create(button: HTMLButtonElement, repaint: () => Promise<void>): 
   // Its administrator signs up: the invitation places them in the new company
   const failure = await accessLegacy.signUp(email, password, adminName);
   busy(button, false);
-  setMessage(failure ? `<span style="color:var(--dang)">${t('platform.newOrg.noUser', { error: escapeHtml(failure.message ?? '') })}</span>`
+  setMessage(failure ? `<span class="u-danger">${t('platform.newOrg.noUser', { error: escapeHtml(failure.message ?? '') })}</span>`
     : t('platform.newOrg.created', { email: escapeHtml(email), password: escapeHtml(password) }));
   void repaint();
 }

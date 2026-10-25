@@ -18,7 +18,7 @@ function editorHtml(event: Partial<EventRow>, existing: EventRow | null): string
       <div><label for="evl">${t('events.editor.place')}</label><input id="evl" value="${escapeHtml(event.lugar ?? '')}" placeholder="${t('events.editor.placePlaceholder')}"></div></div>
     <label class="opt"><input type="checkbox" id="evon" ${event.en_linea ? 'checked' : ''}> ${t('events.editor.online')}</label>
     <label for="evn">${t('events.editor.note')}</label><textarea id="evn" rows="3">${escapeHtml(event.nota ?? '')}</textarea>
-    <div class="acts" style="justify-content:flex-end">${canDelete ? `<button type="button" class="btn sec peligro" id="evborrar">${t('events.editor.delete')}</button>` : ''}
+    <div class="acts u-end">${canDelete ? `<button type="button" class="btn sec peligro" id="evborrar">${t('events.editor.delete')}</button>` : ''}
       <button type="button" class="btn sec" data-cerrar>${t('events.editor.cancel')}</button><button type="button" class="btn" id="evok">${t(existing ? 'events.editor.save' : 'events.editor.create')}</button></div>`;
 }
 

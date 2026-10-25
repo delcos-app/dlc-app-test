@@ -70,7 +70,7 @@ function headerHtml(): string {
   return `
       <div class="saludo"><div><h1>${t('agenda.title')}</h1><div class="fecha" id="agtit">${escapeHtml(titleText())}</div></div>
         <div class="aghud" id="aghud" aria-label="${t('agenda.yourNumbers')}">${metricsHtml()}</div>
-        <div class="acts" style="margin:0"><button class="btn" data-ag="nueva">${t('agenda.newAppointment')}</button></div></div>
+        <div class="acts u-m-0"><button class="btn" data-ag="nueva">${t('agenda.newAppointment')}</button></div></div>
       <div class="card" id="agcuerpo"></div>
       <div class="card" id="agsemlat"></div>`;
 }
