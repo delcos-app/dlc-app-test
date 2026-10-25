@@ -1,9 +1,10 @@
 /**
  * Home screen (Inicio). Migrated from the legacy cargarInicio/pintarMosaico chain (v2.385.0).
- * Still legacy, reached through the bridge: the indicators (KPI cards), the header actions and the professional portal.
+ * Still legacy, reached through the bridge: the header actions and the professional portal.
  */
 import { currentScreen, legacyHome, permissions } from '../../legacy/bridge';
 import type { Route } from '../../core/router';
+import { loadIndicators } from './indicators';
 import { loadHomeData } from './service';
 import { renderMosaic, renderSkeleton } from './view';
 
@@ -27,7 +28,7 @@ async function paintIndicators(): Promise<void> {
   if (permissions.isProfessionalPortal()) { await legacyHome.professionalPortal(); return; }
   document.getElementById('v-inicio')?.classList.remove('ini-cargando');
   legacyHome.removeOldBlocks();
-  await legacyHome.indicators();
+  await loadIndicators();
 }
 
 /** One load at a time; a request while loading repeats it once at the end (the data may have changed meanwhile). */

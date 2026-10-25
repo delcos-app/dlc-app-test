@@ -222,12 +222,7 @@ document.addEventListener('keydown', e => {
    - Los datos de las gráficas: inicio_graficas() (SQL 132), pedida a la vez que panel_inicio para que Inicio aparezca entero de una vez.
    - Al llegar, los números cuentan desde cero y las gráficas crecen, todo a la vez (sin cascadas); la siguiente cita, el radar y el
      punto final de la línea siguen vivos. Sin animación con «reducir movimiento».
-   - Las tarjetas se transforman en cuanto se pintan (MutationObserver de #kpis: va antes de que se vean). */
+   - Desde v2.389.0 las tarjetas se pintan ya completas (src/app/screens/home/indicators). */
 let KV_INI = null, KV_GRAF = null;
 
-(() => {
-  const ob = new MutationObserver(() => { if ($('kpis')) kpisVivos(); });
-  const enganchar = () => { const c = $('kpis'); if (c && !c.__kv) { c.__kv = true; ob.observe(c, { childList: true }); kpisVivos(); } };
-  enganchar();   // #kpis está en index.html desde el arranque: basta con vigilarlo a él
-})();
 

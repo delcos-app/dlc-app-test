@@ -71,6 +71,9 @@
   function orFallback(value, fallback) {
     return value === void 0 || value === null || value === "" ? fallback : value;
   }
+  function nonZeroOr(value, fallback) {
+    return value === void 0 || value === null || value === 0 || Number.isNaN(value) ? fallback : value;
+  }
 
   // src/app/core/navigation/steps-outer.ts
   var PORTAL_SCREENS = ["informe", "config", "perfil"];
@@ -620,11 +623,47 @@
   var icon = (name) => svgIco(ICON_NOM[name] ?? ICON_NOM.info ?? "");
   var alreadyCounted = (key, values) => plYaContado(key, values);
   var legacyHome = {
-    indicators: inicioIndicadores,
     removeOldBlocks: inicioQuitarAntiguo,
     header: inicioCabecera,
     professionalPortal: pintarInicioBase2
   };
+  var indicatorCatalog = {
+    definitions: () => KPI_CAT,
+    settings: () => kpiConfig(),
+    allowed: (definition) => kpiPermitido(definition),
+    help: (id) => AYUDA_KPI[id],
+    icon: (id) => KPI_ICO[id],
+    description: (id) => KPI_TXT[id],
+    filterText: (filter) => textoFiltro(filter),
+    countFilter: (filter) => contarFiltro(filter)
+  };
+  var commercialStates = {
+    all: () => ESTADOS_DEF,
+    color: (state) => EST_COL[state]
+  };
+  var cachedRpc = (name, params, key) => rpcCache(name, params, key);
+  var timingMark = (step) => {
+    marca(step);
+  };
+  var showCacheNotice = (element, date) => {
+    avisoCache(element, date);
+  };
+  var addHelpButtons = () => {
+    ponerAyudas();
+  };
+  var isMobile = () => ES_MOVIL();
+
+  // src/app/services/format.ts
+  var HTML_ESCAPES = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
+  function escapeHtml(value) {
+    return String(value ?? "").replace(/[&<>"']/g, (char) => HTML_ESCAPES[char] ?? char);
+  }
+  function formatNumber(value) {
+    return Number(value ?? 0).toLocaleString("es");
+  }
+  function formatEuros(value) {
+    return `${Math.round(Number(value) || 0).toLocaleString("es-ES")} €`;
+  }
 
   // src/app/services/dates.ts
   function toIsoDate(date) {
@@ -640,6 +679,287 @@
   }
   function fromIsoDate(isoDate) {
     return /* @__PURE__ */ new Date(`${isoDate}T12:00:00`);
+  }
+
+  // src/app/screens/home/indicators/chart-tools.ts
+  var EMPTY_CHART = { summary: "", visual: "" };
+  var WEEKDAY_LETTERS = ["D", "L", "M", "X", "J", "V", "S"];
+  var STATE_COLORS = {
+    inicial: "#C9D7E6",
+    avance: "#3F82C0",
+    interes: "#17457A",
+    positivo: "#1E7A4C",
+    negativo: "#94A3B8"
+  };
+  var range = (length) => [...Array(length).keys()];
+  var sum = (values) => values.reduce((total, value) => total + value, 0);
+  function lineIcon(path, width = 2.4) {
+    return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${width}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${path}</svg>`;
+  }
+  function mondayOf(isoDate) {
+    const date = fromIsoDate(isoDate);
+    return addDays(isoDate, -((date.getDay() + 6) % 7));
+  }
+  function minutesOf(time) {
+    const match = /(\d{1,2}):(\d{2})/.exec(String(time ?? ""));
+    return match ? Number(match[1]) * 60 + Number(match[2]) : null;
+  }
+  function countsByDate(rows) {
+    return new Map((rows ?? []).map((row) => [row.fecha, row.n]));
+  }
+
+  // src/app/screens/home/indicators/charts-activity.ts
+  function dotKind(item, next) {
+    if (appointments.isOpen(item.estado)) return item === next ? "sig" : "";
+    return commercialStates.color(item.estado) === "var(--warn)" ? "no" : "ok";
+  }
+  function appointmentsChart(panel, kpis) {
+    const list = (panel.agenda_hoy ?? []).filter((item) => !appointments.isCancelled(item.estado));
+    const open = list.filter((item) => appointments.isOpen(item.estado));
+    const now = /* @__PURE__ */ new Date(), minutesNow = now.getHours() * 60 + now.getMinutes();
+    const next = open.find((item) => (minutesOf(item.hora) ?? 9999) >= minutesNow - 15) ?? open[0];
+    const time = (item, empty) => escapeHtml(String(item.hora ?? "").slice(0, 5) || empty);
+    const summary = next ? `Siguiente <b>${time(next, "—")}</b> · ${escapeHtml(next.nombre)}` : list.length ? "Todas cerradas" : "Sin citas hoy";
+    const visible = isMobile() ? 3 : 5;
+    const nextIndex = next ? list.indexOf(next) : 0;
+    const start = Math.max(0, Math.min(nextIndex - (visible >> 1), list.length - visible)), shown = list.slice(start, start + visible);
+    const more = Math.max(0, nonZeroOr(kpis.citas_hoy, list.length) - shown.length);
+    const dots = shown.map((item) => `<span class="kvdot"><i class="${dotKind(item, next)}" title="${escapeHtml(item.nombre)}"></i><em>${time(item, "·")}</em></span>`).join("");
+    return { summary, visual: list.length ? `<div class="kvdots">${dots}${more > 0 ? `<span class="kvdot"><em class="kvmas">+${more}</em></span>` : ""}</div>` : "" };
+  }
+  function urgentChart(kpis) {
+    if (kpis.urgentes) return { summary: `${formatNumber(kpis.urgentes)} por atender`, visual: '<div class="kvradar" aria-hidden="true"><i></i><b></b><b></b></div>' };
+    return { summary: "Ninguno pendiente", visual: `<div class="kvcalma"><span>${lineIcon('<path d="M20 6 9 17l-5-5"/>')}</span>Todo al día</div>` };
+  }
+  function weekSummary(week, today) {
+    const { upcoming, days, values, perDay } = week;
+    if (upcoming) {
+      const busiest = values.indexOf(Math.max(...values));
+      const day = days[busiest];
+      return values[busiest] && day ? `El ${fromIsoDate(day).toLocaleDateString("es-ES", { weekday: "long" })}, el día más lleno (<b>${values[busiest]}</b>)` : "Semana libre";
+    }
+    const fourWeeks = sum(range(28).map((i) => perDay.get(addDays(mondayOf(today), -28 + i)) ?? 0)) / 20;
+    return `Media <b>${String(fourWeeks.toFixed(1)).replace(".", ",")}</b> al día las 4 semanas anteriores`;
+  }
+  function weekChart(id, charts, today) {
+    const upcoming = id === "citas_7d";
+    const days = range(7).map((i) => upcoming ? addDays(today, i) : addDays(mondayOf(today), i));
+    const perDay = countsByDate(charts.por_dia), nextDays = countsByDate(charts.proximos);
+    const values = days.map((day) => (upcoming ? nextDays.get(day) : perDay.get(day)) ?? 0);
+    const max = Math.max(1, ...values), width = 196, barWidth = 18, gap = (width - 7 * barWidth) / 6;
+    const bars = values.map((value, i) => {
+      const day = days[i] ?? today, height = Math.max(3, value / max * 40), x = i * (barWidth + gap), future = !upcoming && day > today, isToday = day === today;
+      const fill2 = future ? "#E3EBF3" : isToday ? "var(--sky)" : "var(--navy)";
+      return `<rect x="${x}" y="${44 - height}" width="${barWidth}" height="${height}" rx="4" fill="${fill2}" opacity="${value ? 1 : 0.35}"/><text x="${x + barWidth / 2}" y="58" text-anchor="middle" class="${isToday ? "hoy" : ""}">${WEEKDAY_LETTERS[fromIsoDate(day).getDay()] ?? ""}</text>`;
+    }).join("");
+    return { summary: weekSummary({ upcoming, days, values, perDay }, today), visual: `<svg class="kvbar" viewBox="0 0 ${width} 60" preserveAspectRatio="xMidYMax meet" aria-hidden="true">${bars}</svg>` };
+  }
+  function monthChart(charts, today) {
+    const perDay = countsByDate(charts.por_dia), dayOfMonth = Number(today.slice(8, 10)), monthStart = `${today.slice(0, 8)}01`;
+    const previous = fromIsoDate(monthStart);
+    previous.setMonth(previous.getMonth() - 1);
+    const accumulate = (from) => {
+      let total = 0;
+      return range(dayOfMonth).map((i) => {
+        total += perDay.get(addDays(from, i)) ?? 0;
+        return total;
+      });
+    };
+    const current = accumulate(monthStart), last = accumulate(toIsoDate(previous));
+    if (dayOfMonth < 2) return EMPTY_CHART;
+    const max = Math.max(1, ...last, ...current), width = 196, height = 46;
+    const x = (i) => i / (dayOfMonth - 1) * width, y = (value) => height - value / max * height;
+    const line = (values) => values.map((value, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(value).toFixed(1)}`).join("");
+    const end = current[current.length - 1] ?? 0, difference = end - (last[last.length - 1] ?? 0);
+    return {
+      summary: difference >= 0 ? `<b>+${difference}</b> sobre el mismo día del mes pasado` : `<b>${difference}</b> frente al mismo día del mes pasado`,
+      visual: `<svg class="kvlin" viewBox="0 0 ${width} ${height + 12}" preserveAspectRatio="none" aria-hidden="true"><path d="${line(last)}" fill="none" stroke="#C9D7E6" stroke-width="2" stroke-dasharray="4 4"/>
+        <path class="l" d="${line(current)}" pathLength="100" fill="none" stroke="var(--navy)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+        <text x="0" y="${height + 11}">1</text><text x="${width}" y="${height + 11}" text-anchor="end" class="hoy">hoy</text>
+        <circle class="fin" cx="${x(dayOfMonth - 1)}" cy="${y(end)}" r="4" fill="var(--sky)" stroke="var(--navy)" stroke-width="1.5"/></svg>`
+    };
+  }
+  function unitsChart(kpis) {
+    const now = kpis.uds_mes ?? 0, before = kpis.uds_mes_ant ?? 0, max = Math.max(1, now, before), width = 196;
+    return {
+      summary: before ? `${now >= before ? "+" : ""}${Math.round((now - before) / before * 100)} % frente al mismo día del mes pasado` : "",
+      visual: `<svg class="kvbar" viewBox="0 0 ${width} 44" preserveAspectRatio="none" aria-hidden="true"><rect x="0" y="4" width="${before / max * width}" height="12" rx="4" fill="#DCE6F1"/><rect x="0" y="24" width="${Math.max(3, now / max * width)}" height="12" rx="4" fill="var(--navy)"/></svg>`
+    };
+  }
+
+  // src/app/screens/home/indicators/charts-portfolio.ts
+  function stateCounts(charts) {
+    const counts = new Map((charts.estados ?? []).map((row) => [row.valor, row.n]));
+    return commercialStates.all().filter((state) => state.papel !== "negativo").map((state) => ({ state, accounts: counts.get(state.valor) ?? 0 }));
+  }
+  function portfolioTotal(charts) {
+    return sum((charts.estados ?? []).map((row) => row.n));
+  }
+  var color = (role) => STATE_COLORS[role] ?? "#C9D7E6";
+  function interestedChart(charts) {
+    const counts = stateCounts(charts), steps = counts.filter((count) => count.state.papel !== "inicial");
+    if (!steps.length) return EMPTY_CHART;
+    const max = Math.max(1, ...steps.map((count) => count.accounts)), width = 196, barWidth = width / steps.length;
+    const columns = steps.map((count, i) => {
+      const on = count.state.papel === "interes", height = Math.max(4, count.accounts / max * 28);
+      const name = count.state.valor.length > 11 ? `${count.state.valor.slice(0, 10)}.` : count.state.valor;
+      return `<rect x="${i * barWidth + 4}" y="${34 - height}" width="${barWidth - 8}" height="${height}" rx="4" fill="${on ? "var(--navy)" : "#DCE6F1"}"/><text x="${i * barWidth + barWidth / 2}" y="${30 - height}" text-anchor="middle" class="n ${on ? "on" : ""}">${count.accounts}</text><text x="${i * barWidth + barWidth / 2}" y="48" text-anchor="middle" class="${on ? "on" : ""}">${escapeHtml(name)}</text>`;
+    }).join("");
+    const positive = counts.find((count) => count.state.papel === "positivo");
+    const summary = positive ? positive.accounts ? `<b>${positive.accounts}</b> ya en «${escapeHtml(positive.state.valor)}»` : `Siguiente paso: «${escapeHtml(positive.state.valor)}»` : "";
+    return { summary, visual: `<svg class="kvbar" viewBox="0 0 ${width} 52" preserveAspectRatio="xMidYMax meet" aria-hidden="true">${columns}</svg>` };
+  }
+  function portfolioChart(charts) {
+    const total = portfolioTotal(charts), present = stateCounts(charts).filter((count) => count.accounts);
+    const circumference = 2 * Math.PI * 22;
+    let offset = 0;
+    const segments = present.map((count) => {
+      const length = count.accounts / total * circumference;
+      const segment = `<circle class="s" cx="29" cy="29" r="22" fill="none" stroke="${color(count.state.papel)}" stroke-width="9" stroke-dasharray="${Math.max(0, length - 1.5)} ${circumference}" stroke-dashoffset="${-offset}"/>`;
+      offset += length;
+      return segment;
+    }).join("");
+    const legend = present.slice(0, 4).map((count) => `<span><i style="background:${color(count.state.papel)}"></i>${count.accounts} ${escapeHtml(count.state.valor)}</span>`).join("");
+    return { summary: "", visual: `<div class="kvdona"><svg viewBox="0 0 58 58" aria-hidden="true">${segments}</svg><div class="kvley">${legend}</div></div>` };
+  }
+  function notContactedChart(charts, kpis) {
+    const total = portfolioTotal(charts), notContacted = kpis.sin_contactar ?? 0;
+    const squares = Math.min(total, isMobile() ? 64 : 96), filled = Math.round(notContacted / total * squares);
+    const grid = range(squares).map((i) => `<i class="${i >= squares - filled ? "f" : ""}"></i>`).join("");
+    return { summary: `${Math.round(notContacted / total * 100)} % de tu cartera`, visual: `<div class="kvwaf" aria-hidden="true">${grid}</div>` };
+  }
+  function noRecentVisitChart(kpis) {
+    const percent = Math.round((kpis.sin_visita_60 ?? 0) / Math.max(1, kpis.medicos ?? 0) * 100);
+    return {
+      summary: `${percent} % de tu cartera`,
+      visual: `<div class="kvpropw"><div class="kvprop"><i style="width:${percent}%"></i></div><div class="kvpropt"><span><i class="kvq a"></i>Sin ${term("visita")} en 60 días</span><span><i class="kvq b"></i>El resto</span></div></div>`
+    };
+  }
+
+  // src/app/screens/home/indicators/cards.ts
+  var withPortfolio = (draw) => ({ charts, kpis }) => charts && portfolioTotal(charts) ? draw(charts, kpis) : null;
+  var weekBuilder = ({ id, charts, today }) => charts ? weekChart(id, charts, today) : null;
+  var CHARTS = /* @__PURE__ */ new Map([
+    ["citas", ({ panel, kpis }) => panel ? appointmentsChart(panel, kpis) : null],
+    ["urgentes", ({ kpis }) => urgentChart(kpis)],
+    ["visitas_sem", weekBuilder],
+    ["citas_7d", weekBuilder],
+    ["visitas_mes", ({ charts, today }) => charts ? monthChart(charts, today) : null],
+    ["interesados", withPortfolio((charts) => interestedChart(charts))],
+    ["cartera", withPortfolio((charts) => portfolioChart(charts))],
+    ["sin_contactar", withPortfolio(notContactedChart)],
+    ["sin_visita_60", ({ kpis }) => kpis.medicos ? noRecentVisitChart(kpis) : null],
+    ["uds_mes", ({ kpis }) => kpis.uds_mes_ant !== void 0 && (kpis.uds_mes || kpis.uds_mes_ant) ? unitsChart(kpis) : null]
+  ]);
+  function chartFor(id, kpis, panel, charts) {
+    return CHARTS.get(id)?.({ id, kpis, panel, charts, today: todayIso() }) ?? EMPTY_CHART;
+  }
+  var capitalise = (text) => text.charAt(0).toUpperCase() + text.slice(1);
+  function helpButton(help, title) {
+    return help ? `<button class="ai" data-ayuda-txt="${escapeHtml(help)}" data-ayuda-tit="${escapeHtml(title)}" aria-label="Qué es">i</button>` : "";
+  }
+  function figure(raw) {
+    const text = String(raw), fraction = /^(\d+)\/(\d+)$/.exec(text);
+    if (fraction) return `<b data-kvn="${fraction[1] ?? ""}">0</b><span class="kvu">/${fraction[2] ?? ""}</span>`;
+    return /^\d+$/.test(text) ? `<b data-kvn="${text}">0</b>` : `<b>${escapeHtml(text)}</b>`;
+  }
+  function indicatorCard(definition, setting, context) {
+    const title = setting.t ? setting.t : definition.t;
+    const classes = `kpi ${definition.cls ? definition.cls(context.kpis) : ""} ${definition.h ? "click" : ""}${context.panel ? " kv" : ""}`;
+    const action = definition.h ? ` data-k="${definition.h}"` : "";
+    const icon2 = indicatorCatalog.icon(definition.id), description = indicatorCatalog.description(definition.id);
+    const help = helpButton(indicatorCatalog.help(definition.id), title);
+    const raw = definition.v(context.kpis);
+    const body = context.panel ? liveBody(definition.id, capitalise(title).trim(), raw, context) : `
+       ${help}
+       <b>${typeof raw === "string" ? raw : formatNumber(raw)}</b><span>${escapeHtml(capitalise(title))}</span>`;
+    return `<div class="${classes}"${action} data-kid="${definition.id}" data-comp="1">${icon2 ? `<span class="kico" aria-hidden="true">${icon2}</span>` : ""}${context.panel ? help : ""}${body}${description ? `<em class="kdesc">${escapeHtml(description)}</em>` : ""}</div>`;
+  }
+  function liveBody(id, title, raw, context) {
+    const { summary, visual } = chartFor(id, context.kpis, context.panel, context.charts);
+    return `<div class="kvt">${escapeHtml(title)}</div>
+      <div class="kvn">${figure(raw)}</div>
+      <div class="kvs">${summary}</div>${visual ? `<div class="kvz">${visual}</div>` : ""}`;
+  }
+  function filterCard(setting, index, live) {
+    const filter = setting.filtro ?? {};
+    const name = setting.t ? setting.t : indicatorCatalog.filterText(filter);
+    const help = `<button class="ai" data-ayuda-txt="${escapeHtml(`${indicatorCatalog.help("filtro") ?? ""} Filtro: ${indicatorCatalog.filterText(filter)}.`)}" data-ayuda-tit="${escapeHtml(setting.t ? setting.t : "Filtro guardado")}" aria-label="Qué es">i</button>`;
+    const count = '<b class="cont"><span class="spin" style="width:18px;height:18px;border-width:2px;display:inline-block"></span></b>';
+    return live ? `<div class="kpi click kv" data-kf="${escapeHtml(JSON.stringify(filter))}" data-kfi="${index}">
+        ${help}
+        <span class="kvt">${escapeHtml(name)}</span><div class="kvn">${count}</div></div>` : `<div class="kpi click" data-kf="${escapeHtml(JSON.stringify(filter))}" data-kfi="${index}">
+        ${help}
+        ${count}<span>${escapeHtml(name)}</span></div>`;
+  }
+
+  // src/app/screens/home/indicators/index.ts
+  var COUNT_DURATION_MS = 900;
+  function countUp(container) {
+    const figures = [...container.querySelectorAll("[data-kvn]")];
+    const finalValue = (el) => Number(el.dataset.kvn);
+    const showFinal = () => {
+      figures.forEach((el) => {
+        el.textContent = formatNumber(finalValue(el));
+      });
+    };
+    if (alreadyCounted("kv", figures.map((el) => el.dataset.kvn ?? "")) || matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      showFinal();
+      return;
+    }
+    const start = performance.now();
+    const step = (now) => {
+      const progress = Math.min(1, (now - start) / COUNT_DURATION_MS), eased = 1 - Math.pow(1 - progress, 3);
+      figures.forEach((el) => {
+        if (el.isConnected) el.textContent = formatNumber(Math.round(finalValue(el) * eased));
+      });
+      if (progress < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }
+  function render(container, settings, kpis) {
+    const definitions = indicatorCatalog.definitions();
+    const allowed = settings.map((setting) => ({ setting, definition: definitions.find((item) => item.id === setting.id) }));
+    const panel = homeCache.panel();
+    const live = Boolean(panel) && allowed.some(({ setting, definition }) => !setting.filtro && indicatorCatalog.allowed(definition));
+    const context = { kpis, panel: live ? panel : null, charts: homeCache.charts() };
+    container.innerHTML = allowed.map(({ setting, definition }, index) => {
+      if (setting.filtro) return filterCard(setting, index, live);
+      if (!definition || !indicatorCatalog.allowed(definition)) return "";
+      return indicatorCard(definition, setting, context);
+    }).join("");
+    if (live) container.classList.add("kvivo");
+    return live;
+  }
+  function countSavedFilters(settings) {
+    settings.forEach((setting, index) => {
+      if (!setting.filtro) return;
+      indicatorCatalog.countFilter(setting.filtro).then((count) => {
+        const figure2 = document.querySelector(`#kpis [data-kfi="${index}"] .cont`);
+        if (figure2) figure2.textContent = formatNumber(count);
+      }).catch(() => void 0);
+    });
+  }
+  function paintIndicators(result) {
+    const container = document.getElementById("kpis");
+    if (!container) return;
+    if (!result.data) {
+      container.innerHTML = '<div class="vacio">Sin conexión y sin copia guardada todavía.</div>';
+      return;
+    }
+    const settings = indicatorCatalog.settings().filter((setting) => setting.on);
+    const live = render(container, settings, result.data.kpis ?? {});
+    if (result.cache) showCacheNotice(container, result.fecha);
+    countSavedFilters(settings);
+    addHelpButtons();
+    if (live) countUp(container);
+  }
+  async function loadIndicators() {
+    const result = await cachedRpc("panel_inicio", { lim: 6 }, "inicio");
+    timingMark("datos de Inicio recibidos");
+    if (currentScreen() !== "inicio") return;
+    paintIndicators(result);
+    if (result.data) timingMark("Inicio completo");
   }
 
   // src/app/screens/home/service.ts
@@ -675,18 +995,6 @@
       kpis: homeCache.panel()?.kpis ?? {},
       visitsPerDay: homeCache.charts()?.por_dia ?? []
     };
-  }
-
-  // src/app/services/format.ts
-  var HTML_ESCAPES = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
-  function escapeHtml(value) {
-    return String(value ?? "").replace(/[&<>"']/g, (char) => HTML_ESCAPES[char] ?? char);
-  }
-  function formatNumber(value) {
-    return Number(value ?? 0).toLocaleString("es");
-  }
-  function formatEuros(value) {
-    return `${Math.round(Number(value) || 0).toLocaleString("es-ES")} €`;
   }
 
   // src/app/screens/home/attention.ts
@@ -834,7 +1142,7 @@
   // src/app/screens/home/tiles.ts
   var plural = (count, one, other) => count === 1 ? one : other;
   function attentionTile(items) {
-    const total = items.reduce((sum, item) => sum + item.count, 0);
+    const total = items.reduce((sum2, item) => sum2 + item.count, 0);
     const rows = items.slice(0, 7).map((item, index) => `<button type="button" class="mti ${item.priority}" data-mat="${index}"><span class="mic">${icon(item.icon)}</span>
       <span class="mtx"><b>${escapeHtml(item.title)}</b><span>${escapeHtml(item.detail)}</span></span><span class="mn" data-mcnt="${item.count}">${item.count}</span><span class="mfl" aria-hidden="true">›</span></button>`).join("");
     const allClear = `<div class="mtok">${icon("check")}<span><b>${t("home.attention.allClearTitle")}</b>${t("home.attention.allClearText")}</span></div>`;
@@ -864,10 +1172,10 @@
     if (!permissions.canSeeArea("ventas")) return "";
     const sales = data.areas.ventas ?? {};
     const { inEuros, current, change } = salesFigures(sales);
-    const figure = inEuros ? `data-meur="${current}"` : `data-mcnt="${current}"`;
+    const figure2 = inEuros ? `data-meur="${current}"` : `data-mcnt="${current}"`;
     const units = inEuros ? ` · <b>${formatNumber(sales.unidades ?? 0)}</b> ${t("home.sales.units")}` : "";
     return `<div class="mt mtven"><div class="mtt">${icon("chart-column")} ${t("home.sales.title")}</div>
-      <div class="mn1" ${figure}>${inEuros ? formatEuros(current) : `${formatNumber(current)}<small>${t("home.sales.units")}</small>`}</div>
+      <div class="mn1" ${figure2}>${inEuros ? formatEuros(current) : `${formatNumber(current)}<small>${t("home.sales.units")}</small>`}</div>
       <div class="ms">${salesVersus(change)}<b>${formatNumber(sales.pedidos ?? 0)}</b> ${t("home.sales.orders")}${units}</div>
       ${salesChart(data)}</div>`;
   }
@@ -893,7 +1201,7 @@
   function cycleTile(data) {
     const summary = data.cycle?.resumen ?? [];
     if (!summary.length) return "";
-    const done = summary.reduce((sum, row) => sum + row.hechas, 0), target = summary.reduce((sum, row) => sum + row.objetivo, 0);
+    const done = summary.reduce((sum2, row) => sum2 + row.hechas, 0), target = summary.reduce((sum2, row) => sum2 + row.objetivo, 0);
     const percent = target ? Math.round(100 * done / target) : 0, circumference = 2 * Math.PI * 30;
     return `<div class="mt mtcic"><div class="mtt">${icon("target")} ${t("home.cycle.title", { visits: term("visita", { number: "p" }) })}</div>
       <div class="mfila"><svg class="mring" viewBox="0 0 70 70" aria-hidden="true"><circle class="f" cx="35" cy="35" r="30"/><circle class="v" cx="35" cy="35" r="30" style="stroke-dasharray:${circumference * percent / 100} ${circumference}"/></svg>
@@ -901,7 +1209,7 @@
   }
   function stockTile(data) {
     if (!permissions.canSeeArea("productos")) return "";
-    const total = data.stock.reduce((sum, alert) => sum + alert.n, 0);
+    const total = data.stock.reduce((sum2, alert) => sum2 + alert.n, 0);
     const rows = data.stock.slice(0, 3).map((alert) => `<div><span>${escapeHtml(alert.titulo)}</span><b>${alert.n}</b></div>`).join("");
     return `<div class="mt mtsto"><div class="mtt">${icon("package")} ${t("home.stock.title")}</div><div class="mn1"><span data-mcnt="${total}">${total}</span><small>${plural(total, t("home.stock.alertOne"), t("home.stock.alertOther"))}</small></div>
       <div class="mmini">${rows || `<div><span>${t("home.stock.allGood")}</span></div>`}</div></div>`;
@@ -931,7 +1239,7 @@
 
   // src/app/screens/home/view.ts
   var SKELETON_WIDTHS = [64, 82, 56, 74, 60];
-  var COUNT_DURATION_MS = 900;
+  var COUNT_DURATION_MS2 = 900;
   function screen() {
     return document.getElementById("v-inicio");
   }
@@ -964,13 +1272,13 @@
     if (!box || box.children.length) return;
     box.innerHTML = skeletonTile("mtat", 6) + skeletonTile("mthoy", 4) + skeletonTile("", 2) + skeletonTile("", 2) + skeletonTile("mtprox", 3);
   }
-  function countUp(box) {
+  function countUp2(box) {
     const figures = [...box.querySelectorAll("[data-mcnt], [data-meur]")];
     if (alreadyCounted("mos", figures.map((el) => el.dataset.mcnt ?? el.dataset.meur ?? ""))) return;
     if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const start = performance.now();
     const step = (now) => {
-      const progress = Math.min(1, (now - start) / COUNT_DURATION_MS), eased = 1 - Math.pow(1 - progress, 3);
+      const progress = Math.min(1, (now - start) / COUNT_DURATION_MS2), eased = 1 - Math.pow(1 - progress, 3);
       figures.forEach((el) => {
         const euros = el.dataset.meur;
         el.textContent = euros === void 0 ? formatNumber(Math.round(Number(el.dataset.mcnt) * eased)) : formatEuros(Number(euros) * eased);
@@ -1006,7 +1314,7 @@
       goTo("agenda");
     };
     section.classList.add("conmos");
-    countUp(box);
+    countUp2(box);
   }
 
   // src/app/screens/home/index.ts
@@ -1021,14 +1329,14 @@
     if (turn !== mosaicTurn || !isHome()) return;
     renderMosaic(data);
   }
-  async function paintIndicators() {
+  async function paintIndicators2() {
     if (permissions.isProfessionalPortal()) {
       await legacyHome.professionalPortal();
       return;
     }
     document.getElementById("v-inicio")?.classList.remove("ini-cargando");
     legacyHome.removeOldBlocks();
-    await legacyHome.indicators();
+    await loadIndicators();
   }
   function loadIndicatorsOnce() {
     if (!isHome()) return Promise.resolve();
@@ -1037,7 +1345,7 @@
       return loading;
     }
     reloadAfter = false;
-    loading = paintIndicators().catch((error) => {
+    loading = paintIndicators2().catch((error) => {
       console.error(error);
     }).finally(() => {
       loading = null;
@@ -1066,7 +1374,7 @@
     setLanguage,
     setVocabulary,
     screens: {
-      home: { load, renderSkeleton }
+      home: { load, renderSkeleton, paintIndicators }
     }
   };
 })();
@@ -16302,7 +16610,6 @@ async function inicioVistazoEIndicadores() {
   // El aviso de duplicados ya está como indicador: se quita el cartel repetido
   document.querySelectorAll('#v-inicio .avisoh').forEach(a => { if (/unificar|duplicad/i.test(a.textContent)) a.remove(); });
   vistazoHoy();
-  indicadoresCompletos();
 }
 
 async function inicioLlamadasHoy() {
@@ -16325,7 +16632,6 @@ async function pintarInicioBase() {
   sec.classList.remove('ini-cargando');
   if (!$('inialerta')) sec.querySelector('.saludo').insertAdjacentHTML('afterend', '<div id="inialerta"></div>');
   const esAdmin = puede('administrar');
-  const cfg = kpiConfig().filter(x => x.on);
 
   // Cada bloque se pinta en cuanto llegan sus datos; mientras, se ve su esqueleto.
   const pComision = tarjetaComision().catch(() => {});
@@ -16349,26 +16655,7 @@ async function pintarInicioBase() {
   avisoDup();
   if (esAdmin) db.rpc('resumen_duplicados').then(r => { DUP_RES = r.data || null; avisoDup(); }).catch(() => {});
 
-  const kpi = (n, t, cls, accion, ayuda, id) =>
-    `<div class="kpi ${cls || ''} ${accion ? 'click' : ''}" ${accion ? `data-k="${accion}"` : ''} ${id ? `data-kid="${id}"` : ''}>
-       ${ayuda ? `<button class="ai" data-ayuda-txt="${esc(ayuda)}" data-ayuda-tit="${esc(t)}" aria-label="Qué es">i</button>` : ''}
-       <b>${typeof n === 'string' ? n : num(n)}</b><span>${esc(t.charAt(0).toUpperCase() + t.slice(1))}</span></div>`;
-
-  $('kpis').innerHTML = cfg.map((x, i) => {
-    if (x.filtro) return `<div class="kpi click" data-kf="${esc(JSON.stringify(x.filtro))}" data-kfi="${i}">
-        <button class="ai" data-ayuda-txt="${esc(AYUDA_KPI.filtro + ' Filtro: ' + textoFiltro(x.filtro) + '.')}" data-ayuda-tit="${esc(x.t || 'Filtro guardado')}" aria-label="Qué es">i</button>
-        <b class="cont"><span class="spin" style="width:18px;height:18px;border-width:2px;display:inline-block"></span></b><span>${esc(x.t || textoFiltro(x.filtro))}</span></div>`;
-    const c = KPI_CAT.find(y => y.id === x.id);
-    if (!kpiPermitido(c)) return '';
-    return kpi(c.v(k), x.t || c.t, c.cls ? c.cls(k) : '', c.h, AYUDA_KPI[c.id], c.id);
-  }).join('');
-  if (res.cache) avisoCache($('kpis'), res.fecha);
-  cfg.forEach((x, i) => {
-    if (!x.filtro) return;
-    contarFiltro(x.filtro).then(n => {
-      const b = document.querySelector(`#kpis [data-kfi="${i}"] .cont`); if (b) b.textContent = num(n);
-    }).catch(() => {});
-  });
+  window.delcos.screens.home.paintIndicators(res);
 
   tarjeta($('c-agenda'), 'Tu agenda de hoy', data.agenda_hoy.length,
     data.agenda_hoy.map(a => itemHTML(a.cuenta_id, a.hora ? esc(a.hora).slice(0, 5) : '·',
@@ -16401,19 +16688,6 @@ function inicioPosible(it, llegada, dura) {
   return null;
 }
 
-function indicadoresCompletos() {
-  // v2.104.0: cada tarjeta lleva su indicador (data-kid). Antes se emparejaban por posición y, al quitar los que
-  // la persona no puede ver, las siguientes tomaban el subtítulo y el icono de otra
-  const cards = [...document.querySelectorAll('#kpis .kpi')];
-  cards.forEach(k => {
-    const c = k.dataset.kid ? { id: k.dataset.kid } : null; if (!c || k.dataset.comp) return;
-    k.dataset.comp = '1';
-    // v2.92.0: los indicadores sin icono propio (por ejemplo, los de una zona) no llevan caja de icono vacía
-    if (KPI_ICO[c.id]) k.insertAdjacentHTML('afterbegin', `<span class="kico" aria-hidden="true">${KPI_ICO[c.id]}</span>`);
-    if (KPI_TXT[c.id]) k.insertAdjacentHTML('beforeend', `<em class="kdesc">${esc(KPI_TXT[c.id])}</em>`);
-  });
-}
-
 async function filtrarAlertasInicio() {
   const caja = $('iniextra'); if (!caja) return;
   const ocultas = new Set((await cargarOcultas()).map(x => x.clave));
@@ -16436,110 +16710,6 @@ async function filtrarAlertasInicio() {
   }
 }
 
-function kvGrafica(id, k) {
-  const h = hoyISO(), G = KV_GRAF, vis = TT('visita', 'p', '', 'l', 'l');
-  const porDia = {}; ((G && G.por_dia) || []).forEach(x => { porDia[x.fecha] = x.n; });
-  const estados = {}; ((G && G.estados) || []).forEach(x => { estados[x.valor] = x.n; });
-  const totalCartera = Object.values(estados).reduce((a, b) => a + b, 0);
-  if (id === 'citas' && KV_INI) {
-    const l = (KV_INI.agenda_hoy || []).filter(a => !citaAnulada(a.estado));
-    const ab = l.filter(a => CITA_ABIERTA.includes(a.estado)), ahora = (() => { const d = new Date(); return d.getHours() * 60 + d.getMinutes(); })();
-    const sig = ab.find(a => (kvMin(a.hora) ?? 9999) >= ahora - 15) || ab[0];
-    const tipo = a => CITA_ABIERTA.includes(a.estado) ? (a === sig ? 'sig' : '') : EST_COL[a.estado] === 'var(--warn)' ? 'no' : 'ok';
-    const s = sig ? `Siguiente <b>${esc(String(sig.hora || '').slice(0, 5) || '—')}</b> · ${esc(sig.nombre)}` : l.length ? 'Todas cerradas' : 'Sin citas hoy';
-    // v2.223.0: como mucho cinco puntos (tres en el móvil, con la siguiente siempre a la vista) y «+N» con el resto; antes saltaban a otra fila y tapaban el texto
-    const nv = matchMedia('(max-width: 760px)').matches ? 3 : 5;
-    const iS = sig ? l.indexOf(sig) : 0, ini = Math.max(0, Math.min(iS - (nv >> 1), l.length - nv)), ver = l.slice(ini, ini + nv);
-    const mas = Math.max(0, (k.citas_hoy || l.length) - ver.length);
-    return { s, z: l.length ? `<div class="kvdots">${ver.map(a => `<span class="kvdot"><i class="${tipo(a)}" title="${esc(a.nombre)}"></i><em>${esc(String(a.hora || '').slice(0, 5) || '·')}</em></span>`).join('')}${mas > 0 ? `<span class="kvdot"><em class="kvmas">+${mas}</em></span>` : ''}</div>` : '' };
-  }
-  if (id === 'urgentes') {
-    return k.urgentes ? { s: `${num(k.urgentes)} por atender`, z: '<div class="kvradar" aria-hidden="true"><i></i><b></b><b></b></div>' }
-      : { s: 'Ninguno pendiente', z: `<div class="kvcalma"><span>${kvSvg('<path d="M20 6 9 17l-5-5"/>')}</span>Todo al día</div>` };
-  }
-  if ((id === 'visitas_sem' || id === 'citas_7d') && G) {
-    const prox = id === 'citas_7d';
-    const dias = Array.from({ length: 7 }, (_, i) => prox ? kvMas(h, i) : kvMas(kvLunes(h), i));
-    const proxD = {}; (G.proximos || []).forEach(x => { proxD[x.fecha] = x.n; });
-    const val = dias.map(f => (prox ? proxD[f] : porDia[f]) || 0);
-    const mx = Math.max(1, ...val), W = 196, bw = 18, gap = (W - 7 * bw) / 6;
-    const bars = val.map((v, i) => { const hh = Math.max(3, v / mx * 40), x = i * (bw + gap), fut = !prox && dias[i] > h, esH = dias[i] === h;
-      return `<rect x="${x}" y="${44 - hh}" width="${bw}" height="${hh}" rx="4" fill="${fut ? '#E3EBF3' : esH ? 'var(--sky)' : 'var(--navy)'}" opacity="${v ? 1 : .35}"/><text x="${x + bw / 2}" y="58" text-anchor="middle" class="${esH ? 'hoy' : ''}">${KV_DN[new Date(dias[i] + 'T12:00:00').getDay()]}</text>`; }).join('');
-    let s;
-    if (prox) { const i = val.indexOf(Math.max(...val)); s = val[i] ? `El ${new Date(dias[i] + 'T12:00:00').toLocaleDateString('es-ES', { weekday: 'long' })}, el día más lleno (<b>${val[i]}</b>)` : 'Semana libre'; }
-    else { const m4 = Array.from({ length: 28 }, (_, i) => porDia[kvMas(kvLunes(h), -28 + i)] || 0).reduce((a, b) => a + b, 0) / 20; s = `Media <b>${String(m4.toFixed(1)).replace('.', ',')}</b> al día las 4 semanas anteriores`; }
-    return { s, z: `<svg class="kvbar" viewBox="0 0 ${W} 60" preserveAspectRatio="xMidYMax meet" aria-hidden="true">${bars}</svg>` };
-  }
-  if (id === 'visitas_mes' && G) {
-    const dHoy = +h.slice(8, 10), ini = h.slice(0, 8) + '01', d0 = new Date(ini + 'T12:00:00'); d0.setMonth(d0.getMonth() - 1); const iniAnt = isoLocal(d0);
-    const acum = f0 => { let a = 0; return Array.from({ length: dHoy }, (_, i) => { a += porDia[kvMas(f0, i)] || 0; return a; }); };
-    const ac = acum(ini), ant = acum(iniAnt);
-    if (dHoy < 2) return { s: '', z: '' };
-    const mx = Math.max(1, ...ant, ...ac), W = 196, H = 46, x = i => i / (dHoy - 1) * W, y = v => H - v / mx * H;
-    const lin = a => a.map((v, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join('');
-    const dif = ac[ac.length - 1] - ant[ant.length - 1];
-    return { s: dif >= 0 ? `<b>+${dif}</b> sobre el mismo día del mes pasado` : `<b>${dif}</b> frente al mismo día del mes pasado`,
-      z: `<svg class="kvlin" viewBox="0 0 ${W} ${H + 12}" preserveAspectRatio="none" aria-hidden="true"><path d="${lin(ant)}" fill="none" stroke="#C9D7E6" stroke-width="2" stroke-dasharray="4 4"/>
-        <path class="l" d="${lin(ac)}" pathLength="100" fill="none" stroke="var(--navy)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
-        <text x="0" y="${H + 11}">1</text><text x="${W}" y="${H + 11}" text-anchor="end" class="hoy">hoy</text>
-        <circle class="fin" cx="${x(dHoy - 1)}" cy="${y(ac[ac.length - 1])}" r="4" fill="var(--sky)" stroke="var(--navy)" stroke-width="1.5"/></svg>` };
-  }
-  if ((id === 'interesados' || id === 'cartera') && G && totalCartera) {
-    const esc2 = ESTADOS_DEF.filter(e => e.papel !== 'negativo').map(e => ({ e, n: estados[e.valor] || 0 }));
-    if (id === 'interesados') {
-      const pasos = esc2.filter(c => c.e.papel !== 'inicial'); if (!pasos.length) return { s: '', z: '' };
-      const mx = Math.max(1, ...pasos.map(c => c.n)), W = 196, bw = W / pasos.length;
-      const col = pasos.map((c, i) => { const on = c.e.papel === 'interes', hh = Math.max(4, c.n / mx * 28), nom = c.e.valor.length > 11 ? c.e.valor.slice(0, 10) + '.' : c.e.valor;
-        return `<rect x="${i * bw + 4}" y="${34 - hh}" width="${bw - 8}" height="${hh}" rx="4" fill="${on ? 'var(--navy)' : '#DCE6F1'}"/><text x="${i * bw + bw / 2}" y="${30 - hh}" text-anchor="middle" class="n ${on ? 'on' : ''}">${c.n}</text><text x="${i * bw + bw / 2}" y="48" text-anchor="middle" class="${on ? 'on' : ''}">${esc(nom)}</text>`; }).join('');
-      const pos = esc2.find(c => c.e.papel === 'positivo');
-      return { s: pos ? (pos.n ? `<b>${pos.n}</b> ya en «${esc(pos.e.valor)}»` : `Siguiente paso: «${esc(pos.e.valor)}»`) : '', z: `<svg class="kvbar" viewBox="0 0 ${W} 52" preserveAspectRatio="xMidYMax meet" aria-hidden="true">${col}</svg>` };
-    }
-    const C = 2 * Math.PI * 22; let off = 0;
-    const segs = esc2.filter(c => c.n).map(c => { const l = c.n / totalCartera * C, s = `<circle class="s" cx="29" cy="29" r="22" fill="none" stroke="${KV_COL[c.e.papel] || '#C9D7E6'}" stroke-width="9" stroke-dasharray="${Math.max(0, l - 1.5)} ${C}" stroke-dashoffset="${-off}"/>`; off += l; return s; }).join('');
-    return { s: '', z: `<div class="kvdona"><svg viewBox="0 0 58 58" aria-hidden="true">${segs}</svg><div class="kvley">${esc2.filter(c => c.n).slice(0, 4).map(c => `<span><i style="background:${KV_COL[c.e.papel] || '#C9D7E6'}"></i>${c.n} ${esc(c.e.valor)}</span>`).join('')}</div></div>` };
-  }
-  if (id === 'sin_contactar' && G && totalCartera) {
-    const n = Math.min(totalCartera, ES_MOVIL() ? 64 : 96), sin = Math.round(k.sin_contactar / totalCartera * n);   // v2.338.0: en el móvil, 64 (4 filas); con 96 tapaba la cifra
-    return { s: `${Math.round(k.sin_contactar / totalCartera * 100)} % de tu cartera`, z: `<div class="kvwaf" aria-hidden="true">${Array.from({ length: n }, (_, i) => `<i class="${i >= n - sin ? 'f' : ''}"></i>`).join('')}</div>` };
-  }
-  if (id === 'sin_visita_60' && k.medicos) {
-    const p = Math.round(k.sin_visita_60 / Math.max(1, k.medicos) * 100);
-    return { s: `${p} % de tu cartera`, z: `<div class="kvpropw"><div class="kvprop"><i style="width:${p}%"></i></div><div class="kvpropt"><span><i class="kvq a"></i>Sin ${TT('visita', 's', '', 'l', 'l')} en 60 días</span><span><i class="kvq b"></i>El resto</span></div></div>` };
-  }
-  if (id === 'uds_mes' && k.uds_mes_ant != null && (k.uds_mes || k.uds_mes_ant)) {
-    const a = k.uds_mes || 0, b = k.uds_mes_ant || 0, mx = Math.max(1, a, b), W = 196;
-    return { s: b ? `${a >= b ? '+' : ''}${Math.round((a - b) / b * 100)} % frente al mismo día del mes pasado` : '',
-      z: `<svg class="kvbar" viewBox="0 0 ${W} 44" preserveAspectRatio="none" aria-hidden="true"><rect x="0" y="4" width="${b / mx * W}" height="12" rx="4" fill="#DCE6F1"/><rect x="0" y="24" width="${Math.max(3, a / mx * W)}" height="12" rx="4" fill="var(--navy)"/></svg>` };
-  }
-  return { s: '', z: '' };
-}
-
-function kpisVivos() {
-  const cont = $('kpis'); if (!cont || !KV_INI || !cont.querySelector('.kpi[data-kid]') || cont.querySelector('.kvt')) return;
-  const k = KV_INI.kpis || {};
-  cont.classList.add('kvivo');
-  cont.querySelectorAll('.kpi[data-kid]').forEach(el => {
-    const id = el.dataset.kid, c = KPI_CAT.find(y => y.id === id); if (!c) return;
-    const raw = c.v(k), m = String(raw).match(/^(\d+)\/(\d+)$/);
-    const { s, z } = kvGrafica(id, k);
-    const ai = el.querySelector('.ai'), t = ((el.querySelector('b + span') || {}).textContent || c.t).trim();
-    el.classList.add('kv');
-    el.innerHTML = `${ai ? ai.outerHTML : ''}<div class="kvt">${esc(t)}</div>
-      <div class="kvn">${m ? `<b data-kvn="${m[1]}">0</b><span class="kvu">/${m[2]}</span>` : /^\d+$/.test(String(raw)) ? `<b data-kvn="${raw}">0</b>` : `<b>${esc(String(raw))}</b>`}</div>
-      <div class="kvs">${s}</div>${z ? `<div class="kvz">${z}</div>` : ''}`;
-  });
-  // Los filtros guardados, con la misma tarjeta
-  cont.querySelectorAll('.kpi[data-kfi]').forEach(el => {
-    el.classList.add('kv'); const b = el.querySelector('b.cont'), sp = el.querySelector('b + span');
-    if (b && sp) { sp.className = 'kvt'; b.insertAdjacentElement('beforebegin', sp); const n = document.createElement('div'); n.className = 'kvn'; b.insertAdjacentElement('beforebegin', n); n.appendChild(b); }
-  });
-  kvContar(cont);
-}
-
-
-
-
-
 /* ============================================================
    v2.243.0 · Inicio de verdad: solo se pinta lo que se ve. Desde el mosaico (v2.228) Inicio seguía pintando por debajo las
    tarjetas de antes (agenda de hoy, próximas acciones, urgentes, últimas visitas, comisión, rutas, Mi semana, ventas del mes,
@@ -16550,39 +16720,6 @@ function kpisVivos() {
 function inicioQuitarAntiguo() {
   const sec = $('v-inicio'); if (!sec) return;
   sec.querySelectorAll(':scope > .cols, :scope > #iniextra, :scope > #inialerta, :scope > #vistazo').forEach(x => x.remove());
-}
-
-// Los indicadores de Inicio (antes dentro de pintarInicioBase, junto con las tarjetas)
-async function inicioIndicadores() {
-  const cfg = kpiConfig().filter(x => x.on);
-  const res = await rpcCache('panel_inicio', { lim: 6 }, 'inicio');
-  marca('datos de Inicio recibidos');
-  if (TAB !== 'inicio' || !$('kpis')) return;
-  const data = res.data;
-  if (!data) { $('kpis').innerHTML = '<div class="vacio">Sin conexión y sin copia guardada todavía.</div>'; return; }
-  const k = data.kpis;
-  const kpi = (n, t, cls, accion, ayuda, id) =>
-    `<div class="kpi ${cls || ''} ${accion ? 'click' : ''}" ${accion ? `data-k="${accion}"` : ''} ${id ? `data-kid="${id}"` : ''}>
-       ${ayuda ? `<button class="ai" data-ayuda-txt="${esc(ayuda)}" data-ayuda-tit="${esc(t)}" aria-label="Qué es">i</button>` : ''}
-       <b>${typeof n === 'string' ? n : num(n)}</b><span>${esc(t.charAt(0).toUpperCase() + t.slice(1))}</span></div>`;
-  $('kpis').innerHTML = cfg.map((x, i) => {
-    if (x.filtro) return `<div class="kpi click" data-kf="${esc(JSON.stringify(x.filtro))}" data-kfi="${i}">
-        <button class="ai" data-ayuda-txt="${esc(AYUDA_KPI.filtro + ' Filtro: ' + textoFiltro(x.filtro) + '.')}" data-ayuda-tit="${esc(x.t || 'Filtro guardado')}" aria-label="Qué es">i</button>
-        <b class="cont"><span class="spin" style="width:18px;height:18px;border-width:2px;display:inline-block"></span></b><span>${esc(x.t || textoFiltro(x.filtro))}</span></div>`;
-    const c = KPI_CAT.find(y => y.id === x.id);
-    if (!kpiPermitido(c)) return '';
-    return kpi(c.v(k), x.t || c.t, c.cls ? c.cls(k) : '', c.h, AYUDA_KPI[c.id], c.id);
-  }).join('');
-  if (res.cache) avisoCache($('kpis'), res.fecha);
-  cfg.forEach((x, i) => {
-    if (!x.filtro) return;
-    contarFiltro(x.filtro).then(n => { const b = document.querySelector(`#kpis [data-kfi="${i}"] .cont`); if (b) b.textContent = num(n); }).catch(() => {});
-  });
-  ponerAyudas();
-  // Las explicaciones, después de que kpisVivos convierta las tarjetas (lo hace al momento, en su observador)
-  await new Promise(r => setTimeout(r, 0));
-  if (TAB === 'inicio') indicadoresCompletos();
-  marca('Inicio completo');
 }
 
 // ---- Inicio: la cabecera en su sitio desde el esqueleto
@@ -16651,38 +16788,6 @@ const tituloAlerta = s => s.textContent.replace(/\s+/g, ' ').replace(/^\s*\d+\s*
 const normAl = t => String(t).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').slice(0, 60);
 
 const SALUDOS = { en: ['Good morning', 'Good afternoon', 'Good evening'], de: ['Guten Morgen', 'Guten Tag', 'Guten Abend'], fr: ['Bonjour', 'Bon après-midi', 'Bonsoir'], it: ['Buongiorno', 'Buon pomeriggio', 'Buonasera'] };
-
-const kvSvg = (d, w = 2.4) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
-
-const kvMas = (f, n) => { const d = new Date(f + 'T12:00:00'); d.setDate(d.getDate() + n); return isoLocal(d); };
-
-const kvLunes = f => { const d = new Date(f + 'T12:00:00'); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return isoLocal(d); };
-
-const kvMin = h => { const m = String(h || '').match(/(\d{1,2}):(\d{2})/); return m ? +m[1] * 60 + +m[2] : null; };
-
-const KV_COL = { inicial: '#C9D7E6', avance: '#3F82C0', interes: '#17457A', positivo: '#1E7A4C', negativo: '#94A3B8' };
-
-const KV_DN = ['D', 'L', 'M', 'X', 'J', 'V', 'S'];
-
-
-
-
-function kvContarBase(raiz) {
-  const ns = [...raiz.querySelectorAll('[data-kvn]')];
-  if (matchMedia('(prefers-reduced-motion: reduce)').matches) { ns.forEach(n => n.textContent = num(+n.dataset.kvn)); return; }
-  const t0 = performance.now(), dur = 900;
-  const paso = t => { const f = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - f, 3); ns.forEach(n => { if (n.isConnected) n.textContent = num(Math.round(+n.dataset.kvn * e)); }); if (f < 1) requestAnimationFrame(paso); };
-  requestAnimationFrame(paso);
-}
-
-
-
-function kvContar(raiz) {
-  const ns = [...raiz.querySelectorAll('[data-kvn]')];
-  if (plYaContado('kv', ns.map(n => n.dataset.kvn))) { ns.forEach(n => n.textContent = num(+n.dataset.kvn)); return; }
-  return kvContarBase(raiz);
-}
-
 
 /* pintarInicio: la parte base y, en orden, cada paso que se le añade (antes eran 5 capas separadas). */
 async function pintarInicioBase2() {
@@ -30044,14 +30149,9 @@ document.addEventListener('keydown', e => {
    - Los datos de las gráficas: inicio_graficas() (SQL 132), pedida a la vez que panel_inicio para que Inicio aparezca entero de una vez.
    - Al llegar, los números cuentan desde cero y las gráficas crecen, todo a la vez (sin cascadas); la siguiente cita, el radar y el
      punto final de la línea siguen vivos. Sin animación con «reducir movimiento».
-   - Las tarjetas se transforman en cuanto se pintan (MutationObserver de #kpis: va antes de que se vean). */
+   - Desde v2.389.0 las tarjetas se pintan ya completas (src/app/screens/home/indicators). */
 let KV_INI = null, KV_GRAF = null;
 
-(() => {
-  const ob = new MutationObserver(() => { if ($('kpis')) kpisVivos(); });
-  const enganchar = () => { const c = $('kpis'); if (c && !c.__kv) { c.__kv = true; ob.observe(c, { childList: true }); kpisVivos(); } };
-  enganchar();   // #kpis está en index.html desde el arranque: basta con vigilarlo a él
-})();
 
 
 

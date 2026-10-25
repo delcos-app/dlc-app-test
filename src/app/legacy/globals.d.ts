@@ -17,8 +17,8 @@ declare const db: LegacyDb;
 declare function RPC_ORIG<T>(name: string, params: Record<string, unknown>): PromiseLike<LegacyResult<T>>;
 declare let TAB: string;
 declare let PEDSEC: string;
-declare let KV_INI: { kpis?: Record<string, number> } | null;
-declare let KV_GRAF: { por_dia?: { fecha: string; n: number }[] } | null;
+declare let KV_INI: HomePanel | null;
+declare let KV_GRAF: HomeCharts | null;
 declare const CITA_ABIERTA: readonly string[];
 declare const ICON_NOM: Readonly<Record<string, string>>;
 declare function ir(screen: string): unknown;
@@ -34,7 +34,6 @@ declare function svgIco(inner: string): string;
 declare function plYaContado(key: string, values: readonly string[]): boolean;
 declare function hayOportunidades(): boolean;
 declare function puedeDuplicados(): boolean;
-declare function inicioIndicadores(): Promise<void>;
 declare function inicioQuitarAntiguo(): void;
 declare function inicioCabecera(): void;
 declare function pintarInicioBase2(): Promise<void>;
@@ -85,3 +84,38 @@ declare function puede(capability: string): boolean;
 declare function cerrarEncajadas(): void;
 declare function revelar(section: HTMLElement, maxMs: number, since: number): void;
 declare function cargarPagina(screen: string): void;
+
+// ---- Home indicators (src/app/screens/home/indicators): the indicator catalog is shared with Configuración (not migrated yet)
+interface KpiDefinition {
+  readonly id: string;
+  readonly t: string;
+  readonly v: (kpis: Record<string, number>) => unknown;
+  readonly cls?: (kpis: Record<string, number>) => string;
+  readonly h?: string;
+  readonly admin?: boolean;
+}
+interface KpiSetting { readonly id: string; readonly on: boolean; readonly t?: string; readonly filtro?: Record<string, unknown> }
+interface HomePanel {
+  kpis?: Record<string, number>;
+  agenda_hoy?: { estado: string; hora?: string | null; nombre: string }[];
+}
+interface HomeCharts {
+  por_dia?: { fecha: string; n: number }[];
+  estados?: { valor: string; n: number }[];
+  proximos?: { fecha: string; n: number }[];
+}
+declare const KPI_CAT: readonly KpiDefinition[];
+declare const AYUDA_KPI: Readonly<Record<string, string>>;
+declare const KPI_ICO: Readonly<Record<string, string>>;
+declare const KPI_TXT: Readonly<Record<string, string>>;
+declare let ESTADOS_DEF: readonly { valor: string; papel: string }[];
+declare const EST_COL: Readonly<Record<string, string>>;
+declare function kpiConfig(): readonly KpiSetting[];
+declare function kpiPermitido(definition: KpiDefinition | undefined): boolean;
+declare function textoFiltro(filter: Record<string, unknown>): string;
+declare function contarFiltro(filter: Record<string, unknown>): Promise<number>;
+declare function rpcCache<T>(name: string, params: Record<string, unknown>, key: string): Promise<{ data: T | null; cache?: boolean; fecha?: string }>;
+declare function marca(step: string): void;
+declare function avisoCache(element: HTMLElement, date: string | undefined): void;
+declare function ponerAyudas(): void;
+declare function ES_MOVIL(): boolean;

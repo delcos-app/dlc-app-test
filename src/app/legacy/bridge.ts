@@ -54,10 +54,33 @@ export const icon = (name: string): string => svgIco(ICON_NOM[name] ?? ICON_NOM.
 /** True when these figures were already shown counting on this screen (they are not animated twice). */
 export const alreadyCounted = (key: string, values: readonly string[]): boolean => plYaContado(key, values);
 
-/** Home pieces not migrated yet: the indicators (KPI cards), the header actions and the professional portal. */
+/** Home pieces not migrated yet: the header actions and the professional portal. */
 export const legacyHome = {
-  indicators: inicioIndicadores,
   removeOldBlocks: inicioQuitarAntiguo,
   header: inicioCabecera,
   professionalPortal: pintarInicioBase2,
 };
+
+/** Indicator catalog and settings: shared with Configuración, which is not migrated yet. */
+export const indicatorCatalog = {
+  definitions: (): readonly KpiDefinition[] => KPI_CAT,
+  settings: (): readonly KpiSetting[] => kpiConfig(),
+  allowed: (definition: KpiDefinition | undefined): boolean => kpiPermitido(definition),
+  help: (id: string): string | undefined => AYUDA_KPI[id],
+  icon: (id: string): string | undefined => KPI_ICO[id],
+  description: (id: string): string | undefined => KPI_TXT[id],
+  filterText: (filter: Record<string, unknown>): string => textoFiltro(filter),
+  countFilter: (filter: Record<string, unknown>): Promise<number> => contarFiltro(filter),
+};
+
+export const commercialStates = {
+  all: (): readonly { valor: string; papel: string }[] => ESTADOS_DEF,
+  color: (state: string): string | undefined => EST_COL[state],
+};
+
+/** Cached read (offline copy) of a database function. */
+export const cachedRpc = <T>(name: string, params: Record<string, unknown>, key: string): ReturnType<typeof rpcCache<T>> => rpcCache<T>(name, params, key);
+export const timingMark = (step: string): void => { marca(step); };
+export const showCacheNotice = (element: HTMLElement, date: string | undefined): void => { avisoCache(element, date); };
+export const addHelpButtons = (): void => { ponerAyudas(); };
+export const isMobile = (): boolean => ES_MOVIL();
