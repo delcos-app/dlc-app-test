@@ -3,9 +3,10 @@
  * the visit, a new date, up and down), the task arrows (data-tamov) and «Ordenar por cercanía» (also in the «no cabe» banner).
  * Migrated from the card buttons listener of legado 022 (v2.399.0).
  */
-import { appointmentLegacy, legacyAgenda, yourDayLegacy } from '../../../legacy/bridge';
+import { agendaCache, appointmentLegacy, legacyAgenda, yourDayLegacy } from '../../../legacy/bridge';
 import { openMenu } from '../appointment-menu';
 import { isOpen } from '../appointment-state';
+import { editTask } from '../editors/task-editor';
 import { moveAppointment, moveTask, orderByDistance } from './reorder';
 
 function swapWithNeighbour(item: AgendaAppointment, action: 'sube' | 'baja'): void {
@@ -29,6 +30,13 @@ function cardButton(button: HTMLElement): void {
   else if (action === 'sube' || action === 'baja') swapWithNeighbour(item, action);
 }
 
+/** A task opens its window (not when pressing its tick or its arrows). */
+function taskRow(row: HTMLElement, target: Element): void {
+  if (target.closest('.tdtchk, .tdtmov')) return;
+  const day = legacyAgenda.selectedDate();
+  editTask((agendaCache.dayTasks(day ?? '') ?? []).find(task => task.id === row.dataset.tarea), day);
+}
+
 function taskArrow(arrow: HTMLElement): void {
   const [direction = '0', id = ''] = (arrow.dataset.tamov ?? '').split('|');
   void moveTask(id, Number(direction));
@@ -41,6 +49,9 @@ export function listenToCards(): void {
     if (target.closest('#tdordenar, #tdnocord')) { void orderByDistance(); return; }
     const arrow = target.closest<HTMLElement>('[data-tamov]');
     if (arrow) { taskArrow(arrow); return; }
+    if (target.closest('#tdtarea')) { editTask(null, legacyAgenda.selectedDate()); return; }
+    const row = target.closest<HTMLElement>('#tdtareas .tdtarea');
+    if (row) { taskRow(row, target); return; }
     const button = target.closest<HTMLElement>('[data-td]');
     if (button) { event.stopPropagation(); cardButton(button); }
   });

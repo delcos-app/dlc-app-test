@@ -9,6 +9,8 @@ interface LegacyQuery<T> extends PromiseLike<LegacyResult<T>> {
   eq(column: string, value: unknown): LegacyQuery<T>;
   update(values: Record<string, unknown>): LegacyQuery<T>;
   limit(count: number): LegacyQuery<T>;
+  insert(values: Record<string, unknown>): LegacyQuery<T>;
+  delete(): LegacyQuery<T>;
 }
 interface LegacyDb {
   rpc<T>(name: string, params?: Record<string, unknown>): PromiseLike<LegacyResult<T>>;
@@ -200,7 +202,6 @@ declare function textoOrigenCita(item: object): string;
 declare function empezarJornada(): Promise<void>;
 declare function terminarJornada(): Promise<void>;
 declare const ordenarPorCercania: ((list: readonly object[]) => object[]) & { fuera?: number };
-declare function editarTarea(task: DayTask | null | undefined, isoDate?: string | null): void;
 declare function prepararParadas(isoDate: string): unknown;
 declare function tdMarcaTrafico(): void;
 declare function colaLeer(): { fn: string; payload?: { p?: { fecha?: string; cuenta_id?: string } } }[];
@@ -229,3 +230,11 @@ declare let RC_EPOCA: number;
 declare let DLG_EPOCA: number;
 declare const AG_DIAS_DATOS: Record<string, AgendaAppointment[] | undefined>;
 declare function pintarRutaBarra(): Promise<void>;
+interface PickedAccount { id: string; nombre?: string; centro_nombre?: string | null; centro?: string | null }
+interface Consultation { centro_nombre?: string | null; municipio?: string | null; principal?: boolean | null }
+interface RecentContact { tipo: string; fecha: string; usuario?: string | null }
+declare function selectorMedico(element: HTMLElement | null, options: { valor: PickedAccount | null; alElegir: (account: PickedAccount) => Promise<void> }): void;
+declare function recientesDe(ids: string[], isoDate: string): Promise<Record<string, RecentContact[] | undefined>>;
+declare function txtReciente(list: RecentContact[]): string;
+declare function avisoRevisita(): { on: boolean; dias: number };
+declare function guardarAvisoRevisita(value: { on: boolean; dias: number }): Promise<void>;

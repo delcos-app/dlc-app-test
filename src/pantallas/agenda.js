@@ -16,18 +16,6 @@ async function citasDelDia(fecha) {
   return r.data || [];
 }
 
-// v2.298: coloca la cita de esa ficha con esa hora entre las abiertas del día (mismo criterio que «Cambiar la hora»)
-async function colocarPorHora(fecha, uid, cuentaId, h) {
-  const { data } = await RPC_ORIG('agenda_rango', { p_desde: fecha, p_hasta: fecha, p_usuario: uid });
-  const hh = c => c.hora ? String(c.hora).slice(0, 5) : null;
-  const ab = (data || []).filter(c => c.usuario_id === uid && CITA_ABIERTA.includes(c.estado));
-  const yo = ab.filter(c => c.cuenta_id === cuentaId && hh(c) === h).pop(); if (!yo) return;
-  const resto = ab.filter(c => c !== yo);
-  let i = resto.findIndex(c => hh(c) && hh(c) > h);
-  if (i < 0) { i = 0; resto.forEach((c, k) => { if (hh(c) && hh(c) <= h) i = k + 1; }); }
-  resto.splice(i, 0, yo);
-  if (resto.some((c, k) => c !== ab[k])) { await window.delcos.screens.agenda.saveOrder(resto); if (typeof RC !== 'undefined' && RC.delete) RC.delete('agenda-' + fecha); }
-}
 
 async function reprogramarCitas(citas, titulo, texto) {
   if (!citas.length) return false;
@@ -433,99 +421,15 @@ async function bloqueadosSemanaBase(desde, hasta) {
   return b;
 }
 
-async function citaRepetidaBase(medicoId, fecha) {
-  const uid = TAB === 'agenda' && AG_VISTA ? AG_VISTA.id : PERFIL.id;
-  const { data } = await RPC_ORIG('agenda_rango', { p_desde: fecha, p_hasta: fecha, p_usuario: uid });
-  const ya = (data || []).find(c => c.cuenta_id === medicoId && CITA_ABIERTA.includes(c.estado));
-  if (!ya) return 'nueva';
-  const op = await elegirOpcion('Ya tiene una cita ese día',
-    `${ya.nombre}\n${fechaLarga(new Date(fecha + 'T00:00:00'))}${ya.hora ? ' a las ' + String(ya.hora).slice(0, 5) : ''} · ${ya.estado}${ya.origen ? ' · ' + ya.origen : ''}\n\n¿Qué quieres hacer?`,
-    [{ k: 'no', t: 'Cancelar', cls: 'sec' }, { k: 'dos', t: 'Mantener las dos', cls: 'sec' }, { k: 'sust', t: 'Quedarme solo con la nueva' }]);
-  if (!op) return null;
-  if (op === 'sust') {
-    const { data: r } = await db.rpc('borrar_cita', { p_id: ya.id });
-    if (r && r.ok === false) { toast('No se ha podido quitar la cita anterior', true); return null; }
-  }
-  return op;
-}
 
-async function citaRepetida(medicoId, fecha) {
-  const r = await citaRepetidaBase(medicoId, fecha);
-  if (!r) return r;
-  const por = await recientesDe([medicoId], fecha);
-  const l = por[medicoId];
-  if (!l || !l.length) return r;
-  const op = await elegirOpcion('Ya se ha visto hace poco', `${txtReciente(l.slice(0, 3))}.\n\n¿Añades la cita igualmente?`,
-    [{ k: 'no', t: 'Cancelar', cls: 'sec' }, { k: 'nomas', t: 'Sí, y no volver a avisarme', cls: 'sec' }, { k: 'si', t: 'Añadir igualmente' }]);
-  if (!op) return null;
-  if (op === 'nomas') { await guardarAvisoRevisita(Object.assign(avisoRevisita(), { on: false })); toast('Aviso desactivado. Puedes activarlo en Configuración → Rutas'); }
-  return r;
-}
 
 /* v2.146.0 · Agenda: al pulsar un día de la semana o del mes, «Tu día» pasa a ese día (petición de Eric: antes se abría un desplegable).
    El título de «Tu día» es la fecha elegida y al lado está «Volver a hoy»; el día elegido queda marcado en la semana y en el mes.
    Las cifras de arriba, la semana y el mes siguen siendo los de hoy. */
 
-function editarTareaBase(t, fecha) {
-  t = t || {};
-  $('dbody').innerHTML = `
-    <div class="fh"><div><h2>${t.id ? 'Tarea' : 'Nueva tarea'}</h2><div class="sm">Una nota o tarea tuya para ese día, sin cliente</div></div>
-      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-    <label for="tat">Qué hay que hacer</label><input id="tat" value="${esc(t.titulo || '')}" placeholder="p. ej. Llamar al almacén, reunión de equipo…" maxlength="160">
-    <div class="g2">
-      <div><label for="taf">Día</label><input id="taf" type="date" value="${esc(t.fecha || fecha || hoyISO())}"></div>
-      <div><label for="tah">Hora <span class="sm">(opcional)</span></label><input id="tah" type="time" value="${esc(t.hora ? String(t.hora).slice(0, 5) : '')}"></div>
-    </div>
-    <label for="tan">Notas</label><textarea id="tan" rows="3">${esc(t.nota || '')}</textarea>
-    <div class="acts" style="justify-content:space-between">
-      ${t.id ? '<button type="button" class="btn sec peligro" id="taborrar">Borrar</button>' : '<span></span>'}
-      <span style="display:flex;gap:8px"><button type="button" class="btn sec" data-cerrar>Cancelar</button><button type="button" class="btn" id="taok">${t.id ? 'Guardar' : 'Añadir'}</button></span></div>`;
-  $('taok').onclick = async ev => {
-    const titulo = $('tat').value.trim(); if (!titulo) { toast('Escribe qué hay que hacer', true); $('tat').focus(); return; }
-    const fila = { titulo, fecha: $('taf').value || hoyISO(), hora: $('tah').value || null, nota: $('tan').value.trim() || null, modificado_en: new Date().toISOString() };
-    ev.target.disabled = true;
-    const { error } = t.id ? await db.from('tareas').update(fila).eq('id', t.id) : await db.from('tareas').insert(fila);
-    ev.target.disabled = false;
-    if (error) { toast('No se ha podido guardar: ' + error.message, true); return; }
-    $('dlg').close(); toast(t.id ? 'Tarea guardada' : 'Tarea añadida el ' + fechaDiaMes(fila.fecha)); TAREAS_DIA = null; pintarTuDia();
-  };
-  if ($('taborrar')) $('taborrar').onclick = async () => {
-    if (!await preguntar('La tarea desaparece.', { titulo: '¿Borrar la tarea?', ok: 'Borrar', peligro: true })) return;
-    const { error } = await db.from('tareas').delete().eq('id', t.id);
-    if (error) { toast('No se ha podido borrar', true); return; }
-    $('dlg').close(); toast('Tarea borrada'); TAREAS_DIA = null; pintarTuDia();
-  };
-  $('dlg').classList.add('pequena');
-  $('dlg').showModal();
-}
 
 // La cinta de 14 días
 
-function editarTarea(t, fecha) {
-  if (!t || !t.id || !t.hecha) return editarTareaBase.apply(this, arguments);
-  $('dbody').innerHTML = `
-    <div class="fh"><div><h2>Tarea hecha</h2><div class="sm">${esc(fechaLarga(new Date(t.fecha + 'T00:00:00')))}${t.hora ? ' · ' + esc(String(t.hora).slice(0, 5)) : ''}</div></div>
-      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-    <div class="tarlec"><span class="tarok">Hecha</span><b>${esc(t.titulo || '')}</b>${t.nota ? `<p>${esc(t.nota)}</p>` : ''}</div>
-    <div class="acts" style="justify-content:space-between">
-      <button type="button" class="btn sec peligro" id="taborrar">Borrar</button>
-      <span style="display:flex;gap:8px"><button type="button" class="btn sec" data-cerrar>Cerrar</button><button type="button" class="btn" id="tareabrir">Volver a pendiente</button></span></div>`;
-  $('tareabrir').onclick = async ev => {
-    ev.target.disabled = true;
-    const { error } = await db.from('tareas').update({ hecha: false, modificado_en: new Date().toISOString() }).eq('id', t.id);
-    ev.target.disabled = false;
-    if (error) { toast('No se ha podido cambiar', true); return; }
-    TAREAS_DIA = null; pintarTuDia(); editarTareaBase.call(this, Object.assign({}, t, { hecha: false }), fecha);
-  };
-  $('taborrar').onclick = async () => {
-    if (!await preguntar('La tarea desaparece.', { titulo: '¿Borrar la tarea?', ok: 'Borrar', peligro: true })) return;
-    const { error } = await db.from('tareas').delete().eq('id', t.id);
-    if (error) { toast('No se ha podido borrar', true); return; }
-    $('dlg').close(); toast('Tarea borrada'); TAREAS_DIA = null; pintarTuDia();
-  };
-  $('dlg').classList.add('pequena');
-  $('dlg').showModal();
-}
 
 
 
@@ -571,56 +475,6 @@ function pintarTuDia() { return window.delcos.screens.agenda.paintYourDay(); }
 
 // ---- Elegir otro día: todo lo que cambia (Tu día, bandejas, cinta, «Tu semana», la semana abierta) aparece a la vez
 
-// ---- 3. Una sola ventana de cita, con centro y notas
-async function nuevaCita(medicoId, fecha, op = {}) {
-  let elegido = null, consultas = [];
-  const traer = async id => { const { data } = await db.rpc('ficha_cuenta', { p_id: id }); consultas = (data && data.consultas) || []; return data; };
-  if (medicoId) { const data = await traer(medicoId); if (data && data.medico) elegido = data.medico; }
-  const dia = fecha || (TAB === 'agenda' && AG_FECHA && AG_FECHA >= hoyISO() ? AG_FECHA : hoyISO());
-  $('dbody').innerHTML = `
-    <div class="fh"><div><h2>Nueva cita</h2><div class="sm">Se añade a tu agenda</div></div>
-      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-    <label>${TT('medico', 's', '', 'l', 'C')}</label><div id="ncsel"></div>
-    <div class="g2">
-      <div><label for="ncf">Día</label><input id="ncf" type="date" value="${esc(dia)}"></div>
-      <div><label for="nch">Hora <span class="sm">(opcional)</span></label><input id="nch" type="time"></div>
-    </div>
-    <div id="nccw"></div>
-    <label for="ncn">Notas</label><textarea id="ncn" rows="3" placeholder="p. ej. quedamos en el bar de enfrente, llevar el reporting…"></textarea>
-    <div class="acts" style="justify-content:flex-end">
-      <button class="btn sec" data-cerrar>Cancelar</button>
-      <button class="btn" id="ncok">Añadir a la agenda</button></div>`;
-  const pintarCentros = () => {
-    const w = $('nccw'); if (!w) return;
-    const l = consultas.filter(x => x && x.centro_nombre);
-    if (l.length < 2) { w.innerHTML = ''; return; }
-    const pref = (typeof FICHA_CENTRO !== 'undefined' && FICHA_CENTRO) || (l.find(x => x.principal) || l[0]).centro_nombre;
-    w.innerHTML = `<label for="ncc">Centro</label><select id="ncc">${l.map(x => `<option value="${esc(x.centro_nombre)}" ${x.centro_nombre === pref ? 'selected' : ''}>${esc([x.centro_nombre, x.municipio].filter(Boolean).join(' · '))}</option>`).join('')}</select>`;
-  };
-  pintarCentros();
-  selectorMedico($('ncsel'), { valor: elegido, alElegir: async m => { elegido = m; await traer(m.id); pintarCentros(); } });
-  $('ncok').onclick = async ev => {
-    if (!elegido) { toast(`Elige ${TT('medico', 's', 'un', 'l', 'l')}`, true); return; }
-    const f = $('ncf').value;
-    const decision = await citaRepetida(elegido.id, f);
-    if (!decision) return;
-    const c0 = consultas.find(x => x && x.principal) || consultas[0] || {};
-    const centro = ($('ncc') && $('ncc').value) || c0.centro_nombre || elegido.centro_nombre || elegido.centro || null;
-    ev.target.disabled = true;
-    const r = await escribir('guardar_cita', { p: {
-      cuenta_id: elegido.id, fecha: f, hora: $('nch').value || null, centro_nombre: centro, estado: 'Planificada',
-      origen: op.origen || (TAB === 'agenda' ? 'Agenda' : 'Ficha'), usuario_id: TAB === 'agenda' && AG_VISTA ? AG_VISTA.id : null,
-      nota: $('ncn').value.trim(), op_id: 'c-' + elegido.id + '-' + f + '-' + Date.now()
-    }});
-    ev.target.disabled = false;
-    if (r.error) { toast('No se ha podido: ' + r.error.message, true); return; }
-    // v2.298: con hora, la cita nueva se coloca entre las del día según su hora (antes quedaba la última)
-    if ($('nch').value) await colocarPorHora(f, TAB === 'agenda' && AG_VISTA ? AG_VISTA.id : PERFIL.id, elegido.id, $('nch').value);
-    $('dlg').close(); toast('Cita añadida el ' + fechaDiaMes(f)); if (TAB === 'agenda') agRefrescoQuieto(); else cargarInicio();
-  };
-  $('dlg').classList.add('pequena');
-  $('dlg').showModal();
-}
 
 // La vista del día y la de equipo están en src/app/screens/agenda (v2.395.0). Estos dos nombres se quedan como adaptadores
 // porque los llaman mucho código antiguo y las pruebas.
@@ -634,3 +488,7 @@ function verCita(c) { return window.delcos.screens.agenda.showAppointment(c); }
 // El refresco tras un cambio está en src/app/screens/agenda/your-day/reorder.ts (v2.399.0); el nombre se queda porque
 // lo llaman cinco archivos antiguos (navegación, avisos, ventanas…).
 function agRefrescoQuieto(id, o = {}) { window.delcos.screens.agenda.refreshQuietly(id, o.cifras !== false); }
+
+// La ventana «Nueva cita» está en src/app/screens/agenda/editors/appointment-editor.ts (v2.400.0); el nombre se queda porque
+// la abren siete archivos antiguos (ficha, ciclo, configuración, parque…).
+function nuevaCita(medicoId, fecha, op = {}) { return window.delcos.screens.agenda.newAppointment(medicoId, fecha, op); }

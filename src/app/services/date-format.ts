@@ -42,3 +42,8 @@ export function formatMonthYear(isoDate: string): string {
 export function monthNameOf(isoDate: string): string {
   return fromIsoDate(isoDate).toLocaleDateString(locale(), { month: 'long' });
 }
+
+/** «2026-10-24» → «24 de octubre» */
+export function formatDayMonth(isoDate: string): string {
+  return fromIsoDate(isoDate.slice(0, 10)).toLocaleDateString(locale(), { day: 'numeric', month: 'long' });
+}

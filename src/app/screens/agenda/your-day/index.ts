@@ -58,7 +58,6 @@ function bindHeader(data: DayData, open: readonly DayAppointmentFull[]): void {
   on('tdempezar', () => { yourDayLegacy.startWorkingDay(); });
   on('tdterminar', () => { yourDayLegacy.endWorkingDay(); });
   on('tdrepro', () => { agendaActions.reschedule(open as unknown as PendingAppointment[], t('agenda.yourDay.pendingOf', { date: formatShortDate(data.day) }), t('agenda.yourDay.notVisitedThatDay')); });
-  on('tdtarea', () => { yourDayLegacy.editTask(null, legacyAgenda.selectedDate()); });
   on('tddiamas', event => {
     event.stopPropagation();
     const stripDay = document.querySelector(`#agcinta [data-cf="${data.day}"]`), button = document.getElementById('tddiamas');

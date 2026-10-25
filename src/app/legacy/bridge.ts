@@ -219,7 +219,6 @@ export const yourDayLegacy = {
   canRecordOn: (isoDate: string): boolean => puedeRegistrarEnDia(isoDate),
   originText: (item: object): string => textoOrigenCita(item),
   orderByDistance: (list: readonly object[]): { list: object[]; left: number } => { const ordered = ordenarPorCercania(list); return { list: ordered, left: ordenarPorCercania.fuera ?? 0 }; },
-  editTask: (task: DayTask | null | undefined, isoDate?: string | null): void => { editarTarea(task, isoDate); },
   prepareRouteStops: (isoDate: string): void => { try { prepararParadas(isoDate); } catch { /* the route buttons are optional */ } },
   markTraffic: (): void => { tdMarcaTrafico(); },
   queuedVisits: (): ReturnType<typeof colaLeer> => colaLeer(),
@@ -255,6 +254,8 @@ export const appointmentLegacy = {
 export const agendaCache = {
   /** Forgets the cached agenda reads, so the next paint asks the database. */
   forget: (): void => { for (const key of [...RC.keys()]) if (key.startsWith('agenda_')) { RC.delete(key); RC_VUELO.delete(key); } },
+  /** Forgets the cached read of one day (its key in rpcCache). */
+  forgetDay: (isoDate: string): void => { RC.delete(`agenda-${isoDate}`); },
   /** The next «Tu día» paint of `isoDate` uses this data (no network), and it becomes the last painted day. */
   preset: (isoDate: string, data: AgendaAppointment[]): void => { TD_PRESET = { fecha: isoDate, data }; TD_ULTIMO = { fecha: isoDate, data }; },
   lastPainted: (isoDate: string): AgendaAppointment[] | null => (TD_ULTIMO?.fecha === isoDate ? TD_ULTIMO.data ?? null : null),
@@ -268,3 +269,13 @@ export const agendaCache = {
 };
 
 export const routeBar = { paint: (): void => { void pintarRutaBarra(); } };
+
+/** What the appointment and task editors use from legacy: the account picker and the «seen recently» notice (Cuentas). */
+export const editorLegacy = {
+  pickAccount: (element: HTMLElement | null, value: PickedAccount | null, onPick: (account: PickedAccount) => Promise<void>): void => { selectorMedico(element, { valor: value, alElegir: onPick }); },
+  recentContacts: (accountId: string, isoDate: string): Promise<RecentContact[]> => recientesDe([accountId], isoDate).then(found => found[accountId] ?? []),
+  recentText: (list: RecentContact[]): string => txtReciente(list),
+  turnOffRecentNotice: (): Promise<void> => guardarAvisoRevisita({ ...avisoRevisita(), on: false }),
+  centreFromCard: (): string | null => FICHA_CENTRO,
+  viewedUserId: (): string | null => (currentScreen() === 'agenda' && AG_VISTA ? AG_VISTA.id : null),
+};

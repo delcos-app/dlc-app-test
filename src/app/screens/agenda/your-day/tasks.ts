@@ -1,5 +1,5 @@
 /** The own tasks and notes of the day in «Tu día» (painted after the appointments, so they do not delay them), and their folding. */
-import { agendaState, legacyDb, notices, yourDayLegacy } from '../../../legacy/bridge';
+import { agendaState, legacyDb, notices } from '../../../legacy/bridge';
 import { t } from '../../../i18n';
 import { escapeHtml } from '../../../services/format';
 import { timeText } from './card';
@@ -29,14 +29,8 @@ async function markDone(box: HTMLInputElement): Promise<void> {
   agendaState.forgetDayTasks();
 }
 
-function bind(block: HTMLElement, list: readonly DayTask[]): void {
+function bind(block: HTMLElement): void {
   block.querySelectorAll<HTMLInputElement>('[data-tacheck]').forEach(box => { box.onchange = (event): void => { event.stopPropagation(); void markDone(box); }; });
-  block.querySelectorAll<HTMLElement>('.tdtarea').forEach(row => {
-    row.onclick = (event): void => {
-      if (event.target instanceof Element && event.target.closest('.tdtchk, .tdtmov')) return;
-      yourDayLegacy.editTask(list.find(task => task.id === row.dataset.tarea));
-    };
-  });
 }
 
 /** Paints the tasks above the appointments (or above the «no cabe» banner). */
@@ -46,7 +40,7 @@ export function paintTasks(body: HTMLElement, list: readonly DayTask[] | null): 
   const place = document.getElementById('tdnocabe') ?? body.querySelector('.tdesc, .vacio');
   const html = `<div class="tdtareas" id="tdtareas"><div class="tdtcab">${t('agenda.tasks.title', { count: list.length })}</div>${list.map(task => taskRow(task, list)).join('')}</div>`;
   if (place) place.insertAdjacentHTML('beforebegin', html); else body.insertAdjacentHTML('beforeend', html);
-  const block = document.getElementById('tdtareas'); if (block) bind(block, list);
+  const block = document.getElementById('tdtareas'); if (block) bind(block);
 }
 
 /** The tasks header folds and unfolds them; remembered on this device. */

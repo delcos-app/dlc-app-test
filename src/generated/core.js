@@ -74,15 +74,15 @@
   }
 
   // src/app/services/values.ts
-  function orFallback(value, fallback) {
-    return value === void 0 || value === null || value === "" ? fallback : value;
+  function orFallback(value2, fallback) {
+    return value2 === void 0 || value2 === null || value2 === "" ? fallback : value2;
   }
-  function nonZeroOr(value, fallback) {
-    return value === void 0 || value === null || value === 0 || Number.isNaN(value) ? fallback : value;
+  function nonZeroOr(value2, fallback) {
+    return value2 === void 0 || value2 === null || value2 === 0 || Number.isNaN(value2) ? fallback : value2;
   }
   var range = (length) => [...Array(length).keys()];
-  var sum = (values) => values.reduce((total, value) => total + value, 0);
-  var isPresent = (value) => value !== null && value !== void 0;
+  var sum = (values) => values.reduce((total, value2) => total + value2, 0);
+  var isPresent = (value2) => value2 !== null && value2 !== void 0;
 
   // src/app/core/navigation/steps-outer.ts
   var PORTAL_SCREENS = ["informe", "config", "perfil"];
@@ -258,8 +258,8 @@
   var closePageDialog = {
     name: "v2.128 · a window that belongs to the page closes when leaving it",
     before: () => {
-      const dialog2 = document.getElementById("dlg");
-      if (dialog2?.open && (Boolean(dialog2.dataset.fija) || Boolean(dialog2.dataset.depagina))) dialog2.close();
+      const dialog3 = document.getElementById("dlg");
+      if (dialog3?.open && (Boolean(dialog3.dataset.fija) || Boolean(dialog3.dataset.depagina))) dialog3.close();
     }
   };
   var footerMenuMark = {
@@ -746,6 +746,52 @@
       otherDay: "Otro día",
       noTimetable: "Sin horario",
       andMore: "y {count} más"
+    },
+    editor: {
+      newTitle: "Nueva cita",
+      newSubtitle: "Se añade a tu agenda",
+      day: "Día",
+      time: "Hora",
+      optional: "(opcional)",
+      centre: "Centro",
+      notes: "Notas",
+      cancel: "Cancelar",
+      add: "Añadir a la agenda",
+      choose: "Elige {professional}",
+      couldNot: "No se ha podido: {error}",
+      added: "Cita añadida el {date}",
+      duplicateTitle: "Ya tiene una cita ese día",
+      duplicateText: "{name}\n{date}{time} · {state}{origin}\n\n¿Qué quieres hacer?",
+      at: " a las {time}",
+      keepBoth: "Mantener las dos",
+      onlyNew: "Quedarme solo con la nueva",
+      couldNotRemovePrevious: "No se ha podido quitar la cita anterior",
+      recentTitle: "Ya se ha visto hace poco",
+      recentText: "{list}.\n\n¿Añades la cita igualmente?",
+      yesNoMore: "Sí, y no volver a avisarme",
+      addAnyway: "Añadir igualmente",
+      noticeOff: "Aviso desactivado. Puedes activarlo en Configuración → Rutas"
+    },
+    taskEditor: {
+      title: "Tarea",
+      newTitle: "Nueva tarea",
+      subtitle: "Una nota o tarea tuya para ese día, sin cliente",
+      what: "Qué hay que hacer",
+      whatPlaceholder: "p. ej. Llamar al almacén, reunión de equipo…",
+      delete: "Borrar",
+      save: "Guardar",
+      add: "Añadir",
+      writeWhat: "Escribe qué hay que hacer",
+      saved: "Tarea guardada",
+      addedOn: "Tarea añadida el {date}",
+      deleteText: "La tarea desaparece.",
+      deleteTitle: "¿Borrar la tarea?",
+      couldNotDelete: "No se ha podido borrar",
+      deleted: "Tarea borrada",
+      doneTitle: "Tarea hecha",
+      done: "Hecha",
+      reopen: "Volver a pendiente",
+      couldNotChange: "No se ha podido cambiar"
     }
   };
 
@@ -899,8 +945,8 @@
   }
   function fill(text, params) {
     return text.replace(/\{(\w+)\}/g, (whole, name) => {
-      const value = params[name] ?? vocabulary[name];
-      return value === void 0 ? whole : String(value);
+      const value2 = params[name] ?? vocabulary[name];
+      return value2 === void 0 ? whole : String(value2);
     });
   }
   function t(key, params = {}) {
@@ -917,11 +963,13 @@
     closeMonth: () => closeMonth,
     data: () => preload_exports,
     dueList: () => dueList,
+    editTask: () => editTask,
     groupByAttendance: () => groupByAttendance,
     hasMenu: () => hasMenu,
     loadAgenda: () => loadAgenda,
     markQueuedVisits: () => markQueuedVisits,
     metricsHtml: () => metricsHtml,
+    newAppointment: () => newAppointment,
     openMenu: () => openMenu,
     openTray: () => openTray,
     paintOpenWeek: () => paintOpenWeek,
@@ -972,8 +1020,8 @@
   };
   var homeCache = {
     panel: () => KV_INI,
-    setPanel: (value) => {
-      KV_INI = value;
+    setPanel: (value2) => {
+      KV_INI = value2;
     },
     charts: () => KV_GRAF
   };
@@ -1024,8 +1072,8 @@
     },
     isDayView: () => agN(),
     metrics: () => AG_MET,
-    setMetrics: (value) => {
-      AG_MET = value;
+    setMetrics: (value2) => {
+      AG_MET = value2;
     },
     /** Today's appointments as painted in «Tu día», and the day they were loaded for. */
     dayAppointments: () => TD_CITAS,
@@ -1054,8 +1102,8 @@
   };
   var sidePanel = {
     context: () => HERR_CTX,
-    setContext: (value) => {
-      HERR_CTX = value;
+    setContext: (value2) => {
+      HERR_CTX = value2;
     }
   };
   var legacyAgendaParts = {
@@ -1149,8 +1197,8 @@
     },
     confirm: (message, options) => preguntar(message, options),
     choose: (title, message, buttons) => elegirOpcion(title, message, buttons),
-    askDate: (message, value, options) => pedirFecha(message, value, options),
-    askTime: async (title, value, ok) => await appVentana({ titulo: title, ok, campo: { valor: value, tipo: "time" } })
+    askDate: (message, value2, options) => pedirFecha(message, value2, options),
+    askTime: async (title, value2, ok) => await appVentana({ titulo: title, ok, campo: { valor: value2, tipo: "time" } })
   };
   var initialsOf = (name) => iniciales(name);
   var reloadAgenda = () => {
@@ -1176,9 +1224,6 @@
     orderByDistance: (list) => {
       const ordered = ordenarPorCercania(list);
       return { list: ordered, left: ordenarPorCercania.fuera ?? 0 };
-    },
-    editTask: (task, isoDate) => {
-      editarTarea(task, isoDate);
     },
     prepareRouteStops: (isoDate) => {
       try {
@@ -1233,6 +1278,10 @@
         RC_VUELO.delete(key);
       }
     },
+    /** Forgets the cached read of one day (its key in rpcCache). */
+    forgetDay: (isoDate) => {
+      RC.delete(`agenda-${isoDate}`);
+    },
     /** The next «Tu día» paint of `isoDate` uses this data (no network), and it becomes the last painted day. */
     preset: (isoDate, data) => {
       TD_PRESET = { fecha: isoDate, data };
@@ -1256,6 +1305,16 @@
   var routeBar = { paint: () => {
     void pintarRutaBarra();
   } };
+  var editorLegacy = {
+    pickAccount: (element, value2, onPick) => {
+      selectorMedico(element, { valor: value2, alElegir: onPick });
+    },
+    recentContacts: (accountId, isoDate) => recientesDe([accountId], isoDate).then((found) => found[accountId] ?? []),
+    recentText: (list) => txtReciente(list),
+    turnOffRecentNotice: () => guardarAvisoRevisita({ ...avisoRevisita(), on: false }),
+    centreFromCard: () => FICHA_CENTRO,
+    viewedUserId: () => currentScreen() === "agenda" && AG_VISTA ? AG_VISTA.id : null
+  };
 
   // src/app/services/dates.ts
   function toIsoDate(date) {
@@ -1309,17 +1368,20 @@
   function monthNameOf(isoDate) {
     return fromIsoDate(isoDate).toLocaleDateString(locale(), { month: "long" });
   }
+  function formatDayMonth(isoDate) {
+    return fromIsoDate(isoDate.slice(0, 10)).toLocaleDateString(locale(), { day: "numeric", month: "long" });
+  }
 
   // src/app/services/format.ts
   var HTML_ESCAPES = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
-  function escapeHtml(value) {
-    return String(value ?? "").replace(/[&<>"']/g, (char) => HTML_ESCAPES[char] ?? char);
+  function escapeHtml(value2) {
+    return String(value2 ?? "").replace(/[&<>"']/g, (char) => HTML_ESCAPES[char] ?? char);
   }
-  function formatNumber(value) {
-    return Number(value ?? 0).toLocaleString("es");
+  function formatNumber(value2) {
+    return Number(value2 ?? 0).toLocaleString("es");
   }
-  function formatEuros(value) {
-    return `${Math.round(Number(value) || 0).toLocaleString("es-ES")} €`;
+  function formatEuros(value2) {
+    return `${Math.round(Number(value2) || 0).toLocaleString("es-ES")} €`;
   }
   function looseText(text) {
     return String(text ?? "").normalize("NFD").replace(/\p{M}/gu, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
@@ -1489,8 +1551,8 @@
   }
 
   // src/app/screens/agenda/metrics.ts
-  var count = (value) => formatNumber(value ?? 0);
-  var decimal = (value) => value === void 0 || value === null ? "0" : String(value).replace(".", ",");
+  var count = (value2) => formatNumber(value2 ?? 0);
+  var decimal = (value2) => value2 === void 0 || value2 === null ? "0" : String(value2).replace(".", ",");
   function todayFigures(metrics) {
     const day = legacyAgenda.selectedDate(), today = todayIso();
     if (day === today && legacyAgenda.loadedDay() === day) {
@@ -1578,7 +1640,7 @@
       { title: t("agenda.sameCentre.noTimetable"), people: noTimetable }
     ].filter((group) => group.people.length);
   }
-  var toNumber = (value) => Number(value);
+  var toNumber = (value2) => Number(value2);
   function isSameCentre(group, appointment) {
     if (isPresent(group.lat) && isPresent(appointment.lat)) {
       return distanceKm([toNumber(group.lat), toNumber(group.lon)], [toNumber(appointment.lat), toNumber(appointment.lon)]) <= NEAR_KM;
@@ -1867,9 +1929,9 @@
       weekPlanner.discardDraft();
       reloadAgenda();
     };
-    const save = box.querySelector("#semguardar");
-    if (save) save.onclick = () => {
-      weekPlanner.saveDraft(save);
+    const save3 = box.querySelector("#semguardar");
+    if (save3) save3.onclick = () => {
+      weekPlanner.saveDraft(save3);
     };
     box.querySelectorAll("[data-semdia]").forEach((column) => {
       bindDay(column, data);
@@ -2124,12 +2186,12 @@
       };
     });
     box.querySelectorAll("[data-agsl]").forEach((day) => {
-      const show = () => {
+      const show2 = () => {
         legacyAgenda.showDay(day.dataset.agsl ?? "");
       };
-      day.onclick = show;
+      day.onclick = show2;
       day.onkeydown = (event) => {
-        if (event.key === "Enter") show();
+        if (event.key === "Enter") show2();
       };
     });
     const share = document.getElementById("agslrep");
@@ -2730,17 +2792,11 @@
     box.closest(".tdtarea")?.classList.toggle("hecha", box.checked);
     agendaState.forgetDayTasks();
   }
-  function bind4(block, list) {
+  function bind4(block) {
     block.querySelectorAll("[data-tacheck]").forEach((box) => {
       box.onchange = (event) => {
         event.stopPropagation();
         void markDone(box);
-      };
-    });
-    block.querySelectorAll(".tdtarea").forEach((row2) => {
-      row2.onclick = (event) => {
-        if (event.target instanceof Element && event.target.closest(".tdtchk, .tdtmov")) return;
-        yourDayLegacy.editTask(list.find((task) => task.id === row2.dataset.tarea));
       };
     });
   }
@@ -2752,7 +2808,7 @@
     if (place) place.insertAdjacentHTML("beforebegin", html);
     else body.insertAdjacentHTML("beforeend", html);
     const block = document.getElementById("tdtareas");
-    if (block) bind4(block, list);
+    if (block) bind4(block);
   }
   function applyTaskFolding() {
     const block = document.getElementById("tdtareas"), header = block?.querySelector(".tdtcab");
@@ -2849,9 +2905,6 @@
     on("tdrepro", () => {
       agendaActions.reschedule(open, t("agenda.yourDay.pendingOf", { date: formatShortDate(data.day) }), t("agenda.yourDay.notVisitedThatDay"));
     });
-    on("tdtarea", () => {
-      yourDayLegacy.editTask(null, legacyAgenda.selectedDate());
-    });
     on("tddiamas", (event) => {
       event.stopPropagation();
       const stripDay = document.querySelector(`#agcinta [data-cf="${data.day}"]`), button = document.getElementById("tddiamas");
@@ -2923,13 +2976,13 @@
     document.addEventListener("click", (event) => {
       const button = event.target instanceof Element ? event.target.closest("#tdcompactar") : null;
       if (!button) return;
-      const value = !compact();
+      const value2 = !compact();
       try {
-        localStorage.setItem(COMPACT_KEY, value ? "1" : "0");
+        localStorage.setItem(COMPACT_KEY, value2 ? "1" : "0");
       } catch {
       }
       applyCompact();
-      setCompactButton(button, value);
+      setCompactButton(button, value2);
     });
     document.addEventListener("click", (event) => {
       const button = event.target instanceof Element ? event.target.closest("[data-tdavi]") : null;
@@ -3032,10 +3085,10 @@
     const perDay = countsByDate(charts.por_dia), nextDays = countsByDate(charts.proximos);
     const values = days.map((day) => (upcoming ? nextDays.get(day) : perDay.get(day)) ?? 0);
     const max = Math.max(1, ...values), width = 196, barWidth = 18, gap = (width - 7 * barWidth) / 6;
-    const bars = values.map((value, i) => {
-      const day = days[i] ?? today, height = Math.max(3, value / max * 40), x = i * (barWidth + gap), future = !upcoming && day > today, isToday = day === today;
+    const bars = values.map((value2, i) => {
+      const day = days[i] ?? today, height = Math.max(3, value2 / max * 40), x = i * (barWidth + gap), future = !upcoming && day > today, isToday = day === today;
       const fill2 = future ? "#E3EBF3" : isToday ? "var(--sky)" : "var(--navy)";
-      return `<rect x="${x}" y="${44 - height}" width="${barWidth}" height="${height}" rx="4" fill="${fill2}" opacity="${value ? 1 : 0.35}"/><text x="${x + barWidth / 2}" y="58" text-anchor="middle" class="${isToday ? "hoy" : ""}">${WEEKDAY_LETTERS[fromIsoDate(day).getDay()] ?? ""}</text>`;
+      return `<rect x="${x}" y="${44 - height}" width="${barWidth}" height="${height}" rx="4" fill="${fill2}" opacity="${value2 ? 1 : 0.35}"/><text x="${x + barWidth / 2}" y="58" text-anchor="middle" class="${isToday ? "hoy" : ""}">${WEEKDAY_LETTERS[fromIsoDate(day).getDay()] ?? ""}</text>`;
     }).join("");
     return { summary: weekSummary({ upcoming, days, values, perDay }, today), visual: `<svg class="kvbar" viewBox="0 0 ${width} 60" preserveAspectRatio="xMidYMax meet" aria-hidden="true">${bars}</svg>` };
   }
@@ -3053,8 +3106,8 @@
     const current = accumulate(monthStart), last = accumulate(toIsoDate(previous));
     if (dayOfMonth < 2) return EMPTY_CHART;
     const max = Math.max(1, ...last, ...current), width = 196, height = 46;
-    const x = (i) => i / (dayOfMonth - 1) * width, y = (value) => height - value / max * height;
-    const line = (values) => values.map((value, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(value).toFixed(1)}`).join("");
+    const x = (i) => i / (dayOfMonth - 1) * width, y = (value2) => height - value2 / max * height;
+    const line = (values) => values.map((value2, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(value2).toFixed(1)}`).join("");
     const end = current[current.length - 1] ?? 0, difference = end - (last[last.length - 1] ?? 0);
     return {
       summary: t(difference >= 0 ? "home.indicators.aboveLastMonth" : "home.indicators.belowLastMonth", { difference }),
@@ -3928,7 +3981,7 @@
     if (!windows.length) return t("agenda.sheet.notAttending");
     return (info.otroCentro ? t("agenda.sheet.atCentre", { centre: info.otroCentro }) : "") + yourDayLegacy.windowsText(windows);
   }
-  var row = (label, value) => `<div class="vcfila"><span>${label}</span><b>${value}</b></div>`;
+  var row = (label, value2) => `<div class="vcfila"><span>${label}</span><b>${value2}</b></div>`;
   function dataHtml(item, info) {
     const where = [item.centro_nombre, item.direccion, item.municipio].filter(Boolean).join(" · "), timetable = timetableText(item, info), origin = yourDayLegacy.originText(item);
     return `<div class="vcdatos">
@@ -3977,26 +4030,26 @@
   };
   async function saveNotes(item, notes, button) {
     button.disabled = true;
-    const value = notes.value.trim();
-    const { error } = await legacyDb().from("agenda").update({ nota: value || null }).eq("id", item.id);
+    const value2 = notes.value.trim();
+    const { error } = await legacyDb().from("agenda").update({ nota: value2 || null }).eq("id", item.id);
     if (error) {
       button.disabled = false;
       notices.toast(t("agenda.sheet.couldNotSave", { error: error.message ?? "" }), true);
       return;
     }
-    item.nota = value;
+    item.nota = value2;
     close();
     notices.toast(t("agenda.sheet.notesSaved"));
     refreshQuietly(item.id, false);
   }
   function bind5(body, item) {
-    const notes = body.querySelector("#vcnota"), save = body.querySelector("#vcok");
-    if (notes && save) {
+    const notes = body.querySelector("#vcnota"), save3 = body.querySelector("#vcok");
+    if (notes && save3) {
       notes.oninput = () => {
-        save.disabled = notes.value.trim() === (item.nota ?? "").trim();
+        save3.disabled = notes.value.trim() === (item.nota ?? "").trim();
       };
-      save.onclick = () => {
-        void saveNotes(item, notes, save);
+      save3.onclick = () => {
+        void saveNotes(item, notes, save3);
       };
     }
     const on2 = (id, action) => {
@@ -4050,6 +4103,263 @@
     box.showModal();
   }
 
+  // src/app/screens/agenda/editors/appointment-editor.ts
+  var timeOf3 = (item) => item.hora ? String(item.hora).slice(0, 5) : null;
+  var inputValue = (id) => document.getElementById(id)?.value ?? "";
+  async function loadAccount(id, draft) {
+    const { data } = await legacyDb().rpc("ficha_cuenta", { p_id: id });
+    draft.consultations = data?.consultas ?? [];
+    return data?.medico ?? null;
+  }
+  function paintCentres(draft) {
+    const box = document.getElementById("nccw");
+    if (!box) return;
+    const list = draft.consultations.filter((item) => item.centro_nombre);
+    if (list.length < 2) {
+      box.innerHTML = "";
+      return;
+    }
+    const preferred = editorLegacy.centreFromCard() ?? (list.find((item) => item.principal) ?? list[0])?.centro_nombre;
+    box.innerHTML = `<label for="ncc">${t("agenda.editor.centre")}</label><select id="ncc">${list.map((item) => `<option value="${escapeHtml(item.centro_nombre)}" ${item.centro_nombre === preferred ? "selected" : ""}>${escapeHtml([item.centro_nombre, item.municipio].filter(Boolean).join(" · "))}</option>`).join("")}</select>`;
+  }
+  function windowHtml(day) {
+    return `
+    <div class="fh"><div><h2>${t("agenda.editor.newTitle")}</h2><div class="sm">${t("agenda.editor.newSubtitle")}</div></div>
+      <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
+    <label>${term("medico", { capital: "C" })}</label><div id="ncsel"></div>
+    <div class="g2">
+      <div><label for="ncf">${t("agenda.editor.day")}</label><input id="ncf" type="date" value="${escapeHtml(day)}"></div>
+      <div><label for="nch">${t("agenda.editor.time")} <span class="sm">${t("agenda.editor.optional")}</span></label><input id="nch" type="time"></div>
+    </div>
+    <div id="nccw"></div>
+    <label for="ncn">${t("agenda.editor.notes")}</label><textarea id="ncn" rows="3" placeholder="${t("agenda.sheet.notesPlaceholder")}"></textarea>
+    <div class="acts" style="justify-content:flex-end">
+      <button class="btn sec" data-cerrar>${t("agenda.editor.cancel")}</button>
+      <button class="btn" id="ncok">${t("agenda.editor.add")}</button></div>`;
+  }
+  async function sameDayDecision(accountId, day) {
+    const owner = editorLegacy.viewedUserId() ?? salesTeam.currentUserId();
+    const { data } = await callRpc("agenda_rango", { p_desde: day, p_hasta: day, p_usuario: owner });
+    const existing = (data ?? []).find((item) => item.cuenta_id === accountId && isOpen(item.estado));
+    if (!existing) return "nueva";
+    const message = t("agenda.editor.duplicateText", {
+      name: existing.nombre ?? "",
+      date: formatLongDate(day),
+      time: existing.hora ? t("agenda.editor.at", { time: String(existing.hora).slice(0, 5) }) : "",
+      state: existing.estado,
+      origin: existing.origen ? ` · ${existing.origen}` : ""
+    });
+    const choice = await notices.choose(
+      t("agenda.editor.duplicateTitle"),
+      message,
+      [{ k: "no", t: t("agenda.editor.cancel"), cls: "sec" }, { k: "dos", t: t("agenda.editor.keepBoth"), cls: "sec" }, { k: "sust", t: t("agenda.editor.onlyNew") }]
+    );
+    if (!choice) return null;
+    if (choice === "sust") {
+      const { data: result } = await legacyDb().rpc("borrar_cita", { p_id: existing.id });
+      if (result?.ok === false) {
+        notices.toast(t("agenda.editor.couldNotRemovePrevious"), true);
+        return null;
+      }
+    }
+    return choice;
+  }
+  async function recentDecision(accountId, day) {
+    const recent = await editorLegacy.recentContacts(accountId, day);
+    if (!recent.length) return true;
+    const choice = await notices.choose(
+      t("agenda.editor.recentTitle"),
+      t("agenda.editor.recentText", { list: editorLegacy.recentText(recent.slice(0, 3)) }),
+      [{ k: "no", t: t("agenda.editor.cancel"), cls: "sec" }, { k: "nomas", t: t("agenda.editor.yesNoMore"), cls: "sec" }, { k: "si", t: t("agenda.editor.addAnyway") }]
+    );
+    if (!choice) return false;
+    if (choice === "nomas") {
+      await editorLegacy.turnOffRecentNotice();
+      notices.toast(t("agenda.editor.noticeOff"));
+    }
+    return true;
+  }
+  async function placeByTime(day, owner, accountId, time) {
+    const { data } = await callRpc("agenda_rango", { p_desde: day, p_hasta: day, p_usuario: owner });
+    const open = (data ?? []).filter((item) => item.usuario_id === owner && isOpen(item.estado));
+    const mine = open.filter((item) => item.cuenta_id === accountId && timeOf3(item) === time).pop();
+    if (!mine) return;
+    const rest = open.filter((item) => item !== mine);
+    let index = rest.findIndex((item) => {
+      const other = timeOf3(item);
+      return other !== null && other > time;
+    });
+    if (index < 0) {
+      index = 0;
+      rest.forEach((item, position) => {
+        const other = timeOf3(item);
+        if (other !== null && other <= time) index = position + 1;
+      });
+    }
+    rest.splice(index, 0, mine);
+    if (rest.some((item, position) => item !== open[position])) {
+      await saveOrder(rest);
+      agendaCache.forgetDay(day);
+    }
+  }
+  function centreOf(draft, picked) {
+    const main = draft.consultations.find((item) => item.principal) ?? draft.consultations[0];
+    return [inputValue("ncc"), main?.centro_nombre, picked.centro_nombre, picked.centro].find((name) => Boolean(name)) ?? null;
+  }
+  async function write(picked, draft, options) {
+    const day = inputValue("ncf"), inAgenda = currentScreen() === "agenda";
+    return appointmentLegacy.write("guardar_cita", { p: {
+      cuenta_id: picked.id,
+      fecha: day,
+      hora: inputValue("nch") || null,
+      centro_nombre: centreOf(draft, picked),
+      estado: STATES.planned,
+      origen: orFallback(options.origen, inAgenda ? "Agenda" : "Ficha"),
+      usuario_id: editorLegacy.viewedUserId(),
+      nota: inputValue("ncn").trim(),
+      op_id: `c-${picked.id}-${day}-${Date.now()}`
+    } });
+  }
+  async function save(draft, options, button) {
+    const picked = draft.picked;
+    if (!picked) {
+      notices.toast(t("agenda.editor.choose", { professional: term("medico", { article: "un" }) }), true);
+      return;
+    }
+    const day = inputValue("ncf"), time = inputValue("nch");
+    if (!await sameDayDecision(picked.id, day) || !await recentDecision(picked.id, day)) return;
+    button.disabled = true;
+    const result = await write(picked, draft, options);
+    button.disabled = false;
+    if (result?.error) {
+      notices.toast(t("agenda.editor.couldNot", { error: result.error.message ?? "" }), true);
+      return;
+    }
+    if (time) await placeByTime(day, editorLegacy.viewedUserId() ?? salesTeam.currentUserId(), picked.id, time);
+    document.getElementById("dlg")?.close();
+    notices.toast(t("agenda.editor.added", { date: formatDayMonth(day) }));
+    if (currentScreen() === "agenda") refreshQuietly();
+    else void load();
+  }
+  async function newAppointment(accountId, day, options = {}) {
+    const draft = { picked: null, consultations: [] };
+    if (accountId) draft.picked = await loadAccount(accountId, draft);
+    const shown = legacyAgenda.selectedDate(), today = todayIso();
+    const body = document.getElementById("dbody"), box = document.getElementById("dlg");
+    if (!body || !box) return;
+    body.innerHTML = windowHtml(day ?? (currentScreen() === "agenda" && shown && shown >= today ? shown : today));
+    paintCentres(draft);
+    editorLegacy.pickAccount(document.getElementById("ncsel"), draft.picked, async (account) => {
+      draft.picked = account;
+      await loadAccount(account.id, draft);
+      paintCentres(draft);
+    });
+    const ok = document.getElementById("ncok");
+    if (ok) ok.onclick = () => {
+      void save(draft, options, ok);
+    };
+    box.classList.add("pequena");
+    box.showModal();
+  }
+
+  // src/app/screens/agenda/editors/task-editor.ts
+  var dialog2 = () => document.getElementById("dlg");
+  var value = (id) => document.getElementById(id)?.value ?? "";
+  function afterChange(message) {
+    dialog2()?.close();
+    notices.toast(message);
+    agendaState.forgetDayTasks();
+    void paintYourDay();
+  }
+  async function remove2(task) {
+    if (!await notices.confirm(t("agenda.taskEditor.deleteText"), { titulo: t("agenda.taskEditor.deleteTitle"), ok: t("agenda.taskEditor.delete"), peligro: true })) return;
+    const { error } = await legacyDb().from("tareas").delete().eq("id", task.id);
+    if (error) {
+      notices.toast(t("agenda.taskEditor.couldNotDelete"), true);
+      return;
+    }
+    afterChange(t("agenda.taskEditor.deleted"));
+  }
+  async function save2(task, button) {
+    const title = value("tat").trim();
+    if (!title) {
+      notices.toast(t("agenda.taskEditor.writeWhat"), true);
+      document.getElementById("tat")?.focus();
+      return;
+    }
+    const row2 = { titulo: title, fecha: value("taf") || todayIso(), hora: value("tah") || null, nota: value("tan").trim() || null, modificado_en: (/* @__PURE__ */ new Date()).toISOString() };
+    button.disabled = true;
+    const table = legacyDb().from("tareas");
+    const { error } = task.id ? await table.update(row2).eq("id", task.id) : await table.insert(row2);
+    button.disabled = false;
+    if (error) {
+      notices.toast(t("agenda.sheet.couldNotSave", { error: error.message ?? "" }), true);
+      return;
+    }
+    afterChange(task.id ? t("agenda.taskEditor.saved") : t("agenda.taskEditor.addedOn", { date: formatDayMonth(row2.fecha) }));
+  }
+  function editHtml(task, day) {
+    const time = task.hora ? String(task.hora).slice(0, 5) : "";
+    return `
+    <div class="fh"><div><h2>${t(task.id ? "agenda.taskEditor.title" : "agenda.taskEditor.newTitle")}</h2><div class="sm">${t("agenda.taskEditor.subtitle")}</div></div>
+      <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
+    <label for="tat">${t("agenda.taskEditor.what")}</label><input id="tat" value="${escapeHtml(task.titulo ?? "")}" placeholder="${t("agenda.taskEditor.whatPlaceholder")}" maxlength="160">
+    <div class="g2">
+      <div><label for="taf">${t("agenda.editor.day")}</label><input id="taf" type="date" value="${escapeHtml(task.fecha ?? day ?? todayIso())}"></div>
+      <div><label for="tah">${t("agenda.editor.time")} <span class="sm">${t("agenda.editor.optional")}</span></label><input id="tah" type="time" value="${escapeHtml(time)}"></div>
+    </div>
+    <label for="tan">${t("agenda.editor.notes")}</label><textarea id="tan" rows="3">${escapeHtml(task.nota ?? "")}</textarea>
+    <div class="acts" style="justify-content:space-between">
+      ${task.id ? `<button type="button" class="btn sec peligro" id="taborrar">${t("agenda.taskEditor.delete")}</button>` : "<span></span>"}
+      <span style="display:flex;gap:8px"><button type="button" class="btn sec" data-cerrar>${t("agenda.editor.cancel")}</button><button type="button" class="btn" id="taok">${t(task.id ? "agenda.taskEditor.save" : "agenda.taskEditor.add")}</button></span></div>`;
+  }
+  function doneHtml(task) {
+    return `
+    <div class="fh"><div><h2>${t("agenda.taskEditor.doneTitle")}</h2><div class="sm">${escapeHtml(formatLongDate(task.fecha ?? todayIso()))}${task.hora ? ` · ${escapeHtml(String(task.hora).slice(0, 5))}` : ""}</div></div>
+      <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
+    <div class="tarlec"><span class="tarok">${t("agenda.taskEditor.done")}</span><b>${escapeHtml(task.titulo ?? "")}</b>${task.nota ? `<p>${escapeHtml(task.nota)}</p>` : ""}</div>
+    <div class="acts" style="justify-content:space-between">
+      <button type="button" class="btn sec peligro" id="taborrar">${t("agenda.taskEditor.delete")}</button>
+      <span style="display:flex;gap:8px"><button type="button" class="btn sec" data-cerrar>${t("common.close")}</button><button type="button" class="btn" id="tareabrir">${t("agenda.taskEditor.reopen")}</button></span></div>`;
+  }
+  async function reopen(task, day, button) {
+    button.disabled = true;
+    const { error } = await legacyDb().from("tareas").update({ hecha: false, modificado_en: (/* @__PURE__ */ new Date()).toISOString() }).eq("id", task.id);
+    button.disabled = false;
+    if (error) {
+      notices.toast(t("agenda.taskEditor.couldNotChange"), true);
+      return;
+    }
+    agendaState.forgetDayTasks();
+    void paintYourDay();
+    editTask({ ...task, hecha: false }, day);
+  }
+  function show() {
+    const box = dialog2();
+    if (!box) return;
+    box.classList.add("pequena");
+    if (!box.open) box.showModal();
+  }
+  function editTask(task, day) {
+    const body = document.getElementById("dbody");
+    if (!body) return;
+    const current = task ?? {};
+    body.innerHTML = current.id && current.hecha ? doneHtml(current) : editHtml(current, day);
+    const ok = document.getElementById("taok");
+    if (ok) ok.onclick = () => {
+      void save2(current, ok);
+    };
+    const again = document.getElementById("tareabrir");
+    if (again) again.onclick = () => {
+      void reopen(current, day, again);
+    };
+    const erase = document.getElementById("taborrar");
+    if (erase) erase.onclick = () => {
+      void remove2(current);
+    };
+    show();
+  }
+
   // src/app/screens/agenda/your-day/card-buttons.ts
   function swapWithNeighbour(item, action) {
     const all = legacyAgenda.dayAppointments(), open = all.filter((entry) => isOpen(entry.estado));
@@ -4070,6 +4380,11 @@
     } else if (action === "nueva") void appointmentLegacy.newDateAfterAbsent(item);
     else if (action === "sube" || action === "baja") swapWithNeighbour(item, action);
   }
+  function taskRow2(row2, target) {
+    if (target.closest(".tdtchk, .tdtmov")) return;
+    const day = legacyAgenda.selectedDate();
+    editTask((agendaCache.dayTasks(day ?? "") ?? []).find((task) => task.id === row2.dataset.tarea), day);
+  }
   function taskArrow(arrow) {
     const [direction = "0", id = ""] = (arrow.dataset.tamov ?? "").split("|");
     void moveTask(id, Number(direction));
@@ -4085,6 +4400,15 @@
       const arrow = target.closest("[data-tamov]");
       if (arrow) {
         taskArrow(arrow);
+        return;
+      }
+      if (target.closest("#tdtarea")) {
+        editTask(null, legacyAgenda.selectedDate());
+        return;
+      }
+      const row2 = target.closest("#tdtareas .tdtarea");
+      if (row2) {
+        taskRow2(row2, target);
         return;
       }
       const button = target.closest("[data-td]");
