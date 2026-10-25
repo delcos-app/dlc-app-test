@@ -7,6 +7,7 @@ import { accountCardLegacy, permissions, term } from '../../../legacy/bridge';
 import { t } from '../../../i18n';
 import { escapeHtml } from '../../../services/format';
 import { accountKind, stillShown } from './card-tools';
+import { paintCardCycle } from '../../cycle/card';
 
 const CENTRE = 'Centro', DELETE_LEVEL = 3;
 
@@ -16,7 +17,7 @@ export async function cycle(id: string): Promise<void> {
   const state = [...document.querySelectorAll('#fbody .blk > h3')].find(heading => heading.textContent?.trim() === t('accounts.card.stateTitle'));
   if (!state?.parentElement) return;
   state.parentElement.insertAdjacentHTML('beforeend', '<div class="fciclo" id="fciclo"></div>');
-  await accountCardLegacy.cycle(id);
+  await paintCardCycle(id);
 }
 
 /** A centre linked to a place: the professionals who attend there and their timetable. */

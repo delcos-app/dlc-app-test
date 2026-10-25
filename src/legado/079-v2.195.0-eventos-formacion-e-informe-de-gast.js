@@ -16,7 +16,6 @@ try { menuEventos(); } catch (e) {}
 
 
 
-let CIC_DE = '', CIC_FIL = '', CIC_CLF = 'sin', CIC_Q = '';
 Object.assign(ICON_NOM, { target: '<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>' });
 ICO_NAV.ciclo = 'target'; ICO_MOD.ciclo = svgIco(ICON_NOM.target);
 (() => { const g = MENU_GRUPOS.find(x => x.id === 'dia'); if (g && !g.items.includes('ciclo')) g.items.push('ciclo'); })();
@@ -28,18 +27,6 @@ Object.defineProperty(PAGINAS.ciclo, 'tabs', { get: () => [['ciclo', 'Este ciclo
 
 
 
-// A, B o C en cualquier sitio (página «Clasificar» y ficha): pulsar la marcada la quita
-document.addEventListener('click', async e => {
-  const b = e.target.closest('[data-ccl]'); if (!b || b.disabled) return;
-  const [id, k] = b.dataset.ccl.split('|'), grupo = b.closest('.cicsegs'), nueva = b.classList.contains('on') ? null : k;
-  grupo.querySelectorAll('button').forEach(x => x.disabled = true);
-  const { data: r, error } = await db.rpc('clasificar_cuentas', { p_ids: [id], p_clase: nueva });
-  grupo.querySelectorAll('button').forEach(x => { x.disabled = false; });
-  if (error || !r || r.ok === false) { toast(r && r.error === 'permiso' ? 'No puedes cambiar la clase de esta ficha' : 'No se ha podido guardar', true); return; }
-  grupo.querySelectorAll('button').forEach(x => { const on = x.dataset.ccl === id + '|' + nueva; x.classList.toggle('on', on); x.setAttribute('aria-pressed', String(on)); });
-  invalidarCache();
-  if (grupo.closest('#fciclo')) cicFicha(id);
-}, true);
 
 
 

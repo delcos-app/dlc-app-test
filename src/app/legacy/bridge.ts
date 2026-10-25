@@ -296,7 +296,6 @@ export const accountCardLegacy = {
   canEditType: (type: string | null | undefined): boolean => puedeEditarTipo(type),
   /** The base sections, in their legacy order (each one paints a block of the card). */
   customFields: (id: string, container: Element | null): Promise<void> => bloqueCampos('cuentas', id, container),
-  cycle: (id: string): Promise<void> => cicFicha(id),
 };
 
 /** Windows and labels of other modules (events, deposit, surgeries, tenders, equipment, visit photos), still in legacy. */
@@ -412,6 +411,14 @@ export const appLegacy = {
   forgetCache: (): void => { invalidarCache(); },
   openOrder: (id: string): void => { void verPedido(id); },
   currentUserName: (): string => (PERFIL as { nombre?: string }).nombre ?? '',
+};
+
+/** Ciclo de visitas: the company settings it reads and writes, and the tabs of its page. */
+export const cycleLegacy = {
+  loadSettings: (): Promise<void> => cargarAjustes(),
+  setting: (key: string): unknown => AJUSTES[key],
+  setSetting: (key: string, value: unknown): void => { AJUSTES[key] = value; },
+  openTab: (tab: string): void => { PAG_TAB.ciclo = tab; cargarPagina('ciclo'); },
 };
 
 /** Intervenciones: the list repaints through its global name (page tab and dialog-close listener of legado 079). */

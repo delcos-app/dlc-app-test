@@ -1193,6 +1193,107 @@
     }
   };
 
+  // src/app/i18n/es/cycle.ts
+  var cycle = {
+    cycleNames: {
+      month: "mes",
+      twoMonths: "bimestre",
+      quarter: "trimestre",
+      fourMonths: "cuatrimestre",
+      half: "semestre",
+      year: "año",
+      other: "ciclo"
+    },
+    allTeam: "Todo el equipo",
+    whose: "De quién",
+    classLabel: "Clase",
+    classify: "Clasificar",
+    range: "{name} del {from} al {to}",
+    current: {
+      couldNotLoad: "No se ha podido cargar el ciclo.",
+      oneDayLeft: "Queda 1 día",
+      daysLeft: "Quedan {count} días",
+      allCount: "cuentan todas las {visits} registradas, también por teléfono o videollamada",
+      adjust: "Ajustar el ciclo",
+      oneUnclassified: "1 {professional} sin clasificar",
+      unclassified: "{count} {professionals} sin clasificar",
+      unclassifiedTail: ": sin clase no cuentan en el ciclo.",
+      upToDate: "{done} de {total} al día",
+      noneIn: "Ninguno en {class}",
+      every: "{visits} cada {cycle}",
+      doneOf: "{done} de {goal} hechas · {percent}%",
+      missingTitle: "Les faltan {visits} este {cycle}",
+      all: "Todas",
+      lastVisit: " · última {visit} {date}",
+      noVisits: " · sin {visits}",
+      progress: "{done} de {goal}",
+      oneMissing: "falta 1",
+      missing: "faltan {count}",
+      appointmentOn: "Cita el {date}",
+      newAppointment: "+ Cita",
+      noneMissingIn: "En {class} no le falta {visit} a nadie.",
+      allUpToDate: "Todos al día este {cycle}.",
+      nobodyClassified: "Todavía no hay {professionals} en A, B o C. Empieza por «Clasificar»: A para los más importantes, B para los intermedios y C para el resto."
+    },
+    classifyPage: {
+      couldNotLoad: "No se han podido cargar las fichas.",
+      show: "Mostrar",
+      unclassified: "Sin clasificar",
+      all: "Todas",
+      search: "Buscar por nombre, {speciality} o municipio",
+      searchLabel: "Buscar",
+      hint: "Pulsa A, B o C en cada {professional}: <b>A</b> para los más importantes, <b>B</b> para los intermedios y <b>C</b> para el resto. Pulsar la letra marcada la quita. Las {visits} de los últimos 12 meses ayudan a decidir.",
+      in12Months: "en 12 meses",
+      firstOnly: "Se ven las 300 primeras: busca para encontrar el resto.",
+      allClassified: "Todos están clasificados.",
+      noneWithFilter: "No hay ninguno con este filtro.",
+      noPermission: "No puedes cambiar la clase de esta ficha",
+      couldNotSave: "No se ha podido guardar"
+    },
+    editor: {
+      title: "Ciclo de {visits} A/B/C",
+      subtitle: "Cuántas {visits} necesita cada clase en cada ciclo. El ciclo va por el calendario: con un trimestre, de enero a marzo, de abril a junio…",
+      length: "Duración del ciclo",
+      oneMonth: "Un mes",
+      twoMonths: "Dos meses",
+      quarter: "Un trimestre",
+      fourMonths: "Cuatro meses",
+      half: "Un semestre",
+      year: "Un año",
+      perCycle: "{Visits} por ciclo",
+      ofClass: "{Visits} de la clase {class}",
+      zeroHint: "Con 0, esa clase no pide {visits}. Cambiarlo no borra nada: solo cambia lo que se cuenta.",
+      couldNotSave: "No se ha podido guardar",
+      saved: "Ciclo guardado"
+    },
+    team: {
+      goals: " · A {a}, B {b} y C {c} por {professional}.",
+      person: "Persona",
+      portfolio: "Cartera",
+      noClass: "Sin clase",
+      upToDate: "Al día",
+      cycleVisits: "{Visits} del ciclo",
+      countHint: "Cada {professional} cuenta hasta las {visits} de su clase (si tiene más, no compensan las que faltan en otro). Pulsa una persona para ver su ciclo.",
+      nobody: "Nadie del equipo tiene cartera asignada."
+    },
+    coverage: {
+      couldNotLoad: "No se ha podido cargar la cobertura.",
+      subtitle: "Cuántos {professionals} de cada clase han oído hablar de cada producto en sus {visits} de este {cycle}",
+      noProducts: "Ningún producto se promociona todavía.",
+      markIt: " Márcalo en Productos: abre el producto y activa «Se promociona en las {visits}».",
+      nobodyClassified: "Todavía no hay {professionals} en A, B o C: la cobertura se mide sobre los clasificados.",
+      whoIsMissing: "A quién le falta",
+      firstOf: " (los {shown} primeros de {total})",
+      count: " ({count})",
+      allHeard: "Todos lo han oído este {cycle}."
+    },
+    card: {
+      thisCycle: "{done} de {goal} este {cycle}",
+      noGoal: "{visits} este {cycle} · su clase no pide {visitsWord}",
+      unclassified: "Sin clasificar · {visits} este {cycle}"
+    }
+  };
+
   // src/app/i18n/es.ts
   var es = {
     common: {
@@ -1226,6 +1327,7 @@
     accounts,
     events,
     surgeries,
+    cycle,
     home: {
       showIndicators: "Ver tus indicadores",
       hideIndicators: "Ocultar tus indicadores",
@@ -1333,8 +1435,8 @@
   function setLanguage(language) {
     currentLanguage = language;
   }
-  function setVocabulary(words) {
-    vocabulary = { ...words };
+  function setVocabulary(words2) {
+    vocabulary = { ...words2 };
   }
   function lookup(catalog, key) {
     let node = catalog;
@@ -1704,8 +1806,7 @@
     planIncludes: (section2) => planIncluyeSeccion(section2),
     canEditType: (type) => puedeEditarTipo(type),
     /** The base sections, in their legacy order (each one paints a block of the card). */
-    customFields: (id, container) => bloqueCampos("cuentas", id, container),
-    cycle: (id) => cicFicha(id)
+    customFields: (id, container) => bloqueCampos("cuentas", id, container)
   };
   var relatedLegacy = {
     openVisitPhotos: (activityId, accountId) => {
@@ -1737,7 +1838,7 @@
     equipmentPill: (equipment2) => eqRevPill(equipment2)
   };
   var cardBaseLegacy = {
-    visitBlock: (account, consultations, visits) => fichaVisitaHTML(account, consultations, visits),
+    visitBlock: (account, consultations, visits2) => fichaVisitaHTML(account, consultations, visits2),
     visitConsultation: (consultations) => consultaDeLaVisita(consultations),
     states: () => estados(),
     canRecord: () => puedeRegistrar(),
@@ -1851,6 +1952,17 @@
       void verPedido(id);
     },
     currentUserName: () => PERFIL.nombre ?? ""
+  };
+  var cycleLegacy = {
+    loadSettings: () => cargarAjustes(),
+    setting: (key) => AJUSTES[key],
+    setSetting: (key, value4) => {
+      AJUSTES[key] = value4;
+    },
+    openTab: (tab) => {
+      PAG_TAB.ciclo = tab;
+      cargarPagina("ciclo");
+    }
   };
 
   // src/app/services/dates.ts
@@ -1983,22 +2095,22 @@
         ${canRecord ? `<button class="btn sec chico" data-editv='${escapeHtml(JSON.stringify(visit))}'>${t("accounts.base.editVisit")}</button>` : ""}
       </div>`;
   }
-  function visitsHtml(visits) {
+  function visitsHtml(visits2) {
     const canRecord = cardBaseLegacy.canRecord();
-    const list = visits.length ? visits.slice(0, SHOWN_VISITS).map((visit) => visitHtml(visit, canRecord)).join("") : `<div class="sm">${t("accounts.base.noVisits", { visits: term("visita", { number: "p", adjective: "registrado" }) })}</div>`;
+    const list = visits2.length ? visits2.slice(0, SHOWN_VISITS).map((visit) => visitHtml(visit, canRecord)).join("") : `<div class="sm">${t("accounts.base.noVisits", { visits: term("visita", { number: "p", adjective: "registrado" }) })}</div>`;
     return `<div class="blk"><h3>${term("visita", { number: "p", capital: "C" })}</h3>
       ${list}</div>`;
   }
   function cardHtml(data, cached) {
-    const account = data.medico, consultations = data.consultas ?? [], visits = data.visitas ?? [];
+    const account = data.medico, consultations = data.consultas ?? [], visits2 = data.visitas ?? [];
     const forVisit = cardBaseLegacy.visitConsultation(consultations);
     return `${cached ? `<div class="cacheaviso">${t("accounts.base.cachedNotice")}</div>` : ""}
     ${headerHtml(account)}
     ${actionsHtml(account)}
-    ${cardBaseLegacy.visitBlock(account, consultations, visits)}
+    ${cardBaseLegacy.visitBlock(account, consultations, visits2)}
     ${stateHtml(account, data.comerciales ?? [])}
     ${consultations.filter((consultation) => consultation !== forVisit).map(consultationHtml).join("")}
-    ${visitsHtml(visits)}
+    ${visitsHtml(visits2)}
     <div id="fzcampos"></div>
     <section class="blk fventas" id="fventas"><h3>${t("accounts.base.salesTitle", { patients: term("paciente", { number: "p" }) })}</h3><div id="fventasc"></div></section>`;
   }
@@ -2052,15 +2164,73 @@
   }
   var historyRows = () => [...document.querySelectorAll("#fbody [data-vrow]")];
 
+  // src/app/screens/cycle/model.ts
+  var CLASSES = ["A", "B", "C"];
+  var cycleState = { owner: "", classFilter: "", classifyFilter: "sin", query: "" };
+  var CYCLE_NAMES = /* @__PURE__ */ new Map([
+    [1, "cycle.cycleNames.month"],
+    [2, "cycle.cycleNames.twoMonths"],
+    [3, "cycle.cycleNames.quarter"],
+    [4, "cycle.cycleNames.fourMonths"],
+    [6, "cycle.cycleNames.half"],
+    [12, "cycle.cycleNames.year"]
+  ]);
+  var cycleName = (months) => t(CYCLE_NAMES.get(months) ?? "cycle.cycleNames.other");
+  var visitsText = (count2) => `${count2} ${term("visita", { number: count2 === 1 ? "s" : "p" })}`;
+  var words = () => ({
+    visit: term("visita"),
+    visits: term("visita", { number: "p" }),
+    Visits: term("visita", { number: "p", capital: "C" }),
+    professional: term("medico"),
+    professionals: term("medico", { number: "p" }),
+    speciality: term("especialidad")
+  });
+  var classPill = (value4) => value4 ? `<span class="cicl c${value4}">${value4}</span>` : '<span class="cicl csin">—</span>';
+  var classButtons = (id, value4) => `<span class="segs cicsegs" role="group" aria-label="${t("cycle.classLabel")}">${CLASSES.map((letter) => `<button type="button" data-ccl="${id}|${letter}" class="${letter === value4 ? "on" : ""}" aria-pressed="${String(letter === value4)}">${letter}</button>`).join("")}</span>`;
+  var ownerParam = () => permissions.seesEverything() ? cycleState.owner || null : salesTeam.currentUserId();
+  var goToTab = (tab) => {
+    cycleLegacy.openTab(tab);
+  };
+  var rangeText = (range2) => t("cycle.range", { name: capitalise(cycleName(range2.meses)), from: formatShortDate(range2.desde), to: formatShortDate(range2.hasta) });
+  async function ownerSelector() {
+    if (!permissions.seesEverything()) return "";
+    if (!salesTeam.members().length) await salesTeam.load().catch(() => void 0);
+    return `<select id="cicde" aria-label="${t("cycle.whose")}"><option value="">${t("cycle.allTeam")}</option>${salesTeam.members().map((member) => `<option value="${member.id}" ${cycleState.owner === member.id ? "selected" : ""}>${escapeHtml(member.nombre)}</option>`).join("")}</select>`;
+  }
+  function bindOwner(paint3) {
+    const select = document.getElementById("cicde");
+    if (select) select.onchange = () => {
+      cycleState.owner = select.value;
+      void paint3();
+    };
+  }
+  var percentOf = (done, goal) => goal ? Math.round(done / goal * 100) : 0;
+  var progressBar = (percent, tag = "span") => `<${tag} class="cicbar"><i style="width:${percent}%"></i></${tag}>`;
+
+  // src/app/screens/cycle/card.ts
+  function summary(cycle3) {
+    const name = cycleName(cycle3.meses);
+    if (!cycle3.clase) return t("cycle.card.unclassified", { visits: visitsText(cycle3.hechas), cycle: name });
+    if (!cycle3.objetivo) return t("cycle.card.noGoal", { visits: visitsText(cycle3.hechas), cycle: name, visitsWord: term("visita", { number: "p" }) });
+    return t("cycle.card.thisCycle", { done: cycle3.hechas, goal: visitsText(cycle3.objetivo), cycle: name });
+  }
+  async function paintCardCycle(id) {
+    const { data: cycle3 } = await legacyDb().rpc("ciclo_de_cuenta", { p_id: id });
+    const box = document.getElementById("fciclo");
+    if (!cycle3 || !box || accountCardLegacy.shownId() !== id) return;
+    box.innerHTML = `<span class="sm cicfl">${t("cycle.classLabel")}</span>${cardBaseLegacy.canEdit() ? classButtons(id, cycle3.clase) : classPill(cycle3.clase)}
+    <span class="sm">${summary(cycle3)}</span>`;
+  }
+
   // src/app/screens/accounts/card/sections-account.ts
   var CENTRE = "Centro";
   var DELETE_LEVEL = 3;
-  async function cycle(id) {
+  async function cycle2(id) {
     if (permissions.isProfessionalPortal() || document.getElementById("fciclo") || !stillShown(id)) return;
     const state = [...document.querySelectorAll("#fbody .blk > h3")].find((heading) => heading.textContent?.trim() === t("accounts.card.stateTitle"));
     if (!state?.parentElement) return;
     state.parentElement.insertAdjacentHTML("beforeend", '<div class="fciclo" id="fciclo"></div>');
-    await accountCardLegacy.cycle(id);
+    await paintCardCycle(id);
   }
   async function centreProfessionals(id) {
     const account = await accountKind(id), body2 = document.getElementById("fbody");
@@ -2208,11 +2378,11 @@
   }
   var difference = (label, now, proposed) => proposed && proposed !== now ? `<div class="fpdif"><span class="sm">${label}</span><span>${now ? `<s>${escapeHtml(now)}</s> → ` : ""}<b>${escapeHtml(proposed)}</b></span></div>` : "";
   function proposalHtml(proposal, account, canEdit) {
-    const data = proposal.datos ?? {}, visits = data.visitas;
+    const data = proposal.datos ?? {}, visits2 = data.visitas;
     const sentAt = new Date(proposal.modificado_en).toLocaleString(t("dates.locale"), { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
     const consultations = (data.consultas ?? []).map((item) => `<div class="fpcon"><b>${escapeHtml(orFallback(item.nombre, term("consulta", { capital: "C" })))}</b> ${item.centro_id || item.ubicacion_id ? "" : `<span class="pill p-per">${t("accounts.proposal.newCentre")}</span>`}
       <span class="sm">${escapeHtml([item.direccion, item.municipio].filter(Boolean).join(" · "))}</span><span class="sm">${timetableText(item.dias)}</span></div>`).join("");
-    const visitWay = visits && (visits.como || visits.momento) ? `<div class="fpdif"><span class="sm">${term("visita", { number: "p", capital: "C" })}</span><span>${escapeHtml([visits.como, visits.momento].filter(Boolean).join(" · "))}</span></div>` : "";
+    const visitWay = visits2 && (visits2.como || visits2.momento) ? `<div class="fpdif"><span class="sm">${term("visita", { number: "p", capital: "C" })}</span><span>${escapeHtml([visits2.como, visits2.momento].filter(Boolean).join(" · "))}</span></div>` : "";
     return `<section class="blk fprop" id="fprop"><h3>${t("accounts.proposal.title")} <span class="pill p-warn">${t("accounts.proposal.toReview")}</span></h3>
     <p class="sm">${t("accounts.proposal.sent", { who: escapeHtml(orFallback(proposal.quien, term("medico", { article: "el", capital: "C" }))), date: sentAt })}</p>
     ${difference(t("accounts.proposal.phone"), account.telefono, data.telefono)}${difference(t("accounts.proposal.email"), account.email, data.email)}
@@ -2279,13 +2449,13 @@
   ];
   function unitsHtml(units2, series) {
     const prescriptions = (count2) => term("pauta", { number: count2 === 1 ? "s" : "p" });
-    const summary = units2.total ? `${t("accounts.base.unitsSummary", { count: formatNumber(units2.pautas), prescriptions: prescriptions(units2.pautas), date: formatShortDate(units2.ultima) })}<span id="fusley">${cardBaseLegacy.unitsLegend(series)}</span>` : t("accounts.base.noPrescriptions", { prescriptions: term("pauta", { number: "p" }) });
+    const summary2 = units2.total ? `${t("accounts.base.unitsSummary", { count: formatNumber(units2.pautas), prescriptions: prescriptions(units2.pautas), date: formatShortDate(units2.ultima) })}<span id="fusley">${cardBaseLegacy.unitsLegend(series)}</span>` : t("accounts.base.noPrescriptions", { prescriptions: term("pauta", { number: "p" }) });
     const choices = units2.total ? `<div class="segs" id="fuserie" role="group" aria-label="${t("accounts.base.evolution")}">${cardBaseLegacy.unitsSeries().map(([key, label]) => `<button type="button" data-us="${key}" class="${key === series ? "on" : ""}">${label}</button>`).join("")}</div>` : "";
     return `<div class="blk" id="fundades"><h3>${t("accounts.base.unitsTitle")}</h3>
     <div class="uper">${PERIODS.map(([label, key]) => `<div><b>${formatNumber(units2[key])}</b><span>${t(label)}</span></div>`).join("")}</div>
     ${choices}
     <div class="spark" id="fuspark">${cardBaseLegacy.unitsChart(units2, series)}</div>
-    <div class="sm">${summary}</div></div>`;
+    <div class="sm">${summary2}</div></div>`;
   }
   async function units(id) {
     const box = document.getElementById("fbody");
@@ -2636,9 +2806,9 @@
     const after = document.getElementById("fportal") ?? body2.querySelector("section.fvis");
     if (after) after.insertAdjacentHTML("afterend", html);
     else body2.insertAdjacentHTML("beforeend", html);
-    const save5 = document.getElementById("fpcok");
-    if (save5) save5.onclick = () => {
-      void saveProducts(id, save5);
+    const save6 = document.getElementById("fpcok");
+    if (save6) save6.onclick = () => {
+      void saveProducts(id, save6);
     };
   }
 
@@ -2650,11 +2820,11 @@
     if (!stillShown(id) || !select) return;
     const options = (users ?? []).filter((user) => user.activo && (cardSectionsLegacy.roleCan(user.rol, "cartera") || current?.id === user.id)).map((user) => `<option value="${user.id}" ${current?.id === user.id ? "selected" : ""}>${escapeHtml(user.nombre)} · ${escapeHtml(user.rol)}</option>`).join("");
     select.innerHTML = `<option value="">${t("accounts.sales.noRep")}</option>${options}`;
-    const save5 = document.getElementById("fcomok");
-    if (save5) save5.onclick = async () => {
-      save5.disabled = true;
+    const save6 = document.getElementById("fcomok");
+    if (save6) save6.onclick = async () => {
+      save6.disabled = true;
       const { data: result, error } = await legacyDb().rpc("asignar_responsable_cuenta", { p_medico: id, p_usuario: select.value || null });
-      save5.disabled = false;
+      save6.disabled = false;
       if (error || result?.ok === false) {
         notices.toast(t("accounts.sales.couldNotAssign"), true);
         return;
@@ -2737,7 +2907,7 @@
     { name: "samples", run: samples },
     { name: "events", run: events2 },
     { name: "deposit", run: deposit },
-    { name: "cycle", run: cycle },
+    { name: "cycle", run: cycle2 },
     { name: "presentedProducts", run: presentedProducts },
     { name: "surgeries", run: surgeries2 },
     { name: "tenders", run: tenders },
@@ -3355,10 +3525,10 @@
   }
   function pills(metrics) {
     const { done, total } = todayFigures(metrics);
-    const visits = term("visita", { number: "p" }), week = metrics.semana ?? {}, closings = metrics.cierres ?? {}, pending = metrics.pendientes ?? {};
+    const visits2 = term("visita", { number: "p" }), week = metrics.semana ?? {}, closings = metrics.cierres ?? {}, pending = metrics.pendientes ?? {};
     return [
-      ["agenda.metrics.today", `${done}/${total}`, t("agenda.metrics.todayDetail", { done, total, average: decimal(metrics.media_dia), visits }), ""],
-      ["agenda.metrics.week", count(week.visitas), t("agenda.metrics.weekDetail", { count: count(week.visitas), visits, average: decimal(week.media) }), ""],
+      ["agenda.metrics.today", `${done}/${total}`, t("agenda.metrics.todayDetail", { done, total, average: decimal(metrics.media_dia), visits: visits2 }), ""],
+      ["agenda.metrics.week", count(week.visitas), t("agenda.metrics.weekDetail", { count: count(week.visitas), visits: visits2, average: decimal(week.media) }), ""],
       ["agenda.metrics.closings", count(closings.hoy), t("agenda.metrics.closingsDetail", { count: count(closings.hoy), average: decimal(closings.media_dia) }), ""],
       [
         "agenda.metrics.toVisit",
@@ -3624,9 +3794,9 @@
   }
   function draftHtml(draft) {
     const days = Object.keys(draft.dias).filter((day) => draft.dias[day]?.length).length;
-    const summary = t("agenda.openWeek.draftSummary", { count: formatNumber(draft.total), visits: term("visita", { number: "p", adjective: "nuevo" }), days }) + (draft.sinDia.length ? t("agenda.openWeek.draftWithoutDay", { count: draft.sinDia.length }) : "");
+    const summary2 = t("agenda.openWeek.draftSummary", { count: formatNumber(draft.total), visits: term("visita", { number: "p", adjective: "nuevo" }), days }) + (draft.sinDia.length ? t("agenda.openWeek.draftWithoutDay", { count: draft.sinDia.length }) : "");
     return `<div class="semborr">
-      <span><b>${t("agenda.openWeek.draft")}</b> · ${summary}</span>
+      <span><b>${t("agenda.openWeek.draft")}</b> · ${summary2}</span>
       <span class="acts" style="margin:0"><button class="btn sec" id="semdescartar">${t("agenda.openWeek.discard")}</button><button class="btn" id="semguardar">${t("agenda.openWeek.save")}</button></span></div>`;
   }
   function withoutDayHtml(draft) {
@@ -3721,9 +3891,9 @@
       weekPlanner.discardDraft();
       reloadAgenda();
     };
-    const save5 = box.querySelector("#semguardar");
-    if (save5) save5.onclick = () => {
-      weekPlanner.saveDraft(save5);
+    const save6 = box.querySelector("#semguardar");
+    if (save6) save6.onclick = () => {
+      weekPlanner.saveDraft(save6);
     };
     box.querySelectorAll("[data-semdia]").forEach((column) => {
       bindDay(column, data);
@@ -4502,42 +4672,42 @@
     button.innerHTML = legacyIcons.list(compact2 ? "file-text" : "list");
     button.setAttribute("aria-pressed", String(compact2));
   }
-  function statsHtml(summary) {
-    const end = summary.open && !summary.isPast ? `<span>${t("agenda.yourDay.estimatedEnd")} <b style="color:${summary.overReturn ? "var(--warn)" : "var(--navy)"}">${formatMinutes(summary.end)}</b>${summary.overReturn ? t("agenda.yourDay.overReturn") : ""}${summary.end >= DAY_MINUTES ? ` <span class="sm">${t("agenda.yourDay.nextDay")}</span>` : ""}</span>` : "";
+  function statsHtml(summary2) {
+    const end = summary2.open && !summary2.isPast ? `<span>${t("agenda.yourDay.estimatedEnd")} <b style="color:${summary2.overReturn ? "var(--warn)" : "var(--navy)"}">${formatMinutes(summary2.end)}</b>${summary2.overReturn ? t("agenda.yourDay.overReturn") : ""}${summary2.end >= DAY_MINUTES ? ` <span class="sm">${t("agenda.yourDay.nextDay")}</span>` : ""}</span>` : "";
     return `<div class="tdstats">
-          <span>${t("agenda.yourDay.appointments", { count: formatNumber(summary.active) })}</span>
-          <span>${t("agenda.yourDay.visited", { count: formatNumber(summary.done) })}</span>
-          ${summary.absent ? `<span>${t("agenda.yourDay.absent", { count: formatNumber(summary.absent) })}</span>` : ""}
-          <span>${t("agenda.yourDay.toDo", { count: summary.open })}</span>
+          <span>${t("agenda.yourDay.appointments", { count: formatNumber(summary2.active) })}</span>
+          <span>${t("agenda.yourDay.visited", { count: formatNumber(summary2.done) })}</span>
+          ${summary2.absent ? `<span>${t("agenda.yourDay.absent", { count: formatNumber(summary2.absent) })}</span>` : ""}
+          <span>${t("agenda.yourDay.toDo", { count: summary2.open })}</span>
           ${end}
         </div>`;
   }
-  function workingDayButton(summary) {
-    if (!summary.isToday || !summary.isOwner) return "";
-    if (summary.workingDay) return `<button class="btn dang chico" id="tdterminar">${t("agenda.yourDay.endDay")}</button>`;
-    return summary.open ? `<button class="btn chico" id="tdempezar">${t("agenda.yourDay.startDay")}</button>` : "";
+  function workingDayButton(summary2) {
+    if (!summary2.isToday || !summary2.isOwner) return "";
+    if (summary2.workingDay) return `<button class="btn dang chico" id="tdterminar">${t("agenda.yourDay.endDay")}</button>`;
+    return summary2.open ? `<button class="btn chico" id="tdempezar">${t("agenda.yourDay.startDay")}</button>` : "";
   }
-  function actionsHtml2(summary) {
-    const { isPast, own, open, withPlace } = summary;
+  function actionsHtml2(summary2) {
+    const { isPast, own, open, withPlace } = summary2;
     return `<div class="acts">
         ${own ? `<button type="button" class="btn sec chico" id="tdtarea">${t("agenda.yourDay.addTask")}</button>` : ""}
         ${!isPast && withPlace > 1 ? `<button class="btn sec chico" id="tdordenar" title="${t("agenda.yourDay.orderTitle")}">${t("agenda.yourDay.orderByDistance")}</button>` : ""}
-        ${workingDayButton(summary)}
+        ${workingDayButton(summary2)}
         ${isPast && open ? `<button class="btn chico" id="tdrepro">${t("agenda.yourDay.reschedulePending")}</button>` : ""}
       </div>`;
   }
-  function headerHtml4(summary) {
-    const title = t(summary.isToday ? "agenda.yourDay.titleToday" : summary.isPast ? "agenda.yourDay.titlePast" : "agenda.yourDay.titleFuture");
-    const dayMenu = summary.isFutureOrToday ? `<button type="button" class="kmv tddiamas" id="tddiamas" aria-label="${t("agenda.yourDay.dayOptions")}" title="${t("agenda.yourDay.dayOptionsTitle")}">${legacyIcons.line("mas")}</button>` : "";
+  function headerHtml4(summary2) {
+    const title = t(summary2.isToday ? "agenda.yourDay.titleToday" : summary2.isPast ? "agenda.yourDay.titlePast" : "agenda.yourDay.titleFuture");
+    const dayMenu = summary2.isFutureOrToday ? `<button type="button" class="kmv tddiamas" id="tddiamas" aria-label="${t("agenda.yourDay.dayOptions")}" title="${t("agenda.yourDay.dayOptionsTitle")}">${legacyIcons.line("mas")}</button>` : "";
     return `
     <div class="tdhead">
-      <div class="${summary.isFutureOrToday ? "tdtitw" : ""}"><h2 style="padding:0">${title}</h2>${summary.mine > 1 ? compactButton(summary.compact) : ""}${dayMenu}
-        ${statsHtml(summary)}</div>
-      ${actionsHtml2(summary)}
+      <div class="${summary2.isFutureOrToday ? "tdtitw" : ""}"><h2 style="padding:0">${title}</h2>${summary2.mine > 1 ? compactButton(summary2.compact) : ""}${dayMenu}
+        ${statsHtml(summary2)}</div>
+      ${actionsHtml2(summary2)}
     </div>`;
   }
-  function workingDayHtml(summary, duration) {
-    return summary.isToday && summary.workingDay ? `<div class="tdjornada">${t("agenda.yourDay.workingDay", { time: duration, visit: summary.visit })}</div>` : "";
+  function workingDayHtml(summary2, duration) {
+    return summary2.isToday && summary2.workingDay ? `<div class="tdjornada">${t("agenda.yourDay.workingDay", { time: duration, visit: summary2.visit })}</div>` : "";
   }
   function noFitHtml(noFit) {
     if (!noFit.shown) return "";
@@ -4662,7 +4832,7 @@
       noFitBanner: banner,
       limit
     };
-    const summary = {
+    const summary2 = {
       isToday: day === today,
       isPast,
       isFutureOrToday: day >= today,
@@ -4681,7 +4851,7 @@
       visit
     };
     const outside = Object.values(info).filter((stop) => stop.llegada !== null && stop.llegada !== void 0 && stop.llegada >= limit).length;
-    return { context, summary, noFit: { shown: banner, overLimit, end: estimate.fin, outside, canOrder: !isPast && withPlace > 1 } };
+    return { context, summary: summary2, noFit: { shown: banner, overLimit, end: estimate.fin, outside, canOrder: !isPast && withPlace > 1 } };
   }
   function on(id, action) {
     const button = document.getElementById(id);
@@ -4711,17 +4881,17 @@
     const all = result.data ?? [], owner = agendaSources.ownerId();
     const data = { day, today, mine: all.filter((item) => item.usuario_id === owner), others: all.filter((item) => item.usuario_id !== owner) };
     yourDayLegacy.setDayAppointments(data.mine);
-    const { context, summary, noFit } = buildContext(data, yourDayLegacy.estimateDay(data.mine, day));
-    const cards = data.mine.length ? `<div class="tdesc" aria-label="${t("agenda.yourDay.dayAppointments")}">${data.mine.map((item, index) => appointmentCard(item, index, context)).join("")}</div>` : `<div class="vacio">${t(summary.isToday ? "agenda.yourDay.emptyToday" : "agenda.yourDay.emptyOther")}</div>`;
-    body2.innerHTML = `${headerHtml4(summary)}
-    ${workingDayHtml(summary, summary.workingDay ? formatDuration(Date.now() - summary.workingDay.inicio) : "")}
+    const { context, summary: summary2, noFit } = buildContext(data, yourDayLegacy.estimateDay(data.mine, day));
+    const cards = data.mine.length ? `<div class="tdesc" aria-label="${t("agenda.yourDay.dayAppointments")}">${data.mine.map((item, index) => appointmentCard(item, index, context)).join("")}</div>` : `<div class="vacio">${t(summary2.isToday ? "agenda.yourDay.emptyToday" : "agenda.yourDay.emptyOther")}</div>`;
+    body2.innerHTML = `${headerHtml4(summary2)}
+    ${workingDayHtml(summary2, summary2.workingDay ? formatDuration(Date.now() - summary2.workingDay.inicio) : "")}
     ${noFitHtml(noFit)}
     ${cards}
     ${othersHtml(data.others)}`;
     bindHeader2(data, context.open);
     refreshMetrics();
     yourDayLegacy.prepareRouteStops(day);
-    if (!summary.own) return;
+    if (!summary2.own) return;
     const tasks = await agendaSources.dayTasks(day);
     const fresh = document.getElementById("agcuerpo");
     if (legacyAgenda.selectedDate() === day && fresh) paintTasks(fresh, tasks);
@@ -4849,13 +5019,13 @@
     const now = /* @__PURE__ */ new Date(), minutesNow = now.getHours() * 60 + now.getMinutes();
     const next = open.find((item) => (minutesOf2(item.hora) ?? 9999) >= minutesNow - 15) ?? open[0];
     const time = (item, empty) => escapeHtml(String(item.hora ?? "").slice(0, 5) || empty);
-    const summary = next ? t("home.indicators.nextAppointment", { time: time(next, "—"), name: escapeHtml(next.nombre) }) : t(list.length ? "home.indicators.allClosed" : "home.indicators.noAppointmentsToday");
+    const summary2 = next ? t("home.indicators.nextAppointment", { time: time(next, "—"), name: escapeHtml(next.nombre) }) : t(list.length ? "home.indicators.allClosed" : "home.indicators.noAppointmentsToday");
     const visible = isMobile() ? 3 : 5;
     const nextIndex = next ? list.indexOf(next) : 0;
     const start = Math.max(0, Math.min(nextIndex - (visible >> 1), list.length - visible)), shown = list.slice(start, start + visible);
     const more = Math.max(0, nonZeroOr(kpis.citas_hoy, list.length) - shown.length);
     const dots = shown.map((item) => `<span class="kvdot"><i class="${dotKind2(item, next)}" title="${escapeHtml(item.nombre)}"></i><em>${time(item, "·")}</em></span>`).join("");
-    return { summary, visual: list.length ? `<div class="kvdots">${dots}${more > 0 ? `<span class="kvdot"><em class="kvmas">+${more}</em></span>` : ""}</div>` : "" };
+    return { summary: summary2, visual: list.length ? `<div class="kvdots">${dots}${more > 0 ? `<span class="kvdot"><em class="kvmas">+${more}</em></span>` : ""}</div>` : "" };
   }
   function urgentChart(kpis) {
     if (kpis.urgentes) return { summary: t("home.indicators.urgentPending", { count: formatNumber(kpis.urgentes) }), visual: '<div class="kvradar" aria-hidden="true"><i></i><b></b><b></b></div>' };
@@ -4937,8 +5107,8 @@
     }).join("");
     const positive = counts.find((count2) => count2.state.papel === "positivo");
     const state = positive ? escapeHtml(positive.state.valor) : "";
-    const summary = positive ? positive.accounts ? t("home.indicators.alreadyIn", { count: positive.accounts, state }) : t("home.indicators.nextStep", { state }) : "";
-    return { summary, visual: `<svg class="kvbar" viewBox="0 0 ${width} 52" preserveAspectRatio="xMidYMax meet" aria-hidden="true">${columns}</svg>` };
+    const summary2 = positive ? positive.accounts ? t("home.indicators.alreadyIn", { count: positive.accounts, state }) : t("home.indicators.nextStep", { state }) : "";
+    return { summary: summary2, visual: `<svg class="kvbar" viewBox="0 0 ${width} 52" preserveAspectRatio="xMidYMax meet" aria-hidden="true">${columns}</svg>` };
   }
   function portfolioChart(charts) {
     const total = portfolioTotal(charts), present = stateCounts(charts).filter((count2) => count2.accounts);
@@ -5006,10 +5176,10 @@
     return `<div class="${classes}"${action} data-kid="${definition.id}" data-comp="1">${icon2 ? `<span class="kico" aria-hidden="true">${icon2}</span>` : ""}${context.panel ? help : ""}${body2}${description ? `<em class="kdesc">${escapeHtml(description)}</em>` : ""}</div>`;
   }
   function liveBody(id, title, raw, context) {
-    const { summary, visual } = chartFor(id, context.kpis, context.panel, context.charts);
+    const { summary: summary2, visual } = chartFor(id, context.kpis, context.panel, context.charts);
     return `<div class="kvt">${escapeHtml(title)}</div>
       <div class="kvn">${figure(raw)}</div>
-      <div class="kvs">${summary}</div>${visual ? `<div class="kvz">${visual}</div>` : ""}`;
+      <div class="kvs">${summary2}</div>${visual ? `<div class="kvz">${visual}</div>` : ""}`;
   }
   function filterCard(setting, index, live) {
     const filter = setting.filtro ?? {};
@@ -5111,14 +5281,14 @@
   }
   async function loadHomeData() {
     const today = todayIso();
-    const [areas, pendingOps, stock, cycle2, calls, dayAppointments, tasks] = await Promise.all(requests(today));
+    const [areas, pendingOps, stock, cycle3, calls, dayAppointments, tasks] = await Promise.all(requests(today));
     if (!homeCache.panel()) homeCache.setPanel(await valueOf(legacyDb().rpc("panel_inicio")));
     return {
       today,
       areas: areas ?? {},
       pendingOps,
       stock: stock ?? [],
-      cycle: cycle2,
+      cycle: cycle3,
       calls,
       appointments: dayAppointments,
       tasks: tasks ?? [],
@@ -5283,9 +5453,9 @@
     const perDay = new Map(data.visitsPerDay.map((day) => [day.fecha, day.n]));
     const days = [...Array(14).keys()].map((i) => addDays(data.today, i - 13));
     const max = Math.max(1, ...days.map((day) => perDay.get(day) ?? 0));
-    const visits = term("visita", { number: "p", capital: "C" });
-    return `<div class="mbars" role="img" aria-label="${t("home.sales.chartLabel", { visits })}">${days.map((day) => `<i class="${day === data.today ? "h" : ""}" style="height:${Math.max(4, 100 * (perDay.get(day) ?? 0) / max)}%"></i>`).join("")}</div>
-      <div class="mleg">${t("home.sales.chartLegend", { visits })}</div>`;
+    const visits2 = term("visita", { number: "p", capital: "C" });
+    return `<div class="mbars" role="img" aria-label="${t("home.sales.chartLabel", { visits: visits2 })}">${days.map((day) => `<i class="${day === data.today ? "h" : ""}" style="height:${Math.max(4, 100 * (perDay.get(day) ?? 0) / max)}%"></i>`).join("")}</div>
+      <div class="mleg">${t("home.sales.chartLegend", { visits: visits2 })}</div>`;
   }
   function salesFigures(sales) {
     const inEuros = permissions.canSeeAmounts() && sales.importe !== null && sales.importe !== void 0;
@@ -5329,9 +5499,9 @@
     <div class="mmini"><div><span>${t("home.collections.overdue")}</span><b class="${collections.vencido > 0 ? "mdown" : ""}">${formatEuros(collections.vencido)}</b></div><div><span>${t("home.collections.invoicedThisMonth")}</span><b>${formatEuros(collections.facturado_mes)}</b></div></div></div>`;
   }
   function cycleTile(data) {
-    const summary = data.cycle?.resumen ?? [];
-    if (!summary.length) return "";
-    const done = summary.reduce((sum2, row2) => sum2 + row2.hechas, 0), target = summary.reduce((sum2, row2) => sum2 + row2.objetivo, 0);
+    const summary2 = data.cycle?.resumen ?? [];
+    if (!summary2.length) return "";
+    const done = summary2.reduce((sum2, row2) => sum2 + row2.hechas, 0), target = summary2.reduce((sum2, row2) => sum2 + row2.objetivo, 0);
     const percent = target ? Math.round(100 * done / target) : 0, circumference = 2 * Math.PI * 30;
     return `<div class="mt mtcic"><div class="mtt">${icon("target")} ${t("home.cycle.title", { visits: term("visita", { number: "p" }) })}</div>
       <div class="mfila"><svg class="mring" viewBox="0 0 70 70" aria-hidden="true"><circle class="f" cx="35" cy="35" r="30"/><circle class="v" cx="35" cy="35" r="30" style="stroke-dasharray:${circumference * percent / 100} ${circumference}"/></svg>
@@ -5835,13 +6005,13 @@
     refreshQuietly(item.id, false);
   }
   function bind5(body2, item) {
-    const notes = body2.querySelector("#vcnota"), save5 = body2.querySelector("#vcok");
-    if (notes && save5) {
+    const notes = body2.querySelector("#vcnota"), save6 = body2.querySelector("#vcok");
+    if (notes && save6) {
       notes.oninput = () => {
-        save5.disabled = notes.value.trim() === (item.nota ?? "").trim();
+        save6.disabled = notes.value.trim() === (item.nota ?? "").trim();
       };
-      save5.onclick = () => {
-        void saveNotes(item, notes, save5);
+      save6.onclick = () => {
+        void saveNotes(item, notes, save6);
       };
     }
     const on2 = (id, action) => {
@@ -6654,9 +6824,9 @@
         paintSerials(box, input);
       };
     });
-    const save5 = document.getElementById("cirusok");
-    if (save5) save5.onclick = () => {
-      void saveUsed(surgery, stock, box, save5);
+    const save6 = document.getElementById("cirusok");
+    if (save6) save6.onclick = () => {
+      void saveUsed(surgery, stock, box, save6);
     };
   }
 
@@ -6761,6 +6931,332 @@
     if (document.getElementById("cirusar")) paintUse(detail.cirugia, detail.stock ?? []);
   }
 
+  // src/app/screens/cycle/index.ts
+  var cycle_exports = {};
+  __export(cycle_exports, {
+    editCycle: () => editCycle,
+    listenToClassButtons: () => listenToClassButtons,
+    paintCardCycle: () => paintCardCycle,
+    paintClassify: () => paintClassify,
+    paintCoverage: () => paintCoverage,
+    paintCycle: () => paintCycle,
+    paintCycleTeam: () => paintCycleTeam
+  });
+
+  // src/app/screens/cycle/settings.ts
+  var MAX_VISITS = 31;
+  var DEFAULT_MONTHS = 3;
+  var DEFAULTS = { meses: DEFAULT_MONTHS, A: 3, B: 2, C: 1 };
+  var LENGTHS = [
+    [1, "cycle.editor.oneMonth"],
+    [2, "cycle.editor.twoMonths"],
+    [3, "cycle.editor.quarter"],
+    [4, "cycle.editor.fourMonths"],
+    [6, "cycle.editor.half"],
+    [12, "cycle.editor.year"]
+  ];
+  var visits = (value4) => Math.min(MAX_VISITS, Math.max(0, Math.floor(Number(value4) || 0)));
+  function editorHtml3(current) {
+    const months = LENGTHS.map(([value4, key]) => `<option value="${value4}" ${Number(current.meses) === value4 ? "selected" : ""}>${t(key)}</option>`).join("");
+    const goals = CLASSES.map((letter) => `<label>${classPill(letter)}<span>${t("cycle.editor.perCycle", words())}</span><input type="number" min="0" max="${MAX_VISITS}" step="1" data-cobj="${letter}" value="${Math.max(0, Number(current[letter]) || 0)}" aria-label="${t("cycle.editor.ofClass", { ...words(), class: letter })}"></label>`).join("");
+    return `<div class="fh"><div><h2>${t("cycle.editor.title", words())}</h2>
+      <div class="sm">${t("cycle.editor.subtitle", words())}</div></div>
+      <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
+    <label for="cicmeses">${t("cycle.editor.length")}</label><select id="cicmeses">${months}</select>
+    <div class="cicobj">${goals}</div>
+    <p class="sm">${t("cycle.editor.zeroHint", words())}</p>
+    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>${t("common.cancel")}</button><button class="btn" id="cicok">${t("common.save")}</button></div>`;
+  }
+  async function save5(body2, box) {
+    const value4 = { meses: Number(document.getElementById("cicmeses")?.value) || DEFAULT_MONTHS };
+    body2.querySelectorAll("[data-cobj]").forEach((input) => {
+      value4[input.dataset.cobj ?? ""] = visits(input.value);
+    });
+    const { data: result, error } = await legacyDb().rpc("guardar_ajuste", { p_clave: "ciclo_visitas", p_valor: value4 });
+    if (error || result?.ok === false) {
+      notices.toast(t("cycle.editor.couldNotSave"), true);
+      return;
+    }
+    cycleLegacy.setSetting("ciclo_visitas", value4);
+    box.close();
+    notices.toast(t("cycle.editor.saved"));
+    appLegacy.forgetCache();
+  }
+  async function editCycle() {
+    await cycleLegacy.loadSettings();
+    const current = { ...DEFAULTS, ...cycleLegacy.setting("ciclo_visitas") };
+    const body2 = document.getElementById("dbody"), box = document.getElementById("dlg");
+    if (!body2 || !box) return;
+    body2.innerHTML = editorHtml3(current);
+    if (!box.open) box.showModal();
+    const ok = document.getElementById("cicok");
+    if (ok) ok.onclick = () => {
+      void save5(body2, box);
+    };
+  }
+
+  // src/app/screens/cycle/current.ts
+  var EMPTY = { clase: "", cuentas: 0, al_dia: 0, hechas: 0, objetivo: 0 };
+  function classCard(letter, data) {
+    const summary2 = (data.resumen ?? []).find((item) => item.clase === letter) ?? EMPTY, percent = percentOf(summary2.hechas, summary2.objetivo);
+    const head = summary2.cuentas ? t("cycle.current.upToDate", { done: formatNumber(summary2.al_dia), total: formatNumber(summary2.cuentas) }) : t("cycle.current.noneIn", { class: letter });
+    return `<div class="card cicc">${classPill(letter)}<div class="cicct"><b>${head}</b>
+      <span class="sm">${t("cycle.current.every", { visits: visitsText(data.objetivo?.[letter] ?? 0), cycle: cycleName(data.meses) })}</span></div>
+      ${summary2.cuentas ? `${progressBar(percent, "div")}<span class="sm">${t("cycle.current.doneOf", { done: formatNumber(summary2.hechas), goal: visitsText(summary2.objetivo), percent })}</span>` : ""}</div>`;
+  }
+  function pendingRow2(item) {
+    const place = escapeHtml([item.especialidad, item.municipio].filter(Boolean).join(" · "));
+    const last = item.ultima_visita ? t("cycle.current.lastVisit", { ...words(), date: formatShortDate(item.ultima_visita) }) : t("cycle.current.noVisits", words());
+    return `<div class="item cicrow">${classPill(item.clase)}
+        <span class="tx"><button type="button" class="lnk" data-cfi="${item.id}"><b>${escapeHtml(item.nombre)}</b></button>
+          <span class="sm">${place}${last}</span></span>
+        <span class="cicfal"><b>${t("cycle.current.progress", { done: item.hechas, goal: item.objetivo })}</b><span class="sm">${item.faltan === 1 ? t("cycle.current.oneMissing") : t("cycle.current.missing", { count: item.faltan })}</span></span>
+        ${item.proxima_cita ? `<span class="pill p-per">${t("cycle.current.appointmentOn", { date: formatShortDate(item.proxima_cita) })}</span>` : `<button type="button" class="btn sec" data-ccita="${item.id}">${t("cycle.current.newAppointment")}</button>`}</div>`;
+  }
+  function headerHtml5(data, selector) {
+    const left = data.quedan_dias === 1 ? t("cycle.current.oneDayLeft") : t("cycle.current.daysLeft", { count: formatNumber(data.quedan_dias) });
+    return `<div class="ciccab"><div><b>${escapeHtml(rangeText(data))}</b>
+      <span class="sm">${left} · ${t("cycle.current.allCount", words())}</span></div>
+      <span class="cicacc">${selector}${cardSectionsLegacy.can("administrar") ? `<button type="button" class="btn sec" id="cicajustar">${t("cycle.current.adjust")}</button>` : ""}</span></div>`;
+  }
+  function unclassifiedHtml(count2) {
+    if (!count2) return "";
+    const text = count2 === 1 ? t("cycle.current.oneUnclassified", words()) : t("cycle.current.unclassified", { ...words(), count: formatNumber(count2) });
+    return `<div class="banda-aviso cicsin">${text}${t("cycle.current.unclassifiedTail")}
+      <button type="button" class="btn sec" id="cicirclas">${t("cycle.classify")}</button></div>`;
+  }
+  function missingHtml(data) {
+    const filter = cycleState.classFilter, pending = (data.pendientes ?? []).filter((item) => !filter || item.clase === filter), cycle3 = cycleName(data.meses);
+    const buttons = [["", t("cycle.current.all")], ...CLASSES.map((letter) => [letter, letter])].map(([value4 = "", label = ""]) => `<button type="button" data-cf="${value4}" class="${value4 === filter ? "on" : ""}" aria-pressed="${String(value4 === filter)}">${label}</button>`).join("");
+    const empty = filter ? t("cycle.current.noneMissingIn", { ...words(), class: filter }) : t("cycle.current.allUpToDate", { cycle: cycle3 });
+    return `<section class="card cicbloque"><div class="cicbcab"><h2>${t("cycle.current.missingTitle", { ...words(), cycle: cycle3 })}</h2>
+        <span class="segs" id="cicfil" role="group" aria-label="${t("cycle.classLabel")}">${buttons}</span></div>
+      ${pending.length ? `<div class="lista">${pending.map(pendingRow2).join("")}</div>` : `<div class="vacio vlinea">${empty}</div>`}</section>`;
+  }
+  function pageHtml(data, selector) {
+    const classified = sum((data.resumen ?? []).map((item) => item.cuentas));
+    return `<div class="cicpag">${headerHtml5(data, selector)}
+    ${unclassifiedHtml(data.sin_clase ?? 0)}
+    ${classified ? `<div class="cicres">${CLASSES.map((letter) => classCard(letter, data)).join("")}</div>
+    ${missingHtml(data)}` : `<div class="vacio">${t("cycle.current.nobodyClassified", words())}</div>`}</div>`;
+  }
+  function bindAccounts(box) {
+    box.querySelectorAll("[data-cfi]").forEach((button) => {
+      button.onclick = () => {
+        agendaActions.openAccount(button.dataset.cfi ?? "");
+      };
+    });
+    box.querySelectorAll("[data-ccita]").forEach((button) => {
+      button.onclick = () => {
+        agendaActions.newAppointment(button.dataset.ccita ?? "", null);
+      };
+    });
+  }
+  function bindClassify(elementId) {
+    const button = document.getElementById(elementId);
+    if (button) button.onclick = () => {
+      cycleState.classifyFilter = "sin";
+      goToTab("clasificar");
+    };
+  }
+  function bind8(box) {
+    bindOwner(paintCycle);
+    const adjust = document.getElementById("cicajustar");
+    if (adjust) adjust.onclick = () => {
+      void editCycle();
+    };
+    bindClassify("cicirclas");
+    box.querySelectorAll("#cicfil [data-cf]").forEach((button) => {
+      button.onclick = () => {
+        cycleState.classFilter = button.dataset.cf ?? "";
+        void paintCycle();
+      };
+    });
+    bindAccounts(box);
+  }
+  async function paintCycle() {
+    if (!document.getElementById("cfgcuerpo")) return;
+    const [{ data, error }, selector] = await Promise.all([legacyDb().rpc("ciclo_cuentas", { p_usuario: ownerParam() }), ownerSelector()]);
+    const box = document.getElementById("cfgcuerpo");
+    if (!box || currentScreen() !== "ciclo") return;
+    if (error || !data) {
+      box.innerHTML = `<div class="vacio">${t("cycle.current.couldNotLoad")}</div>`;
+      return;
+    }
+    box.innerHTML = pageHtml(data, selector);
+    bind8(box);
+  }
+
+  // src/app/screens/cycle/classify.ts
+  var SHOWN = 300;
+  var SEARCH_WAIT_MS = 350;
+  function rowHtml2(item) {
+    return `<div class="item cicrow" data-cfila="${item.id}">
+        <span class="tx"><button type="button" class="lnk" data-cfi="${item.id}"><b>${escapeHtml(item.nombre)}</b></button>
+          <span class="sm">${escapeHtml([item.especialidad, item.municipio, item.estado_comercial].filter(Boolean).join(" · "))}</span></span>
+        <span class="cicfal"><b>${formatNumber(item.actividades_12m)}</b><span class="sm">${t("cycle.classifyPage.in12Months")}</span></span>
+        ${classButtons(item.id, item.clase)}</div>`;
+  }
+  function listHtml(rows) {
+    if (!rows.length) return `<div class="vacio vlinea">${t(cycleState.classifyFilter === "sin" && !cycleState.query ? "cycle.classifyPage.allClassified" : "cycle.classifyPage.noneWithFilter")}</div>`;
+    return `<section class="card cicbloque"><div class="lista">${rows.map(rowHtml2).join("")}</div></section>${rows.length >= SHOWN ? `<p class="sm">${t("cycle.classifyPage.firstOnly")}</p>` : ""}`;
+  }
+  function pageHtml2(rows, selector) {
+    const filters = [["sin", t("cycle.classifyPage.unclassified")], ...CLASSES.map((letter) => [letter, letter]), ["todas", t("cycle.classifyPage.all")]].map(([value4 = "", label = ""]) => `<button type="button" data-cl="${value4}" class="${value4 === cycleState.classifyFilter ? "on" : ""}" aria-pressed="${String(value4 === cycleState.classifyFilter)}">${label}</button>`).join("");
+    return `<div class="cicpag"><div class="ciccab"><span class="segs" id="cicclf" role="group" aria-label="${t("cycle.classifyPage.show")}">${filters}</span>
+      <span class="cicacc"><input id="cicq" type="search" placeholder="${t("cycle.classifyPage.search", words())}" value="${escapeHtml(cycleState.query)}" aria-label="${t("cycle.classifyPage.searchLabel")}">${selector}</span></div>
+    <p class="sm">${t("cycle.classifyPage.hint", words())}</p>
+    ${listHtml(rows)}</div>`;
+  }
+  var searchTimer;
+  function bind9(box, wasSearching) {
+    box.querySelectorAll("#cicclf [data-cl]").forEach((button) => {
+      button.onclick = () => {
+        cycleState.classifyFilter = button.dataset.cl ?? "sin";
+        void paintClassify();
+      };
+    });
+    const search = document.getElementById("cicq");
+    if (search) {
+      search.oninput = () => {
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(() => {
+          cycleState.query = search.value.trim();
+          void paintClassify();
+        }, SEARCH_WAIT_MS);
+      };
+      if (wasSearching) {
+        search.focus();
+        search.setSelectionRange(search.value.length, search.value.length);
+      }
+    }
+    bindOwner(paintClassify);
+    bindAccounts(box);
+  }
+  async function paintClassify() {
+    if (!document.getElementById("cfgcuerpo")) return;
+    const [{ data, error }, selector] = await Promise.all([
+      legacyDb().rpc("cuentas_para_clasificar", { p_usuario: ownerParam(), p_filtro: cycleState.classifyFilter, p_q: cycleState.query || null }),
+      ownerSelector()
+    ]);
+    const box = document.getElementById("cfgcuerpo");
+    if (!box || currentScreen() !== "ciclo") return;
+    if (error) {
+      box.innerHTML = `<div class="vacio">${t("cycle.classifyPage.couldNotLoad")}</div>`;
+      return;
+    }
+    const search = document.getElementById("cicq"), wasSearching = Boolean(search) && document.activeElement === search;
+    box.innerHTML = pageHtml2(data ?? [], selector);
+    bind9(box, wasSearching);
+  }
+  async function classify(button, onCard) {
+    const [id = "", letter = ""] = (button.dataset.ccl ?? "").split("|"), group = button.closest(".cicsegs");
+    if (!group) return;
+    const chosen = button.classList.contains("on") ? null : letter, buttons = [...group.querySelectorAll("button")];
+    buttons.forEach((other) => {
+      other.disabled = true;
+    });
+    const { data: result, error } = await legacyDb().rpc("clasificar_cuentas", { p_ids: [id], p_clase: chosen });
+    buttons.forEach((other) => {
+      other.disabled = false;
+    });
+    if (error || !result || result.ok === false) {
+      notices.toast(t(result?.error === "permiso" ? "cycle.classifyPage.noPermission" : "cycle.classifyPage.couldNotSave"), true);
+      return;
+    }
+    buttons.forEach((other) => {
+      const on2 = other.dataset.ccl === `${id}|${String(chosen)}`;
+      other.classList.toggle("on", on2);
+      other.setAttribute("aria-pressed", String(on2));
+    });
+    appLegacy.forgetCache();
+    if (group.closest("#fciclo")) onCard(id);
+  }
+  function listenToClassButtons(onCard) {
+    document.addEventListener("click", (event) => {
+      const button = event.target?.closest("[data-ccl]");
+      if (!button || button.disabled) return;
+      void classify(button, onCard);
+    }, true);
+  }
+
+  // src/app/screens/cycle/coverage.ts
+  function classRow(item) {
+    const percent = percentOf(item.presentado, item.cuentas);
+    return `<div class="cobf">${classPill(item.clase)}${progressBar(percent)}<span class="cobn"><b>${t("cycle.current.progress", { done: formatNumber(item.presentado), goal: formatNumber(item.cuentas) })}</b> · ${percent}%</span></div>`;
+  }
+  var missingRow = (item) => `<div class="item cicrow">${classPill(item.clase)}<span class="tx"><button type="button" class="lnk" data-cfi="${item.id}"><b>${escapeHtml(item.nombre)}</b></button>
+              <span class="sm">${escapeHtml([item.especialidad, item.municipio].filter(Boolean).join(" · "))}</span></span><button type="button" class="btn sec" data-ccita="${item.id}">${t("cycle.current.newAppointment")}</button></div>`;
+  function missingHtml2(product, notHeard, cycle3) {
+    const missing = product.faltan ?? [];
+    if (!missing.length) return `<div class="banda-ok cobok">${t("cycle.coverage.allHeard", { cycle: cycle3 })}</div>`;
+    const count2 = notHeard > missing.length ? t("cycle.coverage.firstOf", { shown: missing.length, total: formatNumber(notHeard) }) : t("cycle.coverage.count", { count: formatNumber(missing.length) });
+    return `<details class="cobfal"><summary>${t("cycle.coverage.whoIsMissing")}${count2}</summary>
+            <div class="lista">${missing.map(missingRow).join("")}</div></details>`;
+  }
+  function productCard(product, cycle3) {
+    const classes = product.clases ?? [], accounts2 = sum(classes.map((item) => item.cuentas)), heard = sum(classes.map((item) => item.presentado));
+    return `<section class="card cobcard"><div class="cobcab"><h2>${escapeHtml(product.nombre)}</h2><span class="cobtot">${percentOf(heard, accounts2)}%</span></div>
+          ${classes.map(classRow).join("")}
+          ${missingHtml2(product, accounts2 - heard, cycle3)}</section>`;
+  }
+  function bodyHtml(data) {
+    const products = data.productos ?? [];
+    if (!products.length) return `<div class="vacio">${t("cycle.coverage.noProducts")}${cardSectionsLegacy.can("administrar") ? t("cycle.coverage.markIt", words()) : ""}</div>`;
+    if (!data.cuentas) return `<div class="vacio">${t("cycle.coverage.nobodyClassified", words())} <button type="button" class="btn sec" id="cobclas">${t("cycle.classify")}</button></div>`;
+    return `<div class="cobgrid">${products.map((product) => productCard(product, cycleName(data.meses))).join("")}</div>`;
+  }
+  async function paintCoverage() {
+    if (!document.getElementById("cfgcuerpo")) return;
+    const [{ data, error }, selector] = await Promise.all([legacyDb().rpc("ciclo_cobertura", { p_usuario: ownerParam() }), ownerSelector()]);
+    const box = document.getElementById("cfgcuerpo");
+    if (!box || currentScreen() !== "ciclo") return;
+    if (error || !data) {
+      box.innerHTML = `<div class="vacio">${t("cycle.coverage.couldNotLoad")}</div>`;
+      return;
+    }
+    box.innerHTML = `<div class="cicpag"><div class="ciccab"><div><b>${escapeHtml(rangeText(data))}</b>
+      <span class="sm">${t("cycle.coverage.subtitle", { ...words(), cycle: cycleName(data.meses) })}</span></div>
+      <span class="cicacc">${selector}</span></div>
+    ${bodyHtml(data)}</div>`;
+    bindOwner(paintCoverage);
+    bindClassify("cobclas");
+    bindAccounts(box);
+  }
+
+  // src/app/screens/cycle/team.ts
+  var ofText = (done, goal) => t("cycle.current.progress", { done: formatNumber(done), goal: formatNumber(goal) });
+  function rowHtml3(member) {
+    const classified = member.a + member.b + member.c, percent = member.objetivo ? percentOf(member.hechas, member.objetivo) : null;
+    const progress = percent === null ? "—" : `<span class="cicbarc">${progressBar(percent)}${ofText(member.hechas, member.objetivo)} · ${percent}%</span>`;
+    return `<tr><td><button type="button" class="lnk" data-cde="${member.id}"><b>${escapeHtml(member.nombre)}</b></button><span class="sm"> · ${escapeHtml(member.rol)}</span></td><td>${formatNumber(member.cartera)}</td><td>${formatNumber(member.a)}</td><td>${formatNumber(member.b)}</td><td>${formatNumber(member.c)}</td>
+          <td class="${member.sin_clase ? "cicaviso" : ""}">${formatNumber(member.sin_clase)}</td><td>${classified ? ofText(member.al_dia, classified) : "—"}</td>
+          <td>${progress}</td></tr>`;
+  }
+  function tableHtml2(members) {
+    if (!members.length) return `<div class="vacio">${t("cycle.team.nobody")}</div>`;
+    const head = [t("cycle.team.person"), t("cycle.team.portfolio"), "A", "B", "C", t("cycle.team.noClass"), t("cycle.team.upToDate"), t("cycle.team.cycleVisits", words())];
+    return `<div class="card cicbloque"><div class="dgrid-wrap"><table class="trtabla cictab"><thead><tr>${head.map((title) => `<th>${title}</th>`).join("")}</tr></thead>
+      <tbody>${members.map(rowHtml3).join("")}</tbody></table></div></div>
+      <p class="sm">${t("cycle.team.countHint", words())}</p>`;
+  }
+  async function paintCycleTeam() {
+    if (!document.getElementById("cfgcuerpo")) return;
+    const [{ data: members }, { data: ranges }] = await Promise.all([legacyDb().rpc("ciclo_equipo"), legacyDb().rpc("ciclo_rango")]);
+    const box = document.getElementById("cfgcuerpo");
+    if (!box || currentScreen() !== "ciclo") return;
+    const range2 = (ranges ?? [])[0];
+    const goals = range2 ? `<p class="sm">${escapeHtml(rangeText(range2))}${t("cycle.team.goals", { ...words(), a: visitsText(range2.obj_a), b: range2.obj_b, c: range2.obj_c })}</p>` : "";
+    box.innerHTML = `<div class="cicpag">${goals}
+    ${tableHtml2(members ?? [])}</div>`;
+    box.querySelectorAll("[data-cde]").forEach((button) => {
+      button.onclick = () => {
+        cycleState.owner = button.dataset.cde ?? "";
+        goToTab("ciclo");
+      };
+    });
+  }
+
   // src/app/screens/agenda/your-day/card-buttons.ts
   function swapWithNeighbour(item, action) {
     const all = legacyAgenda.dayAppointments(), open = all.filter((entry) => isOpen(entry.estado));
@@ -6834,11 +7330,15 @@
       agenda: agenda_exports,
       accounts: accounts_exports,
       events: events_exports,
-      surgeries: surgeries_exports
+      surgeries: surgeries_exports,
+      cycle: cycle_exports
     }
   };
   listenToSameCentre();
   listenToYourDay();
   listenToCards();
   listenToColumnResize(paintHeader);
+  listenToClassButtons((id) => {
+    void paintCardCycle(id);
+  });
 })();

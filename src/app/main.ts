@@ -9,6 +9,7 @@ import * as accounts from './screens/accounts';
 import * as agenda from './screens/agenda';
 import * as events from './screens/events';
 import * as surgeries from './screens/surgeries';
+import * as cycle from './screens/cycle';
 import { listenToSameCentre } from './screens/agenda/same-centre';
 import { listenToYourDay } from './screens/agenda/your-day';
 import { listenToCards } from './screens/agenda/your-day/card-buttons';
@@ -31,6 +32,7 @@ export interface DelcosCore {
     readonly accounts: typeof accounts;
     readonly events: typeof events;
     readonly surgeries: typeof surgeries;
+    readonly cycle: typeof cycle;
   };
 }
 
@@ -55,6 +57,7 @@ window.delcos = {
     accounts,
     events,
     surgeries,
+    cycle,
   },
 };
 
@@ -62,3 +65,4 @@ listenToSameCentre();
 listenToYourDay();
 listenToCards();
 listenToColumnResize(paintAccountsHeader);
+cycle.listenToClassButtons(id => { void cycle.paintCardCycle(id); });
