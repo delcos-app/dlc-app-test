@@ -1,623 +1,71 @@
-// pantallas/configuracion.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
-// Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
-
-async function cargarRoles() {
-  const [{ data, error }, { data: est, error: e2 }, voc] = await Promise.all([
-    db.from('roles').select('nombre,orden,color,plantilla,por_defecto,roles_capacidades(capacidad)').order('orden').order('nombre'),
-    db.rpc('catalogo_papel', { p_papel: 'estado_comercial' }),
-    db.from('ajustes').select('valor').eq('clave', 'terminos').maybeSingle()]);
-  // Vocabulario: si cambia respecto al guardado, se recarga una vez para que todos los textos lo usen
-  if (voc && !voc.error) {
-    const nuevo = JSON.stringify((voc.data && voc.data.valor) || {}), antes = JSON.stringify(TERMINOS || {});
-    if (nuevo !== antes) {
-      try { localStorage.setItem(TERMKEY, nuevo); } catch (e) {}
-      let ya = false; try { ya = sessionStorage.getItem('dlc-terminos-recarga') === nuevo; sessionStorage.setItem('dlc-terminos-recarga', nuevo); } catch (e) {}
-      if (!ya) { location.reload(); return false; }
-    }
-  }
-  if (!e2 && Array.isArray(est)) {
-    ESTADOS_DEF = est.map(x => ({ valor: x.valor, papel: x.papel || '' }));
-    try { localStorage.setItem(ESTKEY, JSON.stringify(ESTADOS_DEF)); } catch (e) {}
-  }
-  if (error || !data) return false;
-  ROLES_DEF = data.map(r => ({ nombre: r.nombre, orden: r.orden, color: r.color, plantilla: r.plantilla || {}, por_defecto: !!r.por_defecto,
-    capacidades: (r.roles_capacidades || []).map(x => x.capacidad) }));
-  try { localStorage.setItem(ROLKEY, JSON.stringify(ROLES_DEF)); } catch (e) {}
-  return !e2;
-}
-
-function pintarPlanBase() {
-  if (!PLAN) { $('rplan').innerHTML = ''; return; }
-  const total = PLAN.paradas.reduce((n, p) => n + p.medicos.length, 0);
-  const ultima = PLAN.paradas[PLAN.paradas.length - 1];
-  // Ruta completa: todas las paradas y la vuelta a la salida (o termina en la última parada si no hay salida con ubicación)
-  const conCasa = PLAN.salida.lat != null;
-  const rutaDest = conCasa ? [PLAN.salida.lat, PLAN.salida.lon] : ultima.xy;
-  const rutaParadas = conCasa ? PLAN.paradas.map(p => p.xy) : PLAN.paradas.slice(0, -1).map(p => p.xy);
-
-  $('rplan').innerHTML = `<div class="card">
-    <h2>${PLAN.fecha && PLAN.fecha !== hoyISO() ? 'Plan para el ' + fechaLarga(new Date(PLAN.fecha + 'T00:00:00')) : 'Plan de hoy'}<span class="n">${total} ${TT('medico', total === 1 ? 's' : 'p', '', 'l', 'l')}</span></h2>
-    <p class="sm">Salida de ${esc(PLAN.salida.nombre)} a las ${PLAN.inicio != null ? hm(PLAN.inicio) : PLANCFG().salida} · ${PLAN.paradas.length} ${PLAN.paradas.length === 1 ? 'parada' : 'paradas'} ·
-      vuelta sobre las ${hm(PLAN.fin)} · <button class="kcfg" id="planhora">⚙ Cambiar horario</button></p>
-    <div class="lista">${PLAN.paradas.map((p, i) => `<div class="item" style="cursor:default">
-      <span class="ic">${i + 1}</span>
-      <span class="tx"><b>${esc(p.centro)}</b>
-        <span class="sm">${hm(p.llegada)}–${hm(p.fin)} · ${esc([p.dir, p.municipio].filter(Boolean).join(', '))} · ${p.medicos.length} ${TT('medico', p.medicos.length === 1 ? 's' : 'p', '', 'l', 'l')}</span>
-        <span class="sm">${p.medicos.map(m => esc(m.nombre)).join(' · ')}</span></span>
-      <span class="acts" style="margin:0"><button class="btn sec" type="button" data-nav="${navAttr(p.xy)}">Ir</button></span>
-    </div>`).join('')}</div>
-    <div id="planmapa" style="height:0;margin:0 16px;border-radius:12px;overflow:hidden"></div>
-    <div class="acts" style="padding:12px 16px 16px">
-      <button class="btn sec" id="planver">Ver la ruta en el mapa</button>
-      <button class="btn" type="button" data-nav="${navAttr(rutaDest, rutaParadas)}">Abrir la ruta en el navegador</button>
-      <button class="btn sec" id="planag">Guardar en mi agenda</button>
-      ${!PLAN.fecha || PLAN.fecha === hoyISO() ? '<button class="btn" id="planempezar">▶ Empezar ruta</button>' : ''}
-      <button class="btn sec" id="plancerrar">Cerrar</button>
-    </div></div>`;
-
-  $('plancerrar').onclick = () => { PLAN = null; pintarPlan(); };
-  $('planver').onclick = e => { mapaDelPlan(); e.target.classList.add('hide'); };
-  if ($('planhora')) $('planhora').onclick = abrirHorarioPlan;
-  if ($('planempezar')) $('planempezar').onclick = () => empezarRuta();
-  $('planag').onclick = async ev => {
-    ev.target.disabled = true; ev.target.textContent = 'Guardando…';
-    let n = 0;
-    for (const p of PLAN.paradas) {
-      for (const m of p.medicos) {
-        await escribir('guardar_cita', { p: {
-          cuenta_id: m.id, fecha: PLAN.fecha || hoyISO(), hora: hm(p.llegada), centro_nombre: p.centro,
-          estado: 'Planificada', origen: 'Plan del día',
-          op_id: 'c-' + m.id + '-' + (PLAN.fecha || hoyISO())
-        }});
-        n++;
-      }
-    }
-    ev.target.disabled = false; ev.target.textContent = 'Guardar en mi agenda';
-    toast(`${n} citas guardadas en tu agenda`);
-    cargarInicio();
-  };
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/* v2.87.0 · Borrar un usuario por completo (administración). Pedidos, facturas, cobros y auditoría se conservan siempre. */
-
-// Editar usuario y asignar cartera funcionan aunque la lista de usuarios aún no esté cargada (por ejemplo, desde una notificación)
-
-function marcarCache(t) { CACHE_MOD[t] = { clave: ESTADO_MOD[t](), t: Date.now(), esc: ESCRITURAS }; }
-
-// Todo texto que diga «Directorio» (ayudas, manual, avisos…) usa el nombre que ha elegido la empresa
-function nombreEnTextos(raiz) {
-  const et = etiquetaContactos(); if (!raiz || et === 'Directorio') return;
-  const w = document.createTreeWalker(raiz, NodeFilter.SHOW_TEXT, { acceptNode: n => n.parentElement && !n.parentElement.closest('script,style,textarea,input,[data-notr]') && /directorio/i.test(n.nodeValue) ? 1 : 2 });
-  const ns = []; while (w.nextNode()) ns.push(w.currentNode);
-  ns.forEach(n => { n.nodeValue = n.nodeValue.replace(/\bDirectorio\b/g, et).replace(/\bdirectorio\b/g, et.toLowerCase()); });
-}
-
-
-
-
-
-
-
-
-
-// v2.135.0 · Menú lateral: «Configuración» (pie del menú) se marca como sección activa cuando se está en Configuración
-function menuMarcarPie() { const b = $('mlcfg'); if (b) b.classList.toggle('activo', TAB === 'config'); }
-
-
-
-// v2.138.0 · Pastilla «Pruebas» en el menú lateral: junto a la marca (desplegado) o como punto sobre el logo (plegado); sin menú
-// lateral vuelve a la cabecera, detrás del logo
-function colocarIndPruebas() {
-  const p = $('indpruebas'); if (!p) return;
-  const marca = document.body.classList.contains('menulat') && document.querySelector('nav.main .mlmarca');
-  const casa = marca || document.querySelector('.top .logo');
-  if (!casa) return;
-  if (marca) { if (p.parentNode !== marca) marca.appendChild(p); }
-  else if (p.previousElementSibling !== casa) casa.insertAdjacentElement('afterend', p);
-}
-
-
-
-function rpPlanDe(i) {
-  const p = RPROP.lista[i]; if (!p) return null;
-  PROPUESTAS = PROPUESTAS || {};
-  PROPUESTAS['prop' + (i + 1)] = p.sel;   // así «Tiempos de visita» puede recalcular el plan
-  return p;
-}
-
-
-
-
-
-
-
-
-
-
-
-// ---------- nombres del menú ----------
-function txTexto(b) {
-  const l = b.querySelector('.mllab, b, em, small, .lb'); if (l && !l.querySelector('svg')) return { get: () => l.textContent.trim(), set: v => { l.textContent = v; if (b.dataset.tip) b.dataset.tip = v; } };
-  const tn = [...b.childNodes].find(x => x.nodeType === 3 && x.nodeValue.trim());
-  return tn ? { get: () => tn.nodeValue.trim(), set: v => { tn.nodeValue = tn.nodeValue.replace(tn.nodeValue.trim(), v); if (b.dataset.tip) b.dataset.tip = v; } } : null;
-}
-
-
-
-
-
-/* ============================================================
-   v2.279.0 · Datos de acceso a mano, «Mi ficha» con lo necesario y ver la contraseña (peticiones de Eric, 12/10/2026; SQL 148).
-   - Al dar de alta a alguien se guardan su usuario y su contraseña temporal; en su ventana de Usuarios, «Datos de acceso» los vuelve a
-     enseñar para copiarlos. Cuando esa persona ya ha entrado, la contraseña ya no sirve: se borra y se ofrece enviarle el cambio.
-   - Mi ficha del profesional: arriba, lo necesario para quitar el aviso de «faltan datos» (teléfono, al menos un día con horario y
-     cómo prefiere las visitas), marcado según lo va rellenando; esos campos llevan «Necesario». Un centro sin nombre se puede escribir.
-   - Cualquier campo de contraseña (también el de entrar) tiene un botón para ver lo que se escribe.
-   ============================================================ */
-
-
-
-// Configuración → Correo y firma: «Textos de los correos»
-// Configuración → Correo y firma → «Plantillas de correo»
-
-
-// (R-12: plantillaCorreo se definía aquí otra vez; ahora está en su sitio, más arriba)
-
-// Elegir plantilla al enviar (solo si hay más de una para ese uso). Devuelve false si se cancela.
-
-// (R-12: pintarPlantillasCorreo se definía aquí otra vez; ahora está en su sitio, más arriba)
-
-
-
-
-
-
-
-
-// En la factura solo va el logo si la empresa ha subido el suyo
-async function logoData() { if (MARCA.logo && (AJUSTES.marca || {}).logo_factura !== false) { LOGO_DATA = MARCA.logo; LOGO_CIRC = true; return MARCA.logo; } return null; }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/* v2.69.0 · Permisos por capacidad. El código pregunta qué puede hacer una persona (puede('administrar')),
-   nunca cómo se llama su rol: los roles y sus capacidades son datos de cada cliente (tablas roles y roles_capacidades). */
-const ROLKEY = 'dlc-roles';
-
-let ROLES_DEF = [];
-
-const rolDef = r => ROLES_DEF.find(x => x.nombre === r) || null;
-
-const rolPuede = (r, c) => { const d = rolDef(r); return !!(d && (d.capacidades || []).includes(c)); };
-
-const rolesNombres = () => ROLES_DEF.map(x => x.nombre);
-
-const rolCon = c => (ROLES_DEF.find(x => (x.capacidades || []).includes(c)) || {}).nombre || '';
-
-const rolPorDefecto = () => (ROLES_DEF.find(x => x.por_defecto) || ROLES_DEF.find(x => !(x.capacidades || []).includes('administrar')) || {}).nombre || '';
-
-
-const marca = paso => console.info(`[App] ${paso} · ${Math.round(performance.now() - T0)} ms`);
-
+// pantallas/configuracion.js · Configuración está en src/app (pantallas en src/app/screens/settings, el núcleo de ajustes en
+// src/app/core/settings; v2.415.0–v2.428.0). Aquí solo queda el estado compartido que otras partes leen o cambian por su nombre y
+// los adaptadores de una línea. Normas: docs/normas_codigo.md.
+
+// ---------- Estado compartido (lo leen o lo cambian otras partes y las pruebas por su nombre) ----------
+const ROLKEY = window.delcos.settingsCore.ROLES_KEY;
+let ROLES_DEF = [];   // legado 001 la rellena con la copia del dispositivo; cargarRoles con la de la base
 let AJUSTES = {};
-
-const salidaUsuario = () => prefsActivas().salida || { nombre: `la ${TT('visita', 's', 'primer', 'l', 'l')}`, lat: null, lon: null, falta: true };
-
 let ABRIR_PLAN_SEMANA = false;
-
-
 let LOGO_DATA = null;
-
 let PANEL_ACTIVO = null;
-
-const CFG_DE_MODULO = { agenda: 'horario', rutas: 'horario', admin: 'usuarios', facturacion: 'fiscal', inicio: 'kpis', config: 'prefs', directorio: 'cat', ventas: 'cat', permisos: 'usuarios', medico: 'usuarios', roles: 'usuarios' };
-
-
-const plantillaRol = r => Object.assign({}, (rolDef(r) || {}).plantilla || {}, (AJUSTES.roles || {})[r] || {});
-
-const CFG_ADMIN = { usuarios: 'usuarios', comisiones: 'comis', accesos: 'accesos', auditoria: 'auditoria' };
-
 let NOTIF_N = 0;
-
-const LOGO_NEUTRO = 'logo-app.png';
-
 let CFG_SUB = null;
-
+let CFG_DETALLE = false;
+let CFU_RAF = 0;
+let TX_OBS = 0;
+const CAMPOS = { medico: [], cliente: [], producto: [], pedido: [] };
+const PUESTA_EN_MARCHA = 490;
+const CFG_DE_MODULO = { agenda: 'horario', rutas: 'horario', admin: 'usuarios', facturacion: 'fiscal', inicio: 'kpis', config: 'prefs', directorio: 'cat', ventas: 'cat', permisos: 'usuarios', medico: 'usuarios', roles: 'usuarios' };
+const CFG_ADMIN = { usuarios: 'usuarios', comisiones: 'comis', accesos: 'accesos', auditoria: 'auditoria' };
 // Nombres anteriores de cada apartado → dónde está ahora
 const CFG_ANTES = { prefs: ['perfil'], horario: ['rutas', 'horario'], kpis: ['inicio', 'kpis'], usuarios: ['equipo', 'usuarios'],
   roles: ['equipo', 'roles'], reglas: ['cartera', 'reglas'], frec: ['cartera', 'frec'], accesos: ['seguridad', 'accesos'], auditoria: ['seguridad', 'auditoria'],
   alm: ['stock', 'alm'], mues: ['stock', 'mues'], fiscal: ['fact', 'fiscal'], series: ['fact', 'series'], vf: ['fact', 'vf'] };
-
-// Registro de facturación: el detalle de cada evento en texto legible
-const NOMBRES_DETALLE = { importe: 'Importe', forma: 'Forma de pago', motivo: 'Motivo', para: 'Para', asunto: 'Asunto', clave: 'Ajuste', total: 'Total', serie: 'Serie', numero: 'Número' };
-
-/* ============================================================
-   v2.72.0 · Motor de campos personalizados (fase 2 de la auditoría)
-   Cada cliente define sus campos (tipo, obligatorio, dónde se ven) en
-   Configuración → Catálogos, y la plataforma genera los formularios,
-   las columnas y los filtros. Los valores se guardan con guardar_campos().
-   ============================================================ */
-const CAMPOS = { medico: [], cliente: [], producto: [], pedido: [] };
-
-// Campos de la pantalla: primero los marcados como «Filtro», después el resto (en su orden)
-const clasCampos = amb => [...(CAMPOS[amb] || [])].sort((a, b) => (b.en_filtro ? 1 : 0) - (a.en_filtro ? 1 : 0));
-
-const PUESTA_EN_MARCHA = 490;
-
-const precioPlan = p => p.presupuesto ? 'presupuesto a medida' : `${eurI(p.precio)} por usuario al mes, ${eurI(p.anual)} con pago anual`;
-
-// Usuarios contratados (A medida o sin dato: sin límite)
-const usuariosContratados = () => PLAN_ACTUAL.plan === 'medida' || PLAN_ACTUAL.usuarios == null ? Infinity : +PLAN_ACTUAL.usuarios;
-
-/* v2.123.0 · Historial de cambios y deshacer (administración). La base guarda cada cambio con su valor de antes; aquí se ve por
-   ficha y se deshace: un cambio, o todo lo que una persona cambió desde una fecha. Solo fichas, consultas, clientes, productos y
-   rutas (pedidos, facturas, usuarios y cartera tienen efectos en stock, facturación, comisiones o permisos). */
-const DESHACIBLES = ['cuentas', 'ubicaciones', 'contactos', 'productos', 'rutas'];
-
-const deshacible = a => DESHACIBLES.includes(a.entidad) && ['Edición', 'Baja'].includes(a.accion);
-
-
-/* v2.133.0 · Entorno de pruebas: «Traer los datos de producción». Junto a «Volver a los datos de partida» (y para quien puede
-   usarlo), pide a la función «refrescar-pruebas» de Supabase que lance el proceso de GitHub que copia los datos actuales de
-   producción (solo los lee) y los deja como nuevos datos de partida. La franja enseña en qué punto está y recarga al terminar. */
-const MOTIVO_REFRESCO = { permiso: 'Solo la administración puede traer los datos de producción', responsable: 'Solo la persona responsable del entorno de pruebas puede hacerlo',
-  en_marcha: 'Ya se están copiando los datos de producción', github: 'No se ha podido lanzar la copia en GitHub', no_es_pruebas: 'Esto solo funciona en el entorno de pruebas' };
-
-
-const NOTIF_AREAS = [
-  ['ventas', 'Ventas', ['reponer', 'caida_ventas', 'pedido_portal', 'venta_cartera', 'pauta', 'pedido_validado', 'pago_recibido', 'borrador_nuevo', 'cliente_nuevo']],
-  ['cartera', 'Cartera y agenda', ['citas_hoy', 'visita_sin_registrar', 'seguimientos_hoy', 'sin_visitar', 'cartera', 'cruce', 'duplicado', 'portal']],
-  ['cobros', 'Cobros y stock', ['pagos_pendientes', 'facturas_vencidas', 'stock_minimo', 'lotes_caducan', 'compra_recibida', 'rectificativa']],
-  ['equipo', 'Equipo', ['usuario_nuevo', 'esquema']]
-];
-
-// Los que se preparan al empezar el día: solo tienen «en el resumen»
-const NOTIF_DIARIOS = ['citas_hoy', 'seguimientos_hoy', 'pagos_pendientes', 'facturas_vencidas', 'lotes_caducan', 'sin_visitar', 'reponer', 'caida_ventas', 'visita_sin_registrar'];
-
-const notifArea = t => (NOTIF_AREAS.find(a => a[2].includes(t)) || ['otros'])[0];
-
-/* v2.167.0 · «Pedir presupuesto» dentro de delcos (petición de Eric: nada de abrir el correo ni llevar al cliente fuera). Un formulario con
-   la imagen de la plataforma: el contacto ya relleno, qué buscan (opciones que se marcan, sin cerrar nada: siempre hay «Cuéntanos con tus
-   palabras»), tamaño, cuándo y cómo prefieren que les contactemos. Se guarda (pedir_presupuesto, SQL 104), delcos recibe un aviso al
-   momento y la empresa ve en «Plan y suscripción» en qué punto está. Con A medida, el mismo formulario sirve para hablar del contrato.
-   En el panel de delcos, pestaña «Solicitudes» con su estado y una nota. */
-const PRESU_NECESITA = [
-  ['usuarios', 'Más de 50 usuarios'], ['migracion', 'Migrar nuestros datos'], ['conexion', 'Conectar con nuestro programa (ERP, CRM, contabilidad…)'],
-  ['portal', 'Portal para muchos profesionales o centros'], ['desarrollo', 'Algo hecho a nuestra medida'], ['formacion', 'Formación del equipo'],
-  ['soporte', 'Soporte prioritario'], ['otro', 'Otra cosa']];
-
-const PRESU_CUANDO = ['Lo antes posible', 'Este trimestre', 'Más adelante', 'Solo me estoy informando'];
-
-const PRESU_ESTADO = { 'Nueva': 'Recibida', 'En curso': 'En curso', 'Cerrada': 'Atendida' };
-
-
-const CFG_CLAVES = { datos: 'nombre teléfono idioma perfil contraseña sesión cerrar', notif: 'avisos campana silencio resumen',
-  'rutas.salida': 'salida llegada casa oficina navegar google maps waze', 'rutas.horario': 'tiempos minutos duración parada',
-  'inicio.kpis': 'indicadores kpi inicio', usuarios: 'personas equipo alta invitar cartera zona', roles: 'permisos capacidades',
-  comis: 'comisiones esquemas tramos', 'o.marca': 'logo nombre vocabulario términos palabras', 'o.correo': 'smtp firma remitente email correo',
-  'o.plan': 'suscripción pago tarjeta usuarios precio', 'o.copias': 'copia seguridad descargar exportar', 'o.fiscal': 'nif razón social dirección',
-  'o.series': 'numeración factura', 'o.vf': 'verifactu hacienda', 'o.pdf': 'factura diseño logo colores', cat: 'clasificadores listas valores especialidades motivos',
-  portal: 'portal material pedir' };
-
-// v2.340.0 (Eric): cada apartado es una sola entrada del índice; sus partes (Rutas: salida y tiempos…) van dentro, en pestañas
-
-
-
-let CFG_DETALLE = false;
-
-let CFU_RAF = 0;
-
-/* v2.216.0 · Tu cuenta y Empresa en filas de ajuste (segunda versión del rediseño de Configuración).
-   pulirCfg() se aplica al contenido de cada apartado mientras se pinta (MutationObserver de #cfgcuerpo), sin tocar cómo guarda cada uno:
-   - Las tarjetas que solo presentan el apartado desaparecen y su texto pasa a la cabecera; el título repetido de la primera tarjeta se oculta.
-   - Tiempos de visita y el aviso de Salida y llegada: filas de ajuste con el número compacto a la derecha.
-   - Marca y vocabulario: el vocabulario, en su propia tarjeta como tabla (singular, plural y género por fila), con el nombre del módulo.
-   - Correo y firma: arriba, el estado del correo y «Enviar un correo de prueba»; la vista previa de la firma acompaña al desplazarse.
-   - Copias de seguridad: el estado y «Descargar copia completa» en la misma fila. */
 const CFG_PULIR = ['datos', 'rutas.salida', 'rutas.horario', 'inicio.kpis', 'o.marca', 'o.correo', 'o.plan', 'o.copias'];
+// Listas con textos: son los mismos objetos que src/app/core/settings/constants.ts (legado 080 añade Concursos y Parque a las de avisos)
+const NOMBRES_DETALLE = window.delcos.settingsCore.DETAIL_NAMES;
+const MOTIVO_REFRESCO = window.delcos.settingsCore.REFRESH_REASONS;
+const NOTIF_AREAS = window.delcos.settingsCore.NOTIFICATION_AREAS;
+const NOTIF_DIARIOS = window.delcos.settingsCore.DAILY_NOTIFICATIONS;
+const PRESU_NECESITA = window.delcos.settingsCore.QUOTE_NEEDS;
+const PRESU_CUANDO = window.delcos.settingsCore.QUOTE_WHEN;
+const PRESU_ESTADO = window.delcos.settingsCore.QUOTE_STATES;
+const CFG_CLAVES = window.delcos.settingsCore.SEARCH_WORDS;
 
-const notifIco = t => (TIPOS_NOTIF.find(x => x[0] === t) || [])[1] || '🔔';
+const marca = paso => console.info(`[App] ${paso} · ${Math.round(performance.now() - T0)} ms`);
 
-/* v2.235.0 · Textos personalizados (Eric eligió la A de https://claude.ai/artifact/6uxwD5zLEbd3krk1QMeoPF; SQL 140).
-   - Configuración → Empresa → «Textos personalizados»: una lista con buscador y filtros con todo lo que cada empresa puede llamar a
-     su manera: vocabulario (ajuste terminos), nombres del menú (ajuste menu_nombres; el de las fichas es marca.etiqueta), estados
-     comerciales y resultados de visita (renombrar_texto: también en las fichas y en las visitas ya registradas), roles y campos.
-   - Los nombres del menú se aplican en el menú lateral, la barra del móvil, «Más» y el título de cada pantalla. */
-
-
-let TX_OBS = 0;
-
-
-
-
-
-/* ============================================================
-   v2.306.0 · Textos de los correos a los clientes (revisión de Eric con un correo real: al cliente le llegó «IBAN: (añade el
-   IBAN…)», la despedida repetía lo que ya dice la firma y el concepto no era su nombre). Cada empresa escribe sus textos en
-   Configuración → Correo y firma → «Textos de los correos», con huecos como [nombre] o [iban] que se rellenan al enviar.
-   Se guardan en el ajuste plantillas_correo. Sin IBAN no se envían los datos de pago. La despedida y los teléfonos van solo en la firma.
-   ============================================================ */
-
-
-/* ============================================================
-   v2.342.0 · Plantillas de correo y de PDF (Eric, 20/10/2026: «que el usuario vaya creando las que quiera, con el nombre que quiera»;
-   eligió que al enviar salga la de por defecto y se pueda cambiar).
-   - Correo: ajuste plantillas_correo.lista = [{ id, nombre, uso: pago|factura, asunto, texto, defecto }]. Sin lista, las dos de
-     siempre (y los textos guardados antes). Configuración → Correo y firma → «Plantillas de correo»: crear, editar, duplicar,
-     eliminar y elegir la de por defecto de cada uso. Al enviar los datos de pago o la factura, si hay más de una, se elige.
-   - PDF: ajuste factura_pdf_plantillas = { lista: [{ id, nombre, cfg }], defecto }. factura_pdf sigue siendo el de por defecto (lo usa
-     también la base, en la proforma del portal). En «Diseño del PDF», una barra para elegir la plantilla, crear, renombrar, eliminar
-     y hacerla la de por defecto. Al descargar o enviar una factura, si hay más de una, se elige.
-   ============================================================ */
-
-
-
-const cfgDePlantilla = id => { const p = listaPDF().lista.find(x => x.id === id); const c = (p && p.cfg) || {};
-  return Object.assign({}, PDF_DEF, c, { cols: Object.assign({}, PDF_DEF.cols, c.cols || {}) }); };
-
-
-
-/* pintarPlan: la parte base y, en orden, cada paso que se le añade (antes eran 6 capas separadas). */
-function pintarPlanBase2() {
-  pintarPlanBase();
-  planBotonesAgenda();
-  planHorasYFueraDePlan();
-  planMapaYDescartar();
-  planVisitadosRecientes();
-  planAvisoSinSalida();
-  planFichasYNotas();
-}
-
-function abrirHorarioPlanBase() {
-  const c = PLANCFG();
-  $('dbody').innerHTML = `
-    <div class="fh"><div><h2>Tiempos de ${TT('visita', 's', '', 'l', 'l')}</h2><div class="sm">Se guardan en tus preferencias. La hora de salida y la de vuelta se ponen en cada ruta.</div></div>
-      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-    <div class="g2">
-      <div><label for="hvis">Minutos por ${TT('medico', 's', '', 'l', 'l')}</label><input id="hvis" type="number" min="5" max="60" value="${c.visita}"></div>
-      <div><label for="hpar">Minutos fijos por parada</label><input id="hpar" type="number" min="0" max="40" value="${c.parada}"></div>
-    </div>
-    <div class="acts" style="justify-content:flex-end">
-      <button class="btn sec" data-cerrar>Cancelar</button>
-      <button class="btn" id="hok">Guardar</button></div>`;
-  $('hok').onclick = async ev => {
-    ev.target.disabled = true;
-    const plan = { visita: +$('hvis').value || 15, parada: $('hpar').value === '' ? 10 : +$('hpar').value };
-    const prefs = Object.assign({}, PERFIL.preferencias || {}, { plan });
-    const { data } = await db.rpc('guardar_preferencias', { p: prefs });
-    PERFIL.preferencias = data || prefs;
-    $('dlg').close(); toast('Horario guardado');
-    if (ULTIMO_PLAN) construirPlan(ULTIMO_PLAN.conXY, ULTIMO_PLAN.rutaId, null, ULTIMO_PLAN.opts);
-    else if (PLAN && PLAN.rutaId) {
-      if (typeof PLAN.rutaId === 'string' && PROPUESTAS && PROPUESTAS[PLAN.rutaId]) planDesdeLista(PROPUESTAS[PLAN.rutaId], PLAN.rutaId);
-      else planificar(PLAN.rutaId, $('rnueva') || document.createElement('button'));
-    }
-  };
-  $('dlg').showModal();
-}
-
-
-
-
-
-
-
-
-
-// v2.242.0: aquí iba envioCfg (nadie la usaba)
-async function cargarAjustesBase() {
-  const { data } = await db.rpc('ajustes_lista');
-  AJUSTES = data || {};
-}
-
-
-
-function arbolConfigBase() {
-  const admin = puede('administrar');
-  return [
-    ['Tu cuenta', [
-      { k: 'perfil', ic: 'user', t: 'Mi perfil', d: 'Tus datos, idioma y qué abrir al entrar', r: pintarPerfil },
-      { k: 'notif', ic: 'bell', t: 'Notificaciones', d: 'Qué avisos quieres recibir', r: pintarNotif },
-      { k: 'rutas', ic: 'route', t: 'Rutas', d: `Punto de salida y llegada, y tiempos de ${TT('visita', 's', '', 'l', 'l')}`, sub: [['salida', 'Salida y llegada', () => pintarPrefsParte('rutas')], ['horario', `Tiempos de ${TT('visita', 's', '', 'l', 'l')}`, () => panelDeVentana(abrirHorarioPlan)]] },
-      { k: 'inicio', ic: 'house', t: 'Inicio', d: 'Indicadores de Inicio', sub: [['kpis', 'Indicadores', () => panelDeVentana(abrirKpis)]] }]],
-    ['Equipo', admin ? [
-      { k: 'equipo', ic: 'users', t: 'Usuarios y roles', d: 'Personas, permisos y roles', sub: [['usuarios', 'Usuarios', pintarUsuarios2], ['roles', 'Roles y permisos', pintarRoles]] },
-      { k: 'cartera', ic: 'compass', t: `Cartera y ${TT('visita', 'p', '', 'l', 'l')}`, d: `Reglas de cartera y frecuencia de ${TT('visita', 's', '', 'l', 'l')}`, sub: [['reglas', 'Reglas de cartera', () => panelDeVentana(editorReglasCartera)], ['frec', `Frecuencia de ${TT('visita', 's', '', 'l', 'l')}`, () => panelDeVentana(editorFrecuencia)], ['ciclo', 'Ciclo A/B/C', () => panelDeVentana(editorCiclo)]] },
-      { k: 'comis', ic: 'euro', t: 'Comisiones', d: 'Esquemas y quién cobra con cada uno', mod: 'ventas', r: () => panelDeModulo('comisiones') },
-      { k: 'seguridad', ic: 'lock-keyhole', t: 'Seguridad y registro', d: 'Accesos y cambios registrados', sub: [['accesos', 'Accesos', () => panelDeModulo('accesos')], ['auditoria', 'Auditoría', () => panelDeModulo('auditoria')]] }] : []],
-    ['Datos', [
-      ...(puedeCatalogos() ? [{ k: 'cat', ic: 'tag', t: 'Clasificadores', d: 'Listas de valores: estados, motivos…', r: () => { $('cfgcuerpo').innerHTML = ''; pintarCatalogos(); } }] : []),
-      ...(admin || nivelDe2('P') >= 3 ? [{ k: 'stock', ic: 'warehouse', t: 'Stock y material', d: `Almacenes y material de ${TT('visita', 's', '', 'l', 'l')}`, mod: 'productos', sub: [['alm', 'Almacenes', pintarAlmacenes2], ['mues', `Material de ${TT('visita', 's', '', 'l', 'l')}`, pintarMaterial]] }] : [])]],
-    ['Facturación', admin ? [
-      { k: 'fact', ic: 'receipt', t: 'Facturación', d: 'Datos fiscales, series y VeriFactu', mod: 'facturacion', sub: [['fiscal', 'Datos fiscales', fac(pintarEmpresa)], ['series', 'Series', fac(pintarSeries)], ['vf', 'VeriFactu', fac(pintarVerifactu)], ['pdf', 'Diseño del PDF', () => disenoPDF()]] }] : []],
-    ['Empresa', admin ? [
-      { k: 'marca', ic: 'palette', t: 'Marca y logo', d: 'Nombre de la plataforma y logo', r: pintarMarca },
-      { k: 'correo', ic: 'mail', t: 'Correo y firma', d: 'Cuenta de envío y firma', r: pintarCorreo },
-      { k: 'copias', ic: 'save', t: 'Copias de seguridad', d: 'Descarga todos los datos', r: pintarCopias }] : []],
-    ['Plataforma', puede('gestionar_plataforma') ? [
-      { k: 'orgs', ic: 'building', t: 'Organizaciones', d: 'Empresas de la plataforma y alta de nuevas', r: pintarOrganizaciones }] : []]
-  ].filter(g => g[1].length);
-}
-
-function arbolConfigBase2() { return arbolConfigBase().filter(g => g[0] !== 'Empresa'); }
-
-// Se amplía el árbol con los apartados ocultos y se envuelve cada pintado para mostrar carga y errores
-function arbolConfigBase3() {
-  const g = arbolConfigBase2();
-  const envolver = f => async () => {
-    const c = $('cfgcuerpo'); c.innerHTML = '<div class="cfgcarga"><span class="giro"></span> Cargando…</div>';
-    // Si al cabo de 20 segundos sigue cargando, se avisa en lugar de dejarlo en blanco
-    setTimeout(() => { if (c.isConnected && c.querySelector(':scope > .cfgcarga')) mostrarError(new Error('El apartado no ha terminado de cargar. Revisa la conexión y vuelve a intentarlo.')); }, 20000);
-    const mostrarError = e => {
-      c.innerHTML = `<div class="card cfgpanel"><h2>No se ha podido cargar</h2><p class="sm">${esc(e && e.message ? e.message : String(e))}</p>
-        <div class="acts"><button class="btn sec" id="cfgreint">${svgIco(ICON_NOM['rotate-cw'])} Reintentar</button></div></div>`;
-      $('cfgreint').onclick = () => envolver(f)();
-    };
-    try { await f(); }
-    catch (e) { mostrarError(e); }
-  };
-  g.forEach(([, l]) => l.forEach(x => { if (x.r) x.r = envolver(x.r); if (x.sub) x.sub.forEach(s => { s[2] = envolver(s[2]); }); }));
-  // Apartado oculto «Empresa» (se abre desde el menú de usuario)
-  g.push(['__oculto', [{ k: '__empresa', ic: 'building', t: 'Empresa', d: '', sub: [['marca', 'Marca y logo', envolver(pintarMarca)], ['correo', 'Correo y firma', envolver(pintarCorreo)], ['copias', 'Copias de seguridad', envolver(pintarCopias)]] }]]);
-  return g;
-}
-
-
-function arbolConfigBase4() {
-  const g = arbolConfigBase3();
-  g.forEach(([, l]) => l.forEach(x => { if (x.k === 'seguridad' && x.sub && !x.sub.some(s => s[0] === 'errores')) x.sub.push(['errores', 'Errores y reportes', pintarErrores]); }));
-  return g;
-}
-
-// Configuración ya no repite Mi perfil ni Notificaciones: están en su propia página
-function arbolConfigBase5() { return arbolConfigBase4().map(([g, l]) => [g, l.filter(x => !['perfil', 'notif'].includes(x.k))]).filter(g => g[1].length); }
-
-
-
-// Configuración ya no repite Facturación (datos fiscales, series y VeriFactu): están en Facturación → Configuración.
-// Además, tenerlo en los dos sitios creaba dos contenedores con el mismo identificador.
-function arbolConfigBase6() { return arbolConfigBase5().map(([g, l]) => [g, l.filter(x => x.k !== 'fact')]).filter(g => g[1].length); }
-
-// Configuración → Datos → Importar datos (administración)
-function arbolConfigBase7() {
-  const g = arbolConfigBase6();
-  // v2.109.0: con el permiso «Importar datos» del rol (antes, solo administración)
-  if (!puede('importar_datos')) return g;
-  const datos = g.find(x => x[0] === 'Datos');
-  const item = { k: 'importar', ic: 'file-spreadsheet', t: 'Importar datos', d: `Clientes, productos, ${etiquetaContactos().toLowerCase()} y ventas desde Excel o CSV`,
-    sub: [['nueva', 'Nueva importación', pintarImportar], ['historial', 'Importaciones', pintarImportaciones]] };
-  if (datos) { if (!datos[1].some(x => x.k === 'importar')) datos[1].push(item); } else g.push(['Datos', [item]]);
-  return g;
-}
-
-// Configuración, sin lo que ahora está en Organización
-function arbolConfigBase8() {
-  return arbolConfigBase7().map(([g, l]) => [g, l.filter(x => !['fact', 'marca', 'correo', 'copias', 'orgs'].includes(x.k))]).filter(g => g[1].length);
-}
-
-function arbolConfigBase9() {
-  const g = arbolConfigBase8();
-  if (puede('administrar') && hayExtra('portal')) {
-    const it = { k: 'portal', ic: 'stethoscope', t: `Portal ${TT('medico', 's', 'del', 'l', 'l')}`, d: 'Material que pueden pedir', r: pintarCfgPortal };
-    const datos = g.find(x => x[0] === 'Datos');
-    if (datos) datos[1].push(it); else g.push(['Datos', [it]]);
-  }
-  return g;
-}
-
-// Configuración: Inicio primero; Usuarios y roles, y Seguridad y registro, ya no están aquí
-function arbolConfig() {
-  const g = arbolConfigBase9().map(([n, l]) => [n, l.filter(x => !['equipo', 'seguridad', 'orgs'].includes(x.k))]).filter(x => x[1].length);
-  for (const grupo of g) {
-    const i = grupo[1].findIndex(x => x.k === 'inicio');
-    if (i >= 0) { const [it] = grupo[1].splice(i, 1); g[0][1].unshift(it); break; }
-  }
-  return g;
-}
-
-
-// Filtros generados (listas y sí/no) para una zona de filtros; al cambiar, actualiza «estado» y llama a «alCambiar»
+// ---------- Adaptadores: src/app/core/settings (v2.428.0). Los usan otras pantallas, los puentes, legado y las pruebas ----------
+function cargarAjustes() { return window.delcos.settingsCore.loadSettings(); }
+function cargarCatalogos() { return window.delcos.settingsCore.loadCatalogs(); }
+function cargarRoles() { return window.delcos.settingsCore.loadRoles(); }
+function aplicarMarca() { return window.delcos.settingsCore.applyBrand(); }
+function logoData() { return window.delcos.settingsCore.invoiceLogo(); }
+function arbolConfig() { return window.delcos.settingsCore.settingsTree(); }
+function rolDef(r) { return window.delcos.settingsCore.roleDefinition(r); }
+function rolPuede(r, c) { return window.delcos.settingsCore.roleCan(r, c); }
+function rolesNombres() { return window.delcos.settingsCore.roleNames(); }
+function rolCon(c) { return window.delcos.settingsCore.roleWith(c); }
+function rolPorDefecto() { return window.delcos.settingsCore.defaultRole(); }
+function plantillaRol(r) { return window.delcos.settingsCore.roleTemplate(r); }
+function marcarCache(t) { return window.delcos.settingsCore.markModuleCache(t); }
+function nombreEnTextos(raiz) { return window.delcos.settingsCore.nameInTexts(raiz); }
+function menuMarcarPie() { return window.delcos.settingsCore.markMenuFooter(); }
+function colocarIndPruebas() { return window.delcos.settingsCore.placeTestBadge(); }
+function rpPlanDe(i) { return window.delcos.settingsCore.proposalPlan(i); }
+function txTexto(b) { return window.delcos.settingsCore.menuLabelText(b); }
+function salidaUsuario() { return window.delcos.settingsCore.userStart(); }
+function clasCampos(amb) { return window.delcos.settingsCore.sortedFields(amb); }
+function precioPlan(p) { return window.delcos.settingsCore.planPrice(p); }
+function usuariosContratados() { return window.delcos.settingsCore.contractedUsers(); }
+function deshacible(a) { return window.delcos.settingsCore.isUndoable(a); }
+function notifArea(t) { return window.delcos.settingsCore.notificationArea(t); }
+function notifIco(t) { return window.delcos.settingsCore.notificationIcon(t); }
+// La tarjeta del plan de ruta y su ventana de tiempos (legado 061 y pantallas/cuentas.js las envuelven)
+function pintarPlanBase2() { return window.delcos.settingsCore.paintPlanCard(); }
+function abrirHorarioPlanBase() { return window.delcos.settingsCore.openPlanTimesWindow(); }
+// Filtros generados de los campos propios: ahora los pinta el panel «Filtros y columnas» (se queda vacío)
 function camposFiltros() { return ''; }
-
-/* ---------- Cuentas: la sección va en su panel de filtros, con sus columnas ---------- */
-// Todos los campos pueden ser columna; de entrada se ven los que tienen «Columna en la tabla»
-
-
-
-async function cargarCatalogosBase() {
-  const claves = Object.keys(CAT);
-  const res = await Promise.all(claves.map(k => db.rpc('catalogo_papel', { p_papel: k })));
-  claves.forEach((k, i) => { CAT[k] = res[i].data || []; });
-  cargarCampos().catch(() => {});
-}
-
-function aplicarMarcaBase() {
-  const n = nombreApp();
-  document.title = n;
-  document.querySelectorAll('meta[name="apple-mobile-web-app-title"]').forEach(m => m.content = n);
-  const logo = MARCA.logo;
-  document.querySelectorAll('header .logo, .lbox img, #bootsplash img').forEach(i => { if (logo) i.src = logo; i.alt = n; });
-  const h = document.querySelector('.lbox h1'); if (h) h.textContent = n;
-  const g = document.querySelector('#girar span:last-child'); if (g) g.textContent = n + ' se usa en vertical.';
-}
-
-function aplicarMarca() {
-  aplicarMarcaBase();
-  if (!MARCA.logo) document.querySelectorAll('header .logo, .lbox img, #bootsplash img').forEach(i => { i.src = LOGO_NEUTRO; });
-}
-
-async function cargarAjustesBase2() { await cargarAjustesBase(); aplicarEtiqueta(); }
-
-// Plan y suscripción: tu plan (usuarios contratados, pago, prueba), los cuatro planes y la comparativa por módulos
-
-// Si la app ya estaba a la vista al cargar este bloque (arranque con el perfil guardado), el menú se ajusta igualmente
-async function cargarAjustes(...a) { const r = await cargarAjustesBase2(...a); if (PERFIL) menuOrganizacion(); return r; }
-
-
-// Comparativa de «Plan y suscripción»: la fila del espacio del profesional pasa a ser la del portal (Oportunidades va en PLAN_FILAS)
-
-// «Plan y suscripción»: los botones reales en lugar de correos
-
-// A medida (como la empresa principal): sin botones de contratar ni de cambiar en línea, salvo que ya pague con Stripe
-
-// «Plan y suscripción»: cambio previsto (con «Anular el cambio»), baja pedida y compromiso de A medida
-
-
-// «Plan y suscripción»: botones al formulario (en lugar de correos) y la última solicitud con su estado
-
-// «Plan y suscripción»: periodo de prueba de Stripe
-
-
-
-
-
-// Catálogos guardados en el móvil (resultado por defecto de la visita, «No estaba»…)
-async function cargarCatalogos(...a) {
-  const r = await cargarCatalogosBase.apply(this, a);
-  try {
-    const vacio = Object.values(CAT).every(v => !v || !v.length);
-    if (!vacio) localStorage.setItem('dlc-cat', JSON.stringify(CAT));
-    else { const g = JSON.parse(localStorage.getItem('dlc-cat') || 'null'); if (g) Object.keys(CAT).forEach(k => { if (g[k] && g[k].length) CAT[k] = g[k]; }); }
-  } catch (e) {}
-  return r;
-}
-
 
 // Preferencias, Clasificadores, Auditoría, Registro, campos personalizados y entorno de pruebas están en src/app/screens/settings
 // (v2.415.0). Estos nombres se quedan: las secciones de Configuración, Facturación, Pedidos, Productos, Clientes, la ficha, el Panel

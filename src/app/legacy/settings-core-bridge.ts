@@ -1,0 +1,78 @@
+/**
+ * Bridge of the company settings core (src/app/core/settings) and the route plan card to the legacy state they read and write:
+ * AJUSTES, ROLES_DEF, ESTADOS_DEF, CAT, CAMPOS, MARCA, LOGO_DATA, the module cache, the day proposals and the painters of each
+ * Configuración section. The state stays in legacy because many screens and the tests read it by its bare name (v2.428.0).
+ */
+
+/** A role as the database defines it (roles and roles_capacidades). */
+export interface RoleDefinition { nombre: string; orden?: number; color?: string | null; plantilla?: Record<string, unknown>; por_defecto?: boolean; capacidades?: string[] }
+
+interface ModuleCacheEntry { clave: unknown; t: number; esc: number }
+interface DayProposals { lista: { sel: unknown }[] }
+
+export const settingsCoreLegacy = {
+  // Settings, roles, words and states
+  settings: (): Record<string, unknown> => AJUSTES,
+  setSettings: (value: Record<string, unknown>): void => { AJUSTES = value; },
+  roles: (): readonly RoleDefinition[] => ROLES_DEF as readonly RoleDefinition[],
+  setRoles: (list: RoleDefinition[]): void => { ROLES_DEF = list; },
+  terms: (): Record<string, unknown> | null => TERMINOS,
+  setCommercialStates: (list: { valor: string; papel: string }[]): void => { ESTADOS_DEF = list; },
+  catalogs: (): Record<string, unknown[]> => CAT as unknown as Record<string, unknown[]>,
+  customFields: (): Record<string, CustomField[] | undefined> => CAMPOS,
+  loadCustomFields: (): Promise<void> => cargarCampos(),
+  // Session, permissions and plan
+  hasProfile: (): boolean => Boolean(PERFIL),
+  can: (capability: string): boolean => puede(capability),
+  canEditCatalogs: (): boolean => puedeCatalogos(),
+  hasExtra: (extra: string): boolean => hayExtra(extra),
+  currentPlan: (): { plan?: unknown; usuarios?: unknown } => PLAN_ACTUAL,
+  roundEuros: (value: number): string => eurI(value),
+  // Brand and labels
+  appName: (): string => nombreApp(),
+  brand: (): { logo: string | null } => MARCA,
+  setInvoiceLogo: (logo: string): void => { LOGO_DATA = logo; LOGO_CIRC = true; },
+  applyLabel: (): void => { aplicarEtiqueta(); },
+  organisationMenu: (): void => { menuOrganizacion(); },
+  contactsLabel: (): string => etiquetaContactos(),
+  notificationTypes: (): readonly (readonly string[])[] => TIPOS_NOTIF,
+  // Module cache, preferences and day proposals
+  moduleCache: (): Record<string, ModuleCacheEntry | undefined> => CACHE_MOD as Record<string, ModuleCacheEntry | undefined>,
+  moduleState: (screen: string): unknown => ESTADO_MOD[screen]?.(),
+  writes: (): number => ESCRITURAS,
+  activePreferences: (): { salida?: { nombre: string; lat: number | null; lon: number | null; falta?: boolean } } =>
+    prefsActivas() as { salida?: { nombre: string; lat: number | null; lon: number | null; falta?: boolean } },
+  dayProposals: (): DayProposals | null => RPROP as DayProposals | null,
+  rememberProposal: (key: string, selection: unknown): void => { PROPUESTAS ??= {}; PROPUESTAS[key] = selection; },
+};
+
+/** The painter of each Configuración entry (the legacy names, looked up when the entry is opened). */
+export const treePainters = {
+  window: (painter: () => unknown): unknown => panelDeVentana(painter),
+  module: (name: string): unknown => panelDeModulo(name),
+  preferencesPart: (part: string): unknown => pintarPrefsParte(part),
+  indicators: (): unknown => abrirKpis(),
+  planTimes: (): unknown => { abrirHorarioPlan(); return undefined; },
+  portfolioRules: (): unknown => editorReglasCartera(),
+  visitFrequency: (): unknown => editorFrecuencia(),
+  cycle: (): unknown => editorCiclo(),
+  classifiers: (): unknown => pintarCatalogos(),
+  stores: (): unknown => pintarAlmacenes2(),
+  visitMaterial: (): unknown => pintarMaterial(),
+  brand: (): unknown => pintarMarca(),
+  email: (): unknown => pintarCorreo(),
+  backups: (): unknown => pintarCopias(),
+  newImport: (): unknown => pintarImportar(),
+  imports: (): unknown => pintarImportaciones(),
+  portalSettings: (): unknown => pintarCfgPortal(),
+};
+
+/** What the route plan card needs from legacy: the write queue, Inicio and saving the preferences. */
+export const planCardLegacy = {
+  write: (name: string, payload: Record<string, unknown>): Promise<unknown> => escribir(name, payload),
+  reloadHome: (): void => { void cargarInicio(); },
+  savePreferences: async (preferences: Record<string, unknown>): Promise<Record<string, unknown> | null> => {
+    const { data } = await db.rpc<Record<string, unknown> | null>('guardar_preferencias', { p: preferences });
+    return data ?? null;
+  },
+};

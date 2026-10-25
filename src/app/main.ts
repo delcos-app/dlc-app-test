@@ -16,6 +16,7 @@ import * as layers from './core/layers';
 import * as leftovers from './core/leftovers';
 import * as legacyB from './core/legacy-b';
 import * as legacyA from './core/legacy-a';
+import * as settingsCore from './core/settings';
 import * as content from './content';
 import * as settingsShell from './screens/settings/shell';
 import * as embeddedWindow from './components/embedded-window';
@@ -80,6 +81,8 @@ export interface DelcosCore {
   readonly leftovers: typeof leftovers;
   /** What legado 000–024 did (v2.424.0): each legado file calls it at its place in the load order. */
   readonly legacyA: typeof legacyA;
+  /** The company settings core and the route plan card (src/app/core/settings, v2.428.0), called by pantallas/configuracion.js. */
+  readonly settingsCore: typeof settingsCore;
   /** Content catalogs (help, manual, indicators, notifications, plans), built once in their final state (v2.427.0). */
   readonly content: typeof content;
   /** Shared components (src/app/components), called by the legacy adapters in src/componentes. */
@@ -142,6 +145,7 @@ window.delcos = {
   layers,
   leftovers,
   legacyA,
+  settingsCore,
   content,
   components: { ...components, embeddedWindow, list: listComponents, filters: filterComponents, filtersPanel, listBar },
   legacyB,
