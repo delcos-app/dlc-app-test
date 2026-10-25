@@ -219,10 +219,7 @@ export const yourDayLegacy = {
   canRecordOn: (isoDate: string): boolean => puedeRegistrarEnDia(isoDate),
   originText: (item: object): string => textoOrigenCita(item),
   orderByDistance: (list: readonly object[]): { list: object[]; left: number } => { const ordered = ordenarPorCercania(list); return { list: ordered, left: ordenarPorCercania.fuera ?? 0 }; },
-  saveOrder: (list: readonly object[]): Promise<boolean> => guardarOrden(list),
-  repaintSmoothly: (): void => { void repintarDiaSuave(); },
   editTask: (task: DayTask | null | undefined, isoDate?: string | null): void => { editarTarea(task, isoDate); },
-  moveTask: (id: string, direction: number): void => { void moverTarea(id, direction); },
   prepareRouteStops: (isoDate: string): void => { try { prepararParadas(isoDate); } catch { /* the route buttons are optional */ } },
   markTraffic: (): void => { tdMarcaTrafico(); },
   queuedVisits: (): ReturnType<typeof colaLeer> => colaLeer(),
@@ -246,13 +243,28 @@ export const appointmentLegacy = {
   navigateTo: (point: [number, number] | null): void => { void navegarA(point); },
   recordVisit: (accountId: string, isoDate: string): void => { VISITA_FECHA = isoDate; void abrirVisita(accountId); },
   openAccountFromCentre: (accountId: string, centre: string | null | undefined): void => { FICHA_CENTRO = centre ?? null; void abrirFicha(accountId); },
-  /** Repaints the day quietly after a change (and the figures unless figures is false). */
-  refreshQuietly: (id?: string | null, figures = true): void => { agRefrescoQuieto(id, { cifras: figures }); },
   newDateAfterAbsent: (item: object): Promise<void> => nuevaFechaTrasNoEstaba(item),
   dayLabel: (isoDate: string): string => diaCita(isoDate),
-  repaintWith: (id: string, data: unknown): Promise<void> => repintarDiaSuave(id, data),
-  lastDayData: (): AgendaAppointment[] | null => (TD_ULTIMO && TD_ULTIMO.fecha === AG_FECHA ? (TD_ULTIMO as unknown as { data: AgendaAppointment[] }).data : null),
+  lastDayData: (): AgendaAppointment[] | null => (TD_ULTIMO && TD_ULTIMO.fecha === AG_FECHA ? TD_ULTIMO.data ?? null : null),
   isJoinedDayView: (): boolean => agUnida(),
   /** Opens the sheet through its global name, so «‹ Volver» (legado 126) records it. */
   openSheet: (item: object): void => { void (window as unknown as { verCita: (value: object) => unknown }).verCita(item); },
 };
+
+/** The loaded agenda data kept by legacy: the read cache, the last painted day and the data preset for the next paint. */
+export const agendaCache = {
+  /** Forgets the cached agenda reads, so the next paint asks the database. */
+  forget: (): void => { for (const key of [...RC.keys()]) if (key.startsWith('agenda_')) { RC.delete(key); RC_VUELO.delete(key); } },
+  /** The next «Tu día» paint of `isoDate` uses this data (no network), and it becomes the last painted day. */
+  preset: (isoDate: string, data: AgendaAppointment[]): void => { TD_PRESET = { fecha: isoDate, data }; TD_ULTIMO = { fecha: isoDate, data }; },
+  lastPainted: (isoDate: string): AgendaAppointment[] | null => (TD_ULTIMO?.fecha === isoDate ? TD_ULTIMO.data ?? null : null),
+  setLastPainted: (isoDate: string, data: AgendaAppointment[]): void => { TD_ULTIMO = { fecha: isoDate, data }; },
+  /** Every day read alone (agenda_rango of one day), as it arrived. */
+  dayData: (isoDate: string): AgendaAppointment[] | undefined => AG_DIAS_DATOS[isoDate],
+  /** What is saved from now on is already shown: closing a dialog will not refresh again. */
+  markDialogSeen: (): void => { DLG_EPOCA = RC_EPOCA; },
+  dayTasks: (isoDate: string): (DayTask & { orden?: number })[] | null => (TAREAS_DIA?.f === isoDate ? TAREAS_DIA.l : null),
+  setDayTasks: (isoDate: string, list: (DayTask & { orden?: number })[] | null): void => { TAREAS_DIA = list ? { f: isoDate, l: list } : null; },
+};
+
+export const routeBar = { paint: (): void => { void pintarRutaBarra(); } };

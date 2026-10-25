@@ -3,14 +3,15 @@
  * delete, postpone, «no estaba», a new date, plan it again. Migrated from the legacy accionCitaBase / accionCitaBase2 /
  * accionCita / cambiarHoraCita (v2.398.0).
  */
-import { agendaSources, appointmentLegacy, currentScreen, legacyDb, notices, yourDayLegacy } from '../../legacy/bridge';
+import { agendaSources, appointmentLegacy, currentScreen, legacyDb, notices } from '../../legacy/bridge';
 import { t } from '../../i18n';
 import { formatShortDate } from '../../services/date-format';
+import type { AppointmentAction } from './appointment-options';
 import { isOpen, pointOf, STATES } from './appointment-state';
+import { refreshQuietly, repaintSmoothly, saveOrder } from './your-day/reorder';
 
-export type AppointmentAction = 'ficha' | 'llegar' | 'hora' | 'confirmar' | 'desconfirmar' | 'descartar' | 'borrar' | 'aplazar' | 'noestaba' | 'nueva' | 'rehacer';
 
-const refresh = (item: SheetAppointment): void => { appointmentLegacy.refreshQuietly(item.id); };
+const refresh = (item: SheetAppointment): void => { refreshQuietly(item.id); };
 
 async function setState(action: 'confirmar' | 'desconfirmar' | 'descartar', item: SheetAppointment): Promise<void> {
   const state = action === 'confirmar' ? STATES.confirmed : action === 'desconfirmar' ? STATES.planned : STATES.discarded;
@@ -108,13 +109,13 @@ export async function changeTime(id: string, current: string): Promise<void> {
   if (error) { notices.toast(t('agenda.actions.couldNotTime', { error: (error as { message?: string }).message ?? '' }), true); return; }
   notices.toast(t('agenda.actions.timeUpdated'));
   const day = appointmentLegacy.lastDayData();
-  if (currentScreen() !== 'agenda' || !appointmentLegacy.isJoinedDayView() || !day?.some(item => item.id === id)) { appointmentLegacy.refreshQuietly(id, false); return; }
+  if (currentScreen() !== 'agenda' || !appointmentLegacy.isJoinedDayView() || !day?.some(item => item.id === id)) { refreshQuietly(id, false); return; }
   const owner = agendaSources.ownerId(), data = day.map(item => (item.id === id ? { ...item, hora: time || null } : item));
   const mine = (item: AgendaAppointment): boolean => (item as { usuario_id?: string }).usuario_id === owner;
   const open = data.filter(item => mine(item) && isOpen(item.estado)), order = orderByTime(open, id, time);
   const changed = order.some((item, index) => item.id !== open[index]?.id);
   const next = changed ? [...data.filter(item => mine(item) && !isOpen(item.estado)), ...order, ...data.filter(item => !mine(item))] : data;
-  await appointmentLegacy.repaintWith(id, next);
-  if (changed && !(await yourDayLegacy.saveOrder(order))) appointmentLegacy.refreshQuietly(id);
+  await repaintSmoothly(id, next);
+  if (changed && !(await saveOrder(order))) refreshQuietly(id);
 }
 

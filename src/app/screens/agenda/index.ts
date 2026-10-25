@@ -16,5 +16,7 @@ export { paintOpenWeek } from './open-week';
 export { markQueuedVisits, paintYourDay } from './your-day';
 export { applyTaskFolding } from './your-day/tasks';
 export { changeTime, runAction } from './appointment-actions';
-export { hasMenu, openMenu } from './appointment-menu';
+export { openMenu } from './appointment-menu';
+export { hasMenu } from './appointment-options';
 export { showAppointment } from './appointment-sheet';
+export { refreshQuietly, repaintSmoothly, saveOrder } from './your-day/reorder';

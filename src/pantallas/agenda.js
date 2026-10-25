@@ -26,7 +26,7 @@ async function colocarPorHora(fecha, uid, cuentaId, h) {
   let i = resto.findIndex(c => hh(c) && hh(c) > h);
   if (i < 0) { i = 0; resto.forEach((c, k) => { if (hh(c) && hh(c) <= h) i = k + 1; }); }
   resto.splice(i, 0, yo);
-  if (resto.some((c, k) => c !== ab[k])) { await guardarOrden(resto); if (typeof RC !== 'undefined' && RC.delete) RC.delete('agenda-' + fecha); }
+  if (resto.some((c, k) => c !== ab[k])) { await window.delcos.screens.agenda.saveOrder(resto); if (typeof RC !== 'undefined' && RC.delete) RC.delete('agenda-' + fecha); }
 }
 
 async function reprogramarCitas(citas, titulo, texto) {
@@ -170,46 +170,12 @@ async function tareasDelDia(f) {
 
 function agCambiosEnVentana() { return RC_EPOCA !== DLG_EPOCA; }
 
-function agOlvidarAgenda() { for (const k of [...RC.keys()]) if (k.startsWith('agenda_')) { RC.delete(k); RC_VUELO.delete(k); } }
 
 // Lo que antes era «cargar la agenda entera» tras un cambio: en la vista del día, solo lo que cambia
-function agRefrescoQuieto(id, o = {}) {
-  if (TAB !== 'agenda' || !agUnida() || !$('agcuerpo')) { cargarAgenda(); cargarInicio(); pintarRutaBarra(); return; }
-  DLG_EPOCA = RC_EPOCA;                                       // lo guardado ya se refleja aquí: cerrar la ventana no vuelve a refrescar
-  if (id) AGQ_ID = id;
-  clearTimeout(AGQ_T);
-  AGQ_T = setTimeout(async () => {
-    const i = AGQ_ID; AGQ_ID = null;
-    await repintarDiaSuave(i);
-    if (o.cifras !== false) window.delcos.screens.agenda.refreshAfterChange();
-    pintarRutaBarra();
-  }, 40);
-}
 
 /* v2.190.0 · Tareas en el orden de cada uno (petición de Eric): flechas ↑ ↓ en cada tarea (con más de una) que la suben o la bajan al momento,
    deslizándose a su sitio como las citas, y guardan el orden por detrás (ordenar_tareas, SQL 117; tareasDelDia ordena por orden, hora y alta).
    Sin hora, la tarea ya no enseña el puntito «·» junto a la casilla. */
-async function moverTarea(id, dir) {
-  const l = TAREAS_DIA && TAREAS_DIA.f === AG_FECHA ? TAREAS_DIA.l : null; if (!l) return;
-  const i = l.findIndex(t => t.id === id), j = i + dir; if (i < 0 || j < 0 || j >= l.length) return;
-  const nuevo = l.slice(); [nuevo[i], nuevo[j]] = [nuevo[j], nuevo[i]];
-  nuevo.forEach((t, k) => { t.orden = k + 1; });
-  TAREAS_DIA = { f: AG_FECHA, l: nuevo };
-  const antes = new Map();
-  document.querySelectorAll('#tdtareas .tdtarea').forEach(d => antes.set(d.dataset.tarea, d.getBoundingClientRect().top));
-  await repintarDiaSuave(null, TD_ULTIMO && TD_ULTIMO.fecha === AG_FECHA ? TD_ULTIMO.data : undefined);
-  const quieto = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
-  document.querySelectorAll('#tdtareas .tdtarea').forEach(d => {
-    if (d.dataset.tarea === id) { d.classList.remove('tdmovida'); void d.offsetWidth; d.classList.add('tdmovida'); setTimeout(() => d.classList.remove('tdmovida'), 1300); }
-    const y0 = antes.get(d.dataset.tarea); if (quieto || y0 == null || !d.animate) return;
-    const dy = y0 - d.getBoundingClientRect().top;
-    if (Math.abs(dy) > 1) d.animate([{ transform: `translateY(${dy}px)` }, { transform: 'none' }], { duration: 320, easing: 'cubic-bezier(.2,.7,.2,1)' });
-  });
-  const b = document.querySelector(`#tdtareas [data-tamov="${dir}|${id}"]:not([disabled])`) || document.querySelector(`#tdtareas [data-tamov$="|${id}"]:not([disabled])`);
-  if (b) b.focus({ preventScroll: true });
-  const { data: r, error } = await db.rpc('ordenar_tareas', { p_ids: nuevo.map(t => t.id) });
-  if (error || (r && r.ok === false)) { toast('No se ha podido guardar el orden', true); TAREAS_DIA = null; agRefrescoQuieto(null, { cifras: false }); }
-}
 
 /* v2.213.0 · Citas aplazadas: adónde fueron y de dónde vienen (petición de Eric; SQL 129).
    - La cita que queda «Aplazada» dice adónde se movió (siguiendo la cadena si se volvió a aplazar) y cómo está allí si ya se cerró.
@@ -267,18 +233,7 @@ async function rnPasarAgenda(item, btn) {
 
 
 // Las citas que cambian de sitio se deslizan y la tocada se resalta (antes se animaban las filas ocultas)
-function tdPosiciones() { const m = new Map(); document.querySelectorAll('#agcuerpo .tdu[data-tdu]').forEach(t => m.set(t.dataset.tdu, t.getBoundingClientRect().top)); return m; }
 
-function tdAnimar(antes, id, dur = 300) {
-  const quieto = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
-  document.querySelectorAll('#agcuerpo .tdu[data-tdu]').forEach(t => {
-    const k = t.dataset.tdu;
-    if (id && String(k) === String(id)) { t.classList.remove('tdmovida'); void t.offsetWidth; t.classList.add('tdmovida'); setTimeout(() => t.classList.remove('tdmovida'), 1300); }
-    const y0 = antes.get(k); if (quieto || y0 == null || !t.animate) return;
-    const dy = y0 - t.getBoundingClientRect().top;
-    if (Math.abs(dy) > 1) t.animate([{ transform: `translateY(${dy}px)` }, { transform: 'none' }], { duration: dur, easing: 'cubic-bezier(.2,.7,.2,1)' });
-  });
-}
 
 // ---- Pastillas: las cifras de agenda_metricas
 // ---- La Agenda: vista del día (con la semana o el mes abiertos si se piden) o Equipo
@@ -320,7 +275,7 @@ async function tdTrafico(mudo) {
   const ruta = tdRutaDia(TD_CITAS, AG_FECHA); if (!ruta) return;
   const b = $('tdtrafico'); if (b) { b.disabled = true; b.textContent = 'Calculando…'; }
   const res = await rmRuta(ruta.puntos, ruta.salida);
-  if (tdPonerReal(ruta, res)) { if (agN()) repintarDiaSuave(); }
+  if (tdPonerReal(ruta, res)) { if (agN()) window.delcos.screens.agenda.repaintSmoothly(); }
   else {
     if (!mudo) toast((RM_MOTIVO[res && res.motivo] || RM_MOTIVO.servicio) + ': las horas siguen siendo aproximadas', true);
     const b2 = $('tdtrafico'); if (b2) { b2.disabled = false; b2.textContent = 'Calcular con tráfico'; }
@@ -347,11 +302,6 @@ function tdMarcaTrafico() {
    ============================================================ */
 
 
-async function guardarOrden(citas) {
-  const { data: r, error } = await db.rpc('ordenar_citas', { p_ids: citas.map(c => c.id) });
-  if (error || (r && r.ok === false)) { toast('No se ha podido guardar el orden', true); return false; }
-  return true;
-}
 
 async function nuevaFechaTrasNoEstaba(c) {
   const prop = proximoDiaConsulta(c.dias, c.fecha);
@@ -597,19 +547,6 @@ async function empezarJornada(...a) {
 
 
 
-async function moverCitaLocalBase(orden, id, acc) {
-  const u = TD_ULTIMO && TD_ULTIMO.fecha === AG_FECHA ? TD_ULTIMO.data : null;
-  if (!u) { if (await guardarOrden(orden)) cargarAgenda(); return; }
-  const ids = new Set(orden.map(c => c.id));
-  TD_PRESET = { fecha: AG_FECHA, data: [...orden, ...u.filter(c => !ids.has(c.id))] };
-  TD_ULTIMO = { fecha: AG_FECHA, data: TD_PRESET.data };
-  const y = window.scrollY;
-  await pintarTuDia();
-  window.scrollTo({ top: y });
-  const b = document.querySelector(`#agcuerpo .tdu [data-td="${acc}|${id}"]:not([disabled])`) || document.querySelector(`#agcuerpo .tdu [data-td$="|${id}"]`);
-  if (b) b.focus({ preventScroll: true });
-  if (!(await guardarOrden(orden))) cargarAgenda();
-}
 
 
 
@@ -618,19 +555,7 @@ async function moverCitaLocalBase(orden, id, acc) {
 
 
 
-async function moverCitaLocalBase2(orden, id, acc) {
-  const antes = tdPosiciones();
-  const r = await moverCitaLocalBase.call(this, orden, id, acc);
-  tdAnimar(antes, id, 260);
-  const b = document.querySelector(`#agcuerpo .tdu [data-td="${acc}|${id}"]:not([disabled])`) || document.querySelector(`#agcuerpo .tdu [data-td$="|${id}"]`);
-  if (b) b.focus({ preventScroll: true });
-  return r;
-}
 
-async function moverCitaLocal(...a) {
-  if ((!TD_ULTIMO || TD_ULTIMO.fecha !== AG_FECHA) && AG_DIAS_DATOS[AG_FECHA]) TD_ULTIMO = { fecha: AG_FECHA, data: AG_DIAS_DATOS[AG_FECHA] };
-  return moverCitaLocalBase2.apply(this, a);
-}
 
 // «Ver la semana» aparece de una vez: se pinta escondida y se enseña ya con sus días (antes salía vacía y se llenaba)
 
@@ -705,3 +630,7 @@ function agVerDia(f) { return window.delcos.screens.agenda.showDay(f); }
 // La ficha de la cita está en src/app/screens/agenda/appointment-sheet.ts (v2.398.0). El nombre global se queda: «‹ Volver»
 // (legado 126) envuelve las ventanas por su nombre, y lo llaman Rutas y las pruebas.
 function verCita(c) { return window.delcos.screens.agenda.showAppointment(c); }
+
+// El refresco tras un cambio está en src/app/screens/agenda/your-day/reorder.ts (v2.399.0); el nombre se queda porque
+// lo llaman cinco archivos antiguos (navegación, avisos, ventanas…).
+function agRefrescoQuieto(id, o = {}) { window.delcos.screens.agenda.refreshQuietly(id, o.cifras !== false); }

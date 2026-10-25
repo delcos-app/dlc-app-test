@@ -10,8 +10,9 @@ import { formatMinutes, todayIso } from '../../services/dates';
 import { capitalise, formatLongDate } from '../../services/date-format';
 import { escapeHtml } from '../../services/format';
 import { isPresent } from '../../services/values';
-import { runAction, type AppointmentAction } from './appointment-actions';
-import { hasMenu } from './appointment-menu';
+import { runAction } from './appointment-actions';
+import { hasMenu, type AppointmentAction } from './appointment-options';
+import { refreshQuietly } from './your-day/reorder';
 import { canPlanAgain, isDone, isOpen, pointOf, statePill, STATES } from './appointment-state';
 
 const DAY_MINUTES = 24 * 60;
@@ -87,7 +88,7 @@ async function saveNotes(item: SheetAppointment, notes: HTMLTextAreaElement, but
   const value = notes.value.trim();
   const { error } = await legacyDb().from('agenda').update({ nota: value || null }).eq('id', item.id);
   if (error) { button.disabled = false; notices.toast(t('agenda.sheet.couldNotSave', { error: (error as { message?: string }).message ?? '' }), true); return; }
-  item.nota = value; close(); notices.toast(t('agenda.sheet.notesSaved')); appointmentLegacy.refreshQuietly(item.id, false);
+  item.nota = value; close(); notices.toast(t('agenda.sheet.notesSaved')); refreshQuietly(item.id, false);
 }
 
 function bind(body: HTMLElement, item: SheetAppointment): void {

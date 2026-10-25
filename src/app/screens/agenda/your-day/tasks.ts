@@ -37,9 +37,6 @@ function bind(block: HTMLElement, list: readonly DayTask[]): void {
       yourDayLegacy.editTask(list.find(task => task.id === row.dataset.tarea));
     };
   });
-  block.querySelectorAll<HTMLElement>('[data-tamov]').forEach(button => {
-    button.onclick = (event): void => { event.stopPropagation(); const [direction = '0', id = ''] = (button.dataset.tamov ?? '').split('|'); yourDayLegacy.moveTask(id, Number(direction)); };
-  });
 }
 
 /** Paints the tasks above the appointments (or above the «no cabe» banner). */

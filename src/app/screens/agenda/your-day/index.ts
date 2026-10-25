@@ -5,7 +5,7 @@
  * tdMarcarPendientes / tdPlegarTareas / tdCompacto and the listeners of legado 091 and 125 (v2.397.0).
  * The day estimate and its stop information (estimarDia, TD_INFO) and the traffic stay in legacy: they are the route domain.
  */
-import { agendaActions, agendaSources, agendaSuggestions, cachedRpc, commercialStates, legacyAgenda, legacyAgendaParts, notices, term, yourDayLegacy } from '../../../legacy/bridge';
+import { agendaActions, agendaSources, agendaSuggestions, cachedRpc, commercialStates, legacyAgenda, legacyAgendaParts, term, yourDayLegacy } from '../../../legacy/bridge';
 import { t } from '../../../i18n';
 import { formatDuration, todayIso } from '../../../services/dates';
 import { formatShortDate } from '../../../services/date-format';
@@ -54,19 +54,10 @@ function on(id: string, action: (event: MouseEvent) => void): void {
   const button = document.getElementById(id); if (button) button.onclick = action;
 }
 
-async function orderByDistance(mine: readonly DayAppointmentFull[]): Promise<void> {
-  const { list, left } = yourDayLegacy.orderByDistance(mine);
-  if (!await yourDayLegacy.saveOrder(list)) return;
-  notices.toast(left ? t('agenda.yourDay.orderedWithLeft', { count: left }) : t('agenda.yourDay.ordered'));
-  yourDayLegacy.repaintSmoothly();
-}
-
 function bindHeader(data: DayData, open: readonly DayAppointmentFull[]): void {
   on('tdempezar', () => { yourDayLegacy.startWorkingDay(); });
   on('tdterminar', () => { yourDayLegacy.endWorkingDay(); });
   on('tdrepro', () => { agendaActions.reschedule(open as unknown as PendingAppointment[], t('agenda.yourDay.pendingOf', { date: formatShortDate(data.day) }), t('agenda.yourDay.notVisitedThatDay')); });
-  on('tdordenar', () => { void orderByDistance(data.mine); });
-  on('tdnocord', () => { document.getElementById('tdordenar')?.click(); });
   on('tdtarea', () => { yourDayLegacy.editTask(null, legacyAgenda.selectedDate()); });
   on('tddiamas', event => {
     event.stopPropagation();

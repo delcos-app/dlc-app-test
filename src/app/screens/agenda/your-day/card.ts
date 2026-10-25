@@ -4,7 +4,7 @@ import { t } from '../../../i18n';
 import { formatMinutes, fromIsoDate, todayIso } from '../../../services/dates';
 import { escapeHtml, formatNumber } from '../../../services/format';
 import { isPresent, range } from '../../../services/values';
-import { hasMenu } from '../appointment-menu';
+import { hasMenu } from '../appointment-options';
 import { isAbsent, isDone, isOpen, pointOf, statePill } from '../appointment-state';
 
 const DAY_MS = 864e5, NEXT_GRACE_MINUTES = 15;

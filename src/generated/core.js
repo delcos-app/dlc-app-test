@@ -560,6 +560,7 @@
       ordered: "Citas ordenadas por cercanía",
       orderedWithLeft: "Ordenadas · {count} no caben en su horario o en el tuyo y quedan al final",
       queued: "Registrada en el móvil · pendiente de enviar",
+      couldNotSaveOrder: "No se ha podido guardar el orden",
       whyWarning: "Por qué sale este aviso",
       understood: "Entendido"
     },
@@ -933,9 +934,12 @@
     refreshMetrics: () => refreshMetrics,
     refreshOpenMonth: () => refreshOpenMonth,
     refreshOpenTray: () => refreshOpenTray,
+    refreshQuietly: () => refreshQuietly,
     reloadMetrics: () => reloadMetrics,
     renderMonth: () => renderMonth,
+    repaintSmoothly: () => repaintSmoothly,
     runAction: () => runAction,
+    saveOrder: () => saveOrder,
     shareWeek: () => shareWeek,
     showAppointment: () => showAppointment,
     showDay: () => showDay,
@@ -1173,15 +1177,8 @@
       const ordered = ordenarPorCercania(list);
       return { list: ordered, left: ordenarPorCercania.fuera ?? 0 };
     },
-    saveOrder: (list) => guardarOrden(list),
-    repaintSmoothly: () => {
-      void repintarDiaSuave();
-    },
     editTask: (task, isoDate) => {
       editarTarea(task, isoDate);
-    },
-    moveTask: (id, direction) => {
-      void moverTarea(id, direction);
     },
     prepareRouteStops: (isoDate) => {
       try {
@@ -1219,20 +1216,46 @@
       FICHA_CENTRO = centre ?? null;
       void abrirFicha(accountId);
     },
-    /** Repaints the day quietly after a change (and the figures unless figures is false). */
-    refreshQuietly: (id, figures = true) => {
-      agRefrescoQuieto(id, { cifras: figures });
-    },
     newDateAfterAbsent: (item) => nuevaFechaTrasNoEstaba(item),
     dayLabel: (isoDate) => diaCita(isoDate),
-    repaintWith: (id, data) => repintarDiaSuave(id, data),
-    lastDayData: () => TD_ULTIMO && TD_ULTIMO.fecha === AG_FECHA ? TD_ULTIMO.data : null,
+    lastDayData: () => TD_ULTIMO && TD_ULTIMO.fecha === AG_FECHA ? TD_ULTIMO.data ?? null : null,
     isJoinedDayView: () => agUnida(),
     /** Opens the sheet through its global name, so «‹ Volver» (legado 126) records it. */
     openSheet: (item) => {
       void window.verCita(item);
     }
   };
+  var agendaCache = {
+    /** Forgets the cached agenda reads, so the next paint asks the database. */
+    forget: () => {
+      for (const key of [...RC.keys()]) if (key.startsWith("agenda_")) {
+        RC.delete(key);
+        RC_VUELO.delete(key);
+      }
+    },
+    /** The next «Tu día» paint of `isoDate` uses this data (no network), and it becomes the last painted day. */
+    preset: (isoDate, data) => {
+      TD_PRESET = { fecha: isoDate, data };
+      TD_ULTIMO = { fecha: isoDate, data };
+    },
+    lastPainted: (isoDate) => TD_ULTIMO?.fecha === isoDate ? TD_ULTIMO.data ?? null : null,
+    setLastPainted: (isoDate, data) => {
+      TD_ULTIMO = { fecha: isoDate, data };
+    },
+    /** Every day read alone (agenda_rango of one day), as it arrived. */
+    dayData: (isoDate) => AG_DIAS_DATOS[isoDate],
+    /** What is saved from now on is already shown: closing a dialog will not refresh again. */
+    markDialogSeen: () => {
+      DLG_EPOCA = RC_EPOCA;
+    },
+    dayTasks: (isoDate) => TAREAS_DIA?.f === isoDate ? TAREAS_DIA.l : null,
+    setDayTasks: (isoDate, list) => {
+      TAREAS_DIA = list ? { f: isoDate, l: list } : null;
+    }
+  };
+  var routeBar = { paint: () => {
+    void pintarRutaBarra();
+  } };
 
   // src/app/services/dates.ts
   function toIsoDate(date) {
@@ -2484,140 +2507,7 @@
   var STATES = { planned: "Planificada", confirmed: "Confirmada", discarded: "Descartada", postponed: "Aplazada" };
   var canPlanAgain = (item, today) => (item.estado === STATES.postponed || item.estado === STATES.discarded) && item.fecha >= today;
 
-  // src/app/screens/agenda/appointment-actions.ts
-  var refresh = (item) => {
-    appointmentLegacy.refreshQuietly(item.id);
-  };
-  async function setState(action, item) {
-    const state = action === "confirmar" ? STATES.confirmed : action === "desconfirmar" ? STATES.planned : STATES.discarded;
-    const result = await appointmentLegacy.write("estado_cita", { p_id: item.id, p_estado: state });
-    if (result?.error) {
-      notices.toast(t("agenda.actions.couldNotChange"), true);
-      return;
-    }
-    notices.toast(t(state === STATES.confirmed ? "agenda.actions.confirmed" : state === STATES.discarded ? "agenda.actions.discarded" : "agenda.actions.unconfirmed"));
-    refresh(item);
-  }
-  async function remove(item) {
-    if (!await notices.confirm(t("agenda.actions.deleteQuestion"), { titulo: t("agenda.actions.deleteTitle"), ok: t("agenda.actions.delete"), peligro: true })) return;
-    const { data: result } = await legacyDb().rpc("borrar_cita", { p_id: item.id });
-    if (result?.ok === false) {
-      notices.toast(t(result.error === "pasada" ? "agenda.actions.onlyFuture" : "agenda.actions.couldNotDelete"), true);
-      return;
-    }
-    notices.toast(t("agenda.actions.deleted"));
-    refresh(item);
-  }
-  function postponedText(result, day) {
-    if (result?.ya) return t("agenda.actions.alreadyThatDay");
-    if (result?.mismo_dia) return t("agenda.actions.sameDay");
-    return t(result?.reabierta ? "agenda.actions.backToOwn" : "agenda.actions.postponedTo", { date: formatShortDate(day) });
-  }
-  async function postpone(item) {
-    const day = await notices.askDate(t("agenda.actions.whichDay"), appointmentLegacy.nextAttendanceDay(item.dias, item.fecha), { titulo: t("agenda.actions.postponeTitle"), ok: t("agenda.actions.postpone") });
-    if (!day) return;
-    const { data: result, error } = await legacyDb().rpc("aplazar_cita", { p_id: item.id, p_fecha: day, p_hora: null, p_origen: STATES.postponed });
-    if (error || result?.ok === false) {
-      notices.toast(t("agenda.actions.couldNotPostpone"), true);
-      return;
-    }
-    notices.toast(postponedText(result, day));
-    refresh(item);
-  }
-  async function absent(item) {
-    const negatives = appointmentLegacy.negativeResults();
-    const [first] = negatives;
-    if (!first) {
-      notices.toast(t("agenda.actions.missingNegative"), true);
-      return;
-    }
-    let result = first.valor;
-    if (negatives.length > 1) {
-      const choice = await notices.choose(t("agenda.actions.whatHappened"), item.nombre ?? "", [{ k: "no", t: t("agenda.actions.cancel"), cls: "sec" }, ...negatives.map((negative, index) => ({ k: `n${index}`, t: negative.valor, cls: "sec" }))]);
-      if (!choice) return;
-      result = negatives[Number(choice.slice(1))]?.valor ?? result;
-    }
-    const { error } = await appointmentLegacy.writeRpc("registrar_actividad", { p: { cuenta_id: item.cuenta_id, fecha: item.fecha, resultados: [result], op_id: `v-${item.cuenta_id}-${Date.now()}` } });
-    if (error) {
-      notices.toast(t("agenda.actions.couldNotSave", { error: error.message ?? "" }), true);
-      return;
-    }
-    notices.toast(t("agenda.actions.noted", { result }));
-    refresh(item);
-    await appointmentLegacy.newDateAfterAbsent(item);
-  }
-  async function planAgain(item) {
-    const { data: result, error } = await legacyDb().rpc("reabrir_cita", { p_id: item.id });
-    if (error || !result || result.ok === false) {
-      notices.toast(t(result?.error === "pasada" ? "agenda.actions.reopenOnlyFuture" : "agenda.actions.couldNotReopen"), true);
-      return;
-    }
-    notices.toast(result.quitada ? t("agenda.actions.reopenedRemoving", { date: formatShortDate(result.quitada) }) : t("agenda.actions.reopened"));
-    refresh(item);
-  }
-  var ACTIONS = {
-    ficha: (item) => {
-      appointmentLegacy.openAccountFromCentre(item.cuenta_id, item.centro_nombre);
-    },
-    llegar: (item) => {
-      appointmentLegacy.navigateTo(pointOf(item));
-    },
-    hora: (item) => changeTime(item.id, item.hora ?? ""),
-    confirmar: (item) => setState("confirmar", item),
-    desconfirmar: (item) => setState("desconfirmar", item),
-    descartar: (item) => setState("descartar", item),
-    borrar: remove,
-    aplazar: postpone,
-    noestaba: absent,
-    nueva: (item) => appointmentLegacy.newDateAfterAbsent(item),
-    rehacer: planAgain
-  };
-  async function runAction(action, item) {
-    await ACTIONS[action](item);
-  }
-  var timeOf2 = (item) => item.hora ? String(item.hora).slice(0, 5) : null;
-  function orderByTime(open, id, time) {
-    const moved = open.find((item) => item.id === id);
-    if (!moved || !time) return open;
-    const rest = open.filter((item) => item.id !== id);
-    let index = rest.findIndex((item) => {
-      const other = timeOf2(item);
-      return other !== null && other > time;
-    });
-    if (index < 0) {
-      index = 0;
-      rest.forEach((item, position) => {
-        const other = timeOf2(item);
-        if (other !== null && other <= time) index = position + 1;
-      });
-    }
-    rest.splice(index, 0, moved);
-    return rest;
-  }
-  async function changeTime(id, current) {
-    const time = await notices.askTime(t("agenda.actions.timeTitle"), current, t("agenda.actions.save"));
-    if (time === null) return;
-    const { error } = await legacyDb().from("agenda").update({ hora: time || null }).eq("id", id);
-    if (error) {
-      notices.toast(t("agenda.actions.couldNotTime", { error: error.message ?? "" }), true);
-      return;
-    }
-    notices.toast(t("agenda.actions.timeUpdated"));
-    const day = appointmentLegacy.lastDayData();
-    if (currentScreen() !== "agenda" || !appointmentLegacy.isJoinedDayView() || !day?.some((item) => item.id === id)) {
-      appointmentLegacy.refreshQuietly(id, false);
-      return;
-    }
-    const owner = agendaSources.ownerId(), data = day.map((item) => item.id === id ? { ...item, hora: time || null } : item);
-    const mine = (item) => item.usuario_id === owner;
-    const open = data.filter((item) => mine(item) && isOpen(item.estado)), order = orderByTime(open, id, time);
-    const changed = order.some((item, index) => item.id !== open[index]?.id);
-    const next = changed ? [...data.filter((item) => mine(item) && !isOpen(item.estado)), ...order, ...data.filter((item) => !mine(item))] : data;
-    await appointmentLegacy.repaintWith(id, next);
-    if (changed && !await yourDayLegacy.saveOrder(order)) appointmentLegacy.refreshQuietly(id);
-  }
-
-  // src/app/screens/agenda/appointment-menu.ts
+  // src/app/screens/agenda/appointment-options.ts
   var option = (action, title, detail = "") => ({ action, title: t(title), detail });
   function menuOptions(item) {
     const today = todayIso();
@@ -2636,31 +2526,6 @@
     ].filter((entry) => entry !== null);
   }
   var hasMenu = (item) => menuOptions(item).length > 0;
-  function openMenu(button, item) {
-    document.querySelectorAll(".tdmenu").forEach((menu2) => {
-      menu2.remove();
-    });
-    const options = menuOptions(item);
-    if (!options.length) {
-      notices.toast(t("agenda.menu.alreadyClosed"));
-      return;
-    }
-    const menu = document.createElement("div");
-    menu.className = "tdmenu";
-    menu.__t = Date.now();
-    const danger = (action) => action === "descartar" || action === "borrar";
-    menu.innerHTML = options.map((entry) => `<button data-tdop="${entry.action}" class="${danger(entry.action) ? "peligro" : ""}"><b>${escapeHtml(entry.title)}</b>${entry.detail ? `<span>${escapeHtml(entry.detail)}</span>` : ""}</button>`).join("");
-    document.body.appendChild(menu);
-    const rect = button.getBoundingClientRect();
-    menu.style.top = `${Math.min(window.innerHeight - menu.offsetHeight - 10, rect.bottom + 6)}px`;
-    menu.style.left = `${Math.max(10, Math.min(window.innerWidth - menu.offsetWidth - 10, rect.right - menu.offsetWidth))}px`;
-    menu.querySelectorAll("[data-tdop]").forEach((entry) => {
-      entry.onclick = () => {
-        menu.remove();
-        void runAction(entry.dataset.tdop, item);
-      };
-    });
-  }
 
   // src/app/screens/agenda/your-day/card.ts
   var DAY_MS2 = 864e5;
@@ -2878,13 +2743,6 @@
         yourDayLegacy.editTask(list.find((task) => task.id === row2.dataset.tarea));
       };
     });
-    block.querySelectorAll("[data-tamov]").forEach((button) => {
-      button.onclick = (event) => {
-        event.stopPropagation();
-        const [direction = "0", id = ""] = (button.dataset.tamov ?? "").split("|");
-        yourDayLegacy.moveTask(id, Number(direction));
-      };
-    });
   }
   function paintTasks(body, list) {
     document.getElementById("tdtareas")?.remove();
@@ -2981,12 +2839,6 @@
     const button = document.getElementById(id);
     if (button) button.onclick = action;
   }
-  async function orderByDistance(mine) {
-    const { list, left } = yourDayLegacy.orderByDistance(mine);
-    if (!await yourDayLegacy.saveOrder(list)) return;
-    notices.toast(left ? t("agenda.yourDay.orderedWithLeft", { count: left }) : t("agenda.yourDay.ordered"));
-    yourDayLegacy.repaintSmoothly();
-  }
   function bindHeader2(data, open) {
     on("tdempezar", () => {
       yourDayLegacy.startWorkingDay();
@@ -2996,12 +2848,6 @@
     });
     on("tdrepro", () => {
       agendaActions.reschedule(open, t("agenda.yourDay.pendingOf", { date: formatShortDate(data.day) }), t("agenda.yourDay.notVisitedThatDay"));
-    });
-    on("tdordenar", () => {
-      void orderByDistance(data.mine);
-    });
-    on("tdnocord", () => {
-      document.getElementById("tdordenar")?.click();
     });
     on("tdtarea", () => {
       yourDayLegacy.editTask(null, legacyAgenda.selectedDate());
@@ -3095,139 +2941,35 @@
     }, true);
   }
 
-  // src/app/screens/agenda/appointment-sheet.ts
-  var DAY_MINUTES2 = 24 * 60;
-  function timeText2(item, info) {
-    if (item.hora) return String(item.hora).slice(0, 5);
-    if (isOpen(item.estado) && isPresent(info.llegada) && info.llegada < DAY_MINUTES2) return t("agenda.sheet.around", { time: formatMinutes(info.llegada) });
-    return t("agenda.sheet.noTime");
-  }
-  function timetableText(item, info) {
-    const windows = info.ventanas ?? weekPlanner.attendanceWindows(item.dias, item.fecha);
-    if (!windows) return "";
-    if (!windows.length) return t("agenda.sheet.notAttending");
-    return (info.otroCentro ? t("agenda.sheet.atCentre", { centre: info.otroCentro }) : "") + yourDayLegacy.windowsText(windows);
-  }
-  var row = (label, value) => `<div class="vcfila"><span>${label}</span><b>${value}</b></div>`;
-  function dataHtml(item, info) {
-    const where = [item.centro_nombre, item.direccion, item.municipio].filter(Boolean).join(" · "), timetable = timetableText(item, info), origin = yourDayLegacy.originText(item);
-    return `<div class="vcdatos">
-      ${row(t("agenda.sheet.when"), `${escapeHtml(capitalise(formatLongDate(item.fecha)))} · ${escapeHtml(timeText2(item, info))}`)}
-      ${row(t("agenda.sheet.where"), escapeHtml(where || t("agenda.sheet.noCentre")))}
-      ${timetable ? row(t("agenda.sheet.timetable"), escapeHtml(timetable)) : ""}
-      ${row(t("agenda.sheet.state"), `${statePill(item.estado)}${origin ? ` <span class="sm">${origin}</span>` : ""}`)}
-    </div>`;
-  }
-  function closedHtml(item) {
-    if (isOpen(item.estado)) return "";
-    return `<div class="banda-info vccerrada" id="vccerrada">${t("agenda.sheet.closed", { state: escapeHtml(item.estado) })}
-    <span id="vccomo"></span> ${t(hasMenu(item) ? "agenda.sheet.closedReopen" : "agenda.sheet.closedFinal")}</div>`;
-  }
-  function goToButton(day, label, id, item) {
-    return day && day !== item.fecha ? `<button type="button" class="btn sec" id="${id}" data-vcdia="${day}">${escapeHtml(t(label, { day: appointmentLegacy.dayLabel(day) }))}</button>` : "";
-  }
-  function buttonsHtml(item) {
-    const open = isOpen(item.estado), today = todayIso();
-    return `<div class="vcacts">
-      <button type="button" class="btn sec" id="vcficha">${t("agenda.sheet.seeCard")}</button>
-      ${pointOf(item) ? `<button type="button" class="btn sec" id="vcllegar">${t("agenda.sheet.directions")}</button>` : ""}
-      ${open ? `<button type="button" class="btn sec" id="vchora">${t("agenda.sheet.changeTime")}</button><button type="button" class="btn sec" id="vcmover">${t("agenda.sheet.moveDay")}</button>` : ""}
-    ${canPlanAgain(item, today) ? `<button type="button" class="btn sec" id="vcrehacer">${t("agenda.sheet.planAgain")}</button>` : ""}${item.estado === STATES.postponed ? goToButton(item.aplazada_a_fecha, "agenda.sheet.goTo", "vcirdest", item) : ""}${goToButton(item.aplazada_de_fecha, "agenda.sheet.seeDay", "vcirorig", item)}</div>
-    ${open ? `<div class="vcfin">
-        <button type="button" class="lnk" id="vcdescartar">${t("agenda.sheet.discard")}</button><span class="sm">${t("agenda.sheet.discardText")}</span>
-        ${item.fecha >= today ? `<button type="button" class="lnk peligro" id="vcborrar">${t("agenda.sheet.delete")}</button><span class="sm">${t("agenda.sheet.deleteText")}</span>` : ""}</div>` : ""}
-    <div class="acts" style="justify-content:flex-end">
-      <button type="button" class="btn sec" id="vcok" disabled>${t("agenda.sheet.saveNotes")}</button>
-      ${open && yourDayLegacy.canRecordOn(item.fecha) ? `<button type="button" class="btn" id="vcreg">${t("agenda.sheet.record", { visit: term("visita") })}</button>` : ""}</div>`;
-  }
-  function sheetHtml(item, info) {
-    return `
-    <div class="fh"><div><h2>${escapeHtml(item.nombre)}</h2>${item.especialidad ? `<div class="sm">${escapeHtml(item.especialidad)}</div>` : ""}</div>
-      <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
-    ${dataHtml(item, info)}
-    ${closedHtml(item)}
-    ${isOpen(item.estado) && info.aviso ? `<div class="banda-aviso" style="margin:0 0 12px">${escapeHtml(info.aviso)}</div>` : ""}
-    <label for="vcnota">${t("agenda.sheet.notes")}</label>
-    <textarea id="vcnota" rows="3" placeholder="${t("agenda.sheet.notesPlaceholder")}">${escapeHtml(item.nota ?? "")}</textarea>
-    ${buttonsHtml(item)}`;
-  }
-  var dialog = () => document.getElementById("dlg");
-  var close = () => {
-    dialog()?.close();
-  };
-  async function saveNotes(item, notes, button) {
-    button.disabled = true;
-    const value = notes.value.trim();
-    const { error } = await legacyDb().from("agenda").update({ nota: value || null }).eq("id", item.id);
-    if (error) {
-      button.disabled = false;
-      notices.toast(t("agenda.sheet.couldNotSave", { error: error.message ?? "" }), true);
-      return;
-    }
-    item.nota = value;
-    close();
-    notices.toast(t("agenda.sheet.notesSaved"));
-    appointmentLegacy.refreshQuietly(item.id, false);
-  }
-  function bind5(body, item) {
-    const notes = body.querySelector("#vcnota"), save = body.querySelector("#vcok");
-    if (notes && save) {
-      notes.oninput = () => {
-        save.disabled = notes.value.trim() === (item.nota ?? "").trim();
-      };
-      save.onclick = () => {
-        void saveNotes(item, notes, save);
-      };
-    }
-    const on2 = (id, action) => {
-      const button = body.querySelector(`#${id}`);
-      if (button) button.onclick = action;
-    };
-    const closeAnd = (action) => () => {
-      close();
-      void runAction(action, item);
-    };
-    on2("vcficha", () => {
-      close();
-      appointmentLegacy.openAccountFromCentre(item.cuenta_id, item.centro_nombre);
+  // src/app/components/slide.ts
+  var HIGHLIGHT_CLASS = "tdmovida";
+  var HIGHLIGHT_MS = 1300;
+  var EASING = "cubic-bezier(.2,.7,.2,1)";
+  function positionsOf(selector, key) {
+    const positions = /* @__PURE__ */ new Map();
+    document.querySelectorAll(selector).forEach((element) => {
+      positions.set(element.dataset[key] ?? "", element.getBoundingClientRect().top);
     });
-    on2("vcllegar", () => {
-      void runAction("llegar", item);
-    });
-    on2("vchora", closeAnd("hora"));
-    on2("vcmover", closeAnd("aplazar"));
-    on2("vcdescartar", closeAnd("descartar"));
-    on2("vcborrar", closeAnd("borrar"));
-    on2("vcrehacer", closeAnd("rehacer"));
-    on2("vcreg", () => {
-      close();
-      appointmentLegacy.recordVisit(item.cuenta_id, item.fecha);
-    });
-    body.querySelectorAll("[data-vcdia]").forEach((button) => {
-      button.onclick = () => {
-        close();
-        agendaState.setMode("dia");
-        legacyAgenda.showDay(button.dataset.vcdia ?? "");
-      };
-    });
+    return positions;
   }
-  function fillVisitResult(item) {
-    if (!isDone(item.estado) || !item.cuenta_id) return;
-    legacyDb().from("actividades").select("resultados, hora").eq("cuenta_id", item.cuenta_id).eq("fecha", item.fecha).limit(1).then(({ data }) => {
-      const visit = data?.[0], place = document.getElementById("vccomo");
-      if (!visit || !place) return;
-      const results = Array.isArray(visit.resultados) ? visit.resultados.filter(Boolean).join(", ") : visit.resultados ?? "";
-      place.textContent = t("agenda.sheet.recorded", { visit: term("visita"), time: visit.hora ? t("agenda.sheet.recordedAt", { time: String(visit.hora).slice(0, 5) }) : "", results: results ? `: ${results}` : "" });
-    }, () => void 0);
+  function highlight(element) {
+    element.classList.remove(HIGHLIGHT_CLASS);
+    void element.offsetWidth;
+    element.classList.add(HIGHLIGHT_CLASS);
+    setTimeout(() => {
+      element.classList.remove(HIGHLIGHT_CLASS);
+    }, HIGHLIGHT_MS);
   }
-  function showAppointment(item) {
-    const body = document.getElementById("dbody"), box = dialog();
-    if (!item || !body || !box) return;
-    body.innerHTML = sheetHtml(item, yourDayLegacy.stopInfo()[item.id] ?? {});
-    bind5(body, item);
-    fillVisitResult(item);
-    box.classList.add("pequena");
-    box.showModal();
+  function slideIntoPlace(before, options) {
+    const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    document.querySelectorAll(options.selector).forEach((element) => {
+      const id = element.dataset[options.key] ?? "";
+      if (options.touched && id === String(options.touched)) highlight(element);
+      const top = before.get(id);
+      if (still || top === void 0) return;
+      const shift = top - element.getBoundingClientRect().top;
+      if (Math.abs(shift) > 1) element.animate([{ transform: `translateY(${shift}px)` }, { transform: "none" }], { duration: options.durationMs, easing: EASING });
+    });
   }
 
   // src/app/screens/home/indicators/chart-tools.ts
@@ -3907,6 +3649,452 @@
   }
   var homeRoute = { id: "inicio", enter: () => load() };
 
+  // src/app/screens/agenda/your-day/reorder.ts
+  var CARDS = "#agcuerpo .tdu[data-tdu]";
+  var TASKS = "#tdtareas .tdtarea";
+  var REPAINT_SLIDE_MS = 320;
+  var MOVE_SLIDE_MS = 260;
+  var QUIET_DELAY_MS = 40;
+  async function saveOrder(list) {
+    const { data: result, error } = await legacyDb().rpc("ordenar_citas", { p_ids: list.map((item) => item.id) });
+    if (error || result?.ok === false) {
+      notices.toast(t("agenda.yourDay.couldNotSaveOrder"), true);
+      return false;
+    }
+    return true;
+  }
+  async function repaintSmoothly(id, data) {
+    const before = positionsOf(CARDS, "tdu"), day = legacyAgenda.selectedDate();
+    agendaCache.forget();
+    if (data && day) agendaCache.preset(day, data);
+    const body = document.getElementById("agcuerpo"), scroll = window.scrollY;
+    if (body) body.style.minHeight = `${body.offsetHeight}px`;
+    try {
+      await paintYourDay();
+    } finally {
+      const fresh = document.getElementById("agcuerpo");
+      if (fresh) fresh.style.minHeight = "";
+    }
+    window.scrollTo({ top: scroll });
+    slideIntoPlace(before, { selector: CARDS, key: "tdu", touched: id, durationMs: REPAINT_SLIDE_MS });
+  }
+  var quietTimer = null;
+  var quietId = null;
+  function refreshQuietly(id, figures = true) {
+    if (currentScreen() !== "agenda" || !appointmentLegacy.isJoinedDayView() || !document.getElementById("agcuerpo")) {
+      void loadAgenda();
+      void load();
+      routeBar.paint();
+      return;
+    }
+    agendaCache.markDialogSeen();
+    if (id) quietId = id;
+    if (quietTimer) clearTimeout(quietTimer);
+    quietTimer = setTimeout(() => {
+      const touched = quietId;
+      quietId = null;
+      void repaintSmoothly(touched).then(() => {
+        if (figures) refreshAfterChange();
+        routeBar.paint();
+      });
+    }, QUIET_DELAY_MS);
+  }
+  function focusMoved(id, action) {
+    const button = document.querySelector(`#agcuerpo .tdu [data-td="${action}|${id}"]:not([disabled])`) ?? document.querySelector(`#agcuerpo .tdu [data-td$="|${id}"]`);
+    button?.focus({ preventScroll: true });
+  }
+  async function moveAppointment(order, id, action) {
+    const day = legacyAgenda.selectedDate() ?? "", known = agendaCache.dayData(day);
+    if (!agendaCache.lastPainted(day) && known) agendaCache.setLastPainted(day, known);
+    const before = positionsOf(CARDS, "tdu"), last = agendaCache.lastPainted(day);
+    if (!last) {
+      if (await saveOrder(order)) await loadAgenda();
+      return;
+    }
+    const ids = new Set(order.map((item) => item.id));
+    agendaCache.preset(day, [...order, ...last.filter((item) => !ids.has(item.id))]);
+    const scroll = window.scrollY;
+    await paintYourDay();
+    window.scrollTo({ top: scroll });
+    slideIntoPlace(before, { selector: CARDS, key: "tdu", touched: id, durationMs: MOVE_SLIDE_MS });
+    focusMoved(id, action);
+    if (!await saveOrder(order)) await loadAgenda();
+  }
+  function swappedTasks(list, id, direction) {
+    const from = list.findIndex((task) => task.id === id), to = from + direction;
+    const order = list.slice(), moved = order[from], other = order[to];
+    if (from < 0 || !moved || !other) return null;
+    order[from] = other;
+    order[to] = moved;
+    order.forEach((task, index) => {
+      task.orden = index + 1;
+    });
+    return order;
+  }
+  async function moveTask(id, direction) {
+    const day = legacyAgenda.selectedDate() ?? "", list = agendaCache.dayTasks(day);
+    const order = list ? swappedTasks(list, id, direction) : null;
+    if (!order) return;
+    agendaCache.setDayTasks(day, order);
+    const before = positionsOf(TASKS, "tarea");
+    await repaintSmoothly(null, agendaCache.lastPainted(day) ?? void 0);
+    slideIntoPlace(before, { selector: TASKS, key: "tarea", touched: id, durationMs: REPAINT_SLIDE_MS });
+    const button = document.querySelector(`#tdtareas [data-tamov="${direction}|${id}"]:not([disabled])`) ?? document.querySelector(`#tdtareas [data-tamov$="|${id}"]:not([disabled])`);
+    button?.focus({ preventScroll: true });
+    const { data: result, error } = await legacyDb().rpc("ordenar_tareas", { p_ids: order.map((task) => task.id) });
+    if (error || result?.ok === false) {
+      notices.toast(t("agenda.yourDay.couldNotSaveOrder"), true);
+      agendaCache.setDayTasks(day, null);
+      refreshQuietly(null, false);
+    }
+  }
+  async function orderByDistance() {
+    const { list, left } = yourDayLegacy.orderByDistance(legacyAgenda.dayAppointments());
+    if (!await saveOrder(list)) return;
+    notices.toast(left ? t("agenda.yourDay.orderedWithLeft", { count: left }) : t("agenda.yourDay.ordered"));
+    await repaintSmoothly();
+  }
+
+  // src/app/screens/agenda/appointment-actions.ts
+  var refresh = (item) => {
+    refreshQuietly(item.id);
+  };
+  async function setState(action, item) {
+    const state = action === "confirmar" ? STATES.confirmed : action === "desconfirmar" ? STATES.planned : STATES.discarded;
+    const result = await appointmentLegacy.write("estado_cita", { p_id: item.id, p_estado: state });
+    if (result?.error) {
+      notices.toast(t("agenda.actions.couldNotChange"), true);
+      return;
+    }
+    notices.toast(t(state === STATES.confirmed ? "agenda.actions.confirmed" : state === STATES.discarded ? "agenda.actions.discarded" : "agenda.actions.unconfirmed"));
+    refresh(item);
+  }
+  async function remove(item) {
+    if (!await notices.confirm(t("agenda.actions.deleteQuestion"), { titulo: t("agenda.actions.deleteTitle"), ok: t("agenda.actions.delete"), peligro: true })) return;
+    const { data: result } = await legacyDb().rpc("borrar_cita", { p_id: item.id });
+    if (result?.ok === false) {
+      notices.toast(t(result.error === "pasada" ? "agenda.actions.onlyFuture" : "agenda.actions.couldNotDelete"), true);
+      return;
+    }
+    notices.toast(t("agenda.actions.deleted"));
+    refresh(item);
+  }
+  function postponedText(result, day) {
+    if (result?.ya) return t("agenda.actions.alreadyThatDay");
+    if (result?.mismo_dia) return t("agenda.actions.sameDay");
+    return t(result?.reabierta ? "agenda.actions.backToOwn" : "agenda.actions.postponedTo", { date: formatShortDate(day) });
+  }
+  async function postpone(item) {
+    const day = await notices.askDate(t("agenda.actions.whichDay"), appointmentLegacy.nextAttendanceDay(item.dias, item.fecha), { titulo: t("agenda.actions.postponeTitle"), ok: t("agenda.actions.postpone") });
+    if (!day) return;
+    const { data: result, error } = await legacyDb().rpc("aplazar_cita", { p_id: item.id, p_fecha: day, p_hora: null, p_origen: STATES.postponed });
+    if (error || result?.ok === false) {
+      notices.toast(t("agenda.actions.couldNotPostpone"), true);
+      return;
+    }
+    notices.toast(postponedText(result, day));
+    refresh(item);
+  }
+  async function absent(item) {
+    const negatives = appointmentLegacy.negativeResults();
+    const [first] = negatives;
+    if (!first) {
+      notices.toast(t("agenda.actions.missingNegative"), true);
+      return;
+    }
+    let result = first.valor;
+    if (negatives.length > 1) {
+      const choice = await notices.choose(t("agenda.actions.whatHappened"), item.nombre ?? "", [{ k: "no", t: t("agenda.actions.cancel"), cls: "sec" }, ...negatives.map((negative, index) => ({ k: `n${index}`, t: negative.valor, cls: "sec" }))]);
+      if (!choice) return;
+      result = negatives[Number(choice.slice(1))]?.valor ?? result;
+    }
+    const { error } = await appointmentLegacy.writeRpc("registrar_actividad", { p: { cuenta_id: item.cuenta_id, fecha: item.fecha, resultados: [result], op_id: `v-${item.cuenta_id}-${Date.now()}` } });
+    if (error) {
+      notices.toast(t("agenda.actions.couldNotSave", { error: error.message ?? "" }), true);
+      return;
+    }
+    notices.toast(t("agenda.actions.noted", { result }));
+    refresh(item);
+    await appointmentLegacy.newDateAfterAbsent(item);
+  }
+  async function planAgain(item) {
+    const { data: result, error } = await legacyDb().rpc("reabrir_cita", { p_id: item.id });
+    if (error || !result || result.ok === false) {
+      notices.toast(t(result?.error === "pasada" ? "agenda.actions.reopenOnlyFuture" : "agenda.actions.couldNotReopen"), true);
+      return;
+    }
+    notices.toast(result.quitada ? t("agenda.actions.reopenedRemoving", { date: formatShortDate(result.quitada) }) : t("agenda.actions.reopened"));
+    refresh(item);
+  }
+  var ACTIONS = {
+    ficha: (item) => {
+      appointmentLegacy.openAccountFromCentre(item.cuenta_id, item.centro_nombre);
+    },
+    llegar: (item) => {
+      appointmentLegacy.navigateTo(pointOf(item));
+    },
+    hora: (item) => changeTime(item.id, item.hora ?? ""),
+    confirmar: (item) => setState("confirmar", item),
+    desconfirmar: (item) => setState("desconfirmar", item),
+    descartar: (item) => setState("descartar", item),
+    borrar: remove,
+    aplazar: postpone,
+    noestaba: absent,
+    nueva: (item) => appointmentLegacy.newDateAfterAbsent(item),
+    rehacer: planAgain
+  };
+  async function runAction(action, item) {
+    await ACTIONS[action](item);
+  }
+  var timeOf2 = (item) => item.hora ? String(item.hora).slice(0, 5) : null;
+  function orderByTime(open, id, time) {
+    const moved = open.find((item) => item.id === id);
+    if (!moved || !time) return open;
+    const rest = open.filter((item) => item.id !== id);
+    let index = rest.findIndex((item) => {
+      const other = timeOf2(item);
+      return other !== null && other > time;
+    });
+    if (index < 0) {
+      index = 0;
+      rest.forEach((item, position) => {
+        const other = timeOf2(item);
+        if (other !== null && other <= time) index = position + 1;
+      });
+    }
+    rest.splice(index, 0, moved);
+    return rest;
+  }
+  async function changeTime(id, current) {
+    const time = await notices.askTime(t("agenda.actions.timeTitle"), current, t("agenda.actions.save"));
+    if (time === null) return;
+    const { error } = await legacyDb().from("agenda").update({ hora: time || null }).eq("id", id);
+    if (error) {
+      notices.toast(t("agenda.actions.couldNotTime", { error: error.message ?? "" }), true);
+      return;
+    }
+    notices.toast(t("agenda.actions.timeUpdated"));
+    const day = appointmentLegacy.lastDayData();
+    if (currentScreen() !== "agenda" || !appointmentLegacy.isJoinedDayView() || !day?.some((item) => item.id === id)) {
+      refreshQuietly(id, false);
+      return;
+    }
+    const owner = agendaSources.ownerId(), data = day.map((item) => item.id === id ? { ...item, hora: time || null } : item);
+    const mine = (item) => item.usuario_id === owner;
+    const open = data.filter((item) => mine(item) && isOpen(item.estado)), order = orderByTime(open, id, time);
+    const changed = order.some((item, index) => item.id !== open[index]?.id);
+    const next = changed ? [...data.filter((item) => mine(item) && !isOpen(item.estado)), ...order, ...data.filter((item) => !mine(item))] : data;
+    await repaintSmoothly(id, next);
+    if (changed && !await saveOrder(order)) refreshQuietly(id);
+  }
+
+  // src/app/screens/agenda/appointment-menu.ts
+  function openMenu(button, item) {
+    document.querySelectorAll(".tdmenu").forEach((menu2) => {
+      menu2.remove();
+    });
+    const options = menuOptions(item);
+    if (!options.length) {
+      notices.toast(t("agenda.menu.alreadyClosed"));
+      return;
+    }
+    const menu = document.createElement("div");
+    menu.className = "tdmenu";
+    menu.__t = Date.now();
+    const danger = (action) => action === "descartar" || action === "borrar";
+    menu.innerHTML = options.map((entry) => `<button data-tdop="${entry.action}" class="${danger(entry.action) ? "peligro" : ""}"><b>${escapeHtml(entry.title)}</b>${entry.detail ? `<span>${escapeHtml(entry.detail)}</span>` : ""}</button>`).join("");
+    document.body.appendChild(menu);
+    const rect = button.getBoundingClientRect();
+    menu.style.top = `${Math.min(window.innerHeight - menu.offsetHeight - 10, rect.bottom + 6)}px`;
+    menu.style.left = `${Math.max(10, Math.min(window.innerWidth - menu.offsetWidth - 10, rect.right - menu.offsetWidth))}px`;
+    menu.querySelectorAll("[data-tdop]").forEach((entry) => {
+      entry.onclick = () => {
+        menu.remove();
+        void runAction(entry.dataset.tdop, item);
+      };
+    });
+  }
+
+  // src/app/screens/agenda/appointment-sheet.ts
+  var DAY_MINUTES2 = 24 * 60;
+  function timeText2(item, info) {
+    if (item.hora) return String(item.hora).slice(0, 5);
+    if (isOpen(item.estado) && isPresent(info.llegada) && info.llegada < DAY_MINUTES2) return t("agenda.sheet.around", { time: formatMinutes(info.llegada) });
+    return t("agenda.sheet.noTime");
+  }
+  function timetableText(item, info) {
+    const windows = info.ventanas ?? weekPlanner.attendanceWindows(item.dias, item.fecha);
+    if (!windows) return "";
+    if (!windows.length) return t("agenda.sheet.notAttending");
+    return (info.otroCentro ? t("agenda.sheet.atCentre", { centre: info.otroCentro }) : "") + yourDayLegacy.windowsText(windows);
+  }
+  var row = (label, value) => `<div class="vcfila"><span>${label}</span><b>${value}</b></div>`;
+  function dataHtml(item, info) {
+    const where = [item.centro_nombre, item.direccion, item.municipio].filter(Boolean).join(" · "), timetable = timetableText(item, info), origin = yourDayLegacy.originText(item);
+    return `<div class="vcdatos">
+      ${row(t("agenda.sheet.when"), `${escapeHtml(capitalise(formatLongDate(item.fecha)))} · ${escapeHtml(timeText2(item, info))}`)}
+      ${row(t("agenda.sheet.where"), escapeHtml(where || t("agenda.sheet.noCentre")))}
+      ${timetable ? row(t("agenda.sheet.timetable"), escapeHtml(timetable)) : ""}
+      ${row(t("agenda.sheet.state"), `${statePill(item.estado)}${origin ? ` <span class="sm">${origin}</span>` : ""}`)}
+    </div>`;
+  }
+  function closedHtml(item) {
+    if (isOpen(item.estado)) return "";
+    return `<div class="banda-info vccerrada" id="vccerrada">${t("agenda.sheet.closed", { state: escapeHtml(item.estado) })}
+    <span id="vccomo"></span> ${t(hasMenu(item) ? "agenda.sheet.closedReopen" : "agenda.sheet.closedFinal")}</div>`;
+  }
+  function goToButton(day, label, id, item) {
+    return day && day !== item.fecha ? `<button type="button" class="btn sec" id="${id}" data-vcdia="${day}">${escapeHtml(t(label, { day: appointmentLegacy.dayLabel(day) }))}</button>` : "";
+  }
+  function buttonsHtml(item) {
+    const open = isOpen(item.estado), today = todayIso();
+    return `<div class="vcacts">
+      <button type="button" class="btn sec" id="vcficha">${t("agenda.sheet.seeCard")}</button>
+      ${pointOf(item) ? `<button type="button" class="btn sec" id="vcllegar">${t("agenda.sheet.directions")}</button>` : ""}
+      ${open ? `<button type="button" class="btn sec" id="vchora">${t("agenda.sheet.changeTime")}</button><button type="button" class="btn sec" id="vcmover">${t("agenda.sheet.moveDay")}</button>` : ""}
+    ${canPlanAgain(item, today) ? `<button type="button" class="btn sec" id="vcrehacer">${t("agenda.sheet.planAgain")}</button>` : ""}${item.estado === STATES.postponed ? goToButton(item.aplazada_a_fecha, "agenda.sheet.goTo", "vcirdest", item) : ""}${goToButton(item.aplazada_de_fecha, "agenda.sheet.seeDay", "vcirorig", item)}</div>
+    ${open ? `<div class="vcfin">
+        <button type="button" class="lnk" id="vcdescartar">${t("agenda.sheet.discard")}</button><span class="sm">${t("agenda.sheet.discardText")}</span>
+        ${item.fecha >= today ? `<button type="button" class="lnk peligro" id="vcborrar">${t("agenda.sheet.delete")}</button><span class="sm">${t("agenda.sheet.deleteText")}</span>` : ""}</div>` : ""}
+    <div class="acts" style="justify-content:flex-end">
+      <button type="button" class="btn sec" id="vcok" disabled>${t("agenda.sheet.saveNotes")}</button>
+      ${open && yourDayLegacy.canRecordOn(item.fecha) ? `<button type="button" class="btn" id="vcreg">${t("agenda.sheet.record", { visit: term("visita") })}</button>` : ""}</div>`;
+  }
+  function sheetHtml(item, info) {
+    return `
+    <div class="fh"><div><h2>${escapeHtml(item.nombre)}</h2>${item.especialidad ? `<div class="sm">${escapeHtml(item.especialidad)}</div>` : ""}</div>
+      <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
+    ${dataHtml(item, info)}
+    ${closedHtml(item)}
+    ${isOpen(item.estado) && info.aviso ? `<div class="banda-aviso" style="margin:0 0 12px">${escapeHtml(info.aviso)}</div>` : ""}
+    <label for="vcnota">${t("agenda.sheet.notes")}</label>
+    <textarea id="vcnota" rows="3" placeholder="${t("agenda.sheet.notesPlaceholder")}">${escapeHtml(item.nota ?? "")}</textarea>
+    ${buttonsHtml(item)}`;
+  }
+  var dialog = () => document.getElementById("dlg");
+  var close = () => {
+    dialog()?.close();
+  };
+  async function saveNotes(item, notes, button) {
+    button.disabled = true;
+    const value = notes.value.trim();
+    const { error } = await legacyDb().from("agenda").update({ nota: value || null }).eq("id", item.id);
+    if (error) {
+      button.disabled = false;
+      notices.toast(t("agenda.sheet.couldNotSave", { error: error.message ?? "" }), true);
+      return;
+    }
+    item.nota = value;
+    close();
+    notices.toast(t("agenda.sheet.notesSaved"));
+    refreshQuietly(item.id, false);
+  }
+  function bind5(body, item) {
+    const notes = body.querySelector("#vcnota"), save = body.querySelector("#vcok");
+    if (notes && save) {
+      notes.oninput = () => {
+        save.disabled = notes.value.trim() === (item.nota ?? "").trim();
+      };
+      save.onclick = () => {
+        void saveNotes(item, notes, save);
+      };
+    }
+    const on2 = (id, action) => {
+      const button = body.querySelector(`#${id}`);
+      if (button) button.onclick = action;
+    };
+    const closeAnd = (action) => () => {
+      close();
+      void runAction(action, item);
+    };
+    on2("vcficha", () => {
+      close();
+      appointmentLegacy.openAccountFromCentre(item.cuenta_id, item.centro_nombre);
+    });
+    on2("vcllegar", () => {
+      void runAction("llegar", item);
+    });
+    on2("vchora", closeAnd("hora"));
+    on2("vcmover", closeAnd("aplazar"));
+    on2("vcdescartar", closeAnd("descartar"));
+    on2("vcborrar", closeAnd("borrar"));
+    on2("vcrehacer", closeAnd("rehacer"));
+    on2("vcreg", () => {
+      close();
+      appointmentLegacy.recordVisit(item.cuenta_id, item.fecha);
+    });
+    body.querySelectorAll("[data-vcdia]").forEach((button) => {
+      button.onclick = () => {
+        close();
+        agendaState.setMode("dia");
+        legacyAgenda.showDay(button.dataset.vcdia ?? "");
+      };
+    });
+  }
+  function fillVisitResult(item) {
+    if (!isDone(item.estado) || !item.cuenta_id) return;
+    legacyDb().from("actividades").select("resultados, hora").eq("cuenta_id", item.cuenta_id).eq("fecha", item.fecha).limit(1).then(({ data }) => {
+      const visit = data?.[0], place = document.getElementById("vccomo");
+      if (!visit || !place) return;
+      const results = Array.isArray(visit.resultados) ? visit.resultados.filter(Boolean).join(", ") : visit.resultados ?? "";
+      place.textContent = t("agenda.sheet.recorded", { visit: term("visita"), time: visit.hora ? t("agenda.sheet.recordedAt", { time: String(visit.hora).slice(0, 5) }) : "", results: results ? `: ${results}` : "" });
+    }, () => void 0);
+  }
+  function showAppointment(item) {
+    const body = document.getElementById("dbody"), box = dialog();
+    if (!item || !body || !box) return;
+    body.innerHTML = sheetHtml(item, yourDayLegacy.stopInfo()[item.id] ?? {});
+    bind5(body, item);
+    fillVisitResult(item);
+    box.classList.add("pequena");
+    box.showModal();
+  }
+
+  // src/app/screens/agenda/your-day/card-buttons.ts
+  function swapWithNeighbour(item, action) {
+    const all = legacyAgenda.dayAppointments(), open = all.filter((entry) => isOpen(entry.estado));
+    const from = open.indexOf(item), to = action === "sube" ? from - 1 : from + 1;
+    const neighbour = open[to];
+    if (!neighbour) return;
+    open[from] = neighbour;
+    open[to] = item;
+    void moveAppointment([...all.filter((entry) => !isOpen(entry.estado)), ...open], item.id, action);
+  }
+  function cardButton(button) {
+    const [action = "", id = ""] = (button.dataset.td ?? "").split("|");
+    const item = legacyAgenda.dayAppointments().find((entry) => entry.id === id);
+    if (!item) return;
+    if (action === "mas") openMenu(button, item);
+    else if (action === "visita") {
+      if (yourDayLegacy.canRecordOn(item.fecha)) appointmentLegacy.recordVisit(item.cuenta_id, item.fecha);
+    } else if (action === "nueva") void appointmentLegacy.newDateAfterAbsent(item);
+    else if (action === "sube" || action === "baja") swapWithNeighbour(item, action);
+  }
+  function taskArrow(arrow) {
+    const [direction = "0", id = ""] = (arrow.dataset.tamov ?? "").split("|");
+    void moveTask(id, Number(direction));
+  }
+  function listenToCards() {
+    document.addEventListener("click", (event) => {
+      const target = event.target instanceof Element ? event.target : null;
+      if (!target) return;
+      if (target.closest("#tdordenar, #tdnocord")) {
+        void orderByDistance();
+        return;
+      }
+      const arrow = target.closest("[data-tamov]");
+      if (arrow) {
+        taskArrow(arrow);
+        return;
+      }
+      const button = target.closest("[data-td]");
+      if (button) {
+        event.stopPropagation();
+        cardButton(button);
+      }
+    });
+  }
+
   // src/app/main.ts
   var router = createRouter("inicio");
   router.register(homeRoute);
@@ -3923,4 +4111,5 @@
   };
   listenToSameCentre();
   listenToYourDay();
+  listenToCards();
 })();

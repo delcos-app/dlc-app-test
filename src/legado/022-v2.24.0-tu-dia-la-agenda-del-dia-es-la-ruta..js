@@ -39,24 +39,7 @@ document.addEventListener('scroll', () => document.querySelectorAll('.tdmenu').f
 
 
 
-document.addEventListener('click', async e => {
-  const b = e.target.closest('[data-td]');
-  if (!b) return;
-  e.stopPropagation();
-  const [acc, id] = b.dataset.td.split('|');
-  const c = TD_CITAS.find(x => x.id === id);
-  if (!c) return;
-  if (acc === 'mas') return window.delcos.screens.agenda.openMenu(b, c);
-  if (acc === 'visita') { if (!puedeRegistrarEnDia(c.fecha)) return; VISITA_FECHA = c.fecha; return abrirVisita(c.cuenta_id); }
-  if (acc === 'nueva') return nuevaFechaTrasNoEstaba(c);
-  if (acc === 'sube' || acc === 'baja') {
-    const ab = TD_CITAS.filter(x => CITA_ABIERTA.includes(x.estado)), i = ab.indexOf(c), j = acc === 'sube' ? i - 1 : i + 1;
-    if (j < 0 || j >= ab.length) return;
-    [ab[i], ab[j]] = [ab[j], ab[i]];
-    const orden = TD_CITAS.filter(x => !CITA_ABIERTA.includes(x.estado)).concat(ab);
-    moverCitaLocal(orden, c.id, acc);
-  }
-});
+// Los botones de las tarjetas de «Tu día» están en src/app/screens/agenda/your-day/card-buttons.ts (v2.399.0)
 
 // La vista de día de la agenda es «Tu día»
 

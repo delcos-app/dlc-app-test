@@ -93,6 +93,7 @@ export const agenda = {
     ordered: 'Citas ordenadas por cercanía',
     orderedWithLeft: 'Ordenadas · {count} no caben en su horario o en el tuyo y quedan al final',
     queued: 'Registrada en el móvil · pendiente de enviar',
+    couldNotSaveOrder: 'No se ha podido guardar el orden',
     whyWarning: 'Por qué sale este aviso',
     understood: 'Entendido',
   },
