@@ -59,7 +59,7 @@ TIPOS_NOTIF.push(
 
 /* ---------------- idiomas ---------------- */
 
-let IDIOMA = 'es', MAPA_I18N = null;
+let MAPA_I18N = null;   // (IDIOMA está en nucleo/idioma.js)
 let TR_PEND = new Set(), TR_RAF = 0;
 new MutationObserver(ms => {
   if (!MAPA_I18N) return;
@@ -68,7 +68,6 @@ new MutationObserver(ms => {
   TR_RAF = 1; queueMicrotask(() => { TR_RAF = 0; const l = [...TR_PEND]; TR_PEND.clear(); l.forEach(n => n.isConnected && traducir(n)); });
 }).observe(document.body, { childList: true, subtree: true });
 // Fechas en el idioma elegido
-fechaLarga = (orig => function (d) { return IDIOMA === 'es' ? orig(d) : new Date(d).toLocaleDateString(LOCALES[IDIOMA], { weekday: 'long', day: 'numeric', month: 'long' }); })(fechaLarga);
 prepararIdioma((() => { try { return localStorage.getItem('app-idioma') || 'es'; } catch (e) { return 'es'; } })());
 if (MAPA_I18N) traducir(document.body);
 // Selector de idioma en Mi perfil

@@ -1,4 +1,6 @@
 // @ts-check
+/** Idioma de la persona (v2.43.0): 'es' mientras no elija otro. */
+let IDIOMA = 'es';
 // nucleo/idioma.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 

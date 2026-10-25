@@ -1174,6 +1174,8 @@ function esErrorRed(e) {
   return esErrorRedBase(e) || /ha tardado demasiado|tiempo agotado|timeout|timed out/i.test(String((e && (e.message || e)) || ''));
 }
 // @ts-check
+/** Idioma de la persona (v2.43.0): 'es' mientras no elija otro. */
+let IDIOMA = 'es';
 // nucleo/idioma.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -3034,7 +3036,11 @@ const isoLocal = d => { const x = new Date(d.getTime() - d.getTimezoneOffset() *
 
 const hoyISO = () => isoLocal(new Date());
 
-let fechaLarga = d => d.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
+/** «sábado, 24 de octubre» en el idioma elegido por la persona (v2.43.0). */
+function fechaLarga(d) {
+  return IDIOMA === 'es' ? d.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })
+    : new Date(d).toLocaleDateString(LOCALES[IDIOMA], { weekday: 'long', day: 'numeric', month: 'long' });
+}
 
 const fechaCorta = s => { const d = new Date(s + 'T00:00:00'); return d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }); };
 
@@ -27357,7 +27363,7 @@ TIPOS_NOTIF.push(
 
 /* ---------------- idiomas ---------------- */
 
-let IDIOMA = 'es', MAPA_I18N = null;
+let MAPA_I18N = null;   // (IDIOMA está en nucleo/idioma.js)
 let TR_PEND = new Set(), TR_RAF = 0;
 new MutationObserver(ms => {
   if (!MAPA_I18N) return;
@@ -27366,7 +27372,6 @@ new MutationObserver(ms => {
   TR_RAF = 1; queueMicrotask(() => { TR_RAF = 0; const l = [...TR_PEND]; TR_PEND.clear(); l.forEach(n => n.isConnected && traducir(n)); });
 }).observe(document.body, { childList: true, subtree: true });
 // Fechas en el idioma elegido
-fechaLarga = (orig => function (d) { return IDIOMA === 'es' ? orig(d) : new Date(d).toLocaleDateString(LOCALES[IDIOMA], { weekday: 'long', day: 'numeric', month: 'long' }); })(fechaLarga);
 prepararIdioma((() => { try { return localStorage.getItem('app-idioma') || 'es'; } catch (e) { return 'es'; } })());
 if (MAPA_I18N) traducir(document.body);
 // Selector de idioma en Mi perfil

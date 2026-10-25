@@ -45,7 +45,11 @@ const isoLocal = d => { const x = new Date(d.getTime() - d.getTimezoneOffset() *
 
 const hoyISO = () => isoLocal(new Date());
 
-let fechaLarga = d => d.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
+/** «sábado, 24 de octubre» en el idioma elegido por la persona (v2.43.0). */
+function fechaLarga(d) {
+  return IDIOMA === 'es' ? d.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })
+    : new Date(d).toLocaleDateString(LOCALES[IDIOMA], { weekday: 'long', day: 'numeric', month: 'long' });
+}
 
 const fechaCorta = s => { const d = new Date(s + 'T00:00:00'); return d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }); };
 
