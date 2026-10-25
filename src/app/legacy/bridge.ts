@@ -96,6 +96,27 @@ export const legacyAgenda = {
   metrics: (): AgendaMetrics | null => AG_MET,
   setMetrics: (value: AgendaMetrics): void => { AG_MET = value; },
   /** Today's appointments as painted in «Tu día», and the day they were loaded for. */
-  dayAppointments: (): readonly { estado: string }[] => TD_CITAS,
+  dayAppointments: (): readonly AgendaAppointment[] => TD_CITAS,
   loadedDay: (): string | null => TD_ULTIMO?.fecha ?? null,
+};
+
+/** Suggestions of the shown day: accounts due a visit, pending ones from earlier days and colleagues in the same centre. */
+export const agendaSuggestions = {
+  forDay: (): typeof AG_SUG => AG_SUG,
+  pending: (): readonly PendingAppointment[] => AG_PEND ?? [],
+};
+
+/** Other screens reached from Agenda. */
+export const agendaActions = {
+  openAccount: (id: string): void => { void abrirFicha(id); },
+  openCentre: (id: string): void => { void fichaCentro(id); },
+  newAppointment: (accountId: string, isoDate: string | null): void => { void nuevaCita(accountId, isoDate); },
+  planRoute: (list: readonly DueAccount[], button: HTMLElement): void => { void planDesdeLista(list, 'toca', button); },
+  reschedule: (list: readonly PendingAppointment[], title: string, text: string): void => { void reprogramarCitas(list, title, text); },
+};
+
+/** The side panel (#tools) remembers what it shows so it can be painted again after a change. */
+export const sidePanel = {
+  context: (): string | null => HERR_CTX,
+  setContext: (value: string): void => { HERR_CTX = value; },
 };

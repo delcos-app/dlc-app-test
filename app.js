@@ -82,6 +82,7 @@
   }
   var range = (length) => [...Array(length).keys()];
   var sum = (values) => values.reduce((total, value) => total + value, 0);
+  var isPresent = (value) => value !== null && value !== void 0;
 
   // src/app/core/navigation/steps-outer.ts
   var PORTAL_SCREENS = ["informe", "config", "perfil"];
@@ -490,7 +491,8 @@
       locale: "es-ES",
       monthsLong: "enero,febrero,marzo,abril,mayo,junio,julio,agosto,septiembre,octubre,noviembre,diciembre",
       /** Weekday initials from Monday */
-      weekdayLetters: "L,M,X,J,V,S,D"
+      weekdayLetters: "L,M,X,J,V,S,D",
+      weekdaysLong: "lunes,martes,miércoles,jueves,viernes,sábado,domingo"
     },
     agenda: {
       month: {
@@ -511,6 +513,36 @@
         weekDetail: "{count} {visits} · media {average}/semana",
         closingsDetail: "{count} cierres con éxito hoy · media {average}/día",
         toVisitDetail: "{urgent} urgentes · {noVisit} sin {visit} en 60 días"
+      },
+      trays: {
+        due: "Les toca {visit}",
+        dueText: "Según la frecuencia objetivo de cada {professional}. Añádelos a este día o planifica una ruta con ellos.",
+        pending: "Pendientes de días anteriores",
+        pendingShort: "Pendientes anteriores",
+        pendingText: "Los planificaste y no se visitaron. Muévelos a hoy o descártalos.",
+        daysWithout: "{days} días sin {visit}",
+        neverVisited: "nunca visitado",
+        card: "Ficha",
+        addAppointment: "+ Cita",
+        moveToToday: "Mover a hoy",
+        discard: "Descartar",
+        planRoute: "Planificar ruta",
+        rescheduleAll: "Reprogramar todas",
+        notVisited: "{count} sin visitar",
+        nothingPending: "Nada pendiente."
+      },
+      sameCentre: {
+        title: "En este centro también",
+        seeCentre: "Ver el centro ›",
+        openCentre: "Abrir la ficha del centro",
+        addAppointment: "Añadir una cita · {reason}",
+        seeCard: "Ver su ficha",
+        missing: " · falta: {fields}",
+        morning: "Por la mañana",
+        afternoon: "Por la tarde",
+        otherDay: "Otro día",
+        noTimetable: "Sin horario",
+        andMore: "y {count} más"
       }
     },
     home: {
@@ -646,9 +678,15 @@
   var agenda_exports = {};
   __export(agenda_exports, {
     closeMonth: () => closeMonth,
+    dueList: () => dueList,
+    groupByAttendance: () => groupByAttendance,
     metricsHtml: () => metricsHtml,
+    openTray: () => openTray,
+    paintSameCentre: () => paintSameCentre,
+    paintTrayButtons: () => paintTrayButtons,
     refreshMetrics: () => refreshMetrics,
     refreshOpenMonth: () => refreshOpenMonth,
+    refreshOpenTray: () => refreshOpenTray,
     reloadMetrics: () => reloadMetrics,
     renderMonth: () => renderMonth,
     toggleMonth: () => toggleMonth
@@ -739,6 +777,33 @@
     dayAppointments: () => TD_CITAS,
     loadedDay: () => TD_ULTIMO?.fecha ?? null
   };
+  var agendaSuggestions = {
+    forDay: () => AG_SUG,
+    pending: () => AG_PEND ?? []
+  };
+  var agendaActions = {
+    openAccount: (id) => {
+      void abrirFicha(id);
+    },
+    openCentre: (id) => {
+      void fichaCentro(id);
+    },
+    newAppointment: (accountId, isoDate) => {
+      void nuevaCita(accountId, isoDate);
+    },
+    planRoute: (list, button) => {
+      void planDesdeLista(list, "toca", button);
+    },
+    reschedule: (list, title, text) => {
+      void reprogramarCitas(list, title, text);
+    }
+  };
+  var sidePanel = {
+    context: () => HERR_CTX,
+    setContext: (value) => {
+      HERR_CTX = value;
+    }
+  };
 
   // src/app/services/dates.ts
   function toIsoDate(date) {
@@ -783,6 +848,9 @@
   }
   function formatEuros(value) {
     return `${Math.round(Number(value) || 0).toLocaleString("es-ES")} €`;
+  }
+  function looseText(text) {
+    return String(text ?? "").normalize("NFD").replace(/\p{M}/gu, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
   }
 
   // src/app/screens/agenda/month-calendar.ts
@@ -994,6 +1062,216 @@
     if (!data || !legacyAgenda.isDayView()) return;
     legacyAgenda.setMetrics(data);
     refreshMetrics();
+  }
+
+  // src/app/services/geo.ts
+  var EARTH_RADIUS_KM = 6371;
+  function distanceKm(from, to) {
+    const radians = Math.PI / 180;
+    const latitudeDelta = (to[0] - from[0]) * radians, longitudeDelta = (to[1] - from[1]) * radians;
+    const chord = Math.sin(latitudeDelta / 2) ** 2 + Math.cos(from[0] * radians) * Math.cos(to[0] * radians) * Math.sin(longitudeDelta / 2) ** 2;
+    return 2 * EARTH_RADIUS_KM * Math.asin(Math.sqrt(chord));
+  }
+
+  // src/app/screens/agenda/same-centre.ts
+  var NEAR_KM = 0.2;
+  var SHOWN_PEOPLE = 6;
+  var MAX_DAYS_LISTED = 3;
+  var LETTERS_FROM_SUNDAY = "DLMXJVS";
+  var LETTERS_FROM_MONDAY = "LMXJVSD";
+  var AFTERNOON_HOUR = 14;
+  function attendsInAfternoon(timetable) {
+    const hour = Number.parseInt(/(\d{1,2})(?::\d{2})?/.exec(timetable)?.[1] ?? "", 10);
+    return /tarde/i.test(timetable) || !/ma[ñn]ana/i.test(timetable) && hour >= AFTERNOON_HOUR;
+  }
+  function groupByAttendance(people, isoDate) {
+    const letter = LETTERS_FROM_SUNDAY[fromIsoDate(isoDate).getDay()] ?? "";
+    const morning = [], afternoon = [], otherDay = [], noTimetable = [];
+    const otherDays = /* @__PURE__ */ new Set();
+    people.forEach((person) => {
+      const days = person.dias ?? {}, today = days[letter], withTimetable = Object.keys(days).filter((key) => days[key]);
+      if (!withTimetable.length) noTimetable.push(person);
+      else if (!today) {
+        otherDay.push(person);
+        withTimetable.forEach((key) => otherDays.add(key));
+      } else (attendsInAfternoon(today) ? afternoon : morning).push(person);
+    });
+    const names = t("dates.weekdaysLong").split(",");
+    const listed = [...LETTERS_FROM_MONDAY].map((key, index) => otherDays.has(key) ? names[index] : void 0).filter((name) => Boolean(name));
+    const otherTitle = t("agenda.sameCentre.otherDay") + (listed.length && listed.length <= MAX_DAYS_LISTED ? ` (${listed.join(", ")})` : "");
+    return [
+      { title: t("agenda.sameCentre.morning"), people: morning },
+      { title: t("agenda.sameCentre.afternoon"), people: afternoon },
+      { title: otherTitle, people: otherDay },
+      { title: t("agenda.sameCentre.noTimetable"), people: noTimetable }
+    ].filter((group) => group.people.length);
+  }
+  var toNumber = (value) => Number(value);
+  function isSameCentre(group, appointment) {
+    if (isPresent(group.lat) && isPresent(appointment.lat)) {
+      return distanceKm([toNumber(group.lat), toNumber(group.lon)], [toNumber(appointment.lat), toNumber(appointment.lon)]) <= NEAR_KM;
+    }
+    return Boolean(group.centro_nombre && appointment.centro_nombre && looseText(group.centro_nombre) === looseText(appointment.centro_nombre));
+  }
+  function personChip(person) {
+    const missing = person.falta?.length ? t("agenda.sameCentre.missing", { fields: person.falta.join(", ") }) : "";
+    const title = person.visitar ? t("agenda.sameCentre.addAppointment", { reason: person.visitar }) : t("agenda.sameCentre.seeCard") + missing;
+    return `<button type="button" data-agti="${person.id}" data-agtv="${person.visitar ? 1 : ""}" title="${escapeHtml(title)}">${person.visitar ? "<i>+</i> " : ""}${escapeHtml(person.nombre)}</button>`;
+  }
+  function blockHtml(group, people, isoDate) {
+    const chips = groupByAttendance(people.slice(0, SHOWN_PEOPLE), isoDate).map(({ title, people: list }) => `<div class="agtambg"><span class="agtambgt">${escapeHtml(title)}</span><div class="agtambl">${list.map(personChip).join("")}</div></div>`).join("") + (people.length > SHOWN_PEOPLE ? `<span class="sm">${t("agenda.sameCentre.andMore", { count: people.length - SHOWN_PEOPLE })}</span>` : "");
+    const centre = group.centro_id ? escapeHtml(group.centro_id) : "";
+    const opener = centre ? ` data-agtc="${centre}" role="button" tabindex="0" title="${t("agenda.sameCentre.openCentre")}"` : "";
+    return `<div class="agtamb${centre ? " agtambc" : ""}"${opener}><div class="agtambh">${icon("map-pin")} ${t("agenda.sameCentre.title")}${centre ? `<span class="agtambver">${t("agenda.sameCentre.seeCentre")}</span>` : ""}</div>${chips}</div>`;
+  }
+  function withAppointmentToday() {
+    return new Set(legacyAgenda.dayAppointments().filter((item) => !appointments.isCancelled(item.estado)).map((item) => item.cuenta_id));
+  }
+  function paintSameCentre() {
+    const body = document.getElementById("agcuerpo"), suggestions = agendaSuggestions.forDay(), isoDate = legacyAgenda.selectedDate();
+    if (!body || !suggestions || !isoDate || suggestions.fecha !== isoDate) return;
+    body.querySelectorAll(".agtamb").forEach((element) => {
+      element.remove();
+    });
+    const cards = [...body.querySelectorAll(".tdu[data-tdu]")];
+    if (!cards.length) return;
+    const byId = new Map(legacyAgenda.dayAppointments().map((item) => [String(item.id), item]));
+    const already = withAppointmentToday(), used = /* @__PURE__ */ new Set();
+    suggestions.centros.forEach((group) => {
+      const people = (group.cuentas ?? group.medicos ?? []).filter((person) => !already.has(person.id));
+      if (!people.length) return;
+      const card = cards.find((element) => {
+        const appointment = byId.get(element.dataset.tdu ?? "");
+        return appointment !== void 0 && !used.has(element) && isSameCentre(group, appointment);
+      });
+      if (!card) return;
+      used.add(card);
+      (card.querySelector(".tdu-pie") ?? card.lastElementChild)?.insertAdjacentHTML("beforebegin", blockHtml(group, people, isoDate));
+    });
+  }
+  function listenToSameCentre() {
+    document.addEventListener("click", (event) => {
+      const target = event.target instanceof Element ? event.target : null;
+      const person = target?.closest("#agcuerpo .agtamb [data-agti]");
+      if (person) {
+        event.stopPropagation();
+        if (person.dataset.agtv) agendaActions.newAppointment(person.dataset.agti ?? "", legacyAgenda.selectedDate());
+        else agendaActions.openAccount(person.dataset.agti ?? "");
+        return;
+      }
+      const block = target?.closest("#agcuerpo .agtamb[data-agtc]");
+      if (block) {
+        event.stopPropagation();
+        agendaActions.openCentre(block.dataset.agtc ?? "");
+      }
+    }, true);
+    document.addEventListener("keydown", (event) => {
+      const block = event.target instanceof Element ? event.target.closest("#agcuerpo .agtamb[data-agtc]") : null;
+      if (block && event.target === block && (event.key === "Enter" || event.key === " ")) {
+        event.preventDefault();
+        agendaActions.openCentre(block.dataset.agtc ?? "");
+      }
+    });
+  }
+
+  // src/app/screens/agenda/trays.ts
+  var CONTEXT_PREFIX = "agband-";
+  var ROUTES_MOUNT_MS = 60;
+  function dueList() {
+    const suggestions = agendaSuggestions.forDay();
+    if (!suggestions || suggestions.fecha !== legacyAgenda.selectedDate()) return [];
+    const already = withAppointmentToday();
+    return suggestions.toca.filter((account) => !already.has(account.id ?? account.cuenta_id));
+  }
+  function putBackToTodayFirst(actions) {
+    const backToToday = document.getElementById("agahoy");
+    if (backToToday && !matchMedia("(min-width: 761px)").matches && actions.firstElementChild !== backToToday) actions.prepend(backToToday);
+  }
+  function trayButtonsHtml(due, pending, inActions) {
+    const pendingLabel = t(inActions ? "agenda.trays.pendingShort" : "agenda.trays.pending");
+    return `<div class="agband${inActions ? " agbandin" : ""}" id="agband">` + (due ? `<button type="button" data-agbd="toca">${icon("target")} ${t("agenda.trays.due", { visit: term("visita") })} <b>${due}</b></button>` : "") + (pending ? `<button type="button" class="urg" data-agbd="pend">${icon("circle-alert")} ${pendingLabel} <b>${pending}</b></button>` : "") + "</div>";
+  }
+  function paintTrayButtons() {
+    const header = document.querySelector("#agcuerpo .tdhead");
+    if (!header) return;
+    document.getElementById("agband")?.remove();
+    const due = dueList().length, pending = agendaSuggestions.pending().length;
+    const actions = document.querySelector("#agcuerpo .tdhead .acts");
+    if (actions) putBackToTodayFirst(actions);
+    if (!due && !pending) return;
+    const html = trayButtonsHtml(due, pending, Boolean(actions));
+    if (actions) actions.insertAdjacentHTML("beforeend", html);
+    else header.insertAdjacentHTML("afterend", html);
+    document.getElementById("agband")?.querySelectorAll("[data-agbd]").forEach((button) => {
+      button.onclick = () => {
+        openTray(button.dataset.agbd === "toca" ? "toca" : "pend");
+      };
+    });
+  }
+  function dueRow(account) {
+    const visit = term("visita"), id = account.id ?? "";
+    const days = isPresent(account.dias_sin_visita) ? t("agenda.trays.daysWithout", { days: account.dias_sin_visita, visit }) : t("agenda.trays.neverVisited");
+    return `<div class="item" style="cursor:default"><span class="ic">${icon("target")}</span>
+        <span class="tx"><b>${escapeHtml(account.nombre)}</b><span class="sm">${escapeHtml([account.estado_comercial, days, account.municipio].filter(Boolean).join(" · "))}</span></span>
+        <span class="acts" style="margin:0"><button class="btn sec" data-agbf="${id}">${t("agenda.trays.card")}</button><button class="btn sec" data-agbc="${id}">${t("agenda.trays.addAppointment")}</button></span></div>`;
+  }
+  function pendingRow(item) {
+    return `<div class="item" style="cursor:default"><span class="ic w">!</span>
+        <span class="tx"><b>${escapeHtml(item.nombre)}</b><span class="sm">${formatShortDate(item.fecha)}${item.centro_nombre ? ` · ${escapeHtml(item.centro_nombre)}` : ""}</span></span>
+        <span class="acts" style="margin:0"><button class="btn sec" data-cita="hoy|${item.id}">${t("agenda.trays.moveToToday")}</button><button class="btn sec" data-cita="desc|${item.id}">${t("agenda.trays.discard")}</button></span></div>`;
+  }
+  function trayHtml(tray, due, pending) {
+    const isDue = tray === "toca";
+    const title = isDue ? t("agenda.trays.due", { visit: term("visita") }) : t("agenda.trays.pending");
+    const text = isDue ? t("agenda.trays.dueText", { professional: term("medico") }) : t("agenda.trays.pendingText");
+    const action = isDue ? due.some((account) => account.lat) ? `<button class="btn sec" id="agbruta">${t("agenda.trays.planRoute")}</button>` : "" : pending.length ? `<button class="btn sec" id="agbrepro">${t("agenda.trays.rescheduleAll")}</button>` : "";
+    const rows = isDue ? due.map(dueRow).join("") : pending.map(pendingRow).join("");
+    return `<div class="tbox"><div class="fh"><h2>${escapeHtml(title)}</h2><button class="x" id="tclose" aria-label="${t("common.close")}">✕</button></div><p class="sm">${escapeHtml(text)}</p>
+    <div class="acts" style="margin:8px 0">${action}</div>
+    <div class="agbdc"><div class="lista">${rows || `<div class="vacio">${t("agenda.trays.nothingPending")}</div>`}</div></div></div>`;
+  }
+  function bindTray(panel, due, pending) {
+    const close = () => {
+      panel.classList.remove("abierto");
+    };
+    const closeButton = document.getElementById("tclose");
+    if (closeButton) closeButton.onclick = close;
+    panel.querySelectorAll("[data-agbf]").forEach((button) => {
+      button.onclick = () => {
+        agendaActions.openAccount(button.dataset.agbf ?? "");
+      };
+    });
+    panel.querySelectorAll("[data-agbc]").forEach((button) => {
+      button.onclick = () => {
+        agendaActions.newAppointment(button.dataset.agbc ?? "", legacyAgenda.selectedDate());
+      };
+    });
+    const route = document.getElementById("agbruta");
+    if (route) route.onclick = () => {
+      close();
+      goTo("rutas");
+      setTimeout(() => {
+        agendaActions.planRoute(due, route);
+      }, ROUTES_MOUNT_MS);
+    };
+    const reschedule = document.getElementById("agbrepro");
+    if (reschedule) reschedule.onclick = () => {
+      agendaActions.reschedule(pending, t("agenda.trays.pending"), t("agenda.trays.notVisited", { count: pending.length }));
+    };
+  }
+  function openTray(tray) {
+    if (!legacyAgenda.isDayView()) return;
+    const panel = document.getElementById("tools");
+    if (!panel) return;
+    const due = tray === "toca" ? dueList() : [], pending = tray === "pend" ? agendaSuggestions.pending() : [];
+    panel.innerHTML = trayHtml(tray, due, pending);
+    bindTray(panel, due, pending);
+    sidePanel.setContext(CONTEXT_PREFIX + tray);
+    panel.classList.add("abierto");
+  }
+  function refreshOpenTray() {
+    const context = sidePanel.context() ?? "";
+    if (document.getElementById("tools")?.classList.contains("abierto") && context.startsWith(CONTEXT_PREFIX)) openTray(context.slice(CONTEXT_PREFIX.length) === "toca" ? "toca" : "pend");
   }
 
   // src/app/screens/home/indicators/chart-tools.ts
@@ -1691,6 +1969,7 @@
       agenda: agenda_exports
     }
   };
+  listenToSameCentre();
 })();
 // @ts-check
 // nucleo/dispositivo.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
@@ -7485,50 +7764,6 @@ function tdAnimar(antes, id, dur = 300) {
 }
 
 // ---- Pastillas: las cifras de agenda_metricas
-// «En este centro también»: cada centro de sugerencias_centros va en la primera cita del día que está allí (a menos de 200 m)
-function agTamb() {
-  const cuerpo = $('agcuerpo'); if (!cuerpo || !AG_SUG || AG_SUG.fecha !== AG_FECHA) return;
-  cuerpo.querySelectorAll('.agtamb').forEach(x => x.remove());
-  const tarjetas = [...cuerpo.querySelectorAll('.tdu[data-tdu]')]; if (!tarjetas.length) return;
-  const cita = id => (TD_CITAS || []).find(c => String(c.id) === String(id));
-  const ya = agConCitaHoy(), usadas = new Set();
-  AG_SUG.centros.forEach(g => {
-    const gente = (g.cuentas || g.medicos || []).filter(m => !ya.has(m.id)); if (!gente.length) return;
-    const t = tarjetas.find(x => {
-      const c = cita(x.dataset.tdu); if (!c || usadas.has(x)) return false;
-      if (g.lat != null && c.lat != null) return km([+g.lat, +g.lon], [+c.lat, +c.lon]) <= 0.2;
-      return g.centro_nombre && c.centro_nombre && agImp(g.centro_nombre) === agImp(c.centro_nombre);
-    });
-    if (!t) return;
-    usadas.add(t);
-    // v2.303: agrupados por cuándo atienden en ese centro el día de la cita (mañana, tarde, otro día); con más de 6, los primeros
-    const chip = m => `<button type="button" data-agti="${m.id}" data-agtv="${m.visitar ? 1 : ''}" title="${esc(m.visitar ? 'Añadir una cita · ' + m.visitar : 'Ver su ficha' + (m.falta && m.falta.length ? ' · falta: ' + m.falta.join(', ') : ''))}">${m.visitar ? '<i>+</i> ' : ''}${esc(m.nombre)}</button>`;
-    const grupos = agTambGrupos(gente.slice(0, 6), AG_FECHA);
-    const chips = grupos.map(([t2, l]) => `<div class="agtambg"><span class="agtambgt">${esc(t2)}</span><div class="agtambl">${l.map(chip).join('')}</div></div>`).join('')
-      + (gente.length > 6 ? `<span class="sm">y ${gente.length - 6} más</span>` : '');
-    const pie = t.querySelector('.tdu-pie') || t.lastElementChild;
-    pie.insertAdjacentHTML('beforebegin', `<div class="agtamb${g.centro_id ? ' agtambc' : ''}"${g.centro_id ? ` data-agtc="${esc(g.centro_id)}" role="button" tabindex="0" title="Abrir la ficha del centro"` : ''}><div class="agtambh">${svgIco(ICON_NOM['map-pin'])} En este centro también${g.centro_id ? '<span class="agtambver">Ver el centro ›</span>' : ''}</div>${chips}</div>`);
-  });
-}
-
-// Mañana / tarde / otro día según el horario de su consulta (ubicaciones.dias: {"L": "Mañana 10:00-13:00", "X": "16-19"…})
-function agTambGrupos(gente, fecha) {
-  const letra = 'DLMXJVS'[new Date(fecha + 'T12:00:00').getDay()], NOM = { L: 'lunes', M: 'martes', X: 'miércoles', J: 'jueves', V: 'viernes', S: 'sábado', D: 'domingo' };
-  const g = { m: [], t: [], o: [], s: [] }, otros = new Set();
-  gente.forEach(m => {
-    const d = m.dias || {}, hoy = d[letra], ks = Object.keys(d).filter(k => d[k]);
-    if (!ks.length) { g.s.push(m); return; }
-    if (!hoy) { g.o.push(m); ks.forEach(k => otros.add(k)); return; }
-    const h = parseInt((String(hoy).match(/(\d{1,2})(?::\d{2})?/) || [])[1], 10);
-    (/tarde/i.test(hoy) || (!/ma[ñn]ana/i.test(hoy) && h >= 14) ? g.t : g.m).push(m);
-  });
-  const dOtros = 'LMXJVSD'.split('').filter(k => otros.has(k)).map(k => NOM[k]);
-  return [['Por la mañana', g.m], ['Por la tarde', g.t], ['Otro día' + (dOtros.length && dOtros.length <= 3 ? ' (' + dOtros.join(', ') + ')' : ''), g.o], ['Sin horario', g.s]].filter(([, l]) => l.length);
-}
-
-// Bandejas bajo la cabecera de «Tu día»
-function agTocaLista() { const ya = agConCitaHoy(); return AG_SUG && AG_SUG.fecha === AG_FECHA ? AG_SUG.toca.filter(m => !ya.has(m.id || m.cuenta_id)) : []; }
-
 function agCargaRango(d, h, u, clave) {
   const k = agK('agenda_rango', d, h, u); if (AG_PRE.has(k)) return null;
   return rpcCache('agenda_rango', { p_desde: d, p_hasta: h, p_usuario: u }, clave).then(r => { AG_PRE.set(k, r); });
@@ -7627,7 +7862,7 @@ async function agCargarDia() {
     if (mismo) window.scrollTo(0, y);
     v.dataset.listo = '1';
     // Si una bandeja estaba abierta (p. ej. tras «Mover a hoy»), se repinta con lo nuevo
-    if ($('tools') && $('tools').classList.contains('abierto') && /^agband-/.test(typeof HERR_CTX !== 'undefined' && HERR_CTX || '')) agBandeja(HERR_CTX.slice(7));
+    window.delcos.screens.agenda.refreshOpenTray();
   });
 }
 
@@ -7662,37 +7897,11 @@ function agCifrasQuietas() {
     if (AG_FECHA !== f || !agN()) return;
     agPonerSug(f, s);
     await Promise.all([agCinta(), agSemanaLateral()]);
-    agTamb(); agBandejas();
+    window.delcos.screens.agenda.paintSameCentre(); window.delcos.screens.agenda.paintTrayButtons();
   });
   window.delcos.screens.agenda.refreshOpenMonth();
 }
 
-function agBandeja(k) {
-  if (!agN()) return;
-  const d = $('tools'); if (!d) return;
-  const toca = k === 'toca';
-  const l = toca ? agTocaLista() : (AG_PEND || []);
-  const vis = TT('visita', 's', '', 'l', 'l');
-  const tit = toca ? `Les toca ${vis}` : 'Pendientes de días anteriores';
-  const txt = toca ? `Según la frecuencia objetivo de cada ${TT('medico', 's', '', 'l', 'l')}. Añádelos a este día o planifica una ruta con ellos.` : 'Los planificaste y no se visitaron. Muévelos a hoy o descártalos.';
-  const fila = m => toca
-    ? `<div class="item" style="cursor:default"><span class="ic">${svgIco(ICON_NOM.target)}</span>
-        <span class="tx"><b>${esc(m.nombre)}</b><span class="sm">${esc([m.estado_comercial, m.dias_sin_visita != null ? m.dias_sin_visita + ` días sin ${vis}` : 'nunca visitado', m.municipio].filter(Boolean).join(' · '))}</span></span>
-        <span class="acts" style="margin:0"><button class="btn sec" data-agbf="${m.id}">Ficha</button><button class="btn sec" data-agbc="${m.id}">+ Cita</button></span></div>`
-    : `<div class="item" style="cursor:default"><span class="ic w">!</span>
-        <span class="tx"><b>${esc(m.nombre)}</b><span class="sm">${fechaCorta(m.fecha)}${m.centro_nombre ? ' · ' + esc(m.centro_nombre) : ''}</span></span>
-        <span class="acts" style="margin:0"><button class="btn sec" data-cita="hoy|${m.id}">Mover a hoy</button><button class="btn sec" data-cita="desc|${m.id}">Descartar</button></span></div>`;
-  d.innerHTML = `<div class="tbox"><div class="fh"><h2>${esc(tit)}</h2><button class="x" id="tclose" aria-label="Cerrar">✕</button></div><p class="sm">${esc(txt)}</p>
-    <div class="acts" style="margin:8px 0">${toca && l.some(m => m.lat) ? '<button class="btn sec" id="agbruta">Planificar ruta</button>' : ''}${!toca && l.length ? '<button class="btn sec" id="agbrepro">Reprogramar todas</button>' : ''}</div>
-    <div class="agbdc"><div class="lista">${l.map(fila).join('') || '<div class="vacio">Nada pendiente.</div>'}</div></div></div>`;
-  $('tclose').onclick = () => d.classList.remove('abierto');
-  d.querySelectorAll('[data-agbf]').forEach(b => b.onclick = () => abrirFicha(b.dataset.agbf));
-  d.querySelectorAll('[data-agbc]').forEach(b => b.onclick = () => nuevaCita(b.dataset.agbc, AG_FECHA));
-  if ($('agbruta')) $('agbruta').onclick = async e => { const bt = e.currentTarget; d.classList.remove('abierto'); ir('rutas'); await new Promise(r => setTimeout(r, 60)); planDesdeLista(l, 'toca', bt); };
-  if ($('agbrepro')) $('agbrepro').onclick = () => reprogramarCitas(l, 'Pendientes de días anteriores', `${l.length} sin visitar`);
-  if (typeof HERR_CTX !== 'undefined') HERR_CTX = 'agband-' + k;
-  d.classList.add('abierto');
-}
 
 // Con tiempos reales del día, cada tramo conocido usa su tiempo con tráfico; el resto, la estimación de siempre (minutosEntre es
 // una constante: estimarDiaBase llama a tdMinutos, cambiado en su sitio)
@@ -7903,9 +8112,7 @@ const tdHm = h => esc(String(h).slice(0, 5));
 const agN = () => agConCinta() && $('v-agenda').classList.contains('agn');
 
 // Quién ya tiene cita ese día (no se le propone)
-const agConCitaHoy = () => new Set((TD_CITAS || []).filter(c => !citaAnulada(c.estado)).map(c => c.cuenta_id));
 
-const agImp = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
 
 // Subir o bajar una cita no recarga la Agenda aunque otra pantalla (Inicio pide las citas de hoy) haya pedido otro día entretanto:
 // se guarda lo último de cada día y se usa el del día que se ve
@@ -8112,14 +8319,6 @@ async function agSemanaLateralBase() {
   if ($('agslrep')) $('agslrep').onclick = agRepartirSemana;
 }
 
-function agBandejasBase() {
-  const head = document.querySelector('#agcuerpo .tdhead'); if (!head) return;
-  const old = $('agband'); if (old) old.remove();
-  const nToca = agTocaLista().length, nPend = (AG_PEND || []).length;
-  if (!nToca && !nPend) return;
-  head.insertAdjacentHTML('afterend', `<div class="agband" id="agband">${nToca ? `<button type="button" data-agbd="toca">${svgIco(ICON_NOM.target)} Les toca ${TT('visita', 's', '', 'l', 'l')} <b>${nToca}</b></button>` : ''}${nPend ? `<button type="button" class="urg" data-agbd="pend">${svgIco(ICON_NOM['circle-alert'] || ICON_NOM.info)} Pendientes de días anteriores <b>${nPend}</b></button>` : ''}</div>`);
-  $('agband').querySelectorAll('[data-agbd]').forEach(b => b.onclick = () => agBandeja(b.dataset.agbd));
-}
 
 // El título conserva «· agenda de …» al ver la de otra persona (agMarcarDia lo dejaba en «Hoy · …»)
 function agMarcarDia(...a) {
@@ -8159,17 +8358,6 @@ async function empezarJornada(...a) {
   return r;
 }
 
-function agBandejas(...x) {
-  const r = agBandejasBase.apply(this, x);
-  const b = $('agband'), acts = document.querySelector('#agcuerpo .tdhead .acts');
-  // v2.338.0 (Eric): en el móvil también en una fila (antes, cada uno en la suya); «Volver a hoy» va delante
-  const hoy = $('agahoy'); if (hoy && acts && !matchMedia('(min-width: 761px)').matches && acts.firstElementChild !== hoy) acts.prepend(hoy);
-  if (b && acts) {
-    b.classList.add('agbandin'); acts.appendChild(b);
-    b.querySelectorAll('button').forEach(x => x.childNodes.forEach(n => { if (n.nodeType === 3 && /días anteriores/.test(n.textContent)) n.textContent = n.textContent.replace('de días anteriores', 'anteriores'); }));
-  }
-  return r;
-}
 
 async function accionCitaBase(k, c) {
   const refrescar = () => agRefrescoQuieto(c.id);
@@ -8390,7 +8578,7 @@ async function pintarTuDiaBase() {
     if (AG_FECHA !== f || !agConCinta()) return;
     agPonerSug(f, s);
     await tdPintar();
-    if (agN()) { agTamb(); agBandejas(); }
+    if (agN()) { window.delcos.screens.agenda.paintSameCentre(); window.delcos.screens.agenda.paintTrayButtons(); }
   });
 }
 
@@ -30732,16 +30920,7 @@ let AG_MET = null, AG_SUG = null, AG_PEND = null;
 
 
 
-document.addEventListener('click', e => {
-  const b = e.target.closest('#agcuerpo .agtamb[data-agtc]'); if (!b || e.target.closest('[data-agti]')) return;
-  e.stopPropagation(); fichaCentro(b.dataset.agtc);
-}, true);
-document.addEventListener('keydown', e => { const b = e.target.closest && e.target.closest('#agcuerpo .agtamb[data-agtc]'); if (b && e.target === b && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); fichaCentro(b.dataset.agtc); } });
-document.addEventListener('click', e => {
-  const b = e.target.closest('#agcuerpo .agtamb [data-agti]'); if (!b) return;
-  e.stopPropagation();
-  if (b.dataset.agtv) nuevaCita(b.dataset.agti, AG_FECHA); else abrirFicha(b.dataset.agti);
-}, true);
+// Los clics de «En este centro también» están en src/app/screens/agenda/same-centre.ts (v2.391.0)
 
 
 

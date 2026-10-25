@@ -539,50 +539,6 @@ function tdAnimar(antes, id, dur = 300) {
 }
 
 // ---- Pastillas: las cifras de agenda_metricas
-// «En este centro también»: cada centro de sugerencias_centros va en la primera cita del día que está allí (a menos de 200 m)
-function agTamb() {
-  const cuerpo = $('agcuerpo'); if (!cuerpo || !AG_SUG || AG_SUG.fecha !== AG_FECHA) return;
-  cuerpo.querySelectorAll('.agtamb').forEach(x => x.remove());
-  const tarjetas = [...cuerpo.querySelectorAll('.tdu[data-tdu]')]; if (!tarjetas.length) return;
-  const cita = id => (TD_CITAS || []).find(c => String(c.id) === String(id));
-  const ya = agConCitaHoy(), usadas = new Set();
-  AG_SUG.centros.forEach(g => {
-    const gente = (g.cuentas || g.medicos || []).filter(m => !ya.has(m.id)); if (!gente.length) return;
-    const t = tarjetas.find(x => {
-      const c = cita(x.dataset.tdu); if (!c || usadas.has(x)) return false;
-      if (g.lat != null && c.lat != null) return km([+g.lat, +g.lon], [+c.lat, +c.lon]) <= 0.2;
-      return g.centro_nombre && c.centro_nombre && agImp(g.centro_nombre) === agImp(c.centro_nombre);
-    });
-    if (!t) return;
-    usadas.add(t);
-    // v2.303: agrupados por cuándo atienden en ese centro el día de la cita (mañana, tarde, otro día); con más de 6, los primeros
-    const chip = m => `<button type="button" data-agti="${m.id}" data-agtv="${m.visitar ? 1 : ''}" title="${esc(m.visitar ? 'Añadir una cita · ' + m.visitar : 'Ver su ficha' + (m.falta && m.falta.length ? ' · falta: ' + m.falta.join(', ') : ''))}">${m.visitar ? '<i>+</i> ' : ''}${esc(m.nombre)}</button>`;
-    const grupos = agTambGrupos(gente.slice(0, 6), AG_FECHA);
-    const chips = grupos.map(([t2, l]) => `<div class="agtambg"><span class="agtambgt">${esc(t2)}</span><div class="agtambl">${l.map(chip).join('')}</div></div>`).join('')
-      + (gente.length > 6 ? `<span class="sm">y ${gente.length - 6} más</span>` : '');
-    const pie = t.querySelector('.tdu-pie') || t.lastElementChild;
-    pie.insertAdjacentHTML('beforebegin', `<div class="agtamb${g.centro_id ? ' agtambc' : ''}"${g.centro_id ? ` data-agtc="${esc(g.centro_id)}" role="button" tabindex="0" title="Abrir la ficha del centro"` : ''}><div class="agtambh">${svgIco(ICON_NOM['map-pin'])} En este centro también${g.centro_id ? '<span class="agtambver">Ver el centro ›</span>' : ''}</div>${chips}</div>`);
-  });
-}
-
-// Mañana / tarde / otro día según el horario de su consulta (ubicaciones.dias: {"L": "Mañana 10:00-13:00", "X": "16-19"…})
-function agTambGrupos(gente, fecha) {
-  const letra = 'DLMXJVS'[new Date(fecha + 'T12:00:00').getDay()], NOM = { L: 'lunes', M: 'martes', X: 'miércoles', J: 'jueves', V: 'viernes', S: 'sábado', D: 'domingo' };
-  const g = { m: [], t: [], o: [], s: [] }, otros = new Set();
-  gente.forEach(m => {
-    const d = m.dias || {}, hoy = d[letra], ks = Object.keys(d).filter(k => d[k]);
-    if (!ks.length) { g.s.push(m); return; }
-    if (!hoy) { g.o.push(m); ks.forEach(k => otros.add(k)); return; }
-    const h = parseInt((String(hoy).match(/(\d{1,2})(?::\d{2})?/) || [])[1], 10);
-    (/tarde/i.test(hoy) || (!/ma[ñn]ana/i.test(hoy) && h >= 14) ? g.t : g.m).push(m);
-  });
-  const dOtros = 'LMXJVSD'.split('').filter(k => otros.has(k)).map(k => NOM[k]);
-  return [['Por la mañana', g.m], ['Por la tarde', g.t], ['Otro día' + (dOtros.length && dOtros.length <= 3 ? ' (' + dOtros.join(', ') + ')' : ''), g.o], ['Sin horario', g.s]].filter(([, l]) => l.length);
-}
-
-// Bandejas bajo la cabecera de «Tu día»
-function agTocaLista() { const ya = agConCitaHoy(); return AG_SUG && AG_SUG.fecha === AG_FECHA ? AG_SUG.toca.filter(m => !ya.has(m.id || m.cuenta_id)) : []; }
-
 function agCargaRango(d, h, u, clave) {
   const k = agK('agenda_rango', d, h, u); if (AG_PRE.has(k)) return null;
   return rpcCache('agenda_rango', { p_desde: d, p_hasta: h, p_usuario: u }, clave).then(r => { AG_PRE.set(k, r); });
@@ -681,7 +637,7 @@ async function agCargarDia() {
     if (mismo) window.scrollTo(0, y);
     v.dataset.listo = '1';
     // Si una bandeja estaba abierta (p. ej. tras «Mover a hoy»), se repinta con lo nuevo
-    if ($('tools') && $('tools').classList.contains('abierto') && /^agband-/.test(typeof HERR_CTX !== 'undefined' && HERR_CTX || '')) agBandeja(HERR_CTX.slice(7));
+    window.delcos.screens.agenda.refreshOpenTray();
   });
 }
 
@@ -716,37 +672,11 @@ function agCifrasQuietas() {
     if (AG_FECHA !== f || !agN()) return;
     agPonerSug(f, s);
     await Promise.all([agCinta(), agSemanaLateral()]);
-    agTamb(); agBandejas();
+    window.delcos.screens.agenda.paintSameCentre(); window.delcos.screens.agenda.paintTrayButtons();
   });
   window.delcos.screens.agenda.refreshOpenMonth();
 }
 
-function agBandeja(k) {
-  if (!agN()) return;
-  const d = $('tools'); if (!d) return;
-  const toca = k === 'toca';
-  const l = toca ? agTocaLista() : (AG_PEND || []);
-  const vis = TT('visita', 's', '', 'l', 'l');
-  const tit = toca ? `Les toca ${vis}` : 'Pendientes de días anteriores';
-  const txt = toca ? `Según la frecuencia objetivo de cada ${TT('medico', 's', '', 'l', 'l')}. Añádelos a este día o planifica una ruta con ellos.` : 'Los planificaste y no se visitaron. Muévelos a hoy o descártalos.';
-  const fila = m => toca
-    ? `<div class="item" style="cursor:default"><span class="ic">${svgIco(ICON_NOM.target)}</span>
-        <span class="tx"><b>${esc(m.nombre)}</b><span class="sm">${esc([m.estado_comercial, m.dias_sin_visita != null ? m.dias_sin_visita + ` días sin ${vis}` : 'nunca visitado', m.municipio].filter(Boolean).join(' · '))}</span></span>
-        <span class="acts" style="margin:0"><button class="btn sec" data-agbf="${m.id}">Ficha</button><button class="btn sec" data-agbc="${m.id}">+ Cita</button></span></div>`
-    : `<div class="item" style="cursor:default"><span class="ic w">!</span>
-        <span class="tx"><b>${esc(m.nombre)}</b><span class="sm">${fechaCorta(m.fecha)}${m.centro_nombre ? ' · ' + esc(m.centro_nombre) : ''}</span></span>
-        <span class="acts" style="margin:0"><button class="btn sec" data-cita="hoy|${m.id}">Mover a hoy</button><button class="btn sec" data-cita="desc|${m.id}">Descartar</button></span></div>`;
-  d.innerHTML = `<div class="tbox"><div class="fh"><h2>${esc(tit)}</h2><button class="x" id="tclose" aria-label="Cerrar">✕</button></div><p class="sm">${esc(txt)}</p>
-    <div class="acts" style="margin:8px 0">${toca && l.some(m => m.lat) ? '<button class="btn sec" id="agbruta">Planificar ruta</button>' : ''}${!toca && l.length ? '<button class="btn sec" id="agbrepro">Reprogramar todas</button>' : ''}</div>
-    <div class="agbdc"><div class="lista">${l.map(fila).join('') || '<div class="vacio">Nada pendiente.</div>'}</div></div></div>`;
-  $('tclose').onclick = () => d.classList.remove('abierto');
-  d.querySelectorAll('[data-agbf]').forEach(b => b.onclick = () => abrirFicha(b.dataset.agbf));
-  d.querySelectorAll('[data-agbc]').forEach(b => b.onclick = () => nuevaCita(b.dataset.agbc, AG_FECHA));
-  if ($('agbruta')) $('agbruta').onclick = async e => { const bt = e.currentTarget; d.classList.remove('abierto'); ir('rutas'); await new Promise(r => setTimeout(r, 60)); planDesdeLista(l, 'toca', bt); };
-  if ($('agbrepro')) $('agbrepro').onclick = () => reprogramarCitas(l, 'Pendientes de días anteriores', `${l.length} sin visitar`);
-  if (typeof HERR_CTX !== 'undefined') HERR_CTX = 'agband-' + k;
-  d.classList.add('abierto');
-}
 
 // Con tiempos reales del día, cada tramo conocido usa su tiempo con tráfico; el resto, la estimación de siempre (minutosEntre es
 // una constante: estimarDiaBase llama a tdMinutos, cambiado en su sitio)
@@ -957,9 +887,7 @@ const tdHm = h => esc(String(h).slice(0, 5));
 const agN = () => agConCinta() && $('v-agenda').classList.contains('agn');
 
 // Quién ya tiene cita ese día (no se le propone)
-const agConCitaHoy = () => new Set((TD_CITAS || []).filter(c => !citaAnulada(c.estado)).map(c => c.cuenta_id));
 
-const agImp = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
 
 // Subir o bajar una cita no recarga la Agenda aunque otra pantalla (Inicio pide las citas de hoy) haya pedido otro día entretanto:
 // se guarda lo último de cada día y se usa el del día que se ve
@@ -1166,14 +1094,6 @@ async function agSemanaLateralBase() {
   if ($('agslrep')) $('agslrep').onclick = agRepartirSemana;
 }
 
-function agBandejasBase() {
-  const head = document.querySelector('#agcuerpo .tdhead'); if (!head) return;
-  const old = $('agband'); if (old) old.remove();
-  const nToca = agTocaLista().length, nPend = (AG_PEND || []).length;
-  if (!nToca && !nPend) return;
-  head.insertAdjacentHTML('afterend', `<div class="agband" id="agband">${nToca ? `<button type="button" data-agbd="toca">${svgIco(ICON_NOM.target)} Les toca ${TT('visita', 's', '', 'l', 'l')} <b>${nToca}</b></button>` : ''}${nPend ? `<button type="button" class="urg" data-agbd="pend">${svgIco(ICON_NOM['circle-alert'] || ICON_NOM.info)} Pendientes de días anteriores <b>${nPend}</b></button>` : ''}</div>`);
-  $('agband').querySelectorAll('[data-agbd]').forEach(b => b.onclick = () => agBandeja(b.dataset.agbd));
-}
 
 // El título conserva «· agenda de …» al ver la de otra persona (agMarcarDia lo dejaba en «Hoy · …»)
 function agMarcarDia(...a) {
@@ -1213,17 +1133,6 @@ async function empezarJornada(...a) {
   return r;
 }
 
-function agBandejas(...x) {
-  const r = agBandejasBase.apply(this, x);
-  const b = $('agband'), acts = document.querySelector('#agcuerpo .tdhead .acts');
-  // v2.338.0 (Eric): en el móvil también en una fila (antes, cada uno en la suya); «Volver a hoy» va delante
-  const hoy = $('agahoy'); if (hoy && acts && !matchMedia('(min-width: 761px)').matches && acts.firstElementChild !== hoy) acts.prepend(hoy);
-  if (b && acts) {
-    b.classList.add('agbandin'); acts.appendChild(b);
-    b.querySelectorAll('button').forEach(x => x.childNodes.forEach(n => { if (n.nodeType === 3 && /días anteriores/.test(n.textContent)) n.textContent = n.textContent.replace('de días anteriores', 'anteriores'); }));
-  }
-  return r;
-}
 
 async function accionCitaBase(k, c) {
   const refrescar = () => agRefrescoQuieto(c.id);
@@ -1444,7 +1353,7 @@ async function pintarTuDiaBase() {
     if (AG_FECHA !== f || !agConCinta()) return;
     agPonerSug(f, s);
     await tdPintar();
-    if (agN()) { agTamb(); agBandejas(); }
+    if (agN()) { window.delcos.screens.agenda.paintSameCentre(); window.delcos.screens.agenda.paintTrayButtons(); }
   });
 }
 

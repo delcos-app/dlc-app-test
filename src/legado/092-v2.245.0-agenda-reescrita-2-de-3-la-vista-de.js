@@ -19,16 +19,7 @@ let AG_MET = null, AG_SUG = null, AG_PEND = null;
 
 
 
-document.addEventListener('click', e => {
-  const b = e.target.closest('#agcuerpo .agtamb[data-agtc]'); if (!b || e.target.closest('[data-agti]')) return;
-  e.stopPropagation(); fichaCentro(b.dataset.agtc);
-}, true);
-document.addEventListener('keydown', e => { const b = e.target.closest && e.target.closest('#agcuerpo .agtamb[data-agtc]'); if (b && e.target === b && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); fichaCentro(b.dataset.agtc); } });
-document.addEventListener('click', e => {
-  const b = e.target.closest('#agcuerpo .agtamb [data-agti]'); if (!b) return;
-  e.stopPropagation();
-  if (b.dataset.agtv) nuevaCita(b.dataset.agti, AG_FECHA); else abrirFicha(b.dataset.agti);
-}, true);
+// Los clics de «En este centro también» están en src/app/screens/agenda/same-centre.ts (v2.391.0)
 
 
 

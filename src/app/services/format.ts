@@ -16,3 +16,8 @@ export function formatNumber(value: unknown): string {
 export function formatEuros(value: unknown): string {
   return `${Math.round(Number(value) || 0).toLocaleString('es-ES')} €`;
 }
+
+/** Text compared without accents, case or punctuation («Clínica  Sur» = «clinica sur»). */
+export function looseText(text: string | null | undefined): string {
+  return String(text ?? '').normalize('NFD').replace(/\p{M}/gu, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+}

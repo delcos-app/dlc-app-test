@@ -130,8 +130,22 @@ interface AgendaMetrics {
 declare let AG_FECHA: string | null;
 declare let AG_MET: AgendaMetrics | null;
 declare let AG_VISTA: { id: string; nombre: string } | null;
-declare let TD_CITAS: { estado: string }[];
+interface AgendaAppointment { id: string; cuenta_id?: string; estado: string; lat?: number | string | null; lon?: number | string | null; centro_nombre?: string | null }
+declare let TD_CITAS: AgendaAppointment[];
 declare let TD_ULTIMO: { fecha: string } | null;
 declare function agUsuarioFiltro(): string | null;
 declare function agVerDia(isoDate: string): Promise<void>;
 declare function agN(): boolean;
+
+interface SameCentrePerson { id: string; nombre: string; visitar?: string | null; falta?: string[] | null; dias?: Record<string, string | null> | null }
+interface SameCentreGroup { centro_id?: string | null; centro_nombre?: string | null; lat?: number | null; lon?: number | null; cuentas?: SameCentrePerson[]; medicos?: SameCentrePerson[] }
+interface DueAccount { id?: string; cuenta_id?: string; nombre: string; estado_comercial?: string | null; dias_sin_visita?: number | null; municipio?: string | null; lat?: number | null; lon?: number | null }
+interface PendingAppointment { id: string; nombre: string; fecha: string; centro_nombre?: string | null }
+declare let AG_SUG: { fecha: string; toca: DueAccount[]; centros: SameCentreGroup[] } | null;
+declare let AG_PEND: PendingAppointment[] | null;
+declare let HERR_CTX: string | null;
+declare function abrirFicha(id: string): Promise<void>;
+declare function fichaCentro(id: string): Promise<void>;
+declare function nuevaCita(accountId: string, isoDate: string | null): Promise<void>;
+declare function planDesdeLista(list: readonly DueAccount[], name: string, button: HTMLElement): Promise<void>;
+declare function reprogramarCitas(list: readonly PendingAppointment[], title: string, text: string): Promise<void>;

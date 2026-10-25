@@ -6,6 +6,7 @@ import { createRouter, type Router } from './core/router';
 import { navigate } from './core/navigation';
 import { setLanguage, setVocabulary, t } from './i18n';
 import * as agenda from './screens/agenda';
+import { listenToSameCentre } from './screens/agenda/same-centre';
 import * as home from './screens/home';
 import { paintIndicators } from './screens/home/indicators';
 
@@ -43,3 +44,5 @@ window.delcos = {
     agenda,
   },
 };
+
+listenToSameCentre();

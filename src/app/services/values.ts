@@ -14,3 +14,6 @@ export function nonZeroOr(value: number | null | undefined, fallback: number): n
 export const range = (length: number): number[] => [...Array(length).keys()];
 
 export const sum = (values: readonly number[]): number => values.reduce((total, value) => total + value, 0);
+
+/** Neither null nor undefined (0 and '' count as present). */
+export const isPresent = <T>(value: T | null | undefined): value is T => value !== null && value !== undefined;

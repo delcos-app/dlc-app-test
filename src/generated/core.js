@@ -82,6 +82,7 @@
   }
   var range = (length) => [...Array(length).keys()];
   var sum = (values) => values.reduce((total, value) => total + value, 0);
+  var isPresent = (value) => value !== null && value !== void 0;
 
   // src/app/core/navigation/steps-outer.ts
   var PORTAL_SCREENS = ["informe", "config", "perfil"];
@@ -490,7 +491,8 @@
       locale: "es-ES",
       monthsLong: "enero,febrero,marzo,abril,mayo,junio,julio,agosto,septiembre,octubre,noviembre,diciembre",
       /** Weekday initials from Monday */
-      weekdayLetters: "L,M,X,J,V,S,D"
+      weekdayLetters: "L,M,X,J,V,S,D",
+      weekdaysLong: "lunes,martes,miércoles,jueves,viernes,sábado,domingo"
     },
     agenda: {
       month: {
@@ -511,6 +513,36 @@
         weekDetail: "{count} {visits} · media {average}/semana",
         closingsDetail: "{count} cierres con éxito hoy · media {average}/día",
         toVisitDetail: "{urgent} urgentes · {noVisit} sin {visit} en 60 días"
+      },
+      trays: {
+        due: "Les toca {visit}",
+        dueText: "Según la frecuencia objetivo de cada {professional}. Añádelos a este día o planifica una ruta con ellos.",
+        pending: "Pendientes de días anteriores",
+        pendingShort: "Pendientes anteriores",
+        pendingText: "Los planificaste y no se visitaron. Muévelos a hoy o descártalos.",
+        daysWithout: "{days} días sin {visit}",
+        neverVisited: "nunca visitado",
+        card: "Ficha",
+        addAppointment: "+ Cita",
+        moveToToday: "Mover a hoy",
+        discard: "Descartar",
+        planRoute: "Planificar ruta",
+        rescheduleAll: "Reprogramar todas",
+        notVisited: "{count} sin visitar",
+        nothingPending: "Nada pendiente."
+      },
+      sameCentre: {
+        title: "En este centro también",
+        seeCentre: "Ver el centro ›",
+        openCentre: "Abrir la ficha del centro",
+        addAppointment: "Añadir una cita · {reason}",
+        seeCard: "Ver su ficha",
+        missing: " · falta: {fields}",
+        morning: "Por la mañana",
+        afternoon: "Por la tarde",
+        otherDay: "Otro día",
+        noTimetable: "Sin horario",
+        andMore: "y {count} más"
       }
     },
     home: {
@@ -646,9 +678,15 @@
   var agenda_exports = {};
   __export(agenda_exports, {
     closeMonth: () => closeMonth,
+    dueList: () => dueList,
+    groupByAttendance: () => groupByAttendance,
     metricsHtml: () => metricsHtml,
+    openTray: () => openTray,
+    paintSameCentre: () => paintSameCentre,
+    paintTrayButtons: () => paintTrayButtons,
     refreshMetrics: () => refreshMetrics,
     refreshOpenMonth: () => refreshOpenMonth,
+    refreshOpenTray: () => refreshOpenTray,
     reloadMetrics: () => reloadMetrics,
     renderMonth: () => renderMonth,
     toggleMonth: () => toggleMonth
@@ -739,6 +777,33 @@
     dayAppointments: () => TD_CITAS,
     loadedDay: () => TD_ULTIMO?.fecha ?? null
   };
+  var agendaSuggestions = {
+    forDay: () => AG_SUG,
+    pending: () => AG_PEND ?? []
+  };
+  var agendaActions = {
+    openAccount: (id) => {
+      void abrirFicha(id);
+    },
+    openCentre: (id) => {
+      void fichaCentro(id);
+    },
+    newAppointment: (accountId, isoDate) => {
+      void nuevaCita(accountId, isoDate);
+    },
+    planRoute: (list, button) => {
+      void planDesdeLista(list, "toca", button);
+    },
+    reschedule: (list, title, text) => {
+      void reprogramarCitas(list, title, text);
+    }
+  };
+  var sidePanel = {
+    context: () => HERR_CTX,
+    setContext: (value) => {
+      HERR_CTX = value;
+    }
+  };
 
   // src/app/services/dates.ts
   function toIsoDate(date) {
@@ -783,6 +848,9 @@
   }
   function formatEuros(value) {
     return `${Math.round(Number(value) || 0).toLocaleString("es-ES")} €`;
+  }
+  function looseText(text) {
+    return String(text ?? "").normalize("NFD").replace(/\p{M}/gu, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
   }
 
   // src/app/screens/agenda/month-calendar.ts
@@ -994,6 +1062,216 @@
     if (!data || !legacyAgenda.isDayView()) return;
     legacyAgenda.setMetrics(data);
     refreshMetrics();
+  }
+
+  // src/app/services/geo.ts
+  var EARTH_RADIUS_KM = 6371;
+  function distanceKm(from, to) {
+    const radians = Math.PI / 180;
+    const latitudeDelta = (to[0] - from[0]) * radians, longitudeDelta = (to[1] - from[1]) * radians;
+    const chord = Math.sin(latitudeDelta / 2) ** 2 + Math.cos(from[0] * radians) * Math.cos(to[0] * radians) * Math.sin(longitudeDelta / 2) ** 2;
+    return 2 * EARTH_RADIUS_KM * Math.asin(Math.sqrt(chord));
+  }
+
+  // src/app/screens/agenda/same-centre.ts
+  var NEAR_KM = 0.2;
+  var SHOWN_PEOPLE = 6;
+  var MAX_DAYS_LISTED = 3;
+  var LETTERS_FROM_SUNDAY = "DLMXJVS";
+  var LETTERS_FROM_MONDAY = "LMXJVSD";
+  var AFTERNOON_HOUR = 14;
+  function attendsInAfternoon(timetable) {
+    const hour = Number.parseInt(/(\d{1,2})(?::\d{2})?/.exec(timetable)?.[1] ?? "", 10);
+    return /tarde/i.test(timetable) || !/ma[ñn]ana/i.test(timetable) && hour >= AFTERNOON_HOUR;
+  }
+  function groupByAttendance(people, isoDate) {
+    const letter = LETTERS_FROM_SUNDAY[fromIsoDate(isoDate).getDay()] ?? "";
+    const morning = [], afternoon = [], otherDay = [], noTimetable = [];
+    const otherDays = /* @__PURE__ */ new Set();
+    people.forEach((person) => {
+      const days = person.dias ?? {}, today = days[letter], withTimetable = Object.keys(days).filter((key) => days[key]);
+      if (!withTimetable.length) noTimetable.push(person);
+      else if (!today) {
+        otherDay.push(person);
+        withTimetable.forEach((key) => otherDays.add(key));
+      } else (attendsInAfternoon(today) ? afternoon : morning).push(person);
+    });
+    const names = t("dates.weekdaysLong").split(",");
+    const listed = [...LETTERS_FROM_MONDAY].map((key, index) => otherDays.has(key) ? names[index] : void 0).filter((name) => Boolean(name));
+    const otherTitle = t("agenda.sameCentre.otherDay") + (listed.length && listed.length <= MAX_DAYS_LISTED ? ` (${listed.join(", ")})` : "");
+    return [
+      { title: t("agenda.sameCentre.morning"), people: morning },
+      { title: t("agenda.sameCentre.afternoon"), people: afternoon },
+      { title: otherTitle, people: otherDay },
+      { title: t("agenda.sameCentre.noTimetable"), people: noTimetable }
+    ].filter((group) => group.people.length);
+  }
+  var toNumber = (value) => Number(value);
+  function isSameCentre(group, appointment) {
+    if (isPresent(group.lat) && isPresent(appointment.lat)) {
+      return distanceKm([toNumber(group.lat), toNumber(group.lon)], [toNumber(appointment.lat), toNumber(appointment.lon)]) <= NEAR_KM;
+    }
+    return Boolean(group.centro_nombre && appointment.centro_nombre && looseText(group.centro_nombre) === looseText(appointment.centro_nombre));
+  }
+  function personChip(person) {
+    const missing = person.falta?.length ? t("agenda.sameCentre.missing", { fields: person.falta.join(", ") }) : "";
+    const title = person.visitar ? t("agenda.sameCentre.addAppointment", { reason: person.visitar }) : t("agenda.sameCentre.seeCard") + missing;
+    return `<button type="button" data-agti="${person.id}" data-agtv="${person.visitar ? 1 : ""}" title="${escapeHtml(title)}">${person.visitar ? "<i>+</i> " : ""}${escapeHtml(person.nombre)}</button>`;
+  }
+  function blockHtml(group, people, isoDate) {
+    const chips = groupByAttendance(people.slice(0, SHOWN_PEOPLE), isoDate).map(({ title, people: list }) => `<div class="agtambg"><span class="agtambgt">${escapeHtml(title)}</span><div class="agtambl">${list.map(personChip).join("")}</div></div>`).join("") + (people.length > SHOWN_PEOPLE ? `<span class="sm">${t("agenda.sameCentre.andMore", { count: people.length - SHOWN_PEOPLE })}</span>` : "");
+    const centre = group.centro_id ? escapeHtml(group.centro_id) : "";
+    const opener = centre ? ` data-agtc="${centre}" role="button" tabindex="0" title="${t("agenda.sameCentre.openCentre")}"` : "";
+    return `<div class="agtamb${centre ? " agtambc" : ""}"${opener}><div class="agtambh">${icon("map-pin")} ${t("agenda.sameCentre.title")}${centre ? `<span class="agtambver">${t("agenda.sameCentre.seeCentre")}</span>` : ""}</div>${chips}</div>`;
+  }
+  function withAppointmentToday() {
+    return new Set(legacyAgenda.dayAppointments().filter((item) => !appointments.isCancelled(item.estado)).map((item) => item.cuenta_id));
+  }
+  function paintSameCentre() {
+    const body = document.getElementById("agcuerpo"), suggestions = agendaSuggestions.forDay(), isoDate = legacyAgenda.selectedDate();
+    if (!body || !suggestions || !isoDate || suggestions.fecha !== isoDate) return;
+    body.querySelectorAll(".agtamb").forEach((element) => {
+      element.remove();
+    });
+    const cards = [...body.querySelectorAll(".tdu[data-tdu]")];
+    if (!cards.length) return;
+    const byId = new Map(legacyAgenda.dayAppointments().map((item) => [String(item.id), item]));
+    const already = withAppointmentToday(), used = /* @__PURE__ */ new Set();
+    suggestions.centros.forEach((group) => {
+      const people = (group.cuentas ?? group.medicos ?? []).filter((person) => !already.has(person.id));
+      if (!people.length) return;
+      const card = cards.find((element) => {
+        const appointment = byId.get(element.dataset.tdu ?? "");
+        return appointment !== void 0 && !used.has(element) && isSameCentre(group, appointment);
+      });
+      if (!card) return;
+      used.add(card);
+      (card.querySelector(".tdu-pie") ?? card.lastElementChild)?.insertAdjacentHTML("beforebegin", blockHtml(group, people, isoDate));
+    });
+  }
+  function listenToSameCentre() {
+    document.addEventListener("click", (event) => {
+      const target = event.target instanceof Element ? event.target : null;
+      const person = target?.closest("#agcuerpo .agtamb [data-agti]");
+      if (person) {
+        event.stopPropagation();
+        if (person.dataset.agtv) agendaActions.newAppointment(person.dataset.agti ?? "", legacyAgenda.selectedDate());
+        else agendaActions.openAccount(person.dataset.agti ?? "");
+        return;
+      }
+      const block = target?.closest("#agcuerpo .agtamb[data-agtc]");
+      if (block) {
+        event.stopPropagation();
+        agendaActions.openCentre(block.dataset.agtc ?? "");
+      }
+    }, true);
+    document.addEventListener("keydown", (event) => {
+      const block = event.target instanceof Element ? event.target.closest("#agcuerpo .agtamb[data-agtc]") : null;
+      if (block && event.target === block && (event.key === "Enter" || event.key === " ")) {
+        event.preventDefault();
+        agendaActions.openCentre(block.dataset.agtc ?? "");
+      }
+    });
+  }
+
+  // src/app/screens/agenda/trays.ts
+  var CONTEXT_PREFIX = "agband-";
+  var ROUTES_MOUNT_MS = 60;
+  function dueList() {
+    const suggestions = agendaSuggestions.forDay();
+    if (!suggestions || suggestions.fecha !== legacyAgenda.selectedDate()) return [];
+    const already = withAppointmentToday();
+    return suggestions.toca.filter((account) => !already.has(account.id ?? account.cuenta_id));
+  }
+  function putBackToTodayFirst(actions) {
+    const backToToday = document.getElementById("agahoy");
+    if (backToToday && !matchMedia("(min-width: 761px)").matches && actions.firstElementChild !== backToToday) actions.prepend(backToToday);
+  }
+  function trayButtonsHtml(due, pending, inActions) {
+    const pendingLabel = t(inActions ? "agenda.trays.pendingShort" : "agenda.trays.pending");
+    return `<div class="agband${inActions ? " agbandin" : ""}" id="agband">` + (due ? `<button type="button" data-agbd="toca">${icon("target")} ${t("agenda.trays.due", { visit: term("visita") })} <b>${due}</b></button>` : "") + (pending ? `<button type="button" class="urg" data-agbd="pend">${icon("circle-alert")} ${pendingLabel} <b>${pending}</b></button>` : "") + "</div>";
+  }
+  function paintTrayButtons() {
+    const header = document.querySelector("#agcuerpo .tdhead");
+    if (!header) return;
+    document.getElementById("agband")?.remove();
+    const due = dueList().length, pending = agendaSuggestions.pending().length;
+    const actions = document.querySelector("#agcuerpo .tdhead .acts");
+    if (actions) putBackToTodayFirst(actions);
+    if (!due && !pending) return;
+    const html = trayButtonsHtml(due, pending, Boolean(actions));
+    if (actions) actions.insertAdjacentHTML("beforeend", html);
+    else header.insertAdjacentHTML("afterend", html);
+    document.getElementById("agband")?.querySelectorAll("[data-agbd]").forEach((button) => {
+      button.onclick = () => {
+        openTray(button.dataset.agbd === "toca" ? "toca" : "pend");
+      };
+    });
+  }
+  function dueRow(account) {
+    const visit = term("visita"), id = account.id ?? "";
+    const days = isPresent(account.dias_sin_visita) ? t("agenda.trays.daysWithout", { days: account.dias_sin_visita, visit }) : t("agenda.trays.neverVisited");
+    return `<div class="item" style="cursor:default"><span class="ic">${icon("target")}</span>
+        <span class="tx"><b>${escapeHtml(account.nombre)}</b><span class="sm">${escapeHtml([account.estado_comercial, days, account.municipio].filter(Boolean).join(" · "))}</span></span>
+        <span class="acts" style="margin:0"><button class="btn sec" data-agbf="${id}">${t("agenda.trays.card")}</button><button class="btn sec" data-agbc="${id}">${t("agenda.trays.addAppointment")}</button></span></div>`;
+  }
+  function pendingRow(item) {
+    return `<div class="item" style="cursor:default"><span class="ic w">!</span>
+        <span class="tx"><b>${escapeHtml(item.nombre)}</b><span class="sm">${formatShortDate(item.fecha)}${item.centro_nombre ? ` · ${escapeHtml(item.centro_nombre)}` : ""}</span></span>
+        <span class="acts" style="margin:0"><button class="btn sec" data-cita="hoy|${item.id}">${t("agenda.trays.moveToToday")}</button><button class="btn sec" data-cita="desc|${item.id}">${t("agenda.trays.discard")}</button></span></div>`;
+  }
+  function trayHtml(tray, due, pending) {
+    const isDue = tray === "toca";
+    const title = isDue ? t("agenda.trays.due", { visit: term("visita") }) : t("agenda.trays.pending");
+    const text = isDue ? t("agenda.trays.dueText", { professional: term("medico") }) : t("agenda.trays.pendingText");
+    const action = isDue ? due.some((account) => account.lat) ? `<button class="btn sec" id="agbruta">${t("agenda.trays.planRoute")}</button>` : "" : pending.length ? `<button class="btn sec" id="agbrepro">${t("agenda.trays.rescheduleAll")}</button>` : "";
+    const rows = isDue ? due.map(dueRow).join("") : pending.map(pendingRow).join("");
+    return `<div class="tbox"><div class="fh"><h2>${escapeHtml(title)}</h2><button class="x" id="tclose" aria-label="${t("common.close")}">✕</button></div><p class="sm">${escapeHtml(text)}</p>
+    <div class="acts" style="margin:8px 0">${action}</div>
+    <div class="agbdc"><div class="lista">${rows || `<div class="vacio">${t("agenda.trays.nothingPending")}</div>`}</div></div></div>`;
+  }
+  function bindTray(panel, due, pending) {
+    const close = () => {
+      panel.classList.remove("abierto");
+    };
+    const closeButton = document.getElementById("tclose");
+    if (closeButton) closeButton.onclick = close;
+    panel.querySelectorAll("[data-agbf]").forEach((button) => {
+      button.onclick = () => {
+        agendaActions.openAccount(button.dataset.agbf ?? "");
+      };
+    });
+    panel.querySelectorAll("[data-agbc]").forEach((button) => {
+      button.onclick = () => {
+        agendaActions.newAppointment(button.dataset.agbc ?? "", legacyAgenda.selectedDate());
+      };
+    });
+    const route = document.getElementById("agbruta");
+    if (route) route.onclick = () => {
+      close();
+      goTo("rutas");
+      setTimeout(() => {
+        agendaActions.planRoute(due, route);
+      }, ROUTES_MOUNT_MS);
+    };
+    const reschedule = document.getElementById("agbrepro");
+    if (reschedule) reschedule.onclick = () => {
+      agendaActions.reschedule(pending, t("agenda.trays.pending"), t("agenda.trays.notVisited", { count: pending.length }));
+    };
+  }
+  function openTray(tray) {
+    if (!legacyAgenda.isDayView()) return;
+    const panel = document.getElementById("tools");
+    if (!panel) return;
+    const due = tray === "toca" ? dueList() : [], pending = tray === "pend" ? agendaSuggestions.pending() : [];
+    panel.innerHTML = trayHtml(tray, due, pending);
+    bindTray(panel, due, pending);
+    sidePanel.setContext(CONTEXT_PREFIX + tray);
+    panel.classList.add("abierto");
+  }
+  function refreshOpenTray() {
+    const context = sidePanel.context() ?? "";
+    if (document.getElementById("tools")?.classList.contains("abierto") && context.startsWith(CONTEXT_PREFIX)) openTray(context.slice(CONTEXT_PREFIX.length) === "toca" ? "toca" : "pend");
   }
 
   // src/app/screens/home/indicators/chart-tools.ts
@@ -1691,4 +1969,5 @@
       agenda: agenda_exports
     }
   };
+  listenToSameCentre();
 })();
