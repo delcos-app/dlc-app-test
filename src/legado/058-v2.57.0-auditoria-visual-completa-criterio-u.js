@@ -3,5 +3,3 @@
 const PILA_VENT = []; let APILANDO = false;
 const RASTRO = [];   // últimas acciones de la persona (para reproducir el problema)
 window.delcos.legacyC.start058();
-function pintarActualizado() { return window.delcos.legacyC.paintUpdated(); }
-function ivaSelector(inp) { return window.delcos.legacyC.vatSelector(inp); }

@@ -1,4 +1,5 @@
 import * as components from '../components';
+import * as legacyFreeComponentsEmbeddedWindow from '../components/embedded-window';
 /**
  * Bridge of the visit windows to the legacy code (kept apart from bridge.ts, which is at its size limit). The open visit stays in
  * the legacy VISITA_ACTUAL: the legacy escribirRpc adds its mode, photos, samples and products when it is saved, and the tests read
@@ -8,7 +9,7 @@ export const visitLegacy = {
   setCurrent: (draft: VisitDraft): void => { VISITA_ACTUAL = draft; },
   /** The day chosen in the Agenda for the visit (used once). */
   takeDate: (): string => { const date = VISITA_FECHA; VISITA_FECHA = ''; return date; },
-  withLoading: <T>(work: () => Promise<T>): Promise<T> => ventanaCargando(work),
+  withLoading: <T>(work: () => Promise<T>): Promise<T> => legacyFreeComponentsEmbeddedWindow.withDialogLoading(work),
   saveCopy: (key: string, data: unknown): void => { guardarCache(key, data); },
   readCopy: (key: string): unknown => leerCache(key)?.d ?? null,
   resultValues: (): readonly { valor: string; extra?: string | null }[] => CAT.resultado_visita ?? [],

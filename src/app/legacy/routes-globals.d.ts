@@ -34,4 +34,3 @@ declare function siguienteLaborable(): string;
 declare function mejorarCampos(root: Element): void;
 declare function pedirCampo(title: string, type: string, value: string, label: string): Promise<string | null>;
 declare function bloqueadosSemana(from: string, to: string): Promise<Record<string, string>>;
-declare function cargarRutas(): Promise<void>;

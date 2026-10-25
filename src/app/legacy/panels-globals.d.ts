@@ -2,5 +2,4 @@
 declare let ANSEC: string;
 declare let AN_REP: string;
 declare const AN_SERIE: Map<string, Promise<Record<string, unknown>[]>>;
-declare function panelColumnas(title: string, columns: { i: number; n: string; on: boolean; fija: boolean }[], onChange: (index: number, on: boolean) => void): void;
 declare const HT_FILTROS: Record<string, string | undefined>;

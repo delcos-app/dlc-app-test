@@ -4,14 +4,10 @@
 
 function rangoPeriodo(k) { return window.delcos.core.calendar.periodRange(k); }
 // Avisos de Pedidos (v2.330.0): festivos nacionales, con el Viernes Santo
-function pkPascua(y) { return window.delcos.core.calendar.easterSunday(y); }
 function mesesEntre(d, h) { return window.delcos.core.calendar.monthsBetween(d, h); }
 // Fechas SIEMPRE en hora local (España): convertir a hora universal restaba un día de 00:00 a 02:00
 function isoLocal(d) { return window.delcos.core.calendar.localIso(d); }
 function hoyISO() { return window.delcos.core.calendar.today(); }
-/** «sábado, 24 de octubre» en el idioma elegido por la persona (v2.43.0). */
-function fechaLarga(d) { return window.delcos.core.calendar.longDate(d); }
-function fechaCorta(s) { return window.delcos.core.calendar.shortDate(s); }
 function isoMas(iso, n) { return window.delcos.core.calendar.plusDays(iso, n); }
 function lunesDe(iso) { return window.delcos.core.calendar.mondayOfWeek(iso); }
 function hm(m) { return window.delcos.core.calendar.minutesToTime(m); }
@@ -23,13 +19,8 @@ function fechaLocal(d) { return window.delcos.core.calendar.localIso(d); }
 function minHora(h) { return window.delcos.core.calendar.timeToMinutes(h); }
 function LETRA_DIA(f) { return window.delcos.core.calendar.dayLetter(f); }
 function txtReciente(l) { return window.delcos.core.calendar.recentText(l); }
-function mesTxt(m) { return window.delcos.core.calendar.monthShortText(m); }
 function hoyLetra() { return window.delcos.core.calendar.todayLetter(); }
-function horaCorta(f) { return window.delcos.core.calendar.shortDateTime(f); }
 function diasHasta(f) { return window.delcos.core.calendar.daysUntil(f); }   // días de calendario
-function pdFecha(v) { return window.delcos.core.calendar.dateWithYear(v); }
-function fechaDiaMes(f) { return window.delcos.core.calendar.dayAndMonth(f); }
-function DIA_NOMBRE(f) { return window.delcos.core.calendar.weekdayOf(f); }
 function lunesCinta(f) { return window.delcos.core.calendar.mondayOfWeek(f); }
 function diasMas(f, n) { return window.delcos.core.calendar.plusDays(f, n); }
 

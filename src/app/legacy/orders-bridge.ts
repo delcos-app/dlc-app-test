@@ -1,4 +1,9 @@
 import * as components from '../components';
+import * as legacyFreeScreensSettingsShell from '../screens/settings/shell';
+import * as legacyFreeCoreLegacyC from '../core/legacy-c';
+import * as legacyFreeCoreServices from '../core/services';
+import * as legacyFreeComponentsEmbeddedWindow from '../components/embedded-window';
+import * as legacyFreeScreensSettings from '../screens/settings';
 /**
  * Bridge of Pedidos to the legacy code (kept apart from bridge.ts, which is at its size limit). The section, page, field filters
  * and the loaded rows stay in the legacy PEDSEC, PEDPAG, PEDF and PEDIDOS (the list bar, legado 034/082/139 and the tests read
@@ -15,7 +20,7 @@ export const ordersLegacy = {
   setSection: (section: string): void => { PEDSEC = section; },
   setLoadingSection: (section: string | null): void => { PEDSEC_CARGA = section; },
   sectionTitle: (section: string): readonly [string, string] => TITULO_PEDSEC[section] ?? TITULO_PEDSEC.ventas ?? ['', ''],
-  markSection: (): void => { marcarPedsec(); },
+  markSection: (): void => { legacyFreeScreensSettingsShell.markOrderSection(); },
   /** The open part of Configuración (Distribuidores lives there). */
   settingsSection: (): string => CFG_KEY,
   page: (): number => PEDPAG,
@@ -24,9 +29,9 @@ export const ordersLegacy = {
   setRows: (rows: unknown[]): void => { PEDIDOS = rows; },
   /** Through the global name (legado 057 keeps the screen cached around it). */
   reload: (): void => { void cargarVentas(); },
-  paintOperations: (): void => { void pintarOperativa(); },
+  paintOperations: (): void => { void legacyFreeCoreLegacyC.paintOrderAlerts(); },
   paintUnattributed: (): void => { void pintarSinAtribuir(); },
-  canAttribute: (): boolean => Boolean(puedeAtribuir()),
+  canAttribute: (): boolean => Boolean(legacyFreeCoreServices.permissions.canAttribute()),
   newSale: (): void => { void (nuevaVenta as (preset?: object) => unknown)(); },
   services: (): readonly PickedService[] => SERVICIOS,
   paymentState: (order: object): string => cobroDe(order),
@@ -38,13 +43,13 @@ export const ordersLegacy = {
 
 /** The order window: the pieces that stay in legacy (invoices, custom fields) and the editor through its global name (legado 058 opens it wide). */
 export const orderSheetLegacy = {
-  whileLoading: <T>(work: () => Promise<T>): Promise<T> => ventanaCargando(work),
+  whileLoading: <T>(work: () => Promise<T>): Promise<T> => legacyFreeComponentsEmbeddedWindow.withDialogLoading(work),
   whenSteady: (element: Element | null, maxMs: number): Promise<void> => estable(element, maxMs),
   invoices: (id: string): Promise<void> => pedidoFacturas(id),
-  customFields: (id: string, container: Element | null): Promise<void> => bloqueCampos('pedidos', id, container),
+  customFields: (id: string, container: Element | null): Promise<void> => legacyFreeScreensSettings.paintCustomFieldsBlock(('pedidos'), id, container),
   edit: (detail: object): void => { void editorPedido(detail as Record<string, unknown>); },
   openCustomer: (id: string): void => { void fichaPaciente(id); },
-  fieldsForm: (values: Record<string, unknown>): string => camposHTML('pedido', values),
+  fieldsForm: (values: Record<string, unknown>): string => legacyFreeScreensSettings.customFieldsHtml(('pedido'), values),
   readFields: (root: Element | null): OrderFieldsRead | null => camposLeer(root),
   saveFields: (read: OrderFieldsRead | null, id: string): Promise<boolean> => camposGuardar(read, id),
   loadPdf: (): Promise<unknown> => cargarJsPDF(),

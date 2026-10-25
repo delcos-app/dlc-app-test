@@ -17,18 +17,13 @@ const RM_MEM = new Map();   // ruta pedida → {t, r}: solo en memoria y 10 minu
 
 let RN = null;          // la ruta que se está creando o editando
 
-function cargarRutasBase() { return window.delcos.screens.routes.paintRoutes(); }
 function rnAbrir(item, paso) { return window.delcos.screens.routes.openRoute(item || null, paso || 1); }
-function rnRellenar() { return window.delcos.screens.routes.refillRepeating(); }
-function cargarRutas() { return window.delcos.screens.routes.loadRoutesPage(); }
 function pintarRutaEnCurso() { return window.delcos.screens.routes.paintDayInProgress(); }
 function pintarRutaBarra() { return window.delcos.screens.routes.paintRouteBar(); }
 function rutasMapaBase() { return window.delcos.screens.routes.loadDayMap(); }
-function tarjetasRuta() { return window.delcos.screens.routes.paintRouteCards(); }
 function planificar(rutaId, btn) { return window.delcos.screens.routes.planRoute(rutaId, btn); }
 function planDesdeLista(lista, nombre, btn) { return window.delcos.screens.routes.planFromList(lista, nombre, btn || null); }
 function construirPlan(conXY, rutaId, btn, opts) { return window.delcos.screens.routes.buildPlan(conXY, rutaId, btn || null, opts || {}); }
-function empezarRuta() { return window.delcos.screens.routes.startRoute(); }
 function planBotonesAgenda() { return window.delcos.screens.routes.planAgendaButtons(); }
 function planHorasYFueraDePlan() { return window.delcos.screens.routes.planHoursAndLeftOut(); }
 function planMapaYDescartar() { return window.delcos.screens.routes.planMapAndDiscard(); }
@@ -46,8 +41,6 @@ function guardarBorradorSemana(btn) { return window.delcos.screens.routes.saveWe
 function editorRuta(id) { return window.delcos.screens.routes.editRoute(id || null); }
 function editorFrecuencia() { return window.delcos.screens.routes.editFrequency(); }
 function prepararParadas(fecha) { return window.delcos.screens.agenda.prepareRouteStops(fecha); }
-function rmLib() { return window.delcos.screens.routes.mapLibrary(); }
-function rmRuta(puntos, salida) { return window.delcos.screens.routes.streetRoute(puntos, salida); }
 function rpTitulo(s) { return window.delcos.screens.routes.titleCase(s); }
 
 // Tiempos de una propuesta del día (v2.145.0): ya no se pintan, pero la prueba rutas2145 de qa_pantallas.py aún la nombra

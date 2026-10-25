@@ -37,10 +37,8 @@ function ventanasDe(dias, fecha) { return window.delcos.components.attendanceWin
 const VENT_AMPLIA = window.delcos.components.embeddedWindow.WIDE_WINDOWS;
 const ENCAJE_MIN = window.delcos.components.embeddedWindow.EMBED_MIN_WIDTH;
 function panelDeVentana(fn) { return window.delcos.components.embeddedWindow.showWindowInPanel(fn); }
-function panelDeModulo(sec) { return window.delcos.components.embeddedWindow.showModuleInPanel(sec); }
 function abrirApilada(fn, volverTexto) { return window.delcos.components.embeddedWindow.openStacked(fn, volverTexto); }
 function colocarEncajada() { return window.delcos.components.embeddedWindow.placeEmbedded(); }
 function devolverEncajada(d) { return window.delcos.components.embeddedWindow.returnEmbedded(d); }
 function areaEncaje() { return window.delcos.components.embeddedWindow.embedArea(); }
-function ventanaCargando(fn) { return window.delcos.components.embeddedWindow.withDialogLoading(fn); }
 function cerrarEncajadas() { return window.delcos.components.embeddedWindow.closeEmbedded(); }

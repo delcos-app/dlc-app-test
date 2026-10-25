@@ -6,6 +6,10 @@
  */
 import type { DayPlan, PlanMember, PlanOptions } from '../screens/routes/planner/plan';
 import type { WeekSplit } from '../screens/routes/planner/week-split';
+import * as legacyFreeScreensRoutes from '../screens/routes';
+import * as legacyFreeCoreServices from '../core/services';
+import * as legacyFreeCoreLeftovers from '../core/leftovers';
+import * as legacyFreeComponents from '../components';
 
 interface LastPlan { conXY: PlanMember[]; rutaId: string; opts: PlanOptions }
 interface Profile { id: string; preferencias?: Record<string, unknown> | null }
@@ -26,7 +30,7 @@ export const routes2Legacy = {
   weekDraft: (): WeekSplit | null => SEM_BORRADOR as unknown as WeekSplit | null,
   setWeekDraft: (draft: unknown): void => { SEM_BORRADOR = draft as WeekDraft | null; },
   draft: (): RouteDraft | null => RN,
-  reloadRoutes: (): void => { void cargarRutas(); },
+  reloadRoutes: (): void => { void legacyFreeScreensRoutes.loadRoutesPage(); },
   reloadAgenda: (): void => { void cargarAgenda(); },
   /** The legacy rutasMapa: today's map, moved under the route cards. */
   paintDayMapAround: (): Promise<void> => rutasMapa(),
@@ -48,15 +52,15 @@ export const routes2Legacy = {
   hoursOfAppointments: (list: readonly object[]): { salida: string | null; vuelta: string | null } | null => horDeCitas(list),
   estimateDay: (list: readonly object[], isoDate: string): { est: Record<string, number | undefined>; tope: number } => estimarDia(list, isoDate) as unknown as { est: Record<string, number | undefined>; tope: number },
   nextWorkingDay: (): string => siguienteLaborable(),
-  shortDate: (isoDate: string): string => fechaCorta(isoDate),
+  shortDate: (isoDate: string): string => legacyFreeCoreServices.calendar.shortDate(isoDate),
   weekdayName: (isoDate: string): string => DIAN[LETRA_DIA(isoDate)] ?? '',
   weekdayOf: (letter: string): string => DIAN[letter] ?? '',
   isDone: (state: string): boolean => citaHecha(state),
-  myPlannedAppointments: (): Promise<Record<string, string | undefined>> => citasPlanificadasMias(),
+  myPlannedAppointments: (): Promise<Record<string, string | undefined>> => legacyFreeCoreLeftovers.myPlannedAppointments(),
   recentContacts: (ids: string[], isoDate: string): Promise<Record<string, RecentContact[] | undefined>> => recientesDe(ids, isoDate),
   recentText: (list: RecentContact[]): string => txtReciente(list),
   revisitNotice: (): { on: boolean; dias: number } => avisoRevisita(),
-  noStartWarning: (element: Element | null): void => { avisoSinSalida(element as HTMLElement | null); },
+  noStartWarning: (element: Element | null): void => { legacyFreeComponents.noStartNotice((element as HTMLElement | null)); },
   openPlanTimes: (): void => { abrirHorarioPlan(); },
   navigate: (destination: [number, number] | null, stops: [number, number][] | null): void => {
     void (navegarA as unknown as (point: [number, number] | null, stops?: [number, number][] | null) => Promise<void>)(destination, stops);

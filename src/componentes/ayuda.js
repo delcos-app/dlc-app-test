@@ -11,8 +11,6 @@ const ANCLAS_AYUDA = [
   ['#v-admin .saludo h1', 'admin'], ['#v-duplicados .saludo h1', 'duplicados']
 ];
 
-/** @param {Element} h @param {string} boton */
-function pegarAyuda(h, boton) { window.delcos.components.glueHelp(h, boton); }
 function ponerAyudas() { window.delcos.components.addHelpButtons(); }
 /** @param {HTMLElement} b */
 function anclaAyuda(b) { return window.delcos.components.helpAnchor(b); }

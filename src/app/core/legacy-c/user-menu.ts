@@ -6,6 +6,7 @@
  */
 import { t } from '../../i18n';
 import { closestTo } from './dom';
+import * as legacyFreeCoreServices from '../services';
 
 const hideUserMenus = (): void => { document.querySelectorAll('.umenu, #umenu').forEach(menu => { menu.classList.add('hide'); }); };
 
@@ -28,7 +29,7 @@ export function addCompany(): void {
 export function addReportProblem(): void {
   const signOut = document.querySelector('[data-u="salir"]'); if (!signOut || document.querySelector('[data-u="reportar"]')) return;
   signOut.insertAdjacentHTML('beforebegin', `<button data-u="reportar">${svgIco(ICON_NOM.bug ?? '')} ${t('legacyC.userMenu.report')}</button>`);
-  document.addEventListener('click', event => { if (closestTo(event.target, '[data-u="reportar"]')) reportarProblema(); });
+  document.addEventListener('click', event => { if (closestTo(event.target, '[data-u="reportar"]')) legacyFreeCoreServices.report.reportProblem(); });
 }
 
 /** Opens a page from the user menu before anything else hears the click (v2.53.0: perfil, empresa, plan; v2.117.0: organización). */

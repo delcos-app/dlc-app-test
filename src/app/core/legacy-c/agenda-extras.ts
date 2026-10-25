@@ -8,6 +8,7 @@
 import { t } from '../../i18n';
 import { escapeHtml } from '../../services/format';
 import { byId, closestTo, observe } from './dom';
+import * as legacyFreeCoreServices from '../services';
 
 const PULL_FACTOR = 0.6, PULL_READY = 80, PULL_MAX = 90, PULL_SHOW = 70, PULL_OFFSET = 50, PULL_MIN_MS = 600;
 
@@ -120,7 +121,7 @@ export function paintPlan(args: readonly unknown[]): unknown {
     box.insertAdjacentHTML('beforeend', `<div class="plancitados"><h3>${t('legacyC.plan.booked', { count: booked.length })}</h3>
       <p class="sm">${t('legacyC.plan.bookedHint')}</p>
       <div class="lista">${booked.map(item => `<div class="item" style="cursor:default"><span class="ic">📅</span><span class="txt"><b>${escapeHtml(item.m.nombre)}</b>
-        <span class="sm">${t('legacyC.plan.bookedOn', { date: escapeHtml(fechaLarga(new Date(`${item.fecha}T12:00:00`))) })}${item.m.municipio ? ` · ${escapeHtml(item.m.municipio)}` : ''}</span></span></div>`).join('')}</div></div>`);
+        <span class="sm">${t('legacyC.plan.bookedOn', { date: escapeHtml(legacyFreeCoreServices.calendar.longDate((new Date(`${item.fecha}T12:00:00`)))) })}${item.m.municipio ? ` · ${escapeHtml(item.m.municipio)}` : ''}</span></span></div>`).join('')}</div></div>`);
   }
   return result;
 }

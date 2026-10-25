@@ -5,6 +5,8 @@
  */
 import { t } from '../../i18n';
 import { escapeHtml } from '../../services/format';
+import * as legacyFreeScreensSettingsMore from '../../screens/settings/more';
+import * as legacyFreeScreensSettingsExtra from '../../screens/settings/extra';
 
 /** [key, label, painter] of a page tab. */
 export type PageTab = [string, string, () => unknown];
@@ -23,7 +25,7 @@ export const PAGES: Record<string, PageDefinition> = {
   perfil: { t: t('navigationCore.pages.profile'), d: t('navigationCore.pages.profileDescription'), tabs: [
     ['datos', t('navigationCore.pages.profileData'), (): unknown => pintarPerfil()], ['notif', t('navigationCore.pages.notifications'), (): unknown => pintarNotif()]] },
   empresa: { t: t('navigationCore.pages.company'), d: t('navigationCore.pages.companyDescription'), admin: true, tabs: [
-    ['marca', t('navigationCore.pages.brand'), (): unknown => pintarMarca()], ['correo', t('navigationCore.pages.mail'), (): unknown => pintarCorreo()],
+    ['marca', t('navigationCore.pages.brand'), (): unknown => legacyFreeScreensSettingsMore.paintBrand()], ['correo', t('navigationCore.pages.mail'), (): unknown => legacyFreeScreensSettingsExtra.paintEmail()],
     ['copias', t('navigationCore.pages.backups'), (): unknown => pintarCopias()]] },
   plan: { t: t('navigationCore.pages.plan'), d: '', admin: true, tabs: [['plan', t('navigationCore.pages.planTab'), (): unknown => pintarPaginaPlan()]] },
 };

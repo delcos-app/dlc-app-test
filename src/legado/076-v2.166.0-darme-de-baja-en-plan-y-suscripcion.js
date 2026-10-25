@@ -3,5 +3,4 @@
 let PAGO_IR_PLAN = location.hash === '#plan' || new URLSearchParams(location.search).has('pago');
 let TD_ULTIMO = null, TD_PRESET = null;
 window.delcos.legacyC.start076();
-function aplicarModoPlataforma() { return window.delcos.legacyC.applyPlatformMode(); }
 async function pintarPaginaPlan(...a) { return window.delcos.legacyC.paintPlanPage(a); }

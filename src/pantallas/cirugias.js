@@ -1,7 +1,6 @@
 // pantallas/cirugias.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
-function menuCirugias() { window.delcos.leftovers.menuSurgeries(); }
 
 /* v2.199.0 · Intervenciones con lote y número de serie (tercera tanda del estudio por sectores, SQL 125). Decisiones de Eric: sección propia y
    cada intervención también en la Agenda de quien asiste; el material se elige en cada intervención (depósito del centro o el de quien asiste); el

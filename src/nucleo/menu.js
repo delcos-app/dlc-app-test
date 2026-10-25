@@ -21,10 +21,7 @@ const menuRehacer = () => window.delcos.nav.redoMenu();
 
 const menuNombres = () => window.delcos.nav.menuNames();
 
-function menuGrupos() { return window.delcos.nav.menuGroups(); }
 function menuTip(b) { return window.delcos.nav.menuTip(b); }
-function movNombre(t) { return window.delcos.nav.mobileName(t); }
-function movBarra() { return window.delcos.nav.bottomBar(); }
 function aplicarPermisosMenuPaso1() { return window.delcos.nav.lockModules(); }
 function aplicarPermisosMenuPaso2() { iconosMenu(); }
 function aplicarPermisosMenuPaso3() { return window.delcos.nav.orderAfterPermissions(); }

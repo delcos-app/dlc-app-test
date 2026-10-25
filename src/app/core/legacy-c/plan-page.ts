@@ -5,6 +5,7 @@
  */
 import { t } from '../../i18n';
 import { byId, signedIn, whenSignedIn } from './dom';
+import * as legacyFreeCoreServices from '../services';
 
 const CHECK_EVERY_MS = 1500, CHECKS = 90, VERSION_EVERY_MS = 2000, WELCOME_EVERY_MS = 1000, WELCOME_CHECKS = 60, WELCOME_DELAY_MS = 900;
 const SIGNUP_NOTICE_DELAY_MS = 400, BACK_TO_PLAN_FOR_MS = 30000, ANNUAL_MONTHS = 10, MIN_USERS = 3;
@@ -42,9 +43,9 @@ function feeWithVat(cards: NodeListOf<Element>): void {
 function receiptText(plan: CurrentPlan, next: NextReceipt | null): string {
   const receipt = reciboCalculado(plan) as Receipt;
   const date = next?.fecha ? next.fecha : plan.periodo_fin ?? '', total = next?.total ?? receipt.primero;
-  if (!plan.en_prueba) return t('legacyC.plan.nextReceipt', { total: eurW(total) }) + (date ? t('legacyC.plan.onDate', { date: fechaDiaMes(date) }) : '') + '.';
+  if (!plan.en_prueba) return t('legacyC.plan.nextReceipt', { total: eurW(total) }) + (date ? t('legacyC.plan.onDate', { date: legacyFreeCoreServices.calendar.dayAndMonth(date) }) : '') + '.';
   const setup = receipt.puesta ? t('legacyC.plan.includesSetup', { setup: eurW(receipt.puesta) }) : receipt.anual ? t('legacyC.plan.setupIncluded') : '';
-  return t('legacyC.plan.trial', { date: fechaDiaMes(date), total: eurW(total), setup, after: eurW(receipt.despues), every: t(receipt.anual ? 'legacyC.plan.perYearShort' : 'legacyC.plan.perMonthShort') });
+  return t('legacyC.plan.trial', { date: legacyFreeCoreServices.calendar.dayAndMonth(date), total: eurW(total), setup, after: eurW(receipt.despues), every: t(receipt.anual ? 'legacyC.plan.perYearShort' : 'legacyC.plan.perMonthShort') });
 }
 
 function receiptBox(title: Element): HTMLElement | null {

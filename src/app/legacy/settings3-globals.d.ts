@@ -3,8 +3,6 @@ declare const PROVEEDORES_CORREO: Readonly<Record<string, { n: string; host: str
 declare function validarEmailEnVivo(input: HTMLElement): void;
 declare const NOTIF_AREAS: readonly (readonly [string, string, readonly string[]])[];
 declare const NOTIF_DIARIOS: readonly string[];
-declare function notifArea(type: string): string;
-declare function notifIco(type: string): string;
 declare function tiposDeMiRol(): readonly (readonly [string, string, string, string])[];
 declare let NOTIF_N: number;
 declare function refrescarCampana(): Promise<void>;

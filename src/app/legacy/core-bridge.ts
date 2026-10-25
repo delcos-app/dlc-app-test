@@ -3,6 +3,8 @@
  * app migrates: the profile, the plan, the company words and states, the language, the caches of the reads and the windows of the
  * screens. Each access reads the legacy value when called (the tests change some of them, e.g. PLAN_ACTUAL or TERMINOS).
  */
+import * as legacyFreeCoreSettings from '../core/settings';
+import * as legacyFreeCoreNavigationApi from '../core/navigation/api';
 export interface LegacyProfile {
   id: string; nombre: string; rol: string; areas?: Record<string, number | string>; capacidades?: string[];
   preferencias?: Record<string, unknown> & { navegador?: string };
@@ -35,7 +37,7 @@ export const coreLegacy = {
   rpc: (name: string, params: Record<string, unknown>): Answer<unknown> => RPC_ORIG<unknown>(name, params),
   profile: (): LegacyProfile | null => (PERFIL as LegacyProfile | null) ?? null,
   users: (): { id: string; nombre: string; rol: string }[] => (USUARIOS as { id: string; nombre: string; rol: string }[] | null) ?? [],
-  roleCan: (role: string, capability: string): boolean => rolPuede(role, capability),
+  roleCan: (role: string, capability: string): boolean => legacyFreeCoreSettings.roleCan(role, capability),
   currentPlan: (): { plan: string } => PLAN_ACTUAL as { plan: string },
   plans: (): readonly LegacyPlan[] => PLANES as readonly LegacyPlan[],
   planPrice: (plan: LegacyPlan): string => precioPlan(plan),
@@ -50,7 +52,7 @@ export const coreLegacy = {
   setAccessLost: (): void => { ACCESO_FUERA = true; },
   accessCheckedAt: (): number => ACCESO_MIRADO,
   setAccessCheckedAt: (time: number): void => { ACCESO_MIRADO = time; },
-  backToMySession: (): Promise<void> => volverAMiSesion(),
+  backToMySession: (): Promise<void> => legacyFreeCoreNavigationApi.backToMySession(),
   isProfessionalPortal: (): boolean => ES_MEDICO(),
   // ---- Company words, states and language
   terms: (): Record<string, { s?: string; p?: string; g?: string } | undefined> => (TERMINOS ?? {}) as Record<string, { s?: string; p?: string; g?: string } | undefined>,

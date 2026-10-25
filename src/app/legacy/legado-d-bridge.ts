@@ -2,6 +2,16 @@
  * Bridge of the folded legacy layers 080–161 (src/app/core/layers, v2.424.0) to the legacy state and helpers they still use, kept
  * apart from bridge.ts (at its size limit). Global names other code wraps (verPedido, montarMenuLateral…) are wrapped through window.
  */
+import * as legacyFreeCoreServices from '../core/services';
+import * as legacyFreeCoreSettings from '../core/settings';
+import * as legacyFreeScreensSettingsMore from '../screens/settings/more';
+import * as legacyFreeScreensSettingsExtra from '../screens/settings/extra';
+import * as legacyFreeScreensEquipment from '../screens/equipment';
+import * as legacyFreeCoreLeftovers from '../core/leftovers';
+import * as legacyFreeScreensImport from '../screens/import';
+import * as legacyFreeScreensSettingsShell from '../screens/settings/shell';
+import * as legacyFreeCoreLayers from '../core/layers';
+import * as legacyFreeScreensAccounts from '../screens/accounts';
 
 type AnyFunction = (...args: unknown[]) => unknown;
 type Wrapper = (original: AnyFunction) => AnyFunction;
@@ -23,17 +33,17 @@ export const treeLegacy = {
   can: (capability: string): boolean => puede(capability),
   canManageOrganisation: (): boolean => puedeOrganizacion(),
   canUseModule: (module: string): boolean => puedeModulo(module),
-  canEditCatalogs: (): boolean => Boolean(puedeCatalogos()),
+  canEditCatalogs: (): boolean => Boolean(legacyFreeCoreServices.permissions.canManageLists()),
   isProfessionalPortal: (): boolean => ES_MEDICO(),
   cardPaymentVisible: (): boolean => TPV_VISIBLE,
   inTestEnvironment: (): boolean => EN_PRUEBAS,
-  configTree: (): readonly (readonly [string, readonly LegacyConfigItem[]])[] => arbolConfig(),
+  configTree: (): readonly (readonly [string, readonly LegacyConfigItem[]])[] => legacyFreeCoreSettings.settingsTree(),
   pageTabs: (page: string): PageTabs => pages()[page]?.tabs ?? [],
   paintProfile: (): unknown => pintarPerfil(),
   paintNotifications: (): unknown => pintarNotif(),
   paintUsers: (): unknown => pintarUsuarios2(),
-  paintRoles: (): unknown => pintarRoles(),
-  paintTexts: (): unknown => pintarTextos(),
+  paintRoles: (): unknown => legacyFreeScreensSettingsMore.paintRoles(),
+  paintTexts: (): unknown => legacyFreeScreensSettingsExtra.paintMenuNames(),
   paintDistributors: (): unknown => pintarDistribuidores(),
   paintStateRoles: (): unknown => pintarEstadosPapel(),
   paintCardPayment: (): unknown => pintarTpv(),
@@ -52,11 +62,11 @@ export const menuLegacy = {
   canUseModule: (module: string): boolean => puedeModulo(module),
   planIncludesSection: (section: string): boolean => planIncluyeSeccion(section),
   paintTenders: (view: string): unknown => pintarConcursos(view),
-  paintEquipment: (): unknown => pintarParque(),
+  paintEquipment: (): unknown => legacyFreeScreensEquipment.paintEquipment(),
   setPage: (key: string, page: LegacyPage): void => { pages()[key] = page as LegacyPage & { tabs: PageTabs }; },
   pageTab: (key: string): string | undefined => PAG_TAB[key],
-  tendersMenu: (): void => { menuConcursos(); },
-  equipmentMenu: (): void => { menuParque(); },
+  tendersMenu: (): void => { legacyFreeCoreLeftovers.menuTenders(); },
+  equipmentMenu: (): void => { legacyFreeCoreLeftovers.menuEquipment(); },
   lockSections: (): void => { candadoSecciones(); },
   setPlanSections: (sections: Record<string, string[]>): void => { Object.assign(PLAN_SECCIONES, sections); },
   requirePlanSection: (key: string): void => { const page = pages()[key]; if (!page) return; const before = page.permiso; page.permiso = (): boolean => before() && planIncluyeSeccion(key); },
@@ -76,15 +86,15 @@ export const menuLegacy = {
 };
 
 export const polishLegacy = {
-  normalise: (text: string | null | undefined): string => impNorm(text ?? ''),
+  normalise: (text: string | null | undefined): string => legacyFreeScreensImport.normaliseHeader((text ?? '')),
   currentScreen: (): string => TAB,
   polishedKeys: (): string[] => CFG_PULIR,
   settingsKey: (): string => CFG_KEY,
   roleNames: (): string[] => rolesNombres(),
-  adjustIndexSoon: (): void => { cancelAnimationFrame(CFU_RAF); CFU_RAF = requestAnimationFrame(() => { cfuAjustarIndice(); }); },
+  adjustIndexSoon: (): void => { cancelAnimationFrame(CFU_RAF); CFU_RAF = requestAnimationFrame(() => { legacyFreeScreensSettingsShell.fitIndex(); }); },
   markOpenedFromMenu: (): void => { CFG_SEC = '__cfg'; IR_DESDE_MENU_CFG = true; },
   setManualAnchor: (screen: string, anchor: () => string): void => { Object.defineProperty(MANUAL_ANCLA, screen, { configurable: true, enumerable: true, get: anchor }); },
-  polish: (): void => { pulirCfg(); },
+  polish: (): void => { legacyFreeCoreLayers.polishSettings(); },
 };
 
 export const pageLegacy = {
@@ -96,7 +106,7 @@ export const pageLegacy = {
   cloneSettingsStyles: (): void => { void cfgClonarEstilos(); },
   currentPage: (): { cuerpo: HTMLElement } | null => pagActual(),
   notAChange: (): string => PAG_NO_CAMBIA,
-  markChanged: (element: Element, body: HTMLElement): void => { PAG_SUCIO.add(pagBloque(element, body)); pagMarcarSucio(); },
+  markChanged: (element: Element, body: HTMLElement): void => { PAG_SUCIO.add(pagBloque(element, body)); legacyFreeScreensSettingsShell.markUnsaved(); },
   placeSaveButtonSoon: (): void => {
     if (PAG_GUARDA_RAF || !PAG_GUARDA.some(page => page.tab === TAB)) return;
     PAG_GUARDA_RAF = requestAnimationFrame(() => { PAG_GUARDA_RAF = 0; pagPonerGuardar(); });
@@ -188,7 +198,7 @@ export const sortLegacy = {
   // eslint-disable-next-line id-length -- the legacy name of Cuentas' filters
   accountFilters: (): AccountFilters => F,
   searchAccounts: (): void => { void buscar(true); },
-  paintAccountsHeader: (): void => { cabeceraTabla(); },
+  paintAccountsHeader: (): void => { legacyFreeScreensAccounts.paintAccountsHeader(); },
   rememberedKinds: (): string[] => Object.keys(ORD_MEM),
   rememberedHasField: (kind: string, index: number): boolean => ((ORD_MEM[kind]?.campos as readonly unknown[] | undefined)?.[index] ?? null) !== null,
   isRemembered: (kind: string): boolean => Boolean(ORD_MEM[kind]),
@@ -199,7 +209,7 @@ export const sortLegacy = {
 const listsConfig = (): Record<string, { mas?: () => [string, string][]; prods?: { mas?: () => [string, string][] } } | undefined> => PL as Record<string, { mas?: () => [string, string][]; prods?: { mas?: () => [string, string][] } } | undefined>;
 export const removedLegacy = {
   dialog: (id: string): HTMLDialogElement | null => document.getElementById(id) as HTMLDialogElement | null,
-  shortDate: (isoDate: string): string => fechaCorta(isoDate),
+  shortDate: (isoDate: string): string => legacyFreeCoreServices.calendar.shortDate(isoDate),
   confirm: (message: string, options: { titulo?: string; ok?: string; peligro?: boolean }): Promise<boolean> => preguntar(message, options),
   rpc: <T>(name: string, args: Record<string, unknown>): PromiseLike<LegacyResult<T>> => db.rpc<T>(name, args),
   forgetCache: (): void => { invalidarCache(); },
@@ -218,7 +228,7 @@ export const removedLegacy = {
     const list = listsConfig()[screen]; if (!list?.mas) return;
     const before = list.mas; list.mas = (): [string, string][] => before().concat([entry]);
   },
-  canDeleteProducts: (): boolean => Boolean(puedeEliminarProducto()),
+  canDeleteProducts: (): boolean => Boolean(legacyFreeCoreServices.permissions.canDeleteProduct()),
   refreshProducts: (): void => { void refrescarProductos(); },
   addProductsMenuEntry: (entries: () => [string, string][]): void => {
     const products = listsConfig().productos?.prods; if (!products?.mas) return;

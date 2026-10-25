@@ -5,6 +5,7 @@
  */
 import { term } from '../../legacy/bridge';
 import { t } from '../../i18n';
+import * as legacyFreeCoreServices from '../services';
 
 const FAR_MINUTES = 240;
 interface Stop { id: string; estado: string; dias?: unknown }
@@ -48,7 +49,7 @@ function attendanceText(info: Info): string {
   const who = term('medico', { article: 'el' });
   if (info.lejos) return t('legacyC.agenda.far', { km: num(info.lejos) });
   const windows = info.ventanas?.length ? txtVentanas(info.ventanas) : '';
-  const day = info.fecha ? DIA_NOMBRE(info.fecha) : t('legacyC.agenda.thatDay');
+  const day = info.fecha ? legacyFreeCoreServices.calendar.weekdayOf(info.fecha) : t('legacyC.agenda.thatDay');
   if (info.ventanas && !info.ventanas.length) return t('legacyC.agenda.notThatDay', { who, day });
   const arrival = info.llegada !== undefined && info.llegada !== null ? t('legacyC.agenda.wouldArriveAt', { time: hm(info.llegada) }) : '';
   return t('legacyC.agenda.attends', { who, day, windows, arrival });

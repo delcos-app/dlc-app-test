@@ -3,6 +3,11 @@
  * Screens import from here (never use a legacy global directly), so the remaining dependencies are visible in one file and each
  * one is replaced by a real service when its piece is migrated.
  */
+import * as legacyFreeCoreServices from '../core/services';
+import * as legacyFreeComponents from '../components';
+import * as legacyFreeCoreLeftovers from '../core/leftovers';
+import * as legacyFreeScreensSettings from '../screens/settings';
+import * as legacyFreeCoreSettings from '../core/settings';
 export const legacyDb = (): LegacyDb => db;
 export const callRpc = <T>(name: string, params: Record<string, unknown> = {}): PromiseLike<LegacyResult<T>> => RPC_ORIG<T>(name, params);
 
@@ -34,9 +39,9 @@ export const permissions = {
   canSeeArea: (area: string): boolean => verArea(area),
   canSeeAmounts: (): boolean => verImportes(),
   seesEverything: (): boolean => VE_TODO(),
-  salesLevel: (): number => nivelDe2('V'),
+  salesLevel: (): number => legacyFreeCoreServices.permissions.levelOrNone(('V')),
   /** Level (0–3) in an area by its letter (M: accounts, V: sales…). */
-  levelOf: (letter: string): number => nivelDe2(letter),
+  levelOf: (letter: string): number => legacyFreeCoreServices.permissions.levelOrNone(letter),
   isProfessionalPortal: (): boolean => ES_MEDICO(),
   hasOpportunities: (): boolean => typeof hayOportunidades === 'function' && hayOportunidades(),
   canReviewDuplicates: (): boolean => typeof puedeDuplicados === 'function' && puedeDuplicados(),
@@ -75,7 +80,7 @@ export const commercialStates = {
 /** Cached read (offline copy) of a database function. */
 export const cachedRpc = <T>(name: string, params: Record<string, unknown>, key: string): ReturnType<typeof rpcCache<T>> => rpcCache<T>(name, params, key);
 export const timingMark = (step: string): void => { marca(step); };
-export const showCacheNotice = (element: HTMLElement, date: string | undefined): void => { avisoCache(element, date); };
+export const showCacheNotice = (element: HTMLElement, date: string | undefined): void => { legacyFreeComponents.cacheNotice(element, date); };
 export const addHelpButtons = (): void => { ponerAyudas(); };
 export const isMobile = (): boolean => ES_MOVIL();
 
@@ -83,7 +88,7 @@ export const isMobile = (): boolean => ES_MOVIL();
 export const legacyAgenda = {
   selectedDate: (): string | null => AG_FECHA,
   /** The person whose agenda is shown (null: everybody the user sees, or the user). */
-  userFilter: (): string | null => agUsuarioFiltro(),
+  userFilter: (): string | null => legacyFreeCoreLeftovers.agendaUserFilter(),
   viewedUserId: (): string | null => AG_VISTA?.id ?? null,
   showDay: (isoDate: string): void => { void agVerDia(isoDate); },
   isDayView: (): boolean => agN(),
@@ -159,14 +164,14 @@ export const salesTeam = {
   members: (): readonly { id: string; nombre: string }[] => COMS,
   load: (): Promise<void> => cargarComerciales(),
   currentUserId: (): string => (PERFIL as { id: string }).id,
-  showAgendaOf: (userId: string): void => { void verAgendaDe(userId); },
+  showAgendaOf: (userId: string): void => { void legacyFreeCoreLeftovers.showAgendaOf(userId); },
 };
 
 /** Agenda pieces painted by legacy code. */
 export const legacyAgendaPaint = {
   yourDay: (): Promise<void> => pintarTuDia(),
   team: (): Promise<void> => pintarEquipo(),
-  noStartWarning: (element: HTMLElement | null): void => { avisoSinSalida(element); },
+  noStartWarning: (element: HTMLElement | null): void => { legacyFreeComponents.noStartNotice(element); },
 };
 
 /** The week planner («Repartir la semana») and its unsaved proposal, still in legacy (pantallas/rutas.js). */
@@ -266,9 +271,9 @@ export const accountCardLegacy = {
   forgetPatients: (): void => { FICHA_PAC = null; },
   forgetCentreFromAppointment: (): void => { FICHA_CENTRO = null; },
   planIncludes: (section: string): boolean => planIncluyeSeccion(section),
-  canEditType: (type: string | null | undefined): boolean => puedeEditarTipo(type),
+  canEditType: (type: string | null | undefined): boolean => legacyFreeCoreServices.permissions.canEditType(type),
   /** The base sections, in their legacy order (each one paints a block of the card). */
-  customFields: (id: string, container: Element | null): Promise<void> => bloqueCampos('cuentas', id, container),
+  customFields: (id: string, container: Element | null): Promise<void> => legacyFreeScreensSettings.paintCustomFieldsBlock(('cuentas'), id, container),
 };
 
 /** Windows and labels of other modules (events, deposit, surgeries, tenders, equipment, visit photos), still in legacy. */
@@ -287,8 +292,8 @@ export const relatedLegacy = {
 /** What the base of the account card uses from legacy: the «Para la visita» block (Visitas), permissions and the units chart. */
 export const cardBaseLegacy = {
   states: (): string[] => estados(),
-  canRecord: (): boolean => puedeRegistrar(),
-  canEdit: (): boolean => puedeEditar(),
+  canRecord: (): boolean => legacyFreeCoreServices.permissions.canRecord(),
+  canEdit: (): boolean => legacyFreeCoreServices.permissions.canEdit(),
   directionsAttribute: (point: [number, number]): string => navAttr(point),
   unitsChart: (units: AccountUnits, series: string): string => sparkUnidades(units, series),
   unitsLegend: (series: string): string => leyendaUnidades(series),
@@ -302,7 +307,7 @@ export const cardSectionsLegacy = {
   can: (capability: string): boolean => puede(capability),
   /** Sales level of the user (area V). */
   salesArea: (): number => (PERFIL as { areas?: Record<string, number> }).areas?.V ?? 0,
-  roleCan: (role: string, capability: string): boolean => rolPuede(role, capability),
+  roleCan: (role: string, capability: string): boolean => legacyFreeCoreSettings.roleCan(role, capability),
   openPatient: (id: string): void => { void fichaPaciente(id); },
   /** Opens Pacientes filtered by this account. */
   patientsOf: (accountId: string, name: string): void => { Object.assign(PAC, { q: '', medico: accountId, medicoNombre: name, pagina: 0 }); goTo('pacientes'); },
@@ -357,7 +362,7 @@ export const accountColumnsLegacy = {
   firstName: (name: string): string => nombrePila(name),
   /** Platform access by account (loaded once; null until it arrives). */
   accessOf: (): Record<string, { activo?: boolean }> | null => MED_ACCESO as Record<string, { activo?: boolean }> | null,
-  loadAccess: (): Promise<void> => cargarAccesoMedicos(),
+  loadAccess: (): Promise<void> => legacyFreeCoreLeftovers.loadAccountAccess(),
   storageKey: (): string => `dlc-cols-${(PERFIL as { id?: string } | null)?.id ?? ''}`,
 };
 
@@ -404,7 +409,7 @@ export const tendersLegacy = {
 /** Compras: the catalogs it shares with Productos (suppliers, stores, products), the permission and the Pedidos tab. */
 export const purchasesLegacy = {
   section: (): string => PEDSEC,
-  canBuy: (): boolean => Boolean(puedeCompras()),
+  canBuy: (): boolean => Boolean(legacyFreeCoreServices.permissions.canBuy()),
   loadSuppliers: (): Promise<void> => cargarProveedores(),
   suppliers: (): readonly PurchaseSupplier[] => PROVEEDORES,
   loadStores: (): Promise<void> => cargarAlmacenes(),
@@ -450,7 +455,7 @@ export const manualLegacy = {
   takeBack: (): { tab: string; y: number } | null => { const back = MANUAL_VUELTA; MANUAL_VUELTA = null; return back; },
   screenName: (screen: string): string => nombrePantalla(screen),
   pageInfo: (screen: string): { t?: string; d?: string } => (PAGINAS[screen] ?? {}) as { t?: string; d?: string },
-  attachHelp: (title: HTMLElement, html: string): void => { pegarAyuda(title, html); },
+  attachHelp: (title: HTMLElement, html: string): void => { legacyFreeComponents.glueHelp(title, html); },
 };
 
 /** Calidad del dato: the address search, the export hook of the tools menu, module permission and the Cuentas header order. */
@@ -482,7 +487,7 @@ export const opportunitiesLegacy = {
   mountPeriod: (element: HTMLElement | null, options: { id: string; valor: string; alCambiar: () => void }): void => { montarPeriodo(element, options); },
   periodOf: (element: HTMLElement | null): { desde: string | null; hasta: string | null } =>
     (Reflect.get(element ?? {}, '__rango') as (() => { desde: string | null; hasta: string | null }) | undefined)?.() ?? { desde: null, hasta: null },
-  barChart: (items: { n: string; v: number }[], format: (value: number) => string): string => barrasH(items, format),
+  barChart: (items: { n: string; v: number }[], format: (value: number) => string): string => legacyFreeComponents.rankingBars(items, format),
   emptyChart: (text: string): string => vacioGrafico(text),
   page: (): number => LLPAG,
   setPage: (page: number): void => { LLPAG = page; },

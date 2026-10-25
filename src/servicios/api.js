@@ -28,7 +28,6 @@ function usarCache(t) { return window.delcos.core.reads.canReuseScreen(t); }
 function cargaLocal(el) { return window.delcos.core.reads.localLoading(el); }
 function colaLeer() { return window.delcos.core.queue.queued(); }
 function colaGuardar(c) { return window.delcos.core.queue.saveQueue(c); }
-function colaKo() { return window.delcos.core.queue.refused(); }
 function guardarCache(k, d) { return window.delcos.core.reads.saveCopy(k, d); }
 function leerCache(k) { return window.delcos.core.reads.readCopy(k); }
 function pedirTurno(k) { return window.delcos.core.reads.takeTurn(k); }

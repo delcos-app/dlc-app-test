@@ -5,6 +5,7 @@
  */
 import { t } from '../../i18n';
 import { byId, closestTo, observe } from './dom';
+import * as legacyFreeCoreLayers from '../layers';
 
 const SUMMARY_CHARS = 320, MAX_ITEMS = 3, FIRST_SENTENCE_CHARS = 200, MANUAL_SEARCH_DELAY_MS = 350, FOCUS_DELAY_MS = 50;
 
@@ -56,7 +57,7 @@ export function summariseHelp(popup: HTMLElement): void {
 
 export function summariseNewHelps(): void {
   observe(document.body, mutations => {
-    mutations.forEach(mutation => { mutation.addedNodes.forEach(node => { if (node instanceof HTMLElement && node.classList.contains('aipop')) resumirAyuda(node); }); });
+    mutations.forEach(mutation => { mutation.addedNodes.forEach(node => { if (node instanceof HTMLElement && node.classList.contains('aipop')) legacyFreeCoreLayers.summariseHelp(node); }); });
   }, { childList: true });
 }
 

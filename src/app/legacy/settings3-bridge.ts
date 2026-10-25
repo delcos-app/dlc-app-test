@@ -3,6 +3,7 @@
  * apart from bridge.ts (at its size limit). The settings, the profile, the notification catalog, the unread count and the menu stay
  * in legacy state: the start-up, the bell and the menu read them.
  */
+import * as legacyFreeCoreSettings from '../core/settings';
 export interface EmailProvider { n: string; host: string; puerto: number; seg: string; ayuda: string }
 export type NotificationType = readonly [string, string, string, string];
 export type NotificationArea = readonly [string, string, readonly string[]];
@@ -40,8 +41,8 @@ export const settingsExtraLegacy = {
   // Notifications
   notificationAreas: (): readonly NotificationArea[] => NOTIF_AREAS,
   dailyNotifications: (): readonly string[] => NOTIF_DIARIOS,
-  areaOf: (type: string): string => notifArea(type),
-  iconOf: (type: string): string => notifIco(type),
+  areaOf: (type: string): string => legacyFreeCoreSettings.notificationArea(type),
+  iconOf: (type: string): string => legacyFreeCoreSettings.notificationIcon(type),
   typesForMyRole: (): readonly NotificationType[] => tiposDeMiRol(),
   unread: (): number => NOTIF_N,
   setUnread: (count: number): void => { NOTIF_N = count; },

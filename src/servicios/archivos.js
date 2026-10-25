@@ -2,7 +2,6 @@
 // los puentes los usan. Normas: docs/normas_codigo.md.
 
 function descargar() { return window.delcos.core.files.download(); }
-function imagenData(url) { return window.delcos.core.files.imageData(url); }
 function cargarQR() { return window.delcos.core.files.loadQr(); }
 function leerJustificante(f) { return window.delcos.core.files.readReceipt(f); }
 function subirJustificantes(pedido, lista) { return window.delcos.core.files.uploadReceipts(pedido, lista); }

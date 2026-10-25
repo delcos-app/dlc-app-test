@@ -37,33 +37,18 @@ const marca = paso => console.info(`[App] ${paso} · ${Math.round(performance.no
 
 // ---------- Adaptadores: src/app/core/settings (v2.428.0). Los usan otras pantallas, los puentes, legado y las pruebas ----------
 function cargarAjustes() { return window.delcos.settingsCore.loadSettings(); }
-function cargarCatalogos() { return window.delcos.settingsCore.loadCatalogs(); }
 function cargarRoles() { return window.delcos.settingsCore.loadRoles(); }
-function aplicarMarca() { return window.delcos.settingsCore.applyBrand(); }
 function logoData() { return window.delcos.settingsCore.invoiceLogo(); }
-function arbolConfig() { return window.delcos.settingsCore.settingsTree(); }
-function rolDef(r) { return window.delcos.settingsCore.roleDefinition(r); }
-function rolPuede(r, c) { return window.delcos.settingsCore.roleCan(r, c); }
 function rolesNombres() { return window.delcos.settingsCore.roleNames(); }
-function rolCon(c) { return window.delcos.settingsCore.roleWith(c); }
-function rolPorDefecto() { return window.delcos.settingsCore.defaultRole(); }
 function plantillaRol(r) { return window.delcos.settingsCore.roleTemplate(r); }
-function marcarCache(t) { return window.delcos.settingsCore.markModuleCache(t); }
-function nombreEnTextos(raiz) { return window.delcos.settingsCore.nameInTexts(raiz); }
 function menuMarcarPie() { return window.delcos.settingsCore.markMenuFooter(); }
 function colocarIndPruebas() { return window.delcos.settingsCore.placeTestBadge(); }
-function rpPlanDe(i) { return window.delcos.settingsCore.proposalPlan(i); }
 function txTexto(b) { return window.delcos.settingsCore.menuLabelText(b); }
 function salidaUsuario() { return window.delcos.settingsCore.userStart(); }
-function clasCampos(amb) { return window.delcos.settingsCore.sortedFields(amb); }
 function precioPlan(p) { return window.delcos.settingsCore.planPrice(p); }
-function usuariosContratados() { return window.delcos.settingsCore.contractedUsers(); }
 function deshacible(a) { return window.delcos.settingsCore.isUndoable(a); }
-function notifArea(t) { return window.delcos.settingsCore.notificationArea(t); }
-function notifIco(t) { return window.delcos.settingsCore.notificationIcon(t); }
 // La tarjeta del plan de ruta y su ventana de tiempos (legado 061 y pantallas/cuentas.js las envuelven)
 function pintarPlanBase2() { return window.delcos.settingsCore.paintPlanCard(); }
-function abrirHorarioPlanBase() { return window.delcos.settingsCore.openPlanTimesWindow(); }
 // Filtros generados de los campos propios: ahora los pinta el panel «Filtros y columnas» (se queda vacío)
 function camposFiltros() { return ''; }
 
@@ -72,16 +57,10 @@ function camposFiltros() { return ''; }
 // delcos, legado 002, 004, 014, 073 y 148 y las pruebas los usan.
 function pintarPrefs() { return window.delcos.screens.settings.paintPreferences(); }
 function pintarPrefsPaso2() { return window.delcos.screens.settings.paintProfile(); }
-function pintarCatalogos() { return window.delcos.screens.settings.paintClassifiers(); }
 function pintarAuditoria() { return window.delcos.screens.settings.paintAudit(); }
 function pintarRegistro() { return window.delcos.screens.settings.paintBillingLog(); }
-function cargarCampos() { return window.delcos.screens.settings.loadCustomFields(); }
-function camposHTML(amb, valores) { return window.delcos.screens.settings.customFieldsHtml(amb, valores); }
 function camposLeer(raiz) { return window.delcos.screens.settings.readCustomFields(raiz); }
 function camposGuardar(leido, id) { return window.delcos.screens.settings.saveCustomFields(leido, id); }
-function camposInsertar(raiz, amb, id, antesDe) { return window.delcos.screens.settings.insertCustomFields(raiz, amb, id, antesDe); }
-function camposFiltrosActivar(zona, estado, alCambiar) { return window.delcos.screens.settings.bindCustomFieldFilters(zona, estado, alCambiar); }
-function bloqueCampos(tabla, id, cont) { return window.delcos.screens.settings.paintCustomFieldsBlock(tabla, id, cont); }
 function estadoRefresco() { return window.delcos.screens.settings.refreshStatus(); }
 function pintarCfgPruebas() { return window.delcos.screens.settings.paintTestEnvironment(); }
 
@@ -100,24 +79,17 @@ function textoValor(v) { return window.delcos.screens.settingsMore.valueText(v);
 function resumenDetalle(d) { return window.delcos.screens.settingsMore.detailSummary(d); }
 function abrirClasificador(id) { return window.delcos.screens.settingsMore.openClassifier(id); }
 function decorarResultados() { return window.delcos.screens.settingsMore.decorateResults(); }
-function pintarRoles() { return window.delcos.screens.settingsMore.paintRoles(); }
-function pintarMarca() { return window.delcos.screens.settingsMore.paintBrand(); }
 
 // Correo y firma, notificaciones y textos personalizados están en src/app/screens/settings (v2.417.0). Estos nombres se quedan:
 // el árbol de Configuración, la campana, Pedidos, Facturación, servicios/pdf.js, el menú y las pruebas los usan.
-function pintarCorreo() { return window.delcos.screens.settingsExtra.paintEmail(); }
 function varsCorreo(o) { return window.delcos.screens.settingsExtra.emailVariables(o || {}); }
 function plantillaCorreo(k, campo, v) { return window.delcos.screens.settingsExtra.fillTemplate(k, campo, v); }
-function listaCorreos() { return window.delcos.screens.settingsExtra.templateList(); }
-function plantillasCorreo(uso) { return window.delcos.screens.settingsExtra.templatesFor(uso); }
-function guardarCorreos(lista) { return window.delcos.screens.settingsExtra.saveTemplates(lista); }
 function elegirPlantillaCorreo(uso) { return window.delcos.screens.settingsExtra.chooseTemplate(uso); }
 function idPlant() { return window.delcos.screens.settingsExtra.newTemplateId(); }
 function panelNotificaciones(l) { return window.delcos.screens.settingsExtra.showNotifications(l); }
 function pintarNotif() { return window.delcos.screens.settingsExtra.paintNotificationSettings(); }
 function notifModo(k) { return window.delcos.screens.settingsExtra.notificationMode(k); }
 function guardarPrefsAvisos(avisos) { return window.delcos.screens.settingsExtra.saveOrderAlerts(avisos); }
-function pintarTextos() { return window.delcos.screens.settingsExtra.paintMenuNames(); }
 
 // Usuarios, Mi perfil y «Plan y suscripción» están en src/app/screens/settings (v2.420.0). Estos nombres se quedan: el árbol de
 // Configuración, las páginas «perfil» y «plan», legado 004/007/052/076, la ficha, Panel delcos y las pruebas los usan.
@@ -136,12 +108,6 @@ function pintarPaginaPlanBase10() { return window.delcos.screens.settingsRest.pa
 // La carcasa de Configuración está en src/app/screens/settings/shell (v2.422.0). Estos nombres se quedan: el mapa de pantallas
 // (legado 001), Guardar página, legado 004/044/080/081/157/161, la navegación, los puentes y las pruebas los usan.
 function cargarConfig() { return window.delcos.screens.settingsShell.loadSettingsPage(); }
-function cfgMovil() { return window.delcos.screens.settingsShell.mobileLayout(); }
-function cfuAjustarIndice() { return window.delcos.screens.settingsShell.fitIndex(); }
 function cfgSecDespertar(sec) { return window.delcos.screens.settingsShell.wakeSection(sec); }
 function cfgClonarEstilos() { return window.delcos.screens.settingsShell.copyPartStyles(); }
-function pagMarcarSucio() { return window.delcos.screens.settingsShell.markUnsaved(); }
 function claveCfgVieja(sec, sub) { return window.delcos.screens.settingsShell.oldSettingsKey(sec, sub); }
-function marcarPedsec() { return window.delcos.screens.settingsShell.markOrderSection(); }
-function marcarFacPlan() { return window.delcos.screens.settingsShell.markBillingPlan(); }
-function marcarPanel() { return window.delcos.screens.settingsShell.markPlatformPanel(); }

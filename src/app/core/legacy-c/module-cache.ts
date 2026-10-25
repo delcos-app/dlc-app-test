@@ -5,6 +5,8 @@
  */
 import { t } from '../../i18n';
 import { byId, closestTo, observe } from './dom';
+import * as legacyFreeCoreLegacyC from './';
+import * as legacyFreeCoreSettings from '../settings';
 
 const UNCHANGED_FOR_MS = 800, MINUTE_MS = 60000, SAFETY_MS = 6000;
 type Loader = (...args: unknown[]) => Promise<unknown>;
@@ -36,9 +38,9 @@ export function cacheModuleLoaders(): void {
   LOADERS.forEach(([screen, name]) => {
     const original = globals[name]; if (!original) return;
     globals[name] = async function (this: unknown, ...args: unknown[]): Promise<unknown> {
-      if (usarCache(screen)) { if (screen === 'inicio') pintarActualizado(); return undefined; }
+      if (usarCache(screen)) { if (screen === 'inicio') legacyFreeCoreLegacyC.paintUpdated(); return undefined; }
       if (screen === 'agenda' && Date.now() < unchangedUntil && !VIA_IR) return undefined;   // a window closed without changes
-      const result = await original.apply(this, args); marcarCache(screen); if (screen === 'inicio') pintarActualizado(); return result;
+      const result = await original.apply(this, args); legacyFreeCoreSettings.markModuleCache(screen); if (screen === 'inicio') legacyFreeCoreLegacyC.paintUpdated(); return result;
     };
   });
 }
@@ -71,7 +73,7 @@ export function paintUpdated(): void {
 
 /** Inicio refreshes «updated N min ago» every minute; its buttons never stay hidden. */
 export function keepUpdateTime(): void {
-  setInterval(() => { if (TAB === 'inicio') pintarActualizado(); }, MINUTE_MS);
+  setInterval(() => { if (TAB === 'inicio') legacyFreeCoreLegacyC.paintUpdated(); }, MINUTE_MS);
   setTimeout(() => { document.body.classList.add('inilisto'); }, SAFETY_MS);   // safety net
 }
 

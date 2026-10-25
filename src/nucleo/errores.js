@@ -4,4 +4,3 @@
 
 function registrarError(tipo, mensaje, detalle) { return window.delcos.core.errors.registerError(tipo, mensaje, detalle); }
 function esErrorRed(e) { return window.delcos.core.errors.isNetworkError(e); }
-function reportarProblema() { return window.delcos.core.report.reportProblem(); }

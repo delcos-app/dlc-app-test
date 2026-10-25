@@ -9,7 +9,6 @@ declare let PRES_MAT: PresentationMaterial[] | null;
 declare let PRES_T: number;
 declare const PRES_DATOS: Map<string, string>;
 declare const FOTOS_VISITA_MAX: number;
-declare function ventanaCargando<T>(work: () => Promise<T>): Promise<T>;
 declare function guardarCache(key: string, data: unknown): void;
 declare function leerCache(key: string): { t: number; d: unknown } | null;
 declare function campoDato(value: object, key: string): string;

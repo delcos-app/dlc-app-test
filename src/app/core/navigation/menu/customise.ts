@@ -6,6 +6,7 @@
 import { t } from '../../../i18n';
 import { escapeHtml } from '../../../services/format';
 import { MENU_GROUPS, menuGroups, menuPrefs } from './groups';
+import * as legacyFreeCoreServices from '../../services';
 
 export interface Draft { orden: string[]; items: Record<string, string[]>; ocultos: string[] }
 /** The panel keeps its close function as `__cerrar`, as legacy did (the tests close it with it). */
@@ -65,7 +66,7 @@ function preview(session: Session): void {
 /** «Personalizar menú»: out-of-plan sections locked, switched off and not counted in «N de M». */
 function lockOutOfPlan(box: HTMLElement): void {
   box.querySelectorAll<HTMLElement>('.mlpi[data-k]').forEach(row => {
-    const button = sectionButton(row.dataset.k ?? ''); if (!button || !fueraDePlan(button)) return;
+    const button = sectionButton(row.dataset.k ?? ''); if (!button || !legacyFreeCoreServices.session.outOfPlan(button)) return;
     row.classList.add('off', 'fueraplan'); row.title = t('navigationCore.menu.notInPlan', { plan: PLAN_NOMBRE() });
     const toggle = row.querySelector<HTMLInputElement>('[data-vk]'); if (toggle) { toggle.checked = false; toggle.disabled = true; }
     if (!row.querySelector('.mlpcand')) row.querySelector('.mlpn')?.insertAdjacentHTML('afterend', `<span class="mlpcand" aria-label="${t('navigationCore.menu.notInPlanShort')}"></span>`);

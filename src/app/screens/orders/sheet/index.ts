@@ -36,11 +36,23 @@ async function paintOrder(id: string): Promise<void> {
   try { paintBankTransfer(detail); } catch { /* optional, like the others */ }
 }
 
+const REVEAL_CHECK_MS = 30;
+
+/**
+ * Every window that opens is also revealed whole (its content carries «preparando» until it stops changing): the order waits for
+ * that too, or it was shown a moment before and its own scrollbar then moved the buttons (v2.429.0).
+ */
+async function revealed(body: Element | null, maxMs: number): Promise<void> {
+  const start = performance.now();
+  while (body?.classList.contains('preparando') && performance.now() - start < maxMs) await new Promise(resolve => { setTimeout(resolve, REVEAL_CHECK_MS); });
+}
+
 export async function showOrder(id: string): Promise<void> {
   const dialog = document.getElementById('dlg');
   dialog?.classList.add('pdprep');
   try { await paintOrder(id); } finally {
-    try { await orderSheetLegacy.whenSteady(document.getElementById('dbody'), STEADY_MAX_MS); } catch { /* it only waits */ }
+    const body = document.getElementById('dbody');
+    try { await orderSheetLegacy.whenSteady(body, STEADY_MAX_MS); await revealed(body, STEADY_MAX_MS); } catch { /* it only waits */ }
     dialog?.classList.remove('pdprep');
   }
 }

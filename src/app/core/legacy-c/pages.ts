@@ -6,6 +6,9 @@
 import { term } from '../../legacy/bridge';
 import { t } from '../../i18n';
 import { escapeHtml } from '../../services/format';
+import * as legacyFreeScreensSettingsMore from '../../screens/settings/more';
+import * as legacyFreeScreensSettingsExtra from '../../screens/settings/extra';
+import * as legacyFreeComponentsEmbeddedWindow from '../../components/embedded-window';
 
 type Tab = [string, string, () => unknown];
 interface Page { t?: string; d?: string; tabs: Tab[]; permiso?: () => boolean; admin?: boolean }
@@ -30,7 +33,7 @@ export function defineOrganization(): void {
     t: t('legacyC.pages.organization.title'), d: t('legacyC.pages.organization.description'), permiso: puedeOrganizacion,
     get tabs(): Tab[] {
       const billing = planIncluye('facturacion');
-      return [['marca', t('legacyC.pages.organization.brand'), () => pintarMarca()], ['correo', t('legacyC.pages.organization.email'), () => pintarCorreo()],
+      return [['marca', t('legacyC.pages.organization.brand'), () => legacyFreeScreensSettingsMore.paintBrand()], ['correo', t('legacyC.pages.organization.email'), () => legacyFreeScreensSettingsExtra.paintEmail()],
         ['copias', t('legacyC.pages.organization.backups'), () => pintarCopias()], ['plan', t('legacyC.pages.organization.plan'), () => pintarPaginaPlan()],
         ...(billing ? [['fiscal', t('legacyC.pages.organization.fiscal'), facOrg(pintarEmpresa)], ['series', t('legacyC.pages.organization.series'), facOrg(pintarSeries)],
           ['vf', t('legacyC.pages.organization.verifactu'), facOrg(pintarVerifactu)], ['pdf', t('legacyC.pages.organization.pdf'), () => disenoPDF()]] as Tab[] : []),
@@ -43,10 +46,10 @@ export function defineOrganization(): void {
 /** v2.131.0: Usuarios y roles and Panel delcos; Organización no longer lists the organizations. */
 export function defineUsersAndPanel(): void {
   pages().usuarios = { t: t('legacyC.pages.users.title'), d: t('legacyC.pages.users.description'), admin: true,
-    tabs: [['usuarios', t('legacyC.pages.users.users'), () => pintarUsuarios2()], ['roles', t('legacyC.pages.users.roles'), () => pintarRoles()]] };
+    tabs: [['usuarios', t('legacyC.pages.users.users'), () => pintarUsuarios2()], ['roles', t('legacyC.pages.users.roles'), () => legacyFreeScreensSettingsMore.paintRoles()]] };
   pages().delcos = { t: t('legacyC.pages.panel.title'), d: t('legacyC.pages.panel.description'), permiso: () => puede('gestionar_plataforma'),
-    tabs: [['orgs', t('legacyC.pages.panel.organizations'), () => pintarOrganizaciones()], ['accesos', t('legacyC.pages.panel.access'), () => panelDeModulo('accesos')],
-      ['auditoria', t('legacyC.pages.panel.audit'), () => panelDeModulo('auditoria')]] };
+    tabs: [['orgs', t('legacyC.pages.panel.organizations'), () => pintarOrganizaciones()], ['accesos', t('legacyC.pages.panel.access'), () => legacyFreeComponentsEmbeddedWindow.showModuleInPanel(('accesos'))],
+      ['auditoria', t('legacyC.pages.panel.audit'), () => legacyFreeComponentsEmbeddedWindow.showModuleInPanel(('auditoria'))]] };
   wrapTabs('organizacion', tabs => tabs.filter(tab => tab[0] !== 'orgs'));
   // Icons of the new sections: Usuarios y roles with the access key and the panel with the shield
   Object.assign(navIcons(), { usuarios: 'key-round', delcos: 'shield' });

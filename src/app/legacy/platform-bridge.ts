@@ -1,4 +1,7 @@
 import * as components from '../components';
+import * as legacyFreeCoreServices from '../core/services';
+import * as legacyFreeScreensSettingsMore from '../screens/settings/more';
+import * as legacyFreeScreensSettings from '../screens/settings';
 /**
  * Bridge of Panel delcos to the legacy code (kept apart from bridge.ts, which is at its size limit): the plans, the billing state
  * helpers shared with Plan (pedidos.js), the dialogs, the environment and the Configuración editors the template reuses.
@@ -24,8 +27,8 @@ export const platformLegacy = {
   billingState: (organization: object): BillingState => pdCobroEstado(organization),
   monthlyAmount: (plan: object): number => pdMensual(plan),
   euros: (value: number): string => eur(value),
-  shortDate: (value: string): string => pdFecha(value),
+  shortDate: (value: string): string => legacyFreeCoreServices.calendar.dateWithYear(value),
   timeAgo: (value: string): string => pdHace(value),
-  paintRoles: (): Promise<void> => pintarRoles(),
-  paintCatalogs: (): Promise<void> => pintarCatalogos(),
+  paintRoles: (): Promise<void> => legacyFreeScreensSettingsMore.paintRoles(),
+  paintCatalogs: (): Promise<void> => legacyFreeScreensSettings.paintClassifiers(),
 };

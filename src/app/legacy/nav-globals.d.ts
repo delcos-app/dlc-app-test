@@ -5,7 +5,6 @@ declare function mostrarApp(profile: unknown): void;
 declare function mostrarLogin(message?: string): void;
 declare function suplantando(): { nombre: string; access_token: string; refresh_token: string } | null;
 declare const PANEL_DESC: Readonly<Record<string, string | undefined>>;
-declare function inicioEsqueleto(): void;
 declare const LISTA_ESPERA: Readonly<Record<string, number | undefined>>;
 declare const PL_SECC: Readonly<Record<string, (() => unknown) | undefined>>;
 declare function plCfg(screen: string): unknown;

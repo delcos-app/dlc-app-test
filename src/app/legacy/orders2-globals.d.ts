@@ -1,6 +1,5 @@
 // ---- Rest of Pedidos (src/app/screens/orders: editor, tpv, subscription, cards; v2.417.0): what it still reads from legacy
 declare function opcionesProducto(id: string | null | undefined, name: string | null | undefined): string;
-declare function cargarPreciosContrato(accountId: string | null): Promise<unknown>;
 declare function conPrecioContrato<T>(product: T): T;
 declare function subirJustificantes(id: string, list: readonly { nombre: string }[]): Promise<boolean>;
 declare let DISTRIBUIDORES: { id: string; nombre: string; email?: string | null; telefono?: string | null; activo?: boolean }[] | null;
@@ -9,12 +8,9 @@ declare function conCarga<T>(button: HTMLElement | null, text: string, work: () 
 declare function esBajada(from: Record<string, unknown>, to: Record<string, unknown>): boolean;
 declare const PUESTA_EN_MARCHA: number;
 declare const PAGO_PLANES: readonly string[];
-declare function aplicarModoPlataforma(): void;
-declare function marcarFacPlan(): void;
 declare function pagoPortal(button: HTMLElement): Promise<void>;
 declare function diasHasta(isoDate: unknown): number | null;
 declare function isoMas(isoDate: string, days: number): string;
-declare function pkPascua(year: number): string;
 declare const KPI_DEF: readonly string[];
 declare function guardarKpis(list: readonly Record<string, unknown>[]): Promise<boolean>;
 declare const ES_IMPORTE: RegExp;

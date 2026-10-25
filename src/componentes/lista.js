@@ -3,7 +3,6 @@
 
 // Las columnas de Cuentas están en src/app/screens/accounts/list (v2.406.0); estos nombres los usan los campos personalizados y la lista
 const colsGuardar = c => window.delcos.screens.accounts.saveColumns(c);
-function colsConfig() { return window.delcos.screens.accounts.columnSettings(); }
 function abrirColumnas() { window.delcos.screens.accounts.openColumnsPanel(() => buscar(true)); }
 
 // Tablas que se ordenan en la base: qué clave usa cada columna (por su posición o su nombre)

@@ -10,8 +10,5 @@ declare const deshacible: (entry: object) => boolean;
 declare function campoInput(field: CustomField, value: unknown): string;
 declare function cambiarNavegador(name: string): Promise<void>;
 declare function abrirClasificador(id: string): void;
-declare function cargarCatalogos(): Promise<void>;
 declare function cajaDeshacerPersona(box: HTMLElement | null, userId: string, from: string | null, name: string, then: () => void): void;
-declare function detalleEvento(detail: unknown): string;
-declare function volverDatosPartida(): Promise<void>;
 declare function limpiarDatosLocales(): void;

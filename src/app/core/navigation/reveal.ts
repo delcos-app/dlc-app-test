@@ -6,6 +6,7 @@
  */
 import { navLegacy } from '../../legacy/nav-bridge';
 import { PAGES } from './pages';
+import * as legacyFreeScreensHome from '../../screens/home';
 
 const QUIET_MS = 50, CHECK_EVERY_MS = 15, DEFAULT_MAX_MS = 4000, ARRIVAL_MS = 700, CARD_MAX_MS = 5000, LIST_MAX_MS = 6000, MIN_WAIT_MS = 300, RETRY_MS = 60;
 /** v2.144.0: the main action of own pages goes up to the header */
@@ -70,7 +71,7 @@ function revealWhenReady(element: HTMLElement, screen: string, maxMs: number | u
   const ready = LISTA_PARA[screen];
   if (!ready || !isScreen(element)) { revealTemplate(element, screen, maxMs, since); return; }
   // Inicio with its skeleton: no loader on top
-  if (screen === 'inicio' && !ES_MEDICO()) { inicioEsqueleto(); element.classList.remove('preparando'); arrive(element); return; }
+  if (screen === 'inicio' && !ES_MEDICO()) { legacyFreeScreensHome.renderSkeleton(); element.classList.remove('preparando'); arrive(element); return; }
   const turn = ++revealTurn, start = performance.now(), limit = LISTA_ESPERA[screen] ?? LIST_MAX_MS;
   element.classList.add('preparando');
   const look = (): void => {

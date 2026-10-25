@@ -2,6 +2,14 @@
  * Bridge for what legado 000–024 moved to src/app (v2.424.0): the legacy state and functions those pieces still read or write.
  * Each member is replaced by a direct import when its legacy owner moves.
  */
+import * as legacyFreeScreensRoutes from '../screens/routes';
+import * as legacyFreeScreensQuality from '../screens/quality';
+import * as legacyFreeCoreServices from '../core/services';
+import * as legacyFreeScreensAccounts from '../screens/accounts';
+import * as legacyFreeComponents from '../components';
+import * as legacyFreeScreensSettings from '../screens/settings';
+import * as legacyFreeCoreSettings from '../core/settings';
+import * as legacyFreeCoreLegacyC from '../core/legacy-c';
 
 type AuthAnswer = PromiseLike<{ error: { message: string } | null }>;
 interface AskOptions { titulo?: string; ok?: string; tipo?: string; opciones?: string[] }
@@ -13,7 +21,7 @@ export const startupLegacy = {
 
 const MODULE_LOADERS: Readonly<Record<string, () => unknown>> = {
   directorio: () => { if (!document.getElementById('lista')?.children.length) buscar(true); },
-  inicio: () => cargarInicio(), agenda: () => cargarAgenda(), rutas: () => cargarRutas(), seguimiento: () => cargarSeguimiento(),
+  inicio: () => cargarInicio(), agenda: () => cargarAgenda(), rutas: () => legacyFreeScreensRoutes.loadRoutesPage(), seguimiento: () => legacyFreeScreensQuality.loadQuality(),
   ventas: () => cargarVentas(), analitica: () => cargarAnalitica(), config: () => cargarConfig(), duplicados: () => cargarDuplicados(),
   pacientes: () => cargarPacientes(), productos: () => cargarProductosModulo(), manual: () => cargarManual(),
   facturacion: () => cargarFacturacion(), informe: () => cargarInforme(),
@@ -73,8 +81,8 @@ export const cardActionsLegacy = {
   edit: (id: string): void => { void abrirEditor(id); },
   create: (kind: string): void => { void abrirEditor(null, kind); },
   toggleUrgent: (id: string, isUrgent: boolean): void => { void alternarUrgente(id, isUrgent); },
-  canCreate: (): boolean => puedeCrear(),
-  canCreateType: (kind: string): boolean => puedeCrearTipo(kind),
+  canCreate: (): boolean => legacyFreeCoreServices.permissions.canCreate(),
+  canCreateType: (kind: string): boolean => legacyFreeCoreServices.permissions.canCreateType(kind),
   newAccountName: (): string => fichaNueva().nombre,
 };
 
@@ -144,7 +152,7 @@ export const passwordLegacy = {
 export const shellExtrasLegacy = {
   goTo: (screen: string): void => { ir(screen); },
   toggleMapMode: (): boolean => { MODO_MAPA = !MODO_MAPA; return MODO_MAPA; },
-  paintMap: (): void => { void pintarMapa(); },
+  paintMap: (): void => { void legacyFreeScreensAccounts.paintMap(); },
   nearMe: (button: HTMLElement): void => { void cercaDeMi(button); },
   openTools: (context: string): void => { abrirHerramientas(context); },
   tryClose: (box: HTMLDialogElement): void => { intentarCerrar(box); },
@@ -156,7 +164,7 @@ export const shellExtrasLegacy = {
 
 /** The global search. */
 export const globalSearchLegacy = {
-  highlight: (text: string, query: string): string => resaltarBusqueda(text, query),
+  highlight: (text: string, query: string): string => legacyFreeComponents.highlightSearch(text, query),
   // eslint-disable-next-line id-length -- F is the legacy name of the directory filters
   filters: (): AccountFilters => F,
   goTo: (screen: string): void => { ir(screen); },
@@ -177,7 +185,7 @@ export const toolsPanelLegacy = {
   allOf: (word: string): string => todosLos(word),
   seesEverything: (): boolean => VE_TODO(),
   fieldFilters: (state: Record<string, unknown>): string => camposFiltros('medico', state, 'tfcp'),
-  bindFieldFilters: (zone: Element, state: Record<string, unknown>): void => { camposFiltrosActivar(zone, state, () => buscar(true)); },
+  bindFieldFilters: (zone: Element, state: Record<string, unknown>): void => { legacyFreeScreensSettings.bindCustomFieldFilters(zone, state, (() => buscar(true))); },
   loadFilters: (): void => { void cargarFiltros(); },
   search: (): void => { buscar(true); },
   openColumns: (): void => { abrirColumnas(); },
@@ -237,12 +245,12 @@ export const showAppLegacy = {
   setProfile: (profile: Profile): void => { PERFIL = profile; },
   initials: (name: string): string => iniciales(name),
   firstName: (name: string): string => nombrePila(name),
-  longDate: (date: Date): string => fechaLarga(date),
-  canCreate: (): boolean => puedeCrear(),
+  longDate: (date: Date): string => legacyFreeCoreServices.calendar.longDate(date),
+  canCreate: (): boolean => legacyFreeCoreServices.permissions.canCreate(),
   can: (capability: string): boolean => puede(capability),
   seesSales: (): boolean => Boolean(veVentas()),
   seesEverything: (): boolean => VE_TODO(),
-  loadCatalogs: (): void => { void cargarCatalogos(); },
+  loadCatalogs: (): void => { void legacyFreeCoreSettings.loadCatalogs(); },
   paintRouteBar: (): void => { void pintarRutaBarra(); },
   loadHome: (): void => { void cargarInicio(); },
   loadFilters: (): void => { void cargarFiltros(); },
@@ -255,7 +263,7 @@ export const showAppLegacy = {
   applyMenuPermissions: (): void => { aplicarPermisosMenu(); },
   refreshBell: (): void => { void refrescarCampana(); },
   goTo: (screen: string): void => { ir(screen); },
-  applyBrand: (): void => { aplicarMarca(); },
+  applyBrand: (): void => { legacyFreeCoreSettings.applyBrand(); },
   screenAfterF5: (): unknown => pantallaTrasF5(),
   backAfterF5: (screen: unknown): void => { void volverTrasF5(screen); },
   moduleAllowed: (screen: string): boolean => puedeModulo(screen),
@@ -266,7 +274,7 @@ export const showAppLegacy = {
   bookIcon: (): string => svgIco(ICON_NOM['book-open'] ?? ''),
   menuIcons: (): void => { iconosMenu(); },
   orderMenu: (): void => { ordenarMenu(); },
-  qualityButton: (): void => { botonCalidad(); },
+  qualityButton: (): void => { legacyFreeScreensQuality.paintAccountsHeader(); },
 };
 
 /** The portfolio window. */
@@ -282,7 +290,7 @@ export const periodLegacy = {
   userId: (): string => (PERFIL ? (PERFIL as { id: string }).id : ''),
   periods: (): readonly (readonly [string, string])[] => PERIODOS,
   rangeOf: (period: string): (string | null)[] => rangoPeriodo(period),
-  shortDate: (isoDate: string | null): string => fechaCorta(isoDate ?? ''),
+  shortDate: (isoDate: string | null): string => legacyFreeCoreServices.calendar.shortDate((isoDate ?? '')),
 };
 
 /** The strip of the test environment. */
@@ -319,7 +327,7 @@ export const dayEstimateLegacy = {
   setStopInfo: (info: Record<string, StopNotice>): void => { TD_INFO = info; },
   routeHours: (appointments: readonly EstimatedAppointment[]): RouteHours | null => horDeCitas(appointments) as RouteHours | null,
   withHours: (hours: RouteHours | null, run: () => DayEstimateResult): DayEstimateResult => conHor(hours, run),
-  estimateBase: (appointments: readonly EstimatedAppointment[], isoDate: string): DayEstimateResult => estimarDiaBase(appointments, isoDate) as DayEstimateResult,
+  estimateBase: (appointments: readonly EstimatedAppointment[], isoDate: string): DayEstimateResult => legacyFreeCoreLegacyC.estimateDay(appointments, isoDate) as DayEstimateResult,
 };
 
 /** Small settings applied while loading. */

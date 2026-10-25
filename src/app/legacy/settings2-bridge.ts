@@ -1,4 +1,6 @@
 import * as components from '../components';
+import * as legacyFreeCoreSettings from '../core/settings';
+import * as legacyFreeScreensSettings from '../screens/settings';
 /**
  * Bridge of Configuración (second part: portfolio rules, backups, undo, commercial states, visit material, accesses, classifiers,
  * roles and brand) to the legacy code (kept apart from bridge.ts, which is at its size limit). The settings, the catalogs, the
@@ -22,7 +24,7 @@ export const settingsMoreLegacy = {
   loading: (element: HTMLElement | null, text: string): void => { components.showLoading(element, text); },
   appName: (): string => nombreApp(),
   hasPortal: (): boolean => hayExtra('portal'),
-  reloadCatalogs: (): Promise<void> => cargarCatalogos(),
+  reloadCatalogs: (): Promise<void> => legacyFreeCoreSettings.loadCatalogs(),
   /** Level (0–3) of the user in an area of the legacy profile (K = classifiers). */
   areaLevel: (letter: string): number => profile().areas?.[letter] ?? 0,
   askText: (message: string, value: string, options: { titulo?: string; ok?: string }): Promise<string | null> => components.askText(message, value, options),
@@ -33,8 +35,8 @@ export const settingsMoreLegacy = {
   setClassifiers: (list: ClassifierData[]): void => { CATS = list as unknown as typeof CATS; },
   fieldBox: (classifier: ClassifierData, complete: boolean): string => cajaCampo(classifier, complete),
   fieldTable: (area: string | null | undefined): string | undefined => CAMPO_TABLA[area ?? ''],
-  loadCustomFields: (): Promise<void> => cargarCampos(),
-  repaintClassifiers: (): void => { void pintarCatalogos(); },
+  loadCustomFields: (): Promise<void> => legacyFreeScreensSettings.loadCustomFields(),
+  repaintClassifiers: (): void => { void legacyFreeScreensSettings.paintClassifiers(); },
   // Roles
   roleNames: (): string[] => rolesNombres(),
   roleTemplate: (role: string): Record<string, number> => plantillaRol(role),
@@ -47,7 +49,7 @@ export const settingsMoreLegacy = {
   setCapabilities: (list: string[]): void => { profile().capacidades = list; },
   // Brand and vocabulary
   setBrand: (brand: { nombre: string; logo: string | null }): void => {
-    MARCA = brand; localStorage.setItem('app-marca', JSON.stringify(brand)); LOGO_DATA = null; aplicarMarca();
+    MARCA = brand; localStorage.setItem('app-marca', JSON.stringify(brand)); LOGO_DATA = null; legacyFreeCoreSettings.applyBrand();
   },
   contactsLabel: (): string => etiquetaContactos(),
   contactLabels: (): readonly string[] => ETIQUETAS,

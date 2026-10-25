@@ -5,6 +5,8 @@
  */
 import { t } from '../../i18n';
 import { byId, closestTo, currentSection, observe, onMainChanges } from './dom';
+import * as legacyFreeCoreSettings from '../settings';
+import * as legacyFreeCoreLeftovers from '../leftovers';
 
 const MIN_DESKTOP = 900;
 const ACTION_WEIGHT = 3, TOOLS_WEIGHT = 4;
@@ -76,9 +78,9 @@ export function keepOneTitleHelp(): void {
 
 /** v2.59.0: the configured name in every text that appears. */
 export function nameInEveryText(): void {
-  observe(document.body, mutations => { mutations.forEach(mutation => { mutation.addedNodes.forEach(node => { nombreEnTextos(node instanceof Element ? node : node.parentElement); }); }); },
+  observe(document.body, mutations => { mutations.forEach(mutation => { mutation.addedNodes.forEach(node => { legacyFreeCoreSettings.nameInTexts((node instanceof Element ? node : node.parentElement)); }); }); },
     { childList: true, subtree: true });
-  nombreEnTextos(document.body);
+  legacyFreeCoreSettings.nameInTexts(document.body);
 }
 
 /** v2.52.0: «Ver más» shows the rest of a list where it said «y N más». */
@@ -94,7 +96,7 @@ export function listenToSeeMore(): void {
 /** v2.56.0 and later: Cuentas, Facturación and Analítica repaint their own parts when their section changes. */
 export function watchModuleSections(): void {
   observe(byId('v-directorio'), () => { if (TAB === 'directorio') barraCuentas(); }, { childList: true, subtree: true, characterData: true });
-  observe(byId('v-facturacion'), () => { if (TAB === 'facturacion') subnavFacturacion(); }, { childList: true, subtree: true });
+  observe(byId('v-facturacion'), () => { if (TAB === 'facturacion') legacyFreeCoreLeftovers.billingSettingsSubnav(); }, { childList: true, subtree: true });
 }
 
 export function watchAnalyticsChannel(): void {

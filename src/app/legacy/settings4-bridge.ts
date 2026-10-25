@@ -3,6 +3,7 @@
  * its size limit). The user list, the roles, the plan catalog and the payment state stay in legacy state: the start-up, the menu,
  * the permissions and other screens read them.
  */
+import * as legacyFreeCoreSettings from '../core/settings';
 export interface UserRow {
   id: string; nombre: string; email?: string | null; usuario?: string; rol: string; activo?: boolean; areas?: Record<string, number> | null;
   cartera?: number; visitas_mes?: number; ultima_actividad?: string | null; medico?: string | null; cuenta?: string | null; cuenta_id?: string | null;
@@ -31,11 +32,11 @@ export const usersLegacy = {
   setList: (list: UserRow[]): void => { USUARIOS = list; },
   setConnections: (connections: Record<string, Connection>): void => { USR_ACC = connections; },
   connections: (): Record<string, Connection> => (USR_ACC ?? {}) as Record<string, Connection>,
-  role: (name: string): RoleDef | null => rolDef(name) as RoleDef | null,
-  roleCan: (role: string, capability: string): boolean => rolPuede(role, capability),
+  role: (name: string): RoleDef | null => legacyFreeCoreSettings.roleDefinition(name) as RoleDef | null,
+  roleCan: (role: string, capability: string): boolean => legacyFreeCoreSettings.roleCan(role, capability),
   roleNames: (): string[] => rolesNombres(),
-  roleWith: (capability: string): string => rolCon(capability),
-  defaultRole: (): string => rolPorDefecto(),
+  roleWith: (capability: string): string => legacyFreeCoreSettings.roleWith(capability),
+  defaultRole: (): string => legacyFreeCoreSettings.defaultRole(),
   areas: (): readonly (readonly [string, string])[] => AREAS,
   levels: (): readonly string[] => NIVELES,
   levelText: (level: number): string => NIVEL_TXT[level] ?? '',
@@ -69,7 +70,7 @@ export const planLegacy = {
   setCurrent: (plan: CurrentPlan): void => { PLAN_ACTUAL = plan as Record<string, unknown>; },
   of: (id: string | null | undefined): PlanDef => planDe(id) as PlanDef,
   all: (): readonly PlanDef[] => PLANES as readonly PlanDef[],
-  contractedUsers: (): number => usuariosContratados(),
+  contractedUsers: (): number => legacyFreeCoreSettings.contractedUsers(),
   modules: (): readonly (readonly [string, string, string])[] => MOD_PLAN,
   rows: (): readonly PlanRow[] => PLAN_FILAS() as readonly PlanRow[],
   moduleAreas: (): Readonly<Record<string, string | undefined>> => MODULO_AREA,

@@ -12,7 +12,4 @@ declare function pdKpis(figures: [string | number, string, string?][]): string;
 declare function pdCobroEstado(organization: object): [string, string, string];
 declare function pdMensual(plan: object): number;
 declare function eur(value: number): string;
-declare function pdFecha(value: string): string;
 declare function pdHace(value: string): string;
-declare function pintarRoles(): Promise<void>;
-declare function pintarCatalogos(): Promise<void>;

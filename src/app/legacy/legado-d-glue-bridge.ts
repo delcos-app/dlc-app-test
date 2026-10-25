@@ -2,6 +2,11 @@
  * Second part of the bridge of the folded legacy layers 080–161 (src/app/core/layers, v2.424.0): Agenda, menu, lists, phone and
  * session details. Split from legado-d-bridge.ts to keep both short.
  */
+import * as legacyFreeScreensRoutes from '../screens/routes';
+import * as legacyFreeCoreNavigationApi from '../core/navigation/api';
+import * as legacyFreeCoreLegacyC from '../core/legacy-c';
+import * as legacyFreeCoreServices from '../core/services';
+import * as legacyFreeCoreLeftovers from '../core/leftovers';
 
 type AnyFunction = (...args: unknown[]) => unknown;
 const globals = window as unknown as Record<string, unknown>;
@@ -43,7 +48,7 @@ export const navigationGlueLegacy = {
   profileLoaded: (): boolean => Boolean(PERFIL),
   addIconIfMissing: (name: string, svg: string): void => { const icons = ICON_NOM as Record<string, string>; if (!icons[name]) icons[name] = svg; },
   canSeeArea: (area: string): boolean => typeof verArea !== 'function' || verArea(area),
-  refillRoutes: (): void => { void rnRellenar(); },
+  refillRoutes: (): void => { void legacyFreeScreensRoutes.refillRepeating(); },
   routeDraft: (): unknown => RN,
   forgetRouteDraft: (): void => { RN = null; },
   wrapGlobal,
@@ -64,13 +69,13 @@ export const navigationGlueLegacy = {
   },
   isProfessionalPortal: (): boolean => ES_MEDICO(),
   baseBottomBar: (args: unknown[]): unknown => pintarBnavBase3(...args),
-  mobileModules: (): string[] => movBarra(),
+  mobileModules: (): string[] => legacyFreeCoreNavigationApi.bottomBar(),
   moduleIcon: (module: string): string | undefined => ICO_MOD[module],
-  mobileName: (module: string): string => movNombre(module),
+  mobileName: (module: string): string => legacyFreeCoreNavigationApi.mobileName(module),
   goTo: (screen: string): void => { void ir(screen); },
   openMoreMenu: (): void => { abrirMasMovil(); },
   measureBottomBar: (): void => { medirBnav(); },
-  baseSummariseHelp: (popup: HTMLElement): void => { resumirAyudaBase(popup); },
+  baseSummariseHelp: (popup: HTMLElement): void => { legacyFreeCoreLegacyC.summariseHelp(popup); },
   helpAnchor: (button: HTMLElement): string => anclaAyuda(button),
   manualAnchor: (screen: string): string | undefined => MANUAL_ANCLA[screen],
   openManual: (anchor: string): void => { abrirManual(anchor); },
@@ -93,7 +98,7 @@ export const listGlueLegacy = {
   orders: (): LegacyOrderRow[] => (typeof PEDIDOS === 'undefined' ? [] : PEDIDOS as LegacyOrderRow[]),
   number: (value: unknown): string => num(value),
   isFree: (order: LegacyOrderRow): boolean => Boolean(sinCargoP(order, order.total)),
-  shortDate: (isoDate: string): string => fechaCorta(isoDate),
+  shortDate: (isoDate: string): string => legacyFreeCoreServices.calendar.shortDate(isoDate),
   canSeeAmounts: (): boolean => verImportes(),
   euros: (value: number): string => eurI(value),
   stepPill: (order: LegacyOrderRow): string => pillPaso(order),
@@ -113,7 +118,7 @@ export const deviceLegacy = {
   currentScreen: (): string => TAB,
   syncListBar: (screen: string): void => { if (typeof plSync === 'function') plSync(screen); },
   basePaintConnection: (args: unknown[]): unknown => pintarConexionBase(...args),
-  refusedChanges: (): QueuedChange[] => colaKo() as QueuedChange[],
+  refusedChanges: (): QueuedChange[] => legacyFreeCoreServices.queue.refused() as QueuedChange[],
   queuedChanges: (): QueuedChange[] => colaLeer() as QueuedChange[],
   choose: (title: string, message: string, buttons: ChoiceButton[]): Promise<string | null> => elegirOpcion(title, message, buttons),
   confirm: (message: string, options: { titulo?: string; ok?: string; peligro?: boolean }): Promise<boolean> => preguntar(message, options),
@@ -121,8 +126,8 @@ export const deviceLegacy = {
   forgetRefused: (): void => { localStorage.removeItem(COLA_KO); },
   paintConnection: (): void => { pintarConexion(); },
   sendQueue: (): void => { void vaciarCola(); },
-  addScannerButtonsSoon: (): void => { if (ESC_PEND) return; ESC_PEND = true; queueMicrotask(() => { ESC_PEND = false; escPoner(); }); },
-  openScanner: (input: HTMLInputElement): void => { void abrirEscaner(input); },
+  addScannerButtonsSoon: (): void => { if (ESC_PEND) return; ESC_PEND = true; queueMicrotask(() => { ESC_PEND = false; legacyFreeCoreLeftovers.addScannerButtons(undefined); }); },
+  openScanner: (input: HTMLInputElement): void => { void legacyFreeCoreLeftovers.openScanner(input); },
   passwordEye: (input: HTMLInputElement): void => { ojoClave(input); },
 };
 

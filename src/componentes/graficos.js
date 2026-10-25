@@ -4,12 +4,8 @@
 
 /** @param {string[]} meses @param {number[]} a @param {number[] | null | undefined} b @param {string[]} etiquetas */
 function svgBarras(meses, a, b, etiquetas) { return window.delcos.components.monthBars(meses, a, b, etiquetas); }
-/** @param {{ n: string, v: number }[]} items @param {(v: number) => string} fmt */
-function barrasH(items, fmt) { return window.delcos.components.rankingBars(items, fmt); }
 /** @param {number[]} vals @param {[string, ...unknown[]][]} meses */
 function anLinea(vals, meses) { return window.delcos.components.sixMonthLine(vals, meses); }
-/** @param {{ n: string, v: number }[]} items */
-function barrasReparto(items) { return window.delcos.components.shareBars(items); }
 /** @param {any} u @param {string} k */
 function sparkUnidades(u, k) { return window.delcos.components.unitsSparkline(u, k); }
 /** @param {{ n: string, v: number }[]} items */

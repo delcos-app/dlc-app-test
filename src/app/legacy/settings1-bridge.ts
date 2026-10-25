@@ -1,4 +1,7 @@
 import * as components from '../components';
+import * as legacyFreeCoreSettings from '../core/settings';
+import * as legacyFreeCoreLeftovers from '../core/leftovers';
+import * as legacyFreeCoreNavigationApi from '../core/navigation/api';
 /**
  * Bridge of Configuración part 1 to the legacy code (kept apart from bridge.ts, which is at its size limit): the user profile and
  * its preferences, the classifier catalog, the undo helpers of the audit, the custom field definitions and the test environment.
@@ -20,12 +23,12 @@ export const settingsLegacy = {
   classifiers: (): Classifier[] => CATS,
   setClassifiers: (list: Classifier[]): void => { CATS = list; },
   openClassifier: (id: string): void => { abrirClasificador(id); },
-  reloadCatalogs: (): void => { void cargarCatalogos(); },
+  reloadCatalogs: (): void => { void legacyFreeCoreSettings.loadCatalogs(); },
   undoable: (entry: object): boolean => deshacible(entry),
   undoPersonBox: (box: HTMLElement | null, options: { userId: string; from: string | null; name: string; then: () => void }): void => {
     cajaDeshacerPersona(box, options.userId, options.from, options.name, options.then);
   },
-  billingEventDetail: (detail: unknown): string => detalleEvento(detail),
+  billingEventDetail: (detail: unknown): string => legacyFreeCoreLeftovers.eventDetail(detail),
   fields: (): Record<string, CustomField[] | undefined> => CAMPOS,
   fieldTable: (area: string): string | undefined => CAMPO_TABLA[area],
   areaOfTable: (table: string): string | undefined => Object.keys(CAMPO_TABLA).find(area => CAMPO_TABLA[area] === table),
@@ -34,7 +37,7 @@ export const settingsLegacy = {
   testEnvironment: <T>(): LegacyQuery<T> => RPC_ORIG_FROM<T>('entorno_pruebas'),
   refreshReason: (reason: string): string | undefined => MOTIVO_REFRESCO[reason],
   edgeFunctions: (): EdgeFunctions => (db as unknown as { functions: EdgeFunctions }).functions,
-  resetTestData: (): void => { void volverDatosPartida(); },
+  resetTestData: (): void => { void legacyFreeCoreNavigationApi.backToTestData(); },
   clearLocalData: (): void => { limpiarDatosLocales(); },
   showLoading: (element: HTMLElement | null, text: string): void => { components.showLoading(element, text); },
   skeletonCard: (text: string): string => components.cardSkeleton(text),

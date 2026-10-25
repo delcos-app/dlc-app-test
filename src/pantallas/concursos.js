@@ -1,9 +1,7 @@
 // pantallas/concursos.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
-function menuConcursos() { window.delcos.leftovers.menuTenders(); }
 
-function cargarPreciosContrato(cuenta) { return window.delcos.leftovers.loadContractPrices(cuenta); }
 
 /* v2.200.0 · Concursos y contratos (tercera tanda del estudio por sectores, SQL 126). Decisiones de Eric: al ganar un lote, sus precios se
    aplican solos en los pedidos de esa ficha mientras el contrato está en vigor; los días de aviso antes de que venza los elige cada empresa.

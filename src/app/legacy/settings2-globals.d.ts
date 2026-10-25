@@ -1,14 +1,12 @@
 // ---- Configuración, segunda parte (src/app/screens/settings/more): catálogos, roles, marca y vocabulario siguen en legado
 declare const PAPELES_ESTADO: readonly (readonly [string, string, string])[];
 declare function cajaCampo(classifier: object, complete: boolean): string;
-declare function cargarCampos(): Promise<void>;
 declare function plantillaRol(role: string): Record<string, number>;
 declare const AREAS: readonly (readonly [string, string])[];
 declare const QUE_ABRE: Readonly<Record<string, string | undefined>>;
 declare function cargarRoles(): Promise<void>;
 declare let MARCA: { nombre: string; logo: string | null };
 declare let LOGO_DATA: string | null;
-declare function aplicarMarca(): void;
 declare const ETIQUETAS: readonly string[];
 declare let TERMINOS: Record<string, unknown> | null;
 declare const TERMKEY: string;

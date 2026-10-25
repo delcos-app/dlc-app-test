@@ -6,8 +6,6 @@ declare const PILA_VENT: { nodos: ChildNode[]; clases: string; titulo: string | 
 declare let APILANDO: boolean;
 declare function arbolCfgUnico(): unknown;
 declare const CFG_CLAVES: Record<string, string>;
-declare function impNorm(text: string): string;
-declare function pulirCfg(): void;
 declare function cargarConfig(): Promise<void>;
 declare const PAG_SUCIO: Set<unknown>;
 declare function pedsecVista(): string;

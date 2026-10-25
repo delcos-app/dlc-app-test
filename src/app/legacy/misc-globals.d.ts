@@ -9,6 +9,4 @@ declare let DUP_RES: { pendientes?: number; parecidos?: number } | null;
 declare let ALERTAS_OCULTAS: LegacyHiddenAlert[] | null;
 declare function claveAlerta(title: string, item: Element): string;
 declare function tarjetaComision(): Promise<unknown>;
-declare function tarjetasRuta(): Promise<unknown>;
 declare function itemHTML(id: string, icon: string, kind: string, name: string, detail: string): string;
-declare function pintarActualizado(): void;

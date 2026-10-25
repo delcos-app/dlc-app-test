@@ -6,6 +6,8 @@
 import { t } from '../../i18n';
 import { escapeHtml } from '../../services/format';
 import { byId, observe } from './dom';
+import * as legacyFreeCoreNavigationApi from '../navigation/api';
+import * as legacyFreeCoreServices from '../services';
 
 interface MenuGroup { id: string; t: string; items: string[] }
 
@@ -33,7 +35,7 @@ function paintBrand(nav: HTMLElement): void {
 
 function placeGroups(nav: HTMLElement): void {
   const fixed = MENU_FIJO as MenuGroup;
-  [...(menuGrupos() as MenuGroup[]), fixed].forEach(group => {
+  [...(legacyFreeCoreNavigationApi.menuGroups() as MenuGroup[]), fixed].forEach(group => {
     let box = nav.querySelector(`.mlgrupo[data-g="${group.id}"]`);
     if (!box) {
       nav.insertAdjacentHTML('beforeend', `<div class="mlgrupo${group === fixed ? ' fijo' : ''}" data-g="${group.id}"><div class="mltit">${escapeHtml(group.t)}</div><div class="mlbs"></div></div>`);
@@ -100,7 +102,7 @@ function buildSideMenu(nav: HTMLElement): void {
 function markOutOfPlan(nav: HTMLElement): void {
   const hidden = hiddenSections();
   nav.querySelectorAll<HTMLElement>('button[data-t]').forEach(button => {
-    if (fueraDePlan(button)) { if (!button.classList.contains('mlplan')) button.classList.add('mlplan'); if (!button.classList.contains('mloculto')) button.classList.add('mloculto'); }
+    if (legacyFreeCoreServices.session.outOfPlan(button)) { if (!button.classList.contains('mlplan')) button.classList.add('mlplan'); if (!button.classList.contains('mloculto')) button.classList.add('mloculto'); }
     else if (button.classList.contains('mlplan')) { button.classList.remove('mlplan'); if (!hidden.includes(button.dataset.t ?? '')) button.classList.remove('mloculto'); }
   });
   markEmptyGroups(nav);

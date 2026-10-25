@@ -7,7 +7,3 @@ const avisoRevisita = () => Object.assign({ on: true, dias: 7 }, ((PERFIL.prefer
 /** @param {string} msg @param {boolean} [err] */
 function toast(msg, err) { window.delcos.components.toast(msg, !!err); }
 function subirAviso() { window.delcos.components.raiseNotice(); }
-/** @param {Element | null} el @param {string | null} [fecha] */
-function avisoCache(el, fecha) { window.delcos.components.cacheNotice(el, fecha); }
-/** @param {Element | null} el */
-function avisoSinSalida(el) { window.delcos.components.noStartNotice(el); }

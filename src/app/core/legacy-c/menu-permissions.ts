@@ -4,32 +4,35 @@
  * aplicarPermisosMenuBase3…Base9 is one function now (folded from legado 073, 075, 076 and 079, v2.425.0), with the same order: the
  * entries are built before and checked again after the previous layers.
  */
+import * as legacyFreeCoreLeftovers from '../leftovers';
+import * as legacyFreeCoreNavigationApi from '../navigation/api';
+import * as legacyFreeCoreLegacyC from './';
 
 const quietly = (work: () => void): void => { try { work(); } catch { /* a menu entry must not stop the others */ } };
-const SECTION_MENUS = [(): void => { menuCirugias(); }, (): void => { menuCiclo(); }, (): void => { menuEventos(); }] as const;
+const SECTION_MENUS = [(): void => { legacyFreeCoreLeftovers.menuSurgeries(); }, (): void => { legacyFreeCoreLeftovers.menuCycle(); }, (): void => { legacyFreeCoreLeftovers.menuEvents(); }] as const;
 
 /** The legacy aplicarPermisosMenuBase9: everything after aplicarPermisosMenuBase2. */
 export function applyMenuPermissions(args: readonly unknown[]): unknown {
   SECTION_MENUS.forEach(quietly);
   quietly(() => { menuPedidos2139(); });
   const result = aplicarPermisosMenuBase2(...args);
-  menuPaginas2131(); void franjaVista();
+  legacyFreeCoreNavigationApi.pageButtons(); void franjaVista();
   menuPedidos2139();
   quietly(() => { candadoSecciones(); });
-  quietly(() => { aplicarModoPlataforma(); });
+  quietly(() => { legacyFreeCoreLegacyC.applyPlatformMode(); });
   [...SECTION_MENUS].reverse().forEach(quietly);
   return result;
 }
 
 /** The menu entries built once the page has loaded (v2.131.0, v2.139.0, the padlocks). */
-export function buildMenusSoon(): void { setTimeout(() => { quietly(() => { menuPaginas2131(); void franjaVista(); }); }, 0); }
+export function buildMenusSoon(): void { setTimeout(() => { quietly(() => { legacyFreeCoreNavigationApi.pageButtons(); void franjaVista(); }); }, 0); }
 export function buildSalesMenusSoon(): void { setTimeout(() => { quietly(() => { menuPedidos2139(); }); }, 0); }
 export function padlocksSoon(): void { setTimeout(() => { quietly(() => { candadoSecciones(); }); }, 0); }
 
 /** v2.195.0–v2.199.0: the menu entries of Eventos, Ciclo and Intervenciones right away. */
-export const eventsMenu = (): void => { quietly(() => { menuEventos(); }); };
-export const cycleMenu = (): void => { quietly(() => { menuCiclo(); }); };
-export const surgeriesMenu = (): void => { quietly(() => { menuCirugias(); }); };
+export const eventsMenu = (): void => { quietly(() => { legacyFreeCoreLeftovers.menuEvents(); }); };
+export const cycleMenu = (): void => { quietly(() => { legacyFreeCoreLeftovers.menuCycle(); }); };
+export const surgeriesMenu = (): void => { quietly(() => { legacyFreeCoreLeftovers.menuSurgeries(); }); };
 
 /** v2.117.0: showing the app also builds the Organización entry of the user menu (the legacy mostrarApp). */
 export function showApp(args: readonly unknown[]): unknown {

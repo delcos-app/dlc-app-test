@@ -1,7 +1,6 @@
 // pantallas/cuentas.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
-function cargarAccesoMedicos() { return window.delcos.leftovers.loadAccountAccess(); }
 
 // Ficha: historial de cambios (de la ficha y de sus consultas), plegado al final; solo administración
 

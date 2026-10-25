@@ -3,6 +3,8 @@
  * limit). The active panel, the window stack, the settings key and the tree of sections stay in legacy state: the dialogs' patches
  * (legado 039, 058 and 072), the tree layers (arbolCfgUnico*) and the tests read them.
  */
+import * as legacyFreeScreensImport from '../screens/import';
+import * as legacyFreeCoreLayers from '../core/layers';
 
 /** The window or module page shown inside the panel instead of floating. */
 export interface ActivePanel { tipo: 'dbody' | 'admin'; refrescar?: () => unknown }
@@ -25,8 +27,8 @@ export const shellLegacy = {
   iconOf: (name: string | undefined): string => svgIco(ICON_NOM[name ?? ''] ?? ''),
   tree: (): SettingsTree => arbolCfgUnico() as SettingsTree,
   searchWords: (key: string): string => CFG_CLAVES[key] ?? '',
-  normalise: (text: string): string => impNorm(text),
-  polish: (): void => { try { pulirCfg(); } catch { /* only tidies the section */ } },
+  normalise: (text: string): string => legacyFreeScreensImport.normaliseHeader(text),
+  polish: (): void => { try { legacyFreeCoreLayers.polishSettings(); } catch { /* only tidies the section */ } },
   key: (): string => CFG_KEY,
   setKey: (key: string): void => { CFG_KEY = key; },
   detail: (): boolean => CFG_DETALLE,

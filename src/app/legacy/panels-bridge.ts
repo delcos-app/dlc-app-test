@@ -4,6 +4,7 @@
  * (Facturación shares it), HT_FILTROS (legado 074 adds screens) and HT_ESTADO (the table filters of every screen).
  */
 import type { TableFilters } from './lists-bridge';
+import * as legacyFreeCoreLegacyC from '../core/legacy-c';
 
 /** A column of the second panel «Columnas»: its index, name, whether it shows and whether it can be hidden. */
 export interface PanelColumn { i: number; n: string; on: boolean; fija: boolean }
@@ -31,7 +32,7 @@ export const panelsLegacy = {
   },
   professional: (): PickedAccount | null => AN_MED,
   /** The second panel with the columns of a table (legado 056/057/065). */
-  columnsPanel: (title: string, columns: PanelColumn[], onChange: (index: number, on: boolean) => void): void => { panelColumnas(title, columns, onChange); },
+  columnsPanel: (title: string, columns: PanelColumn[], onChange: (index: number, on: boolean) => void): void => { legacyFreeCoreLegacyC.showColumnsPanel(title, columns, onChange); },
   /** Screens whose own filters move into the panel: id → selector (legado 074 adds some). */
   filterTargets: (): Readonly<Record<string, string | undefined>> => HT_FILTROS,
   tableFilters: (): Record<string, TableFilters | undefined> => HT_ESTADO,

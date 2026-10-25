@@ -4,6 +4,9 @@
  * the icon sets, the billing section, the contract prices, the indicator catalog and the menu glue. Kept apart from bridge.ts
  * (at its size limit).
  */
+import * as legacyFreeCoreServices from '../core/services';
+import * as legacyFreeCoreSettings from '../core/settings';
+import * as legacyFreeScreensSettingsShell from '../screens/settings/shell';
 export interface IndicatorSetting { readonly id: string; readonly on: boolean; readonly t?: string; readonly filtro?: Record<string, unknown> }
 export interface SavePageDefinition { tab: string; cab: () => Element | null; cuerpo: () => Element | null }
 export interface ViewedAgenda { id: string; nombre: string; rol?: string; preferencias?: Record<string, unknown> }
@@ -30,8 +33,8 @@ export const leftoversLegacy = {
   screen: (): string => TAB,
   can: (capability: string): boolean => puede(capability),
   seesEverything: (): boolean => VE_TODO(),
-  levelOf: (letter: string): number => nivelDe2(letter),
-  roleCan: (role: string, capability: string): boolean => rolPuede(role, capability),
+  levelOf: (letter: string): number => legacyFreeCoreServices.permissions.levelOrNone(letter),
+  roleCan: (role: string, capability: string): boolean => legacyFreeCoreSettings.roleCan(role, capability),
   isProfessionalPortal: (): boolean => ES_MEDICO(),
   canUseModule: (module: string): boolean => puedeModulo(module),
   canManageOrganization: (): boolean => puedeOrganizacion(),
@@ -41,7 +44,7 @@ export const leftoversLegacy = {
   dialogEpoch: (): number => DLG_EPOCA,
   today: (): string => hoyISO(),
   addDays: (isoDate: string, days: number): string => isoMas(isoDate, days),
-  shortDate: (isoDate: string): string => fechaCorta(isoDate),
+  shortDate: (isoDate: string): string => legacyFreeCoreServices.calendar.shortDate(isoDate),
   euros: (value: number): string => eur(value),
   valueText: (value: unknown): string => textoValor(value),
   toast: (message: string, isError = false): void => { toast(message, isError); },
@@ -85,7 +88,7 @@ export const leftoversLegacy = {
   changedBlocks: (): Set<Element> => PAG_SUCIO as Set<Element>,
   pageKey: (): string => PAG_CLAVE,
   setPageKey: (key: string): void => { PAG_CLAVE = key; },
-  markChanged: (): void => { pagMarcarSucio(); },
+  markChanged: (): void => { legacyFreeScreensSettingsShell.markUnsaved(); },
   reloadSettings: (): void => { void cargarConfig(); },
   settingsKey: (): string => CFG_KEY,
   requestsInFlight: (): number => RED_VUELO,
@@ -111,5 +114,5 @@ export const leftoversLegacy = {
   chosenIndicators: (): IndicatorSetting[] | undefined => profile().preferencias?.kpis,
   defaultIndicators: (): readonly string[] => KPI_DEF,
   indicatorCatalog: (): readonly { id: string }[] => KPI_CAT,
-  openPlanHoursWindow: (): void => { abrirHorarioPlanBase(); },
+  openPlanHoursWindow: (): void => { legacyFreeCoreSettings.openPlanTimesWindow(); },
 };

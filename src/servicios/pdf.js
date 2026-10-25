@@ -9,5 +9,4 @@ const PDF_DEF = window.delcos.core.pdf.DEFAULT_DESIGN;
 function listaPDF() { return window.delcos.core.pdf.templateList(); }
 function guardarPDFPlantillas(v) { return window.delcos.core.pdf.saveTemplates(v); }
 function facturaPDF(f, rn, cfg) { return window.delcos.core.pdf.invoicePdf(f, rn, cfg || null); }
-function descargarFacturaPDF(f, rn) { return window.delcos.core.pdf.downloadInvoicePdf(f, rn); }
 function disenoPDF() { return window.delcos.core.pdf.openDesigner(); }

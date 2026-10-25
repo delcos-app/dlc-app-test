@@ -9,7 +9,6 @@ function pintarBarraSuplantacion() { return window.delcos.core.session.paintImpe
 function prepararCambioOrg(destino) { return window.delcos.core.session.prepareOrganizationChange(destino); }
 function vaciarModulos(salvo) { return window.delcos.core.session.emptyModules(salvo); }
 function suplantando() { return window.delcos.core.session.impersonating(); }
-function fueraDePlan(b) { return window.delcos.core.session.outOfPlan(b); }
 function esInvitado(u) { return window.delcos.core.session.isGuest(u); }
 function queVeInvitado(u) { return window.delcos.core.session.guestSees(u); }
 

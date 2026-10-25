@@ -4,6 +4,10 @@
  * (PAGO_ESTADO, PLAN_ACTUAL: Configuración, the notices and the tests read them) and the distributors list (DISTRIBUIDORES, read by
  * the tests) stay in legacy.
  */
+import * as legacyFreeCoreLeftovers from '../core/leftovers';
+import * as legacyFreeCoreLegacyC from '../core/legacy-c';
+import * as legacyFreeScreensSettingsShell from '../screens/settings/shell';
+import * as legacyFreeCoreServices from '../core/services';
 export interface EditorProduct { id: string; nombre?: string; precio?: number | null; iva?: number | null; contrato?: string | null }
 export interface EditorService { id: string; nombre: string; activo?: boolean | null; por_defecto?: boolean | null; pvp?: number | null; iva?: number | null }
 export interface PlanInfo { id: string; nombre: string; precio: number; anual?: number | null; minimo?: number | null }
@@ -18,7 +22,7 @@ export const orderEditorLegacy = {
   defaultProduct: (): string => productoPorDefecto(),
   productOptions: (id: string | null | undefined, name: string | null | undefined): string => opcionesProducto(id, name),
   /** The prices of the contract in force of the account (Concursos); true if it has one. */
-  loadContractPrices: (accountId: string | null | undefined): Promise<unknown> => cargarPreciosContrato(accountId ?? null),
+  loadContractPrices: (accountId: string | null | undefined): Promise<unknown> => legacyFreeCoreLeftovers.loadContractPrices((accountId ?? null)),
   pickAccount: (element: HTMLElement | null, value: PickedAccount | null, onPick: (account: PickedAccount) => void, placeholder: string): void => {
     selectorMedico(element, { valor: value, alElegir: onPick, placeholder });
   },
@@ -56,8 +60,8 @@ export const subscriptionLegacy = {
   plans: (): readonly string[] => PAGO_PLANES,
   platformMode: (): boolean => MODO_PLATAFORMA,
   setPlatformMode: (value: boolean): void => { MODO_PLATAFORMA = value; },
-  applyPlatformMode: (): void => { aplicarModoPlataforma(); },
-  markBillingPlan: (): void => { marcarFacPlan(); },
+  applyPlatformMode: (): void => { legacyFreeCoreLegacyC.applyPlatformMode(); },
+  markBillingPlan: (): void => { legacyFreeScreensSettingsShell.markBillingPlan(); },
   canManageCompany: (): boolean => puedeOrganizacion(),
   openPortal: (button: HTMLElement): void => { void pagoPortal(button); },
   daysUntil: (isoDate: unknown): number | null => diasHasta(isoDate),
@@ -65,7 +69,7 @@ export const subscriptionLegacy = {
 
 export const orderCardsLegacy = {
   isoPlus: (isoDate: string, days: number): string => isoMas(isoDate, days),
-  easter: (year: number): string => pkPascua(year),
+  easter: (year: number): string => legacyFreeCoreServices.calendar.easterSunday(year),
 };
 
 export const indicatorSettingsLegacy = {

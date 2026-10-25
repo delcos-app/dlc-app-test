@@ -3,6 +3,11 @@
  * AJUSTES, ROLES_DEF, ESTADOS_DEF, CAT, CAMPOS, MARCA, LOGO_DATA, the module cache, the day proposals and the painters of each
  * Configuración section. The state stays in legacy because many screens and the tests read it by its bare name (v2.428.0).
  */
+import * as legacyFreeScreensSettings from '../screens/settings';
+import * as legacyFreeCoreServices from '../core/services';
+import * as legacyFreeComponentsEmbeddedWindow from '../components/embedded-window';
+import * as legacyFreeScreensSettingsMore from '../screens/settings/more';
+import * as legacyFreeScreensSettingsExtra from '../screens/settings/extra';
 
 /** A role as the database defines it (roles and roles_capacidades). */
 export interface RoleDefinition { nombre: string; orden?: number; color?: string | null; plantilla?: Record<string, unknown>; por_defecto?: boolean; capacidades?: string[] }
@@ -20,11 +25,11 @@ export const settingsCoreLegacy = {
   setCommercialStates: (list: { valor: string; papel: string }[]): void => { ESTADOS_DEF = list; },
   catalogs: (): Record<string, unknown[]> => CAT as unknown as Record<string, unknown[]>,
   customFields: (): Record<string, CustomField[] | undefined> => CAMPOS,
-  loadCustomFields: (): Promise<void> => cargarCampos(),
+  loadCustomFields: (): Promise<void> => legacyFreeScreensSettings.loadCustomFields(),
   // Session, permissions and plan
   hasProfile: (): boolean => Boolean(PERFIL),
   can: (capability: string): boolean => puede(capability),
-  canEditCatalogs: (): boolean => puedeCatalogos(),
+  canEditCatalogs: (): boolean => legacyFreeCoreServices.permissions.canManageLists(),
   hasExtra: (extra: string): boolean => hayExtra(extra),
   currentPlan: (): { plan?: unknown; usuarios?: unknown } => PLAN_ACTUAL,
   roundEuros: (value: number): string => eurI(value),
@@ -49,18 +54,18 @@ export const settingsCoreLegacy = {
 /** The painter of each Configuración entry (the legacy names, looked up when the entry is opened). */
 export const treePainters = {
   window: (painter: () => unknown): unknown => panelDeVentana(painter),
-  module: (name: string): unknown => panelDeModulo(name),
+  module: (name: string): unknown => legacyFreeComponentsEmbeddedWindow.showModuleInPanel(name),
   preferencesPart: (part: string): unknown => pintarPrefsParte(part),
   indicators: (): unknown => abrirKpis(),
   planTimes: (): unknown => { abrirHorarioPlan(); return undefined; },
   portfolioRules: (): unknown => editorReglasCartera(),
   visitFrequency: (): unknown => editorFrecuencia(),
   cycle: (): unknown => editorCiclo(),
-  classifiers: (): unknown => pintarCatalogos(),
+  classifiers: (): unknown => legacyFreeScreensSettings.paintClassifiers(),
   stores: (): unknown => pintarAlmacenes2(),
   visitMaterial: (): unknown => pintarMaterial(),
-  brand: (): unknown => pintarMarca(),
-  email: (): unknown => pintarCorreo(),
+  brand: (): unknown => legacyFreeScreensSettingsMore.paintBrand(),
+  email: (): unknown => legacyFreeScreensSettingsExtra.paintEmail(),
   backups: (): unknown => pintarCopias(),
   newImport: (): unknown => pintarImportar(),
   imports: (): unknown => pintarImportaciones(),

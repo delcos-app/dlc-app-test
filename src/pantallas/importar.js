@@ -5,4 +5,3 @@ function pintarImportar() { return window.delcos.screens.importing.paintImport()
 
 function pintarImportaciones() { return window.delcos.screens.importing.paintImports(); }
 
-function impNorm(t) { return window.delcos.screens.importing.normaliseHeader(t); }

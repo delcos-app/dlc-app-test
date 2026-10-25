@@ -18,4 +18,3 @@ declare function listaCentros(list: Element, centres: readonly unknown[], onPick
 declare function cpPoner(box: Element, index: string | number, centre: object): void;
 declare function pintarCentroSel(box: Element, index: string | number): void;
 declare function centroDesdeUbicacion(box: Element, index: string | number, lat: number, lon: number): Promise<void>;
-declare function volverAMiSesion(): Promise<void>;

@@ -16,5 +16,3 @@ function cargarDuplicados() { return window.delcos.screens.accounts.loadDuplicat
 
 // Calidad del dato está en src/app/screens/quality (v2.410.0). Estos nombres se quedan: el mapa de pantallas (legado 001) y el
 // arranque (legado 018) los usan.
-function cargarSeguimiento() { return window.delcos.screens.quality.loadQuality(); }
-function botonCalidad() { window.delcos.screens.quality.paintAccountsHeader(); }

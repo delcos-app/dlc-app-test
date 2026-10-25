@@ -17,4 +17,3 @@ function geocodificar(q, o) { return window.delcos.core.maps.geocode(q, o); }
 async function rutasMapa(...a) { if (RN) return; const r = await rutasMapaBase.apply(this, a); const m = $('rmapa'), g = $('rngrid'); if (m && g && g.nextElementSibling !== m) { g.after(m); if (RM_MAPA) setTimeout(() => { try { RM_MAPA.resize(); } catch (e) {} }, 50); } return r; }
 
 // El mapa de Cuentas está en src/app/screens/accounts/map (v2.414.0); el nombre se queda: lo llama «Ver mapa» (legado 006).
-function pintarMapa() { return window.delcos.screens.accounts.paintMap(); }

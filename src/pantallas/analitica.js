@@ -8,11 +8,6 @@ let ANSEC = 'resumen';
 // La página y su Resumen están en src/app/screens/analytics/page (v2.419.0). Estos nombres se quedan: el mapa de páginas (legado
 // 001), la caché de pantallas (legado 057) y el cambio de sesión (legado 028) los llaman.
 function cargarAnalitica() { return window.delcos.screens.analytics.loadAnalytics(); }
-function pintarResumenAnalitica() { return window.delcos.screens.analytics.paintSummary(); }
 
 // «Pedidos tras la visita» y «Explorar datos» están en src/app/screens/analytics (v2.412.0). Estos nombres se quedan: la página
 // (src/app/screens/analytics/page), legado 109 y las pruebas los llaman.
-function pintarAnalitica() { return window.delcos.screens.analytics.paintRanking(); }
-function pintarTablaAnalitica() { return window.delcos.screens.analytics.paintMonthlyTable(); }
-function refrescarAnalitica() { return window.delcos.screens.analytics.refreshExplore(); }
-function tvTarjeta(d) { return window.delcos.screens.analytics.showVisitOrders(d); }

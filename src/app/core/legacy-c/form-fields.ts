@@ -6,6 +6,8 @@
  */
 import { t } from '../../i18n';
 import { addedElements, byId, closestTo, matchingIn, observe } from './dom';
+import * as legacyFreeCoreLegacyC from './';
+import * as legacyFreeComponents from '../../components';
 
 const MAX_TEXTAREA_PX = 420, REPEAT_AFTER_MS = 450, REPEAT_EVERY_MS = 90;
 
@@ -45,13 +47,13 @@ const onAdded = (selector: string, each: (element: HTMLElement) => void): void =
 };
 
 /** v2.54.0: the known VAT fields. */
-export const watchVatFields = (): void => { onAdded('#priva, #penvv, input[data-f="iva"]', element => { ivaSelector(element as HTMLInputElement); }); };
+export const watchVatFields = (): void => { onAdded('#priva, #penvv, input[data-f="iva"]', element => { legacyFreeCoreLegacyC.vatSelector((element as HTMLInputElement)); }); };
 
 /** v2.56.0: any VAT field (not IBAN, price or amount), files, and notes that grow. */
 export function watchFormFields(): void {
   onAdded('input[type=number],input[type=text]', element => {
     const input = element as HTMLInputElement;
-    if (!input.dataset.ivasel && ES_IVA(input) && !/iban|precio|importe/i.test(input.id)) ivaSelector(input);
+    if (!input.dataset.ivasel && ES_IVA(input) && !/iban|precio|importe/i.test(input.id)) legacyFreeCoreLegacyC.vatSelector(input);
   });
   onAdded('input[type=file]', element => { selectorArchivo(element as HTMLInputElement); });
   document.addEventListener('input', event => {
@@ -83,7 +85,7 @@ export function visibleValue(input: HTMLInputElement): void {
   if (!value) { shown.textContent = t(kind === 'mes' ? 'legacyC.fields.chooseMonth' : 'legacyC.fields.chooseDateTime'); shown.classList.add('vacio'); return; }
   shown.classList.remove('vacio');
   if (kind === 'mes') { const [year, month] = value.split('-'); shown.textContent = `${MESES_L[Number(month) - 1] ?? ''} ${year ?? ''}`; return; }
-  shown.textContent = `${selFechaMedia(value.slice(0, 10))} · ${value.slice(11, 16)}`;
+  shown.textContent = `${legacyFreeComponents.mediumDate((value.slice(0, 10)))} · ${value.slice(11, 16)}`;
 }
 
 /** v2.101.0: holding «+» or «−» repeats; the last click does not add once more. */

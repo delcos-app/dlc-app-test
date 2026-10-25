@@ -5,6 +5,8 @@
  */
 import { t } from '../../i18n';
 import { navLegacy } from '../../legacy/nav-bridge';
+import * as legacyFreeCoreServices from '../services';
+import * as legacyFreeCoreSettings from '../settings';
 
 const RETRIES = 2, RETRY_WAIT_MS = 1500, NOT_FOUND = 'PGRST116', MOBILE_QUERY = '(max-width: 760px)';
 
@@ -37,7 +39,7 @@ async function refusalText(profile: Profile | null): Promise<string> {
   const { data: access } = await Promise.resolve(RPC_ORIG<OrganizationAccess>('acceso_organizacion', {})).catch(() => ({ data: null }));
   if (access?.bloqueada) {
     const organization = access.organizacion ?? '';
-    return access.motivo === 'prueba_terminada' ? t('navigationCore.session.trialEnded', { organization, date: fechaCorta(access.prueba_hasta ?? '') })
+    return access.motivo === 'prueba_terminada' ? t('navigationCore.session.trialEnded', { organization, date: legacyFreeCoreServices.calendar.shortDate((access.prueba_hasta ?? '')) })
       : t('navigationCore.session.deactivatedCompany', { organization });
   }
   return t(profile && !profile.activo ? 'navigationCore.session.deactivatedUser' : 'navigationCore.session.noProfile');
@@ -92,7 +94,7 @@ async function profileOrSaved(userId: string, saved: Profile | null): Promise<{ 
 /** What runs when the app opens, in this order (the last piece of app.js: every function already has its final form). */
 export function openApp(): void {
   navLegacy.improveFields();
-  aplicarMarca(); aplicarMarca();
+  legacyFreeCoreSettings.applyBrand(); legacyFreeCoreSettings.applyBrand();
   if (RECUPERANDO) pantallaRecuperacion();
   pintarBnav(); pintarConexion(); vaciarCola();
   void start();

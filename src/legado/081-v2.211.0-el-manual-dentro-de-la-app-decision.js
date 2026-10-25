@@ -4,7 +4,6 @@ const ES_IOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platfo
 var CFG_KEY = '';
 var IR_DESDE_MENU_CFG = false;
 window.delcos.layers.installSettingsPolish();
-function pulirCfg() { return window.delcos.layers.polishSettings(); }
 const SVA = d => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + d + '</svg>';
 const ICU = {
   toca: '<path d="M4 22V4a1 1 0 0 1 1-1h12l-2.5 4.5L17 12H5"/>',

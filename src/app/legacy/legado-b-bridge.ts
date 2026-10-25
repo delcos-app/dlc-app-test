@@ -3,6 +3,10 @@
  * The shared state (navigation generation, pending reads, the brand, the selected date popover, the recovery flag…) stays in
  * legacy: the navigation, the API layer, the tests and other legado files read and write it.
  */
+import * as legacyFreeCoreServices from '../core/services';
+import * as legacyFreeCoreSettings from '../core/settings';
+import * as legacyFreeScreensSettingsShell from '../screens/settings/shell';
+import * as legacyFreeCoreLeftovers from '../core/leftovers';
 
 /** db.rpc as the legacy layers wrap it: (name, params, options) → the query builder or a promise. */
 export type RpcFunction = (name: string, params?: Record<string, unknown>, options?: unknown) => unknown;
@@ -62,14 +66,14 @@ export const legacyBActions = {
   isMyTurn: (name: string, turn: unknown): boolean => esMiTurno(name, turn),
   withCatch: <T>(promise: Promise<T>): Promise<T> => conCatch(promise),
   rpcOriginal: <T>(name: string, params: Record<string, unknown>): PromiseLike<RpcAnswer<T>> => RPC_ORIG<T>(name, params) as PromiseLike<RpcAnswer<T>>,
-  canInvoice: (): boolean => Boolean(puedeFacturar()),
+  canInvoice: (): boolean => Boolean(legacyFreeCoreServices.permissions.canInvoice()),
   loadSettings: (): Promise<void> => cargarAjustes(),
   clearLocalData: (): void => { limpiarDatosLocales(); },
   showLoadingScreen: (text: string): void => { pantallaCarga(text); },
   hideLoadingScreen: (): void => { quitarCarga(); },
   testStrip: (): (() => unknown) => pintarFranjaPruebas,
   setTestStrip: (paint: () => unknown): void => { pintarFranjaPruebas = paint; },
-  applyBrand: (): void => { aplicarMarca(); },
+  applyBrand: (): void => { legacyFreeCoreSettings.applyBrand(); },
   applyMenuPermissions: (): void => { aplicarPermisosMenu(); },
   refreshBell: (): void => { void refrescarCampana(); },
   translate: (element: Element): void => { traducir(element); },
@@ -78,7 +82,7 @@ export const legacyBActions = {
   menuIcons: (): void => { iconosMenu(); },
   iconSvg: (name: string): string => svgIco(ICON_NOM[name] ?? ''),
   moduleIcon: (tab: string): string | undefined => ICO_MOD[tab],
-  mobileSettings: (): void => { cfgMovil(); },
+  mobileSettings: (): void => { legacyFreeScreensSettingsShell.mobileLayout(); },
   passwordMeter: (first: HTMLElement | null, second: HTMLElement | null, button: HTMLElement | null): void => { medidorClave(first, second, button); },
   isSamples: (detail: unknown): boolean => esMuestras(detail),
   improveFields: (root: Element): void => { mejorarCampos(root); },
@@ -96,7 +100,7 @@ export const legacyBActions = {
   openPurchase: (id: string): void => { void editorCompra(id); },
   filterHomeAlerts: (): void => { filtrarAlertasInicio(); },
   portfolioRules: (): void => { void editorReglasCartera(); },
-  teamTable: (): Promise<void> => pintarEquipoBase(),
+  teamTable: (): Promise<void> => legacyFreeCoreLeftovers.paintTeamCompliance(),
   can: (capability: string): boolean => puede(capability),
   isProfessionalPortal: (): boolean => ES_MEDICO(),
   openMoreMenu: (): void => { abrirMasMovil(); },

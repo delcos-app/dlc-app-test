@@ -4,7 +4,5 @@
 
 let BUSQ_N = 0;   // solo cuenta la última búsqueda: las anteriores se descartan aunque respondan después
 
-/** @param {unknown} texto @param {string} q */
-function resaltarBusqueda(texto, q) { return window.delcos.components.highlightSearch(texto, q); }
 /** @param {Element | null} i */
 function esBuscador(i) { return window.delcos.components.isSearchBox(i); }

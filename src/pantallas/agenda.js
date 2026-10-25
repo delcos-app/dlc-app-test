@@ -5,12 +5,9 @@ function citasDelDia(fecha) { return window.delcos.leftovers.appointmentsOfDay(f
 
 function agUid() { return window.delcos.leftovers.agendaOwnerId(); }
 
-function agUsuarioFiltro() { return window.delcos.leftovers.agendaUserFilter(); }
 
-function verAgendaDe(id) { return window.delcos.leftovers.showAgendaOf(id); }
 
 // Mis citas pendientes (planificadas o confirmadas) desde hoy: médico → primera fecha
-function citasPlanificadasMias() { return window.delcos.leftovers.myPlannedAppointments(); }
 
 /* v2.147.0 · Agenda: «Tu día» sin citas (petición de Eric). Sin contadores a cero; en un día pasado, «No tuviste citas este día.» (no se
    puede añadir nada); el mensaje, compacto: icono y frase en una línea, centrado. */

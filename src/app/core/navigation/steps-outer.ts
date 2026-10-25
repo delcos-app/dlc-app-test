@@ -4,6 +4,7 @@
  */
 import { orFallback } from '../../services/values';
 import type { NavigationStep } from './pipeline';
+import * as legacyFreeScreensSettingsShell from '../../screens/settings/shell';
 
 const PORTAL_SCREENS = ['informe', 'config', 'perfil'];
 const PLATFORM_SCREENS = ['delcos', 'config', 'perfil', 'manual'];
@@ -91,7 +92,7 @@ export const platformPanel: NavigationStep = {
     if (section) { PAG_TAB.delcos = section[1]; nav.target = 'delcos'; return; }
     if (MODO_PLATAFORMA && !PLATFORM_SCREENS.includes(nav.target)) nav.target = 'delcos';
   },
-  after: target => { if (target === 'delcos') marcarPanel(); },
+  after: target => { if (target === 'delcos') legacyFreeScreensSettingsShell.markPlatformPanel(); },
 };
 
 export const stripeReturnToPlan: NavigationStep = {
@@ -122,7 +123,7 @@ export const ordersSections: NavigationStep = {
     if (section !== undefined) { PEDSEC = section; nav.target = 'ventas'; return; }
     if (nav.target === 'ventas' && IR_DESDE_MENU) PEDSEC = 'ventas';   // «Pedidos» from the menu always opens the orders
   },
-  after: target => { if (target === 'ventas') marcarPedsec(); },
+  after: target => { if (target === 'ventas') legacyFreeScreensSettingsShell.markOrderSection(); },
 };
 
 export const closePageDialog: NavigationStep = {

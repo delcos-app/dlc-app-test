@@ -9,5 +9,4 @@ function cerrarPickers(salvo) { window.delcos.components.closePickers(salvo); }
 function cerrarSelector() { window.delcos.components.closePicker(); }
 function abrirCalendario(inp, o) { window.delcos.components.openCalendar(inp, o || {}); }
 function abrirReloj(inp, o) { window.delcos.components.openClock(inp, o || {}); }
-function selFechaMedia(iso) { return window.delcos.components.mediumDate(iso); }
 function selTipo(inp) { return window.delcos.components.kindOf(inp); }
