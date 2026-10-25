@@ -11,4 +11,5 @@ export { paintMaterial } from './material';
 export { failureText, messageThread, portalState } from './model';
 export { loadReport } from './report';
 export { paintPortalSettings } from './settings';
+export { formatText } from './summary';
 export { showTab } from './tabs';

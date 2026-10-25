@@ -32952,6 +32952,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   var portal_exports = {};
   __export(portal_exports, {
     failureText: () => failureText3,
+    formatText: () => formatText,
     listenToCentreDocs: () => listenToCentreDocs,
     listenToForm: () => listenToForm,
     loadReport: () => loadReport,
@@ -33813,7 +33814,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     ["pers", "portal.periods.custom"]
   ]);
   function formatText(format) {
-    const pack = /^(d+)+(d+)$/.exec(format);
+    const pack = /^(\d+)\+(\d+)$/.exec(format);
     if (pack) return t("portal.summary.packFormat", { bought: pack[1] ?? "", free: pack[2] ?? "" });
     if (format === "4+") return t("portal.summary.fourOrMore");
     return format === "1" ? t("portal.summary.oneUnit") : t("portal.summary.units", { count: format });

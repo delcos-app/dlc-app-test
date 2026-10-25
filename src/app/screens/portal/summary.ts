@@ -25,7 +25,8 @@ const PERIODS = new Map<string, MessageKey>([
 
 /** «2+1» → «2 + 1 de regalo»; «4+» → «4 o más unidades». */
 export function formatText(format: string): string {
-  const pack = /^(d+)+(d+)$/.exec(format);
+  // v2.423.0: the expression had lost its backslashes, so «2+1» read «2+1 unidades»
+  const pack = /^(\d+)\+(\d+)$/.exec(format);
   if (pack) return t('portal.summary.packFormat', { bought: pack[1] ?? '', free: pack[2] ?? '' });
   if (format === '4+') return t('portal.summary.fourOrMore');
   return format === '1' ? t('portal.summary.oneUnit') : t('portal.summary.units', { count: format });
