@@ -20,7 +20,8 @@ export default tseslint.config(
         { selector: ['objectLiteralProperty', 'typeProperty'], format: null },
         { selector: 'import', format: ['camelCase', 'PascalCase'] }],
       // No cryptic abbreviations (pd, td, rn…): identifiers say what they are
-      'id-length': ['error', { min: 2, exceptions: ['i', 'j', 'x', 'y', 't', '_'] }],
+      // Property names are not checked: some come from outside (database payloads like { p }, legacy dialogs like { k, t })
+      'id-length': ['error', { min: 2, exceptions: ['i', 'j', 'x', 'y', 't', '_'], properties: 'never' }],
       // Small units: one responsibility per file and per function
       'max-lines': ['error', { max: 400, skipBlankLines: true, skipComments: true }],
       'max-lines-per-function': ['error', { max: 60, skipBlankLines: true, skipComments: true }],

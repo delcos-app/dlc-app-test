@@ -194,7 +194,10 @@ export const weekPlanner = {
 /** Common dialogs and notices. */
 export const notices = {
   toast: (message: string, isError = false): void => { toast(message, isError); },
-  confirm: (message: string, options: { titulo?: string; ok?: string }): Promise<boolean> => preguntar(message, options),
+  confirm: (message: string, options: { titulo?: string; ok?: string; peligro?: boolean }): Promise<boolean> => preguntar(message, options),
+  choose: (title: string, message: string, buttons: ChoiceButton[]): Promise<string | null> => elegirOpcion(title, message, buttons),
+  askDate: (message: string, value: string, options: { titulo?: string; ok?: string }): Promise<string | null> => pedirFecha(message, value, options),
+  askTime: async (title: string, value: string, ok: string): Promise<string | null> => (await appVentana({ titulo: title, ok, campo: { valor: value, tipo: 'time' } })) as string | null,
 };
 
 export const initialsOf = (name: string): string => iniciales(name);
@@ -215,7 +218,6 @@ export const yourDayLegacy = {
   endWorkingDay: (): void => { void terminarJornada(); },
   canRecordOn: (isoDate: string): boolean => puedeRegistrarEnDia(isoDate),
   originText: (item: object): string => textoOrigenCita(item),
-  hasMenu: (item: object): boolean => citaConMenu(item),
   orderByDistance: (list: readonly object[]): { list: object[]; left: number } => { const ordered = ordenarPorCercania(list); return { list: ordered, left: ordenarPorCercania.fuera ?? 0 }; },
   saveOrder: (list: readonly object[]): Promise<boolean> => guardarOrden(list),
   repaintSmoothly: (): void => { void repintarDiaSuave(); },
@@ -232,4 +234,25 @@ export const legacyIcons = {
   line: (name: string): string => SVA(ICU[name] ?? ''),
   arrow: (name: 'arriba' | 'abajo'): string => ICO[name] ?? '',
   list: (name: string): string => plIco(name),
+};
+
+/** What the appointment sheet and its actions still use from legacy. */
+export const appointmentLegacy = {
+  /** Writes through the offline queue (the change is kept if there is no connection). */
+  write: (name: string, payload: Record<string, unknown>): Promise<{ error?: unknown } | null> => escribir(name, payload),
+  writeRpc: (name: string, payload: Record<string, unknown>): Promise<{ error?: { message?: string } | null }> => escribirRpc(name, payload),
+  negativeResults: (): readonly { valor: string }[] => (CAT.resultado_visita ?? []).filter(item => item.extra === 'neg'),
+  nextAttendanceDay: (days: Record<string, string | null> | null | undefined, from: string): string => proximoDiaConsulta(days, from),
+  navigateTo: (point: [number, number] | null): void => { void navegarA(point); },
+  recordVisit: (accountId: string, isoDate: string): void => { VISITA_FECHA = isoDate; void abrirVisita(accountId); },
+  openAccountFromCentre: (accountId: string, centre: string | null | undefined): void => { FICHA_CENTRO = centre ?? null; void abrirFicha(accountId); },
+  /** Repaints the day quietly after a change (and the figures unless figures is false). */
+  refreshQuietly: (id?: string | null, figures = true): void => { agRefrescoQuieto(id, { cifras: figures }); },
+  newDateAfterAbsent: (item: object): Promise<void> => nuevaFechaTrasNoEstaba(item),
+  dayLabel: (isoDate: string): string => diaCita(isoDate),
+  repaintWith: (id: string, data: unknown): Promise<void> => repintarDiaSuave(id, data),
+  lastDayData: (): AgendaAppointment[] | null => (TD_ULTIMO && TD_ULTIMO.fecha === AG_FECHA ? (TD_ULTIMO as unknown as { data: AgendaAppointment[] }).data : null),
+  isJoinedDayView: (): boolean => agUnida(),
+  /** Opens the sheet through its global name, so «‹ Volver» (legado 126) records it. */
+  openSheet: (item: object): void => { void (window as unknown as { verCita: (value: object) => unknown }).verCita(item); },
 };

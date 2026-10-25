@@ -242,15 +242,6 @@ function puedeRegistrarEnDia(f) {
 async function agBloqueos(desde, n) { try { return await bloqueadosSemana(desde, isoMas(desde, n - 1)); } catch (e) { return {}; } }
 
 
-// Agenda · las citas cerradas no tienen menú (salvo «Volver a planificarla» de hoy en adelante)
-// (sin escribir estados: se pregunta al propio menú si tiene algo que ofrecer)
-function citaConMenu(c) {
-  if (CITA_ABIERTA.includes(c.estado)) return true;
-  let hay = false; AVISOS_MUDOS = true;   // sin avisos mientras se pregunta al menú
-  try { menuCita(document.body, c); hay = !!document.querySelector('.tdmenu'); } catch (e) { hay = true; }
-  finally { AVISOS_MUDOS = false; document.querySelectorAll('.tdmenu').forEach(m => m.remove()); }
-  return hay;
-}
 
 async function rnPasarAgenda(item, btn) {
   const { r } = item, ms = (item.ms || []).filter(m => m.lat != null);
@@ -604,51 +595,7 @@ async function empezarJornada(...a) {
 }
 
 
-async function accionCitaBase(k, c) {
-  const refrescar = () => agRefrescoQuieto(c.id);
-  if (k === 'ficha') return abrirFicha(c.cuenta_id);
-  if (k === 'llegar') return navegarA(xyCita(c));
-  if (k === 'hora') return cambiarHoraCita(c.id, c.hora || '');
-  if (k === 'confirmar' || k === 'desconfirmar' || k === 'descartar') {
-    const estado = k === 'confirmar' ? 'Confirmada' : k === 'desconfirmar' ? 'Planificada' : 'Descartada';
-    const r = await escribir('estado_cita', { p_id: c.id, p_estado: estado });
-    if (r && r.error) { toast('No se ha podido cambiar', true); return; }
-    toast(estado === 'Confirmada' ? 'Cita confirmada' : estado === 'Descartada' ? 'Cita descartada' : 'Confirmación quitada'); refrescar(); return;
-  }
-  if (k === 'borrar') {
-    if (!await preguntar('La cita desaparece de la agenda sin dejar rastro.', { titulo: '¿Eliminar la cita?', ok: 'Eliminar', peligro: true })) return;
-    const { data: r } = await db.rpc('borrar_cita', { p_id: c.id });
-    if (r && r.ok === false) { toast(r.error === 'pasada' ? 'Solo se pueden eliminar citas de hoy en adelante' : 'No se ha podido eliminar', true); return; }
-    toast('Cita eliminada'); refrescar(); return;
-  }
-  if (k === 'aplazar') {
-    const f = await pedirFecha('¿A qué día la pasas?', proximoDiaConsulta(c.dias, c.fecha),
-      { titulo: 'Aplazar la cita', ok: 'Aplazar' });
-    if (!f) return;
-    const { data: r, error } = await db.rpc('aplazar_cita', { p_id: c.id, p_fecha: f, p_hora: null, p_origen: 'Aplazada' });
-    if (error || (r && r.ok === false)) { toast('No se ha podido aplazar', true); return; }
-    toast(r && r.ya ? 'Ya tenía una cita ese día' : r && r.mismo_dia ? 'Sigue en el mismo día' : r && r.reabierta ? 'Vuelve a su cita del ' + fechaCorta(f) : 'Aplazada al ' + fechaCorta(f)); refrescar(); return;
-  }
-  if (k === 'noestaba') {
-    const neg = (CAT.resultado_visita || []).filter(x => x.extra === 'neg');
-    if (!neg.length) { toast('Falta un resultado negativo en Configuración → Clasificadores', true); return; }
-    let res = neg[0].valor;
-    if (neg.length > 1) {
-      const op = await elegirOpcion('¿Qué ha pasado?', c.nombre, [{ k: 'no', t: 'Cancelar', cls: 'sec' }].concat(neg.map((x, i) => ({ k: 'n' + i, t: x.valor, cls: 'sec' }))));
-      if (!op) return;
-      res = neg[+op.slice(1)].valor;
-    }
-    const { error } = await escribirRpc('registrar_actividad', { p: { cuenta_id: c.cuenta_id, fecha: c.fecha, resultados: [res],
-      op_id: 'v-' + c.cuenta_id + '-' + Date.now() } });
-    if (error) { toast('No se ha podido guardar: ' + error.message, true); return; }
-    toast('Anotado: ' + res);
-    refrescar();
-    return nuevaFechaTrasNoEstaba(c);
-  }
-  if (k === 'nueva') return nuevaFechaTrasNoEstaba(c);
-}
 
-function accionCitaBase2(k, c, ...r) { if (k === 'ficha') FICHA_CENTRO = c.centro_nombre || null; return accionCitaBase(k, c, ...r); }
 
 async function moverCitaLocalBase(orden, id, acc) {
   const u = TD_ULTIMO && TD_ULTIMO.fecha === AG_FECHA ? TD_ULTIMO.data : null;
@@ -664,121 +611,12 @@ async function moverCitaLocalBase(orden, id, acc) {
   if (!(await guardarOrden(orden))) cargarAgenda();
 }
 
-// ---- 4. Detalle de la cita al pulsarla en «Tu día»
-function verCitaBase(c) {
-  const inf = TD_INFO[c.id] || {}, abierta = CITA_ABIERTA.includes(c.estado);
-  const hora = c.hora ? String(c.hora).slice(0, 5) : (abierta && inf.llegada != null && inf.llegada < 24 * 60 ? `hacia las ${hm(inf.llegada)} (estimada)` : 'sin hora');
-  const donde = [c.centro_nombre, c.direccion, c.municipio].filter(Boolean).join(' · ');
-  const v = inf.ventanas || ventanasDe(c.dias, c.fecha);
-  const horario = v && v.length ? `${inf.otroCentro ? 'En ' + inf.otroCentro + ': ' : ''}${txtVentanas(v)}` : v && !v.length ? 'Ese día no atiende' : '';
-  $('dbody').innerHTML = `
-    <div class="fh"><div><h2>${esc(c.nombre)}</h2>${c.especialidad ? `<div class="sm">${esc(c.especialidad)}</div>` : ''}</div>
-      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-    <div class="vcdatos">
-      <div class="vcfila"><span>Cuándo</span><b>${esc(fechaLarga(new Date(c.fecha + 'T12:00:00')).replace(/^./, x => x.toUpperCase()))} · ${esc(hora)}</b></div>
-      <div class="vcfila"><span>Dónde</span><b>${esc(donde || 'Sin centro')}</b></div>
-      ${horario ? `<div class="vcfila"><span>Horario</span><b>${esc(horario)}</b></div>` : ''}
-      <div class="vcfila"><span>Estado</span><b>${pillCita(c.estado)}${textoOrigenCita(c) ? ` <span class="sm">${textoOrigenCita(c)}</span>` : ''}</b></div>
-    </div>
-    ${abierta && inf.aviso ? `<div class="banda-aviso" style="margin:0 0 12px">${esc(inf.aviso)}</div>` : ''}
-    <label for="vcnota">Notas de la cita</label>
-    <textarea id="vcnota" rows="3" placeholder="p. ej. quedamos en el bar de enfrente, llevar el reporting…">${esc(c.nota || '')}</textarea>
-    <div class="vcacts">
-      <button type="button" class="btn sec" id="vcficha">Ver ficha</button>
-      ${xyCita(c) ? '<button type="button" class="btn sec" id="vcllegar">Cómo llegar</button>' : ''}
-      ${abierta ? '<button type="button" class="btn sec" id="vchora">Cambiar hora</button><button type="button" class="btn sec" id="vcmover">Mover a otro día</button>' : ''}
-    </div>
-    <div class="acts" style="justify-content:flex-end">
-      <button type="button" class="btn sec" id="vcok" disabled>Guardar notas</button>
-      ${abierta && puedeRegistrarEnDia(c.fecha) ? `<button type="button" class="btn" id="vcreg">Registrar ${TT('visita', 's', '', 'l', 'l')}</button>` : ''}</div>`;
-  const cerrar = () => $('dlg').close();
-  const nota = $('vcnota');
-  nota.oninput = () => { $('vcok').disabled = nota.value.trim() === (c.nota || '').trim(); };
-  $('vcok').onclick = async ev => {
-    ev.target.disabled = true;
-    const v2 = nota.value.trim();
-    const { error } = await db.from('agenda').update({ nota: v2 || null }).eq('id', c.id);
-    if (error) { ev.target.disabled = false; toast('No se ha podido guardar: ' + error.message, true); return; }
-    c.nota = v2; cerrar(); toast('Notas guardadas'); agRefrescoQuieto(c.id, { cifras: false });
-  };
-  $('vcficha').onclick = () => { cerrar(); FICHA_CENTRO = c.centro_nombre || null; abrirFicha(c.cuenta_id); };
-  if ($('vcllegar')) $('vcllegar').onclick = () => accionCita('llegar', c);
-  if ($('vchora')) $('vchora').onclick = () => { cerrar(); accionCita('hora', c); };
-  if ($('vcmover')) $('vcmover').onclick = () => { cerrar(); accionCita('aplazar', c); };
-  if ($('vcreg')) $('vcreg').onclick = () => { cerrar(); VISITA_FECHA = c.fecha; abrirVisita(c.cuenta_id); };
-  $('dlg').classList.add('pequena');
-  $('dlg').showModal();
-}
-
-// ---- 4. Borrar y descartar en el detalle de la cita
-function verCitaBase2(c) {
-  const r = verCitaBase.call(this, c);
-  try {
-    const abierta = CITA_ABIERTA.includes(c.estado), borrable = abierta && c.fecha >= hoyISO();
-    const caja = $('dbody') && $('dbody').querySelector('.vcacts');
-    if (caja && abierta) {
-      caja.insertAdjacentHTML('afterend', `<div class="vcfin">
-        <button type="button" class="lnk" id="vcdescartar">Descartar la cita</button><span class="sm">No se hará: queda en el historial.</span>
-        ${borrable ? '<button type="button" class="lnk peligro" id="vcborrar">Eliminar la cita</button><span class="sm">Fue un error: desaparece sin dejar rastro.</span>' : ''}</div>`);
-      $('vcdescartar').onclick = () => { $('dlg').close(); accionCita('descartar', c); };
-      if ($('vcborrar')) $('vcborrar').onclick = () => { $('dlg').close(); accionCita('borrar', c); };
-    }
-  } catch (e) {}
-  return r;
-}
-
-async function accionCita(k, c) {
-  if (k !== 'rehacer') return accionCitaBase2.call(this, k, c);
-  const { data: r, error } = await db.rpc('reabrir_cita', { p_id: c.id });
-  if (error || !r || r.ok === false) { toast(r && r.error === 'pasada' ? 'Solo se pueden volver a planificar citas de hoy en adelante' : 'No se ha podido volver a planificar', true); return; }
-  toast(r.quitada ? 'Vuelve a estar planificada (se quita la del ' + fechaCorta(r.quitada) + ')' : 'Vuelve a estar planificada');
-  agRefrescoQuieto(c.id);
-}
-
-function verCitaBase3(c) {
-  const r = verCitaBase2.call(this, c);
-  try {
-    const caja = $('dbody') && $('dbody').querySelector('.vcacts');
-    if (caja && ['Aplazada', 'Descartada'].includes(c.estado) && c.fecha >= hoyISO()) {
-      caja.insertAdjacentHTML('beforeend', '<button type="button" class="btn sec" id="vcrehacer">Volver a planificarla</button>');
-      $('vcrehacer').onclick = () => { $('dlg').close(); accionCita('rehacer', c); };
-    }
-  } catch (e) {}
-  return r;
-}
-
-function verCitaBase4(c, ...r) {
-  const x = verCitaBase3.call(this, c, ...r);
-  const acts = $('dbody') && $('dbody').querySelector('.vcacts');
-  if (acts && c) {
-    const ir = (f, txt, id) => {
-      if (!f || f === c.fecha || $(id)) return;
-      acts.insertAdjacentHTML('beforeend', `<button type="button" class="btn sec" id="${id}">${esc(txt)}</button>`);
-      $(id).onclick = () => { $('dlg').close(); AG_MODO = 'dia'; agVerDia(f); };
-    };
-    if (c.estado === 'Aplazada') ir(c.aplazada_a_fecha, 'Ir al ' + (c.aplazada_a_fecha ? diaCita(c.aplazada_a_fecha) : ''), 'vcirdest');
-    ir(c.aplazada_de_fecha, 'Ver el ' + (c.aplazada_de_fecha ? diaCita(c.aplazada_de_fecha) : ''), 'vcirorig');
-  }
-  return x;
-}
 
 
-function verCita(c, ...r) {
-  const x = verCitaBase4.call(this, c, ...r);
-  if (!c || CITA_ABIERTA.includes(c.estado) || !$('dbody')) return x;
-  const datos = $('dbody').querySelector('.vcdatos'); if (!datos || $('vccerrada')) return x;
-  const reabrir = citaConMenu(c);
-  datos.insertAdjacentHTML('afterend', `<div class="banda-info vccerrada" id="vccerrada"><b>Cita cerrada: ${esc(c.estado)}.</b>
-    <span id="vccomo"></span> ${reabrir ? 'Si hace falta, puedes volver a planificarla desde «⋯».' : 'La hora y el día ya no se cambian; las notas sí. Si hace falta volver, crea una cita nueva.'}</div>`);
-  if (citaHecha(c.estado) && c.cuenta_id) {
-    db.from('actividades').select('resultados, hora').eq('cuenta_id', c.cuenta_id).eq('fecha', c.fecha).limit(1).then(({ data }) => {
-      const a = (data || [])[0], s = $('vccomo'); if (!a || !s) return;
-      const res = Array.isArray(a.resultados) ? a.resultados.filter(Boolean).join(', ') : (a.resultados || '');
-      s.textContent = `Se registró la ${TT('visita', 's', '', 'l', 'l')}${a.hora ? ' a las ' + String(a.hora).slice(0, 5) : ''}${res ? ': ' + res : ''}.`;
-    }, () => {});
-  }
-  return x;
-}
+
+
+
+
 
 async function moverCitaLocalBase2(orden, id, acc) {
   const antes = tdPosiciones();
@@ -803,72 +641,8 @@ async function moverCitaLocal(...a) {
 // «Tu día» está en src/app/screens/agenda/your-day (v2.397.0); el nombre se queda porque lo llaman mucho código antiguo
 function pintarTuDia() { return window.delcos.screens.agenda.paintYourDay(); }
 
-// Menú «⋯» de la cita
-function menuCitaBase(boton, c) {
-  document.querySelectorAll('.tdmenu').forEach(m => m.remove());
-  const abierta = CITA_ABIERTA.includes(c.estado);
-  const ops = [
-    abierta ? ['hora', c.hora ? 'Cambiar la hora' : 'Fijar una hora', ''] : null,
-    abierta ? ['aplazar', 'Aplazar a otro día', 'Queda como aplazada y se crea la cita nueva'] : null,
-    abierta && c.estado === 'Planificada' ? ['confirmar', 'Marcar como confirmada', 'Ya has confirmado la cita'] : null,
-    abierta && c.estado === 'Confirmada' ? ['desconfirmar', 'Quitar la confirmación', ''] : null,
-    abierta ? ['descartar', 'Descartar la cita', 'Ya no hace falta ir'] : null,
-    abierta && c.fecha >= hoyISO() ? ['borrar', 'Eliminar la cita', 'Fue un error: desaparece de la agenda'] : null   // v2.273.0
-  ].filter(Boolean);
-  if (!ops.length) { toast('Esta cita ya está cerrada'); return; }
-  const m = document.createElement('div');
-  m.className = 'tdmenu'; m.__t = Date.now();
-  m.innerHTML = ops.map(([k, t, s]) => `<button data-tdop="${k}" class="${k === 'descartar' || k === 'borrar' ? 'peligro' : ''}"><b>${esc(t)}</b>${s ? `<span>${esc(s)}</span>` : ''}</button>`).join('');
-  document.body.appendChild(m);
-  const r = boton.getBoundingClientRect();
-  m.style.top = Math.min(window.innerHeight - m.offsetHeight - 10, r.bottom + 6) + 'px';
-  m.style.left = Math.max(10, Math.min(window.innerWidth - m.offsetWidth - 10, r.right - m.offsetWidth)) + 'px';
-  m.querySelectorAll('[data-tdop]').forEach(b => b.onclick = () => { m.remove(); accionCita(b.dataset.tdop, c); });
-}
 
-/* v2.185.0 · Citas aplazadas sin duplicar y fechas en el móvil (avisos de Eric):
-   1. Una cita aplazada o descartada de hoy en adelante tiene en «⋯» (y en su detalle) «Volver a planificarla» (reabrir_cita, SQL 116: vuelve a
-      Planificada y quita la cita que se creó al aplazarla). Volver a poner una cita ese día reutiliza la aplazada (aplazar_cita y guardar_cita).
-   2. En pantallas táctiles los campos de fecha y hora son `inert`: no pueden tomar el foco, así que iOS ya no abre su rueda (lo hacía cuando la
-      ventana enfocaba el campo al abrirse y cuando el calendario de delcos le devolvía el foco al elegir el día). El toque lo recoge el envoltorio. */
-function menuCita(boton, c) {
-  if (CITA_ABIERTA.includes(c.estado) || !['Aplazada', 'Descartada'].includes(c.estado) || c.fecha < hoyISO()) return menuCitaBase.call(this, boton, c);
-  document.querySelectorAll('.tdmenu').forEach(m => m.remove());
-  const m = document.createElement('div');
-  m.className = 'tdmenu'; m.__t = Date.now();
-  m.innerHTML = `<button data-tdop="rehacer"><b>Volver a planificarla</b><span>Vuelve a este día${c.estado === 'Aplazada' ? '; si la pasaste a otro, esa se quita' : ''}</span></button>`;
-  document.body.appendChild(m);
-  const r = boton.getBoundingClientRect();
-  m.style.top = Math.min(window.innerHeight - m.offsetHeight - 10, r.bottom + 6) + 'px';
-  m.style.left = Math.max(10, Math.min(window.innerWidth - m.offsetWidth - 10, r.right - m.offsetWidth)) + 'px';
-  m.querySelector('[data-tdop]').onclick = () => { m.remove(); accionCita('rehacer', c); };
-}
 
-// Cambiar la hora: la cita se coloca por su hora entre las demás (y se guarda ese orden)
-async function cambiarHoraCita(id, hora) {
-  const h = await appVentana({ titulo: 'Hora de la cita', ok: 'Guardar', campo: { valor: hora || '', tipo: 'time' } });
-  if (h === null) return;
-  const { error } = await db.from('agenda').update({ hora: h || null }).eq('id', id);
-  if (error) { toast('No se ha podido: ' + error.message, true); return; }
-  toast('Hora actualizada');
-  const u = TD_ULTIMO && TD_ULTIMO.fecha === AG_FECHA ? TD_ULTIMO.data : null;
-  if (TAB !== 'agenda' || !agUnida() || !u || !u.some(c => c.id === id)) { agRefrescoQuieto(id, { cifras: false }); return; }
-  const data = u.map(c => c.id === id ? Object.assign({}, c, { hora: h || null }) : c);
-  const mia = c => c.usuario_id === agUid(), abierta = c => mia(c) && CITA_ABIERTA.includes(c.estado);
-  const ab = data.filter(abierta), yo = ab.find(c => c.id === id);
-  let orden = ab;
-  if (yo && h) {
-    const hh = c => c.hora ? String(c.hora).slice(0, 5) : null;
-    const resto = ab.filter(c => c.id !== id);
-    let i = resto.findIndex(c => hh(c) && hh(c) > h);
-    if (i < 0) { i = 0; resto.forEach((c, k) => { if (hh(c) && hh(c) <= h) i = k + 1; }); }
-    resto.splice(i, 0, yo); orden = resto;
-  }
-  const cambia = orden.some((c, k) => c.id !== ab[k].id);
-  const nueva = cambia ? [...data.filter(c => mia(c) && !abierta(c)), ...orden, ...data.filter(c => !mia(c))] : data;
-  await repintarDiaSuave(id, nueva);
-  if (cambia && !(await guardarOrden(orden))) agRefrescoQuieto(id);
-}
 
 // ---- Elegir otro día: todo lo que cambia (Tu día, bandejas, cinta, «Tu semana», la semana abierta) aparece a la vez
 
@@ -927,3 +701,7 @@ async function nuevaCita(medicoId, fecha, op = {}) {
 // porque los llaman mucho código antiguo y las pruebas.
 function cargarAgenda() { return window.delcos.screens.agenda.loadAgenda(); }
 function agVerDia(f) { return window.delcos.screens.agenda.showDay(f); }
+
+// La ficha de la cita está en src/app/screens/agenda/appointment-sheet.ts (v2.398.0). El nombre global se queda: «‹ Volver»
+// (legado 126) envuelve las ventanas por su nombre, y lo llaman Rutas y las pruebas.
+function verCita(c) { return window.delcos.screens.agenda.showAppointment(c); }

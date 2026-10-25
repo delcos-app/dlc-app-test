@@ -258,8 +258,8 @@
   var closePageDialog = {
     name: "v2.128 · a window that belongs to the page closes when leaving it",
     before: () => {
-      const dialog = document.getElementById("dlg");
-      if (dialog?.open && (Boolean(dialog.dataset.fija) || Boolean(dialog.dataset.depagina))) dialog.close();
+      const dialog2 = document.getElementById("dlg");
+      if (dialog2?.open && (Boolean(dialog2.dataset.fija) || Boolean(dialog2.dataset.depagina))) dialog2.close();
     }
   };
   var footerMenuMark = {
@@ -465,6 +465,289 @@
     }, target, args);
   }
 
+  // src/app/i18n/es/agenda.ts
+  var agenda = {
+    title: "Agenda",
+    todayTitle: "Hoy · {date}",
+    agendaOf: " · agenda de {name}",
+    yourNumbers: "Tus números",
+    newAppointment: "+ Nueva cita",
+    backToToday: "Volver a hoy",
+    noAppointmentsThatDay: "No tuviste citas este día.",
+    team: {
+      title: "Cumplimiento del equipo",
+      agendaOf: "Agenda de",
+      seeOthers: "Ver la agenda de otra persona",
+      myAgenda: "Mi agenda",
+      team: "Equipo",
+      backToMine: "Volver a tu agenda",
+      seeTeam: "Ver el cumplimiento del equipo"
+    },
+    month: {
+      previous: "Mes anterior",
+      next: "Mes siguiente",
+      choose: "Elegir mes y año",
+      today: "Hoy",
+      previousYear: "Año anterior",
+      nextYear: "Año siguiente",
+      dayLabel: "{date}: {count} citas"
+    },
+    metrics: {
+      today: "Hoy",
+      week: "Semana",
+      closings: "Cierres",
+      toVisit: "Por visitar",
+      todayDetail: "{done} de {total} citas · media {average} {visits}/día",
+      weekDetail: "{count} {visits} · media {average}/semana",
+      closingsDetail: "{count} cierres con éxito hoy · media {average}/día",
+      toVisitDetail: "{urgent} urgentes · {noVisit} sin {visit} en 60 días"
+    },
+    trays: {
+      due: "Les toca {visit}",
+      dueText: "Según la frecuencia objetivo de cada {professional}. Añádelos a este día o planifica una ruta con ellos.",
+      pending: "Pendientes de días anteriores",
+      pendingShort: "Pendientes anteriores",
+      pendingText: "Los planificaste y no se visitaron. Muévelos a hoy o descártalos.",
+      daysWithout: "{days} días sin {visit}",
+      neverVisited: "nunca visitado",
+      card: "Ficha",
+      addAppointment: "+ Cita",
+      moveToToday: "Mover a hoy",
+      discard: "Descartar",
+      planRoute: "Planificar ruta",
+      rescheduleAll: "Reprogramar todas",
+      notVisited: "{count} sin visitar",
+      nothingPending: "Nada pendiente."
+    },
+    yourDay: {
+      titleToday: "Tu día",
+      titlePast: "Lo que pasó este día",
+      titleFuture: "Tu agenda de este día",
+      showDetail: "Ver el detalle de las citas",
+      compactTitle: "Compactar las citas: una línea cada una",
+      compactLabel: "Compactar las citas",
+      dayOptions: "Opciones del día",
+      dayOptionsTitle: "Opciones del día: nueva cita, bloquear el día…",
+      appointments: "<b>{count}</b> citas",
+      visited: '<b style="color:var(--ok)">{count}</b> visitadas',
+      absent: '<b style="color:var(--warn)">{count}</b> no estaban',
+      toDo: "<b>{count}</b> por hacer",
+      estimatedEnd: "Fin estimado",
+      overReturn: " · pasa de la hora de vuelta",
+      nextDay: "(día siguiente: revisa los avisos)",
+      addTask: "+ Tarea",
+      orderByDistance: "Ordenar por cercanía",
+      orderTitle: "Ordena las citas abiertas para recorrer menos kilómetros. Las que tienen hora fija se respetan.",
+      startDay: "▶ Empezar jornada",
+      endDay: "Terminar jornada",
+      reschedulePending: "Reprogramar pendientes",
+      workingDay: "● Jornada en curso desde hace {time}. Registra cada {visit} al terminarla.",
+      noFit: "<b>Este día no cabe en una jornada.</b> Con este orden acabarías {end}{outside}.",
+      outsideOne: " y una cita queda fuera de tu horario",
+      outsideMany: " y {count} citas quedan fuera de tu horario",
+      badWindows: "<b>Varias citas no encajan con sus horarios.</b>",
+      beforeEach: "Antes de mirar cada cita: ",
+      or: " o ",
+      moveFarthest: "pasa a otro día las citas de la zona más lejana (⋯ → Aplazar).",
+      endAround: "hacia las {time}",
+      endAfterMidnight: "pasada la medianoche (hacia las {time} del día siguiente)",
+      emptyToday: "No tienes citas hoy. Planifica una ruta en Rutas o cita a alguien de las sugerencias.",
+      emptyOther: "Sin citas este día.",
+      dayAppointments: "Citas del día",
+      othersTitle: "Citas de otras personas · {count}",
+      pendingOf: "Pendientes del {date}",
+      notVisitedThatDay: "Sin visitar ese día",
+      ordered: "Citas ordenadas por cercanía",
+      orderedWithLeft: "Ordenadas · {count} no caben en su horario o en el tuyo y quedan al final",
+      queued: "Registrada en el móvil · pendiente de enviar",
+      whyWarning: "Por qué sale este aviso",
+      understood: "Entendido"
+    },
+    card: {
+      inTime: "en {time}",
+      estimatedTime: "Hora estimada",
+      farLocation: "Ubicación a {km} km de la parada anterior: revisa la dirección",
+      attends: "Atiende {windows}",
+      waits: " · esperas {minutes} min",
+      due: "Toca: {action}",
+      lastVisit: "Última {visit} hace {days} {unit}",
+      day: "día",
+      days: "días",
+      firstVisit: "Primera {visit}",
+      noLocation: "Sin ubicación",
+      next: "Siguiente",
+      seeAppointment: "Ver la cita",
+      classTitle: "Clase {name}",
+      urgent: "Urgente",
+      noCentre: "Sin centro",
+      fixedTime: "Hora fijada",
+      estimatedByOrder: "Hora estimada según el orden",
+      keep: " · mantener",
+      moveUp: "Subir en el orden",
+      moveDown: "Bajar en el orden",
+      moreActions: "Más acciones",
+      newAppointment: "Nueva cita",
+      record: "Registrar {visit}"
+    },
+    sheet: {
+      when: "Cuándo",
+      where: "Dónde",
+      timetable: "Horario",
+      state: "Estado",
+      around: "hacia las {time} (estimada)",
+      noTime: "sin hora",
+      noCentre: "Sin centro",
+      atCentre: "En {centre}: ",
+      notAttending: "Ese día no atiende",
+      notes: "Notas de la cita",
+      notesPlaceholder: "p. ej. quedamos en el bar de enfrente, llevar el reporting…",
+      seeCard: "Ver ficha",
+      directions: "Cómo llegar",
+      changeTime: "Cambiar hora",
+      moveDay: "Mover a otro día",
+      saveNotes: "Guardar notas",
+      record: "Registrar {visit}",
+      discard: "Descartar la cita",
+      discardText: "No se hará: queda en el historial.",
+      delete: "Eliminar la cita",
+      deleteText: "Fue un error: desaparece sin dejar rastro.",
+      planAgain: "Volver a planificarla",
+      goTo: "Ir al {day}",
+      seeDay: "Ver el {day}",
+      closed: "<b>Cita cerrada: {state}.</b>",
+      closedReopen: "Si hace falta, puedes volver a planificarla desde «⋯».",
+      closedFinal: "La hora y el día ya no se cambian; las notas sí. Si hace falta volver, crea una cita nueva.",
+      recorded: "Se registró la {visit}{time}{results}.",
+      recordedAt: " a las {time}",
+      couldNotSave: "No se ha podido guardar: {error}",
+      notesSaved: "Notas guardadas"
+    },
+    menu: {
+      setTime: "Fijar una hora",
+      changeTime: "Cambiar la hora",
+      postpone: "Aplazar a otro día",
+      postponeText: "Queda como aplazada y se crea la cita nueva",
+      confirm: "Marcar como confirmada",
+      confirmText: "Ya has confirmado la cita",
+      unconfirm: "Quitar la confirmación",
+      discard: "Descartar la cita",
+      discardText: "Ya no hace falta ir",
+      delete: "Eliminar la cita",
+      deleteText: "Fue un error: desaparece de la agenda",
+      planAgain: "Volver a planificarla",
+      planAgainText: "Vuelve a este día",
+      planAgainPostponed: "; si la pasaste a otro, esa se quita",
+      alreadyClosed: "Esta cita ya está cerrada"
+    },
+    actions: {
+      couldNotChange: "No se ha podido cambiar",
+      confirmed: "Cita confirmada",
+      discarded: "Cita descartada",
+      unconfirmed: "Confirmación quitada",
+      deleteQuestion: "La cita desaparece de la agenda sin dejar rastro.",
+      deleteTitle: "¿Eliminar la cita?",
+      delete: "Eliminar",
+      onlyFuture: "Solo se pueden eliminar citas de hoy en adelante",
+      couldNotDelete: "No se ha podido eliminar",
+      deleted: "Cita eliminada",
+      whichDay: "¿A qué día la pasas?",
+      postponeTitle: "Aplazar la cita",
+      postpone: "Aplazar",
+      couldNotPostpone: "No se ha podido aplazar",
+      alreadyThatDay: "Ya tenía una cita ese día",
+      sameDay: "Sigue en el mismo día",
+      backToOwn: "Vuelve a su cita del {date}",
+      postponedTo: "Aplazada al {date}",
+      missingNegative: "Falta un resultado negativo en Configuración → Clasificadores",
+      whatHappened: "¿Qué ha pasado?",
+      cancel: "Cancelar",
+      couldNotSave: "No se ha podido guardar: {error}",
+      noted: "Anotado: {result}",
+      reopenOnlyFuture: "Solo se pueden volver a planificar citas de hoy en adelante",
+      couldNotReopen: "No se ha podido volver a planificar",
+      reopenedRemoving: "Vuelve a estar planificada (se quita la del {date})",
+      reopened: "Vuelve a estar planificada",
+      timeTitle: "Hora de la cita",
+      save: "Guardar",
+      couldNotTime: "No se ha podido: {error}",
+      timeUpdated: "Hora actualizada"
+    },
+    tasks: {
+      title: "Tareas y notas · {count}",
+      done: "Hecha",
+      up: "Subir la tarea",
+      down: "Bajar la tarea",
+      couldNotSave: "No se ha podido guardar",
+      show: "Ver las tareas",
+      hide: "Ocultar las tareas"
+    },
+    strip: {
+      thisWeek: "Esta semana",
+      nextWeek: "La semana que viene",
+      lastWeek: "La semana pasada",
+      weekOf: "Semana del {day} de {month}",
+      previousWeekNav: "Semana anterior",
+      nextWeekNav: "Semana siguiente",
+      seeMonth: "Ver el mes",
+      today: "Hoy",
+      done: "Hecha",
+      toDo: "Por hacer",
+      notClosed: "Sin cerrar",
+      oneAppointment: "{count} cita",
+      appointments: "{count} citas",
+      dayOptions: "Opciones del día",
+      showWeek: "Ver la semana",
+      hideWeek: "Ocultar la semana",
+      showWeekTitle: "Ver la semana entera, moverla y repartirla"
+    },
+    openWeek: {
+      hint: "Arrastra una cita a otro día para moverla · «⋯» en un día para bloquearlo o añadir una cita",
+      share: "Repartir la semana",
+      draft: "Propuesta sin guardar",
+      draftSummary: "{count} {visits} en {days} días",
+      draftWithoutDay: " · {count} sin día",
+      discard: "Descartar",
+      save: "Guardar en la agenda",
+      dayOptions: "Opciones del {date}",
+      dayOptionsTitle: "Opciones del día",
+      estimatedEnd: "Hora de fin estimada",
+      overReturn: ": pasa de la hora de vuelta {time}",
+      dragToMove: " · arrástrala a otro día para moverla",
+      proposal: "Propuesta: {name}",
+      andMore: "y {count} más",
+      withoutDay: "Se quedan sin día · {count}",
+      notToPast: "No se puede mover a un día pasado",
+      blockedDay: "ese día está bloqueado ({reason})",
+      notAttending: "ese día no atiende",
+      moveAnyway: "¿Moverla igualmente?",
+      move: "Mover",
+      couldNotMove: "No se ha podido mover",
+      movedTo: "Movida al {date}"
+    },
+    week: {
+      title: "Tu semana",
+      hint: "«⋯» en un día para bloquearlo (festivo, vacaciones, formación) o añadir una cita.",
+      seeDay: "Ver el {date}",
+      dayOptions: "Opciones del {date}",
+      andMore: "y {count} más",
+      free: "Libre",
+      share: "Repartir la semana"
+    },
+    sameCentre: {
+      title: "En este centro también",
+      seeCentre: "Ver el centro ›",
+      openCentre: "Abrir la ficha del centro",
+      addAppointment: "Añadir una cita · {reason}",
+      seeCard: "Ver su ficha",
+      missing: " · falta: {fields}",
+      morning: "Por la mañana",
+      afternoon: "Por la tarde",
+      otherDay: "Otro día",
+      noTimetable: "Sin horario",
+      andMore: "y {count} más"
+    }
+  };
+
   // src/app/i18n/es.ts
   var es = {
     common: {
@@ -494,204 +777,7 @@
       weekdayLetters: "L,M,X,J,V,S,D",
       weekdaysLong: "lunes,martes,miércoles,jueves,viernes,sábado,domingo"
     },
-    agenda: {
-      title: "Agenda",
-      todayTitle: "Hoy · {date}",
-      agendaOf: " · agenda de {name}",
-      yourNumbers: "Tus números",
-      newAppointment: "+ Nueva cita",
-      backToToday: "Volver a hoy",
-      noAppointmentsThatDay: "No tuviste citas este día.",
-      team: {
-        title: "Cumplimiento del equipo",
-        agendaOf: "Agenda de",
-        seeOthers: "Ver la agenda de otra persona",
-        myAgenda: "Mi agenda",
-        team: "Equipo",
-        backToMine: "Volver a tu agenda",
-        seeTeam: "Ver el cumplimiento del equipo"
-      },
-      month: {
-        previous: "Mes anterior",
-        next: "Mes siguiente",
-        choose: "Elegir mes y año",
-        today: "Hoy",
-        previousYear: "Año anterior",
-        nextYear: "Año siguiente",
-        dayLabel: "{date}: {count} citas"
-      },
-      metrics: {
-        today: "Hoy",
-        week: "Semana",
-        closings: "Cierres",
-        toVisit: "Por visitar",
-        todayDetail: "{done} de {total} citas · media {average} {visits}/día",
-        weekDetail: "{count} {visits} · media {average}/semana",
-        closingsDetail: "{count} cierres con éxito hoy · media {average}/día",
-        toVisitDetail: "{urgent} urgentes · {noVisit} sin {visit} en 60 días"
-      },
-      trays: {
-        due: "Les toca {visit}",
-        dueText: "Según la frecuencia objetivo de cada {professional}. Añádelos a este día o planifica una ruta con ellos.",
-        pending: "Pendientes de días anteriores",
-        pendingShort: "Pendientes anteriores",
-        pendingText: "Los planificaste y no se visitaron. Muévelos a hoy o descártalos.",
-        daysWithout: "{days} días sin {visit}",
-        neverVisited: "nunca visitado",
-        card: "Ficha",
-        addAppointment: "+ Cita",
-        moveToToday: "Mover a hoy",
-        discard: "Descartar",
-        planRoute: "Planificar ruta",
-        rescheduleAll: "Reprogramar todas",
-        notVisited: "{count} sin visitar",
-        nothingPending: "Nada pendiente."
-      },
-      yourDay: {
-        titleToday: "Tu día",
-        titlePast: "Lo que pasó este día",
-        titleFuture: "Tu agenda de este día",
-        showDetail: "Ver el detalle de las citas",
-        compactTitle: "Compactar las citas: una línea cada una",
-        compactLabel: "Compactar las citas",
-        dayOptions: "Opciones del día",
-        dayOptionsTitle: "Opciones del día: nueva cita, bloquear el día…",
-        appointments: "<b>{count}</b> citas",
-        visited: '<b style="color:var(--ok)">{count}</b> visitadas',
-        absent: '<b style="color:var(--warn)">{count}</b> no estaban',
-        toDo: "<b>{count}</b> por hacer",
-        estimatedEnd: "Fin estimado",
-        overReturn: " · pasa de la hora de vuelta",
-        nextDay: "(día siguiente: revisa los avisos)",
-        addTask: "+ Tarea",
-        orderByDistance: "Ordenar por cercanía",
-        orderTitle: "Ordena las citas abiertas para recorrer menos kilómetros. Las que tienen hora fija se respetan.",
-        startDay: "▶ Empezar jornada",
-        endDay: "Terminar jornada",
-        reschedulePending: "Reprogramar pendientes",
-        workingDay: "● Jornada en curso desde hace {time}. Registra cada {visit} al terminarla.",
-        noFit: "<b>Este día no cabe en una jornada.</b> Con este orden acabarías {end}{outside}.",
-        outsideOne: " y una cita queda fuera de tu horario",
-        outsideMany: " y {count} citas quedan fuera de tu horario",
-        badWindows: "<b>Varias citas no encajan con sus horarios.</b>",
-        beforeEach: "Antes de mirar cada cita: ",
-        or: " o ",
-        moveFarthest: "pasa a otro día las citas de la zona más lejana (⋯ → Aplazar).",
-        endAround: "hacia las {time}",
-        endAfterMidnight: "pasada la medianoche (hacia las {time} del día siguiente)",
-        emptyToday: "No tienes citas hoy. Planifica una ruta en Rutas o cita a alguien de las sugerencias.",
-        emptyOther: "Sin citas este día.",
-        dayAppointments: "Citas del día",
-        othersTitle: "Citas de otras personas · {count}",
-        pendingOf: "Pendientes del {date}",
-        notVisitedThatDay: "Sin visitar ese día",
-        ordered: "Citas ordenadas por cercanía",
-        orderedWithLeft: "Ordenadas · {count} no caben en su horario o en el tuyo y quedan al final",
-        queued: "Registrada en el móvil · pendiente de enviar",
-        whyWarning: "Por qué sale este aviso",
-        understood: "Entendido"
-      },
-      card: {
-        inTime: "en {time}",
-        estimatedTime: "Hora estimada",
-        farLocation: "Ubicación a {km} km de la parada anterior: revisa la dirección",
-        attends: "Atiende {windows}",
-        waits: " · esperas {minutes} min",
-        due: "Toca: {action}",
-        lastVisit: "Última {visit} hace {days} {unit}",
-        day: "día",
-        days: "días",
-        firstVisit: "Primera {visit}",
-        noLocation: "Sin ubicación",
-        next: "Siguiente",
-        seeAppointment: "Ver la cita",
-        classTitle: "Clase {name}",
-        urgent: "Urgente",
-        noCentre: "Sin centro",
-        fixedTime: "Hora fijada",
-        estimatedByOrder: "Hora estimada según el orden",
-        keep: " · mantener",
-        moveUp: "Subir en el orden",
-        moveDown: "Bajar en el orden",
-        moreActions: "Más acciones",
-        newAppointment: "Nueva cita",
-        record: "Registrar {visit}"
-      },
-      tasks: {
-        title: "Tareas y notas · {count}",
-        done: "Hecha",
-        up: "Subir la tarea",
-        down: "Bajar la tarea",
-        couldNotSave: "No se ha podido guardar",
-        show: "Ver las tareas",
-        hide: "Ocultar las tareas"
-      },
-      strip: {
-        thisWeek: "Esta semana",
-        nextWeek: "La semana que viene",
-        lastWeek: "La semana pasada",
-        weekOf: "Semana del {day} de {month}",
-        previousWeekNav: "Semana anterior",
-        nextWeekNav: "Semana siguiente",
-        seeMonth: "Ver el mes",
-        today: "Hoy",
-        done: "Hecha",
-        toDo: "Por hacer",
-        notClosed: "Sin cerrar",
-        oneAppointment: "{count} cita",
-        appointments: "{count} citas",
-        dayOptions: "Opciones del día",
-        showWeek: "Ver la semana",
-        hideWeek: "Ocultar la semana",
-        showWeekTitle: "Ver la semana entera, moverla y repartirla"
-      },
-      openWeek: {
-        hint: "Arrastra una cita a otro día para moverla · «⋯» en un día para bloquearlo o añadir una cita",
-        share: "Repartir la semana",
-        draft: "Propuesta sin guardar",
-        draftSummary: "{count} {visits} en {days} días",
-        draftWithoutDay: " · {count} sin día",
-        discard: "Descartar",
-        save: "Guardar en la agenda",
-        dayOptions: "Opciones del {date}",
-        dayOptionsTitle: "Opciones del día",
-        estimatedEnd: "Hora de fin estimada",
-        overReturn: ": pasa de la hora de vuelta {time}",
-        dragToMove: " · arrástrala a otro día para moverla",
-        proposal: "Propuesta: {name}",
-        andMore: "y {count} más",
-        withoutDay: "Se quedan sin día · {count}",
-        notToPast: "No se puede mover a un día pasado",
-        blockedDay: "ese día está bloqueado ({reason})",
-        notAttending: "ese día no atiende",
-        moveAnyway: "¿Moverla igualmente?",
-        move: "Mover",
-        couldNotMove: "No se ha podido mover",
-        movedTo: "Movida al {date}"
-      },
-      week: {
-        title: "Tu semana",
-        hint: "«⋯» en un día para bloquearlo (festivo, vacaciones, formación) o añadir una cita.",
-        seeDay: "Ver el {date}",
-        dayOptions: "Opciones del {date}",
-        andMore: "y {count} más",
-        free: "Libre",
-        share: "Repartir la semana"
-      },
-      sameCentre: {
-        title: "En este centro también",
-        seeCentre: "Ver el centro ›",
-        openCentre: "Abrir la ficha del centro",
-        addAppointment: "Añadir una cita · {reason}",
-        seeCard: "Ver su ficha",
-        missing: " · falta: {fields}",
-        morning: "Por la mañana",
-        afternoon: "Por la tarde",
-        otherDay: "Otro día",
-        noTimetable: "Sin horario",
-        andMore: "y {count} más"
-      }
-    },
+    agenda,
     home: {
       showIndicators: "Ver tus indicadores",
       hideIndicators: "Ocultar tus indicadores",
@@ -826,13 +912,16 @@
   __export(agenda_exports, {
     applyTaskFolding: () => applyTaskFolding,
     bindWeekButton: () => bindWeekButton,
+    changeTime: () => changeTime,
     closeMonth: () => closeMonth,
     data: () => preload_exports,
     dueList: () => dueList,
     groupByAttendance: () => groupByAttendance,
+    hasMenu: () => hasMenu,
     loadAgenda: () => loadAgenda,
     markQueuedVisits: () => markQueuedVisits,
     metricsHtml: () => metricsHtml,
+    openMenu: () => openMenu,
     openTray: () => openTray,
     paintOpenWeek: () => paintOpenWeek,
     paintSameCentre: () => paintSameCentre,
@@ -846,7 +935,9 @@
     refreshOpenTray: () => refreshOpenTray,
     reloadMetrics: () => reloadMetrics,
     renderMonth: () => renderMonth,
+    runAction: () => runAction,
     shareWeek: () => shareWeek,
+    showAppointment: () => showAppointment,
     showDay: () => showDay,
     toggleMonth: () => toggleMonth
   });
@@ -1052,7 +1143,10 @@
     toast: (message, isError = false) => {
       toast(message, isError);
     },
-    confirm: (message, options) => preguntar(message, options)
+    confirm: (message, options) => preguntar(message, options),
+    choose: (title, message, buttons) => elegirOpcion(title, message, buttons),
+    askDate: (message, value, options) => pedirFecha(message, value, options),
+    askTime: async (title, value, ok) => await appVentana({ titulo: title, ok, campo: { valor: value, tipo: "time" } })
   };
   var initialsOf = (name) => iniciales(name);
   var reloadAgenda = () => {
@@ -1075,7 +1169,6 @@
     },
     canRecordOn: (isoDate) => puedeRegistrarEnDia(isoDate),
     originText: (item) => textoOrigenCita(item),
-    hasMenu: (item) => citaConMenu(item),
     orderByDistance: (list) => {
       const ordered = ordenarPorCercania(list);
       return { list: ordered, left: ordenarPorCercania.fuera ?? 0 };
@@ -1108,6 +1201,37 @@
     line: (name) => SVA(ICU[name] ?? ""),
     arrow: (name) => ICO[name] ?? "",
     list: (name) => plIco(name)
+  };
+  var appointmentLegacy = {
+    /** Writes through the offline queue (the change is kept if there is no connection). */
+    write: (name, payload) => escribir(name, payload),
+    writeRpc: (name, payload) => escribirRpc(name, payload),
+    negativeResults: () => (CAT.resultado_visita ?? []).filter((item) => item.extra === "neg"),
+    nextAttendanceDay: (days, from) => proximoDiaConsulta(days, from),
+    navigateTo: (point) => {
+      void navegarA(point);
+    },
+    recordVisit: (accountId, isoDate) => {
+      VISITA_FECHA = isoDate;
+      void abrirVisita(accountId);
+    },
+    openAccountFromCentre: (accountId, centre) => {
+      FICHA_CENTRO = centre ?? null;
+      void abrirFicha(accountId);
+    },
+    /** Repaints the day quietly after a change (and the figures unless figures is false). */
+    refreshQuietly: (id, figures = true) => {
+      agRefrescoQuieto(id, { cifras: figures });
+    },
+    newDateAfterAbsent: (item) => nuevaFechaTrasNoEstaba(item),
+    dayLabel: (isoDate) => diaCita(isoDate),
+    repaintWith: (id, data) => repintarDiaSuave(id, data),
+    lastDayData: () => TD_ULTIMO && TD_ULTIMO.fecha === AG_FECHA ? TD_ULTIMO.data : null,
+    isJoinedDayView: () => agUnida(),
+    /** Opens the sheet through its global name, so «‹ Volver» (legado 126) records it. */
+    openSheet: (item) => {
+      void window.verCita(item);
+    }
   };
 
   // src/app/services/dates.ts
@@ -2075,11 +2199,11 @@
     <div class="agbdc"><div class="lista">${rows || `<div class="vacio">${t("agenda.trays.nothingPending")}</div>`}</div></div></div>`;
   }
   function bindTray(panel, due, pending) {
-    const close = () => {
+    const close2 = () => {
       panel.classList.remove("abierto");
     };
     const closeButton = document.getElementById("tclose");
-    if (closeButton) closeButton.onclick = close;
+    if (closeButton) closeButton.onclick = close2;
     panel.querySelectorAll("[data-agbf]").forEach((button) => {
       button.onclick = () => {
         agendaActions.openAccount(button.dataset.agbf ?? "");
@@ -2092,7 +2216,7 @@
     });
     const route = document.getElementById("agbruta");
     if (route) route.onclick = () => {
-      close();
+      close2();
       goTo("rutas");
       setTimeout(() => {
         agendaActions.planRoute(due, route);
@@ -2357,6 +2481,186 @@
   function pointOf(item) {
     return item.lat !== null && item.lat !== void 0 && item.lon !== null && item.lon !== void 0 ? [Number(item.lat), Number(item.lon)] : null;
   }
+  var STATES = { planned: "Planificada", confirmed: "Confirmada", discarded: "Descartada", postponed: "Aplazada" };
+  var canPlanAgain = (item, today) => (item.estado === STATES.postponed || item.estado === STATES.discarded) && item.fecha >= today;
+
+  // src/app/screens/agenda/appointment-actions.ts
+  var refresh = (item) => {
+    appointmentLegacy.refreshQuietly(item.id);
+  };
+  async function setState(action, item) {
+    const state = action === "confirmar" ? STATES.confirmed : action === "desconfirmar" ? STATES.planned : STATES.discarded;
+    const result = await appointmentLegacy.write("estado_cita", { p_id: item.id, p_estado: state });
+    if (result?.error) {
+      notices.toast(t("agenda.actions.couldNotChange"), true);
+      return;
+    }
+    notices.toast(t(state === STATES.confirmed ? "agenda.actions.confirmed" : state === STATES.discarded ? "agenda.actions.discarded" : "agenda.actions.unconfirmed"));
+    refresh(item);
+  }
+  async function remove(item) {
+    if (!await notices.confirm(t("agenda.actions.deleteQuestion"), { titulo: t("agenda.actions.deleteTitle"), ok: t("agenda.actions.delete"), peligro: true })) return;
+    const { data: result } = await legacyDb().rpc("borrar_cita", { p_id: item.id });
+    if (result?.ok === false) {
+      notices.toast(t(result.error === "pasada" ? "agenda.actions.onlyFuture" : "agenda.actions.couldNotDelete"), true);
+      return;
+    }
+    notices.toast(t("agenda.actions.deleted"));
+    refresh(item);
+  }
+  function postponedText(result, day) {
+    if (result?.ya) return t("agenda.actions.alreadyThatDay");
+    if (result?.mismo_dia) return t("agenda.actions.sameDay");
+    return t(result?.reabierta ? "agenda.actions.backToOwn" : "agenda.actions.postponedTo", { date: formatShortDate(day) });
+  }
+  async function postpone(item) {
+    const day = await notices.askDate(t("agenda.actions.whichDay"), appointmentLegacy.nextAttendanceDay(item.dias, item.fecha), { titulo: t("agenda.actions.postponeTitle"), ok: t("agenda.actions.postpone") });
+    if (!day) return;
+    const { data: result, error } = await legacyDb().rpc("aplazar_cita", { p_id: item.id, p_fecha: day, p_hora: null, p_origen: STATES.postponed });
+    if (error || result?.ok === false) {
+      notices.toast(t("agenda.actions.couldNotPostpone"), true);
+      return;
+    }
+    notices.toast(postponedText(result, day));
+    refresh(item);
+  }
+  async function absent(item) {
+    const negatives = appointmentLegacy.negativeResults();
+    const [first] = negatives;
+    if (!first) {
+      notices.toast(t("agenda.actions.missingNegative"), true);
+      return;
+    }
+    let result = first.valor;
+    if (negatives.length > 1) {
+      const choice = await notices.choose(t("agenda.actions.whatHappened"), item.nombre ?? "", [{ k: "no", t: t("agenda.actions.cancel"), cls: "sec" }, ...negatives.map((negative, index) => ({ k: `n${index}`, t: negative.valor, cls: "sec" }))]);
+      if (!choice) return;
+      result = negatives[Number(choice.slice(1))]?.valor ?? result;
+    }
+    const { error } = await appointmentLegacy.writeRpc("registrar_actividad", { p: { cuenta_id: item.cuenta_id, fecha: item.fecha, resultados: [result], op_id: `v-${item.cuenta_id}-${Date.now()}` } });
+    if (error) {
+      notices.toast(t("agenda.actions.couldNotSave", { error: error.message ?? "" }), true);
+      return;
+    }
+    notices.toast(t("agenda.actions.noted", { result }));
+    refresh(item);
+    await appointmentLegacy.newDateAfterAbsent(item);
+  }
+  async function planAgain(item) {
+    const { data: result, error } = await legacyDb().rpc("reabrir_cita", { p_id: item.id });
+    if (error || !result || result.ok === false) {
+      notices.toast(t(result?.error === "pasada" ? "agenda.actions.reopenOnlyFuture" : "agenda.actions.couldNotReopen"), true);
+      return;
+    }
+    notices.toast(result.quitada ? t("agenda.actions.reopenedRemoving", { date: formatShortDate(result.quitada) }) : t("agenda.actions.reopened"));
+    refresh(item);
+  }
+  var ACTIONS = {
+    ficha: (item) => {
+      appointmentLegacy.openAccountFromCentre(item.cuenta_id, item.centro_nombre);
+    },
+    llegar: (item) => {
+      appointmentLegacy.navigateTo(pointOf(item));
+    },
+    hora: (item) => changeTime(item.id, item.hora ?? ""),
+    confirmar: (item) => setState("confirmar", item),
+    desconfirmar: (item) => setState("desconfirmar", item),
+    descartar: (item) => setState("descartar", item),
+    borrar: remove,
+    aplazar: postpone,
+    noestaba: absent,
+    nueva: (item) => appointmentLegacy.newDateAfterAbsent(item),
+    rehacer: planAgain
+  };
+  async function runAction(action, item) {
+    await ACTIONS[action](item);
+  }
+  var timeOf2 = (item) => item.hora ? String(item.hora).slice(0, 5) : null;
+  function orderByTime(open, id, time) {
+    const moved = open.find((item) => item.id === id);
+    if (!moved || !time) return open;
+    const rest = open.filter((item) => item.id !== id);
+    let index = rest.findIndex((item) => {
+      const other = timeOf2(item);
+      return other !== null && other > time;
+    });
+    if (index < 0) {
+      index = 0;
+      rest.forEach((item, position) => {
+        const other = timeOf2(item);
+        if (other !== null && other <= time) index = position + 1;
+      });
+    }
+    rest.splice(index, 0, moved);
+    return rest;
+  }
+  async function changeTime(id, current) {
+    const time = await notices.askTime(t("agenda.actions.timeTitle"), current, t("agenda.actions.save"));
+    if (time === null) return;
+    const { error } = await legacyDb().from("agenda").update({ hora: time || null }).eq("id", id);
+    if (error) {
+      notices.toast(t("agenda.actions.couldNotTime", { error: error.message ?? "" }), true);
+      return;
+    }
+    notices.toast(t("agenda.actions.timeUpdated"));
+    const day = appointmentLegacy.lastDayData();
+    if (currentScreen() !== "agenda" || !appointmentLegacy.isJoinedDayView() || !day?.some((item) => item.id === id)) {
+      appointmentLegacy.refreshQuietly(id, false);
+      return;
+    }
+    const owner = agendaSources.ownerId(), data = day.map((item) => item.id === id ? { ...item, hora: time || null } : item);
+    const mine = (item) => item.usuario_id === owner;
+    const open = data.filter((item) => mine(item) && isOpen(item.estado)), order = orderByTime(open, id, time);
+    const changed = order.some((item, index) => item.id !== open[index]?.id);
+    const next = changed ? [...data.filter((item) => mine(item) && !isOpen(item.estado)), ...order, ...data.filter((item) => !mine(item))] : data;
+    await appointmentLegacy.repaintWith(id, next);
+    if (changed && !await yourDayLegacy.saveOrder(order)) appointmentLegacy.refreshQuietly(id);
+  }
+
+  // src/app/screens/agenda/appointment-menu.ts
+  var option = (action, title, detail = "") => ({ action, title: t(title), detail });
+  function menuOptions(item) {
+    const today = todayIso();
+    if (!isOpen(item.estado)) {
+      if (!canPlanAgain(item, today)) return [];
+      return [{ action: "rehacer", title: t("agenda.menu.planAgain"), detail: t("agenda.menu.planAgainText") + (item.estado === STATES.postponed ? t("agenda.menu.planAgainPostponed") : "") }];
+    }
+    return [
+      option("hora", item.hora ? "agenda.menu.changeTime" : "agenda.menu.setTime"),
+      { ...option("aplazar", "agenda.menu.postpone"), detail: t("agenda.menu.postponeText") },
+      item.estado === STATES.planned ? { ...option("confirmar", "agenda.menu.confirm"), detail: t("agenda.menu.confirmText") } : null,
+      item.estado === STATES.confirmed ? option("desconfirmar", "agenda.menu.unconfirm") : null,
+      { ...option("descartar", "agenda.menu.discard"), detail: t("agenda.menu.discardText") },
+      item.fecha >= today ? { ...option("borrar", "agenda.menu.delete"), detail: t("agenda.menu.deleteText") } : null
+      // v2.273.0
+    ].filter((entry) => entry !== null);
+  }
+  var hasMenu = (item) => menuOptions(item).length > 0;
+  function openMenu(button, item) {
+    document.querySelectorAll(".tdmenu").forEach((menu2) => {
+      menu2.remove();
+    });
+    const options = menuOptions(item);
+    if (!options.length) {
+      notices.toast(t("agenda.menu.alreadyClosed"));
+      return;
+    }
+    const menu = document.createElement("div");
+    menu.className = "tdmenu";
+    menu.__t = Date.now();
+    const danger = (action) => action === "descartar" || action === "borrar";
+    menu.innerHTML = options.map((entry) => `<button data-tdop="${entry.action}" class="${danger(entry.action) ? "peligro" : ""}"><b>${escapeHtml(entry.title)}</b>${entry.detail ? `<span>${escapeHtml(entry.detail)}</span>` : ""}</button>`).join("");
+    document.body.appendChild(menu);
+    const rect = button.getBoundingClientRect();
+    menu.style.top = `${Math.min(window.innerHeight - menu.offsetHeight - 10, rect.bottom + 6)}px`;
+    menu.style.left = `${Math.max(10, Math.min(window.innerWidth - menu.offsetWidth - 10, rect.right - menu.offsetWidth))}px`;
+    menu.querySelectorAll("[data-tdop]").forEach((entry) => {
+      entry.onclick = () => {
+        menu.remove();
+        void runAction(entry.dataset.tdop, item);
+      };
+    });
+  }
 
   // src/app/screens/agenda/your-day/card.ts
   var DAY_MS2 = 864e5;
@@ -2446,7 +2750,7 @@
     const open = isOpen(item.estado), canMove = open && !context.isPast, record = open && yourDayLegacy.canRecordOn(item.fecha);
     const again = isAbsent(item.estado) && !context.isPast;
     return `<div class="tdu-pie"><span class="tdu-est">${statePill(item.estado)}<span class="sm">${yourDayLegacy.originText(item)}</span></span>
-        <span class="tdu-ops">${canMove ? orderButtons(item, context) : ""}${yourDayLegacy.hasMenu(item) ? `<button class="btn sec tdmas" type="button" data-td="mas|${item.id}" aria-label="${t("agenda.card.moreActions")}">⋯</button>` : ""}</span>
+        <span class="tdu-ops">${canMove ? orderButtons(item, context) : ""}${hasMenu(item) ? `<button class="btn sec tdmas" type="button" data-td="mas|${item.id}" aria-label="${t("agenda.card.moreActions")}">⋯</button>` : ""}</span>
         ${again ? `<button class="btn sec tdu-reg" type="button" data-td="nueva|${item.id}">${t("agenda.card.newAppointment")}</button>` : ""}
         ${record ? `<button class="btn ${item === context.next ? "" : "sec"} tdu-reg" type="button" data-td="visita|${item.id}">${t("agenda.card.record", { visit: context.visit })}</button>` : ""}</div>`;
   }
@@ -2568,10 +2872,10 @@
         void markDone(box);
       };
     });
-    block.querySelectorAll(".tdtarea").forEach((row) => {
-      row.onclick = (event) => {
+    block.querySelectorAll(".tdtarea").forEach((row2) => {
+      row2.onclick = (event) => {
         if (event.target instanceof Element && event.target.closest(".tdtchk, .tdtmov")) return;
-        yourDayLegacy.editTask(list.find((task) => task.id === row.dataset.tarea));
+        yourDayLegacy.editTask(list.find((task) => task.id === row2.dataset.tarea));
       };
     });
     block.querySelectorAll("[data-tamov]").forEach((button) => {
@@ -2791,6 +3095,141 @@
     }, true);
   }
 
+  // src/app/screens/agenda/appointment-sheet.ts
+  var DAY_MINUTES2 = 24 * 60;
+  function timeText2(item, info) {
+    if (item.hora) return String(item.hora).slice(0, 5);
+    if (isOpen(item.estado) && isPresent(info.llegada) && info.llegada < DAY_MINUTES2) return t("agenda.sheet.around", { time: formatMinutes(info.llegada) });
+    return t("agenda.sheet.noTime");
+  }
+  function timetableText(item, info) {
+    const windows = info.ventanas ?? weekPlanner.attendanceWindows(item.dias, item.fecha);
+    if (!windows) return "";
+    if (!windows.length) return t("agenda.sheet.notAttending");
+    return (info.otroCentro ? t("agenda.sheet.atCentre", { centre: info.otroCentro }) : "") + yourDayLegacy.windowsText(windows);
+  }
+  var row = (label, value) => `<div class="vcfila"><span>${label}</span><b>${value}</b></div>`;
+  function dataHtml(item, info) {
+    const where = [item.centro_nombre, item.direccion, item.municipio].filter(Boolean).join(" · "), timetable = timetableText(item, info), origin = yourDayLegacy.originText(item);
+    return `<div class="vcdatos">
+      ${row(t("agenda.sheet.when"), `${escapeHtml(capitalise(formatLongDate(item.fecha)))} · ${escapeHtml(timeText2(item, info))}`)}
+      ${row(t("agenda.sheet.where"), escapeHtml(where || t("agenda.sheet.noCentre")))}
+      ${timetable ? row(t("agenda.sheet.timetable"), escapeHtml(timetable)) : ""}
+      ${row(t("agenda.sheet.state"), `${statePill(item.estado)}${origin ? ` <span class="sm">${origin}</span>` : ""}`)}
+    </div>`;
+  }
+  function closedHtml(item) {
+    if (isOpen(item.estado)) return "";
+    return `<div class="banda-info vccerrada" id="vccerrada">${t("agenda.sheet.closed", { state: escapeHtml(item.estado) })}
+    <span id="vccomo"></span> ${t(hasMenu(item) ? "agenda.sheet.closedReopen" : "agenda.sheet.closedFinal")}</div>`;
+  }
+  function goToButton(day, label, id, item) {
+    return day && day !== item.fecha ? `<button type="button" class="btn sec" id="${id}" data-vcdia="${day}">${escapeHtml(t(label, { day: appointmentLegacy.dayLabel(day) }))}</button>` : "";
+  }
+  function buttonsHtml(item) {
+    const open = isOpen(item.estado), today = todayIso();
+    return `<div class="vcacts">
+      <button type="button" class="btn sec" id="vcficha">${t("agenda.sheet.seeCard")}</button>
+      ${pointOf(item) ? `<button type="button" class="btn sec" id="vcllegar">${t("agenda.sheet.directions")}</button>` : ""}
+      ${open ? `<button type="button" class="btn sec" id="vchora">${t("agenda.sheet.changeTime")}</button><button type="button" class="btn sec" id="vcmover">${t("agenda.sheet.moveDay")}</button>` : ""}
+    ${canPlanAgain(item, today) ? `<button type="button" class="btn sec" id="vcrehacer">${t("agenda.sheet.planAgain")}</button>` : ""}${item.estado === STATES.postponed ? goToButton(item.aplazada_a_fecha, "agenda.sheet.goTo", "vcirdest", item) : ""}${goToButton(item.aplazada_de_fecha, "agenda.sheet.seeDay", "vcirorig", item)}</div>
+    ${open ? `<div class="vcfin">
+        <button type="button" class="lnk" id="vcdescartar">${t("agenda.sheet.discard")}</button><span class="sm">${t("agenda.sheet.discardText")}</span>
+        ${item.fecha >= today ? `<button type="button" class="lnk peligro" id="vcborrar">${t("agenda.sheet.delete")}</button><span class="sm">${t("agenda.sheet.deleteText")}</span>` : ""}</div>` : ""}
+    <div class="acts" style="justify-content:flex-end">
+      <button type="button" class="btn sec" id="vcok" disabled>${t("agenda.sheet.saveNotes")}</button>
+      ${open && yourDayLegacy.canRecordOn(item.fecha) ? `<button type="button" class="btn" id="vcreg">${t("agenda.sheet.record", { visit: term("visita") })}</button>` : ""}</div>`;
+  }
+  function sheetHtml(item, info) {
+    return `
+    <div class="fh"><div><h2>${escapeHtml(item.nombre)}</h2>${item.especialidad ? `<div class="sm">${escapeHtml(item.especialidad)}</div>` : ""}</div>
+      <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
+    ${dataHtml(item, info)}
+    ${closedHtml(item)}
+    ${isOpen(item.estado) && info.aviso ? `<div class="banda-aviso" style="margin:0 0 12px">${escapeHtml(info.aviso)}</div>` : ""}
+    <label for="vcnota">${t("agenda.sheet.notes")}</label>
+    <textarea id="vcnota" rows="3" placeholder="${t("agenda.sheet.notesPlaceholder")}">${escapeHtml(item.nota ?? "")}</textarea>
+    ${buttonsHtml(item)}`;
+  }
+  var dialog = () => document.getElementById("dlg");
+  var close = () => {
+    dialog()?.close();
+  };
+  async function saveNotes(item, notes, button) {
+    button.disabled = true;
+    const value = notes.value.trim();
+    const { error } = await legacyDb().from("agenda").update({ nota: value || null }).eq("id", item.id);
+    if (error) {
+      button.disabled = false;
+      notices.toast(t("agenda.sheet.couldNotSave", { error: error.message ?? "" }), true);
+      return;
+    }
+    item.nota = value;
+    close();
+    notices.toast(t("agenda.sheet.notesSaved"));
+    appointmentLegacy.refreshQuietly(item.id, false);
+  }
+  function bind5(body, item) {
+    const notes = body.querySelector("#vcnota"), save = body.querySelector("#vcok");
+    if (notes && save) {
+      notes.oninput = () => {
+        save.disabled = notes.value.trim() === (item.nota ?? "").trim();
+      };
+      save.onclick = () => {
+        void saveNotes(item, notes, save);
+      };
+    }
+    const on2 = (id, action) => {
+      const button = body.querySelector(`#${id}`);
+      if (button) button.onclick = action;
+    };
+    const closeAnd = (action) => () => {
+      close();
+      void runAction(action, item);
+    };
+    on2("vcficha", () => {
+      close();
+      appointmentLegacy.openAccountFromCentre(item.cuenta_id, item.centro_nombre);
+    });
+    on2("vcllegar", () => {
+      void runAction("llegar", item);
+    });
+    on2("vchora", closeAnd("hora"));
+    on2("vcmover", closeAnd("aplazar"));
+    on2("vcdescartar", closeAnd("descartar"));
+    on2("vcborrar", closeAnd("borrar"));
+    on2("vcrehacer", closeAnd("rehacer"));
+    on2("vcreg", () => {
+      close();
+      appointmentLegacy.recordVisit(item.cuenta_id, item.fecha);
+    });
+    body.querySelectorAll("[data-vcdia]").forEach((button) => {
+      button.onclick = () => {
+        close();
+        agendaState.setMode("dia");
+        legacyAgenda.showDay(button.dataset.vcdia ?? "");
+      };
+    });
+  }
+  function fillVisitResult(item) {
+    if (!isDone(item.estado) || !item.cuenta_id) return;
+    legacyDb().from("actividades").select("resultados, hora").eq("cuenta_id", item.cuenta_id).eq("fecha", item.fecha).limit(1).then(({ data }) => {
+      const visit = data?.[0], place = document.getElementById("vccomo");
+      if (!visit || !place) return;
+      const results = Array.isArray(visit.resultados) ? visit.resultados.filter(Boolean).join(", ") : visit.resultados ?? "";
+      place.textContent = t("agenda.sheet.recorded", { visit: term("visita"), time: visit.hora ? t("agenda.sheet.recordedAt", { time: String(visit.hora).slice(0, 5) }) : "", results: results ? `: ${results}` : "" });
+    }, () => void 0);
+  }
+  function showAppointment(item) {
+    const body = document.getElementById("dbody"), box = dialog();
+    if (!item || !body || !box) return;
+    body.innerHTML = sheetHtml(item, yourDayLegacy.stopInfo()[item.id] ?? {});
+    bind5(body, item);
+    fillVisitResult(item);
+    box.classList.add("pequena");
+    box.showModal();
+  }
+
   // src/app/screens/home/indicators/chart-tools.ts
   var EMPTY_CHART = { summary: "", visual: "" };
   var WEEKDAY_LETTERS = ["D", "L", "M", "X", "J", "V", "S"];
@@ -2809,7 +3248,7 @@
     return match ? Number(match[1]) * 60 + Number(match[2]) : null;
   }
   function countsByDate(rows) {
-    return new Map((rows ?? []).map((row) => [row.fecha, row.n]));
+    return new Map((rows ?? []).map((row2) => [row2.fecha, row2.n]));
   }
 
   // src/app/screens/home/indicators/charts-activity.ts
@@ -2893,11 +3332,11 @@
 
   // src/app/screens/home/indicators/charts-portfolio.ts
   function stateCounts(charts) {
-    const counts = new Map((charts.estados ?? []).map((row) => [row.valor, row.n]));
+    const counts = new Map((charts.estados ?? []).map((row2) => [row2.valor, row2.n]));
     return commercialStates.all().filter((state) => state.papel !== "negativo").map((state) => ({ state, accounts: counts.get(state.valor) ?? 0 }));
   }
   function portfolioTotal(charts) {
-    return sum((charts.estados ?? []).map((row) => row.n));
+    return sum((charts.estados ?? []).map((row2) => row2.n));
   }
   var color = (role) => STATE_COLORS[role] ?? "#C9D7E6";
   function interestedChart(charts) {
@@ -3305,7 +3744,7 @@
   function cycleTile(data) {
     const summary = data.cycle?.resumen ?? [];
     if (!summary.length) return "";
-    const done = summary.reduce((sum2, row) => sum2 + row.hechas, 0), target = summary.reduce((sum2, row) => sum2 + row.objetivo, 0);
+    const done = summary.reduce((sum2, row2) => sum2 + row2.hechas, 0), target = summary.reduce((sum2, row2) => sum2 + row2.objetivo, 0);
     const percent = target ? Math.round(100 * done / target) : 0, circumference = 2 * Math.PI * 30;
     return `<div class="mt mtcic"><div class="mtt">${icon("target")} ${t("home.cycle.title", { visits: term("visita", { number: "p" }) })}</div>
       <div class="mfila"><svg class="mring" viewBox="0 0 70 70" aria-hidden="true"><circle class="f" cx="35" cy="35" r="30"/><circle class="v" cx="35" cy="35" r="30" style="stroke-dasharray:${circumference * percent / 100} ${circumference}"/></svg>

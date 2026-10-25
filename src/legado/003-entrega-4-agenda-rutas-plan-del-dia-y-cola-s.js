@@ -34,7 +34,7 @@ document.addEventListener('click', async e => {
   const c = e.target.closest('[data-cita]');
   if (!c) return;
   const [acc, id, extra] = c.dataset.cita.split('|');
-  if (acc === 'hora') return cambiarHoraCita(id, extra);
+  if (acc === 'hora') return window.delcos.screens.agenda.changeTime(id, extra);
   if (acc === 'ficha') return abrirFicha(id);
   if (acc === 'visita') return abrirVisita(id);
   if (acc === 'desc') {

@@ -18,7 +18,6 @@ function avisoSinSalida(el) {
 function subirAviso() { const t = $('toast'); if (!t || t.classList.contains('hide') || typeof t.showPopover !== 'function' || !t.hasAttribute('popover')) return; try { if (t.matches(':popover-open')) t.hidePopover(); t.showPopover(); } catch (e) {} }
 
 let tToast;
-let AVISOS_MUDOS = false;   // true mientras se prueba algo que podría avisar sin que deba verse (citaConMenu)
 
 const avisoRevisita = () => Object.assign({ on: true, dias: 7 }, ((PERFIL.preferencias || {}).avisos || {}).revisita || {});
 
@@ -33,7 +32,6 @@ const avisoRevisita = () => Object.assign({ on: true, dias: 7 }, ((PERFIL.prefer
  * @param {boolean} [err]
  */
 function toast(msg, err) {
-  if (AVISOS_MUDOS) return;
   if (err && PAGO_ESTADO && PAGO_ESTADO.solo_lectura) msg = 'Tu empresa está en solo lectura hasta que se actualice el pago (Plan y suscripción)';
   const v = $('toast');
   if (!v) return;

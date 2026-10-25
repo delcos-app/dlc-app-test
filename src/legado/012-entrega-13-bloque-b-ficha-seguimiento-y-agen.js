@@ -13,7 +13,6 @@
 /* ---------------- agenda: crear cita, hora y mes ---------------- */
 
 
-// v2.242.0: aquí iba la primera versión de cambiarHoraCita (se redefine entera más abajo)
 
 
 

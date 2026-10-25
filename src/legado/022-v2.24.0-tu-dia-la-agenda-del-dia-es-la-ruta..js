@@ -31,7 +31,6 @@ try { Object.keys(localStorage).filter(k => k.startsWith('dlc-ruta-')).forEach(k
 
 
 
-// (v2.183.0: aquí iba la primera versión de menuCita; se redefine entera más abajo)
 document.addEventListener('pointerdown', e => {
   if (!e.target.closest('.tdmenu, .tdmas')) document.querySelectorAll('.tdmenu').forEach(m => m.remove());
 }, true);
@@ -47,7 +46,7 @@ document.addEventListener('click', async e => {
   const [acc, id] = b.dataset.td.split('|');
   const c = TD_CITAS.find(x => x.id === id);
   if (!c) return;
-  if (acc === 'mas') return menuCita(b, c);
+  if (acc === 'mas') return window.delcos.screens.agenda.openMenu(b, c);
   if (acc === 'visita') { if (!puedeRegistrarEnDia(c.fecha)) return; VISITA_FECHA = c.fecha; return abrirVisita(c.cuenta_id); }
   if (acc === 'nueva') return nuevaFechaTrasNoEstaba(c);
   if (acc === 'sube' || acc === 'baja') {
