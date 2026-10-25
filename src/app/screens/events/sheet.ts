@@ -10,6 +10,7 @@ import { sum } from '../../services/values';
 import { editEvent } from './editor';
 import { eventSummary } from './list';
 import { ATTENDANCE_STATES, attendeeTotal, CONCEPTS, conceptLabel, MEAL_MAX, type Attendee, type Concept, type EventRow } from './model';
+import { round2 } from '../../services/money';
 
 const reopen = (id: string): void => { relatedLegacy.openEvent(id); };
 
@@ -50,7 +51,7 @@ function startAdding(id: string): void {
 }
 
 async function saveCost(attendee: Attendee, input: HTMLInputElement, attendees: readonly Attendee[]): Promise<void> {
-  const concept = input.dataset.asimp as Concept, amount = Math.max(0, Math.round((Number(input.value) || 0) * 100) / 100);
+  const concept = input.dataset.asimp as Concept, amount = Math.max(0, round2(input.value));
   const { error } = await legacyDb().from('eventos_asistentes').update({ [concept]: amount }).eq('id', attendee.id);
   if (error) { notices.toast(t('events.sheet.couldNotSave'), true); input.value = String(Number(attendee[concept]) || ''); return; }
   attendee[concept] = amount;

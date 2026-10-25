@@ -9,6 +9,7 @@ import { panelsLegacy } from '../../../legacy/panels-bridge';
 import { t, type MessageKey } from '../../../i18n';
 import { escapeHtml, formatCurrency, formatNumber } from '../../../services/format';
 import { titleCase } from '../../routes/title-case';
+import { round2 } from '../../../services/money';
 
 export type KpiFormat = 'eur' | 'num' | 'pct' | 'dec' | 'dias' | 'txt';
 export interface Kpi { id: string; fam: string; fmt: KpiFormat; sube: boolean | null; hoy: boolean; imp: boolean; def: boolean }
@@ -106,7 +107,7 @@ export function formatValue(value: unknown, format: KpiFormat): string {
   const number = Number(value);
   switch (format) {
     case 'txt': return escapeHtml(value);
-    case 'eur': return formatCurrency(Math.round((number || 0) * 100) / 100);
+    case 'eur': return formatCurrency(round2(number));
     case 'pct': return `${oneDecimal(number)} %`;
     case 'dec': return oneDecimal(number);
     case 'dias': return t('panels.kpis.days', { count: String(Math.round(number)) });

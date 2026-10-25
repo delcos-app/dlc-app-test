@@ -6,6 +6,7 @@ import { t } from '../../i18n';
 import { addDays, todayIso } from '../../services/dates';
 import { escapeHtml, formatCurrency } from '../../services/format';
 import { orFallback } from '../../services/values';
+import { round2 } from '../../services/money';
 
 /** Days before the supplier's delivery time when a product must be ordered again. */
 const ORDER_MARGIN_DAYS = 14, EXPIRY_SOON_DAYS = 90;
@@ -19,9 +20,10 @@ export interface StockLine {
 export interface Store { id: string; nombre: string; tipo?: string | null; activo?: boolean; usuario?: string | null; usuario_id?: string | null; unidades?: number }
 
 /** Euros with up to two decimals, rounded to the cent (the legacy eurI). */
-export const euros = (value: unknown): string => formatCurrency(Math.round((Number(value) || 0) * 100) / 100);
+export const euros = (value: unknown): string => formatCurrency(round2(value));
 
-export const round2 = (value: number): number => Math.round(value * 100) / 100;
+
+export { round2 };
 
 /** [label, pill class] of the stock of a product. */
 export function stockState(line: StockLine): readonly [string, string] {

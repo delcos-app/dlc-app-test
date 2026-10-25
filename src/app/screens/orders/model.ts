@@ -26,7 +26,9 @@ export interface OrderContact { id: string; nombre: string; telefono?: string | 
 export interface OrderDetail { pedido: Order; lineas?: OrderLine[] | null; contacto?: OrderContact | null; medico?: { id: string; nombre: string; codigo?: string | null } | null; totales?: { total?: number | null } | null }
 
 /** Rounded to cents, like the legacy r2. */
-export const round2 = (value: unknown): number => Math.round((Number(value) || 0) * 100) / 100;
+import { round2 } from '../../services/money';
+
+export { round2 };
 
 /** Euros with cents, like the legacy eurI. */
 export const euros = (value: unknown): string => formatCurrency(round2(value));

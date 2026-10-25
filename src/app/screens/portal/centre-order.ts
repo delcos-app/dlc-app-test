@@ -7,6 +7,7 @@ import { legacyDb, notices, portalLegacy } from '../../legacy/bridge';
 import { t } from '../../i18n';
 import { escapeHtml, formatNumber } from '../../services/format';
 import { failureText, helpButton, portalState } from './model';
+import { round2 } from '../../services/money';
 
 const MAX_UNITS = 1000, MAX_PACKS = 50;
 
@@ -15,7 +16,6 @@ export interface CentreProduct { producto_id: string; nombre: string; precio?: n
 interface Review { wrong: number; units: number; shared: boolean; sharedUnits: number }
 
 const euros = (value: number): string => portalLegacy.euros(value);
-const round2 = (value: number): number => Math.round((Number(value) || 0) * 100) / 100;
 const withVat = (product: CentreProduct): number => round2((Number(product.precio) || 0) * (1 + (Number(product.iva) || 0) / 100));
 const percent = (value: number): string => `${(Math.round(value * 1000) / 10).toLocaleString(t('dates.locale'), { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %`;
 

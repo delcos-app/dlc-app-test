@@ -7,6 +7,7 @@ import { billing2Legacy } from '../../../legacy/billing2-bridge';
 import { t } from '../../../i18n';
 import { readCustomFields, saveCustomFields } from '../../settings/custom-fields/form';
 import { errorMessage } from '../model';
+import { round2 } from '../../../services/money';
 
 export interface Product {
   id?: string; nombre?: string | null; presentacion?: string | null; precio?: number | null; iva?: number | null; referencia?: string | null;
@@ -17,7 +18,6 @@ interface Storage { from(bucket: string): { upload(path: string, file: File, opt
 
 const field = (id: string): HTMLInputElement | null => document.getElementById(id) as HTMLInputElement | null;
 const valueOf = (id: string): string => field(id)?.value ?? '';
-const round2 = (value: number): number => Math.round(value * 100) / 100;
 
 function bindPrices(): void {
   const vat = (): number => (Number(valueOf('priva')) || 0) / 100, net = field('prpr'), gross = field('prpvp'), rate = field('priva');

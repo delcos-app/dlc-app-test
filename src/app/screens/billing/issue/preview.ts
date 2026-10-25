@@ -15,6 +15,7 @@ import { orFallback } from '../../../services/values';
 import { companyForPdf, currentDesign, invoicePdf } from '../../../services/pdf';
 import type { PdfInvoice, PdfLine } from '../../../services/pdf/invoice-header';
 import { issueOrderInvoice } from './issue';
+import { round2 } from '../../../services/money';
 
 interface OrderLine { producto?: string | null; unidades?: number | null; importe?: number | null; descuento?: number | null; iva?: number | null }
 interface OrderContact { id?: string; nombre?: string; nif?: string | null; direccion?: string | null; cp?: string | null; municipio?: string | null; provincia?: string | null; email?: string | null }
@@ -24,7 +25,6 @@ interface OrderDetail {
 }
 
 const PREVIEW_HASH = '#toolbar=0&navpanes=0&view=FitH';
-const round2 = (value: number): number => Math.round(value * 100) / 100;
 const numberOf = (value: unknown): number => Number(value) || 0;
 
 function linesOf(detail: OrderDetail): (PdfLine & { descuento?: number; servicio?: boolean })[] {

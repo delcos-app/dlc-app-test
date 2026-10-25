@@ -27,7 +27,9 @@ export function mondayOf(isoDate: string): string {
 
 /** 570 minutes → «09:30». */
 export function formatMinutes(minutes: number): string {
-  return `${String(Math.floor(minutes / 60) % 24).padStart(2, '0')}:${String(Math.round(minutes) % 60).padStart(2, '0')}`;
+  // The total is rounded first: 59.6 → «01:00» (rounding only the minutes gave «00:00»)
+  const total = Math.round(minutes);
+  return `${String(Math.floor(total / 60) % 24).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
 }
 
 /** 4_500_000 ms → «1 h 15 min». */

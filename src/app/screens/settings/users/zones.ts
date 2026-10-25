@@ -38,7 +38,7 @@ const shownOf = (list: readonly Province[], marked: ReadonlySet<string>): Provin
 
 function regionHtml(region: string, list: readonly Province[], marked: ReadonlySet<string>): string {
   const shown = shownOf(list, marked);
-  return `<details ${shown.some(item => marked.has(item.p)) ? 'open' : ''}><summary><label onclick="event.stopPropagation()"><input type="checkbox" data-zcc="${escapeHtml(region)}" ${shown.every(item => marked.has(item.p)) ? 'checked' : ''}> ${escapeHtml(region)}</label>
+  return `<details ${shown.some(item => marked.has(item.p)) ? 'open' : ''}><summary><label><input type="checkbox" data-zcc="${escapeHtml(region)}" ${shown.every(item => marked.has(item.p)) ? 'checked' : ''}> ${escapeHtml(region)}</label>
         <span class="sm">${formatNumber(sum(shown.map(item => item.n)))} ${words().professionals}</span></summary>
         <div class="zprov">${shown.map(item => `<label><input type="checkbox" data-zp="${escapeHtml(item.p)}" data-zpc="${escapeHtml(region)}" ${marked.has(item.p) ? 'checked' : ''}> ${escapeHtml(pretty(item.p))} <span class="sm">${formatNumber(item.n)}</span></label>`).join('')}</div></details>`;
 }
@@ -68,6 +68,8 @@ function bindZones(userId: string): void {
   const body = dialogBody(); if (!body) return;
   body.querySelectorAll<HTMLInputElement>('[data-zcc]').forEach(region => {
     region.onchange = (): void => { body.querySelectorAll<HTMLInputElement>(`[data-zpc="${CSS.escape(region.dataset.zcc ?? '')}"]`).forEach(box => { box.checked = region.checked; }); };
+    // v2.431.0: was an inline click handler in the HTML (plan 7.2); marking a whole region does not reach its <summary>
+    region.closest('label')?.addEventListener('click', event => { event.stopPropagation(); });
   });
   const save = document.getElementById('uzok') as HTMLButtonElement | null;
   if (save) save.onclick = (): void => { void saveZones(userId, save); };

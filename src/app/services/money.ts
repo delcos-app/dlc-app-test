@@ -12,7 +12,11 @@ export const duration = (milliseconds: number): string => formatDuration(millise
 export const euros = (value: unknown): string => Number(value || 0).toLocaleString('es', { style: 'currency', currency: 'EUR', maximumFractionDigits: 2 });
 
 /** Rounded to cents. */
-export const round2 = (value: unknown): number => Math.round((Number(value) || 0) * 100) / 100;
+/** Rounds to cents half away from zero, like the database: 1.005 → 1.01 (×100 in floating point gave 100.4999… → 1). */
+export function round2(value: unknown): number {
+  const amount = Number(value) || 0, cents = Math.round(Number((Math.abs(amount) * 100).toPrecision(12)));
+  return (amount < 0 ? -cents : cents) / 100;
+}
 
 export const eurosRounded = (value: unknown): string => euros(round2(value));
 

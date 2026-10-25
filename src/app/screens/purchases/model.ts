@@ -1,5 +1,6 @@
 /** What a purchase order is (states stored in the database), its pill and the shared formats of Compras. */
 import { escapeHtml, formatCurrency } from '../../services/format';
+import { round2 } from '../../services/money';
 
 export const STATES = {
   draft: 'Borrador', sent: 'Enviado', inTransit: 'En tránsito', partlyReceived: 'Recibido parcial', received: 'Recibido', cancelled: 'Cancelado',
@@ -36,7 +37,7 @@ export type Supplier = PurchaseSupplier;
 export const errorText = (error: unknown, result: { error?: string } | null): string => (error as { message?: string } | null)?.message ?? result?.error ?? '';
 
 /** Euros with cents, rounded like the legacy eurI (half up) before formatting. */
-export const euros = (value: unknown): string => formatCurrency(Math.round((Number(value) || 0) * 100) / 100);
+export const euros = (value: unknown): string => formatCurrency(round2(value));
 
 export function purchasePill(state: string): string {
   const kind = state === STATES.received ? 'p-est' : state === STATES.cancelled ? 'p-anu' : state === STATES.draft ? 'p-bor' : 'p-per';

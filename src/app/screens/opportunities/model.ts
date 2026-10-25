@@ -7,6 +7,7 @@ import { legacyDb, opportunitiesLegacy } from '../../legacy/bridge';
 import { t, type MessageKey } from '../../i18n';
 import { toIsoDate } from '../../services/dates';
 import { escapeHtml } from '../../services/format';
+import { round2 } from '../../services/money';
 
 /** The result that closes an opportunity with an order (a database value). */
 export const ORDER_DONE = 'Pedido hecho';
@@ -66,7 +67,6 @@ export function toggleChip(group: HTMLElement, attribute: string, current: strin
   return chosen;
 }
 
-const round2 = (value: number): number => Math.round((Number(value) || 0) * 100) / 100;
 
 /** The amount with VAT of `units` of a product (0 without price). */
 export function lineAmount(productId: string, units: number): number {

@@ -8,6 +8,7 @@ import { appName } from '../../core/utilities';
 import { orFallback } from '../values';
 import type { InvoiceDesign } from './design';
 import type { PdfDocument, Rgb } from './document';
+import { round2 } from '../money';
 
 export interface PdfParty { razon_social?: string | null | undefined; nombre?: string | null | undefined; nif?: string | null | undefined; direccion?: string | null | undefined; cp?: string | null | undefined; municipio?: string | null | undefined; provincia?: string | null | undefined; pais?: string | null | undefined; telefono?: string | null | undefined; email?: string | null | undefined; web?: string | null | undefined; iban?: string | null | undefined; pie?: string | null | undefined }
 export interface PdfLine { descripcion?: string | null; precio?: number | null; unidades?: number | null; base?: number | null; iva?: number | null }
@@ -34,7 +35,7 @@ export const dmy = (isoDate: string | null | undefined): string => (isoDate ? is
 
 /** 1234.5 → «1.234,50€». */
 export const pdfEuros = (value: unknown): string =>
-  `${(Math.round((Number(value) || 0) * 100) / 100).toLocaleString(t('dates.locale'), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}€`;
+  `${round2(value).toLocaleString(t('dates.locale'), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}€`;
 
 export const documentTitle = (design: InvoiceDesign): string => orFallback(design.titulo, t('billingMore.pdf.title'));
 

@@ -21,12 +21,12 @@ import { bindPacks } from './packs';
 import { addRemoveButton } from './remove';
 import { bindForm, type Product } from './form';
 import { paintProducts } from '../catalog';
+import { round2 } from '../../../services/money';
 
 const EXTRAS = 'muestra_regulada,muestra_desde,muestra_max,promocionado,es_equipo,revision_meses,packs,pvp_recomendado';
 
 interface Loaded { admin: boolean; extras: ProductExtras; materials: readonly PresentationMaterial[]; promotion: boolean; equipment: boolean }
 
-const round2 = (value: number): number => Math.round(value * 100) / 100;
 const disabled = (admin: boolean): string => (admin ? '' : 'disabled');
 
 function headerHtml(product: Product, admin: boolean): string {

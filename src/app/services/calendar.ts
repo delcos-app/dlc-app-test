@@ -7,6 +7,7 @@ import { t } from '../i18n';
 import { LOCALES } from '../i18n/dom-translations';
 import { addDays, mondayOf, toIsoDate, todayIso } from './dates';
 
+import { formatMinutes } from './dates';
 const NOON = 12, SATURDAY = 6, SUNDAY = 0, MAX_MONTHS = 36, MS_PER_DAY = 864e5;
 const LETTERS = 'DLMXJVS';
 
@@ -19,8 +20,7 @@ export const plusDays = (isoDate: string, days: number): string => addDays(isoDa
 export const mondayOfWeek = (isoDate: string): string => mondayOf(isoDate);
 
 /** 570 → «09:30». */
-export const minutesToTime = (minutes: number): string =>
-  `${String(Math.floor(minutes / 60) % 24).padStart(2, '0')}:${String(Math.round(minutes) % 60).padStart(2, '0')}`;
+export const minutesToTime = (minutes: number): string => formatMinutes(minutes);
 
 /** «09:30» → 570 (null without a time). */
 export const timeToMinutes = (time: string | null | undefined): number | null =>

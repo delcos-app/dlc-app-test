@@ -2,12 +2,13 @@
  * Facturación: the payment states of an invoice, its pill and the money format. Migrated from the legacy pillCobro (v2.413.0).
  */
 import { escapeHtml, formatCurrency } from '../../services/format';
+import { round2 } from '../../services/money';
 
 /** Payment states as the database names them. */
 export const PAYMENT = { paid: 'Cobrada', overdue: 'Vencida', pending: 'Pendiente' } as const;
 
 /** Euros with up to two decimals, rounded to the cent (the legacy eurI). */
-export const euros = (value: unknown): string => formatCurrency(Math.round((Number(value) || 0) * 100) / 100);
+export const euros = (value: unknown): string => formatCurrency(round2(value));
 
 export function paymentPill(state: string): string {
   const kind = state === PAYMENT.paid ? 'p-est' : state === PAYMENT.overdue ? 'p-anu' : 'p-bor';

@@ -9068,7 +9068,8 @@
     return addDays(isoDate, -((date.getDay() + 6) % 7));
   }
   function formatMinutes(minutes2) {
-    return `${String(Math.floor(minutes2 / 60) % 24).padStart(2, "0")}:${String(Math.round(minutes2) % 60).padStart(2, "0")}`;
+    const total2 = Math.round(minutes2);
+    return `${String(Math.floor(total2 / 60) % 24).padStart(2, "0")}:${String(total2 % 60).padStart(2, "0")}`;
   }
   function formatDuration(milliseconds) {
     const minutes2 = Math.floor(milliseconds / 6e4);
@@ -27614,6 +27615,45 @@
     else if (!inSettings && row4) row4.remove();
   }
 
+  // src/app/services/money.ts
+  var money_exports = {};
+  __export(money_exports, {
+    AMOUNT_FIELD: () => AMOUNT_FIELD,
+    VAT_RATES: () => VAT_RATES,
+    duration: () => duration,
+    euros: () => euros,
+    eurosRounded: () => eurosRounded,
+    eurosWeb: () => eurosWeb,
+    isVatField: () => isVatField,
+    number: () => number,
+    percent: () => percent,
+    round2: () => round2,
+    vatOf: () => vatOf
+  });
+  var number = (value27) => formatNumber(value27 || 0);
+  var duration = (milliseconds) => formatDuration(milliseconds);
+  var euros = (value27) => Number(value27 || 0).toLocaleString("es", { style: "currency", currency: "EUR", maximumFractionDigits: 2 });
+  function round2(value27) {
+    const amount3 = Number(value27) || 0, cents = Math.round(Number((Math.abs(amount3) * 100).toPrecision(12)));
+    return (amount3 < 0 ? -cents : cents) / 100;
+  }
+  var eurosRounded = (value27) => euros(round2(value27));
+  var percent = (part, whole2) => whole2 ? Math.round(part / whole2 * 100) : 0;
+  var VAT_RATES = [
+    [21, t("core.vat.general")],
+    [10, t("core.vat.reduced")],
+    [4, t("core.vat.superReduced")],
+    [0, t("core.vat.exempt")]
+  ];
+  var labelText = (input12) => input12.id ? document.querySelector(`label[for="${input12.id}"]`)?.textContent ?? "" : "";
+  var isVatField = (input12) => /iva/i.test(`${input12.id} ${input12.dataset.f ?? ""} ${input12.name}`) || /\bIVA\s*\(%\)|tipo de iva/i.test(labelText(input12));
+  var AMOUNT_FIELD = /imp|importe|total|base|precio|pvp|coste|cobro|con_iva|conIva|sin_iva/i;
+  var vatOf = (amount3) => Math.round(amount3 * 21) / 100;
+  var eurosWeb = (value27) => {
+    const text5 = euros(value27);
+    return Math.round(Number(value27) * 100) % 100 === 0 ? text5.replace(/,00(?=\s?€)/, "") : text5;
+  };
+
   // src/app/screens/opportunities/model.ts
   var ORDER_DONE = "Pedido hecho";
   var INCOMING = "Entrante";
@@ -27654,7 +27694,6 @@
     });
     return chosen5;
   }
-  var round2 = (value27) => Math.round((Number(value27) || 0) * 100) / 100;
   function lineAmount(productId, units2) {
     const product = opportunitiesLegacy.products().find((item) => item.id === productId);
     if (product?.precio === null || product?.precio === void 0) return 0;
@@ -30638,7 +30677,7 @@
   var today = () => todayIso();
   var plusDays = (isoDate, days) => addDays(isoDate, days);
   var mondayOfWeek = (isoDate) => mondayOf(isoDate);
-  var minutesToTime = (minutes2) => `${String(Math.floor(minutes2 / 60) % 24).padStart(2, "0")}:${String(Math.round(minutes2) % 60).padStart(2, "0")}`;
+  var minutesToTime = (minutes2) => formatMinutes(minutes2);
   var timeToMinutes = (time) => time ? Number(String(time).slice(0, 2)) * 60 + Number(String(time).slice(3, 5)) : null;
   var rangeBuilders = (base) => {
     const year = base.getFullYear(), month = base.getMonth(), quarter = Math.floor(month / 3);
@@ -30731,42 +30770,6 @@
     ["anioant", t("core.periods.lastYear")],
     ["pers", t("core.periods.custom")]
   ];
-
-  // src/app/services/money.ts
-  var money_exports = {};
-  __export(money_exports, {
-    AMOUNT_FIELD: () => AMOUNT_FIELD,
-    VAT_RATES: () => VAT_RATES,
-    duration: () => duration,
-    euros: () => euros,
-    eurosRounded: () => eurosRounded,
-    eurosWeb: () => eurosWeb,
-    isVatField: () => isVatField,
-    number: () => number,
-    percent: () => percent,
-    round2: () => round22,
-    vatOf: () => vatOf
-  });
-  var number = (value27) => formatNumber(value27 || 0);
-  var duration = (milliseconds) => formatDuration(milliseconds);
-  var euros = (value27) => Number(value27 || 0).toLocaleString("es", { style: "currency", currency: "EUR", maximumFractionDigits: 2 });
-  var round22 = (value27) => Math.round((Number(value27) || 0) * 100) / 100;
-  var eurosRounded = (value27) => euros(round22(value27));
-  var percent = (part, whole2) => whole2 ? Math.round(part / whole2 * 100) : 0;
-  var VAT_RATES = [
-    [21, t("core.vat.general")],
-    [10, t("core.vat.reduced")],
-    [4, t("core.vat.superReduced")],
-    [0, t("core.vat.exempt")]
-  ];
-  var labelText = (input12) => input12.id ? document.querySelector(`label[for="${input12.id}"]`)?.textContent ?? "" : "";
-  var isVatField = (input12) => /iva/i.test(`${input12.id} ${input12.dataset.f ?? ""} ${input12.name}`) || /\bIVA\s*\(%\)|tipo de iva/i.test(labelText(input12));
-  var AMOUNT_FIELD = /imp|importe|total|base|precio|pvp|coste|cobro|con_iva|conIva|sin_iva/i;
-  var vatOf = (amount3) => Math.round(amount3 * 21) / 100;
-  var eurosWeb = (value27) => {
-    const text5 = euros(value27);
-    return Math.round(Number(value27) * 100) % 100 === 0 ? text5.replace(/,00(?=\s?€)/, "") : text5;
-  };
 
   // src/app/services/files.ts
   var files_exports = {};
@@ -31259,7 +31262,7 @@
   var COMPANY_GAP = 4.2;
   var logoSizeOf = (design) => LOGO_SIZES[design.logoTam] ?? LOGO_SIZES.m ?? 0;
   var dmy = (isoDate) => isoDate ? isoDate.split("-").reverse().join("/") : "";
-  var pdfEuros = (value27) => `${(Math.round((Number(value27) || 0) * 100) / 100).toLocaleString(t("dates.locale"), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}€`;
+  var pdfEuros = (value27) => `${round2(value27).toLocaleString(t("dates.locale"), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}€`;
   var documentTitle = (design) => orFallback(design.titulo, t("billingMore.pdf.title"));
   var companyName = (company) => orFallback(company.razon_social, appName());
   async function drawLogo(drawing) {
@@ -37537,7 +37540,7 @@
     document.getElementById("evsel")?.querySelector("input")?.focus();
   }
   async function saveCost(attendee, input12, attendees) {
-    const concept = input12.dataset.asimp, amount3 = Math.max(0, Math.round((Number(input12.value) || 0) * 100) / 100);
+    const concept = input12.dataset.asimp, amount3 = Math.max(0, round2(input12.value));
     const { error } = await legacyDb().from("eventos_asistentes").update({ [concept]: amount3 }).eq("id", attendee.id);
     if (error) {
       notices.toast(t("events.sheet.couldNotSave"), true);
@@ -42537,15 +42540,14 @@
   var PAID = "Cobrado";
   var FREE = "Sin cargo";
   var PENDING_PAYMENT = "Pendiente de cobro";
-  var round23 = (value27) => Math.round((Number(value27) || 0) * 100) / 100;
-  var euros2 = (value27) => formatCurrency(round23(value27));
+  var euros2 = (value27) => formatCurrency(round2(value27));
   function lineBreakdown(line3) {
     const gross = Number(line3.importe) || 0, base = gross * (1 - (Number(line3.descuento) || 0) / 100), vat = base * (Number(line3.iva) || 0) / 100;
     return { bruto: gross, base, iva: vat, total: base + vat };
   }
   function shippingTotals(shipping) {
     if (!shipping?.on) return null;
-    const withVat3 = round23(shipping.con), rate = Number(shipping.iva) || 0, base = (Number(shipping.con) || 0) / (1 + rate / 100);
+    const withVat3 = round2(shipping.con), rate = Number(shipping.iva) || 0, base = (Number(shipping.con) || 0) / (1 + rate / 100);
     return { con: withVat3, iva: rate, base, nombre: shipping.nombre ?? t("orders.totals.shipping"), ivaImp: withVat3 - base };
   }
   function orderTotals(lines4, discount, discountType, shipping) {
@@ -42582,7 +42584,7 @@
       detail.lineas ?? [],
       Number(order.descuento) || 0,
       order.descuento_tipo,
-      { on: Boolean(order.envio), con: round23(Number(order.envio_base) * (1 + rate / 100)), iva: rate, nombre: service?.nombre ?? t("orders.totals.shipping") }
+      { on: Boolean(order.envio), con: round2(Number(order.envio_base) * (1 + rate / 100)), iva: rate, nombre: service?.nombre ?? t("orders.totals.shipping") }
     );
   }
   var statePill4 = (state2) => `<span class="pill ${state2 === STATES6.draft ? "p-bor" : state2 === STATES6.voided ? "p-anu" : "p-est"}">${escapeHtml(state2)}</span>`;
@@ -43443,7 +43445,7 @@
   var shownOf = (list, marked) => list.filter((item, index, all2) => all2.findIndex((other) => other.n === item.n && pretty(other.p).slice(0, PREFIX) === pretty(item.p).slice(0, PREFIX)) === index || item.n > 0 || marked.has(item.p));
   function regionHtml(region, list, marked) {
     const shown5 = shownOf(list, marked);
-    return `<details ${shown5.some((item) => marked.has(item.p)) ? "open" : ""}><summary><label onclick="event.stopPropagation()"><input type="checkbox" data-zcc="${escapeHtml(region)}" ${shown5.every((item) => marked.has(item.p)) ? "checked" : ""}> ${escapeHtml(region)}</label>
+    return `<details ${shown5.some((item) => marked.has(item.p)) ? "open" : ""}><summary><label><input type="checkbox" data-zcc="${escapeHtml(region)}" ${shown5.every((item) => marked.has(item.p)) ? "checked" : ""}> ${escapeHtml(region)}</label>
         <span class="sm">${formatNumber(sum(shown5.map((item) => item.n)))} ${words11().professionals}</span></summary>
         <div class="zprov">${shown5.map((item) => `<label><input type="checkbox" data-zp="${escapeHtml(item.p)}" data-zpc="${escapeHtml(region)}" ${marked.has(item.p) ? "checked" : ""}> ${escapeHtml(pretty(item.p))} <span class="sm">${formatNumber(item.n)}</span></label>`).join("")}</div></details>`;
   }
@@ -43479,6 +43481,9 @@
           box5.checked = region.checked;
         });
       };
+      region.closest("label")?.addEventListener("click", (event) => {
+        event.stopPropagation();
+      });
     });
     const save48 = document.getElementById("uzok");
     if (save48) save48.onclick = () => {
@@ -46871,7 +46876,7 @@
   var CLOSED_STATES = [STATES7.received, STATES7.cancelled];
   var DEFAULT_LEAD_DAYS = 90;
   var errorText4 = (error, result) => error?.message ?? result?.error ?? "";
-  var euros3 = (value27) => formatCurrency(Math.round((Number(value27) || 0) * 100) / 100);
+  var euros3 = (value27) => formatCurrency(round2(value27));
   function purchasePill(state2) {
     const kind = state2 === STATES7.received ? "p-est" : state2 === STATES7.cancelled ? "p-anu" : state2 === STATES7.draft ? "p-bor" : "p-per";
     return `<span class="pill ${kind}">${escapeHtml(state2)}</span>`;
@@ -47668,7 +47673,7 @@
       descuento: order.descuento ?? 0,
       descuento_tipo: order.descuento_tipo,
       envio: Boolean(order.envio),
-      envio_con_iva: order.envio ? round23(Number(order.envio_base) * (1 + rate / 100)) : 0,
+      envio_con_iva: order.envio ? round2(Number(order.envio_base) * (1 + rate / 100)) : 0,
       envio_iva: order.envio_iva,
       servicio_id: order.servicio_id,
       lineas: (detail.lineas ?? []).map((line3) => ({ producto_id: line3.producto_id, unidades: line3.unidades, importe: line3.importe, descuento: line3.descuento, iva: line3.iva }))
@@ -48554,7 +48559,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   var productOf = (id) => orderEditorLegacy.product(id);
   function autoAmount(line3) {
     const product = productOf(line3.producto_id);
-    if (!line3.manual && product.precio !== null && product.precio !== void 0) line3.importe = round23(product.precio * (Number(line3.unidades) || 0));
+    if (!line3.manual && product.precio !== null && product.precio !== void 0) line3.importe = round2(product.precio * (Number(line3.unidades) || 0));
     if (product.iva !== null && product.iva !== void 0) line3.iva = Number(product.iva);
   }
   var newLine2 = () => ({ producto_id: orderEditorLegacy.defaultProduct(), unidades: 1, importe: null, descuento: 0, iva: null });
@@ -48562,7 +48567,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     if (!preset?.lineas?.length) return [newLine2()];
     return preset.lineas.map((line3) => {
       const product = productOf(line3.producto_id), price = product.precio;
-      const manual2 = price === null || price === void 0 || round23(price * Number(line3.unidades)) !== round23(line3.importe);
+      const manual2 = price === null || price === void 0 || round2(price * Number(line3.unidades)) !== round2(line3.importe);
       return {
         producto_id: line3.producto_id ?? null,
         producto: line3.producto ?? null,
@@ -48586,7 +48591,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   var defaultService = () => orderEditorLegacy.services().find((service) => service.por_defecto && service.activo);
   function serviceOfOrder(order) {
     const vat = Number(order.envio_iva) || 0, first2 = orderEditorLegacy.services()[0]?.id ?? "";
-    return { servicio_id: orFallback(order.servicio_id, first2), envio: true, envio_iva: Number(order.envio_iva), envio_con: round23(Number(order.envio_base) * (1 + vat / 100)) };
+    return { servicio_id: orFallback(order.servicio_id, first2), envio: true, envio_iva: Number(order.envio_iva), envio_con: round2(Number(order.envio_base) * (1 + vat / 100)) };
   }
   function serviceFields(order) {
     if (order?.envio) return serviceOfOrder(order);
@@ -48692,7 +48697,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     const box5 = document.getElementById("ptot");
     if (box5) box5.innerHTML = totalsHtml(totals);
   }
-  var amountWithVat = (line3) => line3.importe !== null ? String(round23(line3.importe * (1 + (Number(line3.iva) || 0) / 100))) : "";
+  var amountWithVat = (line3) => line3.importe !== null ? String(round2(line3.importe * (1 + (Number(line3.iva) || 0) / 100))) : "";
   function setField(line3, field22, raw) {
     const value27 = raw === "" ? null : Number(raw);
     if (field22 === "importeiva") {
@@ -48892,7 +48897,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
 
   // src/app/screens/orders/editor/view.ts
   var isConfirmed = (order) => order?.estado === STATES6.confirmed;
-  var withVat = (line3) => line3.importe !== null ? String(round23(line3.importe * (1 + (Number(line3.iva) || 0) / 100))) : "";
+  var withVat = (line3) => line3.importe !== null ? String(round2(line3.importe * (1 + (Number(line3.iva) || 0) / 100))) : "";
   function headerHtml13(order) {
     const title2 = order ? t(isConfirmed(order) ? "ordersMore.editor.editOrder" : "ordersMore.editor.editDraft") : t("ordersMore.editor.newOrder");
     return `
@@ -49111,7 +49116,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       const chosen5 = orderEditorLegacy.services().find((item) => item.id === service.value), shipping = element("penv"), amount3 = element("penvi"), vat = element("penvv");
       if (shipping) shipping.checked = Boolean(chosen5);
       if (chosen5 && amount3 && vat) {
-        amount3.value = String(round23(chosen5.pvp ?? 0));
+        amount3.value = String(round2(chosen5.pvp ?? 0));
         vat.value = String(chosen5.iva ?? DEFAULT_SERVICE_VAT2);
       }
       paintBreakdown(state2);
@@ -49453,8 +49458,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   // src/app/screens/products/model.ts
   var ORDER_MARGIN_DAYS = 14;
   var EXPIRY_SOON_DAYS = 90;
-  var euros4 = (value27) => formatCurrency(Math.round((Number(value27) || 0) * 100) / 100);
-  var round24 = (value27) => Math.round(value27 * 100) / 100;
+  var euros4 = (value27) => formatCurrency(round2(value27));
   function stockState(line3) {
     if (line3.stock <= 0) return [t("products.stock.outOfStock"), "p-anu"];
     if (line3.stock_minimo !== null && line3.stock_minimo !== void 0 && line3.stock < line3.stock_minimo) return [t("products.stock.belowMinimum"), "p-bor"];
@@ -49850,7 +49854,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   }
   function prices(service) {
     if (!isPresent(service.precio)) return ["", ""];
-    return [String(Number(Number(service.precio).toFixed(PRICE_DECIMALS))), String(round24(service.precio * (1 + (service.iva ?? 0) / 100)))];
+    return [String(Number(Number(service.precio).toFixed(PRICE_DECIMALS))), String(round2(service.precio * (1 + (service.iva ?? 0) / 100)))];
   }
   var checkbox = (id, on6, locked) => `<input type="checkbox" id="${id}" ${on6 ? "checked" : ""} ${locked}>`;
   function editorHtml15(service, admin) {
@@ -49874,13 +49878,13 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     if (!without || !vat || !withVat3) return;
     const rate = () => (Number(vat.value) || 0) / 100;
     without.oninput = () => {
-      withVat3.value = without.value === "" ? "" : String(round24(Number(without.value) * (1 + rate())));
+      withVat3.value = without.value === "" ? "" : String(round2(Number(without.value) * (1 + rate())));
     };
     withVat3.oninput = () => {
       without.value = withVat3.value === "" ? "" : String(Number((Number(withVat3.value) / (1 + rate())).toFixed(PRICE_DECIMALS)));
     };
     vat.oninput = () => {
-      if (without.value !== "") withVat3.value = String(round24(Number(without.value) * (1 + rate())));
+      if (without.value !== "") withVat3.value = String(round2(Number(without.value) * (1 + rate())));
     };
   }
   function payload8(service, name) {
@@ -50554,17 +50558,16 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   // src/app/screens/products/editor/form.ts
   var field16 = (id) => document.getElementById(id);
   var valueOf12 = (id) => field16(id)?.value ?? "";
-  var round25 = (value27) => Math.round(value27 * 100) / 100;
   function bindPrices2() {
     const vat = () => (Number(valueOf12("priva")) || 0) / 100, net = field16("prpr"), gross = field16("prpvp"), rate = field16("priva");
     if (net && gross) net.oninput = () => {
-      gross.value = net.value === "" ? "" : String(round25(Number(net.value) * (1 + vat())));
+      gross.value = net.value === "" ? "" : String(round2(Number(net.value) * (1 + vat())));
     };
     if (net && gross) gross.oninput = () => {
       net.value = gross.value === "" ? "" : String(Number((Number(gross.value) / (1 + vat())).toFixed(4)));
     };
     if (net && gross && rate) rate.oninput = () => {
-      if (net.value !== "") gross.value = String(round25(Number(net.value) * (1 + vat())));
+      if (net.value !== "") gross.value = String(round2(Number(net.value) * (1 + vat())));
     };
   }
   function bindPhoto() {
@@ -50649,7 +50652,6 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
 
   // src/app/screens/products/editor/editor.ts
   var EXTRAS = "muestra_regulada,muestra_desde,muestra_max,promocionado,es_equipo,revision_meses,packs,pvp_recomendado";
-  var round26 = (value27) => Math.round(value27 * 100) / 100;
   var disabled2 = (admin) => admin ? "" : "disabled";
   function headerHtml14(product, admin) {
     const photo = product.foto_url ?? "";
@@ -50662,7 +50664,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   }
   function pricesHtml(product, off) {
     const price = product.precio ?? null, vat = product.iva ?? 10;
-    const net = price === null ? "" : String(Number(Number(price).toFixed(4))), gross = price === null ? "" : String(round26(Number(price) * (1 + (Number(product.iva) || 0) / 100)));
+    const net = price === null ? "" : String(Number(Number(price).toFixed(4))), gross = price === null ? "" : String(round2(Number(price) * (1 + (Number(product.iva) || 0) / 100)));
     return `<div class="pvp">
       <div><label for="prpr">${t("productsMore.editor.priceWithoutVat")}</label><input id="prpr" type="number" step="0.01" min="0" value="${net}" ${off}></div>
       <div><label for="priva">${t("productsMore.editor.vat")}</label><input id="priva" type="number" step="1" min="0" max="21" value="${vat}" ${off}></div>
@@ -50911,7 +50913,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
 
   // src/app/screens/billing/model.ts
   var PAYMENT = { paid: "Cobrada", overdue: "Vencida", pending: "Pendiente" };
-  var euros5 = (value27) => formatCurrency(Math.round((Number(value27) || 0) * 100) / 100);
+  var euros5 = (value27) => formatCurrency(round2(value27));
   function paymentPill2(state2) {
     const kind = state2 === PAYMENT.paid ? "p-est" : state2 === PAYMENT.overdue ? "p-anu" : "p-bor";
     return `<span class="pill ${kind}">${escapeHtml(state2)}</span>`;
@@ -51602,7 +51604,6 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
 
   // src/app/screens/billing/issue/preview.ts
   var PREVIEW_HASH2 = "#toolbar=0&navpanes=0&view=FitH";
-  var round27 = (value27) => Math.round(value27 * 100) / 100;
   var numberOf2 = (value27) => Number(value27) || 0;
   function linesOf2(detail) {
     const order = detail.pedido, gross = numberOf2(detail.totales?.bruto), share = gross ? numberOf2(detail.totales?.base_productos) / gross : 1;
@@ -51612,7 +51613,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       precio: numberOf2(line3.unidades) ? numberOf2(line3.importe) / numberOf2(line3.unidades) : 0,
       descuento: numberOf2(line3.descuento),
       iva: numberOf2(line3.iva),
-      base: round27(numberOf2(line3.importe) * (1 - numberOf2(line3.descuento) / 100) * share)
+      base: round2(numberOf2(line3.importe) * (1 - numberOf2(line3.descuento) / 100) * share)
     }));
     if (!order.envio) return lines4;
     const service = billing2Legacy.services().find((item) => item.id === order.servicio_id);
@@ -51622,7 +51623,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       precio: numberOf2(order.envio_base),
       descuento: 0,
       iva: numberOf2(order.envio_iva),
-      base: round27(numberOf2(order.envio_base)),
+      base: round2(numberOf2(order.envio_base)),
       servicio: true
     }];
   }
@@ -51631,8 +51632,8 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
     lines4.forEach((line3) => {
       byRate.set(numberOf2(line3.iva), (byRate.get(numberOf2(line3.iva)) ?? 0) + numberOf2(line3.base));
     });
-    const vat = [...byRate.keys()].sort((first2, second) => first2 - second).map((rate) => ({ iva: rate, base: round27(byRate.get(rate) ?? 0), cuota: round27((byRate.get(rate) ?? 0) * rate / 100) }));
-    const base = round27(vat.reduce((total3, item) => total3 + item.base, 0)), total2 = round27(vat.reduce((all2, item) => all2 + item.base + item.cuota, 0));
+    const vat = [...byRate.keys()].sort((first2, second) => first2 - second).map((rate) => ({ iva: rate, base: round2(byRate.get(rate) ?? 0), cuota: round2((byRate.get(rate) ?? 0) * rate / 100) }));
+    const base = round2(vat.reduce((total3, item) => total3 + item.base, 0)), total2 = round2(vat.reduce((all2, item) => all2 + item.base + item.cuota, 0));
     return {
       numero: t("billingMore.preview.number"),
       fecha: todayIso(),
@@ -52853,12 +52854,11 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
   var MAX_UNITS = 1e3;
   var MAX_PACKS = 50;
   var euros6 = (value27) => portalLegacy.euros(value27);
-  var round28 = (value27) => Math.round((Number(value27) || 0) * 100) / 100;
-  var withVat2 = (product) => round28((Number(product.precio) || 0) * (1 + (Number(product.iva) || 0) / 100));
+  var withVat2 = (product) => round2((Number(product.precio) || 0) * (1 + (Number(product.iva) || 0) / 100));
   var percent2 = (value27) => `${(Math.round(value27 * 1e3) / 10).toLocaleString(t("dates.locale"), { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %`;
   function packRow(product, pack, index) {
     const unitPrice = withVat2(product), bought = Number(pack.compra) || 0, free = Number(pack.regalo) || 0, retail = Number(product.pvp_recomendado) || 0;
-    const amount3 = round28(bought * unitPrice), cost = bought + free ? amount3 / (bought + free) : 0, name = `${formatNumber(bought)}${free ? `+${formatNumber(free)}` : ""}`;
+    const amount3 = round2(bought * unitPrice), cost = bought + free ? amount3 / (bought + free) : 0, name = `${formatNumber(bought)}${free ? `+${formatNumber(free)}` : ""}`;
     return `<div class="pclin pcpack"><span class="pcpk"><b>${t("portal.order.pack", { pack: `${formatNumber(bought)}${free ? ` + ${formatNumber(free)}` : ""}` })}</b><span class="sm">${t("portal.order.packUnits", { units: formatNumber(bought + free) })}${free ? t("portal.order.packFree", { free: formatNumber(free) }) : ""}</span></span>
           <span class="pcdato"><b>${euros6(amount3)}</b><span class="sm">${t("portal.order.withVat")}</span></span>
           <span class="pcdato"><b>${euros6(cost)}</b><span class="sm">${t("portal.order.perUnit")}</span></span>
@@ -54289,7 +54289,7 @@ ${t("orders.distributor.mailNote", { note: order.nota })}` : ""
       case "txt":
         return escapeHtml(value27);
       case "eur":
-        return formatCurrency(Math.round((number3 || 0) * 100) / 100);
+        return formatCurrency(round2(number3));
       case "pct":
         return `${oneDecimal(number3)} %`;
       case "dec":
