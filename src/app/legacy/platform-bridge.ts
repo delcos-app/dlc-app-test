@@ -1,0 +1,30 @@
+/**
+ * Bridge of Panel delcos to the legacy code (kept apart from bridge.ts, which is at its size limit): the plans, the billing state
+ * helpers shared with Plan (pedidos.js), the dialogs, the environment and the Configuración editors the template reuses.
+ */
+export type BillingState = [string, string, string];
+
+export const platformLegacy = {
+  planName: (id: string | null | undefined): string => planDe(id).nombre,
+  plans: (): readonly { id: string; nombre: string }[] => PLANES,
+  planLosses: (from: string, to: string, data: { extras: string[]; facturas: boolean }): string[] => perdidasPlan(from, to, data),
+  planRank: (id: string): number => rangoPlan(id),
+  /** The platform's own plan may have changed. */
+  reloadPlan: async (): Promise<void> => { const { data } = await RPC_ORIG<{ plan?: Record<string, unknown> }>('plan_uso', {}); if (data?.plan) PLAN_ACTUAL = data.plan; },
+  askText: (message: string, value: string, options: { titulo: string; ok: string }): Promise<string | null> => pedirTexto(message, value, options),
+  prepareOrganizationChange: (name: string): void => { prepararCambioOrg(name); },
+  hasProfile: (): boolean => Boolean(PERFIL),
+  can: (capability: string): boolean => puede(capability),
+  appVersion: (): string => VERSION_APP,
+  isTestEnvironment: (): boolean => EN_PRUEBAS,
+  panelTab: (): string | undefined => PAG_TAB.delcos,
+  skeleton: (): string => pdEsqueleto(),
+  kpis: (figures: [string | number, string, string?][]): string => pdKpis(figures),
+  billingState: (organization: object): BillingState => pdCobroEstado(organization),
+  monthlyAmount: (plan: object): number => pdMensual(plan),
+  euros: (value: number): string => eur(value),
+  shortDate: (value: string): string => pdFecha(value),
+  timeAgo: (value: string): string => pdHace(value),
+  paintRoles: (): Promise<void> => pintarRoles(),
+  paintCatalogs: (): Promise<void> => pintarCatalogos(),
+};

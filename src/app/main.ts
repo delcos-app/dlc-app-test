@@ -8,6 +8,10 @@ import { setLanguage, setVocabulary, t } from './i18n';
 import * as accounts from './screens/accounts';
 import * as agenda from './screens/agenda';
 import * as events from './screens/events';
+import * as products from './screens/products';
+import * as billing from './screens/billing';
+import * as platform from './screens/platform';
+import * as portal from './screens/portal';
 import * as analytics from './screens/analytics';
 import * as visit from './screens/visit';
 import * as commissions from './screens/commissions';
@@ -42,6 +46,10 @@ export interface DelcosCore {
     readonly agenda: typeof agenda;
     readonly accounts: typeof accounts;
     readonly events: typeof events;
+    readonly products: typeof products;
+    readonly billing: typeof billing;
+    readonly platform: typeof platform;
+    readonly portal: typeof portal;
     readonly analytics: typeof analytics;
     readonly visit: typeof visit;
     readonly commissions: typeof commissions;
@@ -78,6 +86,10 @@ window.delcos = {
     agenda,
     accounts,
     events,
+    products,
+    billing,
+    platform,
+    portal,
     analytics,
     visit,
     commissions,
@@ -100,3 +112,5 @@ listenToCards();
 listenToColumnResize(paintAccountsHeader);
 analytics.listenToVisitOrdersViews();
 cycle.listenToClassButtons(id => { void cycle.paintCardCycle(id); });
+portal.listenToForm();
+portal.listenToCentreDocs();

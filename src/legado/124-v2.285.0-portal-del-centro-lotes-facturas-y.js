@@ -1,10 +1,6 @@
 
 
 
-document.addEventListener('click', e => {
-  const t = e.target.closest && e.target.closest('[data-pcfac], [data-pcmat]'); if (!t) return;
-  if (t.dataset.pcfac) pcFactura(t.dataset.pcfac, t); else pcMaterialBajar(t.dataset.pcmat, t);
-});
 
 
 // Producto: el material, también para los centros

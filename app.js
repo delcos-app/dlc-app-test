@@ -1,11 +1,11 @@
 (() => {
   var __defProp = Object.defineProperty;
-  var __defNormalProp = (obj, key, value10) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value: value10 }) : obj[key] = value10;
+  var __defNormalProp = (obj, key, value15) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value: value15 }) : obj[key] = value15;
   var __export = (target, all) => {
     for (var name in all)
       __defProp(target, name, { get: all[name], enumerable: true });
   };
-  var __publicField = (obj, key, value10) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value10);
+  var __publicField = (obj, key, value15) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value15);
 
   // src/app/core/router.ts
   var MAX_REDIRECTS = 10;
@@ -76,15 +76,15 @@
   }
 
   // src/app/services/values.ts
-  function orFallback(value10, fallback) {
-    return value10 === void 0 || value10 === null || value10 === "" ? fallback : value10;
+  function orFallback(value15, fallback) {
+    return value15 === void 0 || value15 === null || value15 === "" ? fallback : value15;
   }
-  function nonZeroOr(value10, fallback) {
-    return value10 === void 0 || value10 === null || value10 === 0 || Number.isNaN(value10) ? fallback : value10;
+  function nonZeroOr(value15, fallback) {
+    return value15 === void 0 || value15 === null || value15 === 0 || Number.isNaN(value15) ? fallback : value15;
   }
   var range = (length) => [...Array(length).keys()];
-  var sum = (values) => values.reduce((total, value10) => total + value10, 0);
-  var isPresent = (value10) => value10 !== null && value10 !== void 0;
+  var sum = (values) => values.reduce((total2, value15) => total2 + value15, 0);
+  var isPresent = (value15) => value15 !== null && value15 !== void 0;
 
   // src/app/core/navigation/steps-outer.ts
   var PORTAL_SCREENS = ["informe", "config", "perfil"];
@@ -663,6 +663,965 @@
       reactivate: "Volver a dar de alta",
       archive: "Dar de baja",
       delete: "Eliminar la ficha"
+    }
+  };
+
+  // src/app/i18n/es/products.ts
+  var products = {
+    page: {
+      title: "Productos",
+      subtitle: "Catálogo de productos y servicios, con precios sin IVA y con IVA",
+      newProduct: "+ Nuevo producto",
+      newService: "+ Nuevo servicio",
+      products: "Productos",
+      services: "Servicios",
+      stock: "Stock y lotes",
+      stores: "Almacenes",
+      samples: "⚙ Muestras",
+      stockEntry: "+ Entrada de stock"
+    },
+    catalog: {
+      loading: "Cargando productos…",
+      oneActive: "producto activo",
+      active: "productos activos",
+      inactive: " · {count} inactivos",
+      product: "Producto",
+      reference: "Referencia",
+      withoutVat: "Sin IVA",
+      vat: "IVA",
+      withVat: "Con IVA",
+      state: "Estado",
+      noPresentation: "Sin presentación",
+      activeState: "Activo",
+      inactiveState: "Inactivo",
+      noneFiltered: "Ningún producto con estos filtros.",
+      none: "Todavía no hay productos."
+    },
+    services: {
+      loading: "Cargando servicios…",
+      activeCount: " servicios activos · Un pedido puede llevar un servicio (envío, portes urgentes…), que se suma con su propio IVA.",
+      service: "Servicio",
+      inNewOrders: "En pedidos nuevos",
+      byDefault: "Se propone por defecto",
+      none: "Todavía no hay servicios.",
+      newTitle: "Nuevo servicio",
+      hint: "Escribe el precio sin IVA o con IVA: el otro se calcula solo. En cada pedido se puede cambiar.",
+      name: "Nombre",
+      namePlaceholder: "p. ej. Envío, Envío urgente",
+      withoutVat: "Sin IVA (€)",
+      vat: "IVA (%)",
+      withVat: "Con IVA (€)",
+      proposeByDefault: "Proponerlo por defecto en los pedidos nuevos",
+      active: "Activo",
+      create: "Crear servicio",
+      writeName: "Escribe el nombre",
+      couldNotSave: "No se ha podido guardar",
+      saved: "Servicio guardado",
+      created: "Servicio creado"
+    },
+    stock: {
+      loading: "Calculando el stock…",
+      intro: "Stock calculado con todas las entradas y salidas: compras, pedidos confirmados, muestras, ajustes y traspasos. Las ventas salen primero del lote que caduca antes.",
+      product: "Producto",
+      stock: "Stock",
+      byStore: "Por almacén",
+      nextExpiry: "Próxima caducidad",
+      coverage: "Cobertura",
+      onTheWay: "En camino",
+      state: "Estado",
+      soldWithoutBatch: "{units} uds vendidas sin lote",
+      coverageDays: "{days} días · proveedor {supplier}",
+      noSales: "Sin ventas en 90 días",
+      none: "Sin productos.",
+      outOfStock: "Sin stock",
+      belowMinimum: "Bajo mínimo",
+      orderNow: "Pedir ya",
+      fine: "Correcto"
+    },
+    sheet: {
+      units: "{units} unidades",
+      dailyUse: "consumo medio {value} al día",
+      noUse: "sin consumo en los últimos meses",
+      covers: " · cubre {days} días",
+      minimum: "Stock mínimo (aviso)",
+      noMinimum: "Sin mínimo",
+      supplier: "Proveedor habitual",
+      supplierOption: "{name} · {days} días",
+      batches: "Lotes",
+      batch: "Lote {number} · {units} uds",
+      expiresOn: "Caduca el {date}",
+      noExpiry: "Sin caducidad",
+      madeOn: " · fabricado el {date}",
+      traceability: "Trazabilidad",
+      adjust: "Ajustar",
+      transfer: "Traspasar",
+      noBatches: "Sin lotes con stock.",
+      entry: "+ Entrada o lote",
+      saveMinimum: "Guardar mínimo y proveedor",
+      couldNotSave: "No se ha podido guardar",
+      saved: "Guardado"
+    },
+    trace: {
+      title: "Trazabilidad · lote {number}",
+      expires: " · caduca el {date}",
+      purchase: " · compra {number}",
+      intro: "Todas las entradas y salidas de este lote. Ante una alerta de un lote, aquí están los clientes a los que llegó.",
+      date: "Fecha",
+      movement: "Movimiento",
+      units: "Uds.",
+      client: "Cliente",
+      store: "Almacén",
+      order: "Pedido {number}",
+      none: "Sin movimientos.",
+      initial: "Stock inicial",
+      purchaseEntry: "Entrada por compra",
+      sale: "Venta",
+      saleCancelled: "Anulación de venta",
+      sample: "Muestra en {visit}",
+      adjustment: "Ajuste de inventario",
+      transferOut: "Traspaso (sale)",
+      transferIn: "Traspaso (entra)",
+      returned: "Devolución",
+      depositUse: "Usado en un depósito",
+      surgeryUse: "Usado en una intervención"
+    },
+    movement: {
+      entryTitle: "Entrada de stock",
+      adjustTitle: "Ajuste de inventario",
+      transferTitle: "Traspaso entre almacenes",
+      entryHint: "Stock inicial o una entrada sin pedido de compra, con su lote",
+      adjustHint: "Suma o resta unidades de este lote (recuento, rotura, caducado…)",
+      transferHint: "Mueve unidades de este lote a otro almacén, por ejemplo al maletín de un comercial",
+      product: "Producto",
+      store: "Almacén",
+      batch: "Nº de lote",
+      batchPlaceholder: "p. ej. L2609",
+      supplier: "Proveedor",
+      expiry: "Caducidad",
+      made: "Fabricación",
+      destination: "Almacén de destino",
+      units: "Unidades",
+      unitsSigned: "Unidades (+ suma, − resta)",
+      note: "Motivo o nota",
+      adjustPlaceholder: "Recuento, rotura, caducado…",
+      optional: "Opcional",
+      register: "Registrar",
+      writeUnits: "Indica las unidades",
+      writeBatch: "Indica el número de lote",
+      failed: "No se ha podido: {error}",
+      registered: "Movimiento registrado"
+    },
+    stores: {
+      title: "Almacenes",
+      subtitle: "El central y, si quieres, un «maletín» por comercial para sus muestras",
+      central: "Almacén central",
+      deposit: "Depósito en un centro",
+      caseOf: "Maletín de {name}",
+      unitsTail: " · {units} uds",
+      inactive: " · inactivo",
+      newCase: "Nuevo maletín de comercial",
+      salesperson: "Comercial",
+      createCase: "Crear maletín",
+      caseHint: "Pasa unidades del central a un maletín con «Traspasar» en la ficha del producto. Si las muestras restan stock, salen del maletín de quien registra {theVisit}.",
+      caseName: "Maletín {name}",
+      couldNotCreate: "No se ha podido crear",
+      created: "Maletín creado",
+      pageIntro: "Dónde está físicamente tu stock. Cada unidad está en un almacén y en un lote, así sabes qué hay, dónde y cuándo caduca.",
+      centralTitle: "🏢 Almacén central",
+      centralText: "Donde entra la mercancía al recibir las compras y de donde salen los pedidos.",
+      caseTitle: "💼 Maletín de comercial",
+      caseText: "Las muestras que lleva cada comercial. Se reponen traspasando desde el central y se descuentan al registrar {visits}.",
+      yours: "Tus almacenes",
+      units: "unidades",
+      oneWithout: "{name} no tiene",
+      manyWithout: "{count} comerciales no tienen",
+      withoutCase: " maletín: sus muestras saldrán del almacén central.",
+      transferHint: "Para pasar unidades del central a un maletín: Productos → Stock → abre el producto → «Traspasar»."
+    },
+    deposit: {
+      noPermission: "No puedes ver el depósito de este centro",
+      couldNotOpen: "No se ha podido abrir el depósito",
+      title: "Depósito · {name}",
+      unitsOf: "{units} unidades de {products}",
+      oneProduct: "1 producto",
+      products: "{count} productos",
+      empty: "Sin material ahora mismo",
+      stillYours: " · sigue siendo vuestro hasta que se usa",
+      replenish: "Reponer",
+      recordUse: "Apuntar uso",
+      count: "Recuento",
+      product: "Producto",
+      batch: "Lote",
+      expires: "Caduca",
+      units: "Uds",
+      noBatch: "Sin lote",
+      noBatchLower: "sin lote",
+      emptyDeposit: "El depósito está vacío: repón para dejar material.",
+      used90: "Usado en los últimos 90 días: {list}",
+      lastMovements: "Últimos movimientos",
+      moveIn: "Repuesto",
+      moveOut: "Sale",
+      moveUsed: "Usado",
+      moveAdjust: "Ajuste",
+      replenishTitle: "Reponer el depósito",
+      from: "De dónde sale",
+      fromCase: "De mi maletín",
+      fromCentral: "Del almacén central",
+      unitsOfProduct: "Unidades de {name}",
+      useTitle: "Apuntar lo usado",
+      left: "quedan {units}",
+      usedOf: "Usadas de {name}",
+      reference: "Referencia",
+      referencePlaceholder: "p. ej. Intervención del martes, sala 2 (sin datos del paciente)",
+      record: "Apuntar",
+      countTitle: "Recuento",
+      countHint: "Escribe lo que hay ahora; lo que falte se apunta como usado.",
+      had: "había {units}",
+      countedOf: "Contadas de {name}",
+      saveCount: "Guardar recuento",
+      writeReplenish: "Escribe cuántas unidades repones",
+      writeUsed: "Escribe lo que se ha usado",
+      tooMany: "No se puede usar más de lo que hay en el depósito",
+      noSource: "No hay almacén del que sacar el material",
+      noMovePermission: "No puedes mover el depósito de este centro",
+      couldNotSave: "No se ha podido guardar",
+      replenished: "Depósito repuesto",
+      nothingMissing: "Recuento guardado: no falta nada",
+      usedRecorded: "Apuntado lo usado",
+      usedNotice: "Usado: {list}. Queda un pedido en borrador del centro para confirmarlo.",
+      seeOrder: "Ver el pedido",
+      replenishUsed: "Reponer lo usado",
+      couldNotReplenish: "No se ha podido reponer",
+      usedReplenished: "Repuesto lo usado"
+    }
+  };
+
+  // src/app/i18n/es/billing.ts
+  var billing = {
+    page: {
+      title: "Facturación",
+      subtitle: "Facturas emitidas desde los pedidos, rectificativas y cobros",
+      invoices: "Facturas",
+      series: "Series y numeración",
+      company: "Datos fiscales",
+      verifactu: "VeriFactu",
+      log: "Registro",
+      readOnly: "Tu plan {plan} no incluye Facturación:\n      puedes consultar y descargar las facturas que ya emitiste y registrar sus cobros, pero no emitir nuevas."
+    },
+    list: {
+      search: "Buscar",
+      searchPlaceholder: "Número, cliente o NIF",
+      payment: "Cobro",
+      all: "Todos",
+      pending: "Pendiente",
+      overdue: "Vencida",
+      paid: "Cobrada",
+      loading: "Cargando facturas…",
+      invoiced: "Facturado con IVA · {count} facturas",
+      taxBase: "Base imponible",
+      vat: "IVA repercutido",
+      toCollect: "Pendiente de cobro · {count}",
+      overdueTotal: "Vencido · {count}",
+      number: "Número",
+      date: "Fecha",
+      client: "Cliente",
+      nif: "NIF",
+      base: "Base",
+      vatShort: "IVA",
+      total: "Total",
+      due: "Vencimiento",
+      rectifies: "rectifica {number}",
+      rectifiedBy: "rectificada: {number}",
+      none: "No hay facturas con estos filtros. Las facturas se emiten desde un pedido confirmado (Pedidos → Ventas → abrir el pedido → «Emitir factura»)."
+    },
+    sheet: {
+      couldNotOpen: "No se ha podido abrir la factura",
+      rectifying: "Rectificativa",
+      invoice: "Factura",
+      dueOn: " · vence el {date}",
+      rectifiesNotice: "Rectifica la factura <b>{number}</b> · Motivo: {reason}",
+      seeOriginal: "Ver original",
+      rectifiedBy: "Rectificada por {list}",
+      client: "Cliente",
+      issuer: "Emisor",
+      noNif: "Sin NIF",
+      concept: "Concepto",
+      units: "Uds.",
+      price: "Precio",
+      discount: "Dto.",
+      vat: "IVA",
+      base: "Base",
+      baseAt: "Base al {rate}%",
+      vatAt: "IVA {rate}%",
+      total: "Total",
+      payments: "Cobros",
+      removePayment: "Quitar",
+      noPayments: "Sin cobros registrados.",
+      pendingAmount: "Pendiente: <b>{amount}</b>",
+      record: "Registro de facturación",
+      fingerprint: "Huella: {value}…",
+      verifactuState: "VeriFactu: {state}",
+      notApplicable: "No aplica",
+      seeOrder: "Ver pedido",
+      rectify: "Rectificar",
+      registerPayment: "Registrar cobro",
+      see: "Ver",
+      download: "⬇ PDF",
+      email: "✉️ Enviar por email",
+      removePaymentText: "Se quita este cobro de la factura.",
+      removePaymentTitle: "¿Quitar el cobro?"
+    },
+    payment: {
+      title: "Registrar cobro · {number}",
+      pending: "Pendiente: {amount}",
+      amount: "Importe (€)",
+      date: "Fecha",
+      method: "Forma de pago",
+      note: "Nota",
+      optional: "Opcional",
+      register: "Registrar",
+      writeAmount: "Indica el importe",
+      couldNotRegister: "No se ha podido registrar",
+      registered: "Cobro registrado"
+    },
+    rectify: {
+      title: "Rectificar {number}",
+      subtitle: "Se emite una factura rectificativa en negativo. La original no se toca.",
+      reason: "Motivo",
+      reasonPlaceholder: "p. ej. Devolución de una caja rota, error en el precio…",
+      what: "Qué se rectifica",
+      whole: "Toda la factura",
+      someUnits: "Solo algunas unidades",
+      units: "({units} uds)",
+      unitsLabel: "Unidades a rectificar",
+      cancelOrder: "Anular también el pedido (las unidades vuelven al stock y dejan de contar en métricas)",
+      issue: "Emitir rectificativa",
+      writeReason: "Escribe el motivo",
+      writeUnits: "Indica las unidades a rectificar",
+      failed: "No se ha podido: {error}",
+      cancelReason: "Rectificativa {number}: {reason}",
+      issued: "Rectificativa {number} emitida"
+    },
+    series: {
+      loading: "Cargando series…",
+      intro: "Cada serie numera sus facturas de forma correlativa. Para continuar la numeración de otro programa, pon en «Siguiente número» el que toca.",
+      add: "+ Nueva serie",
+      series: "Serie",
+      type: "Tipo",
+      format: "Formato",
+      next: "Próximo número",
+      last: "Última emitida",
+      issued: "Emitidas",
+      yearlyReset: "Reinicio anual",
+      byDefault: " · por defecto",
+      inactive: " · inactiva",
+      ordinary: "Facturas",
+      rectifying: "Rectificativas",
+      simplified: "Simplificadas",
+      simplifiedTickets: "Simplificadas (tickets)",
+      yes: "Sí",
+      no: "No",
+      formatHelp: "Formato: <b>{S}</b> código de la serie · <b>{AAAA}</b> o <b>{AA}</b> año · <b>{NNNN}</b> número con tantas cifras como «N». Ejemplo: {S}{AA}{NNNN} → F260408.",
+      titleOf: "Serie {code}",
+      newTitle: "Nueva serie",
+      nextNumber: "Próximo número: ",
+      code: "Código",
+      codePlaceholder: "p. ej. F, CN, W",
+      name: "Nombre",
+      nextField: "Siguiente número",
+      year: "Año de la numeración",
+      restartYearly: "Volver a empezar desde 1 cada año",
+      defaultForType: "Serie por defecto para su tipo",
+      active: "Activa",
+      numberUsed: "Ese número ya se ha usado: el último emitido es el {last}",
+      couldNotSave: "No se ha podido guardar",
+      saved: "Serie guardada"
+    },
+    verifactu: {
+      on: "Activado",
+      off: "Preparado · desactivado",
+      intro: "Sistema de la Agencia Tributaria para que las facturas no se puedan alterar y se puedan verificar. La plataforma ya emite cada factura cumpliendo sus requisitos; solo falta conectar el envío cuando decidáis activarlo.",
+      step1: "1 · Facturas preparadas",
+      step1Text: "Numeración sin huecos, facturas inalterables y rectificativas.",
+      step2: "2 · Registro encadenado",
+      step2Text: "{count} facturas con huella · {chain}.",
+      chainOk: "cadena íntegra",
+      chainBroken: "revisar desde {from}",
+      step3: "3 · QR y leyenda",
+      step3On: "Las facturas nuevas llevan QR y «VERI*FACTU».",
+      step3Off: "Se añaden al activarlo.",
+      step4: "4 · Envío a Hacienda",
+      step4Text: "Requiere el certificado digital de la empresa. Se configura al activarlo.",
+      whatTitle: "Qué hace cada factura",
+      what1: "Recibe el siguiente número de su serie: no puede haber huecos ni repetidos.",
+      what2: "Guarda una <b>huella</b> que la encadena con la anterior: si alguien cambiara una factura, la cadena lo delataría.",
+      what3: "No se puede modificar ni borrar: los errores se corrigen con una <b>rectificativa</b>.",
+      what4: "Todo queda en el <b>registro de eventos</b>: emisiones, cobros, envíos y cambios de configuración{last}.",
+      lastEvent: " (último: {type} el {date})",
+      settings: "Configuración",
+      activate: "Activar VeriFactu",
+      activateHint: "Las facturas nuevas llevarán el QR y la leyenda. Las ya emitidas no cambian.",
+      mode: "Modalidad",
+      modeVerifactu: "VeriFactu",
+      modeVerifactuText: "Cada factura se envía a Hacienda al emitirla. La más sencilla de mantener.",
+      modeOther: "No VeriFactu",
+      modeOtherText: "Las facturas se firman y se guardan; Hacienda puede pedirlas cuando quiera.",
+      environment: "Entorno",
+      testing: "Pruebas de la Agencia Tributaria",
+      production: "Producción",
+      activateText: "Las facturas que se emitan a partir de ahora llevarán el QR y la leyenda VERI*FACTU. El envío a Hacienda necesitará el certificado de la empresa.",
+      deactivateText: "Las facturas nuevas dejarán de llevar el QR. Las ya emitidas no cambian.",
+      activateTitle: "¿Activar VeriFactu?",
+      deactivateTitle: "¿Desactivar VeriFactu?",
+      activateOk: "Activar",
+      deactivateOk: "Desactivar",
+      couldNotSave: "No se ha podido guardar",
+      saved: "Guardado · queda anotado en el registro"
+    }
+  };
+
+  // src/app/i18n/es/platform.ts
+  var platform = {
+    orgs: {
+      title: "Organizaciones",
+      subtitle: "Cada empresa trabaja aislada, con sus datos, sus usuarios, su numeración y su configuración.",
+      new: "+ Nueva organización",
+      couldNotLoad: "No se han podido cargar: {error}",
+      noNif: "Sin NIF",
+      planText: "plan {name}",
+      hired: " · {count} contratados",
+      yearly: " · anual",
+      monthly: " · mensual",
+      counts: " · {users} usuarios · {accounts} cuentas",
+      pending: " · pendiente de registro: {email}",
+      domainList: "Dominios: {domains}",
+      noDomain: "Sin dominio propio: su pantalla de acceso muestra la marca de delcos",
+      domains: "Dominios",
+      extras: "Extras",
+      inside: "Estás dentro",
+      enter: "Entrar",
+      plan: "Plan",
+      download: "Descargar datos",
+      delete: "Borrar empresa",
+      deleteOk: "Borrar",
+      deactivate: "Desactivar",
+      reactivate: "Volver a activar",
+      cancelled: "Cancelada",
+      unpaidSince: "Impago desde el {date}",
+      deactivated: "Desactivada",
+      trialEnded: "Prueba terminada el {date}",
+      trialUntil: "Prueba hasta el {date}",
+      domainsText: "Dominios desde los que se entra a {name}, separados por comas (p. ej. app.empresa.com). Su pantalla de acceso mostrará su nombre y su logo. Déjalo vacío para quitar todos.",
+      domainsTitle: "Dominios de la organización",
+      noPermission: "No tienes permiso",
+      badDomain: "«{domain}» no es un dominio válido",
+      domainInUse: "Ese dominio ya es de {organization}",
+      gone: "La organización ya no existe",
+      domainsFailed: "No se han podido guardar los dominios",
+      domainsSaved: "Dominios guardados",
+      domainsRemoved: "Dominios quitados",
+      preparing: "Preparando…",
+      downloadFailed: "No se han podido descargar sus datos",
+      downloaded: "Datos descargados",
+      invoicesNoDelete: "{name} tiene facturas emitidas: no se puede borrar (VeriFactu). Desactívala en su lugar.",
+      deleteText: "Se borrarán {name} y todos sus datos ({users} usuarios, {accounts} cuentas, pedidos, agenda…). No se puede deshacer: descarga antes sus datos si hay que entregárselos. Escribe su nombre para confirmarlo.",
+      nameMismatch: "El nombre no coincide: no se ha borrado nada",
+      mainNotDeleted: "La organización principal no se puede borrar",
+      onlyTrial: "Solo se borran empresas de prueba o desactivadas",
+      hasInvoices: "Tiene facturas emitidas: no se puede borrar",
+      deleteFailed: "No se ha podido borrar",
+      deleted: "{name} borrada",
+      deleteUsersToo: ". Borra sus usuarios en Supabase → Authentication.",
+      reactivateText: "Sus {users} usuarios podrán volver a entrar.",
+      deactivateText: "Sus {users} usuarios no podrán entrar hasta que la vuelvas a activar. Sus datos no se tocan.",
+      reactivateTitle: "¿Volver a activar {name}?",
+      deactivateTitle: "¿Desactivar {name}?",
+      mainNotDeactivated: "La organización principal no se puede desactivar",
+      notFound: "No se encuentra esa empresa",
+      toggleFailed: "No se ha podido cambiar",
+      reactivated: "{name} vuelve a estar activa",
+      deactivated2: "{name} desactivada",
+      enterText: "Vas a ver la plataforma como {name}: sus datos, su configuración y su plan. Lo que cambies se guarda en su empresa y queda registrado. Para volver, «Salir» en la franja de arriba.",
+      enterTitle: "Entrar en {name}",
+      onlyAdmin: "Solo el Administrador de delcos puede entrar",
+      couldNotEnter: "No se ha podido entrar",
+      couldNotLeave: "No se ha podido salir"
+    },
+    view: {
+      seeing: "Estás viendo {name} tal cual la ve esa empresa. Lo que hagas queda en su registro.",
+      deactivated: "desactivada",
+      trialEnded: "prueba terminada",
+      leave: "Salir"
+    },
+    extras: {
+      opportunities: "Oportunidades",
+      portal: "Portal",
+      title: "Extras de {name}",
+      subtitle: "Lo que tiene contratado aparte de su plan",
+      opportunitiesText: "Registro de cada venta, se cierre con pedido o no: día y hora, qué producto y cuántas unidades quería, su {professional} de referencia y cómo llegó, con sus métricas.",
+      portalTitle: "Portal {ofProfessional}",
+      portalText: "En su portal, cifras agregadas de {orders} (sin datos de personas), pedir material y escribir dudas a su comercial.",
+      couldNotSave: "No se han podido guardar los extras",
+      saved: "Extras guardados"
+    },
+    newOrg: {
+      title: "Nueva organización",
+      subtitle: "Nace con los roles, catálogos, series y ajustes de partida de la plataforma",
+      name: "Nombre de la empresa",
+      nif: "NIF",
+      plan: "Plan",
+      users: "Usuarios contratados",
+      payment: "Pago",
+      monthly: "Mensual",
+      yearly: "Anual",
+      trial: "Empresa de prueba (30 días)",
+      admin: "Su administrador",
+      adminName: "Nombre",
+      adminEmail: "Correo",
+      password: "Contraseña temporal",
+      create: "Crear organización",
+      creating: "Creando…",
+      complete: "Completa el nombre, el administrador, su correo y la contraseña",
+      noName: "Falta el nombre",
+      badEmail: "El correo no es válido",
+      emailTaken: "Ese correo ya tiene usuario",
+      failed: "No se ha podido crear: {reason}",
+      noUser: "Organización creada, pero no su usuario: {error}. Queda invitado: puede registrarse con ese correo.",
+      created: '<b style="color:var(--ok)">Organización creada.</b> Usuario de {email} con contraseña temporal <b>{password}</b>. Pásasela y que la cambie al entrar.'
+    },
+    plan: {
+      title: "Plan de {name}",
+      subtitle: "Solo la plataforma cambia el plan de una empresa",
+      noLimit: "Sin límite",
+      state: "Estado",
+      paid: "De pago",
+      trial: "Prueba",
+      trialUntil: "Prueba hasta",
+      commitment: "Compromiso hasta (A medida)",
+      commitmentHint: "Antes de esa fecha no se puede bajar de A medida.",
+      stripe: "Esta empresa paga con Stripe: este cambio no se pasa a Stripe. Para que cuadre el cobro, cámbialo también allí.",
+      save: "Guardar plan",
+      committed: "Tiene compromiso A medida hasta el {date}: no se puede bajar antes.",
+      willLose: "Al pasar a {plan} dejará de tener:",
+      minimum: "Mínimo 3 usuarios (salvo A medida)",
+      noTrialEnd: "Falta la fecha de fin de la prueba",
+      invalid: "Plan no válido",
+      committedUntil: "Tiene compromiso A medida hasta el {date}",
+      couldNotSave: "No se ha podido guardar",
+      saved: "Plan guardado"
+    },
+    errors: {
+      program: "Error de programa",
+      database: "Error de base de datos",
+      report: "Reporte de usuario",
+      time: "vez",
+      times: "veces",
+      person: "persona",
+      people: "personas",
+      last: "última {date}",
+      solvedAuto: " · resuelto solo en {version}",
+      solvedIn: " · resuelto en {version}",
+      details: "Versiones y detalle técnico",
+      versions: "Versiones: {versions} · primera {date}",
+      groupState: "Estado del grupo",
+      platformTitle: "Errores de la plataforma",
+      platformText: "Los errores iguales van juntos. Al marcar un grupo como resuelto queda apuntada la versión; si vuelve a salir en esa versión o en una posterior, se reabre solo. «Descargar» guarda el archivo para quien da soporte técnico.",
+      couldNotRead: "No se ha podido leer el registro: {error}",
+      open: "Sin resolver",
+      solved: "Resueltos",
+      all: "Todos",
+      lastDays: "Últimos {days} días",
+      download: "Descargar",
+      noneOpen: "No hay errores sin resolver en este periodo.",
+      none: "Sin errores con estos filtros.",
+      groupSolved: "Grupo resuelto: si vuelve a salir, se reabre solo",
+      stateChanged: "Estado actualizado",
+      couldNotChange: "No se ha podido cambiar",
+      companyTitle: "Errores y reportes",
+      companyText: "Errores que se producen al usar la plataforma y problemas que reportan las personas. Descarga el archivo para enviárselo a quien da soporte técnico.",
+      allKinds: "Todos los tipos",
+      allStates: "Todos los estados"
+    },
+    billing: {
+      all: "Todas",
+      attention: "Requieren atención",
+      upToDate: "Al día",
+      trial: "En prueba",
+      unpaid: "Impago",
+      company: "Empresa",
+      plan: "Plan",
+      state: "Estado",
+      perMonth: "Al mes",
+      pending: "Pendiente",
+      empty: "No hay empresas en este grupo.",
+      leaving: "Se da de baja al final del periodo",
+      planned: "Cambio previsto a {plan}",
+      plannedUsers: " · {users} usuarios",
+      plannedOn: " el {date}",
+      commitment: "Compromiso hasta el {date}",
+      activeUsers: "{count} usuarios activos",
+      fromWeb: " · alta desde la web",
+      hired: "{count} contratados · ",
+      yearly: "anual",
+      monthly: "mensual",
+      seeInStripe: "Ver en Stripe",
+      couldNotRead: "No se han podido leer: {error}",
+      kpiUpToDate: "al día",
+      kpiTrial: "en prueba",
+      kpiUnpaid: "con impago",
+      kpiLeaving: "se dan de baja",
+      kpiIncome: "cobro mensual estimado (sin IVA)",
+      footer: "El estado llega solo desde Stripe con cada cobro. Las devoluciones y los datos de la tarjeta se miran en Stripe."
+    },
+    signups: {
+      half: "A medias",
+      halfText: "No terminó el pago · {ago}",
+      inside: "Dentro",
+      insideText: "Ya ha entrado en delcos",
+      invited: "Invitada",
+      invitedText: "Invitación enviada {ago}",
+      noInvitation: "Falta la invitación",
+      noName: "Sin nombre",
+      plan: "{plan} · {users} usuarios · {payment}",
+      started: "empezó el {date}",
+      kpiDone: "completadas (90 días)",
+      kpiInside: "ya han entrado",
+      kpiHalf: "a medias (7 días)",
+      kpiWeek: "esta semana",
+      halfHelp: "Rellenaron el formulario pero no terminaron de poner la tarjeta. Puede valer la pena escribirles. Se borran solas a los 7 días.",
+      completed: "Completadas",
+      none: "Todavía no hay altas completadas desde la web."
+    },
+    requests: {
+      title: "Solicitudes de las empresas",
+      subtitle: "Presupuestos A medida y conversaciones sobre el contrato. Llegan también como aviso. Cambia el estado cuando las atiendas: la empresa lo ve en su Plan.",
+      contract: "Contrato A medida",
+      quote: "Presupuesto A medida",
+      program: "Programa: {program}",
+      users: "{count} usuarios",
+      portal: " · {count} con portal",
+      byEmail: "Por correo",
+      byPhone: "Por teléfono",
+      byVideo: "Videollamada",
+      state: "Estado",
+      notePlaceholder: "Nota interna (qué se ha hablado, próximos pasos…)",
+      none: "Todavía no ha llegado ninguna solicitud.",
+      saved: "Solicitud actualizada",
+      couldNotSave: "No se ha podido guardar"
+    },
+    status: {
+      couldNotRead: "No se ha podido leer: {error}",
+      appVersion: "versión de esta app",
+      databaseAt: "base en {version}",
+      database: "base",
+      activeCompanies: "empresas activas",
+      activeUsers: "usuarios activos",
+      portalUsers: " · {count} del portal",
+      openErrors: "errores sin resolver (15 días)",
+      versionsTitle: "Versiones en uso (30 días)",
+      current: "la actual",
+      previous: "anterior",
+      company: "empresa",
+      companies: "empresas",
+      noVersions: "Ninguna empresa ha abierto la app en los últimos 30 días.",
+      sqlTitle: "Últimos SQL aplicados en esta base",
+      version: "Versión",
+      whatChanges: "Qué cambia",
+      applied: "Aplicado",
+      footerTest: "Esto es la base de <b>pruebas</b>. La de producción se mira desde su propio panel.",
+      footerProduction: "Esto es la base de <b>producción</b>. La de pruebas se mira desde su propio panel.",
+      routesTitle: "Servicio de rutas (TomTom)",
+      routesToday: "peticiones hoy, entre todas las empresas",
+      routesMonth: "peticiones este mes",
+      off: "Apagado",
+      on: "Activo",
+      service: "servicio",
+      perUser: "por usuario activo y día",
+      today: "Hoy",
+      dailyLimit: "Cupo diario",
+      thisMonth: "Este mes",
+      noRoutes: "Ninguna empresa ha usado el servicio de rutas este mes."
+    },
+    template: {
+      title: "Plantilla de las empresas nuevas",
+      text: "Lo que recibe cada empresa al darse de alta (desde la web o desde Clientes). Cambiarlo aquí no toca a las empresas que ya existen.",
+      roles: "Roles y permisos",
+      catalogs: "Catálogos y estados",
+      notice: "Estás cambiando la <b>plantilla de las empresas nuevas</b>.",
+      back: "Volver a la plantilla"
+    }
+  };
+
+  // src/app/i18n/es/portal.ts
+  var portal = {
+    whatIsIt: "Qué es",
+    tabs: { summary: "Resumen", card: "Mi ficha", material: "Material y dudas", order: "Pedir reposición", centre: "Mi centro" },
+    failures: {
+      permission: "No tienes permiso",
+      extra: "Tu empresa no tiene el portal activado",
+      material: "Ese material ya no se puede pedir",
+      quantity: "Esa cantidad supera el máximo",
+      empty: "Escribe el mensaje",
+      closed: "Ya estaba cerrado",
+      gone: "Ya no existe",
+      generic: "No se ha podido hacer"
+    },
+    messages: { none: "Todavía no hay mensajes.", team: "Equipo" },
+    missing: {
+      timetable: "dónde y cuándo atiendes",
+      timetableCentre: "dónde y cuándo atendéis",
+      phone: "un teléfono de contacto",
+      visits: "cómo prefieres {theVisits}",
+      join: "{first} y {last}",
+      something: "algún dato"
+    },
+    periods: {
+      today: "Hoy",
+      yesterday: "Ayer",
+      week: "Esta semana",
+      last7: "En los últimos 7 días",
+      month: "Este mes",
+      lastMonth: "El mes pasado",
+      quarter: "Este trimestre",
+      lastQuarter: "El trimestre pasado",
+      year: "Este año",
+      lastYear: "El año pasado",
+      all: "En total",
+      custom: "En estas fechas",
+      thisPeriod: "En este periodo"
+    },
+    report: {
+      kicker: "Tu portal",
+      notLinked: "Tu usuario todavía no está vinculado a tu ficha de {professional}. Avisa a la empresa para activarlo."
+    },
+    summary: {
+      packFormat: "{bought} + {free} de regalo",
+      fourOrMore: "4 o más unidades",
+      oneUnit: "1 unidad",
+      units: "{count} unidades",
+      formatsTitle: "{Orders} más utilizadas",
+      formatsHelp: "Cómo son las {orders} del periodo elegido arriba a la derecha: qué parte es de 1 unidad, de 2, de 2 + 1 de regalo… Sirve para ver qué formato se utiliza más. Solo porcentajes: no se muestra ningún dato de personas.",
+      formatsEmpty: "Cuando haya {orders} en el periodo, verás aquí qué formatos se utilizan más.",
+      periodTitle: "Resumen del periodo",
+      unitsLabel: "Unidades",
+      unitsHelp: "Total de unidades de producto de las {orders} del periodo elegido arriba a la derecha.",
+      lastOrder: "Última {order}",
+      lastOrderHelp: "Fecha de la {order} más reciente del periodo.",
+      activated: "{when} se han activado {count} {word}",
+      activatedOne: "{when} se ha activado {count} {word}",
+      noneFeminine: "{when} no se ha activado ninguna {word}.",
+      noneMasculine: "{when} no se ha activado ningún {word}.",
+      needHelp: "¿Necesitas material, información o resolver alguna duda? Escríbenos y te ayudamos.",
+      monthTitle: "{month}: {units} unidades, {orders} {ordersWord}",
+      evolutionEmpty: "Cuando haya {orders} registradas, verás aquí cómo evolucionan.",
+      notAvailable: "No disponible.",
+      fewStarted: "En los últimos {months} meses se han iniciado {started} {orders}. A partir de {minimum} verás aquí cifras de continuidad.",
+      started: "iniciadas",
+      repeated: "se repiten",
+      days: "{count} días",
+      between: "entre una y otra",
+      over60: "más de 60 días sin repetirse",
+      completeCard: "Completa tu ficha",
+      completeCardText: "Falta {missing}. Así tu comercial pasa a verte cuando mejor te va.",
+      completeCardButton: "Completar mi ficha",
+      metricsTitle: "Métricas de {orders}",
+      metricsHelp: "Cada barra son las unidades de las {orders} registradas en el mes; el número de debajo, cuántas {orders} fueron. Cambia el periodo arriba a la derecha.",
+      metricsLast: " Última {order}: {date}.",
+      byProduct: "Por producto",
+      byProductHelp: "Qué productos aparecen en las {orders} registradas en el periodo y qué parte de las unidades es cada uno.",
+      byProductEmpty: "Aparecerá el reparto por producto.",
+      continuityTitle: "Continuidad de las {orders}",
+      continuityHelp: "En los últimos 12 meses: cuántas {orders} han empezado, qué parte se ha repetido al menos una vez, cuántos días pasan de media entre una vez y la siguiente, y cuántas llevan más de 60 días sin repetirse."
+    },
+    form: {
+      contactTitle: "Contacto y {visits}",
+      contactHelp: "Cómo puede contactarte tu comercial y cómo y cuándo te va mejor que pase a verte. Escribe lo que prefieras: lo revisa antes de pasarlo a tu ficha y lo tendrá en cuenta al organizar su agenda.",
+      phone: "Teléfono",
+      required: "Necesario",
+      phonePlaceholder: "Móvil o fijo",
+      email: "Correo",
+      emailPlaceholder: "tu@correo.es",
+      how: "Cómo prefieres {theVisits}",
+      choose: "Elige…",
+      howBooked: "Con cita previa",
+      howEndOfDay: "Sin cita, al final de la consulta",
+      howAnyGap: "Sin cita, en cualquier hueco",
+      howPhone: "Por teléfono o videollamada",
+      howWriteFirst: "Prefiero que me escribáis antes",
+      when: "Mejor momento",
+      whenPlaceholder: "p. ej. martes a última hora",
+      notes: "Notas para tu comercial",
+      notesPlaceholder: "Acceso, planta, a quién preguntar…",
+      placesTitle: "Dónde atiendes",
+      placesTitleCentre: "Dónde y cuándo atendéis",
+      placesRequired: "Necesario: al menos un día con horario",
+      placesHelp: "Añade cada centro o lugar donde atiendes y su horario. Busca el centro por su nombre o población; si no aparece, añádelo tú. En el horario, pulsa los días y escribe las horas; con «Rellenar» pones de golpe el mismo horario en todos los días marcados.",
+      noPlaces: "Todavía no hay ningún lugar.",
+      searchPlaceholder: "Añadir un centro: escribe su nombre o la población",
+      searchLabel: "Buscar un centro",
+      send: "Enviar a mi comercial",
+      sentOn: "Enviado el {date}: tu comercial lo revisará.",
+      reviewed: "Tu comercial revisó tus datos. Si algo cambia, vuelve a enviarlo.",
+      notSent: "Todavía no nos has enviado tus datos.",
+      placeName: "Centro o lugar",
+      placeAddress: "Dirección y población",
+      placeAddressPlaceholder: "Calle, número, población",
+      remove: "Quitar",
+      fillMarked: "Rellenar los días marcados:",
+      fillMorning: "Mañana 9:00–14:00",
+      fillAfternoon: "Tarde 16:00–20:00",
+      fillBoth: "Mañana y tarde",
+      copyFirst: "Copiar el primer día",
+      monday: "Lunes",
+      tuesday: "Martes",
+      wednesday: "Miércoles",
+      thursday: "Jueves",
+      friday: "Viernes",
+      saturday: "Sábado",
+      from: "Desde",
+      to: "a",
+      until: "Hasta",
+      removeRange: "Quitar esta franja",
+      addRange: "+ Otra franja",
+      closed: "No atiende",
+      notFound: "No lo encuentro: añadir «{query}»",
+      notFoundText: "Escribe después su dirección",
+      checkHours: "Revisa las horas de {name}: cada franja necesita una hora de inicio y otra de fin posterior",
+      nameEachPlace: "Pon el nombre de cada centro",
+      couldNotSend: "No se ha podido enviar",
+      sent: "Enviado a tu comercial",
+      checkDone: "Tu ficha tiene todo lo necesario",
+      checkTitle: "Para completar tu ficha",
+      checkPhone: "Un teléfono de contacto",
+      checkTimetable: "Dónde y cuándo atiendes (al menos un día con su horario)",
+      checkTimetableCentre: "Dónde y cuándo atendéis (al menos un día con su horario)",
+      checkHow: "Cómo prefieres las {visits}",
+      checkDoneText: "Envíalo a tu comercial y el aviso de «faltan datos» desaparece.",
+      checkText: "El resto es opcional. Cuando lo tengas, pulsa «Enviar a mi comercial»."
+    },
+    material: {
+      title: "Pedir material",
+      help: "Pide el material que te ofrece la empresa (folletos, catálogos…). Le llega a tu comercial, que te lo entrega; mientras está pendiente lo puedes anular.",
+      material: "Material",
+      quantity: "Cantidad",
+      max: "Máximo {max} por petición",
+      atMost: "Como máximo {max} por petición",
+      atMostShort: "Como máximo {max}",
+      note: "Nota para tu comercial",
+      optional: "Opcional",
+      ask: "Pedir",
+      nothingOffered: "Tu empresa todavía no ofrece material para pedir.",
+      cancel: "Anular",
+      howMany: "Indica cuántos necesitas",
+      tooMany: "Como máximo {max} por petición: pide {max} o escribe en la nota cuántos necesitas",
+      asked: "Pedido enviado a tu comercial",
+      cancelled: "Pedido de material anulado",
+      questionsTitle: "Dudas a tu comercial",
+      questionsHelp: "Escribe a tu comercial cualquier duda. Te contestará aquí y te llegará un aviso.",
+      questionPlaceholder: "Escribe tu duda",
+      questionLabel: "Tu mensaje",
+      send: "Enviar",
+      messageSent: "Mensaje enviado"
+    },
+    order: {
+      title: "Pedir reposición",
+      help: "Elige cuántos packs quieres de cada producto (de 0 a {packs} de cada pack). El coste por unidad incluye las de regalo, y el margen se calcula sobre el PVP de referencia. La bonificación es de cada pedido. Tu comercial lo revisa y lo confirma; en «Resumen» verás cómo va.",
+      unitPrice: "{price} la unidad con IVA",
+      yourPrice: " · vuestro precio",
+      retail: " · PVP de referencia {price}",
+      units: "Unidades",
+      unitsOf: "Unidades de {name}",
+      pack: "Pack {pack}",
+      packUnits: "{units} unidades",
+      packFree: " ({free} de regalo)",
+      withVat: "con IVA",
+      perUnit: "por unidad",
+      margin: "de margen",
+      howManyPacks: "Cuántos packs {pack}",
+      delivery: "Entrega",
+      deliverCentre: "En la dirección del centro",
+      deliverShared: "Repartir entre varias direcciones",
+      otherAddress: "+ Otra dirección",
+      prepayment: "Pago por adelantado: cuando tu comercial lo confirme, descarga la factura proforma en «Resumen» y haz la transferencia. Lo preparamos en cuanto llegue.",
+      note: "Nota",
+      notePlaceholder: "Opcional: horario de entrega, persona de contacto…",
+      total: "Total {total} con IVA",
+      totalUnits: "{units} unidades",
+      send: "Enviar pedido",
+      noProducts: "Todavía no tenéis productos para pedir. Tu comercial os los dará de alta.",
+      addressPlaceholder: "Dirección de entrega",
+      removeAddress: "Quitar esta dirección",
+      maxPacks: "Como máximo {max} packs de este tipo en cada pedido",
+      maxUnits: "Como máximo {max} unidades en cada pedido",
+      wholeNumber: "Escribe un número entero",
+      shared: "Repartidas {shared} de {units} unidades",
+      checkRed: "Revisa las cantidades marcadas en rojo",
+      chooseSomething: "Elige algún pack o pon unidades",
+      shareUnits: "Reparte las {units} unidades entre al menos dos direcciones",
+      packGone: "Ese pack de {product} ya no está disponible: vuelve a cargar la página",
+      product: "producto",
+      checkProduct: "Revisa las cantidades de {product}",
+      aProduct: "un producto",
+      deliveriesMustAdd: "Las direcciones tienen que sumar {total} unidades",
+      sent: "Pedido enviado: tu comercial lo confirmará"
+    },
+    docs: {
+      expires: " (cad. {date})",
+      batch: "Lote",
+      batches: "Lotes",
+      invoice: "Factura",
+      correction: "Rectificativa",
+      oneToPay: "Tienes un pedido pendiente de pago",
+      toPay: "Tienes {count} pedidos pendientes de pago",
+      toPayText: "Descarga la factura proforma en «Tus pedidos» y haz la transferencia: lo preparamos en cuanto llegue.",
+      notPending: "Ese pedido ya no está pendiente de pago",
+      proformaTitle: "FACTURA PROFORMA",
+      proformaSaved: "Proforma descargada. Pon «{concept}» como concepto de la transferencia",
+      proformaFailed: "No se ha podido preparar la proforma",
+      invoiceFailed: "No se ha podido preparar la factura",
+      downloadFailed: "No se ha podido descargar",
+      downloadsTitle: "Material para descargar",
+      downloadsHelp: "Dípticos, fichas de producto, guías de mostrador y otro material que la empresa prepara para los centros, de los productos que tenéis dados de alta. Pulsa para descargarlo.",
+      pdf: "PDF",
+      image: "Imagen",
+      download: "Descargar",
+      noDownloads: "Todavía no hay material para descargar."
+    },
+    centre: {
+      kicker: "Tu centro",
+      subtitle: "Pide la reposición de tus productos y sigue tus pedidos",
+      free: " de regalo",
+      proforma: "Factura proforma",
+      running: "pedidos en marcha",
+      lastOrder: "último pedido",
+      units12: "unidades en 12 meses",
+      products: "productos para pedir",
+      ordersTitle: "Tus pedidos",
+      ordersHelp: "Los pedidos de reposición que habéis hecho y en qué punto están: pendiente de confirmar por tu comercial, pendiente de pago (si se paga por adelantado), confirmado, preparado o anulado. Cada pedido lleva los lotes que se os han enviado y sus facturas para descargar.",
+      boughtTitle: "Lo que habéis comprado",
+      boughtHelp: "Unidades de los últimos 12 meses por producto, de los pedidos confirmados.",
+      boughtEmpty: "Aparecerá cuando tengáis pedidos confirmados.",
+      unitsShort: "{units} uds.",
+      noOrders: "Todavía no hay pedidos.",
+      completeCard: "Completa la ficha de tu centro",
+      completeCardText: "Falta {missing}. Así tu comercial sabe cuándo os va mejor que pase.",
+      completeCardButton: "Completar la ficha"
+    },
+    settings: {
+      title: "Portal {ofProfessional}",
+      subtitle: "Qué material pueden pedir {theProfessionals} desde su portal y cuánto como máximo cada vez. Les llega a su comercial.",
+      maximum: "Máximo",
+      maximumOf: "Máximo de {name}",
+      everything: "Ahora mismo se puede pedir todo el material, hasta 20 de cada. Guarda para decidirlo tú.",
+      noCatalog: "No hay material en el catálogo «Material comercial entregado». Añádelo en Clasificadores.",
+      couldNotSave: "No se ha podido guardar",
+      saved: "Guardado",
+      prepaymentTitle: "Pedidos del portal del centro",
+      prepayment: "Pago por adelantado",
+      prepaymentHelp: "Con el pago por adelantado, al confirmar un pedido del portal el centro lo ve «Pendiente de pago» y descarga la factura proforma con vuestros datos y el IBAN para hacer la transferencia. Cuando la recibáis, marcad el pago como cobrado en el pedido: el centro recibe el aviso y el pedido se prepara como siempre. El IBAN y los datos salen de Facturación → Datos fiscales.",
+      prepaymentLabel: "Pago por adelantado (transferencia antes de preparar el pedido)",
+      prepaymentOn: "Guardado: los centros pagarán por adelantado",
+      prepaymentOff: "Guardado: sin pago por adelantado"
     }
   };
 
@@ -2496,6 +3455,10 @@
     commissions,
     visit,
     analytics,
+    portal,
+    platform,
+    billing,
+    products,
     common: {
       save: "Guardar",
       cancel: "Cancelar",
@@ -2635,8 +3598,8 @@
   function setLanguage(language) {
     currentLanguage = language;
   }
-  function setVocabulary(words6) {
-    vocabulary = { ...words6 };
+  function setVocabulary(words7) {
+    vocabulary = { ...words7 };
   }
   function lookup(catalog2, key) {
     let node = catalog2;
@@ -2647,9 +3610,9 @@
     return typeof node === "string" ? node : void 0;
   }
   function fill(text2, params) {
-    return text2.replace(/\{(\w+)\}/g, (whole, name) => {
-      const value10 = params[name] ?? vocabulary[name];
-      return value10 === void 0 ? whole : String(value10);
+    return text2.replace(/\{(\w+)\}/g, (whole2, name) => {
+      const value15 = params[name] ?? vocabulary[name];
+      return value15 === void 0 ? whole2 : String(value15);
     });
   }
   function t(key, params = {}) {
@@ -2680,8 +3643,8 @@
     PEDSEC = section2;
     ir("ventas");
   };
-  function term(word, options = {}) {
-    const { number = "s", article = "", capital = "l", adjective, articleCapital = "l" } = options;
+  function term(word, options2 = {}) {
+    const { number = "s", article = "", capital = "l", adjective, articleCapital = "l" } = options2;
     return adjective === void 0 ? TT(word, number, article, articleCapital, capital) : TT(word, number, article, articleCapital, capital, adjective);
   }
   var permissions = {
@@ -2697,8 +3660,8 @@
   };
   var homeCache = {
     panel: () => KV_INI,
-    setPanel: (value10) => {
-      KV_INI = value10;
+    setPanel: (value15) => {
+      KV_INI = value15;
     },
     charts: () => KV_GRAF
   };
@@ -2749,8 +3712,8 @@
     },
     isDayView: () => agN(),
     metrics: () => AG_MET,
-    setMetrics: (value10) => {
-      AG_MET = value10;
+    setMetrics: (value15) => {
+      AG_MET = value15;
     },
     /** Today's appointments as painted in «Tu día», and the day they were loaded for. */
     dayAppointments: () => TD_CITAS,
@@ -2779,8 +3742,8 @@
   };
   var sidePanel = {
     context: () => HERR_CTX,
-    setContext: (value10) => {
-      HERR_CTX = value10;
+    setContext: (value15) => {
+      HERR_CTX = value15;
     }
   };
   var legacyAgendaParts = {
@@ -2872,10 +3835,10 @@
     toast: (message, isError = false) => {
       toast(message, isError);
     },
-    confirm: (message, options) => preguntar(message, options),
+    confirm: (message, options2) => preguntar(message, options2),
     choose: (title2, message, buttons) => elegirOpcion(title2, message, buttons),
-    askDate: (message, value10, options) => pedirFecha(message, value10, options),
-    askTime: async (title2, value10, ok) => await appVentana({ titulo: title2, ok, campo: { valor: value10, tipo: "time" } })
+    askDate: (message, value15, options2) => pedirFecha(message, value15, options2),
+    askTime: async (title2, value15, ok) => await appVentana({ titulo: title2, ok, campo: { valor: value15, tipo: "time" } })
   };
   var initialsOf = (name) => iniciales(name);
   var reloadAgenda = () => {
@@ -2923,8 +3886,8 @@
   };
   var appointmentLegacy = {
     /** Writes through the offline queue (the change is kept if there is no connection). */
-    write: (name, payload6) => escribir(name, payload6),
-    writeRpc: (name, payload6) => escribirRpc(name, payload6),
+    write: (name, payload9) => escribir(name, payload9),
+    writeRpc: (name, payload9) => escribirRpc(name, payload9),
     negativeResults: () => (CAT.resultado_visita ?? []).filter((item) => item.extra === "neg"),
     nextAttendanceDay: (days, from) => proximoDiaConsulta(days, from),
     navigateTo: (point) => {
@@ -2983,8 +3946,8 @@
     void pintarRutaBarra();
   } };
   var editorLegacy = {
-    pickAccount: (element2, value10, onPick, placeholder) => {
-      selectorMedico(element2, { valor: value10, alElegir: onPick, ...placeholder ? { placeholder } : {} });
+    pickAccount: (element2, value15, onPick, placeholder) => {
+      selectorMedico(element2, { valor: value15, alElegir: onPick, ...placeholder ? { placeholder } : {} });
     },
     recentContacts: (accountId, isoDate) => recientesDe([accountId], isoDate).then((found) => found[accountId] ?? []),
     recentText: (list) => txtReciente(list),
@@ -3068,8 +4031,8 @@
       goTo("pacientes");
     },
     visitDetails: (visit2) => detTxt(visit2),
-    fieldName: (field4) => campoTxt(field4),
-    valueText: (value10) => textoValor(value10),
+    fieldName: (field8) => campoTxt(field8),
+    valueText: (value15) => textoValor(value15),
     detailSummary: (detail) => resumenDetalle(detail),
     undo: (id, then) => {
       void deshacerUno(id, then);
@@ -3078,13 +4041,11 @@
   var portalLegacy = {
     hasPortal: () => hayExtra("portal"),
     materialPill: (state) => pillMaterial(state),
-    messageThread: (list) => hiloMensajes(list, false),
-    failureText: (result) => motivoPortal(result),
     products: async () => {
       if (!PRODUCTOS.length) await cargarProductos();
       return PRODUCTOS;
     },
-    euros: (value10) => eurI(value10)
+    euros: (value15) => eurI(value15)
   };
   var accessLegacy = {
     connectionInfo: (userId) => {
@@ -3116,13 +4077,13 @@
     fieldChips: (state) => clasChips("medico", state),
     contactsLabel: () => etiquetaContactos(),
     pageSize: () => tamPagina(),
-    paginate: (options) => {
-      paginador(options.element, options.total, options.page, options.onPage, options.onSize);
+    paginate: (options2) => {
+      paginador(options2.element, options2.total, options2.page, options2.onPage, options2.onSize);
     }
   };
   var accountColumnsLegacy = {
     customFields: () => CAMPOS.medico ?? [],
-    fieldText: (field4, value10) => campoTexto(field4, value10),
+    fieldText: (field8, value15) => campoTexto(field8, value15),
     firstName: (name) => nombrePila(name),
     /** Platform access by account (loaded once; null until it arrives). */
     accessOf: () => MED_ACCESO,
@@ -3147,8 +4108,8 @@
   var cycleLegacy = {
     loadSettings: () => cargarAjustes(),
     setting: (key) => AJUSTES[key],
-    setSetting: (key, value10) => {
-      AJUSTES[key] = value10;
+    setSetting: (key, value15) => {
+      AJUSTES[key] = value15;
     },
     openTab: (tab) => {
       PAG_TAB.ciclo = tab;
@@ -3274,12 +4235,12 @@
       LLAMADA_PEND = id;
     },
     /** The account picker; what is typed without choosing is kept in element.__texto. */
-    pickReference: (options) => {
-      Reflect.set(options.element, "__texto", options.freeText);
-      selectorMedico(options.element, { valor: options.value, alElegir: options.onPick, placeholder: options.placeholder });
+    pickReference: (options2) => {
+      Reflect.set(options2.element, "__texto", options2.freeText);
+      selectorMedico(options2.element, { valor: options2.value, alElegir: options2.onPick, placeholder: options2.placeholder });
     },
-    mountPeriod: (element2, options) => {
-      montarPeriodo(element2, options);
+    mountPeriod: (element2, options2) => {
+      montarPeriodo(element2, options2);
     },
     periodOf: (element2) => Reflect.get(element2 ?? {}, "__rango")?.() ?? { desde: null, hasta: null },
     barChart: (items, format) => barrasH(items, format),
@@ -3352,20 +4313,20 @@
 
   // src/app/services/format.ts
   var HTML_ESCAPES = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
-  function escapeHtml(value10) {
-    return String(value10 ?? "").replace(/[&<>"']/g, (char) => HTML_ESCAPES[char] ?? char);
+  function escapeHtml(value15) {
+    return String(value15 ?? "").replace(/[&<>"']/g, (char) => HTML_ESCAPES[char] ?? char);
   }
-  function formatNumber(value10) {
-    return Number(value10 ?? 0).toLocaleString("es");
+  function formatNumber(value15) {
+    return Number(value15 ?? 0).toLocaleString("es");
   }
-  function formatEuros(value10) {
-    return `${Math.round(Number(value10) || 0).toLocaleString("es-ES")} €`;
+  function formatEuros(value15) {
+    return `${Math.round(Number(value15) || 0).toLocaleString("es-ES")} €`;
   }
   function looseText(text2) {
     return String(text2 ?? "").normalize("NFD").replace(/\p{M}/gu, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
   }
-  function formatCurrency(value10) {
-    return (Number(value10) || 0).toLocaleString("es", { style: "currency", currency: "EUR", maximumFractionDigits: 2 });
+  function formatCurrency(value15) {
+    return (Number(value15) || 0).toLocaleString("es", { style: "currency", currency: "EUR", maximumFractionDigits: 2 });
   }
 
   // src/app/legacy/visit-bridge.ts
@@ -3385,7 +4346,7 @@
     },
     readCopy: (key) => leerCache(key)?.d ?? null,
     resultValues: () => CAT.resultado_visita ?? [],
-    dataField: (value10, key) => campoDato(value10, key),
+    dataField: (value15, key) => campoDato(value15, key),
     signaturePad: (canvas) => padFirma(canvas),
     promotedProducts: () => productosPromocionados(),
     reloadProducts: async () => {
@@ -3398,7 +4359,7 @@
     normalise: (text2) => clasNorm(text2),
     weekdayLetter: () => hoyLetra(),
     /** The write queue: without connection the call is kept and `data.encolada` is true. */
-    writeRpc: (name, payload6) => escribirRpc(name, payload6),
+    writeRpc: (name, payload9) => escribirRpc(name, payload9),
     reloadHome: () => {
       void cargarInicio();
     },
@@ -3414,8 +4375,8 @@
     /** Downloaded material files by id (Productos forgets one when it is removed). */
     materialFiles: () => PRES_DATOS,
     preferences: () => PERFIL.preferencias ?? {},
-    setPreferences: (value10) => {
-      PERFIL.preferencias = value10;
+    setPreferences: (value15) => {
+      PERFIL.preferencias = value15;
     }
   };
 
@@ -3441,10 +4402,10 @@
   var row = (iconName, html, extraClass = "") => `<div class="fvfila ${extraClass}"><span class="fvico">${icon(iconName)}</span><div>${html}</div></div>`;
   function placeRow(consultation) {
     const where = [consultation.planta, consultation.sala].map((part) => String(part ?? "").trim()).filter((part) => part && !/^[-–·.]+$/.test(part)).map(escapeHtml).join(" · ");
-    const address = escapeHtml([consultation.direccion, [consultation.cp, consultation.municipio].filter(Boolean).join(" ")].filter(Boolean).join(", ")) || t("visit.block.noAddress");
+    const address2 = escapeHtml([consultation.direccion, [consultation.cp, consultation.municipio].filter(Boolean).join(" ")].filter(Boolean).join(", ")) || t("visit.block.noAddress");
     const directions = consultation.lat ? `<button class="btn sec fvbtn" type="button" data-nav="${cardBaseLegacy.directionsAttribute([consultation.lat, consultation.lon ?? 0])}">${icon("map-pin")} ${t("visit.block.directions")}</button>` : "";
     return row("building-2", `<b>${escapeHtml(orFallback(consultation.centro_nombre, visitLegacy.privateConsultation()))}</b>${where ? `<span class="fvdonde">${where}</span>` : ""}
-      <div class="sm">${address}</div>
+      <div class="sm">${address2}</div>
       ${directions}`);
   }
   function whenRow(consultation) {
@@ -3498,9 +4459,9 @@
   var modeButtons = (attribute, chosen2) => MODES.map(([mode, label]) => `<button type="button" data-${attribute}="${mode}" class="${mode === chosen2 ? "on" : ""}" aria-pressed="${String(mode === chosen2)}">${t(label)}</button>`).join("");
   var pressed = (button2) => button2.getAttribute("aria-pressed") === "true";
   function togglePressed(button2) {
-    const on2 = !pressed(button2);
-    button2.setAttribute("aria-pressed", String(on2));
-    return on2;
+    const on4 = !pressed(button2);
+    button2.setAttribute("aria-pressed", String(on4));
+    return on4;
   }
 
   // src/app/screens/visit/edit.ts
@@ -3510,10 +4471,10 @@
       aria-pressed="${String(marked.includes(result.valor))}"><span class="mk"></span>${escapeHtml(result.valor)}</button>`).join("");
   }
   function extraHtml(extra) {
-    const products2 = extra.productList.length ? `<label>${t("visit.record.products")}</label><div class="opciones" id="evprods">${extra.productList.map((product) => `<button type="button" class="opt" data-evprod="${product.id}" aria-pressed="${String(extra.products.includes(product.id))}"><span class="mk"></span>${escapeHtml(product.nombre)}</button>`).join("")}</div>` : "";
+    const products3 = extra.productList.length ? `<label>${t("visit.record.products")}</label><div class="opciones" id="evprods">${extra.productList.map((product) => `<button type="button" class="opt" data-evprod="${product.id}" aria-pressed="${String(extra.products.includes(product.id))}"><span class="mk"></span>${escapeHtml(product.nombre)}</button>`).join("")}</div>` : "";
     return `<label>${t("visit.record.howItWas")}</label>
       <div class="segs" id="evmodo" role="group" aria-label="${t("visit.record.howItWas")}">${modeButtons("evmodo", extra.mode)}</div>
-      ${products2}`;
+      ${products3}`;
   }
   function editorHtml(visit2, extra) {
     const results = visitLegacy.resultValues(), marked = visit2.resultados ?? [];
@@ -3544,9 +4505,9 @@
     let productList = [];
     if (planHasCoverage) {
       productList = [...await visitLegacy.promotedProducts()];
-      const missing = chosen2.filter((id) => !productList.some((product) => product.id === id));
-      if (missing.length) {
-        const { data } = await legacyDb().from("productos").select("id,nombre").in("id", missing);
+      const missing2 = chosen2.filter((id) => !productList.some((product) => product.id === id));
+      if (missing2.length) {
+        const { data } = await legacyDb().from("productos").select("id,nombre").in("id", missing2);
         productList = productList.concat(data ?? []);
       }
     }
@@ -3595,11 +4556,11 @@
   function bind(body2, visit2, extra, accountId) {
     body2.querySelectorAll("[data-res]").forEach((button2) => {
       button2.onclick = () => {
-        const negative = button2.dataset.neg === "1", on2 = pressed(button2);
+        const negative = button2.dataset.neg === "1", on4 = pressed(button2);
         body2.querySelectorAll("[data-res]").forEach((other) => {
           if (negative || other.dataset.neg === "1") other.setAttribute("aria-pressed", "false");
         });
-        button2.setAttribute("aria-pressed", String(!on2));
+        button2.setAttribute("aria-pressed", String(!on4));
       };
     });
     const modes = body2.querySelectorAll("[data-evmodo]");
@@ -3661,7 +4622,7 @@
     </div>`;
   }
   function stateHtml(account, salesReps) {
-    const state = cardBaseLegacy.canEdit() ? `<select data-estado="${account.id}" style="max-width:240px">${cardBaseLegacy.states().map((value10) => `<option ${value10 === account.estado_comercial ? "selected" : ""}>${escapeHtml(value10)}</option>`).join("")}</select>` : `<span class="pill p-est">${escapeHtml(account.estado_comercial)}</span>`;
+    const state = cardBaseLegacy.canEdit() ? `<select data-estado="${account.id}" style="max-width:240px">${cardBaseLegacy.states().map((value15) => `<option ${value15 === account.estado_comercial ? "selected" : ""}>${escapeHtml(value15)}</option>`).join("")}</select>` : `<span class="pill p-est">${escapeHtml(account.estado_comercial)}</span>`;
     return `<div class="blk"><h3>${t("accounts.card.stateTitle")}</h3>
       <div>${state}</div>
       ${salesReps.length ? `<div class="sm" style="margin-top:6px">${t("accounts.base.salesRep", { names: salesReps.map(escapeHtml).join(", ") })}</div>` : ""}
@@ -3669,10 +4630,10 @@
   }
   function consultationHtml(consultation) {
     const days = consultation.dias ?? {};
-    const address = escapeHtml([consultation.direccion, consultation.cp, consultation.municipio].filter(Boolean).join(", "));
+    const address2 = escapeHtml([consultation.direccion, consultation.cp, consultation.municipio].filter(Boolean).join(", "));
     const room = [consultation.planta, consultation.sala].filter(Boolean).join(" · ");
     return `<div class="blk"><h3>${escapeHtml(orFallback(consultation.centro_nombre, term("consulta", { capital: "C", adjective: "privado" })))}</h3>
-      <div>${address || `<span class="sm">${t("accounts.base.noAddress")}</span>`}</div>
+      <div>${address2 || `<span class="sm">${t("accounts.base.noAddress")}</span>`}</div>
       ${room ? `<div class="sm">${escapeHtml(room)}</div>` : ""}
       ${consultation.indicaciones ? `<div class="sm">${escapeHtml(consultation.indicaciones)}</div>` : ""}
       ${consultation.telefono ? `<div class="sm">${t("accounts.base.phone", { phone: escapeHtml(consultation.telefono) })}</div>` : ""}
@@ -3782,8 +4743,8 @@
     professionals: term("medico", { number: "p" }),
     speciality: term("especialidad")
   });
-  var classPill = (value10) => value10 ? `<span class="cicl c${value10}">${value10}</span>` : '<span class="cicl csin">—</span>';
-  var classButtons = (id, value10) => `<span class="segs cicsegs" role="group" aria-label="${t("cycle.classLabel")}">${CLASSES.map((letter) => `<button type="button" data-ccl="${id}|${letter}" class="${letter === value10 ? "on" : ""}" aria-pressed="${String(letter === value10)}">${letter}</button>`).join("")}</span>`;
+  var classPill = (value15) => value15 ? `<span class="cicl c${value15}">${value15}</span>` : '<span class="cicl csin">—</span>';
+  var classButtons = (id, value15) => `<span class="segs cicsegs" role="group" aria-label="${t("cycle.classLabel")}">${CLASSES.map((letter) => `<button type="button" data-ccl="${id}|${letter}" class="${letter === value15 ? "on" : ""}" aria-pressed="${String(letter === value15)}">${letter}</button>`).join("")}</span>`;
   var ownerParam = () => permissions.seesEverything() ? cycleState.owner || null : salesTeam.currentUserId();
   var goToTab = (tab) => {
     cycleLegacy.openTab(tab);
@@ -3794,15 +4755,15 @@
     if (!salesTeam.members().length) await salesTeam.load().catch(() => void 0);
     return `<select id="cicde" aria-label="${t("cycle.whose")}"><option value="">${t("cycle.allTeam")}</option>${salesTeam.members().map((member) => `<option value="${member.id}" ${cycleState.owner === member.id ? "selected" : ""}>${escapeHtml(member.nombre)}</option>`).join("")}</select>`;
   }
-  function bindOwner(paint8) {
-    const select2 = document.getElementById("cicde");
-    if (select2) select2.onchange = () => {
-      cycleState.owner = select2.value;
-      void paint8();
+  function bindOwner(paint9) {
+    const select3 = document.getElementById("cicde");
+    if (select3) select3.onchange = () => {
+      cycleState.owner = select3.value;
+      void paint9();
     };
   }
   var percentOf = (done, goal) => goal ? Math.round(done / goal * 100) : 0;
-  var progressBar = (percent2, tag = "span") => `<${tag} class="cicbar"><i style="width:${percent2}%"></i></${tag}>`;
+  var progressBar = (percent3, tag = "span") => `<${tag} class="cicbar"><i style="width:${percent3}%"></i></${tag}>`;
 
   // src/app/screens/cycle/card.ts
   function summary(cycle3) {
@@ -3850,17 +4811,17 @@
   var EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
   var canShow = (id) => stillShown(id) && Boolean(document.getElementById("fbody")) && !document.getElementById("facceso");
   var accountOf = async (id) => (await cachedRpc("ficha_cuenta", { p_id: id }, `ficha-${id}`)).data?.medico ?? {};
-  function hasAccessHtml(user, isCentre2, withConnection) {
+  function hasAccessHtml(user, isCentre3, withConnection) {
     const impersonate = user.activo && accessLegacy.canImpersonate(user) ? `<button class="btn sec" data-ucomo="${user.id}">${t("accounts.access.impersonate")}</button>` : "";
-    return `<p class="sm">${t("accounts.access.hasAccess")}${user.email ? t("accounts.access.asEmail", { email: escapeHtml(user.email) }) : ""}${user.activo ? "" : t("accounts.access.disabled")}: ${t(isCentre2 ? "accounts.access.centreUses" : "accounts.access.portalUses")}.</p>` + (withConnection ? `<p class="sm facccon" data-facccon="${user.id}"></p>` : "") + impersonate;
+    return `<p class="sm">${t("accounts.access.hasAccess")}${user.email ? t("accounts.access.asEmail", { email: escapeHtml(user.email) }) : ""}${user.activo ? "" : t("accounts.access.disabled")}: ${t(isCentre3 ? "accounts.access.centreUses" : "accounts.access.portalUses")}.</p>` + (withConnection ? `<p class="sm facccon" data-facccon="${user.id}"></p>` : "") + impersonate;
   }
-  var canText = (isCentre2) => isCentre2 ? t("accounts.access.centreCan") : t("accounts.access.portalCan", { prescriptions: term("pauta", { number: "p" }), patients: term("paciente", { number: "p" }) });
+  var canText = (isCentre3) => isCentre3 ? t("accounts.access.centreCan") : t("accounts.access.portalCan", { prescriptions: term("pauta", { number: "p" }), patients: term("paciente", { number: "p" }) });
   async function adminAccess(id) {
     const [{ data: users }, account] = await Promise.all([callRpc("usuarios_resumen", {}), accountOf(id)]);
     if (!canShow(id)) return;
-    const user = (users ?? []).find((item) => item.cuenta_id === id), isCentre2 = account.tipo === CENTRE2;
+    const user = (users ?? []).find((item) => item.cuenta_id === id), isCentre3 = account.tipo === CENTRE2;
     document.getElementById("fbody")?.insertAdjacentHTML("beforeend", `<div class="blk" id="facceso"><h3>${t("accounts.access.title")}</h3>
-    ${user ? hasAccessHtml(user, isCentre2, true) : `<p class="sm">${canText(isCentre2)}</p>
+    ${user ? hasAccessHtml(user, isCentre3, true) : `<p class="sm">${canText(isCentre3)}</p>
          <button class="btn sec" id="fdaracc">${t("accounts.access.give")}</button>`}</div>`);
     if (user) accessLegacy.connectionInfo(user.id);
     const give = document.getElementById("fdaracc");
@@ -3888,7 +4849,7 @@
     return false;
   }
   async function giveAccess(id, account, button2) {
-    const field4 = document.getElementById("faccmail"), email = field4?.value.trim() ?? "";
+    const field8 = document.getElementById("faccmail"), email = field8?.value.trim() ?? "";
     if (!EMAIL.test(email)) {
       notices.toast(t("accounts.access.invalidEmail"), true);
       return;
@@ -3899,14 +4860,14 @@
       return;
     }
     const password = `Tmp-${Math.random().toString(36).slice(2, 8)}`;
-    const failure2 = await accessLegacy.signUp(email, password, orFallback(account.nombre, email.split("@").shift() ?? email));
+    const failure3 = await accessLegacy.signUp(email, password, orFallback(account.nombre, email.split("@").shift() ?? email));
     button2.disabled = false;
-    if (failure2) {
-      notices.toast(t("accounts.access.couldNotCreate", { error: failure2.message ?? "" }), true);
+    if (failure3) {
+      notices.toast(t("accounts.access.couldNotCreate", { error: failure3.message ?? "" }), true);
       return;
     }
     button2.remove();
-    if (field4) field4.disabled = true;
+    if (field8) field8.disabled = true;
     accessLegacy.forgetAccessCache();
     const message = document.getElementById("faccmsg");
     if (message) message.innerHTML = t("accounts.access.created", { password: escapeHtml(password) });
@@ -3917,9 +4878,9 @@
     const [{ data: withAccess }, { data: inPortfolio }, account] = await Promise.all([callRpc("cuentas_con_acceso", {}), mine, accountOf(id)]);
     const user = (withAccess ?? []).find((item) => item.cuenta_id === id);
     if (!user && !(inPortfolio ?? []).length || !canShow(id)) return;
-    const isCentre2 = account.tipo === CENTRE2;
+    const isCentre3 = account.tipo === CENTRE2;
     document.getElementById("fbody")?.insertAdjacentHTML("beforeend", `<div class="blk" id="facceso"><h3>${t("accounts.access.title")}</h3>
-    ${user ? hasAccessHtml(user, isCentre2, false) : `<p class="sm">${canText(isCentre2)}</p>
+    ${user ? hasAccessHtml(user, isCentre3, false) : `<p class="sm">${canText(isCentre3)}</p>
          <div class="g2"><div><label for="faccmail">${t("accounts.access.email")}</label><input id="faccmail" type="email" value="${escapeHtml(account.email ?? "")}" placeholder="${t("accounts.access.emailPlaceholder")}"></div>
          <div style="align-self:end"><button class="btn sec" id="fdaracc">${t("accounts.access.give")}</button></div></div><div class="sm" id="faccmsg"></div>`}</div>`);
     const give = document.getElementById("fdaracc");
@@ -3943,8 +4904,8 @@
   function changeLines(entry) {
     const detail = entry.detalle;
     if (entry.accion !== EDIT || !detail || typeof detail !== "object") return `<span class="sm">${escapeHtml(cardSectionsLegacy.detailSummary(detail))}</span>`;
-    const value10 = (raw) => escapeHtml(orFallback(cardSectionsLegacy.valueText(raw).slice(0, VALUE_LENGTH), "—"));
-    return Object.entries(detail).filter((pair2) => Array.isArray(pair2[1]) && pair2[1].length === 2).map(([field4, [before, after]]) => `<span class="sm">${escapeHtml(cardSectionsLegacy.fieldName(field4))}: ${value10(before)} → ${value10(after)}</span>`).join("");
+    const value15 = (raw) => escapeHtml(orFallback(cardSectionsLegacy.valueText(raw).slice(0, VALUE_LENGTH), "—"));
+    return Object.entries(detail).filter((pair2) => Array.isArray(pair2[1]) && pair2[1].length === 2).map(([field8, [before, after]]) => `<span class="sm">${escapeHtml(cardSectionsLegacy.fieldName(field8))}: ${value15(before)} → ${value15(after)}</span>`).join("");
   }
   function historyRow(entry) {
     const when = new Date(entry.creado_en).toLocaleString(t("dates.locale"), { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
@@ -4046,13 +5007,13 @@
   ];
   function unitsHtml(units2, series) {
     const prescriptions = (count2) => term("pauta", { number: count2 === 1 ? "s" : "p" });
-    const summary3 = units2.total ? `${t("accounts.base.unitsSummary", { count: formatNumber(units2.pautas), prescriptions: prescriptions(units2.pautas), date: formatShortDate(units2.ultima) })}<span id="fusley">${cardBaseLegacy.unitsLegend(series)}</span>` : t("accounts.base.noPrescriptions", { prescriptions: term("pauta", { number: "p" }) });
+    const summary4 = units2.total ? `${t("accounts.base.unitsSummary", { count: formatNumber(units2.pautas), prescriptions: prescriptions(units2.pautas), date: formatShortDate(units2.ultima) })}<span id="fusley">${cardBaseLegacy.unitsLegend(series)}</span>` : t("accounts.base.noPrescriptions", { prescriptions: term("pauta", { number: "p" }) });
     const choices = units2.total ? `<div class="segs" id="fuserie" role="group" aria-label="${t("accounts.base.evolution")}">${cardBaseLegacy.unitsSeries().map(([key, label]) => `<button type="button" data-us="${key}" class="${key === series ? "on" : ""}">${label}</button>`).join("")}</div>` : "";
     return `<div class="blk" id="fundades"><h3>${t("accounts.base.unitsTitle")}</h3>
     <div class="uper">${PERIODS.map(([label, key]) => `<div><b>${formatNumber(units2[key])}</b><span>${t(label)}</span></div>`).join("")}</div>
     ${choices}
     <div class="spark" id="fuspark">${cardBaseLegacy.unitsChart(units2, series)}</div>
-    <div class="sm">${summary3}</div></div>`;
+    <div class="sm">${summary4}</div></div>`;
   }
   async function units(id) {
     const box = document.getElementById("fbody");
@@ -4102,8 +5063,8 @@
     const { data } = await legacyDb().from("actividades").select("id,productos").in("id", rows.map((row4) => row4.dataset.vrow));
     const ids = [...new Set((data ?? []).flatMap((visit2) => visit2.productos ?? []))];
     if (!ids.length || !stillShown(id)) return;
-    const { data: products2 } = await legacyDb().from("productos").select("id,nombre").in("id", ids);
-    const names = new Map((products2 ?? []).map((product) => [product.id, product.nombre]));
+    const { data: products3 } = await legacyDb().from("productos").select("id,nombre").in("id", ids);
+    const names = new Map((products3 ?? []).map((product) => [product.id, product.nombre]));
     (data ?? []).forEach((visit2) => {
       const row4 = document.querySelector(`#fbody [data-vrow="${visit2.id}"]`), place = row4?.querySelector("span");
       const presented = (visit2.productos ?? []).map((product) => names.get(product)).filter((name) => Boolean(name));
@@ -4249,12 +5210,12 @@
     });
   }
   function depositText(state) {
-    const lines = (state.lineas ?? []).filter((line2) => line2.unidades > 0), total = sum(lines.map((line2) => line2.unidades));
-    if (!state.existe || !total) return t("accounts.card.depositNone");
+    const lines = (state.lineas ?? []).filter((line2) => line2.unidades > 0), total2 = sum(lines.map((line2) => line2.unidades));
+    if (!state.existe || !total2) return t("accounts.card.depositNone");
     const productCount = new Set(lines.map((line2) => line2.producto_id)).size, expiring = lines.filter((line2) => relatedLegacy.expiresSoon(line2.caducidad)).length;
-    const products2 = productCount === 1 ? t("accounts.card.oneProduct") : t("accounts.card.products", { count: productCount });
+    const products3 = productCount === 1 ? t("accounts.card.oneProduct") : t("accounts.card.products", { count: productCount });
     const soon = expiring ? ` · <b style="color:var(--warn)">${expiring === 1 ? t("accounts.card.oneBatchExpires") : t("accounts.card.batchesExpire", { count: expiring })}${t("accounts.card.inLessThan60Days")}</b>` : "";
-    return t("accounts.card.depositUnits", { units: formatNumber(total), products: products2 }) + soon;
+    return t("accounts.card.depositUnits", { units: formatNumber(total2), products: products3 }) + soon;
   }
   async function deposit(id) {
     if (!canAdd("fdeposito", "deposito")) return;
@@ -4333,6 +5294,64 @@
     };
   }
 
+  // src/app/screens/portal/model.ts
+  var portalState = {
+    tab: "res",
+    form: null,
+    missing: [],
+    proposal: null,
+    places: [],
+    found: [],
+    /** The centre pays its orders in advance (company setting, read with its orders). */
+    prepayment: false
+  };
+  var WEEKDAYS = ["L", "M", "X", "J", "V", "S"];
+  var isCentre = () => cardSectionsLegacy.can("portal_centro");
+  var words2 = () => ({
+    orders: term("pauta", { number: "p" }),
+    order: term("pauta"),
+    Orders: term("pauta", { number: "p", articleCapital: "C" }),
+    visits: term("visita", { number: "p" }),
+    theVisits: term("visita", { number: "p", article: "el" }),
+    professional: term("medico"),
+    professionals: term("medico", { number: "p" }),
+    Professional: term("medico", { capital: "C" }),
+    patients: term("paciente", { number: "p" }),
+    place: term("consulta", { capital: "C" })
+  });
+  var helpButton = (title2, text2) => `<button type="button" class="ai" data-ayuda-tit="${escapeHtml(title2)}" data-ayuda-txt="${escapeHtml(text2)}" aria-label="${t("portal.whatIsIt")}">i</button>`;
+  function skeleton(card2) {
+    const box = '<div class="card ancard pmsk"><span class="plsk"></span></div>';
+    return card2 ? `<div class="pmfila">${box}${box}</div><div class="pmfila">${box}</div>` : `<div class="pmfila pm3">${box}${box}${box}</div><div class="pmfila pm3">${box}${box}${box}</div>`;
+  }
+  var FAILURES2 = /* @__PURE__ */ new Map([
+    ["permiso", "portal.failures.permission"],
+    ["extra", "portal.failures.extra"],
+    ["material", "portal.failures.material"],
+    ["cantidad", "portal.failures.quantity"],
+    ["vacio", "portal.failures.empty"],
+    ["cerrada", "portal.failures.closed"],
+    ["no_existe", "portal.failures.gone"]
+  ]);
+  var failureText2 = (result) => t(FAILURES2.get(result?.motivo ?? "") ?? "portal.failures.generic");
+  var shortDateTime = (value15) => new Date(value15).toLocaleString(t("dates.locale"), { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+  function messageThread(list, fromProfessional) {
+    if (!list.length) return `<div class="sm">${t("portal.messages.none")}</div>`;
+    return `<div class="hilo">${list.map((message) => `<div class="msj ${message.del_portal === fromProfessional ? "mio" : "suyo"}"><div>${escapeHtml(message.texto)}</div>
+      <span class="sm">${message.del_portal ? escapeHtml(words2().Professional) : t("portal.messages.team")} · ${shortDateTime(message.creado_en)}</span></div>`).join("")}</div>`;
+  }
+  function missingText() {
+    const labels = /* @__PURE__ */ new Map([
+      ["horario", t(isCentre() ? "portal.missing.timetableCentre" : "portal.missing.timetable")],
+      ["telefono", t("portal.missing.phone")],
+      ["visitas", t("portal.missing.visits", words2())]
+    ]);
+    const list = portalState.missing.map((key) => labels.get(key)).filter((label) => Boolean(label));
+    const last = list[list.length - 1];
+    if (!last) return t("portal.missing.something");
+    return list.length > 1 ? t("portal.missing.join", { first: list.slice(0, -1).join(", "), last }) : last;
+  }
+
   // src/app/screens/accounts/card/sections-portal.ts
   var PENDING = "Pendiente";
   var DELIVERED = "Entregado";
@@ -4342,17 +5361,17 @@
   var SHOWN_REQUESTS = 10;
   var MESSAGES_LIMIT = 200;
   var canShow2 = (id, blockId) => !permissions.isProfessionalPortal() && portalLegacy.hasPortal() && stillShown(id) && Boolean(document.getElementById("fbody")) && !document.getElementById(blockId);
-  var shortDateTime = (value10) => new Date(value10).toLocaleString(t("dates.locale"), { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
-  function requestRow(request) {
-    return `<div class="item" style="cursor:default"><span class="tx"><b>${formatNumber(request.cantidad)} × ${escapeHtml(request.material)}</b>
-        <span class="sm">${t("accounts.portal.requested", { date: shortDateTime(request.creado_en) })}${request.nota ? ` · ${escapeHtml(request.nota)}` : ""}</span></span>${portalLegacy.materialPill(request.estado)}
-        ${request.estado === PENDING ? `<button type="button" class="btn chico" data-fpent="${request.id}">${t("accounts.portal.delivered")}</button>` : ""}</div>`;
+  var shortDateTime2 = (value15) => new Date(value15).toLocaleString(t("dates.locale"), { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+  function requestRow(request2) {
+    return `<div class="item" style="cursor:default"><span class="tx"><b>${formatNumber(request2.cantidad)} × ${escapeHtml(request2.material)}</b>
+        <span class="sm">${t("accounts.portal.requested", { date: shortDateTime2(request2.creado_en) })}${request2.nota ? ` · ${escapeHtml(request2.nota)}` : ""}</span></span>${portalLegacy.materialPill(request2.estado)}
+        ${request2.estado === PENDING ? `<button type="button" class="btn chico" data-fpent="${request2.id}">${t("accounts.portal.delivered")}</button>` : ""}</div>`;
   }
   function portalHtml(requests2, messages) {
-    const pending = requests2.filter((request) => request.estado === PENDING).length, unread = messages.filter((message) => message.del_portal && !message.leido_en).length;
+    const pending = requests2.filter((request2) => request2.estado === PENDING).length, unread = messages.filter((message) => message.del_portal && !message.leido_en).length;
     return `<section class="blk" id="fportal"><h3>${t("accounts.portal.title")}${pending ? ` <span class="pill p-warn">${t("accounts.portal.toDeliver", { count: formatNumber(pending) })}</span>` : ""}${unread ? ` <span class="pill p-urg">${t("accounts.portal.unread", { count: formatNumber(unread) })}</span>` : ""}</h3>
     ${requests2.length ? `<div class="lista">${requests2.map(requestRow).join("")}</div>` : ""}
-    <div class="fpmsg"><b class="sm">${t("accounts.portal.messages")}</b><div id="fphilo">${portalLegacy.messageThread(messages)}</div>
+    <div class="fpmsg"><b class="sm">${t("accounts.portal.messages")}</b><div id="fphilo">${messageThread(messages, false)}</div>
       <div class="fpresp"><input id="fpmsgt" placeholder="${t("accounts.portal.reply")}" aria-label="${t("accounts.portal.reply")}"><button type="button" class="btn sec" id="fpmsgok">${t("accounts.portal.send")}</button></div></div></section>`;
   }
   function refreshPortal(id) {
@@ -4364,25 +5383,25 @@
       button2.onclick = async () => {
         const { data: result } = await legacyDb().rpc("cerrar_material", { p_id: button2.dataset.fpent, p_estado: DELIVERED });
         if (!result?.ok) {
-          notices.toast(portalLegacy.failureText(result), true);
+          notices.toast(failureText2(result), true);
           return;
         }
         notices.toast(t("accounts.portal.deliveredDone"));
         refreshPortal(id);
       };
     });
-    const send = document.getElementById("fpmsgok");
-    if (send) send.onclick = async () => {
+    const send2 = document.getElementById("fpmsgok");
+    if (send2) send2.onclick = async () => {
       const text2 = document.getElementById("fpmsgt")?.value.trim() ?? "";
       if (!text2) {
         notices.toast(t("accounts.portal.writeMessage"), true);
         return;
       }
-      send.disabled = true;
+      send2.disabled = true;
       const { data: result } = await legacyDb().rpc("enviar_mensaje_cuenta", { p_cuenta: id, p_texto: text2 });
-      send.disabled = false;
+      send2.disabled = false;
       if (!result?.ok) {
-        notices.toast(portalLegacy.failureText(result), true);
+        notices.toast(failureText2(result), true);
         return;
       }
       notices.toast(t("accounts.portal.sent"));
@@ -4421,14 +5440,14 @@
     const block4 = document.getElementById("fprodc");
     if (!block4) return;
     const items = [...block4.querySelectorAll("[data-fpcp]")].filter((box) => box.checked).map((box) => {
-      const value10 = block4.querySelector(`[data-fpcx="${box.dataset.fpcp ?? ""}"]`)?.value ?? "";
-      return { producto_id: box.dataset.fpcp, precio: value10 === "" ? null : Math.max(0, Number(value10)) };
+      const value15 = block4.querySelector(`[data-fpcx="${box.dataset.fpcp ?? ""}"]`)?.value ?? "";
+      return { producto_id: box.dataset.fpcp, precio: value15 === "" ? null : Math.max(0, Number(value15)) };
     });
     button2.disabled = true;
     const { data: result } = await legacyDb().rpc("guardar_productos_cuenta", { p_cuenta: id, p_items: items });
     button2.disabled = false;
     if (!result?.ok) {
-      notices.toast(portalLegacy.failureText(result), true);
+      notices.toast(failureText2(result), true);
       return;
     }
     notices.toast(t("accounts.portal.productsSaved", { count: formatNumber(result.productos ?? 0) }));
@@ -4443,9 +5462,9 @@
     <div class="lista">${list.map((product) => productRow(product, chosen2)).join("") || `<div class="sm">${t("accounts.portal.noProducts")}</div>`}</div>
     <div class="acts" style="margin:8px 0 0;justify-content:flex-end"><button type="button" class="btn sec" id="fpcok">${t("accounts.portal.saveProducts")}</button></div></section>`;
   }
-  var isCentre = async (id) => (await cachedRpc("ficha_cuenta", { p_id: id }, `ficha-${id}`)).data?.medico?.tipo === CENTRE4;
+  var isCentre2 = async (id) => (await cachedRpc("ficha_cuenta", { p_id: id }, `ficha-${id}`)).data?.medico?.tipo === CENTRE4;
   async function centreProducts(id) {
-    if (!canShow2(id, "fprodc") || !await isCentre(id) || !canShow2(id, "fprodc")) return;
+    if (!canShow2(id, "fprodc") || !await isCentre2(id) || !canShow2(id, "fprodc")) return;
     const catalog2 = await portalLegacy.products();
     const { data: chosenRows } = await legacyDb().from("productos_cuenta").select("producto_id,precio").eq("cuenta_id", id);
     const body2 = document.getElementById("fbody");
@@ -4454,9 +5473,9 @@
     const after = document.getElementById("fportal") ?? body2.querySelector("section.fvis");
     if (after) after.insertAdjacentHTML("afterend", html);
     else body2.insertAdjacentHTML("beforeend", html);
-    const save13 = document.getElementById("fpcok");
-    if (save13) save13.onclick = () => {
-      void saveProducts(id, save13);
+    const save21 = document.getElementById("fpcok");
+    if (save21) save21.onclick = () => {
+      void saveProducts(id, save21);
     };
   }
 
@@ -4464,15 +5483,15 @@
   var SHOWN_PATIENTS = 5;
   async function fillSalesReps(id) {
     const [{ data: users }, { data: current }] = await Promise.all([legacyDb().rpc("usuarios_lista"), callRpc("responsable_de_cuenta", { p_medico: id })]);
-    const select2 = document.getElementById("fcomsel");
-    if (!stillShown(id) || !select2) return;
-    const options = (users ?? []).filter((user) => user.activo && (cardSectionsLegacy.roleCan(user.rol, "cartera") || current?.id === user.id)).map((user) => `<option value="${user.id}" ${current?.id === user.id ? "selected" : ""}>${escapeHtml(user.nombre)} · ${escapeHtml(user.rol)}</option>`).join("");
-    select2.innerHTML = `<option value="">${t("accounts.sales.noRep")}</option>${options}`;
-    const save13 = document.getElementById("fcomok");
-    if (save13) save13.onclick = async () => {
-      save13.disabled = true;
-      const { data: result, error } = await legacyDb().rpc("asignar_responsable_cuenta", { p_medico: id, p_usuario: select2.value || null });
-      save13.disabled = false;
+    const select3 = document.getElementById("fcomsel");
+    if (!stillShown(id) || !select3) return;
+    const options2 = (users ?? []).filter((user) => user.activo && (cardSectionsLegacy.roleCan(user.rol, "cartera") || current?.id === user.id)).map((user) => `<option value="${user.id}" ${current?.id === user.id ? "selected" : ""}>${escapeHtml(user.nombre)} · ${escapeHtml(user.rol)}</option>`).join("");
+    select3.innerHTML = `<option value="">${t("accounts.sales.noRep")}</option>${options2}`;
+    const save21 = document.getElementById("fcomok");
+    if (save21) save21.onclick = async () => {
+      save21.disabled = true;
+      const { data: result, error } = await legacyDb().rpc("asignar_responsable_cuenta", { p_medico: id, p_usuario: select3.value || null });
+      save21.disabled = false;
       if (error || result?.ok === false) {
         notices.toast(t("accounts.sales.couldNotAssign"), true);
         return;
@@ -4524,7 +5543,7 @@
     if (!data?.ok || !stillShown(id) || !sales || document.getElementById("fclientes")) return;
     const figures = [[t("accounts.sales.associated"), data.total], [t("accounts.sales.withOrders"), data.con_pedido], [t("accounts.sales.withoutOrders"), data.sin_pedido]];
     const block4 = `<div class="blk" id="fclientes"><h3>${t("accounts.sales.associatedTitle", { patients: term("paciente", { number: "p", capital: "C" }) })}</h3>
-    <div class="uper">${figures.map(([label, value10]) => `<div><b>${formatNumber(value10)}</b><span>${label}</span></div>`).join("")}</div>
+    <div class="uper">${figures.map(([label, value15]) => `<div><b>${formatNumber(value15)}</b><span>${label}</span></div>`).join("")}</div>
     ${data.total ? "" : `<div class="sm">${t("accounts.sales.noneAssociated", { patients: term("paciente", { number: "p" }) })}</div>`}</div>`;
     const units2 = document.getElementById("fundades");
     if (units2) units2.insertAdjacentHTML("afterend", block4);
@@ -4624,8 +5643,8 @@
     return `<span class="pill ${own.activo ? "p-est" : "p-anu"}">${t(own.activo ? "accounts.columns.withAccess" : "accounts.columns.accessDisabled")}</span>`;
   }
   function customCell(row4, key) {
-    const field4 = accountColumnsLegacy.customFields().find((item) => item.clave === key);
-    return `<span class="sm">${escapeHtml(accountColumnsLegacy.fieldText(field4, row4.clasificadores?.[key]))}</span>`;
+    const field8 = accountColumnsLegacy.customFields().find((item) => item.clave === key);
+    return `<span class="sm">${escapeHtml(accountColumnsLegacy.fieldText(field8, row4.clasificadores?.[key]))}</span>`;
   }
   var CELLS = /* @__PURE__ */ new Map([
     ["nombre", nameCell],
@@ -4640,8 +5659,8 @@
     if (key.startsWith(CUSTOM_PREFIX)) return customCell(row4, key.slice(CUSTOM_PREFIX.length));
     const special = CELLS.get(key);
     if (special) return special(row4);
-    const value10 = row4[key];
-    return `<span class="sm">${escapeHtml(value10 ? String(value10) : "")}</span>`;
+    const value15 = row4[key];
+    return `<span class="sm">${escapeHtml(value15 ? String(value15) : "")}</span>`;
   }
 
   // src/app/screens/accounts/list/columns.ts
@@ -4662,7 +5681,7 @@
       { k: "estado_comercial", t: t("accounts.columns.state"), w: 150 },
       { k: SALES_REPS, t: t("accounts.columns.salesReps"), w: 190 },
       { k: "acceso", t: t("accounts.columns.access"), w: 170 },
-      ...accountColumnsLegacy.customFields().map((field4) => ({ k: CUSTOM_PREFIX2 + field4.clave, t: field4.nombre, w: CUSTOM_WIDTH }))
+      ...accountColumnsLegacy.customFields().map((field8) => ({ k: CUSTOM_PREFIX2 + field8.clave, t: field8.nombre, w: CUSTOM_WIDTH }))
     ];
   }
   var columnTitle = (key) => columnDefinitions().find((column) => column.k === key)?.t ?? key;
@@ -4692,7 +5711,7 @@
       if (!settings.some((setting) => setting.k === column.k)) settings.push({ k: column.k, on: column.k === SALES_REPS && everything, w: column.w });
     });
     const fields = accountColumnsLegacy.customFields();
-    return settings.filter((setting) => setting.k !== SALES_REPS || everything).map((setting) => setting.k.startsWith(CUSTOM_PREFIX2) && !(chosen2 ?? []).some((item) => item.k === setting.k) ? { ...setting, on: Boolean(fields.find((field4) => CUSTOM_PREFIX2 + field4.clave === setting.k)?.en_tabla) } : setting);
+    return settings.filter((setting) => setting.k !== SALES_REPS || everything).map((setting) => setting.k.startsWith(CUSTOM_PREFIX2) && !(chosen2 ?? []).some((item) => item.k === setting.k) ? { ...setting, on: Boolean(fields.find((field8) => CUSTOM_PREFIX2 + field8.clave === setting.k)?.en_tabla) } : setting);
   }
   var visibleColumns = () => columnSettings().filter((setting) => setting.on);
 
@@ -4700,7 +5719,7 @@
   function paintHeader() {
     const head = document.getElementById("thead");
     if (!head) return;
-    const columns = visibleColumns(), width = columns.reduce((total, column) => total + column.w, 0);
+    const columns = visibleColumns(), width = columns.reduce((total2, column) => total2 + column.w, 0);
     head.innerHTML = columns.map((column) => `<span class="tcell th" style="width:${column.w}px;min-width:${column.w}px">${escapeHtml(columnTitle(column.k))}<i class="res" data-res="${column.k}"></i></span>`).join("");
     head.style.minWidth = `${width}px`;
     const list = document.getElementById("lista");
@@ -4732,7 +5751,7 @@
     const filters = accountListLegacy.filters();
     const chips = [
       ...filters.q ? [["q", t("accounts.list.chipSearch", { text: filters.q })]] : [],
-      ...[["prov", filters.prov], ["muni", filters.muni], ["esp", filters.esp], ["est", filters.est]].filter(([, value10]) => value10),
+      ...[["prov", filters.prov], ["muni", filters.muni], ["esp", filters.esp], ["est", filters.est]].filter(([, value15]) => value15),
       ...filters.urg ? [["urg", t("accounts.list.chipUrgent")]] : [],
       ...filters.mios ? [["mios", t("accounts.list.chipMine")]] : [],
       ...filters.sin ? [["sin", t("accounts.list.chipNeverVisited")]] : []
@@ -4742,7 +5761,7 @@
 
   // src/app/screens/accounts/list/search.ts
   var lastSearch = 0;
-  var orNull = (value10) => value10 ? value10 : null;
+  var orNull = (value15) => value15 ? value15 : null;
   var loadingHtml = (text2) => `<div class="cargador"><span class="spin"></span><span class="sm">${escapeHtml(text2)}</span></div>`;
   function searchParams() {
     const filters = accountListLegacy.filters(), size = accountListLegacy.pageSize();
@@ -4766,12 +5785,12 @@
     };
   }
   function syncTypeFilter() {
-    const select2 = document.getElementById("ftipo");
-    if (!select2) return;
-    const professionals = select2.options[1];
+    const select3 = document.getElementById("ftipo");
+    if (!select3) return;
+    const professionals = select3.options[1];
     if (professionals) professionals.text = term("medico", { number: "p", capital: "C" });
     const type = accountListLegacy.filters().tipo ?? "";
-    if (select2.value !== type) select2.value = type;
+    if (select3.value !== type) select3.value = type;
   }
   function showFailure(list, count2, error) {
     count2.textContent = "";
@@ -5102,7 +6121,7 @@
     const picker = document.createElement("div");
     picker.className = "agmpop";
     const names = shortMonthNames();
-    const paint8 = () => {
+    const paint9 = () => {
       picker.innerHTML = `<div class="agmpoph"><button type="button" class="kmv" data-an="-1" aria-label="${t("agenda.month.previousYear")}">‹</button><b>${year}</b>
       <button type="button" class="kmv" data-an="1" aria-label="${t("agenda.month.nextYear")}">›</button></div>
       <div class="agmpopg">${names.map((name, index) => {
@@ -5112,7 +6131,7 @@
       picker.querySelectorAll("[data-an]").forEach((button2) => {
         onClick(button2, () => {
           year += Number(button2.dataset.an);
-          paint8();
+          paint9();
         });
       });
       picker.querySelectorAll("[data-mk]").forEach((button2) => {
@@ -5122,7 +6141,7 @@
         });
       });
     };
-    paint8();
+    paint9();
     document.body.appendChild(picker);
     const rect = anchor.getBoundingClientRect(), width = Math.min(PICKER_WIDTH, innerWidth - 20);
     picker.style.width = `${width}px`;
@@ -5161,8 +6180,8 @@
   }
 
   // src/app/screens/agenda/metrics.ts
-  var count = (value10) => formatNumber(value10 ?? 0);
-  var decimal = (value10) => value10 === void 0 || value10 === null ? "0" : String(value10).replace(".", ",");
+  var count = (value15) => formatNumber(value15 ?? 0);
+  var decimal = (value15) => value15 === void 0 || value15 === null ? "0" : String(value15).replace(".", ",");
   function todayFigures(metrics) {
     const day = legacyAgenda.selectedDate(), today = todayIso();
     if (day === today && legacyAgenda.loadedDay() === day) {
@@ -5172,10 +6191,10 @@
     return { done: count(metrics.hoy?.visitadas), total: count(metrics.hoy?.citas) };
   }
   function pills(metrics) {
-    const { done, total } = todayFigures(metrics);
+    const { done, total: total2 } = todayFigures(metrics);
     const visits2 = term("visita", { number: "p" }), week = metrics.semana ?? {}, closings = metrics.cierres ?? {}, pending = metrics.pendientes ?? {};
     return [
-      ["agenda.metrics.today", `${done}/${total}`, t("agenda.metrics.todayDetail", { done, total, average: decimal(metrics.media_dia), visits: visits2 }), ""],
+      ["agenda.metrics.today", `${done}/${total2}`, t("agenda.metrics.todayDetail", { done, total: total2, average: decimal(metrics.media_dia), visits: visits2 }), ""],
       ["agenda.metrics.week", count(week.visitas), t("agenda.metrics.weekDetail", { count: count(week.visitas), visits: visits2, average: decimal(week.media) }), ""],
       ["agenda.metrics.closings", count(closings.hoy), t("agenda.metrics.closingsDetail", { count: count(closings.hoy), average: decimal(closings.media_dia) }), ""],
       [
@@ -5250,7 +6269,7 @@
       { title: t("agenda.sameCentre.noTimetable"), people: noTimetable }
     ].filter((group) => group.people.length);
   }
-  var toNumber = (value10) => Number(value10);
+  var toNumber = (value15) => Number(value15);
   function isSameCentre(group, appointment) {
     if (isPresent(group.lat) && isPresent(appointment.lat)) {
       return distanceKm([toNumber(group.lat), toNumber(group.lon)], [toNumber(appointment.lat), toNumber(appointment.lon)]) <= NEAR_KM;
@@ -5258,8 +6277,8 @@
     return Boolean(group.centro_nombre && appointment.centro_nombre && looseText(group.centro_nombre) === looseText(appointment.centro_nombre));
   }
   function personChip(person) {
-    const missing = person.falta?.length ? t("agenda.sameCentre.missing", { fields: person.falta.join(", ") }) : "";
-    const title2 = person.visitar ? t("agenda.sameCentre.addAppointment", { reason: person.visitar }) : t("agenda.sameCentre.seeCard") + missing;
+    const missing2 = person.falta?.length ? t("agenda.sameCentre.missing", { fields: person.falta.join(", ") }) : "";
+    const title2 = person.visitar ? t("agenda.sameCentre.addAppointment", { reason: person.visitar }) : t("agenda.sameCentre.seeCard") + missing2;
     return `<button type="button" data-agti="${person.id}" data-agtv="${person.visitar ? 1 : ""}" title="${escapeHtml(title2)}">${person.visitar ? "<i>+</i> " : ""}${escapeHtml(person.nombre)}</button>`;
   }
   function blockHtml(group, people, isoDate) {
@@ -5371,7 +6390,7 @@
     const monday = mondayOf(isoDate ?? legacyAgenda.selectedDate() ?? todayIso());
     return [loadRange(monday, addDays(monday, WEEK_DAYS - 1), legacyAgenda.userFilter(), `agenda-${monday}`), loadBlocked(monday, addDays(monday, WEEK_DAYS - 1))];
   }
-  var listOf = (request) => Promise.resolve(request).then((result) => result.data ?? [], () => []);
+  var listOf = (request2) => Promise.resolve(request2).then((result) => result.data ?? [], () => []);
   async function loadSuggestions(isoDate) {
     const future = isoDate >= todayIso(), own = agendaSources.isOwnAgenda(), owner = agendaSources.ownerId();
     const [pend, toca, centros] = await Promise.all([
@@ -5384,11 +6403,11 @@
   function applySuggestions(isoDate, suggestions) {
     if (suggestions?.date === isoDate) agendaSources.setSuggestions(isoDate, suggestions);
   }
-  async function withData(loads, paint8) {
+  async function withData(loads, paint9) {
     painting++;
     try {
-      await Promise.all(loads.filter(Boolean).map((load2) => Promise.resolve(load2).catch(() => null)));
-      return await paint8();
+      await Promise.all(loads.filter(Boolean).map((load3) => Promise.resolve(load3).catch(() => null)));
+      return await paint9();
     } finally {
       setTimeout(() => {
         painting--;
@@ -5442,9 +6461,9 @@
   }
   function draftHtml(draft) {
     const days = Object.keys(draft.dias).filter((day) => draft.dias[day]?.length).length;
-    const summary3 = t("agenda.openWeek.draftSummary", { count: formatNumber(draft.total), visits: term("visita", { number: "p", adjective: "nuevo" }), days }) + (draft.sinDia.length ? t("agenda.openWeek.draftWithoutDay", { count: draft.sinDia.length }) : "");
+    const summary4 = t("agenda.openWeek.draftSummary", { count: formatNumber(draft.total), visits: term("visita", { number: "p", adjective: "nuevo" }), days }) + (draft.sinDia.length ? t("agenda.openWeek.draftWithoutDay", { count: draft.sinDia.length }) : "");
     return `<div class="semborr">
-      <span><b>${t("agenda.openWeek.draft")}</b> · ${summary3}</span>
+      <span><b>${t("agenda.openWeek.draft")}</b> · ${summary4}</span>
       <span class="acts" style="margin:0"><button class="btn sec" id="semdescartar">${t("agenda.openWeek.discard")}</button><button class="btn" id="semguardar">${t("agenda.openWeek.save")}</button></span></div>`;
   }
   function withoutDayHtml(draft) {
@@ -5539,9 +6558,9 @@
       weekPlanner.discardDraft();
       reloadAgenda();
     };
-    const save13 = box.querySelector("#semguardar");
-    if (save13) save13.onclick = () => {
-      weekPlanner.saveDraft(save13);
+    const save21 = box.querySelector("#semguardar");
+    if (save21) save21.onclick = () => {
+      weekPlanner.saveDraft(save21);
     };
     box.querySelectorAll("[data-semdia]").forEach((column) => {
       bindDay(column, data);
@@ -5586,7 +6605,7 @@
     bind2(box, data);
   }
   function paintOpenWeek() {
-    const paint8 = async () => {
+    const paint9 = async () => {
       const strip = document.getElementById("agcinta");
       if (!legacyAgenda.isDayView() || !strip || !stripState.weekOpen() || document.getElementById("agsemexp")) {
         await render();
@@ -5600,7 +6619,7 @@
         if (box) box.style.display = "";
       }
     };
-    return legacyAgenda.isDayView() ? withData(stripState.weekOpen() ? weekLoads(legacyAgenda.selectedDate()) : [], paint8) : paint8();
+    return legacyAgenda.isDayView() ? withData(stripState.weekOpen() ? weekLoads(legacyAgenda.selectedDate()) : [], paint9) : paint9();
   }
 
   // src/app/screens/agenda/strip.ts
@@ -5626,10 +6645,10 @@
     const dots = items.slice(0, MAX_DOTS).map((item) => `<i class="${dotKind(item, isoDate, today)}"></i>`).join("") + (items.length > MAX_DOTS ? `<em>+${items.length - MAX_DOTS}</em>` : "");
     const count2 = t(items.length === 1 ? "agenda.strip.oneAppointment" : "agenda.strip.appointments", { count: items.length });
     const classes = ["cdia", isoDate === today ? "hoy" : "", isoDate === selected ? "sel" : "", [0, 6].includes(date.getDay()) ? "finde" : "", reason ? "bloq" : ""].filter(Boolean).join(" ");
-    const options = isoDate >= today ? `<span class="cdmas" role="button" tabindex="0" aria-label="${t("agenda.strip.dayOptions")}" title="${t("agenda.strip.dayOptions")}">⋯</span>` : "";
+    const options2 = isoDate >= today ? `<span class="cdmas" role="button" tabindex="0" aria-label="${t("agenda.strip.dayOptions")}" title="${t("agenda.strip.dayOptions")}">⋯</span>` : "";
     const letter = t("dates.weekdayLetters").split(",")[(date.getDay() + 6) % 7] ?? "";
     return `<button type="button" class="${classes}" data-cf="${isoDate}"${reason ? ` data-bloq="${escapeHtml(reason)}"` : ""} aria-label="${escapeHtml(formatLongDate(isoDate))}: ${count2}" title="${count2}">
-      <span class="dn">${letter}</span><span class="dd">${date.getDate()}</span><span class="cpts">${dots || "<b></b>"}</span>${options}</button>`;
+      <span class="dn">${letter}</span><span class="dd">${date.getDate()}</span><span class="cpts">${dots || "<b></b>"}</span>${options2}</button>`;
   }
   function weekButtonHtml(open2) {
     const label = t(open2 ? "agenda.strip.hideWeek" : "agenda.strip.showWeek");
@@ -5674,15 +6693,15 @@
     };
   }
   function bindDayOptions(strip) {
-    strip.querySelectorAll(".cdmas").forEach((options) => {
-      const day = options.closest("[data-cf]");
+    strip.querySelectorAll(".cdmas").forEach((options2) => {
+      const day = options2.closest("[data-cf]");
       const open2 = (event) => {
         event.stopPropagation();
         event.preventDefault();
-        legacyAgendaParts.dayMenu(options, day?.dataset.cf ?? "", Boolean(day?.classList.contains("bloq")));
+        legacyAgendaParts.dayMenu(options2, day?.dataset.cf ?? "", Boolean(day?.classList.contains("bloq")));
       };
-      options.addEventListener("click", open2, true);
-      options.addEventListener("keydown", (event) => {
+      options2.addEventListener("click", open2, true);
+      options2.addEventListener("keydown", (event) => {
         if (event.key === "Enter") open2(event);
       });
     });
@@ -5772,10 +6791,10 @@
   }
   function dayContent(items, blockedReason) {
     const blocked = blockedReason ? `<span class="agslb">${escapeHtml(blockedReason)}</span>` : "";
-    const shown4 = items.slice(0, SHOWN_PER_DAY2).map((item) => `<span class="agslx"><b>${escapeHtml(timeOf2(item).slice(0, 5))}</b>${escapeHtml(orFallback(item.medico, item.nombre ?? ""))}</span>`).join("");
+    const shown5 = items.slice(0, SHOWN_PER_DAY2).map((item) => `<span class="agslx"><b>${escapeHtml(timeOf2(item).slice(0, 5))}</b>${escapeHtml(orFallback(item.medico, item.nombre ?? ""))}</span>`).join("");
     const more = items.length > SHOWN_PER_DAY2 ? `<span class="agslv">${t("agenda.week.andMore", { count: items.length - SHOWN_PER_DAY2 })}</span>` : "";
     const free = !items.length && !blockedReason ? `<span class="agslv">${t("agenda.week.free")}</span>` : "";
-    return blocked + shown4 + more + free;
+    return blocked + shown5 + more + free;
   }
   function dayHtml(isoDate, items, context) {
     const date = fromIsoDate(isoDate), blockedReason = context.blocked[isoDate];
@@ -5940,9 +6959,9 @@
   // src/app/screens/agenda/team.ts
   function selectorHtml() {
     const me = salesTeam.currentUserId(), viewed = agendaState.viewed();
-    const options = salesTeam.members().filter((member) => member.id !== me).map((member) => `<option value="${member.id}" ${viewed?.id === member.id ? "selected" : ""}>${escapeHtml(member.nombre)}</option>`).join("");
+    const options2 = salesTeam.members().filter((member) => member.id !== me).map((member) => `<option value="${member.id}" ${viewed?.id === member.id ? "selected" : ""}>${escapeHtml(member.nombre)}</option>`).join("");
     return `<select id="agvista" aria-label="${t("agenda.team.agendaOf")}" title="${t("agenda.team.seeOthers")}">
-        <option value="">${t("agenda.team.myAgenda")}</option>${options}</select>`;
+        <option value="">${t("agenda.team.myAgenda")}</option>${options2}</select>`;
   }
   function ensureTeamControls() {
     if (currentScreen() !== "agenda" || !permissions.seesEverything()) return;
@@ -6320,42 +7339,42 @@
     button2.innerHTML = legacyIcons.list(compact2 ? "file-text" : "list");
     button2.setAttribute("aria-pressed", String(compact2));
   }
-  function statsHtml(summary3) {
-    const end = summary3.open && !summary3.isPast ? `<span>${t("agenda.yourDay.estimatedEnd")} <b style="color:${summary3.overReturn ? "var(--warn)" : "var(--navy)"}">${formatMinutes(summary3.end)}</b>${summary3.overReturn ? t("agenda.yourDay.overReturn") : ""}${summary3.end >= DAY_MINUTES ? ` <span class="sm">${t("agenda.yourDay.nextDay")}</span>` : ""}</span>` : "";
+  function statsHtml(summary4) {
+    const end = summary4.open && !summary4.isPast ? `<span>${t("agenda.yourDay.estimatedEnd")} <b style="color:${summary4.overReturn ? "var(--warn)" : "var(--navy)"}">${formatMinutes(summary4.end)}</b>${summary4.overReturn ? t("agenda.yourDay.overReturn") : ""}${summary4.end >= DAY_MINUTES ? ` <span class="sm">${t("agenda.yourDay.nextDay")}</span>` : ""}</span>` : "";
     return `<div class="tdstats">
-          <span>${t("agenda.yourDay.appointments", { count: formatNumber(summary3.active) })}</span>
-          <span>${t("agenda.yourDay.visited", { count: formatNumber(summary3.done) })}</span>
-          ${summary3.absent ? `<span>${t("agenda.yourDay.absent", { count: formatNumber(summary3.absent) })}</span>` : ""}
-          <span>${t("agenda.yourDay.toDo", { count: summary3.open })}</span>
+          <span>${t("agenda.yourDay.appointments", { count: formatNumber(summary4.active) })}</span>
+          <span>${t("agenda.yourDay.visited", { count: formatNumber(summary4.done) })}</span>
+          ${summary4.absent ? `<span>${t("agenda.yourDay.absent", { count: formatNumber(summary4.absent) })}</span>` : ""}
+          <span>${t("agenda.yourDay.toDo", { count: summary4.open })}</span>
           ${end}
         </div>`;
   }
-  function workingDayButton(summary3) {
-    if (!summary3.isToday || !summary3.isOwner) return "";
-    if (summary3.workingDay) return `<button class="btn dang chico" id="tdterminar">${t("agenda.yourDay.endDay")}</button>`;
-    return summary3.open ? `<button class="btn chico" id="tdempezar">${t("agenda.yourDay.startDay")}</button>` : "";
+  function workingDayButton(summary4) {
+    if (!summary4.isToday || !summary4.isOwner) return "";
+    if (summary4.workingDay) return `<button class="btn dang chico" id="tdterminar">${t("agenda.yourDay.endDay")}</button>`;
+    return summary4.open ? `<button class="btn chico" id="tdempezar">${t("agenda.yourDay.startDay")}</button>` : "";
   }
-  function actionsHtml2(summary3) {
-    const { isPast, own, open: open2, withPlace } = summary3;
+  function actionsHtml2(summary4) {
+    const { isPast, own, open: open2, withPlace } = summary4;
     return `<div class="acts">
         ${own ? `<button type="button" class="btn sec chico" id="tdtarea">${t("agenda.yourDay.addTask")}</button>` : ""}
         ${!isPast && withPlace > 1 ? `<button class="btn sec chico" id="tdordenar" title="${t("agenda.yourDay.orderTitle")}">${t("agenda.yourDay.orderByDistance")}</button>` : ""}
-        ${workingDayButton(summary3)}
+        ${workingDayButton(summary4)}
         ${isPast && open2 ? `<button class="btn chico" id="tdrepro">${t("agenda.yourDay.reschedulePending")}</button>` : ""}
       </div>`;
   }
-  function headerHtml4(summary3) {
-    const title2 = t(summary3.isToday ? "agenda.yourDay.titleToday" : summary3.isPast ? "agenda.yourDay.titlePast" : "agenda.yourDay.titleFuture");
-    const dayMenu = summary3.isFutureOrToday ? `<button type="button" class="kmv tddiamas" id="tddiamas" aria-label="${t("agenda.yourDay.dayOptions")}" title="${t("agenda.yourDay.dayOptionsTitle")}">${legacyIcons.line("mas")}</button>` : "";
+  function headerHtml4(summary4) {
+    const title2 = t(summary4.isToday ? "agenda.yourDay.titleToday" : summary4.isPast ? "agenda.yourDay.titlePast" : "agenda.yourDay.titleFuture");
+    const dayMenu = summary4.isFutureOrToday ? `<button type="button" class="kmv tddiamas" id="tddiamas" aria-label="${t("agenda.yourDay.dayOptions")}" title="${t("agenda.yourDay.dayOptionsTitle")}">${legacyIcons.line("mas")}</button>` : "";
     return `
     <div class="tdhead">
-      <div class="${summary3.isFutureOrToday ? "tdtitw" : ""}"><h2 style="padding:0">${title2}</h2>${summary3.mine > 1 ? compactButton(summary3.compact) : ""}${dayMenu}
-        ${statsHtml(summary3)}</div>
-      ${actionsHtml2(summary3)}
+      <div class="${summary4.isFutureOrToday ? "tdtitw" : ""}"><h2 style="padding:0">${title2}</h2>${summary4.mine > 1 ? compactButton(summary4.compact) : ""}${dayMenu}
+        ${statsHtml(summary4)}</div>
+      ${actionsHtml2(summary4)}
     </div>`;
   }
-  function workingDayHtml(summary3, duration) {
-    return summary3.isToday && summary3.workingDay ? `<div class="tdjornada">${t("agenda.yourDay.workingDay", { time: duration, visit: summary3.visit })}</div>` : "";
+  function workingDayHtml(summary4, duration) {
+    return summary4.isToday && summary4.workingDay ? `<div class="tdjornada">${t("agenda.yourDay.workingDay", { time: duration, visit: summary4.visit })}</div>` : "";
   }
   function noFitHtml(noFit) {
     if (!noFit.shown) return "";
@@ -6480,7 +7499,7 @@
       noFitBanner: banner,
       limit
     };
-    const summary3 = {
+    const summary4 = {
       isToday: day === today,
       isPast,
       isFutureOrToday: day >= today,
@@ -6499,7 +7518,7 @@
       visit: visit2
     };
     const outside = Object.values(info).filter((stop) => stop.llegada !== null && stop.llegada !== void 0 && stop.llegada >= limit).length;
-    return { context, summary: summary3, noFit: { shown: banner, overLimit, end: estimate.fin, outside, canOrder: !isPast && withPlace > 1 } };
+    return { context, summary: summary4, noFit: { shown: banner, overLimit, end: estimate.fin, outside, canOrder: !isPast && withPlace > 1 } };
   }
   function on(id, action) {
     const button2 = document.getElementById(id);
@@ -6529,17 +7548,17 @@
     const all = result.data ?? [], owner = agendaSources.ownerId();
     const data = { day, today, mine: all.filter((item) => item.usuario_id === owner), others: all.filter((item) => item.usuario_id !== owner) };
     yourDayLegacy.setDayAppointments(data.mine);
-    const { context, summary: summary3, noFit } = buildContext(data, yourDayLegacy.estimateDay(data.mine, day));
-    const cards = data.mine.length ? `<div class="tdesc" aria-label="${t("agenda.yourDay.dayAppointments")}">${data.mine.map((item, index) => appointmentCard(item, index, context)).join("")}</div>` : `<div class="vacio">${t(summary3.isToday ? "agenda.yourDay.emptyToday" : "agenda.yourDay.emptyOther")}</div>`;
-    body2.innerHTML = `${headerHtml4(summary3)}
-    ${workingDayHtml(summary3, summary3.workingDay ? formatDuration(Date.now() - summary3.workingDay.inicio) : "")}
+    const { context, summary: summary4, noFit } = buildContext(data, yourDayLegacy.estimateDay(data.mine, day));
+    const cards = data.mine.length ? `<div class="tdesc" aria-label="${t("agenda.yourDay.dayAppointments")}">${data.mine.map((item, index) => appointmentCard(item, index, context)).join("")}</div>` : `<div class="vacio">${t(summary4.isToday ? "agenda.yourDay.emptyToday" : "agenda.yourDay.emptyOther")}</div>`;
+    body2.innerHTML = `${headerHtml4(summary4)}
+    ${workingDayHtml(summary4, summary4.workingDay ? formatDuration(Date.now() - summary4.workingDay.inicio) : "")}
     ${noFitHtml(noFit)}
     ${cards}
     ${othersHtml(data.others)}`;
     bindHeader2(data, context.open);
     refreshMetrics();
     yourDayLegacy.prepareRouteStops(day);
-    if (!summary3.own) return;
+    if (!summary4.own) return;
     const tasks = await agendaSources.dayTasks(day);
     const fresh = document.getElementById("agcuerpo");
     if (legacyAgenda.selectedDate() === day && fresh) paintTasks(fresh, tasks);
@@ -6586,13 +7605,13 @@
     document.addEventListener("click", (event) => {
       const button2 = event.target instanceof Element ? event.target.closest("#tdcompactar") : null;
       if (!button2) return;
-      const value10 = !compact();
+      const value15 = !compact();
       try {
-        localStorage.setItem(COMPACT_KEY, value10 ? "1" : "0");
+        localStorage.setItem(COMPACT_KEY, value15 ? "1" : "0");
       } catch {
       }
       applyCompact();
-      setCompactButton(button2, value10);
+      setCompactButton(button2, value15);
     });
     document.addEventListener("click", (event) => {
       const button2 = event.target instanceof Element ? event.target.closest("[data-tdavi]") : null;
@@ -6623,15 +7642,15 @@
       element2.classList.remove(HIGHLIGHT_CLASS);
     }, HIGHLIGHT_MS);
   }
-  function slideIntoPlace(before, options) {
+  function slideIntoPlace(before, options2) {
     const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
-    document.querySelectorAll(options.selector).forEach((element2) => {
-      const id = element2.dataset[options.key] ?? "";
-      if (options.touched && id === String(options.touched)) highlight(element2);
+    document.querySelectorAll(options2.selector).forEach((element2) => {
+      const id = element2.dataset[options2.key] ?? "";
+      if (options2.touched && id === String(options2.touched)) highlight(element2);
       const top = before.get(id);
       if (still || top === void 0) return;
       const shift = top - element2.getBoundingClientRect().top;
-      if (Math.abs(shift) > 1) element2.animate([{ transform: `translateY(${shift}px)` }, { transform: "none" }], { duration: options.durationMs, easing: EASING });
+      if (Math.abs(shift) > 1) element2.animate([{ transform: `translateY(${shift}px)` }, { transform: "none" }], { duration: options2.durationMs, easing: EASING });
     });
   }
 
@@ -6667,13 +7686,13 @@
     const now = /* @__PURE__ */ new Date(), minutesNow = now.getHours() * 60 + now.getMinutes();
     const next = open2.find((item) => (minutesOf2(item.hora) ?? 9999) >= minutesNow - 15) ?? open2[0];
     const time = (item, empty2) => escapeHtml(String(item.hora ?? "").slice(0, 5) || empty2);
-    const summary3 = next ? t("home.indicators.nextAppointment", { time: time(next, "—"), name: escapeHtml(next.nombre) }) : t(list.length ? "home.indicators.allClosed" : "home.indicators.noAppointmentsToday");
+    const summary4 = next ? t("home.indicators.nextAppointment", { time: time(next, "—"), name: escapeHtml(next.nombre) }) : t(list.length ? "home.indicators.allClosed" : "home.indicators.noAppointmentsToday");
     const visible = isMobile() ? 3 : 5;
     const nextIndex = next ? list.indexOf(next) : 0;
-    const start2 = Math.max(0, Math.min(nextIndex - (visible >> 1), list.length - visible)), shown4 = list.slice(start2, start2 + visible);
-    const more = Math.max(0, nonZeroOr(kpis.citas_hoy, list.length) - shown4.length);
-    const dots = shown4.map((item) => `<span class="kvdot"><i class="${dotKind2(item, next)}" title="${escapeHtml(item.nombre)}"></i><em>${time(item, "·")}</em></span>`).join("");
-    return { summary: summary3, visual: list.length ? `<div class="kvdots">${dots}${more > 0 ? `<span class="kvdot"><em class="kvmas">+${more}</em></span>` : ""}</div>` : "" };
+    const start2 = Math.max(0, Math.min(nextIndex - (visible >> 1), list.length - visible)), shown5 = list.slice(start2, start2 + visible);
+    const more = Math.max(0, nonZeroOr(kpis.citas_hoy, list.length) - shown5.length);
+    const dots = shown5.map((item) => `<span class="kvdot"><i class="${dotKind2(item, next)}" title="${escapeHtml(item.nombre)}"></i><em>${time(item, "·")}</em></span>`).join("");
+    return { summary: summary4, visual: list.length ? `<div class="kvdots">${dots}${more > 0 ? `<span class="kvdot"><em class="kvmas">+${more}</em></span>` : ""}</div>` : "" };
   }
   function urgentChart(kpis) {
     if (kpis.urgentes) return { summary: t("home.indicators.urgentPending", { count: formatNumber(kpis.urgentes) }), visual: '<div class="kvradar" aria-hidden="true"><i></i><b></b><b></b></div>' };
@@ -6695,10 +7714,10 @@
     const perDay = countsByDate(charts.por_dia), nextDays = countsByDate(charts.proximos);
     const values = days.map((day) => (upcoming2 ? nextDays.get(day) : perDay.get(day)) ?? 0);
     const max = Math.max(1, ...values), width = 196, barWidth = 18, gap = (width - 7 * barWidth) / 6;
-    const bars2 = values.map((value10, i) => {
-      const day = days[i] ?? today, height = Math.max(3, value10 / max * 40), x = i * (barWidth + gap), future = !upcoming2 && day > today, isToday = day === today;
+    const bars2 = values.map((value15, i) => {
+      const day = days[i] ?? today, height = Math.max(3, value15 / max * 40), x = i * (barWidth + gap), future = !upcoming2 && day > today, isToday = day === today;
       const fill2 = future ? "#E3EBF3" : isToday ? "var(--sky)" : "var(--navy)";
-      return `<rect x="${x}" y="${44 - height}" width="${barWidth}" height="${height}" rx="4" fill="${fill2}" opacity="${value10 ? 1 : 0.35}"/><text x="${x + barWidth / 2}" y="58" text-anchor="middle" class="${isToday ? "hoy" : ""}">${WEEKDAY_LETTERS[fromIsoDate(day).getDay()] ?? ""}</text>`;
+      return `<rect x="${x}" y="${44 - height}" width="${barWidth}" height="${height}" rx="4" fill="${fill2}" opacity="${value15 ? 1 : 0.35}"/><text x="${x + barWidth / 2}" y="58" text-anchor="middle" class="${isToday ? "hoy" : ""}">${WEEKDAY_LETTERS[fromIsoDate(day).getDay()] ?? ""}</text>`;
     }).join("");
     return { summary: weekSummary({ upcoming: upcoming2, days, values, perDay }, today), visual: `<svg class="kvbar" viewBox="0 0 ${width} 60" preserveAspectRatio="xMidYMax meet" aria-hidden="true">${bars2}</svg>` };
   }
@@ -6707,17 +7726,17 @@
     const previous = fromIsoDate(monthStart);
     previous.setMonth(previous.getMonth() - 1);
     const accumulate = (from) => {
-      let total = 0;
+      let total2 = 0;
       return range(dayOfMonth).map((i) => {
-        total += perDay.get(addDays(from, i)) ?? 0;
-        return total;
+        total2 += perDay.get(addDays(from, i)) ?? 0;
+        return total2;
       });
     };
     const current = accumulate(monthStart), last = accumulate(toIsoDate(previous));
     if (dayOfMonth < 2) return EMPTY_CHART;
     const max = Math.max(1, ...last, ...current), width = 196, height = 46;
-    const x = (i) => i / (dayOfMonth - 1) * width, y = (value10) => height - value10 / max * height;
-    const line2 = (values) => values.map((value10, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(value10).toFixed(1)}`).join("");
+    const x = (i) => i / (dayOfMonth - 1) * width, y = (value15) => height - value15 / max * height;
+    const line2 = (values) => values.map((value15, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(value15).toFixed(1)}`).join("");
     const end = current[current.length - 1] ?? 0, difference2 = end - (last[last.length - 1] ?? 0);
     return {
       summary: t(difference2 >= 0 ? "home.indicators.aboveLastMonth" : "home.indicators.belowLastMonth", { difference: difference2 }),
@@ -6749,21 +7768,21 @@
     if (!steps3.length) return EMPTY_CHART;
     const max = Math.max(1, ...steps3.map((count2) => count2.accounts)), width = 196, barWidth = width / steps3.length;
     const columns = steps3.map((count2, i) => {
-      const on2 = count2.state.papel === "interes", height = Math.max(4, count2.accounts / max * 28);
+      const on4 = count2.state.papel === "interes", height = Math.max(4, count2.accounts / max * 28);
       const name = count2.state.valor.length > 11 ? `${count2.state.valor.slice(0, 10)}.` : count2.state.valor;
-      return `<rect x="${i * barWidth + 4}" y="${34 - height}" width="${barWidth - 8}" height="${height}" rx="4" fill="${on2 ? "var(--navy)" : "#DCE6F1"}"/><text x="${i * barWidth + barWidth / 2}" y="${30 - height}" text-anchor="middle" class="n ${on2 ? "on" : ""}">${count2.accounts}</text><text x="${i * barWidth + barWidth / 2}" y="48" text-anchor="middle" class="${on2 ? "on" : ""}">${escapeHtml(name)}</text>`;
+      return `<rect x="${i * barWidth + 4}" y="${34 - height}" width="${barWidth - 8}" height="${height}" rx="4" fill="${on4 ? "var(--navy)" : "#DCE6F1"}"/><text x="${i * barWidth + barWidth / 2}" y="${30 - height}" text-anchor="middle" class="n ${on4 ? "on" : ""}">${count2.accounts}</text><text x="${i * barWidth + barWidth / 2}" y="48" text-anchor="middle" class="${on4 ? "on" : ""}">${escapeHtml(name)}</text>`;
     }).join("");
     const positive = counts.find((count2) => count2.state.papel === "positivo");
     const state = positive ? escapeHtml(positive.state.valor) : "";
-    const summary3 = positive ? positive.accounts ? t("home.indicators.alreadyIn", { count: positive.accounts, state }) : t("home.indicators.nextStep", { state }) : "";
-    return { summary: summary3, visual: `<svg class="kvbar" viewBox="0 0 ${width} 52" preserveAspectRatio="xMidYMax meet" aria-hidden="true">${columns}</svg>` };
+    const summary4 = positive ? positive.accounts ? t("home.indicators.alreadyIn", { count: positive.accounts, state }) : t("home.indicators.nextStep", { state }) : "";
+    return { summary: summary4, visual: `<svg class="kvbar" viewBox="0 0 ${width} 52" preserveAspectRatio="xMidYMax meet" aria-hidden="true">${columns}</svg>` };
   }
   function portfolioChart(charts) {
-    const total = portfolioTotal(charts), present = stateCounts(charts).filter((count2) => count2.accounts);
+    const total2 = portfolioTotal(charts), present = stateCounts(charts).filter((count2) => count2.accounts);
     const circumference = 2 * Math.PI * 22;
     let offset = 0;
     const segments = present.map((count2) => {
-      const length = count2.accounts / total * circumference;
+      const length = count2.accounts / total2 * circumference;
       const segment = `<circle class="s" cx="29" cy="29" r="22" fill="none" stroke="${color(count2.state.papel)}" stroke-width="9" stroke-dasharray="${Math.max(0, length - 1.5)} ${circumference}" stroke-dashoffset="${-offset}"/>`;
       offset += length;
       return segment;
@@ -6772,16 +7791,16 @@
     return { summary: "", visual: `<div class="kvdona"><svg viewBox="0 0 58 58" aria-hidden="true">${segments}</svg><div class="kvley">${legend}</div></div>` };
   }
   function notContactedChart(charts, kpis) {
-    const total = portfolioTotal(charts), notContacted = kpis.sin_contactar ?? 0;
-    const squares = Math.min(total, isMobile() ? 64 : 96), filled = Math.round(notContacted / total * squares);
+    const total2 = portfolioTotal(charts), notContacted = kpis.sin_contactar ?? 0;
+    const squares = Math.min(total2, isMobile() ? 64 : 96), filled = Math.round(notContacted / total2 * squares);
     const grid = range(squares).map((i) => `<i class="${i >= squares - filled ? "f" : ""}"></i>`).join("");
-    return { summary: t("home.indicators.shareOfPortfolio", { percent: Math.round(notContacted / total * 100) }), visual: `<div class="kvwaf" aria-hidden="true">${grid}</div>` };
+    return { summary: t("home.indicators.shareOfPortfolio", { percent: Math.round(notContacted / total2 * 100) }), visual: `<div class="kvwaf" aria-hidden="true">${grid}</div>` };
   }
   function noRecentVisitChart(kpis) {
-    const percent2 = Math.round((kpis.sin_visita_60 ?? 0) / Math.max(1, kpis.medicos ?? 0) * 100);
+    const percent3 = Math.round((kpis.sin_visita_60 ?? 0) / Math.max(1, kpis.medicos ?? 0) * 100);
     return {
-      summary: t("home.indicators.shareOfPortfolio", { percent: percent2 }),
-      visual: `<div class="kvpropw"><div class="kvprop"><i style="width:${percent2}%"></i></div><div class="kvpropt"><span><i class="kvq a"></i>${t("home.indicators.noVisitIn60Days", { visit: term("visita") })}</span><span><i class="kvq b"></i>${t("home.indicators.theRest")}</span></div></div>`
+      summary: t("home.indicators.shareOfPortfolio", { percent: percent3 }),
+      visual: `<div class="kvpropw"><div class="kvprop"><i style="width:${percent3}%"></i></div><div class="kvpropt"><span><i class="kvq a"></i>${t("home.indicators.noVisitIn60Days", { visit: term("visita") })}</span><span><i class="kvq b"></i>${t("home.indicators.theRest")}</span></div></div>`
     };
   }
 
@@ -6803,7 +7822,7 @@
   function chartFor(id, kpis, panel, charts) {
     return CHARTS.get(id)?.({ id, kpis, panel, charts, today: todayIso() }) ?? EMPTY_CHART;
   }
-  function helpButton(help, title2) {
+  function helpButton2(help, title2) {
     return help ? `<button class="ai" data-ayuda-txt="${escapeHtml(help)}" data-ayuda-tit="${escapeHtml(title2)}" aria-label="${t("home.indicators.whatIsIt")}">i</button>` : "";
   }
   function figure(raw) {
@@ -6816,7 +7835,7 @@
     const classes = `kpi ${definition.cls ? definition.cls(context.kpis) : ""} ${definition.h ? "click" : ""}${context.panel ? " kv" : ""}`;
     const action = definition.h ? ` data-k="${definition.h}"` : "";
     const icon2 = indicatorCatalog.icon(definition.id), description = indicatorCatalog.description(definition.id);
-    const help = helpButton(indicatorCatalog.help(definition.id), title2);
+    const help = helpButton2(indicatorCatalog.help(definition.id), title2);
     const raw = definition.v(context.kpis);
     const body2 = context.panel ? liveBody(definition.id, capitalise(title2).trim(), raw, context) : `
        ${help}
@@ -6824,10 +7843,10 @@
     return `<div class="${classes}"${action} data-kid="${definition.id}" data-comp="1">${icon2 ? `<span class="kico" aria-hidden="true">${icon2}</span>` : ""}${context.panel ? help : ""}${body2}${description ? `<em class="kdesc">${escapeHtml(description)}</em>` : ""}</div>`;
   }
   function liveBody(id, title2, raw, context) {
-    const { summary: summary3, visual } = chartFor(id, context.kpis, context.panel, context.charts);
+    const { summary: summary4, visual } = chartFor(id, context.kpis, context.panel, context.charts);
     return `<div class="kvt">${escapeHtml(title2)}</div>
       <div class="kvn">${figure(raw)}</div>
-      <div class="kvs">${summary3}</div>${visual ? `<div class="kvz">${visual}</div>` : ""}`;
+      <div class="kvs">${summary4}</div>${visual ? `<div class="kvz">${visual}</div>` : ""}`;
   }
   function filterCard(setting, index, live) {
     const filter = setting.filtro ?? {};
@@ -6911,9 +7930,9 @@
   }
 
   // src/app/screens/home/service.ts
-  function valueOf(request) {
-    if (!request) return Promise.resolve(null);
-    return Promise.resolve(request).then((result) => result.data, () => null);
+  function valueOf(request2) {
+    if (!request2) return Promise.resolve(null);
+    return Promise.resolve(request2).then((result) => result.data, () => null);
   }
   function requests(today) {
     const seesOperations = permissions.seesEverything() && permissions.salesLevel() >= 1;
@@ -7090,11 +8109,11 @@
   // src/app/screens/home/tiles.ts
   var plural = (count2, one, other) => count2 === 1 ? one : other;
   function attentionTile(items) {
-    const total = items.reduce((sum2, item) => sum2 + item.count, 0);
+    const total2 = items.reduce((sum2, item) => sum2 + item.count, 0);
     const rows = items.slice(0, 7).map((item, index) => `<button type="button" class="mti ${item.priority}" data-mat="${index}"><span class="mic">${icon(item.icon)}</span>
       <span class="mtx"><b>${escapeHtml(item.title)}</b><span>${escapeHtml(item.detail)}</span></span><span class="mn" data-mcnt="${item.count}">${item.count}</span><span class="mfl" aria-hidden="true">›</span></button>`).join("");
     const allClear = `<div class="mtok">${icon("check")}<span><b>${t("home.attention.allClearTitle")}</b>${t("home.attention.allClearText")}</span></div>`;
-    return `<div class="mt mtat ${items.length <= 2 ? "pocas" : ""}"><div class="mtt">${icon("bell")} ${t("home.attention.title")}${total ? `<span class="mtatn" data-mcnt="${total}">${total}</span>` : ""}</div>
+    return `<div class="mt mtat ${items.length <= 2 ? "pocas" : ""}"><div class="mtt">${icon("bell")} ${t("home.attention.title")}${total2 ? `<span class="mtatn" data-mcnt="${total2}">${total2}</span>` : ""}</div>
     <div class="mtl">${rows || allClear}</div></div>`;
   }
   function salesChart(data) {
@@ -7147,19 +8166,19 @@
     <div class="mmini"><div><span>${t("home.collections.overdue")}</span><b class="${collections.vencido > 0 ? "mdown" : ""}">${formatEuros(collections.vencido)}</b></div><div><span>${t("home.collections.invoicedThisMonth")}</span><b>${formatEuros(collections.facturado_mes)}</b></div></div></div>`;
   }
   function cycleTile(data) {
-    const summary3 = data.cycle?.resumen ?? [];
-    if (!summary3.length) return "";
-    const done = summary3.reduce((sum2, row4) => sum2 + row4.hechas, 0), target = summary3.reduce((sum2, row4) => sum2 + row4.objetivo, 0);
-    const percent2 = target ? Math.round(100 * done / target) : 0, circumference = 2 * Math.PI * 30;
+    const summary4 = data.cycle?.resumen ?? [];
+    if (!summary4.length) return "";
+    const done = summary4.reduce((sum2, row4) => sum2 + row4.hechas, 0), target = summary4.reduce((sum2, row4) => sum2 + row4.objetivo, 0);
+    const percent3 = target ? Math.round(100 * done / target) : 0, circumference = 2 * Math.PI * 30;
     return `<div class="mt mtcic"><div class="mtt">${icon("target")} ${t("home.cycle.title", { visits: term("visita", { number: "p" }) })}</div>
-      <div class="mfila"><svg class="mring" viewBox="0 0 70 70" aria-hidden="true"><circle class="f" cx="35" cy="35" r="30"/><circle class="v" cx="35" cy="35" r="30" style="stroke-dasharray:${circumference * percent2 / 100} ${circumference}"/></svg>
-      <div><div class="mn1" style="margin:0"><span data-mcnt="${percent2}">${percent2}</span> %</div><div class="ms"><b>${done}</b>${t("home.cycle.progress", { target, days: data.cycle?.quedan_dias ?? 0 })}</div></div></div></div>`;
+      <div class="mfila"><svg class="mring" viewBox="0 0 70 70" aria-hidden="true"><circle class="f" cx="35" cy="35" r="30"/><circle class="v" cx="35" cy="35" r="30" style="stroke-dasharray:${circumference * percent3 / 100} ${circumference}"/></svg>
+      <div><div class="mn1" style="margin:0"><span data-mcnt="${percent3}">${percent3}</span> %</div><div class="ms"><b>${done}</b>${t("home.cycle.progress", { target, days: data.cycle?.quedan_dias ?? 0 })}</div></div></div></div>`;
   }
   function stockTile(data) {
     if (!permissions.canSeeArea("productos")) return "";
-    const total = data.stock.reduce((sum2, alert) => sum2 + alert.n, 0);
+    const total2 = data.stock.reduce((sum2, alert) => sum2 + alert.n, 0);
     const rows = data.stock.slice(0, 3).map((alert) => `<div><span>${escapeHtml(alert.titulo)}</span><b>${alert.n}</b></div>`).join("");
-    return `<div class="mt mtsto"><div class="mtt">${icon("package")} ${t("home.stock.title")}</div><div class="mn1"><span data-mcnt="${total}">${total}</span><small>${plural(total, t("home.stock.alertOne"), t("home.stock.alertOther"))}</small></div>
+    return `<div class="mt mtsto"><div class="mtt">${icon("package")} ${t("home.stock.title")}</div><div class="mn1"><span data-mcnt="${total2}">${total2}</span><small>${plural(total2, t("home.stock.alertOne"), t("home.stock.alertOther"))}</small></div>
       <div class="mmini">${rows || `<div><span>${t("home.stock.allGood")}</span></div>`}</div></div>`;
   }
   function portfolioTile(data) {
@@ -7200,9 +8219,9 @@
     const toggle = document.getElementById("inikpisver");
     if (toggle) {
       toggle.onclick = () => {
-        const shown4 = !section2.classList.contains("conkpis");
-        section2.classList.toggle("conkpis", shown4);
-        toggle.textContent = t(shown4 ? "home.hideIndicators" : "home.showIndicators");
+        const shown5 = !section2.classList.contains("conkpis");
+        section2.classList.toggle("conkpis", shown5);
+        toggle.textContent = t(shown5 ? "home.hideIndicators" : "home.showIndicators");
       };
     }
     return document.getElementById("inimos");
@@ -7228,8 +8247,8 @@
     const step = (now) => {
       const progress = Math.min(1, (now - start2) / COUNT_DURATION_MS2), eased = 1 - Math.pow(1 - progress, 3);
       figures.forEach((el) => {
-        const euros2 = el.dataset.meur;
-        el.textContent = euros2 === void 0 ? formatNumber(Math.round(Number(el.dataset.mcnt) * eased)) : formatEuros(Number(euros2) * eased);
+        const euros6 = el.dataset.meur;
+        el.textContent = euros6 === void 0 ? formatNumber(Math.round(Number(el.dataset.mcnt) * eased)) : formatEuros(Number(euros6) * eased);
       });
       if (progress < 1) requestAnimationFrame(step);
     };
@@ -7556,8 +8575,8 @@
     document.querySelectorAll(".tdmenu").forEach((menu2) => {
       menu2.remove();
     });
-    const options = menuOptions(item);
-    if (!options.length) {
+    const options2 = menuOptions(item);
+    if (!options2.length) {
       notices.toast(t("agenda.menu.alreadyClosed"));
       return;
     }
@@ -7565,7 +8584,7 @@
     menu.className = "tdmenu";
     menu.__t = Date.now();
     const danger = (action) => action === "descartar" || action === "borrar";
-    menu.innerHTML = options.map((entry) => `<button data-tdop="${entry.action}" class="${danger(entry.action) ? "peligro" : ""}"><b>${escapeHtml(entry.title)}</b>${entry.detail ? `<span>${escapeHtml(entry.detail)}</span>` : ""}</button>`).join("");
+    menu.innerHTML = options2.map((entry) => `<button data-tdop="${entry.action}" class="${danger(entry.action) ? "peligro" : ""}"><b>${escapeHtml(entry.title)}</b>${entry.detail ? `<span>${escapeHtml(entry.detail)}</span>` : ""}</button>`).join("");
     document.body.appendChild(menu);
     const rect = button2.getBoundingClientRect();
     menu.style.top = `${Math.min(window.innerHeight - menu.offsetHeight - 10, rect.bottom + 6)}px`;
@@ -7591,7 +8610,7 @@
     if (!windows.length) return t("agenda.sheet.notAttending");
     return (info.otroCentro ? t("agenda.sheet.atCentre", { centre: info.otroCentro }) : "") + yourDayLegacy.windowsText(windows);
   }
-  var row2 = (label, value10) => `<div class="vcfila"><span>${label}</span><b>${value10}</b></div>`;
+  var row2 = (label, value15) => `<div class="vcfila"><span>${label}</span><b>${value15}</b></div>`;
   function dataHtml(item, info) {
     const where = [item.centro_nombre, item.direccion, item.municipio].filter(Boolean).join(" · "), timetable = timetableText2(item, info), origin = yourDayLegacy.originText(item);
     return `<div class="vcdatos">
@@ -7638,31 +8657,31 @@
   var close = () => {
     dialog()?.close();
   };
-  async function saveNotes(item, notes, button2) {
+  async function saveNotes(item, notes2, button2) {
     button2.disabled = true;
-    const value10 = notes.value.trim();
-    const { error } = await legacyDb().from("agenda").update({ nota: value10 || null }).eq("id", item.id);
+    const value15 = notes2.value.trim();
+    const { error } = await legacyDb().from("agenda").update({ nota: value15 || null }).eq("id", item.id);
     if (error) {
       button2.disabled = false;
       notices.toast(t("agenda.sheet.couldNotSave", { error: error.message ?? "" }), true);
       return;
     }
-    item.nota = value10;
+    item.nota = value15;
     close();
     notices.toast(t("agenda.sheet.notesSaved"));
     refreshQuietly(item.id, false);
   }
   function bind6(body2, item) {
-    const notes = body2.querySelector("#vcnota"), save13 = body2.querySelector("#vcok");
-    if (notes && save13) {
-      notes.oninput = () => {
-        save13.disabled = notes.value.trim() === (item.nota ?? "").trim();
+    const notes2 = body2.querySelector("#vcnota"), save21 = body2.querySelector("#vcok");
+    if (notes2 && save21) {
+      notes2.oninput = () => {
+        save21.disabled = notes2.value.trim() === (item.nota ?? "").trim();
       };
-      save13.onclick = () => {
-        void saveNotes(item, notes, save13);
+      save21.onclick = () => {
+        void saveNotes(item, notes2, save21);
       };
     }
-    const on2 = (id, action) => {
+    const on4 = (id, action) => {
       const button2 = body2.querySelector(`#${id}`);
       if (button2) button2.onclick = action;
     };
@@ -7670,19 +8689,19 @@
       close();
       void runAction(action, item);
     };
-    on2("vcficha", () => {
+    on4("vcficha", () => {
       close();
       appointmentLegacy.openAccountFromCentre(item.cuenta_id, item.centro_nombre);
     });
-    on2("vcllegar", () => {
+    on4("vcllegar", () => {
       void runAction("llegar", item);
     });
-    on2("vchora", closeAnd("hora"));
-    on2("vcmover", closeAnd("aplazar"));
-    on2("vcdescartar", closeAnd("descartar"));
-    on2("vcborrar", closeAnd("borrar"));
-    on2("vcrehacer", closeAnd("rehacer"));
-    on2("vcreg", () => {
+    on4("vchora", closeAnd("hora"));
+    on4("vcmover", closeAnd("aplazar"));
+    on4("vcdescartar", closeAnd("descartar"));
+    on4("vcborrar", closeAnd("borrar"));
+    on4("vcrehacer", closeAnd("rehacer"));
+    on4("vcreg", () => {
       close();
       appointmentLegacy.recordVisit(item.cuenta_id, item.fecha);
     });
@@ -7816,7 +8835,7 @@
     const main = draft.consultations.find((item) => item.principal) ?? draft.consultations[0];
     return [inputValue("ncc"), main?.centro_nombre, picked.centro_nombre, picked.centro].find((name) => Boolean(name)) ?? null;
   }
-  async function write(picked, draft, options) {
+  async function write(picked, draft, options2) {
     const day = inputValue("ncf"), inAgenda = currentScreen() === "agenda";
     return appointmentLegacy.write("guardar_cita", { p: {
       cuenta_id: picked.id,
@@ -7824,13 +8843,13 @@
       hora: inputValue("nch") || null,
       centro_nombre: centreOf(draft, picked),
       estado: STATES4.planned,
-      origen: orFallback(options.origen, inAgenda ? "Agenda" : "Ficha"),
+      origen: orFallback(options2.origen, inAgenda ? "Agenda" : "Ficha"),
       usuario_id: editorLegacy.viewedUserId(),
       nota: inputValue("ncn").trim(),
       op_id: `c-${picked.id}-${day}-${Date.now()}`
     } });
   }
-  async function save2(draft, options, button2) {
+  async function save2(draft, options2, button2) {
     const picked = draft.picked;
     if (!picked) {
       notices.toast(t("agenda.editor.choose", { professional: term("medico", { article: "un" }) }), true);
@@ -7839,7 +8858,7 @@
     const day = inputValue("ncf"), time = inputValue("nch");
     if (!await sameDayDecision(picked.id, day) || !await recentDecision(picked.id, day)) return;
     button2.disabled = true;
-    const result = await write(picked, draft, options);
+    const result = await write(picked, draft, options2);
     button2.disabled = false;
     if (result?.error) {
       notices.toast(t("agenda.editor.couldNot", { error: result.error.message ?? "" }), true);
@@ -7851,13 +8870,13 @@
     if (currentScreen() === "agenda") refreshQuietly();
     else void load();
   }
-  async function newAppointment(accountId, day, options = {}) {
+  async function newAppointment(accountId, day, options2 = {}) {
     const draft = { picked: null, consultations: [] };
     if (accountId) draft.picked = await loadAccount(accountId, draft);
-    const shown4 = legacyAgenda.selectedDate(), today = todayIso();
+    const shown5 = legacyAgenda.selectedDate(), today = todayIso();
     const body2 = document.getElementById("dbody"), box = document.getElementById("dlg");
     if (!body2 || !box) return;
-    body2.innerHTML = windowHtml(day ?? (currentScreen() === "agenda" && shown4 && shown4 >= today ? shown4 : today));
+    body2.innerHTML = windowHtml(day ?? (currentScreen() === "agenda" && shown5 && shown5 >= today ? shown5 : today));
     paintCentres(draft);
     editorLegacy.pickAccount(document.getElementById("ncsel"), draft.picked, async (account) => {
       draft.picked = account;
@@ -7866,7 +8885,7 @@
     });
     const ok = document.getElementById("ncok");
     if (ok) ok.onclick = () => {
-      void save2(draft, options, ok);
+      void save2(draft, options2, ok);
     };
     box.classList.add("pequena");
     box.showModal();
@@ -7986,7 +9005,7 @@
   var CONCEPTS = ["inscripcion", "viaje", "comida", "honorarios"];
   var MEAL_MAX = 60;
   var conceptLabel = (concept) => t(`events.concepts.${concept}`);
-  var attendeeTotal = (attendee) => CONCEPTS.reduce((total, concept) => total + (Number(attendee[concept]) || 0), 0);
+  var attendeeTotal = (attendee) => CONCEPTS.reduce((total2, concept) => total2 + (Number(attendee[concept]) || 0), 0);
 
   // src/app/screens/events/editor.ts
   var value3 = (id) => document.getElementById(id)?.value ?? "";
@@ -8074,11 +9093,11 @@
     return `${escapeHtml(formatLongDate(event.fecha))}${event.hora ? ` · ${escapeHtml(String(event.hora).slice(0, 5))}` : ""}${event.tipo ? ` · ${escapeHtml(event.tipo)}` : ""} · ${event.en_linea ? t("events.list.online") : escapeHtml(orFallback(event.lugar, t("events.list.noPlace")))}`;
   }
   function eventRow(event) {
-    const attendees = event.eventos_asistentes ?? [], total = sum(attendees.map(attendeeTotal));
+    const attendees = event.eventos_asistentes ?? [], total2 = sum(attendees.map(attendeeTotal));
     const count2 = attendees.length === 1 ? t("events.list.oneAttendee") : t("events.list.attendees", { count: attendees.length });
     return `<button type="button" class="item evrow" data-ev="${event.id}"><span class="tx"><b>${escapeHtml(event.titulo)}</b>
       <span class="sm">${eventSummary(event)} · ${count2}</span></span>
-      ${total ? `<span class="evtot">${formatCurrency(total)}</span>` : ""}</button>`;
+      ${total2 ? `<span class="evtot">${formatCurrency(total2)}</span>` : ""}</button>`;
   }
   var section = (title2, rows, empty2) => `<section class="card evbloque"><h2>${title2}</h2>${rows.length ? `<div class="lista">${rows.map(eventRow).join("")}</div>` : `<div class="vacio vlinea">${empty2}</div>`}</section>`;
   async function paintEvents() {
@@ -8111,13 +9130,13 @@
   var BOM = String.fromCharCode(65279);
   var amount = (row4, key) => Number(row4[key]) || 0;
   function tableHtml(rows) {
-    const total = (key) => formatCurrency(sum(rows.map((row4) => amount(row4, key))));
+    const total2 = (key) => formatCurrency(sum(rows.map((row4) => amount(row4, key))));
     return `<div class="dgrid-wrap"><table class="trtabla"><thead><tr><th>${term("medico", { capital: "C" })}</th><th>${t("events.report.events")}</th>${CONCEPTS.map((concept) => `<th>${conceptLabel(concept)}</th>`).join("")}<th>${t("events.report.total")}</th></tr></thead>
       <tbody>${rows.map((row4) => `<tr><td><b>${escapeHtml(row4.nombre)}</b>${row4.especialidad ? `<span class="sm"> · ${escapeHtml(row4.especialidad)}</span>` : ""}</td><td>${row4.eventos}</td>${CONCEPTS.map((concept) => `<td>${formatCurrency(amount(row4, concept))}</td>`).join("")}<td><b>${formatCurrency(amount(row4, "total"))}</b></td></tr>`).join("")}</tbody>
-      <tfoot><tr><td>${t("events.report.total")}</td><td></td>${CONCEPTS.map((concept) => `<td>${total(concept)}</td>`).join("")}<td><b>${total("total")}</b></td></tr></tfoot></table></div>`;
+      <tfoot><tr><td>${t("events.report.total")}</td><td></td>${CONCEPTS.map((concept) => `<td>${total2(concept)}</td>`).join("")}<td><b>${total2("total")}</b></td></tr></tfoot></table></div>`;
   }
   function download(rows, year) {
-    const quote = (value10) => `"${String(value10 ?? "").replace(/"/g, '""')}"`, decimal2 = (value10) => String(Number(value10) || 0).replace(".", ",");
+    const quote = (value15) => `"${String(value15 ?? "").replace(/"/g, '""')}"`, decimal2 = (value15) => String(Number(value15) || 0).replace(".", ",");
     const header = [term("medico", { capital: "C" }), t("events.report.code"), term("especialidad", { capital: "C" }), t("events.report.events"), ...CONCEPTS.map(conceptLabel), t("events.report.total")].map(quote).join(";");
     const lines = rows.map((row4) => [quote(row4.nombre), quote(row4.codigo), quote(row4.especialidad), row4.eventos, ...CONCEPTS.map((concept) => decimal2(row4[concept])), decimal2(row4.total)].join(";"));
     const link = document.createElement("a");
@@ -8132,22 +9151,22 @@
   }
   async function paintExpenseReport(year) {
     if (!document.getElementById("cfgcuerpo")) return;
-    const current = Number(todayIso().slice(0, 4)), shown4 = year ?? current - 1;
-    const { data } = await legacyDb().rpc("transparencia_anual", { p_anio: shown4 });
+    const current = Number(todayIso().slice(0, 4)), shown5 = year ?? current - 1;
+    const { data } = await legacyDb().rpc("transparencia_anual", { p_anio: shown5 });
     const box = document.getElementById("cfgcuerpo");
     if (!box || currentScreen() !== "eventos") return;
     const rows = data?.filas ?? [];
-    box.innerHTML = `<div class="evpag"><div class="evcab"><label for="trano">${t("events.report.year")}</label><select id="trano">${range(YEARS_SHOWN).map((back) => current - back).map((option4) => `<option ${option4 === shown4 ? "selected" : ""}>${option4}</option>`).join("")}</select>
+    box.innerHTML = `<div class="evpag"><div class="evcab"><label for="trano">${t("events.report.year")}</label><select id="trano">${range(YEARS_SHOWN).map((back) => current - back).map((option4) => `<option ${option4 === shown5 ? "selected" : ""}>${option4}</option>`).join("")}</select>
       ${rows.length ? `<button type="button" class="btn sec" id="trcsv">${t("events.report.download")}</button>` : ""}</div>
     <p class="sm">${t("events.report.note", { professional: term("medico") })}</p>
-    ${rows.length ? tableHtml(rows) : `<div class="vacio vlinea">${t("events.report.empty", { year: shown4 })}</div>`}</div>`;
-    const select2 = box.querySelector("#trano");
-    if (select2) select2.onchange = () => {
-      void paintExpenseReport(Number(select2.value));
+    ${rows.length ? tableHtml(rows) : `<div class="vacio vlinea">${t("events.report.empty", { year: shown5 })}</div>`}</div>`;
+    const select3 = box.querySelector("#trano");
+    if (select3) select3.onchange = () => {
+      void paintExpenseReport(Number(select3.value));
     };
     const csv = box.querySelector("#trcsv");
     if (csv) csv.onclick = () => {
-      download(rows, shown4);
+      download(rows, shown5);
     };
   }
 
@@ -8189,19 +9208,19 @@
     });
     document.getElementById("evsel")?.querySelector("input")?.focus();
   }
-  async function saveCost(attendee, input3, attendees) {
-    const concept = input3.dataset.asimp, amount3 = Math.max(0, Math.round((Number(input3.value) || 0) * 100) / 100);
+  async function saveCost(attendee, input4, attendees) {
+    const concept = input4.dataset.asimp, amount3 = Math.max(0, Math.round((Number(input4.value) || 0) * 100) / 100);
     const { error } = await legacyDb().from("eventos_asistentes").update({ [concept]: amount3 }).eq("id", attendee.id);
     if (error) {
       notices.toast(t("events.sheet.couldNotSave"), true);
-      input3.value = String(Number(attendee[concept]) || "");
+      input4.value = String(Number(attendee[concept]) || "");
       return;
     }
     attendee[concept] = amount3;
-    const total = document.getElementById("evtotal");
-    if (total) total.textContent = formatCurrency(sum(attendees.map(attendeeTotal)));
+    const total2 = document.getElementById("evtotal");
+    if (total2) total2.textContent = formatCurrency(sum(attendees.map(attendeeTotal)));
     const overMeal = concept === "comida" && amount3 > MEAL_MAX;
-    input3.closest("label")?.classList.toggle("evaviso", overMeal);
+    input4.closest("label")?.classList.toggle("evaviso", overMeal);
     if (overMeal) notices.toast(t("events.sheet.mealOver", { max: MEAL_MAX }), true);
   }
   function bindAttendee(row4, attendee, attendees, id) {
@@ -8215,9 +9234,9 @@
       }
       attendee.estado = state.value;
     };
-    row4.querySelectorAll("[data-asimp]").forEach((input3) => {
-      input3.onchange = () => {
-        void saveCost(attendee, input3, attendees);
+    row4.querySelectorAll("[data-asimp]").forEach((input4) => {
+      input4.onchange = () => {
+        void saveCost(attendee, input4, attendees);
       };
     });
     const remove7 = row4.querySelector("[data-asq]");
@@ -8260,6 +9279,3380 @@
     });
   }
 
+  // src/app/screens/products/index.ts
+  var products_exports = {};
+  __export(products_exports, {
+    editService: () => editService,
+    editStores: () => editStores,
+    loadProductsModule: () => loadProductsModule,
+    paintProducts: () => paintProducts,
+    paintServices: () => paintServices,
+    paintStock: () => paintStock,
+    paintStores: () => paintStores,
+    showDeposit: () => showDeposit,
+    showStock: () => showStock,
+    stockMovement: () => stockMovement,
+    traceability: () => traceability
+  });
+
+  // src/app/legacy/products-bridge.ts
+  var productsLegacy = {
+    section: () => PSEC,
+    setSection: (section2) => {
+      PSEC = section2;
+    },
+    /** Through the global names: legado 057 caches the screen and legado 089 wraps fichaStock and verDeposito («‹ Volver»). */
+    reload: () => {
+      void cargarProductosModulo();
+    },
+    openStock: (line2) => {
+      void fichaStock(line2);
+    },
+    openDeposit: (accountId, name, notice) => verDeposito(accountId, name, notice),
+    editProduct: (product) => {
+      editorProducto(product);
+    },
+    editSamples: () => {
+      void editorMuestras();
+    },
+    clearModules: (except) => {
+      vaciarModulos(except);
+    },
+    showLoading: (element2, text2) => {
+      cargando(element2, text2);
+    },
+    matchesFieldFilters: (values) => Boolean(clasCumple(values, PRODF)),
+    hasFieldFilters: () => Object.keys(PRODF).length > 0,
+    visibleFieldColumns: () => clasVisibles("producto"),
+    fieldHeaders: (fields) => clasCabeceras(fields),
+    fieldCells: (fields, values) => clasCeldas(fields, values),
+    widenGrid: (grid, count2) => {
+      clasRejilla(grid, count2);
+    }
+  };
+
+  // src/app/screens/products/model.ts
+  var ORDER_MARGIN_DAYS = 14;
+  var EXPIRY_SOON_DAYS = 90;
+  var euros = (value15) => formatCurrency(Math.round((Number(value15) || 0) * 100) / 100);
+  var round2 = (value15) => Math.round(value15 * 100) / 100;
+  function stockState(line2) {
+    if (line2.stock <= 0) return [t("products.stock.outOfStock"), "p-anu"];
+    if (line2.stock_minimo !== null && line2.stock_minimo !== void 0 && line2.stock < line2.stock_minimo) return [t("products.stock.belowMinimum"), "p-bor"];
+    if (line2.dias_cobertura !== null && line2.dias_cobertura !== void 0 && line2.dias_cobertura <= line2.plazo_dias + ORDER_MARGIN_DAYS && !line2.en_camino) return [t("products.stock.orderNow"), "p-bor"];
+    return [t("products.stock.fine"), "p-est"];
+  }
+  function expiryClass(isoDate) {
+    if (!isoDate) return "";
+    const today = todayIso();
+    if (isoDate < today) return "cad-pasada";
+    return isoDate <= addDays(today, EXPIRY_SOON_DAYS) ? "cad-pronto" : "";
+  }
+  var storeIcon = (store) => store.tipo === "central" || store.tipo === "deposito" ? "🏢" : "💼";
+  function storeKind(store) {
+    if (store.tipo === "central") return t("products.stores.central");
+    return store.tipo === "deposito" ? t("products.stores.deposit") : t("products.stores.caseOf", { name: escapeHtml(orFallback(store.usuario, "—")) });
+  }
+  var errorMessage = (error) => error?.message ?? "";
+
+  // src/app/screens/products/catalog.ts
+  var money = (value15) => isPresent(value15) ? euros(value15) : "—";
+  var activePill = (active) => `<span class="pill ${active ? "p-est" : "p-anu"}">${t(active ? "products.catalog.activeState" : "products.catalog.inactiveState")}</span>`;
+  function countHtml(rows) {
+    const active = rows.filter((row4) => row4.activo).length, inactive = rows.length - active;
+    return `<b>${formatNumber(active)}</b> ${t(active === 1 ? "products.catalog.oneActive" : "products.catalog.active")}${inactive ? t("products.catalog.inactive", { count: formatNumber(inactive) }) : ""}`;
+  }
+  function rowHtml2(row4, fields) {
+    const photo = row4.foto_url ? `background-image:url('${escapeHtml(row4.foto_url)}')` : "";
+    return `<button class="dr" data-prod="${row4.id}" style="${row4.activo ? "" : "opacity:.55"}">
+        <span><span class="pfoto" style="${photo}">${row4.foto_url ? "" : "◧"}</span></span>
+        <span><b>${escapeHtml(row4.nombre)}</b><span class="sm">${escapeHtml(orFallback(row4.presentacion, t("products.catalog.noPresentation")))}</span></span>
+        <span class="sm">${escapeHtml(orFallback(row4.referencia, "—"))}</span><span class="num">${money(row4.precio)}</span>
+        <span class="num">${formatNumber(row4.iva ?? 0)}%</span><span class="num"><b>${money(row4.pvp)}</b></span>
+        <span>${activePill(row4.activo)}</span>${productsLegacy.fieldCells(fields, row4.clasificadores)}</button>`;
+  }
+  function tableHtml2(rows, fields) {
+    const head = [["", ""], ["", "product"], ["", "reference"], ["num", "withoutVat"], ["num", "vat"], ["num", "withVat"], ["", "state"]];
+    const empty2 = `<div class="vacio">${t(productsLegacy.hasFieldFilters() ? "products.catalog.noneFiltered" : "products.catalog.none")}</div>`;
+    return `<div class="dgrid-wrap"><div class="dgrid prods">
+      <div class="dh">${head.map(([kind, key]) => `<span${kind ? ` class="${kind}"` : ""}>${key ? t(`products.catalog.${key}`) : ""}</span>`).join("")}${productsLegacy.fieldHeaders(fields)}</div>
+      ${rows.map((row4) => rowHtml2(row4, fields)).join("") || empty2}
+    </div></div>`;
+  }
+  async function paintProducts() {
+    const admin = cardSectionsLegacy.can("administrar");
+    productsLegacy.showLoading(document.getElementById("vcuerpo"), t("products.catalog.loading"));
+    const { data } = await callRpc("productos_lista", { p_todos: admin });
+    const body2 = document.getElementById("vcuerpo");
+    if (!body2) return;
+    const rows = (data ?? []).filter((row4) => orFallback(row4.tipo, "producto") === "producto" && productsLegacy.matchesFieldFilters(row4.clasificadores));
+    const fields = productsLegacy.visibleFieldColumns();
+    body2.innerHTML = `<div class="panel">
+    <div class="cuenta">${countHtml(rows)}</div>
+    ${tableHtml2(rows, fields)}</div>`;
+    productsLegacy.widenGrid(body2.querySelector(".dgrid.prods"), fields.length);
+    body2.querySelectorAll("[data-prod]").forEach((button2) => {
+      button2.onclick = () => {
+        productsLegacy.editProduct(rows.find((row4) => row4.id === button2.dataset.prod) ?? null);
+      };
+    });
+  }
+
+  // src/app/screens/products/deposit-form.ts
+  var whole = (input4) => Math.max(0, Math.floor(Number(input4.value) || 0));
+  var batchOf = (line2) => escapeHtml(orFallback(line2.numero_lote, t("products.deposit.noBatchLower")));
+  var actsHtml = (ok) => `<div class="acts" style="justify-content:flex-end"><button type="button" class="btn sec" id="depcanc">${t("common.cancel")}</button><button type="button" class="btn" id="depok">${ok}</button></div>`;
+  function replenishHtml() {
+    const products3 = purchasesLegacy.products().filter((item) => item.activo !== false && orFallback(item.estado, "Activo") !== "Descatalogado");
+    return `<div class="depbox"><b>${t("products.deposit.replenishTitle")}</b>
+      <div class="segs" id="depori" role="group" aria-label="${t("products.deposit.from")}"><button type="button" data-o="maletin" class="on" aria-pressed="true">${t("products.deposit.fromCase")}</button><button type="button" data-o="central" aria-pressed="false">${t("products.deposit.fromCentral")}</button></div>
+      <div class="depitems">${products3.map((item) => `<label><span>${escapeHtml(item.nombre)}</span><input type="number" min="0" step="1" data-dprod="${item.id}" placeholder="0" aria-label="${t("products.deposit.unitsOfProduct", { name: escapeHtml(item.nombre) })}"></label>`).join("")}</div>
+      ${actsHtml(t("products.deposit.replenish"))}</div>`;
+  }
+  function useHtml(lines) {
+    return `<div class="depbox"><b>${t("products.deposit.useTitle")}</b>
+      <div class="depitems">${lines.map((line2, index) => `<label><span>${escapeHtml(line2.nombre)} <span class="sm">· ${batchOf(line2)} · ${t("products.deposit.left", { units: formatNumber(line2.unidades) })}</span></span>
+        <input type="number" min="0" max="${line2.unidades}" step="1" data-dlin="${index}" placeholder="0" aria-label="${t("products.deposit.usedOf", { name: escapeHtml(line2.nombre) })}"></label>`).join("")}</div>
+      <label for="depref">${t("products.deposit.reference")}</label><input id="depref" maxlength="120" placeholder="${t("products.deposit.referencePlaceholder")}">
+      ${actsHtml(t("products.deposit.record"))}</div>`;
+  }
+  function countHtml2(lines) {
+    return `<div class="depbox"><b>${t("products.deposit.countTitle")}</b><span class="sm">${t("products.deposit.countHint")}</span>
+      <div class="depitems">${lines.map((line2, index) => `<label><span>${escapeHtml(line2.nombre)} <span class="sm">· ${batchOf(line2)} · ${t("products.deposit.had", { units: formatNumber(line2.unidades) })}</span></span>
+        <input type="number" min="0" step="1" data-dcnt="${index}" value="${line2.unidades}" aria-label="${t("products.deposit.countedOf", { name: escapeHtml(line2.nombre) })}"></label>`).join("")}</div>
+      ${actsHtml(t("products.deposit.saveCount"))}</div>`;
+  }
+  function request(form, deposit2, action) {
+    const base = { cuenta_id: deposit2.accountId, accion: action, op_id: `d${Date.now()}` };
+    if (action === "reponer") {
+      const items = [...form.querySelectorAll("[data-dprod]")].map((input4) => ({ producto_id: input4.dataset.dprod, unidades: whole(input4) })).filter((item) => item.unidades > 0);
+      return items.length ? { ...base, origen: form.querySelector("#depori .on")?.dataset.o, items } : t("products.deposit.writeReplenish");
+    }
+    const lineAt = (input4, key) => deposit2.lines[Number(input4.dataset[key])];
+    if (action === "consumo") {
+      const items = [...form.querySelectorAll("[data-dlin]")].map((input4) => {
+        const line2 = lineAt(input4, "dlin");
+        return { producto_id: line2?.producto_id, lote_id: line2?.lote_id, unidades: whole(input4), max: line2?.unidades ?? 0 };
+      }).filter((item) => item.unidades > 0);
+      if (!items.length) return t("products.deposit.writeUsed");
+      if (items.some((item) => item.unidades > item.max)) return t("products.deposit.tooMany");
+      return { ...base, items, referencia: document.getElementById("depref")?.value.trim() ?? "" };
+    }
+    return { ...base, items: [...form.querySelectorAll("[data-dcnt]")].map((input4) => {
+      const line2 = lineAt(input4, "dcnt");
+      return { producto_id: line2?.producto_id, lote_id: line2?.lote_id, contadas: whole(input4) };
+    }) };
+  }
+  function failureText3(result) {
+    if (result?.error === "sin_origen") return t("products.deposit.noSource");
+    return t(result?.error === "permiso" ? "products.deposit.noMovePermission" : "products.deposit.couldNotSave");
+  }
+  async function replenishUsed(deposit2, used, button2) {
+    button2.disabled = true;
+    const { data: result } = await legacyDb().rpc("deposito_mover", { p: { cuenta_id: deposit2.accountId, accion: "reponer", items: used.map((item) => ({ producto_id: item.producto_id, unidades: item.unidades })), op_id: `r${Date.now()}` } });
+    if (!result || result.ok === false) {
+      button2.disabled = false;
+      notices.toast(result?.error === "sin_origen" ? t("products.deposit.noSource") : t("products.deposit.couldNotReplenish"), true);
+      return;
+    }
+    notices.toast(t("products.deposit.usedReplenished"));
+    void productsLegacy.openDeposit(deposit2.accountId, deposit2.name);
+  }
+  async function afterSave(deposit2, action, result) {
+    const used = result.usado ?? [];
+    let notice = "";
+    if (action === "reponer") notices.toast(t("products.deposit.replenished"));
+    else if (!used.length) notices.toast(t("products.deposit.nothingMissing"));
+    else {
+      notices.toast(t("products.deposit.usedRecorded"));
+      notice = `<div class="banda-ok depaviso">${t("products.deposit.usedNotice", { list: used.map((item) => `${escapeHtml(item.nombre)} ${formatNumber(item.unidades)}`).join(" · ") })}
+        <span class="depav"><button type="button" class="btn sec" id="depverped">${t("products.deposit.seeOrder")}</button><button type="button" class="btn" id="depreponer">${t("products.deposit.replenishUsed")}</button></span></div>`;
+    }
+    await productsLegacy.openDeposit(deposit2.accountId, deposit2.name, notice);
+    const order = document.getElementById("depverped"), again = document.getElementById("depreponer");
+    if (order && result.pedido_id) order.onclick = () => {
+      appLegacy.openOrder(result.pedido_id ?? "");
+    };
+    if (again) again.onclick = () => {
+      void replenishUsed(deposit2, used, again);
+    };
+  }
+  async function save5(form, deposit2, action, button2) {
+    const payload9 = request(form, deposit2, action);
+    if (typeof payload9 === "string") {
+      notices.toast(payload9, true);
+      return;
+    }
+    button2.disabled = true;
+    const { data: result, error } = await legacyDb().rpc("deposito_mover", { p: payload9 });
+    button2.disabled = false;
+    if (error || !result || result.ok === false) {
+      notices.toast(failureText3(result), true);
+      return;
+    }
+    await afterSave(deposit2, action, result);
+  }
+  function openDepositForm(deposit2, action) {
+    const form = document.getElementById("depform");
+    if (!form) return;
+    form.innerHTML = action === "reponer" ? replenishHtml() : action === "consumo" ? useHtml(deposit2.lines) : countHtml2(deposit2.lines);
+    const origins = form.querySelectorAll("[data-o]");
+    origins.forEach((button2) => {
+      button2.onclick = () => {
+        origins.forEach((other) => {
+          other.classList.toggle("on", other === button2);
+          other.setAttribute("aria-pressed", String(other === button2));
+        });
+      };
+    });
+    const cancel3 = document.getElementById("depcanc");
+    if (cancel3) cancel3.onclick = () => {
+      form.innerHTML = "";
+    };
+    const ok = document.getElementById("depok");
+    if (ok) ok.onclick = () => {
+      void save5(form, deposit2, action, ok);
+    };
+  }
+
+  // src/app/screens/products/deposit.ts
+  var MOVEMENTS = /* @__PURE__ */ new Map([
+    ["traspaso_entrada", "products.deposit.moveIn"],
+    ["traspaso_salida", "products.deposit.moveOut"],
+    ["consumo_deposito", "products.deposit.moveUsed"],
+    ["ajuste", "products.deposit.moveAdjust"]
+  ]);
+  function summary2(lines) {
+    const total2 = sum(lines.map((line2) => line2.unidades));
+    if (!total2) return t("products.deposit.empty");
+    const count2 = new Set(lines.map((line2) => line2.producto_id)).size;
+    return t("products.deposit.unitsOf", { units: formatNumber(total2), products: count2 === 1 ? t("products.deposit.oneProduct") : t("products.deposit.products", { count: count2 }) });
+  }
+  function tableHtml3(lines) {
+    if (!lines.length) return `<div class="vacio vlinea">${t("products.deposit.emptyDeposit")}</div>`;
+    const rows = lines.map((line2) => `<div class="depf"><span>${escapeHtml(line2.nombre)}</span>
+      <span>${escapeHtml(orFallback(line2.numero_lote, t("products.deposit.noBatch")))}</span><span class="${relatedLegacy.expiresSoon(line2.caducidad) ? "depcad" : ""}">${line2.caducidad ? formatShortDate(line2.caducidad) : "—"}</span><b>${formatNumber(line2.unidades)}</b></div>`).join("");
+    return `<div class="deptab"><div class="deph"><span>${t("products.deposit.product")}</span><span>${t("products.deposit.batch")}</span><span>${t("products.deposit.expires")}</span><span>${t("products.deposit.units")}</span></div>${rows}</div>`;
+  }
+  function movementRow(item) {
+    const key = MOVEMENTS.get(item.tipo);
+    return `<div class="depmf"><span>${formatShortDate(String(item.fecha).slice(0, 10))}</span>
+      <span>${key ? t(key) : escapeHtml(item.tipo)}</span><span>${escapeHtml(item.nombre)}${item.numero_lote ? ` · ${escapeHtml(item.numero_lote)}` : ""}</span><b>${item.unidades > 0 ? "+" : ""}${formatNumber(item.unidades)}</b>
+      <span class="sm">${escapeHtml(String(item.nota ?? "").replace(/\s*\[[^\]]*\]$/, ""))}</span></div>`;
+  }
+  function historyHtml(detail) {
+    const used = detail.usado_90 ?? [], movements = detail.movimientos ?? [];
+    const usedText = used.length ? `<p class="sm">${t("products.deposit.used90", { list: used.map((item) => `${escapeHtml(item.nombre)} ${formatNumber(item.unidades)}`).join(" · ") })}</p>` : "";
+    return usedText + (movements.length ? `<details class="depmov"><summary>${t("products.deposit.lastMovements")}</summary>${movements.map(movementRow).join("")}</details>` : "");
+  }
+  function sheetHtml3(detail, name, notice, lines) {
+    const none = lines.length ? "" : "disabled";
+    return `<div class="fh"><div><h2>${t("products.deposit.title", { name: escapeHtml(name) })}</h2><div class="sm">${summary2(lines)}${t("products.deposit.stillYours")}</div></div>
+      <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
+    ${notice}
+    <div class="depacts"><button type="button" class="btn" data-dep="reponer">${t("products.deposit.replenish")}</button><button type="button" class="btn sec" data-dep="consumo" ${none}>${t("products.deposit.recordUse")}</button>
+      <button type="button" class="btn sec" data-dep="recuento" ${none}>${t("products.deposit.count")}</button></div>
+    <div id="depform"></div>
+    ${tableHtml3(lines)}
+    ${historyHtml(detail)}
+    <div class="acts" style="justify-content:flex-end"><button type="button" class="btn sec" data-cerrar>${t("common.close")}</button></div>`;
+  }
+  async function showDeposit(accountId, name, notice = "") {
+    const { data: detail, error } = await legacyDb().rpc("deposito_estado", { p_cuenta: accountId });
+    if (error || !detail || detail.ok === false) {
+      notices.toast(t(detail?.error === "permiso" ? "products.deposit.noPermission" : "products.deposit.couldNotOpen"), true);
+      return;
+    }
+    if (!purchasesLegacy.products().length) await purchasesLegacy.loadProducts();
+    const lines = (detail.lineas ?? []).filter((line2) => line2.unidades > 0);
+    const body2 = document.getElementById("dbody"), box = document.getElementById("dlg");
+    if (!body2 || !box) return;
+    body2.innerHTML = sheetHtml3(detail, name, notice, lines);
+    if (!box.open) box.showModal();
+    const deposit2 = { accountId, name, lines };
+    body2.querySelectorAll("[data-dep]").forEach((button2) => {
+      button2.onclick = () => {
+        openDepositForm(deposit2, button2.dataset.dep ?? "reponer");
+      };
+    });
+  }
+
+  // src/app/screens/products/stock.ts
+  function rowHtml3(line2) {
+    const [label, kind] = stockState(line2);
+    const unbatched = line2.sin_lote ? ` · <span style="color:var(--warn)">${t("products.stock.soldWithoutBatch", { units: formatNumber(-line2.sin_lote) })}</span>` : "";
+    const byStore = (line2.por_almacen ?? []).map((store) => `${escapeHtml(store.almacen)}: ${formatNumber(store.unidades)}`).join(" · ") || "—";
+    const coverage = isPresent(line2.dias_cobertura) ? t("products.stock.coverageDays", { days: formatNumber(line2.dias_cobertura), supplier: formatNumber(line2.plazo_dias) }) : t("products.stock.noSales");
+    const onTheWay = line2.en_camino ? formatNumber(line2.en_camino) + (line2.llegada ? `<span class="sm">${formatShortDate(line2.llegada)}</span>` : "") : "—";
+    return `<button class="dr" data-stk="${line2.id}">
+        <span><b>${escapeHtml(line2.nombre)}</b><span class="sm">${escapeHtml(line2.presentacion ?? "")}${unbatched}</span></span>
+        <span class="num"><b>${formatNumber(line2.stock)}</b></span>
+        <span class="sm">${byStore}</span>
+        <span class="${expiryClass(line2.proxima_caducidad)}">${line2.proxima_caducidad ? formatShortDate(line2.proxima_caducidad) : "—"}</span>
+        <span class="sm">${coverage}</span>
+        <span class="num">${onTheWay}</span>
+        <span><span class="pill ${kind}">${label}</span></span></button>`;
+  }
+  async function paintStock() {
+    productsLegacy.showLoading(document.getElementById("vcuerpo"), t("products.stock.loading"));
+    await purchasesLegacy.loadStores();
+    const { data, error } = await callRpc("stock_resumen", {});
+    const body2 = document.getElementById("vcuerpo");
+    if (!body2) return;
+    if (error) {
+      body2.innerHTML = `<div class="vacio">${escapeHtml(errorMessage(error))}</div>`;
+      return;
+    }
+    const list = (data ?? []).filter((line2) => Boolean(line2.activo) || Boolean(line2.stock));
+    const head = [["", "product"], ["num", "stock"], ["", "byStore"], ["", "nextExpiry"], ["", "coverage"], ["num", "onTheWay"], ["", "state"]];
+    body2.innerHTML = `<div class="panel">
+    <div class="cuenta">${t("products.stock.intro")}</div>
+    <div class="dgrid-wrap"><div class="dgrid stock">
+      <div class="dh">${head.map(([kind, key]) => `<span${kind ? ` class="${kind}"` : ""}>${t(`products.stock.${key}`)}</span>`).join("")}</div>
+      ${list.map(rowHtml3).join("") || `<div class="vacio">${t("products.stock.none")}</div>`}
+    </div></div></div>`;
+    body2.querySelectorAll("[data-stk]").forEach((button2) => {
+      button2.onclick = () => {
+        const line2 = list.find((item) => item.id === button2.dataset.stk);
+        if (line2) productsLegacy.openStock(line2);
+      };
+    });
+  }
+
+  // src/app/screens/products/movement.ts
+  var TEXTS = {
+    inicial: ["products.movement.entryTitle", "products.movement.entryHint"],
+    ajuste: ["products.movement.adjustTitle", "products.movement.adjustHint"],
+    traspaso: ["products.movement.transferTitle", "products.movement.transferHint"]
+  };
+  var value4 = (id) => document.getElementById(id)?.value ?? "";
+  var options = (list, selected) => list.map((item) => `<option value="${item.id ?? ""}" ${selected && item.id === selected ? "selected" : ""}>${escapeHtml(item.nombre ?? "")}</option>`).join("");
+  function entryHtml(line2) {
+    const stores2 = purchasesLegacy.stores().filter((store) => store.activo);
+    return `<div class="g2">
+      <div><label for="mvp">${t("products.movement.product")}</label><select id="mvp">${options(purchasesLegacy.products(), line2?.id)}</select></div>
+      <div><label for="mva">${t("products.movement.store")}</label><select id="mva">${options(stores2)}</select></div></div>
+      <div class="g2"><div><label for="mvl">${t("products.movement.batch")}</label><input id="mvl" placeholder="${t("products.movement.batchPlaceholder")}"></div>
+        <div><label for="mvpr">${t("products.movement.supplier")}</label><select id="mvpr"><option value="">—</option>${options(purchasesLegacy.suppliers())}</select></div></div>
+      <div class="g2"><div><label for="mvc">${t("products.movement.expiry")}</label><input id="mvc" type="date"></div><div><label for="mvf">${t("products.movement.made")}</label><input id="mvf" type="date"></div></div>`;
+  }
+  function formHtml(line2, kind, place) {
+    const [title2, hint] = TEXTS[kind], adjust = kind === "ajuste";
+    const destinations = purchasesLegacy.stores().filter((store) => store.activo && store.id !== place?.storeId);
+    return `
+    <div class="fh"><div><h2>${t(title2)}</h2><div class="sm">${t(hint)}</div></div>
+      <button class="x" data-cerrar2 aria-label="${t("common.close")}">✕</button></div>
+    ${kind === "inicial" ? entryHtml(line2) : ""}
+    ${kind === "traspaso" ? `<label for="mvd">${t("products.movement.destination")}</label><select id="mvd">${options(destinations)}</select>` : ""}
+    <div class="g2"><div><label for="mvu">${t(adjust ? "products.movement.unitsSigned" : "products.movement.units")}</label><input id="mvu" type="number" ${adjust ? "" : 'min="1"'}></div>
+      <div><label for="mvn">${t("products.movement.note")}</label><input id="mvn" placeholder="${t(adjust ? "products.movement.adjustPlaceholder" : "products.movement.optional")}"></div></div>
+    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar2>${t("common.cancel")}</button><button class="btn" id="mvok">${t("products.movement.register")}</button></div>`;
+  }
+  function payload(line2, kind, place, units2) {
+    const note = value4("mvn").trim();
+    if (kind === "inicial") {
+      return {
+        tipo: kind,
+        producto_id: value4("mvp"),
+        almacen_id: value4("mva"),
+        numero_lote: value4("mvl").trim(),
+        caducidad: value4("mvc"),
+        fecha_fabricacion: value4("mvf"),
+        proveedor_id: value4("mvpr"),
+        unidades: units2,
+        nota: note
+      };
+    }
+    return { tipo: kind, producto_id: line2?.id, lote_id: place?.batchId, almacen_id: place?.storeId, destino_id: document.getElementById("mvd") ? value4("mvd") : null, unidades: units2, nota: note };
+  }
+  function missing(kind, units2) {
+    if (!units2) return t("products.movement.writeUnits");
+    return kind === "inicial" && !value4("mvl").trim() ? t("products.movement.writeBatch") : "";
+  }
+  async function register(line2, kind, place) {
+    const units2 = Number(value4("mvu")), problem = missing(kind, units2);
+    if (problem) {
+      notices.toast(problem, true);
+      return;
+    }
+    const { data: result, error } = await legacyDb().rpc("movimiento_manual", { p: payload(line2, kind, place, units2) });
+    if (error || result?.ok === false) {
+      notices.toast(t("products.movement.failed", { error: orFallback(errorMessage(error), result?.error ?? "") }), true);
+      return;
+    }
+    for (const id of ["dlg2", "dlg"]) document.getElementById(id)?.close();
+    notices.toast(t("products.movement.registered"));
+    if (currentScreen() === "productos") void paintStock();
+  }
+  async function stockMovement(line2, kind, place) {
+    await Promise.all([purchasesLegacy.loadProducts(), purchasesLegacy.loadStores(), purchasesLegacy.loadSuppliers()]);
+    const body2 = document.getElementById("dlg2body"), box = document.getElementById("dlg2");
+    if (!body2 || !box) return;
+    body2.innerHTML = formHtml(line2, kind, place);
+    box.showModal();
+    const ok = document.getElementById("mvok");
+    if (ok) ok.onclick = () => {
+      void register(line2, kind, place);
+    };
+  }
+
+  // src/app/screens/products/services.ts
+  var DEFAULT_VAT = 21;
+  var PRICE_DECIMALS = 4;
+  var money2 = (value15) => isPresent(value15) ? euros(value15) : "—";
+  var field = (id) => document.getElementById(id);
+  function rowHtml4(service) {
+    const byDefault = service.por_defecto ? `<span class="pill p-est">${t("products.services.byDefault")}</span>` : '<span class="vac">—</span>';
+    return `<button class="dr" data-serv="${service.id ?? ""}" style="${service.activo ? "" : "opacity:.55"}">
+        <span><b>${escapeHtml(service.nombre ?? "")}</b></span><span class="num">${money2(service.precio)}</span>
+        <span class="num">${formatNumber(service.iva ?? 0)}%</span><span class="num"><b>${money2(service.pvp)}</b></span>
+        <span>${byDefault}</span>
+        <span><span class="pill ${service.activo ? "p-est" : "p-anu"}">${t(service.activo ? "products.catalog.activeState" : "products.catalog.inactiveState")}</span></span></button>`;
+  }
+  async function paintServices() {
+    const admin = cardSectionsLegacy.can("administrar");
+    productsLegacy.showLoading(document.getElementById("vcuerpo"), t("products.services.loading"));
+    const { data } = await callRpc("productos_lista", { p_todos: admin });
+    const body2 = document.getElementById("vcuerpo");
+    if (!body2) return;
+    const list = (data ?? []).filter((item) => item.tipo === "servicio");
+    const head = [["", "products.services.service"], ["num", "products.catalog.withoutVat"], ["num", "products.catalog.vat"], ["num", "products.catalog.withVat"], ["", "products.services.inNewOrders"], ["", "products.catalog.state"]];
+    body2.innerHTML = `<div class="panel">
+    <div class="cuenta"><b>${formatNumber(list.filter((item) => item.activo).length)}</b>${t("products.services.activeCount")}</div>
+    <div class="dgrid-wrap"><div class="dgrid servs">
+      <div class="dh">${head.map(([kind, key]) => `<span${kind ? ` class="${kind}"` : ""}>${t(key)}</span>`).join("")}</div>
+      ${list.map(rowHtml4).join("") || `<div class="vacio">${t("products.services.none")}</div>`}
+    </div></div></div>`;
+    body2.querySelectorAll("[data-serv]").forEach((button2) => {
+      button2.onclick = () => {
+        editService(list.find((item) => item.id === button2.dataset.serv) ?? null);
+      };
+    });
+  }
+  function prices(service) {
+    if (!isPresent(service.precio)) return ["", ""];
+    return [String(Number(Number(service.precio).toFixed(PRICE_DECIMALS))), String(round2(service.precio * (1 + (service.iva ?? 0) / 100)))];
+  }
+  var checkbox = (id, on4, locked) => `<input type="checkbox" id="${id}" ${on4 ? "checked" : ""} ${locked}>`;
+  function editorHtml3(service, admin) {
+    const locked = admin ? "" : "disabled", vat = service.iva ?? DEFAULT_VAT, [price, withVat2] = prices(service);
+    return `
+    <div class="fh"><div><h2>${service.id ? escapeHtml(service.nombre ?? "") : t("products.services.newTitle")}</h2>
+      <div class="sm">${t("products.services.hint")}</div></div>
+      <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
+    <label for="svn">${t("products.services.name")}</label><input id="svn" value="${escapeHtml(service.nombre ?? "")}" placeholder="${t("products.services.namePlaceholder")}" ${locked}>
+    <div class="pvp">
+      <div><label for="svs">${t("products.services.withoutVat")}</label><input id="svs" type="number" step="0.01" min="0" value="${price}" ${locked}></div>
+      <div><label for="svi">${t("products.services.vat")}</label><input id="svi" type="number" step="1" min="0" max="21" value="${vat}" ${locked}></div>
+      <div><label for="svc">${t("products.services.withVat")}</label><input id="svc" type="number" step="0.01" min="0" value="${withVat2}" ${locked}></div></div>
+    <label class="opt" style="margin-top:12px">${checkbox("svdef", service.por_defecto, locked)} ${t("products.services.proposeByDefault")}</label>
+    ${service.id ? `<label class="opt" style="margin-top:8px">${checkbox("svact", service.activo, locked)} ${t("products.services.active")}</label>` : ""}
+    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>${t(admin ? "common.cancel" : "common.close")}</button>
+      ${admin ? `<button class="btn" id="svok">${t(service.id ? "common.save" : "products.services.create")}</button>` : ""}</div>`;
+  }
+  function bindPrices() {
+    const without = field("svs"), vat = field("svi"), withVat2 = field("svc");
+    if (!without || !vat || !withVat2) return;
+    const rate = () => (Number(vat.value) || 0) / 100;
+    without.oninput = () => {
+      withVat2.value = without.value === "" ? "" : String(round2(Number(without.value) * (1 + rate())));
+    };
+    withVat2.oninput = () => {
+      without.value = withVat2.value === "" ? "" : String(Number((Number(withVat2.value) / (1 + rate())).toFixed(PRICE_DECIMALS)));
+    };
+    vat.oninput = () => {
+      if (without.value !== "") withVat2.value = String(round2(Number(without.value) * (1 + rate())));
+    };
+  }
+  function payload2(service, name) {
+    const active = field("svact");
+    return {
+      id: service.id ?? null,
+      tipo: "servicio",
+      nombre: name,
+      precio: field("svs")?.value,
+      iva: field("svi")?.value,
+      por_defecto: Boolean(field("svdef")?.checked),
+      ...active ? { activo: active.checked } : {}
+    };
+  }
+  async function save6(service) {
+    const name = field("svn")?.value.trim() ?? "";
+    if (!name) {
+      notices.toast(t("products.services.writeName"), true);
+      return;
+    }
+    const { data: result, error } = await legacyDb().rpc("guardar_producto", { p: payload2(service, name) });
+    if (error || result?.ok === false) {
+      notices.toast(t("products.services.couldNotSave"), true);
+      return;
+    }
+    document.getElementById("dlg")?.close();
+    notices.toast(t(service.id ? "products.services.saved" : "products.services.created"));
+    await purchasesLegacy.loadProducts();
+    if (currentScreen() === "productos") void paintServices();
+  }
+  function editService(existing) {
+    const admin = cardSectionsLegacy.can("administrar"), service = existing ?? { iva: DEFAULT_VAT, activo: true };
+    const body2 = document.getElementById("dbody"), box = document.getElementById("dlg");
+    if (!body2 || !box) return;
+    body2.innerHTML = editorHtml3(service, admin);
+    box.showModal();
+    if (!admin) return;
+    bindPrices();
+    const ok = document.getElementById("svok");
+    if (ok) ok.onclick = () => {
+      void save6(service);
+    };
+  }
+
+  // src/app/screens/products/stores.ts
+  var stores = () => purchasesLegacy.stores();
+  var members = () => salesTeam.members();
+  async function load2() {
+    await purchasesLegacy.loadStores();
+    if (!salesTeam.members().length) await salesTeam.load();
+  }
+  async function createCase(member) {
+    const { error } = await legacyDb().rpc("guardar_almacen", { p: { nombre: t("products.stores.caseName", { name: String(member.nombre).split(" ")[0] ?? "" }), tipo: "maletin", usuario_id: member.id } });
+    if (error) {
+      notices.toast(t("products.stores.couldNotCreate"), true);
+      return false;
+    }
+    notices.toast(t("products.stores.created"));
+    return true;
+  }
+  var chosenMember = () => members().find((member) => member.id === document.getElementById("almu")?.value);
+  function windowHtml2() {
+    const list = stores().map((store) => `<div class="item" style="cursor:default"><span class="ic">${storeIcon(store)}</span>
+        <span class="tx"><b>${escapeHtml(store.nombre)}</b><span class="sm">${storeKind(store)}${t("products.stores.unitsTail", { units: formatNumber(store.unidades) })}${store.activo ? "" : t("products.stores.inactive")}</span></span></div>`).join("");
+    return `
+      <div class="fh"><div><h2>${t("products.stores.title")}</h2><div class="sm">${t("products.stores.subtitle")}</div></div>
+        <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
+      <div class="lista">${list}</div>
+      <h3 style="margin-top:14px">${t("products.stores.newCase")}</h3>
+      <div class="g2"><div><label for="almu">${t("products.stores.salesperson")}</label><select id="almu">${members().map((member) => `<option value="${member.id}">${escapeHtml(member.nombre)}</option>`).join("")}</select></div>
+        <div><label>&nbsp;</label><button class="btn" id="almok">${t("products.stores.createCase")}</button></div></div>
+      <p class="sm">${t("products.stores.caseHint", { theVisit: term("visita", { article: "el" }) })}</p>`;
+  }
+  function paintWindow() {
+    const body2 = document.getElementById("dbody");
+    if (!body2) return;
+    body2.innerHTML = windowHtml2();
+    const ok = document.getElementById("almok");
+    if (ok) ok.onclick = async () => {
+      const member = chosenMember();
+      if (!member || !await createCase(member)) return;
+      await purchasesLegacy.loadStores();
+      paintWindow();
+    };
+  }
+  async function editStores() {
+    await load2();
+    paintWindow();
+    document.getElementById("dlg")?.showModal();
+  }
+  function storeCard(store) {
+    return `<div class="almc"><span class="ic">${storeIcon(store)}</span>
+        <b>${escapeHtml(store.nombre)}</b><span class="sm">${storeKind(store)}${store.activo ? "" : t("products.stores.inactive")}</span>
+        <span class="almu"><b>${formatNumber(store.unidades ?? 0)}</b> ${t("products.stores.units")}</span></div>`;
+  }
+  function withoutCaseHtml(withoutCase) {
+    if (!withoutCase.length) return "";
+    const who2 = withoutCase.length === 1 ? t("products.stores.oneWithout", { name: escapeHtml(withoutCase[0]?.nombre ?? "") }) : t("products.stores.manyWithout", { count: withoutCase.length });
+    return `<div class="avisoh" style="margin-top:12px"><span>${who2}${t("products.stores.withoutCase")}</span></div>`;
+  }
+  async function paintStores() {
+    await load2();
+    const body2 = document.getElementById("cfgcuerpo");
+    if (!body2) return;
+    const canHaveCase = members().filter((member) => cardSectionsLegacy.roleCan(member.rol ?? "", "almacen_propio"));
+    const withoutCase = canHaveCase.filter((member) => !stores().some((store) => store.usuario_id === member.id));
+    body2.innerHTML = `
+    <div class="card cfgpanel"><h2>${t("products.stores.title")}</h2>
+      <p class="sm">${t("products.stores.pageIntro")}</p>
+      <div class="mattipos"><div><b>${t("products.stores.centralTitle")}</b><span>${t("products.stores.centralText")}</span></div>
+        <div><b>${t("products.stores.caseTitle")}</b><span>${t("products.stores.caseText", { visits: term("visita", { number: "p" }) })}</span></div></div></div>
+    <div class="card cfgpanel"><h2>${t("products.stores.yours")}</h2>
+      <div class="almgrid">${stores().map(storeCard).join("")}</div>
+      ${withoutCaseHtml(withoutCase)}
+      <div class="matadd" style="margin-top:12px"><select id="almu">${canHaveCase.map((member) => `<option value="${member.id}">${escapeHtml(member.nombre)}</option>`).join("")}</select>
+        <button class="btn sec" id="almok">${t("products.stores.createCase")}</button></div>
+      <p class="sm">${t("products.stores.transferHint")}</p></div>`;
+    const ok = document.getElementById("almok");
+    if (ok) ok.onclick = async () => {
+      const member = chosenMember();
+      if (member && await createCase(member)) void paintStores();
+    };
+  }
+
+  // src/app/screens/products/page.ts
+  var TABS = [["productos", "products.page.products"], ["servicios", "products.page.services"], ["stock", "products.page.stock"]];
+  function actionsHtml3(section2) {
+    if (section2 === "stock") {
+      if (!purchasesLegacy.canBuy()) return "";
+      return `<button class="btn sec" id="stalm">${t("products.page.stores")}</button><button class="btn sec" id="stmue">${t("products.page.samples")}</button><button class="btn" id="stini">${t("products.page.stockEntry")}</button>`;
+    }
+    if (!cardSectionsLegacy.can("administrar")) return "";
+    return `<button class="btn" id="prodnuevo">${t(section2 === "servicios" ? "products.page.newService" : "products.page.newProduct")}</button>`;
+  }
+  var on2 = (id, action) => {
+    const button2 = document.getElementById(id);
+    if (button2) button2.onclick = action;
+  };
+  function bind7(screen2, section2) {
+    screen2.querySelectorAll("[data-ps]").forEach((button2) => {
+      button2.onclick = () => {
+        productsLegacy.setSection(button2.dataset.ps ?? "productos");
+        productsLegacy.reload();
+      };
+    });
+    on2("prodnuevo", () => {
+      if (section2 === "servicios") editService(null);
+      else productsLegacy.editProduct(null);
+    });
+    on2("stalm", () => {
+      void editStores();
+    });
+    on2("stmue", () => {
+      productsLegacy.editSamples();
+    });
+    on2("stini", () => {
+      void stockMovement(null, "inicial");
+    });
+  }
+  function loadProductsModule() {
+    productsLegacy.clearModules("v-productos");
+    const screen2 = document.getElementById("v-productos");
+    if (!screen2) return Promise.resolve();
+    const section2 = productsLegacy.section();
+    screen2.innerHTML = `
+    <div class="saludo"><div><h1>${t("products.page.title")}</h1><div class="fecha">${t("products.page.subtitle")}</div></div>
+      <div class="acts" style="margin:0">${actionsHtml3(section2)}</div></div>
+    <div class="subnav">${TABS.map(([key, label]) => `<button data-ps="${key}" aria-pressed="${String(section2 === key)}">${t(label)}</button>`).join("\n      ")}</div>
+    <div id="vcuerpo"></div>`;
+    bind7(screen2, section2);
+    if (section2 === "stock") void paintStock();
+    else if (section2 === "servicios") void paintServices();
+    else void paintProducts();
+    return Promise.resolve();
+  }
+
+  // src/app/screens/products/stock-sheet.ts
+  var MOVEMENTS2 = /* @__PURE__ */ new Map([
+    ["inicial", "products.trace.initial"],
+    ["entrada_compra", "products.trace.purchaseEntry"],
+    ["salida_venta", "products.trace.sale"],
+    ["anulacion_venta", "products.trace.saleCancelled"],
+    ["salida_muestra", "products.trace.sample"],
+    ["ajuste", "products.trace.adjustment"],
+    ["traspaso_salida", "products.trace.transferOut"],
+    ["traspaso_entrada", "products.trace.transferIn"],
+    ["devolucion", "products.trace.returned"],
+    ["consumo_deposito", "products.trace.depositUse"],
+    ["consumo_cirugia", "products.trace.surgeryUse"]
+  ]);
+  var movementName = (type) => {
+    const key = MOVEMENTS2.get(type);
+    return key ? t(key, { visit: term("visita") }) : type;
+  };
+  function traceRow(item) {
+    return `<div class="dr" style="cursor:default"><span>${formatShortDate(String(item.fecha).slice(0, 10))}</span><span>${escapeHtml(movementName(item.tipo))}${item.pedido ? `<span class="sm">${t("products.trace.order", { number: escapeHtml(item.pedido) })}</span>` : ""}</span>
+        <span class="num" style="color:${item.unidades < 0 ? "var(--danger)" : "var(--ok)"}"><b>${item.unidades > 0 ? "+" : ""}${formatNumber(item.unidades)}</b></span>
+        <span>${escapeHtml(orFallback(item.cliente, "—"))}${item.telefono ? `<span class="sm">${escapeHtml(item.telefono)}</span>` : ""}</span><span class="sm">${escapeHtml(orFallback(item.medico, "—"))}</span><span class="sm">${escapeHtml(item.almacen)}</span></div>`;
+  }
+  function batchDetails(batch) {
+    return `${escapeHtml(batch.producto ?? "")}${batch.caducidad ? t("products.trace.expires", { date: formatShortDate(batch.caducidad) }) : ""}${batch.proveedor ? ` · ${escapeHtml(batch.proveedor)}` : ""}${batch.compra ? t("products.trace.purchase", { number: escapeHtml(batch.compra) }) : ""}`;
+  }
+  async function traceability(batchId) {
+    const { data } = await callRpc("trazabilidad_lote", { p_lote: batchId });
+    const batch = data?.lote ?? {}, movements = data?.movimientos ?? [];
+    const body2 = document.getElementById("dlg2body"), box = document.getElementById("dlg2");
+    if (!body2 || !box) return;
+    const details2 = batchDetails(batch);
+    const head = [t("products.trace.date"), t("products.trace.movement"), t("products.trace.units"), t("products.trace.client"), term("medico", { capital: "C" }), t("products.trace.store")];
+    body2.innerHTML = `
+    <div class="fh"><div><h2>${t("products.trace.title", { number: escapeHtml(batch.numero_lote ?? "") })}</h2>
+      <div class="sm">${details2}</div></div>
+      <button class="x" data-cerrar2 aria-label="${t("common.close")}">✕</button></div>
+    <p class="sm">${t("products.trace.intro")}</p>
+    <div class="dgrid-wrap"><div class="dgrid traz">
+      <div class="dh">${head.map((title2, index) => `<span${index === 2 ? ' class="num"' : ""}>${title2}</span>`).join("")}</div>
+      ${movements.map(traceRow).join("") || `<div class="vacio">${t("products.trace.none")}</div>`}</div></div>
+    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar2>${t("common.close")}</button></div>`;
+    box.showModal();
+  }
+  function summaryText(line2) {
+    const use = Number(line2.consumo_diario) ? t("products.sheet.dailyUse", { value: String(line2.consumo_diario).replace(".", ",") }) : t("products.sheet.noUse");
+    return `${t("products.sheet.units", { units: formatNumber(line2.stock) })} · ${use}${isPresent(line2.dias_cobertura) ? t("products.sheet.covers", { days: formatNumber(line2.dias_cobertura) }) : ""}`;
+  }
+  function settingsHtml(line2) {
+    const suppliers = purchasesLegacy.suppliers().map((supplier) => `<option value="${supplier.id ?? ""}" ${supplier.nombre === line2.proveedor ? "selected" : ""}>${t("products.sheet.supplierOption", { name: escapeHtml(supplier.nombre ?? ""), days: formatNumber(supplier.plazo_dias) })}</option>`).join("");
+    return `<div class="g2">
+      <div><label for="stmin">${t("products.sheet.minimum")}</label><input id="stmin" type="number" min="0" value="${line2.stock_minimo ?? ""}" placeholder="${t("products.sheet.noMinimum")}"></div>
+      <div><label for="stprov">${t("products.sheet.supplier")}</label><select id="stprov"><option value="">—</option>${suppliers}</select></div></div>`;
+  }
+  function batchHtml(batch, canBuy) {
+    const expiry = expiryClass(batch.caducidad), manyStores = purchasesLegacy.stores().filter((store) => store.activo).length > 1;
+    const tools = canBuy ? `<button class="btn sec" data-aju="${batch.id}|${batch.almacen_id}">${t("products.sheet.adjust")}</button>${manyStores ? `<button class="btn sec" data-tras="${batch.id}|${batch.almacen_id}">${t("products.sheet.transfer")}</button>` : ""}` : "";
+    return `<div class="item" style="cursor:default">
+        <span class="ic ${expiry === "cad-pasada" ? "w" : ""}">📦</span>
+        <span class="tx"><b>${t("products.sheet.batch", { number: escapeHtml(batch.numero_lote), units: formatNumber(batch.unidades) })}</b>
+          <span class="sm"><span class="${expiry}">${batch.caducidad ? t("products.sheet.expiresOn", { date: formatShortDate(batch.caducidad) }) : t("products.sheet.noExpiry")}</span>${batch.fecha_fabricacion ? t("products.sheet.madeOn", { date: formatShortDate(batch.fecha_fabricacion) }) : ""} · ${escapeHtml(batch.almacen)}${batch.proveedor ? ` · ${escapeHtml(batch.proveedor)}` : ""}</span></span>
+        <span class="acts" style="margin:0"><button class="btn sec" data-traz="${batch.id}">${t("products.sheet.traceability")}</button>
+          ${tools}</span></div>`;
+  }
+  function sheetHtml4(line2, canBuy) {
+    const [label, kind] = stockState(line2), batches = line2.lotes ?? [];
+    return `
+    <div class="fh"><div><h2>${escapeHtml(line2.nombre)} <span class="pill ${kind}">${label}</span></h2>
+      <div class="sm">${summaryText(line2)}</div></div>
+      <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
+    ${canBuy ? settingsHtml(line2) : ""}
+    <div class="blk"><h3>${t("products.sheet.batches")}</h3>
+      ${batches.length ? `<div class="lista">${batches.map((batch) => batchHtml(batch, canBuy)).join("")}</div>` : `<div class="sm">${t("products.sheet.noBatches")}</div>`}</div>
+    <div class="acts" style="justify-content:flex-end">
+      <button class="btn sec" data-cerrar>${t("common.close")}</button>
+      ${canBuy ? `<button class="btn sec" id="stent">${t("products.sheet.entry")}</button><button class="btn" id="stgu">${t("products.sheet.saveMinimum")}</button>` : ""}</div>`;
+  }
+  async function saveSettings(line2) {
+    const minimum = document.getElementById("stmin")?.value ?? "", supplier = document.getElementById("stprov")?.value ?? "";
+    const { error } = await legacyDb().from("productos").update({ stock_minimo: minimum === "" ? null : Number(minimum), proveedor_id: supplier || null }).eq("id", line2.id);
+    if (error) {
+      notices.toast(t("products.sheet.couldNotSave"), true);
+      return;
+    }
+    document.getElementById("dlg")?.close();
+    notices.toast(t("products.sheet.saved"));
+    void paintStock();
+  }
+  function bind8(body2, line2) {
+    body2.querySelectorAll("[data-traz]").forEach((button2) => {
+      button2.onclick = () => {
+        void traceability(button2.dataset.traz ?? "");
+      };
+    });
+    for (const [attribute, kind] of [["aju", "ajuste"], ["tras", "traspaso"]]) {
+      body2.querySelectorAll(`[data-${attribute}]`).forEach((button2) => {
+        const [batchId = "", storeId = ""] = (button2.dataset[attribute] ?? "").split("|");
+        button2.onclick = () => {
+          void stockMovement(line2, kind, { batchId, storeId });
+        };
+      });
+    }
+    const entry = document.getElementById("stent");
+    if (entry) entry.onclick = () => {
+      void stockMovement(line2, "inicial");
+    };
+    const save21 = document.getElementById("stgu");
+    if (save21) save21.onclick = () => {
+      void saveSettings(line2);
+    };
+  }
+  async function showStock(line2) {
+    await purchasesLegacy.loadSuppliers();
+    const body2 = document.getElementById("dbody"), box = document.getElementById("dlg");
+    if (!body2 || !box) return;
+    body2.innerHTML = sheetHtml4(line2, purchasesLegacy.canBuy());
+    if (!box.open) box.showModal();
+    bind8(body2, line2);
+  }
+
+  // src/app/screens/billing/index.ts
+  var billing_exports = {};
+  __export(billing_exports, {
+    editSeries: () => editSeries,
+    loadBilling: () => loadBilling,
+    paintInvoices: () => paintInvoices,
+    paintSeries: () => paintSeries,
+    paintVerifactu: () => paintVerifactu,
+    refreshInvoices: () => refreshInvoices,
+    showInvoice: () => showInvoice
+  });
+
+  // src/app/legacy/billing-bridge.ts
+  var billingLegacy = {
+    section: () => FSEC,
+    setSection: (section2) => {
+      FSEC = section2;
+    },
+    page: () => FACPAG,
+    setPage: (page) => {
+      FACPAG = page;
+    },
+    canInvoice: () => Boolean(puedeFacturar()),
+    /** Through the global names: legado 057 caches the screen and legado 089 / the wide window wrap verFactura. */
+    reload: () => {
+      void cargarFacturacion();
+    },
+    openInvoice: (id) => {
+      void verFactura(id);
+    },
+    withLoading: (work) => ventanaCargando(work),
+    showLoading: (element2, text2) => {
+      cargando(element2, text2);
+    },
+    readOnly: () => Boolean(facConsulta()),
+    planName: () => planDe(String(PLAN_ACTUAL.plan)).nombre,
+    paintCompany: () => {
+      void pintarEmpresa();
+    },
+    paintLog: () => {
+      void pintarRegistro();
+    },
+    paintTabs: () => {
+      subnavFacturacion();
+    },
+    invoicePdf: (invoice2, rectifies) => facturaPDF(invoice2, rectifies),
+    downloadPdf: (invoice2, rectifies) => {
+      void descargarFacturaPDF(invoice2, rectifies);
+    },
+    sendByEmail: (invoice2, rectifies) => {
+      void enviarFacturaEmail(invoice2, rectifies);
+    },
+    loadSettings: () => cargarAjustes(),
+    setting: (key) => AJUSTES[key],
+    setSetting: (key, value15) => {
+      AJUSTES[key] = value15;
+    },
+    paymentMethods: () => CAT.forma_pago ?? []
+  };
+
+  // src/app/screens/billing/model.ts
+  var PAYMENT = { paid: "Cobrada", overdue: "Vencida", pending: "Pendiente" };
+  var euros2 = (value15) => formatCurrency(Math.round((Number(value15) || 0) * 100) / 100);
+  function paymentPill(state) {
+    const kind = state === PAYMENT.paid ? "p-est" : state === PAYMENT.overdue ? "p-anu" : "p-bor";
+    return `<span class="pill ${kind}">${escapeHtml(state)}</span>`;
+  }
+  var errorMessage2 = (error) => error?.message ?? "";
+
+  // src/app/screens/billing/list.ts
+  var SEARCH_WAIT_MS = 300;
+  var emptyToNull = (value15) => value15 ? value15 : null;
+  var field2 = (id) => document.getElementById(id);
+  var total = (rows, key) => sum(rows.map((row4) => Number(row4[key]) || 0));
+  function shellHtml() {
+    const options2 = ["", PAYMENT.pending, PAYMENT.overdue, PAYMENT.paid].map((value15) => value15 ? `<option>${value15}</option>` : `<option value="">${t("billing.list.all")}</option>`).join("");
+    return `<div class="panel">
+    <div class="filtros">
+      <div id="fper"></div>
+      <div><label for="fq">${t("billing.list.search")}</label><input id="fq" type="search" placeholder="${t("billing.list.searchPlaceholder")}"></div>
+      <div><label for="fcob">${t("billing.list.payment")}</label><select id="fcob">${options2}</select></div>
+    </div>
+    <div class="kpis vtot" id="ftot"></div>
+    <div id="flista"></div></div>`;
+  }
+  function totalsHtml(rows) {
+    const pending = rows.filter((row4) => row4.estado_cobro !== PAYMENT.paid), overdue = rows.filter((row4) => row4.estado_cobro === PAYMENT.overdue);
+    return `
+      <div class="kpi"><b>${euros2(total(rows, "total"))}</b><span>${t("billing.list.invoiced", { count: formatNumber(rows.length) })}</span></div>
+      <div class="kpi"><b>${euros2(total(rows, "base"))}</b><span>${t("billing.list.taxBase")}</span></div>
+      <div class="kpi"><b>${euros2(total(rows, "cuota_iva"))}</b><span>${t("billing.list.vat")}</span></div>
+      <div class="kpi"><b>${euros2(total(pending, "total") - total(pending, "cobrado"))}</b><span>${t("billing.list.toCollect", { count: formatNumber(pending.length) })}</span></div>
+      <div class="kpi ${overdue.length ? "warn" : ""}"><b>${euros2(total(overdue, "total") - total(overdue, "cobrado"))}</b><span>${t("billing.list.overdueTotal", { count: formatNumber(overdue.length) })}</span></div>`;
+  }
+  function rowHtml5(row4) {
+    const note = row4.rectifica ? `<span class="sm">${t("billing.list.rectifies", { number: escapeHtml(row4.rectifica) })}</span>` : row4.rectificada_por ? `<span class="sm">${t("billing.list.rectifiedBy", { number: escapeHtml(row4.rectificada_por) })}</span>` : "";
+    return `<button class="dr" data-fac="${row4.id}">
+        <span><b>${escapeHtml(row4.numero)}</b>${note}</span>
+        <span>${formatShortDate(row4.fecha)}</span><span class="corta">${escapeHtml(orFallback(row4.cliente, "—"))}</span><span class="sm">${escapeHtml(orFallback(row4.nif, "—"))}</span>
+        <span class="num">${euros2(row4.base)}</span><span class="num">${euros2(row4.cuota_iva)}</span><span class="num"><b>${euros2(row4.total)}</b></span>
+        <span class="${row4.estado_cobro === PAYMENT.overdue ? "cad-pasada" : ""}">${row4.vencimiento ? formatShortDate(row4.vencimiento) : "—"}</span>
+        <span>${paymentPill(row4.estado_cobro)}</span></button>`;
+  }
+  function tableHtml4(rows) {
+    if (!rows.length) return `<div class="vacio">${t("billing.list.none")}</div>`;
+    const head = [["", "number"], ["", "date"], ["", "client"], ["", "nif"], ["num", "base"], ["num", "vatShort"], ["num", "total"], ["", "due"], ["", "payment"]];
+    return `<div class="dgrid-wrap"><div class="dgrid facts">
+      <div class="dh">${head.map(([kind, key]) => `<span${kind ? ` class="${kind}"` : ""}>${t(`billing.list.${key}`)}</span>`).join("")}</div>
+      ${rows.map(rowHtml5).join("")}</div></div>`;
+  }
+  function pageRows(rows) {
+    const size = accountListLegacy.pageSize();
+    billingLegacy.setPage(Math.min(billingLegacy.page(), Math.max(0, Math.ceil(rows.length / size) - 1)));
+    const start2 = billingLegacy.page() * size;
+    return rows.slice(start2, start2 + size);
+  }
+  async function paintRows() {
+    billingLegacy.showLoading(document.getElementById("flista"), t("billing.list.loading"));
+    const range2 = opportunitiesLegacy.periodOf(document.getElementById("fper"));
+    const { data, error } = await legacyDb().rpc("facturas_lista", {
+      p_desde: range2.desde,
+      p_hasta: range2.hasta,
+      q: emptyToNull(field2("fq")?.value.trim()),
+      p_cobro: emptyToNull(field2("fcob")?.value)
+    });
+    const list = document.getElementById("flista"), totals = document.getElementById("ftot");
+    if (!list) return;
+    if (error) {
+      list.innerHTML = `<div class="vacio">${escapeHtml(errorMessage2(error))}</div>`;
+      return;
+    }
+    const rows = data ?? [];
+    if (totals) totals.innerHTML = totalsHtml(rows);
+    list.innerHTML = tableHtml4(pageRows(rows));
+    list.querySelectorAll("[data-fac]").forEach((button2) => {
+      button2.onclick = () => {
+        billingLegacy.openInvoice(button2.dataset.fac ?? "");
+      };
+    });
+    list.insertAdjacentHTML("beforeend", '<div id="fpag"></div>');
+    accountListLegacy.paginate({
+      element: document.getElementById("fpag"),
+      total: rows.length,
+      page: billingLegacy.page(),
+      onPage: (page) => {
+        billingLegacy.setPage(page);
+        void paintRows();
+      },
+      onSize: () => {
+        billingLegacy.setPage(0);
+        void paintRows();
+      }
+    });
+  }
+  var restart = () => {
+    billingLegacy.setPage(0);
+    void paintRows();
+  };
+  var searchTimer;
+  function paintInvoices() {
+    const body2 = document.getElementById("fcuerpo");
+    if (!body2) return;
+    body2.innerHTML = shellHtml();
+    opportunitiesLegacy.mountPeriod(document.getElementById("fper"), { id: "facturas", valor: "mes", alCambiar: () => {
+      void paintRows();
+    } });
+    const search3 = field2("fq"), payment = field2("fcob");
+    if (search3) search3.oninput = () => {
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(restart, SEARCH_WAIT_MS);
+    };
+    if (payment) payment.onchange = restart;
+    void paintRows();
+  }
+  function refreshInvoices() {
+    if (currentScreen() === "facturacion" && billingLegacy.section() === "facturas" && document.getElementById("flista")) paintInvoices();
+  }
+
+  // src/app/screens/billing/series.ts
+  var TYPES = [
+    ["ordinaria", "billing.series.ordinary", "billing.series.ordinary"],
+    ["rectificativa", "billing.series.rectifying", "billing.series.rectifying"],
+    ["simplificada", "billing.series.simplified", "billing.series.simplifiedTickets"]
+  ];
+  var FALLBACK_YEAR = 2026;
+  var YEAR_DIGITS = 100;
+  var typeName = (type) => t(TYPES.find(([key]) => key === type)?.[1] ?? "billing.series.simplified");
+  var input = (id) => document.getElementById(id);
+  var valueOf2 = (id) => input(id)?.value ?? "";
+  function rowHtml6(series) {
+    const notes2 = `${series.por_defecto ? t("billing.series.byDefault") : ""}${series.activa ? "" : t("billing.series.inactive")}`;
+    return `<button class="dr" data-ser="${series.id ?? ""}"><span><b>${escapeHtml(series.codigo)}</b><span class="sm">${escapeHtml(series.nombre)}${notes2}</span></span>
+        <span>${escapeHtml(typeName(series.tipo))}</span><span class="mono">${escapeHtml(series.formato)}</span>
+        <span><b>${escapeHtml(series.proximo ?? "")}</b></span><span>${escapeHtml(orFallback(series.ultima, "—"))}</span><span class="num">${formatNumber(series.emitidas)}</span><span>${t(series.reinicio_anual ? "billing.series.yes" : "billing.series.no")}</span></button>`;
+  }
+  function listHtml(list, admin) {
+    const head = [["", "series"], ["", "type"], ["", "format"], ["", "next"], ["", "last"], ["num", "issued"], ["", "yearlyReset"]];
+    return `<div class="panel">
+    <div class="cuenta">${t("billing.series.intro")}
+      ${admin ? `<button class="btn sec" id="sernueva" style="margin-left:8px">${t("billing.series.add")}</button>` : ""}</div>
+    <div class="dgrid-wrap"><div class="dgrid sers">
+      <div class="dh">${head.map(([kind, key]) => `<span${kind ? ` class="${kind}"` : ""}>${t(`billing.series.${key}`)}</span>`).join("")}</div>
+      ${list.map(rowHtml6).join("")}
+    </div></div>
+    <p class="sm" style="padding:10px 16px">${t("billing.series.formatHelp")}</p></div>`;
+  }
+  async function paintSeries() {
+    billingLegacy.showLoading(document.getElementById("fcuerpo"), t("billing.series.loading"));
+    const { data } = await callRpc("series_lista", {});
+    const body2 = document.getElementById("fcuerpo");
+    if (!body2) return;
+    const list = data ?? [], admin = cardSectionsLegacy.can("administrar");
+    body2.innerHTML = listHtml(list, admin);
+    body2.querySelectorAll("[data-ser]").forEach((button2) => {
+      button2.onclick = () => {
+        editSeries(list.find((series) => series.id === button2.dataset.ser) ?? null);
+      };
+    });
+    const add2 = document.getElementById("sernueva");
+    if (add2) add2.onclick = () => {
+      editSeries(null);
+    };
+  }
+  function editorHtml4(series, admin) {
+    const locked = admin ? "" : "disabled", fixed = series.id ? "disabled" : locked;
+    const types2 = TYPES.map(([key, , label]) => `<option value="${key}" ${series.tipo === key ? "selected" : ""}>${t(label)}</option>`).join("");
+    const check2 = (id, on4, label) => `<label class="opt" style="margin-top:${id === "ser" ? 10 : 8}px"><input type="checkbox" id="${id}" ${on4 ? "checked" : ""} ${locked}> ${t(label)}</label>`;
+    return `
+    <div class="fh"><div><h2>${series.id ? t("billing.series.titleOf", { code: escapeHtml(series.codigo) }) : t("billing.series.newTitle")}</h2><div class="sm">${t("billing.series.nextNumber")}<b id="serprev"></b></div></div>
+      <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
+    <div class="g2"><div><label for="sec">${t("billing.series.code")}</label><input id="sec" value="${escapeHtml(series.codigo)}" ${fixed} placeholder="${t("billing.series.codePlaceholder")}"></div>
+      <div><label for="sen">${t("billing.series.name")}</label><input id="sen" value="${escapeHtml(series.nombre)}" ${locked}></div></div>
+    <div class="g2"><div><label for="set">${t("billing.series.type")}</label><select id="set" ${fixed}>${types2}</select></div>
+      <div><label for="sef">${t("billing.series.format")}</label><input id="sef" value="${escapeHtml(series.formato)}" ${locked}></div></div>
+    <div class="g2"><div><label for="ses">${t("billing.series.nextField")}</label><input id="ses" type="number" min="1" value="${series.siguiente}" ${locked}></div>
+      <div><label for="sea">${t("billing.series.year")}</label><input id="sea" type="number" value="${series.anio}" ${locked}></div></div>
+    ${check2("ser", series.reinicio_anual, "billing.series.restartYearly")}
+    ${check2("sed", series.por_defecto, "billing.series.defaultForType")}
+    ${series.id ? check2("seac", series.activa !== false, "billing.series.active") : ""}
+    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>${t("common.close")}</button>${admin ? `<button class="btn" id="seok">${t("common.save")}</button>` : ""}</div>`;
+  }
+  function preview() {
+    const code = valueOf2("sec").trim().toUpperCase() || "X", year = Number(valueOf2("sea")) || FALLBACK_YEAR, next = Number(valueOf2("ses")) || 1;
+    const text2 = valueOf2("sef").replace("{S}", code).replace("{AAAA}", String(year)).replace("{AA}", String(year % YEAR_DIGITS).padStart(2, "0")).replace(/\{(N+)\}/, (...[, digits]) => String(next).padStart(digits?.length ?? 0, "0"));
+    const place = document.getElementById("serprev");
+    if (place) place.textContent = text2;
+  }
+  async function save7(series) {
+    const checked3 = (id) => Boolean(input(id)?.checked), active = input("seac");
+    const { data: result, error } = await legacyDb().rpc("guardar_serie", { p: {
+      id: series.id ?? null,
+      codigo: valueOf2("sec").trim(),
+      nombre: valueOf2("sen").trim(),
+      tipo: valueOf2("set"),
+      formato: valueOf2("sef").trim(),
+      siguiente: Number(valueOf2("ses")),
+      anio: Number(valueOf2("sea")),
+      reinicio_anual: checked3("ser"),
+      por_defecto: checked3("sed"),
+      ...active ? { activa: active.checked } : {}
+    } });
+    if (error || result?.ok === false) {
+      notices.toast(result?.error === "numero_usado" ? t("billing.series.numberUsed", { last: result.ultimo ?? "" }) : t("billing.series.couldNotSave"), true);
+      return;
+    }
+    document.getElementById("dlg")?.close();
+    notices.toast(t("billing.series.saved"));
+    void paintSeries();
+  }
+  function editSeries(existing) {
+    const admin = cardSectionsLegacy.can("administrar");
+    const series = existing ?? { codigo: "", nombre: "", tipo: "ordinaria", formato: "{S}{AA}{NNNN}", siguiente: 1, anio: Number(todayIso().slice(0, 4)), reinicio_anual: true };
+    const body2 = document.getElementById("dbody"), box = document.getElementById("dlg");
+    if (!body2 || !box) return;
+    body2.innerHTML = editorHtml4(series, admin);
+    box.showModal();
+    for (const id of ["sec", "sef", "ses", "sea"]) {
+      const field8 = input(id);
+      if (field8) field8.oninput = preview;
+    }
+    preview();
+    const ok = document.getElementById("seok");
+    if (ok) ok.onclick = () => {
+      void save7(series);
+    };
+  }
+
+  // src/app/screens/billing/verifactu.ts
+  var DEFAULTS = { activo: false, modalidad: "verifactu", entorno: "pruebas" };
+  var MODES2 = [
+    ["verifactu", "billing.verifactu.modeVerifactu", "billing.verifactu.modeVerifactuText"],
+    ["no_verifactu", "billing.verifactu.modeOther", "billing.verifactu.modeOtherText"]
+  ];
+  function heroHtml(settings) {
+    const pill = settings.activo ? `<span class="pill p-est">${t("billing.verifactu.on")}</span>` : `<span class="pill p-per">${t("billing.verifactu.off")}</span>`;
+    return `<div class="vfhero ${settings.activo ? "on" : ""}">
+      <div class="vfico">🛡️</div>
+      <div><h2>VeriFactu ${pill}</h2>
+        <p>${t("billing.verifactu.intro")}</p></div></div>`;
+  }
+  function stepsHtml(settings, chain) {
+    const intact = !chain.rotas;
+    const chainText = intact ? t("billing.verifactu.chainOk") : t("billing.verifactu.chainBroken", { from: escapeHtml(chain.primera_rota ?? "") });
+    return `<div class="vfpasos">
+      <div class="vfpaso hecho"><span>✓</span><b>${t("billing.verifactu.step1")}</b><em>${t("billing.verifactu.step1Text")}</em></div>
+      <div class="vfpaso hecho"><span>✓</span><b>${t("billing.verifactu.step2")}</b><em>${t("billing.verifactu.step2Text", { count: formatNumber(chain.facturas ?? 0), chain: chainText })}</em></div>
+      <div class="vfpaso ${settings.activo ? "hecho" : ""}"><span>${settings.activo ? "✓" : "3"}</span><b>${t("billing.verifactu.step3")}</b><em>${t(settings.activo ? "billing.verifactu.step3On" : "billing.verifactu.step3Off")}</em></div>
+      <div class="vfpaso pend"><span>🔒</span><b>${t("billing.verifactu.step4")}</b><em>${t("billing.verifactu.step4Text")}</em></div>
+    </div>`;
+  }
+  function whatHtml(last) {
+    const lastText = last ? t("billing.verifactu.lastEvent", { type: escapeHtml(last.tipo), date: new Date(last.fecha).toLocaleDateString("es-ES") }) : "";
+    return `<div class="card vfcard"><h3>${t("billing.verifactu.whatTitle")}</h3><ul class="manlist">
+        <li><span>🔢</span><span>${t("billing.verifactu.what1")}</span></li>
+        <li><span>🔗</span><span>${t("billing.verifactu.what2")}</span></li>
+        <li><span>🧾</span><span>${t("billing.verifactu.what3")}</span></li>
+        <li><span>📋</span><span>${t("billing.verifactu.what4", { last: lastText })}</span></li></ul></div>`;
+  }
+  function settingsHtml2(settings) {
+    const modes = MODES2.map(([key, name, text2]) => `<label class="vfmodo"><input type="radio" name="vfm" value="${key}" ${settings.modalidad === key ? "checked" : ""}><b>${t(name)}</b><span>${t(text2)}</span></label>`).join("");
+    return `<div class="card vfcard"><h3>${t("billing.verifactu.settings")}</h3>
+        <label class="vfswitch"><input type="checkbox" id="vfa" ${settings.activo ? "checked" : ""}><span class="sw"></span>
+          <span><b>${t("billing.verifactu.activate")}</b><br><span class="sm">${t("billing.verifactu.activateHint")}</span></span></label>
+        <label>${t("billing.verifactu.mode")}</label>
+        <div class="vfmodos">
+          ${modes}</div>
+        <label for="vfe">${t("billing.verifactu.environment")}</label><select id="vfe"><option value="pruebas" ${settings.entorno === "pruebas" ? "selected" : ""}>${t("billing.verifactu.testing")}</option><option value="produccion" ${settings.entorno === "produccion" ? "selected" : ""}>${t("billing.verifactu.production")}</option></select>
+        <div class="acts" style="justify-content:flex-end"><button class="btn" id="vfok">${t("common.save")}</button></div></div>`;
+  }
+  async function save8(current) {
+    const next = {
+      activo: Boolean(document.getElementById("vfa")?.checked),
+      modalidad: document.querySelector("[name=vfm]:checked")?.value ?? DEFAULTS.modalidad,
+      entorno: document.getElementById("vfe")?.value ?? DEFAULTS.entorno
+    };
+    if (next.activo !== current.activo) {
+      const on4 = next.activo;
+      const sure = await notices.confirm(
+        t(on4 ? "billing.verifactu.activateText" : "billing.verifactu.deactivateText"),
+        { titulo: t(on4 ? "billing.verifactu.activateTitle" : "billing.verifactu.deactivateTitle"), ok: t(on4 ? "billing.verifactu.activateOk" : "billing.verifactu.deactivateOk") }
+      );
+      if (!sure) return;
+    }
+    const { error } = await legacyDb().rpc("guardar_ajuste", { p_clave: "verifactu", p_valor: next });
+    if (error) {
+      notices.toast(t("billing.verifactu.couldNotSave"), true);
+      return;
+    }
+    billingLegacy.setSetting("verifactu", next);
+    notices.toast(t("billing.verifactu.saved"));
+    void paintVerifactu();
+  }
+  async function paintVerifactu() {
+    await billingLegacy.loadSettings();
+    const settings = { ...DEFAULTS, ...billingLegacy.setting("verifactu") };
+    const [{ data: chain }, { data: events3 }] = await Promise.all([callRpc("verificar_cadena", {}), callRpc("eventos_facturacion_lista", { lim: 1 })]);
+    const body2 = document.getElementById("fcuerpo");
+    if (!body2) return;
+    body2.innerHTML = `
+    ${heroHtml(settings)}
+    ${stepsHtml(settings, chain ?? {})}
+    <div class="vfgrid">
+      ${whatHtml((events3 ?? [])[0])}
+      ${settingsHtml2(settings)}
+    </div>`;
+    const ok = document.getElementById("vfok");
+    if (ok) ok.onclick = () => {
+      void save8(settings);
+    };
+  }
+
+  // src/app/screens/billing/page.ts
+  var SECTIONS2 = [
+    ["facturas", "billing.page.invoices", false],
+    ["series", "billing.page.series", false],
+    ["empresa", "billing.page.company", true],
+    ["verifactu", "billing.page.verifactu", true],
+    ["registro", "billing.page.log", true]
+  ];
+  var PAINT = {
+    facturas: paintInvoices,
+    series: () => {
+      void paintSeries();
+    },
+    empresa: () => {
+      billingLegacy.paintCompany();
+    },
+    verifactu: () => {
+      void paintVerifactu();
+    },
+    registro: () => {
+      billingLegacy.paintLog();
+    }
+  };
+  function readOnlyHtml() {
+    if (!billingLegacy.readOnly()) return "";
+    return `<div id="facconsulta" class="banda-info">${t("billing.page.readOnly", { plan: escapeHtml(billingLegacy.planName()) })}</div>`;
+  }
+  function loadBilling() {
+    const screen2 = document.getElementById("v-facturacion");
+    if (!screen2) return Promise.resolve();
+    const admin = cardSectionsLegacy.can("administrar"), sections = SECTIONS2.filter(([, , adminOnly]) => admin || !adminOnly);
+    if (!sections.some(([key]) => key === billingLegacy.section())) billingLegacy.setSection("facturas");
+    const current = billingLegacy.section();
+    screen2.innerHTML = `
+    <div class="saludo"><div><h1>${t("billing.page.title")}</h1><div class="fecha">${t("billing.page.subtitle")}</div></div>
+      <div class="acts" style="margin:0"></div></div>
+    <div class="subnav">${sections.map(([key, label]) => `<button data-fsec="${key}" aria-pressed="${String(current === key)}">${t(label)}</button>`).join("")}</div>${readOnlyHtml()}
+    <div id="fcuerpo"></div>`;
+    screen2.querySelectorAll("[data-fsec]").forEach((button2) => {
+      button2.onclick = () => {
+        billingLegacy.setSection(button2.dataset.fsec ?? "facturas");
+        billingLegacy.reload();
+      };
+    });
+    PAINT[current]?.();
+    requestAnimationFrame(() => {
+      if (currentScreen() === "facturacion") billingLegacy.paintTabs();
+    });
+    return Promise.resolve();
+  }
+
+  // src/app/screens/billing/payment.ts
+  var value5 = (id) => document.getElementById(id)?.value ?? "";
+  function formHtml2(invoice2, pending) {
+    const methods = billingLegacy.paymentMethods().map((item) => `<option ${item.valor === invoice2.forma_pago ? "selected" : ""}>${escapeHtml(item.valor)}</option>`).join("");
+    return `
+    <div class="fh"><div><h2>${t("billing.payment.title", { number: escapeHtml(invoice2.numero) })}</h2><div class="sm">${t("billing.payment.pending", { amount: euros2(pending) })}</div></div>
+      <button class="x" data-cerrar2 aria-label="${t("common.close")}">✕</button></div>
+    <div class="g2"><div><label for="cbi">${t("billing.payment.amount")}</label><input id="cbi" type="number" step="0.01" value="${pending}"></div>
+      <div><label for="cbf">${t("billing.payment.date")}</label><input id="cbf" type="date" value="${todayIso()}"></div></div>
+    <div class="g2"><div><label for="cbp">${t("billing.payment.method")}</label><select id="cbp">${methods}</select></div>
+      <div><label for="cbn">${t("billing.payment.note")}</label><input id="cbn" placeholder="${t("billing.payment.optional")}"></div></div>
+    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar2>${t("common.cancel")}</button><button class="btn" id="cbok">${t("billing.payment.register")}</button></div>`;
+  }
+  async function save9(invoice2, box) {
+    const amount3 = Number(value5("cbi"));
+    if (!amount3) {
+      notices.toast(t("billing.payment.writeAmount"), true);
+      return;
+    }
+    const { data: result, error } = await legacyDb().rpc("registrar_cobro", {
+      p_factura: invoice2.id,
+      p_importe: amount3,
+      p_fecha: value5("cbf"),
+      p_forma: value5("cbp"),
+      p_nota: value5("cbn").trim() || null
+    });
+    if (error || result?.ok === false) {
+      notices.toast(t("billing.payment.couldNotRegister"), true);
+      return;
+    }
+    box.close();
+    notices.toast(t("billing.payment.registered"));
+    billingLegacy.openInvoice(invoice2.id);
+    refreshInvoices();
+  }
+  function registerPayment(invoice2, pending) {
+    const body2 = document.getElementById("dlg2body"), box = document.getElementById("dlg2");
+    if (!body2 || !box) return;
+    body2.innerHTML = formHtml2(invoice2, pending);
+    box.showModal();
+    const ok = document.getElementById("cbok");
+    if (ok) ok.onclick = () => {
+      void save9(invoice2, box);
+    };
+  }
+
+  // src/app/screens/billing/rectify.ts
+  var failure = (error, result) => orFallback(errorMessage2(error), result?.error ?? "");
+  var partial = (body2) => body2.querySelector("[name=rft]:checked")?.value === "parcial";
+  function formHtml3(invoice2) {
+    const lines = invoice2.lineas.map((line2, index) => `<div class="g2" style="align-items:center"><div>${escapeHtml(line2.descripcion)} <span class="sm">${t("billing.rectify.units", { units: formatNumber(line2.unidades) })}</span></div>
+      <div><input type="number" min="0" max="${line2.unidades}" data-rfi="${index}" value="0" aria-label="${t("billing.rectify.unitsLabel")}"></div></div>`).join("");
+    return `
+    <div class="fh"><div><h2>${t("billing.rectify.title", { number: escapeHtml(invoice2.numero) })}</h2><div class="sm">${t("billing.rectify.subtitle")}</div></div>
+      <button class="x" data-cerrar2 aria-label="${t("common.close")}">✕</button></div>
+    <label for="rfm">${t("billing.rectify.reason")}</label><input id="rfm" placeholder="${t("billing.rectify.reasonPlaceholder")}">
+    <label>${t("billing.rectify.what")}</label>
+    <div class="opciones" style="grid-template-columns:minmax(0,1fr) minmax(0,1fr)"><label class="opt"><input type="radio" name="rft" value="total" checked> ${t("billing.rectify.whole")}</label>
+      <label class="opt"><input type="radio" name="rft" value="parcial"> ${t("billing.rectify.someUnits")}</label></div>
+    <div id="rflin" class="hide">${lines}</div>
+    ${invoice2.pedido_id ? `<label class="opt" style="margin-top:10px"><input type="checkbox" id="rfan"> ${t("billing.rectify.cancelOrder")}</label>` : ""}
+    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar2>${t("common.cancel")}</button><button class="btn dang" id="rfok">${t("billing.rectify.issue")}</button></div>`;
+  }
+  var reasonOf = () => document.getElementById("rfm")?.value.trim() ?? "";
+  function chosenLines(body2) {
+    return [...body2.querySelectorAll("[data-rfi]")].map((input4) => ({ indice: Number(input4.dataset.rfi), unidades: Number(input4.value) || 0 })).filter((line2) => line2.unidades > 0);
+  }
+  async function issue(invoice2, body2, button2) {
+    const reason = reasonOf();
+    if (!reason) {
+      notices.toast(t("billing.rectify.writeReason"), true);
+      return;
+    }
+    const lines = partial(body2) ? chosenLines(body2) : null;
+    if (lines?.length === 0) {
+      notices.toast(t("billing.rectify.writeUnits"), true);
+      return;
+    }
+    button2.disabled = true;
+    const { data: result, error } = await legacyDb().rpc("rectificar_factura", { p_factura: invoice2.id, p_motivo: reason, p_lineas: lines });
+    if (error || !result || result.ok === false) {
+      button2.disabled = false;
+      notices.toast(t("billing.rectify.failed", { error: failure(error, result) }), true);
+      return;
+    }
+    await afterIssue(invoice2, result, reason);
+  }
+  async function afterIssue(invoice2, result, reason) {
+    const number = result.numero ?? "";
+    if (document.getElementById("rfan")?.checked) await legacyDb().rpc("anular_pedido", { p_id: invoice2.pedido_id, p_motivo: t("billing.rectify.cancelReason", { number, reason }) });
+    document.getElementById("dlg2")?.close();
+    notices.toast(t("billing.rectify.issued", { number }));
+    billingLegacy.openInvoice(result.id ?? "");
+    refreshInvoices();
+  }
+  function rectifyInvoice(invoice2) {
+    const body2 = document.getElementById("dlg2body"), box = document.getElementById("dlg2");
+    if (!body2 || !box) return;
+    body2.innerHTML = formHtml3(invoice2);
+    box.showModal();
+    body2.querySelectorAll("[name=rft]").forEach((radio) => {
+      radio.onchange = () => {
+        const some = partial(body2), cancel3 = document.getElementById("rfan");
+        document.getElementById("rflin")?.classList.toggle("hide", !some);
+        if (cancel3) {
+          cancel3.disabled = some;
+          if (some) cancel3.checked = false;
+        }
+      };
+    });
+    const ok = document.getElementById("rfok");
+    if (ok) ok.onclick = () => {
+      void issue(invoice2, body2, ok);
+    };
+  }
+
+  // src/app/screens/billing/sheet.ts
+  var FINGERPRINT_SHOWN = 32;
+  function paymentState(invoice2) {
+    if (invoice2.total === 0 || Math.abs(invoice2.cobrado) >= Math.abs(invoice2.total)) return PAYMENT.paid;
+    return invoice2.vencimiento && invoice2.vencimiento < todayIso() ? PAYMENT.overdue : PAYMENT.pending;
+  }
+  var address = (party, withProvince) => escapeHtml([party.direccion, party.cp, party.municipio, withProvince ? party.provincia : null].filter(Boolean).join(", "));
+  function headerHtml5(invoice2) {
+    const when = `${formatLongDate(invoice2.fecha)}${invoice2.vencimiento ? t("billing.sheet.dueOn", { date: formatShortDate(invoice2.vencimiento) }) : ""}${invoice2.forma_pago ? ` · ${escapeHtml(invoice2.forma_pago)}` : ""}`;
+    return `<div class="fh"><div><h2>${t(invoice2.rectifica_id ? "billing.sheet.rectifying" : "billing.sheet.invoice")} ${escapeHtml(invoice2.numero)} ${paymentPill(paymentState(invoice2))}</h2>
+      <div class="sm">${when}</div></div>
+      <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>`;
+  }
+  function noticesHtml(detail, invoice2) {
+    const original = detail.rectifica ? `<div class="avisoh"><span>${t("billing.sheet.rectifiesNotice", { number: escapeHtml(detail.rectifica.numero), reason: escapeHtml(invoice2.motivo_rectificacion ?? "") })}</span><button class="btn sec" data-vfac="${detail.rectifica.id}">${t("billing.sheet.seeOriginal")}</button></div>` : "";
+    const later2 = detail.rectificativas ?? [];
+    const list = later2.map((item) => `<b>${escapeHtml(item.numero)}</b> (${euros2(item.total)} · ${escapeHtml(item.motivo ?? "")})`).join(", ");
+    return original + (later2.length ? `<div class="avisoh"><span>${t("billing.sheet.rectifiedBy", { list })}</span></div>` : "");
+  }
+  function partiesHtml(invoice2) {
+    const client = invoice2.cliente, issuer = invoice2.emisor;
+    return `<div class="g2">
+      <div class="blk"><h3>${t("billing.sheet.client")}</h3><b>${escapeHtml(client.nombre ?? "")}</b><div class="sm">${escapeHtml(orFallback(client.nif, t("billing.sheet.noNif")))}</div>
+        <div class="sm">${address(client, true)}</div></div>
+      <div class="blk"><h3>${t("billing.sheet.issuer")}</h3><b>${escapeHtml(issuer.razon_social ?? "")}</b><div class="sm">${escapeHtml(issuer.nif ?? "")}</div>
+        <div class="sm">${address(issuer, false)}</div></div></div>`;
+  }
+  function linesHtml(invoice2) {
+    const head = [["", "concept"], ["num", "units"], ["num", "price"], ["num", "discount"], ["num", "vat"], ["num", "base"]];
+    const lines = invoice2.lineas.map((line2) => `<div class="dr" style="cursor:default"><span>${escapeHtml(line2.descripcion)}</span><span class="num">${formatNumber(line2.unidades)}</span>
+        <span class="num">${euros2(line2.precio)}</span><span class="num">${line2.descuento ? `${formatNumber(line2.descuento)}%` : "—"}</span><span class="num">${formatNumber(line2.iva)}%</span><span class="num"><b>${euros2(line2.base)}</b></span></div>`).join("");
+    const breakdown = invoice2.desglose_iva.map((item) => `<div><span>${t("billing.sheet.baseAt", { rate: formatNumber(item.iva) })}</span><b>${euros2(item.base)}</b></div><div><span>${t("billing.sheet.vatAt", { rate: formatNumber(item.iva) })}</span><b>${euros2(item.cuota)}</b></div>`).join("");
+    return `<div class="dgrid-wrap"><div class="dgrid flin">
+      <div class="dh">${head.map(([kind, key]) => `<span${kind ? ` class="${kind}"` : ""}>${t(`billing.sheet.${key}`)}</span>`).join("")}</div>
+      ${lines}</div></div>
+    <div class="totbox">${breakdown}
+      <div class="tot"><span>${t("billing.sheet.total")}</span><b>${euros2(invoice2.total)}</b></div></div>`;
+  }
+  function paymentsHtml(payments, pending) {
+    const admin = cardSectionsLegacy.can("administrar");
+    const rows = payments.map((item) => `<div class="sm" style="display:flex;justify-content:space-between;gap:8px;padding:4px 0">
+        <span>${formatShortDate(item.fecha)} · ${escapeHtml(item.forma_pago ?? "")}${item.nota ? ` · ${escapeHtml(item.nota)}` : ""}</span><b>${euros2(item.importe)}</b>
+        ${admin ? `<button class="kcfg" data-bcob="${item.id}">${t("billing.sheet.removePayment")}</button>` : ""}</div>`).join("");
+    return `<div class="blk"><h3>${t("billing.sheet.payments")}</h3>
+      ${rows || `<div class="sm">${t("billing.sheet.noPayments")}</div>`}
+      ${pending ? `<div class="sm" style="margin-top:4px">${t("billing.sheet.pendingAmount", { amount: euros2(pending) })}</div>` : ""}</div>`;
+  }
+  function recordHtml(invoice2) {
+    if (!invoice2.huella) return "";
+    return `<div class="blk"><h3>${t("billing.sheet.record")}</h3><div class="sm mono">${t("billing.sheet.fingerprint", { value: escapeHtml(invoice2.huella.slice(0, FINGERPRINT_SHOWN)) })}</div>
+      <div class="sm">${t("billing.sheet.verifactuState", { state: escapeHtml(orFallback(invoice2.verifactu?.estado, t("billing.sheet.notApplicable"))) })}</div></div>`;
+  }
+  function actionsHtml4(invoice2, pending) {
+    const can = billingLegacy.canInvoice();
+    return `<div class="acts" style="justify-content:flex-end;flex-wrap:wrap">
+      <button class="btn sec" data-cerrar>${t("common.close")}</button>
+      ${invoice2.pedido_id ? `<button class="btn sec" id="fvped">${t("billing.sheet.seeOrder")}</button>` : ""}
+      ${can && !invoice2.rectifica_id ? `<button class="btn sec dang" id="fvrect">${t("billing.sheet.rectify")}</button>` : ""}
+      ${can && pending ? `<button class="btn sec" id="fvcob">${t("billing.sheet.registerPayment")}</button>` : ""}
+      <button class="btn sec" id="fvpdf">${t("billing.sheet.see")}</button><button class="btn sec" id="fvdl">${t("billing.sheet.download")}</button>${can ? `<button class="btn" id="fvmail">${t("billing.sheet.email")}</button>` : ""}</div>`;
+  }
+  var on3 = (id, action) => {
+    const button2 = document.getElementById(id);
+    if (button2) button2.onclick = action;
+  };
+  function bind9(body2, detail, invoice2, pending) {
+    const rectifies = detail.rectifica?.numero;
+    body2.querySelectorAll("[data-vfac]").forEach((button2) => {
+      button2.onclick = () => {
+        billingLegacy.openInvoice(button2.dataset.vfac ?? "");
+      };
+    });
+    body2.querySelectorAll("[data-bcob]").forEach((button2) => {
+      button2.onclick = async () => {
+        if (!await notices.confirm(t("billing.sheet.removePaymentText"), { titulo: t("billing.sheet.removePaymentTitle"), ok: t("billing.sheet.removePayment"), peligro: true })) return;
+        await legacyDb().rpc("borrar_cobro", { p_id: button2.dataset.bcob });
+        billingLegacy.openInvoice(invoice2.id);
+        refreshInvoices();
+      };
+    });
+    on3("fvped", () => {
+      appLegacy.openOrder(invoice2.pedido_id ?? "");
+    });
+    on3("fvcob", () => {
+      registerPayment(invoice2, pending);
+    });
+    on3("fvrect", () => {
+      rectifyInvoice(invoice2);
+    });
+    on3("fvdl", () => {
+      billingLegacy.downloadPdf(invoice2, rectifies);
+    });
+    on3("fvmail", () => {
+      billingLegacy.sendByEmail(invoice2, rectifies);
+    });
+    on3("fvpdf", () => {
+      void billingLegacy.invoicePdf(invoice2, rectifies).then((pdf) => {
+        window.open(pdf.output("bloburl"), "_blank");
+      });
+    });
+  }
+  async function paint3(id) {
+    const { data: detail } = await callRpc("factura_detalle", { p_id: id });
+    const invoice2 = detail?.factura;
+    if (!detail || !invoice2) {
+      notices.toast(t("billing.sheet.couldNotOpen"), true);
+      return;
+    }
+    const body2 = document.getElementById("dbody"), box = document.getElementById("dlg");
+    if (!body2 || !box) return;
+    const pending = Number((invoice2.total - invoice2.cobrado).toFixed(2));
+    body2.innerHTML = `
+    ${headerHtml5(invoice2)}
+    ${noticesHtml(detail, invoice2)}
+    ${partiesHtml(invoice2)}
+    ${linesHtml(invoice2)}
+    ${paymentsHtml(detail.cobros ?? [], pending)}
+    ${recordHtml(invoice2)}
+    ${actionsHtml4(invoice2, pending)}`;
+    if (!box.open) box.showModal();
+    bind9(body2, detail, invoice2, pending);
+  }
+  function showInvoice(id) {
+    return billingLegacy.withLoading(() => paint3(id));
+  }
+
+  // src/app/screens/platform/index.ts
+  var platform_exports = {};
+  __export(platform_exports, {
+    paintBilling: () => paintBilling,
+    paintCompanyErrors: () => paintCompanyErrors,
+    paintOrganizations: () => paintOrganizations,
+    paintPlatformErrors: () => paintPlatformErrors,
+    paintRequests: () => paintRequests,
+    paintSignups: () => paintSignups,
+    paintStatus: () => paintStatus,
+    paintTemplate: () => paintTemplate,
+    paintViewBand: () => paintViewBand
+  });
+
+  // src/app/legacy/platform-bridge.ts
+  var platformLegacy = {
+    planName: (id) => planDe(id).nombre,
+    plans: () => PLANES,
+    planLosses: (from, to, data) => perdidasPlan(from, to, data),
+    planRank: (id) => rangoPlan(id),
+    /** The platform's own plan may have changed. */
+    reloadPlan: async () => {
+      const { data } = await RPC_ORIG("plan_uso", {});
+      if (data?.plan) PLAN_ACTUAL = data.plan;
+    },
+    askText: (message, value15, options2) => pedirTexto(message, value15, options2),
+    prepareOrganizationChange: (name) => {
+      prepararCambioOrg(name);
+    },
+    hasProfile: () => Boolean(PERFIL),
+    can: (capability) => puede(capability),
+    appVersion: () => VERSION_APP,
+    isTestEnvironment: () => EN_PRUEBAS,
+    panelTab: () => PAG_TAB.delcos,
+    skeleton: () => pdEsqueleto(),
+    kpis: (figures) => pdKpis(figures),
+    billingState: (organization) => pdCobroEstado(organization),
+    monthlyAmount: (plan) => pdMensual(plan),
+    euros: (value15) => eur(value15),
+    shortDate: (value15) => pdFecha(value15),
+    timeAgo: (value15) => pdHace(value15),
+    paintRoles: () => pintarRoles(),
+    paintCatalogs: () => pintarCatalogos()
+  };
+
+  // src/app/screens/platform/model.ts
+  var MEDIDA = "medida";
+  var platformState = {
+    viewed: null,
+    companyErrors: { tipo: "", estado: "Nuevo" },
+    platformErrors: { estado: "abiertos", dias: 15 }
+  };
+  var planOf = (organization) => organization.plan_datos ?? {};
+  function planText(organization) {
+    const data = planOf(organization), name = platformLegacy.planName(data.plan ?? organization.plan);
+    const users = data.plan === MEDIDA || data.usuarios === null || data.usuarios === void 0 ? "" : t("platform.orgs.hired", { count: formatNumber(data.usuarios) });
+    const payment = data.pago === "anual" ? t("platform.orgs.yearly") : data.plan === MEDIDA ? "" : t("platform.orgs.monthly");
+    return t("platform.orgs.planText", { name }) + users + payment;
+  }
+  var EXTRAS = /* @__PURE__ */ new Map([["oportunidades", "platform.extras.opportunities"], ["portal", "platform.extras.portal"]]);
+  var extraName = (key) => {
+    const label = EXTRAS.get(key);
+    return label ? t(label) : key;
+  };
+  function blockedPill(organization, data) {
+    if (organization.bloqueada === "desactivada") return `<span class="pill p-anu">${t("platform.orgs.deactivated")}</span> `;
+    if (organization.bloqueada === "prueba_terminada") return `<span class="pill p-warn">${t("platform.orgs.trialEnded", { date: formatShortDate(data.prueba_hasta ?? "") })}</span> `;
+    if (data.estado === "prueba") return `<span class="pill p-est">${t("platform.orgs.trialUntil", { date: formatShortDate(data.prueba_hasta ?? "") })}</span> `;
+    return "";
+  }
+  function statePills(organization) {
+    const data = planOf(organization);
+    if (organization.bloqueada === "cancelada") return `<span class="pill p-anu">${t("platform.orgs.cancelled")}</span> `;
+    if (data.estado === "impago") return `<span class="pill p-urg">${t("platform.orgs.unpaidSince", { date: formatShortDate(data.impago_desde ?? "") })}</span> `;
+    return blockedPill(organization, data) + (data.stripe_suscripcion ? '<span class="pill p-est">Stripe</span> ' : "");
+  }
+  var errorMessage3 = (error) => error?.message ?? "";
+  var shortDateTime3 = (value15) => new Date(value15).toLocaleString(t("dates.locale"), { dateStyle: "short", timeStyle: "short" });
+  function downloadJson(data, fileName, keepUrlMs = 0) {
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 1)], { type: "application/json" }));
+    link.download = fileName;
+    link.click();
+    if (keepUrlMs) setTimeout(() => {
+      URL.revokeObjectURL(link.href);
+    }, keepUrlMs);
+  }
+  var panelBox = () => document.getElementById("cfgcuerpo");
+  var stillOnTab = (tab) => Boolean(panelBox()) && platformLegacy.panelTab() === tab;
+
+  // src/app/screens/platform/billing.ts
+  var UP_TO_DATE = "Al día";
+  var TRIAL = "En prueba";
+  var UNPAID = "Impago";
+  var BLOCKED = "Bloqueada";
+  var FILTERS = [["todas", "platform.billing.all"], ["atencion", "platform.billing.attention"], [UP_TO_DATE, "platform.billing.upToDate"], [TRIAL, "platform.billing.trial"], [UNPAID, "platform.billing.unpaid"]];
+  var stripeUrl = (id) => `https://dashboard.stripe.com/${platformLegacy.isTestEnvironment() ? "test/" : ""}customers/${encodeURIComponent(id)}`;
+  function shownIn(filter, row4) {
+    if (filter === "todas") return true;
+    if (filter === "atencion") return [UNPAID, BLOCKED].includes(row4.state[0]) || Boolean(row4.plan.baja_al_final) || Boolean(row4.plan.cambio_previsto);
+    return row4.state[0] === filter;
+  }
+  function notes(plan) {
+    const change = plan.cambio_previsto;
+    const planned = change ? t("platform.billing.planned", { plan: platformLegacy.planName(change.plan ?? plan.plan) }) + (change.usuarios ? t("platform.billing.plannedUsers", { users: change.usuarios }) : "") + (change.desde ? t("platform.billing.plannedOn", { date: platformLegacy.shortDate(change.desde) }) : "") : "";
+    return [plan.baja_al_final ? t("platform.billing.leaving") : "", planned, plan.compromiso_hasta ? t("platform.billing.commitment", { date: platformLegacy.shortDate(plan.compromiso_hasta) }) : ""].filter(Boolean);
+  }
+  function rowHtml7({ organization, plan, state }) {
+    const monthly = platformLegacy.monthlyAmount(plan), users = plan.plan === "medida" ? "" : (plan.usuarios ? t("platform.billing.hired", { count: plan.usuarios }) : "") + t(plan.pago === "anual" ? "platform.billing.yearly" : "platform.billing.monthly");
+    return `<tr><td><b>${escapeHtml(organization.nombre)}</b><div class="sm">${t("platform.billing.activeUsers", { count: organization.usuarios })}${plan.origen === "web" ? t("platform.billing.fromWeb") : ""}</div></td>
+          <td>${escapeHtml(platformLegacy.planName(plan.plan))}<div class="sm">${users}</div></td>
+          <td><span class="pill ${state[1]}">${state[0]}</span><div class="sm">${escapeHtml(state[2])}</div></td>
+          <td class="num">${monthly ? platformLegacy.euros(monthly) : "—"}</td>
+          <td>${notes(plan).map((note) => `<div class="sm">${escapeHtml(note)}</div>`).join("") || '<span class="sm">—</span>'}</td>
+          <td>${plan.stripe_cliente ? `<a class="btn sec" href="${stripeUrl(plan.stripe_cliente)}" target="_blank" rel="noopener">${t("platform.billing.seeInStripe")}</a>` : ""}</td></tr>`;
+  }
+  function paintRows2(rows, filter) {
+    const box = document.getElementById("pdcobl");
+    if (!box) return;
+    const shown5 = rows.filter((row4) => shownIn(filter, row4));
+    const head = ["company", "plan", "state", "perMonth", "pending"].map((key) => `<th>${t(`platform.billing.${key}`)}</th>`).join("");
+    box.innerHTML = shown5.length ? `<div class="tablawrap"><table class="pdtabla"><thead><tr>${head}<th></th></tr></thead><tbody>
+      ${shown5.map(rowHtml7).join("")}</tbody></table></div>` : `<div class="vacio">${t("platform.billing.empty")}</div>`;
+  }
+  function pageHtml(rows, error) {
+    const count2 = (state) => rows.filter((row4) => row4.state[0] === state).length;
+    const income = sum(rows.filter((row4) => row4.state[0] === UP_TO_DATE).map((row4) => platformLegacy.monthlyAmount(row4.plan)));
+    const figures = [
+      [count2(UP_TO_DATE), t("platform.billing.kpiUpToDate")],
+      [count2(TRIAL), t("platform.billing.kpiTrial")],
+      [count2(UNPAID), t("platform.billing.kpiUnpaid"), count2(UNPAID) ? "mal" : ""],
+      [rows.filter((row4) => row4.plan.baja_al_final).length, t("platform.billing.kpiLeaving")],
+      [platformLegacy.euros(income), t("platform.billing.kpiIncome")]
+    ];
+    return `<div class="card cfgpanel">
+    ${error ? `<div class="banda-peligro">${t("platform.billing.couldNotRead", { error: escapeHtml(errorMessage3(error)) })}</div>` : ""}
+    ${platformLegacy.kpis(figures)}
+    <div class="segs" id="pdcobf">${FILTERS.map(([key, label]) => `<button type="button" data-pdf="${escapeHtml(key)}" class="${key === "todas" ? "on" : ""}">${t(label)}</button>`).join("")}</div>
+    <div id="pdcobl"></div>
+    <p class="sm">${t("platform.billing.footer")}</p></div>`;
+  }
+  async function paintBilling() {
+    const start2 = panelBox();
+    if (!start2) return;
+    start2.innerHTML = platformLegacy.skeleton();
+    const { data, error } = await callRpc("organizaciones_lista", {});
+    if (!stillOnTab("cobros")) return;
+    const box = panelBox();
+    if (!box) return;
+    const rows = (error ? [] : data ?? []).map((organization) => ({ organization, plan: planOf(organization), state: platformLegacy.billingState(organization) }));
+    box.innerHTML = pageHtml(rows, error);
+    box.querySelectorAll("[data-pdf]").forEach((button2) => {
+      button2.onclick = () => {
+        box.querySelectorAll("[data-pdf]").forEach((other) => {
+          other.classList.toggle("on", other === button2);
+        });
+        paintRows2(rows, button2.dataset.pdf ?? "todas");
+      };
+    });
+    paintRows2(rows, "todas");
+  }
+
+  // src/app/screens/platform/errors.ts
+  var STATES5 = ["Nuevo", "Revisado", "Resuelto"];
+  var SOLVED = "Resuelto";
+  var DAY_OPTIONS = [7, 15, 30, 90];
+  var KINDS = /* @__PURE__ */ new Map([["error", "platform.errors.program"], ["api", "platform.errors.database"], ["reporte", "platform.errors.report"]]);
+  var kindName = (kind) => {
+    const key = KINDS.get(kind);
+    return key ? t(key) : kind;
+  };
+  var stateOptions = (current) => STATES5.map((state) => `<option ${current === state ? "selected" : ""}>${state}</option>`).join("");
+  var select = (id) => document.getElementById(id);
+  function groupRow(group, index) {
+    const solved = group.resuelto_en_version ? t(group.resuelto_auto ? "platform.errors.solvedAuto" : "platform.errors.solvedIn", { version: escapeHtml(group.resuelto_en_version) }) : "";
+    return `<div class="errfila e-${group.tipo}">
+        <div><b>${escapeHtml(kindName(group.tipo))}</b> <span class="sm">· ${escapeHtml(orFallback(group.pantalla, "—"))} · ${formatNumber(group.veces)} ${t(group.veces === 1 ? "platform.errors.time" : "platform.errors.times")} · ${formatNumber(group.personas)} ${t(group.personas === 1 ? "platform.errors.person" : "platform.errors.people")}
+          · ${t("platform.errors.last", { date: shortDateTime3(group.ultima) })}${solved}</span>
+          <div class="errmsg">${escapeHtml(group.mensaje)}</div>
+          <details class="errdet"><summary class="sm">${t("platform.errors.details")}</summary><div class="sm">${t("platform.errors.versions", { versions: escapeHtml(orFallback(group.versiones, "—")), date: shortDateTime3(group.primera) })}</div>
+            <pre>${escapeHtml(JSON.stringify(group.detalle ?? {}, null, 1))}</pre></details></div>
+        <select class="chico" data-egh="${index}" aria-label="${t("platform.errors.groupState")}">${stateOptions(group.estado)}</select></div>`;
+  }
+  function platformHtml(list, error) {
+    const filters = platformState.platformErrors;
+    const states = [["abiertos", "platform.errors.open"], ["resueltos", "platform.errors.solved"], ["todos", "platform.errors.all"]];
+    return `<div class="card cfgpanel errgrupos"><h2 style="padding:0 0 4px">${t("platform.errors.platformTitle")}</h2>
+    <p class="sm">${t("platform.errors.platformText")}</p>
+    ${error ? `<div class="banda-peligro">${t("platform.errors.couldNotRead", { error: escapeHtml(errorMessage3(error)) })}</div>` : ""}
+    <div class="usrbar"><select id="egest">${states.map(([key, label]) => `<option value="${key}" ${filters.estado === key ? "selected" : ""}>${t(label)}</option>`).join("")}</select>
+      <select id="egdias">${DAY_OPTIONS.map((days) => `<option value="${days}" ${filters.dias === days ? "selected" : ""}>${t("platform.errors.lastDays", { days })}</option>`).join("")}</select>
+      <button class="btn sec" id="egdesc">${icon("download")} ${t("platform.errors.download")}</button></div>
+    <div class="errlista">${list.map(groupRow).join("") || `<div class="vacio">${t(filters.estado === "abiertos" ? "platform.errors.noneOpen" : "platform.errors.none")}</div>`}</div></div>`;
+  }
+  var shown = (group) => {
+    const filter = platformState.platformErrors.estado;
+    return filter === "todos" || (filter === "abiertos" ? group.estado !== SOLVED : group.estado === SOLVED);
+  };
+  async function markGroup(group, state) {
+    const { data: result } = await callRpc("marcar_errores_huella", { p_huella: group.huella, p_estado: state });
+    const ok = Boolean(result?.ok);
+    notices.toast(ok ? t(state === SOLVED ? "platform.errors.groupSolved" : "platform.errors.stateChanged") : t("platform.errors.couldNotChange"), !ok);
+    if (ok) void paintPlatformErrors();
+  }
+  async function paintPlatformErrors() {
+    const start2 = panelBox();
+    if (!start2) return;
+    start2.innerHTML = '<div class="card cfgpanel"><div class="skel" style="width:40%"></div><div class="skel"></div></div>';
+    const { data, error } = await callRpc("errores_resumen", { p_dias: platformState.platformErrors.dias });
+    const box = panelBox();
+    if (!box) return;
+    const all = error ? [] : data ?? [], list = all.filter(shown);
+    box.innerHTML = platformHtml(list, error);
+    const refilter = () => {
+      platformState.platformErrors = { estado: select("egest")?.value ?? "abiertos", dias: Number(select("egdias")?.value) };
+      void paintPlatformErrors();
+    };
+    const states = select("egest"), days = select("egdias");
+    if (states) states.onchange = refilter;
+    if (days) days.onchange = refilter;
+    box.querySelectorAll("[data-egh]").forEach((field8) => {
+      field8.onchange = () => {
+        const group = list[Number(field8.dataset.egh)];
+        if (group) void markGroup(group, field8.value);
+      };
+    });
+    const save21 = document.getElementById("egdesc");
+    if (save21) save21.onclick = () => {
+      downloadJson({ generado: (/* @__PURE__ */ new Date()).toISOString(), version: platformLegacy.appVersion(), errores: all }, `errores_${todayIso()}.json`);
+    };
+  }
+  function companyRow(item) {
+    return `<div class="errfila e-${item.tipo}"><div><b>${escapeHtml(kindName(item.tipo))}</b> <span class="sm">${shortDateTime3(item.creado_en)} · ${escapeHtml(orFallback(item.usuario, "—"))} · ${escapeHtml(orFallback(item.pantalla, "—"))} · v${escapeHtml(item.version ?? "")}</span>
+        <div class="errmsg">${escapeHtml(item.mensaje)}</div></div>
+      <select data-errst="${item.id}">${stateOptions(item.estado)}</select></div>`;
+  }
+  function companyHtml(list) {
+    const filters = platformState.companyErrors;
+    const kinds = [...KINDS.keys()].map((kind) => `<option value="${kind}" ${filters.tipo === kind ? "selected" : ""}>${kindName(kind)}</option>`).join("");
+    const states = ["", ...STATES5].map((state) => `<option value="${state}" ${filters.estado === state ? "selected" : ""}>${state || t("platform.errors.allStates")}</option>`).join("");
+    return `<div class="card cfgpanel"><h2>${t("platform.errors.companyTitle")}</h2>
+    <p class="sm">${t("platform.errors.companyText")}</p>
+    <div class="usrbar"><select id="erft"><option value="">${t("platform.errors.allKinds")}</option>${kinds}</select>
+      <select id="erfe">${states}</select>
+      <button class="btn sec" id="erdesc">${icon("download")} ${t("platform.errors.download")}</button></div>
+    <div class="errlista">${list.map(companyRow).join("") || `<div class="vacio">${t("platform.errors.none")}</div>`}</div></div>`;
+  }
+  async function paintCompanyErrors() {
+    const filters = platformState.companyErrors;
+    const { data } = await callRpc("errores_lista", { p_tipo: filters.tipo || null, p_estado: filters.estado || null });
+    const box = panelBox();
+    if (!box) return;
+    const list = data ?? [];
+    box.innerHTML = companyHtml(list);
+    const refilter = () => {
+      platformState.companyErrors = { tipo: select("erft")?.value ?? "", estado: select("erfe")?.value ?? "" };
+      void paintCompanyErrors();
+    };
+    const kind = select("erft"), state = select("erfe");
+    if (kind) kind.onchange = refilter;
+    if (state) state.onchange = refilter;
+    box.querySelectorAll("[data-errst]").forEach((field8) => {
+      field8.onchange = async () => {
+        await callRpc("marcar_error", { p_id: Number(field8.dataset.errst), p_estado: field8.value });
+        notices.toast(t("platform.errors.stateChanged"));
+      };
+    });
+    const save21 = document.getElementById("erdesc");
+    if (save21) save21.onclick = () => {
+      downloadJson(list, `errores_${todayIso()}.json`);
+    };
+  }
+
+  // src/app/screens/platform/org-actions.ts
+  var URL_LIFE_MS = 6e4;
+  var errorSuffix = (error) => error ? `: ${errorMessage3(error)}` : "";
+  async function downloadData(organization, button2) {
+    const label = button2.textContent;
+    button2.disabled = true;
+    button2.textContent = t("platform.orgs.preparing");
+    const { data, error } = await callRpc("exportar_organizacion", { p_org: organization.id });
+    button2.disabled = false;
+    button2.textContent = label;
+    if (error || !data) {
+      notices.toast(t("platform.orgs.downloadFailed"), true);
+      return;
+    }
+    downloadJson(data, `datos_${organization.nombre.replace(/[^\p{L}\p{N}]+/gu, "_")}_${todayIso()}.json`, URL_LIFE_MS);
+    notices.toast(t("platform.orgs.downloaded"));
+  }
+  var DELETE_ERRORS = /* @__PURE__ */ new Map([["permiso", "platform.orgs.noPermission"], ["principal", "platform.orgs.mainNotDeleted"], ["activa", "platform.orgs.onlyTrial"], ["facturas", "platform.orgs.hasInvoices"]]);
+  async function deleteOrganization(organization, repaint2) {
+    if (organization.facturas) {
+      notices.toast(t("platform.orgs.invoicesNoDelete", { name: organization.nombre }), true);
+      return;
+    }
+    const typed = await platformLegacy.askText(
+      t("platform.orgs.deleteText", { name: organization.nombre, users: formatNumber(organization.usuarios), accounts: formatNumber(organization.cuentas) }),
+      "",
+      { titulo: t("platform.orgs.delete"), ok: t("platform.orgs.deleteOk") }
+    );
+    if (typed === null) return;
+    if (typed.trim() !== organization.nombre) {
+      notices.toast(t("platform.orgs.nameMismatch"), true);
+      return;
+    }
+    const { data: result, error } = await legacyDb().rpc("borrar_organizacion", { p_org: organization.id });
+    if (error || !result?.ok) {
+      const key = DELETE_ERRORS.get(result?.error ?? "");
+      notices.toast(key ? t(key) : t("platform.orgs.deleteFailed") + errorSuffix(error), true);
+      return;
+    }
+    notices.toast(t("platform.orgs.deleted", { name: organization.nombre }) + (String(result.acceso ?? "").startsWith("no_borrado") ? t("platform.orgs.deleteUsersToo") : ""));
+    void repaint2();
+  }
+  var ACTIVE_ERRORS = /* @__PURE__ */ new Map([["permiso", "platform.orgs.noPermission"], ["principal", "platform.orgs.mainNotDeactivated"], ["organizacion", "platform.orgs.notFound"]]);
+  async function toggleActive(organization, button2, repaint2) {
+    const activate = organization.activa === false, users = formatNumber(organization.usuarios);
+    const asked = await notices.confirm(t(activate ? "platform.orgs.reactivateText" : "platform.orgs.deactivateText", { users }), {
+      titulo: t(activate ? "platform.orgs.reactivateTitle" : "platform.orgs.deactivateTitle", { name: organization.nombre }),
+      ok: t(activate ? "platform.orgs.reactivate" : "platform.orgs.deactivate"),
+      peligro: !activate
+    });
+    if (!asked) return;
+    button2.disabled = true;
+    const { data: result, error } = await legacyDb().rpc("activar_organizacion", { p_org: organization.id, p_activa: activate });
+    if (error || !result?.ok) {
+      button2.disabled = false;
+      const key = ACTIVE_ERRORS.get(result?.error ?? "");
+      notices.toast(key ? t(key) : t("platform.orgs.toggleFailed") + errorSuffix(error), true);
+      return;
+    }
+    notices.toast(t(activate ? "platform.orgs.reactivated" : "platform.orgs.deactivated2", { name: organization.nombre }));
+    void repaint2();
+  }
+  async function enterOrganization(organization) {
+    if (!await notices.confirm(t("platform.orgs.enterText", { name: organization.nombre }), { titulo: t("platform.orgs.enterTitle", { name: organization.nombre }), ok: t("platform.orgs.enter") })) return;
+    const { data: result } = await legacyDb().rpc("entrar_organizacion", { p_org: organization.id });
+    if (!result?.ok) {
+      notices.toast(t(result?.motivo === "permiso" ? "platform.orgs.onlyAdmin" : "platform.orgs.couldNotEnter"), true);
+      return;
+    }
+    platformLegacy.prepareOrganizationChange(organization.nombre);
+    location.reload();
+  }
+  function removeViewBand() {
+    document.getElementById("orgvista")?.remove();
+    document.body.classList.remove("con-vista");
+    document.documentElement.style.setProperty("--alto-franja", "0px");
+  }
+  async function leave(button2) {
+    button2.disabled = true;
+    const { data: result } = await legacyDb().rpc("salir_organizacion", {});
+    if (!result?.ok) {
+      button2.disabled = false;
+      notices.toast(t("platform.orgs.couldNotLeave"), true);
+      return;
+    }
+    location.reload();
+  }
+  async function paintViewBand() {
+    if (!platformLegacy.hasProfile() || !platformLegacy.can("gestionar_plataforma")) {
+      removeViewBand();
+      return;
+    }
+    const { data } = await callRpc("vista_organizacion", {});
+    platformState.viewed = data ?? null;
+    const viewed = platformState.viewed;
+    if (!viewed) {
+      removeViewBand();
+      return;
+    }
+    if (!document.getElementById("orgvista")) document.body.insertAdjacentHTML("afterbegin", '<div id="orgvista" class="orgvista" role="status"></div>');
+    const band = document.getElementById("orgvista");
+    if (!band) return;
+    const blocked = viewed.bloqueada ? ` <span class="pill p-warn">${t(viewed.bloqueada === "desactivada" ? "platform.view.deactivated" : "platform.view.trialEnded")}</span>` : "";
+    band.innerHTML = `<span>${t("platform.view.seeing", { name: `<b>${escapeHtml(viewed.nombre)}</b>${blocked}` })}</span>
+    <button type="button" class="btn sec" id="orgvistasal">${t("platform.view.leave")}</button>`;
+    document.body.classList.add("con-vista");
+    document.documentElement.style.setProperty("--alto-franja", `${band.offsetHeight}px`);
+    const exit = document.getElementById("orgvistasal");
+    if (exit) exit.onclick = () => {
+      void leave(exit);
+    };
+  }
+
+  // src/app/screens/platform/org-extras.ts
+  var checked = (id) => document.getElementById(id)?.checked ?? false;
+  async function save10(organization, repaint2) {
+    const extras = [checked("oxopor") ? "oportunidades" : "", checked("oxport") ? "portal" : ""].filter(Boolean);
+    const { data: result, error } = await legacyDb().rpc("guardar_extras_organizacion", { p_org: organization.id, p_extras: extras });
+    if (error || !result?.ok) {
+      notices.toast(t("platform.extras.couldNotSave") + (error ? `: ${errorMessage3(error)}` : ""), true);
+      return;
+    }
+    document.getElementById("dlg")?.close();
+    notices.toast(t("platform.extras.saved"));
+    await platformLegacy.reloadPlan();
+    void repaint2();
+  }
+  function editExtras(organization, repaint2) {
+    const body2 = document.getElementById("dbody"), box = document.getElementById("dlg");
+    if (!body2 || !box) return;
+    const active = planOf(organization).extras ?? [];
+    body2.innerHTML = `<div class="fh"><div><h2>${t("platform.extras.title", { name: escapeHtml(organization.nombre) })}</h2><div class="sm">${t("platform.extras.subtitle")}</div></div>
+        <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
+      <label class="chk"><input type="checkbox" id="oxopor" ${active.includes("oportunidades") ? "checked" : ""}> <span><b>${t("platform.extras.opportunities")}</b>
+        <span class="sm">${t("platform.extras.opportunitiesText", { professional: term("medico") })}</span></span></label>
+      <label class="chk"><input type="checkbox" id="oxport" ${active.includes("portal") ? "checked" : ""}> <span><b>${t("platform.extras.portalTitle", { ofProfessional: term("medico", { article: "del" }) })}</b>
+        <span class="sm">${t("platform.extras.portalText", { orders: term("pauta", { number: "p" }) })}</span></span></label>
+      <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>${t("common.cancel")}</button><button class="btn" id="oxok">${t("common.save")}</button></div>`;
+    box.showModal();
+    const ok = document.getElementById("oxok");
+    if (ok) ok.onclick = () => {
+      void save10(organization, repaint2);
+    };
+  }
+
+  // src/app/screens/platform/org-new.ts
+  var MIN_USERS = 3;
+  var TRIAL_DAYS = 30;
+  var MIN_PASSWORD = 6;
+  var DEFAULT_PLAN = "empresa";
+  var value6 = (id) => document.getElementById(id)?.value ?? "";
+  var CREATE_ERRORS = /* @__PURE__ */ new Map([["permiso", "platform.orgs.noPermission"], ["nombre", "platform.newOrg.noName"], ["email", "platform.newOrg.badEmail"], ["email_existe", "platform.newOrg.emailTaken"]]);
+  function formHtml4() {
+    const plans = platformLegacy.plans().map((plan) => `<option value="${plan.id}" ${plan.id === DEFAULT_PLAN ? "selected" : ""}>${escapeHtml(plan.nombre)}</option>`).join("");
+    return `<div class="fh"><div><h2>${t("platform.newOrg.title")}</h2><div class="sm">${t("platform.newOrg.subtitle")}</div></div>
+        <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
+      <div class="g2"><div><label for="onom">${t("platform.newOrg.name")}</label><input id="onom"></div>
+        <div><label for="onif">${t("platform.newOrg.nif")}</label><input id="onif"></div>
+        <div><label for="oplan">${t("platform.newOrg.plan")}</label><select id="oplan">${plans}</select></div>
+        <div><label for="ousu">${t("platform.newOrg.users")}</label><input id="ousu" type="number" min="3" value="3"></div>
+        <div><label for="opago">${t("platform.newOrg.payment")}</label><select id="opago"><option value="mensual">${t("platform.newOrg.monthly")}</option><option value="anual">${t("platform.newOrg.yearly")}</option></select></div>
+        <div><label class="chk"><input type="checkbox" id="oprueba" checked> ${t("platform.newOrg.trial")}</label></div></div>
+      <h3 style="margin-top:14px">${t("platform.newOrg.admin")}</h3>
+      <div class="g2"><div><label for="oanom">${t("platform.newOrg.adminName")}</label><input id="oanom"></div>
+        <div><label for="oamail">${t("platform.newOrg.adminEmail")}</label><input id="oamail" type="email"></div>
+        <div><label for="oapass">${t("platform.newOrg.password")}</label><input id="oapass" value="Tmp-${Math.random().toString(36).slice(2, 8)}"></div></div>
+      <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>${t("common.cancel")}</button><button class="btn" id="ocrear">${t("platform.newOrg.create")}</button></div>
+      <div id="omsg" class="sm" style="margin-top:10px"></div>`;
+  }
+  var setMessage = (html) => {
+    const message = document.getElementById("omsg");
+    if (message) message.innerHTML = html;
+  };
+  var busy = (button2, on4) => {
+    button2.disabled = on4;
+    button2.textContent = t(on4 ? "platform.newOrg.creating" : "platform.newOrg.create");
+  };
+  function newCompany(name, email) {
+    return {
+      nombre: name,
+      nif: value6("onif").trim(),
+      plan: value6("oplan"),
+      usuarios: Number(value6("ousu")) || MIN_USERS,
+      pago: value6("opago"),
+      prueba_dias: document.getElementById("oprueba")?.checked ? TRIAL_DAYS : 0,
+      email_admin: email
+    };
+  }
+  function createFailure(code, error) {
+    const key = CREATE_ERRORS.get(code ?? ""), reason = key ? t(key) : errorMessage3(error);
+    return `<span style="color:var(--dang)">${t("platform.newOrg.failed", { reason: escapeHtml(reason) })}</span>`;
+  }
+  async function create(button2, repaint2) {
+    const name = value6("onom").trim(), email = value6("oamail").trim(), password = value6("oapass"), adminName = value6("oanom").trim();
+    if (!name || !email || !adminName || password.length < MIN_PASSWORD) {
+      notices.toast(t("platform.newOrg.complete"), true);
+      return;
+    }
+    busy(button2, true);
+    const { data: result, error } = await legacyDb().rpc("crear_organizacion", { p: newCompany(name, email) });
+    if (error || !result?.ok) {
+      busy(button2, false);
+      setMessage(createFailure(result?.error, error));
+      return;
+    }
+    const failure3 = await accessLegacy.signUp(email, password, adminName);
+    busy(button2, false);
+    setMessage(failure3 ? `<span style="color:var(--dang)">${t("platform.newOrg.noUser", { error: escapeHtml(failure3.message ?? "") })}</span>` : t("platform.newOrg.created", { email: escapeHtml(email), password: escapeHtml(password) }));
+    void repaint2();
+  }
+  function openNewOrganization(repaint2) {
+    const body2 = document.getElementById("dbody"), box = document.getElementById("dlg");
+    if (!body2 || !box) return;
+    body2.innerHTML = formHtml4();
+    const ok = document.getElementById("ocrear");
+    if (ok) ok.onclick = () => {
+      void create(ok, repaint2);
+    };
+    box.showModal();
+  }
+
+  // src/app/screens/platform/org-plan.ts
+  var MEDIDA2 = "medida";
+  var TRIAL2 = "prueba";
+  var TRIAL_DAYS2 = 30;
+  var field3 = (id) => document.getElementById(id);
+  var value7 = (id) => field3(id)?.value ?? "";
+  function formHtml5(organization) {
+    const data = planOf(organization), current = data.plan ?? organization.plan, end = data.prueba_hasta ?? addDays(todayIso(), TRIAL_DAYS2);
+    const plans = platformLegacy.plans().map((plan) => `<option value="${plan.id}" ${plan.id === current ? "selected" : ""}>${escapeHtml(plan.nombre)}</option>`).join("");
+    return `<div class="fh"><div><h2>${t("platform.plan.title", { name: escapeHtml(organization.nombre) })}</h2><div class="sm">${t("platform.plan.subtitle")}</div></div>
+        <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
+      <div class="g2"><div><label for="opplan">${t("platform.newOrg.plan")}</label><select id="opplan">${plans}</select></div>
+        <div><label for="opusu">${t("platform.newOrg.users")}</label><input id="opusu" type="number" min="3" value="${escapeHtml(data.usuarios ?? "")}" placeholder="${t("platform.plan.noLimit")}"></div>
+        <div><label for="oppago">${t("platform.newOrg.payment")}</label><select id="oppago"><option value="mensual">${t("platform.newOrg.monthly")}</option><option value="anual" ${data.pago === "anual" ? "selected" : ""}>${t("platform.newOrg.yearly")}</option></select></div>
+        <div><label for="opest">${t("platform.plan.state")}</label><select id="opest"><option value="activo">${t("platform.plan.paid")}</option><option value="prueba" ${data.estado === TRIAL2 ? "selected" : ""}>${t("platform.plan.trial")}</option></select></div>
+        <div id="opfinw" class="${data.estado === TRIAL2 ? "" : "hide"}"><label for="opfin">${t("platform.plan.trialUntil")}</label><input id="opfin" type="date" value="${escapeHtml(end)}"></div><div id="opcompw"><label for="opcomp">${t("platform.plan.commitment")}</label>
+        <input id="opcomp" type="date" value="${escapeHtml(data.compromiso_hasta ?? "")}"><span class="sm">${t("platform.plan.commitmentHint")}</span></div></div>
+      ${data.stripe_suscripcion ? `<div class="banda-aviso" id="opstripe">${t("platform.plan.stripe")}</div>` : ""}<div id="opperd"></div>
+      <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>${t("common.cancel")}</button><button class="btn" id="opok">${t("platform.plan.save")}</button></div>`;
+  }
+  var isCommitted = (data, from, to) => from === MEDIDA2 && to !== MEDIDA2 && Boolean(data.compromiso_hasta) && (data.compromiso_hasta ?? "") > todayIso();
+  function paintLosses(organization) {
+    const data = planOf(organization), from = data.plan ?? organization.plan ?? "", to = value7("opplan");
+    field3("opcompw")?.classList.toggle("hide", to !== MEDIDA2);
+    const box = document.getElementById("opperd");
+    if (!box) return;
+    if (isCommitted(data, from, to)) {
+      box.innerHTML = `<div class="banda-peligro">${t("platform.plan.committed", { date: formatShortDate(data.compromiso_hasta ?? "") })}</div>`;
+      return;
+    }
+    const losses = platformLegacy.planLosses(from, to, { extras: data.extras ?? [], facturas: Number(organization.facturas) > 0 });
+    box.innerHTML = platformLegacy.planRank(to) < platformLegacy.planRank(from) && losses.length ? `<div class="banda-aviso">${t("platform.plan.willLose", { plan: escapeHtml(platformLegacy.planName(to)) })}<ul>${losses.map((loss) => `<li>${escapeHtml(loss)}</li>`).join("")}</ul></div>` : "";
+  }
+  var PLAN_ERRORS = /* @__PURE__ */ new Map([["permiso", "platform.orgs.noPermission"], ["minimo", "platform.plan.minimum"], ["prueba_hasta", "platform.plan.noTrialEnd"], ["plan", "platform.plan.invalid"], ["compromiso", "platform.plan.committedUntil"]]);
+  function payload3() {
+    const trial = value7("opest") === TRIAL2, plan = value7("opplan");
+    const result = { plan, usuarios: value7("opusu") === "" ? null : Number(value7("opusu")), pago: value7("oppago"), estado: value7("opest"), prueba_hasta: trial ? value7("opfin") : null };
+    if (plan === MEDIDA2) result.compromiso_hasta = value7("opcomp") || null;
+    return result;
+  }
+  async function save11(organization, button2, repaint2) {
+    button2.disabled = true;
+    const { data: result, error } = await legacyDb().rpc("guardar_plan_organizacion", { p_org: organization.id, p: payload3() });
+    button2.disabled = false;
+    if (error || !result?.ok) {
+      const key = PLAN_ERRORS.get(result?.error ?? "");
+      notices.toast(key ? t(key, { date: formatShortDate(result?.hasta ?? "") }) : t("platform.plan.couldNotSave"), true);
+      return;
+    }
+    document.getElementById("dlg")?.close();
+    notices.toast(t("platform.plan.saved"));
+    void repaint2();
+  }
+  function editPlan(organization, repaint2) {
+    const body2 = document.getElementById("dbody"), box = document.getElementById("dlg");
+    if (!body2 || !box) return;
+    body2.innerHTML = formHtml5(organization);
+    const state = field3("opest");
+    if (state) state.onchange = () => {
+      field3("opfinw")?.classList.toggle("hide", value7("opest") !== TRIAL2);
+    };
+    field3("opplan")?.addEventListener("change", () => {
+      paintLosses(organization);
+    });
+    paintLosses(organization);
+    const ok = document.getElementById("opok");
+    if (ok) ok.onclick = () => {
+      void save11(organization, ok, repaint2);
+    };
+    box.showModal();
+  }
+
+  // src/app/screens/platform/organizations.ts
+  function detailsText(organization) {
+    const extras = planOf(organization).extras ?? [];
+    return escapeHtml(orFallback(organization.nif, t("platform.orgs.noNif"))) + ` · ${escapeHtml(planText(organization))}${extras.length ? ` + ${extras.map(extraName).join(", ")}` : ""}` + t("platform.orgs.counts", { users: formatNumber(organization.usuarios), accounts: formatNumber(organization.cuentas) }) + (organization.pendiente ? t("platform.orgs.pending", { email: escapeHtml(organization.pendiente) }) : "");
+  }
+  function buttonsHtml2(organization) {
+    const inside = organization.id === platformState.viewed?.id, data = planOf(organization);
+    const toggle = organization.principal ? "" : `<button class="btn sec" type="button" data-orgact="${organization.id}">${t(organization.activa === false ? "platform.orgs.reactivate" : "platform.orgs.deactivate")}</button>`;
+    const remove7 = !organization.principal && (data.estado === "prueba" || !organization.activa) ? `<button class="btn sec" type="button" data-orgdel="${organization.id}">${t("platform.orgs.delete")}</button>` : "";
+    return `<span class="acts" style="margin:0"><span class="sm">${organization.creado_en ? formatShortDate(String(organization.creado_en).slice(0, 10)) : ""}</span>
+        <button class="btn sec chico" type="button" data-orgdom="${organization.id}">${t("platform.orgs.domains")}</button>
+        <button class="btn sec chico" type="button" data-orgext="${organization.id}">${t("platform.orgs.extras")}</button>
+        <button class="btn chico ${inside ? "sec" : ""}" type="button" data-orgver="${organization.id}">${t(inside ? "platform.orgs.inside" : "platform.orgs.enter")}</button>
+        <button class="btn sec chico" type="button" data-orgplan="${organization.id}">${t("platform.orgs.plan")}</button>
+        <button class="btn sec chico" type="button" data-orgexp="${organization.id}">${t("platform.orgs.download")}</button>
+        ${toggle}${remove7}</span>`;
+  }
+  function rowHtml8(organization) {
+    const domains = organization.dominios ?? [];
+    return `<div class="item" style="cursor:default">
+      <span class="tx"><b>${escapeHtml(organization.nombre)}</b>${statePills(organization)}<span class="sm">${detailsText(organization)}</span>
+        <span class="sm">${domains.length ? t("platform.orgs.domainList", { domains: domains.map(escapeHtml).join(", ") }) : t("platform.orgs.noDomain")}</span></span>
+      ${buttonsHtml2(organization)}</div>`;
+  }
+  var DOMAIN_ERRORS = /* @__PURE__ */ new Map([["permiso", "platform.orgs.noPermission"], ["dominio", "platform.orgs.badDomain"], ["en_uso", "platform.orgs.domainInUse"], ["no_existe", "platform.orgs.gone"]]);
+  function domainsFailure(result, error) {
+    const key = DOMAIN_ERRORS.get(result?.error ?? "");
+    if (key) return t(key, { domain: result?.dominio ?? "", organization: result?.organizacion ?? "" });
+    return t("platform.orgs.domainsFailed") + (error ? `: ${errorMessage3(error)}` : "");
+  }
+  async function editDomains(organization) {
+    const text2 = await platformLegacy.askText(t("platform.orgs.domainsText", { name: organization.nombre }), (organization.dominios ?? []).join(", "), { titulo: t("platform.orgs.domainsTitle"), ok: t("common.save") });
+    if (text2 === null) return;
+    const { data: result, error } = await legacyDb().rpc("guardar_dominios_organizacion", { p_id: organization.id, p_dominios: text2.split(/[,;\s]+/).filter(Boolean) });
+    if (error || !result?.ok) {
+      notices.toast(domainsFailure(result, error), true);
+      return;
+    }
+    notices.toast(t(result.dominios?.length ? "platform.orgs.domainsSaved" : "platform.orgs.domainsRemoved"));
+    void paintOrganizations();
+  }
+  var ACTIONS2 = [
+    ["orgver", (organization) => {
+      if (organization.id !== platformState.viewed?.id) void enterOrganization(organization);
+    }],
+    ["orgdom", (organization) => {
+      void editDomains(organization);
+    }],
+    ["orgext", (organization) => {
+      editExtras(organization, paintOrganizations);
+    }],
+    ["orgplan", (organization) => {
+      editPlan(organization, paintOrganizations);
+    }],
+    ["orgexp", (organization, button2) => {
+      void downloadData(organization, button2);
+    }],
+    ["orgdel", (organization) => {
+      void deleteOrganization(organization, paintOrganizations);
+    }],
+    ["orgact", (organization, button2) => {
+      void toggleActive(organization, button2, paintOrganizations);
+    }]
+  ];
+  function bind10(box, list) {
+    for (const [key, action] of ACTIONS2) box.querySelectorAll(`[data-${key}]`).forEach((button2) => {
+      button2.onclick = () => {
+        const organization = list.find((item) => item.id === button2.dataset[key]);
+        if (organization) action(organization, button2);
+      };
+    });
+    const add2 = document.getElementById("orgnueva");
+    if (add2) add2.onclick = () => {
+      openNewOrganization(paintOrganizations);
+    };
+  }
+  async function paintOrganizations() {
+    const start2 = document.getElementById("cfgcuerpo");
+    if (!start2) return;
+    start2.innerHTML = `<div class="card"><div class="sm">${t("common.loading")}</div></div>`;
+    const { data, error } = await legacyDb().rpc("organizaciones_lista");
+    const box = document.getElementById("cfgcuerpo");
+    if (!box) return;
+    const list = Array.isArray(data) ? data : [];
+    box.innerHTML = `<div class="card"><div class="fh"><div><h2>${t("platform.orgs.title")}</h2>
+      <div class="sm">${t("platform.orgs.subtitle")}</div></div>
+      <button class="btn" id="orgnueva">${t("platform.orgs.new")}</button></div>
+    ${error ? `<div class="vacio">${t("platform.orgs.couldNotLoad", { error: escapeHtml(errorMessage3(error)) })}</div>` : `<div class="lista">${list.map(rowHtml8).join("")}</div>`}</div>`;
+    bind10(box, list);
+  }
+
+  // src/app/screens/platform/requests.ts
+  var STATES6 = ["Nueva", "En curso", "Cerrada"];
+  var CONTACT = /* @__PURE__ */ new Map([["correo", "platform.requests.byEmail"], ["llamada", "platform.requests.byPhone"], ["video", "platform.requests.byVideo"]]);
+  var statePill4 = (state) => state === "Nueva" ? "p-warn" : state === "En curso" ? "p-est" : "p-anu";
+  function figuresText(data) {
+    return (data.usuarios ? t("platform.requests.users", { count: formatNumber(data.usuarios) }) : "") + (data.portal ? t("platform.requests.portal", { count: formatNumber(data.portal) }) : "") + (data.cuando ? ` · ${escapeHtml(data.cuando)}` : "");
+  }
+  function contactText(request2, data) {
+    const how = CONTACT.get(data.contacto ?? "");
+    return escapeHtml(orFallback(data.nombre, request2.persona ?? "")) + (data.correo ? ` · <a href="mailto:${escapeHtml(data.correo)}">${escapeHtml(data.correo)}</a>` : "") + (data.telefono ? ` · <a href="tel:${escapeHtml(data.telefono)}">${escapeHtml(data.telefono)}</a>` : "") + `
+          · ${how ? t(how) : ""}${data.horario ? ` (${escapeHtml(data.horario)})` : ""}`;
+  }
+  function rowHtml9(request2, index) {
+    const data = request2.datos ?? {}, needs = data.necesita_txt ?? [];
+    return `<div class="presufila${request2.estado === "Cerrada" ? " cerrada" : ""}">
+        <div class="presucab"><b>${escapeHtml(request2.organizacion)}</b> <span class="pill p-est">${escapeHtml(platformLegacy.planName(request2.plan))}</span>
+          <span class="pill ${statePill4(request2.estado)}">${escapeHtml(request2.estado)}</span>
+          <span class="sm">${t(request2.tipo === "contrato" ? "platform.requests.contract" : "platform.requests.quote")} · ${shortDateTime3(request2.creado_en)}</span></div>
+        ${needs.length ? `<div class="chips">${needs.map((need) => `<span class="chip">${escapeHtml(need)}</span>`).join("")}</div>` : ""}
+        ${data.programa ? `<div class="sm">${t("platform.requests.program", { program: `<b>${escapeHtml(data.programa)}</b>` })}</div>` : ""}
+        ${data.mensaje ? `<p class="presumsg">${escapeHtml(data.mensaje)}</p>` : ""}
+        <div class="sm">${figuresText(data)}</div>
+        <div class="sm">${contactText(request2, data)}</div>
+        <div class="presuges"><select data-psest="${index}" aria-label="${t("platform.requests.state")}">${STATES6.map((state) => `<option ${request2.estado === state ? "selected" : ""}>${state}</option>`).join("")}</select>
+          <input data-psnota="${index}" placeholder="${t("platform.requests.notePlaceholder")}" value="${escapeHtml(request2.nota ?? "")}">
+          <button type="button" class="btn sec" data-psok="${index}">${t("common.save")}</button></div></div>`;
+  }
+  async function save12(box, request2, index) {
+    const field8 = (attribute) => box.querySelector(`[data-${attribute}="${index}"]`)?.value ?? "";
+    const { data: result } = await callRpc("marcar_solicitud_plan", { p_id: request2.id, p_estado: field8("psest"), p_nota: field8("psnota") });
+    const ok = Boolean(result?.ok);
+    notices.toast(t(ok ? "platform.requests.saved" : "platform.requests.couldNotSave"), !ok);
+    if (ok) void paintRequests();
+  }
+  async function paintRequests() {
+    const start2 = panelBox();
+    if (!start2) return;
+    start2.innerHTML = '<div class="card cfgpanel"><div class="skel" style="width:40%"></div><div class="skel"></div></div>';
+    const { data, error } = await callRpc("solicitudes_plan_lista", {});
+    const box = panelBox();
+    if (!box) return;
+    const list = error ? [] : data ?? [];
+    box.innerHTML = `<div class="card cfgpanel"><h2>${t("platform.requests.title")}</h2>
+    <p class="sm">${t("platform.requests.subtitle")}</p>
+    ${error ? `<div class="banda-peligro">${t("platform.billing.couldNotRead", { error: escapeHtml(errorMessage3(error)) })}</div>` : ""}
+    <div class="presulista">${list.map(rowHtml9).join("") || `<div class="vacio">${t("platform.requests.none")}</div>`}</div></div>`;
+    box.querySelectorAll("[data-psok]").forEach((button2) => {
+      button2.onclick = () => {
+        const index = button2.dataset.psok ?? "", request2 = list[Number(index)];
+        if (request2) void save12(box, request2, index);
+      };
+    });
+  }
+
+  // src/app/screens/platform/signups.ts
+  var COMPLETED = "completada";
+  var WEEK_MS = 7 * 864e5;
+  var DEFAULT_USERS = 3;
+  function stateOf(signup) {
+    if (signup.estado !== COMPLETED) return [t("platform.signups.half"), "p-warn", t("platform.signups.halfText", { ago: platformLegacy.timeAgo(signup.creado_en) })];
+    if (signup.entro) return [t("platform.signups.inside"), "p-est", t("platform.signups.insideText")];
+    return [t("platform.signups.invited"), "p-per", signup.invitado_en ? t("platform.signups.invitedText", { ago: platformLegacy.timeAgo(signup.invitado_en) }) : t("platform.signups.noInvitation")];
+  }
+  function contactHtml(data) {
+    return escapeHtml(data.nombre ?? "") + (data.email ? ` · <a href="mailto:${escapeHtml(data.email)}">${escapeHtml(data.email)}</a>` : "") + (data.telefono ? ` · <a href="tel:${escapeHtml(data.telefono)}">${escapeHtml(data.telefono)}</a>` : "") + (data.nif ? ` · ${escapeHtml(data.nif)}` : "");
+  }
+  function rowHtml10(signup) {
+    const data = signup.datos ?? {}, [label, pill, text2] = stateOf(signup);
+    const plan = t("platform.signups.plan", { plan: platformLegacy.planName(data.plan), users: nonZeroOr(data.usuarios, DEFAULT_USERS), payment: t(data.pago === "anual" ? "platform.billing.yearly" : "platform.billing.monthly") });
+    return `<div class="pdalta"><div class="pdaltacab"><b>${escapeHtml(orFallback(orFallback(signup.organizacion, data.empresa ?? ""), t("platform.signups.noName")))}</b> <span class="pill ${pill}">${label}</span>
+        <span class="pill p-per">${escapeHtml(plan)}</span></div>
+      <div class="sm">${contactHtml(data)}</div>
+      <div class="sm">${escapeHtml(text2)} · ${t("platform.signups.started", { date: platformLegacy.shortDate(signup.creado_en) })}</div></div>`;
+  }
+  function pageHtml2(list, error) {
+    const done = list.filter((signup) => signup.estado === COMPLETED), half = list.filter((signup) => signup.estado !== COMPLETED);
+    const week = list.filter((signup) => Date.now() - new Date(signup.creado_en).getTime() < WEEK_MS);
+    const figures = [
+      [done.length, t("platform.signups.kpiDone")],
+      [done.filter((signup) => signup.entro).length, t("platform.signups.kpiInside")],
+      [half.length, t("platform.signups.kpiHalf"), half.length ? "aviso" : ""],
+      [week.length, t("platform.signups.kpiWeek")]
+    ];
+    return `<div class="card cfgpanel">
+    ${error ? `<div class="banda-peligro">${t("platform.billing.couldNotRead", { error: escapeHtml(errorMessage3(error)) })}</div>` : ""}
+    ${platformLegacy.kpis(figures)}
+    ${half.length ? `<h3 class="pdh3">${t("platform.signups.half")}</h3><p class="sm">${t("platform.signups.halfHelp")}</p>${half.map(rowHtml10).join("")}` : ""}
+    <h3 class="pdh3">${t("platform.signups.completed")}</h3>${done.map(rowHtml10).join("") || `<div class="vacio">${t("platform.signups.none")}</div>`}</div>`;
+  }
+  async function paintSignups() {
+    const start2 = panelBox();
+    if (!start2) return;
+    start2.innerHTML = platformLegacy.skeleton();
+    const { data, error } = await callRpc("altas_lista", {});
+    if (!stillOnTab("altas")) return;
+    const box = panelBox();
+    if (box) box.innerHTML = pageHtml2(error ? [] : data ?? [], error);
+  }
+
+  // src/app/screens/platform/status.ts
+  var ROUTES_DEFAULT_LIMIT = 2e3;
+  var ROUTES_PER_USER = 30;
+  var WARNING_SHARE = 0.8;
+  function versionsHtml(list) {
+    const byVersion = /* @__PURE__ */ new Map();
+    list.forEach((item) => {
+      byVersion.set(item.version, [...byVersion.get(item.version) ?? [], item]);
+    });
+    const versions = [...byVersion.keys()].sort((first, second) => second.localeCompare(first, "es", { numeric: true }));
+    if (!versions.length) return `<div class="vacio">${t("platform.status.noVersions")}</div>`;
+    return versions.map((version) => {
+      const users = byVersion.get(version) ?? [], number = version.replace(/^v/, "");
+      return `<div class="pdver"><div class="pdvercab"><b>v${escapeHtml(number)}</b>${number === platformLegacy.appVersion() ? ` <span class="pill p-est">${t("platform.status.current")}</span>` : ` <span class="pill p-warn">${t("platform.status.previous")}</span>`}
+        <span class="sm">${users.length} ${t(users.length === 1 ? "platform.status.company" : "platform.status.companies")}</span></div>
+      <div class="sm">${users.map((item) => `${escapeHtml(item.organizacion)} (${platformLegacy.timeAgo(item.ultima_vez)})`).join(" · ")}</div></div>`;
+    }).join("");
+  }
+  function sqlFigure(last) {
+    return [last?.numero ? `SQL ${last.numero}` : "—", last?.version_app ? t("platform.status.databaseAt", { version: last.version_app }) : t("platform.status.database")];
+  }
+  function figuresHtml(state) {
+    const companies = state.empresas ?? {};
+    return platformLegacy.kpis([
+      [escapeHtml(`v${platformLegacy.appVersion()}`), t("platform.status.appVersion")],
+      sqlFigure((state.sql ?? [])[0]),
+      [`${formatNumber(companies.activas ?? 0)} / ${formatNumber(companies.total ?? 0)}`, t("platform.status.activeCompanies")],
+      [formatNumber(state.usuarios ?? 0), t("platform.status.activeUsers") + (state.portal ? t("platform.status.portalUsers", { count: formatNumber(state.portal) }) : "")],
+      [formatNumber(state.errores ?? 0), t("platform.status.openErrors"), state.errores ? "aviso" : ""]
+    ]);
+  }
+  function pageHtml3(state, error) {
+    const test = platformLegacy.isTestEnvironment();
+    return `<div class="card cfgpanel">
+    ${error ? `<div class="banda-peligro">${t("platform.status.couldNotRead", { error: escapeHtml(errorMessage3(error)) })}</div>` : ""}
+    ${figuresHtml(state)}
+    <h3 class="pdh3">${t("platform.status.versionsTitle")}</h3>
+    ${versionsHtml(state.versiones ?? [])}
+    <h3 class="pdh3">${t("platform.status.sqlTitle")}</h3>
+    <div class="tablawrap"><table class="pdtabla"><thead><tr><th>SQL</th><th>${t("platform.status.version")}</th><th>${t("platform.status.whatChanges")}</th><th>${t("platform.status.applied")}</th></tr></thead><tbody>
+      ${(state.sql ?? []).map((sql) => `<tr><td class="num">${sql.numero}</td><td>${escapeHtml(sql.version_app ?? "")}</td><td class="sm">${escapeHtml(sql.descripcion ?? "")}</td><td class="sm">${platformLegacy.shortDate(sql.aplicado_en)}</td></tr>`).join("")}</tbody></table></div>
+    <p class="sm">${t(test ? "platform.status.footerTest" : "platform.status.footerProduction")}</p></div>`;
+  }
+  function routesHtml(use) {
+    const config = use.config ?? {}, limit = Number(config.global) || ROUTES_DEFAULT_LIMIT, today = use.hoy ?? 0, off = config.activo === false, companies = use.empresas ?? [];
+    return `<h3 class="pdh3">${t("platform.status.routesTitle")}</h3>
+    ${platformLegacy.kpis([
+      [`${formatNumber(today)} / ${formatNumber(limit)}`, t("platform.status.routesToday"), today >= limit * WARNING_SHARE ? "aviso" : ""],
+      [formatNumber(use.mes ?? 0), t("platform.status.routesMonth")],
+      [t(off ? "platform.status.off" : "platform.status.on"), t("platform.status.service"), off ? "aviso" : ""],
+      [formatNumber(Number(config.por_usuario) || ROUTES_PER_USER), t("platform.status.perUser")]
+    ])}
+    ${companies.length ? `<div class="tablawrap"><table class="pdtabla"><thead><tr><th>${t("platform.billing.company")}</th><th class="num">${t("platform.status.today")}</th><th class="num">${t("platform.status.dailyLimit")}</th><th class="num">${t("platform.status.thisMonth")}</th></tr></thead><tbody>
+      ${companies.map((item) => `<tr><td>${escapeHtml(item.nombre)}</td><td class="num" style="${item.hoy >= item.cupo ? "color:var(--warn);font-weight:700" : ""}">${formatNumber(item.hoy)}</td><td class="num">${formatNumber(item.cupo)}</td><td class="num">${formatNumber(item.mes)}</td></tr>`).join("")}</tbody></table></div>` : `<div class="vacio">${t("platform.status.noRoutes")}</div>`}`;
+  }
+  function addRoutes(box, use) {
+    const card2 = box.querySelector(".card.cfgpanel");
+    if (!card2) return;
+    const footer = [...card2.querySelectorAll(":scope > p.sm")].pop();
+    if (footer) footer.insertAdjacentHTML("beforebegin", routesHtml(use));
+    else card2.insertAdjacentHTML("beforeend", routesHtml(use));
+  }
+  async function paintStatus() {
+    const start2 = panelBox();
+    if (!start2) return;
+    start2.innerHTML = platformLegacy.skeleton();
+    const routes = Promise.resolve(callRpc("rutas_uso_resumen", {})).catch(() => ({ data: null }));
+    const { data, error } = await callRpc("estado_plataforma", {});
+    if (!stillOnTab("estado")) return;
+    const box = panelBox();
+    if (!box) return;
+    box.innerHTML = pageHtml3(error ? {} : data ?? {}, error);
+    const { data: use } = await routes;
+    if (stillOnTab("estado") && use?.ok) addRoutes(box, use);
+  }
+
+  // src/app/screens/platform/template.ts
+  async function paintTemplate(section2) {
+    const box = panelBox();
+    if (!box) return;
+    if (!section2) {
+      box.innerHTML = `<div class="card cfgpanel"><h2>${t("platform.template.title")}</h2>
+      <p class="sm">${t("platform.template.text")}</p>
+      <div class="acts" style="justify-content:flex-start"><button type="button" class="btn sec" data-plsub="roles">${t("platform.template.roles")}</button>
+        <button type="button" class="btn sec" data-plsub="cat">${t("platform.template.catalogs")}</button></div></div>`;
+      box.querySelectorAll("[data-plsub]").forEach((button2) => {
+        button2.onclick = () => {
+          void paintTemplate(button2.dataset.plsub);
+        };
+      });
+      return;
+    }
+    if (section2 === "roles") await platformLegacy.paintRoles();
+    else {
+      box.innerHTML = "";
+      await platformLegacy.paintCatalogs();
+    }
+    const after = panelBox();
+    if (!after || document.getElementById("plaviso")) return;
+    after.insertAdjacentHTML("afterbegin", `<div class="banda-info" id="plaviso">${t("platform.template.notice")}
+    <button type="button" class="btn sec" id="plvolver">${t("platform.template.back")}</button></div>`);
+    const back = document.getElementById("plvolver");
+    if (back) back.onclick = () => {
+      void paintTemplate();
+    };
+  }
+
+  // src/app/screens/portal/index.ts
+  var portal_exports = {};
+  __export(portal_exports, {
+    failureText: () => failureText2,
+    listenToCentreDocs: () => listenToCentreDocs,
+    listenToForm: () => listenToForm,
+    loadReport: () => loadReport,
+    messageThread: () => messageThread,
+    paintCentre: () => paintCentre,
+    paintMaterial: () => paintMaterial,
+    paintPortalSettings: () => paintPortalSettings,
+    portalState: () => portalState,
+    repaintPlaces: () => repaintPlaces,
+    showTab: () => showTab
+  });
+
+  // src/app/legacy/portal-bridge.ts
+  var portalPageLegacy = {
+    barChart: (items, format) => barrasH(items, format),
+    emptyChart: (text2) => vacioGrafico(text2),
+    donut: (items) => svgDonut(items),
+    monthsBetween: (from, to) => mesesEntre(from, to),
+    skeletonCard: (title2) => skelCard(title2),
+    /** A company word with its singular, plural and gender. */
+    wordOf: (key) => terminoDe(key),
+    userName: () => PERFIL?.nombre ?? "",
+    mountPeriod: (element2, options2) => {
+      montarPeriodo(element2, options2);
+    },
+    periodOf: (element2) => Reflect.get(element2 ?? {}, "__rango")?.() ?? { desde: null, hasta: null },
+    /** On entering the portal the period is always «Esta semana»: the remembered one is forgotten. */
+    forgetPeriod: () => {
+      try {
+        localStorage.removeItem(`dlc-per-informe-${PERFIL?.id ?? ""}`);
+      } catch {
+      }
+    },
+    /** At start the plan may not have arrived yet. */
+    loadPlan: async () => {
+      if ("estado" in PLAN_ACTUAL) return;
+      const { data } = await RPC_ORIG("plan_uso", {});
+      if (data?.plan) PLAN_ACTUAL = data.plan;
+    },
+    /** Saves the invoice as PDF with the company design (and `overrides`, e.g. the proforma title). */
+    saveInvoice: async (invoice2, rectifies, overrides, fileName) => {
+      const design = invoice2.diseno ?? {};
+      const doc = await facturaPDF(invoice2, rectifies, { ...PDF_DEF, ...design, cols: { ...PDF_DEF.cols, ...design.cols }, ...overrides });
+      doc.save(fileName ?? nombrePDF(invoice2));
+    },
+    reportError: (message, error) => {
+      registrarError("app", message, { e: String(error) });
+    },
+    centreStateClass: (state) => NOMBRE_ESTADO_CENTRO[state] ?? ""
+  };
+
+  // src/app/screens/portal/centre-docs.ts
+  var MEGABYTE = 1048576;
+  var KILOBYTE = 1024;
+  var URL_LIFE_MS2 = 3e4;
+  function orderExtras(order) {
+    const batches = order.lotes ?? [], invoices = order.facturas ?? [];
+    const batchText = batches.map((batch) => `${escapeHtml(batch.producto)} ${escapeHtml(batch.lote)}${batch.caducidad ? t("portal.docs.expires", { date: formatShortDate(String(batch.caducidad).slice(0, 10)) }) : ""}`).join(" · ");
+    return (batches.length ? `<span class="sm pclotes">${t(batches.length > 1 ? "portal.docs.batches" : "portal.docs.batch")}: ${batchText}</span>` : "") + (invoices.length ? `<span class="pcfacs">${invoices.map((invoice2) => `<button type="button" class="lnk" data-pcfac="${invoice2.id}">${t(invoice2.rectificativa ? "portal.docs.correction" : "portal.docs.invoice")} ${escapeHtml(invoice2.numero ?? "")}</button>`).join("")}</span>` : "");
+  }
+  function owesHtml(orders) {
+    const count2 = orders.filter((order) => order.proforma).length;
+    if (!count2) return "";
+    return `<div class="pmaviso pcdebe"><div><b>${count2 === 1 ? t("portal.docs.oneToPay") : t("portal.docs.toPay", { count: formatNumber(count2) })}</b><span class="sm">${t("portal.docs.toPayText")}</span></div></div>`;
+  }
+  async function withButton(button2, work, failure3) {
+    if (button2) button2.disabled = true;
+    try {
+      await work();
+    } catch (error) {
+      failure3(error);
+    } finally {
+      if (button2) button2.disabled = false;
+    }
+  }
+  async function proforma(id, button2) {
+    await withButton(button2, async () => {
+      const { data } = await callRpc("portal_proforma", { p_id: id });
+      if (!data?.ok) {
+        notices.toast(data?.motivo === "no_encontrado" ? t("portal.docs.notPending") : failureText2(data), true);
+        return;
+      }
+      await portalPageLegacy.saveInvoice(data, "", { titulo: t("portal.docs.proformaTitle"), formaPago: true, iban: true, vencimiento: false }, `${data.numero ?? ""}.pdf`);
+      notices.toast(t("portal.docs.proformaSaved", { concept: data.concepto ?? "" }));
+    }, (error) => {
+      notices.toast(t("portal.docs.proformaFailed"), true);
+      portalPageLegacy.reportError("Proforma del portal", error);
+    });
+  }
+  async function invoice(id, button2) {
+    await withButton(button2, async () => {
+      const { data } = await callRpc("portal_factura", { p_id: id });
+      if (!data?.ok) {
+        notices.toast(failureText2(data), true);
+        return;
+      }
+      await portalPageLegacy.saveInvoice(data, data.rectifica_num ?? "", {}, null);
+    }, (error) => {
+      notices.toast(t("portal.docs.invoiceFailed"), true);
+      portalPageLegacy.reportError("Factura del portal", error);
+    });
+  }
+  async function download2(id, button2) {
+    await withButton(button2, async () => {
+      const { data } = await callRpc("portal_material_archivo", { p_id: id });
+      if (!data?.ok) {
+        notices.toast(failureText2(data), true);
+        return;
+      }
+      const binary = atob(data.datos ?? ""), bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
+      const url = URL.createObjectURL(new Blob([bytes], { type: data.tipo ?? "application/octet-stream" }));
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = data.nombre ?? "material";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => {
+        URL.revokeObjectURL(url);
+      }, URL_LIFE_MS2);
+    }, () => {
+      notices.toast(t("portal.docs.downloadFailed"), true);
+    });
+  }
+  var sizeText = (bytes) => {
+    if (!bytes) return "";
+    return bytes > MEGABYTE ? `${(bytes / MEGABYTE).toLocaleString(t("dates.locale"), { maximumFractionDigits: 1 })} MB` : `${Math.max(1, Math.round(bytes / KILOBYTE))} KB`;
+  };
+  var downloadRow = (item) => `<div class="item"><span class="tx"><b>${escapeHtml(item.nombre)}</b>
+      <span class="sm">${escapeHtml(item.producto)} · ${t(item.tipo === "application/pdf" ? "portal.docs.pdf" : "portal.docs.image")}${item.tamano ? ` · ${sizeText(item.tamano)}` : ""}</span></span>
+      <button type="button" class="btn sec chico" data-pcmat="${item.id}">${t("portal.docs.download")}</button></div>`;
+  async function paintDownloads() {
+    const place = document.getElementById("pmmat");
+    if (!place || document.getElementById("pcdesc")) return;
+    const title2 = t("portal.docs.downloadsTitle");
+    place.insertAdjacentHTML("afterbegin", `<div class="card ancard" id="pcdesc"><h2>${title2} ${helpButton(title2, t("portal.docs.downloadsHelp"))}</h2><div id="pcdescl">${portalPageLegacy.skeletonCard(t("common.loading"))}</div></div>`);
+    const { data } = await callRpc("portal_materiales", {});
+    const box = document.getElementById("pcdescl");
+    if (!box) return;
+    const list = Array.isArray(data) ? data : [];
+    box.innerHTML = list.length ? `<div class="lista">${list.map(downloadRow).join("")}</div>` : `<p class="sm">${t("portal.docs.noDownloads")}</p>`;
+  }
+  function listenToCentreDocs() {
+    document.addEventListener("click", (event) => {
+      const button2 = event.target?.closest("[data-pcpro], [data-pcfac], [data-pcmat]");
+      if (!button2) return;
+      const data = button2.dataset;
+      if (data.pcpro) void proforma(data.pcpro, button2);
+      else if (data.pcfac) void invoice(data.pcfac, button2);
+      else if (data.pcmat) void download2(data.pcmat, button2);
+    });
+  }
+
+  // src/app/screens/portal/centre-order.ts
+  var MAX_UNITS = 1e3;
+  var MAX_PACKS = 50;
+  var euros3 = (value15) => portalLegacy.euros(value15);
+  var round22 = (value15) => Math.round((Number(value15) || 0) * 100) / 100;
+  var withVat = (product) => round22((Number(product.precio) || 0) * (1 + (Number(product.iva) || 0) / 100));
+  var percent = (value15) => `${(Math.round(value15 * 1e3) / 10).toLocaleString(t("dates.locale"), { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %`;
+  function packRow(product, pack, index) {
+    const unitPrice = withVat(product), bought = Number(pack.compra) || 0, free = Number(pack.regalo) || 0, retail = Number(product.pvp_recomendado) || 0;
+    const amount3 = round22(bought * unitPrice), cost = bought + free ? amount3 / (bought + free) : 0, name = `${formatNumber(bought)}${free ? `+${formatNumber(free)}` : ""}`;
+    return `<div class="pclin pcpack"><span class="pcpk"><b>${t("portal.order.pack", { pack: `${formatNumber(bought)}${free ? ` + ${formatNumber(free)}` : ""}` })}</b><span class="sm">${t("portal.order.packUnits", { units: formatNumber(bought + free) })}${free ? t("portal.order.packFree", { free: formatNumber(free) }) : ""}</span></span>
+          <span class="pcdato"><b>${euros3(amount3)}</b><span class="sm">${t("portal.order.withVat")}</span></span>
+          <span class="pcdato"><b>${euros3(cost)}</b><span class="sm">${t("portal.order.perUnit")}</span></span>
+          ${retail ? `<span class="pcdato"><b>${percent((retail - cost) / retail)}</b><span class="sm">${t("portal.order.margin")}</span></span>` : "<span></span>"}
+          <input type="number" step="1" value="0" data-pcpk="${product.producto_id}" data-pci="${index}" data-pcc="${bought}" data-pcg="${free}" data-pcimp="${amount3}" aria-label="${t("portal.order.howManyPacks", { pack: name })}">
+          <span class="pcerr" hidden></span></div>`;
+  }
+  function productHtml(product) {
+    const unitPrice = withVat(product), packs = Array.isArray(product.packs) ? product.packs : [], retail = Number(product.pvp_recomendado) || 0;
+    if (!packs.length) return `<div class="pcprod"><div class="pcpcab"><b>${escapeHtml(product.nombre)}</b><span class="sm">${t("portal.order.unitPrice", { price: euros3(unitPrice) })}${product.propio ? t("portal.order.yourPrice") : ""}</span></div>
+      <div class="pclin"><span class="sm">${t("portal.order.units")}</span><input type="number" step="1" value="0" data-ctp="${product.producto_id}" data-ctpr="${unitPrice}" aria-label="${t("portal.order.unitsOf", { name: escapeHtml(product.nombre) })}"><span class="pcerr" hidden></span></div></div>`;
+    return `<div class="pcprod"><div class="pcpcab"><b>${escapeHtml(product.nombre)}</b><span class="sm">${t("portal.order.unitPrice", { price: euros3(unitPrice) })}${retail ? t("portal.order.retail", { price: euros3(retail) }) : ""}</span></div>
+      <div class="pcpacks">${packs.map((pack, index) => packRow(product, pack, index)).join("")}</div></div>`;
+  }
+  function formHtml6(products3) {
+    const addresses = [...new Set(portalState.places.map((place) => [place.direccion, place.municipio].filter(Boolean).join(", ")).filter(Boolean))];
+    return `<div id="ctprods">${products3.map(productHtml).join("")}</div>
+      <div class="pcent"><b>${t("portal.order.delivery")}</b>
+        <label class="opt"><input type="radio" name="pcent" value="una" checked> ${t("portal.order.deliverCentre")}</label>
+        <label class="opt"><input type="radio" name="pcent" value="varias"> ${t("portal.order.deliverShared")}</label>
+        <div id="pcentl" class="pcentl" hidden><datalist id="pcdirs">${addresses.map((address2) => `<option value="${escapeHtml(address2)}">`).join("")}</datalist>
+          <div id="pcentf"></div><button type="button" class="btn sec chico" id="pcentmas">${t("portal.order.otherAddress")}</button><span class="sm" id="pcentres"></span></div></div>
+      ${portalState.prepayment ? `<p class="sm pcant">${t("portal.order.prepayment")}</p>` : ""}<label for="ctnota">${t("portal.order.note")}</label><input id="ctnota" placeholder="${t("portal.order.notePlaceholder")}">
+      <div class="pctot"><span id="pctxt">${t("portal.order.total", { total: `<b id="cttot">${euros3(0)}</b>` })}</span><button type="button" class="btn" id="ctok">${t("portal.order.send")}</button></div>`;
+  }
+  var deliveryRow = () => `<div class="pcef"><input list="pcdirs" placeholder="${t("portal.order.addressPlaceholder")}" value="" data-pced><input type="number" step="1" placeholder="${t("portal.order.units")}" value="" data-pceu><button type="button" class="pmhx" data-pcex aria-label="${t("portal.order.removeAddress")}">✕</button></div>`;
+  function checkQuantity(input4) {
+    const count2 = Number(input4.value || 0), error = input4.closest(".pclin")?.querySelector(".pcerr"), isPack = Boolean(input4.dataset.pcpk), max = isPack ? MAX_PACKS : MAX_UNITS;
+    const wrong = !Number.isInteger(count2) || count2 < 0 || count2 > max;
+    if (error) {
+      error.hidden = !wrong;
+      error.textContent = !wrong ? "" : count2 > max ? t(isPack ? "portal.order.maxPacks" : "portal.order.maxUnits", { max: formatNumber(max) }) : t("portal.order.wholeNumber");
+    }
+    return !wrong;
+  }
+  function sharedUnits(box) {
+    const rows = document.getElementById("pcentf");
+    if (rows && !rows.children.length) rows.innerHTML = deliveryRow() + deliveryRow();
+    let units2 = 0;
+    box.querySelectorAll("[data-pceu]").forEach((input4) => {
+      units2 += Math.max(0, Math.floor(Number(input4.value) || 0));
+    });
+    return units2;
+  }
+  function paintTotals(totals, review2) {
+    const list = document.getElementById("pcentl");
+    if (list) list.hidden = !review2.shared;
+    const result = document.getElementById("pcentres");
+    if (result) {
+      result.textContent = review2.shared ? t("portal.order.shared", { shared: formatNumber(review2.sharedUnits), units: formatNumber(review2.units) }) : "";
+      result.classList.toggle("pcmal", review2.shared && review2.sharedUnits !== review2.units);
+    }
+    const units2 = totals.units ? ` · ${t("portal.order.totalUnits", { units: formatNumber(totals.units) })}${totals.free ? t("portal.order.packFree", { free: formatNumber(totals.free) }) : ""}` : "";
+    const text2 = document.getElementById("pctxt");
+    if (text2) text2.innerHTML = t("portal.order.total", { total: `<b id="cttot">${euros3(totals.amount)}</b>` }) + units2;
+  }
+  function review(box) {
+    const totals = { amount: 0, units: 0, free: 0 };
+    let wrong = 0;
+    box.querySelectorAll("[data-ctp], [data-pcpk]").forEach((input4) => {
+      if (!checkQuantity(input4)) {
+        wrong++;
+        return;
+      }
+      const count2 = Number(input4.value || 0), data = input4.dataset;
+      if (data.pcpk) {
+        totals.amount += count2 * (Number(data.pcimp) || 0);
+        totals.units += count2 * ((Number(data.pcc) || 0) + (Number(data.pcg) || 0));
+        totals.free += count2 * (Number(data.pcg) || 0);
+      } else {
+        totals.amount += count2 * (Number(data.ctpr) || 0);
+        totals.units += count2;
+      }
+    });
+    const shared = box.querySelector("[name=pcent]:checked")?.value === "varias";
+    const result = { wrong, units: totals.units, shared, sharedUnits: shared ? sharedUnits(box) : 0 };
+    paintTotals(totals, result);
+    return result;
+  }
+  function orderLines(box) {
+    const lines = [], count2 = (input4) => Math.floor(Number(input4.value) || 0);
+    box.querySelectorAll("[data-pcpk]").forEach((input4) => {
+      if (count2(input4) > 0) lines.push({ producto_id: input4.dataset.pcpk, pack: { compra: Number(input4.dataset.pcc), regalo: Number(input4.dataset.pcg) }, packs: count2(input4) });
+    });
+    box.querySelectorAll("[data-ctp]").forEach((input4) => {
+      if (count2(input4) > 0) lines.push({ producto_id: input4.dataset.ctp, unidades: count2(input4) });
+    });
+    return lines;
+  }
+  var deliveries = (box) => [...box.querySelectorAll(".pcef")].map((row4) => ({ direccion: row4.querySelector("[data-pced]")?.value.trim() ?? "", unidades: Math.floor(Number(row4.querySelector("[data-pceu]")?.value) || 0) })).filter((item) => item.direccion && item.unidades > 0);
+  function orderFailure(answer) {
+    const reason = answer?.motivo;
+    if (reason === "vacio") return t("portal.order.chooseSomething");
+    if (reason === "pack") return t("portal.order.packGone", { product: answer?.producto ?? t("portal.order.product") });
+    if (reason === "unidades") return t("portal.order.checkProduct", { product: answer?.producto ?? t("portal.order.aProduct") });
+    return reason === "entregas" ? t("portal.order.deliveriesMustAdd", { total: formatNumber(answer?.total) }) : failureText2(answer);
+  }
+  async function send(box, button2, onSent) {
+    const checked3 = review(box);
+    if (checked3.wrong) {
+      notices.toast(t("portal.order.checkRed"), true);
+      return;
+    }
+    const lines = orderLines(box);
+    if (!lines.length) {
+      notices.toast(t("portal.order.chooseSomething"), true);
+      return;
+    }
+    const shared = checked3.shared ? deliveries(box) : null;
+    if (shared && (shared.length < 2 || checked3.sharedUnits !== checked3.units)) {
+      notices.toast(t("portal.order.shareUnits", { units: formatNumber(checked3.units) }), true);
+      return;
+    }
+    button2.disabled = true;
+    const note = document.getElementById("ctnota")?.value.trim() ?? "";
+    const { data: answer } = await legacyDb().rpc("pedido_portal", { p_lineas: lines, p_nota: note || null, p_entregas: shared });
+    button2.disabled = false;
+    if (!answer?.ok) {
+      notices.toast(orderFailure(answer), true);
+      return;
+    }
+    notices.toast(t("portal.order.sent"));
+    await onSent();
+  }
+  function paintOrder(products3, onSent) {
+    const box = document.getElementById("pcped");
+    if (!box) return;
+    const title2 = t("portal.order.title");
+    box.innerHTML = `<div class="card ancard pmcons pcped"><h2>${title2} ${helpButton(title2, t("portal.order.help", { packs: formatNumber(MAX_PACKS) }))}</h2>
+    ${products3.length ? formHtml6(products3) : `<p class="sm">${t("portal.order.noProducts")}</p>`}</div>`;
+    if (!products3.length) return;
+    const check2 = () => {
+      review(box);
+    };
+    box.addEventListener("input", check2);
+    box.addEventListener("change", check2);
+    box.addEventListener("click", (event) => {
+      const target = event.target;
+      if (target.closest("#pcentmas")) {
+        document.getElementById("pcentf")?.insertAdjacentHTML("beforeend", deliveryRow());
+        review(box);
+      }
+      const remove7 = target.closest("[data-pcex]");
+      if (remove7) {
+        remove7.closest(".pcef")?.remove();
+        review(box);
+      }
+    });
+    const ok = document.getElementById("ctok");
+    if (ok) ok.onclick = () => {
+      void send(box, ok, onSent);
+    };
+    review(box);
+  }
+
+  // src/app/screens/portal/form-data.ts
+  var MAX_HOUR = 23;
+  var MAX_MINUTE = 59;
+  var MORNING = ["09:00", "14:00"];
+  var AFTERNOON = ["16:00", "20:00"];
+  function splitTime(text2) {
+    if (text2.includes(":")) {
+      const [hours = "", minutes = ""] = text2.split(":");
+      return [hours, minutes];
+    }
+    if (text2.length <= 2) return [text2, "00"];
+    return [text2.slice(0, text2.length - 2), text2.slice(-2)];
+  }
+  function timeOf5(value15) {
+    const text2 = String(value15 ?? "").replace(/[^\d:]/g, "");
+    const [hoursText, minutesText] = splitTime(text2), hours = Number(hoursText), minutes = Number(minutesText || 0);
+    if (!text2 || isNaN(hours) || hours > MAX_HOUR || minutes > MAX_MINUTE) return "";
+    return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+  }
+  function rangesOf(value15) {
+    const text2 = String(value15 ?? ""), found = [];
+    const pattern = /(\d{1,2})(?::(\d{2}))?\s*[-–a]\s*(\d{1,2})(?::(\d{2}))?/g;
+    for (let match = pattern.exec(text2); match; match = pattern.exec(text2)) found.push([timeOf5(`${match[1]}:${match[2] ?? "00"}`), timeOf5(`${match[3]}:${match[4] ?? "00"}`)]);
+    if (!found.length && /mañana/i.test(text2)) found.push([...MORNING]);
+    if (/tarde/i.test(text2) && !found.some((range2) => range2[0] >= "14:00")) found.push([...AFTERNOON]);
+    return found;
+  }
+  function daysOf(saved2) {
+    const days = {}, source = saved2 ?? {};
+    WEEKDAYS.forEach((day) => {
+      const value15 = source[day];
+      const list = Array.isArray(value15) ? value15.map((item) => Array.isArray(item) ? item : rangesOf(item)[0]).filter((range2) => Boolean(range2)) : rangesOf(value15);
+      if (list.length) days[day] = list;
+    });
+    return days;
+  }
+  var placeOf = (known) => ({ centro_id: known.centro_id, ubicacion_id: known.id, nombre: known.nombre, direccion: known.direccion, municipio: known.municipio, dias: {} });
+  var contactOf = (sent, account) => ({ telefono: sent.telefono ?? account.telefono ?? "", email: sent.email ?? account.email ?? "" });
+  function loadForm(saved2) {
+    const answer = saved2;
+    portalState.missing = answer.faltan ?? [];
+    portalState.proposal = answer.propuesta ?? null;
+    portalState.places = answer.ubicaciones ?? [];
+    const sent = portalState.proposal?.datos ?? {};
+    const places = sent.consultas ?? portalState.places.map((known) => ({ ...placeOf(known), dias: known.dias }));
+    portalState.form = {
+      ...contactOf(sent, answer.cuenta ?? {}),
+      consultas: places.map((place) => ({ ...place, dias: daysOf(place.dias) })),
+      visitas: { como: "", momento: "", ...sent.visitas },
+      notas: sent.notas ?? ""
+    };
+  }
+  var field4 = (id) => document.getElementById(id)?.value ?? "";
+  function readForm() {
+    const form = portalState.form;
+    if (!form || !document.getElementById("pmtel")) return;
+    form.telefono = field4("pmtel").trim();
+    form.email = field4("pmmail").trim();
+    form.visitas = { como: field4("pmcomo"), momento: field4("pmmom").trim() };
+    form.notas = field4("pmnot").trim();
+    document.querySelectorAll("#pmficha [data-pmcf]").forEach((input4) => {
+      const [index = "", key = ""] = (input4.dataset.pmcf ?? "").split("|"), place = form.consultas[Number(index)];
+      if (!place) return;
+      if (key === "nombre") place.nombre = input4.value.trim();
+      if (key === "direccion") {
+        place.direccion = input4.value.trim();
+        place.municipio = "";
+      }
+    });
+    document.querySelectorAll("#pmficha [data-pmhi]").forEach((input4) => {
+      const [index = "", day = "", row4 = "", side = ""] = (input4.dataset.pmhi ?? "").split("|");
+      const range2 = form.consultas[Number(index)]?.dias[day]?.[Number(row4)];
+      if (range2) range2[Number(side)] = timeOf5(input4.value) || input4.value.trim();
+    });
+  }
+  var VALID_TIME = /^\d\d:\d\d$/;
+  var isValidRange = (range2) => VALID_TIME.test(range2[0] ?? "") && VALID_TIME.test(range2[1] ?? "") && (range2[1] ?? "") > (range2[0] ?? "");
+
+  // src/app/screens/portal/form.ts
+  var SEARCH_WAIT_MS2 = 250;
+  var MIN_SEARCH = 2;
+  var HOW_OPTIONS = ["portal.form.howBooked", "portal.form.howEndOfDay", "portal.form.howAnyGap", "portal.form.howPhone", "portal.form.howWriteFirst"];
+  var DAY_NAMES2 = /* @__PURE__ */ new Map([["L", "portal.form.monday"], ["M", "portal.form.tuesday"], ["X", "portal.form.wednesday"], ["J", "portal.form.thursday"], ["V", "portal.form.friday"], ["S", "portal.form.saturday"]]);
+  function timetableDay(index, day, ranges) {
+    const rows = ranges.map((range2, row4) => `<span class="pmhf"><input data-pmhi="${index}|${day}|${row4}|0" value="${escapeHtml(range2[0])}" inputmode="numeric" maxlength="5" aria-label="${t("portal.form.from")}">
+          <span>${t("portal.form.to")}</span><input data-pmhi="${index}|${day}|${row4}|1" value="${escapeHtml(range2[1])}" inputmode="numeric" maxlength="5" aria-label="${t("portal.form.until")}">
+          <button type="button" class="pmhx" data-pmhx="${index}|${day}|${row4}" aria-label="${t("portal.form.removeRange")}">✕</button></span>`).join("");
+    return `<div class="pmhd ${ranges.length ? "on" : ""}">
+      <button type="button" class="pmhdia" data-pmhd="${index}|${day}" aria-pressed="${String(Boolean(ranges.length))}">${t(DAY_NAMES2.get(day) ?? "portal.form.monday")}</button>
+      <div class="pmhr">${ranges.length ? `${rows}<button type="button" class="pmhmas" data-pmha="${index}|${day}">${t("portal.form.addRange")}</button>` : `<span class="sm">${t("portal.form.closed")}</span>`}</div></div>`;
+  }
+  function timetableHtml(days, index) {
+    return `<div class="pmhz">
+    <div class="pmhzpre"><span class="sm">${t("portal.form.fillMarked")}</span>
+      <button type="button" class="chip" data-pmhp="${index}|m">${t("portal.form.fillMorning")}</button><button type="button" class="chip" data-pmhp="${index}|t">${t("portal.form.fillAfternoon")}</button>
+      <button type="button" class="chip" data-pmhp="${index}|mt">${t("portal.form.fillBoth")}</button><button type="button" class="chip" data-pmhp="${index}|c">${t("portal.form.copyFirst")}</button></div>
+    ${WEEKDAYS.map((day) => timetableDay(index, day, days[day] ?? [])).join("")}</div>`;
+  }
+  var placeText = (place, separator) => [place.direccion, place.municipio].filter(Boolean).join(separator);
+  function placeHtml(place, index) {
+    const isNew = !place.centro_id && !place.ubicacion_id || !String(place.nombre ?? "").trim();
+    const head = isNew ? `<div class="g2 pmcnuevo"><div><label>${t("portal.form.placeName")}</label><input data-pmcf="${index}|nombre" value="${escapeHtml(place.nombre ?? "")}"></div>
+        <div><label>${t("portal.form.placeAddress")}</label><input data-pmcf="${index}|direccion" value="${escapeHtml(placeText(place, ", "))}" placeholder="${t("portal.form.placeAddressPlaceholder")}"></div></div>` : `<div><b>${escapeHtml(orFallback(place.nombre, words2().place))}</b><span class="sm">${escapeHtml(placeText(place, " · "))}</span></div>`;
+    return `<div class="pmc" data-pmc="${index}">
+    <div class="pmccab">${head}
+      <button type="button" class="btn sec chico pmcx" data-pmcx="${index}">${t("portal.form.remove")}</button></div>
+    ${timetableHtml(place.dias, index)}</div>`;
+  }
+  var placesHtml = (places) => places.map(placeHtml).join("") || `<p class="sm">${t("portal.form.noPlaces")}</p>`;
+  function paintChecklist() {
+    const box = document.getElementById("pmcheck");
+    if (!box || !portalState.form) return;
+    try {
+      readForm();
+    } catch {
+    }
+    const form = portalState.form, phone = Boolean(form.telefono.trim()), how = Boolean(form.visitas.como.trim());
+    const timetable = form.consultas.some((place) => Object.values(place.dias).some((ranges) => ranges.some(isValidRange)));
+    const done = phone && how && timetable;
+    box.classList.toggle("ok", done);
+    box.innerHTML = `<b>${t(done ? "portal.form.checkDone" : "portal.form.checkTitle")}</b>
+    <ul><li class="${phone ? "ok" : ""}">${t("portal.form.checkPhone")}</li><li class="${timetable ? "ok" : ""}">${t(isCentre() ? "portal.form.checkTimetableCentre" : "portal.form.checkTimetable")}</li><li class="${how ? "ok" : ""}">${t("portal.form.checkHow", words2())}</li></ul>
+    <span class="sm">${t(done ? "portal.form.checkDoneText" : "portal.form.checkText")}</span>`;
+  }
+  function repaintPlaces() {
+    const list = document.getElementById("pmclist");
+    if (list && portalState.form) list.innerHTML = placesHtml(portalState.form.consultas);
+    paintChecklist();
+  }
+  async function searchCentre() {
+    const input4 = document.getElementById("pmcq"), box = document.getElementById("pmcres");
+    if (!input4 || !box) return;
+    const query = input4.value.trim();
+    if (query.length < MIN_SEARCH) {
+      box.innerHTML = "";
+      return;
+    }
+    const { data } = await callRpc("portal_buscar_centros", { p_q: query });
+    if (input4.value.trim() !== query) return;
+    portalState.found = Array.isArray(data) ? data : [];
+    box.innerHTML = portalState.found.map((centre, index) => `<button type="button" data-pmcr="${index}"><b>${escapeHtml(centre.nombre)}</b><span class="sm">${escapeHtml([centre.direccion, centre.municipio].filter(Boolean).join(" · "))}</span></button>`).join("") + `<button type="button" data-pmcr="nuevo" class="pmcnew"><b>${t("portal.form.notFound", { query: escapeHtml(query) })}</b><span class="sm">${t("portal.form.notFoundText")}</span></button>`;
+  }
+  function stateText() {
+    const proposal = portalState.proposal;
+    if (!proposal) return t("portal.form.notSent");
+    return proposal.estado === "Pendiente" ? t("portal.form.sentOn", { date: shortDateTime(proposal.modificado_en ?? "") }) : t("portal.form.reviewed");
+  }
+  function contactCard() {
+    const form = portalState.form, title2 = t("portal.form.contactTitle", words2());
+    if (!form) return "";
+    const how = HOW_OPTIONS.map((key) => `<option ${form.visitas.como === t(key) ? "selected" : ""}>${escapeHtml(t(key))}</option>`).join("");
+    return `<div class="card ancard pmcons pmcont"><h2>${title2} ${helpButton(title2, t("portal.form.contactHelp"))}</h2>
+      <div class="pmcampos"><div><label for="pmtel">${t("portal.form.phone")} <span class="pmreq">${t("portal.form.required")}</span></label><input id="pmtel" inputmode="tel" value="${escapeHtml(form.telefono)}" placeholder="${t("portal.form.phonePlaceholder")}"></div>
+        <div><label for="pmmail">${t("portal.form.email")}</label><input id="pmmail" type="email" value="${escapeHtml(form.email)}" placeholder="${t("portal.form.emailPlaceholder")}"></div>
+        <div><label for="pmcomo">${t("portal.form.how", words2())} <span class="pmreq">${t("portal.form.required")}</span></label><select id="pmcomo"><option value="">${t("portal.form.choose")}</option>${how}</select></div>
+        <div><label for="pmmom">${t("portal.form.when")}</label><input id="pmmom" value="${escapeHtml(form.visitas.momento)}" placeholder="${t("portal.form.whenPlaceholder")}"></div>
+        <div class="pmancho"><label for="pmnot">${t("portal.form.notes")}</label><textarea id="pmnot" rows="2" placeholder="${t("portal.form.notesPlaceholder")}">${escapeHtml(form.notas)}</textarea></div></div></div>`;
+  }
+  function placesCard(places) {
+    const title2 = t(isCentre() ? "portal.form.placesTitleCentre" : "portal.form.placesTitle");
+    return `<div class="card ancard pmcons"><h2>${title2} <span class="pmreq">${t("portal.form.placesRequired")}</span> ${helpButton(title2, t("portal.form.placesHelp"))}</h2>
+      <div id="pmclist" class="pmclist">${placesHtml(places)}</div>
+      <div class="pmcadd"><input id="pmcq" type="search" placeholder="${t("portal.form.searchPlaceholder")}" aria-label="${t("portal.form.searchLabel")}"><div id="pmcres" class="pmcres"></div></div></div>`;
+  }
+  var searchTimer2;
+  function paintForm() {
+    const box = document.getElementById("pmficha"), form = portalState.form;
+    if (!box || !form) return;
+    document.querySelectorAll("#v-informe [data-pmt=ficha] .pmtpunto").forEach((dot) => {
+      dot.hidden = !portalState.missing.length;
+    });
+    box.innerHTML = `
+    <div class="pmcheck" id="pmcheck"></div>
+    ${contactCard()}
+    ${placesCard(form.consultas)}
+    <div class="pmpie"><span class="sm" id="pmest">${escapeHtml(stateText())}</span><button type="button" class="btn" id="pmenviar">${t("portal.form.send")}</button></div>`;
+    const search3 = document.getElementById("pmcq");
+    if (search3) search3.oninput = () => {
+      clearTimeout(searchTimer2);
+      searchTimer2 = setTimeout(() => {
+        void searchCentre();
+      }, SEARCH_WAIT_MS2);
+    };
+    const send2 = document.getElementById("pmenviar");
+    if (send2) send2.onclick = () => {
+      void sendForm(send2);
+    };
+    box.addEventListener("input", paintChecklist);
+    box.addEventListener("change", paintChecklist);
+    paintChecklist();
+  }
+  function formProblem(places) {
+    const wrong = places.find((place) => Object.values(place.dias).some((ranges) => ranges.some((range2) => !isValidRange(range2))));
+    if (wrong) return t("portal.form.checkHours", { name: wrong.nombre ?? "" });
+    return places.some((place) => !String(place.nombre ?? "").trim()) ? t("portal.form.nameEachPlace") : null;
+  }
+  var proposalOf = (places) => places.map((place) => ({
+    centro_id: place.centro_id ?? null,
+    ubicacion_id: place.ubicacion_id ?? null,
+    nombre: place.nombre,
+    direccion: place.direccion ?? "",
+    municipio: place.municipio ?? "",
+    dias: Object.fromEntries(Object.entries(place.dias).map(([day, ranges]) => [day, ranges.map((range2) => `${range2[0]}-${range2[1]}`).join(", ")]))
+  }));
+  async function sendForm(button2) {
+    readForm();
+    const form = portalState.form;
+    if (!form) return;
+    const problem = formProblem(form.consultas);
+    if (problem) {
+      notices.toast(problem, true);
+      return;
+    }
+    const data = { telefono: form.telefono, email: form.email, visitas: form.visitas, notas: form.notas, consultas: proposalOf(form.consultas) };
+    button2.disabled = true;
+    const { data: result } = await legacyDb().rpc("portal_guardar_ficha", { p: data });
+    button2.disabled = false;
+    if (!result?.ok) {
+      notices.toast(t("portal.form.couldNotSend"), true);
+      return;
+    }
+    notices.toast(t("portal.form.sent"));
+    const { data: answer } = await callRpc("portal_mi_ficha", {});
+    if (answer?.ok) loadForm(answer);
+    paintForm();
+    const banner = document.querySelector("#mdcuerpo > .pmaviso");
+    if (banner && !portalState.missing.length) banner.remove();
+  }
+  function toggleDay(place, day) {
+    if (place.dias[day]?.length) {
+      Reflect.deleteProperty(place.dias, day);
+      return;
+    }
+    const first = WEEKDAYS.find((other) => place.dias[other]?.length);
+    place.dias[day] = first ? (place.dias[first] ?? []).map((range2) => [...range2]) : [["09:00", "14:00"]];
+  }
+  var PRESETS = /* @__PURE__ */ new Map([["m", [["09:00", "14:00"]]], ["t", [["16:00", "20:00"]]], ["mt", [["09:00", "14:00"], ["16:00", "20:00"]]]]);
+  function fillDays(place, preset) {
+    let days = WEEKDAYS.filter((day) => place.dias[day]?.length);
+    if (!days.length) days = ["L", "M", "X", "J", "V"];
+    const ranges = PRESETS.get(preset) ?? place.dias[days[0] ?? ""] ?? [["09:00", "14:00"]];
+    days.forEach((day) => {
+      place.dias[day] = ranges.map((range2) => [...range2]);
+    });
+  }
+  function removeRange(place, day, row4) {
+    const ranges = place.dias[day];
+    if (!ranges) return;
+    ranges.splice(row4, 1);
+    if (!ranges.length) Reflect.deleteProperty(place.dias, day);
+  }
+  function addRange(place, day) {
+    const ranges = place.dias[day];
+    if (!ranges) return;
+    const last = ranges[ranges.length - 1];
+    ranges.push(last && last[1] < "15:00" ? ["16:00", "20:00"] : ["", ""]);
+  }
+  function addFound(places, key) {
+    const centre = portalState.found[Number(key)], input4 = document.getElementById("pmcq");
+    places.push(centre ? { centro_id: centre.id, nombre: centre.nombre, direccion: centre.direccion, municipio: centre.municipio, dias: {} } : { nombre: input4?.value.trim() ?? "", direccion: "", dias: {} });
+    if (input4) input4.value = "";
+    const results = document.getElementById("pmcres");
+    if (results) results.innerHTML = "";
+  }
+  var TIMETABLE_ACTIONS = [
+    ["pmhd", (place, day) => {
+      toggleDay(place, day);
+    }],
+    ["pmhp", (place, preset) => {
+      fillDays(place, preset);
+    }],
+    ["pmhx", (place, day, row4) => {
+      removeRange(place, day, row4);
+    }],
+    ["pmha", (place, day) => {
+      addRange(place, day);
+    }]
+  ];
+  function applyClick(button2, places) {
+    const data = button2.dataset;
+    if (data.pmcx) {
+      places.splice(Number(data.pmcx), 1);
+      return;
+    }
+    if (data.pmcr) {
+      addFound(places, data.pmcr);
+      return;
+    }
+    const found = TIMETABLE_ACTIONS.find(([key]) => data[key]);
+    if (!found) return;
+    const [index = "", day = "", row4 = ""] = (data[found[0]] ?? "").split("|"), place = places[Number(index)];
+    if (place) found[1](place, day, Number(row4));
+  }
+  function listenToForm() {
+    document.addEventListener("click", (event) => {
+      const button2 = event.target?.closest("#pmficha [data-pmhd], #pmficha [data-pmhp], #pmficha [data-pmhx], #pmficha [data-pmha], #pmficha [data-pmcx], #pmficha [data-pmcr]");
+      if (!button2 || !portalState.form) return;
+      readForm();
+      applyClick(button2, portalState.form.consultas);
+      repaintPlaces();
+    });
+    document.addEventListener("focusout", (event) => {
+      const input4 = event.target?.closest("#pmficha [data-pmhi]");
+      if (!input4) return;
+      const value15 = timeOf5(input4.value);
+      if (value15) input4.value = value15;
+    });
+  }
+
+  // src/app/screens/portal/material.ts
+  var PENDING2 = "Pendiente";
+  var CANCELLED = "Anulado";
+  function requestRow2(request2) {
+    return `<div class="item" style="cursor:default"><span class="tx"><b>${formatNumber(request2.cantidad)} × ${escapeHtml(request2.material)}</b>
+          <span class="sm">${shortDateTime(request2.creado_en)}${request2.nota ? ` · ${escapeHtml(request2.nota)}` : ""}</span></span>${portalLegacy.materialPill(request2.estado)}
+          ${request2.estado === PENDING2 ? `<button type="button" class="btn sec chico" data-mdanu="${request2.id}">${t("portal.material.cancel")}</button>` : ""}</div>`;
+  }
+  function askHtml(allowed) {
+    const first = allowed[0];
+    if (!first) return `<p class="sm" style="padding:0 16px">${t("portal.material.nothingOffered")}</p>`;
+    return `<div class="g2"><div><label for="mdmatm">${t("portal.material.material")}</label><select id="mdmatm">${allowed.map((item) => `<option value="${escapeHtml(item.valor)}" data-max="${item.max}">${escapeHtml(item.valor)}</option>`).join("")}</select></div>
+        <div><label for="mdmatn">${t("portal.material.quantity")}</label><input id="mdmatn" type="number" min="1" value="1"><span class="sm" id="mdmatmax">${t("portal.material.max", { max: formatNumber(first.max) })}</span></div></div>
+        <label for="mdmatt">${t("portal.material.note")}</label><input id="mdmatt" placeholder="${t("portal.material.optional")}">
+        <div class="acts" style="justify-content:flex-start"><button type="button" class="btn" id="mdmatok">${t("portal.material.ask")}</button></div>`;
+  }
+  function cardsHtml(allowed, requests2, messages) {
+    const askTitle = t("portal.material.title"), questionsTitle = t("portal.material.questionsTitle");
+    return `
+    <div class="card ancard" id="mdmat"><h2>${askTitle} ${helpButton(askTitle, t("portal.material.help"))}</h2>
+      ${askHtml(allowed)}
+      ${requests2.length ? `<div class="lista" id="mdmatl">${requests2.map(requestRow2).join("")}</div>` : ""}</div>
+    <div class="card ancard" id="mdmsg"><h2>${questionsTitle} ${helpButton(questionsTitle, t("portal.material.questionsHelp"))}</h2>
+      <div id="mdhilo">${messageThread(messages, true)}</div>
+      <textarea id="mdmsgt" rows="2" placeholder="${t("portal.material.questionPlaceholder")}" aria-label="${t("portal.material.questionLabel")}"></textarea>
+      <div class="acts" style="justify-content:flex-start"><button type="button" class="btn" id="mdmsgok">${t("portal.material.send")}</button></div></div>`;
+  }
+  var value8 = (id) => document.getElementById(id)?.value ?? "";
+  var chosenMax = () => Number(document.getElementById("mdmatm")?.selectedOptions[0]?.dataset.max);
+  function showMaximum() {
+    const hint = document.getElementById("mdmatmax");
+    if (!hint || !document.getElementById("mdmatm")) return;
+    const max = chosenMax(), count2 = Number(value8("mdmatn")) || 0;
+    hint.classList.toggle("mdmatpasa", count2 > max);
+    hint.textContent = t(count2 > max ? "portal.material.atMost" : "portal.material.max", { max: formatNumber(max) });
+  }
+  async function ask(button2) {
+    button2.disabled = true;
+    const max = chosenMax(), count2 = Number(value8("mdmatn")) || 0;
+    if (count2 < 1 || count2 > max) {
+      button2.disabled = false;
+      showMaximum();
+      notices.toast(count2 < 1 ? t("portal.material.howMany") : t("portal.material.tooMany", { max: formatNumber(max) }), true);
+      return;
+    }
+    const { data: result } = await legacyDb().rpc("pedir_material", { p_material: value8("mdmatm"), p_cantidad: count2, p_nota: value8("mdmatt").trim() || null });
+    button2.disabled = false;
+    if (!result?.ok) {
+      notices.toast(result?.motivo === "cantidad" ? t("portal.material.atMostShort", { max: formatNumber(result.max) }) : failureText2(result), true);
+      return;
+    }
+    notices.toast(t("portal.material.asked"));
+    void paintMaterial();
+  }
+  async function cancel(id) {
+    const { data: result } = await legacyDb().rpc("cerrar_material", { p_id: id, p_estado: CANCELLED });
+    if (!result?.ok) {
+      notices.toast(failureText2(result), true);
+      return;
+    }
+    notices.toast(t("portal.material.cancelled"));
+    void paintMaterial();
+  }
+  async function sendMessage(button2) {
+    const text2 = value8("mdmsgt").trim();
+    if (!text2) {
+      notices.toast(t("portal.failures.empty"), true);
+      return;
+    }
+    button2.disabled = true;
+    const { data: result } = await legacyDb().rpc("enviar_mensaje_cuenta", { p_cuenta: null, p_texto: text2 });
+    button2.disabled = false;
+    if (!result?.ok) {
+      notices.toast(failureText2(result), true);
+      return;
+    }
+    notices.toast(t("portal.material.messageSent"));
+    void paintMaterial();
+  }
+  function bind11(box) {
+    const select3 = document.getElementById("mdmatm");
+    if (select3) select3.onchange = showMaximum;
+    document.getElementById("mdmatn")?.addEventListener("input", showMaximum);
+    const ok = document.getElementById("mdmatok");
+    if (ok) ok.onclick = () => {
+      void ask(ok);
+    };
+    box.querySelectorAll("[data-mdanu]").forEach((button2) => {
+      button2.onclick = () => {
+        void cancel(button2.dataset.mdanu ?? "");
+      };
+    });
+    const send2 = document.getElementById("mdmsgok");
+    if (send2) send2.onclick = () => {
+      void sendMessage(send2);
+    };
+  }
+  async function paintMaterial() {
+    await portalPageLegacy.loadPlan();
+    if (!permissions.isProfessionalPortal() || !portalLegacy.hasPortal() || !document.getElementById("v-informe")) return;
+    if (!document.getElementById("mdportal")) document.getElementById("v-informe")?.insertAdjacentHTML("beforeend", '<div id="mdportal" class="angrid"></div>');
+    const [{ data: allowed }, { data: requests2 }, { data: messages }] = await Promise.all([
+      callRpc("portal_material_permitido", {}),
+      legacyDb().from("solicitudes_material").select("id,material,cantidad,nota,estado,creado_en,cerrado_en").order("creado_en", { ascending: false }).limit(20),
+      legacyDb().from("mensajes_cuenta").select("id,texto,del_portal,creado_en,leido_en").order("creado_en", { ascending: true }).limit(200)
+    ]);
+    const box = document.getElementById("mdportal");
+    if (!box) return;
+    const list = messages ?? [];
+    box.innerHTML = cardsHtml(Array.isArray(allowed) ? allowed : [], requests2 ?? [], list);
+    bind11(box);
+    if (list.some((message) => !message.del_portal && !message.leido_en)) void callRpc("leer_mensajes_cuenta", { p_cuenta: null });
+  }
+
+  // src/app/screens/portal/tabs.ts
+  function showTab(key) {
+    portalState.tab = key;
+    document.querySelectorAll("#v-informe [data-pmt]").forEach((button2) => {
+      button2.classList.toggle("on", button2.dataset.pmt === key);
+      button2.setAttribute("aria-selected", String(button2.dataset.pmt === key));
+    });
+    document.querySelectorAll("#v-informe [data-pmp]").forEach((panel) => {
+      panel.hidden = panel.dataset.pmp !== key;
+    });
+    window.scrollTo({ top: 0 });
+  }
+  var tabBar = (tabs) => `<div class="pmtabs" role="tablist">${tabs.map(([key, label]) => `<button type="button" role="tab" data-pmt="${key}" class="${portalState.tab === key ? "on" : ""}" aria-selected="${String(portalState.tab === key)}">${t(label)}<span class="pmtpunto" hidden></span></button>`).join("")}</div>`;
+  var tabPanel = (key, id, content) => `<div data-pmp="${key}" id="${id}" ${portalState.tab === key ? "" : "hidden"}>${content}</div>`;
+  function bindTabs(box, attribute) {
+    box.querySelectorAll(`[data-${attribute}]`).forEach((button2) => {
+      button2.onclick = () => {
+        showTab(button2.dataset[attribute] ?? "");
+      };
+    });
+  }
+
+  // src/app/screens/portal/centre.ts
+  var TABS2 = ["res", "ped", "ficha", "mat"];
+  var SHOWN_ORDERS = 8;
+  var CANCELLED2 = "Anulado";
+  var PREPARED = "Preparado";
+  var euros4 = (value15) => portalLegacy.euros(value15);
+  function orderRow(order) {
+    const lines = (order.lineas ?? []).map((line2) => `${line2.producto} × ${formatNumber(line2.unidades)}${line2.regalo ? t("portal.centre.free") : ""}`).join(", ");
+    return `<div class="item"><span class="tx">
+            <b>${order.numero ? `${escapeHtml(order.numero)} · ` : ""}${formatShortDate(String(order.fecha).slice(0, 10))}</b>
+            <span class="sm">${escapeHtml(lines)}${order.total !== null && order.total !== void 0 ? ` · ${euros4(order.total)}` : ""}</span>${orderExtras(order)}</span>
+            <span class="pcpst"><span class="pill ${portalPageLegacy.centreStateClass(order.estado)}">${escapeHtml(order.estado)}</span>${order.proforma ? `<button type="button" class="btn sec chico" data-pcpro="${order.id}">${t("portal.centre.proforma")}</button>` : ""}</span></div>`;
+  }
+  function indicators(orders, bought, products3) {
+    const running = orders.filter((order) => order.estado !== CANCELLED2 && order.estado !== PREPARED).length, last = orders[0] ? String(orders[0].fecha).slice(0, 10) : null;
+    const units2 = sum((bought ?? []).map((item) => Number(item.unidades) || 0));
+    return `<div class="pmk">
+      <div class="kpi"><b>${formatNumber(running)}</b><span>${t("portal.centre.running")}</span></div>
+      <div class="kpi"><b>${last ? formatShortDate(last) : "—"}</b><span>${t("portal.centre.lastOrder")}</span></div>
+      <div class="kpi"><b>${formatNumber(units2)}</b><span>${t("portal.centre.units12")}</span></div>
+      <div class="kpi"><b>${formatNumber(products3)}</b><span>${t("portal.centre.products")}</span></div></div>`;
+  }
+  function summaryHtml(answer, products3) {
+    const orders = answer.pedidos ?? [], bought = answer.por_producto ?? [], ordersTitle = t("portal.centre.ordersTitle"), boughtTitle = t("portal.centre.boughtTitle");
+    const missing2 = portalState.missing.length ? `<div class="pmaviso"><div><b>${t("portal.centre.completeCard")}</b><span class="sm">${t("portal.centre.completeCardText", { missing: escapeHtml(missingText()) })}</span></div>
+      <button type="button" class="btn" data-pmir="ficha">${t("portal.centre.completeCardButton")}</button></div>` : "";
+    const chart2 = bought.length ? portalPageLegacy.barChart(bought.map((item) => ({ n: item.producto, v: item.unidades })), (value15) => t("portal.centre.unitsShort", { units: formatNumber(value15) })) : portalPageLegacy.emptyChart(t("portal.centre.boughtEmpty"));
+    return `${owesHtml(orders)}${missing2}
+    ${indicators(orders, bought, products3)}
+    <div class="pmfila">
+      <div class="card ancard pcpeds"><h2>${ordersTitle} ${helpButton(ordersTitle, t("portal.centre.ordersHelp"))}</h2>
+        ${orders.length ? `<div class="lista">${orders.slice(0, SHOWN_ORDERS).map(orderRow).join("")}</div>` : `<p class="sm">${t("portal.centre.noOrders")}</p>`}</div>
+      <div class="card ancard"><h2>${boughtTitle} ${helpButton(boughtTitle, t("portal.centre.boughtHelp"))}</h2>
+        ${chart2}</div></div>`;
+  }
+  async function afterOrder() {
+    portalState.tab = "res";
+    await paintCentre();
+    showTab("res");
+  }
+  function showOrders(summary4, answer, products3) {
+    const name = document.getElementById("ctnom");
+    if (name && answer.nombre) name.textContent = answer.nombre;
+    portalState.prepayment = Boolean(answer.pago_anticipado);
+    summary4.innerHTML = summaryHtml(answer, products3);
+  }
+  async function paintCentre() {
+    if (!document.getElementById("mdcuerpo")) return;
+    const [{ data: products3 }, { data: answer }, { data: card2 }] = await Promise.all([
+      callRpc("productos_portal", {}),
+      callRpc("mis_pedidos_portal", {}),
+      portalState.form ? Promise.resolve({ data: null }) : callRpc("portal_mi_ficha", {})
+    ]);
+    if (card2?.ok) loadForm(card2);
+    const summary4 = document.getElementById("mdcuerpo");
+    if (!summary4) return;
+    const list = Array.isArray(products3) ? products3 : [];
+    showOrders(summary4, answer ?? {}, list.length);
+    bindTabs(summary4, "pmir");
+    paintOrder(list, afterOrder);
+    paintForm();
+    try {
+      await paintDownloads();
+    } catch {
+    }
+  }
+  async function loadCentre() {
+    const page = document.getElementById("v-informe");
+    if (!page) return;
+    if (!TABS2.includes(portalState.tab)) portalState.tab = "res";
+    page.innerHTML = `<div class="medhero"><div><div class="sm" style="color:rgba(255,255,255,.8)">${t("portal.centre.kicker")}</div><h1 id="ctnom">…</h1>
+      <div class="sm" style="color:rgba(255,255,255,.85)">${t("portal.centre.subtitle")}</div></div></div>
+    ${tabBar([["res", "portal.tabs.summary"], ["ped", "portal.tabs.order"], ["ficha", "portal.tabs.centre"], ["mat", "portal.tabs.material"]])}
+    ${tabPanel("res", "mdcuerpo", skeleton(false))}
+    ${tabPanel("ped", "pcped", skeleton(true))}
+    ${tabPanel("ficha", "pmficha", skeleton(true))}
+    ${tabPanel("mat", "pmmat", '<div id="mdportal" class="pmfila"></div>')}`;
+    bindTabs(page, "pmt");
+    await paintCentre();
+    await paintMaterial();
+  }
+
+  // src/app/screens/portal/summary.ts
+  var PERIODS2 = /* @__PURE__ */ new Map([
+    ["hoy", "portal.periods.today"],
+    ["ayer", "portal.periods.yesterday"],
+    ["semana", "portal.periods.week"],
+    ["7d", "portal.periods.last7"],
+    ["mes", "portal.periods.month"],
+    ["mesant", "portal.periods.lastMonth"],
+    ["tri", "portal.periods.quarter"],
+    ["triant", "portal.periods.lastQuarter"],
+    ["anio", "portal.periods.year"],
+    ["anioant", "portal.periods.lastYear"],
+    ["todo", "portal.periods.all"],
+    ["pers", "portal.periods.custom"]
+  ]);
+  function formatText(format) {
+    const pack = /^(d+)+(d+)$/.exec(format);
+    if (pack) return t("portal.summary.packFormat", { bought: pack[1] ?? "", free: pack[2] ?? "" });
+    if (format === "4+") return t("portal.summary.fourOrMore");
+    return format === "1" ? t("portal.summary.oneUnit") : t("portal.summary.units", { count: format });
+  }
+  function formatsCard(data) {
+    const list = data.formatos ?? [], total2 = sum(list.map((item) => item.n ?? 0)), title2 = t("portal.summary.formatsTitle", { Orders: capitalise(words2().orders) });
+    const chart2 = total2 ? portalPageLegacy.barChart(list.map((item) => ({ n: formatText(item.formato), v: Math.round((item.n ?? 0) / total2 * 100) })), (value15) => `${value15} %`) : portalPageLegacy.emptyChart(t("portal.summary.formatsEmpty", words2()));
+    return `<div class="card ancard" id="pmformatos"><h2>${title2} ${helpButton(title2, t("portal.summary.formatsHelp", words2()))}</h2>
+    ${chart2}</div>`;
+  }
+  function periodCard(data) {
+    const last = t("portal.summary.lastOrder", words2());
+    const rows = [
+      [formatNumber(data.unidades), t("portal.summary.unitsLabel"), t("portal.summary.unitsHelp", words2())],
+      [data.ultima_pauta ? formatShortDate(data.ultima_pauta) : "—", last, t("portal.summary.lastOrderHelp", words2())]
+    ];
+    return `<div class="card ancard" id="pmperiodo"><h2>${t("portal.summary.periodTitle")}</h2>
+    <div class="pmperl">${rows.map(([value15, label, help]) => `<div><span>${escapeHtml(label)} ${helpButton(label, help)}</span><b>${value15}</b></div>`).join("")}</div></div>`;
+  }
+  function activityBanner(data) {
+    const select3 = document.querySelector("#mdper [data-per]"), key = PERIODS2.get(select3 ? select3.value : "semana");
+    const when = key ? t(key) : t("portal.periods.thisPeriod"), count2 = Number(data.pautas) || 0;
+    const word = portalPageLegacy.wordOf("pauta");
+    if (count2 > 0) return `<div class="banda-ok pmact" id="pmact"><b>${t(count2 === 1 ? "portal.summary.activatedOne" : "portal.summary.activated", { when, count: formatNumber(count2), word: escapeHtml(count2 === 1 ? word.s : word.p) })}</b></div>`;
+    return `<div class="banda-info pmact" id="pmact"><b>${t(word.g === "f" ? "portal.summary.noneFeminine" : "portal.summary.noneMasculine", { when, word: escapeHtml(word.s) })}</b>
+    ${t("portal.summary.needHelp")}
+    <button type="button" class="btn sec chico" data-pmir="mat">${t("portal.tabs.material")}</button></div>`;
+  }
+  function monthColumn(month, figures, max) {
+    const units2 = figures?.unidades ?? 0, orders = figures?.pautas ?? 0;
+    const name = (/* @__PURE__ */ new Date(`${month}-01T12:00`)).toLocaleDateString(t("dates.locale"), { month: "short" }).replace(".", "");
+    const title2 = t("portal.summary.monthTitle", { month: name, units: formatNumber(units2), orders: formatNumber(orders), ordersWord: words2().orders });
+    return `<div class="pmcol" title="${escapeHtml(title2)}"><div class="pmbar"><b>${units2 ? formatNumber(units2) : ""}</b><i style="height:${units2 ? Math.max(3, units2 / max * 100) : 0}%"></i></div>
+        <span class="pmm">${escapeHtml(name)}</span><span class="pmn">${orders ? `<em>${formatNumber(orders)}</em>` : ""}</span></div>`;
+  }
+  function evolution(data) {
+    if (!data.unidades) return portalPageLegacy.emptyChart(t("portal.summary.evolutionEmpty", words2()));
+    const months2 = portalPageLegacy.monthsBetween(data.desde, data.hasta), series = new Map((data.serie ?? []).map((item) => [item.mes, item]));
+    const max = Math.max(1, ...months2.map((month) => series.get(month)?.unidades ?? 0));
+    return `<div class="pmleg"><span><i></i>${t("portal.summary.unitsLabel")}</span><span><i class="v"></i>${words2().Orders}</span></div>
+    <div class="pmev" style="--n:${months2.length}">${months2.map((month) => monthColumn(month, series.get(month), max)).join("")}</div>`;
+  }
+  function continuity(figures) {
+    if (!figures.ok) return `<p class="sm">${t("portal.summary.notAvailable")}</p>`;
+    if (figures.pocos) return `<p class="sm">${t("portal.summary.fewStarted", { ...words2(), months: formatNumber(figures.meses ?? 12), started: formatNumber(figures.empezaron), minimum: formatNumber(figures.minimo ?? 5) })}</p>`;
+    const started = figures.empezaron ?? 0;
+    return `<div class="minis cons"><div><b>${formatNumber(started)}</b><span>${t("portal.summary.started")}</span></div><div><b>${started ? `${Math.round((figures.repiten ?? 0) / started * 100)}%` : "—"}</b><span>${t("portal.summary.repeated")}</span></div>
+        <div><b>${figures.dias_entre ? t("portal.summary.days", { count: formatNumber(figures.dias_entre) }) : "—"}</b><span>${t("portal.summary.between")}</span></div><div><b>${formatNumber(figures.sin_pedir)}</b><span>${t("portal.summary.over60")}</span></div></div>`;
+  }
+  function missingBanner() {
+    if (!portalState.missing.length) return "";
+    return `<div class="pmaviso"><div><b>${t("portal.summary.completeCard")}</b><span class="sm">${t("portal.summary.completeCardText", { missing: escapeHtml(missingText()) })}</span></div>
+      <button type="button" class="btn" data-pmir="ficha">${t("portal.summary.completeCardButton")}</button></div>`;
+  }
+  function metricsCard(data) {
+    const title2 = t("portal.summary.metricsTitle", words2());
+    const last = data.ultima_pauta ? t("portal.summary.metricsLast", { ...words2(), date: formatShortDate(data.ultima_pauta) }) : "";
+    return `<div class="card ancard"><h2>${title2} ${helpButton(title2, t("portal.summary.metricsHelp", words2()) + last)}</h2>${evolution(data)}</div>`;
+  }
+  function productsCard(data) {
+    const title2 = t("portal.summary.byProduct"), products3 = data.productos ?? [];
+    return `<div class="card ancard"><h2>${title2} ${helpButton(title2, t("portal.summary.byProductHelp", words2()))}</h2>
+        ${products3.length ? `<div class="pmdon">${portalPageLegacy.donut(products3.map((item) => ({ n: item.nombre, v: item.unidades })))}</div>` : portalPageLegacy.emptyChart(t("portal.summary.byProductEmpty"))}</div>`;
+  }
+  function summaryHtml2(data, figures) {
+    const title2 = t("portal.summary.continuityTitle", words2());
+    return `${activityBanner(data)}${missingBanner()}
+    <div class="pmfila pm3">
+      ${periodCard(data)}
+      ${metricsCard(data)}
+      ${productsCard(data)}</div>
+    <div class="pmfila">
+      ${formatsCard(data)}
+      <div class="card ancard" id="pmconst"><h2>${title2} ${helpButton(title2, t("portal.summary.continuityHelp", words2()))}</h2>${continuity(figures)}</div></div>`;
+  }
+
+  // src/app/screens/portal/report.ts
+  var setText = (id, text2) => {
+    const element2 = document.getElementById(id);
+    if (element2) element2.textContent = text2;
+  };
+  function notLinked() {
+    const text2 = `<div class="card"><div class="vacio">${t("portal.report.notLinked", { professional: term("medico") })}</div></div>`;
+    const summary4 = document.getElementById("mdcuerpo");
+    if (summary4) summary4.innerHTML = text2;
+    const form = document.getElementById("pmficha");
+    if (form) form.innerHTML = text2;
+    setText("mdnom", portalPageLegacy.userName());
+  }
+  async function paintReport() {
+    const range2 = portalPageLegacy.periodOf(document.getElementById("mdper"));
+    const [{ data }, { data: figures }, { data: card2 }] = await Promise.all([
+      callRpc("informe_cuenta", { p_desde: range2.desde, p_hasta: range2.hasta }),
+      callRpc("constancia_pacientes", { p_meses: 12 }),
+      portalState.form ? Promise.resolve({ data: null }) : callRpc("portal_mi_ficha", {})
+    ]);
+    if (card2?.ok) loadForm(card2);
+    const summary4 = document.getElementById("mdcuerpo");
+    if (!summary4) return;
+    if (!data?.ok) {
+      notLinked();
+      return;
+    }
+    setText("mdnom", data.medico.nombre);
+    setText("mdesp", data.medico.especialidad ?? "");
+    summary4.innerHTML = summaryHtml2(data, figures ?? {});
+    bindTabs(summary4, "pmir");
+    paintForm();
+  }
+  async function loadReport() {
+    if (isCentre()) {
+      await loadCentre();
+      return;
+    }
+    const page = document.getElementById("v-informe");
+    if (!page) return;
+    page.innerHTML = `<div class="medhero"><div><div class="sm" style="color:rgba(255,255,255,.8)">${t("portal.report.kicker")}</div><h1 id="mdnom">…</h1><div id="mdesp" class="sm" style="color:rgba(255,255,255,.85)"></div></div>
+      <div class="medper"><div id="mdper"></div></div></div>
+    ${tabBar([["res", "portal.tabs.summary"], ["ficha", "portal.tabs.card"], ["mat", "portal.tabs.material"]])}
+    ${tabPanel("res", "mdcuerpo", skeleton(false))}
+    ${tabPanel("ficha", "pmficha", skeleton(true))}
+    ${tabPanel("mat", "pmmat", '<div id="mdportal" class="pmfila"></div>')}`;
+    bindTabs(page, "pmt");
+    portalPageLegacy.forgetPeriod();
+    portalPageLegacy.mountPeriod(document.getElementById("mdper"), { id: "informe", valor: "semana", alCambiar: () => {
+      void paintReport();
+    } });
+    await paintReport();
+    await paintMaterial();
+  }
+
+  // src/app/screens/portal/settings.ts
+  var DEFAULT_MAX = 20;
+  var MAX_LIMIT = 1e3;
+  async function portalSetting() {
+    const { data } = await legacyDb().from("ajustes").select("valor").eq("clave", "portal").maybeSingle();
+    return data?.valor ?? {};
+  }
+  async function saveSetting(value15) {
+    const { data: result, error } = await legacyDb().rpc("guardar_ajuste", { p_clave: "portal", p_valor: value15 });
+    if (error || result?.ok === false) {
+      notices.toast(t("portal.settings.couldNotSave"), true);
+      return false;
+    }
+    return true;
+  }
+  function materialRow(item, chosen2) {
+    return `<label class="item" style="cursor:default">
+        <input type="checkbox" data-cfpm="${escapeHtml(item.valor)}" ${chosen2 ? "checked" : ""}> <span class="tx"><b>${escapeHtml(item.valor)}</b></span>
+        <span class="sm">${t("portal.settings.maximum")}</span> <input type="number" min="1" max="${MAX_LIMIT}" value="${chosen2 ? chosen2.max : DEFAULT_MAX}" data-cfpx="${escapeHtml(item.valor)}" style="max-width:110px" aria-label="${t("portal.settings.maximumOf", { name: escapeHtml(item.valor) })}"></label>`;
+  }
+  function materialHtml(catalog2, allowed, saved2) {
+    if (!catalog2.length) return `<div class="vacio">${t("portal.settings.noCatalog")}</div>`;
+    return `<div class="lista" id="cfpmat">${catalog2.map((item) => materialRow(item, allowed.find((other) => other.valor === item.valor))).join("")}</div>
+      ${saved2 ? "" : `<p class="sm" style="padding:0 16px">${t("portal.settings.everything")}</p>`}
+      <div class="acts" style="justify-content:flex-end"><button class="btn" id="cfpok">${t("common.save")}</button></div>`;
+  }
+  async function saveMaterial(box, setting) {
+    const material = [...box.querySelectorAll("[data-cfpm]")].filter((input4) => input4.checked).map((input4) => {
+      const max = box.querySelector(`[data-cfpx="${CSS.escape(input4.dataset.cfpm ?? "")}"]`);
+      return { valor: input4.dataset.cfpm ?? "", max: Math.max(1, Math.min(MAX_LIMIT, Number(max?.value) || DEFAULT_MAX)) };
+    });
+    if (!await saveSetting({ ...setting, material })) return;
+    notices.toast(t("portal.settings.saved"));
+    void paintPortalSettings();
+  }
+  function prepaymentHtml(on4) {
+    return `<div class="card" id="cfpantc"><div class="fh"><div><h2>${t("portal.settings.prepaymentTitle")} ${helpButton(t("portal.settings.prepayment"), t("portal.settings.prepaymentHelp"))}</h2></div></div>
+    <label class="opt"><input type="checkbox" id="cfpant" ${on4 ? "checked" : ""}> ${t("portal.settings.prepaymentLabel")}</label>
+    <div class="acts" style="justify-content:flex-end"><button class="btn" id="cfpantok" type="button">${t("common.save")}</button></div></div>`;
+  }
+  async function savePrepayment(button2) {
+    button2.disabled = true;
+    const on4 = document.getElementById("cfpant")?.checked ?? false, saved2 = await saveSetting({ ...await portalSetting(), pago_anticipado: on4 });
+    button2.disabled = false;
+    if (saved2) notices.toast(t(on4 ? "portal.settings.prepaymentOn" : "portal.settings.prepaymentOff"));
+  }
+  async function paintPortalSettings() {
+    const start2 = document.getElementById("cfgcuerpo");
+    if (!start2) return;
+    start2.innerHTML = `<div class="card">${portalPageLegacy.skeletonCard(t("common.loading"))}</div>`;
+    const [{ data: catalog2 }, { data: allowed }, setting] = await Promise.all([
+      legacyDb().rpc("catalogo_papel", { p_papel: "material_visita" }),
+      callRpc("portal_material_permitido", {}),
+      portalSetting()
+    ]);
+    const box = document.getElementById("cfgcuerpo");
+    if (!box) return;
+    box.innerHTML = `<div class="card"><div class="fh"><div><h2>${t("portal.settings.title", { ofProfessional: term("medico", { article: "del" }) })}</h2>
+      <div class="sm">${t("portal.settings.subtitle", { theProfessionals: term("medico", { number: "p", article: "el" }) })}</div></div></div>
+    ${materialHtml(catalog2 ?? [], Array.isArray(allowed) ? allowed : [], Boolean(setting.material))}</div>
+  ${prepaymentHtml(Boolean(setting.pago_anticipado))}`;
+    const save21 = document.getElementById("cfpok");
+    if (save21) save21.onclick = () => {
+      void saveMaterial(box, setting);
+    };
+    const savePay = document.getElementById("cfpantok");
+    if (savePay) savePay.onclick = () => {
+      void savePrepayment(savePay);
+    };
+  }
+
   // src/app/screens/analytics/index.ts
   var analytics_exports = {};
   __export(analytics_exports, {
@@ -8287,19 +12680,19 @@
   };
 
   // src/app/screens/analytics/filters.ts
-  var select = (id) => document.getElementById(id);
-  var valueOf2 = (id) => select(id)?.value ?? "";
+  var select2 = (id) => document.getElementById(id);
+  var valueOf3 = (id) => select2(id)?.value ?? "";
   function selectedText(id) {
-    const field4 = select(id);
-    return field4?.value ? field4.selectedOptions[0]?.textContent ?? "" : "";
+    const field8 = select2(id);
+    return field8?.value ? field8.selectedOptions[0]?.textContent ?? "" : "";
   }
   function filterParams() {
     return {
       p_medico: analyticsLegacy.professional()?.id ?? null,
-      p_comercial: valueOf2("acom") || null,
-      p_producto: valueOf2("aprod") || null,
-      p_reporting: valueOf2("arep") || null,
-      p_reportado: valueOf2("areprt") || null
+      p_comercial: valueOf3("acom") || null,
+      p_producto: valueOf3("aprod") || null,
+      p_reporting: valueOf3("arep") || null,
+      p_reportado: valueOf3("areprt") || null
     };
   }
 
@@ -8318,14 +12711,14 @@
   }
   function infoHtml() {
     const dimension = (selectedText("adim") || t("analytics.table.concept")).toLowerCase().replace(/^por /, "");
-    const measure = t(valueOf2("amedida") === "importe" ? "analytics.table.amount" : "analytics.table.units");
+    const measure = t(valueOf3("amedida") === "importe" ? "analytics.table.amount" : "analytics.table.units");
     return `<div class="tabinfo"><b>${t("analytics.table.title", { measure: escapeHtml(measure), dimension: escapeHtml(dimension) })}</b>
     <span>${t("analytics.table.hint", { dimension: escapeHtml(dimension) })}</span></div>`;
   }
-  function tableHtml2(data, rows) {
-    const months2 = data.meses ?? [], format = (value10) => data.medida === "importe" ? formatCurrency(value10) : formatNumber(value10);
+  function tableHtml5(data, rows) {
+    const months2 = data.meses ?? [], format = (value15) => data.medida === "importe" ? formatCurrency(value15) : formatNumber(value15);
     const max = Math.max(1, ...rows.flatMap((row4) => months2.map((month) => valueIn(row4, month))));
-    const shade = (value10) => value10 ? `;background:rgba(46,134,201,${(BASE_SHADE + value10 / max * SHADE_RANGE).toFixed(2)})` : "";
+    const shade = (value15) => value15 ? `;background:rgba(46,134,201,${(BASE_SHADE + value15 / max * SHADE_RANGE).toFixed(2)})` : "";
     const monthCell = (row4, month) => cell2(MONTH_WIDTH, row4.meses?.[month] ? format(row4.meses[month]) : '<span class="sm">·</span>', "", shade(valueIn(row4, month)));
     return `<div class="tabla"><div style="min-width:${180 + months2.length * MONTH_WIDTH}px">
     <div class="thead">${cell2(NAME_WIDTH, t("analytics.table.concept"), " th")}
@@ -8345,13 +12738,13 @@
     return rows.map((row4) => ({ concepto: row4.nombre, ...Object.fromEntries((data.meses ?? []).map((month) => [month, row4.meses?.[month] ?? 0])), total: row4.total }));
   }
   function tableParams() {
-    const dimension = valueOf2("adim");
+    const dimension = valueOf3("adim");
     return {
       p_dim: dimension === "mes" ? "producto" : dimension,
-      p_desde: valueOf2("adesde") || null,
-      p_hasta: valueOf2("ahasta") || null,
-      p_canal: valueOf2("acanal") || null,
-      p_medida: valueOf2("amedida") || "unidades",
+      p_desde: valueOf3("adesde") || null,
+      p_hasta: valueOf3("ahasta") || null,
+      p_canal: valueOf3("acanal") || null,
+      p_medida: valueOf3("amedida") || "unidades",
       lim: LIMIT2,
       ...filterParams()
     };
@@ -8370,7 +12763,7 @@
       box.innerHTML = `<div class="vacio">${t("analytics.table.noData")}</div>`;
       return;
     }
-    box.innerHTML = infoHtml() + tableHtml2(data, rows);
+    box.innerHTML = infoHtml() + tableHtml5(data, rows);
     analyticsLegacy.setTableExport(exportRows(data, rows));
   }
 
@@ -8380,7 +12773,7 @@
   var BAR_HEIGHT = 84;
   var element = (id) => document.getElementById(id);
   var measureOf = (row4, measure) => Number(row4[measure]) || 0;
-  function totalsHtml(totals) {
+  function totalsHtml2(totals) {
     const who2 = [analyticsLegacy.professional()?.nombre ?? "", selectedText("acom"), selectedText("aprod"), selectedText("arep"), selectedText("areprt")].filter(Boolean).join(" · ");
     return `
     <div class="kpi"><b>${formatNumber(totals.unidades)}</b><span>${t("analytics.explore.units")}${who2 ? ` · ${escapeHtml(who2)}` : ""}</span></div>
@@ -8388,11 +12781,11 @@
     <div class="kpi"><b>${formatNumber(totals.pedidos)}</b><span>${t("analytics.explore.orders")}</span></div>
     <div class="kpi"><b>${formatNumber(totals.medicos)}</b><span>${t("analytics.explore.withSales", { professionals: term("medico", { number: "p", capital: "C" }) })}</span></div>`;
   }
-  function productsHtml2(products2, totals, dimension) {
-    if (!(products2.length > 1 || products2.length === 1 && dimension !== "producto")) return "";
+  function productsHtml2(products3, totals, dimension) {
+    if (!(products3.length > 1 || products3.length === 1 && dimension !== "producto")) return "";
     return `<div class="dgrid-wrap"><div class="dgrid aprod">
     <div class="dh"><span>${t("analytics.explore.byProduct")}</span><span class="num">${t("analytics.explore.unitsHead")}</span><span class="num">${t("analytics.explore.unitsShare")}</span><span class="num">${t("analytics.explore.amountHead")}</span></div>
-    ${products2.map((product) => `<div class="dr" style="cursor:default"><span><b>${escapeHtml(product.nombre)}</b></span><span class="num">${formatNumber(product.unidades)}</span>
+    ${products3.map((product) => `<div class="dr" style="cursor:default"><span><b>${escapeHtml(product.nombre)}</b></span><span class="num">${formatNumber(product.unidades)}</span>
       <span class="num">${Math.round((product.unidades ?? 0) / ((totals.unidades ?? 0) || 1) * 100)}%</span><span class="num">${formatCurrency(product.importe)}</span></div>`).join("")}
   </div></div>`;
   }
@@ -8407,7 +12800,7 @@
   }
   function rankingHtml(rows, totals, measure) {
     if (!rows.length) return `<div class="vacio">${t("analytics.explore.noOrders")}</div>`;
-    const total = measureOf(totals, measure) || 1, share = (row4) => Math.round(measureOf(row4, measure) / total * 100);
+    const total2 = measureOf(totals, measure) || 1, share = (row4) => Math.round(measureOf(row4, measure) / total2 * 100);
     return `<div class="dgrid-wrap"><div class="dgrid arank">
     <div class="dh"><span>#</span><span>${escapeHtml(selectedText("adim"))}</span><span class="num">${t("analytics.explore.unitsHead")}</span>
       <span class="num">${t("analytics.explore.amountHead")}</span><span class="num">${t("analytics.explore.orders")}</span><span>${t("analytics.explore.weight")}</span></div>
@@ -8425,12 +12818,12 @@
   async function paintRanking() {
     analyticsLegacy.loading(element("atabla"), t("analytics.explore.calculating"));
     setHtml("atot", Array.from({ length: SKELETONS }, () => '<div class="kpi ksk"><div class="skel" style="width:40%;height:24px;margin:2px 0 8px"></div><div class="skel" style="width:70%;margin:0"></div></div>').join(""));
-    const range2 = analyticsLegacy.period("aper"), dimension = valueOf2("adim"), measure = valueOf2("amedida");
+    const range2 = analyticsLegacy.period("aper"), dimension = valueOf3("adim"), measure = valueOf3("amedida");
     const { data, error } = await legacyDb().rpc("analitica_v2", {
       p_dim: dimension,
       p_desde: range2.desde,
       p_hasta: range2.hasta,
-      p_canal: valueOf2("acanal") || null,
+      p_canal: valueOf3("acanal") || null,
       ...filterParams(),
       lim: LIMIT3
     });
@@ -8440,7 +12833,7 @@
       return;
     }
     const totals = data.totales ?? {}, rows = [...data.filas ?? []].sort((first, second) => measureOf(second, measure) - measureOf(first, measure));
-    setHtml("atot", totalsHtml(totals));
+    setHtml("atot", totalsHtml2(totals));
     setHtml("aprods", productsHtml2(data.por_producto ?? [], totals, dimension));
     setHtml("aserie", seriesHtml(data.serie ?? [], measure));
     setHtml("atabla", rankingHtml(rows, totals, measure));
@@ -8454,8 +12847,8 @@
 
   // src/app/screens/analytics/visit-orders/model.ts
   var DEFAULT_DAYS = 30;
-  var percent = (part, whole) => whole ? Math.round((part ?? 0) / whole * 100) : 0;
-  var words2 = () => ({
+  var percent2 = (part, whole2) => whole2 ? Math.round((part ?? 0) / whole2 * 100) : 0;
+  var words3 = () => ({
     visit: term("visita"),
     visits: term("visita", { number: "p" }),
     Visits: term("visita", { number: "p", capital: "C" }),
@@ -8479,11 +12872,11 @@
     return { k: point.k, v: sum(around.map((other) => other.v)) / around.length };
   });
   var average = (points) => sum(points.map((point) => point.v)) / (points.length || 1);
-  var decimals = (value10) => value10.toLocaleString("es-ES", { maximumFractionDigits: value10 < 10 ? 2 : 1 });
+  var decimals = (value15) => value15.toLocaleString("es-ES", { maximumFractionDigits: value15 < 10 ? 2 : 1 });
   function scale(frame) {
     return {
       x: (day) => PAD + (day + frame.days) / (2 * frame.days) * (frame.width - 2 * PAD),
-      y: (value10) => frame.height - 24 - value10 / frame.max * (frame.height - 52)
+      y: (value15) => frame.height - 24 - value15 / frame.max * (frame.height - 52)
     };
   }
   function chart(points, frame) {
@@ -8498,7 +12891,7 @@
       <path d="${area(points.filter((point) => point.k <= 0), -days, 0)}" class="tvantes"/><path d="${area(points.filter((point) => point.k >= 0), 0, days)}" fill="url(#tvgrad)"/>
       <path d="${path(points)}" class="tvlin"/>
       <line x1="${x(0)}" x2="${x(0)}" y1="14" y2="${base}" class="tvhoy"/>
-      <text x="${x(0) + 6}" y="20" class="tvtxt tvtxthoy">${t("analytics.orders.visitDay", words2())}</text>
+      <text x="${x(0) + 6}" y="20" class="tvtxt tvtxthoy">${t("analytics.orders.visitDay", words3())}</text>
       ${peakText}
       ${axis}
     </svg>`;
@@ -8507,14 +12900,14 @@
     if (before > 0) {
       return {
         big: `${after >= before ? "+" : ""}${formatNumber(Math.round((after / before - 1) * 100))}<small> %</small>`,
-        label: t(after >= before ? "analytics.orders.moreUnits" : "analytics.orders.fewerUnits", { ...words2(), days })
+        label: t(after >= before ? "analytics.orders.moreUnits" : "analytics.orders.fewerUnits", { ...words3(), days })
       };
     }
-    return after > 0 ? { big: "—", label: t("analytics.orders.noOrdersBefore", words2()) } : { big: "0", label: t("analytics.orders.noOrders") };
+    return after > 0 ? { big: "—", label: t("analytics.orders.noOrdersBefore", words3()) } : { big: "0", label: t("analytics.orders.noOrders") };
   }
   function effect(data) {
     const result = data.efecto ?? {}, visits2 = result.visitas ?? 0, days = data.dias ?? DEFAULT_DAYS;
-    if (!visits2) return `<div class="vacio">${t("analytics.orders.noVisits", words2())}</div>`;
+    if (!visits2) return `<div class="vacio">${t("analytics.orders.noVisits", words3())}</div>`;
     const raw = (result.dias ?? []).map((day) => ({ k: day.k, v: (Number(day.u) || 0) / visits2 })), points = smooth(raw);
     const before = average(raw.filter((point) => point.k < 0)), after = average(raw.filter((point) => point.k >= 0));
     const mobile = isMobile(), frame = { width: mobile ? 360 : 640, height: mobile ? 170 : 200, days, max: Math.max(...points.map((point) => point.v), MIN_MAX) * HEADROOM };
@@ -8527,11 +12920,11 @@
 
   // src/app/screens/analytics/visit-orders/funnel.ts
   var bar = (width, extraClass) => `<svg class="tvbar" viewBox="0 0 100 10" preserveAspectRatio="none" aria-hidden="true"><rect class="tvbg" width="100" height="10" rx="3"/><rect class="tvfg${extraClass}" width="${width}" height="10" rx="3"/></svg>`;
-  var mini = (value10, label, valueClass = "") => `<div class="tvmini"><b${valueClass ? ` class="${valueClass}"` : ""}>${value10}</b><span class="tvlbl">${label}</span></div>`;
-  function steps(summary3, days) {
-    const visits2 = summary3.visitas ?? 0, visited = summary3.profesionales ?? 0, withOrder = summary3.con_venta ?? 0;
+  var mini = (value15, label, valueClass = "") => `<div class="tvmini"><b${valueClass ? ` class="${valueClass}"` : ""}>${value15}</b><span class="tvlbl">${label}</span></div>`;
+  function steps(summary4, days) {
+    const visits2 = summary4.visitas ?? 0, visited = summary4.profesionales ?? 0, withOrder = summary4.con_venta ?? 0;
     return [
-      [t("analytics.orders.visitsDone", words2()), visits2, visits2 ? 1 : 0, ""],
+      [t("analytics.orders.visitsDone", words3()), visits2, visits2 ? 1 : 0, ""],
       [term("medico", { number: "p", capital: "C", adjective: "visitado" }), visited, visits2 ? visited / visits2 : 0, ""],
       [t("analytics.orders.withOrderIn", { days }), withOrder, visits2 ? withOrder / visits2 : 0, "c"]
     ];
@@ -8541,48 +12934,48 @@
     return `<div class="tvlbl"><span class="${difference2 >= 0 ? "tvok" : "tvmal"}">${difference2 >= 0 ? "▲ +" : "▼ "}${t("analytics.orders.points", { count: formatNumber(difference2) })}</span> ${t("analytics.orders.vsPrevious")}</div>`;
   }
   function funnel(data) {
-    const summary3 = data.resumen ?? {}, before = summary3.anterior ?? {}, days = data.dias ?? DEFAULT_DAYS;
-    const share = percent(summary3.con_venta, summary3.profesionales), previous = percent(before.con_venta, before.profesionales);
+    const summary4 = data.resumen ?? {}, before = summary4.anterior ?? {}, days = data.dias ?? DEFAULT_DAYS;
+    const share = percent2(summary4.con_venta, summary4.profesionales), previous = percent2(before.con_venta, before.profesionales);
     const difference2 = before.profesionales ? share - previous : null;
-    const average2 = isPresent(summary3.dias_media) ? t("analytics.orders.days", { count: formatNumber(summary3.dias_media) }) : "—";
+    const average2 = isPresent(summary4.dias_media) ? t("analytics.orders.days", { count: formatNumber(summary4.dias_media) }) : "—";
     return `<div class="tvgrid"><div class="tvizq"><div class="tvbig">${formatNumber(share)}<small> %</small></div>
       <div class="tvlbl">${t("analytics.orders.haveOrder", { visited: term("medico", { number: "p", article: "del", adjective: "visitado" }), days })}</div>
-      <div class="tvrow">${mini(formatNumber(summary3.unidades ?? 0), t("analytics.orders.units"))}
+      <div class="tvrow">${mini(formatNumber(summary4.unidades ?? 0), t("analytics.orders.units"))}
         ${mini(average2, t("analytics.orders.untilFirst"))}</div></div>
-    <div class="tvfun">${steps(summary3, days).map(([label, count2, share2, extraClass]) => `<div class="tvst"><span>${escapeHtml(label)}</span>
+    <div class="tvfun">${steps(summary4, days).map(([label, count2, share2, extraClass]) => `<div class="tvst"><span>${escapeHtml(label)}</span>
       ${bar(Math.max(share2 * 100, count2 ? 3 : 0).toFixed(1), extraClass ? ` ${extraClass}` : " ")}
       <b>${formatNumber(count2)}</b></div>`).join("")}
       ${changeHtml(difference2)}</div></div>`;
   }
-  var TYPES = [["captacion", "analytics.orders.typeCapture"], ["presentacion", "analytics.orders.typePresentation"], ["seguimiento", "analytics.orders.typeFollowUp"]];
+  var TYPES2 = [["captacion", "analytics.orders.typeCapture"], ["presentacion", "analytics.orders.typePresentation"], ["seguimiento", "analytics.orders.typeFollowUp"]];
   var FOLLOW_UP = "seguimiento";
-  var typeName = (type) => {
-    const found = TYPES.find(([key]) => key === type);
+  var typeName2 = (type) => {
+    const found = TYPES2.find(([key]) => key === type);
     return found ? t(found[1]) : type;
   };
   var pair = (row4) => row4?.visitas ? t("analytics.orders.ofTotal", { part: formatNumber(row4.con_pedido), total: formatNumber(row4.visitas) }) : "—";
   function teamHtml(team3) {
     if (!team3.length) return "";
-    return `<div class="tveq"><table class="trtabla"><thead><tr><th>${t("analytics.orders.person")}</th>${TYPES.map(([, label]) => `<th>${t(label)}</th>`).join("")}</tr></thead>
-      <tbody>${team3.map((member) => `<tr><td>${escapeHtml(member.nombre)}</td>${TYPES.map(([key]) => `<td>${pair(member[key])}</td>`).join("")}</tr>`).join("")}</tbody></table>
-      <div class="tvlbl">${t("analytics.orders.teamHint", words2())}</div></div>`;
+    return `<div class="tveq"><table class="trtabla"><thead><tr><th>${t("analytics.orders.person")}</th>${TYPES2.map(([, label]) => `<th>${t(label)}</th>`).join("")}</tr></thead>
+      <tbody>${team3.map((member) => `<tr><td>${escapeHtml(member.nombre)}</td>${TYPES2.map(([key]) => `<td>${pair(member[key])}</td>`).join("")}</tr>`).join("")}</tbody></table>
+      <div class="tvlbl">${t("analytics.orders.teamHint", words3())}</div></div>`;
   }
   function typeRow(row4) {
-    const share = percent(row4.con_pedido, row4.visitas);
-    return `<div class="tvst"><span>${escapeHtml(typeName(row4.tipo))} · ${t("analytics.orders.ofTotal", { part: formatNumber(row4.con_pedido), total: formatNumber(row4.visitas) })}</span>
+    const share = percent2(row4.con_pedido, row4.visitas);
+    return `<div class="tvst"><span>${escapeHtml(typeName2(row4.tipo))} · ${t("analytics.orders.ofTotal", { part: formatNumber(row4.con_pedido), total: formatNumber(row4.visitas) })}</span>
       ${bar(Math.max(share, row4.con_pedido ? 3 : 0), row4.tipo === FOLLOW_UP ? "" : " c")}
       <b>${formatNumber(share)} %</b></div>`;
   }
   function types(data) {
     const rows = data.tipos ?? [];
-    if (!rows.some((row4) => row4.visitas)) return `<div class="vacio">${t("analytics.orders.noVisits", words2())}</div>`;
-    const total = sum(rows.map((row4) => Number(row4.con_pedido) || 0)), fresh = sum(rows.filter((row4) => row4.tipo !== FOLLOW_UP).map((row4) => Number(row4.con_pedido) || 0));
-    return `<div class="tvgrid"><div class="tvizq"><div class="tvbig">${formatNumber(percent(fresh, total))}<small> %</small></div>
-      <div class="tvlbl">${t("analytics.orders.newShare", words2())}</div>
+    if (!rows.some((row4) => row4.visitas)) return `<div class="vacio">${t("analytics.orders.noVisits", words3())}</div>`;
+    const total2 = sum(rows.map((row4) => Number(row4.con_pedido) || 0)), fresh = sum(rows.filter((row4) => row4.tipo !== FOLLOW_UP).map((row4) => Number(row4.con_pedido) || 0));
+    return `<div class="tvgrid"><div class="tvizq"><div class="tvbig">${formatNumber(percent2(fresh, total2))}<small> %</small></div>
+      <div class="tvlbl">${t("analytics.orders.newShare", words3())}</div>
       <div class="tvrow">${mini(formatNumber(fresh), t("analytics.orders.newOnes"))}
-        ${mini(formatNumber(total - fresh), t("analytics.orders.followUps"))}</div></div>
+        ${mini(formatNumber(total2 - fresh), t("analytics.orders.followUps"))}</div></div>
     <div class="tvfun">${rows.map(typeRow).join("")}
-      <div class="tvlbl">${rows.map((row4) => t("analytics.orders.typeUnits", { type: escapeHtml(typeName(row4.tipo)), units: formatNumber(row4.unidades ?? 0) })).join(" · ")}</div></div></div>
+      <div class="tvlbl">${rows.map((row4) => t("analytics.orders.typeUnits", { type: escapeHtml(typeName2(row4.tipo)), units: formatNumber(row4.unidades ?? 0) })).join(" · ")}</div></div></div>
     ${teamHtml(data.equipo ?? [])}`;
   }
 
@@ -8598,8 +12991,8 @@
       width,
       height,
       barWidth: (width - 2 * SIDE) / months2.length,
-      yVisits: (value10) => height - BOTTOM - value10 / max * (height - TOP),
-      yPercent: (value10) => height - BOTTOM - value10 / 100 * (height - TOP)
+      yVisits: (value15) => height - BOTTOM - value15 / max * (height - TOP),
+      yPercent: (value15) => height - BOTTOM - value15 / 100 * (height - TOP)
     };
   }
   function bars(month, index, frame) {
@@ -8609,27 +13002,27 @@
       <text x="${x0 + width / 2}" y="${frame.height - 8}" class="tvtxt tvtxteje" text-anchor="middle">${escapeHtml(monthName(month.mes))}</text>`;
   }
   function line(months2, frame) {
-    const points = months2.map((month, index) => ({ x: SIDE + frame.barWidth * index + frame.barWidth / 2, share: percent(month.con_venta, month.visitas), visits: month.visitas })).filter((point) => point.visits).map((point) => ({ ...point, y: frame.yPercent(point.share) }));
+    const points = months2.map((month, index) => ({ x: SIDE + frame.barWidth * index + frame.barWidth / 2, share: percent2(month.con_venta, month.visitas), visits: month.visitas })).filter((point) => point.visits).map((point) => ({ ...point, y: frame.yPercent(point.share) }));
     return `<path d="${points.map((point, index) => `${index ? "L" : "M"}${point.x.toFixed(1)} ${point.y.toFixed(1)}`).join(" ")}" class="tvlinp"/>
     ${points.map((point) => `<circle cx="${point.x}" cy="${point.y}" r="4.5" class="tvpt"/><text x="${point.x}" y="${point.y - 10}" class="tvtxt tvtxtpct" text-anchor="middle">${point.share}%</text>`).join("")}`;
   }
   function headline2(months2) {
     const last = months2[months2.length - 1], before = months2[months2.length - 2];
     if (!last) return "";
-    const share = percent(last.con_venta, last.visitas), previous = before ? percent(before.con_venta, before.visitas) : null;
+    const share = percent2(last.con_venta, last.visitas), previous = before ? percent2(before.con_venta, before.visitas) : null;
     const change = previous !== null && before?.visitas ? `<div class="tvmini"><b class="${share >= previous ? "tvok" : "tvmal"}">${t("analytics.orders.pts", { count: `${share >= previous ? "+" : ""}${formatNumber(share - previous)}` })}</b><span class="tvlbl">${t("analytics.orders.versus", { month: escapeHtml(monthName(before.mes)) })}</span></div>` : "";
     return `<div class="tvrow tvrowc"><div class="tvmini"><b>${formatNumber(share)} %</b><span class="tvlbl">${t("analytics.orders.endInOrder", { month: escapeHtml(monthName(last.mes)) })}</span></div>
       ${change}</div>`;
   }
   function months(data) {
     const list = data.meses ?? [];
-    if (!list.some((month) => month.visitas)) return `<div class="vacio">${t("analytics.orders.noRecentVisits", words2())}</div>`;
+    if (!list.some((month) => month.visitas)) return `<div class="vacio">${t("analytics.orders.noRecentVisits", words3())}</div>`;
     const frame = frameOf(list);
     return `${headline2(list)}
     <svg class="tvsvg" viewBox="0 0 ${frame.width} ${frame.height}" role="img" aria-label="${t("analytics.orders.monthsLabel")}">
     ${list.map((month, index) => bars(month, index, frame)).join("")}
     ${line(list, frame)}
-    </svg><div class="tvley"><span><i class="tvl3"></i>${t("analytics.orders.legendVisits", words2())}</span><span><i class="tvl4"></i>${t("analytics.orders.withOrderIn", { days: data.dias ?? DEFAULT_DAYS })}</span><span><i class="tvl5"></i>${t("analytics.orders.shareInOrder")}</span></div>`;
+    </svg><div class="tvley"><span><i class="tvl3"></i>${t("analytics.orders.legendVisits", words3())}</span><span><i class="tvl4"></i>${t("analytics.orders.withOrderIn", { days: data.dias ?? DEFAULT_DAYS })}</span><span><i class="tvl5"></i>${t("analytics.orders.shareInOrder")}</span></div>`;
   }
 
   // src/app/screens/analytics/visit-orders/index.ts
@@ -8640,24 +13033,24 @@
     { key: "meses", label: "analytics.orders.viewMonths", subtitle: "analytics.orders.subtitleMonths", paint: months },
     { key: "tipos", label: "analytics.orders.viewTypes", subtitle: "analytics.orders.subtitleTypes", paint: types }
   ];
-  var shown = null;
+  var shown2 = null;
   var viewIndex = 0;
   try {
     viewIndex = Math.max(0, VIEWS.findIndex((view) => view.key === localStorage.getItem(STORAGE_KEY)));
   } catch {
   }
-  function paint3() {
+  function paint4() {
     const body2 = document.getElementById("tvcuerpo"), view = VIEWS[viewIndex];
-    if (!body2 || !shown || !view) return;
-    body2.innerHTML = view.paint(shown);
+    if (!body2 || !shown2 || !view) return;
+    body2.innerHTML = view.paint(shown2);
     const subtitle2 = document.getElementById("tvsub");
-    if (subtitle2) subtitle2.textContent = t(view.subtitle, { ...words2(), from: formatShortDate(shown.desde), to: formatShortDate(shown.hasta), days: shown.dias ?? DEFAULT_DAYS });
+    if (subtitle2) subtitle2.textContent = t(view.subtitle, { ...words3(), from: formatShortDate(shown2.desde), to: formatShortDate(shown2.hasta), days: shown2.dias ?? DEFAULT_DAYS });
     const position = document.getElementById("tvpos");
     if (position) position.textContent = t("analytics.orders.position", { number: viewIndex + 1, total: VIEWS.length, name: t(view.label) });
   }
   function cardHtml2(days) {
-    const title2 = t("analytics.orders.title", words2());
-    const help = t("analytics.orders.help", { ...words2(), days });
+    const title2 = t("analytics.orders.title", words3());
+    const help = t("analytics.orders.help", { ...words3(), days });
     return `<section class="card tvcard" id="tvvis"><div class="tvcab">
       <div class="tvtit"><h2>${title2} <button type="button" class="ai" data-ayuda-tit="${title2}" data-ayuda-txt="${escapeHtml(help)}" aria-label="${t("analytics.orders.whatIsIt")}">i</button></h2>
         <div class="sm" id="tvsub"></div></div>
@@ -8668,10 +13061,10 @@
     const box = document.getElementById("anareas");
     if (!box) return;
     document.getElementById("tvvis")?.remove();
-    shown = data;
+    shown2 = data;
     if (!data?.resumen) return;
     box.insertAdjacentHTML("afterbegin", cardHtml2(data.dias ?? DEFAULT_DAYS));
-    paint3();
+    paint4();
   }
   function listenToVisitOrdersViews() {
     document.addEventListener("click", (event) => {
@@ -8682,7 +13075,7 @@
         localStorage.setItem(STORAGE_KEY, VIEWS[viewIndex]?.key ?? "");
       } catch {
       }
-      paint3();
+      paint4();
     });
   }
 
@@ -8753,13 +13146,13 @@
     notices.toast(t("visit.photos.deleted"));
     refresh2(activityId, accountId);
   }
-  async function addPhotos(input3, shown4, activityId, accountId) {
-    const files = [...input3.files ?? []], room = Math.max(0, visitLegacy.photosMax() - shown4), added = [];
+  async function addPhotos(input4, shown5, activityId, accountId) {
+    const files = [...input4.files ?? []], room = Math.max(0, visitLegacy.photosMax() - shown5), added = [];
     for (const file of files.slice(0, room)) {
       const photo = await readVisitPhoto(file);
       if (photo) added.push(photo);
     }
-    if (files.length > visitLegacy.photosMax() - shown4) notices.toast(t("visit.photos.atMost", { max: visitLegacy.photosMax(), visit: term("visita") }), true);
+    if (files.length > visitLegacy.photosMax() - shown5) notices.toast(t("visit.photos.atMost", { max: visitLegacy.photosMax(), visit: term("visita") }), true);
     if (!added.length) return;
     if (await uploadVisitPhotos(activityId, added)) {
       notices.toast(t(added.length === 1 ? "visit.photos.added" : "visit.photos.addedMany"));
@@ -8780,9 +13173,9 @@
         void deletePhoto(button2.dataset.vfdel ?? "", activityId, accountId);
       };
     });
-    const input3 = document.getElementById("vfmas");
-    if (input3) input3.onchange = () => {
-      void addPhotos(input3, photos.length, activityId, accountId);
+    const input4 = document.getElementById("vfmas");
+    if (input4) input4.onchange = () => {
+      void addPhotos(input4, photos.length, activityId, accountId);
     };
     if (!box.open) box.showModal();
   }
@@ -8832,7 +13225,7 @@
     visitLegacy.materialFiles().set(material.id, data.datos);
     return data.datos;
   }
-  async function paint4() {
+  async function paint5() {
     const current = showing;
     if (!current) return;
     const material = current.list[current.index], box = document.getElementById("prescuerpo");
@@ -8853,7 +13246,7 @@
     const index = showing.index + step;
     if (index < 0 || index >= showing.list.length) return;
     showing.index = index;
-    void paint4();
+    void paint5();
   }
   function dialog3() {
     if (!document.getElementById("presenta")) document.body.insertAdjacentHTML("beforeend", `<dialog id="presenta" class="presdlg" aria-label="${t("visit.presentation.label")}"></dialog>`);
@@ -8866,15 +13259,15 @@
     <div class="prescuerpo" id="prescuerpo"></div>
     <button type="button" class="presnav ant" id="presant" aria-label="${t("visit.presentation.previous")}">‹</button><button type="button" class="presnav sig" id="pressig" aria-label="${t("visit.presentation.next")}">›</button>`;
     showing = { list, index, urls: [] };
-    const on2 = (id, action) => {
+    const on4 = (id, action) => {
       const button2 = document.getElementById(id);
       if (button2) button2.onclick = action;
     };
-    on2("prescerrar", close2);
-    on2("presant", () => {
+    on4("prescerrar", close2);
+    on4("presant", () => {
       move(-1);
     });
-    on2("pressig", () => {
+    on4("pressig", () => {
       move(1);
     });
     box.oncancel = (event) => {
@@ -8886,7 +13279,7 @@
       if (event.key === "ArrowLeft") move(-1);
     };
     box.showModal();
-    void paint4();
+    void paint5();
   }
   function presentProduct(productId) {
     const list = materialsOf(productId);
@@ -8927,7 +13320,7 @@
   }
   async function loadVisitData(id) {
     const coverage = accountCardLegacy.planIncludes("cobertura");
-    const [{ card: card2, groups }, flags, products2, missingTimetable] = await Promise.all([
+    const [{ card: card2, groups }, flags, products3, missingTimetable] = await Promise.all([
       cardAndResults(id),
       accountFlags(id),
       coverage ? visitLegacy.promotedProducts().catch(() => []) : Promise.resolve([]),
@@ -8935,7 +13328,7 @@
     ]);
     if (!card2?.medico) return navigator.onLine ? "online" : "offline";
     const samples3 = await samplesLeft(id, flags?.tipo).catch(() => []);
-    return { account: card2.medico, consultations: card2.consultas ?? [], groups, samples: samples3, products: products2, noReporting: Boolean(flags?.sin_reporting), missingTimetable };
+    return { account: card2.medico, consultations: card2.consultas ?? [], groups, samples: samples3, products: products3, noReporting: Boolean(flags?.sin_reporting), missingTimetable };
   }
 
   // src/app/screens/visit/record/form.ts
@@ -8945,26 +13338,26 @@
     const results = filled.find((group) => group.papel === RESULT_ROLE) ?? { clave: "", papel: RESULT_ROLE, nombre: t("visit.record.result"), valores: [...visitLegacy.resultValues()] };
     return { results, others: filled.filter((group) => group !== results) };
   }
-  function button(index, group, value10, isResult) {
-    const key = `${group.clave}::${value10.valor}`, negative = isResult && value10.extra === NEGATIVE;
-    index.set(key, { group: group.clave, value: value10 });
-    return `<span class="optw"${value10.oculto ? ' data-oculto="1"' : ""}><button type="button" class="opt ${negative ? "neg" : ""}" data-vk="${escapeHtml(key)}" ${isResult ? `data-res="${escapeHtml(value10.valor)}"` : ""} ${negative ? 'data-neg="1"' : ""} aria-pressed="false">
-      <span class="mk"></span>${escapeHtml(value10.valor)}${value10.dato_tipo ? ` <span class="datom">${t("visit.record.withData")}</span>` : ""}</button>
-      ${value10.dato_tipo ? `<span class="datobox hide" data-box="${escapeHtml(key)}">${visitLegacy.dataField(value10, key)}</span>` : ""}</span>`;
+  function button(index, group, value15, isResult) {
+    const key = `${group.clave}::${value15.valor}`, negative = isResult && value15.extra === NEGATIVE;
+    index.set(key, { group: group.clave, value: value15 });
+    return `<span class="optw"${value15.oculto ? ' data-oculto="1"' : ""}><button type="button" class="opt ${negative ? "neg" : ""}" data-vk="${escapeHtml(key)}" ${isResult ? `data-res="${escapeHtml(value15.valor)}"` : ""} ${negative ? 'data-neg="1"' : ""} aria-pressed="false">
+      <span class="mk"></span>${escapeHtml(value15.valor)}${value15.dato_tipo ? ` <span class="datom">${t("visit.record.withData")}</span>` : ""}</button>
+      ${value15.dato_tipo ? `<span class="datobox hide" data-box="${escapeHtml(key)}">${visitLegacy.dataField(value15, key)}</span>` : ""}</span>`;
   }
   function hiddenButton(groups) {
-    const hidden = groups.flatMap((group) => group.valores).filter((value10) => value10.oculto).length;
+    const hidden = groups.flatMap((group) => group.valores).filter((value15) => value15.oculto).length;
     if (!hidden) return "";
     return `<button type="button" class="lnk" id="vtodos">${hidden === 1 ? t("visit.record.showOneHidden") : t("visit.record.showHidden", { count: hidden })}</button>`;
   }
   function resultsHtml(index, results, others) {
-    const positive = results.valores.filter((value10) => value10.extra !== NEGATIVE), negative = results.valores.filter((value10) => value10.extra === NEGATIVE);
+    const positive = results.valores.filter((value15) => value15.extra !== NEGATIVE), negative = results.valores.filter((value15) => value15.extra === NEGATIVE);
     const more = hiddenButton([results, ...others]);
     return `<label>${t("visit.record.resultLabel")} <span class="sm">${t("visit.record.severalResults", { done: term("visita", { adjective: "realizado" }) })}</span></label>
-    <div class="opciones">${positive.map((value10) => button(index, results, value10, true)).join("")}</div>${negative.length ? "" : more}
-    <div class="opciones" style="margin-top:8px">${negative.map((value10) => button(index, results, value10, true)).join("")}</div>${negative.length ? more : ""}
+    <div class="opciones">${positive.map((value15) => button(index, results, value15, true)).join("")}</div>${negative.length ? "" : more}
+    <div class="opciones" style="margin-top:8px">${negative.map((value15) => button(index, results, value15, true)).join("")}</div>${negative.length ? more : ""}
     ${others.map((group) => `<label>${escapeHtml(group.nombre)}${group.descripcion ? ` <span class="sm">· ${escapeHtml(group.descripcion)}</span>` : ""}</label>
-      <div class="opciones">${group.valores.map((value10) => button(index, group, value10, false)).join("")}</div>`).join("")}`;
+      <div class="opciones">${group.valores.map((value15) => button(index, group, value15, false)).join("")}</div>`).join("")}`;
   }
   function sampleRow(sample) {
     const available = sample.en_plazo && sample.quedan;
@@ -8980,14 +13373,14 @@
       <canvas id="vmcanvas" aria-label="${t("visit.samples.signatureArea")}"></canvas>
       <div class="vmfpie"><input id="vmfirmante" value="${escapeHtml(name)}" aria-label="${t("visit.samples.signer")}" placeholder="${t("visit.samples.signer")}"><button type="button" class="lnk" id="vmborrar">${t("visit.samples.clear")}</button></div></div></div>`;
   }
-  function productsHtml3(products2) {
-    if (!products2.length) return "";
-    const materials = visitLegacy.materials() ?? [], withMaterial = products2.filter((product) => materials.some((material) => material.producto_id === product.id));
+  function productsHtml3(products3) {
+    if (!products3.length) return "";
+    const materials = visitLegacy.materials() ?? [], withMaterial = products3.filter((product) => materials.some((material) => material.producto_id === product.id));
     return `<label>${t("visit.record.products")}</label>
-      <div class="opciones" id="vprods">${products2.map((product) => `<button type="button" class="opt" data-vprod="${product.id}" aria-pressed="false"><span class="mk"></span>${escapeHtml(product.nombre)}</button>`).join("")}</div>
+      <div class="opciones" id="vprods">${products3.map((product) => `<button type="button" class="opt" data-vprod="${product.id}" aria-pressed="false"><span class="mk"></span>${escapeHtml(product.nombre)}</button>`).join("")}</div>
       ${withMaterial.length ? `<div class="vpres" id="vpres"><span class="sm">${t("visit.record.present")}</span>${withMaterial.map((product) => `<button type="button" class="chip" data-vpres="${product.id}">▶ ${escapeHtml(product.nombre)}</button>`).join("")}</div>` : ""}`;
   }
-  function noticesHtml(data) {
+  function noticesHtml2(data) {
     const timetable = data.missingTimetable ? `<div class="avisoh" id="vhorario"><span>${t("visit.record.missingTimetable", { visit: term("visita", { article: "el" }) })}</span></div>` : "";
     const offline = navigator.onLine ? "" : `<div class="banda-aviso vsinred"><b>${t("visit.record.offlineTitle")}</b> ${t("visit.record.offline", { visit: escapeHtml(term("visita", { article: "la", capital: "C" })) })}</div>`;
     return timetable + offline;
@@ -8999,7 +13392,7 @@
     const { results, others } = splitGroups(data.groups), visit2 = term("visita");
     return `
     <div class="fh"><div><h2>${t("visit.record.title", { visit: visit2 })}</h2><div class="sm">${escapeHtml(data.account.nombre)}</div></div>
-      <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>${noticesHtml(data)}
+      <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>${noticesHtml2(data)}
     <div class="g2">
       <div><label for="vf">${t("visit.edit.date")}</label><input id="vf" type="date" value="${todayIso()}"></div>
       <div><label for="vc">${t("visit.record.centre", { visit: term("visita", { article: "del" }) })}</label><select id="vc">
@@ -9025,10 +13418,10 @@
   var forgetOperation = () => {
     operationId = null;
   };
-  var value4 = (id) => document.getElementById(id)?.value ?? "";
+  var value9 = (id) => document.getElementById(id)?.value ?? "";
   function details(body2, marked, index) {
     return marked.map((key) => {
-      const field4 = body2.querySelector(`[data-dato="${CSS.escape(key)}"]`), extra = field4 ? field4.value.trim() : "";
+      const field8 = body2.querySelector(`[data-dato="${CSS.escape(key)}"]`), extra = field8 ? field8.value.trim() : "";
       const info = index.get(key);
       return { clasificador: info?.group ?? "", valor: info?.value.valor ?? "", ...extra ? { dato: extra } : {} };
     });
@@ -9040,17 +13433,17 @@
     const { error } = await legacyDb().from("cuentas").update({ urgente: false, urgente_motivo: null }).eq("id", id);
     notices.toast(t(error ? "visit.record.couldNotUnmark" : "visit.record.unmarked"), Boolean(error));
   }
-  function payload(id, results, detailList) {
+  function payload4(id, results, detailList) {
     operationId ?? (operationId = `v-${id}-${Date.now()}`);
     return {
       cuenta_id: id,
-      ubicacion_id: value4("vc") || null,
-      fecha: value4("vf"),
+      ubicacion_id: value9("vc") || null,
+      fecha: value9("vf"),
       resultados: results,
       detalles: detailList,
-      nota: value4("vn").trim(),
-      proxima_accion: value4("vpa").trim(),
-      proxima_fecha: value4("vpf") || null,
+      nota: value9("vn").trim(),
+      proxima_accion: value9("vpa").trim(),
+      proxima_fecha: value9("vpf") || null,
       op_id: operationId
     };
   }
@@ -9071,7 +13464,7 @@
     }
     button2.disabled = true;
     button2.textContent = t("visit.edit.saving");
-    const { data, error } = await visitLegacy.writeRpc("registrar_actividad", { p: payload(id, results, details(body2, marked, index)) });
+    const { data, error } = await visitLegacy.writeRpc("registrar_actividad", { p: payload4(id, results, details(body2, marked, index)) });
     button2.disabled = false;
     button2.textContent = t("visit.record.save", { visit: term("visita") });
     if (error) {
@@ -9091,7 +13484,7 @@
   function bindResults(body2, visit2) {
     body2.querySelectorAll("[data-vk]").forEach((button2) => {
       button2.onclick = () => {
-        const key = button2.dataset.vk ?? "", on2 = pressed(button2);
+        const key = button2.dataset.vk ?? "", on4 = pressed(button2);
         if (visit2.index.get(key)?.group === visit2.resultsKey) {
           const negative = button2.dataset.neg === "1";
           body2.querySelectorAll("[data-res]").forEach((other) => {
@@ -9101,14 +13494,14 @@
             }
           });
         }
-        button2.setAttribute("aria-pressed", String(!on2));
+        button2.setAttribute("aria-pressed", String(!on4));
         const box = body2.querySelector(`[data-box="${CSS.escape(key)}"]`);
         if (box) {
-          box.classList.toggle("hide", on2);
-          if (!on2) {
-            const field4 = box.querySelector("input, select");
-            if (field4) setTimeout(() => {
-              field4.focus();
+          box.classList.toggle("hide", on4);
+          if (!on4) {
+            const field8 = box.querySelector("input, select");
+            if (field8) setTimeout(() => {
+              field8.focus();
             }, 30);
           }
         }
@@ -9144,15 +13537,15 @@
     });
   }
   function bindPhotos(draft) {
-    const paint8 = () => {
+    const paint9 = () => {
       paintPhotos(document.getElementById("vfotos"), draft.fotos, (index) => {
         draft.fotos.splice(index, 1);
-        paint8();
+        paint9();
       });
     };
-    const input3 = document.getElementById("vfotof");
-    if (input3) input3.onchange = async () => {
-      for (const file of [...input3.files ?? []]) {
+    const input4 = document.getElementById("vfotof");
+    if (input4) input4.onchange = async () => {
+      for (const file of [...input4.files ?? []]) {
         if (draft.fotos.length >= visitLegacy.photosMax()) {
           notices.toast(t("visit.photos.atMost", { max: visitLegacy.photosMax(), visit: term("visita") }), true);
           break;
@@ -9160,21 +13553,21 @@
         const photo = await readVisitPhoto(file);
         if (photo) draft.fotos.push(photo);
       }
-      input3.value = "";
-      paint8();
+      input4.value = "";
+      paint9();
     };
   }
   function bindSamples(body2, samples3, draft) {
     if (!samples3.length) return;
     let pad2 = null;
-    const items = () => [...body2.querySelectorAll("[data-vmprod]")].map((input3) => ({ producto_id: input3.dataset.vmprod ?? "", unidades: Math.max(0, Math.floor(Number(input3.value) || 0)), max: Number(input3.max) })).filter((item) => item.unidades > 0);
+    const items = () => [...body2.querySelectorAll("[data-vmprod]")].map((input4) => ({ producto_id: input4.dataset.vmprod ?? "", unidades: Math.max(0, Math.floor(Number(input4.value) || 0)), max: Number(input4.max) })).filter((item) => item.unidades > 0);
     const show2 = () => {
       const any = items().length > 0, canvas = document.getElementById("vmcanvas");
       document.getElementById("vmfirma")?.classList.toggle("hide", !any);
       if (any && !pad2 && canvas) pad2 = visitLegacy.signaturePad(canvas);
     };
-    body2.querySelectorAll("[data-vmprod]").forEach((input3) => {
-      input3.addEventListener("input", show2);
+    body2.querySelectorAll("[data-vmprod]").forEach((input4) => {
+      input4.addEventListener("input", show2);
     });
     const clear = document.getElementById("vmborrar");
     if (clear) clear.onclick = () => {
@@ -9193,16 +13586,16 @@
     };
   }
   function applyDateRules(date) {
-    const field4 = document.getElementById("vf");
-    if (!field4) return;
+    const field8 = document.getElementById("vf");
+    if (!field8) return;
     const today = todayIso();
-    field4.max = today;
+    field8.max = today;
     if (!cardSectionsLegacy.can("visita_fecha_pasada")) {
-      field4.value = today;
-      field4.min = today;
-      field4.disabled = true;
-      field4.title = t("visit.record.sameDay");
-    } else if (date && date <= today) field4.value = date;
+      field8.value = today;
+      field8.min = today;
+      field8.disabled = true;
+      field8.title = t("visit.record.sameDay");
+    } else if (date && date <= today) field8.value = date;
   }
   function hideReporting(box) {
     let hidden = 0;
@@ -9216,7 +13609,7 @@
     const first = box.querySelector(".chips, [data-res]"), container = first?.classList.contains("chips") ? first : first?.parentElement;
     container?.insertAdjacentHTML("afterend", `<p class="sm srnota">${t("visit.record.noReporting", { professional: term("medico", { article: "este", articleCapital: "C" }), visit: term("visita") })}</p>`);
   }
-  function paint5(id, data, date) {
+  function paint6(id, data, date) {
     const body2 = document.getElementById("dbody"), box = document.getElementById("dlg");
     if (!body2 || !box) return;
     const index = /* @__PURE__ */ new Map(), resultsKey = splitGroups(data.groups).results.clave;
@@ -9230,9 +13623,9 @@
     bindPhotos(draft);
     bindSamples(body2, data.samples, draft);
     applyDateRules(date);
-    const save13 = document.getElementById("vguardar");
-    if (save13) save13.onclick = () => {
-      void saveVisit(visit2, save13);
+    const save21 = document.getElementById("vguardar");
+    if (save21) save21.onclick = () => {
+      void saveVisit(visit2, save21);
     };
     box.showModal();
     if (data.noReporting) hideReporting(box);
@@ -9246,18 +13639,18 @@
         notices.toast(t("visit.record.couldNotOpen", { reason: t(data === "online" ? "visit.record.cardUnreadable" : "visit.record.noCopy") }), true);
         return;
       }
-      paint5(id, data, date);
+      paint6(id, data, date);
     });
   }
 
   // src/app/screens/visit/settings.ts
-  function samplesHtml2(setting, products2) {
+  function samplesHtml2(setting, products3) {
     return `
     <div class="fh"><div><h2>${t("visit.settings.samplesTitle")}</h2><div class="sm">${t("visit.settings.samplesSubtitle", { visit: term("visita", { article: "un" }) })}</div></div>
       <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
     <label class="opt" style="margin-top:10px"><input type="checkbox" id="murest" ${setting.restar_stock ? "checked" : ""}>
       <span><b>${t("visit.settings.fromStock")}</b><br><span class="sm">${t("visit.settings.fromStockHint", { visit: term("visita", { article: "el" }) })}</span></span></label>
-    <label for="muprod">${t("visit.settings.product")}</label><select id="muprod"><option value="">—</option>${products2.map((product) => `<option value="${product.id}" ${product.id === setting.producto_id ? "selected" : ""}>${escapeHtml(product.nombre)}</option>`).join("")}</select>
+    <label for="muprod">${t("visit.settings.product")}</label><select id="muprod"><option value="">—</option>${products3.map((product) => `<option value="${product.id}" ${product.id === setting.producto_id ? "selected" : ""}>${escapeHtml(product.nombre)}</option>`).join("")}</select>
     <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>${t("common.cancel")}</button><button class="btn" id="muok">${t("common.save")}</button></div>`;
   }
   async function saveSamples(box) {
@@ -9275,11 +13668,11 @@
     notices.toast(t("visit.settings.saved"));
   }
   async function editSamples() {
-    const [, products2] = await Promise.all([cycleLegacy.loadSettings(), visitLegacy.reloadProducts()]);
+    const [, products3] = await Promise.all([cycleLegacy.loadSettings(), visitLegacy.reloadProducts()]);
     const setting = { producto_id: null, restar_stock: false, ...cycleLegacy.setting("muestras") };
     const body2 = document.getElementById("dbody"), box = document.getElementById("dlg");
     if (!body2 || !box) return;
-    body2.innerHTML = samplesHtml2(setting, products2);
+    body2.innerHTML = samplesHtml2(setting, products3);
     box.showModal();
     const ok = document.getElementById("muok");
     if (ok) ok.onclick = () => {
@@ -9369,7 +13762,7 @@
 
   // src/app/screens/commissions/scheme-people.ts
   var block = (inner) => `<div class="blk" id="esqpers"><h3>${t("commissions.people.title")}</h3>${inner}</div>`;
-  function rowHtml2(item, admin) {
+  function rowHtml11(item, admin) {
     const state = assignmentState(item), today = todayIso();
     const since = item.desde <= ALL_HISTORY ? t("commissions.people.allHistory") : t("commissions.people.since", { date: formatShortDate(item.desde) });
     return `<div class="esqfila"><span class="candado" title="${t("commissions.people.locked")}">🔒</span>
@@ -9386,14 +13779,14 @@
       <button type="button" class="btn sec" id="eaok">${t("commissions.people.assign")}</button></div>
       <p class="sm" style="margin-top:6px">${t("commissions.people.lockedHint")}</p>`;
   }
-  var value5 = (id) => document.getElementById(id)?.value ?? "";
+  var value10 = (id) => document.getElementById(id)?.value ?? "";
   async function assign(schemeId, repaint2) {
-    const user = value5("eap");
+    const user = value10("eap");
     if (!user) {
       notices.toast(t("commissions.people.choosePerson"), true);
       return;
     }
-    const mode = value5("eadm"), since = mode === "todo" ? ALL_HISTORY : mode === "fecha" ? value5("eadf") : todayIso();
+    const mode = value10("eadm"), since = mode === "todo" ? ALL_HISTORY : mode === "fecha" ? value10("eadf") : todayIso();
     const name = commissionsLegacy.team().find((member) => member.id === user)?.nombre ?? "";
     const when = mode === "todo" ? t("commissions.people.inAllHistory") : t("commissions.people.sinceDate", { date: formatShortDate(since) });
     if (!await notices.confirm(t("commissions.people.assignText", { name, when }), { titulo: t("commissions.people.assignTitle"), ok: t("commissions.people.assign") })) return;
@@ -9411,7 +13804,7 @@
     if (!await notices.confirm(t(asked.text), { titulo: t(asked.titulo), ok: t(asked.ok), peligro: true })) return;
     await legacyDb().rpc("asignar_esquema", { p_usuario: user, p_esquema: null, p_quitar: true, p_desde: since });
   }
-  function bind7(schemeId, list, repaint2) {
+  function bind12(schemeId, list, repaint2) {
     const mode = document.getElementById("eadm");
     if (mode) mode.onchange = () => {
       document.getElementById("eadfw")?.classList.toggle("hide", mode.value !== "fecha");
@@ -9438,9 +13831,9 @@
     const list = document.getElementById("esqlista");
     if (!list) return;
     const assignments = (data ?? []).filter((item) => item.esquema_id === schemeId), admin = cardSectionsLegacy.can("administrar");
-    list.innerHTML = `${assignments.length ? `<div class="esqfilas">${assignments.map((item) => rowHtml2(item, admin)).join("")}</div>` : `<p class="sm">${t("commissions.people.nobody")}</p>`}
+    list.innerHTML = `${assignments.length ? `<div class="esqfilas">${assignments.map((item) => rowHtml11(item, admin)).join("")}</div>` : `<p class="sm">${t("commissions.people.nobody")}</p>`}
     ${admin ? addHtml() : ""}`;
-    if (admin) bind7(schemeId, list, () => {
+    if (admin) bind12(schemeId, list, () => {
       void paintList(schemeId);
     });
   }
@@ -9459,8 +13852,8 @@
   // src/app/screens/commissions/scheme-editor.ts
   var FIXED = "fijo";
   var DEFAULT_CALCULATION = "tramo_alcanzado";
-  var option2 = (value10, label, chosen2) => `<option value="${value10}" ${chosen2 === value10 ? "selected" : ""}>${label}</option>`;
-  var input = (id) => document.getElementById(id);
+  var option2 = (value15, label, chosen2) => `<option value="${value15}" ${chosen2 === value15 ? "selected" : ""}>${label}</option>`;
+  var input2 = (id) => document.getElementById(id);
   var SchemeEditor = class {
     constructor(id, scheme, onSaved) {
       this.id = id;
@@ -9520,8 +13913,8 @@
       const box = document.getElementById("etramos");
       if (this.fixed || !box) return;
       this.tiers = [...box.children].map((row4, index) => {
-        const value10 = (attribute) => row4.querySelector(`[data-${attribute}="${index}"]`)?.value ?? "";
-        return { desde_u: Number(value10("td")) || 0, hasta_u: value10("th") === "" ? null : Number(value10("th")), valor: Number(value10("tv")) || 0 };
+        const value15 = (attribute) => row4.querySelector(`[data-${attribute}="${index}"]`)?.value ?? "";
+        return { desde_u: Number(value15("td")) || 0, hasta_u: value15("th") === "" ? null : Number(value15("th")), valor: Number(value15("tv")) || 0 };
       });
     }
     paint() {
@@ -9531,7 +13924,7 @@
       const calculation = document.getElementById("ecalc");
       if (calculation) calculation.onchange = () => {
         this.read();
-        const fixed = input("efijo");
+        const fixed = input2("efijo");
         if (fixed) this.fixedValue = fixed.value;
         this.calculation = calculation.value;
         this.paint();
@@ -9550,9 +13943,9 @@
         };
       });
       void paintSchemePeople(this.id);
-      const save13 = document.getElementById("eguardaresq");
-      if (save13) save13.onclick = () => {
-        void this.save(save13);
+      const save21 = document.getElementById("eguardaresq");
+      if (save21) save21.onclick = () => {
+        void this.save(save21);
       };
     }
     addTier() {
@@ -9561,20 +13954,20 @@
     }
     /** What guardar_esquema receives. */
     payload(name) {
-      const select2 = (id) => document.getElementById(id)?.value ?? "";
+      const select3 = (id) => document.getElementById(id)?.value ?? "";
       return {
         id: this.id,
         nombre: name,
-        atribucion: select2("eatr"),
+        atribucion: select3("eatr"),
         calculo: this.calculation,
-        canal: select2("ecan") || null,
-        valor_fijo: this.fixed ? input("efijo")?.value : null,
+        canal: select3("ecan") || null,
+        valor_fijo: this.fixed ? input2("efijo")?.value : null,
         ...this.fixed ? {} : { tramos: this.tiers }
       };
     }
     async save(button2) {
       this.read();
-      const name = input("enom")?.value.trim() ?? "";
+      const name = input2("enom")?.value.trim() ?? "";
       if (!name) {
         notices.toast(t("commissions.editor.giveName"), true);
         return;
@@ -9601,7 +13994,7 @@
 
   // src/app/screens/commissions/settlements.ts
   var settlementFilters = { person: "", month: "" };
-  var rowHtml3 = (item) => `<div class="item" style="cursor:default" data-liqu="${item.usuario_id}" data-liqp="${item.periodo}">
+  var rowHtml12 = (item) => `<div class="item" style="cursor:default" data-liqu="${item.usuario_id}" data-liqp="${item.periodo}">
       <span class="ic ${item.estado === SETTLEMENT.paid ? "o" : ""}">${item.estado === SETTLEMENT.draft ? "○" : "✓"}</span>
       <span class="tx"><b>${escapeHtml(item.nombre)}</b><span class="sm">${t("commissions.page.settlementLine", { period: formatMonth(item.periodo), units: formatNumber(item.unidades), amount: formatCurrency(item.importe), state: escapeHtml(item.estado) })}</span></span>
       <span class="acts" style="margin:0">
@@ -9618,12 +14011,12 @@
       <div><label for="liqfp">${t("commissions.page.month")}</label><select id="liqfp"><option value="">${t("commissions.page.allMonths")}</option>${months2.map((month) => `<option value="${month}" ${month === settlementFilters.month ? "selected" : ""}>${escapeHtml(formatMonth(month))}</option>`).join("")}</select></div>
       <p class="sm" id="liqres"></p></div>`;
   }
-  function summary2(shown4) {
-    if (!shown4.length) return "";
-    const total = sum(shown4.map((item) => Number(item.importe) || 0)), units2 = sum(shown4.map((item) => Number(item.unidades) || 0));
-    const unpaid = sum(shown4.filter((item) => item.estado !== SETTLEMENT.paid).map((item) => Number(item.importe) || 0));
-    const count2 = shown4.length === 1 ? t("commissions.page.oneSettlement") : t("commissions.page.settlementsCount", { count: formatNumber(shown4.length) });
-    return t("commissions.page.summary", { settlements: count2, units: formatNumber(units2), amount: formatCurrency(total) }) + (unpaid && unpaid !== total ? t("commissions.page.unpaid", { amount: formatCurrency(unpaid) }) : "");
+  function summary3(shown5) {
+    if (!shown5.length) return "";
+    const total2 = sum(shown5.map((item) => Number(item.importe) || 0)), units2 = sum(shown5.map((item) => Number(item.unidades) || 0));
+    const unpaid = sum(shown5.filter((item) => item.estado !== SETTLEMENT.paid).map((item) => Number(item.importe) || 0));
+    const count2 = shown5.length === 1 ? t("commissions.page.oneSettlement") : t("commissions.page.settlementsCount", { count: formatNumber(shown5.length) });
+    return t("commissions.page.summary", { settlements: count2, units: formatNumber(units2), amount: formatCurrency(total2) }) + (unpaid && unpaid !== total2 ? t("commissions.page.unpaid", { amount: formatCurrency(unpaid) }) : "");
   }
   async function settle(button2, repaint2) {
     const [user = "", period = "", state = ""] = (button2.dataset.liq ?? "").split("|"), approve = state === SETTLEMENT.approved;
@@ -9636,11 +14029,11 @@
     repaint2();
   }
   function paintSettlements(list, all, repaint2) {
-    const paint8 = () => {
-      const shown4 = all.filter((item) => (!settlementFilters.person || item.usuario_id === settlementFilters.person) && (!settlementFilters.month || item.periodo === settlementFilters.month));
+    const paint9 = () => {
+      const shown5 = all.filter((item) => (!settlementFilters.person || item.usuario_id === settlementFilters.person) && (!settlementFilters.month || item.periodo === settlementFilters.month));
       const result = document.getElementById("liqres");
-      if (result) result.textContent = summary2(shown4);
-      list.innerHTML = shown4.map(rowHtml3).join("") || `<div class="vacio">${t(all.length ? "commissions.page.noneFiltered" : "commissions.page.none")}</div>`;
+      if (result) result.textContent = summary3(shown5);
+      list.innerHTML = shown5.map(rowHtml12).join("") || `<div class="vacio">${t(all.length ? "commissions.page.noneFiltered" : "commissions.page.none")}</div>`;
       list.querySelectorAll("[data-liq]").forEach((button2) => {
         button2.onclick = () => {
           void settle(button2, repaint2);
@@ -9650,13 +14043,13 @@
     const person = document.getElementById("liqfu"), month = document.getElementById("liqfp");
     if (person) person.onchange = () => {
       settlementFilters.person = person.value;
-      paint8();
+      paint9();
     };
     if (month) month.onchange = () => {
       settlementFilters.month = month.value;
-      paint8();
+      paint9();
     };
-    paint8();
+    paint9();
   }
   function resultText(period, done, closed, failed) {
     const doneText = done === 1 ? t("commissions.calculate.oneDone") : t("commissions.calculate.done", { count: done });
@@ -9721,7 +14114,7 @@
         ${people.length ? ` · ${people.map(escapeHtml).join(", ")}` : t("commissions.page.unassigned")}</span></span>
       <span class="acts" style="margin:0"><button class="btn sec chico" data-esq="${scheme.id}">${t("commissions.page.edit")}</button></span></div>`;
   }
-  function pageHtml(all) {
+  function pageHtml4(all) {
     const list = schemes();
     return `
     <h2>${t("commissions.page.schemes")}<span class="n">${list.length}</span></h2>
@@ -9749,7 +14142,7 @@
     commissionsLegacy.setSchemes(found ?? []);
     const body2 = document.getElementById("admcuerpo");
     if (!body2) return;
-    body2.innerHTML = pageHtml(settlements ?? []);
+    body2.innerHTML = pageHtml4(settlements ?? []);
     const add2 = document.getElementById("esqnuevo");
     if (add2) add2.onclick = () => {
       editScheme(null, repaint);
@@ -9825,8 +14218,8 @@
   };
 
   // src/app/screens/customers/model.ts
-  var TYPES2 = { person: "Persona", company: "Empresa" };
-  var words3 = () => ({
+  var TYPES3 = { person: "Persona", company: "Empresa" };
+  var words4 = () => ({
     patient: term("paciente"),
     patients: term("paciente", { number: "p" }),
     Patient: term("paciente", { capital: "C" }),
@@ -9835,18 +14228,18 @@
     Professional: term("medico", { capital: "C" })
   });
   var phoneOf = (customer) => orFallback(customer.telefono, customer.movil ?? "");
-  var textOrNull = (value10) => orFallback(value10, "") || null;
+  var textOrNull = (value15) => orFallback(value15, "") || null;
   var deliveryAddress = (customer) => [customer.direccion, [customer.cp, customer.municipio].filter(Boolean).join(" "), customer.provincia].filter(Boolean).join(", ");
   function taxIdText(customer) {
     if (!customer.nif) return t("customers.card.noTaxId");
-    return t(customer.tipo === TYPES2.company ? "customers.card.taxIdCompany" : "customers.card.taxIdPerson", { taxId: customer.nif });
+    return t(customer.tipo === TYPES3.company ? "customers.card.taxIdCompany" : "customers.card.taxIdPerson", { taxId: customer.nif });
   }
   function customerCard(customer) {
-    const address = deliveryAddress(customer);
+    const address2 = deliveryAddress(customer);
     const contact = [taxIdText(customer), customer.email, phoneOf(customer)].filter(Boolean).join(" · ");
     return `<div class="selcard"><span class="ic">🧑</span>
   <span class="tx"><b>${escapeHtml(customer.nombre)}</b>
-    ${address ? `<span class="sm">📦 ${escapeHtml(address)}</span>` : `<span class="sm" style="color:var(--warn)">${t("customers.card.noAddress")}</span>`}
+    ${address2 ? `<span class="sm">📦 ${escapeHtml(address2)}</span>` : `<span class="sm" style="color:var(--warn)">${t("customers.card.noAddress")}</span>`}
     <span class="sm">${escapeHtml(contact)}</span>
     ${customer.medico ? `<span class="sm">${term("medico", { capital: "C" })}: ${escapeHtml(customer.medico)}</span>` : ""}</span>
   <button type="button" class="sx" aria-label="${t("customers.card.remove")}">✕</button></div>`;
@@ -9871,17 +14264,17 @@
   var sheetBody = () => document.getElementById("fbody");
   var sheetBox = () => document.getElementById("ficha");
   function professionalHtml(professional, canSell) {
-    const shown4 = professional ? `<div><button class="kcfg" data-fpmed="${professional.id}" style="font-size:15px">${escapeHtml(professional.nombre)}</button>
+    const shown5 = professional ? `<div><button class="kcfg" data-fpmed="${professional.id}" style="font-size:15px">${escapeHtml(professional.nombre)}</button>
           <span class="sm">${t("customers.sheet.code", { code: escapeHtml(professional.codigo ?? "") })}${professional.especialidad ? ` · ${escapeHtml(professional.especialidad)}` : ""}</span></div>
         <div class="sm">${professional.comercial ? t("customers.sheet.salesRep", { name: escapeHtml(professional.comercial) }) : t("customers.sheet.noSalesRep")}</div>` : `<div class="sm">${t("customers.sheet.unassigned", { professionalAssigned: term("medico", { adjective: "asignado" }), thisPatient: term("paciente", { article: "este" }) })}</div>`;
-    const change = canSell ? `<label>${t(professional ? "customers.sheet.change" : "customers.sheet.assign", words3())}</label><div id="fpsel"></div>
-        ${professional ? `<div class="acts"><button class="btn sec" id="fpmedquitar">${t("customers.sheet.removeProfessional", words3())}</button></div>` : ""}` : "";
-    return `<div class="blk"><h3>${t("customers.sheet.treatedBy", words3())}</h3>
-      ${shown4}
+    const change = canSell ? `<label>${t(professional ? "customers.sheet.change" : "customers.sheet.assign", words4())}</label><div id="fpsel"></div>
+        ${professional ? `<div class="acts"><button class="btn sec" id="fpmedquitar">${t("customers.sheet.removeProfessional", words4())}</button></div>` : ""}` : "";
+    return `<div class="blk"><h3>${t("customers.sheet.treatedBy", words4())}</h3>
+      ${shown5}
       ${change}
     </div>`;
   }
-  function contactHtml(customer) {
+  function contactHtml2(customer) {
     const lines = [
       [t("customers.sheet.phone"), customer.telefono],
       [t("customers.sheet.mobile"), customer.movil],
@@ -9890,16 +14283,16 @@
       [t("customers.sheet.note"), customer.nota]
     ];
     return `<div class="blk"><h3>${t("customers.sheet.contact")}</h3>
-      ${lines.filter((line2) => line2[1]).map(([label, value10]) => `<div class="sm"><b style="color:var(--ink)">${label}:</b> ${escapeHtml(value10)}</div>`).join("") || `<div class="sm">${t("customers.sheet.noContact")}</div>`}</div>`;
+      ${lines.filter((line2) => line2[1]).map(([label, value15]) => `<div class="sm"><b style="color:var(--ink)">${label}:</b> ${escapeHtml(value15)}</div>`).join("") || `<div class="sm">${t("customers.sheet.noContact")}</div>`}</div>`;
   }
   var orderHtml = (order) => `<button class="item" data-fpped="${order.id}" style="padding:8px 4px">
         <span class="tx"><b>${formatShortDate(order.fecha)} · ${escapeHtml(orFallback(order.productos, t("customers.sheet.noProducts")))}</b>
           <span class="sm">${t("customers.sheet.orderLine", { units: formatNumber(order.unidades), total: portalLegacy.euros(Number(order.total)) })}${order.medico ? ` · ${escapeHtml(order.medico)}` : ""}</span></span>
         ${customersLegacy.orderPill(order.estado)}</button>`;
-  function sheetHtml3(detail, customer, canSell) {
+  function sheetHtml5(detail, customer, canSell) {
     const orders = detail.pedidos ?? [], counted = orders.filter((order) => !NOT_COUNTED2.includes(order.estado));
     return `
-    <div class="fh"><div><h2>${escapeHtml(customer.nombre)}</h2><div class="sm">${words3().Patient}${customer.nif ? t("customers.sheet.taxId", { taxId: escapeHtml(customer.nif) }) : ""}</div></div>
+    <div class="fh"><div><h2>${escapeHtml(customer.nombre)}</h2><div class="sm">${words4().Patient}${customer.nif ? t("customers.sheet.taxId", { taxId: escapeHtml(customer.nif) }) : ""}</div></div>
       <button class="x" id="fpx" aria-label="${t("common.close")}">✕</button></div>
     ${canSell ? `<div class="acts"><button class="btn" id="fpnped">${t("customers.sheet.newOrder")}</button>
       <button class="btn sec" id="fpedit">${t("customers.sheet.editData")}</button></div>` : ""}
@@ -9908,7 +14301,7 @@
       <div class="kpi"><b>${formatNumber(detail.total_unidades)}</b><span>${t("customers.sheet.units")}</span></div>
       <div class="kpi"><b>${portalLegacy.euros(sum(counted.map((order) => Number(order.total) || 0)))}</b><span>${t("customers.sheet.withVat")}</span></div></div>
     ${professionalHtml(detail.medico, canSell)}
-    ${contactHtml(customer)}
+    ${contactHtml2(customer)}
     <div class="blk"><h3>${t("customers.sheet.ordersTitle")}</h3>
       ${orders.map(orderHtml).join("") || `<div class="sm">${t("customers.sheet.noOrders")}</div>`}</div>`;
   }
@@ -9922,12 +14315,12 @@
     void showCustomer(id);
     if (currentScreen() === "pacientes") customersLegacy.repaintList();
   }
-  function bind8(id, customer, professional) {
-    const body2 = sheetBody(), on2 = (elementId, action) => {
+  function bind13(id, customer, professional) {
+    const body2 = sheetBody(), on4 = (elementId, action) => {
       const button2 = document.getElementById(elementId);
       if (button2) button2.onclick = action;
     };
-    on2("fpx", () => {
+    on4("fpx", () => {
       customersLegacy.setShownCustomer(null);
       sheetBox()?.close();
     });
@@ -9941,18 +14334,18 @@
       customersLegacy.setShownCustomer(null);
       agendaActions.openAccount(shownProfessional.dataset.fpmed ?? "");
     };
-    on2("fpnped", () => {
+    on4("fpnped", () => {
       customersLegacy.newSale({
         contacto: { ...customer, ...professional ? { medico: professional.nombre, medico_codigo: professional.codigo } : {} },
         medico: professional ? { id: professional.id, nombre: professional.nombre } : null
       });
     });
-    on2("fpedit", () => {
+    on4("fpedit", () => {
       customersLegacy.editCustomer(customer, () => {
         void showCustomer(id);
       });
     });
-    on2("fpmedquitar", () => {
+    on4("fpmedquitar", () => {
       void assign2(id, null);
     });
     const picker = document.getElementById("fpsel");
@@ -9974,8 +14367,8 @@
       return;
     }
     const canSell = customersLegacy.canSell();
-    body2.innerHTML = sheetHtml3(data, data.contacto, canSell);
-    bind8(id, data.contacto, data.medico);
+    body2.innerHTML = sheetHtml5(data, data.contacto, canSell);
+    bind13(id, data.contacto, data.medico);
   }
   async function addStatusButtons(id) {
     const body2 = sheetBody();
@@ -9998,33 +14391,33 @@
   }
 
   // src/app/screens/customers/list.ts
-  var SEARCH_WAIT_MS = 300;
+  var SEARCH_WAIT_MS3 = 300;
   var empty = '<span class="vac">—</span>';
-  var shown2 = (value10) => value10 ? escapeHtml(value10) : empty;
-  function headerHtml5(fields) {
+  var shown3 = (value15) => value15 ? escapeHtml(value15) : empty;
+  function headerHtml6(fields) {
     const titles = [t("customers.list.customer"), t("customers.list.type"), t("customers.list.taxId"), t("customers.list.phone"), t("customers.list.email"), t("customers.list.town")];
     return `<div class="dh">${titles.map((title2) => `<span>${title2}</span>`).join("")}
-      <span>${words3().Professional}</span><span>${t("customers.list.salesRep")}</span><span class="num">${t("customers.list.orders")}</span><span class="num">${t("customers.list.units")}</span><span>${t("customers.list.lastOrder")}</span>${customersLegacy.fieldHeaders(fields)}</div>`;
+      <span>${words4().Professional}</span><span>${t("customers.list.salesRep")}</span><span class="num">${t("customers.list.orders")}</span><span class="num">${t("customers.list.units")}</span><span>${t("customers.list.lastOrder")}</span>${customersLegacy.fieldHeaders(fields)}</div>`;
   }
-  function rowHtml4(row4, fields) {
-    const company = row4.tipo === TYPES2.company, values = row4.clasificadores ?? {};
+  function rowHtml13(row4, fields) {
+    const company = row4.tipo === TYPES3.company, values = row4.clasificadores ?? {};
     return `<button class="dr" data-pac="${row4.id}">
       <span><b>${escapeHtml(row4.nombre)}</b></span>
-      <span><span class="pill ${company ? "p-emp" : "p-per"}">${company ? t("customers.company") : words3().Patient}</span></span>
-      <span>${shown2(row4.nif)}</span><span>${shown2(phoneOf(row4))}</span><span class="corta">${shown2(row4.email)}</span><span>${shown2(row4.municipio)}</span>
-      <span class="corta">${row4.medico ? escapeHtml(row4.medico) : `<span class="vac">${t("customers.list.unassigned")}</span>`}</span><span>${shown2(row4.comercial)}</span>
+      <span><span class="pill ${company ? "p-emp" : "p-per"}">${company ? t("customers.company") : words4().Patient}</span></span>
+      <span>${shown3(row4.nif)}</span><span>${shown3(phoneOf(row4))}</span><span class="corta">${shown3(row4.email)}</span><span>${shown3(row4.municipio)}</span>
+      <span class="corta">${row4.medico ? escapeHtml(row4.medico) : `<span class="vac">${t("customers.list.unassigned")}</span>`}</span><span>${shown3(row4.comercial)}</span>
       <span class="num">${formatNumber(row4.pedidos)}</span><span class="num"><b>${formatNumber(row4.unidades)}</b></span>
-      <span>${row4.ultimo_pedido ? formatShortDate(row4.ultimo_pedido) : empty}</span>${fields.map((field4) => `<span>${shown2(accountColumnsLegacy.fieldText(field4, values[field4.clave]))}</span>`).join("")}
+      <span>${row4.ultimo_pedido ? formatShortDate(row4.ultimo_pedido) : empty}</span>${fields.map((field8) => `<span>${shown3(accountColumnsLegacy.fieldText(field8, values[field8.clave]))}</span>`).join("")}
     </button>`;
   }
-  function paintRows(page) {
+  function paintRows3(page) {
     const count2 = document.getElementById("paccuenta"), list = document.getElementById("paclista");
     if (!count2 || !list) return;
     count2.innerHTML = `<b>${formatNumber(page.total)}</b> ${page.total === 1 ? t("customers.list.oneCustomer") : t("customers.list.customers")}`;
     const rows = page.filas ?? [], fields = customersLegacy.visibleFieldColumns();
     list.innerHTML = rows.length ? `<div class="dgrid-wrap"><div class="dgrid pacs">
-    ${headerHtml5(fields)}
-    ${rows.map((row4) => rowHtml4(row4, fields)).join("")}</div></div>` : `<div class="vacio">${t("customers.list.none")}</div>`;
+    ${headerHtml6(fields)}
+    ${rows.map((row4) => rowHtml13(row4, fields)).join("")}</div></div>` : `<div class="vacio">${t("customers.list.none")}</div>`;
     customersLegacy.widenGrid(list.querySelector(".dgrid.pacs"), fields.length);
     list.querySelectorAll("[data-pac]").forEach((button2) => {
       button2.onclick = () => {
@@ -10055,27 +14448,27 @@
       if (list) list.innerHTML = "";
       return;
     }
-    paintRows(data);
+    paintRows3(data);
   }
-  var option3 = (value10, label, chosen2) => `<option value="${escapeHtml(value10)}" ${chosen2 === value10 ? "selected" : ""}>${label}</option>`;
+  var option3 = (value15, label, chosen2) => `<option value="${escapeHtml(value15)}" ${chosen2 === value15 ? "selected" : ""}>${label}</option>`;
   function filtersHtml2(towns) {
     const filters = customersLegacy.filters();
     filters.campos ?? (filters.campos = {});
     return `<div class="filtros">
         <div><label for="pacq">${t("customers.list.search")}</label><input id="pacq" type="search" value="${escapeHtml(filters.q)}" placeholder="${t("customers.list.searchPlaceholder")}"></div>
         <div><label for="pactipo">${t("customers.list.type")}</label><select id="pactipo">
-          <option value="">${t("customers.list.all")}</option>${option3(TYPES2.person, t("customers.list.persons", words3()), filters.tipo)}
-          ${option3(TYPES2.company, t("customers.list.companies"), filters.tipo)}</select></div>
+          <option value="">${t("customers.list.all")}</option>${option3(TYPES3.person, t("customers.list.persons", words4()), filters.tipo)}
+          ${option3(TYPES3.company, t("customers.list.companies"), filters.tipo)}</select></div>
         <div><label for="pacped">${t("customers.list.orders")}</label><select id="pacped">
           <option value="">${t("customers.list.all")}</option>${option3("con", t("customers.list.withOrders"), filters.pedidos)}
           ${option3("sin", t("customers.list.withoutOrders"), filters.pedidos)}</select></div>
         <div><label for="pacmun">${t("customers.list.town")}</label><select id="pacmun"><option value="">${t("customers.list.allTowns")}</option>
           ${towns.map((town) => option3(town.v, `${escapeHtml(town.v)} (${town.n})`, filters.municipio)).join("")}</select></div>
         ${customersLegacy.fieldFilters(filters.campos)}
-        ${filters.medico ? `<div><label>${words3().Professional}</label><div style="min-height:44px;display:flex;align-items:center"><button class="chip" id="pacmedx">${escapeHtml(filters.medicoNombre)} ✕</button></div></div>` : ""}
+        ${filters.medico ? `<div><label>${words4().Professional}</label><div style="min-height:44px;display:flex;align-items:center"><button class="chip" id="pacmedx">${escapeHtml(filters.medicoNombre)} ✕</button></div></div>` : ""}
       </div>`;
   }
-  var searchTimer;
+  var searchTimer3;
   function bindFilters(body2) {
     const filters = customersLegacy.filters(), again = () => {
       filters.pagina = 0;
@@ -10083,27 +14476,27 @@
     };
     const search3 = document.getElementById("pacq");
     if (search3) search3.oninput = () => {
-      clearTimeout(searchTimer);
-      searchTimer = setTimeout(() => {
+      clearTimeout(searchTimer3);
+      searchTimer3 = setTimeout(() => {
         filters.q = search3.value.trim();
         again();
-      }, SEARCH_WAIT_MS);
+      }, SEARCH_WAIT_MS3);
     };
     const onSelect = (id, set) => {
-      const select2 = document.getElementById(id);
-      if (select2) select2.onchange = () => {
-        set(select2.value);
+      const select3 = document.getElementById(id);
+      if (select3) select3.onchange = () => {
+        set(select3.value);
         again();
       };
     };
-    onSelect("pactipo", (value10) => {
-      filters.tipo = value10;
+    onSelect("pactipo", (value15) => {
+      filters.tipo = value15;
     });
-    onSelect("pacped", (value10) => {
-      filters.pedidos = value10;
+    onSelect("pacped", (value15) => {
+      filters.pedidos = value15;
     });
-    onSelect("pacmun", (value10) => {
-      filters.municipio = value10;
+    onSelect("pacmun", (value15) => {
+      filters.municipio = value15;
     });
     customersLegacy.bindFieldFilters(body2, filters.campos ?? {}, again);
     const professional = document.getElementById("pacmedx");
@@ -10133,7 +14526,7 @@
     const page = document.getElementById("v-pacientes");
     if (!page) return;
     page.innerHTML = `
-    <div class="saludo"><div><h1>${t("customers.list.title")}</h1><div class="fecha">${t("customers.list.subtitle", words3())}</div></div>
+    <div class="saludo"><div><h1>${t("customers.list.title")}</h1><div class="fecha">${t("customers.list.subtitle", words4())}</div></div>
       <div class="acts" style="margin:0">${customersLegacy.canSell() ? `<button class="btn" id="pacnuevo">${t("customers.list.newCustomer")}</button>` : ""}</div></div>
     <div id="vcuerpo"></div>`;
     const add2 = document.getElementById("pacnuevo");
@@ -10152,13 +14545,13 @@
   var foundRow = (item, index) => `<button type="button" data-pc="${index}"><span class="gic">🧑</span>
           <span><b>${escapeHtml(item.nombre)}</b><span class="sm">${escapeHtml([phoneOf(item), item.nif, item.municipio, item.medico].filter(Boolean).join(" · "))}</span></span></button>`;
   var CustomerPicker = class {
-    constructor(element2, options) {
+    constructor(element2, options2) {
       this.element = element2;
-      this.options = options;
+      this.options = options2;
       __publicField(this, "value");
       __publicField(this, "timer");
       __publicField(this, "asked", 0);
-      this.value = options.valor ?? null;
+      this.value = options2.valor ?? null;
     }
     choose(customer) {
       this.value = customer;
@@ -10177,13 +14570,13 @@
       this.element.innerHTML = `<div style="display:flex;gap:8px"><div class="picker" style="flex:1">
         <input type="search" autocomplete="off" placeholder="${t("customers.picker.placeholder")}"><div class="gsug hide"></div></div>
       <button type="button" class="btn sec" data-pnuevo>${t("customers.picker.newOne")}</button></div>`;
-      const input3 = this.element.querySelector("input");
-      if (input3) input3.oninput = () => {
-        this.search(input3.value.trim());
+      const input4 = this.element.querySelector("input");
+      if (input4) input4.oninput = () => {
+        this.search(input4.value.trim());
       };
       const add2 = this.element.querySelector("[data-pnuevo]");
       if (add2) add2.onclick = () => {
-        customersLegacy.editCustomer({ nombre: input3?.value.trim() ?? "" }, (customer) => {
+        customersLegacy.editCustomer({ nombre: input4?.value.trim() ?? "" }, (customer) => {
           this.choose({ ...customer });
         });
       };
@@ -10198,7 +14591,7 @@
         return;
       }
       box.classList.add("buscando");
-      list.innerHTML = `<div class="gload"><span class="spin"></span>${t("customers.picker.searching", words3())}</div>`;
+      list.innerHTML = `<div class="gload"><span class="spin"></span>${t("customers.picker.searching", words4())}</div>`;
       list.classList.remove("hide");
       const turn = ++this.asked;
       this.timer = setTimeout(() => {
@@ -10210,7 +14603,7 @@
       if (turn !== this.asked) return;
       box.classList.remove("buscando");
       const found = data ?? [];
-      list.innerHTML = `<div class="gsh">${words3().Patients}</div>${found.map(foundRow).join("") || `<div class="gload">${t("customers.picker.noMatches")}</div>`}`;
+      list.innerHTML = `<div class="gsh">${words4().Patients}</div>${found.map(foundRow).join("") || `<div class="gload">${t("customers.picker.noMatches")}</div>`}`;
       list.querySelectorAll("[data-pc]").forEach((button2) => {
         button2.onclick = () => {
           this.choose(found[Number(button2.dataset.pc)] ?? null);
@@ -10218,8 +14611,8 @@
       });
     }
   };
-  function pickCustomer(element2, options) {
-    new CustomerPicker(element2, options).paint();
+  function pickCustomer(element2, options2) {
+    new CustomerPicker(element2, options2).paint();
   }
 
   // src/app/screens/customers/status.ts
@@ -10237,7 +14630,7 @@
       customersLegacy.forgetPreloads();
     } catch {
     }
-    notices.toast(t(off ? "customers.status.deactivated" : "customers.status.reactivated", words3()));
+    notices.toast(t(off ? "customers.status.deactivated" : "customers.status.reactivated", words4()));
     if (currentScreen() === "pacientes") customersLegacy.repaintList();
     return true;
   }
@@ -10299,21 +14692,21 @@
     });
     return chosen2;
   }
-  var round2 = (value10) => Math.round((Number(value10) || 0) * 100) / 100;
+  var round23 = (value15) => Math.round((Number(value15) || 0) * 100) / 100;
   function lineAmount(productId, units2) {
     const product = opportunitiesLegacy.products().find((item) => item.id === productId);
     if (product?.precio === null || product?.precio === void 0) return 0;
-    return round2(product.precio * (1 + (Number(product.iva) || 0) / 100) * (Number(units2) || 0));
+    return round23(product.precio * (1 + (Number(product.iva) || 0) / 100) * (Number(units2) || 0));
   }
   function orderLineAmount(productId, units2) {
     const product = opportunitiesLegacy.products().find((item) => item.id === productId);
-    return product?.precio === null || product?.precio === void 0 ? null : round2(product.precio * units2);
+    return product?.precio === null || product?.precio === void 0 ? null : round23(product.precio * units2);
   }
   var isPhone = (text2) => /^[+\d\s]{6,}$/.test(text2);
 
   // src/app/screens/opportunities/call-record.ts
   var chosen = { motivo: "", resultado: "" };
-  var value6 = (id) => document.getElementById(id)?.value ?? "";
+  var value11 = (id) => document.getElementById(id)?.value ?? "";
   var needsFollowUp = (result) => Boolean(result) && result !== ORDER_DONE;
   function callRecordHtml(state) {
     const call = state ?? {}, outgoing = call.direccion === OUTGOING;
@@ -10362,7 +14755,7 @@
   }
   function readCallRecord() {
     if (!document.getElementById("kollam")) return null;
-    return { motivo: chosen.motivo, resultado: chosen.resultado, direccion: value6("kold"), nota: value6("kolno").trim(), proxima_fecha: value6("kolpf"), proxima_accion: value6("kolpa").trim() };
+    return { motivo: chosen.motivo, resultado: chosen.resultado, direccion: value11("kold"), nota: value11("kolno").trim(), proxima_fecha: value11("kolpf"), proxima_accion: value11("kolpa").trim() };
   }
   function caller(subject, state) {
     return {
@@ -10375,7 +14768,7 @@
       ...subject.datos && Object.keys(subject.datos).length ? { datos: subject.datos } : {}
     };
   }
-  function payload2(record2, subject, state) {
+  function payload5(record2, subject, state) {
     const followUp = needsFollowUp(subject.resultado);
     return {
       id: state.id ?? null,
@@ -10392,7 +14785,7 @@
     };
   }
   async function saveCallRecord(record2, subject, state) {
-    const { data: result, error } = await legacyDb().rpc("guardar_llamada", { p: payload2(record2, subject, state ?? {}) });
+    const { data: result, error } = await legacyDb().rpc("guardar_llamada", { p: payload5(record2, subject, state ?? {}) });
     if (error || result?.ok === false) {
       notices.toast(error ? t("opportunities.callRecord.couldNotSaveError", { error: error.message ?? "" }) : t("opportunities.callRecord.couldNotSave"), true);
       return null;
@@ -10403,8 +14796,8 @@
   // src/app/screens/opportunities/editor/draft.ts
   var typedQuery = () => document.getElementById("nvq")?.value.trim() ?? "";
   var fieldValue = (id) => {
-    const field4 = document.getElementById(id);
-    return field4 ? field4.value : null;
+    const field8 = document.getElementById(id);
+    return field8 ? field8.value : null;
   };
 
   // src/app/screens/opportunities/editor/interest.ts
@@ -10414,11 +14807,11 @@
     const loss = document.getElementById("nvperd");
     if (loss) loss.innerHTML = totalInterest(draft) ? t("opportunities.editor.unsold", { amount: portalLegacy.euros(totalInterest(draft)) }) : "";
   }
-  function lineHtml(draft, products2, index) {
+  function lineHtml(draft, products3, index) {
     const line2 = draft.lines[index] ?? { producto_id: "", unidades: 0 };
-    const options = products2.map((product) => `<option value="${product.id}" ${product.id === line2.producto_id ? "selected" : ""}>${escapeHtml(product.nombre)}</option>`).join("") || `<option value="">${t("opportunities.editor.noProducts")}</option>`;
+    const options2 = products3.map((product) => `<option value="${product.id}" ${product.id === line2.producto_id ? "selected" : ""}>${escapeHtml(product.nombre)}</option>`).join("") || `<option value="">${t("opportunities.editor.noProducts")}</option>`;
     return `<div class="nvlin" data-nvi="${index}">
-        <select data-nvf="producto_id" aria-label="${t("opportunities.editor.product")}">${options}</select>
+        <select data-nvf="producto_id" aria-label="${t("opportunities.editor.product")}">${options2}</select>
         <input data-nvf="unidades" type="number" min="1" step="1" value="${escapeHtml(String(line2.unidades))}" aria-label="${t("opportunities.editor.units")}">
         <span class="nvimp">${portalLegacy.euros(lineAmount(line2.producto_id, line2.unidades))}</span>
         ${draft.lines.length > 1 ? `<button type="button" class="btn sec" data-nvx="${index}" aria-label="${t("opportunities.editor.remove")}">✕</button>` : "<span></span>"}</div>`;
@@ -10426,14 +14819,14 @@
   function bindLine(draft, row4) {
     const index = Number(row4.dataset.nvi), line2 = draft.lines[index];
     if (!line2) return;
-    row4.querySelectorAll("[data-nvf]").forEach((input3) => {
-      input3.oninput = input3.onchange = () => {
-        if (input3.dataset.nvf === "unidades") line2.unidades = Math.max(0, Number(input3.value) || 0);
-        else line2.producto_id = input3.value;
+    row4.querySelectorAll("[data-nvf]").forEach((input4) => {
+      input4.oninput = input4.onchange = () => {
+        if (input4.dataset.nvf === "unidades") line2.unidades = Math.max(0, Number(input4.value) || 0);
+        else line2.producto_id = input4.value;
         const amount3 = row4.querySelector(".nvimp");
         if (amount3) amount3.textContent = portalLegacy.euros(lineAmount(line2.producto_id, line2.unidades));
-        const total = document.getElementById("nvtotv");
-        if (total) total.textContent = portalLegacy.euros(totalInterest(draft));
+        const total2 = document.getElementById("nvtotv");
+        if (total2) total2.textContent = portalLegacy.euros(totalInterest(draft));
         paintLoss(draft);
       };
     });
@@ -10441,8 +14834,8 @@
   function paintInterest(draft) {
     const box = document.getElementById("nvint");
     if (!box) return;
-    const products2 = opportunitiesLegacy.products().filter((product) => product.tipo !== "servicio" && !HIDDEN_STATES.includes(product.estado ?? ""));
-    box.innerHTML = range(draft.lines.length).map((index) => lineHtml(draft, products2, index)).join("") + `<div class="nvtot"><button type="button" class="lnk" id="nvmas">${t("opportunities.editor.otherProduct")}</button><span>${t("opportunities.editor.wouldBuy", { amount: portalLegacy.euros(totalInterest(draft)) })}</span></div>`;
+    const products3 = opportunitiesLegacy.products().filter((product) => product.tipo !== "servicio" && !HIDDEN_STATES.includes(product.estado ?? ""));
+    box.innerHTML = range(draft.lines.length).map((index) => lineHtml(draft, products3, index)).join("") + `<div class="nvtot"><button type="button" class="lnk" id="nvmas">${t("opportunities.editor.otherProduct")}</button><span>${t("opportunities.editor.wouldBuy", { amount: portalLegacy.euros(totalInterest(draft)) })}</span></div>`;
     box.querySelectorAll("[data-nvi]").forEach((row4) => {
       bindLine(draft, row4);
     });
@@ -10475,7 +14868,7 @@
   }
 
   // src/app/screens/opportunities/editor/client.ts
-  var SEARCH_WAIT_MS2 = 250;
+  var SEARCH_WAIT_MS4 = 250;
   var ORDERS_SHOWN = 20;
   var CALLS_SHOWN = 5;
   var phoneOf2 = (client) => orFallback(client.movil, orFallback(client.telefono, orFallback(client.tel, "")));
@@ -10501,7 +14894,7 @@
   function contextHtml(draft, orders, promised) {
     if (!orders.length && !promised) return `<span class="sm">${t("opportunities.editor.noOrdersYet")}</span>`;
     const count2 = { count: formatNumber(orders.length), amount: portalLegacy.euros(sum(orders.map(orderTotal))) };
-    const total = orders.length ? `<span class="sm">${t(orders.length === ORDERS_SHOWN ? "opportunities.editor.ordersMore" : "opportunities.editor.orders", count2)}</span>` : "";
+    const total2 = orders.length ? `<span class="sm">${t(orders.length === ORDERS_SHOWN ? "opportunities.editor.ordersMore" : "opportunities.editor.orders", count2)}</span>` : "";
     const callBack = promised ? `<div class="banda-aviso">${t("opportunities.editor.promised", {
       date: formatShortDate(promised.proxima_fecha ?? ""),
       action: promised.proxima_accion ? `: ${escapeHtml(promised.proxima_accion)}` : "",
@@ -10509,7 +14902,7 @@
     })}</div>` : "";
     return `
       ${lastOrderHtml(draft, orders[0])}
-      ${total}
+      ${total2}
       ${callBack}`;
   }
   async function paintContext(draft) {
@@ -10540,7 +14933,7 @@
     paintClient(draft);
   }
   var resultHtml = (client) => `<button type="button" class="item" data-nvc="${client.id}"><span class="tx"><b>${escapeHtml(orFallback(client.nombre, ""))}</b><span class="sm">${escapeHtml([orFallback(client.movil, orFallback(client.telefono, "")), client.nif].filter(Boolean).join(" · "))}</span></span></button>`;
-  var searchTimer2;
+  var searchTimer4;
   async function search(draft) {
     const found = await opportunitiesLegacy.searchClients(typedQuery()), box = document.getElementById("nvres1");
     if (!box) return;
@@ -10563,12 +14956,12 @@
       ${draft.recording ? `<div class="sm" style="margin-top:4px">${t("opportunities.editor.nameIsEnough")}</div>` : ""}`;
   }
   function bindSearch(draft) {
-    const input3 = document.getElementById("nvq");
-    if (input3) input3.oninput = () => {
-      clearTimeout(searchTimer2);
-      searchTimer2 = setTimeout(() => {
+    const input4 = document.getElementById("nvq");
+    if (input4) input4.oninput = () => {
+      clearTimeout(searchTimer4);
+      searchTimer4 = setTimeout(() => {
         void search(draft);
-      }, SEARCH_WAIT_MS2);
+      }, SEARCH_WAIT_MS4);
     };
     const add2 = document.getElementById("nvalta");
     if (add2) add2.onclick = () => {
@@ -10652,7 +15045,7 @@
       ${noSaleHtml(draft)}
     </div>`;
   }
-  function editorHtml3(draft) {
+  function editorHtml5(draft) {
     const saveChanges2 = draft.recording && (draft.closed || draft.source.id) ? `<button class="btn sec" id="nvguar">${t("opportunities.editor.saveChanges")}</button>` : "";
     return `
     <div class="fh"><div><h2>${title(draft)}</h2>
@@ -10686,7 +15079,7 @@
     const followUp = Boolean(result) && result !== ORDER_DONE;
     return { proxima_fecha: followUp ? fieldValue("nvpf") ?? "" : "", proxima_accion: followUp ? (fieldValue("nvpa") ?? "").trim() : "" };
   }
-  function payload3(draft, result) {
+  function payload6(draft, result) {
     const source = draft.source, date = fieldValue("nvf");
     return {
       id: source.id ?? null,
@@ -10704,14 +15097,14 @@
       interes: wantedLines(draft)
     };
   }
-  function failure(error, result) {
+  function failure2(error, result) {
     if (error) return t("opportunities.editor.couldNotSaveError", { error: error.message ?? "" });
     return t(result?.motivo === "extra" ? "opportunities.editor.noExtra" : "opportunities.editor.couldNotSave");
   }
-  async function save5(draft, result) {
-    const { data, error } = await legacyDb().rpc("guardar_llamada", { p: payload3(draft, result) });
+  async function save13(draft, result) {
+    const { data, error } = await legacyDb().rpc("guardar_llamada", { p: payload6(draft, result) });
     if (error || !data || data.ok === false) {
-      notices.toast(failure(error, data), true);
+      notices.toast(failure2(error, data), true);
       return null;
     }
     return data;
@@ -10725,7 +15118,7 @@
     button2.disabled = true;
     let saved2 = null;
     if (draft.recording) {
-      saved2 = await save5(draft, "");
+      saved2 = await save13(draft, "");
       if (!saved2) {
         button2.disabled = false;
         return;
@@ -10754,7 +15147,7 @@
       return;
     }
     button2.disabled = true;
-    const saved2 = await save5(draft, draft.result);
+    const saved2 = await save13(draft, draft.result);
     button2.disabled = false;
     if (!saved2) return;
     closeWindow();
@@ -10763,7 +15156,7 @@
   }
   async function saveChanges(draft) {
     const result = draft.closed ? orFallback(draft.source.resultado, ORDER_DONE) : draft.noSale ? draft.result : "";
-    if (!await save5(draft, result)) return;
+    if (!await save13(draft, result)) return;
     closeWindow();
     notices.toast(t("opportunities.editor.saved"));
     refreshList();
@@ -10857,7 +15250,7 @@
     const draft = draftOf(start2, previous);
     const body2 = document.getElementById("dbody"), box = document.getElementById("dlg");
     if (!body2 || !box) return;
-    body2.innerHTML = editorHtml3(draft);
+    body2.innerHTML = editorHtml5(draft);
     box.showModal();
     paintClient(draft);
     if (draft.recording) {
@@ -10884,16 +15277,16 @@
   }
 
   // src/app/screens/opportunities/charts.ts
-  function indicatorsHtml(summary3) {
-    const total = summary3.total ?? 0, orders = summary3.con_pedido ?? 0, closed = total - (summary3.sin_cerrar ?? 0);
-    const kpi = (value10, key) => `<div class="kpi"><b>${value10}</b><span>${t(key)}</span></div>`;
+  function indicatorsHtml(summary4) {
+    const total2 = summary4.total ?? 0, orders = summary4.con_pedido ?? 0, closed = total2 - (summary4.sin_cerrar ?? 0);
+    const kpi = (value15, key) => `<div class="kpi"><b>${value15}</b><span>${t(key)}</span></div>`;
     return [
-      kpi(formatNumber(total), "opportunities.list.kpiOpportunities"),
+      kpi(formatNumber(total2), "opportunities.list.kpiOpportunities"),
       kpi(formatNumber(orders), "opportunities.list.kpiOrders"),
       kpi(closed ? `${Math.round(orders / closed * 100)}%` : "—", "opportunities.list.kpiConversion"),
-      kpi(portalLegacy.euros(summary3.importe_ganado ?? 0), "opportunities.list.kpiSold"),
-      kpi(portalLegacy.euros(summary3.importe_perdido ?? 0), "opportunities.list.kpiUnsold"),
-      kpi(formatNumber(summary3.sin_cerrar ?? 0), "opportunities.list.kpiNotClosed")
+      kpi(portalLegacy.euros(summary4.importe_ganado ?? 0), "opportunities.list.kpiSold"),
+      kpi(portalLegacy.euros(summary4.importe_perdido ?? 0), "opportunities.list.kpiUnsold"),
+      kpi(formatNumber(summary4.sin_cerrar ?? 0), "opportunities.list.kpiNotClosed")
     ].join("\n      ");
   }
   function ratioRow(item, max) {
@@ -10905,7 +15298,7 @@
   };
   var card = (id, title2, body2, read) => `<div class="card ancard" id="${id}"><h2>${title2}</h2>${body2}<p class="leer">${read}</p></div>`;
   var ratiosOr = (list, toRatio, empty2) => (list ?? []).length ? ratioBars((list ?? []).map(toRatio)) : opportunitiesLegacy.emptyChart(empty2);
-  var words4 = () => ({
+  var words5 = () => ({
     professional: term("medico"),
     professionals: term("medico", { number: "p" }),
     aProfessional: term("medico", { article: "un", articleCapital: "C" }),
@@ -10913,10 +15306,10 @@
   });
   var HOW = "opportunities.list.howToRead";
   var FOR = "opportunities.list.whatFor";
-  function chartsHtml(summary3) {
-    const weekdays = t("opportunities.weekdays").split(","), read = (lead, key) => t(lead) + t(key, words4());
-    const results = (summary3.por_resultado ?? []).length ? opportunitiesLegacy.barChart((summary3.por_resultado ?? []).map((item) => ({ n: item.resultado, v: item.n })), formatNumber) : opportunitiesLegacy.emptyChart(t("opportunities.list.resultsEmpty"));
-    return card("llgprod", t("opportunities.list.productsTitle"), ratiosOr(summary3.por_producto, (item) => ({ n: item.producto, p: Number(item.unidades_ganadas) || 0, t: Number(item.unidades) || 0 }), t("opportunities.list.productsEmpty")), read(HOW, "opportunities.list.productsRead")) + card("llgres", t("opportunities.list.resultsTitle"), results, read(HOW, "opportunities.list.resultsRead")) + card("llghora", t("opportunities.list.hoursTitle"), ratiosOr(summary3.por_hora, (item) => ({ n: `${String(item.hora).padStart(2, "0")}:00`, p: item.pedidos, t: item.n }), t("opportunities.list.hoursEmpty")), read(FOR, "opportunities.list.hoursRead")) + card("llgdia", t("opportunities.list.daysTitle"), ratiosOr(summary3.por_dia, (item) => ({ n: weekdays[item.dia] ?? "", p: item.pedidos, t: item.n }), t("opportunities.list.daysEmpty")), read(HOW, "opportunities.list.daysRead")) + card("llgori", t("opportunities.list.originsTitle"), ratiosOr(summary3.por_origen, (item) => ({ n: item.origen, p: item.pedidos, t: item.n }), t("opportunities.list.originsEmpty")), read(HOW, "opportunities.list.originsRead")) + card("llgmed", t("opportunities.list.referencesTitle", words4()), ratiosOr(summary3.por_medico, (item) => ({ n: item.medico, p: item.pedidos, t: item.n }), t("opportunities.list.referencesEmpty", words4())), read(HOW, "opportunities.list.referencesRead")) + card("llcom", t("opportunities.list.salesTitle", words4()), ratiosOr(summary3.por_comercial, (item) => ({ n: item.comercial, p: item.pedidos, t: item.n }), t("opportunities.list.salesEmpty", words4())), read(HOW, "opportunities.list.salesRead"));
+  function chartsHtml(summary4) {
+    const weekdays = t("opportunities.weekdays").split(","), read = (lead, key) => t(lead) + t(key, words5());
+    const results = (summary4.por_resultado ?? []).length ? opportunitiesLegacy.barChart((summary4.por_resultado ?? []).map((item) => ({ n: item.resultado, v: item.n })), formatNumber) : opportunitiesLegacy.emptyChart(t("opportunities.list.resultsEmpty"));
+    return card("llgprod", t("opportunities.list.productsTitle"), ratiosOr(summary4.por_producto, (item) => ({ n: item.producto, p: Number(item.unidades_ganadas) || 0, t: Number(item.unidades) || 0 }), t("opportunities.list.productsEmpty")), read(HOW, "opportunities.list.productsRead")) + card("llgres", t("opportunities.list.resultsTitle"), results, read(HOW, "opportunities.list.resultsRead")) + card("llghora", t("opportunities.list.hoursTitle"), ratiosOr(summary4.por_hora, (item) => ({ n: `${String(item.hora).padStart(2, "0")}:00`, p: item.pedidos, t: item.n }), t("opportunities.list.hoursEmpty")), read(FOR, "opportunities.list.hoursRead")) + card("llgdia", t("opportunities.list.daysTitle"), ratiosOr(summary4.por_dia, (item) => ({ n: weekdays[item.dia] ?? "", p: item.pedidos, t: item.n }), t("opportunities.list.daysEmpty")), read(HOW, "opportunities.list.daysRead")) + card("llgori", t("opportunities.list.originsTitle"), ratiosOr(summary4.por_origen, (item) => ({ n: item.origen, p: item.pedidos, t: item.n }), t("opportunities.list.originsEmpty")), read(HOW, "opportunities.list.originsRead")) + card("llgmed", t("opportunities.list.referencesTitle", words5()), ratiosOr(summary4.por_medico, (item) => ({ n: item.medico, p: item.pedidos, t: item.n }), t("opportunities.list.referencesEmpty", words5())), read(HOW, "opportunities.list.referencesRead")) + card("llcom", t("opportunities.list.salesTitle", words5()), ratiosOr(summary4.por_comercial, (item) => ({ n: item.comercial, p: item.pedidos, t: item.n }), t("opportunities.list.salesEmpty", words5())), read(HOW, "opportunities.list.salesRead"));
   }
 
   // src/app/screens/opportunities/follow-ups.ts
@@ -10929,7 +15322,7 @@
     if (call.proxima_fecha < today) return "background:#FDECEC;color:var(--dang)";
     return call.proxima_fecha === today ? "background:#FFF4E5;color:var(--warn)" : "";
   }
-  function rowHtml5(call, today) {
+  function rowHtml14(call, today) {
     const phone = orFallback(call.tel_cliente, orFallback(call.telefono, ""));
     const details2 = `${whenHtml(call, today)}${escapeHtml(orFallback(call.resultado, ""))}${call.proxima_accion ? ` · ${escapeHtml(call.proxima_accion)}` : ""}${call.medico ? t("opportunities.list.fromReference", { name: escapeHtml(call.medico) }) : ""}`;
     return `<div class="item" style="cursor:default">
@@ -10945,7 +15338,7 @@
     if (!box) return;
     box.innerHTML = !list.length ? "" : `<div class="card" id="llsegs"><h2>${t("opportunities.list.callAgainTitle")}<span class="n">${list.length}</span></h2>
       <p class="sm" style="padding:0 16px">${t("opportunities.list.callAgainHint")}</p>
-      <div class="lista">${list.slice(0, SHOWN3).map((call) => rowHtml5(call, today)).join("")}</div></div>`;
+      <div class="lista">${list.slice(0, SHOWN3).map((call) => rowHtml14(call, today)).join("")}</div></div>`;
     box.querySelectorAll("[data-llseg]").forEach((button2) => {
       button2.onclick = () => {
         const call = list.find((item) => item.id === button2.dataset.llseg);
@@ -10962,8 +15355,8 @@
   }
 
   // src/app/screens/opportunities/list.ts
-  var SEARCH_WAIT_MS3 = 300;
-  function pageHtml2() {
+  var SEARCH_WAIT_MS5 = 300;
+  function pageHtml5() {
     const results = catalog("resultado_llamada").map((entry) => `<option>${escapeHtml(entry.valor)}</option>`).join("");
     return `<div class="panel">
     <div id="llsegz"></div>
@@ -10979,7 +15372,7 @@
     const ends = item.pedido_id || item.resultado ? escapeHtml(orFallback(item.resultado, ORDER_DONE)) : `<span class="pill p-warn">${t("opportunities.list.notClosed")}</span>`;
     return `${ends}${item.pedido ? `<span class="sm">${t("opportunities.list.order", { number: escapeHtml(item.pedido) })}</span>` : ""}`;
   }
-  function rowHtml6(item) {
+  function rowHtml15(item) {
     const when = new Date(item.fecha).toLocaleString("es-ES", { dateStyle: "short", timeStyle: "short" });
     const reference2 = typeof item.medico === "string" ? item.medico : "";
     return `<button class="dr" data-ll="${item.id}"><span>${when}<span class="sm">${escapeHtml(orFallback(item.origen, orFallback(item.direccion, "")))}</span></span>
@@ -10989,17 +15382,17 @@
         <span>${endsHtml2(item)}</span>
         <span class="sm">${item.proxima_fecha ? `${formatShortDate(item.proxima_fecha)} · ` : ""}${escapeHtml(orFallback(item.proxima_accion, ""))}</span><span class="sm">${escapeHtml(orFallback(item.usuario, ""))}</span></button>`;
   }
-  function tableHtml3(shown4) {
+  function tableHtml6(shown5) {
     const heads = [t("opportunities.list.date"), t("opportunities.list.client"), t("opportunities.list.wants"), term("medico", { capital: "C" }), t("opportunities.list.ends"), t("opportunities.list.next"), t("opportunities.list.attended")];
     return `<div class="dgrid-wrap"><div class="dgrid llam opor">
       <div class="dh">${heads.map((head) => `<span>${head}</span>`).join("")}</div>
-      ${shown4.map(rowHtml6).join("")}</div></div>`;
+      ${shown5.map(rowHtml15).join("")}</div></div>`;
   }
   function paintList2(list, rows) {
     const size = accountListLegacy.pageSize();
     opportunitiesLegacy.setPage(Math.min(opportunitiesLegacy.page(), Math.max(0, Math.ceil(rows.length / size) - 1)));
     const start2 = opportunitiesLegacy.page() * size;
-    list.innerHTML = rows.length ? tableHtml3(rows.slice(start2, start2 + size)) : `<div class="vacio">${t("opportunities.list.empty")}</div>`;
+    list.innerHTML = rows.length ? tableHtml6(rows.slice(start2, start2 + size)) : `<div class="vacio">${t("opportunities.list.empty")}</div>`;
     list.querySelectorAll("[data-ll]").forEach((button2) => {
       button2.onclick = () => {
         void editOpportunity(rows.find((item) => item.id === button2.dataset.ll) ?? null);
@@ -11023,31 +15416,31 @@
   var fieldValue2 = (id) => document.getElementById(id)?.value ?? "";
   async function paintPeriod() {
     const period = opportunitiesLegacy.periodOf(document.getElementById("llper"));
-    const [{ data: rows }, { data: summary3 }] = await Promise.all([
+    const [{ data: rows }, { data: summary4 }] = await Promise.all([
       legacyDb().rpc("llamadas_lista", { p_desde: period.desde, p_hasta: period.hasta, q: fieldValue2("llq").trim() || null, p_resultado: fieldValue2("llfres") || null }),
       legacyDb().rpc("llamadas_resumen", { p_desde: period.desde, p_hasta: period.hasta })
     ]);
     const list = document.getElementById("lllista"), totals = document.getElementById("lltot"), charts = document.getElementById("llres2");
     if (!list || !totals || !charts) return;
-    totals.innerHTML = indicatorsHtml(summary3 ?? {});
-    charts.innerHTML = chartsHtml(summary3 ?? {});
+    totals.innerHTML = indicatorsHtml(summary4 ?? {});
+    charts.innerHTML = chartsHtml(summary4 ?? {});
     paintList2(list, rows ?? []);
   }
-  var searchTimer3;
+  var searchTimer5;
   async function paintOpportunities() {
     await loadOpportunityCatalogs();
     const box = document.getElementById("vcuerpo");
     if (!box) return;
-    box.innerHTML = pageHtml2();
+    box.innerHTML = pageHtml5();
     const search3 = document.getElementById("llq"), result = document.getElementById("llfres");
     opportunitiesLegacy.mountPeriod(document.getElementById("llper"), { id: "llamadas", valor: "mes", alCambiar: () => {
       void paintPeriod();
     } });
     if (search3) search3.oninput = () => {
-      clearTimeout(searchTimer3);
-      searchTimer3 = setTimeout(() => {
+      clearTimeout(searchTimer5);
+      searchTimer5 = setTimeout(() => {
         void paintPeriod();
-      }, SEARCH_WAIT_MS3);
+      }, SEARCH_WAIT_MS5);
     };
     if (result) result.onchange = () => {
       void paintPeriod();
@@ -11079,8 +15472,8 @@
   }
 
   // src/app/screens/quality/data-quality.ts
-  var percentOf2 = (done, total) => total ? Math.round(done / total * 100) : 0;
-  var words5 = () => ({
+  var percentOf2 = (done, total2) => total2 ? Math.round(done / total2 * 100) : 0;
+  var words6 = () => ({
     professional: term("medico"),
     professionals: term("medico", { number: "p" }),
     Professionals: term("medico", { number: "p", capital: "C" }),
@@ -11100,27 +15493,27 @@
     ["sin_comercial", "quality.summary.noSalesperson", "quality.summary.noSalespersonHelp"],
     ["duplicados", "quality.summary.duplicates", "quality.summary.duplicatesHelp"]
   ];
-  function summaryHtml(quality2) {
-    const percent2 = percentOf2(quality2.completas, quality2.total);
+  function summaryHtml3(quality2) {
+    const percent3 = percentOf2(quality2.completas, quality2.total);
     return `<div class="card" id="calidad" style="padding-bottom:6px">
-    <div class="manh" style="padding:14px 16px 0"><h2 style="padding:0">${t("quality.summary.complete", { percent: percent2 })}</h2><span class="sm">${t("quality.summary.completeOf", { ...words5(), done: formatNumber(quality2.completas), total: formatNumber(quality2.total) })}</span></div>
-    <div class="barra" style="margin:8px 16px 10px"><i style="width:${percent2}%"></i></div>
+    <div class="manh" style="padding:14px 16px 0"><h2 style="padding:0">${t("quality.summary.complete", { percent: percent3 })}</h2><span class="sm">${t("quality.summary.completeOf", { ...words6(), done: formatNumber(quality2.completas), total: formatNumber(quality2.total) })}</span></div>
+    <div class="barra" style="margin:8px 16px 10px"><i style="width:${percent3}%"></i></div>
     <div class="kpis" style="padding:0 16px 10px">
-      ${INDICATORS.map(([key, title2, help]) => indicator(quality2[key], t(title2, words5()), t(help, words5()))).join("")}
+      ${INDICATORS.map(([key, title2, help]) => indicator(quality2[key], t(title2, words6()), t(help, words6()))).join("")}
     </div>
-    <p class="sm" style="padding:0 16px 10px">${t("quality.summary.completeHint", words5())}</p></div>`;
+    <p class="sm" style="padding:0 16px 10px">${t("quality.summary.completeHint", words6())}</p></div>`;
   }
   async function paintSummary() {
     const { data: quality2 } = await callRpc("calidad_datos", {});
     if (!quality2 || document.getElementById("calidad")) return;
-    document.querySelector("#v-seguimiento .saludo")?.insertAdjacentHTML("afterend", summaryHtml(quality2));
+    document.querySelector("#v-seguimiento .saludo")?.insertAdjacentHTML("afterend", summaryHtml3(quality2));
   }
   function placeRow2(place) {
-    const address = [place.centro_nombre, place.direccion, [place.cp, place.municipio].filter(Boolean).join(" ")].filter(Boolean).join(" · ");
+    const address2 = [place.centro_nombre, place.direccion, [place.cp, place.municipio].filter(Boolean).join(" ")].filter(Boolean).join(" · ");
     const distance = place.km !== null && place.km !== void 0 ? t("quality.addresses.farFrom", { km: formatNumber(place.km), municipality: escapeHtml(orFallback(place.municipio, "")) }) : t("quality.addresses.outOfSpain");
     return `<div class="item cdir" data-cdir="${place.id}" style="cursor:default">
       <span class="tx"><b>${escapeHtml(place.nombre)}</b>
-        <span class="sm">${escapeHtml(address || t("quality.addresses.noAddress"))}</span>
+        <span class="sm">${escapeHtml(address2 || t("quality.addresses.noAddress"))}</span>
         <span class="sm cdirkm">${distance}</span></span>
       <span class="acts" style="margin:0">
         <button type="button" class="btn sec" data-cdirf="${place.cuenta_id}">${t("quality.addresses.card")}</button>
@@ -11204,7 +15597,7 @@
            <br><span class="acts" style="margin:4px 0 0"><button class="btn sec chico" data-acc="hecha|${row4.id}">${t("quality.followUp.done")}</button>
            <button class="btn sec chico" data-acc="aplazar|${row4.id}">${t("quality.followUp.postpone")}</button></span>`;
   }
-  function rowHtml7(row4) {
+  function rowHtml16(row4) {
     const last = row4.ultima_visita ? t("quality.followUp.last", { date: formatShortDate(row4.ultima_visita), result: escapeHtml(orFallback(row4.ultimo_resultado, "")) }) : t("quality.followUp.notVisited");
     return `
     <button class="fila" data-id="${row4.id}">
@@ -11232,7 +15625,7 @@
     void paintFollowUp(true);
     void load();
   }
-  function bind9(list) {
+  function bind14(list) {
     list.onclick = (event) => {
       const target = event.target, action = target.closest("[data-acc]");
       if (action) {
@@ -11244,18 +15637,18 @@
       if (row4) agendaActions.openAccount(row4.dataset.id ?? "");
     };
   }
-  function paintRows2(list, rows) {
+  function paintRows4(list, rows) {
     if (!rows.length) {
       list.innerHTML = `<div class="vacio">${t("quality.followUp.nothing")}</div>`;
       return;
     }
     list.innerHTML = "";
-    list.insertAdjacentHTML("beforeend", rows.map(rowHtml7).join(""));
+    list.insertAdjacentHTML("beforeend", rows.map(rowHtml16).join(""));
   }
-  async function paintFollowUp(restart) {
+  async function paintFollowUp(restart2) {
     const list = document.getElementById("slista"), count2 = document.getElementById("scuenta");
     if (!list || !count2) return;
-    if (restart) followUpState.pagina = 0;
+    if (restart2) followUpState.pagina = 0;
     list.innerHTML = loadingHtml2(t("quality.page.loadingFollowUp"));
     count2.textContent = t("quality.followUp.searching");
     const size = accountListLegacy.pageSize();
@@ -11265,7 +15658,7 @@
       return;
     }
     count2.innerHTML = `<b>${formatNumber(data.total)}</b> ${term("medico", { number: "p" })}`;
-    paintRows2(list, data.filas ?? []);
+    paintRows4(list, data.filas ?? []);
     accountListLegacy.paginate({
       element: document.getElementById("spag"),
       total: data.total,
@@ -11279,21 +15672,21 @@
         void paintFollowUp(true);
       }
     });
-    bind9(list);
+    bind14(list);
   }
 
   // src/app/screens/quality/page.ts
-  var MODES2 = [["todos", "quality.page.showAll"], ["visitados", "quality.page.showVisited"], ["sin_visitar", "quality.page.showNotVisited"], ["con_accion", "quality.page.showWithAction"], ["atrasados", "quality.page.showLate"]];
+  var MODES3 = [["todos", "quality.page.showAll"], ["visitados", "quality.page.showVisited"], ["sin_visitar", "quality.page.showNotVisited"], ["con_accion", "quality.page.showWithAction"], ["atrasados", "quality.page.showLate"]];
   var canSeeDuplicates = () => cardSectionsLegacy.can("administrar") || permissions.canReviewDuplicates();
-  function headerHtml6() {
+  function headerHtml7() {
     const duplicates = canSeeDuplicates() ? `<button class="btn sec" id="caldup">${icon("copy")} ${t("quality.page.duplicates")}</button>` : "";
     return `<button class="cfgvolver visible" id="calvolver" type="button">‹ ${escapeHtml(accountListLegacy.contactsLabel())}</button>
     <div class="saludo"><div><h1>${t("quality.page.title")}</h1><div class="fecha">${t("quality.page.subtitle", { professional: term("medico") })}</div></div>
       <div class="acts" style="margin:0">${duplicates}</div></div>`;
   }
-  function pageHtml3() {
-    const modes = MODES2.map(([value10, key]) => `<option value="${value10}">${t(key)}</option>`).join("");
-    return `${headerHtml6()}
+  function pageHtml6() {
+    const modes = MODES3.map(([value15, key]) => `<option value="${value15}">${t(key)}</option>`).join("");
+    return `${headerHtml7()}
     <div class="kpis" id="segkpis"><div class="skel"></div></div>
     <div class="panel">
       <div class="filtros">
@@ -11308,32 +15701,32 @@
     </div>`;
   }
   var selectValue = (id) => document.getElementById(id)?.value ?? "";
-  function fillFilters(options) {
+  function fillFilters(options2) {
     const fill2 = (id, list, all) => {
-      const select2 = document.getElementById(id);
-      if (select2) select2.innerHTML = `<option value="">${all}</option>${(list ?? []).map((option4) => `<option>${escapeHtml(option4.v)}</option>`).join("")}`;
+      const select3 = document.getElementById(id);
+      if (select3) select3.innerHTML = `<option value="">${all}</option>${(list ?? []).map((option4) => `<option>${escapeHtml(option4.v)}</option>`).join("")}`;
     };
-    fill2("sest", options?.estados, t("quality.page.allStates"));
-    fill2("sprov", options?.provincias, t("quality.page.allProvinces"));
-    fill2("smuni", options?.municipios, t("quality.page.allMunicipalities"));
+    fill2("sest", options2?.estados, t("quality.page.allStates"));
+    fill2("sprov", options2?.provincias, t("quality.page.allProvinces"));
+    fill2("smuni", options2?.municipios, t("quality.page.allMunicipalities"));
     for (const id of ["sest", "sprov", "smuni", "smodo"]) {
-      const select2 = document.getElementById(id);
-      if (select2) select2.onchange = () => {
+      const select3 = document.getElementById(id);
+      if (select3) select3.onchange = () => {
         Object.assign(followUpState, { estado: selectValue("sest"), prov: selectValue("sprov"), muni: selectValue("smuni"), modo: selectValue("smodo"), pagina: 0 });
         void paintFollowUp(true);
       };
     }
   }
-  var percentText = (part, total) => `${total ? Math.round(part / total * 100) : 0}%`;
-  function paintIndicators3(summary3) {
+  var percentText = (part, total2) => `${total2 ? Math.round(part / total2 * 100) : 0}%`;
+  function paintIndicators3(summary4) {
     const box = document.getElementById("segkpis");
-    if (!summary3 || !box) return;
-    const funnel2 = (summary3.embudo ?? []).map((step) => `<div class="kpi"><b>${formatNumber(step.n)}</b><span>${escapeHtml(step.estado)}</span></div>`).join("");
-    box.innerHTML = `${funnel2}<div class="kpi ok"><b>${formatNumber(summary3.visitados)}</b><span>${term("medico", { number: "p", adjective: "visitado" })}</span></div>
-       <div class="kpi"><b>${formatNumber(summary3.visitas_total)}</b><span>${term("visita", { number: "p", adjective: "registrado" })}</span></div>
-       <div class="kpi"><b>${formatNumber(summary3.muestras_total)}</b><span>${t("quality.page.samplesGiven")}</span></div>
-       <div class="kpi"><b>${percentText(summary3.con_direccion, summary3.total)}</b><span>${t("quality.page.withAddress")}</span></div>
-       <div class="kpi"><b>${percentText(summary3.con_dias, summary3.total)}</b><span>${t("quality.page.withDays")}</span></div>`;
+    if (!summary4 || !box) return;
+    const funnel2 = (summary4.embudo ?? []).map((step) => `<div class="kpi"><b>${formatNumber(step.n)}</b><span>${escapeHtml(step.estado)}</span></div>`).join("");
+    box.innerHTML = `${funnel2}<div class="kpi ok"><b>${formatNumber(summary4.visitados)}</b><span>${term("medico", { number: "p", adjective: "visitado" })}</span></div>
+       <div class="kpi"><b>${formatNumber(summary4.visitas_total)}</b><span>${term("visita", { number: "p", adjective: "registrado" })}</span></div>
+       <div class="kpi"><b>${formatNumber(summary4.muestras_total)}</b><span>${t("quality.page.samplesGiven")}</span></div>
+       <div class="kpi"><b>${percentText(summary4.con_direccion, summary4.total)}</b><span>${t("quality.page.withAddress")}</span></div>
+       <div class="kpi"><b>${percentText(summary4.con_dias, summary4.total)}</b><span>${t("quality.page.withDays")}</span></div>`;
   }
   function bindHeader3() {
     const back = document.getElementById("calvolver");
@@ -11356,12 +15749,12 @@
     const view = document.getElementById("v-seguimiento");
     if (!view) return;
     Object.assign(followUpState, { estado: "", prov: "", muni: "", modo: "todos", pagina: 0 });
-    view.innerHTML = pageHtml3();
+    view.innerHTML = pageHtml6();
     bindHeader3();
-    const { data: options } = await legacyDb().rpc("opciones_filtros", {});
-    fillFilters(options);
-    const { data: summary3 } = await legacyDb().rpc("resumen_seguimiento");
-    paintIndicators3(summary3);
+    const { data: options2 } = await legacyDb().rpc("opciones_filtros", {});
+    fillFilters(options2);
+    const { data: summary4 } = await legacyDb().rpc("resumen_seguimiento");
+    paintIndicators3(summary4);
     void paintFollowUp(true);
     await paintSummary();
     try {
@@ -11479,15 +15872,15 @@
     });
     return entries;
   }
-  function hitHtml(entry, words6) {
+  function hitHtml(entry, words7) {
     let text2 = escapeHtml(stripTags(entry.text));
-    words6.forEach((word) => {
+    words7.forEach((word) => {
       text2 = text2.replace(new RegExp(`(${escapeRegExp(word)})`, "ig"), "<mark>$1</mark>");
     });
     return `<button class="manhit" ${entry.section ? `data-mansec2="${entry.section}"` : ""}><span class="mhm">${escapeHtml(entry.module)}</span><span>${text2}</span></button>`;
   }
-  function search2(input3, results, entries) {
-    const query = normalise(input3.value.trim());
+  function search2(input4, results, entries) {
+    const query = normalise(input4.value.trim());
     document.querySelectorAll(".mancard").forEach((card2) => {
       card2.classList.remove("hide");
     });
@@ -11495,19 +15888,19 @@
       results.classList.add("hide");
       return;
     }
-    const words6 = query.split(/\s+/);
-    const hits = entries.filter((entry) => words6.every((word) => normalise(`${entry.text} ${entry.module}`).includes(word))).slice(0, MAX_HITS);
+    const words7 = query.split(/\s+/);
+    const hits = entries.filter((entry) => words7.every((word) => normalise(`${entry.text} ${entry.module}`).includes(word))).slice(0, MAX_HITS);
     results.classList.remove("hide");
-    results.innerHTML = hits.length ? hits.map((entry) => hitHtml(entry, words6)).join("") : `<div class="manhit">${t("manual.portal.noResults", { query: escapeHtml(input3.value) })}</div>`;
+    results.innerHTML = hits.length ? hits.map((entry) => hitHtml(entry, words7)).join("") : `<div class="manhit">${t("manual.portal.noResults", { query: escapeHtml(input4.value) })}</div>`;
   }
   function listenToSearch() {
-    const input3 = document.getElementById("manq");
-    if (!input3) return;
-    input3.insertAdjacentHTML("afterend", '<div class="manres hide" id="manres"></div>');
+    const input4 = document.getElementById("manq");
+    if (!input4) return;
+    input4.insertAdjacentHTML("afterend", '<div class="manres hide" id="manres"></div>');
     const results = document.getElementById("manres"), entries = searchIndex();
     if (!results) return;
-    input3.oninput = () => {
-      search2(input3, results, entries);
+    input4.oninput = () => {
+      search2(input4, results, entries);
     };
     results.addEventListener("click", (event) => {
       const hit = event.target?.closest("[data-mansec2]");
@@ -11518,7 +15911,7 @@
   }
 
   // src/app/screens/manual/portal.ts
-  function heroHtml() {
+  function heroHtml2() {
     const profile = manualLegacy.profile();
     return `<div class="manhero">
       <div><h1>${t("manual.title")}</h1><p>${t("manual.portal.subtitle")}</p>
@@ -11531,9 +15924,9 @@
     return `<button class="mancard ${level ? "" : "bloq"}" data-mansec="${section2.id}"><span class="mci">${sectionIcon(section2.id)}</span>
         <b>${escapeHtml(section2.t)}</b><span class="mcd">${escapeHtml(section2.para)}</span><span class="pill ${pill}">${level ? t("manual.portal.yourAccess", { level: accessText(section2) }) : t("manual.portal.noAccess")}</span></button>`;
   }
-  function pageHtml4() {
+  function pageHtml7() {
     const steps3 = firstSteps().map(([stepIcon, title2, text2, screen2], index) => `<button class="manpaso" data-mira="${screen2}"><span class="mpn">${index + 1}</span><span class="mpi">${stepIcon}</span><b>${escapeHtml(title2)}</b><span>${escapeHtml(text2)}</span></button>`).join("");
-    return `${heroHtml()}
+    return `${heroHtml2()}
     <h2 class="mantit">${t("manual.portal.firstSteps")}</h2>
     <div class="manpasos">${steps3}</div>
     <h2 class="mantit">${t("manual.portal.byModule")}</h2>
@@ -11556,7 +15949,7 @@
       };
     });
   }
-  function bind10(page) {
+  function bind15(page) {
     page.onclick = (event) => {
       const step = event.target?.closest("[data-mira]");
       if (!step) return;
@@ -11572,8 +15965,8 @@
   function paintPortalManual() {
     const page = document.getElementById("v-manual");
     if (!page) return;
-    page.innerHTML = pageHtml4();
-    bind10(page);
+    page.innerHTML = pageHtml7();
+    bind15(page);
     listenToSearch();
     markOutOfPlan(page);
   }
@@ -11776,14 +16169,14 @@
     history: () => void 0
   };
   var STEP_NAMES = ["importing.steps.what", "importing.steps.file", "importing.steps.columns", "importing.steps.review"];
-  function stepsHtml(current) {
+  function stepsHtml2(current) {
     return `<div class="imppasos">${STEP_NAMES.map((key, index) => {
       const step = index + 1, state = step < current ? "hecho" : step === current ? "actual" : "";
       return `<span class="${state}"><b>${step < current ? icon("check") : step}</b>${t(key)}</span>`;
     }).join("")}</div>`;
   }
   var pageBox = () => document.getElementById("cfgcuerpo");
-  function paint6(html) {
+  function paint7(html) {
     const box = pageBox();
     if (box) box.innerHTML = html;
     return box;
@@ -11793,9 +16186,9 @@
     if (element2) element2.onclick = action;
   }
   var errorLines = (errors) => errors.slice(0, 200).map((item) => `<div><b>${t("importing.review.row", { row: item.fila })}</b> · ${escapeHtml(item.error)}</div>`).join("");
-  function showProgress(done, total) {
+  function showProgress(done, total2) {
     const bar2 = pageBox()?.querySelector(".impbarra i");
-    if (bar2) bar2.style.width = `${Math.round(done / total * 100)}%`;
+    if (bar2) bar2.style.width = `${Math.round(done / total2 * 100)}%`;
   }
 
   // src/app/screens/import/columns-step.ts
@@ -11804,17 +16197,17 @@
   var samples2 = (index) => [...new Set(wizard.rows.slice(0, SAMPLE_ROWS).map((row4) => row4.v[index] ?? "").filter(Boolean))].slice(0, SAMPLES);
   function columnHtml(header, index) {
     const chosen2 = wizard.mapping[index] ?? "no", entity = wizard.entity;
-    const options = FIELDS[entity].map(([key, required]) => `<option value="std:${key}" ${chosen2 === `std:${key}` ? "selected" : ""}>${escapeHtml(fieldLabel(entity, key))}${required ? " *" : ""}</option>`).join("");
+    const options2 = FIELDS[entity].map(([key, required]) => `<option value="std:${key}" ${chosen2 === `std:${key}` ? "selected" : ""}>${escapeHtml(fieldLabel(entity, key))}${required ? " *" : ""}</option>`).join("");
     return `<div class="impcol ${chosen2 === "no" ? "ignorada" : ""}">
       <div><b>${escapeHtml(header)}</b><span class="sm">${samples2(index).map(escapeHtml).join(" · ") || t("importing.columns.empty")}</span></div>
       <span class="impflecha">→</span>
       <select data-impc="${index}"><option value="no" ${chosen2 === "no" ? "selected" : ""}>${t("importing.columns.skip")}</option>
-        <optgroup label="${t("importing.columns.platformFields")}">${options}</optgroup>
+        <optgroup label="${t("importing.columns.platformFields")}">${options2}</optgroup>
         <option value="extra" ${chosen2 === "extra" ? "selected" : ""}>${t("importing.columns.custom", { name: escapeHtml(header) })}</option></select></div>`;
   }
-  function pageHtml5() {
+  function pageHtml8() {
     const intro = t("importing.columns.summary", { rows: formatNumber(wizard.rows.length), columns: wizard.headers.length }) + (wizard.remembered ? t("importing.columns.remembered") : t("importing.columns.proposed")) + t("importing.columns.customHint", { type: escapeHtml(entityName(wizard.entity)) });
-    return `<div class="card cfgpanel impcaja">${stepsHtml(3)}
+    return `<div class="card cfgpanel impcaja">${stepsHtml2(3)}
     <h2 style="padding:0 0 4px">${t("importing.columns.title", { name: escapeHtml(wizard.fileName) })}</h2>
     <p class="sm">${intro}</p>
     <div class="impmapa">${wizard.headers.map(columnHtml).join("")}</div>
@@ -11822,25 +16215,25 @@
     <div class="acts" style="justify-content:space-between"><button class="btn sec" type="button" id="impvolver">${t("importing.file.back")}</button><button class="btn" type="button" id="impsig">${t("importing.columns.next")}</button></div></div>`;
   }
   function problems() {
-    const entity = wizard.entity, assigned = wizard.mapping.filter((value10) => value10.startsWith("std:")).map((value10) => value10.slice(4));
-    const missing = FIELDS[entity].filter(([key, required]) => required && !assigned.includes(key) && !(entity === "ventas" && key === "producto" && assigned.includes("referencia"))).map(([key]) => fieldLabel(entity, key));
+    const entity = wizard.entity, assigned = wizard.mapping.filter((value15) => value15.startsWith("std:")).map((value15) => value15.slice(4));
+    const missing2 = FIELDS[entity].filter(([key, required]) => required && !assigned.includes(key) && !(entity === "ventas" && key === "producto" && assigned.includes("referencia"))).map(([key]) => fieldLabel(entity, key));
     const repeated = [...new Set(assigned.filter((key, index) => assigned.indexOf(key) !== index))].map((key) => fieldLabel(entity, key));
-    return { missing, repeated };
+    return { missing: missing2, repeated };
   }
   function check() {
-    const { missing, repeated } = problems(), notice = document.getElementById("impaviso"), next = document.getElementById("impsig");
+    const { missing: missing2, repeated } = problems(), notice = document.getElementById("impaviso"), next = document.getElementById("impsig");
     const danger = (text2) => `<span style="color:var(--dang)">${text2}</span>`;
     if (notice) {
-      notice.innerHTML = missing.length ? danger(t("importing.columns.missing", { fields: missing.map(escapeHtml).join(", ") })) : repeated.length ? danger(t("importing.columns.repeated", { fields: repeated.map(escapeHtml).join(", ") })) : "";
+      notice.innerHTML = missing2.length ? danger(t("importing.columns.missing", { fields: missing2.map(escapeHtml).join(", ") })) : repeated.length ? danger(t("importing.columns.repeated", { fields: repeated.map(escapeHtml).join(", ") })) : "";
     }
-    if (next) next.disabled = Boolean(missing.length || repeated.length);
+    if (next) next.disabled = Boolean(missing2.length || repeated.length);
   }
   function paintColumnsStep() {
-    const box = paint6(pageHtml5());
-    box?.querySelectorAll("[data-impc]").forEach((select2) => {
-      select2.onchange = () => {
-        wizard.mapping[Number(select2.dataset.impc)] = select2.value;
-        select2.closest(".impcol")?.classList.toggle("ignorada", select2.value === "no");
+    const box = paint7(pageHtml8());
+    box?.querySelectorAll("[data-impc]").forEach((select3) => {
+      select3.onchange = () => {
+        wizard.mapping[Number(select3.dataset.impc)] = select3.value;
+        select3.closest(".impcol")?.classList.toggle("ignorada", select3.value === "no");
         check();
       };
     });
@@ -11864,11 +16257,11 @@
     for (const char of text2) hash = (hash << 5) + hash + char.charCodeAt(0) | 0;
     return (hash >>> 0).toString(36);
   }
-  var pad = (value10) => String(value10).padStart(2, "0");
-  function cellValue(value10) {
-    if (value10 === null || value10 === void 0) return "";
-    if (value10 instanceof Date) return Number.isNaN(value10.getTime()) ? "" : `${value10.getFullYear()}-${pad(value10.getMonth() + 1)}-${pad(value10.getDate())}`;
-    return String(value10).trim();
+  var pad = (value15) => String(value15).padStart(2, "0");
+  function cellValue(value15) {
+    if (value15 === null || value15 === void 0) return "";
+    if (value15 instanceof Date) return Number.isNaN(value15.getTime()) ? "" : `${value15.getFullYear()}-${pad(value15.getMonth() + 1)}-${pad(value15.getDate())}`;
+    return String(value15).trim();
   }
   function detectHeaderRow(rows) {
     const scores = rows.slice(0, TITLE_ROWS).map((row4) => row4.filter((cell3) => cell3.trim() && Number.isNaN(Number(cell3.replace(",", ".")))).length);
@@ -11911,7 +16304,7 @@
   function paintImport() {
     wizard.book = null;
     const types2 = entityTypes().map((type) => `<button class="imptipo" type="button" data-impt="${type.key}"><span class="imptic">${icon(type.icon)}</span><b>${escapeHtml(type.name)}</b><span class="sm">${escapeHtml(type.hint)}</span></button>`).join("");
-    const box = paint6(`<div class="card cfgpanel impcaja">${stepsHtml(1)}
+    const box = paint7(`<div class="card cfgpanel impcaja">${stepsHtml2(1)}
     <h2 style="padding:0 0 4px">${t("importing.start.title")}</h2>
     <p class="sm">${t("importing.start.text")}</p>
     <div class="imptipos">${types2}</div></div>`);
@@ -11923,7 +16316,7 @@
     });
   }
   function paintFileStep() {
-    paint6(`<div class="card cfgpanel impcaja">${stepsHtml(2)}
+    paint7(`<div class="card cfgpanel impcaja">${stepsHtml2(2)}
     <h2 style="padding:0 0 4px">${t("importing.file.title", { name: escapeHtml(entityName(wizard.entity).toLowerCase()) })}</h2>
     <p class="sm">${t("importing.file.text")}${wizard.entity === "ventas" ? t("importing.file.salesText") : ""}</p>
     <label class="impzona" id="impzona"><input type="file" id="impfile" accept=".xlsx,.xls,.csv,.txt" hidden>
@@ -11931,8 +16324,8 @@
     <div id="imphojas"></div>
     <div class="acts" style="justify-content:space-between"><button class="btn sec" type="button" id="impvolver">${t("importing.file.back")}</button></div></div>`);
     onClick3("impvolver", steps2.start);
-    const zone = document.getElementById("impzona"), input3 = document.getElementById("impfile");
-    if (!zone || !input3) return;
+    const zone = document.getElementById("impzona"), input4 = document.getElementById("impfile");
+    if (!zone || !input4) return;
     zone.ondragover = (event) => {
       event.preventDefault();
       zone.classList.add("sobre");
@@ -11946,8 +16339,8 @@
       const file = event.dataTransfer?.files[0];
       if (file) void readFile(zone, file);
     };
-    input3.onchange = () => {
-      const file = input3.files?.[0];
+    input4.onchange = () => {
+      const file = input4.files?.[0];
       if (file) void readFile(zone, file);
     };
   }
@@ -11994,10 +16387,10 @@
         if (remembered.startsWith("std:")) used.add(remembered.slice(4));
         return remembered;
       }
-      const field4 = proposeField(header, wizard.entity, used);
-      if (field4) {
-        used.add(field4);
-        return `std:${field4}`;
+      const field8 = proposeField(header, wizard.entity, used);
+      if (field8) {
+        used.add(field8);
+        return `std:${field8}`;
       }
       return wizard.rows.some((row4) => row4.v[index] !== "") ? "extra" : "no";
     });
@@ -12027,9 +16420,9 @@
   var BATCH = 200;
   function columnsOf() {
     const standard = /* @__PURE__ */ new Map(), custom = /* @__PURE__ */ new Map();
-    wizard.mapping.forEach((value10, index) => {
-      if (value10.startsWith("std:")) standard.set(value10.slice(4), index);
-      else if (value10 === "extra") custom.set(customFieldKey(wizard.headers[index] ?? ""), index);
+    wizard.mapping.forEach((value15, index) => {
+      if (value15.startsWith("std:")) standard.set(value15.slice(4), index);
+      else if (value15 === "extra") custom.set(customFieldKey(wizard.headers[index] ?? ""), index);
     });
     return { standard, custom };
   }
@@ -12039,13 +16432,13 @@
       result[key] = row4.v[index] ?? "";
     });
     columns.custom.forEach((index, key) => {
-      const value10 = row4.v[index];
-      if (value10 !== void 0 && value10 !== "") extra[key] = value10;
+      const value15 = row4.v[index];
+      if (value15 !== void 0 && value15 !== "") extra[key] = value15;
     });
     result.extra = extra;
     return result;
   }
-  var text = (value10) => typeof value10 === "string" ? value10 : "";
+  var text = (value15) => typeof value15 === "string" ? value15 : "";
   function newOrder(row4) {
     return {
       _fila: row4._fila,
@@ -12075,35 +16468,35 @@
     const columns = columnsOf(), rows = wizard.rows.map((row4) => rowObject(row4, columns));
     return wizard.entity === "ventas" ? salesOrders(rows) : rows;
   }
-  function add(total, part) {
-    total.creados += part.creados;
-    total.actualizados += part.actualizados;
-    total.omitidos += part.omitidos;
-    total.errores.push(...part.errores);
-    total.filas.push(...part.filas);
+  function add(total2, part) {
+    total2.creados += part.creados;
+    total2.actualizados += part.actualizados;
+    total2.omitidos += part.omitidos;
+    total2.errores.push(...part.errores);
+    total2.filas.push(...part.filas);
   }
-  async function sendInBatches(rows, options, onProgress) {
-    const total = { creados: 0, actualizados: 0, omitidos: 0, errores: [], filas: [] };
+  async function sendInBatches(rows, options2, onProgress) {
+    const total2 = { creados: 0, actualizados: 0, omitidos: 0, errores: [], filas: [] };
     for (let start2 = 0; start2 < rows.length; start2 += BATCH) {
       const { data, error } = await callRpc("importar_lote", {
-        p_imp: options.importId,
-        p_entidad: options.entity,
+        p_imp: options2.importId,
+        p_entidad: options2.entity,
         p_filas: rows.slice(start2, start2 + BATCH),
-        p_modo: options.mode,
-        p_simular: options.simulate
+        p_modo: options2.mode,
+        p_simular: options2.simulate
       });
       if (error || !data?.ok) throw new Error(error ? error.message ?? "" : data?.error ?? t("importing.run.noAnswer"));
-      add(total, data);
+      add(total2, data);
       onProgress(Math.min(rows.length, start2 + BATCH), rows.length);
     }
-    return total;
+    return total2;
   }
 
   // src/app/screens/import/run-step.ts
   var MAX_CLASSIFIER_VALUES = 30;
   var DESTINATIONS = { clientes: "pacientes", productos: "productos", prescriptores: "directorio", ventas: "ventas" };
   function customFields() {
-    return wizard.mapping.map((value10, index) => value10 === "extra" ? index : null).filter(isPresent).map((index) => {
+    return wizard.mapping.map((value15, index) => value15 === "extra" ? index : null).filter(isPresent).map((index) => {
       const values = [...new Set(wizard.rows.map((row4) => row4.v[index] ?? "").filter(Boolean))], name = wizard.headers[index] ?? "";
       return { clave: customFieldKey(name), nombre: name, valores: values.length <= MAX_CLASSIFIER_VALUES ? values : [] };
     });
@@ -12117,7 +16510,7 @@
     return data?.ok ? data.id : null;
   }
   function finishedHtml(result) {
-    const errors = result.errores, figure2 = (value10, label, extraClass = "") => `<div class="${extraClass}"><b>${formatNumber(value10)}</b><span>${label}</span></div>`;
+    const errors = result.errores, figure2 = (value15, label, extraClass = "") => `<div class="${extraClass}"><b>${formatNumber(value15)}</b><span>${label}</span></div>`;
     return `<div class="card cfgpanel impcaja"><div class="impfin">${icon("check")}</div>
     <h2 style="padding:0 0 4px;text-align:center">${t("importing.run.finished")}</h2>
     <div class="impres">${figure2(result.creados, t("importing.run.created"), "ok")}${figure2(result.actualizados, t("importing.run.updated"))}
@@ -12126,10 +16519,10 @@
     <div class="acts" style="justify-content:center;flex-wrap:wrap"><button class="btn sec" type="button" id="impdes">${icon("undo-2")} ${t("importing.run.undo")}</button>
       <button class="btn sec" type="button" id="impotra">${t("importing.run.another")}</button><button class="btn" type="button" id="impver">${t("importing.run.see", { name: escapeHtml(entityName(wizard.entity).toLowerCase()) })}</button></div></div>`;
   }
-  function showRunProgress(done, total) {
-    showProgress(done, total);
+  function showRunProgress(done, total2) {
+    showProgress(done, total2);
     const counter = document.getElementById("impav");
-    if (counter) counter.textContent = t("importing.run.progress", { done: formatNumber(done), total: formatNumber(total) });
+    if (counter) counter.textContent = t("importing.run.progress", { done: formatNumber(done), total: formatNumber(total2) });
   }
   async function runImport(rows, mode) {
     const importId = await start(rows.length);
@@ -12139,7 +16532,7 @@
     }
     const fields = customFields();
     if (fields.length) await callRpc("importar_campos", { p_entidad: wizard.entity, p_campos: fields });
-    paint6(`<div class="card cfgpanel impcaja">${stepsHtml(4)}<h2 style="padding:0 0 4px">${t("importing.run.running")}</h2><p class="sm" id="impav">${t("importing.run.progress", { done: 0, total: formatNumber(rows.length) })}</p><div class="impbarra"><i style="width:0"></i></div></div>`);
+    paint7(`<div class="card cfgpanel impcaja">${stepsHtml2(4)}<h2 style="padding:0 0 4px">${t("importing.run.running")}</h2><p class="sm" id="impav">${t("importing.run.progress", { done: 0, total: formatNumber(rows.length) })}</p><div class="impbarra"><i style="width:0"></i></div></div>`);
     let result;
     try {
       result = await sendInBatches(rows, { entity: wizard.entity, mode, simulate: false, importId }, showRunProgress);
@@ -12150,7 +16543,7 @@
     await callRpc("importar_terminar", { p_imp: importId });
     importLegacy.countWrite();
     if (!pageBox()) return;
-    paint6(finishedHtml(result));
+    paint7(finishedHtml(result));
     const destination2 = DESTINATIONS[wizard.entity];
     onClick3("impdes", () => {
       void undoImport(importId);
@@ -12176,7 +16569,7 @@
 
   // src/app/screens/import/history.ts
   var UNDONE = "Deshecha";
-  function rowHtml8(item, names) {
+  function rowHtml17(item, names) {
     const date = new Date(item.creado_en).toLocaleString(t("dates.locale"), { dateStyle: "short", timeStyle: "short" });
     const line2 = t("importing.history.line", {
       date,
@@ -12194,9 +16587,9 @@
   async function paintImports() {
     const { data } = await callRpc("importaciones_lista", {});
     const names = new Map(entityTypes().map((type) => [type.key, type.name]));
-    const box = paint6(`<div class="card cfgpanel"><h2>${t("importing.history.title")}</h2>
+    const box = paint7(`<div class="card cfgpanel"><h2>${t("importing.history.title")}</h2>
     <p class="sm">${t("importing.history.text")}</p>
-    <div class="errlista">${(data ?? []).map((item) => rowHtml8(item, names)).join("") || `<div class="vacio">${t("importing.history.none")}</div>`}</div></div>`);
+    <div class="errlista">${(data ?? []).map((item) => rowHtml17(item, names)).join("") || `<div class="vacio">${t("importing.history.none")}</div>`}</div></div>`);
     box?.querySelectorAll("[data-impdes]").forEach((button2) => {
       button2.onclick = () => {
         void undoImport(button2.dataset.impdes ?? "");
@@ -12211,7 +16604,7 @@
     const count2 = (action) => check2.filas.filter((row4) => row4.accion === action).length;
     return { created: count2("nuevo"), existing: count2("actualizado"), skipped: count2("omitido"), unit: t(wizard.entity === "ventas" ? "importing.review.orders" : "importing.review.records") };
   }
-  function summaryHtml2(counts, errors) {
+  function summaryHtml4(counts, errors) {
     return `<div class="impres"><div class="ok"><b>${formatNumber(counts.created)}</b><span>${t("importing.review.newOnes", { unit: counts.unit })}</span></div>
       <div><b>${formatNumber(counts.existing + counts.skipped)}</b><span>${t("importing.review.existing")}${wizard.entity === "ventas" ? t("importing.review.untouched") : ""}</span></div>
       <div class="${errors ? "mal" : ""}"><b>${formatNumber(errors)}</b><span>${t("importing.review.withErrors")}</span></div></div>`;
@@ -12221,19 +16614,19 @@
     return `<label>${t("importing.review.existingLabel")}</label><div class="segs" id="impmodo"><button type="button" data-v="actualizar" class="on">${t("importing.review.update")}</button><button type="button" data-v="omitir">${t("importing.review.keep")}</button></div>
       <p class="sm">${t("importing.review.matchedBy", { keys: t(MATCHED_BY.get(wizard.entity) ?? "importing.review.byName") })}</p>`;
   }
-  function pageHtml6(check2, counts) {
-    const custom = wizard.mapping.map((value10, index) => value10 === "extra" ? wizard.headers[index] ?? "" : "").filter(Boolean);
+  function pageHtml9(check2, counts) {
+    const custom = wizard.mapping.map((value15, index) => value15 === "extra" ? wizard.headers[index] ?? "" : "").filter(Boolean);
     const errors = check2.errores;
-    return `<div class="card cfgpanel impcaja">${stepsHtml(4)}
+    return `<div class="card cfgpanel impcaja">${stepsHtml2(4)}
     <h2 style="padding:0 0 4px">${t("importing.review.title", { name: escapeHtml(wizard.fileName) })}</h2>
-    ${summaryHtml2(counts, errors.length)}
+    ${summaryHtml4(counts, errors.length)}
     ${modeHtml(counts)}
     ${custom.length ? `<p class="sm">${t("importing.review.customFields", { fields: custom.map(escapeHtml).join(", ") })}</p>` : ""}
     ${errors.length ? `<details class="imperr" ${errors.length <= OPEN_ERRORS ? "open" : ""}><summary>${t("importing.review.seeErrors")}</summary><div>${errorLines(errors)}</div></details>` : ""}
     <div class="acts" style="justify-content:space-between"><button class="btn sec" type="button" id="impvolver">${t("importing.review.backToColumns")}</button>
       <button class="btn" type="button" id="impok" ${counts.created + counts.existing ? "" : "disabled"}>${t("importing.review.run", { count: formatNumber(counts.created + counts.existing), unit: counts.unit })}</button></div></div>`;
   }
-  function bind11(rows, counts) {
+  function bind16(rows, counts) {
     let mode = "actualizar";
     const modes = document.getElementById("impmodo"), run = document.getElementById("impok");
     modes?.querySelectorAll("button").forEach((button2) => {
@@ -12252,7 +16645,7 @@
   }
   async function paintReviewStep() {
     const rows = rowsToImport();
-    paint6(`<div class="card cfgpanel impcaja">${stepsHtml(4)}<h2 style="padding:0 0 4px">${t("importing.review.checking")}</h2><p class="sm">${t("importing.review.checkingText")}</p><div class="impbarra"><i style="width:0"></i></div></div>`);
+    paint7(`<div class="card cfgpanel impcaja">${stepsHtml2(4)}<h2 style="padding:0 0 4px">${t("importing.review.checking")}</h2><p class="sm">${t("importing.review.checkingText")}</p><div class="impbarra"><i style="width:0"></i></div></div>`);
     let check2;
     try {
       check2 = await sendInBatches(rows, { entity: wizard.entity, mode: "actualizar", simulate: true, importId: null }, showProgress);
@@ -12262,8 +16655,8 @@
       return;
     }
     const counts = countsOf(check2);
-    paint6(pageHtml6(check2, counts));
-    bind11(rows, counts);
+    paint7(pageHtml9(check2, counts));
+    bind16(rows, counts);
   }
 
   // src/app/screens/import/index.ts
@@ -12289,7 +16682,7 @@
   });
 
   // src/app/screens/purchases/model.ts
-  var STATES5 = {
+  var STATES7 = {
     draft: "Borrador",
     sent: "Enviado",
     inTransit: "En tránsito",
@@ -12297,20 +16690,20 @@
     received: "Recibido",
     cancelled: "Cancelado"
   };
-  var OPEN_STATES = [STATES5.sent, STATES5.inTransit, STATES5.partlyReceived];
-  var EDITABLE_STATES = [STATES5.draft, STATES5.sent, STATES5.inTransit];
-  var CLOSED_STATES = [STATES5.received, STATES5.cancelled];
+  var OPEN_STATES = [STATES7.sent, STATES7.inTransit, STATES7.partlyReceived];
+  var EDITABLE_STATES = [STATES7.draft, STATES7.sent, STATES7.inTransit];
+  var CLOSED_STATES = [STATES7.received, STATES7.cancelled];
   var DEFAULT_LEAD_DAYS = 90;
   var errorText2 = (error, result) => error?.message ?? result?.error ?? "";
-  var euros = (value10) => formatCurrency(Math.round((Number(value10) || 0) * 100) / 100);
+  var euros5 = (value15) => formatCurrency(Math.round((Number(value15) || 0) * 100) / 100);
   function purchasePill(state) {
-    const kind = state === STATES5.received ? "p-est" : state === STATES5.cancelled ? "p-anu" : state === STATES5.draft ? "p-bor" : "p-per";
+    const kind = state === STATES7.received ? "p-est" : state === STATES7.cancelled ? "p-anu" : state === STATES7.draft ? "p-bor" : "p-per";
     return `<span class="pill ${kind}">${escapeHtml(state)}</span>`;
   }
 
   // src/app/screens/purchases/editor-view.ts
   var disabled = (editor) => editor.editable ? "" : "disabled";
-  function headerHtml7(editor) {
+  function headerHtml8(editor) {
     const { id, purchase } = editor;
     const title2 = id ? t("purchases.editor.title", { number: escapeHtml(purchase.numero) }) : t("purchases.editor.newTitle");
     return `<div class="fh"><div><h2>${title2} ${id ? purchasePill(purchase.estado) : ""}</h2>
@@ -12330,11 +16723,11 @@
   }
   function lineHtml2(editor, line2, index) {
     const off = disabled(editor);
-    const products2 = purchasesLegacy.products().map((product) => `<option value="${product.id}" ${product.id === line2.producto_id ? "selected" : ""}>${escapeHtml(product.nombre)}</option>`).join("");
+    const products3 = purchasesLegacy.products().map((product) => `<option value="${product.id}" ${product.id === line2.producto_id ? "selected" : ""}>${escapeHtml(product.nombre)}</option>`).join("");
     const received = editor.id ? `<label>${t("purchases.editor.received")}</label><div class="cprec">${t("purchases.editor.receivedOf", { received: formatNumber(line2.recibidas ?? 0), units: formatNumber(line2.unidades) })}</div>` : "";
     const remove7 = editor.editable && editor.lines.length > 1 ? `<button type="button" class="btn sec" data-clx="${index}" aria-label="${t("purchases.editor.remove")}">✕</button>` : "";
     return `<div class="lin"><div class="lrow cprow">
-        <div><label>${t("purchases.editor.product")}</label><select data-cl="${index}|producto_id" ${off}>${products2}</select></div>
+        <div><label>${t("purchases.editor.product")}</label><select data-cl="${index}|producto_id" ${off}>${products3}</select></div>
         <div><label>${t("purchases.editor.units")}</label><input type="number" min="1" data-cl="${index}|unidades" value="${line2.unidades}" ${off}></div>
         <div><label>${t("purchases.editor.unitCost")}</label><input type="number" step="0.0001" min="0" data-cl="${index}|coste_unitario" value="${line2.coste_unitario ?? ""}" ${off}></div>
         <div>${received}</div>
@@ -12349,16 +16742,16 @@
     const state = editor.purchase.estado;
     if (!purchasesLegacy.canBuy()) return [];
     return [
-      state === STATES5.draft ? `<button class="btn sec" id="cpenviar">${t("purchases.editor.markSent")}</button>` : "",
-      state === STATES5.sent ? `<button class="btn sec" id="cptransito">${t("purchases.editor.inTransit")}</button>` : "",
+      state === STATES7.draft ? `<button class="btn sec" id="cpenviar">${t("purchases.editor.markSent")}</button>` : "",
+      state === STATES7.sent ? `<button class="btn sec" id="cptransito">${t("purchases.editor.inTransit")}</button>` : "",
       editor.id && OPEN_STATES.includes(state) ? `<button class="btn" id="cprecibir">${t("purchases.editor.receive")}</button>` : ""
     ];
   }
-  function buttonsHtml2(editor) {
+  function buttonsHtml3(editor) {
     const { id, purchase, editable } = editor, state = purchase.estado;
     const buttons = [
       purchasesLegacy.canBuy() && id && !CLOSED_STATES.includes(state) ? `<button class="btn sec dang" id="cpcancel">${t("purchases.editor.cancelOrder")}</button>` : "",
-      editable ? `<button class="btn sec" id="cpguardar">${t(state === STATES5.draft ? "purchases.editor.saveDraft" : "purchases.editor.saveChanges")}</button>` : "",
+      editable ? `<button class="btn sec" id="cpguardar">${t(state === STATES7.draft ? "purchases.editor.saveDraft" : "purchases.editor.saveChanges")}</button>` : "",
       ...stepButtons(editor)
     ];
     return `<div class="acts" style="justify-content:flex-end;flex-wrap:wrap">
@@ -12366,10 +16759,10 @@
         ${buttons.join("\n        ")}
       </div>`;
   }
-  function editorHtml4(editor) {
+  function editorHtml6(editor) {
     const { purchase } = editor, off = disabled(editor);
     return `
-      ${headerHtml7(editor)}
+      ${headerHtml8(editor)}
       ${supplierHtml(editor)}
       <label>${t("purchases.editor.products")}</label>
       <div id="cplin">${editor.lines.map((line2, index) => lineHtml2(editor, line2, index)).join("")}</div>
@@ -12379,16 +16772,16 @@
         <div><label for="cpnota">${t("purchases.editor.note")}</label><input id="cpnota" value="${escapeHtml(purchase.nota ?? "")}" ${off}></div></div>
       <div class="totbox" id="cptot"></div>
       ${batchesHtml(editor)}
-      ${buttonsHtml2(editor)}`;
+      ${buttonsHtml3(editor)}`;
   }
-  function totalsHtml2(lines, shipping) {
+  function totalsHtml3(lines, shipping) {
     const amount3 = sum(lines.map((line2) => (Number(line2.unidades) || 0) * (Number(line2.coste_unitario) || 0))) + shipping;
     return `<div><span>${t("purchases.editor.totalUnits")}</span><b>${formatNumber(sum(lines.map((line2) => Number(line2.unidades) || 0)))}</b></div>
-        <div class="tot"><span>${t("purchases.editor.totalAmount")}</span><b>${euros(amount3)}</b></div>`;
+        <div class="tot"><span>${t("purchases.editor.totalAmount")}</span><b>${euros5(amount3)}</b></div>`;
   }
 
   // src/app/screens/purchases/receive.ts
-  var field = (row4, name) => row4.querySelector(`[data-r=${name}]`)?.value ?? "";
+  var field5 = (row4, name) => row4.querySelector(`[data-r=${name}]`)?.value ?? "";
   function lineHtml3(line2, storeId) {
     const pending = line2.unidades - (line2.recibidas ?? 0);
     return `<div class="lin" data-rl="${line2.id ?? ""}">
@@ -12399,14 +16792,14 @@
   function readRows(box) {
     return [...box.querySelectorAll(".rcl")].map((row4) => ({
       linea_id: row4.closest("[data-rl]")?.dataset.rl ?? "",
-      unidades: Number(field(row4, "u")) || 0,
-      numero_lote: field(row4, "lote").trim(),
-      caducidad: field(row4, "cad"),
-      fecha_fabricacion: field(row4, "fab"),
-      almacen_id: field(row4, "alm")
+      unidades: Number(field5(row4, "u")) || 0,
+      numero_lote: field5(row4, "lote").trim(),
+      caducidad: field5(row4, "cad"),
+      fecha_fabricacion: field5(row4, "fab"),
+      almacen_id: field5(row4, "alm")
     })).filter((row4) => row4.unidades > 0);
   }
-  async function checked(rows) {
+  async function checked2(rows) {
     if (!rows.length) {
       notices.toast(t("purchases.receive.writeUnits"), true);
       return false;
@@ -12420,7 +16813,7 @@
   }
   async function record(id, box, button2) {
     const rows = readRows(box);
-    if (!await checked(rows)) return;
+    if (!await checked2(rows)) return;
     button2.disabled = true;
     const { data: result, error } = await legacyDb().rpc("recibir_compra", { p_compra: id, p_lineas: rows });
     if (error || !result || result.ok === false) {
@@ -12434,7 +16827,7 @@
   }
   function receivePurchase(id, detail) {
     const pending = detail.lineas.filter((line2) => line2.unidades > (line2.recibidas ?? 0));
-    const stores = purchasesLegacy.stores(), storeId = (stores.find((store) => store.tipo === "central") ?? stores[0])?.id;
+    const stores2 = purchasesLegacy.stores(), storeId = (stores2.find((store) => store.tipo === "central") ?? stores2[0])?.id;
     const body2 = document.getElementById("dbody");
     if (!body2) return;
     body2.innerHTML = `
@@ -12458,8 +16851,8 @@
   }
 
   // src/app/screens/purchases/editor.ts
-  var input2 = (id) => document.getElementById(id);
-  var value7 = (id) => input2(id)?.value ?? "";
+  var input3 = (id) => document.getElementById(id);
+  var value12 = (id) => input3(id)?.value ?? "";
   var closeWindow2 = () => {
     document.getElementById("dlg")?.close();
   };
@@ -12467,73 +16860,73 @@
     const first = purchasesLegacy.products()[0];
     return { ...first ? { producto_id: first.id } : {}, unidades: 1, coste_unitario: first?.coste };
   }
-  function paintTotals(editor) {
+  function paintTotals2(editor) {
     const box = document.getElementById("cptot");
-    if (box) box.innerHTML = totalsHtml2(editor.lines, Number(value7("cpport")) || 0);
+    if (box) box.innerHTML = totalsHtml3(editor.lines, Number(value12("cpport")) || 0);
   }
   function onLineChange(editor, target) {
-    const [index = "", field4 = ""] = (target.dataset.cl ?? "").split("|"), line2 = editor.lines[Number(index)];
-    if (!field4 || !line2) return;
-    if (field4 === "producto_id") {
+    const [index = "", field8 = ""] = (target.dataset.cl ?? "").split("|"), line2 = editor.lines[Number(index)];
+    if (!field8 || !line2) return;
+    if (field8 === "producto_id") {
       line2.producto_id = target.value;
       const product = purchasesLegacy.products().find((item) => item.id === target.value);
       if (product && product.coste !== null && product.coste !== void 0) {
         line2.coste_unitario = product.coste;
-        paint7(editor);
+        paint8(editor);
         return;
       }
-    } else if (field4 === "unidades") line2.unidades = Number(target.value);
+    } else if (field8 === "unidades") line2.unidades = Number(target.value);
     else line2.coste_unitario = Number(target.value);
-    paintTotals(editor);
+    paintTotals2(editor);
   }
   function suggestExpected() {
-    const supplier = document.getElementById("cpprov"), expected = input2("cpprev");
+    const supplier = document.getElementById("cpprov"), expected = input3("cpprev");
     if (!supplier || !expected || expected.value) return;
-    expected.value = addDays(value7("cpfecha") || todayIso(), nonZeroOr(Number(supplier.selectedOptions[0]?.dataset.plazo), DEFAULT_LEAD_DAYS));
+    expected.value = addDays(value12("cpfecha") || todayIso(), nonZeroOr(Number(supplier.selectedOptions[0]?.dataset.plazo), DEFAULT_LEAD_DAYS));
   }
   function bindLines(editor) {
     const lines = document.getElementById("cplin");
     if (lines) lines.oninput = lines.onchange = (event) => {
       onLineChange(editor, event.target);
     };
-    const shipping = input2("cpport");
+    const shipping = input3("cpport");
     if (shipping) shipping.oninput = () => {
-      paintTotals(editor);
+      paintTotals2(editor);
     };
     const add2 = document.getElementById("cpmas");
     if (add2) add2.onclick = () => {
       editor.lines.push(newLine());
-      paint7(editor);
+      paint8(editor);
     };
     lines?.querySelectorAll("[data-clx]").forEach((button2) => {
       button2.onclick = () => {
         editor.lines.splice(Number(button2.dataset.clx), 1);
-        paint7(editor);
+        paint8(editor);
       };
     });
     const supplier = document.getElementById("cpprov");
     if (supplier) supplier.onchange = suggestExpected;
-    if (!value7("cpprev") && supplier?.value) suggestExpected();
+    if (!value12("cpprev") && supplier?.value) suggestExpected();
   }
-  function payload4(editor, state) {
+  function payload7(editor, state) {
     const lines = editor.lines.filter((line2) => line2.producto_id && Number(line2.unidades) > 0).map((line2) => ({ producto_id: line2.producto_id, unidades: Number(line2.unidades), coste_unitario: line2.coste_unitario }));
     return {
       id: editor.id ?? null,
-      proveedor_id: value7("cpprov"),
-      fecha: value7("cpfecha"),
-      fecha_prevista: value7("cpprev"),
+      proveedor_id: value12("cpprov"),
+      fecha: value12("cpfecha"),
+      fecha_prevista: value12("cpprev"),
       estado: state ?? editor.purchase.estado,
-      portes: value7("cpport"),
-      nota: value7("cpnota").trim(),
+      portes: value12("cpport"),
+      nota: value12("cpnota").trim(),
       lineas: lines
     };
   }
-  async function save6(editor, state) {
-    if (!value7("cpprov")) {
+  async function save14(editor, state) {
+    if (!value12("cpprov")) {
       notices.toast(t("purchases.editor.chooseSupplier"), true);
       return;
     }
-    const { data: result, error } = await legacyDb().rpc("guardar_compra", { p: payload4(editor, state) });
+    const { data: result, error } = await legacyDb().rpc("guardar_compra", { p: payload7(editor, state) });
     if (error || !result || result.ok === false) {
       notices.toast(t("purchases.editor.couldNotSave", { error: errorText2(error, result) }), true);
       return;
@@ -12552,7 +16945,7 @@
     nota: purchase.nota
   } });
   async function markInTransit(purchase) {
-    const { error } = await changeState(purchase, STATES5.inTransit);
+    const { error } = await changeState(purchase, STATES7.inTransit);
     if (error) {
       notices.toast(t("purchases.editor.couldNot"), true);
       return;
@@ -12561,46 +16954,46 @@
     closeWindow2();
     purchasesLegacy.reloadSales();
   }
-  async function cancel(purchase) {
+  async function cancel2(purchase) {
     if (!await notices.confirm(t("purchases.editor.cancelText"), { titulo: t("purchases.editor.cancelTitle"), ok: t("purchases.editor.cancelOrder"), peligro: true })) return;
-    await changeState(purchase, STATES5.cancelled);
+    await changeState(purchase, STATES7.cancelled);
     notices.toast(t("purchases.editor.cancelled"));
     closeWindow2();
     purchasesLegacy.reloadSales();
   }
   function bindButtons(editor) {
-    const on2 = (id, action) => {
+    const on4 = (id, action) => {
       const button2 = document.getElementById(id);
       if (button2) button2.onclick = action;
     };
-    on2("cpguardar", () => {
-      void save6(editor);
+    on4("cpguardar", () => {
+      void save14(editor);
     });
-    on2("cpenviar", () => {
-      void save6(editor, STATES5.sent);
+    on4("cpenviar", () => {
+      void save14(editor, STATES7.sent);
     });
-    on2("cptransito", () => {
+    on4("cptransito", () => {
       void markInTransit(editor.purchase);
     });
-    on2("cpcancel", () => {
-      void cancel(editor.purchase);
+    on4("cpcancel", () => {
+      void cancel2(editor.purchase);
     });
-    on2("cprecibir", () => {
+    on4("cprecibir", () => {
       if (editor.id && editor.detail) receivePurchase(editor.id, editor.detail);
     });
   }
-  function paint7(editor) {
+  function paint8(editor) {
     const body2 = document.getElementById("dbody");
     if (!body2) return;
-    body2.innerHTML = editorHtml4(editor);
-    paintTotals(editor);
+    body2.innerHTML = editorHtml6(editor);
+    paintTotals2(editor);
     if (editor.editable) bindLines(editor);
     bindButtons(editor);
   }
   async function editPurchase(id) {
     await Promise.all([purchasesLegacy.loadProducts(), purchasesLegacy.loadSuppliers(), purchasesLegacy.loadStores()]);
     const detail = id ? (await callRpc("compra_detalle", { p_id: id })).data : null;
-    const purchase = detail ? detail.compra : { estado: STATES5.draft, fecha: todayIso(), portes: 0 };
+    const purchase = detail ? detail.compra : { estado: STATES7.draft, fecha: todayIso(), portes: 0 };
     const editor = {
       id,
       purchase,
@@ -12608,7 +17001,7 @@
       editable: purchasesLegacy.canBuy() && EDITABLE_STATES.includes(purchase.estado),
       lines: detail ? detail.lineas.map((line2) => ({ ...line2 })) : [newLine()]
     };
-    paint7(editor);
+    paint8(editor);
     document.getElementById("dlg")?.showModal();
   }
 
@@ -12618,15 +17011,15 @@
   function indicatorsHtml2(rows) {
     const open2 = rows.filter((row4) => OPEN_STATES.includes(row4.estado)), late = rows.filter((row4) => row4.retrasada);
     const yearStart = `${todayIso().slice(0, 4)}-01-01`;
-    const bought = sum(rows.filter((row4) => row4.estado !== STATES5.cancelled && row4.fecha >= yearStart).map((row4) => Number(row4.importe) || 0));
+    const bought = sum(rows.filter((row4) => row4.estado !== STATES7.cancelled && row4.fecha >= yearStart).map((row4) => Number(row4.importe) || 0));
     return `<div class="kpis vtot">
       <div class="kpi"><b>${formatNumber(open2.length)}</b><span>${t("purchases.list.inProgress")}</span></div>
       <div class="kpi"><b>${formatNumber(sum(open2.map((row4) => row4.unidades - row4.recibidas)))}</b><span>${t("purchases.list.unitsOnTheWay")}</span></div>
       <div class="kpi ${late.length ? "warn" : ""}"><b>${formatNumber(late.length)}</b><span>${t("purchases.list.late")}</span></div>
-      <div class="kpi"><b>${euros(bought)}</b><span>${t("purchases.list.boughtThisYear")}</span></div>
+      <div class="kpi"><b>${euros5(bought)}</b><span>${t("purchases.list.boughtThisYear")}</span></div>
     </div>`;
   }
-  function rowHtml9(row4) {
+  function rowHtml18(row4) {
     const expected = row4.fecha_prevista ? formatShortDate(row4.fecha_prevista) + (row4.retrasada ? t("purchases.list.lateTag") : "") : "—";
     const received = row4.recibidas && row4.recibidas < row4.unidades ? `${formatNumber(row4.recibidas)}/` : "";
     return `<button class="dr" data-comp="${row4.id}">
@@ -12634,14 +17027,14 @@
         <span>${formatShortDate(row4.fecha)}</span>
         <span style="${row4.retrasada ? LATE_STYLE : ""}">${expected}</span>
         <span class="num">${received}${formatNumber(row4.unidades)}</span>
-        <span class="num">${euros(row4.importe)}</span><span>${purchasePill(row4.estado)}</span></button>`;
+        <span class="num">${euros5(row4.importe)}</span><span>${purchasePill(row4.estado)}</span></button>`;
   }
-  function tableHtml4(rows) {
+  function tableHtml7(rows) {
     if (!rows.length) return `<div class="vacio">${t("purchases.list.none")}${purchasesLegacy.canBuy() ? t("purchases.list.createFirst") : ""}</div>`;
     const head = [["", "number"], ["", "supplier"], ["", "products"], ["", "date"], ["", "expected"], ["num", "units"], ["num", "amount"], ["", "state"]];
     return `<div class="dgrid-wrap"><div class="dgrid comps">
       <div class="dh">${head.map(([kind, key]) => `<span${kind ? ` class="${kind}"` : ""}>${t(`purchases.list.${key}`)}</span>`).join("")}</div>
-      ${rows.map(rowHtml9).join("")}
+      ${rows.map(rowHtml18).join("")}
     </div></div>`;
   }
   async function paintPurchases() {
@@ -12658,7 +17051,7 @@
     const rows = data ?? [];
     box.innerHTML = `<div class="panel">
     ${indicatorsHtml2(rows)}
-    ${tableHtml4(rows)}</div>`;
+    ${tableHtml7(rows)}</div>`;
     box.querySelectorAll("[data-comp]").forEach((button2) => {
       button2.onclick = () => {
         purchasesLegacy.openPurchase(button2.dataset.comp ?? null);
@@ -12668,7 +17061,7 @@
 
   // src/app/screens/purchases/suppliers.ts
   var joined = (values) => values.filter(Boolean).join(" · ");
-  function rowHtml10(supplier) {
+  function rowHtml19(supplier) {
     return `<button class="dr" data-prov="${supplier.id ?? ""}" style="${supplier.activo ? "" : "opacity:.55"}">
       <span><b>${escapeHtml(supplier.nombre)}</b><span class="sm">${escapeHtml(joined([supplier.municipio, supplier.pais]))}</span></span>
       <span>${escapeHtml(orFallback(supplier.nif, "—"))}</span><span class="sm">${escapeHtml(orFallback(joined([supplier.contacto, supplier.email, supplier.telefono]), "—"))}</span>
@@ -12676,12 +17069,12 @@
       <span>${supplier.ultima_compra ? formatShortDate(supplier.ultima_compra) : "—"}</span>
       <span><span class="pill ${supplier.activo ? "p-est" : "p-anu"}">${t(supplier.activo ? "purchases.suppliers.active" : "purchases.suppliers.inactive")}</span></span></button>`;
   }
-  function listHtml(suppliers) {
+  function listHtml2(suppliers) {
     if (!suppliers.length) return `<div class="vacio">${t("purchases.suppliers.none")}</div>`;
     const head = [["", "supplier"], ["", "taxId"], ["", "contact"], ["num", "leadTime"], ["num", "purchases"], ["", "lastPurchase"], ["", "state"]];
     return `<div class="dgrid-wrap"><div class="dgrid provs">
     <div class="dh">${head.map(([kind, key]) => `<span${kind ? ` class="${kind}"` : ""}>${t(`purchases.suppliers.${key}`)}</span>`).join("")}</div>
-    ${suppliers.map(rowHtml10).join("")}
+    ${suppliers.map(rowHtml19).join("")}
   </div></div>`;
   }
   async function paintSuppliers() {
@@ -12691,7 +17084,7 @@
     const box = document.getElementById("vcuerpo");
     if (!box) return;
     const suppliers = purchasesLegacy.suppliers();
-    box.innerHTML = `<div class="panel">${listHtml(suppliers)}</div>`;
+    box.innerHTML = `<div class="panel">${listHtml2(suppliers)}</div>`;
     box.querySelectorAll("[data-prov]").forEach((button2) => {
       button2.onclick = () => {
         editSupplier(suppliers.find((supplier) => supplier.id === button2.dataset.prov) ?? null);
@@ -12719,7 +17112,7 @@
     const current = supplier[name];
     return `<div><label for="pv_${name}">${t(label)}</label><input id="pv_${name}" value="${escapeHtml(current ?? "")}" ${extra} ${readOnly}></div>`;
   }
-  function editorHtml5(supplier, canBuy) {
+  function editorHtml7(supplier, canBuy) {
     const readOnly = canBuy ? "" : "disabled", pairs2 = [];
     for (let i = 0; i < FIELDS2.length; i += 2) pairs2.push(`<div class="g2">${FIELDS2.slice(i, i + 2).map((item) => fieldHtml(supplier, item, readOnly)).join("")}</div>`);
     return `
@@ -12737,7 +17130,7 @@
     if (active) values.activo = active.checked;
     return values;
   }
-  async function save7(supplier) {
+  async function save15(supplier) {
     const values = readValues(supplier);
     if (!values.nombre) {
       notices.toast(t("purchases.supplierEditor.writeName"), true);
@@ -12757,11 +17150,11 @@
     const supplier = existing ?? { activo: true, plazo_dias: DEFAULT_LEAD_DAYS, pais: t("purchases.supplierEditor.defaultCountry") };
     const body2 = document.getElementById("dbody"), box = document.getElementById("dlg");
     if (!body2 || !box) return;
-    body2.innerHTML = editorHtml5(supplier, purchasesLegacy.canBuy());
+    body2.innerHTML = editorHtml7(supplier, purchasesLegacy.canBuy());
     box.showModal();
     const ok = document.getElementById("pvok");
     if (ok) ok.onclick = () => {
-      void save7(supplier);
+      void save15(supplier);
     };
   }
 
@@ -12775,45 +17168,45 @@
   });
 
   // src/app/screens/tenders/editor.ts
-  var field2 = (id) => document.getElementById(id)?.value ?? "";
-  var textOrNull2 = (id) => field2(id).trim() || null;
+  var field6 = (id) => document.getElementById(id)?.value ?? "";
+  var textOrNull2 = (id) => field6(id).trim() || null;
   async function team() {
     if (!salesTeam.members().length) await salesTeam.load().catch(() => void 0);
-    const me = salesTeam.currentUserId(), members = salesTeam.members();
-    return members.some((member) => member.id === me) ? members : [{ id: me, nombre: appLegacy.currentUserName() }, ...members];
+    const me = salesTeam.currentUserId(), members2 = salesTeam.members();
+    return members2.some((member) => member.id === me) ? members2 : [{ id: me, nombre: appLegacy.currentUserName() }, ...members2];
   }
-  function editorHtml6(tender, existing, people) {
-    const value10 = (text2) => escapeHtml(text2 ?? "");
+  function editorHtml8(tender, existing, people) {
+    const value15 = (text2) => escapeHtml(text2 ?? "");
     return `<div class="fh"><div><h2>${t(existing ? "tenders.editor.changeTitle" : "tenders.editor.newTitle")}</h2><div class="sm">${t("tenders.editor.subtitle")}</div></div>
       <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
-    <label for="cont">${t("tenders.editor.title")}</label><input id="cont" value="${value10(tender.titulo)}" placeholder="${t("tenders.editor.titlePlaceholder")}">
+    <label for="cont">${t("tenders.editor.title")}</label><input id="cont" value="${value15(tender.titulo)}" placeholder="${t("tenders.editor.titlePlaceholder")}">
     <label>${t("tenders.editor.soldTo")}</label><div id="concta"></div>
-    <div class="g2"><div><label for="conexp">${t("tenders.editor.file")}</label><input id="conexp" value="${value10(tender.expediente)}"></div>
-      <div><label for="conorg">${t("tenders.editor.body")}</label><input id="conorg" value="${value10(tender.organismo)}" placeholder="${t("tenders.editor.bodyPlaceholder")}"></div></div>
-    <div class="g2"><div><label for="conpub">${t("tenders.editor.published")}</label><input id="conpub" type="date" value="${value10(tender.publicado)}"></div>
-      <div><label for="conlim">${t("tenders.editor.submitBy")}</label><input id="conlim" type="date" value="${value10(tender.limite)}"></div></div>
+    <div class="g2"><div><label for="conexp">${t("tenders.editor.file")}</label><input id="conexp" value="${value15(tender.expediente)}"></div>
+      <div><label for="conorg">${t("tenders.editor.body")}</label><input id="conorg" value="${value15(tender.organismo)}" placeholder="${t("tenders.editor.bodyPlaceholder")}"></div></div>
+    <div class="g2"><div><label for="conpub">${t("tenders.editor.published")}</label><input id="conpub" type="date" value="${value15(tender.publicado)}"></div>
+      <div><label for="conlim">${t("tenders.editor.submitBy")}</label><input id="conlim" type="date" value="${value15(tender.limite)}"></div></div>
     <div class="g2"><div><label for="conimp">${t("tenders.editor.amount")}</label><input id="conimp" type="number" min="0" step="0.01" value="${isPresent(tender.importe_licitacion) ? Number(tender.importe_licitacion) : ""}"></div>
       <div><label for="conres">${t("tenders.editor.responsible")}</label><select id="conres">${people.map((person) => `<option value="${person.id}" ${person.id === tender.responsable_id ? "selected" : ""}>${escapeHtml(person.nombre)}</option>`).join("")}</select></div></div>
-    <label for="conn">${t("tenders.editor.note")}</label><textarea id="conn" rows="2">${value10(tender.nota)}</textarea>
+    <label for="conn">${t("tenders.editor.note")}</label><textarea id="conn" rows="2">${value15(tender.nota)}</textarea>
     <div class="acts" style="justify-content:flex-end">${existing ? `<button type="button" class="btn sec peligro" id="conborrar">${t("tenders.editor.delete")}</button>` : ""}
       <button type="button" class="btn sec" data-cerrar>${t("tenders.editor.cancel")}</button><button type="button" class="btn" id="conok">${t(existing ? "tenders.editor.save" : "tenders.editor.create")}</button></div>`;
   }
   function row3(title2, account) {
-    const amount3 = field2("conimp");
+    const amount3 = field6("conimp");
     return {
       titulo: title2,
       cuenta_id: account.id,
       expediente: textOrNull2("conexp"),
       organismo: textOrNull2("conorg"),
-      publicado: field2("conpub") || null,
-      limite: field2("conlim") || null,
+      publicado: field6("conpub") || null,
+      limite: field6("conlim") || null,
       importe_licitacion: amount3 === "" ? null : Math.max(0, Number(amount3)),
-      responsable_id: field2("conres") || null,
+      responsable_id: field6("conres") || null,
       nota: textOrNull2("conn")
     };
   }
-  async function save8(existing, account, button2) {
-    const title2 = field2("cont").trim();
+  async function save16(existing, account, button2) {
+    const title2 = field6("cont").trim();
     if (!title2 || !account) {
       notices.toast(t("tenders.editor.missing"), true);
       return;
@@ -12844,7 +17237,7 @@
     const people = await team();
     const body2 = document.getElementById("dbody"), box = document.getElementById("dlg");
     if (!body2 || !box) return;
-    body2.innerHTML = editorHtml6(tender, existing, people);
+    body2.innerHTML = editorHtml8(tender, existing, people);
     if (!box.open) box.showModal();
     let account = existing ? { id: existing.cuenta_id ?? "", nombre: existing.cuentas?.nombre ?? "" } : null;
     editorLegacy.pickAccount(document.getElementById("concta"), account, (picked) => {
@@ -12852,7 +17245,7 @@
     }, t("tenders.editor.soldToPlaceholder"));
     const ok = document.getElementById("conok");
     if (ok) ok.onclick = () => {
-      void save8(existing, account, ok);
+      void save16(existing, account, ok);
     };
     const erase = document.getElementById("conborrar");
     if (erase && existing) erase.onclick = () => {
@@ -12870,7 +17263,7 @@
     <p class="sm">${t("tenders.warnings.hint")}</p>
     <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>${t("tenders.warnings.cancel")}</button><button class="btn" id="convok">${t("tenders.warnings.save")}</button></div>`;
   }
-  async function save9(box) {
+  async function save17(box) {
     const typed = document.getElementById("convd")?.value ?? "";
     const days = newestFirst([...new Set(typed.split(/[^0-9]+/).map(Number).filter((day) => day > 0 && day <= MAX_DAYS))]);
     const { data: result, error } = await legacyDb().rpc("guardar_ajuste", { p_clave: "avisos_vencimiento", p_valor: { dias: days } });
@@ -12889,7 +17282,7 @@
     if (!box.open) box.showModal();
     const ok = document.getElementById("convok");
     if (ok) ok.onclick = () => {
-      void save9(box);
+      void save17(box);
     };
   }
 
@@ -12898,7 +17291,7 @@
   var URGENT_DAYS = 7;
   var NO_DATE = "9999";
   var byDate = (date) => (first, second) => orFallback(date(first), NO_DATE).localeCompare(orFallback(date(second), NO_DATE));
-  function shown3(list, view) {
+  function shown4(list, view) {
     if (view === "contratos") return list.filter((item) => item.estado === STATES3.awarded).sort(byDate(contractEnd));
     if (view === "cerrados") return list.filter((item) => isClosed(item.estado));
     return list.filter((item) => item.estado === STATES3.studying || item.estado === STATES3.offerSent).sort(byDate((item) => item.limite));
@@ -12922,7 +17315,7 @@
     const wonText = won ? won === 1 ? t("tenders.list.oneWon") : t("tenders.list.won", { count: won }) : "";
     return ` · ${lots.length === 1 ? t("tenders.list.oneLot") : t("tenders.list.lots", { count: lots.length })}${wonText}`;
   }
-  function rowHtml11(tender, view, warnDays) {
+  function rowHtml20(tender, view, warnDays) {
     const extra = view === "contratos" ? contractPill(tender, warnDays) : view === "marcha" ? deadlinePill(tender) : "";
     return `<button type="button" class="item conrow" data-con="${tender.id}"><span class="tx"><b>${escapeHtml(tender.titulo)}</b>
       <span class="sm">${escapeHtml(tenderLine(tender))}${lotsText(tender)}${tender.importe_licitacion ? ` · ${formatCurrency(tender.importe_licitacion)}` : ""}</span></span>
@@ -12932,13 +17325,13 @@
     const when = days.length ? t("tenders.list.warnDays", { days: [...days].sort((first, second) => second - first).join(t("tenders.list.and")) }) : t("tenders.list.warnNever");
     return `<p class="sm">${t("tenders.list.contractsHint", { when })}</p>`;
   }
-  function pageHtml7(list, view) {
+  function pageHtml10(list, view) {
     const days = tendersLegacy.warningDays(), warnDays = Math.max(...days, 0);
     const empty2 = t(view === "contratos" ? "tenders.list.noContracts" : view === "cerrados" ? "tenders.list.noClosed" : "tenders.list.noOpen");
     return `<div class="cirpag"><div class="evcab"><button type="button" class="btn" id="connuevo">${t("tenders.list.newTender")}</button>
       ${cardSectionsLegacy.can("administrar") ? `<button type="button" class="btn sec" id="conavisos">${t("tenders.list.warnings")}</button>` : ""}</div>
     ${view === "contratos" ? contractsHint(days) : ""}
-    <section class="card cirbloque">${list.length ? `<div class="lista">${list.map((item) => rowHtml11(item, view, warnDays)).join("")}</div>` : `<div class="vacio vlinea">${empty2}</div>`}</section></div>`;
+    <section class="card cirbloque">${list.length ? `<div class="lista">${list.map((item) => rowHtml20(item, view, warnDays)).join("")}</div>` : `<div class="vacio vlinea">${empty2}</div>`}</section></div>`;
   }
   async function paintTenders(view) {
     if (!document.getElementById("cfgcuerpo")) return;
@@ -12954,7 +17347,7 @@
     }
     const days = setting?.valor?.dias;
     if (Array.isArray(days)) tendersLegacy.setWarningDays(days.map(Number).filter((day) => day > 0));
-    box.innerHTML = pageHtml7(shown3(data ?? [], view), view);
+    box.innerHTML = pageHtml10(shown4(data ?? [], view), view);
     const add2 = document.getElementById("connuevo");
     if (add2) add2.onclick = () => {
       void editTender(null);
@@ -12972,20 +17365,20 @@
 
   // src/app/screens/tenders/lots.ts
   var DISCONTINUED = "Descatalogado";
-  var amount2 = (value10) => isPresent(value10) ? String(Number(value10)) : "";
-  function priceHtml(price, products2) {
-    const name = orFallback(products2.find((product) => product.id === price.producto_id)?.nombre, t("tenders.lot.product"));
+  var amount2 = (value15) => isPresent(value15) ? String(Number(value15)) : "";
+  function priceHtml(price, products3) {
+    const name = orFallback(products3.find((product) => product.id === price.producto_id)?.nombre, t("tenders.lot.product"));
     return `<div class="conpf" data-cp="${price.id}"><span>${escapeHtml(name)}</span>
           <label><span class="sm">${t("tenders.lot.price")}</span><input type="number" min="0" step="0.01" data-cpf="precio" value="${Number(price.precio)}"></label>
           <label><span class="sm">${t("tenders.lot.units")}</span><input type="number" min="0" step="1" data-cpf="unidades" value="${isPresent(price.unidades) ? price.unidades : ""}"></label>
           <button type="button" class="x" data-cpq aria-label="${t("tenders.lot.removeProduct")}">✕</button></div>`;
   }
-  function addProductHtml(lot, products2) {
-    const prices = lot.concurso_precios ?? [];
-    const options = products2.filter((product) => orFallback(product.estado, "Activo") !== DISCONTINUED && !prices.some((price) => price.producto_id === product.id)).map((product) => `<option value="${product.id}">${escapeHtml(product.nombre)}</option>`).join("");
-    return `<div class="conpadd"><select data-cpnuevo aria-label="${t("tenders.lot.addProduct")}"><option value="">${t("tenders.lot.addProductOption")}</option>${options}</select></div>`;
+  function addProductHtml(lot, products3) {
+    const prices2 = lot.concurso_precios ?? [];
+    const options2 = products3.filter((product) => orFallback(product.estado, "Activo") !== DISCONTINUED && !prices2.some((price) => price.producto_id === product.id)).map((product) => `<option value="${product.id}">${escapeHtml(product.nombre)}</option>`).join("");
+    return `<div class="conpadd"><select data-cpnuevo aria-label="${t("tenders.lot.addProduct")}"><option value="">${t("tenders.lot.addProductOption")}</option>${options2}</select></div>`;
   }
-  function lotHtml(lot, products2) {
+  function lotHtml(lot, products3) {
     const states = LOT_STATE_LIST.map((state) => `<option ${state === lot.estado ? "selected" : ""}>${state}</option>`).join("");
     return `<div class="conlote" data-lote="${lot.id}">
       <div class="conlcab"><input data-lf="numero" value="${escapeHtml(lot.numero ?? "")}" placeholder="${t("tenders.lot.number")}" aria-label="${t("tenders.lot.numberLabel")}" class="conln">
@@ -12995,13 +17388,13 @@
       <div class="conlimp"><label><span>${t("tenders.lot.tenderAmount")}</span><input type="number" min="0" step="0.01" data-lf="importe_licitacion" value="${amount2(lot.importe_licitacion)}"></label>
         <label><span>${t("tenders.lot.awardedAmount")}</span><input type="number" min="0" step="0.01" data-lf="importe_adjudicado" value="${amount2(lot.importe_adjudicado)}"></label>
         <label class="${lot.estado === LOT_STATES.lost ? "" : "hide"}" data-ladj><span>${t("tenders.lot.winner")}</span><input data-lf="adjudicatario" value="${escapeHtml(lot.adjudicatario ?? "")}" placeholder="${t("tenders.lot.winnerPlaceholder")}"></label></div>
-      <div class="conprecios">${(lot.concurso_precios ?? []).map((price) => priceHtml(price, products2)).join("")}
-        ${addProductHtml(lot, products2)}</div></div>`;
+      <div class="conprecios">${(lot.concurso_precios ?? []).map((price) => priceHtml(price, products3)).join("")}
+        ${addProductHtml(lot, products3)}</div></div>`;
   }
-  function lotValue(input3) {
-    if (input3.dataset.lf === "estado") return input3.value;
-    if (input3.type === "number") return input3.value === "" ? null : Math.max(0, Number(input3.value));
-    return input3.value.trim() || null;
+  function lotValue(input4) {
+    if (input4.dataset.lf === "estado") return input4.value;
+    if (input4.type === "number") return input4.value === "" ? null : Math.max(0, Number(input4.value));
+    return input4.value.trim() || null;
   }
   async function removeLot(lotId, context) {
     if (!await notices.confirm(t("tenders.lot.removeText"), { titulo: t("tenders.lot.removeTitle"), ok: t("tenders.lot.removeOk"), peligro: true })) return;
@@ -13022,14 +17415,14 @@
     }
     context.reopen();
   }
-  async function savePrice(row4, input3, context) {
-    const key = input3.dataset.cpf ?? "";
-    const value10 = input3.value === "" ? null : Math.max(0, key === "unidades" ? Math.floor(Number(input3.value)) : Number(input3.value));
-    if (key === "precio" && value10 === null) {
+  async function savePrice(row4, input4, context) {
+    const key = input4.dataset.cpf ?? "";
+    const value15 = input4.value === "" ? null : Math.max(0, key === "unidades" ? Math.floor(Number(input4.value)) : Number(input4.value));
+    if (key === "precio" && value15 === null) {
       notices.toast(t("tenders.lot.writePrice"), true);
       return;
     }
-    const { error } = await legacyDb().from("concurso_precios").update({ [key]: value10 }).eq("id", row4.dataset.cp);
+    const { error } = await legacyDb().from("concurso_precios").update({ [key]: value15 }).eq("id", row4.dataset.cp);
     if (error) context.fail(error);
   }
   async function removePrice(row4, context) {
@@ -13040,11 +17433,11 @@
     }
     context.reopen();
   }
-  function bindPrices(box, context) {
+  function bindPrices2(box, context) {
     box.querySelectorAll("[data-cp]").forEach((row4) => {
-      row4.querySelectorAll("[data-cpf]").forEach((input3) => {
-        input3.onchange = () => {
-          void savePrice(row4, input3, context);
+      row4.querySelectorAll("[data-cpf]").forEach((input4) => {
+        input4.onchange = () => {
+          void savePrice(row4, input4, context);
         };
       });
       const remove7 = row4.querySelector("[data-cpq]");
@@ -13053,9 +17446,9 @@
       };
     });
   }
-  async function saveLotField(lotId, input3, context) {
-    const key = input3.dataset.lf ?? "";
-    const { error } = await legacyDb().from("concurso_lotes").update({ [key]: lotValue(input3) }).eq("id", lotId);
+  async function saveLotField(lotId, input4, context) {
+    const key = input4.dataset.lf ?? "";
+    const { error } = await legacyDb().from("concurso_lotes").update({ [key]: lotValue(input4) }).eq("id", lotId);
     if (error) {
       context.fail(error);
       return;
@@ -13065,9 +17458,9 @@
   function bindLots(list, context) {
     list.querySelectorAll("[data-lote]").forEach((box) => {
       const lotId = box.dataset.lote ?? "";
-      box.querySelectorAll("[data-lf]").forEach((input3) => {
-        input3.onchange = () => {
-          void saveLotField(lotId, input3, context);
+      box.querySelectorAll("[data-lf]").forEach((input4) => {
+        input4.onchange = () => {
+          void saveLotField(lotId, input4, context);
         };
       });
       const remove7 = box.querySelector("[data-lq]");
@@ -13078,7 +17471,7 @@
       if (add2) add2.onchange = () => {
         void addProduct(lotId, add2.value, context);
       };
-      bindPrices(box, context);
+      bindPrices2(box, context);
     });
   }
 
@@ -13106,13 +17499,13 @@
     const account = escapeHtml(orFallback(tender.cuentas?.nombre, t("tenders.sheet.thisAccount")));
     return `<div class="banda-ok conok">${t("tenders.sheet.pricesApplied", { account, left: leftText(daysLeft(tender)) })}</div>`;
   }
-  function sheetHtml4(tender, lots, products2) {
+  function sheetHtml6(tender, lots, products3) {
     return `<div class="fh"><div><h2>${escapeHtml(tender.titulo)}</h2><div class="sm">${escapeHtml(tenderLine(tender))}</div></div>
       <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
     ${dataHtml2(tender)}
     ${awardedHtml(tender, lots)}
     <div class="evascab"><h3>${t("tenders.sheet.lots", { count: lots.length })}</h3><button type="button" class="btn sec" id="conlmas">${t("tenders.sheet.addLot")}</button></div>
-    <div id="conlotes">${lots.length ? lots.map((lot) => lotHtml(lot, products2)).join("") : `<div class="vacio vlinea">${t("tenders.sheet.noLots")}</div>`}</div>
+    <div id="conlotes">${lots.length ? lots.map((lot) => lotHtml(lot, products3)).join("") : `<div class="vacio vlinea">${t("tenders.sheet.noLots")}</div>`}</div>
     ${tender.nota ? `<p class="sm">${escapeHtml(tender.nota)}</p>` : ""}
     <div class="acts" style="justify-content:flex-end"><button type="button" class="btn sec" id="coneditar">${t("tenders.sheet.change")}</button><button type="button" class="btn" data-cerrar>${t("tenders.sheet.done")}</button></div>`;
   }
@@ -13121,10 +17514,10 @@
   };
   function bindDates(id) {
     CONTRACT_DATES.forEach(([elementId, column]) => {
-      const input3 = document.getElementById(elementId);
-      if (!input3) return;
-      input3.onchange = async () => {
-        const { error } = await legacyDb().from("concursos").update({ [column]: input3.value || null }).eq("id", id);
+      const input4 = document.getElementById(elementId);
+      if (!input4) return;
+      input4.onchange = async () => {
+        const { error } = await legacyDb().from("concursos").update({ [column]: input4.value || null }).eq("id", id);
         if (error) {
           fail(error);
           return;
@@ -13133,7 +17526,7 @@
       };
     });
   }
-  function bind12(tender, lots, context) {
+  function bind17(tender, lots, context) {
     const id = tender.id;
     const change = document.getElementById("coneditar");
     if (change) change.onclick = () => {
@@ -13168,12 +17561,12 @@
       notices.toast(t("tenders.sheet.notFound"), true);
       return;
     }
-    const products2 = await portalLegacy.products(), lots = sortedLots(tender);
+    const products3 = await portalLegacy.products(), lots = sortedLots(tender);
     const body2 = document.getElementById("dbody"), box = document.getElementById("dlg");
     if (!body2 || !box) return;
-    body2.innerHTML = sheetHtml4(tender, lots, products2);
+    body2.innerHTML = sheetHtml6(tender, lots, products3);
     if (!box.open) box.showModal();
-    bind12(tender, lots, { tenderId: id, products: products2, reopen: () => {
+    bind17(tender, lots, { tenderId: id, products: products3, reopen: () => {
       void showTender(id);
     }, fail });
   }
@@ -13190,17 +17583,17 @@
 
   // src/app/screens/equipment/editor.ts
   var MAX_REVIEW_MONTHS = 120;
-  var field3 = (id) => document.getElementById(id);
-  var value8 = (id) => field3(id)?.value ?? "";
-  var trimmedOrNull = (id) => value8(id).trim() || null;
-  async function products() {
+  var field7 = (id) => document.getElementById(id);
+  var value13 = (id) => field7(id)?.value ?? "";
+  var trimmedOrNull = (id) => value13(id).trim() || null;
+  async function products2() {
     const { data } = await legacyDb().from("productos").select("id,nombre,es_equipo,revision_meses").order("nombre");
     return (data ?? []).sort((first, second) => Number(second.es_equipo) - Number(first.es_equipo) || String(first.nombre).localeCompare(String(second.nombre)));
   }
   function productOptions(list, chosen2) {
     return list.map((product) => `<option value="${product.id}" data-rm="${product.revision_meses ?? 0}" ${product.id === chosen2 ? "selected" : ""}>${escapeHtml(product.nombre)}${product.es_equipo ? "" : t("equipment.editor.notMarked")}</option>`).join("");
   }
-  function editorHtml7(item, existing, list) {
+  function editorHtml9(item, existing, list) {
     const contracts = equipmentLegacy.contracts().map((kind) => `<option ${kind === item.contrato ? "selected" : ""}>${kind}</option>`).join("");
     return `<div class="fh"><div><h2>${t(existing ? "equipment.editor.changeTitle" : "equipment.editor.newTitle")}</h2><div class="sm">${t("equipment.editor.subtitle")}</div></div>
       <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
@@ -13218,22 +17611,22 @@
       <button type="button" class="btn sec" data-cerrar>${t("equipment.editor.cancel")}</button><button type="button" class="btn" id="eqok">${t(existing ? "equipment.editor.save" : "equipment.editor.create")}</button></div>`;
   }
   function rowOf(account) {
-    const contract = value8("eqc");
+    const contract = value13("eqc");
     return {
       cuenta_id: account.id,
-      producto_id: value8("eqp"),
+      producto_id: value13("eqp"),
       serie: trimmedOrNull("eqs"),
       ubicacion: trimmedOrNull("equ"),
-      instalado: value8("eqi") || todayIso(),
+      instalado: value13("eqi") || todayIso(),
       contrato: contract,
-      contrato_fin: contract === SALE ? null : value8("eqcf") || null,
-      garantia_hasta: value8("eqg") || null,
-      revision_meses: Math.min(MAX_REVIEW_MONTHS, Math.max(0, Math.floor(Number(value8("eqr")) || 0))),
+      contrato_fin: contract === SALE ? null : value13("eqcf") || null,
+      garantia_hasta: value13("eqg") || null,
+      revision_meses: Math.min(MAX_REVIEW_MONTHS, Math.max(0, Math.floor(Number(value13("eqr")) || 0))),
       nota: trimmedOrNull("eqn")
     };
   }
-  async function save10(existing, account, button2) {
-    if (!account || !value8("eqp")) {
+  async function save18(existing, account, button2) {
+    if (!account || !value13("eqp")) {
       notices.toast(t("equipment.editor.missing"), true);
       return;
     }
@@ -13259,25 +17652,25 @@
     notices.toast(t("equipment.editor.retired"));
     relatedLegacy.openEquipment(existing.id);
   }
-  function bind13(existing, chosen2) {
-    editorLegacy.pickAccount(field3("eqcta"), chosen2.account, (account) => {
+  function bind18(existing, chosen2) {
+    editorLegacy.pickAccount(field7("eqcta"), chosen2.account, (account) => {
       chosen2.account = account;
     }, t("equipment.editor.wherePlaceholder"));
     const contract = document.getElementById("eqc"), product = document.getElementById("eqp");
     const showEnd = () => {
-      field3("eqcfw")?.classList.toggle("hide", contract?.value === SALE);
+      field7("eqcfw")?.classList.toggle("hide", contract?.value === SALE);
     };
     showEnd();
     if (contract) contract.onchange = showEnd;
     if (product) product.onchange = () => {
-      const months2 = field3("eqr");
+      const months2 = field7("eqr");
       if (!existing && months2) months2.value = product.selectedOptions[0]?.dataset.rm ?? "0";
     };
     const ok = document.getElementById("eqok");
     if (ok) ok.onclick = () => {
-      void save10(existing, chosen2.account, ok);
+      void save18(existing, chosen2.account, ok);
     };
-    const retireButton = field3("eqretirar");
+    const retireButton = field7("eqretirar");
     if (retireButton && existing) retireButton.onclick = () => {
       void retire(existing);
     };
@@ -13288,27 +17681,27 @@
   }
   async function editEquipment(existing, account) {
     await equipmentLegacy.loadProducts();
-    const list = await products(), item = existing ?? newItem(list);
+    const list = await products2(), item = existing ?? newItem(list);
     const body2 = document.getElementById("dbody"), box = document.getElementById("dlg");
     if (!body2 || !box) return;
-    body2.innerHTML = editorHtml7(item, existing, list);
+    body2.innerHTML = editorHtml9(item, existing, list);
     if (!box.open) box.showModal();
-    bind13(existing, { account: existing ? { id: existing.cuenta_id ?? "", nombre: existing.cuentas?.nombre ?? "" } : account ?? null });
+    bind18(existing, { account: existing ? { id: existing.cuenta_id ?? "", nombre: existing.cuentas?.nombre ?? "" } : account ?? null });
   }
 
   // src/app/screens/equipment/list.ts
   var LIMIT5 = 500;
   var SOON_DAYS2 = 30;
-  var SEARCH_WAIT_MS4 = 300;
+  var SEARCH_WAIT_MS6 = 300;
   var listState = { query: "" };
   var plain = (text2) => String(text2 ?? "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
-  function rowHtml12(item) {
+  function rowHtml21(item) {
     const details2 = [item.serie ? t("equipment.list.serial", { serial: item.serie }) : "", item.cuentas?.nombre, item.ubicacion, item.contrato].filter(Boolean).join(" · ");
     return `<button type="button" class="item conrow" data-eq="${item.id}"><span class="tx"><b>${escapeHtml(orFallback(item.productos?.nombre, t("equipment.equipment")))}</b>
       <span class="sm">${escapeHtml(details2)}${t("equipment.list.since", { date: formatShortDate(item.instalado ?? "") })}</span></span>
     <span class="cirest">${reviewPill(item)}${expiryPill(item)}</span></button>`;
   }
-  var block2 = (title2, list) => `<section class="card cirbloque"><h2>${title2}</h2>${list.length ? `<div class="lista">${list.map(rowHtml12).join("")}</div>` : '<div class="vacio vlinea"></div>'}</section>`;
+  var block2 = (title2, list) => `<section class="card cirbloque"><h2>${title2}</h2>${list.length ? `<div class="lista">${list.map(rowHtml21).join("")}</div>` : '<div class="vacio vlinea"></div>'}</section>`;
   function upcoming(list) {
     const installed = list.filter((item) => item.estado === STATES.installed), limit = addDays(todayIso(), SOON_DAYS2), warning = warningLimit();
     const reviews = installed.filter((item) => item.proxima_revision && item.proxima_revision <= limit).sort((first, second) => String(first.proxima_revision).localeCompare(String(second.proxima_revision)));
@@ -13318,7 +17711,7 @@
     }).sort((first, second) => String(expiryOf(first)).localeCompare(String(expiryOf(second))));
     return { reviews, expiring };
   }
-  function pageHtml8(list) {
+  function pageHtml11(list) {
     const { reviews, expiring } = upcoming(list), query = plain(listState.query);
     const found = list.filter((item) => !listState.query || plain([item.serie, item.productos?.nombre, item.cuentas?.nombre, item.ubicacion].join(" ")).includes(query));
     const empty2 = list.length ? t("equipment.list.noneFound") : t("equipment.list.noneYet");
@@ -13326,10 +17719,10 @@
     ${reviews.length ? block2(t("equipment.list.reviewsSoon"), reviews) : ""}
     ${expiring.length ? block2(t("equipment.list.expiring"), expiring) : ""}
     <section class="card cirbloque"><div class="cicbcab"><h2>${t("equipment.list.all", { count: formatNumber(list.length) })}</h2><input id="eqq" type="search" placeholder="${t("equipment.list.searchPlaceholder")}" value="${escapeHtml(listState.query)}" aria-label="${t("equipment.list.searchLabel")}"></div>
-      ${found.length ? `<div class="lista">${found.map(rowHtml12).join("")}</div>` : `<div class="vacio vlinea">${empty2}</div>`}</section></div>`;
+      ${found.length ? `<div class="lista">${found.map(rowHtml21).join("")}</div>` : `<div class="vacio vlinea">${empty2}</div>`}</section></div>`;
   }
-  var searchTimer4;
-  function bind14(box, wasSearching) {
+  var searchTimer6;
+  function bind19(box, wasSearching) {
     const add2 = document.getElementById("eqnuevo");
     if (add2) add2.onclick = () => {
       void editEquipment(null);
@@ -13337,11 +17730,11 @@
     const search3 = document.getElementById("eqq");
     if (search3) {
       search3.oninput = () => {
-        clearTimeout(searchTimer4);
-        searchTimer4 = setTimeout(() => {
+        clearTimeout(searchTimer6);
+        searchTimer6 = setTimeout(() => {
           listState.query = search3.value.trim();
           void paintEquipment();
-        }, SEARCH_WAIT_MS4);
+        }, SEARCH_WAIT_MS6);
       };
       if (wasSearching) {
         search3.focus();
@@ -13372,8 +17765,8 @@
     }
     rememberWarningDays(setting);
     const search3 = document.getElementById("eqq"), wasSearching = Boolean(search3) && document.activeElement === search3;
-    box.innerHTML = pageHtml8(data ?? []);
-    bind14(box, wasSearching);
+    box.innerHTML = pageHtml11(data ?? []);
+    bind19(box, wasSearching);
   }
 
   // src/app/screens/equipment/sheet.ts
@@ -13395,9 +17788,9 @@
   }
   function reviewsHtml(reviews) {
     if (!reviews.length) return `<div class="vacio vlinea">${t("equipment.sheet.noReviewsYet")}</div>`;
-    return `<div class="lista">${reviews.map((review) => `<div class="fmrow"><span><b>${formatShortDate(review.fecha)}</b> · ${escapeHtml(review.tipo)}${review.nota ? `<span class="sm"> · ${escapeHtml(review.nota)}</span>` : ""}</span><button type="button" class="x" data-rvq="${review.id}" aria-label="${t("equipment.sheet.deleteReviewLabel")}">✕</button></div>`).join("")}</div>`;
+    return `<div class="lista">${reviews.map((review2) => `<div class="fmrow"><span><b>${formatShortDate(review2.fecha)}</b> · ${escapeHtml(review2.tipo)}${review2.nota ? `<span class="sm"> · ${escapeHtml(review2.nota)}</span>` : ""}</span><button type="button" class="x" data-rvq="${review2.id}" aria-label="${t("equipment.sheet.deleteReviewLabel")}">✕</button></div>`).join("")}</div>`;
   }
-  function sheetHtml5(item, reviews) {
+  function sheetHtml7(item, reviews) {
     const installed = item.estado === STATES.installed;
     return `<div class="fh"><div><h2>${escapeHtml(orFallback(item.productos?.nombre, t("equipment.equipment")))}</h2><div class="sm">${item.serie ? t("equipment.sheet.serial", { serial: escapeHtml(item.serie) }) : ""}${escapeHtml(orFallback(item.cuentas?.nombre, ""))}</div></div>
       <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
@@ -13429,8 +17822,8 @@
     const place = document.getElementById("eqrevf");
     if (!place) return;
     place.innerHTML = reviewFormHtml();
-    const cancel2 = document.getElementById("eqrcanc");
-    if (cancel2) cancel2.onclick = () => {
+    const cancel3 = document.getElementById("eqrcanc");
+    if (cancel3) cancel3.onclick = () => {
       place.innerHTML = "";
     };
     const ok = document.getElementById("eqrok");
@@ -13447,10 +17840,10 @@
     }
     relatedLegacy.openEquipment(id);
   }
-  function bind15(id, item) {
+  function bind20(id, item) {
     const body2 = document.getElementById("dbody");
     if (!body2) return;
-    const on2 = (elementId, action) => {
+    const on4 = (elementId, action) => {
       const button2 = document.getElementById(elementId);
       if (button2) button2.onclick = action;
     };
@@ -13460,14 +17853,14 @@
         agendaActions.openAccount(button2.dataset.cfi ?? "");
       };
     });
-    on2("eqeditar", () => {
+    on4("eqeditar", () => {
       void editEquipment(item);
     });
-    on2("eqagenda", () => {
+    on4("eqagenda", () => {
       const today = todayIso(), next = item.proxima_revision;
       agendaActions.newAppointment(item.cuenta_id ?? "", next && next > today ? next : today);
     });
-    on2("eqrevmas", () => {
+    on4("eqrevmas", () => {
       openReviewForm(id);
     });
     body2.querySelectorAll("[data-rvq]").forEach((button2) => {
@@ -13487,9 +17880,9 @@
     }
     const body2 = document.getElementById("dbody"), box = document.getElementById("dlg");
     if (!body2 || !box) return;
-    body2.innerHTML = sheetHtml5(item, reviews ?? []);
+    body2.innerHTML = sheetHtml7(item, reviews ?? []);
     if (!box.open) box.showModal();
-    bind15(id, item);
+    bind20(id, item);
   }
 
   // src/app/screens/surgeries/index.ts
@@ -13501,13 +17894,13 @@
   });
 
   // src/app/screens/surgeries/editor.ts
-  var value9 = (id) => document.getElementById(id)?.value ?? "";
+  var value14 = (id) => document.getElementById(id)?.value ?? "";
   async function team2() {
     if (!salesTeam.members().length) await salesTeam.load().catch(() => void 0);
-    const me = salesTeam.currentUserId(), members = salesTeam.members();
-    return members.some((member) => member.id === me) ? members : [{ id: me, nombre: appLegacy.currentUserName() }, ...members];
+    const me = salesTeam.currentUserId(), members2 = salesTeam.members();
+    return members2.some((member) => member.id === me) ? members2 : [{ id: me, nombre: appLegacy.currentUserName() }, ...members2];
   }
-  function editorHtml8(surgery, existing, people) {
+  function editorHtml10(surgery, existing, people) {
     const origins = ORIGINS.map((origin) => `<button type="button" data-o="${origin}" class="${origin === surgery.origen ? "on" : ""}" aria-pressed="${String(origin === surgery.origen)}">${originLabel(origin)}</button>`).join("");
     return `<div class="fh"><div><h2>${t(existing ? "surgeries.editor.changeTitle" : "surgeries.editor.newTitle")}</h2><div class="sm">${t("surgeries.editor.subtitle")}</div></div>
       <button class="x" data-cerrar aria-label="${t("common.close")}">✕</button></div>
@@ -13525,33 +17918,33 @@
     <div class="acts" style="justify-content:flex-end">${existing ? `<button type="button" class="btn sec peligro" id="ciranular">${t("surgeries.editor.cancelSurgery")}</button>` : ""}
       <button type="button" class="btn sec" data-cerrar>${t("surgeries.editor.cancel")}</button><button type="button" class="btn" id="cirok">${t(existing ? "surgeries.editor.save" : "surgeries.editor.schedule")}</button></div>`;
   }
-  function payload5(existing, centre, responsible, state) {
+  function payload8(existing, centre, responsible, state) {
     return {
       id: existing?.id ?? null,
-      fecha: value9("cirf"),
-      hora: value9("cirh") || null,
+      fecha: value14("cirf"),
+      hora: value14("cirh") || null,
       hospital_id: centre.id,
       cirujano_id: responsible.id,
-      procedimiento: value9("cirp"),
-      quirofano: value9("cirq"),
-      asistente_id: value9("cira"),
+      procedimiento: value14("cirp"),
+      quirofano: value14("cirq"),
+      asistente_id: value14("cira"),
       origen: document.querySelector("#cirori .on")?.dataset.o,
-      referencia_caso: value9("cirref"),
-      nota: value9("cirn"),
+      referencia_caso: value14("cirref"),
+      nota: value14("cirn"),
       estado: state
     };
   }
-  var failureText2 = (error, result) => error ? t("surgeries.editor.couldNotSave", { error: error.message ?? "" }) : errorText(result);
-  async function save11(existing, choice, state, button2) {
-    if (!value9("cirf") || !choice.hos || !choice.cir) {
+  var failureText4 = (error, result) => error ? t("surgeries.editor.couldNotSave", { error: error.message ?? "" }) : errorText(result);
+  async function save19(existing, choice, state, button2) {
+    if (!value14("cirf") || !choice.hos || !choice.cir) {
       notices.toast(t("surgeries.editor.missing"), true);
       return;
     }
     button2.disabled = true;
-    const { data: result, error } = await legacyDb().rpc("cirugia_guardar", { p: payload5(existing, choice.hos, choice.cir, state) });
+    const { data: result, error } = await legacyDb().rpc("cirugia_guardar", { p: payload8(existing, choice.hos, choice.cir, state) });
     button2.disabled = false;
     if (error || !result || result.ok === false) {
-      notices.toast(failureText2(error, result), true);
+      notices.toast(failureText4(error, result), true);
       return;
     }
     notices.toast(t(state === STATES2.cancelled ? "surgeries.editor.cancelled" : existing ? "surgeries.editor.saved" : "surgeries.editor.scheduled"));
@@ -13559,7 +17952,7 @@
     if (state === STATES2.cancelled) document.getElementById("dlg")?.close();
     else relatedLegacy.openSurgery(result.id ?? "");
   }
-  function bind16(existing, choice) {
+  function bind21(existing, choice) {
     editorLegacy.pickAccount(document.getElementById("cirhos"), choice.hos, (account) => {
       choice.hos = account;
     }, t("surgeries.editor.centrePlaceholder"));
@@ -13577,12 +17970,12 @@
     });
     const ok = document.getElementById("cirok");
     if (ok) ok.onclick = () => {
-      void save11(existing, choice, STATES2.scheduled, ok);
+      void save19(existing, choice, STATES2.scheduled, ok);
     };
-    const cancel2 = document.getElementById("ciranular");
-    if (cancel2) cancel2.onclick = async () => {
+    const cancel3 = document.getElementById("ciranular");
+    if (cancel3) cancel3.onclick = async () => {
       if (!await notices.confirm(t("surgeries.editor.cancelText"), { titulo: t("surgeries.editor.cancelTitle"), ok: t("surgeries.editor.cancelSurgery"), peligro: true })) return;
-      await save11(existing, choice, STATES2.cancelled, cancel2);
+      await save19(existing, choice, STATES2.cancelled, cancel3);
     };
   }
   async function editSurgery(existing) {
@@ -13590,13 +17983,13 @@
     const people = await team2();
     const body2 = document.getElementById("dbody"), box = document.getElementById("dlg");
     if (!body2 || !box) return;
-    body2.innerHTML = editorHtml8(surgery, existing, people);
+    body2.innerHTML = editorHtml10(surgery, existing, people);
     if (!box.open) box.showModal();
     const choice = {
       hos: existing ? { id: existing.hospital_id ?? "", nombre: existing.hospital ?? "" } : null,
       cir: existing ? { id: existing.cirujano_id ?? "", nombre: existing.cirujano ?? "", ...existing.especialidad ? { especialidad: existing.especialidad } : {} } : null
     };
-    bind16(existing, choice);
+    bind21(existing, choice);
   }
 
   // src/app/screens/surgeries/list.ts
@@ -13648,11 +18041,11 @@
     return `<div class="cirl" data-ci="${index}"><label><span>${escapeHtml(line2.nombre)} <span class="sm">· ${details2}</span></span>
       <input type="number" min="0" max="${line2.unidades}" step="1" data-cu="${index}" placeholder="0" aria-label="${t("surgeries.use.usedOf", { name: escapeHtml(line2.nombre) })}"></label><div class="cirser" data-cs="${index}"></div></div>`;
   }
-  function paintSerials(box, input3) {
-    const key = input3.dataset.cu ?? "", units2 = Math.min(Number(input3.max), Math.max(0, Math.floor(Number(input3.value) || 0)));
+  function paintSerials(box, input4) {
+    const key = input4.dataset.cu ?? "", units2 = Math.min(Number(input4.max), Math.max(0, Math.floor(Number(input4.value) || 0)));
     const place = box.querySelector(`[data-cs="${key}"]`);
     if (!place) return;
-    const written = [...place.querySelectorAll("input")].map((field4) => field4.value);
+    const written = [...place.querySelectorAll("input")].map((field8) => field8.value);
     place.innerHTML = range(Math.min(units2, MAX_SERIALS)).map((index) => `<input data-cser="${key}" maxlength="120" value="${escapeHtml(written[index] ?? "")}" placeholder="${t("surgeries.use.serialOf", { index: index + 1 })}" aria-label="${t("surgeries.use.serialLabel", { index: index + 1 })}">`).join("");
   }
   async function saveUsed(surgery, stock, box, button2) {
@@ -13661,7 +18054,7 @@
       lote_id: line2.lote_id,
       max: line2.unidades,
       unidades: Math.max(0, Math.floor(Number(box.querySelector(`[data-cu="${index}"]`)?.value) || 0)),
-      series: [...box.querySelectorAll(`[data-cser="${index}"]`)].map((field4) => field4.value.trim()).filter(Boolean)
+      series: [...box.querySelectorAll(`[data-cser="${index}"]`)].map((field8) => field8.value.trim()).filter(Boolean)
     })).filter((item) => item.unidades > 0);
     if (!items.length) {
       notices.toast(t("surgeries.use.writeUsed"), true);
@@ -13699,14 +18092,14 @@
     <div class="cirlin">${stock.map(lineHtml4).join("")}</div>
     <label for="cirref2">${t("surgeries.editor.caseReference", { patient: term("paciente", { article: "del" }) })}</label><input id="cirref2" maxlength="60" value="${escapeHtml(surgery.referencia_caso ?? "")}" placeholder="${t("surgeries.editor.caseReferencePlaceholder")}">
     <div class="acts" style="justify-content:flex-end"><button type="button" class="btn" id="cirusok">${t("surgeries.use.save")}</button></div></div></details>`;
-    box.querySelectorAll("[data-cu]").forEach((input3) => {
-      input3.oninput = () => {
-        paintSerials(box, input3);
+    box.querySelectorAll("[data-cu]").forEach((input4) => {
+      input4.oninput = () => {
+        paintSerials(box, input4);
       };
     });
-    const save13 = document.getElementById("cirusok");
-    if (save13) save13.onclick = () => {
-      void saveUsed(surgery, stock, box, save13);
+    const save21 = document.getElementById("cirusok");
+    if (save21) save21.onclick = () => {
+      void saveUsed(surgery, stock, box, save21);
     };
   }
 
@@ -13730,7 +18123,7 @@
     return `<h3>${t("surgeries.sheet.used")}</h3><div class="deptab"><div class="deph cirh"><span>${t("surgeries.sheet.product")}</span><span>${t("surgeries.sheet.batch")}</span><span>${t("surgeries.sheet.serial")}</span><span>${t("surgeries.sheet.units")}</span></div>
       ${used.map((line2) => `<div class="depf cirh"><span>${escapeHtml(line2.producto)}</span><span>${escapeHtml(orFallback(line2.numero_lote, t("surgeries.sheet.noBatch")))}</span><span>${escapeHtml(orFallback(line2.serie, "—"))}</span><b>${formatNumber(line2.unidades)}</b></div>`).join("")}</div>`;
   }
-  function sheetHtml6(detail, notice) {
+  function sheetHtml8(detail, notice) {
     const surgery = detail.cirugia, scheduled = surgery.estado === STATES2.scheduled, replenishment = replenishmentOf(surgery), can = Boolean(detail.puede);
     return `<div class="fh"><div><h2>${escapeHtml(orFallback(surgery.procedimiento, t("surgeries.surgery")))}</h2>
       <div class="sm">${escapeHtml(formatLongDate(surgery.fecha))}${surgery.hora ? ` · ${escapeHtml(timeOf(surgery))}` : ""} · ${escapeHtml(detail.hospital)}${surgery.quirofano ? ` · ${escapeHtml(surgery.quirofano)}` : ""}</div></div>
@@ -13741,9 +18134,9 @@
     ${surgery.estado === STATES2.done && !surgery.pedido_id ? `<div class="banda-aviso cirsinped">${t("surgeries.sheet.noOrder")} <button type="button" class="btn sec" id="cirhacerped">${t("surgeries.sheet.createOrder")}</button></div>` : ""}
     ${scheduled && can ? '<div id="cirusar"></div>' : ""}
     ${usedHtml(detail.consumos ?? [])}
-    ${actionsHtml3(surgery, replenishment, can)}`;
+    ${actionsHtml5(surgery, replenishment, can)}`;
   }
-  function actionsHtml3(surgery, replenishment, can) {
+  function actionsHtml5(surgery, replenishment, can) {
     const scheduled = surgery.estado === STATES2.scheduled;
     return `<div class="acts" style="justify-content:flex-end">${surgery.pedido_id ? `<button type="button" class="btn sec" id="cirped">${t("surgeries.sheet.seeOrder")}</button>` : ""}
       ${replenishment && replenishment !== "repuesta" && can ? `<button type="button" class="btn" id="cirrepo">${t("surgeries.sheet.replenishNow")}</button>` : ""}
@@ -13771,8 +18164,8 @@
     notices.toast(t(result.a_tiempo === false ? "surgeries.sheet.replenishedLate" : "surgeries.sheet.replenished"));
     relatedLegacy.openSurgery(id);
   }
-  function bind17(id, detail) {
-    const surgery = detail.cirugia, on2 = (elementId, action) => {
+  function bind22(id, detail) {
+    const surgery = detail.cirugia, on4 = (elementId, action) => {
       const button2 = document.getElementById(elementId);
       if (button2) button2.onclick = () => {
         action(button2);
@@ -13784,16 +18177,16 @@
         agendaActions.openAccount(button2.dataset.cfi ?? "");
       };
     });
-    on2("cirped", () => {
+    on4("cirped", () => {
       appLegacy.openOrder(surgery.pedido_id ?? "");
     });
-    on2("cirhacerped", (button2) => {
+    on4("cirhacerped", (button2) => {
       void createOrder(id, button2);
     });
-    on2("cireditar", () => {
+    on4("cireditar", () => {
       void editSurgery({ ...surgery, hospital: detail.hospital, cirujano: detail.cirujano, especialidad: detail.especialidad ?? null });
     });
-    on2("cirrepo", (button2) => {
+    on4("cirrepo", (button2) => {
       void replenish(id, button2);
     });
   }
@@ -13805,9 +18198,9 @@
     }
     const body2 = document.getElementById("dbody"), box = document.getElementById("dlg");
     if (!body2 || !box) return;
-    body2.innerHTML = sheetHtml6(detail, notice);
+    body2.innerHTML = sheetHtml8(detail, notice);
     if (!box.open) box.showModal();
-    bind17(id, detail);
+    bind22(id, detail);
     if (document.getElementById("cirusar")) paintUse(detail.cirugia, detail.stock ?? []);
   }
 
@@ -13826,7 +18219,7 @@
   // src/app/screens/cycle/settings.ts
   var MAX_VISITS = 31;
   var DEFAULT_MONTHS = 3;
-  var DEFAULTS = { meses: DEFAULT_MONTHS, A: 3, B: 2, C: 1 };
+  var DEFAULTS2 = { meses: DEFAULT_MONTHS, A: 3, B: 2, C: 1 };
   var LENGTHS = [
     [1, "cycle.editor.oneMonth"],
     [2, "cycle.editor.twoMonths"],
@@ -13835,9 +18228,9 @@
     [6, "cycle.editor.half"],
     [12, "cycle.editor.year"]
   ];
-  var visits = (value10) => Math.min(MAX_VISITS, Math.max(0, Math.floor(Number(value10) || 0)));
-  function editorHtml9(current) {
-    const months2 = LENGTHS.map(([value10, key]) => `<option value="${value10}" ${Number(current.meses) === value10 ? "selected" : ""}>${t(key)}</option>`).join("");
+  var visits = (value15) => Math.min(MAX_VISITS, Math.max(0, Math.floor(Number(value15) || 0)));
+  function editorHtml11(current) {
+    const months2 = LENGTHS.map(([value15, key]) => `<option value="${value15}" ${Number(current.meses) === value15 ? "selected" : ""}>${t(key)}</option>`).join("");
     const goals = CLASSES.map((letter) => `<label>${classPill(letter)}<span>${t("cycle.editor.perCycle", words())}</span><input type="number" min="0" max="${MAX_VISITS}" step="1" data-cobj="${letter}" value="${Math.max(0, Number(current[letter]) || 0)}" aria-label="${t("cycle.editor.ofClass", { ...words(), class: letter })}"></label>`).join("");
     return `<div class="fh"><div><h2>${t("cycle.editor.title", words())}</h2>
       <div class="sm">${t("cycle.editor.subtitle", words())}</div></div>
@@ -13847,42 +18240,42 @@
     <p class="sm">${t("cycle.editor.zeroHint", words())}</p>
     <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>${t("common.cancel")}</button><button class="btn" id="cicok">${t("common.save")}</button></div>`;
   }
-  async function save12(body2, box) {
-    const value10 = { meses: Number(document.getElementById("cicmeses")?.value) || DEFAULT_MONTHS };
-    body2.querySelectorAll("[data-cobj]").forEach((input3) => {
-      value10[input3.dataset.cobj ?? ""] = visits(input3.value);
+  async function save20(body2, box) {
+    const value15 = { meses: Number(document.getElementById("cicmeses")?.value) || DEFAULT_MONTHS };
+    body2.querySelectorAll("[data-cobj]").forEach((input4) => {
+      value15[input4.dataset.cobj ?? ""] = visits(input4.value);
     });
-    const { data: result, error } = await legacyDb().rpc("guardar_ajuste", { p_clave: "ciclo_visitas", p_valor: value10 });
+    const { data: result, error } = await legacyDb().rpc("guardar_ajuste", { p_clave: "ciclo_visitas", p_valor: value15 });
     if (error || result?.ok === false) {
       notices.toast(t("cycle.editor.couldNotSave"), true);
       return;
     }
-    cycleLegacy.setSetting("ciclo_visitas", value10);
+    cycleLegacy.setSetting("ciclo_visitas", value15);
     box.close();
     notices.toast(t("cycle.editor.saved"));
     appLegacy.forgetCache();
   }
   async function editCycle() {
     await cycleLegacy.loadSettings();
-    const current = { ...DEFAULTS, ...cycleLegacy.setting("ciclo_visitas") };
+    const current = { ...DEFAULTS2, ...cycleLegacy.setting("ciclo_visitas") };
     const body2 = document.getElementById("dbody"), box = document.getElementById("dlg");
     if (!body2 || !box) return;
-    body2.innerHTML = editorHtml9(current);
+    body2.innerHTML = editorHtml11(current);
     if (!box.open) box.showModal();
     const ok = document.getElementById("cicok");
     if (ok) ok.onclick = () => {
-      void save12(body2, box);
+      void save20(body2, box);
     };
   }
 
   // src/app/screens/cycle/current.ts
   var EMPTY = { clase: "", cuentas: 0, al_dia: 0, hechas: 0, objetivo: 0 };
   function classCard(letter, data) {
-    const summary3 = (data.resumen ?? []).find((item) => item.clase === letter) ?? EMPTY, percent2 = percentOf(summary3.hechas, summary3.objetivo);
-    const head = summary3.cuentas ? t("cycle.current.upToDate", { done: formatNumber(summary3.al_dia), total: formatNumber(summary3.cuentas) }) : t("cycle.current.noneIn", { class: letter });
+    const summary4 = (data.resumen ?? []).find((item) => item.clase === letter) ?? EMPTY, percent3 = percentOf(summary4.hechas, summary4.objetivo);
+    const head = summary4.cuentas ? t("cycle.current.upToDate", { done: formatNumber(summary4.al_dia), total: formatNumber(summary4.cuentas) }) : t("cycle.current.noneIn", { class: letter });
     return `<div class="card cicc">${classPill(letter)}<div class="cicct"><b>${head}</b>
       <span class="sm">${t("cycle.current.every", { visits: visitsText(data.objetivo?.[letter] ?? 0), cycle: cycleName(data.meses) })}</span></div>
-      ${summary3.cuentas ? `${progressBar(percent2, "div")}<span class="sm">${t("cycle.current.doneOf", { done: formatNumber(summary3.hechas), goal: visitsText(summary3.objetivo), percent: percent2 })}</span>` : ""}</div>`;
+      ${summary4.cuentas ? `${progressBar(percent3, "div")}<span class="sm">${t("cycle.current.doneOf", { done: formatNumber(summary4.hechas), goal: visitsText(summary4.objetivo), percent: percent3 })}</span>` : ""}</div>`;
   }
   function pendingRow3(item) {
     const place = escapeHtml([item.especialidad, item.municipio].filter(Boolean).join(" · "));
@@ -13893,7 +18286,7 @@
         <span class="cicfal"><b>${t("cycle.current.progress", { done: item.hechas, goal: item.objetivo })}</b><span class="sm">${item.faltan === 1 ? t("cycle.current.oneMissing") : t("cycle.current.missing", { count: item.faltan })}</span></span>
         ${item.proxima_cita ? `<span class="pill p-per">${t("cycle.current.appointmentOn", { date: formatShortDate(item.proxima_cita) })}</span>` : `<button type="button" class="btn sec" data-ccita="${item.id}">${t("cycle.current.newAppointment")}</button>`}</div>`;
   }
-  function headerHtml8(data, selector) {
+  function headerHtml9(data, selector) {
     const left = data.quedan_dias === 1 ? t("cycle.current.oneDayLeft") : t("cycle.current.daysLeft", { count: formatNumber(data.quedan_dias) });
     return `<div class="ciccab"><div><b>${escapeHtml(rangeText(data))}</b>
       <span class="sm">${left} · ${t("cycle.current.allCount", words())}</span></div>
@@ -13907,15 +18300,15 @@
   }
   function missingHtml(data) {
     const filter = cycleState.classFilter, pending = (data.pendientes ?? []).filter((item) => !filter || item.clase === filter), cycle3 = cycleName(data.meses);
-    const buttons = [["", t("cycle.current.all")], ...CLASSES.map((letter) => [letter, letter])].map(([value10 = "", label = ""]) => `<button type="button" data-cf="${value10}" class="${value10 === filter ? "on" : ""}" aria-pressed="${String(value10 === filter)}">${label}</button>`).join("");
+    const buttons = [["", t("cycle.current.all")], ...CLASSES.map((letter) => [letter, letter])].map(([value15 = "", label = ""]) => `<button type="button" data-cf="${value15}" class="${value15 === filter ? "on" : ""}" aria-pressed="${String(value15 === filter)}">${label}</button>`).join("");
     const empty2 = filter ? t("cycle.current.noneMissingIn", { ...words(), class: filter }) : t("cycle.current.allUpToDate", { cycle: cycle3 });
     return `<section class="card cicbloque"><div class="cicbcab"><h2>${t("cycle.current.missingTitle", { ...words(), cycle: cycle3 })}</h2>
         <span class="segs" id="cicfil" role="group" aria-label="${t("cycle.classLabel")}">${buttons}</span></div>
       ${pending.length ? `<div class="lista">${pending.map(pendingRow3).join("")}</div>` : `<div class="vacio vlinea">${empty2}</div>`}</section>`;
   }
-  function pageHtml9(data, selector) {
+  function pageHtml12(data, selector) {
     const classified = sum((data.resumen ?? []).map((item) => item.cuentas));
-    return `<div class="cicpag">${headerHtml8(data, selector)}
+    return `<div class="cicpag">${headerHtml9(data, selector)}
     ${unclassifiedHtml(data.sin_clase ?? 0)}
     ${classified ? `<div class="cicres">${CLASSES.map((letter) => classCard(letter, data)).join("")}</div>
     ${missingHtml(data)}` : `<div class="vacio">${t("cycle.current.nobodyClassified", words())}</div>`}</div>`;
@@ -13939,7 +18332,7 @@
       goToTab("clasificar");
     };
   }
-  function bind18(box) {
+  function bind23(box) {
     bindOwner(paintCycle);
     const adjust = document.getElementById("cicajustar");
     if (adjust) adjust.onclick = () => {
@@ -13963,33 +18356,33 @@
       box.innerHTML = `<div class="vacio">${t("cycle.current.couldNotLoad")}</div>`;
       return;
     }
-    box.innerHTML = pageHtml9(data, selector);
-    bind18(box);
+    box.innerHTML = pageHtml12(data, selector);
+    bind23(box);
   }
 
   // src/app/screens/cycle/classify.ts
   var SHOWN4 = 300;
-  var SEARCH_WAIT_MS5 = 350;
-  function rowHtml13(item) {
+  var SEARCH_WAIT_MS7 = 350;
+  function rowHtml22(item) {
     return `<div class="item cicrow" data-cfila="${item.id}">
         <span class="tx"><button type="button" class="lnk" data-cfi="${item.id}"><b>${escapeHtml(item.nombre)}</b></button>
           <span class="sm">${escapeHtml([item.especialidad, item.municipio, item.estado_comercial].filter(Boolean).join(" · "))}</span></span>
         <span class="cicfal"><b>${formatNumber(item.actividades_12m)}</b><span class="sm">${t("cycle.classifyPage.in12Months")}</span></span>
         ${classButtons(item.id, item.clase)}</div>`;
   }
-  function listHtml2(rows) {
+  function listHtml3(rows) {
     if (!rows.length) return `<div class="vacio vlinea">${t(cycleState.classifyFilter === "sin" && !cycleState.query ? "cycle.classifyPage.allClassified" : "cycle.classifyPage.noneWithFilter")}</div>`;
-    return `<section class="card cicbloque"><div class="lista">${rows.map(rowHtml13).join("")}</div></section>${rows.length >= SHOWN4 ? `<p class="sm">${t("cycle.classifyPage.firstOnly")}</p>` : ""}`;
+    return `<section class="card cicbloque"><div class="lista">${rows.map(rowHtml22).join("")}</div></section>${rows.length >= SHOWN4 ? `<p class="sm">${t("cycle.classifyPage.firstOnly")}</p>` : ""}`;
   }
-  function pageHtml10(rows, selector) {
-    const filters = [["sin", t("cycle.classifyPage.unclassified")], ...CLASSES.map((letter) => [letter, letter]), ["todas", t("cycle.classifyPage.all")]].map(([value10 = "", label = ""]) => `<button type="button" data-cl="${value10}" class="${value10 === cycleState.classifyFilter ? "on" : ""}" aria-pressed="${String(value10 === cycleState.classifyFilter)}">${label}</button>`).join("");
+  function pageHtml13(rows, selector) {
+    const filters = [["sin", t("cycle.classifyPage.unclassified")], ...CLASSES.map((letter) => [letter, letter]), ["todas", t("cycle.classifyPage.all")]].map(([value15 = "", label = ""]) => `<button type="button" data-cl="${value15}" class="${value15 === cycleState.classifyFilter ? "on" : ""}" aria-pressed="${String(value15 === cycleState.classifyFilter)}">${label}</button>`).join("");
     return `<div class="cicpag"><div class="ciccab"><span class="segs" id="cicclf" role="group" aria-label="${t("cycle.classifyPage.show")}">${filters}</span>
       <span class="cicacc"><input id="cicq" type="search" placeholder="${t("cycle.classifyPage.search", words())}" value="${escapeHtml(cycleState.query)}" aria-label="${t("cycle.classifyPage.searchLabel")}">${selector}</span></div>
     <p class="sm">${t("cycle.classifyPage.hint", words())}</p>
-    ${listHtml2(rows)}</div>`;
+    ${listHtml3(rows)}</div>`;
   }
-  var searchTimer5;
-  function bind19(box, wasSearching) {
+  var searchTimer7;
+  function bind24(box, wasSearching) {
     box.querySelectorAll("#cicclf [data-cl]").forEach((button2) => {
       button2.onclick = () => {
         cycleState.classifyFilter = button2.dataset.cl ?? "sin";
@@ -13999,11 +18392,11 @@
     const search3 = document.getElementById("cicq");
     if (search3) {
       search3.oninput = () => {
-        clearTimeout(searchTimer5);
-        searchTimer5 = setTimeout(() => {
+        clearTimeout(searchTimer7);
+        searchTimer7 = setTimeout(() => {
           cycleState.query = search3.value.trim();
           void paintClassify();
-        }, SEARCH_WAIT_MS5);
+        }, SEARCH_WAIT_MS7);
       };
       if (wasSearching) {
         search3.focus();
@@ -14026,8 +18419,8 @@
       return;
     }
     const search3 = document.getElementById("cicq"), wasSearching = Boolean(search3) && document.activeElement === search3;
-    box.innerHTML = pageHtml10(data ?? [], selector);
-    bind19(box, wasSearching);
+    box.innerHTML = pageHtml13(data ?? [], selector);
+    bind24(box, wasSearching);
   }
   async function classify(button2, onCard) {
     const [id = "", letter = ""] = (button2.dataset.ccl ?? "").split("|"), group = button2.closest(".cicsegs");
@@ -14045,9 +18438,9 @@
       return;
     }
     buttons.forEach((other) => {
-      const on2 = other.dataset.ccl === `${id}|${String(chosen2)}`;
-      other.classList.toggle("on", on2);
-      other.setAttribute("aria-pressed", String(on2));
+      const on4 = other.dataset.ccl === `${id}|${String(chosen2)}`;
+      other.classList.toggle("on", on4);
+      other.setAttribute("aria-pressed", String(on4));
     });
     appLegacy.forgetCache();
     if (group.closest("#fciclo")) onCard(id);
@@ -14062,17 +18455,17 @@
 
   // src/app/screens/cycle/coverage.ts
   function classRow(item) {
-    const percent2 = percentOf(item.presentado, item.cuentas);
-    return `<div class="cobf">${classPill(item.clase)}${progressBar(percent2)}<span class="cobn"><b>${t("cycle.current.progress", { done: formatNumber(item.presentado), goal: formatNumber(item.cuentas) })}</b> · ${percent2}%</span></div>`;
+    const percent3 = percentOf(item.presentado, item.cuentas);
+    return `<div class="cobf">${classPill(item.clase)}${progressBar(percent3)}<span class="cobn"><b>${t("cycle.current.progress", { done: formatNumber(item.presentado), goal: formatNumber(item.cuentas) })}</b> · ${percent3}%</span></div>`;
   }
   var missingRow = (item) => `<div class="item cicrow">${classPill(item.clase)}<span class="tx"><button type="button" class="lnk" data-cfi="${item.id}"><b>${escapeHtml(item.nombre)}</b></button>
               <span class="sm">${escapeHtml([item.especialidad, item.municipio].filter(Boolean).join(" · "))}</span></span><button type="button" class="btn sec" data-ccita="${item.id}">${t("cycle.current.newAppointment")}</button></div>`;
   function missingHtml2(product, notHeard, cycle3) {
-    const missing = product.faltan ?? [];
-    if (!missing.length) return `<div class="banda-ok cobok">${t("cycle.coverage.allHeard", { cycle: cycle3 })}</div>`;
-    const count2 = notHeard > missing.length ? t("cycle.coverage.firstOf", { shown: missing.length, total: formatNumber(notHeard) }) : t("cycle.coverage.count", { count: formatNumber(missing.length) });
+    const missing2 = product.faltan ?? [];
+    if (!missing2.length) return `<div class="banda-ok cobok">${t("cycle.coverage.allHeard", { cycle: cycle3 })}</div>`;
+    const count2 = notHeard > missing2.length ? t("cycle.coverage.firstOf", { shown: missing2.length, total: formatNumber(notHeard) }) : t("cycle.coverage.count", { count: formatNumber(missing2.length) });
     return `<details class="cobfal"><summary>${t("cycle.coverage.whoIsMissing")}${count2}</summary>
-            <div class="lista">${missing.map(missingRow).join("")}</div></details>`;
+            <div class="lista">${missing2.map(missingRow).join("")}</div></details>`;
   }
   function productCard(product, cycle3) {
     const classes = product.clases ?? [], accounts2 = sum(classes.map((item) => item.cuentas)), heard = sum(classes.map((item) => item.presentado));
@@ -14081,10 +18474,10 @@
           ${missingHtml2(product, accounts2 - heard, cycle3)}</section>`;
   }
   function bodyHtml(data) {
-    const products2 = data.productos ?? [];
-    if (!products2.length) return `<div class="vacio">${t("cycle.coverage.noProducts")}${cardSectionsLegacy.can("administrar") ? t("cycle.coverage.markIt", words()) : ""}</div>`;
+    const products3 = data.productos ?? [];
+    if (!products3.length) return `<div class="vacio">${t("cycle.coverage.noProducts")}${cardSectionsLegacy.can("administrar") ? t("cycle.coverage.markIt", words()) : ""}</div>`;
     if (!data.cuentas) return `<div class="vacio">${t("cycle.coverage.nobodyClassified", words())} <button type="button" class="btn sec" id="cobclas">${t("cycle.classify")}</button></div>`;
-    return `<div class="cobgrid">${products2.map((product) => productCard(product, cycleName(data.meses))).join("")}</div>`;
+    return `<div class="cobgrid">${products3.map((product) => productCard(product, cycleName(data.meses))).join("")}</div>`;
   }
   async function paintCoverage() {
     if (!document.getElementById("cfgcuerpo")) return;
@@ -14106,29 +18499,29 @@
 
   // src/app/screens/cycle/team.ts
   var ofText = (done, goal) => t("cycle.current.progress", { done: formatNumber(done), goal: formatNumber(goal) });
-  function rowHtml14(member) {
-    const classified = member.a + member.b + member.c, percent2 = member.objetivo ? percentOf(member.hechas, member.objetivo) : null;
-    const progress = percent2 === null ? "—" : `<span class="cicbarc">${progressBar(percent2)}${ofText(member.hechas, member.objetivo)} · ${percent2}%</span>`;
+  function rowHtml23(member) {
+    const classified = member.a + member.b + member.c, percent3 = member.objetivo ? percentOf(member.hechas, member.objetivo) : null;
+    const progress = percent3 === null ? "—" : `<span class="cicbarc">${progressBar(percent3)}${ofText(member.hechas, member.objetivo)} · ${percent3}%</span>`;
     return `<tr><td><button type="button" class="lnk" data-cde="${member.id}"><b>${escapeHtml(member.nombre)}</b></button><span class="sm"> · ${escapeHtml(member.rol)}</span></td><td>${formatNumber(member.cartera)}</td><td>${formatNumber(member.a)}</td><td>${formatNumber(member.b)}</td><td>${formatNumber(member.c)}</td>
           <td class="${member.sin_clase ? "cicaviso" : ""}">${formatNumber(member.sin_clase)}</td><td>${classified ? ofText(member.al_dia, classified) : "—"}</td>
           <td>${progress}</td></tr>`;
   }
-  function tableHtml5(members) {
-    if (!members.length) return `<div class="vacio">${t("cycle.team.nobody")}</div>`;
+  function tableHtml8(members2) {
+    if (!members2.length) return `<div class="vacio">${t("cycle.team.nobody")}</div>`;
     const head = [t("cycle.team.person"), t("cycle.team.portfolio"), "A", "B", "C", t("cycle.team.noClass"), t("cycle.team.upToDate"), t("cycle.team.cycleVisits", words())];
     return `<div class="card cicbloque"><div class="dgrid-wrap"><table class="trtabla cictab"><thead><tr>${head.map((title2) => `<th>${title2}</th>`).join("")}</tr></thead>
-      <tbody>${members.map(rowHtml14).join("")}</tbody></table></div></div>
+      <tbody>${members2.map(rowHtml23).join("")}</tbody></table></div></div>
       <p class="sm">${t("cycle.team.countHint", words())}</p>`;
   }
   async function paintCycleTeam() {
     if (!document.getElementById("cfgcuerpo")) return;
-    const [{ data: members }, { data: ranges }] = await Promise.all([legacyDb().rpc("ciclo_equipo"), legacyDb().rpc("ciclo_rango")]);
+    const [{ data: members2 }, { data: ranges }] = await Promise.all([legacyDb().rpc("ciclo_equipo"), legacyDb().rpc("ciclo_rango")]);
     const box = document.getElementById("cfgcuerpo");
     if (!box || currentScreen() !== "ciclo") return;
     const range2 = (ranges ?? [])[0];
     const goals = range2 ? `<p class="sm">${escapeHtml(rangeText(range2))}${t("cycle.team.goals", { ...words(), a: visitsText(range2.obj_a), b: range2.obj_b, c: range2.obj_c })}</p>` : "";
     box.innerHTML = `<div class="cicpag">${goals}
-    ${tableHtml5(members ?? [])}</div>`;
+    ${tableHtml8(members2 ?? [])}</div>`;
     box.querySelectorAll("[data-cde]").forEach((button2) => {
       button2.onclick = () => {
         cycleState.owner = button2.dataset.cde ?? "";
@@ -14210,6 +18603,10 @@
       agenda: agenda_exports,
       accounts: accounts_exports,
       events: events_exports,
+      products: products_exports,
+      billing: billing_exports,
+      platform: platform_exports,
+      portal: portal_exports,
       analytics: analytics_exports,
       visit: visit_exports,
       commissions: commissions_exports,
@@ -14233,6 +18630,8 @@
   listenToClassButtons((id) => {
     void paintCardCycle(id);
   });
+  listenToForm();
+  listenToCentreDocs();
 })();
 // @ts-check
 // nucleo/dispositivo.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
@@ -24392,60 +28791,7 @@ async function centroDesdeUbicacion(box, i, lat, lon) {
 
 // Ficha: historial de cambios (de la ficha y de sus consultas), plegado al final; solo administración
 
-/* v2.128.0 · Portal del centro (parte del extra «Portal»). Un centro (ficha de tipo Centro) con acceso entra en «Mi centro»: pide la
-   reposición de los productos que tiene dados de alta, al precio que le pone su comercial; el pedido llega como borrador para confirmar.
-   Ve sus pedidos y lo comprado, pide material y escribe a su comercial (lo mismo que el médico). En la ficha del centro, «Productos
-   del centro». */
-async function cargarCentro() {
-  // v2.282.0: página nueva (al final del archivo); al arrancar se espera a que esté leída
-  if (!window.PM_LISTO || typeof cargarCentro2282 !== 'function') { const v0 = $('v-informe'); if (v0 && !v0.innerHTML.trim()) v0.innerHTML = '<div class="card">' + skelCard('Cargando…') + '</div>'; setTimeout(cargarCentro, 30); return; }
-  if (window.PC_LISTO) return cargarCentro2282();
-  const v = $('v-informe');
-  v.innerHTML = `<div class="medhero"><div><div class="sm" style="color:rgba(255,255,255,.8)">Tu centro</div><h1 id="ctnom">…</h1>
-      <div class="sm" style="color:rgba(255,255,255,.85)">Pide la reposición de tus productos y sigue tus pedidos</div></div></div>
-    <div id="ctcuerpo" class="angrid"><div class="card">${skelCard('Cargando…')}</div></div>`;
-  pintarCentro();
-}
 
-async function pintarCentro() {
-  // Al arrancar, esto se pinta antes de leerse el final de este archivo: se espera a que esté
-  try { void MOTIVO_PORTAL; void NOMBRE_ESTADO_CENTRO; } catch (e) { setTimeout(pintarCentro, 300); return; }
-  if (!$('ctcuerpo')) return;
-  const [{ data: prods }, { data: mp }] = await Promise.all([RPC_ORIG('productos_portal', {}), RPC_ORIG('mis_pedidos_portal', {})]);
-  if (!$('ctcuerpo')) return;
-  if (mp && mp.nombre) $('ctnom').textContent = mp.nombre;
-  const lp = Array.isArray(prods) ? prods : [], peds = (mp && mp.pedidos) || [], pp = (mp && mp.por_producto) || [];
-  const conIva = x => r2((+x.precio || 0) * (1 + (+x.iva || 0) / 100));
-  $('ctcuerpo').innerHTML = `
-    <div class="card ancard ancha" id="ctped"><h2>Pedir reposición</h2>
-      ${lp.length ? `<div class="lista" id="ctprods">${lp.map(x => `<div class="item ctlin" style="cursor:default"><span class="tx"><b>${esc(x.nombre)}</b>
-          <span class="sm">${eurI(conIva(x))} con IVA${x.propio ? ' · tu precio' : ''}</span></span>
-          <input type="number" min="0" max="1000" step="1" value="0" data-ctp="${x.producto_id}" data-ctpr="${conIva(x)}" aria-label="Unidades de ${esc(x.nombre)}"></div>`).join('')}</div>
-        <label for="ctnota">Nota</label><input id="ctnota" placeholder="Opcional: horario de entrega, persona de contacto…">
-        <div class="nvtot"><span>Total <b id="cttot">${eurI(0)}</b> con IVA</span><button type="button" class="btn" id="ctok">Enviar pedido</button></div>
-        <p class="leer">Tu comercial lo revisa y lo confirma; aquí verás cuándo está confirmado y preparado.</p>`
-        : '<p class="sm" style="padding:0 16px">Todavía no tienes productos para pedir. Tu comercial te los dará de alta.</p>'}</div>
-    <div class="card ancard" id="ctlista"><h2>Tus pedidos</h2>
-      ${peds.length ? `<div class="lista">${peds.map(p => `<div class="item" style="cursor:default"><span class="tx">
-          <b>${p.numero ? esc(p.numero) + ' · ' : ''}${fechaCorta(String(p.fecha).slice(0, 10))}</b>
-          <span class="sm">${esc((p.lineas || []).map(l => `${l.producto} × ${num(l.unidades)}`).join(', '))}${p.total != null ? ' · ' + eurI(p.total) : ''}</span></span>
-          <span class="pill ${NOMBRE_ESTADO_CENTRO[p.estado] || ''}">${esc(p.estado)}</span></div>`).join('')}</div>` : '<div class="sm" style="padding:0 16px">Todavía no hay pedidos.</div>'}</div>
-    <div class="card ancard" id="ctcompra"><h2>Lo que has comprado</h2>
-      ${pp.length ? barrasH(pp.map(x => ({ n: x.producto, v: x.unidades })), v => num(v) + ' uds.') : vacioGrafico('Aparecerá cuando tengas pedidos completados.')}
-      <p class="leer">Unidades de los últimos 12 meses, por producto.</p></div>`;
-  const total = () => [...$('ctcuerpo').querySelectorAll('[data-ctp]')].reduce((s, i) => s + (Math.max(0, +i.value || 0)) * (+i.dataset.ctpr || 0), 0);
-  $('ctcuerpo').querySelectorAll('[data-ctp]').forEach(i => i.oninput = i.onchange = () => { $('cttot').textContent = eurI(total()); });
-  if ($('ctok')) $('ctok').onclick = async ev => {
-    const lineas = [...$('ctcuerpo').querySelectorAll('[data-ctp]')].map(i => ({ producto_id: i.dataset.ctp, unidades: Math.floor(+i.value || 0) })).filter(x => x.unidades > 0);
-    if (!lineas.length) { toast('Pon las unidades de algún producto', true); return; }
-    ev.target.disabled = true;
-    const { data: r } = await db.rpc('pedido_portal', { p_lineas: lineas, p_nota: $('ctnota').value.trim() || null });
-    ev.target.disabled = false;
-    if (!r || !r.ok) { toast(r && r.motivo === 'vacio' ? 'Pon las unidades de algún producto' : motivoPortal(r), true); return; }
-    toast('Pedido enviado: tu comercial lo confirmará'); pintarCentro();
-  };
-  portalMedico();
-}
 
 // ---- 5. Horario de atención en todos sus centros
 function centroConConsulta(c, fecha) {
@@ -24618,21 +28964,6 @@ function formPrivada(box, i) {
 
 // ——— En la ficha del equipo: lo que ha enviado desde su portal ———
 
-async function cargarCentro2282() {
-  const v = $('v-informe');
-  v.innerHTML = `<div class="medhero"><div><div class="sm" style="color:rgba(255,255,255,.8)">Tu centro</div><h1 id="ctnom">…</h1>
-      <div class="sm" style="color:rgba(255,255,255,.85)">Pide la reposición de tus productos y sigue tus pedidos</div></div></div>
-    <div class="pmtabs" role="tablist">${[['res', 'Resumen'], ['ped', 'Pedir reposición'], ['ficha', 'Mi centro'], ['mat', 'Material y dudas']].map(([k, t]) =>
-      `<button type="button" role="tab" data-pmt="${k}" class="${PM.tab === k ? 'on' : ''}" aria-selected="${PM.tab === k}">${t}<span class="pmtpunto" hidden></span></button>`).join('')}</div>
-    <div data-pmp="res" id="mdcuerpo" ${PM.tab === 'res' ? '' : 'hidden'}>${pmEsqueleto()}</div>
-    <div data-pmp="ped" id="pcped" ${PM.tab === 'ped' ? '' : 'hidden'}>${pmEsqueleto(true)}</div>
-    <div data-pmp="ficha" id="pmficha" ${PM.tab === 'ficha' ? '' : 'hidden'}>${pmEsqueleto(true)}</div>
-    <div data-pmp="mat" id="pmmat" ${PM.tab === 'mat' ? '' : 'hidden'}><div id="mdportal" class="pmfila"></div></div>`;
-  if (!['res', 'ped', 'ficha', 'mat'].includes(PM.tab)) PM.tab = 'res';
-  v.querySelectorAll('[data-pmt]').forEach(b => b.onclick = () => pmTab(b.dataset.pmt));
-  await centroPintar();
-  portalMedico();
-}
 
 async function bajaCuenta(id, baja) {
   const { data: r, error } = await db.rpc('baja_cuenta', { p_id: id, p_baja: baja });
@@ -24981,41 +29312,7 @@ function formCentro(box, i, c, aviso) {
   return formCentroBase.call(this, box, i, c, aviso);
 }
 
-async function centroPintarBase() {
-  if (!$('mdcuerpo')) return;
-  const [{ data: prods }, { data: mp }, { data: f }] = await Promise.all([RPC_ORIG('productos_portal', {}), RPC_ORIG('mis_pedidos_portal', {}),
-    PM.ficha ? Promise.resolve({ data: null }) : RPC_ORIG('portal_mi_ficha', {})]);
-  if (f && f.ok) pmFichaDatos(f);
-  if (!$('mdcuerpo')) return;
-  if (mp && mp.nombre) $('ctnom').textContent = mp.nombre;
-  const lp = Array.isArray(prods) ? prods : [], peds = (mp && mp.pedidos) || [], pp = (mp && mp.por_producto) || [];
-  window.PC_ANT = !!(mp && mp.pago_anticipado);   // v2.284.0
-  const conIva = x => r2((+x.precio || 0) * (1 + (+x.iva || 0) / 100));
-  const enMarcha = peds.filter(p => p.estado !== 'Anulado' && p.estado !== 'Preparado').length;
-  const uds = pp.reduce((s, x) => s + (+x.unidades || 0), 0);
-  const ult = peds.length ? String(peds[0].fecha).slice(0, 10) : null;
-  const falta = PM.faltan.length ? `<div class="pmaviso"><div><b>Completa la ficha de tu centro</b><span class="sm">Falta ${esc(pmFaltaTxt())}. Así tu comercial sabe cuándo os va mejor que pase.</span></div>
-      <button type="button" class="btn" data-pmir="ficha">Completar la ficha</button></div>` : '';
-  $('mdcuerpo').innerHTML = `${pcDebeHtml(peds)}${falta}
-    <div class="pmk">
-      <div class="kpi"><b>${num(enMarcha)}</b><span>pedidos en marcha</span></div>
-      <div class="kpi"><b>${ult ? fechaCorta(ult) : '—'}</b><span>último pedido</span></div>
-      <div class="kpi"><b>${num(uds)}</b><span>unidades en 12 meses</span></div>
-      <div class="kpi"><b>${num(lp.length)}</b><span>productos para pedir</span></div></div>
-    <div class="pmfila">
-      <div class="card ancard pcpeds"><h2>Tus pedidos ${pmAyu('Tus pedidos', 'Los pedidos de reposición que habéis hecho y en qué punto están: pendiente de confirmar por tu comercial, pendiente de pago (si se paga por adelantado), confirmado, preparado o anulado. Cada pedido lleva los lotes que se os han enviado y sus facturas para descargar.')}</h2>
-        ${peds.length ? `<div class="lista">${peds.slice(0, 8).map(p => `<div class="item"><span class="tx">
-            <b>${p.numero ? esc(p.numero) + ' · ' : ''}${fechaCorta(String(p.fecha).slice(0, 10))}</b>
-            <span class="sm">${esc((p.lineas || []).map(l => `${l.producto} × ${num(l.unidades)}${l.regalo ? ' de regalo' : ''}`).join(', '))}${p.total != null ? ' · ' + eurI(p.total) : ''}</span>${pcExtraPed(p)}</span>
-            <span class="pcpst"><span class="pill ${NOMBRE_ESTADO_CENTRO[p.estado] || ''}">${esc(p.estado)}</span>${p.proforma ? `<button type="button" class="btn sec chico" data-pcpro="${p.id}">Factura proforma</button>` : ''}</span></div>`).join('')}</div>` : '<p class="sm">Todavía no hay pedidos.</p>'}</div>
-      <div class="card ancard"><h2>Lo que habéis comprado ${pmAyu('Lo que habéis comprado', 'Unidades de los últimos 12 meses por producto, de los pedidos confirmados.')}</h2>
-        ${pp.length ? barrasH(pp.map(x => ({ n: x.producto, v: x.unidades })), v => num(v) + ' uds.') : vacioGrafico('Aparecerá cuando tengáis pedidos confirmados.')}</div></div>`;
-  $('mdcuerpo').querySelectorAll('[data-pmir]').forEach(b => b.onclick = () => pmTab(b.dataset.pmir));
-  pcPintarPedido(lp);   // v2.283.0: por packs
-  pmPintarFicha();
-}
 
-async function centroPintar(...a) { const r = await centroPintarBase.apply(this, a); try { await pcDescargas(); } catch (e) {} return r; }
 
 /* Ficha del prescriptor: la ficha base y, en orden, cada bloque que se le añade
    (antes eran 6 capas separadas). */
@@ -25126,269 +29423,14 @@ function verEvento(id) { return window.delcos.screens.events.showEvent(id); }
 // pantallas/facturacion.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
-async function pintarFacturas() {
-  $('fcuerpo').innerHTML = `<div class="panel">
-    <div class="filtros">
-      <div id="fper"></div>
-      <div><label for="fq">Buscar</label><input id="fq" type="search" placeholder="Número, cliente o NIF"></div>
-      <div><label for="fcob">Cobro</label><select id="fcob"><option value="">Todos</option><option>Pendiente</option><option>Vencida</option><option>Cobrada</option></select></div>
-    </div>
-    <div class="kpis vtot" id="ftot"></div>
-    <div id="flista"></div></div>`;
-  let tq;
-  const pinta = async () => {
-    cargando($('flista'), 'Cargando facturas…');
-    const r = $('fper').__rango();
-    const { data, error } = await db.rpc('facturas_lista', { p_desde: r.desde, p_hasta: r.hasta, q: $('fq').value.trim() || null, p_cobro: $('fcob').value || null });
-    if (!$('flista')) return;
-    if (error) { $('flista').innerHTML = `<div class="vacio">${esc(error.message)}</div>`; return; }
-    const l = data || [];
-    const sum = (arr, k) => arr.reduce((n, x) => n + (+x[k] || 0), 0);
-    const pend = l.filter(x => x.estado_cobro !== 'Cobrada'), venc = l.filter(x => x.estado_cobro === 'Vencida');
-    $('ftot').innerHTML = `
-      <div class="kpi"><b>${eurI(sum(l, 'total'))}</b><span>Facturado con IVA · ${num(l.length)} facturas</span></div>
-      <div class="kpi"><b>${eurI(sum(l, 'base'))}</b><span>Base imponible</span></div>
-      <div class="kpi"><b>${eurI(sum(l, 'cuota_iva'))}</b><span>IVA repercutido</span></div>
-      <div class="kpi"><b>${eurI(sum(pend, 'total') - sum(pend, 'cobrado'))}</b><span>Pendiente de cobro · ${num(pend.length)}</span></div>
-      <div class="kpi ${venc.length ? 'warn' : ''}"><b>${eurI(sum(venc, 'total') - sum(venc, 'cobrado'))}</b><span>Vencido · ${num(venc.length)}</span></div>`;
-    const tamF = tamPagina(); FACPAG = Math.min(FACPAG, Math.max(0, Math.ceil(l.length / tamF) - 1));
-    const lp = l.slice(FACPAG * tamF, FACPAG * tamF + tamF);
-    $('flista').innerHTML = l.length ? `<div class="dgrid-wrap"><div class="dgrid facts">
-      <div class="dh"><span>Número</span><span>Fecha</span><span>Cliente</span><span>NIF</span><span class="num">Base</span><span class="num">IVA</span><span class="num">Total</span><span>Vencimiento</span><span>Cobro</span></div>
-      ${lp.map(f => `<button class="dr" data-fac="${f.id}">
-        <span><b>${esc(f.numero)}</b>${f.rectifica ? `<span class="sm">rectifica ${esc(f.rectifica)}</span>` : f.rectificada_por ? `<span class="sm">rectificada: ${esc(f.rectificada_por)}</span>` : ''}</span>
-        <span>${fechaCorta(f.fecha)}</span><span class="corta">${esc(f.cliente || '—')}</span><span class="sm">${esc(f.nif || '—')}</span>
-        <span class="num">${eurI(f.base)}</span><span class="num">${eurI(f.cuota_iva)}</span><span class="num"><b>${eurI(f.total)}</b></span>
-        <span class="${f.estado_cobro === 'Vencida' ? 'cad-pasada' : ''}">${f.vencimiento ? fechaCorta(f.vencimiento) : '—'}</span>
-        <span>${pillCobro(f.estado_cobro)}</span></button>`).join('')}</div></div>`
-      : '<div class="vacio">No hay facturas con estos filtros. Las facturas se emiten desde un pedido confirmado (Pedidos → Ventas → abrir el pedido → «Emitir factura»).</div>';
-    $('flista').querySelectorAll('[data-fac]').forEach(b => b.onclick = () => verFactura(b.dataset.fac));
-    $('flista').insertAdjacentHTML('beforeend', '<div id="fpag"></div>');
-    paginador($('fpag'), l.length, FACPAG, p => { FACPAG = p; pinta(); }, () => { FACPAG = 0; pinta(); });
-  };
-  montarPeriodo($('fper'), { id: 'facturas', valor: 'mes', alCambiar: pinta });
-  $('fq').oninput = () => { clearTimeout(tq); tq = setTimeout(() => { FACPAG = 0; pinta(); }, 300); };
-  $('fcob').onchange = () => { FACPAG = 0; pinta(); };
-  pinta();
-}
 
-/* Ver factura: la ventana base y los botones de PDF y email (antes eran 3 capas). */
-async function verFactura(id) {
-  return ventanaCargando(async () => {
-    await verFacturaBase(id);
-    await facturaBotonesPdfYEmail(id);
-  });
-}
 
-// Ver factura · Ver, descargar el PDF y enviarlo por email
-async function facturaBotonesPdfYEmail(id) {
-  const acts = $('dbody').querySelector('.acts:last-of-type');
-  if (!acts || !$('fvpdf')) return;
-  const { data } = await RPC_ORIG('factura_detalle', { p_id: id });
-  const f = data && data.factura; if (!f) return;
-  const rn = data.rectifica && data.rectifica.numero;
-  $('fvpdf').textContent = 'Ver';
-  $('fvpdf').classList.add('sec');
-  $('fvpdf').insertAdjacentHTML('afterend', `<button class="btn sec" id="fvdl">⬇ PDF</button>${puedeFacturar() ? '<button class="btn" id="fvmail">✉️ Enviar por email</button>' : ''}`);
-  $('fvdl').onclick = () => descargarFacturaPDF(f, rn);
-  if ($('fvmail')) $('fvmail').onclick = () => enviarFacturaEmail(f, rn);
-  // «Ver» abre el mismo PDF que se envía
-  $('fvpdf').onclick = async () => { const doc = await facturaPDF(f, rn); window.open(doc.output('bloburl'), '_blank'); };
-}
 
-/* Parte base; verFactura le añade el resto */
-async function verFacturaBase(id) {
-  const { data } = await RPC_ORIG('factura_detalle', { p_id: id });
-  if (!data || !data.factura) { toast('No se ha podido abrir la factura', true); return; }
-  const f = data.factura, cob = data.cobros || [], vf = data.verifactu || {};
-  const pendiente = +(f.total - f.cobrado).toFixed(2);
-  const estado = f.total === 0 || Math.abs(f.cobrado) >= Math.abs(f.total) ? 'Cobrada' : (f.vencimiento < hoyISO() ? 'Vencida' : 'Pendiente');
-  $('dbody').innerHTML = `
-    <div class="fh"><div><h2>${f.rectifica_id ? 'Rectificativa' : 'Factura'} ${esc(f.numero)} ${pillCobro(estado)}</h2>
-      <div class="sm">${fechaLarga(new Date(f.fecha + 'T00:00:00'))}${f.vencimiento ? ' · vence el ' + fechaCorta(f.vencimiento) : ''}${f.forma_pago ? ' · ' + esc(f.forma_pago) : ''}</div></div>
-      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-    ${data.rectifica ? `<div class="avisoh"><span>Rectifica la factura <b>${esc(data.rectifica.numero)}</b> · Motivo: ${esc(f.motivo_rectificacion || '')}</span><button class="btn sec" data-vfac="${data.rectifica.id}">Ver original</button></div>` : ''}
-    ${(data.rectificativas || []).length ? `<div class="avisoh"><span>Rectificada por ${data.rectificativas.map(r => `<b>${esc(r.numero)}</b> (${eurI(r.total)} · ${esc(r.motivo || '')})`).join(', ')}</span></div>` : ''}
-    <div class="g2">
-      <div class="blk"><h3>Cliente</h3><b>${esc(f.cliente.nombre || '')}</b><div class="sm">${esc(f.cliente.nif || 'Sin NIF')}</div>
-        <div class="sm">${esc([f.cliente.direccion, f.cliente.cp, f.cliente.municipio, f.cliente.provincia].filter(Boolean).join(', '))}</div></div>
-      <div class="blk"><h3>Emisor</h3><b>${esc(f.emisor.razon_social || '')}</b><div class="sm">${esc(f.emisor.nif || '')}</div>
-        <div class="sm">${esc([f.emisor.direccion, f.emisor.cp, f.emisor.municipio].filter(Boolean).join(', '))}</div></div></div>
-    <div class="dgrid-wrap"><div class="dgrid flin">
-      <div class="dh"><span>Concepto</span><span class="num">Uds.</span><span class="num">Precio</span><span class="num">Dto.</span><span class="num">IVA</span><span class="num">Base</span></div>
-      ${f.lineas.map(l => `<div class="dr" style="cursor:default"><span>${esc(l.descripcion)}</span><span class="num">${num(l.unidades)}</span>
-        <span class="num">${eurI(l.precio)}</span><span class="num">${l.descuento ? num(l.descuento) + '%' : '—'}</span><span class="num">${num(l.iva)}%</span><span class="num"><b>${eurI(l.base)}</b></span></div>`).join('')}</div></div>
-    <div class="totbox">${f.desglose_iva.map(d => `<div><span>Base al ${num(d.iva)}%</span><b>${eurI(d.base)}</b></div><div><span>IVA ${num(d.iva)}%</span><b>${eurI(d.cuota)}</b></div>`).join('')}
-      <div class="tot"><span>Total</span><b>${eurI(f.total)}</b></div></div>
-    <div class="blk"><h3>Cobros</h3>
-      ${cob.length ? cob.map(c => `<div class="sm" style="display:flex;justify-content:space-between;gap:8px;padding:4px 0">
-        <span>${fechaCorta(c.fecha)} · ${esc(c.forma_pago || '')}${c.nota ? ' · ' + esc(c.nota) : ''}</span><b>${eurI(c.importe)}</b>
-        ${puede('administrar') ? `<button class="kcfg" data-bcob="${c.id}">Quitar</button>` : ''}</div>`).join('') : '<div class="sm">Sin cobros registrados.</div>'}
-      ${pendiente ? `<div class="sm" style="margin-top:4px">Pendiente: <b>${eurI(pendiente)}</b></div>` : ''}</div>
-    ${f.huella ? `<div class="blk"><h3>Registro de facturación</h3><div class="sm mono">Huella: ${esc(f.huella.slice(0, 32))}…</div>
-      <div class="sm">VeriFactu: ${esc((f.verifactu || {}).estado || 'No aplica')}</div></div>` : ''}
-    <div class="acts" style="justify-content:flex-end;flex-wrap:wrap">
-      <button class="btn sec" data-cerrar>Cerrar</button>
-      ${f.pedido_id ? '<button class="btn sec" id="fvped">Ver pedido</button>' : ''}
-      ${puedeFacturar() && !f.rectifica_id ? '<button class="btn sec dang" id="fvrect">Rectificar</button>' : ''}
-      ${puedeFacturar() && pendiente ? '<button class="btn sec" id="fvcob">Registrar cobro</button>' : ''}
-      <button class="btn" id="fvpdf">Ver e imprimir</button></div>`;
-  $('dlg').showModal();
-  $('dbody').querySelectorAll('[data-vfac]').forEach(b => b.onclick = () => verFactura(b.dataset.vfac));
-  $('dbody').querySelectorAll('[data-bcob]').forEach(b => b.onclick = async () => {
-    if (!await preguntar('Se quita este cobro de la factura.', { titulo: '¿Quitar el cobro?', ok: 'Quitar', peligro: true })) return;
-    await db.rpc('borrar_cobro', { p_id: b.dataset.bcob }); verFactura(id); refrescarFacturas();
-  });
-  if ($('fvped')) $('fvped').onclick = () => verPedido(f.pedido_id);
-  if ($('fvpdf')) $('fvpdf').onclick = () => imprimirFactura(f, vf, data.rectifica && data.rectifica.numero);
-  if ($('fvcob')) $('fvcob').onclick = () => cobroFactura(f, pendiente);
-  if ($('fvrect')) $('fvrect').onclick = () => rectificarFactura(f);
-}
 
-function cobroFactura(f, pendiente) {
-  $('dlg2body').innerHTML = `
-    <div class="fh"><div><h2>Registrar cobro · ${esc(f.numero)}</h2><div class="sm">Pendiente: ${eurI(pendiente)}</div></div>
-      <button class="x" data-cerrar2 aria-label="Cerrar">✕</button></div>
-    <div class="g2"><div><label for="cbi">Importe (€)</label><input id="cbi" type="number" step="0.01" value="${pendiente}"></div>
-      <div><label for="cbf">Fecha</label><input id="cbf" type="date" value="${hoyISO()}"></div></div>
-    <div class="g2"><div><label for="cbp">Forma de pago</label><select id="cbp">${(CAT.forma_pago || []).map(x => `<option ${x.valor === f.forma_pago ? 'selected' : ''}>${esc(x.valor)}</option>`).join('')}</select></div>
-      <div><label for="cbn">Nota</label><input id="cbn" placeholder="Opcional"></div></div>
-    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar2>Cancelar</button><button class="btn" id="cbok">Registrar</button></div>`;
-  $('dlg2').showModal();
-  $('cbok').onclick = async () => {
-    const imp = +$('cbi').value; if (!imp) { toast('Indica el importe', true); return; }
-    const { data: r, error } = await db.rpc('registrar_cobro', { p_factura: f.id, p_importe: imp, p_fecha: $('cbf').value, p_forma: $('cbp').value, p_nota: $('cbn').value.trim() || null });
-    if (error || (r && r.ok === false)) { toast('No se ha podido registrar', true); return; }
-    $('dlg2').close(); toast('Cobro registrado'); verFactura(f.id); refrescarFacturas();
-  };
-}
 
-function rectificarFactura(f) {
-  $('dlg2body').innerHTML = `
-    <div class="fh"><div><h2>Rectificar ${esc(f.numero)}</h2><div class="sm">Se emite una factura rectificativa en negativo. La original no se toca.</div></div>
-      <button class="x" data-cerrar2 aria-label="Cerrar">✕</button></div>
-    <label for="rfm">Motivo</label><input id="rfm" placeholder="p. ej. Devolución de una caja rota, error en el precio…">
-    <label>Qué se rectifica</label>
-    <div class="opciones" style="grid-template-columns:minmax(0,1fr) minmax(0,1fr)"><label class="opt"><input type="radio" name="rft" value="total" checked> Toda la factura</label>
-      <label class="opt"><input type="radio" name="rft" value="parcial"> Solo algunas unidades</label></div>
-    <div id="rflin" class="hide">${f.lineas.map((l, i) => `<div class="g2" style="align-items:center"><div>${esc(l.descripcion)} <span class="sm">(${num(l.unidades)} uds)</span></div>
-      <div><input type="number" min="0" max="${l.unidades}" data-rfi="${i}" value="0" aria-label="Unidades a rectificar"></div></div>`).join('')}</div>
-    ${f.pedido_id ? '<label class="opt" style="margin-top:10px"><input type="checkbox" id="rfan"> Anular también el pedido (las unidades vuelven al stock y dejan de contar en métricas)</label>' : ''}
-    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar2>Cancelar</button><button class="btn dang" id="rfok">Emitir rectificativa</button></div>`;
-  $('dlg2').showModal();
-  $('dlg2body').querySelectorAll('[name=rft]').forEach(r => r.onchange = () => {
-    const parcial = $('dlg2body').querySelector('[name=rft]:checked').value === 'parcial';
-    $('rflin').classList.toggle('hide', !parcial); if ($('rfan')) { $('rfan').disabled = parcial; if (parcial) $('rfan').checked = false; }
-  });
-  $('rfok').onclick = async ev => {
-    const motivo = $('rfm').value.trim(); if (!motivo) { toast('Escribe el motivo', true); return; }
-    const parcial = $('dlg2body').querySelector('[name=rft]:checked').value === 'parcial';
-    const lineas = parcial ? [...$('dlg2body').querySelectorAll('[data-rfi]')].map(i => ({ indice: +i.dataset.rfi, unidades: +i.value || 0 })).filter(x => x.unidades > 0) : null;
-    if (parcial && !lineas.length) { toast('Indica las unidades a rectificar', true); return; }
-    ev.target.disabled = true;
-    const { data: r, error } = await db.rpc('rectificar_factura', { p_factura: f.id, p_motivo: motivo, p_lineas: lineas });
-    if (error || (r && r.ok === false)) { ev.target.disabled = false; toast('No se ha podido: ' + ((error && error.message) || r.error), true); return; }
-    if ($('rfan') && $('rfan').checked) await db.rpc('anular_pedido', { p_id: f.pedido_id, p_motivo: 'Rectificativa ' + r.numero + ': ' + motivo });
-    $('dlg2').close(); toast('Rectificativa ' + r.numero + ' emitida'); verFactura(r.id); refrescarFacturas();
-  };
-}
 
-function imprimirFactura(f, vf, rectificaNum) {
-  const e = f.emisor || {}, c = f.cliente || {};
-  const conQR = (f.verifactu || {}).activo;
-  const eur = v => (Math.round(v * 100) / 100).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
-  const w = window.open('', '_blank');
-  if (!w) { toast('Permite las ventanas emergentes para ver la factura', true); return; }
-  w.document.write(`<!doctype html><html lang="es"><head><meta charset="utf-8"><title>${esc(f.numero)}</title>
-    <style>
-      body{font:13px/1.45 -apple-system,Segoe UI,Roboto,Arial,sans-serif;color:#1c2733;margin:0;padding:36px 42px}
-      h1{font-size:22px;margin:0;color:#0E2F52} .top{display:flex;justify-content:space-between;gap:20px;align-items:flex-start}
-      .marca{font-size:20px;font-weight:800;color:#0E2F52;letter-spacing:.02em} .sm{color:#5b6b7b;font-size:12px}
-      .cajas{display:flex;gap:18px;margin:22px 0} .caja{flex:1;border:1px solid #dbe3ea;border-radius:10px;padding:12px 14px}
-      .caja h3{margin:0 0 6px;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:#5b6b7b}
-      table{width:100%;border-collapse:collapse;margin-top:6px} th{font-size:11px;text-transform:uppercase;color:#5b6b7b;text-align:left;border-bottom:2px solid #0E2F52;padding:7px 6px}
-      td{border-bottom:1px solid #e6ecf1;padding:8px 6px} .n{text-align:right;white-space:nowrap}
-      .tot{margin-left:auto;width:300px;margin-top:14px} .tot div{display:flex;justify-content:space-between;padding:4px 0}
-      .tot .g{border-top:2px solid #0E2F52;margin-top:4px;padding-top:8px;font-size:16px;font-weight:800;color:#0E2F52}
-      .pie{margin-top:28px;font-size:11.5px;color:#5b6b7b;border-top:1px solid #e6ecf1;padding-top:12px}
-      .qr{display:flex;gap:12px;align-items:center;margin-top:18px} .qr div{font-size:11px;color:#5b6b7b}
-      .rect{background:#fff4e5;border:1px solid #f0c48a;border-radius:8px;padding:8px 12px;margin-top:14px}
-      @media print{body{padding:18px 22px}.noimp{display:none}}
-    </style></head><body>
-    <div class="noimp" style="text-align:right;margin-bottom:12px"><button onclick="print()" style="padding:9px 16px;border-radius:8px;border:0;background:#0E2F52;color:#fff;font-weight:700;cursor:pointer">Imprimir o guardar en PDF</button></div>
-    <div class="top"><div><div class="marca">${esc(e.razon_social || nombreApp())}</div>
-      <div class="sm">${esc(e.nif || '')}<br>${esc([e.direccion, e.cp, e.municipio, e.provincia].filter(Boolean).join(', '))}<br>${esc([e.telefono, e.email].filter(Boolean).join(' · '))}</div></div>
-      <div style="text-align:right"><h1>${f.rectifica_id ? 'Factura rectificativa' : 'Factura'}</h1><div style="font-size:16px;font-weight:700">${esc(f.numero)}</div>
-        <div class="sm">Fecha: ${esc(f.fecha.split('-').reverse().join('/'))}${f.vencimiento && !f.rectifica_id ? '<br>Vencimiento: ' + esc(f.vencimiento.split('-').reverse().join('/')) : ''}</div></div></div>
-    ${f.rectifica_id ? `<div class="rect">Rectifica la factura <b>${esc(rectificaNum || '')}</b> · Motivo: ${esc(f.motivo_rectificacion || '')}</div>` : ''}
-    <div class="cajas"><div class="caja"><h3>Cliente</h3><b>${esc(c.nombre || '')}</b><br>${esc(c.nif || '')}<br>${esc([c.direccion, c.cp, c.municipio, c.provincia, c.pais].filter(Boolean).join(', '))}</div>
-      <div class="caja"><h3>Pago</h3>${esc(f.forma_pago || '—')}${e.iban ? '<br>IBAN: ' + esc(e.iban) : ''}</div></div>
-    <table><thead><tr><th>Concepto</th><th class="n">Uds.</th><th class="n">Precio</th><th class="n">Dto.</th><th class="n">IVA</th><th class="n">Importe</th></tr></thead>
-      <tbody>${f.lineas.map(l => `<tr><td>${esc(l.descripcion)}</td><td class="n">${l.unidades}</td><td class="n">${eur(l.precio)}</td>
-        <td class="n">${l.descuento ? l.descuento + '%' : ''}</td><td class="n">${l.iva}%</td><td class="n">${eur(l.base)}</td></tr>`).join('')}</tbody></table>
-    <div class="tot">${f.desglose_iva.map(d => `<div><span>Base imponible ${d.iva}%</span><span>${eur(d.base)}</span></div><div><span>IVA ${d.iva}%</span><span>${eur(d.cuota)}</span></div>`).join('')}
-      <div class="g"><span>Total</span><span>${eur(f.total)}</span></div></div>
-    ${conQR ? `<div class="qr"><span id="qr"></span><div><b>VERI*FACTU</b><br>Factura verificable en la sede electrónica de la AEAT</div></div>` : ''}
-    <div class="pie">${esc(e.pie || '')}${e.registro ? '<br>' + esc(e.registro) : ''}</div>
-    ${conQR ? `<script src="${new URL('qrcode.js', location.href).href}"><\/script>
-      <script>try{var q=qrcode(0,'M');q.addData(${JSON.stringify(f.qr_url || '')});q.make();document.getElementById('qr').innerHTML=q.createSvgTag(3,0);}catch(e){}<\/script>` : ''}
-    </body></html>`);
-  w.document.close();
-}
 
-async function pintarSeries() {
-  cargando($('fcuerpo'), 'Cargando series…');
-  const { data } = await RPC_ORIG('series_lista', {});
-  const l = data || [], admin = puede('administrar');
-  $('fcuerpo').innerHTML = `<div class="panel">
-    <div class="cuenta">Cada serie numera sus facturas de forma correlativa. Para continuar la numeración de otro programa, pon en «Siguiente número» el que toca.
-      ${admin ? '<button class="btn sec" id="sernueva" style="margin-left:8px">+ Nueva serie</button>' : ''}</div>
-    <div class="dgrid-wrap"><div class="dgrid sers">
-      <div class="dh"><span>Serie</span><span>Tipo</span><span>Formato</span><span>Próximo número</span><span>Última emitida</span><span class="num">Emitidas</span><span>Reinicio anual</span></div>
-      ${l.map(s => `<button class="dr" data-ser="${s.id}"><span><b>${esc(s.codigo)}</b><span class="sm">${esc(s.nombre)}${s.por_defecto ? ' · por defecto' : ''}${s.activa ? '' : ' · inactiva'}</span></span>
-        <span>${esc(s.tipo === 'ordinaria' ? 'Facturas' : s.tipo === 'rectificativa' ? 'Rectificativas' : 'Simplificadas')}</span><span class="mono">${esc(s.formato)}</span>
-        <span><b>${esc(s.proximo)}</b></span><span>${esc(s.ultima || '—')}</span><span class="num">${num(s.emitidas)}</span><span>${s.reinicio_anual ? 'Sí' : 'No'}</span></button>`).join('')}
-    </div></div>
-    <p class="sm" style="padding:10px 16px">Formato: <b>{S}</b> código de la serie · <b>{AAAA}</b> o <b>{AA}</b> año · <b>{NNNN}</b> número con tantas cifras como «N». Ejemplo: {S}{AA}{NNNN} → F260408.</p></div>`;
-  $('fcuerpo').querySelectorAll('[data-ser]').forEach(b => b.onclick = () => editorSerie(l.find(s => s.id === b.dataset.ser)));
-  if ($('sernueva')) $('sernueva').onclick = () => editorSerie(null);
-}
 
-function editorSerie(s) {
-  const admin = puede('administrar'), ro = admin ? '' : 'disabled';
-  s = s || { codigo: '', nombre: '', tipo: 'ordinaria', formato: '{S}{AA}{NNNN}', siguiente: 1, anio: +hoyISO().slice(0, 4), reinicio_anual: true };
-  $('dbody').innerHTML = `
-    <div class="fh"><div><h2>${s.id ? 'Serie ' + esc(s.codigo) : 'Nueva serie'}</h2><div class="sm">Próximo número: <b id="serprev"></b></div></div>
-      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-    <div class="g2"><div><label for="sec">Código</label><input id="sec" value="${esc(s.codigo)}" ${s.id ? 'disabled' : ro} placeholder="p. ej. F, CN, W"></div>
-      <div><label for="sen">Nombre</label><input id="sen" value="${esc(s.nombre)}" ${ro}></div></div>
-    <div class="g2"><div><label for="set">Tipo</label><select id="set" ${s.id ? 'disabled' : ro}>
-        <option value="ordinaria" ${s.tipo === 'ordinaria' ? 'selected' : ''}>Facturas</option><option value="rectificativa" ${s.tipo === 'rectificativa' ? 'selected' : ''}>Rectificativas</option>
-        <option value="simplificada" ${s.tipo === 'simplificada' ? 'selected' : ''}>Simplificadas (tickets)</option></select></div>
-      <div><label for="sef">Formato</label><input id="sef" value="${esc(s.formato)}" ${ro}></div></div>
-    <div class="g2"><div><label for="ses">Siguiente número</label><input id="ses" type="number" min="1" value="${s.siguiente}" ${ro}></div>
-      <div><label for="sea">Año de la numeración</label><input id="sea" type="number" value="${s.anio}" ${ro}></div></div>
-    <label class="opt" style="margin-top:10px"><input type="checkbox" id="ser" ${s.reinicio_anual ? 'checked' : ''} ${ro}> Volver a empezar desde 1 cada año</label>
-    <label class="opt" style="margin-top:8px"><input type="checkbox" id="sed" ${s.por_defecto ? 'checked' : ''} ${ro}> Serie por defecto para su tipo</label>
-    ${s.id ? `<label class="opt" style="margin-top:8px"><input type="checkbox" id="seac" ${s.activa !== false ? 'checked' : ''} ${ro}> Activa</label>` : ''}
-    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>Cerrar</button>${admin ? '<button class="btn" id="seok">Guardar</button>' : ''}</div>`;
-  $('dlg').showModal();
-  const prev = () => {
-    const cod = $('sec').value.trim().toUpperCase() || 'X', a = +$('sea').value || 2026, n = +$('ses').value || 1;
-    let r = $('sef').value.replace('{S}', cod).replace('{AAAA}', a).replace('{AA}', String(a % 100).padStart(2, '0'));
-    r = r.replace(/\{(N+)\}/, (m, g) => String(n).padStart(g.length, '0'));
-    $('serprev').textContent = r;
-  };
-  ['sec', 'sef', 'ses', 'sea'].forEach(k => $(k).oninput = prev); prev();
-  if (!$('seok')) return;
-  $('seok').onclick = async () => {
-    const { data: r, error } = await db.rpc('guardar_serie', { p: { id: s.id || null, codigo: $('sec').value.trim(), nombre: $('sen').value.trim(), tipo: $('set').value,
-      formato: $('sef').value.trim(), siguiente: +$('ses').value, anio: +$('sea').value, reinicio_anual: $('ser').checked, por_defecto: $('sed').checked,
-      ...($('seac') ? { activa: $('seac').checked } : {}) } });
-    if (error || (r && r.ok === false)) { toast(r && r.error === 'numero_usado' ? `Ese número ya se ha usado: el último emitido es el ${r.ultimo}` : 'No se ha podido guardar', true); return; }
-    $('dlg').close(); toast('Serie guardada'); pintarSeries();
-  };
-}
 
 async function emitirFacturaPedido(pedidoId, o = {}) {
   const { data: pd } = await RPC_ORIG('pedido_detalle', { p_id: pedidoId });
@@ -25540,9 +29582,7 @@ const UDS_SERIES = [['semana', 'Semana'], ['mes', 'Mes'], ['anio', 'Año']];
 
 let FSEC = 'facturas';
 
-const pillCobro = e => `<span class="pill ${e === 'Cobrada' ? 'p-est' : e === 'Vencida' ? 'p-anu' : 'p-bor'}">${esc(e)}</span>`;
 
-const refrescarFacturas = () => { if (TAB === 'facturacion' && FSEC === 'facturas' && $('flista')) pintarFacturas(); };
 
 const fac = fn => () => { $('cfgcuerpo').innerHTML = '<div id="fcuerpo"></div>'; fn(); };
 
@@ -25660,78 +29700,12 @@ async function enviarFacturaEmail(f, rn, ...a) {
   return r;
 }
 
-async function cargarFacturacionBase() {
-  const admin = puede('administrar');
-  const secs = [['facturas', 'Facturas'], ['series', 'Series y numeración']].concat(admin ? [['empresa', 'Datos fiscales'], ['verifactu', 'VeriFactu'], ['registro', 'Registro']] : []);
-  if (!secs.some(s => s[0] === FSEC)) FSEC = 'facturas';
-  $('v-facturacion').innerHTML = `
-    <div class="saludo"><div><h1>Facturación</h1><div class="fecha">Facturas emitidas desde los pedidos, rectificativas y cobros</div></div>
-      <div class="acts" style="margin:0"></div></div>
-    <div class="subnav">${secs.map(([k, t]) => `<button data-fsec="${k}" aria-pressed="${FSEC === k}">${t}</button>`).join('')}</div>
-    <div id="fcuerpo"></div>`;
-  $('v-facturacion').querySelectorAll('[data-fsec]').forEach(b => b.onclick = () => { FSEC = b.dataset.fsec; cargarFacturacion(); });
-  if (FSEC === 'facturas') pintarFacturas();
-  if (FSEC === 'series') pintarSeries();
-  if (FSEC === 'empresa') pintarEmpresa();
-  if (FSEC === 'verifactu') pintarVerifactu();
-  if (FSEC === 'registro') pintarRegistro();
-}
-
-async function cargarFacturacionBase2(...a) { const r = await cargarFacturacionBase.apply(this, a); requestAnimationFrame(() => { if (TAB === 'facturacion') subnavFacturacion(); }); return r; }
-
-// En solo consulta, la pantalla lo dice arriba y Organización no enseña lo de emitir (datos fiscales, series, VeriFactu, PDF)
-async function cargarFacturacion(...a) {
-  const r = await cargarFacturacionBase2.apply(this, a);
-  const v = $('v-facturacion');
-  if (v && facConsulta() && !v.querySelector('#facconsulta')) {
-    const sub = v.querySelector('.subnav');
-    if (sub) sub.insertAdjacentHTML('afterend', `<div id="facconsulta" class="banda-info">Tu plan ${esc(planDe(PLAN_ACTUAL.plan).nombre)} no incluye Facturación:
-      puedes consultar y descargar las facturas que ya emitiste y registrar sus cobros, pero no emitir nuevas.</div>`);
-  }
-  return r;
-}
-
-async function pintarVerifactu() {
-  await cargarAjustes();
-  const v = Object.assign({ activo: false, modalidad: 'verifactu', entorno: 'pruebas' }, AJUSTES.verifactu || {});
-  const [{ data: cad }, { data: evs }] = await Promise.all([RPC_ORIG('verificar_cadena', {}), RPC_ORIG('eventos_facturacion_lista', { lim: 1 })]);
-  const c = cad || {}, ok = !c.rotas;
-  $('fcuerpo').innerHTML = `
-    <div class="vfhero ${v.activo ? 'on' : ''}">
-      <div class="vfico">🛡️</div>
-      <div><h2>VeriFactu ${v.activo ? '<span class="pill p-est">Activado</span>' : '<span class="pill p-per">Preparado · desactivado</span>'}</h2>
-        <p>Sistema de la Agencia Tributaria para que las facturas no se puedan alterar y se puedan verificar. La plataforma ya emite cada factura cumpliendo sus requisitos; solo falta conectar el envío cuando decidáis activarlo.</p></div></div>
-    <div class="vfpasos">
-      <div class="vfpaso hecho"><span>✓</span><b>1 · Facturas preparadas</b><em>Numeración sin huecos, facturas inalterables y rectificativas.</em></div>
-      <div class="vfpaso hecho"><span>✓</span><b>2 · Registro encadenado</b><em>${num(c.facturas || 0)} facturas con huella · ${ok ? 'cadena íntegra' : 'revisar desde ' + esc(c.primera_rota || '')}.</em></div>
-      <div class="vfpaso ${v.activo ? 'hecho' : ''}"><span>${v.activo ? '✓' : '3'}</span><b>3 · QR y leyenda</b><em>${v.activo ? 'Las facturas nuevas llevan QR y «VERI*FACTU».' : 'Se añaden al activarlo.'}</em></div>
-      <div class="vfpaso pend"><span>🔒</span><b>4 · Envío a Hacienda</b><em>Requiere el certificado digital de la empresa. Se configura al activarlo.</em></div>
-    </div>
-    <div class="vfgrid">
-      <div class="card vfcard"><h3>Qué hace cada factura</h3><ul class="manlist">
-        <li><span>🔢</span><span>Recibe el siguiente número de su serie: no puede haber huecos ni repetidos.</span></li>
-        <li><span>🔗</span><span>Guarda una <b>huella</b> que la encadena con la anterior: si alguien cambiara una factura, la cadena lo delataría.</span></li>
-        <li><span>🧾</span><span>No se puede modificar ni borrar: los errores se corrigen con una <b>rectificativa</b>.</span></li>
-        <li><span>📋</span><span>Todo queda en el <b>registro de eventos</b>: emisiones, cobros, envíos y cambios de configuración${evs && evs[0] ? ` (último: ${esc(evs[0].tipo)} el ${new Date(evs[0].fecha).toLocaleDateString('es-ES')})` : ''}.</span></li></ul></div>
-      <div class="card vfcard"><h3>Configuración</h3>
-        <label class="vfswitch"><input type="checkbox" id="vfa" ${v.activo ? 'checked' : ''}><span class="sw"></span>
-          <span><b>Activar VeriFactu</b><br><span class="sm">Las facturas nuevas llevarán el QR y la leyenda. Las ya emitidas no cambian.</span></span></label>
-        <label>Modalidad</label>
-        <div class="vfmodos">
-          <label class="vfmodo"><input type="radio" name="vfm" value="verifactu" ${v.modalidad === 'verifactu' ? 'checked' : ''}><b>VeriFactu</b><span>Cada factura se envía a Hacienda al emitirla. La más sencilla de mantener.</span></label>
-          <label class="vfmodo"><input type="radio" name="vfm" value="no_verifactu" ${v.modalidad === 'no_verifactu' ? 'checked' : ''}><b>No VeriFactu</b><span>Las facturas se firman y se guardan; Hacienda puede pedirlas cuando quiera.</span></label></div>
-        <label for="vfe">Entorno</label><select id="vfe"><option value="pruebas" ${v.entorno === 'pruebas' ? 'selected' : ''}>Pruebas de la Agencia Tributaria</option><option value="produccion" ${v.entorno === 'produccion' ? 'selected' : ''}>Producción</option></select>
-        <div class="acts" style="justify-content:flex-end"><button class="btn" id="vfok">Guardar</button></div></div>
-    </div>`;
-  $('vfok').onclick = async () => {
-    const nuevo = { activo: $('vfa').checked, modalidad: document.querySelector('[name=vfm]:checked').value, entorno: $('vfe').value };
-    if (nuevo.activo !== v.activo && !await preguntar(nuevo.activo ? 'Las facturas que se emitan a partir de ahora llevarán el QR y la leyenda VERI*FACTU. El envío a Hacienda necesitará el certificado de la empresa.' : 'Las facturas nuevas dejarán de llevar el QR. Las ya emitidas no cambian.',
-      { titulo: nuevo.activo ? '¿Activar VeriFactu?' : '¿Desactivar VeriFactu?', ok: nuevo.activo ? 'Activar' : 'Desactivar' })) return;
-    const { error } = await db.rpc('guardar_ajuste', { p_clave: 'verifactu', p_valor: nuevo });
-    if (error) { toast('No se ha podido guardar', true); return; }
-    AJUSTES.verifactu = nuevo; toast('Guardado · queda anotado en el registro'); pintarVerifactu();
-  };
-}
+// Facturación está en src/app/screens/billing (v2.413.0). Estos nombres se quedan: el menú, la caché de pantallas (legado 057),
+// la barra de configuración, Configuración, Organización, Pedidos, «‹ Volver» (legado 089), la ventana amplia y las pruebas los usan.
+function cargarFacturacion() { return window.delcos.screens.billing.loadBilling(); }
+function verFactura(id) { return window.delcos.screens.billing.showInvoice(id); }
+function pintarSeries() { return window.delcos.screens.billing.paintSeries(); }
+function pintarVerifactu() { return window.delcos.screens.billing.paintVerifactu(); }
 // pantallas/importar.js · Importar datos está en src/app/screens/import (v2.410.0). Estos nombres se quedan:
 // Configuración → Importar datos abre las dos pantallas, y Configuración y el manual comparan textos con impNorm.
 
@@ -26065,23 +30039,6 @@ function salirPanel() {
 
 // (v2.183.0: aquí iba la primera versión de reportarProblema; se redefine entera más abajo)
 // Configuración → Seguridad y registro → Errores (administración)
-async function pintarErrores() {
-  const f = window.__ERRF || { tipo: '', estado: 'Nuevo' };
-  const { data } = await RPC_ORIG('errores_lista', { p_tipo: f.tipo || null, p_estado: f.estado || null });
-  const l = data || [];
-  const nom = { error: 'Error de programa', api: 'Error de base de datos', reporte: 'Reporte de usuario' };
-  $('cfgcuerpo').innerHTML = `<div class="card cfgpanel"><h2>Errores y reportes</h2>
-    <p class="sm">Errores que se producen al usar la plataforma y problemas que reportan las personas. Descarga el archivo para enviárselo a quien da soporte técnico.</p>
-    <div class="usrbar"><select id="erft"><option value="">Todos los tipos</option>${Object.entries(nom).map(([k, t]) => `<option value="${k}" ${f.tipo === k ? 'selected' : ''}>${t}</option>`).join('')}</select>
-      <select id="erfe">${['', 'Nuevo', 'Revisado', 'Resuelto'].map(e => `<option value="${e}" ${f.estado === e ? 'selected' : ''}>${e || 'Todos los estados'}</option>`).join('')}</select>
-      <button class="btn sec" id="erdesc">${svgIco(ICON_NOM.download)} Descargar</button></div>
-    <div class="errlista">${l.map(x => `<div class="errfila e-${x.tipo}"><div><b>${esc(nom[x.tipo] || x.tipo)}</b> <span class="sm">${new Date(x.creado_en).toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' })} · ${esc(x.usuario || '—')} · ${esc(x.pantalla || '—')} · v${esc(x.version || '')}</span>
-        <div class="errmsg">${esc(x.mensaje)}</div></div>
-      <select data-errst="${x.id}">${['Nuevo', 'Revisado', 'Resuelto'].map(e => `<option ${x.estado === e ? 'selected' : ''}>${e}</option>`).join('')}</select></div>`).join('') || '<div class="vacio">Sin errores con estos filtros.</div>'}</div></div>`;
-  $('erft').onchange = $('erfe').onchange = () => { window.__ERRF = { tipo: $('erft').value, estado: $('erfe').value }; pintarErrores(); };
-  $('cfgcuerpo').querySelectorAll('[data-errst]').forEach(s => s.onchange = async () => { await RPC_ORIG('marcar_error', { p_id: +s.dataset.errst, p_estado: s.value }); toast('Estado actualizado'); });
-  $('erdesc').onclick = () => { const b = new Blob([JSON.stringify(l, null, 1)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = `errores_${hoyISO()}.json`; a.click(); };
-}
 
 /* ============================================================
    v2.86.0 · Organizaciones de la plataforma (fase 4): alta de empresas nuevas
@@ -26089,83 +30046,8 @@ async function pintarErrores() {
    organización principal). Cada organización nace con sus roles, catálogos,
    series y ajustes, y su administrador queda invitado.
    ============================================================ */
-async function pintarOrganizaciones() {
-  const c = $('cfgcuerpo'); if (!c) return;
-  c.innerHTML = '<div class="card"><div class="sm">Cargando…</div></div>';
-  const { data, error } = await db.rpc('organizaciones_lista');
-  const l = Array.isArray(data) ? data : [];
-  c.innerHTML = `<div class="card"><div class="fh"><div><h2>Organizaciones</h2>
-      <div class="sm">Cada empresa trabaja aislada, con sus datos, sus usuarios, su numeración y su configuración.</div></div>
-      <button class="btn" id="orgnueva">+ Nueva organización</button></div>
-    ${error ? `<div class="vacio">No se han podido cargar: ${esc(error.message)}</div>` : `<div class="lista">${l.map(o => `<div class="item" style="cursor:default">
-      <span class="tx"><b>${esc(o.nombre)}</b>${orgEstado(o)}<span class="sm">${esc(o.nif || 'Sin NIF')} · ${esc(orgPlanTxt(o))}${((o.plan_datos || {}).extras || []).length ? ' + ' + o.plan_datos.extras.map(extraNombre).join(', ') : ''} · ${num(o.usuarios)} usuarios · ${num(o.cuentas)} cuentas${o.pendiente ? ' · pendiente de registro: ' + esc(o.pendiente) : ''}</span>
-        <span class="sm">${(o.dominios || []).length ? 'Dominios: ' + o.dominios.map(esc).join(', ') : 'Sin dominio propio: su pantalla de acceso muestra la marca de delcos'}</span></span>
-      <span class="acts" style="margin:0"><span class="sm">${o.creado_en ? fechaCorta(String(o.creado_en).slice(0, 10)) : ''}</span>
-        <button class="btn sec chico" type="button" data-orgdom="${o.id}">Dominios</button>
-        <button class="btn sec chico" type="button" data-orgext="${o.id}">Extras</button>
-        <button class="btn chico ${o.id === (VISTA_ORG || {}).id ? 'sec' : ''}" type="button" data-orgver="${o.id}">${o.id === (VISTA_ORG || {}).id ? 'Estás dentro' : 'Entrar'}</button>
-        <button class="btn sec chico" type="button" data-orgplan="${o.id}">Plan</button>
-        <button class="btn sec chico" type="button" data-orgexp="${o.id}">Descargar datos</button>
-        ${!o.principal && (((o.plan_datos || {}).estado === 'prueba') || !o.activa) ? `<button class="btn sec" type="button" data-orgdel="${o.id}">Borrar empresa</button>` : ''}</span></div>`).join('')}</div>`}</div>`;
-  orgAcciones(c, l); orgExtras(c, l);
-  // v2.131.0: entrar en la organización para verla tal cual
-  c.querySelectorAll('[data-orgver]').forEach(b => b.onclick = () => { const o = l.find(x => x.id === b.dataset.orgver); if (o && o.id !== (VISTA_ORG || {}).id) entrarEnOrganizacion(o); });
-  // v2.103.0: los dominios de cada organización deciden la marca de su pantalla de acceso
-  c.querySelectorAll('[data-orgdom]').forEach(b => b.onclick = async () => {
-    const o = l.find(x => x.id === b.dataset.orgdom); if (!o) return;
-    const txt = await pedirTexto(`Dominios desde los que se entra a ${o.nombre}, separados por comas (p. ej. app.empresa.com). Su pantalla de acceso mostrará su nombre y su logo. Déjalo vacío para quitar todos.`,
-      (o.dominios || []).join(', '), { titulo: 'Dominios de la organización', ok: 'Guardar' });
-    if (txt === null) return;
-    const { data: r, error: e } = await db.rpc('guardar_dominios_organizacion', { p_id: o.id, p_dominios: txt.split(/[,;\s]+/).filter(Boolean) });
-    if (e || !r || !r.ok) {
-      toast((r && { permiso: 'No tienes permiso', dominio: `«${r.dominio}» no es un dominio válido`, en_uso: `Ese dominio ya es de ${r.organizacion}`, no_existe: 'La organización ya no existe' }[r.error]) || 'No se han podido guardar los dominios' + (e ? ': ' + e.message : ''), true);
-      return;
-    }
-    toast(r.dominios.length ? 'Dominios guardados' : 'Dominios quitados'); pintarOrganizaciones();
-  });
-  $('orgnueva').onclick = () => {
-    $('dbody').innerHTML = `<div class="fh"><div><h2>Nueva organización</h2><div class="sm">Nace con los roles, catálogos, series y ajustes de partida de la plataforma</div></div>
-        <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-      <div class="g2"><div><label for="onom">Nombre de la empresa</label><input id="onom"></div>
-        <div><label for="onif">NIF</label><input id="onif"></div>
-        <div><label for="oplan">Plan</label><select id="oplan">${PLANES.map(p => `<option value="${p.id}" ${p.id === 'empresa' ? 'selected' : ''}>${esc(p.nombre)}</option>`).join('')}</select></div>
-        <div><label for="ousu">Usuarios contratados</label><input id="ousu" type="number" min="3" value="3"></div>
-        <div><label for="opago">Pago</label><select id="opago"><option value="mensual">Mensual</option><option value="anual">Anual</option></select></div>
-        <div><label class="chk"><input type="checkbox" id="oprueba" checked> Empresa de prueba (30 días)</label></div></div>
-      <h3 style="margin-top:14px">Su administrador</h3>
-      <div class="g2"><div><label for="oanom">Nombre</label><input id="oanom"></div>
-        <div><label for="oamail">Correo</label><input id="oamail" type="email"></div>
-        <div><label for="oapass">Contraseña temporal</label><input id="oapass" value="Tmp-${Math.random().toString(36).slice(2, 8)}"></div></div>
-      <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>Cancelar</button><button class="btn" id="ocrear">Crear organización</button></div>
-      <div id="omsg" class="sm" style="margin-top:10px"></div>`;
-    $('ocrear').onclick = async ev => {
-      const nombre = $('onom').value.trim(), email = $('oamail').value.trim(), pass = $('oapass').value, anom = $('oanom').value.trim();
-      if (!nombre || !email || !anom || pass.length < 6) { toast('Completa el nombre, el administrador, su correo y la contraseña', true); return; }
-      ev.target.disabled = true; ev.target.textContent = 'Creando…';
-      const { data: r, error: e1 } = await db.rpc('crear_organizacion', { p: { nombre, nif: $('onif').value.trim(), plan: $('oplan').value, usuarios: +$('ousu').value || 3, pago: $('opago').value,
-        prueba_dias: $('oprueba').checked ? 30 : 0, email_admin: email } });
-      if (e1 || !r || !r.ok) {
-        ev.target.disabled = false; ev.target.textContent = 'Crear organización';
-        const txt = { permiso: 'No tienes permiso', nombre: 'Falta el nombre', email: 'El correo no es válido', email_existe: 'Ese correo ya tiene usuario' }[(r && r.error) || ''] || (e1 && e1.message) || '';
-        $('omsg').innerHTML = `<span style="color:var(--dang)">No se ha podido crear: ${esc(txt)}</span>`; return;
-      }
-      // Su administrador se registra: la invitación le coloca en la organización nueva
-      const tmp = window.supabase.createClient(CFG.url, CFG.anon, { auth: { persistSession: false, autoRefreshToken: false } });
-      const { error: e2 } = await tmp.auth.signUp({ email, password: pass, options: { data: { nombre: anom, usuario: email.split('@')[0] } } });
-      ev.target.disabled = false; ev.target.textContent = 'Crear organización';
-      $('omsg').innerHTML = e2 ? `<span style="color:var(--dang)">Organización creada, pero no su usuario: ${esc(e2.message)}. Queda invitado: puede registrarse con ese correo.</span>`
-        : `<b style="color:var(--ok)">Organización creada.</b> Usuario de ${esc(email)} con contraseña temporal <b>${esc(pass)}</b>. Pásasela y que la cambie al entrar.`;
-      pintarOrganizaciones();
-    };
-    $('dlg').showModal();
-  };
-}
 
 // v2.117.0 · Organizaciones: plan de cada empresa, estado (prueba, terminada, desactivada), descargar sus datos y borrar las de prueba
-function orgPlanTxt(o) {
-  const pd = o.plan_datos || {}, p = planDe(pd.plan || o.plan);
-  return `plan ${p.nombre}${pd.plan === 'medida' || pd.usuarios == null ? '' : ` · ${num(pd.usuarios)} contratados`}${pd.pago === 'anual' ? ' · anual' : pd.plan === 'medida' ? '' : ' · mensual'}`;
-}
 
 // Menú de usuario: una sola entrada «Organización» en lugar de Empresa y Plan
 function menuOrganizacion() {
@@ -26177,215 +30059,20 @@ function menuOrganizacion() {
 }
 
 // Organizaciones: los extras de cada empresa (los activa la plataforma)
-function orgExtras(c, l) {
-  c.querySelectorAll('[data-orgext]').forEach(b => b.onclick = () => {
-    const o = l.find(x => x.id === b.dataset.orgext); if (!o) return;
-    const act = (o.plan_datos || {}).extras || [];
-    $('dbody').innerHTML = `<div class="fh"><div><h2>Extras de ${esc(o.nombre)}</h2><div class="sm">Lo que tiene contratado aparte de su plan</div></div>
-        <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-      <label class="chk"><input type="checkbox" id="oxopor" ${act.includes('oportunidades') ? 'checked' : ''}> <span><b>Oportunidades</b>
-        <span class="sm">Registro de cada venta, se cierre con pedido o no: día y hora, qué producto y cuántas unidades quería, su ${TT('medico', 's', '', 'l', 'l')} de referencia y cómo llegó, con sus métricas.</span></span></label>
-      <label class="chk"><input type="checkbox" id="oxport" ${act.includes('portal') ? 'checked' : ''}> <span><b>Portal ${TT('medico', 's', 'del', 'l', 'l')}</b>
-        <span class="sm">En su portal, cifras agregadas de ${TT('pauta', 'p', '', 'l', 'l')} (sin datos de personas), pedir material y escribir dudas a su comercial.</span></span></label>
-      <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>Cancelar</button><button class="btn" id="oxok">Guardar</button></div>`;
-    $('dlg').showModal();
-    $('oxok').onclick = async () => {
-      const { data: r, error } = await db.rpc('guardar_extras_organizacion', { p_org: o.id, p_extras: [$('oxopor').checked && 'oportunidades', $('oxport').checked && 'portal'].filter(Boolean) });
-      if (error || !r || !r.ok) { toast('No se han podido guardar los extras' + (error ? ': ' + error.message : ''), true); return; }
-      $('dlg').close(); toast('Extras guardados');
-      const { data: u } = await RPC_ORIG('plan_uso', {}); if (u && u.plan) PLAN_ACTUAL = u.plan;   // por si es la propia
-      pintarOrganizaciones();
-    };
-  });
-}
-
-async function franjaVista() {
-  if (!PERFIL || !puede('gestionar_plataforma')) { quitarFranja(); return; }
-  const { data } = await RPC_ORIG('vista_organizacion', {});
-  VISTA_ORG = data || null;
-  if (!VISTA_ORG) { quitarFranja(); return; }
-  let f = $('orgvista');
-  if (!f) { document.body.insertAdjacentHTML('afterbegin', '<div id="orgvista" class="orgvista" role="status"></div>'); f = $('orgvista'); }
-  f.innerHTML = `<span>Estás viendo <b>${esc(VISTA_ORG.nombre)}</b>${VISTA_ORG.bloqueada ? ` <span class="pill p-warn">${VISTA_ORG.bloqueada === 'desactivada' ? 'desactivada' : 'prueba terminada'}</span>` : ''} tal cual la ve esa empresa. Lo que hagas queda en su registro.</span>
-    <button type="button" class="btn sec" id="orgvistasal">Salir</button>`;
-  document.body.classList.add('con-vista');
-  document.documentElement.style.setProperty('--alto-franja', f.offsetHeight + 'px');
-  $('orgvistasal').onclick = async ev => {
-    ev.target.disabled = true;
-    const { data: r } = await db.rpc('salir_organizacion', {});
-    if (!r || !r.ok) { ev.target.disabled = false; toast('No se ha podido salir', true); return; }
-    location.reload();
-  };
-}
-
-function quitarFranja() {
-  const f = $('orgvista'); if (f) f.remove();
-  document.body.classList.remove('con-vista'); document.documentElement.style.setProperty('--alto-franja', '0px');
-}
-
-async function pintarErroresDelcos() {
-  const c = $('cfgcuerpo'); if (!c) return;
-  const f = window.__ERRG || { estado: 'abiertos', dias: 15 };
-  c.innerHTML = `<div class="card cfgpanel"><div class="skel" style="width:40%"></div><div class="skel"></div></div>`;
-  const { data, error } = await RPC_ORIG('errores_resumen', { p_dias: f.dias });
-  if (!$('cfgcuerpo')) return;
-  const todos = error ? [] : (data || []);
-  const l = todos.filter(x => f.estado === 'todos' || (f.estado === 'abiertos' ? x.estado !== 'Resuelto' : x.estado === 'Resuelto'));
-  const nom = { error: 'Error de programa', api: 'Error de base de datos' };
-  const fecha = v => new Date(v).toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' });
-  c.innerHTML = `<div class="card cfgpanel errgrupos"><h2 style="padding:0 0 4px">Errores de la plataforma</h2>
-    <p class="sm">Los errores iguales van juntos. Al marcar un grupo como resuelto queda apuntada la versión; si vuelve a salir en esa versión o en una
-      posterior, se reabre solo. «Descargar» guarda el archivo para quien da soporte técnico.</p>
-    ${error ? `<div class="banda-peligro">No se ha podido leer el registro: ${esc(error.message)}</div>` : ''}
-    <div class="usrbar"><select id="egest"><option value="abiertos" ${f.estado === 'abiertos' ? 'selected' : ''}>Sin resolver</option>
-        <option value="resueltos" ${f.estado === 'resueltos' ? 'selected' : ''}>Resueltos</option><option value="todos" ${f.estado === 'todos' ? 'selected' : ''}>Todos</option></select>
-      <select id="egdias">${[7, 15, 30, 90].map(n => `<option value="${n}" ${f.dias === n ? 'selected' : ''}>Últimos ${n} días</option>`).join('')}</select>
-      <button class="btn sec" id="egdesc">${svgIco(ICON_NOM.download)} Descargar</button></div>
-    <div class="errlista">${l.map((x, i) => `<div class="errfila e-${x.tipo}">
-        <div><b>${esc(nom[x.tipo] || x.tipo)}</b> <span class="sm">· ${esc(x.pantalla || '—')} · ${num(x.veces)} ${x.veces === 1 ? 'vez' : 'veces'} · ${num(x.personas)} ${x.personas === 1 ? 'persona' : 'personas'}
-          · última ${fecha(x.ultima)}${x.resuelto_en_version ? (x.resuelto_auto ? ' · resuelto solo en ' : ' · resuelto en ') + esc(x.resuelto_en_version) : ''}</span>
-          <div class="errmsg">${esc(x.mensaje)}</div>
-          <details class="errdet"><summary class="sm">Versiones y detalle técnico</summary><div class="sm">Versiones: ${esc(x.versiones || '—')} · primera ${fecha(x.primera)}</div>
-            <pre>${esc(JSON.stringify(x.detalle || {}, null, 1))}</pre></details></div>
-        <select class="chico" data-egh="${i}" aria-label="Estado del grupo">${['Nuevo', 'Revisado', 'Resuelto'].map(e => `<option ${x.estado === e ? 'selected' : ''}>${e}</option>`).join('')}</select></div>`).join('')
-      || `<div class="vacio">${f.estado === 'abiertos' ? 'No hay errores sin resolver en este periodo.' : 'Sin errores con estos filtros.'}</div>`}</div></div>`;
-  $('egest').onchange = $('egdias').onchange = () => { window.__ERRG = { estado: $('egest').value, dias: +$('egdias').value }; pintarErroresDelcos(); };
-  c.querySelectorAll('[data-egh]').forEach(s => s.onchange = async () => {
-    const x = l[+s.dataset.egh];
-    const { data: r } = await RPC_ORIG('marcar_errores_huella', { p_huella: x.huella, p_estado: s.value });
-    toast(r && r.ok ? (s.value === 'Resuelto' ? 'Grupo resuelto: si vuelve a salir, se reabre solo' : 'Estado actualizado') : 'No se ha podido cambiar', !(r && r.ok));
-    if (r && r.ok) pintarErroresDelcos();
-  });
-  $('egdesc').onclick = () => {
-    const b = new Blob([JSON.stringify({ generado: new Date().toISOString(), version: VERSION_APP, errores: todos }, null, 1)], { type: 'application/json' });
-    const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = `errores_${hoyISO()}.json`; a.click();
-  };
-}
-
-async function pintarPlantillaDelcos(sub) {
-  const c = $('cfgcuerpo'); if (!c) return;
-  if (!sub) {
-    c.innerHTML = `<div class="card cfgpanel"><h2>Plantilla de las empresas nuevas</h2>
-      <p class="sm">Lo que recibe cada empresa al darse de alta (desde la web o desde Clientes). Cambiarlo aquí no toca a las empresas que ya existen.</p>
-      <div class="acts" style="justify-content:flex-start"><button type="button" class="btn sec" data-plsub="roles">Roles y permisos</button>
-        <button type="button" class="btn sec" data-plsub="cat">Catálogos y estados</button></div></div>`;
-    c.querySelectorAll('[data-plsub]').forEach(b => b.onclick = () => pintarPlantillaDelcos(b.dataset.plsub));
-    return;
-  }
-  // Los editores de siempre, sobre la organización de plataforma (que es la plantilla)
-  if (sub === 'roles') await pintarRoles(); else { c.innerHTML = ''; await pintarCatalogos(); }
-  const c2 = $('cfgcuerpo'); if (!c2 || $('plaviso')) return;
-  c2.insertAdjacentHTML('afterbegin', `<div class="banda-info" id="plaviso">Estás cambiando la <b>plantilla de las empresas nuevas</b>.
-    <button type="button" class="btn sec" id="plvolver">Volver a la plantilla</button></div>`);
-  $('plvolver').onclick = () => pintarPlantillaDelcos();
-}
-
-async function pintarCobrosDelcos() {
-  const c = $('cfgcuerpo'); if (!c) return;
-  c.innerHTML = pdEsqueleto();
-  const { data, error } = await RPC_ORIG('organizaciones_lista', {});
-  if (!$('cfgcuerpo') || PAG_TAB.delcos !== 'cobros') return;
-  const l = error ? [] : (data || []);
-  const est = l.map(o => ({ o, p: o.plan_datos || {}, e: pdCobroEstado(o) }));
-  const cuenta = n => est.filter(x => x.e[0] === n).length;
-  const mrr = est.filter(x => x.e[0] === 'Al día').reduce((t, x) => t + pdMensual(x.p), 0);
-  const stripe = id => `https://dashboard.stripe.com/${EN_PRUEBAS ? 'test/' : ''}customers/${encodeURIComponent(id)}`;
-  let filtro = 'todas';
-  const pinta = () => {
-    const f = est.filter(x => filtro === 'todas' || (filtro === 'atencion' ? ['Impago', 'Bloqueada'].includes(x.e[0]) || x.p.baja_al_final || x.p.cambio_previsto : x.e[0] === filtro));
-    $('pdcobl').innerHTML = f.length ? `<div class="tablawrap"><table class="pdtabla"><thead><tr><th>Empresa</th><th>Plan</th><th>Estado</th><th>Al mes</th><th>Pendiente</th><th></th></tr></thead><tbody>
-      ${f.map(({ o, p, e }) => { const avisos = [p.baja_al_final ? 'Se da de baja al final del periodo' : '', p.cambio_previsto ? 'Cambio previsto a ' + planDe(p.cambio_previsto.plan || p.plan).nombre + (p.cambio_previsto.usuarios ? ' · ' + p.cambio_previsto.usuarios + ' usuarios' : '') + (p.cambio_previsto.desde ? ' el ' + pdFecha(p.cambio_previsto.desde) : '') : '', p.compromiso_hasta ? 'Compromiso hasta el ' + pdFecha(p.compromiso_hasta) : ''].filter(Boolean);
-        return `<tr><td><b>${esc(o.nombre)}</b><div class="sm">${o.usuarios} usuarios activos${p.origen === 'web' ? ' · alta desde la web' : ''}</div></td>
-          <td>${esc(planDe(p.plan).nombre)}<div class="sm">${p.plan === 'medida' ? '' : (p.usuarios ? p.usuarios + ' contratados · ' : '') + (p.pago === 'anual' ? 'anual' : 'mensual')}</div></td>
-          <td><span class="pill ${e[1]}">${e[0]}</span><div class="sm">${esc(e[2])}</div></td>
-          <td class="num">${pdMensual(p) ? eur(pdMensual(p)) : '—'}</td>
-          <td>${avisos.map(a => `<div class="sm">${esc(a)}</div>`).join('') || '<span class="sm">—</span>'}</td>
-          <td>${p.stripe_cliente ? `<a class="btn sec" href="${stripe(p.stripe_cliente)}" target="_blank" rel="noopener">Ver en Stripe</a>` : ''}</td></tr>`; }).join('')}</tbody></table></div>`
-      : '<div class="vacio">No hay empresas en este grupo.</div>';
-  };
-  c.innerHTML = `<div class="card cfgpanel">
-    ${error ? `<div class="banda-peligro">No se han podido leer: ${esc(error.message)}</div>` : ''}
-    ${pdKpis([[cuenta('Al día'), 'al día'], [cuenta('En prueba'), 'en prueba'], [cuenta('Impago'), 'con impago', cuenta('Impago') ? 'mal' : ''],
-      [est.filter(x => x.p.baja_al_final).length, 'se dan de baja'], [eur(mrr), 'cobro mensual estimado (sin IVA)']])}
-    <div class="segs" id="pdcobf">${[['todas', 'Todas'], ['atencion', 'Requieren atención'], ['Al día', 'Al día'], ['En prueba', 'En prueba'], ['Impago', 'Impago']]
-      .map(([k, n]) => `<button type="button" data-pdf="${esc(k)}" class="${k === filtro ? 'on' : ''}">${n}</button>`).join('')}</div>
-    <div id="pdcobl"></div>
-    <p class="sm">El estado llega solo desde Stripe con cada cobro. Las devoluciones y los datos de la tarjeta se miran en Stripe.</p></div>`;
-  c.querySelectorAll('[data-pdf]').forEach(b => b.onclick = () => { filtro = b.dataset.pdf; c.querySelectorAll('[data-pdf]').forEach(x => x.classList.toggle('on', x === b)); pinta(); });
-  pinta();
-}
 
 // ---- Altas desde la web: completadas (con su empresa y si ya ha entrado) y a medias (empezaron el pago y no lo terminaron)
-async function pintarAltasDelcos() {
-  const c = $('cfgcuerpo'); if (!c) return;
-  c.innerHTML = pdEsqueleto();
-  const { data, error } = await RPC_ORIG('altas_lista', {});
-  if (!$('cfgcuerpo') || PAG_TAB.delcos !== 'altas') return;
-  const l = error ? [] : (data || []);
-  const hechas = l.filter(a => a.estado === 'completada'), medias = l.filter(a => a.estado !== 'completada');
-  const sem = l.filter(a => Date.now() - new Date(a.creado_en) < 7 * 864e5);
-  const fila = a => { const d = a.datos || {};
-    const est = a.estado !== 'completada' ? ['A medias', 'p-warn', 'No terminó el pago · ' + pdHace(a.creado_en)]
-      : a.entro ? ['Dentro', 'p-est', 'Ya ha entrado en delcos'] : ['Invitada', 'p-per', a.invitado_en ? 'Invitación enviada ' + pdHace(a.invitado_en) : 'Falta la invitación'];
-    return `<div class="pdalta"><div class="pdaltacab"><b>${esc(a.organizacion || d.empresa || 'Sin nombre')}</b> <span class="pill ${est[1]}">${est[0]}</span>
-        <span class="pill p-per">${esc(planDe(d.plan).nombre)} · ${d.usuarios || 3} usuarios · ${d.pago === 'anual' ? 'anual' : 'mensual'}</span></div>
-      <div class="sm">${esc(d.nombre || '')}${d.email ? ` · <a href="mailto:${esc(d.email)}">${esc(d.email)}</a>` : ''}${d.telefono ? ` · <a href="tel:${esc(d.telefono)}">${esc(d.telefono)}</a>` : ''}${d.nif ? ' · ' + esc(d.nif) : ''}</div>
-      <div class="sm">${esc(est[2])} · empezó el ${pdFecha(a.creado_en)}</div></div>`; };
-  c.innerHTML = `<div class="card cfgpanel">
-    ${error ? `<div class="banda-peligro">No se han podido leer: ${esc(error.message)}</div>` : ''}
-    ${pdKpis([[hechas.length, 'completadas (90 días)'], [hechas.filter(a => a.entro).length, 'ya han entrado'], [medias.length, 'a medias (7 días)', medias.length ? 'aviso' : ''], [sem.length, 'esta semana']])}
-    ${medias.length ? `<h3 class="pdh3">A medias</h3><p class="sm">Rellenaron el formulario pero no terminaron de poner la tarjeta. Puede valer la pena escribirles. Se borran solas a los 7 días.</p>${medias.map(fila).join('')}` : ''}
-    <h3 class="pdh3">Completadas</h3>${hechas.map(fila).join('') || '<div class="vacio">Todavía no hay altas completadas desde la web.</div>'}</div>`;
-}
 
 /* v2.125.0 · Nueva venta y Oportunidades. Un solo recorrido para vender (antes «Registrar llamada» y «+ Nuevo pedido» por separado):
    1 cliente (buscar o ficha nueva, con lo que ya sabemos de él), 2 qué quiere (productos y unidades, médico de referencia, cómo llegó),
    3 cómo termina (pedido o motivo de no compra y cuándo volver a llamar). Con el extra «Oportunidades» de la organización, cada venta
    queda registrada con su día y hora, lo que quería y cuánto, se cierre con pedido o no; sin él, el recorrido lleva al pedido. */
 // v2.242.0: aquí iba la primera versión de hayOportunidades (se redefine entera más abajo)
-function extraNombre(k) { return { oportunidades: 'Oportunidades', portal: 'Portal' }[k] || k; }
 
 // Panel delcos → Solicitudes
-async function pintarSolicitudesPlan() {
-  const c = $('cfgcuerpo'); if (!c) return;
-  c.innerHTML = `<div class="card cfgpanel"><div class="skel" style="width:40%"></div><div class="skel"></div></div>`;
-  const { data, error } = await RPC_ORIG('solicitudes_plan_lista', {});
-  if (!$('cfgcuerpo')) return;
-  const l = error ? [] : (data || []);
-  const f = v => new Date(v).toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' });
-  const cont = { correo: 'Por correo', llamada: 'Por teléfono', video: 'Videollamada' };
-  c.innerHTML = `<div class="card cfgpanel"><h2>Solicitudes de las empresas</h2>
-    <p class="sm">Presupuestos A medida y conversaciones sobre el contrato. Llegan también como aviso. Cambia el estado cuando las atiendas: la empresa lo ve en su Plan.</p>
-    ${error ? `<div class="banda-peligro">No se han podido leer: ${esc(error.message)}</div>` : ''}
-    <div class="presulista">${l.map((s, i) => { const d = s.datos || {};
-      return `<div class="presufila${s.estado === 'Cerrada' ? ' cerrada' : ''}">
-        <div class="presucab"><b>${esc(s.organizacion)}</b> <span class="pill p-est">${esc(planDe(s.plan).nombre)}</span>
-          <span class="pill ${s.estado === 'Nueva' ? 'p-warn' : s.estado === 'En curso' ? 'p-est' : 'p-anu'}">${esc(s.estado)}</span>
-          <span class="sm">${s.tipo === 'contrato' ? 'Contrato A medida' : 'Presupuesto A medida'} · ${f(s.creado_en)}</span></div>
-        ${(d.necesita_txt || []).length ? `<div class="chips">${d.necesita_txt.map(x => `<span class="chip">${esc(x)}</span>`).join('')}</div>` : ''}
-        ${d.programa ? `<div class="sm">Programa: <b>${esc(d.programa)}</b></div>` : ''}
-        ${d.mensaje ? `<p class="presumsg">${esc(d.mensaje)}</p>` : ''}
-        <div class="sm">${d.usuarios ? num(d.usuarios) + ' usuarios' : ''}${d.portal ? ' · ' + num(d.portal) + ' con portal' : ''}${d.cuando ? ' · ' + esc(d.cuando) : ''}</div>
-        <div class="sm">${esc(d.nombre || s.persona || '')}${d.correo ? ` · <a href="mailto:${esc(d.correo)}">${esc(d.correo)}</a>` : ''}${d.telefono ? ` · <a href="tel:${esc(d.telefono)}">${esc(d.telefono)}</a>` : ''}
-          · ${esc(cont[d.contacto] || '')}${d.horario ? ' (' + esc(d.horario) + ')' : ''}</div>
-        <div class="presuges"><select data-psest="${i}" aria-label="Estado">${['Nueva', 'En curso', 'Cerrada'].map(e => `<option ${s.estado === e ? 'selected' : ''}>${e}</option>`).join('')}</select>
-          <input data-psnota="${i}" placeholder="Nota interna (qué se ha hablado, próximos pasos…)" value="${esc(s.nota || '')}">
-          <button type="button" class="btn sec" data-psok="${i}">Guardar</button></div></div>`; }).join('')
-      || '<div class="vacio">Todavía no ha llegado ninguna solicitud.</div>'}</div></div>`;
-  c.querySelectorAll('[data-psok]').forEach(b => b.onclick = async () => {
-    const i = +b.dataset.psok, s = l[i];
-    const { data: r } = await RPC_ORIG('marcar_solicitud_plan', { p_id: s.id, p_estado: c.querySelector(`[data-psest="${i}"]`).value, p_nota: c.querySelector(`[data-psnota="${i}"]`).value });
-    toast(r && r.ok ? 'Solicitud actualizada' : 'No se ha podido guardar', !(r && r.ok));
-    if (r && r.ok) pintarSolicitudesPlan();
-  });
-}
 
 // Empresa y Plan (y los apartados de Configuración que se han movido) llevan a su pestaña de Organización
 const ORG_DESDE = { marca: 'marca', correo: 'correo', copias: 'copias', __empresa: 'marca', empresa: 'marca', plan: 'plan', fact: 'fiscal', fiscal: 'fiscal',
   series: 'series', vf: 'vf', pdf: 'pdf', orgs: 'orgs' };
-
-// Franja «Estás viendo X · Salir» cuando el Administrador de delcos está dentro de otra organización
-let VISTA_ORG = null;
 
 /* v2.171.0 · Panel delcos fuera de las empresas (decisión de Eric, 4/10/2026). El equipo de delcos entra con su propio usuario, que vive en
    la organización de plataforma (SQL 107); allí la app enseña SOLO el Panel delcos, con su menú: Clientes, Solicitudes, Errores, Accesos,
@@ -26403,200 +30090,27 @@ const PANEL_DESC = { orgs: 'Las empresas que usan delcos: plan, dominios, extras
   accesos: 'Entradas y salidas de la plataforma', auditoria: 'Cambios hechos en el panel', equipo: 'Las personas de delcos con acceso al panel',
   plantilla: 'Roles y catálogos que recibe cada empresa nueva' };
 
-function orgEstadoBase(o) {
-  const pd = o.plan_datos || {};
-  if (o.bloqueada === 'desactivada') return '<span class="pill p-anu">Desactivada</span> ';
-  if (o.bloqueada === 'prueba_terminada') return `<span class="pill p-warn">Prueba terminada el ${fechaCorta(pd.prueba_hasta)}</span> `;
-  if (pd.estado === 'prueba') return `<span class="pill p-est">Prueba hasta el ${fechaCorta(pd.prueba_hasta)}</span> `;
-  return '';
-}
-
 // Organizaciones (panel delcos): impago y cancelada a la vista
-function orgEstado(o) {
-  const pd = o.plan_datos || {};
-  if (o.bloqueada === 'cancelada') return '<span class="pill p-anu">Cancelada</span> ';
-  if (pd.estado === 'impago') return `<span class="pill p-urg">Impago desde el ${fechaCorta(pd.impago_desde)}</span> `;
-  return orgEstadoBase(o) + (pd.stripe_suscripcion ? '<span class="pill p-est">Stripe</span> ' : '');
-}
 
 // ---- Estado de la plataforma: SQL aplicado, versión publicada y versiones que usa cada empresa
-async function pintarEstadoDelcosBase() {
-  const c = $('cfgcuerpo'); if (!c) return;
-  c.innerHTML = pdEsqueleto();
-  const { data, error } = await RPC_ORIG('estado_plataforma', {});
-  if (!$('cfgcuerpo') || PAG_TAB.delcos !== 'estado') return;
-  const e = (!error && data) || {}, emp = e.empresas || {}, sql = e.sql || [], ver = e.versiones || [];
-  const ult = sql[0] || {};
-  const porVer = {}; ver.forEach(v => { (porVer[v.version] = porVer[v.version] || []).push(v); });
-  const versiones = Object.keys(porVer).sort((a, b) => b.localeCompare(a, 'es', { numeric: true }));
-  c.innerHTML = `<div class="card cfgpanel">
-    ${error ? `<div class="banda-peligro">No se ha podido leer: ${esc(error.message)}</div>` : ''}
-    ${pdKpis([[esc('v' + VERSION_APP), 'versión de esta app'], [ult.numero ? 'SQL ' + ult.numero : '—', ult.version_app ? 'base en ' + ult.version_app : 'base'],
-      [num(emp.activas || 0) + ' / ' + num(emp.total || 0), 'empresas activas'], [num(e.usuarios || 0), 'usuarios activos' + (e.portal ? ' · ' + num(e.portal) + ' del portal' : '')],
-      [num(e.errores || 0), 'errores sin resolver (15 días)', e.errores ? 'aviso' : '']])}
-    <h3 class="pdh3">Versiones en uso (30 días)</h3>
-    ${versiones.length ? versiones.map(v => `<div class="pdver"><div class="pdvercab"><b>v${esc(v.replace(/^v/, ''))}</b>${v.replace(/^v/, '') === VERSION_APP ? ' <span class="pill p-est">la actual</span>' : ' <span class="pill p-warn">anterior</span>'}
-        <span class="sm">${porVer[v].length} ${porVer[v].length === 1 ? 'empresa' : 'empresas'}</span></div>
-      <div class="sm">${porVer[v].map(x => `${esc(x.organizacion)} (${pdHace(x.ultima_vez)})`).join(' · ')}</div></div>`).join('')
-      : '<div class="vacio">Ninguna empresa ha abierto la app en los últimos 30 días.</div>'}
-    <h3 class="pdh3">Últimos SQL aplicados en esta base</h3>
-    <div class="tablawrap"><table class="pdtabla"><thead><tr><th>SQL</th><th>Versión</th><th>Qué cambia</th><th>Aplicado</th></tr></thead><tbody>
-      ${sql.map(s => `<tr><td class="num">${s.numero}</td><td>${esc(s.version_app || '')}</td><td class="sm">${esc(s.descripcion || '')}</td><td class="sm">${pdFecha(s.aplicado_en)}</td></tr>`).join('')}</tbody></table></div>
-    <p class="sm">Esto es la base de ${EN_PRUEBAS ? '<b>pruebas</b>' : '<b>producción</b>'}. La de ${EN_PRUEBAS ? 'producción' : 'pruebas'} se mira desde su propio panel.</p></div>`;
-}
 
 // ---- Uso del servicio de rutas en Estado de la plataforma
-async function pintarEstadoDelcos(...a) {
-  const p = Promise.resolve(RPC_ORIG('rutas_uso_resumen', {})).catch(() => ({}));
-  await pintarEstadoDelcosBase.apply(this, a);
-  const { data: u } = (await p) || {};
-  const c = $('cfgcuerpo'); if (!c || PAG_TAB.delcos !== 'estado' || !u || !u.ok) return;
-  const card = c.querySelector('.card.cfgpanel'), pie = card && [...card.querySelectorAll(':scope > p.sm')].pop(); if (!card) return;
-  const cfg = u.config || {}, glob = +cfg.global || 2000, emp = u.empresas || [];
-  const html = `<h3 class="pdh3">Servicio de rutas (TomTom)</h3>
-    ${pdKpis([[num(u.hoy || 0) + ' / ' + num(glob), 'peticiones hoy, entre todas las empresas', (u.hoy || 0) >= glob * 0.8 ? 'aviso' : ''],
-      [num(u.mes || 0), 'peticiones este mes'], [cfg.activo === false ? 'Apagado' : 'Activo', 'servicio', cfg.activo === false ? 'aviso' : ''],
-      [num(+cfg.por_usuario || 30), 'por usuario activo y día']])}
-    ${emp.length ? `<div class="tablawrap"><table class="pdtabla"><thead><tr><th>Empresa</th><th class="num">Hoy</th><th class="num">Cupo diario</th><th class="num">Este mes</th></tr></thead><tbody>
-      ${emp.map(x => `<tr><td>${esc(x.nombre)}</td><td class="num" style="${x.hoy >= x.cupo ? 'color:var(--warn);font-weight:700' : ''}">${num(x.hoy)}</td><td class="num">${num(x.cupo)}</td><td class="num">${num(x.mes)}</td></tr>`).join('')}</tbody></table></div>`
-      : '<div class="vacio">Ninguna empresa ha usado el servicio de rutas este mes.</div>'}`;
-  if (pie) pie.insertAdjacentHTML('beforebegin', html); else card.insertAdjacentHTML('beforeend', html);
-}
-
-function orgAccionesBase(c, l) {
-  const de = id => l.find(x => x.id === id);
-  // Plan: el de pago o una prueba (con su fecha de fin)
-  c.querySelectorAll('[data-orgplan]').forEach(b => b.onclick = () => {
-    const o = de(b.dataset.orgplan); if (!o) return;
-    const pd = o.plan_datos || {}, fin = pd.prueba_hasta || new Date(Date.now() + 30 * 864e5).toISOString().slice(0, 10);
-    $('dbody').innerHTML = `<div class="fh"><div><h2>Plan de ${esc(o.nombre)}</h2><div class="sm">Solo la plataforma cambia el plan de una empresa</div></div>
-        <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-      <div class="g2"><div><label for="opplan">Plan</label><select id="opplan">${PLANES.map(p => `<option value="${p.id}" ${p.id === (pd.plan || o.plan) ? 'selected' : ''}>${esc(p.nombre)}</option>`).join('')}</select></div>
-        <div><label for="opusu">Usuarios contratados</label><input id="opusu" type="number" min="3" value="${esc(pd.usuarios == null ? '' : pd.usuarios)}" placeholder="Sin límite"></div>
-        <div><label for="oppago">Pago</label><select id="oppago"><option value="mensual">Mensual</option><option value="anual" ${pd.pago === 'anual' ? 'selected' : ''}>Anual</option></select></div>
-        <div><label for="opest">Estado</label><select id="opest"><option value="activo">De pago</option><option value="prueba" ${pd.estado === 'prueba' ? 'selected' : ''}>Prueba</option></select></div>
-        <div id="opfinw" class="${pd.estado === 'prueba' ? '' : 'hide'}"><label for="opfin">Prueba hasta</label><input id="opfin" type="date" value="${esc(fin)}"></div></div>
-      <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>Cancelar</button><button class="btn" id="opok">Guardar plan</button></div>`;
-    $('opest').onchange = () => $('opfinw').classList.toggle('hide', $('opest').value !== 'prueba');
-    $('opok').onclick = async ev => {
-      ev.target.disabled = true;
-      const { data: r, error } = await db.rpc('guardar_plan_organizacion', { p_org: o.id, p: { plan: $('opplan').value, usuarios: $('opusu').value === '' ? null : +$('opusu').value,
-        pago: $('oppago').value, estado: $('opest').value, prueba_hasta: $('opest').value === 'prueba' ? $('opfin').value : null } });
-      ev.target.disabled = false;
-      if (error || !r || !r.ok) {
-        toast(({ permiso: 'No tienes permiso', minimo: 'Mínimo 3 usuarios (salvo A medida)', prueba_hasta: 'Falta la fecha de fin de la prueba', plan: 'Plan no válido' })[(r && r.error) || ''] || 'No se ha podido guardar', true);
-        return;
-      }
-      $('dlg').close(); toast('Plan guardado'); pintarOrganizaciones();
-    };
-    $('dlg').showModal();
-  });
-  // Descargar todos sus datos (para entregárselos si deja la prueba)
-  c.querySelectorAll('[data-orgexp]').forEach(b => b.onclick = async () => {
-    const o = de(b.dataset.orgexp); if (!o) return;
-    b.disabled = true; const t = b.textContent; b.textContent = 'Preparando…';
-    const { data, error } = await RPC_ORIG('exportar_organizacion', { p_org: o.id });
-    b.disabled = false; b.textContent = t;
-    if (error || !data) { toast('No se han podido descargar sus datos', true); return; }
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 1)], { type: 'application/json' }));
-    a.download = `datos_${o.nombre.replace(/[^\p{L}\p{N}]+/gu, '_')}_${hoyISO()}.json`; a.click();
-    setTimeout(() => URL.revokeObjectURL(a.href), 60000);
-    toast('Datos descargados');
-  });
-  // Borrar una empresa de prueba o desactivada (nunca con facturas): hay que escribir su nombre
-  c.querySelectorAll('[data-orgdel]').forEach(b => b.onclick = async () => {
-    const o = de(b.dataset.orgdel); if (!o) return;
-    if (o.facturas) { toast(`${o.nombre} tiene facturas emitidas: no se puede borrar (VeriFactu). Desactívala en su lugar.`, true); return; }
-    const txt = await pedirTexto(`Se borrarán ${o.nombre} y todos sus datos (${num(o.usuarios)} usuarios, ${num(o.cuentas)} cuentas, pedidos, agenda…). No se puede deshacer: descarga antes sus datos si hay que entregárselos. Escribe su nombre para confirmarlo.`,
-      '', { titulo: 'Borrar empresa', ok: 'Borrar' });
-    if (txt === null) return;
-    if (txt.trim() !== o.nombre) { toast('El nombre no coincide: no se ha borrado nada', true); return; }
-    const { data: r, error } = await db.rpc('borrar_organizacion', { p_org: o.id });
-    if (error || !r || !r.ok) {
-      toast(({ permiso: 'No tienes permiso', principal: 'La organización principal no se puede borrar', activa: 'Solo se borran empresas de prueba o desactivadas',
-        facturas: 'Tiene facturas emitidas: no se puede borrar' })[(r && r.error) || ''] || ('No se ha podido borrar' + (error ? ': ' + error.message : '')), true);
-      return;
-    }
-    toast(`${o.nombre} borrada` + (String(r.acceso || '').startsWith('no_borrado') ? '. Borra sus usuarios en Supabase → Authentication.' : ''));
-    pintarOrganizaciones();
-  });
-}
 
 // Panel delcos → Organizaciones → Plan: fecha de compromiso (A medida), lo que pierde al bajar y aviso si paga con Stripe
-function orgAccionesBase2(c, l) {
-  const r = orgAccionesBase.apply(this, arguments);
-  c.querySelectorAll('[data-orgplan]').forEach(b => {
-    const f = b.onclick; if (!f || b.__p2165) return; b.__p2165 = true;
-    b.onclick = (...x) => {
-      f.apply(b, x);
-      const o = l.find(y => y.id === b.dataset.orgplan); if (!o || !$('opplan')) return;
-      const pd = o.plan_datos || {}, de = pd.plan || o.plan;
-      $('opest').closest('.g2').insertAdjacentHTML('beforeend', `<div id="opcompw"><label for="opcomp">Compromiso hasta (A medida)</label>
-        <input id="opcomp" type="date" value="${esc(pd.compromiso_hasta || '')}"><span class="sm">Antes de esa fecha no se puede bajar de A medida.</span></div>`);
-      $('opest').closest('.g2').insertAdjacentHTML('afterend', `${pd.stripe_suscripcion ? '<div class="banda-aviso" id="opstripe">Esta empresa paga con Stripe: este cambio no se pasa a Stripe. Para que cuadre el cobro, cámbialo también allí.</div>' : ''}<div id="opperd"></div>`);
-      const pinta = () => {
-        $('opcompw').classList.toggle('hide', $('opplan').value !== 'medida');
-        const p = perdidasPlan(de, $('opplan').value, { extras: pd.extras || [], facturas: +o.facturas > 0 });
-        const bloq = de === 'medida' && $('opplan').value !== 'medida' && pd.compromiso_hasta && pd.compromiso_hasta > hoyISO();
-        $('opperd').innerHTML = bloq ? `<div class="banda-peligro">Tiene compromiso A medida hasta el ${fechaCorta(pd.compromiso_hasta)}: no se puede bajar antes.</div>`
-          : rangoPlan($('opplan').value) < rangoPlan(de) && p.length ? `<div class="banda-aviso">Al pasar a ${esc(planDe($('opplan').value).nombre)} dejará de tener:<ul>${p.map(x => `<li>${esc(x)}</li>`).join('')}</ul></div>` : '';
-      };
-      $('opplan').addEventListener('change', pinta); pinta();
-      $('opok').onclick = async ev => {
-        ev.target.disabled = true;
-        const p = { plan: $('opplan').value, usuarios: $('opusu').value === '' ? null : +$('opusu').value, pago: $('oppago').value, estado: $('opest').value,
-          prueba_hasta: $('opest').value === 'prueba' ? $('opfin').value : null };
-        if (p.plan === 'medida') p.compromiso_hasta = $('opcomp').value || null;
-        const { data: res, error } = await db.rpc('guardar_plan_organizacion', { p_org: o.id, p });
-        ev.target.disabled = false;
-        if (error || !res || !res.ok) {
-          toast(({ permiso: 'No tienes permiso', minimo: 'Mínimo 3 usuarios (salvo A medida)', prueba_hasta: 'Falta la fecha de fin de la prueba', plan: 'Plan no válido',
-            compromiso: `Tiene compromiso A medida hasta el ${fechaCorta(res && res.hasta)}` })[(res && res.error) || ''] || 'No se ha podido guardar', true);
-          return;
-        }
-        $('dlg').close(); toast('Plan guardado'); pintarOrganizaciones();
-      };
-    };
-  });
-  return r;
-}
 
 // Panel delcos → Organizaciones: desactivar o volver a activar
-function orgAcciones(c, l) {
-  const r = orgAccionesBase2.apply(this, arguments);
-  c.querySelectorAll('[data-orgdom]').forEach(b => {
-    const o = l.find(x => x.id === b.dataset.orgdom); if (!o || o.principal || b.parentNode.querySelector('[data-orgact]')) return;   // la propia (principal), nunca
-    const del = b.parentNode.querySelector('[data-orgdel]');
-    const html = `<button class="btn sec" type="button" data-orgact="${o.id}">${o.activa === false ? 'Volver a activar' : 'Desactivar'}</button>`;
-    if (del) del.insertAdjacentHTML('beforebegin', html); else b.parentNode.insertAdjacentHTML('beforeend', html);
-  });
-  c.querySelectorAll('[data-orgact]').forEach(b => b.onclick = async () => {
-    const o = l.find(x => x.id === b.dataset.orgact); if (!o) return;
-    const activar = o.activa === false;
-    if (!await preguntar(activar ? `Sus ${num(o.usuarios)} usuarios podrán volver a entrar.`
-      : `Sus ${num(o.usuarios)} usuarios no podrán entrar hasta que la vuelvas a activar. Sus datos no se tocan.`,
-      { titulo: activar ? `¿Volver a activar ${o.nombre}?` : `¿Desactivar ${o.nombre}?`, ok: activar ? 'Volver a activar' : 'Desactivar', peligro: !activar })) return;
-    b.disabled = true;
-    const { data: x, error } = await db.rpc('activar_organizacion', { p_org: o.id, p_activa: activar });
-    if (error || !x || !x.ok) {
-      b.disabled = false;
-      toast(({ permiso: 'No tienes permiso', principal: 'La organización principal no se puede desactivar', organizacion: 'No se encuentra esa empresa' })[(x && x.error) || ''] || ('No se ha podido cambiar' + (error ? ': ' + error.message : '')), true);
-      return;
-    }
-    toast(activar ? `${o.nombre} vuelve a estar activa` : `${o.nombre} desactivada`);
-    pintarOrganizaciones();
-  });
-  return r;
-}
 
-async function entrarEnOrganizacion(o) {
-  if (!await preguntar(`Vas a ver la plataforma como ${o.nombre}: sus datos, su configuración y su plan. Lo que cambies se guarda en su empresa y queda registrado. Para volver, «Salir» en la franja de arriba.`, { titulo: 'Entrar en ' + o.nombre, ok: 'Entrar' })) return;
-  const { data: r } = await db.rpc('entrar_organizacion', { p_org: o.id });
-  if (!r || !r.ok) { toast(r && r.motivo === 'permiso' ? 'Solo el Administrador de delcos puede entrar' : 'No se ha podido entrar', true); return; }
-  prepararCambioOrg(o.nombre);
-  location.reload();
-}
+// Panel delcos está en src/app/screens/platform (v2.413.0). Estos nombres se quedan: las pestañas del panel (legado 073, 075 y 076),
+// Configuración → Errores, el arranque (franjaVista) y las pruebas los usan.
+function pintarOrganizaciones() { return window.delcos.screens.platform.paintOrganizations(); }
+function pintarCobrosDelcos() { return window.delcos.screens.platform.paintBilling(); }
+function pintarAltasDelcos() { return window.delcos.screens.platform.paintSignups(); }
+function pintarSolicitudesPlan() { return window.delcos.screens.platform.paintRequests(); }
+function pintarErroresDelcos() { return window.delcos.screens.platform.paintPlatformErrors(); }
+function pintarEstadoDelcos() { return window.delcos.screens.platform.paintStatus(); }
+function pintarPlantillaDelcos(sub) { return window.delcos.screens.platform.paintTemplate(sub); }
+function pintarErrores() { return window.delcos.screens.platform.paintCompanyErrors(); }
+function franjaVista() { return window.delcos.screens.platform.paintViewBand(); }
 // pantallas/parque.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -28254,672 +31768,22 @@ async function pedidoPago(id, ...a) {
   await tpvBloque(id);
   return r;
 }
-// pantallas/portal.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
-// Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
+// pantallas/portal.js · el portal del profesional y del centro está en src/app/screens/portal (v2.413.0).
+// Aquí quedan el pago del plan desde el portal (Configuración y Pedidos), la «i» que usan muchas pantallas y los nombres que
+// usan la tabla de pantallas (legado 001), los avisos en vivo, Configuración y las pruebas.
 
-// ——— Lado de quien lleva la ficha ———
-
-// (v2.183.0: aquí iba la primera versión de elegirPago; se redefine entera más abajo)
 async function pagoPortal(boton) { const d = await pagoLlamar({ accion: 'portal' }, boton); if (d && d.url) location.href = d.url; }
-
-function pmTab(k) {
-  PM.tab = k;
-  document.querySelectorAll('#v-informe [data-pmt]').forEach(b => { b.classList.toggle('on', b.dataset.pmt === k); b.setAttribute('aria-selected', b.dataset.pmt === k); });
-  document.querySelectorAll('#v-informe [data-pmp]').forEach(p => p.hidden = p.dataset.pmp !== k);
-  window.scrollTo({ top: 0 });
-}
-
-function pmEsqueleto(ficha) {
-  const c = '<div class="card ancard pmsk"><span class="plsk"></span></div>';
-  return ficha ? `<div class="pmfila">${c}${c}</div><div class="pmfila">${c}</div>` : `<div class="pmfila pm3">${c}${c}${c}</div><div class="pmfila pm3">${c}${c}${c}</div>`;
-}
-
-// ——— Resumen ———
-// v2.293 (SQL 155): «Pautas más utilizadas»: qué parte de las pautas del periodo es de cada formato (1, 2, 2 + 1 de regalo…). Sin personas.
-function pmFormatoTxt(f) {
-  const m = /^(d+)+(d+)$/.exec(f);
-  if (m) return `${m[1]} + ${m[2]} de regalo`;
-  if (f === '4+') return '4 o más unidades';
-  return f === '1' ? '1 unidad' : f + ' unidades';
-}
-
-function pmFormatos(d) {
-  const P = TT('pauta', 'p', '', 'l', 'l'), l = d.formatos || [], tot = l.reduce((a, x) => a + (x.n || 0), 0);
-  const ayu = pmAyu(P.charAt(0).toUpperCase() + P.slice(1) + ' más utilizadas', `Cómo son las ${P} del periodo elegido arriba a la derecha: qué parte es de 1 unidad, de 2, de 2 + 1 de regalo… Sirve para ver qué formato se utiliza más. Solo porcentajes: no se muestra ningún dato de personas.`);
-  return `<div class="card ancard" id="pmformatos"><h2>${P.charAt(0).toUpperCase() + P.slice(1)} más utilizadas ${ayu}</h2>
-    ${tot ? barrasH(l.map(x => ({ n: pmFormatoTxt(x.formato), v: Math.round(x.n / tot * 100) })), v => v + ' %') : vacioGrafico(`Cuando haya ${P} en el periodo, verás aquí qué formatos se utilizan más.`)}</div>`;
-}
-
-// v2.292: las cifras del periodo en una tarjeta en lista, en la fila de «Métricas» y «Por producto» (antes, 4 indicadores sueltos encima;
-// Eric eligió la lista «C»). Cada fila con su «i». Sin «pacientes» (casi ningún pedido lleva su ficha) ni «pautas registradas» (Eric: confunde).
-function pmPeriodo(d) {
-  const P = TT('pauta', 'p', '', 'l', 'l'), Ps = TT('pauta', 's', '', 'l', 'l');
-  const f = [
-    [num(d.unidades), 'Unidades', `Total de unidades de producto de las ${P} del periodo elegido arriba a la derecha.`],
-    [d.ultima_pauta ? fechaCorta(d.ultima_pauta) : '—', 'Última ' + Ps, `Fecha de la ${Ps} más reciente del periodo.`]];
-  return `<div class="card ancard" id="pmperiodo"><h2>Resumen del periodo</h2>
-    <div class="pmperl">${f.map(x => `<div><span>${esc(x[1])} ${pmAyu(x[1], x[2])}</span><b>${x[0]}</b></div>`).join('')}</div></div>`;
-}
-
-function pmResumen(d, k, pac) {
-  const meses = mesesEntre(d.desde, d.hasta), serie = {}; (d.serie || []).forEach(s => serie[s.mes] = s);
-  const ll = d.llamadas || {}, conv = ll.total ? Math.round(ll.con_pedido / ll.total * 100) : null;
-  const mx = Math.max(1, ...meses.map(m => (serie[m] || {}).unidades || 0));
-  const evol = d.unidades ? `<div class="pmleg"><span><i></i>Unidades</span><span><i class="v"></i>${TT('pauta', 'p', '', 'C', 'l')}</span></div>
-    <div class="pmev" style="--n:${meses.length}">${meses.map(m => {
-      const s = serie[m] || {}, u = s.unidades || 0, n = s.pautas || 0;
-      const mes = new Date(m + '-01T12:00').toLocaleDateString('es-ES', { month: 'short' }).replace('.', '');
-      return `<div class="pmcol" title="${esc(mes)}: ${num(u)} unidades, ${num(n)} ${TT('pauta', 'p', '', 'l', 'l')}"><div class="pmbar"><b>${u ? num(u) : ''}</b><i style="height:${u ? Math.max(3, u / mx * 100) : 0}%"></i></div>
-        <span class="pmm">${esc(mes)}</span><span class="pmn">${n ? `<em>${num(n)}</em>` : ''}</span></div>`; }).join('')}</div>`
-    : vacioGrafico(`Cuando haya ${TT('pauta', 'p', '', 'l', 'l')} registradas, verás aquí cómo evolucionan.`);
-  const cons = !k.ok ? '<p class="sm">No disponible.</p>' : k.pocos
-    ? `<p class="sm">En los últimos ${num(k.meses || 12)} meses se han iniciado ${num(k.empezaron)} ${TT('pauta', 'p', '', 'l', 'l')}. A partir de ${num(k.minimo || 5)} verás aquí cifras de continuidad.</p>`
-    : `<div class="minis cons"><div><b>${num(k.empezaron)}</b><span>iniciadas</span></div><div><b>${k.empezaron ? Math.round(k.repiten / k.empezaron * 100) + '%' : '—'}</b><span>se repiten</span></div>
-        <div><b>${k.dias_entre ? num(k.dias_entre) + ' días' : '—'}</b><span>entre una y otra</span></div><div><b>${num(k.sin_pedir)}</b><span>más de 60 días sin repetirse</span></div></div>`;
-  const falta = PM.faltan.length ? `<div class="pmaviso"><div><b>Completa tu ficha</b><span class="sm">Falta ${esc(pmFaltaTxt())}. Así tu comercial pasa a verte cuando mejor te va.</span></div>
-      <button type="button" class="btn" data-pmir="ficha">Completar mi ficha</button></div>` : '';
-  return `${pmActividad(d)}${falta}
-    <div class="pmfila pm3">
-      ${pmPeriodo(d)}
-      <div class="card ancard"><h2>Métricas de ${TT('pauta', 'p', '', 'l', 'l')} ${pmAyu(`Métricas de ${TT('pauta', 'p', '', 'l', 'l')}`, `Cada barra son las unidades de las ${TT('pauta', 'p', '', 'l', 'l')} registradas en el mes; el número de debajo, cuántas ${TT('pauta', 'p', '', 'l', 'l')} fueron. Cambia el periodo arriba a la derecha.${d.ultima_pauta ? ' Última ' + TT('pauta', 's', '', 'l', 'l') + ': ' + fechaCorta(d.ultima_pauta) + '.' : ''}`)}</h2>${evol}</div>
-      <div class="card ancard"><h2>Por producto ${pmAyu('Por producto', `Qué productos aparecen en las ${TT('pauta', 'p', '', 'l', 'l')} registradas en el periodo y qué parte de las unidades es cada uno.`)}</h2>
-        ${(d.productos || []).length ? `<div class="pmdon">${svgDonut(d.productos.map(x => ({ n: x.nombre, v: x.unidades })))}</div>` : vacioGrafico('Aparecerá el reparto por producto.')}</div></div>
-    <div class="pmfila">
-      ${pmFormatos(d)}
-      <div class="card ancard" id="pmconst"><h2>Continuidad de las ${TT('pauta', 'p', '', 'l', 'l')} ${pmAyu(`Continuidad de las ${TT('pauta', 'p', '', 'l', 'l')}`, `En los últimos 12 meses: cuántas ${TT('pauta', 'p', '', 'l', 'l')} han empezado, qué parte se ha repetido al menos una vez, cuántos días pasan de media entre una vez y la siguiente, y cuántas llevan más de 60 días sin repetirse.`)}</h2>${cons}</div></div>`;
-}
-
-// ——— Mi ficha: datos ———
-function pmRangos(txt) {
-  const t = String(txt || ''), out = [];
-  const re = /(\d{1,2})(?::(\d{2}))?\s*[-–a]\s*(\d{1,2})(?::(\d{2}))?/g; let m;
-  while ((m = re.exec(t))) out.push([pmHora(m[1] + ':' + (m[2] || '00')), pmHora(m[3] + ':' + (m[4] || '00'))]);
-  if (!out.length && /mañana/i.test(t)) out.push(['09:00', '14:00']);
-  if (/tarde/i.test(t) && !out.some(r => r[0] >= '14:00')) out.push(['16:00', '20:00']);
-  return out;
-}
-
-function pmHora(v) {
-  const s = String(v || '').replace(/[^\d:]/g, '');
-  let h, m;
-  if (s.includes(':')) [h, m] = s.split(':'); else if (s.length <= 2) { h = s; m = '00'; } else { h = s.slice(0, s.length - 2); m = s.slice(-2); }
-  h = +h; m = +(m || 0);
-  if (!s || isNaN(h) || h > 23 || m > 59) return '';
-  return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0');
-}
-
-function pmFichaDatos(f) {
-  PM.faltan = f.faltan || []; PM.prop = f.propuesta || null; PM.ubic = f.ubicaciones || [];
-  const p = (PM.prop && PM.prop.datos) || {}, c = f.cuenta || {};
-  const dias = o => { const r = {}; PM_DIAS.forEach(k => { const l = Array.isArray(o && o[k]) ? o[k].map(x => Array.isArray(x) ? x : pmRangos(x)[0]).filter(Boolean) : pmRangos(o && o[k]); if (l.length) r[k] = l; }); return r; };
-  PM.ficha = {
-    telefono: p.telefono != null ? p.telefono : (c.telefono || ''), email: p.email != null ? p.email : (c.email || ''),
-    consultas: (p.consultas || PM.ubic.map(u => ({ centro_id: u.centro_id, ubicacion_id: u.id, nombre: u.nombre, direccion: u.direccion, municipio: u.municipio, dias: u.dias })))
-      .map(x => Object.assign({}, x, { dias: dias(x.dias) })),
-    visitas: Object.assign({ como: '', momento: '' }, p.visitas || {}), notas: p.notas || ''
-  };
-}
-
-// ——— Mi ficha: pantalla ———
-function pmPintarFicha() {
-  const box = $('pmficha'); if (!box || !PM.ficha) return;
-  const F = PM.ficha;
-  document.querySelectorAll('#v-informe [data-pmt=ficha] .pmtpunto').forEach(x => x.hidden = !PM.faltan.length);
-  const estado = PM.prop ? (PM.prop.estado === 'Pendiente' ? `Enviado el ${horaCorta(PM.prop.modificado_en)}: tu comercial lo revisará.` : `Tu comercial revisó tus datos. Si algo cambia, vuelve a enviarlo.`)
-    : 'Todavía no nos has enviado tus datos.';
-  box.innerHTML = `
-    <div class="pmcheck" id="pmcheck"></div>
-    <div class="card ancard pmcons pmcont"><h2>Contacto y ${TT('visita', 'p', '', 'l', 'l')} ${pmAyu('Contacto y ' + TT('visita', 'p', '', 'l', 'l'), 'Cómo puede contactarte tu comercial y cómo y cuándo te va mejor que pase a verte. Escribe lo que prefieras: lo revisa antes de pasarlo a tu ficha y lo tendrá en cuenta al organizar su agenda.')}</h2>
-      <div class="pmcampos"><div><label for="pmtel">Teléfono <span class="pmreq">Necesario</span></label><input id="pmtel" inputmode="tel" value="${esc(F.telefono)}" placeholder="Móvil o fijo"></div>
-        <div><label for="pmmail">Correo</label><input id="pmmail" type="email" value="${esc(F.email)}" placeholder="tu@correo.es"></div>
-        <div><label for="pmcomo">Cómo prefieres ${TT('visita', 'p', 'el', 'l', 'l')} <span class="pmreq">Necesario</span></label><select id="pmcomo"><option value="">Elige…</option>${PM_COMO.map(x => `<option ${F.visitas.como === x ? 'selected' : ''}>${esc(x)}</option>`).join('')}</select></div>
-        <div><label for="pmmom">Mejor momento</label><input id="pmmom" value="${esc(F.visitas.momento)}" placeholder="p. ej. martes a última hora"></div>
-        <div class="pmancho"><label for="pmnot">Notas para tu comercial</label><textarea id="pmnot" rows="2" placeholder="Acceso, planta, a quién preguntar…">${esc(F.notas)}</textarea></div></div></div>
-    <div class="card ancard pmcons"><h2>${PM_CENTRO() ? 'Dónde y cuándo atendéis' : 'Dónde atiendes'} <span class="pmreq">Necesario: al menos un día con horario</span> ${pmAyu(PM_CENTRO() ? 'Dónde y cuándo atendéis' : 'Dónde atiendes', 'Añade cada centro o lugar donde atiendes y su horario. Busca el centro por su nombre o población; si no aparece, añádelo tú. En el horario, pulsa los días y escribe las horas; con «Rellenar» pones de golpe el mismo horario en todos los días marcados.')}</h2>
-      <div id="pmclist" class="pmclist">${F.consultas.map((c, i) => pmConsulta(c, i)).join('') || '<p class="sm">Todavía no hay ningún lugar.</p>'}</div>
-      <div class="pmcadd"><input id="pmcq" type="search" placeholder="Añadir un centro: escribe su nombre o la población" aria-label="Buscar un centro"><div id="pmcres" class="pmcres"></div></div></div>
-    <div class="pmpie"><span class="sm" id="pmest">${esc(estado)}</span><button type="button" class="btn" id="pmenviar">Enviar a mi comercial</button></div>`;
-  let t;
-  $('pmcq').oninput = () => { clearTimeout(t); t = setTimeout(pmBuscarCentro, 250); };
-  $('pmenviar').onclick = pmEnviar;
-  box.addEventListener('input', pmPintarCheck); box.addEventListener('change', pmPintarCheck); pmPintarCheck();   // v2.279.0
-}
-
-function pmConsulta(c, i) {
-  const nuevo = (!c.centro_id && !c.ubicacion_id) || !String(c.nombre || '').trim();   // v2.279.0: sin nombre, se escribe
-  return `<div class="pmc" data-pmc="${i}">
-    <div class="pmccab">${nuevo ? `<div class="g2 pmcnuevo"><div><label>Centro o lugar</label><input data-pmcf="${i}|nombre" value="${esc(c.nombre || '')}"></div>
-        <div><label>Dirección y población</label><input data-pmcf="${i}|direccion" value="${esc([c.direccion, c.municipio].filter(Boolean).join(', '))}" placeholder="Calle, número, población"></div></div>`
-      : `<div><b>${esc(c.nombre || TT('consulta', 's', '', 'l', 'C'))}</b><span class="sm">${esc([c.direccion, c.municipio].filter(Boolean).join(' · '))}</span></div>`}
-      <button type="button" class="btn sec chico pmcx" data-pmcx="${i}">Quitar</button></div>
-    ${pmHorario(c.dias || {}, i)}</div>`;
-}
-
-// Horario flexible y rápido: días que se encienden, varias franjas con horas libres, y rellenar de golpe
-function pmHorario(d, i) {
-  return `<div class="pmhz">
-    <div class="pmhzpre"><span class="sm">Rellenar los días marcados:</span>
-      <button type="button" class="chip" data-pmhp="${i}|m">Mañana 9:00–14:00</button><button type="button" class="chip" data-pmhp="${i}|t">Tarde 16:00–20:00</button>
-      <button type="button" class="chip" data-pmhp="${i}|mt">Mañana y tarde</button><button type="button" class="chip" data-pmhp="${i}|c">Copiar el primer día</button></div>
-    ${PM_DIAS.map(k => { const l = d[k] || []; return `<div class="pmhd ${l.length ? 'on' : ''}">
-      <button type="button" class="pmhdia" data-pmhd="${i}|${k}" aria-pressed="${!!l.length}">${PM_DIAN[k]}</button>
-      <div class="pmhr">${l.length ? l.map((r, j) => `<span class="pmhf"><input data-pmhi="${i}|${k}|${j}|0" value="${esc(r[0])}" inputmode="numeric" maxlength="5" aria-label="Desde">
-          <span>a</span><input data-pmhi="${i}|${k}|${j}|1" value="${esc(r[1])}" inputmode="numeric" maxlength="5" aria-label="Hasta">
-          <button type="button" class="pmhx" data-pmhx="${i}|${k}|${j}" aria-label="Quitar esta franja">✕</button></span>`).join('')
-          + `<button type="button" class="pmhmas" data-pmha="${i}|${k}">+ Otra franja</button>` : '<span class="sm">No atiende</span>'}</div></div>`; }).join('')}</div>`;
-}
-
-function pmLeerForm() {
-  const F = PM.ficha; if (!F || !$('pmtel')) return;
-  F.telefono = $('pmtel').value.trim(); F.email = $('pmmail').value.trim();
-  F.visitas = { como: $('pmcomo').value, momento: $('pmmom').value.trim() }; F.notas = $('pmnot').value.trim();
-  document.querySelectorAll('#pmficha [data-pmcf]').forEach(x => { const [i, k] = x.dataset.pmcf.split('|'); F.consultas[+i][k] = x.value.trim(); if (k === 'direccion') F.consultas[+i].municipio = ''; });
-  document.querySelectorAll('#pmficha [data-pmhi]').forEach(x => { const [i, k, j, p] = x.dataset.pmhi.split('|'); const r = (F.consultas[+i].dias[k] || [])[+j]; if (r) r[+p] = pmHora(x.value) || x.value.trim(); });
-}
-
-function pmRepintarConsultas() { const l = $('pmclist'); if (l) l.innerHTML = PM.ficha.consultas.map((c, i) => pmConsulta(c, i)).join('') || '<p class="sm">Todavía no hay ningún lugar.</p>'; pmPintarCheck(); }
-
-async function pmBuscarCentro() {
-  const q = $('pmcq').value.trim(), box = $('pmcres'); if (!box) return;
-  if (q.length < 2) { box.innerHTML = ''; return; }
-  const { data } = await RPC_ORIG('portal_buscar_centros', { p_q: q });
-  if ($('pmcq').value.trim() !== q) return;
-  PM.cres = Array.isArray(data) ? data : [];
-  box.innerHTML = PM.cres.map((x, i) => `<button type="button" data-pmcr="${i}"><b>${esc(x.nombre)}</b><span class="sm">${esc([x.direccion, x.municipio].filter(Boolean).join(' · '))}</span></button>`).join('')
-    + `<button type="button" data-pmcr="nuevo" class="pmcnew"><b>No lo encuentro: añadir «${esc(q)}»</b><span class="sm">Escribe después su dirección</span></button>`;
-}
-
-async function pmEnviar() {
-  pmLeerForm();
-  const F = PM.ficha, mal = [];
-  F.consultas.forEach(c => Object.values(c.dias || {}).forEach(l => l.forEach(r => { if (!/^\d\d:\d\d$/.test(r[0]) || !/^\d\d:\d\d$/.test(r[1]) || r[1] <= r[0]) mal.push(c.nombre); })));
-  if (mal.length) { toast('Revisa las horas de ' + mal[0] + ': cada franja necesita una hora de inicio y otra de fin posterior', true); return; }
-  if (F.consultas.some(c => !String(c.nombre || '').trim())) { toast('Pon el nombre de cada centro', true); return; }
-  const datos = { telefono: F.telefono, email: F.email, visitas: F.visitas, notas: F.notas,
-    consultas: F.consultas.map(c => ({ centro_id: c.centro_id || null, ubicacion_id: c.ubicacion_id || null, nombre: c.nombre, direccion: c.direccion || '', municipio: c.municipio || '',
-      dias: Object.fromEntries(Object.entries(c.dias || {}).map(([k, l]) => [k, l.map(r => r[0] + '-' + r[1]).join(', ')])) })) };
-  const b = $('pmenviar'); b.disabled = true;
-  const { data: r } = await db.rpc('portal_guardar_ficha', { p: datos });
-  b.disabled = false;
-  if (!r || !r.ok) { toast('No se ha podido enviar', true); return; }
-  toast('Enviado a tu comercial');
-  const { data: f } = await RPC_ORIG('portal_mi_ficha', {}); if (f && f.ok) pmFichaDatos(f);
-  pmPintarFicha();
-  const av = document.querySelector('#mdcuerpo > .pmaviso'); if (av && !PM.faltan.length) av.remove();
-}
-
-// Mi ficha: lo necesario para quitar el aviso, al día según se rellena
-function pmPintarCheck() {
-  const box = $('pmcheck'); if (!box || !PM.ficha) return;
-  try { pmLeerForm(); } catch (e) {}
-  const F = PM.ficha;
-  const tel = !!String(F.telefono || '').trim(), como = !!String((F.visitas || {}).como || '').trim();
-  const horario = (F.consultas || []).some(c => Object.values(c.dias || {}).some(l => (l || []).some(r => /^\d\d:\d\d$/.test(r[0]) && /^\d\d:\d\d$/.test(r[1]) && r[1] > r[0])));
-  const todo = tel && como && horario;
-  box.classList.toggle('ok', todo);
-  box.innerHTML = `<b>${todo ? 'Tu ficha tiene todo lo necesario' : 'Para completar tu ficha'}</b>
-    <ul><li class="${tel ? 'ok' : ''}">Un teléfono de contacto</li><li class="${horario ? 'ok' : ''}">${PM_CENTRO() ? 'Dónde y cuándo atendéis' : 'Dónde y cuándo atiendes'} (al menos un día con su horario)</li><li class="${como ? 'ok' : ''}">Cómo prefieres las ${TT('visita', 'p', '', 'l', 'l')}</li></ul>
-    <span class="sm">${todo ? 'Envíalo a tu comercial y el aviso de «faltan datos» desaparece.' : 'El resto es opcional. Cuando lo tengas, pulsa «Enviar a mi comercial».'}</span>`;
-}
-
-function pcPintarPedido(lp) {
-  const box = $('pcped'); if (!box) return;
-  const conIva = x => r2((+x.precio || 0) * (1 + (+x.iva || 0) / 100));
-  const dirs = [...new Set((PM.ubic || []).map(u => [u.direccion, u.municipio].filter(Boolean).join(', ')).filter(Boolean))];
-  const prod = x => {
-    const pu = conIva(x), packs = Array.isArray(x.packs) ? x.packs : [], pvp = +x.pvp_recomendado || 0;
-    if (!packs.length) return `<div class="pcprod"><div class="pcpcab"><b>${esc(x.nombre)}</b><span class="sm">${eurI(pu)} la unidad con IVA${x.propio ? ' · vuestro precio' : ''}</span></div>
-      <div class="pclin"><span class="sm">Unidades</span><input type="number" step="1" value="0" data-ctp="${x.producto_id}" data-ctpr="${pu}" aria-label="Unidades de ${esc(x.nombre)}"><span class="pcerr" hidden></span></div></div>`;
-    return `<div class="pcprod"><div class="pcpcab"><b>${esc(x.nombre)}</b><span class="sm">${eurI(pu)} la unidad con IVA${pvp ? ` · PVP de referencia ${eurI(pvp)}` : ''}</span></div>
-      <div class="pcpacks">${packs.map((k, i) => {
-        const c = +k.compra || 0, g = +k.regalo || 0, imp = r2(c * pu), coste = (c + g) ? imp / (c + g) : 0;
-        return `<div class="pclin pcpack"><span class="pcpk"><b>Pack ${num(c)}${g ? ' + ' + num(g) : ''}</b><span class="sm">${num(c + g)} unidades${g ? ` (${num(g)} de regalo)` : ''}</span></span>
-          <span class="pcdato"><b>${eurI(imp)}</b><span class="sm">con IVA</span></span>
-          <span class="pcdato"><b>${eurI(coste)}</b><span class="sm">por unidad</span></span>
-          ${pvp ? `<span class="pcdato"><b>${pcPct((pvp - coste) / pvp)}</b><span class="sm">de margen</span></span>` : '<span></span>'}
-          <input type="number" step="1" value="0" data-pcpk="${x.producto_id}" data-pci="${i}" data-pcc="${c}" data-pcg="${g}" data-pcimp="${imp}" aria-label="Cuántos packs ${num(c)}${g ? '+' + num(g) : ''}">
-          <span class="pcerr" hidden></span></div>`;
-      }).join('')}</div></div>`;
-  };
-  box.innerHTML = `<div class="card ancard pmcons pcped"><h2>Pedir reposición ${pmAyu('Pedir reposición', `Elige cuántos packs quieres de cada producto (de 0 a ${num(PC_PACK_MAX)} de cada pack). El coste por unidad incluye las de regalo, y el margen se calcula sobre el PVP de referencia. La bonificación es de cada pedido. Tu comercial lo revisa y lo confirma; en «Resumen» verás cómo va.`)}</h2>
-    ${lp.length ? `<div id="ctprods">${lp.map(prod).join('')}</div>
-      <div class="pcent"><b>Entrega</b>
-        <label class="opt"><input type="radio" name="pcent" value="una" checked> En la dirección del centro</label>
-        <label class="opt"><input type="radio" name="pcent" value="varias"> Repartir entre varias direcciones</label>
-        <div id="pcentl" class="pcentl" hidden><datalist id="pcdirs">${dirs.map(d => `<option value="${esc(d)}">`).join('')}</datalist>
-          <div id="pcentf"></div><button type="button" class="btn sec chico" id="pcentmas">+ Otra dirección</button><span class="sm" id="pcentres"></span></div></div>
-      ${window.PC_ANT ? '<p class="sm pcant">Pago por adelantado: cuando tu comercial lo confirme, descarga la factura proforma en «Resumen» y haz la transferencia. Lo preparamos en cuanto llegue.</p>' : ''}<label for="ctnota">Nota</label><input id="ctnota" placeholder="Opcional: horario de entrega, persona de contacto…">
-      <div class="pctot"><span id="pctxt">Total <b id="cttot">${eurI(0)}</b> con IVA</span><button type="button" class="btn" id="ctok">Enviar pedido</button></div>`
-      : '<p class="sm">Todavía no tenéis productos para pedir. Tu comercial os los dará de alta.</p>'}</div>`;
-  if (!lp.length) return;
-  const entFila = (d = '', u = '') => `<div class="pcef"><input list="pcdirs" placeholder="Dirección de entrega" value="${esc(d)}" data-pced><input type="number" step="1" placeholder="Unidades" value="${esc(u)}" data-pceu><button type="button" class="pmhx" data-pcex aria-label="Quitar esta dirección">✕</button></div>`;
-  const entPintar = () => { if (!$('pcentf').children.length) $('pcentf').innerHTML = entFila() + entFila(); };   // sin repintar: se perdería lo escrito
-  const revisar = () => {
-    let total = 0, uds = 0, regalo = 0, mal = 0;
-    box.querySelectorAll('[data-ctp], [data-pcpk]').forEach(i => {
-      const n = Number(i.value || 0), e = i.closest('.pclin').querySelector('.pcerr'), pk = !!i.dataset.pcpk, max = pk ? PC_PACK_MAX : PC_MAX;
-      const bad = !Number.isInteger(n) || n < 0 || n > max;
-      e.hidden = !bad; e.textContent = bad ? (n > max ? (pk ? `Como máximo ${num(max)} packs de este tipo en cada pedido` : `Como máximo ${num(max)} unidades en cada pedido`) : 'Escribe un número entero') : '';
-      if (bad) { mal++; return; }
-      if (pk) { total += n * (+i.dataset.pcimp || 0); uds += n * ((+i.dataset.pcc || 0) + (+i.dataset.pcg || 0)); regalo += n * (+i.dataset.pcg || 0); }
-      else { total += n * (+i.dataset.ctpr || 0); uds += n; }
-    });
-    const varias = (box.querySelector('[name=pcent]:checked') || {}).value === 'varias';
-    $('pcentl').hidden = !varias;
-    let repartidas = 0;
-    if (varias) { entPintar(); box.querySelectorAll('[data-pceu]').forEach(i => { repartidas += Math.max(0, Math.floor(+i.value || 0)); }); }
-    const res = $('pcentres');
-    if (res) { res.textContent = varias ? `Repartidas ${num(repartidas)} de ${num(uds)} unidades` : ''; res.classList.toggle('pcmal', varias && repartidas !== uds); }
-    $('pctxt').innerHTML = `Total <b id="cttot">${eurI(total)}</b> con IVA${uds ? ` · ${num(uds)} unidades${regalo ? ` (${num(regalo)} de regalo)` : ''}` : ''}`;
-    return { mal, uds, varias, repartidas };
-  };
-  box.addEventListener('input', revisar); box.addEventListener('change', revisar);
-  box.addEventListener('click', e => {
-    if (e.target.closest('#pcentmas')) { $('pcentf').insertAdjacentHTML('beforeend', entFila()); revisar(); }
-    const x = e.target.closest('[data-pcex]'); if (x) { x.closest('.pcef').remove(); revisar(); }
-  });
-  $('ctok').onclick = async ev => {
-    const r = revisar();
-    if (r.mal) { toast('Revisa las cantidades marcadas en rojo', true); return; }
-    const lineas = [];
-    box.querySelectorAll('[data-pcpk]').forEach(i => { const n = Math.floor(+i.value || 0); if (n > 0) lineas.push({ producto_id: i.dataset.pcpk, pack: { compra: +i.dataset.pcc, regalo: +i.dataset.pcg }, packs: n }); });
-    box.querySelectorAll('[data-ctp]').forEach(i => { const n = Math.floor(+i.value || 0); if (n > 0) lineas.push({ producto_id: i.dataset.ctp, unidades: n }); });
-    if (!lineas.length) { toast('Elige algún pack o pon unidades', true); return; }
-    let entregas = null;
-    if (r.varias) {
-      entregas = [...box.querySelectorAll('.pcef')].map(f => ({ direccion: f.querySelector('[data-pced]').value.trim(), unidades: Math.floor(+f.querySelector('[data-pceu]').value || 0) }))
-        .filter(x => x.direccion && x.unidades > 0);
-      if (entregas.length < 2 || r.repartidas !== r.uds) { toast(`Reparte las ${num(r.uds)} unidades entre al menos dos direcciones`, true); return; }
-    }
-    ev.target.disabled = true;
-    const { data: res } = await db.rpc('pedido_portal', { p_lineas: lineas, p_nota: $('ctnota').value.trim() || null, p_entregas: entregas });
-    ev.target.disabled = false;
-    if (!res || !res.ok) {
-      const m = res && res.motivo;
-      toast(m === 'vacio' ? 'Elige algún pack o pon unidades' : m === 'pack' ? `Ese pack de ${res.producto || 'producto'} ya no está disponible: vuelve a cargar la página`
-        : m === 'unidades' ? `Revisa las cantidades de ${res.producto || 'un producto'}` : m === 'entregas' ? `Las direcciones tienen que sumar ${num(res.total)} unidades` : motivoPortal(res), true);
-      return;
-    }
-    toast('Pedido enviado: tu comercial lo confirmará'); PM.tab = 'res'; await centroPintar(); pmTab('res');
-  };
-  revisar();
-}
-
-async function pcProforma(id, btn) {
-  if (btn) btn.disabled = true;
-  try {
-    const { data: f } = await RPC_ORIG('portal_proforma', { p_id: id });
-    if (!f || !f.ok) { toast(f && f.motivo === 'no_encontrado' ? 'Ese pedido ya no está pendiente de pago' : motivoPortal(f), true); return; }
-    const d = f.diseno || {};
-    const C = Object.assign({}, PDF_DEF, d, { cols: Object.assign({}, PDF_DEF.cols, d.cols || {}) },
-      { titulo: 'FACTURA PROFORMA', formaPago: true, iban: true, vencimiento: false });
-    const doc = await facturaPDF(f, '', C);
-    doc.save(f.numero + '.pdf');
-    toast(`Proforma descargada. Pon «${f.concepto}» como concepto de la transferencia`);
-  } catch (e) { toast('No se ha podido preparar la proforma', true); registrarError('app', 'Proforma del portal', { e: String(e) }); }
-  finally { if (btn) btn.disabled = false; }
-}
-
-function pcDebeHtml(peds) {
-  const n = (peds || []).filter(p => p.proforma).length;
-  return n ? `<div class="pmaviso pcdebe"><div><b>${n === 1 ? 'Tienes un pedido pendiente de pago' : `Tienes ${num(n)} pedidos pendientes de pago`}</b><span class="sm">Descarga la factura proforma en «Tus pedidos» y haz la transferencia: lo preparamos en cuanto llegue.</span></div></div>` : '';
-}
-
-/* ============================================================
-   v2.285.0 · Portal del centro: lotes, facturas y material para descargar (SQL 153).
-   - «Tus pedidos»: cada pedido con sus lotes (y caducidad) y sus facturas o rectificativas, que se descargan en PDF con el
-     diseño de la empresa.
-   - «Material y dudas»: «Material para descargar» con el material de sus productos que la empresa marca «Para los centros»
-     (en el producto, Material para presentar → «Para los centros»).
-   ============================================================ */
-function pcExtraPed(p) {
-  const lotes = p.lotes || [], facs = p.facturas || [];
-  return (lotes.length ? `<span class="sm pclotes">Lote${lotes.length > 1 ? 's' : ''}: ${lotes.map(l => `${esc(l.producto)} ${esc(l.lote)}${l.caducidad ? ' (cad. ' + fechaCorta(String(l.caducidad).slice(0, 10)) + ')' : ''}`).join(' · ')}</span>` : '')
-    + (facs.length ? `<span class="pcfacs">${facs.map(f => `<button type="button" class="lnk" data-pcfac="${f.id}">${f.rectificativa ? 'Rectificativa' : 'Factura'} ${esc(f.numero || '')}</button>`).join('')}</span>` : '');
-}
-
-async function pcFactura(id, btn) {
-  if (btn) btn.disabled = true;
-  try {
-    const { data: f } = await RPC_ORIG('portal_factura', { p_id: id });
-    if (!f || !f.ok) { toast(motivoPortal(f), true); return; }
-    const d = f.diseno || {};
-    const C = Object.assign({}, PDF_DEF, d, { cols: Object.assign({}, PDF_DEF.cols, d.cols || {}) });
-    const doc = await facturaPDF(f, f.rectifica_num || '', C);
-    doc.save(nombrePDF(f));
-  } catch (e) { toast('No se ha podido preparar la factura', true); registrarError('app', 'Factura del portal', { e: String(e) }); }
-  finally { if (btn) btn.disabled = false; }
-}
-
-async function pcMaterialBajar(id, btn) {
-  if (btn) btn.disabled = true;
-  try {
-    const { data: m } = await RPC_ORIG('portal_material_archivo', { p_id: id });
-    if (!m || !m.ok) { toast(motivoPortal(m), true); return; }
-    const bin = atob(m.datos || ''), u8 = new Uint8Array(bin.length);
-    for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
-    const url = URL.createObjectURL(new Blob([u8], { type: m.tipo || 'application/octet-stream' }));
-    const a = document.createElement('a'); a.href = url; a.download = m.nombre || 'material'; document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 30000);
-  } catch (e) { toast('No se ha podido descargar', true); }
-  finally { if (btn) btn.disabled = false; }
-}
-
-async function pcDescargas() {
-  const caja = $('pmmat'); if (!caja || $('pcdesc')) return;
-  caja.insertAdjacentHTML('afterbegin', `<div class="card ancard" id="pcdesc"><h2>Material para descargar ${pmAyu('Material para descargar', 'Dípticos, fichas de producto, guías de mostrador y otro material que la empresa prepara para los centros, de los productos que tenéis dados de alta. Pulsa para descargarlo.')}</h2><div id="pcdescl">${skelCard('Cargando…')}</div></div>`);
-  const { data: l } = await RPC_ORIG('portal_materiales', {});
-  const box = $('pcdescl'); if (!box) return;
-  const lista = Array.isArray(l) ? l : [];
-  const kb = n => n ? (n > 1048576 ? (n / 1048576).toLocaleString('es-ES', { maximumFractionDigits: 1 }) + ' MB' : Math.max(1, Math.round(n / 1024)) + ' KB') : '';
-  box.innerHTML = lista.length ? `<div class="lista">${lista.map(m => `<div class="item"><span class="tx"><b>${esc(m.nombre)}</b>
-      <span class="sm">${esc(m.producto)} · ${m.tipo === 'application/pdf' ? 'PDF' : 'Imagen'}${m.tamano ? ' · ' + kb(m.tamano) : ''}</span></span>
-      <button type="button" class="btn sec chico" data-pcmat="${m.id}">Descargar</button></div>`).join('')}</div>`
-    : '<p class="sm">Todavía no hay material para descargar.</p>';
-}
-
-function pmActividad(d) {
-  const sel = document.querySelector('#mdper [data-per]'), cuando = PM_PER_TXT[sel ? sel.value : 'semana'] || 'En este periodo';
-  const n = +d.pautas || 0, t = terminoDe('pauta');
-  if (n > 0) return `<div class="banda-ok pmact" id="pmact"><b>${cuando} se ${n === 1 ? 'ha' : 'han'} activado ${num(n)} ${esc(n === 1 ? t.s : t.p)}</b></div>`;
-  return `<div class="banda-info pmact" id="pmact"><b>${cuando} no se ha activado ${t.g === 'f' ? 'ninguna' : 'ningún'} ${esc(t.s)}.</b>
-    ¿Necesitas material, información o resolver alguna duda? Escríbenos y te ayudamos.
-    <button type="button" class="btn sec chico" data-pmir="mat">Material y dudas</button></div>`;
-}
-
-async function cargarInforme() {
-  if (puede('portal_centro')) return cargarCentro();   // v2.128.0: el portal del centro
-  // v2.271.0: página nueva (al final del archivo); al arrancar se espera a que esté leída
-  if (!window.PM_LISTO) { const v0 = $('v-informe'); if (v0 && !v0.innerHTML.trim()) v0.innerHTML = '<div class="card">' + skelCard('Cargando tu informe…') + '</div>'; setTimeout(cargarInforme, 30); return; }
-  return cargarInforme2271();
-  const v = $('v-informe');
-  v.innerHTML = `<div class="medhero"><div><div class="sm" style="color:rgba(255,255,255,.8)">Tu portal</div><h1 id="mdnom">…</h1><div id="mdesp" class="sm" style="color:rgba(255,255,255,.85)"></div></div>
-      <div class="medper"><div id="mdper"></div></div></div>
-    <div id="mdcuerpo"><div class="card">${skelCard('Cargando tu informe…')}</div></div>`;
-  const pinta = async () => {
-    const r = $('mdper').__rango();
-    const { data: d } = await RPC_ORIG('informe_cuenta', { p_desde: r.desde, p_hasta: r.hasta });
-    if (!d || !d.ok) {
-      // v2.291: sin ficha vinculada, las dos pestañas lo dicen (antes «Mi ficha» se quedaba cargando) y la cabecera lleva su nombre
-      const sin = `<div class="card"><div class="vacio">Tu usuario todavía no está vinculado a tu ficha de ${TT('medico', 's', '', 'l', 'l')}. Avisa a la empresa para activarlo.</div></div>`;
-      $('mdcuerpo').innerHTML = sin; if ($('pmficha')) $('pmficha').innerHTML = sin;
-      $('mdnom').textContent = (PERFIL && PERFIL.nombre) || ''; return;
-    }
-    $('mdnom').textContent = d.medico.nombre; $('mdesp').textContent = d.medico.especialidad || '';
-    const top = d.posicion && d.posicion <= 3 ? 'Top 3' : d.posicion && d.posicion <= 5 ? 'Top 5' : d.posicion && d.posicion <= 10 ? 'Top 10' : null;
-    const ll = d.llamadas || {}, conv = ll.total ? Math.round(ll.con_pedido / ll.total * 100) : null;
-    const meses = mesesEntre(d.desde, d.hasta), serie = {}; (d.serie || []).forEach(s => serie[s.mes] = s);
-    $('mdcuerpo').innerHTML = `
-      <div class="kpis vtot mdk">
-        <div class="kpi"><b>${num(d.unidades)}</b><span>unidades atribuidas</span></div>
-        <div class="kpi"><b>${num(d.pautas)}</b><span>${TT('pauta', 'p', '', 'l', 'l')} (pedidos)</span></div>
-        <div class="kpi"><b>${num(d.pacientes)}</b><span>${TT('paciente', 'p', '', 'l', 'l')}</span></div>
-        <div class="kpi"><b>${num(d.repiten)}</b><span>${TT('paciente', 'p', '', 'l', 'l')} que repiten</span></div>
-        <div class="kpi ${top ? 'ok' : ''}"><b>${top ? '🏆 ' + top : d.posicion ? 'Nº ' + d.posicion : '—'}</b><span>${d.posicion ? `de ${num(d.prescriptores)} ${TT('medico', 'p', '', 'l', 'l')}` : 'sin ventas en el periodo'}</span></div>
-      </div>
-      <div class="angrid">
-        <div class="card ancard ancha"><h2>Tus ${TT('pauta', 'p', '', 'l', 'l')} mes a mes</h2>
-          ${d.unidades ? svgBarras(meses, meses.map(m => (serie[m] || {}).unidades || 0), meses.map(m => (serie[m] || {}).pautas || 0), ['Unidades', TT('pauta', 'p', '', 'l', 'C')])
-            : vacioGrafico(`Cuando tus ${TT('paciente', 'p', '', 'l', 'l')} hagan su pedido, verás aquí la evolución.`)}
-          <p class="leer">Cada barra son las unidades atribuidas en el mes y la línea, el número de ventas.${d.ultima_pauta ? ' Última venta: ' + fechaCorta(d.ultima_pauta) + '.' : ''}</p></div>
-        <div class="card ancard"><h2>Qué ${TT('pauta', 'p', '', 'l', 'l')}</h2>
-          ${(d.productos || []).length ? svgDonut(d.productos.map(x => ({ n: x.nombre, v: x.unidades }))) : vacioGrafico('Aparecerá el reparto por producto.')}</div>
-        <div class="card ancard"><h2>Llamadas de tus ${TT('paciente', 'p', '', 'l', 'l')}</h2>
-          <div class="minis"><div><b>${num(ll.total || 0)}</b><span>llamadas</span></div><div><b>${conv == null ? '—' : conv + '%'}</b><span>acaban en pedido</span></div></div>
-          ${(ll.por_resultado || []).length ? barrasH(ll.por_resultado.map(x => ({ n: x.resultado, v: x.n })), num) : `<p class="sm" style="padding:0 16px">Todavía no hay llamadas registradas en el periodo.</p>`}
-          <p class="leer">${TT('paciente', 'p', '', 'l', 'C')} que llaman a la empresa. Si muchos llaman por dudas o por precio, podemos darte material para explicarlo.</p></div>
-      </div>
-      <p class="sm" style="text-align:center;margin:18px 0">Por confidencialidad no se muestran datos de tus ${TT('paciente', 'p', '', 'l', 'l')} ni importes.</p>`;
-  };
-  montarPeriodo($('mdper'), { id: 'informe', valor: 'anio', alCambiar: pinta });
-  pinta();
-  portalMedico();   // v2.126.0
-}
-
-// Mensajes: el hilo de una ficha (el médico ve los suyos; quien lleva la ficha, los de esa ficha)
-function hiloMensajes(l, yoMedico) {
-  return l.length ? `<div class="hilo">${l.map(x => `<div class="msj ${x.del_portal === yoMedico ? 'mio' : 'suyo'}"><div>${esc(x.texto)}</div>
-      <span class="sm">${x.del_portal ? TT('medico', 's', '', 'l', 'C') : 'Equipo'} · ${horaCorta(x.creado_en)}</span></div>`).join('')}</div>`
-    : '<div class="sm">Todavía no hay mensajes.</div>';
-}
-
-// cargarInforme (en su sitio) espera a que se lea este final y llama aquí: al arrancar, «Mi informe» se pinta antes
-async function cargarInforme2271() {
-  const v = $('v-informe'), pac = TT('paciente', 'p', '', 'l', 'l');
-  v.innerHTML = `<div class="medhero"><div><div class="sm" style="color:rgba(255,255,255,.8)">Tu portal</div><h1 id="mdnom">…</h1><div id="mdesp" class="sm" style="color:rgba(255,255,255,.85)"></div></div>
-      <div class="medper"><div id="mdper"></div></div></div>
-    <div class="pmtabs" role="tablist">${[['res', 'Resumen'], ['ficha', 'Mi ficha'], ['mat', 'Material y dudas']].map(([k, t]) =>
-      `<button type="button" role="tab" data-pmt="${k}" class="${PM.tab === k ? 'on' : ''}" aria-selected="${PM.tab === k}">${t}<span class="pmtpunto" hidden></span></button>`).join('')}</div>
-    <div data-pmp="res" id="mdcuerpo" ${PM.tab === 'res' ? '' : 'hidden'}>${pmEsqueleto()}</div>
-    <div data-pmp="ficha" id="pmficha" ${PM.tab === 'ficha' ? '' : 'hidden'}>${pmEsqueleto(true)}</div>
-    <div data-pmp="mat" id="pmmat" ${PM.tab === 'mat' ? '' : 'hidden'}><div id="mdportal" class="pmfila"></div></div>`;
-  v.querySelectorAll('[data-pmt]').forEach(b => b.onclick = () => pmTab(b.dataset.pmt));
-  const pinta = async () => {
-    const r = $('mdper').__rango();
-    const [{ data: d }, { data: c }, { data: f }] = await Promise.all([RPC_ORIG('informe_cuenta', { p_desde: r.desde, p_hasta: r.hasta }),
-      RPC_ORIG('constancia_pacientes', { p_meses: 12 }), PM.ficha ? Promise.resolve({ data: null }) : RPC_ORIG('portal_mi_ficha', {})]);
-    if (f && f.ok) pmFichaDatos(f);
-    if (!$('mdcuerpo')) return;
-    if (!d || !d.ok) {
-      // v2.291: sin ficha vinculada, las dos pestañas lo dicen (antes «Mi ficha» se quedaba cargando) y la cabecera lleva su nombre
-      const sin = `<div class="card"><div class="vacio">Tu usuario todavía no está vinculado a tu ficha de ${TT('medico', 's', '', 'l', 'l')}. Avisa a la empresa para activarlo.</div></div>`;
-      $('mdcuerpo').innerHTML = sin; if ($('pmficha')) $('pmficha').innerHTML = sin;
-      $('mdnom').textContent = (PERFIL && PERFIL.nombre) || ''; return;
-    }
-    $('mdnom').textContent = d.medico.nombre; $('mdesp').textContent = d.medico.especialidad || '';
-    $('mdcuerpo').innerHTML = pmResumen(d, c || {}, pac);
-    $('mdcuerpo').querySelectorAll('[data-pmir]').forEach(b => b.onclick = () => pmTab(b.dataset.pmir));
-    pmPintarFicha();
-  };
-  try { localStorage.removeItem('dlc-per-informe-' + (PERFIL ? PERFIL.id : '')); } catch (e) {}   // v2.353.0: al entrar, siempre «Esta semana»
-  montarPeriodo($('mdper'), { id: 'informe', valor: 'semana', alCambiar: pinta });
-  await pinta();
-  portalMedico();
-}
-
-/* v2.126.0 · Portal del médico (extra «Portal» de la organización). En «Mi informe», además: la constancia de sus pacientes solo en
-   cifras (sin ninguna fila por paciente), pedir material de lo que la empresa permite y escribir dudas a su comercial. En la ficha,
-   quien la lleva entrega el material y contesta. En Configuración → Portal del médico, qué material se puede pedir y cuánto. */
-// v2.242.0: aquí iba la primera versión de hayExtra (se redefine entera más abajo)
-const MOTIVO_PORTAL = { permiso: 'No tienes permiso', extra: 'Tu empresa no tiene el portal activado', material: 'Ese material ya no se puede pedir',
-  cantidad: 'Esa cantidad supera el máximo', vacio: 'Escribe el mensaje', cerrada: 'Ya estaba cerrado', no_existe: 'Ya no existe' };
-
-const motivoPortal = r => MOTIVO_PORTAL[(r && r.motivo) || ''] || 'No se ha podido hacer';
-
-/* ============================================================
-   v2.271.0 · Portal del profesional en una sola página (revisión de Eric, 12/10/2026; variante C elegida; necesita el SQL 146).
-   - Pestañas dentro de la página: «Resumen», «Mi ficha» y «Material y dudas». Sin «Inicio», sin manual y, en Configuración, solo
-     «Mis datos» (sin módulos, actividad, rol ni «al entrar, abrir») y «Notificaciones».
-   - Resumen: 4 indicadores y debajo, en dos columnas iguales alineadas con ellos, «Tu evolución» (un solo gráfico: unidades por mes y,
-     debajo, cuántas ventas), «Por producto», «Llamadas recibidas a tu nombre» y «Constancia». Sin posición entre profesionales.
-     Cada bloque se explica en su ayuda «i».
-   - Mi ficha: contacto, dónde pasa consulta (centros de la base, sin más datos que nombre y dirección, o uno nuevo), un horario
-     flexible y rápido por centro (días, varias franjas con horas libres y botones para rellenar de golpe), cómo prefiere las visitas
-     y notas. Se envía como propuesta a su comercial (portal_guardar_ficha); si le falta algo, aviso arriba y notificación (SQL 146).
-   - En la ficha del equipo: «Datos enviados desde su portal» con lo que tenéis y lo que propone, «Editar la ficha» y «Marcar como
-     revisado».
-   ============================================================ */
-const PM = { tab: 'res', ficha: null, faltan: [], prop: null, ubic: [] };
 
 const pmAyu = (t, x) => `<button type="button" class="ai" data-ayuda-tit="${esc(t)}" data-ayuda-txt="${esc(x)}" aria-label="Qué es">i</button>`;
 
-const PM_DIAS = ['L', 'M', 'X', 'J', 'V', 'S'];
-
-const PM_DIAN = { L: 'Lunes', M: 'Martes', X: 'Miércoles', J: 'Jueves', V: 'Viernes', S: 'Sábado' };
-
-const PM_COMO = ['Con cita previa', 'Sin cita, al final de la consulta', 'Sin cita, en cualquier hueco', 'Por teléfono o videollamada', 'Prefiero que me escribáis antes'];
-
-const pmFaltaTxt = () => {
-  const t = { horario: typeof PM_CENTRO === 'function' && PM_CENTRO() ? 'dónde y cuándo atendéis' : 'dónde y cuándo atiendes', telefono: 'un teléfono de contacto', visitas: `cómo prefieres ${TT('visita', 'p', 'el', 'l', 'l')}` };
-  const l = PM.faltan.map(x => t[x]).filter(Boolean);
-  return l.length > 1 ? l.slice(0, -1).join(', ') + ' y ' + l[l.length - 1] : l[0] || 'algún dato';
-};
-
-/* ============================================================
-   v2.282.0 · Portal del centro con el mismo modelo que el del profesional (petición de Eric, 12/10/2026).
-   Una sola página con pestañas: «Resumen» (4 indicadores; «Tus pedidos» y «Lo que has comprado» del mismo tamaño, con su «i»),
-   «Pedir reposición» (sus productos con su precio; sin máximo en el campo: por encima de 1.000 unidades —lo que acepta
-   pedido_portal, que descartaba en silencio— avisa en la fila y no envía), «Mi centro» (la misma ficha que el profesional, con
-   sus textos) y «Material y dudas». Configuración, ayudas y navegación, como el portal del profesional.
-   ============================================================ */
-const PM_CENTRO = () => typeof puede === 'function' && puede('portal_centro');
-
-const PC_MAX = 1000;
-
-/* ============================================================
-   v2.283.0 · Packs para los centros (petición de Eric, 12/10/2026, con las directrices comerciales de los centros; SQL 151).
-   - Producto: «Packs para los centros» (compras N, te regalan M) y PVP de referencia con IVA. Con packs, el centro pide ese
-     producto solo por packs desde su portal; el regalo va en el pedido como línea aparte al 100 % de descuento.
-   - Portal del centro, «Pedir reposición»: cada pack con sus unidades, su importe, el coste real por unidad y el margen sobre el
-     PVP de referencia; cuántos packs de cada (0 a 50, avisando en la fila si no vale); entrega en la dirección del centro o
-     repartida entre varias direcciones (las unidades repartidas tienen que cuadrar). La bonificación es de cada pedido.
-   ============================================================ */
-const PC_PACK_MAX = 50;
-
-const pcPct = v => (Math.round(v * 1000) / 10).toLocaleString('es-ES', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' %';
-
-/* ============================================================
-   v2.353.0 · Portal del profesional: la actividad del periodo, de un vistazo (Eric, 22/10/2026). Al entrar el periodo es «Esta semana».
-   Con alguna solicitud completada: «Esta semana se han activado 2 …», escueto. Sin ninguna: lo dice y ofrece «Material y dudas».
-   Solo cuenta lo completado (SQL 177): nunca se enseña nada que no lo esté.
-   ============================================================ */
-const PM_PER_TXT = { hoy: 'Hoy', ayer: 'Ayer', semana: 'Esta semana', '7d': 'En los últimos 7 días', mes: 'Este mes', mesant: 'El mes pasado',
-  tri: 'Este trimestre', triant: 'El trimestre pasado', anio: 'Este año', anioant: 'El año pasado', todo: 'En total', pers: 'En estas fechas' };
-
-// ——— Lado del médico ———
-async function portalMedicoBase() {
-  // Al arrancar, «Mi informe» se pinta antes de leerse el final de este archivo y antes de tener el plan: se espera a los dos
-  try { void MOTIVO_PORTAL; void PLAN_ACTUAL; } catch (e) { setTimeout(portalMedico, 300); return; }
-  if (!('estado' in PLAN_ACTUAL)) { const { data } = await RPC_ORIG('plan_uso', {}); if (data && data.plan) PLAN_ACTUAL = data.plan; }
-  if (!ES_MEDICO() || !hayExtra('portal') || !$('v-informe')) return;
-  let caja = $('mdportal');
-  if (!caja) { $('v-informe').insertAdjacentHTML('beforeend', '<div id="mdportal" class="angrid"></div>'); caja = $('mdportal'); }
-  const [{ data: c }, { data: perm }, { data: sols }, { data: msgs }] = await Promise.all([
-    puede('portal_centro') ? Promise.resolve({ data: null }) : RPC_ORIG('constancia_pacientes', { p_meses: 12 }), RPC_ORIG('portal_material_permitido', {}),
-    db.from('solicitudes_material').select('id,material,cantidad,nota,estado,creado_en,cerrado_en').order('creado_en', { ascending: false }).limit(20),
-    db.from('mensajes_cuenta').select('id,texto,del_portal,creado_en,leido_en').order('creado_en', { ascending: true }).limit(200)]);
-  caja = $('mdportal'); if (!caja) return;   // v2.318.0: si se ha vuelto a pintar mientras llegaban los datos, la caja de ahora
-  const pac = TT('paciente', 'p', '', 'l', 'l'), k = c || {};
-  const pct = (a, b) => b ? Math.round(a / b * 100) + '%' : '—';
-  const constancia = !k.ok ? '<div class="sm">No disponible.</div>' : k.pocos
-    ? `<p class="sm" style="padding:0 16px">En los últimos ${num(k.meses || 12)} meses han empezado ${num(k.empezaron)} ${pac}. A partir de ${num(k.minimo || 5)} verás aquí su constancia (con menos no se muestra, para que nadie pueda reconocerlos).</p>`
-    : `<div class="minis cons">
-        <div><b>${num(k.empezaron)}</b><span>empezaron</span></div>
-        <div><b>${pct(k.repiten, k.empezaron)}</b><span>repiten (${num(k.repiten)})</span></div>
-        <div><b>${k.dias_entre ? num(k.dias_entre) + ' días' : '—'}</b><span>entre pedidos</span></div>
-        <div><b>${num(k.dejaron)}</b><span>lo dejaron tras el primero</span></div>
-        <div><b>${num(k.sin_pedir)}</b><span>llevan más de 60 días sin pedir</span></div></div>
-      ${(k.por_producto || []).length ? barrasH(k.por_producto.map(x => ({ n: x.producto, v: Math.round(x.repiten / x.pacientes * 100) })), v => v + '% repiten') : ''}`;
-  const lp = Array.isArray(perm) ? perm : [];
-  const ls = sols || [], lm = msgs || [];
-  caja.innerHTML = `
-    <div class="card ancard ancha" id="mdcons"><h2>Continuidad de las ${TT('pauta', 'p', '', 'l', 'l')}</h2>${constancia}
-      <p class="leer">En los últimos 12 meses: cuántas ${TT('pauta', 'p', '', 'l', 'l')} han empezado, qué parte se ha repetido y cada cuántos días.</p></div>
-    <div class="card ancard" id="mdmat"><h2>Pedir material</h2>
-      ${lp.length ? `<div class="g2"><div><label for="mdmatm">Material</label><select id="mdmatm">${lp.map(x => `<option value="${esc(x.valor)}" data-max="${x.max}">${esc(x.valor)}</option>`).join('')}</select></div>
-        <div><label for="mdmatn">Cantidad</label><input id="mdmatn" type="number" min="1" value="1"><span class="sm" id="mdmatmax">Máximo ${num(lp[0].max)} por petición</span></div></div>
-        <label for="mdmatt">Nota para tu comercial</label><input id="mdmatt" placeholder="Opcional">
-        <div class="acts" style="justify-content:flex-start"><button type="button" class="btn" id="mdmatok">Pedir</button></div>`
-      : '<p class="sm" style="padding:0 16px">Tu empresa todavía no ofrece material para pedir.</p>'}
-      ${ls.length ? `<div class="lista" id="mdmatl">${ls.map(x => `<div class="item" style="cursor:default"><span class="tx"><b>${num(x.cantidad)} × ${esc(x.material)}</b>
-          <span class="sm">${horaCorta(x.creado_en)}${x.nota ? ' · ' + esc(x.nota) : ''}</span></span>${pillMaterial(x.estado)}
-          ${x.estado === 'Pendiente' ? `<button type="button" class="btn sec chico" data-mdanu="${x.id}">Anular</button>` : ''}</div>`).join('')}</div>` : ''}</div>
-    <div class="card ancard" id="mdmsg"><h2>Dudas a tu comercial</h2>
-      <div id="mdhilo">${hiloMensajes(lm, true)}</div>
-      <textarea id="mdmsgt" rows="2" placeholder="Escribe tu duda" aria-label="Tu mensaje"></textarea>
-      <div class="acts" style="justify-content:flex-start"><button type="button" class="btn" id="mdmsgok">Enviar</button></div></div>`;
-  if (puede('portal_centro') && $('mdcons')) $('mdcons').remove();
-  // v2.277.0: sin máximo en el campo (rebajaba en silencio lo escrito); en cuanto lo escrito pasa del máximo, el aviso se pone en rojo
-  const mdMatAviso = () => {
-    const w = $('mdmatmax'), o = $('mdmatm') && $('mdmatm').selectedOptions[0]; if (!w || !o) return;
-    const m = +o.dataset.max, n = +$('mdmatn').value || 0;
-    w.classList.toggle('mdmatpasa', n > m); w.textContent = (n > m ? 'Como máximo ' : 'Máximo ') + num(m) + ' por petición';
-  };
-  if ($('mdmatm')) $('mdmatm').onchange = mdMatAviso;
-  if ($('mdmatn')) $('mdmatn').addEventListener('input', mdMatAviso);
-  if ($('mdmatok')) $('mdmatok').onclick = async ev => {
-    ev.target.disabled = true;
-    const mx = +$('mdmatm').selectedOptions[0].dataset.max, n = +$('mdmatn').value || 0;
-    if (n < 1 || n > mx) { ev.target.disabled = false; mdMatAviso(); toast(n < 1 ? 'Indica cuántos necesitas' : `Como máximo ${num(mx)} por petición: pide ${num(mx)} o escribe en la nota cuántos necesitas`, true); return; }
-    const { data: r } = await db.rpc('pedir_material', { p_material: $('mdmatm').value, p_cantidad: n, p_nota: $('mdmatt').value.trim() || null });
-    ev.target.disabled = false;
-    if (!r || !r.ok) { toast(r && r.motivo === 'cantidad' ? `Como máximo ${num(r.max)}` : motivoPortal(r), true); return; }
-    toast('Pedido enviado a tu comercial'); portalMedico();
-  };
-  caja.querySelectorAll('[data-mdanu]').forEach(b => b.onclick = async () => {
-    const { data: r } = await db.rpc('cerrar_material', { p_id: b.dataset.mdanu, p_estado: 'Anulado' });
-    if (!r || !r.ok) { toast(motivoPortal(r), true); return; }
-    toast('Pedido de material anulado'); portalMedico();
-  });
-  if ($('mdmsgok')) $('mdmsgok').onclick = async ev => {
-    const t = $('mdmsgt').value.trim(); if (!t) { toast('Escribe el mensaje', true); return; }
-    ev.target.disabled = true;
-    const { data: r } = await db.rpc('enviar_mensaje_cuenta', { p_cuenta: null, p_texto: t });
-    ev.target.disabled = false;
-    if (!r || !r.ok) { toast(motivoPortal(r), true); return; }
-    toast('Mensaje enviado'); portalMedico();
-  };
-  if (lm.some(x => !x.del_portal && !x.leido_en)) RPC_ORIG('leer_mensajes_cuenta', { p_cuenta: null });
-}
-
-// ——— Configuración: qué material se puede pedir y cuánto ———
-async function pintarCfgPortalBase() {
-  const c = $('cfgcuerpo'); if (!c) return;
-  c.innerHTML = `<div class="card">${skelCard('Cargando…')}</div>`;
-  const [{ data: cat }, { data: perm }, { data: aj }] = await Promise.all([
-    db.rpc('catalogo_papel', { p_papel: 'material_visita' }), RPC_ORIG('portal_material_permitido', {}),
-    db.from('ajustes').select('valor').eq('clave', 'portal').maybeSingle()]);
-  if (!$('cfgcuerpo')) return;
-  const l = cat || [], p = Array.isArray(perm) ? perm : [], conAjuste = !!(aj && aj.valor && aj.valor.material);
-  const de = v => p.find(x => x.valor === v);
-  c.innerHTML = `<div class="card"><div class="fh"><div><h2>Portal ${TT('medico', 's', 'del', 'l', 'l')}</h2>
-      <div class="sm">Qué material pueden pedir ${TT('medico', 'p', 'el', 'l', 'l')} desde su portal y cuánto como máximo cada vez. Les llega a su comercial.</div></div></div>
-    ${l.length ? `<div class="lista" id="cfpmat">${l.map(x => { const d = de(x.valor); return `<label class="item" style="cursor:default">
-        <input type="checkbox" data-cfpm="${esc(x.valor)}" ${d ? 'checked' : ''}> <span class="tx"><b>${esc(x.valor)}</b></span>
-        <span class="sm">Máximo</span> <input type="number" min="1" max="1000" value="${d ? d.max : 20}" data-cfpx="${esc(x.valor)}" style="max-width:110px" aria-label="Máximo de ${esc(x.valor)}"></label>`; }).join('')}</div>
-      ${conAjuste ? '' : '<p class="sm" style="padding:0 16px">Ahora mismo se puede pedir todo el material, hasta 20 de cada. Guarda para decidirlo tú.</p>'}
-      <div class="acts" style="justify-content:flex-end"><button class="btn" id="cfpok">Guardar</button></div>`
-      : '<div class="vacio">No hay material en el catálogo «Material comercial entregado». Añádelo en Clasificadores.</div>'}</div>`;
-  if ($('cfpok')) $('cfpok').onclick = async () => {
-    const material = [...c.querySelectorAll('[data-cfpm]')].filter(x => x.checked)
-      .map(x => ({ valor: x.dataset.cfpm, max: Math.max(1, Math.min(1000, +c.querySelector(`[data-cfpx="${CSS.escape(x.dataset.cfpm)}"]`).value || 20)) }));
-    const { data: r, error } = await db.rpc('guardar_ajuste', { p_clave: 'portal', p_valor: Object.assign({}, (aj && aj.valor) || {}, { material }) });   // v2.284.0: sin borrar el resto del ajuste
-    if (error || (r && r.ok === false)) { toast('No se ha podido guardar', true); return; }
-    toast('Guardado'); pintarCfgPortal();
-  };
-}
-
-// ——— Material y dudas: las tarjetas de siempre, en su pestaña, con su ayuda ———
-async function portalMedico(...a) {
-  const r = await portalMedicoBase.apply(this, a);
-  if (!ES_MEDICO()) return r;   // v2.282.0: también el centro
-  const c = $('mdcons'); if (c) c.remove();   // la constancia va en el Resumen
-  const ay = { mdmat: ['Pedir material', 'Pide el material que te ofrece la empresa (folletos, catálogos…). Le llega a tu comercial, que te lo entrega; mientras está pendiente lo puedes anular.'],
-    mdmsg: ['Dudas a tu comercial', 'Escribe a tu comercial cualquier duda. Te contestará aquí y te llegará un aviso.'] };
-  Object.entries(ay).forEach(([id, [t, x]]) => { const h = document.querySelector('#' + id + ' > h2'); if (h && !h.querySelector('.ai')) h.insertAdjacentHTML('beforeend', ' ' + pmAyu(t, x)); });
-  return r;
-}
-
-// Configuración → Portal: pago por adelantado de los pedidos del centro
-async function pintarCfgPortal(...a) {
-  const r = await pintarCfgPortalBase.apply(this, a);
-  const c = $('cfgcuerpo'); if (!c || $('cfpant')) return r;
-  const { data: aj } = await db.from('ajustes').select('valor').eq('clave', 'portal').maybeSingle();
-  if (!$('cfgcuerpo') || $('cfpant')) return r;
-  const on = !!(aj && aj.valor && aj.valor.pago_anticipado);
-  c.insertAdjacentHTML('beforeend', `<div class="card" id="cfpantc"><div class="fh"><div><h2>Pedidos del portal del centro ${typeof pmAyu === 'function' ? pmAyu('Pago por adelantado', 'Con el pago por adelantado, al confirmar un pedido del portal el centro lo ve «Pendiente de pago» y descarga la factura proforma con vuestros datos y el IBAN para hacer la transferencia. Cuando la recibáis, marcad el pago como cobrado en el pedido: el centro recibe el aviso y el pedido se prepara como siempre. El IBAN y los datos salen de Facturación → Datos fiscales.') : ''}</h2></div></div>
-    <label class="opt"><input type="checkbox" id="cfpant" ${on ? 'checked' : ''}> Pago por adelantado (transferencia antes de preparar el pedido)</label>
-    <div class="acts" style="justify-content:flex-end"><button class="btn" id="cfpantok" type="button">Guardar</button></div></div>`);
-  $('cfpantok').onclick = async ev => {
-    ev.target.disabled = true;
-    const { data: a2 } = await db.from('ajustes').select('valor').eq('clave', 'portal').maybeSingle();
-    const { data: x, error } = await db.rpc('guardar_ajuste', { p_clave: 'portal', p_valor: Object.assign({}, (a2 && a2.valor) || {}, { pago_anticipado: $('cfpant').checked }) });
-    ev.target.disabled = false;
-    if (error || (x && x.ok === false)) { toast('No se ha podido guardar', true); return; }
-    toast($('cfpant').checked ? 'Guardado: los centros pagarán por adelantado' : 'Guardado: sin pago por adelantado');
-  };
-  return r;
-}
+// Las pruebas leen PM.ficha y PM.tab
+const PM = { get ficha() { return window.delcos.screens.portal.portalState.form; }, get tab() { return window.delcos.screens.portal.portalState.tab; } };
+function cargarInforme() { return window.delcos.screens.portal.loadReport(); }
+function portalMedico() { return window.delcos.screens.portal.paintMaterial(); }
+function centroPintar() { return window.delcos.screens.portal.paintCentre(); }
+function pmTab(k) { window.delcos.screens.portal.showTab(k); }
+function pmRepintarConsultas() { window.delcos.screens.portal.repaintPlaces(); }
+function pintarCfgPortal() { return window.delcos.screens.portal.paintPortalSettings(); }
 // pantallas/productos.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -28974,28 +31838,6 @@ async function editorProductos() {
   $('dlg').showModal();
 }
 
-async function pintarProductos() {
-  const esAdmin = puede('administrar');
-  cargando($('vcuerpo'), 'Cargando productos…');
-  const { data } = await RPC_ORIG('productos_lista', { p_todos: esAdmin });
-  // v2.88.0: filtros por campos (Clasificadores); la lista llega entera, así que se filtra aquí
-  const l = (data || []).filter(p => (p.tipo || 'producto') === 'producto' && clasCumple(p.clasificadores, PRODF));
-  const cpCols = clasVisibles('producto');
-  $('vcuerpo').innerHTML = `<div class="panel">
-    <div class="cuenta"><b>${num(l.filter(p => p.activo).length)}</b> ${l.filter(p => p.activo).length === 1 ? 'producto activo' : 'productos activos'}${l.some(p => !p.activo) ? ` · ${num(l.filter(p => !p.activo).length)} inactivos` : ''}</div>
-    <div class="dgrid-wrap"><div class="dgrid prods">
-      <div class="dh"><span></span><span>Producto</span><span>Referencia</span><span class="num">Sin IVA</span><span class="num">IVA</span><span class="num">Con IVA</span><span>Estado</span>${clasCabeceras(cpCols)}</div>
-      ${l.map(p => `<button class="dr" data-prod="${p.id}" style="${p.activo ? '' : 'opacity:.55'}">
-        <span><span class="pfoto" style="${p.foto_url ? `background-image:url('${esc(p.foto_url)}')` : ''}">${p.foto_url ? '' : '◧'}</span></span>
-        <span><b>${esc(p.nombre)}</b><span class="sm">${esc(p.presentacion || 'Sin presentación')}</span></span>
-        <span class="sm">${esc(p.referencia || '—')}</span><span class="num">${p.precio != null ? eurI(p.precio) : '—'}</span>
-        <span class="num">${num(p.iva || 0)}%</span><span class="num"><b>${p.pvp != null ? eurI(p.pvp) : '—'}</b></span>
-        <span><span class="pill ${p.activo ? 'p-est' : 'p-anu'}">${p.activo ? 'Activo' : 'Inactivo'}</span></span>${clasCeldas(cpCols, p.clasificadores)}</button>`).join('')
-        || `<div class="vacio">${Object.keys(PRODF).length ? 'Ningún producto con estos filtros.' : 'Todavía no hay productos.'}</div>`}
-    </div></div></div>`;
-  clasRejilla($('vcuerpo').querySelector('.dgrid.prods'), cpCols.length);
-  $('vcuerpo').querySelectorAll('[data-prod]').forEach(b => b.onclick = () => editorProducto(l.find(p => p.id === b.dataset.prod)));
-}
 
 async function cargarAlmacenes() { const { data } = await db.rpc('almacenes_lista'); ALMACENES = data || []; }
 
@@ -29008,247 +31850,15 @@ function loteRecepcion(l, uds, almId) {
     <div><label>Almacén</label><select data-r="alm">${ALMACENES.filter(a => a.activo).map(a => `<option value="${a.id}" ${a.id === almId ? 'selected' : ''}>${esc(a.nombre)}</option>`).join('')}</select></div></div>`;
 }
 
-async function pintarStock() {
-  cargando($('vcuerpo'), 'Calculando el stock…');
-  await cargarAlmacenes();
-  const { data, error } = await RPC_ORIG('stock_resumen', {});
-  if (error) { $('vcuerpo').innerHTML = `<div class="vacio">${esc(error.message)}</div>`; return; }
-  const l = (data || []).filter(s => s.activo || s.stock);
-  $('vcuerpo').innerHTML = `<div class="panel">
-    <div class="cuenta">Stock calculado con todas las entradas y salidas: compras, pedidos confirmados, muestras, ajustes y traspasos. Las ventas salen primero del lote que caduca antes.</div>
-    <div class="dgrid-wrap"><div class="dgrid stock">
-      <div class="dh"><span>Producto</span><span class="num">Stock</span><span>Por almacén</span><span>Próxima caducidad</span><span>Cobertura</span><span class="num">En camino</span><span>Estado</span></div>
-      ${l.map(s => { const [et, ec] = estadoStock(s); return `<button class="dr" data-stk="${s.id}">
-        <span><b>${esc(s.nombre)}</b><span class="sm">${esc(s.presentacion || '')}${s.sin_lote ? ` · <span style="color:var(--warn)">${num(-s.sin_lote)} uds vendidas sin lote</span>` : ''}</span></span>
-        <span class="num"><b>${num(s.stock)}</b></span>
-        <span class="sm">${(s.por_almacen || []).map(a => `${esc(a.almacen)}: ${num(a.unidades)}`).join(' · ') || '—'}</span>
-        <span class="${cadClase(s.proxima_caducidad)}">${s.proxima_caducidad ? fechaCorta(s.proxima_caducidad) : '—'}</span>
-        <span class="sm">${s.dias_cobertura != null ? `${num(s.dias_cobertura)} días · proveedor ${num(s.plazo_dias)}` : 'Sin ventas en 90 días'}</span>
-        <span class="num">${s.en_camino ? num(s.en_camino) + (s.llegada ? `<span class="sm">${fechaCorta(s.llegada)}</span>` : '') : '—'}</span>
-        <span><span class="pill ${ec}">${et}</span></span></button>`; }).join('') || '<div class="vacio">Sin productos.</div>'}
-    </div></div></div>`;
-  $('vcuerpo').querySelectorAll('[data-stk]').forEach(b => b.onclick = () => fichaStock(l.find(s => s.id === b.dataset.stk)));
-}
-
-async function fichaStock(s) {
-  await cargarProveedores();
-  const [et, ec] = estadoStock(s);
-  $('dbody').innerHTML = `
-    <div class="fh"><div><h2>${esc(s.nombre)} <span class="pill ${ec}">${et}</span></h2>
-      <div class="sm">${num(s.stock)} unidades · ${+s.consumo_diario ? 'consumo medio ' + String(s.consumo_diario).replace('.', ',') + ' al día' : 'sin consumo en los últimos meses'}${s.dias_cobertura != null ? ` · cubre ${num(s.dias_cobertura)} días` : ''}</div></div>
-      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-    ${puedeCompras() ? `<div class="g2">
-      <div><label for="stmin">Stock mínimo (aviso)</label><input id="stmin" type="number" min="0" value="${s.stock_minimo != null ? s.stock_minimo : ''}" placeholder="Sin mínimo"></div>
-      <div><label for="stprov">Proveedor habitual</label><select id="stprov"><option value="">—</option>${PROVEEDORES.map(p => `<option value="${p.id}" ${p.nombre === s.proveedor ? 'selected' : ''}>${esc(p.nombre)} · ${num(p.plazo_dias)} días</option>`).join('')}</select></div></div>` : ''}
-    <div class="blk"><h3>Lotes</h3>
-      ${(s.lotes || []).length ? `<div class="lista">${s.lotes.map(lo => `<div class="item" style="cursor:default">
-        <span class="ic ${cadClase(lo.caducidad) === 'cad-pasada' ? 'w' : ''}">📦</span>
-        <span class="tx"><b>Lote ${esc(lo.numero_lote)} · ${num(lo.unidades)} uds</b>
-          <span class="sm"><span class="${cadClase(lo.caducidad)}">${lo.caducidad ? 'Caduca el ' + fechaCorta(lo.caducidad) : 'Sin caducidad'}</span>${lo.fecha_fabricacion ? ' · fabricado el ' + fechaCorta(lo.fecha_fabricacion) : ''} · ${esc(lo.almacen)}${lo.proveedor ? ' · ' + esc(lo.proveedor) : ''}</span></span>
-        <span class="acts" style="margin:0"><button class="btn sec" data-traz="${lo.id}">Trazabilidad</button>
-          ${puedeCompras() ? `<button class="btn sec" data-aju="${lo.id}|${lo.almacen_id}">Ajustar</button>${ALMACENES.filter(a => a.activo).length > 1 ? `<button class="btn sec" data-tras="${lo.id}|${lo.almacen_id}">Traspasar</button>` : ''}` : ''}</span></div>`).join('')}</div>`
-        : '<div class="sm">Sin lotes con stock.</div>'}</div>
-    <div class="acts" style="justify-content:flex-end">
-      <button class="btn sec" data-cerrar>Cerrar</button>
-      ${puedeCompras() ? '<button class="btn sec" id="stent">+ Entrada o lote</button><button class="btn" id="stgu">Guardar mínimo y proveedor</button>' : ''}</div>`;
-  $('dlg').showModal();
-  $('dbody').querySelectorAll('[data-traz]').forEach(b => b.onclick = () => trazabilidad(b.dataset.traz));
-  $('dbody').querySelectorAll('[data-aju]').forEach(b => { const [lo, al] = b.dataset.aju.split('|'); b.onclick = () => movimientoStock(s, 'ajuste', lo, al); });
-  $('dbody').querySelectorAll('[data-tras]').forEach(b => { const [lo, al] = b.dataset.tras.split('|'); b.onclick = () => movimientoStock(s, 'traspaso', lo, al); });
-  if ($('stent')) $('stent').onclick = () => movimientoStock(s, 'inicial');
-  if ($('stgu')) $('stgu').onclick = async () => {
-    const { error } = await db.from('productos').update({ stock_minimo: $('stmin').value === '' ? null : +$('stmin').value, proveedor_id: $('stprov').value || null }).eq('id', s.id);
-    if (error) { toast('No se ha podido guardar', true); return; }
-    $('dlg').close(); toast('Guardado'); pintarStock();
-  };
-}
-
-async function trazabilidad(loteId) {
-  const { data } = await RPC_ORIG('trazabilidad_lote', { p_lote: loteId });
-  const lo = (data && data.lote) || {}, m = (data && data.movimientos) || [];
-  const tipos = { inicial: 'Stock inicial', entrada_compra: 'Entrada por compra', salida_venta: 'Venta', anulacion_venta: 'Anulación de venta',
-    salida_muestra: `Muestra en ${TT('visita', 's', '', 'l', 'l')}`, ajuste: 'Ajuste de inventario', traspaso_salida: 'Traspaso (sale)', traspaso_entrada: 'Traspaso (entra)', devolucion: 'Devolución',
-    consumo_deposito: 'Usado en un depósito', consumo_cirugia: 'Usado en una intervención' };
-  $('dlg2body').innerHTML = `
-    <div class="fh"><div><h2>Trazabilidad · lote ${esc(lo.numero_lote || '')}</h2>
-      <div class="sm">${esc(lo.producto || '')}${lo.caducidad ? ' · caduca el ' + fechaCorta(lo.caducidad) : ''}${lo.proveedor ? ' · ' + esc(lo.proveedor) : ''}${lo.compra ? ' · compra ' + esc(lo.compra) : ''}</div></div>
-      <button class="x" data-cerrar2 aria-label="Cerrar">✕</button></div>
-    <p class="sm">Todas las entradas y salidas de este lote. Ante una alerta de un lote, aquí están los clientes a los que llegó.</p>
-    <div class="dgrid-wrap"><div class="dgrid traz">
-      <div class="dh"><span>Fecha</span><span>Movimiento</span><span class="num">Uds.</span><span>Cliente</span><span>${TT('medico', 's', '', 'l', 'C')}</span><span>Almacén</span></div>
-      ${m.map(x => `<div class="dr" style="cursor:default"><span>${fechaCorta(String(x.fecha).slice(0, 10))}</span><span>${esc(tipos[x.tipo] || x.tipo)}${x.pedido ? `<span class="sm">Pedido ${esc(x.pedido)}</span>` : ''}</span>
-        <span class="num" style="color:${x.unidades < 0 ? 'var(--danger)' : 'var(--ok)'}"><b>${x.unidades > 0 ? '+' : ''}${num(x.unidades)}</b></span>
-        <span>${esc(x.cliente || '—')}${x.telefono ? `<span class="sm">${esc(x.telefono)}</span>` : ''}</span><span class="sm">${esc(x.medico || '—')}</span><span class="sm">${esc(x.almacen)}</span></div>`).join('')
-        || '<div class="vacio">Sin movimientos.</div>'}</div></div>
-    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar2>Cerrar</button></div>`;
-  $('dlg2').showModal();
-}
-
-async function movimientoStock(s, tipo, loteId, almId) {
-  await Promise.all([cargarProductos(), cargarAlmacenes(), cargarProveedores()]);
-  const tit = tipo === 'inicial' ? 'Entrada de stock' : tipo === 'ajuste' ? 'Ajuste de inventario' : 'Traspaso entre almacenes';
-  $('dlg2body').innerHTML = `
-    <div class="fh"><div><h2>${tit}</h2><div class="sm">${tipo === 'inicial' ? 'Stock inicial o una entrada sin pedido de compra, con su lote' : tipo === 'ajuste' ? 'Suma o resta unidades de este lote (recuento, rotura, caducado…)' : 'Mueve unidades de este lote a otro almacén, por ejemplo al maletín de un comercial'}</div></div>
-      <button class="x" data-cerrar2 aria-label="Cerrar">✕</button></div>
-    ${tipo === 'inicial' ? `<div class="g2">
-      <div><label for="mvp">Producto</label><select id="mvp">${PRODUCTOS.map(p => `<option value="${p.id}" ${s && p.id === s.id ? 'selected' : ''}>${esc(p.nombre)}</option>`).join('')}</select></div>
-      <div><label for="mva">Almacén</label><select id="mva">${ALMACENES.filter(a => a.activo).map(a => `<option value="${a.id}">${esc(a.nombre)}</option>`).join('')}</select></div></div>
-      <div class="g2"><div><label for="mvl">Nº de lote</label><input id="mvl" placeholder="p. ej. L2609"></div>
-        <div><label for="mvpr">Proveedor</label><select id="mvpr"><option value="">—</option>${PROVEEDORES.map(p => `<option value="${p.id}">${esc(p.nombre)}</option>`).join('')}</select></div></div>
-      <div class="g2"><div><label for="mvc">Caducidad</label><input id="mvc" type="date"></div><div><label for="mvf">Fabricación</label><input id="mvf" type="date"></div></div>` : ''}
-    ${tipo === 'traspaso' ? `<label for="mvd">Almacén de destino</label><select id="mvd">${ALMACENES.filter(a => a.activo && a.id !== almId).map(a => `<option value="${a.id}">${esc(a.nombre)}</option>`).join('')}</select>` : ''}
-    <div class="g2"><div><label for="mvu">${tipo === 'ajuste' ? 'Unidades (+ suma, − resta)' : 'Unidades'}</label><input id="mvu" type="number" ${tipo === 'ajuste' ? '' : 'min="1"'}></div>
-      <div><label for="mvn">Motivo o nota</label><input id="mvn" placeholder="${tipo === 'ajuste' ? 'Recuento, rotura, caducado…' : 'Opcional'}"></div></div>
-    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar2>Cancelar</button><button class="btn" id="mvok">Registrar</button></div>`;
-  $('dlg2').showModal();
-  $('mvok').onclick = async () => {
-    const n = +$('mvu').value;
-    if (!n) { toast('Indica las unidades', true); return; }
-    if (tipo === 'inicial' && !$('mvl').value.trim()) { toast('Indica el número de lote', true); return; }
-    const p = tipo === 'inicial'
-      ? { tipo, producto_id: $('mvp').value, almacen_id: $('mva').value, numero_lote: $('mvl').value.trim(), caducidad: $('mvc').value, fecha_fabricacion: $('mvf').value, proveedor_id: $('mvpr').value, unidades: n, nota: $('mvn').value.trim() }
-      : { tipo, producto_id: s.id, lote_id: loteId, almacen_id: almId, destino_id: $('mvd') ? $('mvd').value : null, unidades: n, nota: $('mvn').value.trim() };
-    const { data: r, error } = await db.rpc('movimiento_manual', { p });
-    if (error || (r && r.ok === false)) { toast('No se ha podido: ' + ((error && error.message) || r.error), true); return; }
-    $('dlg2').close(); $('dlg').close(); toast('Movimiento registrado'); if (TAB === 'productos') pintarStock();
-  };
-}
-
-async function editorAlmacenes() {
-  await cargarAlmacenes(); if (!COMS.length) await cargarComerciales();
-  const pinta = () => {
-    $('dbody').innerHTML = `
-      <div class="fh"><div><h2>Almacenes</h2><div class="sm">El central y, si quieres, un «maletín» por comercial para sus muestras</div></div>
-        <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-      <div class="lista">${ALMACENES.map(a => `<div class="item" style="cursor:default"><span class="ic">${a.tipo === 'central' ? '🏢' : a.tipo === 'deposito' ? '🏢' : '💼'}</span>
-        <span class="tx"><b>${esc(a.nombre)}</b><span class="sm">${a.tipo === 'central' ? 'Almacén central' : a.tipo === 'deposito' ? 'Depósito en un centro' : 'Maletín de ' + esc(a.usuario || '—')} · ${num(a.unidades)} uds${a.activo ? '' : ' · inactivo'}</span></span></div>`).join('')}</div>
-      <h3 style="margin-top:14px">Nuevo maletín de comercial</h3>
-      <div class="g2"><div><label for="almu">Comercial</label><select id="almu">${COMS.map(u => `<option value="${u.id}">${esc(u.nombre)}</option>`).join('')}</select></div>
-        <div><label>&nbsp;</label><button class="btn" id="almok">Crear maletín</button></div></div>
-      <p class="sm">Pasa unidades del central a un maletín con «Traspasar» en la ficha del producto. Si las muestras restan stock, salen del maletín de quien registra ${TT('visita', 's', 'el', 'l', 'l')}.</p>`;
-    $('almok').onclick = async () => {
-      const u = COMS.find(x => x.id === $('almu').value);
-      const { error } = await db.rpc('guardar_almacen', { p: { nombre: 'Maletín ' + String(u.nombre).split(' ')[0], tipo: 'maletin', usuario_id: u.id } });
-      if (error) { toast('No se ha podido crear', true); return; }
-      toast('Maletín creado'); await cargarAlmacenes(); pinta();
-    };
-  };
-  pinta(); $('dlg').showModal();
-}
-
-async function pintarAlmacenes2() {
-  await cargarAlmacenes(); if (!COMS.length) await cargarComerciales();
-  const { data: st } = await RPC_ORIG('stock_resumen', {});
-  const sinMaletin = COMS.filter(u => rolPuede(u.rol, 'almacen_propio') && !ALMACENES.some(a => a.usuario_id === u.id));
-  $('cfgcuerpo').innerHTML = `
-    <div class="card cfgpanel"><h2>Almacenes</h2>
-      <p class="sm">Dónde está físicamente tu stock. Cada unidad está en un almacén y en un lote, así sabes qué hay, dónde y cuándo caduca.</p>
-      <div class="mattipos"><div><b>🏢 Almacén central</b><span>Donde entra la mercancía al recibir las compras y de donde salen los pedidos.</span></div>
-        <div><b>💼 Maletín de comercial</b><span>Las muestras que lleva cada comercial. Se reponen traspasando desde el central y se descuentan al registrar ${TT('visita', 'p', '', 'l', 'l')}.</span></div></div></div>
-    <div class="card cfgpanel"><h2>Tus almacenes</h2>
-      <div class="almgrid">${ALMACENES.map(a => `<div class="almc"><span class="ic">${a.tipo === 'central' ? '🏢' : a.tipo === 'deposito' ? '🏢' : '💼'}</span>
-        <b>${esc(a.nombre)}</b><span class="sm">${a.tipo === 'central' ? 'Almacén central' : a.tipo === 'deposito' ? 'Depósito en un centro' : 'Maletín de ' + esc(a.usuario || '—')}${a.activo ? '' : ' · inactivo'}</span>
-        <span class="almu"><b>${num(a.unidades || 0)}</b> unidades</span></div>`).join('')}</div>
-      ${sinMaletin.length ? `<div class="avisoh" style="margin-top:12px"><span>${sinMaletin.length === 1 ? esc(sinMaletin[0].nombre) + ' no tiene' : sinMaletin.length + ' comerciales no tienen'} maletín: sus muestras saldrán del almacén central.</span></div>` : ''}
-      <div class="matadd" style="margin-top:12px"><select id="almu">${COMS.filter(u => rolPuede(u.rol, 'almacen_propio')).map(u => `<option value="${u.id}">${esc(u.nombre)}</option>`).join('')}</select>
-        <button class="btn sec" id="almok">Crear maletín</button></div>
-      <p class="sm">Para pasar unidades del central a un maletín: Productos → Stock → abre el producto → «Traspasar».${Array.isArray(st) && st.length ? '' : ''}</p></div>`;
-  $('almok').onclick = async () => {
-    const u = COMS.find(x => x.id === $('almu').value); if (!u) return;
-    const { error } = await db.rpc('guardar_almacen', { p: { nombre: 'Maletín ' + String(u.nombre).split(' ')[0], tipo: 'maletin', usuario_id: u.id } });
-    if (error) { toast('No se ha podido crear', true); return; } toast('Maletín creado'); pintarAlmacenes2();
-  };
-}
 
 
-// Ficha de un centro: qué productos puede pedir y a qué precio (sin IVA; vacío = tarifa)
 
-async function verDeposito(cuenta, nombre, aviso) {
-  const { data: e, error } = await db.rpc('deposito_estado', { p_cuenta: cuenta });
-  if (error || !e || e.ok === false) { toast(e && e.error === 'permiso' ? 'No puedes ver el depósito de este centro' : 'No se ha podido abrir el depósito', true); return; }
-  DEP = { cuenta, nombre, estado: e };
-  if (!PRODUCTOS.length) await cargarProductos();
-  const l = (e.lineas || []).filter(x => x.unidades > 0), tot = l.reduce((s, x) => s + x.unidades, 0);
-  const tipoMov = { traspaso_entrada: 'Repuesto', traspaso_salida: 'Sale', consumo_deposito: 'Usado', ajuste: 'Ajuste' };
-  $('dbody').innerHTML = `<div class="fh"><div><h2>Depósito · ${esc(nombre)}</h2><div class="sm">${tot ? `${num(tot)} unidades de ${(z => z === 1 ? '1 producto' : z + ' productos')(new Set(l.map(x => x.producto_id)).size)}` : 'Sin material ahora mismo'} · sigue siendo vuestro hasta que se usa</div></div>
-      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-    ${aviso || ''}
-    <div class="depacts"><button type="button" class="btn" data-dep="reponer">Reponer</button><button type="button" class="btn sec" data-dep="consumo" ${l.length ? '' : 'disabled'}>Apuntar uso</button>
-      <button type="button" class="btn sec" data-dep="recuento" ${l.length ? '' : 'disabled'}>Recuento</button></div>
-    <div id="depform"></div>
-    ${l.length ? `<div class="deptab"><div class="deph"><span>Producto</span><span>Lote</span><span>Caduca</span><span>Uds</span></div>${l.map(x => `<div class="depf"><span>${esc(x.nombre)}</span>
-      <span>${esc(x.numero_lote || 'Sin lote')}</span><span class="${depCaducaPronto(x.caducidad) ? 'depcad' : ''}">${x.caducidad ? fechaCorta(x.caducidad) : '—'}</span><b>${num(x.unidades)}</b></div>`).join('')}</div>`
-      : '<div class="vacio vlinea">El depósito está vacío: repón para dejar material.</div>'}
-    ${(e.usado_90 || []).length ? `<p class="sm">Usado en los últimos 90 días: ${e.usado_90.map(x => `${esc(x.nombre)} ${num(x.unidades)}`).join(' · ')}</p>` : ''}
-    ${(e.movimientos || []).length ? `<details class="depmov"><summary>Últimos movimientos</summary>${e.movimientos.map(m => `<div class="depmf"><span>${fechaCorta(String(m.fecha).slice(0, 10))}</span>
-      <span>${tipoMov[m.tipo] || esc(m.tipo)}</span><span>${esc(m.nombre)}${m.numero_lote ? ' · ' + esc(m.numero_lote) : ''}</span><b>${m.unidades > 0 ? '+' : ''}${num(m.unidades)}</b>
-      <span class="sm">${esc(String(m.nota || '').replace(/\s*\[[^\]]*\]$/, ''))}</span></div>`).join('')}</details>` : ''}
-    <div class="acts" style="justify-content:flex-end"><button type="button" class="btn sec" data-cerrar>Cerrar</button></div>`;
-  if (!$('dlg').open) $('dlg').showModal();
-  $('dbody').querySelectorAll('[data-dep]').forEach(b => b.onclick = () => formDeposito(b.dataset.dep));
-}
 
-function formDeposito(acc) {
-  const f = $('depform'), l = (DEP.estado.lineas || []).filter(x => x.unidades > 0);
-  const prods = PRODUCTOS.filter(p => p.activo !== false && (p.estado || 'Activo') !== 'Descatalogado');
-  if (acc === 'reponer') {
-    f.innerHTML = `<div class="depbox"><b>Reponer el depósito</b>
-      <div class="segs" id="depori" role="group" aria-label="De dónde sale"><button type="button" data-o="maletin" class="on" aria-pressed="true">De mi maletín</button><button type="button" data-o="central" aria-pressed="false">Del almacén central</button></div>
-      <div class="depitems">${prods.map(p => `<label><span>${esc(p.nombre)}</span><input type="number" min="0" step="1" data-dprod="${p.id}" placeholder="0" aria-label="Unidades de ${esc(p.nombre)}"></label>`).join('')}</div>
-      <div class="acts" style="justify-content:flex-end"><button type="button" class="btn sec" id="depcanc">Cancelar</button><button type="button" class="btn" id="depok">Reponer</button></div></div>`;
-    f.querySelectorAll('[data-o]').forEach(b => b.onclick = () => f.querySelectorAll('[data-o]').forEach(x => { x.classList.toggle('on', x === b); x.setAttribute('aria-pressed', String(x === b)); }));
-  } else if (acc === 'consumo') {
-    f.innerHTML = `<div class="depbox"><b>Apuntar lo usado</b>
-      <div class="depitems">${l.map((x, i) => `<label><span>${esc(x.nombre)} <span class="sm">· ${esc(x.numero_lote || 'sin lote')} · quedan ${num(x.unidades)}</span></span>
-        <input type="number" min="0" max="${x.unidades}" step="1" data-dlin="${i}" placeholder="0" aria-label="Usadas de ${esc(x.nombre)}"></label>`).join('')}</div>
-      <label for="depref">Referencia</label><input id="depref" maxlength="120" placeholder="p. ej. Intervención del martes, sala 2 (sin datos del paciente)">
-      <div class="acts" style="justify-content:flex-end"><button type="button" class="btn sec" id="depcanc">Cancelar</button><button type="button" class="btn" id="depok">Apuntar</button></div></div>`;
-  } else {
-    f.innerHTML = `<div class="depbox"><b>Recuento</b><span class="sm">Escribe lo que hay ahora; lo que falte se apunta como usado.</span>
-      <div class="depitems">${l.map((x, i) => `<label><span>${esc(x.nombre)} <span class="sm">· ${esc(x.numero_lote || 'sin lote')} · había ${num(x.unidades)}</span></span>
-        <input type="number" min="0" step="1" data-dcnt="${i}" value="${x.unidades}" aria-label="Contadas de ${esc(x.nombre)}"></label>`).join('')}</div>
-      <div class="acts" style="justify-content:flex-end"><button type="button" class="btn sec" id="depcanc">Cancelar</button><button type="button" class="btn" id="depok">Guardar recuento</button></div></div>`;
-  }
-  $('depcanc').onclick = () => { f.innerHTML = ''; };
-  $('depok').onclick = async ev => {
-    const op = 'd' + Date.now();
-    let p;
-    if (acc === 'reponer') {
-      const items = [...f.querySelectorAll('[data-dprod]')].map(i => ({ producto_id: i.dataset.dprod, unidades: Math.max(0, Math.floor(+i.value || 0)) })).filter(x => x.unidades > 0);
-      if (!items.length) { toast('Escribe cuántas unidades repones', true); return; }
-      p = { cuenta_id: DEP.cuenta, accion: 'reponer', origen: f.querySelector('#depori .on').dataset.o, items, op_id: op };
-    } else if (acc === 'consumo') {
-      const items = [...f.querySelectorAll('[data-dlin]')].map(i => { const x = l[+i.dataset.dlin]; return { producto_id: x.producto_id, lote_id: x.lote_id, unidades: Math.max(0, Math.floor(+i.value || 0)), max: x.unidades }; }).filter(x => x.unidades > 0);
-      if (!items.length) { toast('Escribe lo que se ha usado', true); return; }
-      if (items.some(x => x.unidades > x.max)) { toast('No se puede usar más de lo que hay en el depósito', true); return; }
-      p = { cuenta_id: DEP.cuenta, accion: 'consumo', items, referencia: $('depref').value.trim(), op_id: op };
-    } else {
-      const items = [...f.querySelectorAll('[data-dcnt]')].map(i => { const x = l[+i.dataset.dcnt]; return { producto_id: x.producto_id, lote_id: x.lote_id, contadas: Math.max(0, Math.floor(+i.value || 0)) }; });
-      p = { cuenta_id: DEP.cuenta, accion: 'recuento', items, op_id: op };
-    }
-    ev.target.disabled = true;
-    const { data: r, error } = await db.rpc('deposito_mover', { p });
-    ev.target.disabled = false;
-    if (error || !r || r.ok === false) { toast(r && r.error === 'sin_origen' ? 'No hay almacén del que sacar el material' : r && r.error === 'permiso' ? 'No puedes mover el depósito de este centro' : 'No se ha podido guardar', true); return; }
-    const usado = r.usado || [];
-    let aviso = '';
-    if (acc === 'reponer') toast('Depósito repuesto');
-    else if (!usado.length) toast('Recuento guardado: no falta nada');
-    else {
-      toast('Apuntado lo usado');
-      aviso = `<div class="banda-ok depaviso">Usado: ${usado.map(x => `${esc(x.nombre)} ${num(x.unidades)}`).join(' · ')}. Queda un pedido en borrador del centro para confirmarlo.
-        <span class="depav"><button type="button" class="btn sec" id="depverped">Ver el pedido</button><button type="button" class="btn" id="depreponer">Reponer lo usado</button></span></div>`;
-    }
-    await verDeposito(DEP.cuenta, DEP.nombre, aviso);
-    if ($('depverped') && r.pedido_id) $('depverped').onclick = () => verPedido(r.pedido_id);
-    if ($('depreponer')) $('depreponer').onclick = async b => {
-      b.target.disabled = true;
-      const { data: r2 } = await db.rpc('deposito_mover', { p: { cuenta_id: DEP.cuenta, accion: 'reponer', items: usado.map(x => ({ producto_id: x.producto_id, unidades: x.unidades })), op_id: 'r' + Date.now() } });
-      if (!r2 || r2.ok === false) { b.target.disabled = false; toast(r2 && r2.error === 'sin_origen' ? 'No hay almacén del que sacar el material' : 'No se ha podido reponer', true); return; }
-      toast('Repuesto lo usado'); verDeposito(DEP.cuenta, DEP.nombre);
-    };
-  };
-}
+
+
+
+
+
 
 async function refrescarProductos() {
   try { invalidarCache(); } catch (e) {}
@@ -29256,56 +31866,7 @@ async function refrescarProductos() {
   if (TAB === 'productos' && typeof cargarProductosModulo === 'function') cargarProductosModulo();
 }
 
-async function pintarServicios() {
-  const esAdmin = puede('administrar');
-  cargando($('vcuerpo'), 'Cargando servicios…');
-  const { data } = await RPC_ORIG('productos_lista', { p_todos: esAdmin });
-  const l = (data || []).filter(p => p.tipo === 'servicio');
-  $('vcuerpo').innerHTML = `<div class="panel">
-    <div class="cuenta"><b>${num(l.filter(p => p.activo).length)}</b> servicios activos · Un pedido puede llevar un servicio (envío, portes urgentes…), que se suma con su propio IVA.</div>
-    <div class="dgrid-wrap"><div class="dgrid servs">
-      <div class="dh"><span>Servicio</span><span class="num">Sin IVA</span><span class="num">IVA</span><span class="num">Con IVA</span><span>En pedidos nuevos</span><span>Estado</span></div>
-      ${l.map(p => `<button class="dr" data-serv="${p.id}" style="${p.activo ? '' : 'opacity:.55'}">
-        <span><b>${esc(p.nombre)}</b></span><span class="num">${p.precio != null ? eurI(p.precio) : '—'}</span>
-        <span class="num">${num(p.iva || 0)}%</span><span class="num"><b>${p.pvp != null ? eurI(p.pvp) : '—'}</b></span>
-        <span>${p.por_defecto ? '<span class="pill p-est">Se propone por defecto</span>' : '<span class="vac">—</span>'}</span>
-        <span><span class="pill ${p.activo ? 'p-est' : 'p-anu'}">${p.activo ? 'Activo' : 'Inactivo'}</span></span></button>`).join('') || '<div class="vacio">Todavía no hay servicios.</div>'}
-    </div></div></div>`;
-  $('vcuerpo').querySelectorAll('[data-serv]').forEach(b => b.onclick = () => editorServicio(l.find(p => p.id === b.dataset.serv)));
-}
 
-function editorServicio(s) {
-  const esAdmin = puede('administrar');
-  s = s || { iva: 21, activo: true };
-  const ro = esAdmin ? '' : 'disabled';
-  $('dbody').innerHTML = `
-    <div class="fh"><div><h2>${s.id ? esc(s.nombre) : 'Nuevo servicio'}</h2>
-      <div class="sm">Escribe el precio sin IVA o con IVA: el otro se calcula solo. En cada pedido se puede cambiar.</div></div>
-      <button class="x" data-cerrar aria-label="Cerrar">✕</button></div>
-    <label for="svn">Nombre</label><input id="svn" value="${esc(s.nombre || '')}" placeholder="p. ej. Envío, Envío urgente" ${ro}>
-    <div class="pvp">
-      <div><label for="svs">Sin IVA (€)</label><input id="svs" type="number" step="0.01" min="0" value="${s.precio != null ? +(+s.precio).toFixed(4) : ''}" ${ro}></div>
-      <div><label for="svi">IVA (%)</label><input id="svi" type="number" step="1" min="0" max="21" value="${s.iva != null ? s.iva : 21}" ${ro}></div>
-      <div><label for="svc">Con IVA (€)</label><input id="svc" type="number" step="0.01" min="0" value="${s.precio != null ? r2(s.precio * (1 + (+s.iva || 0) / 100)) : ''}" ${ro}></div></div>
-    <label class="opt" style="margin-top:12px"><input type="checkbox" id="svdef" ${s.por_defecto ? 'checked' : ''} ${ro}> Proponerlo por defecto en los pedidos nuevos</label>
-    ${s.id ? `<label class="opt" style="margin-top:8px"><input type="checkbox" id="svact" ${s.activo ? 'checked' : ''} ${ro}> Activo</label>` : ''}
-    <div class="acts" style="justify-content:flex-end"><button class="btn sec" data-cerrar>${esAdmin ? 'Cancelar' : 'Cerrar'}</button>
-      ${esAdmin ? `<button class="btn" id="svok">${s.id ? 'Guardar' : 'Crear servicio'}</button>` : ''}</div>`;
-  $('dlg').showModal();
-  if (!esAdmin) return;
-  const iva = () => (+$('svi').value || 0) / 100;
-  $('svs').oninput = () => { $('svc').value = $('svs').value === '' ? '' : r2(+$('svs').value * (1 + iva())); };
-  $('svc').oninput = () => { $('svs').value = $('svc').value === '' ? '' : +(+$('svc').value / (1 + iva())).toFixed(4); };
-  $('svi').oninput = () => { if ($('svs').value !== '') $('svc').value = r2(+$('svs').value * (1 + iva())); };
-  $('svok').onclick = async () => {
-    if (!$('svn').value.trim()) { toast('Escribe el nombre', true); return; }
-    const { data: r, error } = await db.rpc('guardar_producto', { p: { id: s.id || null, tipo: 'servicio', nombre: $('svn').value.trim(),
-      precio: $('svs').value, iva: $('svi').value, por_defecto: $('svdef').checked, ...($('svact') ? { activo: $('svact').checked } : {}) } });
-    if (error || (r && r.ok === false)) { toast('No se ha podido guardar', true); return; }
-    $('dlg').close(); toast(s.id ? 'Servicio guardado' : 'Servicio creado');
-    await cargarProductos(); if (TAB === 'productos') pintarServicios();
-  };
-}
 
 let SERVICIOS = [];
 
@@ -29313,14 +31874,7 @@ let PSEC = 'productos';
 
 let PRODF = {};   // v2.88.0: filtros por campos del producto (Clasificadores)
 
-const estadoStock = s => {
-  if (s.stock <= 0) return ['Sin stock', 'p-anu'];
-  if (s.stock_minimo != null && s.stock < s.stock_minimo) return ['Bajo mínimo', 'p-bor'];
-  if (s.dias_cobertura != null && s.dias_cobertura <= s.plazo_dias + 14 && !s.en_camino) return ['Pedir ya', 'p-bor'];
-  return ['Correcto', 'p-est'];
-};
 
-const cadClase = f => !f ? '' : f < hoyISO() ? 'cad-pasada' : f <= isoMas(hoyISO(), 90) ? 'cad-pronto' : '';
 
 let ESTADO_PROD = {};
 
@@ -29334,7 +31888,6 @@ const pillMaterial = e => `<span class="pill ${e === 'Pendiente' ? 'p-warn' : e 
    - Ventana del depósito: lo que hay por lote y caducidad (aviso si caduca en menos de 60 días), lo usado en 90 días y los últimos
      movimientos; «Reponer» (de tu maletín o del almacén central), «Apuntar uso» (con referencia, sin datos del paciente) y «Recuento».
      Lo usado deja un pedido en borrador del centro («Ver el pedido») y ofrece «Reponer lo usado». */
-let DEP = null;   // { cuenta, nombre, estado }
 
 const depCaducaPronto = f => f && f <= isoMas(hoyISO(), 60);
 
@@ -29353,36 +31906,7 @@ async function cargarProductosBase() {
   SERVICIOS = l.filter(p => p.tipo === 'servicio');
 }
 
-async function cargarProductosModuloBase() {
-  const esAdmin = puede('administrar');
-  vaciarModulos('v-productos');
-  $('v-productos').innerHTML = `
-    <div class="saludo"><div><h1>Productos</h1><div class="fecha">Catálogo de productos y servicios, con precios sin IVA y con IVA</div></div>
-      <div class="acts" style="margin:0">${esAdmin ? `<button class="btn" id="prodnuevo">+ Nuevo ${PSEC === 'servicios' ? 'servicio' : 'producto'}</button>` : ''}</div></div>
-    <div class="subnav"><button data-ps="productos" aria-pressed="${PSEC === 'productos'}">Productos</button>
-      <button data-ps="servicios" aria-pressed="${PSEC === 'servicios'}">Servicios</button></div>
-    <div id="vcuerpo"></div>`;
-  $('v-productos').querySelectorAll('[data-ps]').forEach(b => b.onclick = () => { PSEC = b.dataset.ps; cargarProductosModulo(); });
-  if ($('prodnuevo')) $('prodnuevo').onclick = () => PSEC === 'servicios' ? editorServicio(null) : editorProducto(null);
-  if (PSEC === 'servicios') pintarServicios(); else pintarProductos();
-}
 
-async function cargarProductosModulo() {
-  await cargarProductosModuloBase();
-  const sn = $('v-productos').querySelector('.subnav');
-  if (sn && !sn.querySelector('[data-ps="stock"]')) {
-    sn.insertAdjacentHTML('beforeend', `<button data-ps="stock" aria-pressed="${PSEC === 'stock'}">Stock y lotes</button>`);
-    sn.querySelector('[data-ps="stock"]').onclick = () => { PSEC = 'stock'; cargarProductosModulo(); };
-  }
-  if (PSEC === 'stock') {
-    const acts = $('v-productos').querySelector('.saludo .acts');
-    acts.innerHTML = puedeCompras() ? '<button class="btn sec" id="stalm">Almacenes</button><button class="btn sec" id="stmue">⚙ Muestras</button><button class="btn" id="stini">+ Entrada de stock</button>' : '';
-    if ($('stalm')) $('stalm').onclick = editorAlmacenes;
-    if ($('stmue')) $('stmue').onclick = editorMuestras;
-    if ($('stini')) $('stini').onclick = () => movimientoStock(null, 'inicial');
-    pintarStock();
-  }
-}
 
 async function pintarMaterialBase() {
   await Promise.all([cargarAjustes(), cargarProductos()]);
@@ -29740,6 +32264,15 @@ function opcionesProducto(id, nombre) {
     lista.map(p => `<option value="${p.id}" ${p.id === id ? 'selected' : ''}>${esc(p.nombre)}${vendible(p) ? '' : ' (' + esc(p.estado.toLowerCase()) + ')'}</option>`).join('')
     || '<option value="">Sin productos activos</option>';
 }
+
+// Productos está en src/app/screens/products (v2.413.0). Estos nombres se quedan: el menú, la caché de pantallas (legado 057),
+// los filtros de campos, Configuración, la ficha de la cuenta, «‹ Volver» (legado 089) y las pruebas los usan.
+function cargarProductosModulo() { return window.delcos.screens.products.loadProductsModule(); }
+function pintarProductos() { return window.delcos.screens.products.paintProducts(); }
+function fichaStock(s) { return window.delcos.screens.products.showStock(s); }
+function verDeposito(cuenta, nombre, aviso) { return window.delcos.screens.products.showDeposit(cuenta, nombre, aviso || ''); }
+function pintarAlmacenes2() { return window.delcos.screens.products.paintStores(); }
+function movimientoStock(s, tipo, loteId, almId) { return window.delcos.screens.products.stockMovement(s || null, tipo, loteId ? { batchId: loteId, storeId: almId } : undefined); }
 // pantallas/rutas.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
 
@@ -38463,7 +40996,6 @@ function montarPeriodo(el, ...a) {
 
 
 
-window.PM_LISTO = true;
 
 
 
@@ -38474,33 +41006,6 @@ window.PM_LISTO = true;
 
 
 
-document.addEventListener('click', e => {
-  const b = e.target.closest('#pmficha [data-pmhd], #pmficha [data-pmhp], #pmficha [data-pmhx], #pmficha [data-pmha], #pmficha [data-pmcx], #pmficha [data-pmcr]');
-  if (!b || !PM.ficha) return;
-  pmLeerForm();
-  const F = PM.ficha;
-  if (b.dataset.pmhd) {   // encender o apagar un día: al encenderlo copia el horario del día marcado más cercano
-    const [i, k] = b.dataset.pmhd.split('|'), d = F.consultas[+i].dias;
-    if ((d[k] || []).length) delete d[k];
-    else { const prev = PM_DIAS.filter(x => (d[x] || []).length); d[k] = prev.length ? d[prev[0]].map(r => r.slice()) : [['09:00', '14:00']]; }
-  }
-  if (b.dataset.pmhp) {
-    const [i, m] = b.dataset.pmhp.split('|'), d = F.consultas[+i].dias;
-    let dias = PM_DIAS.filter(x => (d[x] || []).length); if (!dias.length) dias = ['L', 'M', 'X', 'J', 'V'];
-    const r = m === 'm' ? [['09:00', '14:00']] : m === 't' ? [['16:00', '20:00']] : m === 'mt' ? [['09:00', '14:00'], ['16:00', '20:00']] : (d[dias[0]] || [['09:00', '14:00']]);
-    dias.forEach(x => d[x] = r.map(y => y.slice()));
-  }
-  if (b.dataset.pmhx) { const [i, k, j] = b.dataset.pmhx.split('|'), d = F.consultas[+i].dias; d[k].splice(+j, 1); if (!d[k].length) delete d[k]; }
-  if (b.dataset.pmha) { const [i, k] = b.dataset.pmha.split('|'), l = F.consultas[+i].dias[k], u = l[l.length - 1]; l.push(u && u[1] < '15:00' ? ['16:00', '20:00'] : ['', '']); }
-  if (b.dataset.pmcx) F.consultas.splice(+b.dataset.pmcx, 1);
-  if (b.dataset.pmcr) {
-    const x = (PM.cres || [])[+b.dataset.pmcr];
-    F.consultas.push(x ? { centro_id: x.id, nombre: x.nombre, direccion: x.direccion, municipio: x.municipio, dias: {} } : { nombre: $('pmcq').value.trim(), direccion: '', dias: {} });
-    $('pmcq').value = ''; $('pmcres').innerHTML = '';
-  }
-  pmRepintarConsultas();
-});
-document.addEventListener('focusout', e => { const x = e.target.closest && e.target.closest('#pmficha [data-pmhi]'); if (x) { const v = pmHora(x.value); if (v) x.value = v; } });
 
 
 
@@ -38614,7 +41119,6 @@ document.addEventListener('click', e => { if (e.target.closest && e.target.close
 
 
 
-window.PC_LISTO = true;
 
 
 
@@ -38634,9 +41138,6 @@ window.PC_LISTO = true;
      la empresa). Al marcarlo cobrado se prepara como siempre. El centro recibe un aviso al validar, cobrar, preparar o anular.
    ============================================================ */
 NOMBRE_ESTADO_CENTRO['Pendiente de pago'] = 'p-warn';
-window.PC_ANT = false;
-
-document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('[data-pcpro]'); if (b) pcProforma(b.dataset.pcpro, b); });
 
 
 
@@ -38646,10 +41147,7 @@ document.addEventListener('click', e => { const b = e.target.closest && e.target
 
 
 
-document.addEventListener('click', e => {
-  const t = e.target.closest && e.target.closest('[data-pcfac], [data-pcmat]'); if (!t) return;
-  if (t.dataset.pcfac) pcFactura(t.dataset.pcfac, t); else pcMaterialBajar(t.dataset.pcmat, t);
-});
+
 
 
 // Producto: el material, también para los centros

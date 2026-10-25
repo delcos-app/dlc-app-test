@@ -333,60 +333,7 @@ async function centroDesdeUbicacion(box, i, lat, lon) {
 
 // Ficha: historial de cambios (de la ficha y de sus consultas), plegado al final; solo administración
 
-/* v2.128.0 · Portal del centro (parte del extra «Portal»). Un centro (ficha de tipo Centro) con acceso entra en «Mi centro»: pide la
-   reposición de los productos que tiene dados de alta, al precio que le pone su comercial; el pedido llega como borrador para confirmar.
-   Ve sus pedidos y lo comprado, pide material y escribe a su comercial (lo mismo que el médico). En la ficha del centro, «Productos
-   del centro». */
-async function cargarCentro() {
-  // v2.282.0: página nueva (al final del archivo); al arrancar se espera a que esté leída
-  if (!window.PM_LISTO || typeof cargarCentro2282 !== 'function') { const v0 = $('v-informe'); if (v0 && !v0.innerHTML.trim()) v0.innerHTML = '<div class="card">' + skelCard('Cargando…') + '</div>'; setTimeout(cargarCentro, 30); return; }
-  if (window.PC_LISTO) return cargarCentro2282();
-  const v = $('v-informe');
-  v.innerHTML = `<div class="medhero"><div><div class="sm" style="color:rgba(255,255,255,.8)">Tu centro</div><h1 id="ctnom">…</h1>
-      <div class="sm" style="color:rgba(255,255,255,.85)">Pide la reposición de tus productos y sigue tus pedidos</div></div></div>
-    <div id="ctcuerpo" class="angrid"><div class="card">${skelCard('Cargando…')}</div></div>`;
-  pintarCentro();
-}
 
-async function pintarCentro() {
-  // Al arrancar, esto se pinta antes de leerse el final de este archivo: se espera a que esté
-  try { void MOTIVO_PORTAL; void NOMBRE_ESTADO_CENTRO; } catch (e) { setTimeout(pintarCentro, 300); return; }
-  if (!$('ctcuerpo')) return;
-  const [{ data: prods }, { data: mp }] = await Promise.all([RPC_ORIG('productos_portal', {}), RPC_ORIG('mis_pedidos_portal', {})]);
-  if (!$('ctcuerpo')) return;
-  if (mp && mp.nombre) $('ctnom').textContent = mp.nombre;
-  const lp = Array.isArray(prods) ? prods : [], peds = (mp && mp.pedidos) || [], pp = (mp && mp.por_producto) || [];
-  const conIva = x => r2((+x.precio || 0) * (1 + (+x.iva || 0) / 100));
-  $('ctcuerpo').innerHTML = `
-    <div class="card ancard ancha" id="ctped"><h2>Pedir reposición</h2>
-      ${lp.length ? `<div class="lista" id="ctprods">${lp.map(x => `<div class="item ctlin" style="cursor:default"><span class="tx"><b>${esc(x.nombre)}</b>
-          <span class="sm">${eurI(conIva(x))} con IVA${x.propio ? ' · tu precio' : ''}</span></span>
-          <input type="number" min="0" max="1000" step="1" value="0" data-ctp="${x.producto_id}" data-ctpr="${conIva(x)}" aria-label="Unidades de ${esc(x.nombre)}"></div>`).join('')}</div>
-        <label for="ctnota">Nota</label><input id="ctnota" placeholder="Opcional: horario de entrega, persona de contacto…">
-        <div class="nvtot"><span>Total <b id="cttot">${eurI(0)}</b> con IVA</span><button type="button" class="btn" id="ctok">Enviar pedido</button></div>
-        <p class="leer">Tu comercial lo revisa y lo confirma; aquí verás cuándo está confirmado y preparado.</p>`
-        : '<p class="sm" style="padding:0 16px">Todavía no tienes productos para pedir. Tu comercial te los dará de alta.</p>'}</div>
-    <div class="card ancard" id="ctlista"><h2>Tus pedidos</h2>
-      ${peds.length ? `<div class="lista">${peds.map(p => `<div class="item" style="cursor:default"><span class="tx">
-          <b>${p.numero ? esc(p.numero) + ' · ' : ''}${fechaCorta(String(p.fecha).slice(0, 10))}</b>
-          <span class="sm">${esc((p.lineas || []).map(l => `${l.producto} × ${num(l.unidades)}`).join(', '))}${p.total != null ? ' · ' + eurI(p.total) : ''}</span></span>
-          <span class="pill ${NOMBRE_ESTADO_CENTRO[p.estado] || ''}">${esc(p.estado)}</span></div>`).join('')}</div>` : '<div class="sm" style="padding:0 16px">Todavía no hay pedidos.</div>'}</div>
-    <div class="card ancard" id="ctcompra"><h2>Lo que has comprado</h2>
-      ${pp.length ? barrasH(pp.map(x => ({ n: x.producto, v: x.unidades })), v => num(v) + ' uds.') : vacioGrafico('Aparecerá cuando tengas pedidos completados.')}
-      <p class="leer">Unidades de los últimos 12 meses, por producto.</p></div>`;
-  const total = () => [...$('ctcuerpo').querySelectorAll('[data-ctp]')].reduce((s, i) => s + (Math.max(0, +i.value || 0)) * (+i.dataset.ctpr || 0), 0);
-  $('ctcuerpo').querySelectorAll('[data-ctp]').forEach(i => i.oninput = i.onchange = () => { $('cttot').textContent = eurI(total()); });
-  if ($('ctok')) $('ctok').onclick = async ev => {
-    const lineas = [...$('ctcuerpo').querySelectorAll('[data-ctp]')].map(i => ({ producto_id: i.dataset.ctp, unidades: Math.floor(+i.value || 0) })).filter(x => x.unidades > 0);
-    if (!lineas.length) { toast('Pon las unidades de algún producto', true); return; }
-    ev.target.disabled = true;
-    const { data: r } = await db.rpc('pedido_portal', { p_lineas: lineas, p_nota: $('ctnota').value.trim() || null });
-    ev.target.disabled = false;
-    if (!r || !r.ok) { toast(r && r.motivo === 'vacio' ? 'Pon las unidades de algún producto' : motivoPortal(r), true); return; }
-    toast('Pedido enviado: tu comercial lo confirmará'); pintarCentro();
-  };
-  portalMedico();
-}
 
 // ---- 5. Horario de atención en todos sus centros
 function centroConConsulta(c, fecha) {
@@ -559,21 +506,6 @@ function formPrivada(box, i) {
 
 // ——— En la ficha del equipo: lo que ha enviado desde su portal ———
 
-async function cargarCentro2282() {
-  const v = $('v-informe');
-  v.innerHTML = `<div class="medhero"><div><div class="sm" style="color:rgba(255,255,255,.8)">Tu centro</div><h1 id="ctnom">…</h1>
-      <div class="sm" style="color:rgba(255,255,255,.85)">Pide la reposición de tus productos y sigue tus pedidos</div></div></div>
-    <div class="pmtabs" role="tablist">${[['res', 'Resumen'], ['ped', 'Pedir reposición'], ['ficha', 'Mi centro'], ['mat', 'Material y dudas']].map(([k, t]) =>
-      `<button type="button" role="tab" data-pmt="${k}" class="${PM.tab === k ? 'on' : ''}" aria-selected="${PM.tab === k}">${t}<span class="pmtpunto" hidden></span></button>`).join('')}</div>
-    <div data-pmp="res" id="mdcuerpo" ${PM.tab === 'res' ? '' : 'hidden'}>${pmEsqueleto()}</div>
-    <div data-pmp="ped" id="pcped" ${PM.tab === 'ped' ? '' : 'hidden'}>${pmEsqueleto(true)}</div>
-    <div data-pmp="ficha" id="pmficha" ${PM.tab === 'ficha' ? '' : 'hidden'}>${pmEsqueleto(true)}</div>
-    <div data-pmp="mat" id="pmmat" ${PM.tab === 'mat' ? '' : 'hidden'}><div id="mdportal" class="pmfila"></div></div>`;
-  if (!['res', 'ped', 'ficha', 'mat'].includes(PM.tab)) PM.tab = 'res';
-  v.querySelectorAll('[data-pmt]').forEach(b => b.onclick = () => pmTab(b.dataset.pmt));
-  await centroPintar();
-  portalMedico();
-}
 
 async function bajaCuenta(id, baja) {
   const { data: r, error } = await db.rpc('baja_cuenta', { p_id: id, p_baja: baja });
@@ -922,41 +854,7 @@ function formCentro(box, i, c, aviso) {
   return formCentroBase.call(this, box, i, c, aviso);
 }
 
-async function centroPintarBase() {
-  if (!$('mdcuerpo')) return;
-  const [{ data: prods }, { data: mp }, { data: f }] = await Promise.all([RPC_ORIG('productos_portal', {}), RPC_ORIG('mis_pedidos_portal', {}),
-    PM.ficha ? Promise.resolve({ data: null }) : RPC_ORIG('portal_mi_ficha', {})]);
-  if (f && f.ok) pmFichaDatos(f);
-  if (!$('mdcuerpo')) return;
-  if (mp && mp.nombre) $('ctnom').textContent = mp.nombre;
-  const lp = Array.isArray(prods) ? prods : [], peds = (mp && mp.pedidos) || [], pp = (mp && mp.por_producto) || [];
-  window.PC_ANT = !!(mp && mp.pago_anticipado);   // v2.284.0
-  const conIva = x => r2((+x.precio || 0) * (1 + (+x.iva || 0) / 100));
-  const enMarcha = peds.filter(p => p.estado !== 'Anulado' && p.estado !== 'Preparado').length;
-  const uds = pp.reduce((s, x) => s + (+x.unidades || 0), 0);
-  const ult = peds.length ? String(peds[0].fecha).slice(0, 10) : null;
-  const falta = PM.faltan.length ? `<div class="pmaviso"><div><b>Completa la ficha de tu centro</b><span class="sm">Falta ${esc(pmFaltaTxt())}. Así tu comercial sabe cuándo os va mejor que pase.</span></div>
-      <button type="button" class="btn" data-pmir="ficha">Completar la ficha</button></div>` : '';
-  $('mdcuerpo').innerHTML = `${pcDebeHtml(peds)}${falta}
-    <div class="pmk">
-      <div class="kpi"><b>${num(enMarcha)}</b><span>pedidos en marcha</span></div>
-      <div class="kpi"><b>${ult ? fechaCorta(ult) : '—'}</b><span>último pedido</span></div>
-      <div class="kpi"><b>${num(uds)}</b><span>unidades en 12 meses</span></div>
-      <div class="kpi"><b>${num(lp.length)}</b><span>productos para pedir</span></div></div>
-    <div class="pmfila">
-      <div class="card ancard pcpeds"><h2>Tus pedidos ${pmAyu('Tus pedidos', 'Los pedidos de reposición que habéis hecho y en qué punto están: pendiente de confirmar por tu comercial, pendiente de pago (si se paga por adelantado), confirmado, preparado o anulado. Cada pedido lleva los lotes que se os han enviado y sus facturas para descargar.')}</h2>
-        ${peds.length ? `<div class="lista">${peds.slice(0, 8).map(p => `<div class="item"><span class="tx">
-            <b>${p.numero ? esc(p.numero) + ' · ' : ''}${fechaCorta(String(p.fecha).slice(0, 10))}</b>
-            <span class="sm">${esc((p.lineas || []).map(l => `${l.producto} × ${num(l.unidades)}${l.regalo ? ' de regalo' : ''}`).join(', '))}${p.total != null ? ' · ' + eurI(p.total) : ''}</span>${pcExtraPed(p)}</span>
-            <span class="pcpst"><span class="pill ${NOMBRE_ESTADO_CENTRO[p.estado] || ''}">${esc(p.estado)}</span>${p.proforma ? `<button type="button" class="btn sec chico" data-pcpro="${p.id}">Factura proforma</button>` : ''}</span></div>`).join('')}</div>` : '<p class="sm">Todavía no hay pedidos.</p>'}</div>
-      <div class="card ancard"><h2>Lo que habéis comprado ${pmAyu('Lo que habéis comprado', 'Unidades de los últimos 12 meses por producto, de los pedidos confirmados.')}</h2>
-        ${pp.length ? barrasH(pp.map(x => ({ n: x.producto, v: x.unidades })), v => num(v) + ' uds.') : vacioGrafico('Aparecerá cuando tengáis pedidos confirmados.')}</div></div>`;
-  $('mdcuerpo').querySelectorAll('[data-pmir]').forEach(b => b.onclick = () => pmTab(b.dataset.pmir));
-  pcPintarPedido(lp);   // v2.283.0: por packs
-  pmPintarFicha();
-}
 
-async function centroPintar(...a) { const r = await centroPintarBase.apply(this, a); try { await pcDescargas(); } catch (e) {} return r; }
 
 /* Ficha del prescriptor: la ficha base y, en orden, cada bloque que se le añade
    (antes eran 6 capas separadas). */

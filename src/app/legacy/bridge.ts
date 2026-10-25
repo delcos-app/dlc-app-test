@@ -346,8 +346,6 @@ export const cardSectionsLegacy = {
 export const portalLegacy = {
   hasPortal: (): boolean => hayExtra('portal'),
   materialPill: (state: string): string => pillMaterial(state),
-  messageThread: (list: PortalMessage[]): string => hiloMensajes(list, false),
-  failureText: (result: PortalResult | null): string => motivoPortal(result),
   products: async (): Promise<readonly CatalogProduct[]> => { if (!PRODUCTOS.length) await cargarProductos(); return PRODUCTOS; },
   euros: (value: number): string => eurI(value),
 };

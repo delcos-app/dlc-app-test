@@ -6,6 +6,7 @@ import { cachedRpc, callRpc, legacyDb, notices, permissions, portalLegacy } from
 import { t } from '../../../i18n';
 import { escapeHtml, formatNumber } from '../../../services/format';
 import { stillShown } from './card-tools';
+import { failureText, messageThread } from '../../portal/model';
 
 /** Values stored in the database. */
 const PENDING = 'Pendiente', DELIVERED = 'Entregado', CENTRE = 'Centro', ACTIVE = 'Activo', SERVICE = 'servicio';
@@ -28,7 +29,7 @@ function portalHtml(requests: readonly MaterialRequest[], messages: PortalMessag
   const pending = requests.filter(request => request.estado === PENDING).length, unread = messages.filter(message => message.del_portal && !message.leido_en).length;
   return `<section class="blk" id="fportal"><h3>${t('accounts.portal.title')}${pending ? ` <span class="pill p-warn">${t('accounts.portal.toDeliver', { count: formatNumber(pending) })}</span>` : ''}${unread ? ` <span class="pill p-urg">${t('accounts.portal.unread', { count: formatNumber(unread) })}</span>` : ''}</h3>
     ${requests.length ? `<div class="lista">${requests.map(requestRow).join('')}</div>` : ''}
-    <div class="fpmsg"><b class="sm">${t('accounts.portal.messages')}</b><div id="fphilo">${portalLegacy.messageThread(messages)}</div>
+    <div class="fpmsg"><b class="sm">${t('accounts.portal.messages')}</b><div id="fphilo">${messageThread(messages, false)}</div>
       <div class="fpresp"><input id="fpmsgt" placeholder="${t('accounts.portal.reply')}" aria-label="${t('accounts.portal.reply')}"><button type="button" class="btn sec" id="fpmsgok">${t('accounts.portal.send')}</button></div></div></section>`;
 }
 
@@ -42,7 +43,7 @@ function bindPortal(id: string): void {
   document.querySelectorAll<HTMLElement>('#fportal [data-fpent]').forEach(button => {
     button.onclick = async (): Promise<void> => {
       const { data: result } = await legacyDb().rpc<PortalResult>('cerrar_material', { p_id: button.dataset.fpent, p_estado: DELIVERED });
-      if (!result?.ok) { notices.toast(portalLegacy.failureText(result), true); return; }
+      if (!result?.ok) { notices.toast(failureText(result), true); return; }
       notices.toast(t('accounts.portal.deliveredDone')); refreshPortal(id);
     };
   });
@@ -53,7 +54,7 @@ function bindPortal(id: string): void {
     send.disabled = true;
     const { data: result } = await legacyDb().rpc<PortalResult>('enviar_mensaje_cuenta', { p_cuenta: id, p_texto: text });
     send.disabled = false;
-    if (!result?.ok) { notices.toast(portalLegacy.failureText(result), true); return; }
+    if (!result?.ok) { notices.toast(failureText(result), true); return; }
     notices.toast(t('accounts.portal.sent')); refreshPortal(id);
   };
 }
@@ -100,7 +101,7 @@ async function saveProducts(id: string, button: HTMLButtonElement): Promise<void
   button.disabled = true;
   const { data: result } = await legacyDb().rpc<PortalResult>('guardar_productos_cuenta', { p_cuenta: id, p_items: items });
   button.disabled = false;
-  if (!result?.ok) { notices.toast(portalLegacy.failureText(result), true); return; }
+  if (!result?.ok) { notices.toast(failureText(result), true); return; }
   notices.toast(t('accounts.portal.productsSaved', { count: formatNumber(result.productos ?? 0) }));
   document.getElementById('fprodc')?.remove(); void centreProducts(id);
 }
