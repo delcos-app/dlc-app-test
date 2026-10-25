@@ -200,3 +200,36 @@ export const notices = {
 export const initialsOf = (name: string): string => iniciales(name);
 /** Mounts Agenda again from its current state (legacy adapter of loadAgenda: avoids an import cycle between the pieces). */
 export const reloadAgenda = (): void => { void cargarAgenda(); };
+
+/** What «Tu día» still uses from legacy: the day estimate and its stop information (route domain, migrates with Rutas), the
+ * working day, the appointment menu, ordering, tasks and the offline queue. */
+export const yourDayLegacy = {
+  setDayAppointments: (list: AgendaAppointment[]): void => { TD_CITAS = list; },
+  estimateDay: (list: readonly object[], isoDate: string): { est: Record<string, number>; fin: number; tope: number } =>
+    estimarDia(list, isoDate) as unknown as { est: Record<string, number>; fin: number; tope: number },
+  stopInfo: (): Readonly<Record<string, StopInfo>> => TD_INFO,
+  explainWarning: (info: StopInfo): string => explicarAviso(info),
+  windowsText: (windows: readonly [number, number][]): string => txtVentanas(windows),
+  workingDay: (): { inicio: number } | null => jornadaActiva(),
+  startWorkingDay: (): void => { void empezarJornada(); },
+  endWorkingDay: (): void => { void terminarJornada(); },
+  canRecordOn: (isoDate: string): boolean => puedeRegistrarEnDia(isoDate),
+  originText: (item: object): string => textoOrigenCita(item),
+  hasMenu: (item: object): boolean => citaConMenu(item),
+  orderByDistance: (list: readonly object[]): { list: object[]; left: number } => { const ordered = ordenarPorCercania(list); return { list: ordered, left: ordenarPorCercania.fuera ?? 0 }; },
+  saveOrder: (list: readonly object[]): Promise<boolean> => guardarOrden(list),
+  repaintSmoothly: (): void => { void repintarDiaSuave(); },
+  editTask: (task: DayTask | null | undefined, isoDate?: string | null): void => { editarTarea(task, isoDate); },
+  moveTask: (id: string, direction: number): void => { void moverTarea(id, direction); },
+  prepareRouteStops: (isoDate: string): void => { try { prepararParadas(isoDate); } catch { /* the route buttons are optional */ } },
+  markTraffic: (): void => { tdMarcaTrafico(); },
+  queuedVisits: (): ReturnType<typeof colaLeer> => colaLeer(),
+  showDialog: (title: string, message: string, ok: string): void => { void appVentana({ titulo: title, msg: message, ok, cancel: false }); },
+};
+
+/** Legacy icons: the line icons of Agenda (ICU), the arrow icons (ICO) and the list icons (plIco). */
+export const legacyIcons = {
+  line: (name: string): string => SVA(ICU[name] ?? ''),
+  arrow: (name: 'arriba' | 'abajo'): string => ICO[name] ?? '',
+  list: (name: string): string => plIco(name),
+};

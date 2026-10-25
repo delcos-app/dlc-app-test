@@ -7,6 +7,7 @@ interface LegacyResult<T> { data: T | null; error: unknown }
 interface LegacyQuery<T> extends PromiseLike<LegacyResult<T>> {
   select(columns: string): LegacyQuery<T>;
   eq(column: string, value: unknown): LegacyQuery<T>;
+  update(values: Record<string, unknown>): LegacyQuery<T>;
 }
 interface LegacyDb {
   rpc<T>(name: string, params?: Record<string, unknown>): PromiseLike<LegacyResult<T>>;
@@ -178,3 +179,32 @@ declare function preguntar(message: string, options: { titulo?: string; ok?: str
 declare function toast(message: string, isError?: boolean): void;
 declare function iniciales(name: string): string;
 declare function cargarAgenda(): Promise<void>;
+interface DayAppointmentFull extends WeekAppointment {
+  lat?: number | string | null; lon?: number | string | null; centro_nombre?: string | null;
+  municipio?: string | null; clase?: string | null; urgente?: boolean | null; estado_comercial?: string | null; nota?: string | null;
+  anterior?: { fecha: string; proxima_accion?: string | null } | null;
+}
+interface StopInfo { aviso?: string | null; lejos?: number | null; llegada?: number | null; ventanas?: [number, number][] | null; espera?: number | null }
+interface DayTask { id: string; titulo: string; nota?: string | null; hora?: string | null; hecha?: boolean | null }
+declare let TD_INFO: Record<string, StopInfo>;
+declare const ICO: Readonly<Record<string, string>>;
+declare const ICU: Readonly<Record<string, string>>;
+declare function SVA(path: string): string;
+declare function plIco(...names: string[]): string;
+declare function jornadaActiva(): { inicio: number } | null;
+declare function txtVentanas(windows: readonly [number, number][]): string;
+declare function explicarAviso(info: StopInfo): string;
+declare function puedeRegistrarEnDia(isoDate: string): boolean;
+declare function textoOrigenCita(item: object): string;
+declare function citaConMenu(item: object): boolean;
+declare function empezarJornada(): Promise<void>;
+declare function terminarJornada(): Promise<void>;
+declare const ordenarPorCercania: ((list: readonly object[]) => object[]) & { fuera?: number };
+declare function guardarOrden(list: readonly object[]): Promise<boolean>;
+declare function repintarDiaSuave(id?: string | null, data?: unknown): Promise<void>;
+declare function editarTarea(task: DayTask | null | undefined, isoDate?: string | null): void;
+declare function moverTarea(id: string, direction: number): Promise<void>;
+declare function prepararParadas(isoDate: string): unknown;
+declare function tdMarcaTrafico(): void;
+declare function colaLeer(): { fn: string; payload?: { p?: { fecha?: string; cuenta_id?: string } } }[];
+declare function appVentana(options: { titulo: string; msg: string; ok: string; cancel: boolean }): Promise<unknown>;

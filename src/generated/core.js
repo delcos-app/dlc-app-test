@@ -547,6 +547,85 @@
         notVisited: "{count} sin visitar",
         nothingPending: "Nada pendiente."
       },
+      yourDay: {
+        titleToday: "Tu día",
+        titlePast: "Lo que pasó este día",
+        titleFuture: "Tu agenda de este día",
+        showDetail: "Ver el detalle de las citas",
+        compactTitle: "Compactar las citas: una línea cada una",
+        compactLabel: "Compactar las citas",
+        dayOptions: "Opciones del día",
+        dayOptionsTitle: "Opciones del día: nueva cita, bloquear el día…",
+        appointments: "<b>{count}</b> citas",
+        visited: '<b style="color:var(--ok)">{count}</b> visitadas',
+        absent: '<b style="color:var(--warn)">{count}</b> no estaban',
+        toDo: "<b>{count}</b> por hacer",
+        estimatedEnd: "Fin estimado",
+        overReturn: " · pasa de la hora de vuelta",
+        nextDay: "(día siguiente: revisa los avisos)",
+        addTask: "+ Tarea",
+        orderByDistance: "Ordenar por cercanía",
+        orderTitle: "Ordena las citas abiertas para recorrer menos kilómetros. Las que tienen hora fija se respetan.",
+        startDay: "▶ Empezar jornada",
+        endDay: "Terminar jornada",
+        reschedulePending: "Reprogramar pendientes",
+        workingDay: "● Jornada en curso desde hace {time}. Registra cada {visit} al terminarla.",
+        noFit: "<b>Este día no cabe en una jornada.</b> Con este orden acabarías {end}{outside}.",
+        outsideOne: " y una cita queda fuera de tu horario",
+        outsideMany: " y {count} citas quedan fuera de tu horario",
+        badWindows: "<b>Varias citas no encajan con sus horarios.</b>",
+        beforeEach: "Antes de mirar cada cita: ",
+        or: " o ",
+        moveFarthest: "pasa a otro día las citas de la zona más lejana (⋯ → Aplazar).",
+        endAround: "hacia las {time}",
+        endAfterMidnight: "pasada la medianoche (hacia las {time} del día siguiente)",
+        emptyToday: "No tienes citas hoy. Planifica una ruta en Rutas o cita a alguien de las sugerencias.",
+        emptyOther: "Sin citas este día.",
+        dayAppointments: "Citas del día",
+        othersTitle: "Citas de otras personas · {count}",
+        pendingOf: "Pendientes del {date}",
+        notVisitedThatDay: "Sin visitar ese día",
+        ordered: "Citas ordenadas por cercanía",
+        orderedWithLeft: "Ordenadas · {count} no caben en su horario o en el tuyo y quedan al final",
+        queued: "Registrada en el móvil · pendiente de enviar",
+        whyWarning: "Por qué sale este aviso",
+        understood: "Entendido"
+      },
+      card: {
+        inTime: "en {time}",
+        estimatedTime: "Hora estimada",
+        farLocation: "Ubicación a {km} km de la parada anterior: revisa la dirección",
+        attends: "Atiende {windows}",
+        waits: " · esperas {minutes} min",
+        due: "Toca: {action}",
+        lastVisit: "Última {visit} hace {days} {unit}",
+        day: "día",
+        days: "días",
+        firstVisit: "Primera {visit}",
+        noLocation: "Sin ubicación",
+        next: "Siguiente",
+        seeAppointment: "Ver la cita",
+        classTitle: "Clase {name}",
+        urgent: "Urgente",
+        noCentre: "Sin centro",
+        fixedTime: "Hora fijada",
+        estimatedByOrder: "Hora estimada según el orden",
+        keep: " · mantener",
+        moveUp: "Subir en el orden",
+        moveDown: "Bajar en el orden",
+        moreActions: "Más acciones",
+        newAppointment: "Nueva cita",
+        record: "Registrar {visit}"
+      },
+      tasks: {
+        title: "Tareas y notas · {count}",
+        done: "Hecha",
+        up: "Subir la tarea",
+        down: "Bajar la tarea",
+        couldNotSave: "No se ha podido guardar",
+        show: "Ver las tareas",
+        hide: "Ocultar las tareas"
+      },
       strip: {
         thisWeek: "Esta semana",
         nextWeek: "La semana que viene",
@@ -745,12 +824,14 @@
   // src/app/screens/agenda/index.ts
   var agenda_exports = {};
   __export(agenda_exports, {
+    applyTaskFolding: () => applyTaskFolding,
     bindWeekButton: () => bindWeekButton,
     closeMonth: () => closeMonth,
     data: () => preload_exports,
     dueList: () => dueList,
     groupByAttendance: () => groupByAttendance,
     loadAgenda: () => loadAgenda,
+    markQueuedVisits: () => markQueuedVisits,
     metricsHtml: () => metricsHtml,
     openTray: () => openTray,
     paintOpenWeek: () => paintOpenWeek,
@@ -758,6 +839,7 @@
     paintStrip: () => paintStrip,
     paintTrayButtons: () => paintTrayButtons,
     paintWeekSidebar: () => paintWeekSidebar,
+    paintYourDay: () => paintYourDay,
     refreshAfterChange: () => refreshAfterChange,
     refreshMetrics: () => refreshMetrics,
     refreshOpenMonth: () => refreshOpenMonth,
@@ -976,6 +1058,57 @@
   var reloadAgenda = () => {
     void cargarAgenda();
   };
+  var yourDayLegacy = {
+    setDayAppointments: (list) => {
+      TD_CITAS = list;
+    },
+    estimateDay: (list, isoDate) => estimarDia(list, isoDate),
+    stopInfo: () => TD_INFO,
+    explainWarning: (info) => explicarAviso(info),
+    windowsText: (windows) => txtVentanas(windows),
+    workingDay: () => jornadaActiva(),
+    startWorkingDay: () => {
+      void empezarJornada();
+    },
+    endWorkingDay: () => {
+      void terminarJornada();
+    },
+    canRecordOn: (isoDate) => puedeRegistrarEnDia(isoDate),
+    originText: (item) => textoOrigenCita(item),
+    hasMenu: (item) => citaConMenu(item),
+    orderByDistance: (list) => {
+      const ordered = ordenarPorCercania(list);
+      return { list: ordered, left: ordenarPorCercania.fuera ?? 0 };
+    },
+    saveOrder: (list) => guardarOrden(list),
+    repaintSmoothly: () => {
+      void repintarDiaSuave();
+    },
+    editTask: (task, isoDate) => {
+      editarTarea(task, isoDate);
+    },
+    moveTask: (id, direction) => {
+      void moverTarea(id, direction);
+    },
+    prepareRouteStops: (isoDate) => {
+      try {
+        prepararParadas(isoDate);
+      } catch {
+      }
+    },
+    markTraffic: () => {
+      tdMarcaTrafico();
+    },
+    queuedVisits: () => colaLeer(),
+    showDialog: (title, message, ok) => {
+      void appVentana({ titulo: title, msg: message, ok, cancel: false });
+    }
+  };
+  var legacyIcons = {
+    line: (name) => SVA(ICU[name] ?? ""),
+    arrow: (name) => ICO[name] ?? "",
+    list: (name) => plIco(name)
+  };
 
   // src/app/services/dates.ts
   function toIsoDate(date) {
@@ -998,6 +1131,10 @@
   }
   function formatMinutes(minutes) {
     return `${String(Math.floor(minutes / 60) % 24).padStart(2, "0")}:${String(Math.round(minutes) % 60).padStart(2, "0")}`;
+  }
+  function formatDuration(milliseconds) {
+    const minutes = Math.floor(milliseconds / 6e4);
+    return `${minutes >= 60 ? `${Math.floor(minutes / 60)} h ` : ""}${minutes % 60} min`;
   }
 
   // src/app/services/date-format.ts
@@ -2207,6 +2344,453 @@
     refreshOpenMonth();
   }
 
+  // src/app/screens/agenda/appointment-state.ts
+  var colorOf = (state) => commercialStates.color(state) ?? "var(--muted)";
+  var isOpen = (state) => appointments.isOpen(state);
+  var isCancelled = (state) => appointments.isCancelled(state);
+  var isDone = (state) => commercialStates.color(state) === "var(--ok)";
+  var isAbsent = (state) => commercialStates.color(state) === "var(--warn)" && !isOpen(state);
+  function statePill(state) {
+    const color2 = colorOf(state);
+    return `<span class="pill cest" style="background:color-mix(in srgb, ${color2} 12%, transparent);color:${color2}">${escapeHtml(state)}</span>`;
+  }
+  function pointOf(item) {
+    return item.lat !== null && item.lat !== void 0 && item.lon !== null && item.lon !== void 0 ? [Number(item.lat), Number(item.lon)] : null;
+  }
+
+  // src/app/screens/agenda/your-day/card.ts
+  var DAY_MS2 = 864e5;
+  var NEXT_GRACE_MINUTES = 15;
+  var timeText = (time) => escapeHtml(String(time).slice(0, 5));
+  function minutesOf(item, estimates) {
+    if (item.hora) return Number(String(item.hora).slice(0, 2)) * 60 + Number(String(item.hora).slice(3, 5));
+    return estimates[item.id] ?? null;
+  }
+  function nextOf(open, estimates, now) {
+    return open.find((item) => {
+      const minutes = minutesOf(item, estimates);
+      return minutes === null || minutes + NEXT_GRACE_MINUTES >= now;
+    }) ?? null;
+  }
+  var daysSince = (isoDate) => Math.max(0, Math.round((fromIsoDate(todayIso()).getTime() - fromIsoDate(String(isoDate).slice(0, 10)).getTime()) / DAY_MS2));
+  function shownTime(item, context) {
+    const info = context.info[item.id] ?? {}, estimate = context.estimates[item.id];
+    if (item.hora) return timeText(item.hora);
+    if (!isOpen(item.estado)) return "·";
+    if (context.noFitBanner && isPresent(info.llegada) && info.llegada >= context.limit) return "—";
+    return estimate !== void 0 && !context.isPast ? `~${formatMinutes(estimate)}` : "·";
+  }
+  function whenText(item, time, context) {
+    if (!isOpen(item.estado)) return "";
+    const minutes = minutesOf(item, context.estimates), left = minutes === null ? null : minutes - context.now;
+    if (item === context.next && left !== null && left > 0) return t("agenda.card.inTime", { time: `${left >= 60 ? `${Math.floor(left / 60)} h ` : ""}${left % 60} min` });
+    return time.startsWith("~") ? t("agenda.card.estimatedTime") : "";
+  }
+  function warningOf(item, context) {
+    const info = context.info[item.id] ?? {};
+    if (!isOpen(item.estado) || !info.aviso) return "";
+    if (info.lejos) return t("agenda.card.farLocation", { km: formatNumber(info.lejos) });
+    return context.noFitBanner ? "" : info.aviso;
+  }
+  function windowsLine(item, info, warning) {
+    if (!isOpen(item.estado) || warning || !info.ventanas?.length) return null;
+    const text = t("agenda.card.attends", { windows: yourDayLegacy.windowsText(info.ventanas) }) + (info.espera ? t("agenda.card.waits", { minutes: info.espera }) : "");
+    return ["puerta", "", escapeHtml(text)];
+  }
+  function previousLine(item, visit) {
+    if (item.anterior === void 0) return null;
+    if (!item.anterior) return ["reloj", "", t("agenda.card.firstVisit", { visit })];
+    const days = daysSince(item.anterior.fecha);
+    return ["reloj", "", t("agenda.card.lastVisit", { visit, days, unit: t(days === 1 ? "agenda.card.day" : "agenda.card.days") })];
+  }
+  function warningLine(item, info, warning) {
+    if (!warning) return null;
+    return ["aviso", "tdav tdaviso", `${escapeHtml(warning)} <button type="button" class="tdavi" data-tdavi="${item.id}" aria-label="${t("agenda.yourDay.whyWarning")}">i</button>`, yourDayLegacy.explainWarning(info)];
+  }
+  function detailLines(item, context) {
+    const info = context.info[item.id] ?? {}, warning = warningOf(item, context), action = item.anterior?.proxima_accion;
+    const lines = [
+      action ? ["toca", "toca", t("agenda.card.due", { action: escapeHtml(action) })] : null,
+      previousLine(item, context.visit),
+      windowsLine(item, info, warning),
+      warningLine(item, info, warning),
+      isOpen(item.estado) && !pointOf(item) ? ["aviso", "tdav", t("agenda.card.noLocation")] : null,
+      item.nota ? ["nota", "", escapeHtml(item.nota)] : null
+    ];
+    return lines.filter((line) => line !== null);
+  }
+  function ladderHtml(item, ladder) {
+    const level = ladder.findIndex((step) => step.valor === item.estado_comercial);
+    if (!ladder.length || level < 0) return "";
+    const goal = ladder[level + 1];
+    const bars = range(ladder.length).map((index) => `<i class="${index <= level ? "on" : index === level + 1 ? "obj" : ""}"></i>`).join("");
+    return `<div class="tdu-niv"><div class="tdu-barra" title="${escapeHtml(ladder.map((step) => step.valor).join(" → "))}">${bars}</div>
+        <span class="tdu-nt"><b>${escapeHtml(item.estado_comercial)}</b>${goal ? ` → ${escapeHtml(goal.valor)}` : t("agenda.card.keep")}</span></div>`;
+  }
+  function headHtml(item, index, context) {
+    const time = shownTime(item, context), when = whenText(item, time, context), next = item === context.next;
+    const where = [item.centro_nombre, item.municipio].filter(Boolean).join(" · ") || t("agenda.card.noCentre");
+    return `<div class="tdu-cab">
+        <div class="tdu-av" aria-hidden="true">${escapeHtml(initialsOf(item.nombre ?? ""))}<span class="n">${index + 1}</span></div>
+        <div class="tdu-tit">${next ? `<span class="tdu-sig"><i></i>${t("agenda.card.next")}</span>` : ""}
+          <div class="tdu-nom"><b class="tdu-nb" title="${t("agenda.card.seeAppointment")}">${escapeHtml(item.nombre)}</b>${item.clase ? `<span class="tdu-k ${escapeHtml(item.clase)}" title="${t("agenda.card.classTitle", { name: escapeHtml(item.clase) })}">${escapeHtml(item.clase)}</span>` : ""}${item.urgente ? `<span class="pill p-urg">${t("agenda.card.urgent")}</span>` : ""}</div>
+          <span class="tdu-sub">${escapeHtml(where)}</span></div>
+        <div class="tdu-hora"><span class="h" title="${t(item.hora ? "agenda.card.fixedTime" : "agenda.card.estimatedByOrder")}">${time}</span>${when ? `<span class="tdu-cu">${when}</span>` : ""}</div>
+      </div>`;
+  }
+  function orderButtons(item, context) {
+    const position = context.open.indexOf(item);
+    return `<button class="kmv" type="button" data-td="sube|${item.id}" aria-label="${t("agenda.card.moveUp")}" title="${t("agenda.card.moveUp")}" ${position <= 0 ? "disabled" : ""}>${legacyIcons.arrow("arriba")}</button><button class="kmv" type="button" data-td="baja|${item.id}" aria-label="${t("agenda.card.moveDown")}" title="${t("agenda.card.moveDown")}" ${position >= context.open.length - 1 ? "disabled" : ""}>${legacyIcons.arrow("abajo")}</button>`;
+  }
+  function footHtml(item, context) {
+    const open = isOpen(item.estado), canMove = open && !context.isPast, record = open && yourDayLegacy.canRecordOn(item.fecha);
+    const again = isAbsent(item.estado) && !context.isPast;
+    return `<div class="tdu-pie"><span class="tdu-est">${statePill(item.estado)}<span class="sm">${yourDayLegacy.originText(item)}</span></span>
+        <span class="tdu-ops">${canMove ? orderButtons(item, context) : ""}${yourDayLegacy.hasMenu(item) ? `<button class="btn sec tdmas" type="button" data-td="mas|${item.id}" aria-label="${t("agenda.card.moreActions")}">⋯</button>` : ""}</span>
+        ${again ? `<button class="btn sec tdu-reg" type="button" data-td="nueva|${item.id}">${t("agenda.card.newAppointment")}</button>` : ""}
+        ${record ? `<button class="btn ${item === context.next ? "" : "sec"} tdu-reg" type="button" data-td="visita|${item.id}">${t("agenda.card.record", { visit: context.visit })}</button>` : ""}</div>`;
+  }
+  function statusClass(state) {
+    if (isOpen(state)) return "abierta";
+    if (isDone(state)) return "hecha";
+    return isAbsent(state) ? "ausente" : "cerrada";
+  }
+  function appointmentCard(item, index, context) {
+    const open = isOpen(item.estado), mini = !open && !isDone(item.estado) && !isAbsent(item.estado), lines = detailLines(item, context);
+    const classes = `tdu ${item === context.next ? "sig" : ""} ${open ? "" : "hecha"} ${mini ? "tdmini" : ""} tdst-${statusClass(item.estado)}`;
+    const details = lines.length ? `<ul class="tdu-dat">${lines.map(([iconName, className, html, title]) => `<li class="${className}"${title ? ` title="${escapeHtml(title)}"` : ""}>${legacyIcons.line(iconName)}<span>${html}</span></li>`).join("")}</ul>` : "";
+    return `<article class="${classes}" data-tdu="${item.id}" data-tdf="${item.cuenta_id}" tabindex="0" aria-label="${escapeHtml(item.nombre)}">
+      ${headHtml(item, index, context)}
+      ${ladderHtml(item, context.ladder)}
+      ${details}
+      ${footHtml(item, context)}
+    </article>`;
+  }
+
+  // src/app/screens/agenda/your-day/header.ts
+  var DAY_MINUTES = 24 * 60;
+  function compactButton(compact2) {
+    const title = t(compact2 ? "agenda.yourDay.showDetail" : "agenda.yourDay.compactTitle"), label = t(compact2 ? "agenda.yourDay.showDetail" : "agenda.yourDay.compactLabel");
+    return `<button type="button" class="btn sec chico plic" id="tdcompactar" aria-pressed="${String(compact2)}" title="${title}" aria-label="${label}">${legacyIcons.list(compact2 ? "file-text" : "list")}</button>`;
+  }
+  function setCompactButton(button, compact2) {
+    button.title = t(compact2 ? "agenda.yourDay.showDetail" : "agenda.yourDay.compactTitle");
+    button.setAttribute("aria-label", t(compact2 ? "agenda.yourDay.showDetail" : "agenda.yourDay.compactLabel"));
+    button.innerHTML = legacyIcons.list(compact2 ? "file-text" : "list");
+    button.setAttribute("aria-pressed", String(compact2));
+  }
+  function statsHtml(summary) {
+    const end = summary.open && !summary.isPast ? `<span>${t("agenda.yourDay.estimatedEnd")} <b style="color:${summary.overReturn ? "var(--warn)" : "var(--navy)"}">${formatMinutes(summary.end)}</b>${summary.overReturn ? t("agenda.yourDay.overReturn") : ""}${summary.end >= DAY_MINUTES ? ` <span class="sm">${t("agenda.yourDay.nextDay")}</span>` : ""}</span>` : "";
+    return `<div class="tdstats">
+          <span>${t("agenda.yourDay.appointments", { count: formatNumber(summary.active) })}</span>
+          <span>${t("agenda.yourDay.visited", { count: formatNumber(summary.done) })}</span>
+          ${summary.absent ? `<span>${t("agenda.yourDay.absent", { count: formatNumber(summary.absent) })}</span>` : ""}
+          <span>${t("agenda.yourDay.toDo", { count: summary.open })}</span>
+          ${end}
+        </div>`;
+  }
+  function workingDayButton(summary) {
+    if (!summary.isToday || !summary.isOwner) return "";
+    if (summary.workingDay) return `<button class="btn dang chico" id="tdterminar">${t("agenda.yourDay.endDay")}</button>`;
+    return summary.open ? `<button class="btn chico" id="tdempezar">${t("agenda.yourDay.startDay")}</button>` : "";
+  }
+  function actionsHtml(summary) {
+    const { isPast, own, open, withPlace } = summary;
+    return `<div class="acts">
+        ${own ? `<button type="button" class="btn sec chico" id="tdtarea">${t("agenda.yourDay.addTask")}</button>` : ""}
+        ${!isPast && withPlace > 1 ? `<button class="btn sec chico" id="tdordenar" title="${t("agenda.yourDay.orderTitle")}">${t("agenda.yourDay.orderByDistance")}</button>` : ""}
+        ${workingDayButton(summary)}
+        ${isPast && open ? `<button class="btn chico" id="tdrepro">${t("agenda.yourDay.reschedulePending")}</button>` : ""}
+      </div>`;
+  }
+  function headerHtml3(summary) {
+    const title = t(summary.isToday ? "agenda.yourDay.titleToday" : summary.isPast ? "agenda.yourDay.titlePast" : "agenda.yourDay.titleFuture");
+    const dayMenu = summary.isFutureOrToday ? `<button type="button" class="kmv tddiamas" id="tddiamas" aria-label="${t("agenda.yourDay.dayOptions")}" title="${t("agenda.yourDay.dayOptionsTitle")}">${legacyIcons.line("mas")}</button>` : "";
+    return `
+    <div class="tdhead">
+      <div class="${summary.isFutureOrToday ? "tdtitw" : ""}"><h2 style="padding:0">${title}</h2>${summary.mine > 1 ? compactButton(summary.compact) : ""}${dayMenu}
+        ${statsHtml(summary)}</div>
+      ${actionsHtml(summary)}
+    </div>`;
+  }
+  function workingDayHtml(summary, duration) {
+    return summary.isToday && summary.workingDay ? `<div class="tdjornada">${t("agenda.yourDay.workingDay", { time: duration, visit: summary.visit })}</div>` : "";
+  }
+  function noFitHtml(noFit) {
+    if (!noFit.shown) return "";
+    const end = t(noFit.end >= DAY_MINUTES ? "agenda.yourDay.endAfterMidnight" : "agenda.yourDay.endAround", { time: formatMinutes(noFit.end) });
+    const outside = noFit.outside ? noFit.outside === 1 ? t("agenda.yourDay.outsideOne") : t("agenda.yourDay.outsideMany", { count: noFit.outside }) : "";
+    const head = noFit.overLimit ? t("agenda.yourDay.noFit", { end, outside }) : t("agenda.yourDay.badWindows");
+    const order = noFit.canOrder ? `<button type="button" class="btn sec chico" id="tdnocord">${t("agenda.yourDay.orderByDistance")}</button>${t("agenda.yourDay.or")}` : "";
+    return `<div class="banda-aviso" id="tdnocabe">${head}
+      ${t("agenda.yourDay.beforeEach")}${order}${t("agenda.yourDay.moveFarthest")}</div>`;
+  }
+  function othersHtml(others) {
+    if (!others.length) return "";
+    return `<h3 class="tdotros">${t("agenda.yourDay.othersTitle", { count: others.length })}</h3>
+      <div class="lista">${others.map((item) => `<div class="item" style="cursor:default"><span class="ic">${item.hora ? timeText(item.hora) : "·"}</span>
+        <span class="tx"><b>${escapeHtml(item.nombre)}</b><span class="sm">${escapeHtml(item.usuario ?? "")} · ${statePill(item.estado)}</span></span></div>`).join("")}</div>`;
+  }
+
+  // src/app/screens/agenda/your-day/tasks.ts
+  var FOLDED_KEY = "delcos-tareas-plegadas";
+  function folded() {
+    try {
+      return localStorage.getItem(FOLDED_KEY) === "1";
+    } catch {
+      return false;
+    }
+  }
+  function taskRow(task, list) {
+    const moves = list.length > 1 ? `<span class="tdtmov"><button type="button" class="kmv" data-tamov="-1|${task.id}" aria-label="${t("agenda.tasks.up")}" ${list[0] === task ? "disabled" : ""}>↑</button><button type="button" class="kmv" data-tamov="1|${task.id}" aria-label="${t("agenda.tasks.down")}" ${list[list.length - 1] === task ? "disabled" : ""}>↓</button></span>` : "";
+    return `
+    <div class="tdtarea ${task.hecha ? "hecha" : ""}" data-tarea="${task.id}">
+      <label class="tdtchk"><input type="checkbox" data-tacheck="${task.id}" ${task.hecha ? "checked" : ""} aria-label="${t("agenda.tasks.done")}"></label>
+      <span class="tdth">${task.hora ? timeText(task.hora) : ""}</span>
+      <span class="tdttx"><b>${escapeHtml(task.titulo)}</b>${task.nota ? `<span class="sm">${escapeHtml(task.nota)}</span>` : ""}</span>
+      ${moves}
+    </div>`;
+  }
+  async function markDone(box) {
+    const { error } = await legacyDb().from("tareas").update({ hecha: box.checked, modificado_en: (/* @__PURE__ */ new Date()).toISOString() }).eq("id", box.dataset.tacheck);
+    if (error) {
+      notices.toast(t("agenda.tasks.couldNotSave"), true);
+      box.checked = !box.checked;
+      return;
+    }
+    box.closest(".tdtarea")?.classList.toggle("hecha", box.checked);
+    agendaState.forgetDayTasks();
+  }
+  function bind4(block, list) {
+    block.querySelectorAll("[data-tacheck]").forEach((box) => {
+      box.onchange = (event) => {
+        event.stopPropagation();
+        void markDone(box);
+      };
+    });
+    block.querySelectorAll(".tdtarea").forEach((row) => {
+      row.onclick = (event) => {
+        if (event.target instanceof Element && event.target.closest(".tdtchk, .tdtmov")) return;
+        yourDayLegacy.editTask(list.find((task) => task.id === row.dataset.tarea));
+      };
+    });
+    block.querySelectorAll("[data-tamov]").forEach((button) => {
+      button.onclick = (event) => {
+        event.stopPropagation();
+        const [direction = "0", id = ""] = (button.dataset.tamov ?? "").split("|");
+        yourDayLegacy.moveTask(id, Number(direction));
+      };
+    });
+  }
+  function paintTasks(body, list) {
+    document.getElementById("tdtareas")?.remove();
+    if (!list?.length) return;
+    const place = document.getElementById("tdnocabe") ?? body.querySelector(".tdesc, .vacio");
+    const html = `<div class="tdtareas" id="tdtareas"><div class="tdtcab">${t("agenda.tasks.title", { count: list.length })}</div>${list.map((task) => taskRow(task, list)).join("")}</div>`;
+    if (place) place.insertAdjacentHTML("beforebegin", html);
+    else body.insertAdjacentHTML("beforeend", html);
+    const block = document.getElementById("tdtareas");
+    if (block) bind4(block, list);
+  }
+  function applyTaskFolding() {
+    const block = document.getElementById("tdtareas"), header = block?.querySelector(".tdtcab");
+    if (!block || !header) return;
+    block.classList.toggle("plegadas", folded());
+    header.setAttribute("role", "button");
+    header.tabIndex = 0;
+    header.setAttribute("aria-expanded", String(!folded()));
+    header.title = t(folded() ? "agenda.tasks.show" : "agenda.tasks.hide");
+    if (header.foldBound) return;
+    header.foldBound = true;
+    const toggle = () => {
+      try {
+        localStorage.setItem(FOLDED_KEY, folded() ? "0" : "1");
+      } catch {
+      }
+      applyTaskFolding();
+    };
+    header.onclick = toggle;
+    header.onkeydown = (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        toggle();
+      }
+    };
+  }
+
+  // src/app/screens/agenda/your-day/index.ts
+  var COMPACT_KEY = "delcos-tdcompacto";
+  var DEFAULT_LIMIT = 21 * 60;
+  var WARNINGS_FOR_BANNER = 3;
+  function compact() {
+    try {
+      return localStorage.getItem(COMPACT_KEY) === "1";
+    } catch {
+      return false;
+    }
+  }
+  var applyCompact = () => {
+    document.body.classList.toggle("tdcompacto", compact());
+  };
+  function buildContext(data, estimate) {
+    const { day, today, mine } = data, isPast = day < today, info = yourDayLegacy.stopInfo();
+    const open = mine.filter((item) => isOpen(item.estado)), limit = Number.isFinite(estimate.tope) ? estimate.tope : DEFAULT_LIMIT;
+    const warnings = Object.values(info).filter((stop) => stop.aviso && !stop.lejos).length;
+    const overLimit = !isPast && open.length > 0 && estimate.fin > limit, banner = !isPast && open.length > 0 && (overLimit || warnings >= WARNINGS_FOR_BANNER);
+    const now = (/* @__PURE__ */ new Date()).getHours() * 60 + (/* @__PURE__ */ new Date()).getMinutes(), withPlace = open.filter((item) => pointOf(item)).length;
+    const viewed = legacyAgenda.viewedUserId(), visit = term("visita");
+    const context = {
+      day,
+      isPast,
+      now,
+      visit,
+      estimates: estimate.est,
+      info,
+      open,
+      next: day === today ? nextOf(open, estimate.est, now) : null,
+      ladder: commercialStates.all().filter((step) => step.papel !== "negativo"),
+      noFitBanner: banner,
+      limit
+    };
+    const summary = {
+      isToday: day === today,
+      isPast,
+      isFutureOrToday: day >= today,
+      mine: mine.length,
+      active: mine.filter((item) => !isCancelled(item.estado)).length,
+      done: mine.filter((item) => isDone(item.estado)).length,
+      absent: mine.filter((item) => isAbsent(item.estado)).length,
+      open: open.length,
+      end: estimate.fin,
+      overReturn: open.length > 0 && estimate.fin > estimate.tope,
+      withPlace,
+      own: !viewed || agendaSources.isOwnAgenda(),
+      isOwner: agendaSources.isOwnAgenda(),
+      workingDay: yourDayLegacy.workingDay(),
+      compact: compact(),
+      visit
+    };
+    const outside = Object.values(info).filter((stop) => stop.llegada !== null && stop.llegada !== void 0 && stop.llegada >= limit).length;
+    return { context, summary, noFit: { shown: banner, overLimit, end: estimate.fin, outside, canOrder: !isPast && withPlace > 1 } };
+  }
+  function on(id, action) {
+    const button = document.getElementById(id);
+    if (button) button.onclick = action;
+  }
+  async function orderByDistance(mine) {
+    const { list, left } = yourDayLegacy.orderByDistance(mine);
+    if (!await yourDayLegacy.saveOrder(list)) return;
+    notices.toast(left ? t("agenda.yourDay.orderedWithLeft", { count: left }) : t("agenda.yourDay.ordered"));
+    yourDayLegacy.repaintSmoothly();
+  }
+  function bindHeader2(data, open) {
+    on("tdempezar", () => {
+      yourDayLegacy.startWorkingDay();
+    });
+    on("tdterminar", () => {
+      yourDayLegacy.endWorkingDay();
+    });
+    on("tdrepro", () => {
+      agendaActions.reschedule(open, t("agenda.yourDay.pendingOf", { date: formatShortDate(data.day) }), t("agenda.yourDay.notVisitedThatDay"));
+    });
+    on("tdordenar", () => {
+      void orderByDistance(data.mine);
+    });
+    on("tdnocord", () => {
+      document.getElementById("tdordenar")?.click();
+    });
+    on("tdtarea", () => {
+      yourDayLegacy.editTask(null, legacyAgenda.selectedDate());
+    });
+    on("tddiamas", (event) => {
+      event.stopPropagation();
+      const stripDay = document.querySelector(`#agcinta [data-cf="${data.day}"]`), button = document.getElementById("tddiamas");
+      if (button) legacyAgendaParts.dayMenu(button, data.day, Boolean(stripDay?.classList.contains("bloq")));
+    });
+  }
+  async function paintDay() {
+    const day = legacyAgenda.selectedDate() ?? todayIso(), today = todayIso();
+    const result = await cachedRpc("agenda_rango", { p_desde: day, p_hasta: day, p_usuario: legacyAgenda.userFilter() }, `agenda-${day}`);
+    const body = document.getElementById("agcuerpo");
+    if (legacyAgenda.selectedDate() !== day || legacyAgendaParts.mode() !== "dia" || !body) return;
+    const all = result.data ?? [], owner = agendaSources.ownerId();
+    const data = { day, today, mine: all.filter((item) => item.usuario_id === owner), others: all.filter((item) => item.usuario_id !== owner) };
+    yourDayLegacy.setDayAppointments(data.mine);
+    const { context, summary, noFit } = buildContext(data, yourDayLegacy.estimateDay(data.mine, day));
+    const cards = data.mine.length ? `<div class="tdesc" aria-label="${t("agenda.yourDay.dayAppointments")}">${data.mine.map((item, index) => appointmentCard(item, index, context)).join("")}</div>` : `<div class="vacio">${t(summary.isToday ? "agenda.yourDay.emptyToday" : "agenda.yourDay.emptyOther")}</div>`;
+    body.innerHTML = `${headerHtml3(summary)}
+    ${workingDayHtml(summary, summary.workingDay ? formatDuration(Date.now() - summary.workingDay.inicio) : "")}
+    ${noFitHtml(noFit)}
+    ${cards}
+    ${othersHtml(data.others)}`;
+    bindHeader2(data, context.open);
+    refreshMetrics();
+    yourDayLegacy.prepareRouteStops(day);
+    if (!summary.own) return;
+    const tasks = await agendaSources.dayTasks(day);
+    const fresh = document.getElementById("agcuerpo");
+    if (legacyAgenda.selectedDate() === day && fresh) paintTasks(fresh, tasks);
+  }
+  function markQueuedVisits() {
+    const day = legacyAgenda.selectedDate();
+    const queued = yourDayLegacy.queuedVisits().filter((item) => item.fn === "registrar_actividad" && item.payload?.p?.fecha === day);
+    const byId = new Map(legacyAgenda.dayAppointments().map((item) => [String(item.id), item]));
+    document.querySelectorAll("#agcuerpo .tdu[data-tdu]").forEach((card) => {
+      const item = byId.get(card.dataset.tdu ?? "");
+      if (!item) return;
+      const pending = queued.some((entry) => entry.payload?.p?.cuenta_id === item.cuenta_id);
+      if (card.classList.contains("tdpend") !== pending) card.classList.toggle("tdpend", pending);
+      const mark = card.querySelector(".tdpendm");
+      if (pending && !mark) card.querySelector(".tdu-pie")?.insertAdjacentHTML("afterbegin", `<span class="tdpendm">${t("agenda.yourDay.queued")}</span>`);
+      if (!pending && mark) mark.remove();
+      card.querySelectorAll('[data-td^="visita|"]').forEach((button) => {
+        if (button.classList.contains("hide") !== pending) button.classList.toggle("hide", pending);
+      });
+    });
+  }
+  async function paintYourDay() {
+    if (hasStrip()) {
+      const day = legacyAgenda.selectedDate() ?? todayIso(), current = agendaSuggestions.forDay();
+      let suggestions = null;
+      await withData([...dayLoads(day), current?.fecha === day ? null : loadSuggestions(day).then((found) => {
+        suggestions = found;
+      })], async () => {
+        if (legacyAgenda.selectedDate() !== day || !hasStrip()) return;
+        applySuggestions(day, suggestions);
+        await paintDay();
+        if (legacyAgenda.isDayView()) {
+          paintSameCentre();
+          paintTrayButtons();
+        }
+      });
+      if (hasStrip()) yourDayLegacy.markTraffic();
+      if (hasStrip()) markQueuedVisits();
+    }
+    applyTaskFolding();
+  }
+  function listenToYourDay() {
+    applyCompact();
+    document.addEventListener("click", (event) => {
+      const button = event.target instanceof Element ? event.target.closest("#tdcompactar") : null;
+      if (!button) return;
+      const value = !compact();
+      try {
+        localStorage.setItem(COMPACT_KEY, value ? "1" : "0");
+      } catch {
+      }
+      applyCompact();
+      setCompactButton(button, value);
+    });
+    document.addEventListener("click", (event) => {
+      const button = event.target instanceof Element ? event.target.closest("[data-tdavi]") : null;
+      if (!button) return;
+      event.stopPropagation();
+      const info = yourDayLegacy.stopInfo()[button.dataset.tdavi ?? ""];
+      if (!info) return;
+      yourDayLegacy.showDialog(t("agenda.yourDay.whyWarning"), yourDayLegacy.explainWarning(info), t("agenda.yourDay.understood"));
+    }, true);
+  }
+
   // src/app/screens/home/indicators/chart-tools.ts
   var EMPTY_CHART = { summary: "", visual: "" };
   var WEEKDAY_LETTERS = ["D", "L", "M", "X", "J", "V", "S"];
@@ -2220,7 +2804,7 @@
   function lineIcon(path, width = 2.4) {
     return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${width}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${path}</svg>`;
   }
-  function minutesOf(time) {
+  function minutesOf2(time) {
     const match = /(\d{1,2}):(\d{2})/.exec(String(time ?? ""));
     return match ? Number(match[1]) * 60 + Number(match[2]) : null;
   }
@@ -2237,7 +2821,7 @@
     const list = (panel.agenda_hoy ?? []).filter((item) => !appointments.isCancelled(item.estado));
     const open = list.filter((item) => appointments.isOpen(item.estado));
     const now = /* @__PURE__ */ new Date(), minutesNow = now.getHours() * 60 + now.getMinutes();
-    const next = open.find((item) => (minutesOf(item.hora) ?? 9999) >= minutesNow - 15) ?? open[0];
+    const next = open.find((item) => (minutesOf2(item.hora) ?? 9999) >= minutesNow - 15) ?? open[0];
     const time = (item, empty) => escapeHtml(String(item.hora ?? "").slice(0, 5) || empty);
     const summary = next ? t("home.indicators.nextAppointment", { time: time(next, "—"), name: escapeHtml(next.nombre) }) : t(list.length ? "home.indicators.allClosed" : "home.indicators.noAppointmentsToday");
     const visible = isMobile() ? 3 : 5;
@@ -2321,9 +2905,9 @@
     if (!steps.length) return EMPTY_CHART;
     const max = Math.max(1, ...steps.map((count2) => count2.accounts)), width = 196, barWidth = width / steps.length;
     const columns = steps.map((count2, i) => {
-      const on = count2.state.papel === "interes", height = Math.max(4, count2.accounts / max * 28);
+      const on2 = count2.state.papel === "interes", height = Math.max(4, count2.accounts / max * 28);
       const name = count2.state.valor.length > 11 ? `${count2.state.valor.slice(0, 10)}.` : count2.state.valor;
-      return `<rect x="${i * barWidth + 4}" y="${34 - height}" width="${barWidth - 8}" height="${height}" rx="4" fill="${on ? "var(--navy)" : "#DCE6F1"}"/><text x="${i * barWidth + barWidth / 2}" y="${30 - height}" text-anchor="middle" class="n ${on ? "on" : ""}">${count2.accounts}</text><text x="${i * barWidth + barWidth / 2}" y="48" text-anchor="middle" class="${on ? "on" : ""}">${escapeHtml(name)}</text>`;
+      return `<rect x="${i * barWidth + 4}" y="${34 - height}" width="${barWidth - 8}" height="${height}" rx="4" fill="${on2 ? "var(--navy)" : "#DCE6F1"}"/><text x="${i * barWidth + barWidth / 2}" y="${30 - height}" text-anchor="middle" class="n ${on2 ? "on" : ""}">${count2.accounts}</text><text x="${i * barWidth + barWidth / 2}" y="48" text-anchor="middle" class="${on2 ? "on" : ""}">${escapeHtml(name)}</text>`;
     }).join("");
     const positive = counts.find((count2) => count2.state.papel === "positivo");
     const state = positive ? escapeHtml(positive.state.valor) : "";
@@ -2899,4 +3483,5 @@
     }
   };
   listenToSameCentre();
+  listenToYourDay();
 })();

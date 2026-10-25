@@ -218,7 +218,7 @@ async function escribirRpcBase4(fn, payload, ...a) {
 
 async function escribirRpc(fn, payload, ...a) {
   const r = await escribirRpcBase4.call(this, fn, payload, ...a);
-  if (fn === 'registrar_actividad' && r && r.data && r.data.encolada) setTimeout(() => { if (TAB === 'agenda') tdMarcarPendientes(); }, 0);
+  if (fn === 'registrar_actividad' && r && r.data && r.data.encolada) setTimeout(() => { if (TAB === 'agenda') window.delcos.screens.agenda.markQueuedVisits(); }, 0);
   return r;
 }
 

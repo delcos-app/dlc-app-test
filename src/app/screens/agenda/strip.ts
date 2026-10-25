@@ -15,7 +15,7 @@ import { stripLoads, weekLoads, withData } from './preload';
 
 const STRIP_DAYS = 14, WEEK_DAYS = 7, MAX_DOTS = 6, DAY_MS = 864e5;
 
-const hasStrip = (): boolean => currentScreen() === 'agenda' && legacyAgendaParts.mode() === 'dia' && Boolean(document.getElementById('v-agenda'));
+export const hasStrip = (): boolean => currentScreen() === 'agenda' && legacyAgendaParts.mode() === 'dia' && Boolean(document.getElementById('v-agenda'));
 
 function weekTitle(monday: string, today: string): string {
   const weeks = Math.round((fromIsoDate(monday).getTime() - fromIsoDate(mondayOf(today)).getTime()) / DAY_MS / WEEK_DAYS);
