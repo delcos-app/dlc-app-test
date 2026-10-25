@@ -225,11 +225,13 @@ const itemHTML = (id, ico, clase, titulo, sub) =>
   `<button class="item" data-id="${id}"><span class="ic ${clase || ''}">${ico}</span>
    <span class="tx"><b>${esc(titulo)}</b><span class="sm">${sub}</span></span></button>`;
 
-const COLS_DEF = ['nombre', 'especialidad', 'centro_nombre', 'municipio', 'dias', 'estado_comercial'];
 
 const colKey = () => 'dlc-cols-' + (PERFIL ? PERFIL.id : '');
 
-const colsGuardar = c => localStorage.setItem(colKey(), JSON.stringify(c));
+// Las columnas de Cuentas están en src/app/screens/accounts/list (v2.406.0); estos nombres los usan los campos personalizados y la lista
+const colsGuardar = c => window.delcos.screens.accounts.saveColumns(c);
+function colsConfig() { return window.delcos.screens.accounts.columnSettings(); }
+function abrirColumnas() { window.delcos.screens.accounts.openColumnsPanel(() => buscar(true)); }
 
 const TAMKEY = () => 'dlc-tam-' + (PERFIL ? PERFIL.id : '');
 

@@ -919,7 +919,6 @@ async function cargarCampos() {
   const ambs = Object.keys(CAMPOS);
   const r = await Promise.all(ambs.map(a => db.rpc('campos_de', { p_ambito: a })));
   ambs.forEach((a, i) => { if (!r[i].error) CAMPOS[a] = r[i].data || []; });
-  camposEnDirectorio();
 }
 
 function camposHTML(amb, valores) {
@@ -2252,13 +2251,6 @@ function abrirClasificadorBase(id) {
   $('dlg').showModal();
 }
 
-function colsConfigBase() {
-  let g = null;
-  try { g = JSON.parse(localStorage.getItem(colKey()) || 'null'); } catch (e) {}
-  if (!g || !g.length) g = COLS.map(c => ({ k: c.k, on: COLS_DEF.includes(c.k) || (c.k === 'comerciales' && VE_TODO()), w: c.w }));
-  COLS.forEach(c => { if (!g.some(x => x.k === c.k)) g.push({ k: c.k, on: c.k === 'comerciales' && VE_TODO(), w: c.w }); });
-  return g.filter(x => x.k !== 'comerciales' || VE_TODO());
-}
 
 function abrirClasificador(id) {
   abrirClasificadorBase(id);
@@ -2326,12 +2318,6 @@ async function pintarPrefsPerfilBase() {
   try { await p; } catch (e) {}
 }
 
-function colsConfig() {
-  let guardada = null;
-  try { guardada = JSON.parse(localStorage.getItem(colKey()) || 'null'); } catch (e) { /* sin almacenamiento */ }
-  return colsConfigBase().map(c => c.k.startsWith('cp:') && !(guardada || []).some(x => x.k === c.k)
-    ? { ...c, on: !!((CAMPOS.medico || []).find(x => 'cp:' + x.clave === c.k) || {}).en_tabla } : c);
-}
 
 /* v2.109.0 · Permisos propios en los roles: importar, clasificadores y dar acceso.
    Configuración → Usuarios y roles → Roles tiene debajo de las plantillas la tabla «Permisos» (las capacidades del grupo
@@ -2609,9 +2595,6 @@ function camposFiltros() { return ''; }
 
 /* ---------- Cuentas: la sección va en su panel de filtros, con sus columnas ---------- */
 // Todos los campos pueden ser columna; de entrada se ven los que tienen «Columna en la tabla»
-function camposEnDirectorio() {
-  (CAMPOS.medico || []).forEach(c => { if (!COLS.some(x => x.k === 'cp:' + c.clave)) COLS.push({ k: 'cp:' + c.clave, t: c.nombre, w: 150 }); });
-}
 
 // v2.242.0: aquí iba la primera versión de notifPintar (se redefine entera más abajo)
 function panelNotificaciones(l) {

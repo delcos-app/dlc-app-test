@@ -6,3 +6,5 @@ export { openAccountCard } from './card';
 export { refreshPortal } from './card/sections-portal';
 export { searchAccounts } from './list/search';
 export { paintHeader as paintAccountsHeader } from './list/table';
+export { columnSettings, saveColumns } from './list/columns';
+export { openColumnsPanel } from './list/column-panel';

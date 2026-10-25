@@ -482,6 +482,30 @@
       chipMine: "De mi cartera",
       chipNeverVisited: "Sin visitar nunca"
     },
+    columns: {
+      centre: "Centro",
+      town: "Municipio",
+      address: "Dirección",
+      phone: "Teléfono",
+      days: "Días",
+      state: "Estado",
+      salesReps: "Comerciales",
+      access: "Acceso a la plataforma",
+      noReporting: "Sin reporting",
+      noReportingTitle: "Solo {visit} presencial: sin informes ni feedback",
+      unassigned: "Sin asignar",
+      withAccess: "Con acceso",
+      accessDisabled: "Acceso desactivado",
+      noAccess: "Sin acceso",
+      panelTitle: "Columnas",
+      back: "‹ Volver",
+      panelNote: "Marca las que quieres ver y ordénalas con las flechas. Se aplica al momento. El ancho se cambia arrastrando el borde de cada cabecera.",
+      alwaysVisible: "siempre visible",
+      up: "Subir",
+      down: "Bajar",
+      restore: "Restaurar las columnas",
+      keepOne: "Deja al menos una columna"
+    },
     base: {
       noConnection: "Sin conexión y sin copia guardada de esta ficha.",
       cachedNotice: "Sin conexión · ficha guardada en este dispositivo",
@@ -1133,9 +1157,12 @@
   // src/app/screens/accounts/index.ts
   var accounts_exports = {};
   __export(accounts_exports, {
+    columnSettings: () => columnSettings,
     openAccountCard: () => openAccountCard,
+    openColumnsPanel: () => openColumnsPanel,
     paintAccountsHeader: () => paintHeader,
     refreshPortal: () => refreshPortal,
+    saveColumns: () => saveColumns,
     searchAccounts: () => searchAccounts
   });
 
@@ -1151,8 +1178,8 @@
     ir("ventas");
   };
   function term(word, options = {}) {
-    const { number = "s", article = "", capital = "l", adjective } = options;
-    return adjective === void 0 ? TT(word, number, article, "l", capital) : TT(word, number, article, "l", capital, adjective);
+    const { number = "s", article = "", capital = "l", adjective, articleCapital = "l" } = options;
+    return adjective === void 0 ? TT(word, number, article, articleCapital, capital) : TT(word, number, article, articleCapital, capital, adjective);
   }
   var permissions = {
     canSeeArea: (area) => verArea(area),
@@ -1591,17 +1618,23 @@
     paintMap: () => {
       void pintarMapa();
     },
-    columns: () => colsConfig().filter((column) => column.on),
-    columnTitle: (key) => COLS.find((column) => column.k === key)?.t ?? key,
     /** The database order key of a column (only the sortable ones). */
     sortKey: (column) => ORD_DIR[column],
-    cell: (row2, key) => celda(row2, key),
     fieldChips: (state) => clasChips("medico", state),
     contactsLabel: () => etiquetaContactos(),
     pageSize: () => tamPagina(),
     paginate: (options) => {
       paginador(options.element, options.total, options.page, options.onPage, options.onSize);
     }
+  };
+  var accountColumnsLegacy = {
+    customFields: () => CAMPOS.medico ?? [],
+    fieldText: (field, value2) => campoTexto(field, value2),
+    firstName: (name) => nombrePila(name),
+    /** Platform access by account (loaded once; null until it arrives). */
+    accessOf: () => MED_ACCESO,
+    loadAccess: () => cargarAccesoMedicos(),
+    storageKey: () => `dlc-cols-${PERFIL?.id ?? ""}`
   };
 
   // src/app/services/dates.ts
@@ -2492,12 +2525,110 @@
     }
   }
 
+  // src/app/screens/accounts/list/cells.ts
+  var WORKDAYS2 = ["L", "M", "X", "J", "V"];
+  var CUSTOM_PREFIX = "cp:";
+  function nameCell(row2) {
+    const urgent = row2.urgente ? `<span class="pill p-urg">${t("accounts.list.urgent")}</span> ` : "";
+    const noReporting = row2.sin_reporting ? `<span class="pill p-sr" title="${t("accounts.columns.noReportingTitle", { visit: term("visita") })}">${t("accounts.columns.noReporting")}</span> ` : "";
+    return `<span class="nm">${urgent}${noReporting}${escapeHtml(row2.nombre)}</span>`;
+  }
+  var daysCell = (row2) => `<span class="dias">${WORKDAYS2.map((day) => `<span class="${row2.dias?.[day] ? "on" : ""}" title="${escapeHtml(row2.dias?.[day] ?? "")}">${day}</span>`).join("")}</span>`;
+  function salesRepsCell(row2) {
+    const reps = row2.comerciales ?? [];
+    return `<span class="comchips">${reps.length ? reps.map((rep) => `<span>${escapeHtml(accountColumnsLegacy.firstName(rep.nombre))}</span>`).join("") : `<span class="sin">${t("accounts.columns.unassigned")}</span>`}</span>`;
+  }
+  function accessCell(row2, onAccessLoaded) {
+    const access = accountColumnsLegacy.accessOf();
+    if (!access) {
+      void accountColumnsLegacy.loadAccess().then(() => {
+        if (currentScreen() === "directorio") onAccessLoaded();
+      });
+      return "";
+    }
+    const own = access[row2.id];
+    if (!own) return `<span class="sm">${t("accounts.columns.noAccess")}</span>`;
+    return `<span class="pill ${own.activo ? "p-est" : "p-anu"}">${t(own.activo ? "accounts.columns.withAccess" : "accounts.columns.accessDisabled")}</span>`;
+  }
+  function customCell(row2, key) {
+    const field = accountColumnsLegacy.customFields().find((item) => item.clave === key);
+    return `<span class="sm">${escapeHtml(accountColumnsLegacy.fieldText(field, row2.clasificadores?.[key]))}</span>`;
+  }
+  var CELLS = /* @__PURE__ */ new Map([
+    ["nombre", nameCell],
+    ["dias", daysCell],
+    ["estado_comercial", (row2) => `<span class="pill p-est">${escapeHtml(row2.estado_comercial)}</span>`],
+    ["ultima_visita", (row2) => `<span class="sm">${row2.ultima_visita ? formatShortDate(row2.ultima_visita) : "—"}</span>`],
+    ["telefono", (row2) => `<span class="sm">${escapeHtml(orFallback(row2.telefono, row2.consulta_telefono ?? ""))}</span>`],
+    ["comerciales", salesRepsCell]
+  ]);
+  function cell(row2, key, onAccessLoaded) {
+    if (key === "acceso") return accessCell(row2, onAccessLoaded);
+    if (key.startsWith(CUSTOM_PREFIX)) return customCell(row2, key.slice(CUSTOM_PREFIX.length));
+    const special = CELLS.get(key);
+    if (special) return special(row2);
+    const value2 = row2[key];
+    return `<span class="sm">${escapeHtml(value2 ? String(value2) : "")}</span>`;
+  }
+
+  // src/app/screens/accounts/list/columns.ts
+  var SALES_REPS = "comerciales";
+  var CUSTOM_PREFIX2 = "cp:";
+  var CUSTOM_WIDTH = 150;
+  var DEFAULT_ON = ["nombre", "especialidad", "centro_nombre", "municipio", "dias", "estado_comercial"];
+  function columnDefinitions() {
+    return [
+      { k: "nombre", t: term("medico", { capital: "C" }), w: 250, fixed: true },
+      { k: "especialidad", t: term("especialidad", { capital: "C" }), w: 170 },
+      { k: "centro_nombre", t: t("accounts.columns.centre"), w: 200 },
+      { k: "municipio", t: t("accounts.columns.town"), w: 140 },
+      { k: "direccion", t: t("accounts.columns.address"), w: 200 },
+      { k: "telefono", t: t("accounts.columns.phone"), w: 130 },
+      { k: "dias", t: t("accounts.columns.days"), w: 150 },
+      { k: "ultima_visita", t: term("visita", { article: "ultimo", articleCapital: "C" }), w: 130 },
+      { k: "estado_comercial", t: t("accounts.columns.state"), w: 150 },
+      { k: SALES_REPS, t: t("accounts.columns.salesReps"), w: 190 },
+      { k: "acceso", t: t("accounts.columns.access"), w: 170 },
+      ...accountColumnsLegacy.customFields().map((field) => ({ k: CUSTOM_PREFIX2 + field.clave, t: field.nombre, w: CUSTOM_WIDTH }))
+    ];
+  }
+  var columnTitle = (key) => columnDefinitions().find((column) => column.k === key)?.t ?? key;
+  function saved() {
+    try {
+      return JSON.parse(localStorage.getItem(accountColumnsLegacy.storageKey()) ?? "null");
+    } catch {
+      return null;
+    }
+  }
+  function saveColumns(settings) {
+    try {
+      localStorage.setItem(accountColumnsLegacy.storageKey(), JSON.stringify(settings));
+    } catch {
+    }
+  }
+  function resetColumns() {
+    try {
+      localStorage.removeItem(accountColumnsLegacy.storageKey());
+    } catch {
+    }
+  }
+  function columnSettings() {
+    const all = columnDefinitions(), everything = permissions.seesEverything(), chosen = saved();
+    const settings = chosen?.length ? [...chosen] : all.map((column) => ({ k: column.k, on: DEFAULT_ON.includes(column.k) || column.k === SALES_REPS && everything, w: column.w }));
+    all.forEach((column) => {
+      if (!settings.some((setting) => setting.k === column.k)) settings.push({ k: column.k, on: column.k === SALES_REPS && everything, w: column.w });
+    });
+    const fields = accountColumnsLegacy.customFields();
+    return settings.filter((setting) => setting.k !== SALES_REPS || everything).map((setting) => setting.k.startsWith(CUSTOM_PREFIX2) && !(chosen ?? []).some((item) => item.k === setting.k) ? { ...setting, on: Boolean(fields.find((field) => CUSTOM_PREFIX2 + field.clave === setting.k)?.en_tabla) } : setting);
+  }
+  var visibleColumns = () => columnSettings().filter((setting) => setting.on);
+
   // src/app/screens/accounts/list/table.ts
   function paintHeader() {
     const head = document.getElementById("thead");
     if (!head) return;
-    const columns = accountListLegacy.columns(), width = columns.reduce((total, column) => total + column.w, 0);
-    head.innerHTML = columns.map((column) => `<span class="tcell th" style="width:${column.w}px;min-width:${column.w}px">${escapeHtml(accountListLegacy.columnTitle(column.k))}<i class="res" data-res="${column.k}"></i></span>`).join("");
+    const columns = visibleColumns(), width = columns.reduce((total, column) => total + column.w, 0);
+    head.innerHTML = columns.map((column) => `<span class="tcell th" style="width:${column.w}px;min-width:${column.w}px">${escapeHtml(columnTitle(column.k))}<i class="res" data-res="${column.k}"></i></span>`).join("");
     head.style.minWidth = `${width}px`;
     const list = document.getElementById("lista");
     if (list) list.style.minWidth = `${width}px`;
@@ -2505,21 +2636,21 @@
   }
   function markSort(head, columns) {
     const [key = "", direction] = String(accountListLegacy.filters().orden || "").split(":");
-    [...head.querySelectorAll(".th")].forEach((cell, index) => {
+    [...head.querySelectorAll(".th")].forEach((header, index) => {
       const column = columns[index], sortKey = column ? accountListLegacy.sortKey(column.k) : void 0;
       if (!column || !sortKey) return;
-      cell.dataset.ordk = column.k;
-      cell.classList.add("htord");
-      cell.title = t("accounts.list.sortBy");
+      header.dataset.ordk = column.k;
+      header.classList.add("htord");
+      header.title = t("accounts.list.sortBy");
       const current = sortKey === key && !((key === "nombre" || key === "reciente") && !direction);
-      cell.classList.toggle("ord-asc", current && direction !== "desc");
-      cell.classList.toggle("ord-desc", current && direction === "desc");
+      header.classList.toggle("ord-asc", current && direction !== "desc");
+      header.classList.toggle("ord-desc", current && direction === "desc");
     });
   }
-  function rowHtml(row2) {
-    const cells = accountListLegacy.columns().map((column) => `<span class="tcell" style="width:${column.w}px;min-width:${column.w}px">${accountListLegacy.cell(row2, column.k)}</span>`).join("");
+  function rowHtml(row2, onAccessLoaded) {
+    const cells = visibleColumns().map((column) => `<span class="tcell" style="width:${column.w}px;min-width:${column.w}px">${cell(row2, column.k, onAccessLoaded)}</span>`).join("");
     const place = [row2.centro_nombre, row2.municipio].filter(Boolean).join(" · ");
-    const card = `<span class="plcard"><b>${row2.urgente ? `<i class="plurg" aria-label="${t("accounts.list.urgent")}"></i>` : ""}${escapeHtml(row2.nombre ?? "")}</b><span class="plc2">${escapeHtml(place)}</span><span class="plc3">${accountListLegacy.cell(row2, "estado_comercial")}</span></span>`;
+    const card = `<span class="plcard"><b>${row2.urgente ? `<i class="plurg" aria-label="${t("accounts.list.urgent")}"></i>` : ""}${escapeHtml(row2.nombre ?? "")}</b><span class="plc2">${escapeHtml(place)}</span><span class="plc3">${cell(row2, "estado_comercial", onAccessLoaded)}</span></span>`;
     return `<button class="trow" data-id="${row2.id}">${cells}${card}</button>`;
   }
   function paintChips() {
@@ -2590,7 +2721,9 @@
       if (head) head.innerHTML = "";
     } else {
       paintHeader();
-      list.innerHTML = rows.map(rowHtml).join("");
+      list.innerHTML = rows.map((row2) => rowHtml(row2, () => {
+        void searchAccounts(true);
+      })).join("");
     }
     accountListLegacy.paginate({
       element: document.getElementById("dirpag"),
@@ -2633,6 +2766,122 @@
       return;
     }
     showResult(answer.data, list, count2, Math.round(performance.now() - started));
+  }
+
+  // src/app/screens/accounts/list/column-panel.ts
+  var MIN_WIDTH = 80;
+  var MAX_WIDTH = 600;
+  function panelHtml(settings) {
+    const definitions = columnDefinitions();
+    const rows = settings.map((setting, index) => {
+      const column = definitions.find((item) => item.k === setting.k), fixed = Boolean(column?.fixed);
+      return `<label class="item" style="cursor:pointer;margin:0">
+          <input type="checkbox" data-con="${index}" ${setting.on ? "checked" : ""} ${fixed ? "disabled" : ""}>
+          <span class="tx"><b>${escapeHtml(column?.t ?? setting.k)}</b>${fixed ? `<span class="sm">${t("accounts.columns.alwaysVisible")}</span>` : ""}</span>
+          <span class="kord" style="flex-direction:row">
+            <button type="button" class="kmv" data-cmv="${index}|-1" aria-label="${t("accounts.columns.up")}" ${index === 0 ? "disabled" : ""}>${legacyIcons.arrow("arriba")}</button>
+            <button type="button" class="kmv" data-cmv="${index}|1" aria-label="${t("accounts.columns.down")}" ${index === settings.length - 1 ? "disabled" : ""}>${legacyIcons.arrow("abajo")}</button></span></label>`;
+    }).join("");
+    return `<div class="tbox">
+      <div class="fh"><h2>${t("accounts.columns.panelTitle")}</h2><button class="x" id="tclose" aria-label="${t("common.close")}">✕</button></div>
+      <button class="t2volver" id="tcvolver" style="margin:0 0 10px">${t("accounts.columns.back")}</button>
+      <p class="sm">${t("accounts.columns.panelNote")}</p>
+      <div class="lista tcols">${rows}</div>
+      <div class="acts"><button class="btn sec" id="tcres">${t("accounts.columns.restore")}</button></div></div>`;
+  }
+  function bindPanel(filters, panel, settings, apply) {
+    const close2 = panel.querySelector("#tclose");
+    if (close2) close2.onclick = () => {
+      panel.classList.remove("abierto");
+      filters.classList.remove("abierto");
+    };
+    const back = panel.querySelector("#tcvolver");
+    if (back) back.onclick = () => {
+      panel.classList.remove("abierto");
+    };
+    panel.querySelectorAll("[data-con]").forEach((box) => {
+      box.onchange = () => {
+        const setting = settings[Number(box.dataset.con)];
+        if (!setting) return;
+        setting.on = box.checked;
+        if (!settings.some((item) => item.on)) {
+          box.checked = true;
+          setting.on = true;
+          notices.toast(t("accounts.columns.keepOne"), true);
+          return;
+        }
+        apply(settings);
+      };
+    });
+    panel.querySelectorAll("[data-cmv]").forEach((button) => {
+      button.onclick = (event) => {
+        event.preventDefault();
+        const [from = 0, direction = 0] = (button.dataset.cmv ?? "").split("|").map(Number), to = from + direction;
+        const moved = settings[from], other = settings[to];
+        if (!moved || !other) return;
+        settings[from] = other;
+        settings[to] = moved;
+        apply(settings);
+        paint(filters, panel, settings, apply);
+      };
+    });
+    const restore = panel.querySelector("#tcres");
+    if (restore) restore.onclick = () => {
+      resetColumns();
+      const fresh = columnSettings();
+      apply(fresh);
+      paint(filters, panel, fresh, apply);
+    };
+  }
+  function paint(filters, panel, settings, apply) {
+    panel.innerHTML = panelHtml(settings);
+    bindPanel(filters, panel, settings, apply);
+  }
+  function openColumnsPanel(onChange) {
+    const filters = document.getElementById("tools"), panel = document.getElementById("tools2");
+    if (!filters || !panel) return;
+    const apply = (list) => {
+      saveColumns(list);
+      onChange();
+    };
+    paint(filters, panel, columnSettings(), apply);
+    filters.classList.add("abierto");
+    panel.classList.add("abierto");
+  }
+  function listenToColumnResize(paintHeader2) {
+    let drag = null;
+    document.addEventListener("pointerdown", (event) => {
+      const handle = event.target instanceof Element ? event.target.closest("i.res[data-res]") : null;
+      if (!handle) return;
+      const settings = columnSettings(), column = settings.find((item) => item.k === handle.dataset.res);
+      if (!column) return;
+      event.preventDefault();
+      drag = { key: column.k, startX: event.clientX, startWidth: column.w, settings };
+      document.body.style.cursor = "col-resize";
+    });
+    document.addEventListener("pointermove", (event) => {
+      if (!drag) return;
+      const width = Math.max(MIN_WIDTH, Math.min(MAX_WIDTH, Math.round(drag.startWidth + (event.clientX - drag.startX)))), key = drag.key;
+      const settings = drag.settings.map((item) => item.k === key ? { ...item, w: width } : item);
+      saveColumns(settings);
+      paintHeader2();
+      const visible = settings.filter((item) => item.on);
+      document.querySelectorAll("#lista .trow").forEach((row2) => {
+        [...row2.children].forEach((cellElement, index) => {
+          const column = visible[index];
+          if (column && cellElement instanceof HTMLElement) {
+            cellElement.style.width = `${column.w}px`;
+            cellElement.style.minWidth = `${column.w}px`;
+          }
+        });
+      });
+    });
+    document.addEventListener("pointerup", () => {
+      if (drag) {
+        drag = null;
+        document.body.style.cursor = "";
+      }
+    });
   }
 
   // src/app/screens/agenda/index.ts
@@ -2780,7 +3029,7 @@
     const picker = document.createElement("div");
     picker.className = "agmpop";
     const names = shortMonthNames();
-    const paint2 = () => {
+    const paint3 = () => {
       picker.innerHTML = `<div class="agmpoph"><button type="button" class="kmv" data-an="-1" aria-label="${t("agenda.month.previousYear")}">‹</button><b>${year}</b>
       <button type="button" class="kmv" data-an="1" aria-label="${t("agenda.month.nextYear")}">›</button></div>
       <div class="agmpopg">${names.map((name, index) => {
@@ -2790,7 +3039,7 @@
       picker.querySelectorAll("[data-an]").forEach((button) => {
         onClick(button, () => {
           year += Number(button.dataset.an);
-          paint2();
+          paint3();
         });
       });
       picker.querySelectorAll("[data-mk]").forEach((button) => {
@@ -2800,7 +3049,7 @@
         });
       });
     };
-    paint2();
+    paint3();
     document.body.appendChild(picker);
     const rect = anchor.getBoundingClientRect(), width = Math.min(PICKER_WIDTH, innerWidth - 20);
     picker.style.width = `${width}px`;
@@ -3062,11 +3311,11 @@
   function applySuggestions(isoDate, suggestions) {
     if (suggestions?.date === isoDate) agendaSources.setSuggestions(isoDate, suggestions);
   }
-  async function withData(loads, paint2) {
+  async function withData(loads, paint3) {
     painting++;
     try {
       await Promise.all(loads.filter(Boolean).map((load2) => Promise.resolve(load2).catch(() => null)));
-      return await paint2();
+      return await paint3();
     } finally {
       setTimeout(() => {
         painting--;
@@ -3264,7 +3513,7 @@
     bind(box, data);
   }
   function paintOpenWeek() {
-    const paint2 = async () => {
+    const paint3 = async () => {
       const strip = document.getElementById("agcinta");
       if (!legacyAgenda.isDayView() || !strip || !stripState.weekOpen() || document.getElementById("agsemexp")) {
         await render();
@@ -3278,7 +3527,7 @@
         if (box) box.style.display = "";
       }
     };
-    return legacyAgenda.isDayView() ? withData(stripState.weekOpen() ? weekLoads(legacyAgenda.selectedDate()) : [], paint2) : paint2();
+    return legacyAgenda.isDayView() ? withData(stripState.weekOpen() ? weekLoads(legacyAgenda.selectedDate()) : [], paint3) : paint3();
   }
 
   // src/app/screens/agenda/strip.ts
@@ -3493,7 +3742,7 @@
     document.getElementById("agcuerpo")?.insertAdjacentHTML("afterend", '<div class="card" id="agsemlat"></div>');
     return document.getElementById("agsemlat");
   }
-  async function paint() {
+  async function paint2() {
     if (currentScreen() !== "agenda" || legacyAgendaParts.mode() !== "dia") return;
     if (!document.getElementById("v-agenda")?.classList.contains("agcinta")) return;
     const box = sidebarBox();
@@ -3512,7 +3761,7 @@
     bind3(box, blocked);
   }
   function paintWeekSidebar() {
-    return legacyAgenda.isDayView() ? withData(weekLoads(legacyAgenda.selectedDate()), paint) : paint();
+    return legacyAgenda.isDayView() ? withData(weekLoads(legacyAgenda.selectedDate()), paint2) : paint2();
   }
 
   // src/app/screens/agenda/trays.ts
@@ -5725,6 +5974,7 @@
   listenToSameCentre();
   listenToYourDay();
   listenToCards();
+  listenToColumnResize(paintHeader);
 })();
 // @ts-check
 // nucleo/dispositivo.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
@@ -9838,11 +10088,13 @@ const itemHTML = (id, ico, clase, titulo, sub) =>
   `<button class="item" data-id="${id}"><span class="ic ${clase || ''}">${ico}</span>
    <span class="tx"><b>${esc(titulo)}</b><span class="sm">${sub}</span></span></button>`;
 
-const COLS_DEF = ['nombre', 'especialidad', 'centro_nombre', 'municipio', 'dias', 'estado_comercial'];
 
 const colKey = () => 'dlc-cols-' + (PERFIL ? PERFIL.id : '');
 
-const colsGuardar = c => localStorage.setItem(colKey(), JSON.stringify(c));
+// Las columnas de Cuentas están en src/app/screens/accounts/list (v2.406.0); estos nombres los usan los campos personalizados y la lista
+const colsGuardar = c => window.delcos.screens.accounts.saveColumns(c);
+function colsConfig() { return window.delcos.screens.accounts.columnSettings(); }
+function abrirColumnas() { window.delcos.screens.accounts.openColumnsPanel(() => buscar(true)); }
 
 const TAMKEY = () => 'dlc-tam-' + (PERFIL ? PERFIL.id : '');
 
@@ -15010,7 +15262,6 @@ async function cargarCampos() {
   const ambs = Object.keys(CAMPOS);
   const r = await Promise.all(ambs.map(a => db.rpc('campos_de', { p_ambito: a })));
   ambs.forEach((a, i) => { if (!r[i].error) CAMPOS[a] = r[i].data || []; });
-  camposEnDirectorio();
 }
 
 function camposHTML(amb, valores) {
@@ -16343,13 +16594,6 @@ function abrirClasificadorBase(id) {
   $('dlg').showModal();
 }
 
-function colsConfigBase() {
-  let g = null;
-  try { g = JSON.parse(localStorage.getItem(colKey()) || 'null'); } catch (e) {}
-  if (!g || !g.length) g = COLS.map(c => ({ k: c.k, on: COLS_DEF.includes(c.k) || (c.k === 'comerciales' && VE_TODO()), w: c.w }));
-  COLS.forEach(c => { if (!g.some(x => x.k === c.k)) g.push({ k: c.k, on: c.k === 'comerciales' && VE_TODO(), w: c.w }); });
-  return g.filter(x => x.k !== 'comerciales' || VE_TODO());
-}
 
 function abrirClasificador(id) {
   abrirClasificadorBase(id);
@@ -16417,12 +16661,6 @@ async function pintarPrefsPerfilBase() {
   try { await p; } catch (e) {}
 }
 
-function colsConfig() {
-  let guardada = null;
-  try { guardada = JSON.parse(localStorage.getItem(colKey()) || 'null'); } catch (e) { /* sin almacenamiento */ }
-  return colsConfigBase().map(c => c.k.startsWith('cp:') && !(guardada || []).some(x => x.k === c.k)
-    ? { ...c, on: !!((CAMPOS.medico || []).find(x => 'cp:' + x.clave === c.k) || {}).en_tabla } : c);
-}
 
 /* v2.109.0 · Permisos propios en los roles: importar, clasificadores y dar acceso.
    Configuración → Usuarios y roles → Roles tiene debajo de las plantillas la tabla «Permisos» (las capacidades del grupo
@@ -16700,9 +16938,6 @@ function camposFiltros() { return ''; }
 
 /* ---------- Cuentas: la sección va en su panel de filtros, con sus columnas ---------- */
 // Todos los campos pueden ser columna; de entrada se ven los que tienen «Columna en la tabla»
-function camposEnDirectorio() {
-  (CAMPOS.medico || []).forEach(c => { if (!COLS.some(x => x.k === 'cp:' + c.clave)) COLS.push({ k: 'cp:' + c.clave, t: c.nombre, w: 150 }); });
-}
 
 // v2.242.0: aquí iba la primera versión de notifPintar (se redefine entera más abajo)
 function panelNotificaciones(l) {
@@ -27146,46 +27381,11 @@ setInterval(() => { if (rutaActiva()) pintarRutaBarra(); }, 60000);
 
 /* ---------------- tabla del directorio con columnas ---------------- */
 
-const COLS = [
-  { k: 'nombre', t: `${TT('medico', 's', '', 'l', 'C')}`, w: 250, fijo: true },
-  { k: 'especialidad', get t() { return TT('especialidad', 's', '', 'l', 'C'); }, w: 170 },
-  { k: 'centro_nombre', t: 'Centro', w: 200 },
-  { k: 'municipio', t: 'Municipio', w: 140 },
-  { k: 'direccion', t: 'Dirección', w: 200 },
-  { k: 'telefono', t: 'Teléfono', w: 130 },
-  { k: 'dias', t: 'Días', w: 150 },
-  { k: 'ultima_visita', t: `${TT('visita', 's', 'ultimo', 'C', 'l')}`, w: 130 },
-  { k: 'estado_comercial', t: 'Estado', w: 150 }
-];
 
 
 
 
 
-/* arrastrar el borde de una columna */
-let ARR = null;
-document.addEventListener('pointerdown', e => {
-  const h = e.target.closest('i.res[data-res]'); if (!h) return;   // solo el borde de una cabecera
-  const cfg = colsConfig(), c = cfg.find(x => x.k === h.dataset.res);
-  if (!c) return;
-  e.preventDefault();
-  ARR = { k: h.dataset.res, x0: e.clientX, w0: c.w, cfg };
-  document.body.style.cursor = 'col-resize';
-});
-document.addEventListener('pointermove', e => {
-  if (!ARR) return;
-  const w = Math.max(80, Math.min(600, Math.round(ARR.w0 + (e.clientX - ARR.x0))));
-  ARR.w = w;
-  document.querySelectorAll(`.tcell`).forEach(() => {});
-  const cfg = ARR.cfg.map(c => c.k === ARR.k ? { ...c, w } : c);
-  colsGuardar(cfg);
-  cabeceraTabla();
-  document.querySelectorAll('#lista .trow').forEach(tr => {
-    const vis = cfg.filter(c => c.on);
-    [...tr.children].forEach((cel, i) => { if (vis[i]) { cel.style.width = vis[i].w + 'px'; cel.style.minWidth = vis[i].w + 'px'; } });
-  });
-});
-document.addEventListener('pointerup', () => { if (ARR) { ARR = null; document.body.style.cursor = ''; } });
 
 
 $('cercaBtn').addEventListener('click', e => cercaDeMi(e.target));
@@ -28081,21 +28281,6 @@ document.addEventListener('pointerdown', e => { if (!e.target.closest('.picker')
 
 $('fcom').addEventListener('change', e => { F.com = e.target.value; buscar(true); });
 
-COLS.push({ k: 'comerciales', t: 'Comerciales', w: 190 });
-function celdaBase(m, k) {
-  if (k === 'nombre') return `<span class="nm">${m.urgente ? '<span class="pill p-urg">Urgente</span> ' : ''}${m.sin_reporting ? `<span class="pill p-sr" title="Solo ${TT('visita', 's', '', 'l', 'l')} presencial: sin informes ni feedback">Sin reporting</span> ` : ''}${esc(m.nombre)}</span>`;
-  if (k === 'dias') return `<span class="dias">${['L', 'M', 'X', 'J', 'V'].map(d =>
-    `<span class="${(m.dias || {})[d] ? 'on' : ''}" title="${esc((m.dias || {})[d] || '')}">${d}</span>`).join('')}</span>`;
-  if (k === 'estado_comercial') return `<span class="pill p-est">${esc(m.estado_comercial)}</span>`;
-  if (k === 'ultima_visita') return `<span class="sm">${m.ultima_visita ? fechaCorta(m.ultima_visita) : '—'}</span>`;
-  if (k === 'telefono') return `<span class="sm">${esc(m.telefono || m.consulta_telefono || '')}</span>`;
-  if (k.startsWith('cp:')) { const cl = k.slice(3); return `<span class="sm">${esc(campoTexto((CAMPOS.medico || []).find(x => x.clave === cl), (m.clasificadores || {})[cl]))}</span>`; }
-  if (k === 'comerciales') {
-    const c = m.comerciales || [];
-    return `<span class="comchips">${c.length ? c.map(x => `<span>${esc(nombrePila(x.nombre))}</span>`).join('') : '<span class="sin">Sin asignar</span>'}</span>`;
-  }
-  return `<span class="sm">${esc(m[k] || '')}</span>`;
-}
 
 
 /* ---------------- ficha del médico: comercial en «Editar ficha» ---------------- */
@@ -28670,43 +28855,6 @@ const detTxt = v => (v.detalles || []).filter(d => !esMuestras(d) && !(!d.dato &
 
 /* ---------------- columnas dentro del panel lateral ---------------- */
 
-function abrirColumnasBase() {
-  const d = $('tools');
-  let D = colsConfig();
-  const pinta = () => {
-    d.innerHTML = `<div class="tbox">
-      <div class="fh"><h2>Columnas</h2><button class="x" id="tclose" aria-label="Cerrar">✕</button></div>
-      <button class="kcfg" id="tcvolver" style="margin:0 0 10px">← Volver a los filtros</button>
-      <p class="sm">Marca las que quieres ver y ordénalas con las flechas. Se aplica al momento. El ancho se cambia arrastrando el borde de cada cabecera.</p>
-      <div class="lista tcols">${D.map((c, i) => {
-        const col = COLS.find(x => x.k === c.k) || { t: c.k };
-        return `<label class="item" style="cursor:pointer;margin:0">
-          <input type="checkbox" data-con="${i}" ${c.on ? 'checked' : ''} ${col.fijo ? 'disabled' : ''}>
-          <span class="tx"><b>${esc(col.t)}</b>${col.fijo ? '<span class="sm">siempre visible</span>' : ''}</span>
-          <span class="kord" style="flex-direction:row">
-            <button type="button" class="kmv" data-cmv="${i}|-1" aria-label="Subir" ${i === 0 ? 'disabled' : ''}>${ICO.arriba}</button>
-            <button type="button" class="kmv" data-cmv="${i}|1" aria-label="Bajar" ${i === D.length - 1 ? 'disabled' : ''}>${ICO.abajo}</button></span></label>`;
-      }).join('')}</div>
-      <div class="acts"><button class="btn sec" id="tcres">Restaurar las columnas</button></div></div>`;
-    const aplicar = () => { colsGuardar(D); buscar(true); };
-    $('tclose').onclick = () => d.classList.remove('abierto');
-    $('tcvolver').onclick = () => { HERR_CTX = null; abrirHerramientas('directorio'); };
-    d.querySelectorAll('[data-con]').forEach(i => i.onchange = () => {
-      D[+i.dataset.con].on = i.checked;
-      if (!D.some(c => c.on)) { i.checked = true; D[+i.dataset.con].on = true; toast('Deja al menos una columna', true); return; }
-      aplicar();
-    });
-    d.querySelectorAll('[data-cmv]').forEach(b => b.onclick = e => {
-      e.preventDefault();
-      const [i, dir] = b.dataset.cmv.split('|').map(Number), j = i + dir;
-      if (j < 0 || j >= D.length) return;
-      [D[i], D[j]] = [D[j], D[i]]; aplicar(); pinta();
-    });
-    $('tcres').onclick = () => { localStorage.removeItem(colKey()); D = colsConfig(); buscar(true); pinta(); };
-  };
-  pinta();
-  d.classList.add('abierto');
-}
 
 /* ---------------- Clientes (antes Pacientes): tipo y filtros ---------------- */
 
@@ -30483,13 +30631,6 @@ new MutationObserver(() => {
 
 /* ---------------- Prescriptores: columna «Acceso a la plataforma» ---------------- */
 
-COLS.push({ k: 'acceso', t: 'Acceso a la plataforma', w: 170 });
-function celda(m, k) {
-  if (k !== 'acceso') return celdaBase(m, k);
-  if (!MED_ACCESO) { cargarAccesoMedicos().then(() => { if (TAB === 'directorio') buscar(true); }); return ''; }
-  const a = MED_ACCESO[m.id];
-  return a ? `<span class="pill ${a.activo ? 'p-est' : 'p-anu'}">${a.activo ? 'Con acceso' : 'Acceso desactivado'}</span>` : '<span class="sm">Sin acceso</span>';
-}
 
 /* ---------------- páginas propias: Perfil, Empresa y Plan ---------------- */
 
@@ -30591,20 +30732,6 @@ function panelColumnasBase(titulo, cols, alCambiar) {
   $('t2volver').onclick = () => d.classList.remove('abierto');
   $('t2cerrar').onclick = () => { d.classList.remove('abierto'); $('tools').classList.remove('abierto'); };
   d.classList.add('abierto');
-}
-// Prescriptores: sus columnas se abren en el segundo panel, encima del de filtros
-function abrirColumnas() {
-  const t1 = $('tools'), t2 = $('tools2');
-  // La función original pinta en el panel que se llama «tools»: durante la llamada, ese es el segundo
-  t1.id = 'tools_1'; t2.id = 'tools';
-  try { abrirColumnasBase(); } finally { t2.id = 'tools2'; t1.id = 'tools'; }
-  t1.classList.add('abierto'); t2.classList.add('abierto');
-  const ajustar = () => {
-    const v = t2.querySelector('#tcvolver'); if (v && !v.dataset.v255) { v.dataset.v255 = '1'; v.textContent = '‹ Volver'; v.className = 't2volver'; v.onclick = () => t2.classList.remove('abierto'); }
-    const x = t2.querySelector('#tclose'); if (x && !x.dataset.v255) { x.dataset.v255 = '1'; x.onclick = () => { t2.classList.remove('abierto'); t1.classList.remove('abierto'); }; }
-  };
-  ajustar();
-  if (!t2.dataset.obs) { t2.dataset.obs = '1'; new MutationObserver(ajustar).observe(t2, { childList: true, subtree: true }); }
 }
 // Si se vuelve a los filtros desde cualquier sitio, el segundo panel se cierra
 function abrirHerramientasBase3(...a) { $('tools2').classList.remove('abierto'); return abrirHerramientasBase2(...a); }

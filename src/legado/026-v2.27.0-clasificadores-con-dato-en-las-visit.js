@@ -28,43 +28,6 @@ const detTxt = v => (v.detalles || []).filter(d => !esMuestras(d) && !(!d.dato &
 
 /* ---------------- columnas dentro del panel lateral ---------------- */
 
-function abrirColumnasBase() {
-  const d = $('tools');
-  let D = colsConfig();
-  const pinta = () => {
-    d.innerHTML = `<div class="tbox">
-      <div class="fh"><h2>Columnas</h2><button class="x" id="tclose" aria-label="Cerrar">✕</button></div>
-      <button class="kcfg" id="tcvolver" style="margin:0 0 10px">← Volver a los filtros</button>
-      <p class="sm">Marca las que quieres ver y ordénalas con las flechas. Se aplica al momento. El ancho se cambia arrastrando el borde de cada cabecera.</p>
-      <div class="lista tcols">${D.map((c, i) => {
-        const col = COLS.find(x => x.k === c.k) || { t: c.k };
-        return `<label class="item" style="cursor:pointer;margin:0">
-          <input type="checkbox" data-con="${i}" ${c.on ? 'checked' : ''} ${col.fijo ? 'disabled' : ''}>
-          <span class="tx"><b>${esc(col.t)}</b>${col.fijo ? '<span class="sm">siempre visible</span>' : ''}</span>
-          <span class="kord" style="flex-direction:row">
-            <button type="button" class="kmv" data-cmv="${i}|-1" aria-label="Subir" ${i === 0 ? 'disabled' : ''}>${ICO.arriba}</button>
-            <button type="button" class="kmv" data-cmv="${i}|1" aria-label="Bajar" ${i === D.length - 1 ? 'disabled' : ''}>${ICO.abajo}</button></span></label>`;
-      }).join('')}</div>
-      <div class="acts"><button class="btn sec" id="tcres">Restaurar las columnas</button></div></div>`;
-    const aplicar = () => { colsGuardar(D); buscar(true); };
-    $('tclose').onclick = () => d.classList.remove('abierto');
-    $('tcvolver').onclick = () => { HERR_CTX = null; abrirHerramientas('directorio'); };
-    d.querySelectorAll('[data-con]').forEach(i => i.onchange = () => {
-      D[+i.dataset.con].on = i.checked;
-      if (!D.some(c => c.on)) { i.checked = true; D[+i.dataset.con].on = true; toast('Deja al menos una columna', true); return; }
-      aplicar();
-    });
-    d.querySelectorAll('[data-cmv]').forEach(b => b.onclick = e => {
-      e.preventDefault();
-      const [i, dir] = b.dataset.cmv.split('|').map(Number), j = i + dir;
-      if (j < 0 || j >= D.length) return;
-      [D[i], D[j]] = [D[j], D[i]]; aplicar(); pinta();
-    });
-    $('tcres').onclick = () => { localStorage.removeItem(colKey()); D = colsConfig(); buscar(true); pinta(); };
-  };
-  pinta();
-  d.classList.add('abierto');
-}
 
 /* ---------------- Clientes (antes Pacientes): tipo y filtros ---------------- */
 

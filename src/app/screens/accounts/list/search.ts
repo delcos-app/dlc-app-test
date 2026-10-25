@@ -8,7 +8,7 @@ import { t } from '../../../i18n';
 import { escapeHtml, formatNumber } from '../../../services/format';
 import { paintChips, paintHeader, rowHtml } from './table';
 
-interface SearchResult { total: number; filas?: AccountRow[] }
+interface SearchResult { total: number; filas?: AccountListRow[] }
 
 let lastSearch = 0;
 
@@ -51,7 +51,7 @@ function showResult(data: SearchResult, list: HTMLElement, count: HTMLElement, e
   paintChips();
   const rows = data.filas ?? [];
   if (!rows.length) { list.innerHTML = `<div class="vacio">${t('accounts.list.noMatches')}</div>`; const head = document.getElementById('thead'); if (head) head.innerHTML = ''; }
-  else { paintHeader(); list.innerHTML = rows.map(rowHtml).join(''); }
+  else { paintHeader(); list.innerHTML = rows.map(row => rowHtml(row, () => { void searchAccounts(true); })).join(''); }
   accountListLegacy.paginate({
     element: document.getElementById('dirpag'), total: data.total, page: filters.pagina,
     onPage: page => { filters.pagina = page; void searchAccounts(false); document.getElementById('tabla')?.scrollIntoView({ block: 'start', behavior: 'smooth' }); },

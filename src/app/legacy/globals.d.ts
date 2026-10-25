@@ -309,12 +309,15 @@ interface AccountRow { id: string; nombre?: string | null; urgente?: boolean | n
 interface ColumnSetting { k: string; on: boolean; w: number }
 declare const F: AccountFilters;
 declare let MODO_MAPA: boolean;
-declare const COLS: { k: string; t: string }[];
 declare const ORD_DIR: Readonly<Record<string, string>>;
 declare function pintarMapa(): Promise<void>;
-declare function colsConfig(): ColumnSetting[];
-declare function celda(row: AccountRow, key: string): string;
 declare function clasChips(scope: string, state: Record<string, unknown>): { k: string; t: string }[];
 declare function etiquetaContactos(): string;
 declare function tamPagina(): number;
 declare function paginador(element: HTMLElement | null, total: number, page: number, onPage: (page: number) => void, onSize: () => void): void;
+interface CustomField { clave: string; nombre: string; tipo?: string | null; en_tabla?: boolean | null }
+interface AccountListRow extends AccountRow { sin_reporting?: boolean | null; dias?: Record<string, string | null> | null; ultima_visita?: string | null; telefono?: string | null; consulta_telefono?: string | null; clasificadores?: Record<string, unknown> | null; comerciales?: { nombre: string }[] | null; [key: string]: unknown }
+declare const CAMPOS: Record<string, CustomField[] | undefined>;
+declare function campoTexto(field: CustomField | undefined, value: unknown): string;
+declare function nombrePila(name: string): string;
+declare function cargarAccesoMedicos(): Promise<void>;

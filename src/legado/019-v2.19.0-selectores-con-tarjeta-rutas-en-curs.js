@@ -70,21 +70,6 @@ document.addEventListener('pointerdown', e => { if (!e.target.closest('.picker')
 
 $('fcom').addEventListener('change', e => { F.com = e.target.value; buscar(true); });
 
-COLS.push({ k: 'comerciales', t: 'Comerciales', w: 190 });
-function celdaBase(m, k) {
-  if (k === 'nombre') return `<span class="nm">${m.urgente ? '<span class="pill p-urg">Urgente</span> ' : ''}${m.sin_reporting ? `<span class="pill p-sr" title="Solo ${TT('visita', 's', '', 'l', 'l')} presencial: sin informes ni feedback">Sin reporting</span> ` : ''}${esc(m.nombre)}</span>`;
-  if (k === 'dias') return `<span class="dias">${['L', 'M', 'X', 'J', 'V'].map(d =>
-    `<span class="${(m.dias || {})[d] ? 'on' : ''}" title="${esc((m.dias || {})[d] || '')}">${d}</span>`).join('')}</span>`;
-  if (k === 'estado_comercial') return `<span class="pill p-est">${esc(m.estado_comercial)}</span>`;
-  if (k === 'ultima_visita') return `<span class="sm">${m.ultima_visita ? fechaCorta(m.ultima_visita) : '—'}</span>`;
-  if (k === 'telefono') return `<span class="sm">${esc(m.telefono || m.consulta_telefono || '')}</span>`;
-  if (k.startsWith('cp:')) { const cl = k.slice(3); return `<span class="sm">${esc(campoTexto((CAMPOS.medico || []).find(x => x.clave === cl), (m.clasificadores || {})[cl]))}</span>`; }
-  if (k === 'comerciales') {
-    const c = m.comerciales || [];
-    return `<span class="comchips">${c.length ? c.map(x => `<span>${esc(nombrePila(x.nombre))}</span>`).join('') : '<span class="sin">Sin asignar</span>'}</span>`;
-  }
-  return `<span class="sm">${esc(m[k] || '')}</span>`;
-}
 
 
 /* ---------------- ficha del médico: comercial en «Editar ficha» ---------------- */

@@ -18,14 +18,16 @@ export interface TermOptions {
   readonly article?: string;
   /** 'C' capitalised, 'l' lower case */
   readonly capital?: 'C' | 'l';
+  /** 'C' to capitalise the article (e.g. «Última visita») */
+  readonly articleCapital?: 'C' | 'l';
   /** Adjective agreeing in gender and number (e.g. 'urgente') */
   readonly adjective?: string;
 }
 
 /** Company vocabulary (profesional, visita…): legacy TT() until the vocabulary service exists. */
 export function term(word: string, options: TermOptions = {}): string {
-  const { number = 's', article = '', capital = 'l', adjective } = options;
-  return adjective === undefined ? TT(word, number, article, 'l', capital) : TT(word, number, article, 'l', capital, adjective);
+  const { number = 's', article = '', capital = 'l', adjective, articleCapital = 'l' } = options;
+  return adjective === undefined ? TT(word, number, article, articleCapital, capital) : TT(word, number, article, articleCapital, capital, adjective);
 }
 
 export const permissions = {
@@ -376,15 +378,23 @@ export const accountListLegacy = {
   filters: (): AccountFilters => F,
   mapMode: (): boolean => MODO_MAPA,
   paintMap: (): void => { void pintarMapa(); },
-  columns: (): ColumnSetting[] => colsConfig().filter(column => column.on),
-  columnTitle: (key: string): string => COLS.find(column => column.k === key)?.t ?? key,
   /** The database order key of a column (only the sortable ones). */
   sortKey: (column: string): string | undefined => ORD_DIR[column],
-  cell: (row: AccountRow, key: string): string => celda(row, key),
   fieldChips: (state: Record<string, unknown>): { k: string; t: string }[] => clasChips('medico', state),
   contactsLabel: (): string => etiquetaContactos(),
   pageSize: (): number => tamPagina(),
   paginate: (options: { element: HTMLElement | null; total: number; page: number; onPage: (page: number) => void; onSize: () => void }): void => {
     paginador(options.element, options.total, options.page, options.onPage, options.onSize);
   },
+};
+
+/** What the columns and cells of Cuentas use from legacy: custom fields, platform access and names. */
+export const accountColumnsLegacy = {
+  customFields: (): readonly CustomField[] => CAMPOS.medico ?? [],
+  fieldText: (field: CustomField | undefined, value: unknown): string => campoTexto(field, value),
+  firstName: (name: string): string => nombrePila(name),
+  /** Platform access by account (loaded once; null until it arrives). */
+  accessOf: (): Record<string, { activo?: boolean }> | null => MED_ACCESO as Record<string, { activo?: boolean }> | null,
+  loadAccess: (): Promise<void> => cargarAccesoMedicos(),
+  storageKey: (): string => `dlc-cols-${(PERFIL as { id?: string } | null)?.id ?? ''}`,
 };

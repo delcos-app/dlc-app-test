@@ -12,13 +12,6 @@ new MutationObserver(() => {
 
 /* ---------------- Prescriptores: columna «Acceso a la plataforma» ---------------- */
 
-COLS.push({ k: 'acceso', t: 'Acceso a la plataforma', w: 170 });
-function celda(m, k) {
-  if (k !== 'acceso') return celdaBase(m, k);
-  if (!MED_ACCESO) { cargarAccesoMedicos().then(() => { if (TAB === 'directorio') buscar(true); }); return ''; }
-  const a = MED_ACCESO[m.id];
-  return a ? `<span class="pill ${a.activo ? 'p-est' : 'p-anu'}">${a.activo ? 'Con acceso' : 'Acceso desactivado'}</span>` : '<span class="sm">Sin acceso</span>';
-}
 
 /* ---------------- páginas propias: Perfil, Empresa y Plan ---------------- */
 

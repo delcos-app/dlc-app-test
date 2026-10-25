@@ -10,6 +10,8 @@ import * as agenda from './screens/agenda';
 import { listenToSameCentre } from './screens/agenda/same-centre';
 import { listenToYourDay } from './screens/agenda/your-day';
 import { listenToCards } from './screens/agenda/your-day/card-buttons';
+import { listenToColumnResize } from './screens/accounts/list/column-panel';
+import { paintHeader as paintAccountsHeader } from './screens/accounts/list/table';
 import * as home from './screens/home';
 import { paintIndicators } from './screens/home/indicators';
 
@@ -53,3 +55,4 @@ window.delcos = {
 listenToSameCentre();
 listenToYourDay();
 listenToCards();
+listenToColumnResize(paintAccountsHeader);
