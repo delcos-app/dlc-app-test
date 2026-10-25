@@ -467,6 +467,21 @@
 
   // src/app/i18n/es/accounts.ts
   var accounts = {
+    list: {
+      searching: "Buscando {contacts}…",
+      searchingShort: "Buscando…",
+      couldNotLoad: "No se ha podido cargar la lista",
+      notResponding: " (la conexión no responde)",
+      retry: "Reintentar",
+      count: '<b>{count}</b> {contacts} <span class="sm">· {ms} ms</span>',
+      noMatches: "Ningún registro cumple estos filtros.",
+      sortBy: "Ordenar por esta columna",
+      urgent: "Urgente",
+      chipSearch: "Búsqueda: {text}",
+      chipUrgent: "Solo urgentes",
+      chipMine: "De mi cartera",
+      chipNeverVisited: "Sin visitar nunca"
+    },
     base: {
       noConnection: "Sin conexión y sin copia guardada de esta ficha.",
       cachedNotice: "Sin conexión · ficha guardada en este dispositivo",
@@ -1119,7 +1134,9 @@
   var accounts_exports = {};
   __export(accounts_exports, {
     openAccountCard: () => openAccountCard,
-    refreshPortal: () => refreshPortal
+    paintAccountsHeader: () => paintHeader,
+    refreshPortal: () => refreshPortal,
+    searchAccounts: () => searchAccounts
   });
 
   // src/app/legacy/bridge.ts
@@ -1565,6 +1582,25 @@
       const client = window.supabase.createClient(CFG.url, CFG.anon, { auth: { persistSession: false, autoRefreshToken: false } });
       const { error } = await client.auth.signUp({ email, password, options: { data: { nombre: name, usuario: email.split("@")[0] } } });
       return error;
+    }
+  };
+  var accountListLegacy = {
+    // eslint-disable-next-line id-length -- F is the legacy global state of the filters (a top-level const, not on window)
+    filters: () => F,
+    mapMode: () => MODO_MAPA,
+    paintMap: () => {
+      void pintarMapa();
+    },
+    columns: () => colsConfig().filter((column) => column.on),
+    columnTitle: (key) => COLS.find((column) => column.k === key)?.t ?? key,
+    /** The database order key of a column (only the sortable ones). */
+    sortKey: (column) => ORD_DIR[column],
+    cell: (row2, key) => celda(row2, key),
+    fieldChips: (state) => clasChips("medico", state),
+    contactsLabel: () => etiquetaContactos(),
+    pageSize: () => tamPagina(),
+    paginate: (options) => {
+      paginador(options.element, options.total, options.page, options.onPage, options.onSize);
     }
   };
 
@@ -2454,6 +2490,149 @@
       if (section.wait === false) void runSection(section, id);
       else await runSection(section, id);
     }
+  }
+
+  // src/app/screens/accounts/list/table.ts
+  function paintHeader() {
+    const head = document.getElementById("thead");
+    if (!head) return;
+    const columns = accountListLegacy.columns(), width = columns.reduce((total, column) => total + column.w, 0);
+    head.innerHTML = columns.map((column) => `<span class="tcell th" style="width:${column.w}px;min-width:${column.w}px">${escapeHtml(accountListLegacy.columnTitle(column.k))}<i class="res" data-res="${column.k}"></i></span>`).join("");
+    head.style.minWidth = `${width}px`;
+    const list = document.getElementById("lista");
+    if (list) list.style.minWidth = `${width}px`;
+    markSort(head, columns);
+  }
+  function markSort(head, columns) {
+    const [key = "", direction] = String(accountListLegacy.filters().orden || "").split(":");
+    [...head.querySelectorAll(".th")].forEach((cell, index) => {
+      const column = columns[index], sortKey = column ? accountListLegacy.sortKey(column.k) : void 0;
+      if (!column || !sortKey) return;
+      cell.dataset.ordk = column.k;
+      cell.classList.add("htord");
+      cell.title = t("accounts.list.sortBy");
+      const current = sortKey === key && !((key === "nombre" || key === "reciente") && !direction);
+      cell.classList.toggle("ord-asc", current && direction !== "desc");
+      cell.classList.toggle("ord-desc", current && direction === "desc");
+    });
+  }
+  function rowHtml(row2) {
+    const cells = accountListLegacy.columns().map((column) => `<span class="tcell" style="width:${column.w}px;min-width:${column.w}px">${accountListLegacy.cell(row2, column.k)}</span>`).join("");
+    const place = [row2.centro_nombre, row2.municipio].filter(Boolean).join(" · ");
+    const card = `<span class="plcard"><b>${row2.urgente ? `<i class="plurg" aria-label="${t("accounts.list.urgent")}"></i>` : ""}${escapeHtml(row2.nombre ?? "")}</b><span class="plc2">${escapeHtml(place)}</span><span class="plc3">${accountListLegacy.cell(row2, "estado_comercial")}</span></span>`;
+    return `<button class="trow" data-id="${row2.id}">${cells}${card}</button>`;
+  }
+  function paintChips() {
+    const box = document.getElementById("chips");
+    if (!box) return;
+    const filters = accountListLegacy.filters();
+    const chips = [
+      ...filters.q ? [["q", t("accounts.list.chipSearch", { text: filters.q })]] : [],
+      ...[["prov", filters.prov], ["muni", filters.muni], ["esp", filters.esp], ["est", filters.est]].filter(([, value2]) => value2),
+      ...filters.urg ? [["urg", t("accounts.list.chipUrgent")]] : [],
+      ...filters.mios ? [["mios", t("accounts.list.chipMine")]] : [],
+      ...filters.sin ? [["sin", t("accounts.list.chipNeverVisited")]] : []
+    ];
+    box.innerHTML = chips.map(([key, text]) => `<button class="chip" data-x="${key}">${escapeHtml(text)} ✕</button>`).join("") + accountListLegacy.fieldChips(filters.campos).map((chip) => `<button class="chip" data-xcp="${escapeHtml(chip.k)}">${escapeHtml(chip.t)} ✕</button>`).join("");
+  }
+
+  // src/app/screens/accounts/list/search.ts
+  var lastSearch = 0;
+  var orNull = (value2) => value2 ? value2 : null;
+  var loadingHtml = (text) => `<div class="cargador"><span class="spin"></span><span class="sm">${escapeHtml(text)}</span></div>`;
+  function searchParams() {
+    const filters = accountListLegacy.filters(), size = accountListLegacy.pageSize();
+    return {
+      q: filters.q || null,
+      f_provincia: filters.prov || null,
+      f_municipio: filters.muni || null,
+      f_estado: filters.est || null,
+      f_especialidad: filters.esp || null,
+      f_area: null,
+      f_urgentes: filters.urg,
+      f_mios: Boolean(filters.mios),
+      f_sin_visitar: Boolean(filters.sin),
+      f_comercial: orNull(filters.com),
+      f_reporting: orNull(filters.rep),
+      ...filters.tipo ? { f_tipo: filters.tipo } : {},
+      orden: filters.orden,
+      lim: size,
+      desplaz: filters.pagina * size,
+      ...Object.keys(filters.campos).length ? { f_campos: filters.campos } : {}
+    };
+  }
+  function syncTypeFilter() {
+    const select = document.getElementById("ftipo");
+    if (!select) return;
+    const professionals = select.options[1];
+    if (professionals) professionals.text = term("medico", { number: "p", capital: "C" });
+    const type = accountListLegacy.filters().tipo ?? "";
+    if (select.value !== type) select.value = type;
+  }
+  function showFailure(list, count2, error) {
+    count2.textContent = "";
+    const aborted = /abort/i.test(error?.message ?? "");
+    list.innerHTML = `<div class="vacio">${t("accounts.list.couldNotLoad")}${aborted ? t("accounts.list.notResponding") : ""}.<br><button class="btn sec" type="button" id="dirreint" style="margin-top:10px">${t("accounts.list.retry")}</button></div>`;
+    const retry = document.getElementById("dirreint");
+    if (retry) retry.onclick = () => {
+      void searchAccounts(true);
+    };
+  }
+  function showResult(data, list, count2, elapsedMs) {
+    const filters = accountListLegacy.filters();
+    filters.total = data.total;
+    count2.innerHTML = t("accounts.list.count", { count: formatNumber(data.total), contacts: escapeHtml(accountListLegacy.contactsLabel().toLowerCase()), ms: elapsedMs });
+    paintChips();
+    const rows = data.filas ?? [];
+    if (!rows.length) {
+      list.innerHTML = `<div class="vacio">${t("accounts.list.noMatches")}</div>`;
+      const head = document.getElementById("thead");
+      if (head) head.innerHTML = "";
+    } else {
+      paintHeader();
+      list.innerHTML = rows.map(rowHtml).join("");
+    }
+    accountListLegacy.paginate({
+      element: document.getElementById("dirpag"),
+      total: data.total,
+      page: filters.pagina,
+      onPage: (page) => {
+        filters.pagina = page;
+        void searchAccounts(false);
+        document.getElementById("tabla")?.scrollIntoView({ block: "start", behavior: "smooth" });
+      },
+      onSize: () => {
+        void searchAccounts(true);
+      }
+    });
+  }
+  async function searchWithRetry(mine) {
+    const params = searchParams();
+    let answer = await legacyDb().rpc("buscar_cuentas", params);
+    if (mine !== lastSearch) return null;
+    if (answer.error || !answer.data) {
+      answer = await legacyDb().rpc("buscar_cuentas", params);
+      if (mine !== lastSearch) return null;
+    }
+    return answer;
+  }
+  async function searchAccounts(reset = false) {
+    syncTypeFilter();
+    if (accountListLegacy.mapMode() && reset) setTimeout(() => {
+      accountListLegacy.paintMap();
+    }, 10);
+    if (reset) accountListLegacy.filters().pagina = 0;
+    const mine = ++lastSearch, list = document.getElementById("lista"), count2 = document.getElementById("cuenta");
+    if (!list || !count2) return;
+    list.innerHTML = loadingHtml(t("accounts.list.searching", { contacts: accountListLegacy.contactsLabel().toLowerCase() }));
+    count2.textContent = t("accounts.list.searchingShort");
+    const started = performance.now(), answer = await searchWithRetry(mine);
+    if (!answer) return;
+    if (answer.error || !answer.data) {
+      showFailure(list, count2, answer.error);
+      return;
+    }
+    showResult(answer.data, list, count2, Math.round(performance.now() - started));
   }
 
   // src/app/screens/agenda/index.ts

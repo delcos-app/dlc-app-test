@@ -304,3 +304,17 @@ declare function eurI(value: number): string;
 declare function facccon(userId: string): Promise<void>;
 declare function puedeVerComo(user: PlatformUser): boolean;
 declare function nuevoUsuario(preset: Record<string, unknown>): void;
+interface AccountFilters { q: string; prov: string; muni: string; esp: string; est: string; urg: boolean; mios?: boolean; sin?: boolean; com?: string | null; rep?: string | null; tipo?: string; orden: string; pagina: number; total: number; campos: Record<string, unknown> }
+interface AccountRow { id: string; nombre?: string | null; urgente?: boolean | null; centro_nombre?: string | null; municipio?: string | null; estado_comercial?: string | null }
+interface ColumnSetting { k: string; on: boolean; w: number }
+declare const F: AccountFilters;
+declare let MODO_MAPA: boolean;
+declare const COLS: { k: string; t: string }[];
+declare const ORD_DIR: Readonly<Record<string, string>>;
+declare function pintarMapa(): Promise<void>;
+declare function colsConfig(): ColumnSetting[];
+declare function celda(row: AccountRow, key: string): string;
+declare function clasChips(scope: string, state: Record<string, unknown>): { k: string; t: string }[];
+declare function etiquetaContactos(): string;
+declare function tamPagina(): number;
+declare function paginador(element: HTMLElement | null, total: number, page: number, onPage: (page: number) => void, onSize: () => void): void;

@@ -23,16 +23,6 @@ const COLS = [
 
 
 
-function cabeceraTablaBase() {
-  const cfg = colsConfig().filter(c => c.on);
-  const ancho = cfg.reduce((n, c) => n + c.w, 0);
-  $('thead').innerHTML = cfg.map(c => {
-    const col = COLS.find(x => x.k === c.k) || { t: c.k };
-    return `<span class="tcell th" style="width:${c.w}px;min-width:${c.w}px">${esc(col.t)}<i class="res" data-res="${c.k}"></i></span>`;
-  }).join('');
-  $('thead').style.minWidth = ancho + 'px';
-  $('lista').style.minWidth = ancho + 'px';
-}
 
 /* arrastrar el borde de una columna */
 let ARR = null;

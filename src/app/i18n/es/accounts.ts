@@ -1,5 +1,20 @@
 /** Spanish texts of Cuentas (part of es.ts: one file per screen keeps each one short). */
 export const accounts = {
+  list: {
+    searching: 'Buscando {contacts}…',
+    searchingShort: 'Buscando…',
+    couldNotLoad: 'No se ha podido cargar la lista',
+    notResponding: ' (la conexión no responde)',
+    retry: 'Reintentar',
+    count: '<b>{count}</b> {contacts} <span class="sm">· {ms} ms</span>',
+    noMatches: 'Ningún registro cumple estos filtros.',
+    sortBy: 'Ordenar por esta columna',
+    urgent: 'Urgente',
+    chipSearch: 'Búsqueda: {text}',
+    chipUrgent: 'Solo urgentes',
+    chipMine: 'De mi cartera',
+    chipNeverVisited: 'Sin visitar nunca',
+  },
   base: {
     noConnection: 'Sin conexión y sin copia guardada de esta ficha.',
     cachedNotice: 'Sin conexión · ficha guardada en este dispositivo',

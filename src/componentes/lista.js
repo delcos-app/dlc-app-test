@@ -291,7 +291,7 @@ const PL = {
     },
     kpiOn: k => k === 'Persona' || k === 'Centro' ? F.tipo === k : !!F[k],
     kpiPulsar: k => { if (k === 'Persona' || k === 'Centro') { F.tipo = F.tipo === k ? '' : k; if ($('ftipo')) $('ftipo').value = F.tipo; } else F[k] = !F[k]; buscar(true); },
-    card: null   // las tarjetas del directorio las pone filaTabla (abajo), con los datos de la ficha
+    card: null   // las tarjetas del directorio las pone rowHtml (src/app/screens/accounts/list/table.ts), con los datos de la ficha
   },
   pacientes: {
     que: () => 'clientes',
@@ -467,18 +467,8 @@ const ORD_MEM = {
   llam: { fn: 'llamadas_lista', campos: ['fecha', x => x.cliente || x.nombre, 'importe_estimado', x => x.medico || x.cuenta_texto, x => x.resultado || (x.pedido_id ? 'Pedido hecho' : ''), 'proxima_fecha', 'usuario'] }
 };
 
-function filaTablaBase(m) {
-  const cfg = colsConfig().filter(c => c.on);
-  return `<button class="trow" data-id="${m.id}">${cfg.map(c =>
-    `<span class="tcell" style="width:${c.w}px;min-width:${c.w}px">${celda(m, c.k)}</span>`).join('')}</button>`;
-}
 
 // Directorio: cada fila lleva su tarjeta (oculta en el ordenador) con el nombre, centro · municipio y el estado
-function filaTabla(m) {
-  const h = filaTablaBase(m), i = h.lastIndexOf('</button>'); if (i < 0) return h;
-  const l2 = [m.centro_nombre, m.municipio].filter(Boolean).join(' · ');
-  return h.slice(0, i) + `<span class="plcard"><b>${m.urgente ? '<i class="plurg" aria-label="Urgente"></i>' : ''}${esc(m.nombre || '')}</b><span class="plc2">${esc(l2)}</span><span class="plc3">${celda(m, 'estado_comercial')}</span></span>` + h.slice(i);
-}
 
 function plKpisHtmlBase(tab) {
   const c = PL[tab], k = PL_KPI[tab];

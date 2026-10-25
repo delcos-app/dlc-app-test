@@ -44,19 +44,6 @@ db.rpc = (orig => function (fn, args, ...r) {
   return orig.call(this, fn, args, ...r);
 })(db.rpc);
 // Profesionales: su cabecera es propia y el orden va en F.orden (buscar_cuentas)
-function cabeceraTabla(...a) {
-  const r = cabeceraTablaBase.apply(this, a);
-  const cfg = colsConfig().filter(c => c.on), cab = $('thead'); if (!cab) return r;
-  const [k, dir] = String(F.orden || '').split(':');
-  [...cab.querySelectorAll('.th')].forEach((th, i) => {
-    const c = cfg[i]; if (!c || !ORD_DIR[c.k]) return;
-    th.dataset.ordk = c.k; th.classList.add('htord'); th.title = 'Ordenar por esta columna';
-    const actual = ORD_DIR[c.k] === k && !(k === 'nombre' && !dir) && !(k === 'reciente' && !dir);
-    th.classList.toggle('ord-asc', actual && dir !== 'desc');
-    th.classList.toggle('ord-desc', actual && dir === 'desc');
-  });
-  return r;
-}
 document.addEventListener('click', e => {
   const th = e.target.closest('#thead .th[data-ordk]'); if (!th || e.target.closest('.res')) return;
   const k = ORD_DIR[th.dataset.ordk], [ak, ad] = String(F.orden || '').split(':');

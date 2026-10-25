@@ -467,6 +467,21 @@
 
   // src/app/i18n/es/accounts.ts
   var accounts = {
+    list: {
+      searching: "Buscando {contacts}…",
+      searchingShort: "Buscando…",
+      couldNotLoad: "No se ha podido cargar la lista",
+      notResponding: " (la conexión no responde)",
+      retry: "Reintentar",
+      count: '<b>{count}</b> {contacts} <span class="sm">· {ms} ms</span>',
+      noMatches: "Ningún registro cumple estos filtros.",
+      sortBy: "Ordenar por esta columna",
+      urgent: "Urgente",
+      chipSearch: "Búsqueda: {text}",
+      chipUrgent: "Solo urgentes",
+      chipMine: "De mi cartera",
+      chipNeverVisited: "Sin visitar nunca"
+    },
     base: {
       noConnection: "Sin conexión y sin copia guardada de esta ficha.",
       cachedNotice: "Sin conexión · ficha guardada en este dispositivo",
@@ -1119,7 +1134,9 @@
   var accounts_exports = {};
   __export(accounts_exports, {
     openAccountCard: () => openAccountCard,
-    refreshPortal: () => refreshPortal
+    paintAccountsHeader: () => paintHeader,
+    refreshPortal: () => refreshPortal,
+    searchAccounts: () => searchAccounts
   });
 
   // src/app/legacy/bridge.ts
@@ -1565,6 +1582,25 @@
       const client = window.supabase.createClient(CFG.url, CFG.anon, { auth: { persistSession: false, autoRefreshToken: false } });
       const { error } = await client.auth.signUp({ email, password, options: { data: { nombre: name, usuario: email.split("@")[0] } } });
       return error;
+    }
+  };
+  var accountListLegacy = {
+    // eslint-disable-next-line id-length -- F is the legacy global state of the filters (a top-level const, not on window)
+    filters: () => F,
+    mapMode: () => MODO_MAPA,
+    paintMap: () => {
+      void pintarMapa();
+    },
+    columns: () => colsConfig().filter((column) => column.on),
+    columnTitle: (key) => COLS.find((column) => column.k === key)?.t ?? key,
+    /** The database order key of a column (only the sortable ones). */
+    sortKey: (column) => ORD_DIR[column],
+    cell: (row2, key) => celda(row2, key),
+    fieldChips: (state) => clasChips("medico", state),
+    contactsLabel: () => etiquetaContactos(),
+    pageSize: () => tamPagina(),
+    paginate: (options) => {
+      paginador(options.element, options.total, options.page, options.onPage, options.onSize);
     }
   };
 
@@ -2454,6 +2490,149 @@
       if (section.wait === false) void runSection(section, id);
       else await runSection(section, id);
     }
+  }
+
+  // src/app/screens/accounts/list/table.ts
+  function paintHeader() {
+    const head = document.getElementById("thead");
+    if (!head) return;
+    const columns = accountListLegacy.columns(), width = columns.reduce((total, column) => total + column.w, 0);
+    head.innerHTML = columns.map((column) => `<span class="tcell th" style="width:${column.w}px;min-width:${column.w}px">${escapeHtml(accountListLegacy.columnTitle(column.k))}<i class="res" data-res="${column.k}"></i></span>`).join("");
+    head.style.minWidth = `${width}px`;
+    const list = document.getElementById("lista");
+    if (list) list.style.minWidth = `${width}px`;
+    markSort(head, columns);
+  }
+  function markSort(head, columns) {
+    const [key = "", direction] = String(accountListLegacy.filters().orden || "").split(":");
+    [...head.querySelectorAll(".th")].forEach((cell, index) => {
+      const column = columns[index], sortKey = column ? accountListLegacy.sortKey(column.k) : void 0;
+      if (!column || !sortKey) return;
+      cell.dataset.ordk = column.k;
+      cell.classList.add("htord");
+      cell.title = t("accounts.list.sortBy");
+      const current = sortKey === key && !((key === "nombre" || key === "reciente") && !direction);
+      cell.classList.toggle("ord-asc", current && direction !== "desc");
+      cell.classList.toggle("ord-desc", current && direction === "desc");
+    });
+  }
+  function rowHtml(row2) {
+    const cells = accountListLegacy.columns().map((column) => `<span class="tcell" style="width:${column.w}px;min-width:${column.w}px">${accountListLegacy.cell(row2, column.k)}</span>`).join("");
+    const place = [row2.centro_nombre, row2.municipio].filter(Boolean).join(" · ");
+    const card = `<span class="plcard"><b>${row2.urgente ? `<i class="plurg" aria-label="${t("accounts.list.urgent")}"></i>` : ""}${escapeHtml(row2.nombre ?? "")}</b><span class="plc2">${escapeHtml(place)}</span><span class="plc3">${accountListLegacy.cell(row2, "estado_comercial")}</span></span>`;
+    return `<button class="trow" data-id="${row2.id}">${cells}${card}</button>`;
+  }
+  function paintChips() {
+    const box = document.getElementById("chips");
+    if (!box) return;
+    const filters = accountListLegacy.filters();
+    const chips = [
+      ...filters.q ? [["q", t("accounts.list.chipSearch", { text: filters.q })]] : [],
+      ...[["prov", filters.prov], ["muni", filters.muni], ["esp", filters.esp], ["est", filters.est]].filter(([, value2]) => value2),
+      ...filters.urg ? [["urg", t("accounts.list.chipUrgent")]] : [],
+      ...filters.mios ? [["mios", t("accounts.list.chipMine")]] : [],
+      ...filters.sin ? [["sin", t("accounts.list.chipNeverVisited")]] : []
+    ];
+    box.innerHTML = chips.map(([key, text]) => `<button class="chip" data-x="${key}">${escapeHtml(text)} ✕</button>`).join("") + accountListLegacy.fieldChips(filters.campos).map((chip) => `<button class="chip" data-xcp="${escapeHtml(chip.k)}">${escapeHtml(chip.t)} ✕</button>`).join("");
+  }
+
+  // src/app/screens/accounts/list/search.ts
+  var lastSearch = 0;
+  var orNull = (value2) => value2 ? value2 : null;
+  var loadingHtml = (text) => `<div class="cargador"><span class="spin"></span><span class="sm">${escapeHtml(text)}</span></div>`;
+  function searchParams() {
+    const filters = accountListLegacy.filters(), size = accountListLegacy.pageSize();
+    return {
+      q: filters.q || null,
+      f_provincia: filters.prov || null,
+      f_municipio: filters.muni || null,
+      f_estado: filters.est || null,
+      f_especialidad: filters.esp || null,
+      f_area: null,
+      f_urgentes: filters.urg,
+      f_mios: Boolean(filters.mios),
+      f_sin_visitar: Boolean(filters.sin),
+      f_comercial: orNull(filters.com),
+      f_reporting: orNull(filters.rep),
+      ...filters.tipo ? { f_tipo: filters.tipo } : {},
+      orden: filters.orden,
+      lim: size,
+      desplaz: filters.pagina * size,
+      ...Object.keys(filters.campos).length ? { f_campos: filters.campos } : {}
+    };
+  }
+  function syncTypeFilter() {
+    const select = document.getElementById("ftipo");
+    if (!select) return;
+    const professionals = select.options[1];
+    if (professionals) professionals.text = term("medico", { number: "p", capital: "C" });
+    const type = accountListLegacy.filters().tipo ?? "";
+    if (select.value !== type) select.value = type;
+  }
+  function showFailure(list, count2, error) {
+    count2.textContent = "";
+    const aborted = /abort/i.test(error?.message ?? "");
+    list.innerHTML = `<div class="vacio">${t("accounts.list.couldNotLoad")}${aborted ? t("accounts.list.notResponding") : ""}.<br><button class="btn sec" type="button" id="dirreint" style="margin-top:10px">${t("accounts.list.retry")}</button></div>`;
+    const retry = document.getElementById("dirreint");
+    if (retry) retry.onclick = () => {
+      void searchAccounts(true);
+    };
+  }
+  function showResult(data, list, count2, elapsedMs) {
+    const filters = accountListLegacy.filters();
+    filters.total = data.total;
+    count2.innerHTML = t("accounts.list.count", { count: formatNumber(data.total), contacts: escapeHtml(accountListLegacy.contactsLabel().toLowerCase()), ms: elapsedMs });
+    paintChips();
+    const rows = data.filas ?? [];
+    if (!rows.length) {
+      list.innerHTML = `<div class="vacio">${t("accounts.list.noMatches")}</div>`;
+      const head = document.getElementById("thead");
+      if (head) head.innerHTML = "";
+    } else {
+      paintHeader();
+      list.innerHTML = rows.map(rowHtml).join("");
+    }
+    accountListLegacy.paginate({
+      element: document.getElementById("dirpag"),
+      total: data.total,
+      page: filters.pagina,
+      onPage: (page) => {
+        filters.pagina = page;
+        void searchAccounts(false);
+        document.getElementById("tabla")?.scrollIntoView({ block: "start", behavior: "smooth" });
+      },
+      onSize: () => {
+        void searchAccounts(true);
+      }
+    });
+  }
+  async function searchWithRetry(mine) {
+    const params = searchParams();
+    let answer = await legacyDb().rpc("buscar_cuentas", params);
+    if (mine !== lastSearch) return null;
+    if (answer.error || !answer.data) {
+      answer = await legacyDb().rpc("buscar_cuentas", params);
+      if (mine !== lastSearch) return null;
+    }
+    return answer;
+  }
+  async function searchAccounts(reset = false) {
+    syncTypeFilter();
+    if (accountListLegacy.mapMode() && reset) setTimeout(() => {
+      accountListLegacy.paintMap();
+    }, 10);
+    if (reset) accountListLegacy.filters().pagina = 0;
+    const mine = ++lastSearch, list = document.getElementById("lista"), count2 = document.getElementById("cuenta");
+    if (!list || !count2) return;
+    list.innerHTML = loadingHtml(t("accounts.list.searching", { contacts: accountListLegacy.contactsLabel().toLowerCase() }));
+    count2.textContent = t("accounts.list.searchingShort");
+    const started = performance.now(), answer = await searchWithRetry(mine);
+    if (!answer) return;
+    if (answer.error || !answer.data) {
+      showFailure(list, count2, answer.error);
+      return;
+    }
+    showResult(answer.data, list, count2, Math.round(performance.now() - started));
   }
 
   // src/app/screens/agenda/index.ts
@@ -8361,50 +8540,6 @@ let BUSQ_N = 0;   // solo cuenta la última búsqueda: las anteriores se descart
 // Solo los buscadores: los de tipo búsqueda y los campos con su lista de resultados justo debajo
 const esBuscador = i => i && i.matches && i.matches('input') && !i.list && (i.type === 'search' || (!!i.nextElementSibling && i.nextElementSibling.matches('.gsug, .cpres, .lista, [role=listbox]')));
 
-async function buscarBase(reiniciar) {
-  if (typeof MODO_MAPA !== 'undefined' && MODO_MAPA && reiniciar) setTimeout(() => pintarMapa(), 10);
-  if (reiniciar) F.pagina = 0;
-  const yo = ++BUSQ_N;
-  cargando($('lista'), 'Buscando ' + etiquetaContactos().toLowerCase() + '…');
-  $('cuenta').textContent = 'Buscando…';
-  const t0 = performance.now();
-  const params = {
-    q: F.q || null, f_provincia: F.prov || null, f_municipio: F.muni || null,
-    f_estado: F.est || null, f_especialidad: F.esp || null, f_area: null,
-    f_urgentes: F.urg, f_mios: !!F.mios, f_sin_visitar: !!F.sin, f_comercial: F.com || null, f_reporting: F.rep || null,
-    ...(F.tipo ? { f_tipo: F.tipo } : {}),
-    orden: F.orden, lim: tamPagina(), desplaz: F.pagina * tamPagina(),
-    ...(Object.keys(F.campos || {}).length ? { f_campos: F.campos } : {})
-  };
-  let { data, error } = await db.rpc('buscar_cuentas', params);
-  if (yo !== BUSQ_N) return;   // ya hay una búsqueda más reciente
-  // Si falla (móvil que vuelve del segundo plano, cobertura), se reintenta una vez al momento antes de avisar
-  if (error || !data) {
-    ({ data, error } = await db.rpc('buscar_cuentas', params));
-    if (yo !== BUSQ_N) return;
-  }
-
-  if (error || !data) {
-    $('cuenta').textContent = '';
-    $('lista').innerHTML = `<div class="vacio">No se ha podido cargar la lista${error && /abort/i.test(error.message || '') ? ' (la conexión no responde)' : ''}.<br><button class="btn sec" type="button" id="dirreint" style="margin-top:10px">Reintentar</button></div>`;
-    $('dirreint').onclick = () => buscar(true);
-    return;
-  }
-
-  F.total = data.total;
-  const ms = Math.round(performance.now() - t0);
-  $('cuenta').innerHTML = `<b>${num(data.total)}</b> ${esc(etiquetaContactos().toLowerCase())} <span class="sm">· ${ms} ms</span>`;
-  pintarChips();
-
-  const filas = data.filas || [];
-  if (!filas.length) { $('lista').innerHTML = `<div class="vacio">Ningún registro cumple estos filtros.</div>`; $('thead').innerHTML = ''; }
-  else { cabeceraTabla(); $('lista').innerHTML = filas.map(filaTabla).join(''); }
-
-  paginador($('dirpag'), data.total, F.pagina, p => {
-    F.pagina = p; buscar(false);
-    $('tabla').scrollIntoView({ block: 'start', behavior: 'smooth' });
-  }, () => buscar(true));
-}
 // @ts-check
 // componentes/campos.js · funciones llevadas aquí desde src/legado (bloque 6 del plan): todavía sin separar la vista de los datos.
 // Solo declaraciones de función: el orden dentro del archivo no cambia nada. Normas: docs/normas_codigo.md.
@@ -9769,7 +9904,7 @@ const PL = {
     },
     kpiOn: k => k === 'Persona' || k === 'Centro' ? F.tipo === k : !!F[k],
     kpiPulsar: k => { if (k === 'Persona' || k === 'Centro') { F.tipo = F.tipo === k ? '' : k; if ($('ftipo')) $('ftipo').value = F.tipo; } else F[k] = !F[k]; buscar(true); },
-    card: null   // las tarjetas del directorio las pone filaTabla (abajo), con los datos de la ficha
+    card: null   // las tarjetas del directorio las pone rowHtml (src/app/screens/accounts/list/table.ts), con los datos de la ficha
   },
   pacientes: {
     que: () => 'clientes',
@@ -9945,18 +10080,8 @@ const ORD_MEM = {
   llam: { fn: 'llamadas_lista', campos: ['fecha', x => x.cliente || x.nombre, 'importe_estimado', x => x.medico || x.cuenta_texto, x => x.resultado || (x.pedido_id ? 'Pedido hecho' : ''), 'proxima_fecha', 'usuario'] }
 };
 
-function filaTablaBase(m) {
-  const cfg = colsConfig().filter(c => c.on);
-  return `<button class="trow" data-id="${m.id}">${cfg.map(c =>
-    `<span class="tcell" style="width:${c.w}px;min-width:${c.w}px">${celda(m, c.k)}</span>`).join('')}</button>`;
-}
 
 // Directorio: cada fila lleva su tarjeta (oculta en el ordenador) con el nombre, centro · municipio y el estado
-function filaTabla(m) {
-  const h = filaTablaBase(m), i = h.lastIndexOf('</button>'); if (i < 0) return h;
-  const l2 = [m.centro_nombre, m.municipio].filter(Boolean).join(' · ');
-  return h.slice(0, i) + `<span class="plcard"><b>${m.urgente ? '<i class="plurg" aria-label="Urgente"></i>' : ''}${esc(m.nombre || '')}</b><span class="plc2">${esc(l2)}</span><span class="plc3">${celda(m, 'estado_comercial')}</span></span>` + h.slice(i);
-}
 
 function plKpisHtmlBase(tab) {
   const c = PL[tab], k = PL_KPI[tab];
@@ -26391,18 +26516,6 @@ $('frep').addEventListener('change', e => { F.rep = e.target.value; buscar(true)
 $('fest').addEventListener('change', e => { F.est = e.target.value; buscar(true); });
 $('forden').addEventListener('change', e => { F.orden = e.target.value; buscar(true); });
 
-function pintarChipsBase() {
-  const c = [];
-  if (F.q) c.push(['q', 'Búsqueda: ' + F.q]);
-  if (F.prov) c.push(['prov', F.prov]);
-  if (F.muni) c.push(['muni', F.muni]);
-  if (F.esp) c.push(['esp', F.esp]);
-  if (F.est) c.push(['est', F.est]);
-  if (F.urg) c.push(['urg', 'Solo urgentes']);
-  if (F.mios) c.push(['mios', 'De mi cartera']);
-  if (F.sin) c.push(['sin', 'Sin visitar nunca']);
-  $('chips').innerHTML = c.map(([k, t]) => `<button class="chip" data-x="${k}">${esc(t)} ✕</button>`).join('');
-}
 
 $('chips').addEventListener('click', e => {
   const b = e.target.closest('[data-x]'); if (!b) return;
@@ -27048,16 +27161,6 @@ const COLS = [
 
 
 
-function cabeceraTablaBase() {
-  const cfg = colsConfig().filter(c => c.on);
-  const ancho = cfg.reduce((n, c) => n + c.w, 0);
-  $('thead').innerHTML = cfg.map(c => {
-    const col = COLS.find(x => x.k === c.k) || { t: c.k };
-    return `<span class="tcell th" style="width:${c.w}px;min-width:${c.w}px">${esc(col.t)}<i class="res" data-res="${c.k}"></i></span>`;
-  }).join('');
-  $('thead').style.minWidth = ancho + 'px';
-  $('lista').style.minWidth = ancho + 'px';
-}
 
 /* arrastrar el borde de una columna */
 let ARR = null;
@@ -31034,11 +31137,6 @@ function abrirHerramientas(ctx, ...r) {
   }
   return x;
 }
-function pintarChips() {
-  pintarChipsBase();
-  const cs = clasChips('medico', F.campos);
-  if (cs.length) $('chips').insertAdjacentHTML('beforeend', cs.map(x => `<button class="chip" data-xcp="${esc(x.k)}">${esc(x.t)} ✕</button>`).join(''));
-}
 $('chips').addEventListener('click', e => {
   const b = e.target.closest('[data-xcp]'); if (!b) return;
   delete F.campos[b.dataset.xcp]; buscar(true);
@@ -32634,19 +32732,6 @@ db.rpc = (orig => function (fn, args, ...r) {
   return orig.call(this, fn, args, ...r);
 })(db.rpc);
 // Profesionales: su cabecera es propia y el orden va en F.orden (buscar_cuentas)
-function cabeceraTabla(...a) {
-  const r = cabeceraTablaBase.apply(this, a);
-  const cfg = colsConfig().filter(c => c.on), cab = $('thead'); if (!cab) return r;
-  const [k, dir] = String(F.orden || '').split(':');
-  [...cab.querySelectorAll('.th')].forEach((th, i) => {
-    const c = cfg[i]; if (!c || !ORD_DIR[c.k]) return;
-    th.dataset.ordk = c.k; th.classList.add('htord'); th.title = 'Ordenar por esta columna';
-    const actual = ORD_DIR[c.k] === k && !(k === 'nombre' && !dir) && !(k === 'reciente' && !dir);
-    th.classList.toggle('ord-asc', actual && dir !== 'desc');
-    th.classList.toggle('ord-desc', actual && dir === 'desc');
-  });
-  return r;
-}
 document.addEventListener('click', e => {
   const th = e.target.closest('#thead .th[data-ordk]'); if (!th || e.target.closest('.res')) return;
   const k = ORD_DIR[th.dataset.ordk], [ak, ad] = String(F.orden || '').split(':');
@@ -33566,12 +33651,9 @@ async function abrirEditor(id, tipo, ...r) {
 
 // v2.304.0: el filtro rápido «Tipo» de Cuentas
 if ($('ftipo')) $('ftipo').addEventListener('change', e => { F.tipo = e.target.value; buscar(true); });
-// El desplegable sigue a F.tipo (también si se cambia desde el panel o los indicadores) y nombra a los profesionales con el vocabulario de la empresa
-function buscar(...a) {
-  const s = $('ftipo');
-  if (s) { if (s.options[1]) s.options[1].text = TT('medico', 'p', '', 'l', 'C'); if (s.value !== (F.tipo || '')) s.value = F.tipo || ''; }
-  return buscarBase.apply(this, a);
-}
+// La búsqueda de Cuentas está en src/app/screens/accounts/list (v2.405.0); estos nombres se quedan porque los llaman muchos archivos
+function buscar(reiniciar) { return window.delcos.screens.accounts.searchAccounts(reiniciar); }
+function cabeceraTabla() { window.delcos.screens.accounts.paintAccountsHeader(); }
 
 
 if (ENLACE_ERROR && /otp_expired|access_denied|expired/i.test(ENLACE_ERROR)) {

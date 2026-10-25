@@ -369,3 +369,22 @@ export const accessLegacy = {
     return error;
   },
 };
+
+/** The account list still relies on legacy for its filters state (F), the column model and the cells (shared with other tables). */
+export const accountListLegacy = {
+  // eslint-disable-next-line id-length -- F is the legacy global state of the filters (a top-level const, not on window)
+  filters: (): AccountFilters => F,
+  mapMode: (): boolean => MODO_MAPA,
+  paintMap: (): void => { void pintarMapa(); },
+  columns: (): ColumnSetting[] => colsConfig().filter(column => column.on),
+  columnTitle: (key: string): string => COLS.find(column => column.k === key)?.t ?? key,
+  /** The database order key of a column (only the sortable ones). */
+  sortKey: (column: string): string | undefined => ORD_DIR[column],
+  cell: (row: AccountRow, key: string): string => celda(row, key),
+  fieldChips: (state: Record<string, unknown>): { k: string; t: string }[] => clasChips('medico', state),
+  contactsLabel: (): string => etiquetaContactos(),
+  pageSize: (): number => tamPagina(),
+  paginate: (options: { element: HTMLElement | null; total: number; page: number; onPage: (page: number) => void; onSize: () => void }): void => {
+    paginador(options.element, options.total, options.page, options.onPage, options.onSize);
+  },
+};

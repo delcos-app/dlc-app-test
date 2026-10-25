@@ -16,11 +16,6 @@ function abrirHerramientas(ctx, ...r) {
   }
   return x;
 }
-function pintarChips() {
-  pintarChipsBase();
-  const cs = clasChips('medico', F.campos);
-  if (cs.length) $('chips').insertAdjacentHTML('beforeend', cs.map(x => `<button class="chip" data-xcp="${esc(x.k)}">${esc(x.t)} ✕</button>`).join(''));
-}
 $('chips').addEventListener('click', e => {
   const b = e.target.closest('[data-xcp]'); if (!b) return;
   delete F.campos[b.dataset.xcp]; buscar(true);

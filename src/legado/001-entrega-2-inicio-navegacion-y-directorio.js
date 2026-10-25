@@ -185,18 +185,6 @@ $('frep').addEventListener('change', e => { F.rep = e.target.value; buscar(true)
 $('fest').addEventListener('change', e => { F.est = e.target.value; buscar(true); });
 $('forden').addEventListener('change', e => { F.orden = e.target.value; buscar(true); });
 
-function pintarChipsBase() {
-  const c = [];
-  if (F.q) c.push(['q', 'Búsqueda: ' + F.q]);
-  if (F.prov) c.push(['prov', F.prov]);
-  if (F.muni) c.push(['muni', F.muni]);
-  if (F.esp) c.push(['esp', F.esp]);
-  if (F.est) c.push(['est', F.est]);
-  if (F.urg) c.push(['urg', 'Solo urgentes']);
-  if (F.mios) c.push(['mios', 'De mi cartera']);
-  if (F.sin) c.push(['sin', 'Sin visitar nunca']);
-  $('chips').innerHTML = c.map(([k, t]) => `<button class="chip" data-x="${k}">${esc(t)} ✕</button>`).join('');
-}
 
 $('chips').addEventListener('click', e => {
   const b = e.target.closest('[data-x]'); if (!b) return;

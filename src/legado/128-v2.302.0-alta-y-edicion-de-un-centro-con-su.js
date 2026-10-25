@@ -45,11 +45,8 @@ async function abrirEditor(id, tipo, ...r) {
 
 // v2.304.0: el filtro rápido «Tipo» de Cuentas
 if ($('ftipo')) $('ftipo').addEventListener('change', e => { F.tipo = e.target.value; buscar(true); });
-// El desplegable sigue a F.tipo (también si se cambia desde el panel o los indicadores) y nombra a los profesionales con el vocabulario de la empresa
-function buscar(...a) {
-  const s = $('ftipo');
-  if (s) { if (s.options[1]) s.options[1].text = TT('medico', 'p', '', 'l', 'C'); if (s.value !== (F.tipo || '')) s.value = F.tipo || ''; }
-  return buscarBase.apply(this, a);
-}
+// La búsqueda de Cuentas está en src/app/screens/accounts/list (v2.405.0); estos nombres se quedan porque los llaman muchos archivos
+function buscar(reiniciar) { return window.delcos.screens.accounts.searchAccounts(reiniciar); }
+function cabeceraTabla() { window.delcos.screens.accounts.paintAccountsHeader(); }
 
 
